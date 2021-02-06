@@ -1,0 +1,644 @@
+openapi: 3.0.3
+info:
+  title: CloudSDK Alarm API
+  description: APIs that provide services for viewing, updating and deleting various data elements of alarms.
+  version: 1.0.0
+servers:
+  - url: https://localhost:9091
+    description: Local Dev server
+  - url: https://10.0.0.61:9091
+    description: Local Dev server - all-in-one
+  - url: https://192.168.0.143:9051
+    description: Local Dev server - portal, prov, and ssc
+    
+tags:
+- name: Data Model Overview
+- name: Alarm Data
+  
+    
+components:
+  securitySchemes:
+    tip_wlan_ts_auth:
+      type: http
+      scheme: bearer
+      
+  responses:
+    GenericApiError:
+      description: this object is returned in the cases when an API throws an exception
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/JsonSerializedException'
+            
+  schemas:
+    
+#
+#Generic data models used for many APIs
+#
+    GenericResponse:
+      properties:
+        message:
+          type: string
+        success:
+          type: boolean
+          
+    JsonSerializedException:
+      description: this object is returned in the cases when an API throws an exception
+      properties:
+        exType:
+          type: string
+          enum:
+            - IllegalStateException
+        error:
+          description: error message
+          type: string
+        path:
+          description: API path with parameters that produced the exception
+          type: string
+        timestamp:
+          description: time stamp of when the exception was generated
+          type: integer
+          format: int64
+          
+#
+# Alarm data models
+#
+
+    Alarm:
+      type: object
+      properties:
+        customerId:
+          type: integer
+          format: int32
+        equipmentId:
+          type: integer
+          format: int64
+        alarmCode:
+          $ref: '#/components/schemas/AlarmCode'
+        createdTimestamp:
+          type: integer
+          format: int64
+        originatorType:
+          $ref: '#/components/schemas/OriginatorType'
+        severity:
+          $ref: '#/components/schemas/StatusCode'
+        scopeType:
+          $ref: '#/components/schemas/AlarmScopeType'
+        scopeId:
+          type: string
+        details:
+          $ref: '#/components/schemas/AlarmDetails'
+        acknowledged:
+          type: boolean
+        lastModifiedTimestamp:
+          description: must be provided for update operation, update will be rejected if provided value does not match the one currently stored in the database
+          type: integer
+          format: int64
+
+    AlarmScopeType:
+      type: string
+      enum:
+      - CLIENT
+      - EQUIPMENT
+      - VLAN
+      - CUSTOMER
+      - LOCATION
+      
+    OriginatorType:
+      type: string
+      enum:
+      - AP
+      - SWITCH
+      - NET
+    
+    AlarmCode:
+      type: string
+      enum:
+      - LimitedCloudConnectivity # (3, Equipment is connected, however it's not reporting status or metrics),
+      - AccessPointIsUnreachable # (4, Equipment is not reachable from cloud),
+      - NoMetricsReceived # (6, Equipment is not report metrics),
+      - NoiseFloor2G # (7, Noise floor is too high on 2G radio),
+      - ChannelUtilization2G # (8, Channel utilization is too high on 2G radio),
+      - NoiseFloor5G # (9, Noise floor is too high on 5G radio),
+      - ChannelUtilization5G # (10, Channel utilization is too high on 5G radio),
+      - DNS # (11, Issue with Domain Name System (DNS)),
+      - DNSLatency # (12, DNS query take too long),
+      - DHCP # (13, Issue with DHCP),
+      - DHCPLatency # (14, DHCP requests take too long),
+      - Radius # (15, Issue with RADIUS),
+      - RadiusLatency # (16, RADIUS request takes too long),
+      - CloudLink # (17, Issue reported by equipment with connection with Cloud),
+      - CloudLinkLatency # (18, Cloud request take too long),
+      - CPUUtilization # (19, CPU utilization is too high),
+      - MemoryUtilization # (20, Memory utilization is too high),
+      - Disconnected # (22, Equipment is not connected to the cloud),
+      - CPUTemperature # (23, CPU Temperature is too high),
+      - LowMemoryReboot # (25, Equipment rebooted due to low memory),
+      - CountryCodeMisMatch # (26, Equipment country code does not match with location),
+      - RulesCompilationErrors # (27, Rule compliation error encountered),
+      - RulesRuntimeLimitsExceeded # (28, Number of object or event are too high in rule engine run-time memory),
+      - HardwareIssueDiagnostic # (29, Hardware issue encountered on equipment)
+      - TooManyClients2g # (30, Too many client devices on 2G radio),
+      - TooManyClients5g # (31, Too many client devices on 5G radio),
+      - RebootRequestFailed # (32, Failed to reboot equipment),
+      - RadiusConfigurationFailed # (33, Failed to configure RADIUS on equipment),
+      - FirmwareUpgradeStuck # (34, Firmware upgrade failed),
+      - MultipleAPCsOnSameSubnet # (35, Multiple APC reported on the same subnet),
+      - RadioHung2G # (36, Radio hung on 2G radio),
+      - RadioHung5G # (37, Radio hung on 5G radio),
+      - ConfigurationOutOfSync # (38, Equipment configuration is out-of-sync from cloud configuration),
+      - AggregationOutOfDate # (39, Metrics aggregation is out of date),
+      - FailedCPAuthentications # (40, Captive portal authenticaiton request failed),
+      - DisabledSSID # (41, SSID is disabled on equipment even though it is configured),
+      - DeauthAttackDetected # (42, De-Auth attack detected),
+      - RulesCalledTooOften # (43, Rules are called too often on rule agent),
+      - MspSuspended # (44, Managed Service Provider for the customer is suspended),
+      - TooManyBlockedDevices # (45, Too many blocked client devices provisioned),
+      - TooManyRogueAPs # (46, Too many rogue APs provisioned),
+      - NeighbourScanStuckOn2g # (47, Neighbour scan is stuck on 2G Radio),
+      - NeighbourScanStuckOn5g # (48, Neighbour scan is stuck on 5G Radio),
+      - InTroubleshootMode # (49, Equipment has been in troubleshot mode for too long),
+      - ChannelsOutOfSync2g # (50, Channel configuration is out-of-sync from cloud configuration on 2G radio), in case the channel selection is out of sync
+      - ChannelsOutOfSync5gv # (51, Channel configuration is out-of-sync from cloud configuration on 5G radio), in case the channel selection is out of sync
+      - InconsistentBasemacs # (52, Equipment base MAC address reported is different than the provisioned value.),
+      - GenericError # (53, Generic error encountered, detail in alarm text),
+      - RadioHung # (54, Equipment reported radio hung),
+      - AssocFailure # (55, Association failed),
+      - ClientAuthFailure # (56, Client device authentication failed),
+      - QoEIssues2g # (57, QoE issue detected on 2G radio),
+      - QoEIssues5g # (58, QoE issue detected on 5G radio),
+      - DNSServerUnreachable # (67, DNS Server is unreachable),
+      - DNSServerLatency # (68, DNS Server query takes too long),
+
+    AlarmDetails:
+      type: object
+      properties:
+        message:
+          type: string
+        affectedEquipmentIds:
+          type: array
+          items:
+            type: integer
+            format: int64
+        generatedBy:
+          type: string
+        contextAttrs:
+          $ref: '#/components/schemas/AlarmDetailsAttributesMap'
+    
+    AlarmDetailsAttributesMap:
+      type: object
+      additionalProperties:
+        type: object
+
+      
+#
+# Objects related to pagination
+#
+
+    SortColumnsAlarm:
+      type: object
+      required:
+      - model_type
+      - columnName
+      - sortOrder
+      properties: 
+        model_type:
+          type: string
+          enum:
+          - ColumnAndSort
+        columnName:
+          type: string
+          default: id
+          enum: 
+          - equipmentId
+          - alarmCode
+          - createdTimestamp
+        sortOrder:
+          $ref: '#/components/schemas/SortOrder'
+      example:
+        model_type: ColumnAndSort
+        columnName: id
+        sortOrder: asc
+          
+    PaginationContextAlarm:
+      type: object
+      required: 
+      - maxItemsPerPage
+      properties:
+        model_type:
+          type: string
+          enum:
+          - PaginationContext
+        maxItemsPerPage:
+          type: integer
+          format: int32
+          default: 20
+        lastReturnedPageNumber:
+          type: integer
+          format: int32
+        totalItemsReturned:
+          type: integer
+          format: int32
+        lastPage:
+          type: boolean
+        cursor:
+          type: string
+      example: 
+        model_type: PaginationContext
+        maxItemsPerPage: 10
+      
+    PaginationResponseAlarm:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Alarm'
+        context:
+          $ref: '#/components/schemas/PaginationContextAlarm'    
+          
+    AlarmCounts:
+      properties:
+        customerId:
+          type: integer
+          format: int32
+        countsPerEquipmentIdMap:
+          $ref: '#/components/schemas/CountsPerEquipmentIdPerAlarmCodeMap'
+        totalCountsPerAlarmCodeMap:
+          $ref: '#/components/schemas/CountsPerAlarmCodeMap'
+
+    CountsPerAlarmCodeMap:
+      description: map of AlarmCode to the integer count of alarms
+      type: object
+      additionalProperties:
+        type: integer
+        format: int32
+
+    CountsPerEquipmentIdPerAlarmCodeMap:
+      description: map of AlarmCode to the integer count of alarms
+      type: object
+      additionalProperties:
+        $ref: '#/components/schemas/CountsPerAlarmCodeMap'
+
+#
+# Other related objects
+#
+
+    SortOrder:
+      type: string
+      default: asc
+      enum:
+      - asc
+      - desc
+    
+    StatusCode:
+      type: string
+      enum:
+      - normal
+      - requiresAttention
+      - error
+      - disabled
+
+##-------------------------------------------------------------------------
+security:
+ - tip_wlan_ts_auth: []
+paths:
+    
+  /api/alarm:
+    post:
+      tags:
+      - Alarm Data
+      summary: Creates new alarm 
+      operationId: createAlarm
+      requestBody:
+        description: Alarm info
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Alarm'
+      responses:
+        200:
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Alarm'
+        500: 
+          $ref: '#/components/responses/GenericApiError'
+    put:
+      tags:
+      - Alarm Data
+      summary: Updates alarm record
+      operationId: updateAlarm
+      requestBody:
+        description: Alarm info
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Alarm'
+      responses:
+        200:
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Alarm'
+        500: 
+          $ref: '#/components/responses/GenericApiError'
+    delete:
+      tags:
+      - Alarm Data
+      summary: Deletes alarm record
+      operationId: deleteAlarmById
+      parameters:
+      - name: customerId
+        in: query
+        description: Customer ID
+        required: true
+        schema:
+          type: integer
+          format: int32
+      - name: equipmentId
+        in: query
+        description: Equipment ID
+        required: true
+        schema:
+          type: integer
+          format: int64
+      - name: alarmCode
+        in: query
+        description: Alarm Code
+        required: true
+        schema:
+          $ref: '#/components/schemas/AlarmCode'
+      - name: createdTimestamp
+        in: query
+        description: Created Timestamp
+        required: true
+        schema:
+          type: integer
+          format: int64
+      responses:
+        200:
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Alarm'
+        500: 
+          $ref: '#/components/responses/GenericApiError'
+   
+  /api/alarm/orNull: 
+    get:
+      tags:
+      - Alarm Data
+      summary: Get Alarm by Id else returns null
+      operationId: getRoutingById
+      parameters:
+      - name: customerId
+        in: query
+        description: Customer ID
+        required: true
+        schema:
+          type: integer
+          format: int32
+      - name: equipmentId
+        in: query
+        description: Equipment ID
+        required: true
+        schema:
+          type: integer
+          format: int64
+      - name: alarmCode
+        in: query
+        description: Alarm Code
+        required: true
+        schema:
+          $ref: '#/components/schemas/AlarmCode'
+      - name: createdTimestamp
+        in: query
+        description: Created Timestamp
+        required: true
+        schema:
+          type: integer
+          format: int64
+      responses:
+        200:
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Alarm'
+        500: 
+          $ref: '#/components/responses/GenericApiError'
+  
+  /api/alarm/forEquipment:
+    get:
+      tags:
+      - Alarm Data 
+      summary: Get all alarms for equipment
+      operationId: getAlarmsForEquipment
+      parameters:
+      - name: customerId
+        in: query
+        description: customer id
+        required: true
+        schema:
+          type: integer
+          format: int32
+      - name: equipmentIdSet
+        in: query
+        description: Equipment ID Set
+        required: true
+        schema:
+          type: array
+          items: 
+            type: integer
+            format: int64
+      - name: alarmCodeSet
+        in: query
+        description: Alarm Code Set
+        required: true
+        content:
+          text/plain:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/AlarmCode'
+      - name: createdAfterTimestamp
+        in: query
+        description: Created After Timestamp
+        required: true
+        schema:
+          type: integer
+          format: int64
+      responses:
+        200:
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Alarm'
+        500:
+          $ref: '#/components/responses/GenericApiError'
+    delete:
+      tags:
+      - Alarm Data
+      summary: Deletes alarm record
+      operationId: deleteAlarmForEquipment
+      parameters:
+      - name: customerId
+        in: query
+        description: Customer ID
+        required: true
+        schema:
+          type: integer
+          format: int32
+      - name: equipmentId
+        in: query
+        description: Equipment ID
+        required: true
+        schema:
+          type: integer
+          format: int64
+      responses:
+        200:
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Alarm'
+        500: 
+          $ref: '#/components/responses/GenericApiError'
+          
+  /api/alarm/forCustomer:
+    get:
+      tags:
+      - Alarm Data 
+      summary: Get all alarms for customers
+      operationId: getAlarmsForCustomer
+      parameters:
+      - name: customerId
+        in: query
+        description: customer id
+        required: true
+        schema:
+          type: integer
+          format: int32
+      - name: equipmentIdSet
+        in: query
+        description: Equipment ID Set
+        required: true
+        schema:
+          type: array
+          items: 
+            type: integer
+            format: int64
+      - name: alarmCodeSet
+        in: query
+        description: Alarm Code Set
+        required: true
+        schema:
+          type: array
+          items: 
+            $ref: '#/components/schemas/AlarmCode'
+      - name: createdAfterTimestamp
+        in: query
+        description: Created After Timestamp
+        required: true
+        schema:
+          type: integer
+          format: int64
+      - name: sortBy
+        in: query
+        description: sort options
+        required: true
+        schema:
+          type: array
+          items:
+            $ref: '#/components/schemas/SortColumnsAlarm'
+      - name: paginationContext
+        in: query
+        description: pagination context
+        required: false
+        content:
+          application/json:
+            schema:
+                $ref: '#/components/schemas/PaginationContextAlarm'
+            examples:
+              initialPginationContext:
+                value:
+                  model_type: PaginationContext
+                  maxItemsPerPage: 10
+      responses:
+        200:
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PaginationResponseAlarm'
+        500:
+          $ref: '#/components/responses/GenericApiError'
+  
+  /api/alarm/counts:
+    get:
+      tags:
+      - Alarm Data
+      summary: Get counts of Alarms for customerId, optional set of equipment ids, optional set of alarm codes.
+      operationId: getAlarmCounts
+      parameters:
+      - name: customerId
+        in: query
+        description: customer id
+        required: true
+        schema:
+          type: integer
+          format: int32
+      - name: equipmentIdSet
+        in: query
+        description: Set of equipment ids. Empty or null means retrieve for all equipment for the customer.
+        required: true
+        content:
+          text/plain:
+            schema:
+              type: array
+              items:
+                type: integer
+                format: int64
+      - name: alarmCodeSet
+        in: query
+        description: Set of alarm codes.
+        required: true
+        content:
+          text/plain:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/AlarmCode'
+      responses:
+        200:
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AlarmCounts'
+        500:
+          $ref: '#/components/responses/GenericApiError'  
+
+  
+  
+
+
+
+
+
+
+

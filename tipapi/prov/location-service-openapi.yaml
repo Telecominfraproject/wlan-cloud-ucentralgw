@@ -1,0 +1,780 @@
+openapi: 3.0.3
+info:
+  title: CloudSDK Location API
+  description: APIs that provide services for viewing, updating and deleting various data elements of location.
+  version: 1.0.0
+servers:
+  - url: https://localhost:9091
+    description: Local Dev server
+  - url: https://10.0.0.61:9091
+    description: Local Dev server - all-in-one
+  - url: https://192.168.0.143:9051
+    description: Local Dev server - portal, prov, and ssc
+    
+tags:
+- name: Data Model Overview
+  description: | 
+    This is a description.
+- name: Location Data
+  description: |
+    This is another description.
+    
+components:
+  securitySchemes:
+    tip_wlan_ts_auth:
+      type: http
+      scheme: bearer
+      
+  responses:
+    GenericApiError:
+      description: this object is returned in the cases when an API throws an exception
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/JsonSerializedException'
+            
+  schemas:
+    
+#
+#Generic data models used for many APIs
+#
+    GenericResponse:
+      properties:
+        message:
+          type: string
+        success:
+          type: boolean
+          
+    JsonSerializedException:
+      description: this object is returned in the cases when an API throws an exception
+      properties:
+        exType:
+          type: string
+          enum:
+            - IllegalStateException
+        error:
+          description: error message
+          type: string
+        path:
+          description: API path with parameters that produced the exception
+          type: string
+        timestamp:
+          description: time stamp of when the exception was generated
+          type: integer
+          format: int64
+          
+#
+# Location data models
+#
+          
+    Location:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        locationType:
+          type: string
+          enum:
+            - COUNTRY
+            - SITE
+            - BUILDING
+            - FLOOR
+            - UNSUPPORTED
+        customerId:
+          type: integer
+          format: int32
+        name:
+          type: string
+        parentId:
+          type: integer
+          format: int64
+        details:
+          $ref: '#/components/schemas/LocationDetails'
+        createdTimestamp:
+          type: integer
+          format: int64
+        lastModifiedTimestamp:
+          description: must be provided for update operation, update will be rejected if provided value does not match the one currently stored in the database
+          type: integer
+          format: int64
+      example:
+        customerId: 2
+        locationType: COUNTRY
+        name: new location
+          
+    CountryCode:
+      type: string
+      enum:
+         - AD
+         - AE
+         - AF
+         - AG
+         - AI
+         - AL
+         - AM
+         - AO
+         - AQ
+         - AR
+         - AS
+         - AT
+         - AU
+         - AW
+         - AX
+         - AZ
+         - BA
+         - BB
+         - BD
+         - BE
+         - BF
+         - BG
+         - BH
+         - BI
+         - BJ
+         - BL
+         - BM
+         - BN
+         - BO
+         - BQ
+         - BR
+         - BS
+         - BT
+         - BV
+         - BW
+         - BY
+         - BZ
+         - CA
+         - CC
+         - CD
+         - CF
+         - CG
+         - CH
+         - CI
+         - CK
+         - CL
+         - CM
+         - CN
+         - CO
+         - CR
+         - CU
+         - CV
+         - CW
+         - CX
+         - CY
+         - CZ
+         - DE
+         - DJ
+         - DK
+         - DM
+         - DO
+         - DZ
+         - EC
+         - EE
+         - EG
+         - EH
+         - ER
+         - ES
+         - ET
+         - FI
+         - FJ
+         - FK
+         - FM
+         - FO
+         - FR
+         - GA
+         - GB
+         - GD
+         - GE
+         - GF
+         - GG
+         - GH
+         - GI
+         - GL
+         - GM
+         - GN
+         - GP
+         - GQ
+         - GR
+         - GS
+         - GT
+         - GU
+         - GW
+         - GY
+         - HK
+         - HM
+         - HN
+         - HR
+         - HT
+         - HU
+         - ID
+         - IE
+         - IL
+         - IM
+         - IN
+         - IO
+         - IQ
+         - IR
+         - IS
+         - IT
+         - JE
+         - JM
+         - JO
+         - JP
+         - KE
+         - KG
+         - KH
+         - KI
+         - KM
+         - KN
+         - KP
+         - KR
+         - KW
+         - KY
+         - KZ
+         - LA
+         - LB
+         - LC
+         - LI
+         - LK
+         - LR
+         - LS
+         - LT
+         - LU
+         - LV
+         - LY
+         - MA
+         - MC
+         - MD
+         - ME
+         - MF
+         - MG
+         - MH
+         - MK
+         - ML
+         - MM
+         - MN
+         - MO
+         - MP
+         - MQ
+         - MR
+         - MS
+         - MT
+         - MU
+         - MV
+         - MW
+         - MX
+         - MY
+         - MZ
+         - NA
+         - NC
+         - NE
+         - NF
+         - NG
+         - NI
+         - NL
+         - NO
+         - NP
+         - NR
+         - NU
+         - NZ
+         - OM
+         - PA
+         - PE
+         - PF
+         - PG
+         - PH
+         - PK
+         - PL
+         - PM
+         - PN
+         - PR
+         - PS
+         - PT
+         - PW
+         - PY
+         - QA
+         - RE
+         - RO
+         - RS
+         - RU
+         - RW
+         - SA
+         - SB
+         - SC
+         - SD
+         - SE
+         - SG
+         - SH
+         - SI
+         - SJ
+         - SK
+         - SL
+         - SM
+         - SN
+         - SO
+         - SR
+         - SS
+         - ST
+         - SV
+         - SX
+         - SY
+         - SZ
+         - TC
+         - TD
+         - TF
+         - TG
+         - TH
+         - TJ
+         - TK
+         - TL
+         - TM
+         - TN
+         - TO
+         - TR
+         - TT
+         - TV
+         - TW
+         - TZ
+         - UA
+         - UG
+         - UM
+         - US
+         - UY
+         - UZ
+         - VA
+         - VC
+         - VE
+         - VG
+         - VI
+         - VN
+         - VU
+         - WF
+         - WS
+         - YE
+         - YT
+         - ZA
+         - ZM
+         - ZW
+         - UNSUPPORTED
+      default: CA   
+      
+    LocationDetails:
+      type: object
+      properties:
+        model_type:
+          type: string
+          enum:
+            - LocationDetails
+        countryCode:
+           $ref: '#/components/schemas/CountryCode'
+        dailyActivityDetails:
+           $ref: '#/components/schemas/LocationActivityDetailsMap'
+        maintenanceWindow:
+           $ref: '#/components/schemas/DaysOfWeekTimeRangeSchedule'
+        rrmEnabled:
+          type: boolean
+    LocationActivityDetailsMap:
+      properties:
+        SUNDAY:
+          $ref: '#/components/schemas/LocationActivityDetails'
+        MONDAY:
+          $ref: '#/components/schemas/LocationActivityDetails'
+        TUESDAY:
+          $ref: '#/components/schemas/LocationActivityDetails'
+        WEDNESDAY:
+          $ref: '#/components/schemas/LocationActivityDetails'
+        THURSDAY:
+          $ref: '#/components/schemas/LocationActivityDetails'
+        FRIDAY:
+          $ref: '#/components/schemas/LocationActivityDetails'
+        SATURDAY:
+          $ref: '#/components/schemas/LocationActivityDetails'
+    LocationActivityDetails:
+      properties:
+        busyTime:
+          type: string
+        quietTime:
+          type: string
+        timezone:
+          type: string
+        lastBusySnapshot:
+          type: integer
+          format: int64
+
+    DaysOfWeekTimeRangeSchedule:
+      type: object
+      properties:
+        timezone:
+          type: string
+        timeBegin:
+          $ref: '#/components/schemas/LocalTimeValue'
+        timeEnd:
+          $ref: '#/components/schemas/LocalTimeValue'
+        daysOfWeek:
+          type: array
+          items:
+            $ref: '#/components/schemas/DayOfWeek'
+    
+    LocalTimeValue:
+      type: object
+      properties:
+        hour:
+          type: integer
+        minute:
+          type: integer
+          
+    DayOfWeek:
+      type: string
+      enum:
+        - MONDAY
+        - TUESDAY
+        - WEDNESDAY
+        - THURSDAY
+        - FRIDAY
+        - SATURDAY
+        - SUNDAY
+
+#
+# Objects related to pagination
+#
+
+    SortOrder:
+      type: string
+      default: asc
+      enum:
+      - asc
+      - desc
+    
+    SortColumnsLocation:
+      type: object
+      required:
+      - model_type
+      - columnName
+      - sortOrder
+      properties: 
+        model_type:
+          type: string
+          enum:
+          - ColumnAndSort
+        columnName:
+          type: string
+          default: id
+          enum: 
+          - id
+          - name
+        sortOrder:
+          $ref: '#/components/schemas/SortOrder'
+          
+    PaginationContextLocation:
+      type: object
+      required: 
+      - maxItemsPerPage
+      properties:
+        model_type:
+          type: string
+          enum:
+          - PaginationContext
+        maxItemsPerPage:
+          type: integer
+          format: int32
+          default: 20
+        lastReturnedPageNumber:
+          type: integer
+          format: int32
+        totalItemsReturned:
+          type: integer
+          format: int32
+        lastPage:
+          type: boolean
+        cursor:
+          type: string
+      example: 
+        model_type: PaginationContext
+        maxItemsPerPage: 10
+      
+    PaginationResponseLocation:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Location'
+        context:
+          $ref: '#/components/schemas/PaginationContextLocation'          
+          
+## ---------------------------------------------------------------------------
+security:
+ - tip_wlan_ts_auth: []
+paths:
+ 
+  /api/location:
+    post:
+      tags:
+      - Location Data
+      summary: Creates new location record
+      operationId: createLocation
+      requestBody:
+        description: Location info
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Location'
+      responses:
+        200:
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Location'
+        500: 
+          $ref: '#/components/responses/GenericApiError'
+    put:
+      tags:
+      - Location Data
+      summary: Updates location record
+      operationId: updateLocation
+      requestBody:
+        description: Location info
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Location'
+      responses:
+        200:
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Location'
+        500: 
+          $ref: '#/components/responses/GenericApiError'
+    delete:
+      tags:
+      - Location Data
+      summary: Deletes profile using locationId
+      operationId: deleteLocationById
+      parameters:
+      - name: locationId
+        in: query
+        description: Location ID
+        required: true
+        schema:
+          type: integer
+          format: int64
+      responses:
+        200:
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Location'
+        500: 
+          $ref: '#/components/responses/GenericApiError'
+    get:
+      tags:
+      - Location Data
+      summary: Get location using locationId
+      operationId: getLocationById
+      parameters:
+      - name: locationId
+        in: query
+        description: Location ID
+        required: true
+        schema:
+          type: integer
+          format: int64
+      responses:
+        200:
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Location'
+        500: 
+          $ref: '#/components/responses/GenericApiError'
+          
+  /api/location/top:
+    get:
+      tags:
+      - Location Data
+      summary: Retrieves top-level location record for a supplied location id
+      operationId: getTopLevelLocationById
+      parameters:
+      - name: locationId
+        in: query
+        description: Location ID
+        required: true
+        schema:
+          type: integer
+          format: int64
+      responses:
+        200:
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Location'
+        500: 
+          $ref: '#/components/responses/GenericApiError'
+  
+  /api/location/allForCustomer:
+    get:
+      tags:
+      - Location Data
+      summary: Retrieves a customers location data
+      operationId: getAllCustomerLocations
+      parameters:
+      - name: customerId
+        in: query
+        description: Customer ID
+        required: true
+        schema:
+          type: integer
+          format: int32
+      responses:
+        200:
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Location'
+        500: 
+          $ref: '#/components/responses/GenericApiError'
+          
+  /api/location/allDescendants:
+    get:
+      tags:
+      - Location Data
+      summary: Recursively return all the children of the specified location id
+      operationId: getAllDescendants
+      parameters:
+      - name: locationId
+        in: query
+        description: Location ID
+        required: true
+        schema:
+          type: integer
+          format: int64
+      responses:
+        200:
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Location'
+        500: 
+          $ref: '#/components/responses/GenericApiError'
+          
+  /api/location/allAncestors:
+    get:
+      tags:
+      - Location Data
+      summary: Recursively return all the Ancestors of the specified location id
+      operationId: getAllAncestors
+      parameters:
+      - name: locationId
+        in: query
+        description: Location ID
+        required: true
+        schema:
+          type: integer
+          format: int64
+      responses:
+        200:
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Location'
+        500: 
+          $ref: '#/components/responses/GenericApiError'        
+          
+  /api/location/inSet:
+    get:
+      tags:
+      - Location Data
+      summary:  Retrieves a list of Location records that which have their Id in the provided set
+      operationId: getLocationInSet
+      parameters:
+      - name: locationIdSet
+        in: query
+        description: Set of Location IDs
+        required: true
+        content:
+          text/plain:
+            schema:
+              type: array
+              items:
+                type: integer
+                format: int64
+      responses:
+        200:
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Location'
+        500: 
+          $ref: '#/components/responses/GenericApiError'
+  
+  /api/location/forCustomer:
+    get:
+      tags:
+      - Location Data
+      summary: Get Locations By customerId
+      operationId: getLocationsByCustomerId
+      parameters:
+      - name: customerId
+        in: query
+        description: customer id
+        required: true
+        schema:
+          type: integer
+          format: int32
+      - name: sortBy
+        in: query
+        description: sort options
+        required: true
+        schema:
+          type: array
+          items:
+            $ref: '#/components/schemas/SortColumnsLocation'
+      - name: paginationContext
+        in: query
+        description: pagination context
+        required: false
+        content:
+          application/json:
+            schema:
+                $ref: '#/components/schemas/PaginationContextLocation'
+            examples:
+              initialPginationContext:
+                value:
+                  model_type: PaginationContext
+                  maxItemsPerPage: 10
+      responses:
+        200:
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginationResponseLocation'
+        500:
+          $ref: '#/components/responses/GenericApiError'
+  
+  
+  
+
+
+
+
