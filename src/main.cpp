@@ -1,54 +1,74 @@
-#include "cpprest/http_client.h"
-#include "cpprest/filestream.h"
+#include <string.h>
+#include <iostream>
 
-using namespace utility;                    // Common utilities like string conversions
-using namespace web;                        // Common features like URIs.
-using namespace web::http;                  // Common HTTP functionality
-using namespace web::http::client;          // HTTP client features
-using namespace concurrency::streams;       // Asynchronous streams
+#include "config.h"
+
+#include "svr.h"
+
+
+/*
+ * -f,--file <filename>
+ *
+ */
+
+int usage(const char *name)
+{
+    std::cout << std::endl << "Usage: " << std::endl;
+    std::cout << name << std::endl;
+    std::cout << "  -f,--file <config-filename>    default to 'config.yaml'" << std::endl;
+    std::cout << std::endl ;
+
+    return 1;
+}
+
+int runit() {
+    Poco::UInt16 port = 9999;
+
+    Poco::Net::ServerSocket socket(port);
+
+    Poco::Net::HTTPServerParams *pParams = new Poco::Net::HTTPServerParams();
+    //Sets the maximum number of queued connections.
+    pParams->setMaxQueued(100);
+    //Sets the maximum number of simultaneous threads available for this Server
+    pParams->setMaxThreads(16);
+    // Instanciate HandlerFactory
+    Poco::Net::HTTPServer server(new HandlerFactory(), socket, pParams);
+
+    server.start();
+
+    sleep(100000);
+
+    server.stop();
+
+    return 0;
+
+}
 
 int main(int argc, char* argv[])
 {
-    auto fileStream = std::make_shared<ostream>();
+    auto i=1;
+    const char *cfg_filename = "config.yaml";
 
-    // Open stream to output file.
-    pplx::task<void> requestTask = fstream::open_ostream(U("results.html")).then([=](ostream outFile)
-                                                                                 {
-                                                                                     *fileStream = outFile;
-
-                                                                                     // Create http_client to send the request.
-                                                                                     http_client client(U("http://www.bing.com/"));
-
-                                                                                     // Build request URI and start the request.
-                                                                                     uri_builder builder(U("/search"));
-                                                                                     builder.append_query(U("q"), U("cpprestsdk github"));
-                                                                                     return client.request(methods::GET, builder.to_string());
-                                                                                 })
-
-                    // Handle response headers arriving.
-            .then([=](http_response response)
-                  {
-                      printf("Received response status code:%u\n", response.status_code());
-
-                      // Write response body into the file.
-                      return response.body().read_to_end(fileStream->streambuf());
-                  })
-
-                    // Close the file stream.
-            .then([=](size_t)
-                  {
-                      return fileStream->close();
-                  });
-
-    // Wait for all the outstanding I/O to complete and handle any exceptions
-    try
+    while(i<argc)
     {
-        requestTask.wait();
+        if(strcmp(argv[i],"-f")==0 || strcmp(argv[i],"--file")==0) {
+            cfg_filename = argv[i + 1];
+            i += 2;
+        }
+        else
+        {
+            return usage(argv[0]);
+        }
     }
-    catch (const std::exception &e)
-    {
-        printf("Error exception:%s\n", e.what());
-    }
+
+    uConfig::init(cfg_filename);
+
+    std::cout << "Server: " << uConfig::get<std::string>("tip","server") << std::endl;
+    std::cout << "Port: " << uConfig::get<int>("tip","port")+1  << std::endl;
+    std::cout << "Keyfile: " << uConfig::get<std::string>("certificates","keyfile") << std::endl;
+
+    runit();
 
     return 0;
 }
+
