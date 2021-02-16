@@ -11,11 +11,12 @@ set(cpprestsdk_DIR /usr/lib/${CMAKE_LIBRARY_ARCHITECTURE}/cmake/)
 find_package(Boost REQUIRED system)
 find_package(OpenSSL REQUIRED)
 find_package(yaml-cpp REQUIRED)
-find_package(Poco REQUIRED Crypto Net)
+find_package(Poco REQUIRED Crypto Net Util NetSSL)
 
 include_directories(/usr/local/include  /usr/local/opt/openssl/include)
 
-add_executable(ucentral src/main.cpp src/gateway.cpp src/gateway.h src/ucentralServer.cpp src/ucentralServer.h src/tipApi.cpp src/tipApi.h src/config.cpp src/config.h src/svr.cpp src/svr.h)
+add_executable(ucentral src/main.cpp src/gateway.cpp src/gateway.h src/ucentralServer.cpp src/ucentralServer.h src/tipApi.cpp src/tipApi.h src/config.cpp src/config.h src/svr.cpp src/svr.h src/app.cpp src/app.h src/common.h)
 
 # target_link_libraries(ucentral PRIVATE cpprestsdk::cpprest yaml-cpp ${Boost_LIBRARIES})
-target_link_libraries(ucentral PRIVATE yaml-cpp Poco::Crypto Poco::Net ${Boost_LIBRARIES})
+# target_link_libraries(ucentral PRIVATE yaml-cpp Poco::Crypto Poco::Net ${Boost_LIBRARIES})
+target_link_libraries(ucentral PRIVATE yaml-cpp ${Poco_LIBRARIES} ${Boost_LIBRARIES})
