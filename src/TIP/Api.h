@@ -28,35 +28,57 @@
 #include "../common.h"
 
 #include "WebTokenResult.h"
-#include "EquipmentGatewayRecord.h"
 
 using Poco::Logger;
 
 namespace TIP::API {
+
+    template<class T> std::vector<T> GetJSONArray(std::istream &response) {
+        std::vector<T>  R;
+        Poco::JSON::Parser parser;
+        Poco::JSON::Array::Ptr arr = parser.parse(response).extract<Poco::JSON::Array::Ptr>();
+
+        for(auto i=0; i<arr->size() ; i++ )
+        {
+            Poco::JSON::Object::Ptr object = arr->getObject(i);
+            T   NewObject;
+
+            NewObject.from_object(object);
+
+            R.push_back(NewObject);
+        }
+
+        return R;
+    }
+
     class API {
         public:
-            API() :
-                    initialized_(false),
-                    logger_(Logger::get("TIPAPI")) {
+            API():
+                logger_(Logger::get("TIPAPI")) {
             }
 
             ~API() {
-                if (initialized_)
-                    Logout();
+                Logout();
+            }
+
+            static API *instance() {
+                if(!instance_) {
+                    instance_ = new API;
+                    instance_->Init();
+                }
+                return instance_;
             }
 
             bool Login();
             void Logout();
             void Init();
-            bool CreateRoutingGateway(const TIP::EquipmentGateway::EquipmentGatewayRecord & R);
-            TIP::EquipmentGateway::EquipmentGatewayRecord GetRoutingGateway(uint64_t id);
-            std::vector<TIP::EquipmentGateway::EquipmentGatewayRecord> GetRoutingGatewaysByHost(const std::string &host);
-            std::vector<TIP::EquipmentGateway::EquipmentGatewayRecord> GetRoutingGatewaysByType(const std::string & Type = "CEGW");
+            const std::string & ssc_host() const { return ssc_host_; }
+            uint64_t ssc_port() const { return ssc_port_; }
 
             const std::string &access_token() const { return token_.access_token(); };
 
         private:
-            bool initialized_;
+            static API *instance_;
             std::string api_host_;       //  TIP portal server name: default to wlan-ui.wlan.local
             unsigned int api_port_;
             std::string username_;          //  TIP user name: default to "support@example.com"
@@ -65,10 +87,12 @@ namespace TIP::API {
             unsigned int ssc_port_;
             TIP::WebToken::WebTokenResult token_;
             Logger &logger_;
-
-        private:
-
     };
+
+    bool Login();
+    void Logout();
+    const std::string & SSC_Host();
+    uint64_t SSC_Port();
 }
 
 

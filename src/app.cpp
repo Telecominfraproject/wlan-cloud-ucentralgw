@@ -24,6 +24,7 @@ using Poco::AutoPtr;
 #include "common.h"
 #include "ucentralServer.h"
 #include "TIP/Api.h"
+#include "TIP/EquipmentGatewayRecord.h"
 
 App::App():helpRequested_(false)
 {
@@ -160,32 +161,42 @@ int App::main(const ArgVec& args)
         logger.information("Application properties:");
         printProperties("");
 
-        TIP::API::API Tip;
-
         std::cout << "1st login" << std::endl;
-        Tip.Login();
+        TIP::API::Login();
 
-        std::vector<TIP::EquipmentGateway::EquipmentGatewayRecord> gateways;
+        std::vector<TIP::Routing::EquipmentGatewayRecord> gateways;
 
-        gateways = Tip.GetRoutingGatewaysByType();
+        for(auto i: gateways)
+        {
+            std::cout << "Gateway: " << i.id() << std::endl;
+        }
+
+        gateways = TIP::Routing::GetRoutingGatewaysByType();
+        for(auto i: gateways)
+        {
+            std::cout << "ID: " << i.id() << "@" << i.hostname() << std::endl;
+        }
+
         std::cout << "ID: " << gateways[0].id() << std::endl;
 
-        TIP::EquipmentGateway::EquipmentGatewayRecord E = Tip.GetRoutingGateway(1691801527873612933);
+        TIP::Routing::EquipmentGatewayRecord E = TIP::Routing::GetRoutingGateway(1691801527873612933);
         std::cout << "Hostname: " << E.hostname() << std::endl;
 
-        gateways = Tip.GetRoutingGatewaysByHost("10.1.124.61");
+        gateways = TIP::Routing::GetRoutingGatewaysByHost("10.1.124.61");
         std::cout << "ID: " << gateways[0].id() << std::endl;
 
-        TIP::EquipmentGateway::EquipmentGatewayRecord rr = gateways[0];
+        TIP::Routing::EquipmentGatewayRecord rr = gateways[0];
 
-        rr.hostname("10.3.111.2");
-        rr.ipAddr("10.3.111.2");
+        rr.hostname("10.3.111.3");
+        rr.ipAddr("10.3.111.3");
         rr.port( 9911);
-        Tip.CreateRoutingGateway(rr);
+        TIP::Routing::CreateRoutingGateway(rr);
 
-        gateways = Tip.GetRoutingGatewaysByHost("10.3.111.2");
+        gateways = TIP::Routing::GetRoutingGatewaysByHost("10.3.111.3");
 
         std::cout << "ID: " << gateways[0].id() << "  Host: " << gateways[0].hostname() << std::endl;
+
+        TIP::Routing::DeleteRoutingGateway(gateways[0].id());
 
     }
 

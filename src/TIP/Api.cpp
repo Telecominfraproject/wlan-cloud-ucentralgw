@@ -11,38 +11,18 @@
 
 namespace TIP::API {
 
-    template<class T> std::vector<T> GetJSONArray(std::istream &response) {
-        std::vector<T>  R;
-        Poco::JSON::Parser parser;
-        Poco::JSON::Array::Ptr arr = parser.parse(response).extract<Poco::JSON::Array::Ptr>();
-
-        for(auto i=0; i<arr->size() ; i++ )
-        {
-            Poco::JSON::Object::Ptr object = arr->getObject(i);
-            T   NewObject;
-
-            NewObject.from_object(object);
-
-            R.push_back(NewObject);
-        }
-
-        return R;
-    }
+    TIP::API::API *TIP::API::API::instance_ = 0;
 
     void API::Init() {
-        if (!initialized_) {
-            initialized_ = true;
-            username_ = App::instance().config().getString("tip.api.login.username");
-            password_ = App::instance().config().getString("tip.api.login.password");
-            api_host_ = App::instance().config().getString("tip.api.host");
-            api_port_ = App::instance().config().getInt("tip.api.port");
-            ssc_host_ = App::instance().config().getString("tip.ssc.host");
-            ssc_port_ = App::instance().config().getInt("tip.ssc.port");
-        }
+        username_ = App::instance().config().getString("tip.api.login.username");
+        password_ = App::instance().config().getString("tip.api.login.password");
+        api_host_ = App::instance().config().getString("tip.api.host");
+        api_port_ = App::instance().config().getInt("tip.api.port");
+        ssc_host_ = App::instance().config().getString("tip.ssc.host");
+        ssc_port_ = App::instance().config().getInt("tip.ssc.port");
     }
 
     void API::Logout() {
-        initialized_ = false;
     }
 
     bool API::Login() {
@@ -70,84 +50,16 @@ namespace TIP::API {
         return true;
     }
 
-    bool API::CreateRoutingGateway(const TIP::EquipmentGateway::EquipmentGatewayRecord & R) {
-        Init();
-        Poco::Net::HTTPSClientSession session(ssc_host_, ssc_port_);
-        Poco::Net::HTTPRequest request(Poco::Net::HTTPRequest::HTTP_POST, std::string("/api/routing/gateway"),
-                                       Poco::Net::HTTPMessage::HTTP_1_1);
-
-        Poco::JSON::Object obj;
-        R.to_JSON(obj);
-        std::stringstream ss;
-        obj.stringify(ss);
-        request.setContentType("application/json");
-        request.setContentLength(ss.str().size());
-        std::ostream &o = session.sendRequest(request);
-        obj.stringify(o);
-
-        Poco::Net::HTTPResponse response;
-        std::istream &s = session.receiveResponse(response);
-
-        TIP::EquipmentGateway::EquipmentGatewayRecord NR;
-        NR.from_stream(s);
-
-        return (response.getStatus() == 200);
+    bool Login() {
+        return TIP::API::API::instance()->Login();
     }
 
-    TIP::EquipmentGateway::EquipmentGatewayRecord API::GetRoutingGateway(uint64_t Id) {
-        Init();
-        TIP::EquipmentGateway::EquipmentGatewayRecord  R;
-
-        Poco::Net::HTTPSClientSession session(ssc_host_, ssc_port_);
-        Poco::Net::HTTPRequest request(Poco::Net::HTTPRequest::HTTP_GET, std::string("/api/routing/gateway?gatewayId=") + std::to_string(Id),
-                                       Poco::Net::HTTPMessage::HTTP_1_1);
-        request.setContentType("application/json");
-        session.sendRequest(request);
-
-        Poco::Net::HTTPResponse response;
-        std::istream &s = session.receiveResponse(response);
-
-        R.from_stream(s);
-
-        return R;
+    void Logout() {
+        TIP::API::API::instance()->Logout();
     }
 
-    std::vector<TIP::EquipmentGateway::EquipmentGatewayRecord>  API::GetRoutingGatewaysByType(const std::string & Type) {
-        Init();
-        std::vector<TIP::EquipmentGateway::EquipmentGatewayRecord>  R;
-
-        Poco::Net::HTTPSClientSession session(ssc_host_, ssc_port_);
-        Poco::Net::HTTPRequest request(Poco::Net::HTTPRequest::HTTP_GET, std::string("/api/routing/gateway/byType?gatewayType=") + Type,
-                                       Poco::Net::HTTPMessage::HTTP_1_1);
-        request.setContentType("application/json");
-        session.sendRequest(request);
-
-        Poco::Net::HTTPResponse response;
-        std::istream &s = session.receiveResponse(response);
-
-        R = GetJSONArray<TIP::EquipmentGateway::EquipmentGatewayRecord>(s);
-
-        return R;
-    }
-
-    std::vector<TIP::EquipmentGateway::EquipmentGatewayRecord>  API::GetRoutingGatewaysByHost(const std::string & host) {
-        Init();
-        std::vector<TIP::EquipmentGateway::EquipmentGatewayRecord>  R;
-
-        Poco::Net::HTTPSClientSession session(ssc_host_, ssc_port_);
-        Poco::Net::HTTPRequest request(Poco::Net::HTTPRequest::HTTP_GET, std::string("/api/routing/gateway/byHostname?hostname=") + host,
-                                       Poco::Net::HTTPMessage::HTTP_1_1);
-        request.setContentType("application/json");
-        session.sendRequest(request);
-
-        Poco::Net::HTTPResponse response;
-        std::istream &s = session.receiveResponse(response);
-
-        R = GetJSONArray<TIP::EquipmentGateway::EquipmentGatewayRecord>(s);
-
-        return R;
-    }
-
+    const std::string & SSC_Host() { return TIP::API::API::instance()->ssc_host(); }
+    uint64_t SSC_Port() { return TIP::API::API::instance()->ssc_port(); }
 
 }
 

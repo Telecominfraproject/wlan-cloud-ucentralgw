@@ -5,9 +5,23 @@
 #ifndef UCENTRAL_EQUIPMENTGATEWAYRECORD_H
 #define UCENTRAL_EQUIPMENTGATEWAYRECORD_H
 
+#include "Poco/JSON/Parser.h"
+#include "Poco/Net/HTTPSClientSession.h"
+#include "Poco/Net/HTTPClientSession.h"
+#include "Poco/Net/HTTPResponse.h"
+#include "Poco/Net/HTTPRequest.h"
+#include "Poco/Net/Context.h"
+#include "Poco/Net/SSLManager.h"
+#include "Poco/Net/NetSSL.h"
+#include "Poco/Net/PrivateKeyPassphraseHandler.h"
+#include "Poco/Net/KeyFileHandler.h"
+#include "Poco/Net/InvalidCertificateHandler.h"
 #include "Poco/JSON/Object.h"
 
-namespace TIP::EquipmentGateway {
+#include "TIP/Api.h"
+
+namespace TIP::Routing {
+
     class EquipmentGatewayRecord {
         public:
 
@@ -45,6 +59,13 @@ namespace TIP::EquipmentGateway {
             uint64_t lastModifiedTimestamp_;
             std::string gatewayType_;
     };
+
+    bool CreateRoutingGateway(const TIP::Routing::EquipmentGatewayRecord & R);
+    bool DeleteRoutingGateway(uint64_t id);
+    TIP::Routing::EquipmentGatewayRecord GetRoutingGateway(uint64_t id);
+    std::vector<TIP::Routing::EquipmentGatewayRecord> GetRoutingGatewaysByHost(const std::string &host);
+    std::vector<TIP::Routing::EquipmentGatewayRecord> GetRoutingGatewaysByType(const std::string & Type = "CEGW");
+
 }
 
 #endif //UCENTRAL_EQUIPMENTGATEWAYRECORD_H
