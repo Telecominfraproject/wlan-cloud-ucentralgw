@@ -10,10 +10,7 @@
 #include "Poco/Util/HelpFormatter.h"
 #include "Poco/Util/AbstractConfiguration.h"
 #include "Poco/Util/IntValidator.h"
-#include "Poco/AutoPtr.h"
 #include <iostream>
-#include <sstream>
-
 
 using Poco::Util::Application;
 using Poco::Util::Option;
@@ -26,7 +23,7 @@ using Poco::AutoPtr;
 
 #include "common.h"
 #include "ucentralServer.h"
-#include "tipApi.h"
+#include "TIP/Api.h"
 
 App::App():helpRequested_(false)
 {
@@ -34,6 +31,7 @@ App::App():helpRequested_(false)
 
 void App::initialize(Application& self)
 {
+    // logging_channel_.assign(new FileChannel);
     addSubsystem(new UCentralGW);
     loadConfiguration(); // load default configuration files, if present
     Application::initialize(self);
@@ -134,26 +132,62 @@ int App::main(const ArgVec& args)
 {
     if (!helpRequested_)
     {
-        logger().information("Command line:");
+        // logging_channel_-> setProperty("path",App::instance().config().getString("logging.path"));
+        // logging_channel_-> setProperty("rotation",App::instance().config().getString("logging.rotation"));
+        // logging_channel_-> setProperty("archive", "timestamp");
+
+        // AutoPtr<Formatter>  Ftr(new AppLogFormatter);
+
+        // AutoPtr<FormattingChannel> FC( new FormattingChannel(Ftr,logging_channel_));
+
+
+        // Logger::root().setChannel(FC);
+        DBG
+        Logger& logger = Logger::get("App");
+
+        logger.information("Command line:");
         std::ostringstream ostr;
         for(auto &it: args)
         {
             // ostr << it << ' ';
         }
-        logger().information(ostr.str());
-        logger().information("Arguments to main():");
+        logger.information(ostr.str());
+        logger.information("Arguments to main():");
         for(auto &it: args)
         {
             // logger().information(it);
         }
-        logger().information("Application properties:");
+        logger.information("Application properties:");
         printProperties("");
 
-        TIPAPI Tip;
-        Tip.login();
+        TIP::API::API Tip;
+
+        std::cout << "1st login" << std::endl;
+        Tip.Login();
+
+        std::vector<TIP::EquipmentGateway::EquipmentGatewayRecord> gateways;
+
+        gateways = Tip.GetRoutingGatewaysByType();
+        std::cout << "ID: " << gateways[0].id() << std::endl;
+
+        TIP::EquipmentGateway::EquipmentGatewayRecord E = Tip.GetRoutingGateway(1691801527873612933);
+        std::cout << "Hostname: " << E.hostname() << std::endl;
+
+        gateways = Tip.GetRoutingGatewaysByHost("10.1.124.61");
+        std::cout << "ID: " << gateways[0].id() << std::endl;
+
+        TIP::EquipmentGateway::EquipmentGatewayRecord rr = gateways[0];
+
+        rr.hostname("10.3.111.2");
+        rr.ipAddr("10.3.111.2");
+        rr.port( 9911);
+        Tip.CreateRoutingGateway(rr);
+
+        gateways = Tip.GetRoutingGatewaysByHost("10.3.111.2");
+
+        std::cout << "ID: " << gateways[0].id() << "  Host: " << gateways[0].hostname() << std::endl;
+
     }
-
-
 
     return Application::EXIT_OK;
 }

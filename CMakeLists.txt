@@ -13,9 +13,13 @@ find_package(OpenSSL REQUIRED)
 find_package(yaml-cpp REQUIRED)
 find_package(Poco REQUIRED Crypto Net Util NetSSL)
 
-include_directories(/usr/local/include  /usr/local/opt/openssl/include)
+include_directories(/usr/local/include  /usr/local/opt/openssl/include src)
 
-add_executable(ucentral src/main.cpp src/gateway.cpp src/gateway.h src/ucentralServer.cpp src/ucentralServer.h src/tipApi.cpp src/tipApi.h src/config.cpp src/config.h src/svr.cpp src/svr.h src/app.cpp src/app.h src/common.h)
+add_executable(ucentral
+                src/main.cpp src/gateway.cpp src/gateway.h src/ucentralServer.cpp src/ucentralServer.h
+        src/TIP/Api.cpp src/TIP/Api.h src/config.cpp src/config.h src/svr.cpp src/svr.h
+                src/app.cpp src/app.h src/common.h src/TIP/EquipmentGatewayRecord.cpp src/TIP/EquipmentGatewayRecord.h
+                src/TIP/WebTokenResult.cpp src/TIP/WebTokenResult.h)
 
 # target_link_libraries(ucentral PRIVATE cpprestsdk::cpprest yaml-cpp ${Boost_LIBRARIES})
 # target_link_libraries(ucentral PRIVATE yaml-cpp Poco::Crypto Poco::Net ${Boost_LIBRARIES})

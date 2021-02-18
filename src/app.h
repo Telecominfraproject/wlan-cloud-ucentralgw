@@ -12,6 +12,13 @@
 #include "Poco/Util/AbstractConfiguration.h"
 #include "Poco/Util/IntValidator.h"
 #include "Poco/AutoPtr.h"
+#include "Poco/Logger.h"
+#include "Poco/SimpleFileChannel.h"
+#include "Poco/FileChannel.h"
+#include "Poco/FormattingChannel.h"
+#include "Poco/Formatter.h"
+#include "Poco/Message.h"
+
 #include <iostream>
 #include <sstream>
 
@@ -23,9 +30,22 @@ using Poco::Util::HelpFormatter;
 using Poco::Util::AbstractConfiguration;
 using Poco::Util::OptionCallback;
 using Poco::Util::IntValidator;
+using Poco::Logger;
+using Poco::SimpleFileChannel;
+using Poco::FormattingChannel;
+using Poco::Formatter;
+using Poco::FileChannel;
 using Poco::AutoPtr;
+using Poco::Message;
 
-
+class AppLogFormatter : public Formatter {
+public:
+    void format(const Message &msg, std::string & text )
+    {
+        std::cout << "Logging message: " << msg.getText() << std::endl;
+    }
+private:
+};
 class App: public Application
 {
 public:
@@ -47,6 +67,7 @@ protected:
 
 private:
     bool helpRequested_;
+    AutoPtr<FileChannel>  logging_channel_;
 };
 
 
