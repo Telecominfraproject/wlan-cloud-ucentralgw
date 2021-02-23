@@ -1,0 +1,412 @@
+openapi: 3.0.1
+info:
+  title: uCentral gateway API
+  description: A process to manage configuration for devices.
+  version: 0.0.1
+
+servers:
+  - url: 'https://api.example.com'
+
+security:
+  - bearerAuth: []
+
+components:
+  responses:
+
+    NotFound:
+      description: The specified resource was not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/GenericErrorResponse'
+
+    Unauthorized:
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/GenericErrorResponse'
+
+    Success:
+      description: Success
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/GenericGoodAnswer'
+
+  securitySchemes:
+    bearerAuth:        # arbitrary name for the security scheme
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+
+  schemas:
+    DeviceType:
+      type: string
+      default: AP
+      enum:
+        - AP
+        - Switch
+        - IoT
+
+    Device:
+      type: object
+      description: Definition of uCentral device
+      required:
+        - deviceType
+      properties:
+        id:
+          type: integer
+          format: int64
+        deviceType:
+          $ref: '#/components/schemas/DeviceType'
+        serialNUmber:
+          type: string
+        macAddress:
+          type: string
+        manufacturer:
+          type: string
+        configuration:
+          type: string
+        currentIpAddress:
+          type: string
+        createdTimestamp:
+          type: string
+          format: 'date-time'
+        lastConfigurationChange:
+          type: string
+          format: 'date-time'
+        lastConfigurationDownload:
+          type: string
+          format: 'date-time'
+
+    StatisticsDetails:
+      type: object
+      properties:
+        name:
+          type: string
+        value:
+          type: number
+          format: double
+
+    Statistics:
+      type: array
+      items:
+        $ref: '#/components/schemas/StatisticsDetails'
+
+    Logs:
+      type: array
+      items:
+        type: string
+
+    CommandDetails:
+      type: object
+      properties:
+        command:
+          type: string
+        runAt:
+          type: string
+          format: 'date-time'
+        deviceId:
+          type: integer
+          format: int64
+
+    CommandResults:
+      type: object
+      properties:
+        command:
+          type: string
+        results:
+          type: string
+        completed:
+          type: string
+          format: 'date-time'
+        deviceId:
+          type: integer
+          format: int64
+
+    GenericErrorResponse:
+      description: Typical error response
+      properties:
+        ErrorCode:
+          type: integer
+        ErrorDetails:
+          type: string
+        ErrorDescription:
+          type: string
+
+    GenericGoodAnswer:
+      description: used for all succesful responses.
+      properties:
+        Operation:
+          type: string
+        Details:
+          type: string
+        Code:
+          type: integer
+
+    WebTokenResult:
+      description: Login and Refresh Tokens to be used in subsequent API calls.
+      type: object
+      properties:
+        access_token:
+          type: string
+        refresh_token:
+          type: string
+        token_type:
+          type: string
+        expires_in:
+          type: integer
+          format: int32
+        idle_timeout:
+          type: integer
+          format: int32
+        aclTemplate:
+          $ref: '#/components/schemas/WebTokenAclTemplate'
+
+    WebTokenAclTemplate:
+      type: object
+      properties:
+        aclTemplate:
+          $ref: '#/components/schemas/AclTemplate'
+
+    AclTemplate:
+      type: object
+      properties:
+        Read:
+          type: boolean
+        ReadWrite:
+          type: boolean
+        ReadWriteCreate:
+          type: boolean
+        Delete:
+          type: boolean
+        PortalLogin:
+          type: boolean
+
+paths:
+  /oauth2:
+    post:
+      tags:
+        - Authentication
+      summary: Get access token - to be used as Bearer token header for all other API requests.
+      operationId: getAccessToken
+      requestBody:
+        description: User id and password
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WebTokenResult'
+      responses:
+        200:
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericGoodAnswer'
+        403:
+          $ref: '#/components/responses/Unauthorized'
+        404:
+          $ref: '#/components/responses/NotFound'
+
+  /oauth2/{token}:
+    delete:
+      tags:
+        - Authentication
+      summary: Revoke a token.
+      operationId: removeAccessToken
+      parameters:
+        - in: path
+          name: token
+          schema:
+            type:
+              string
+          required: true
+      responses:
+        200:
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericGoodAnswer'
+        404:
+          $ref: '#/components/responses/NotFound'
+
+  /devices:
+    get:
+      tags:
+        - devices
+      summary: Returns a list of devices.
+      description: Get a list of devices.
+      operationId: getDeviceList
+      parameters:
+        - in: query
+          description: Pagination start (starts at 1. If not specified, 1 is assumed)
+          name: offset
+          schema:
+            type: integer
+          required: false
+        - in: query
+          description: Maximum number of entries to return (if absent, no limit is assumed)
+          name: limit
+          schema:
+            type: integer
+          required: false
+        - in: query
+          description: Filter the results
+          name: filter
+          schema:
+            type: string
+          required: false
+      responses:
+        200:
+          description: List devices
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Device'
+        403:
+          $ref: '#/components/responses/Unauthorized'
+
+    post:
+      summary: Creating a new device
+      operationId: createNewDevice
+      requestBody:
+        description: Information used to create the new device
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Device'
+      responses:
+        200:
+          description: Successful device creation will return the device record with the proper device ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Device'
+        403:
+          $ref: '#/components/responses/Unauthorized'
+
+  /device/{id}:
+    get:
+      tags:
+        - devices
+      summary: Retrieve information for a single device
+      description: Retrieve all the inforamtion about a single device
+      operationId: getDeviceInformation
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+            format: int64
+          required: true
+      responses:
+        200:
+          description: Device information
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Device'
+        404:
+          $ref: '#/components/responses/NotFound'
+        403:
+          $ref: '#/components/responses/Unauthorized'
+
+    delete:
+      summary: Deleting a single device
+      operationId: deleteDevice
+      parameters:
+        - in: path
+          name: Id
+          schema:
+            type: integer
+            format: int64
+          required: true
+      responses:
+        200:
+          $ref: '#/components/responses/Success'
+        404:
+          $ref: '#/components/responses/NotFound'
+        403:
+          $ref: '#/components/responses/Unauthorized'
+
+  /device/{id}/logs:
+    get:
+      summary: Get the latest logs for a given device
+      operationId: getDeviceLogs
+      parameters:
+        - in: path
+          name: Id
+          schema:
+            type: integer
+            format: int64
+          required: true
+      responses:
+        200:
+          description: List of logs for this device
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Logs'
+        404:
+          $ref: '#/components/responses/Unauthorized'
+        403:
+          $ref: '#/components/responses/NotFound'
+
+  /device/{id}/statistics:
+    get:
+      summary: Get the latest statistics for a given device
+      operationId: getDeviceStats
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+            format: int64
+          required: true
+      responses:
+        200:
+          description: List of stats for this device
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Statistics'
+        404:
+          $ref: '#/components/responses/Unauthorized'
+        403:
+          $ref: '#/components/responses/NotFound'
+
+  /device/{id}/command:
+    post:
+      tags:
+        - Commands
+      summary: Post a command to a device
+      operationId: executeCommand
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+            format: int64
+          required: true
+      requestBody:
+        description: Command details
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CommandDetails'
+      responses:
+        200:
+          description: Successful command execution
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommandResults'
+        403:
+          $ref: '#/components/responses/Unauthorized'
+        404:
+          $ref: '#/components/responses/NotFound'
+
