@@ -2,7 +2,7 @@ openapi: 3.0.1
 info:
   title: uCentral gateway API
   description: A process to manage configuration for devices.
-  version: 0.0.2
+  version: 0.0.3
 
 servers:
   - url: 'https://api.example.com'
@@ -40,15 +40,14 @@ components:
       scheme: bearer
       bearerFormat: JWT
 
-
   schemas:
     DeviceType:
       type: string
       default: AP
       enum:
         - AP
-        - Switch
-        - IoT
+        - SWITCH
+        - IOT
 
     Device:
       type: object
@@ -68,6 +67,8 @@ components:
         manufacturer:
           type: string
         configuration:
+          type: string
+        notes:
           type: string
         currentIpAddress:
           type: string
