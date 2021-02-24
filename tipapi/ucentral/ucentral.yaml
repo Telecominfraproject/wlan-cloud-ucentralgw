@@ -2,7 +2,16 @@ openapi: 3.0.1
 info:
   title: uCentral gateway API
   description: A process to manage configuration for devices.
-  version: 0.0.3
+  version: 0.0.4
+  termsOfService:
+    http://example.com/terms/
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  contact:
+    name: Arilia Support
+    email: ucentralsupport@arilia.com
+    url: https://www.arilia.com/ucentralapisupport
 
 servers:
   - url: 'https://api.example.com'
@@ -82,6 +91,23 @@ components:
           type: string
           format: 'date-time'
 
+    DeviceStatus:
+      type: object
+      description: Current device status
+      properties:
+        id:
+          type: integer
+          format: int64
+        connected:
+          type: boolean
+        lastConnectedTimestamp:
+          type: string
+          format: 'date-time'
+        currentConfiguration:
+          type: string
+        currentFirmware:
+          type: string
+
     StatisticsDetails:
       type: object
       properties:
@@ -91,10 +117,16 @@ components:
           type: number
           format: double
 
-    Statistics:
-      type: array
-      items:
-        $ref: '#/components/schemas/StatisticsDetails'
+    StatisticsRecord:
+      type: object
+      properties:
+        date:
+          type: string
+          format: 'date-time'
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/StatisticsDetails'
 
     Logs:
       type: array
@@ -370,15 +402,41 @@ paths:
           required: true
       responses:
         200:
-          description: List of stats for this device
+          description: Array of statistics for this device
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Statistics'
+                type: array
+                items:
+                  $ref: '#/components/schemas/StatisticsRecord'
         404:
           $ref: '#/components/responses/Unauthorized'
         403:
           $ref: '#/components/responses/NotFound'
+
+  /device/{id}/status:
+    get:
+      summary: Get the latest status for a given device
+      operationId: getDeviceStatus
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+            format: int64
+          required: true
+      responses:
+        200:
+          description: Status for the given device
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeviceStatus'
+        404:
+          $ref: '#/components/responses/Unauthorized'
+        403:
+          $ref: '#/components/responses/NotFound'
+
 
   /device/{id}/command:
     post:
