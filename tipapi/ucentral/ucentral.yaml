@@ -410,3 +410,31 @@ paths:
         404:
           $ref: '#/components/responses/NotFound'
 
+  /device/{id}/configure:
+    post:
+      tags:
+        - Commands
+      summary: Configura a device
+      operationId: updateConfigurationForADevice
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+            format: int64
+          required: true
+      requestBody:
+        description: Command details
+        content:
+          application/json:
+            schema:
+              type: string
+      responses:
+        200:
+          $ref: '#/components/responses/Success'
+        403:
+          $ref: '#/components/responses/Unauthorized'
+        404:
+          $ref: '#/components/responses/NotFound'
+
+
