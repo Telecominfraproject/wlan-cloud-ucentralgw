@@ -2,8 +2,8 @@
 // Created by stephane bourque on 2021-02-17.
 //
 
-#ifndef UCENTRAL_EQUIPMENTGATEWAYRECORD_H
-#define UCENTRAL_EQUIPMENTGATEWAYRECORD_H
+#ifndef UCENTRAL_ROUTING_H
+#define UCENTRAL_ROUTING_H
 
 #include "Poco/JSON/Parser.h"
 #include "Poco/Net/HTTPSClientSession.h"
@@ -30,7 +30,6 @@ namespace TIP::Routing {
             }
 
             bool to_JSON(Poco::JSON::Object &obj) const;
-
             bool from_stream(std::istream &response);
             bool from_object(Poco::JSON::Object::Ptr Obj);
 
@@ -66,6 +65,38 @@ namespace TIP::Routing {
     std::vector<TIP::Routing::EquipmentGatewayRecord> GetRoutingGatewaysByHost(const std::string &host);
     std::vector<TIP::Routing::EquipmentGatewayRecord> GetRoutingGatewaysByType(const std::string & Type = "CEGW");
 
+    class EquipmentRoutingRecord {
+    public:
+        [[nodiscard]] uint64_t id() const { return id_; };
+        [[nodiscard]] uint64_t equipmentId() const { return equipmentId_; };
+        [[nodiscard]] uint32_t customerId() const { return customerId_; };
+        [[nodiscard]] uint64_t gatewayId() const { return gatewayId_; };
+        [[nodiscard]] uint64_t createdTimestamp() const { return createdTimestamp_; };
+        [[nodiscard]] uint64_t lastModifiedTimestamp() const { return lastModifiedTimestamp_; };
+
+        void id(uint64_t v) { id_ = v ; };
+        void equipmentId(uint64_t v) { equipmentId_ = v ; };
+        void customerId(uint32_t v) { customerId_ = v; };
+        void gatewayId(uint64_t v) { gatewayId_ = v; };
+
+        bool to_JSON(Poco::JSON::Object &obj) const;
+        bool from_stream(std::istream &response);
+        bool from_object(Poco::JSON::Object::Ptr Obj);
+
+    private:
+        uint64_t id_;
+        uint64_t equipmentId_;
+        uint32_t customerId_;
+        uint64_t gatewayId_;
+        uint64_t createdTimestamp_;
+        uint64_t lastModifiedTimestamp_;
+    };
+
+    bool CreateEquipmentRoutingRecord(const EquipmentRoutingRecord &R);
+    bool UpdateEquipmentRoutingRecord(const EquipmentRoutingRecord &R);
+    bool DeleteEquipmentRoutingRecord(uint64_t id);
+    EquipmentRoutingRecord GetEquipmentRoutingRecordById(uint64_t id);
+
 }
 
-#endif //UCENTRAL_EQUIPMENTGATEWAYRECORD_H
+#endif //UCENTRAL_ROUTING_H

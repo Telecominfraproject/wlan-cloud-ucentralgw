@@ -30,7 +30,18 @@ namespace TIP::WebToken {
 
     public:
         bool from_JSON(std::istream &response);
-        const std::string &access_token() const { return access_token_; };
+        [[nodiscard]] const std::string &access_token() const { return access_token_; };
+        [[nodiscard]] const std::string &refresh_token() const { return refresh_token_; };
+        [[nodiscard]] const std::string &id_token() const { return id_token_; };
+        [[nodiscard]] const std::string &token_type() const { return token_type_; };
+        [[nodiscard]] unsigned int expires_in() const { return expires_in_; };
+        [[nodiscard]] unsigned int idle_timeout() const { return idle_timeout_; };
+
+        [[nodiscard]] bool read_access() const { return acl_template_.Read_; };
+        [[nodiscard]] bool readWrite_access() const { return acl_template_.ReadWrite_; };
+        [[nodiscard]] bool readWriteCreate_access() const { return acl_template_.ReadWriteCreate_; };
+        [[nodiscard]] bool delete_access() const { return acl_template_.Delete_; };
+        [[nodiscard]] bool portalLogin_access() const { return acl_template_.PortalLogin_; };
 
     private:
         std::string access_token_;

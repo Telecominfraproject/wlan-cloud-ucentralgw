@@ -5,7 +5,7 @@
 #include <string>
 
 #include "Api.h"
-#include "../app.h"
+#include "../uCentral.h"
 
 #include "Poco//Net/DNS.h"
 
@@ -14,12 +14,12 @@ namespace TIP::API {
     TIP::API::API *TIP::API::API::instance_ = 0;
 
     void API::Init() {
-        username_ = App::instance().config().getString("tip.api.login.username");
-        password_ = App::instance().config().getString("tip.api.login.password");
-        api_host_ = App::instance().config().getString("tip.api.host");
-        api_port_ = App::instance().config().getInt("tip.api.port");
-        ssc_host_ = App::instance().config().getString("tip.ssc.host");
-        ssc_port_ = App::instance().config().getInt("tip.ssc.port");
+        username_ = uCentral::instance().config().getString("tip.api.login.username");
+        password_ = uCentral::instance().config().getString("tip.api.login.password");
+        api_host_ = uCentral::instance().config().getString("tip.api.host");
+        api_port_ = uCentral::instance().config().getInt("tip.api.port");
+        ssc_host_ = uCentral::instance().config().getString("tip.gateway.host.0.address");
+        ssc_port_ = uCentral::instance().config().getInt("tip.gateway.host.0.port");
     }
 
     void API::Logout() {
@@ -58,8 +58,16 @@ namespace TIP::API {
         TIP::API::API::instance()->Logout();
     }
 
-    const std::string & SSC_Host() { return TIP::API::API::instance()->ssc_host(); }
-    uint64_t SSC_Port() { return TIP::API::API::instance()->ssc_port(); }
+    const std::string & AccessToken() {
+        return TIP::API::API::instance()->access_token();
+    };
 
+    const std::string & SSC_Host() {
+        return TIP::API::API::instance()->ssc_host();
+    }
+
+    uint64_t SSC_Port() {
+        return TIP::API::API::instance()->ssc_port();
+    }
 }
 

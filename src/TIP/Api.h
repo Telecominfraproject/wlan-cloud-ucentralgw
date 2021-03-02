@@ -71,13 +71,27 @@ namespace TIP::API {
 
             bool Login();
             void Logout();
-            void Init();
-            const std::string & ssc_host() const { return ssc_host_; }
-            uint64_t ssc_port() const { return ssc_port_; }
 
-            const std::string &access_token() const { return token_.access_token(); };
+            [[nodiscard]] const std::string & ssc_host() const { return ssc_host_; }
+            [[nodiscard]] uint64_t ssc_port() const { return ssc_port_; }
+            [[nodiscard]] const std::string &access_token() const { return token_.access_token(); };
+
+            [[nodiscard]] const std::string &refresh_token() const { return token_.refresh_token(); };
+            [[nodiscard]] const std::string &id_token() const { return token_.id_token(); };
+            [[nodiscard]] const std::string &token_type() const { return token_.token_type(); };
+            [[nodiscard]] unsigned int expires_in() const { return token_.expires_in(); };
+            [[nodiscard]] unsigned int idle_timeout() const { return token_.idle_timeout(); };
+
+            [[nodiscard]] bool read_access() const { return token_.read_access(); };
+            [[nodiscard]] bool readWrite_access() const { return token_.readWrite_access(); };
+            [[nodiscard]] bool readWriteCreate_access() const { return token_.readWriteCreate_access(); };
+            [[nodiscard]] bool delete_access() const { return token_.delete_access(); };
+            [[nodiscard]] bool portalLogin_access() const { return token_.portalLogin_access(); };
+
 
         private:
+            void Init();
+
             static API *instance_;
             std::string api_host_;       //  TIP portal server name: default to wlan-ui.wlan.local
             unsigned int api_port_;
@@ -91,6 +105,7 @@ namespace TIP::API {
 
     bool Login();
     void Logout();
+    const std::string & AccessToken();
     const std::string & SSC_Host();
     uint64_t SSC_Port();
 }

@@ -2,10 +2,10 @@
 // Created by stephane bourque on 2021-02-15.
 //
 
-#ifndef UCENTRAL_APP_H
-#define UCENTRAL_APP_H
+#ifndef UCENTRAL_UCENTRAL_H
+#define UCENTRAL_UCENTRAL_H
 
-#include "Poco/Util/Application.h"
+#include "Poco/Util/ServerApplication.h"
 #include "Poco/Util/Option.h"
 #include "Poco/Util/OptionSet.h"
 #include "Poco/Util/HelpFormatter.h"
@@ -18,10 +18,11 @@
 #include "Poco/FormattingChannel.h"
 #include "Poco/Formatter.h"
 #include "Poco/Message.h"
+#include "Poco/Data/Session.h"
+#include "Poco/Data/SQLite/Connector.h"
 
 #include <iostream>
 #include <sstream>
-
 
 using Poco::Util::Application;
 using Poco::Util::Option;
@@ -38,6 +39,10 @@ using Poco::FileChannel;
 using Poco::AutoPtr;
 using Poco::Message;
 
+#include "TIPGWServer.h"
+#include "uCentralWebSocketServer.h"
+#include "uCentralRESTAPIServer.h"
+
 class AppLogFormatter : public Formatter {
 public:
     void format(const Message &msg, std::string & text )
@@ -46,10 +51,11 @@ public:
     }
 private:
 };
-class App: public Application
+
+class uCentral: public Poco::Util::ServerApplication
 {
 public:
-    App();
+    uCentral();
 
 protected:
     void initialize(Application& self);
@@ -71,4 +77,4 @@ private:
 };
 
 
-#endif //UCENTRAL_APP_H
+#endif //UCENTRAL_UCENTRAL_H

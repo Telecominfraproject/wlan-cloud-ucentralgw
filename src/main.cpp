@@ -1,5 +1,5 @@
 #include <iostream>
 
-#include "app.h"
+#include "uCentral.h"
 
-POCO_APP_MAIN(App)
+POCO_SERVER_MAIN(uCentral)

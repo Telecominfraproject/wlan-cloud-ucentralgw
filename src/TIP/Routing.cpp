@@ -2,7 +2,7 @@
 // Created by stephane bourque on 2021-02-17.
 //
 
-#include "EquipmentGatewayRecord.h"
+#include "Routing.h"
 #include "Poco/JSON/Parser.h"
 
 namespace TIP::Routing {
@@ -39,9 +39,9 @@ namespace TIP::Routing {
 
     bool CreateRoutingGateway(const TIP::Routing::EquipmentGatewayRecord & R) {
         Poco::Net::HTTPSClientSession session(TIP::API::SSC_Host(),TIP::API::SSC_Port());
-        Poco::Net::HTTPRequest request(Poco::Net::HTTPRequest::HTTP_POST,
+        Poco::Net::HTTPRequest request( Poco::Net::HTTPRequest::HTTP_POST,
                                        std::string("/api/routing/gateway"),
-        Poco::Net::HTTPMessage::HTTP_1_1);
+                                        Poco::Net::HTTPMessage::HTTP_1_1);
 
         Poco::JSON::Object obj;
         R.to_JSON(obj);
@@ -66,9 +66,10 @@ namespace TIP::Routing {
         TIP::Routing::EquipmentGatewayRecord  R;
 
         Poco::Net::HTTPSClientSession session(TIP::API::SSC_Host(),TIP::API::SSC_Port());
-        Poco::Net::HTTPRequest request(Poco::Net::HTTPRequest::HTTP_DELETE,
-                                       std::string("/api/routing/gateway?gatewayId=") + std::to_string(Id),
-                Poco::Net::HTTPMessage::HTTP_1_1);
+        Poco::Net::HTTPRequest request( Poco::Net::HTTPRequest::HTTP_DELETE,
+                                       std::string("/api/routing/gateway?gatewayId=")
+                                        + std::to_string(Id),
+                                        Poco::Net::HTTPMessage::HTTP_1_1);
         request.setContentType("application/json");
         session.sendRequest(request);
 
@@ -84,9 +85,10 @@ namespace TIP::Routing {
         EquipmentGatewayRecord  R;
 
         Poco::Net::HTTPSClientSession session(TIP::API::SSC_Host(),TIP::API::SSC_Port());
-        Poco::Net::HTTPRequest request(Poco::Net::HTTPRequest::HTTP_GET,
-                                       std::string("/api/routing/gateway?gatewayId=") + std::to_string(Id),
-                Poco::Net::HTTPMessage::HTTP_1_1);
+        Poco::Net::HTTPRequest request( Poco::Net::HTTPRequest::HTTP_GET,
+                                       std::string("/api/routing/gateway?gatewayId=")
+                                        + std::to_string(Id),
+                                        Poco::Net::HTTPMessage::HTTP_1_1);
         request.setContentType("application/json");
         session.sendRequest(request);
 
@@ -102,9 +104,10 @@ namespace TIP::Routing {
         std::vector<TIP::Routing::EquipmentGatewayRecord>  R;
 
         Poco::Net::HTTPSClientSession session(TIP::API::SSC_Host(),TIP::API::SSC_Port());
-        Poco::Net::HTTPRequest request(Poco::Net::HTTPRequest::HTTP_GET,
-                                       std::string("/api/routing/gateway/byType?gatewayType=") + Type,
-                Poco::Net::HTTPMessage::HTTP_1_1);
+        Poco::Net::HTTPRequest request( Poco::Net::HTTPRequest::HTTP_GET,
+                                       std::string("/api/routing/gateway/byType?gatewayType=")
+                                        + Type,
+                                        Poco::Net::HTTPMessage::HTTP_1_1);
         request.setContentType("application/json");
         session.sendRequest(request);
 
@@ -120,9 +123,10 @@ namespace TIP::Routing {
         std::vector<TIP::Routing::EquipmentGatewayRecord>  R;
 
         Poco::Net::HTTPSClientSession session(TIP::API::SSC_Host(),TIP::API::SSC_Port());
-        Poco::Net::HTTPRequest request(Poco::Net::HTTPRequest::HTTP_GET,
-                                       std::string("/api/routing/gateway/byHostname?hostname=") + host,
-                Poco::Net::HTTPMessage::HTTP_1_1);
+        Poco::Net::HTTPRequest request( Poco::Net::HTTPRequest::HTTP_GET,
+                                       std::string("/api/routing/gateway/byHostname?hostname=")
+                                        + host,
+                                        Poco::Net::HTTPMessage::HTTP_1_1);
         request.setContentType("application/json");
         session.sendRequest(request);
 
@@ -132,6 +136,53 @@ namespace TIP::Routing {
         R = TIP::API::GetJSONArray<TIP::Routing::EquipmentGatewayRecord>(s);
 
         return R;
+    }
+
+    bool EquipmentRoutingRecord::to_JSON(Poco::JSON::Object &obj) const
+    {
+        obj.set("id", id_);
+        obj.set("equipmentId", equipmentId_);
+        obj.set("customerId", customerId_);
+        obj.set("gatewayId", gatewayId_);
+        return true;
+    }
+
+    bool EquipmentRoutingRecord::from_stream(std::istream &response) {
+        Poco::JSON::Parser parser;
+        Poco::JSON::Object::Ptr Obj = parser.parse(response).extract<Poco::JSON::Object::Ptr>();
+
+        return EquipmentRoutingRecord::from_object(Obj);
+    }
+
+    bool EquipmentRoutingRecord::from_object(Poco::JSON::Object::Ptr Obj) {
+        Poco::DynamicStruct ds = *Obj;
+
+        id_ = ds["id"];
+        equipmentId_ = ds["equipmentId"];
+        customerId_ = ds["customerId"];
+        gatewayId_ = ds["gatewayId"];
+        createdTimestamp_ = ds["createdTimestamp"];
+        lastModifiedTimestamp_ = ds["lastModifiedTimestamp"];
+
+        return true;
+    }
+
+    bool CreateEquipmentRoutingRecord(const EquipmentRoutingRecord &R) {
+        return false;
+    }
+
+    bool DeleteEquipmentRoutingRecord(uint64_t id) {
+        return false;
+    }
+
+    bool UpdateEquipmentRoutingRecord(const EquipmentRoutingRecord &R) {
+        return false;
+    }
+
+    EquipmentRoutingRecord GetEquipmentRoutingById(uint64_t Id) {
+        EquipmentRoutingRecord E;
+
+        return E;
     }
 
 }

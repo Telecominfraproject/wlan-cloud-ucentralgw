@@ -2,8 +2,10 @@
 // Created by stephane bourque on 2021-02-12.
 //
 
-#ifndef UCENTRAL_UCENTRALSERVER_H
-#define UCENTRAL_UCENTRALSERVER_H
+#ifndef UCENTRAL_TIPGWSERVER_H
+#define UCENTRAL_TIPGWSERVER_H
+
+#include "PropertiesFileServerList.h"
 
 #include "Poco/Util/Application.h"
 #include "Poco/Util/ServerApplication.h"
@@ -13,9 +15,7 @@
 #include "Poco/Util/AbstractConfiguration.h"
 #include "Poco/Util/IntValidator.h"
 #include "Poco/AutoPtr.h"
-#include <iostream>
-#include <sstream>
-
+#include "Poco/Logger.h"
 
 using Poco::Util::Application;
 using Poco::Util::ServerApplication;
@@ -26,22 +26,30 @@ using Poco::Util::AbstractConfiguration;
 using Poco::Util::OptionCallback;
 using Poco::Util::IntValidator;
 using Poco::AutoPtr;
+using Poco::Logger;
 
+#include "SubSystemServer.h"
 
-class UCentralGW: public Poco::Util::Subsystem
+class TIPGWServer: public SubSystemServer
 {
 public:
-    UCentralGW();
+    TIPGWServer() noexcept;
 
-protected:
-    const char *name() const { return "uCentralGW"; };
-    void initialize(Application &self);
-    void uninitialize();
-    void reinitialize(Application& self);
-    void defineOptions(OptionSet &options);
+    int start();
+    void stop();
+
+    Logger & logger() { return SubSystemServer::logger(); };
+
+    static TIPGWServer *instance() {
+        if(instance_== nullptr) {
+            instance_ = new TIPGWServer;
+        }
+        return instance_;
+    }
+
 
 private:
-    bool helpRequested_;
+    static TIPGWServer *instance_;
 };
 
-#endif //UCENTRAL_UCENTRALSERVER_H
+#endif //UCENTRAL_TIPGWSERVER_H
