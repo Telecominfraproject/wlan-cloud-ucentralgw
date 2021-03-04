@@ -8,7 +8,7 @@
 uCentralWebSocketServer * uCentralWebSocketServer::instance_= nullptr;
 
 uCentralWebSocketServer::uCentralWebSocketServer() noexcept:
-        SubSystemServer("WebSocketServer","WebSocketServer","ucentral.websocket")
+        SubSystemServer("WebSocketServer","WS-SVR","ucentral.websocket")
 {
 
 }
@@ -20,7 +20,7 @@ int uCentralWebSocketServer::start() {
     SubSystemServer::host(0).address() + ":" + std::to_string(SubSystemServer::host(0).port()) +
     " key:" + SubSystemServer::host(0).key_file() + " cert:" + SubSystemServer::host(0).cert_file()};
 
-    std::cout << "LOGGING: " << l << std::endl;
+    logger().information(l);
 
     SecureServerSocket  sock( SubSystemServer::host(0).port(),
                               64,
@@ -42,59 +42,78 @@ void uCentralWebSocketServer::stop() {
     server_->stop();
 }
 
-std::string default_config() {
-    return std::string{"{\"cfg\": {\"uuid\":1613927736,\"steer\":{\"enabled\":1,\"network\":\"wan\",\"debug_level\":0},\"stats\":{\"interval\":60,\"neighbours\":1,\"traffic\":1,\"wifiiface\":1,\"wifistation\":1,\"pids\":1,\"serviceprobe\":1,\"lldp\":1,\"system\":1,\"poe\":1},\"phy\":[{\"band\":\"2\",\"cfg\":{\"disabled\":0,\"country\":\"DE\",\"channel\":6,\"txpower\":30,\"beacon_int\":100,\"htmode\":\"HE40\",\"hwmode\":\"11g\",\"chanbw\":20}},{\"band\":\"5\",\"cfg\":{\"mimo\":\"4x4\",\"disabled\":0,\"country\":\"DE\",\"channel\":0,\"htmode\":\"HE80\"}},{\"band\":\"5u\",\"cfg\":{\"disabled\":0,\"country\":\"DE\",\"channel\":100,\"htmode\":\"VHT80\"}},{\"band\":\"5l\",\"cfg\":{\"disabled\":0,\"country\":\"DE\",\"channel\":36,\"htmode\":\"VHT80\"}}],\"ssid\":[{\"band\":[\"2\"],\"cfg\":{\"ssid\":\"uCentral-Guest\",\"encryption\":\"psk2\",\"key\":\"OpenWifi\",\"mode\":\"ap\",\"isolate\":1,\"network\":\"guest\",\"ieee80211r\":1,\"ieee80211v\":1,\"ieee80211k\":1,\"ft_psk_generate_local\":1,\"ft_over_ds\":1,\"mobility_domain\":\"4f57\"}},{\"band\":[\"5l\",\"5\"],\"cfg\":{\"ssid\":\"uCentral-NAT.200\",\"encryption\":\"psk2\",\"key\":\"OpenWifi\",\"mode\":\"ap\",\"network\":\"nat200\",\"ieee80211r\":1,\"ieee80211v\":1,\"ieee80211k\":1,\"ft_psk_generate_local\":1,\"ft_over_ds\":1,\"mobility_domain\":\"4f51\"}},{\"band\":[\"5l\",\"5\"],\"cfg\":{\"ssid\":\"uCentral-EAP\",\"encryption\":\"wpa2\",\"server\":\"148.251.188.218\",\"port\":1812,\"auth_secret\":\"uSyncRad1u5\",\"mode\":\"ap\",\"network\":\"lan\",\"ieee80211r\":1,\"ieee80211v\":1,\"ieee80211k\":1,\"ft_psk_generate_local\":1,\"ft_over_ds\":1,\"mobility_domain\":\"4f51\"}},{\"band\":[\"5l\",\"5\"],\"cfg\":{\"ssid\":\"uCentral\",\"encryption\":\"psk2\",\"key\":\"OpenWifi\",\"mode\":\"ap\",\"network\":\"wan\",\"ieee80211r\":1,\"ieee80211v\":1,\"ieee80211k\":1,\"ft_psk_generate_local\":1,\"ft_over_ds\":1,\"mobility_domain\":\"4f51\"}}],\"network\":[{\"mode\":\"wan\",\"cfg\":{\"proto\":\"dhcp\"}},{\"mode\":\"gre\",\"cfg\":{\"vid\":\"50\",\"peeraddr\":\"50.210.104.108\"}},{\"mode\":\"nat\",\"vlan\":200,\"cfg\":{\"proto\":\"static\",\"ipaddr\":\"192.168.16.1\",\"netmask\":\"255.255.255.0\",\"mtu\":1500,\"ip6assign\":60,\"dhcp\":{\"start\":10,\"limit\":100,\"leasetime\":\"6h\"},\"leases\":[{\"ip\":\"192.168.100.2\",\"mac\":\"00:11:22:33:44:55\",\"hostname\":\"test\"},{\"ip\":\"192.168.100.3\",\"mac\":\"00:11:22:33:44:56\",\"hostname\":\"test2\"}]}},{\"mode\":\"guest\",\"cfg\":{\"proto\":\"static\",\"ipaddr\":\"192.168.12.11\",\"dhcp\":{\"start\":10,\"limit\":100,\"leasetime\":\"6h\"}}}],\"ntp\":{\"enabled\":1,\"enable_server\":1,\"server\":[\"0.openwrt.pool.ntp.org\",\"1.openwrt.pool.ntp.org\"]},\"ssh\":{\"enable\":1,\"Port\":22},\"system\":{\"timezone\":\"CET-1CEST,M3.5.0,M10.5.0/3\"},\"log\":{\"_log_proto\":\"udp\",\"_log_ip\":\"192.168.11.23\",\"_log_port\":12345,\"_log_hostname\":\"foo\",\"_log_size\":128},\"rtty\":{\"host\":\"websocket.usync.org\",\"token\":\"7049cb6b7949ba06c6b356d76f0f6275\",\"interface\":\"wan\"}}}"};
+std::string default_config_1() {
+    return std::string{"{\"uuid\":1613927736,\"steer\":{\"enabled\":1,\"network\":\"wan\",\"debug_level\":0},\"stats\":{\"interval\":60,\"neighbours\":1,\"traffic\":1,\"wifiiface\":1,\"wifistation\":1,\"pids\":1,\"serviceprobe\":1,\"lldp\":1,\"system\":1,\"poe\":1},\"phy\":[{\"band\":\"2\",\"cfg\":{\"disabled\":0,\"country\":\"DE\",\"channel\":6,\"txpower\":30,\"beacon_int\":100,\"htmode\":\"HE40\",\"hwmode\":\"11g\",\"chanbw\":20}},{\"band\":\"5\",\"cfg\":{\"mimo\":\"4x4\",\"disabled\":0,\"country\":\"DE\",\"channel\":0,\"htmode\":\"HE80\"}},{\"band\":\"5u\",\"cfg\":{\"disabled\":0,\"country\":\"DE\",\"channel\":100,\"htmode\":\"VHT80\"}},{\"band\":\"5l\",\"cfg\":{\"disabled\":0,\"country\":\"DE\",\"channel\":36,\"htmode\":\"VHT80\"}}],\"ssid\":[{\"band\":[\"2\"],\"cfg\":{\"ssid\":\"uCentral-Guest\",\"encryption\":\"psk2\",\"key\":\"OpenWifi\",\"mode\":\"ap\",\"isolate\":1,\"network\":\"guest\",\"ieee80211r\":1,\"ieee80211v\":1,\"ieee80211k\":1,\"ft_psk_generate_local\":1,\"ft_over_ds\":1,\"mobility_domain\":\"4f57\"}},{\"band\":[\"5l\",\"5\"],\"cfg\":{\"ssid\":\"uCentral-NAT.200\",\"encryption\":\"psk2\",\"key\":\"OpenWifi\",\"mode\":\"ap\",\"network\":\"nat200\",\"ieee80211r\":1,\"ieee80211v\":1,\"ieee80211k\":1,\"ft_psk_generate_local\":1,\"ft_over_ds\":1,\"mobility_domain\":\"4f51\"}},{\"band\":[\"5l\",\"5\"],\"cfg\":{\"ssid\":\"uCentral-EAP\",\"encryption\":\"wpa2\",\"server\":\"148.251.188.218\",\"port\":1812,\"auth_secret\":\"uSyncRad1u5\",\"mode\":\"ap\",\"network\":\"lan\",\"ieee80211r\":1,\"ieee80211v\":1,\"ieee80211k\":1,\"ft_psk_generate_local\":1,\"ft_over_ds\":1,\"mobility_domain\":\"4f51\"}},{\"band\":[\"5l\",\"5\"],\"cfg\":{\"ssid\":\"uCentral\",\"encryption\":\"psk2\",\"key\":\"OpenWifi\",\"mode\":\"ap\",\"network\":\"wan\",\"ieee80211r\":1,\"ieee80211v\":1,\"ieee80211k\":1,\"ft_psk_generate_local\":1,\"ft_over_ds\":1,\"mobility_domain\":\"4f51\"}}],\"network\":[{\"mode\":\"wan\",\"cfg\":{\"proto\":\"dhcp\"}},{\"mode\":\"gre\",\"cfg\":{\"vid\":\"50\",\"peeraddr\":\"50.210.104.108\"}},{\"mode\":\"nat\",\"vlan\":200,\"cfg\":{\"proto\":\"static\",\"ipaddr\":\"192.168.16.1\",\"netmask\":\"255.255.255.0\",\"mtu\":1500,\"ip6assign\":60,\"dhcp\":{\"start\":10,\"limit\":100,\"leasetime\":\"6h\"},\"leases\":[{\"ip\":\"192.168.100.2\",\"mac\":\"00:11:22:33:44:55\",\"hostname\":\"test\"},{\"ip\":\"192.168.100.3\",\"mac\":\"00:11:22:33:44:56\",\"hostname\":\"test2\"}]}},{\"mode\":\"guest\",\"cfg\":{\"proto\":\"static\",\"ipaddr\":\"192.168.12.11\",\"dhcp\":{\"start\":10,\"limit\":100,\"leasetime\":\"6h\"}}}],\"ntp\":{\"enabled\":1,\"enable_server\":1,\"server\":[\"0.openwrt.pool.ntp.org\",\"1.openwrt.pool.ntp.org\"]},\"ssh\":{\"enable\":1,\"Port\":22},\"system\":{\"timezone\":\"CET-1CEST,M3.5.0,M10.5.0/3\"},\"log\":{\"_log_proto\":\"udp\",\"_log_ip\":\"192.168.11.23\",\"_log_port\":12345,\"_log_hostname\":\"foo\",\"_log_size\":128},\"rtty\":{\"host\":\"websocket.usync.org\",\"token\":\"7049cb6b7949ba06c6b356d76f0f6275\",\"interface\":\"wan\"}}"};
 }
 
-std::string uCentralWebSocketServer::process_message(const std::string &m, ConnectionState &conn)
+void uCentralWebSocketServer::process_message(char *Message, std::string & Response, ConnectionState &Connection)
 {
     Parser  parser;
 
-    Poco::Dynamic::Var result = parser.parse(m);
+    Poco::Dynamic::Var result = parser.parse(Message);
     Poco::JSON::Object::Ptr object = result.extract<Poco::JSON::Object::Ptr>();
     Poco::DynamicStruct ds = *object;
 
     std::string SerialNumber = ds["serial"].toString();
 
-    std::cout << "SERIAL: " << SerialNumber << std::endl;
+    // std::cout << "SERIAL: " << SerialNumber << std::endl;
 
-    conn.SerialNumber = SerialNumber;
+    Connection.SerialNumber = SerialNumber;
 
     if(ds.contains("state") && ds.contains("serial"))
     {
         logger().information(SerialNumber + ": updating statistics.");
-        std::cout << "STATE_MSG 1 " << std::endl ;
         std::string NewStatistics{ds["state"].toString()};
-        uStorageService::instance()->AddStatisticsData(conn.SerialNumber,conn.CfgUUID,NewStatistics);
-        std::cout << "STATE_MSG 2 " << std::endl ;
+        uStorageService::instance()->AddStatisticsData(Connection.SerialNumber,Connection.CfgUUID,NewStatistics);
+        Response.clear();
     }
     else if(ds.contains("capab") && ds.contains("serial"))
     {
         logger().information(SerialNumber + ": updating capabilities.");
-        conn.SerialNumber = ds["serial"].toString();
+        Connection.SerialNumber = ds["serial"].toString();
         std::string     NewCapabilities{ds["capab"].toString()};
-        uStorageService::instance()->UpdateDeviceCapabilities(conn.SerialNumber,NewCapabilities);
+        uStorageService::instance()->UpdateDeviceCapabilities(Connection.SerialNumber,NewCapabilities);
+        Response.clear();
     }
     else if(ds.contains("uuid") && ds.contains("serial") && ds.contains("active")) {
-        conn.CfgUUID = ds["uuid"];
-        std::cout << "UUID of config" << ds["uuid"].toString() << std::endl;
-        return default_config();
+        logger().information(SerialNumber + ": updating active configuration.");
+        Connection.CfgUUID = ds["uuid"];
+        std::cout << "Waiting to apply configuration " << ds["active"].toString() << std::endl;
+        Response.clear();
     }
     else if(ds.contains("uuid") && ds.contains("serial")) {
-        conn.CfgUUID = ds["uuid"];
-        std::cout << "UUID of config" << ds["uuid"].toString() << std::endl;
-        return default_config();
+        logger().information(SerialNumber + ": configuration check.");
+        Connection.CfgUUID = ds["uuid"];
+
+        std::cout << "Newer config check start" << std::endl;
+
+        std::string NewConfig;
+        uint64_t    NewConfigUUID;
+
+        if(uStorageService::instance()->ExistingConfiguration(SerialNumber,Connection.CfgUUID,NewConfig,NewConfigUUID)) {
+            if( Connection.CfgUUID < NewConfigUUID ) {
+                std::cout << "We have a newer configuration." << std::endl;
+                Response = "{ \"cfg\" : " + NewConfig + "}";
+            }
+            else
+            {
+                Response.clear();
+            }
+        } else {
+            Response.clear();
+        }
+        std::cout << "Newer config check finished" << std::endl;
     }
     else if(ds.contains("log")) {
         std::string log = ds["log"].toString();
         logger().warning("DEVICE-LOG(" + SerialNumber + "):" + log);
+        Response.clear();
     }
     else
     {
-        std::cout << "UNKNOWN_MESSAGE: " << m << std::endl;
+        std::cout << "UNKNOWN_MESSAGE(" << SerialNumber << "): "<< Message << std::endl;
+        Response.clear();
     }
-
-    return "";
 }
 
 void PageRequestHandler::handleRequest(HTTPServerRequest& request, HTTPServerResponse& response)
@@ -142,54 +161,91 @@ void PageRequestHandler::handleRequest(HTTPServerRequest& request, HTTPServerRes
 
 void WebSocketRequestHandler::handleRequest(HTTPServerRequest& request, HTTPServerResponse& response)
 {
-    Application& app = Application::instance();
+    Application&    app = Application::instance();
+    Poco::Logger    & l = uCentralWebSocketServer::instance()->logger();
+    std::string     Address;
+    std::string     ResponseDocument;
+
     try
     {
 
         WebSocket   ws(request, response);
-        std::string Address{ws.peerAddress().toString()};
+        Address = ws.peerAddress().toString();
+        ws.setKeepAlive(true);
 
-        std::cout << "Connection from: " << Address << std::endl;
+        l.information("Connection from: " + Address);
 
-        ConnectionState conn{ .SerialNumber{""},
+        ConnectionState Connection{ .SerialNumber{""},
                 .Address{Address},
                 .messages=0,
                 .CfgUUID=0,
                 .RX=0,
                 .TX=0};
 
-        uCentralWebSocketServer::instance()->logger().information("WebSocket connection established from .");
-        char buffer[32000];
-        int flags;
-        int n;
+        char IncomingMessage[32000];
+        int flags,Op;
+        int IncomingSize=0;
+
         do
         {
+            memset(IncomingMessage,0,sizeof(IncomingMessage));
 
-            ws.peerAddress().toString();
-            memset(buffer,0,sizeof(buffer));
-            n = ws.receiveFrame(buffer, sizeof(buffer), flags);
-            conn.messages++;
+            IncomingSize = ws.receiveFrame(IncomingMessage, sizeof(IncomingMessage), flags);
 
-            uCentralWebSocketServer::instance()->logger().information(Poco::format("Frame received (length=%d, flags=0x%x).", n, unsigned(flags)));
+            Connection.messages++;
 
-            std::string m{buffer};
-            conn.RX += m.size();
+            Op = flags & WebSocket::FRAME_OP_BITMASK;
 
-            std::string return_document = uCentralWebSocketServer::instance()->process_message(m,conn);
-            conn.TX += return_document.size();
+            switch (Op) {
+                case WebSocket::FRAME_OP_PING:
+                    {
+                        std::cout << "Sending a PONG" << std::endl;
+                        ws.sendFrame("", 0, WebSocket::FRAME_OP_PING | WebSocket::FRAME_FLAG_FIN);
+                    }
+                    break;
+                case WebSocket::FRAME_OP_PONG:
+                    {
+                        std::cout << "Got a PONG" << std::endl;
+                    }
+                    break;
+                case WebSocket::FRAME_OP_TEXT:
+                    {
+                        std::cout << "Incoming(" << Connection.SerialNumber << "): " << IncomingSize << " bytes." << std::endl;
 
-            if( !return_document.empty()) {
-                // std::cout << "RETURN:" << return_document << std::endl;
-                ws.sendFrame(return_document.c_str(), return_document.size(), flags);
-            }
+                        l.debug(Poco::format("Frame received (length=%d, flags=0x%x).", IncomingSize, unsigned(flags)));
+
+                        Connection.RX += IncomingSize;
+
+                        uCentralWebSocketServer::instance()->process_message(IncomingMessage, ResponseDocument, Connection);
+
+                        if (!ResponseDocument.empty()) {
+                            Connection.TX += ResponseDocument.size();
+                            // std::cout << "RETURN:" << ResponseDocument << std::endl;
+                            usleep(8000);
+                            std::cout << "Returning " << ResponseDocument.size() << " bytes" << std::endl;
+                            ws.sendFrame(ResponseDocument.c_str(), ResponseDocument.size());
+                        } else {
+                            // std::cout << "No response." << std::endl;
+                            usleep(8000);
+                            ws.sendFrame(ResponseDocument.c_str(), ResponseDocument.size(), WebSocket::FRAME_OP_PING | WebSocket::FRAME_FLAG_FIN);
+                        }
+                    }
+                    break;
+                default:
+                    {
+                        l.warning("UNKNOWN WS Frame operation: " + std::to_string(Op));
+                        std::cout << "WS: Unknown frame: " << Op << " Flags: " << flags << std::endl;
+                        Op = WebSocket::FRAME_OP_CLOSE;
+                    }
+                }
         }
-        while (n > 0 && (flags & WebSocket::FRAME_OP_BITMASK) != WebSocket::FRAME_OP_CLOSE);
-        std::cout << "ENDING CONNECTION..." << std::endl;
-        uCentralWebSocketServer::instance()->logger().information("WebSocket connection closed.");
+        while (Op != WebSocket::FRAME_OP_CLOSE);
+        l.information("Connection closed from " + Address);
+        ws.shutdown();
     }
-    catch (WebSocketException& exc)
+    catch (const WebSocketException& exc)
     {
-        uCentralWebSocketServer::instance()->logger().log(exc);
+        std::cout << "Caught an exception..." << std::endl;
         switch (exc.code())
         {
             case WebSocket::WS_ERR_HANDSHAKE_UNSUPPORTED_VERSION:
@@ -198,11 +254,15 @@ void WebSocketRequestHandler::handleRequest(HTTPServerRequest& request, HTTPServ
             case WebSocket::WS_ERR_NO_HANDSHAKE:
             case WebSocket::WS_ERR_HANDSHAKE_NO_VERSION:
             case WebSocket::WS_ERR_HANDSHAKE_NO_KEY:
+                l.warning("WS Exception from: " + Address);
                 response.setStatusAndReason(HTTPResponse::HTTP_BAD_REQUEST);
                 response.setContentLength(0);
                 response.send();
                 break;
         }
+    }
+    catch (const Poco::Exception & exc) {
+        std::cout << "Caught a more generic Poco exception: " << exc.message() << std::endl;
     }
 }
 

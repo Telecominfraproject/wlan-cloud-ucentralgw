@@ -12,26 +12,29 @@
 
 struct uCentralDevice {
     std::string SerialNumber;
-    std::string MAC;
+    std::string DeviceType;
+    std::string MACAddress;
+    std::string Manufacturer;
     uint64_t    UUID;
     std::string Configuration;
+    std::string Notes;
     uint64_t    CreationTimestamp;
-    uint64_t    ModifiedTimestamp;
-    uint64_t    LastDownloadTimeStamp;
+    uint64_t    LastConfigurationChange;
+    uint64_t    LastConfigurationDownload;
 };
 
 struct uCentralStatistics {
     std::string SerialNumber;
     uint64_t    UUID;
-    std::string StatsRecord;
-    uint64_t    CreationTimestamp;
+    std::string Data;
+    uint64_t    Recorded;
 };
 
 struct uCentralCapabilities {
     std::string SerialNumber;
-    std::string Caps;
-    uint64_t    CreationTimestamp;
-    uint64_t    LastUpdatedTimestamp;
+    std::string Capabilities;
+    uint64_t    FirstUpdate;
+    uint64_t    LastUpdate;
 };
 
 class uStorageService : public SubSystemServer {
@@ -45,14 +48,14 @@ public:
     Logger & logger() { return SubSystemServer::logger(); };
 
     bool AddStatisticsData(std::string &SerialNUmber, uint64_t CfgUUID, std::string &NewStats);
-    bool GetStatisticsData(std::string &SerialNUmber, uint32_t From, uint32_t To, std::vector<uCentralStatistics> &Stats);
+    bool GetStatisticsData(std::string &SerialNUmber, uint32_t From, uint32_t HowMany, std::vector<uCentralStatistics> &Stats);
 
     bool UpdateDeviceConfiguration(std::string &SerialNUmber, std::string &Configuration );
     bool CreateDevice(uCentralDevice &);
     bool GetDevice(std::string &SerialNUmber, uCentralDevice & );
     bool DeleteDevice(std::string &SerialNUmber);
     bool UpdateDevice(uCentralDevice &);
-    bool NewerConfiguration(std::string &SerialNumber, uint64_t CurrentConfig, std::string &NewConfig, uint64_t &);
+    bool ExistingConfiguration(std::string &SerialNumber, uint64_t CurrentConfig, std::string &NewConfig, uint64_t &);
 
     bool UpdateDeviceCapabilities(std::string &SerialNUmber, std::string &State );
     bool GetDeviceCapabilities(std::string &SerialNUmber, uCentralCapabilities & );

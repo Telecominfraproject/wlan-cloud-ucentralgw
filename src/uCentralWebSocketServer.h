@@ -60,7 +60,7 @@ public:
         return instance_;
     }
 
-    std::string process_message(const std::string &message, ConnectionState &conn);
+    void process_message(char *IncomingMessage, std::string & Response, ConnectionState &Connection);
 
     Logger & logger() { return SubSystemServer::logger(); };
 
