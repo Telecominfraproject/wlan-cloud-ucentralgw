@@ -11,7 +11,7 @@ info:
   contact:
     name: Arilia Support
     email: ucentralsupport@arilia.com
-    url: https://www.arilia.com/ucentralapisupport
+    url: https://www.ucentral.info/support
 
 servers:
   - url: 'https://api.example.com'
@@ -64,22 +64,20 @@ components:
       required:
         - deviceType
       properties:
-        id:
-          type: integer
-          format: int64
+        serialNumber:
+          type: string
         deviceType:
           $ref: '#/components/schemas/DeviceType'
-        serialNUmber:
-          type: string
         macAddress:
           type: string
         manufacturer:
           type: string
+        configurationUUID:
+          type: integer
+          format: int64
         configuration:
           type: string
         notes:
-          type: string
-        currentIpAddress:
           type: string
         createdTimestamp:
           type: string
@@ -95,11 +93,12 @@ components:
       type: object
       description: Current device status
       properties:
-        id:
-          type: integer
-          format: int64
+        serialNumber:
+          type: string
         connected:
           type: boolean
+        ipAddress:
+          type: string
         lastConnectedTimestamp:
           type: string
           format: 'date-time'
@@ -107,6 +106,21 @@ components:
           type: string
         currentFirmware:
           type: string
+
+    DeviceCapabilities:
+      type: object
+      description: Describes the capabilities a device has recorded in uCentral
+      properties:
+        serialNumber:
+          type: string
+        capabilities:
+          type: string
+        lastUpdate:
+          type: string
+          format: 'date-time'
+        firstUpdate:
+          type: string
+          format: 'date-time'
 
     StatisticsDetails:
       type: object
@@ -120,7 +134,12 @@ components:
     StatisticsRecord:
       type: object
       properties:
-        date:
+        serialNumber:
+          type: string
+        UUID:
+          type: integer
+          format: int64
+        recorded:
           type: string
           format: 'date-time'
         data:
@@ -322,7 +341,7 @@ paths:
         403:
           $ref: '#/components/responses/Unauthorized'
 
-  /device/{id}:
+  /device/{serialNumber}:
     get:
       tags:
         - devices
@@ -331,10 +350,9 @@ paths:
       operationId: getDeviceInformation
       parameters:
         - in: path
-          name: id
+          name: serialNumber
           schema:
-            type: integer
-            format: int64
+            type: string
           required: true
       responses:
         200:
@@ -353,10 +371,9 @@ paths:
       operationId: deleteDevice
       parameters:
         - in: path
-          name: Id
+          name: serialNumber
           schema:
-            type: integer
-            format: int64
+            type: string
           required: true
       responses:
         200:
@@ -366,16 +383,15 @@ paths:
         403:
           $ref: '#/components/responses/Unauthorized'
 
-  /device/{id}/logs:
+  /device/{serialNumber}/logs:
     get:
       summary: Get the latest logs for a given device
       operationId: getDeviceLogs
       parameters:
         - in: path
-          name: Id
+          name: serialNumber
           schema:
-            type: integer
-            format: int64
+            type: string
           required: true
       responses:
         200:
@@ -389,16 +405,15 @@ paths:
         403:
           $ref: '#/components/responses/NotFound'
 
-  /device/{id}/statistics:
+  /device/{serialNumber}/statistics:
     get:
       summary: Get the latest statistics for a given device
       operationId: getDeviceStats
       parameters:
         - in: path
-          name: id
+          name: serialNumber
           schema:
-            type: integer
-            format: int64
+            type: string
           required: true
       responses:
         200:
@@ -414,16 +429,15 @@ paths:
         403:
           $ref: '#/components/responses/NotFound'
 
-  /device/{id}/status:
+  /device/{serialNumber}/status:
     get:
       summary: Get the latest status for a given device
       operationId: getDeviceStatus
       parameters:
         - in: path
-          name: id
+          name: serialNumber
           schema:
-            type: integer
-            format: int64
+            type: string
           required: true
       responses:
         200:
@@ -438,7 +452,7 @@ paths:
           $ref: '#/components/responses/NotFound'
 
 
-  /device/{id}/command:
+  /device/{serialNumber}/command:
     post:
       tags:
         - Commands
@@ -446,10 +460,9 @@ paths:
       operationId: executeCommand
       parameters:
         - in: path
-          name: id
+          name: serialNumber
           schema:
-            type: integer
-            format: int64
+            type: string
           required: true
       requestBody:
         description: Command details
@@ -469,7 +482,7 @@ paths:
         404:
           $ref: '#/components/responses/NotFound'
 
-  /device/{id}/configure:
+  /device/{serialNumber}/configure:
     post:
       tags:
         - Commands
@@ -477,10 +490,9 @@ paths:
       operationId: updateConfigurationForADevice
       parameters:
         - in: path
-          name: id
+          name: serialNumber
           schema:
-            type: integer
-            format: int64
+            type: string
           required: true
       requestBody:
         description: Command details
