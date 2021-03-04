@@ -11,12 +11,12 @@ the following
 
 - cmake
 - boost
-- cpprest
+- POCO 1.10.1 or later
 - a C++20 compiler
 
 ### Ubuntu build
 ```
-sudo apt install libboost-dev cpprestsdk-dev cmake gcc
+sudo apt install libboost-dev cmake libpoco-dev libssl-dev openssl gcc
 git clone <this repo name>
 cd ucentralgw
 mmkdir cmake-build-debug
