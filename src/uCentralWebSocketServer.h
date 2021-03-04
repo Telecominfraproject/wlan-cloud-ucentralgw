@@ -22,8 +22,6 @@
 #include "Poco/JSON/Parser.h"
 #include "Poco/DynamicAny.h"
 
-
-
 using Poco::Net::ServerSocket;
 using Poco::Net::SecureServerSocket;
 using Poco::Net::WebSocket;

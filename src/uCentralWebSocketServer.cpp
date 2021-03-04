@@ -85,8 +85,6 @@ void uCentralWebSocketServer::process_message(char *Message, std::string & Respo
         logger().information(SerialNumber + ": configuration check.");
         Connection.CfgUUID = ds["uuid"];
 
-        std::cout << "Newer config check start" << std::endl;
-
         std::string NewConfig;
         uint64_t    NewConfigUUID;
 
@@ -102,7 +100,6 @@ void uCentralWebSocketServer::process_message(char *Message, std::string & Respo
         } else {
             Response.clear();
         }
-        std::cout << "Newer config check finished" << std::endl;
     }
     else if(ds.contains("log")) {
         std::string log = ds["log"].toString();
@@ -161,16 +158,20 @@ void PageRequestHandler::handleRequest(HTTPServerRequest& request, HTTPServerRes
 
 void WebSocketRequestHandler::handleRequest(HTTPServerRequest& request, HTTPServerResponse& response)
 {
-    Application&    app = Application::instance();
     Poco::Logger    & l = uCentralWebSocketServer::instance()->logger();
     std::string     Address;
-    std::string     ResponseDocument;
 
     try
     {
 
         WebSocket   ws(request, response);
+
+        std::string     ResponseDocument;
+
         Address = ws.peerAddress().toString();
+
+        ws.setReceiveTimeout(Poco::Timespan());
+        ws.setNoDelay(true);
         ws.setKeepAlive(true);
 
         l.information("Connection from: " + Address);
@@ -199,15 +200,17 @@ void WebSocketRequestHandler::handleRequest(HTTPServerRequest& request, HTTPServ
             switch (Op) {
                 case WebSocket::FRAME_OP_PING:
                     {
-                        std::cout << "Sending a PONG" << std::endl;
-                        ws.sendFrame("", 0, WebSocket::FRAME_OP_PING | WebSocket::FRAME_FLAG_FIN);
+                        l.information("PING(" + Connection.SerialNumber + "): received.");
+                        ws.sendFrame("", 0, WebSocket::FRAME_OP_PONG | WebSocket::FRAME_FLAG_FIN);
                     }
                     break;
+
                 case WebSocket::FRAME_OP_PONG:
                     {
-                        std::cout << "Got a PONG" << std::endl;
+                        l.information("PONG(" + Connection.SerialNumber + "): received.");
                     }
                     break;
+
                 case WebSocket::FRAME_OP_TEXT:
                     {
                         std::cout << "Incoming(" << Connection.SerialNumber << "): " << IncomingSize << " bytes." << std::endl;
@@ -220,17 +223,12 @@ void WebSocketRequestHandler::handleRequest(HTTPServerRequest& request, HTTPServ
 
                         if (!ResponseDocument.empty()) {
                             Connection.TX += ResponseDocument.size();
-                            // std::cout << "RETURN:" << ResponseDocument << std::endl;
-                            usleep(8000);
-                            std::cout << "Returning " << ResponseDocument.size() << " bytes" << std::endl;
+                            std::cout << "Returning(" << Connection.SerialNumber << "): " << ResponseDocument.size() << " bytes" << std::endl;
                             ws.sendFrame(ResponseDocument.c_str(), ResponseDocument.size());
-                        } else {
-                            // std::cout << "No response." << std::endl;
-                            usleep(8000);
-                            ws.sendFrame(ResponseDocument.c_str(), ResponseDocument.size(), WebSocket::FRAME_OP_PING | WebSocket::FRAME_FLAG_FIN);
                         }
                     }
                     break;
+
                 default:
                     {
                         l.warning("UNKNOWN WS Frame operation: " + std::to_string(Op));

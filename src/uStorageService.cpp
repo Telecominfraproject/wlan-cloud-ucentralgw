@@ -95,7 +95,7 @@ bool uStorageService::GetStatisticsData(std::string &SerialNumber, uint32_t From
     *session_ << "SELECT SerialNumber, UUID, Data, Recorded FROM Statistics WHERE SerialNumber=?" ,
         into(Records),
         use(SerialNumber),
-        range(From,From+HowMany), now;
+        range(From,From+HowMany-1), now;
 
     for(auto i: Records)
     {

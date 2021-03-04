@@ -21,6 +21,6 @@ add_executable(ucentral
                 src/uCentral.cpp src/uCentral.h src/common.h src/TIP/Routing.cpp src/TIP/Routing.h
                 src/TIP/WebTokenResult.cpp src/TIP/WebTokenResult.h src/uCentralRESTAPIServer.cpp src/uCentralRESTAPIServer.h
                 src/uCentralWebSocketServer.cpp src/uCentralWebSocketServer.h src/SubSystemServer.cpp src/SubSystemServer.h
-                src/uStorageService.cpp src/uStorageService.h src/DeviceStatusServer.cpp src/DeviceStatusServer.h)
+                src/uStorageService.cpp src/uStorageService.h src/DeviceStatusServer.cpp src/DeviceStatusServer.h src/RESTAPI_oauth2Handler.cpp src/RESTAPI_oauth2Handler.h src/RESTAPI_devicesHandler.cpp src/RESTAPI_devicesHandler.h src/RESTAPI_deviceHandler.cpp src/RESTAPI_deviceHandler.h src/RESTAPI_UnknownRequestHandler.cpp src/RESTAPI_UnknownRequestHandler.h)
 
 target_link_libraries(ucentral PRIVATE yaml-cpp ${Poco_LIBRARIES} ${Boost_LIBRARIES})

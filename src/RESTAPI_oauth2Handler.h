@@ -1,11 +1,9 @@
 //
-// Created by stephane bourque on 2021-02-28.
+// Created by stephane bourque on 2021-03-03.
 //
 
-#ifndef UCENTRAL_UCENTRALRESTAPISERVER_H
-#define UCENTRAL_UCENTRALRESTAPISERVER_H
-
-#include "SubSystemServer.h"
+#ifndef UCENTRAL_RESTAPI_OAUTH2HANDLER_H
+#define UCENTRAL_RESTAPI_OAUTH2HANDLER_H
 
 #include "Poco/Net/HTTPServer.h"
 #include "Poco/Net/HTTPRequestHandler.h"
@@ -35,38 +33,12 @@ using Poco::Net::HTTPResponse;
 using Poco::Net::HTTPServerResponse;
 using Poco::Net::HTTPServerParams;
 using Poco::JSON::Parser;
-class uCentralRESTAPIServer : public SubSystemServer {
 
-public:
-    uCentralRESTAPIServer() noexcept;
-
-    int start();
-    void stop();
-
-    Logger & logger() { return SubSystemServer::logger(); };
-
-    static uCentralRESTAPIServer *instance() {
-        if(instance_== nullptr) {
-            instance_ = new uCentralRESTAPIServer;
-        }
-        return instance_;
-    }
-
-private:
-    static uCentralRESTAPIServer    * instance_;
-    HTTPServer                      * server_;
-};
-
-class RESTAPIPageRequestHandler: public HTTPRequestHandler
+class RESTAPI_oauth2Handler: public HTTPRequestHandler
 {
 public:
     void handleRequest(HTTPServerRequest& request, HTTPServerResponse& response);
 };
 
-class RESTAPIRequestHandlerFactory: public HTTPRequestHandlerFactory
-{
-public:
-    HTTPRequestHandler* createRequestHandler(const HTTPServerRequest& request);
-};
 
-#endif //UCENTRAL_UCENTRALRESTAPISERVER_H
+#endif //UCENTRAL_RESTAPI_OAUTH2HANDLER_H
