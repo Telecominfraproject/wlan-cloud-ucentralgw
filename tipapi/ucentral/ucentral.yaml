@@ -14,7 +14,7 @@ info:
     url: https://www.ucentral.info/support
 
 servers:
-  - url: 'https://api.example.com'
+  - url: 'https://api.example.com/api/v1'
 
 security:
   - bearerAuth: []
