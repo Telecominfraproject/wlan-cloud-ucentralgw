@@ -13,10 +13,11 @@ the following
 - boost
 - POCO 1.10.1 or later
 - a C++20 compiler
+- libyaml
 
 ### Ubuntu build
 ```
-sudo apt install libboost-dev cmake libpoco-dev libssl-dev openssl gcc
+sudo apt install libboost-dev cmake libpoco-dev libssl-dev openssl libyaml-dev gcc
 git clone <this repo name>
 cd ucentralgw
 mmkdir cmake-build-debug
