@@ -36,56 +36,60 @@ using Poco::Net::HTTPServerResponse;
 using Poco::Net::HTTPServerParams;
 using Poco::JSON::Parser;
 
-struct ConnectionState {
-    uint64_t    messages;
-    std::string SerialNumber;
-    std::string Address;
-    uint64_t    CfgUUID;
-    uint64_t    TX, RX;
-};
+namespace uCentral::WebSocket {
 
-class uCentralWebSocketServer : public SubSystemServer {
-public:
-    uCentralWebSocketServer() noexcept;
+    struct ConnectionState {
+        uint64_t messages;
+        std::string SerialNumber;
+        std::string Address;
+        uint64_t CfgUUID;
+        uint64_t TX, RX;
+    };
 
-    int start();
-    void stop();
+    class Service : public SubSystemServer {
+    public:
+        Service() noexcept;
 
-    static uCentralWebSocketServer *instance() {
-        if(instance_== nullptr) {
-            instance_ = new uCentralWebSocketServer;
+        int start();
+
+        void stop();
+
+        static Service *instance() {
+            if (instance_ == nullptr) {
+                instance_ = new Service;
+            }
+            return instance_;
         }
-        return instance_;
-    }
 
-    void process_message(char *IncomingMessage, std::string & Response, ConnectionState &Connection);
+        void process_message(char *IncomingMessage, std::string &Response, ConnectionState &Connection);
 
-    Logger & logger() { return SubSystemServer::logger(); };
+        Logger &logger() { return SubSystemServer::logger(); };
 
-private:
-    static uCentralWebSocketServer * instance_;
-    HTTPServer              * server_;
-};
+    private:
+        static Service *instance_;
+        HTTPServer *server_;
+    };
 
-class PageRequestHandler: public HTTPRequestHandler
-    /// Return a HTML document with some JavaScript creating
-    /// a WebSocket connection.
-{
-public:
-    void handleRequest(HTTPServerRequest& request, HTTPServerResponse& response);
-};
+    class PageRequestHandler : public HTTPRequestHandler
+        /// Return a HTML document with some JavaScript creating
+        /// a WebSocket connection.
+    {
+    public:
+        void handleRequest(HTTPServerRequest &request, HTTPServerResponse &response);
+    };
 
-class WebSocketRequestHandler: public HTTPRequestHandler
-    /// Handle a WebSocket connection.
-{
-public:
-    void handleRequest(HTTPServerRequest& request, HTTPServerResponse& response);
-};
+    class WebSocketRequestHandler : public HTTPRequestHandler
+        /// Handle a WebSocket connection.
+    {
+    public:
+        void handleRequest(HTTPServerRequest &request, HTTPServerResponse &response);
+    };
 
-class RequestHandlerFactory: public HTTPRequestHandlerFactory
-{
-public:
-    HTTPRequestHandler* createRequestHandler(const HTTPServerRequest& request);
-};
+    class RequestHandlerFactory : public HTTPRequestHandlerFactory {
+    public:
+        HTTPRequestHandler *createRequestHandler(const HTTPServerRequest &request);
+    };
+
+}; //namespace
 
 #endif //UCENTRAL_UCENTRALWEBSOCKETSERVER_H

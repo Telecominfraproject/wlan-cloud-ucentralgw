@@ -14,12 +14,12 @@ namespace TIP::API {
     TIP::API::API *TIP::API::API::instance_ = 0;
 
     void API::Init() {
-        username_ = uCentral::instance().config().getString("tip.api.login.username");
-        password_ = uCentral::instance().config().getString("tip.api.login.password");
-        api_host_ = uCentral::instance().config().getString("tip.api.host");
-        api_port_ = uCentral::instance().config().getInt("tip.api.port");
-        ssc_host_ = uCentral::instance().config().getString("tip.gateway.host.0.address");
-        ssc_port_ = uCentral::instance().config().getInt("tip.gateway.host.0.port");
+        username_ = uCentral::Daemon::instance().config().getString("tip.api.login.username");
+        password_ = uCentral::Daemon::instance().config().getString("tip.api.login.password");
+        api_host_ = uCentral::Daemon::instance().config().getString("tip.api.host");
+        api_port_ = uCentral::Daemon::instance().config().getInt("tip.api.port");
+        ssc_host_ = uCentral::Daemon::instance().config().getString("tip.gateway.host.0.address");
+        ssc_port_ = uCentral::Daemon::instance().config().getInt("tip.gateway.host.0.port");
     }
 
     void API::Logout() {

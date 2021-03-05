@@ -3,18 +3,21 @@
 //
 #include "TIPGWServer.h"
 
-TIPGWServer * TIPGWServer::instance_= nullptr;
+namespace uCentral::TIPGW {
 
-TIPGWServer::TIPGWServer() noexcept:
-    SubSystemServer("TIPGWServer","TIPGWServer","tip.gateway")
-{
-}
+    Service *Service::instance_ = nullptr;
 
-int TIPGWServer::start() {
-    SubSystemServer::logger().information("Starting.");
-    return 0;
-}
+    Service::Service() noexcept:
+            SubSystemServer("TIPGWServer", "TIPGWServer", "tip.gateway") {
+    }
 
-void TIPGWServer::stop() {
-    SubSystemServer::logger().information("Stopping.");
-}
+    int Service::start() {
+        SubSystemServer::logger().information("Starting.");
+        return 0;
+    }
+
+    void Service::stop() {
+        SubSystemServer::logger().information("Stopping.");
+    }
+
+};  // namespace

@@ -30,26 +30,30 @@ using Poco::Logger;
 
 #include "SubSystemServer.h"
 
-class TIPGWServer: public SubSystemServer
-{
-public:
-    TIPGWServer() noexcept;
+namespace uCentral::TIPGW {
 
-    int start();
-    void stop();
+    class Service : public SubSystemServer {
+    public:
+        Service() noexcept;
 
-    Logger & logger() { return SubSystemServer::logger(); };
+        int start();
 
-    static TIPGWServer *instance() {
-        if(instance_== nullptr) {
-            instance_ = new TIPGWServer;
+        void stop();
+
+        Logger &logger() { return SubSystemServer::logger(); };
+
+        static Service *instance() {
+            if (instance_ == nullptr) {
+                instance_ = new Service;
+            }
+            return instance_;
         }
-        return instance_;
-    }
 
 
-private:
-    static TIPGWServer *instance_;
-};
+    private:
+        static Service *instance_;
+    };
+
+};  // Namespace
 
 #endif //UCENTRAL_TIPGWSERVER_H

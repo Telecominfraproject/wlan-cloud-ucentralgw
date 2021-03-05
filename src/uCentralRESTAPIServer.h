@@ -35,38 +35,36 @@ using Poco::Net::HTTPResponse;
 using Poco::Net::HTTPServerResponse;
 using Poco::Net::HTTPServerParams;
 using Poco::JSON::Parser;
-class uCentralRESTAPIServer : public SubSystemServer {
 
-public:
-    uCentralRESTAPIServer() noexcept;
+namespace uCentral::RESTAPI {
+    class Service : public SubSystemServer, HTTPRequestHandlerFactory {
 
-    int start();
-    void stop();
+    public:
+        Service() noexcept;
 
-    Logger & logger() { return SubSystemServer::logger(); };
+        int start();
 
-    static uCentralRESTAPIServer *instance() {
-        if(instance_== nullptr) {
-            instance_ = new uCentralRESTAPIServer;
+        void stop();
+
+        Logger &logger() { return SubSystemServer::logger_; };
+
+        static Service *instance() {
+            if (instance_ == nullptr) {
+                instance_ = new Service;
+            }
+            return instance_;
         }
-        return instance_;
-    }
 
-private:
-    static uCentralRESTAPIServer    * instance_;
-    HTTPServer                      * server_;
-};
+        // void handleRequest(HTTPServerRequest& request, HTTPServerResponse& response);
+        HTTPRequestHandler *createRequestHandler(const HTTPServerRequest &request);
 
-class RESTAPIPageRequestHandler: public HTTPRequestHandler
-{
-public:
-    void handleRequest(HTTPServerRequest& request, HTTPServerResponse& response);
-};
+    private:
+        static Service *instance_;
+        HTTPServer *server_;
+    };
 
-class RESTAPIRequestHandlerFactory: public HTTPRequestHandlerFactory
-{
-public:
-    HTTPRequestHandler* createRequestHandler(const HTTPServerRequest& request);
-};
+}; //   namespace
+
+
 
 #endif //UCENTRAL_UCENTRALRESTAPISERVER_H

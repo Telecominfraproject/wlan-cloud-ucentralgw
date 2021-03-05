@@ -16,7 +16,7 @@ void PropertiesFileServerList::initialize() {
         std::string root{prefix_ + ".host." + std::to_string(i) + "."};
 
         std::string address{root + "address"};
-        if(uCentral::instance().config().getString(address,"") == "") {
+        if(uCentral::Daemon::instance().config().getString(address,"") == "") {
             good = false;
         }
         else {
@@ -25,11 +25,11 @@ void PropertiesFileServerList::initialize() {
             std::string key_password{root + "key.password"};
             std::string cert{root + "cert"};
 
-            PropertiesFileServerEntry entry(   uCentral::instance().config().getString(address,""),
-                                        uCentral::instance().config().getInt(port,0),
-                                        uCentral::instance().config().getString(key,""),
-                                        uCentral::instance().config().getString(cert,""),
-                                        uCentral::instance().config().getString(key_password,""));
+            PropertiesFileServerEntry entry(   uCentral::Daemon::instance().config().getString(address,""),
+                                        uCentral::Daemon::instance().config().getInt(port,0),
+                                        uCentral::Daemon::instance().config().getString(key,""),
+                                        uCentral::Daemon::instance().config().getString(cert,""),
+                                        uCentral::Daemon::instance().config().getString(key_password,""));
             list_.push_back(entry);
             i++;
         }

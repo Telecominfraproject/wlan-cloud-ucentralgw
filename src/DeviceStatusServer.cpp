@@ -4,49 +4,50 @@
 
 #include "DeviceStatusServer.h"
 
-DeviceStatusServer * DeviceStatusServer::instance_ = nullptr;
+namespace uCentral::DeviceStatus {
+    Service *Service::instance_ = nullptr;
 
-DeviceStatusServer::DeviceStatusServer() noexcept:
-        SubSystemServer("DeviceStatus","DevStatus","devicestatus")
-{
+    Service::Service() noexcept:
+            SubSystemServer("DeviceStatus", "DevStatus", "devicestatus") {
 
-}
+    }
 
-int DeviceStatusServer::start() {
+    int Service::start() {
 
-    std::lock_guard<std::mutex> guard(mutex_);
+        std::lock_guard<std::mutex> guard(mutex_);
 
-    SubSystemServer::logger().information("Starting ");
+        SubSystemServer::logger().information("Starting ");
 
-    return 0;
-}
+        return 0;
+    }
 
-void DeviceStatusServer::stop() {
+    void Service::stop() {
 
-    std::lock_guard<std::mutex> guard(mutex_);
+        std::lock_guard<std::mutex> guard(mutex_);
 
-    SubSystemServer::logger().information("Stopping ");
+        SubSystemServer::logger().information("Stopping ");
 
-}
+    }
 
-void DeviceStatusServer::Connect(const std::string &SerialNumber, const std::string & address)
-{
-    std::lock_guard<std::mutex> guard(mutex_);
+    void Service::Connect(const std::string &SerialNumber, const std::string &address) {
+        std::lock_guard<std::mutex> guard(mutex_);
 
-}
+    }
 
-void DeviceStatusServer::Disconnect(const std::string &SerialNumber) {
-    std::lock_guard<std::mutex> guard(mutex_);
+    void Service::Disconnect(const std::string &SerialNumber) {
+        std::lock_guard<std::mutex> guard(mutex_);
 
-}
+    }
 
-const std::string DeviceStatusServer::LastStats(const std::string &SerialNumber) {
-    std::lock_guard<std::mutex> guard(mutex_);
+    const std::string Service::LastStats(const std::string &SerialNumber) {
+        std::lock_guard<std::mutex> guard(mutex_);
 
-    return "";
-}
+        return "";
+    }
 
-void DeviceStatusServer::SetStats(const std::string &SerialNumber,const std::string &stats) {
-    std::lock_guard<std::mutex> guard(mutex_);
+    void Service::SetStats(const std::string &SerialNumber, const std::string &stats) {
+        std::lock_guard<std::mutex> guard(mutex_);
 
-}
+    }
+
+};  // namespace

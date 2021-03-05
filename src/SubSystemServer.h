@@ -41,9 +41,11 @@ public:
     const PropertiesFileServerEntry & host(int index) { return servers_[index]; };
     Logger                  & logger() { return logger_;};
 
+protected:
+    Logger                  &   logger_;
+
 private:
     std::string                 name_;
-    Logger                  &   logger_;
     PropertiesFileServerList    servers_;
 };
 

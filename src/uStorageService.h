@@ -10,68 +10,58 @@
 #include "Poco/Data/Session.h"
 #include "Poco/Data/SQLite/SQLite.h"
 
-struct uCentralDevice {
-    std::string SerialNumber;
-    std::string DeviceType;
-    std::string MACAddress;
-    std::string Manufacturer;
-    uint64_t    UUID;
-    std::string Configuration;
-    std::string Notes;
-    uint64_t    CreationTimestamp;
-    uint64_t    LastConfigurationChange;
-    uint64_t    LastConfigurationDownload;
-};
+#include "RESTAPIObjects.h"
 
-struct uCentralStatistics {
-    std::string SerialNumber;
-    uint64_t    UUID;
-    std::string Data;
-    uint64_t    Recorded;
-};
+namespace uCentral::Storage {
 
-struct uCentralCapabilities {
-    std::string SerialNumber;
-    std::string Capabilities;
-    uint64_t    FirstUpdate;
-    uint64_t    LastUpdate;
-};
+    class Service : public SubSystemServer {
 
-class uStorageService : public SubSystemServer {
+    public:
+        Service() noexcept;
 
-public:
-    uStorageService() noexcept;
+        int start();
 
-    int start();
-    void stop();
+        void stop();
 
-    Logger & logger() { return SubSystemServer::logger(); };
+        Logger &logger() { return SubSystemServer::logger(); };
 
-    bool AddStatisticsData(std::string &SerialNUmber, uint64_t CfgUUID, std::string &NewStats);
-    bool GetStatisticsData(std::string &SerialNUmber, uint32_t From, uint32_t HowMany, std::vector<uCentralStatistics> &Stats);
+        bool AddStatisticsData(std::string &SerialNUmber, uint64_t CfgUUID, std::string &NewStats);
 
-    bool UpdateDeviceConfiguration(std::string &SerialNUmber, std::string &Configuration );
-    bool CreateDevice(uCentralDevice &);
-    bool GetDevice(std::string &SerialNUmber, uCentralDevice & );
-    bool DeleteDevice(std::string &SerialNUmber);
-    bool UpdateDevice(uCentralDevice &);
-    bool ExistingConfiguration(std::string &SerialNumber, uint64_t CurrentConfig, std::string &NewConfig, uint64_t &);
+        bool GetStatisticsData(std::string &SerialNUmber, uint32_t From, uint32_t HowMany,
+                               std::vector<uCentralStatistics> &Stats);
 
-    bool UpdateDeviceCapabilities(std::string &SerialNUmber, std::string &State );
-    bool GetDeviceCapabilities(std::string &SerialNUmber, uCentralCapabilities & );
+        bool UpdateDeviceConfiguration(std::string &SerialNUmber, std::string &Configuration);
 
-    static uStorageService *instance() {
-        if(instance_== nullptr) {
-            instance_ = new uStorageService;
+        bool CreateDevice(uCentralDevice &);
+
+        bool GetDevice(std::string &SerialNUmber, uCentralDevice &);
+
+        uint64_t GetDevices(uint64_t From, uint64_t Howmany, std::vector<uCentralDevice> &Devices);
+
+        bool DeleteDevice(std::string &SerialNUmber);
+
+        bool UpdateDevice(uCentralDevice &);
+
+        bool
+        ExistingConfiguration(std::string &SerialNumber, uint64_t CurrentConfig, std::string &NewConfig, uint64_t &);
+
+        bool UpdateDeviceCapabilities(std::string &SerialNUmber, std::string &State);
+
+        bool GetDeviceCapabilities(std::string &SerialNUmber, uCentralCapabilities &);
+
+        static Service *instance() {
+            if (instance_ == nullptr) {
+                instance_ = new Service;
+            }
+            return instance_;
         }
-        return instance_;
-    }
 
-private:
-    static uStorageService *instance_;
-    std::shared_ptr<Poco::Data::Session>    session_;
-    std::mutex mutex_;
-};
+    private:
+        static Service *instance_;
+        std::shared_ptr<Poco::Data::Session> session_;
+        std::mutex mutex_;
+    };
 
+};  // namespace
 
 #endif //UCENTRAL_USTORAGESERVICE_H

@@ -9,82 +9,89 @@
 #include "RESTAPI_oauth2Handler.h"
 #include "RESTAPI_devicesHandler.h"
 #include "RESTAPI_deviceHandler.h"
+#include "RESTAPI_deviceCommandHandler.h"
 #include "RESTAPI_UnknownRequestHandler.h"
 
-uCentralRESTAPIServer * uCentralRESTAPIServer::instance_ = nullptr;
+namespace uCentral::RESTAPI {
 
-uCentralRESTAPIServer::uCentralRESTAPIServer() noexcept:
-        SubSystemServer("RESTAPIServer","RESTAPIServer","ucentral.restapi"),
-        server_(nullptr)
-{
+    Service *Service::instance_ = nullptr;
 
-}
+    Service::Service() noexcept:
+            SubSystemServer("RESTAPIServer", "RESTAPIServer", "ucentral.restapi"),
+            server_(nullptr) {
 
-int uCentralRESTAPIServer::start() {
-    SubSystemServer::logger().information("Starting.");
-
-    std::string l{"Starting: " +
-                  SubSystemServer::host(0).address() + ":" + std::to_string(SubSystemServer::host(0).port()) +
-                  " key:" + SubSystemServer::host(0).key_file() +
-                  " cert:" + SubSystemServer::host(0).cert_file()};
-
-    logger().information(l);
-
-    SecureServerSocket  sock( SubSystemServer::host(0).port(),
-                              64,
-                              new Context(Poco::Net::Context::TLS_SERVER_USE,
-                                          SubSystemServer::host(0).key_file(),
-                                          SubSystemServer::host(0).cert_file(),
-                                          ""));
-
-    auto Params = new HTTPServerParams;
-
-    Params->setMaxThreads(16);
-    Params->setMaxQueued(100);
-
-    server_ = new HTTPServer( new RESTAPIRequestHandlerFactory, sock, Params);
-
-    server_->start();
-
-    return 0;
-}
-
-HTTPRequestHandler* RESTAPIRequestHandlerFactory::createRequestHandler(const HTTPServerRequest& request)
-{
-    uCentralRESTAPIServer::instance()->logger().information("Request from "
-                                                              + request.clientAddress().toString()
-                                                              + ": "
-                                                              + request.getMethod()
-                                                              + " "
-                                                              + request.getURI()
-                                                              + " "
-                                                              + request.getVersion());
-
-    for (auto it = request.begin(); it != request.end(); ++it)
-    {
-        uCentralRESTAPIServer::instance()->logger().information(it->first + ": " + it->second);
     }
 
-    Poco::URI   uri(request.getURI());
+    int Service::start() {
+        logger_.information("Starting.");
 
-    if( strncmp(uri.getPath().c_str(),"/api/v1/oauth2",strlen("/api/v1/oauth2"))==0) {
-        return new RESTAPI_oauth2Handler;
-    } else if ( strncmp(uri.getPath().c_str(),"/api/v1/devices",strlen("/api/v1/devices"))==0) {
-        return new RESTAPI_devicesHandler;
-    } else if ( strncmp(uri.getPath().c_str(),"/api/v1/device",strlen("/api/v1/device"))==0) {
-        return new RESTAPI_deviceHandler;
+        std::string l{"Starting: " +
+                      SubSystemServer::host(0).address() + ":" + std::to_string(SubSystemServer::host(0).port()) +
+                      " key:" + SubSystemServer::host(0).key_file() +
+                      " cert:" + SubSystemServer::host(0).cert_file()};
+
+        logger_.information(l);
+
+        SecureServerSocket sock(SubSystemServer::host(0).port(),
+                                64,
+                                new Context(Poco::Net::Context::TLS_SERVER_USE,
+                                            SubSystemServer::host(0).key_file(),
+                                            SubSystemServer::host(0).cert_file(),
+                                            ""));
+
+        auto Params = new HTTPServerParams;
+
+        Params->setMaxThreads(16);
+        Params->setMaxQueued(100);
+
+        server_ = new HTTPServer(this, sock, Params);
+
+        server_->start();
+
+        return 0;
     }
 
-    return new RESTAPI_UnknownRequestHandler;
-}
+    HTTPRequestHandler *Service::createRequestHandler(const HTTPServerRequest &request) {
+        logger_.information("Request from "
+                            + request.clientAddress().toString()
+                            + ": "
+                            + request.getMethod()
+                            + " "
+                            + request.getURI()
+                            + " "
+                            + request.getVersion());
 
-void uCentralRESTAPIServer::stop() {
-    SubSystemServer::logger().information("Stopping ");
+//    for (auto it : request)
+//        logger_.information(it.first + ": " + it.second);
 
-    server_->stop();
-}
+        Poco::URI uri(request.getURI());
+        const char *path = uri.getPath().c_str();
 
-void RESTAPIPageRequestHandler::handleRequest(HTTPServerRequest& request, HTTPServerResponse& response)
+        RESTAPIHandler::BindingMap bindings;
+
+        if (RESTAPIHandler::path_match(path, "/api/v1/oauth2", bindings)) {
+            return new RESTAPI_oauth2Handler(bindings, logger_);
+        } else if (RESTAPIHandler::path_match(path, "/api/v1/oauth2/{token}", bindings)) {
+            return new RESTAPI_oauth2Handler(bindings, logger_);
+        } else if (RESTAPIHandler::path_match(path, "/api/v1/devices", bindings)) {
+            return new RESTAPI_devicesHandler(bindings, logger_);
+        } else if (RESTAPIHandler::path_match(path, "/api/v1/device/{serialNumber}", bindings)) {
+            return new RESTAPI_deviceHandler(bindings, logger_);
+        } else if (RESTAPIHandler::path_match(path, "/api/v1/device/{serialNumber}/{command}", bindings)) {
+            return new RESTAPI_deviceCommandHandler(bindings, logger_);
+        }
+
+        return new RESTAPI_UnknownRequestHandler;
+    }
+
+    void Service::stop() {
+        SubSystemServer::logger().information("Stopping ");
+
+        server_->stop();
+    }
+
+/*
+void uCentralRESTAPIServer::handleRequest(HTTPServerRequest& request, HTTPServerResponse& response)
 {
     if(request.getURI() == "/api/v1/oauth2") {
 
@@ -134,3 +141,6 @@ void RESTAPIPageRequestHandler::handleRequest(HTTPServerRequest& request, HTTPSe
     ostr << "</body>";
     ostr << "</html>";
 }
+ */
+
+};  // namespace

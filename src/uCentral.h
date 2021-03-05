@@ -43,38 +43,43 @@ using Poco::Message;
 #include "uCentralWebSocketServer.h"
 #include "uCentralRESTAPIServer.h"
 
-class AppLogFormatter : public Formatter {
-public:
-    void format(const Message &msg, std::string & text )
-    {
-        std::cout << "Logging message: " << msg.getText() << std::endl;
-    }
-private:
+namespace uCentral {
+
+    class Daemon : public Poco::Util::ServerApplication {
+
+    public:
+        Daemon();
+
+    protected:
+        void initialize(Application &self);
+
+        void uninitialize();
+
+        void reinitialize(Application &self);
+
+        void defineOptions(OptionSet &options);
+
+        void handleHelp(const std::string &name, const std::string &value);
+
+        void handleDebug(const std::string &name, const std::string &value);
+
+        void handlePort(const std::string &name, const std::string &value);
+
+        void handleConfig(const std::string &name, const std::string &value);
+
+        void displayHelp();
+
+        void defineProperty(const std::string &def);
+
+        int main(const ArgVec &args);
+
+        void printProperties(const std::string &base);
+
+    private:
+        bool helpRequested_;
+        AutoPtr<FileChannel> logging_channel_;
+    };
+
 };
-
-class uCentral: public Poco::Util::ServerApplication
-{
-public:
-    uCentral();
-
-protected:
-    void initialize(Application& self);
-    void uninitialize();
-    void reinitialize(Application& self);
-    void defineOptions(OptionSet& options);
-    void handleHelp(const std::string& name, const std::string& value);
-    void handleDebug(const std::string& name, const std::string& value);
-    void handlePort(const std::string& name, const std::string& value);
-    void handleConfig(const std::string& name, const std::string& value);
-    void displayHelp();
-    void defineProperty(const std::string& def);
-    int main(const ArgVec& args);
-    void printProperties(const std::string& base);
-
-private:
-    bool helpRequested_;
-    AutoPtr<FileChannel>  logging_channel_;
-};
-
 
 #endif //UCENTRAL_UCENTRAL_H

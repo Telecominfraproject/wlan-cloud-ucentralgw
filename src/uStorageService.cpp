@@ -14,32 +14,33 @@ using Poco::Data::Session;
 using Poco::Data::Statement;
 using Poco::Data::RecordSet;
 
-uStorageService * uStorageService::instance_= nullptr;
+namespace uCentral::Storage {
 
-uStorageService::uStorageService() noexcept:
-        SubSystemServer("Storage","STORAGE-SVR","storage")
-{
-}
+    Service *Service::instance_ = nullptr;
 
-int uStorageService::start() {
+    Service::Service() noexcept:
+            SubSystemServer("Storage", "STORAGE-SVR", "storage") {
+    }
 
-    SubSystemServer::logger().information("Starting.");
-    Poco::Data::SQLite::Connector::registerConnector();
+    int Service::start() {
 
-    std::string TableLocation = uCentral::instance().config().getString("sqlite.location") + "/devices.db";
+        SubSystemServer::logger().information("Starting.");
+        Poco::Data::SQLite::Connector::registerConnector();
 
-    session_ = std::shared_ptr<Poco::Data::Session>(new Poco::Data::Session("SQLite",TableLocation));
+        std::string TableLocation = uCentral::Daemon::instance().config().getString("sqlite.location") + "/devices.db";
 
-    *session_ << "CREATE TABLE IF NOT EXISTS Statistics ("
+        session_ = std::shared_ptr<Poco::Data::Session>(new Poco::Data::Session("SQLite", TableLocation));
+
+        *session_ << "CREATE TABLE IF NOT EXISTS Statistics ("
                      "SerialNumber VARCHAR(30), "
                      "UUID INTEGER, "
                      "Data BLOB, "
                      "Recorded DATETIME"
                      ")", now;
 
-    *session_ << "CREATE INDEX IF NOT EXISTS serial ON Statistics (SerialNumber ASC, Recorded ASC)", now;
+        *session_ << "CREATE INDEX IF NOT EXISTS serial ON Statistics (SerialNumber ASC, Recorded ASC)", now;
 
-    *session_ << "CREATE TABLE IF NOT EXISTS Devices ("
+        *session_ << "CREATE TABLE IF NOT EXISTS Devices ("
                      "SerialNumber  VARCHAR(30) UNIQUE PRIMARY KEY, "
                      "DeviceType    VARCHAR(10), "
                      "MACAddress    VARCHAR(30), "
@@ -50,230 +51,285 @@ int uStorageService::start() {
                      "CreationTimestamp DATETIME, "
                      "LastConfigurationChange DATETIME, "
                      "LastConfigurationDownload DATETIME"
-                     ") WITHOUT ROWID" , now ;
+                     ") WITHOUT ROWID", now;
 
-    *session_ << "CREATE TABLE IF NOT EXISTS Capabilities ("
+        *session_ << "CREATE TABLE IF NOT EXISTS Capabilities ("
                      "SerialNumber VARCHAR(30) PRIMARY KEY, "
                      "Capabilities BLOB, "
                      "FirstUpdate DATETIME, "
                      "LastUpdate DATETIME"
-                     ") WITHOUT ROWID" , now ;
+                     ") WITHOUT ROWID", now;
 
-    Poco::Data::SQLite::Connector::registerConnector();
+        Poco::Data::SQLite::Connector::registerConnector();
 
-    return 0;
-}
-
-void uStorageService::stop() {
-    SubSystemServer::logger().information("Stopping.");
-}
-
-bool uStorageService::AddStatisticsData(std::string &SerialNumber, uint64_t CfgUUID, std::string &NewStats)
-{
-    std::lock_guard<std::mutex> guard(mutex_);
-
-    logger().information("Device:" + SerialNumber + " Stats size:" + std::to_string(NewStats.size()));
-
-    // std::cout << "STATS:" << NewStats << std::endl;
-
-    Poco::DateTime Now;
-    *session_ << "INSERT INTO Statistics VALUES(?, ?, ?, ?)",
-        use(SerialNumber),
-        use(CfgUUID),
-        use(NewStats),
-        use(Now), now;
-
-    return true;
-}
-
-bool uStorageService::GetStatisticsData(std::string &SerialNumber, uint32_t From, uint32_t HowMany, std::vector<uCentralStatistics> &Stats)
-{
-    typedef Poco::Tuple<std::string, uint64_t, std::string, uint64_t >  StatRecord;
-    typedef std::vector<StatRecord>     RecordList;
-
-    RecordList Records;
-    *session_ << "SELECT SerialNumber, UUID, Data, Recorded FROM Statistics WHERE SerialNumber=?" ,
-        into(Records),
-        use(SerialNumber),
-        range(From,From+HowMany-1), now;
-
-    for(auto i: Records)
-    {
-        uCentralStatistics  R{  .SerialNumber = i.get<0>(),
-                                .UUID = i.get<1>(),
-                                .Data = i.get<2>(),
-                                .Recorded = i.get<3>()};
-        Stats.push_back(R);
+        return 0;
     }
 
-    return true;
-}
+    void Service::stop() {
+        SubSystemServer::logger().information("Stopping.");
+    }
 
-bool uStorageService::UpdateDeviceConfiguration(std::string &SerialNumber, std::string &Configuration ){
-    std::lock_guard<std::mutex> guard(mutex_);
+    bool Service::AddStatisticsData(std::string &SerialNumber, uint64_t CfgUUID, std::string &NewStats) {
+        std::lock_guard<std::mutex> guard(mutex_);
 
-    return false;
-}
+        logger().information("Device:" + SerialNumber + " Stats size:" + std::to_string(NewStats.size()));
 
-void SetConfigurationUUID( uint64_t UUID, std::string &Configuration ) {
-    Parser  parser;
+        // std::cout << "STATS:" << NewStats << std::endl;
 
-    Poco::Dynamic::Var result = parser.parse(Configuration);
-    Poco::JSON::Object::Ptr object = result.extract<Poco::JSON::Object::Ptr>();
-    Poco::DynamicStruct ds = *object;
-
-    ds["uuid"] = UUID;
-
-    std::ostringstream NewConfig;
-
-    Poco::JSON::Stringifier stringifier;
-
-    stringifier.condense(ds,NewConfig );
-
-    // std::cout << "New Configuration:" << NewConfig.str() << std::endl;
-
-    Configuration = NewConfig.str();
-}
-
-bool uStorageService::CreateDevice(uCentralDevice & DeviceDetails){
-    std::lock_guard<std::mutex> guard(mutex_);
-
-    std::string SerialNumber;
-
-    *session_ << "SELECT SerialNumber FROM Devices WHERE SerialNumber=?" ,
-        into(SerialNumber),
-        use(DeviceDetails.SerialNumber), now;
-
-    if(SerialNumber.empty())
-    {
-        // We need to make sure that the UUID field of the configuration contains the proper UUID
-
-        SetConfigurationUUID( DeviceDetails.UUID, DeviceDetails.Configuration );
-        uint64_t Now = time(nullptr);
-
-        *session_ << "INSERT INTO Devices VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-            use( DeviceDetails.SerialNumber),
-            use(DeviceDetails.DeviceType),
-            use(DeviceDetails.MACAddress),
-            use(DeviceDetails.Manufacturer),
-            use(DeviceDetails.UUID),
-            use(DeviceDetails.Configuration),
-            use(DeviceDetails.Notes),
-            use(Now),
-            use(Now),
-            use(Now), now;
+        Poco::DateTime Now;
+        *session_ << "INSERT INTO Statistics VALUES(?, ?, ?, ?)",
+                use(SerialNumber),
+                use(CfgUUID),
+                use(NewStats),
+                use(Now), now;
 
         return true;
     }
 
-    return false;
-}
+    bool Service::GetStatisticsData(std::string &SerialNumber, uint32_t From, uint32_t HowMany,
+                                            std::vector<uCentralStatistics> &Stats) {
+        typedef Poco::Tuple<std::string, uint64_t, std::string, uint64_t> StatRecord;
+        typedef std::vector<StatRecord> RecordList;
 
-bool uStorageService::DeleteDevice(std::string &SerialNumber){
+        RecordList Records;
+        *session_ << "SELECT SerialNumber, UUID, Data, Recorded FROM Statistics WHERE SerialNumber=?",
+                into(Records),
+                use(SerialNumber),
+                range(From, From + HowMany - 1), now;
 
-    std::lock_guard<std::mutex> guard(mutex_);
+        for (auto i: Records) {
+            uCentralStatistics R{.SerialNumber = i.get<0>(),
+                    .UUID = i.get<1>(),
+                    .Data = i.get<2>(),
+                    .Recorded = i.get<3>()};
+            Stats.push_back(R);
+        }
 
-    *session_ << "DELETE FROM Devices WHERE SerialNumber=?",
-        use(SerialNumber), now;
-
-    return true;
-}
-
-bool uStorageService::GetDevice(std::string &SerialNumber, uCentralDevice &DeviceDetails)
-{
-    std::lock_guard<std::mutex> guard(mutex_);
-
-    *session_ << "SELECT "
-                 "SerialNumber, "
-                 "DeviceType, "
-                 "MACAddress, "
-                 "Manufacturer, "
-                 "UUID, "
-                 "Configuration, "
-                 "Notes, "
-                 "CreationTimestamp, "
-                 "LastConfigurationChange, "
-                 "LastConfigurationDownload "
-                 " FROM Devices WHERE SerialNumber=?" ,
-            into( DeviceDetails.SerialNumber),
-            into(DeviceDetails.DeviceType),
-            into(DeviceDetails.MACAddress),
-            into(DeviceDetails.Manufacturer),
-            into(DeviceDetails.UUID),
-            into(DeviceDetails.Configuration),
-            into(DeviceDetails.Notes),
-            into(DeviceDetails.CreationTimestamp),
-            into(DeviceDetails.LastConfigurationChange),
-            into(DeviceDetails.LastConfigurationDownload),
-            use(SerialNumber), now;
-
-    if(DeviceDetails.SerialNumber.empty())
-        return false;
-
-    return true;
-}
-
-bool uStorageService::UpdateDeviceCapabilities(std::string &SerialNumber, std::string &Capabs)
-{
-    std::lock_guard<std::mutex> guard(mutex_);
-
-    std::string SS;
-
-    *session_ << "SELECT SerialNumber FROM Capabilities WHERE SerialNumber=?" , into(SS), use(SerialNumber),now ;
-
-    Poco::DateTime  Now;
-
-    if(SS.empty()) {
-        logger().information("Adding capabilities for " + SerialNumber);
-        *session_ << "INSERT INTO Capabilities VALUES(?, ?, ?, ?)" ,
-            use(SerialNumber),
-            use(Capabs),
-            use(Now),
-            use(Now), now;
-        logger().information("Done adding capabilities for " + SerialNumber);
-    }
-    else {
-        logger().information("Updating capabilities for " + SerialNumber);
-        *session_ << "UPDATE Capabilities SET Capabilities=?, LastUpdate=? WHERE SerialNumber=?" ,
-            use(Capabs),
-            use(Now),
-            use(SerialNumber), now;
-        logger().information("Done updating capabilities for " + SerialNumber);
+        return true;
     }
 
-    return true;
-}
+    bool Service::UpdateDeviceConfiguration(std::string &SerialNumber, std::string &Configuration) {
+        std::lock_guard<std::mutex> guard(mutex_);
 
-bool uStorageService::GetDeviceCapabilities(std::string &SerialNUmber, uCentralCapabilities & Caps)
-{
-    *session_ << "SELECT SerialNumber, Capabilities, FirstUpdate, LastUpdate FROM Capabilities WHERE SerialNumber=?" ,
-        into(Caps.SerialNumber),
-        into(Caps.Capabilities),
-        into(Caps.FirstUpdate),
-        into(Caps.LastUpdate),
-        use(SerialNUmber), now;
-
-    if(Caps.SerialNumber.empty())
-        return false;
-
-    return true;
-}
-
-bool uStorageService::ExistingConfiguration(std::string &SerialNumber, uint64_t CurrentConfig, std::string &NewConfig, uint64_t & UUID){
-
-    std::lock_guard<std::mutex> guard(mutex_);
-
-    std::string SS;
-
-    *session_ << "SELECT SerialNumber, UUID, Configuration FROM Devices WHERE SerialNumber=?" ,
-        into(SS),
-        into(UUID),
-        into(NewConfig),
-        use(SerialNumber),now ;
-
-    if(SS.empty()) {
         return false;
     }
 
-    return true;
-}
+    void SetConfigurationUUID(uint64_t UUID, std::string &Configuration) {
+        Parser parser;
+
+        Poco::Dynamic::Var result = parser.parse(Configuration);
+        Poco::JSON::Object::Ptr object = result.extract<Poco::JSON::Object::Ptr>();
+        Poco::DynamicStruct ds = *object;
+
+        ds["uuid"] = UUID;
+
+        std::ostringstream NewConfig;
+
+        Poco::JSON::Stringifier stringifier;
+
+        stringifier.condense(ds, NewConfig);
+
+        // std::cout << "New Configuration:" << NewConfig.str() << std::endl;
+
+        Configuration = NewConfig.str();
+    }
+
+    bool Service::CreateDevice(uCentralDevice &DeviceDetails) {
+        std::lock_guard<std::mutex> guard(mutex_);
+
+        std::string SerialNumber;
+
+        *session_ << "SELECT SerialNumber FROM Devices WHERE SerialNumber=?",
+                into(SerialNumber),
+                use(DeviceDetails.SerialNumber), now;
+
+        if (SerialNumber.empty()) {
+            SetConfigurationUUID(DeviceDetails.UUID, DeviceDetails.Configuration);
+            uint64_t Now = time(nullptr);
+
+            *session_ << "INSERT INTO Devices VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                    use(DeviceDetails.SerialNumber),
+                    use(DeviceDetails.DeviceType),
+                    use(DeviceDetails.MACAddress),
+                    use(DeviceDetails.Manufacturer),
+                    use(DeviceDetails.UUID),
+                    use(DeviceDetails.Configuration),
+                    use(DeviceDetails.Notes),
+                    use(Now),
+                    use(Now),
+                    use(Now), now;
+
+            return true;
+        }
+
+        return false;
+    }
+
+    bool Service::DeleteDevice(std::string &SerialNumber) {
+
+        std::lock_guard<std::mutex> guard(mutex_);
+
+        *session_ << "DELETE FROM Devices WHERE SerialNumber=?",
+                use(SerialNumber), now;
+
+        return true;
+    }
+
+    bool Service::GetDevice(std::string &SerialNumber, uCentralDevice &DeviceDetails) {
+        std::lock_guard<std::mutex> guard(mutex_);
+
+        *session_ << "SELECT "
+                     "SerialNumber, "
+                     "DeviceType, "
+                     "MACAddress, "
+                     "Manufacturer, "
+                     "UUID, "
+                     "Configuration, "
+                     "Notes, "
+                     "CreationTimestamp, "
+                     "LastConfigurationChange, "
+                     "LastConfigurationDownload "
+                     " FROM Devices WHERE SerialNumber=?",
+                into(DeviceDetails.SerialNumber),
+                into(DeviceDetails.DeviceType),
+                into(DeviceDetails.MACAddress),
+                into(DeviceDetails.Manufacturer),
+                into(DeviceDetails.UUID),
+                into(DeviceDetails.Configuration),
+                into(DeviceDetails.Notes),
+                into(DeviceDetails.CreationTimestamp),
+                into(DeviceDetails.LastConfigurationChange),
+                into(DeviceDetails.LastConfigurationDownload),
+                use(SerialNumber), now;
+
+        if (DeviceDetails.SerialNumber.empty())
+            return false;
+
+        return true;
+    }
+
+    uint64_t Service::GetDevices(uint64_t From, uint64_t HowMany, std::vector<uCentralDevice> &Devices) {
+
+        typedef Poco::Tuple<
+                std::string,
+                std::string,
+                std::string,
+                std::string,
+                uint64_t,
+                std::string,
+                std::string,
+                uint64_t,
+                uint64_t,
+                uint64_t> DeviceRecord;
+        typedef std::vector<DeviceRecord> RecordList;
+
+        std::lock_guard<std::mutex> guard(mutex_);
+
+        RecordList Records;
+
+        try {
+            *session_ << "SELECT "
+                         "SerialNumber, "
+                         "DeviceType, "
+                         "MACAddress, "
+                         "Manufacturer, "
+                         "UUID, "
+                         "Configuration, "
+                         "Notes, "
+                         "CreationTimestamp, "
+                         "LastConfigurationChange, "
+                         "LastConfigurationDownload "
+                         " FROM Devices",
+                    into(Records),
+                    range(From, From + HowMany - 1), now;
+
+            for (auto i: Records) {
+                uCentralDevice R{
+                        .SerialNumber   = i.get<0>(),
+                        .DeviceType     = i.get<1>(),
+                        .MACAddress     = i.get<2>(),
+                        .Manufacturer   = i.get<3>(),
+                        .UUID           = i.get<4>(),
+                        .Configuration  = i.get<5>(),
+                        .Notes          = i.get<6>(),
+                        .CreationTimestamp = i.get<7>(),
+                        .LastConfigurationChange = i.get<8>(),
+                        .LastConfigurationDownload = i.get<9>()};
+
+                Devices.push_back(R);
+            }
+        }
+        catch (const Poco::Exception &Exc) {
+            std::cout << Exc.displayText() << std::endl;
+        }
+
+        return Devices.size();
+
+    }
+
+    bool Service::UpdateDeviceCapabilities(std::string &SerialNumber, std::string &Capabs) {
+        std::lock_guard<std::mutex> guard(mutex_);
+
+        std::string SS;
+
+        *session_ << "SELECT SerialNumber FROM Capabilities WHERE SerialNumber=?", into(SS), use(SerialNumber), now;
+
+        Poco::DateTime Now;
+
+        if (SS.empty()) {
+            logger().information("Adding capabilities for " + SerialNumber);
+            *session_ << "INSERT INTO Capabilities VALUES(?, ?, ?, ?)",
+                    use(SerialNumber),
+                    use(Capabs),
+                    use(Now),
+                    use(Now), now;
+            logger().information("Done adding capabilities for " + SerialNumber);
+        } else {
+            logger().information("Updating capabilities for " + SerialNumber);
+            *session_ << "UPDATE Capabilities SET Capabilities=?, LastUpdate=? WHERE SerialNumber=?",
+                    use(Capabs),
+                    use(Now),
+                    use(SerialNumber), now;
+            logger().information("Done updating capabilities for " + SerialNumber);
+        }
+
+        return true;
+    }
+
+    bool Service::GetDeviceCapabilities(std::string &SerialNUmber, uCentralCapabilities &Caps) {
+        *session_
+                << "SELECT SerialNumber, Capabilities, FirstUpdate, LastUpdate FROM Capabilities WHERE SerialNumber=?",
+                into(Caps.SerialNumber),
+                into(Caps.Capabilities),
+                into(Caps.FirstUpdate),
+                into(Caps.LastUpdate),
+                use(SerialNUmber), now;
+
+        if (Caps.SerialNumber.empty())
+            return false;
+
+        return true;
+    }
+
+    bool
+    Service::ExistingConfiguration(std::string &SerialNumber, uint64_t CurrentConfig, std::string &NewConfig,
+                                           uint64_t &UUID) {
+
+        std::lock_guard<std::mutex> guard(mutex_);
+
+        std::string SS;
+
+        *session_ << "SELECT SerialNumber, UUID, Configuration FROM Devices WHERE SerialNumber=?",
+                into(SS),
+                into(UUID),
+                into(NewConfig),
+                use(SerialNumber), now;
+
+        if (SS.empty()) {
+            return false;
+        }
+
+        return true;
+    }
+
+};      // namespace

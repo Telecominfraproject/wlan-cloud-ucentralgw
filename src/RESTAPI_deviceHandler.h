@@ -5,7 +5,6 @@
 #ifndef UCENTRAL_RESTAPI_DEVICEHANDLER_H
 #define UCENTRAL_RESTAPI_DEVICEHANDLER_H
 
-
 #include "Poco/Net/HTTPServer.h"
 #include "Poco/Net/HTTPRequestHandler.h"
 #include "Poco/Net/HTTPRequestHandlerFactory.h"
@@ -35,9 +34,19 @@ using Poco::Net::HTTPServerResponse;
 using Poco::Net::HTTPServerParams;
 using Poco::JSON::Parser;
 
-class RESTAPI_deviceHandler: public HTTPRequestHandler
+#include "RESTAPIHandler.h"
+
+class RESTAPI_deviceHandler: public RESTAPIHandler
 {
 public:
+    RESTAPI_deviceHandler(const RESTAPIHandler::BindingMap & bindings,Poco::Logger & L)
+        : RESTAPIHandler(bindings,L,
+                         std::vector<std::string>
+                                 {  Poco::Net::HTTPRequest::HTTP_GET,
+                                    Poco::Net::HTTPRequest::HTTP_POST,
+                                    Poco::Net::HTTPRequest::HTTP_PUT,
+                                    Poco::Net::HTTPRequest::HTTP_DELETE,
+                                    Poco::Net::HTTPRequest::HTTP_OPTIONS}) {}
     void handleRequest(HTTPServerRequest& request, HTTPServerResponse& response);
 };
 

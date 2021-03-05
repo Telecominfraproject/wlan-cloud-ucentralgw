@@ -6,5 +6,5 @@
 
 void RESTAPI_UnknownRequestHandler::handleRequest(HTTPServerRequest& request, HTTPServerResponse& response)
 {
-
+    std::cout << "Unknown Handler:" << std::endl;
 };
