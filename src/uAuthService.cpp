@@ -5,6 +5,7 @@
 #include "uAuthService.h"
 #include "Poco/Net/OAuth20Credentials.h"
 #include "uCentral.h"
+#include <random>
 
 namespace uCentral::Auth {
     Service *Service::instance_ = nullptr;
@@ -55,8 +56,6 @@ namespace uCentral::Auth {
 
         auto Authorization = Request.get("Authorization","");
 
-        std::cout << "Authorization: " << Authorization << std::endl;
-
         if(Authorization.substr(0,6) == "Bearer")
         {
             auto RequestToken = Authorization.substr(7);
@@ -74,9 +73,11 @@ namespace uCentral::Auth {
         static char buf[]={"1234567890abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRESTUVWXYZ"};
 
         std::string Res;
+        std::default_random_engine generator(time(nullptr));
+        std::uniform_int_distribution<int> distribution(0,time(nullptr));
 
         for(auto i=0;i<sizeof(buf);i++)
-            Res += buf[rand()%(sizeof(buf))];
+            Res += buf[distribution(generator) % (sizeof(buf)-1)];
 
         return Res;
     }
