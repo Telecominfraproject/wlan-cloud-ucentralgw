@@ -22,7 +22,7 @@ namespace uCentral::Storage {
             SubSystemServer("Storage", "STORAGE-SVR", "storage") {
     }
 
-    int Service::start() {
+    int Service::Start() {
 
         SubSystemServer::logger().information("Starting.");
         Poco::Data::SQLite::Connector::registerConnector();
@@ -65,7 +65,7 @@ namespace uCentral::Storage {
         return 0;
     }
 
-    void Service::stop() {
+    void Service::Stop() {
         SubSystemServer::logger().information("Stopping.");
     }
 

@@ -25,11 +25,8 @@ using Poco::AutoPtr;
 #include "uCentralRESTAPIServer.h"
 #include "uCentralWebSocketServer.h"
 #include "uStorageService.h"
-#include "DeviceStatusServer.h"
+#include "uDeviceRegistry.h"
 #include "uAuthService.h"
-
-#include "TIP/Api.h"
-#include "TIP/Routing.h"
 
 namespace uCentral {
 
@@ -42,7 +39,7 @@ namespace uCentral {
 
         addSubsystem(uCentral::Storage::Service::instance());
         addSubsystem(uCentral::Auth::Service::instance());
-        addSubsystem(uCentral::DeviceStatus::Service::instance());
+        addSubsystem(uCentral::DeviceRegistry::Service::instance());
         addSubsystem(uCentral::TIPGW::Service::instance());
         addSubsystem(uCentral::RESTAPI::Service::instance());
         addSubsystem(uCentral::WebSocket::Service::instance());
@@ -199,23 +196,23 @@ namespace uCentral {
 
             std::cout << "Time: " << time(nullptr) << std::endl;
 
-            uCentral::Storage::Service::instance()->start();
-            uCentral::Auth::Service::instance()->start();
-            uCentral::DeviceStatus::Service::instance()->start();
-            uCentral::TIPGW::Service::instance()->start();
-            uCentral::RESTAPI::Service::instance()->start();
-            uCentral::WebSocket::Service::instance()->start();
+            uCentral::Storage::Service::instance()->Start();
+            uCentral::Auth::Service::instance()->Start();
+            uCentral::DeviceRegistry::Service::instance()->Start();
+            uCentral::TIPGW::Service::instance()->Start();
+            uCentral::RESTAPI::Service::instance()->Start();
+            uCentral::WebSocket::Service::instance()->Start();
 
             createTestRecord();
 
             waitForTerminationRequest();
 
-            uCentral::WebSocket::Service::instance()->stop();
-            uCentral::RESTAPI::Service::instance()->stop();
-            uCentral::TIPGW::Service::instance()->stop();
-            uCentral::DeviceStatus::Service::instance()->stop();
-            uCentral::Auth::Service::instance()->stop();
-            uCentral::Storage::Service::instance()->stop();
+            uCentral::WebSocket::Service::instance()->Stop();
+            uCentral::RESTAPI::Service::instance()->Stop();
+            uCentral::TIPGW::Service::instance()->Stop();
+            uCentral::DeviceRegistry::Service::instance()->Stop();
+            uCentral::Auth::Service::instance()->Stop();
+            uCentral::Storage::Service::instance()->Stop();
         }
 
         return Application::EXIT_OK;

@@ -31,8 +31,8 @@ using Poco::Logger;
 class SubSystemServer : public Poco::Util::Application::Subsystem {
 public:
     SubSystemServer(const std::string &name, const std::string & LoggingName, const std::string & SubSystemPrefix );
-    virtual int start() = 0;
-    virtual void stop() = 0;
+    virtual int Start() = 0;
+    virtual void Stop() = 0;
     void initialize(Application &self);
     void uninitialize();
     void reinitialize(Application & self);
@@ -41,14 +41,13 @@ public:
     const PropertiesFileServerEntry & host(int index) { return servers_[index]; };
     Logger                  & logger() { return logger_;};
 
-    PropertiesFileServerList        & ConfigurationSservers() { return servers_; };
+    PropertiesFileServerList        & ConfigurationServers() { return servers_; };
 
 protected:
     Logger                  &   logger_;
-
-//private:
     std::string                 name_;
     PropertiesFileServerList    servers_;
+    std::string                 SubSystemConfigPrefix_;
 };
 
 #endif //UCENTRAL_SUBSYSTEMSERVER_H

@@ -21,10 +21,10 @@ namespace uCentral::RESTAPI {
     {
     }
 
-    int Service::start() {
+    int Service::Start() {
         logger_.information("Starting.");
 
-        for(const auto & svr: ConfigurationSservers()) {
+        for(const auto & svr: ConfigurationServers()) {
             std::string l{"Starting: " +
                           svr.address() + ":" + std::to_string(svr.port()) +
                           " key:" + svr.key_file() +
@@ -72,22 +72,22 @@ namespace uCentral::RESTAPI {
 
         RESTAPIHandler::BindingMap bindings;
 
-        if (RESTAPIHandler::path_match(path, "/api/v1/oauth2", bindings)) {
+        if (RESTAPIHandler::ParseBindings(path, "/api/v1/oauth2", bindings)) {
             return new RESTAPI_oauth2Handler(bindings, Logger);
-        } else if (RESTAPIHandler::path_match(path, "/api/v1/oauth2/{token}", bindings)) {
+        } else if (RESTAPIHandler::ParseBindings(path, "/api/v1/oauth2/{token}", bindings)) {
             return new RESTAPI_oauth2Handler(bindings, Logger);
-        } else if (RESTAPIHandler::path_match(path, "/api/v1/devices", bindings)) {
+        } else if (RESTAPIHandler::ParseBindings(path, "/api/v1/devices", bindings)) {
             return new RESTAPI_devicesHandler(bindings, Logger);
-        } else if (RESTAPIHandler::path_match(path, "/api/v1/device/{serialNumber}", bindings)) {
+        } else if (RESTAPIHandler::ParseBindings(path, "/api/v1/device/{serialNumber}", bindings)) {
             return new RESTAPI_deviceHandler(bindings, Logger);
-        } else if (RESTAPIHandler::path_match(path, "/api/v1/device/{serialNumber}/{command}", bindings)) {
+        } else if (RESTAPIHandler::ParseBindings(path, "/api/v1/device/{serialNumber}/{command}", bindings)) {
             return new RESTAPI_deviceCommandHandler(bindings, Logger);
         }
 
-        return new RESTAPI_UnknownRequestHandler;
+        return new RESTAPI_UnknownRequestHandler(bindings,Logger);
     }
 
-    void Service::stop() {
+    void Service::Stop() {
         SubSystemServer::logger().information("Stopping ");
 
         for( const auto & svr : RESTServers_ )

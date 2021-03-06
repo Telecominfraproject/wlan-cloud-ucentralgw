@@ -9,8 +9,11 @@ SubSystemServer::SubSystemServer( const std::string &Name,
                                   const std::string & SubSystemConfigPrefix )
     :   name_(Name),
         logger_(Logger::get(LoggingPrefix)),
+        SubSystemConfigPrefix_(SubSystemConfigPrefix),
         servers_(SubSystemConfigPrefix)
-    {}
+    {
+
+    }
 
 void SubSystemServer::initialize(Application & self)
 {

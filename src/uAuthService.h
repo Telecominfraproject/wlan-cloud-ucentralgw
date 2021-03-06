@@ -8,6 +8,8 @@
 #include "SubSystemServer.h"
 
 #include "Poco/JSON/Object.h"
+#include "Poco/Net/HTTPServerRequest.h"
+#include "Poco/Net/HTTPServerResponse.h"
 
 namespace uCentral::Auth {
 
@@ -37,8 +39,8 @@ namespace uCentral::Auth {
     public:
         Service() noexcept;
 
-        int start() override;
-        void stop() override;
+        int Start() override;
+        void Stop() override;
 
         static Service *instance() {
             if (instance_ == nullptr) {
@@ -47,9 +49,19 @@ namespace uCentral::Auth {
             return instance_;
         }
 
+        bool IsAuthorized(Poco::Net::HTTPServerRequest & Request);
+        void CreateToken(const std::string & UserName, WebToken & ResultToken);
+        bool Authorize( const std::string & UserName, const std::string & Password, WebToken & ResultToken );
+        static std::string GenerateToken();
+
     private:
         static Service *instance_;
         std::mutex mutex_;
+        std::map<std::string,WebToken>   Tokens_;
+        bool    Secure_;
+        std::string     DefaultUserName_,
+                        DefaultPassword_;
+        std::string     Mechanism_;
     };
 
 }; // end of namespace

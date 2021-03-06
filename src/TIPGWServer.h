@@ -36,8 +36,8 @@ namespace uCentral::TIPGW {
     public:
         Service() noexcept;
 
-        int start() override;
-        void stop() override;
+        int Start() override;
+        void Stop() override;
 
         static Service *instance() {
             if (instance_ == nullptr) {

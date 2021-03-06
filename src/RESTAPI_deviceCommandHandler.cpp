@@ -3,13 +3,17 @@
 //
 
 #include "RESTAPI_deviceCommandHandler.h"
+#include "uAuthService.h"
 
 void RESTAPI_deviceCommandHandler::handleRequest(HTTPServerRequest& Request, HTTPServerResponse& Response)
 {
     if(!ContinueProcessing(Request,Response))
         return;
 
-    std::string Command = get_binding("command","-");
+    if(!IsAuthorized(Request,Response))
+        return;
+
+    std::string Command = GetBinding("command","-");
     if(Command == "-")
     {
         BadRequest(Response);

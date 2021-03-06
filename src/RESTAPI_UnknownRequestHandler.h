@@ -34,10 +34,14 @@ using Poco::Net::HTTPServerResponse;
 using Poco::Net::HTTPServerParams;
 using Poco::JSON::Parser;
 
+#include "RESTAPIHandler.h"
 
-class RESTAPI_UnknownRequestHandler: public HTTPRequestHandler
+class RESTAPI_UnknownRequestHandler: public RESTAPIHandler
 {
 public:
+    RESTAPI_UnknownRequestHandler(const RESTAPIHandler::BindingMap & bindings,Poco::Logger & L)
+    : RESTAPIHandler(bindings,L,
+            std::vector<std::string>{}) {}
     void handleRequest(HTTPServerRequest& request, HTTPServerResponse& response) override;
 };
 

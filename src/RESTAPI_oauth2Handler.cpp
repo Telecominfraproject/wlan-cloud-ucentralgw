@@ -3,6 +3,7 @@
 //
 
 #include "RESTAPI_oauth2Handler.h"
+#include "uAuthService.h"
 
 void RESTAPI_oauth2Handler::handleRequest(HTTPServerRequest & Request, HTTPServerResponse & Response)
 {
@@ -10,9 +11,33 @@ void RESTAPI_oauth2Handler::handleRequest(HTTPServerRequest & Request, HTTPServe
         return;
 
     if(Request.getMethod()==Poco::Net::HTTPServerRequest::HTTP_POST) {
+        // Extract the info for login...
+        Poco::JSON::Parser parser;
+        Poco::JSON::Object::Ptr Obj = parser.parse(Request.stream()).extract<Poco::JSON::Object::Ptr>();
+        Poco::DynamicStruct ds = *Obj;
+
+        auto userId = ds["userId"].toString();
+        auto password = ds["password"].toString();
+
+        uCentral::Auth::WebToken    Token;
+
+        if(uCentral::Auth::Service::instance()->Authorize(userId,password,Token))
+        {
+            PrepareResponse(Response);
+
+            auto ReturnObj = Token.to_JSON();
+
+            std::ostream & Answer = Response.send();
+            Poco::JSON::Stringifier::stringify(ReturnObj, Answer);
+        }
+        else
+        {
+            UnAuthorized(Response);
+        }
 
     } else if(Request.getMethod()==Poco::Net::HTTPServerRequest::HTTP_DELETE) {
-
+        if(!IsAuthorized(Request,Response))
+            return;
     }
 
 }

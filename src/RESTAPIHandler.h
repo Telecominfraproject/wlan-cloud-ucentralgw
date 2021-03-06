@@ -51,20 +51,21 @@ public:
 
     }
 
-    static bool path_match(const char *path,const char *resource, BindingMap & Keys);
-    void print_bindings();
+    static bool ParseBindings(const char *path,const char *resource, BindingMap & Keys);
+    void PrintBindings();
     void ParseParameters(HTTPServerRequest& request);
     static std::string RFC3339(uint64_t t);
     void ProcessOptions( HTTPServerResponse & response );
     void PrepareResponse( HTTPServerResponse & response, Poco::Net::HTTPResponse::HTTPStatus Status=Poco::Net::HTTPResponse::HTTP_OK);
     bool ContinueProcessing( HTTPServerRequest & Request , HTTPServerResponse & Response );
-
-    uint64_t get_parameter(const std::string &Name,uint64_t Default);
-    std::string get_parameter(const std::string &Name,const std::string & Default);
+    bool IsAuthorized(Poco::Net::HTTPServerRequest & Request, HTTPServerResponse & Response );
+    uint64_t GetParameter(const std::string &Name,uint64_t Default);
+    std::string GetParameter(const std::string &Name,const std::string & Default);
 
     void BadRequest(HTTPServerResponse & Response);
+    void UnAuthorized(HTTPServerResponse & Response );
 
-    const std::string & get_binding(const std::string &Name, const std::string &Default);
+    const std::string & GetBinding(const std::string &Name, const std::string &Default);
 
 protected:
     BindingMap                  bindings_;

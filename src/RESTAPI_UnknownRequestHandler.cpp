@@ -4,7 +4,10 @@
 
 #include "RESTAPI_UnknownRequestHandler.h"
 
-void RESTAPI_UnknownRequestHandler::handleRequest(HTTPServerRequest& request, HTTPServerResponse& response)
+void RESTAPI_UnknownRequestHandler::handleRequest(HTTPServerRequest& Request, HTTPServerResponse& Response)
 {
-    std::cout << "Unknown Handler:" << std::endl;
+    if(!IsAuthorized(Request,Response))
+        return;
+
+    BadRequest(Response);
 };

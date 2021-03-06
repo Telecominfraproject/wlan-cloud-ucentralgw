@@ -7,10 +7,11 @@
 #include <iterator>
 
 #include "RESTAPIHandler.h"
+#include "uAuthService.h"
 
 #include "Poco/URI.h"
 
-bool RESTAPIHandler::path_match(const char *p,const char *r, BindingMap & bindings)
+bool RESTAPIHandler::ParseBindings(const char *p,const char *r, BindingMap & bindings)
 {
     std::string param,value;
 
@@ -39,7 +40,7 @@ bool RESTAPIHandler::path_match(const char *p,const char *r, BindingMap & bindin
     return (*p == *r);
 }
 
-void RESTAPIHandler::print_bindings() {
+void RESTAPIHandler::PrintBindings() {
     for(auto &[key,value]:bindings_)
         std::cout << "Key = " << key << "  Value= " << value << std::endl;
 }
@@ -54,7 +55,7 @@ static bool is_number(const std::string &s) {
     return !s.empty() && std::all_of(s.begin(), s.end(), ::isdigit);
 }
 
-uint64_t RESTAPIHandler::get_parameter(const std::string &Name,const uint64_t Default){
+uint64_t RESTAPIHandler::GetParameter(const std::string &Name,const uint64_t Default){
 
     for(const auto & i:parameters_)
     {
@@ -67,7 +68,7 @@ uint64_t RESTAPIHandler::get_parameter(const std::string &Name,const uint64_t De
     return Default;
 }
 
-std::string RESTAPIHandler::get_parameter(const std::string &Name,const std::string & Default){
+std::string RESTAPIHandler::GetParameter(const std::string &Name,const std::string & Default){
     for(const auto & i:parameters_)
     {
         if(i.first == Name)
@@ -76,7 +77,7 @@ std::string RESTAPIHandler::get_parameter(const std::string &Name,const std::str
     return Default;
 }
 
-const std::string & RESTAPIHandler::get_binding(const std::string &Name, const std::string &Default) {
+const std::string & RESTAPIHandler::GetBinding(const std::string &Name, const std::string &Default) {
     auto E = bindings_.find(Name);
 
     if(E==bindings_.end())
@@ -128,6 +129,12 @@ void RESTAPIHandler::BadRequest(HTTPServerResponse & Response) {
     Response.send();
 }
 
+void RESTAPIHandler::UnAuthorized(HTTPServerResponse & Response )
+{
+    PrepareResponse(Response, Poco::Net::HTTPResponse::HTTP_FORBIDDEN);
+    Response.send();
+}
+
 
 bool RESTAPIHandler::ContinueProcessing( HTTPServerRequest & Request , HTTPServerResponse & Response )
 {
@@ -142,4 +149,16 @@ bool RESTAPIHandler::ContinueProcessing( HTTPServerRequest & Request , HTTPServe
     }
 
     return true;
+}
+
+bool RESTAPIHandler::IsAuthorized(Poco::Net::HTTPServerRequest & Request, HTTPServerResponse & Response )
+{
+    if(uCentral::Auth::Service::instance()->IsAuthorized(Request))
+    {
+        return true;
+    }
+    else {
+        UnAuthorized(Response);
+    }
+    return false;
 }

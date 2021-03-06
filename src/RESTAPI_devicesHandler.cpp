@@ -4,8 +4,10 @@
 
 #include "RESTAPI_devicesHandler.h"
 #include "uStorageService.h"
+#include "uAuthService.h"
 #include "Poco/Array.h"
 #include "Poco/JSON/Stringifier.h"
+
 
 using Poco::Array;
 
@@ -14,15 +16,18 @@ void RESTAPI_devicesHandler::handleRequest(HTTPServerRequest& Request, HTTPServe
     if(!ContinueProcessing(Request,Response))
         return;
 
+    if(!IsAuthorized(Request,Response))
+        return;
+
     if (Request.getMethod() == Poco::Net::HTTPRequest::HTTP_GET) {
         ParseParameters(Request);
 
-        auto Offset = get_parameter("offset", 0);
-        auto Limit = get_parameter("limit", 10000);
-        auto Filter = get_parameter("filter", "");
+        auto Offset = GetParameter("offset", 0);
+        auto Limit = GetParameter("limit", 10000);
+        auto Filter = GetParameter("filter", "");
 
         logger_.information(Poco::format("DEVICES: from %d, limit of %d, filter=%s.", Offset, Limit, Filter));
-        RESTAPIHandler::print_bindings();
+        RESTAPIHandler::PrintBindings();
 
         std::vector<uCentralDevice> Devices;
 

@@ -40,22 +40,16 @@ using Poco::Net::HTTPServerResponse;
 using Poco::Net::HTTPServerParams;
 using Poco::JSON::Parser;
 
-namespace uCentral::WebSocket {
+#include "uDeviceRegistry.h"
 
-    struct ConnectionState {
-        uint64_t messages;
-        std::string SerialNumber;
-        std::string Address;
-        uint64_t CfgUUID;
-        uint64_t TX, RX;
-    };
+namespace uCentral::WebSocket {
 
     class Service : public SubSystemServer {
     public:
         Service() noexcept;
 
-        int start() override;
-        void stop() override;
+        int Start() override;
+        void Stop() override;
 
         static Service *instance() {
             if (instance_ == nullptr) {
@@ -81,7 +75,6 @@ namespace uCentral::WebSocket {
         Reactor_(Reactor)
         { };
         void handleRequest(HTTPServerRequest &request, HTTPServerResponse &response) override;
-        void process_message(char *IncomingMessage, std::string &Response, ConnectionState &Connection);
     private:
         Poco::Logger                & Logger_;
         Poco::Net::SocketReactor    & Reactor_;
@@ -105,10 +98,8 @@ namespace uCentral::WebSocket {
                      HTTPServerResponse & Response ):
             SocketReactor_(SocketReactor),
             Logger_(Logger),
-            Request_(Request),
-            Response_(Response),
-            WS_(Request,Response)
-
+            WS_(Request,Response),
+            IncomingMessage_{0}
         {
             Conn.Address = WS_.peerAddress().toString();
             WS_.setReceiveTimeout(Poco::Timespan());
@@ -116,25 +107,25 @@ namespace uCentral::WebSocket {
             WS_.setKeepAlive(true);
         }
 
-        ~WSConnection() {
-            SocketReactor_.removeEventHandler(WS_,Poco::NObserver<WSConnection,Poco::Net::ReadableNotification>(*this,&WSConnection::onSocketReadable));
-            SocketReactor_.removeEventHandler(WS_,Poco::NObserver<WSConnection,Poco::Net::ShutdownNotification>(*this,&WSConnection::onSocketShutdown));
-            WS_.shutdown();
-        }
+        ~WSConnection();
 
-        void process_message(char *IncomingMessage, std::string &Response, ConnectionState &Connection);
-        void onSocketReadable(const AutoPtr<Poco::Net::ReadableNotification>& pNf);
-        void onSocketShutdown(const AutoPtr<Poco::Net::ShutdownNotification>& pNf) { delete this; };
+        void ProcessMessage(std::string &Response);
+        bool SendCommand(const std::string &Cmd);
+
+        void OnSocketReadable(const AutoPtr<Poco::Net::ReadableNotification>& pNf);
+        void OnSocketShutdown(const AutoPtr<Poco::Net::ShutdownNotification>& pNf) { delete this; };
+
 
         Poco::Net::WebSocket    & WS() { return WS_;};
 
     private:
-        Poco::Net::SocketReactor    & SocketReactor_;
-        Poco::Logger                & Logger_;
-        HTTPServerRequest           & Request_;
-        HTTPServerResponse          & Response_;
-        Poco::Net::WebSocket        WS_;
-        ConnectionState             Conn;
+        std::mutex mutex_;
+        Poco::Net::SocketReactor                & SocketReactor_;
+        Poco::Logger                            & Logger_;
+        Poco::Net::WebSocket                    WS_;
+        uCentral::DeviceRegistry::ConnectionState Conn;
+        char                                    IncomingMessage_[32000];
+
     };
 
 }; //namespace

@@ -19,9 +19,9 @@ namespace uCentral::Storage {
     public:
         Service() noexcept;
 
-        int start() override;
+        int Start() override;
 
-        void stop() override;
+        void Stop() override;
 
         bool AddStatisticsData(std::string &SerialNUmber, uint64_t CfgUUID, std::string &NewStats);
         bool GetStatisticsData(std::string &SerialNUmber, std::string & FromDate, std::string & ToDate, uint64_t Offset, uint64_t HowMany,

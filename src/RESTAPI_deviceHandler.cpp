@@ -4,16 +4,20 @@
 
 #include "RESTAPI_deviceHandler.h"
 #include "uStorageService.h"
+#include "uAuthService.h"
 
 void RESTAPI_deviceHandler::handleRequest(HTTPServerRequest& Request, HTTPServerResponse& Response)
 {
     if(!ContinueProcessing(Request,Response))
         return;
 
+    if(!IsAuthorized(Request,Response))
+        return;
+
     if(Request.getMethod() == Poco::Net::HTTPRequest::HTTP_GET) {
         ParseParameters(Request);
 
-        std::string     SerialNumber = get_binding("serialNumber","0xdeadbeef");
+        std::string     SerialNumber = GetBinding("serialNumber","0xdeadbeef");
         uCentralDevice  Device;
 
         if(uCentral::Storage::Service::instance()->GetDevice(SerialNumber,Device))
@@ -31,7 +35,7 @@ void RESTAPI_deviceHandler::handleRequest(HTTPServerRequest& Request, HTTPServer
     } else if(Request.getMethod() == Poco::Net::HTTPRequest::HTTP_DELETE) {
         ParseParameters(Request);
 
-        std::string SerialNumber = get_binding("serialNumber", "0xdeadbeef");
+        std::string SerialNumber = GetBinding("serialNumber", "0xdeadbeef");
 
         if (uCentral::Storage::Service::instance()->DeleteDevice(SerialNumber)) {
             PrepareResponse(Response, Poco::Net::HTTPResponse::HTTP_OK);
@@ -43,7 +47,7 @@ void RESTAPI_deviceHandler::handleRequest(HTTPServerRequest& Request, HTTPServer
     } else if(Request.getMethod() == Poco::Net::HTTPRequest::HTTP_POST) {
         ParseParameters(Request);
 
-        std::string SerialNumber = get_binding("serialNumber", "0xdeadbeef");
+        std::string SerialNumber = GetBinding("serialNumber", "0xdeadbeef");
 
         Poco::JSON::Parser      IncomingParser;
         Poco::JSON::Object::Ptr Obj = IncomingParser.parse(Request.stream()).extract<Poco::JSON::Object::Ptr>();
@@ -63,7 +67,7 @@ void RESTAPI_deviceHandler::handleRequest(HTTPServerRequest& Request, HTTPServer
     } else if(Request.getMethod() == Poco::Net::HTTPRequest::HTTP_PUT) {
         ParseParameters(Request);
 
-        std::string SerialNumber = get_binding("serialNumber", "0xdeadbeef");
+        std::string SerialNumber = GetBinding("serialNumber", "0xdeadbeef");
     } else {
         BadRequest(Response);
     }
