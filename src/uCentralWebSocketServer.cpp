@@ -17,6 +17,9 @@ namespace uCentral::WebSocket {
 
     int Service::start() {
 
+        //  create the reactor
+        SocketReactorThread_.start(SocketReactor_);
+
         for(const auto & svr : ConfigurationSservers()) {
             std::string l{
                     "Starting: " + svr.address() + ":" + std::to_string(svr.port()) +
@@ -32,7 +35,7 @@ namespace uCentral::WebSocket {
                                                 svr.cert_file(),
                                                 ""));
 
-            auto NewServer = std::make_shared<Poco::Net::HTTPServer>(new RequestHandlerFactory, sock, new HTTPServerParams);  HTTPServer(new RequestHandlerFactory, sock, new HTTPServerParams);
+            auto NewServer = std::make_shared<Poco::Net::HTTPServer>(new WSRequestHandlerFactory(SocketReactor_), sock, new HTTPServerParams);
 
             NewServer->start();
 
@@ -45,6 +48,7 @@ namespace uCentral::WebSocket {
     void Service::stop() {
         SubSystemServer::logger().information("Stopping ");
 
+        SocketReactor_.stop();
         for(auto const & svr : HTTPServers_)
             svr->stop();
     }
@@ -83,7 +87,7 @@ namespace uCentral::WebSocket {
                 "\"websocket.usync.org\",\"token\":\"7049cb6b7949ba06c6b356d76f0f6275\",\"interface\":\"wan\"}}"};
     }
 
-    void WebSocketRequestHandler::process_message(char *Message, std::string &Response, ConnectionState &Connection) {
+    void WSConnection::process_message(char *Message, std::string &Response, ConnectionState &Connection) {
         Parser parser;
 
         auto result = parser.parse(Message);
@@ -139,172 +143,93 @@ namespace uCentral::WebSocket {
         }
     }
 
-    void WebSocketRequestHandler::handleRequest(HTTPServerRequest &request, HTTPServerResponse &response) {
-
-        Poco::Logger &l = Service::instance()->logger();
-        std::string Address;
+    void WSConnection::onSocketReadable(const AutoPtr<Poco::Net::ReadableNotification>& pNf)
+    {
+        char IncomingMessage[32000];
+        int flags, Op;
+        int IncomingSize = 0;
+        memset(IncomingMessage, 0, sizeof(IncomingMessage));
 
         try {
+            IncomingSize = WS_.receiveFrame(IncomingMessage, sizeof(IncomingMessage), flags);
+            Op = flags & Poco::Net::WebSocket::FRAME_OP_BITMASK;
 
-            Poco::Net::WebSocket ws(request, response);
+            if(IncomingSize==0 && flags == 0 && Op == 0)
+            {
+                delete this;
+                return;
+            }
 
-            std::string ResponseDocument;
+            Conn.messages++;
 
-            Address = ws.peerAddress().toString();
-
-            ws.setReceiveTimeout(Poco::Timespan());
-            ws.setNoDelay(true);
-            ws.setKeepAlive(true);
-
-            l.information("Connection from: " + Address);
-
-            ConnectionState Connection{
-                    .messages=0,
-                    .SerialNumber{""},
-                    .Address{Address},
-                    .CfgUUID=0,
-                    .TX=0,
-                    .RX=0};
-
-            char IncomingMessage[32000];
-            int flags, Op;
-            int IncomingSize = 0;
-
-            do {
-                memset(IncomingMessage, 0, sizeof(IncomingMessage));
-
-                IncomingSize = ws.receiveFrame(IncomingMessage, sizeof(IncomingMessage), flags);
-
-                Connection.messages++;
-
-                Op = flags & Poco::Net::WebSocket::FRAME_OP_BITMASK;
-
-                switch (Op) {
-                    case Poco::Net::WebSocket::FRAME_OP_PING: {
-                        l.information("PING(" + Connection.SerialNumber + "): received.");
-                        ws.sendFrame("", 0, Poco::Net::WebSocket::FRAME_OP_PONG | Poco::Net::WebSocket::FRAME_FLAG_FIN);
-                    }
-                        break;
-
-                    case Poco::Net::WebSocket::FRAME_OP_PONG: {
-                        l.information("PONG(" + Connection.SerialNumber + "): received.");
-                    }
-                        break;
-
-                    case Poco::Net::WebSocket::FRAME_OP_TEXT: {
-                        std::cout << "Incoming(" << Connection.SerialNumber << "): " << IncomingSize << " bytes."
-                                  << std::endl;
-
-                        l.debug(Poco::format("Frame received (length=%d, flags=0x%x).", IncomingSize, unsigned(flags)));
-
-                        Connection.RX += IncomingSize;
-
-                        process_message(IncomingMessage, ResponseDocument,
-                                                             Connection);
-
-                        if (!ResponseDocument.empty()) {
-                            Connection.TX += ResponseDocument.size();
-                            std::cout << "Returning(" << Connection.SerialNumber << "): " << ResponseDocument.size()
-                                      << " bytes" << std::endl;
-                            ws.sendFrame(ResponseDocument.c_str(), ResponseDocument.size());
-                        }
-                    }
-                        break;
-
-                    default: {
-                        l.warning("UNKNOWN WS Frame operation: " + std::to_string(Op));
-                        std::cout << "WS: Unknown frame: " << Op << " Flags: " << flags << std::endl;
-                        Op = Poco::Net::WebSocket::FRAME_OP_CLOSE;
-                    }
+            switch (Op) {
+                case Poco::Net::WebSocket::FRAME_OP_PING: {
+                    Logger_.information("PING(" + Conn.SerialNumber + "): received.");
+                    WS_.sendFrame("", 0, Poco::Net::WebSocket::FRAME_OP_PONG | Poco::Net::WebSocket::FRAME_FLAG_FIN);
                 }
-            } while (Op != Poco::Net::WebSocket::FRAME_OP_CLOSE);
-            l.information("Connection closed from " + Address);
-            ws.shutdown();
-        }
-        catch (const WebSocketException &exc) {
-            std::cout << "Caught an exception..." << std::endl;
-            switch (exc.code()) {
-                case Poco::Net::WebSocket::WS_ERR_HANDSHAKE_UNSUPPORTED_VERSION:
-                    response.set("Sec-WebSocket-Version", Poco::Net::WebSocket::WEBSOCKET_VERSION);
-                    // fallthrough
-                case Poco::Net::WebSocket::WS_ERR_NO_HANDSHAKE:
-                case Poco::Net::WebSocket::WS_ERR_HANDSHAKE_NO_VERSION:
-                case Poco::Net::WebSocket::WS_ERR_HANDSHAKE_NO_KEY:
-                    l.warning("WS Exception from: " + Address);
-                    response.setStatusAndReason(HTTPResponse::HTTP_BAD_REQUEST);
-                    response.setContentLength(0);
-                    response.send();
                     break;
+
+                case Poco::Net::WebSocket::FRAME_OP_PONG: {
+                    Logger_.information("PONG(" + Conn.SerialNumber + "): received.");
+                }
+                    break;
+
+                case Poco::Net::WebSocket::FRAME_OP_TEXT: {
+                    std::cout << "Incoming(" << Conn.SerialNumber << "): " << IncomingSize << " bytes." << std::endl;
+                    Logger_.debug(
+                            Poco::format("Frame received (length=%d, flags=0x%x).", IncomingSize, unsigned(flags)));
+                    Conn.RX += IncomingSize;
+
+                    std::string ResponseDocument;
+                    process_message(IncomingMessage, ResponseDocument, Conn);
+
+                    if (!ResponseDocument.empty()) {
+                        Conn.TX += ResponseDocument.size();
+                        std::cout << "Returning(" << Conn.SerialNumber << "): " << ResponseDocument.size() << " bytes"
+                                  << std::endl;
+                        WS_.sendFrame(ResponseDocument.c_str(), ResponseDocument.size());
+                    }
+                    }
+                    break;
+
+                default: {
+                    Logger_.warning("UNKNOWN WS Frame operation: " + std::to_string(Op));
+                    std::cout << "WS: Unknown frame: " << Op << " Flags: " << flags << std::endl;
+                    Op = Poco::Net::WebSocket::FRAME_OP_CLOSE;
+                }
             }
         }
         catch (const Poco::Exception &exc) {
             std::cout << "Caught a more generic Poco exception: " << exc.message() << std::endl;
+            delete this;
         }
     }
 
-    void PageRequestHandler::handleRequest(HTTPServerRequest &request, HTTPServerResponse &response) {
-        response.setChunkedTransferEncoding(true);
-        response.setContentType("text/html");
-        std::ostream &ostr = response.send();
-        ostr << "<html>";
-        ostr << "<head>";
-        ostr << "<title>WebSocketServer</title>";
-        ostr << "<script type=\"text/javascript\">";
-        ostr << "function WebSocketTest()";
-        ostr << "{";
-        ostr << "  if (\"WebSocket\" in window)";
-        ostr << "  {";
-        ostr << "    var ws = new WebSocket(\"ws://" << request.serverAddress().toString() << "/ws\");";
-        ostr << "    ws.onopen = function()";
-        ostr << "      {";
-        ostr << "        ws.send(\"Hello, world!\");";
-        ostr << "      };";
-        ostr << "    ws.onmessage = function(evt)";
-        ostr << "      { ";
-        ostr << "        var msg = evt.data;";
-        ostr << "        alert(\"Message received: \" + msg);";
-        ostr << "        ws.close();";
-        ostr << "      };";
-        ostr << "    ws.onclose = function()";
-        ostr << "      { ";
-        ostr << "        alert(\"WebSocket closed.\");";
-        ostr << "      };";
-        ostr << "  }";
-        ostr << "  else";
-        ostr << "  {";
-        ostr << "     alert(\"This browser does not support WebSockets.\");";
-        ostr << "  }";
-        ostr << "}";
-        ostr << "</script>";
-        ostr << "</head>";
-        ostr << "<body>";
-        ostr << "  <h1>WebSocket Server</h1>";
-        ostr << "  <p><a href=\"javascript:WebSocketTest()\">Run WebSocket Script</a></p>";
-        ostr << "</body>";
-        ostr << "</html>";
+    void WSRequestHandler::handleRequest(HTTPServerRequest &Request, HTTPServerResponse &Response) {
+
+        Poco::Logger & Logger = Service::instance()->logger();
+        std::string Address;
+
+        auto NewWS = new WSConnection(Reactor_,Logger,Request,Response);
+        Reactor_.addEventHandler(NewWS->WS(),Poco::NObserver<WSConnection,Poco::Net::ReadableNotification>(*NewWS,&WSConnection::onSocketReadable));
+        Reactor_.addEventHandler(NewWS->WS(),Poco::NObserver<WSConnection,Poco::Net::ShutdownNotification>(*NewWS,&WSConnection::onSocketShutdown));
     }
 
-    HTTPRequestHandler *RequestHandlerFactory::createRequestHandler(const HTTPServerRequest &request) {
+    HTTPRequestHandler *WSRequestHandlerFactory::createRequestHandler(const HTTPServerRequest &request) {
 
         Poco::Logger & Logger = Service::instance()->logger();
 
-        Logger.information("Request from "
-                                                                  + request.clientAddress().toString()
-                                                                  + ": "
-                                                                  + request.getMethod()
-                                                                  + " "
-                                                                  + request.getURI()
-                                                                  + " "
-                                                                  + request.getVersion());
-
+        Logger.information(Poco::format("%s from %s: %s",request.getMethod(),
+                                        request.clientAddress().toString(),
+                                        request.getURI()));
 
         for (const auto & it: request)
             Logger.information(it.first + ": " + it.second);
 
         if (request.find("Upgrade") != request.end() && Poco::icompare(request["Upgrade"], "websocket") == 0)
-            return new WebSocketRequestHandler(Logger);
-        else
-            return new PageRequestHandler;
+            return new WSRequestHandler(Logger,SocketReactor_);
+
+        return nullptr;
     }
 
 };      //namespace

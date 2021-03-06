@@ -21,6 +21,10 @@
 #include "Poco/Net/Context.h"
 #include "Poco/JSON/Parser.h"
 #include "Poco/DynamicAny.h"
+#include "Poco/Net/SocketReactor.h"
+#include "Poco/Net/SocketNotification.h"
+#include "Poco/Observer.h"
+#include "Poco/NObserver.h"
 
 using Poco::Net::ServerSocket;
 using Poco::Net::SecureServerSocket;
@@ -63,32 +67,74 @@ namespace uCentral::WebSocket {
     private:
         static Service *instance_;
         std::vector<std::shared_ptr<Poco::Net::HTTPServer>>   HTTPServers_;
+        Poco::Net::SocketReactor    SocketReactor_;
+        Poco::Thread                SocketReactorThread_;
     };
 
-    class PageRequestHandler : public HTTPRequestHandler
-        /// Return a HTML document with some JavaScript creating
-        /// a WebSocket connection.
-    {
-    public:
-        void handleRequest(HTTPServerRequest &request, HTTPServerResponse &response) override;
-    };
-
-    class WebSocketRequestHandler : public HTTPRequestHandler
+    class WSRequestHandler : public HTTPRequestHandler
         /// Handle a WebSocket connection.
     {
     public:
-        explicit WebSocketRequestHandler(Poco::Logger &logger)
-        : Logger_(logger)
+        explicit WSRequestHandler(Poco::Logger &logger,
+                                         Poco::Net::SocketReactor   &Reactor)
+        : Logger_(logger),
+        Reactor_(Reactor)
         { };
         void handleRequest(HTTPServerRequest &request, HTTPServerResponse &response) override;
         void process_message(char *IncomingMessage, std::string &Response, ConnectionState &Connection);
     private:
-        Poco::Logger    & Logger_;
+        Poco::Logger                & Logger_;
+        Poco::Net::SocketReactor    & Reactor_;
     };
 
-    class RequestHandlerFactory : public HTTPRequestHandlerFactory {
+    class WSRequestHandlerFactory : public HTTPRequestHandlerFactory {
     public:
+        explicit WSRequestHandlerFactory(Poco::Net::SocketReactor & SocketReactor) :
+        SocketReactor_(SocketReactor)
+        {};
         HTTPRequestHandler *createRequestHandler(const HTTPServerRequest &request) override;
+    private:
+        Poco::Net::SocketReactor    & SocketReactor_;
+    };
+
+    class WSConnection {
+    public:
+        WSConnection(Poco::Net::SocketReactor &SocketReactor,
+                     Poco::Logger   & Logger,
+                     HTTPServerRequest & Request,
+                     HTTPServerResponse & Response ):
+            SocketReactor_(SocketReactor),
+            Logger_(Logger),
+            Request_(Request),
+            Response_(Response),
+            WS_(Request,Response)
+
+        {
+            Conn.Address = WS_.peerAddress().toString();
+            WS_.setReceiveTimeout(Poco::Timespan());
+            WS_.setNoDelay(true);
+            WS_.setKeepAlive(true);
+        }
+
+        ~WSConnection() {
+            SocketReactor_.removeEventHandler(WS_,Poco::NObserver<WSConnection,Poco::Net::ReadableNotification>(*this,&WSConnection::onSocketReadable));
+            SocketReactor_.removeEventHandler(WS_,Poco::NObserver<WSConnection,Poco::Net::ShutdownNotification>(*this,&WSConnection::onSocketShutdown));
+            WS_.shutdown();
+        }
+
+        void process_message(char *IncomingMessage, std::string &Response, ConnectionState &Connection);
+        void onSocketReadable(const AutoPtr<Poco::Net::ReadableNotification>& pNf);
+        void onSocketShutdown(const AutoPtr<Poco::Net::ShutdownNotification>& pNf) { delete this; };
+
+        Poco::Net::WebSocket    & WS() { return WS_;};
+
+    private:
+        Poco::Net::SocketReactor    & SocketReactor_;
+        Poco::Logger                & Logger_;
+        HTTPServerRequest           & Request_;
+        HTTPServerResponse          & Response_;
+        Poco::Net::WebSocket        WS_;
+        ConnectionState             Conn;
     };
 
 }; //namespace
