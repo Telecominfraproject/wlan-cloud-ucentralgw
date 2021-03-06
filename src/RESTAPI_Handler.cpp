@@ -6,7 +6,7 @@
 #include <iostream>
 #include <iterator>
 
-#include "RESTAPIHandler.h"
+#include "RESTAPI_Handler.h"
 #include "uAuthService.h"
 
 #include "Poco/URI.h"

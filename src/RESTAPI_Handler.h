@@ -2,8 +2,8 @@
 // Created by stephane bourque on 2021-03-04.
 //
 
-#ifndef UCENTRAL_RESTAPIHANDLER_H
-#define UCENTRAL_RESTAPIHANDLER_H
+#ifndef UCENTRAL_RESTAPI_HANDLER_H
+#define UCENTRAL_RESTAPI_HANDLER_H
 
 #include "Poco/Net/HTTPServer.h"
 #include "Poco/Net/HTTPRequestHandler.h"
@@ -75,4 +75,4 @@ protected:
 };
 
 
-#endif //UCENTRAL_RESTAPIHANDLER_H
+#endif //UCENTRAL_RESTAPI_HANDLER_H

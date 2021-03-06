@@ -10,7 +10,7 @@
 #include "Poco/Data/Session.h"
 #include "Poco/Data/SQLite/SQLite.h"
 
-#include "RESTAPIObjects.h"
+#include "RESTAPI_Objects.h"
 
 namespace uCentral::Storage {
 

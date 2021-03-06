@@ -2,8 +2,8 @@
 // Created by stephane bourque on 2021-03-04.
 //
 
-#include "RESTAPIObjects.h"
-#include "RESTAPIHandler.h"
+#include "RESTAPI_Objects.h"
+#include "RESTAPI_Handler.h"
 
 Poco::JSON::Object  uCentralDevice::to_json()
 {

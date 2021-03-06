@@ -5,7 +5,7 @@
 #ifndef UCENTRAL_RESTAPI_OAUTH2HANDLER_H
 #define UCENTRAL_RESTAPI_OAUTH2HANDLER_H
 
-#include "RESTAPIHandler.h"
+#include "RESTAPI_Handler.h"
 
 class RESTAPI_oauth2Handler: public RESTAPIHandler
 {

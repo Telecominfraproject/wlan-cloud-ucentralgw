@@ -2,8 +2,8 @@
 // Created by stephane bourque on 2021-03-04.
 //
 
-#ifndef UCENTRAL_RESTAPIOBJECTS_H
-#define UCENTRAL_RESTAPIOBJECTS_H
+#ifndef UCENTRAL_RESTAPI_OBJECTS_H
+#define UCENTRAL_RESTAPI_OBJECTS_H
 
 #include "Poco/JSON/Object.h"
 
@@ -39,4 +39,4 @@ struct uCentralCapabilities {
     Poco::JSON::Object  to_json();
 };
 
-#endif //UCENTRAL_RESTAPIOBJECTS_H
+#endif //UCENTRAL_RESTAPI_OBJECTS_H

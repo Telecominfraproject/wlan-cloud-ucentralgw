@@ -5,7 +5,7 @@
 #ifndef UCENTRAL_RESTAPI_DEVICESHANDLER_H
 #define UCENTRAL_RESTAPI_DEVICESHANDLER_H
 
-#include "RESTAPIHandler.h"
+#include "RESTAPI_Handler.h"
 
 
 class RESTAPI_devicesHandler: public RESTAPIHandler
