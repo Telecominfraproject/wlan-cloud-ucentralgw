@@ -2,7 +2,7 @@ openapi: 3.0.1
 info:
   title: uCentral gateway API
   description: A process to manage configuration for devices.
-  version: 0.0.4
+  version: 0.0.5
   termsOfService:
     http://example.com/terms/
   license:
@@ -14,7 +14,7 @@ info:
     url: https://www.ucentral.info/support
 
 servers:
-  - url: 'https://api.example.com/api/v1'
+  - url: 'https://localhost:16001/api/v1'
 
 security:
   - bearerAuth: []
@@ -72,7 +72,7 @@ components:
           type: string
         manufacturer:
           type: string
-        configurationUUID:
+        UUID:
           type: integer
           format: int64
         configuration:
@@ -88,6 +88,15 @@ components:
         lastConfigurationDownload:
           type: string
           format: 'date-time'
+
+    DeviceList:
+      type: object
+      description: Definition of uCentral device
+      properties:
+        devices:
+          type: array
+          items:
+            $ref : '#/components/schemas/Device'
 
     DeviceStatus:
       type: object
@@ -125,23 +134,20 @@ components:
     StatisticsDetails:
       type: object
       properties:
-        name:
+        recorded:
           type: string
-        value:
-          type: number
-          format: double
+          format: 'date-time'
+        UUID:
+          type: integer
+          format: int64
+        values:
+          type: string
 
-    StatisticsRecord:
+    StatisticsRecords:
       type: object
       properties:
         serialNumber:
           type: string
-        UUID:
-          type: integer
-          format: int64
-        recorded:
-          type: string
-          format: 'date-time'
         data:
           type: array
           items:
@@ -198,6 +204,25 @@ components:
         Code:
           type: integer
 
+    WebTokenRequest:
+      description: User Id and password.
+      type: object
+      required:
+        - userId
+        - password
+      properties:
+        userId:
+          type: string
+          default: support@example.com
+        password:
+          type: string
+          default: support
+        refreshToken:
+          type: string
+      example:
+        userId: support@example.com
+        password: support
+
     WebTokenResult:
       description: Login and Refresh Tokens to be used in subsequent API calls.
       type: object
@@ -250,14 +275,14 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/WebTokenResult'
+              $ref: '#/components/schemas/WebTokenRequest'
       responses:
         200:
           description: successful operation
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/GenericGoodAnswer'
+                $ref: '#/components/schemas/WebTokenResult'
         403:
           $ref: '#/components/responses/Unauthorized'
         404:
@@ -289,7 +314,7 @@ paths:
   /devices:
     get:
       tags:
-        - devices
+        - Devices
       summary: Returns a list of devices.
       description: Get a list of devices.
       operationId: getDeviceList
@@ -318,33 +343,14 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Device'
-        403:
-          $ref: '#/components/responses/Unauthorized'
-
-    post:
-      summary: Creating a new device
-      operationId: createNewDevice
-      requestBody:
-        description: Information used to create the new device
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/Device'
-      responses:
-        200:
-          description: Successful device creation will return the device record with the proper device ID
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Device'
+                $ref: '#/components/schemas/DeviceList'
         403:
           $ref: '#/components/responses/Unauthorized'
 
   /device/{serialNumber}:
     get:
       tags:
-        - devices
+        - Devices
       summary: Retrieve information for a single device
       description: Retrieve all the inforamtion about a single device
       operationId: getDeviceInformation
@@ -366,7 +372,51 @@ paths:
         403:
           $ref: '#/components/responses/Unauthorized'
 
+    post:
+      tags:
+        - Devices
+      summary: Creating a new device
+      operationId: createNewDevice
+      requestBody:
+        description: Information used to create the new device
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Device'
+      responses:
+        200:
+          description: Successful device creation will return the device record with the proper device ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Device'
+        403:
+          $ref: '#/components/responses/Unauthorized'
+
+    put:
+      tags:
+        - Devices
+      summary: Updating a new device
+      operationId: updateNewDevice
+      requestBody:
+        description: Information used to create the new device
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Device'
+      responses:
+        200:
+          description: Successful device creation will return the device record with the proper device ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Device'
+        403:
+          $ref: '#/components/responses/Unauthorized'
+
     delete:
+      tags:
+        - Devices
       summary: Deleting a single device
       operationId: deleteDevice
       parameters:
@@ -385,6 +435,8 @@ paths:
 
   /device/{serialNumber}/logs:
     get:
+      tags:
+        - Commands
       summary: Get the latest logs for a given device
       operationId: getDeviceLogs
       parameters:
@@ -405,10 +457,12 @@ paths:
         403:
           $ref: '#/components/responses/NotFound'
 
-  /device/{serialNumber}/statistics:
+  /device/{serialNumber}/capabilities:
     get:
-      summary: Get the latest statistics for a given device
-      operationId: getDeviceStats
+      tags:
+        - Commands
+      summary: Get the latest capabilities for a given device
+      operationId: getDeviceCapabilities
       parameters:
         - in: path
           name: serialNumber
@@ -417,13 +471,117 @@ paths:
           required: true
       responses:
         200:
+          description: List of logs for this device
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeviceCapabilities'
+        404:
+          $ref: '#/components/responses/Unauthorized'
+        403:
+          $ref: '#/components/responses/NotFound'
+    delete:
+      tags:
+        - Commands
+      summary: Delete the capabilities for a given device
+      operationId: deleteDeviceCapabilities
+      parameters:
+        - in: path
+          name: serialNumber
+          schema:
+            type: string
+          required: true
+      responses:
+        200:
+          description: List of logs for this device
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericGoodAnswer'
+        404:
+          $ref: '#/components/responses/Unauthorized'
+        403:
+          $ref: '#/components/responses/NotFound'
+
+
+  /device/{serialNumber}/statistics:
+    get:
+      tags:
+        - Commands
+      summary: Get the latest statistics for a given device
+      operationId: getDeviceStats
+      parameters:
+        - in: path
+          name: serialNumber
+          schema:
+            type: string
+          required: true
+        - in: query
+          name: startDate
+          schema:
+            type: string
+            # format 2021-03-05T05:27:37Z
+            format: 'date-time'
+          required: false
+        - in: query
+          name: endDate
+          schema:
+            type: string
+            # format 2021-03-05T05:27:37Z
+            format: 'date-time'
+        - in: query
+          name: offset
+          schema:
+            type: integer
+            format: int64
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            format: int64
+
+      responses:
+        200:
           description: Array of statistics for this device
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/StatisticsRecord'
+                $ref: '#/components/schemas/StatisticsRecords'
+        404:
+          $ref: '#/components/responses/Unauthorized'
+        403:
+          $ref: '#/components/responses/NotFound'
+
+    delete:
+      tags:
+        - Commands
+      summary: Get the latest statistics for a given device
+      operationId: getDeviceStats
+      parameters:
+        - in: path
+          name: serialNumber
+          schema:
+            type: string
+          required: true
+        - in: query
+          name: startDate
+          schema:
+            type: string
+            format: 'date-time'
+          required: false
+        - in: query
+          name: endDate
+          schema:
+            type: string
+            format: 'date-time'
+
+      responses:
+        200:
+          description: Array of statistics for this device
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericGoodAnswer'
         404:
           $ref: '#/components/responses/Unauthorized'
         403:
@@ -431,6 +589,8 @@ paths:
 
   /device/{serialNumber}/status:
     get:
+      tags:
+        - Commands
       summary: Get the latest status for a given device
       operationId: getDeviceStatus
       parameters:
