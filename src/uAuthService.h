@@ -37,11 +37,8 @@ namespace uCentral::Auth {
     public:
         Service() noexcept;
 
-        int start();
-
-        void stop();
-
-        Logger &logger() { return SubSystemServer::logger(); };
+        int start() override;
+        void stop() override;
 
         static Service *instance() {
             if (instance_ == nullptr) {

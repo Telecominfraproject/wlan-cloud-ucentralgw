@@ -25,8 +25,6 @@
 #include "Poco/Net/InvalidCertificateHandler.h"
 #include "Poco/Logger.h"
 
-#include "../common.h"
-
 #include "WebTokenResult.h"
 
 using Poco::Logger;

@@ -50,9 +50,8 @@ namespace uCentral::WebSocket {
     public:
         Service() noexcept;
 
-        int start();
-
-        void stop();
+        int start() override;
+        void stop() override;
 
         static Service *instance() {
             if (instance_ == nullptr) {
@@ -61,13 +60,9 @@ namespace uCentral::WebSocket {
             return instance_;
         }
 
-        void process_message(char *IncomingMessage, std::string &Response, ConnectionState &Connection);
-
-        Logger &logger() { return SubSystemServer::logger(); };
-
     private:
         static Service *instance_;
-        HTTPServer *server_;
+        std::vector<std::shared_ptr<Poco::Net::HTTPServer>>   HTTPServers_;
     };
 
     class PageRequestHandler : public HTTPRequestHandler
@@ -75,19 +70,25 @@ namespace uCentral::WebSocket {
         /// a WebSocket connection.
     {
     public:
-        void handleRequest(HTTPServerRequest &request, HTTPServerResponse &response);
+        void handleRequest(HTTPServerRequest &request, HTTPServerResponse &response) override;
     };
 
     class WebSocketRequestHandler : public HTTPRequestHandler
         /// Handle a WebSocket connection.
     {
     public:
-        void handleRequest(HTTPServerRequest &request, HTTPServerResponse &response);
+        explicit WebSocketRequestHandler(Poco::Logger &logger)
+        : Logger_(logger)
+        { };
+        void handleRequest(HTTPServerRequest &request, HTTPServerResponse &response) override;
+        void process_message(char *IncomingMessage, std::string &Response, ConnectionState &Connection);
+    private:
+        Poco::Logger    & Logger_;
     };
 
     class RequestHandlerFactory : public HTTPRequestHandlerFactory {
     public:
-        HTTPRequestHandler *createRequestHandler(const HTTPServerRequest &request);
+        HTTPRequestHandler *createRequestHandler(const HTTPServerRequest &request) override;
     };
 
 }; //namespace

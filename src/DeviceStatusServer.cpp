@@ -13,7 +13,6 @@ namespace uCentral::DeviceStatus {
     }
 
     int Service::start() {
-
         std::lock_guard<std::mutex> guard(mutex_);
 
         SubSystemServer::logger().information("Starting ");
@@ -22,7 +21,6 @@ namespace uCentral::DeviceStatus {
     }
 
     void Service::stop() {
-
         std::lock_guard<std::mutex> guard(mutex_);
 
         SubSystemServer::logger().information("Stopping ");
@@ -39,7 +37,7 @@ namespace uCentral::DeviceStatus {
 
     }
 
-    const std::string Service::LastStats(const std::string &SerialNumber) {
+    std::string Service::LastStats(const std::string &SerialNumber) {
         std::lock_guard<std::mutex> guard(mutex_);
 
         return "";

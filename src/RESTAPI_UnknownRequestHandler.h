@@ -38,7 +38,7 @@ using Poco::JSON::Parser;
 class RESTAPI_UnknownRequestHandler: public HTTPRequestHandler
 {
 public:
-    void handleRequest(HTTPServerRequest& request, HTTPServerResponse& response);
+    void handleRequest(HTTPServerRequest& request, HTTPServerResponse& response) override;
 };
 
 

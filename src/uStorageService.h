@@ -19,34 +19,24 @@ namespace uCentral::Storage {
     public:
         Service() noexcept;
 
-        int start();
+        int start() override;
 
-        void stop();
-
-        Logger &logger() { return SubSystemServer::logger(); };
+        void stop() override;
 
         bool AddStatisticsData(std::string &SerialNUmber, uint64_t CfgUUID, std::string &NewStats);
-
-        bool GetStatisticsData(std::string &SerialNUmber, uint32_t From, uint32_t HowMany,
+        bool GetStatisticsData(std::string &SerialNUmber, std::string & FromDate, std::string & ToDate, uint64_t Offset, uint64_t HowMany,
                                std::vector<uCentralStatistics> &Stats);
 
         bool UpdateDeviceConfiguration(std::string &SerialNUmber, std::string &Configuration);
-
         bool CreateDevice(uCentralDevice &);
-
         bool GetDevice(std::string &SerialNUmber, uCentralDevice &);
-
         uint64_t GetDevices(uint64_t From, uint64_t Howmany, std::vector<uCentralDevice> &Devices);
-
         bool DeleteDevice(std::string &SerialNUmber);
-
         bool UpdateDevice(uCentralDevice &);
 
-        bool
-        ExistingConfiguration(std::string &SerialNumber, uint64_t CurrentConfig, std::string &NewConfig, uint64_t &);
+        bool ExistingConfiguration(std::string &SerialNumber, uint64_t CurrentConfig, std::string &NewConfig, uint64_t &);
 
         bool UpdateDeviceCapabilities(std::string &SerialNUmber, std::string &State);
-
         bool GetDeviceCapabilities(std::string &SerialNUmber, uCentralCapabilities &);
 
         static Service *instance() {

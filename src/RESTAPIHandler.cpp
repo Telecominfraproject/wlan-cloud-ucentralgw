@@ -56,7 +56,7 @@ static bool is_number(const std::string &s) {
 
 uint64_t RESTAPIHandler::get_parameter(const std::string &Name,const uint64_t Default){
 
-    for(auto i:parameters_)
+    for(const auto & i:parameters_)
     {
         if(i.first == Name) {
             if(!is_number(i.second))
@@ -68,7 +68,7 @@ uint64_t RESTAPIHandler::get_parameter(const std::string &Name,const uint64_t De
 }
 
 std::string RESTAPIHandler::get_parameter(const std::string &Name,const std::string & Default){
-    for(auto i:parameters_)
+    for(const auto & i:parameters_)
     {
         if(i.first == Name)
             return i.second;

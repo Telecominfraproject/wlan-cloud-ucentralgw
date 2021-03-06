@@ -86,26 +86,38 @@ namespace uCentral::Storage {
         return true;
     }
 
-    bool Service::GetStatisticsData(std::string &SerialNumber, uint32_t From, uint32_t HowMany,
-                                            std::vector<uCentralStatistics> &Stats) {
+    bool Service::GetStatisticsData(std::string &SerialNumber, std::string & FromDate, std::string & ToDate, uint64_t Offset, uint64_t HowMany,
+                                    std::vector<uCentralStatistics> &Stats) {
+
+        std::lock_guard<std::mutex> guard(mutex_);
+
         typedef Poco::Tuple<std::string, uint64_t, std::string, uint64_t> StatRecord;
         typedef std::vector<StatRecord> RecordList;
 
-        RecordList Records;
-        *session_ << "SELECT SerialNumber, UUID, Data, Recorded FROM Statistics WHERE SerialNumber=?",
-                into(Records),
-                use(SerialNumber),
-                range(From, From + HowMany - 1), now;
+        try {
+            RecordList Records;
+            *session_
+                    << "SELECT SerialNumber, UUID, Data, Recorded FROM Statistics WHERE SerialNumber=? AND Recorded>=? AND Recorded<=?",
+                    into(Records),
+                    use(SerialNumber),
+                    use(FromDate),
+                    use(ToDate),
+                    range(Offset, Offset + HowMany - 1), now;
 
-        for (auto i: Records) {
-            uCentralStatistics R{.SerialNumber = i.get<0>(),
-                    .UUID = i.get<1>(),
-                    .Data = i.get<2>(),
-                    .Recorded = i.get<3>()};
-            Stats.push_back(R);
+            for (auto i: Records) {
+                uCentralStatistics R{.SerialNumber = i.get<0>(),
+                        .UUID = i.get<1>(),
+                        .Data = i.get<2>(),
+                        .Recorded = i.get<3>()};
+                Stats.push_back(R);
+            }
+            return true;
+        }
+        catch (const Poco::Exception & Except ) {
+            logger_.warning( "Invalid request to retrieve statistcis for " + SerialNumber);
         }
 
-        return true;
+        return false;
     }
 
     bool Service::UpdateDeviceConfiguration(std::string &SerialNumber, std::string &Configuration) {
@@ -297,6 +309,9 @@ namespace uCentral::Storage {
     }
 
     bool Service::GetDeviceCapabilities(std::string &SerialNUmber, uCentralCapabilities &Caps) {
+
+        std::lock_guard<std::mutex> guard(mutex_);
+
         *session_
                 << "SELECT SerialNumber, Capabilities, FirstUpdate, LastUpdate FROM Capabilities WHERE SerialNumber=?",
                 into(Caps.SerialNumber),
@@ -316,9 +331,7 @@ namespace uCentral::Storage {
                                            uint64_t &UUID) {
 
         std::lock_guard<std::mutex> guard(mutex_);
-
         std::string SS;
-
         *session_ << "SELECT SerialNumber, UUID, Configuration FROM Devices WHERE SerialNumber=?",
                 into(SS),
                 into(UUID),
@@ -328,6 +341,12 @@ namespace uCentral::Storage {
         if (SS.empty()) {
             return false;
         }
+
+        //  Let's update the last downloaded time
+        uint64_t Now = time(nullptr);
+        *session_ << "UPDATE Devices SET LastConfigurationDownload=? WHERE SerialNumber=?",
+                use(Now),
+                use(SerialNumber), now;
 
         return true;
     }

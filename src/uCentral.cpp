@@ -151,13 +151,6 @@ namespace uCentral {
                 .Notes = "test device"};
 
         uCentral::Storage::Service::instance()->CreateDevice(D);
-
-        std::vector<uCentralStatistics> Stats;
-
-        if (uCentral::Storage::Service::instance()->GetStatisticsData(SerialNumber, 1, 100, Stats)) {
-            std::cout << "Found " << std::to_string(Stats.size()) << " stats entries." << std::endl;
-            // std::cout << "  entry(0): " << Stats[0].Data << std::endl;
-        }
     }
 
     static bool path_match(const char *p, const char *r, std::map<std::string, std::string> &keys) {
@@ -205,21 +198,21 @@ namespace uCentral {
             Logger &logger = Logger::get("uCentral");
 
             std::cout << "Time: " << time(nullptr) << std::endl;
+
             uCentral::Storage::Service::instance()->start();
             uCentral::Auth::Service::instance()->start();
-
-            createTestRecord();
-
             uCentral::DeviceStatus::Service::instance()->start();
             uCentral::TIPGW::Service::instance()->start();
             uCentral::RESTAPI::Service::instance()->start();
             uCentral::WebSocket::Service::instance()->start();
 
+            createTestRecord();
+
             waitForTerminationRequest();
 
-            uCentral::TIPGW::Service::instance()->stop();
-            uCentral::RESTAPI::Service::instance()->stop();
             uCentral::WebSocket::Service::instance()->stop();
+            uCentral::RESTAPI::Service::instance()->stop();
+            uCentral::TIPGW::Service::instance()->stop();
             uCentral::DeviceStatus::Service::instance()->stop();
             uCentral::Auth::Service::instance()->stop();
             uCentral::Storage::Service::instance()->stop();

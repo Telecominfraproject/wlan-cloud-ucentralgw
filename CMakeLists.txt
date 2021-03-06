@@ -16,8 +16,7 @@ include_directories(/usr/local/include  /usr/local/opt/openssl/include src)
 
 add_executable(ucentral
                 src/main.cpp src/TIPGWServer.cpp src/TIPGWServer.h
-                src/portal-services-openapi.cpp src/portal-services-openapi.h
-                src/TIP/Api.cpp src/TIP/Api.h src/PropertiesFileServerList.cpp src/PropertiesFileServerList.h
+        src/TIP/Api.cpp src/TIP/Api.h src/PropertiesFileServerList.cpp src/PropertiesFileServerList.h
         src/uCentral.cpp src/uCentral.h src/common.h src/TIP/Routing.cpp src/TIP/Routing.h
                 src/TIP/WebTokenResult.cpp src/TIP/WebTokenResult.h src/uCentralRESTAPIServer.cpp src/uCentralRESTAPIServer.h
                 src/uCentralWebSocketServer.cpp src/uCentralWebSocketServer.h src/SubSystemServer.cpp src/SubSystemServer.h

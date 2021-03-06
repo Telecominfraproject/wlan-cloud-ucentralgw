@@ -13,9 +13,8 @@ namespace uCentral::DeviceStatus {
     public:
         Service() noexcept;
 
-        int start();
-
-        void stop();
+        int start() override;
+        void stop() override;
 
         static Service *instance() {
             if (instance_ == nullptr) {
@@ -24,17 +23,10 @@ namespace uCentral::DeviceStatus {
             return instance_;
         }
 
-        std::string process_message(const char *msg);
-
         void Connect(const std::string &SerialNumber, const std::string &address);
-
         void Disconnect(const std::string &SerialNumber);
-
-        const std::string LastStats(const std::string &SerialNumber);
-
+        std::string LastStats(const std::string &SerialNumber);
         void SetStats(const std::string &SerialNumber, const std::string &stats);
-
-        Logger &logger() { return SubSystemServer::logger(); };
 
     private:
         static Service *instance_;

@@ -53,14 +53,13 @@ public:
 
     static bool path_match(const char *path,const char *resource, BindingMap & Keys);
     void print_bindings();
-    virtual void handleRequest(HTTPServerRequest& request, HTTPServerResponse& response) = 0;
     void ParseParameters(HTTPServerRequest& request);
     static std::string RFC3339(uint64_t t);
     void ProcessOptions( HTTPServerResponse & response );
     void PrepareResponse( HTTPServerResponse & response, Poco::Net::HTTPResponse::HTTPStatus Status=Poco::Net::HTTPResponse::HTTP_OK);
     bool ContinueProcessing( HTTPServerRequest & Request , HTTPServerResponse & Response );
 
-    uint64_t get_parameter(const std::string &Name,const uint64_t Default);
+    uint64_t get_parameter(const std::string &Name,uint64_t Default);
     std::string get_parameter(const std::string &Name,const std::string & Default);
 
     void BadRequest(HTTPServerResponse & Response);

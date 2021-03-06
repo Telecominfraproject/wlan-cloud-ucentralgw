@@ -16,7 +16,7 @@ public:
                                  {  Poco::Net::HTTPRequest::HTTP_POST,
                                     Poco::Net::HTTPRequest::HTTP_DELETE,
                                     Poco::Net::HTTPRequest::HTTP_OPTIONS}) {}
-    void handleRequest(HTTPServerRequest& request, HTTPServerResponse& response);
+    void handleRequest(HTTPServerRequest& request, HTTPServerResponse& response) override;
 };
 
 
