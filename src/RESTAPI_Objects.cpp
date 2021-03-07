@@ -16,9 +16,9 @@ Poco::JSON::Object  uCentralDevice::to_json()
     Obj.set("UUID",UUID);
     Obj.set("configuration",Configuration);
     Obj.set("notes",Notes);
-    Obj.set("createdTimestamp",RESTAPIHandler::RFC3339(CreationTimestamp));
-    Obj.set("lastConfigurationChange",RESTAPIHandler::RFC3339(LastConfigurationChange));
-    Obj.set("lastConfigurationDownload",RESTAPIHandler::RFC3339(LastConfigurationDownload));
+    Obj.set("createdTimestamp",RESTAPIHandler::to_RFC3339(CreationTimestamp));
+    Obj.set("lastConfigurationChange",RESTAPIHandler::to_RFC3339(LastConfigurationChange));
+    Obj.set("lastConfigurationDownload",RESTAPIHandler::to_RFC3339(LastConfigurationDownload));
 
     return Obj;
 }
@@ -45,6 +45,11 @@ void uCentralDevice::Print() {
 Poco::JSON::Object uCentralStatistics::to_json() {
     Poco::JSON::Object  Obj;
 
+    Obj.set("serialNumber",SerialNumber);
+    Obj.set("UUID",UUID);
+    Obj.set("values",Values);
+    Obj.set("recorded",RESTAPIHandler::to_RFC3339(Recorded));
+
     return Obj;
 };
 
@@ -53,8 +58,8 @@ Poco::JSON::Object  uCentralCapabilities::to_json() {
 
     Obj.set("serialNumber",SerialNumber);
     Obj.set("deviceType",Capabilities);
-    Obj.set("createdTimestamp",RESTAPIHandler::RFC3339(FirstUpdate));
-    Obj.set("lastConfigurationChange",RESTAPIHandler::RFC3339(LastUpdate));
+    Obj.set("createdTimestamp",RESTAPIHandler::to_RFC3339(FirstUpdate));
+    Obj.set("lastConfigurationChange",RESTAPIHandler::to_RFC3339(LastUpdate));
 
     return Obj;
 };

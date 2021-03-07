@@ -10,25 +10,28 @@
 #include "uAuthService.h"
 
 #include "Poco/URI.h"
+#include "Poco/DateTimeParser.h"
 
 bool RESTAPIHandler::ParseBindings(const char *p,const char *r, BindingMap & bindings)
 {
-    std::string param,value;
+    char param[256]={0},
+         value[256]={0};
 
     bindings.clear();
-
     while(*r)
     {
         if(*r == '{') {
             r++;
-            while (*r != '}')
-                param += *r++;
+            auto pi=0;
+            while (*r != '}' && pi<sizeof(param))
+                param[pi++] = *r++;
             r++;
-            while (*p != '/' && *p)
-                value += *p++;
+            param[pi]=0;
+            auto vi=0;
+            while (*p != '/' && *p && vi<sizeof(value))
+                value[vi++] = *p++;
+            value[vi]=0;
             bindings[param] = value;
-            value.clear();
-            param.clear();
         } else if( *p != *r ) {
             return false;
         } else {
@@ -36,6 +39,9 @@ bool RESTAPIHandler::ParseBindings(const char *p,const char *r, BindingMap & bin
             p++;
         }
     }
+
+    //for(const auto &[Key,Value]:bindings)
+    //    std::cout << "Key:" << Key << "  Value:" << Value << std::endl;
 
     return (*p == *r);
 }
@@ -86,9 +92,23 @@ const std::string & RESTAPIHandler::GetBinding(const std::string &Name, const st
     return E->second;
 }
 
-std::string RESTAPIHandler::RFC3339(uint64_t t)
+std::string RESTAPIHandler::to_RFC3339(uint64_t t)
 {
-    return Poco::DateTimeFormatter::format(Poco::DateTime(Poco::Timestamp::fromEpochTime(t)), Poco::DateTimeFormat::SORTABLE_FORMAT);
+    return Poco::DateTimeFormatter::format(Poco::DateTime(Poco::Timestamp::fromEpochTime(t)), Poco::DateTimeFormat::ISO8601_FORMAT);
+}
+
+uint64_t RESTAPIHandler::from_RFC3339(const std::string &TimeString)
+{
+    try {
+        int             TZ;
+        Poco::DateTime  DT = Poco::DateTimeParser::parse(Poco::DateTimeFormat::ISO8601_FORMAT,TimeString,TZ);
+        return DT.timestamp().epochTime();
+    }
+    catch( const Poco::Exception & E )
+    {
+
+    }
+    return 0;
 }
 
 static std::string MakeList(const std::vector<std::string> & L)
@@ -162,7 +182,7 @@ bool RESTAPIHandler::ContinueProcessing( HTTPServerRequest & Request , HTTPServe
 
 bool RESTAPIHandler::IsAuthorized(Poco::Net::HTTPServerRequest & Request, HTTPServerResponse & Response )
 {
-    if(uCentral::Auth::Service::instance()->IsAuthorized(Request))
+    if(uCentral::Auth::Service::instance()->IsAuthorized(Request,SessionToken_))
     {
         return true;
     }

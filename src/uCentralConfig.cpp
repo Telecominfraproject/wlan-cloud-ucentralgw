@@ -51,10 +51,7 @@ namespace uCentral::Config {
             Poco::JSON::Object::Ptr object = result.extract<Poco::JSON::Object::Ptr>();
             Poco::DynamicStruct ds = *object;
 
-            if(ds.find("UUID")==ds.end())
-                return false;
-
-            if(ds.find("SerialNumber")==ds.end())
+            if(ds.find("uuid")==ds.end())
                 return false;
 
             return true;

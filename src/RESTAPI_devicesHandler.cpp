@@ -19,31 +19,35 @@ void RESTAPI_devicesHandler::handleRequest(HTTPServerRequest& Request, HTTPServe
     if(!IsAuthorized(Request,Response))
         return;
 
-    if (Request.getMethod() == Poco::Net::HTTPRequest::HTTP_GET) {
-        ParseParameters(Request);
+    try {
+        if (Request.getMethod() == Poco::Net::HTTPRequest::HTTP_GET) {
+            ParseParameters(Request);
 
-        auto Offset = GetParameter("offset", 0);
-        auto Limit = GetParameter("limit", 10000);
-        auto Filter = GetParameter("filter", "");
+            auto Offset = GetParameter("offset", 0);
+            auto Limit = GetParameter("limit", 100);
+            auto Filter = GetParameter("filter", "");
 
-        logger_.information(Poco::format("DEVICES: from %d, limit of %d, filter=%s.", Offset, Limit, Filter));
-        RESTAPIHandler::PrintBindings();
+            logger_.information(Poco::format("DEVICES: from %d, limit of %d, filter=%s.", Offset, Limit, Filter));
+            RESTAPIHandler::PrintBindings();
 
-        std::vector<uCentralDevice> Devices;
+            std::vector<uCentralDevice> Devices;
 
-        auto HowMany = uCentral::Storage::Service::instance()->GetDevices(Offset, Limit, Devices);
+            uCentral::Storage::Service::instance()->GetDevices(Offset, Limit, Devices);
 
-        std::cout << "Devices Handler:" << std::endl;
-        std::cout << "Found " << HowMany << " devices." << std::endl;
+            Poco::JSON::Array Objects;
+            for (auto i:Devices)
+                Objects.add(i.to_json());
 
-        // create the response...
-        Poco::JSON::Array Objects;
-        for (auto i:Devices)
-            Objects.add(i.to_json());
+            Poco::JSON::Object RetObj;
+            RetObj.set("devices", Objects);
+            ReturnObject(RetObj, Response);
+        } else
+            BadRequest(Response);
 
-        Poco::JSON::Object RetObj;
-        RetObj.set("devices", Objects);
-        ReturnObject(RetObj,Response);
-    } else
-        BadRequest(Response);
+        return;
+    }
+    catch (const Poco::Exception & E)
+    {
+        logger_.warning(Poco::format("%s: Failed with: %s",__FUNCTION__,E.displayText() ));
+    }
 }

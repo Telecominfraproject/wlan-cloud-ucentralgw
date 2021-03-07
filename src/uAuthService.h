@@ -49,10 +49,11 @@ namespace uCentral::Auth {
             return instance_;
         }
 
-        bool IsAuthorized(Poco::Net::HTTPServerRequest & Request);
+        bool IsAuthorized(Poco::Net::HTTPServerRequest & Request,std::string &SessionToken);
         void CreateToken(const std::string & UserName, WebToken & ResultToken);
         bool Authorize( const std::string & UserName, const std::string & Password, WebToken & ResultToken );
         static std::string GenerateToken();
+        void Logout(const std::string &token);
 
     private:
         static Service *instance_;

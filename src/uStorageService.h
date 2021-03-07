@@ -24,9 +24,9 @@ namespace uCentral::Storage {
         void Stop() override;
 
         bool AddStatisticsData(std::string &SerialNUmber, uint64_t CfgUUID, std::string &NewStats);
-        bool GetStatisticsData(std::string &SerialNUmber, std::string & FromDate, std::string & ToDate, uint64_t Offset, uint64_t HowMany,
+        bool GetStatisticsData(std::string &SerialNUmber, uint64_t FromDate, uint64_t ToDate, uint64_t Offset, uint64_t HowMany,
                                std::vector<uCentralStatistics> &Stats);
-        bool DeleteStatisticsData(std::string &SerialNUmber, std::string & FromDate, std::string & ToDate, uint64_t Offset, uint64_t HowMany);
+        bool DeleteStatisticsData(std::string &SerialNUmber, uint64_t FromDate, uint64_t ToDate, uint64_t Offset, uint64_t HowMany);
 
         bool UpdateDeviceConfiguration(std::string &SerialNUmber, std::string &Configuration);
         bool CreateDevice(uCentralDevice &);

@@ -71,6 +71,9 @@ namespace uCentral::Storage {
     }
 
     bool Service::AddStatisticsData(std::string &SerialNumber, uint64_t CfgUUID, std::string &NewStats) {
+
+        uCentral::DeviceRegistry::Service::instance()->SetStatistics(SerialNumber,NewStats);
+
         std::lock_guard<std::mutex> guard(mutex_);
 
         try {
@@ -93,7 +96,7 @@ namespace uCentral::Storage {
         return false;
     }
 
-    bool Service::GetStatisticsData(std::string &SerialNumber, std::string & FromDate, std::string & ToDate, uint64_t Offset, uint64_t HowMany,
+    bool Service::GetStatisticsData(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate, uint64_t Offset, uint64_t HowMany,
                                     std::vector<uCentralStatistics> &Stats) {
 
         typedef Poco::Tuple<std::string, uint64_t, std::string, uint64_t> StatRecord;
@@ -101,20 +104,46 @@ namespace uCentral::Storage {
 
         std::lock_guard<std::mutex> guard(mutex_);
 
+        // std::cout << "GS:" << SerialNumber << " " << FromDate << " " << ToDate << " " << Offset << " " << HowMany << std::endl;
+
         try {
             RecordList Records;
-            *session_
-                    << "SELECT SerialNumber, UUID, Data, Recorded FROM Statistics WHERE SerialNumber=? AND Recorded>=? AND Recorded<=?",
-                    into(Records),
-                    use(SerialNumber),
-                    use(FromDate),
-                    use(ToDate),
-                    range(Offset, Offset + HowMany - 1), now;
+            if(FromDate && ToDate) {
+                *session_
+                        << "SELECT SerialNumber, UUID, Data, Recorded FROM Statistics WHERE SerialNumber=? AND Recorded>=? AND Recorded<=?",
+                        into(Records),
+                        use(SerialNumber),
+                        use(FromDate),
+                        use(ToDate),
+                        range(Offset, Offset + HowMany - 1), now;
+            } else if (FromDate) {
+                *session_
+                        << "SELECT SerialNumber, UUID, Data, Recorded FROM Statistics WHERE SerialNumber=? AND Recorded>=?",
+                        into(Records),
+                        use(SerialNumber),
+                        use(FromDate),
+                        range(Offset, Offset + HowMany - 1), now;
+            } else if (ToDate) {
+                *session_
+                        << "SELECT SerialNumber, UUID, Data, Recorded FROM Statistics WHERE SerialNumber=? AND Recorded<=?",
+                        into(Records),
+                        use(SerialNumber),
+                        use(ToDate),
+                        range(Offset, Offset + HowMany - 1), now;
+            }
+            else {
+                // range(Offset, Offset + HowMany - 1)
+                *session_
+                        << "SELECT SerialNumber, UUID, Data, Recorded FROM Statistics WHERE SerialNumber=?",
+                        into(Records),
+                        use(SerialNumber),
+                        range(Offset, Offset + HowMany - 1), now;
+            }
 
             for (auto i: Records) {
                 uCentralStatistics R{.SerialNumber = i.get<0>(),
                         .UUID = i.get<1>(),
-                        .Data = i.get<2>(),
+                        .Values = i.get<2>(),
                         .Recorded = i.get<3>()};
                 Stats.push_back(R);
             }
@@ -127,20 +156,40 @@ namespace uCentral::Storage {
         return false;
     }
 
-    bool Service::DeleteStatisticsData(std::string &SerialNumber, std::string & FromDate, std::string & ToDate, uint64_t Offset, uint64_t HowMany) {
+    bool Service::DeleteStatisticsData(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate, uint64_t Offset, uint64_t HowMany) {
         std::lock_guard<std::mutex> guard(mutex_);
 
         try {
-            *session_
-                    << "DELETE FROM Statistics WHERE SerialNumber=? AND Recorded>=? AND Recorded<=?",
-                    use(SerialNumber),
-                    use(FromDate),
-                    use(ToDate),
-                    range(Offset, Offset + HowMany - 1), now;
+            if(FromDate && ToDate) {
+                *session_
+                        << "DELETE FROM Statistics WHERE SerialNumber=? AND Recorded>=? AND Recorded<=?",
+                        use(SerialNumber),
+                        use(FromDate),
+                        use(ToDate),
+                        range(Offset, Offset + HowMany - 1), now;
+            } else if (FromDate) {
+                *session_
+                        << "DELETE FROM Statistics WHERE SerialNumber=? AND Recorded>=?",
+                        use(SerialNumber),
+                        use(FromDate),
+                        range(Offset, Offset + HowMany - 1), now;
+            } else if (ToDate) {
+                *session_
+                        << "DELETE FROM Statistics WHERE SerialNumber=? AND Recorded<=?",
+                        use(SerialNumber),
+                        use(ToDate),
+                        range(Offset, Offset + HowMany - 1), now;
+            }
+            else {
+                *session_
+                        << "DELETE FROM Statistics WHERE SerialNumber=?",
+                        use(SerialNumber),
+                        range(Offset, Offset + HowMany - 1), now;
+            }
             return true;
         }
-        catch (const Poco::Exception & Except ) {
-            logger_.warning( "Invalid request to retrieve statistcis for " + SerialNumber);
+        catch (const Poco::Exception & E ) {
+            logger_.warning(Poco::format("%s(%s): Failed with: %s",__FUNCTION__,SerialNumber,E.displayText() ));
         }
         return false;
     }

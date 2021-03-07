@@ -49,7 +49,7 @@ namespace uCentral::Auth {
     void Service::Stop() {
     }
 
-    bool Service::IsAuthorized(Poco::Net::HTTPServerRequest & Request)
+    bool Service::IsAuthorized(Poco::Net::HTTPServerRequest & Request, std::string & SessionToken)
     {
         if(!Secure_)
             return true;
@@ -63,10 +63,21 @@ namespace uCentral::Auth {
 
             auto Token = Tokens_.find(RequestToken);
 
-            return Token != Tokens_.end();
+            if( Token == Tokens_.end() )
+                return false;
+
+            SessionToken = RequestToken;
+
+            return true;
         }
 
         return false;
+    }
+
+    void Service::Logout(const std::string &token) {
+        std::lock_guard<std::mutex> guard(mutex_);
+
+        Tokens_.erase(token);
     }
 
     std::string Service::GenerateToken() {

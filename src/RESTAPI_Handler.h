@@ -54,7 +54,9 @@ public:
     static bool ParseBindings(const char *path,const char *resource, BindingMap & Keys);
     void PrintBindings();
     void ParseParameters(HTTPServerRequest& request);
-    static std::string RFC3339(uint64_t t);
+    static std::string to_RFC3339(uint64_t t);
+    static uint64_t from_RFC3339(const std::string &t);
+
     void ProcessOptions( HTTPServerResponse & response );
     void PrepareResponse( HTTPServerResponse & response, Poco::Net::HTTPResponse::HTTPStatus Status=Poco::Net::HTTPResponse::HTTP_OK);
     bool ContinueProcessing( HTTPServerRequest & Request , HTTPServerResponse & Response );
@@ -74,6 +76,7 @@ protected:
     BindingMap                  bindings_;
     Poco::URI::QueryParameters  parameters_;
     Poco::Logger                &logger_;
+    std::string                 SessionToken_;
     std::vector<std::string>    methods_;
 };
 

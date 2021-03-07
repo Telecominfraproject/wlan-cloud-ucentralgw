@@ -55,11 +55,11 @@ void RESTAPI_deviceCommandHandler::handleRequest(HTTPServerRequest& Request, HTT
 void  RESTAPI_deviceCommandHandler::GetCapabilities(HTTPServerRequest &Request, HTTPServerResponse &Response) {
     uCentralCapabilities    Caps;
     try {
-        auto SerialNumber = GetParameter("serialNumber", "");
+        auto SerialNumber = GetBinding("serialNumber", "");
 
         if (uCentral::Storage::Service::instance()->GetDeviceCapabilities(SerialNumber, Caps)) {
-            PrepareResponse(Response);
-            Poco::JSON::Object ReturnObject = Caps.to_json();
+            Poco::JSON::Object RetObj = Caps.to_json();
+            ReturnObject( RetObj, Response );
         } else
             NotFound(Response);
         return;
@@ -73,7 +73,7 @@ void  RESTAPI_deviceCommandHandler::GetCapabilities(HTTPServerRequest &Request, 
 
 void  RESTAPI_deviceCommandHandler::DeleteCapabilities(HTTPServerRequest &Request, HTTPServerResponse &Response) {
     try {
-        auto SerialNumber = GetParameter("serialNumber", "");
+        auto SerialNumber = GetBinding("serialNumber", "");
 
         if (uCentral::Storage::Service::instance()->DeleteDeviceCapabilities(SerialNumber))
             OK(Response);
@@ -90,16 +90,20 @@ void  RESTAPI_deviceCommandHandler::DeleteCapabilities(HTTPServerRequest &Reques
 
 void RESTAPI_deviceCommandHandler::GetStatistics(HTTPServerRequest& Request, HTTPServerResponse& Response) {
     try {
-        auto SerialNumber = GetParameter("serialNumber", "");
-        auto StartDate = GetParameter("startDate", "");
-        auto EndDate = GetParameter("endDate", "");
+        auto SerialNumber = GetBinding("serialNumber", "");
+        auto StartDate = RESTAPIHandler::from_RFC3339(GetParameter("startDate", ""));
+        auto EndDate = RESTAPIHandler::from_RFC3339(GetParameter("endDate", ""));
         auto Offset = GetParameter("offset", 0);
         auto Limit = GetParameter("limit", 100);
 
         std::vector<uCentralStatistics> Stats;
 
+        std::cout << "CC1" << std::endl;
+
         uCentral::Storage::Service::instance()->GetStatisticsData(SerialNumber, StartDate, EndDate, Offset, Limit,
                                                                   Stats);
+
+        std::cout << "CC2" << std::endl;
 
         Poco::JSON::Array ArrayObj;
 
@@ -113,6 +117,8 @@ void RESTAPI_deviceCommandHandler::GetStatistics(HTTPServerRequest& Request, HTT
         RetObj.set("data", ArrayObj);
         RetObj.set("serialNumber", SerialNumber);
 
+        std::cout << "CC1" << std::endl;
+
         ReturnObject(RetObj, Response);
         return;
     }
@@ -125,9 +131,9 @@ void RESTAPI_deviceCommandHandler::GetStatistics(HTTPServerRequest& Request, HTT
 
 void RESTAPI_deviceCommandHandler::DeleteStatistics(HTTPServerRequest& Request, HTTPServerResponse& Response) {
     try {
-        auto SerialNumber = GetParameter("serialNumber", "");
-        auto StartDate = GetParameter("startDate", "");
-        auto EndDate = GetParameter("endDate", "");
+        auto SerialNumber = GetBinding("serialNumber", "");
+        auto StartDate = RESTAPIHandler::from_RFC3339(GetParameter("startDate", ""));
+        auto EndDate = RESTAPIHandler::from_RFC3339(GetParameter("endDate", ""));
         auto Offset = GetParameter("offset", 0);
         auto Limit = GetParameter("limit", 100);
 
@@ -148,13 +154,16 @@ void RESTAPI_deviceCommandHandler::DeleteStatistics(HTTPServerRequest& Request, 
 
 void RESTAPI_deviceCommandHandler::GetStatus(HTTPServerRequest& Request, HTTPServerResponse& Response) {
     try {
-        auto SerialNumber = GetParameter("serialNumber", "");
+        auto SerialNumber = GetBinding("serialNumber", "");
 
         uCentral::DeviceRegistry::ConnectionState State;
 
         if (uCentral::DeviceRegistry::Service::instance()->GetState(SerialNumber, State)) {
+
             Poco::JSON::Object RetObject = State.to_JSON();
+
             ReturnObject(RetObject, Response);
+
         } else
             NotFound(Response);
         return;
@@ -168,7 +177,7 @@ void RESTAPI_deviceCommandHandler::GetStatus(HTTPServerRequest& Request, HTTPSer
 
 void RESTAPI_deviceCommandHandler::Configure(HTTPServerRequest& Request, HTTPServerResponse& Response) {
     try {
-        auto SerialNumber = GetParameter("serialNumber", "");
+        auto SerialNumber = GetBinding("serialNumber", "");
 
         //  get the configuration from the body of the message
         Poco::JSON::Parser parser;
@@ -187,6 +196,8 @@ void RESTAPI_deviceCommandHandler::Configure(HTTPServerRequest& Request, HTTPSer
                 OK(Response);
                 return;
             }
+            else
+                BadRequest(Response);
         }
         else
             BadRequest(Response);

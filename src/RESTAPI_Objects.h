@@ -26,7 +26,7 @@ struct uCentralDevice {
 struct uCentralStatistics {
     std::string SerialNumber;
     uint64_t    UUID;
-    std::string Data;
+    std::string Values;
     uint64_t    Recorded;
     Poco::JSON::Object  to_json();
 };

@@ -101,7 +101,12 @@ namespace uCentral::WebSocket {
             WS_(Request,Response),
             IncomingMessage_{0}
         {
-            Conn.Address = WS_.peerAddress().toString();
+            Conn_.Address = WS_.peerAddress().toString();
+            Conn_.SerialNumber = "";
+            Conn_.UUID = 0 ;
+            Conn_.MessageCount = 0 ;
+            Conn_.TX = 0 ;
+            Conn_.RX = 0 ;
             WS_.setReceiveTimeout(Poco::Timespan());
             WS_.setNoDelay(true);
             WS_.setKeepAlive(true);
@@ -123,7 +128,7 @@ namespace uCentral::WebSocket {
         Poco::Net::SocketReactor                & SocketReactor_;
         Poco::Logger                            & Logger_;
         Poco::Net::WebSocket                    WS_;
-        uCentral::DeviceRegistry::ConnectionState Conn;
+        uCentral::DeviceRegistry::ConnectionState Conn_;
         char                                    IncomingMessage_[32000];
 
     };

@@ -78,10 +78,10 @@ namespace uCentral::RESTAPI {
             return new RESTAPI_oauth2Handler(bindings, Logger);
         } else if (RESTAPIHandler::ParseBindings(path, "/api/v1/devices", bindings)) {
             return new RESTAPI_devicesHandler(bindings, Logger);
-        } else if (RESTAPIHandler::ParseBindings(path, "/api/v1/device/{serialNumber}", bindings)) {
-            return new RESTAPI_deviceHandler(bindings, Logger);
         } else if (RESTAPIHandler::ParseBindings(path, "/api/v1/device/{serialNumber}/{command}", bindings)) {
             return new RESTAPI_deviceCommandHandler(bindings, Logger);
+        } else if (RESTAPIHandler::ParseBindings(path, "/api/v1/device/{serialNumber}", bindings)) {
+            return new RESTAPI_deviceHandler(bindings, Logger);
         }
 
         return new RESTAPI_UnknownRequestHandler(bindings,Logger);
