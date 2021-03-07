@@ -188,6 +188,9 @@ void RESTAPI_deviceCommandHandler::Configure(HTTPServerRequest& Request, HTTPSer
                 return;
             }
         }
+        else
+            BadRequest(Response);
+        return;
     }
     catch(const Poco::Exception &E)
     {
@@ -197,10 +200,10 @@ void RESTAPI_deviceCommandHandler::Configure(HTTPServerRequest& Request, HTTPSer
 }
 
 void RESTAPI_deviceCommandHandler::ExecuteCommand(HTTPServerRequest& Request, HTTPServerResponse& Response) {
-
+    OK(Response);
 }
 
 void RESTAPI_deviceCommandHandler::GetLogs(HTTPServerRequest& Request, HTTPServerResponse& Response) {
-
+    OK(Response);
 }
 
