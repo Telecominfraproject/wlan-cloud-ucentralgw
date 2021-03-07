@@ -104,17 +104,20 @@ components:
       properties:
         serialNumber:
           type: string
-        connected:
-          type: boolean
         ipAddress:
           type: string
-        lastConnectedTimestamp:
-          type: string
-          format: 'date-time'
-        currentConfiguration:
-          type: string
-        currentFirmware:
-          type: string
+        txBytes:
+          type: integer
+          format: int64
+        rxBytes:
+          type: integer
+          format: int64
+        messageCount:
+          type: integer
+          format: int64
+        UUID:
+          type: integer
+          format: int64
 
     DeviceCapabilities:
       type: object
@@ -261,6 +264,17 @@ components:
           type: boolean
         PortalLogin:
           type: boolean
+
+    DeviceConfigureRequest:
+      type: object
+      properties:
+        serialNumber:
+          type: string
+        UUID:
+          type: integer
+          format: int64
+        configuration:
+          type: string
 
 paths:
   /oauth2:
@@ -659,7 +673,7 @@ paths:
         content:
           application/json:
             schema:
-              type: string
+              $ref: '#/components/schemas/DeviceConfigureRequest'
       responses:
         200:
           $ref: '#/components/responses/Success'

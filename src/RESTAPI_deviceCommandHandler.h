@@ -18,6 +18,15 @@ public:
                                         Poco::Net::HTTPRequest::HTTP_DELETE,
                                         Poco::Net::HTTPRequest::HTTP_OPTIONS}) {}
     void handleRequest(HTTPServerRequest& request, HTTPServerResponse& response) override;
+
+    void GetCapabilities(HTTPServerRequest& request, HTTPServerResponse& response);
+    void DeleteCapabilities(HTTPServerRequest& request, HTTPServerResponse& response);
+    void GetLogs(HTTPServerRequest& request, HTTPServerResponse& response);
+    void GetStatistics(HTTPServerRequest& request, HTTPServerResponse& response);
+    void DeleteStatistics(HTTPServerRequest& request, HTTPServerResponse& response);
+    void GetStatus(HTTPServerRequest& request, HTTPServerResponse& response);
+    void ExecuteCommand(HTTPServerRequest& request, HTTPServerResponse& response);
+    void Configure(HTTPServerRequest& request, HTTPServerResponse& response);
 };
 
 #endif //UCENTRAL_RESTAPI_DEVICECOMMANDHANDLER_H

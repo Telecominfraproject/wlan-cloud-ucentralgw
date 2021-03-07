@@ -64,6 +64,9 @@ public:
 
     void BadRequest(HTTPServerResponse & Response);
     void UnAuthorized(HTTPServerResponse & Response );
+    void ReturnObject(Poco::JSON::Object & Object, HTTPServerResponse & Response);
+    void NotFound(HTTPServerResponse &Response);
+    void OK(HTTPServerResponse &Response);
 
     const std::string & GetBinding(const std::string &Name, const std::string &Default);
 

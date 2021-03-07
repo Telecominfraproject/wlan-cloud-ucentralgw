@@ -41,14 +41,9 @@ void RESTAPI_devicesHandler::handleRequest(HTTPServerRequest& Request, HTTPServe
         for (auto i:Devices)
             Objects.add(i.to_json());
 
-        Poco::JSON::Object ReturnObject;
-        ReturnObject.set("devices", Objects);
-
-        Response.setStatus(Poco::Net::HTTPResponse::HTTP_OK);
-
-        PrepareResponse(Response);
-        std::ostream &answer = Response.send();
-        Poco::JSON::Stringifier::stringify(ReturnObject, answer);
+        Poco::JSON::Object RetObj;
+        RetObj.set("devices", Objects);
+        ReturnObject(RetObj,Response);
     } else
         BadRequest(Response);
 }

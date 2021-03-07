@@ -8,15 +8,17 @@
 #include "SubSystemServer.h"
 
 #include "Poco/Tuple.h"
+#include "Poco/JSON/Object.h"
 
 namespace uCentral::DeviceRegistry {
 
     struct ConnectionState {
-        uint64_t messages;
+        uint64_t    MessageCount;
         std::string SerialNumber;
         std::string Address;
-        uint64_t CfgUUID;
-        uint64_t TX, RX;
+        uint64_t    UUID;
+        uint64_t    TX, RX;
+        Poco::JSON::Object to_JSON();
     };
 
     class Service : public SubSystemServer {

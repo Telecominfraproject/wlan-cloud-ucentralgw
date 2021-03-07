@@ -24,11 +24,8 @@ void RESTAPI_oauth2Handler::handleRequest(HTTPServerRequest & Request, HTTPServe
         if(uCentral::Auth::Service::instance()->Authorize(userId,password,Token))
         {
             PrepareResponse(Response);
-
             auto ReturnObj = Token.to_JSON();
-
-            std::ostream & Answer = Response.send();
-            Poco::JSON::Stringifier::stringify(ReturnObj, Answer);
+            ReturnObject(ReturnObj,Response);
         }
         else
         {

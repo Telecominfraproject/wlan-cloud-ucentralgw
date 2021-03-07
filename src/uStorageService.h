@@ -26,6 +26,7 @@ namespace uCentral::Storage {
         bool AddStatisticsData(std::string &SerialNUmber, uint64_t CfgUUID, std::string &NewStats);
         bool GetStatisticsData(std::string &SerialNUmber, std::string & FromDate, std::string & ToDate, uint64_t Offset, uint64_t HowMany,
                                std::vector<uCentralStatistics> &Stats);
+        bool DeleteStatisticsData(std::string &SerialNUmber, std::string & FromDate, std::string & ToDate, uint64_t Offset, uint64_t HowMany);
 
         bool UpdateDeviceConfiguration(std::string &SerialNUmber, std::string &Configuration);
         bool CreateDevice(uCentralDevice &);
@@ -38,6 +39,7 @@ namespace uCentral::Storage {
 
         bool UpdateDeviceCapabilities(std::string &SerialNUmber, std::string &State);
         bool GetDeviceCapabilities(std::string &SerialNUmber, uCentralCapabilities &);
+        bool DeleteDeviceCapabilities(std::string & SerialNumber);
 
         static Service *instance() {
             if (instance_ == nullptr) {

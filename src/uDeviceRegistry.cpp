@@ -114,6 +114,18 @@ namespace uCentral::DeviceRegistry {
         return false;
     }
 
+    Poco::JSON::Object ConnectionState::to_JSON()
+    {
+        Poco::JSON::Object  Obj;
 
+        Obj.set("serialNumber", SerialNumber);
+        Obj.set("ipAddress",Address);
+        Obj.set("txBytes",TX);
+        Obj.set("rxBytes",RX);
+        Obj.set("messageCount",MessageCount);
+        Obj.set("UUID",UUID);
+
+        return Obj;
+    }
 
 };  // namespace

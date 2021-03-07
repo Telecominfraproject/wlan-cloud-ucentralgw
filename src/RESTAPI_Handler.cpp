@@ -135,6 +135,15 @@ void RESTAPIHandler::UnAuthorized(HTTPServerResponse & Response )
     Response.send();
 }
 
+void RESTAPIHandler::NotFound(HTTPServerResponse &Response) {
+    PrepareResponse(Response, Poco::Net::HTTPResponse::HTTP_NOT_FOUND);
+    Response.send();
+}
+
+void RESTAPIHandler::OK(HTTPServerResponse &Response) {
+    PrepareResponse(Response);
+    Response.send();
+}
 
 bool RESTAPIHandler::ContinueProcessing( HTTPServerRequest & Request , HTTPServerResponse & Response )
 {
@@ -161,4 +170,10 @@ bool RESTAPIHandler::IsAuthorized(Poco::Net::HTTPServerRequest & Request, HTTPSe
         UnAuthorized(Response);
     }
     return false;
+}
+
+void RESTAPIHandler::ReturnObject(Poco::JSON::Object & Object, HTTPServerResponse & Response) {
+    PrepareResponse(Response);
+    std::ostream & Answer = Response.send();
+    Poco::JSON::Stringifier::stringify(Object, Answer);
 }
