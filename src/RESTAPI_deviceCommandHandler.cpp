@@ -72,12 +72,20 @@ void  RESTAPI_deviceCommandHandler::GetCapabilities(HTTPServerRequest &Request, 
 }
 
 void  RESTAPI_deviceCommandHandler::DeleteCapabilities(HTTPServerRequest &Request, HTTPServerResponse &Response) {
-    auto SerialNumber = GetParameter("serialNumber","");
+    try {
+        auto SerialNumber = GetParameter("serialNumber", "");
 
-    if(uCentral::Storage::Service::instance()->DeleteDeviceCapabilities(SerialNumber))
-        OK(Response);
-    else
-        NotFound(Response);
+        if (uCentral::Storage::Service::instance()->DeleteDeviceCapabilities(SerialNumber))
+            OK(Response);
+        else
+            NotFound(Response);
+        return;
+    }
+    catch(const Poco::Exception &E)
+    {
+        logger_.error(Poco::format("%s: failed with %s",__FUNCTION__ ,E.displayText()));
+    }
+    BadRequest(Response);
 }
 
 void RESTAPI_deviceCommandHandler::GetStatistics(HTTPServerRequest& Request, HTTPServerResponse& Response) {
