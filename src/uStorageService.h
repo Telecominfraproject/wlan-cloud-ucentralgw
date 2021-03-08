@@ -8,6 +8,7 @@
 #include "SubSystemServer.h"
 
 #include "Poco/Data/Session.h"
+#include "Poco/Data/SessionPool.h"
 #include "Poco/Data/SQLite/SQLite.h"
 
 #include "RESTAPI_Objects.h"
@@ -49,9 +50,9 @@ namespace uCentral::Storage {
         }
 
     private:
-        static Service *instance_;
-        std::shared_ptr<Poco::Data::Session> session_;
         std::mutex mutex_;
+        static Service *instance_;
+        std::shared_ptr<Poco::Data::SessionPool> Pool_;
     };
 
 };  // namespace
