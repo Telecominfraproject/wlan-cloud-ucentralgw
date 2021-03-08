@@ -100,12 +100,8 @@ void RESTAPI_deviceCommandHandler::GetStatistics(HTTPServerRequest& Request, HTT
 
         std::vector<uCentralStatistics> Stats;
 
-        std::cout << "CC1" << std::endl;
-
         uCentral::Storage::Service::instance()->GetStatisticsData(SerialNumber, StartDate, EndDate, Offset, Limit,
                                                                   Stats);
-
-        std::cout << "CC2" << std::endl;
 
         Poco::JSON::Array ArrayObj;
 
@@ -118,8 +114,6 @@ void RESTAPI_deviceCommandHandler::GetStatistics(HTTPServerRequest& Request, HTT
 
         RetObj.set("data", ArrayObj);
         RetObj.set("serialNumber", SerialNumber);
-
-        std::cout << "CC1" << std::endl;
 
         ReturnObject(RetObj, Response);
         return;
@@ -218,13 +212,8 @@ void RESTAPI_deviceCommandHandler::GetLogs(HTTPServerRequest& Request, HTTPServe
 
         std::vector<uCentralDeviceLog> Logs;
 
-        std::cout << "CC1" << std::endl;
-
         uCentral::Storage::Service::instance()->GetLogData(SerialNumber, StartDate, EndDate, Offset, Limit,
                                                                   Logs);
-
-        std::cout << "CC2" << std::endl;
-
         Poco::JSON::Array ArrayObj;
 
         for (auto i : Logs) {
@@ -234,8 +223,6 @@ void RESTAPI_deviceCommandHandler::GetLogs(HTTPServerRequest& Request, HTTPServe
         Poco::JSON::Object RetObj;
         RetObj.set("values", ArrayObj);
         RetObj.set("serialNumber", SerialNumber);
-
-        std::cout << "CC1" << std::endl;
 
         ReturnObject(RetObj, Response);
         return;
