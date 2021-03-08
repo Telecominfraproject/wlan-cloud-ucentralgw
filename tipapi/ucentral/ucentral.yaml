@@ -137,6 +137,8 @@ components:
     StatisticsDetails:
       type: object
       properties:
+        serialNumber:
+          type: string
         recorded:
           type: string
           format: 'date-time'
