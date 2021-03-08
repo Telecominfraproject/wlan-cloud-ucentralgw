@@ -1,6 +1,15 @@
 #!/bin/zsh
 
-serial=$1
+if [ $# -eq 0 ]; then
+  if [ "$test_device" -eq "" ]; then
+    echo "You must supply the serial number of device to test or set <test_device> to the serial number you want to test."
+    exit 1
+  else
+    serial=$test_device
+  fi
+else
+  serial=$1
+fi
 
 config=`./get_device.sh $1 | jq '.configuration'`
 uuid=config=`./get_device.sh $1 | jq -r '.UUID'`

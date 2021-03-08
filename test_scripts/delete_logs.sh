@@ -13,7 +13,7 @@ fi
 
 webtoken=`./login.sh | jq -r '.access_token'`
 
-curl -X GET "https://localhost:16001/api/v1/device/$serial/status" \
+curl -X DELETE "https://localhost:16001/api/v1/device/$serial/logs" \
   -H  "accept: application/json" \
   -H "Authorization: Bearer $webtoken" \
   --insecure
