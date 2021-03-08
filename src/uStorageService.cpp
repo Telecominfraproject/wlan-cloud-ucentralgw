@@ -26,22 +26,30 @@ namespace uCentral::Storage {
     int Service::Start() {
 
         SubSystemServer::logger().information("Starting.");
-        Poco::Data::SQLite::Connector::registerConnector();
 
-        std::string TableLocation = uCentral::Daemon::instance().config().getString("sqlite.location") + "/devices.db";
+        std::string DBType = uCentral::Daemon::instance().config().getString("storage.type");
 
-        session_ = std::shared_ptr<Poco::Data::Session>(new Poco::Data::Session("SQLite", TableLocation));
+        if(DBType == "sqlite") {
+            auto DBName = uCentral::Daemon::instance().config().getString("storage.type.sqlite.db");
+            auto NumSessions = uCentral::Daemon::instance().config().getInt("storage.type.sqlite.maxsessions",64);
+            auto IdleTime = uCentral::Daemon::instance().config().getInt("storage.type.sqlite.idletime",60);
+            Poco::Data::SQLite::Connector::registerConnector();
+            Pool_ = std::shared_ptr<Poco::Data::SessionPool>(
+                    new Poco::Data::SessionPool("SQLite", DBName,4,NumSessions,IdleTime));
+        }
 
-        *session_ << "CREATE TABLE IF NOT EXISTS Statistics ("
+        Session session_(Pool_->get());
+
+        session_ << "CREATE TABLE IF NOT EXISTS Statistics ("
                      "SerialNumber VARCHAR(30), "
                      "UUID INTEGER, "
                      "Data BLOB, "
                      "Recorded DATETIME"
                      ")", now;
 
-        *session_ << "CREATE INDEX IF NOT EXISTS serial ON Statistics (SerialNumber ASC, Recorded ASC)", now;
+        session_ << "CREATE INDEX IF NOT EXISTS serial ON Statistics (SerialNumber ASC, Recorded ASC)", now;
 
-        *session_ << "CREATE TABLE IF NOT EXISTS Devices ("
+        session_ << "CREATE TABLE IF NOT EXISTS Devices ("
                      "SerialNumber  VARCHAR(30) UNIQUE PRIMARY KEY, "
                      "DeviceType    VARCHAR(10), "
                      "MACAddress    VARCHAR(30), "
@@ -54,7 +62,7 @@ namespace uCentral::Storage {
                      "LastConfigurationDownload DATETIME"
                      ") WITHOUT ROWID", now;
 
-        *session_ << "CREATE TABLE IF NOT EXISTS Capabilities ("
+        session_ << "CREATE TABLE IF NOT EXISTS Capabilities ("
                      "SerialNumber VARCHAR(30) PRIMARY KEY, "
                      "Capabilities BLOB, "
                      "FirstUpdate DATETIME, "
@@ -74,7 +82,7 @@ namespace uCentral::Storage {
 
         uCentral::DeviceRegistry::Service::instance()->SetStatistics(SerialNumber,NewStats);
 
-        std::lock_guard<std::mutex> guard(mutex_);
+        // std::lock_guard<std::mutex> guard(mutex_);
 
         try {
             logger().information("Device:" + SerialNumber + " Stats size:" + std::to_string(NewStats.size()));
@@ -82,7 +90,9 @@ namespace uCentral::Storage {
             // std::cout << "STATS:" << NewStats << std::endl;
 
             Poco::DateTime Now;
-            *session_ << "INSERT INTO Statistics VALUES(?, ?, ?, ?)",
+            Session session_(Pool_->get());
+
+            session_ << "INSERT INTO Statistics VALUES(?, ?, ?, ?)",
                     use(SerialNumber),
                     use(CfgUUID),
                     use(NewStats),
@@ -102,14 +112,15 @@ namespace uCentral::Storage {
         typedef Poco::Tuple<std::string, uint64_t, std::string, uint64_t> StatRecord;
         typedef std::vector<StatRecord> RecordList;
 
-        std::lock_guard<std::mutex> guard(mutex_);
+        // std::lock_guard<std::mutex> guard(mutex_);
+        Session session_(Pool_->get());
 
         // std::cout << "GS:" << SerialNumber << " " << FromDate << " " << ToDate << " " << Offset << " " << HowMany << std::endl;
 
         try {
             RecordList Records;
             if(FromDate && ToDate) {
-                *session_
+                session_
                         << "SELECT SerialNumber, UUID, Data, Recorded FROM Statistics WHERE SerialNumber=? AND Recorded>=? AND Recorded<=?",
                         into(Records),
                         use(SerialNumber),
@@ -117,14 +128,14 @@ namespace uCentral::Storage {
                         use(ToDate),
                         range(Offset, Offset + HowMany - 1), now;
             } else if (FromDate) {
-                *session_
+                session_
                         << "SELECT SerialNumber, UUID, Data, Recorded FROM Statistics WHERE SerialNumber=? AND Recorded>=?",
                         into(Records),
                         use(SerialNumber),
                         use(FromDate),
                         range(Offset, Offset + HowMany - 1), now;
             } else if (ToDate) {
-                *session_
+                session_
                         << "SELECT SerialNumber, UUID, Data, Recorded FROM Statistics WHERE SerialNumber=? AND Recorded<=?",
                         into(Records),
                         use(SerialNumber),
@@ -133,7 +144,7 @@ namespace uCentral::Storage {
             }
             else {
                 // range(Offset, Offset + HowMany - 1)
-                *session_
+                session_
                         << "SELECT SerialNumber, UUID, Data, Recorded FROM Statistics WHERE SerialNumber=?",
                         into(Records),
                         use(SerialNumber),
@@ -157,31 +168,33 @@ namespace uCentral::Storage {
     }
 
     bool Service::DeleteStatisticsData(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate, uint64_t Offset, uint64_t HowMany) {
-        std::lock_guard<std::mutex> guard(mutex_);
+        // std::lock_guard<std::mutex> guard(mutex_);
 
         try {
+            Session session_(Pool_->get());
+
             if(FromDate && ToDate) {
-                *session_
+                session_
                         << "DELETE FROM Statistics WHERE SerialNumber=? AND Recorded>=? AND Recorded<=?",
                         use(SerialNumber),
                         use(FromDate),
                         use(ToDate),
                         range(Offset, Offset + HowMany - 1), now;
             } else if (FromDate) {
-                *session_
+                session_
                         << "DELETE FROM Statistics WHERE SerialNumber=? AND Recorded>=?",
                         use(SerialNumber),
                         use(FromDate),
                         range(Offset, Offset + HowMany - 1), now;
             } else if (ToDate) {
-                *session_
+                session_
                         << "DELETE FROM Statistics WHERE SerialNumber=? AND Recorded<=?",
                         use(SerialNumber),
                         use(ToDate),
                         range(Offset, Offset + HowMany - 1), now;
             }
             else {
-                *session_
+                session_
                         << "DELETE FROM Statistics WHERE SerialNumber=?",
                         use(SerialNumber),
                         range(Offset, Offset + HowMany - 1), now;
@@ -195,7 +208,7 @@ namespace uCentral::Storage {
     }
 
     bool Service::UpdateDeviceConfiguration(std::string &SerialNumber, std::string & Configuration) {
-        std::lock_guard<std::mutex> guard(mutex_);
+        // std::lock_guard<std::mutex> guard(mutex_);
 
         try {
             uCentral::Config::Config    Cfg(Configuration);
@@ -203,9 +216,11 @@ namespace uCentral::Storage {
             if(!Cfg.Valid())
                 return false;
 
+            Session session_(Pool_->get());
+
             uint64_t CurrentUUID;
 
-            *session_ << "SELECT UUID FROM Devices WHERE SerialNumber=?",
+            session_ << "SELECT UUID FROM Devices WHERE SerialNumber=?",
                 into(CurrentUUID),
                 use(SerialNumber), now;
 
@@ -216,7 +231,7 @@ namespace uCentral::Storage {
 
                 std::string NewConfig = Cfg.get();
 
-                *session_
+                session_
                         << "UPDATE Devices SET Configuration=?, UUID=?, LastConfigurationChange=? WHERE SerialNumber=?",
                         use(NewConfig),
                         use(CurrentUUID),
@@ -235,11 +250,14 @@ namespace uCentral::Storage {
     }
 
     bool Service::CreateDevice(uCentralDevice &DeviceDetails) {
-        std::lock_guard<std::mutex> guard(mutex_);
+        // std::lock_guard<std::mutex> guard(mutex_);
 
         std::string SerialNumber;
         try {
-            *session_ << "SELECT SerialNumber FROM Devices WHERE SerialNumber=?",
+
+            Session session_(Pool_->get());
+
+            session_ << "SELECT SerialNumber FROM Devices WHERE SerialNumber=?",
                     into(SerialNumber),
                     use(DeviceDetails.SerialNumber), now;
 
@@ -250,7 +268,7 @@ namespace uCentral::Storage {
                     DeviceDetails.Configuration = Cfg.get();
                     uint64_t Now = time(nullptr);
 
-                    *session_ << "INSERT INTO Devices VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                    session_ << "INSERT INTO Devices VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
                             use(DeviceDetails.SerialNumber),
                             use(DeviceDetails.DeviceType),
                             use(DeviceDetails.MACAddress),
@@ -279,11 +297,12 @@ namespace uCentral::Storage {
     }
 
     bool Service::DeleteDevice(std::string &SerialNumber) {
-
-        std::lock_guard<std::mutex> guard(mutex_);
+        // std::lock_guard<std::mutex> guard(mutex_);
 
         try {
-            *session_ << "DELETE FROM Devices WHERE SerialNumber=?",
+            Session session_(Pool_->get());
+
+            session_ << "DELETE FROM Devices WHERE SerialNumber=?",
                     use(SerialNumber), now;
 
             return true;
@@ -296,10 +315,12 @@ namespace uCentral::Storage {
     }
 
     bool Service::GetDevice(std::string &SerialNumber, uCentralDevice &DeviceDetails) {
-        std::lock_guard<std::mutex> guard(mutex_);
+        // std::lock_guard<std::mutex> guard(mutex_);
 
         try {
-            *session_ << "SELECT "
+            Session session_(Pool_->get());
+
+            session_ << "SELECT "
                          "SerialNumber, "
                          "DeviceType, "
                          "MACAddress, "
@@ -336,13 +357,15 @@ namespace uCentral::Storage {
     }
 
     bool Service::UpdateDevice(uCentralDevice &NewConfig) {
-        std::lock_guard<std::mutex> guard(mutex_);
+        // std::lock_guard<std::mutex> guard(mutex_);
 
         try {
 
+            Session session_(Pool_->get());
+
             uint64_t Now = time(nullptr);
 
-            *session_ << "UPDATE Devices SET Manufacturer=?, DeviceType=?, MACAddress=?, Notes=?, LastConfigurationChange=?  WHERE SerialNumber=?",
+            session_ << "UPDATE Devices SET Manufacturer=?, DeviceType=?, MACAddress=?, Notes=?, LastConfigurationChange=?  WHERE SerialNumber=?",
                     use(NewConfig.Manufacturer),
                     use(NewConfig.DeviceType),
                     use(NewConfig.MACAddress),
@@ -376,12 +399,14 @@ namespace uCentral::Storage {
                 uint64_t> DeviceRecord;
         typedef std::vector<DeviceRecord> RecordList;
 
-        std::lock_guard<std::mutex> guard(mutex_);
+        // std::lock_guard<std::mutex> guard(mutex_);
 
         RecordList Records;
 
         try {
-            *session_ << "SELECT "
+            Session session_(Pool_->get());
+
+            session_ << "SELECT "
                          "SerialNumber, "
                          "DeviceType, "
                          "MACAddress, "
@@ -420,18 +445,19 @@ namespace uCentral::Storage {
     }
 
     bool Service::UpdateDeviceCapabilities(std::string &SerialNumber, std::string &Capabs) {
-        std::lock_guard<std::mutex> guard(mutex_);
+        // std::lock_guard<std::mutex> guard(mutex_);
 
         try {
             std::string SS;
+            Session session_(Pool_->get());
 
-            *session_ << "SELECT SerialNumber FROM Capabilities WHERE SerialNumber=?", into(SS), use(SerialNumber), now;
+            session_ << "SELECT SerialNumber FROM Capabilities WHERE SerialNumber=?", into(SS), use(SerialNumber), now;
 
             Poco::DateTime Now;
 
             if (SS.empty()) {
                 logger().information("Adding capabilities for " + SerialNumber);
-                *session_ << "INSERT INTO Capabilities VALUES(?, ?, ?, ?)",
+                session_ << "INSERT INTO Capabilities VALUES(?, ?, ?, ?)",
                         use(SerialNumber),
                         use(Capabs),
                         use(Now),
@@ -439,7 +465,7 @@ namespace uCentral::Storage {
                 logger().information("Done adding capabilities for " + SerialNumber);
             } else {
                 logger().information("Updating capabilities for " + SerialNumber);
-                *session_ << "UPDATE Capabilities SET Capabilities=?, LastUpdate=? WHERE SerialNumber=?",
+                session_ << "UPDATE Capabilities SET Capabilities=?, LastUpdate=? WHERE SerialNumber=?",
                         use(Capabs),
                         use(Now),
                         use(SerialNumber), now;
@@ -455,11 +481,12 @@ namespace uCentral::Storage {
     }
 
     bool Service::GetDeviceCapabilities(std::string &SerialNumber, uCentralCapabilities &Caps) {
-        std::lock_guard<std::mutex> guard(mutex_);
-
+        // std::lock_guard<std::mutex> guard(mutex_);
 
         try {
-            *session_
+            Session session_(Pool_->get());
+
+            session_
                     << "SELECT SerialNumber, Capabilities, FirstUpdate, LastUpdate FROM Capabilities WHERE SerialNumber=?",
                     into(Caps.SerialNumber),
                     into(Caps.Capabilities),
@@ -480,10 +507,12 @@ namespace uCentral::Storage {
     }
 
     bool Service::DeleteDeviceCapabilities(std::string &SerialNumber) {
-        std::lock_guard<std::mutex> guard(mutex_);
+        // std::lock_guard<std::mutex> guard(mutex_);
 
         try {
-            *session_ <<
+            Session session_(Pool_->get());
+
+            session_ <<
                     "DELETE FROM Capabilities WHERE SerialNumber=?" ,
                     use(SerialNumber), now;
             return true;
@@ -496,10 +525,12 @@ namespace uCentral::Storage {
     }
 
     bool Service::ExistingConfiguration(std::string &SerialNumber, uint64_t CurrentConfig, std::string &NewConfig, uint64_t &UUID) {
-        std::lock_guard<std::mutex> guard(mutex_);
+        // std::lock_guard<std::mutex> guard(mutex_);
         std::string SS;
         try {
-            *session_ << "SELECT SerialNumber, UUID, Configuration FROM Devices WHERE SerialNumber=?",
+            Session session_(Pool_->get());
+
+            session_ << "SELECT SerialNumber, UUID, Configuration FROM Devices WHERE SerialNumber=?",
                     into(SS),
                     into(UUID),
                     into(NewConfig),
@@ -511,7 +542,7 @@ namespace uCentral::Storage {
 
             //  Let's update the last downloaded time
             uint64_t Now = time(nullptr);
-            *session_ << "UPDATE Devices SET LastConfigurationDownload=? WHERE SerialNumber=?",
+            session_ << "UPDATE Devices SET LastConfigurationDownload=? WHERE SerialNumber=?",
                     use(Now),
                     use(SerialNumber), now;
 
