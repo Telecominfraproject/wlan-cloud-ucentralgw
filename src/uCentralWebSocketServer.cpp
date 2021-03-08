@@ -68,33 +68,37 @@ namespace uCentral::WebSocket {
         if (ds.contains("state") && ds.contains("serial")) {
             Logger_.information(Conn_.SerialNumber + ": updating statistics.");
             std::string NewStatistics{ds["state"].toString()};
-            uCentral::Storage::Service::instance()->AddStatisticsData(Conn_.SerialNumber, Conn_.UUID,
+            uCentral::Storage::Service::instance()->AddStatisticsData(Conn_.SerialNumber,
+                                                                      Conn_.UUID,
                                                                       NewStatistics);
+            uCentral::DeviceRegistry::Service::instance()->SetStatistics(Conn_.SerialNumber,NewStatistics);
         } else if (ds.contains("capab") && ds.contains("serial")) {
-            Logger_.information(Conn_.SerialNumber + ": updating capabilities.");
+            std::string Log{"Updating capabilities."};
+            uCentral::Storage::Service::instance()->AddLog(Conn_.SerialNumber,Log);
             std::string NewCapabilities{ds["capab"].toString()};
             uCentral::Storage::Service::instance()->UpdateDeviceCapabilities(Conn_.SerialNumber, NewCapabilities);
         } else if (ds.contains("uuid") && ds.contains("serial") && ds.contains("active")) {
-            Logger_.information(Conn_.SerialNumber + ": updating active configuration.");
             Conn_.UUID = ds["uuid"];
-            std::cout << "Waiting to apply configuration " << ds["active"].toString() << std::endl;
+            std::string Log = Poco::format("Waiting to apply configuration from %d to %d.",ds["active"].toString(),Conn_.UUID);
+            uCentral::Storage::Service::instance()->AddLog(Conn_.SerialNumber,Log);
         } else if (ds.contains("uuid") && ds.contains("serial")) {
-            Logger_.information(Conn_.SerialNumber + ": configuration check.");
             Conn_.UUID = ds["uuid"];
-
             std::string NewConfig;
             uint64_t NewConfigUUID;
 
             if (uCentral::Storage::Service::instance()->ExistingConfiguration(Conn_.SerialNumber, Conn_.UUID,
                                                                               NewConfig, NewConfigUUID)) {
                 if (Conn_.UUID < NewConfigUUID) {
-                    std::cout << "We have a newer configuration." << std::endl;
+                    std::string Log = Poco::format("Returning newer configuration %d.",Conn_.UUID);
+                    uCentral::Storage::Service::instance()->AddLog(Conn_.SerialNumber,Log);
+
                     Response = "{ \"cfg\" : " + NewConfig + "}";
                 }
             }
         } else if (ds.contains("log")) {
             auto log = ds["log"].toString();
-            Logger_.warning("DEVICE-LOG(" + Conn_.SerialNumber + "):" + log);
+            std::cout << "Adding log:" << Conn_.SerialNumber << ": " << log << std::endl;
+            uCentral::Storage::Service::instance()->AddLog(Conn_.SerialNumber,log);
         } else {
             std::cout << "UNKNOWN_MESSAGE(" << Conn_.SerialNumber << "): " << IncomingMessage_ << std::endl;
         }

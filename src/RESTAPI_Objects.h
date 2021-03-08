@@ -18,9 +18,9 @@ struct uCentralDevice {
     uint64_t    CreationTimestamp;
     uint64_t    LastConfigurationChange;
     uint64_t    LastConfigurationDownload;
-    Poco::JSON::Object  to_json();
+    [[nodiscard]] Poco::JSON::Object to_json() const;
     bool from_JSON(Poco::JSON::Object::Ptr Obj);
-    void Print();
+    void Print() const;
 };
 
 struct uCentralStatistics {
@@ -28,7 +28,7 @@ struct uCentralStatistics {
     uint64_t    UUID;
     std::string Values;
     uint64_t    Recorded;
-    Poco::JSON::Object  to_json();
+    [[nodiscard]] Poco::JSON::Object to_json() const;
 };
 
 struct uCentralCapabilities {
@@ -36,7 +36,13 @@ struct uCentralCapabilities {
     std::string Capabilities;
     uint64_t    FirstUpdate;
     uint64_t    LastUpdate;
-    Poco::JSON::Object  to_json();
+    [[nodiscard]] Poco::JSON::Object to_json() const;
+};
+
+struct uCentralDeviceLog {
+    std::string Log;
+    uint64_t    Recorded;
+    [[nodiscard]] Poco::JSON::Object to_json() const;
 };
 
 #endif //UCENTRAL_RESTAPI_OBJECTS_H

@@ -22,6 +22,7 @@ public:
     void GetCapabilities(HTTPServerRequest& request, HTTPServerResponse& response);
     void DeleteCapabilities(HTTPServerRequest& request, HTTPServerResponse& response);
     void GetLogs(HTTPServerRequest& request, HTTPServerResponse& response);
+    void DeleteLogs(HTTPServerRequest& request, HTTPServerResponse& response);
     void GetStatistics(HTTPServerRequest& request, HTTPServerResponse& response);
     void DeleteStatistics(HTTPServerRequest& request, HTTPServerResponse& response);
     void GetStatus(HTTPServerRequest& request, HTTPServerResponse& response);

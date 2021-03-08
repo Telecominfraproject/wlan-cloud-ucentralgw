@@ -4,6 +4,9 @@
 
 #include "uStorageService.h"
 #include "Poco/Data/SQLite/Connector.h"
+#include "Poco/Data/PostgreSQL/Connector.h"
+#include "Poco/Data/MySQL/Connector.h"
+#include "Poco/Data/ODBC/Connector.h"
 #include "Poco/Data/RecordSet.h"
 #include "Poco/DateTime.h"
 
@@ -37,6 +40,16 @@ namespace uCentral::Storage {
             Pool_ = std::shared_ptr<Poco::Data::SessionPool>(
                     new Poco::Data::SessionPool("SQLite", DBName,4,NumSessions,IdleTime));
         }
+        else if(DBType == "postgresql")
+        {
+            Poco::Data::PostgreSQL::Connector::registerConnector();
+        }
+        else if(DBType == "mysql") {
+            Poco::Data::MySQL::Connector::registerConnector();
+        }
+        else if(DBType == "odbc")  {
+            Poco::Data::ODBC::Connector::registerConnector();
+        }
 
         Session session_(Pool_->get());
 
@@ -47,7 +60,7 @@ namespace uCentral::Storage {
                      "Recorded DATETIME"
                      ")", now;
 
-        session_ << "CREATE INDEX IF NOT EXISTS serial ON Statistics (SerialNumber ASC, Recorded ASC)", now;
+        session_ << "CREATE INDEX IF NOT EXISTS StatsSerial ON Statistics (SerialNumber ASC, Recorded ASC)", now;
 
         session_ << "CREATE TABLE IF NOT EXISTS Devices ("
                      "SerialNumber  VARCHAR(30) UNIQUE PRIMARY KEY, "
@@ -69,6 +82,14 @@ namespace uCentral::Storage {
                      "LastUpdate DATETIME"
                      ") WITHOUT ROWID", now;
 
+        session_ << "CREATE TABLE IF NOT EXISTS DeviceLogs ("
+                    "SerialNumber VARCHAR(30), "
+                    "Log BLOB, "
+                    "Recorded DATETIME "
+                    ")", now;
+
+        session_ << "CREATE INDEX IF NOT EXISTS LogSerial ON Statistics (SerialNumber ASC, Recorded ASC)", now;
+
         Poco::Data::SQLite::Connector::registerConnector();
 
         return 0;
@@ -89,7 +110,7 @@ namespace uCentral::Storage {
 
             // std::cout << "STATS:" << NewStats << std::endl;
 
-            Poco::DateTime Now;
+            uint64_t Now = time(nullptr);
             Session session_(Pool_->get());
 
             session_ << "INSERT INTO Statistics VALUES(?, ?, ?, ?)",
@@ -167,9 +188,7 @@ namespace uCentral::Storage {
         return false;
     }
 
-    bool Service::DeleteStatisticsData(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate, uint64_t Offset, uint64_t HowMany) {
-        // std::lock_guard<std::mutex> guard(mutex_);
-
+    bool Service::DeleteStatisticsData(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate) {
         try {
             Session session_(Pool_->get());
 
@@ -178,26 +197,129 @@ namespace uCentral::Storage {
                         << "DELETE FROM Statistics WHERE SerialNumber=? AND Recorded>=? AND Recorded<=?",
                         use(SerialNumber),
                         use(FromDate),
+                        use(ToDate), now;
+            } else if (FromDate) {
+                session_
+                        << "DELETE FROM Statistics WHERE SerialNumber=? AND Recorded>=?",
+                        use(SerialNumber),
+                        use(FromDate), now;
+            } else if (ToDate) {
+                session_
+                        << "DELETE FROM Statistics WHERE SerialNumber=? AND Recorded<=?",
+                        use(SerialNumber),
+                        use(ToDate), now;
+            }
+            else {
+                session_
+                        << "DELETE FROM Statistics WHERE SerialNumber=?",
+                        use(SerialNumber), now;
+            }
+            return true;
+        }
+        catch (const Poco::Exception & E ) {
+            logger_.warning(Poco::format("%s(%s): Failed with: %s",__FUNCTION__,SerialNumber,E.displayText() ));
+        }
+        return false;
+    }
+
+    bool Service::AddLog(std::string & SerialNumber, std::string & Log)
+    {
+        uint64_t Now = time(nullptr);
+        Session session_(Pool_->get());
+
+        try {
+            session_ << "INSERT INTO DeviceLogs VALUES(?, ?, ?)",
+                    use(SerialNumber),
+                    use(Log),
+                    use(Now), now;
+            return true;
+        }
+        catch (const Poco::Exception & E ) {
+            logger_.warning(Poco::format("%s(%s): Failed with: %s",__FUNCTION__,SerialNumber,E.displayText() ));
+        }
+        return false;
+    }
+
+    bool Service::GetLogData(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate, uint64_t Offset, uint64_t HowMany,
+                    std::vector<uCentralDeviceLog> &Stats) {
+        typedef Poco::Tuple<std::string, uint64_t> StatRecord;
+        typedef std::vector<StatRecord> RecordList;
+
+        Session session_(Pool_->get());
+
+        try {
+            RecordList Records;
+            if(FromDate && ToDate) {
+                session_
+                        << "SELECT Log,Recorded FROM DeviceLogs WHERE SerialNumber=? AND Recorded>=? AND Recorded<=?",
+                        into(Records),
+                        use(SerialNumber),
+                        use(FromDate),
                         use(ToDate),
                         range(Offset, Offset + HowMany - 1), now;
             } else if (FromDate) {
                 session_
-                        << "DELETE FROM Statistics WHERE SerialNumber=? AND Recorded>=?",
+                        << "SELECT Log,Recorded FROM DeviceLogs WHERE SerialNumber=? AND Recorded>=?",
+                        into(Records),
                         use(SerialNumber),
                         use(FromDate),
                         range(Offset, Offset + HowMany - 1), now;
             } else if (ToDate) {
                 session_
-                        << "DELETE FROM Statistics WHERE SerialNumber=? AND Recorded<=?",
+                        << "SELECT Log,Recorded FROM DeviceLogs WHERE SerialNumber=? AND Recorded<=?",
+                        into(Records),
                         use(SerialNumber),
                         use(ToDate),
                         range(Offset, Offset + HowMany - 1), now;
             }
             else {
+                // range(Offset, Offset + HowMany - 1)
                 session_
-                        << "DELETE FROM Statistics WHERE SerialNumber=?",
+                        << "SELECT Log,Recorded FROM DeviceLogs WHERE SerialNumber=?",
+                        into(Records),
                         use(SerialNumber),
                         range(Offset, Offset + HowMany - 1), now;
+            }
+
+            for (auto i: Records) {
+                uCentralDeviceLog R{.Log = i.get<0>(),
+                                    .Recorded = i.get<1>()};
+                Stats.push_back(R);
+            }
+            return true;
+        }
+        catch( const Poco::Exception & E)
+        {
+            logger_.warning(Poco::format("%s(%s): Failed with: %s",__FUNCTION__,SerialNumber,E.displayText() ));
+        }
+        return false;
+    }
+
+    bool Service::DeleteLogData(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate) {
+        try {
+            Session session_(Pool_->get());
+
+            if(FromDate && ToDate) {
+                session_
+                        << "DELETE FROM DeviceLogs WHERE SerialNumber=? AND Recorded>=? AND Recorded<=?",
+                        use(SerialNumber),
+                        use(FromDate),
+                        use(ToDate), now;
+            } else if (FromDate) {
+                session_
+                        << "DELETE FROM DeviceLogs WHERE SerialNumber=? AND Recorded>=?",
+                        use(SerialNumber),
+                        use(FromDate), now;
+            } else if (ToDate) {
+                session_
+                        << "DELETE FROM DeviceLogs WHERE SerialNumber=? AND Recorded<=?",
+                        use(SerialNumber),
+                        use(ToDate), now;
+            }
+            else {
+                session_
+                        << "DELETE FROM DeviceLogs WHERE SerialNumber=?",
+                        use(SerialNumber), now;
             }
             return true;
         }
@@ -453,7 +575,7 @@ namespace uCentral::Storage {
 
             session_ << "SELECT SerialNumber FROM Capabilities WHERE SerialNumber=?", into(SS), use(SerialNumber), now;
 
-            Poco::DateTime Now;
+            uint64_t Now = time(nullptr);
 
             if (SS.empty()) {
                 logger().information("Adding capabilities for " + SerialNumber);

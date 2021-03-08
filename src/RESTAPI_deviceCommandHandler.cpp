@@ -30,6 +30,8 @@ void RESTAPI_deviceCommandHandler::handleRequest(HTTPServerRequest& Request, HTT
             DeleteCapabilities(Request, Response);
         } else if (Command == "logs" && Request.getMethod() == Poco::Net::HTTPServerRequest::HTTP_GET) {
             GetLogs(Request, Response);
+        } else if (Command == "logs" && Request.getMethod() == Poco::Net::HTTPServerRequest::HTTP_DELETE) {
+            DeleteLogs(Request, Response);
         } else if (Command == "statistics" && Request.getMethod() == Poco::Net::HTTPServerRequest::HTTP_GET) {
             GetStatistics(Request, Response);
         } else if (Command == "statistics" && Request.getMethod() == Poco::Net::HTTPServerRequest::HTTP_DELETE) {
@@ -134,12 +136,8 @@ void RESTAPI_deviceCommandHandler::DeleteStatistics(HTTPServerRequest& Request, 
         auto SerialNumber = GetBinding("serialNumber", "");
         auto StartDate = RESTAPIHandler::from_RFC3339(GetParameter("startDate", ""));
         auto EndDate = RESTAPIHandler::from_RFC3339(GetParameter("endDate", ""));
-        auto Offset = GetParameter("offset", 0);
-        auto Limit = GetParameter("limit", 100);
 
-        std::vector<uCentralStatistics> Stats;
-
-        if (uCentral::Storage::Service::instance()->DeleteStatisticsData(SerialNumber, StartDate, EndDate, Offset, Limit))
+        if (uCentral::Storage::Service::instance()->DeleteStatisticsData(SerialNumber, StartDate, EndDate))
             OK(Response);
         else
             BadRequest(Response);
@@ -210,11 +208,66 @@ void RESTAPI_deviceCommandHandler::Configure(HTTPServerRequest& Request, HTTPSer
     BadRequest(Response);
 }
 
+void RESTAPI_deviceCommandHandler::GetLogs(HTTPServerRequest& Request, HTTPServerResponse& Response) {
+    try {
+        auto SerialNumber = GetBinding("serialNumber", "");
+        auto StartDate = RESTAPIHandler::from_RFC3339(GetParameter("startDate", ""));
+        auto EndDate = RESTAPIHandler::from_RFC3339(GetParameter("endDate", ""));
+        auto Offset = GetParameter("offset", 0);
+        auto Limit = GetParameter("limit", 100);
+
+        std::vector<uCentralDeviceLog> Logs;
+
+        std::cout << "CC1" << std::endl;
+
+        uCentral::Storage::Service::instance()->GetLogData(SerialNumber, StartDate, EndDate, Offset, Limit,
+                                                                  Logs);
+
+        std::cout << "CC2" << std::endl;
+
+        Poco::JSON::Array ArrayObj;
+
+        for (auto i : Logs) {
+            Poco::JSON::Object Obj = i.to_json();
+            ArrayObj.add(Obj);
+        }
+        Poco::JSON::Object RetObj;
+        RetObj.set("values", ArrayObj);
+        RetObj.set("serialNumber", SerialNumber);
+
+        std::cout << "CC1" << std::endl;
+
+        ReturnObject(RetObj, Response);
+        return;
+    }
+    catch(const Poco::Exception &E)
+    {
+        logger_.error(Poco::format("%s: failed with %s",__FUNCTION__ ,E.displayText()));
+    }
+    BadRequest(Response);
+}
+
+void RESTAPI_deviceCommandHandler::DeleteLogs(HTTPServerRequest& Request, HTTPServerResponse& Response) {
+    try {
+        auto SerialNumber = GetBinding("serialNumber", "");
+        auto StartDate = RESTAPIHandler::from_RFC3339(GetParameter("startDate", ""));
+        auto EndDate = RESTAPIHandler::from_RFC3339(GetParameter("endDate", ""));
+
+        if (uCentral::Storage::Service::instance()->DeleteLogData(SerialNumber, StartDate, EndDate))
+            OK(Response);
+        else
+            BadRequest(Response);
+        return;
+    }
+    catch(const Poco::Exception &E)
+    {
+        logger_.error(Poco::format("%s: failed with %s",__FUNCTION__ ,E.displayText()));
+    }
+    BadRequest(Response);
+}
+
 void RESTAPI_deviceCommandHandler::ExecuteCommand(HTTPServerRequest& Request, HTTPServerResponse& Response) {
     OK(Response);
 }
 
-void RESTAPI_deviceCommandHandler::GetLogs(HTTPServerRequest& Request, HTTPServerResponse& Response) {
-    OK(Response);
-}
 

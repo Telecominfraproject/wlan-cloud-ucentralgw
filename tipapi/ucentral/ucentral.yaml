@@ -278,6 +278,25 @@ components:
         configuration:
           type: string
 
+    DeviceLog:
+      type: object
+      properties:
+        log:
+          type: string
+        recorded:
+          type: integer
+          format: int64
+
+    DeviceLogList:
+      type: object
+      properties:
+        serialNumber:
+          type: string
+        values:
+          type: array
+          items:
+            $ref: '#/components/schemas/DeviceLog'
+
 paths:
   /oauth2:
     post:
@@ -461,17 +480,77 @@ paths:
           schema:
             type: string
           required: true
+        - in: query
+          name: startDate
+          schema:
+            type: string
+            # format 2021-03-05T05:27:37Z
+            format: 'date-time'
+          required: false
+        - in: query
+          name: endDate
+          schema:
+            type: string
+            # format 2021-03-05T05:27:37Z
+            format: 'date-time'
+        - in: query
+          name: offset
+          schema:
+            type: integer
+            format: int64
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            format: int64
+
       responses:
         200:
-          description: List of logs for this device
+          description: Array of device logs for this device
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Logs'
+                $ref: '#/components/schemas/DeviceLogList'
         404:
           $ref: '#/components/responses/Unauthorized'
         403:
           $ref: '#/components/responses/NotFound'
+
+    delete:
+      tags:
+        - Commands
+      summary: Delete some device logs
+      operationId: deleteDeviceLogs
+      parameters:
+        - in: path
+          name: serialNumber
+          schema:
+            type: string
+          required: true
+        - in: query
+          name: startDate
+          schema:
+            type: string
+            format: 'date-time'
+          required: false
+        - in: query
+          name: endDate
+          schema:
+            type: string
+            format: 'date-time'
+
+      responses:
+        200:
+          description: Successfully deleted logs for the device.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericGoodAnswer'
+        404:
+          $ref: '#/components/responses/Unauthorized'
+        403:
+          $ref: '#/components/responses/NotFound'
+
 
   /device/{serialNumber}/capabilities:
     get:

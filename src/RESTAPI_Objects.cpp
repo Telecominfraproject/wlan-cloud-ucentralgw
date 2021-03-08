@@ -5,7 +5,7 @@
 #include "RESTAPI_Objects.h"
 #include "RESTAPI_Handler.h"
 
-Poco::JSON::Object  uCentralDevice::to_json()
+Poco::JSON::Object uCentralDevice::to_json() const
 {
     Poco::JSON::Object  Obj;
 
@@ -38,11 +38,11 @@ bool uCentralDevice::from_JSON(Poco::JSON::Object::Ptr Obj) {
     return true;
 }
 
-void uCentralDevice::Print() {
+void uCentralDevice::Print() const {
     std::cout << "Device: " << SerialNumber << " " << DeviceType << " " << MACAddress << " " << Manufacturer << " " << Configuration << std::endl;
 }
 
-Poco::JSON::Object uCentralStatistics::to_json() {
+Poco::JSON::Object uCentralStatistics::to_json() const {
     Poco::JSON::Object  Obj;
 
     Obj.set("serialNumber",SerialNumber);
@@ -53,7 +53,7 @@ Poco::JSON::Object uCentralStatistics::to_json() {
     return Obj;
 };
 
-Poco::JSON::Object  uCentralCapabilities::to_json() {
+Poco::JSON::Object uCentralCapabilities::to_json() const {
     Poco::JSON::Object  Obj;
 
     Obj.set("serialNumber",SerialNumber);
@@ -63,4 +63,14 @@ Poco::JSON::Object  uCentralCapabilities::to_json() {
 
     return Obj;
 };
+
+Poco::JSON::Object uCentralDeviceLog::to_json() const
+{
+    Poco::JSON::Object  Obj;
+
+    Obj.set("log",Log);
+    Obj.set("recorded",RESTAPIHandler::to_RFC3339(Recorded));
+
+    return Obj;
+}
 
