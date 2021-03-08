@@ -54,6 +54,17 @@ void RESTAPI_deviceHandler::handleRequest(HTTPServerRequest& Request, HTTPServer
         }
     } else if(Request.getMethod() == Poco::Net::HTTPRequest::HTTP_PUT) {
         std::string SerialNumber = GetBinding("serialNumber", "0xdeadbeef");
+
+        Poco::JSON::Parser      IncomingParser;
+        Poco::JSON::Object::Ptr Obj = IncomingParser.parse(Request.stream()).extract<Poco::JSON::Object::Ptr>();
+
+        uCentralDevice  Device;
+        Device.from_JSON(Obj);
+        if (uCentral::Storage::Service::instance()->UpdateDevice(Device)) {
+            OK(Response);
+        } else {
+            BadRequest(Response);
+        }
     } else {
         BadRequest(Response);
     }

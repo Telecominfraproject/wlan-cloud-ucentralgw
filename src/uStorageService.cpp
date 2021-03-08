@@ -335,6 +335,32 @@ namespace uCentral::Storage {
         return false;
     }
 
+    bool Service::UpdateDevice(uCentralDevice &NewConfig) {
+        std::lock_guard<std::mutex> guard(mutex_);
+
+        try {
+
+            uint64_t Now = time(nullptr);
+
+            *session_ << "UPDATE Devices SET Manufacturer=?, DeviceType=?, MACAddress=?, Notes=?, LastConfigurationChange=?  WHERE SerialNumber=?",
+                    use(NewConfig.Manufacturer),
+                    use(NewConfig.DeviceType),
+                    use(NewConfig.MACAddress),
+                    use(NewConfig.Notes),
+                    use(Now),
+                    use( NewConfig.SerialNumber), now;
+
+            return true;
+        }
+        catch( const Poco::Exception & E)
+        {
+            logger_.warning(Poco::format("%s(%s): Failed with: %s",__FUNCTION__,NewConfig.SerialNumber,E.displayText() ));
+        }
+
+        return false;
+    }
+
+
     uint64_t Service::GetDevices(uint64_t From, uint64_t HowMany, std::vector<uCentralDevice> &Devices) {
 
         typedef Poco::Tuple<
