@@ -79,7 +79,8 @@ namespace uCentral::WebSocket {
             uCentral::Storage::Service::instance()->UpdateDeviceCapabilities(Conn_.SerialNumber, NewCapabilities);
         } else if (ds.contains("uuid") && ds.contains("serial") && ds.contains("active")) {
             Conn_.UUID = ds["uuid"];
-            std::string Log = Poco::format("Waiting to apply configuration from %d to %d.",ds["active"].toString(),Conn_.UUID);
+            uint64_t Active = ds["active"];
+            std::string Log = Poco::format("Waiting to apply configuration from %Lu to %Lu.",Active,Conn_.UUID);
             uCentral::Storage::Service::instance()->AddLog(Conn_.SerialNumber,Log);
         } else if (ds.contains("uuid") && ds.contains("serial")) {
             Conn_.UUID = ds["uuid"];
@@ -89,7 +90,7 @@ namespace uCentral::WebSocket {
             if (uCentral::Storage::Service::instance()->ExistingConfiguration(Conn_.SerialNumber, Conn_.UUID,
                                                                               NewConfig, NewConfigUUID)) {
                 if (Conn_.UUID < NewConfigUUID) {
-                    std::string Log = Poco::format("Returning newer configuration %d.",Conn_.UUID);
+                    std::string Log = Poco::format("Returning newer configuration %Lu.",Conn_.UUID);
                     uCentral::Storage::Service::instance()->AddLog(Conn_.SerialNumber,Log);
 
                     Response = "{ \"cfg\" : " + NewConfig + "}";
@@ -97,7 +98,6 @@ namespace uCentral::WebSocket {
             }
         } else if (ds.contains("log")) {
             auto log = ds["log"].toString();
-            std::cout << "Adding log:" << Conn_.SerialNumber << ": " << log << std::endl;
             uCentral::Storage::Service::instance()->AddLog(Conn_.SerialNumber,log);
         } else {
             std::cout << "UNKNOWN_MESSAGE(" << Conn_.SerialNumber << "): " << IncomingMessage_ << std::endl;

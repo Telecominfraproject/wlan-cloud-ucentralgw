@@ -37,17 +37,24 @@ namespace uCentral::Storage {
             auto NumSessions = uCentral::Daemon::instance().config().getInt("storage.type.sqlite.maxsessions",64);
             auto IdleTime = uCentral::Daemon::instance().config().getInt("storage.type.sqlite.idletime",60);
             Poco::Data::SQLite::Connector::registerConnector();
+
             Pool_ = std::shared_ptr<Poco::Data::SessionPool>(
                     new Poco::Data::SessionPool("SQLite", DBName,4,NumSessions,IdleTime));
         }
         else if(DBType == "postgresql")
         {
+            auto NumSessions = uCentral::Daemon::instance().config().getInt("storage.type.postgresql.maxsessions",64);
+            auto IdleTime = uCentral::Daemon::instance().config().getInt("storage.type.postgresql.idletime",60);
             Poco::Data::PostgreSQL::Connector::registerConnector();
         }
         else if(DBType == "mysql") {
+            auto NumSessions = uCentral::Daemon::instance().config().getInt("storage.type.mysql.maxsessions",64);
+            auto IdleTime = uCentral::Daemon::instance().config().getInt("storage.type.mysql.idletime",60);
             Poco::Data::MySQL::Connector::registerConnector();
         }
         else if(DBType == "odbc")  {
+            auto NumSessions = uCentral::Daemon::instance().config().getInt("storage.type.odbc.maxsessions",64);
+            auto IdleTime = uCentral::Daemon::instance().config().getInt("storage.type.odbc.idletime",60);
             Poco::Data::ODBC::Connector::registerConnector();
         }
 
