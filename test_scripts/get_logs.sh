@@ -1,7 +1,7 @@
 #!/bin/zsh
 
 if [ $# -eq 0 ]; then
-  if [ "$test_device" -eq "" ]; then
+  if [ "$test_device" = "" ]; then
     echo "You must supply the serial number of device to test or set <test_device> to the serial number you want to test."
     exit 1
   else
