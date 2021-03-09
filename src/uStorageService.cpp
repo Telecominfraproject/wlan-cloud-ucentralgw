@@ -5,6 +5,7 @@
 #include "uStorageService.h"
 #include "Poco/Data/SQLite/Connector.h"
 #include "Poco/Data/PostgreSQL/Connector.h"
+#include "Poco/Data/PostgreSQL/SessionHandle.h"
 #include "Poco/Data/MySQL/Connector.h"
 #include "Poco/Data/ODBC/Connector.h"
 #include "Poco/Data/RecordSet.h"
@@ -45,7 +46,36 @@ namespace uCentral::Storage {
         {
             auto NumSessions = uCentral::Daemon::instance().config().getInt("storage.type.postgresql.maxsessions",64);
             auto IdleTime = uCentral::Daemon::instance().config().getInt("storage.type.postgresql.idletime",60);
+            auto Host = uCentral::Daemon::instance().config().getString("storage.type.postgresql.host");
+            auto Username = uCentral::Daemon::instance().config().getString("storage.type.postgresql.username");
+            auto Password = uCentral::Daemon::instance().config().getString("storage.type.postgresql.password");
+            auto Database = uCentral::Daemon::instance().config().getString("storage.type.postgresql.database");
+            auto Port = uCentral::Daemon::instance().config().getString("storage.type.postgresql.port");
+            auto ConnectionTimeout = uCentral::Daemon::instance().config().getString("storage.type.postgresql.connectiontimeout");
+
             Poco::Data::PostgreSQL::Connector::registerConnector();
+            std::string ConnectionStr =
+                    " host=" + Host +
+                    " user=" + Username +
+                    " password=" + Password +
+                    " dbname=" + Database +
+                    " port=" + Port +
+                    " connect_timeout=" + ConnectionTimeout;
+
+            Poco::Data::PostgreSQL::SessionHandle Handle;
+
+            Handle.connect(Host.c_str(),
+                           Username.c_str(),
+                           Password.c_str(),
+                           Database.c_str(),
+                           5432,60);
+
+            ConnectionStr = Handle.connectionString();
+
+            std::cout << "Connection string:" << ConnectionStr << std::endl;
+
+            Pool_ = std::shared_ptr<Poco::Data::SessionPool>(
+                    new Poco::Data::SessionPool("PostgreSQL", ConnectionStr,4,NumSessions,IdleTime));
         }
         else if(DBType == "mysql") {
             auto NumSessions = uCentral::Daemon::instance().config().getInt("storage.type.mysql.maxsessions",64);
@@ -63,8 +93,8 @@ namespace uCentral::Storage {
         session_ << "CREATE TABLE IF NOT EXISTS Statistics ("
                      "SerialNumber VARCHAR(30), "
                      "UUID INTEGER, "
-                     "Data BLOB, "
-                     "Recorded DATETIME"
+                     "Data TEXT, "
+                     "Recorded BIGINT"
                      ")", now;
 
         session_ << "CREATE INDEX IF NOT EXISTS StatsSerial ON Statistics (SerialNumber ASC, Recorded ASC)", now;
@@ -74,25 +104,25 @@ namespace uCentral::Storage {
                      "DeviceType    VARCHAR(10), "
                      "MACAddress    VARCHAR(30), "
                      "Manufacturer  VARCHAR(64), "
-                     "UUID          INTEGER, "
-                     "Configuration BLOB, "
-                     "Notes         BLOB, "
-                     "CreationTimestamp DATETIME, "
-                     "LastConfigurationChange DATETIME, "
-                     "LastConfigurationDownload DATETIME"
-                     ") WITHOUT ROWID", now;
+                     "UUID          BIGINT, "
+                     "Configuration TEXT, "
+                     "Notes         TEXT, "
+                     "CreationTimestamp BIGINT, "
+                     "LastConfigurationChange BIGINT, "
+                     "LastConfigurationDownload BIGINT"
+                     ")", now;
 
         session_ << "CREATE TABLE IF NOT EXISTS Capabilities ("
                      "SerialNumber VARCHAR(30) PRIMARY KEY, "
-                     "Capabilities BLOB, "
-                     "FirstUpdate DATETIME, "
-                     "LastUpdate DATETIME"
-                     ") WITHOUT ROWID", now;
+                     "Capabilities TEXT, "
+                     "FirstUpdate BIGINT, "
+                     "LastUpdate BIGINT"
+                     ")", now;
 
         session_ << "CREATE TABLE IF NOT EXISTS DeviceLogs ("
                     "SerialNumber VARCHAR(30), "
-                    "Log BLOB, "
-                    "Recorded DATETIME "
+                    "Log TEXT, "
+                    "Recorded BIGINT "
                     ")", now;
 
         session_ << "CREATE INDEX IF NOT EXISTS LogSerial ON Statistics (SerialNumber ASC, Recorded ASC)", now;
@@ -120,16 +150,16 @@ namespace uCentral::Storage {
             uint64_t Now = time(nullptr);
             Session session_(Pool_->get());
 
-            session_ << "INSERT INTO Statistics VALUES(?, ?, ?, ?)",
-                    use(SerialNumber),
-                    use(CfgUUID),
-                    use(NewStats),
-                    use(Now), now;
+            session_ << "INSERT INTO Statistics VALUES( '%s', '%Lu', '%s', '%Lu')",
+                    SerialNumber.c_str(),
+                    CfgUUID,
+                    NewStats.c_str(),
+                    Now, now;
 
             return true;
         }
         catch (const Poco::Exception &E) {
-            logger_.warning(Poco::format("%s(%s): Failed with: %s", __FUNCTION__, SerialNumber, E.displayText()));
+            logger_.warning(Poco::format("%s(%s): Failed with: %s", __func__ , SerialNumber.c_str(), E.displayText()));
         }
         return false;
     }
@@ -149,33 +179,33 @@ namespace uCentral::Storage {
             RecordList Records;
             if(FromDate && ToDate) {
                 session_
-                        << "SELECT SerialNumber, UUID, Data, Recorded FROM Statistics WHERE SerialNumber=? AND Recorded>=? AND Recorded<=?",
+                        << "SELECT SerialNumber, UUID, Data, Recorded FROM Statistics WHERE SerialNumber='%s' AND Recorded>=%Lu AND Recorded<=%Lu",
                         into(Records),
-                        use(SerialNumber),
-                        use(FromDate),
-                        use(ToDate),
+                        SerialNumber.c_str(),
+                        FromDate,
+                        ToDate,
                         range(Offset, Offset + HowMany - 1), now;
             } else if (FromDate) {
                 session_
-                        << "SELECT SerialNumber, UUID, Data, Recorded FROM Statistics WHERE SerialNumber=? AND Recorded>=?",
+                        << "SELECT SerialNumber, UUID, Data, Recorded FROM Statistics WHERE SerialNumber='%s' AND Recorded>=%Lu",
                         into(Records),
-                        use(SerialNumber),
-                        use(FromDate),
+                        SerialNumber.c_str(),
+                        FromDate,
                         range(Offset, Offset + HowMany - 1), now;
             } else if (ToDate) {
                 session_
-                        << "SELECT SerialNumber, UUID, Data, Recorded FROM Statistics WHERE SerialNumber=? AND Recorded<=?",
+                        << "SELECT SerialNumber, UUID, Data, Recorded FROM Statistics WHERE SerialNumber='%s' AND Recorded<=%Lu",
                         into(Records),
-                        use(SerialNumber),
-                        use(ToDate),
+                        SerialNumber.c_str(),
+                        ToDate,
                         range(Offset, Offset + HowMany - 1), now;
             }
             else {
                 // range(Offset, Offset + HowMany - 1)
                 session_
-                        << "SELECT SerialNumber, UUID, Data, Recorded FROM Statistics WHERE SerialNumber=?",
+                        << "SELECT SerialNumber, UUID, Data, Recorded FROM Statistics WHERE SerialNumber='%s'",
                         into(Records),
-                        use(SerialNumber),
+                        SerialNumber.c_str(),
                         range(Offset, Offset + HowMany - 1), now;
             }
 
@@ -190,7 +220,7 @@ namespace uCentral::Storage {
         }
         catch( const Poco::Exception & E)
         {
-            logger_.warning(Poco::format("%s(%s): Failed with: %s",__FUNCTION__,SerialNumber,E.displayText() ));
+            logger_.warning(Poco::format("%s(%s): Failed with: %s",__func__,SerialNumber.c_str(),E.displayText() ));
         }
         return false;
     }
@@ -201,30 +231,30 @@ namespace uCentral::Storage {
 
             if(FromDate && ToDate) {
                 session_
-                        << "DELETE FROM Statistics WHERE SerialNumber=? AND Recorded>=? AND Recorded<=?",
-                        use(SerialNumber),
-                        use(FromDate),
-                        use(ToDate), now;
+                        << "DELETE FROM Statistics WHERE SerialNumber='%s' AND Recorded>=%Lu AND Recorded<=%Lu",
+                        SerialNumber.c_str(),
+                        FromDate,
+                        ToDate, now;
             } else if (FromDate) {
                 session_
-                        << "DELETE FROM Statistics WHERE SerialNumber=? AND Recorded>=?",
-                        use(SerialNumber),
-                        use(FromDate), now;
+                        << "DELETE FROM Statistics WHERE SerialNumber='%s' AND Recorded>=%Lu",
+                        SerialNumber.c_str(),
+                        FromDate, now;
             } else if (ToDate) {
                 session_
-                        << "DELETE FROM Statistics WHERE SerialNumber=? AND Recorded<=?",
-                        use(SerialNumber),
-                        use(ToDate), now;
+                        << "DELETE FROM Statistics WHERE SerialNumber='%s' AND Recorded<=%Lu",
+                        SerialNumber.c_str(),
+                        ToDate, now;
             }
             else {
                 session_
-                        << "DELETE FROM Statistics WHERE SerialNumber=?",
-                        use(SerialNumber), now;
+                        << "DELETE FROM Statistics WHERE SerialNumber='%s'",
+                        SerialNumber.c_str(), now;
             }
             return true;
         }
         catch (const Poco::Exception & E ) {
-            logger_.warning(Poco::format("%s(%s): Failed with: %s",__FUNCTION__,SerialNumber,E.displayText() ));
+            logger_.warning(Poco::format("%s(%s): Failed with: %s",__FUNCTION__,SerialNumber.c_str(),E.displayText() ));
         }
         return false;
     }
@@ -235,14 +265,14 @@ namespace uCentral::Storage {
         Session session_(Pool_->get());
 
         try {
-            session_ << "INSERT INTO DeviceLogs VALUES(?, ?, ?)",
-                    use(SerialNumber),
-                    use(Log),
-                    use(Now), now;
+            session_ << "INSERT INTO DeviceLogs VALUES( '%s' , '%s' , '%Lu')",
+                    SerialNumber.c_str(),
+                    Log.c_str(),
+                    Now, now;
             return true;
         }
         catch (const Poco::Exception & E ) {
-            logger_.warning(Poco::format("%s(%s): Failed with: %s",__FUNCTION__,SerialNumber,E.displayText() ));
+            logger_.warning(Poco::format("%s(%s): Failed with: %s",__FUNCTION__,SerialNumber.c_str(),E.displayText() ));
         }
         return false;
     }
@@ -258,33 +288,33 @@ namespace uCentral::Storage {
             RecordList Records;
             if(FromDate && ToDate) {
                 session_
-                        << "SELECT Log,Recorded FROM DeviceLogs WHERE SerialNumber=? AND Recorded>=? AND Recorded<=?",
+                        << "SELECT Log,Recorded FROM DeviceLogs WHERE SerialNumber='%s' AND Recorded>=%Lu AND Recorded<=%Lu",
                         into(Records),
-                        use(SerialNumber),
-                        use(FromDate),
-                        use(ToDate),
+                        SerialNumber.c_str(),
+                        FromDate,
+                        ToDate,
                         range(Offset, Offset + HowMany - 1), now;
             } else if (FromDate) {
                 session_
-                        << "SELECT Log,Recorded FROM DeviceLogs WHERE SerialNumber=? AND Recorded>=?",
+                        << "SELECT Log,Recorded FROM DeviceLogs WHERE SerialNumber='%s' AND Recorded>=%Lu",
                         into(Records),
-                        use(SerialNumber),
-                        use(FromDate),
+                        SerialNumber.c_str(),
+                        FromDate,
                         range(Offset, Offset + HowMany - 1), now;
             } else if (ToDate) {
                 session_
-                        << "SELECT Log,Recorded FROM DeviceLogs WHERE SerialNumber=? AND Recorded<=?",
+                        << "SELECT Log,Recorded FROM DeviceLogs WHERE SerialNumber='%s' AND Recorded<=%Lu",
                         into(Records),
-                        use(SerialNumber),
-                        use(ToDate),
+                        SerialNumber.c_str(),
+                        ToDate,
                         range(Offset, Offset + HowMany - 1), now;
             }
             else {
                 // range(Offset, Offset + HowMany - 1)
                 session_
-                        << "SELECT Log,Recorded FROM DeviceLogs WHERE SerialNumber=?",
+                        << "SELECT Log,Recorded FROM DeviceLogs WHERE SerialNumber='%s'",
                         into(Records),
-                        use(SerialNumber),
+                        SerialNumber.c_str(),
                         range(Offset, Offset + HowMany - 1), now;
             }
 
@@ -308,30 +338,30 @@ namespace uCentral::Storage {
 
             if(FromDate && ToDate) {
                 session_
-                        << "DELETE FROM DeviceLogs WHERE SerialNumber=? AND Recorded>=? AND Recorded<=?",
-                        use(SerialNumber),
-                        use(FromDate),
-                        use(ToDate), now;
+                        << "DELETE FROM DeviceLogs WHERE SerialNumber='%s' AND Recorded>=%Lu AND Recorded<=%Lu",
+                        SerialNumber.c_str(),
+                        FromDate,
+                        ToDate, now;
             } else if (FromDate) {
                 session_
-                        << "DELETE FROM DeviceLogs WHERE SerialNumber=? AND Recorded>=?",
-                        use(SerialNumber),
-                        use(FromDate), now;
+                        << "DELETE FROM DeviceLogs WHERE SerialNumber='%s' AND Recorded>=%Lu",
+                        SerialNumber.c_str(),
+                        FromDate, now;
             } else if (ToDate) {
                 session_
-                        << "DELETE FROM DeviceLogs WHERE SerialNumber=? AND Recorded<=?",
-                        use(SerialNumber),
-                        use(ToDate), now;
+                        << "DELETE FROM DeviceLogs WHERE SerialNumber='%s' AND Recorded<=%Lu",
+                        SerialNumber.c_str(),
+                        ToDate, now;
             }
             else {
                 session_
-                        << "DELETE FROM DeviceLogs WHERE SerialNumber=?",
-                        use(SerialNumber), now;
+                        << "DELETE FROM DeviceLogs WHERE SerialNumber='%s'",
+                        SerialNumber.c_str(), now;
             }
             return true;
         }
         catch (const Poco::Exception & E ) {
-            logger_.warning(Poco::format("%s(%s): Failed with: %s",__FUNCTION__,SerialNumber,E.displayText() ));
+            logger_.warning(Poco::format("%s(%s): Failed with: %s",__FUNCTION__,SerialNumber.c_str(),E.displayText() ));
         }
         return false;
     }
@@ -349,9 +379,9 @@ namespace uCentral::Storage {
 
             uint64_t CurrentUUID;
 
-            session_ << "SELECT UUID FROM Devices WHERE SerialNumber=?",
+            session_ << "SELECT UUID FROM Devices WHERE SerialNumber='%s'",
                 into(CurrentUUID),
-                use(SerialNumber), now;
+                SerialNumber.c_str(), now;
 
             CurrentUUID++;
 
@@ -361,11 +391,11 @@ namespace uCentral::Storage {
                 std::string NewConfig = Cfg.get();
 
                 session_
-                        << "UPDATE Devices SET Configuration=?, UUID=?, LastConfigurationChange=? WHERE SerialNumber=?",
-                        use(NewConfig),
-                        use(CurrentUUID),
-                        use(Now),
-                        use(SerialNumber), now;
+                        << "UPDATE Devices SET Configuration='%s', UUID=%Lu, LastConfigurationChange=%Lu WHERE SerialNumber='%s'",
+                        NewConfig.c_str(),
+                        CurrentUUID,
+                        Now,
+                        SerialNumber.c_str(), now;
 
                 return true;
             }
@@ -373,7 +403,7 @@ namespace uCentral::Storage {
         }
         catch (const Poco::Exception &E)
         {
-            logger_.warning(Poco::format("%s(%s): Failed with: %s",__FUNCTION__,SerialNumber,E.displayText() ));
+            logger_.warning(Poco::format("%s(%s): Failed with: %s",__FUNCTION__,SerialNumber.c_str(),E.displayText() ));
         }
         return false;
     }
@@ -386,9 +416,9 @@ namespace uCentral::Storage {
 
             Session session_(Pool_->get());
 
-            session_ << "SELECT SerialNumber FROM Devices WHERE SerialNumber=?",
+            session_ << "SELECT SerialNumber FROM Devices WHERE SerialNumber='%s'",
                     into(SerialNumber),
-                    use(DeviceDetails.SerialNumber), now;
+                    DeviceDetails.SerialNumber.c_str(), now;
 
             if (SerialNumber.empty()) {
                 uCentral::Config::Config    Cfg(DeviceDetails.Configuration);
@@ -397,17 +427,17 @@ namespace uCentral::Storage {
                     DeviceDetails.Configuration = Cfg.get();
                     uint64_t Now = time(nullptr);
 
-                    session_ << "INSERT INTO Devices VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-                            use(DeviceDetails.SerialNumber),
-                            use(DeviceDetails.DeviceType),
-                            use(DeviceDetails.MACAddress),
-                            use(DeviceDetails.Manufacturer),
-                            use(DeviceDetails.UUID),
-                            use(DeviceDetails.Configuration),
-                            use(DeviceDetails.Notes),
-                            use(Now),
-                            use(Now),
-                            use(Now), now;
+                    session_ << "INSERT INTO Devices VALUES('%s', '%s', '%s', '%s', %Lu, '%s', '%s', %Lu, %Lu, %Lu)",
+                            DeviceDetails.SerialNumber.c_str(),
+                            DeviceDetails.DeviceType.c_str(),
+                            DeviceDetails.MACAddress.c_str(),
+                            DeviceDetails.Manufacturer.c_str(),
+                            DeviceDetails.UUID,
+                            DeviceDetails.Configuration.c_str(),
+                            DeviceDetails.Notes.c_str(),
+                            Now,
+                            Now,
+                            Now, now;
 
                     return true;
                 }
@@ -420,7 +450,7 @@ namespace uCentral::Storage {
         }
         catch( const Poco::Exception & E)
         {
-            logger_.warning(Poco::format("%s(%s): Failed with: %s",__FUNCTION__,SerialNumber,E.displayText() ));
+            logger_.warning(Poco::format("%s(%s): Failed with: %s",__FUNCTION__,SerialNumber.c_str(),E.displayText() ));
         }
         return false;
     }
@@ -431,14 +461,14 @@ namespace uCentral::Storage {
         try {
             Session session_(Pool_->get());
 
-            session_ << "DELETE FROM Devices WHERE SerialNumber=?",
-                    use(SerialNumber), now;
+            session_ << "DELETE FROM Devices WHERE SerialNumber='%s'",
+                    SerialNumber.c_str(), now;
 
             return true;
         }
         catch( const Poco::Exception & E)
         {
-            logger_.warning(Poco::format("%s(%s): Failed with: %s",__FUNCTION__,SerialNumber,E.displayText() ));
+            logger_.warning(Poco::format("%s(%s): Failed with: %s",__FUNCTION__,SerialNumber.c_str(),E.displayText() ));
         }
         return false;
     }
@@ -460,7 +490,7 @@ namespace uCentral::Storage {
                          "CreationTimestamp, "
                          "LastConfigurationChange, "
                          "LastConfigurationDownload "
-                         " FROM Devices WHERE SerialNumber=?",
+                         " FROM Devices WHERE SerialNumber='%s'",
                     into(DeviceDetails.SerialNumber),
                     into(DeviceDetails.DeviceType),
                     into(DeviceDetails.MACAddress),
@@ -471,7 +501,7 @@ namespace uCentral::Storage {
                     into(DeviceDetails.CreationTimestamp),
                     into(DeviceDetails.LastConfigurationChange),
                     into(DeviceDetails.LastConfigurationDownload),
-                    use(SerialNumber), now;
+                    SerialNumber.c_str(), now;
 
             if (DeviceDetails.SerialNumber.empty())
                 return false;
@@ -480,7 +510,7 @@ namespace uCentral::Storage {
         }
         catch( const Poco::Exception & E)
         {
-            logger_.warning(Poco::format("%s(%s): Failed with: %s",__FUNCTION__,SerialNumber,E.displayText() ));
+            logger_.warning(Poco::format("%s(%s): Failed with: %s",__FUNCTION__,SerialNumber.c_str(),E.displayText() ));
         }
         return false;
     }
@@ -494,19 +524,19 @@ namespace uCentral::Storage {
 
             uint64_t Now = time(nullptr);
 
-            session_ << "UPDATE Devices SET Manufacturer=?, DeviceType=?, MACAddress=?, Notes=?, LastConfigurationChange=?  WHERE SerialNumber=?",
-                    use(NewConfig.Manufacturer),
-                    use(NewConfig.DeviceType),
-                    use(NewConfig.MACAddress),
-                    use(NewConfig.Notes),
-                    use(Now),
-                    use( NewConfig.SerialNumber), now;
+            session_ << "UPDATE Devices SET Manufacturer='%s', DeviceType='%s', MACAddress='%s', Notes='%s', LastConfigurationChange=%Lu  WHERE SerialNumber='%s'",
+                    NewConfig.Manufacturer.c_str(),
+                    NewConfig.DeviceType.c_str(),
+                    NewConfig.MACAddress.c_str(),
+                    NewConfig.Notes.c_str(),
+                    Now,
+                    NewConfig.SerialNumber.c_str(), now;
 
             return true;
         }
         catch( const Poco::Exception & E)
         {
-            logger_.warning(Poco::format("%s(%s): Failed with: %s",__FUNCTION__,NewConfig.SerialNumber,E.displayText() ));
+            logger_.warning(Poco::format("%s(%s): Failed with: %s",__FUNCTION__,NewConfig.SerialNumber.c_str(),E.displayText() ));
         }
 
         return false;
@@ -580,31 +610,33 @@ namespace uCentral::Storage {
             std::string SS;
             Session session_(Pool_->get());
 
-            session_ << "SELECT SerialNumber FROM Capabilities WHERE SerialNumber=?", into(SS), use(SerialNumber), now;
+            session_ << "SELECT SerialNumber FROM Capabilities WHERE SerialNumber='%s'",
+                into(SS),
+                SerialNumber.c_str(), now;
 
             uint64_t Now = time(nullptr);
 
             if (SS.empty()) {
                 logger().information("Adding capabilities for " + SerialNumber);
-                session_ << "INSERT INTO Capabilities VALUES(?, ?, ?, ?)",
-                        use(SerialNumber),
-                        use(Capabs),
-                        use(Now),
-                        use(Now), now;
+                session_ << "INSERT INTO Capabilities VALUES('%s', '%s', %Lu, %Lu)",
+                        SerialNumber.c_str(),
+                        Capabs.c_str(),
+                        Now,
+                        Now, now;
                 logger().information("Done adding capabilities for " + SerialNumber);
             } else {
                 logger().information("Updating capabilities for " + SerialNumber);
-                session_ << "UPDATE Capabilities SET Capabilities=?, LastUpdate=? WHERE SerialNumber=?",
-                        use(Capabs),
-                        use(Now),
-                        use(SerialNumber), now;
+                session_ << "UPDATE Capabilities SET Capabilities='%s', LastUpdate=%Lu WHERE SerialNumber='%s'",
+                        Capabs.c_str(),
+                        Now,
+                        SerialNumber.c_str(), now;
                 logger().information("Done updating capabilities for " + SerialNumber);
             }
             return true;
         }
         catch( const Poco::Exception & E)
         {
-            logger_.warning(Poco::format("%s(%s): Failed with: %s",__FUNCTION__,SerialNumber,E.displayText() ));
+            logger_.warning(Poco::format("%s(%s): Failed with: %s",__FUNCTION__,SerialNumber.c_str(),E.displayText() ));
         }
         return false;
     }
@@ -616,12 +648,12 @@ namespace uCentral::Storage {
             Session session_(Pool_->get());
 
             session_
-                    << "SELECT SerialNumber, Capabilities, FirstUpdate, LastUpdate FROM Capabilities WHERE SerialNumber=?",
+                    << "SELECT SerialNumber, Capabilities, FirstUpdate, LastUpdate FROM Capabilities WHERE SerialNumber='%s'",
                     into(Caps.SerialNumber),
                     into(Caps.Capabilities),
                     into(Caps.FirstUpdate),
                     into(Caps.LastUpdate),
-                    use(SerialNumber), now;
+                    SerialNumber.c_str(), now;
 
             if (Caps.SerialNumber.empty())
                 return false;
@@ -630,7 +662,7 @@ namespace uCentral::Storage {
         }
         catch( const Poco::Exception & E)
         {
-            logger_.warning(Poco::format("%s(%s): Failed with: %s",__FUNCTION__,SerialNumber,E.displayText() ));
+            logger_.warning(Poco::format("%s(%s): Failed with: %s",__FUNCTION__,SerialNumber.c_str(),E.displayText() ));
         }
         return false;
     }
@@ -642,13 +674,13 @@ namespace uCentral::Storage {
             Session session_(Pool_->get());
 
             session_ <<
-                    "DELETE FROM Capabilities WHERE SerialNumber=?" ,
-                    use(SerialNumber), now;
+                    "DELETE FROM Capabilities WHERE SerialNumber='%s'" ,
+                    SerialNumber.c_str(), now;
             return true;
         }
         catch( const Poco::Exception & E)
         {
-            logger_.warning(Poco::format("%s(%s): Failed with: %s",__FUNCTION__,SerialNumber,E.displayText() ));
+            logger_.warning(Poco::format("%s(%s): Failed with: %s",__FUNCTION__,SerialNumber.c_str(),E.displayText() ));
         }
         return false;
     }
@@ -659,11 +691,11 @@ namespace uCentral::Storage {
         try {
             Session session_(Pool_->get());
 
-            session_ << "SELECT SerialNumber, UUID, Configuration FROM Devices WHERE SerialNumber=?",
+            session_ << "SELECT SerialNumber, UUID, Configuration FROM Devices WHERE SerialNumber='%s'",
                     into(SS),
                     into(UUID),
                     into(NewConfig),
-                    use(SerialNumber), now;
+                    SerialNumber.c_str(), now;
 
             if (SS.empty()) {
                 return false;
@@ -671,15 +703,15 @@ namespace uCentral::Storage {
 
             //  Let's update the last downloaded time
             uint64_t Now = time(nullptr);
-            session_ << "UPDATE Devices SET LastConfigurationDownload=? WHERE SerialNumber=?",
-                    use(Now),
-                    use(SerialNumber), now;
+            session_ << "UPDATE Devices SET LastConfigurationDownload=%Lu WHERE SerialNumber='%s'",
+                    Now,
+                    SerialNumber.c_str(), now;
 
             return true;
         }
         catch( const Poco::Exception & E)
         {
-            logger_.warning(Poco::format("%s(%s): Failed with: %s",__FUNCTION__,SerialNumber,E.displayText() ));
+            logger_.warning(Poco::format("%s(%s): Failed with: %s",__FUNCTION__,SerialNumber.c_str(),E.displayText() ));
         }
         return false;
     }

@@ -128,37 +128,38 @@ namespace uCentral::WebSocket {
                 case Poco::Net::WebSocket::FRAME_OP_PING: {
                     Logger_.information("PING(" + Conn_.SerialNumber + "): received.");
                     WS_.sendFrame("", 0, Poco::Net::WebSocket::FRAME_OP_PONG | Poco::Net::WebSocket::FRAME_FLAG_FIN);
-                }
+                    }
                     break;
 
                 case Poco::Net::WebSocket::FRAME_OP_PONG: {
                     Logger_.information("PONG(" + Conn_.SerialNumber + "): received.");
-                }
+                    }
                     break;
 
                 case Poco::Net::WebSocket::FRAME_OP_TEXT: {
-                    std::cout << "Incoming(" << Conn_.SerialNumber << "): " << IncomingSize << " bytes." << std::endl;
-                    Logger_.debug(
-                            Poco::format("Frame received (length=%d, flags=0x%x).", IncomingSize, unsigned(flags)));
-                    Conn_.RX += IncomingSize;
+                        std::cout << "Incoming(" << Conn_.SerialNumber << "): " << IncomingSize << " bytes." << std::endl;
+                        Logger_.debug(
+                                Poco::format("Frame received (length=%d, flags=0x%x).", IncomingSize, unsigned(flags)));
+                        Conn_.RX += IncomingSize;
 
-                    std::string ResponseDocument;
-                    ProcessMessage(ResponseDocument);
+                        std::string ResponseDocument;
+                        ProcessMessage(ResponseDocument);
 
-                    if (!ResponseDocument.empty()) {
-                        Conn_.TX += ResponseDocument.size();
-                        std::cout << "Returning(" << Conn_.SerialNumber << "): " << ResponseDocument.size() << " bytes"
-                                  << std::endl;
-                        WS_.sendFrame(ResponseDocument.c_str(), ResponseDocument.size());
-                    }
+                        if (!ResponseDocument.empty()) {
+                            Conn_.TX += ResponseDocument.size();
+                            std::cout << "Returning(" << Conn_.SerialNumber << "): " << ResponseDocument.size() << " bytes"
+                                      << std::endl;
+                            WS_.sendFrame(ResponseDocument.c_str(), ResponseDocument.size());
+                        }
                     }
                     break;
 
                 default: {
-                    Logger_.warning("UNKNOWN WS Frame operation: " + std::to_string(Op));
-                    std::cout << "WS: Unknown frame: " << Op << " Flags: " << flags << std::endl;
-                    Op = Poco::Net::WebSocket::FRAME_OP_CLOSE;
-                }
+                        Logger_.warning("UNKNOWN WS Frame operation: " + std::to_string(Op));
+                        std::cout << "WS: Unknown frame: " << Op << " Flags: " << flags << std::endl;
+                        Op = Poco::Net::WebSocket::FRAME_OP_CLOSE;
+                    }
+                    break;
             }
 
             if(!Conn_.SerialNumber.empty())
