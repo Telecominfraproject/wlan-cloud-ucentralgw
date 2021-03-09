@@ -60,47 +60,51 @@ namespace uCentral::WebSocket {
         auto object = result.extract<Poco::JSON::Object::Ptr>();
         Poco::DynamicStruct ds = *object;
 
-        if( Conn_.SerialNumber.empty() ) {
-            Conn_.SerialNumber = ds["serial"].toString();
-            uCentral::DeviceRegistry::Service::instance()->Register(Conn_.SerialNumber, this);
+        if( SerialNumber_.empty() ) {
+            SerialNumber_ = ds["serial"].toString();
+            Conn_ = uCentral::DeviceRegistry::Service::instance()->Register(SerialNumber_, this);
         }
 
-        if (ds.contains("state") && ds.contains("serial")) {
-            Logger_.information(Conn_.SerialNumber + ": updating statistics.");
-            std::string NewStatistics{ds["state"].toString()};
-            uCentral::Storage::Service::instance()->AddStatisticsData(Conn_.SerialNumber,
-                                                                      Conn_.UUID,
-                                                                      NewStatistics);
-            uCentral::DeviceRegistry::Service::instance()->SetStatistics(Conn_.SerialNumber,NewStatistics);
-        } else if (ds.contains("capab") && ds.contains("serial")) {
-            std::string Log{"Updating capabilities."};
-            uCentral::Storage::Service::instance()->AddLog(Conn_.SerialNumber,Log);
-            std::string NewCapabilities{ds["capab"].toString()};
-            uCentral::Storage::Service::instance()->UpdateDeviceCapabilities(Conn_.SerialNumber, NewCapabilities);
-        } else if (ds.contains("uuid") && ds.contains("serial") && ds.contains("active")) {
-            Conn_.UUID = ds["uuid"];
-            uint64_t Active = ds["active"];
-            std::string Log = Poco::format("Waiting to apply configuration from %Lu to %Lu.",Active,Conn_.UUID);
-            uCentral::Storage::Service::instance()->AddLog(Conn_.SerialNumber,Log);
-        } else if (ds.contains("uuid") && ds.contains("serial")) {
-            Conn_.UUID = ds["uuid"];
-            std::string NewConfig;
-            uint64_t NewConfigUUID;
+        if(Conn_!= nullptr) {
+            if(Conn_->Address.empty())
+                Conn_->Address = WS_.peerAddress().toString();
 
-            if (uCentral::Storage::Service::instance()->ExistingConfiguration(Conn_.SerialNumber, Conn_.UUID,
-                                                                              NewConfig, NewConfigUUID)) {
-                if (Conn_.UUID < NewConfigUUID) {
-                    std::string Log = Poco::format("Returning newer configuration %Lu.",Conn_.UUID);
-                    uCentral::Storage::Service::instance()->AddLog(Conn_.SerialNumber,Log);
+            if (ds.contains("state") && ds.contains("serial")) {
+                Logger_.information(SerialNumber_ + ": updating statistics.");
+                std::string NewStatistics{ds["state"].toString()};
+                uCentral::Storage::Service::instance()->AddStatisticsData(SerialNumber_,
+                                                                          Conn_->UUID,
+                                                                          NewStatistics);
+                uCentral::DeviceRegistry::Service::instance()->SetStatistics(SerialNumber_, NewStatistics);
+            } else if (ds.contains("capab") && ds.contains("serial")) {
+                std::string Log{"Updating capabilities."};
+                uCentral::Storage::Service::instance()->AddLog(SerialNumber_, Log);
+                std::string NewCapabilities{ds["capab"].toString()};
+                uCentral::Storage::Service::instance()->UpdateDeviceCapabilities(SerialNumber_, NewCapabilities);
+            } else if (ds.contains("uuid") && ds.contains("serial") && ds.contains("active")) {
+                Conn_->UUID = ds["uuid"];
+                uint64_t Active = ds["active"];
+                std::string Log = Poco::format("Waiting to apply configuration from %Lu to %Lu.", Active, Conn_->UUID);
+                uCentral::Storage::Service::instance()->AddLog(SerialNumber_, Log);
+            } else if (ds.contains("uuid") && ds.contains("serial")) {
+                Conn_->UUID = ds["uuid"];
+                std::string NewConfig;
+                uint64_t NewConfigUUID;
 
-                    Response = "{ \"cfg\" : " + NewConfig + "}";
+                if (uCentral::Storage::Service::instance()->ExistingConfiguration(SerialNumber_, Conn_->UUID,
+                                                                                  NewConfig, NewConfigUUID)) {
+                    if (Conn_->UUID < NewConfigUUID) {
+                        std::string Log = Poco::format("Returning newer configuration %Lu.", Conn_->UUID);
+                        uCentral::Storage::Service::instance()->AddLog(SerialNumber_, Log);
+                        Response = "{ \"cfg\" : " + NewConfig + "}";
+                    }
                 }
+            } else if (ds.contains("log")) {
+                auto log = ds["log"].toString();
+                uCentral::Storage::Service::instance()->AddLog(SerialNumber_, log);
+            } else {
+                std::cout << "UNKNOWN_MESSAGE(" << SerialNumber_ << "): " << IncomingMessage_ << std::endl;
             }
-        } else if (ds.contains("log")) {
-            auto log = ds["log"].toString();
-            uCentral::Storage::Service::instance()->AddLog(Conn_.SerialNumber,log);
-        } else {
-            std::cout << "UNKNOWN_MESSAGE(" << Conn_.SerialNumber << "): " << IncomingMessage_ << std::endl;
         }
     }
 
@@ -113,7 +117,7 @@ namespace uCentral::WebSocket {
         memset(IncomingMessage_, 0, sizeof(IncomingMessage_));
 
         try {
-            IncomingSize = WS_.receiveFrame(IncomingMessage_, sizeof(IncomingMessage_), flags);
+            IncomingSize = WS_.receiveFrame(IncomingMessage_,sizeof(IncomingMessage_), flags);
             Op = flags & Poco::Net::WebSocket::FRAME_OP_BITMASK;
 
             if(IncomingSize==0 && flags == 0 && Op == 0)
@@ -122,32 +126,33 @@ namespace uCentral::WebSocket {
                 return;
             }
 
-            Conn_.MessageCount++;
-
             switch (Op) {
                 case Poco::Net::WebSocket::FRAME_OP_PING: {
-                    Logger_.information("PING(" + Conn_.SerialNumber + "): received.");
+                    Logger_.information("PING(" + SerialNumber_ + "): received.");
                     WS_.sendFrame("", 0, Poco::Net::WebSocket::FRAME_OP_PONG | Poco::Net::WebSocket::FRAME_FLAG_FIN);
                     }
                     break;
 
                 case Poco::Net::WebSocket::FRAME_OP_PONG: {
-                    Logger_.information("PONG(" + Conn_.SerialNumber + "): received.");
+                    Logger_.information("PONG(" + SerialNumber_ + "): received.");
                     }
                     break;
 
                 case Poco::Net::WebSocket::FRAME_OP_TEXT: {
-                        std::cout << "Incoming(" << Conn_.SerialNumber << "): " << IncomingSize << " bytes." << std::endl;
+                        std::cout << "Incoming(" << SerialNumber_ << "): " << IncomingSize << " bytes." << std::endl;
                         Logger_.debug(
                                 Poco::format("Frame received (length=%d, flags=0x%x).", IncomingSize, unsigned(flags)));
-                        Conn_.RX += IncomingSize;
 
                         std::string ResponseDocument;
                         ProcessMessage(ResponseDocument);
 
+                        if(Conn_!= nullptr)
+                                Conn_->RX += IncomingSize;
+
                         if (!ResponseDocument.empty()) {
-                            Conn_.TX += ResponseDocument.size();
-                            std::cout << "Returning(" << Conn_.SerialNumber << "): " << ResponseDocument.size() << " bytes"
+                            if(Conn_!= nullptr)
+                                Conn_->TX += ResponseDocument.size();
+                            std::cout << "Returning(" << SerialNumber_ << "): " << ResponseDocument.size() << " bytes"
                                       << std::endl;
                             WS_.sendFrame(ResponseDocument.c_str(), ResponseDocument.size());
                         }
@@ -162,11 +167,11 @@ namespace uCentral::WebSocket {
                     break;
             }
 
-            if(!Conn_.SerialNumber.empty())
-                uCentral::DeviceRegistry::Service::instance()->SetState(Conn_.SerialNumber,Conn_);
+            if(Conn_!= nullptr)
+                Conn_->MessageCount++;
         }
         catch (const Poco::Exception &exc) {
-            std::cout << "Caught a more generic Poco exception: " << exc.message() << std::endl;
+            std::cout << "Caught a more generic Poco exception: " << exc.message() << "Message:" << IncomingMessage_ << std::endl;
             delete this;
         }
     }
@@ -174,12 +179,12 @@ namespace uCentral::WebSocket {
     bool WSConnection::SendCommand(const std::string &Cmd) {
         std::lock_guard<std::mutex> guard(mutex_);
 
-        Logger_.information(Poco::format("Sending commnd to %s",Conn_.SerialNumber));
+        Logger_.information(Poco::format("Sending commnd to %s",SerialNumber_.c_str()));
         return true;
     }
 
     WSConnection::~WSConnection() {
-        uCentral::DeviceRegistry::Service::instance()->UnRegister(Conn_.SerialNumber,this);
+        uCentral::DeviceRegistry::Service::instance()->UnRegister(SerialNumber_,this);
         SocketReactor_.removeEventHandler(WS_,Poco::NObserver<WSConnection,Poco::Net::ReadableNotification>(*this,&WSConnection::OnSocketReadable));
         SocketReactor_.removeEventHandler(WS_,Poco::NObserver<WSConnection,Poco::Net::ShutdownNotification>(*this,&WSConnection::OnSocketShutdown));
         WS_.shutdown();

@@ -7,6 +7,7 @@
 #include "Poco/Data/PostgreSQL/Connector.h"
 #include "Poco/Data/PostgreSQL/SessionHandle.h"
 #include "Poco/Data/MySQL/Connector.h"
+#include "Poco/Data/MySQL/SessionHandle.h"
 #include "Poco/Data/ODBC/Connector.h"
 #include "Poco/Data/RecordSet.h"
 #include "Poco/DateTime.h"
@@ -80,7 +81,17 @@ namespace uCentral::Storage {
         else if(DBType == "mysql") {
             auto NumSessions = uCentral::Daemon::instance().config().getInt("storage.type.mysql.maxsessions",64);
             auto IdleTime = uCentral::Daemon::instance().config().getInt("storage.type.mysql.idletime",60);
+            auto Host = uCentral::Daemon::instance().config().getString("storage.type.mysql.host");
+            auto Username = uCentral::Daemon::instance().config().getString("storage.type.mysql.username");
+            auto Password = uCentral::Daemon::instance().config().getString("storage.type.mysql.password");
+            auto Database = uCentral::Daemon::instance().config().getString("storage.type.mysql.database");
+            auto Port = uCentral::Daemon::instance().config().getInt("storage.type.mysql.port");
+            auto ConnectionTimeout = uCentral::Daemon::instance().config().getString("storage.type.mysql.connectiontimeout");
+
             Poco::Data::MySQL::Connector::registerConnector();
+
+            //host=localhost user=stephb password=snoopy99 dbname=ucentral port=5432 connect_timeout=60
+
         }
         else if(DBType == "odbc")  {
             auto NumSessions = uCentral::Daemon::instance().config().getInt("storage.type.odbc.maxsessions",64);

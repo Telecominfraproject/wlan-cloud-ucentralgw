@@ -118,6 +118,11 @@ components:
         UUID:
           type: integer
           format: int64
+        connected:
+          type: boolean
+        lastContact:
+          type: string
+          format: 'date-time'
 
     DeviceCapabilities:
       type: object

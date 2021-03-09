@@ -5,6 +5,7 @@
 #include "uDeviceRegistry.h"
 
 #include "uCentralWebSocketServer.h"
+#include "RESTAPI_Handler.h"
 
 namespace uCentral::DeviceRegistry {
     Service *Service::instance_ = nullptr;
@@ -35,7 +36,7 @@ namespace uCentral::DeviceRegistry {
 
         if(Device != Devices_.end())
         {
-            Statistics = Device->second.get<2>();
+            Statistics = Device->second.LastStats;
             return true;
         }
 
@@ -49,18 +50,7 @@ namespace uCentral::DeviceRegistry {
 
         if(Device != Devices_.end())
         {
-            Device->second.set<2>(Statistics);
-        }
-    }
-
-    void Service::SetState(const std::string &SerialNumber, const ConnectionState & State) {
-        std::lock_guard<std::mutex> guard(mutex_);
-
-        auto Device = Devices_.find(SerialNumber);
-
-        if(Device != Devices_.end())
-        {
-            Device->second.set<1>(State);
+            Device->second.LastStats = Statistics;
         }
     }
 
@@ -71,30 +61,59 @@ namespace uCentral::DeviceRegistry {
 
         if(Device != Devices_.end())
         {
-            State = Device->second.get<1>();
+            State = *Device->second.Conn_;
             return true;
         }
 
         return false;
     }
 
-    void Service::Register(const std::string & SerialNumber, void *Ptr)
+    std::shared_ptr<ConnectionState> Service::Register(const std::string & SerialNumber, void *Ptr)
     {
         std::lock_guard<std::mutex> guard(mutex_);
 
-        DeviceRecord R;
+        auto Device = Devices_.find(SerialNumber);
 
-        R.set<0>(Ptr);
-        R.set<1>(ConnectionState());
-        R.set<2>("");
+        if( Device == Devices_.end()) {
 
-        Devices_[SerialNumber] = R;
+            ConnectionEntry E;
+
+            E.WSConn_ = Ptr;
+            E.Conn_ = std::shared_ptr<ConnectionState>(new ConnectionState);
+            E.Conn_->SerialNumber = SerialNumber;
+            E.Conn_->LastContact = time(nullptr);
+            E.Conn_->Connected = true ;
+            E.Conn_->UUID = 0 ;
+            E.Conn_->MessageCount = 0 ;
+            E.Conn_->Address = "";
+            E.Conn_->TX = 0 ;
+            E.Conn_->RX = 0;
+
+            Devices_[SerialNumber] = E;
+
+            return E.Conn_;
+        }
+        else
+        {
+            Device->second.WSConn_ = Ptr;
+            Device->second.Conn_->Connected = true;
+            Device->second.Conn_->LastContact = time(nullptr);
+
+            return Device->second.Conn_;
+        }
     }
 
     void Service::UnRegister(const std::string & SerialNumber, void *Ptr) {
         std::lock_guard<std::mutex> guard(mutex_);
 
-        Devices_.erase(SerialNumber);
+        auto Device = Devices_.find(SerialNumber);
+
+        if( Device != Devices_.end()) {
+            Device->second.Conn_->Address = "";
+            Device->second.WSConn_ = nullptr;
+            Device->second.Conn_->Connected = false;
+            Device->second.Conn_->LastContact = time(nullptr);
+        }
     }
 
     bool Service::SendCommand(const std::string & SerialNumber, const std::string &Cmd)
@@ -104,11 +123,11 @@ namespace uCentral::DeviceRegistry {
         auto Device = Devices_.find(SerialNumber);
 
         if(Device != Devices_.end()) {
-            auto *WSConn = static_cast<uCentral::WebSocket::WSConnection *>(Device->second.get<0>());
-
-            WSConn->SendCommand(Cmd);
-
-            return true;
+            if(Device->second.WSConn_!= nullptr) {
+                auto *WSConn = static_cast<uCentral::WebSocket::WSConnection *>(Device->second.WSConn_);
+                WSConn->SendCommand(Cmd);
+                return true;
+            }
         }
 
         return false;
@@ -124,6 +143,8 @@ namespace uCentral::DeviceRegistry {
         Obj.set("rxBytes",RX);
         Obj.set("messageCount",MessageCount);
         Obj.set("UUID",UUID);
+        Obj.set("connected",Connected);
+        Obj.set("lastContact",RESTAPIHandler::to_RFC3339(LastContact));
 
         return Obj;
     }

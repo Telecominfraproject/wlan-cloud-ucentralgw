@@ -18,13 +18,20 @@ namespace uCentral::DeviceRegistry {
         std::string Address;
         uint64_t    UUID;
         uint64_t    TX, RX;
+        bool        Connected;
+        uint64_t    LastContact;
         Poco::JSON::Object to_JSON();
+    };
+
+    struct ConnectionEntry {
+        void                                * WSConn_;
+        std::shared_ptr<ConnectionState>    Conn_;
+        std::string        LastStats;
     };
 
     class Service : public SubSystemServer {
     public:
 
-        typedef Poco::Tuple<void *,ConnectionState,std::string> DeviceRecord;
         Service() noexcept;
 
         int Start() override;
@@ -40,15 +47,15 @@ namespace uCentral::DeviceRegistry {
         bool GetStatistics(const std::string &SerialNumber, std::string & Statistics);
         void SetStatistics(const std::string &SerialNumber, const std::string &stats);
         bool GetState(const std::string & SerialNumber, ConnectionState & State);
-        void SetState(const std::string & SerialNumber, const ConnectionState & State);
-        void Register(const std::string & SerialNumber, void *);
+        void SetState(const std::string & SerialNumber, ConnectionState & State);
+        std::shared_ptr<ConnectionState> Register(const std::string & SerialNumber, void *);
         void UnRegister(const std::string & SerialNumber, void *);
         bool SendCommand(const std::string & SerialNumber, const std::string &Cmd);
 
     private:
         static Service                          *instance_;
         std::mutex                              mutex_;
-        std::map<std::string,DeviceRecord>      Devices_;
+        std::map<std::string,ConnectionEntry>   Devices_;
     };
 
 };  // namespace
