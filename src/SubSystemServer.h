@@ -5,6 +5,8 @@
 #ifndef UCENTRAL_SUBSYSTEMSERVER_H
 #define UCENTRAL_SUBSYSTEMSERVER_H
 
+#include <mutex>
+
 #include "Poco/Util/Application.h"
 #include "Poco/Util/ServerApplication.h"
 #include "Poco/Util/Option.h"
