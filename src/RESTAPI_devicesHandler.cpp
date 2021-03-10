@@ -32,7 +32,7 @@ void RESTAPI_devicesHandler::handleRequest(HTTPServerRequest& Request, HTTPServe
 
             std::vector<uCentralDevice> Devices;
 
-            uCentral::Storage::Service::instance()->GetDevices(Offset, Limit, Devices);
+            uCentral::Storage::GetDevices(Offset, Limit, Devices);
 
             Poco::JSON::Array Objects;
             for (auto i:Devices)

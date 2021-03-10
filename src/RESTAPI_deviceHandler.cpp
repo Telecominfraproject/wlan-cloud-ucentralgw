@@ -19,7 +19,7 @@ void RESTAPI_deviceHandler::handleRequest(HTTPServerRequest& Request, HTTPServer
         std::string     SerialNumber = GetBinding("serialNumber","0xdeadbeef");
         uCentralDevice  Device;
 
-        if(uCentral::Storage::Service::instance()->GetDevice(SerialNumber,Device))
+        if(uCentral::Storage::GetDevice(SerialNumber,Device))
         {
             Poco::JSON::Object  Obj = Device.to_json();
             ReturnObject(Obj,Response);
@@ -31,7 +31,7 @@ void RESTAPI_deviceHandler::handleRequest(HTTPServerRequest& Request, HTTPServer
     } else if(Request.getMethod() == Poco::Net::HTTPRequest::HTTP_DELETE) {
         std::string SerialNumber = GetBinding("serialNumber", "0xdeadbeef");
 
-        if (uCentral::Storage::Service::instance()->DeleteDevice(SerialNumber)) {
+        if (uCentral::Storage::DeleteDevice(SerialNumber)) {
             OK(Response);
         } else {
             NotFound(Response);
@@ -47,7 +47,7 @@ void RESTAPI_deviceHandler::handleRequest(HTTPServerRequest& Request, HTTPServer
         if(Device.UUID==0)
             Device.UUID = time(nullptr);
 
-        if (uCentral::Storage::Service::instance()->CreateDevice(Device)) {
+        if (uCentral::Storage::CreateDevice(Device)) {
             OK(Response);
         } else {
             BadRequest(Response);
@@ -60,7 +60,7 @@ void RESTAPI_deviceHandler::handleRequest(HTTPServerRequest& Request, HTTPServer
 
         uCentralDevice  Device;
         Device.from_JSON(Obj);
-        if (uCentral::Storage::Service::instance()->UpdateDevice(Device)) {
+        if (uCentral::Storage::UpdateDevice(Device)) {
             OK(Response);
         } else {
             BadRequest(Response);

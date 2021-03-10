@@ -37,13 +37,16 @@ using Poco::Net::HTTPServerParams;
 using Poco::JSON::Parser;
 
 namespace uCentral::RESTAPI {
+    int Start();
+    void Stop();
+
     class Service : public SubSystemServer {
 
     public:
         Service() noexcept;
 
-        int Start() override;
-        void Stop() override;
+        friend int Start();
+        friend void Stop();
 
         static Service *instance() {
             if (instance_ == nullptr) {
@@ -53,6 +56,9 @@ namespace uCentral::RESTAPI {
         }
 
     private:
+        int Start() override;
+        void Stop() override;
+
         static Service *instance_;
         std::vector<std::shared_ptr<Poco::Net::HTTPServer>>   RESTServers_;
     };

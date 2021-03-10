@@ -16,6 +16,14 @@ namespace uCentral::RESTAPI {
 
     Service *Service::instance_ = nullptr;
 
+    int Start() {
+        return uCentral::RESTAPI::Service::instance()->Start();
+    }
+
+    void Stop() {
+        uCentral::RESTAPI::Service::instance()->Stop();
+    }
+
     Service::Service() noexcept:
             SubSystemServer("RESTAPIServer", "RESTAPIServer", "ucentral.restapi")
     {

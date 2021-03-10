@@ -9,6 +9,14 @@ namespace uCentral::WebSocket {
 
     Service *Service::instance_ = nullptr;
 
+    int Start() {
+        return uCentral::WebSocket::Service::instance()->Start();
+    }
+
+    void Stop() {
+        uCentral::WebSocket::Service::instance()->Stop();
+    }
+
     Service::Service() noexcept:
             SubSystemServer("WebSocketServer", "WS-SVR", "ucentral.websocket")
     {
@@ -62,7 +70,7 @@ namespace uCentral::WebSocket {
 
         if( SerialNumber_.empty() ) {
             SerialNumber_ = ds["serial"].toString();
-            Conn_ = uCentral::DeviceRegistry::Service::instance()->Register(SerialNumber_, this);
+            Conn_ = uCentral::DeviceRegistry::Register(SerialNumber_, this);
         }
 
         if(Conn_!= nullptr) {
@@ -72,36 +80,34 @@ namespace uCentral::WebSocket {
             if (ds.contains("state") && ds.contains("serial")) {
                 Logger_.information(SerialNumber_ + ": updating statistics.");
                 std::string NewStatistics{ds["state"].toString()};
-                uCentral::Storage::Service::instance()->AddStatisticsData(SerialNumber_,
-                                                                          Conn_->UUID,
-                                                                          NewStatistics);
-                uCentral::DeviceRegistry::Service::instance()->SetStatistics(SerialNumber_, NewStatistics);
+                uCentral::Storage::AddStatisticsData(SerialNumber_, Conn_->UUID, NewStatistics);
+                uCentral::DeviceRegistry::SetStatistics(SerialNumber_, NewStatistics);
             } else if (ds.contains("capab") && ds.contains("serial")) {
                 std::string Log{"Updating capabilities."};
-                uCentral::Storage::Service::instance()->AddLog(SerialNumber_, Log);
+                uCentral::Storage::AddLog(SerialNumber_, Log);
                 std::string NewCapabilities{ds["capab"].toString()};
-                uCentral::Storage::Service::instance()->UpdateDeviceCapabilities(SerialNumber_, NewCapabilities);
+                uCentral::Storage::UpdateDeviceCapabilities(SerialNumber_, NewCapabilities);
             } else if (ds.contains("uuid") && ds.contains("serial") && ds.contains("active")) {
                 Conn_->UUID = ds["uuid"];
                 uint64_t Active = ds["active"];
                 std::string Log = Poco::format("Waiting to apply configuration from %Lu to %Lu.", Active, Conn_->UUID);
-                uCentral::Storage::Service::instance()->AddLog(SerialNumber_, Log);
+                uCentral::Storage::AddLog(SerialNumber_, Log);
             } else if (ds.contains("uuid") && ds.contains("serial")) {
                 Conn_->UUID = ds["uuid"];
                 std::string NewConfig;
                 uint64_t NewConfigUUID;
 
-                if (uCentral::Storage::Service::instance()->ExistingConfiguration(SerialNumber_, Conn_->UUID,
+                if (uCentral::Storage::ExistingConfiguration(SerialNumber_, Conn_->UUID,
                                                                                   NewConfig, NewConfigUUID)) {
                     if (Conn_->UUID < NewConfigUUID) {
                         std::string Log = Poco::format("Returning newer configuration %Lu.", Conn_->UUID);
-                        uCentral::Storage::Service::instance()->AddLog(SerialNumber_, Log);
+                        uCentral::Storage::AddLog(SerialNumber_, Log);
                         Response = "{ \"cfg\" : " + NewConfig + "}";
                     }
                 }
             } else if (ds.contains("log")) {
                 auto log = ds["log"].toString();
-                uCentral::Storage::Service::instance()->AddLog(SerialNumber_, log);
+                uCentral::Storage::AddLog(SerialNumber_, log);
             } else {
                 std::cout << "UNKNOWN_MESSAGE(" << SerialNumber_ << "): " << IncomingMessage_ << std::endl;
             }
@@ -184,7 +190,7 @@ namespace uCentral::WebSocket {
     }
 
     WSConnection::~WSConnection() {
-        uCentral::DeviceRegistry::Service::instance()->UnRegister(SerialNumber_,this);
+        uCentral::DeviceRegistry::UnRegister(SerialNumber_,this);
         SocketReactor_.removeEventHandler(WS_,Poco::NObserver<WSConnection,Poco::Net::ReadableNotification>(*this,&WSConnection::OnSocketReadable));
         SocketReactor_.removeEventHandler(WS_,Poco::NObserver<WSConnection,Poco::Net::ShutdownNotification>(*this,&WSConnection::OnSocketShutdown));
         WS_.shutdown();

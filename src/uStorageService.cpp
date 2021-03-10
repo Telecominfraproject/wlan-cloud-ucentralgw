@@ -33,6 +33,78 @@ namespace uCentral::Storage {
             {
     }
 
+    int Start() {
+        return uCentral::Storage::Service::instance()->Start();
+    }
+
+    void Stop() {
+        uCentral::Storage::Service::instance()->Stop();
+    }
+
+    bool AddLog(std::string & SerialNumber, std::string & Log) {
+        return uCentral::Storage::Service::instance()->AddLog_i(SerialNumber,Log);
+    }
+
+    bool AddStatisticsData(std::string &SerialNUmber, uint64_t CfgUUID, std::string &NewStats) {
+        return uCentral::Storage::Service::instance()->AddStatisticsData_i(SerialNUmber, CfgUUID, NewStats);
+    }
+
+    bool GetStatisticsData(std::string &SerialNUmber, uint64_t FromDate, uint64_t ToDate, uint64_t Offset, uint64_t HowMany, std::vector<uCentralStatistics> &Stats) {
+        return uCentral::Storage::Service::instance()->GetStatisticsData_i(SerialNUmber, FromDate, ToDate, Offset, HowMany, Stats);
+    }
+
+    bool DeleteStatisticsData(std::string &SerialNUmber, uint64_t FromDate, uint64_t ToDate ) {
+        return uCentral::Storage::Service::instance()->DeleteStatisticsData_i(SerialNUmber, FromDate, ToDate );
+    }
+
+    bool UpdateDeviceConfiguration(std::string &SerialNUmber, std::string &Configuration) {
+        return uCentral::Storage::Service::instance()->UpdateDeviceConfiguration_i(SerialNUmber, Configuration);
+    }
+
+    bool CreateDevice(uCentralDevice &Device) {
+        return uCentral::Storage::Service::instance()->CreateDevice_i(Device);
+    }
+
+    bool GetDevice(std::string &SerialNUmber, uCentralDevice &Device) {
+        return uCentral::Storage::Service::instance()->GetDevice_i(SerialNUmber, Device);
+    }
+
+    bool GetDevices(uint64_t From, uint64_t Howmany, std::vector<uCentralDevice> &Devices) {
+        return uCentral::Storage::Service::instance()->GetDevices_i(From, Howmany, Devices);
+    }
+
+    bool DeleteDevice(std::string &SerialNUmber) {
+        return uCentral::Storage::Service::instance()->DeleteDevice_i(SerialNUmber);
+    }
+
+    bool UpdateDevice(uCentralDevice &Device) {
+        return uCentral::Storage::Service::instance()->UpdateDevice_i(Device);
+    }
+
+    bool ExistingConfiguration(std::string &SerialNumber, uint64_t CurrentConfig, std::string &NewConfig, uint64_t &NewerUUID) {
+        return uCentral::Storage::Service::instance()->ExistingConfiguration_i(SerialNumber, CurrentConfig, NewConfig, NewerUUID);
+    }
+
+    bool UpdateDeviceCapabilities(std::string &SerialNUmber, std::string &State) {
+        return uCentral::Storage::Service::instance()->UpdateDeviceCapabilities_i(SerialNUmber, State);
+    }
+
+    bool GetDeviceCapabilities(std::string &SerialNUmber, uCentralCapabilities & Capabilities) {
+        return uCentral::Storage::Service::instance()->GetDeviceCapabilities_i(SerialNUmber, Capabilities);
+    }
+
+    bool DeleteDeviceCapabilities(std::string & SerialNumber) {
+        return uCentral::Storage::Service::instance()->DeleteDeviceCapabilities_i(SerialNumber);
+    }
+
+    bool GetLogData(std::string &SerialNUmber, uint64_t FromDate, uint64_t ToDate, uint64_t Offset, uint64_t HowMany, std::vector<uCentralDeviceLog> &Stats) {
+        return uCentral::Storage::Service::instance()->GetLogData_i(SerialNUmber, FromDate, ToDate, Offset, HowMany, Stats);
+    }
+
+    bool DeleteLogData(std::string &SerialNUmber, uint64_t FromDate, uint64_t ToDate) {
+        return uCentral::Storage::Service::instance()->DeleteLogData_i(SerialNUmber, FromDate, ToDate);
+    }
+
     int Service::Setup_MySQL() {
 
         auto NumSessions = uCentral::Daemon::instance().config().getInt("storage.type.mysql.maxsessions",64);
@@ -142,6 +214,7 @@ namespace uCentral::Storage {
 
         session_ << "CREATE INDEX IF NOT EXISTS LogSerial ON DeviceLogs (SerialNumber ASC, Recorded ASC)", now;
 
+
         return 0;
     }
 
@@ -238,37 +311,35 @@ namespace uCentral::Storage {
 
     int Service::Start() {
         std::lock_guard<std::mutex> guard(mutex_);
-        SubSystemServer::logger().information("Starting.");
+
+        logger_.information("Starting.");
         std::string DBType = uCentral::Daemon::instance().config().getString("storage.type");
 
         if(DBType == "sqlite") {
             return Setup_SQLite();
         }
-        else if(DBType == "postgresql")
-        {
+        else if(DBType == "postgresql") {
             return Setup_PostgreSQL();
         }
         else if(DBType == "mysql") {
             return Setup_MySQL();
         }
-        else if(DBType == "odbc")  {
+        else if(DBType == "odbc") {
             return Setup_ODBC();
         }
         return 0;
     }
 
     void Service::Stop() {
-        SubSystemServer::logger().information("Stopping.");
+        logger_.information("Stopping.");
     }
 
-    bool Service::AddStatisticsData(std::string &SerialNumber, uint64_t CfgUUID, std::string &NewStats) {
+    bool Service::AddStatisticsData_i(std::string &SerialNumber, uint64_t CfgUUID, std::string &NewStats) {
 
-        uCentral::DeviceRegistry::Service::instance()->SetStatistics(SerialNumber,NewStats);
-
-        // std::lock_guard<std::mutex> guard(mutex_);
+        uCentral::DeviceRegistry::SetStatistics(SerialNumber,NewStats);
 
         try {
-            logger().information("Device:" + SerialNumber + " Stats size:" + std::to_string(NewStats.size()));
+            logger_.information("Device:" + SerialNumber + " Stats size:" + std::to_string(NewStats.size()));
 
             // std::cout << "STATS:" << NewStats << std::endl;
 
@@ -289,7 +360,7 @@ namespace uCentral::Storage {
         return false;
     }
 
-    bool Service::GetStatisticsData(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate, uint64_t Offset, uint64_t HowMany,
+    bool Service::GetStatisticsData_i(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate, uint64_t Offset, uint64_t HowMany,
                                     std::vector<uCentralStatistics> &Stats) {
 
         typedef Poco::Tuple<std::string, uint64_t, std::string, uint64_t> StatRecord;
@@ -348,7 +419,7 @@ namespace uCentral::Storage {
         return false;
     }
 
-    bool Service::DeleteStatisticsData(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate) {
+    bool Service::DeleteStatisticsData_i(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate) {
         try {
             Session session_ = Pool_->get();
 
@@ -382,7 +453,7 @@ namespace uCentral::Storage {
         return false;
     }
 
-    bool Service::AddLog(std::string & SerialNumber, std::string & Log)
+    bool Service::AddLog_i(std::string &SerialNumber, std::string &Log)
     {
         uint64_t Now = time(nullptr);
         Session session_ = Pool_->get();
@@ -400,7 +471,7 @@ namespace uCentral::Storage {
         return false;
     }
 
-    bool Service::GetLogData(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate, uint64_t Offset, uint64_t HowMany,
+    bool Service::GetLogData_i(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate, uint64_t Offset, uint64_t HowMany,
                     std::vector<uCentralDeviceLog> &Stats) {
         typedef Poco::Tuple<std::string, uint64_t> StatRecord;
         typedef std::vector<StatRecord> RecordList;
@@ -455,7 +526,7 @@ namespace uCentral::Storage {
         return false;
     }
 
-    bool Service::DeleteLogData(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate) {
+    bool Service::DeleteLogData_i(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate) {
         try {
             Session session_ = Pool_->get();
 
@@ -489,9 +560,7 @@ namespace uCentral::Storage {
         return false;
     }
 
-    bool Service::UpdateDeviceConfiguration(std::string &SerialNumber, std::string & Configuration) {
-        // std::lock_guard<std::mutex> guard(mutex_);
-
+    bool Service::UpdateDeviceConfiguration_i(std::string &SerialNumber, std::string & Configuration) {
         try {
             uCentral::Config::Config    Cfg(Configuration);
 
@@ -531,7 +600,7 @@ namespace uCentral::Storage {
         return false;
     }
 
-    bool Service::CreateDevice(uCentralDevice &DeviceDetails) {
+    bool Service::CreateDevice_i(uCentralDevice &DeviceDetails) {
         // std::lock_guard<std::mutex> guard(mutex_);
 
         std::string SerialNumber;
@@ -578,7 +647,7 @@ namespace uCentral::Storage {
         return false;
     }
 
-    bool Service::DeleteDevice(std::string &SerialNumber) {
+    bool Service::DeleteDevice_i(std::string &SerialNumber) {
         // std::lock_guard<std::mutex> guard(mutex_);
 
         try {
@@ -596,7 +665,7 @@ namespace uCentral::Storage {
         return false;
     }
 
-    bool Service::GetDevice(std::string &SerialNumber, uCentralDevice &DeviceDetails) {
+    bool Service::GetDevice_i(std::string &SerialNumber, uCentralDevice &DeviceDetails) {
         // std::lock_guard<std::mutex> guard(mutex_);
 
         try {
@@ -638,7 +707,7 @@ namespace uCentral::Storage {
         return false;
     }
 
-    bool Service::UpdateDevice(uCentralDevice &NewConfig) {
+    bool Service::UpdateDevice_i(uCentralDevice &NewConfig) {
         // std::lock_guard<std::mutex> guard(mutex_);
 
         try {
@@ -665,7 +734,7 @@ namespace uCentral::Storage {
     }
 
 
-    uint64_t Service::GetDevices(uint64_t From, uint64_t HowMany, std::vector<uCentralDevice> &Devices) {
+    bool Service::GetDevices_i(uint64_t From, uint64_t HowMany, std::vector<uCentralDevice> &Devices) {
 
         typedef Poco::Tuple<
                 std::string,
@@ -679,8 +748,6 @@ namespace uCentral::Storage {
                 uint64_t,
                 uint64_t> DeviceRecord;
         typedef std::vector<DeviceRecord> RecordList;
-
-        // std::lock_guard<std::mutex> guard(mutex_);
 
         RecordList Records;
 
@@ -717,15 +784,16 @@ namespace uCentral::Storage {
 
                 Devices.push_back(R);
             }
+            return true;
         }
         catch( const Poco::Exception & E)
         {
             logger_.warning(Poco::format("%s: Failed with: %s",__FUNCTION__,E.displayText() ));
         }
-        return Devices.size();
+        return false;
     }
 
-    bool Service::UpdateDeviceCapabilities(std::string &SerialNumber, std::string &Capabs) {
+    bool Service::UpdateDeviceCapabilities_i(std::string &SerialNumber, std::string &Capabs) {
         // std::lock_guard<std::mutex> guard(mutex_);
 
         try {
@@ -745,14 +813,14 @@ namespace uCentral::Storage {
                         Capabs.c_str(),
                         Now,
                         Now, now;
-                logger().information("Done adding capabilities for " + SerialNumber);
+                logger_.information("Done adding capabilities for " + SerialNumber);
             } else {
-                logger().information("Updating capabilities for " + SerialNumber);
+                logger_.information("Updating capabilities for " + SerialNumber);
                 session_ << "UPDATE Capabilities SET Capabilities='%s', LastUpdate=%Lu WHERE SerialNumber='%s'",
                         Capabs.c_str(),
                         Now,
                         SerialNumber.c_str(), now;
-                logger().information("Done updating capabilities for " + SerialNumber);
+                logger_.information("Done updating capabilities for " + SerialNumber);
             }
             return true;
         }
@@ -763,7 +831,7 @@ namespace uCentral::Storage {
         return false;
     }
 
-    bool Service::GetDeviceCapabilities(std::string &SerialNumber, uCentralCapabilities &Caps) {
+    bool Service::GetDeviceCapabilities_i(std::string &SerialNumber, uCentralCapabilities &Caps) {
         // std::lock_guard<std::mutex> guard(mutex_);
 
         try {
@@ -789,7 +857,7 @@ namespace uCentral::Storage {
         return false;
     }
 
-    bool Service::DeleteDeviceCapabilities(std::string &SerialNumber) {
+    bool Service::DeleteDeviceCapabilities_i(std::string &SerialNumber) {
         // std::lock_guard<std::mutex> guard(mutex_);
 
         try {
@@ -807,7 +875,7 @@ namespace uCentral::Storage {
         return false;
     }
 
-    bool Service::ExistingConfiguration(std::string &SerialNumber, uint64_t CurrentConfig, std::string &NewConfig, uint64_t &UUID) {
+    bool Service::ExistingConfiguration_i(std::string &SerialNumber, uint64_t CurrentConfig, std::string &NewConfig, uint64_t &UUID) {
         // std::lock_guard<std::mutex> guard(mutex_);
         std::string SS;
         try {

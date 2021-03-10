@@ -22,7 +22,7 @@ void RESTAPI_oauth2Handler::handleRequest(HTTPServerRequest & Request, HTTPServe
 
             uCentral::Auth::WebToken Token;
 
-            if (uCentral::Auth::Service::instance()->Authorize(userId, password, Token)) {
+            if (uCentral::Auth::Authorize(userId, password, Token)) {
                 PrepareResponse(Response);
                 auto ReturnObj = Token.to_JSON();
                 ReturnObject(ReturnObj, Response);
@@ -37,7 +37,7 @@ void RESTAPI_oauth2Handler::handleRequest(HTTPServerRequest & Request, HTTPServe
             auto Token = GetBinding("token", "...");
 
             if (Token == SessionToken_)
-                uCentral::Auth::Service::instance()->Logout(Token);
+                uCentral::Auth::Logout(Token);
             OK(Response);
         }
         return;

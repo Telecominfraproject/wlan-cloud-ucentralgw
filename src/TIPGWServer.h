@@ -32,12 +32,15 @@ using Poco::Logger;
 
 namespace uCentral::TIPGW {
 
+    int Start();
+    void Stop();
+
     class Service : public SubSystemServer {
     public:
         Service() noexcept;
 
-        int Start() override;
-        void Stop() override;
+        friend int Start();
+        friend void Stop();
 
         static Service *instance() {
             if (instance_ == nullptr) {
@@ -46,8 +49,10 @@ namespace uCentral::TIPGW {
             return instance_;
         }
 
-
     private:
+        int Start() override;
+        void Stop() override;
+
         static Service *instance_;
     };
 

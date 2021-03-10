@@ -35,11 +35,11 @@ public:
     SubSystemServer(const std::string &name, const std::string & LoggingName, const std::string & SubSystemPrefix );
     virtual int Start() = 0;
     virtual void Stop() = 0;
-    void initialize(Application &self);
-    void uninitialize();
-    void reinitialize(Application & self);
-    void defineOptions(OptionSet &options);
-    const char *name() const { return name_.c_str(); };
+    void initialize(Application &self) override;
+    void uninitialize() override;
+    void reinitialize(Application & self) override;
+    void defineOptions(OptionSet &options) override;
+    const char *name() const override { return name_.c_str(); };
     const PropertiesFileServerEntry & host(int index) { return servers_[index]; };
     Logger                  & logger() { return logger_;};
 

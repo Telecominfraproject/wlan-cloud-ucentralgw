@@ -20,7 +20,7 @@ namespace uCentral::DeviceRegistry {
         uint64_t    TX, RX;
         bool        Connected;
         uint64_t    LastContact;
-        Poco::JSON::Object to_JSON();
+        [[nodiscard]] Poco::JSON::Object to_JSON() const;
     };
 
     struct ConnectionEntry {
@@ -29,13 +29,23 @@ namespace uCentral::DeviceRegistry {
         std::string        LastStats;
     };
 
+    int Start();
+    void Stop();
+    bool GetStatistics(const std::string &SerialNumber, std::string & Statistics);
+    void SetStatistics(const std::string &SerialNumber, const std::string &stats);
+    bool GetState(const std::string & SerialNumber, ConnectionState & State);
+    void SetState(const std::string & SerialNumber, ConnectionState & State);
+    std::shared_ptr<ConnectionState> Register(const std::string & SerialNumber, void *);
+    void UnRegister(const std::string & SerialNumber, void *);
+    bool SendCommand(const std::string & SerialNumber, const std::string &Cmd);
+
     class Service : public SubSystemServer {
     public:
 
         Service() noexcept;
 
-        int Start() override;
-        void Stop() override;
+        friend int Start();
+        friend void Stop();
 
         static Service *instance() {
             if (instance_ == nullptr) {
@@ -43,6 +53,18 @@ namespace uCentral::DeviceRegistry {
             }
             return instance_;
         }
+
+        friend bool GetStatistics(const std::string &SerialNumber, std::string & Statistics);
+        friend void SetStatistics(const std::string &SerialNumber, const std::string &stats);
+        friend bool GetState(const std::string & SerialNumber, ConnectionState & State);
+        friend void SetState(const std::string & SerialNumber, ConnectionState & State);
+        friend std::shared_ptr<ConnectionState> Register(const std::string & SerialNumber, void *);
+        friend void UnRegister(const std::string & SerialNumber, void *);
+        friend bool SendCommand(const std::string & SerialNumber, const std::string &Cmd);
+
+    private:
+        int Start() override;
+        void Stop() override;
 
         bool GetStatistics(const std::string &SerialNumber, std::string & Statistics);
         void SetStatistics(const std::string &SerialNumber, const std::string &stats);
@@ -52,7 +74,6 @@ namespace uCentral::DeviceRegistry {
         void UnRegister(const std::string & SerialNumber, void *);
         bool SendCommand(const std::string & SerialNumber, const std::string &Cmd);
 
-    private:
         static Service                          *instance_;
         std::mutex                              mutex_;
         std::map<std::string,ConnectionEntry>   Devices_;

@@ -182,7 +182,7 @@ bool RESTAPIHandler::ContinueProcessing( HTTPServerRequest & Request , HTTPServe
 
 bool RESTAPIHandler::IsAuthorized(Poco::Net::HTTPServerRequest & Request, HTTPServerResponse & Response )
 {
-    if(uCentral::Auth::Service::instance()->IsAuthorized(Request,SessionToken_))
+    if(uCentral::Auth::IsAuthorized(Request,SessionToken_))
     {
         return true;
     }

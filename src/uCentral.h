@@ -51,29 +51,17 @@ namespace uCentral {
         Daemon();
 
     protected:
-        void initialize(Application &self);
-
-        void uninitialize();
-
-        void reinitialize(Application &self);
-
-        void defineOptions(OptionSet &options);
-
+        void initialize(Application &self) override;
+        void uninitialize() override;
+        void reinitialize(Application &self) override;
+        void defineOptions(OptionSet &options) override;
         void handleHelp(const std::string &name, const std::string &value);
-
         void handleDebug(const std::string &name, const std::string &value);
-
         void handlePort(const std::string &name, const std::string &value);
-
         void handleConfig(const std::string &name, const std::string &value);
-
         void displayHelp();
-
         void defineProperty(const std::string &def);
-
-        int main(const ArgVec &args);
-
-        void printProperties(const std::string &base);
+        int main(const ArgVec &args) override;
 
     private:
         bool helpRequested_;

@@ -10,15 +10,21 @@
 namespace uCentral::Auth {
     Service *Service::instance_ = nullptr;
 
-    Poco::JSON::Object WebToken::to_JSON() {
-        Poco::JSON::Object  AclTemplateObj;
+    Poco::JSON::Object AclTemplate::to_JSON() const {
+        Poco::JSON::Object Obj;
 
-        AclTemplateObj.set("Read",acl_template_.Read_);
-        AclTemplateObj.set("ReadWrite",acl_template_.ReadWrite_);
-        AclTemplateObj.set("ReadWriteCreate",acl_template_.ReadWriteCreate_);
-        AclTemplateObj.set("Delete",acl_template_.Delete_);
-        AclTemplateObj.set("PortalLogin",acl_template_.PortalLogin_);
+        Obj.set("Read",Read_);
+        Obj.set("ReadWrite",ReadWrite_);
+        Obj.set("ReadWriteCreate",ReadWriteCreate_);
+        Obj.set("Delete",Delete_);
+        Obj.set("PortalLogin",PortalLogin_);
 
+        return Obj;
+    }
+
+    Poco::JSON::Object WebToken::to_JSON() const {
+
+        Poco::JSON::Object  AclTemplateObj = acl_template_.to_JSON();
         Poco::JSON::Object  WebTokenObj;
 
         WebTokenObj.set("access_token",access_token_);
@@ -37,6 +43,29 @@ namespace uCentral::Auth {
     {
     }
 
+    int Start() {
+        return uCentral::Auth::Service::instance()->Start();
+    }
+
+    void Stop() {
+        uCentral::Auth::Service::instance()->Stop();
+    }
+
+    bool IsAuthorized(Poco::Net::HTTPServerRequest & Request,std::string &SessionToken) {
+        return uCentral::Auth::Service::instance()->IsAuthorized(Request,SessionToken);
+    }
+
+    void CreateToken(const std::string & UserName, WebToken & ResultToken) {
+        uCentral::Auth::Service::instance()->CreateToken(UserName,ResultToken);
+    }
+
+    bool Authorize( const std::string & UserName, const std::string & Password, WebToken & ResultToken ) {
+        return uCentral::Auth::Service::instance()->Authorize(UserName,Password,ResultToken);
+    }
+
+    void Logout(const std::string &Token) {
+        uCentral::Auth::Service::instance()->Logout(Token);
+    }
 
     int Service::Start() {
         Secure_ = uCentral::Daemon::instance().config().getBool(SubSystemConfigPrefix_+".enabled",true);

@@ -11,6 +11,14 @@ namespace uCentral::TIPGW {
             SubSystemServer("TIPGWServer", "TIPGWServer", "tip.gateway") {
     }
 
+    int Start() {
+        return uCentral::TIPGW::Service::instance()->Start();
+    }
+
+    void Stop() {
+        uCentral::TIPGW::Service::instance()->Stop();
+    }
+
     int Service::Start() {
         SubSystemServer::logger().information("Starting.");
         return 0;

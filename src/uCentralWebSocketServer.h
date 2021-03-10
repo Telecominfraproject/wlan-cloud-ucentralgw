@@ -44,12 +44,15 @@ using Poco::JSON::Parser;
 
 namespace uCentral::WebSocket {
 
+    int Start();
+    void Stop();
+
     class Service : public SubSystemServer {
     public:
         Service() noexcept;
 
-        int Start() override;
-        void Stop() override;
+        friend int Start();
+        friend void Stop();
 
         static Service *instance() {
             if (instance_ == nullptr) {
@@ -59,6 +62,9 @@ namespace uCentral::WebSocket {
         }
 
     private:
+        int Start() override;
+        void Stop() override;
+
         static Service *instance_;
         std::vector<std::shared_ptr<Poco::Net::HTTPServer>>   HTTPServers_;
         Poco::Net::SocketReactor    SocketReactor_;

@@ -133,7 +133,7 @@ namespace uCentral {
         uint64_t Now = time(nullptr);
         std::string SerialNumber{"24f5a207a130"};
 
-        uCentral::Storage::Service::instance()->DeleteDevice(SerialNumber);
+        uCentral::Storage::DeleteDevice(SerialNumber);
 
         uCentralDevice D{.SerialNumber = SerialNumber,
                 .DeviceType = "AP",
@@ -143,7 +143,7 @@ namespace uCentral {
                 .Configuration = uCentral::Config::Config().get(),
                 .Notes = "test device"};
 
-        uCentral::Storage::Service::instance()->CreateDevice(D);
+        uCentral::Storage::CreateDevice(D);
     }
 
     static bool path_match(const char *p, const char *r, std::map<std::string, std::string> &keys) {
@@ -192,23 +192,23 @@ namespace uCentral {
 
             std::cout << "Time: " << time(nullptr) << std::endl;
 
-            uCentral::Storage::Service::instance()->Start();
-            uCentral::Auth::Service::instance()->Start();
-            uCentral::DeviceRegistry::Service::instance()->Start();
-            uCentral::TIPGW::Service::instance()->Start();
-            uCentral::RESTAPI::Service::instance()->Start();
-            uCentral::WebSocket::Service::instance()->Start();
+            uCentral::Storage::Start();
+            uCentral::Auth::Start();
+            uCentral::DeviceRegistry::Start();
+            uCentral::TIPGW::Start();
+            uCentral::RESTAPI::Start();
+            uCentral::WebSocket::Start();
 
             createTestRecord();
 
             waitForTerminationRequest();
 
-            uCentral::WebSocket::Service::instance()->Stop();
-            uCentral::RESTAPI::Service::instance()->Stop();
-            uCentral::TIPGW::Service::instance()->Stop();
-            uCentral::DeviceRegistry::Service::instance()->Stop();
-            uCentral::Auth::Service::instance()->Stop();
-            uCentral::Storage::Service::instance()->Stop();
+            uCentral::WebSocket::Stop();
+            uCentral::RESTAPI::Stop();
+            uCentral::TIPGW::Stop();
+            uCentral::DeviceRegistry::Stop();
+            uCentral::Auth::Stop();
+            uCentral::Storage::Stop();
         }
 
         return Application::EXIT_OK;
