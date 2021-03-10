@@ -1,6 +1,6 @@
-tip.certs.key = /Users/stephb/Desktop/Dropbox/clion/ucentralgw/certs/clientkey.pem
-tip.certs.cert = /Users/stephb/Desktop/Dropbox/clion/ucentralgw/certs/clientcert.pem
-tip.certs.ca = /Users/stephb/Desktop/Dropbox/clion/ucentralgw/certs/clientcert.pem
+tip.certs.key = /home/stephb/ucentral/ucentralgw/certs/clientkey.pem
+tip.certs.cert = /home/stephb/ucentral/ucentralgw/certs/clientcert.pem
+tip.certs.ca = /home/stephb/ucentral/ucentralgw/certs/clientcert.pem
 tip.certs.password = mypassword
 tip.api.login.username = support@example.com
 tip.api.login.password = support
@@ -16,7 +16,7 @@ logging.formatters.f1.times = UTC
 logging.channels.c1.class = ConsoleChannel
 logging.channels.c1.formatter = f1
 logging.channels.c2.class = FileChannel
-logging.channels.c2.path = /Users/stephb/Desktop/Dropbox/clion/ucentralgw/logs/sample.log
+logging.channels.c2.path = /home/stephb/ucentral/ucentralgw/logs/sample.log
 logging.channels.c2.formatter.class = PatternFormatter
 logging.channels.c2.formatter.pattern = %Y-%m-%d %H:%M:%S %s: [%p] %t
 logging.channels.c3.class = ConsoleChannel
@@ -34,9 +34,9 @@ logging.loggers.root.level = information
 # logging.channels.splitter.channels = l1,l2
 # logging.loggers.l2.name = logger2
 # logging.loggers.l2.channel = splitter
-openSSL.client.privateKeyFile = /Users/stephb/Desktop/Dropbox/clion/ucentralgw/certs/clientkey.pem
-openSSL.client.certificateFile = /Users/stephb/Desktop/Dropbox/clion/ucentralgw/certs/clientcert.pem
-openSSL.client.caConfig = /Users/stephb/Desktop/Dropbox/clion/ucentralgw/certs/cacert.pem
+openSSL.client.privateKeyFile = /home/stephb/ucentral/ucentralgw/certs/clientkey.pem
+openSSL.client.certificateFile = /home/stephb/ucentral/ucentralgw/certs/clientcert.pem
+openSSL.client.caConfig = /home/stephb/ucentral/ucentralgw/certs/cacert.pem
 openSSL.client.verificationMode = once
 openSSL.client.verificationDepth = 9
 openSSL.client.loadDefaultCAFile = true
@@ -51,14 +51,14 @@ openSSL.client.requireTLSv1 = true
 
 ucentral.websocket.host.0.address = 10.100.49.22
 ucentral.websocket.host.0.port = 15002
-ucentral.websocket.host.0.cert = /Users/stephb/Desktop/Dropbox/clion/ucentralgw/certs/ws-cert.pem
-ucentral.websocket.host.0.key = /Users/stephb/Desktop/Dropbox/clion/ucentralgw/certs/ws-key.pem
+ucentral.websocket.host.0.cert = /home/stephb/ucentral/ucentralgw/certs/ws-cert.pem
+ucentral.websocket.host.0.key = /home/stephb/ucentral/ucentralgw/certs/ws-key.pem
 ucentral.websocket.host.0.key.password = mypassword
 
 ucentral.restapi.host.0.address = 10.100.49.22
 ucentral.restapi.host.0.port = 16001
-ucentral.restapi.host.0.cert = /Users/stephb/Desktop/Dropbox/clion/ucentralgw/certs/ws-cert.pem
-ucentral.restapi.host.0.key = /Users/stephb/Desktop/Dropbox/clion/ucentralgw/certs/ws-key.pem
+ucentral.restapi.host.0.cert = /home/stephb/ucentral/ucentralgw/certs/ws-cert.pem
+ucentral.restapi.host.0.key = /home/stephb/ucentral/ucentralgw/certs/ws-key.pem
 ucentral.restapi.host.0.key.password = mypassword
 
 ucentral.tipgateway.host.0.address = 127.0.0.1
@@ -68,7 +68,7 @@ ucentral.tipgateway.host.0.key = 127.0.0.1
 ucentral.tipgateway.host.0.key.password = 127.0.0.1
 
 storage.type = sqlite
-storage.type.sqlite.db = /Users/stephb/Desktop/Dropbox/clion/ucentralgw/cmake-build-debug/devices.db
+storage.type.sqlite.db = /home/stephb/ucentral/ucentralgw/devices.db
 storage.type.sqlite.idletime = 120
 storage.type.sqlite.maxsessions = 128
 
