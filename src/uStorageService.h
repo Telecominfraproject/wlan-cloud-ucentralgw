@@ -16,6 +16,7 @@
 #include "Poco/Data/MySQL/Connector.h"
 #include "Poco/Data/MySQL/SessionHandle.h"
 #include "Poco/Data/ODBC/Connector.h"
+#include "Poco/Data/ODBC/ODBC.h"
 
 #include "RESTAPI_Objects.h"
 
@@ -53,6 +54,11 @@ namespace uCentral::Storage {
                                std::vector<uCentralDeviceLog> &Stats);
         bool DeleteLogData(std::string &SerialNUmber, uint64_t FromDate, uint64_t ToDate);
 
+        int Setup_MySQL();
+        int Setup_SQLite();
+        int Setup_PostgreSQL();
+        int Setup_ODBC();
+
         static Service *instance() {
             if (instance_ == nullptr) {
                 instance_ = new Service;
@@ -61,12 +67,13 @@ namespace uCentral::Storage {
         }
 
     private:
-        std::mutex mutex_;
-        static Service *instance_;
-        std::shared_ptr<Poco::Data::SessionPool> Pool_;
+        std::mutex          mutex_;
+        static Service      *instance_;
+        std::shared_ptr<Poco::Data::SessionPool>            Pool_;
         std::shared_ptr<Poco::Data::SQLite::Connector>      SQLiteConn_;
         std::shared_ptr<Poco::Data::PostgreSQL::Connector>  PostgresConn_;
         std::shared_ptr<Poco::Data::MySQL::Connector>       MySQLConn_;
+        std::shared_ptr<Poco::Data::ODBC::Connector>        ODBCConn_;
     };
 
 };  // namespace

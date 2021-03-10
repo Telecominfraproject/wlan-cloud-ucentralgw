@@ -26,117 +26,234 @@ namespace uCentral::Storage {
 
     Service::Service() noexcept:
             SubSystemServer("Storage", "STORAGE-SVR", "storage"),
+            Pool_(nullptr),
             SQLiteConn_(nullptr),
             PostgresConn_(nullptr),
-            MySQLConn_(nullptr) {
+            MySQLConn_(nullptr)
+            {
     }
 
-    int Service::Start() {
+    int Service::Setup_MySQL() {
 
-        SubSystemServer::logger().information("Starting.");
+        auto NumSessions = uCentral::Daemon::instance().config().getInt("storage.type.mysql.maxsessions",64);
+        auto IdleTime = uCentral::Daemon::instance().config().getInt("storage.type.mysql.idletime",60);
+        auto Host = uCentral::Daemon::instance().config().getString("storage.type.mysql.host");
+        auto Username = uCentral::Daemon::instance().config().getString("storage.type.mysql.username");
+        auto Password = uCentral::Daemon::instance().config().getString("storage.type.mysql.password");
+        auto Database = uCentral::Daemon::instance().config().getString("storage.type.mysql.database");
+        auto Port = uCentral::Daemon::instance().config().getString("storage.type.mysql.port");
+        auto ConnectionTimeout = uCentral::Daemon::instance().config().getString("storage.type.mysql.connectiontimeout");
 
-        std::string DBType = uCentral::Daemon::instance().config().getString("storage.type");
+        std::string ConnectionStr =
+                "host=" + Host +
+                ";user=" + Username +
+                ";password=" + Password +
+                ";db=" + Database +
+                ";port=" + Port +
+                ";compress=true;auto-reconnect=true";
 
-        if(DBType == "sqlite") {
-            auto DBName = uCentral::Daemon::instance().config().getString("storage.type.sqlite.db");
-            auto NumSessions = uCentral::Daemon::instance().config().getInt("storage.type.sqlite.maxsessions",64);
-            auto IdleTime = uCentral::Daemon::instance().config().getInt("storage.type.sqlite.idletime",60);
+        MySQLConn_ = std::shared_ptr<Poco::Data::MySQL::Connector>(new Poco::Data::MySQL::Connector);
+        MySQLConn_->registerConnector();
+        Pool_ = std::shared_ptr<Poco::Data::SessionPool>(
+                new Poco::Data::SessionPool(MySQLConn_->name(), ConnectionStr,4,NumSessions,IdleTime));
 
-            SQLiteConn_ = std::shared_ptr<Poco::Data::SQLite::Connector>(new Poco::Data::SQLite::Connector);
-            SQLiteConn_->registerConnector();
-            Pool_ = std::shared_ptr<Poco::Data::SessionPool>(
-                    new Poco::Data::SessionPool(SQLiteConn_->name(), DBName,4,NumSessions,IdleTime));
-        }
-        else if(DBType == "postgresql")
-        {
-            auto NumSessions = uCentral::Daemon::instance().config().getInt("storage.type.postgresql.maxsessions",64);
-            auto IdleTime = uCentral::Daemon::instance().config().getInt("storage.type.postgresql.idletime",60);
-            auto Host = uCentral::Daemon::instance().config().getString("storage.type.postgresql.host");
-            auto Username = uCentral::Daemon::instance().config().getString("storage.type.postgresql.username");
-            auto Password = uCentral::Daemon::instance().config().getString("storage.type.postgresql.password");
-            auto Database = uCentral::Daemon::instance().config().getString("storage.type.postgresql.database");
-            auto Port = uCentral::Daemon::instance().config().getString("storage.type.postgresql.port");
-            auto ConnectionTimeout = uCentral::Daemon::instance().config().getString("storage.type.postgresql.connectiontimeout");
-
-            std::string ConnectionStr =
-                    "host=" + Host +
-                    " user=" + Username +
-                    " password=" + Password +
-                    " dbname=" + Database +
-                    " port=" + Port +
-                    " connect_timeout=" + ConnectionTimeout;
-
-            // host=localhost user=stephb password=snoopy99 dbname=ucentral port=5432 connect_timeout=60
-            PostgresConn_ = std::shared_ptr<Poco::Data::PostgreSQL::Connector>(new Poco::Data::PostgreSQL::Connector);
-            PostgresConn_->registerConnector();
-            std::cout << "Name: " << PostgresConn_->name() << std::endl;
-            std::cout << "Connection string:" << ConnectionStr << std::endl;
-
-            Pool_ = std::shared_ptr<Poco::Data::SessionPool>(
-                    new Poco::Data::SessionPool(PostgresConn_->name(), ConnectionStr,4,NumSessions,IdleTime));
-        }
-        else if(DBType == "mysql") {
-            auto NumSessions = uCentral::Daemon::instance().config().getInt("storage.type.mysql.maxsessions",64);
-            auto IdleTime = uCentral::Daemon::instance().config().getInt("storage.type.mysql.idletime",60);
-            auto Host = uCentral::Daemon::instance().config().getString("storage.type.mysql.host");
-            auto Username = uCentral::Daemon::instance().config().getString("storage.type.mysql.username");
-            auto Password = uCentral::Daemon::instance().config().getString("storage.type.mysql.password");
-            auto Database = uCentral::Daemon::instance().config().getString("storage.type.mysql.database");
-            auto Port = uCentral::Daemon::instance().config().getInt("storage.type.mysql.port");
-            auto ConnectionTimeout = uCentral::Daemon::instance().config().getString("storage.type.mysql.connectiontimeout");
-
-            Poco::Data::MySQL::Connector::registerConnector();
-
-            //host=localhost user=stephb password=snoopy99 dbname=ucentral port=5432 connect_timeout=60
-
-        }
-        else if(DBType == "odbc")  {
-            auto NumSessions = uCentral::Daemon::instance().config().getInt("storage.type.odbc.maxsessions",64);
-            auto IdleTime = uCentral::Daemon::instance().config().getInt("storage.type.odbc.idletime",60);
-            Poco::Data::ODBC::Connector::registerConnector();
-        }
-
-        Session session_(Pool_->get());
+        Session session_ = Pool_->get();
 
         session_ << "CREATE TABLE IF NOT EXISTS Statistics ("
-                     "SerialNumber VARCHAR(30), "
-                     "UUID INTEGER, "
-                     "Data TEXT, "
-                     "Recorded BIGINT"
-                     ")", now;
-
-        session_ << "CREATE INDEX IF NOT EXISTS StatsSerial ON Statistics (SerialNumber ASC, Recorded ASC)", now;
+                    "SerialNumber VARCHAR(30), "
+                    "UUID INTEGER, "
+                    "Data TEXT, "
+                    "Recorded BIGINT, "
+                    "INDEX StatSerial (SerialNumber ASC, Recorded ASC))", now;
 
         session_ << "CREATE TABLE IF NOT EXISTS Devices ("
-                     "SerialNumber  VARCHAR(30) UNIQUE PRIMARY KEY, "
-                     "DeviceType    VARCHAR(10), "
-                     "MACAddress    VARCHAR(30), "
-                     "Manufacturer  VARCHAR(64), "
-                     "UUID          BIGINT, "
-                     "Configuration TEXT, "
-                     "Notes         TEXT, "
-                     "CreationTimestamp BIGINT, "
-                     "LastConfigurationChange BIGINT, "
-                     "LastConfigurationDownload BIGINT"
-                     ")", now;
+                    "SerialNumber  VARCHAR(30) UNIQUE PRIMARY KEY, "
+                    "DeviceType    VARCHAR(10), "
+                    "MACAddress    VARCHAR(30), "
+                    "Manufacturer  VARCHAR(64), "
+                    "UUID          BIGINT, "
+                    "Configuration TEXT, "
+                    "Notes         TEXT, "
+                    "CreationTimestamp BIGINT, "
+                    "LastConfigurationChange BIGINT, "
+                    "LastConfigurationDownload BIGINT"
+                    ")", now;
 
         session_ << "CREATE TABLE IF NOT EXISTS Capabilities ("
-                     "SerialNumber VARCHAR(30) PRIMARY KEY, "
-                     "Capabilities TEXT, "
-                     "FirstUpdate BIGINT, "
-                     "LastUpdate BIGINT"
-                     ")", now;
+                    "SerialNumber VARCHAR(30) PRIMARY KEY, "
+                    "Capabilities TEXT, "
+                    "FirstUpdate BIGINT, "
+                    "LastUpdate BIGINT"
+                    ")", now;
 
         session_ << "CREATE TABLE IF NOT EXISTS DeviceLogs ("
                     "SerialNumber VARCHAR(30), "
                     "Log TEXT, "
-                    "Recorded BIGINT "
+                    "Recorded BIGINT, "
+                    "INDEX LogSerial (SerialNumber ASC, Recorded ASC)"
                     ")", now;
 
-        session_ << "CREATE INDEX IF NOT EXISTS LogSerial ON Statistics (SerialNumber ASC, Recorded ASC)", now;
+        return 0;
+    }
 
-        Poco::Data::SQLite::Connector::registerConnector();
+    int Service::Setup_SQLite() {
+        auto DBName = uCentral::Daemon::instance().config().getString("storage.type.sqlite.db");
+        auto NumSessions = uCentral::Daemon::instance().config().getInt("storage.type.sqlite.maxsessions",64);
+        auto IdleTime = uCentral::Daemon::instance().config().getInt("storage.type.sqlite.idletime",60);
 
+        SQLiteConn_ = std::shared_ptr<Poco::Data::SQLite::Connector>(new Poco::Data::SQLite::Connector);
+        SQLiteConn_->registerConnector();
+        Pool_ = std::shared_ptr<Poco::Data::SessionPool>(
+                new Poco::Data::SessionPool(SQLiteConn_->name(), DBName,4,NumSessions,IdleTime));
+
+        Session session_ = Pool_->get();
+
+        session_ << "CREATE TABLE IF NOT EXISTS Statistics ("
+                    "SerialNumber VARCHAR(30), "
+                    "UUID INTEGER, "
+                    "Data TEXT, "
+                    "Recorded BIGINT)", now;
+        session_ << "CREATE INDEX IF NOT EXISTS StatsSerial ON Statistics (SerialNumber ASC, Recorded ASC)", now;
+
+        session_ << "CREATE TABLE IF NOT EXISTS Devices ("
+                    "SerialNumber  VARCHAR(30) UNIQUE PRIMARY KEY, "
+                    "DeviceType    VARCHAR(10), "
+                    "MACAddress    VARCHAR(30), "
+                    "Manufacturer  VARCHAR(64), "
+                    "UUID          BIGINT, "
+                    "Configuration TEXT, "
+                    "Notes         TEXT, "
+                    "CreationTimestamp BIGINT, "
+                    "LastConfigurationChange BIGINT, "
+                    "LastConfigurationDownload BIGINT"
+                    ")", now;
+
+        session_ << "CREATE TABLE IF NOT EXISTS Capabilities ("
+                    "SerialNumber VARCHAR(30) PRIMARY KEY, "
+                    "Capabilities TEXT, "
+                    "FirstUpdate BIGINT, "
+                    "LastUpdate BIGINT"
+                    ")", now;
+
+        session_ << "CREATE TABLE IF NOT EXISTS DeviceLogs ("
+                    "SerialNumber VARCHAR(30), "
+                    "Log TEXT, "
+                    "Recorded BIGINT)", now;
+
+        session_ << "CREATE INDEX IF NOT EXISTS LogSerial ON DeviceLogs (SerialNumber ASC, Recorded ASC)", now;
+
+        return 0;
+    }
+
+    int Service::Setup_PostgreSQL() {
+        auto NumSessions = uCentral::Daemon::instance().config().getInt("storage.type.postgresql.maxsessions",64);
+        auto IdleTime = uCentral::Daemon::instance().config().getInt("storage.type.postgresql.idletime",60);
+        auto Host = uCentral::Daemon::instance().config().getString("storage.type.postgresql.host");
+        auto Username = uCentral::Daemon::instance().config().getString("storage.type.postgresql.username");
+        auto Password = uCentral::Daemon::instance().config().getString("storage.type.postgresql.password");
+        auto Database = uCentral::Daemon::instance().config().getString("storage.type.postgresql.database");
+        auto Port = uCentral::Daemon::instance().config().getString("storage.type.postgresql.port");
+        auto ConnectionTimeout = uCentral::Daemon::instance().config().getString("storage.type.postgresql.connectiontimeout");
+
+        std::string ConnectionStr =
+                "host=" + Host +
+                " user=" + Username +
+                " password=" + Password +
+                " dbname=" + Database +
+                " port=" + Port +
+                " connect_timeout=" + ConnectionTimeout;
+
+        PostgresConn_ = std::shared_ptr<Poco::Data::PostgreSQL::Connector>(new Poco::Data::PostgreSQL::Connector);
+        PostgresConn_->registerConnector();
+        Pool_ = std::shared_ptr<Poco::Data::SessionPool>(
+                new Poco::Data::SessionPool(PostgresConn_->name(), ConnectionStr,4,NumSessions,IdleTime));
+
+        Session session_ = Pool_->get();
+
+        session_ << "CREATE TABLE IF NOT EXISTS Statistics ("
+                    "SerialNumber VARCHAR(30), "
+                    "UUID INTEGER, "
+                    "Data TEXT, "
+                    "Recorded BIGINT)", now;
+
+        session_ << "CREATE INDEX IF NOT EXISTS StatsSerial ON Statistics (SerialNumber ASC, Recorded ASC)", now;
+
+        session_ << "CREATE TABLE IF NOT EXISTS Devices ("
+                    "SerialNumber  VARCHAR(30) UNIQUE PRIMARY KEY, "
+                    "DeviceType    VARCHAR(10), "
+                    "MACAddress    VARCHAR(30), "
+                    "Manufacturer  VARCHAR(64), "
+                    "UUID          BIGINT, "
+                    "Configuration TEXT, "
+                    "Notes         TEXT, "
+                    "CreationTimestamp BIGINT, "
+                    "LastConfigurationChange BIGINT, "
+                    "LastConfigurationDownload BIGINT"
+                    ")", now;
+
+        session_ << "CREATE TABLE IF NOT EXISTS Capabilities ("
+                    "SerialNumber VARCHAR(30) PRIMARY KEY, "
+                    "Capabilities TEXT, "
+                    "FirstUpdate BIGINT, "
+                    "LastUpdate BIGINT"
+                    ")", now;
+
+        session_ << "CREATE TABLE IF NOT EXISTS DeviceLogs ("
+                    "SerialNumber VARCHAR(30), "
+                    "Log TEXT, "
+                    "Recorded BIGINT)", now;
+
+        session_ << "CREATE INDEX IF NOT EXISTS LogSerial ON DeviceLogs (SerialNumber ASC, Recorded ASC)", now;
+
+        return 0;
+    }
+
+    int Service::Setup_ODBC() {
+        auto NumSessions = uCentral::Daemon::instance().config().getInt("storage.type.postgresql.maxsessions",64);
+        auto IdleTime = uCentral::Daemon::instance().config().getInt("storage.type.postgresql.idletime",60);
+        auto Host = uCentral::Daemon::instance().config().getString("storage.type.postgresql.host");
+        auto Username = uCentral::Daemon::instance().config().getString("storage.type.postgresql.username");
+        auto Password = uCentral::Daemon::instance().config().getString("storage.type.postgresql.password");
+        auto Database = uCentral::Daemon::instance().config().getString("storage.type.postgresql.database");
+        auto Port = uCentral::Daemon::instance().config().getString("storage.type.postgresql.port");
+        auto ConnectionTimeout = uCentral::Daemon::instance().config().getString("storage.type.postgresql.connectiontimeout");
+
+        std::string ConnectionStr =
+                "host=" + Host +
+                " user=" + Username +
+                " password=" + Password +
+                " dbname=" + Database +
+                " port=" + Port +
+                " connect_timeout=" + ConnectionTimeout;
+
+        ODBCConn_ = std::shared_ptr<Poco::Data::ODBC::Connector>(new Poco::Data::ODBC::Connector);
+        ODBCConn_->registerConnector();
+        Pool_ = std::shared_ptr<Poco::Data::SessionPool>(
+                new Poco::Data::SessionPool(ODBCConn_->name(), ConnectionStr,4,NumSessions,IdleTime));
+
+        Session session_ = Pool_->get();
+
+        return 0;
+    }
+
+    int Service::Start() {
+        std::lock_guard<std::mutex> guard(mutex_);
+        SubSystemServer::logger().information("Starting.");
+        std::string DBType = uCentral::Daemon::instance().config().getString("storage.type");
+
+        if(DBType == "sqlite") {
+            return Setup_SQLite();
+        }
+        else if(DBType == "postgresql")
+        {
+            return Setup_PostgreSQL();
+        }
+        else if(DBType == "mysql") {
+            return Setup_MySQL();
+        }
+        else if(DBType == "odbc")  {
+            return Setup_ODBC();
+        }
         return 0;
     }
 
@@ -156,7 +273,7 @@ namespace uCentral::Storage {
             // std::cout << "STATS:" << NewStats << std::endl;
 
             uint64_t Now = time(nullptr);
-            Session session_(Pool_->get());
+            Session session_ = Pool_->get();
 
             session_ << "INSERT INTO Statistics VALUES( '%s', '%Lu', '%s', '%Lu')",
                     SerialNumber.c_str(),
@@ -179,9 +296,7 @@ namespace uCentral::Storage {
         typedef std::vector<StatRecord> RecordList;
 
         // std::lock_guard<std::mutex> guard(mutex_);
-        Session session_(Pool_->get());
-
-        // std::cout << "GS:" << SerialNumber << " " << FromDate << " " << ToDate << " " << Offset << " " << HowMany << std::endl;
+        Session session_ = Pool_->get();
 
         try {
             RecordList Records;
@@ -235,7 +350,7 @@ namespace uCentral::Storage {
 
     bool Service::DeleteStatisticsData(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate) {
         try {
-            Session session_(Pool_->get());
+            Session session_ = Pool_->get();
 
             if(FromDate && ToDate) {
                 session_
@@ -270,7 +385,7 @@ namespace uCentral::Storage {
     bool Service::AddLog(std::string & SerialNumber, std::string & Log)
     {
         uint64_t Now = time(nullptr);
-        Session session_(Pool_->get());
+        Session session_ = Pool_->get();
 
         try {
             session_ << "INSERT INTO DeviceLogs VALUES( '%s' , '%s' , '%Lu')",
@@ -290,7 +405,7 @@ namespace uCentral::Storage {
         typedef Poco::Tuple<std::string, uint64_t> StatRecord;
         typedef std::vector<StatRecord> RecordList;
 
-        Session session_(Pool_->get());
+        Session session_ = Pool_->get();
 
         try {
             RecordList Records;
@@ -342,7 +457,7 @@ namespace uCentral::Storage {
 
     bool Service::DeleteLogData(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate) {
         try {
-            Session session_(Pool_->get());
+            Session session_ = Pool_->get();
 
             if(FromDate && ToDate) {
                 session_
@@ -383,7 +498,7 @@ namespace uCentral::Storage {
             if(!Cfg.Valid())
                 return false;
 
-            Session session_(Pool_->get());
+            Session session_ = Pool_->get();
 
             uint64_t CurrentUUID;
 
@@ -422,7 +537,7 @@ namespace uCentral::Storage {
         std::string SerialNumber;
         try {
 
-            Session session_(Pool_->get());
+            Session session_ = Pool_->get();
 
             session_ << "SELECT SerialNumber FROM Devices WHERE SerialNumber='%s'",
                     into(SerialNumber),
@@ -467,7 +582,7 @@ namespace uCentral::Storage {
         // std::lock_guard<std::mutex> guard(mutex_);
 
         try {
-            Session session_(Pool_->get());
+            Session session_ = Pool_->get();
 
             session_ << "DELETE FROM Devices WHERE SerialNumber='%s'",
                     SerialNumber.c_str(), now;
@@ -485,7 +600,7 @@ namespace uCentral::Storage {
         // std::lock_guard<std::mutex> guard(mutex_);
 
         try {
-            Session session_(Pool_->get());
+            Session session_ = Pool_->get();
 
             session_ << "SELECT "
                          "SerialNumber, "
@@ -527,8 +642,7 @@ namespace uCentral::Storage {
         // std::lock_guard<std::mutex> guard(mutex_);
 
         try {
-
-            Session session_(Pool_->get());
+            Session session_ = Pool_->get();
 
             uint64_t Now = time(nullptr);
 
@@ -571,7 +685,7 @@ namespace uCentral::Storage {
         RecordList Records;
 
         try {
-            Session session_(Pool_->get());
+            Session session_ = Pool_->get();
 
             session_ << "SELECT "
                          "SerialNumber, "
@@ -616,7 +730,7 @@ namespace uCentral::Storage {
 
         try {
             std::string SS;
-            Session session_(Pool_->get());
+            Session session_ = Pool_->get();
 
             session_ << "SELECT SerialNumber FROM Capabilities WHERE SerialNumber='%s'",
                 into(SS),
@@ -653,7 +767,7 @@ namespace uCentral::Storage {
         // std::lock_guard<std::mutex> guard(mutex_);
 
         try {
-            Session session_(Pool_->get());
+            Session session_ = Pool_->get();
 
             session_
                     << "SELECT SerialNumber, Capabilities, FirstUpdate, LastUpdate FROM Capabilities WHERE SerialNumber='%s'",
@@ -679,7 +793,7 @@ namespace uCentral::Storage {
         // std::lock_guard<std::mutex> guard(mutex_);
 
         try {
-            Session session_(Pool_->get());
+            Session session_ = Pool_->get();
 
             session_ <<
                     "DELETE FROM Capabilities WHERE SerialNumber='%s'" ,
@@ -697,7 +811,7 @@ namespace uCentral::Storage {
         // std::lock_guard<std::mutex> guard(mutex_);
         std::string SS;
         try {
-            Session session_(Pool_->get());
+            Session session_ = Pool_->get();
 
             session_ << "SELECT SerialNumber, UUID, Configuration FROM Devices WHERE SerialNumber='%s'",
                     into(SS),
