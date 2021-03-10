@@ -25,7 +25,10 @@ namespace uCentral::Storage {
     Service *Service::instance_ = nullptr;
 
     Service::Service() noexcept:
-            SubSystemServer("Storage", "STORAGE-SVR", "storage") {
+            SubSystemServer("Storage", "STORAGE-SVR", "storage"),
+            SQLiteConn_(nullptr),
+            PostgresConn_(nullptr),
+            MySQLConn_(nullptr) {
     }
 
     int Service::Start() {
@@ -38,10 +41,11 @@ namespace uCentral::Storage {
             auto DBName = uCentral::Daemon::instance().config().getString("storage.type.sqlite.db");
             auto NumSessions = uCentral::Daemon::instance().config().getInt("storage.type.sqlite.maxsessions",64);
             auto IdleTime = uCentral::Daemon::instance().config().getInt("storage.type.sqlite.idletime",60);
-            Poco::Data::SQLite::Connector::registerConnector();
 
+            SQLiteConn_ = std::shared_ptr<Poco::Data::SQLite::Connector>(new Poco::Data::SQLite::Connector);
+            SQLiteConn_->registerConnector();
             Pool_ = std::shared_ptr<Poco::Data::SessionPool>(
-                    new Poco::Data::SessionPool("SQLite", DBName,4,NumSessions,IdleTime));
+                    new Poco::Data::SessionPool(SQLiteConn_->name(), DBName,4,NumSessions,IdleTime));
         }
         else if(DBType == "postgresql")
         {
@@ -54,29 +58,22 @@ namespace uCentral::Storage {
             auto Port = uCentral::Daemon::instance().config().getString("storage.type.postgresql.port");
             auto ConnectionTimeout = uCentral::Daemon::instance().config().getString("storage.type.postgresql.connectiontimeout");
 
-            Poco::Data::PostgreSQL::Connector::registerConnector();
             std::string ConnectionStr =
-                    " host=" + Host +
+                    "host=" + Host +
                     " user=" + Username +
                     " password=" + Password +
                     " dbname=" + Database +
                     " port=" + Port +
                     " connect_timeout=" + ConnectionTimeout;
 
-            Poco::Data::PostgreSQL::SessionHandle Handle;
-
-            Handle.connect(Host.c_str(),
-                           Username.c_str(),
-                           Password.c_str(),
-                           Database.c_str(),
-                           5432,60);
-
-            ConnectionStr = Handle.connectionString();
-
+            // host=localhost user=stephb password=snoopy99 dbname=ucentral port=5432 connect_timeout=60
+            PostgresConn_ = std::shared_ptr<Poco::Data::PostgreSQL::Connector>(new Poco::Data::PostgreSQL::Connector);
+            PostgresConn_->registerConnector();
+            std::cout << "Name: " << PostgresConn_->name() << std::endl;
             std::cout << "Connection string:" << ConnectionStr << std::endl;
 
             Pool_ = std::shared_ptr<Poco::Data::SessionPool>(
-                    new Poco::Data::SessionPool("PostgreSQL", ConnectionStr,4,NumSessions,IdleTime));
+                    new Poco::Data::SessionPool(PostgresConn_->name(), ConnectionStr,4,NumSessions,IdleTime));
         }
         else if(DBType == "mysql") {
             auto NumSessions = uCentral::Daemon::instance().config().getInt("storage.type.mysql.maxsessions",64);

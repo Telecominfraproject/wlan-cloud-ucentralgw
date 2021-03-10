@@ -10,6 +10,12 @@
 #include "Poco/Data/Session.h"
 #include "Poco/Data/SessionPool.h"
 #include "Poco/Data/SQLite/SQLite.h"
+#include "Poco/Data/SQLite/Connector.h"
+#include "Poco/Data/PostgreSQL/Connector.h"
+#include "Poco/Data/PostgreSQL/SessionHandle.h"
+#include "Poco/Data/MySQL/Connector.h"
+#include "Poco/Data/MySQL/SessionHandle.h"
+#include "Poco/Data/ODBC/Connector.h"
 
 #include "RESTAPI_Objects.h"
 
@@ -58,6 +64,9 @@ namespace uCentral::Storage {
         std::mutex mutex_;
         static Service *instance_;
         std::shared_ptr<Poco::Data::SessionPool> Pool_;
+        std::shared_ptr<Poco::Data::SQLite::Connector>      SQLiteConn_;
+        std::shared_ptr<Poco::Data::PostgreSQL::Connector>  PostgresConn_;
+        std::shared_ptr<Poco::Data::MySQL::Connector>       MySQLConn_;
     };
 
 };  // namespace
