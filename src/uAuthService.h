@@ -10,6 +10,7 @@
 #include "Poco/JSON/Object.h"
 #include "Poco/Net/HTTPServerRequest.h"
 #include "Poco/Net/HTTPServerResponse.h"
+#include "Poco/Thread.h"
 
 namespace uCentral::Auth {
 
@@ -20,7 +21,7 @@ namespace uCentral::Auth {
         bool Delete_;
         bool PortalLogin_;
 
-        Poco::JSON::Object to_JSON() const ;
+        [[nodiscard]] Poco::JSON::Object to_JSON() const ;
     };
 
     struct WebToken {
@@ -31,14 +32,14 @@ namespace uCentral::Auth {
         unsigned int expires_in_;
         unsigned int idle_timeout_;
         AclTemplate acl_template_;
+        uint64_t    created_;
 
-        Poco::JSON::Object to_JSON() const ;
+        [[nodiscard]] Poco::JSON::Object to_JSON() const ;
     };
 
     int Start();
     void Stop();
     bool IsAuthorized(Poco::Net::HTTPServerRequest & Request,std::string &SessionToken);
-    void CreateToken(const std::string & UserName, WebToken & ResultToken);
     bool Authorize( const std::string & UserName, const std::string & Password, WebToken & ResultToken );
     void Logout(const std::string &token);
 
@@ -48,6 +49,7 @@ namespace uCentral::Auth {
 
         friend int Start();
         friend void Stop();
+        friend class Janitor;
 
         static Service *instance() {
             if (instance_ == nullptr) {
@@ -57,7 +59,6 @@ namespace uCentral::Auth {
         }
 
         friend bool IsAuthorized(Poco::Net::HTTPServerRequest & Request,std::string &SessionToken);
-        friend void CreateToken(const std::string & UserName, WebToken & ResultToken);
         friend bool Authorize( const std::string & UserName, const std::string & Password, WebToken & ResultToken );
         static std::string GenerateToken();
         friend void Logout(const std::string &token);

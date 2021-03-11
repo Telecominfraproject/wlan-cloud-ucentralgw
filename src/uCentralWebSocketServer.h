@@ -106,7 +106,8 @@ namespace uCentral::WebSocket {
             Logger_(Logger),
             WS_(Request,Response),
             IncomingMessage_{0},
-            Conn_(nullptr)
+            Conn_(nullptr),
+            RPC_(0)
         {
             WS_.setReceiveTimeout(Poco::Timespan());
             WS_.setNoDelay(true);
@@ -115,12 +116,15 @@ namespace uCentral::WebSocket {
 
         ~WSConnection();
 
-        void ProcessMessage(std::string &Response);
+        void ProcessLegacyMessage(Poco::DynamicStruct &ds,std::string &Response);
+        void ProcessJSONRPCMessage(Poco::DynamicStruct &ds,std::string &Response);
+
         bool SendCommand(const std::string &Cmd);
 
         void OnSocketReadable(const AutoPtr<Poco::Net::ReadableNotification>& pNf);
         void OnSocketShutdown(const AutoPtr<Poco::Net::ShutdownNotification>& pNf) { delete this; };
 
+        bool LookForUpgrade(std::string &Response);
 
         Poco::Net::WebSocket    & WS() { return WS_;};
 
@@ -132,6 +136,7 @@ namespace uCentral::WebSocket {
         std::string                                 SerialNumber_;
         char                                         IncomingMessage_[32000];
         std::shared_ptr<uCentral::DeviceRegistry::ConnectionState>  Conn_;
+        uint64_t                                    RPC_;
     };
 
 }; //namespace

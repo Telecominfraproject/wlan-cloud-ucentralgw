@@ -55,10 +55,6 @@ namespace uCentral::Auth {
         return uCentral::Auth::Service::instance()->IsAuthorized(Request,SessionToken);
     }
 
-    void CreateToken(const std::string & UserName, WebToken & ResultToken) {
-        uCentral::Auth::Service::instance()->CreateToken(UserName,ResultToken);
-    }
-
     bool Authorize( const std::string & UserName, const std::string & Password, WebToken & ResultToken ) {
         return uCentral::Auth::Service::instance()->Authorize(UserName,Password,ResultToken);
     }
@@ -76,6 +72,7 @@ namespace uCentral::Auth {
     }
 
     void Service::Stop() {
+
     }
 
     bool Service::IsAuthorized(Poco::Net::HTTPServerRequest & Request, std::string & SessionToken)
@@ -95,9 +92,14 @@ namespace uCentral::Auth {
             if( Token == Tokens_.end() )
                 return false;
 
-            SessionToken = RequestToken;
+            if((Token->second.created_ + Token->second.expires_in_) > time(nullptr)) {
+                SessionToken = RequestToken;
+                return true;
+            }
 
-            return true;
+            Tokens_.erase(Token);
+
+            return false;
         }
 
         return false;
@@ -113,7 +115,7 @@ namespace uCentral::Auth {
         static char buf[]={"1234567890abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRESTUVWXYZ"};
 
         std::string Res;
-        std::default_random_engine generator(time(nullptr));
+        std::default_random_engine generator(time(nullptr) * (int64_t )(uCentral::Auth::Service::instance_) );
         std::uniform_int_distribution<int> distribution(0,time(nullptr));
 
         for(auto i=0;i<sizeof(buf);i++)
@@ -138,6 +140,7 @@ namespace uCentral::Auth {
         ResultToken.access_token_ = GenerateToken();
         ResultToken.id_token_ = GenerateToken();
         ResultToken.refresh_token_ = GenerateToken();
+        ResultToken.created_ = time(nullptr);
 
         Tokens_[ResultToken.access_token_] = ResultToken;
     }
@@ -152,9 +155,7 @@ namespace uCentral::Auth {
                 return true;
             }
         }
-
         return false;
     }
-
 
 };  // end of namespace

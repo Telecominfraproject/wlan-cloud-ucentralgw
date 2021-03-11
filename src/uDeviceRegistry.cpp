@@ -191,6 +191,8 @@ namespace uCentral::DeviceRegistry {
         Obj.set("messageCount",MessageCount);
         Obj.set("UUID",UUID);
         Obj.set("connected",Connected);
+        Obj.set("protocol",Protocol);
+        Obj.set("firmware",Firmware);
         Obj.set("lastContact",RESTAPIHandler::to_RFC3339(LastContact));
 
         return Obj;

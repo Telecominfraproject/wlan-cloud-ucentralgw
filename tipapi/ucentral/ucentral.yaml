@@ -123,6 +123,11 @@ components:
         lastContact:
           type: string
           format: 'date-time'
+        protocol:
+          type: integer
+          format: int32
+        firmware:
+          type: string
 
     DeviceCapabilities:
       type: object
