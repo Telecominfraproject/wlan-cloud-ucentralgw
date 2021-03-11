@@ -29,6 +29,7 @@ namespace uCentral::Auth {
         std::string refresh_token_;
         std::string id_token_;
         std::string token_type_;
+        std::string username_;
         unsigned int expires_in_;
         unsigned int idle_timeout_;
         AclTemplate acl_template_;

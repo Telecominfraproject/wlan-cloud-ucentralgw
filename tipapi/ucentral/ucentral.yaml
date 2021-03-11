@@ -168,11 +168,6 @@ components:
           items:
             $ref: '#/components/schemas/StatisticsDetails'
 
-    Logs:
-      type: array
-      items:
-        type: string
-
     CommandDetails:
       type: object
       properties:
@@ -254,6 +249,11 @@ components:
         idle_timeout:
           type: integer
           format: int32
+        username:
+          type: string
+        created:
+          type: string
+          format: 'date-time'
         aclTemplate:
           $ref: '#/components/schemas/WebTokenAclTemplate'
 

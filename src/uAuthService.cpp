@@ -5,6 +5,7 @@
 #include "uAuthService.h"
 #include "Poco/Net/OAuth20Credentials.h"
 #include "uCentral.h"
+#include "RESTAPI_Handler.h"
 #include <random>
 
 namespace uCentral::Auth {
@@ -32,6 +33,8 @@ namespace uCentral::Auth {
         WebTokenObj.set("token_type",token_type_);
         WebTokenObj.set("expires_in",expires_in_);
         WebTokenObj.set("idle_timeout",idle_timeout_);
+        WebTokenObj.set("created",RESTAPIHandler::to_RFC3339(created_));
+        WebTokenObj.set("username",username_);
         WebTokenObj.set("aclTemplate",AclTemplateObj);
 
         return WebTokenObj;
@@ -141,6 +144,7 @@ namespace uCentral::Auth {
         ResultToken.id_token_ = GenerateToken();
         ResultToken.refresh_token_ = GenerateToken();
         ResultToken.created_ = time(nullptr);
+        ResultToken.username_ = UserName;
 
         Tokens_[ResultToken.access_token_] = ResultToken;
     }
