@@ -165,7 +165,6 @@ AP Sends a log whenever necessary
     "method" : "log" , 
     "params" : {
 	"serial" : <serial number> ,
-	"uuid" : <current active configuration uuid>,
 	"log" : <text to appear in the logs>
     }
 }
@@ -185,7 +184,7 @@ AP Sends a log whenever necessary
 ```
 
 #### Send a keepalive to the controller event
-AP Sends a log whenever necessary
+AP Sends a keepalive whenever necessary
 ```
 {   "jsonrpc" : "2.0" , 
     "method" : "ping" , 
