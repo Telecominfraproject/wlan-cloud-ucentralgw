@@ -126,13 +126,13 @@ authentication.default.password = support
 authentication.service.type = internal
 ```
 
-##New JSONRPC based protocol
+## New JSONRPC based protocol
 
 In the JSON-RPC scenario, the AP is considered the server. So the Controller sends commands to the AP using JSONRPC, and the AP will send notifications to the controller. 
 
-###Event Messages
+### Event Messages
 
-####Connection event
+#### Connection event
 AP Sends connection notification to the controller after establishing a connection
 ```
 { "jsonrpc" : "2.0" , 
@@ -146,7 +146,7 @@ AP Sends connection notification to the controller after establishing a connecti
 }
 ```
 
-####State event
+#### State event
 AP Sends device state periodically
 ```
 { "jsonrpc" : "2.0" , 
@@ -159,7 +159,7 @@ AP Sends device state periodically
 }
 ```
 
-####Log event
+#### Log event
 AP Sends a log whenever necessary
 ```
 { "jsonrpc" : "2.0" , 
@@ -172,7 +172,7 @@ AP Sends a log whenever necessary
 }
 ```
 
-####Config change pending event
+#### Config change pending event
 AP Sends a log whenever necessary
 ```
 { "jsonrpc" : "2.0" , 
@@ -185,7 +185,7 @@ AP Sends a log whenever necessary
 }
 ```
 
-####Send a keepalive to the controller event
+#### Send a keepalive to the controller event
 AP Sends a log whenever necessary
 ```
 { "jsonrpc" : "2.0" , 
@@ -197,9 +197,9 @@ AP Sends a log whenever necessary
 }
 ```
 
-###Controller commands
+### Controller commands
 
-####Controller wants the AP to apply a given configuration
+#### Controller wants the AP to apply a given configuration
 Controller sends this command when it believes the AP should load a new config
 ```
 { 	"jsonrpc" : "2.0" , 
@@ -228,7 +228,7 @@ The AP should answer:
 }
 ```
 
-####Controller wants the AP to apply a given configuration
+#### Controller wants the AP to apply a given configuration
 Controller sends this command when it believes the AP should load a new config
 ```
 { 	"jsonrpc" : "2.0" , 
