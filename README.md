@@ -228,15 +228,14 @@ The AP should answer:
 }
 ```
 
-#### Controller wants the AP to apply a given configuration
-Controller sends this command when it believes the AP should load a new config
+#### Controller wants the AP to reboot
+Controller sends this command when it believes the AP should reboot
 ```
 { 	"jsonrpc" : "2.0" , 
       "method" : "reboot" , 
         "params" : {
 	        "serial" : <serial number> ,
-	        "uuid" : <waiting to apply this configuration>,
-	        "when" : UTC time when to apply this config, 0 mean immediate, this is a suggestion
+	        "when" : <UTC time when to apply this config, 0 mean immediate, this is a suggestion>
         },
       "id" : <some number>
 }
@@ -244,15 +243,42 @@ Controller sends this command when it believes the AP should load a new config
 
 The AP should answer:
 ```
-{ 	"jsonrpc" : "2.0" , 
-      "result" : {
-      "serial" : <serial number> ,
-	    "uuid" : <waiting to apply this configuration>,
-	    "status" : {
+{ "jsonrpc" : "2.0" , 
+	"result" : {
+	"serial" : <serial number> ,
+	"status" : {
 		    "error" : 0 or an error number,
 		    "text" : <description of the error or success>
-  },
+  	},
   "id" : <same number>
 }
 ```
+
+#### Controller sends a device specific command
+Controller sends this command when it believes the AP should reboot
+```
+{ 	"jsonrpc" : "2.0" , 
+      "method" : "perform" , 
+        "params" : {
+	        "serial" : <serial number> ,
+	        "when" : <UTC time when to apply this config, 0 mean immediate, this is a suggestion>,
+		"command" : <this is device specific>
+        },
+      "id" : <some number>
+}
+```
+
+The AP should answer:
+```
+{ "jsonrpc" : "2.0" , 
+	"result" : {
+	"serial" : <serial number> ,
+	"status" : {
+		    "error" : 0 or an error number,
+		    "text" : <description of the error or success>
+  	},
+  "id" : <same number>
+}
+```
+
 
