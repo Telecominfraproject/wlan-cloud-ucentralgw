@@ -128,10 +128,9 @@ authentication.service.type = internal
 
 ## New JSON-RPC based protocol
 
-In the [JSON-RPC](https://www.jsonrpc.org/specification) scenario, the AP is considered the server. So the Controller sends commands to the AP using JSONRPC, and the AP will send notifications to the controller. 
+In the [JSON-RPC](https://www.jsonrpc.org/specification) scenario, the AP is considered the server. So the Controller sends commands to the AP using JSON-RPC, and the AP will send notifications to the controller. 
 
 ### Event Messages
-
 #### Connection event
 AP Sends connection notification to the controller after establishing a connection
 ```
@@ -198,7 +197,6 @@ AP Sends a log whenever necessary
 ```
 
 ### Controller commands
-
 #### Controller wants the AP to apply a given configuration
 Controller sends this command when it believes the AP should load a new config
 ```
