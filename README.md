@@ -126,3 +126,156 @@ authentication.default.password = support
 authentication.service.type = internal
 ```
 
+## New JSON-RPC based protocol
+
+In the [JSON-RPC](https://www.jsonrpc.org/specification) scenario, the AP is considered the server. So the Controller sends commands to the AP using JSON-RPC, and the AP will send notifications to the controller. 
+
+### Event Messages
+#### Connection event
+AP Sends connection notification to the controller after establishing a connection
+```
+{     "jsonrpc" : "2.0" , 
+      "method" : "connect" , 
+      "params" : {
+          "serial" : <serial number> ,
+	  "uuid" : <current active configuration uuid>,
+          "firmware" : <Current firmware version string>,
+	  "capabilities" : <current device capabilities in JSON document>
+    }
+}
+```
+
+#### State event
+AP Sends device state periodically
+```
+{   "jsonrpc" : "2.0" , 
+    "method" : "state" , 
+    "params" : {
+	"serial" : <serial number> ,
+	"uuid" : <current active configuration uuid>,
+	"state" : <current device state in JSON document>
+  }
+}
+```
+
+#### Log event
+AP Sends a log whenever necessary
+```
+{   "jsonrpc" : "2.0" , 
+    "method" : "log" , 
+    "params" : {
+	"serial" : <serial number> ,
+	"log" : <text to appear in the logs>
+    }
+}
+```
+
+#### Config change pending event
+AP Sends a log whenever necessary
+```
+{   "jsonrpc" : "2.0" , 
+    "method" : "cfgpending" , 
+    "params" : {
+        "serial" : <serial number> ,
+	"active" : <current active configuration uuid>,
+	"uuid" : <waiting to apply this configuration>
+    }
+}
+```
+
+#### Send a keepalive to the controller event
+AP Sends a keepalive whenever necessary
+```
+{   "jsonrpc" : "2.0" , 
+    "method" : "ping" , 
+    "params" : {
+        "serial" : <serial number> ,
+        "uuid" : <waiting to apply this configuration>
+    }
+}
+```
+
+### Controller commands
+#### Controller wants the AP to apply a given configuration
+Controller sends this command when it believes the AP should load a new config
+```
+{   "jsonrpc" : "2.0" , 
+    "method" : "configure" , 
+    "params" : {
+	"serial" : <serial number> ,
+	"uuid" : <waiting to apply this configuration>,
+	"when" : UTC time when to apply this config, 0 mean immediate, this is a suggestion
+        "config" : <New configuration as a JSON document”
+     },
+     "id" : <some number>
+}
+```
+
+The AP should answer:
+```
+{    "jsonrpc" : "2.0" , 
+     "result" : {
+     "serial" : <serial number> ,
+	 "uuid" : <waiting to apply this configuration>,
+	 "status" : {
+	     "error" : 0 or an error number,
+	     "text" : <description of the error or success>
+         },
+     "id" : <same number>
+}
+```
+
+#### Controller wants the AP to reboot
+Controller sends this command when it believes the AP should reboot
+```
+{    "jsonrpc" : "2.0" , 
+     "method" : "reboot" , 
+     "params" : {
+	        "serial" : <serial number> ,
+	        "when" : <UTC time when to apply this config, 0 mean immediate, this is a suggestion>
+     },
+     "id" : <some number>
+}
+```
+
+The AP should answer:
+```
+{     "jsonrpc" : "2.0" , 
+      "result" : {
+      "serial" : <serial number> ,
+      "status" : {
+	    "error" : 0 or an error number,
+	    "text" : <description of the error or success>
+  	},
+  "id" : <same number>
+}
+```
+
+#### Controller sends a device specific command
+Controller sends this command when it believes the AP should reboot
+```
+{     "jsonrpc" : "2.0" , 
+      "method" : "perform" , 
+      "params" : {
+          "serial" : <serial number> ,
+	  "when" : <UTC time when to apply this config, 0 mean immediate, this is a suggestion>,
+	  "command" : <this is device specific>
+          },
+      "id" : <some number>
+}
+```
+
+The AP should answer:
+```
+{     "jsonrpc" : "2.0" , 
+      "result" : {
+      "serial" : <serial number> ,
+      "status" : {
+	    "error" : 0 or an error number,
+	    "text" : <description of the error or success>
+      },
+      "id" : <same number>
+}
+```
+
+
