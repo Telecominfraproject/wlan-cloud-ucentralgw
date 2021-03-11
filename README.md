@@ -126,9 +126,9 @@ authentication.default.password = support
 authentication.service.type = internal
 ```
 
-## New JSONRPC based protocol
+## New JSON-RPC based protocol
 
-In the JSON-RPC scenario, the AP is considered the server. So the Controller sends commands to the AP using JSONRPC, and the AP will send notifications to the controller. 
+In the [JSON-RPC](https://www.jsonrpc.org/specification) scenario, the AP is considered the server. So the Controller sends commands to the AP using JSONRPC, and the AP will send notifications to the controller. 
 
 ### Event Messages
 
