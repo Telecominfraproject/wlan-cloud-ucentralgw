@@ -35,7 +35,8 @@ The configuration for this service is kept in a properties file. Currently, this
 current directory of uCentral or one level up. This file is called `ucentral.properties`. The file will be loaded from 
 the directory set by the environment variable `UCENTRAL_CONFIG`. To use environment variables in the configuration,
 you must use `${<varname>}`. The path for the logs for the service must exist prior to starting the 
-service. the path is defined under `logging.channels.c2.path`. Here is a sample and the important entries:
+service. the path is defined under `logging.channels.c2.path`. Only `path names` support the use of 
+environment variables. Here is a sample and the important entries:
 
 ```
 tip.certs.key = ${UCENTRAL_ROOT}/certs/clientkey.pem
