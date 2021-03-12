@@ -11,6 +11,7 @@
 #include "Poco/Util/IntValidator.h"
 #include "Poco/Environment.h"
 #include <iostream>
+#include "Poco/Path.h"
 
 using Poco::Util::Application;
 using Poco::Util::Option;
@@ -35,8 +36,22 @@ namespace uCentral {
     }
 
     void Daemon::initialize(Application &self) {
-        // logging_channel_.assign(new FileChannel);
-        loadConfiguration(); // load default configuration files, if present
+
+        std::string Location = Poco::Environment::get("UCENTRAL_CONFIG",".");
+        Poco::Path ConfigFile = Location + "/ucentral.properties";
+
+        if(!ConfigFile.isFile())
+        {
+            std::cout << "uCentral: Configuration " << ConfigFile.toString() << " does not seem to exist. Please set UCENTRAL_CONFIG env variable the path of the ucentral.properties file." << std::endl;
+            std::exit(EXIT_CONFIG);
+        }
+
+        char LogFilePathKey[] = "logging.channels.c2.path";
+
+        loadConfiguration(ConfigFile.toString());
+        std::string OriginalLogFileValue = config().getString(LogFilePathKey);
+        std::string RealLogFileValue = uCentral::ServiceConfig::ReplaceEnvVar(OriginalLogFileValue);
+        config().setString(LogFilePathKey,RealLogFileValue);
 
         addSubsystem(uCentral::Storage::Service::instance());
         addSubsystem(uCentral::Auth::Service::instance());

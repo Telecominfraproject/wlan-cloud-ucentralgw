@@ -32,21 +32,26 @@ make
 
 ### Configuration
 The configuration for this service is kept in a properties file. Currently, this configuration file must be kept in the 
-current directory of uCentral or one level up. This file is called `ucentral.properties`. Here is a sample and the 
-important entries
+current directory of uCentral or one level up. This file is called `ucentral.properties`. The file will be loaded from 
+the directory set by the environment variable `UCENTRAL_CONFIG`. To use environment variables in the configuration,
+you must use `${<varname>}`. The path for the logs for the service must exist prior to starting the 
+service. the path is defined under `logging.channels.c2.path`. Here is a sample and the important entries:
 
 ```
-tip.certs.key = /Users/stephb/Desktop/Dropbox/clion/ucentralgw/certs/clientkey.pem
-tip.certs.cert = /Users/stephb/Desktop/Dropbox/clion/ucentralgw/certs/clientcert.pem
-tip.certs.ca = /Users/stephb/Desktop/Dropbox/clion/ucentralgw/certs/clientcert.pem
+tip.certs.key = ${UCENTRAL_ROOT}/certs/clientkey.pem
+tip.certs.cert = ${UCENTRAL_ROOT}/certs/clientcert.pem
+tip.certs.ca = ${UCENTRAL_ROOT}/certs/clientcert.pem
 tip.certs.password = mypassword
 tip.api.login.username = support@example.com
 tip.api.login.password = support
 tip.api.host = debfarm1-node-a1.arilia.com
 tip.api.port = 9051
 
-tip.gateway.host.0.address = debfarm1-node-a.arilia.com
+tip.gateway.host.0.address = *
 tip.gateway.host.0.port = 9031
+tip.gateway.host.0.key = ${UCENTRAL_ROOT}/certs/ws-key.pem
+tip.gateway.host.0.cert = ${UCENTRAL_ROOT}/certs/ws-cert.pem
+tip.gateway.host.0.password = mypassword
 
 logging.formatters.f1.class = PatternFormatter
 logging.formatters.f1.pattern = %s: [%p] %t
@@ -54,7 +59,7 @@ logging.formatters.f1.times = UTC
 logging.channels.c1.class = ConsoleChannel
 logging.channels.c1.formatter = f1
 logging.channels.c2.class = FileChannel
-logging.channels.c2.path = /Users/stephb/Desktop/Dropbox/clion/ucentralgw/logs/sample.log
+logging.channels.c2.path = ${UCENTRAL_ROOT}/logs/sample.log
 logging.channels.c2.formatter.class = PatternFormatter
 logging.channels.c2.formatter.pattern = %Y-%m-%d %H:%M:%S %s: [%p] %t
 logging.channels.c3.class = ConsoleChannel
@@ -72,9 +77,9 @@ logging.loggers.root.level = information
 # logging.channels.splitter.channels = l1,l2
 # logging.loggers.l2.name = logger2
 # logging.loggers.l2.channel = splitter
-openSSL.client.privateKeyFile = /Users/stephb/Desktop/Dropbox/clion/ucentralgw/certs/clientkey.pem
-openSSL.client.certificateFile = /Users/stephb/Desktop/Dropbox/clion/ucentralgw/certs/clientcert.pem
-openSSL.client.caConfig = /Users/stephb/Desktop/Dropbox/clion/ucentralgw/certs/cacert.pem
+openSSL.client.privateKeyFile = ${UCENTRAL_ROOT}/certs/clientkey.pem
+openSSL.client.certificateFile = ${UCENTRAL_ROOT}/certs/clientcert.pem
+openSSL.client.caConfig = ${UCENTRAL_ROOT}/certs/cacert.pem
 openSSL.client.verificationMode = once
 openSSL.client.verificationDepth = 9
 openSSL.client.loadDefaultCAFile = true
@@ -87,30 +92,34 @@ openSSL.client.extendedVerification = false
 openSSL.client.cacheSessions = true
 openSSL.client.requireTLSv1 = true
 
-ucentral.websocket.host.0.address = 10.100.49.22
+ucentral.websocket.host.0.address = *
 ucentral.websocket.host.0.port = 15002
-ucentral.websocket.host.0.cert = /Users/stephb/Desktop/Dropbox/clion/ucentralgw/certs/ws-cert.pem
-ucentral.websocket.host.0.key = /Users/stephb/Desktop/Dropbox/clion/ucentralgw/certs/ws-key.pem
+ucentral.websocket.host.0.cert = ${UCENTRAL_ROOT}/certs/ws-cert.pem
+ucentral.websocket.host.0.key = ${UCENTRAL_ROOT}/certs/ws-key.pem
 ucentral.websocket.host.0.key.password = mypassword
+ucentral.websocket.maxreactors = 5
 
-ucentral.restapi.host.0.address = 10.100.49.22
+ucentral.restapi.host.0.address = *
 ucentral.restapi.host.0.port = 16001
-ucentral.restapi.host.0.cert = /Users/stephb/Desktop/Dropbox/clion/ucentralgw/certs/ws-cert.pem
-ucentral.restapi.host.0.key = /Users/stephb/Desktop/Dropbox/clion/ucentralgw/certs/ws-key.pem
+ucentral.restapi.host.0.cert = ${UCENTRAL_ROOT}/certs/ws-cert.pem
+ucentral.restapi.host.0.key = ${UCENTRAL_ROOT}/certs/ws-key.pem
 ucentral.restapi.host.0.key.password = mypassword
 
-ucentral.tipgateway.host.0.address = 127.0.0.1
+ucentral.tipgateway.host.0.address = *
 ucentral.tipgateway.host.0.port = 14001
-ucentral.tipgateway.host.0.cert = 127.0.0.1
-ucentral.tipgateway.host.0.key = 127.0.0.1
-ucentral.tipgateway.host.0.key.password = 127.0.0.1
+ucentral.tipgateway.host.0.cert = ${UCENTRAL_ROOT}/certs/ws-cert.pem
+ucentral.tipgateway.host.0.key = ${UCENTRAL_ROOT}/certs/ws-cert.pem
+ucentral.tipgateway.host.0.key.password = mypassword
 
-#storage.type = sqlite
-storage.type.sqlite.db = /Users/stephb/Desktop/Dropbox/clion/ucentralgw/cmake-build-debug/devices.db
+storage.type = sqlite
+#storage.type = postgresql
+#storage.type = mysql
+#storage.type = odbc
+
+storage.type.sqlite.db = ${UCENTRAL_ROOT}/devices.db
 storage.type.sqlite.idletime = 120
 storage.type.sqlite.maxsessions = 128
 
-storage.type = postgresql
 storage.type.postgresql.maxsessions = 64
 storage.type.postgresql.idletime = 60
 storage.type.postgresql.host = localhost
@@ -119,6 +128,15 @@ storage.type.postgresql.password = snoopy99
 storage.type.postgresql.database = ucentral
 storage.type.postgresql.port = 5432
 storage.type.postgresql.connectiontimeout = 60
+
+storage.type.mysql.maxsessions = 64
+storage.type.mysql.idletime = 60
+storage.type.mysql.host = localhost
+storage.type.mysql.username = stephb
+storage.type.mysql.password = snoopy99
+storage.type.mysql.database = ucentral
+storage.type.mysql.port = 3306
+storage.type.mysql.connectiontimeout = 60
 
 authentication.enabled = true
 authentication.default.username = support@example.com
