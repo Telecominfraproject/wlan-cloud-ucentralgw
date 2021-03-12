@@ -24,7 +24,7 @@ the following
 sudo apt install libboost-dev cmake libpoco-dev libssl-dev openssl libyaml-dev gcc libpq-dev 
 git clone <this repo name>
 cd ucentralgw
-mmkdir cmake-build-debug
+mkdir cmake-build-debug
 cd cmake-build-debug
 cmake ..
 make
