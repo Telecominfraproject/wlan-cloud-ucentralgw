@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.10)
-project(ucentral VERSION 0.1.0)
+project(ucentral VERSION 0.2.0)
 
 # cmake .. -DOPENSSL_ROOT_DIR=/usr/local/opt/openssl@1.1 -DMYSQL_ROOT_DIR=/usr/local/opt/mysql-client
 
