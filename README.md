@@ -150,7 +150,8 @@ In the [JSON-RPC](https://www.jsonrpc.org/specification) scenario, the AP is con
 
 ### Event Messages
 #### Connection event
-AP Sends connection notification to the controller after establishing a connection
+AP Sends connection notification to the controller after establishing a connection. The controller
+my decide to send the AP a newer configuration if it has a newer one. 
 ```
 {     "jsonrpc" : "2.0" , 
       "method" : "connect" , 
@@ -164,7 +165,8 @@ AP Sends connection notification to the controller after establishing a connecti
 ```
 
 #### State event
-AP Sends device state periodically
+AP Sends device state periodically. If the Contoller detects that it has a newer configuration, it 
+may decide to send this new configuration to the AP.
 ```
 {   "jsonrpc" : "2.0" , 
     "method" : "state" , 
@@ -177,7 +179,7 @@ AP Sends device state periodically
 ```
 
 #### Log event
-AP Sends a log whenever necessary
+AP Sends a log whenever necessary. The controller will log this message.
 ```
 {   "jsonrpc" : "2.0" , 
     "method" : "log" , 
@@ -189,7 +191,9 @@ AP Sends a log whenever necessary
 ```
 
 #### Config change pending event
-AP Sends a log whenever necessary
+AP Sends a log whenever necessary. This message is intended to tell the controller that the AP 
+has received a configuration but is still running an older configuration. The controller will not 
+reply to this message.
 ```
 {   "jsonrpc" : "2.0" , 
     "method" : "cfgpending" , 
@@ -202,20 +206,27 @@ AP Sends a log whenever necessary
 ```
 
 #### Send a keepalive to the controller event
-AP Sends a keepalive whenever necessary
+AP Sends a keepalive whenever necessary. The AP will send this message to tell the controller 
+which version it is running. The Controller may decide to send the AP a newer configuration.
 ```
 {   "jsonrpc" : "2.0" , 
     "method" : "ping" , 
     "params" : {
         "serial" : <serial number> ,
-        "uuid" : <waiting to apply this configuration>
+        "uuid" : <current running config>
     }
 }
 ```
 
 ### Controller commands
+Most controller commands include a `when` member. This is a UTC clock time asking the AP 
+to perform the command at that time. This is a suggestion only. The AP may ignore this
+parameter. If a 0 (zero) is given, the command should be performed immediately. `when` is
+always a numeric parameter.
+
 #### Controller wants the AP to apply a given configuration
-Controller sends this command when it believes the AP should load a new config
+Controller sends this command when it believes the AP should load a new configuration. The AP
+should send messages with `pending change` events until this version has been applied.
 ```
 {   "jsonrpc" : "2.0" , 
     "method" : "configure" , 
@@ -244,7 +255,7 @@ The AP should answer:
 ```
 
 #### Controller wants the AP to reboot
-Controller sends this command when it believes the AP should reboot
+Controller sends this command when it believes the AP should reboot.
 ```
 {    "jsonrpc" : "2.0" , 
      "method" : "reboot" , 
@@ -290,7 +301,9 @@ The AP should answer:
       "serial" : <serial number> ,
       "status" : {
 	    "error" : 0 or an error number,
-	    "text" : <description of the error or success>
+	    "text" : <description of the error or success>,
+	    "resultCode" : <0 or an appropriate error code>,
+	    "resultText" : <any text resulting from the command. This is propeirtary to each command>
       },
       "id" : <same number>
 }
