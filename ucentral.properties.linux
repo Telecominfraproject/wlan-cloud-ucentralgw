@@ -54,6 +54,7 @@ ucentral.websocket.host.0.port = 15002
 ucentral.websocket.host.0.cert = /home/stephb/ucentral/ucentralgw/certs/ws-cert.pem
 ucentral.websocket.host.0.key = /home/stephb/ucentral/ucentralgw/certs/ws-key.pem
 ucentral.websocket.host.0.key.password = mypassword
+ucentral.websocket.maxreactors = 5
 
 ucentral.restapi.host.0.address = 10.100.49.22
 ucentral.restapi.host.0.port = 16001

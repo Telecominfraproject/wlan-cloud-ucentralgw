@@ -5,6 +5,7 @@
 #include "uCentralWebSocketServer.h"
 #include "uStorageService.h"
 #include "uAuthService.h"
+#include "uCentral.h"
 
 namespace uCentral::WebSocket {
 
@@ -26,9 +27,6 @@ namespace uCentral::WebSocket {
 
     int Service::Start() {
 
-        //  create the reactor
-        SocketReactorThread_.start(SocketReactor_);
-
         for(const auto & svr : ConfigurationServers()) {
             std::string l{
                     "Starting: " + svr.address() + ":" + std::to_string(svr.port()) +
@@ -44,12 +42,15 @@ namespace uCentral::WebSocket {
                                                 svr.cert_file(),
                                                 ""));
 
-            auto NewServer = std::make_shared<Poco::Net::HTTPServer>(new WSRequestHandlerFactory(SocketReactor_), sock, new HTTPServerParams);
+            auto NewServer = std::make_shared<Poco::Net::HTTPServer>(new WSRequestHandlerFactory, sock, new HTTPServerParams);
 
             NewServer->start();
-
             HTTPServers_.push_back(NewServer);
         }
+
+        uint64_t MaxThreads = uCentral::Daemon::instance().config().getInt("ucentral.websocket.maxreactors",5);
+
+        Factory_ = std::shared_ptr<CountedSocketReactorFactory>(new CountedSocketReactorFactory(MaxThreads));
 
         return 0;
     }
@@ -57,7 +58,6 @@ namespace uCentral::WebSocket {
     void Service::Stop() {
         SubSystemServer::logger().information("Stopping ");
 
-        SocketReactor_.stop();
         for(auto const & svr : HTTPServers_)
             svr->stop();
     }
@@ -201,7 +201,7 @@ namespace uCentral::WebSocket {
                 auto log = ds["log"].toString();
                 uCentral::Storage::AddLog(SerialNumber_, log);
             } else {
-                std::cout << "UNKNOWN_MESSAGE(" << SerialNumber_ << "): " << IncomingMessage_ << std::endl;
+                std::cout << "UNKNOWN_MESSAGE(" << SerialNumber_ << ")" << std::endl;
             }
         }
     }
@@ -211,8 +211,9 @@ namespace uCentral::WebSocket {
         int flags, Op;
         int IncomingSize = 0;
 
+        char IncomingMessage_[16000] = {0};
+
         std::lock_guard<std::mutex> guard(mutex_);
-        memset(IncomingMessage_, 0, sizeof(IncomingMessage_));
 
         try {
             IncomingSize = WS_.receiveFrame(IncomingMessage_,sizeof(IncomingMessage_), flags);
@@ -237,7 +238,6 @@ namespace uCentral::WebSocket {
                     break;
 
                 case Poco::Net::WebSocket::FRAME_OP_TEXT: {
-                        std::cout << "Incoming(" << SerialNumber_ << "): " << IncomingSize << " bytes." << std::endl;
                         Logger_.debug(
                                 Poco::format("Frame received (length=%d, flags=0x%x).", IncomingSize, unsigned(flags)));
 
@@ -266,9 +266,6 @@ namespace uCentral::WebSocket {
                             if (!ResponseDocument.empty()) {
                                 if (Conn_ != nullptr)
                                     Conn_->TX += ResponseDocument.size();
-                                std::cout << "Returning(" << SerialNumber_ << "): " << ResponseDocument.size()
-                                          << " bytes"
-                                          << std::endl;
                                 WS_.sendFrame(ResponseDocument.c_str(), ResponseDocument.size());
                             }
                         }
@@ -293,8 +290,8 @@ namespace uCentral::WebSocket {
             if(Conn_!= nullptr)
                 Conn_->MessageCount++;
         }
-        catch (const Poco::Exception &exc) {
-            std::cout << "Caught a more generic Poco exception: " << exc.message() << "Message:" << IncomingMessage_ << std::endl;
+        catch (const Poco::Exception &E) {
+            Logger_.warning( Poco::format("%s: Caught a more generic Poco exception: %s. Message: %s", SerialNumber_.c_str(), E.displayText().c_str(), IncomingMessage_ ));
             delete this;
         }
     }
@@ -302,29 +299,22 @@ namespace uCentral::WebSocket {
     bool WSConnection::SendCommand(const std::string &Cmd) {
         std::lock_guard<std::mutex> guard(mutex_);
 
-        Logger_.information(Poco::format("Sending commnd to %s",SerialNumber_.c_str()));
+        Logger_.information(Poco::format("Sending command to %s",SerialNumber_.c_str()));
         return true;
     }
 
     WSConnection::~WSConnection() {
         uCentral::DeviceRegistry::UnRegister(SerialNumber_,this);
-        SocketReactor_.removeEventHandler(WS_,
+        Reactor_->Reactor()->removeEventHandler(WS_,
                                           Poco::NObserver<WSConnection,Poco::Net::ReadableNotification>(*this,&WSConnection::OnSocketReadable));
-        SocketReactor_.removeEventHandler(WS_,
+        Reactor_->Reactor()->removeEventHandler(WS_,
                                           Poco::NObserver<WSConnection,Poco::Net::ShutdownNotification>(*this,&WSConnection::OnSocketShutdown));
         WS_.shutdown();
     }
 
     void WSRequestHandler::handleRequest(HTTPServerRequest &Request, HTTPServerResponse &Response) {
-
         Poco::Logger & Logger = Service::instance()->logger();
-        std::string Address;
-
-        auto NewWS = new WSConnection(Reactor_,Logger,Request,Response);
-        Reactor_.addEventHandler(NewWS->WS(),
-                                 Poco::NObserver<WSConnection,Poco::Net::ReadableNotification>(*NewWS,&WSConnection::OnSocketReadable));
-        Reactor_.addEventHandler(NewWS->WS(),
-                                 Poco::NObserver<WSConnection,Poco::Net::ShutdownNotification>(*NewWS,&WSConnection::OnSocketShutdown));
+        new WSConnection(Logger,Request,Response);
     }
 
     HTTPRequestHandler *WSRequestHandlerFactory::createRequestHandler(const HTTPServerRequest &request) {
@@ -339,7 +329,7 @@ namespace uCentral::WebSocket {
             Logger.information(it.first + ": " + it.second);
 
         if (request.find("Upgrade") != request.end() && Poco::icompare(request["Upgrade"], "websocket") == 0)
-            return new WSRequestHandler(Logger,SocketReactor_);
+            return new WSRequestHandler(Logger);
 
         return nullptr;
     }
