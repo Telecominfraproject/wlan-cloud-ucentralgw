@@ -1,12 +1,11 @@
 //
 // Created by stephane bourque on 2021-03-04.
 //
+#include <random>
 
 #include "uAuthService.h"
-#include "Poco/Net/OAuth20Credentials.h"
 #include "uCentral.h"
 #include "RESTAPI_Handler.h"
-#include <random>
 
 namespace uCentral::Auth {
     Service *Service::instance_ = nullptr;
@@ -67,10 +66,10 @@ namespace uCentral::Auth {
     }
 
     int Service::Start() {
-        Secure_ = uCentral::Daemon::instance().config().getBool(SubSystemConfigPrefix_+".enabled",true);
-        DefaultPassword_ = uCentral::Daemon::instance().config().getString(SubSystemConfigPrefix_+".default.password","");
-        DefaultUserName_ = uCentral::Daemon::instance().config().getString(SubSystemConfigPrefix_+".default.username","");
-        Mechanism_ = uCentral::Daemon::instance().config().getString(SubSystemConfigPrefix_+".service.type","internal");
+        Secure_ = uCentral::ServiceConfig::getBool(SubSystemConfigPrefix_+".enabled",true);
+        DefaultPassword_ = uCentral::ServiceConfig::getString(SubSystemConfigPrefix_+".default.password","");
+        DefaultUserName_ = uCentral::ServiceConfig::getString(SubSystemConfigPrefix_+".default.username","");
+        Mechanism_ = uCentral::ServiceConfig::getString(SubSystemConfigPrefix_+".service.type","internal");
         return 0;
     }
 

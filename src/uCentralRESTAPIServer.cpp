@@ -30,30 +30,23 @@ namespace uCentral::RESTAPI {
     }
 
     int Service::Start() {
-        logger_.information("Starting.");
+        Logger_.information("Starting.");
 
-        for(const auto & svr: ConfigurationServers()) {
+        for(const auto & Svr: ConfigServersList_) {
             std::string l{"Starting: " +
-                          svr.address() + ":" + std::to_string(svr.port()) +
-                          " key:" + svr.key_file() +
-                          " cert:" + svr.cert_file()};
+                                  Svr.address() + ":" + std::to_string(Svr.port()) +
+                          " key:" + Svr.key_file() +
+                          " cert:" + Svr.cert_file()};
 
-            logger_.information(l);
+            Logger_.information(l);
 
-            SecureServerSocket sock(svr.port(),
-                                    64,
-                                    new Context(Poco::Net::Context::TLS_SERVER_USE,
-                                                svr.key_file(),
-                                                svr.cert_file(),
-                                                ""));
+            std::shared_ptr<SecureServerSocket> Sock = Svr.CreateSecureSocket();
 
             auto Params = new HTTPServerParams;
-
             Params->setMaxThreads(16);
             Params->setMaxQueued(100);
 
-            auto NewServer = std::make_shared<Poco::Net::HTTPServer>(new RequestHandlerFactory, sock, Params);
-
+            auto NewServer = std::shared_ptr<Poco::Net::HTTPServer>(new Poco::Net::HTTPServer( new RequestHandlerFactory, *Sock, Params));
             NewServer->start();
 
             RESTServers_.push_back(NewServer);

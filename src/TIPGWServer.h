@@ -5,30 +5,11 @@
 #ifndef UCENTRAL_TIPGWSERVER_H
 #define UCENTRAL_TIPGWSERVER_H
 
-#include "PropertiesFileServerList.h"
-
-#include "Poco/Util/Application.h"
-#include "Poco/Util/ServerApplication.h"
-#include "Poco/Util/Option.h"
-#include "Poco/Util/OptionSet.h"
-#include "Poco/Util/HelpFormatter.h"
-#include "Poco/Util/AbstractConfiguration.h"
-#include "Poco/Util/IntValidator.h"
-#include "Poco/AutoPtr.h"
-#include "Poco/Logger.h"
-
-using Poco::Util::Application;
-using Poco::Util::ServerApplication;
-using Poco::Util::Option;
-using Poco::Util::OptionSet;
-using Poco::Util::HelpFormatter;
-using Poco::Util::AbstractConfiguration;
-using Poco::Util::OptionCallback;
-using Poco::Util::IntValidator;
-using Poco::AutoPtr;
-using Poco::Logger;
-
 #include "SubSystemServer.h"
+#include "Poco/Net/HTTPServer.h"
+#include "Poco/Net/HTTPServerResponse.h"
+#include "Poco/Net/HTTPServerRequest.h"
+#include "Poco/Net/HTTPRequestHandler.h"
 
 namespace uCentral::TIPGW {
 
@@ -52,8 +33,29 @@ namespace uCentral::TIPGW {
     private:
         int Start() override;
         void Stop() override;
-
+        std::vector<std::shared_ptr<Poco::Net::HTTPServer>>     RESTServers_;
         static Service *instance_;
+    };
+
+    class RequestHandler : public Poco::Net::HTTPRequestHandler
+        /// Handle a WebSocket connection.
+    {
+    public:
+        explicit RequestHandler(Poco::Logger &logger)
+                : Logger_(logger)
+        { };
+        void handleRequest(Poco::Net::HTTPServerRequest &request, Poco::Net::HTTPServerResponse &response) override;
+    private:
+        Poco::Logger                & Logger_;
+    };
+
+    class RequestHandlerFactory : public Poco::Net::HTTPRequestHandlerFactory {
+    public:
+        explicit RequestHandlerFactory()
+        {};
+        Poco::Net::HTTPRequestHandler *createRequestHandler(const Poco::Net::HTTPServerRequest &request) override;
+    private:
+
     };
 
 };  // Namespace

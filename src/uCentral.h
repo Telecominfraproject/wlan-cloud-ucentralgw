@@ -5,6 +5,9 @@
 #ifndef UCENTRAL_UCENTRAL_H
 #define UCENTRAL_UCENTRAL_H
 
+#include <iostream>
+#include <sstream>
+
 #include "Poco/Util/ServerApplication.h"
 #include "Poco/Util/Option.h"
 #include "Poco/Util/OptionSet.h"
@@ -20,9 +23,6 @@
 #include "Poco/Message.h"
 #include "Poco/Data/Session.h"
 #include "Poco/Data/SQLite/Connector.h"
-
-#include <iostream>
-#include <sstream>
 
 using Poco::Util::Application;
 using Poco::Util::Option;
@@ -68,6 +68,15 @@ namespace uCentral {
         AutoPtr<FileChannel> logging_channel_;
     };
 
+    namespace ServiceConfig {
+        uint64_t getInt(const std::string &Key,uint64_t Default);
+        uint64_t getInt(const std::string &Key);
+        std::string getString(const std::string &Key,const std::string & Default);
+        std::string getString(const std::string &Key);
+        uint64_t getBool(const std::string &Key,bool Default);
+        uint64_t getBool(const std::string &Key);
+        std::string ReplaceEnvVar(const std::string &Key);
+    }
 };
 
 #endif //UCENTRAL_UCENTRAL_H

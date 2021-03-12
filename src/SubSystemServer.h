@@ -16,6 +16,7 @@
 #include "Poco/Util/IntValidator.h"
 #include "Poco/AutoPtr.h"
 #include "Poco/Logger.h"
+#include "Poco/Net/SecureServerSocket.h"
 
 using Poco::Util::Application;
 using Poco::Util::ServerApplication;
@@ -28,9 +29,36 @@ using Poco::Util::IntValidator;
 using Poco::AutoPtr;
 using Poco::Logger;
 
-#include "PropertiesFileServerList.h"
+class PropertiesFileServerEntry {
+public:
+    PropertiesFileServerEntry( const std::string &address,
+                               uint32_t port,
+                               const std::string &key_file,
+                               const std::string &cert_file,
+                               const std::string &key_file_password = "" ) :
+            address_(address),
+            port_(port),
+            key_file_(key_file),
+            cert_file_(cert_file),
+            key_file_password_(key_file_password) {};
+
+    [[nodiscard]] const std::string & address() const { return address_; };
+    [[nodiscard]] uint32_t port() const { return port_; };
+    [[nodiscard]] const std::string & key_file() const { return key_file_; };
+    [[nodiscard]] const std::string & cert_file() const { return cert_file_; };
+    [[nodiscard]] const std::string & key_file_password() const { return key_file_password_; };
+    std::shared_ptr<Poco::Net::SecureServerSocket> CreateSecureSocket() const;
+
+private:
+    std::string     address_;
+    std::string     cert_file_;
+    std::string     key_file_;
+    std::string     key_file_password_;
+    uint32_t        port_;
+};
 
 class SubSystemServer : public Poco::Util::Application::Subsystem {
+
 public:
     SubSystemServer(const std::string &name, const std::string & LoggingName, const std::string & SubSystemPrefix );
     virtual int Start() = 0;
@@ -39,17 +67,15 @@ public:
     void uninitialize() override;
     void reinitialize(Application & self) override;
     void defineOptions(OptionSet &options) override;
-    const char *name() const override { return name_.c_str(); };
-    const PropertiesFileServerEntry & host(int index) { return servers_[index]; };
-    Logger                  & logger() { return logger_;};
-
-    PropertiesFileServerList        & ConfigurationServers() { return servers_; };
+    const char *name() const override { return Name_.c_str(); };
+    const PropertiesFileServerEntry & host(int index) { return ConfigServersList_[index]; };
+    Logger                  & logger() { return Logger_;};
 
 protected:
-    Logger                  &   logger_;
-    std::string                 name_;
-    PropertiesFileServerList    servers_;
-    std::string                 SubSystemConfigPrefix_;
+    Logger                  &Logger_;
+    std::string             Name_;
+    std::vector<PropertiesFileServerEntry> ConfigServersList_;
+    std::string             SubSystemConfigPrefix_;
 };
 
 #endif //UCENTRAL_SUBSYSTEMSERVER_H

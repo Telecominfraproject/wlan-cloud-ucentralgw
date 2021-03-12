@@ -8,8 +8,8 @@
 #include "Poco/Util/Option.h"
 #include "Poco/Util/OptionSet.h"
 #include "Poco/Util/HelpFormatter.h"
-#include "Poco/Util/AbstractConfiguration.h"
 #include "Poco/Util/IntValidator.h"
+#include "Poco/Environment.h"
 #include <iostream>
 
 using Poco::Util::Application;
@@ -212,6 +212,73 @@ namespace uCentral {
         }
 
         return Application::EXIT_OK;
+    }
+
+    namespace ServiceConfig {
+
+        uint64_t getInt(const std::string &Key,uint64_t Default) {
+            return uCentral::Daemon::instance().config().getInt(Key,Default);
+        }
+
+        uint64_t getInt(const std::string &Key) {
+            return uCentral::Daemon::instance().config().getInt(Key);
+        }
+
+        uint64_t getBool(const std::string &Key,bool Default) {
+            return uCentral::Daemon::instance().config().getBool(Key,Default);
+        }
+
+        uint64_t getBool(const std::string &Key) {
+            return uCentral::Daemon::instance().config().getBool(Key);
+        }
+
+        // for strings, we must replace environment variables
+        //  if path is /path/to/${SOME_VAR}/afile
+        //  should expand to something replacing ${SOME_VAR} with its value
+        std::string ReplaceEnvVar(const std::string &Key) {
+
+            std::string Result;
+            std::string Var;
+            bool InVar = false, GotDS = false;
+
+            try {
+                for (auto i:Key) {
+                    if (i == '$' && GotDS)
+                        Result += '$';
+                    else if (i == '$')
+                        GotDS = true;
+                    else if (i == '{' and GotDS)
+                        InVar = true;
+                    else if (i == '}' and InVar) {
+                        // evaluate var and add it to result
+                        Result += Poco::Environment::get(Var);
+                        Var.clear();
+                        GotDS = InVar = false;
+                    } else if (InVar)
+                        Var += i;
+                    else
+                        Result += i;
+                }
+
+                return Result;
+            }
+            catch (const Poco::NotFoundException & E) {
+                uCentral::Daemon::instance().logger().error( E.displayText() );
+                std::exit(EXIT_FAILURE);
+            }
+        }
+
+        std::string getString(const std::string &Key,const std::string & Default) {
+            std::string R = uCentral::Daemon::instance().config().getString(Key, Default);
+
+            return ReplaceEnvVar(R);
+        }
+
+        std::string getString(const std::string &Key) {
+            std::string R = uCentral::Daemon::instance().config().getString(Key);
+
+            return ReplaceEnvVar(R);
+        }
     }
 
 }; // end of namespace

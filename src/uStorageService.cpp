@@ -107,14 +107,13 @@ namespace uCentral::Storage {
 
     int Service::Setup_MySQL() {
 
-        auto NumSessions = uCentral::Daemon::instance().config().getInt("storage.type.mysql.maxsessions",64);
-        auto IdleTime = uCentral::Daemon::instance().config().getInt("storage.type.mysql.idletime",60);
-        auto Host = uCentral::Daemon::instance().config().getString("storage.type.mysql.host");
-        auto Username = uCentral::Daemon::instance().config().getString("storage.type.mysql.username");
-        auto Password = uCentral::Daemon::instance().config().getString("storage.type.mysql.password");
-        auto Database = uCentral::Daemon::instance().config().getString("storage.type.mysql.database");
-        auto Port = uCentral::Daemon::instance().config().getString("storage.type.mysql.port");
-        auto ConnectionTimeout = uCentral::Daemon::instance().config().getString("storage.type.mysql.connectiontimeout");
+        auto NumSessions = uCentral::ServiceConfig::getInt("storage.type.mysql.maxsessions",64);
+        auto IdleTime = uCentral::ServiceConfig::getInt("storage.type.mysql.idletime",60);
+        auto Host = uCentral::ServiceConfig::getString("storage.type.mysql.host");
+        auto Username = uCentral::ServiceConfig::getString("storage.type.mysql.username");
+        auto Password = uCentral::ServiceConfig::getString("storage.type.mysql.password");
+        auto Database = uCentral::ServiceConfig::getString("storage.type.mysql.database");
+        auto Port = uCentral::ServiceConfig::getString("storage.type.mysql.port");
 
         std::string ConnectionStr =
                 "host=" + Host +
@@ -169,9 +168,9 @@ namespace uCentral::Storage {
     }
 
     int Service::Setup_SQLite() {
-        auto DBName = uCentral::Daemon::instance().config().getString("storage.type.sqlite.db");
-        auto NumSessions = uCentral::Daemon::instance().config().getInt("storage.type.sqlite.maxsessions",64);
-        auto IdleTime = uCentral::Daemon::instance().config().getInt("storage.type.sqlite.idletime",60);
+        auto DBName = uCentral::ServiceConfig::getString("storage.type.sqlite.db");
+        auto NumSessions = uCentral::ServiceConfig::getInt("storage.type.sqlite.maxsessions",64);
+        auto IdleTime = uCentral::ServiceConfig::getInt("storage.type.sqlite.idletime",60);
 
         SQLiteConn_ = std::shared_ptr<Poco::Data::SQLite::Connector>(new Poco::Data::SQLite::Connector);
         SQLiteConn_->registerConnector();
@@ -219,14 +218,14 @@ namespace uCentral::Storage {
     }
 
     int Service::Setup_PostgreSQL() {
-        auto NumSessions = uCentral::Daemon::instance().config().getInt("storage.type.postgresql.maxsessions",64);
-        auto IdleTime = uCentral::Daemon::instance().config().getInt("storage.type.postgresql.idletime",60);
-        auto Host = uCentral::Daemon::instance().config().getString("storage.type.postgresql.host");
-        auto Username = uCentral::Daemon::instance().config().getString("storage.type.postgresql.username");
-        auto Password = uCentral::Daemon::instance().config().getString("storage.type.postgresql.password");
-        auto Database = uCentral::Daemon::instance().config().getString("storage.type.postgresql.database");
-        auto Port = uCentral::Daemon::instance().config().getString("storage.type.postgresql.port");
-        auto ConnectionTimeout = uCentral::Daemon::instance().config().getString("storage.type.postgresql.connectiontimeout");
+        auto NumSessions = uCentral::ServiceConfig::getInt("storage.type.postgresql.maxsessions",64);
+        auto IdleTime = uCentral::ServiceConfig::getInt("storage.type.postgresql.idletime",60);
+        auto Host = uCentral::ServiceConfig::getString("storage.type.postgresql.host");
+        auto Username = uCentral::ServiceConfig::getString("storage.type.postgresql.username");
+        auto Password = uCentral::ServiceConfig::getString("storage.type.postgresql.password");
+        auto Database = uCentral::ServiceConfig::getString("storage.type.postgresql.database");
+        auto Port = uCentral::ServiceConfig::getString("storage.type.postgresql.port");
+        auto ConnectionTimeout = uCentral::ServiceConfig::getString("storage.type.postgresql.connectiontimeout");
 
         std::string ConnectionStr =
                 "host=" + Host +
@@ -282,14 +281,14 @@ namespace uCentral::Storage {
     }
 
     int Service::Setup_ODBC() {
-        auto NumSessions = uCentral::Daemon::instance().config().getInt("storage.type.postgresql.maxsessions",64);
-        auto IdleTime = uCentral::Daemon::instance().config().getInt("storage.type.postgresql.idletime",60);
-        auto Host = uCentral::Daemon::instance().config().getString("storage.type.postgresql.host");
-        auto Username = uCentral::Daemon::instance().config().getString("storage.type.postgresql.username");
-        auto Password = uCentral::Daemon::instance().config().getString("storage.type.postgresql.password");
-        auto Database = uCentral::Daemon::instance().config().getString("storage.type.postgresql.database");
-        auto Port = uCentral::Daemon::instance().config().getString("storage.type.postgresql.port");
-        auto ConnectionTimeout = uCentral::Daemon::instance().config().getString("storage.type.postgresql.connectiontimeout");
+        auto NumSessions = uCentral::ServiceConfig::getInt("storage.type.postgresql.maxsessions",64);
+        auto IdleTime = uCentral::ServiceConfig::getInt("storage.type.postgresql.idletime",60);
+        auto Host = uCentral::ServiceConfig::getString("storage.type.postgresql.host");
+        auto Username = uCentral::ServiceConfig::getString("storage.type.postgresql.username");
+        auto Password = uCentral::ServiceConfig::getString("storage.type.postgresql.password");
+        auto Database = uCentral::ServiceConfig::getString("storage.type.postgresql.database");
+        auto Port = uCentral::ServiceConfig::getString("storage.type.postgresql.port");
+        auto ConnectionTimeout = uCentral::ServiceConfig::getString("storage.type.postgresql.connectiontimeout");
 
         std::string ConnectionStr =
                 "host=" + Host +
@@ -312,8 +311,8 @@ namespace uCentral::Storage {
     int Service::Start() {
         std::lock_guard<std::mutex> guard(mutex_);
 
-        logger_.information("Starting.");
-        std::string DBType = uCentral::Daemon::instance().config().getString("storage.type");
+        Logger_.information("Starting.");
+        std::string DBType = uCentral::ServiceConfig::getString("storage.type");
 
         if(DBType == "sqlite") {
             return Setup_SQLite();
@@ -331,7 +330,7 @@ namespace uCentral::Storage {
     }
 
     void Service::Stop() {
-        logger_.information("Stopping.");
+        Logger_.information("Stopping.");
     }
 
     bool Service::AddStatisticsData_i(std::string &SerialNumber, uint64_t CfgUUID, std::string &NewStats) {
@@ -339,7 +338,7 @@ namespace uCentral::Storage {
         uCentral::DeviceRegistry::SetStatistics(SerialNumber,NewStats);
 
         try {
-            logger_.information("Device:" + SerialNumber + " Stats size:" + std::to_string(NewStats.size()));
+            Logger_.information("Device:" + SerialNumber + " Stats size:" + std::to_string(NewStats.size()));
 
             // std::cout << "STATS:" << NewStats << std::endl;
 
@@ -355,7 +354,7 @@ namespace uCentral::Storage {
             return true;
         }
         catch (const Poco::Exception &E) {
-            logger_.warning(Poco::format("%s(%s): Failed with: %s", __func__ , SerialNumber.c_str(), E.displayText()));
+            Logger_.warning(Poco::format("%s(%s): Failed with: %s", __func__ , SerialNumber.c_str(), E.displayText()));
         }
         return false;
     }
@@ -414,7 +413,7 @@ namespace uCentral::Storage {
         }
         catch( const Poco::Exception & E)
         {
-            logger_.warning(Poco::format("%s(%s): Failed with: %s",__func__,SerialNumber.c_str(),E.displayText() ));
+            Logger_.warning(Poco::format("%s(%s): Failed with: %s",__func__,SerialNumber.c_str(),E.displayText() ));
         }
         return false;
     }
@@ -448,7 +447,7 @@ namespace uCentral::Storage {
             return true;
         }
         catch (const Poco::Exception & E ) {
-            logger_.warning(Poco::format("%s(%s): Failed with: %s",__FUNCTION__,SerialNumber.c_str(),E.displayText() ));
+            Logger_.warning(Poco::format("%s(%s): Failed with: %s",__FUNCTION__,SerialNumber.c_str(),E.displayText() ));
         }
         return false;
     }
@@ -466,7 +465,7 @@ namespace uCentral::Storage {
             return true;
         }
         catch (const Poco::Exception & E ) {
-            logger_.warning(Poco::format("%s(%s): Failed with: %s",__FUNCTION__,SerialNumber.c_str(),E.displayText() ));
+            Logger_.warning(Poco::format("%s(%s): Failed with: %s",__FUNCTION__,SerialNumber.c_str(),E.displayText() ));
         }
         return false;
     }
@@ -521,7 +520,7 @@ namespace uCentral::Storage {
         }
         catch( const Poco::Exception & E)
         {
-            logger_.warning(Poco::format("%s(%s): Failed with: %s",__FUNCTION__,SerialNumber,E.displayText() ));
+            Logger_.warning(Poco::format("%s(%s): Failed with: %s",__FUNCTION__,SerialNumber,E.displayText() ));
         }
         return false;
     }
@@ -555,7 +554,7 @@ namespace uCentral::Storage {
             return true;
         }
         catch (const Poco::Exception & E ) {
-            logger_.warning(Poco::format("%s(%s): Failed with: %s",__FUNCTION__,SerialNumber.c_str(),E.displayText() ));
+            Logger_.warning(Poco::format("%s(%s): Failed with: %s",__FUNCTION__,SerialNumber.c_str(),E.displayText() ));
         }
         return false;
     }
@@ -595,7 +594,7 @@ namespace uCentral::Storage {
         }
         catch (const Poco::Exception &E)
         {
-            logger_.warning(Poco::format("%s(%s): Failed with: %s",__FUNCTION__,SerialNumber.c_str(),E.displayText() ));
+            Logger_.warning(Poco::format("%s(%s): Failed with: %s",__FUNCTION__,SerialNumber.c_str(),E.displayText() ));
         }
         return false;
     }
@@ -635,14 +634,14 @@ namespace uCentral::Storage {
                 }
                 else
                 {
-                    logger_.warning("Cannot create device: invalid configuration.");
+                    Logger_.warning("Cannot create device: invalid configuration.");
                     return false;
                 }
             }
         }
         catch( const Poco::Exception & E)
         {
-            logger_.warning(Poco::format("%s(%s): Failed with: %s",__FUNCTION__,SerialNumber.c_str(),E.displayText() ));
+            Logger_.warning(Poco::format("%s(%s): Failed with: %s",__FUNCTION__,SerialNumber.c_str(),E.displayText() ));
         }
         return false;
     }
@@ -660,7 +659,7 @@ namespace uCentral::Storage {
         }
         catch( const Poco::Exception & E)
         {
-            logger_.warning(Poco::format("%s(%s): Failed with: %s",__FUNCTION__,SerialNumber.c_str(),E.displayText() ));
+            Logger_.warning(Poco::format("%s(%s): Failed with: %s",__FUNCTION__,SerialNumber.c_str(),E.displayText() ));
         }
         return false;
     }
@@ -702,7 +701,7 @@ namespace uCentral::Storage {
         }
         catch( const Poco::Exception & E)
         {
-            logger_.warning(Poco::format("%s(%s): Failed with: %s",__FUNCTION__,SerialNumber.c_str(),E.displayText() ));
+            Logger_.warning(Poco::format("%s(%s): Failed with: %s",__FUNCTION__,SerialNumber.c_str(),E.displayText() ));
         }
         return false;
     }
@@ -727,7 +726,7 @@ namespace uCentral::Storage {
         }
         catch( const Poco::Exception & E)
         {
-            logger_.warning(Poco::format("%s(%s): Failed with: %s",__FUNCTION__,NewConfig.SerialNumber.c_str(),E.displayText() ));
+            Logger_.warning(Poco::format("%s(%s): Failed with: %s",__FUNCTION__,NewConfig.SerialNumber.c_str(),E.displayText() ));
         }
 
         return false;
@@ -788,7 +787,7 @@ namespace uCentral::Storage {
         }
         catch( const Poco::Exception & E)
         {
-            logger_.warning(Poco::format("%s: Failed with: %s",__FUNCTION__,E.displayText() ));
+            Logger_.warning(Poco::format("%s: Failed with: %s",__FUNCTION__,E.displayText() ));
         }
         return false;
     }
@@ -813,20 +812,20 @@ namespace uCentral::Storage {
                         Capabs.c_str(),
                         Now,
                         Now, now;
-                logger_.information("Done adding capabilities for " + SerialNumber);
+                Logger_.information("Done adding capabilities for " + SerialNumber);
             } else {
-                logger_.information("Updating capabilities for " + SerialNumber);
+                Logger_.information("Updating capabilities for " + SerialNumber);
                 session_ << "UPDATE Capabilities SET Capabilities='%s', LastUpdate=%Lu WHERE SerialNumber='%s'",
                         Capabs.c_str(),
                         Now,
                         SerialNumber.c_str(), now;
-                logger_.information("Done updating capabilities for " + SerialNumber);
+                Logger_.information("Done updating capabilities for " + SerialNumber);
             }
             return true;
         }
         catch( const Poco::Exception & E)
         {
-            logger_.warning(Poco::format("%s(%s): Failed with: %s",__FUNCTION__,SerialNumber.c_str(),E.displayText() ));
+            Logger_.warning(Poco::format("%s(%s): Failed with: %s",__FUNCTION__,SerialNumber.c_str(),E.displayText() ));
         }
         return false;
     }
@@ -852,7 +851,7 @@ namespace uCentral::Storage {
         }
         catch( const Poco::Exception & E)
         {
-            logger_.warning(Poco::format("%s(%s): Failed with: %s",__FUNCTION__,SerialNumber.c_str(),E.displayText() ));
+            Logger_.warning(Poco::format("%s(%s): Failed with: %s",__FUNCTION__,SerialNumber.c_str(),E.displayText() ));
         }
         return false;
     }
@@ -870,7 +869,7 @@ namespace uCentral::Storage {
         }
         catch( const Poco::Exception & E)
         {
-            logger_.warning(Poco::format("%s(%s): Failed with: %s",__FUNCTION__,SerialNumber.c_str(),E.displayText() ));
+            Logger_.warning(Poco::format("%s(%s): Failed with: %s",__FUNCTION__,SerialNumber.c_str(),E.displayText() ));
         }
         return false;
     }
@@ -901,7 +900,7 @@ namespace uCentral::Storage {
         }
         catch( const Poco::Exception & E)
         {
-            logger_.warning(Poco::format("%s(%s): Failed with: %s",__FUNCTION__,SerialNumber.c_str(),E.displayText() ));
+            Logger_.warning(Poco::format("%s(%s): Failed with: %s",__FUNCTION__,SerialNumber.c_str(),E.displayText() ));
         }
         return false;
     }

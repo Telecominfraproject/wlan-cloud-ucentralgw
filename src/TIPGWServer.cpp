@@ -3,6 +3,8 @@
 //
 #include "TIPGWServer.h"
 
+#include "Poco/Net/HTTPServer.h"
+
 namespace uCentral::TIPGW {
 
     Service *Service::instance_ = nullptr;
@@ -20,12 +22,51 @@ namespace uCentral::TIPGW {
     }
 
     int Service::Start() {
-        SubSystemServer::logger().information("Starting.");
+        Logger_.information("Starting.");
+
+        for (const auto &Svr: ConfigServersList_) {
+            std::string l{"Starting: " +
+                          Svr.address() + ":" + std::to_string(Svr.port()) +
+                          " key:" + Svr.key_file() +
+                          " cert:" + Svr.cert_file()};
+
+            Logger_.information(l);
+
+            std::shared_ptr<Poco::Net::SecureServerSocket> Sock = Svr.CreateSecureSocket();
+
+            auto Params = new Poco::Net::HTTPServerParams;
+            Params->setMaxThreads(16);
+            Params->setMaxQueued(100);
+
+            auto NewServer = std::shared_ptr<Poco::Net::HTTPServer>(
+                    new Poco::Net::HTTPServer(new RequestHandlerFactory, *Sock, Params));
+
+            NewServer->start();
+            RESTServers_.push_back(NewServer);
+        }
+
         return 0;
     }
 
     void Service::Stop() {
-        SubSystemServer::logger().information("Stopping.");
+        SubSystemServer::logger().information("Stopping ");
+        for(auto const & svr : RESTServers_)
+            svr->stop();
     }
+
+    void RequestHandler::handleRequest(Poco::Net::HTTPServerRequest &Request, Poco::Net::HTTPServerResponse &Response) {
+        Poco::Logger & Logger = Service::instance()->logger();
+    }
+
+    Poco::Net::HTTPRequestHandler *RequestHandlerFactory::createRequestHandler(const Poco::Net::HTTPServerRequest &request) {
+
+        Poco::Logger & Logger = Service::instance()->logger();
+
+        Logger.information(Poco::format("%s from %s: %s",request.getMethod(),
+                                        request.clientAddress().toString(),
+                                        request.getURI()));
+        return nullptr;
+    }
+
 
 };  // namespace

@@ -6,6 +6,8 @@
 #include "uStorageService.h"
 #include "uAuthService.h"
 #include "uCentral.h"
+#include "Poco/Net/IPAddress.h"
+#include "Poco/Net/SocketAddress.h"
 
 namespace uCentral::WebSocket {
 
@@ -27,28 +29,22 @@ namespace uCentral::WebSocket {
 
     int Service::Start() {
 
-        for(const auto & svr : ConfigurationServers()) {
+        for(const auto & Svr : ConfigServersList_ ) {
             std::string l{
-                    "Starting: " + svr.address() + ":" + std::to_string(svr.port()) +
-                    " key:" + svr.key_file() +
-                    " cert:" + svr.cert_file()};
+                    "Starting: " + Svr.address() + ":" + std::to_string(Svr.port()) +
+                    " key:" + Svr.key_file() +
+                    " cert:" + Svr.cert_file()};
 
-            logger().information(l);
+            Logger_.information(l);
 
-            SecureServerSocket sock(svr.port(),
-                                    64,
-                                    new Context(Poco::Net::Context::TLS_SERVER_USE,
-                                                svr.key_file(),
-                                                svr.cert_file(),
-                                                ""));
+            std::shared_ptr<SecureServerSocket> Sock = Svr.CreateSecureSocket();
 
-            auto NewServer = std::make_shared<Poco::Net::HTTPServer>(new WSRequestHandlerFactory, sock, new HTTPServerParams);
-
+            auto NewServer = std::shared_ptr<Poco::Net::HTTPServer>(new Poco::Net::HTTPServer(new WSRequestHandlerFactory, *Sock, new HTTPServerParams));
             NewServer->start();
             HTTPServers_.push_back(NewServer);
         }
 
-        uint64_t MaxThreads = uCentral::Daemon::instance().config().getInt("ucentral.websocket.maxreactors",5);
+        uint64_t MaxThreads = uCentral::ServiceConfig::getInt("ucentral.websocket.maxreactors",5);
 
         Factory_ = std::shared_ptr<CountedSocketReactorFactory>(new CountedSocketReactorFactory(MaxThreads));
 
