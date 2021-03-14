@@ -1,7 +1,14 @@
 cmake_minimum_required(VERSION 3.10)
 project(ucentral VERSION 0.2.0)
 
-# cmake .. -DOPENSSL_ROOT_DIR=/usr/local/opt/openssl@1.1 -DMYSQL_ROOT_DIR=/usr/local/opt/mysql-client
+if(UNIX AND APPLE)
+    set(OPENSSL_ROOT_DIR /usr/local/opt/openssl)
+    set(MYSQL_ROOT_DIR/usr/local/opt/mysql-client)
+endif()
+
+if(UNIX AND NOT APPLE)
+    set(PostgreSQL_TYPE_INCLUDE_DIR /usr/include/postgresql)
+endif()
 
 set(CMAKE_CXX_STANDARD 17)
 
