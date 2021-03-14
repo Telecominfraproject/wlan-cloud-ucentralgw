@@ -7,25 +7,97 @@ have a single port open to provide connection from uCentral enabled devices.
 
 ## Building
 In order to build the uCentralGW, you will need to install some of its dependencies, which includes 
-the following
+the following:
 
 - cmake
 - boost
 - POCO 1.10.1 or later
-- a C++20 compiler
+- a C++17 compiler
 - libyaml
 - openssl
 - libpq-dev (PortgreSQL development libraries)
 - mysql-client (MySQL client)
 
+## About the build
+The build is done in 2 parts. The first part is to build a local copy of the framework tailored to your environment. This 
+framework is called [Poco](https://github.com/pocoproject/poco). The version used in this project has a couple of fixes
+from the master copy needed for cmake. Please use the version of this [Poco fix](https://github.com/stephb9959/poco).
 
 ### Ubuntu build
+These instructions have proven to work on Ubuntu 20.4.
 ```
-sudo apt install libboost-dev cmake libpoco-dev libssl-dev openssl libyaml-dev gcc libpq-dev 
-git clone <this repo name>
+sudo apt install git cmake g++ libssl-dev libmysqlclient-dev unixodbc-dev postgesql-client-dev 
+sudo apt install libpq-dev libaprutil1-dev apache2-dev libboost-all-dev libyaml-cpp-dev
+
+git clone https://github.com/stephb9959/poco
+cd poco
+mkdir cmake-build
+cd cmake-build
+cmake ..
+cmake --build . --config Release
+sudo cmake --build . --target install
+
+cd ~
+git clone https://github.com/stephb9959/ucentralgw
 cd ucentralgw
-mkdir cmake-build-debug
-cd cmake-build-debug
+mkdir cmake-build
+cd cmake-build
+cmake ..
+make
+```
+
+### Fedora Build
+The following instructions have proven to wotk on Fedora 33
+```
+yum install cmake g++ openssl-devel unixODBC-devel mysql-devel mysql apr-util-devel
+sudo dnf install postgresql.x86_64
+sudo dns install postgresql-devel
+
+git clone https://github.com/stephb9959/poco
+cd poco
+mkdir cmake-build
+cd cmake-build
+cmake ..
+cmake --build .
+cmake --build . --config Release
+sudo cmake --build . --target install
+
+cd ~
+git clone https://github.com/stephb9959/ucentralgw
+cd ucentralgw
+mkdir cmake-build
+cd cmake-build
+cmake ..
+make
+
+```
+ 
+### OSX Build
+The following instructions have proven to work on OSX Big Sur. You need to install [Homebrew](https://brew.sh/)
+```
+brew install openssl
+brew install libyaml
+brew install cmake
+brew install libpq
+brew install mysql-client
+brew install apr
+brew install apr-util
+brew install boost
+
+git clone https://github.com/stephb9959/poco
+cd poco
+mkdir cmake-build
+cd cmake-build
+cmake ..
+cmake --build .
+cmake --build . --config Release
+sudo cmake --build . --target install
+
+cd ~
+git clone https://github.com/stephb9959/ucentralgw
+cd ucentralgw
+mkdir cmake-build
+cd cmake-build
 cmake ..
 make
 ```
