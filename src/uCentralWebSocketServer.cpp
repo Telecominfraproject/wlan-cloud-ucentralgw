@@ -215,6 +215,8 @@ namespace uCentral::WebSocket {
             IncomingSize = WS_.receiveFrame(IncomingMessage_,sizeof(IncomingMessage_), flags);
             Op = flags & Poco::Net::WebSocket::FRAME_OP_BITMASK;
 
+            // std::cout << "Received incoming message: " << IncomingMessage_ << std::endl;
+
             if(IncomingSize==0 && flags == 0 && Op == 0)
             {
                 delete this;

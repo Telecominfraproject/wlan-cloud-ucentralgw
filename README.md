@@ -49,7 +49,8 @@ make
 ### Fedora Build
 The following instructions have proven to wotk on Fedora 33
 ```
-yum install cmake g++ openssl-devel unixODBC-devel mysql-devel mysql apr-util-devel
+yum install cmake g++ openssl-devel unixODBC-devel mysql-devel mysql apr-util-devel boost boost-devel
+yum install yaml-cpp-devel 
 sudo dnf install postgresql.x86_64
 sudo dns install postgresql-devel
 

@@ -3,11 +3,12 @@ project(ucentral VERSION 0.2.0)
 
 if(UNIX AND APPLE)
     set(OPENSSL_ROOT_DIR /usr/local/opt/openssl)
-    set(MYSQL_ROOT_DIR/usr/local/opt/mysql-client)
+    set(MYSQL_ROOT_DIR /usr/local/opt/mysql-client)
 endif()
 
 if(UNIX AND NOT APPLE)
     set(PostgreSQL_TYPE_INCLUDE_DIR /usr/include/postgresql)
+    list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_LIST_DIR}/cmake)
 endif()
 
 set(CMAKE_CXX_STANDARD 17)
