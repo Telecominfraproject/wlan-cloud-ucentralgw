@@ -59,7 +59,6 @@ cd poco
 mkdir cmake-build
 cd cmake-build
 cmake ..
-cmake --build .
 cmake --build . --config Release
 sudo cmake --build . --target install
 
@@ -90,7 +89,6 @@ cd poco
 mkdir cmake-build
 cd cmake-build
 cmake ..
-cmake --build .
 cmake --build . --config Release
 sudo cmake --build . --target install
 
@@ -108,7 +106,7 @@ The configuration for this service is kept in a properties file. Currently, this
 current directory of uCentral or one level up. This file is called `ucentral.properties`. The file will be loaded from 
 the directory set by the environment variable `UCENTRAL_CONFIG`. To use environment variables in the configuration,
 you must use `${<varname>}`. The path for the logs for the service must exist prior to starting the 
-service. the path is defined under `logging.channels.c2.path`. Only `path names` support the use of 
+service. The path is defined under `logging.channels.c2.path`. Only `path names` support the use of 
 environment variables. Here is a sample and the important entries:
 
 ```
@@ -218,7 +216,7 @@ authentication.default.password = support
 authentication.service.type = internal
 ```
 
-## New JSON-RPC based protocol
+## JSON-RPC based protocol
 
 In the [JSON-RPC](https://www.jsonrpc.org/specification) scenario, the AP is considered the server. So the Controller sends commands to the AP using JSON-RPC, and the AP will send notifications to the controller. 
 
