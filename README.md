@@ -382,6 +382,6 @@ The AP should answer:
 ```
 
 ## OpenAPI
-The service supports an OpenAPI REST based interface for management. You can find the [definition here](https://github.com/stephb9959/ucentralgw/tipapi/ucentral/ucentral.yml)
+The service supports an OpenAPI REST based interface for management. You can find the [definition here](https://github.com/stephb9959/ucentralgw/tipapi/ucentral/ucentral.yaml).
 
 
