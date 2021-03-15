@@ -157,7 +157,7 @@ namespace uCentral::WebSocket {
 
                 Check.Recorded = time(nullptr);
                 Check.UUID = UUID;
-                Check.Values = CheckData;
+                Check.Data = CheckData;
                 Check.Sanity = Sanity;
 
                 uCentral::Storage::AddHealthCheckData(Serial,Check);

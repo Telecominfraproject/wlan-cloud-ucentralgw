@@ -186,7 +186,7 @@ namespace uCentral::Storage {
         session_ << "CREATE TABLE IF NOT EXISTS HealthChecks ("
                     "SerialNumber VARCHAR(30), "
                     "UUID          BIGINT, "
-                    "Values TEXT, "
+                    "Data TEXT, "
                     "Sanity BIGINT , "
                     "Recorded BIGINT, "
                     "INDEX HealthSerial (SerialNumber ASC, Recorded ASC)"
@@ -245,9 +245,9 @@ namespace uCentral::Storage {
         session_ << "CREATE TABLE IF NOT EXISTS HealthChecks ("
                     "SerialNumber VARCHAR(30), "
                     "UUID          BIGINT, "
-                    "Values TEXT, "
+                    "Data TEXT, "
                     "Sanity BIGINT , "
-                    "Recorded BIGINT", now;
+                    "Recorded BIGINT) ", now;
 
         session_ << "CREATE INDEX IF NOT EXISTS HealthSerial ON HealthChecks (SerialNumber ASC, Recorded ASC)", now;
 
@@ -319,9 +319,9 @@ namespace uCentral::Storage {
         session_ << "CREATE TABLE IF NOT EXISTS HealthChecks ("
                     "SerialNumber VARCHAR(30), "
                     "UUID          BIGINT, "
-                    "Values TEXT, "
+                    "Data TEXT, "
                     "Sanity BIGINT , "
-                    "Recorded BIGINT", now;
+                    "Recorded BIGINT)", now;
 
         session_ << "CREATE INDEX IF NOT EXISTS HealthSerial ON HealthChecks (SerialNumber ASC, Recorded ASC)", now;
 
@@ -509,7 +509,7 @@ namespace uCentral::Storage {
             session_ << "INSERT INTO HealthChecks VALUES( '%s', '%Lu' , '%s' , '%Lu' , '%Lu')",
                     SerialNumber.c_str(),
                     Check.UUID,
-                    Check.Values.c_str(),
+                    Check.Data.c_str(),
                     Check.Sanity,
                     Check.Recorded, now;
 
@@ -534,7 +534,7 @@ namespace uCentral::Storage {
             RecordList Records;
             if (FromDate && ToDate) {
                 session_
-                        << "SELECT SerialNumber, UUID, Values, Sanity, Recorded FROM HealthChecks WHERE SerialNumber='%s' AND Recorded>=%Lu AND Recorded<=%Lu",
+                        << "SELECT SerialNumber, UUID, Data, Sanity, Recorded FROM HealthChecks WHERE SerialNumber='%s' AND Recorded>=%Lu AND Recorded<=%Lu",
                         into(Records),
                         SerialNumber.c_str(),
                         FromDate,
@@ -542,14 +542,14 @@ namespace uCentral::Storage {
                         range(Offset, Offset + HowMany - 1), now;
             } else if (FromDate) {
                 session_
-                        << "SELECT SerialNumber, UUID, Values, Sanity, Recorded FROM HealthChecks WHERE SerialNumber='%s' AND Recorded>=%Lu",
+                        << "SELECT SerialNumber, UUID, Data, Sanity, Recorded FROM HealthChecks WHERE SerialNumber='%s' AND Recorded>=%Lu",
                         into(Records),
                         SerialNumber.c_str(),
                         FromDate,
                         range(Offset, Offset + HowMany - 1), now;
             } else if (ToDate) {
                 session_
-                        << "SELECT SerialNumber, UUID, Values, Sanity, Recorded FROM HealthChecks WHERE SerialNumber='%s' AND Recorded<=%Lu",
+                        << "SELECT SerialNumber, UUID, Data, Sanity, Recorded FROM HealthChecks WHERE SerialNumber='%s' AND Recorded<=%Lu",
                         into(Records),
                         SerialNumber.c_str(),
                         ToDate,
@@ -557,7 +557,7 @@ namespace uCentral::Storage {
             } else {
                 // range(Offset, Offset + HowMany - 1)
                 session_
-                        << "SELECT SerialNumber, UUID, Values, Sanity, Recorded FROM HealthChecks WHERE SerialNumber='%s'",
+                        << "SELECT SerialNumber, UUID, Data, Sanity, Recorded FROM HealthChecks WHERE SerialNumber='%s'",
                         into(Records),
                         SerialNumber.c_str(),
                         range(Offset, Offset + HowMany - 1), now;
@@ -567,7 +567,7 @@ namespace uCentral::Storage {
                 uCentralHealthcheck R;
 
                 R.UUID = i.get<1>();
-                R.Values = i.get<2>();
+                R.Data = i.get<2>();
                 R.Sanity = i.get<3>();
                 R.Recorded = i.get<4>();
 

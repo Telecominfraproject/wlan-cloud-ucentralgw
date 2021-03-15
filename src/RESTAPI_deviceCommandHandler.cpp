@@ -278,7 +278,7 @@ void RESTAPI_deviceCommandHandler::GetChecks(HTTPServerRequest& Request, HTTPSer
             ArrayObj.add(Obj);
         }
         Poco::JSON::Object RetObj;
-        RetObj.set("values", ArrayObj);
+        RetObj.set("data", ArrayObj);
         RetObj.set("serialNumber", SerialNumber);
 
         ReturnObject(RetObj, Response);

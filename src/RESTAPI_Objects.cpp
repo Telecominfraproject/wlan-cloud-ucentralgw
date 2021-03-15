@@ -71,7 +71,7 @@ Poco::JSON::Object uCentralDeviceLog::to_json() const
 Poco::JSON::Object  uCentralHealthcheck::to_json() const {
     Poco::JSON::Object  Obj;
     Obj.set("UUID",UUID);
-    Obj.set("values",Values);
+    Obj.set("values",Data);
     Obj.set("sanity",Sanity);
     Obj.set("recorded",RESTAPIHandler::to_RFC3339(Recorded));
     return Obj;

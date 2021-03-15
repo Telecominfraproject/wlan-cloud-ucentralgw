@@ -318,10 +318,10 @@ components:
         UUID:
           type: integer
           format: int64
-        Sanity:
+        sanity:
           type: integer
           format: int64
-        Values:
+        data:
           type: string
         recorded:
           type: string
@@ -332,7 +332,7 @@ components:
       properties:
         serialNumber:
           type: string
-        values:
+        data:
           type: array
           items:
             $ref: '#/components/schemas/HealthCheck'
