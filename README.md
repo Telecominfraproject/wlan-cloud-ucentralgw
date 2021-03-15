@@ -256,6 +256,20 @@ may decide to send this new configuration to the AP.
 }
 ```
 
+#### Healthcheck event
+AP Sends `healthcheck` periodically. This message contains information how vital AP subsystems are operating.
+```
+{   "jsonrpc" : "2.0" , 
+    "method" : "healthcheck" , 
+    "params" : {
+	"serial" : <serial number> ,
+	"uuid" : <current active configuration uuid>,
+	"sanity: <integer representing a percentage level of operation. 0 - device is dead 100 - all perfect.>
+	"data" : <JSON Document: current device healthcheck.>
+  }
+}
+```
+
 #### Log event
 AP Sends a log whenever necessary. The controller will log this message.
 ```
@@ -367,7 +381,7 @@ array of these rejections. The substitution JSON is optional.
 The rejected section is an array containing the following:
 - `parameter` : the JSON code in the config that is causing this rejection
 - `reason` : anything to explain the rejection.
-
+- `substution` : the JSON code that `parameter` was replaced with. This could be absent meaning that the `parameter` code was simply removed from the configuration. 
 
 #### Controller wants the AP to reboot
 Controller sends this command when it believes the AP should reboot.
