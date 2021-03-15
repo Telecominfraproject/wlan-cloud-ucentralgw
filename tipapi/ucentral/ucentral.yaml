@@ -294,8 +294,13 @@ components:
         log:
           type: string
         recorded:
+          type: string
+          format: 'date-time'
+        severity:
           type: integer
           format: int64
+        data:
+          type: string
 
     DeviceLogList:
       type: object
@@ -306,6 +311,31 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/DeviceLog'
+
+    HealthCheck:
+      type: object
+      properties:
+        UUID:
+          type: integer
+          format: int64
+        Sanity:
+          type: integer
+          format: int64
+        Values:
+          type: string
+        recorded:
+          type: string
+          format: 'date-time'
+
+    HealthCheckList:
+      type: object
+      properties:
+        serialNumber:
+          type: string
+        values:
+          type: array
+          items:
+            $ref: '#/components/schemas/HealthCheck'
 
 paths:
   /oauth2:
@@ -561,6 +591,88 @@ paths:
         403:
           $ref: '#/components/responses/NotFound'
 
+  /device/{serialNumber}/healthchecks:
+    get:
+      tags:
+        - Commands
+      summary: Get the latest health checks for a given device
+      operationId: getDeviceHealthChecks
+      parameters:
+        - in: path
+          name: serialNumber
+          schema:
+            type: string
+          required: true
+        - in: query
+          name: startDate
+          schema:
+            type: string
+            # format 2021-03-05T05:27:37Z
+            format: 'date-time'
+          required: false
+        - in: query
+          name: endDate
+          schema:
+            type: string
+            # format 2021-03-05T05:27:37Z
+            format: 'date-time'
+        - in: query
+          name: offset
+          schema:
+            type: integer
+            format: int64
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            format: int64
+
+      responses:
+        200:
+          description: Array of device health checks  for this device
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthCheckList'
+        404:
+          $ref: '#/components/responses/Unauthorized'
+        403:
+          $ref: '#/components/responses/NotFound'
+
+    delete:
+      tags:
+        - Commands
+      summary: Delete some device health checks
+      operationId: deleteDeviceHealthChecks
+      parameters:
+        - in: path
+          name: serialNumber
+          schema:
+            type: string
+          required: true
+        - in: query
+          name: startDate
+          schema:
+            type: string
+            format: 'date-time'
+          required: false
+        - in: query
+          name: endDate
+          schema:
+            type: string
+            format: 'date-time'
+
+      responses:
+        200:
+          description: Successfully deleted health checks for the device.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericGoodAnswer'
+        404:
+          $ref: '#/components/responses/Unauthorized'
+        403:
+          $ref: '#/components/responses/NotFound'
 
   /device/{serialNumber}/capabilities:
     get:

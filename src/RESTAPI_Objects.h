@@ -24,15 +24,21 @@ struct uCentralDevice {
 };
 
 struct uCentralStatistics {
-    std::string SerialNumber;
     uint64_t    UUID;
     std::string Values;
     uint64_t    Recorded;
     [[nodiscard]] Poco::JSON::Object to_json() const;
 };
 
+struct uCentralHealthcheck {
+    uint64_t    UUID;
+    std::string Values;
+    uint64_t    Recorded;
+    uint64_t    Sanity;
+    [[nodiscard]] Poco::JSON::Object to_json() const;
+};
+
 struct uCentralCapabilities {
-    std::string SerialNumber;
     std::string Capabilities;
     uint64_t    FirstUpdate;
     uint64_t    LastUpdate;
@@ -40,7 +46,21 @@ struct uCentralCapabilities {
 };
 
 struct uCentralDeviceLog {
+
+    enum Level {
+        LOG_EMERG = 0,       /* system is unusable */
+        LOG_ALERT = 1,       /* action must be taken immediately */
+        LOG_CRIT = 2,       /* critical conditions */
+        LOG_ERR = 3,       /* error conditions */
+        LOG_WARNING = 4,       /* warning conditions */
+        LOG_NOTICE = 5,       /* normal but significant condition */
+        LOG_INFO = 6,       /* informational */
+        LOG_DEBUG = 7       /* debug-level messages */
+    };
+
     std::string Log;
+    uint64_t    Severity;
+    std::string Data;
     uint64_t    Recorded;
     [[nodiscard]] Poco::JSON::Object to_json() const;
 };

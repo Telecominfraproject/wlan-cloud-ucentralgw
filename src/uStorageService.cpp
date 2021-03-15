@@ -41,68 +41,85 @@ namespace uCentral::Storage {
         uCentral::Storage::Service::instance()->Stop();
     }
 
-    bool AddLog(std::string & SerialNumber, std::string & Log) {
-        return uCentral::Storage::Service::instance()->AddLog_i(SerialNumber,Log);
+    bool AddLog(std::string & SerialNumber, const std::string & Log) {
+        return uCentral::Storage::Service::instance()->AddLog(SerialNumber,Log);
+    }
+
+    bool AddLog(std::string & SerialNumber, const uCentralDeviceLog & DeviceLog) {
+        return uCentral::Storage::Service::instance()->AddLog(SerialNumber,DeviceLog);
     }
 
     bool AddStatisticsData(std::string &SerialNUmber, uint64_t CfgUUID, std::string &NewStats) {
-        return uCentral::Storage::Service::instance()->AddStatisticsData_i(SerialNUmber, CfgUUID, NewStats);
+        return uCentral::Storage::Service::instance()->AddStatisticsData(SerialNUmber, CfgUUID, NewStats);
     }
 
     bool GetStatisticsData(std::string &SerialNUmber, uint64_t FromDate, uint64_t ToDate, uint64_t Offset, uint64_t HowMany, std::vector<uCentralStatistics> &Stats) {
-        return uCentral::Storage::Service::instance()->GetStatisticsData_i(SerialNUmber, FromDate, ToDate, Offset, HowMany, Stats);
+        return uCentral::Storage::Service::instance()->GetStatisticsData(SerialNUmber, FromDate, ToDate, Offset, HowMany, Stats);
     }
 
     bool DeleteStatisticsData(std::string &SerialNUmber, uint64_t FromDate, uint64_t ToDate ) {
-        return uCentral::Storage::Service::instance()->DeleteStatisticsData_i(SerialNUmber, FromDate, ToDate );
+        return uCentral::Storage::Service::instance()->DeleteStatisticsData(SerialNUmber, FromDate, ToDate );
+    }
+
+    bool AddHealthCheckData(std::string &SerialNUmber, const uCentralHealthcheck & Check) {
+        return uCentral::Storage::Service::instance()->AddHealthCheckData(SerialNUmber, Check);
+    }
+
+    bool GetHealthCheckData(std::string &SerialNUmber, uint64_t FromDate, uint64_t ToDate, uint64_t Offset, uint64_t HowMany,
+                                   std::vector<uCentralHealthcheck> &Checks) {
+        return uCentral::Storage::Service::instance()->GetHealthCheckData(SerialNUmber, FromDate, ToDate, Offset, HowMany,
+                Checks);
+    }
+    bool DeleteHealthCheckData(std::string &SerialNUmber, uint64_t FromDate, uint64_t ToDate ) {
+        return uCentral::Storage::Service::instance()->DeleteHealthCheckData(SerialNUmber, FromDate, ToDate );
     }
 
     bool UpdateDeviceConfiguration(std::string &SerialNUmber, std::string &Configuration) {
-        return uCentral::Storage::Service::instance()->UpdateDeviceConfiguration_i(SerialNUmber, Configuration);
+        return uCentral::Storage::Service::instance()->UpdateDeviceConfiguration(SerialNUmber, Configuration);
     }
 
     bool CreateDevice(uCentralDevice &Device) {
-        return uCentral::Storage::Service::instance()->CreateDevice_i(Device);
+        return uCentral::Storage::Service::instance()->CreateDevice(Device);
     }
 
     bool GetDevice(std::string &SerialNUmber, uCentralDevice &Device) {
-        return uCentral::Storage::Service::instance()->GetDevice_i(SerialNUmber, Device);
+        return uCentral::Storage::Service::instance()->GetDevice(SerialNUmber, Device);
     }
 
     bool GetDevices(uint64_t From, uint64_t Howmany, std::vector<uCentralDevice> &Devices) {
-        return uCentral::Storage::Service::instance()->GetDevices_i(From, Howmany, Devices);
+        return uCentral::Storage::Service::instance()->GetDevices(From, Howmany, Devices);
     }
 
     bool DeleteDevice(std::string &SerialNUmber) {
-        return uCentral::Storage::Service::instance()->DeleteDevice_i(SerialNUmber);
+        return uCentral::Storage::Service::instance()->DeleteDevice(SerialNUmber);
     }
 
     bool UpdateDevice(uCentralDevice &Device) {
-        return uCentral::Storage::Service::instance()->UpdateDevice_i(Device);
+        return uCentral::Storage::Service::instance()->UpdateDevice(Device);
     }
 
     bool ExistingConfiguration(std::string &SerialNumber, uint64_t CurrentConfig, std::string &NewConfig, uint64_t &NewerUUID) {
-        return uCentral::Storage::Service::instance()->ExistingConfiguration_i(SerialNumber, CurrentConfig, NewConfig, NewerUUID);
+        return uCentral::Storage::Service::instance()->ExistingConfiguration(SerialNumber, CurrentConfig, NewConfig, NewerUUID);
     }
 
     bool UpdateDeviceCapabilities(std::string &SerialNUmber, std::string &State) {
-        return uCentral::Storage::Service::instance()->UpdateDeviceCapabilities_i(SerialNUmber, State);
+        return uCentral::Storage::Service::instance()->UpdateDeviceCapabilities(SerialNUmber, State);
     }
 
     bool GetDeviceCapabilities(std::string &SerialNUmber, uCentralCapabilities & Capabilities) {
-        return uCentral::Storage::Service::instance()->GetDeviceCapabilities_i(SerialNUmber, Capabilities);
+        return uCentral::Storage::Service::instance()->GetDeviceCapabilities(SerialNUmber, Capabilities);
     }
 
     bool DeleteDeviceCapabilities(std::string & SerialNumber) {
-        return uCentral::Storage::Service::instance()->DeleteDeviceCapabilities_i(SerialNumber);
+        return uCentral::Storage::Service::instance()->DeleteDeviceCapabilities(SerialNumber);
     }
 
     bool GetLogData(std::string &SerialNUmber, uint64_t FromDate, uint64_t ToDate, uint64_t Offset, uint64_t HowMany, std::vector<uCentralDeviceLog> &Stats) {
-        return uCentral::Storage::Service::instance()->GetLogData_i(SerialNUmber, FromDate, ToDate, Offset, HowMany, Stats);
+        return uCentral::Storage::Service::instance()->GetLogData(SerialNUmber, FromDate, ToDate, Offset, HowMany, Stats);
     }
 
     bool DeleteLogData(std::string &SerialNUmber, uint64_t FromDate, uint64_t ToDate) {
-        return uCentral::Storage::Service::instance()->DeleteLogData_i(SerialNUmber, FromDate, ToDate);
+        return uCentral::Storage::Service::instance()->DeleteLogData(SerialNUmber, FromDate, ToDate);
     }
 
     int Service::Setup_MySQL() {
@@ -160,10 +177,20 @@ namespace uCentral::Storage {
         session_ << "CREATE TABLE IF NOT EXISTS DeviceLogs ("
                     "SerialNumber VARCHAR(30), "
                     "Log TEXT, "
+                    "Severity BIGINT , "
+                    "Data TEXT , "
                     "Recorded BIGINT, "
                     "INDEX LogSerial (SerialNumber ASC, Recorded ASC)"
                     ")", now;
 
+        session_ << "CREATE TABLE IF NOT EXISTS HealthChecks ("
+                    "SerialNumber VARCHAR(30), "
+                    "UUID          BIGINT, "
+                    "Values TEXT, "
+                    "Sanity BIGINT , "
+                    "Recorded BIGINT, "
+                    "INDEX HealthSerial (SerialNumber ASC, Recorded ASC)"
+                    ")", now;
         return 0;
     }
 
@@ -209,10 +236,20 @@ namespace uCentral::Storage {
         session_ << "CREATE TABLE IF NOT EXISTS DeviceLogs ("
                     "SerialNumber VARCHAR(30), "
                     "Log TEXT, "
+                    "Severity BIGINT , "
+                    "Data TEXT , "
                     "Recorded BIGINT)", now;
 
         session_ << "CREATE INDEX IF NOT EXISTS LogSerial ON DeviceLogs (SerialNumber ASC, Recorded ASC)", now;
 
+        session_ << "CREATE TABLE IF NOT EXISTS HealthChecks ("
+                    "SerialNumber VARCHAR(30), "
+                    "UUID          BIGINT, "
+                    "Values TEXT, "
+                    "Sanity BIGINT , "
+                    "Recorded BIGINT", now;
+
+        session_ << "CREATE INDEX IF NOT EXISTS HealthSerial ON HealthChecks (SerialNumber ASC, Recorded ASC)", now;
 
         return 0;
     }
@@ -273,9 +310,20 @@ namespace uCentral::Storage {
         session_ << "CREATE TABLE IF NOT EXISTS DeviceLogs ("
                     "SerialNumber VARCHAR(30), "
                     "Log TEXT, "
+                    "Severity BIGINT , "
+                    "Data TEXT , "
                     "Recorded BIGINT)", now;
 
         session_ << "CREATE INDEX IF NOT EXISTS LogSerial ON DeviceLogs (SerialNumber ASC, Recorded ASC)", now;
+
+        session_ << "CREATE TABLE IF NOT EXISTS HealthChecks ("
+                    "SerialNumber VARCHAR(30), "
+                    "UUID          BIGINT, "
+                    "Values TEXT, "
+                    "Sanity BIGINT , "
+                    "Recorded BIGINT", now;
+
+        session_ << "CREATE INDEX IF NOT EXISTS HealthSerial ON HealthChecks (SerialNumber ASC, Recorded ASC)", now;
 
         return 0;
     }
@@ -333,7 +381,7 @@ namespace uCentral::Storage {
         Logger_.information("Stopping.");
     }
 
-    bool Service::AddStatisticsData_i(std::string &SerialNumber, uint64_t CfgUUID, std::string &NewStats) {
+    bool Service::AddStatisticsData(std::string &SerialNumber, uint64_t CfgUUID, std::string &NewStats) {
 
         uCentral::DeviceRegistry::SetStatistics(SerialNumber,NewStats);
 
@@ -359,7 +407,7 @@ namespace uCentral::Storage {
         return false;
     }
 
-    bool Service::GetStatisticsData_i(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate, uint64_t Offset, uint64_t HowMany,
+    bool Service::GetStatisticsData(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate, uint64_t Offset, uint64_t HowMany,
                                     std::vector<uCentralStatistics> &Stats) {
 
         typedef Poco::Tuple<std::string, uint64_t, std::string, uint64_t> StatRecord;
@@ -403,7 +451,7 @@ namespace uCentral::Storage {
             }
 
             for (auto i: Records) {
-                uCentralStatistics R{.SerialNumber = i.get<0>(),
+                uCentralStatistics R{
                         .UUID = i.get<1>(),
                         .Values = i.get<2>(),
                         .Recorded = i.get<3>()};
@@ -418,7 +466,7 @@ namespace uCentral::Storage {
         return false;
     }
 
-    bool Service::DeleteStatisticsData_i(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate) {
+    bool Service::DeleteStatisticsData(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate) {
         try {
             Session session_ = Pool_->get();
 
@@ -452,16 +500,114 @@ namespace uCentral::Storage {
         return false;
     }
 
-    bool Service::AddLog_i(std::string &SerialNumber, std::string &Log)
-    {
-        uint64_t Now = time(nullptr);
+    bool Service::AddHealthCheckData(std::string &SerialNumber, const uCentralHealthcheck & Check) {
+        try {
+            Logger_.information("Device:" + SerialNumber + " HealthCheck: sanity " + std::to_string(Check.Sanity));
+
+            Session session_ = Pool_->get();
+
+            session_ << "INSERT INTO HealthChecks VALUES( '%s', '%Lu' , '%s' , '%Lu' , '%Lu')",
+                    SerialNumber.c_str(),
+                    Check.UUID,
+                    Check.Values.c_str(),
+                    Check.Sanity,
+                    Check.Recorded, now;
+
+            return true;
+        }
+        catch (const Poco::Exception &E) {
+            Logger_.warning(Poco::format("%s(%s): Failed with: %s", __func__ , SerialNumber.c_str(), E.displayText()));
+        }
+        return false;
+    }
+
+    bool Service::GetHealthCheckData(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate, uint64_t Offset, uint64_t HowMany,
+                            std::vector<uCentralHealthcheck> &Checks) {
+
+        typedef Poco::Tuple<std::string, uint64_t , std::string, uint64_t, uint64_t> Record;
+        typedef std::vector<Record> RecordList;
+
+        // std::lock_guard<std::mutex> guard(mutex_);
         Session session_ = Pool_->get();
 
         try {
-            session_ << "INSERT INTO DeviceLogs VALUES( '%s' , '%s' , '%Lu')",
-                    SerialNumber.c_str(),
-                    Log.c_str(),
-                    Now, now;
+            RecordList Records;
+            if (FromDate && ToDate) {
+                session_
+                        << "SELECT SerialNumber, UUID, Values, Sanity, Recorded FROM HealthChecks WHERE SerialNumber='%s' AND Recorded>=%Lu AND Recorded<=%Lu",
+                        into(Records),
+                        SerialNumber.c_str(),
+                        FromDate,
+                        ToDate,
+                        range(Offset, Offset + HowMany - 1), now;
+            } else if (FromDate) {
+                session_
+                        << "SELECT SerialNumber, UUID, Values, Sanity, Recorded FROM HealthChecks WHERE SerialNumber='%s' AND Recorded>=%Lu",
+                        into(Records),
+                        SerialNumber.c_str(),
+                        FromDate,
+                        range(Offset, Offset + HowMany - 1), now;
+            } else if (ToDate) {
+                session_
+                        << "SELECT SerialNumber, UUID, Values, Sanity, Recorded FROM HealthChecks WHERE SerialNumber='%s' AND Recorded<=%Lu",
+                        into(Records),
+                        SerialNumber.c_str(),
+                        ToDate,
+                        range(Offset, Offset + HowMany - 1), now;
+            } else {
+                // range(Offset, Offset + HowMany - 1)
+                session_
+                        << "SELECT SerialNumber, UUID, Values, Sanity, Recorded FROM HealthChecks WHERE SerialNumber='%s'",
+                        into(Records),
+                        SerialNumber.c_str(),
+                        range(Offset, Offset + HowMany - 1), now;
+            }
+
+            for (auto i: Records) {
+                uCentralHealthcheck R;
+
+                R.UUID = i.get<1>();
+                R.Values = i.get<2>();
+                R.Sanity = i.get<3>();
+                R.Recorded = i.get<4>();
+
+                Checks.push_back(R);
+            }
+
+            return true;
+        }
+        catch (const Poco::Exception &E) {
+            Logger_.warning(Poco::format("%s(%s): Failed with: %s", __func__ , SerialNumber.c_str(), E.displayText()));
+        }
+        return false;
+    }
+
+    bool Service::DeleteHealthCheckData(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate ) {
+        try {
+            Session session_ = Pool_->get();
+
+            if(FromDate && ToDate) {
+                session_
+                        << "DELETE FROM HealthChecks WHERE SerialNumber='%s' AND Recorded>=%Lu AND Recorded<=%Lu",
+                        SerialNumber.c_str(),
+                        FromDate,
+                        ToDate, now;
+            } else if (FromDate) {
+                session_
+                        << "DELETE FROM HealthChecks WHERE SerialNumber='%s' AND Recorded>=%Lu",
+                        SerialNumber.c_str(),
+                        FromDate, now;
+            } else if (ToDate) {
+                session_
+                        << "DELETE FROM HealthChecks WHERE SerialNumber='%s' AND Recorded<=%Lu",
+                        SerialNumber.c_str(),
+                        ToDate, now;
+            }
+            else {
+                session_
+                        << "DELETE FROM HealthChecks WHERE SerialNumber='%s'",
+                        SerialNumber.c_str(), now;
+            }
             return true;
         }
         catch (const Poco::Exception & E ) {
@@ -470,9 +616,39 @@ namespace uCentral::Storage {
         return false;
     }
 
-    bool Service::GetLogData_i(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate, uint64_t Offset, uint64_t HowMany,
+    bool Service::AddLog(std::string &SerialNumber, const uCentralDeviceLog &Log) {
+        Session session_ = Pool_->get();
+
+        try {
+            session_ << "INSERT INTO DeviceLogs VALUES( '%s' , '%s' , '%Lu', '%s', '%Lu')",
+                    SerialNumber.c_str(),
+                    Log.Log.c_str(),
+                    Log.Severity,
+                    Log.Data.c_str(),
+                    Log.Recorded, now;
+            return true;
+        }
+        catch (const Poco::Exception & E ) {
+            Logger_.warning(Poco::format("%s(%s): Failed with: %s",__FUNCTION__,SerialNumber.c_str(),E.displayText() ));
+        }
+        return false;
+    }
+
+    bool Service::AddLog(std::string &SerialNumber, const std::string &Log)
+    {
+        uCentralDeviceLog   DeviceLog;
+
+        DeviceLog.Log = Log;
+        DeviceLog.Data = "" ;
+        DeviceLog.Severity = uCentralDeviceLog::Level::LOG_INFO;
+        DeviceLog.Recorded = time(nullptr);
+
+        return AddLog(SerialNumber,DeviceLog);
+    }
+
+    bool Service::GetLogData(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate, uint64_t Offset, uint64_t HowMany,
                     std::vector<uCentralDeviceLog> &Stats) {
-        typedef Poco::Tuple<std::string, uint64_t> StatRecord;
+        typedef Poco::Tuple<std::string, uint64_t, uint64_t, std::string > StatRecord;
         typedef std::vector<StatRecord> RecordList;
 
         Session session_ = Pool_->get();
@@ -481,7 +657,7 @@ namespace uCentral::Storage {
             RecordList Records;
             if(FromDate && ToDate) {
                 session_
-                        << "SELECT Log,Recorded FROM DeviceLogs WHERE SerialNumber='%s' AND Recorded>=%Lu AND Recorded<=%Lu",
+                        << "SELECT Log,Recorded,Severity,Data FROM DeviceLogs WHERE SerialNumber='%s' AND Recorded>=%Lu AND Recorded<=%Lu",
                         into(Records),
                         SerialNumber.c_str(),
                         FromDate,
@@ -489,14 +665,14 @@ namespace uCentral::Storage {
                         range(Offset, Offset + HowMany - 1), now;
             } else if (FromDate) {
                 session_
-                        << "SELECT Log,Recorded FROM DeviceLogs WHERE SerialNumber='%s' AND Recorded>=%Lu",
+                        << "SELECT Log,Recorded,Severity,Data FROM DeviceLogs WHERE SerialNumber='%s' AND Recorded>=%Lu",
                         into(Records),
                         SerialNumber.c_str(),
                         FromDate,
                         range(Offset, Offset + HowMany - 1), now;
             } else if (ToDate) {
                 session_
-                        << "SELECT Log,Recorded FROM DeviceLogs WHERE SerialNumber='%s' AND Recorded<=%Lu",
+                        << "SELECT Log,Recorded,Severity,Data FROM DeviceLogs WHERE SerialNumber='%s' AND Recorded<=%Lu",
                         into(Records),
                         SerialNumber.c_str(),
                         ToDate,
@@ -505,7 +681,7 @@ namespace uCentral::Storage {
             else {
                 // range(Offset, Offset + HowMany - 1)
                 session_
-                        << "SELECT Log,Recorded FROM DeviceLogs WHERE SerialNumber='%s'",
+                        << "SELECT Log,Recorded,Severity,Data FROM DeviceLogs WHERE SerialNumber='%s'",
                         into(Records),
                         SerialNumber.c_str(),
                         range(Offset, Offset + HowMany - 1), now;
@@ -513,7 +689,9 @@ namespace uCentral::Storage {
 
             for (auto i: Records) {
                 uCentralDeviceLog R{.Log = i.get<0>(),
-                                    .Recorded = i.get<1>()};
+                                    .Recorded = i.get<1>(),
+                                    .Severity = i.get<2>(),
+                                    .Data = i.get<3>() };
                 Stats.push_back(R);
             }
             return true;
@@ -525,7 +703,7 @@ namespace uCentral::Storage {
         return false;
     }
 
-    bool Service::DeleteLogData_i(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate) {
+    bool Service::DeleteLogData(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate) {
         try {
             Session session_ = Pool_->get();
 
@@ -559,7 +737,7 @@ namespace uCentral::Storage {
         return false;
     }
 
-    bool Service::UpdateDeviceConfiguration_i(std::string &SerialNumber, std::string & Configuration) {
+    bool Service::UpdateDeviceConfiguration(std::string &SerialNumber, std::string & Configuration) {
         try {
             uCentral::Config::Config    Cfg(Configuration);
 
@@ -599,7 +777,7 @@ namespace uCentral::Storage {
         return false;
     }
 
-    bool Service::CreateDevice_i(uCentralDevice &DeviceDetails) {
+    bool Service::CreateDevice(uCentralDevice &DeviceDetails) {
         // std::lock_guard<std::mutex> guard(mutex_);
 
         std::string SerialNumber;
@@ -646,7 +824,7 @@ namespace uCentral::Storage {
         return false;
     }
 
-    bool Service::DeleteDevice_i(std::string &SerialNumber) {
+    bool Service::DeleteDevice(std::string &SerialNumber) {
         // std::lock_guard<std::mutex> guard(mutex_);
 
         try {
@@ -664,7 +842,7 @@ namespace uCentral::Storage {
         return false;
     }
 
-    bool Service::GetDevice_i(std::string &SerialNumber, uCentralDevice &DeviceDetails) {
+    bool Service::GetDevice(std::string &SerialNumber, uCentralDevice &DeviceDetails) {
         // std::lock_guard<std::mutex> guard(mutex_);
 
         try {
@@ -706,7 +884,7 @@ namespace uCentral::Storage {
         return false;
     }
 
-    bool Service::UpdateDevice_i(uCentralDevice &NewConfig) {
+    bool Service::UpdateDevice(uCentralDevice &NewConfig) {
         // std::lock_guard<std::mutex> guard(mutex_);
 
         try {
@@ -733,7 +911,7 @@ namespace uCentral::Storage {
     }
 
 
-    bool Service::GetDevices_i(uint64_t From, uint64_t HowMany, std::vector<uCentralDevice> &Devices) {
+    bool Service::GetDevices(uint64_t From, uint64_t HowMany, std::vector<uCentralDevice> &Devices) {
 
         typedef Poco::Tuple<
                 std::string,
@@ -792,7 +970,7 @@ namespace uCentral::Storage {
         return false;
     }
 
-    bool Service::UpdateDeviceCapabilities_i(std::string &SerialNumber, std::string &Capabs) {
+    bool Service::UpdateDeviceCapabilities(std::string &SerialNumber, std::string &Capabs) {
         // std::lock_guard<std::mutex> guard(mutex_);
 
         try {
@@ -830,21 +1008,23 @@ namespace uCentral::Storage {
         return false;
     }
 
-    bool Service::GetDeviceCapabilities_i(std::string &SerialNumber, uCentralCapabilities &Caps) {
+    bool Service::GetDeviceCapabilities(std::string &SerialNumber, uCentralCapabilities &Caps) {
         // std::lock_guard<std::mutex> guard(mutex_);
 
         try {
             Session session_ = Pool_->get();
 
+            std::string SerialNumber;
+
             session_
                     << "SELECT SerialNumber, Capabilities, FirstUpdate, LastUpdate FROM Capabilities WHERE SerialNumber='%s'",
-                    into(Caps.SerialNumber),
+                    into(SerialNumber),
                     into(Caps.Capabilities),
                     into(Caps.FirstUpdate),
                     into(Caps.LastUpdate),
                     SerialNumber.c_str(), now;
 
-            if (Caps.SerialNumber.empty())
+            if (SerialNumber.empty())
                 return false;
 
             return true;
@@ -856,7 +1036,7 @@ namespace uCentral::Storage {
         return false;
     }
 
-    bool Service::DeleteDeviceCapabilities_i(std::string &SerialNumber) {
+    bool Service::DeleteDeviceCapabilities(std::string &SerialNumber) {
         // std::lock_guard<std::mutex> guard(mutex_);
 
         try {
@@ -874,7 +1054,7 @@ namespace uCentral::Storage {
         return false;
     }
 
-    bool Service::ExistingConfiguration_i(std::string &SerialNumber, uint64_t CurrentConfig, std::string &NewConfig, uint64_t &UUID) {
+    bool Service::ExistingConfiguration(std::string &SerialNumber, uint64_t CurrentConfig, std::string &NewConfig, uint64_t &UUID) {
         // std::lock_guard<std::mutex> guard(mutex_);
         std::string SS;
         try {

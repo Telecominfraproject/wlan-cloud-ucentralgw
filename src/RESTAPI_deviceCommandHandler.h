@@ -28,6 +28,8 @@ public:
     void GetStatus(HTTPServerRequest& request, HTTPServerResponse& response);
     void ExecuteCommand(HTTPServerRequest& request, HTTPServerResponse& response);
     void Configure(HTTPServerRequest& request, HTTPServerResponse& response);
+    void GetChecks(HTTPServerRequest& request, HTTPServerResponse& response);
+    void DeleteChecks(HTTPServerRequest& request, HTTPServerResponse& response);
 };
 
 #endif //UCENTRAL_RESTAPI_DEVICECOMMANDHANDLER_H

@@ -44,33 +44,36 @@ void uCentralDevice::Print() const {
 
 Poco::JSON::Object uCentralStatistics::to_json() const {
     Poco::JSON::Object  Obj;
-
-    Obj.set("serialNumber",SerialNumber);
     Obj.set("UUID",UUID);
     Obj.set("values",Values);
     Obj.set("recorded",RESTAPIHandler::to_RFC3339(Recorded));
-
     return Obj;
 };
 
 Poco::JSON::Object uCentralCapabilities::to_json() const {
     Poco::JSON::Object  Obj;
-
-    Obj.set("serialNumber",SerialNumber);
     Obj.set("deviceType",Capabilities);
     Obj.set("createdTimestamp",RESTAPIHandler::to_RFC3339(FirstUpdate));
     Obj.set("lastConfigurationChange",RESTAPIHandler::to_RFC3339(LastUpdate));
-
     return Obj;
 };
 
 Poco::JSON::Object uCentralDeviceLog::to_json() const
 {
     Poco::JSON::Object  Obj;
-
     Obj.set("log",Log);
+    Obj.set("severity",Severity);
+    Obj.set("data",Data);
     Obj.set("recorded",RESTAPIHandler::to_RFC3339(Recorded));
-
     return Obj;
 }
+
+Poco::JSON::Object  uCentralHealthcheck::to_json() const {
+    Poco::JSON::Object  Obj;
+    Obj.set("UUID",UUID);
+    Obj.set("values",Values);
+    Obj.set("sanity",Sanity);
+    Obj.set("recorded",RESTAPIHandler::to_RFC3339(Recorded));
+    return Obj;
+};
 

@@ -143,13 +143,42 @@ namespace uCentral::WebSocket {
 
                 LookForUpgrade(Response );
 
+            } else if (Method=="healthcheck") {
+                Poco::DynamicStruct collection = ds["params"].extract<Poco::DynamicStruct>();
+                Poco::DynamicStruct c2 = collection["params"].extract<Poco::DynamicStruct>();
+                auto Serial = c2["serial"].toString();
+                auto UUID = c2["uuid"];
+                auto Sanity = c2["sanity"];
+                auto CheckData = c2["data"].toString();
+
+                Conn_->UUID = UUID;
+
+                uCentralHealthcheck Check;
+
+                Check.Recorded = time(nullptr);
+                Check.UUID = UUID;
+                Check.Values = CheckData;
+                Check.Sanity = Sanity;
+
+                uCentral::Storage::AddHealthCheckData(Serial,Check);
+                LookForUpgrade(Response );
+
             } else if (Method=="log") {
                 Poco::DynamicStruct collection = ds["params"].extract<Poco::DynamicStruct>();
                 Poco::DynamicStruct c2 = collection["params"].extract<Poco::DynamicStruct>();
                 auto Serial = c2["serial"].toString();
                 auto Log = c2["log"].toString();
+                auto Data = c2["data"].toString();
+                auto Severity = c2["severity"];
 
-                uCentral::Storage::AddLog(Serial, Log);
+                uCentralDeviceLog   DeviceLog;
+
+                DeviceLog.Log = Log;
+                DeviceLog.Data = Data;
+                DeviceLog.Severity = Severity;
+                DeviceLog.Recorded = time(nullptr);
+
+                uCentral::Storage::AddLog(Serial, DeviceLog);
             }
             else
             {
