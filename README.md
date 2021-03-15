@@ -221,6 +221,12 @@ authentication.service.type = internal
 In the [JSON-RPC](https://www.jsonrpc.org/specification) scenario, the AP is considered the server. So the Controller sends commands to the AP using JSON-RPC, and the AP will send notifications to the controller. 
 
 ### Event Messages
+In this RPC, here are some common interpretations:
+- `when` : In a command, this is a suggestion as to when to perform somthing. 0 means right now, or otherwise the UTC time in seconds.
+- `serial` : This is the text representation of the serial number the device is using. Usually will be the MAC address of the device without an separator.
+- `uuid` : Is an int64 representing the current configuration ID.
+- `JSON documents` : when a field requires an JSON document, this is free form JSON and the controller and the AP agree on its content.
+- 
 #### Connection event
 AP Sends connection notification to the controller after establishing a connection. The controller
 my decide to send the AP a newer configuration if it has a newer one. 
@@ -231,7 +237,7 @@ my decide to send the AP a newer configuration if it has a newer one.
           "serial" : <serial number> ,
 	  "uuid" : <current active configuration uuid>,
           "firmware" : <Current firmware version string>,
-	  "capabilities" : <current device capabilities in JSON document>
+	  "capabilities" : <JSON Document: current device capabilities.>
     }
 }
 ```
@@ -245,7 +251,7 @@ may decide to send this new configuration to the AP.
     "params" : {
 	"serial" : <serial number> ,
 	"uuid" : <current active configuration uuid>,
-	"state" : <current device state in JSON document>
+	"state" : <JSON Document: current device state.>
   }
 }
 ```
@@ -258,9 +264,25 @@ AP Sends a log whenever necessary. The controller will log this message.
     "params" : {
 	"serial" : <serial number> ,
 	"log" : <text to appear in the logs>
+	"severity" : <as stated below>,
+	"data" : <JSON Document (optional): related to this log message>
     }
 }
 ```
+
+##### `severity`
+The `severity` matches the `syslog` levels. Here are the details:
+- 0 : LOG_EMERG       0       /* system is unusable */
+- 1 : LOG_ALERT       1       /* action must be taken immediately */
+- 2 : LOG_CRIT        2       /* critical conditions */
+- 3 : LOG_ERR         3       /* error conditions */
+- 4 : LOG_WARNING     4       /* warning conditions */
+- 5 : LOG_NOTICE      5       /* normal but significant condition */
+- 6 : LOG_INFO        6       /* informational */
+- 7 : LOG_DEBUG       7       /* debug-level messages */
+
+##### `data`
+This is optional data that may be added in the log message. 
 
 #### Config change pending event
 AP Sends a log whenever necessary. This message is intended to tell the controller that the AP 
@@ -271,8 +293,8 @@ reply to this message.
     "method" : "cfgpending" , 
     "params" : {
         "serial" : <serial number> ,
-	"active" : <current active configuration uuid>,
-	"uuid" : <waiting to apply this configuration>
+	"active" : <UUID current active configuration uuid>,
+	"uuid" : <UUID waiting to apply this configuration>
     }
 }
 ```
@@ -306,7 +328,7 @@ should send messages with `pending change` events until this version has been ap
 	"serial" : <serial number> ,
 	"uuid" : <waiting to apply this configuration>,
 	"when" : UTC time when to apply this config, 0 mean immediate, this is a suggestion
-        "config" : <New configuration as a JSON document”
+        "config" : <JSON Document: New configuration”
      },
      "id" : <some number>
 }
@@ -321,10 +343,11 @@ The AP should answer:
 	 "status" : {
 	     "error" : 0 or an error number,
 	     "text" : <description of the error or success>
+	     "when" : <indication as to when this will be performed>,
 	     "rejected" : [
-	     			{ "parameter" : <the JSON text thata caused the rejection> ,
+	     			{ "parameter" : <JSON Document: text that caused the rejection> ,
 				  "reason" : <why it was rejected>,
-				  "substitution" : <replaced by this JSON. Optional> } ...
+				  "substitution" : <JSON Document: replaced by this JSON. Optional> } ...
 			  ]
          },
      "id" : <same number>
@@ -334,10 +357,17 @@ The AP should answer:
 The AP can answer and tell the controller it has rejected certain parts of the config and potentially replaced them with 
 appropriate values. This could be used to allow an AP to replace frequencies for the regions it is localted. The AP can provide an
 array of these rejections. The substitution JSON is optional.
+
 ###### Error codes
 - 0 : configuration was applied as-is.
-- 1 : configuration was applied with the included substitutions in the rejected section.
-- 2 : configuration was rejected and will not be applied at all. The rejected section  can be used to tell the controller why. 
+- 1 : configuration was applied with the included substitutions in the `rejected` section. The device is operating with the new modified config.
+- 2 : configuration was rejected and will not be applied at all. The `rejected` section can be used to tell the controller why. 
+
+###### The `rejected` section
+The rejected section is an array containing the following:
+- `parameter` : the JSON code in the config that is causing this rejection
+- `reason` : anything to explain the rejection.
+
 
 #### Controller wants the AP to reboot
 Controller sends this command when it believes the AP should reboot.
@@ -365,16 +395,21 @@ The AP should answer:
   "id" : <same number>
 }
 ```
+###### Error codes
+- 0 : is rebooting at `when` seconds.
+- 1 : the device is busy but will reboot soon. `text` may indicate why.
+- 2 : the device will not reboot. `text` contains information as to why. 
 
 #### Controller sends a device specific command
-Controller sends this command when it believes the AP should reboot
+Controller sends this command specific to this AP. The command is proprietary and must be agreed upon by the AP and the Controller. 
 ```
 {     "jsonrpc" : "2.0" , 
       "method" : "perform" , 
       "params" : {
           "serial" : <serial number> ,
 	  "when" : <UTC time when to apply this config, 0 mean immediate, this is a suggestion>,
-	  "command" : <this is device specific>
+	  "command" : <this is device specific>,
+	  "payload" : <JSON Document: containing additional information about the command>
           },
       "id" : <some number>
 }
@@ -388,12 +423,18 @@ The AP should answer:
       "status" : {
 	    "error" : 0 or an error number,
 	    "text" : <description of the error or success>,
+	    "when" : <in UTC time in seconds>,
 	    "resultCode" : <0 or an appropriate error code>,
-	    "resultText" : <any text resulting from the command. This is propeirtary to each command>
+	    "resultText" : <any text resulting from the command. This is propietary to each command>
       },
       "id" : <same number>
 }
 ```
+##### The AP answer
+The AP should answer with teh above message. The `error` value should be interpreted the following way:
+- 0 : the command was performed as requested and the reults of the command is available in the `resultCode` and `resultText` parameters.
+- 1 : the command will be performed in the future and `when` shows that time. The `resultCode` and `resultText` dod not contain anything relevant.
+- 2 : the command cannot be performed as indicated. `resultCode` and `resultText` may contain some indication as to why.
 
 ## OpenAPI
 The service supports an OpenAPI REST based interface for management. You can find the [definition here](https://github.com/stephb9959/ucentralgw/blob/main/tipapi/ucentral/ucentral.yaml).
