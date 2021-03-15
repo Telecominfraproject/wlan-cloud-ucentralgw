@@ -321,10 +321,23 @@ The AP should answer:
 	 "status" : {
 	     "error" : 0 or an error number,
 	     "text" : <description of the error or success>
+	     "rejected" : [
+	     			{ "parameter" : <the JSON text thata caused the rejection> ,
+				  "reason" : <why it was rejected>,
+				  "substitution" : <replaced by this JSON. Optional> } ...
+			  ]
          },
      "id" : <same number>
 }
 ```
+##### The AP Answer
+The AP can answer and tell the controller it has rejected certain parts of the config and potentially replaced them with 
+appropriate values. This could be used to allow an AP to replace frequencies for the regions it is localted. The AP can provide an
+array of these rejections. The substitution JSON is optional.
+###### Error codes
+- 0 : configuration was applied as-is.
+- 1 : configuration was applied with the included substitutions in the rejected section.
+- 2 : configuration was rejected and will not be applied at all. The rejected section  can be used to tell the controller why. 
 
 #### Controller wants the AP to reboot
 Controller sends this command when it believes the AP should reboot.
@@ -346,7 +359,8 @@ The AP should answer:
       "serial" : <serial number> ,
       "status" : {
 	    "error" : 0 or an error number,
-	    "text" : <description of the error or success>
+	    "text" : <description of the error or success>,
+	    "when" : <time when this will be performed as UTC seconds>,
   	},
   "id" : <same number>
 }
