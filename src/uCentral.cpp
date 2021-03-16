@@ -32,7 +32,10 @@ using Poco::AutoPtr;
 
 namespace uCentral {
 
-    Daemon::Daemon() : helpRequested_(false) {
+    Daemon * instance() { return reinterpret_cast<Daemon *>(&uCentral::Daemon::instance()); }
+
+    Daemon::Daemon() : helpRequested_(false),
+    AutoProvisioning_(false) {
     }
 
     void Daemon::initialize(Application &self) {
@@ -50,7 +53,7 @@ namespace uCentral {
 
         loadConfiguration(ConfigFile.toString());
         std::string OriginalLogFileValue = config().getString(LogFilePathKey);
-        std::string RealLogFileValue = uCentral::ServiceConfig::ReplaceEnvVar(OriginalLogFileValue);
+        std::string RealLogFileValue = Poco::Path::expand(OriginalLogFileValue);
         config().setString(LogFilePathKey,RealLogFileValue);
 
         addSubsystem(uCentral::Storage::Service::instance());
@@ -62,8 +65,63 @@ namespace uCentral {
 
         ServerApplication::initialize(self);
         logger().information("Starting...");
+
         // add your own initialization code here
+        AutoProvisioning_ = config().getBool("ucentral.autoprovisioning",false);
+
+        // DeviceTypeIdentifications_
+        std::vector<std::string>    Keys;
+        uCentral::instance()->config().keys("ucentral.autoprovisioning.type",Keys);
+        for(const auto & i:Keys)
+        {
+            std::string Line = config().getString("ucentral.autoprovisioning.type."+i);
+            auto P1 = Line.find_first_of(':');
+            auto Type = Line.substr(0, P1);
+            auto List = Line.substr(P1+1);
+            std::vector<std::string>    Tokens;
+
+            auto P=0;
+
+            while(P<List.size())
+            {
+                auto P2 = List.find_first_of(',', P);
+                if(P2==std::string::npos) {
+                    Tokens.push_back(List.substr(P));
+                    break;
+                }
+                else
+                    Tokens.push_back(List.substr(P,P2));
+                P=P2+1;
+            }
+
+            auto Entry = DeviceTypeIdentifications_.find(Type);
+
+            if(Entry==DeviceTypeIdentifications_.end())
+                DeviceTypeIdentifications_[Type] = Tokens;
+            else
+                Entry->second.insert(Entry->second.end(),Tokens.begin(),Tokens.end());
+        }
+        /*
+        for(const auto &[Key,List] : DeviceTypeIdentifications_ )
+        {
+            std::cout << "Type: " << Key << std::endl;
+            for(const auto j:List)
+                std::cout << "     Val: " << j << std::endl;
+        } */
     }
+
+    std::string Daemon::IdentifyDevice(const std::string & Id ) {
+        for(const auto &[Type,List]:DeviceTypeIdentifications_)
+        {
+            for(const auto & i : List)
+            {
+                if(Id.find(i)!=std::string::npos)
+                    return Type;
+            }
+        }
+        return std::string("AP_Default");
+    }
+
 
     void Daemon::uninitialize() {
         // add your own uninitialization code here
@@ -201,6 +259,16 @@ namespace uCentral {
             std::cout << "NO Match: " << p << " >>> " << r << std::endl;
     }
 
+    /*
+    void ShowConfig() {
+
+        std::vector<std::string>    Keys;
+        uCentral::instance()->config().keys("ucentral.autoprovisioning.type",Keys);
+
+        for(auto i : Keys)
+            std::cout << "Key: " << i << std::endl;
+    }*/
+
     int Daemon::main(const ArgVec &args) {
         if (!helpRequested_) {
             Logger &logger = Logger::get("uCentral");
@@ -214,7 +282,9 @@ namespace uCentral {
             uCentral::RESTAPI::Start();
             uCentral::WebSocket::Start();
 
-            createTestRecord();
+            // ShowConfig();
+
+            // createTestRecord();
 
             waitForTerminationRequest();
 
@@ -250,6 +320,7 @@ namespace uCentral {
         // for strings, we must replace environment variables
         //  if path is /path/to/${SOME_VAR}/afile
         //  should expand to something replacing ${SOME_VAR} with its value
+        /*
         std::string ReplaceEnvVar(const std::string &Key) {
 
             std::string Result;
@@ -282,17 +353,18 @@ namespace uCentral {
                 std::exit(EXIT_FAILURE);
             }
         }
+        */
 
         std::string getString(const std::string &Key,const std::string & Default) {
             std::string R = uCentral::Daemon::instance().config().getString(Key, Default);
 
-            return ReplaceEnvVar(R);
+            return Poco::Path::expand(R);
         }
 
         std::string getString(const std::string &Key) {
             std::string R = uCentral::Daemon::instance().config().getString(Key);
 
-            return ReplaceEnvVar(R);
+            return Poco::Path::expand(R);
         }
     }
 

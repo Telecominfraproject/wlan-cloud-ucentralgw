@@ -49,77 +49,95 @@ namespace uCentral::Storage {
         return uCentral::Storage::Service::instance()->AddLog(SerialNumber,DeviceLog);
     }
 
-    bool AddStatisticsData(std::string &SerialNUmber, uint64_t CfgUUID, std::string &NewStats) {
-        return uCentral::Storage::Service::instance()->AddStatisticsData(SerialNUmber, CfgUUID, NewStats);
+    bool AddStatisticsData(std::string &SerialNumber, uint64_t CfgUUID, std::string &NewStats) {
+        return uCentral::Storage::Service::instance()->AddStatisticsData(SerialNumber, CfgUUID, NewStats);
     }
 
-    bool GetStatisticsData(std::string &SerialNUmber, uint64_t FromDate, uint64_t ToDate, uint64_t Offset, uint64_t HowMany, std::vector<uCentralStatistics> &Stats) {
-        return uCentral::Storage::Service::instance()->GetStatisticsData(SerialNUmber, FromDate, ToDate, Offset, HowMany, Stats);
+    bool GetStatisticsData(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate, uint64_t Offset, uint64_t HowMany, std::vector<uCentralStatistics> &Stats) {
+        return uCentral::Storage::Service::instance()->GetStatisticsData(SerialNumber, FromDate, ToDate, Offset, HowMany, Stats);
     }
 
-    bool DeleteStatisticsData(std::string &SerialNUmber, uint64_t FromDate, uint64_t ToDate ) {
-        return uCentral::Storage::Service::instance()->DeleteStatisticsData(SerialNUmber, FromDate, ToDate );
+    bool DeleteStatisticsData(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate ) {
+        return uCentral::Storage::Service::instance()->DeleteStatisticsData(SerialNumber, FromDate, ToDate );
     }
 
-    bool AddHealthCheckData(std::string &SerialNUmber, const uCentralHealthcheck & Check) {
-        return uCentral::Storage::Service::instance()->AddHealthCheckData(SerialNUmber, Check);
+    bool AddHealthCheckData(std::string &SerialNumber, const uCentralHealthcheck & Check) {
+        return uCentral::Storage::Service::instance()->AddHealthCheckData(SerialNumber, Check);
     }
 
-    bool GetHealthCheckData(std::string &SerialNUmber, uint64_t FromDate, uint64_t ToDate, uint64_t Offset, uint64_t HowMany,
+    bool GetHealthCheckData(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate, uint64_t Offset, uint64_t HowMany,
                                    std::vector<uCentralHealthcheck> &Checks) {
-        return uCentral::Storage::Service::instance()->GetHealthCheckData(SerialNUmber, FromDate, ToDate, Offset, HowMany,
+        return uCentral::Storage::Service::instance()->GetHealthCheckData(SerialNumber, FromDate, ToDate, Offset, HowMany,
                 Checks);
     }
-    bool DeleteHealthCheckData(std::string &SerialNUmber, uint64_t FromDate, uint64_t ToDate ) {
-        return uCentral::Storage::Service::instance()->DeleteHealthCheckData(SerialNUmber, FromDate, ToDate );
+    bool DeleteHealthCheckData(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate ) {
+        return uCentral::Storage::Service::instance()->DeleteHealthCheckData(SerialNumber, FromDate, ToDate );
     }
 
-    bool UpdateDeviceConfiguration(std::string &SerialNUmber, std::string &Configuration) {
-        return uCentral::Storage::Service::instance()->UpdateDeviceConfiguration(SerialNUmber, Configuration);
+    bool UpdateDeviceConfiguration(std::string &SerialNumber, std::string &Configuration) {
+        return uCentral::Storage::Service::instance()->UpdateDeviceConfiguration(SerialNumber, Configuration);
     }
 
     bool CreateDevice(uCentralDevice &Device) {
         return uCentral::Storage::Service::instance()->CreateDevice(Device);
     }
 
-    bool GetDevice(std::string &SerialNUmber, uCentralDevice &Device) {
-        return uCentral::Storage::Service::instance()->GetDevice(SerialNUmber, Device);
+    bool CreateDefaultDevice(const std::string & SerialNumber, const std::string & Capabilities) {
+        return uCentral::Storage::Service::instance()->CreateDefaultDevice(SerialNumber, Capabilities);
     }
 
-    bool GetDevices(uint64_t From, uint64_t Howmany, std::vector<uCentralDevice> &Devices) {
-        return uCentral::Storage::Service::instance()->GetDevices(From, Howmany, Devices);
+    bool GetDevice(std::string &SerialNumber, uCentralDevice &Device) {
+        return uCentral::Storage::Service::instance()->GetDevice(SerialNumber, Device);
     }
 
-    bool DeleteDevice(std::string &SerialNUmber) {
-        return uCentral::Storage::Service::instance()->DeleteDevice(SerialNUmber);
+    bool GetDevices(uint64_t From, uint64_t HowMany, std::vector<uCentralDevice> &Devices) {
+        return uCentral::Storage::Service::instance()->GetDevices(From, HowMany, Devices);
+    }
+
+    bool DeleteDevice(std::string &SerialNumber) {
+        return uCentral::Storage::Service::instance()->DeleteDevice(SerialNumber);
     }
 
     bool UpdateDevice(uCentralDevice &Device) {
         return uCentral::Storage::Service::instance()->UpdateDevice(Device);
     }
 
+    bool DeviceExists(const std::string & SerialNumber) {
+        return uCentral::Storage::Service::instance()->DeviceExists(SerialNumber);
+    }
+
     bool ExistingConfiguration(std::string &SerialNumber, uint64_t CurrentConfig, std::string &NewConfig, uint64_t &NewerUUID) {
         return uCentral::Storage::Service::instance()->ExistingConfiguration(SerialNumber, CurrentConfig, NewConfig, NewerUUID);
     }
 
-    bool UpdateDeviceCapabilities(std::string &SerialNUmber, std::string &State) {
-        return uCentral::Storage::Service::instance()->UpdateDeviceCapabilities(SerialNUmber, State);
+    bool UpdateDeviceCapabilities(std::string &SerialNumber, std::string &State) {
+        return uCentral::Storage::Service::instance()->UpdateDeviceCapabilities(SerialNumber, State);
     }
 
-    bool GetDeviceCapabilities(std::string &SerialNUmber, uCentralCapabilities & Capabilities) {
-        return uCentral::Storage::Service::instance()->GetDeviceCapabilities(SerialNUmber, Capabilities);
+    bool GetDeviceCapabilities(std::string &SerialNumber, uCentralCapabilities & Capabilities) {
+        return uCentral::Storage::Service::instance()->GetDeviceCapabilities(SerialNumber, Capabilities);
     }
 
     bool DeleteDeviceCapabilities(std::string & SerialNumber) {
         return uCentral::Storage::Service::instance()->DeleteDeviceCapabilities(SerialNumber);
     }
 
-    bool GetLogData(std::string &SerialNUmber, uint64_t FromDate, uint64_t ToDate, uint64_t Offset, uint64_t HowMany, std::vector<uCentralDeviceLog> &Stats) {
-        return uCentral::Storage::Service::instance()->GetLogData(SerialNUmber, FromDate, ToDate, Offset, HowMany, Stats);
+    bool GetLogData(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate, uint64_t Offset, uint64_t HowMany, std::vector<uCentralDeviceLog> &Stats) {
+        return uCentral::Storage::Service::instance()->GetLogData(SerialNumber, FromDate, ToDate, Offset, HowMany, Stats);
     }
 
-    bool DeleteLogData(std::string &SerialNUmber, uint64_t FromDate, uint64_t ToDate) {
-        return uCentral::Storage::Service::instance()->DeleteLogData(SerialNUmber, FromDate, ToDate);
+    bool DeleteLogData(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate) {
+        return uCentral::Storage::Service::instance()->DeleteLogData(SerialNumber, FromDate, ToDate);
+    }
+
+    std::string SerialToMAC(const std::string & Serial) {
+        std::string Result;
+
+        if(Serial.size()==12)
+            Result= Serial[0] + Serial [1] + ':' + Serial[2] + Serial[3] + ':' + Serial[4] + Serial[5] + ':' +
+                    Serial[6] + Serial [7] + ':' + Serial[8] + Serial[9] + ':' + Serial[10] + Serial[11];
+
+        return Result;
     }
 
     int Service::Setup_MySQL() {
@@ -796,6 +814,8 @@ namespace uCentral::Storage {
                     DeviceDetails.Configuration = Cfg.get();
                     uint64_t Now = time(nullptr);
 
+                    DeviceDetails.Print();
+
                     session_ << "INSERT INTO Devices VALUES('%s', '%s', '%s', '%s', %Lu, '%s', '%s', %Lu, %Lu, %Lu)",
                             DeviceDetails.SerialNumber.c_str(),
                             DeviceDetails.DeviceType.c_str(),
@@ -823,6 +843,30 @@ namespace uCentral::Storage {
         }
         return false;
     }
+
+    bool Service::CreateDefaultDevice(const std::string & SerialNumber, const std::string & Capabilities) {
+
+        uCentralDevice  D;
+        uCentral::Config::Config    NewConfig;
+
+        Logger_.information(Poco::format("AUTO-CREATION(%s)",SerialNumber.c_str()));
+        uint64_t Now = time(nullptr);
+        NewConfig.SetUUID(Now);
+
+        uCentral::Config::Capabilities  Caps(Capabilities);
+
+        D.SerialNumber = SerialNumber;
+        D.DeviceType = Caps.DeviceType();
+        D.MACAddress = SerialToMAC(SerialNumber);
+        D.Manufacturer = Caps.Manufacturer();
+        D.UUID = Now;
+        D.Configuration = NewConfig.get();
+        D.Notes = "auto created device.";
+        D.CreationTimestamp = D.LastConfigurationDownload = D.LastConfigurationChange = Now;
+
+        return CreateDevice(D);
+    }
+
 
     bool Service::DeleteDevice(std::string &SerialNumber) {
         // std::lock_guard<std::mutex> guard(mutex_);
@@ -873,6 +917,31 @@ namespace uCentral::Storage {
                     SerialNumber.c_str(), now;
 
             if (DeviceDetails.SerialNumber.empty())
+                return false;
+
+            return true;
+        }
+        catch( const Poco::Exception & E)
+        {
+            Logger_.warning(Poco::format("%s(%s): Failed with: %s",__FUNCTION__,SerialNumber.c_str(),E.displayText() ));
+        }
+        return false;
+    }
+
+    bool Service::DeviceExists(const std::string & SerialNumber) {
+        try {
+            Session session_ = Pool_->get();
+
+            std::string Serial;
+
+            session_ << "SELECT "
+                        "SerialNumber "
+                        " FROM Devices WHERE SerialNumber='%s'",
+                    into(Serial),
+                    SerialNumber.c_str(),
+                    now;
+
+            if (Serial.empty())
                 return false;
 
             return true;

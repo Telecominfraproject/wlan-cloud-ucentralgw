@@ -25,31 +25,35 @@ namespace uCentral::Storage {
     int Start();
     void Stop();
 
-    bool AddStatisticsData(std::string &SerialNUmber, uint64_t CfgUUID, std::string &NewStats);
-    bool GetStatisticsData(std::string &SerialNUmber, uint64_t FromDate, uint64_t ToDate, uint64_t Offset, uint64_t HowMany, std::vector<uCentralStatistics> &Stats);
-    bool DeleteStatisticsData(std::string &SerialNUmber, uint64_t FromDate, uint64_t ToDate );
+    bool AddStatisticsData(std::string &SerialNumber, uint64_t CfgUUID, std::string &NewStats);
+    bool GetStatisticsData(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate, uint64_t Offset, uint64_t HowMany, std::vector<uCentralStatistics> &Stats);
+    bool DeleteStatisticsData(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate );
 
-    bool AddHealthCheckData(std::string &SerialNUmber,const uCentralHealthcheck & Check);
-    bool GetHealthCheckData(std::string &SerialNUmber, uint64_t FromDate, uint64_t ToDate, uint64_t Offset, uint64_t HowMany,
+    bool AddHealthCheckData(std::string &SerialNumber,const uCentralHealthcheck & Check);
+    bool GetHealthCheckData(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate, uint64_t Offset, uint64_t HowMany,
                             std::vector<uCentralHealthcheck> &Checks);
-    bool DeleteHealthCheckData(std::string &SerialNUmber, uint64_t FromDate, uint64_t ToDate );
+    bool DeleteHealthCheckData(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate );
 
     bool AddLog(std::string & SerialNumber, const uCentralDeviceLog & Log );
     bool AddLog(std::string & SerialNumber, const std::string &Log );
 
-    bool GetLogData(std::string &SerialNUmber, uint64_t FromDate, uint64_t ToDate, uint64_t Offset, uint64_t HowMany, std::vector<uCentralDeviceLog> &Stats);
-    bool DeleteLogData(std::string &SerialNUmber, uint64_t FromDate, uint64_t ToDate);
+    bool GetLogData(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate, uint64_t Offset, uint64_t HowMany, std::vector<uCentralDeviceLog> &Stats);
+    bool DeleteLogData(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate);
 
-    bool UpdateDeviceConfiguration(std::string &SerialNUmber, std::string &Configuration);
+    bool UpdateDeviceConfiguration(std::string &SerialNumber, std::string &Configuration);
     bool CreateDevice(uCentralDevice &);
-    bool GetDevice(std::string &SerialNUmber, uCentralDevice &);
-    bool GetDevices(uint64_t From, uint64_t Howmany, std::vector<uCentralDevice> &Devices);
-    bool DeleteDevice(std::string &SerialNUmber);
+    bool CreateDefaultDevice(const std::string & SerialNumber, const std::string & Capabilities);
+    bool GetDevice(std::string &SerialNumber, uCentralDevice &);
+    bool DeviceExists(const std::string & SerialNumber);
+    bool GetDevices(uint64_t From, uint64_t HowMany, std::vector<uCentralDevice> &Devices);
+    bool DeleteDevice(std::string &SerialNumber);
     bool UpdateDevice(uCentralDevice &);
     bool ExistingConfiguration(std::string &SerialNumber, uint64_t CurrentConfig, std::string &NewConfig, uint64_t &);
-    bool UpdateDeviceCapabilities(std::string &SerialNUmber, std::string &State);
-    bool GetDeviceCapabilities(std::string &SerialNUmber, uCentralCapabilities &);
+    bool UpdateDeviceCapabilities(std::string &SerialNumber, std::string &State);
+    bool GetDeviceCapabilities(std::string &SerialNumber, uCentralCapabilities &);
     bool DeleteDeviceCapabilities(std::string & SerialNumber);
+
+    std::string SerialToMAC(const std::string & Serial);
 
 
     class Service : public SubSystemServer {
@@ -67,30 +71,32 @@ namespace uCentral::Storage {
             return instance_;
         }
 
-        friend bool AddStatisticsData(std::string &SerialNUmber, uint64_t CfgUUID, std::string &NewStats);
-        friend bool GetStatisticsData(std::string &SerialNUmber, uint64_t FromDate, uint64_t ToDate, uint64_t Offset, uint64_t HowMany,
+        friend bool AddStatisticsData(std::string &SerialNumber, uint64_t CfgUUID, std::string &NewStats);
+        friend bool GetStatisticsData(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate, uint64_t Offset, uint64_t HowMany,
                                std::vector<uCentralStatistics> &Stats);
-        friend bool DeleteStatisticsData(std::string &SerialNUmber, uint64_t FromDate, uint64_t ToDate );
+        friend bool DeleteStatisticsData(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate );
 
-        friend bool AddHealthCheckData(std::string &SerialNUmber, const uCentralHealthcheck & Check);
-        friend bool GetHealthCheckData(std::string &SerialNUmber, uint64_t FromDate, uint64_t ToDate, uint64_t Offset, uint64_t HowMany,
+        friend bool AddHealthCheckData(std::string &SerialNumber, const uCentralHealthcheck & Check);
+        friend bool GetHealthCheckData(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate, uint64_t Offset, uint64_t HowMany,
                                       std::vector<uCentralHealthcheck> &Checks);
-        friend bool DeleteHealthCheckData(std::string &SerialNUmber, uint64_t FromDate, uint64_t ToDate );
+        friend bool DeleteHealthCheckData(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate );
 
+        friend bool CreateDefaultDevice(const std::string & SerialNumber, const std::string & Capabilities);
+        friend bool DeviceExists(const std::string & SerialNumber);
 
-        friend bool UpdateDeviceConfiguration(std::string &SerialNUmber, std::string &Configuration);
+        friend bool UpdateDeviceConfiguration(std::string &SerialNumber, std::string &Configuration);
         friend bool CreateDevice(uCentralDevice &);
-        friend bool GetDevice(std::string &SerialNUmber, uCentralDevice &);
-        friend bool GetDevices(uint64_t From, uint64_t Howmany, std::vector<uCentralDevice> &Devices);
-        friend bool DeleteDevice(std::string &SerialNUmber);
+        friend bool GetDevice(std::string &SerialNumber, uCentralDevice &);
+        friend bool GetDevices(uint64_t From, uint64_t HowMany, std::vector<uCentralDevice> &Devices);
+        friend bool DeleteDevice(std::string &SerialNumber);
         friend bool UpdateDevice(uCentralDevice &);
         friend bool ExistingConfiguration(std::string &SerialNumber, uint64_t CurrentConfig, std::string &NewConfig, uint64_t &);
-        friend bool UpdateDeviceCapabilities(std::string &SerialNUmber, std::string &State);
-        friend bool GetDeviceCapabilities(std::string &SerialNUmber, uCentralCapabilities &);
+        friend bool UpdateDeviceCapabilities(std::string &SerialNumber, std::string &State);
+        friend bool GetDeviceCapabilities(std::string &SerialNumber, uCentralCapabilities &);
         friend bool DeleteDeviceCapabilities(std::string & SerialNumber);
-        friend bool GetLogData(std::string &SerialNUmber, uint64_t FromDate, uint64_t ToDate, uint64_t Offset, uint64_t HowMany,
+        friend bool GetLogData(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate, uint64_t Offset, uint64_t HowMany,
                                std::vector<uCentralDeviceLog> &Stats);
-        friend bool DeleteLogData(std::string &SerialNUmber, uint64_t FromDate, uint64_t ToDate);
+        friend bool DeleteLogData(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate);
         friend bool AddLog(std::string & SerialNumber, const std::string & Log);
         friend bool AddLog(std::string & SerialNumber, const uCentralDeviceLog & Log );
 
@@ -98,32 +104,36 @@ namespace uCentral::Storage {
 
         bool AddLog(std::string & SerialNumber, const uCentralDeviceLog & Log );
         bool AddLog(std::string & SerialNumber, const std::string & Log );
-        bool AddStatisticsData(std::string &SerialNUmber, uint64_t CfgUUID, std::string &NewStats);
-        bool GetStatisticsData(std::string &SerialNUmber, uint64_t FromDate, uint64_t ToDate, uint64_t Offset, uint64_t HowMany,
+        bool AddStatisticsData(std::string &SerialNumber, uint64_t CfgUUID, std::string &NewStats);
+        bool GetStatisticsData(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate, uint64_t Offset, uint64_t HowMany,
                                std::vector<uCentralStatistics> &Stats);
-        bool DeleteStatisticsData(std::string &SerialNUmber, uint64_t FromDate, uint64_t ToDate );
+        bool DeleteStatisticsData(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate );
 
-        bool AddHealthCheckData(std::string &SerialNUmber, const uCentralHealthcheck & Check);
-        bool GetHealthCheckData(std::string &SerialNUmber, uint64_t FromDate, uint64_t ToDate, uint64_t Offset, uint64_t HowMany,
+        bool AddHealthCheckData(std::string &SerialNumber, const uCentralHealthcheck & Check);
+        bool GetHealthCheckData(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate, uint64_t Offset, uint64_t HowMany,
                                        std::vector<uCentralHealthcheck> &Checks);
-        bool DeleteHealthCheckData(std::string &SerialNUmber, uint64_t FromDate, uint64_t ToDate );
+        bool DeleteHealthCheckData(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate );
 
-        bool UpdateDeviceConfiguration(std::string &SerialNUmber, std::string &Configuration);
+        bool UpdateDeviceConfiguration(std::string &SerialNumber, std::string &Configuration);
+        
         bool CreateDevice(uCentralDevice &);
-        bool GetDevice(std::string &SerialNUmber, uCentralDevice &);
+        bool CreateDefaultDevice(const std::string & SerialNumber, const std::string & Capabilities);
+        
+        bool GetDevice(std::string &SerialNumber, uCentralDevice &);
         bool GetDevices(uint64_t From, uint64_t Howmany, std::vector<uCentralDevice> &Devices);
-        bool DeleteDevice(std::string &SerialNUmber);
+        bool DeleteDevice(std::string &SerialNumber);
         bool UpdateDevice(uCentralDevice &);
+        bool DeviceExists(const std::string & SerialNumber);
 
         bool ExistingConfiguration(std::string &SerialNumber, uint64_t CurrentConfig, std::string &NewConfig, uint64_t &);
 
-        bool UpdateDeviceCapabilities(std::string &SerialNUmber, std::string &State);
-        bool GetDeviceCapabilities(std::string &SerialNUmber, uCentralCapabilities &);
+        bool UpdateDeviceCapabilities(std::string &SerialNumber, std::string &State);
+        bool GetDeviceCapabilities(std::string &SerialNumber, uCentralCapabilities &);
         bool DeleteDeviceCapabilities(std::string & SerialNumber);
 
-        bool GetLogData(std::string &SerialNUmber, uint64_t FromDate, uint64_t ToDate, uint64_t Offset, uint64_t HowMany,
+        bool GetLogData(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate, uint64_t Offset, uint64_t HowMany,
                         std::vector<uCentralDeviceLog> &Stats);
-        bool DeleteLogData(std::string &SerialNUmber, uint64_t FromDate, uint64_t ToDate);
+        bool DeleteLogData(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate);
 
 
         int Start() override;

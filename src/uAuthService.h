@@ -79,6 +79,7 @@ namespace uCentral::Auth {
         std::string     DefaultUserName_,
                         DefaultPassword_;
         std::string     Mechanism_;
+        bool            AutoProvisioning_;
     };
 
 }; // end of namespace

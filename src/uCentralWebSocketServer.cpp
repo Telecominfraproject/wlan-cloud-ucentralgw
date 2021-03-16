@@ -127,6 +127,9 @@ namespace uCentral::WebSocket {
 
                 uCentral::Storage::UpdateDeviceCapabilities(SerialNumber_, Capabilities);
 
+                if(uCentral::instance()->AutoProvisioning() && !uCentral::Storage::DeviceExists(SerialNumber_))
+                    uCentral::Storage::CreateDefaultDevice(SerialNumber_,Capabilities);
+
                 LookForUpgrade(Response );
 
             } else if (Method=="state") {
@@ -214,6 +217,12 @@ namespace uCentral::WebSocket {
                 uCentral::Storage::AddLog(SerialNumber_, Log);
                 std::string NewCapabilities{ds["capab"].toString()};
                 uCentral::Storage::UpdateDeviceCapabilities(SerialNumber_, NewCapabilities);
+
+                if(uCentral::instance()->AutoProvisioning() && !uCentral::Storage::DeviceExists(SerialNumber_))
+                {
+                    uCentral::Storage::CreateDefaultDevice(SerialNumber_,NewCapabilities);
+                }
+
             } else if (ds.contains("uuid") && ds.contains("serial") && ds.contains("active")) {
                 Conn_->UUID = ds["uuid"];
                 uint64_t Active = ds["active"];

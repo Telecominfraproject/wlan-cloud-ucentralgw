@@ -41,7 +41,8 @@ namespace uCentral::Auth {
 
     Service::Service() noexcept:
             SubSystemServer("Authentication", "AUTH-SVR", "authentication"),
-            Secure_(true)
+            Secure_(true),
+            AutoProvisioning_(false)
     {
     }
 

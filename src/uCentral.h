@@ -50,7 +50,7 @@ namespace uCentral {
     public:
         Daemon();
 
-    protected:
+        bool AutoProvisioning() { return AutoProvisioning_ ; }
         void initialize(Application &self) override;
         void uninitialize() override;
         void reinitialize(Application &self) override;
@@ -63,9 +63,13 @@ namespace uCentral {
         void defineProperty(const std::string &def);
         int main(const ArgVec &args) override;
 
+        std::string IdentifyDevice(const std::string & Id );
+
     private:
-        bool helpRequested_;
-        AutoPtr<FileChannel> logging_channel_;
+        bool                        helpRequested_;
+        bool                        AutoProvisioning_;
+        AutoPtr<FileChannel>        logging_channel_;
+        std::map<std::string,std::vector<std::string>>    DeviceTypeIdentifications_;
     };
 
     namespace ServiceConfig {
@@ -75,8 +79,10 @@ namespace uCentral {
         std::string getString(const std::string &Key);
         uint64_t getBool(const std::string &Key,bool Default);
         uint64_t getBool(const std::string &Key);
-        std::string ReplaceEnvVar(const std::string &Key);
+        // std::string ReplaceEnvVar(const std::string &Key);
     }
+
+    Daemon * instance();
 };
 
 #endif //UCENTRAL_UCENTRAL_H

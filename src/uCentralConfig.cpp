@@ -12,6 +12,8 @@ using Poco::JSON::Parser;
 using Poco::DynamicStruct;
 using Poco::Dynamic::Var;
 
+#include "uCentral.h"
+
 namespace uCentral::Config {
 
     bool Config::SetUUID(uint64_t UUID) {
@@ -95,4 +97,46 @@ namespace uCentral::Config {
                 "\"192.168.11.23\",\"_log_port\":12345,\"_log_hostname\":\"foo\",\"_log_size\":128},\"rtty\":{\"host\":"
                 "\"websocket.usync.org\",\"token\":\"7049cb6b7949ba06c6b356d76f0f6275\",\"interface\":\"wan\"}}"};
     }
+
+    std::string Capabilities::Default() {
+        return std::string("{\"model\":{\"id\":\"linksys,ea8300\",\"name\":\"Linksys EA8300 (Dallas)\"},\"network\":{\"lan\":{\"ifname\":\"eth0\",\"protocol\":\"static\"},\"wan\":{\"ifname\":\"eth1\",\"protocol\":\"dhcp\"}},\"switch\":{\"switch0\":{\"enable\":true,\"reset\":true,\"ports\":[{\"num\":0,\"device\":\"eth0\",\"need_tag\":false,\"want_untag\":true},{\"num\":1,\"role\":\"lan\"},{\"num\":2,\"role\":\"lan\"},{\"num\":3,\"role\":\"lan\"},{\"num\":4,\"role\":\"lan\"}],\"roles\":[{\"role\":\"lan\",\"ports\":\"1 2 3 4 0\",\"device\":\"eth0\"}]}},\"wifi\":{\"soc/40000000.pci/pci0000:00/0000:00:00.0/0000:01:00.0\":{\"band\":[\"5u\"],\"ht_capa\":6639,\"vht_capa\":865696178,\"htmode\":[\"HT20\",\"HT40\",\"VHT20\",\"VHT40\",\"VHT80\"],\"tx_ant\":3,\"rx_ant\":3,\"channels\":[100,104,108,112,116,120,124,128,132,136,140,144,149,153,157,161,165]},\"platform/soc/a000000.wifi\":{\"band\":[\"2\"],\"ht_capa\":6639,\"vht_capa\":865687986,\"htmode\":[\"HT20\",\"HT40\",\"VHT20\",\"VHT40\",\"VHT80\"],\"tx_ant\":3,\"rx_ant\":3,\"channels\":[1,2,3,4,5,6,7,8,9,10,11]},\"platform/soc/a800000.wifi\":{\"band\":[\"5l\"],\"ht_capa\":6639,\"vht_capa\":865687986,\"htmode\":[\"HT20\",\"HT40\",\"VHT20\",\"VHT40\",\"VHT80\"],\"tx_ant\":3,\"rx_ant\":3,\"channels\":[36,40,44,48,52,56,60,64]}}}");
+    }
+
+    void Capabilities::Parse() {
+        if(Capabilities_.empty())
+            Capabilities_=Default();
+
+        try {
+            Parser parser;
+
+            auto result = parser.parse(Capabilities_);
+            auto object = result.extract<Poco::JSON::Object::Ptr>();
+            Poco::DynamicStruct ds = *object;
+
+            auto Model = ds["model"];
+            auto Id = Model["id"].toString();
+            auto Name = Model["name"].toString();
+
+            Manufacturer_ = Name;
+            DeviceType_ = uCentral::instance()->IdentifyDevice(Id);
+            Parsed_ = true ;
+        }
+        catch ( const Poco::Exception & E )
+        {
+            uCentral::Daemon::instance().logger().warning(Poco::format("%s: Failed with: %s", __func__ , E.displayText()));
+        }
+    }
+
+    const std::string & Capabilities::DeviceType() {
+        if(!Parsed_)
+            Parse();
+        return DeviceType_;
+    }
+
+    const std::string & Capabilities::Manufacturer() {
+        if(!Parsed_)
+            Parse();
+        return Manufacturer_;
+    }
+
 }; // namespace

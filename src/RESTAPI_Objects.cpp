@@ -39,7 +39,11 @@ bool uCentralDevice::from_JSON(Poco::JSON::Object::Ptr Obj) {
 }
 
 void uCentralDevice::Print() const {
-    std::cout << "Device: " << SerialNumber << " " << DeviceType << " " << MACAddress << " " << Manufacturer << " " << Configuration << std::endl;
+    std::cout << "Device: " << SerialNumber << " "
+                            << DeviceType << " "
+                            << MACAddress << " "
+                            << Manufacturer << " "
+                            << Configuration << std::endl;
 }
 
 Poco::JSON::Object uCentralStatistics::to_json() const {
