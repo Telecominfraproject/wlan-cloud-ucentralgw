@@ -57,6 +57,7 @@ namespace uCentral {
         void defineOptions(OptionSet &options) override;
         void handleHelp(const std::string &name, const std::string &value);
         void handleDebug(const std::string &name, const std::string &value);
+        void handleLogs(const std::string &name, const std::string &value);
         void handlePort(const std::string &name, const std::string &value);
         void handleConfig(const std::string &name, const std::string &value);
         void displayHelp();
@@ -70,6 +71,9 @@ namespace uCentral {
         bool                        AutoProvisioning_;
         AutoPtr<FileChannel>        logging_channel_;
         std::map<std::string,std::vector<std::string>>    DeviceTypeIdentifications_;
+        std::string                 ConfigFileName_;
+        std::string                 LogDir_;
+        bool                        DebugMode_;
     };
 
     namespace ServiceConfig {

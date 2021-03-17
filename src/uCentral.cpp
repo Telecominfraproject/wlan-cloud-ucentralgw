@@ -37,14 +37,19 @@ namespace uCentral {
 
     Daemon * instance() { return reinterpret_cast<Daemon *>(&uCentral::Daemon::instance()); }
 
-    Daemon::Daemon() : helpRequested_(false),
-    AutoProvisioning_(false) {
+    Daemon::Daemon() :
+        helpRequested_(false),
+        AutoProvisioning_(false),
+        DebugMode_(false)
+    {
     }
 
     void Daemon::initialize(Application &self) {
 
         std::string Location = Poco::Environment::get("UCENTRAL_CONFIG",".");
-        Poco::Path ConfigFile = Location + "/ucentral.properties";
+        Poco::Path ConfigFile;
+
+        ConfigFile = ConfigFileName_.empty() ? Location + "/ucentral.properties" : ConfigFileName_;
 
         if(!ConfigFile.isFile())
         {
@@ -55,9 +60,14 @@ namespace uCentral {
         char LogFilePathKey[] = "logging.channels.c2.path";
 
         loadConfiguration(ConfigFile.toString());
-        std::string OriginalLogFileValue = config().getString(LogFilePathKey);
-        std::string RealLogFileValue = Poco::Path::expand(OriginalLogFileValue);
-        config().setString(LogFilePathKey,RealLogFileValue);
+
+        if(LogDir_.empty()) {
+            std::string OriginalLogFileValue = config().getString(LogFilePathKey);
+            std::string RealLogFileValue = Poco::Path::expand(OriginalLogFileValue);
+            config().setString(LogFilePathKey, RealLogFileValue);
+        } else {
+            config().setString(LogFilePathKey, LogDir_);
+        }
 
         addSubsystem(uCentral::Storage::Service::instance());
         addSubsystem(uCentral::Auth::Service::instance());
@@ -69,6 +79,7 @@ namespace uCentral {
         addSubsystem(uCentral::WebSocket::Service::instance());
 
         ServerApplication::initialize(self);
+
         logger().information("Starting...");
 
         // add your own initialization code here
@@ -130,43 +141,43 @@ namespace uCentral {
 
     void Daemon::uninitialize() {
         // add your own uninitialization code here
-        Application::uninitialize();
+        ServerApplication::uninitialize();
     }
 
     void Daemon::reinitialize(Application &self) {
-        Application::reinitialize(self);
+        ServerApplication::reinitialize(self);
         // add your own reinitialization code here
     }
 
     void Daemon::defineOptions(OptionSet &options) {
-        Application::defineOptions(options);
+        ServerApplication::defineOptions(options);
 
         options.addOption(
-                Option("help", "h", "display help information on command line arguments")
+                Option("help", "", "display help information on command line arguments")
                         .required(false)
                         .repeatable(false)
                         .callback(OptionCallback<Daemon>(this, &Daemon::handleHelp)));
 
         options.addOption(
-                Option("file", "f", "specify the configuration file")
+                Option("file", "", "specify the configuration file")
                         .required(false)
-                        .repeatable(true)
+                        .repeatable(false)
                         .argument("file")
                         .callback(OptionCallback<Daemon>(this, &Daemon::handleConfig)));
 
         options.addOption(
-                Option("debug", "d", "run in debug mode")
+                Option("debug", "", "to run in debug, set to true")
                         .required(false)
-                        .repeatable(true)
+                        .repeatable(false)
                         .callback(OptionCallback<Daemon>(this, &Daemon::handleDebug)));
 
         options.addOption(
-                Option("port", "p", "bind to port")
+                Option("logs", "", "specify the log directory and file (i.e. dir/file.log)")
                         .required(false)
                         .repeatable(false)
-                        .argument("value")
-                        .validator(new IntValidator(0, 9999))
-                        .callback(OptionCallback<Daemon>(this, &Daemon::handlePort)));
+                        .argument("dir")
+                        .callback(OptionCallback<Daemon>(this, &Daemon::handleLogs)));
+
     }
 
     void Daemon::handleHelp(const std::string &name, const std::string &value) {
@@ -176,16 +187,16 @@ namespace uCentral {
     }
 
     void Daemon::handleDebug(const std::string &name, const std::string &value) {
-        defineProperty(value);
+        if(value == "true")
+            DebugMode_ = true ;
     }
 
-    void Daemon::handlePort(const std::string &name, const std::string &value) {
-        defineProperty(value);
+    void Daemon::handleLogs(const std::string &name, const std::string &value) {
+        LogDir_ = value;
     }
 
     void Daemon::handleConfig(const std::string &name, const std::string &value) {
-        std::cout << "Configuration file name: " << value << std::endl;
-        loadConfiguration(value);
+        ConfigFileName_ = value;
     }
 
     void Daemon::displayHelp() {
@@ -207,63 +218,6 @@ namespace uCentral {
         config().setString(name, value);
     }
 
-    void createTestRecord() {
-        uint64_t Now = time(nullptr);
-        std::string SerialNumber{"24f5a207a130"};
-
-        uCentral::Storage::DeleteDevice(SerialNumber);
-
-        uCentralDevice D{.SerialNumber = SerialNumber,
-                .DeviceType = "AP",
-                .MACAddress = "24:f5:a2:07:a1:33",
-                .Manufacturer = "LinkSys",
-                .UUID = Now,
-                .Configuration = uCentral::Config::Config().get(),
-                .Notes = "test device"};
-
-        uCentral::Storage::CreateDevice(D);
-    }
-
-    static bool path_match(const char *p, const char *r, std::map<std::string, std::string> &keys) {
-        std::string param, value;
-
-        while (*r) {
-            if (*r == '{') {
-                r++;
-                while (*r != '}')
-                    param += *r++;
-                r++;
-                while (*p != '/' && *p)
-                    value += *p++;
-                keys[param] = value;
-                value.clear();
-                param.clear();
-            } else if (*p != *r) {
-                return false;
-            } else {
-                r++;
-                p++;
-            }
-        }
-
-        return (*p == *r);
-    }
-
-    void show_kvs(std::map<std::string, std::string> &C) {
-        for (auto &[key, value]:C)
-            std::cout << "  " << key << ": " << value << std::endl;
-    }
-
-    void d(const char *p, const char *r) {
-        std::map<std::string, std::string> KVs;
-
-        if (path_match(p, r, KVs)) {
-            std::cout << "Match: " << p << " >>> " << r << std::endl;
-            show_kvs(KVs);
-        } else
-            std::cout << "NO Match: " << p << " >>> " << r << std::endl;
-    }
-
     /*
     void ShowConfig() {
 
@@ -275,10 +229,9 @@ namespace uCentral {
     }*/
 
     int Daemon::main(const ArgVec &args) {
+        std::cout << "Starting ucentral..." << std::endl;
         if (!helpRequested_) {
             Logger &logger = Logger::get("uCentral");
-
-            std::cout << "Time: " << time(nullptr) << std::endl;
 
             uCentral::Storage::Start();
             uCentral::Auth::Start();
@@ -289,11 +242,6 @@ namespace uCentral {
 #ifndef SMALL_BUILD
             uCentral::TIPGW::Start();
 #endif
-
-            // ShowConfig();
-
-            // createTestRecord();
-
             waitForTerminationRequest();
 
 #ifndef SMALL_BUILD
@@ -326,44 +274,6 @@ namespace uCentral {
         uint64_t getBool(const std::string &Key) {
             return uCentral::Daemon::instance().config().getBool(Key);
         }
-
-        // for strings, we must replace environment variables
-        //  if path is /path/to/${SOME_VAR}/afile
-        //  should expand to something replacing ${SOME_VAR} with its value
-        /*
-        std::string ReplaceEnvVar(const std::string &Key) {
-
-            std::string Result;
-            std::string Var;
-            bool InVar = false, GotDS = false;
-
-            try {
-                for (auto i:Key) {
-                    if (i == '$' && GotDS)
-                        Result += '$';
-                    else if (i == '$')
-                        GotDS = true;
-                    else if (i == '{' and GotDS)
-                        InVar = true;
-                    else if (i == '}' and InVar) {
-                        // evaluate var and add it to result
-                        Result += Poco::Environment::get(Var);
-                        Var.clear();
-                        GotDS = InVar = false;
-                    } else if (InVar)
-                        Var += i;
-                    else
-                        Result += i;
-                }
-
-                return Result;
-            }
-            catch (const Poco::NotFoundException & E) {
-                uCentral::Daemon::instance().logger().error( E.displayText() );
-                std::exit(EXIT_FAILURE);
-            }
-        }
-        */
 
         std::string getString(const std::string &Key,const std::string & Default) {
             std::string R = uCentral::Daemon::instance().config().getString(Key, Default);
