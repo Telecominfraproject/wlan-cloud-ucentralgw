@@ -13,16 +13,27 @@ endif()
 
 set(CMAKE_CXX_STANDARD 17)
 
+if(SMALL_BUILD)
+    add_definitions(-DSMALL_BUILD)
+endif()
+
 set(Boost_USE_STATIC_LIBS OFF)
 set(Boost_USE_MULTITHREADED ON)
 set(Boost_USE_STATIC_RUNTIME OFF)
 find_package(Boost REQUIRED system)
 find_package(OpenSSL REQUIRED)
 find_package(yaml-cpp REQUIRED)
+if(NOT SMALL_BUILD)
 find_package(PostgreSQL REQUIRED)
 find_package(MySQL REQUIRED)
 find_package(ODBC REQUIRED)
-find_package(Poco REQUIRED COMPONENTS Crypto Net Util NetSSL Data DataSQLite DataPostgreSQL DataMySQL DataODBC)
+endif()
+
+if(SMALL_BUILD)
+    find_package(Poco REQUIRED COMPONENTS Crypto Net Util NetSSL Data DataSQLite)
+else()
+    find_package(Poco REQUIRED COMPONENTS Crypto Net Util NetSSL Data DataSQLite DataPostgreSQL DataMySQL DataODBC)
+endif()
 
 include_directories(/usr/local/include  /usr/local/opt/openssl/include src)
 
@@ -40,6 +51,11 @@ add_executable( ucentral
                 src/RESTAPI_default_configuration.cpp
                 src/RESTAPI_default_configuration.h src/RESTAPI_default_configurations.cpp src/RESTAPI_default_configurations.h)
 
+if(SMALL_BUILD)
 target_link_libraries(ucentral PRIVATE yaml-cpp
-                        ${Poco_LIBRARIES} ${Boost_LIBRARIES} ${PostgreSQL_LIBRARIES}
-                        ${MySQL_LIBRARIES} ${ODBC_LIBRARIES})
+                        ${Poco_LIBRARIES} ${Boost_LIBRARIES})
+else()
+    target_link_libraries(ucentral PRIVATE yaml-cpp
+            ${Poco_LIBRARIES} ${Boost_LIBRARIES} ${PostgreSQL_LIBRARIES}
+            ${MySQL_LIBRARIES} ${ODBC_LIBRARIES})
+endif()

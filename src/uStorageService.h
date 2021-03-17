@@ -6,19 +6,21 @@
 #define UCENTRAL_USTORAGESERVICE_H
 
 #include "SubSystemServer.h"
+#include "RESTAPI_Objects.h"
 
 #include "Poco/Data/Session.h"
 #include "Poco/Data/SessionPool.h"
 #include "Poco/Data/SQLite/SQLite.h"
 #include "Poco/Data/SQLite/Connector.h"
+
+#ifndef SMALL_BUILD
 #include "Poco/Data/PostgreSQL/Connector.h"
 #include "Poco/Data/PostgreSQL/SessionHandle.h"
 #include "Poco/Data/MySQL/Connector.h"
 #include "Poco/Data/MySQL/SessionHandle.h"
 #include "Poco/Data/ODBC/Connector.h"
 #include "Poco/Data/ODBC/ODBC.h"
-
-#include "RESTAPI_Objects.h"
+#endif
 
 namespace uCentral::Storage {
 
@@ -156,18 +158,22 @@ namespace uCentral::Storage {
 
         int Start() override;
         void Stop() override;
-        int Setup_MySQL();
         int Setup_SQLite();
+
+#ifndef SMALL_BUILD
+        int Setup_MySQL();
         int Setup_PostgreSQL();
         int Setup_ODBC();
-
+#endif
         std::mutex          mutex_;
         static Service      *instance_;
         std::shared_ptr<Poco::Data::SessionPool>            Pool_;
         std::shared_ptr<Poco::Data::SQLite::Connector>      SQLiteConn_;
+#ifndef SMALL_BUILD
         std::shared_ptr<Poco::Data::PostgreSQL::Connector>  PostgresConn_;
         std::shared_ptr<Poco::Data::MySQL::Connector>       MySQLConn_;
         std::shared_ptr<Poco::Data::ODBC::Connector>        ODBCConn_;
+#endif
     };
 
 };  // namespace

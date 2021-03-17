@@ -3,14 +3,9 @@
 //
 
 #include "uStorageService.h"
-#include "Poco/Data/SQLite/Connector.h"
-#include "Poco/Data/PostgreSQL/Connector.h"
-#include "Poco/Data/PostgreSQL/SessionHandle.h"
-#include "Poco/Data/MySQL/Connector.h"
-#include "Poco/Data/MySQL/SessionHandle.h"
-#include "Poco/Data/ODBC/Connector.h"
 #include "Poco/Data/RecordSet.h"
 #include "Poco/DateTime.h"
+#include "Poco/Util/Application.h"
 
 #include "uCentral.h"
 #include "uCentralConfig.h"
@@ -27,10 +22,15 @@ namespace uCentral::Storage {
     Service::Service() noexcept:
             SubSystemServer("Storage", "STORAGE-SVR", "storage"),
             Pool_(nullptr),
+#ifdef SMALL_BUILD
+            SQLiteConn_(nullptr)
+#else
             SQLiteConn_(nullptr),
             PostgresConn_(nullptr),
-            MySQLConn_(nullptr)
-            {
+            MySQLConn_(nullptr),
+            ODBCConn_(nullptr)
+#endif
+    {
     }
 
     int Start() {
@@ -160,8 +160,79 @@ namespace uCentral::Storage {
         return Result;
     }
 
-    int Service::Setup_MySQL() {
+    int Service::Setup_SQLite() {
+        Logger_.information("SQLite Storage enabled.");
 
+        auto DBName = uCentral::ServiceConfig::getString("storage.type.sqlite.db");
+        auto NumSessions = uCentral::ServiceConfig::getInt("storage.type.sqlite.maxsessions",64);
+        auto IdleTime = uCentral::ServiceConfig::getInt("storage.type.sqlite.idletime",60);
+
+        SQLiteConn_ = std::shared_ptr<Poco::Data::SQLite::Connector>(new Poco::Data::SQLite::Connector);
+        SQLiteConn_->registerConnector();
+        Pool_ = std::shared_ptr<Poco::Data::SessionPool>(
+                new Poco::Data::SessionPool(SQLiteConn_->name(), DBName,4,NumSessions,IdleTime));
+
+        Session session_ = Pool_->get();
+
+        session_ << "CREATE TABLE IF NOT EXISTS Statistics ("
+                    "SerialNumber VARCHAR(30), "
+                    "UUID INTEGER, "
+                    "Data TEXT, "
+                    "Recorded BIGINT)", now;
+        session_ << "CREATE INDEX IF NOT EXISTS StatsSerial ON Statistics (SerialNumber ASC, Recorded ASC)", now;
+
+        session_ << "CREATE TABLE IF NOT EXISTS Devices ("
+                    "SerialNumber  VARCHAR(30) UNIQUE PRIMARY KEY, "
+                    "DeviceType    VARCHAR(10), "
+                    "MACAddress    VARCHAR(30), "
+                    "Manufacturer  VARCHAR(64), "
+                    "UUID          BIGINT, "
+                    "Configuration TEXT, "
+                    "Notes         TEXT, "
+                    "CreationTimestamp BIGINT, "
+                    "LastConfigurationChange BIGINT, "
+                    "LastConfigurationDownload BIGINT"
+                    ")", now;
+
+        session_ << "CREATE TABLE IF NOT EXISTS Capabilities ("
+                    "SerialNumber VARCHAR(30) PRIMARY KEY, "
+                    "Capabilities TEXT, "
+                    "FirstUpdate BIGINT, "
+                    "LastUpdate BIGINT"
+                    ")", now;
+
+        session_ << "CREATE TABLE IF NOT EXISTS DeviceLogs ("
+                    "SerialNumber VARCHAR(30), "
+                    "Log TEXT, "
+                    "Severity BIGINT , "
+                    "Data TEXT , "
+                    "Recorded BIGINT)", now;
+
+        session_ << "CREATE INDEX IF NOT EXISTS LogSerial ON DeviceLogs (SerialNumber ASC, Recorded ASC)", now;
+
+        session_ << "CREATE TABLE IF NOT EXISTS HealthChecks ("
+                    "SerialNumber VARCHAR(30), "
+                    "UUID          BIGINT, "
+                    "Data TEXT, "
+                    "Sanity BIGINT , "
+                    "Recorded BIGINT) ", now;
+
+        session_ << "CREATE INDEX IF NOT EXISTS HealthSerial ON HealthChecks (SerialNumber ASC, Recorded ASC)", now;
+
+        session_ << "CREATE TABLE IF NOT EXISTS DefaultConfigs ("
+                    "Name VARCHAR(30) PRIMARY KEY, "
+                    "Configuration TEXT, "
+                    "Models TEXT, "
+                    "Description TEXT, "
+                    "Created BIGINT , "
+                    "LastModified BIGINT)", now;
+
+        return 0;
+    }
+
+#ifndef SMALL_BUILD
+    int Service::Setup_MySQL() {
+        Logger_.information("MySQL Storage enabled.");
         auto NumSessions = uCentral::ServiceConfig::getInt("storage.type.mysql.maxsessions",64);
         auto IdleTime = uCentral::ServiceConfig::getInt("storage.type.mysql.idletime",60);
         auto Host = uCentral::ServiceConfig::getString("storage.type.mysql.host");
@@ -241,75 +312,9 @@ namespace uCentral::Storage {
         return 0;
     }
 
-    int Service::Setup_SQLite() {
-        auto DBName = uCentral::ServiceConfig::getString("storage.type.sqlite.db");
-        auto NumSessions = uCentral::ServiceConfig::getInt("storage.type.sqlite.maxsessions",64);
-        auto IdleTime = uCentral::ServiceConfig::getInt("storage.type.sqlite.idletime",60);
-
-        SQLiteConn_ = std::shared_ptr<Poco::Data::SQLite::Connector>(new Poco::Data::SQLite::Connector);
-        SQLiteConn_->registerConnector();
-        Pool_ = std::shared_ptr<Poco::Data::SessionPool>(
-                new Poco::Data::SessionPool(SQLiteConn_->name(), DBName,4,NumSessions,IdleTime));
-
-        Session session_ = Pool_->get();
-
-        session_ << "CREATE TABLE IF NOT EXISTS Statistics ("
-                    "SerialNumber VARCHAR(30), "
-                    "UUID INTEGER, "
-                    "Data TEXT, "
-                    "Recorded BIGINT)", now;
-        session_ << "CREATE INDEX IF NOT EXISTS StatsSerial ON Statistics (SerialNumber ASC, Recorded ASC)", now;
-
-        session_ << "CREATE TABLE IF NOT EXISTS Devices ("
-                    "SerialNumber  VARCHAR(30) UNIQUE PRIMARY KEY, "
-                    "DeviceType    VARCHAR(10), "
-                    "MACAddress    VARCHAR(30), "
-                    "Manufacturer  VARCHAR(64), "
-                    "UUID          BIGINT, "
-                    "Configuration TEXT, "
-                    "Notes         TEXT, "
-                    "CreationTimestamp BIGINT, "
-                    "LastConfigurationChange BIGINT, "
-                    "LastConfigurationDownload BIGINT"
-                    ")", now;
-
-        session_ << "CREATE TABLE IF NOT EXISTS Capabilities ("
-                    "SerialNumber VARCHAR(30) PRIMARY KEY, "
-                    "Capabilities TEXT, "
-                    "FirstUpdate BIGINT, "
-                    "LastUpdate BIGINT"
-                    ")", now;
-
-        session_ << "CREATE TABLE IF NOT EXISTS DeviceLogs ("
-                    "SerialNumber VARCHAR(30), "
-                    "Log TEXT, "
-                    "Severity BIGINT , "
-                    "Data TEXT , "
-                    "Recorded BIGINT)", now;
-
-        session_ << "CREATE INDEX IF NOT EXISTS LogSerial ON DeviceLogs (SerialNumber ASC, Recorded ASC)", now;
-
-        session_ << "CREATE TABLE IF NOT EXISTS HealthChecks ("
-                    "SerialNumber VARCHAR(30), "
-                    "UUID          BIGINT, "
-                    "Data TEXT, "
-                    "Sanity BIGINT , "
-                    "Recorded BIGINT) ", now;
-
-        session_ << "CREATE INDEX IF NOT EXISTS HealthSerial ON HealthChecks (SerialNumber ASC, Recorded ASC)", now;
-
-        session_ << "CREATE TABLE IF NOT EXISTS DefaultConfigs ("
-                    "Name VARCHAR(30) PRIMARY KEY, "
-                    "Configuration TEXT, "
-                    "Models TEXT, "
-                    "Description TEXT, "
-                    "Created BIGINT , "
-                    "LastModified BIGINT)", now;
-
-        return 0;
-    }
-
     int Service::Setup_PostgreSQL() {
+        Logger_.information("PostgreSQL Storage enabled.");
+
         auto NumSessions = uCentral::ServiceConfig::getInt("storage.type.postgresql.maxsessions",64);
         auto IdleTime = uCentral::ServiceConfig::getInt("storage.type.postgresql.idletime",60);
         auto Host = uCentral::ServiceConfig::getString("storage.type.postgresql.host");
@@ -392,6 +397,8 @@ namespace uCentral::Storage {
     }
 
     int Service::Setup_ODBC() {
+        Logger_.information("ODBC Storage enabled.");
+
         auto NumSessions = uCentral::ServiceConfig::getInt("storage.type.postgresql.maxsessions",64);
         auto IdleTime = uCentral::ServiceConfig::getInt("storage.type.postgresql.idletime",60);
         auto Host = uCentral::ServiceConfig::getString("storage.type.postgresql.host");
@@ -419,12 +426,15 @@ namespace uCentral::Storage {
         return 0;
     }
 
+#endif
+
     int Service::Start() {
         std::lock_guard<std::mutex> guard(mutex_);
 
         Logger_.information("Starting.");
         std::string DBType = uCentral::ServiceConfig::getString("storage.type");
 
+#ifndef SMALL_BUILD
         if(DBType == "sqlite") {
             return Setup_SQLite();
         }
@@ -437,7 +447,10 @@ namespace uCentral::Storage {
         else if(DBType == "odbc") {
             return Setup_ODBC();
         }
-        return 0;
+        std::exit(Poco::Util::Application::EXIT_CONFIG);
+#else
+        return Setup_SQLite();
+#endif
     }
 
     void Service::Stop() {
