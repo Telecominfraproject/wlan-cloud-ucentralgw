@@ -275,10 +275,10 @@ authentication.service.type = internal
 - storage.type = sqlite
 
 ##### Autoprovisioning settings
-ucentral.autoprovisioning = true
-ucentral.autoprovisioning.type.0 = AP:ea8300,edge
-ucentral.autoprovisioning.type.1 = IOT:ea8301,edge2
-ucentral.autoprovisioning.type.2 = AP:ea8302,edge6
+- ucentral.autoprovisioning = true
+- ucentral.autoprovisioning.type.0 = AP:ea8300,edge
+- ucentral.autoprovisioning.type.1 = IOT:ea8301,edge2
+- ucentral.autoprovisioning.type.2 = AP:ea8302,edge6
 
 ##### This is the RESTAPI endpoint
 - ucentral.restapi.host.0.address = *
@@ -291,7 +291,6 @@ ucentral.autoprovisioning.type.2 = AP:ea8302,edge6
 - ucentral.websocket.host.0.port = 15002
 - ucentral.websocket.host.0.cert = $UCENTRAL_ROOT/certs/server-cert.pem
 - ucentral.websocket.host.0.key = $UCENTRAL_ROOT/certs/server-key.pem
-
 
 ## JSON-RPC based protocol
 
