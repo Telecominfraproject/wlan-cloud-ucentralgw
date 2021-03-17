@@ -101,6 +101,31 @@ cmake ..
 make
 ```
 
+### Raspberry PI Build
+The build on a rPI takes a while. You can shorten that build time and requirements by disabling all the larger database 
+support. You can build with only SQLite support by not installing the packages for ODBC, PostgreSQL, and MySQL by 
+adding -DSMALL_BUILD=1 on the cmake build line.
+
+```
+sudo apt install git cmake g++ libssl-dev libaprutil1-dev apache2-dev libboost-all-dev libyaml-cpp-dev
+git clone https://github.com/stephb9959/poco
+cd poco
+mkdir cmake-build
+cd cmake-build
+cmake ..
+cmake --build . --config Release
+sudo cmake --build . --target install
+
+cd ~
+git clone https://github.com/stephb9959/ucentralgw
+cd ucentralgw
+mkdir cmake-build
+cd cmake-build
+cmake -DSMALL_BUILD=1 ..
+make
+```
+
+
 ### Configuration
 The configuration for this service is kept in a properties file. Currently, this configuration file must be kept in the 
 current directory of uCentral or one level up. This file is called `ucentral.properties`. The file will be loaded from 
