@@ -11,4 +11,6 @@ CTestTestfile.cmake
 _deps
 *.pem
 *.csr
+*.db
+
 
