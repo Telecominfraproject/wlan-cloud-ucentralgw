@@ -83,6 +83,7 @@ brew install mysql-client
 brew install apr
 brew install apr-util
 brew install boost
+brew install yaml-cpp
 
 git clone https://github.com/stephb9959/poco
 cd poco
