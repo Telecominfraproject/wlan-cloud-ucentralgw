@@ -105,9 +105,9 @@ make
 The configuration for this service is kept in a properties file. Currently, this configuration file must be kept in the 
 current directory of uCentral or one level up. This file is called `ucentral.properties`. The file will be loaded from 
 the directory set by the environment variable `UCENTRAL_CONFIG`. To use environment variables in the configuration,
-you must use `${<varname>}`. The path for the logs for the service must exist prior to starting the 
+you must use `$<varname>`. The path for the logs for the service must exist prior to starting the 
 service. The path is defined under `logging.channels.c2.path`. Only `path names` support the use of 
-environment variables. Here is a sample and the important entries:
+environment variables. Here is a sample configuration:
 
 ```
 ########################################################################
@@ -266,6 +266,31 @@ authentication.default.username = support@example.com
 authentication.default.password = support
 authentication.service.type = internal
 ```
+
+#### Important config entries
+##### This is the logging directory
+- logging.channels.c2.path = $UCENTRAL_ROOT/logs/sample.log
+
+##### This is the type of storage in use
+- storage.type = sqlite
+
+##### Autoprovisioning settings
+- ucentral.autoprovisioning = true
+- ucentral.autoprovisioning.type.0 = AP:ea8300,edge
+- ucentral.autoprovisioning.type.1 = IOT:ea8301,edge2
+- ucentral.autoprovisioning.type.2 = AP:ea8302,edge6
+
+##### This is the RESTAPI endpoint
+- ucentral.restapi.host.0.address = *
+- ucentral.restapi.host.0.port = 16001
+- ucentral.restapi.host.0.cert = $UCENTRAL_ROOT/certs/server-cert.pem
+- ucentral.restapi.host.0.key = $UCENTRAL_ROOT/certs/server-key.pem
+
+##### This is the end point for the devices
+- ucentral.websocket.host.0.address = *
+- ucentral.websocket.host.0.port = 15002
+- ucentral.websocket.host.0.cert = $UCENTRAL_ROOT/certs/server-cert.pem
+- ucentral.websocket.host.0.key = $UCENTRAL_ROOT/certs/server-key.pem
 
 ## JSON-RPC based protocol
 
