@@ -22,7 +22,10 @@ using Poco::Util::OptionCallback;
 using Poco::Util::IntValidator;
 using Poco::AutoPtr;
 
+#ifndef SMALL_BUILD
 #include "TIPGWServer.h"
+#endif
+
 #include "uCentralRESTAPIServer.h"
 #include "uCentralWebSocketServer.h"
 #include "uStorageService.h"
@@ -59,7 +62,9 @@ namespace uCentral {
         addSubsystem(uCentral::Storage::Service::instance());
         addSubsystem(uCentral::Auth::Service::instance());
         addSubsystem(uCentral::DeviceRegistry::Service::instance());
+#ifndef SMALL_BUILD
         addSubsystem(uCentral::TIPGW::Service::instance());
+#endif
         addSubsystem(uCentral::RESTAPI::Service::instance());
         addSubsystem(uCentral::WebSocket::Service::instance());
 
@@ -278,9 +283,12 @@ namespace uCentral {
             uCentral::Storage::Start();
             uCentral::Auth::Start();
             uCentral::DeviceRegistry::Start();
-            uCentral::TIPGW::Start();
             uCentral::RESTAPI::Start();
             uCentral::WebSocket::Start();
+
+#ifndef SMALL_BUILD
+            uCentral::TIPGW::Start();
+#endif
 
             // ShowConfig();
 
@@ -288,9 +296,11 @@ namespace uCentral {
 
             waitForTerminationRequest();
 
+#ifndef SMALL_BUILD
+            uCentral::TIPGW::Stop();
+#endif
             uCentral::WebSocket::Stop();
             uCentral::RESTAPI::Stop();
-            uCentral::TIPGW::Stop();
             uCentral::DeviceRegistry::Stop();
             uCentral::Auth::Stop();
             uCentral::Storage::Stop();
