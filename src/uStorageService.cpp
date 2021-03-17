@@ -752,9 +752,9 @@ namespace uCentral::Storage {
 
             for (auto i: Records) {
                 uCentralDeviceLog R{.Log = i.get<0>(),
-                                    .Recorded = i.get<1>(),
                                     .Severity = i.get<2>(),
-                                    .Data = i.get<3>() };
+                                    .Data = i.get<3>(),
+                                    .Recorded = i.get<1>()};
                 Stats.push_back(R);
             }
             return true;
