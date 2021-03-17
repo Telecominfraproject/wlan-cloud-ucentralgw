@@ -110,20 +110,50 @@ service. The path is defined under `logging.channels.c2.path`. Only `path names`
 environment variables. Here is a sample and the important entries:
 
 ```
-tip.certs.key = ${UCENTRAL_ROOT}/certs/clientkey.pem
-tip.certs.cert = ${UCENTRAL_ROOT}/certs/clientcert.pem
-tip.certs.ca = ${UCENTRAL_ROOT}/certs/clientcert.pem
+########################################################################
+########################################################################
+########################################################################
+########################################################################
+#
+# TIP Portal API access. To be ignored in non TIP uCentral deployments
+#
+########################################################################
+########################################################################
+########################################################################
+tip.certs.key = $UCENTRAL_ROOT/certs/clientkey.pem
+tip.certs.cert = $UCENTRAL_ROOT/certs/clientcert.pem
+tip.certs.ca = $UCENTRAL_ROOT/certs/clientcert.pem
 tip.certs.password = mypassword
 tip.api.login.username = support@example.com
 tip.api.login.password = support
 tip.api.host = debfarm1-node-a1.arilia.com
 tip.api.port = 9051
-
 tip.gateway.host.0.address = *
 tip.gateway.host.0.port = 9031
-tip.gateway.host.0.key = ${UCENTRAL_ROOT}/certs/ws-key.pem
-tip.gateway.host.0.cert = ${UCENTRAL_ROOT}/certs/ws-cert.pem
+tip.gateway.host.0.key = $UCENTRAL_ROOT/certs/ws-key.pem
+tip.gateway.host.0.cert = $UCENTRAL_ROOT/certs/ws-cert.pem
 tip.gateway.host.0.password = mypassword
+#
+# uCentral - TIP Gateway Bridge
+#
+ucentral.tipgateway.host.0.address = *
+ucentral.tipgateway.host.0.port = 14001
+ucentral.tipgateway.host.0.cert = $UCENTRAL_ROOT/certs/server-cert.pem
+ucentral.tipgateway.host.0.key = $UCENTRAL_ROOT/certs/server-key.pem
+ucentral.tipgateway.host.0.key.password = mypassword
+########################################################################
+########################################################################
+########################################################################
+
+########################################################################
+########################################################################
+#
+# Thw following sections apply to the uCentral service
+#
+# Logging: please leave as is for now.
+#
+########################################################################
+########################################################################
 
 logging.formatters.f1.class = PatternFormatter
 logging.formatters.f1.pattern = %s: [%p] %t
@@ -131,7 +161,8 @@ logging.formatters.f1.times = UTC
 logging.channels.c1.class = ConsoleChannel
 logging.channels.c1.formatter = f1
 logging.channels.c2.class = FileChannel
-logging.channels.c2.path = ${UCENTRAL_ROOT}/logs/sample.log
+# This is where the logs will be written. This path MUST exist
+logging.channels.c2.path = $UCENTRAL_ROOT/logs/sample.log
 logging.channels.c2.formatter.class = PatternFormatter
 logging.channels.c2.formatter.pattern = %Y-%m-%d %H:%M:%S %s: [%p] %t
 logging.channels.c3.class = ConsoleChannel
@@ -149,9 +180,9 @@ logging.loggers.root.level = information
 # logging.channels.splitter.channels = l1,l2
 # logging.loggers.l2.name = logger2
 # logging.loggers.l2.channel = splitter
-openSSL.client.privateKeyFile = ${UCENTRAL_ROOT}/certs/clientkey.pem
-openSSL.client.certificateFile = ${UCENTRAL_ROOT}/certs/clientcert.pem
-openSSL.client.caConfig = ${UCENTRAL_ROOT}/certs/cacert.pem
+openSSL.client.privateKeyFile = $UCENTRAL_ROOT/certs/clientkey.pem
+openSSL.client.certificateFile = $UCENTRAL_ROOT/certs/clientcert.pem
+openSSL.client.caConfig = $UCENTRAL_ROOT/certs/cacert.pem
 openSSL.client.verificationMode = once
 openSSL.client.verificationDepth = 9
 openSSL.client.loadDefaultCAFile = true
@@ -164,31 +195,48 @@ openSSL.client.extendedVerification = false
 openSSL.client.cacheSessions = true
 openSSL.client.requireTLSv1 = true
 
+#
+# uCentral protocol server for devices. This is where you point
+# all your devices.
+#
 ucentral.websocket.host.0.address = *
 ucentral.websocket.host.0.port = 15002
-ucentral.websocket.host.0.cert = ${UCENTRAL_ROOT}/certs/ws-cert.pem
-ucentral.websocket.host.0.key = ${UCENTRAL_ROOT}/certs/ws-key.pem
+ucentral.websocket.host.0.cert = $UCENTRAL_ROOT/certs/server-cert.pem
+ucentral.websocket.host.0.key = $UCENTRAL_ROOT/certs/server-key.pem
 ucentral.websocket.host.0.key.password = mypassword
 ucentral.websocket.maxreactors = 5
 
+#
+# REST API access
+#
 ucentral.restapi.host.0.address = *
 ucentral.restapi.host.0.port = 16001
-ucentral.restapi.host.0.cert = ${UCENTRAL_ROOT}/certs/ws-cert.pem
-ucentral.restapi.host.0.key = ${UCENTRAL_ROOT}/certs/ws-key.pem
+ucentral.restapi.host.0.cert = $UCENTRAL_ROOT/certs/server-cert.pem
+ucentral.restapi.host.0.key = $UCENTRAL_ROOT/certs/server-key.pem
 ucentral.restapi.host.0.key.password = mypassword
 
-ucentral.tipgateway.host.0.address = *
-ucentral.tipgateway.host.0.port = 14001
-ucentral.tipgateway.host.0.cert = ${UCENTRAL_ROOT}/certs/ws-cert.pem
-ucentral.tipgateway.host.0.key = ${UCENTRAL_ROOT}/certs/ws-cert.pem
-ucentral.tipgateway.host.0.key.password = mypassword
+#
+# This section descrive how to do autoprovisioning
+# When enabled, it will allow devices that are not in the system
+# to be managed and serviced
+#
+ucentral.autoprovisioning = true
+ucentral.autoprovisioning.type.0 = AP:ea8300,edge
+ucentral.autoprovisioning.type.1 = IOT:ea8301,edge2
+ucentral.autoprovisioning.type.2 = AP:ea8302,edge6
 
+
+#
+# This section select which form of persistence you need
+# Only one selected at a time. If you select multiple, this service will die if a horrible
+# death and might make your beer flat.
+#
 storage.type = sqlite
 #storage.type = postgresql
 #storage.type = mysql
 #storage.type = odbc
 
-storage.type.sqlite.db = ${UCENTRAL_ROOT}/devices.db
+storage.type.sqlite.db = $UCENTRAL_ROOT/devices.db
 storage.type.sqlite.idletime = 120
 storage.type.sqlite.maxsessions = 128
 
@@ -210,6 +258,9 @@ storage.type.mysql.database = ucentral
 storage.type.mysql.port = 3306
 storage.type.mysql.connectiontimeout = 60
 
+#
+# Authentication
+#
 authentication.enabled = true
 authentication.default.username = support@example.com
 authentication.default.password = support
@@ -453,4 +504,20 @@ The AP should answer with teh above message. The `error` value should be interpr
 ## OpenAPI
 The service supports an OpenAPI REST based interface for management. You can find the [definition here](https://github.com/stephb9959/ucentralgw/blob/main/tipapi/ucentral/ucentral.yaml).
 
+## Using the API
+In the `test_scripts`, you will find a series of scripts that will show you how to use the API with curl. More scripts will be added in the future.
+
+## Certificates
+Love'em of hate'em, we gotta use'em. So we tried to make this as easy as possible for you. Under the `cert_scripts` you 
+can run a single command that will generate all the files you need. By default, this will generate the server side
+of the certificates as well as certificates for 10 devices. You can change the variabla `howmany` in the script
+to change that number. Once you run this script, you will get:
+
+- `server-key.pem` : this file is the server key and should be used in the `ucentral.properties` file.
+- `server-cert.pem` : this is the certificate to be used with the generated key. This should also be used in `ucentral.properties`.
+- `dev-1-cert.pem` .. `dev-10-cert.pem` : certificates ot be used on the actual devices in the `/etc/config` directories of the devices.
+
+The script `more_devices` can be used to generate more devices without regenerating the original key. Just change the `finish` variable to the number you need.
+
+ 
 
