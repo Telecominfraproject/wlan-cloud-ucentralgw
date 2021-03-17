@@ -4,6 +4,7 @@ project(ucentral VERSION 0.3.0)
 if(UNIX AND APPLE)
     set(OPENSSL_ROOT_DIR /usr/local/opt/openssl)
     set(MYSQL_ROOT_DIR /usr/local/opt/mysql-client)
+    list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_LIST_DIR}/cmake)
 endif()
 
 if(UNIX AND NOT APPLE)
