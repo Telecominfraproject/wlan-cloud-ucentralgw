@@ -83,13 +83,16 @@ brew install mysql-client
 brew install apr
 brew install apr-util
 brew install boost
+brew install yaml-cpp
+brew install postgresql
+brew install unixodbc
 
 git clone https://github.com/stephb9959/poco
 cd poco
-mkdir cmake-build
+mkdir cmake-build 
 cd cmake-build
-cmake ..
-cmake --build . --config Release
+cmake -DOPENSSL_ROOT_DIR=/usr/local/opt/openssl ..
+cmake --build . --config Release -j
 sudo cmake --build . --target install
 
 cd ~
@@ -98,7 +101,7 @@ cd ucentralgw
 mkdir cmake-build
 cd cmake-build
 cmake ..
-make
+make -j
 ```
 
 ### Raspberry PI Build
