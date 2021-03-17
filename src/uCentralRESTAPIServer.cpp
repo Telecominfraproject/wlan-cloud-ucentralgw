@@ -10,6 +10,8 @@
 #include "RESTAPI_devicesHandler.h"
 #include "RESTAPI_deviceHandler.h"
 #include "RESTAPI_deviceCommandHandler.h"
+#include "RESTAPI_default_configuration.h"
+#include "RESTAPI_default_configurations.h"
 #include "RESTAPI_UnknownRequestHandler.h"
 
 namespace uCentral::RESTAPI {
@@ -83,6 +85,10 @@ namespace uCentral::RESTAPI {
             return new RESTAPI_deviceCommandHandler(bindings, Logger);
         } else if (RESTAPIHandler::ParseBindings(path, "/api/v1/device/{serialNumber}", bindings)) {
             return new RESTAPI_deviceHandler(bindings, Logger);
+        }  else if (RESTAPIHandler::ParseBindings(path, "/api/v1/default_configurations", bindings)) {
+            return new RESTAPI_default_configurations(bindings, Logger);
+        } else if (RESTAPIHandler::ParseBindings(path, "/api/v1/default_configuration/{name}", bindings)) {
+            return new RESTAPI_default_configuration(bindings, Logger);
         }
 
         return new RESTAPI_UnknownRequestHandler(bindings,Logger);

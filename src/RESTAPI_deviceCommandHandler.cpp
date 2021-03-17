@@ -67,6 +67,7 @@ void  RESTAPI_deviceCommandHandler::GetCapabilities(HTTPServerRequest &Request, 
 
         if (uCentral::Storage::GetDeviceCapabilities(SerialNumber, Caps)) {
             Poco::JSON::Object RetObj = Caps.to_json();
+            RetObj.set("serialNumber", SerialNumber);
             ReturnObject( RetObj, Response );
         } else
             NotFound(Response);
@@ -278,7 +279,7 @@ void RESTAPI_deviceCommandHandler::GetChecks(HTTPServerRequest& Request, HTTPSer
             ArrayObj.add(Obj);
         }
         Poco::JSON::Object RetObj;
-        RetObj.set("data", ArrayObj);
+        RetObj.set("values", ArrayObj);
         RetObj.set("serialNumber", SerialNumber);
 
         ReturnObject(RetObj, Response);

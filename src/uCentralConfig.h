@@ -44,6 +44,7 @@ namespace uCentral::Config {
 
         [[nodiscard]] const std::string & Manufacturer();
         [[nodiscard]] const std::string & DeviceType();
+        [[nodiscard]] const std::string & ModelId();
 
     private:
         void Parse();
@@ -51,6 +52,7 @@ namespace uCentral::Config {
         bool        Parsed_;
         std::string Manufacturer_;
         std::string DeviceType_;
+        std::string ModelId_;
     };
 
 }; // namespace

@@ -36,7 +36,9 @@ add_executable( ucentral
                 src/RESTAPI_oauth2Handler.cpp src/RESTAPI_oauth2Handler.h src/RESTAPI_devicesHandler.cpp src/RESTAPI_devicesHandler.h
                 src/RESTAPI_deviceHandler.cpp src/RESTAPI_deviceHandler.h src/RESTAPI_UnknownRequestHandler.cpp src/RESTAPI_UnknownRequestHandler.h
                 src/RESTAPI_Handler.cpp src/RESTAPI_Handler.h src/RESTAPI_deviceCommandHandler.cpp src/RESTAPI_deviceCommandHandler.h
-                src/RESTAPI_Objects.h src/RESTAPI_Objects.cpp src/uAuthService.cpp src/uAuthService.h src/uCentralConfig.cpp src/uCentralConfig.h)
+                src/RESTAPI_Objects.h src/RESTAPI_Objects.cpp src/uAuthService.cpp src/uAuthService.h src/uCentralConfig.cpp src/uCentralConfig.h
+                src/RESTAPI_default_configuration.cpp
+                src/RESTAPI_default_configuration.h src/RESTAPI_default_configurations.cpp src/RESTAPI_default_configurations.h)
 
 target_link_libraries(ucentral PRIVATE yaml-cpp
                         ${Poco_LIBRARIES} ${Boost_LIBRARIES} ${PostgreSQL_LIBRARIES}

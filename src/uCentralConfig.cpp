@@ -119,6 +119,7 @@ namespace uCentral::Config {
 
             Manufacturer_ = Name;
             DeviceType_ = uCentral::instance()->IdentifyDevice(Id);
+            ModelId_ = Id;
             Parsed_ = true ;
         }
         catch ( const Poco::Exception & E )
@@ -137,6 +138,12 @@ namespace uCentral::Config {
         if(!Parsed_)
             Parse();
         return Manufacturer_;
+    }
+
+    const std::string & Capabilities::ModelId() {
+        if(!Parsed_)
+            Parse();
+        return ModelId_;
     }
 
 }; // namespace

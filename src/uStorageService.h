@@ -53,6 +53,12 @@ namespace uCentral::Storage {
     bool GetDeviceCapabilities(std::string &SerialNumber, uCentralCapabilities &);
     bool DeleteDeviceCapabilities(std::string & SerialNumber);
 
+    bool CreateDefaultConfiguration(std::string & name, const uCentralDefaultConfiguration & DefConfig);
+    bool DeleteDefaultConfiguration(const std::string & name);
+    bool UpdateDefaultConfiguration(std::string & name, const uCentralDefaultConfiguration & DefConfig);
+    bool GetDefaultConfiguration(std::string &name, uCentralDefaultConfiguration & DefConfig);
+    bool GetDefaultConfigurations(uint64_t From, uint64_t HowMany, std::vector<uCentralDefaultConfiguration> &Devices);
+
     std::string SerialToMAC(const std::string & Serial);
 
 
@@ -100,6 +106,12 @@ namespace uCentral::Storage {
         friend bool AddLog(std::string & SerialNumber, const std::string & Log);
         friend bool AddLog(std::string & SerialNumber, const uCentralDeviceLog & Log );
 
+        friend bool CreateDefaultConfiguration(std::string & name, const uCentralDefaultConfiguration & DefConfig);
+        friend bool DeleteDefaultConfiguration(const std::string & name);
+        friend bool UpdateDefaultConfiguration(std::string & name, const uCentralDefaultConfiguration & DefConfig);
+        friend bool GetDefaultConfiguration(std::string &name, uCentralDefaultConfiguration & DefConfig);
+        friend bool GetDefaultConfigurations(uint64_t From, uint64_t HowMany, std::vector<uCentralDefaultConfiguration> &Devices);
+
     private:
 
         bool AddLog(std::string & SerialNumber, const uCentralDeviceLog & Log );
@@ -135,6 +147,12 @@ namespace uCentral::Storage {
                         std::vector<uCentralDeviceLog> &Stats);
         bool DeleteLogData(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate);
 
+        bool CreateDefaultConfiguration(std::string & name, const uCentralDefaultConfiguration & DefConfig);
+        bool DeleteDefaultConfiguration(const std::string & name);
+        bool UpdateDefaultConfiguration(std::string & name, const uCentralDefaultConfiguration & DefConfig);
+        bool GetDefaultConfiguration(std::string &name, uCentralDefaultConfiguration & DefConfig);
+        bool GetDefaultConfigurations(uint64_t From, uint64_t HowMany, std::vector<uCentralDefaultConfiguration> &Devices);
+        bool FindDefaultConfigurationForModel(const std::string & Model, uCentralDefaultConfiguration & DefConfig );
 
         int Start() override;
         void Stop() override;

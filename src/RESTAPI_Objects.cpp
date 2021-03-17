@@ -23,19 +23,30 @@ Poco::JSON::Object uCentralDevice::to_json() const
     return Obj;
 }
 
-bool uCentralDevice::from_JSON(Poco::JSON::Object::Ptr Obj) {
+bool uCentralDevice::from_json(Poco::JSON::Object::Ptr Obj) {
 
-    Poco::DynamicStruct ds = *Obj;
+    try {
+        Poco::DynamicStruct ds = *Obj;
 
-    SerialNumber = ds["serialNumber"].toString();
-    DeviceType = ds["deviceType"].toString();
-    MACAddress = ds["macAddress"].toString();
-    Manufacturer = ds["manufacturer"].toString();
-    UUID = ds["UUID"];
-    Configuration = ds["configuration"].toString();
-    Notes = ds["notes"].toString();
+        SerialNumber = ds["serialNumber"].toString();
+        DeviceType = ds["deviceType"].toString();
+        MACAddress = ds["macAddress"].toString();
+        UUID = ds["UUID"];
+        Configuration = ds["configuration"].toString();
 
-    return true;
+        if(ds.contains("notes"))
+            Notes = ds["notes"].toString();
+        if(ds.contains("manufacturer"))
+            Manufacturer = ds["manufacturer"].toString();
+
+        return true;
+    }
+    catch (const Poco::Exception &E )
+    {
+
+    }
+
+    return false;
 }
 
 void uCentralDevice::Print() const {
@@ -49,16 +60,16 @@ void uCentralDevice::Print() const {
 Poco::JSON::Object uCentralStatistics::to_json() const {
     Poco::JSON::Object  Obj;
     Obj.set("UUID",UUID);
-    Obj.set("values",Values);
+    Obj.set("data",Data);
     Obj.set("recorded",RESTAPIHandler::to_RFC3339(Recorded));
     return Obj;
 };
 
 Poco::JSON::Object uCentralCapabilities::to_json() const {
     Poco::JSON::Object  Obj;
-    Obj.set("deviceType",Capabilities);
-    Obj.set("createdTimestamp",RESTAPIHandler::to_RFC3339(FirstUpdate));
-    Obj.set("lastConfigurationChange",RESTAPIHandler::to_RFC3339(LastUpdate));
+    Obj.set("capabilities",Capabilities);
+    Obj.set("firstUpdate",RESTAPIHandler::to_RFC3339(FirstUpdate));
+    Obj.set("lastUpdate",RESTAPIHandler::to_RFC3339(LastUpdate));
     return Obj;
 };
 
@@ -81,3 +92,40 @@ Poco::JSON::Object  uCentralHealthcheck::to_json() const {
     return Obj;
 };
 
+/*
+    std::string     Configuration;
+    std::string     Models;
+    uint64_t        Created;
+    uint64_t        LastModified;
+    [[nodiscard]] Poco::JSON::Object to_json() const;
+    bool from_JSON(Poco::JSON::Object::Ptr Obj);
+ */
+Poco::JSON::Object uCentralDefaultConfiguration::to_json() const {
+    Poco::JSON::Object  Obj;
+    Obj.set("name",Name);
+    Obj.set("modelIds",Models);
+    Obj.set("description",Description);
+    Obj.set("configuration",Configuration);
+    Obj.set("created",RESTAPIHandler::to_RFC3339(Created));
+    Obj.set("lastModified",RESTAPIHandler::to_RFC3339(LastModified));
+    return Obj;
+}
+
+bool uCentralDefaultConfiguration::from_json(Poco::JSON::Object::Ptr Obj) {
+    Poco::DynamicStruct ds = *Obj;
+
+    try {
+        Name = ds["name"].toString();
+        Configuration = ds["configuration"].toString();
+        Models = ds["modelIds"].toString();
+        if (ds.contains("description"))
+            Description = ds["description"].toString();
+        return true;
+    }
+    catch (const Poco::Exception & E )
+    {
+
+    }
+
+    return false;
+};

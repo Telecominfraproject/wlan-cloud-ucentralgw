@@ -1,12 +1,12 @@
 //
-// Created by stephane bourque on 2021-03-03.
+// Created by stephane bourque on 2021-03-15.
 //
 
-#include "RESTAPI_deviceHandler.h"
+#include "RESTAPI_default_configuration.h"
 #include "uStorageService.h"
 #include "uAuthService.h"
 
-void RESTAPI_deviceHandler::handleRequest(HTTPServerRequest& Request, HTTPServerResponse& Response)
+void RESTAPI_default_configuration::handleRequest(HTTPServerRequest& Request, HTTPServerResponse& Response)
 {
     if(!ContinueProcessing(Request,Response))
         return;
@@ -16,12 +16,12 @@ void RESTAPI_deviceHandler::handleRequest(HTTPServerRequest& Request, HTTPServer
 
     ParseParameters(Request);
     if(Request.getMethod() == Poco::Net::HTTPRequest::HTTP_GET) {
-        std::string     SerialNumber = GetBinding("serialNumber","0xdeadbeef");
-        uCentralDevice  Device;
+        std::string                   Name = GetBinding("name","0xdeadbeef");
+        uCentralDefaultConfiguration  DefConfig;
 
-        if(uCentral::Storage::GetDevice(SerialNumber,Device))
+        if(uCentral::Storage::GetDefaultConfiguration(Name,DefConfig))
         {
-            Poco::JSON::Object  Obj = Device.to_json();
+            Poco::JSON::Object  Obj = DefConfig.to_json();
             ReturnObject(Obj,Response);
         }
         else
@@ -29,50 +29,46 @@ void RESTAPI_deviceHandler::handleRequest(HTTPServerRequest& Request, HTTPServer
             NotFound(Response);
         }
     } else if(Request.getMethod() == Poco::Net::HTTPRequest::HTTP_DELETE) {
-        std::string SerialNumber = GetBinding("serialNumber", "0xdeadbeef");
+        std::string Name = GetBinding("name", "0xdeadbeef");
 
-        if (uCentral::Storage::DeleteDevice(SerialNumber)) {
+        if (uCentral::Storage::DeleteDefaultConfiguration(Name)) {
             OK(Response);
         } else {
             NotFound(Response);
         }
     } else if(Request.getMethod() == Poco::Net::HTTPRequest::HTTP_POST) {
-        std::string SerialNumber = GetBinding("serialNumber", "0xdeadbeef");
+        std::string Name = GetBinding("name", "0xdeadbeef");
 
         Poco::JSON::Parser      IncomingParser;
         Poco::JSON::Object::Ptr Obj = IncomingParser.parse(Request.stream()).extract<Poco::JSON::Object::Ptr>();
 
-        uCentralDevice  Device;
+        uCentralDefaultConfiguration  DefConfig;
 
-        if(!Device.from_json(Obj))
+        if(!DefConfig.from_json(Obj))
         {
             BadRequest(Response);
             return;
         }
 
-        if(Device.UUID==0)
-            Device.UUID = time(nullptr);
-
-        if (uCentral::Storage::CreateDevice(Device)) {
+        if (uCentral::Storage::CreateDefaultConfiguration(Name,DefConfig)) {
             OK(Response);
         } else {
             BadRequest(Response);
         }
     } else if(Request.getMethod() == Poco::Net::HTTPRequest::HTTP_PUT) {
-        std::string SerialNumber = GetBinding("serialNumber", "0xdeadbeef");
+        std::string Name = GetBinding("name", "0xdeadbeef");
 
         Poco::JSON::Parser      IncomingParser;
         Poco::JSON::Object::Ptr Obj = IncomingParser.parse(Request.stream()).extract<Poco::JSON::Object::Ptr>();
 
-        uCentralDevice  Device;
-
-        if(!Device.from_json(Obj))
+        uCentralDefaultConfiguration  DefConfig;
+        if(!DefConfig.from_json(Obj))
         {
             BadRequest(Response);
             return;
         }
 
-        if (uCentral::Storage::UpdateDevice(Device)) {
+        if (uCentral::Storage::UpdateDefaultConfiguration(Name, DefConfig)) {
             OK(Response);
         } else {
             BadRequest(Response);

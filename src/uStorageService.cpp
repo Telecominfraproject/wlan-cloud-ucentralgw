@@ -130,6 +130,26 @@ namespace uCentral::Storage {
         return uCentral::Storage::Service::instance()->DeleteLogData(SerialNumber, FromDate, ToDate);
     }
 
+    bool CreateDefaultConfiguration(std::string & name, const uCentralDefaultConfiguration & DefConfig) {
+        return uCentral::Storage::Service::instance()->CreateDefaultConfiguration(name,DefConfig);
+    }
+
+    bool DeleteDefaultConfiguration(const std::string & name) {
+        return uCentral::Storage::Service::instance()->DeleteDefaultConfiguration(name);
+    }
+
+    bool UpdateDefaultConfiguration(std::string & name, const uCentralDefaultConfiguration & DefConfig) {
+        return uCentral::Storage::Service::instance()->UpdateDefaultConfiguration(name,DefConfig);
+    }
+
+    bool GetDefaultConfiguration(std::string &name, uCentralDefaultConfiguration & DefConfig) {
+        return uCentral::Storage::Service::instance()->GetDefaultConfiguration(name, DefConfig);
+    }
+
+    bool GetDefaultConfigurations(uint64_t From, uint64_t HowMany, std::vector<uCentralDefaultConfiguration> &Devices) {
+        return uCentral::Storage::Service::instance()->GetDefaultConfigurations(From,HowMany,Devices);
+    }
+
     std::string SerialToMAC(const std::string & Serial) {
         std::string Result;
 
@@ -209,6 +229,15 @@ namespace uCentral::Storage {
                     "Recorded BIGINT, "
                     "INDEX HealthSerial (SerialNumber ASC, Recorded ASC)"
                     ")", now;
+
+        session_ << "CREATE TABLE IF NOT EXISTS DefaultConfigs ("
+                    "Name VARCHAR(30) PRIMARY KEY, "
+                    "Configuration TEXT, "
+                    "Models TEXT, "
+                    "Description TEXT, "
+                    "Created BIGINT , "
+                    "LastModified BIGINT)", now;
+
         return 0;
     }
 
@@ -268,6 +297,14 @@ namespace uCentral::Storage {
                     "Recorded BIGINT) ", now;
 
         session_ << "CREATE INDEX IF NOT EXISTS HealthSerial ON HealthChecks (SerialNumber ASC, Recorded ASC)", now;
+
+        session_ << "CREATE TABLE IF NOT EXISTS DefaultConfigs ("
+                    "Name VARCHAR(30) PRIMARY KEY, "
+                    "Configuration TEXT, "
+                    "Models TEXT, "
+                    "Description TEXT, "
+                    "Created BIGINT , "
+                    "LastModified BIGINT)", now;
 
         return 0;
     }
@@ -342,6 +379,14 @@ namespace uCentral::Storage {
                     "Recorded BIGINT)", now;
 
         session_ << "CREATE INDEX IF NOT EXISTS HealthSerial ON HealthChecks (SerialNumber ASC, Recorded ASC)", now;
+
+        session_ << "CREATE TABLE IF NOT EXISTS DefaultConfigs ("
+                    "Name VARCHAR(30) PRIMARY KEY, "
+                    "Configuration TEXT, "
+                    "Models TEXT, "
+                    "Description TEXT, "
+                    "Created BIGINT , "
+                    "LastModified BIGINT)", now;
 
         return 0;
     }
@@ -471,7 +516,7 @@ namespace uCentral::Storage {
             for (auto i: Records) {
                 uCentralStatistics R{
                         .UUID = i.get<1>(),
-                        .Values = i.get<2>(),
+                        .Data = i.get<2>(),
                         .Recorded = i.get<3>()};
                 Stats.push_back(R);
             }
@@ -814,7 +859,7 @@ namespace uCentral::Storage {
                     DeviceDetails.Configuration = Cfg.get();
                     uint64_t Now = time(nullptr);
 
-                    DeviceDetails.Print();
+                    // DeviceDetails.Print();
 
                     session_ << "INSERT INTO Devices VALUES('%s', '%s', '%s', '%s', %Lu, '%s', '%s', %Lu, %Lu, %Lu)",
                             DeviceDetails.SerialNumber.c_str(),
@@ -847,20 +892,30 @@ namespace uCentral::Storage {
     bool Service::CreateDefaultDevice(const std::string & SerialNumber, const std::string & Capabilities) {
 
         uCentralDevice  D;
-        uCentral::Config::Config    NewConfig;
-
         Logger_.information(Poco::format("AUTO-CREATION(%s)",SerialNumber.c_str()));
         uint64_t Now = time(nullptr);
-        NewConfig.SetUUID(Now);
 
         uCentral::Config::Capabilities  Caps(Capabilities);
+        uCentralDefaultConfiguration    DefConfig;
+
+        if( FindDefaultConfigurationForModel(Caps.ModelId(),DefConfig))
+        {
+            uCentral::Config::Config    NewConfig(DefConfig.Configuration);
+            NewConfig.SetUUID(Now);
+            D.Configuration = NewConfig.get();
+        }
+        else
+        {
+            uCentral::Config::Config    NewConfig;
+            NewConfig.SetUUID(Now);
+            D.Configuration = NewConfig.get();
+        }
 
         D.SerialNumber = SerialNumber;
         D.DeviceType = Caps.DeviceType();
         D.MACAddress = SerialToMAC(SerialNumber);
         D.Manufacturer = Caps.Manufacturer();
         D.UUID = Now;
-        D.Configuration = NewConfig.get();
         D.Notes = "auto created device.";
         D.CreationTimestamp = D.LastConfigurationDownload = D.LastConfigurationChange = Now;
 
@@ -1083,17 +1138,17 @@ namespace uCentral::Storage {
         try {
             Session session_ = Pool_->get();
 
-            std::string SerialNumber;
+            std::string TmpSerialNumber;
 
             session_
                     << "SELECT SerialNumber, Capabilities, FirstUpdate, LastUpdate FROM Capabilities WHERE SerialNumber='%s'",
-                    into(SerialNumber),
+                    into(TmpSerialNumber),
                     into(Caps.Capabilities),
                     into(Caps.FirstUpdate),
                     into(Caps.LastUpdate),
                     SerialNumber.c_str(), now;
 
-            if (SerialNumber.empty())
+            if (TmpSerialNumber.empty())
                 return false;
 
             return true;
@@ -1150,6 +1205,262 @@ namespace uCentral::Storage {
         catch( const Poco::Exception & E)
         {
             Logger_.warning(Poco::format("%s(%s): Failed with: %s",__FUNCTION__,SerialNumber.c_str(),E.displayText() ));
+        }
+        return false;
+    }
+
+    /*
+     *  Data model for DefaultConfigurations:
+
+        Table name: DefaultConfigs
+
+                    "Name VARCHAR(30) PRIMARY KEY, "
+                    "Configuration TEXT, "
+                    "Models TEXT, "
+                    "Description TEXT, "
+                    "Created BIGINT , "
+                    "LastModified BIGINT)", now;
+     */
+
+    bool Service::CreateDefaultConfiguration(std::string & Name, const uCentralDefaultConfiguration & DefConfig) {
+        try {
+
+            std::string TmpName;
+            Session session_ = Pool_->get();
+
+            session_ << "SELECT Name FROM DefaultConfigs WHERE Name='%s'",
+                    into(TmpName),
+                    Name.c_str(), now;
+
+            if (TmpName.empty()) {
+
+                uCentral::Config::Config    Cfg(DefConfig.Configuration);
+
+                if(Cfg.Valid()) {
+                    uint64_t Now = time(nullptr);
+                    session_ << "INSERT INTO DefaultConfigs VALUES('%s', '%s', '%s', '%s', %Lu, %Lu)" ,
+                        Name.c_str(),
+                        DefConfig.Configuration.c_str(),
+                        DefConfig.Models.c_str(),
+                        DefConfig.Description.c_str(),
+                        Now,
+                        Now, now;
+
+                    return true;
+                }
+                else
+                {
+                    Logger_.warning("Cannot create device: invalid configuration.");
+                    return false;
+                }
+            }
+            else
+            {
+                Logger_.warning("Default configuration already exists.");
+            }
+        }
+        catch( const Poco::Exception & E)
+        {
+            Logger_.warning(Poco::format("%s(%s): Failed with: %s",__FUNCTION__,Name.c_str(),E.displayText() ));
+        }
+        return false;
+    }
+
+    bool Service::DeleteDefaultConfiguration(const std::string & Name) {
+        try {
+            Session session_ = Pool_->get();
+
+            session_ <<
+                     "DELETE FROM DefaultConfigs WHERE Name='%s'" ,
+                    Name.c_str(), now;
+            return true;
+        }
+        catch( const Poco::Exception & E)
+        {
+            Logger_.warning(Poco::format("%s(%s): Failed with: %s",__FUNCTION__,Name.c_str(),E.displayText() ));
+        }
+        return false;
+    }
+
+    bool Service::UpdateDefaultConfiguration(std::string & Name, const uCentralDefaultConfiguration & DefConfig) {
+        try {
+
+            Session session_ = Pool_->get();
+
+            uCentral::Config::Config    Cfg(DefConfig.Configuration);
+
+            if(Cfg.Valid()) {
+
+                uint64_t Now = time(nullptr);
+                session_ <<
+                         "UPDATE DefaultConfigs SET Configuration='%s', Models='%s', Description='%s', LastModified=%Lu WHERE Name='%s'",
+                        DefConfig.Configuration.c_str(),
+                        DefConfig.Models.c_str(),
+                        DefConfig.Description.c_str(),
+                        Now,
+                        Name.c_str(), now;
+                return true;
+            }
+            else
+            {
+                Logger_.warning(Poco::format("Default configuration: %s cannot be sete to an invalid configuration.",Name.c_str()));
+            }
+            return false;
+        }
+        catch( const Poco::Exception & E)
+        {
+            Logger_.warning(Poco::format("%s(%s): Failed with: %s",__FUNCTION__,Name.c_str(),E.displayText() ));
+        }
+        return false;
+    }
+
+    bool Service::GetDefaultConfiguration(std::string &Name, uCentralDefaultConfiguration & DefConfig) {
+        try {
+            Session session_ = Pool_->get();
+
+            session_ << "SELECT "
+                        "Name, "
+                        "Configuration, "
+                        "Models, "
+                        "Description, "
+                        "Created, "
+                        "LastModified "
+                        " FROM DefaultConfigs WHERE Name='%s'",
+                    into(DefConfig.Name),
+                    into(DefConfig.Configuration),
+                    into(DefConfig.Models),
+                    into(DefConfig.Description),
+                    into(DefConfig.Created),
+                    into(DefConfig.LastModified),
+                    Name.c_str(), now;
+
+            if (DefConfig.Name.empty())
+                return false;
+
+            return true;
+        }
+        catch( const Poco::Exception & E)
+        {
+            Logger_.warning(Poco::format("%s(%s): Failed with: %s",__FUNCTION__,Name.c_str(),E.displayText() ));
+        }
+        return false;
+    }
+
+    bool Service::GetDefaultConfigurations(uint64_t From, uint64_t HowMany, std::vector<uCentralDefaultConfiguration> &DefConfigs) {
+        typedef Poco::Tuple<
+                std::string,
+                std::string,
+                std::string,
+                std::string,
+                uint64_t,
+                uint64_t> DeviceRecord;
+        typedef std::vector<DeviceRecord> RecordList;
+
+        RecordList Records;
+
+        try {
+            Session session_ = Pool_->get();
+
+            session_ << "SELECT "
+                        "Name, "
+                        "Configuration, "
+                        "Models, "
+                        "Description, "
+                        "Created, "
+                        "LastModified "
+                        "FROM DefaultConfigs",
+                    into(Records),
+                    range(From, From + HowMany - 1), now;
+
+            for (auto i: Records) {
+                uCentralDefaultConfiguration R{
+                        .Name           = i.get<0>(),
+                        .Configuration  = i.get<1>(),
+                        .Models         = i.get<2>(),
+                        .Description    = i.get<3>(),
+                        .Created        = i.get<4>(),
+                        .LastModified   = i.get<5>()};
+
+                DefConfigs.push_back(R);
+            }
+            return true;
+        }
+        catch( const Poco::Exception & E)
+        {
+            Logger_.warning(Poco::format("%s: Failed with: %s",__FUNCTION__,E.displayText() ));
+        }
+        return false;
+    }
+
+    bool FindInList( const std::string & Model, const std::string &List)
+    {
+        auto P = 0;
+        std::string Token;
+
+        while(P<List.size())
+        {
+            auto P2 = List.find_first_of(',', P);
+            if(P2==std::string::npos) {
+                Token = List.substr(P);
+                if(Model.find(Token)!=std::string::npos)
+                    return true;
+                return false;
+            }
+            else {
+                Token = List.substr(P, P2);
+                if(Model.find(Token)!=std::string::npos)
+                    return true;
+            }
+            P=P2+1;
+        }
+        return false;
+    }
+
+    bool Service::FindDefaultConfigurationForModel(const std::string & Model, uCentralDefaultConfiguration & DefConfig ) {
+        try {
+            typedef Poco::Tuple<
+                    std::string,
+                    std::string,
+                    std::string,
+                    std::string,
+                    uint64_t,
+                    uint64_t> DeviceRecord;
+            typedef std::vector<DeviceRecord> RecordList;
+            RecordList Records;
+
+            Session session_ = Pool_->get();
+
+            session_ << "SELECT "
+                        "Name, "
+                        "Configuration, "
+                        "Models, "
+                        "Description, "
+                        "Created, "
+                        "LastModified "
+                        "FROM DefaultConfigs",
+                    into(Records),
+                    range(0, 2), now;
+
+            for (auto i: Records) {
+                DefConfig.Models = i.get<2>();
+                if(FindInList(Model,DefConfig.Models)) {
+                    DefConfig.Name = i.get<0>();
+                    Logger_.information(Poco::format("AUTO-PROVISIONING: found default configuration '%s' for model:%s",DefConfig.Name.c_str(),Model.c_str()));
+                    DefConfig.Name = i.get<0>();
+                    DefConfig.Configuration = i.get<1>();
+                    DefConfig.Models = i.get<2>();
+                    DefConfig.Description = i.get<3>();
+                    DefConfig.Created = i.get<4>();
+                    DefConfig.LastModified = i.get<5>();
+                    return true;
+                }
+            }
+            Logger_.information(Poco::format("AUTO-PROVISIONING: no default configuration for model:%s",Model.c_str()));
+            return false;
+        }
+        catch( const Poco::Exception & E)
+        {
+            Logger_.warning(Poco::format("%s: Failed with: %s",__FUNCTION__,E.displayText() ));
         }
         return false;
     }

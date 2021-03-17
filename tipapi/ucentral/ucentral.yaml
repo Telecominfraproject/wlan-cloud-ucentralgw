@@ -155,7 +155,7 @@ components:
         UUID:
           type: integer
           format: int64
-        values:
+        data:
           type: string
 
     StatisticsRecords:
@@ -163,7 +163,7 @@ components:
       properties:
         serialNumber:
           type: string
-        data:
+        values:
           type: array
           items:
             $ref: '#/components/schemas/StatisticsDetails'
@@ -332,10 +332,35 @@ components:
       properties:
         serialNumber:
           type: string
-        data:
+        values:
           type: array
           items:
             $ref: '#/components/schemas/HealthCheck'
+
+    DefaultConfiguration:
+      type: object
+      properties:
+        name:
+          type: string
+        modelIds:
+          type: string
+        description:
+          type: string
+        configuration:
+          type: string
+        created:
+          type: string
+          format: 'date-time'
+        lastModified:
+          type: string
+          format: 'date-time'
+
+    DefaultConfigurationList:
+      properties:
+        configurations:
+          type: array
+          items:
+            $ref : '#/components/schemas/DefaultConfiguration'
 
 paths:
   /oauth2:
@@ -421,6 +446,120 @@ paths:
                 $ref: '#/components/schemas/DeviceList'
         403:
           $ref: '#/components/responses/Unauthorized'
+
+  /default_configurations:
+    get:
+      tags:
+        - Configurations
+      summary: Retrieve the lists of all default configurations
+      description: Retrieve the lists of all default configurations
+      operationId: getDefaultConfigurations
+
+      responses:
+        200:
+          description: List of defautl configurations included
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DefaultConfigurationList'
+        403:
+          $ref: '#/components/responses/Unauthorized'
+
+  /default_configuration/{name}:
+    get:
+      tags:
+        - Configurations
+      summary: Retrieve a default configuration
+      description: Retrieve a default configuration
+      operationId: getDefaultConfiguration
+      parameters:
+        - in: path
+          name: name
+          schema:
+            type: string
+          required: true
+      responses:
+        200:
+          description: Default configurations included
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DefaultConfiguration'
+        404:
+          $ref: '#/components/responses/NotFound'
+        403:
+          $ref: '#/components/responses/Unauthorized'
+
+    post:
+      tags:
+      - Configurations
+      summary: Create a default configuration
+      description: Create a default configuration
+      operationId: createDefaultConfiguration
+      parameters:
+        - in: path
+          name: name
+          schema:
+            type: string
+          required: true
+      requestBody:
+        description: Information used to create the new device
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DefaultConfiguration'
+      responses:
+        200:
+          $ref: '#/components/responses/Success'
+
+        403:
+          $ref: '#/components/responses/Unauthorized'
+
+    delete:
+      tags:
+        - Configurations
+      summary: Delete a default default configuration
+      description: Delete a default default configuration
+      operationId: deleteDefaultConfiguration
+      parameters:
+        - in: path
+          name: name
+          schema:
+            type: string
+          required: true
+      responses:
+        200:
+          $ref: '#/components/responses/Success'
+        404:
+          $ref: '#/components/responses/NotFound'
+        403:
+          $ref: '#/components/responses/Unauthorized'
+
+    put:
+      tags:
+        - Configurations
+      summary: Update a default configuration
+      description: Update a default configuration
+      operationId: updateDefaultConfiguration
+      parameters:
+        - in: path
+          name: name
+          schema:
+            type: string
+          required: true
+      requestBody:
+        description: Configuration details
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DefaultConfiguration'
+      responses:
+        200:
+          $ref: '#/components/responses/Success'
+        403:
+          $ref: '#/components/responses/Unauthorized'
+        404:
+          $ref: '#/components/responses/NotFound'
 
   /device/{serialNumber}:
     get:
