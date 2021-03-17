@@ -569,5 +569,34 @@ to change that number. Once you run this script, you will get:
 
 The script `more_devices` can be used to generate more devices without regenerating the original key. Just change the `finish` variable to the number you need.
 
+## Command line options
+The current implementation supports the following
+
+```
+./ucentral --help
+usage: ucentral OPTIONS
+A uCentral gateway implementation for TIP.
+
+--daemon        Run application as a daemon.
+--umask=mask    Set the daemon's umask (octal, e.g. 027).
+--pidfile=path  Write the process ID of the application to given file.
+--help          display help information on command line arguments
+--file=file     specify the configuration file
+--debug         to run in debug, set to true
+--logs=dir      specify the log directory and file (i.e. dir/file.log)
+```
+
+### file
+This allows you to point to another file without specifying the UCENTRAL_CONFIG variable. The file name must end in `.properties`.
+### daemon
+Run this as a UNIX service
+### pidfile
+When running as a daemon, the pid of the running service will be set in the speficied file
+### debug
+Run the service in debug mode.
+### logs
+Speficy where logs should be kept. You must include an existing directory and a file name. For example `/var/ucentral/logs/log.0`.
+### umask
+Seet the umask for the running service.
  
 
