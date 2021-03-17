@@ -586,17 +586,17 @@ A uCentral gateway implementation for TIP.
 --logs=dir      specify the log directory and file (i.e. dir/file.log)
 ```
 
-### file
+#### file
 This allows you to point to another file without specifying the UCENTRAL_CONFIG variable. The file name must end in `.properties`.
-### daemon
+#### daemon
 Run this as a UNIX service
-### pidfile
+#### pidfile
 When running as a daemon, the pid of the running service will be set in the speficied file
-### debug
+#### debug
 Run the service in debug mode.
-### logs
+#### logs
 Speficy where logs should be kept. You must include an existing directory and a file name. For example `/var/ucentral/logs/log.0`.
-### umask
+#### umask
 Seet the umask for the running service.
  
 
