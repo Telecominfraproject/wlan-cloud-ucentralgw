@@ -229,8 +229,10 @@ namespace uCentral {
     }*/
 
     int Daemon::main(const ArgVec &args) {
-        std::cout << "Starting ucentral..." << std::endl;
         if (!helpRequested_) {
+
+            std::cout << "Starting ucentral..." << std::endl;
+
             Logger &logger = Logger::get("uCentral");
 
             uCentral::Storage::Start();
