@@ -134,7 +134,7 @@ namespace uCentral::WebSocket {
                 }
                 catch ( const Poco::Exception & E)
                 {
-                    Logger_.warning("JSON-RPC(CONNECT): invalid payload. %s",E.displayText().c_str());
+                    Logger_.warning(Poco::format("JSON-RPC(CONNECT): invalid payload. %s",E.displayText().c_str()));
                 }
 
             } else if (Method=="state") {
@@ -152,7 +152,7 @@ namespace uCentral::WebSocket {
                 }
                 catch( const Poco::Exception & E )
                 {
-                    Logger_.warning("JSON-RPC(STATE): invalid payload. %s",E.displayText().c_str());
+                    Logger_.warning(Poco::format("JSON-RPC(STATE): invalid payload. %s",E.displayText().c_str()));
                 }
             } else if (Method=="healthcheck") {
                 try {
@@ -175,7 +175,7 @@ namespace uCentral::WebSocket {
                 }
                 catch( const Poco::Exception & E )
                 {
-                    Logger_.warning("JSON-RPC(HEALTHCHECK): invalid payload. %s",E.displayText().c_str());
+                    Logger_.warning(Poco::format("JSON-RPC(HEALTHCHECK): invalid payload. %s",E.displayText().c_str()));
                 }
             } else if (Method=="log") {
                 try {
@@ -195,7 +195,7 @@ namespace uCentral::WebSocket {
                 }
                 catch( const Poco::Exception & E )
                 {
-                    Logger_.warning("JSON-RPC(HEALTHCHECK): invalid payload. %s",E.displayText().c_str());
+                    Logger_.warning(Poco::format("JSON-RPC(LOG): invalid payload. %s",E.displayText().c_str()));
                 }
             }
             else
