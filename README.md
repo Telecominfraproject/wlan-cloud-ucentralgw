@@ -73,10 +73,9 @@ make
 ```
  
 ### OSX Build
-The following instructions have proven to work on OSX Big Sur. You need to install [Homebrew](https://brew.sh/)
+The following instructions have proven to work on OSX Big Sur. You need to install [Homebrew](https://brew.sh/). You must also have installed [XCode for OS X](https://www.freecodecamp.org/news/how-to-download-and-install-xcode/).
 ```
 brew install openssl
-brew install libyaml
 brew install cmake
 brew install libpq
 brew install mysql-client
@@ -91,7 +90,7 @@ git clone https://github.com/stephb9959/poco
 cd poco
 mkdir cmake-build 
 cd cmake-build
-cmake -DOPENSSL_ROOT_DIR=/usr/local/opt/openssl ..
+cmake ..
 cmake --build . --config Release -j
 sudo cmake --build . --target install
 
