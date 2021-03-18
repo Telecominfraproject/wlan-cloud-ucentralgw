@@ -108,80 +108,95 @@ namespace uCentral::WebSocket {
         if(ds.contains("method") && ds.contains("params"))
         {
             std::string Method = ds["method"].toString();
+            auto Params = ds["params"];
 
             if(Method=="connect") {
-                Poco::DynamicStruct collection = ds["params"].extract<Poco::DynamicStruct>();
-                Poco::DynamicStruct c2 = collection["params"].extract<Poco::DynamicStruct>();
-                auto Serial = c2["serial"].toString();
-                auto UUID = c2["uuid"];
-                auto Firmware = c2["firmware"].toString();
-                auto Capabilities = c2["capabilities"].toString();
+                try {
+                    auto Serial = Params["serial"].toString();
+                    auto UUID = Params["uuid"];
+                    auto Firmware = Params["firmware"].toString();
+                    auto Capabilities = Params["capabilities"].toString();
 
-                Conn_ = uCentral::DeviceRegistry::Register(Serial, this);
-                SerialNumber_ = Serial;
-                Conn_->SerialNumber = Serial;
-                Conn_->UUID = UUID;
-                Conn_->Firmware = Firmware;
-                Conn_->PendingUUID = 0;
-                Conn_->Protocol = DeviceRegistry::jsonrpc;
+                    Conn_ = uCentral::DeviceRegistry::Register(Serial, this);
+                    SerialNumber_ = Serial;
+                    Conn_->SerialNumber = Serial;
+                    Conn_->UUID = UUID;
+                    Conn_->Firmware = Firmware;
+                    Conn_->PendingUUID = 0;
+                    Conn_->Protocol = DeviceRegistry::jsonrpc;
 
-                uCentral::Storage::UpdateDeviceCapabilities(SerialNumber_, Capabilities);
+                    uCentral::Storage::UpdateDeviceCapabilities(SerialNumber_, Capabilities);
 
-                if(uCentral::instance()->AutoProvisioning() && !uCentral::Storage::DeviceExists(SerialNumber_))
-                    uCentral::Storage::CreateDefaultDevice(SerialNumber_,Capabilities);
+                    if (uCentral::instance()->AutoProvisioning() && !uCentral::Storage::DeviceExists(SerialNumber_))
+                        uCentral::Storage::CreateDefaultDevice(SerialNumber_, Capabilities);
 
-                LookForUpgrade(Response );
+                    LookForUpgrade(Response);
+                }
+                catch ( const Poco::Exception & E)
+                {
+                    Logger_.warning("JSON-RPC(CONNECT): invalid payload. %s",E.displayText().c_str());
+                }
 
             } else if (Method=="state") {
-                Poco::DynamicStruct collection = ds["params"].extract<Poco::DynamicStruct>();
-                Poco::DynamicStruct c2 = collection["params"].extract<Poco::DynamicStruct>();
-                auto Serial = c2["serial"].toString();
-                auto UUID = c2["uuid"];
-                auto State = c2["state"].toString();
+                try {
+                    auto Serial = Params["serial"].toString();
+                    auto UUID = Params["uuid"];
+                    auto State = Params["state"].toString();
 
-                Conn_->UUID = UUID;
+                    Conn_->UUID = UUID;
 
-                uCentral::Storage::AddStatisticsData(Serial, UUID, State);
-                uCentral::DeviceRegistry::SetStatistics(Serial, State);
+                    uCentral::Storage::AddStatisticsData(Serial, UUID, State);
+                    uCentral::DeviceRegistry::SetStatistics(Serial, State);
 
-                LookForUpgrade(Response );
-
+                    LookForUpgrade(Response);
+                }
+                catch( const Poco::Exception & E )
+                {
+                    Logger_.warning("JSON-RPC(STATE): invalid payload. %s",E.displayText().c_str());
+                }
             } else if (Method=="healthcheck") {
-                Poco::DynamicStruct collection = ds["params"].extract<Poco::DynamicStruct>();
-                Poco::DynamicStruct c2 = collection["params"].extract<Poco::DynamicStruct>();
-                auto Serial = c2["serial"].toString();
-                auto UUID = c2["uuid"];
-                auto Sanity = c2["sanity"];
-                auto CheckData = c2["data"].toString();
+                try {
+                    auto Serial = Params["serial"].toString();
+                    auto UUID = Params["uuid"];
+                    auto Sanity = Params["sanity"];
+                    auto CheckData = Params["data"].toString();
 
-                Conn_->UUID = UUID;
+                    Conn_->UUID = UUID;
 
-                uCentralHealthcheck Check;
+                    uCentralHealthcheck Check;
 
-                Check.Recorded = time(nullptr);
-                Check.UUID = UUID;
-                Check.Data = CheckData;
-                Check.Sanity = Sanity;
+                    Check.Recorded = time(nullptr);
+                    Check.UUID = UUID;
+                    Check.Data = CheckData;
+                    Check.Sanity = Sanity;
 
-                uCentral::Storage::AddHealthCheckData(Serial,Check);
-                LookForUpgrade(Response );
-
+                    uCentral::Storage::AddHealthCheckData(Serial, Check);
+                    LookForUpgrade(Response);
+                }
+                catch( const Poco::Exception & E )
+                {
+                    Logger_.warning("JSON-RPC(HEALTHCHECK): invalid payload. %s",E.displayText().c_str());
+                }
             } else if (Method=="log") {
-                Poco::DynamicStruct collection = ds["params"].extract<Poco::DynamicStruct>();
-                Poco::DynamicStruct c2 = collection["params"].extract<Poco::DynamicStruct>();
-                auto Serial = c2["serial"].toString();
-                auto Log = c2["log"].toString();
-                auto Data = c2["data"].toString();
-                auto Severity = c2["severity"];
+                try {
+                    auto Serial = Params["serial"].toString();
+                    auto Log = Params["log"].toString();
+                    auto Data = Params["data"].toString();
+                    auto Severity = Params["severity"];
 
-                uCentralDeviceLog   DeviceLog;
+                    uCentralDeviceLog DeviceLog;
 
-                DeviceLog.Log = Log;
-                DeviceLog.Data = Data;
-                DeviceLog.Severity = Severity;
-                DeviceLog.Recorded = time(nullptr);
+                    DeviceLog.Log = Log;
+                    DeviceLog.Data = Data;
+                    DeviceLog.Severity = Severity;
+                    DeviceLog.Recorded = time(nullptr);
 
-                uCentral::Storage::AddLog(Serial, DeviceLog);
+                    uCentral::Storage::AddLog(Serial, DeviceLog);
+                }
+                catch( const Poco::Exception & E )
+                {
+                    Logger_.warning("JSON-RPC(HEALTHCHECK): invalid payload. %s",E.displayText().c_str());
+                }
             }
             else
             {
@@ -360,6 +375,7 @@ namespace uCentral::WebSocket {
         Logger.information(Poco::format("%s from %s: %s",request.getMethod(),
                                         request.clientAddress().toString(),
                                         request.getURI()));
+
 
         for (const auto & it: request)
             Logger.information(it.first + ": " + it.second);

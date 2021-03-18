@@ -12,6 +12,9 @@
 #include "Poco/Environment.h"
 #include <iostream>
 #include "Poco/Path.h"
+#include "Poco/JSON/Parser.h"
+
+#include "uCentralConfig.h"
 
 using Poco::Util::Application;
 using Poco::Util::Option;
@@ -218,6 +221,49 @@ namespace uCentral {
         config().setString(name, value);
     }
 
+    void test_json()
+    {
+        uCentral::Config::Capabilities  Caps;
+
+        std::string ConnectMsg = "{     \"jsonrpc\" : \"2.0\" , \n"
+                                 "      \"method\" : \"connect\" , \n"
+                                 "      \"params\" : {\n"
+                                                        "\"serial\" : \"deadbeef\" ,\n"
+                                                        "\"uuid\"   : 123456,\n"
+                                                        "\"firmware\" : \"uc-code-01\",\n"
+                                                        "\"capabilities\" : " + Caps.Get() + "\n"
+                                                    "}\n"
+                                 "}";
+        Poco::JSON::Parser  parser;
+
+        auto result = parser.parse(ConnectMsg);
+        auto object = result.extract<Poco::JSON::Object::Ptr>();
+        Poco::DynamicStruct ds = *object;
+
+        std::cout << "Line:" << __LINE__ << std::endl;
+
+        if(ds.contains("method") && ds.contains("params")) {
+            std::cout << "Line:" << __LINE__ << std::endl;
+            auto Method = ds["method"].toString();
+            std::cout << "Line:" << __LINE__ << std::endl;
+            auto Params = ds["params"];
+
+            if (Method == "connect") {
+                std::cout << "Line:" << __LINE__ << std::endl;
+                auto Serial = Params["serial"].toString();
+                std::cout << "Line:" << __LINE__ << std::endl;
+                auto UUID = Params["uuid"];
+                std::cout << "Line:" << __LINE__ << std::endl;
+                auto Firmware = Params["firmware"].toString();
+                std::cout << "Line:" << __LINE__ << std::endl;
+                auto Capabilities = Params["capabilities"].toString();
+                std::cout << "Line:" << __LINE__ << std::endl;
+
+                std::cout << "Method:" << Method << " Serial:" << Serial << " Firmware:" << Firmware << " Capabilities:" << Capabilities << std::endl;
+            }
+        }
+    }
+
     /*
     void ShowConfig() {
 
@@ -240,6 +286,8 @@ namespace uCentral {
             uCentral::DeviceRegistry::Start();
             uCentral::RESTAPI::Start();
             uCentral::WebSocket::Start();
+
+            // test_json();
 
 #ifndef SMALL_BUILD
             uCentral::TIPGW::Start();
