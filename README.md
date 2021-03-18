@@ -73,7 +73,7 @@ make
 ```
  
 ### OSX Build
-The following instructions have proven to work on OSX Big Sur. You need to install [Homebrew](https://brew.sh/)
+The following instructions have proven to work on OSX Big Sur. You need to install [Homebrew](https://brew.sh/). You must also have installed [XCode for OS X](https://www.freecodecamp.org/news/how-to-download-and-install-xcode/).
 ```
 brew install openssl
 brew install cmake
