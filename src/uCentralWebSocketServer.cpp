@@ -250,7 +250,7 @@ namespace uCentral::WebSocket {
                 auto log = ds["log"].toString();
                 uCentral::Storage::AddLog(SerialNumber_, log);
             } else {
-                std::cout << "UNKNOWN_MESSAGE(" << SerialNumber_ << ")" << std::endl;
+                std::cerr << "UNKNOWN_MESSAGE(" << SerialNumber_ << ")" << std::endl;
             }
         }
     }
@@ -267,8 +267,6 @@ namespace uCentral::WebSocket {
         try {
             IncomingSize = WS_.receiveFrame(IncomingMessage_,sizeof(IncomingMessage_), flags);
             Op = flags & Poco::Net::WebSocket::FRAME_OP_BITMASK;
-
-            // std::cout << "Received incoming message: " << IncomingMessage_ << std::endl;
 
             if(IncomingSize==0 && flags == 0 && Op == 0)
             {
@@ -332,7 +330,7 @@ namespace uCentral::WebSocket {
 
                 default: {
                         Logger_.warning("UNKNOWN WS Frame operation: " + std::to_string(Op));
-                        std::cout << "WS: Unknown frame: " << Op << " Flags: " << flags << std::endl;
+                        std::cerr << "WS: Unknown frame: " << Op << " Flags: " << flags << std::endl;
                         Op = Poco::Net::WebSocket::FRAME_OP_CLOSE;
                     }
                     break;
@@ -342,7 +340,7 @@ namespace uCentral::WebSocket {
                 Conn_->MessageCount++;
         }
         catch (const Poco::Exception &E) {
-            Logger_.warning( Poco::format("%s(%s): Caught a more generic Poco exception: %s. Message: %s", , std::string(__func__), SerialNumber_, E.displayText(), IncomingMessage_ ));
+            Logger_.warning( Poco::format("%s(%s): Caught a more generic Poco exception: %s. Message: %s", std::string(__func__), SerialNumber_, E.displayText(), IncomingMessage_ ));
             delete this;
         }
     }

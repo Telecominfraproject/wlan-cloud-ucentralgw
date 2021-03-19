@@ -27,7 +27,7 @@ void RESTAPI_devicesHandler::handleRequest(HTTPServerRequest& Request, HTTPServe
             auto Limit = GetParameter("limit", 100);
             auto Filter = GetParameter("filter", "");
 
-            logger_.information(Poco::format("DEVICES: from %d, limit of %d, filter=%s.", Offset, Limit, Filter));
+            logger_.information(Poco::format("DEVICES: from %Lu, limit of %Lu, filter='%s'.", (uint64_t )Offset, (uint64_t )Limit, Filter));
             RESTAPIHandler::PrintBindings();
 
             std::vector<uCentralDevice> Devices;

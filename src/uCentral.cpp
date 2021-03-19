@@ -56,7 +56,7 @@ namespace uCentral {
 
         if(!ConfigFile.isFile())
         {
-            std::cout << "uCentral: Configuration " << ConfigFile.toString() << " does not seem to exist. Please set UCENTRAL_CONFIG env variable the path of the ucentral.properties file." << std::endl;
+            std::cerr << "uCentral: Configuration " << ConfigFile.toString() << " does not seem to exist. Please set UCENTRAL_CONFIG env variable the path of the ucentral.properties file." << std::endl;
             std::exit(EXIT_CONFIG);
         }
 
@@ -120,13 +120,6 @@ namespace uCentral {
             else
                 Entry->second.insert(Entry->second.end(),Tokens.begin(),Tokens.end());
         }
-        /*
-        for(const auto &[Key,List] : DeviceTypeIdentifications_ )
-        {
-            std::cout << "Type: " << Key << std::endl;
-            for(const auto j:List)
-                std::cout << "     Val: " << j << std::endl;
-        } */
     }
 
     std::string Daemon::IdentifyDevice(const std::string & Id ) {
@@ -264,16 +257,6 @@ namespace uCentral {
         }
     }
 
-    /*
-    void ShowConfig() {
-
-        std::vector<std::string>    Keys;
-        uCentral::instance()->config().keys("ucentral.autoprovisioning.type",Keys);
-
-        for(auto i : Keys)
-            std::cout << "Key: " << i << std::endl;
-    }*/
-
     int Daemon::main(const ArgVec &args) {
         if (!helpRequested_) {
 
@@ -288,8 +271,6 @@ namespace uCentral {
             uCentral::WebSocket::Start();
 
             // test_json();
-
-            printf("%s\r\n",__func__);
 
 #ifndef SMALL_BUILD
             uCentral::TIPGW::Start();

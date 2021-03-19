@@ -40,9 +40,6 @@ bool RESTAPIHandler::ParseBindings(const char *p,const char *r, BindingMap & bin
         }
     }
 
-    //for(const auto &[Key,Value]:bindings)
-    //    std::cout << "Key:" << Key << "  Value:" << Value << std::endl;
-
     return (*p == *r);
 }
 

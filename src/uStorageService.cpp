@@ -464,8 +464,6 @@ namespace uCentral::Storage {
         try {
             Logger_.information("Device:" + SerialNumber + " Stats size:" + std::to_string(NewStats.size()));
 
-            // std::cout << "STATS:" << NewStats << std::endl;
-
             uint64_t Now = time(nullptr);
             Session session_ = Pool_->get();
 
