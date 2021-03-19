@@ -61,6 +61,8 @@ namespace uCentral::RESTAPI {
 
         auto    & Logger = uCentral::RESTAPI::Service::instance()->logger();
 
+        std::string ss{"Hello"};
+
         Logger.information("Request from "
                             + Request.clientAddress().toString()
                             + ": "
@@ -68,11 +70,11 @@ namespace uCentral::RESTAPI {
                             + " "
                             + Request.getURI()
                             + " "
-                            + Request.getVersion());
+                            + Request.getVersion()
+                            );
 
         Poco::URI uri(Request.getURI());
         auto *path = uri.getPath().c_str();
-
         RESTAPIHandler::BindingMap bindings;
 
         if (RESTAPIHandler::ParseBindings(path, "/api/v1/oauth2", bindings)) {

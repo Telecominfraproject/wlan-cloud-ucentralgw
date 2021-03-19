@@ -55,7 +55,7 @@ void RESTAPI_deviceCommandHandler::handleRequest(HTTPServerRequest& Request, HTT
     }
     catch(const Poco::Exception &E)
     {
-        logger_.error(Poco::format("%s: failed with %s",__FUNCTION__ ,E.displayText().c_str()));
+        logger_.error(Poco::format("%s: failed with %s",std::string(__func__) ,E.displayText()));
     }
     BadRequest(Response);
 };
@@ -75,7 +75,7 @@ void  RESTAPI_deviceCommandHandler::GetCapabilities(HTTPServerRequest &Request, 
     }
     catch(const Poco::Exception &E)
     {
-        logger_.error(Poco::format("%s: failed with %s",__FUNCTION__ ,E.displayText().c_str()));
+        logger_.error(Poco::format("%s: failed with %s",std::string(__func__), E.displayText()));
     }
     BadRequest(Response);
 }
@@ -92,7 +92,7 @@ void  RESTAPI_deviceCommandHandler::DeleteCapabilities(HTTPServerRequest &Reques
     }
     catch(const Poco::Exception &E)
     {
-        logger_.error(Poco::format("%s: failed with %s",__FUNCTION__ ,E.displayText().c_str()));
+        logger_.error(Poco::format("%s: failed with %s",std::string(__func__) ,E.displayText()));
     }
     BadRequest(Response);
 }
@@ -127,7 +127,7 @@ void RESTAPI_deviceCommandHandler::GetStatistics(HTTPServerRequest& Request, HTT
     }
     catch(const Poco::Exception &E)
     {
-        logger_.error(Poco::format("%s: failed with %s",__FUNCTION__ ,E.displayText().c_str()));
+        logger_.error(Poco::format("%s: failed with %s",std::string(__func__) ,E.displayText()));
     }
     BadRequest(Response);
 }
@@ -146,7 +146,7 @@ void RESTAPI_deviceCommandHandler::DeleteStatistics(HTTPServerRequest& Request, 
     }
     catch(const Poco::Exception &E)
     {
-        logger_.error(Poco::format("%s: failed with %s",__FUNCTION__ ,E.displayText().c_str()));
+        logger_.error(Poco::format("%s: failed with %s",std::string(__func__), E.displayText()));
     }
     BadRequest(Response);
 }
@@ -169,7 +169,7 @@ void RESTAPI_deviceCommandHandler::GetStatus(HTTPServerRequest& Request, HTTPSer
     }
     catch(const Poco::Exception &E)
     {
-        logger_.error(Poco::format("%s: failed with %s",__FUNCTION__ ,E.displayText().c_str()));
+        logger_.error(Poco::format("%s: failed with %s",std::string(__func__), E.displayText()));
     }
     BadRequest(Response);
 }
@@ -204,7 +204,7 @@ void RESTAPI_deviceCommandHandler::Configure(HTTPServerRequest& Request, HTTPSer
     }
     catch(const Poco::Exception &E)
     {
-        logger_.error(Poco::format("%s: failed with %s",__FUNCTION__ ,E.displayText().c_str()));
+        logger_.error(Poco::format("%s: failed with %s",std::string(__func__), E.displayText()));
     }
     BadRequest(Response);
 }
@@ -236,7 +236,7 @@ void RESTAPI_deviceCommandHandler::GetLogs(HTTPServerRequest& Request, HTTPServe
     }
     catch(const Poco::Exception &E)
     {
-        logger_.error(Poco::format("%s: failed with %s",__FUNCTION__ ,E.displayText().c_str()));
+        logger_.error(Poco::format("%s: failed with %s",std::string(__func__), E.displayText()));
     }
     BadRequest(Response);
 }
@@ -255,7 +255,7 @@ void RESTAPI_deviceCommandHandler::DeleteLogs(HTTPServerRequest& Request, HTTPSe
     }
     catch(const Poco::Exception &E)
     {
-        logger_.error(Poco::format("%s: failed with %s",__FUNCTION__ ,E.displayText().c_str()));
+        logger_.error(Poco::format("%s: failed with %s",std::string(__func__), E.displayText()));
     }
     BadRequest(Response);
 }
@@ -287,7 +287,7 @@ void RESTAPI_deviceCommandHandler::GetChecks(HTTPServerRequest& Request, HTTPSer
     }
     catch(const Poco::Exception &E)
     {
-        logger_.error(Poco::format("%s: failed with %s",__FUNCTION__ ,E.displayText().c_str()));
+        logger_.error(Poco::format("%s: failed with %s",std::string(__func__), E.displayText()));
     }
     BadRequest(Response);
 }
@@ -306,7 +306,7 @@ void RESTAPI_deviceCommandHandler::DeleteChecks(HTTPServerRequest& Request, HTTP
     }
     catch(const Poco::Exception &E)
     {
-        logger_.error(Poco::format("%s: failed with %s",__FUNCTION__ ,E.displayText().c_str()));
+        logger_.error(Poco::format("%s: failed with %s",std::string(__func__) ,E.displayText()));
     }
     BadRequest(Response);
 }

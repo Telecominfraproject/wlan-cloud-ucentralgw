@@ -40,10 +40,24 @@ namespace uCentral::Config {
         }
         catch(const Poco::Exception &E)
         {
-            std::cout << __FUNCTION__ << ": new Configuration failed with " << E.displayText() << std::endl;
+            std::cout << __func__ << ": new Configuration failed with " << E.displayText() << std::endl;
         }
         return false;
     }
+/*
+ * "stats": {
+                "interval": 60,
+                "neighbours": 1,
+                "traffic": 1,
+                "wifiiface": 1,
+                "wifistation": 1,
+                "pids": 1,
+                "serviceprobe": 1,
+                "lldp": 1,
+                "system": 1,
+                "poe": 1
+        },
+ */
 
     bool Config::Valid() {
         try {
@@ -124,7 +138,7 @@ namespace uCentral::Config {
         }
         catch ( const Poco::Exception & E )
         {
-            uCentral::Daemon::instance().logger().warning(Poco::format("%s: Failed with: %s", __func__ , E.displayText().c_str()));
+            uCentral::Daemon::instance().logger().warning(Poco::format("%s: Failed with: %s", std::string(__func__) , E.displayText()));
         }
     }
 

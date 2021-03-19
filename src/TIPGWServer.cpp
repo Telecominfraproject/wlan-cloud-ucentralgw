@@ -62,9 +62,9 @@ namespace uCentral::TIPGW {
 
         Poco::Logger & Logger = Service::instance()->logger();
 
-        Logger.information(Poco::format("%s from %s: %s",request.getMethod().c_str(),
-                                        request.clientAddress().toString().c_str(),
-                                        request.getURI().c_str()));
+        Logger.information(Poco::format("%s from %s: %s",request.getMethod(),
+                                        request.clientAddress().toString(),
+                                        request.getURI()));
         return nullptr;
     }
 

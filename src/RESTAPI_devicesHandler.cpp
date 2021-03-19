@@ -27,7 +27,7 @@ void RESTAPI_devicesHandler::handleRequest(HTTPServerRequest& Request, HTTPServe
             auto Limit = GetParameter("limit", 100);
             auto Filter = GetParameter("filter", "");
 
-            logger_.information(Poco::format("DEVICES: from %d, limit of %d, filter=%s.", Offset, Limit, Filter.c_str()));
+            logger_.information(Poco::format("DEVICES: from %d, limit of %d, filter=%s.", Offset, Limit, Filter));
             RESTAPIHandler::PrintBindings();
 
             std::vector<uCentralDevice> Devices;
@@ -48,6 +48,6 @@ void RESTAPI_devicesHandler::handleRequest(HTTPServerRequest& Request, HTTPServe
     }
     catch (const Poco::Exception & E)
     {
-        logger_.warning(Poco::format("%s: Failed with: %s",__FUNCTION__,E.displayText().c_str() ));
+        logger_.warning(Poco::format("%s: Failed with: %s",std::string(__func__), E.displayText()));
     }
 }

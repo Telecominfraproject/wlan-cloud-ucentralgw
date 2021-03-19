@@ -7,11 +7,21 @@
 
 void RESTAPI_oauth2Handler::handleRequest(HTTPServerRequest & Request, HTTPServerResponse & Response)
 {
+    std::cout << __LINE__ << std::endl;
     if(!ContinueProcessing(Request,Response))
         return;
+    std::cout << __LINE__ << std::endl;
 
     try {
         if (Request.getMethod() == Poco::Net::HTTPServerRequest::HTTP_POST) {
+
+/*            std::istream &i = Request.stream();
+            int len = Request.getContentLength();
+            char* buffer = new char[len+1];
+            i.read(buffer, len);
+
+            std::cout << "BODY: " << buffer << std::endl;
+*/
             // Extract the info for login...
             Poco::JSON::Parser parser;
             Poco::JSON::Object::Ptr Obj = parser.parse(Request.stream()).extract<Poco::JSON::Object::Ptr>();
@@ -21,6 +31,8 @@ void RESTAPI_oauth2Handler::handleRequest(HTTPServerRequest & Request, HTTPServe
             auto password = ds["password"].toString();
 
             uCentral::Auth::WebToken Token;
+
+            std::cout << "Username: "  << userId << " Password: " << password << std::endl;
 
             if (uCentral::Auth::Authorize(userId, password, Token)) {
                 PrepareResponse(Response);
@@ -43,7 +55,7 @@ void RESTAPI_oauth2Handler::handleRequest(HTTPServerRequest & Request, HTTPServe
         return;
     }
     catch (const Poco::Exception &E) {
-        logger_.warning(Poco::format("%s: Failed with: %s", __FUNCTION__, E.displayText().c_str()));
+        logger_.warning(Poco::format( "%s: Failed with: %s" , std::string(__func__), E.displayText()));
     }
 
     BadRequest(Response);

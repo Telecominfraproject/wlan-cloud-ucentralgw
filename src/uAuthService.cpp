@@ -85,7 +85,7 @@ namespace uCentral::Auth {
 
         auto Authorization = Request.get("Authorization","");
 
-        if(Authorization.substr(0,6) == "Bearer")
+        if(!Authorization.empty() && Authorization.substr(0,6) == "Bearer")
         {
             auto RequestToken = Authorization.substr(7);
             std::lock_guard<std::mutex> guard(mutex_);

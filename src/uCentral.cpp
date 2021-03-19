@@ -289,6 +289,8 @@ namespace uCentral {
 
             // test_json();
 
+            printf("%s\r\n",__func__);
+
 #ifndef SMALL_BUILD
             uCentral::TIPGW::Start();
 #endif
