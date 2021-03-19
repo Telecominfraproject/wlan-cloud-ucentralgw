@@ -134,7 +134,7 @@ namespace uCentral::WebSocket {
                 }
                 catch ( const Poco::Exception & E)
                 {
-                    Logger_.warning(Poco::format("JSON-RPC(CONNECT): invalid payload. %s",E.displayText().c_str()));
+                    Logger_.warning(Poco::format("JSON-RPC(CONNECT): invalid payload. %s",E.displayText()));
                 }
 
             } else if (Method=="state") {
@@ -152,7 +152,7 @@ namespace uCentral::WebSocket {
                 }
                 catch( const Poco::Exception & E )
                 {
-                    Logger_.warning(Poco::format("JSON-RPC(STATE): invalid payload. %s",E.displayText().c_str()));
+                    Logger_.warning(Poco::format("JSON-RPC(STATE): invalid payload. %s",E.displayText()));
                 }
             } else if (Method=="healthcheck") {
                 try {
@@ -175,7 +175,7 @@ namespace uCentral::WebSocket {
                 }
                 catch( const Poco::Exception & E )
                 {
-                    Logger_.warning(Poco::format("JSON-RPC(HEALTHCHECK): invalid payload. %s",E.displayText().c_str()));
+                    Logger_.warning(Poco::format("JSON-RPC(HEALTHCHECK): invalid payload. %s",E.displayText()));
                 }
             } else if (Method=="log") {
                 try {
@@ -195,7 +195,7 @@ namespace uCentral::WebSocket {
                 }
                 catch( const Poco::Exception & E )
                 {
-                    Logger_.warning(Poco::format("JSON-RPC(LOG): invalid payload. %s",E.displayText().c_str()));
+                    Logger_.warning(Poco::format("JSON-RPC(LOG): invalid payload. %s",E.displayText()));
                 }
             }
             else
@@ -342,7 +342,7 @@ namespace uCentral::WebSocket {
                 Conn_->MessageCount++;
         }
         catch (const Poco::Exception &E) {
-            Logger_.warning( Poco::format("%s: Caught a more generic Poco exception: %s. Message: %s", SerialNumber_.c_str(), E.displayText().c_str(), IncomingMessage_ ));
+            Logger_.warning( Poco::format("%s: Caught a more generic Poco exception: %s. Message: %s", SerialNumber_, E.displayText(), IncomingMessage_ ));
             delete this;
         }
     }
@@ -350,7 +350,7 @@ namespace uCentral::WebSocket {
     bool WSConnection::SendCommand(const std::string &Cmd) {
         std::lock_guard<std::mutex> guard(mutex_);
 
-        Logger_.information(Poco::format("Sending command to %s",SerialNumber_.c_str()));
+        Logger_.information(Poco::format("Sending command to %s",SerialNumber_));
         return true;
     }
 
