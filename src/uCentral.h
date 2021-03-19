@@ -58,7 +58,6 @@ namespace uCentral {
         void handleHelp(const std::string &name, const std::string &value);
         void handleDebug(const std::string &name, const std::string &value);
         void handleLogs(const std::string &name, const std::string &value);
-        void handlePort(const std::string &name, const std::string &value);
         void handleConfig(const std::string &name, const std::string &value);
         void displayHelp();
         void defineProperty(const std::string &def);

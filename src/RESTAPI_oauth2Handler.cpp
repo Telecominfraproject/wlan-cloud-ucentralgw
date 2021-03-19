@@ -43,7 +43,7 @@ void RESTAPI_oauth2Handler::handleRequest(HTTPServerRequest & Request, HTTPServe
         return;
     }
     catch (const Poco::Exception &E) {
-        logger_.warning(Poco::format("%s: Failed with: %s", __FUNCTION__, E.displayText()));
+        logger_.warning(Poco::format("%s: Failed with: %s", __FUNCTION__, E.displayText().c_str()));
     }
 
     BadRequest(Response);

@@ -478,7 +478,7 @@ namespace uCentral::Storage {
             return true;
         }
         catch (const Poco::Exception &E) {
-            Logger_.warning(Poco::format("%s(%s): Failed with: %s", __func__ , SerialNumber, E.displayText()));
+            Logger_.warning(Poco::format("%s(%s): Failed with: %s", __func__ , SerialNumber.c_str(), E.displayText().c_str()));
         }
         return false;
     }
@@ -537,7 +537,7 @@ namespace uCentral::Storage {
         }
         catch( const Poco::Exception & E)
         {
-            Logger_.warning(Poco::format("%s(%s): Failed with: %s",__func__,SerialNumber,E.displayText() ));
+            Logger_.warning(Poco::format("%s(%s): Failed with: %s",__func__,SerialNumber.c_str(),E.displayText().c_str() ));
         }
         return false;
     }
@@ -571,7 +571,7 @@ namespace uCentral::Storage {
             return true;
         }
         catch (const Poco::Exception & E ) {
-            Logger_.warning(Poco::format("%s(%s): Failed with: %s",__FUNCTION__,SerialNumber,E.displayText() ));
+            Logger_.warning(Poco::format("%s(%s): Failed with: %s",__FUNCTION__,SerialNumber.c_str(),E.displayText().c_str() ));
         }
         return false;
     }
@@ -592,7 +592,7 @@ namespace uCentral::Storage {
             return true;
         }
         catch (const Poco::Exception &E) {
-            Logger_.warning(Poco::format("%s(%s): Failed with: %s", __func__ , SerialNumber, E.displayText()));
+            Logger_.warning(Poco::format("%s(%s): Failed with: %s", __func__ , SerialNumber.c_str(), E.displayText().c_str()));
         }
         return false;
     }
@@ -653,7 +653,7 @@ namespace uCentral::Storage {
             return true;
         }
         catch (const Poco::Exception &E) {
-            Logger_.warning(Poco::format("%s(%s): Failed with: %s", __func__ , SerialNumber, E.displayText()));
+            Logger_.warning(Poco::format("%s(%s): Failed with: %s", __func__ , SerialNumber.c_str(), E.displayText().c_str()));
         }
         return false;
     }
@@ -687,7 +687,7 @@ namespace uCentral::Storage {
             return true;
         }
         catch (const Poco::Exception & E ) {
-            Logger_.warning(Poco::format("%s(%s): Failed with: %s",__FUNCTION__,SerialNumber,E.displayText() ));
+            Logger_.warning(Poco::format("%s(%s): Failed with: %s",__FUNCTION__,SerialNumber.c_str(),E.displayText().c_str() ));
         }
         return false;
     }
@@ -705,7 +705,7 @@ namespace uCentral::Storage {
             return true;
         }
         catch (const Poco::Exception & E ) {
-            Logger_.warning(Poco::format("%s(%s): Failed with: %s",__FUNCTION__,SerialNumber,E.displayText() ));
+            Logger_.warning(Poco::format("%s(%s): Failed with: %s",__FUNCTION__,SerialNumber.c_str(),E.displayText().c_str() ));
         }
         return false;
     }
@@ -774,7 +774,7 @@ namespace uCentral::Storage {
         }
         catch( const Poco::Exception & E)
         {
-            Logger_.warning(Poco::format("%s(%s): Failed with: %s",__FUNCTION__,SerialNumber,E.displayText() ));
+            Logger_.warning(Poco::format("%s(%s): Failed with: %s",__FUNCTION__,SerialNumber.c_str(),E.displayText().c_str() ));
         }
         return false;
     }
@@ -808,7 +808,7 @@ namespace uCentral::Storage {
             return true;
         }
         catch (const Poco::Exception & E ) {
-            Logger_.warning(Poco::format("%s(%s): Failed with: %s",__FUNCTION__,SerialNumber,E.displayText() ));
+            Logger_.warning(Poco::format("%s(%s): Failed with: %s",__FUNCTION__,SerialNumber.c_str(),E.displayText().c_str() ));
         }
         return false;
     }
@@ -848,7 +848,7 @@ namespace uCentral::Storage {
         }
         catch (const Poco::Exception &E)
         {
-            Logger_.warning(Poco::format("%s(%s): Failed with: %s",__FUNCTION__,SerialNumber,E.displayText() ));
+            Logger_.warning(Poco::format("%s(%s): Failed with: %s",__FUNCTION__,SerialNumber.c_str(),E.displayText().c_str() ));
         }
         return false;
     }
@@ -897,7 +897,7 @@ namespace uCentral::Storage {
         }
         catch( const Poco::Exception & E)
         {
-            Logger_.warning(Poco::format("%s(%s): Failed with: %s",__FUNCTION__,SerialNumber,E.displayText() ));
+            Logger_.warning(Poco::format("%s(%s): Failed with: %s",__FUNCTION__,SerialNumber.c_str(),E.displayText().c_str() ));
         }
         return false;
     }
@@ -905,7 +905,7 @@ namespace uCentral::Storage {
     bool Service::CreateDefaultDevice(const std::string & SerialNumber, const std::string & Capabilities) {
 
         uCentralDevice  D;
-        Logger_.information(Poco::format("AUTO-CREATION(%s)",SerialNumber));
+        Logger_.information(Poco::format("AUTO-CREATION(%s)",SerialNumber.c_str()));
         uint64_t Now = time(nullptr);
 
         uCentral::Config::Capabilities  Caps(Capabilities);
@@ -949,7 +949,7 @@ namespace uCentral::Storage {
         }
         catch( const Poco::Exception & E)
         {
-            Logger_.warning(Poco::format("%s(%s): Failed with: %s",__FUNCTION__,SerialNumber,E.displayText() ));
+            Logger_.warning(Poco::format("%s(%s): Failed with: %s",__FUNCTION__,SerialNumber.c_str(),E.displayText().c_str() ));
         }
         return false;
     }
@@ -991,7 +991,7 @@ namespace uCentral::Storage {
         }
         catch( const Poco::Exception & E)
         {
-            Logger_.warning(Poco::format("%s(%s): Failed with: %s",__FUNCTION__,SerialNumber,E.displayText() ));
+            Logger_.warning(Poco::format("%s(%s): Failed with: %s",__FUNCTION__,SerialNumber.c_str(),E.displayText().c_str() ));
         }
         return false;
     }
@@ -1016,7 +1016,7 @@ namespace uCentral::Storage {
         }
         catch( const Poco::Exception & E)
         {
-            Logger_.warning(Poco::format("%s(%s): Failed with: %s",__FUNCTION__,SerialNumber,E.displayText() ));
+            Logger_.warning(Poco::format("%s(%s): Failed with: %s",__FUNCTION__,SerialNumber.c_str(),E.displayText().c_str() ));
         }
         return false;
     }
@@ -1041,7 +1041,7 @@ namespace uCentral::Storage {
         }
         catch( const Poco::Exception & E)
         {
-            Logger_.warning(Poco::format("%s(%s): Failed with: %s",__FUNCTION__,NewConfig.SerialNumber,E.displayText() ));
+            Logger_.warning(Poco::format("%s(%s): Failed with: %s",__FUNCTION__,NewConfig.SerialNumber.c_str(),E.displayText().c_str() ));
         }
 
         return false;
@@ -1102,7 +1102,7 @@ namespace uCentral::Storage {
         }
         catch( const Poco::Exception & E)
         {
-            Logger_.warning(Poco::format("%s: Failed with: %s",__FUNCTION__,E.displayText() ));
+            Logger_.warning(Poco::format("%s: Failed with: %s",__FUNCTION__,E.displayText().c_str() ));
         }
         return false;
     }
@@ -1140,7 +1140,7 @@ namespace uCentral::Storage {
         }
         catch( const Poco::Exception & E)
         {
-            Logger_.warning(Poco::format("%s(%s): Failed with: %s",__FUNCTION__,SerialNumber,E.displayText() ));
+            Logger_.warning(Poco::format("%s(%s): Failed with: %s",__FUNCTION__,SerialNumber.c_str(),E.displayText().c_str() ));
         }
         return false;
     }
@@ -1168,7 +1168,7 @@ namespace uCentral::Storage {
         }
         catch( const Poco::Exception & E)
         {
-            Logger_.warning(Poco::format("%s(%s): Failed with: %s",__FUNCTION__,SerialNumber,E.displayText() ));
+            Logger_.warning(Poco::format("%s(%s): Failed with: %s",__FUNCTION__,SerialNumber.c_str(),E.displayText().c_str() ));
         }
         return false;
     }
@@ -1186,7 +1186,7 @@ namespace uCentral::Storage {
         }
         catch( const Poco::Exception & E)
         {
-            Logger_.warning(Poco::format("%s(%s): Failed with: %s",__FUNCTION__,SerialNumber,E.displayText() ));
+            Logger_.warning(Poco::format("%s(%s): Failed with: %s",__FUNCTION__,SerialNumber.c_str(),E.displayText().c_str() ));
         }
         return false;
     }
@@ -1217,7 +1217,7 @@ namespace uCentral::Storage {
         }
         catch( const Poco::Exception & E)
         {
-            Logger_.warning(Poco::format("%s(%s): Failed with: %s",__FUNCTION__,SerialNumber,E.displayText() ));
+            Logger_.warning(Poco::format("%s(%s): Failed with: %s",__FUNCTION__,SerialNumber.c_str(),E.displayText().c_str() ));
         }
         return false;
     }
@@ -1274,7 +1274,7 @@ namespace uCentral::Storage {
         }
         catch( const Poco::Exception & E)
         {
-            Logger_.warning(Poco::format("%s(%s): Failed with: %s",__FUNCTION__,Name,E.displayText() ));
+            Logger_.warning(Poco::format("%s(%s): Failed with: %s",__FUNCTION__,Name.c_str(),E.displayText().c_str() ));
         }
         return false;
     }
@@ -1290,7 +1290,7 @@ namespace uCentral::Storage {
         }
         catch( const Poco::Exception & E)
         {
-            Logger_.warning(Poco::format("%s(%s): Failed with: %s",__FUNCTION__,Name,E.displayText() ));
+            Logger_.warning(Poco::format("%s(%s): Failed with: %s",__FUNCTION__,Name.c_str(),E.displayText().c_str() ));
         }
         return false;
     }
@@ -1316,13 +1316,13 @@ namespace uCentral::Storage {
             }
             else
             {
-                Logger_.warning(Poco::format("Default configuration: %s cannot be sete to an invalid configuration.",Name));
+                Logger_.warning(Poco::format("Default configuration: %s cannot be sete to an invalid configuration.",Name.c_str()));
             }
             return false;
         }
         catch( const Poco::Exception & E)
         {
-            Logger_.warning(Poco::format("%s(%s): Failed with: %s",__FUNCTION__,Name,E.displayText() ));
+            Logger_.warning(Poco::format("%s(%s): Failed with: %s",__FUNCTION__,Name.c_str(),E.displayText().c_str() ));
         }
         return false;
     }
@@ -1354,7 +1354,7 @@ namespace uCentral::Storage {
         }
         catch( const Poco::Exception & E)
         {
-            Logger_.warning(Poco::format("%s(%s): Failed with: %s",__FUNCTION__,Name,E.displayText() ));
+            Logger_.warning(Poco::format("%s(%s): Failed with: %s",__FUNCTION__,Name.c_str(),E.displayText().c_str() ));
         }
         return false;
     }
@@ -1400,7 +1400,7 @@ namespace uCentral::Storage {
         }
         catch( const Poco::Exception & E)
         {
-            Logger_.warning(Poco::format("%s: Failed with: %s",__FUNCTION__,E.displayText() ));
+            Logger_.warning(Poco::format("%s: Failed with: %s",__FUNCTION__,E.displayText().c_str() ));
         }
         return false;
     }
@@ -1458,7 +1458,7 @@ namespace uCentral::Storage {
                 DefConfig.Models = i.get<2>();
                 if(FindInList(Model,DefConfig.Models)) {
                     DefConfig.Name = i.get<0>();
-                    Logger_.information(Poco::format("AUTO-PROVISIONING: found default configuration '%s' for model:%s",DefConfig.Name,Model));
+                    Logger_.information(Poco::format("AUTO-PROVISIONING: found default configuration '%s' for model:%s",DefConfig.Name.c_str(),Model.c_str()));
                     DefConfig.Name = i.get<0>();
                     DefConfig.Configuration = i.get<1>();
                     DefConfig.Models = i.get<2>();
@@ -1468,12 +1468,12 @@ namespace uCentral::Storage {
                     return true;
                 }
             }
-            Logger_.information(Poco::format("AUTO-PROVISIONING: no default configuration for model:%s",Model));
+            Logger_.information(Poco::format("AUTO-PROVISIONING: no default configuration for model:%s",Model.c_str()));
             return false;
         }
         catch( const Poco::Exception & E)
         {
-            Logger_.warning(Poco::format("%s: Failed with: %s",__FUNCTION__,E.displayText() ));
+            Logger_.warning(Poco::format("%s: Failed with: %s",__FUNCTION__,E.displayText().c_str() ));
         }
         return false;
     }
