@@ -24,6 +24,7 @@ set(Boost_USE_STATIC_RUNTIME OFF)
 find_package(Boost REQUIRED system)
 find_package(OpenSSL REQUIRED)
 find_package(yaml-cpp REQUIRED)
+find_package(ZLIB REQUIRED)
 if(NOT SMALL_BUILD)
 find_package(PostgreSQL REQUIRED)
 find_package(MySQL REQUIRED)
@@ -47,16 +48,17 @@ add_executable( ucentral
                 src/uStorageService.cpp src/uStorageService.h src/uDeviceRegistry.cpp src/uDeviceRegistry.h
                 src/RESTAPI_oauth2Handler.cpp src/RESTAPI_oauth2Handler.h src/RESTAPI_devicesHandler.cpp src/RESTAPI_devicesHandler.h
                 src/RESTAPI_deviceHandler.cpp src/RESTAPI_deviceHandler.h src/RESTAPI_unknownRequestHandler.cpp src/RESTAPI_unknownRequestHandler.h
-        src/RESTAPI_handler.cpp src/RESTAPI_handler.h src/RESTAPI_deviceCommandHandler.cpp src/RESTAPI_deviceCommandHandler.h
-        src/RESTAPI_objects.h src/RESTAPI_objects.cpp src/uAuthService.cpp src/uAuthService.h src/uCentralConfig.cpp src/uCentralConfig.h
+                src/RESTAPI_handler.cpp src/RESTAPI_handler.h src/RESTAPI_deviceCommandHandler.cpp src/RESTAPI_deviceCommandHandler.h
+                src/RESTAPI_objects.h src/RESTAPI_objects.cpp src/uAuthService.cpp src/uAuthService.h src/uCentralConfig.cpp src/uCentralConfig.h
                 src/RESTAPI_default_configuration.cpp
-                src/RESTAPI_default_configuration.h src/RESTAPI_default_configurations.cpp src/RESTAPI_default_configurations.h src/RESTAPI_commands.cpp src/RESTAPI_commands.h src/uCommandManager.cpp src/uCommandManager.h src/RESTAPI_command.cpp src/RESTAPI_command.h)
+                src/RESTAPI_default_configuration.h src/RESTAPI_default_configurations.cpp src/RESTAPI_default_configurations.h src/RESTAPI_commands.cpp
+                src/RESTAPI_commands.h src/uCommandManager.cpp src/uCommandManager.h src/RESTAPI_command.cpp src/RESTAPI_command.h)
 
 if(SMALL_BUILD)
 target_link_libraries(ucentral PRIVATE yaml-cpp
-                        ${Poco_LIBRARIES} ${Boost_LIBRARIES})
+                        ${Poco_LIBRARIES} ${Boost_LIBRARIES} ${ZLIB_LIBRARIES})
 else()
     target_link_libraries(ucentral PRIVATE yaml-cpp
             ${Poco_LIBRARIES} ${Boost_LIBRARIES} ${PostgreSQL_LIBRARIES}
-            ${MySQL_LIBRARIES} ${ODBC_LIBRARIES})
+            ${MySQL_LIBRARIES} ${ODBC_LIBRARIES} ${ZLIB_LIBRARIES})
 endif()
