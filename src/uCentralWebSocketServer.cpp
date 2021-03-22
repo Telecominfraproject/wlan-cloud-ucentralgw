@@ -58,6 +58,39 @@ namespace uCentral::WebSocket {
             svr->stop();
     }
 
+    WSConnection::WSConnection(Poco::Logger   & Logger,
+            HTTPServerRequest & Request,
+            HTTPServerResponse & Response ):
+                Logger_(Logger),
+                Conn_(nullptr),
+                RPC_(0)
+    {
+        WS_ = new Poco::Net::WebSocket(Request, Response);
+        Reactor_ = std::shared_ptr<CountedReactor>(new CountedReactor(Service::instance()->GetAReactor()));
+        Reactor_->Reactor()->addEventHandler(*WS_,
+                                             Poco::NObserver<WSConnection, Poco::Net::ReadableNotification>(*this,&WSConnection::OnSocketReadable));
+        Reactor_->Reactor()->addEventHandler(*WS_,
+                                             Poco::NObserver<WSConnection, Poco::Net::ShutdownNotification>(*this,&WSConnection::OnSocketShutdown));
+        Reactor_->Reactor()->addEventHandler(*WS_,
+                                             Poco::NObserver<WSConnection, Poco::Net::ErrorNotification>(*this,&WSConnection::OnSocketError));
+        auto TS = Poco::Timespan(90,0);
+        WS_->setReceiveTimeout(TS);
+        WS_->setNoDelay(true);
+        WS_->setKeepAlive(true);
+    }
+
+    WSConnection::~WSConnection() {
+        uCentral::DeviceRegistry::UnRegister(SerialNumber_,this);
+        Reactor_->Reactor()->removeEventHandler(*WS_,
+                                                Poco::NObserver<WSConnection,Poco::Net::ReadableNotification>(*this,&WSConnection::OnSocketReadable));
+        Reactor_->Reactor()->removeEventHandler(*WS_,
+                                                Poco::NObserver<WSConnection,Poco::Net::ShutdownNotification>(*this,&WSConnection::OnSocketShutdown));
+        Reactor_->Reactor()->removeEventHandler(*WS_,
+                                                Poco::NObserver<WSConnection,Poco::Net::ErrorNotification>(*this,&WSConnection::OnSocketError));
+        WS_->shutdown();
+        delete WS_;
+    }
+
     bool WSConnection::LookForUpgrade(std::string &Response) {
 
         std::string NewConfig;
@@ -66,42 +99,39 @@ namespace uCentral::WebSocket {
         if (uCentral::Storage::ExistingConfiguration(SerialNumber_, Conn_->UUID,
                                                      NewConfig, NewConfigUUID)) {
             if (Conn_->UUID < NewConfigUUID) {
-                if(Conn_->Protocol == DeviceRegistry::jsonrpc) {
-                    Conn_->PendingUUID = NewConfigUUID;
-                    std::string Log = Poco::format("Returning newer configuration %Lu.", Conn_->PendingUUID);
-                    uCentral::Storage::AddLog(SerialNumber_, Log);
+                Conn_->PendingUUID = NewConfigUUID;
+                std::string Log = Poco::format("Returning newer configuration %Lu.", Conn_->PendingUUID);
+                uCentral::Storage::AddLog(SerialNumber_, Log);
 
-                    Poco::JSON::Object Params;
-                    Params.set("serial", SerialNumber_);
-                    Params.set("uuid", NewConfigUUID);
-                    Params.set("when", 0);
-                    Params.set("config", NewConfig);
+                Poco::JSON::Object Params;
+                Params.set("serial", SerialNumber_);
+                Params.set("uuid", NewConfigUUID);
+                Params.set("when", 0);
+                Params.set("config", NewConfig);
 
-                    Poco::JSON::Object ReturnObject;
-                    ReturnObject.set("method", "configure");
-                    ReturnObject.set("jsonrpc", "2.0");
-                    ReturnObject.set("id", RPC_++);
-                    ReturnObject.set("params", Params);
+                Poco::JSON::Object ReturnObject;
+                ReturnObject.set("method", "configure");
+                ReturnObject.set("jsonrpc", "2.0");
+                ReturnObject.set("id", RPC_++);
+                ReturnObject.set("params", Params);
 
-                    std::stringstream Ret;
-                    Poco::JSON::Stringifier::condense(ReturnObject, Ret);
+                std::stringstream Ret;
+                Poco::JSON::Stringifier::condense(ReturnObject, Ret);
 
-                    Response = Ret.str();
-                }
-                else
-                {
-                    Conn_->PendingUUID = NewConfigUUID;
-                    std::string Log = Poco::format("Returning newer configuration %Lu.", Conn_->PendingUUID);
-                    uCentral::Storage::AddLog(SerialNumber_, Log);
-                    Response = "{ \"cfg\" : " + NewConfig + "}";
-                }
+                Response = Ret.str();
+            }
+            else
+            {
+                Conn_->PendingUUID = NewConfigUUID;
+                std::string Log = Poco::format("Returning newer configuration %Lu.", Conn_->PendingUUID);
+                uCentral::Storage::AddLog(SerialNumber_, Log);
+                Response = "{ \"cfg\" : " + NewConfig + "}";
             }
             return true;
         }
 
         return false;
     }
-
 
     void WSConnection::ProcessJSONRPCMessage(Poco::DynamicStruct &ds, std::string &Response) {
 
@@ -110,12 +140,14 @@ namespace uCentral::WebSocket {
             std::string Method = ds["method"].toString();
             auto Params = ds["params"];
 
-            if(Method=="connect") {
+            if(!Poco::icompare(Method,"connect")) {
                 try {
                     auto Serial = Params["serial"].toString();
                     auto UUID = Params["uuid"];
                     auto Firmware = Params["firmware"].toString();
                     auto Capabilities = Params["capabilities"].toString();
+
+                    Logger_.information(Poco::format("CONNECT(%s): Starting.",Serial));
 
                     Conn_ = uCentral::DeviceRegistry::Register(Serial, this);
                     SerialNumber_ = Serial;
@@ -123,7 +155,6 @@ namespace uCentral::WebSocket {
                     Conn_->UUID = UUID;
                     Conn_->Firmware = Firmware;
                     Conn_->PendingUUID = 0;
-                    Conn_->Protocol = DeviceRegistry::jsonrpc;
 
                     uCentral::Storage::UpdateDeviceCapabilities(SerialNumber_, Capabilities);
 
@@ -134,14 +165,15 @@ namespace uCentral::WebSocket {
                 }
                 catch ( const Poco::Exception & E)
                 {
-                    Logger_.warning(Poco::format("JSON-RPC(CONNECT): invalid payload. %s",E.displayText()));
+                    Logger_.warning(Poco::format("CONNECT: Invalid payload. Error: %s",E.displayText()));
                 }
-
-            } else if (Method=="state") {
+            } else if (!Poco::icompare(Method,"state")) {
                 try {
                     auto Serial = Params["serial"].toString();
                     auto UUID = Params["uuid"];
                     auto State = Params["state"].toString();
+
+                    Logger_.information(Poco::format("STATE(%s): Updating.", Serial));
 
                     Conn_->UUID = UUID;
 
@@ -152,14 +184,16 @@ namespace uCentral::WebSocket {
                 }
                 catch( const Poco::Exception & E )
                 {
-                    Logger_.warning(Poco::format("JSON-RPC(STATE): invalid payload. %s",E.displayText()));
+                    Logger_.warning(Poco::format("STATE: Invalid payload. Error: %s",E.displayText()));
                 }
-            } else if (Method=="healthcheck") {
+            } else if (!Poco::icompare(Method,"healthcheck")) {
                 try {
                     auto Serial = Params["serial"].toString();
                     auto UUID = Params["uuid"];
                     auto Sanity = Params["sanity"];
                     auto CheckData = Params["data"].toString();
+
+                    Logger_.information(Poco::format("HEALTHCHECK(%s): Updating", Serial));
 
                     Conn_->UUID = UUID;
 
@@ -175,13 +209,15 @@ namespace uCentral::WebSocket {
                 }
                 catch( const Poco::Exception & E )
                 {
-                    Logger_.warning(Poco::format("JSON-RPC(HEALTHCHECK): invalid payload. %s",E.displayText()));
+                    Logger_.warning(Poco::format("HEALTHCHECK: Invalid payload. Error: %s",E.displayText()));
                 }
-            } else if (Method=="log") {
+            } else if (!Poco::icompare(Method,"log")) {
                 try {
                     auto Serial = Params["serial"].toString();
                     auto Log = Params["log"].toString();
-                    auto Data = Params["data"].toString();
+                    std::string Data;
+                    if(ds.contains("data"))
+                        Data = Params["data"].toString();
                     auto Severity = Params["severity"];
 
                     uCentralDeviceLog DeviceLog;
@@ -195,13 +231,38 @@ namespace uCentral::WebSocket {
                 }
                 catch( const Poco::Exception & E )
                 {
-                    Logger_.warning(Poco::format("JSON-RPC(LOG): invalid payload. %s",E.displayText()));
+                    Logger_.warning(Poco::format("LOG: Invalid payload. Error: %s",E.displayText()));
+                }
+            } else if (!Poco::icompare(Method,"ping")) {
+                try {
+                    auto Serial = Params["serial"].toString();
+                    uint64_t UUID = Params["uuid"];
+
+                    Logger_.information(Poco::format("PING(%s): Current config is %Lu", Serial, UUID));
+
+                }
+                catch( const Poco::Exception & E )
+                {
+                    Logger_.warning(Poco::format("PING: Invalid payload. Error: %s",E.displayText()));
+                }
+            } else if (!Poco::icompare(Method,"cfgpending")) {
+                try {
+                    auto Serial = Params["serial"].toString();
+                    uint64_t UUID = Params["uuid"];
+                    uint64_t Active = Params["active"];
+
+                    Logger_.information(Poco::format("CFG-PENDING(%s): Active: %Lu Target: %Lu", Serial, Active, UUID));
+                }
+                catch( const Poco::Exception & E )
+                {
+                    Logger_.warning(Poco::format("CFG-PENDING: Invalid payload. Error: %s",E.displayText()));
                 }
             }
             else
             {
                 Response = "{\"jsonrpc\": \"2.0\", \"error\": {\"code\": -32601, \"message\": \"Method not found\"}, \"id\": \"1\"}";
             }
+
         } else if (ds.contains("result") && ds.contains("id"))
         {
 
@@ -212,47 +273,14 @@ namespace uCentral::WebSocket {
         }
     }
 
-    void WSConnection::ProcessLegacyMessage(Poco::DynamicStruct &ds, std::string &Response) {
-        if( SerialNumber_.empty() ) {
-            SerialNumber_ = ds["serial"].toString();
-            Conn_ = uCentral::DeviceRegistry::Register(SerialNumber_, this);
-        }
+    void WSConnection::OnSocketShutdown(const AutoPtr<Poco::Net::ShutdownNotification>& pNf) {
+        Logger_.information(Poco::format("SOCKET-SHUTDOWN(%s): Closing.",SerialNumber_));
+        delete this;
+    };
 
-        if(Conn_!= nullptr) {
-            if(Conn_->Address.empty())
-                Conn_->Address = WS_.peerAddress().toString();
-
-            if (ds.contains("state") && ds.contains("serial")) {
-                Logger_.information(SerialNumber_ + ": updating statistics.");
-                std::string NewStatistics{ds["state"].toString()};
-                uCentral::Storage::AddStatisticsData(SerialNumber_, Conn_->UUID, NewStatistics);
-                uCentral::DeviceRegistry::SetStatistics(SerialNumber_, NewStatistics);
-            } else if (ds.contains("capab") && ds.contains("serial")) {
-                std::string Log{"Updating capabilities."};
-                uCentral::Storage::AddLog(SerialNumber_, Log);
-                std::string NewCapabilities{ds["capab"].toString()};
-                uCentral::Storage::UpdateDeviceCapabilities(SerialNumber_, NewCapabilities);
-
-                if(uCentral::instance()->AutoProvisioning() && !uCentral::Storage::DeviceExists(SerialNumber_))
-                {
-                    uCentral::Storage::CreateDefaultDevice(SerialNumber_,NewCapabilities);
-                }
-
-            } else if (ds.contains("uuid") && ds.contains("serial") && ds.contains("active")) {
-                Conn_->UUID = ds["uuid"];
-                uint64_t Active = ds["active"];
-                std::string Log = Poco::format("Waiting to apply configuration from %Lu to %Lu.", Active, Conn_->UUID);
-                uCentral::Storage::AddLog(SerialNumber_, Log);
-            } else if (ds.contains("uuid") && ds.contains("serial")) {
-                Conn_->UUID = ds["uuid"];
-                LookForUpgrade(Response);
-            } else if (ds.contains("log")) {
-                auto log = ds["log"].toString();
-                uCentral::Storage::AddLog(SerialNumber_, log);
-            } else {
-                std::cerr << "UNKNOWN_MESSAGE(" << SerialNumber_ << ")" << std::endl;
-            }
-        }
+    void WSConnection::OnSocketError(const AutoPtr<Poco::Net::ErrorNotification>& pNf) {
+        Logger_.information(Poco::format("SOCKET-ERROR(%s): Closing.",SerialNumber_));
+        delete this;
     }
 
     void WSConnection::OnSocketReadable(const AutoPtr<Poco::Net::ReadableNotification>& pNf)
@@ -265,24 +293,25 @@ namespace uCentral::WebSocket {
         std::lock_guard<std::mutex> guard(mutex_);
 
         try {
-            IncomingSize = WS_.receiveFrame(IncomingMessage_,sizeof(IncomingMessage_), flags);
+            IncomingSize = WS_->receiveFrame(IncomingMessage_,sizeof(IncomingMessage_), flags);
             Op = flags & Poco::Net::WebSocket::FRAME_OP_BITMASK;
 
             if(IncomingSize==0 && flags == 0 && Op == 0)
             {
+                Logger_.information(Poco::format("DISCONNECT(%s)",SerialNumber_));
                 delete this;
                 return;
             }
 
             switch (Op) {
                 case Poco::Net::WebSocket::FRAME_OP_PING: {
-                    Logger_.information("PING(" + SerialNumber_ + "): received.");
-                    WS_.sendFrame("", 0, Poco::Net::WebSocket::FRAME_OP_PONG | Poco::Net::WebSocket::FRAME_FLAG_FIN);
+                        Logger_.information("WS-PING(" + SerialNumber_ + "): received.");
+                        WS_->sendFrame("", 0, Poco::Net::WebSocket::FRAME_OP_PONG | Poco::Net::WebSocket::FRAME_FLAG_FIN);
                     }
                     break;
 
                 case Poco::Net::WebSocket::FRAME_OP_PONG: {
-                    Logger_.information("PONG(" + SerialNumber_ + "): received.");
+                        Logger_.information("PONG(" + SerialNumber_ + "): received.");
                     }
                     break;
 
@@ -298,32 +327,27 @@ namespace uCentral::WebSocket {
                             auto object = result.extract<Poco::JSON::Object::Ptr>();
                             Poco::DynamicStruct ds = *object;
 
-                            uCentral::DeviceRegistry::ConnectionType Protocol;
                             if (ds.contains("jsonrpc")) {
-                                Protocol = DeviceRegistry::jsonrpc;
                                 ProcessJSONRPCMessage(ds, ResponseDocument);
-                            } else {
-                                Protocol = DeviceRegistry::legacy;
-                                ProcessLegacyMessage(ds, ResponseDocument);
-                            }
 
-                            if (Conn_ != nullptr) {
-                                Conn_->Protocol = Protocol;
-                                Conn_->RX += IncomingSize;
-                            }
+                                if (Conn_ != nullptr) {
+                                    Conn_->RX += IncomingSize;
+                                }
 
-                            if (!ResponseDocument.empty()) {
-                                if (Conn_ != nullptr)
-                                    Conn_->TX += ResponseDocument.size();
-                                WS_.sendFrame(ResponseDocument.c_str(), ResponseDocument.size());
+                                if (!ResponseDocument.empty()) {
+                                    if (Conn_ != nullptr)
+                                        Conn_->TX += ResponseDocument.size();
+                                    WS_->sendFrame(ResponseDocument.c_str(), ResponseDocument.size());
+                                }
+                            }
+                            else
+                            {
+                                Logger_.warning("INVALID-PAYLOAO: Payload is not JSON-RPC 2.0");
                             }
                         }
                         catch (const Poco::Exception & E) {
-                            if((Conn_!=nullptr) && (Conn_->Protocol==DeviceRegistry::jsonrpc))
-                            {
-                                char Response[]={"{\"jsonrpc\": \"2.0\", \"error\": {\"code\": -32700, \"message\": \"Parse error\"}, \"id\": null}\""};
-                                WS_.sendFrame(Response,sizeof(Response));
-                            }
+                            char Response[]={"{\"jsonrpc\": \"2.0\", \"error\": {\"code\": -32700, \"message\": \"Parse error\"}, \"id\": null}\""};
+                            WS_->sendFrame(Response,sizeof(Response));
                         }
                     }
                     break;
@@ -340,7 +364,8 @@ namespace uCentral::WebSocket {
                 Conn_->MessageCount++;
         }
         catch (const Poco::Exception &E) {
-            Logger_.warning( Poco::format("%s(%s): Caught a more generic Poco exception: %s. Message: %s", std::string(__func__), SerialNumber_, E.displayText(), IncomingMessage_ ));
+            std::string Msg{IncomingMessage_};
+            Logger_.warning( Poco::format("%s(%s): Caught a more generic Poco exception: %s. Message: %s", std::string(__func__), SerialNumber_, E.displayText(), Msg ));
             delete this;
         }
     }
@@ -349,37 +374,27 @@ namespace uCentral::WebSocket {
         std::lock_guard<std::mutex> guard(mutex_);
 
         Logger_.information(Poco::format("Sending command to %s",SerialNumber_));
+
         return true;
     }
 
-    WSConnection::~WSConnection() {
-        uCentral::DeviceRegistry::UnRegister(SerialNumber_,this);
-        Reactor_->Reactor()->removeEventHandler(WS_,
-                                          Poco::NObserver<WSConnection,Poco::Net::ReadableNotification>(*this,&WSConnection::OnSocketReadable));
-        Reactor_->Reactor()->removeEventHandler(WS_,
-                                          Poco::NObserver<WSConnection,Poco::Net::ShutdownNotification>(*this,&WSConnection::OnSocketShutdown));
-        WS_.shutdown();
-    }
-
     void WSRequestHandler::handleRequest(HTTPServerRequest &Request, HTTPServerResponse &Response) {
-        Poco::Logger & Logger = Service::instance()->logger();
-        new WSConnection(Logger,Request,Response);
+        new WSConnection(Logger_,Request,Response);
     }
 
-    HTTPRequestHandler *WSRequestHandlerFactory::createRequestHandler(const HTTPServerRequest &request) {
+    HTTPRequestHandler *WSRequestHandlerFactory::createRequestHandler(const HTTPServerRequest & Request) {
 
         Poco::Logger & Logger = Service::instance()->logger();
 
-        Logger.information(Poco::format("%s from %s: %s",request.getMethod(),
-                                        request.clientAddress().toString(),
-                                        request.getURI()));
+        std::string ConnectionInfo = "New connection from " + Request.clientAddress().toString();
 
-
-        for (const auto & it: request)
-            Logger.information(it.first + ": " + it.second);
-
-        if (request.find("Upgrade") != request.end() && Poco::icompare(request["Upgrade"], "websocket") == 0)
+        if ( (Request.find("Sec-WebSocket-Protocol") != Request.end() && Poco::icompare(Request["Sec-WebSocket-Protocol"], "ucentral-broker") == 0) &&
+             (Request.find("Upgrade") != Request.end() && Poco::icompare(Request["Upgrade"], "websocket") == 0)) {
+            Logger.information(ConnectionInfo);
             return new WSRequestHandler(Logger);
+        }
+
+        Logger.information( "REJECTED: " + ConnectionInfo);
 
         return nullptr;
     }

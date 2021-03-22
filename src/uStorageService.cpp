@@ -74,8 +74,8 @@ namespace uCentral::Storage {
         return uCentral::Storage::Service::instance()->DeleteHealthCheckData(SerialNumber, FromDate, ToDate );
     }
 
-    bool UpdateDeviceConfiguration(std::string &SerialNumber, std::string &Configuration) {
-        return uCentral::Storage::Service::instance()->UpdateDeviceConfiguration(SerialNumber, Configuration);
+    bool UpdateDeviceConfiguration(std::string &SerialNumber, std::string &Configuration, uint64_t & NewUUID ) {
+        return uCentral::Storage::Service::instance()->UpdateDeviceConfiguration(SerialNumber, Configuration, NewUUID);
     }
 
     bool CreateDevice(uCentralDevice &Device) {
@@ -148,6 +148,34 @@ namespace uCentral::Storage {
 
     bool GetDefaultConfigurations(uint64_t From, uint64_t HowMany, std::vector<uCentralDefaultConfiguration> &Devices) {
         return uCentral::Storage::Service::instance()->GetDefaultConfigurations(From,HowMany,Devices);
+    }
+
+    bool AddCommand(std::string & SerialNumber, uCentralCommandDetails & Command) {
+        return uCentral::Storage::Service::instance()->AddCommand(SerialNumber, Command);
+    }
+
+    bool GetCommands(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate, uint64_t Offset, uint64_t HowMany, std::vector<uCentralCommandDetails> & Commands) {
+        return uCentral::Storage::Service::instance()->GetCommands(SerialNumber, FromDate, ToDate, Offset, HowMany, Commands);
+    }
+
+    bool DeleteCommands(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate) {
+        return uCentral::Storage::Service::instance()->DeleteCommands(SerialNumber, FromDate, ToDate);
+    }
+
+    bool GetNonExecutedCommands( uint64_t Offset, uint64_t HowMany, std::vector<uCentralCommandDetails> & Commands ) {
+        return uCentral::Storage::Service::instance()->GetNonExecutedCommands( Offset, HowMany, Commands );
+    }
+
+    bool UpdateCommand( std::string &UUID, uCentralCommandDetails & Command ) {
+        return uCentral::Storage::Service::instance()->UpdateCommand(UUID,Command );
+    }
+
+    bool GetCommand( std::string &UUID, uCentralCommandDetails & Command ) {
+        return uCentral::Storage::Service::instance()->GetCommand( UUID, Command );
+    }
+
+    bool DeleteCommand( std::string & UUID ) {
+        return uCentral::Storage::Service::instance()->DeleteCommand( UUID );
     }
 
     std::string SerialToMAC(const std::string & Serial) {
@@ -226,6 +254,23 @@ namespace uCentral::Storage {
                     "Description TEXT, "
                     "Created BIGINT , "
                     "LastModified BIGINT)", now;
+
+        session_ << "CREATE TABLE IF NOT EXISTS CommandList ("
+                    "UUID           VARCHAR(30) PRIMARY KEY, "
+                    "SerialNumber   VARCHAR(30), "
+                    "Command        VARCHAR(32), "
+                    "Status         VARCHAR(64), "
+                    "SubmittedBy    VARCHAR(64), "
+                    "Results        TEXT, "
+                    "Details        TEXT, "
+                    "Submitted      BIGINT, "
+                    "Executed       BIGINT, "
+                    "Completed      BIGINT, "
+                    "RunAt          BIGINT, "
+                    "ErrorCode      BIGINT "
+                    ")", now;
+
+        session_ << "CREATE INDEX IF NOT EXISTS CommandListIndex ON CommandList (SerialNumber ASC, Submitted ASC)", now;
 
         return 0;
     }
@@ -308,6 +353,22 @@ namespace uCentral::Storage {
                     "Description TEXT, "
                     "Created BIGINT , "
                     "LastModified BIGINT)", now;
+
+        session_ << "CREATE TABLE IF NOT EXISTS CommandList ("
+                    "UUID           VARCHAR(30) PRIMARY KEY, "
+                    "SerialNumber   VARCHAR(30), "
+                    "Command        VARCHAR(32), "
+                    "Status         VARCHAR(64), "
+                    "SubmittedBy    VARCHAR(64), "
+                    "Results        TEXT, "
+                    "Details        TEXT, "
+                    "Submitted      BIGINT, "
+                    "Executed       BIGINT, "
+                    "Completed      BIGINT, "
+                    "RunAt          BIGINT, "
+                    "ErrorCode      BIGINT "
+                    "INDEX CommandListIndex (SerialNumber ASC, Submitted ASC)"
+                    ")", now;
 
         return 0;
     }
@@ -392,6 +453,23 @@ namespace uCentral::Storage {
                     "Description TEXT, "
                     "Created BIGINT , "
                     "LastModified BIGINT)", now;
+
+        session_ << "CREATE TABLE IF NOT EXISTS CommandList ("
+                    "UUID           VARCHAR(30) PRIMARY KEY, "
+                    "SerialNumber   VARCHAR(30), "
+                    "Command        VARCHAR(32), "
+                    "Status         VARCHAR(64), "
+                    "SubmittedBy    VARCHAR(64), "
+                    "Results        TEXT, "
+                    "Details        TEXT, "
+                    "Submitted      BIGINT, "
+                    "Executed       BIGINT, "
+                    "Completed      BIGINT, "
+                    "RunAt          BIGINT, "
+                    "ErrorCode      BIGINT "
+                    ")", now;
+
+        session_ << "CREATE INDEX IF NOT EXISTS CommandListIndex ON CommandList (SerialNumber ASC, Submitted ASC)", now;
 
         return 0;
     }
@@ -492,37 +570,26 @@ namespace uCentral::Storage {
 
         try {
             RecordList Records;
+
+            bool DatesIncluded = (FromDate!=0 || ToDate!=0);
+
+            std::string Prefix{ "SELECT SerialNumber, UUID, Data, Recorded FROM Statistics "};
+            std::string Statement = SerialNumber.empty()
+                                    ? Prefix + std::string(DatesIncluded ? "WHERE " : "")
+                                    : Prefix + "WHERE SerialNumber='" + SerialNumber + "'" + std::string(DatesIncluded ? " AND " : "");
+
+            std::string DateSelector;
             if(FromDate && ToDate) {
-                session_
-                        << "SELECT SerialNumber, UUID, Data, Recorded FROM Statistics WHERE SerialNumber='%s' AND Recorded>=%Lu AND Recorded<=%Lu",
-                        into(Records),
-                        SerialNumber.c_str(),
-                        FromDate,
-                        ToDate,
-                        range(Offset, Offset + HowMany - 1), now;
+                DateSelector = " Recorded>=" + std::to_string(FromDate) + " AND Recorded<=" + std::to_string(ToDate);
             } else if (FromDate) {
-                session_
-                        << "SELECT SerialNumber, UUID, Data, Recorded FROM Statistics WHERE SerialNumber='%s' AND Recorded>=%Lu",
-                        into(Records),
-                        SerialNumber.c_str(),
-                        FromDate,
-                        range(Offset, Offset + HowMany - 1), now;
-            } else if (ToDate) {
-                session_
-                        << "SELECT SerialNumber, UUID, Data, Recorded FROM Statistics WHERE SerialNumber='%s' AND Recorded<=%Lu",
-                        into(Records),
-                        SerialNumber.c_str(),
-                        ToDate,
-                        range(Offset, Offset + HowMany - 1), now;
+                DateSelector = " Recorded>=" + std::to_string(FromDate);
+            } else if(ToDate) {
+                DateSelector = " Recorded<=" + std::to_string(ToDate);
             }
-            else {
-                // range(Offset, Offset + HowMany - 1)
-                session_
-                        << "SELECT SerialNumber, UUID, Data, Recorded FROM Statistics WHERE SerialNumber='%s'",
-                        into(Records),
-                        SerialNumber.c_str(),
-                        range(Offset, Offset + HowMany - 1), now;
-            }
+
+            session_ << Statement + DateSelector ,
+                into(Records),
+                range(Offset, Offset + HowMany - 1), now;
 
             for (auto i: Records) {
                 uCentralStatistics R{
@@ -544,28 +611,24 @@ namespace uCentral::Storage {
         try {
             Session session_ = Pool_->get();
 
+            bool DatesIncluded = (FromDate!=0 || ToDate!=0);
+
+            std::string Prefix{ "DELETE FROM Statistics "};
+            std::string Statement = SerialNumber.empty()
+                                    ? Prefix + std::string(DatesIncluded ? "WHERE " : "")
+                                    : Prefix + "WHERE SerialNumber='" + SerialNumber + "'" + std::string(DatesIncluded ? " AND " : "");
+
+            std::string DateSelector;
             if(FromDate && ToDate) {
-                session_
-                        << "DELETE FROM Statistics WHERE SerialNumber='%s' AND Recorded>=%Lu AND Recorded<=%Lu",
-                        SerialNumber.c_str(),
-                        FromDate,
-                        ToDate, now;
+                DateSelector = " Recorded>=" + std::to_string(FromDate) + " AND Recorded<=" + std::to_string(ToDate);
             } else if (FromDate) {
-                session_
-                        << "DELETE FROM Statistics WHERE SerialNumber='%s' AND Recorded>=%Lu",
-                        SerialNumber.c_str(),
-                        FromDate, now;
-            } else if (ToDate) {
-                session_
-                        << "DELETE FROM Statistics WHERE SerialNumber='%s' AND Recorded<=%Lu",
-                        SerialNumber.c_str(),
-                        ToDate, now;
+                DateSelector = " Recorded>=" + std::to_string(FromDate);
+            } else if(ToDate) {
+                DateSelector = " Recorded<=" + std::to_string(ToDate);
             }
-            else {
-                session_
-                        << "DELETE FROM Statistics WHERE SerialNumber='%s'",
-                        SerialNumber.c_str(), now;
-            }
+
+            session_ << Statement + DateSelector , now;
+
             return true;
         }
         catch (const Poco::Exception & E ) {
@@ -606,36 +669,26 @@ namespace uCentral::Storage {
 
         try {
             RecordList Records;
-            if (FromDate && ToDate) {
-                session_
-                        << "SELECT SerialNumber, UUID, Data, Sanity, Recorded FROM HealthChecks WHERE SerialNumber='%s' AND Recorded>=%Lu AND Recorded<=%Lu",
-                        into(Records),
-                        SerialNumber.c_str(),
-                        FromDate,
-                        ToDate,
-                        range(Offset, Offset + HowMany - 1), now;
+
+            bool DatesIncluded = (FromDate!=0 || ToDate!=0);
+
+            std::string Prefix{ "SELECT SerialNumber, UUID, Data, Sanity, Recorded FROM HealthChecks "};
+            std::string Statement = SerialNumber.empty()
+                                    ? Prefix + std::string(DatesIncluded ? "WHERE " : "")
+                                    : Prefix + "WHERE SerialNumber='" + SerialNumber + "'" + std::string(DatesIncluded ? " AND " : "");
+
+            std::string DateSelector;
+            if(FromDate && ToDate) {
+                DateSelector = " Recorded>=" + std::to_string(FromDate) + " AND Recorded<=" + std::to_string(ToDate);
             } else if (FromDate) {
-                session_
-                        << "SELECT SerialNumber, UUID, Data, Sanity, Recorded FROM HealthChecks WHERE SerialNumber='%s' AND Recorded>=%Lu",
-                        into(Records),
-                        SerialNumber.c_str(),
-                        FromDate,
-                        range(Offset, Offset + HowMany - 1), now;
-            } else if (ToDate) {
-                session_
-                        << "SELECT SerialNumber, UUID, Data, Sanity, Recorded FROM HealthChecks WHERE SerialNumber='%s' AND Recorded<=%Lu",
-                        into(Records),
-                        SerialNumber.c_str(),
-                        ToDate,
-                        range(Offset, Offset + HowMany - 1), now;
-            } else {
-                // range(Offset, Offset + HowMany - 1)
-                session_
-                        << "SELECT SerialNumber, UUID, Data, Sanity, Recorded FROM HealthChecks WHERE SerialNumber='%s'",
-                        into(Records),
-                        SerialNumber.c_str(),
-                        range(Offset, Offset + HowMany - 1), now;
+                DateSelector = " Recorded>=" + std::to_string(FromDate);
+            } else if(ToDate) {
+                DateSelector = " Recorded<=" + std::to_string(ToDate);
             }
+
+            session_ << Statement + DateSelector ,
+                into(Records),
+                range(Offset, Offset + HowMany - 1), now;
 
             for (auto i: Records) {
                 uCentralHealthcheck R;
@@ -660,28 +713,24 @@ namespace uCentral::Storage {
         try {
             Session session_ = Pool_->get();
 
+            bool DatesIncluded = (FromDate!=0 || ToDate!=0);
+
+            std::string Prefix{ "DELETE FROM HealthChecks "};
+            std::string Statement = SerialNumber.empty()
+                                    ? Prefix + std::string(DatesIncluded ? "WHERE " : "")
+                                    : Prefix + "WHERE SerialNumber='" + SerialNumber + "'" + std::string(DatesIncluded ? " AND " : "");
+
+            std::string DateSelector;
             if(FromDate && ToDate) {
-                session_
-                        << "DELETE FROM HealthChecks WHERE SerialNumber='%s' AND Recorded>=%Lu AND Recorded<=%Lu",
-                        SerialNumber.c_str(),
-                        FromDate,
-                        ToDate, now;
+                DateSelector = " Recorded>=" + std::to_string(FromDate) + " AND Recorded<=" + std::to_string(ToDate);
             } else if (FromDate) {
-                session_
-                        << "DELETE FROM HealthChecks WHERE SerialNumber='%s' AND Recorded>=%Lu",
-                        SerialNumber.c_str(),
-                        FromDate, now;
-            } else if (ToDate) {
-                session_
-                        << "DELETE FROM HealthChecks WHERE SerialNumber='%s' AND Recorded<=%Lu",
-                        SerialNumber.c_str(),
-                        ToDate, now;
+                DateSelector = " Recorded>=" + std::to_string(FromDate);
+            } else if(ToDate) {
+                DateSelector = " Recorded<=" + std::to_string(ToDate);
             }
-            else {
-                session_
-                        << "DELETE FROM HealthChecks WHERE SerialNumber='%s'",
-                        SerialNumber.c_str(), now;
-            }
+
+            session_ << Statement + DateSelector , now;
+
             return true;
         }
         catch (const Poco::Exception & E ) {
@@ -729,37 +778,26 @@ namespace uCentral::Storage {
 
         try {
             RecordList Records;
+
+            bool DatesIncluded = (FromDate!=0 || ToDate!=0);
+
+            std::string Prefix{ "SELECT Log,Recorded,Severity,Data FROM DeviceLogs  "};
+            std::string Statement = SerialNumber.empty()
+                                    ? Prefix + std::string(DatesIncluded ? "WHERE " : "")
+                                    : Prefix + "WHERE SerialNumber='" + SerialNumber + "'" + std::string(DatesIncluded ? " AND " : "");
+
+            std::string DateSelector;
             if(FromDate && ToDate) {
-                session_
-                        << "SELECT Log,Recorded,Severity,Data FROM DeviceLogs WHERE SerialNumber='%s' AND Recorded>=%Lu AND Recorded<=%Lu",
-                        into(Records),
-                        SerialNumber.c_str(),
-                        FromDate,
-                        ToDate,
-                        range(Offset, Offset + HowMany - 1), now;
+                DateSelector = " Recorded>=" + std::to_string(FromDate) + " AND Recorded<=" + std::to_string(ToDate);
             } else if (FromDate) {
-                session_
-                        << "SELECT Log,Recorded,Severity,Data FROM DeviceLogs WHERE SerialNumber='%s' AND Recorded>=%Lu",
-                        into(Records),
-                        SerialNumber.c_str(),
-                        FromDate,
-                        range(Offset, Offset + HowMany - 1), now;
-            } else if (ToDate) {
-                session_
-                        << "SELECT Log,Recorded,Severity,Data FROM DeviceLogs WHERE SerialNumber='%s' AND Recorded<=%Lu",
-                        into(Records),
-                        SerialNumber.c_str(),
-                        ToDate,
-                        range(Offset, Offset + HowMany - 1), now;
+                DateSelector = " Recorded>=" + std::to_string(FromDate);
+            } else if(ToDate) {
+                DateSelector = " Recorded<=" + std::to_string(ToDate);
             }
-            else {
-                // range(Offset, Offset + HowMany - 1)
-                session_
-                        << "SELECT Log,Recorded,Severity,Data FROM DeviceLogs WHERE SerialNumber='%s'",
-                        into(Records),
-                        SerialNumber.c_str(),
-                        range(Offset, Offset + HowMany - 1), now;
-            }
+
+            session_ << Statement + DateSelector ,
+                    into(Records),
+                    range(Offset, Offset + HowMany - 1), now;
 
             for (auto i: Records) {
                 uCentralDeviceLog R{.Log = i.get<0>(),
@@ -781,28 +819,24 @@ namespace uCentral::Storage {
         try {
             Session session_ = Pool_->get();
 
+            bool DatesIncluded = (FromDate!=0 || ToDate!=0);
+
+            std::string Prefix{ "DELETE FROM DeviceLogs "};
+            std::string Statement = SerialNumber.empty()
+                                    ? Prefix + std::string(DatesIncluded ? "WHERE " : "")
+                                    : Prefix + "WHERE SerialNumber='" + SerialNumber + "'" + std::string(DatesIncluded ? " AND " : "");
+
+            std::string DateSelector;
             if(FromDate && ToDate) {
-                session_
-                        << "DELETE FROM DeviceLogs WHERE SerialNumber='%s' AND Recorded>=%Lu AND Recorded<=%Lu",
-                        SerialNumber.c_str(),
-                        FromDate,
-                        ToDate, now;
+                DateSelector = " Recorded>=" + std::to_string(FromDate) + " AND Recorded<=" + std::to_string(ToDate);
             } else if (FromDate) {
-                session_
-                        << "DELETE FROM DeviceLogs WHERE SerialNumber='%s' AND Recorded>=%Lu",
-                        SerialNumber.c_str(),
-                        FromDate, now;
-            } else if (ToDate) {
-                session_
-                        << "DELETE FROM DeviceLogs WHERE SerialNumber='%s' AND Recorded<=%Lu",
-                        SerialNumber.c_str(),
-                        ToDate, now;
+                DateSelector = " Recorded>=" + std::to_string(FromDate);
+            } else if(ToDate) {
+                DateSelector = " Recorded<=" + std::to_string(ToDate);
             }
-            else {
-                session_
-                        << "DELETE FROM DeviceLogs WHERE SerialNumber='%s'",
-                        SerialNumber.c_str(), now;
-            }
+
+            session_ << Statement + DateSelector , now;
+
             return true;
         }
         catch (const Poco::Exception & E ) {
@@ -811,12 +845,15 @@ namespace uCentral::Storage {
         return false;
     }
 
-    bool Service::UpdateDeviceConfiguration(std::string &SerialNumber, std::string & Configuration) {
+    bool Service::UpdateDeviceConfiguration(std::string &SerialNumber, std::string & Configuration, uint64_t & NewUUID ) {
         try {
+
             uCentral::Config::Config    Cfg(Configuration);
 
-            if(!Cfg.Valid())
+            if(!Cfg.Valid()) {
+                Logger_.warning(Poco::format("CONFIG-UPDATE(%s): Configuration was not valid",SerialNumber));
                 return false;
+            }
 
             Session session_ = Pool_->get();
 
@@ -840,8 +877,11 @@ namespace uCentral::Storage {
                         Now,
                         SerialNumber.c_str(), now;
 
+                Logger_.information(Poco::format("CONFIG-UPDATE(%s): UUID is %Lu",SerialNumber,CurrentUUID));
+                NewUUID = CurrentUUID ;
                 return true;
             }
+
             return false;
         }
         catch (const Poco::Exception &E)
@@ -1125,14 +1165,12 @@ namespace uCentral::Storage {
                         Capabs.c_str(),
                         Now,
                         Now, now;
-                Logger_.information("Done adding capabilities for " + SerialNumber);
             } else {
                 Logger_.information("Updating capabilities for " + SerialNumber);
                 session_ << "UPDATE Capabilities SET Capabilities='%s', LastUpdate=%Lu WHERE SerialNumber='%s'",
                         Capabs.c_str(),
                         Now,
                         SerialNumber.c_str(), now;
-                Logger_.information("Done updating capabilities for " + SerialNumber);
             }
             return true;
         }
@@ -1476,4 +1514,326 @@ namespace uCentral::Storage {
         return false;
     }
 
+    bool Service::AddCommand(std::string & SerialNumber, uCentralCommandDetails & Command) {
+        try {
+            Session session_ = Pool_->get();
+            /*
+                    "UUID           VARCHAR(30) PRIMARY KEY, "
+                    "SerialNumber   VARCHAR(30), "
+                    "Command        VARCHAR(32), "
+                    "Status         VARCHAR(64), "
+                    "SubmittedBy    VARCHAR(64), "
+                    "Results        TEXT, "
+                    "Details        TEXT, "
+                    "Submitted      BIGINT, "
+                    "Executed       BIGINT, "
+                    "Completed      BIGINT, "
+                    "RunAt          BIGINT, "
+                    "ErrorCode      BIGINT "
+             */
+
+            session_ << "INSERT INTO CommandList VALUES('%s','%s', '%s', '%s', '%s', '%s', '%s', %Lu, %Lu, %Lu, %Lu, %Lu)" ,
+                Command.UUID.c_str(),
+                Command.SerialNumber.c_str(),
+                Command.Command.c_str(),
+                Command.Status.c_str(),
+                Command.SubmittedBy.c_str(),
+                Command.Results.c_str(),
+                Command.Details.c_str(),
+                Command.Submitted,
+                Command.Executed,
+                Command.Completed,
+                Command.RunAt,
+                Command.ErrorCode, now;
+
+            return true;
+        }
+        catch( const Poco::Exception & E)
+        {
+            Logger_.warning(Poco::format("%s(%s): Failed with: %s",std::string(__func__),SerialNumber,E.displayText() ));
+        }
+        return false;
+    }
+
+    bool Service::GetCommands(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate, uint64_t Offset, uint64_t HowMany, std::vector<uCentralCommandDetails> & Commands) {
+        typedef Poco::Tuple<
+            std::string,
+            std::string,
+            std::string,
+            std::string,
+            std::string,
+            std::string,
+            std::string,
+            uint64_t,
+            uint64_t,
+            uint64_t,
+            uint64_t,
+            uint64_t> Record;
+        typedef std::vector<Record> RecordList;
+
+        Session session_ = Pool_->get();
+
+        /*
+            "UUID           VARCHAR(30) PRIMARY KEY, "
+            "SerialNumber   VARCHAR(30), "
+            "Command        VARCHAR(32), "
+            "Status         VARCHAR(64), "
+            "SubmittedBy    VARCHAR(64), "
+            "Results        TEXT, "
+            "Details        TEXT, "
+            "Submitted      BIGINT, "
+            "Executed       BIGINT, "
+            "Completed      BIGINT, "
+            "RunAt          BIGINT, "
+            "ErrorCode      BIGINT "
+         */
+
+        try {
+            RecordList Records;
+
+            bool DatesIncluded = (FromDate!=0 || ToDate!=0);
+
+            std::string Fields{  "SELECT UUID, SerialNumber, Command, Status, SubmittedBy, Results, Details,"
+                                 "Submitted, Executed, Completed, RunAt, ErrorCode FROM CommandList "};
+            std::string Statement = SerialNumber.empty()
+                                    ? Fields + std::string(DatesIncluded ? "WHERE " : "")
+                                    : Fields + "WHERE SerialNumber='" + SerialNumber + "'" + std::string(DatesIncluded ? " AND " : "");
+
+            std::string DateSelector;
+            if(FromDate && ToDate) {
+                DateSelector = " Submitted>=" + std::to_string(FromDate) + " AND Submitted<=" + std::to_string(ToDate);
+            } else if (FromDate) {
+                DateSelector = " Submitted>=" + std::to_string(FromDate);
+            } else if(ToDate) {
+                DateSelector = " Submitted<=" + std::to_string(ToDate);
+            }
+
+            session_ << Statement + DateSelector ,
+                    into(Records),
+                    range(Offset, Offset + HowMany - 1), now;
+
+            for (auto i: Records) {
+                uCentralCommandDetails R{
+                        .UUID = i.get<0>(),
+                        .SerialNumber = i.get<1>(),
+                        .Command = i.get<2>(),
+                        .Status = i.get<3>(),
+                        .SubmittedBy = i.get<4>(),
+                        .Results = i.get<5>(),
+                        .Details = i.get<6>(),
+                        .Submitted = i.get<7>(),
+                        .Executed = i.get<8>(),
+                        .Completed = i.get<9>(),
+                        .RunAt = i.get<10>(),
+                        .ErrorCode = i.get<11>()};
+
+                Commands.push_back(R);
+            }
+
+            return true;
+        }
+        catch( const Poco::Exception & E)
+        {
+            Logger_.warning(Poco::format("%s(%s): Failed with: %s",std::string(__func__),SerialNumber,E.displayText() ));
+        }
+        return false;
+    }
+
+    bool Service::DeleteCommands(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate) {
+        try {
+            Session session_ = Pool_->get();
+
+            bool DatesIncluded = (FromDate!=0 || ToDate!=0);
+
+            std::string Statement = SerialNumber.empty()
+                    ? "DELETE FROM CommandList " + std::string(DatesIncluded ? "WHERE " : "")
+                    : "DELETE FROM CommandList WHERE SerialNumber='" + SerialNumber + "'" + std::string(DatesIncluded ? " AND " : "");
+
+            std::string DateSelector;
+            if(FromDate && ToDate) {
+                DateSelector = " Submitted>=" + std::to_string(FromDate) + " AND Submitted<=" + std::to_string(ToDate);
+            } else if (FromDate) {
+                DateSelector = " Submitted>=" + std::to_string(FromDate);
+            } else if(ToDate) {
+                DateSelector = " Submitted<=" + std::to_string(ToDate);
+            }
+
+            session_ << Statement + DateSelector , now;
+
+            return true;
+        }
+        catch (const Poco::Exception & E ) {
+            Logger_.warning(Poco::format("%s(%s): Failed with: %s",std::string(__func__),SerialNumber,E.displayText() ));
+        }
+        return false;
+    }
+
+    bool Service::GetNonExecutedCommands( uint64_t Offset, uint64_t HowMany, std::vector<uCentralCommandDetails> & Commands ) {
+        typedef Poco::Tuple<
+                std::string,
+                std::string,
+                std::string,
+                std::string,
+                std::string,
+                std::string,
+                std::string,
+                uint64_t,
+                uint64_t,
+                uint64_t,
+                uint64_t,
+                uint64_t> Record;
+        typedef std::vector<Record> RecordList;
+
+        Session session_ = Pool_->get();
+
+        /*
+            "UUID           VARCHAR(30) PRIMARY KEY, "
+            "SerialNumber   VARCHAR(30), "
+            "Command        VARCHAR(32), "
+            "Status         VARCHAR(64), "
+            "SubmittedBy    VARCHAR(64), "
+            "Results        TEXT, "
+            "Details        TEXT, "
+            "Submitted      BIGINT, "
+            "Executed       BIGINT, "
+            "Completed      BIGINT, "
+            "RunAt          BIGINT, "
+            "ErrorCode      BIGINT "
+         */
+
+        try {
+            RecordList Records;
+
+                // range(Offset, Offset + HowMany - 1)
+                session_
+                        << "SELECT UUID, SerialNumber, Command, Status, SubmittedBy, Results, Details,"
+                           "Submitted, Executed, Completed, RunAt, ErrorCode FROM CommandList "
+                           " WHERE Executed=0",
+                        into(Records),
+                        range(Offset, Offset + HowMany - 1), now;
+            for (auto i: Records) {
+                uCentralCommandDetails R{
+                    .UUID = i.get<0>(),
+                    .SerialNumber = i.get<1>(),
+                    .Command = i.get<2>(),
+                    .Status = i.get<3>(),
+                    .SubmittedBy = i.get<4>(),
+                    .Results = i.get<5>(),
+                    .Details = i.get<6>(),
+                    .Submitted = i.get<7>(),
+                    .Executed = i.get<8>(),
+                    .Completed = i.get<9>(),
+                    .RunAt = i.get<10>(),
+                    .ErrorCode = i.get<11>()};
+
+                Commands.push_back(R);
+            }
+
+            return true;
+        }
+        catch( const Poco::Exception & E)
+        {
+            Logger_.warning(Poco::format("%s: Failed with: %s",std::string(__func__),E.displayText() ));
+        }
+        return false;
+
+    }
+
+    bool Service::UpdateCommand( std::string &UUID, uCentralCommandDetails & Command ) {
+
+        try {
+            Session session_ = Pool_->get();
+            /*
+                "UUID           VARCHAR(30) PRIMARY KEY, "
+                "SerialNumber   VARCHAR(30), "
+                "Command        VARCHAR(32), "
+                "Status         VARCHAR(64), "
+                "SubmittedBy    VARCHAR(64), "
+                "Results        TEXT, "
+                "Details        TEXT, "
+                "Submitted      BIGINT, "
+                "Executed       BIGINT, "
+                "Completed      BIGINT, "
+                "RunAt          BIGINT, "
+                "ErrorCode      BIGINT "
+             */
+
+            session_ << "UPDATE CommandList SET Status='%s', Executed=%Lu, Completed=%Lu, Results='%s', ErrorCode=%Lu WHERE UUID='%s'",
+                    Command.Status.c_str(),
+                    Command.Executed,
+                    Command.Completed,
+                    Command.Results.c_str(),
+                    Command.ErrorCode,
+                    UUID.c_str(),now;
+
+            return true;
+
+        }
+        catch( const Poco::Exception & E)
+        {
+            Logger_.warning(Poco::format("%s(%s): Failed with: %s",std::string(__func__),UUID,E.displayText() ));
+        }
+        return false;
+    }
+
+    bool Service::GetCommand( std::string &UUID, uCentralCommandDetails & Command ) {
+
+        try {
+            Session session_ = Pool_->get();
+            /*
+                "UUID           VARCHAR(30) PRIMARY KEY, "
+                "SerialNumber   VARCHAR(30), "
+                "Command        VARCHAR(32), "
+                "Status         VARCHAR(64), "
+                "SubmittedBy    VARCHAR(64), "
+                "Results        TEXT, "
+                "Details        TEXT, "
+                "Submitted      BIGINT, "
+                "Executed       BIGINT, "
+                "Completed      BIGINT, "
+                "RunAt          BIGINT, "
+                "ErrorCode      BIGINT "
+             */
+
+            session_ << "SELECT UUID, SerialNumber, Command, Status, SubmittedBy, Results, Details,"
+                        "Submitted, Executed, Completed, RunAt, ErrorCode FROM CommandList "
+                        " WHERE UUID='%s'",
+                into(Command.UUID),
+                into(Command.SerialNumber),
+                into(Command.Command),
+                into(Command.Status),
+                into(Command.SubmittedBy),
+                into(Command.Results),
+                into(Command.Details),
+                into(Command.Submitted),
+                into(Command.Executed),
+                into(Command.Completed),
+                into(Command.RunAt),
+                into(Command.ErrorCode),
+                UUID.c_str(), now;
+
+            return true;
+
+        }
+        catch( const Poco::Exception & E)
+        {
+            Logger_.warning(Poco::format("%s(%s): Failed with: %s",std::string(__func__),UUID,E.displayText() ));
+        }
+        return false;
+    }
+
+    bool Service::DeleteCommand( std::string &UUID ) {
+        try {
+            Session session_ = Pool_->get();
+
+            session_ << "DELETE FROM CommandList WHERE UUID='%s'" ,
+                UUID.c_str(),now;
+            return true;
+        }
+        catch( const Poco::Exception & E)
+        {
+            Logger_.warning(Poco::format("%s(%s): Failed with: %s",std::string(__func__),UUID,E.displayText() ));
+        }
+        return false;
+    }
 };      // namespace

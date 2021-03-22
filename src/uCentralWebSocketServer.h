@@ -117,7 +117,7 @@ namespace uCentral::WebSocket {
     class CountedReactor {
     public:
         explicit CountedReactor( std::shared_ptr<CountedSocketReactor> R )
-        :   Reactor_(R){
+        :   Reactor_(std::move(R)){
             Reactor_->Get();
         };
 
@@ -174,8 +174,6 @@ namespace uCentral::WebSocket {
 
     class WSRequestHandlerFactory : public HTTPRequestHandlerFactory {
     public:
-        explicit WSRequestHandlerFactory()
-        {};
         HTTPRequestHandler *createRequestHandler(const HTTPServerRequest &request) override;
     private:
 
@@ -185,40 +183,25 @@ namespace uCentral::WebSocket {
     public:
         WSConnection(Poco::Logger   & Logger,
                      HTTPServerRequest & Request,
-                     HTTPServerResponse & Response ):
-            Logger_(Logger),
-            WS_(Request,Response),
-            Conn_(nullptr),
-            RPC_(0)
-        {
-            WS_.setReceiveTimeout(Poco::Timespan());
-            WS_.setNoDelay(true);
-            WS_.setKeepAlive(true);
-            Reactor_ = std::shared_ptr<CountedReactor>(new CountedReactor(Service::instance()->GetAReactor()));
-            Reactor_->Reactor()->addEventHandler(WS_,
-                                     Poco::NObserver<WSConnection,Poco::Net::ReadableNotification>(*this,&WSConnection::OnSocketReadable));
-            Reactor_->Reactor()->addEventHandler(WS_,
-                                     Poco::NObserver<WSConnection,Poco::Net::ShutdownNotification>(*this,&WSConnection::OnSocketShutdown));
-        }
+                     HTTPServerResponse & Response );
 
         ~WSConnection();
 
-        void ProcessLegacyMessage(Poco::DynamicStruct &ds,std::string &Response);
         void ProcessJSONRPCMessage(Poco::DynamicStruct &ds,std::string &Response);
         bool SendCommand(const std::string &Cmd);
         void OnSocketReadable(const AutoPtr<Poco::Net::ReadableNotification>& pNf);
-        void OnSocketShutdown(const AutoPtr<Poco::Net::ShutdownNotification>& pNf) { delete this; };
+        void OnSocketShutdown(const AutoPtr<Poco::Net::ShutdownNotification>& pNf);
+        void OnSocketError(const AutoPtr<Poco::Net::ErrorNotification>& pNf);
         bool LookForUpgrade(std::string &Response);
-
-        Poco::Net::WebSocket    & WS() { return WS_;};
 
     private:
         std::mutex mutex_;
         std::shared_ptr<CountedReactor> Reactor_;
         Poco::Logger                    & Logger_;
-        Poco::Net::WebSocket            WS_;
+        Poco::Net::WebSocket            * WS_;
         std::string                     SerialNumber_;
         std::shared_ptr<uCentral::DeviceRegistry::ConnectionState>  Conn_;
+        std::map<uint64_t,std::string>  RPCs_;
         uint64_t                        RPC_;
     };
 

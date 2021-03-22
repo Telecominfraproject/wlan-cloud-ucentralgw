@@ -61,6 +61,7 @@ public:
     void PrepareResponse( HTTPServerResponse & response, Poco::Net::HTTPResponse::HTTPStatus Status=Poco::Net::HTTPResponse::HTTP_OK);
     bool ContinueProcessing( HTTPServerRequest & Request , HTTPServerResponse & Response );
     bool IsAuthorized(Poco::Net::HTTPServerRequest & Request, HTTPServerResponse & Response );
+    bool IsAuthorized(Poco::Net::HTTPServerRequest & Request, HTTPServerResponse & Response , std::string & UserName );
     uint64_t GetParameter(const std::string &Name,uint64_t Default);
     std::string GetParameter(const std::string &Name,const std::string & Default);
 
@@ -75,8 +76,9 @@ public:
 protected:
     BindingMap                  bindings_;
     Poco::URI::QueryParameters  parameters_;
-    Poco::Logger                &logger_;
+    Poco::Logger                & logger_;
     std::string                 SessionToken_;
+    std::string                 UserName_;
     std::vector<std::string>    methods_;
 };
 

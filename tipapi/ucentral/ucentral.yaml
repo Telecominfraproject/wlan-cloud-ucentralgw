@@ -43,6 +43,19 @@ components:
           schema:
             $ref: '#/components/schemas/GenericGoodAnswer'
 
+    CommandSubmitSuccess:
+      description: Command was submitted succesfully
+      content:
+        application/json:
+          schema:
+            properties:
+              serialNumber:
+                type: string
+              command:
+                type: string
+              UUID:
+                type: string
+
   securitySchemes:
     bearerAuth:        # arbitrary name for the security scheme
       type: http
@@ -123,9 +136,6 @@ components:
         lastContact:
           type: string
           format: 'date-time'
-        protocol:
-          type: integer
-          format: int32
         firmware:
           type: string
 
@@ -173,26 +183,13 @@ components:
       properties:
         command:
           type: string
+        payload:
+          type: string
         runAt:
           type: string
           format: 'date-time'
-        deviceId:
-          type: integer
-          format: int64
-
-    CommandResults:
-      type: object
-      properties:
-        command:
+        serialNumber:
           type: string
-        results:
-          type: string
-        completed:
-          type: string
-          format: 'date-time'
-        deviceId:
-          type: integer
-          format: int64
 
     GenericErrorResponse:
       description: Typical error response
@@ -287,6 +284,9 @@ components:
           format: int64
         configuration:
           type: string
+        when:
+          type: string
+          format: 'date-time'
 
     DeviceLog:
       type: object
@@ -361,6 +361,69 @@ components:
           type: array
           items:
             $ref : '#/components/schemas/DefaultConfiguration'
+
+    UpgradeRequest:
+      type: object
+      properties:
+        uri:
+          type: string
+        serialNumber:
+          type: string
+        digest:
+          type: string
+        when:
+          type: string
+          format: 'date-time'
+
+    RebootRequest:
+      type: object
+      properties:
+        serialNumber:
+          type: string
+        when:
+          type: string
+          format: 'date-time'
+
+    CommandInfo:
+      type: object
+      properties:
+        UUID:
+          type: string
+        command:
+          type: string
+        details:
+          type: string
+        serialNumber:
+          type: string
+        submitted:
+          type: string
+          format: 'date-time'
+        executed:
+          type: string
+          format: 'date-time'
+        completed:
+          type: string
+          format: 'date-time'
+        when:
+          type: string
+          format: 'date-time'
+        results:
+          type: string
+        errorCode:
+          type: integer
+          format: int64
+        submittedBy:
+          type: string
+        status:
+          type: string
+
+    CommandInfoList:
+      type: object
+      properties:
+        commands:
+          type: array
+          items:
+            $ref: '#/components/schemas/CommandInfo'
 
 paths:
   /oauth2:
@@ -446,6 +509,137 @@ paths:
                 $ref: '#/components/schemas/DeviceList'
         403:
           $ref: '#/components/responses/Unauthorized'
+
+  /commands:
+    get:
+      tags:
+        - Commands
+      summary: Returns a list of commands.
+      description: Get a list of commands.
+      operationId: getCommandList
+      parameters:
+      - in: path
+        name: serialNumber
+        schema:
+          type: string
+        required: false
+      - in: query
+        name: startDate
+        schema:
+          type: string
+          # format 2021-03-05T05:27:37Z
+          format: 'date-time'
+        required: false
+      - in: query
+        name: endDate
+        schema:
+          type: string
+          # format 2021-03-05T05:27:37Z
+          format: 'date-time'
+      - in: query
+        name: offset
+        schema:
+          type: integer
+          format: int64
+      - in: query
+        name: limit
+        schema:
+          type: integer
+          format: int64
+      responses:
+        200:
+          description: List commands
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommandInfoList'
+        403:
+          $ref: '#/components/responses/Unauthorized'
+
+    delete:
+      tags:
+        - Commands
+      summary: Delete some commands
+      operationId: deleteCommands
+      parameters:
+        - in: path
+          name: serialNumber
+          schema:
+            type: string
+          required: true
+        - in: query
+          name: startDate
+          schema:
+            type: string
+            format: 'date-time'
+          required: false
+        - in: query
+          name: endDate
+          schema:
+            type: string
+            format: 'date-time'
+
+      responses:
+        200:
+          description: Successfully deleted commands for the device.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericGoodAnswer'
+        404:
+          $ref: '#/components/responses/Unauthorized'
+        403:
+          $ref: '#/components/responses/NotFound'
+
+
+  /command/{commandUUID}:
+    get:
+      tags:
+        - Commands
+      summary: Returns a specific command
+      description: Returns a specific command
+      operationId: getACommandDetails
+      parameters:
+        - in: path
+          name: CommandUUID
+          schema:
+            type: string
+          required: true
+      responses:
+        200:
+          description: List commands
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommandInfo'
+        403:
+          $ref: '#/components/responses/Unauthorized'
+        404:
+          $ref: '#/components/responses/NotFound'
+
+    delete:
+      tags:
+        - Commands
+      summary: Delete a specific command
+      description: Delete a specific command
+      operationId: deleteACommand
+      parameters:
+        - in: path
+          name: CommandUUID
+          schema:
+            type: string
+          required: true
+      responses:
+        200:
+          description: Delete command success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericGoodAnswer'
+        403:
+          $ref: '#/components/responses/Unauthorized'
+        404:
+          $ref: '#/components/responses/NotFound'
 
   /default_configurations:
     get:
@@ -988,13 +1182,9 @@ paths:
               $ref: '#/components/schemas/CommandDetails'
       responses:
         200:
-          description: Successful command execution
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/CommandResults'
+          $ref: '#/components/responses/CommandSubmitSuccess'
         403:
-          $ref: '#/components/responses/Unauthorized'
+            $ref: '#/components/responses/Unauthorized'
         404:
           $ref: '#/components/responses/NotFound'
 
@@ -1018,7 +1208,59 @@ paths:
               $ref: '#/components/schemas/DeviceConfigureRequest'
       responses:
         200:
-          $ref: '#/components/responses/Success'
+          $ref: '#/components/responses/CommandSubmitSuccess'
+        403:
+          $ref: '#/components/responses/Unauthorized'
+        404:
+          $ref: '#/components/responses/NotFound'
+
+  /device/{serialNumber}/upgrade:
+    post:
+      tags:
+        - Commands
+      summary: Upgrade a device
+      operationId: UpgradeDeviceFirmware
+      parameters:
+        - in: path
+          name: serialNumber
+          schema:
+            type: string
+          required: true
+      requestBody:
+        description: Command details
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpgradeRequest'
+      responses:
+        200:
+          $ref: '#/components/responses/CommandSubmitSuccess'
+        403:
+          $ref: '#/components/responses/Unauthorized'
+        404:
+          $ref: '#/components/responses/NotFound'
+
+  /device/{serialNumber}/reboot:
+    post:
+      tags:
+        - Commands
+      summary: Upgrade a device
+      operationId: UpgradeDeviceFirmware
+      parameters:
+        - in: path
+          name: serialNumber
+          schema:
+            type: string
+          required: true
+      requestBody:
+        description: Command details
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RebootRequest'
+      responses:
+        200:
+          $ref: '#/components/responses/CommandSubmitSuccess'
         403:
           $ref: '#/components/responses/Unauthorized'
         404:

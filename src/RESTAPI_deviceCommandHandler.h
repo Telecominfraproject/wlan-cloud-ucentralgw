@@ -5,7 +5,7 @@
 #ifndef UCENTRAL_RESTAPI_DEVICECOMMANDHANDLER_H
 #define UCENTRAL_RESTAPI_DEVICECOMMANDHANDLER_H
 
-#include "RESTAPI_Handler.h"
+#include "RESTAPI_handler.h"
 
 class RESTAPI_deviceCommandHandler : public RESTAPIHandler {
 public:
@@ -17,19 +17,21 @@ public:
                                         Poco::Net::HTTPRequest::HTTP_PUT,
                                         Poco::Net::HTTPRequest::HTTP_DELETE,
                                         Poco::Net::HTTPRequest::HTTP_OPTIONS}) {}
-    void handleRequest(HTTPServerRequest& request, HTTPServerResponse& response) override;
+    void handleRequest(HTTPServerRequest& Request, HTTPServerResponse& Response) override;
 
-    void GetCapabilities(HTTPServerRequest& request, HTTPServerResponse& response);
-    void DeleteCapabilities(HTTPServerRequest& request, HTTPServerResponse& response);
-    void GetLogs(HTTPServerRequest& request, HTTPServerResponse& response);
-    void DeleteLogs(HTTPServerRequest& request, HTTPServerResponse& response);
-    void GetStatistics(HTTPServerRequest& request, HTTPServerResponse& response);
-    void DeleteStatistics(HTTPServerRequest& request, HTTPServerResponse& response);
-    void GetStatus(HTTPServerRequest& request, HTTPServerResponse& response);
-    void ExecuteCommand(HTTPServerRequest& request, HTTPServerResponse& response);
-    void Configure(HTTPServerRequest& request, HTTPServerResponse& response);
-    void GetChecks(HTTPServerRequest& request, HTTPServerResponse& response);
-    void DeleteChecks(HTTPServerRequest& request, HTTPServerResponse& response);
+    void GetCapabilities(HTTPServerRequest& Request, HTTPServerResponse& Response);
+    void DeleteCapabilities(HTTPServerRequest& Request, HTTPServerResponse& Response);
+    void GetLogs(HTTPServerRequest& Request, HTTPServerResponse& Response);
+    void DeleteLogs(HTTPServerRequest& Request, HTTPServerResponse& Response);
+    void GetStatistics(HTTPServerRequest& Request, HTTPServerResponse& Response);
+    void DeleteStatistics(HTTPServerRequest& Request, HTTPServerResponse& Response);
+    void GetStatus(HTTPServerRequest& Request, HTTPServerResponse& Response);
+    void ExecuteCommand(HTTPServerRequest& Request, HTTPServerResponse& Response);
+    void Configure(HTTPServerRequest& Request, HTTPServerResponse& Response);
+    void GetChecks(HTTPServerRequest& Request, HTTPServerResponse& Response);
+    void DeleteChecks(HTTPServerRequest& Request, HTTPServerResponse& Response);
+    void Upgrade(HTTPServerRequest& Request, HTTPServerResponse& Response);
+    void Reboot(HTTPServerRequest& Request, HTTPServerResponse& Response);
 };
 
 #endif //UCENTRAL_RESTAPI_DEVICECOMMANDHANDLER_H

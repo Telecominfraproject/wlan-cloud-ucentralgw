@@ -6,7 +6,7 @@
 #include <iostream>
 #include <iterator>
 
-#include "RESTAPI_Handler.h"
+#include "RESTAPI_handler.h"
 #include "uAuthService.h"
 
 #include "Poco/URI.h"
@@ -96,6 +96,9 @@ std::string RESTAPIHandler::to_RFC3339(uint64_t t)
 
 uint64_t RESTAPIHandler::from_RFC3339(const std::string &TimeString)
 {
+    if(TimeString.empty())
+        return 0;
+
     try {
         int             TZ;
         Poco::DateTime  DT = Poco::DateTimeParser::parse(Poco::DateTimeFormat::ISO8601_FORMAT,TimeString,TZ);
@@ -179,7 +182,7 @@ bool RESTAPIHandler::ContinueProcessing( HTTPServerRequest & Request , HTTPServe
 
 bool RESTAPIHandler::IsAuthorized(Poco::Net::HTTPServerRequest & Request, HTTPServerResponse & Response )
 {
-    if(uCentral::Auth::IsAuthorized(Request,SessionToken_))
+    if(uCentral::Auth::IsAuthorized(Request,SessionToken_, UserName_))
     {
         return true;
     }
@@ -188,6 +191,20 @@ bool RESTAPIHandler::IsAuthorized(Poco::Net::HTTPServerRequest & Request, HTTPSe
     }
     return false;
 }
+
+bool RESTAPIHandler::IsAuthorized(Poco::Net::HTTPServerRequest & Request, HTTPServerResponse & Response , std::string & UserName ) {
+
+    if(uCentral::Auth::IsAuthorized(Request,SessionToken_, UserName_))
+    {
+        UserName = UserName_ ;
+        return true;
+    }
+    else {
+        UnAuthorized(Response);
+    }
+    return false;
+}
+
 
 void RESTAPIHandler::ReturnObject(Poco::JSON::Object & Object, HTTPServerResponse & Response) {
     PrepareResponse(Response);

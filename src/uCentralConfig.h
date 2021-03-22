@@ -6,6 +6,7 @@
 #define UCENTRAL_UCENTRALCONFIG_H
 
 #include <string>
+#include "Poco/JSON/Object.h"
 
 namespace uCentral::Config {
     class Config {
@@ -21,6 +22,7 @@ namespace uCentral::Config {
         bool Valid();
         std::string get() { return Config_; };
         static std::string Default();
+        Poco::JSON::Object::Ptr   to_json();
 
     private:
         std::string Config_;

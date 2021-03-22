@@ -40,7 +40,7 @@ namespace uCentral::Auth {
 
     int Start();
     void Stop();
-    bool IsAuthorized(Poco::Net::HTTPServerRequest & Request,std::string &SessionToken);
+    bool IsAuthorized(Poco::Net::HTTPServerRequest & Request,std::string &SessionToken, std::string & UserName );
     bool Authorize( const std::string & UserName, const std::string & Password, WebToken & ResultToken );
     void Logout(const std::string &token);
 
@@ -59,7 +59,7 @@ namespace uCentral::Auth {
             return instance_;
         }
 
-        friend bool IsAuthorized(Poco::Net::HTTPServerRequest & Request,std::string &SessionToken);
+        friend bool IsAuthorized(Poco::Net::HTTPServerRequest & Request,std::string &SessionToken, std::string & UserName);
         friend bool Authorize( const std::string & UserName, const std::string & Password, WebToken & ResultToken );
         static std::string GenerateToken();
         friend void Logout(const std::string &token);
@@ -67,7 +67,7 @@ namespace uCentral::Auth {
     private:
         int Start() override;
         void Stop() override;
-        bool IsAuthorized(Poco::Net::HTTPServerRequest & Request,std::string &SessionToken);
+        bool IsAuthorized(Poco::Net::HTTPServerRequest & Request,std::string &SessionToken, std::string & UserName );
         void CreateToken(const std::string & UserName, WebToken & ResultToken);
         bool Authorize( const std::string & UserName, const std::string & Password, WebToken & ResultToken );
         void Logout(const std::string &token);

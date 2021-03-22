@@ -76,4 +76,20 @@ struct uCentralDefaultConfiguration {
     bool from_json(Poco::JSON::Object::Ptr Obj);
 };
 
+struct uCentralCommandDetails {
+    std::string     UUID;
+    std::string     SerialNumber;
+    std::string     Command;
+    std::string     Status;
+    std::string     SubmittedBy;
+    std::string     Results;
+    std::string     Details;
+    uint64_t        Submitted;
+    uint64_t        Executed;
+    uint64_t        Completed;
+    uint64_t        RunAt;
+    uint64_t        ErrorCode;
+    [[nodiscard]] Poco::JSON::Object to_json() const;
+};
+
 #endif //UCENTRAL_RESTAPI_OBJECTS_H

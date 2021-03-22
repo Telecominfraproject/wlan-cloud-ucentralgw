@@ -23,6 +23,7 @@
 #include "Poco/Message.h"
 #include "Poco/Data/Session.h"
 #include "Poco/Data/SQLite/Connector.h"
+#include "Poco/UUIDGenerator.h"
 
 using Poco::Util::Application;
 using Poco::Util::Option;
@@ -43,6 +44,7 @@ using Poco::Message;
 #include "uCentralWebSocketServer.h"
 #include "uCentralRESTAPIServer.h"
 
+
 namespace uCentral {
 
     class Daemon : public Poco::Util::ServerApplication {
@@ -61,6 +63,7 @@ namespace uCentral {
         void handleConfig(const std::string &name, const std::string &value);
         void displayHelp();
         void defineProperty(const std::string &def);
+        std::string CreateUUID();
         int main(const ArgVec &args) override;
 
         std::string IdentifyDevice(const std::string & Id );
@@ -73,6 +76,8 @@ namespace uCentral {
         std::string                 ConfigFileName_;
         std::string                 LogDir_;
         bool                        DebugMode_;
+        Poco::UUIDGenerator         UUIDGenerator_;
+
     };
 
     namespace ServiceConfig {

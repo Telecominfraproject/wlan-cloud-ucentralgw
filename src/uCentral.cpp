@@ -35,6 +35,7 @@ using Poco::AutoPtr;
 #include "uDeviceRegistry.h"
 #include "uAuthService.h"
 #include "uCentralConfig.h"
+#include "uCommandManager.h"
 
 namespace uCentral {
 
@@ -80,6 +81,7 @@ namespace uCentral {
 #endif
         addSubsystem(uCentral::RESTAPI::Service::instance());
         addSubsystem(uCentral::WebSocket::Service::instance());
+        addSubsystem(uCentral::CommandManager::Service::instance());
 
         ServerApplication::initialize(self);
 
@@ -133,7 +135,6 @@ namespace uCentral {
         }
         return std::string("AP_Default");
     }
-
 
     void Daemon::uninitialize() {
         // add your own uninitialization code here
@@ -214,6 +215,10 @@ namespace uCentral {
         config().setString(name, value);
     }
 
+    std::string Daemon::CreateUUID() {
+        return UUIDGenerator_.create().toString();
+    }
+
     void test_json()
     {
         uCentral::Config::Capabilities  Caps;
@@ -269,6 +274,7 @@ namespace uCentral {
             uCentral::DeviceRegistry::Start();
             uCentral::RESTAPI::Start();
             uCentral::WebSocket::Start();
+            uCentral::CommandManager::Start();
 
             // test_json();
 
@@ -280,6 +286,7 @@ namespace uCentral {
 #ifndef SMALL_BUILD
             uCentral::TIPGW::Stop();
 #endif
+            uCentral::CommandManager::Stop();
             uCentral::WebSocket::Stop();
             uCentral::RESTAPI::Stop();
             uCentral::DeviceRegistry::Stop();

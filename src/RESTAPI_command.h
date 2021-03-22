@@ -1,9 +1,10 @@
 //
-// Created by stephane bourque on 2021-03-03.
+// Created by stephane bourque on 2021-03-21.
 //
 
-#ifndef UCENTRAL_RESTAPI_UNKNOWNREQUESTHANDLER_H
-#define UCENTRAL_RESTAPI_UNKNOWNREQUESTHANDLER_H
+#ifndef UCENTRAL_RESTAPI_COMMAND_H
+#define UCENTRAL_RESTAPI_COMMAND_H
+
 
 #include "Poco/Net/HTTPServer.h"
 #include "Poco/Net/HTTPRequestHandler.h"
@@ -34,17 +35,19 @@ using Poco::Net::HTTPServerResponse;
 using Poco::Net::HTTPServerParams;
 using Poco::JSON::Parser;
 
-#include "RESTAPI_Handler.h"
+#include "RESTAPI_handler.h"
 
-class RESTAPI_UnknownRequestHandler: public RESTAPIHandler
+class RESTAPI_command: public RESTAPIHandler
 {
 public:
-    RESTAPI_UnknownRequestHandler(const RESTAPIHandler::BindingMap & bindings,Poco::Logger & L)
-    : RESTAPIHandler(bindings,L,
-            std::vector<std::string>{}) {}
+    RESTAPI_command(const RESTAPIHandler::BindingMap & bindings,Poco::Logger & L)
+            : RESTAPIHandler(bindings,L,
+                             std::vector<std::string>
+                                     {  Poco::Net::HTTPRequest::HTTP_GET,
+                                        Poco::Net::HTTPRequest::HTTP_DELETE,
+                                        Poco::Net::HTTPRequest::HTTP_OPTIONS}) {}
     void handleRequest(HTTPServerRequest& request, HTTPServerResponse& response) override;
 };
 
 
-
-#endif //UCENTRAL_RESTAPI_UNKNOWNREQUESTHANDLER_H
+#endif //UCENTRAL_RESTAPI_COMMAND_H

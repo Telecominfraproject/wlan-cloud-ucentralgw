@@ -46,11 +46,11 @@ add_executable( ucentral
                 src/uCentralWebSocketServer.cpp src/uCentralWebSocketServer.h src/SubSystemServer.cpp src/SubSystemServer.h
                 src/uStorageService.cpp src/uStorageService.h src/uDeviceRegistry.cpp src/uDeviceRegistry.h
                 src/RESTAPI_oauth2Handler.cpp src/RESTAPI_oauth2Handler.h src/RESTAPI_devicesHandler.cpp src/RESTAPI_devicesHandler.h
-                src/RESTAPI_deviceHandler.cpp src/RESTAPI_deviceHandler.h src/RESTAPI_UnknownRequestHandler.cpp src/RESTAPI_UnknownRequestHandler.h
-                src/RESTAPI_Handler.cpp src/RESTAPI_Handler.h src/RESTAPI_deviceCommandHandler.cpp src/RESTAPI_deviceCommandHandler.h
-                src/RESTAPI_Objects.h src/RESTAPI_Objects.cpp src/uAuthService.cpp src/uAuthService.h src/uCentralConfig.cpp src/uCentralConfig.h
+                src/RESTAPI_deviceHandler.cpp src/RESTAPI_deviceHandler.h src/RESTAPI_unknownRequestHandler.cpp src/RESTAPI_unknownRequestHandler.h
+        src/RESTAPI_handler.cpp src/RESTAPI_handler.h src/RESTAPI_deviceCommandHandler.cpp src/RESTAPI_deviceCommandHandler.h
+        src/RESTAPI_objects.h src/RESTAPI_objects.cpp src/uAuthService.cpp src/uAuthService.h src/uCentralConfig.cpp src/uCentralConfig.h
                 src/RESTAPI_default_configuration.cpp
-                src/RESTAPI_default_configuration.h src/RESTAPI_default_configurations.cpp src/RESTAPI_default_configurations.h)
+                src/RESTAPI_default_configuration.h src/RESTAPI_default_configurations.cpp src/RESTAPI_default_configurations.h src/RESTAPI_commands.cpp src/RESTAPI_commands.h src/uCommandManager.cpp src/uCommandManager.h src/RESTAPI_command.cpp src/RESTAPI_command.h)
 
 if(SMALL_BUILD)
 target_link_libraries(ucentral PRIVATE yaml-cpp

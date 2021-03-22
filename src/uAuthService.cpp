@@ -5,7 +5,7 @@
 
 #include "uAuthService.h"
 #include "uCentral.h"
-#include "RESTAPI_Handler.h"
+#include "RESTAPI_handler.h"
 
 namespace uCentral::Auth {
     Service *Service::instance_ = nullptr;
@@ -54,8 +54,8 @@ namespace uCentral::Auth {
         uCentral::Auth::Service::instance()->Stop();
     }
 
-    bool IsAuthorized(Poco::Net::HTTPServerRequest & Request,std::string &SessionToken) {
-        return uCentral::Auth::Service::instance()->IsAuthorized(Request,SessionToken);
+    bool IsAuthorized(Poco::Net::HTTPServerRequest & Request,std::string &SessionToken, std::string & UserName) {
+        return uCentral::Auth::Service::instance()->IsAuthorized(Request,SessionToken, UserName);
     }
 
     bool Authorize( const std::string & UserName, const std::string & Password, WebToken & ResultToken ) {
@@ -78,7 +78,7 @@ namespace uCentral::Auth {
 
     }
 
-    bool Service::IsAuthorized(Poco::Net::HTTPServerRequest & Request, std::string & SessionToken)
+    bool Service::IsAuthorized(Poco::Net::HTTPServerRequest & Request, std::string & SessionToken, std::string & UserName )
     {
         if(!Secure_)
             return true;
@@ -97,6 +97,7 @@ namespace uCentral::Auth {
 
             if((Token->second.created_ + Token->second.expires_in_) > time(nullptr)) {
                 SessionToken = RequestToken;
+                UserName = Token->second.username_ ;
                 return true;
             }
 

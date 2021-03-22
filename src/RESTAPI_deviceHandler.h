@@ -34,7 +34,7 @@ using Poco::Net::HTTPServerResponse;
 using Poco::Net::HTTPServerParams;
 using Poco::JSON::Parser;
 
-#include "RESTAPI_Handler.h"
+#include "RESTAPI_handler.h"
 
 class RESTAPI_deviceHandler: public RESTAPIHandler
 {

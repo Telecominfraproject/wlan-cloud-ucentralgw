@@ -2,8 +2,8 @@
 // Created by stephane bourque on 2021-03-04.
 //
 
-#include "RESTAPI_Objects.h"
-#include "RESTAPI_Handler.h"
+#include "RESTAPI_objects.h"
+#include "RESTAPI_handler.h"
 
 Poco::JSON::Object uCentralDevice::to_json() const
 {
@@ -108,6 +108,23 @@ Poco::JSON::Object uCentralDefaultConfiguration::to_json() const {
     Obj.set("configuration",Configuration);
     Obj.set("created",RESTAPIHandler::to_RFC3339(Created));
     Obj.set("lastModified",RESTAPIHandler::to_RFC3339(LastModified));
+    return Obj;
+}
+
+Poco::JSON::Object uCentralCommandDetails::to_json() const {
+    Poco::JSON::Object  Obj;
+    Obj.set("UUID",UUID);
+    Obj.set("serialNumber",SerialNumber);
+    Obj.set("command",Command);
+    Obj.set("details",Details);
+    Obj.set("submitted",RESTAPIHandler::to_RFC3339(Submitted));
+    Obj.set("executed",RESTAPIHandler::to_RFC3339(Executed));
+    Obj.set("completed",RESTAPIHandler::to_RFC3339(Completed));
+    Obj.set("when",RESTAPIHandler::to_RFC3339(RunAt));
+    Obj.set("results",Results);
+    Obj.set("errorCode",ErrorCode);
+    Obj.set("submittedBy",SubmittedBy);
+    Obj.set("status",Status);
     return Obj;
 }
 

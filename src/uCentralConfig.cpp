@@ -78,6 +78,13 @@ namespace uCentral::Config {
         }
     }
 
+    Poco::JSON::Object::Ptr   Config::to_json() {
+        Parser parser;
+        Poco::Dynamic::Var result = parser.parse(Config_);
+        Poco::JSON::Object::Ptr Obj = result.extract<Poco::JSON::Object::Ptr>();
+        return Obj;
+    }
+
     std::string Config::Default() {
         return std::string{
                 "{\"uuid\":1613927736,\"steer\":{\"enabled\":1,\"network\":\"wan\",\"debug_level\":0},\"stats\":"

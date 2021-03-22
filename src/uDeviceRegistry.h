@@ -12,12 +12,6 @@
 
 namespace uCentral::DeviceRegistry {
 
-    enum ConnectionType {
-        unknown,
-        legacy,
-        jsonrpc
-    };
-
     struct ConnectionState {
         uint64_t        MessageCount;
         std::string     SerialNumber;
@@ -27,7 +21,6 @@ namespace uCentral::DeviceRegistry {
         uint64_t        TX, RX;
         bool            Connected;
         uint64_t        LastContact;
-        ConnectionType  Protocol;
         std::string     Firmware;
         [[nodiscard]] Poco::JSON::Object to_JSON() const;
     };

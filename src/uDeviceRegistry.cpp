@@ -5,7 +5,7 @@
 #include "uDeviceRegistry.h"
 
 #include "uCentralWebSocketServer.h"
-#include "RESTAPI_Handler.h"
+#include "RESTAPI_handler.h"
 
 namespace uCentral::DeviceRegistry {
     Service *Service::instance_ = nullptr;
@@ -155,7 +155,7 @@ namespace uCentral::DeviceRegistry {
 
         auto Device = Devices_.find(SerialNumber);
 
-        if( Device != Devices_.end()) {
+        if( Device != Devices_.end() && Device->second.WSConn_==Ptr) {
             Device->second.Conn_->Address = "";
             Device->second.WSConn_ = nullptr;
             Device->second.Conn_->Connected = false;
@@ -180,15 +180,6 @@ namespace uCentral::DeviceRegistry {
         return false;
     }
 
-    std::string ProtocolToString( ConnectionType C) {
-        switch(C) {
-            case jsonrpc: return "JSON-RPC";
-            case legacy: return "legacy";
-            default:
-                return "unknown";
-        }
-    }
-
     Poco::JSON::Object ConnectionState::to_JSON() const
     {
         Poco::JSON::Object  Obj;
@@ -200,7 +191,6 @@ namespace uCentral::DeviceRegistry {
         Obj.set("messageCount",MessageCount);
         Obj.set("UUID",UUID);
         Obj.set("connected",Connected);
-        Obj.set("protocol",ProtocolToString(Protocol));
         Obj.set("firmware",Firmware);
         Obj.set("lastContact",RESTAPIHandler::to_RFC3339(LastContact));
 

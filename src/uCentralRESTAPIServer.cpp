@@ -12,7 +12,10 @@
 #include "RESTAPI_deviceCommandHandler.h"
 #include "RESTAPI_default_configuration.h"
 #include "RESTAPI_default_configurations.h"
-#include "RESTAPI_UnknownRequestHandler.h"
+#include "RESTAPI_commands.h"
+#include "RESTAPI_command.h"
+
+#include "RESTAPI_unknownRequestHandler.h"
 
 namespace uCentral::RESTAPI {
 
@@ -91,6 +94,10 @@ namespace uCentral::RESTAPI {
             return new RESTAPI_default_configurations(bindings, Logger);
         } else if (RESTAPIHandler::ParseBindings(path, "/api/v1/default_configuration/{name}", bindings)) {
             return new RESTAPI_default_configuration(bindings, Logger);
+        } else if (RESTAPIHandler::ParseBindings(path, "/api/v1/command/{commandUUID}", bindings)) {
+            return new RESTAPI_command(bindings, Logger);
+        } else if (RESTAPIHandler::ParseBindings(path, "/api/v1/commands", bindings)) {
+            return new RESTAPI_commands(bindings, Logger);
         }
 
         return new RESTAPI_UnknownRequestHandler(bindings,Logger);
