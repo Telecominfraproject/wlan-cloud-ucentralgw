@@ -398,7 +398,7 @@ The `severity` matches the `syslog` levels. Here are the details:
 - 7 : LOG_DEBUG       7       /* debug-level messages */
 
 ##### `data`
-This is optional data that may be added in the log message. 
+This is optional data that may be added in the log message. It must be a JSON document. 
 
 #### Config change pending event
 AP Sends a log whenever necessary. This message is intended to tell the controller that the AP 
@@ -572,8 +572,38 @@ The AP should answer:
 }
 ```
 
+#### Controller wants the AP to flash its LEDs
+Controller sends this command when it wants the AP to flash its LEDs.
+```
+{    "jsonrpc" : "2.0" , 
+     "method" : "factory" , 
+     "params" : {
+	        "serial" : <serial number> ,
+	        "when" : Optional - <UTC time when to upgrade the firmware, 0 mean immediate, this is a suggestion>,
+		"duration" : number in milliseconds
+     },
+     "id" : <some number>
+}
+```
+
+The AP should answer:
+```
+{     "jsonrpc" : "2.0" , 
+      "result" : {
+      "serial" : <serial number> ,
+      "status" : {
+	    "error" : 0 or an error number,
+	    "text" : <description of the error or success>,
+	    "when" : <time when this will be performed as UTC seconds>,
+  	},
+  "id" : <same number>
+}
+```
+
+
 ###### Error codes
-- 0 : device will perform factory reset at `when` seconds.
+- 0 : device will perform blink at `when` seconds.
+- 1 : device cannot flash LEDs because it does not have any.
 - 2 : device rejects the request. `text` should include information as to why. 
 
 #### Controller sends a device specific command
