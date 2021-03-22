@@ -319,9 +319,8 @@ authentication.service.type = internal
 - ucentral.websocket.host.0.cert = $UCENTRAL_ROOT/certs/server-cert.pem
 - ucentral.websocket.host.0.key = $UCENTRAL_ROOT/certs/server-key.pem
 
-## JSON-RPC based protocol
-
-In the [JSON-RPC](https://www.jsonrpc.org/specification) scenario, the AP is considered the server. So the Controller sends commands to the AP using JSON-RPC, and the AP will send notifications to the controller. 
+## Device connection to the controller
+The devices use the WebSocket protocol to establish a connection to the uCentral controller. While establishing the connection, the device mu include the following header in its connection: `Sec-WebSocket-Protocol: ucentral-broker`. In the [JSON-RPC](https://www.jsonrpc.org/specification) scenario, the AP is considered the server. So the Controller sends commands to the AP using JSON-RPC, and the AP will send notifications to the controller. 
 
 ### Event Messages
 In this RPC, here are some common interpretations:
