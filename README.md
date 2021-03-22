@@ -443,7 +443,7 @@ should send messages with `pending change` events until this version has been ap
     "params" : {
 	"serial" : <serial number> ,
 	"uuid" : <waiting to apply this configuration>,
-	"when" : UTC time when to apply this config, 0 mean immediate, this is a suggestion
+	"when" : Optional - <UTC time when to apply this config, 0 mean immediate, this is a suggestion>
         "config" : <JSON Document: New configuration”
      },
      "id" : <some number>
@@ -492,7 +492,7 @@ Controller sends this command when it believes the AP should reboot.
      "method" : "reboot" , 
      "params" : {
 	        "serial" : <serial number> ,
-	        "when" : <UTC time when to apply this config, 0 mean immediate, this is a suggestion>
+	        "when" : Optional - <UTC time when to reboot, 0 mean immediately, this is a suggestion>
      },
      "id" : <some number>
 }
@@ -523,7 +523,7 @@ Controller sends this command when it believes the AP should upgrade its firmwar
      "method" : "upgrade" , 
      "params" : {
 	        "serial" : <serial number> ,
-	        "when" : <UTC time when to apply this config, 0 mean immediate, this is a suggestion>,
+	        "when" : Optional - <UTC time when to upgrade the firmware, 0 mean immediate, this is a suggestion>,
 		"uri" : <URI to download the firmware>,
 		"digest" : <SHA256 of the firmware>
      },
@@ -556,8 +556,8 @@ Controller sends this command specific to this AP. The command is proprietary an
       "method" : "perform" , 
       "params" : {
           "serial" : <serial number> ,
-	  "when" : <UTC time when to apply this config, 0 mean immediate, this is a suggestion>,
-	  "command" : <this is device specific>,
+	  "when" : Optional - <UTC time when to perform this command, 0 mean immediate, this is a suggestion>,
+	  "command" : <this is device specific and is TEXT only>,
 	  "payload" : <JSON Document: containing additional information about the command>
           },
       "id" : <some number>
