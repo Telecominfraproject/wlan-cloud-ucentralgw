@@ -7,7 +7,7 @@ import ssl
 import requests
 
 
-uri = "https://localhost:16001/api/v1/oauth2"
+uri = "https://ucentral:16001/api/v1/oauth2"
 username = "support@example.com"
 password = "support"
 host = urlparse(uri)
@@ -37,9 +37,9 @@ def make_headers():
 
 
 def login():
-    global access_token
+    global access_token, sslcontext
     payload = json.dumps({"userId": username, "password": password})
-    data = requests.post(build_uri("api/v1/oauth2"), data=payload, verify=False)
+    data = requests.post(build_uri("api/v1/oauth2"), data=payload, verify='cert.pem')
     token = data.json()
     access_token = token["access_token"]
 
