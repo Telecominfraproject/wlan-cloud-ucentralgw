@@ -185,7 +185,7 @@ components:
           type: string
         payload:
           type: string
-        runAt:
+        when:
           type: string
           format: 'date-time'
         serialNumber:
