@@ -524,8 +524,7 @@ Controller sends this command when it believes the AP should upgrade its firmwar
      "params" : {
 	        "serial" : <serial number> ,
 	        "when" : Optional - <UTC time when to upgrade the firmware, 0 mean immediate, this is a suggestion>,
-		"uri" : <URI to download the firmware>,
-		"digest" : <SHA256 of the firmware>
+		"uri" : <URI to download the firmware>
      },
      "id" : <some number>
 }
