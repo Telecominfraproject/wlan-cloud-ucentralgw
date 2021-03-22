@@ -524,8 +524,7 @@ Controller sends this command when it believes the AP should upgrade its firmwar
      "params" : {
 	        "serial" : <serial number> ,
 	        "when" : Optional - <UTC time when to upgrade the firmware, 0 mean immediate, this is a suggestion>,
-		"uri" : <URI to download the firmware>,
-		"digest" : <SHA256 of the firmware>
+		"uri" : <URI to download the firmware>
      },
      "id" : <some number>
 }
@@ -544,10 +543,38 @@ The AP should answer:
   "id" : <same number>
 }
 ```
+
+#### Controller wants the AP to perform a factory reset
+Controller sends this command when it believes the AP should upgrade its firmware.
+```
+{    "jsonrpc" : "2.0" , 
+     "method" : "factory" , 
+     "params" : {
+	        "serial" : <serial number> ,
+	        "when" : Optional - <UTC time when to upgrade the firmware, 0 mean immediate, this is a suggestion>,
+		"keep_redirector" : <0 or 1>
+     },
+     "id" : <some number>
+}
+```
+
+The AP should answer:
+```
+{     "jsonrpc" : "2.0" , 
+      "result" : {
+      "serial" : <serial number> ,
+      "status" : {
+	    "error" : 0 or an error number,
+	    "text" : <description of the error or success>,
+	    "when" : <time when this will be performed as UTC seconds>,
+  	},
+  "id" : <same number>
+}
+```
+
 ###### Error codes
-- 0 : device will upgrade at `when` seconds.
-- 1 : already another formware pending. `text` will indicate what version that is.
-- 2 : device rejects the upgrade request. `text` should include information as to why. 
+- 0 : device will perform factory reset at `when` seconds.
+- 2 : device rejects the request. `text` should include information as to why. 
 
 #### Controller sends a device specific command
 Controller sends this command specific to this AP. The command is proprietary and must be agreed upon by the AP and the Controller. 
