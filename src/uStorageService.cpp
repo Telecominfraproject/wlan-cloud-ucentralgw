@@ -544,8 +544,14 @@ namespace uCentral::Storage {
 
             uint64_t Now = time(nullptr);
             Session session_ = Pool_->get();
+/*
+                    "SerialNumber VARCHAR(30), "
+                    "UUID INTEGER, "
+                    "Data TEXT, "
+                    "Recorded BIGINT)", now;
 
-            session_ << "INSERT INTO Statistics VALUES( '%s', '%Lu', '%s', '%Lu')",
+ */
+            session_ << "INSERT INTO Statistics (SerialNumber, UUID, Data, Recorded) VALUES( '%s', %Lu, '%s', %Lu)",
                     SerialNumber.c_str(),
                     CfgUUID,
                     NewStats.c_str(),
@@ -643,7 +649,13 @@ namespace uCentral::Storage {
 
             Session session_ = Pool_->get();
 
-            session_ << "INSERT INTO HealthChecks VALUES( '%s', '%Lu' , '%s' , '%Lu' , '%Lu')",
+/*          "SerialNumber VARCHAR(30), "
+            "UUID          BIGINT, "
+            "Data TEXT, "
+            "Sanity BIGINT , "
+            "Recorded BIGINT) ", now;
+*/
+            session_ << "INSERT INTO HealthChecks (SerialNumber, UUID, Data, Sanity, Recorded) VALUES( '%s', %Lu , '%s' , %Lu , %Lu)",
                     SerialNumber.c_str(),
                     Check.UUID,
                     Check.Data.c_str(),
@@ -743,7 +755,14 @@ namespace uCentral::Storage {
         Session session_ = Pool_->get();
 
         try {
-            session_ << "INSERT INTO DeviceLogs VALUES( '%s' , '%s' , '%Lu', '%s', '%Lu')",
+/*
+                    "SerialNumber VARCHAR(30), "
+                    "Log TEXT, "
+                    "Severity BIGINT , "
+                    "Data TEXT , "
+                    "Recorded BIGINT)
+ */
+            session_ << "INSERT INTO DeviceLogs (SerialNumber, Log, Severity, Data, Recorded) VALUES( '%s' , '%s' , %Lu, '%s', %Lu)",
                     SerialNumber.c_str(),
                     Log.Log.c_str(),
                     Log.Severity,
@@ -911,8 +930,20 @@ namespace uCentral::Storage {
                     uint64_t Now = time(nullptr);
 
                     // DeviceDetails.Print();
+/*
+                     "SerialNumber  VARCHAR(30) UNIQUE PRIMARY KEY, "
+                    "DeviceType    VARCHAR(10), "
+                    "MACAddress    VARCHAR(30), "
+                    "Manufacturer  VARCHAR(64), "
+                    "UUID          BIGINT, "
+                    "Configuration TEXT, "
+                    "Notes         TEXT, "
+                    "CreationTimestamp BIGINT, "
+                    "LastConfigurationChange BIGINT, "
+                    "LastConfigurationDownload BIGINT"
 
-                    session_ << "INSERT INTO Devices VALUES('%s', '%s', '%s', '%s', %Lu, '%s', '%s', %Lu, %Lu, %Lu)",
+ */
+                    session_ << "INSERT INTO Devices (SerialNumber, DeviceType, MACAddress, Manufacturer, UUID, Configuration, Notes, CreationTimestamp, LastConfigurationChange, LastConfigurationDownload ) VALUES('%s', '%s', '%s', '%s', %Lu, '%s', '%s', %Lu, %Lu, %Lu)",
                             DeviceDetails.SerialNumber.c_str(),
                             DeviceDetails.DeviceType.c_str(),
                             DeviceDetails.MACAddress.c_str(),
@@ -1158,9 +1189,16 @@ namespace uCentral::Storage {
 
             uint64_t Now = time(nullptr);
 
+/*
+                     "SerialNumber VARCHAR(30) PRIMARY KEY, "
+                    "Capabilities TEXT, "
+                    "FirstUpdate BIGINT, "
+                    "LastUpdate BIGINT"
+
+ */
             if (SS.empty()) {
-                logger().information("Adding capabilities for " + SerialNumber);
-                session_ << "INSERT INTO Capabilities VALUES('%s', '%s', %Lu, %Lu)",
+                Logger_.information("Adding capabilities for " + SerialNumber);
+                session_ << "INSERT INTO Capabilities (SerialNumber, Capabilities, FirstUpdate, LastUpdate) VALUES('%s', '%s', %Lu, %Lu)",
                         SerialNumber.c_str(),
                         Capabs.c_str(),
                         Now,
@@ -1284,10 +1322,19 @@ namespace uCentral::Storage {
             if (TmpName.empty()) {
 
                 uCentral::Config::Config    Cfg(DefConfig.Configuration);
+/*
+                     "Name VARCHAR(30) PRIMARY KEY, "
+                    "Configuration TEXT, "
+                    "Models TEXT, "
+                    "Description TEXT, "
+                    "Created BIGINT , "
+                    "LastModified BIGINT)", now;
+
+ */
 
                 if(Cfg.Valid()) {
                     uint64_t Now = time(nullptr);
-                    session_ << "INSERT INTO DefaultConfigs VALUES('%s', '%s', '%s', '%s', %Lu, %Lu)" ,
+                    session_ << "INSERT INTO DefaultConfigs (Name, Configuration, Models, Description, Created, LastModified) VALUES('%s', '%s', '%s', '%s', %Lu, %Lu)" ,
                         Name.c_str(),
                         DefConfig.Configuration.c_str(),
                         DefConfig.Models.c_str(),
@@ -1532,7 +1579,7 @@ namespace uCentral::Storage {
                     "ErrorCode      BIGINT "
              */
 
-            session_ << "INSERT INTO CommandList VALUES('%s','%s', '%s', '%s', '%s', '%s', '%s', %Lu, %Lu, %Lu, %Lu, %Lu)" ,
+            session_ << "INSERT INTO CommandList (UUID, SerialNumber, Command, Status, SubmittedBy, Results, Details, Submitted, Executed, Completed, RunAt, ErrorCode) VALUES('%s','%s', '%s', '%s', '%s', '%s', '%s', %Lu, %Lu, %Lu, %Lu, %Lu)" ,
                 Command.UUID.c_str(),
                 Command.SerialNumber.c_str(),
                 Command.Command.c_str(),

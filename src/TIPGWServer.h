@@ -51,10 +51,12 @@ namespace uCentral::TIPGW {
 
     class RequestHandlerFactory : public Poco::Net::HTTPRequestHandlerFactory {
     public:
-        explicit RequestHandlerFactory()
+        explicit RequestHandlerFactory() :
+            Logger_(Service::instance()->Logger())
         {};
         Poco::Net::HTTPRequestHandler *createRequestHandler(const Poco::Net::HTTPServerRequest &request) override;
     private:
+        Poco::Logger    & Logger_;
 
     };
 

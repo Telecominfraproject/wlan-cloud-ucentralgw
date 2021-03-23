@@ -28,11 +28,19 @@ namespace uCentral::CommandManager {
         uCentral::CommandManager::Service::instance()->WakeUp();
     }
 
+    void CommandCompletion( const std::string & UUID, const std::string & Status ) {
+        uCentral::CommandManager::Service::instance()->CommandCompletion( UUID, Status );
+    }
+
     void Manager::run() {
         while(!Stop_)
         {
             Poco::Thread::trySleep(2000);
         }
+    }
+
+    void Manager::CommandCompletion( const std::string & UUID, const std::string & Status ) {
+        //  todo: add the code to complete a command.
     }
 
     int Service::Start() {
@@ -51,5 +59,8 @@ namespace uCentral::CommandManager {
         ManagerThread.wakeUp();
     }
 
+    void Service::CommandCompletion( const std::string & UUID, const std::string & Status ) {
+        Manager_.CommandCompletion( UUID, Status );
+    }
 
 };  // namespace

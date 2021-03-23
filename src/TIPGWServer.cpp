@@ -49,20 +49,18 @@ namespace uCentral::TIPGW {
     }
 
     void Service::Stop() {
-        SubSystemServer::logger().information("Stopping ");
+        Logger_.information("Stopping ");
         for(auto const & svr : RESTServers_)
             svr->stop();
     }
 
     void RequestHandler::handleRequest(Poco::Net::HTTPServerRequest &Request, Poco::Net::HTTPServerResponse &Response) {
-        Poco::Logger & Logger = Service::instance()->logger();
+
     }
 
     Poco::Net::HTTPRequestHandler *RequestHandlerFactory::createRequestHandler(const Poco::Net::HTTPServerRequest &request) {
 
-        Poco::Logger & Logger = Service::instance()->logger();
-
-        Logger.information(Poco::format("%s from %s: %s",request.getMethod(),
+        Logger_.information(Poco::format("%s from %s: %s",request.getMethod(),
                                         request.clientAddress().toString(),
                                         request.getURI()));
         return nullptr;

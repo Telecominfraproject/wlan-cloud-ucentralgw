@@ -65,7 +65,12 @@ namespace uCentral::RESTAPI {
 
     class RequestHandlerFactory : public HTTPRequestHandlerFactory {
     public:
+        RequestHandlerFactory() :
+            Logger_(Service::instance()->Logger()){}
+
         HTTPRequestHandler *createRequestHandler(const HTTPServerRequest &request) override;
+    private:
+        Poco::Logger    & Logger_;
     };
 
 

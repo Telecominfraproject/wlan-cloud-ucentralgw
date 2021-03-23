@@ -48,7 +48,7 @@ void RESTAPI_deviceCommandHandler::handleRequest(HTTPServerRequest& Request, HTT
             DeleteStatistics(Request, Response);
         } else if (Command == "status" && Request.getMethod() == Poco::Net::HTTPServerRequest::HTTP_GET) {
             GetStatus(Request, Response);
-        } else if (Command == "command" && Request.getMethod() == Poco::Net::HTTPServerRequest::HTTP_POST) {
+        } else if (Command == "perform" && Request.getMethod() == Poco::Net::HTTPServerRequest::HTTP_POST) {
             ExecuteCommand(Request, Response);
         } else if (Command == "configure" && Request.getMethod() == Poco::Net::HTTPServerRequest::HTTP_POST) {
             Configure(Request, Response);
@@ -56,6 +56,10 @@ void RESTAPI_deviceCommandHandler::handleRequest(HTTPServerRequest& Request, HTT
             Upgrade(Request, Response);
         } else if (Command == "reboot" && Request.getMethod() == Poco::Net::HTTPServerRequest::HTTP_POST) {
             Reboot(Request, Response);
+        } else if (Command == "factory" && Request.getMethod() == Poco::Net::HTTPServerRequest::HTTP_POST) {
+            Factory(Request, Response);
+        } else if (Command == "blink" && Request.getMethod() == Poco::Net::HTTPServerRequest::HTTP_POST) {
+            Blink(Request, Response);
         } else {
             BadRequest(Response);
         }
@@ -291,8 +295,7 @@ void RESTAPI_deviceCommandHandler::Upgrade(HTTPServerRequest &Request, HTTPServe
         Poco::DynamicStruct ds = *Obj;
 
         if (ds.contains("uri") &&
-            ds.contains("serialNumber") &&
-            ds.contains("digest")) {
+            ds.contains("serialNumber")) {
 
             auto SerialNumber = ds["serialNumber"].toString();
 
@@ -302,7 +305,6 @@ void RESTAPI_deviceCommandHandler::Upgrade(HTTPServerRequest &Request, HTTPServe
             }
 
             auto URI = ds["uri"].toString();
-            auto Digest = ds["digest"].toString();
 
             uint64_t When = 0 ;
             if(ds.contains("when"))
@@ -326,7 +328,6 @@ void RESTAPI_deviceCommandHandler::Upgrade(HTTPServerRequest &Request, HTTPServe
             Params.set( "serial" , SerialNumber );
             Params.set( "uri", URI);
             Params.set( "when", When);
-            Params.set( "digest", Digest);
 
             std::stringstream ParamStream;
             Params.stringify(ParamStream);
@@ -361,7 +362,6 @@ void RESTAPI_deviceCommandHandler::Upgrade(HTTPServerRequest &Request, HTTPServe
     }
     BadRequest(Response);
 }
-
 
 void RESTAPI_deviceCommandHandler::GetLogs(HTTPServerRequest& Request, HTTPServerResponse& Response) {
     try {
@@ -624,3 +624,185 @@ void RESTAPI_deviceCommandHandler::Reboot(HTTPServerRequest& Request, HTTPServer
     BadRequest(Response);
 }
 
+/*
+   FactoryRequest:
+      type: object
+      properties:
+        serialNumber:
+          type: string
+        when:
+          type: string
+          format: 'date-time'
+        keepRedirector:
+          type: boolean
+ */
+
+void RESTAPI_deviceCommandHandler::Factory(HTTPServerRequest &Request, HTTPServerResponse &Response) {
+    try {
+        auto SNum = GetBinding("serialNumber", "");
+
+        //  get the configuration from the body of the message
+        Poco::JSON::Parser parser;
+        Poco::JSON::Object::Ptr Obj = parser.parse(Request.stream()).extract<Poco::JSON::Object::Ptr>();
+        Poco::DynamicStruct ds = *Obj;
+
+        if (ds.contains("keepRedirector") &&
+            ds.contains("serialNumber")) {
+
+            auto SerialNumber = ds["serialNumber"].toString();
+
+            if(SerialNumber != SNum) {
+                BadRequest(Response);
+                return;
+            }
+
+            auto KeepRedirector = ds["keepRedirector"];
+
+            uint64_t When = 0 ;
+            if(ds.contains("when"))
+                When = RESTAPIHandler::from_RFC3339(ds["when"].toString());
+
+            uCentralCommandDetails  Cmd;
+
+            Cmd.SerialNumber = SerialNumber;
+            Cmd.UUID = uCentral::instance()->CreateUUID();
+            Cmd.Submitted = time(nullptr);
+            Cmd.Executed = 0;
+            Cmd.Completed = 0;
+            Cmd.SubmittedBy = UserName_;
+            Cmd.ErrorCode = 0 ;
+            Cmd.Status = "Pending";
+            Cmd.Command = "factory";
+            Cmd.RunAt = When;
+
+            Poco::JSON::Object  Params;
+
+            Params.set( "serial" , SerialNumber );
+            Params.set( "keep_redirector", KeepRedirector);
+            Params.set( "when", When);
+
+            std::stringstream ParamStream;
+            Params.stringify(ParamStream);
+            Cmd.Details = ParamStream.str();
+
+            if(uCentral::Storage::AddCommand(SerialNumber,Cmd)) {
+
+                Poco::JSON::Object RetObj;
+
+                RetObj.set("serialNumber", SerialNumber);
+                RetObj.set("command", Cmd.Command);
+                RetObj.set("UUID", Cmd.UUID);
+
+                ReturnObject(RetObj, Response);
+
+                return;
+            }
+            else
+            {
+                BadRequest(Response);
+                return;
+            }
+        }
+
+        else
+            BadRequest(Response);
+        return;
+    }
+    catch(const Poco::Exception &E)
+    {
+        logger_.error(Poco::format("%s: failed with %s",std::string(__func__), E.displayText()));
+    }
+    BadRequest(Response);
+}
+
+/*
+BlinkRequest:
+type: object
+        properties:
+serialNumber:
+type: string
+        when:
+type: string
+        format: 'date-time'
+duration:
+type: integer
+        format: int64
+        */
+
+void RESTAPI_deviceCommandHandler::Blink(HTTPServerRequest &Request, HTTPServerResponse &Response) {
+    try {
+        auto SNum = GetBinding("serialNumber", "");
+
+        //  get the configuration from the body of the message
+        Poco::JSON::Parser parser;
+        Poco::JSON::Object::Ptr Obj = parser.parse(Request.stream()).extract<Poco::JSON::Object::Ptr>();
+        Poco::DynamicStruct ds = *Obj;
+
+        if (ds.contains("duration") &&
+            ds.contains("serialNumber")) {
+
+            auto SerialNumber = ds["serialNumber"].toString();
+
+            if(SerialNumber != SNum) {
+                BadRequest(Response);
+                return;
+            }
+
+            auto Duration = ds["duration"];
+
+            uint64_t When = 0 ;
+            if(ds.contains("when"))
+                When = RESTAPIHandler::from_RFC3339(ds["when"].toString());
+
+            uCentralCommandDetails  Cmd;
+
+            Cmd.SerialNumber = SerialNumber;
+            Cmd.UUID = uCentral::instance()->CreateUUID();
+            Cmd.Submitted = time(nullptr);
+            Cmd.Executed = 0;
+            Cmd.Completed = 0;
+            Cmd.SubmittedBy = UserName_;
+            Cmd.ErrorCode = 0 ;
+            Cmd.Status = "Pending";
+            Cmd.Command = "blink";
+            Cmd.RunAt = When;
+
+            Poco::JSON::Object  Params;
+
+            Params.set( "serial" , SerialNumber );
+            Params.set( "duration", Duration);
+            Params.set( "when", When);
+
+            std::stringstream ParamStream;
+            Params.stringify(ParamStream);
+            Cmd.Details = ParamStream.str();
+
+            if(uCentral::Storage::AddCommand(SerialNumber,Cmd)) {
+
+                Poco::JSON::Object RetObj;
+
+                RetObj.set("serialNumber", SerialNumber);
+                RetObj.set("command", Cmd.Command);
+                RetObj.set("UUID", Cmd.UUID);
+
+                ReturnObject(RetObj, Response);
+
+                return;
+            }
+            else
+            {
+                BadRequest(Response);
+                return;
+            }
+        }
+
+        else
+            BadRequest(Response);
+        return;
+    }
+    catch(const Poco::Exception &E)
+    {
+        logger_.error(Poco::format("%s: failed with %s",std::string(__func__), E.displayText()));
+    }
+    BadRequest(Response);
+}

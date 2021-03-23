@@ -62,11 +62,7 @@ namespace uCentral::RESTAPI {
 
     HTTPRequestHandler *RequestHandlerFactory::createRequestHandler(const HTTPServerRequest & Request) {
 
-        auto    & Logger = uCentral::RESTAPI::Service::instance()->logger();
-
-        std::string ss{"Hello"};
-
-        Logger.information("Request from "
+        Logger_.information("Request from "
                             + Request.clientAddress().toString()
                             + ": "
                             + Request.getMethod()
@@ -81,31 +77,30 @@ namespace uCentral::RESTAPI {
         RESTAPIHandler::BindingMap bindings;
 
         if (RESTAPIHandler::ParseBindings(path, "/api/v1/oauth2", bindings)) {
-            return new RESTAPI_oauth2Handler(bindings, Logger);
+            return new RESTAPI_oauth2Handler(bindings, Logger_);
         } else if (RESTAPIHandler::ParseBindings(path, "/api/v1/oauth2/{token}", bindings)) {
-            return new RESTAPI_oauth2Handler(bindings, Logger);
+            return new RESTAPI_oauth2Handler(bindings, Logger_);
         } else if (RESTAPIHandler::ParseBindings(path, "/api/v1/devices", bindings)) {
-            return new RESTAPI_devicesHandler(bindings, Logger);
+            return new RESTAPI_devicesHandler(bindings, Logger_);
         } else if (RESTAPIHandler::ParseBindings(path, "/api/v1/device/{serialNumber}/{command}", bindings)) {
-            return new RESTAPI_deviceCommandHandler(bindings, Logger);
+            return new RESTAPI_deviceCommandHandler(bindings, Logger_);
         } else if (RESTAPIHandler::ParseBindings(path, "/api/v1/device/{serialNumber}", bindings)) {
-            return new RESTAPI_deviceHandler(bindings, Logger);
+            return new RESTAPI_deviceHandler(bindings, Logger_);
         }  else if (RESTAPIHandler::ParseBindings(path, "/api/v1/default_configurations", bindings)) {
-            return new RESTAPI_default_configurations(bindings, Logger);
+            return new RESTAPI_default_configurations(bindings, Logger_);
         } else if (RESTAPIHandler::ParseBindings(path, "/api/v1/default_configuration/{name}", bindings)) {
-            return new RESTAPI_default_configuration(bindings, Logger);
+            return new RESTAPI_default_configuration(bindings, Logger_);
         } else if (RESTAPIHandler::ParseBindings(path, "/api/v1/command/{commandUUID}", bindings)) {
-            return new RESTAPI_command(bindings, Logger);
+            return new RESTAPI_command(bindings, Logger_);
         } else if (RESTAPIHandler::ParseBindings(path, "/api/v1/commands", bindings)) {
-            return new RESTAPI_commands(bindings, Logger);
+            return new RESTAPI_commands(bindings, Logger_);
         }
 
-        return new RESTAPI_UnknownRequestHandler(bindings,Logger);
+        return new RESTAPI_UnknownRequestHandler(bindings,Logger_);
     }
 
     void Service::Stop() {
-        SubSystemServer::logger().information("Stopping ");
-
+        Logger_.information("Stopping ");
         for( const auto & svr : RESTServers_ )
             svr->stop();
     }

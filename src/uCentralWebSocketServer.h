@@ -57,13 +57,22 @@ namespace uCentral::WebSocket {
             Thread_.join();
         }
 
-        void start() { Thread_.start( *this); }
-        uint64_t Count() const { return SocketCount_; }
-        void Get() { SocketCount_++; }
-        void Release() { SocketCount_--; }
+        void start() {
+            Thread_.start( *this);
+            }
+        uint64_t Count() {
+
+            return SocketCount_; }
+        void Get() {
+            Poco::Mutex::ScopedLock lock(Mutex_);
+            SocketCount_++; }
+        void Release() {
+            Poco::Mutex::ScopedLock lock(Mutex_);
+            SocketCount_--; }
         uint64_t Id() const { return Id_;}
 
     private:
+        Poco::Mutex      Mutex_;
         Poco::Thread                Thread_;
         uint64_t                    SocketCount_;
         uint64_t                    Id_;
@@ -76,21 +85,23 @@ namespace uCentral::WebSocket {
         {
             for(auto i=0;i<NumReactors_;i++)
             {
-                auto NewReactor = std::shared_ptr<CountedSocketReactor>(new CountedSocketReactor(i));
+                auto NewReactor = new CountedSocketReactor(i);
                 Reactors_.push_back( NewReactor );
                 NewReactor->start();
             }
         }
 
-        std::shared_ptr<CountedSocketReactor> GetAReactor() {
+        CountedSocketReactor * GetAReactor() {
             uint64_t Min;
 
-            std::lock_guard<std::mutex> guard(Mutex_);
+            Poco::Mutex::ScopedLock lock(Mutex_);
 
             auto Tmp = Reactors_.end();
+            int TotalSockets = 0 ;
 
             for( auto i = Reactors_.begin() ; i != Reactors_.end() ; i++ )
             {
+                TotalSockets += (*i)->Count();
                 if(Tmp == Reactors_.end())
                 {
                     Tmp = i;
@@ -103,35 +114,16 @@ namespace uCentral::WebSocket {
                 }
             }
 
-            // std::cout << "Rector: " << (*Tmp)->Id() << " with " << (*Tmp)->Count() << " sockets." << std::endl;
+            std::cout << "Currently " << TotalSockets << " sockets." << std::endl;
 
             return (*Tmp);
         }
 
     private:
-        std::mutex  Mutex_;
+        Poco::Mutex Mutex_;
         uint64_t    NumReactors_;
-        std::vector<std::shared_ptr<CountedSocketReactor>>  Reactors_;
+        std::vector<CountedSocketReactor *>  Reactors_;
     };
-
-    class CountedReactor {
-    public:
-        explicit CountedReactor( std::shared_ptr<CountedSocketReactor> R )
-        :   Reactor_(std::move(R)){
-            Reactor_->Get();
-        };
-
-        ~CountedReactor()
-        {
-            Reactor_->Release();
-        }
-
-        std::shared_ptr<CountedSocketReactor> Reactor() { return Reactor_; }
-
-    private:
-        std::shared_ptr<CountedSocketReactor> Reactor_;
-    };
-
 
     class Service : public SubSystemServer {
     public:
@@ -147,7 +139,7 @@ namespace uCentral::WebSocket {
             return instance_;
         }
 
-        std::shared_ptr<CountedSocketReactor> GetAReactor() {
+        CountedSocketReactor * GetAReactor() {
             return Factory_->GetAReactor();
         }
 
@@ -158,6 +150,27 @@ namespace uCentral::WebSocket {
         static Service *instance_;
         std::vector<std::shared_ptr<Poco::Net::HTTPServer>>     HTTPServers_;
         std::shared_ptr<CountedSocketReactorFactory>            Factory_;
+    };
+
+    class CountedReactor {
+    public:
+        explicit CountedReactor()
+        {
+            Reactor_ = Service::instance()->GetAReactor();
+            Reactor_->Get();
+            // std::cout << "Got reactor: " << Reactor_->Id() << std::endl;
+        };
+
+        ~CountedReactor()
+        {
+            // std::cout << "Leaving reactor: " << Reactor_->Id() << std::endl;
+            Reactor_->Release();
+        }
+
+        CountedSocketReactor * Reactor() { return Reactor_; }
+
+    private:
+        CountedSocketReactor * Reactor_;
     };
 
     class WSRequestHandler : public HTTPRequestHandler
@@ -174,9 +187,13 @@ namespace uCentral::WebSocket {
 
     class WSRequestHandlerFactory : public HTTPRequestHandlerFactory {
     public:
+        WSRequestHandlerFactory():
+            Logger_(Service::instance()->Logger())
+        {
+        }
         HTTPRequestHandler *createRequestHandler(const HTTPServerRequest &request) override;
     private:
-
+        Poco::Logger    & Logger_;
     };
 
     class WSConnection {
@@ -187,22 +204,27 @@ namespace uCentral::WebSocket {
 
         ~WSConnection();
 
-        void ProcessJSONRPCMessage(Poco::DynamicStruct &ds,std::string &Response);
+        void ProcessJSONRPCEvent(Poco::DynamicStruct ds);
+        void ProcessJSONRPCResult(Poco::DynamicStruct ds);
         bool SendCommand(const std::string &Cmd);
         void OnSocketReadable(const AutoPtr<Poco::Net::ReadableNotification>& pNf);
         void OnSocketShutdown(const AutoPtr<Poco::Net::ShutdownNotification>& pNf);
         void OnSocketError(const AutoPtr<Poco::Net::ErrorNotification>& pNf);
         bool LookForUpgrade(std::string &Response);
+        static Poco::DynamicStruct ExtractCompressedData(const std::string & CompressedData);
+        void Register();
+        void DeRegister();
 
     private:
-        std::mutex mutex_;
-        std::shared_ptr<CountedReactor> Reactor_;
+        Poco::Mutex                     Mutex_;
+        CountedReactor                  * Reactor_;
         Poco::Logger                    & Logger_;
         Poco::Net::WebSocket            * WS_;
         std::string                     SerialNumber_;
         std::shared_ptr<uCentral::DeviceRegistry::ConnectionState>  Conn_;
         std::map<uint64_t,std::string>  RPCs_;
         uint64_t                        RPC_;
+        bool                            Registered_;
     };
 
 }; //namespace

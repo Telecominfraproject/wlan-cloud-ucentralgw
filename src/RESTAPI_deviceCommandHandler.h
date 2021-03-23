@@ -32,6 +32,8 @@ public:
     void DeleteChecks(HTTPServerRequest& Request, HTTPServerResponse& Response);
     void Upgrade(HTTPServerRequest& Request, HTTPServerResponse& Response);
     void Reboot(HTTPServerRequest& Request, HTTPServerResponse& Response);
+    void Factory(HTTPServerRequest &Request, HTTPServerResponse &Response);
+    void Blink(HTTPServerRequest &Request, HTTPServerResponse &Response);
 };
 
 #endif //UCENTRAL_RESTAPI_DEVICECOMMANDHANDLER_H

@@ -369,8 +369,6 @@ components:
           type: string
         serialNumber:
           type: string
-        digest:
-          type: string
         when:
           type: string
           format: 'date-time'
@@ -383,6 +381,29 @@ components:
         when:
           type: string
           format: 'date-time'
+
+    FactoryRequest:
+      type: object
+      properties:
+        serialNumber:
+          type: string
+        when:
+          type: string
+          format: 'date-time'
+        keepRedirector:
+          type: boolean
+
+    BlinkRequest:
+      type: object
+      properties:
+        serialNumber:
+          type: string
+        when:
+          type: string
+          format: 'date-time'
+        duration:
+          type: integer
+          format: int64
 
     CommandInfo:
       type: object
@@ -1258,6 +1279,58 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/RebootRequest'
+      responses:
+        200:
+          $ref: '#/components/responses/CommandSubmitSuccess'
+        403:
+          $ref: '#/components/responses/Unauthorized'
+        404:
+          $ref: '#/components/responses/NotFound'
+
+  /device/{serialNumber}/factory:
+    post:
+      tags:
+        - Commands
+      summary: Factory reset a device a device
+      operationId: factoryReset
+      parameters:
+        - in: path
+          name: serialNumber
+          schema:
+            type: string
+          required: true
+      requestBody:
+        description: Command details
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FactoryRequest'
+      responses:
+        200:
+          $ref: '#/components/responses/CommandSubmitSuccess'
+        403:
+          $ref: '#/components/responses/Unauthorized'
+        404:
+          $ref: '#/components/responses/NotFound'
+
+  /device/{serialNumber}/blink:
+    post:
+      tags:
+        - Commands
+      summary: Blink the LEDs on a device
+      operationId: blinkRequest
+      parameters:
+        - in: path
+          name: serialNumber
+          schema:
+            type: string
+          required: true
+      requestBody:
+        description: Command details
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BlinkRequest'
       responses:
         200:
           $ref: '#/components/responses/CommandSubmitSuccess'

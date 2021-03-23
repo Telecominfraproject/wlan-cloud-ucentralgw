@@ -69,10 +69,10 @@ public:
     void defineOptions(OptionSet &options) override;
     const char *name() const override { return Name_.c_str(); };
     const PropertiesFileServerEntry & host(int index) { return ConfigServersList_[index]; };
-    Logger                  & logger() { return Logger_;};
+    Poco::Logger                  & Logger() { return Logger_;};
 
 protected:
-    Logger                  &Logger_;
+    Poco::Logger            &Logger_;
     std::string             Name_;
     std::vector<PropertiesFileServerEntry> ConfigServersList_;
     std::string             SubSystemConfigPrefix_;
