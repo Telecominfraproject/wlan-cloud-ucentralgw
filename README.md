@@ -398,7 +398,7 @@ The `severity` matches the `syslog` levels. Here are the details:
 - 7 : LOG_DEBUG       7       /* debug-level messages */
 
 ##### `data`
-This is optional data that may be added in the log message. 
+This is optional data that may be added in the log message. It must be a JSON document. 
 
 #### Config change pending event
 AP Sends a log whenever necessary. This message is intended to tell the controller that the AP 
@@ -572,8 +572,38 @@ The AP should answer:
 }
 ```
 
+#### Controller wants the AP to flash its LEDs
+Controller sends this command when it wants the AP to flash its LEDs.
+```
+{    "jsonrpc" : "2.0" , 
+     "method" : "factory" , 
+     "params" : {
+	        "serial" : <serial number> ,
+	        "when" : Optional - <UTC time when to upgrade the firmware, 0 mean immediate, this is a suggestion>,
+		"duration" : number in milliseconds
+     },
+     "id" : <some number>
+}
+```
+
+The AP should answer:
+```
+{     "jsonrpc" : "2.0" , 
+      "result" : {
+      "serial" : <serial number> ,
+      "status" : {
+	    "error" : 0 or an error number,
+	    "text" : <description of the error or success>,
+	    "when" : <time when this will be performed as UTC seconds>,
+  	},
+  "id" : <same number>
+}
+```
+
+
 ###### Error codes
-- 0 : device will perform factory reset at `when` seconds.
+- 0 : device will perform blink at `when` seconds.
+- 1 : device cannot flash LEDs because it does not have any.
 - 2 : device rejects the request. `text` should include information as to why. 
 
 #### Controller sends a device specific command
@@ -611,6 +641,28 @@ The AP should answer with teh above message. The `error` value should be interpr
 - 0 : the command was performed as requested and the reults of the command is available in the `resultCode` and `resultText` parameters.
 - 1 : the command will be performed in the future and `when` shows that time. The `resultCode` and `resultText` dod not contain anything relevant.
 - 2 : the command cannot be performed as indicated. `resultCode` and `resultText` may contain some indication as to why.
+
+### Message compression
+Some messages may be several KB in size. If these messages repeat often, they may cause added data charges over time. As a result, the AP may decide to compress and base64 outgoing messages. Only messages over 3K in size should be compressed. This should apply to the `state` event and possibly the `healtcheck` event. Should other messages get larger, the client may decide to compress the. Only messages from the AP to the controller may use compression.
+
+#### Identifying a compressed message
+A compressed message has a single member to the `params` field. It's only parameter must be called `compress_64`. Any other elements under
+params will be dropped.
+
+#### How to compress
+The original `params` element should be run through `zlib:compress` and then encoded using base64, and passed as a string. Here is an example
+of the completed message. The following should how the `state` event could be compressed:
+
+```
+{   "jsonrpc" : "2.0" , 
+    "method" : "state" , 
+    "params" : {
+	"compress_64" : "kqlwhfoihffhwleihfi3uhfkjehfqlkwhfqkhfiu3hffhkjwehfqkwjehfqwiefkjehq.....qwjqkfhqjwk"
+  }
+}
+```
+
+
 
 ## OpenAPI
 The service supports an OpenAPI REST based interface for management. You can find the [definition here](https://github.com/stephb9959/ucentralgw/blob/main/tipapi/ucentral/ucentral.yaml).
