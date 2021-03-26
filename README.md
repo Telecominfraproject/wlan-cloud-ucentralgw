@@ -576,7 +576,7 @@ The AP should answer:
 Controller sends this command when it wants the AP to flash its LEDs.
 ```
 {    "jsonrpc" : "2.0" , 
-     "method" : "factory" , 
+     "method" : "blink" , 
      "params" : {
 	        "serial" : <serial number> ,
 	        "when" : Optional - <UTC time when to upgrade the firmware, 0 mean immediate, this is a suggestion>,
