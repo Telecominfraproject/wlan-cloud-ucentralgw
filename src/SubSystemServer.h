@@ -41,7 +41,7 @@ public:
             key_file_(key_file),
             cert_file_(cert_file),
             key_file_password_(key_file_password) {};
-
+    
     [[nodiscard]] const std::string & address() const { return address_; };
     [[nodiscard]] uint32_t port() const { return port_; };
     [[nodiscard]] const std::string & key_file() const { return key_file_; };

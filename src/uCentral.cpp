@@ -44,6 +44,21 @@ namespace uCentral {
 
     Daemon * instance() { return reinterpret_cast<Daemon *>(&uCentral::Daemon::instance()); }
 
+    void ErrorHandler::exception(const Poco::Exception & E) {
+        Poco::Thread * CurrentThread = Poco::Thread::current();
+        uCentral::instance()->logger().warning(Poco::format("socket exception on %s",CurrentThread->getName()));
+    }
+
+    void ErrorHandler::exception(const std::exception & E) {
+        Poco::Thread * CurrentThread = Poco::Thread::current();
+        uCentral::instance()->logger().warning(Poco::format("std::exception on %s",CurrentThread->getName()));
+    }
+
+    void ErrorHandler::exception() {
+        Poco::Thread * CurrentThread = Poco::Thread::current();
+        uCentral::instance()->logger().warning(Poco::format("exception on %s",CurrentThread->getName()));
+    }
+
     Daemon::Daemon() :
         helpRequested_(false),
         AutoProvisioning_(false),
@@ -223,6 +238,9 @@ namespace uCentral {
     }
 
     int Daemon::main(const ArgVec &args) {
+
+        Poco::ErrorHandler::set(&AppErrorHandler_);
+
         if (!helpRequested_) {
 
             std::cout << "Starting ucentral..." << std::endl;

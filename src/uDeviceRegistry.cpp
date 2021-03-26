@@ -39,7 +39,7 @@ namespace uCentral::DeviceRegistry {
         return uCentral::DeviceRegistry::Service::instance()->SetState(SerialNumber,State);
     }
 
-    std::shared_ptr<ConnectionState> Register(const std::string & SerialNumber, void *Ptr) {
+    ConnectionState *  Register(const std::string & SerialNumber, void *Ptr) {
         return uCentral::DeviceRegistry::Service::instance()->Register(SerialNumber,Ptr);
     }
 
@@ -112,7 +112,7 @@ namespace uCentral::DeviceRegistry {
         }
     }
 
-    std::shared_ptr<ConnectionState> Service::Register(const std::string & SerialNumber, void *Ptr)
+    ConnectionState * Service::Register(const std::string & SerialNumber, void *Ptr)
     {
         std::lock_guard<std::mutex> guard(mutex_);
 
@@ -123,7 +123,7 @@ namespace uCentral::DeviceRegistry {
             ConnectionEntry E;
 
             E.WSConn_ = Ptr;
-            E.Conn_ = std::shared_ptr<ConnectionState>(new ConnectionState);
+            E.Conn_ = new ConnectionState;
             E.Conn_->SerialNumber = SerialNumber;
             E.Conn_->LastContact = time(nullptr);
             E.Conn_->Connected = true ;

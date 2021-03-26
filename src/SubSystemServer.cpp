@@ -5,7 +5,7 @@
 #include "SubSystemServer.h"
 #include "uCentral.h"
 
-SubSystemServer::SubSystemServer( const std::string &Name,
+SubSystemServer::SubSystemServer( const std::string & Name,
                                   const std::string & LoggingPrefix,
                                   const std::string & SubSystemConfigPrefix )
     :   Name_(Name),

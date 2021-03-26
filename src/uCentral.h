@@ -24,6 +24,7 @@
 #include "Poco/Data/Session.h"
 #include "Poco/Data/SQLite/Connector.h"
 #include "Poco/UUIDGenerator.h"
+#include "Poco/ErrorHandler.h"
 
 using Poco::Util::Application;
 using Poco::Util::Option;
@@ -46,6 +47,15 @@ using Poco::Message;
 
 
 namespace uCentral {
+
+    class ErrorHandler : public Poco::ErrorHandler {
+    public:
+        void exception(const Poco::Exception & E) override;
+        void exception(const std::exception & E) override;
+        void exception() override;
+    private:
+
+    };
 
     class Daemon : public Poco::Util::ServerApplication {
 
@@ -77,6 +87,7 @@ namespace uCentral {
         std::string                 LogDir_;
         bool                        DebugMode_;
         Poco::UUIDGenerator         UUIDGenerator_;
+        ErrorHandler                AppErrorHandler_;
 
     };
 

@@ -26,8 +26,8 @@ namespace uCentral::DeviceRegistry {
     };
 
     struct ConnectionEntry {
-        void                                * WSConn_;
-        std::shared_ptr<ConnectionState>    Conn_;
+        void             * WSConn_;
+        ConnectionState *  Conn_;
         std::string        LastStats;
     };
 
@@ -37,7 +37,7 @@ namespace uCentral::DeviceRegistry {
     void SetStatistics(const std::string &SerialNumber, const std::string &stats);
     bool GetState(const std::string & SerialNumber, ConnectionState & State);
     void SetState(const std::string & SerialNumber, ConnectionState & State);
-    std::shared_ptr<ConnectionState> Register(const std::string & SerialNumber, void *);
+    ConnectionState *  Register(const std::string & SerialNumber, void *);
     void UnRegister(const std::string & SerialNumber, void *);
     bool SendCommand(const std::string & SerialNumber, const std::string &Cmd);
 
@@ -60,7 +60,7 @@ namespace uCentral::DeviceRegistry {
         friend void SetStatistics(const std::string &SerialNumber, const std::string &stats);
         friend bool GetState(const std::string & SerialNumber, ConnectionState & State);
         friend void SetState(const std::string & SerialNumber, ConnectionState & State);
-        friend std::shared_ptr<ConnectionState> Register(const std::string & SerialNumber, void *);
+        friend ConnectionState * Register(const std::string & SerialNumber, void *);
         friend void UnRegister(const std::string & SerialNumber, void *);
         friend bool SendCommand(const std::string & SerialNumber, const std::string &Cmd);
 
@@ -72,7 +72,7 @@ namespace uCentral::DeviceRegistry {
         void SetStatistics(const std::string &SerialNumber, const std::string &stats);
         bool GetState(const std::string & SerialNumber, ConnectionState & State);
         void SetState(const std::string & SerialNumber, ConnectionState & State);
-        std::shared_ptr<ConnectionState> Register(const std::string & SerialNumber, void *);
+        ConnectionState *  Register(const std::string & SerialNumber, void *);
         void UnRegister(const std::string & SerialNumber, void *);
         bool SendCommand(const std::string & SerialNumber, const std::string &Cmd);
 
