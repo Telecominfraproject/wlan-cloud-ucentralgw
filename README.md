@@ -336,10 +336,10 @@ my decide to send the AP a newer configuration if it has a newer one.
 {     "jsonrpc" : "2.0" , 
       "method" : "connect" , 
       "params" : {
-          "serial" : <serial number> ,
-	  "uuid" : <current active configuration uuid>,
-          "firmware" : <Current firmware version string>,
-	  "capabilities" : <JSON Document: current device capabilities.>
+        "serial" : <serial number> ,
+        "uuid" : <current active configuration uuid>,
+        "firmware" : <Current firmware version string>,
+        "capabilities" : <JSON Document: current device capabilities.>
     }
 }
 ```
@@ -351,10 +351,10 @@ may decide to send this new configuration to the AP.
 {   "jsonrpc" : "2.0" , 
     "method" : "state" , 
     "params" : {
-	"serial" : <serial number> ,
-	"uuid" : <current active configuration uuid>,
-	"state" : <JSON Document: current device state.>
-  }
+        "serial" : <serial number> ,
+        "uuid" : <current active configuration uuid>,
+        "state" : <JSON Document: current device state.>
+      }
 }
 ```
 
@@ -364,11 +364,11 @@ AP Sends `healthcheck` periodically. This message contains information how vital
 {   "jsonrpc" : "2.0" , 
     "method" : "healthcheck" , 
     "params" : {
-	"serial" : <serial number> ,
-	"uuid" : <current active configuration uuid>,
-	"sanity: <integer representing a percentage level of operation. 0 - device is dead 100 - all perfect.>
-	"data" : <JSON Document: current device healthcheck.>
-  }
+        "serial" : <serial number> ,
+        "uuid" : <current active configuration uuid>,
+        "sanity: <integer representing a percentage level of operation. 0 - device is dead 100 - all perfect.>
+        "data" : <JSON Document: current device healthcheck.>
+      }
 }
 ```
 
@@ -378,14 +378,13 @@ AP Sends a log whenever necessary. The controller will log this message.
 {   "jsonrpc" : "2.0" , 
     "method" : "log" , 
     "params" : {
-	"serial" : <serial number> ,
-	"log" : <text to appear in the logs>
-	"severity" : <as stated below>,
-	"data" : <JSON Document (optional): related to this log message>
+        "serial" : <serial number> ,
+        "log" : <text to appear in the logs>
+        "severity" : <as stated below>,
+        "data" : <JSON Document (optional): related to this log message>
     }
 }
 ```
-
 ##### `severity`
 The `severity` matches the `syslog` levels. Here are the details:
 - 0 : LOG_EMERG       0       /* system is unusable */
@@ -397,8 +396,18 @@ The `severity` matches the `syslog` levels. Here are the details:
 - 6 : LOG_INFO        6       /* informational */
 - 7 : LOG_DEBUG       7       /* debug-level messages */
 
-##### `data`
-This is optional data that may be added in the log message. It must be a JSON document. 
+#### Crash Log event
+AP Sends a Crash log whenever it must reboot, or crashes, or something really bad happened.
+```
+{   "jsonrpc" : "2.0" , 
+    "method" : "crashlog" , 
+    "params" : {
+        "serial" : <serial number> ,
+        "uuid"   : <the UUID of the configuration that generated the crash log>,
+        "loglines" : [ an array of strings representing the logs from the log file ]
+      }
+}
+```
 
 #### Config change pending event
 AP Sends a log whenever necessary. This message is intended to tell the controller that the AP 
@@ -409,8 +418,8 @@ reply to this message.
     "method" : "cfgpending" , 
     "params" : {
         "serial" : <serial number> ,
-	"active" : <UUID current active configuration uuid>,
-	"uuid" : <UUID waiting to apply this configuration>
+        "active" : <UUID current active configuration uuid>,
+        "uuid" : <UUID waiting to apply this configuration>
     }
 }
 ```
@@ -441,9 +450,9 @@ should send messages with `pending change` events until this version has been ap
 {   "jsonrpc" : "2.0" , 
     "method" : "configure" , 
     "params" : {
-	"serial" : <serial number> ,
-	"uuid" : <waiting to apply this configuration>,
-	"when" : Optional - <UTC time when to apply this config, 0 mean immediate, this is a suggestion>
+        "serial" : <serial number> ,
+        "uuid" : <waiting to apply this configuration>,
+        "when" : Optional - <UTC time when to apply this config, 0 mean immediate, this is a suggestion>
         "config" : <JSON Document: New configuration”
      },
      "id" : <some number>
