@@ -77,6 +77,8 @@ namespace uCentral {
         int main(const ArgVec &args) override;
 
         std::string IdentifyDevice(const std::string & Id );
+        bool Debug() const { return DebugMode_; }
+        uint64_t ID() const { return ID_; }
 
     private:
         bool                        helpRequested_;
@@ -86,6 +88,7 @@ namespace uCentral {
         std::string                 ConfigFileName_;
         std::string                 LogDir_;
         bool                        DebugMode_;
+        uint64_t                    ID_;
         Poco::UUIDGenerator         UUIDGenerator_;
         ErrorHandler                AppErrorHandler_;
 

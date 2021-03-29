@@ -4,12 +4,17 @@
 
 #include "uCommandManager.h"
 
+#include "RESTAPI_objects.h"
+#include "uStorageService.h"
+#include "uDeviceRegistry.h"
+
 namespace uCentral::CommandManager {
 
     Service *Service::instance_ = nullptr;
 
     Service::Service() noexcept:
-            SubSystemServer("CmdManager", "CMD_MGR", "command.manager")
+            SubSystemServer("CmdManager", "CMD_MGR", "command.manager"),
+            Manager_(Logger_)
     {
     }
 
@@ -28,19 +33,22 @@ namespace uCentral::CommandManager {
         uCentral::CommandManager::Service::instance()->WakeUp();
     }
 
-    void CommandCompletion( const std::string & UUID, const std::string & Status ) {
-        uCentral::CommandManager::Service::instance()->CommandCompletion( UUID, Status );
-    }
-
     void Manager::run() {
         while(!Stop_)
         {
             Poco::Thread::trySleep(2000);
-        }
-    }
+            std::vector<uCentralCommandDetails> Commands;
 
-    void Manager::CommandCompletion( const std::string & UUID, const std::string & Status ) {
-        //  todo: add the code to complete a command.
+            if(uCentral::Storage::GetReadyToExecuteCommands(0,1000,Commands))
+            {
+                for(const auto & Cmd: Commands)
+                {
+                    if(!uCentral::DeviceRegistry::SendCommand(Cmd)) {
+                        Logger_.information(Poco::format("Failed to send command '%s' to %s",Cmd.Command,Cmd.SerialNumber));
+                    }
+                }
+            }
+        }
     }
 
     int Service::Start() {
@@ -52,15 +60,12 @@ namespace uCentral::CommandManager {
     void Service::Stop() {
         Logger_.information("Stopping...");
         Manager_.stop();
+        ManagerThread.join();
     }
 
     void Service::WakeUp() {
         Logger_.information("Waking up..");
         ManagerThread.wakeUp();
-    }
-
-    void Service::CommandCompletion( const std::string & UUID, const std::string & Status ) {
-        Manager_.CommandCompletion( UUID, Status );
     }
 
 };  // namespace

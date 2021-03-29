@@ -47,8 +47,8 @@ namespace uCentral::DeviceRegistry {
         uCentral::DeviceRegistry::Service::instance()->UnRegister(SerialNumber,Ptr);
     }
 
-    bool SendCommand(const std::string & SerialNumber, const std::string &Cmd) {
-        return uCentral::DeviceRegistry::Service::instance()->SendCommand(SerialNumber,Cmd);
+    bool SendCommand(const uCentralCommandDetails & Command) {
+        return uCentral::DeviceRegistry::Service::instance()->SendCommand(Command);
     }
 
     int Service::Start() {
@@ -147,6 +147,17 @@ namespace uCentral::DeviceRegistry {
         }
     }
 
+    bool Service::Connected(const std::string & SerialNumber) {
+        std::lock_guard<std::mutex> guard(mutex_);
+
+        auto Device = Devices_.find(SerialNumber);
+
+        if(Device == Devices_.end())
+            return false;
+
+        return Device->second.Conn_->Connected;
+    }
+
     void Service::UnRegister(const std::string & SerialNumber, void *Ptr) {
         std::lock_guard<std::mutex> guard(mutex_);
 
@@ -160,20 +171,25 @@ namespace uCentral::DeviceRegistry {
         }
     }
 
-    bool Service::SendCommand(const std::string & SerialNumber, const std::string &Cmd)
+    bool Service::SendCommand(const uCentralCommandDetails & Cmd)
     {
         std::lock_guard<std::mutex> guard(mutex_);
 
-        auto Device = Devices_.find(SerialNumber);
+        auto Device = Devices_.find(Cmd.SerialNumber);
 
-        if(Device != Devices_.end()) {
-            if(Device->second.WSConn_!= nullptr) {
-                auto *WSConn = static_cast<uCentral::WebSocket::WSConnection *>(Device->second.WSConn_);
-                WSConn->SendCommand(Cmd);
-                return true;
+        try {
+            if (Device != Devices_.end()) {
+                if (Device->second.Conn_->Connected) {
+                    if (Device->second.WSConn_ != nullptr) {
+                        auto *WSConn = static_cast<uCentral::WebSocket::WSConnection *>(Device->second.WSConn_);
+                        WSConn->SendCommand(Cmd);
+                        return true;
+                    }
+                }
             }
+        } catch(...) {
+            std::cout << "Problem sending..." << std::endl;
         }
-
         return false;
     }
 

@@ -19,6 +19,23 @@ namespace uCentral::Storage {
 
     Service *Service::instance_ = nullptr;
 
+    typedef Poco::Tuple<
+            std::string,
+            std::string,
+            std::string,
+            std::string,
+            std::string,
+            std::string,
+            std::string,
+            std::string,
+            uint64_t,
+            uint64_t,
+            uint64_t,
+            uint64_t,
+            uint64_t,
+            uint32_t> CommandDetailsRecordTuple;
+
+
     Service::Service() noexcept:
             SubSystemServer("Storage", "STORAGE-SVR", "storage"),
             Pool_(nullptr),
@@ -150,8 +167,8 @@ namespace uCentral::Storage {
         return uCentral::Storage::Service::instance()->GetDefaultConfigurations(From,HowMany,Devices);
     }
 
-    bool AddCommand(std::string & SerialNumber, uCentralCommandDetails & Command) {
-        return uCentral::Storage::Service::instance()->AddCommand(SerialNumber, Command);
+    bool AddCommand(std::string & SerialNumber, uCentralCommandDetails & Command,bool AlreadyExecuted) {
+        return uCentral::Storage::Service::instance()->AddCommand(SerialNumber, Command, AlreadyExecuted);
     }
 
     bool GetCommands(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate, uint64_t Offset, uint64_t HowMany, std::vector<uCentralCommandDetails> & Commands) {
@@ -176,6 +193,18 @@ namespace uCentral::Storage {
 
     bool DeleteCommand( std::string & UUID ) {
         return uCentral::Storage::Service::instance()->DeleteCommand( UUID );
+    }
+
+    bool GetReadyToExecuteCommands( uint64_t Offset, uint64_t HowMany, std::vector<uCentralCommandDetails> & Commands ) {
+        return uCentral::Storage::Service::instance()->GetReadyToExecuteCommands( Offset, HowMany, Commands );
+    }
+
+    bool CommandExecuted(const std::string & UUID) {
+        return uCentral::Storage::Service::instance()->CommandExecuted(UUID);
+    }
+
+    bool CommandCompleted(const std::string & UUID, Poco::DynamicStruct ReturnVars) {
+        return uCentral::Storage::Service::instance()->CommandCompleted(UUID, ReturnVars);
     }
 
     std::string SerialToMAC(const std::string & Serial) {
@@ -263,11 +292,13 @@ namespace uCentral::Storage {
                     "SubmittedBy    VARCHAR(64), "
                     "Results        TEXT, "
                     "Details        TEXT, "
+                    "ErrorText      TEXT, "
                     "Submitted      BIGINT, "
                     "Executed       BIGINT, "
                     "Completed      BIGINT, "
                     "RunAt          BIGINT, "
-                    "ErrorCode      BIGINT "
+                    "ErrorCode      BIGINT, "
+                    "Custom         INT"
                     ")", now;
 
         session_ << "CREATE INDEX IF NOT EXISTS CommandListIndex ON CommandList (SerialNumber ASC, Submitted ASC)", now;
@@ -362,11 +393,13 @@ namespace uCentral::Storage {
                     "SubmittedBy    VARCHAR(64), "
                     "Results        TEXT, "
                     "Details        TEXT, "
+                    "ErrorText      TEXT, "
                     "Submitted      BIGINT, "
                     "Executed       BIGINT, "
                     "Completed      BIGINT, "
                     "RunAt          BIGINT, "
-                    "ErrorCode      BIGINT "
+                    "ErrorCode      BIGINT, "
+                    "Custom         INT"
                     "INDEX CommandListIndex (SerialNumber ASC, Submitted ASC)"
                     ")", now;
 
@@ -462,11 +495,13 @@ namespace uCentral::Storage {
                     "SubmittedBy    VARCHAR(64), "
                     "Results        TEXT, "
                     "Details        TEXT, "
+                    "ErrorText      TEXT, "
                     "Submitted      BIGINT, "
                     "Executed       BIGINT, "
                     "Completed      BIGINT, "
                     "RunAt          BIGINT, "
-                    "ErrorCode      BIGINT "
+                    "ErrorCode      BIGINT, "
+                    "Custom         INT"
                     ")", now;
 
         session_ << "CREATE INDEX IF NOT EXISTS CommandListIndex ON CommandList (SerialNumber ASC, Submitted ASC)", now;
@@ -572,10 +607,10 @@ namespace uCentral::Storage {
         typedef std::vector<StatRecord> RecordList;
 
         // std::lock_guard<std::mutex> guard(mutex_);
-        Session session_ = Pool_->get();
 
         try {
             RecordList Records;
+            Session session_ = Pool_->get();
 
             bool DatesIncluded = (FromDate!=0 || ToDate!=0);
 
@@ -677,10 +712,9 @@ namespace uCentral::Storage {
         typedef std::vector<Record> RecordList;
 
         // std::lock_guard<std::mutex> guard(mutex_);
-        Session session_ = Pool_->get();
-
         try {
             RecordList Records;
+            Session session_ = Pool_->get();
 
             bool DatesIncluded = (FromDate!=0 || ToDate!=0);
 
@@ -752,7 +786,6 @@ namespace uCentral::Storage {
     }
 
     bool Service::AddLog(std::string &SerialNumber, const uCentralDeviceLog &Log) {
-        Session session_ = Pool_->get();
 
         try {
 /*
@@ -762,6 +795,7 @@ namespace uCentral::Storage {
                     "Data TEXT , "
                     "Recorded BIGINT)
  */
+            Session session_ = Pool_->get();
             session_ << "INSERT INTO DeviceLogs (SerialNumber, Log, Severity, Data, Recorded) VALUES( '%s' , '%s' , %Lu, '%s', %Lu)",
                     SerialNumber.c_str(),
                     Log.Log.c_str(),
@@ -793,10 +827,9 @@ namespace uCentral::Storage {
         typedef Poco::Tuple<std::string, uint64_t, uint64_t, std::string > StatRecord;
         typedef std::vector<StatRecord> RecordList;
 
-        Session session_ = Pool_->get();
-
         try {
             RecordList Records;
+            Session session_ = Pool_->get();
 
             bool DatesIncluded = (FromDate!=0 || ToDate!=0);
 
@@ -1561,7 +1594,7 @@ namespace uCentral::Storage {
         return false;
     }
 
-    bool Service::AddCommand(std::string & SerialNumber, uCentralCommandDetails & Command) {
+    bool Service::AddCommand(std::string & SerialNumber, uCentralCommandDetails & Command, bool AlreadyExecuted) {
         try {
             Session session_ = Pool_->get();
             /*
@@ -1576,10 +1609,28 @@ namespace uCentral::Storage {
                     "Executed       BIGINT, "
                     "Completed      BIGINT, "
                     "RunAt          BIGINT, "
-                    "ErrorCode      BIGINT "
+                    "ErrorCode      BIGINT, "
+                    "Custom         INT
              */
 
-            session_ << "INSERT INTO CommandList (UUID, SerialNumber, Command, Status, SubmittedBy, Results, Details, Submitted, Executed, Completed, RunAt, ErrorCode) VALUES('%s','%s', '%s', '%s', '%s', '%s', '%s', %Lu, %Lu, %Lu, %Lu, %Lu)" ,
+            uint64_t Now = time(nullptr);
+
+            Command.Submitted = Now;
+            Command.Completed = 0;
+            if(AlreadyExecuted)
+            {
+                Command.Executed = Now;
+                Command.Status = "executing";
+            }
+            else
+            {
+                Command.Executed = 0;
+                Command.Status = "pending";
+            }
+
+            Command.ErrorCode = 0 ;
+
+            session_ << "INSERT INTO CommandList (UUID, SerialNumber, Command, Status, SubmittedBy, Results, Details, Submitted, Executed, Completed, RunAt, ErrorCode, Custom) VALUES('%s','%s', '%s', '%s', '%s', '%s', '%s', %Lu, %Lu, %Lu, %Lu, %Lu, %u)" ,
                 Command.UUID.c_str(),
                 Command.SerialNumber.c_str(),
                 Command.Command.c_str(),
@@ -1591,7 +1642,8 @@ namespace uCentral::Storage {
                 Command.Executed,
                 Command.Completed,
                 Command.RunAt,
-                Command.ErrorCode, now;
+                Command.ErrorCode,
+                Command.Custom, now;
 
             return true;
         }
@@ -1603,22 +1655,7 @@ namespace uCentral::Storage {
     }
 
     bool Service::GetCommands(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate, uint64_t Offset, uint64_t HowMany, std::vector<uCentralCommandDetails> & Commands) {
-        typedef Poco::Tuple<
-            std::string,
-            std::string,
-            std::string,
-            std::string,
-            std::string,
-            std::string,
-            std::string,
-            uint64_t,
-            uint64_t,
-            uint64_t,
-            uint64_t,
-            uint64_t> Record;
-        typedef std::vector<Record> RecordList;
-
-        Session session_ = Pool_->get();
+        typedef std::vector<CommandDetailsRecordTuple> RecordList;
 
         /*
             "UUID           VARCHAR(30) PRIMARY KEY, "
@@ -1628,20 +1665,23 @@ namespace uCentral::Storage {
             "SubmittedBy    VARCHAR(64), "
             "Results        TEXT, "
             "Details        TEXT, "
+            "ErrorText      TEXT, "
             "Submitted      BIGINT, "
             "Executed       BIGINT, "
             "Completed      BIGINT, "
             "RunAt          BIGINT, "
-            "ErrorCode      BIGINT "
+            "ErrorCode      BIGINT, "
+            "Custom         INT"
          */
 
         try {
             RecordList Records;
+            Session session_ = Pool_->get();
 
             bool DatesIncluded = (FromDate!=0 || ToDate!=0);
 
-            std::string Fields{  "SELECT UUID, SerialNumber, Command, Status, SubmittedBy, Results, Details,"
-                                 "Submitted, Executed, Completed, RunAt, ErrorCode FROM CommandList "};
+            std::string Fields{  "SELECT UUID, SerialNumber, Command, Status, SubmittedBy, Results, Details, ErrorText, "
+                                 "Submitted, Executed, Completed, RunAt, ErrorCode, Custom FROM CommandList "};
             std::string Statement = SerialNumber.empty()
                                     ? Fields + std::string(DatesIncluded ? "WHERE " : "")
                                     : Fields + "WHERE SerialNumber='" + SerialNumber + "'" + std::string(DatesIncluded ? " AND " : "");
@@ -1668,11 +1708,13 @@ namespace uCentral::Storage {
                         .SubmittedBy = i.get<4>(),
                         .Results = i.get<5>(),
                         .Details = i.get<6>(),
-                        .Submitted = i.get<7>(),
-                        .Executed = i.get<8>(),
-                        .Completed = i.get<9>(),
-                        .RunAt = i.get<10>(),
-                        .ErrorCode = i.get<11>()};
+                        .ErrorText = i.get<7>(),
+                        .Submitted = i.get<8>(),
+                        .Executed = i.get<9>(),
+                        .Completed = i.get<10>(),
+                        .RunAt = i.get<11>(),
+                        .ErrorCode = i.get<12>(),
+                        .Custom = i.get<13>()};
 
                 Commands.push_back(R);
             }
@@ -1716,23 +1758,7 @@ namespace uCentral::Storage {
     }
 
     bool Service::GetNonExecutedCommands( uint64_t Offset, uint64_t HowMany, std::vector<uCentralCommandDetails> & Commands ) {
-        typedef Poco::Tuple<
-                std::string,
-                std::string,
-                std::string,
-                std::string,
-                std::string,
-                std::string,
-                std::string,
-                uint64_t,
-                uint64_t,
-                uint64_t,
-                uint64_t,
-                uint64_t> Record;
-        typedef std::vector<Record> RecordList;
-
-        Session session_ = Pool_->get();
-
+        typedef std::vector<CommandDetailsRecordTuple> RecordList;
         /*
             "UUID           VARCHAR(30) PRIMARY KEY, "
             "SerialNumber   VARCHAR(30), "
@@ -1741,20 +1767,24 @@ namespace uCentral::Storage {
             "SubmittedBy    VARCHAR(64), "
             "Results        TEXT, "
             "Details        TEXT, "
+            "ErrorText      TEXT, "
             "Submitted      BIGINT, "
             "Executed       BIGINT, "
             "Completed      BIGINT, "
             "RunAt          BIGINT, "
-            "ErrorCode      BIGINT "
+            "ErrorCode      BIGINT, "
+            "Custom         INT"
          */
 
         try {
             RecordList Records;
 
-                // range(Offset, Offset + HowMany - 1)
+            Session session_ = Pool_->get();
+
+            // range(Offset, Offset + HowMany - 1)
                 session_
-                        << "SELECT UUID, SerialNumber, Command, Status, SubmittedBy, Results, Details,"
-                           "Submitted, Executed, Completed, RunAt, ErrorCode FROM CommandList "
+                        << "SELECT UUID, SerialNumber, Command, Status, SubmittedBy, Results, Details, ErrorText,"
+                           "Submitted, Executed, Completed, RunAt, ErrorCode, Custom FROM CommandList "
                            " WHERE Executed=0",
                         into(Records),
                         range(Offset, Offset + HowMany - 1), now;
@@ -1767,11 +1797,13 @@ namespace uCentral::Storage {
                     .SubmittedBy = i.get<4>(),
                     .Results = i.get<5>(),
                     .Details = i.get<6>(),
-                    .Submitted = i.get<7>(),
-                    .Executed = i.get<8>(),
-                    .Completed = i.get<9>(),
-                    .RunAt = i.get<10>(),
-                    .ErrorCode = i.get<11>()};
+                    .ErrorText = i.get<7>(),
+                    .Submitted = i.get<8>(),
+                    .Executed = i.get<9>(),
+                    .Completed = i.get<10>(),
+                    .RunAt = i.get<11>(),
+                    .ErrorCode = i.get<12>(),
+                    .Custom = i.get<13>()};
 
                 Commands.push_back(R);
             }
@@ -1798,6 +1830,7 @@ namespace uCentral::Storage {
                 "SubmittedBy    VARCHAR(64), "
                 "Results        TEXT, "
                 "Details        TEXT, "
+                "ErrorText      TEXT, "
                 "Submitted      BIGINT, "
                 "Executed       BIGINT, "
                 "Completed      BIGINT, "
@@ -1805,11 +1838,12 @@ namespace uCentral::Storage {
                 "ErrorCode      BIGINT "
              */
 
-            session_ << "UPDATE CommandList SET Status='%s', Executed=%Lu, Completed=%Lu, Results='%s', ErrorCode=%Lu WHERE UUID='%s'",
+            session_ << "UPDATE CommandList SET Status='%s', Executed=%Lu, Completed=%Lu, Results='%s', ErrorText='%s', ErrorCode=%Lu WHERE UUID='%s'",
                     Command.Status.c_str(),
                     Command.Executed,
                     Command.Completed,
                     Command.Results.c_str(),
+                    Command.ErrorText.c_str(),
                     Command.ErrorCode,
                     UUID.c_str(),now;
 
@@ -1835,15 +1869,17 @@ namespace uCentral::Storage {
                 "SubmittedBy    VARCHAR(64), "
                 "Results        TEXT, "
                 "Details        TEXT, "
+                "ErrorText      TEXT, "
                 "Submitted      BIGINT, "
                 "Executed       BIGINT, "
                 "Completed      BIGINT, "
                 "RunAt          BIGINT, "
-                "ErrorCode      BIGINT "
+                "ErrorCode      BIGINT, "
+                "Custom         INT"
              */
 
-            session_ << "SELECT UUID, SerialNumber, Command, Status, SubmittedBy, Results, Details,"
-                        "Submitted, Executed, Completed, RunAt, ErrorCode FROM CommandList "
+            session_ << "SELECT UUID, SerialNumber, Command, Status, SubmittedBy, Results, Details, ErrorText, "
+                        "Submitted, Executed, Completed, RunAt, ErrorCode, Custom FROM CommandList "
                         " WHERE UUID='%s'",
                 into(Command.UUID),
                 into(Command.SerialNumber),
@@ -1852,11 +1888,13 @@ namespace uCentral::Storage {
                 into(Command.SubmittedBy),
                 into(Command.Results),
                 into(Command.Details),
+                into(Command.ErrorText),
                 into(Command.Submitted),
                 into(Command.Executed),
                 into(Command.Completed),
                 into(Command.RunAt),
                 into(Command.ErrorCode),
+                into(Command.Custom),
                 UUID.c_str(), now;
 
             return true;
@@ -1883,4 +1921,106 @@ namespace uCentral::Storage {
         }
         return false;
     }
-};      // namespace
+
+    bool Service::GetReadyToExecuteCommands( uint64_t Offset, uint64_t HowMany, std::vector<uCentralCommandDetails> & Commands )
+    {
+        // todo: finish the GetReadyToExecuteCommands call...
+        try {
+            Session session_ = Pool_->get();
+            typedef std::vector<CommandDetailsRecordTuple> RecordList;
+            uint64_t Now = time(nullptr);
+
+            RecordList  Records;
+
+            session_ << "SELECT UUID, SerialNumber, Command, Status, SubmittedBy, Results, Details, ErrorText, "
+                        "Submitted, Executed, Completed, RunAt, ErrorCode, Custom FROM CommandList "
+                        " WHERE RunAt<%Lu And Executed=0",
+                    into(Records),
+                    Now,
+                    range(Offset, Offset + HowMany - 1), now;
+
+            for (auto i: Records) {
+                uCentralCommandDetails R{
+                        .UUID = i.get<0>(),
+                        .SerialNumber = i.get<1>(),
+                        .Command = i.get<2>(),
+                        .Status = i.get<3>(),
+                        .SubmittedBy = i.get<4>(),
+                        .Results = i.get<5>(),
+                        .Details = i.get<6>(),
+                        .ErrorText = i.get<7>(),
+                        .Submitted = i.get<8>(),
+                        .Executed = i.get<9>(),
+                        .Completed = i.get<10>(),
+                        .RunAt = i.get<11>(),
+                        .ErrorCode = i.get<12>(),
+                        .Custom = i.get<13>()};
+
+                Commands.push_back(R);
+            }
+            return true;
+        }
+        catch( const Poco::Exception & E) {
+            Logger_.warning(Poco::format("GetReadyToExecuteCommands(): Failed to retreive the list. %s", E.displayText()));
+        }
+        return false;
+    }
+
+    bool Service::CommandExecuted(const std::string & UUID) {
+        try {
+            Session session_ = Pool_->get();
+            uint64_t Now = time(nullptr);
+
+            session_ << "UPDATE CommandList SET Executed=%Lu WHERE UUID='%s'" ,
+                Now,
+                UUID.c_str(), now;
+
+            return true;
+        }
+        catch (const Poco::Exception &E) {
+            Logger_.warning(Poco::format("Could not update field on command %s",UUID));
+        }
+
+        return false;
+    }
+
+    bool Service::CommandCompleted(const std::string & UUID, Poco::DynamicStruct ReturnVars) {
+        try {
+            Session session_ = Pool_->get();
+            uint64_t Now = time(nullptr);
+
+            // Parse the result to get the ErrorText and make sure that this is a JSON document
+            auto ResultObj = ReturnVars["result"];
+            Poco::DynamicStruct ResultFields = ResultObj.extract<Poco::DynamicStruct>();
+
+            auto StatusObj = ResultFields["status"];
+            Poco::DynamicStruct StatusInnerObj = StatusObj.extract<Poco::DynamicStruct>();
+            uint64_t ErrorCode = StatusInnerObj["error"];
+            auto ErrorText = StatusInnerObj["text"].toString();
+
+            std::stringstream ResultText;
+            Poco::JSON::Stringifier::stringify(ResultObj,ResultText);
+
+            // std::cout << ">>> UUID: " << UUID << " Errorcode: " << ErrorCode << " ErrorText: " << ErrorText << std::endl;
+
+            session_ << "UPDATE CommandList SET Completed=%Lu, ErrorCode=%Lu, ErrorText='%s', Results='%s', Status='%s' WHERE UUID='%s'" ,
+                    Now,
+                    ErrorCode,
+                    ErrorText.c_str(),
+                    ResultText.str().c_str(),
+                    "completed",
+                    UUID.c_str(), now;
+
+            return true;
+        }
+        catch (const Poco::Exception & E) {
+
+            std::cout << "Could not update record" << E.displayText() << "  " << E.className() << " " << E.what() << std::endl;
+        }
+
+        return false;
+    }
+
+
+};
+// namespace

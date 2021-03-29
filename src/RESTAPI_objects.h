@@ -84,11 +84,13 @@ struct uCentralCommandDetails {
     std::string     SubmittedBy;
     std::string     Results;
     std::string     Details;
+    std::string     ErrorText;
     uint64_t        Submitted;
     uint64_t        Executed;
     uint64_t        Completed;
     uint64_t        RunAt;
     uint64_t        ErrorCode;
+    uint32_t        Custom;
     [[nodiscard]] Poco::JSON::Object to_json() const;
 };
 

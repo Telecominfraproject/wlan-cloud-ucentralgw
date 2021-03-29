@@ -234,6 +234,7 @@ void RESTAPI_deviceCommandHandler::Configure(HTTPServerRequest& Request, HTTPSer
                 Cmd.ErrorCode = 0 ;
                 Cmd.Status = "Pending";
                 Cmd.Command = "configure";
+                Cmd.Custom = 0;
                 Cmd.RunAt = When;
 
                 uCentral::Config::Config    Cfg(Configuration);
@@ -320,6 +321,7 @@ void RESTAPI_deviceCommandHandler::Upgrade(HTTPServerRequest &Request, HTTPServe
             Cmd.SubmittedBy = UserName_;
             Cmd.ErrorCode = 0 ;
             Cmd.Status = "Pending";
+            Cmd.Custom = 0;
             Cmd.Command = "upgrade";
             Cmd.RunAt = When;
 
@@ -437,6 +439,7 @@ void RESTAPI_deviceCommandHandler::GetChecks(HTTPServerRequest& Request, HTTPSer
         RetObj.set("serialNumber", SerialNumber);
 
         ReturnObject(RetObj, Response);
+
         return;
     }
     catch(const Poco::Exception &E)
@@ -496,19 +499,15 @@ void RESTAPI_deviceCommandHandler::ExecuteCommand(HTTPServerRequest& Request, HT
 
             Cmd.SerialNumber = SerialNumber;
             Cmd.UUID = uCentral::instance()->CreateUUID();
-            Cmd.Submitted = time(nullptr);
-            Cmd.Executed = 0;
-            Cmd.Completed = 0;
             Cmd.SubmittedBy = UserName_;
-            Cmd.ErrorCode = 0 ;
-            Cmd.Status = "Pending";
             Cmd.Command = Command;
+            Cmd.Custom = 1;
             Cmd.RunAt = RunAt;
 
             Parser parser2;
 
             Poco::Dynamic::Var result = parser2.parse(Payload);
-            auto PayloadObject = result.extract<Poco::JSON::Object::Ptr>();
+            const auto & PayloadObject = result.extract<Poco::JSON::Object::Ptr>();
 
             Poco::JSON::Object  Params;
 
@@ -539,9 +538,9 @@ void RESTAPI_deviceCommandHandler::ExecuteCommand(HTTPServerRequest& Request, HT
                 return;
             }
         }
-
         else
             BadRequest(Response);
+
         return;
     }
     catch(const Poco::Exception &E)
@@ -576,13 +575,9 @@ void RESTAPI_deviceCommandHandler::Reboot(HTTPServerRequest& Request, HTTPServer
 
             Cmd.SerialNumber = SerialNumber;
             Cmd.UUID = uCentral::instance()->CreateUUID();
-            Cmd.Submitted = time(nullptr);
-            Cmd.Executed = 0;
-            Cmd.Completed = 0;
             Cmd.SubmittedBy = UserName_;
-            Cmd.ErrorCode = 0 ;
-            Cmd.Status = "Pending";
             Cmd.Command = "reboot";
+            Cmd.Custom = 0;
             Cmd.RunAt = When;
 
             Poco::JSON::Object  Params;
@@ -666,13 +661,9 @@ void RESTAPI_deviceCommandHandler::Factory(HTTPServerRequest &Request, HTTPServe
 
             Cmd.SerialNumber = SerialNumber;
             Cmd.UUID = uCentral::instance()->CreateUUID();
-            Cmd.Submitted = time(nullptr);
-            Cmd.Executed = 0;
-            Cmd.Completed = 0;
             Cmd.SubmittedBy = UserName_;
-            Cmd.ErrorCode = 0 ;
-            Cmd.Status = "Pending";
             Cmd.Command = "factory";
+            Cmd.Custom = 0;
             Cmd.RunAt = When;
 
             Poco::JSON::Object  Params;
@@ -703,9 +694,9 @@ void RESTAPI_deviceCommandHandler::Factory(HTTPServerRequest &Request, HTTPServe
                 return;
             }
         }
-
         else
             BadRequest(Response);
+
         return;
     }
     catch(const Poco::Exception &E)
@@ -758,13 +749,9 @@ void RESTAPI_deviceCommandHandler::Blink(HTTPServerRequest &Request, HTTPServerR
 
             Cmd.SerialNumber = SerialNumber;
             Cmd.UUID = uCentral::instance()->CreateUUID();
-            Cmd.Submitted = time(nullptr);
-            Cmd.Executed = 0;
-            Cmd.Completed = 0;
             Cmd.SubmittedBy = UserName_;
-            Cmd.ErrorCode = 0 ;
-            Cmd.Status = "Pending";
             Cmd.Command = "blink";
+            Cmd.Custom = 0;
             Cmd.RunAt = When;
 
             Poco::JSON::Object  Params;
@@ -795,7 +782,6 @@ void RESTAPI_deviceCommandHandler::Blink(HTTPServerRequest &Request, HTTPServerR
                 return;
             }
         }
-
         else
             BadRequest(Response);
         return;

@@ -62,7 +62,8 @@ namespace uCentral {
     Daemon::Daemon() :
         helpRequested_(false),
         AutoProvisioning_(false),
-        DebugMode_(false)
+        DebugMode_(false),
+        ID_(1)
     {
     }
 
@@ -104,6 +105,11 @@ namespace uCentral {
         ServerApplication::initialize(self);
 
         logger().information("Starting...");
+
+        if(!DebugMode_)
+            DebugMode_ = config().getBool("ucentral.system.debug",false);
+
+        ID_ = config().getInt64("ucentral.system.id",1);
 
         // add your own initialization code here
         AutoProvisioning_ = config().getBool("ucentral.autoprovisioning",false);

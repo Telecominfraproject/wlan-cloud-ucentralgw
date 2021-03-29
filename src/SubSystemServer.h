@@ -47,7 +47,7 @@ public:
     [[nodiscard]] const std::string & key_file() const { return key_file_; };
     [[nodiscard]] const std::string & cert_file() const { return cert_file_; };
     [[nodiscard]] const std::string & key_file_password() const { return key_file_password_; };
-    [[nodiscard]] std::shared_ptr<Poco::Net::SecureServerSocket> CreateSecureSocket() const;
+    [[nodiscard]] Poco::Net::SecureServerSocket CreateSecureSocket() const;
 
 private:
     std::string     address_;

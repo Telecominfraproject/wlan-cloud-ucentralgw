@@ -60,22 +60,16 @@ void SubSystemServer::defineOptions(OptionSet& options)
 {
 }
 
-std::shared_ptr<SecureServerSocket> PropertiesFileServerEntry::CreateSecureSocket() const
+SecureServerSocket PropertiesFileServerEntry::CreateSecureSocket() const
 {
     if(address_=="*") {
-        return std::shared_ptr<SecureServerSocket>(
-                new SecureServerSocket(port_,
-                                       64,
-                                       new Context(Poco::Net::Context::TLS_SERVER_USE, key_file_, cert_file_, "")));
+        return SecureServerSocket(port_,64, new Context(Poco::Net::Context::TLS_SERVER_USE, key_file_, cert_file_, ""));
     }
     else
     {
         Poco::Net::IPAddress        Addr(address_);
         Poco::Net::SocketAddress    SockAddr(Addr,port_);
-        return std::shared_ptr<SecureServerSocket>(
-                new SecureServerSocket(SockAddr,
-                                       64,
-                                       new Context(Poco::Net::Context::TLS_SERVER_USE, key_file_, cert_file_, "")));
+        return SecureServerSocket(SockAddr,64, new Context(Poco::Net::Context::TLS_SERVER_USE, key_file_, cert_file_, ""));
     }
 }
 

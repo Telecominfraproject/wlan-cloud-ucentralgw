@@ -5,7 +5,13 @@
 #ifndef UCENTRAL_UCENTRALWEBSOCKETSERVER_H
 #define UCENTRAL_UCENTRALWEBSOCKETSERVER_H
 
+#include <mutex>
+#include <thread>
+#include <array>
+
 #include "SubSystemServer.h"
+#include "uDeviceRegistry.h"
+#include "RESTAPI_objects.h"
 
 #include "Poco/Net/HTTPServer.h"
 #include "Poco/Net/HTTPRequestHandler.h"
@@ -28,6 +34,8 @@
 #include "Poco/Net/SocketAcceptor.h"
 #include "Poco/Net/SocketNotification.h"
 #include "Poco/Net/StreamSocket.h"
+#include "Poco/Net/ParallelSocketReactor.h"
+
 
 using Poco::Net::ServerSocket;
 using Poco::Net::SecureServerSocket;
@@ -43,12 +51,8 @@ using Poco::Net::HTTPServerResponse;
 using Poco::Net::HTTPServerParams;
 using Poco::JSON::Parser;
 
-#include "Poco/Net/ParallelSocketReactor.h"
-
 #include "uDeviceRegistry.h"
 
-#include <mutex>
-#include <thread>
 
 namespace uCentral::WebSocket {
 
@@ -156,7 +160,7 @@ namespace uCentral::WebSocket {
 
     class CountedReactor {
     public:
-        explicit CountedReactor();
+        CountedReactor();
         ~CountedReactor();
         CountedSocketReactor * Reactor() { return Reactor_; }
     private:
@@ -164,7 +168,7 @@ namespace uCentral::WebSocket {
     };
 
     class WSConnection {
-        const int BufSize = 12000;
+        static constexpr int BufSize = 12000;
     public:
         WSConnection(StreamSocket& socket, SocketReactor& reactor);
         ~WSConnection();
@@ -172,7 +176,7 @@ namespace uCentral::WebSocket {
         void ProcessJSONRPCEvent(Poco::DynamicStruct ds);
         void ProcessJSONRPCResult(Poco::DynamicStruct ds);
         void ProcessIncomingFrame();
-        bool SendCommand(const std::string &Cmd);
+        bool SendCommand(const uCentralCommandDetails & Command);
         void OnSocketReadable(const AutoPtr<Poco::Net::ReadableNotification>& pNf);
         void OnSocketShutdown(const AutoPtr<Poco::Net::ShutdownNotification>& pNf);
         void OnSocketError(const AutoPtr<Poco::Net::ErrorNotification>& pNf);
@@ -180,21 +184,26 @@ namespace uCentral::WebSocket {
         static Poco::DynamicStruct ExtractCompressedData(const std::string & CompressedData);
         void Register();
         void DeRegister();
-        void StartHandshake();
 
     private:
         std::mutex                          Mutex_;
-        std::shared_ptr<CountedReactor>     Reactor_;
+        CountedReactor                      Reactor_;
         Poco::Logger                    &   Logger_;
         StreamSocket                        Socket_;
         SocketReactor &                     ParentAcceptorReactor_;
-        std::shared_ptr<Poco::Net::WebSocket> WS_;
+        std::unique_ptr<Poco::Net::WebSocket> WS_;
         std::string                         SerialNumber_;
         uCentral::DeviceRegistry::ConnectionState * Conn_;
         std::map<uint64_t,std::string>      RPCs_;
         uint64_t                            RPC_;
         bool                                Registered_;
-        std::shared_ptr<char>               IncomingMessage_;
+        bool                                WSup_;
+    };
+
+    struct WebSocketServerEntry {
+        std::shared_ptr<Poco::Net::SocketReactor>                   SocketReactor;
+        std::shared_ptr<Poco::Net::SocketAcceptor<WSConnection>>    SocketAcceptor;
+        std::shared_ptr<Poco::Thread>                               SocketReactorThread;
     };
 
     class Service : public SubSystemServer {
@@ -221,14 +230,9 @@ namespace uCentral::WebSocket {
         int Start() override;
         void Stop() override;
 
-        std::vector<std::tuple<
-                std::shared_ptr<Poco::Thread> ,
-                std::shared_ptr<Poco::Net::SocketReactor>,
-                std::shared_ptr<Poco::Net::SocketAcceptor<WSConnection>>
-        >>      Servers_;
-        CountedSocketReactorFactory                             Factory_;
+        std::vector<WebSocketServerEntry>      Servers_;
+        CountedSocketReactorFactory            Factory_;
     };
-
 
 
 }; //namespace

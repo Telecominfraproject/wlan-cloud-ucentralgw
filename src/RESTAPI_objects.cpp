@@ -117,14 +117,16 @@ Poco::JSON::Object uCentralCommandDetails::to_json() const {
     Obj.set("serialNumber",SerialNumber);
     Obj.set("command",Command);
     Obj.set("details",Details);
+    Obj.set("errorText", ErrorText);
+    Obj.set("submittedBy",SubmittedBy);
+    Obj.set("status",Status);
+    Obj.set("results",Results);
     Obj.set("submitted",RESTAPIHandler::to_RFC3339(Submitted));
     Obj.set("executed",RESTAPIHandler::to_RFC3339(Executed));
     Obj.set("completed",RESTAPIHandler::to_RFC3339(Completed));
     Obj.set("when",RESTAPIHandler::to_RFC3339(RunAt));
-    Obj.set("results",Results);
     Obj.set("errorCode",ErrorCode);
-    Obj.set("submittedBy",SubmittedBy);
-    Obj.set("status",Status);
+    Obj.set("custom",Custom);
     return Obj;
 }
 

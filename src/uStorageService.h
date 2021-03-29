@@ -61,13 +61,16 @@ namespace uCentral::Storage {
     bool GetDefaultConfiguration(std::string &name, uCentralDefaultConfiguration & DefConfig);
     bool GetDefaultConfigurations(uint64_t From, uint64_t HowMany, std::vector<uCentralDefaultConfiguration> &Devices);
 
-    bool AddCommand(std::string & SerialNumber, uCentralCommandDetails & Command);
+    bool AddCommand(std::string & SerialNumber, uCentralCommandDetails & Command,bool AlreadyExecuted=false);
     bool GetCommands(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate, uint64_t Offset, uint64_t HowMany, std::vector<uCentralCommandDetails> & Commands);
     bool DeleteCommands(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate);
     bool GetNonExecutedCommands( uint64_t Offset, uint64_t HowMany, std::vector<uCentralCommandDetails> & Commands );
     bool UpdateCommand( std::string &UUID, uCentralCommandDetails & Command );
     bool GetCommand( std::string &UUID, uCentralCommandDetails & Command );
     bool DeleteCommand( std::string &UUID );
+    bool GetReadyToExecuteCommands( uint64_t Offset, uint64_t HowMany, std::vector<uCentralCommandDetails> & Commands );
+    bool CommandExecuted(const std::string & UUID);
+    bool CommandCompleted(const std::string & UUID, Poco::DynamicStruct ReturnVars);
 
     std::string SerialToMAC(const std::string & Serial);
 
@@ -122,13 +125,16 @@ namespace uCentral::Storage {
         friend bool GetDefaultConfiguration(std::string &name, uCentralDefaultConfiguration & DefConfig);
         friend bool GetDefaultConfigurations(uint64_t From, uint64_t HowMany, std::vector<uCentralDefaultConfiguration> &Devices);
 
-        friend bool AddCommand(std::string & SerialNumber, uCentralCommandDetails & Command);
+        friend bool AddCommand(std::string & SerialNumber, uCentralCommandDetails & Command,bool AlreadyExecuted);
         friend bool GetCommands(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate, uint64_t Offset, uint64_t HowMany, std::vector<uCentralCommandDetails> & Commands);
         friend bool DeleteCommands(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate);
         friend bool GetNonExecutedCommands( uint64_t Offset, uint64_t HowMany, std::vector<uCentralCommandDetails> & Commands );
         friend bool UpdateCommand( std::string &UUID, uCentralCommandDetails & Command );
         friend bool GetCommand( std::string &UUID, uCentralCommandDetails & Command );
         friend bool DeleteCommand( std::string &UUID );
+        friend bool GetReadyToExecuteCommands( uint64_t Offset, uint64_t HowMany, std::vector<uCentralCommandDetails> & Commands );
+        friend bool CommandExecuted(const std::string & UUID);
+        friend bool CommandCompleted(const std::string & UUID, Poco::DynamicStruct ReturnVars);
 
     private:
         bool AddLog(std::string & SerialNumber, const uCentralDeviceLog & Log );
@@ -171,13 +177,16 @@ namespace uCentral::Storage {
         bool GetDefaultConfigurations(uint64_t From, uint64_t HowMany, std::vector<uCentralDefaultConfiguration> &Devices);
         bool FindDefaultConfigurationForModel(const std::string & Model, uCentralDefaultConfiguration & DefConfig );
 
-        bool AddCommand(std::string & SerialNumber, uCentralCommandDetails & Command);
+        bool AddCommand(std::string & SerialNumber, uCentralCommandDetails & Command,bool AlreadyExecuted=false);
         bool GetCommands(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate, uint64_t Offset, uint64_t HowMany, std::vector<uCentralCommandDetails> & Commands);
         bool DeleteCommands(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate);
         bool GetNonExecutedCommands( uint64_t Offset, uint64_t HowMany, std::vector<uCentralCommandDetails> & Commands );
         bool UpdateCommand( std::string &UUID, uCentralCommandDetails & Command );
         bool GetCommand( std::string &UUID, uCentralCommandDetails & Command );
         bool DeleteCommand( std::string &UUID );
+        bool GetReadyToExecuteCommands( uint64_t Offset, uint64_t HowMany, std::vector<uCentralCommandDetails> & Commands );
+        bool CommandExecuted(const std::string & UUID);
+        bool CommandCompleted(const std::string & UUID, Poco::DynamicStruct ReturnVars);
 
         int Start() override;
         void Stop() override;

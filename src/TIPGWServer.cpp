@@ -32,14 +32,14 @@ namespace uCentral::TIPGW {
 
             Logger_.information(l);
 
-            std::shared_ptr<Poco::Net::SecureServerSocket> Sock = Svr.CreateSecureSocket();
+            auto Sock{Svr.CreateSecureSocket()};
 
             auto Params = new Poco::Net::HTTPServerParams;
             Params->setMaxThreads(16);
             Params->setMaxQueued(100);
 
             auto NewServer = std::shared_ptr<Poco::Net::HTTPServer>(
-                    new Poco::Net::HTTPServer(new RequestHandlerFactory, *Sock, Params));
+                    new Poco::Net::HTTPServer(new RequestHandlerFactory, Sock, Params));
 
             NewServer->start();
             RESTServers_.push_back(NewServer);
