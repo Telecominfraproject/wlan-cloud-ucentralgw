@@ -51,6 +51,10 @@ namespace uCentral::DeviceRegistry {
         return uCentral::DeviceRegistry::Service::instance()->SendCommand(Command);
     }
 
+    bool Connected(const std::string & SerialNumber) {
+        return uCentral::DeviceRegistry::Service::instance()->Connected(SerialNumber);
+    }
+
     int Service::Start() {
         std::lock_guard<std::mutex> guard(mutex_);
         Logger_.information("Starting ");

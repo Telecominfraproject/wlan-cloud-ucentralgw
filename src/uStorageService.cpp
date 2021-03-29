@@ -1956,8 +1956,10 @@ namespace uCentral::Storage {
                         .ErrorCode = i.get<12>(),
                         .Custom = i.get<13>()};
 
-                Commands.push_back(R);
+                if(uCentral::DeviceRegistry::Connected(R.SerialNumber))
+                    Commands.push_back(R);
             }
+
             return true;
         }
         catch( const Poco::Exception & E) {
