@@ -227,12 +227,7 @@ void RESTAPI_deviceCommandHandler::Configure(HTTPServerRequest& Request, HTTPSer
 
                 Cmd.SerialNumber = SerialNumber;
                 Cmd.UUID = uCentral::instance()->CreateUUID();
-                Cmd.Submitted = time(nullptr);
-                Cmd.Executed = 0;
-                Cmd.Completed = 0;
                 Cmd.SubmittedBy = UserName_;
-                Cmd.ErrorCode = 0 ;
-                Cmd.Status = "Pending";
                 Cmd.Command = "configure";
                 Cmd.Custom = 0;
                 Cmd.RunAt = When;
@@ -246,7 +241,7 @@ void RESTAPI_deviceCommandHandler::Configure(HTTPServerRequest& Request, HTTPSer
                 Params.set( "serial" , SerialNumber );
                 Params.set("uuid",NewUUID);
                 Params.set("when",When);
-                Params.set("configuration", Cfg.to_json());
+                Params.set("config", Cfg.to_json());
 
                 std::stringstream ParamStream;
                 Params.stringify(ParamStream);
@@ -315,12 +310,7 @@ void RESTAPI_deviceCommandHandler::Upgrade(HTTPServerRequest &Request, HTTPServe
 
             Cmd.SerialNumber = SerialNumber;
             Cmd.UUID = uCentral::instance()->CreateUUID();
-            Cmd.Submitted = time(nullptr);
-            Cmd.Executed = 0;
-            Cmd.Completed = 0;
             Cmd.SubmittedBy = UserName_;
-            Cmd.ErrorCode = 0 ;
-            Cmd.Status = "Pending";
             Cmd.Custom = 0;
             Cmd.Command = "upgrade";
             Cmd.RunAt = When;

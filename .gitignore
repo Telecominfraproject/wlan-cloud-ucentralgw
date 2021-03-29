@@ -12,5 +12,4 @@ _deps
 *.pem
 *.csr
 *.db
-
-
+/venv/

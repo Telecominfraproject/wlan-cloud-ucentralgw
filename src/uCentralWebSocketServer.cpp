@@ -250,6 +250,7 @@ namespace uCentral::WebSocket {
 
         if(RPC!=RPCs_.end())
         {
+            Logger_.information(Poco::format("RPC(%s): Completed outstanding RPC %Lu",SerialNumber_,ID));
             uCentral::Storage::CommandCompleted(RPC->second,Vars);
         }
         else
