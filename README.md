@@ -642,6 +642,48 @@ The AP should answer with teh above message. The `error` value should be interpr
 - 1 : the command will be performed in the future and `when` shows that time. The `resultCode` and `resultText` dod not contain anything relevant.
 - 2 : the command cannot be performed as indicated. `resultCode` and `resultText` may contain some indication as to why.
 
+#### Controller wants the AP to perform a trace
+Controller sends this command when it needs the AP to perform a trace (i.e. tcpdump).
+```
+{    "jsonrpc" : "2.0" , 
+     "method" : "trace" , 
+     "params" : {
+	        "serial" : <serial number> ,
+	        "when" : Optional - <UTC time when to reboot, 0 mean immediately, this is a suggestion>,
+	        "duration" : <integer representing the number of seconds to run the trace>
+	        "packets" : <integer for the number of packets to capture>
+	        "network" : <string identifying the network to trace>
+	        "interface" : <string identifying the interface to capture on>
+	        "uri" : <complete URI where to upload the trace. This URI will be available for 30 minutes following a trace request start>
+     },
+     "id" : <some number>
+}
+```
+
+The AP should answer:
+```
+{     "jsonrpc" : "2.0" , 
+      "result" : {
+      "serial" : <serial number> ,
+      "status" : {
+	    "error" : 0 or an error number,
+	    "text" : <description of the error or success>,
+	    "when" : <time when this will be performed as UTC seconds>,
+  	},
+  "id" : <same number>
+}
+```
+
+##### About tracing
+###### 'packets' and 'duration'
+The AP can interpret the parameters `packets` and `duration` anyway it wants. Both are optional. The AP could decide to 
+interpret this as a maximum of `duration` or until `packets` have been received. Or perform an `and` between the two. This 
+is left to the implementer.
+
+###### 'uri'
+The `uri` for file upload is available for 30 minutes following the start of the capture. Once the file has been
+uploaded or the timeout occurs, the upload will be rejected. 
+
 ### Message compression
 Some messages may be several KB in size. If these messages repeat often, they may cause added data charges over time. As a result, the AP may decide to compress and base64 outgoing messages. Only messages over 3K in size should be compressed. This should apply to the `state` event and possibly the `healtcheck` event. Should other messages get larger, the client may decide to compress the. Only messages from the AP to the controller may use compression.
 
