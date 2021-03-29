@@ -641,7 +641,16 @@ void RESTAPI_deviceCommandHandler::Factory(HTTPServerRequest &Request, HTTPServe
                 return;
             }
 
-            auto KeepRedirector = ds["keepRedirector"];
+            auto KeepRedirector = ds["keepRedirector"].toString();
+            uint64_t KeepIt;
+            if(KeepRedirector == "true")
+                KeepIt = 1 ;
+            else if(KeepRedirector == "false")
+                KeepIt = 0 ;
+            else {
+                BadRequest(Response);
+                return;
+            }
 
             uint64_t When = 0 ;
             if(ds.contains("when"))
@@ -659,7 +668,7 @@ void RESTAPI_deviceCommandHandler::Factory(HTTPServerRequest &Request, HTTPServe
             Poco::JSON::Object  Params;
 
             Params.set( "serial" , SerialNumber );
-            Params.set( "keep_redirector", KeepRedirector);
+            Params.set( "keep_redirector", KeepIt);
             Params.set( "when", When);
 
             std::stringstream ParamStream;
