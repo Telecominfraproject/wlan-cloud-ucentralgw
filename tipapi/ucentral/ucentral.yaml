@@ -428,6 +428,8 @@ components:
         when:
           type: string
           format: 'date-time'
+        errorText:
+          type: string
         results:
           type: string
         errorCode:
@@ -437,6 +439,9 @@ components:
           type: string
         status:
           type: string
+        custom:
+          type: integer
+          format: int32
 
     CommandInfoList:
       type: object
