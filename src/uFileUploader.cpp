@@ -209,7 +209,7 @@ namespace uCentral::uFileUploader {
                 ResponseStream << "URI: " << request.getURI() << "<br>\n";
                 for (auto & i:request) {
                     ResponseStream << i.first << ": " << i.second << "<br>\n";
-                    std::cout << "F:" << i.first << "    S:" << i.second << std::endl;
+                    // std::cout << "F:" << i.first << "    S:" << i.second << std::endl;
                 }
                 ResponseStream << "</p>";
 
@@ -267,10 +267,7 @@ namespace uCentral::uFileUploader {
             if(uCentral::uFileUploader::ValidRequest(UUID))
             {
                 //  make sure we do not allow anyone else to overwrite our file
-                std::cout << __LINE__ << std::endl;
                 uCentral::uFileUploader::RemoveRequest(UUID);
-                std::cout << __LINE__ << std::endl;
-
                 return new FormRequestHandler(UUID);
             }
             else
