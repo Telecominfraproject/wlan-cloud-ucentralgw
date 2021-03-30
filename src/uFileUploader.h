@@ -21,7 +21,12 @@
 #include "Poco/Net/Context.h"
 #include "Poco/JSON/Parser.h"
 #include "Poco/DynamicAny.h"
-
+#include "Poco/Net/HTMLForm.h"
+#include "Poco/Net/PartHandler.h"
+#include "Poco/Net/MessageHeader.h"
+#include "Poco/CountingStream.h"
+#include "Poco/StreamCopier.h"
+#include "Poco/Exception.h"
 
 namespace uCentral::uFileUploader {
     int Start();

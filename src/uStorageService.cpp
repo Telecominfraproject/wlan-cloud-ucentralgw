@@ -3,12 +3,12 @@
 //
 
 #include "uStorageService.h"
+#include "uCentral.h"
+#include "uCentralConfig.h"
+
 #include "Poco/Data/RecordSet.h"
 #include "Poco/DateTime.h"
 #include "Poco/Util/Application.h"
-
-#include "uCentral.h"
-#include "uCentralConfig.h"
 
 using namespace Poco::Data::Keywords;
 using Poco::Data::Session;
@@ -135,7 +135,7 @@ namespace uCentral::Storage {
         return uCentral::Storage::Service::instance()->UpdateDevice(Device);
     }
 
-    bool DeviceExists(const std::string &SerialNumber) {
+    bool DeviceExists(std::string &SerialNumber) {
         return uCentral::Storage::Service::instance()->DeviceExists(SerialNumber);
     }
 
@@ -171,7 +171,7 @@ namespace uCentral::Storage {
         return uCentral::Storage::Service::instance()->CreateDefaultConfiguration(name, DefConfig);
     }
 
-    bool DeleteDefaultConfiguration(const std::string &name) {
+    bool DeleteDefaultConfiguration(std::string &name) {
         return uCentral::Storage::Service::instance()->DeleteDefaultConfiguration(name);
     }
 
@@ -996,11 +996,14 @@ namespace uCentral::Storage {
 
             Session Sess = Pool_->get();
 
+            Statement   Select(Sess);
+
             uint64_t CurrentUUID;
 
-            Sess << "SELECT UUID FROM Devices WHERE SerialNumber='%s'",
+            Select << "SELECT UUID FROM Devices WHERE SerialNumber=?",
                     into(CurrentUUID),
-                    SerialNumber.c_str(), now;
+                    use(SerialNumber);
+            Select.execute();
 
             CurrentUUID++;
 
@@ -1040,11 +1043,13 @@ namespace uCentral::Storage {
         std::string SerialNumber;
         try {
 
-            Session Sess = Pool_->get();
+            Session     Sess = Pool_->get();
+            Statement   Select(Sess);
 
-            Sess << "SELECT SerialNumber FROM Devices WHERE SerialNumber='%s'",
+            Select << "SELECT SerialNumber FROM Devices WHERE SerialNumber=?",
                     into(SerialNumber),
-                    DeviceDetails.SerialNumber.c_str(), now;
+                    use(DeviceDetails.SerialNumber);
+            Select.execute();
 
             if (SerialNumber.empty()) {
                 uCentral::Config::Config Cfg(DeviceDetails.Configuration);
@@ -1067,7 +1072,7 @@ namespace uCentral::Storage {
                     "LastConfigurationDownload BIGINT"
 
  */
-            Statement   Insert(Sess);
+                    Statement   Insert(Sess);
 
                     Insert
                             << "INSERT INTO Devices (SerialNumber, DeviceType, MACAddress, Manufacturer, UUID, Configuration, Notes, CreationTimestamp, LastConfigurationChange, LastConfigurationDownload )"
@@ -1134,11 +1139,12 @@ namespace uCentral::Storage {
         // std::lock_guard<std::mutex> guard(mutex_);
 
         try {
-            Session Sess = Pool_->get();
+            Session     Sess = Pool_->get();
+            Statement   Delete(Sess);
 
-            Sess << "DELETE FROM Devices WHERE SerialNumber='%s'",
-                    SerialNumber.c_str(), now;
-
+            Delete << "DELETE FROM Devices WHERE SerialNumber=?",
+                        use(SerialNumber);
+            Delete.execute();
             return true;
         }
         catch (const Poco::Exception &E) {
@@ -1152,9 +1158,10 @@ namespace uCentral::Storage {
         // std::lock_guard<std::mutex> guard(mutex_);
 
         try {
-            Session Sess = Pool_->get();
+            Session     Sess = Pool_->get();
+            Statement   Select(Sess);
 
-            Sess << "SELECT "
+            Select << "SELECT "
                         "SerialNumber, "
                         "DeviceType, "
                         "MACAddress, "
@@ -1165,7 +1172,7 @@ namespace uCentral::Storage {
                         "CreationTimestamp, "
                         "LastConfigurationChange, "
                         "LastConfigurationDownload "
-                        " FROM Devices WHERE SerialNumber='%s'",
+                        " FROM Devices WHERE SerialNumber=?",
                     into(DeviceDetails.SerialNumber),
                     into(DeviceDetails.DeviceType),
                     into(DeviceDetails.MACAddress),
@@ -1176,7 +1183,9 @@ namespace uCentral::Storage {
                     into(DeviceDetails.CreationTimestamp),
                     into(DeviceDetails.LastConfigurationChange),
                     into(DeviceDetails.LastConfigurationDownload),
-                    SerialNumber.c_str(), now;
+                    use(SerialNumber);
+
+            Select.execute();
 
             if (DeviceDetails.SerialNumber.empty())
                 return false;
@@ -1190,18 +1199,19 @@ namespace uCentral::Storage {
         return false;
     }
 
-    bool Service::DeviceExists(const std::string &SerialNumber) {
+    bool Service::DeviceExists(std::string &SerialNumber) {
         try {
-            Session Sess = Pool_->get();
+            Session     Sess = Pool_->get();
+            Statement   Select(Sess);
 
             std::string Serial;
 
-            Sess << "SELECT "
+            Select << "SELECT "
                         "SerialNumber "
-                        " FROM Devices WHERE SerialNumber='%s'",
+                        " FROM Devices WHERE SerialNumber=?",
                     into(Serial),
-                    SerialNumber.c_str(),
-                    now;
+                    use(SerialNumber);
+            Select.execute();
 
             if (Serial.empty())
                 return false;
@@ -1220,10 +1230,9 @@ namespace uCentral::Storage {
 
         try {
             Session Sess = Pool_->get();
+            Statement   Update(Sess);
 
             uint64_t Now = time(nullptr);
-
-            Statement   Update(Sess);
 
             Update
                     << "UPDATE Devices SET Manufacturer=?, DeviceType=?, MACAddress=?, Notes=?, LastConfigurationChange=? WHERE SerialNumber=?",
@@ -1265,9 +1274,10 @@ namespace uCentral::Storage {
         RecordList Records;
 
         try {
-            Session Sess = Pool_->get();
+            Session     Sess = Pool_->get();
+            Statement   Select(Sess);
 
-            Sess << "SELECT "
+            Select << "SELECT "
                         "SerialNumber, "
                         "DeviceType, "
                         "MACAddress, "
@@ -1280,7 +1290,8 @@ namespace uCentral::Storage {
                         "LastConfigurationDownload "
                         " FROM Devices",
                     into(Records),
-                    range(From, From + HowMany - 1), now;
+                    range(From, From + HowMany - 1);
+            Select.execute();
 
             for (auto i: Records) {
                 uCentralDevice R{
@@ -1310,16 +1321,19 @@ namespace uCentral::Storage {
 
         try {
             std::string SS;
-            Session Sess = Pool_->get();
 
-            Sess << "SELECT SerialNumber FROM Capabilities WHERE SerialNumber='%s'",
-                    into(SS),
-                    SerialNumber.c_str(), now;
+            Session     Sess = Pool_->get();
+            Statement   Select(Sess);
 
             uint64_t Now = time(nullptr);
 
+            Select << "SELECT SerialNumber FROM Capabilities WHERE SerialNumber=?",
+                    into(SS),
+                    use(SerialNumber);
+            Select.execute();
+
 /*
-                     "SerialNumber VARCHAR(30) PRIMARY KEY, "
+                    "SerialNumber VARCHAR(30) PRIMARY KEY, "
                     "Capabilities TEXT, "
                     "FirstUpdate BIGINT, "
                     "LastUpdate BIGINT"
@@ -1358,17 +1372,19 @@ namespace uCentral::Storage {
         // std::lock_guard<std::mutex> guard(mutex_);
 
         try {
-            Session Sess = Pool_->get();
+            Session     Sess = Pool_->get();
+            Statement   Select(Sess);
 
             std::string TmpSerialNumber;
 
-            Sess
-                    << "SELECT SerialNumber, Capabilities, FirstUpdate, LastUpdate FROM Capabilities WHERE SerialNumber='%s'",
+            Select
+                    << "SELECT SerialNumber, Capabilities, FirstUpdate, LastUpdate FROM Capabilities WHERE SerialNumber=?",
                     into(TmpSerialNumber),
                     into(Caps.Capabilities),
                     into(Caps.FirstUpdate),
                     into(Caps.LastUpdate),
-                    SerialNumber.c_str(), now;
+                    use(SerialNumber);
+            Select.execute();
 
             if (TmpSerialNumber.empty())
                 return false;
@@ -1386,11 +1402,14 @@ namespace uCentral::Storage {
         // std::lock_guard<std::mutex> guard(mutex_);
 
         try {
-            Session Sess = Pool_->get();
+            Session     Sess = Pool_->get();
+            Statement   Delete(Sess);
 
-            Sess <<
-                     "DELETE FROM Capabilities WHERE SerialNumber='%s'",
-                    SerialNumber.c_str(), now;
+            Delete <<
+                     "DELETE FROM Capabilities WHERE SerialNumber=?",
+                    use(SerialNumber);
+            Delete.execute();
+
             return true;
         }
         catch (const Poco::Exception &E) {
@@ -1405,23 +1424,29 @@ namespace uCentral::Storage {
         // std::lock_guard<std::mutex> guard(mutex_);
         std::string SS;
         try {
-            Session Sess = Pool_->get();
+            Session     Sess = Pool_->get();
+            Statement   Select(Sess);
+            uint64_t Now = time(nullptr);
 
-            Sess << "SELECT SerialNumber, UUID, Configuration FROM Devices WHERE SerialNumber='%s'",
+            Select << "SELECT SerialNumber, UUID, Configuration FROM Devices WHERE SerialNumber=?",
                     into(SS),
                     into(UUID),
                     into(NewConfig),
-                    SerialNumber.c_str(), now;
+                    use(SerialNumber);
+
+            Select.execute();
 
             if (SS.empty()) {
                 return false;
             }
 
             //  Let's update the last downloaded time
-            uint64_t Now = time(nullptr);
-            Sess << "UPDATE Devices SET LastConfigurationDownload=%Lu WHERE SerialNumber='%s'",
-                    Now,
-                    SerialNumber.c_str(), now;
+            Statement   Update(Sess);
+
+            Update << "UPDATE Devices SET LastConfigurationDownload=? WHERE SerialNumber=?",
+                    use(Now),
+                    use(SerialNumber);
+            Update.execute();
 
             return true;
         }
@@ -1449,11 +1474,14 @@ namespace uCentral::Storage {
         try {
 
             std::string TmpName;
-            Session Sess = Pool_->get();
 
-            Sess << "SELECT Name FROM DefaultConfigs WHERE Name='%s'",
-                    into(TmpName),
-                    Name.c_str(), now;
+            Session     Sess = Pool_->get();
+            Statement   Select(Sess);
+
+            Select <<   "SELECT Name FROM DefaultConfigs WHERE Name=?",
+                        into(TmpName),
+                        use(Name);
+            Select.execute();
 
             if (TmpName.empty()) {
 
@@ -1498,13 +1526,16 @@ namespace uCentral::Storage {
         return false;
     }
 
-    bool Service::DeleteDefaultConfiguration(const std::string &Name) {
+    bool Service::DeleteDefaultConfiguration(std::string &Name) {
         try {
-            Session Sess = Pool_->get();
 
-            Sess <<
-                     "DELETE FROM DefaultConfigs WHERE Name='%s'",
-                    Name.c_str(), now;
+            Session     Sess = Pool_->get();
+            Statement   Delete(Sess);
+
+            Delete <<   "DELETE FROM DefaultConfigs WHERE Name=?",
+                        use(Name);
+            Delete.execute();
+
             return true;
         }
         catch (const Poco::Exception &E) {
@@ -1549,23 +1580,27 @@ namespace uCentral::Storage {
 
     bool Service::GetDefaultConfiguration(std::string &Name, uCentralDefaultConfiguration &DefConfig) {
         try {
-            Session Sess = Pool_->get();
 
-            Sess << "SELECT "
+            Session     Sess = Pool_->get();
+            Statement   Select(Sess);
+
+            Select << "SELECT "
                         "Name, "
                         "Configuration, "
                         "Models, "
                         "Description, "
                         "Created, "
                         "LastModified "
-                        " FROM DefaultConfigs WHERE Name='%s'",
+                        " FROM DefaultConfigs WHERE Name=?",
                     into(DefConfig.Name),
                     into(DefConfig.Configuration),
                     into(DefConfig.Models),
                     into(DefConfig.Description),
                     into(DefConfig.Created),
                     into(DefConfig.LastModified),
-                    Name.c_str(), now;
+                    use(Name);
+
+            Select.execute();
 
             if (DefConfig.Name.empty())
                 return false;
@@ -1592,9 +1627,10 @@ namespace uCentral::Storage {
         RecordList Records;
 
         try {
-            Session Sess = Pool_->get();
+            Session     Sess = Pool_->get();
+            Statement   Select(Sess);
 
-            Sess << "SELECT "
+            Select << "SELECT "
                         "Name, "
                         "Configuration, "
                         "Models, "
@@ -1603,7 +1639,9 @@ namespace uCentral::Storage {
                         "LastModified "
                         "FROM DefaultConfigs",
                     into(Records),
-                    range(From, From + HowMany - 1), now;
+                    range(From, From + HowMany - 1);
+
+            Select.execute();
 
             for (auto i: Records) {
                 uCentralDefaultConfiguration R{
@@ -1657,9 +1695,10 @@ namespace uCentral::Storage {
             typedef std::vector<DeviceRecord> RecordList;
             RecordList Records;
 
-            Session Sess = Pool_->get();
+            Session     Sess = Pool_->get();
+            Statement   Select(Sess);
 
-            Sess << "SELECT "
+            Select << "SELECT "
                         "Name, "
                         "Configuration, "
                         "Models, "
@@ -1668,7 +1707,8 @@ namespace uCentral::Storage {
                         "LastModified "
                         "FROM DefaultConfigs",
                     into(Records),
-                    range(0, 2), now;
+                    range(0, 2);
+            Select.execute();
 
             for (auto i: Records) {
                 DefConfig.Models = i.get<2>();
@@ -1696,7 +1736,6 @@ namespace uCentral::Storage {
 
     bool Service::AddCommand(std::string &SerialNumber, uCentralCommandDetails &Command, bool AlreadyExecuted) {
         try {
-            Session Sess = Pool_->get();
             /*
                     "UUID           VARCHAR(30) PRIMARY KEY, "
                     "SerialNumber   VARCHAR(30), "
@@ -1730,6 +1769,7 @@ namespace uCentral::Storage {
             Command.ErrorCode = 0;
             Command.AttachDate = 0 ;
 
+            Session     Sess = Pool_->get();
             Statement   Insert(Sess);
 
             Insert
@@ -1794,7 +1834,7 @@ namespace uCentral::Storage {
 
             std::string Fields{"SELECT UUID, SerialNumber, Command, Status, SubmittedBy, Results, Details, ErrorText, "
                                "Submitted, Executed, Completed, RunAt, ErrorCode, Custom, WaitingForFile, AttachDate  FROM CommandList "};
-            std::string Statement = SerialNumber.empty()
+            std::string IntroStatement = SerialNumber.empty()
                                     ? Fields + std::string(DatesIncluded ? "WHERE " : "")
                                     : Fields + "WHERE SerialNumber='" + SerialNumber + "'" +
                                       std::string(DatesIncluded ? " AND " : "");
@@ -1808,9 +1848,13 @@ namespace uCentral::Storage {
                 DateSelector = " Submitted<=" + std::to_string(ToDate);
             }
 
-            Sess << Statement + DateSelector,
+            Statement   Select(Sess);
+
+            Select << IntroStatement + DateSelector,
                     into(Records),
-                    range(Offset, Offset + HowMany - 1), now;
+                    range(Offset, Offset + HowMany - 1);
+
+            Select.execute();
 
             for (auto i: Records) {
                 uCentralCommandDetails R{
@@ -1845,11 +1889,12 @@ namespace uCentral::Storage {
 
     bool Service::DeleteCommands(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate) {
         try {
-            Session Sess = Pool_->get();
+            Session     Sess = Pool_->get();
+            Statement   Delete(Sess);
 
             bool DatesIncluded = (FromDate != 0 || ToDate != 0);
 
-            std::string Statement = SerialNumber.empty()
+            std::string IntroStatement = SerialNumber.empty()
                                     ? "DELETE FROM CommandList " + std::string(DatesIncluded ? "WHERE " : "")
                                     : "DELETE FROM CommandList WHERE SerialNumber='" + SerialNumber + "'" +
                                       std::string(DatesIncluded ? " AND " : "");
@@ -1863,7 +1908,9 @@ namespace uCentral::Storage {
                 DateSelector = " Submitted<=" + std::to_string(ToDate);
             }
 
-            Sess << Statement + DateSelector, now;
+            Delete << IntroStatement + DateSelector;
+
+            Delete.execute();
 
             return true;
         }
@@ -1899,15 +1946,18 @@ namespace uCentral::Storage {
         try {
             RecordList Records;
 
-            Session Sess = Pool_->get();
+            Session     Sess = Pool_->get();
+            Statement   Select(Sess);
 
             // range(Offset, Offset + HowMany - 1)
-            Sess
+            Select
                     << "SELECT UUID, SerialNumber, Command, Status, SubmittedBy, Results, Details, ErrorText,"
                        "Submitted, Executed, Completed, RunAt, ErrorCode, Custom, WaitingForFile, AttachDate FROM CommandList "
                        " WHERE Executed=0",
                     into(Records),
-                    range(Offset, Offset + HowMany - 1), now;
+                    range(Offset, Offset + HowMany - 1);
+            Select.execute();
+
             for (auto i: Records) {
                 uCentralCommandDetails R{
                         .UUID = i.get<0>(),
@@ -2006,10 +2056,11 @@ namespace uCentral::Storage {
                 "WaitingForFile BIGINT, "
                 "AttachDate     BIGINT"
              */
+            Statement   Select(Sess);
 
-            Sess << "SELECT UUID, SerialNumber, Command, Status, SubmittedBy, Results, Details, ErrorText, "
+            Select << "SELECT UUID, SerialNumber, Command, Status, SubmittedBy, Results, Details, ErrorText, "
                         "Submitted, Executed, Completed, RunAt, ErrorCode, Custom, WaitingForFile, AttachDate FROM CommandList "
-                        " WHERE UUID='%s'",
+                        " WHERE UUID=?",
                     into(Command.UUID),
                     into(Command.SerialNumber),
                     into(Command.Command),
@@ -2026,7 +2077,9 @@ namespace uCentral::Storage {
                     into(Command.Custom),
                     into(Command.WaitingForFile),
                     into(Command.AttachDate),
-                    UUID.c_str(), now;
+                    use(UUID);
+
+            Select.execute();
 
             return true;
 
@@ -2039,10 +2092,13 @@ namespace uCentral::Storage {
 
     bool Service::DeleteCommand(std::string &UUID) {
         try {
-            Session Sess = Pool_->get();
+            Session     Sess = Pool_->get();
+            Statement   Delete(Sess);
 
-            Sess << "DELETE FROM CommandList WHERE UUID='%s'",
-                    UUID.c_str(), now;
+            Delete << "DELETE FROM CommandList WHERE UUID=?",
+                    use(UUID);
+            Delete.execute();
+
             return true;
         }
         catch (const Poco::Exception &E) {
@@ -2055,18 +2111,20 @@ namespace uCentral::Storage {
                                             std::vector<uCentralCommandDetails> &Commands) {
         // todo: finish the GetReadyToExecuteCommands call...
         try {
-            Session Sess = Pool_->get();
             typedef std::vector<CommandDetailsRecordTuple> RecordList;
             uint64_t Now = time(nullptr);
+            Session     Sess = Pool_->get();
+            Statement   Select(Sess);
 
             RecordList Records;
 
-            Sess << "SELECT UUID, SerialNumber, Command, Status, SubmittedBy, Results, Details, ErrorText, "
+            Select << "SELECT UUID, SerialNumber, Command, Status, SubmittedBy, Results, Details, ErrorText, "
                         "Submitted, Executed, Completed, RunAt, ErrorCode, Custom, WaitingForFile, AttachDate FROM CommandList "
-                        " WHERE RunAt<%Lu And Executed=0",
+                        " WHERE RunAt<? And Executed=0",
                     into(Records),
-                    Now,
-                    range(Offset, Offset + HowMany - 1), now;
+                    use(Now),
+                    range(Offset, Offset + HowMany - 1);
+            Select.execute();
 
             for (auto i: Records) {
                 uCentralCommandDetails R{
@@ -2102,9 +2160,9 @@ namespace uCentral::Storage {
 
     bool Service::CommandExecuted(std::string &UUID) {
         try {
-            Session Sess = Pool_->get();
             uint64_t Now = time(nullptr);
 
+            Session Sess = Pool_->get();
             Statement   Update(Sess);
 
             Update << "UPDATE CommandList SET Executed=? WHERE UUID=?",
@@ -2124,7 +2182,6 @@ namespace uCentral::Storage {
 
     bool Service::CommandCompleted(std::string &UUID, Poco::DynamicStruct ReturnVars) {
         try {
-            Session Sess = Pool_->get();
             uint64_t Now = time(nullptr);
 
             // Parse the result to get the ErrorText and make sure that this is a JSON document
@@ -2141,6 +2198,7 @@ namespace uCentral::Storage {
             std::string ResultStr{ResultText.str()};
 
             // std::cout << ">>> UUID: " << UUID << " Errorcode: " << ErrorCode << " ErrorText: " << ErrorText << std::endl;
+            Session     Sess = Pool_->get();
             Statement   Update(Sess);
 
             std::string StatusText{"completed"};
@@ -2168,9 +2226,10 @@ namespace uCentral::Storage {
 
     bool Service::AttachFileToCommand(std::string &UUID) {
         try {
-            Session Sess = Pool_->get();
             uint64_t Now = time(nullptr);
             uint64_t WaitForFile=0;
+
+            Session Sess = Pool_->get();
             Statement   Update(Sess);
 
             Update << "UPDATE CommandList SET WaitingForFile=?, AttachDate=? WHERE UUID=?",

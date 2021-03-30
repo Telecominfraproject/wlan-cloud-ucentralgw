@@ -46,7 +46,7 @@ namespace uCentral::Storage {
     bool CreateDevice(uCentralDevice &);
     bool CreateDefaultDevice(const std::string & SerialNumber, const std::string & Capabilities);
     bool GetDevice(std::string &SerialNumber, uCentralDevice &);
-    bool DeviceExists(const std::string & SerialNumber);
+    bool DeviceExists(std::string & SerialNumber);
     bool GetDevices(uint64_t From, uint64_t HowMany, std::vector<uCentralDevice> &Devices);
     bool DeleteDevice(std::string &SerialNumber);
     bool UpdateDevice(uCentralDevice &);
@@ -56,7 +56,7 @@ namespace uCentral::Storage {
     bool DeleteDeviceCapabilities(std::string & SerialNumber);
 
     bool CreateDefaultConfiguration(std::string & name, uCentralDefaultConfiguration & DefConfig);
-    bool DeleteDefaultConfiguration(const std::string & name);
+    bool DeleteDefaultConfiguration(std::string & name);
     bool UpdateDefaultConfiguration(std::string & name, uCentralDefaultConfiguration & DefConfig);
     bool GetDefaultConfiguration(std::string &name, uCentralDefaultConfiguration & DefConfig);
     bool GetDefaultConfigurations(uint64_t From, uint64_t HowMany, std::vector<uCentralDefaultConfiguration> &Devices);
@@ -102,7 +102,7 @@ namespace uCentral::Storage {
         friend bool DeleteHealthCheckData(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate );
 
         friend bool CreateDefaultDevice(const std::string & SerialNumber, const std::string & Capabilities);
-        friend bool DeviceExists(const std::string & SerialNumber);
+        friend bool DeviceExists(std::string & SerialNumber);
 
         friend bool UpdateDeviceConfiguration(std::string &SerialNumber, std::string &Configuration, uint64_t & NewUUID );
         friend bool CreateDevice(uCentralDevice &);
@@ -121,7 +121,7 @@ namespace uCentral::Storage {
         friend bool AddLog(std::string & SerialNumber, uCentralDeviceLog & Log, bool CrashLog);
 
         friend bool CreateDefaultConfiguration(std::string & name, uCentralDefaultConfiguration & DefConfig);
-        friend bool DeleteDefaultConfiguration(const std::string & name);
+        friend bool DeleteDefaultConfiguration(std::string & name);
         friend bool UpdateDefaultConfiguration(std::string & name, uCentralDefaultConfiguration & DefConfig);
         friend bool GetDefaultConfiguration(std::string &name, uCentralDefaultConfiguration & DefConfig);
         friend bool GetDefaultConfigurations(uint64_t From, uint64_t HowMany, std::vector<uCentralDefaultConfiguration> &Devices);
@@ -160,7 +160,7 @@ namespace uCentral::Storage {
         bool GetDevices(uint64_t From, uint64_t Howmany, std::vector<uCentralDevice> &Devices);
         bool DeleteDevice(std::string &SerialNumber);
         bool UpdateDevice(uCentralDevice &);
-        bool DeviceExists(const std::string & SerialNumber);
+        bool DeviceExists(std::string & SerialNumber);
 
         bool ExistingConfiguration(std::string &SerialNumber, uint64_t CurrentConfig, std::string &NewConfig, uint64_t &);
 
@@ -173,7 +173,7 @@ namespace uCentral::Storage {
         bool DeleteLogData(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate, uint64_t Type);
 
         bool CreateDefaultConfiguration(std::string & name, uCentralDefaultConfiguration & DefConfig);
-        bool DeleteDefaultConfiguration(const std::string & name);
+        bool DeleteDefaultConfiguration(std::string & name);
         bool UpdateDefaultConfiguration(std::string & name, uCentralDefaultConfiguration & DefConfig);
         bool GetDefaultConfiguration(std::string &name, uCentralDefaultConfiguration & DefConfig);
         bool GetDefaultConfigurations(uint64_t From, uint64_t HowMany, std::vector<uCentralDefaultConfiguration> &Devices);
