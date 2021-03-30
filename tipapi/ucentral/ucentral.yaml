@@ -301,6 +301,9 @@ components:
           format: int64
         data:
           type: string
+        logType:
+          type: integer
+          format: int64
 
     DeviceLogList:
       type: object
@@ -935,6 +938,12 @@ paths:
           schema:
             type: integer
             format: int64
+        - in: query
+          name: logType
+          description: 0=any kind of logs (default) 1=normal logs only 2=crash logs only
+          schema:
+            type: integer
+            format: int64
 
       responses:
         200:
@@ -970,6 +979,12 @@ paths:
           schema:
             type: string
             format: 'date-time'
+        - in: query
+          name: logType
+          description: 0=any kind of logs (default) 1=normal logs only 2=crash logs only
+          schema:
+            type: integer
+            format: int64
 
       responses:
         200:
