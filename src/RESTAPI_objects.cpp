@@ -80,6 +80,7 @@ Poco::JSON::Object uCentralDeviceLog::to_json() const
     Obj.set("severity",Severity);
     Obj.set("data",Data);
     Obj.set("recorded",RESTAPIHandler::to_RFC3339(Recorded));
+    Obj.set("logType",LogType);
     return Obj;
 }
 

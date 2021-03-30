@@ -59,9 +59,10 @@ struct uCentralDeviceLog {
     };
 
     std::string Log;
-    uint64_t    Severity;
     std::string Data;
+    uint64_t    Severity;
     uint64_t    Recorded;
+    uint64_t    LogType;
     [[nodiscard]] Poco::JSON::Object to_json() const;
 };
 

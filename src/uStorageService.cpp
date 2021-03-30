@@ -37,6 +37,14 @@ namespace uCentral::Storage {
             uint64_t,
             uint64_t> CommandDetailsRecordTuple;
 
+    typedef Poco::Tuple<
+            std::string,
+            std::string,
+            std::string,
+            uint64_t,
+            uint64_t,
+            uint64_t> DeviceLogsRecordTuple;
+
 
     Service::Service() noexcept:
             SubSystemServer("Storage", "STORAGE-SVR", "storage"),
@@ -64,8 +72,8 @@ namespace uCentral::Storage {
         return uCentral::Storage::Service::instance()->AddLog(SerialNumber, Log);
     }
 
-    bool AddLog(std::string &SerialNumber, const uCentralDeviceLog &DeviceLog) {
-        return uCentral::Storage::Service::instance()->AddLog(SerialNumber, DeviceLog);
+    bool AddLog(std::string &SerialNumber, const uCentralDeviceLog &DeviceLog, bool CrashLog) {
+        return uCentral::Storage::Service::instance()->AddLog(SerialNumber, DeviceLog, CrashLog);
     }
 
     bool AddStatisticsData(std::string &SerialNumber, uint64_t CfgUUID, std::string &NewStats) {
@@ -150,13 +158,13 @@ namespace uCentral::Storage {
     }
 
     bool GetLogData(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate, uint64_t Offset, uint64_t HowMany,
-                    std::vector<uCentralDeviceLog> &Stats) {
+                    std::vector<uCentralDeviceLog> &Stats, uint64_t Type) {
         return uCentral::Storage::Service::instance()->GetLogData(SerialNumber, FromDate, ToDate, Offset, HowMany,
-                                                                  Stats);
+                                                                  Stats, Type );
     }
 
-    bool DeleteLogData(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate) {
-        return uCentral::Storage::Service::instance()->DeleteLogData(SerialNumber, FromDate, ToDate);
+    bool DeleteLogData(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate, uint64_t Type) {
+        return uCentral::Storage::Service::instance()->DeleteLogData(SerialNumber, FromDate, ToDate, Type);
     }
 
     bool CreateDefaultConfiguration(std::string &name, const uCentralDefaultConfiguration &DefConfig) {
@@ -277,11 +285,13 @@ namespace uCentral::Storage {
                     ")", now;
 
         session_ << "CREATE TABLE IF NOT EXISTS DeviceLogs ("
-                    "SerialNumber VARCHAR(30), "
-                    "Log TEXT, "
-                    "Severity BIGINT , "
-                    "Data TEXT , "
-                    "Recorded BIGINT)", now;
+                    "SerialNumber   VARCHAR(30), "
+                    "Log            TEXT, "
+                    "Data           TEXT, "
+                    "Severity       BIGINT, "
+                    "Recorded       BIGINT, "
+                    "LogType        BIGINT"
+                    ")", now;
 
         session_ << "CREATE INDEX IF NOT EXISTS LogSerial ON DeviceLogs (SerialNumber ASC, Recorded ASC)", now;
 
@@ -381,11 +391,12 @@ namespace uCentral::Storage {
                     ")", now;
 
         session_ << "CREATE TABLE IF NOT EXISTS DeviceLogs ("
-                    "SerialNumber VARCHAR(30), "
-                    "Log TEXT, "
-                    "Severity BIGINT , "
-                    "Data TEXT , "
-                    "Recorded BIGINT, "
+                    "SerialNumber   VARCHAR(30), "
+                    "Log            TEXT, "
+                    "Data           TEXT, "
+                    "Severity       BIGINT, "
+                    "Recorded       BIGINT, "
+                    "LogType        BIGINT"
                     "INDEX LogSerial (SerialNumber ASC, Recorded ASC)"
                     ")", now;
 
@@ -485,11 +496,13 @@ namespace uCentral::Storage {
                     ")", now;
 
         session_ << "CREATE TABLE IF NOT EXISTS DeviceLogs ("
-                    "SerialNumber VARCHAR(30), "
-                    "Log TEXT, "
-                    "Severity BIGINT , "
-                    "Data TEXT , "
-                    "Recorded BIGINT)", now;
+                    "SerialNumber   VARCHAR(30), "
+                    "Log            TEXT, "
+                    "Data           TEXT, "
+                    "Severity       BIGINT, "
+                    "Recorded       BIGINT, "
+                    "LogType        BIGINT"
+                    ")", now;
 
         session_ << "CREATE INDEX IF NOT EXISTS LogSerial ON DeviceLogs (SerialNumber ASC, Recorded ASC)", now;
 
@@ -819,24 +832,28 @@ namespace uCentral::Storage {
         return false;
     }
 
-    bool Service::AddLog(std::string &SerialNumber, const uCentralDeviceLog &Log) {
+    bool Service::AddLog(std::string &SerialNumber, const uCentralDeviceLog &Log, bool CrashLog) {
 
         try {
 /*
-                    "SerialNumber VARCHAR(30), "
-                    "Log TEXT, "
-                    "Severity BIGINT , "
-                    "Data TEXT , "
-                    "Recorded BIGINT)
+                    "SerialNumber   VARCHAR(30), "
+                    "Log            TEXT, "
+                    "Data           TEXT, "
+                    "Severity       BIGINT, "
+                    "Recorded       BIGINT, "
+                    "LogType        BIGINT"
  */
+            uint64_t LogType = CrashLog ? 1 : 0 ;
             Session session_ = Pool_->get();
             session_
-                    << "INSERT INTO DeviceLogs (SerialNumber, Log, Severity, Data, Recorded) VALUES( '%s' , '%s' , %Lu, '%s', %Lu)",
+                    << "INSERT INTO DeviceLogs (SerialNumber, Log, Data, Severity, Recorded, LogType ) VALUES( '%s' , '%s' , '%s', %Lu, %Lu, %Lu)",
                     SerialNumber.c_str(),
                     Log.Log.c_str(),
-                    Log.Severity,
                     Log.Data.c_str(),
-                    Log.Recorded, now;
+                    Log.Severity,
+                    Log.Recorded,
+                    LogType,
+                    now;
             return true;
         }
         catch (const Poco::Exception &E) {
@@ -854,26 +871,36 @@ namespace uCentral::Storage {
         DeviceLog.Severity = uCentralDeviceLog::Level::LOG_INFO;
         DeviceLog.Recorded = time(nullptr);
 
-        return AddLog(SerialNumber, DeviceLog);
+        return AddLog(SerialNumber, DeviceLog, false);
     }
 
     bool Service::GetLogData(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate, uint64_t Offset,
                              uint64_t HowMany,
-                             std::vector<uCentralDeviceLog> &Stats) {
-        typedef Poco::Tuple<std::string, uint64_t, uint64_t, std::string> StatRecord;
-        typedef std::vector<StatRecord> RecordList;
+                             std::vector<uCentralDeviceLog> &Stats, uint64_t Type ) {
+
+/*
+                    "SerialNumber   VARCHAR(30), "
+                    "Log            TEXT, "
+                    "Data           TEXT, "
+                    "Severity       BIGINT, "
+                    "Recorded       BIGINT, "
+                    "LogType        BIGINT"
+ */
+
+        typedef std::vector<DeviceLogsRecordTuple> RecordList;
 
         try {
             RecordList Records;
             Session session_ = Pool_->get();
 
             bool DatesIncluded = (FromDate != 0 || ToDate != 0);
+            bool HasWhere = DatesIncluded || !SerialNumber.empty();
 
-            std::string Prefix{"SELECT Log,Recorded,Severity,Data FROM DeviceLogs  "};
+            std::string Prefix{"SELECT SerialNumber, Log, Data, Severity, Recorded, LogType FROM DeviceLogs  "};
             std::string Statement = SerialNumber.empty()
                                     ? Prefix + std::string(DatesIncluded ? "WHERE " : "")
                                     : Prefix + "WHERE SerialNumber='" + SerialNumber + "'" +
-                                      std::string(DatesIncluded ? " AND " : "");
+                                      std::string(DatesIncluded ? " AND " : "") ;
 
             std::string DateSelector;
             if (FromDate && ToDate) {
@@ -884,15 +911,23 @@ namespace uCentral::Storage {
                 DateSelector = " Recorded<=" + std::to_string(ToDate);
             }
 
-            session_ << Statement + DateSelector,
+            std::string TypeSelector;
+            if(Type)
+            {
+                TypeSelector = (HasWhere ? " AND LogType=" : " WHERE LogType=" ) + std::to_string((Type==1 ? 0 : 1));
+            }
+
+            session_ << Statement + DateSelector + TypeSelector,
                     into(Records),
                     range(Offset, Offset + HowMany - 1), now;
 
             for (auto i: Records) {
-                uCentralDeviceLog R{.Log = i.get<0>(),
-                        .Severity = i.get<2>(),
-                        .Data = i.get<3>(),
-                        .Recorded = i.get<1>()};
+                uCentralDeviceLog R{
+                        .Log = i.get<1>(),
+                        .Data = i.get<2>(),
+                        .Severity = i.get<3>(),
+                        .Recorded = i.get<4>(),
+                        .LogType = i.get<5>()};
                 Stats.push_back(R);
             }
             return true;
@@ -904,11 +939,12 @@ namespace uCentral::Storage {
         return false;
     }
 
-    bool Service::DeleteLogData(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate) {
+    bool Service::DeleteLogData(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate, uint64_t Type) {
         try {
             Session session_ = Pool_->get();
 
             bool DatesIncluded = (FromDate != 0 || ToDate != 0);
+            bool HasWhere = DatesIncluded || !SerialNumber.empty();
 
             std::string Prefix{"DELETE FROM DeviceLogs "};
             std::string Statement = SerialNumber.empty()
@@ -925,7 +961,13 @@ namespace uCentral::Storage {
                 DateSelector = " Recorded<=" + std::to_string(ToDate);
             }
 
-            session_ << Statement + DateSelector, now;
+            std::string TypeSelector;
+            if(Type)
+            {
+                TypeSelector = (HasWhere ? " AND LogType=" : " WHERE LogType=" ) + std::to_string((Type==1 ? 0 : 1));
+            }
+
+            session_ << Statement + DateSelector + TypeSelector, now;
 
             return true;
         }

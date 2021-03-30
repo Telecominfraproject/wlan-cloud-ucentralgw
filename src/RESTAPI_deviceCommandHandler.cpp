@@ -367,11 +367,12 @@ void RESTAPI_deviceCommandHandler::GetLogs(HTTPServerRequest& Request, HTTPServe
         auto EndDate = RESTAPIHandler::from_RFC3339(GetParameter("endDate", ""));
         auto Offset = GetParameter("offset", 0);
         auto Limit = GetParameter("limit", 100);
+        auto LogType = GetParameter("logType",0);
 
         std::vector<uCentralDeviceLog> Logs;
 
         uCentral::Storage::GetLogData(SerialNumber, StartDate, EndDate, Offset, Limit,
-                                                                  Logs);
+                                                                  Logs,LogType);
         Poco::JSON::Array ArrayObj;
 
         for (auto i : Logs) {
@@ -397,8 +398,9 @@ void RESTAPI_deviceCommandHandler::DeleteLogs(HTTPServerRequest& Request, HTTPSe
         auto SerialNumber = GetBinding("serialNumber", "");
         auto StartDate = RESTAPIHandler::from_RFC3339(GetParameter("startDate", ""));
         auto EndDate = RESTAPIHandler::from_RFC3339(GetParameter("endDate", ""));
+        auto LogType = GetParameter("logType",0);
 
-        if (uCentral::Storage::DeleteLogData(SerialNumber, StartDate, EndDate))
+        if (uCentral::Storage::DeleteLogData(SerialNumber, StartDate, EndDate, LogType))
             OK(Response);
         else
             BadRequest(Response);

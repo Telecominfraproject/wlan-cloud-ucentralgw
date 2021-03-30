@@ -36,11 +36,11 @@ namespace uCentral::Storage {
                             std::vector<uCentralHealthcheck> &Checks);
     bool DeleteHealthCheckData(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate );
 
-    bool AddLog(std::string & SerialNumber, const uCentralDeviceLog & Log );
+    bool AddLog(std::string & SerialNumber, const uCentralDeviceLog & Log, bool CrashLog = false );
     bool AddLog(std::string & SerialNumber, const std::string &Log );
 
-    bool GetLogData(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate, uint64_t Offset, uint64_t HowMany, std::vector<uCentralDeviceLog> &Stats);
-    bool DeleteLogData(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate);
+    bool GetLogData(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate, uint64_t Offset, uint64_t HowMany, std::vector<uCentralDeviceLog> &Stats, uint64_t Type);
+    bool DeleteLogData(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate, uint64_t Type);
 
     bool UpdateDeviceConfiguration(std::string &SerialNumber, std::string &Configuration, uint64_t & NewUUID );
     bool CreateDevice(uCentralDevice &);
@@ -115,10 +115,10 @@ namespace uCentral::Storage {
         friend bool GetDeviceCapabilities(std::string &SerialNumber, uCentralCapabilities &);
         friend bool DeleteDeviceCapabilities(std::string & SerialNumber);
         friend bool GetLogData(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate, uint64_t Offset, uint64_t HowMany,
-                               std::vector<uCentralDeviceLog> &Stats);
-        friend bool DeleteLogData(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate);
+                               std::vector<uCentralDeviceLog> &Stats, uint64_t Type);
+        friend bool DeleteLogData(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate, uint64_t Type);
         friend bool AddLog(std::string & SerialNumber, const std::string & Log);
-        friend bool AddLog(std::string & SerialNumber, const uCentralDeviceLog & Log );
+        friend bool AddLog(std::string & SerialNumber, const uCentralDeviceLog & Log, bool CrashLog);
 
         friend bool CreateDefaultConfiguration(std::string & name, const uCentralDefaultConfiguration & DefConfig);
         friend bool DeleteDefaultConfiguration(const std::string & name);
@@ -139,7 +139,7 @@ namespace uCentral::Storage {
         friend bool AttachFileToCommand(const std::string & UUID);
 
     private:
-        bool AddLog(std::string & SerialNumber, const uCentralDeviceLog & Log );
+        bool AddLog(std::string & SerialNumber, const uCentralDeviceLog & Log, bool CrashLog );
         bool AddLog(std::string & SerialNumber, const std::string & Log );
         bool AddStatisticsData(std::string &SerialNumber, uint64_t CfgUUID, std::string &NewStats);
         bool GetStatisticsData(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate, uint64_t Offset, uint64_t HowMany,
@@ -169,8 +169,8 @@ namespace uCentral::Storage {
         bool DeleteDeviceCapabilities(std::string & SerialNumber);
 
         bool GetLogData(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate, uint64_t Offset, uint64_t HowMany,
-                        std::vector<uCentralDeviceLog> &Stats);
-        bool DeleteLogData(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate);
+                        std::vector<uCentralDeviceLog> &Stats, uint64_t Type);
+        bool DeleteLogData(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate, uint64_t Type);
 
         bool CreateDefaultConfiguration(std::string & name, const uCentralDefaultConfiguration & DefConfig);
         bool DeleteDefaultConfiguration(const std::string & name);

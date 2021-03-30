@@ -13,6 +13,7 @@
 #include "Poco/Net/HTTPHeaderStream.h"
 #include "Poco/Net/HTTPServerRequestImpl.h"
 #include "Poco/Base64Decoder.h"
+#include "Poco/JSON/Array.h"
 #include "Poco/zlib.h"
 #include "base64util.h"
 
@@ -147,16 +148,17 @@ namespace uCentral::WebSocket {
             Reactor_.Reactor()->removeEventHandler(*WS_,
                                                     Poco::NObserver<WSConnection,
                                                     Poco::Net::ReadableNotification>(*this,&WSConnection::OnSocketReadable));
-/*            Reactor_.Reactor()->removeEventHandler(*WS_,
+/*          Reactor_.Reactor()->removeEventHandler(*WS_,
                                                     Poco::NObserver<WSConnection,
                                                     Poco::Net::ShutdownNotification>(*this,&WSConnection::OnSocketShutdown));
-           Reactor_.Reactor()->removeEventHandler(*WS_,
+            Reactor_.Reactor()->removeEventHandler(*WS_,
                                                     Poco::NObserver<WSConnection,
                                                     Poco::Net::ErrorNotification>(*this,&WSConnection::OnSocketError));
 
             if(WS_ && WSup_)
                 WS_->shutdown();
 */
+            (*WS_).close();
             Registered_ = false ;
         }
     }
@@ -384,6 +386,42 @@ namespace uCentral::WebSocket {
                 Logger_.warning(Poco::format("LOG(%s): Missing parameters.",SerialNumber_));
                 return;
             }
+        } else if (!Poco::icompare(Method, "crashlog")) {
+            if( ParamsObj.contains("uuid") &&
+                ParamsObj.contains("loglines")) {
+
+                Logger_.information(Poco::format("CRASH-LOG(%s): new entry.", Serial));
+
+                auto LogLines = ParamsObj["loglines"];
+                uint64_t UUID = ParamsObj["uuid"];
+
+                if(LogLines.isArray()) {
+
+                    auto LogLinesArray = LogLines.extract<Poco::Dynamic::Array>();
+
+                    uCentralDeviceLog DeviceLog;
+                    std::string LogText;
+
+                    for(const auto & i : LogLinesArray)
+                        LogText += i.toString() + "\n";
+
+                    DeviceLog.Log = LogText;
+                    DeviceLog.Data = "";
+                    DeviceLog.Severity = uCentralDeviceLog::LOG_EMERG;
+                    DeviceLog.Recorded = time(nullptr);
+                    DeviceLog.LogType = 1;
+
+                    uCentral::Storage::AddLog(Serial, DeviceLog, true);
+                } else {
+                    Logger_.warning(Poco::format("CRASH-LOG(%s): parameter loglines must be an array.",SerialNumber_));
+                    return;
+                }
+            }
+            else
+            {
+                Logger_.warning(Poco::format("LOG(%s): Missing parameters.",SerialNumber_));
+                return;
+            }
         } else if (!Poco::icompare(Method, "ping")) {
             if(ParamsObj.contains("uuid")) {
                 uint64_t UUID = ParamsObj["uuid"];
@@ -528,7 +566,7 @@ namespace uCentral::WebSocket {
             }
         catch (const Poco::Net::ConnectionResetException & E)
         {
-            Logger_.warning( "Caught a ConnectionResetException");
+            Logger_.warning( Poco::format("%s(%s): Caught a ConnectionResetException: %s", std::string(__func__), SerialNumber_, E.displayText()));
             MustDisconnect= true;
         }
         catch (const Poco::JSON::JSONException & E)
