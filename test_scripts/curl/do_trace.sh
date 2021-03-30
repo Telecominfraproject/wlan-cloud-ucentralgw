@@ -11,7 +11,7 @@ else
   serial=$1
 fi
 
-payload="{ \"serialNumber\" : \"$serial\" , \"duration\" : 30, \"network\" : \"lan\", \"interface\" : \"eth0\"  }"
+payload="{ \"serialNumber\" : \"$serial\" , \"duration\" : 30, \"network\" : \"lan\", \"interface\" : \"br-lan\"  }"
 
 echo $payload
 

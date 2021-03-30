@@ -72,7 +72,7 @@ namespace uCentral::Storage {
         return uCentral::Storage::Service::instance()->AddLog(SerialNumber, Log);
     }
 
-    bool AddLog(std::string &SerialNumber, const uCentralDeviceLog &DeviceLog, bool CrashLog) {
+    bool AddLog(std::string &SerialNumber, uCentralDeviceLog &DeviceLog, bool CrashLog) {
         return uCentral::Storage::Service::instance()->AddLog(SerialNumber, DeviceLog, CrashLog);
     }
 
@@ -91,7 +91,7 @@ namespace uCentral::Storage {
         return uCentral::Storage::Service::instance()->DeleteStatisticsData(SerialNumber, FromDate, ToDate);
     }
 
-    bool AddHealthCheckData(std::string &SerialNumber, const uCentralHealthcheck &Check) {
+    bool AddHealthCheckData(std::string &SerialNumber, uCentralHealthcheck &Check) {
         return uCentral::Storage::Service::instance()->AddHealthCheckData(SerialNumber, Check);
     }
 
@@ -167,7 +167,7 @@ namespace uCentral::Storage {
         return uCentral::Storage::Service::instance()->DeleteLogData(SerialNumber, FromDate, ToDate, Type);
     }
 
-    bool CreateDefaultConfiguration(std::string &name, const uCentralDefaultConfiguration &DefConfig) {
+    bool CreateDefaultConfiguration(std::string &name, uCentralDefaultConfiguration &DefConfig) {
         return uCentral::Storage::Service::instance()->CreateDefaultConfiguration(name, DefConfig);
     }
 
@@ -175,7 +175,7 @@ namespace uCentral::Storage {
         return uCentral::Storage::Service::instance()->DeleteDefaultConfiguration(name);
     }
 
-    bool UpdateDefaultConfiguration(std::string &name, const uCentralDefaultConfiguration &DefConfig) {
+    bool UpdateDefaultConfiguration(std::string &name, uCentralDefaultConfiguration &DefConfig) {
         return uCentral::Storage::Service::instance()->UpdateDefaultConfiguration(name, DefConfig);
     }
 
@@ -221,15 +221,15 @@ namespace uCentral::Storage {
         return uCentral::Storage::Service::instance()->GetReadyToExecuteCommands(Offset, HowMany, Commands);
     }
 
-    bool CommandExecuted(const std::string &UUID) {
+    bool CommandExecuted(std::string &UUID) {
         return uCentral::Storage::Service::instance()->CommandExecuted(UUID);
     }
 
-    bool CommandCompleted(const std::string &UUID, Poco::DynamicStruct ReturnVars) {
+    bool CommandCompleted(std::string &UUID, Poco::DynamicStruct ReturnVars) {
         return uCentral::Storage::Service::instance()->CommandCompleted(UUID, ReturnVars);
     }
 
-    bool AttachFileToCommand(const std::string &UUID) {
+    bool AttachFileToCommand(std::string &UUID) {
         return uCentral::Storage::Service::instance()->AttachFileToCommand(UUID);
     }
 
@@ -255,16 +255,16 @@ namespace uCentral::Storage {
         Pool_ = std::shared_ptr<Poco::Data::SessionPool>(
                 new Poco::Data::SessionPool(SQLiteConn_->name(), DBName, 4, NumSessions, IdleTime));
 
-        Session session_ = Pool_->get();
+        Session Sess = Pool_->get();
 
-        session_ << "CREATE TABLE IF NOT EXISTS Statistics ("
+        Sess << "CREATE TABLE IF NOT EXISTS Statistics ("
                     "SerialNumber VARCHAR(30), "
                     "UUID INTEGER, "
                     "Data TEXT, "
                     "Recorded BIGINT)", now;
-        session_ << "CREATE INDEX IF NOT EXISTS StatsSerial ON Statistics (SerialNumber ASC, Recorded ASC)", now;
+        Sess << "CREATE INDEX IF NOT EXISTS StatsSerial ON Statistics (SerialNumber ASC, Recorded ASC)", now;
 
-        session_ << "CREATE TABLE IF NOT EXISTS Devices ("
+        Sess << "CREATE TABLE IF NOT EXISTS Devices ("
                     "SerialNumber  VARCHAR(30) UNIQUE PRIMARY KEY, "
                     "DeviceType    VARCHAR(10), "
                     "MACAddress    VARCHAR(30), "
@@ -277,14 +277,14 @@ namespace uCentral::Storage {
                     "LastConfigurationDownload BIGINT"
                     ")", now;
 
-        session_ << "CREATE TABLE IF NOT EXISTS Capabilities ("
+        Sess << "CREATE TABLE IF NOT EXISTS Capabilities ("
                     "SerialNumber VARCHAR(30) PRIMARY KEY, "
                     "Capabilities TEXT, "
                     "FirstUpdate BIGINT, "
                     "LastUpdate BIGINT"
                     ")", now;
 
-        session_ << "CREATE TABLE IF NOT EXISTS DeviceLogs ("
+        Sess << "CREATE TABLE IF NOT EXISTS DeviceLogs ("
                     "SerialNumber   VARCHAR(30), "
                     "Log            TEXT, "
                     "Data           TEXT, "
@@ -293,18 +293,18 @@ namespace uCentral::Storage {
                     "LogType        BIGINT"
                     ")", now;
 
-        session_ << "CREATE INDEX IF NOT EXISTS LogSerial ON DeviceLogs (SerialNumber ASC, Recorded ASC)", now;
+        Sess << "CREATE INDEX IF NOT EXISTS LogSerial ON DeviceLogs (SerialNumber ASC, Recorded ASC)", now;
 
-        session_ << "CREATE TABLE IF NOT EXISTS HealthChecks ("
+        Sess << "CREATE TABLE IF NOT EXISTS HealthChecks ("
                     "SerialNumber VARCHAR(30), "
                     "UUID          BIGINT, "
                     "Data TEXT, "
                     "Sanity BIGINT , "
                     "Recorded BIGINT) ", now;
 
-        session_ << "CREATE INDEX IF NOT EXISTS HealthSerial ON HealthChecks (SerialNumber ASC, Recorded ASC)", now;
+        Sess << "CREATE INDEX IF NOT EXISTS HealthSerial ON HealthChecks (SerialNumber ASC, Recorded ASC)", now;
 
-        session_ << "CREATE TABLE IF NOT EXISTS DefaultConfigs ("
+        Sess << "CREATE TABLE IF NOT EXISTS DefaultConfigs ("
                     "Name VARCHAR(30) PRIMARY KEY, "
                     "Configuration TEXT, "
                     "Models TEXT, "
@@ -312,7 +312,7 @@ namespace uCentral::Storage {
                     "Created BIGINT , "
                     "LastModified BIGINT)", now;
 
-        session_ << "CREATE TABLE IF NOT EXISTS CommandList ("
+        Sess << "CREATE TABLE IF NOT EXISTS CommandList ("
                     "UUID           VARCHAR(30) PRIMARY KEY, "
                     "SerialNumber   VARCHAR(30), "
                     "Command        VARCHAR(32), "
@@ -331,7 +331,7 @@ namespace uCentral::Storage {
                     "AttachDate     BIGINT"
                     ")", now;
 
-        session_ << "CREATE INDEX IF NOT EXISTS CommandListIndex ON CommandList (SerialNumber ASC, Submitted ASC)", now;
+        Sess << "CREATE INDEX IF NOT EXISTS CommandListIndex ON CommandList (SerialNumber ASC, Submitted ASC)", now;
 
         return 0;
     }
@@ -361,16 +361,16 @@ namespace uCentral::Storage {
         Pool_ = std::shared_ptr<Poco::Data::SessionPool>(
                 new Poco::Data::SessionPool(MySQLConn_->name(), ConnectionStr, 4, NumSessions, IdleTime));
 
-        Session session_ = Pool_->get();
+        Session Sess = Pool_->get();
 
-        session_ << "CREATE TABLE IF NOT EXISTS Statistics ("
+        Sess << "CREATE TABLE IF NOT EXISTS Statistics ("
                     "SerialNumber VARCHAR(30), "
                     "UUID INTEGER, "
                     "Data TEXT, "
                     "Recorded BIGINT, "
                     "INDEX StatSerial (SerialNumber ASC, Recorded ASC))", now;
 
-        session_ << "CREATE TABLE IF NOT EXISTS Devices ("
+        Sess << "CREATE TABLE IF NOT EXISTS Devices ("
                     "SerialNumber  VARCHAR(30) UNIQUE PRIMARY KEY, "
                     "DeviceType    VARCHAR(10), "
                     "MACAddress    VARCHAR(30), "
@@ -383,14 +383,14 @@ namespace uCentral::Storage {
                     "LastConfigurationDownload BIGINT"
                     ")", now;
 
-        session_ << "CREATE TABLE IF NOT EXISTS Capabilities ("
+        Sess << "CREATE TABLE IF NOT EXISTS Capabilities ("
                     "SerialNumber VARCHAR(30) PRIMARY KEY, "
                     "Capabilities TEXT, "
                     "FirstUpdate BIGINT, "
                     "LastUpdate BIGINT"
                     ")", now;
 
-        session_ << "CREATE TABLE IF NOT EXISTS DeviceLogs ("
+        Sess << "CREATE TABLE IF NOT EXISTS DeviceLogs ("
                     "SerialNumber   VARCHAR(30), "
                     "Log            TEXT, "
                     "Data           TEXT, "
@@ -400,7 +400,7 @@ namespace uCentral::Storage {
                     "INDEX LogSerial (SerialNumber ASC, Recorded ASC)"
                     ")", now;
 
-        session_ << "CREATE TABLE IF NOT EXISTS HealthChecks ("
+        Sess << "CREATE TABLE IF NOT EXISTS HealthChecks ("
                     "SerialNumber VARCHAR(30), "
                     "UUID          BIGINT, "
                     "Data TEXT, "
@@ -409,7 +409,7 @@ namespace uCentral::Storage {
                     "INDEX HealthSerial (SerialNumber ASC, Recorded ASC)"
                     ")", now;
 
-        session_ << "CREATE TABLE IF NOT EXISTS DefaultConfigs ("
+        Sess << "CREATE TABLE IF NOT EXISTS DefaultConfigs ("
                     "Name VARCHAR(30) PRIMARY KEY, "
                     "Configuration TEXT, "
                     "Models TEXT, "
@@ -417,7 +417,7 @@ namespace uCentral::Storage {
                     "Created BIGINT , "
                     "LastModified BIGINT)", now;
 
-        session_ << "CREATE TABLE IF NOT EXISTS CommandList ("
+        Sess << "CREATE TABLE IF NOT EXISTS CommandList ("
                     "UUID           VARCHAR(30) PRIMARY KEY, "
                     "SerialNumber   VARCHAR(30), "
                     "Command        VARCHAR(32), "
@@ -465,17 +465,17 @@ namespace uCentral::Storage {
         Pool_ = std::shared_ptr<Poco::Data::SessionPool>(
                 new Poco::Data::SessionPool(PostgresConn_->name(), ConnectionStr, 4, NumSessions, IdleTime));
 
-        Session session_ = Pool_->get();
+        Session Sess = Pool_->get();
 
-        session_ << "CREATE TABLE IF NOT EXISTS Statistics ("
+        Sess << "CREATE TABLE IF NOT EXISTS Statistics ("
                     "SerialNumber VARCHAR(30), "
                     "UUID INTEGER, "
                     "Data TEXT, "
                     "Recorded BIGINT)", now;
 
-        session_ << "CREATE INDEX IF NOT EXISTS StatsSerial ON Statistics (SerialNumber ASC, Recorded ASC)", now;
+        Sess << "CREATE INDEX IF NOT EXISTS StatsSerial ON Statistics (SerialNumber ASC, Recorded ASC)", now;
 
-        session_ << "CREATE TABLE IF NOT EXISTS Devices ("
+        Sess << "CREATE TABLE IF NOT EXISTS Devices ("
                     "SerialNumber  VARCHAR(30) UNIQUE PRIMARY KEY, "
                     "DeviceType    VARCHAR(10), "
                     "MACAddress    VARCHAR(30), "
@@ -488,14 +488,14 @@ namespace uCentral::Storage {
                     "LastConfigurationDownload BIGINT"
                     ")", now;
 
-        session_ << "CREATE TABLE IF NOT EXISTS Capabilities ("
+        Sess << "CREATE TABLE IF NOT EXISTS Capabilities ("
                     "SerialNumber VARCHAR(30) PRIMARY KEY, "
                     "Capabilities TEXT, "
                     "FirstUpdate BIGINT, "
                     "LastUpdate BIGINT"
                     ")", now;
 
-        session_ << "CREATE TABLE IF NOT EXISTS DeviceLogs ("
+        Sess << "CREATE TABLE IF NOT EXISTS DeviceLogs ("
                     "SerialNumber   VARCHAR(30), "
                     "Log            TEXT, "
                     "Data           TEXT, "
@@ -504,18 +504,18 @@ namespace uCentral::Storage {
                     "LogType        BIGINT"
                     ")", now;
 
-        session_ << "CREATE INDEX IF NOT EXISTS LogSerial ON DeviceLogs (SerialNumber ASC, Recorded ASC)", now;
+        Sess << "CREATE INDEX IF NOT EXISTS LogSerial ON DeviceLogs (SerialNumber ASC, Recorded ASC)", now;
 
-        session_ << "CREATE TABLE IF NOT EXISTS HealthChecks ("
+        Sess << "CREATE TABLE IF NOT EXISTS HealthChecks ("
                     "SerialNumber VARCHAR(30), "
                     "UUID          BIGINT, "
                     "Data TEXT, "
                     "Sanity BIGINT , "
                     "Recorded BIGINT)", now;
 
-        session_ << "CREATE INDEX IF NOT EXISTS HealthSerial ON HealthChecks (SerialNumber ASC, Recorded ASC)", now;
+        Sess << "CREATE INDEX IF NOT EXISTS HealthSerial ON HealthChecks (SerialNumber ASC, Recorded ASC)", now;
 
-        session_ << "CREATE TABLE IF NOT EXISTS DefaultConfigs ("
+        Sess << "CREATE TABLE IF NOT EXISTS DefaultConfigs ("
                     "Name VARCHAR(30) PRIMARY KEY, "
                     "Configuration TEXT, "
                     "Models TEXT, "
@@ -523,7 +523,7 @@ namespace uCentral::Storage {
                     "Created BIGINT , "
                     "LastModified BIGINT)", now;
 
-        session_ << "CREATE TABLE IF NOT EXISTS CommandList ("
+        Sess << "CREATE TABLE IF NOT EXISTS CommandList ("
                     "UUID           VARCHAR(30) PRIMARY KEY, "
                     "SerialNumber   VARCHAR(30), "
                     "Command        VARCHAR(32), "
@@ -542,7 +542,7 @@ namespace uCentral::Storage {
                     "AttachDate     BIGINT"
                     ")", now;
 
-        session_ << "CREATE INDEX IF NOT EXISTS CommandListIndex ON CommandList (SerialNumber ASC, Submitted ASC)", now;
+        Sess << "CREATE INDEX IF NOT EXISTS CommandListIndex ON CommandList (SerialNumber ASC, Submitted ASC)", now;
 
         return 0;
     }
@@ -572,7 +572,7 @@ namespace uCentral::Storage {
         Pool_ = std::shared_ptr<Poco::Data::SessionPool>(
                 new Poco::Data::SessionPool(ODBCConn_->name(), ConnectionStr, 4, NumSessions, IdleTime));
 
-        Session session_ = Pool_->get();
+        Session Sess = Pool_->get();
 
         return 0;
     }
@@ -613,7 +613,7 @@ namespace uCentral::Storage {
             Logger_.information("Device:" + SerialNumber + " Stats size:" + std::to_string(NewStats.size()));
 
             uint64_t Now = time(nullptr);
-            Session session_ = Pool_->get();
+            Session Sess = Pool_->get();
 /*
                     "SerialNumber VARCHAR(30), "
                     "UUID INTEGER, "
@@ -621,12 +621,15 @@ namespace uCentral::Storage {
                     "Recorded BIGINT)", now;
 
  */
-            session_ << "INSERT INTO Statistics (SerialNumber, UUID, Data, Recorded) VALUES( '%s', %Lu, '%s', %Lu)",
-                    SerialNumber.c_str(),
-                    CfgUUID,
-                    NewStats.c_str(),
-                    Now, now;
+            Statement   Insert(Sess);
 
+            Insert << "INSERT INTO Statistics (SerialNumber, UUID, Data, Recorded) VALUES(?,?,?,?)",
+                    use(SerialNumber),
+                    use(CfgUUID),
+                    use(NewStats),
+                    use(Now);
+
+            Insert.execute();
             return true;
         }
         catch (const Poco::Exception &E) {
@@ -647,7 +650,7 @@ namespace uCentral::Storage {
 
         try {
             RecordList Records;
-            Session session_ = Pool_->get();
+            Session Sess = Pool_->get();
 
             bool DatesIncluded = (FromDate != 0 || ToDate != 0);
 
@@ -666,7 +669,7 @@ namespace uCentral::Storage {
                 DateSelector = " Recorded<=" + std::to_string(ToDate);
             }
 
-            session_ << Statement + DateSelector,
+            Sess << Statement + DateSelector,
                     into(Records),
                     range(Offset, Offset + HowMany - 1), now;
 
@@ -688,7 +691,7 @@ namespace uCentral::Storage {
 
     bool Service::DeleteStatisticsData(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate) {
         try {
-            Session session_ = Pool_->get();
+            Session Sess = Pool_->get();
 
             bool DatesIncluded = (FromDate != 0 || ToDate != 0);
 
@@ -707,7 +710,7 @@ namespace uCentral::Storage {
                 DateSelector = " Recorded<=" + std::to_string(ToDate);
             }
 
-            session_ << Statement + DateSelector, now;
+            Sess << Statement + DateSelector, now;
 
             return true;
         }
@@ -718,11 +721,11 @@ namespace uCentral::Storage {
         return false;
     }
 
-    bool Service::AddHealthCheckData(std::string &SerialNumber, const uCentralHealthcheck &Check) {
+    bool Service::AddHealthCheckData(std::string &SerialNumber, uCentralHealthcheck &Check) {
         try {
             Logger_.information("Device:" + SerialNumber + " HealthCheck: sanity " + std::to_string(Check.Sanity));
 
-            Session session_ = Pool_->get();
+            Session Sess = Pool_->get();
 
 /*          "SerialNumber VARCHAR(30), "
             "UUID          BIGINT, "
@@ -730,14 +733,15 @@ namespace uCentral::Storage {
             "Sanity BIGINT , "
             "Recorded BIGINT) ", now;
 */
-            session_
-                    << "INSERT INTO HealthChecks (SerialNumber, UUID, Data, Sanity, Recorded) VALUES( '%s', %Lu , '%s' , %Lu , %Lu)",
-                    SerialNumber.c_str(),
-                    Check.UUID,
-                    Check.Data.c_str(),
-                    Check.Sanity,
-                    Check.Recorded, now;
-
+            Statement   Insert(Sess);
+            Insert
+                    << "INSERT INTO HealthChecks (SerialNumber, UUID, Data, Sanity, Recorded) VALUES(?,?,?,?,?)",
+                    use(SerialNumber),
+                    use(Check.UUID),
+                    use(Check.Data),
+                    use(Check.Sanity),
+                    use(Check.Recorded);
+            Insert.execute();
             return true;
         }
         catch (const Poco::Exception &E) {
@@ -757,7 +761,7 @@ namespace uCentral::Storage {
         // std::lock_guard<std::mutex> guard(mutex_);
         try {
             RecordList Records;
-            Session session_ = Pool_->get();
+            Session Sess = Pool_->get();
 
             bool DatesIncluded = (FromDate != 0 || ToDate != 0);
 
@@ -776,7 +780,7 @@ namespace uCentral::Storage {
                 DateSelector = " Recorded<=" + std::to_string(ToDate);
             }
 
-            session_ << Statement + DateSelector,
+            Sess << Statement + DateSelector,
                     into(Records),
                     range(Offset, Offset + HowMany - 1), now;
 
@@ -802,7 +806,7 @@ namespace uCentral::Storage {
 
     bool Service::DeleteHealthCheckData(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate) {
         try {
-            Session session_ = Pool_->get();
+            Session Sess = Pool_->get();
 
             bool DatesIncluded = (FromDate != 0 || ToDate != 0);
 
@@ -821,7 +825,7 @@ namespace uCentral::Storage {
                 DateSelector = " Recorded<=" + std::to_string(ToDate);
             }
 
-            session_ << Statement + DateSelector, now;
+            Sess << Statement + DateSelector, now;
 
             return true;
         }
@@ -832,7 +836,7 @@ namespace uCentral::Storage {
         return false;
     }
 
-    bool Service::AddLog(std::string &SerialNumber, const uCentralDeviceLog &Log, bool CrashLog) {
+    bool Service::AddLog(std::string &SerialNumber, uCentralDeviceLog &Log, bool CrashLog) {
 
         try {
 /*
@@ -844,16 +848,18 @@ namespace uCentral::Storage {
                     "LogType        BIGINT"
  */
             uint64_t LogType = CrashLog ? 1 : 0 ;
-            Session session_ = Pool_->get();
-            session_
-                    << "INSERT INTO DeviceLogs (SerialNumber, Log, Data, Severity, Recorded, LogType ) VALUES( '%s' , '%s' , '%s', %Lu, %Lu, %Lu)",
-                    SerialNumber.c_str(),
-                    Log.Log.c_str(),
-                    Log.Data.c_str(),
-                    Log.Severity,
-                    Log.Recorded,
-                    LogType,
-                    now;
+            Session Sess = Pool_->get();
+
+            Statement insert(Sess);
+            insert
+                    << "INSERT INTO DeviceLogs (SerialNumber, Log, Data, Severity, Recorded, LogType ) VALUES(?,?,?,?,?,?)",
+                    use(SerialNumber),
+                    use(Log.Log),
+                    use(Log.Data),
+                    use(Log.Severity),
+                    use(Log.Recorded),
+                    use(LogType);
+            insert.execute();
             return true;
         }
         catch (const Poco::Exception &E) {
@@ -891,7 +897,7 @@ namespace uCentral::Storage {
 
         try {
             RecordList Records;
-            Session session_ = Pool_->get();
+            Session Sess = Pool_->get();
 
             bool DatesIncluded = (FromDate != 0 || ToDate != 0);
             bool HasWhere = DatesIncluded || !SerialNumber.empty();
@@ -917,7 +923,7 @@ namespace uCentral::Storage {
                 TypeSelector = (HasWhere ? " AND LogType=" : " WHERE LogType=" ) + std::to_string((Type==1 ? 0 : 1));
             }
 
-            session_ << Statement + DateSelector + TypeSelector,
+            Sess << Statement + DateSelector + TypeSelector,
                     into(Records),
                     range(Offset, Offset + HowMany - 1), now;
 
@@ -941,7 +947,7 @@ namespace uCentral::Storage {
 
     bool Service::DeleteLogData(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate, uint64_t Type) {
         try {
-            Session session_ = Pool_->get();
+            Session Sess = Pool_->get();
 
             bool DatesIncluded = (FromDate != 0 || ToDate != 0);
             bool HasWhere = DatesIncluded || !SerialNumber.empty();
@@ -967,7 +973,7 @@ namespace uCentral::Storage {
                 TypeSelector = (HasWhere ? " AND LogType=" : " WHERE LogType=" ) + std::to_string((Type==1 ? 0 : 1));
             }
 
-            session_ << Statement + DateSelector + TypeSelector, now;
+            Sess << Statement + DateSelector + TypeSelector, now;
 
             return true;
         }
@@ -988,11 +994,11 @@ namespace uCentral::Storage {
                 return false;
             }
 
-            Session session_ = Pool_->get();
+            Session Sess = Pool_->get();
 
             uint64_t CurrentUUID;
 
-            session_ << "SELECT UUID FROM Devices WHERE SerialNumber='%s'",
+            Sess << "SELECT UUID FROM Devices WHERE SerialNumber='%s'",
                     into(CurrentUUID),
                     SerialNumber.c_str(), now;
 
@@ -1003,15 +1009,19 @@ namespace uCentral::Storage {
 
                 std::string NewConfig = Cfg.get();
 
-                session_
-                        << "UPDATE Devices SET Configuration='%s', UUID=%Lu, LastConfigurationChange=%Lu WHERE SerialNumber='%s'",
-                        NewConfig.c_str(),
-                        CurrentUUID,
-                        Now,
-                        SerialNumber.c_str(), now;
+                Statement   Update(Sess);
 
+                Update
+                        << "UPDATE Devices SET Configuration=?, UUID=?, LastConfigurationChange=? WHERE SerialNumber=?",
+                        use(NewConfig),
+                        use(CurrentUUID),
+                        use(Now),
+                        use(SerialNumber);
+
+                Update.execute();
                 Logger_.information(Poco::format("CONFIG-UPDATE(%s): UUID is %Lu", SerialNumber, CurrentUUID));
                 NewUUID = CurrentUUID;
+
                 return true;
             }
 
@@ -1030,9 +1040,9 @@ namespace uCentral::Storage {
         std::string SerialNumber;
         try {
 
-            Session session_ = Pool_->get();
+            Session Sess = Pool_->get();
 
-            session_ << "SELECT SerialNumber FROM Devices WHERE SerialNumber='%s'",
+            Sess << "SELECT SerialNumber FROM Devices WHERE SerialNumber='%s'",
                     into(SerialNumber),
                     DeviceDetails.SerialNumber.c_str(), now;
 
@@ -1057,18 +1067,23 @@ namespace uCentral::Storage {
                     "LastConfigurationDownload BIGINT"
 
  */
-                    session_
-                            << "INSERT INTO Devices (SerialNumber, DeviceType, MACAddress, Manufacturer, UUID, Configuration, Notes, CreationTimestamp, LastConfigurationChange, LastConfigurationDownload ) VALUES('%s', '%s', '%s', '%s', %Lu, '%s', '%s', %Lu, %Lu, %Lu)",
-                            DeviceDetails.SerialNumber.c_str(),
-                            DeviceDetails.DeviceType.c_str(),
-                            DeviceDetails.MACAddress.c_str(),
-                            DeviceDetails.Manufacturer.c_str(),
-                            DeviceDetails.UUID,
-                            DeviceDetails.Configuration.c_str(),
-                            DeviceDetails.Notes.c_str(),
-                            Now,
-                            Now,
-                            Now, now;
+            Statement   Insert(Sess);
+
+                    Insert
+                            << "INSERT INTO Devices (SerialNumber, DeviceType, MACAddress, Manufacturer, UUID, Configuration, Notes, CreationTimestamp, LastConfigurationChange, LastConfigurationDownload )"
+                               "VALUES(?,?,?,?,?,?,?,?,?,?)",
+                            use(DeviceDetails.SerialNumber),
+                            use(DeviceDetails.DeviceType),
+                            use(DeviceDetails.MACAddress),
+                            use(DeviceDetails.Manufacturer),
+                            use(DeviceDetails.UUID),
+                            use(DeviceDetails.Configuration),
+                            use(DeviceDetails.Notes),
+                            use(Now),
+                            use(Now),
+                            use(Now);
+
+                    Insert.execute();
 
                     return true;
                 } else {
@@ -1119,9 +1134,9 @@ namespace uCentral::Storage {
         // std::lock_guard<std::mutex> guard(mutex_);
 
         try {
-            Session session_ = Pool_->get();
+            Session Sess = Pool_->get();
 
-            session_ << "DELETE FROM Devices WHERE SerialNumber='%s'",
+            Sess << "DELETE FROM Devices WHERE SerialNumber='%s'",
                     SerialNumber.c_str(), now;
 
             return true;
@@ -1137,9 +1152,9 @@ namespace uCentral::Storage {
         // std::lock_guard<std::mutex> guard(mutex_);
 
         try {
-            Session session_ = Pool_->get();
+            Session Sess = Pool_->get();
 
-            session_ << "SELECT "
+            Sess << "SELECT "
                         "SerialNumber, "
                         "DeviceType, "
                         "MACAddress, "
@@ -1177,11 +1192,11 @@ namespace uCentral::Storage {
 
     bool Service::DeviceExists(const std::string &SerialNumber) {
         try {
-            Session session_ = Pool_->get();
+            Session Sess = Pool_->get();
 
             std::string Serial;
 
-            session_ << "SELECT "
+            Sess << "SELECT "
                         "SerialNumber "
                         " FROM Devices WHERE SerialNumber='%s'",
                     into(Serial),
@@ -1204,18 +1219,22 @@ namespace uCentral::Storage {
         // std::lock_guard<std::mutex> guard(mutex_);
 
         try {
-            Session session_ = Pool_->get();
+            Session Sess = Pool_->get();
 
             uint64_t Now = time(nullptr);
 
-            session_
-                    << "UPDATE Devices SET Manufacturer='%s', DeviceType='%s', MACAddress='%s', Notes='%s', LastConfigurationChange=%Lu  WHERE SerialNumber='%s'",
-                    NewConfig.Manufacturer.c_str(),
-                    NewConfig.DeviceType.c_str(),
-                    NewConfig.MACAddress.c_str(),
-                    NewConfig.Notes.c_str(),
-                    Now,
-                    NewConfig.SerialNumber.c_str(), now;
+            Statement   Update(Sess);
+
+            Update
+                    << "UPDATE Devices SET Manufacturer=?, DeviceType=?, MACAddress=?, Notes=?, LastConfigurationChange=? WHERE SerialNumber=?",
+                    use(NewConfig.Manufacturer),
+                    use(NewConfig.DeviceType),
+                    use(NewConfig.MACAddress),
+                    use(NewConfig.Notes),
+                    use(Now),
+                    use(NewConfig.SerialNumber);
+
+            Update.execute();
 
             return true;
         }
@@ -1246,9 +1265,9 @@ namespace uCentral::Storage {
         RecordList Records;
 
         try {
-            Session session_ = Pool_->get();
+            Session Sess = Pool_->get();
 
-            session_ << "SELECT "
+            Sess << "SELECT "
                         "SerialNumber, "
                         "DeviceType, "
                         "MACAddress, "
@@ -1291,9 +1310,9 @@ namespace uCentral::Storage {
 
         try {
             std::string SS;
-            Session session_ = Pool_->get();
+            Session Sess = Pool_->get();
 
-            session_ << "SELECT SerialNumber FROM Capabilities WHERE SerialNumber='%s'",
+            Sess << "SELECT SerialNumber FROM Capabilities WHERE SerialNumber='%s'",
                     into(SS),
                     SerialNumber.c_str(), now;
 
@@ -1308,18 +1327,23 @@ namespace uCentral::Storage {
  */
             if (SS.empty()) {
                 Logger_.information("Adding capabilities for " + SerialNumber);
-                session_
-                        << "INSERT INTO Capabilities (SerialNumber, Capabilities, FirstUpdate, LastUpdate) VALUES('%s', '%s', %Lu, %Lu)",
-                        SerialNumber.c_str(),
-                        Capabs.c_str(),
-                        Now,
-                        Now, now;
+                Statement   Insert(Sess);
+                Insert
+                        << "INSERT INTO Capabilities (SerialNumber, Capabilities, FirstUpdate, LastUpdate) VALUES(?,?,?,?)",
+                        use(SerialNumber),
+                        use(Capabs),
+                        use(Now),
+                        use(Now);
+                Insert.execute();
             } else {
                 Logger_.information("Updating capabilities for " + SerialNumber);
-                session_ << "UPDATE Capabilities SET Capabilities='%s', LastUpdate=%Lu WHERE SerialNumber='%s'",
-                        Capabs.c_str(),
-                        Now,
-                        SerialNumber.c_str(), now;
+                Statement   Update(Sess);
+                Update
+                        << "UPDATE Capabilities SET Capabilities=?, LastUpdate=? WHERE SerialNumber=?",
+                        use(Capabs),
+                        use(Now),
+                        use(SerialNumber);
+                Update.execute();
             }
             return true;
         }
@@ -1334,11 +1358,11 @@ namespace uCentral::Storage {
         // std::lock_guard<std::mutex> guard(mutex_);
 
         try {
-            Session session_ = Pool_->get();
+            Session Sess = Pool_->get();
 
             std::string TmpSerialNumber;
 
-            session_
+            Sess
                     << "SELECT SerialNumber, Capabilities, FirstUpdate, LastUpdate FROM Capabilities WHERE SerialNumber='%s'",
                     into(TmpSerialNumber),
                     into(Caps.Capabilities),
@@ -1362,9 +1386,9 @@ namespace uCentral::Storage {
         // std::lock_guard<std::mutex> guard(mutex_);
 
         try {
-            Session session_ = Pool_->get();
+            Session Sess = Pool_->get();
 
-            session_ <<
+            Sess <<
                      "DELETE FROM Capabilities WHERE SerialNumber='%s'",
                     SerialNumber.c_str(), now;
             return true;
@@ -1381,9 +1405,9 @@ namespace uCentral::Storage {
         // std::lock_guard<std::mutex> guard(mutex_);
         std::string SS;
         try {
-            Session session_ = Pool_->get();
+            Session Sess = Pool_->get();
 
-            session_ << "SELECT SerialNumber, UUID, Configuration FROM Devices WHERE SerialNumber='%s'",
+            Sess << "SELECT SerialNumber, UUID, Configuration FROM Devices WHERE SerialNumber='%s'",
                     into(SS),
                     into(UUID),
                     into(NewConfig),
@@ -1395,7 +1419,7 @@ namespace uCentral::Storage {
 
             //  Let's update the last downloaded time
             uint64_t Now = time(nullptr);
-            session_ << "UPDATE Devices SET LastConfigurationDownload=%Lu WHERE SerialNumber='%s'",
+            Sess << "UPDATE Devices SET LastConfigurationDownload=%Lu WHERE SerialNumber='%s'",
                     Now,
                     SerialNumber.c_str(), now;
 
@@ -1421,13 +1445,13 @@ namespace uCentral::Storage {
                     "LastModified BIGINT)", now;
      */
 
-    bool Service::CreateDefaultConfiguration(std::string &Name, const uCentralDefaultConfiguration &DefConfig) {
+    bool Service::CreateDefaultConfiguration(std::string &Name, uCentralDefaultConfiguration &DefConfig) {
         try {
 
             std::string TmpName;
-            Session session_ = Pool_->get();
+            Session Sess = Pool_->get();
 
-            session_ << "SELECT Name FROM DefaultConfigs WHERE Name='%s'",
+            Sess << "SELECT Name FROM DefaultConfigs WHERE Name='%s'",
                     into(TmpName),
                     Name.c_str(), now;
 
@@ -1446,14 +1470,18 @@ namespace uCentral::Storage {
 
                 if (Cfg.Valid()) {
                     uint64_t Now = time(nullptr);
-                    session_
-                            << "INSERT INTO DefaultConfigs (Name, Configuration, Models, Description, Created, LastModified) VALUES('%s', '%s', '%s', '%s', %Lu, %Lu)",
-                            Name.c_str(),
-                            DefConfig.Configuration.c_str(),
-                            DefConfig.Models.c_str(),
-                            DefConfig.Description.c_str(),
-                            Now,
-                            Now, now;
+                    Statement   Insert(Sess);
+
+                    Insert
+                            << "INSERT INTO DefaultConfigs (Name, Configuration, Models, Description, Created, LastModified) VALUES(?,?,?,?,?,?)",
+                            use(Name),
+                            use(DefConfig.Configuration),
+                            use(DefConfig.Models),
+                            use(DefConfig.Description),
+                            use(Now),
+                            use(Now);
+
+                    Insert.execute();
 
                     return true;
                 } else {
@@ -1472,9 +1500,9 @@ namespace uCentral::Storage {
 
     bool Service::DeleteDefaultConfiguration(const std::string &Name) {
         try {
-            Session session_ = Pool_->get();
+            Session Sess = Pool_->get();
 
-            session_ <<
+            Sess <<
                      "DELETE FROM DefaultConfigs WHERE Name='%s'",
                     Name.c_str(), now;
             return true;
@@ -1485,23 +1513,27 @@ namespace uCentral::Storage {
         return false;
     }
 
-    bool Service::UpdateDefaultConfiguration(std::string &Name, const uCentralDefaultConfiguration &DefConfig) {
+    bool Service::UpdateDefaultConfiguration(std::string &Name, uCentralDefaultConfiguration &DefConfig) {
         try {
 
-            Session session_ = Pool_->get();
+            Session Sess = Pool_->get();
 
             uCentral::Config::Config Cfg(DefConfig.Configuration);
 
             if (Cfg.Valid()) {
 
                 uint64_t Now = time(nullptr);
-                session_ <<
-                         "UPDATE DefaultConfigs SET Configuration='%s', Models='%s', Description='%s', LastModified=%Lu WHERE Name='%s'",
-                        DefConfig.Configuration.c_str(),
-                        DefConfig.Models.c_str(),
-                        DefConfig.Description.c_str(),
-                        Now,
-                        Name.c_str(), now;
+                Statement   Update(Sess);
+
+                Update <<
+                         "UPDATE DefaultConfigs SET Configuration=?, Models=?, Description=?, LastModified=? WHERE Name=?",
+                            use(DefConfig.Configuration),
+                            use(DefConfig.Models),
+                            use(DefConfig.Description),
+                            use(Now),
+                            use(Name);
+
+                Update.execute();
                 return true;
             } else {
                 Logger_.warning(
@@ -1517,9 +1549,9 @@ namespace uCentral::Storage {
 
     bool Service::GetDefaultConfiguration(std::string &Name, uCentralDefaultConfiguration &DefConfig) {
         try {
-            Session session_ = Pool_->get();
+            Session Sess = Pool_->get();
 
-            session_ << "SELECT "
+            Sess << "SELECT "
                         "Name, "
                         "Configuration, "
                         "Models, "
@@ -1560,9 +1592,9 @@ namespace uCentral::Storage {
         RecordList Records;
 
         try {
-            Session session_ = Pool_->get();
+            Session Sess = Pool_->get();
 
-            session_ << "SELECT "
+            Sess << "SELECT "
                         "Name, "
                         "Configuration, "
                         "Models, "
@@ -1625,9 +1657,9 @@ namespace uCentral::Storage {
             typedef std::vector<DeviceRecord> RecordList;
             RecordList Records;
 
-            Session session_ = Pool_->get();
+            Session Sess = Pool_->get();
 
-            session_ << "SELECT "
+            Sess << "SELECT "
                         "Name, "
                         "Configuration, "
                         "Models, "
@@ -1664,7 +1696,7 @@ namespace uCentral::Storage {
 
     bool Service::AddCommand(std::string &SerialNumber, uCentralCommandDetails &Command, bool AlreadyExecuted) {
         try {
-            Session session_ = Pool_->get();
+            Session Sess = Pool_->get();
             /*
                     "UUID           VARCHAR(30) PRIMARY KEY, "
                     "SerialNumber   VARCHAR(30), "
@@ -1698,23 +1730,29 @@ namespace uCentral::Storage {
             Command.ErrorCode = 0;
             Command.AttachDate = 0 ;
 
-            session_
-                    << "INSERT INTO CommandList (UUID, SerialNumber, Command, Status, SubmittedBy, Results, Details, Submitted, Executed, Completed, RunAt, ErrorCode, Custom, WaitingForFile, AttachDate) VALUES('%s','%s', '%s', '%s', '%s', '%s', '%s', %Lu, %Lu, %Lu, %Lu, %Lu, %Lu, %Lu, %Lu)",
-                    Command.UUID.c_str(),
-                    Command.SerialNumber.c_str(),
-                    Command.Command.c_str(),
-                    Command.Status.c_str(),
-                    Command.SubmittedBy.c_str(),
-                    Command.Results.c_str(),
-                    Command.Details.c_str(),
-                    Command.Submitted,
-                    Command.Executed,
-                    Command.Completed,
-                    Command.RunAt,
-                    Command.ErrorCode,
-                    Command.Custom,
-                    Command.WaitingForFile,
-                    Command.AttachDate, now;
+            Statement   Insert(Sess);
+
+            Insert
+                    << "INSERT INTO CommandList (UUID, SerialNumber, Command, Status, SubmittedBy, Results, Details, "
+                       "Submitted, Executed, Completed, RunAt, ErrorCode, Custom, WaitingForFile, AttachDate)"
+                       "VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+                    use(Command.UUID),
+                    use(Command.SerialNumber),
+                    use(Command.Command),
+                    use(Command.Status),
+                    use(Command.SubmittedBy),
+                    use(Command.Results),
+                    use(Command.Details),
+                    use(Command.Submitted),
+                    use(Command.Executed),
+                    use(Command.Completed),
+                    use(Command.RunAt),
+                    use(Command.ErrorCode),
+                    use(Command.Custom),
+                    use(Command.WaitingForFile),
+                    use(Command.AttachDate);
+
+            Insert.execute();
 
             return true;
         }
@@ -1750,7 +1788,7 @@ namespace uCentral::Storage {
 
         try {
             RecordList Records;
-            Session session_ = Pool_->get();
+            Session Sess = Pool_->get();
 
             bool DatesIncluded = (FromDate != 0 || ToDate != 0);
 
@@ -1770,7 +1808,7 @@ namespace uCentral::Storage {
                 DateSelector = " Submitted<=" + std::to_string(ToDate);
             }
 
-            session_ << Statement + DateSelector,
+            Sess << Statement + DateSelector,
                     into(Records),
                     range(Offset, Offset + HowMany - 1), now;
 
@@ -1807,7 +1845,7 @@ namespace uCentral::Storage {
 
     bool Service::DeleteCommands(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate) {
         try {
-            Session session_ = Pool_->get();
+            Session Sess = Pool_->get();
 
             bool DatesIncluded = (FromDate != 0 || ToDate != 0);
 
@@ -1825,7 +1863,7 @@ namespace uCentral::Storage {
                 DateSelector = " Submitted<=" + std::to_string(ToDate);
             }
 
-            session_ << Statement + DateSelector, now;
+            Sess << Statement + DateSelector, now;
 
             return true;
         }
@@ -1861,10 +1899,10 @@ namespace uCentral::Storage {
         try {
             RecordList Records;
 
-            Session session_ = Pool_->get();
+            Session Sess = Pool_->get();
 
             // range(Offset, Offset + HowMany - 1)
-            session_
+            Sess
                     << "SELECT UUID, SerialNumber, Command, Status, SubmittedBy, Results, Details, ErrorText,"
                        "Submitted, Executed, Completed, RunAt, ErrorCode, Custom, WaitingForFile, AttachDate FROM CommandList "
                        " WHERE Executed=0",
@@ -1904,7 +1942,7 @@ namespace uCentral::Storage {
     bool Service::UpdateCommand(std::string &UUID, uCentralCommandDetails &Command) {
 
         try {
-            Session session_ = Pool_->get();
+            Session Sess = Pool_->get();
             /*
                 "UUID           VARCHAR(30) PRIMARY KEY, "
                 "SerialNumber   VARCHAR(30), "
@@ -1924,15 +1962,18 @@ namespace uCentral::Storage {
                 "AttachDate     BIGINT"
              */
 
-            session_
-                    << "UPDATE CommandList SET Status='%s', Executed=%Lu, Completed=%Lu, Results='%s', ErrorText='%s', ErrorCode=%Lu WHERE UUID='%s'",
-                    Command.Status.c_str(),
-                    Command.Executed,
-                    Command.Completed,
-                    Command.Results.c_str(),
-                    Command.ErrorText.c_str(),
-                    Command.ErrorCode,
-                    UUID.c_str(), now;
+            Statement   Update(Sess);
+
+            Update  << "UPDATE CommandList SET Status=?, Executed=?, Completed=?, Results=?, ErrorText=?, ErrorCode=? WHERE UUID=?",
+                    use(Command.Status),
+                    use(Command.Executed),
+                    use(Command.Completed),
+                    use(Command.Results),
+                    use(Command.ErrorText),
+                    use(Command.ErrorCode),
+                    use(UUID);
+
+            Update.execute();
 
             return true;
 
@@ -1946,7 +1987,7 @@ namespace uCentral::Storage {
     bool Service::GetCommand(std::string &UUID, uCentralCommandDetails &Command) {
 
         try {
-            Session session_ = Pool_->get();
+            Session Sess = Pool_->get();
             /*
                 "UUID           VARCHAR(30) PRIMARY KEY, "
                 "SerialNumber   VARCHAR(30), "
@@ -1966,7 +2007,7 @@ namespace uCentral::Storage {
                 "AttachDate     BIGINT"
              */
 
-            session_ << "SELECT UUID, SerialNumber, Command, Status, SubmittedBy, Results, Details, ErrorText, "
+            Sess << "SELECT UUID, SerialNumber, Command, Status, SubmittedBy, Results, Details, ErrorText, "
                         "Submitted, Executed, Completed, RunAt, ErrorCode, Custom, WaitingForFile, AttachDate FROM CommandList "
                         " WHERE UUID='%s'",
                     into(Command.UUID),
@@ -1998,9 +2039,9 @@ namespace uCentral::Storage {
 
     bool Service::DeleteCommand(std::string &UUID) {
         try {
-            Session session_ = Pool_->get();
+            Session Sess = Pool_->get();
 
-            session_ << "DELETE FROM CommandList WHERE UUID='%s'",
+            Sess << "DELETE FROM CommandList WHERE UUID='%s'",
                     UUID.c_str(), now;
             return true;
         }
@@ -2014,13 +2055,13 @@ namespace uCentral::Storage {
                                             std::vector<uCentralCommandDetails> &Commands) {
         // todo: finish the GetReadyToExecuteCommands call...
         try {
-            Session session_ = Pool_->get();
+            Session Sess = Pool_->get();
             typedef std::vector<CommandDetailsRecordTuple> RecordList;
             uint64_t Now = time(nullptr);
 
             RecordList Records;
 
-            session_ << "SELECT UUID, SerialNumber, Command, Status, SubmittedBy, Results, Details, ErrorText, "
+            Sess << "SELECT UUID, SerialNumber, Command, Status, SubmittedBy, Results, Details, ErrorText, "
                         "Submitted, Executed, Completed, RunAt, ErrorCode, Custom, WaitingForFile, AttachDate FROM CommandList "
                         " WHERE RunAt<%Lu And Executed=0",
                     into(Records),
@@ -2059,14 +2100,18 @@ namespace uCentral::Storage {
         return false;
     }
 
-    bool Service::CommandExecuted(const std::string &UUID) {
+    bool Service::CommandExecuted(std::string &UUID) {
         try {
-            Session session_ = Pool_->get();
+            Session Sess = Pool_->get();
             uint64_t Now = time(nullptr);
 
-            session_ << "UPDATE CommandList SET Executed=%Lu WHERE UUID='%s'",
-                    Now,
-                    UUID.c_str(), now;
+            Statement   Update(Sess);
+
+            Update << "UPDATE CommandList SET Executed=? WHERE UUID=?",
+                    use(Now),
+                    use(UUID);
+
+            Update.execute();
 
             return true;
         }
@@ -2077,9 +2122,9 @@ namespace uCentral::Storage {
         return false;
     }
 
-    bool Service::CommandCompleted(const std::string &UUID, Poco::DynamicStruct ReturnVars) {
+    bool Service::CommandCompleted(std::string &UUID, Poco::DynamicStruct ReturnVars) {
         try {
-            Session session_ = Pool_->get();
+            Session Sess = Pool_->get();
             uint64_t Now = time(nullptr);
 
             // Parse the result to get the ErrorText and make sure that this is a JSON document
@@ -2093,17 +2138,23 @@ namespace uCentral::Storage {
 
             std::stringstream ResultText;
             Poco::JSON::Stringifier::stringify(ResultObj, ResultText);
+            std::string ResultStr{ResultText.str()};
 
             // std::cout << ">>> UUID: " << UUID << " Errorcode: " << ErrorCode << " ErrorText: " << ErrorText << std::endl;
+            Statement   Update(Sess);
 
-            session_
-                    << "UPDATE CommandList SET Completed=%Lu, ErrorCode=%Lu, ErrorText='%s', Results='%s', Status='%s' WHERE UUID='%s'",
-                    Now,
-                    ErrorCode,
-                    ErrorText.c_str(),
-                    ResultText.str().c_str(),
-                    "completed",
-                    UUID.c_str(), now;
+            std::string StatusText{"completed"};
+
+            Update
+                    << "UPDATE CommandList SET Completed=?, ErrorCode=?, ErrorText=?, Results=?, Status=? WHERE UUID=?",
+                    use(Now),
+                    use(ErrorCode),
+                    use(ErrorText),
+                    use(ResultStr),
+                    use(StatusText),
+                    use(UUID);
+
+            Update.execute();
 
             return true;
         }
@@ -2115,16 +2166,19 @@ namespace uCentral::Storage {
         return false;
     }
 
-    bool Service::AttachFileToCommand(const std::string &UUID) {
+    bool Service::AttachFileToCommand(std::string &UUID) {
         try {
-            Session session_ = Pool_->get();
+            Session Sess = Pool_->get();
             uint64_t Now = time(nullptr);
+            uint64_t WaitForFile=0;
+            Statement   Update(Sess);
 
-            session_
-                    << "UPDATE CommandList SET WaitingForFile=%Lu, AttachDate=%Lu WHERE UUID='%s'",
-                    0,
-                    Now,
-                    UUID.c_str(), now;
+            Update << "UPDATE CommandList SET WaitingForFile=?, AttachDate=? WHERE UUID=?",
+                    use(WaitForFile),
+                    use(Now),
+                    use(UUID);
+
+            Update.execute();
 
             return true;
 

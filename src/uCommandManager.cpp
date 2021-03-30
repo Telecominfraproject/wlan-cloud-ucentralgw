@@ -41,7 +41,7 @@ namespace uCentral::CommandManager {
 
             if(uCentral::Storage::GetReadyToExecuteCommands(0,1000,Commands))
             {
-                for(const auto & Cmd: Commands)
+                for(auto & Cmd: Commands)
                 {
                     if(!uCentral::DeviceRegistry::SendCommand(Cmd)) {
                         Logger_.information(Poco::format("Failed to send command '%s' to %s",Cmd.Command,Cmd.SerialNumber));

@@ -41,7 +41,7 @@ namespace uCentral::DeviceRegistry {
     void SetState(const std::string & SerialNumber, ConnectionState & State);
     ConnectionState *  Register(const std::string & SerialNumber, void *);
     void UnRegister(const std::string & SerialNumber, void *);
-    bool SendCommand(const uCentralCommandDetails & Command);
+    bool SendCommand(uCentralCommandDetails & Command);
     bool Connected(const std::string & SerialNumber);
 
     class Service : public SubSystemServer {
@@ -65,7 +65,7 @@ namespace uCentral::DeviceRegistry {
         friend void SetState(const std::string & SerialNumber, ConnectionState & State);
         friend ConnectionState * Register(const std::string & SerialNumber, void *);
         friend void UnRegister(const std::string & SerialNumber, void *);
-        friend bool SendCommand(const uCentralCommandDetails & Command);
+        friend bool SendCommand(uCentralCommandDetails & Command);
         friend bool Connected(const std::string & SerialNumber);
     private:
         int Start() override;
@@ -77,7 +77,7 @@ namespace uCentral::DeviceRegistry {
         void SetState(const std::string & SerialNumber, ConnectionState & State);
         ConnectionState *  Register(const std::string & SerialNumber, void *);
         void UnRegister(const std::string & SerialNumber, void *);
-        bool SendCommand(const uCentralCommandDetails & Command);
+        bool SendCommand(uCentralCommandDetails & Command);
         bool Connected(const std::string & SerialNumber);
 
         static Service                          *instance_;

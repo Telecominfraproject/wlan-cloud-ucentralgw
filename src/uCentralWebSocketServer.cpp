@@ -218,7 +218,7 @@ namespace uCentral::WebSocket {
                 {
                     Logger_.warning(Poco::format("Could not submit configure command for %s",SerialNumber_));
                 } else {
-                    Logger_.information(Poco::format("Submitted configure command for %s",SerialNumber_));
+                    Logger_.information(Poco::format("Submitted configure command %Lu for %s",CommandID, SerialNumber_));
                     RPCs_[CommandID] = Cmd.UUID;
                 }
 
@@ -396,14 +396,13 @@ namespace uCentral::WebSocket {
                 uint64_t UUID = ParamsObj["uuid"];
 
                 if(LogLines.isArray()) {
-
                     auto LogLinesArray = LogLines.extract<Poco::Dynamic::Array>();
 
                     uCentralDeviceLog DeviceLog;
                     std::string LogText;
 
                     for(const auto & i : LogLinesArray)
-                        LogText += i.toString() + "\n";
+                        LogText += i.toString() + "\r\n";
 
                     DeviceLog.Log = LogText;
                     DeviceLog.Data = "";
@@ -611,7 +610,7 @@ namespace uCentral::WebSocket {
         delete this;
     }
 
-    bool WSConnection::SendCommand(const uCentralCommandDetails & Command) {
+    bool WSConnection::SendCommand(uCentralCommandDetails & Command) {
         std::lock_guard<std::mutex> guard(Mutex_);
 
         Logger_.information(Poco::format("Sending command to %s",SerialNumber_));

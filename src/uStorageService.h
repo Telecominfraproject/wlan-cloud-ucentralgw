@@ -31,12 +31,12 @@ namespace uCentral::Storage {
     bool GetStatisticsData(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate, uint64_t Offset, uint64_t HowMany, std::vector<uCentralStatistics> &Stats);
     bool DeleteStatisticsData(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate );
 
-    bool AddHealthCheckData(std::string &SerialNumber,const uCentralHealthcheck & Check);
+    bool AddHealthCheckData(std::string &SerialNumber,uCentralHealthcheck & Check);
     bool GetHealthCheckData(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate, uint64_t Offset, uint64_t HowMany,
                             std::vector<uCentralHealthcheck> &Checks);
     bool DeleteHealthCheckData(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate );
 
-    bool AddLog(std::string & SerialNumber, const uCentralDeviceLog & Log, bool CrashLog = false );
+    bool AddLog(std::string & SerialNumber, uCentralDeviceLog & Log, bool CrashLog = false );
     bool AddLog(std::string & SerialNumber, const std::string &Log );
 
     bool GetLogData(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate, uint64_t Offset, uint64_t HowMany, std::vector<uCentralDeviceLog> &Stats, uint64_t Type);
@@ -55,9 +55,9 @@ namespace uCentral::Storage {
     bool GetDeviceCapabilities(std::string &SerialNumber, uCentralCapabilities &);
     bool DeleteDeviceCapabilities(std::string & SerialNumber);
 
-    bool CreateDefaultConfiguration(std::string & name, const uCentralDefaultConfiguration & DefConfig);
+    bool CreateDefaultConfiguration(std::string & name, uCentralDefaultConfiguration & DefConfig);
     bool DeleteDefaultConfiguration(const std::string & name);
-    bool UpdateDefaultConfiguration(std::string & name, const uCentralDefaultConfiguration & DefConfig);
+    bool UpdateDefaultConfiguration(std::string & name, uCentralDefaultConfiguration & DefConfig);
     bool GetDefaultConfiguration(std::string &name, uCentralDefaultConfiguration & DefConfig);
     bool GetDefaultConfigurations(uint64_t From, uint64_t HowMany, std::vector<uCentralDefaultConfiguration> &Devices);
 
@@ -69,9 +69,9 @@ namespace uCentral::Storage {
     bool GetCommand( std::string &UUID, uCentralCommandDetails & Command );
     bool DeleteCommand( std::string &UUID );
     bool GetReadyToExecuteCommands( uint64_t Offset, uint64_t HowMany, std::vector<uCentralCommandDetails> & Commands );
-    bool CommandExecuted(const std::string & UUID);
-    bool CommandCompleted(const std::string & UUID, Poco::DynamicStruct ReturnVars);
-    bool AttachFileToCommand(const std::string & UUID);
+    bool CommandExecuted(std::string & UUID);
+    bool CommandCompleted(std::string & UUID, Poco::DynamicStruct ReturnVars);
+    bool AttachFileToCommand(std::string & UUID);
 
     std::string SerialToMAC(const std::string & Serial);
 
@@ -96,7 +96,7 @@ namespace uCentral::Storage {
                                std::vector<uCentralStatistics> &Stats);
         friend bool DeleteStatisticsData(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate );
 
-        friend bool AddHealthCheckData(std::string &SerialNumber, const uCentralHealthcheck & Check);
+        friend bool AddHealthCheckData(std::string &SerialNumber,  uCentralHealthcheck & Check);
         friend bool GetHealthCheckData(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate, uint64_t Offset, uint64_t HowMany,
                                       std::vector<uCentralHealthcheck> &Checks);
         friend bool DeleteHealthCheckData(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate );
@@ -118,11 +118,11 @@ namespace uCentral::Storage {
                                std::vector<uCentralDeviceLog> &Stats, uint64_t Type);
         friend bool DeleteLogData(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate, uint64_t Type);
         friend bool AddLog(std::string & SerialNumber, const std::string & Log);
-        friend bool AddLog(std::string & SerialNumber, const uCentralDeviceLog & Log, bool CrashLog);
+        friend bool AddLog(std::string & SerialNumber, uCentralDeviceLog & Log, bool CrashLog);
 
-        friend bool CreateDefaultConfiguration(std::string & name, const uCentralDefaultConfiguration & DefConfig);
+        friend bool CreateDefaultConfiguration(std::string & name, uCentralDefaultConfiguration & DefConfig);
         friend bool DeleteDefaultConfiguration(const std::string & name);
-        friend bool UpdateDefaultConfiguration(std::string & name, const uCentralDefaultConfiguration & DefConfig);
+        friend bool UpdateDefaultConfiguration(std::string & name, uCentralDefaultConfiguration & DefConfig);
         friend bool GetDefaultConfiguration(std::string &name, uCentralDefaultConfiguration & DefConfig);
         friend bool GetDefaultConfigurations(uint64_t From, uint64_t HowMany, std::vector<uCentralDefaultConfiguration> &Devices);
 
@@ -134,19 +134,19 @@ namespace uCentral::Storage {
         friend bool GetCommand( std::string &UUID, uCentralCommandDetails & Command );
         friend bool DeleteCommand( std::string &UUID );
         friend bool GetReadyToExecuteCommands( uint64_t Offset, uint64_t HowMany, std::vector<uCentralCommandDetails> & Commands );
-        friend bool CommandExecuted(const std::string & UUID);
-        friend bool CommandCompleted(const std::string & UUID, Poco::DynamicStruct ReturnVars);
-        friend bool AttachFileToCommand(const std::string & UUID);
+        friend bool CommandExecuted(std::string & UUID);
+        friend bool CommandCompleted(std::string & UUID, Poco::DynamicStruct ReturnVars);
+        friend bool AttachFileToCommand(std::string & UUID);
 
     private:
-        bool AddLog(std::string & SerialNumber, const uCentralDeviceLog & Log, bool CrashLog );
+        bool AddLog(std::string & SerialNumber, uCentralDeviceLog & Log, bool CrashLog );
         bool AddLog(std::string & SerialNumber, const std::string & Log );
         bool AddStatisticsData(std::string &SerialNumber, uint64_t CfgUUID, std::string &NewStats);
         bool GetStatisticsData(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate, uint64_t Offset, uint64_t HowMany,
                                std::vector<uCentralStatistics> &Stats);
         bool DeleteStatisticsData(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate );
 
-        bool AddHealthCheckData(std::string &SerialNumber, const uCentralHealthcheck & Check);
+        bool AddHealthCheckData(std::string &SerialNumber, uCentralHealthcheck & Check);
         bool GetHealthCheckData(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate, uint64_t Offset, uint64_t HowMany,
                                        std::vector<uCentralHealthcheck> &Checks);
         bool DeleteHealthCheckData(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate );
@@ -172,9 +172,9 @@ namespace uCentral::Storage {
                         std::vector<uCentralDeviceLog> &Stats, uint64_t Type);
         bool DeleteLogData(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate, uint64_t Type);
 
-        bool CreateDefaultConfiguration(std::string & name, const uCentralDefaultConfiguration & DefConfig);
+        bool CreateDefaultConfiguration(std::string & name, uCentralDefaultConfiguration & DefConfig);
         bool DeleteDefaultConfiguration(const std::string & name);
-        bool UpdateDefaultConfiguration(std::string & name, const uCentralDefaultConfiguration & DefConfig);
+        bool UpdateDefaultConfiguration(std::string & name, uCentralDefaultConfiguration & DefConfig);
         bool GetDefaultConfiguration(std::string &name, uCentralDefaultConfiguration & DefConfig);
         bool GetDefaultConfigurations(uint64_t From, uint64_t HowMany, std::vector<uCentralDefaultConfiguration> &Devices);
         bool FindDefaultConfigurationForModel(const std::string & Model, uCentralDefaultConfiguration & DefConfig );
@@ -187,9 +187,9 @@ namespace uCentral::Storage {
         bool GetCommand( std::string &UUID, uCentralCommandDetails & Command );
         bool DeleteCommand( std::string &UUID );
         bool GetReadyToExecuteCommands( uint64_t Offset, uint64_t HowMany, std::vector<uCentralCommandDetails> & Commands );
-        bool CommandExecuted(const std::string & UUID);
-        bool CommandCompleted(const std::string & UUID, Poco::DynamicStruct ReturnVars);
-        bool AttachFileToCommand(const std::string & UUID);
+        bool CommandExecuted(std::string & UUID);
+        bool CommandCompleted(std::string & UUID, Poco::DynamicStruct ReturnVars);
+        bool AttachFileToCommand(std::string & UUID);
 
         int Start() override;
         void Stop() override;

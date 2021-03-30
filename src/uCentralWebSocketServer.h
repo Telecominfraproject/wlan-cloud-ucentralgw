@@ -176,7 +176,7 @@ namespace uCentral::WebSocket {
         void ProcessJSONRPCEvent(Poco::DynamicStruct ds);
         void ProcessJSONRPCResult(Poco::DynamicStruct ds);
         void ProcessIncomingFrame();
-        bool SendCommand(const uCentralCommandDetails & Command);
+        bool SendCommand(uCentralCommandDetails & Command);
         void OnSocketReadable(const AutoPtr<Poco::Net::ReadableNotification>& pNf);
         void OnSocketShutdown(const AutoPtr<Poco::Net::ShutdownNotification>& pNf);
         void OnSocketError(const AutoPtr<Poco::Net::ErrorNotification>& pNf);

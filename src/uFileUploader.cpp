@@ -161,16 +161,26 @@ namespace uCentral::uFileUploader {
                 Name_ = Parameters.get("name", "(unnamed)");
             }
 
+            std::cout << __LINE__ << std::endl;
+
             Poco::CountingInputStream istr(stream);
             std::string TmpFileName = uCentral::uFileUploader::Path() + "/" + UUID_ + ".upload.start" ;
+            std::cout << __LINE__ << std::endl;
             std::string FinalFileName = uCentral::uFileUploader::Path() + "/" + UUID_ ;
 
+            std::cout << __LINE__ << std::endl;
+
+
             std::cout << "OUTPUT FILE" << TmpFileName << std::endl;
+            std::cout << __LINE__ << std::endl;
 
             std::ofstream ofs(TmpFileName, std::ofstream::out);
+            std::cout << __LINE__ << std::endl;
             Poco::StreamCopier::copyStream(istr, ofs);
             Length_ = istr.chars();
+            std::cout << __LINE__ << std::endl;
             rename(TmpFileName.c_str(),FinalFileName.c_str());
+            std::cout << __LINE__ << std::endl;
         }
 
         [[nodiscard]] int Length() const { return Length_; }
@@ -197,18 +207,20 @@ namespace uCentral::uFileUploader {
 
         void handleRequest(Poco::Net::HTTPServerRequest& request, Poco::Net::HTTPServerResponse& response) override
         {
-            Application& app = Application::instance();
-            app.logger().information("Request from " + request.clientAddress().toString());
-
             try {
                 MyPartHandler partHandler(UUID_);
 
+                std::cout << __LINE__ << std::endl;
+
                 Poco::Net::HTMLForm form(request, request.stream(), partHandler);
+                std::cout << __LINE__ << std::endl;
 
                 response.setChunkedTransferEncoding(true);
                 response.setContentType("text/html");
+                std::cout << __LINE__ << std::endl;
 
                 std::ostream &ostr = response.send();
+                std::cout << __LINE__ << std::endl;
 
                 ostr <<
                      "<html>\n"
@@ -240,6 +252,7 @@ namespace uCentral::uFileUploader {
                 auto end = request.end();
                 for (; it != end; ++it) {
                     ostr << it->first << ": " << it->second << "<br>\n";
+                    std::cout << "F:" << it->first << "    S:" << it->second << std::endl;
                 }
                 ostr << "</p>";
 
@@ -249,6 +262,8 @@ namespace uCentral::uFileUploader {
                         ostr << i.first << ": " << i.second << "<br>\n";
                     ostr << "</p>";
                 }
+
+                std::cout << __LINE__ << std::endl;
 
                 if (!partHandler.Name().empty()) {
                     ostr << "<h2>Upload</h2><p>\n";
@@ -260,7 +275,9 @@ namespace uCentral::uFileUploader {
                 ostr << "</body>\n";
 
                 //  Notify the command manager that the file is here...
+                std::cout << __LINE__ << std::endl;
                 uCentral::Storage::AttachFileToCommand(UUID_);
+                std::cout << __LINE__ << std::endl;
             }
             catch( const Poco::Exception & E )
             {
@@ -298,7 +315,9 @@ namespace uCentral::uFileUploader {
             if(uCentral::uFileUploader::ValidRequest(UUID))
             {
                 //  make sure we do not allow anyone else to overwrite our file
+                std::cout << __LINE__ << std::endl;
                 uCentral::uFileUploader::RemoveRequest(UUID);
+                std::cout << __LINE__ << std::endl;
 
                 return new FormRequestHandler(UUID);
             }

@@ -47,7 +47,7 @@ namespace uCentral::DeviceRegistry {
         uCentral::DeviceRegistry::Service::instance()->UnRegister(SerialNumber,Ptr);
     }
 
-    bool SendCommand(const uCentralCommandDetails & Command) {
+    bool SendCommand(uCentralCommandDetails & Command) {
         return uCentral::DeviceRegistry::Service::instance()->SendCommand(Command);
     }
 
@@ -175,7 +175,7 @@ namespace uCentral::DeviceRegistry {
         }
     }
 
-    bool Service::SendCommand(const uCentralCommandDetails & Cmd)
+    bool Service::SendCommand(uCentralCommandDetails & Cmd)
     {
         std::lock_guard<std::mutex> guard(mutex_);
 
