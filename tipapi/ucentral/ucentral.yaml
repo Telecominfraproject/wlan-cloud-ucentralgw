@@ -405,6 +405,25 @@ components:
           type: integer
           format: int64
 
+    TraceRequest:
+      type: object
+      properties:
+        serialNumber:
+          type: string
+        when:
+          type: string
+          format: 'date-time'
+        duration:
+          type: integer
+          format: int64
+        numberOfPackets:
+          type: integer
+          format: int64
+        network:
+          type: string
+        interface:
+          type: string
+
     CommandInfo:
       type: object
       properties:
@@ -441,7 +460,13 @@ components:
           type: string
         custom:
           type: integer
-          format: int32
+          format: int64
+        waitingForFile:
+          type: integer
+          format: int64
+        attachFile:
+          type: string
+          format: 'date-time'
 
     CommandInfoList:
       type: object
@@ -450,6 +475,14 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/CommandInfo'
+
+    FileRetrievalAnswer:
+      type: object
+      properties:
+        uri:
+          type: string
+        serialNumber:
+          type: string
 
 paths:
   /oauth2:
@@ -1339,6 +1372,81 @@ paths:
       responses:
         200:
           $ref: '#/components/responses/CommandSubmitSuccess'
+        403:
+          $ref: '#/components/responses/Unauthorized'
+        404:
+          $ref: '#/components/responses/NotFound'
+
+  /device/{serialNumber}/trace:
+    post:
+      tags:
+        - Commands
+      summary: Blink the LEDs on a device
+      operationId: blinkRequest
+      parameters:
+        - in: path
+          name: serialNumber
+          schema:
+            type: string
+          required: true
+      requestBody:
+        description: Command details
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TraceRequest'
+      responses:
+        200:
+          $ref: '#/components/responses/CommandSubmitSuccess'
+        403:
+          $ref: '#/components/responses/Unauthorized'
+        404:
+          $ref: '#/components/responses/NotFound'
+
+  /file/{uuid}:
+    get:
+      tags:
+        - Files
+      summary: Get a file from the upload directory
+      operationId: getUploadFile
+      parameters:
+        - in: path
+          name: uuid
+          schema:
+            type: string
+          required: true
+        - in: query
+          name: serialNumber
+          schema:
+            type: string
+          required: true
+      responses:
+        200:
+          $ref: '#/components/schemas/FileRetrievalAnswer'
+        403:
+          $ref: '#/components/responses/Unauthorized'
+        404:
+          $ref: '#/components/responses/NotFound'
+
+    delete:
+      tags:
+        - Files
+      summary: Delete a file from the upload directory
+      operationId: deleteUploadFidelete
+      parameters:
+        - in: path
+          name: uuid
+          schema:
+            type: string
+          required: true
+        - in: query
+          name: serialNumber
+          schema:
+            type: string
+          required: true
+      responses:
+        200:
+          $ref: '#/components/responses/Success'
         403:
           $ref: '#/components/responses/Unauthorized'
         404:

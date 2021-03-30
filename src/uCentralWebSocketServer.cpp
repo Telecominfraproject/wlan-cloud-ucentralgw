@@ -229,7 +229,7 @@ namespace uCentral::WebSocket {
 
     Poco::DynamicStruct WSConnection::ExtractCompressedData(const std::string & CompressedData)
     {
-        std::vector<std::uint8_t> OB = base64::decode(CompressedData);
+        std::vector<uint8_t> OB = base64::decode(CompressedData);
 
         unsigned long MaxSize=OB.size()*10;
         std::vector<char> UncompressedBuffer(MaxSize);

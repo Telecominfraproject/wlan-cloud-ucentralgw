@@ -33,7 +33,9 @@ namespace uCentral::Storage {
             uint64_t,
             uint64_t,
             uint64_t,
-            uint32_t> CommandDetailsRecordTuple;
+            uint64_t,
+            uint64_t,
+            uint64_t> CommandDetailsRecordTuple;
 
 
     Service::Service() noexcept:
@@ -58,40 +60,46 @@ namespace uCentral::Storage {
         uCentral::Storage::Service::instance()->Stop();
     }
 
-    bool AddLog(std::string & SerialNumber, const std::string & Log) {
-        return uCentral::Storage::Service::instance()->AddLog(SerialNumber,Log);
+    bool AddLog(std::string &SerialNumber, const std::string &Log) {
+        return uCentral::Storage::Service::instance()->AddLog(SerialNumber, Log);
     }
 
-    bool AddLog(std::string & SerialNumber, const uCentralDeviceLog & DeviceLog) {
-        return uCentral::Storage::Service::instance()->AddLog(SerialNumber,DeviceLog);
+    bool AddLog(std::string &SerialNumber, const uCentralDeviceLog &DeviceLog) {
+        return uCentral::Storage::Service::instance()->AddLog(SerialNumber, DeviceLog);
     }
 
     bool AddStatisticsData(std::string &SerialNumber, uint64_t CfgUUID, std::string &NewStats) {
         return uCentral::Storage::Service::instance()->AddStatisticsData(SerialNumber, CfgUUID, NewStats);
     }
 
-    bool GetStatisticsData(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate, uint64_t Offset, uint64_t HowMany, std::vector<uCentralStatistics> &Stats) {
-        return uCentral::Storage::Service::instance()->GetStatisticsData(SerialNumber, FromDate, ToDate, Offset, HowMany, Stats);
+    bool
+    GetStatisticsData(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate, uint64_t Offset, uint64_t HowMany,
+                      std::vector<uCentralStatistics> &Stats) {
+        return uCentral::Storage::Service::instance()->GetStatisticsData(SerialNumber, FromDate, ToDate, Offset,
+                                                                         HowMany, Stats);
     }
 
-    bool DeleteStatisticsData(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate ) {
-        return uCentral::Storage::Service::instance()->DeleteStatisticsData(SerialNumber, FromDate, ToDate );
+    bool DeleteStatisticsData(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate) {
+        return uCentral::Storage::Service::instance()->DeleteStatisticsData(SerialNumber, FromDate, ToDate);
     }
 
-    bool AddHealthCheckData(std::string &SerialNumber, const uCentralHealthcheck & Check) {
+    bool AddHealthCheckData(std::string &SerialNumber, const uCentralHealthcheck &Check) {
         return uCentral::Storage::Service::instance()->AddHealthCheckData(SerialNumber, Check);
     }
 
-    bool GetHealthCheckData(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate, uint64_t Offset, uint64_t HowMany,
-                                   std::vector<uCentralHealthcheck> &Checks) {
-        return uCentral::Storage::Service::instance()->GetHealthCheckData(SerialNumber, FromDate, ToDate, Offset, HowMany,
-                Checks);
-    }
-    bool DeleteHealthCheckData(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate ) {
-        return uCentral::Storage::Service::instance()->DeleteHealthCheckData(SerialNumber, FromDate, ToDate );
+    bool
+    GetHealthCheckData(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate, uint64_t Offset, uint64_t HowMany,
+                       std::vector<uCentralHealthcheck> &Checks) {
+        return uCentral::Storage::Service::instance()->GetHealthCheckData(SerialNumber, FromDate, ToDate, Offset,
+                                                                          HowMany,
+                                                                          Checks);
     }
 
-    bool UpdateDeviceConfiguration(std::string &SerialNumber, std::string &Configuration, uint64_t & NewUUID ) {
+    bool DeleteHealthCheckData(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate) {
+        return uCentral::Storage::Service::instance()->DeleteHealthCheckData(SerialNumber, FromDate, ToDate);
+    }
+
+    bool UpdateDeviceConfiguration(std::string &SerialNumber, std::string &Configuration, uint64_t &NewUUID) {
         return uCentral::Storage::Service::instance()->UpdateDeviceConfiguration(SerialNumber, Configuration, NewUUID);
     }
 
@@ -99,7 +107,7 @@ namespace uCentral::Storage {
         return uCentral::Storage::Service::instance()->CreateDevice(Device);
     }
 
-    bool CreateDefaultDevice(const std::string & SerialNumber, const std::string & Capabilities) {
+    bool CreateDefaultDevice(const std::string &SerialNumber, const std::string &Capabilities) {
         return uCentral::Storage::Service::instance()->CreateDefaultDevice(SerialNumber, Capabilities);
     }
 
@@ -119,100 +127,110 @@ namespace uCentral::Storage {
         return uCentral::Storage::Service::instance()->UpdateDevice(Device);
     }
 
-    bool DeviceExists(const std::string & SerialNumber) {
+    bool DeviceExists(const std::string &SerialNumber) {
         return uCentral::Storage::Service::instance()->DeviceExists(SerialNumber);
     }
 
-    bool ExistingConfiguration(std::string &SerialNumber, uint64_t CurrentConfig, std::string &NewConfig, uint64_t &NewerUUID) {
-        return uCentral::Storage::Service::instance()->ExistingConfiguration(SerialNumber, CurrentConfig, NewConfig, NewerUUID);
+    bool ExistingConfiguration(std::string &SerialNumber, uint64_t CurrentConfig, std::string &NewConfig,
+                               uint64_t &NewerUUID) {
+        return uCentral::Storage::Service::instance()->ExistingConfiguration(SerialNumber, CurrentConfig, NewConfig,
+                                                                             NewerUUID);
     }
 
     bool UpdateDeviceCapabilities(std::string &SerialNumber, std::string &State) {
         return uCentral::Storage::Service::instance()->UpdateDeviceCapabilities(SerialNumber, State);
     }
 
-    bool GetDeviceCapabilities(std::string &SerialNumber, uCentralCapabilities & Capabilities) {
+    bool GetDeviceCapabilities(std::string &SerialNumber, uCentralCapabilities &Capabilities) {
         return uCentral::Storage::Service::instance()->GetDeviceCapabilities(SerialNumber, Capabilities);
     }
 
-    bool DeleteDeviceCapabilities(std::string & SerialNumber) {
+    bool DeleteDeviceCapabilities(std::string &SerialNumber) {
         return uCentral::Storage::Service::instance()->DeleteDeviceCapabilities(SerialNumber);
     }
 
-    bool GetLogData(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate, uint64_t Offset, uint64_t HowMany, std::vector<uCentralDeviceLog> &Stats) {
-        return uCentral::Storage::Service::instance()->GetLogData(SerialNumber, FromDate, ToDate, Offset, HowMany, Stats);
+    bool GetLogData(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate, uint64_t Offset, uint64_t HowMany,
+                    std::vector<uCentralDeviceLog> &Stats) {
+        return uCentral::Storage::Service::instance()->GetLogData(SerialNumber, FromDate, ToDate, Offset, HowMany,
+                                                                  Stats);
     }
 
     bool DeleteLogData(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate) {
         return uCentral::Storage::Service::instance()->DeleteLogData(SerialNumber, FromDate, ToDate);
     }
 
-    bool CreateDefaultConfiguration(std::string & name, const uCentralDefaultConfiguration & DefConfig) {
-        return uCentral::Storage::Service::instance()->CreateDefaultConfiguration(name,DefConfig);
+    bool CreateDefaultConfiguration(std::string &name, const uCentralDefaultConfiguration &DefConfig) {
+        return uCentral::Storage::Service::instance()->CreateDefaultConfiguration(name, DefConfig);
     }
 
-    bool DeleteDefaultConfiguration(const std::string & name) {
+    bool DeleteDefaultConfiguration(const std::string &name) {
         return uCentral::Storage::Service::instance()->DeleteDefaultConfiguration(name);
     }
 
-    bool UpdateDefaultConfiguration(std::string & name, const uCentralDefaultConfiguration & DefConfig) {
-        return uCentral::Storage::Service::instance()->UpdateDefaultConfiguration(name,DefConfig);
+    bool UpdateDefaultConfiguration(std::string &name, const uCentralDefaultConfiguration &DefConfig) {
+        return uCentral::Storage::Service::instance()->UpdateDefaultConfiguration(name, DefConfig);
     }
 
-    bool GetDefaultConfiguration(std::string &name, uCentralDefaultConfiguration & DefConfig) {
+    bool GetDefaultConfiguration(std::string &name, uCentralDefaultConfiguration &DefConfig) {
         return uCentral::Storage::Service::instance()->GetDefaultConfiguration(name, DefConfig);
     }
 
     bool GetDefaultConfigurations(uint64_t From, uint64_t HowMany, std::vector<uCentralDefaultConfiguration> &Devices) {
-        return uCentral::Storage::Service::instance()->GetDefaultConfigurations(From,HowMany,Devices);
+        return uCentral::Storage::Service::instance()->GetDefaultConfigurations(From, HowMany, Devices);
     }
 
-    bool AddCommand(std::string & SerialNumber, uCentralCommandDetails & Command,bool AlreadyExecuted) {
+    bool AddCommand(std::string &SerialNumber, uCentralCommandDetails &Command, bool AlreadyExecuted) {
         return uCentral::Storage::Service::instance()->AddCommand(SerialNumber, Command, AlreadyExecuted);
     }
 
-    bool GetCommands(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate, uint64_t Offset, uint64_t HowMany, std::vector<uCentralCommandDetails> & Commands) {
-        return uCentral::Storage::Service::instance()->GetCommands(SerialNumber, FromDate, ToDate, Offset, HowMany, Commands);
+    bool GetCommands(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate, uint64_t Offset, uint64_t HowMany,
+                     std::vector<uCentralCommandDetails> &Commands) {
+        return uCentral::Storage::Service::instance()->GetCommands(SerialNumber, FromDate, ToDate, Offset, HowMany,
+                                                                   Commands);
     }
 
     bool DeleteCommands(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate) {
         return uCentral::Storage::Service::instance()->DeleteCommands(SerialNumber, FromDate, ToDate);
     }
 
-    bool GetNonExecutedCommands( uint64_t Offset, uint64_t HowMany, std::vector<uCentralCommandDetails> & Commands ) {
-        return uCentral::Storage::Service::instance()->GetNonExecutedCommands( Offset, HowMany, Commands );
+    bool GetNonExecutedCommands(uint64_t Offset, uint64_t HowMany, std::vector<uCentralCommandDetails> &Commands) {
+        return uCentral::Storage::Service::instance()->GetNonExecutedCommands(Offset, HowMany, Commands);
     }
 
-    bool UpdateCommand( std::string &UUID, uCentralCommandDetails & Command ) {
-        return uCentral::Storage::Service::instance()->UpdateCommand(UUID,Command );
+    bool UpdateCommand(std::string &UUID, uCentralCommandDetails &Command) {
+        return uCentral::Storage::Service::instance()->UpdateCommand(UUID, Command);
     }
 
-    bool GetCommand( std::string &UUID, uCentralCommandDetails & Command ) {
-        return uCentral::Storage::Service::instance()->GetCommand( UUID, Command );
+    bool GetCommand(std::string &UUID, uCentralCommandDetails &Command) {
+        return uCentral::Storage::Service::instance()->GetCommand(UUID, Command);
     }
 
-    bool DeleteCommand( std::string & UUID ) {
-        return uCentral::Storage::Service::instance()->DeleteCommand( UUID );
+    bool DeleteCommand(std::string &UUID) {
+        return uCentral::Storage::Service::instance()->DeleteCommand(UUID);
     }
 
-    bool GetReadyToExecuteCommands( uint64_t Offset, uint64_t HowMany, std::vector<uCentralCommandDetails> & Commands ) {
-        return uCentral::Storage::Service::instance()->GetReadyToExecuteCommands( Offset, HowMany, Commands );
+    bool GetReadyToExecuteCommands(uint64_t Offset, uint64_t HowMany, std::vector<uCentralCommandDetails> &Commands) {
+        return uCentral::Storage::Service::instance()->GetReadyToExecuteCommands(Offset, HowMany, Commands);
     }
 
-    bool CommandExecuted(const std::string & UUID) {
+    bool CommandExecuted(const std::string &UUID) {
         return uCentral::Storage::Service::instance()->CommandExecuted(UUID);
     }
 
-    bool CommandCompleted(const std::string & UUID, Poco::DynamicStruct ReturnVars) {
+    bool CommandCompleted(const std::string &UUID, Poco::DynamicStruct ReturnVars) {
         return uCentral::Storage::Service::instance()->CommandCompleted(UUID, ReturnVars);
     }
 
-    std::string SerialToMAC(const std::string & Serial) {
+    bool AttachFileToCommand(const std::string &UUID) {
+        return uCentral::Storage::Service::instance()->AttachFileToCommand(UUID);
+    }
+
+    std::string SerialToMAC(const std::string &Serial) {
         std::string Result;
 
-        if(Serial.size()==12)
-            Result= Serial[0] + Serial [1] + ':' + Serial[2] + Serial[3] + ':' + Serial[4] + Serial[5] + ':' +
-                    Serial[6] + Serial [7] + ':' + Serial[8] + Serial[9] + ':' + Serial[10] + Serial[11];
+        if (Serial.size() == 12)
+            Result = Serial[0] + Serial[1] + ':' + Serial[2] + Serial[3] + ':' + Serial[4] + Serial[5] + ':' +
+                     Serial[6] + Serial[7] + ':' + Serial[8] + Serial[9] + ':' + Serial[10] + Serial[11];
 
         return Result;
     }
@@ -221,13 +239,13 @@ namespace uCentral::Storage {
         Logger_.information("SQLite Storage enabled.");
 
         auto DBName = uCentral::ServiceConfig::getString("storage.type.sqlite.db");
-        auto NumSessions = uCentral::ServiceConfig::getInt("storage.type.sqlite.maxsessions",64);
-        auto IdleTime = uCentral::ServiceConfig::getInt("storage.type.sqlite.idletime",60);
+        auto NumSessions = uCentral::ServiceConfig::getInt("storage.type.sqlite.maxsessions", 64);
+        auto IdleTime = uCentral::ServiceConfig::getInt("storage.type.sqlite.idletime", 60);
 
         SQLiteConn_ = std::shared_ptr<Poco::Data::SQLite::Connector>(new Poco::Data::SQLite::Connector);
         SQLiteConn_->registerConnector();
         Pool_ = std::shared_ptr<Poco::Data::SessionPool>(
-                new Poco::Data::SessionPool(SQLiteConn_->name(), DBName,4,NumSessions,IdleTime));
+                new Poco::Data::SessionPool(SQLiteConn_->name(), DBName, 4, NumSessions, IdleTime));
 
         Session session_ = Pool_->get();
 
@@ -298,7 +316,9 @@ namespace uCentral::Storage {
                     "Completed      BIGINT, "
                     "RunAt          BIGINT, "
                     "ErrorCode      BIGINT, "
-                    "Custom         INT"
+                    "Custom         BIGINT, "
+                    "WaitingForFile BIGINT, "
+                    "AttachDate     BIGINT"
                     ")", now;
 
         session_ << "CREATE INDEX IF NOT EXISTS CommandListIndex ON CommandList (SerialNumber ASC, Submitted ASC)", now;
@@ -307,10 +327,11 @@ namespace uCentral::Storage {
     }
 
 #ifndef SMALL_BUILD
+
     int Service::Setup_MySQL() {
         Logger_.information("MySQL Storage enabled.");
-        auto NumSessions = uCentral::ServiceConfig::getInt("storage.type.mysql.maxsessions",64);
-        auto IdleTime = uCentral::ServiceConfig::getInt("storage.type.mysql.idletime",60);
+        auto NumSessions = uCentral::ServiceConfig::getInt("storage.type.mysql.maxsessions", 64);
+        auto IdleTime = uCentral::ServiceConfig::getInt("storage.type.mysql.idletime", 60);
         auto Host = uCentral::ServiceConfig::getString("storage.type.mysql.host");
         auto Username = uCentral::ServiceConfig::getString("storage.type.mysql.username");
         auto Password = uCentral::ServiceConfig::getString("storage.type.mysql.password");
@@ -328,7 +349,7 @@ namespace uCentral::Storage {
         MySQLConn_ = std::shared_ptr<Poco::Data::MySQL::Connector>(new Poco::Data::MySQL::Connector);
         MySQLConn_->registerConnector();
         Pool_ = std::shared_ptr<Poco::Data::SessionPool>(
-                new Poco::Data::SessionPool(MySQLConn_->name(), ConnectionStr,4,NumSessions,IdleTime));
+                new Poco::Data::SessionPool(MySQLConn_->name(), ConnectionStr, 4, NumSessions, IdleTime));
 
         Session session_ = Pool_->get();
 
@@ -399,7 +420,9 @@ namespace uCentral::Storage {
                     "Completed      BIGINT, "
                     "RunAt          BIGINT, "
                     "ErrorCode      BIGINT, "
-                    "Custom         INT"
+                    "Custom         BIGINT, "
+                    "WaitingForFile BIGINT, "
+                    "AttachDate     BIGINT"
                     "INDEX CommandListIndex (SerialNumber ASC, Submitted ASC)"
                     ")", now;
 
@@ -409,8 +432,8 @@ namespace uCentral::Storage {
     int Service::Setup_PostgreSQL() {
         Logger_.information("PostgreSQL Storage enabled.");
 
-        auto NumSessions = uCentral::ServiceConfig::getInt("storage.type.postgresql.maxsessions",64);
-        auto IdleTime = uCentral::ServiceConfig::getInt("storage.type.postgresql.idletime",60);
+        auto NumSessions = uCentral::ServiceConfig::getInt("storage.type.postgresql.maxsessions", 64);
+        auto IdleTime = uCentral::ServiceConfig::getInt("storage.type.postgresql.idletime", 60);
         auto Host = uCentral::ServiceConfig::getString("storage.type.postgresql.host");
         auto Username = uCentral::ServiceConfig::getString("storage.type.postgresql.username");
         auto Password = uCentral::ServiceConfig::getString("storage.type.postgresql.password");
@@ -429,7 +452,7 @@ namespace uCentral::Storage {
         PostgresConn_ = std::shared_ptr<Poco::Data::PostgreSQL::Connector>(new Poco::Data::PostgreSQL::Connector);
         PostgresConn_->registerConnector();
         Pool_ = std::shared_ptr<Poco::Data::SessionPool>(
-                new Poco::Data::SessionPool(PostgresConn_->name(), ConnectionStr,4,NumSessions,IdleTime));
+                new Poco::Data::SessionPool(PostgresConn_->name(), ConnectionStr, 4, NumSessions, IdleTime));
 
         Session session_ = Pool_->get();
 
@@ -501,7 +524,9 @@ namespace uCentral::Storage {
                     "Completed      BIGINT, "
                     "RunAt          BIGINT, "
                     "ErrorCode      BIGINT, "
-                    "Custom         INT"
+                    "Custom         BIGINT, "
+                    "WaitingForFile BIGINT, "
+                    "AttachDate     BIGINT"
                     ")", now;
 
         session_ << "CREATE INDEX IF NOT EXISTS CommandListIndex ON CommandList (SerialNumber ASC, Submitted ASC)", now;
@@ -512,8 +537,8 @@ namespace uCentral::Storage {
     int Service::Setup_ODBC() {
         Logger_.information("ODBC Storage enabled.");
 
-        auto NumSessions = uCentral::ServiceConfig::getInt("storage.type.postgresql.maxsessions",64);
-        auto IdleTime = uCentral::ServiceConfig::getInt("storage.type.postgresql.idletime",60);
+        auto NumSessions = uCentral::ServiceConfig::getInt("storage.type.postgresql.maxsessions", 64);
+        auto IdleTime = uCentral::ServiceConfig::getInt("storage.type.postgresql.idletime", 60);
         auto Host = uCentral::ServiceConfig::getString("storage.type.postgresql.host");
         auto Username = uCentral::ServiceConfig::getString("storage.type.postgresql.username");
         auto Password = uCentral::ServiceConfig::getString("storage.type.postgresql.password");
@@ -532,7 +557,7 @@ namespace uCentral::Storage {
         ODBCConn_ = std::shared_ptr<Poco::Data::ODBC::Connector>(new Poco::Data::ODBC::Connector);
         ODBCConn_->registerConnector();
         Pool_ = std::shared_ptr<Poco::Data::SessionPool>(
-                new Poco::Data::SessionPool(ODBCConn_->name(), ConnectionStr,4,NumSessions,IdleTime));
+                new Poco::Data::SessionPool(ODBCConn_->name(), ConnectionStr, 4, NumSessions, IdleTime));
 
         Session session_ = Pool_->get();
 
@@ -548,16 +573,13 @@ namespace uCentral::Storage {
         std::string DBType = uCentral::ServiceConfig::getString("storage.type");
 
 #ifndef SMALL_BUILD
-        if(DBType == "sqlite") {
+        if (DBType == "sqlite") {
             return Setup_SQLite();
-        }
-        else if(DBType == "postgresql") {
+        } else if (DBType == "postgresql") {
             return Setup_PostgreSQL();
-        }
-        else if(DBType == "mysql") {
+        } else if (DBType == "mysql") {
             return Setup_MySQL();
-        }
-        else if(DBType == "odbc") {
+        } else if (DBType == "odbc") {
             return Setup_ODBC();
         }
         std::exit(Poco::Util::Application::EXIT_CONFIG);
@@ -572,7 +594,7 @@ namespace uCentral::Storage {
 
     bool Service::AddStatisticsData(std::string &SerialNumber, uint64_t CfgUUID, std::string &NewStats) {
 
-        uCentral::DeviceRegistry::SetStatistics(SerialNumber,NewStats);
+        uCentral::DeviceRegistry::SetStatistics(SerialNumber, NewStats);
 
         try {
             Logger_.information("Device:" + SerialNumber + " Stats size:" + std::to_string(NewStats.size()));
@@ -595,12 +617,14 @@ namespace uCentral::Storage {
             return true;
         }
         catch (const Poco::Exception &E) {
-            Logger_.warning(Poco::format("%s(%s): Failed with: %s", std::string(__func__) , SerialNumber, E.displayText()));
+            Logger_.warning(
+                    Poco::format("%s(%s): Failed with: %s", std::string(__func__), SerialNumber, E.displayText()));
         }
         return false;
     }
 
-    bool Service::GetStatisticsData(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate, uint64_t Offset, uint64_t HowMany,
+    bool Service::GetStatisticsData(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate, uint64_t Offset,
+                                    uint64_t HowMany,
                                     std::vector<uCentralStatistics> &Stats) {
 
         typedef Poco::Tuple<std::string, uint64_t, std::string, uint64_t> StatRecord;
@@ -612,25 +636,26 @@ namespace uCentral::Storage {
             RecordList Records;
             Session session_ = Pool_->get();
 
-            bool DatesIncluded = (FromDate!=0 || ToDate!=0);
+            bool DatesIncluded = (FromDate != 0 || ToDate != 0);
 
-            std::string Prefix{ "SELECT SerialNumber, UUID, Data, Recorded FROM Statistics "};
+            std::string Prefix{"SELECT SerialNumber, UUID, Data, Recorded FROM Statistics "};
             std::string Statement = SerialNumber.empty()
                                     ? Prefix + std::string(DatesIncluded ? "WHERE " : "")
-                                    : Prefix + "WHERE SerialNumber='" + SerialNumber + "'" + std::string(DatesIncluded ? " AND " : "");
+                                    : Prefix + "WHERE SerialNumber='" + SerialNumber + "'" +
+                                      std::string(DatesIncluded ? " AND " : "");
 
             std::string DateSelector;
-            if(FromDate && ToDate) {
+            if (FromDate && ToDate) {
                 DateSelector = " Recorded>=" + std::to_string(FromDate) + " AND Recorded<=" + std::to_string(ToDate);
             } else if (FromDate) {
                 DateSelector = " Recorded>=" + std::to_string(FromDate);
-            } else if(ToDate) {
+            } else if (ToDate) {
                 DateSelector = " Recorded<=" + std::to_string(ToDate);
             }
 
-            session_ << Statement + DateSelector ,
-                into(Records),
-                range(Offset, Offset + HowMany - 1), now;
+            session_ << Statement + DateSelector,
+                    into(Records),
+                    range(Offset, Offset + HowMany - 1), now;
 
             for (auto i: Records) {
                 uCentralStatistics R{
@@ -641,9 +666,9 @@ namespace uCentral::Storage {
             }
             return true;
         }
-        catch( const Poco::Exception & E)
-        {
-            Logger_.warning(Poco::format("%s(%s): Failed with: %s",std::string(__func__),SerialNumber,E.displayText() ));
+        catch (const Poco::Exception &E) {
+            Logger_.warning(
+                    Poco::format("%s(%s): Failed with: %s", std::string(__func__), SerialNumber, E.displayText()));
         }
         return false;
     }
@@ -652,33 +677,35 @@ namespace uCentral::Storage {
         try {
             Session session_ = Pool_->get();
 
-            bool DatesIncluded = (FromDate!=0 || ToDate!=0);
+            bool DatesIncluded = (FromDate != 0 || ToDate != 0);
 
-            std::string Prefix{ "DELETE FROM Statistics "};
+            std::string Prefix{"DELETE FROM Statistics "};
             std::string Statement = SerialNumber.empty()
                                     ? Prefix + std::string(DatesIncluded ? "WHERE " : "")
-                                    : Prefix + "WHERE SerialNumber='" + SerialNumber + "'" + std::string(DatesIncluded ? " AND " : "");
+                                    : Prefix + "WHERE SerialNumber='" + SerialNumber + "'" +
+                                      std::string(DatesIncluded ? " AND " : "");
 
             std::string DateSelector;
-            if(FromDate && ToDate) {
+            if (FromDate && ToDate) {
                 DateSelector = " Recorded>=" + std::to_string(FromDate) + " AND Recorded<=" + std::to_string(ToDate);
             } else if (FromDate) {
                 DateSelector = " Recorded>=" + std::to_string(FromDate);
-            } else if(ToDate) {
+            } else if (ToDate) {
                 DateSelector = " Recorded<=" + std::to_string(ToDate);
             }
 
-            session_ << Statement + DateSelector , now;
+            session_ << Statement + DateSelector, now;
 
             return true;
         }
-        catch (const Poco::Exception & E ) {
-            Logger_.warning(Poco::format("%s(%s): Failed with: %s",std::string(__func__),SerialNumber,E.displayText() ));
+        catch (const Poco::Exception &E) {
+            Logger_.warning(
+                    Poco::format("%s(%s): Failed with: %s", std::string(__func__), SerialNumber, E.displayText()));
         }
         return false;
     }
 
-    bool Service::AddHealthCheckData(std::string &SerialNumber, const uCentralHealthcheck & Check) {
+    bool Service::AddHealthCheckData(std::string &SerialNumber, const uCentralHealthcheck &Check) {
         try {
             Logger_.information("Device:" + SerialNumber + " HealthCheck: sanity " + std::to_string(Check.Sanity));
 
@@ -690,7 +717,8 @@ namespace uCentral::Storage {
             "Sanity BIGINT , "
             "Recorded BIGINT) ", now;
 */
-            session_ << "INSERT INTO HealthChecks (SerialNumber, UUID, Data, Sanity, Recorded) VALUES( '%s', %Lu , '%s' , %Lu , %Lu)",
+            session_
+                    << "INSERT INTO HealthChecks (SerialNumber, UUID, Data, Sanity, Recorded) VALUES( '%s', %Lu , '%s' , %Lu , %Lu)",
                     SerialNumber.c_str(),
                     Check.UUID,
                     Check.Data.c_str(),
@@ -700,15 +728,17 @@ namespace uCentral::Storage {
             return true;
         }
         catch (const Poco::Exception &E) {
-            Logger_.warning(Poco::format("%s(%s): Failed with: %s", std::string(__func__) , SerialNumber, E.displayText()));
+            Logger_.warning(
+                    Poco::format("%s(%s): Failed with: %s", std::string(__func__), SerialNumber, E.displayText()));
         }
         return false;
     }
 
-    bool Service::GetHealthCheckData(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate, uint64_t Offset, uint64_t HowMany,
-                            std::vector<uCentralHealthcheck> &Checks) {
+    bool Service::GetHealthCheckData(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate, uint64_t Offset,
+                                     uint64_t HowMany,
+                                     std::vector<uCentralHealthcheck> &Checks) {
 
-        typedef Poco::Tuple<std::string, uint64_t , std::string, uint64_t, uint64_t> Record;
+        typedef Poco::Tuple<std::string, uint64_t, std::string, uint64_t, uint64_t> Record;
         typedef std::vector<Record> RecordList;
 
         // std::lock_guard<std::mutex> guard(mutex_);
@@ -716,25 +746,26 @@ namespace uCentral::Storage {
             RecordList Records;
             Session session_ = Pool_->get();
 
-            bool DatesIncluded = (FromDate!=0 || ToDate!=0);
+            bool DatesIncluded = (FromDate != 0 || ToDate != 0);
 
-            std::string Prefix{ "SELECT SerialNumber, UUID, Data, Sanity, Recorded FROM HealthChecks "};
+            std::string Prefix{"SELECT SerialNumber, UUID, Data, Sanity, Recorded FROM HealthChecks "};
             std::string Statement = SerialNumber.empty()
                                     ? Prefix + std::string(DatesIncluded ? "WHERE " : "")
-                                    : Prefix + "WHERE SerialNumber='" + SerialNumber + "'" + std::string(DatesIncluded ? " AND " : "");
+                                    : Prefix + "WHERE SerialNumber='" + SerialNumber + "'" +
+                                      std::string(DatesIncluded ? " AND " : "");
 
             std::string DateSelector;
-            if(FromDate && ToDate) {
+            if (FromDate && ToDate) {
                 DateSelector = " Recorded>=" + std::to_string(FromDate) + " AND Recorded<=" + std::to_string(ToDate);
             } else if (FromDate) {
                 DateSelector = " Recorded>=" + std::to_string(FromDate);
-            } else if(ToDate) {
+            } else if (ToDate) {
                 DateSelector = " Recorded<=" + std::to_string(ToDate);
             }
 
-            session_ << Statement + DateSelector ,
-                into(Records),
-                range(Offset, Offset + HowMany - 1), now;
+            session_ << Statement + DateSelector,
+                    into(Records),
+                    range(Offset, Offset + HowMany - 1), now;
 
             for (auto i: Records) {
                 uCentralHealthcheck R;
@@ -750,37 +781,40 @@ namespace uCentral::Storage {
             return true;
         }
         catch (const Poco::Exception &E) {
-            Logger_.warning(Poco::format("%s(%s): Failed with: %s", std::string(__func__) , SerialNumber, E.displayText()));
+            Logger_.warning(
+                    Poco::format("%s(%s): Failed with: %s", std::string(__func__), SerialNumber, E.displayText()));
         }
         return false;
     }
 
-    bool Service::DeleteHealthCheckData(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate ) {
+    bool Service::DeleteHealthCheckData(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate) {
         try {
             Session session_ = Pool_->get();
 
-            bool DatesIncluded = (FromDate!=0 || ToDate!=0);
+            bool DatesIncluded = (FromDate != 0 || ToDate != 0);
 
-            std::string Prefix{ "DELETE FROM HealthChecks "};
+            std::string Prefix{"DELETE FROM HealthChecks "};
             std::string Statement = SerialNumber.empty()
                                     ? Prefix + std::string(DatesIncluded ? "WHERE " : "")
-                                    : Prefix + "WHERE SerialNumber='" + SerialNumber + "'" + std::string(DatesIncluded ? " AND " : "");
+                                    : Prefix + "WHERE SerialNumber='" + SerialNumber + "'" +
+                                      std::string(DatesIncluded ? " AND " : "");
 
             std::string DateSelector;
-            if(FromDate && ToDate) {
+            if (FromDate && ToDate) {
                 DateSelector = " Recorded>=" + std::to_string(FromDate) + " AND Recorded<=" + std::to_string(ToDate);
             } else if (FromDate) {
                 DateSelector = " Recorded>=" + std::to_string(FromDate);
-            } else if(ToDate) {
+            } else if (ToDate) {
                 DateSelector = " Recorded<=" + std::to_string(ToDate);
             }
 
-            session_ << Statement + DateSelector , now;
+            session_ << Statement + DateSelector, now;
 
             return true;
         }
-        catch (const Poco::Exception & E ) {
-            Logger_.warning(Poco::format("%s(%s): Failed with: %s",std::string(__func__),SerialNumber,E.displayText() ));
+        catch (const Poco::Exception &E) {
+            Logger_.warning(
+                    Poco::format("%s(%s): Failed with: %s", std::string(__func__), SerialNumber, E.displayText()));
         }
         return false;
     }
@@ -796,7 +830,8 @@ namespace uCentral::Storage {
                     "Recorded BIGINT)
  */
             Session session_ = Pool_->get();
-            session_ << "INSERT INTO DeviceLogs (SerialNumber, Log, Severity, Data, Recorded) VALUES( '%s' , '%s' , %Lu, '%s', %Lu)",
+            session_
+                    << "INSERT INTO DeviceLogs (SerialNumber, Log, Severity, Data, Recorded) VALUES( '%s' , '%s' , %Lu, '%s', %Lu)",
                     SerialNumber.c_str(),
                     Log.Log.c_str(),
                     Log.Severity,
@@ -804,65 +839,67 @@ namespace uCentral::Storage {
                     Log.Recorded, now;
             return true;
         }
-        catch (const Poco::Exception & E ) {
-            Logger_.warning(Poco::format("%s(%s): Failed with: %s",std::string(__func__),SerialNumber,E.displayText() ));
+        catch (const Poco::Exception &E) {
+            Logger_.warning(
+                    Poco::format("%s(%s): Failed with: %s", std::string(__func__), SerialNumber, E.displayText()));
         }
         return false;
     }
 
-    bool Service::AddLog(std::string &SerialNumber, const std::string &Log)
-    {
-        uCentralDeviceLog   DeviceLog;
+    bool Service::AddLog(std::string &SerialNumber, const std::string &Log) {
+        uCentralDeviceLog DeviceLog;
 
         DeviceLog.Log = Log;
-        DeviceLog.Data = "" ;
+        DeviceLog.Data = "";
         DeviceLog.Severity = uCentralDeviceLog::Level::LOG_INFO;
         DeviceLog.Recorded = time(nullptr);
 
-        return AddLog(SerialNumber,DeviceLog);
+        return AddLog(SerialNumber, DeviceLog);
     }
 
-    bool Service::GetLogData(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate, uint64_t Offset, uint64_t HowMany,
-                    std::vector<uCentralDeviceLog> &Stats) {
-        typedef Poco::Tuple<std::string, uint64_t, uint64_t, std::string > StatRecord;
+    bool Service::GetLogData(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate, uint64_t Offset,
+                             uint64_t HowMany,
+                             std::vector<uCentralDeviceLog> &Stats) {
+        typedef Poco::Tuple<std::string, uint64_t, uint64_t, std::string> StatRecord;
         typedef std::vector<StatRecord> RecordList;
 
         try {
             RecordList Records;
             Session session_ = Pool_->get();
 
-            bool DatesIncluded = (FromDate!=0 || ToDate!=0);
+            bool DatesIncluded = (FromDate != 0 || ToDate != 0);
 
-            std::string Prefix{ "SELECT Log,Recorded,Severity,Data FROM DeviceLogs  "};
+            std::string Prefix{"SELECT Log,Recorded,Severity,Data FROM DeviceLogs  "};
             std::string Statement = SerialNumber.empty()
                                     ? Prefix + std::string(DatesIncluded ? "WHERE " : "")
-                                    : Prefix + "WHERE SerialNumber='" + SerialNumber + "'" + std::string(DatesIncluded ? " AND " : "");
+                                    : Prefix + "WHERE SerialNumber='" + SerialNumber + "'" +
+                                      std::string(DatesIncluded ? " AND " : "");
 
             std::string DateSelector;
-            if(FromDate && ToDate) {
+            if (FromDate && ToDate) {
                 DateSelector = " Recorded>=" + std::to_string(FromDate) + " AND Recorded<=" + std::to_string(ToDate);
             } else if (FromDate) {
                 DateSelector = " Recorded>=" + std::to_string(FromDate);
-            } else if(ToDate) {
+            } else if (ToDate) {
                 DateSelector = " Recorded<=" + std::to_string(ToDate);
             }
 
-            session_ << Statement + DateSelector ,
+            session_ << Statement + DateSelector,
                     into(Records),
                     range(Offset, Offset + HowMany - 1), now;
 
             for (auto i: Records) {
                 uCentralDeviceLog R{.Log = i.get<0>(),
-                                    .Severity = i.get<2>(),
-                                    .Data = i.get<3>(),
-                                    .Recorded = i.get<1>()};
+                        .Severity = i.get<2>(),
+                        .Data = i.get<3>(),
+                        .Recorded = i.get<1>()};
                 Stats.push_back(R);
             }
             return true;
         }
-        catch( const Poco::Exception & E)
-        {
-            Logger_.warning(Poco::format("%s(%s): Failed with: %s",std::string(__func__),SerialNumber,E.displayText() ));
+        catch (const Poco::Exception &E) {
+            Logger_.warning(
+                    Poco::format("%s(%s): Failed with: %s", std::string(__func__), SerialNumber, E.displayText()));
         }
         return false;
     }
@@ -871,39 +908,41 @@ namespace uCentral::Storage {
         try {
             Session session_ = Pool_->get();
 
-            bool DatesIncluded = (FromDate!=0 || ToDate!=0);
+            bool DatesIncluded = (FromDate != 0 || ToDate != 0);
 
-            std::string Prefix{ "DELETE FROM DeviceLogs "};
+            std::string Prefix{"DELETE FROM DeviceLogs "};
             std::string Statement = SerialNumber.empty()
                                     ? Prefix + std::string(DatesIncluded ? "WHERE " : "")
-                                    : Prefix + "WHERE SerialNumber='" + SerialNumber + "'" + std::string(DatesIncluded ? " AND " : "");
+                                    : Prefix + "WHERE SerialNumber='" + SerialNumber + "'" +
+                                      std::string(DatesIncluded ? " AND " : "");
 
             std::string DateSelector;
-            if(FromDate && ToDate) {
+            if (FromDate && ToDate) {
                 DateSelector = " Recorded>=" + std::to_string(FromDate) + " AND Recorded<=" + std::to_string(ToDate);
             } else if (FromDate) {
                 DateSelector = " Recorded>=" + std::to_string(FromDate);
-            } else if(ToDate) {
+            } else if (ToDate) {
                 DateSelector = " Recorded<=" + std::to_string(ToDate);
             }
 
-            session_ << Statement + DateSelector , now;
+            session_ << Statement + DateSelector, now;
 
             return true;
         }
-        catch (const Poco::Exception & E ) {
-            Logger_.warning(Poco::format("%s(%s): Failed with: %s",std::string(__func__),SerialNumber,E.displayText() ));
+        catch (const Poco::Exception &E) {
+            Logger_.warning(
+                    Poco::format("%s(%s): Failed with: %s", std::string(__func__), SerialNumber, E.displayText()));
         }
         return false;
     }
 
-    bool Service::UpdateDeviceConfiguration(std::string &SerialNumber, std::string & Configuration, uint64_t & NewUUID ) {
+    bool Service::UpdateDeviceConfiguration(std::string &SerialNumber, std::string &Configuration, uint64_t &NewUUID) {
         try {
 
-            uCentral::Config::Config    Cfg(Configuration);
+            uCentral::Config::Config Cfg(Configuration);
 
-            if(!Cfg.Valid()) {
-                Logger_.warning(Poco::format("CONFIG-UPDATE(%s): Configuration was not valid",SerialNumber));
+            if (!Cfg.Valid()) {
+                Logger_.warning(Poco::format("CONFIG-UPDATE(%s): Configuration was not valid", SerialNumber));
                 return false;
             }
 
@@ -912,12 +951,12 @@ namespace uCentral::Storage {
             uint64_t CurrentUUID;
 
             session_ << "SELECT UUID FROM Devices WHERE SerialNumber='%s'",
-                into(CurrentUUID),
-                SerialNumber.c_str(), now;
+                    into(CurrentUUID),
+                    SerialNumber.c_str(), now;
 
             CurrentUUID++;
 
-            if(Cfg.SetUUID(CurrentUUID)) {
+            if (Cfg.SetUUID(CurrentUUID)) {
                 uint64_t Now = time(nullptr);
 
                 std::string NewConfig = Cfg.get();
@@ -929,16 +968,16 @@ namespace uCentral::Storage {
                         Now,
                         SerialNumber.c_str(), now;
 
-                Logger_.information(Poco::format("CONFIG-UPDATE(%s): UUID is %Lu",SerialNumber,CurrentUUID));
-                NewUUID = CurrentUUID ;
+                Logger_.information(Poco::format("CONFIG-UPDATE(%s): UUID is %Lu", SerialNumber, CurrentUUID));
+                NewUUID = CurrentUUID;
                 return true;
             }
 
             return false;
         }
-        catch (const Poco::Exception &E)
-        {
-            Logger_.warning(Poco::format("%s(%s): Failed with: %s",std::string(__func__),SerialNumber,E.displayText() ));
+        catch (const Poco::Exception &E) {
+            Logger_.warning(
+                    Poco::format("%s(%s): Failed with: %s", std::string(__func__), SerialNumber, E.displayText()));
         }
         return false;
     }
@@ -956,9 +995,9 @@ namespace uCentral::Storage {
                     DeviceDetails.SerialNumber.c_str(), now;
 
             if (SerialNumber.empty()) {
-                uCentral::Config::Config    Cfg(DeviceDetails.Configuration);
+                uCentral::Config::Config Cfg(DeviceDetails.Configuration);
 
-                if(Cfg.Valid() && Cfg.SetUUID(DeviceDetails.UUID)) {
+                if (Cfg.Valid() && Cfg.SetUUID(DeviceDetails.UUID)) {
                     DeviceDetails.Configuration = Cfg.get();
                     uint64_t Now = time(nullptr);
 
@@ -976,7 +1015,8 @@ namespace uCentral::Storage {
                     "LastConfigurationDownload BIGINT"
 
  */
-                    session_ << "INSERT INTO Devices (SerialNumber, DeviceType, MACAddress, Manufacturer, UUID, Configuration, Notes, CreationTimestamp, LastConfigurationChange, LastConfigurationDownload ) VALUES('%s', '%s', '%s', '%s', %Lu, '%s', '%s', %Lu, %Lu, %Lu)",
+                    session_
+                            << "INSERT INTO Devices (SerialNumber, DeviceType, MACAddress, Manufacturer, UUID, Configuration, Notes, CreationTimestamp, LastConfigurationChange, LastConfigurationDownload ) VALUES('%s', '%s', '%s', '%s', %Lu, '%s', '%s', %Lu, %Lu, %Lu)",
                             DeviceDetails.SerialNumber.c_str(),
                             DeviceDetails.DeviceType.c_str(),
                             DeviceDetails.MACAddress.c_str(),
@@ -989,39 +1029,34 @@ namespace uCentral::Storage {
                             Now, now;
 
                     return true;
-                }
-                else
-                {
+                } else {
                     Logger_.warning("Cannot create device: invalid configuration.");
                     return false;
                 }
             }
         }
-        catch( const Poco::Exception & E)
-        {
-            Logger_.warning(Poco::format("%s(%s): Failed with: %s",std::string(__func__),SerialNumber,E.displayText() ));
+        catch (const Poco::Exception &E) {
+            Logger_.warning(
+                    Poco::format("%s(%s): Failed with: %s", std::string(__func__), SerialNumber, E.displayText()));
         }
         return false;
     }
 
-    bool Service::CreateDefaultDevice(const std::string & SerialNumber, const std::string & Capabilities) {
+    bool Service::CreateDefaultDevice(const std::string &SerialNumber, const std::string &Capabilities) {
 
-        uCentralDevice  D;
-        Logger_.information(Poco::format("AUTO-CREATION(%s)",SerialNumber));
+        uCentralDevice D;
+        Logger_.information(Poco::format("AUTO-CREATION(%s)", SerialNumber));
         uint64_t Now = time(nullptr);
 
-        uCentral::Config::Capabilities  Caps(Capabilities);
-        uCentralDefaultConfiguration    DefConfig;
+        uCentral::Config::Capabilities Caps(Capabilities);
+        uCentralDefaultConfiguration DefConfig;
 
-        if( FindDefaultConfigurationForModel(Caps.ModelId(),DefConfig))
-        {
-            uCentral::Config::Config    NewConfig(DefConfig.Configuration);
+        if (FindDefaultConfigurationForModel(Caps.ModelId(), DefConfig)) {
+            uCentral::Config::Config NewConfig(DefConfig.Configuration);
             NewConfig.SetUUID(Now);
             D.Configuration = NewConfig.get();
-        }
-        else
-        {
-            uCentral::Config::Config    NewConfig;
+        } else {
+            uCentral::Config::Config NewConfig;
             NewConfig.SetUUID(Now);
             D.Configuration = NewConfig.get();
         }
@@ -1049,9 +1084,9 @@ namespace uCentral::Storage {
 
             return true;
         }
-        catch( const Poco::Exception & E)
-        {
-            Logger_.warning(Poco::format("%s(%s): Failed with: %s",std::string(__func__),SerialNumber,E.displayText() ));
+        catch (const Poco::Exception &E) {
+            Logger_.warning(
+                    Poco::format("%s(%s): Failed with: %s", std::string(__func__), SerialNumber, E.displayText()));
         }
         return false;
     }
@@ -1063,17 +1098,17 @@ namespace uCentral::Storage {
             Session session_ = Pool_->get();
 
             session_ << "SELECT "
-                         "SerialNumber, "
-                         "DeviceType, "
-                         "MACAddress, "
-                         "Manufacturer, "
-                         "UUID, "
-                         "Configuration, "
-                         "Notes, "
-                         "CreationTimestamp, "
-                         "LastConfigurationChange, "
-                         "LastConfigurationDownload "
-                         " FROM Devices WHERE SerialNumber='%s'",
+                        "SerialNumber, "
+                        "DeviceType, "
+                        "MACAddress, "
+                        "Manufacturer, "
+                        "UUID, "
+                        "Configuration, "
+                        "Notes, "
+                        "CreationTimestamp, "
+                        "LastConfigurationChange, "
+                        "LastConfigurationDownload "
+                        " FROM Devices WHERE SerialNumber='%s'",
                     into(DeviceDetails.SerialNumber),
                     into(DeviceDetails.DeviceType),
                     into(DeviceDetails.MACAddress),
@@ -1091,14 +1126,14 @@ namespace uCentral::Storage {
 
             return true;
         }
-        catch( const Poco::Exception & E)
-        {
-            Logger_.warning(Poco::format("%s(%s): Failed with: %s",std::string(__func__),SerialNumber,E.displayText() ));
+        catch (const Poco::Exception &E) {
+            Logger_.warning(
+                    Poco::format("%s(%s): Failed with: %s", std::string(__func__), SerialNumber, E.displayText()));
         }
         return false;
     }
 
-    bool Service::DeviceExists(const std::string & SerialNumber) {
+    bool Service::DeviceExists(const std::string &SerialNumber) {
         try {
             Session session_ = Pool_->get();
 
@@ -1116,9 +1151,9 @@ namespace uCentral::Storage {
 
             return true;
         }
-        catch( const Poco::Exception & E)
-        {
-            Logger_.warning(Poco::format("%s(%s): Failed with: %s",std::string(__func__),SerialNumber,E.displayText() ));
+        catch (const Poco::Exception &E) {
+            Logger_.warning(
+                    Poco::format("%s(%s): Failed with: %s", std::string(__func__), SerialNumber, E.displayText()));
         }
         return false;
     }
@@ -1131,7 +1166,8 @@ namespace uCentral::Storage {
 
             uint64_t Now = time(nullptr);
 
-            session_ << "UPDATE Devices SET Manufacturer='%s', DeviceType='%s', MACAddress='%s', Notes='%s', LastConfigurationChange=%Lu  WHERE SerialNumber='%s'",
+            session_
+                    << "UPDATE Devices SET Manufacturer='%s', DeviceType='%s', MACAddress='%s', Notes='%s', LastConfigurationChange=%Lu  WHERE SerialNumber='%s'",
                     NewConfig.Manufacturer.c_str(),
                     NewConfig.DeviceType.c_str(),
                     NewConfig.MACAddress.c_str(),
@@ -1141,9 +1177,9 @@ namespace uCentral::Storage {
 
             return true;
         }
-        catch( const Poco::Exception & E)
-        {
-            Logger_.warning(Poco::format("%s(%s): Failed with: %s",std::string(__func__),NewConfig.SerialNumber,E.displayText() ));
+        catch (const Poco::Exception &E) {
+            Logger_.warning(Poco::format("%s(%s): Failed with: %s", std::string(__func__), NewConfig.SerialNumber,
+                                         E.displayText()));
         }
 
         return false;
@@ -1171,17 +1207,17 @@ namespace uCentral::Storage {
             Session session_ = Pool_->get();
 
             session_ << "SELECT "
-                         "SerialNumber, "
-                         "DeviceType, "
-                         "MACAddress, "
-                         "Manufacturer, "
-                         "UUID, "
-                         "Configuration, "
-                         "Notes, "
-                         "CreationTimestamp, "
-                         "LastConfigurationChange, "
-                         "LastConfigurationDownload "
-                         " FROM Devices",
+                        "SerialNumber, "
+                        "DeviceType, "
+                        "MACAddress, "
+                        "Manufacturer, "
+                        "UUID, "
+                        "Configuration, "
+                        "Notes, "
+                        "CreationTimestamp, "
+                        "LastConfigurationChange, "
+                        "LastConfigurationDownload "
+                        " FROM Devices",
                     into(Records),
                     range(From, From + HowMany - 1), now;
 
@@ -1202,9 +1238,8 @@ namespace uCentral::Storage {
             }
             return true;
         }
-        catch( const Poco::Exception & E)
-        {
-            Logger_.warning(Poco::format("%s: Failed with: %s",std::string(__func__),E.displayText() ));
+        catch (const Poco::Exception &E) {
+            Logger_.warning(Poco::format("%s: Failed with: %s", std::string(__func__), E.displayText()));
         }
         return false;
     }
@@ -1217,8 +1252,8 @@ namespace uCentral::Storage {
             Session session_ = Pool_->get();
 
             session_ << "SELECT SerialNumber FROM Capabilities WHERE SerialNumber='%s'",
-                into(SS),
-                SerialNumber.c_str(), now;
+                    into(SS),
+                    SerialNumber.c_str(), now;
 
             uint64_t Now = time(nullptr);
 
@@ -1231,7 +1266,8 @@ namespace uCentral::Storage {
  */
             if (SS.empty()) {
                 Logger_.information("Adding capabilities for " + SerialNumber);
-                session_ << "INSERT INTO Capabilities (SerialNumber, Capabilities, FirstUpdate, LastUpdate) VALUES('%s', '%s', %Lu, %Lu)",
+                session_
+                        << "INSERT INTO Capabilities (SerialNumber, Capabilities, FirstUpdate, LastUpdate) VALUES('%s', '%s', %Lu, %Lu)",
                         SerialNumber.c_str(),
                         Capabs.c_str(),
                         Now,
@@ -1245,9 +1281,9 @@ namespace uCentral::Storage {
             }
             return true;
         }
-        catch( const Poco::Exception & E)
-        {
-            Logger_.warning(Poco::format("%s(%s): Failed with: %s",std::string(__func__),SerialNumber,E.displayText() ));
+        catch (const Poco::Exception &E) {
+            Logger_.warning(
+                    Poco::format("%s(%s): Failed with: %s", std::string(__func__), SerialNumber, E.displayText()));
         }
         return false;
     }
@@ -1273,9 +1309,9 @@ namespace uCentral::Storage {
 
             return true;
         }
-        catch( const Poco::Exception & E)
-        {
-            Logger_.warning(Poco::format("%s(%s): Failed with: %s",std::string(__func__),SerialNumber,E.displayText() ));
+        catch (const Poco::Exception &E) {
+            Logger_.warning(
+                    Poco::format("%s(%s): Failed with: %s", std::string(__func__), SerialNumber, E.displayText()));
         }
         return false;
     }
@@ -1287,18 +1323,19 @@ namespace uCentral::Storage {
             Session session_ = Pool_->get();
 
             session_ <<
-                    "DELETE FROM Capabilities WHERE SerialNumber='%s'" ,
+                     "DELETE FROM Capabilities WHERE SerialNumber='%s'",
                     SerialNumber.c_str(), now;
             return true;
         }
-        catch( const Poco::Exception & E)
-        {
-            Logger_.warning(Poco::format("%s(%s): Failed with: %s",std::string(__func__),SerialNumber,E.displayText() ));
+        catch (const Poco::Exception &E) {
+            Logger_.warning(
+                    Poco::format("%s(%s): Failed with: %s", std::string(__func__), SerialNumber, E.displayText()));
         }
         return false;
     }
 
-    bool Service::ExistingConfiguration(std::string &SerialNumber, uint64_t CurrentConfig, std::string &NewConfig, uint64_t &UUID) {
+    bool Service::ExistingConfiguration(std::string &SerialNumber, uint64_t CurrentConfig, std::string &NewConfig,
+                                        uint64_t &UUID) {
         // std::lock_guard<std::mutex> guard(mutex_);
         std::string SS;
         try {
@@ -1322,9 +1359,9 @@ namespace uCentral::Storage {
 
             return true;
         }
-        catch( const Poco::Exception & E)
-        {
-            Logger_.warning(Poco::format("%s(%s): Failed with: %s",std::string(__func__),SerialNumber,E.displayText() ));
+        catch (const Poco::Exception &E) {
+            Logger_.warning(
+                    Poco::format("%s(%s): Failed with: %s", std::string(__func__), SerialNumber, E.displayText()));
         }
         return false;
     }
@@ -1342,7 +1379,7 @@ namespace uCentral::Storage {
                     "LastModified BIGINT)", now;
      */
 
-    bool Service::CreateDefaultConfiguration(std::string & Name, const uCentralDefaultConfiguration & DefConfig) {
+    bool Service::CreateDefaultConfiguration(std::string &Name, const uCentralDefaultConfiguration &DefConfig) {
         try {
 
             std::string TmpName;
@@ -1354,7 +1391,7 @@ namespace uCentral::Storage {
 
             if (TmpName.empty()) {
 
-                uCentral::Config::Config    Cfg(DefConfig.Configuration);
+                uCentral::Config::Config Cfg(DefConfig.Configuration);
 /*
                      "Name VARCHAR(30) PRIMARY KEY, "
                     "Configuration TEXT, "
@@ -1365,60 +1402,55 @@ namespace uCentral::Storage {
 
  */
 
-                if(Cfg.Valid()) {
+                if (Cfg.Valid()) {
                     uint64_t Now = time(nullptr);
-                    session_ << "INSERT INTO DefaultConfigs (Name, Configuration, Models, Description, Created, LastModified) VALUES('%s', '%s', '%s', '%s', %Lu, %Lu)" ,
-                        Name.c_str(),
-                        DefConfig.Configuration.c_str(),
-                        DefConfig.Models.c_str(),
-                        DefConfig.Description.c_str(),
-                        Now,
-                        Now, now;
+                    session_
+                            << "INSERT INTO DefaultConfigs (Name, Configuration, Models, Description, Created, LastModified) VALUES('%s', '%s', '%s', '%s', %Lu, %Lu)",
+                            Name.c_str(),
+                            DefConfig.Configuration.c_str(),
+                            DefConfig.Models.c_str(),
+                            DefConfig.Description.c_str(),
+                            Now,
+                            Now, now;
 
                     return true;
-                }
-                else
-                {
+                } else {
                     Logger_.warning("Cannot create device: invalid configuration.");
                     return false;
                 }
-            }
-            else
-            {
+            } else {
                 Logger_.warning("Default configuration already exists.");
             }
         }
-        catch( const Poco::Exception & E)
-        {
-            Logger_.warning(Poco::format("%s(%s): Failed with: %s",std::string(__func__),Name,E.displayText() ));
+        catch (const Poco::Exception &E) {
+            Logger_.warning(Poco::format("%s(%s): Failed with: %s", std::string(__func__), Name, E.displayText()));
         }
         return false;
     }
 
-    bool Service::DeleteDefaultConfiguration(const std::string & Name) {
+    bool Service::DeleteDefaultConfiguration(const std::string &Name) {
         try {
             Session session_ = Pool_->get();
 
             session_ <<
-                     "DELETE FROM DefaultConfigs WHERE Name='%s'" ,
+                     "DELETE FROM DefaultConfigs WHERE Name='%s'",
                     Name.c_str(), now;
             return true;
         }
-        catch( const Poco::Exception & E)
-        {
-            Logger_.warning(Poco::format("%s(%s): Failed with: %s",std::string(__func__),Name,E.displayText() ));
+        catch (const Poco::Exception &E) {
+            Logger_.warning(Poco::format("%s(%s): Failed with: %s", std::string(__func__), Name, E.displayText()));
         }
         return false;
     }
 
-    bool Service::UpdateDefaultConfiguration(std::string & Name, const uCentralDefaultConfiguration & DefConfig) {
+    bool Service::UpdateDefaultConfiguration(std::string &Name, const uCentralDefaultConfiguration &DefConfig) {
         try {
 
             Session session_ = Pool_->get();
 
-            uCentral::Config::Config    Cfg(DefConfig.Configuration);
+            uCentral::Config::Config Cfg(DefConfig.Configuration);
 
-            if(Cfg.Valid()) {
+            if (Cfg.Valid()) {
 
                 uint64_t Now = time(nullptr);
                 session_ <<
@@ -1429,21 +1461,19 @@ namespace uCentral::Storage {
                         Now,
                         Name.c_str(), now;
                 return true;
-            }
-            else
-            {
-                Logger_.warning(Poco::format("Default configuration: %s cannot be set to an invalid configuration.",Name));
+            } else {
+                Logger_.warning(
+                        Poco::format("Default configuration: %s cannot be set to an invalid configuration.", Name));
             }
             return false;
         }
-        catch( const Poco::Exception & E)
-        {
-            Logger_.warning(Poco::format("%s(%s): Failed with: %s",std::string(__func__),Name,E.displayText() ));
+        catch (const Poco::Exception &E) {
+            Logger_.warning(Poco::format("%s(%s): Failed with: %s", std::string(__func__), Name, E.displayText()));
         }
         return false;
     }
 
-    bool Service::GetDefaultConfiguration(std::string &Name, uCentralDefaultConfiguration & DefConfig) {
+    bool Service::GetDefaultConfiguration(std::string &Name, uCentralDefaultConfiguration &DefConfig) {
         try {
             Session session_ = Pool_->get();
 
@@ -1468,14 +1498,14 @@ namespace uCentral::Storage {
 
             return true;
         }
-        catch( const Poco::Exception & E)
-        {
-            Logger_.warning(Poco::format("%s(%s): Failed with: %s",std::string(__func__),Name,E.displayText() ));
+        catch (const Poco::Exception &E) {
+            Logger_.warning(Poco::format("%s(%s): Failed with: %s", std::string(__func__), Name, E.displayText()));
         }
         return false;
     }
 
-    bool Service::GetDefaultConfigurations(uint64_t From, uint64_t HowMany, std::vector<uCentralDefaultConfiguration> &DefConfigs) {
+    bool Service::GetDefaultConfigurations(uint64_t From, uint64_t HowMany,
+                                           std::vector<uCentralDefaultConfiguration> &DefConfigs) {
         typedef Poco::Tuple<
                 std::string,
                 std::string,
@@ -1514,38 +1544,34 @@ namespace uCentral::Storage {
             }
             return true;
         }
-        catch( const Poco::Exception & E)
-        {
-            Logger_.warning(Poco::format("%s: Failed with: %s",std::string(__func__),E.displayText() ));
+        catch (const Poco::Exception &E) {
+            Logger_.warning(Poco::format("%s: Failed with: %s", std::string(__func__), E.displayText()));
         }
         return false;
     }
 
-    bool FindInList( const std::string & Model, const std::string &List)
-    {
+    bool FindInList(const std::string &Model, const std::string &List) {
         auto P = 0;
         std::string Token;
 
-        while(P<List.size())
-        {
+        while (P < List.size()) {
             auto P2 = List.find_first_of(',', P);
-            if(P2==std::string::npos) {
+            if (P2 == std::string::npos) {
                 Token = List.substr(P);
-                if(Model.find(Token)!=std::string::npos)
+                if (Model.find(Token) != std::string::npos)
                     return true;
                 return false;
-            }
-            else {
+            } else {
                 Token = List.substr(P, P2);
-                if(Model.find(Token)!=std::string::npos)
+                if (Model.find(Token) != std::string::npos)
                     return true;
             }
-            P=P2+1;
+            P = P2 + 1;
         }
         return false;
     }
 
-    bool Service::FindDefaultConfigurationForModel(const std::string & Model, uCentralDefaultConfiguration & DefConfig ) {
+    bool Service::FindDefaultConfigurationForModel(const std::string &Model, uCentralDefaultConfiguration &DefConfig) {
         try {
             typedef Poco::Tuple<
                     std::string,
@@ -1572,9 +1598,10 @@ namespace uCentral::Storage {
 
             for (auto i: Records) {
                 DefConfig.Models = i.get<2>();
-                if(FindInList(Model,DefConfig.Models)) {
+                if (FindInList(Model, DefConfig.Models)) {
                     DefConfig.Name = i.get<0>();
-                    Logger_.information(Poco::format("AUTO-PROVISIONING: found default configuration '%s' for model:%s",DefConfig.Name,Model));
+                    Logger_.information(Poco::format("AUTO-PROVISIONING: found default configuration '%s' for model:%s",
+                                                     DefConfig.Name, Model));
                     DefConfig.Name = i.get<0>();
                     DefConfig.Configuration = i.get<1>();
                     DefConfig.Models = i.get<2>();
@@ -1584,17 +1611,16 @@ namespace uCentral::Storage {
                     return true;
                 }
             }
-            Logger_.information(Poco::format("AUTO-PROVISIONING: no default configuration for model:%s",Model));
+            Logger_.information(Poco::format("AUTO-PROVISIONING: no default configuration for model:%s", Model));
             return false;
         }
-        catch( const Poco::Exception & E)
-        {
-            Logger_.warning(Poco::format("%s: Failed with: %s",std::string(__func__),E.displayText() ));
+        catch (const Poco::Exception &E) {
+            Logger_.warning(Poco::format("%s: Failed with: %s", std::string(__func__), E.displayText()));
         }
         return false;
     }
 
-    bool Service::AddCommand(std::string & SerialNumber, uCentralCommandDetails & Command, bool AlreadyExecuted) {
+    bool Service::AddCommand(std::string &SerialNumber, uCentralCommandDetails &Command, bool AlreadyExecuted) {
         try {
             Session session_ = Pool_->get();
             /*
@@ -1610,51 +1636,55 @@ namespace uCentral::Storage {
                     "Completed      BIGINT, "
                     "RunAt          BIGINT, "
                     "ErrorCode      BIGINT, "
-                    "Custom         INT
+                    "Custom         BIGINT, "
+                    "WaitingForFile BIGINT, "
+                    "AttachDate     BIGINT"
              */
 
             uint64_t Now = time(nullptr);
 
             Command.Submitted = Now;
             Command.Completed = 0;
-            if(AlreadyExecuted)
-            {
+            if (AlreadyExecuted) {
                 Command.Executed = Now;
                 Command.Status = "executing";
-            }
-            else
-            {
+            } else {
                 Command.Executed = 0;
                 Command.Status = "pending";
             }
 
-            Command.ErrorCode = 0 ;
+            Command.ErrorCode = 0;
+            Command.AttachDate = 0 ;
 
-            session_ << "INSERT INTO CommandList (UUID, SerialNumber, Command, Status, SubmittedBy, Results, Details, Submitted, Executed, Completed, RunAt, ErrorCode, Custom) VALUES('%s','%s', '%s', '%s', '%s', '%s', '%s', %Lu, %Lu, %Lu, %Lu, %Lu, %u)" ,
-                Command.UUID.c_str(),
-                Command.SerialNumber.c_str(),
-                Command.Command.c_str(),
-                Command.Status.c_str(),
-                Command.SubmittedBy.c_str(),
-                Command.Results.c_str(),
-                Command.Details.c_str(),
-                Command.Submitted,
-                Command.Executed,
-                Command.Completed,
-                Command.RunAt,
-                Command.ErrorCode,
-                Command.Custom, now;
+            session_
+                    << "INSERT INTO CommandList (UUID, SerialNumber, Command, Status, SubmittedBy, Results, Details, Submitted, Executed, Completed, RunAt, ErrorCode, Custom, WaitingForFile, AttachDate) VALUES('%s','%s', '%s', '%s', '%s', '%s', '%s', %Lu, %Lu, %Lu, %Lu, %Lu, %Lu, %Lu, %Lu)",
+                    Command.UUID.c_str(),
+                    Command.SerialNumber.c_str(),
+                    Command.Command.c_str(),
+                    Command.Status.c_str(),
+                    Command.SubmittedBy.c_str(),
+                    Command.Results.c_str(),
+                    Command.Details.c_str(),
+                    Command.Submitted,
+                    Command.Executed,
+                    Command.Completed,
+                    Command.RunAt,
+                    Command.ErrorCode,
+                    Command.Custom,
+                    Command.WaitingForFile,
+                    Command.AttachDate, now;
 
             return true;
         }
-        catch( const Poco::Exception & E)
-        {
-            Logger_.warning(Poco::format("%s(%s): Failed with: %s",std::string(__func__),SerialNumber,E.displayText() ));
+        catch (const Poco::Exception &E) {
+            Logger_.warning(
+                    Poco::format("%s(%s): Failed with: %s", std::string(__func__), SerialNumber, E.displayText()));
         }
         return false;
     }
 
-    bool Service::GetCommands(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate, uint64_t Offset, uint64_t HowMany, std::vector<uCentralCommandDetails> & Commands) {
+    bool Service::GetCommands(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate, uint64_t Offset,
+                              uint64_t HowMany, std::vector<uCentralCommandDetails> &Commands) {
         typedef std::vector<CommandDetailsRecordTuple> RecordList;
 
         /*
@@ -1671,31 +1701,34 @@ namespace uCentral::Storage {
             "Completed      BIGINT, "
             "RunAt          BIGINT, "
             "ErrorCode      BIGINT, "
-            "Custom         INT"
+            "Custom         BIGINT, "
+            "WaitingForFile BIGINT, "
+            "AttachDate     BIGINT"
          */
 
         try {
             RecordList Records;
             Session session_ = Pool_->get();
 
-            bool DatesIncluded = (FromDate!=0 || ToDate!=0);
+            bool DatesIncluded = (FromDate != 0 || ToDate != 0);
 
-            std::string Fields{  "SELECT UUID, SerialNumber, Command, Status, SubmittedBy, Results, Details, ErrorText, "
-                                 "Submitted, Executed, Completed, RunAt, ErrorCode, Custom FROM CommandList "};
+            std::string Fields{"SELECT UUID, SerialNumber, Command, Status, SubmittedBy, Results, Details, ErrorText, "
+                               "Submitted, Executed, Completed, RunAt, ErrorCode, Custom, WaitingForFile, AttachDate  FROM CommandList "};
             std::string Statement = SerialNumber.empty()
                                     ? Fields + std::string(DatesIncluded ? "WHERE " : "")
-                                    : Fields + "WHERE SerialNumber='" + SerialNumber + "'" + std::string(DatesIncluded ? " AND " : "");
+                                    : Fields + "WHERE SerialNumber='" + SerialNumber + "'" +
+                                      std::string(DatesIncluded ? " AND " : "");
 
             std::string DateSelector;
-            if(FromDate && ToDate) {
+            if (FromDate && ToDate) {
                 DateSelector = " Submitted>=" + std::to_string(FromDate) + " AND Submitted<=" + std::to_string(ToDate);
             } else if (FromDate) {
                 DateSelector = " Submitted>=" + std::to_string(FromDate);
-            } else if(ToDate) {
+            } else if (ToDate) {
                 DateSelector = " Submitted<=" + std::to_string(ToDate);
             }
 
-            session_ << Statement + DateSelector ,
+            session_ << Statement + DateSelector,
                     into(Records),
                     range(Offset, Offset + HowMany - 1), now;
 
@@ -1714,16 +1747,18 @@ namespace uCentral::Storage {
                         .Completed = i.get<10>(),
                         .RunAt = i.get<11>(),
                         .ErrorCode = i.get<12>(),
-                        .Custom = i.get<13>()};
+                        .Custom = i.get<13>(),
+                        .WaitingForFile = i.get<14>(),
+                        .AttachDate = i.get<15>()};
 
                 Commands.push_back(R);
             }
 
             return true;
         }
-        catch( const Poco::Exception & E)
-        {
-            Logger_.warning(Poco::format("%s(%s): Failed with: %s",std::string(__func__),SerialNumber,E.displayText() ));
+        catch (const Poco::Exception &E) {
+            Logger_.warning(
+                    Poco::format("%s(%s): Failed with: %s", std::string(__func__), SerialNumber, E.displayText()));
         }
         return false;
     }
@@ -1732,32 +1767,35 @@ namespace uCentral::Storage {
         try {
             Session session_ = Pool_->get();
 
-            bool DatesIncluded = (FromDate!=0 || ToDate!=0);
+            bool DatesIncluded = (FromDate != 0 || ToDate != 0);
 
             std::string Statement = SerialNumber.empty()
-                    ? "DELETE FROM CommandList " + std::string(DatesIncluded ? "WHERE " : "")
-                    : "DELETE FROM CommandList WHERE SerialNumber='" + SerialNumber + "'" + std::string(DatesIncluded ? " AND " : "");
+                                    ? "DELETE FROM CommandList " + std::string(DatesIncluded ? "WHERE " : "")
+                                    : "DELETE FROM CommandList WHERE SerialNumber='" + SerialNumber + "'" +
+                                      std::string(DatesIncluded ? " AND " : "");
 
             std::string DateSelector;
-            if(FromDate && ToDate) {
+            if (FromDate && ToDate) {
                 DateSelector = " Submitted>=" + std::to_string(FromDate) + " AND Submitted<=" + std::to_string(ToDate);
             } else if (FromDate) {
                 DateSelector = " Submitted>=" + std::to_string(FromDate);
-            } else if(ToDate) {
+            } else if (ToDate) {
                 DateSelector = " Submitted<=" + std::to_string(ToDate);
             }
 
-            session_ << Statement + DateSelector , now;
+            session_ << Statement + DateSelector, now;
 
             return true;
         }
-        catch (const Poco::Exception & E ) {
-            Logger_.warning(Poco::format("%s(%s): Failed with: %s",std::string(__func__),SerialNumber,E.displayText() ));
+        catch (const Poco::Exception &E) {
+            Logger_.warning(
+                    Poco::format("%s(%s): Failed with: %s", std::string(__func__), SerialNumber, E.displayText()));
         }
         return false;
     }
 
-    bool Service::GetNonExecutedCommands( uint64_t Offset, uint64_t HowMany, std::vector<uCentralCommandDetails> & Commands ) {
+    bool
+    Service::GetNonExecutedCommands(uint64_t Offset, uint64_t HowMany, std::vector<uCentralCommandDetails> &Commands) {
         typedef std::vector<CommandDetailsRecordTuple> RecordList;
         /*
             "UUID           VARCHAR(30) PRIMARY KEY, "
@@ -1773,7 +1811,9 @@ namespace uCentral::Storage {
             "Completed      BIGINT, "
             "RunAt          BIGINT, "
             "ErrorCode      BIGINT, "
-            "Custom         INT"
+            "Custom         BIGINT, "
+            "WaitingForFile BIGINT, "
+            "AttachDate     BIGINT"
          */
 
         try {
@@ -1782,82 +1822,44 @@ namespace uCentral::Storage {
             Session session_ = Pool_->get();
 
             // range(Offset, Offset + HowMany - 1)
-                session_
-                        << "SELECT UUID, SerialNumber, Command, Status, SubmittedBy, Results, Details, ErrorText,"
-                           "Submitted, Executed, Completed, RunAt, ErrorCode, Custom FROM CommandList "
-                           " WHERE Executed=0",
-                        into(Records),
-                        range(Offset, Offset + HowMany - 1), now;
+            session_
+                    << "SELECT UUID, SerialNumber, Command, Status, SubmittedBy, Results, Details, ErrorText,"
+                       "Submitted, Executed, Completed, RunAt, ErrorCode, Custom, WaitingForFile, AttachDate FROM CommandList "
+                       " WHERE Executed=0",
+                    into(Records),
+                    range(Offset, Offset + HowMany - 1), now;
             for (auto i: Records) {
                 uCentralCommandDetails R{
-                    .UUID = i.get<0>(),
-                    .SerialNumber = i.get<1>(),
-                    .Command = i.get<2>(),
-                    .Status = i.get<3>(),
-                    .SubmittedBy = i.get<4>(),
-                    .Results = i.get<5>(),
-                    .Details = i.get<6>(),
-                    .ErrorText = i.get<7>(),
-                    .Submitted = i.get<8>(),
-                    .Executed = i.get<9>(),
-                    .Completed = i.get<10>(),
-                    .RunAt = i.get<11>(),
-                    .ErrorCode = i.get<12>(),
-                    .Custom = i.get<13>()};
+                        .UUID = i.get<0>(),
+                        .SerialNumber = i.get<1>(),
+                        .Command = i.get<2>(),
+                        .Status = i.get<3>(),
+                        .SubmittedBy = i.get<4>(),
+                        .Results = i.get<5>(),
+                        .Details = i.get<6>(),
+                        .ErrorText = i.get<7>(),
+                        .Submitted = i.get<8>(),
+                        .Executed = i.get<9>(),
+                        .Completed = i.get<10>(),
+                        .RunAt = i.get<11>(),
+                        .ErrorCode = i.get<12>(),
+                        .Custom = i.get<13>(),
+                        .WaitingForFile = i.get<14>(),
+                        .AttachDate = i.get<15>() };
 
                 Commands.push_back(R);
             }
 
             return true;
         }
-        catch( const Poco::Exception & E)
-        {
-            Logger_.warning(Poco::format("%s: Failed with: %s",std::string(__func__),E.displayText() ));
+        catch (const Poco::Exception &E) {
+            Logger_.warning(Poco::format("%s: Failed with: %s", std::string(__func__), E.displayText()));
         }
         return false;
 
     }
 
-    bool Service::UpdateCommand( std::string &UUID, uCentralCommandDetails & Command ) {
-
-        try {
-            Session session_ = Pool_->get();
-            /*
-                "UUID           VARCHAR(30) PRIMARY KEY, "
-                "SerialNumber   VARCHAR(30), "
-                "Command        VARCHAR(32), "
-                "Status         VARCHAR(64), "
-                "SubmittedBy    VARCHAR(64), "
-                "Results        TEXT, "
-                "Details        TEXT, "
-                "ErrorText      TEXT, "
-                "Submitted      BIGINT, "
-                "Executed       BIGINT, "
-                "Completed      BIGINT, "
-                "RunAt          BIGINT, "
-                "ErrorCode      BIGINT "
-             */
-
-            session_ << "UPDATE CommandList SET Status='%s', Executed=%Lu, Completed=%Lu, Results='%s', ErrorText='%s', ErrorCode=%Lu WHERE UUID='%s'",
-                    Command.Status.c_str(),
-                    Command.Executed,
-                    Command.Completed,
-                    Command.Results.c_str(),
-                    Command.ErrorText.c_str(),
-                    Command.ErrorCode,
-                    UUID.c_str(),now;
-
-            return true;
-
-        }
-        catch( const Poco::Exception & E)
-        {
-            Logger_.warning(Poco::format("%s(%s): Failed with: %s",std::string(__func__),UUID,E.displayText() ));
-        }
-        return false;
-    }
-
-    bool Service::GetCommand( std::string &UUID, uCentralCommandDetails & Command ) {
+    bool Service::UpdateCommand(std::string &UUID, uCentralCommandDetails &Command) {
 
         try {
             Session session_ = Pool_->get();
@@ -1875,65 +1877,109 @@ namespace uCentral::Storage {
                 "Completed      BIGINT, "
                 "RunAt          BIGINT, "
                 "ErrorCode      BIGINT, "
-                "Custom         INT"
+                "Custom         BIGINT, "
+                "WaitingForFile BIGINT, "
+                "AttachDate     BIGINT"
+             */
+
+            session_
+                    << "UPDATE CommandList SET Status='%s', Executed=%Lu, Completed=%Lu, Results='%s', ErrorText='%s', ErrorCode=%Lu WHERE UUID='%s'",
+                    Command.Status.c_str(),
+                    Command.Executed,
+                    Command.Completed,
+                    Command.Results.c_str(),
+                    Command.ErrorText.c_str(),
+                    Command.ErrorCode,
+                    UUID.c_str(), now;
+
+            return true;
+
+        }
+        catch (const Poco::Exception &E) {
+            Logger_.warning(Poco::format("%s(%s): Failed with: %s", std::string(__func__), UUID, E.displayText()));
+        }
+        return false;
+    }
+
+    bool Service::GetCommand(std::string &UUID, uCentralCommandDetails &Command) {
+
+        try {
+            Session session_ = Pool_->get();
+            /*
+                "UUID           VARCHAR(30) PRIMARY KEY, "
+                "SerialNumber   VARCHAR(30), "
+                "Command        VARCHAR(32), "
+                "Status         VARCHAR(64), "
+                "SubmittedBy    VARCHAR(64), "
+                "Results        TEXT, "
+                "Details        TEXT, "
+                "ErrorText      TEXT, "
+                "Submitted      BIGINT, "
+                "Executed       BIGINT, "
+                "Completed      BIGINT, "
+                "RunAt          BIGINT, "
+                "ErrorCode      BIGINT, "
+                "Custom         BIGINT, "
+                "WaitingForFile BIGINT, "
+                "AttachDate     BIGINT"
              */
 
             session_ << "SELECT UUID, SerialNumber, Command, Status, SubmittedBy, Results, Details, ErrorText, "
-                        "Submitted, Executed, Completed, RunAt, ErrorCode, Custom FROM CommandList "
+                        "Submitted, Executed, Completed, RunAt, ErrorCode, Custom, WaitingForFile, AttachDate FROM CommandList "
                         " WHERE UUID='%s'",
-                into(Command.UUID),
-                into(Command.SerialNumber),
-                into(Command.Command),
-                into(Command.Status),
-                into(Command.SubmittedBy),
-                into(Command.Results),
-                into(Command.Details),
-                into(Command.ErrorText),
-                into(Command.Submitted),
-                into(Command.Executed),
-                into(Command.Completed),
-                into(Command.RunAt),
-                into(Command.ErrorCode),
-                into(Command.Custom),
-                UUID.c_str(), now;
+                    into(Command.UUID),
+                    into(Command.SerialNumber),
+                    into(Command.Command),
+                    into(Command.Status),
+                    into(Command.SubmittedBy),
+                    into(Command.Results),
+                    into(Command.Details),
+                    into(Command.ErrorText),
+                    into(Command.Submitted),
+                    into(Command.Executed),
+                    into(Command.Completed),
+                    into(Command.RunAt),
+                    into(Command.ErrorCode),
+                    into(Command.Custom),
+                    into(Command.WaitingForFile),
+                    into(Command.AttachDate),
+                    UUID.c_str(), now;
 
             return true;
 
         }
-        catch( const Poco::Exception & E)
-        {
-            Logger_.warning(Poco::format("%s(%s): Failed with: %s",std::string(__func__),UUID,E.displayText() ));
+        catch (const Poco::Exception &E) {
+            Logger_.warning(Poco::format("%s(%s): Failed with: %s", std::string(__func__), UUID, E.displayText()));
         }
         return false;
     }
 
-    bool Service::DeleteCommand( std::string &UUID ) {
+    bool Service::DeleteCommand(std::string &UUID) {
         try {
             Session session_ = Pool_->get();
 
-            session_ << "DELETE FROM CommandList WHERE UUID='%s'" ,
-                UUID.c_str(),now;
+            session_ << "DELETE FROM CommandList WHERE UUID='%s'",
+                    UUID.c_str(), now;
             return true;
         }
-        catch( const Poco::Exception & E)
-        {
-            Logger_.warning(Poco::format("%s(%s): Failed with: %s",std::string(__func__),UUID,E.displayText() ));
+        catch (const Poco::Exception &E) {
+            Logger_.warning(Poco::format("%s(%s): Failed with: %s", std::string(__func__), UUID, E.displayText()));
         }
         return false;
     }
 
-    bool Service::GetReadyToExecuteCommands( uint64_t Offset, uint64_t HowMany, std::vector<uCentralCommandDetails> & Commands )
-    {
+    bool Service::GetReadyToExecuteCommands(uint64_t Offset, uint64_t HowMany,
+                                            std::vector<uCentralCommandDetails> &Commands) {
         // todo: finish the GetReadyToExecuteCommands call...
         try {
             Session session_ = Pool_->get();
             typedef std::vector<CommandDetailsRecordTuple> RecordList;
             uint64_t Now = time(nullptr);
 
-            RecordList  Records;
+            RecordList Records;
 
             session_ << "SELECT UUID, SerialNumber, Command, Status, SubmittedBy, Results, Details, ErrorText, "
-                        "Submitted, Executed, Completed, RunAt, ErrorCode, Custom FROM CommandList "
+                        "Submitted, Executed, Completed, RunAt, ErrorCode, Custom, WaitingForFile, AttachDate FROM CommandList "
                         " WHERE RunAt<%Lu And Executed=0",
                     into(Records),
                     Now,
@@ -1954,39 +2000,42 @@ namespace uCentral::Storage {
                         .Completed = i.get<10>(),
                         .RunAt = i.get<11>(),
                         .ErrorCode = i.get<12>(),
-                        .Custom = i.get<13>()};
+                        .Custom = i.get<13>(),
+                        .WaitingForFile = i.get<14>(),
+                        .AttachDate = i.get<15>()};
 
-                if(uCentral::DeviceRegistry::Connected(R.SerialNumber))
+                if (uCentral::DeviceRegistry::Connected(R.SerialNumber))
                     Commands.push_back(R);
             }
 
             return true;
         }
-        catch( const Poco::Exception & E) {
-            Logger_.warning(Poco::format("GetReadyToExecuteCommands(): Failed to retreive the list. %s", E.displayText()));
+        catch (const Poco::Exception &E) {
+            Logger_.warning(
+                    Poco::format("GetReadyToExecuteCommands(): Failed to retreive the list. %s", E.displayText()));
         }
         return false;
     }
 
-    bool Service::CommandExecuted(const std::string & UUID) {
+    bool Service::CommandExecuted(const std::string &UUID) {
         try {
             Session session_ = Pool_->get();
             uint64_t Now = time(nullptr);
 
-            session_ << "UPDATE CommandList SET Executed=%Lu WHERE UUID='%s'" ,
-                Now,
-                UUID.c_str(), now;
+            session_ << "UPDATE CommandList SET Executed=%Lu WHERE UUID='%s'",
+                    Now,
+                    UUID.c_str(), now;
 
             return true;
         }
         catch (const Poco::Exception &E) {
-            Logger_.warning(Poco::format("Could not update field on command %s",UUID));
+            Logger_.warning(Poco::format("Could not update field on command %s", UUID));
         }
 
         return false;
     }
 
-    bool Service::CommandCompleted(const std::string & UUID, Poco::DynamicStruct ReturnVars) {
+    bool Service::CommandCompleted(const std::string &UUID, Poco::DynamicStruct ReturnVars) {
         try {
             Session session_ = Pool_->get();
             uint64_t Now = time(nullptr);
@@ -2001,11 +2050,12 @@ namespace uCentral::Storage {
             auto ErrorText = StatusInnerObj["text"].toString();
 
             std::stringstream ResultText;
-            Poco::JSON::Stringifier::stringify(ResultObj,ResultText);
+            Poco::JSON::Stringifier::stringify(ResultObj, ResultText);
 
             // std::cout << ">>> UUID: " << UUID << " Errorcode: " << ErrorCode << " ErrorText: " << ErrorText << std::endl;
 
-            session_ << "UPDATE CommandList SET Completed=%Lu, ErrorCode=%Lu, ErrorText='%s', Results='%s', Status='%s' WHERE UUID='%s'" ,
+            session_
+                    << "UPDATE CommandList SET Completed=%Lu, ErrorCode=%Lu, ErrorText='%s', Results='%s', Status='%s' WHERE UUID='%s'",
                     Now,
                     ErrorCode,
                     ErrorText.c_str(),
@@ -2015,14 +2065,34 @@ namespace uCentral::Storage {
 
             return true;
         }
-        catch (const Poco::Exception & E) {
-
-            std::cout << "Could not update record" << E.displayText() << "  " << E.className() << " " << E.what() << std::endl;
+        catch (const Poco::Exception &E) {
+            std::cout << "Could not update record" << E.displayText() << "  " << E.className() << " " << E.what()
+                      << std::endl;
         }
 
         return false;
     }
 
+    bool Service::AttachFileToCommand(const std::string &UUID) {
+        try {
+            Session session_ = Pool_->get();
+            uint64_t Now = time(nullptr);
 
+            session_
+                    << "UPDATE CommandList SET WaitingForFile=%Lu, AttachDate=%Lu WHERE UUID='%s'",
+                    0,
+                    Now,
+                    UUID.c_str(), now;
+
+            return true;
+
+        }
+        catch ( const Poco::Exception & E)
+        {
+            Logger_.warning(Poco::format("Could not update outstanding command %s for file upload completion",UUID));
+        }
+        return false;
+    }
 };
+
 // namespace

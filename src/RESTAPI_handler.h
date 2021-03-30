@@ -45,7 +45,7 @@ public:
 
     RESTAPIHandler(BindingMap map, Poco::Logger & l, std::vector<std::string> Methods)
             : bindings_(std::move(map)),
-            logger_(l),
+            Logger_(l),
             methods_(std::move(Methods))
     {
 
@@ -76,7 +76,7 @@ public:
 protected:
     BindingMap                  bindings_;
     Poco::URI::QueryParameters  parameters_;
-    Poco::Logger                & logger_;
+    Poco::Logger                & Logger_;
     std::string                 SessionToken_;
     std::string                 UserName_;
     std::vector<std::string>    methods_;

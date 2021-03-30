@@ -43,7 +43,7 @@ void RESTAPI_command::handleRequest(HTTPServerRequest& Request, HTTPServerRespon
     }
     catch(const Poco::Exception &E)
     {
-        logger_.error(Poco::format("%s: failed with %s",std::string(__func__), E.displayText()));
+        Logger_.error(Poco::format("%s: failed with %s",std::string(__func__), E.displayText()));
     }
     BadRequest(Response);
 }

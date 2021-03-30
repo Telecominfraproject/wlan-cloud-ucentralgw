@@ -33,12 +33,14 @@ void SubSystemServer::initialize(Application & self)
             std::string key{root + "key"};
             std::string key_password{root + "key.password"};
             std::string cert{root + "cert"};
+            std::string name{root + "name"};
 
             PropertiesFileServerEntry entry(   uCentral::ServiceConfig::getString(address,""),
                                                uCentral::ServiceConfig::getInt(port,0),
                                                uCentral::ServiceConfig::getString(key,""),
                                                uCentral::ServiceConfig::getString(cert,""),
-                                               uCentral::ServiceConfig::getString(key_password,""));
+                                               uCentral::ServiceConfig::getString(key_password,""),
+                                               uCentral::ServiceConfig::getString(name,""));
             ConfigServersList_.push_back(entry);
             i++;
         }

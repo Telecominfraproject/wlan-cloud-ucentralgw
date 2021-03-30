@@ -127,6 +127,8 @@ Poco::JSON::Object uCentralCommandDetails::to_json() const {
     Obj.set("when",RESTAPIHandler::to_RFC3339(RunAt));
     Obj.set("errorCode",ErrorCode);
     Obj.set("custom",Custom);
+    Obj.set("waitingForFile", WaitingForFile);
+    Obj.set("attachFile",RESTAPIHandler::to_RFC3339(AttachDate));
     return Obj;
 }
 

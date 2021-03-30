@@ -14,6 +14,7 @@
 #include "RESTAPI_default_configurations.h"
 #include "RESTAPI_commands.h"
 #include "RESTAPI_command.h"
+#include "RESTAPI_file.h"
 
 #include "RESTAPI_unknownRequestHandler.h"
 
@@ -94,6 +95,8 @@ namespace uCentral::RESTAPI {
             return new RESTAPI_command(bindings, Logger_);
         } else if (RESTAPIHandler::ParseBindings(path, "/api/v1/commands", bindings)) {
             return new RESTAPI_commands(bindings, Logger_);
+        } else if (RESTAPIHandler::ParseBindings(path, "/api/v1/file/{uuid}", bindings)) {
+            return new RESTAPI_file(bindings, Logger_);
         }
 
         return new RESTAPI_UnknownRequestHandler(bindings,Logger_);

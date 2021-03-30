@@ -34,6 +34,7 @@ public:
     void Reboot(HTTPServerRequest& Request, HTTPServerResponse& Response);
     void Factory(HTTPServerRequest &Request, HTTPServerResponse &Response);
     void Blink(HTTPServerRequest &Request, HTTPServerResponse &Response);
+    void Trace(HTTPServerRequest &Request, HTTPServerResponse &Response);
 };
 
 #endif //UCENTRAL_RESTAPI_DEVICECOMMANDHANDLER_H

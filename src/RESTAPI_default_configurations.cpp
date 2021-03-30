@@ -29,7 +29,7 @@ void RESTAPI_default_configurations::handleRequest(HTTPServerRequest& Request, H
             auto Limit = GetParameter("limit", 100);
             auto Filter = GetParameter("filter", "");
 
-            logger_.information(Poco::format("DEFAULT_CONFIGURATIONS: from %Lu, limit of %Lu, filter=%s.", (int64_t )Offset, (int64_t ) Limit, Filter));
+            Logger_.information(Poco::format("DEFAULT_CONFIGURATIONS: from %Lu, limit of %Lu, filter=%s.", (int64_t )Offset, (int64_t ) Limit, Filter));
             RESTAPIHandler::PrintBindings();
 
             std::vector<uCentralDefaultConfiguration> DefConfigs;
@@ -50,6 +50,6 @@ void RESTAPI_default_configurations::handleRequest(HTTPServerRequest& Request, H
     }
     catch (const Poco::Exception & E)
     {
-        logger_.warning(Poco::format("%s: Failed with: %s",std::string(__func__),E.displayText() ));
+        Logger_.warning(Poco::format("%s: Failed with: %s",std::string(__func__),E.displayText() ));
     }
 }

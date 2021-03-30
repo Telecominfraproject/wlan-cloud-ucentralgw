@@ -90,7 +90,9 @@ struct uCentralCommandDetails {
     uint64_t        Completed;
     uint64_t        RunAt;
     uint64_t        ErrorCode;
-    uint32_t        Custom;
+    uint64_t        Custom;
+    uint64_t        WaitingForFile;
+    uint64_t        AttachDate;
     [[nodiscard]] Poco::JSON::Object to_json() const;
 };
 

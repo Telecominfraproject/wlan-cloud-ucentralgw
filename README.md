@@ -157,8 +157,8 @@ tip.api.host = debfarm1-node-a1.arilia.com
 tip.api.port = 9051
 tip.gateway.host.0.address = *
 tip.gateway.host.0.port = 9031
-tip.gateway.host.0.key = $UCENTRAL_ROOT/certs/ws-key.pem
-tip.gateway.host.0.cert = $UCENTRAL_ROOT/certs/ws-cert.pem
+tip.gateway.host.0.key = $UCENTRAL_ROOT/certs/server-key.pem
+tip.gateway.host.0.cert = $UCENTRAL_ROOT/certs/server-cert.pem
 tip.gateway.host.0.password = mypassword
 #
 # uCentral - TIP Gateway Bridge
@@ -243,6 +243,17 @@ ucentral.restapi.host.0.key = $UCENTRAL_ROOT/certs/server-key.pem
 ucentral.restapi.host.0.key.password = mypassword
 
 #
+# Used to upload files to the service.
+#
+ucentral.fileuploader.host.0.address = *
+ucentral.fileuploader.host.0.name = 192.168.1.176
+ucentral.fileuploader.host.0.port = 16003
+ucentral.fileuploader.host.0.cert = $UCENTRAL_ROOT/certs/server-cert.pem
+ucentral.fileuploader.host.0.key = $UCENTRAL_ROOT/certs/server-key.pem
+ucentral.fileuploader.host.0.key.password = mypassword
+ucentral.fileuploader.path = $UCENTRAL_ROOT/uploads
+
+#
 # This section descrive how to do autoprovisioning
 # When enabled, it will allow devices that are not in the system
 # to be managed and serviced
@@ -251,7 +262,6 @@ ucentral.autoprovisioning = true
 ucentral.autoprovisioning.type.0 = AP:ea8300,edge
 ucentral.autoprovisioning.type.1 = IOT:ea8301,edge2
 ucentral.autoprovisioning.type.2 = AP:ea8302,edge6
-
 
 #
 # This section select which form of persistence you need
@@ -292,6 +302,9 @@ authentication.enabled = true
 authentication.default.username = support@example.com
 authentication.default.password = support
 authentication.service.type = internal
+
+ucentral.system.debug = true
+ucentral.system.id = 1
 ```
 
 #### Important config entries

@@ -35,18 +35,21 @@ public:
                                uint32_t port,
                                const std::string &key_file,
                                const std::string &cert_file,
-                               const std::string &key_file_password = "" ) :
+                               const std::string &key_file_password = "",
+                               const std::string &name="") :
             address_(address),
             port_(port),
             key_file_(key_file),
             cert_file_(cert_file),
-            key_file_password_(key_file_password) {};
+            key_file_password_(key_file_password),
+            name_(name){};
     
     [[nodiscard]] const std::string & address() const { return address_; };
     [[nodiscard]] uint32_t port() const { return port_; };
     [[nodiscard]] const std::string & key_file() const { return key_file_; };
     [[nodiscard]] const std::string & cert_file() const { return cert_file_; };
     [[nodiscard]] const std::string & key_file_password() const { return key_file_password_; };
+    [[nodiscard]] const std::string & name() const { return name_; };
     [[nodiscard]] Poco::Net::SecureServerSocket CreateSecureSocket() const;
 
 private:
@@ -55,6 +58,7 @@ private:
     std::string     key_file_;
     std::string     key_file_password_;
     uint32_t        port_;
+    std::string     name_;
 };
 
 class SubSystemServer : public Poco::Util::Application::Subsystem {

@@ -52,7 +52,7 @@ add_executable( ucentral
                 src/RESTAPI_objects.h src/RESTAPI_objects.cpp src/uAuthService.cpp src/uAuthService.h src/uCentralConfig.cpp src/uCentralConfig.h
                 src/RESTAPI_default_configuration.cpp
                 src/RESTAPI_default_configuration.h src/RESTAPI_default_configurations.cpp src/RESTAPI_default_configurations.h src/RESTAPI_commands.cpp
-                src/RESTAPI_commands.h src/uCommandManager.cpp src/uCommandManager.h src/RESTAPI_command.cpp src/RESTAPI_command.h src/base64util.cpp src/base64util.h)
+                src/RESTAPI_commands.h src/uCommandManager.cpp src/uCommandManager.h src/RESTAPI_command.cpp src/RESTAPI_command.h src/base64util.cpp src/base64util.h src/uFileUploader.cpp src/uFileUploader.h src/RESTAPI_file.cpp src/RESTAPI_file.h)
 
 INSTALL(TARGETS ucentral
         RUNTIME DESTINATION /usr/bin

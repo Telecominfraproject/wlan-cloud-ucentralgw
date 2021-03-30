@@ -39,6 +39,7 @@ using Poco::AutoPtr;
 #include "uCentralConfig.h"
 #include "uCommandManager.h"
 #include "base64util.h"
+#include "uFileUploader.h"
 
 namespace uCentral {
 
@@ -101,6 +102,7 @@ namespace uCentral {
         addSubsystem(uCentral::RESTAPI::Service::instance());
         addSubsystem(uCentral::WebSocket::Service::instance());
         addSubsystem(uCentral::CommandManager::Service::instance());
+        addSubsystem(uCentral::uFileUploader::Service::instance());
 
         ServerApplication::initialize(self);
 
@@ -259,6 +261,8 @@ namespace uCentral {
             uCentral::RESTAPI::Start();
             uCentral::WebSocket::Start();
             uCentral::CommandManager::Start();
+            uCentral::uFileUploader::Start();
+
 
 #ifndef SMALL_BUILD
             uCentral::TIPGW::Start();
@@ -268,6 +272,8 @@ namespace uCentral {
 #ifndef SMALL_BUILD
             uCentral::TIPGW::Stop();
 #endif
+
+            uCentral::uFileUploader::Stop();
             uCentral::CommandManager::Stop();
             uCentral::WebSocket::Stop();
             uCentral::RESTAPI::Stop();

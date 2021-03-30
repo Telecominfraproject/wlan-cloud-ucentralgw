@@ -71,6 +71,7 @@ namespace uCentral::Storage {
     bool GetReadyToExecuteCommands( uint64_t Offset, uint64_t HowMany, std::vector<uCentralCommandDetails> & Commands );
     bool CommandExecuted(const std::string & UUID);
     bool CommandCompleted(const std::string & UUID, Poco::DynamicStruct ReturnVars);
+    bool AttachFileToCommand(const std::string & UUID);
 
     std::string SerialToMAC(const std::string & Serial);
 
@@ -135,6 +136,7 @@ namespace uCentral::Storage {
         friend bool GetReadyToExecuteCommands( uint64_t Offset, uint64_t HowMany, std::vector<uCentralCommandDetails> & Commands );
         friend bool CommandExecuted(const std::string & UUID);
         friend bool CommandCompleted(const std::string & UUID, Poco::DynamicStruct ReturnVars);
+        friend bool AttachFileToCommand(const std::string & UUID);
 
     private:
         bool AddLog(std::string & SerialNumber, const uCentralDeviceLog & Log );
@@ -187,6 +189,7 @@ namespace uCentral::Storage {
         bool GetReadyToExecuteCommands( uint64_t Offset, uint64_t HowMany, std::vector<uCentralCommandDetails> & Commands );
         bool CommandExecuted(const std::string & UUID);
         bool CommandCompleted(const std::string & UUID, Poco::DynamicStruct ReturnVars);
+        bool AttachFileToCommand(const std::string & UUID);
 
         int Start() override;
         void Stop() override;

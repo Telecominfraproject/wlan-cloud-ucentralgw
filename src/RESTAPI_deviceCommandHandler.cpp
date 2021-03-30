@@ -11,6 +11,7 @@
 
 #include "uCentral.h"
 #include "uCentralConfig.h"
+#include "uFileUploader.h"
 
 void RESTAPI_deviceCommandHandler::handleRequest(HTTPServerRequest& Request, HTTPServerResponse& Response)
 {
@@ -60,6 +61,8 @@ void RESTAPI_deviceCommandHandler::handleRequest(HTTPServerRequest& Request, HTT
             Factory(Request, Response);
         } else if (Command == "blink" && Request.getMethod() == Poco::Net::HTTPServerRequest::HTTP_POST) {
             Blink(Request, Response);
+        } else if (Command == "trace" && Request.getMethod() == Poco::Net::HTTPServerRequest::HTTP_POST) {
+            Trace(Request, Response);
         } else {
             BadRequest(Response);
         }
@@ -67,7 +70,7 @@ void RESTAPI_deviceCommandHandler::handleRequest(HTTPServerRequest& Request, HTT
     }
     catch(const Poco::Exception &E)
     {
-        logger_.error(Poco::format("%s: failed with %s",std::string(__func__) ,E.displayText()));
+        Logger_.error(Poco::format("%s: failed with %s",std::string(__func__) ,E.displayText()));
     }
     BadRequest(Response);
 };
@@ -87,7 +90,7 @@ void  RESTAPI_deviceCommandHandler::GetCapabilities(HTTPServerRequest &Request, 
     }
     catch(const Poco::Exception &E)
     {
-        logger_.error(Poco::format("%s: failed with %s",std::string(__func__), E.displayText()));
+        Logger_.error(Poco::format("%s: failed with %s",std::string(__func__), E.displayText()));
     }
     BadRequest(Response);
 }
@@ -104,7 +107,7 @@ void  RESTAPI_deviceCommandHandler::DeleteCapabilities(HTTPServerRequest &Reques
     }
     catch(const Poco::Exception &E)
     {
-        logger_.error(Poco::format("%s: failed with %s",std::string(__func__) ,E.displayText()));
+        Logger_.error(Poco::format("%s: failed with %s",std::string(__func__) ,E.displayText()));
     }
     BadRequest(Response);
 }
@@ -139,7 +142,7 @@ void RESTAPI_deviceCommandHandler::GetStatistics(HTTPServerRequest& Request, HTT
     }
     catch(const Poco::Exception &E)
     {
-        logger_.error(Poco::format("%s: failed with %s",std::string(__func__) ,E.displayText()));
+        Logger_.error(Poco::format("%s: failed with %s",std::string(__func__) ,E.displayText()));
     }
     BadRequest(Response);
 }
@@ -158,7 +161,7 @@ void RESTAPI_deviceCommandHandler::DeleteStatistics(HTTPServerRequest& Request, 
     }
     catch(const Poco::Exception &E)
     {
-        logger_.error(Poco::format("%s: failed with %s",std::string(__func__), E.displayText()));
+        Logger_.error(Poco::format("%s: failed with %s",std::string(__func__), E.displayText()));
     }
     BadRequest(Response);
 }
@@ -181,7 +184,7 @@ void RESTAPI_deviceCommandHandler::GetStatus(HTTPServerRequest& Request, HTTPSer
     }
     catch(const Poco::Exception &E)
     {
-        logger_.error(Poco::format("%s: failed with %s",std::string(__func__), E.displayText()));
+        Logger_.error(Poco::format("%s: failed with %s",std::string(__func__), E.displayText()));
     }
     BadRequest(Response);
 }
@@ -231,6 +234,7 @@ void RESTAPI_deviceCommandHandler::Configure(HTTPServerRequest& Request, HTTPSer
                 Cmd.Command = "configure";
                 Cmd.Custom = 0;
                 Cmd.RunAt = When;
+                Cmd.WaitingForFile = 0;
 
                 uCentral::Config::Config    Cfg(Configuration);
 
@@ -276,7 +280,7 @@ void RESTAPI_deviceCommandHandler::Configure(HTTPServerRequest& Request, HTTPSer
     }
     catch(const Poco::Exception &E)
     {
-        logger_.error(Poco::format("%s: failed with %s",std::string(__func__), E.displayText()));
+        Logger_.error(Poco::format("%s: failed with %s",std::string(__func__), E.displayText()));
     }
     BadRequest(Response);
 }
@@ -314,6 +318,7 @@ void RESTAPI_deviceCommandHandler::Upgrade(HTTPServerRequest &Request, HTTPServe
             Cmd.Custom = 0;
             Cmd.Command = "upgrade";
             Cmd.RunAt = When;
+            Cmd.WaitingForFile = 0;
 
             Poco::JSON::Object  Params;
 
@@ -350,7 +355,7 @@ void RESTAPI_deviceCommandHandler::Upgrade(HTTPServerRequest &Request, HTTPServe
     }
     catch(const Poco::Exception &E)
     {
-        logger_.error(Poco::format("%s: failed with %s",std::string(__func__), E.displayText()));
+        Logger_.error(Poco::format("%s: failed with %s",std::string(__func__), E.displayText()));
     }
     BadRequest(Response);
 }
@@ -382,7 +387,7 @@ void RESTAPI_deviceCommandHandler::GetLogs(HTTPServerRequest& Request, HTTPServe
     }
     catch(const Poco::Exception &E)
     {
-        logger_.error(Poco::format("%s: failed with %s",std::string(__func__), E.displayText()));
+        Logger_.error(Poco::format("%s: failed with %s",std::string(__func__), E.displayText()));
     }
     BadRequest(Response);
 }
@@ -401,7 +406,7 @@ void RESTAPI_deviceCommandHandler::DeleteLogs(HTTPServerRequest& Request, HTTPSe
     }
     catch(const Poco::Exception &E)
     {
-        logger_.error(Poco::format("%s: failed with %s",std::string(__func__), E.displayText()));
+        Logger_.error(Poco::format("%s: failed with %s",std::string(__func__), E.displayText()));
     }
     BadRequest(Response);
 }
@@ -434,7 +439,7 @@ void RESTAPI_deviceCommandHandler::GetChecks(HTTPServerRequest& Request, HTTPSer
     }
     catch(const Poco::Exception &E)
     {
-        logger_.error(Poco::format("%s: failed with %s",std::string(__func__), E.displayText()));
+        Logger_.error(Poco::format("%s: failed with %s",std::string(__func__), E.displayText()));
     }
     BadRequest(Response);
 }
@@ -453,7 +458,7 @@ void RESTAPI_deviceCommandHandler::DeleteChecks(HTTPServerRequest& Request, HTTP
     }
     catch(const Poco::Exception &E)
     {
-        logger_.error(Poco::format("%s: failed with %s",std::string(__func__) ,E.displayText()));
+        Logger_.error(Poco::format("%s: failed with %s",std::string(__func__) ,E.displayText()));
     }
     BadRequest(Response);
 }
@@ -493,6 +498,7 @@ void RESTAPI_deviceCommandHandler::ExecuteCommand(HTTPServerRequest& Request, HT
             Cmd.Command = Command;
             Cmd.Custom = 1;
             Cmd.RunAt = RunAt;
+            Cmd.WaitingForFile = 0;
 
             Parser parser2;
 
@@ -535,7 +541,7 @@ void RESTAPI_deviceCommandHandler::ExecuteCommand(HTTPServerRequest& Request, HT
     }
     catch(const Poco::Exception &E)
     {
-        logger_.error(Poco::format("%s: failed with %s",std::string(__func__), E.displayText()));
+        Logger_.error(Poco::format("%s: failed with %s",std::string(__func__), E.displayText()));
     }
     BadRequest(Response);
 }
@@ -569,6 +575,7 @@ void RESTAPI_deviceCommandHandler::Reboot(HTTPServerRequest& Request, HTTPServer
             Cmd.Command = "reboot";
             Cmd.Custom = 0;
             Cmd.RunAt = When;
+            Cmd.WaitingForFile = 0;
 
             Poco::JSON::Object  Params;
 
@@ -604,7 +611,7 @@ void RESTAPI_deviceCommandHandler::Reboot(HTTPServerRequest& Request, HTTPServer
     }
     catch(const Poco::Exception &E)
     {
-        logger_.error(Poco::format("%s: failed with %s",std::string(__func__), E.displayText()));
+        Logger_.error(Poco::format("%s: failed with %s",std::string(__func__), E.displayText()));
     }
     BadRequest(Response);
 }
@@ -664,6 +671,7 @@ void RESTAPI_deviceCommandHandler::Factory(HTTPServerRequest &Request, HTTPServe
             Cmd.Command = "factory";
             Cmd.Custom = 0;
             Cmd.RunAt = When;
+            Cmd.WaitingForFile = 0;
 
             Poco::JSON::Object  Params;
 
@@ -700,7 +708,7 @@ void RESTAPI_deviceCommandHandler::Factory(HTTPServerRequest &Request, HTTPServe
     }
     catch(const Poco::Exception &E)
     {
-        logger_.error(Poco::format("%s: failed with %s",std::string(__func__), E.displayText()));
+        Logger_.error(Poco::format("%s: failed with %s",std::string(__func__), E.displayText()));
     }
     BadRequest(Response);
 }
@@ -752,6 +760,7 @@ void RESTAPI_deviceCommandHandler::Blink(HTTPServerRequest &Request, HTTPServerR
             Cmd.Command = "blink";
             Cmd.Custom = 0;
             Cmd.RunAt = When;
+            Cmd.WaitingForFile = 0;
 
             Poco::JSON::Object  Params;
 
@@ -787,7 +796,144 @@ void RESTAPI_deviceCommandHandler::Blink(HTTPServerRequest &Request, HTTPServerR
     }
     catch(const Poco::Exception &E)
     {
-        logger_.error(Poco::format("%s: failed with %s",std::string(__func__), E.displayText()));
+        Logger_.error(Poco::format("%s: failed with %s",std::string(__func__), E.displayText()));
     }
     BadRequest(Response);
 }
+
+/*
+ *
+    TraceRequest:
+      type: object
+      properties:
+        serialNumber:
+          type: string
+        when:
+          type: string
+          format: 'date-time'
+        duration:
+          type: integer
+          format: int64
+        numberOfPackets:
+          type: integer
+          format: int64
+        network:
+          type: string
+        interface:
+          type: string
+ *
+ *
+ *
+```
+{    "jsonrpc" : "2.0" ,
+     "method" : "trace" ,
+     "params" : {
+	        "serial" : <serial number> ,
+	        "when" : Optional - <UTC time when to reboot, 0 mean immediately, this is a suggestion>,
+	        "duration" : <integer representing the number of seconds to run the trace>
+	        "packets" : <integer for the number of packets to capture>
+	        "network" : <string identifying the network to trace>
+	        "interface" : <string identifying the interface to capture on>
+	        "uri" : <complete URI where to upload the trace. This URI will be available for 30 minutes following a trace request start>
+     },
+     "id" : <some number>
+}
+```
+
+The AP should answer:
+```
+{     "jsonrpc" : "2.0" ,
+      "result" : {
+      "serial" : <serial number> ,
+      "status" : {
+	    "error" : 0 or an error number,
+	    "text" : <description of the error or success>,
+	    "when" : <time when this will be performed as UTC seconds>,
+  	},
+  "id" : <same number>
+}
+```
+ */
+
+void RESTAPI_deviceCommandHandler::Trace(HTTPServerRequest &Request, HTTPServerResponse &Response) {
+    try {
+        auto SNum = GetBinding("serialNumber", "");
+
+        //  get the configuration from the body of the message
+        Poco::JSON::Parser parser;
+        Poco::JSON::Object::Ptr Obj = parser.parse(Request.stream()).extract<Poco::JSON::Object::Ptr>();
+        Poco::DynamicStruct ds = *Obj;
+
+        if (ds.contains("serialNumber") &&
+            ds.contains("network") &&
+            ds.contains("interface")) {
+
+            auto SerialNumber = ds["serialNumber"].toString();
+
+            if(SerialNumber != SNum) {
+                BadRequest(Response);
+                return;
+            }
+
+            uint64_t Duration = ds.contains("duration") ? (uint64_t)ds["duration"] : 0;
+            uint64_t When = ds.contains("when") ? RESTAPIHandler::from_RFC3339(ds["when"].toString()) : 0;
+            uint64_t NumberOfPackets = ds.contains("numberOfPackets") ? (uint64_t)ds["numberOfPackets"] : 0;
+            auto Network = ds["network"].toString();
+            auto Interface = ds["interface"].toString();
+            auto UUID = uCentral::instance()->CreateUUID();
+            auto URI = uCentral::uFileUploader::FullName() + UUID ;
+
+            uCentralCommandDetails  Cmd;
+
+            Cmd.SerialNumber = SerialNumber;
+            Cmd.UUID = UUID;
+            Cmd.SubmittedBy = UserName_;
+            Cmd.Command = "trace";
+            Cmd.Custom = 0;
+            Cmd.RunAt = When;
+            Cmd.WaitingForFile = 1;
+
+            Poco::JSON::Object  Params;
+
+            Params.set("serial" , SerialNumber );
+            Params.set("duration", Duration);
+            Params.set("when", When);
+            Params.set("packets", NumberOfPackets);
+            Params.set("network", Network);
+            Params.set("interface", Interface);
+            Params.set("uri",URI);
+
+            std::stringstream ParamStream;
+            Params.stringify(ParamStream);
+            Cmd.Details = ParamStream.str();
+
+            if(uCentral::Storage::AddCommand(SerialNumber,Cmd)) {
+
+                uCentral::uFileUploader::AddUUID(UUID);
+                Poco::JSON::Object RetObj;
+
+                RetObj.set("serialNumber", SerialNumber);
+                RetObj.set("command", Cmd.Command);
+                RetObj.set("UUID", Cmd.UUID);
+
+                ReturnObject(RetObj, Response);
+
+                return;
+            }
+            else
+            {
+                BadRequest(Response);
+                return;
+            }
+        }
+        else
+            BadRequest(Response);
+        return;
+    }
+    catch(const Poco::Exception &E)
+    {
+        Logger_.error(Poco::format("%s: failed with %s",std::string(__func__), E.displayText()));
+    }
+    BadRequest(Response);
+}
+
