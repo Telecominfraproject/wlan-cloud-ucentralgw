@@ -28,12 +28,6 @@ namespace uCentral {
     class Daemon : public Poco::Util::ServerApplication {
 
     public:
-        Daemon() :
-            helpRequested_(false),
-            AutoProvisioning_(false),
-            DebugMode_(false),
-            ID_(1) {};
-
         void initialize(Application &self) override;
         void uninitialize() override;
         void reinitialize(Application &self) override;
@@ -53,13 +47,13 @@ namespace uCentral {
         uint64_t ID() const { return ID_; }
 
     private:
-        bool                        helpRequested_;
-        bool                        AutoProvisioning_;
+        bool                        helpRequested_ = false;
+        bool                        AutoProvisioning_ = false;
         std::map<std::string,std::vector<std::string>>    DeviceTypeIdentifications_;
         std::string                 ConfigFileName_;
         std::string                 LogDir_;
-        bool                        DebugMode_;
-        uint64_t                    ID_;
+        bool                        DebugMode_ = false;
+        uint64_t                    ID_ = 1;
         Poco::UUIDGenerator         UUIDGenerator_;
         MyErrorHandler              AppErrorHandler_;
 
