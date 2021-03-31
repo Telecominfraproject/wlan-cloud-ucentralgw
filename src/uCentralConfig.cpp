@@ -37,20 +37,6 @@ namespace uCentral::Config {
         }
         return false;
     }
-/*
- * "stats": {
-                "interval": 60,
-                "neighbours": 1,
-                "traffic": 1,
-                "wifiiface": 1,
-                "wifistation": 1,
-                "pids": 1,
-                "serviceprobe": 1,
-                "lldp": 1,
-                "system": 1,
-                "poe": 1
-        },
- */
 
     bool Config::Valid() {
         try {
