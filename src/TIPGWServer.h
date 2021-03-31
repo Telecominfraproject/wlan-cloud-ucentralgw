@@ -33,12 +33,11 @@ namespace uCentral::TIPGW {
     private:
         int Start() override;
         void Stop() override;
-        std::vector<std::shared_ptr<Poco::Net::HTTPServer>>     RESTServers_;
+        std::vector<std::unique_ptr<Poco::Net::HTTPServer>>     RESTServers_;
         static Service *instance_;
     };
 
     class RequestHandler : public Poco::Net::HTTPRequestHandler
-        /// Handle a WebSocket connection.
     {
     public:
         explicit RequestHandler(Poco::Logger &logger)

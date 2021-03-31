@@ -16,7 +16,7 @@ public:
                          L,
                          std::vector<std::string>{Poco::Net::HTTPRequest::HTTP_GET,
                                                   Poco::Net::HTTPRequest::HTTP_OPTIONS}) {};
-    void handleRequest(HTTPServerRequest& request, HTTPServerResponse& response) override;
+    void handleRequest(Poco::Net::HTTPServerRequest& request, Poco::Net::HTTPServerResponse& response) override;
 };
 
 #endif //UCENTRAL_RESTAPI_DEVICESHANDLER_H

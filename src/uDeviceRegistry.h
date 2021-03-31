@@ -6,11 +6,9 @@
 #define UCENTRAL_UDEVICEREGISTRY_H
 
 #include "SubSystemServer.h"
-
-#include "Poco/Tuple.h"
-#include "Poco/JSON/Object.h"
-
 #include "RESTAPI_objects.h"
+
+#include "Poco/JSON/Object.h"
 
 namespace uCentral::DeviceRegistry {
 

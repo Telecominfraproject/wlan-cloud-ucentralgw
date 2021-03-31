@@ -10,28 +10,22 @@
 
 #include <fstream>
 
-void RESTAPI_file::handleRequest(HTTPServerRequest& Request, HTTPServerResponse& Response)
+void RESTAPI_file::handleRequest(Poco::Net::HTTPServerRequest& Request, Poco::Net::HTTPServerResponse& Response)
 {
-//    if(!ContinueProcessing(Request,Response))
-//        return;
+    if(!ContinueProcessing(Request,Response))
+        return;
 
-//    if(!IsAuthorized(Request,Response))
-//        return;
+    if(!IsAuthorized(Request,Response))
+        return;
 
     try {
         ParseParameters(Request);
 
-        std::cout << __LINE__ << std::endl;
-
         if (Request.getMethod() == Poco::Net::HTTPRequest::HTTP_GET) {
             auto UUID = GetBinding("uuid", "");
 
-            std::cout << __LINE__ << std::endl;
-
-
             //does the file exist
             Poco::File  DownloadFile(uCentral::uFileUploader::Path() + "/" + UUID);
-            std::cout << __LINE__ << std::endl;
 
             if(!DownloadFile.isFile())
             {

@@ -48,7 +48,7 @@ void RESTAPIHandler::PrintBindings() {
         std::cout << "Key = " << key << "  Value= " << value << std::endl;
 }
 
-void RESTAPIHandler::ParseParameters(HTTPServerRequest& request) {
+void RESTAPIHandler::ParseParameters(Poco::Net::HTTPServerRequest& request) {
 
     Poco::URI uri(request.getURI());
     parameters_ = uri.getQueryParameters();
@@ -124,7 +124,7 @@ static std::string MakeList(const std::vector<std::string> & L)
     return Return;
 }
 
-void RESTAPIHandler::ProcessOptions( HTTPServerResponse & Response )
+void RESTAPIHandler::ProcessOptions(Poco::Net::HTTPServerResponse & Response )
 {
     Response.setContentType("application/json");
     Response.setKeepAlive(true);
@@ -134,7 +134,7 @@ void RESTAPIHandler::ProcessOptions( HTTPServerResponse & Response )
     Response.send();
 }
 
-void RESTAPIHandler::PrepareResponse(HTTPServerResponse &Response,Poco::Net::HTTPResponse::HTTPStatus Status)
+void RESTAPIHandler::PrepareResponse(Poco::Net::HTTPServerResponse &Response,Poco::Net::HTTPResponse::HTTPStatus Status)
 {
     Response.setStatus(Status);
     Response.setChunkedTransferEncoding(true);
@@ -144,28 +144,28 @@ void RESTAPIHandler::PrepareResponse(HTTPServerResponse &Response,Poco::Net::HTT
     Response.add("Access-Control-Allow-Method",MakeList(methods_));
 }
 
-void RESTAPIHandler::BadRequest(HTTPServerResponse & Response) {
+void RESTAPIHandler::BadRequest(Poco::Net::HTTPServerResponse & Response) {
     PrepareResponse(Response, Poco::Net::HTTPResponse::HTTP_BAD_REQUEST);
     Response.send();
 }
 
-void RESTAPIHandler::UnAuthorized(HTTPServerResponse & Response )
+void RESTAPIHandler::UnAuthorized(Poco::Net::HTTPServerResponse & Response )
 {
     PrepareResponse(Response, Poco::Net::HTTPResponse::HTTP_FORBIDDEN);
     Response.send();
 }
 
-void RESTAPIHandler::NotFound(HTTPServerResponse &Response) {
+void RESTAPIHandler::NotFound(Poco::Net::HTTPServerResponse &Response) {
     PrepareResponse(Response, Poco::Net::HTTPResponse::HTTP_NOT_FOUND);
     Response.send();
 }
 
-void RESTAPIHandler::OK(HTTPServerResponse &Response) {
+void RESTAPIHandler::OK(Poco::Net::HTTPServerResponse &Response) {
     PrepareResponse(Response);
     Response.send();
 }
 
-bool RESTAPIHandler::ContinueProcessing( HTTPServerRequest & Request , HTTPServerResponse & Response )
+bool RESTAPIHandler::ContinueProcessing(Poco::Net::HTTPServerRequest & Request, Poco::Net::HTTPServerResponse & Response )
 {
     if(Request.getMethod() == Poco::Net::HTTPRequest::HTTP_OPTIONS)
     {
@@ -180,7 +180,7 @@ bool RESTAPIHandler::ContinueProcessing( HTTPServerRequest & Request , HTTPServe
     return true;
 }
 
-bool RESTAPIHandler::IsAuthorized(Poco::Net::HTTPServerRequest & Request, HTTPServerResponse & Response )
+bool RESTAPIHandler::IsAuthorized(Poco::Net::HTTPServerRequest & Request, Poco::Net::HTTPServerResponse & Response )
 {
     if(uCentral::Auth::IsAuthorized(Request,SessionToken_, UserName_))
     {
@@ -192,7 +192,7 @@ bool RESTAPIHandler::IsAuthorized(Poco::Net::HTTPServerRequest & Request, HTTPSe
     return false;
 }
 
-bool RESTAPIHandler::IsAuthorized(Poco::Net::HTTPServerRequest & Request, HTTPServerResponse & Response , std::string & UserName ) {
+bool RESTAPIHandler::IsAuthorized(Poco::Net::HTTPServerRequest & Request, Poco::Net::HTTPServerResponse & Response , std::string & UserName ) {
 
     if(uCentral::Auth::IsAuthorized(Request,SessionToken_, UserName_))
     {
@@ -206,7 +206,7 @@ bool RESTAPIHandler::IsAuthorized(Poco::Net::HTTPServerRequest & Request, HTTPSe
 }
 
 
-void RESTAPIHandler::ReturnObject(Poco::JSON::Object & Object, HTTPServerResponse & Response) {
+void RESTAPIHandler::ReturnObject(Poco::JSON::Object & Object, Poco::Net::HTTPServerResponse & Response) {
     PrepareResponse(Response);
     std::ostream & Answer = Response.send();
     Poco::JSON::Stringifier::stringify(Object, Answer);

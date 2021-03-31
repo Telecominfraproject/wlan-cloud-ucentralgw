@@ -48,20 +48,19 @@ namespace uCentral::RESTAPI {
 
             auto Sock{Svr.CreateSecureSocket()};
 
-            auto Params = new HTTPServerParams;
+            auto Params = new Poco::Net::HTTPServerParams;
             Params->setMaxThreads(16);
             Params->setMaxQueued(100);
 
-            auto NewServer = std::shared_ptr<Poco::Net::HTTPServer>(new Poco::Net::HTTPServer( new RequestHandlerFactory, Sock, Params));
+            auto NewServer = std::make_unique<Poco::Net::HTTPServer>(new RequestHandlerFactory, Sock, Params);
             NewServer->start();
-
-            RESTServers_.push_back(NewServer);
+            RESTServers_.push_back(std::move(NewServer));
         }
 
         return 0;
     }
 
-    HTTPRequestHandler *RequestHandlerFactory::createRequestHandler(const HTTPServerRequest & Request) {
+    Poco::Net::HTTPRequestHandler *RequestHandlerFactory::createRequestHandler(const Poco::Net::HTTPServerRequest & Request) {
 
         Logger_.information("Request from "
                             + Request.clientAddress().toString()

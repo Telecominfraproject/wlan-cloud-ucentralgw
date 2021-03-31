@@ -4,9 +4,10 @@
 
 #include "RESTAPI_default_configuration.h"
 #include "uStorageService.h"
-#include "uAuthService.h"
 
-void RESTAPI_default_configuration::handleRequest(HTTPServerRequest& Request, HTTPServerResponse& Response)
+#include "Poco/JSON/Parser.h"
+
+void RESTAPI_default_configuration::handleRequest(Poco::Net::HTTPServerRequest& Request, Poco::Net::HTTPServerResponse& Response)
 {
     if(!ContinueProcessing(Request,Response))
         return;

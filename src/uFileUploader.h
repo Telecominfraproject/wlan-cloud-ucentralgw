@@ -10,23 +10,7 @@
 #include "Poco/Net/HTTPServer.h"
 #include "Poco/Net/HTTPRequestHandler.h"
 #include "Poco/Net/HTTPRequestHandlerFactory.h"
-#include "Poco/Net/HTTPServerParams.h"
 #include "Poco/Net/HTTPServerRequest.h"
-#include "Poco/Net/HTTPServerResponse.h"
-#include "Poco/Net/HTTPServerParams.h"
-#include "Poco/Net/ServerSocket.h"
-#include "Poco/Net/SecureServerSocket.h"
-#include "Poco/Net/WebSocket.h"
-#include "Poco/Net/NetException.h"
-#include "Poco/Net/Context.h"
-#include "Poco/JSON/Parser.h"
-#include "Poco/DynamicAny.h"
-#include "Poco/Net/HTMLForm.h"
-#include "Poco/Net/PartHandler.h"
-#include "Poco/Net/MessageHeader.h"
-#include "Poco/CountingStream.h"
-#include "Poco/StreamCopier.h"
-#include "Poco/Exception.h"
 
 namespace uCentral::uFileUploader {
     int Start();

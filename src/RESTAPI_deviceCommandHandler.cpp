@@ -3,17 +3,17 @@
 //
 
 #include "RESTAPI_deviceCommandHandler.h"
-#include "uAuthService.h"
 #include "uStorageService.h"
 #include "uDeviceRegistry.h"
-#include "Poco/UUIDGenerator.h"
-#include "Poco/UUID.h"
-
 #include "uCentral.h"
 #include "uCentralConfig.h"
 #include "uFileUploader.h"
 
-void RESTAPI_deviceCommandHandler::handleRequest(HTTPServerRequest& Request, HTTPServerResponse& Response)
+#include "Poco/UUIDGenerator.h"
+#include "Poco/UUID.h"
+#include "Poco/JSON/Parser.h"
+
+void RESTAPI_deviceCommandHandler::handleRequest(Poco::Net::HTTPServerRequest& Request, Poco::Net::HTTPServerResponse& Response)
 {
     try {
         if (!ContinueProcessing(Request, Response))
@@ -75,7 +75,7 @@ void RESTAPI_deviceCommandHandler::handleRequest(HTTPServerRequest& Request, HTT
     BadRequest(Response);
 };
 
-void  RESTAPI_deviceCommandHandler::GetCapabilities(HTTPServerRequest &Request, HTTPServerResponse &Response) {
+void  RESTAPI_deviceCommandHandler::GetCapabilities(Poco::Net::HTTPServerRequest &Request, Poco::Net::HTTPServerResponse &Response) {
     uCentralCapabilities    Caps;
     try {
         auto SerialNumber = GetBinding("serialNumber", "");
@@ -95,7 +95,7 @@ void  RESTAPI_deviceCommandHandler::GetCapabilities(HTTPServerRequest &Request, 
     BadRequest(Response);
 }
 
-void  RESTAPI_deviceCommandHandler::DeleteCapabilities(HTTPServerRequest &Request, HTTPServerResponse &Response) {
+void  RESTAPI_deviceCommandHandler::DeleteCapabilities(Poco::Net::HTTPServerRequest &Request, Poco::Net::HTTPServerResponse &Response) {
     try {
         auto SerialNumber = GetBinding("serialNumber", "");
 
@@ -112,7 +112,7 @@ void  RESTAPI_deviceCommandHandler::DeleteCapabilities(HTTPServerRequest &Reques
     BadRequest(Response);
 }
 
-void RESTAPI_deviceCommandHandler::GetStatistics(HTTPServerRequest& Request, HTTPServerResponse& Response) {
+void RESTAPI_deviceCommandHandler::GetStatistics(Poco::Net::HTTPServerRequest& Request, Poco::Net::HTTPServerResponse& Response) {
     try {
         auto SerialNumber = GetBinding("serialNumber", "");
         auto StartDate = RESTAPIHandler::from_RFC3339(GetParameter("startDate", ""));
@@ -147,7 +147,7 @@ void RESTAPI_deviceCommandHandler::GetStatistics(HTTPServerRequest& Request, HTT
     BadRequest(Response);
 }
 
-void RESTAPI_deviceCommandHandler::DeleteStatistics(HTTPServerRequest& Request, HTTPServerResponse& Response) {
+void RESTAPI_deviceCommandHandler::DeleteStatistics(Poco::Net::HTTPServerRequest& Request, Poco::Net::HTTPServerResponse& Response) {
     try {
         auto SerialNumber = GetBinding("serialNumber", "");
         auto StartDate = RESTAPIHandler::from_RFC3339(GetParameter("startDate", ""));
@@ -166,7 +166,7 @@ void RESTAPI_deviceCommandHandler::DeleteStatistics(HTTPServerRequest& Request, 
     BadRequest(Response);
 }
 
-void RESTAPI_deviceCommandHandler::GetStatus(HTTPServerRequest& Request, HTTPServerResponse& Response) {
+void RESTAPI_deviceCommandHandler::GetStatus(Poco::Net::HTTPServerRequest& Request, Poco::Net::HTTPServerResponse& Response) {
     try {
         auto SerialNumber = GetBinding("serialNumber", "");
 
@@ -189,7 +189,7 @@ void RESTAPI_deviceCommandHandler::GetStatus(HTTPServerRequest& Request, HTTPSer
     BadRequest(Response);
 }
 
-void RESTAPI_deviceCommandHandler::Configure(HTTPServerRequest& Request, HTTPServerResponse& Response) {
+void RESTAPI_deviceCommandHandler::Configure(Poco::Net::HTTPServerRequest& Request, Poco::Net::HTTPServerResponse& Response) {
     try {
         auto SNum = GetBinding("serialNumber", "");
 
@@ -285,7 +285,7 @@ void RESTAPI_deviceCommandHandler::Configure(HTTPServerRequest& Request, HTTPSer
     BadRequest(Response);
 }
 
-void RESTAPI_deviceCommandHandler::Upgrade(HTTPServerRequest &Request, HTTPServerResponse &Response) {
+void RESTAPI_deviceCommandHandler::Upgrade(Poco::Net::HTTPServerRequest &Request, Poco::Net::HTTPServerResponse &Response) {
     try {
         auto SNum = GetBinding("serialNumber", "");
 
@@ -360,7 +360,7 @@ void RESTAPI_deviceCommandHandler::Upgrade(HTTPServerRequest &Request, HTTPServe
     BadRequest(Response);
 }
 
-void RESTAPI_deviceCommandHandler::GetLogs(HTTPServerRequest& Request, HTTPServerResponse& Response) {
+void RESTAPI_deviceCommandHandler::GetLogs(Poco::Net::HTTPServerRequest& Request, Poco::Net::HTTPServerResponse& Response) {
     try {
         auto SerialNumber = GetBinding("serialNumber", "");
         auto StartDate = RESTAPIHandler::from_RFC3339(GetParameter("startDate", ""));
@@ -393,7 +393,7 @@ void RESTAPI_deviceCommandHandler::GetLogs(HTTPServerRequest& Request, HTTPServe
     BadRequest(Response);
 }
 
-void RESTAPI_deviceCommandHandler::DeleteLogs(HTTPServerRequest& Request, HTTPServerResponse& Response) {
+void RESTAPI_deviceCommandHandler::DeleteLogs(Poco::Net::HTTPServerRequest& Request, Poco::Net::HTTPServerResponse& Response) {
     try {
         auto SerialNumber = GetBinding("serialNumber", "");
         auto StartDate = RESTAPIHandler::from_RFC3339(GetParameter("startDate", ""));
@@ -413,7 +413,7 @@ void RESTAPI_deviceCommandHandler::DeleteLogs(HTTPServerRequest& Request, HTTPSe
     BadRequest(Response);
 }
 
-void RESTAPI_deviceCommandHandler::GetChecks(HTTPServerRequest& Request, HTTPServerResponse& Response) {
+void RESTAPI_deviceCommandHandler::GetChecks(Poco::Net::HTTPServerRequest& Request, Poco::Net::HTTPServerResponse& Response) {
     try {
         auto SerialNumber = GetBinding("serialNumber", "");
         auto StartDate = RESTAPIHandler::from_RFC3339(GetParameter("startDate", ""));
@@ -446,7 +446,7 @@ void RESTAPI_deviceCommandHandler::GetChecks(HTTPServerRequest& Request, HTTPSer
     BadRequest(Response);
 }
 
-void RESTAPI_deviceCommandHandler::DeleteChecks(HTTPServerRequest& Request, HTTPServerResponse& Response) {
+void RESTAPI_deviceCommandHandler::DeleteChecks(Poco::Net::HTTPServerRequest& Request, Poco::Net::HTTPServerResponse& Response) {
     try {
         auto SerialNumber = GetBinding("serialNumber", "");
         auto StartDate = RESTAPIHandler::from_RFC3339(GetParameter("startDate", ""));
@@ -465,7 +465,7 @@ void RESTAPI_deviceCommandHandler::DeleteChecks(HTTPServerRequest& Request, HTTP
     BadRequest(Response);
 }
 
-void RESTAPI_deviceCommandHandler::ExecuteCommand(HTTPServerRequest& Request, HTTPServerResponse& Response) {
+void RESTAPI_deviceCommandHandler::ExecuteCommand(Poco::Net::HTTPServerRequest& Request, Poco::Net::HTTPServerResponse& Response) {
     try {
         auto SNum = GetBinding("serialNumber", "");
 
@@ -502,7 +502,7 @@ void RESTAPI_deviceCommandHandler::ExecuteCommand(HTTPServerRequest& Request, HT
             Cmd.RunAt = RunAt;
             Cmd.WaitingForFile = 0;
 
-            Parser parser2;
+            Poco::JSON::Parser parser2;
 
             Poco::Dynamic::Var result = parser2.parse(Payload);
             const auto & PayloadObject = result.extract<Poco::JSON::Object::Ptr>();
@@ -548,7 +548,7 @@ void RESTAPI_deviceCommandHandler::ExecuteCommand(HTTPServerRequest& Request, HT
     BadRequest(Response);
 }
 
-void RESTAPI_deviceCommandHandler::Reboot(HTTPServerRequest& Request, HTTPServerResponse& Response) {
+void RESTAPI_deviceCommandHandler::Reboot(Poco::Net::HTTPServerRequest& Request, Poco::Net::HTTPServerResponse& Response) {
     try {
         auto SNum = GetBinding("serialNumber", "");
 
@@ -631,7 +631,7 @@ void RESTAPI_deviceCommandHandler::Reboot(HTTPServerRequest& Request, HTTPServer
           type: boolean
  */
 
-void RESTAPI_deviceCommandHandler::Factory(HTTPServerRequest &Request, HTTPServerResponse &Response) {
+void RESTAPI_deviceCommandHandler::Factory(Poco::Net::HTTPServerRequest &Request, Poco::Net::HTTPServerResponse &Response) {
     try {
         auto SNum = GetBinding("serialNumber", "");
 
@@ -729,7 +729,7 @@ type: integer
         format: int64
         */
 
-void RESTAPI_deviceCommandHandler::Blink(HTTPServerRequest &Request, HTTPServerResponse &Response) {
+void RESTAPI_deviceCommandHandler::Blink(Poco::Net::HTTPServerRequest &Request, Poco::Net::HTTPServerResponse &Response) {
     try {
         auto SNum = GetBinding("serialNumber", "");
 
@@ -857,7 +857,7 @@ The AP should answer:
 ```
  */
 
-void RESTAPI_deviceCommandHandler::Trace(HTTPServerRequest &Request, HTTPServerResponse &Response) {
+void RESTAPI_deviceCommandHandler::Trace(Poco::Net::HTTPServerRequest &Request, Poco::Net::HTTPServerResponse &Response) {
     try {
         auto SNum = GetBinding("serialNumber", "");
 

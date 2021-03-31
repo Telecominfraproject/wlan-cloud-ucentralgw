@@ -4,8 +4,9 @@
 
 #include "RESTAPI_oauth2Handler.h"
 #include "uAuthService.h"
+#include "Poco/JSON/Parser.h"
 
-void RESTAPI_oauth2Handler::handleRequest(HTTPServerRequest & Request, HTTPServerResponse & Response)
+void RESTAPI_oauth2Handler::handleRequest(Poco::Net::HTTPServerRequest & Request, Poco::Net::HTTPServerResponse & Response)
 {
     if(!ContinueProcessing(Request,Response))
         return;

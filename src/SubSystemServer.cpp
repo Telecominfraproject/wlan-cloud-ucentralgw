@@ -9,13 +9,13 @@ SubSystemServer::SubSystemServer( const std::string & Name,
                                   const std::string & LoggingPrefix,
                                   const std::string & SubSystemConfigPrefix )
     :   Name_(Name),
-        Logger_(Logger::get(LoggingPrefix)),
+        Logger_(Poco::Logger::get(LoggingPrefix)),
         SubSystemConfigPrefix_(SubSystemConfigPrefix)
 {
 
 }
 
-void SubSystemServer::initialize(Application & self)
+void SubSystemServer::initialize(Poco::Util::Application & self)
 {
     Logger_.information("Initializing...");
     auto i=0;
@@ -53,25 +53,25 @@ void SubSystemServer::uninitialize()
     // add your own uninitialization code here
 }
 
-void SubSystemServer::reinitialize(Application & self)
+void SubSystemServer::reinitialize(Poco::Util::Application & self)
 {
     // add your own reinitialization code here
 }
 
-void SubSystemServer::defineOptions(OptionSet& options)
+void SubSystemServer::defineOptions(Poco::Util::OptionSet& options)
 {
 }
 
-SecureServerSocket PropertiesFileServerEntry::CreateSecureSocket() const
+Poco::Net::SecureServerSocket PropertiesFileServerEntry::CreateSecureSocket() const
 {
     if(address_=="*") {
-        return SecureServerSocket(port_,64, new Context(Poco::Net::Context::TLS_SERVER_USE, key_file_, cert_file_, ""));
+        return Poco::Net::SecureServerSocket(port_,64, new Poco::Net::Context(Poco::Net::Context::TLS_SERVER_USE, key_file_, cert_file_, ""));
     }
     else
     {
         Poco::Net::IPAddress        Addr(address_);
         Poco::Net::SocketAddress    SockAddr(Addr,port_);
-        return SecureServerSocket(SockAddr,64, new Context(Poco::Net::Context::TLS_SERVER_USE, key_file_, cert_file_, ""));
+        return Poco::Net::SecureServerSocket(SockAddr,64, new Poco::Net::Context(Poco::Net::Context::TLS_SERVER_USE, key_file_, cert_file_, ""));
     }
 }
 

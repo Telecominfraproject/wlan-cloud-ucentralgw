@@ -30,20 +30,21 @@ namespace uCentral::Config {
 
     class Capabilities {
     public:
-        Capabilities(std::string Caps)
-        : Capabilities_(std::move(Caps)),
-        Parsed_(false)
+        explicit Capabilities(std::string Caps)
+        :   Capabilities_(std::move(Caps)),
+            Parsed_(false)
         {
 
         }
 
-        Capabilities() {
+        Capabilities():
+            Parsed_(false)
+        {
             Capabilities_ = Default();
         }
 
         static std::string Default();
         [[nodiscard]] const std::string & Get() const { return Capabilities_; };
-
         [[nodiscard]] const std::string & Manufacturer();
         [[nodiscard]] const std::string & DeviceType();
         [[nodiscard]] const std::string & ModelId();

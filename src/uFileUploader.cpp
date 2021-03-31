@@ -9,6 +9,21 @@
 #include "uCentral.h"
 #include "uStorageService.h"
 
+#include "Poco/Net/HTTPServerParams.h"
+#include "Poco/Net/HTTPServerResponse.h"
+#include "Poco/Net/ServerSocket.h"
+#include "Poco/Net/SecureServerSocket.h"
+#include "Poco/Net/NetException.h"
+#include "Poco/Net/Context.h"
+#include "Poco/JSON/Parser.h"
+#include "Poco/DynamicAny.h"
+#include "Poco/Net/HTMLForm.h"
+#include "Poco/Net/PartHandler.h"
+#include "Poco/Net/MessageHeader.h"
+#include "Poco/CountingStream.h"
+#include "Poco/StreamCopier.h"
+#include "Poco/Exception.h"
+
 namespace uCentral::uFileUploader {
     Service *Service::instance_ = nullptr;
 
@@ -171,15 +186,15 @@ namespace uCentral::uFileUploader {
         {
         }
 
-        void handleRequest(Poco::Net::HTTPServerRequest& request, Poco::Net::HTTPServerResponse& response) override
+        void handleRequest(Poco::Net::HTTPServerRequest& Request, Poco::Net::HTTPServerResponse& Response) override
         {
             try {
                 MyPartHandler partHandler(UUID_,Logger_);
 
-                Poco::Net::HTMLForm form(request, request.stream(), partHandler);
-                response.setChunkedTransferEncoding(true);
-                response.setContentType("text/html");
-                std::ostream &ResponseStream = response.send();
+                Poco::Net::HTMLForm form(Request, Request.stream(), partHandler);
+                Response.setChunkedTransferEncoding(true);
+                Response.setContentType("text/html");
+                std::ostream &ResponseStream = Response.send();
 
                 ResponseStream <<
                      "<html>\n"
@@ -205,9 +220,9 @@ namespace uCentral::uFileUploader {
                      "</form>\n";
 
                 ResponseStream << "<h2>Request</h2><p>\n";
-                ResponseStream << "Method: " << request.getMethod() << "<br>\n";
-                ResponseStream << "URI: " << request.getURI() << "<br>\n";
-                for (auto & i:request) {
+                ResponseStream << "Method: " << Request.getMethod() << "<br>\n";
+                ResponseStream << "URI: " << Request.getURI() << "<br>\n";
+                for (auto & i:Request) {
                     ResponseStream << i.first << ": " << i.second << "<br>\n";
                     // std::cout << "F:" << i.first << "    S:" << i.second << std::endl;
                 }

@@ -1,6 +1,7 @@
 //
 // Created by stephane bourque on 2021-02-15.
 //
+#include <iostream>
 
 #include "uCentral.h"
 
@@ -8,24 +9,8 @@
 #include "Poco/Util/Option.h"
 #include "Poco/Util/OptionSet.h"
 #include "Poco/Util/HelpFormatter.h"
-#include "Poco/Util/IntValidator.h"
 #include "Poco/Environment.h"
-#include <iostream>
 #include "Poco/Path.h"
-#include "Poco/JSON/Parser.h"
-#include "Poco/zlib.h"
-#include "Poco/Base64Encoder.h"
-
-#include "uCentralConfig.h"
-
-using Poco::Util::Application;
-using Poco::Util::Option;
-using Poco::Util::OptionSet;
-using Poco::Util::HelpFormatter;
-using Poco::Util::AbstractConfiguration;
-using Poco::Util::OptionCallback;
-using Poco::Util::IntValidator;
-using Poco::AutoPtr;
 
 #ifndef SMALL_BUILD
 #include "TIPGWServer.h"
@@ -36,36 +21,28 @@ using Poco::AutoPtr;
 #include "uStorageService.h"
 #include "uDeviceRegistry.h"
 #include "uAuthService.h"
-#include "uCentralConfig.h"
 #include "uCommandManager.h"
 #include "base64util.h"
 #include "uFileUploader.h"
+#include "uCentralConfig.h"
 
 namespace uCentral {
 
     Daemon * instance() { return reinterpret_cast<Daemon *>(&uCentral::Daemon::instance()); }
 
-    void ErrorHandler::exception(const Poco::Exception & E) {
+    void MyErrorHandler::exception(const Poco::Exception & E) {
         Poco::Thread * CurrentThread = Poco::Thread::current();
-        uCentral::instance()->logger().warning(Poco::format("socket exception on %s",CurrentThread->getName()));
+        uCentral::instance()->logger().warning(Poco::format("generic Poco exception on %s",CurrentThread->getName()));
     }
 
-    void ErrorHandler::exception(const std::exception & E) {
+    void MyErrorHandler::exception(const std::exception & E) {
         Poco::Thread * CurrentThread = Poco::Thread::current();
         uCentral::instance()->logger().warning(Poco::format("std::exception on %s",CurrentThread->getName()));
     }
 
-    void ErrorHandler::exception() {
+    void MyErrorHandler::exception() {
         Poco::Thread * CurrentThread = Poco::Thread::current();
         uCentral::instance()->logger().warning(Poco::format("exception on %s",CurrentThread->getName()));
-    }
-
-    Daemon::Daemon() :
-        helpRequested_(false),
-        AutoProvisioning_(false),
-        DebugMode_(false),
-        ID_(1)
-    {
     }
 
     void Daemon::initialize(Application &self) {
@@ -81,7 +58,7 @@ namespace uCentral {
             std::exit(EXIT_CONFIG);
         }
 
-        char LogFilePathKey[] = "logging.channels.c2.path";
+        static const char * LogFilePathKey = "logging.channels.c2.path";
 
         loadConfiguration(ConfigFile.toString());
 
@@ -140,17 +117,12 @@ namespace uCentral {
                     Tokens.push_back(List.substr(P,P2));
                 P=P2+1;
             }
-
-            auto Entry = DeviceTypeIdentifications_.find(Type);
-
-            if(Entry==DeviceTypeIdentifications_.end())
-                DeviceTypeIdentifications_[Type] = Tokens;
-            else
-                Entry->second.insert(Entry->second.end(),Tokens.begin(),Tokens.end());
+            auto Entry = DeviceTypeIdentifications_[Type];
+            Entry.insert(Entry.end(),Tokens.begin(),Tokens.end());
         }
     }
 
-    std::string Daemon::IdentifyDevice(const std::string & Id ) {
+    std::string Daemon::IdentifyDevice(const std::string & Id ) const {
         for(const auto &[Type,List]:DeviceTypeIdentifications_)
         {
             for(const auto & i : List)
@@ -159,7 +131,7 @@ namespace uCentral {
                     return Type;
             }
         }
-        return std::string("AP_Default");
+        return "AP_Default";
     }
 
     void Daemon::uninitialize() {
@@ -167,39 +139,39 @@ namespace uCentral {
         ServerApplication::uninitialize();
     }
 
-    void Daemon::reinitialize(Application &self) {
+    void Daemon::reinitialize(Poco::Util::Application &self) {
         ServerApplication::reinitialize(self);
         // add your own reinitialization code here
     }
 
-    void Daemon::defineOptions(OptionSet &options) {
+    void Daemon::defineOptions(Poco::Util::OptionSet &options) {
         ServerApplication::defineOptions(options);
 
         options.addOption(
-                Option("help", "", "display help information on command line arguments")
+                Poco::Util::Option("help", "", "display help information on command line arguments")
                         .required(false)
                         .repeatable(false)
-                        .callback(OptionCallback<Daemon>(this, &Daemon::handleHelp)));
+                        .callback(Poco::Util::OptionCallback<Daemon>(this, &Daemon::handleHelp)));
 
         options.addOption(
-                Option("file", "", "specify the configuration file")
+                Poco::Util::Option("file", "", "specify the configuration file")
                         .required(false)
                         .repeatable(false)
                         .argument("file")
-                        .callback(OptionCallback<Daemon>(this, &Daemon::handleConfig)));
+                        .callback(Poco::Util::OptionCallback<Daemon>(this, &Daemon::handleConfig)));
 
         options.addOption(
-                Option("debug", "", "to run in debug, set to true")
+                Poco::Util::Option("debug", "", "to run in debug, set to true")
                         .required(false)
                         .repeatable(false)
-                        .callback(OptionCallback<Daemon>(this, &Daemon::handleDebug)));
+                        .callback(Poco::Util::OptionCallback<Daemon>(this, &Daemon::handleDebug)));
 
         options.addOption(
-                Option("logs", "", "specify the log directory and file (i.e. dir/file.log)")
+                Poco::Util::Option("logs", "", "specify the log directory and file (i.e. dir/file.log)")
                         .required(false)
                         .repeatable(false)
                         .argument("dir")
-                        .callback(OptionCallback<Daemon>(this, &Daemon::handleLogs)));
+                        .callback(Poco::Util::OptionCallback<Daemon>(this, &Daemon::handleLogs)));
 
     }
 
@@ -223,22 +195,11 @@ namespace uCentral {
     }
 
     void Daemon::displayHelp() {
-        HelpFormatter helpFormatter(options());
+        Poco::Util::HelpFormatter helpFormatter(options());
         helpFormatter.setCommand(commandName());
         helpFormatter.setUsage("OPTIONS");
         helpFormatter.setHeader("A uCentral gateway implementation for TIP.");
         helpFormatter.format(std::cout);
-    }
-
-    void Daemon::defineProperty(const std::string &def) {
-        std::string name;
-        std::string value;
-        std::string::size_type pos = def.find('=');
-        if (pos != std::string::npos) {
-            name.assign(def, 0, pos);
-            value.assign(def, pos + 1, def.length() - pos);
-        } else name = def;
-        config().setString(name, value);
     }
 
     std::string Daemon::CreateUUID() {
@@ -253,7 +214,7 @@ namespace uCentral {
 
             std::cout << "Starting ucentral..." << std::endl;
 
-            Logger &logger = Logger::get("uCentral");
+            Poco::Logger &logger = Poco::Logger::get("uCentral");
 
             uCentral::Storage::Start();
             uCentral::Auth::Start();

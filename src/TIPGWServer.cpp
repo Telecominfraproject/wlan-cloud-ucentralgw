@@ -38,11 +38,9 @@ namespace uCentral::TIPGW {
             Params->setMaxThreads(16);
             Params->setMaxQueued(100);
 
-            auto NewServer = std::shared_ptr<Poco::Net::HTTPServer>(
-                    new Poco::Net::HTTPServer(new RequestHandlerFactory, Sock, Params));
-
+            auto NewServer = std::make_unique<Poco::Net::HTTPServer>(new RequestHandlerFactory, Sock, Params);
             NewServer->start();
-            RESTServers_.push_back(NewServer);
+            RESTServers_.push_back(std::move(NewServer));
         }
 
         return 0;

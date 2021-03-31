@@ -1,24 +1,23 @@
 //
 // Created by stephane bourque on 2021-02-28.
 //
+#include <thread>
+#include <mutex>
 
 #include "uCentralWebSocketServer.h"
 #include "uStorageService.h"
 #include "uAuthService.h"
 #include "uCentral.h"
+
 #include "Poco/Net/IPAddress.h"
-#include "Poco/Net/SocketAddress.h"
 #include "Poco/Net/SSLException.h"
 #include "Poco/Net/HTTPServerSession.h"
 #include "Poco/Net/HTTPHeaderStream.h"
 #include "Poco/Net/HTTPServerRequestImpl.h"
-#include "Poco/Base64Decoder.h"
 #include "Poco/JSON/Array.h"
 #include "Poco/zlib.h"
 #include "base64util.h"
 
-#include <thread>
-#include <mutex>
 
 namespace uCentral::WebSocket {
 
@@ -50,17 +49,16 @@ namespace uCentral::WebSocket {
             Logger_.information(l);
 
             auto Sock{Svr.CreateSecureSocket()};
-            auto NewSocketReactor = std::make_shared<Poco::Net::SocketReactor>();
-            auto NewSocketAcceptor = std::make_shared<Poco::Net::SocketAcceptor<WSConnection>>( Sock, *NewSocketReactor);
-            auto NewThread = std::make_shared<Poco::Thread>();
-
-            WebSocketServerEntry WSE { .SocketReactor{NewSocketReactor} ,
-                                       .SocketAcceptor{NewSocketAcceptor} ,
-                                       .SocketReactorThread{NewThread}};
-
+            auto NewSocketReactor = std::make_unique<Poco::Net::SocketReactor>();
+            auto NewSocketAcceptor = std::make_unique<Poco::Net::SocketAcceptor<WSConnection>>( Sock, *NewSocketReactor);
+            auto NewThread = std::make_unique<Poco::Thread>();
             NewThread->setName("WebSocketAcceptor."+Svr.address()+":"+std::to_string(Svr.port()));
             NewThread->start(*NewSocketReactor);
-            Servers_.push_back(WSE);
+
+            WebSocketServerEntry WSE { .SocketReactor{std::move(NewSocketReactor)} ,
+                                       .SocketAcceptor{std::move(NewSocketAcceptor)} ,
+                                       .SocketReactorThread{std::move(NewThread)}};
+            Servers_.push_back(std::move(WSE));
         }
 
         uint64_t MaxThreads = uCentral::ServiceConfig::getInt("ucentral.websocket.maxreactors",5);
@@ -89,7 +87,7 @@ namespace uCentral::WebSocket {
         Reactor_->Release();
     }
 
-    WSConnection::WSConnection(StreamSocket& socket, SocketReactor& reactor):
+    WSConnection::WSConnection(Poco::Net::StreamSocket& socket, Poco::Net::SocketReactor& reactor):
             Socket_(socket),
             ParentAcceptorReactor_(reactor),
             Logger_(Service::instance()->Logger()),
@@ -99,7 +97,7 @@ namespace uCentral::WebSocket {
             WS_(nullptr),
             WSup_(false)
     {
-        auto Params = Poco::AutoPtr<HTTPServerParams>(new HTTPServerParams());
+        auto Params = Poco::AutoPtr<Poco::Net::HTTPServerParams>(new Poco::Net::HTTPServerParams());
         Poco::Net::HTTPServerSession        Session(Socket_, Params);
         Poco::Net::HTTPServerResponseImpl   Response(Session);
         Poco::Net::HTTPServerRequestImpl    Request(Response,Session,Params);
@@ -175,7 +173,7 @@ namespace uCentral::WebSocket {
                 std::string Log = Poco::format("Returning newer configuration %Lu.", Conn_->PendingUUID);
                 uCentral::Storage::AddLog(SerialNumber_, Log);
 
-                Parser  parser;
+                Poco::JSON::Parser  parser;
                 auto ParsedConfig = parser.parse(NewConfig).extract<Poco::JSON::Object::Ptr>();
                 Poco::DynamicStruct Vars = *ParsedConfig;
                 Vars["uuid"] = NewConfigUUID;
@@ -459,7 +457,7 @@ namespace uCentral::WebSocket {
         }
     }
 
-    void WSConnection::OnSocketShutdown(const AutoPtr<Poco::Net::ShutdownNotification>& pNf) {
+    void WSConnection::OnSocketShutdown(const Poco::AutoPtr<Poco::Net::ShutdownNotification>& pNf) {
         std::lock_guard<std::mutex> guard(Mutex_);
 
         Logger_.information(Poco::format("SOCKET-SHUTDOWN(%s): Closing.",SerialNumber_));
@@ -467,7 +465,7 @@ namespace uCentral::WebSocket {
         delete this;
     };
 
-    void WSConnection::OnSocketError(const AutoPtr<Poco::Net::ErrorNotification>& pNf) {
+    void WSConnection::OnSocketError(const Poco::AutoPtr<Poco::Net::ErrorNotification>& pNf) {
         std::lock_guard<std::mutex> guard(Mutex_);
 
         std::cout << "OnSocketError" << std::endl;
@@ -475,7 +473,7 @@ namespace uCentral::WebSocket {
         delete this;
     }
 
-    void WSConnection::OnSocketReadable(const AutoPtr<Poco::Net::ReadableNotification>& pNf) {
+    void WSConnection::OnSocketReadable(const Poco::AutoPtr<Poco::Net::ReadableNotification>& pNf) {
         try
         {
 //            std::thread Processor([Obj=this]() { Obj->ProcessIncomingFrame(); });
@@ -527,7 +525,7 @@ namespace uCentral::WebSocket {
                         Logger_.debug(
                                 Poco::format("Frame received (length=%d, flags=0x%x).", IncomingSize, unsigned(flags)));
 
-                        Parser parser;
+                        Poco::JSON::Parser parser;
                         std::string InMsg(&IncomingMessage[0]);
 
                         IncomingMessageStr = std::string(&IncomingMessage[0]);

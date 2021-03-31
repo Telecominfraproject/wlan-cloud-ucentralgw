@@ -17,24 +17,24 @@ public:
                                         Poco::Net::HTTPRequest::HTTP_PUT,
                                         Poco::Net::HTTPRequest::HTTP_DELETE,
                                         Poco::Net::HTTPRequest::HTTP_OPTIONS}) {}
-    void handleRequest(HTTPServerRequest& Request, HTTPServerResponse& Response) override;
+    void handleRequest(Poco::Net::HTTPServerRequest& Request, Poco::Net::HTTPServerResponse& Response) override;
 
-    void GetCapabilities(HTTPServerRequest& Request, HTTPServerResponse& Response);
-    void DeleteCapabilities(HTTPServerRequest& Request, HTTPServerResponse& Response);
-    void GetLogs(HTTPServerRequest& Request, HTTPServerResponse& Response);
-    void DeleteLogs(HTTPServerRequest& Request, HTTPServerResponse& Response);
-    void GetStatistics(HTTPServerRequest& Request, HTTPServerResponse& Response);
-    void DeleteStatistics(HTTPServerRequest& Request, HTTPServerResponse& Response);
-    void GetStatus(HTTPServerRequest& Request, HTTPServerResponse& Response);
-    void ExecuteCommand(HTTPServerRequest& Request, HTTPServerResponse& Response);
-    void Configure(HTTPServerRequest& Request, HTTPServerResponse& Response);
-    void GetChecks(HTTPServerRequest& Request, HTTPServerResponse& Response);
-    void DeleteChecks(HTTPServerRequest& Request, HTTPServerResponse& Response);
-    void Upgrade(HTTPServerRequest& Request, HTTPServerResponse& Response);
-    void Reboot(HTTPServerRequest& Request, HTTPServerResponse& Response);
-    void Factory(HTTPServerRequest &Request, HTTPServerResponse &Response);
-    void Blink(HTTPServerRequest &Request, HTTPServerResponse &Response);
-    void Trace(HTTPServerRequest &Request, HTTPServerResponse &Response);
+    void GetCapabilities(Poco::Net::HTTPServerRequest& Request, Poco::Net::HTTPServerResponse& Response);
+    void DeleteCapabilities(Poco::Net::HTTPServerRequest& Request, Poco::Net::HTTPServerResponse& Response);
+    void GetLogs(Poco::Net::HTTPServerRequest& Request, Poco::Net::HTTPServerResponse& Response);
+    void DeleteLogs(Poco::Net::HTTPServerRequest& Request, Poco::Net::HTTPServerResponse& Response);
+    void GetStatistics(Poco::Net::HTTPServerRequest& Request, Poco::Net::HTTPServerResponse& Response);
+    void DeleteStatistics(Poco::Net::HTTPServerRequest& Request, Poco::Net::HTTPServerResponse& Response);
+    void GetStatus(Poco::Net::HTTPServerRequest& Request, Poco::Net::HTTPServerResponse& Response);
+    void ExecuteCommand(Poco::Net::HTTPServerRequest& Request, Poco::Net::HTTPServerResponse& Response);
+    void Configure(Poco::Net::HTTPServerRequest& Request, Poco::Net::HTTPServerResponse& Response);
+    void GetChecks(Poco::Net::HTTPServerRequest& Request, Poco::Net::HTTPServerResponse& Response);
+    void DeleteChecks(Poco::Net::HTTPServerRequest& Request, Poco::Net::HTTPServerResponse& Response);
+    void Upgrade(Poco::Net::HTTPServerRequest& Request, Poco::Net::HTTPServerResponse& Response);
+    void Reboot(Poco::Net::HTTPServerRequest& Request, Poco::Net::HTTPServerResponse& Response);
+    void Factory(Poco::Net::HTTPServerRequest &Request, Poco::Net::HTTPServerResponse &Response);
+    void Blink(Poco::Net::HTTPServerRequest &Request, Poco::Net::HTTPServerResponse &Response);
+    void Trace(Poco::Net::HTTPServerRequest &Request, Poco::Net::HTTPServerResponse &Response);
 };
 
 #endif //UCENTRAL_RESTAPI_DEVICECOMMANDHANDLER_H

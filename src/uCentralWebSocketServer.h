@@ -13,46 +13,17 @@
 #include "uDeviceRegistry.h"
 #include "RESTAPI_objects.h"
 
-#include "Poco/Net/HTTPServer.h"
-#include "Poco/Net/HTTPRequestHandler.h"
-#include "Poco/Net/HTTPRequestHandlerFactory.h"
-#include "Poco/Net/HTTPServerParams.h"
-#include "Poco/Net/HTTPServerRequest.h"
-#include "Poco/Net/HTTPServerResponse.h"
-#include "Poco/Net/HTTPServerParams.h"
-#include "Poco/Net/ServerSocket.h"
-#include "Poco/Net/SecureServerSocket.h"
+#include "Poco/AutoPtr.h"
 #include "Poco/Net/WebSocket.h"
 #include "Poco/Net/NetException.h"
-#include "Poco/Net/Context.h"
 #include "Poco/JSON/Parser.h"
 #include "Poco/DynamicAny.h"
 #include "Poco/Net/SocketReactor.h"
 #include "Poco/Net/SocketNotification.h"
-#include "Poco/Observer.h"
 #include "Poco/NObserver.h"
 #include "Poco/Net/SocketAcceptor.h"
 #include "Poco/Net/SocketNotification.h"
 #include "Poco/Net/StreamSocket.h"
-#include "Poco/Net/ParallelSocketReactor.h"
-
-
-using Poco::Net::ServerSocket;
-using Poco::Net::SecureServerSocket;
-using Poco::Net::WebSocket;
-using Poco::Net::Context;
-using Poco::Net::WebSocketException;
-using Poco::Net::HTTPRequestHandler;
-using Poco::Net::HTTPRequestHandlerFactory;
-using Poco::Net::HTTPServer;
-using Poco::Net::HTTPServerRequest;
-using Poco::Net::HTTPResponse;
-using Poco::Net::HTTPServerResponse;
-using Poco::Net::HTTPServerParams;
-using Poco::JSON::Parser;
-
-#include "uDeviceRegistry.h"
-
 
 namespace uCentral::WebSocket {
 
@@ -170,16 +141,16 @@ namespace uCentral::WebSocket {
     class WSConnection {
         static constexpr int BufSize = 12000;
     public:
-        WSConnection(StreamSocket& socket, SocketReactor& reactor);
+        WSConnection(Poco::Net::StreamSocket& socket, Poco::Net::SocketReactor& reactor);
         ~WSConnection();
 
         void ProcessJSONRPCEvent(Poco::DynamicStruct ds);
         void ProcessJSONRPCResult(Poco::DynamicStruct ds);
         void ProcessIncomingFrame();
         bool SendCommand(uCentralCommandDetails & Command);
-        void OnSocketReadable(const AutoPtr<Poco::Net::ReadableNotification>& pNf);
-        void OnSocketShutdown(const AutoPtr<Poco::Net::ShutdownNotification>& pNf);
-        void OnSocketError(const AutoPtr<Poco::Net::ErrorNotification>& pNf);
+        void OnSocketReadable(const Poco::AutoPtr<Poco::Net::ReadableNotification>& pNf);
+        void OnSocketShutdown(const Poco::AutoPtr<Poco::Net::ShutdownNotification>& pNf);
+        void OnSocketError(const Poco::AutoPtr<Poco::Net::ErrorNotification>& pNf);
         bool LookForUpgrade(std::string &Response);
         static Poco::DynamicStruct ExtractCompressedData(const std::string & CompressedData);
         void Register();
@@ -189,8 +160,8 @@ namespace uCentral::WebSocket {
         std::mutex                          Mutex_;
         CountedReactor                      Reactor_;
         Poco::Logger                    &   Logger_;
-        StreamSocket                        Socket_;
-        SocketReactor &                     ParentAcceptorReactor_;
+        Poco::Net::StreamSocket             Socket_;
+        Poco::Net::SocketReactor &          ParentAcceptorReactor_;
         std::unique_ptr<Poco::Net::WebSocket> WS_;
         std::string                         SerialNumber_;
         uCentral::DeviceRegistry::ConnectionState * Conn_;
@@ -201,9 +172,9 @@ namespace uCentral::WebSocket {
     };
 
     struct WebSocketServerEntry {
-        std::shared_ptr<Poco::Net::SocketReactor>                   SocketReactor;
-        std::shared_ptr<Poco::Net::SocketAcceptor<WSConnection>>    SocketAcceptor;
-        std::shared_ptr<Poco::Thread>                               SocketReactorThread;
+        std::unique_ptr<Poco::Net::SocketReactor>                   SocketReactor;
+        std::unique_ptr<Poco::Net::SocketAcceptor<WSConnection>>    SocketAcceptor;
+        std::unique_ptr<Poco::Thread>                               SocketReactorThread;
     };
 
     class Service : public SubSystemServer {

@@ -3,17 +3,12 @@
 //
 
 #include "RESTAPI_default_configurations.h"
-
-#include "RESTAPI_devicesHandler.h"
 #include "uStorageService.h"
-#include "uAuthService.h"
+
 #include "Poco/Array.h"
 #include "Poco/JSON/Stringifier.h"
 
-
-using Poco::Array;
-
-void RESTAPI_default_configurations::handleRequest(HTTPServerRequest& Request, HTTPServerResponse& Response)
+void RESTAPI_default_configurations::handleRequest(Poco::Net::HTTPServerRequest& Request, Poco::Net::HTTPServerResponse& Response)
 {
     if(!ContinueProcessing(Request,Response))
         return;
@@ -37,7 +32,7 @@ void RESTAPI_default_configurations::handleRequest(HTTPServerRequest& Request, H
             uCentral::Storage::GetDefaultConfigurations(Offset, Limit, DefConfigs);
 
             Poco::JSON::Array Objects;
-            for (auto i:DefConfigs)
+            for (const auto & i:DefConfigs)
                 Objects.add(i.to_json());
 
             Poco::JSON::Object RetObj;

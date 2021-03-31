@@ -1,24 +1,17 @@
 //
 // Created by stephane bourque on 2021-03-06.
 //
-
+#include "uCentral.h"
 #include "uCentralConfig.h"
 
 #include "Poco/JSON/Object.h"
 #include "Poco/JSON/Parser.h"
 
-using Poco::JSON::Object;
-using Poco::JSON::Parser;
-using Poco::DynamicStruct;
-using Poco::Dynamic::Var;
-
-#include "uCentral.h"
-
 namespace uCentral::Config {
 
     bool Config::SetUUID(uint64_t UUID) {
         try {
-            Parser parser;
+            Poco::JSON::Parser parser;
 
             Poco::Dynamic::Var result = parser.parse(Config_);
             Poco::JSON::Object::Ptr object = result.extract<Poco::JSON::Object::Ptr>();
@@ -61,7 +54,7 @@ namespace uCentral::Config {
 
     bool Config::Valid() {
         try {
-            Parser parser;
+            Poco::JSON::Parser parser;
 
             Poco::Dynamic::Var result = parser.parse(Config_);
             Poco::JSON::Object::Ptr object = result.extract<Poco::JSON::Object::Ptr>();
@@ -79,7 +72,7 @@ namespace uCentral::Config {
     }
 
     Poco::JSON::Object::Ptr   Config::to_json() {
-        Parser parser;
+        Poco::JSON::Parser parser;
         Poco::Dynamic::Var result = parser.parse(Config_);
         Poco::JSON::Object::Ptr Obj = result.extract<Poco::JSON::Object::Ptr>();
         return Obj;
@@ -139,7 +132,7 @@ namespace uCentral::Config {
             Capabilities_=Default();
 
         try {
-            Parser parser;
+            Poco::JSON::Parser parser;
 
             auto result = parser.parse(Capabilities_);
             auto object = result.extract<Poco::JSON::Object::Ptr>();

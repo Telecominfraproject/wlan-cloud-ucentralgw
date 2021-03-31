@@ -4,7 +4,7 @@
 
 #include "RESTAPI_unknownRequestHandler.h"
 
-void RESTAPI_UnknownRequestHandler::handleRequest(HTTPServerRequest& Request, HTTPServerResponse& Response)
+void RESTAPI_UnknownRequestHandler::handleRequest(Poco::Net::HTTPServerRequest& Request, Poco::Net::HTTPServerResponse& Response)
 {
     if(!IsAuthorized(Request,Response))
         return;

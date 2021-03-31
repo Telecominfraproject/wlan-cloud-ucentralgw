@@ -4,9 +4,8 @@
 
 #include "RESTAPI_commands.h"
 #include "uStorageService.h"
-#include "uAuthService.h"
 
-void RESTAPI_commands::handleRequest(HTTPServerRequest& Request, HTTPServerResponse& Response)
+void RESTAPI_commands::handleRequest(Poco::Net::HTTPServerRequest& Request, Poco::Net::HTTPServerResponse& Response)
 {
     if(!ContinueProcessing(Request,Response))
         return;

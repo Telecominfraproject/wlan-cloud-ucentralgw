@@ -4,9 +4,9 @@
 
 #include "RESTAPI_deviceHandler.h"
 #include "uStorageService.h"
-#include "uAuthService.h"
+#include "Poco/JSON/Parser.h"
 
-void RESTAPI_deviceHandler::handleRequest(HTTPServerRequest& Request, HTTPServerResponse& Response)
+void RESTAPI_deviceHandler::handleRequest(Poco::Net::HTTPServerRequest& Request, Poco::Net::HTTPServerResponse& Response)
 {
     if(!ContinueProcessing(Request,Response))
         return;
