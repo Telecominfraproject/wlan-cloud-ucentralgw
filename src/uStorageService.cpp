@@ -313,7 +313,7 @@ namespace uCentral::Storage {
                     "LastModified BIGINT)", now;
 
         Sess << "CREATE TABLE IF NOT EXISTS CommandList ("
-                    "UUID           VARCHAR(30) PRIMARY KEY, "
+                    "UUID           VARCHAR(64) PRIMARY KEY, "
                     "SerialNumber   VARCHAR(30), "
                     "Command        VARCHAR(32), "
                     "Status         VARCHAR(64), "
@@ -418,7 +418,7 @@ namespace uCentral::Storage {
                     "LastModified BIGINT)", now;
 
         Sess << "CREATE TABLE IF NOT EXISTS CommandList ("
-                    "UUID           VARCHAR(30) PRIMARY KEY, "
+                    "UUID           VARCHAR(64) PRIMARY KEY, "
                     "SerialNumber   VARCHAR(30), "
                     "Command        VARCHAR(32), "
                     "Status         VARCHAR(64), "
@@ -524,7 +524,7 @@ namespace uCentral::Storage {
                     "LastModified BIGINT)", now;
 
         Sess << "CREATE TABLE IF NOT EXISTS CommandList ("
-                    "UUID           VARCHAR(30) PRIMARY KEY, "
+                    "UUID           VARCHAR(64) PRIMARY KEY, "
                     "SerialNumber   VARCHAR(30), "
                     "Command        VARCHAR(32), "
                     "Status         VARCHAR(64), "
@@ -579,6 +579,20 @@ namespace uCentral::Storage {
 
 #endif
 
+    std::string SQLEscapeStr(const std::string & S) {
+        std::string R;
+
+        for(const auto &i:S)
+            if(i=='\'') {
+                R += '\'';
+                R += '\'';
+            }
+            else {
+                R += i;
+            }
+        return R;
+    }
+
     int Service::Start() {
         std::lock_guard<std::mutex> guard(mutex_);
 
@@ -623,13 +637,13 @@ namespace uCentral::Storage {
  */
             Statement   Insert(Sess);
 
-            Insert << "INSERT INTO Statistics (SerialNumber, UUID, Data, Recorded) VALUES(?,?,?,?)",
-                    use(SerialNumber),
-                    use(CfgUUID),
-                    use(NewStats),
-                    use(Now);
-
+            Insert << "INSERT INTO Statistics (SerialNumber, UUID, Data, Recorded) VALUES('%s',%Lu,'%s',%Lu)",
+                        SerialNumber,
+                        CfgUUID,
+                        SQLEscapeStr(NewStats),
+                        Now;
             Insert.execute();
+
             return true;
         }
         catch (const Poco::Exception &E) {
@@ -734,13 +748,13 @@ namespace uCentral::Storage {
             "Recorded BIGINT) ", now;
 */
             Statement   Insert(Sess);
-            Insert
-                    << "INSERT INTO HealthChecks (SerialNumber, UUID, Data, Sanity, Recorded) VALUES(?,?,?,?,?)",
-                    use(SerialNumber),
-                    use(Check.UUID),
-                    use(Check.Data),
-                    use(Check.Sanity),
-                    use(Check.Recorded);
+            Insert  << "INSERT INTO HealthChecks (SerialNumber, UUID, Data, Sanity, Recorded) "
+                       "VALUES('%s', %Lu, '%s', %Lu, %Lu)",
+                    SerialNumber,
+                    Check.UUID,
+                    SQLEscapeStr(Check.Data),
+                    Check.Sanity,
+                    Check.Recorded;
             Insert.execute();
             return true;
         }
@@ -852,13 +866,13 @@ namespace uCentral::Storage {
 
             Statement insert(Sess);
             insert
-                    << "INSERT INTO DeviceLogs (SerialNumber, Log, Data, Severity, Recorded, LogType ) VALUES(?,?,?,?,?,?)",
-                    use(SerialNumber),
-                    use(Log.Log),
-                    use(Log.Data),
-                    use(Log.Severity),
-                    use(Log.Recorded),
-                    use(LogType);
+                    << "INSERT INTO DeviceLogs (SerialNumber, Log, Data, Severity, Recorded, LogType ) VALUES('%s', '%s', '%s', %Lu, %Lu , %Lu)",
+                    SerialNumber,
+                    SQLEscapeStr(Log.Log),
+                    SQLEscapeStr(Log.Data),
+                    Log.Severity,
+                    Log.Recorded,
+                    LogType;
             insert.execute();
             return true;
         }
@@ -1000,9 +1014,9 @@ namespace uCentral::Storage {
 
             uint64_t CurrentUUID;
 
-            Select << "SELECT UUID FROM Devices WHERE SerialNumber=?",
+            Select << "SELECT UUID FROM Devices WHERE SerialNumber='%s'",
                     into(CurrentUUID),
-                    use(SerialNumber);
+                    SerialNumber;
             Select.execute();
 
             CurrentUUID++;
@@ -1014,14 +1028,13 @@ namespace uCentral::Storage {
 
                 Statement   Update(Sess);
 
-                Update
-                        << "UPDATE Devices SET Configuration=?, UUID=?, LastConfigurationChange=? WHERE SerialNumber=?",
-                        use(NewConfig),
-                        use(CurrentUUID),
-                        use(Now),
-                        use(SerialNumber);
-
+                Update  << "UPDATE Devices SET Configuration='%s', UUID=%Lu, LastConfigurationChange=%Lu WHERE SerialNumber='%s'",
+                        SQLEscapeStr(NewConfig),
+                        CurrentUUID,
+                        Now,
+                        SerialNumber;
                 Update.execute();
+
                 Logger_.information(Poco::format("CONFIG-UPDATE(%s): UUID is %Lu", SerialNumber, CurrentUUID));
                 NewUUID = CurrentUUID;
 
@@ -1046,9 +1059,9 @@ namespace uCentral::Storage {
             Session     Sess = Pool_->get();
             Statement   Select(Sess);
 
-            Select << "SELECT SerialNumber FROM Devices WHERE SerialNumber=?",
+            Select << "SELECT SerialNumber FROM Devices WHERE SerialNumber='%s'",
                     into(SerialNumber),
-                    use(DeviceDetails.SerialNumber);
+                    DeviceDetails.SerialNumber;
             Select.execute();
 
             if (SerialNumber.empty()) {
@@ -1074,19 +1087,19 @@ namespace uCentral::Storage {
  */
                     Statement   Insert(Sess);
 
-                    Insert
-                            << "INSERT INTO Devices (SerialNumber, DeviceType, MACAddress, Manufacturer, UUID, Configuration, Notes, CreationTimestamp, LastConfigurationChange, LastConfigurationDownload )"
-                               "VALUES(?,?,?,?,?,?,?,?,?,?)",
-                            use(DeviceDetails.SerialNumber),
-                            use(DeviceDetails.DeviceType),
-                            use(DeviceDetails.MACAddress),
-                            use(DeviceDetails.Manufacturer),
-                            use(DeviceDetails.UUID),
-                            use(DeviceDetails.Configuration),
-                            use(DeviceDetails.Notes),
-                            use(Now),
-                            use(Now),
-                            use(Now);
+                    Insert  << "INSERT INTO Devices (SerialNumber, DeviceType, MACAddress, Manufacturer, UUID, "
+                               "Configuration, Notes, CreationTimestamp, LastConfigurationChange, LastConfigurationDownload )"
+                               "VALUES('%s', '%s', '%s', '%s', %Lu, '%s', '%s', %Lu, %Lu , %Lu)",
+                            DeviceDetails.SerialNumber,
+                            DeviceDetails.DeviceType,
+                            DeviceDetails.MACAddress,
+                            DeviceDetails.Manufacturer,
+                            DeviceDetails.UUID,
+                            SQLEscapeStr(DeviceDetails.Configuration),
+                            SQLEscapeStr(DeviceDetails.Notes),
+                            Now,
+                            Now,
+                            Now;
 
                     Insert.execute();
 
@@ -1142,8 +1155,8 @@ namespace uCentral::Storage {
             Session     Sess = Pool_->get();
             Statement   Delete(Sess);
 
-            Delete << "DELETE FROM Devices WHERE SerialNumber=?",
-                        use(SerialNumber);
+            Delete << "DELETE FROM Devices WHERE SerialNumber='%s'",
+                        SerialNumber;
             Delete.execute();
             return true;
         }
@@ -1172,7 +1185,7 @@ namespace uCentral::Storage {
                         "CreationTimestamp, "
                         "LastConfigurationChange, "
                         "LastConfigurationDownload "
-                        " FROM Devices WHERE SerialNumber=?",
+                        " FROM Devices WHERE SerialNumber='%s'",
                     into(DeviceDetails.SerialNumber),
                     into(DeviceDetails.DeviceType),
                     into(DeviceDetails.MACAddress),
@@ -1183,7 +1196,7 @@ namespace uCentral::Storage {
                     into(DeviceDetails.CreationTimestamp),
                     into(DeviceDetails.LastConfigurationChange),
                     into(DeviceDetails.LastConfigurationDownload),
-                    use(SerialNumber);
+                    SerialNumber;
 
             Select.execute();
 
@@ -1208,9 +1221,9 @@ namespace uCentral::Storage {
 
             Select << "SELECT "
                         "SerialNumber "
-                        " FROM Devices WHERE SerialNumber=?",
+                        "FROM Devices WHERE SerialNumber='%s'",
                     into(Serial),
-                    use(SerialNumber);
+                    SerialNumber;
             Select.execute();
 
             if (Serial.empty())
@@ -1235,13 +1248,14 @@ namespace uCentral::Storage {
             uint64_t Now = time(nullptr);
 
             Update
-                    << "UPDATE Devices SET Manufacturer=?, DeviceType=?, MACAddress=?, Notes=?, LastConfigurationChange=? WHERE SerialNumber=?",
-                    use(NewConfig.Manufacturer),
-                    use(NewConfig.DeviceType),
-                    use(NewConfig.MACAddress),
-                    use(NewConfig.Notes),
-                    use(Now),
-                    use(NewConfig.SerialNumber);
+                    << "UPDATE Devices SET Manufacturer='%s', DeviceType='%s', MACAddress='%s', Notes='%s', "
+                       "LastConfigurationChange=%Lu WHERE SerialNumber='%s'",
+                    SQLEscapeStr(NewConfig.Manufacturer),
+                    NewConfig.DeviceType,
+                    NewConfig.MACAddress,
+                    SQLEscapeStr(NewConfig.Notes),
+                    Now,
+                    NewConfig.SerialNumber;
 
             Update.execute();
 
@@ -1327,9 +1341,9 @@ namespace uCentral::Storage {
 
             uint64_t Now = time(nullptr);
 
-            Select << "SELECT SerialNumber FROM Capabilities WHERE SerialNumber=?",
+            Select << "SELECT SerialNumber FROM Capabilities WHERE SerialNumber='%s'",
                     into(SS),
-                    use(SerialNumber);
+                    SerialNumber;
             Select.execute();
 
 /*
@@ -1342,21 +1356,22 @@ namespace uCentral::Storage {
             if (SS.empty()) {
                 Logger_.information("Adding capabilities for " + SerialNumber);
                 Statement   Insert(Sess);
-                Insert
-                        << "INSERT INTO Capabilities (SerialNumber, Capabilities, FirstUpdate, LastUpdate) VALUES(?,?,?,?)",
-                        use(SerialNumber),
-                        use(Capabs),
-                        use(Now),
-                        use(Now);
+
+                Insert  << "INSERT INTO Capabilities (SerialNumber, Capabilities, FirstUpdate, LastUpdate) "
+                           "VALUES('%s', '%s', %Lu, %Lu)",
+                            SerialNumber,
+                            SQLEscapeStr(Capabs),
+                            Now,
+                            Now;
                 Insert.execute();
+
             } else {
                 Logger_.information("Updating capabilities for " + SerialNumber);
                 Statement   Update(Sess);
-                Update
-                        << "UPDATE Capabilities SET Capabilities=?, LastUpdate=? WHERE SerialNumber=?",
-                        use(Capabs),
-                        use(Now),
-                        use(SerialNumber);
+                Update  << "UPDATE Capabilities SET Capabilities='%s', LastUpdate=%Lu WHERE SerialNumber='%s'",
+                            SQLEscapeStr(Capabs),
+                            Now,
+                            SerialNumber;
                 Update.execute();
             }
             return true;
@@ -1378,12 +1393,12 @@ namespace uCentral::Storage {
             std::string TmpSerialNumber;
 
             Select
-                    << "SELECT SerialNumber, Capabilities, FirstUpdate, LastUpdate FROM Capabilities WHERE SerialNumber=?",
+                    << "SELECT SerialNumber, Capabilities, FirstUpdate, LastUpdate FROM Capabilities WHERE SerialNumber='%s'",
                     into(TmpSerialNumber),
                     into(Caps.Capabilities),
                     into(Caps.FirstUpdate),
                     into(Caps.LastUpdate),
-                    use(SerialNumber);
+                    SerialNumber;
             Select.execute();
 
             if (TmpSerialNumber.empty())
@@ -1405,9 +1420,8 @@ namespace uCentral::Storage {
             Session     Sess = Pool_->get();
             Statement   Delete(Sess);
 
-            Delete <<
-                     "DELETE FROM Capabilities WHERE SerialNumber=?",
-                    use(SerialNumber);
+            Delete << "DELETE FROM Capabilities WHERE SerialNumber='%s'",
+                        SerialNumber;
             Delete.execute();
 
             return true;
@@ -1428,11 +1442,11 @@ namespace uCentral::Storage {
             Statement   Select(Sess);
             uint64_t Now = time(nullptr);
 
-            Select << "SELECT SerialNumber, UUID, Configuration FROM Devices WHERE SerialNumber=?",
+            Select << "SELECT SerialNumber, UUID, Configuration FROM Devices WHERE SerialNumber='%s'",
                     into(SS),
                     into(UUID),
                     into(NewConfig),
-                    use(SerialNumber);
+                    SerialNumber;
 
             Select.execute();
 
@@ -1443,9 +1457,9 @@ namespace uCentral::Storage {
             //  Let's update the last downloaded time
             Statement   Update(Sess);
 
-            Update << "UPDATE Devices SET LastConfigurationDownload=? WHERE SerialNumber=?",
-                    use(Now),
-                    use(SerialNumber);
+            Update << "UPDATE Devices SET LastConfigurationDownload=%Lu WHERE SerialNumber='%s'",
+                    Now,
+                    SerialNumber;
             Update.execute();
 
             return true;
@@ -1478,9 +1492,9 @@ namespace uCentral::Storage {
             Session     Sess = Pool_->get();
             Statement   Select(Sess);
 
-            Select <<   "SELECT Name FROM DefaultConfigs WHERE Name=?",
-                        into(TmpName),
-                        use(Name);
+            Select <<   "SELECT Name FROM DefaultConfigs WHERE Name='%s'",
+                            into(TmpName),
+                            Name;
             Select.execute();
 
             if (TmpName.empty()) {
@@ -1500,14 +1514,14 @@ namespace uCentral::Storage {
                     uint64_t Now = time(nullptr);
                     Statement   Insert(Sess);
 
-                    Insert
-                            << "INSERT INTO DefaultConfigs (Name, Configuration, Models, Description, Created, LastModified) VALUES(?,?,?,?,?,?)",
-                            use(Name),
-                            use(DefConfig.Configuration),
-                            use(DefConfig.Models),
-                            use(DefConfig.Description),
-                            use(Now),
-                            use(Now);
+                    Insert  << "INSERT INTO DefaultConfigs (Name, Configuration, Models, Description, Created, LastModified) "
+                               "VALUES('%s', '%s', '%s', '%s', %Lu, %Lu)",
+                                    Name,
+                                    SQLEscapeStr(DefConfig.Configuration),
+                                    SQLEscapeStr(DefConfig.Models),
+                                    SQLEscapeStr(DefConfig.Description),
+                                    Now,
+                                    Now;
 
                     Insert.execute();
 
@@ -1532,8 +1546,8 @@ namespace uCentral::Storage {
             Session     Sess = Pool_->get();
             Statement   Delete(Sess);
 
-            Delete <<   "DELETE FROM DefaultConfigs WHERE Name=?",
-                        use(Name);
+            Delete <<   "DELETE FROM DefaultConfigs WHERE Name='%s'",
+                        Name;
             Delete.execute();
 
             return true;
@@ -1556,13 +1570,13 @@ namespace uCentral::Storage {
                 uint64_t Now = time(nullptr);
                 Statement   Update(Sess);
 
-                Update <<
-                         "UPDATE DefaultConfigs SET Configuration=?, Models=?, Description=?, LastModified=? WHERE Name=?",
-                            use(DefConfig.Configuration),
-                            use(DefConfig.Models),
-                            use(DefConfig.Description),
-                            use(Now),
-                            use(Name);
+                Update << "UPDATE DefaultConfigs SET Configuration='%s', Models='%s', Description='%s', LastModified=%Lu"
+                          "WHERE Name='%s'",
+                            SQLEscapeStr(DefConfig.Configuration),
+                            SQLEscapeStr(DefConfig.Models),
+                            SQLEscapeStr(DefConfig.Description),
+                            Now,
+                            SQLEscapeStr(Name);
 
                 Update.execute();
                 return true;
@@ -1591,14 +1605,14 @@ namespace uCentral::Storage {
                         "Description, "
                         "Created, "
                         "LastModified "
-                        " FROM DefaultConfigs WHERE Name=?",
+                        "FROM DefaultConfigs WHERE Name='%s'",
                     into(DefConfig.Name),
                     into(DefConfig.Configuration),
                     into(DefConfig.Models),
                     into(DefConfig.Description),
                     into(DefConfig.Created),
                     into(DefConfig.LastModified),
-                    use(Name);
+                    SQLEscapeStr(Name);
 
             Select.execute();
 
@@ -1772,25 +1786,24 @@ namespace uCentral::Storage {
             Session     Sess = Pool_->get();
             Statement   Insert(Sess);
 
-            Insert
-                    << "INSERT INTO CommandList (UUID, SerialNumber, Command, Status, SubmittedBy, Results, Details, "
-                       "Submitted, Executed, Completed, RunAt, ErrorCode, Custom, WaitingForFile, AttachDate)"
-                       "VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
-                    use(Command.UUID),
-                    use(Command.SerialNumber),
-                    use(Command.Command),
-                    use(Command.Status),
-                    use(Command.SubmittedBy),
-                    use(Command.Results),
-                    use(Command.Details),
-                    use(Command.Submitted),
-                    use(Command.Executed),
-                    use(Command.Completed),
-                    use(Command.RunAt),
-                    use(Command.ErrorCode),
-                    use(Command.Custom),
-                    use(Command.WaitingForFile),
-                    use(Command.AttachDate);
+            Insert  << "INSERT INTO CommandList (UUID, SerialNumber, Command, Status, SubmittedBy, Results, Details, "
+                       "Submitted, Executed, Completed, RunAt, ErrorCode, Custom, WaitingForFile, AttachDate) "
+                       "VALUES('%s', '%s', '%s', '%s', '%s', '%s', '%s', %Lu, %Lu, %Lu, %Lu, %Lu, %Lu , %Lu, %Lu)",
+                            Command.UUID,
+                            Command.SerialNumber,
+                            Command.Command,
+                            Command.Status,
+                            Command.SubmittedBy,
+                            SQLEscapeStr(Command.Results),
+                            SQLEscapeStr(Command.Details),
+                            Command.Submitted,
+                            Command.Executed,
+                            Command.Completed,
+                            Command.RunAt,
+                            Command.ErrorCode,
+                            Command.Custom,
+                            Command.WaitingForFile,
+                            Command.AttachDate;
 
             Insert.execute();
 
@@ -2014,14 +2027,14 @@ namespace uCentral::Storage {
 
             Statement   Update(Sess);
 
-            Update  << "UPDATE CommandList SET Status=?, Executed=?, Completed=?, Results=?, ErrorText=?, ErrorCode=? WHERE UUID=?",
-                    use(Command.Status),
-                    use(Command.Executed),
-                    use(Command.Completed),
-                    use(Command.Results),
-                    use(Command.ErrorText),
-                    use(Command.ErrorCode),
-                    use(UUID);
+            Update  << "UPDATE CommandList SET Status='%s', Executed=%Lu, Completed=%Lu, Results='%s', ErrorText='%s', ErrorCode=%Lu WHERE UUID='%s'",
+                    Command.Status,
+                    Command.Executed,
+                    Command.Completed,
+                    SQLEscapeStr(Command.Results),
+                    SQLEscapeStr(Command.ErrorText),
+                    Command.ErrorCode,
+                    UUID;
 
             Update.execute();
 
@@ -2060,7 +2073,7 @@ namespace uCentral::Storage {
 
             Select << "SELECT UUID, SerialNumber, Command, Status, SubmittedBy, Results, Details, ErrorText, "
                         "Submitted, Executed, Completed, RunAt, ErrorCode, Custom, WaitingForFile, AttachDate FROM CommandList "
-                        " WHERE UUID=?",
+                        " WHERE UUID='%s'",
                     into(Command.UUID),
                     into(Command.SerialNumber),
                     into(Command.Command),
@@ -2077,7 +2090,7 @@ namespace uCentral::Storage {
                     into(Command.Custom),
                     into(Command.WaitingForFile),
                     into(Command.AttachDate),
-                    use(UUID);
+                    UUID;
 
             Select.execute();
 
@@ -2095,8 +2108,8 @@ namespace uCentral::Storage {
             Session     Sess = Pool_->get();
             Statement   Delete(Sess);
 
-            Delete << "DELETE FROM CommandList WHERE UUID=?",
-                    use(UUID);
+            Delete << "DELETE FROM CommandList WHERE UUID='%s'",
+                        UUID;
             Delete.execute();
 
             return true;
@@ -2120,9 +2133,9 @@ namespace uCentral::Storage {
 
             Select << "SELECT UUID, SerialNumber, Command, Status, SubmittedBy, Results, Details, ErrorText, "
                         "Submitted, Executed, Completed, RunAt, ErrorCode, Custom, WaitingForFile, AttachDate FROM CommandList "
-                        " WHERE RunAt<? And Executed=0",
+                        " WHERE RunAt < %Lu And Executed=0",
                     into(Records),
-                    use(Now),
+                    Now,
                     range(Offset, Offset + HowMany - 1);
             Select.execute();
 
@@ -2165,9 +2178,9 @@ namespace uCentral::Storage {
             Session Sess = Pool_->get();
             Statement   Update(Sess);
 
-            Update << "UPDATE CommandList SET Executed=? WHERE UUID=?",
-                    use(Now),
-                    use(UUID);
+            Update << "UPDATE CommandList SET Executed=%Lu WHERE UUID='%s'",
+                        Now,
+                        UUID;
 
             Update.execute();
 
@@ -2204,13 +2217,13 @@ namespace uCentral::Storage {
             std::string StatusText{"completed"};
 
             Update
-                    << "UPDATE CommandList SET Completed=?, ErrorCode=?, ErrorText=?, Results=?, Status=? WHERE UUID=?",
-                    use(Now),
-                    use(ErrorCode),
-                    use(ErrorText),
-                    use(ResultStr),
-                    use(StatusText),
-                    use(UUID);
+                    << "UPDATE CommandList SET Completed=%Lu, ErrorCode=%Lu, ErrorText='%s', Results='%s', Status='%s' WHERE UUID='%s'",
+                    Now,
+                    ErrorCode,
+                    SQLEscapeStr(ErrorText),
+                    SQLEscapeStr(ResultStr),
+                    StatusText,
+                    UUID;
 
             Update.execute();
 
@@ -2232,10 +2245,10 @@ namespace uCentral::Storage {
             Session Sess = Pool_->get();
             Statement   Update(Sess);
 
-            Update << "UPDATE CommandList SET WaitingForFile=?, AttachDate=? WHERE UUID=?",
-                    use(WaitForFile),
-                    use(Now),
-                    use(UUID);
+            Update << "UPDATE CommandList SET WaitingForFile=%Lu, AttachDate=%Lu WHERE UUID='%s'",
+                    WaitForFile,
+                    Now,
+                    UUID;
 
             Update.execute();
 

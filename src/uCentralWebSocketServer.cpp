@@ -496,7 +496,7 @@ namespace uCentral::WebSocket {
 
         bool MustDisconnect=false;
 
-        std::array <char,BufSize>   IncomingMessage;
+        std::array <char,BufSize>   IncomingMessage{0};
         std::string IncomingMessageStr;
 
         try {
