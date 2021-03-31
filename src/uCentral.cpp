@@ -28,7 +28,7 @@
 
 namespace uCentral {
 
-    Daemon * instance() { return static_cast<Daemon *>(&uCentral::Daemon::instance()); }
+    Daemon * instance() { return dynamic_cast<Daemon *>(&uCentral::Daemon::instance()); }
 
     void MyErrorHandler::exception(const Poco::Exception & E) {
         Poco::Thread * CurrentThread = Poco::Thread::current();
