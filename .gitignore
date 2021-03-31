@@ -13,3 +13,7 @@ _deps
 *.csr
 *.db
 /venv/
+/uploads/
+/logs/
+/certs/
+/cmake-build/
