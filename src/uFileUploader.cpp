@@ -133,8 +133,8 @@ namespace uCentral::uFileUploader {
     class MyPartHandler: public Poco::Net::PartHandler
     {
     public:
-        MyPartHandler(const std::string & UUID, Poco::Logger & Logger):
-            UUID_{UUID},
+        MyPartHandler(std::string UUID, Poco::Logger & Logger):
+            UUID_(std::move(UUID)),
             Length_(0),
             Logger_(Logger)
         {
@@ -180,8 +180,8 @@ namespace uCentral::uFileUploader {
         /// Return a HTML document with the current date and time.
     {
     public:
-        explicit FormRequestHandler(const std::string & UUID):
-            UUID_{UUID},
+        explicit FormRequestHandler(std::string UUID):
+            UUID_(std::move(UUID)),
             Logger_(uCentral::uFileUploader::Service().Logger())
         {
         }
@@ -261,15 +261,9 @@ namespace uCentral::uFileUploader {
 
     Poco::Net::HTTPRequestHandler *RequestHandlerFactory::createRequestHandler(const Poco::Net::HTTPServerRequest & Request) {
 
-        Logger_.information("Request from "
-                            + Request.clientAddress().toString()
-                            + ": "
-                            + Request.getMethod()
-                            + " "
-                            + Request.getURI()
-                            + " "
-                            + Request.getVersion()
-        );
+        Logger_.information(Poco::format("Request from %s: URI:%s",
+										 Request.clientAddress().toString(),
+										 Request.getURI()));
 
         //  The UUID should be after the /v1/upload/ part...
         auto UUIDLocation = Request.getURI().find_first_of(URIBASE);
@@ -277,8 +271,6 @@ namespace uCentral::uFileUploader {
         if( UUIDLocation != std::string::npos )
         {
             auto UUID = Request.getURI().substr(UUIDLocation+URIBASE.size());
-            Logger_.information(Poco::format("Request to upload: %s",UUID));
-
             if(uCentral::uFileUploader::ValidRequest(UUID))
             {
                 //  make sure we do not allow anyone else to overwrite our file
