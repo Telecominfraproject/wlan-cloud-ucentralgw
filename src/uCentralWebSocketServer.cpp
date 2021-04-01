@@ -41,12 +41,8 @@ namespace uCentral::WebSocket {
     int Service::Start() {
 
         for(const auto & Svr : ConfigServersList_ ) {
-            std::string l{
-                    "Starting: " + Svr.address() + ":" + std::to_string(Svr.port()) +
-                    " key:" + Svr.key_file() +
-                    " cert:" + Svr.cert_file()};
-
-            Logger_.information(l);
+            Logger_.information(Poco::format("Starting: %s:%s Keyfile:%s CertFile: %s", Svr.address(), std::to_string(Svr.port()),
+											 Svr.key_file(),Svr.cert_file()));
 
             auto Sock{Svr.CreateSecureSocket()};
             auto NewSocketReactor = std::make_unique<Poco::Net::SocketReactor>();
