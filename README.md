@@ -127,6 +127,57 @@ cmake -DSMALL_BUILD=1 ..
 make
 ```
 
+### Docker
+So building this thing from scratch is not your thing? I can't blame you. It takes some patience and 
+in the end, there's still more work. Here comes `docker` to the rescue. You can run a docker version following
+these instructions. The following is the content of the `docker_run.sh` script:
+
+```bash
+#!/bin/sh
+
+HUBNAME=tip-tip-wlan-cloud-ucentral.jfrog.io
+IMAGE_NAME=ucentralgw
+DOCKER_NAME=$HUBNAME/$IMAGE_NAME
+
+CONTAINER_NAME=ucentralgw
+
+#stop previously running images
+docker container stop $CONTAINER_NAME
+docker container rm $CONTAINER_NAME --force
+
+if [[ ! -d logs ]]
+then
+    mkdir logs
+fi
+
+if [[ ! -d certs ]]
+then
+  echo "certs directory does not exist. Please create and add the proper certificates."
+  exit 1
+fi
+
+if [[ ! -f ucentral.properties ]]
+then
+  echo "Configuration file ucentral.properties is missing in the current directory"
+  exit 2
+fi
+
+docker run -d -p 15002:15002 \
+              -p 16001:16001 \
+              -p 16003:16003 \
+              --init \
+              --volume="$PWD:/ucentral-data" \
+              -e UCENTRAL_ROOT="/ucentral-data" \
+              -e UCENTRAL_CONFIG="/ucentral-data" \
+              --name="ucentralgw" $DOCKER_NAME
+
+```
+
+Create yourself a directory and copy that script which you can also get from [here](https://github.com/stephb9959/ucentralgw/blob/main/docker_run.sh).
+You must have the basic configuration file copied in the directory. This file must be called `ucentral.properties`. You can bring your own or
+copy it from [here](https://github.com/stephb9959/ucentralgw/blob/main/tipapi/ucentral/ucentral.properties). You must create 
+the certificates and copy them into your new `certs` directory. You need to make sure that the names match the content of the `ucentral.properties`
+file. Once all this is done, you can simply run `docker_run.sh`.
 
 ### Configuration
 The configuration for this service is kept in a properties file. Currently, this configuration file must be kept in the 
