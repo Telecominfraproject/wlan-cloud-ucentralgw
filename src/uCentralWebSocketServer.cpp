@@ -90,12 +90,7 @@ namespace uCentral::WebSocket {
     WSConnection::WSConnection(Poco::Net::StreamSocket& socket, Poco::Net::SocketReactor& reactor):
             Socket_(socket),
             ParentAcceptorReactor_(reactor),
-            Logger_(Service::instance()->Logger()),
-            RPC_(time(nullptr)),
-            Registered_(false),
-            Conn_(nullptr),
-            WS_(nullptr),
-            WSup_(false)
+            Logger_(Service::instance()->Logger())
     {
         auto Params = Poco::AutoPtr<Poco::Net::HTTPServerParams>(new Poco::Net::HTTPServerParams());
         Poco::Net::HTTPServerSession        Session(Socket_, Params);

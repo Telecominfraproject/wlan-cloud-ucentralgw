@@ -56,7 +56,6 @@ namespace uCentral {
         uint64_t                    ID_ = 1;
         Poco::UUIDGenerator         UUIDGenerator_;
         MyErrorHandler              AppErrorHandler_;
-
     };
 
     namespace ServiceConfig {
@@ -66,7 +65,6 @@ namespace uCentral {
         std::string getString(const std::string &Key);
         uint64_t getBool(const std::string &Key,bool Default);
         uint64_t getBool(const std::string &Key);
-        // std::string ReplaceEnvVar(const std::string &Key);
     }
 
     Daemon * instance();

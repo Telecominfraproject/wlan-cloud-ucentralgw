@@ -16,18 +16,18 @@
 
 class PropertiesFileServerEntry {
 public:
-    PropertiesFileServerEntry( const std::string &address,
+    PropertiesFileServerEntry( std::string Address,
                                uint32_t port,
-                               const std::string &key_file,
-                               const std::string &cert_file,
-                               const std::string &key_file_password = "",
-                               const std::string &name="") :
-            address_(address),
+                               std::string Key_file,
+                               std::string Cert_file,
+                               std::string Key_file_password = "",
+                               std::string Name="") :
+            address_(std::move(Address)),
             port_(port),
-            key_file_(key_file),
-            cert_file_(cert_file),
-            key_file_password_(key_file_password),
-            name_(name){};
+            key_file_(std::move(Key_file)),
+            cert_file_(std::move(Cert_file)),
+            key_file_password_(std::move(Key_file_password)),
+            name_(std::move(Name)){};
     
     [[nodiscard]] const std::string & address() const { return address_; };
     [[nodiscard]] uint32_t port() const { return port_; };
@@ -49,7 +49,7 @@ private:
 class SubSystemServer : public Poco::Util::Application::Subsystem {
 
 public:
-    SubSystemServer(const std::string &name, const std::string & LoggingName, const std::string & SubSystemPrefix );
+    SubSystemServer(std::string Name, const std::string & LoggingName, std::string SubSystemPrefix );
     virtual int Start() = 0;
     virtual void Stop() = 0;
     void initialize(Poco::Util::Application &self) override;

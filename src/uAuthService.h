@@ -49,7 +49,6 @@ namespace uCentral::Auth {
 
         friend int Start();
         friend void Stop();
-        friend class Janitor;
 
         static Service *instance() {
             if (instance_ == nullptr) {
@@ -74,11 +73,11 @@ namespace uCentral::Auth {
         static Service *instance_;
         std::mutex mutex_;
         std::map<std::string,WebToken>   Tokens_;
-        bool    Secure_;
+        bool    		Secure_ = false ;
         std::string     DefaultUserName_,
                         DefaultPassword_;
         std::string     Mechanism_;
-        bool            AutoProvisioning_;
+        bool            AutoProvisioning_ = false ;
     };
 
 }; // end of namespace

@@ -5,12 +5,12 @@
 #include "SubSystemServer.h"
 #include "uCentral.h"
 
-SubSystemServer::SubSystemServer( const std::string & Name,
+SubSystemServer::SubSystemServer( std::string Name,
                                   const std::string & LoggingPrefix,
-                                  const std::string & SubSystemConfigPrefix )
-    :   Name_(Name),
+                                  std::string SubSystemConfigPrefix )
+    :   Name_(std::move(Name)),
         Logger_(Poco::Logger::get(LoggingPrefix)),
-        SubSystemConfigPrefix_(SubSystemConfigPrefix)
+        SubSystemConfigPrefix_(std::move(SubSystemConfigPrefix))
 {
 
 }

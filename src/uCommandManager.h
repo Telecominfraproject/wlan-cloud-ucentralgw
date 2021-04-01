@@ -16,13 +16,12 @@ namespace uCentral::CommandManager {
     class Manager : public Poco::Runnable {
     public:
         explicit Manager(Poco::Logger & Logger):
-            Stop_(false),
             Logger_(Logger)
         {}
         void run() override;
         void stop() { Stop_ = true; }
     private:
-        bool Stop_;
+        bool 			Stop_ = false;
         Poco::Logger    & Logger_;
     };
 

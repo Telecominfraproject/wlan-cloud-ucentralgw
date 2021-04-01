@@ -164,11 +164,11 @@ namespace uCentral::WebSocket {
         Poco::Net::SocketReactor &          ParentAcceptorReactor_;
         std::unique_ptr<Poco::Net::WebSocket> WS_;
         std::string                         SerialNumber_;
-        uCentral::DeviceRegistry::ConnectionState * Conn_;
+        uCentral::DeviceRegistry::ConnectionState * Conn_ = nullptr;
         std::map<uint64_t,std::string>      RPCs_;
-        uint64_t                            RPC_;
-        bool                                Registered_;
-        bool                                WSup_;
+        uint64_t                            RPC_ = time(nullptr);
+        bool                                Registered_ = false ;
+        bool                                WSup_ = false ;
     };
 
     struct WebSocketServerEntry {
