@@ -15,6 +15,11 @@ then
     mkdir logs
 fi
 
+if [[ ! -d uploads ]]
+then
+    mkdir uploads
+fi
+
 if [[ ! -d certs ]]
 then
   echo "certs directory does not exist. Please create and add the proper certificates."
