@@ -130,14 +130,18 @@ Once your build is done. You can remove the Poco source as it is no longer neede
 
 #### Expected directory layout
 From the directory where your cloned source is, you will need to create the `certs`, `logs`, and `uploads` directories.
+```shell
+mkdir certs
+mkdir logs
+mkdir uploads
+```
+
 You should now have the following:
 
 ```
 -- cert_scripts
   |
   +-- certs
-  |  +-- server-key.pem
-  |  +-- server-cert.pem
   |
   +-- cmake
   |
@@ -159,7 +163,31 @@ You should now have the following:
 #### Certificates for your gateway
 If you have not been provided with certificates, you need to [generate your own certificates](#certificates) using the procedure 
 in this document. When done, copy the `server-cert.pem` and `server-key.pem` files in the `certs` directory. If you generate your own,
-you must remember to copy the generated devices certificates on the devices.
+you must remember to copy the generated devices certificates on the devices. You should now have:
+
+```
+-- cert_scripts
+  |
+  +-- certs
+  |     +---- server-key.pem
+  |     +---- server-cert.pem
+  |
+  +-- cmake
+  |
+  +-- cmake-build
+  |
+  +-- logs (dir)
+  |
+  +-- src
+  |
+  +-- test_scripts
+  |
+  +-- tipapi
+  |
+  +-- uploads
+  |
+  +-- ucentral.properties
+```
 
 #### Configuration
 The configuration for this service is kept in a properties file. This file is called `ucentral.properties` and you can 
