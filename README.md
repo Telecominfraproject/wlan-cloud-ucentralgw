@@ -127,6 +127,124 @@ cmake -DSMALL_BUILD=1 ..
 make
 ```
 
+### Getting started (if you did your own build)
+If you have build your own copy of `ucentralgw`, you should follow these instructions. Here is you would prefer 
+[Docker](#docker).
+
+#### Expected directory layout
+From the directory where you cloned the source, you should have the following:
+
+```
+-- cert_scripts
+  |
+  +-- certs
+  |  +-- server-key.pem
+  |  +-- server-cert.pem
+  |
+  +-- cmake
+  |
+  +-- cmake-build
+  |
+  +-- logs (dir)
+  |
+  +-- src
+  |
+  +-- test_scripts
+  |
+  +-- tipapi
+  |
+  +-- uploads
+  |
+  +-- ucentral.properties
+```
+
+You will need to create the `certs`, `logs`, and `uploads` directories.
+
+#### Certificates for your gateway
+If you have not been provided with certificates, you need generate some using the procedure in this document. When done,
+copy the `server-cert.pem` and `server-key.pem` files in the `certs` directory. If you [generate your own certificates](#certificates),
+you must remember to copy the generated devices certificates on the devices.
+
+#### Configuration
+The configuration for this service is kept in a properties file. Currently, this configuration file must be kept in the
+current directory of uCentral or one level up. This file is called `ucentral.properties` and you can see the latest version
+[here](https://github.com/stephb9959/ucentralgw/blob/main/ucentral.properties). The file will be loaded from
+the directory set by the environment variable `UCENTRAL_CONFIG`. To use environment variables in the configuration,
+you must use `$<varname>`. The path for the logs for the service must exist prior to starting the
+service. The path is defined under `logging.channels.c2.path`. Only `path names` support the use of
+environment variables. The sample configuration requires very little changes if you keep the suggested directory structure.
+
+##### Important config entries
+###### This is the logging directory
+- logging.channels.c2.path = $UCENTRAL_ROOT/logs/sample.log
+
+###### This is the type of storage in use
+- storage.type = sqlite
+
+###### Autoprovisioning settings
+- ucentral.autoprovisioning = true
+- ucentral.autoprovisioning.type.0 = AP:ea8300,edge
+- ucentral.autoprovisioning.type.1 = IOT:ea8301,edge2
+- ucentral.autoprovisioning.type.2 = AP:ea8302,edge6
+
+###### This is the RESTAPI endpoint
+- ucentral.restapi.host.0.address = *
+- ucentral.restapi.host.0.port = 16001
+- ucentral.restapi.host.0.cert = $UCENTRAL_ROOT/certs/server-cert.pem
+- ucentral.restapi.host.0.key = $UCENTRAL_ROOT/certs/server-key.pem
+
+###### This is the end point for the devices to connect with
+- ucentral.websocket.host.0.address = *
+- ucentral.websocket.host.0.port = 15002
+- ucentral.websocket.host.0.cert = $UCENTRAL_ROOT/certs/server-cert.pem
+- ucentral.websocket.host.0.key = $UCENTRAL_ROOT/certs/server-key.pem
+
+###### This is the end point for the devices when uploading files
+- ucentral.fileuploader.host.0.address = *
+- ucentral.fileuploader.host.0.name = 192.168.1.176       <<<<<<< Replace this IP with the IP of your gateway or its FQDN
+- ucentral.fileuploader.host.0.port = 16003
+- ucentral.fileuploader.host.0.cert = $UCENTRAL_ROOT/certs/server-cert.pem
+- ucentral.fileuploader.host.0.key = $UCENTRAL_ROOT/certs/server-key.pem
+- ucentral.fileuploader.host.0.key.password = mypassword
+- ucentral.fileuploader.path = $UCENTRAL_ROOT/uploads
+
+###### host.0.address entries
+If you want to limit traffic to a specific interface, you should specify the IP address of that interface instead of 
+the `*`. Usinf the `*` means all interfaces will be able to accept connections. You can have multiple interfaces 
+by changing the `0` to another index. You need to repeat the whole configuration block for each index. Indexed must be sequential
+start at `0`.
+
+#### Command line options
+The current implementation supports the following
+
+```
+./ucentral --help
+usage: ucentral OPTIONS
+A uCentral gateway implementation for TIP.
+
+--daemon        Run application as a daemon.
+--umask=mask    Set the daemon's umask (octal, e.g. 027).
+--pidfile=path  Write the process ID of the application to given file.
+--help          display help information on command line arguments
+--file=file     specify the configuration file
+--debug         to run in debug, set to true
+--logs=dir      specify the log directory and file (i.e. dir/file.log)
+```
+
+##### file
+This allows you to point to another file without specifying the UCENTRAL_CONFIG variable. The file name must end in `.properties`.
+##### daemon
+Run this as a UNIX service
+##### pidfile
+When running as a daemon, the pid of the running service will be set in the speficied file
+##### debug
+Run the service in debug mode.
+##### logs
+Speficy where logs should be kept. You must include an existing directory and a file name. For example `/var/ucentral/logs/log.0`.
+##### umask
+Seet the umask for the running service.
+
+
 ### Docker
 So building this thing from scratch is not your thing? I can't blame you. It takes some patience and 
 in the end, there's still more work. Here comes `docker` to the rescue. You can run a docker version following
@@ -196,7 +314,23 @@ Run-time root
     +---- ucentral.properties (file)
 ```
 
-### Configuration
+#### `ucentral.properties` for Docker
+If you use the pre-made configuration file, and you follow the direcroty layout, the only line you must change 
+is the following line:
+
+```asm
+ucentral.fileuploader.host.0.name = 192.168.1.176
+```
+
+This line should reflect the IP of your gateway or its FQDN. You must make sure that this name or IP is accessible
+from your devices. This is used during file uploads from the devices.
+
+#### Certificates with Docker
+If you have not been provided with certificates, you should generate some using the procedure in this [section](#certificates). When done, 
+copy the `server-cert.pem` and `server-key.pem` files in the `certs` directory. If you generate your own certificates,
+you must remember to copy the generated devices certificates on the devices.
+
+#### Configuration with Docker
 The configuration for this service is kept in a properties file. Currently, this configuration file must be kept in the 
 current directory of uCentral or one level up. This file is called `ucentral.properties` and you can see the latest version
 [here](https://github.com/stephb9959/ucentralgw/blob/main/ucentral.properties). The file will be loaded from 
@@ -205,50 +339,7 @@ you must use `$<varname>`. The path for the logs for the service must exist prio
 service. The path is defined under `logging.channels.c2.path`. Only `path names` support the use of 
 environment variables. Here is a sample configuration:
 
-#### Important config entries
-##### This is the logging directory
-- logging.channels.c2.path = $UCENTRAL_ROOT/logs/sample.log
-
-##### This is the type of storage in use
-- storage.type = sqlite
-
-##### Autoprovisioning settings
-- ucentral.autoprovisioning = true
-- ucentral.autoprovisioning.type.0 = AP:ea8300,edge
-- ucentral.autoprovisioning.type.1 = IOT:ea8301,edge2
-- ucentral.autoprovisioning.type.2 = AP:ea8302,edge6
-
-##### This is the RESTAPI endpoint
-- ucentral.restapi.host.0.address = *
-- ucentral.restapi.host.0.port = 16001
-- ucentral.restapi.host.0.cert = $UCENTRAL_ROOT/certs/server-cert.pem
-- ucentral.restapi.host.0.key = $UCENTRAL_ROOT/certs/server-key.pem
-
-##### This is the end point for the devices
-- ucentral.websocket.host.0.address = *
-- ucentral.websocket.host.0.port = 15002
-- ucentral.websocket.host.0.cert = $UCENTRAL_ROOT/certs/server-cert.pem
-- ucentral.websocket.host.0.key = $UCENTRAL_ROOT/certs/server-key.pem
-
-##### This is the end point for the devices
-- ucentral.fileuploader.host.0.address = *
-- ucentral.fileuploader.host.0.name = 192.168.1.176       <<<<<<< Replace this IP with the IP of your gateway or its FQDN
-- ucentral.fileuploader.host.0.port = 16003
-- ucentral.fileuploader.host.0.cert = $UCENTRAL_ROOT/certs/server-cert.pem
-- ucentral.fileuploader.host.0.key = $UCENTRAL_ROOT/certs/server-key.pem
-- ucentral.fileuploader.host.0.key.password = mypassword
-- ucentral.fileuploader.path = $UCENTRAL_ROOT/uploads
-
-## uCentral communication protocol
-The communication protocol between the device and the controller is detailed in this [document](https://github.com/stephb9959/ucentralgw/blob/main/PROTOCOL.md).
-
-## OpenAPI
-The service supports an OpenAPI REST based interface for management. You can find the [definition here](https://github.com/stephb9959/ucentralgw/blob/main/tipapi/ucentral/ucentral.yaml).
-
-## Using the API
-In the `test_scripts` directory, you will find a series of scripts that will show you how to use the API with curl. More scripts will be added in the future.
-
-## Certificates
+### Certificates
 Love'em of hate'em, we gotta use'em. So we tried to make this as easy as possible for you. Under the `cert_scripts` you 
 can run a single command that will generate all the files you need. By default, this will generate the server side
 of the certificates as well as certificates for 10 devices. You can change the variabla `howmany` in the script
@@ -260,34 +351,14 @@ to change that number. Once you run this script, you will get:
 
 The script `more_devices` can be used to generate more devices without regenerating the original key. Just change the `finish` variable to the number you need.
 
-## Command line options
-The current implementation supports the following
+## uCentral communication protocol
+The communication protocol between the device and the controller is detailed in this [document](https://github.com/stephb9959/ucentralgw/blob/main/PROTOCOL.md).
 
-```
-./ucentral --help
-usage: ucentral OPTIONS
-A uCentral gateway implementation for TIP.
+## OpenAPI
+The service supports an OpenAPI REST based interface for management. You can find the [definition here](https://github.com/stephb9959/ucentralgw/blob/main/tipapi/ucentral/ucentral.yaml).
 
---daemon        Run application as a daemon.
---umask=mask    Set the daemon's umask (octal, e.g. 027).
---pidfile=path  Write the process ID of the application to given file.
---help          display help information on command line arguments
---file=file     specify the configuration file
---debug         to run in debug, set to true
---logs=dir      specify the log directory and file (i.e. dir/file.log)
-```
+## Using the API
+In the `test_scripts` directory, you will find a series of scripts that will show you how to use the API with curl. More scripts will be added in the future.
 
-#### file
-This allows you to point to another file without specifying the UCENTRAL_CONFIG variable. The file name must end in `.properties`.
-#### daemon
-Run this as a UNIX service
-#### pidfile
-When running as a daemon, the pid of the running service will be set in the speficied file
-#### debug
-Run the service in debug mode.
-#### logs
-Speficy where logs should be kept. You must include an existing directory and a file name. For example `/var/ucentral/logs/log.0`.
-#### umask
-Seet the umask for the running service.
  
 
