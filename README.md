@@ -339,8 +339,8 @@ docker run -d -p 15002:15002 \
 
 Create yourself a directory and copy that script which you can also get from [here](https://github.com/stephb9959/ucentralgw/blob/main/docker_run.sh).
 You must have the basic configuration file copied in the directory. This file must be called `ucentral.properties`. You can bring your own or
-copy it from [here](https://github.com/stephb9959/ucentralgw/blob/main/ucentral.properties). You must create 
-the certificates and copy them into your new `certs` directory. You need to make sure that the names match the content of the `ucentral.properties`
+copy it from [here](https://github.com/stephb9959/ucentralgw/blob/main/ucentral.properties). Please look at [this](#certificates-with-docker) to have the right 
+certificates. You need to make sure that the names match the content of the `ucentral.properties`
 file. Once all this is done, you can simply run `docker_run.sh`.
 
 #### Docker installation directory layout
