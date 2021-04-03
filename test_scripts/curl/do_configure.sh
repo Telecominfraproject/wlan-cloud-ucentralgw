@@ -17,6 +17,8 @@ payload="{ \"serialNumber\" : \"$serial\", \"UUID\" : 123456 , \"configuration\"
 
 webtoken=`./login.sh | jq -r '.access_token'`
 
+uuid1=`./get_device.sh | jq -r '.UUID'`
+
 curl -X POST "https://localhost:16001/api/v1/device/$serial/configure" \
       -H  "accept: application/json" \
       -H "Authorization: Bearer $webtoken" \
@@ -27,3 +29,6 @@ curl -X GET "https://localhost:16001/api/v1/device/$serial" \
   -H "Authorization: Bearer $webtoken" \
   --insecure
 
+uuid2=`./get_device.sh | jq -r '.UUID'`
+
+echo "\n\nUUID=$uuid1 to UUID=$uuid2"
