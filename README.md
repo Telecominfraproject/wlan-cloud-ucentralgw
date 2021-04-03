@@ -360,7 +360,7 @@ Run-time root
 ```
 
 #### `ucentral.properties` for Docker
-If you use the pre-made configuration file, and you follow the direcroty layout, the only line you must change 
+If you use the pre-made configuration file, and you follow the directory layout, the only line you must change 
 is the following line:
 
 ```asm
@@ -386,7 +386,7 @@ environment variables. Here is a sample configuration:
 
 ### Certificates
 Love'em of hate'em, we gotta use'em. So we tried to make this as easy as possible for you. Under the `cert_scripts` you 
-can run a single command that will generate all the files you need. By default, this will generate the server side
+can run a single command (`create_sertificates.sh`) that will generate all the files you need. By default, this will generate the server side
 of the certificates as well as certificates for 10 devices. You can change the variable `howmany` in the script
 to change that number. 
 
