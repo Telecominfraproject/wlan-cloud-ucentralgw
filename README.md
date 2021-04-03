@@ -180,6 +180,22 @@ copy it from [here](https://github.com/stephb9959/ucentralgw/blob/main/ucentral.
 the certificates and copy them into your new `certs` directory. You need to make sure that the names match the content of the `ucentral.properties`
 file. Once all this is done, you can simply run `docker_run.sh`.
 
+#### Docker installation directory layout
+Here is the layout expected for your Docker installation
+
+```
+Run-time root
+    |
+    |
+    ----- certs (dir)
+    |        |
+    |        +-- server-key.pem
+    |        --- server-cert.pem
+    +---- logs  (dir)
+    +---- uploads  (dir)
+    +---- ucentral.properties (file)
+```
+
 ### Configuration
 The configuration for this service is kept in a properties file. Currently, this configuration file must be kept in the 
 current directory of uCentral or one level up. This file is called `ucentral.properties` and you can see the latest version
