@@ -214,6 +214,15 @@ environment variables. Here is a sample configuration:
 - ucentral.websocket.host.0.cert = $UCENTRAL_ROOT/certs/server-cert.pem
 - ucentral.websocket.host.0.key = $UCENTRAL_ROOT/certs/server-key.pem
 
+##### This is the end point for the devices
+- ucentral.fileuploader.host.0.address = *
+- ucentral.fileuploader.host.0.name = 192.168.1.176       <<<<<<< Replace this IP with the IP of your gateway or its FQDN
+- ucentral.fileuploader.host.0.port = 16003
+- ucentral.fileuploader.host.0.cert = $UCENTRAL_ROOT/certs/server-cert.pem
+- ucentral.fileuploader.host.0.key = $UCENTRAL_ROOT/certs/server-key.pem
+- ucentral.fileuploader.host.0.key.password = mypassword
+- ucentral.fileuploader.path = $UCENTRAL_ROOT/uploads
+
 ## uCentral communication protocol
 The communication protocol between the device and the controller is detailed in this [document](https://github.com/stephb9959/ucentralgw/blob/main/PROTOCOL.md).
 
