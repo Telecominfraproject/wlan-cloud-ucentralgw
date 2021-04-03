@@ -129,7 +129,8 @@ make
 Once your build is done. You can remove the Poco source as it is no longer needed. 
 
 #### Expected directory layout
-From the directory where you cloned the source, you should have the following:
+From the directory where your cloned source is, you will need to create the `certs`, `logs`, and `uploads` directories.
+You should now have the following:
 
 ```
 -- cert_scripts
@@ -155,70 +156,79 @@ From the directory where you cloned the source, you should have the following:
   +-- ucentral.properties
 ```
 
-You will need to create the `certs`, `logs`, and `uploads` directories.
-
 #### Certificates for your gateway
-If you have not been provided with certificates, you need generate some using the procedure in this document. When done,
-copy the `server-cert.pem` and `server-key.pem` files in the `certs` directory. If you [generate your own certificates](#certificates),
+If you have not been provided with certificates, you need to [generate your own certificates](#certificates) using the procedure 
+in this document. When done, copy the `server-cert.pem` and `server-key.pem` files in the `certs` directory. If you generate your own,
 you must remember to copy the generated devices certificates on the devices.
 
 #### Configuration
-The configuration for this service is kept in a properties file. Currently, this configuration file must be kept in the
-current directory of uCentral or one level up. This file is called `ucentral.properties` and you can see the latest version
-[here](https://github.com/stephb9959/ucentralgw/blob/main/ucentral.properties). The file will be loaded from
+The configuration for this service is kept in a properties file. This file is called `ucentral.properties` and you can 
+see the latest version [here](https://github.com/stephb9959/ucentralgw/blob/main/ucentral.properties). The file will be loaded from
 the directory set by the environment variable `UCENTRAL_CONFIG`. To use environment variables in the configuration,
-you must use `$<varname>`. The path for the logs for the service must exist prior to starting the
-service. The path is defined under `logging.channels.c2.path`. Only `path names` support the use of
-environment variables. The sample configuration requires very little changes if you keep the suggested directory structure. For
-the sample configuration to work, you need to define 2 environment variables. 
-
+you must use `$<varname>`. Only `path names` support the use of environment variables. The sample configuration requires very 
+little changes if you keep the suggested directory structure. For the sample configuration to work, you need to define 2 
+environment variables. 
 ```
 export UCENTRAL_ROOT=`pwd`
 export UCENTRAL_CONFIG=`pwd`
 ```
-
-If you current working directory is the roo of the project, this will set the variables properly. Otherwise, you can set the variables 
-to point wo wherever is necessary.
+If you current working directory is the root of the project, this will set the variables properly. Otherwise, you can set the variables 
+to point to wherever is necessary.
 
 ##### Important config entries
 ###### This is the logging directory
-- logging.channels.c2.path = $UCENTRAL_ROOT/logs/sample.log
+```
+logging.channels.c2.path = $UCENTRAL_ROOT/logs/sample.log
+```
 
 ###### This is the type of storage in use
-- storage.type = sqlite
+```asm
+storage.type = sqlite
+```
 
 ###### Autoprovisioning settings
-- ucentral.autoprovisioning = true
-- ucentral.autoprovisioning.type.0 = AP:ea8300,edge
-- ucentral.autoprovisioning.type.1 = IOT:ea8301,edge2
-- ucentral.autoprovisioning.type.2 = AP:ea8302,edge6
+```asm
+ucentral.autoprovisioning = true
+ucentral.autoprovisioning.type.0 = AP:ea8300,edge
+ucentral.autoprovisioning.type.1 = IOT:ea8301,edge2
+ucentral.autoprovisioning.type.2 = AP:ea8302,edge6
+```
 
 ###### This is the RESTAPI endpoint
-- ucentral.restapi.host.0.address = *
-- ucentral.restapi.host.0.port = 16001
-- ucentral.restapi.host.0.cert = $UCENTRAL_ROOT/certs/server-cert.pem
-- ucentral.restapi.host.0.key = $UCENTRAL_ROOT/certs/server-key.pem
+```asm
+ucentral.restapi.host.0.address = *
+ucentral.restapi.host.0.port = 16001
+ucentral.restapi.host.0.cert = $UCENTRAL_ROOT/certs/server-cert.pem
+ucentral.restapi.host.0.key = $UCENTRAL_ROOT/certs/server-key.pem
+```
 
 ###### This is the end point for the devices to connect with
-- ucentral.websocket.host.0.address = *
-- ucentral.websocket.host.0.port = 15002
-- ucentral.websocket.host.0.cert = $UCENTRAL_ROOT/certs/server-cert.pem
-- ucentral.websocket.host.0.key = $UCENTRAL_ROOT/certs/server-key.pem
+```asm
+ucentral.websocket.host.0.address = *
+ucentral.websocket.host.0.port = 15002
+ucentral.websocket.host.0.cert = $UCENTRAL_ROOT/certs/server-cert.pem
+ucentral.websocket.host.0.key = $UCENTRAL_ROOT/certs/server-key.pem
+```
 
 ###### This is the end point for the devices when uploading files
-- ucentral.fileuploader.host.0.address = *
-- ucentral.fileuploader.host.0.name = 192.168.1.176       <<<<<<< Replace this IP with the IP of your gateway or its FQDN
-- ucentral.fileuploader.host.0.port = 16003
-- ucentral.fileuploader.host.0.cert = $UCENTRAL_ROOT/certs/server-cert.pem
-- ucentral.fileuploader.host.0.key = $UCENTRAL_ROOT/certs/server-key.pem
-- ucentral.fileuploader.host.0.key.password = mypassword
-- ucentral.fileuploader.path = $UCENTRAL_ROOT/uploads
+```asm
+ucentral.fileuploader.host.0.address = *
+ucentral.fileuploader.host.0.name = 192.168.1.176       <<<<<<< Replace this IP with the IP of your gateway or its FQDN
+ucentral.fileuploader.host.0.port = 16003
+ucentral.fileuploader.host.0.cert = $UCENTRAL_ROOT/certs/server-cert.pem
+ucentral.fileuploader.host.0.key = $UCENTRAL_ROOT/certs/server-key.pem
+ucentral.fileuploader.host.0.key.password = mypassword
+ucentral.fileuploader.path = $UCENTRAL_ROOT/uploads
+```
 
 ###### host.0.address entries
 If you want to limit traffic to a specific interface, you should specify the IP address of that interface instead of 
-the `*`. Usinf the `*` means all interfaces will be able to accept connections. You can have multiple interfaces 
-by changing the `0` to another index. You need to repeat the whole configuration block for each index. Indexed must be sequential
+the `*`. Using the `*` means all interfaces will be able to accept connections. You can add multiple interfaces 
+by changing the `0` to another index. You need to repeat the whole configuration block for each index. Indexes must be sequential
 start at `0`.
+
+###### ucentral.fileuploader.host.0.name
+This must point to the IP or FQDN of your uCentralGW.
 
 #### Command line options
 The current implementation supports the following. If you use the built-in configuration file, you do not need to use any command-line
@@ -349,14 +359,25 @@ environment variables. Here is a sample configuration:
 ### Certificates
 Love'em of hate'em, we gotta use'em. So we tried to make this as easy as possible for you. Under the `cert_scripts` you 
 can run a single command that will generate all the files you need. By default, this will generate the server side
-of the certificates as well as certificates for 10 devices. You can change the variabla `howmany` in the script
-to change that number. Once you run this script, you will get:
+of the certificates as well as certificates for 10 devices. You can change the variable `howmany` in the script
+to change that number. 
 
-- `server-key.pem` : this file is the server key and should be used in the `ucentral.properties` file.
-- `server-cert.pem` : this is the certificate to be used with the generated key. This should also be used in `ucentral.properties`.
-- `dev-1-cert.pem` .. `dev-10-cert.pem` : certificates to be used on the actual devices in the `/etc/config` directories of the devices. These file must be renamed `cert.pem` on the devices.
+```shell
+cd cert_scripts
+./create_certificates.sh
+ls
+clean.sh                dev-1-cert.pem          dev-2-cert.pem          dev-4-cert.pem          dev-6-cert.pem          dev-8-cert.pem          more_devices.sh         server-key.pem
+create_certificates.sh  dev-10-cert.pem         dev-3-cert.pem          dev-5-cert.pem          dev-7-cert.pem          dev-9-cert.pem          server-cert.pem         server.csr
+```
 
-The script `more_devices` can be used to generate more devices without regenerating the original key. Just change the `finish` variable to the number you need.
+You have now created: 
+- `server-key.pem`: this file is the server key and should be used in the `ucentral.properties` file.
+- `server-cert.pem`: this is the certificate to be used with the generated key. This should also be used in `ucentral.properties`.
+- `dev-1-cert.pem` .. `dev-10-cert.pem` : certificates to be used on the actual devices in the `/etc/config` directories of the devices. These files 
+  must be renamed `cert.pem` on the devices.
+
+The script `more_devices` can be used to generate more devices without regenerating the original key. Just change the `finish` variable to the number you need. The script `clean.sh` 
+let's you start from scratch again.
 
 ## uCentral communication protocol
 The communication protocol between the device and the controller is detailed in this [document](https://github.com/stephb9959/ucentralgw/blob/main/PROTOCOL.md).
@@ -365,7 +386,8 @@ The communication protocol between the device and the controller is detailed in 
 The service supports an OpenAPI REST based interface for management. You can find the [definition here](https://github.com/stephb9959/ucentralgw/blob/main/tipapi/ucentral/ucentral.yaml).
 
 ## Using the API
-In the `test_scripts` directory, you will find a series of scripts that will show you how to use the API with curl. More scripts will be added in the future.
+In the `test_scripts` directory, you will find a series of scripts that will show you how to use the API with curl or Python3. 
+More scripts will be added in the future.
 
  
 
