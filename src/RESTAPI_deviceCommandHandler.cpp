@@ -252,15 +252,15 @@ void RESTAPI_deviceCommandHandler::Configure(Poco::Net::HTTPServerRequest& Reque
                 Cmd.Details = ParamStream.str();
 
                 if(uCentral::Storage::AddCommand(SerialNumber,Cmd)) {
+					uCentralDevice	DeviceDetails;
+					if(uCentral::Storage::GetDevice(SerialNumber, DeviceDetails)) {
+						auto ReturnObj = DeviceDetails.to_json();
 
-                    Poco::JSON::Object RetObj;
-
-                    RetObj.set("serialNumber", SerialNumber);
-                    RetObj.set("command", Cmd.Command);
-                    RetObj.set("UUID", Cmd.UUID);
-
-                    ReturnObject(RetObj, Response);
-
+						ReturnObject(ReturnObj,Response);
+						return;
+					} else {
+						BadRequest(Response);
+					}
                     return;
                 }
                 else

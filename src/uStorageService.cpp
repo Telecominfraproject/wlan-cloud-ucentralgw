@@ -1024,24 +1024,22 @@ namespace uCentral::Storage {
                     SerialNumber;
             Select.execute();
 
-            CurrentUUID++;
+			uint64_t Now = time(nullptr);
+
+			NewUUID = CurrentUUID==Now ? Now + 1 : Now;
 
             if (Cfg.SetUUID(CurrentUUID)) {
-                uint64_t Now = time(nullptr);
-
                 std::string NewConfig = Cfg.get();
 
                 Poco::Data::Statement   Update(Sess);
-
                 Update  << "UPDATE Devices SET Configuration='%s', UUID=%Lu, LastConfigurationChange=%Lu WHERE SerialNumber='%s'",
                         SQLEscapeStr(NewConfig),
-                        CurrentUUID,
+					NewUUID,
                         Now,
                         SerialNumber;
                 Update.execute();
 
-                Logger_.information(Poco::format("CONFIG-UPDATE(%s): UUID is %Lu", SerialNumber, CurrentUUID));
-                NewUUID = CurrentUUID;
+                Logger_.information(Poco::format("CONFIG-UPDATE(%s): UUID is %Lu", SerialNumber, NewUUID));
 
                 return true;
             }
