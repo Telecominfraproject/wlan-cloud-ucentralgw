@@ -2,13 +2,11 @@
 
 ## What is this?
 The uCentralGW is an added service for the TIP controller that allows integration with the 
-uCentral protocol. It supports a complete OpenAPI definition and uses the ucentral communication protocol. To use the uCentral gateway,
+uCentral protocol. It supports a complete OpenAPI definition and uses the ucentral communication protocol. To use the uCentralGW,
 you either need to [build it](#building) or use the [Docker version](#docker).
 
 ## Building
-In order to build the uCentralGW, you will need to install some of its dependencies, which includes 
-the following:
-
+In order to build the uCentralGW, you will need to install its dependencies, which includes the following:
 - cmake
 - boost
 - POCO 1.10.1 or later
@@ -18,12 +16,12 @@ the following:
 - libpq-dev (PortgreSQL development libraries)
 - mysql-client (MySQL client)
 
-## About the build
 The build is done in 2 parts. The first part is to build a local copy of the framework tailored to your environment. This 
 framework is called [Poco](https://github.com/pocoproject/poco). The version used in this project has a couple of fixes
-from the master copy needed for cmake. Please use the version of this [Poco fix](https://github.com/stephb9959/poco).
+from the master copy needed for cmake. Please use the version of this [Poco fix](https://github.com/stephb9959/poco). Building 
+Poco may take several minutes depending on the platform you are building on.
 
-### Ubuntu build
+### Ubuntu
 These instructions have proven to work on Ubuntu 20.4.
 ```
 sudo apt install git cmake g++ libssl-dev libmysqlclient-dev unixodbc-dev postgesql-client-dev 
@@ -46,7 +44,7 @@ cmake ..
 make
 ```
 
-### Fedora Build
+### Fedora
 The following instructions have proven to work on Fedora 33
 ```
 sudo yum install cmake g++ openssl-devel unixODBC-devel mysql-devel mysql apr-util-devel boost boost-devel
@@ -103,7 +101,7 @@ cmake ..
 make -j
 ```
 
-### Raspberry PI Build
+### Raspberry
 The build on a rPI takes a while. You can shorten that build time and requirements by disabling all the larger database 
 support. You can build with only SQLite support by not installing the packages for ODBC, PostgreSQL, and MySQL by 
 adding -DSMALL_BUILD=1 on the cmake build line.
@@ -127,9 +125,8 @@ cmake -DSMALL_BUILD=1 ..
 make
 ```
 
-### Getting started (if you did your own build)
-If you have build your own copy of `ucentralgw`, you should follow these instructions. Here is you would prefer 
-[Docker](#docker).
+### After the build step is completed
+Once your build is done. You can remove the Poco source as it is no longer needed. 
 
 #### Expected directory layout
 From the directory where you cloned the source, you should have the following:
@@ -172,7 +169,16 @@ current directory of uCentral or one level up. This file is called `ucentral.pro
 the directory set by the environment variable `UCENTRAL_CONFIG`. To use environment variables in the configuration,
 you must use `$<varname>`. The path for the logs for the service must exist prior to starting the
 service. The path is defined under `logging.channels.c2.path`. Only `path names` support the use of
-environment variables. The sample configuration requires very little changes if you keep the suggested directory structure.
+environment variables. The sample configuration requires very little changes if you keep the suggested directory structure. For
+the sample configuration to work, you need to define 2 environment variables. 
+
+```
+export UCENTRAL_ROOT=`pwd`
+export UCENTRAL_CONFIG=`pwd`
+```
+
+If you current working directory is the roo of the project, this will set the variables properly. Otherwise, you can set the variables 
+to point wo wherever is necessary.
 
 ##### Important config entries
 ###### This is the logging directory
@@ -215,7 +221,8 @@ by changing the `0` to another index. You need to repeat the whole configuration
 start at `0`.
 
 #### Command line options
-The current implementation supports the following
+The current implementation supports the following. If you use the built-in configuration file, you do not need to use any command-line
+options. However, you may decide to use the `--daemon` or `umask` options. 
 
 ```
 ./ucentral --help
