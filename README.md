@@ -2,8 +2,8 @@
 
 ## What is this?
 The uCentralGW is an added service for the TIP controller that allows integration with the 
-uCentral protocol. It is meant to run as a pod inside a TIP controller container. It should 
-have a single port open to provide connection from uCentral enabled devices.
+uCentral protocol. It supports a complete OpenAPI definition and uses the ucentral communication protocol. To use the uCentral gateway,
+you either need to [build it](#building) or use the [Docker version](#docker).
 
 ## Building
 In order to build the uCentralGW, you will need to install some of its dependencies, which includes 
