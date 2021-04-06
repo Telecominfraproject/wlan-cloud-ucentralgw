@@ -6,8 +6,8 @@ This uses OpenAPI definition 3.0 and can be found [here](https://github.com/step
 All endpoints begin with `/api/v1`.
 
 ## The flow
-I order to use any of the API calls, you must obtain a token (I know - shocking). You do so by calling the end-point
-`/oauth2`. Once you obtain that `access-token`, you will need to pas this in the headers under `Authorization: Bearer <place your token here>`.
+In order to use any of the API calls, you must obtain a token (I know - shocking). You do so by calling the end-point
+`/oauth2`. Once you obtain that `access-token`, you will need to pass it in the headers under `Authorization: Bearer <place your token here>`.
 
 ## The basic entities
 The API revolves around `devices`, `commands`, and `default_configurations`. You can get a list of `devices` to know what is available and then 
@@ -55,7 +55,8 @@ The device may decide to perform the command when it is optimal for itself. It m
 for example. The device may reply with the actual `when` it will perform the command. 
 
 ## Configuration UUID
-The gateway manages the configuration UUIDs. So if you set a UUID for a configuration, it will be ignored. The gateway uses UUID 
-as versioning. The UUID is unique within a single device.
+The gateway manages the configuration UUID. So if you set a UUID for a configuration, it will be ignored. The gateway uses UUID 
+as versioning. The UUID is unique within a single device. The resulting UUID or a configuration change is returned as part of
+the `configure` command.
 
 
