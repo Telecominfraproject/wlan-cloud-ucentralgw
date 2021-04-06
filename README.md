@@ -412,6 +412,7 @@ The communication protocol between the device and the controller is detailed in 
 
 ## OpenAPI
 The service supports an OpenAPI REST based interface for management. You can find the [definition here](https://github.com/stephb9959/ucentralgw/blob/main/tipapi/ucentral/ucentral.yaml).
+And here is [how to use it](https://github.com/stephb9959/ucentralgw/blob/main/OPENAPI.md)
 
 ## Using the API
 In the `test_scripts` directory, you will find a series of scripts that will show you how to use the API with curl or Python3. 
