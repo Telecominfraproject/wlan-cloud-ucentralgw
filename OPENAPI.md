@@ -42,7 +42,7 @@ a specific device. Here are some commands supported for each device:
 The `file` end point is used to remove files produced by the gateway. Currently this is limited to the results of a `trace` command.
 
 ## All dates
-All dates should use the format defined in [RFC3339](https://https://tools.ietf.org/html/rfc3339). All times are UTC based. Here is 
+All dates should use the format defined in [RFC3339](https://tools.ietf.org/html/rfc3339). All times are UTC based. Here is 
 an example:
 
 ```shell
