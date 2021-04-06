@@ -39,22 +39,23 @@ a specific device. Here are some commands supported for each device:
 - `trace`: Performs a remove LAN trace. Once the trace is completed, the produced file may be removed using the `file` endpoint.
 - `command`: Performs a proprietary command. The meaning depends on the device. 
 
-The `file` end point is used to remove files produced by the gateway. Currently this is limited to the results of a `trace` command.
+The `file` end point is used to retrieve and remove files produced by the gateway. Currently this is limited to the results of a `trace` command. The file name will always match the `uuid` of the command that produced it. If several files are needed, the files will be named `uuid`, `uuid.1`, `uuid.2`, etc.
 
-## All dates
+## Dates 
 All dates should use the format defined in [RFC3339](https://tools.ietf.org/html/rfc3339). All times are UTC based. Here is 
 an example:
 
 ```shell
 1985-04-12T23:20:50.52Z
 ```
+
 ## Command `when` parameter
-Most commands use a `when` parameter to suggest to the device when to perform the suggested command. This is a suggestion only.
-The device may decide to perform when it is optimal for itself. It maybe busy doing something and decline to do a reboot for several minutes 
+Most commands use a `when` parameter to suggest to the device when to perform the command. This is a _suggestion_ only.
+The device may decide to perform the command when it is optimal for itself. It maybe busy doing something and decline to do a reboot for several minutes 
 for example. The device may reply with the actual `when` it will perform the command. 
 
 ## Configuration UUID
-The gateway manaages the configuration UUIDs. So if you set a UUID for a configuration, it will be ignored. The gateway uses UUID 
-as versioning.
+The gateway manages the configuration UUIDs. So if you set a UUID for a configuration, it will be ignored. The gateway uses UUID 
+as versioning. The UUID is unique within a single device.
 
 
