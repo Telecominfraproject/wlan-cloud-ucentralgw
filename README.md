@@ -191,7 +191,7 @@ you must remember to copy the generated devices certificates on the devices. You
 
 #### Configuration
 The configuration for this service is kept in a properties file. This file is called `ucentral.properties` and you can 
-see the latest version [here](https://github.com/stephb9959/ucentralgw/blob/main/ucentral.properties). The file will be loaded from
+see the latest version [here](https://github.com/Telecominfraproject/wlan-cloud-ucentralgw/blob/main/ucentral.properties). The file will be loaded from
 the directory set by the environment variable `UCENTRAL_CONFIG`. To use environment variables in the configuration,
 you must use `$<varname>`. Only `path names` support the use of environment variables. The sample configuration requires very 
 little changes if you keep the suggested directory structure. For the sample configuration to work, you need to define 2 
@@ -294,7 +294,7 @@ Seet the umask for the running service.
 So building this thing from scratch is not your thing? I can't blame you. It takes some patience and 
 in the end, there's still more work. Here comes `docker` to the rescue. You can run a docker version following
 these instructions. The following is the content of the `docker_run.sh` script you can find
-[here](https://github.com/stephb9959/ucentralgw/blob/main/docker_run.sh):
+[here](https://github.com/Telecominfraproject/wlan-cloud-ucentralgw/blob/main/docker_run.sh):
 
 ```bash
 #!/bin/sh
@@ -337,9 +337,9 @@ docker run -d -p 15002:15002 \
 
 ```
 
-Create yourself a directory and copy that script which you can also get from [here](https://github.com/stephb9959/ucentralgw/blob/main/docker_run.sh).
+Create yourself a directory and copy that script which you can also get from [here](https://github.com/Telecominfraproject/wlan-cloud-ucentralgw/blob/main/docker_run.sh).
 You must have the basic configuration file copied in the directory. This file must be called `ucentral.properties`. You can bring your own or
-copy it from [here](https://github.com/stephb9959/ucentralgw/blob/main/ucentral.properties). Please look at [this](#certificates-with-docker) to have the right 
+copy it from [here](https://github.com/Telecominfraproject/wlan-cloud-ucentralgw/blob/main/ucentral.properties). Please look at [this](#certificates-with-docker) to have the right 
 certificates. You need to make sure that the names match the content of the `ucentral.properties`
 file. Once all this is done, you can simply run `docker_run.sh`.
 
@@ -378,7 +378,7 @@ you must remember to copy the generated devices certificates on the devices.
 #### Configuration with Docker
 The configuration for this service is kept in a properties file. Currently, this configuration file must be kept in the 
 current directory of uCentral or one level up. This file is called `ucentral.properties` and you can see the latest version
-[here](https://github.com/stephb9959/ucentralgw/blob/main/ucentral.properties). The file will be loaded from 
+[here](https://github.com/Telecominfraproject/wlan-cloud-ucentralgw/blob/main/ucentral.properties). The file will be loaded from 
 the directory set by the environment variable `UCENTRAL_CONFIG`. To use environment variables in the configuration,
 you must use `$<varname>`. The path for the logs for the service must exist prior to starting the 
 service. The path is defined under `logging.channels.c2.path`. Only `path names` support the use of 
@@ -408,11 +408,11 @@ The script `more_devices` can be used to generate more devices without regenerat
 let's you start from scratch again.
 
 ## uCentral communication protocol
-The communication protocol between the device and the controller is detailed in this [document](https://github.com/stephb9959/ucentralgw/blob/main/PROTOCOL.md).
+The communication protocol between the device and the controller is detailed in this [document](https://github.com/Telecominfraproject/wlan-cloud-ucentralgw/blob/main/PROTOCOL.md).
 
 ## OpenAPI
-The service supports an OpenAPI REST based interface for management. You can find the [definition here](https://github.com/stephb9959/ucentralgw/blob/main/tipapi/ucentral/ucentral.yaml).
-And here is [how to use it](https://github.com/stephb9959/ucentralgw/blob/main/OPENAPI.md)
+The service supports an OpenAPI REST based interface for management. You can find the [definition here](https://github.com/Telecominfraproject/wlan-cloud-ucentralgw/blob/main/tipapi/ucentral/ucentral.yaml).
+And here is [how to use it](https://github.com/Telecominfraproject/wlan-cloud-ucentralgw/blob/main/OPENAPI.md)
 
 ## Using the API
 In the `test_scripts` directory, you will find a series of scripts that will show you how to use the API with curl or Python3. 

@@ -2,7 +2,7 @@
 This document will describe how the API is built and how to use it. 
 
 ## Where is the OpenAPI.
-This uses OpenAPI definition 3.0 and can be found [here](https://github.com/stephb9959/ucentralgw/blob/main/tipapi/ucentral/ucentral.yaml).
+This uses OpenAPI definition 3.0 and can be found [here](https://github.com/Telecominfraproject/wlan-cloud-ucentralgw/blob/main/tipapi/ucentral/ucentral.yaml).
 All endpoints begin with `/api/v1`.
 
 ## The flow
