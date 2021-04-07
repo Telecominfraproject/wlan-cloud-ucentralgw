@@ -50,6 +50,8 @@ namespace uCentral::Storage {
     bool UpdateDeviceCapabilities(std::string &SerialNumber, std::string &State);
     bool GetDeviceCapabilities(std::string &SerialNumber, uCentralCapabilities &);
     bool DeleteDeviceCapabilities(std::string & SerialNumber);
+	bool SetOwner(std::string & SerialNumber, std::string & OwnerUUID);
+	bool SetLocation(std::string & SerialNumber, std::string & LocationUUID);
 
     bool CreateDefaultConfiguration(std::string & name, uCentralDefaultConfiguration & DefConfig);
     bool DeleteDefaultConfiguration(std::string & name);
@@ -110,7 +112,10 @@ namespace uCentral::Storage {
         friend bool UpdateDeviceCapabilities(std::string &SerialNumber, std::string &State);
         friend bool GetDeviceCapabilities(std::string &SerialNumber, uCentralCapabilities &);
         friend bool DeleteDeviceCapabilities(std::string & SerialNumber);
-        friend bool GetLogData(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate, uint64_t Offset, uint64_t HowMany,
+		friend bool SetOwner(std::string & SerialNumber, std::string & OwnerUUID);
+		friend bool SetLocation(std::string & SerialNumber, std::string & LocationUUID);
+
+		friend bool GetLogData(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate, uint64_t Offset, uint64_t HowMany,
                                std::vector<uCentralDeviceLog> &Stats, uint64_t Type);
         friend bool DeleteLogData(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate, uint64_t Type);
         friend bool AddLog(std::string & SerialNumber, const std::string & Log);
@@ -157,6 +162,8 @@ namespace uCentral::Storage {
         bool DeleteDevice(std::string &SerialNumber);
         bool UpdateDevice(uCentralDevice &);
         bool DeviceExists(std::string & SerialNumber);
+		bool SetOwner(std::string & SerialNumber, std::string & OwnerUUID);
+		bool SetLocation(std::string & SerialNumber, std::string & LocationUUID);
 
         bool ExistingConfiguration(std::string &SerialNumber, uint64_t CurrentConfig, std::string &NewConfig, uint64_t &);
 
