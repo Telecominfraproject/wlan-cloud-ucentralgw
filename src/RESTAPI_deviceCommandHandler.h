@@ -35,6 +35,7 @@ public:
     void Factory(Poco::Net::HTTPServerRequest &Request, Poco::Net::HTTPServerResponse &Response);
     void Blink(Poco::Net::HTTPServerRequest &Request, Poco::Net::HTTPServerResponse &Response);
     void Trace(Poco::Net::HTTPServerRequest &Request, Poco::Net::HTTPServerResponse &Response);
+	void MakeRequest(Poco::Net::HTTPServerRequest &Request, Poco::Net::HTTPServerResponse &Response);
 };
 
 #endif //UCENTRAL_RESTAPI_DEVICECOMMANDHANDLER_H

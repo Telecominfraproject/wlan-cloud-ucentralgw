@@ -421,4 +421,38 @@ of the completed message. The following should how the `state` event could be co
 }
 ```
 
+#### Controller requesting a specific message
+Controller sends this command when it needs the device to provide a message back ASAP. The currently 
+supported messages are "state" and "healthcheck". More messages maybe added later. The messages will
+be returned the usual way. The RPC response to this message just says that the request has been accepted and the
+message will be returned "soon".
+```
+{    "jsonrpc" : "2.0" , 
+     "method" : "request" , 
+     "params" : {
+	        "serial" : <serial number> ,
+	        "when" : Optional - <UTC time when to reboot, 0 mean immediately, this is a suggestion>,
+	        "message" : "state" or "healthcheck"
+        },
+     "id" : <some number>
+}
+```
+
+The device should answer:
+```
+{   "jsonrpc" : "2.0" , 
+    "result" : {
+          "serial" : <serial number> ,
+          "status" : {
+            "error" : 0 or an error number,
+            "text" : <description of the error or success>,
+            "when" : <time when this will be performed as UTC seconds>
+  	        }
+        },
+    "id" : <same number>
+}
+```
+
+
+
 

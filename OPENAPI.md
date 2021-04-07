@@ -38,6 +38,7 @@ a specific device. Here are some commands supported for each device:
 - `blink`: Ask the device to flash its LEDs so it may be visually recognised.
 - `trace`: Performs a remove LAN trace. Once the trace is completed, the produced file may be removed using the `file` endpoint.
 - `command`: Performs a proprietary command. The meaning depends on the device. 
+- `request`: Request an immediate message of type `state` or `healthcheck`.
 
 The `file` end point is used to retrieve and remove files produced by the gateway. Currently this is limited to the results of a `trace` command. The file name will always match the `uuid` of the command that produced it. If several files are needed, the files will be named `uuid`, `uuid.1`, `uuid.2`, etc.
 

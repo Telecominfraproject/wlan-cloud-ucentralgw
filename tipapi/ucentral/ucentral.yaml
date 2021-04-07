@@ -408,6 +408,20 @@ components:
           type: integer
           format: int64
 
+    MessageRequest:
+      type: object
+      properties:
+        serialNumber:
+          type: string
+        when:
+          type: string
+          format: 'date-time'
+        message:
+          type: string
+          enum:
+            - state
+            - healthcheck
+
     TraceRequest:
       type: object
       properties:
@@ -1414,6 +1428,32 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/TraceRequest'
+      responses:
+        200:
+          $ref: '#/components/responses/CommandSubmitSuccess'
+        403:
+          $ref: '#/components/responses/Unauthorized'
+        404:
+          $ref: '#/components/responses/NotFound'
+
+  /device/{serialNumber}/request:
+    post:
+      tags:
+        - Commands
+      summary: Request a specific message
+      operationId: messageRequest
+      parameters:
+        - in: path
+          name: serialNumber
+          schema:
+            type: string
+          required: true
+      requestBody:
+        description: Message request details
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MessageRequest'
       responses:
         200:
           $ref: '#/components/responses/CommandSubmitSuccess'

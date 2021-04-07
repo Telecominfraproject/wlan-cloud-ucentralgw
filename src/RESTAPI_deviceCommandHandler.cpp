@@ -63,6 +63,8 @@ void RESTAPI_deviceCommandHandler::handleRequest(Poco::Net::HTTPServerRequest& R
             Blink(Request, Response);
         } else if (Command == "trace" && Request.getMethod() == Poco::Net::HTTPServerRequest::HTTP_POST) {
             Trace(Request, Response);
+		} else if (Command == "request" && Request.getMethod() == Poco::Net::HTTPServerRequest::HTTP_POST) {
+			MakeRequest(Request, Response);
         } else {
             BadRequest(Response);
         }
@@ -937,5 +939,76 @@ void RESTAPI_deviceCommandHandler::Trace(Poco::Net::HTTPServerRequest &Request, 
         Logger_.error(Poco::format("%s: failed with %s",std::string(__func__), E.displayText()));
     }
     BadRequest(Response);
+}
+
+void RESTAPI_deviceCommandHandler::MakeRequest(Poco::Net::HTTPServerRequest &Request, Poco::Net::HTTPServerResponse &Response) {
+	try {
+		auto SNum = GetBinding("serialNumber", "");
+
+		//  get the configuration from the body of the message
+		Poco::JSON::Parser parser;
+		Poco::JSON::Object::Ptr Obj = parser.parse(Request.stream()).extract<Poco::JSON::Object::Ptr>();
+		Poco::DynamicStruct ds = *Obj;
+
+		if (ds.contains("serialNumber") &&
+			ds.contains("message")) {
+
+			auto SerialNumber = ds["serialNumber"].toString();
+			auto MessageType = ds["message"].toString();
+
+			if((SerialNumber != SNum) || (MessageType!="state" && MessageType!="healthcheck")) {
+				BadRequest(Response);
+				return;
+			}
+
+			uint64_t When = ds.contains("when") ? RESTAPIHandler::from_RFC3339(ds["when"].toString()) : 0;
+
+			uCentralCommandDetails  Cmd;
+
+			Cmd.SerialNumber = SerialNumber;
+			Cmd.SubmittedBy = UserName_;
+			Cmd.UUID = uCentral::instance()->CreateUUID();
+			Cmd.Command = "request";
+			Cmd.Custom = 0;
+			Cmd.RunAt = When;
+			Cmd.WaitingForFile = 0;
+
+			Poco::JSON::Object  Params;
+
+			Params.set("serial" , SerialNumber );
+			Params.set("when", When);
+			Params.set("message",MessageType);
+
+			std::stringstream ParamStream;
+			Params.stringify(ParamStream);
+			Cmd.Details = ParamStream.str();
+
+			if(uCentral::Storage::AddCommand(SerialNumber,Cmd)) {
+
+				Poco::JSON::Object RetObj;
+
+				RetObj.set("serialNumber", SerialNumber);
+				RetObj.set("command", Cmd.Command);
+				RetObj.set("UUID", Cmd.UUID);
+
+				ReturnObject(RetObj, Response);
+
+				return;
+			}
+			else
+			{
+				BadRequest(Response);
+				return;
+			}
+		}
+		else
+			BadRequest(Response);
+		return;
+	}
+	catch(const Poco::Exception &E)
+	{
+		Logger_.error(Poco::format("%s: failed with %s",std::string(__func__), E.displayText()));
+	}
+	BadRequest(Response);
 }
 
