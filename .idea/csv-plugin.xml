@@ -122,6 +122,13 @@
             </Attribute>
           </value>
         </entry>
+        <entry key="/src/uStorageService.h">
+          <value>
+            <Attribute>
+              <option name="separator" value=":" />
+            </Attribute>
+          </value>
+        </entry>
         <entry key="/tipapi/ucentral/ucentral.yaml">
           <value>
             <Attribute>

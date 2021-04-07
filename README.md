@@ -153,7 +153,7 @@ You should now have the following:
   |
   +-- test_scripts
   |
-  +-- tipapi
+  +-- openapi
   |
   +-- uploads
   |
@@ -182,7 +182,7 @@ you must remember to copy the generated devices certificates on the devices. You
   |
   +-- test_scripts
   |
-  +-- tipapi
+  +-- openapi
   |
   +-- uploads
   |
@@ -411,7 +411,7 @@ let's you start from scratch again.
 The communication protocol between the device and the controller is detailed in this [document](https://github.com/Telecominfraproject/wlan-cloud-ucentralgw/blob/main/PROTOCOL.md).
 
 ## OpenAPI
-The service supports an OpenAPI REST based interface for management. You can find the [definition here](https://github.com/Telecominfraproject/wlan-cloud-ucentralgw/blob/main/tipapi/ucentral/ucentral.yaml).
+The service supports an OpenAPI REST based interface for management. You can find the [definition here](https://github.com/Telecominfraproject/wlan-cloud-ucentralgw/blob/main/openapi/ucentral/ucentral.yaml).
 And here is [how to use it](https://github.com/Telecominfraproject/wlan-cloud-ucentralgw/blob/main/OPENAPI.md)
 
 ## Using the API
