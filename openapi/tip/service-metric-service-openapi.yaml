@@ -1,0 +1,4397 @@
+openapi: 3.0.3
+info:
+  title: CloudSDK Service Metric API
+  description: APIs that provide services for creating, deleting and retrieving history of service metrics.
+  version: 1.0.0
+servers:
+  - url: https://localhost:9091
+    description: Local Dev server
+  - url: https://10.0.0.61:9091
+    description: Local Dev server - all-in-one
+  - url: https://192.168.0.143:9051
+    description: Local Dev server - portal, prov, and ssc
+    
+tags:
+- name: Data Model Overview
+- name: Service Metric Data
+  
+    
+components:
+  securitySchemes:
+    tip_wlan_ts_auth:
+      type: http
+      scheme: bearer
+      
+  responses:
+    GenericApiError:
+      description: this object is returned in the cases when an API throws an exception
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/JsonSerializedException'
+            
+  schemas:
+    
+#
+#Generic data models used for many APIs
+#
+    GenericResponse:
+      properties:
+        message:
+          type: string
+        success:
+          type: boolean
+          
+    JsonSerializedException:
+      description: this object is returned in the cases when an API throws an exception
+      properties:
+        exType:
+          type: string
+          enum:
+            - IllegalStateException
+        error:
+          description: error message
+          type: string
+        path:
+          description: API path with parameters that produced the exception
+          type: string
+        timestamp:
+          description: time stamp of when the exception was generated
+          type: integer
+          format: int64
+          
+ #
+# WLAN Service Metrics Data Models
+#
+    ServiceMetricDataType:
+      type: string
+      enum:
+      - ApNode
+      - ApSsid
+      - Client
+      - Channel
+      - Neighbour
+ 
+    ServiceMetric:
+      type: object
+      properties:
+        customerId:
+          type: integer
+          format: int32
+        locationId:
+          type: integer
+          format: int64
+        equipmentId:
+          type: integer
+          format: int64
+        clientMac:
+          description: int64 representation of the client MAC address, used internally for storage and indexing
+          type: integer
+          format: int64
+        clientMacAddress:
+          #description: read-only object representation of the client MAC address, used in UI
+          $ref: '#/components/schemas/MacAddress'
+        dataType:
+          $ref: '#/components/schemas/ServiceMetricDataType'
+        createdTimestamp:
+          type: integer
+          format: int64
+        details:
+          $ref: '#/components/schemas/ServiceMetricDetails'
+        
+    ServiceMetricDetails:
+      oneOf:
+        - $ref: '#/components/schemas/ApNodeMetrics'
+        - $ref: '#/components/schemas/ApSsidMetrics'
+        - $ref: '#/components/schemas/ChannelInfoReports'
+        - $ref: '#/components/schemas/ClientMetrics'
+        - $ref: '#/components/schemas/NeighbourScanReports'
+      discriminator:
+        propertyName: model_type
+ 
+    NeighbourScanReports:
+      properties:
+        neighbourReports:
+          type: array
+          items:
+            $ref: '#/components/schemas/NeighbourReport'
+            
+    NeighbourReport:
+      properties:
+        macAddress:
+          $ref: '#/components/schemas/MacAddress'
+        ssid:
+          type: string
+        beaconInterval:
+          type: integer
+          format: int32
+        
+        networkType:
+          $ref: '#/components/schemas/NetworkType'
+          
+        privacy:
+          type: boolean
+          
+        RadioType radioType:
+          $ref: '#/components/schemas/RadioType'
+          
+        channel:
+          type: integer
+          format: int32
+        
+        rate:
+          type: integer
+          format: int32
+        
+        rssi:
+          type: integer
+          format: int32
+        
+        signal:
+          type: integer
+          format: int32
+        
+        scanTimeInSeconds:
+          type: integer
+          format: int64
+        
+        nMode:
+          type: boolean
+        acMode:
+          type: boolean
+        bMode:
+          type: boolean
+        
+        packetType:
+          $ref: '#/components/schemas/NeighborScanPacketType'
+          
+        secureMode:
+          $ref: '#/components/schemas/DetectedAuthMode'
+ 
+    NetworkType:
+      type: string
+      enum:
+      - AP
+      - ADHOC
+ 
+    
+    NeighborScanPacketType:
+      type: string
+      enum:
+      - ASSOC_REQ
+      - ASSOC_RESP
+      - REASSOC_REQ
+      - REASSOC_RESP
+      - PROBE_REQ
+      - PROBE_RESP
+      - BEACON
+      - DISASSOC
+      - AUTH
+      - DEAUTH
+      - ACTION
+      - ACTION_NOACK
+      - DATA
+        -OTHER
+ 
+    DetectedAuthMode:
+      type: string
+      enum:
+      - OPEN
+      - WEP
+      - WPA
+      - UNKNOWN
+ 
+    GuardInterval:
+      type: string
+      enum:
+      - LGI# Long Guard Interval
+      - SGI# Short Guard Interval
+ 
+    ClientMetrics:
+      properties:
+        secondsSinceLastRecv:
+          type: integer
+          format: int32
+        
+        numRxPackets:
+          type: integer
+          format: int64
+        
+        numTxPackets:
+          type: integer
+          format: int64
+        
+        numRxBytes:
+          type: integer
+          format: int64
+        
+        numTxBytes:
+          type: integer
+          format: int64
+        
+        txRetries:
+          type: integer
+          format: int32
+        
+        rxDuplicatePackets:
+          type: integer
+          format: int32
+        
+        rateCount:
+          type: integer
+          format: int32
+        
+        rates:
+          type: array
+          items:
+            type: integer
+            format: int32 #byte
+        mcs:
+          type: array
+          items:
+            type: integer
+            format: int32 #byte
+        
+        vhtMcs:
+          type: integer
+          format: int32
+        
+        snr:
+          type: integer
+          format: int32
+        
+        rssi:
+          type: integer
+          format: int32
+        
+        sessionId:
+          type: integer
+          format: int64
+        
+        classificationName:
+          type: string
+ 
+        channelBandWidth:
+          $ref: '#/components/schemas/ChannelBandwidth'
+          
+        guardInterval:
+          $ref: '#/components/schemas/GuardInterval'
+        
+        ciscoLastRate:
+          type: integer
+          format: int32
+        
+        averageTxRate:
+          type: number
+          format: double
+        averageRxRate:
+          type: number
+          format: double
+        
+        numTxDataFrames_12_Mbps:
+          type: integer
+          format: int64
+        
+        numTxDataFrames_54_Mbps:
+          type: integer
+          format: int64
+        
+        numTxDataFrames_108_Mbps:
+          type: integer
+          format: int64
+        
+        numTxDataFrames_300_Mbps:
+          type: integer
+          format: int64
+        
+        numTxDataFrames_450_Mbps:
+          type: integer
+          format: int64
+        
+        numTxDataFrames_1300_Mbps:
+          type: integer
+          format: int64
+        
+        numTxDataFrames_1300Plus_Mbps:
+          type: integer
+          format: int64
+        
+        numRxDataFrames_12_Mbps:
+          type: integer
+          format: int64
+        
+        numRxDataFrames_54_Mbps:
+          type: integer
+          format: int64
+        
+        numRxDataFrames_108_Mbps:
+          type: integer
+          format: int64
+        
+        numRxDataFrames_300_Mbps:
+          type: integer
+          format: int64
+        
+        numRxDataFrames_450_Mbps:
+          type: integer
+          format: int64
+        
+        numRxDataFrames_1300_Mbps:
+          type: integer
+          format: int64
+        
+        numRxDataFrames_1300Plus_Mbps:
+          type: integer
+          format: int64
+        
+        numTxTimeFramesTransmitted:
+          type: integer
+          format: int64
+        
+        numRxTimeToMe:
+          type: integer
+          format: int64
+        
+        numTxTimeData:
+          type: integer
+          format: int64
+        
+        numRxTimeData:
+          type: integer
+          format: int64
+        
+        numTxFramesTransmitted:
+          type: integer
+          format: int64
+        
+        numTxSuccessWithRetry:
+          type: integer
+          format: int64
+        
+        numTxMultipleRetries:
+          type: integer
+          format: int64
+        
+        numTxDataTransmittedRetried:
+          type: integer
+          format: int64
+        
+        numTxDataTransmitted:
+          type: integer
+          format: int64
+        
+        numRxFramesReceived:
+          type: integer
+          format: int64
+        
+        numRxDataFramesRetried:
+          type: integer
+          format: int64
+        
+        numRxDataFrames:
+          type: integer
+          format: int64
+        
+        numTx_1_Mbps:
+          type: integer
+          format: int64
+        
+        numTx_6_Mbps:
+          type: integer
+          format: int64
+        
+        numTx_9_Mbps:
+          type: integer
+          format: int64
+        
+        numTx_12_Mbps:
+          type: integer
+          format: int64
+        
+        numTx_18_Mbps:
+          type: integer
+          format: int64
+        
+        numTx_24_Mbps:
+          type: integer
+          format: int64
+        
+        numTx_36_Mbps:
+          type: integer
+          format: int64
+        
+        numTx_48_Mbps:
+          type: integer
+          format: int64
+        
+        numTx_54_Mbps:
+          type: integer
+          format: int64
+        
+        numRx_1_Mbps:
+          type: integer
+          format: int64
+        
+        numRx_6_Mbps:
+          type: integer
+          format: int64
+        
+        numRx_9_Mbps:
+          type: integer
+          format: int64
+        
+        numRx_12_Mbps:
+          type: integer
+          format: int64
+        
+        numRx_18_Mbps:
+          type: integer
+          format: int64
+        
+        numRx_24_Mbps:
+          type: integer
+          format: int64
+        
+        numRx_36_Mbps:
+          type: integer
+          format: int64
+        
+        numRx_48_Mbps:
+          type: integer
+          format: int64
+        
+        numRx_54_Mbps:
+          type: integer
+          format: int64
+        
+        numTxHT_6_5_Mbps:
+          type: integer
+          format: int64
+        
+        numTxHT_7_1_Mbps:
+          type: integer
+          format: int64
+        
+        numTxHT_13_Mbps:
+          type: integer
+          format: int64
+        
+        numTxHT_13_5_Mbps:
+          type: integer
+          format: int64
+        
+        numTxHT_14_3_Mbps:
+          type: integer
+          format: int64
+        
+        numTxHT_15_Mbps:
+          type: integer
+          format: int64
+        
+        numTxHT_19_5_Mbps:
+          type: integer
+          format: int64
+        
+        numTxHT_21_7_Mbps:
+          type: integer
+          format: int64
+        
+        numTxHT_26_Mbps:
+          type: integer
+          format: int64
+        
+        numTxHT_27_Mbps:
+          type: integer
+          format: int64
+        
+        numTxHT_28_7_Mbps:
+          type: integer
+          format: int64
+        
+        numTxHT_28_8_Mbps:
+          type: integer
+          format: int64
+        
+        numTxHT_29_2_Mbps:
+          type: integer
+          format: int64
+        
+        numTxHT_30_Mbps:
+          type: integer
+          format: int64
+        
+        numTxHT_32_5_Mbps:
+          type: integer
+          format: int64
+        
+        numTxHT_39_Mbps:
+          type: integer
+          format: int64
+        
+        numTxHT_40_5_Mbps:
+          type: integer
+          format: int64
+        
+        numTxHT_43_2_Mbps:
+          type: integer
+          format: int64
+        
+        numTxHT_45_Mbps:
+          type: integer
+          format: int64
+        
+        numTxHT_52_Mbps:
+          type: integer
+          format: int64
+        
+        numTxHT_54_Mbps:
+          type: integer
+          format: int64
+        
+        numTxHT_57_5_Mbps:
+          type: integer
+          format: int64
+        
+        numTxHT_57_7_Mbps:
+          type: integer
+          format: int64
+        
+        numTxHT_58_5_Mbps:
+          type: integer
+          format: int64
+        
+        numTxHT_60_Mbps:
+          type: integer
+          format: int64
+        
+        numTxHT_65_Mbps:
+          type: integer
+          format: int64
+        
+        numTxHT_72_1_Mbps:
+          type: integer
+          format: int64
+        
+        numTxHT_78_Mbps:
+          type: integer
+          format: int64
+        
+        numTxHT_81_Mbps:
+          type: integer
+          format: int64
+        
+        numTxHT_86_6_Mbps:
+          type: integer
+          format: int64
+        
+        numTxHT_86_8_Mbps:
+          type: integer
+          format: int64
+        
+        numTxHT_87_8_Mbps:
+          type: integer
+          format: int64
+        
+        numTxHT_90_Mbps:
+          type: integer
+          format: int64
+        
+        numTxHT_97_5_Mbps:
+          type: integer
+          format: int64
+        
+        numTxHT_104_Mbps:
+          type: integer
+          format: int64
+        
+        numTxHT_108_Mbps:
+          type: integer
+          format: int64
+        
+        numTxHT_115_5_Mbps:
+          type: integer
+          format: int64
+        
+        numTxHT_117_Mbps:
+          type: integer
+          format: int64
+        
+        numTxHT_117_1_Mbps:
+          type: integer
+          format: int64
+        
+        numTxHT_120_Mbps:
+          type: integer
+          format: int64
+        
+        numTxHT_121_5_Mbps:
+          type: integer
+          format: int64
+        
+        numTxHT_130_Mbps:
+          type: integer
+          format: int64
+        
+        numTxHT_130_3_Mbps:
+          type: integer
+          format: int64
+        
+        numTxHT_135_Mbps:
+          type: integer
+          format: int64
+        
+        numTxHT_144_3_Mbps:
+          type: integer
+          format: int64
+        
+        numTxHT_150_Mbps:
+          type: integer
+          format: int64
+        
+        numTxHT_156_Mbps:
+          type: integer
+          format: int64
+        
+        numTxHT_162_Mbps:
+          type: integer
+          format: int64
+        
+        numTxHT_173_1_Mbps:
+          type: integer
+          format: int64
+        
+        numTxHT_173_3_Mbps:
+          type: integer
+          format: int64
+        
+        numTxHT_175_5_Mbps:
+          type: integer
+          format: int64
+        
+        numTxHT_180_Mbps:
+          type: integer
+          format: int64
+        
+        numTxHT_195_Mbps:
+          type: integer
+          format: int64
+        
+        numTxHT_200_Mbps:
+          type: integer
+          format: int64
+        
+        numTxHT_208_Mbps:
+          type: integer
+          format: int64
+        
+        numTxHT_216_Mbps:
+          type: integer
+          format: int64
+        
+        numTxHT_216_6_Mbps:
+          type: integer
+          format: int64
+        
+        numTxHT_231_1_Mbps:
+          type: integer
+          format: int64
+        
+        numTxHT_234_Mbps:
+          type: integer
+          format: int64
+        
+        numTxHT_240_Mbps:
+          type: integer
+          format: int64
+        
+        numTxHT_243_Mbps:
+          type: integer
+          format: int64
+        
+        numTxHT_260_Mbps:
+          type: integer
+          format: int64
+        
+        numTxHT_263_2_Mbps:
+          type: integer
+          format: int64
+        
+        numTxHT_270_Mbps:
+          type: integer
+          format: int64
+        
+        numTxHT_288_7_Mbps:
+          type: integer
+          format: int64
+        
+        numTxHT_288_8_Mbps:
+          type: integer
+          format: int64
+        
+        numTxHT_292_5_Mbps:
+          type: integer
+          format: int64
+        
+        numTxHT_300_Mbps:
+          type: integer
+          format: int64
+        
+        numTxHT_312_Mbps:
+          type: integer
+          format: int64
+        
+        numTxHT_324_Mbps:
+          type: integer
+          format: int64
+        
+        numTxHT_325_Mbps:
+          type: integer
+          format: int64
+        
+        numTxHT_346_7_Mbps:
+          type: integer
+          format: int64
+        
+        numTxHT_351_Mbps:
+          type: integer
+          format: int64
+        
+        numTxHT_351_2_Mbps:
+          type: integer
+          format: int64
+        
+        numTxHT_360_Mbps:
+          type: integer
+          format: int64
+        
+        numRxHT_6_5_Mbps:
+          type: integer
+          format: int64
+        
+        numRxHT_7_1_Mbps:
+          type: integer
+          format: int64
+        
+        numRxHT_13_Mbps:
+          type: integer
+          format: int64
+        
+        numRxHT_13_5_Mbps:
+          type: integer
+          format: int64
+        
+        numRxHT_14_3_Mbps:
+          type: integer
+          format: int64
+        
+        numRxHT_15_Mbps:
+          type: integer
+          format: int64
+        
+        numRxHT_19_5_Mbps:
+          type: integer
+          format: int64
+        
+        numRxHT_21_7_Mbps:
+          type: integer
+          format: int64
+        
+        numRxHT_26_Mbps:
+          type: integer
+          format: int64
+        
+        numRxHT_27_Mbps:
+          type: integer
+          format: int64
+        
+        numRxHT_28_7_Mbps:
+          type: integer
+          format: int64
+        
+        numRxHT_28_8_Mbps:
+          type: integer
+          format: int64
+        
+        numRxHT_29_2_Mbps:
+          type: integer
+          format: int64
+        
+        numRxHT_30_Mbps:
+          type: integer
+          format: int64
+        
+        numRxHT_32_5_Mbps:
+          type: integer
+          format: int64
+        
+        numRxHT_39_Mbps:
+          type: integer
+          format: int64
+        
+        numRxHT_40_5_Mbps:
+          type: integer
+          format: int64
+        
+        numRxHT_43_2_Mbps:
+          type: integer
+          format: int64
+        
+        numRxHT_45_Mbps:
+          type: integer
+          format: int64
+        
+        numRxHT_52_Mbps:
+          type: integer
+          format: int64
+        
+        numRxHT_54_Mbps:
+          type: integer
+          format: int64
+        
+        numRxHT_57_5_Mbps:
+          type: integer
+          format: int64
+        
+        numRxHT_57_7_Mbps:
+          type: integer
+          format: int64
+        
+        numRxHT_58_5_Mbps:
+          type: integer
+          format: int64
+        
+        numRxHT_60_Mbps:
+          type: integer
+          format: int64
+        
+        numRxHT_65_Mbps:
+          type: integer
+          format: int64
+        
+        numRxHT_72_1_Mbps:
+          type: integer
+          format: int64
+        
+        numRxHT_78_Mbps:
+          type: integer
+          format: int64
+        
+        numRxHT_81_Mbps:
+          type: integer
+          format: int64
+        
+        numRxHT_86_6_Mbps:
+          type: integer
+          format: int64
+        
+        numRxHT_86_8_Mbps:
+          type: integer
+          format: int64
+        
+        numRxHT_87_8_Mbps:
+          type: integer
+          format: int64
+        
+        numRxHT_90_Mbps:
+          type: integer
+          format: int64
+        
+        numRxHT_97_5_Mbps:
+          type: integer
+          format: int64
+        
+        numRxHT_104_Mbps:
+          type: integer
+          format: int64
+        
+        numRxHT_108_Mbps:
+          type: integer
+          format: int64
+        
+        numRxHT_115_5_Mbps:
+          type: integer
+          format: int64
+        
+        numRxHT_117_Mbps:
+          type: integer
+          format: int64
+        
+        numRxHT_117_1_Mbps:
+          type: integer
+          format: int64
+        
+        numRxHT_120_Mbps:
+          type: integer
+          format: int64
+        
+        numRxHT_121_5_Mbps:
+          type: integer
+          format: int64
+        
+        numRxHT_130_Mbps:
+          type: integer
+          format: int64
+        
+        numRxHT_130_3_Mbps:
+          type: integer
+          format: int64
+        
+        numRxHT_135_Mbps:
+          type: integer
+          format: int64
+        
+        numRxHT_144_3_Mbps:
+          type: integer
+          format: int64
+        
+        numRxHT_150_Mbps:
+          type: integer
+          format: int64
+        
+        numRxHT_156_Mbps:
+          type: integer
+          format: int64
+        
+        numRxHT_162_Mbps:
+          type: integer
+          format: int64
+        
+        numRxHT_173_1_Mbps:
+          type: integer
+          format: int64
+        
+        numRxHT_173_3_Mbps:
+          type: integer
+          format: int64
+        
+        numRxHT_175_5_Mbps:
+          type: integer
+          format: int64
+        
+        numRxHT_180_Mbps:
+          type: integer
+          format: int64
+        
+        numRxHT_195_Mbps:
+          type: integer
+          format: int64
+        
+        numRxHT_200_Mbps:
+          type: integer
+          format: int64
+        
+        numRxHT_208_Mbps:
+          type: integer
+          format: int64
+        
+        numRxHT_216_Mbps:
+          type: integer
+          format: int64
+        
+        numRxHT_216_6_Mbps:
+          type: integer
+          format: int64
+        
+        numRxHT_231_1_Mbps:
+          type: integer
+          format: int64
+        
+        numRxHT_234_Mbps:
+          type: integer
+          format: int64
+        
+        numRxHT_240_Mbps:
+          type: integer
+          format: int64
+        
+        numRxHT_243_Mbps:
+          type: integer
+          format: int64
+        
+        numRxHT_260_Mbps:
+          type: integer
+          format: int64
+        
+        numRxHT_263_2_Mbps:
+          type: integer
+          format: int64
+        
+        numRxHT_270_Mbps:
+          type: integer
+          format: int64
+        
+        numRxHT_288_7_Mbps:
+          type: integer
+          format: int64
+        
+        numRxHT_288_8_Mbps:
+          type: integer
+          format: int64
+        
+        numRxHT_292_5_Mbps:
+          type: integer
+          format: int64
+        
+        numRxHT_300_Mbps:
+          type: integer
+          format: int64
+        
+        numRxHT_312_Mbps:
+          type: integer
+          format: int64
+        
+        numRxHT_324_Mbps:
+          type: integer
+          format: int64
+        
+        numRxHT_325_Mbps:
+          type: integer
+          format: int64
+        
+        numRxHT_346_7_Mbps:
+          type: integer
+          format: int64
+        
+        numRxHT_351_Mbps:
+          type: integer
+          format: int64
+        
+        numRxHT_351_2_Mbps:
+          type: integer
+          format: int64
+        
+        numRxHT_360_Mbps:
+          type: integer
+          format: int64
+        
+        numTxVHT_292_5_Mbps:
+          type: integer
+          format: int64
+        
+        numTxVHT_325_Mbps:
+          type: integer
+          format: int64
+        
+        numTxVHT_364_5_Mbps:
+          type: integer
+          format: int64
+        
+        numTxVHT_390_Mbps:
+          type: integer
+          format: int64
+        
+        numTxVHT_400_Mbps:
+          type: integer
+          format: int64
+        
+        numTxVHT_403_Mbps:
+          type: integer
+          format: int64
+        
+        numTxVHT_405_Mbps:
+          type: integer
+          format: int64
+        
+        numTxVHT_432_Mbps:
+          type: integer
+          format: int64
+        
+        numTxVHT_433_2_Mbps:
+          type: integer
+          format: int64
+        
+        numTxVHT_450_Mbps:
+          type: integer
+          format: int64
+        
+        numTxVHT_468_Mbps:
+          type: integer
+          format: int64
+        
+        numTxVHT_480_Mbps:
+          type: integer
+          format: int64
+        
+        numTxVHT_486_Mbps:
+          type: integer
+          format: int64
+        
+        numTxVHT_520_Mbps:
+          type: integer
+          format: int64
+        
+        numTxVHT_526_5_Mbps:
+          type: integer
+          format: int64
+        
+        numTxVHT_540_Mbps:
+          type: integer
+          format: int64
+        
+        numTxVHT_585_Mbps:
+          type: integer
+          format: int64
+        
+        numTxVHT_600_Mbps:
+          type: integer
+          format: int64
+        
+        numTxVHT_648_Mbps:
+          type: integer
+          format: int64
+        
+        numTxVHT_650_Mbps:
+          type: integer
+          format: int64
+        
+        numTxVHT_702_Mbps:
+          type: integer
+          format: int64
+        
+        numTxVHT_720_Mbps:
+          type: integer
+          format: int64
+        
+        numTxVHT_780_Mbps:
+          type: integer
+          format: int64
+        
+        numTxVHT_800_Mbps:
+          type: integer
+          format: int64
+        
+        numTxVHT_866_7_Mbps:
+          type: integer
+          format: int64
+        
+        numTxVHT_877_5_Mbps:
+          type: integer
+          format: int64
+        
+        numTxVHT_936_Mbps:
+          type: integer
+          format: int64
+        
+        numTxVHT_975_Mbps:
+          type: integer
+          format: int64
+        
+        numTxVHT_1040_Mbps:
+          type: integer
+          format: int64
+        
+        numTxVHT_1053_Mbps:
+          type: integer
+          format: int64
+        
+        numTxVHT_1053_1_Mbps:
+          type: integer
+          format: int64
+        
+        numTxVHT_1170_Mbps:
+          type: integer
+          format: int64
+        
+        numTxVHT_1300_Mbps:
+          type: integer
+          format: int64
+        
+        numTxVHT_1404_Mbps:
+          type: integer
+          format: int64
+        
+        numTxVHT_1560_Mbps:
+          type: integer
+          format: int64
+        
+        numTxVHT_1579_5_Mbps:
+          type: integer
+          format: int64
+        
+        numTxVHT_1733_1_Mbps:
+          type: integer
+          format: int64
+        
+        numTxVHT_1733_4_Mbps:
+          type: integer
+          format: int64
+        
+        numTxVHT_1755_Mbps:
+          type: integer
+          format: int64
+        
+        numTxVHT_1872_Mbps:
+          type: integer
+          format: int64
+        
+        numTxVHT_1950_Mbps:
+          type: integer
+          format: int64
+        
+        numTxVHT_2080_Mbps:
+          type: integer
+          format: int64
+        
+        numTxVHT_2106_Mbps:
+          type: integer
+          format: int64
+        
+        numTxVHT_2340_Mbps:
+          type: integer
+          format: int64
+        
+        numTxVHT_2600_Mbps:
+          type: integer
+          format: int64
+        
+        numTxVHT_2808_Mbps:
+          type: integer
+          format: int64
+        
+        numTxVHT_3120_Mbps:
+          type: integer
+          format: int64
+        
+        numTxVHT_3466_8_Mbps:
+          type: integer
+          format: int64
+        
+        numRxVHT_292_5_Mbps:
+          type: integer
+          format: int64
+        
+        numRxVHT_325_Mbps:
+          type: integer
+          format: int64
+        
+        numRxVHT_364_5_Mbps:
+          type: integer
+          format: int64
+        
+        numRxVHT_390_Mbps:
+          type: integer
+          format: int64
+        
+        numRxVHT_400_Mbps:
+          type: integer
+          format: int64
+        
+        numRxVHT_403_Mbps:
+          type: integer
+          format: int64
+        
+        numRxVHT_405_Mbps:
+          type: integer
+          format: int64
+        
+        numRxVHT_432_Mbps:
+          type: integer
+          format: int64
+        
+        numRxVHT_433_2_Mbps:
+          type: integer
+          format: int64
+        
+        numRxVHT_450_Mbps:
+          type: integer
+          format: int64
+        
+        numRxVHT_468_Mbps:
+          type: integer
+          format: int64
+        
+        numRxVHT_480_Mbps:
+          type: integer
+          format: int64
+        
+        numRxVHT_486_Mbps:
+          type: integer
+          format: int64
+        
+        numRxVHT_520_Mbps:
+          type: integer
+          format: int64
+        
+        numRxVHT_526_5_Mbps:
+          type: integer
+          format: int64
+        
+        numRxVHT_540_Mbps:
+          type: integer
+          format: int64
+        
+        numRxVHT_585_Mbps:
+          type: integer
+          format: int64
+        
+        numRxVHT_600_Mbps:
+          type: integer
+          format: int64
+        
+        numRxVHT_648_Mbps:
+          type: integer
+          format: int64
+        
+        numRxVHT_650_Mbps:
+          type: integer
+          format: int64
+        
+        numRxVHT_702_Mbps:
+          type: integer
+          format: int64
+        
+        numRxVHT_720_Mbps:
+          type: integer
+          format: int64
+        
+        numRxVHT_780_Mbps:
+          type: integer
+          format: int64
+        
+        numRxVHT_800_Mbps:
+          type: integer
+          format: int64
+        
+        numRxVHT_866_7_Mbps:
+          type: integer
+          format: int64
+        
+        numRxVHT_877_5_Mbps:
+          type: integer
+          format: int64
+        
+        numRxVHT_936_Mbps:
+          type: integer
+          format: int64
+        
+        numRxVHT_975_Mbps:
+          type: integer
+          format: int64
+        
+        numRxVHT_1040_Mbps:
+          type: integer
+          format: int64
+        
+        numRxVHT_1053_Mbps:
+          type: integer
+          format: int64
+        
+        numRxVHT_1053_1_Mbps:
+          type: integer
+          format: int64
+        
+        numRxVHT_1170_Mbps:
+          type: integer
+          format: int64
+        
+        numRxVHT_1300_Mbps:
+          type: integer
+          format: int64
+        
+        numRxVHT_1404_Mbps:
+          type: integer
+          format: int64
+        
+        numRxVHT_1560_Mbps:
+          type: integer
+          format: int64
+        
+        numRxVHT_1579_5_Mbps:
+          type: integer
+          format: int64
+        
+        numRxVHT_1733_1_Mbps:
+          type: integer
+          format: int64
+        
+        numRxVHT_1733_4_Mbps:
+          type: integer
+          format: int64
+        
+        numRxVHT_1755_Mbps:
+          type: integer
+          format: int64
+        
+        numRxVHT_1872_Mbps:
+          type: integer
+          format: int64
+        
+        numRxVHT_1950_Mbps:
+          type: integer
+          format: int64
+        
+        numRxVHT_2080_Mbps:
+          type: integer
+          format: int64
+        
+        numRxVHT_2106_Mbps:
+          type: integer
+          format: int64
+        
+        numRxVHT_2340_Mbps:
+          type: integer
+          format: int64
+        
+        numRxVHT_2600_Mbps:
+          type: integer
+          format: int64
+        
+        numRxVHT_2808_Mbps:
+          type: integer
+          format: int64
+        
+        numRxVHT_3120_Mbps:
+          type: integer
+          format: int64
+        
+        numRxVHT_3466_8_Mbps:
+          type: integer
+          format: int64
+        
+        rxLastRssi:
+          description: The RSSI of last frame received.
+          type: integer
+          format: int32
+        
+        numRxNoFcsErr:
+          description: The number of received frames without FCS errors.
+          type: integer
+          format: int32
+        
+        numRxData:
+          description: The number of received data frames.
+          type: integer
+          format: int32
+        
+        numRxManagement:
+          description: The number of received management frames.
+          type: integer
+          format: int32
+        
+        numRxControl:
+          description: The number of received control frames.
+          type: integer
+          format: int32
+        
+        rxBytes:
+          description: The number of received bytes.
+          type: integer
+          format: int64
+        
+        rxDataBytes:
+          description: The number of received data bytes.
+          type: integer
+          format: int64
+        
+        numRxRts:
+          description: The number of received RTS frames.
+          type: integer
+          format: int32
+        
+        numRxCts:
+          description: The number of received CTS frames.
+          type: integer
+          format: int32
+        
+        numRxAck:
+          description: The number of all received ACK frames (Acks + BlockAcks).
+          type: integer
+          format: int32
+        
+        numRxProbeReq:
+          description: The number of received probe request frames.
+          type: integer
+          format: int32
+        
+        numRxRetry:
+          description: The number of received retry frames.
+          type: integer
+          format: int32
+        
+        numRxDup:
+          description: The number of received duplicated frames.
+          type: integer
+          format: int32
+        
+        numRxNullData:
+          description: The number of received null data frames.
+          type: integer
+          format: int32
+        
+        numRxPspoll:
+          description: The number of received ps-poll frames.
+          type: integer
+          format: int32
+        
+        numRxStbc:
+          description: The number of received STBC frames.
+          type: integer
+          format: int32
+        
+        numRxLdpc:
+          description: The number of received LDPC frames.
+          type: integer
+          format: int32
+        
+        lastRecvLayer3Ts:
+          description: The timestamp of last received layer three user traffic (IP data)
+          type: integer
+          format: int64
+        
+        numRcvFrameForTx:
+          description: The number of received ethernet and local generated frames for transmit.
+          type: integer
+          format: int64
+        
+        numTxQueued:
+          description: The number of TX frames queued.
+          type: integer
+          format: int64
+        
+        numTxDropped:
+          description: The number of every TX frame dropped.
+          type: integer
+          format: int32
+        
+        numTxRetryDropped:
+          description: The number of TX frame dropped due to retries.
+          type: integer
+          format: int32
+        
+        numTxSucc:
+          description: The number of frames successfully transmitted.
+          type: integer
+          format: int32
+        
+        numTxByteSucc:
+          description: The Number of Tx bytes successfully transmitted.
+          type: integer
+          format: int64
+        
+        numTxSuccNoRetry:
+          description: The number of successfully transmitted frames at first attempt.
+          type: integer
+          format: int32
+        
+        numTxSuccRetries:
+          description: The number of successfully transmitted frames with retries.
+          type: integer
+          format: int32
+        
+        numTxMultiRetries:
+          description: The number of Tx frames with retries.
+          type: integer
+          format: int32
+        
+        numTxManagement:
+          description: The number of TX management frames.
+          type: integer
+          format: int32
+        
+        numTxControl:
+          description: The number of Tx control frames.
+          type: integer
+          format: int32
+        
+        numTxAction:
+          description: The number of Tx action frames.
+          type: integer
+          format: int32
+        
+        numTxPropResp:
+          description: The number of TX probe response.
+          type: integer
+          format: int32
+        
+        numTxData:
+          description: The number of Tx data frames.
+          type: integer
+          format: int32
+        
+        numTxDataRetries:
+          description: The number of Tx data frames with retries,done.
+          type: integer
+          format: int32
+        
+        numTxRtsSucc:
+          description: The number of RTS frames sent successfully, done.
+          type: integer
+          format: int32
+        
+        numTxRtsFail:
+          description: The number of RTS frames failed transmission.
+          type: integer
+          format: int32
+        
+        numTxNoAck:
+          description: The number of TX frames failed because of not Acked.
+          type: integer
+          format: int32
+        
+        numTxEapol:
+          description: The number of EAPOL frames sent.
+          type: integer
+          format: int32
+        
+        numTxLdpc:
+          description: The number of total LDPC frames sent.
+          type: integer
+          format: int32
+        
+        numTxStbc:
+          description: The number of total STBC frames sent.
+          type: integer
+          format: int32
+        
+        numTxAggrSucc:
+          description: The number of aggregation frames sent successfully.
+          type: integer
+          format: int32
+        
+        numTxAggrOneMpdu:
+          description: The number of aggregation frames sent using single MPDU (where the A-MPDU contains only one MPDU ).
+          type: integer
+          format: int32
+        
+        lastSentLayer3Ts:
+          description: The timestamp of last successfully sent layer three user traffic (IP data).
+          type: integer
+          format: int64
+        
+        wmmQueueStats:
+          $ref: '#/components/schemas/WmmQueueStatsPerQueueTypeMap'
+          
+        List<McsStats> mcsStats:
+          type: array
+          items:
+            $ref: '#/components/schemas/McsStats'
+        
+        lastRxMcsIdx:
+          #description: The last RX MCS/rate index.
+          $ref: '#/components/schemas/McsType'
+        
+        lastTxMcsIdx:
+          #description: The last TX MCS/rate index.
+          $ref: '#/components/schemas/McsType'
+        
+        radioType:
+          $ref: '#/components/schemas/RadioType'
+        
+        periodLengthSec:
+          description: How many seconds the AP measured for the metric
+          type: integer
+          format: int32
+        
+        
+    
+    ChannelInfoReports:
+      properties:
+        channelInformationReportsPerRadio:
+          $ref: '#/components/schemas/ListOfChannelInfoReportsPerRadioMap'
+ 
+    ListOfChannelInfoReportsPerRadioMap:
+      properties:
+        is5GHz:
+          type: array
+          items:
+            $ref: '#/components/schemas/ChannelInfo'
+        is5GHzU:
+          type: array
+          items:
+            $ref: '#/components/schemas/ChannelInfo'
+        is5GHzL:
+          type: array
+          items:
+            $ref: '#/components/schemas/ChannelInfo'
+        is2dot4GHz:
+          type: array
+          items:
+            $ref: '#/components/schemas/ChannelInfo'
+            
+    ChannelInfo:
+      properties:
+        chanNumber:
+          type: integer
+          format: int32
+        bandwidth:
+          $ref: '#/components/schemas/ChannelBandwidth'
+        totalUtilization:
+          type: integer
+          format: int32
+        wifiUtilization:
+          type: integer
+          format: int32
+        noiseFloor:
+          type: integer
+          format: int32
+        
+ 
+    ApSsidMetrics:
+      properties:
+        ssidStats:
+          $ref: '#/components/schemas/ListOfSsidStatisticsPerRadioMap'
+ 
+    ListOfSsidStatisticsPerRadioMap:
+      properties:
+        is5GHz:
+          type: array
+          items:
+            $ref: '#/components/schemas/SsidStatistics'
+        is5GHzU:
+          type: array
+          items:
+            $ref: '#/components/schemas/SsidStatistics'
+        is5GHzL:
+          type: array
+          items:
+            $ref: '#/components/schemas/SsidStatistics'
+        is2dot4GHz:
+          type: array
+          items:
+            $ref: '#/components/schemas/SsidStatistics'
+    
+    SsidStatistics:
+      properties:
+        ssid:
+          description: SSID
+          type: string
+        
+        bssid:
+          $ref: '#/components/schemas/MacAddress'
+        
+        numClient:
+          description: Number client associated to this BSS
+          type: integer
+          format: int32
+        
+        rxLastRssi:
+          description: The RSSI of last frame received.
+          type: integer
+          format: int32
+        
+        numRxNoFcsErr:
+          description: The number of received frames without FCS errors.
+          type: integer
+          format: int32
+        
+        numRxData:
+          description: The number of received data frames.
+          type: integer
+          format: int32
+        
+        numRxManagement:
+          description: The number of received management frames.
+          type: integer
+          format: int32
+        
+        numRxControl:
+          description: The number of received control frames.
+          type: integer
+          format: int32
+        
+        rxBytes:
+          description: The number of received bytes.
+          type: integer
+          format: int32
+        
+        rxDataBytes:
+          description: The number of received data bytes.
+          type: integer
+          format: int64
+        
+        numRxRts:
+          description: The number of received RTS frames.
+          type: integer
+          format: int32
+        
+        numRxCts:
+          description: The number of received CTS frames.
+          type: integer
+          format: int32
+        
+        numRxAck:
+          description: The number of all received ACK frames (Acks + BlockAcks).
+          type: integer
+          format: int32
+        
+        numRxProbeReq:
+          description: The number of received probe request frames.
+          type: integer
+          format: int32
+        
+        numRxRetry:
+          description: The number of received retry frames.
+          type: integer
+          format: int32
+        
+        numRxDup:
+          description: The number of received duplicated frames.
+          type: integer
+          format: int32
+        
+        numRxNullData:
+          description: The number of received null data frames.
+          type: integer
+          format: int32
+        
+        numRxPspoll:
+          description: The number of received ps-poll frames.
+          type: integer
+          format: int32
+        
+        numRxStbc:
+          description: The number of received STBC frames.
+          type: integer
+          format: int32
+        
+        numRxLdpc:
+          description: The number of received LDPC frames.
+          type: integer
+          format: int32
+        
+        numRcvFrameForTx:
+          description: The number of received ethernet and local generated frames for transmit.
+          type: integer
+          format: int64
+        
+        numTxQueued:
+          description: The number of TX frames queued.
+          type: integer
+          format: int64
+        
+        numRcvBcForTx:
+          description: The number of received ethernet and local generated broadcast frames for transmit.
+          type: integer
+          format: int32
+        
+        numTxDropped:
+          description: The number of every TX frame dropped.
+          type: integer
+          format: int32
+        
+        numTxRetryDropped:
+          description: The number of TX frame dropped due to retries.
+          type: integer
+          format: int32
+        
+        numTxBcDropped:
+          description: The number of broadcast frames dropped.
+          type: integer
+          format: int32
+        
+        numTxSucc:
+          description: The number of frames successfully transmitted.
+          type: integer
+          format: int32
+        
+        numTxBytesSucc:
+          description: The number of bytes successfully transmitted.
+          type: integer
+          format: int64
+        
+        numTxPsUnicast:
+          description: The number of transmitted PS unicast frame.
+          type: integer
+          format: int32
+        
+        numTxDtimMc:
+          description: The number of transmitted DTIM multicast frames.
+          type: integer
+          format: int32
+        
+        numTxSuccNoRetry:
+          description: The number of successfully transmitted frames at firt attemp.
+          type: integer
+          format: int32
+        
+        numTxSuccRetries:
+          description: The number of successfully transmitted frames with retries.
+          type: integer
+          format: int32
+        
+        numTxMultiRetries:
+          description: The number of Tx frames with retries.
+          type: integer
+          format: int32
+        
+        numTxManagement:
+          description: The number of TX management frames.
+          type: integer
+          format: int32
+        
+        numTxControl:
+          description: The number of Tx control frames.
+          type: integer
+          format: int32
+        
+        numTxAction:
+          description: The number of Tx action frames.
+          type: integer
+          format: int32
+        
+        numTxPropResp:
+          description: The number of TX probe response.
+          type: integer
+          format: int32
+        
+        numTxData:
+          description: The number of Tx data frames.
+          type: integer
+          format: int32
+        
+        numTxDataRetries:
+          description: The number of Tx data frames with retries.
+          type: integer
+          format: int32
+        
+        numTxRtsSucc:
+          description: The number of RTS frames sent successfully.
+          type: integer
+          format: int32
+        
+        numTxRtsFail:
+          description: The number of RTS frames failed transmission.
+          type: integer
+          format: int32
+        
+        numTxNoAck:
+          description: The number of TX frames failed because of not Acked.
+          type: integer
+          format: int32
+        
+        numTxEapol:
+          description: The number of EAPOL frames sent.
+          type: integer
+          format: int32
+        
+        numTxLdpc:
+          description: The number of total LDPC frames sent.
+          type: integer
+          format: int32
+        
+        numTxStbc:
+          description: The number of total STBC frames sent.
+          type: integer
+          format: int32
+        
+        numTxAggrSucc:
+          description: The number of aggregation frames sent successfully.
+          type: integer
+          format: int32
+        
+        numTxAggrOneMpdu:
+          description: The number of aggregation frames sent using single MPDU (where the A-MPDU contains only one MPDU ).
+          type: integer
+          format: int32
+        
+        wmmQueueStats:
+          $ref: '#/components/schemas/WmmQueueStatsPerQueueTypeMap'
+ 
+        mcsStats:
+          type: array
+          items:
+            $ref: '#/components/schemas/McsStats'
+        
+      
+    ApNodeMetrics:
+      type: object
+      properties:
+        periodLengthSec:
+          description: How many seconds the AP measured for the metric
+          type: integer
+          format: int32
+        clientMacAddressesPerRadio:
+          #description: Client MAC addresses seen during the period
+          $ref: '#/components/schemas/ListOfMacsPerRadioMap'
+        txBytesPerRadio:
+          #description: Total number the bytes transmitted on radio
+          $ref: '#/components/schemas/LongPerRadioTypeMap'
+        rxBytesPerRadio:
+          #description: Total number of bytes received on radio
+          $ref: '#/components/schemas/LongPerRadioTypeMap'
+        noiseFloorPerRadio:        
+          $ref: '#/components/schemas/IntegerPerRadioTypeMap'
+        tunnelMetrics:
+          type: array
+          items:
+            $ref: '#/components/schemas/TunnelMetricData'
+        networkProbeMetrics:
+          type: array
+          items:
+            $ref: '#/components/schemas/NetworkProbeMetrics'
+        radiusMetrics:
+          type: array
+          items:
+            $ref: '#/components/schemas/RadiusMetrics'
+        cloudLinkAvailability:
+          type: integer
+          format: int32
+        cloudLinkLatencyInMs:
+          type: integer
+          format: int64
+        channelUtilizationPerRadio:
+          $ref: '#/components/schemas/IntegerPerRadioTypeMap'
+        apPerformance:
+          $ref: '#/components/schemas/ApPerformance'
+        vlanSubnet:
+          type: array
+          items:
+            $ref: '#/components/schemas/VlanSubnet'
+        radioUtilizationPerRadio:
+          $ref: '#/components/schemas/ListOfRadioUtilizationPerRadioMap'
+        radioStatsPerRadio:
+          $ref: '#/components/schemas/RadioStatisticsPerRadioMap'
+        mcsStatsPerRadio:
+          $ref: '#/components/schemas/ListOfMcsStatsPerRadioMap'
+        wmmQueuesPerRadio:
+          $ref: '#/components/schemas/MapOfWmmQueueStatsPerRadioMap'
+           
+    VlanSubnet:
+      properties:
+        subnetVlan:
+          type: integer
+          format: int32
+        subnetBase:
+          description: string representing InetAddress
+          type: string
+        subnetMask:
+          description: string representing InetAddress
+          type: string
+        subnetGateway:
+          description: string representing InetAddress
+          type: string
+        subnetDhcpServer:
+          description: string representing InetAddress
+          type: string
+        subnetDns1:
+          description: string representing InetAddress
+          type: string
+        subnetDns2:
+          description: string representing InetAddress
+          type: string
+        subnetDns3:
+          description: string representing InetAddress
+          type: string
+ 
+    PerProcessUtilization:
+      properties:
+        pid:
+          description: process id
+          type: integer
+          format: int32
+        cmd:
+          description: process name
+          type: string
+        util:
+          description: utilization, either as a percentage (i.e. for CPU) or in kB (for memory)
+          type: integer
+          format: int32
+ 
+    ApPerformance:
+      properties:
+        freeMemory:
+          description: free memory in kilobytes 
+          type: integer
+          format: int32
+        cpuUtilized:
+          description: CPU utilization in percentage, one per core
+          type: array
+          items:
+            type: integer
+            format: int8
+        upTime:
+          description: AP uptime in seconds
+          type: integer
+          format: int64
+        camiCrashed:
+          description: number of time cloud-to-ap-management process crashed
+          type: integer
+          format: int32
+        cpuTemperature:
+          description: cpu temperature in Celsius
+          type: integer
+          format: int32
+        lowMemoryReboot:
+          description: low memory reboot happened
+          type: boolean
+        ethLinkState:
+          $ref: '#/components/schemas/EthernetLinkState'
+        cloudTxBytes:
+          description: Data sent by AP to the cloud
+          type: integer
+          format: int64
+        cloudRxBytes:
+          description: Data received by AP from cloud
+          type: integer
+          format: int64
+        psCpuUtil:
+          type: array
+          items:
+            $ref: '#/components/schemas/PerProcessUtilization'
+        psMemUtil:
+          type: array
+          items:
+            $ref: '#/components/schemas/PerProcessUtilization'
+           
+    EthernetLinkState:
+      type: string
+      enum:
+      - DOWN
+      - UP1000_FULL_DUPLEX
+      - UP1000_HALF_DUPLEX
+      - UP100_FULL_DUPLEX
+      - UP100_HALF_DUPLEX
+      - UP10_FULL_DUPLEX
+      - UP10_HALF_DUPLEX
+ 
+ 
+    RadiusMetrics:
+      properties:
+        serverIp:
+          type: string
+        numberOfNoAnswer:
+          type: integer
+          format: int32
+        latencyMs:
+          $ref: '#/components/schemas/MinMaxAvgValueInt'
+        
+    NetworkProbeMetrics:
+      properties:
+        vlanIF:
+          type: string
+        dhcpState:
+          $ref: '#/components/schemas/StateUpDownError'
+        dhcpLatencyMs:
+          type: integer
+          format: int64
+        dnsState:
+          $ref: '#/components/schemas/StateUpDownError'
+        dnsLatencyMs:
+          type: integer
+          format: int64
+        radiusState:
+          $ref: '#/components/schemas/StateUpDownError'
+        radiusLatencyMs:
+          type: integer
+          format: int64
+        dnsProbeResults:
+          type: array
+          items:
+            $ref: '#/components/schemas/DnsProbeMetric'
+ 
+    StateUpDownError:
+      type: string
+      enum:
+      - disabled
+      - enabled
+      - error
+        # The error state means it wasn't possible to determine whether the state is up  or down (ie: couldn't launch a script or something).
+        
+    DnsProbeMetric:
+      properties:
+        dnsServerIp:
+          type: string
+        dnsState:
+          $ref: '#/components/schemas/StateUpDownError'
+        dnsLatencyMs:
+          type: integer
+          format: int64
+        
+      
+    TunnelMetricData:
+      properties:
+        ipAddr:
+          description: IP address of tunnel peer
+          type: string
+        cfgTime:
+          description: number of seconds tunnel was configured
+          type: integer
+          format: int64
+        upTime:
+          description: number of seconds tunnel was up in current bin
+          type: integer
+          format: int64
+        pingsSent:
+          description: number of 'ping' sent in the current bin in case tunnel was DOWN
+          type: integer
+          format: int64
+        pingsRecvd:
+          description: number of 'ping' response received by peer in the current bin in case tunnel was DOWN
+          type: integer
+          format: int64
+        activeTun:
+          description: Indicates if the current tunnel is the active one
+          type: boolean
+ 
+        
+    MapOfWmmQueueStatsPerRadioMap:
+      properties:
+        is5GHz:
+          $ref: '#/components/schemas/WmmQueueStatsPerQueueTypeMap'
+        is5GHzU:
+          $ref: '#/components/schemas/WmmQueueStatsPerQueueTypeMap'
+        is5GHzL:
+          $ref: '#/components/schemas/WmmQueueStatsPerQueueTypeMap'
+        is2dot4GHz:
+          $ref: '#/components/schemas/WmmQueueStatsPerQueueTypeMap'
+ 
+    WmmQueueType:
+      type: string
+      enum:
+      - BE
+      - BK
+      - VI
+      - VO
+      
+    WmmQueueStatsPerQueueTypeMap:
+      properties:
+        BE:
+          $ref: '#/components/schemas/WmmQueueStats'
+        BK:
+          $ref: '#/components/schemas/WmmQueueStats'
+        VI:
+          $ref: '#/components/schemas/WmmQueueStats'
+        VO:
+          $ref: '#/components/schemas/WmmQueueStats'
+          
+    WmmQueueStats:
+      properties:
+        queueType:
+          $ref: '#/components/schemas/WmmQueueType'
+        txFrames:
+          type: integer
+          format: int64
+        txBytes:
+          type: integer
+          format: int64
+        txFailedFrames:
+          type: integer
+          format: int64
+        txFailedBytes:
+          type: integer
+          format: int64
+        rxFrames:
+          type: integer
+          format: int64
+        rxBytes:
+          type: integer
+          format: int64
+        rxFailedFrames:
+          type: integer
+          format: int64
+        rxFailedBytes:
+          type: integer
+          format: int64
+        forwardFrames:
+          type: integer
+          format: int64
+        forwardBytes:
+          type: integer
+          format: int64
+        txExpiredFrames:
+          type: integer
+          format: int64
+        txExpiredBytes:
+          type: integer
+          format: int64
+ 
+ 
+    ListOfMcsStatsPerRadioMap:
+      properties:
+        is5GHz:
+          type: array
+          items:
+            $ref: '#/components/schemas/McsStats'
+        is5GHzU:
+          type: array
+          items:
+            $ref: '#/components/schemas/McsStats'
+        is5GHzL:
+          type: array
+          items:
+            $ref: '#/components/schemas/McsStats'
+        is2dot4GHz:
+          type: array
+          items:
+            $ref: '#/components/schemas/McsStats'
+    
+    McsStats:
+      properties:
+        mcsNum:
+          $ref: '#/components/schemas/McsType'
+        txFrames:
+          description: The number of successfully transmitted frames at this rate. Do not count failed transmission.
+          type: integer
+          format: int32
+        rxFrames:
+          description: The number of received frames at this rate.
+          type: integer
+          format: int32
+        rate:
+          type: integer
+          format: int64
+ 
+    McsType:
+      description: The MCS number. This is table index.
+      type: string
+      enum:
+      - MCS_1#  2.4GHz only
+      - MCS_2#  2.4GHz only
+      - MCS_5dot5# 2.4GHz only
+      - MCS_11# 2.4GHz only
+      - MCS_6
+      - MCS_9
+      - MCS_12
+      - MCS_18
+      - MCS_24
+      - MCS_36
+      - MCS_48
+      - MCS_54
+      - MCS_N_0
+      - MCS_N_1
+      - MCS_N_2
+      - MCS_N_3
+      - MCS_N_4
+      - MCS_N_5
+      - MCS_N_6
+      - MCS_N_7
+      - MCS_N_8
+      - MCS_N_9
+      - MCS_N_10
+      - MCS_N_11
+      - MCS_N_12
+      - MCS_N_13
+      - MCS_N_14
+      - MCS_N_15
+      - MCS_AC_1x1_0
+      - MCS_AC_1x1_1
+      - MCS_AC_1x1_2
+      - MCS_AC_1x1_3
+      - MCS_AC_1x1_4
+      - MCS_AC_1x1_5
+      - MCS_AC_1x1_6
+      - MCS_AC_1x1_7
+      - MCS_AC_1x1_8
+      - MCS_AC_1x1_9
+      - MCS_AC_2x2_0
+      - MCS_AC_2x2_1
+      - MCS_AC_2x2_2
+      - MCS_AC_2x2_3
+      - MCS_AC_2x2_4
+      - MCS_AC_2x2_5
+      - MCS_AC_2x2_6
+      - MCS_AC_2x2_7
+      - MCS_AC_2x2_8
+      - MCS_AC_2x2_9
+      - MCS_AC_3x3_0
+      - MCS_AC_3x3_1
+      - MCS_AC_3x3_2
+      - MCS_AC_3x3_3
+      - MCS_AC_3x3_4
+      - MCS_AC_3x3_5
+      - MCS_AC_3x3_6
+      - MCS_AC_3x3_7
+      - MCS_AC_3x3_8
+      - MCS_AC_3x3_9
+      - MCS_N_16
+      - MCS_N_17
+      - MCS_N_18
+      - MCS_N_19
+      - MCS_N_20
+      - MCS_N_21
+      - MCS_N_22
+      - MCS_N_23
+      - MCS_N_24
+      - MCS_N_25
+      - MCS_N_26
+      - MCS_N_27
+      - MCS_N_28
+      - MCS_N_29
+      - MCS_N_30
+      - MCS_N_31
+      - MCS_AC_4x4_0
+      - MCS_AC_4x4_1
+      - MCS_AC_4x4_2
+      - MCS_AC_4x4_3
+      - MCS_AC_4x4_4
+      - MCS_AC_4x4_5
+      - MCS_AC_4x4_6
+      - MCS_AC_4x4_7
+      - MCS_AC_4x4_8
+      - MCS_AC_4x4_9
+ 
+      
+    RadioStatisticsPerRadioMap:
+      properties:
+        is5GHz:
+          $ref: '#/components/schemas/RadioStatistics'
+        is5GHzU:
+          $ref: '#/components/schemas/RadioStatistics'
+        is5GHzL:
+          $ref: '#/components/schemas/RadioStatistics'
+        is2dot4GHz:
+          $ref: '#/components/schemas/RadioStatistics'
+          
+    RadioStatistics:
+      properties:
+        numRadioResets:
+          description:  The number of radio resets
+          type: integer
+          format: int32
+        numChanChanges:
+          description:  The number of channel changes.
+          type: integer
+          format: int32
+        numTxPowerChanges:
+          description:  The number of tx power changes.
+          type: integer
+          format: int32
+        numRadarChanChanges:
+          description:  The number of channel changes due to radar detections.
+          type: integer
+          format: int32
+        numFreeTxBuf:
+          description:  The number of free TX buffers available.
+          type: integer
+          format: int32
+        
+        elevenGProtection:
+          description:  11g protection, 2.4GHz only.
+          type: integer
+          format: int32
+        
+        numScanReq:
+          description:  The number of scanning requests.
+          type: integer
+          format: int32
+        
+        numScanSucc:
+          description:  The number of scanning successes.
+          type: integer
+          format: int32
+        
+        curEirp:
+          description:  The Current EIRP.
+          type: integer
+          format: int32
+        
+        actualCellSize:
+          description: Actuall Cell Size
+          type: array
+          items: 
+            type: integer
+            format: int32
+          
+        curChannel:
+          description: The current primary channel
+          type: integer
+          format: int32
+        
+        curBackupChannel:
+          description: The current backup channel
+          type: integer
+          format: int32
+        
+        rxLastRssi:
+          description:  The RSSI of last frame received.
+          type: integer
+          format: int32
+        
+        numRx:
+          description:  The number of received frames.
+          type: integer
+          format: int32
+        
+        numRxNoFcsErr:
+          description:  The number of received frames without FCS errors.
+          type: integer
+          format: int32
+        
+        numRxFcsErr:
+          description:  The number of received frames with FCS errors.
+          type: integer
+          format: int32
+        
+        numRxData:
+          description:  The number of received data frames.
+          type: integer
+          format: int32
+        
+        numRxManagement:
+          description:  The number of received management frames.
+          type: integer
+          format: int32
+        
+        numRxControl:
+          description:  The number of received control frames.
+          type: integer
+          format: int32
+        
+        rxDataBytes:
+          description:  The number of received data frames.
+          type: integer
+          format: int64
+        
+        numRxRts:
+          description:  The number of received RTS frames.
+          type: integer
+          format: int32
+        
+        numRxCts:
+          description:  The number of received CTS frames.
+          type: integer
+          format: int32
+        
+        numRxAck:
+          description:  The number of all received ACK frames (Acks + BlockAcks).
+          type: integer
+          format: int32
+        
+        numRxBeacon:
+          description:  The number of received beacon frames.
+          type: integer
+          format: int32
+        
+        numRxProbeReq:
+          description:  The number of received probe request frames.
+          type: integer
+          format: int32
+        
+        numRxProbeResp:
+          description:  The number of received probe response frames.
+          type: integer
+          format: int32
+        
+        numRxRetry:
+          description:  The number of received retry frames.
+          type: integer
+          format: int32
+        
+        numRxOffChan:
+          description:  The number of frames received during off-channel scanning.
+          type: integer
+          format: int32
+        
+        numRxDup:
+          description:  The number of received duplicated frames.
+          type: integer
+          format: int32
+        
+        numRxBcMc:
+          description:  The number of received Broadcast/Multicast frames.
+          type: integer
+          format: int32
+        
+        numRxNullData:
+          description:  The number of received null data frames.
+          type: integer
+          format: int32
+        
+        numRxPspoll:
+          description:  The number of received ps-poll frames
+          type: integer
+          format: int32
+        
+        numRxErr:
+          description:  The number of received frames with errors.
+          type: integer
+          format: int32
+        
+        numRxStbc:
+          description:  The number of received STBC frames.
+          type: integer
+          format: int32
+        
+        numRxLdpc:
+          description:  The number of received LDPC frames.
+          type: integer
+          format: int32
+        
+        numRxDropRunt:
+          description:  The number of dropped rx frames, runt.
+          type: integer
+          format: int32
+        
+        numRxDropInvalidSrcMac:
+          description:  The number of dropped rx frames, invalid source MAC.
+          type: integer
+          format: int32
+        
+        numRxDropAmsduNoRcv:
+          description:  The number of dropped rx frames, AMSDU no receive.
+          type: integer
+          format: int32
+        
+        numRxDropEthHdrRunt:
+          description:  The number of dropped rx frames, Ethernet header runt.
+          type: integer
+          format: int32
+        
+        numRxAmsduDeaggSeq:
+          description:  The number of dropped rx frames, AMSDU deagg sequence.
+          type: integer
+          format: int32
+        
+        numRxAmsduDeaggItmd:
+          description:  The number of dropped rx frames, AMSDU deagg intermediate.
+          type: integer
+          format: int32
+        
+        numRxAmsduDeaggLast:
+          description:  The number of dropped rx frames, AMSDU deagg last.
+          type: integer
+          format: int32
+        
+        numRxDropNoFcField:
+          description: The number of dropped rx frames, no frame control field.
+          type: integer
+          format: int64
+        
+        numRxDropBadProtocol:
+          description: The number of dropped rx frames, bad protocol.
+          type: integer
+          format: int64
+        
+        numRcvFrameForTx:
+          description:  The number of received ethernet and local generated frames for transmit.
+          type: integer
+          format: int64
+        
+        numTxQueued:
+          description:  The number of TX frames queued.
+          type: integer
+          format: int64
+        
+        numRcvBcForTx:
+          description:  The number of received ethernet and local generated broadcast frames for transmit.
+          type: integer
+          format: int32
+        
+        numTxDropped:
+          description:  The number of every TX frame dropped.
+          type: integer
+          format: int32
+        
+        numTxRetryDropped:
+          description:  The number of TX frame dropped due to retries.
+          type: integer
+          format: int32
+        
+        numTxBcDropped:
+          description:  The number of broadcast frames dropped.
+          type: integer
+          format: int32
+        
+        numTxSucc:
+          description:  The number of frames successfully transmitted.
+          type: integer
+          format: int32
+        
+        numTxPsUnicast:
+          description:  The number of transmitted PS unicast frame.
+          type: integer
+          format: int32
+        
+        numTxDtimMc:
+          description:  The number of transmitted DTIM multicast frames.
+          type: integer
+          format: int32
+        
+        numTxSuccNoRetry:
+          description:  The number of successfully transmitted frames at firt attemp.
+          type: integer
+          format: int32
+        
+        numTxSuccRetries:
+          description:  The number of successfully transmitted frames with retries.
+          type: integer
+          format: int32
+        
+        numTxMultiRetries:
+          description:  The number of Tx frames with retries.
+          type: integer
+          format: int32
+        
+        numTxManagement:
+          description:  The number of TX management frames.
+          type: integer
+          format: int32
+        
+        numTxControl:
+          description:  The number of Tx control frames.
+          type: integer
+          format: int32
+        
+        numTxAction:
+          description:  The number of Tx action frames.
+          type: integer
+          format: int32
+        
+        numTxBeaconSucc:
+          description:  The number of successfully transmitted beacon.
+          type: integer
+          format: int32
+        
+        numTxBeaconFail:
+          description:  The number of unsuccessfully transmitted beacon.
+          type: integer
+          format: int32
+        
+        numTxBeaconSuFail:
+          description:  The number of successive beacon tx failure.
+          type: integer
+          format: int32
+        
+        numTxProbeResp:
+          description:  The number of TX probe response.
+          type: integer
+          format: int32
+        
+        numTxData:
+          description:  The number of Tx data frames.
+          type: integer
+          format: int32
+        
+        numTxDataRetries:
+          description:  The number of Tx data frames with retries.
+          type: integer
+          format: int32
+        
+        numTxRtsSucc:
+          description:  The number of RTS frames sent successfully .
+          type: integer
+          format: int32
+        
+        numTxRtsFail:
+          description:  The number of RTS frames failed transmission.
+          type: integer
+          format: int32
+        
+        numTxCts:
+          description:  The number of CTS frames sent.
+          type: integer
+          format: int32
+        
+        numTxNoAck:
+          description:  The number of TX frames failed because of not Acked.
+          type: integer
+          format: int32
+        
+        numTxEapol:
+          description:  The number of EAPOL frames sent.
+          type: integer
+          format: int32
+        
+        numTxLdpc:
+          description:  The number of total LDPC frames sent.
+          type: integer
+          format: int32
+        
+        numTxStbc:
+          description:  The number of total STBC frames sent.
+          type: integer
+          format: int32
+        
+        numTxAggrSucc:
+          description:  The number of aggregation frames sent successfully.
+          type: integer
+          format: int32
+        
+        numTxAggrOneMpdu:
+          description:  The number of aggregation frames sent using single MPDU.
+          type: integer
+          format: int32
+        
+        numTxRateLimitDrop:
+          description:  The number of Tx frames dropped because of rate limit and burst exceeded.
+          type: integer
+          format: int32
+        
+        numTxRetryAttemps:
+          description: The number of retry tx attempts that have been made
+          type: integer
+          format: int32
+        
+        numTxTotalAttemps:
+          description: The total number of tx attempts
+          type: integer
+          format: int32
+        
+        numTxDataFrames_12_Mbps:
+          type: integer
+          format: int64
+        
+        numTxDataFrames_54_Mbps:
+          type: integer
+          format: int64
+        
+        numTxDataFrames_108_Mbps:
+          type: integer
+          format: int64
+        
+        numTxDataFrames_300_Mbps:
+          type: integer
+          format: int64
+        
+        numTxDataFrames_450_Mbps:
+          type: integer
+          format: int64
+        
+        numTxDataFrames_1300_Mbps:
+          type: integer
+          format: int64
+        
+        numTxDataFrames_1300Plus_Mbps:
+          type: integer
+          format: int64
+        
+        numRxDataFrames_12_Mbps:
+          type: integer
+          format: int64
+        
+        numRxDataFrames_54_Mbps:
+          type: integer
+          format: int64
+        
+        numRxDataFrames_108_Mbps:
+          type: integer
+          format: int64
+        
+        numRxDataFrames_300_Mbps:
+          type: integer
+          format: int64
+        
+        numRxDataFrames_450_Mbps:
+          type: integer
+          format: int64
+        
+        numRxDataFrames_1300_Mbps:
+          type: integer
+          format: int64
+        
+        numRxDataFrames_1300Plus_Mbps:
+          type: integer
+          format: int64
+        
+        numTxTimeFramesTransmitted:
+          type: integer
+          format: int64
+        
+        numRxTimeToMe:
+          type: integer
+          format: int64
+                
+        numChannelBusy64s:
+          type: integer
+          format: int64
+        
+        numTxTimeData:
+          type: integer
+          format: int64
+        
+        numTxTime_BC_MC_Data:
+          type: integer
+          format: int64
+        
+        numRxTimeData:
+          type: integer
+          format: int64
+        
+        numTxFramesTransmitted:
+          type: integer
+          format: int64
+        
+        numTxSuccessWithRetry:
+          type: integer
+          format: int64
+        
+        numTxMultipleRetries:
+          type: integer
+          format: int64
+        
+        numTxDataTransmittedRetried:
+          type: integer
+          format: int64
+        
+        numTxDataTransmitted:
+          type: integer
+          format: int64
+        
+        numTxDataFrames:
+          type: integer
+          format: int64
+        
+        numRxFramesReceived:
+          type: integer
+          format: int64
+        
+        numRxRetryFrames:
+          type: integer
+          format: int64
+        
+        numRxDataFramesRetried:
+          type: integer
+          format: int64
+        
+        numRxDataFrames:
+          type: integer
+          format: int64
+        
+        numTx_1_Mbps:
+          type: integer
+          format: int64
+        
+        numTx_6_Mbps:
+          type: integer
+          format: int64
+        
+        numTx_9_Mbps:
+          type: integer
+          format: int64
+        
+        numTx_12_Mbps:
+          type: integer
+          format: int64
+        
+        numTx_18_Mbps:
+          type: integer
+          format: int64
+        
+        numTx_24_Mbps:
+          type: integer
+          format: int64
+        
+        numTx_36_Mbps:
+          type: integer
+          format: int64
+        
+        numTx_48_Mbps:
+          type: integer
+          format: int64
+        
+        numTx_54_Mbps:
+          type: integer
+          format: int64
+        
+        numRx_1_Mbps:
+          type: integer
+          format: int64
+        
+        numRx_6_Mbps:
+          type: integer
+          format: int64
+        
+        numRx_9_Mbps:
+          type: integer
+          format: int64
+        
+        numRx_12_Mbps:
+          type: integer
+          format: int64
+        
+        numRx_18_Mbps:
+          type: integer
+          format: int64
+        
+        numRx_24_Mbps:
+          type: integer
+          format: int64
+        
+        numRx_36_Mbps:
+          type: integer
+          format: int64
+        
+        numRx_48_Mbps:
+          type: integer
+          format: int64
+        
+        numRx_54_Mbps:
+          type: integer
+          format: int64
+        
+        numTxHT_6_5_Mbps:
+          type: integer
+          format: int64
+        
+        numTxHT_7_1_Mbps:
+          type: integer
+          format: int64
+        
+        numTxHT_13_Mbps:
+          type: integer
+          format: int64
+        
+        numTxHT_13_5_Mbps:
+          type: integer
+          format: int64
+        
+        numTxHT_14_3_Mbps:
+          type: integer
+          format: int64
+        
+        numTxHT_15_Mbps:
+          type: integer
+          format: int64
+        
+        numTxHT_19_5_Mbps:
+          type: integer
+          format: int64
+        
+        numTxHT_21_7_Mbps:
+          type: integer
+          format: int64
+        
+        numTxHT_26_Mbps:
+          type: integer
+          format: int64
+        
+        numTxHT_27_Mbps:
+          type: integer
+          format: int64
+        
+        numTxHT_28_7_Mbps:
+          type: integer
+          format: int64
+        
+        numTxHT_28_8_Mbps:
+          type: integer
+          format: int64
+        
+        numTxHT_29_2_Mbps:
+          type: integer
+          format: int64
+        
+        numTxHT_30_Mbps:
+          type: integer
+          format: int64
+        
+        numTxHT_32_5_Mbps:
+          type: integer
+          format: int64
+        
+        numTxHT_39_Mbps:
+          type: integer
+          format: int64
+        
+        numTxHT_40_5_Mbps:
+          type: integer
+          format: int64
+        
+        numTxHT_43_2_Mbps:
+          type: integer
+          format: int64
+        
+        numTxHT_45_Mbps:
+          type: integer
+          format: int64
+        
+        numTxHT_52_Mbps:
+          type: integer
+          format: int64
+        
+        numTxHT_54_Mbps:
+          type: integer
+          format: int64
+        
+        numTxHT_57_5_Mbps:
+          type: integer
+          format: int64
+        
+        numTxHT_57_7_Mbps:
+          type: integer
+          format: int64
+        
+        numTxHT_58_5_Mbps:
+          type: integer
+          format: int64
+        
+        numTxHT_60_Mbps:
+          type: integer
+          format: int64
+        
+        numTxHT_65_Mbps:
+          type: integer
+          format: int64
+        
+        numTxHT_72_1_Mbps:
+          type: integer
+          format: int64
+        
+        numTxHT_78_Mbps:
+          type: integer
+          format: int64
+        
+        numTxHT_81_Mbps:
+          type: integer
+          format: int64
+        
+        numTxHT_86_6_Mbps:
+          type: integer
+          format: int64
+        
+        numTxHT_86_8_Mbps:
+          type: integer
+          format: int64
+        
+        numTxHT_87_8_Mbps:
+          type: integer
+          format: int64
+        
+        numTxHT_90_Mbps:
+          type: integer
+          format: int64
+        
+        numTxHT_97_5_Mbps:
+          type: integer
+          format: int64
+        
+        numTxHT_104_Mbps:
+          type: integer
+          format: int64
+        
+        numTxHT_108_Mbps:
+          type: integer
+          format: int64
+        
+        numTxHT_115_5_Mbps:
+          type: integer
+          format: int64
+        
+        numTxHT_117_Mbps:
+          type: integer
+          format: int64
+        
+        numTxHT_117_1_Mbps:
+          type: integer
+          format: int64
+        
+        numTxHT_120_Mbps:
+          type: integer
+          format: int64
+        
+        numTxHT_121_5_Mbps:
+          type: integer
+          format: int64
+        
+        numTxHT_130_Mbps:
+          type: integer
+          format: int64
+        
+        numTxHT_130_3_Mbps:
+          type: integer
+          format: int64
+        
+        numTxHT_135_Mbps:
+          type: integer
+          format: int64
+        
+        numTxHT_144_3_Mbps:
+          type: integer
+          format: int64
+        
+        numTxHT_150_Mbps:
+          type: integer
+          format: int64
+        
+        numTxHT_156_Mbps:
+          type: integer
+          format: int64
+        
+        numTxHT_162_Mbps:
+          type: integer
+          format: int64
+        
+        numTxHT_173_1_Mbps:
+          type: integer
+          format: int64
+        
+        numTxHT_173_3_Mbps:
+          type: integer
+          format: int64
+        
+        numTxHT_175_5_Mbps:
+          type: integer
+          format: int64
+        
+        numTxHT_180_Mbps:
+          type: integer
+          format: int64
+        
+        numTxHT_195_Mbps:
+          type: integer
+          format: int64
+        
+        numTxHT_200_Mbps:
+          type: integer
+          format: int64
+        
+        numTxHT_208_Mbps:
+          type: integer
+          format: int64
+        
+        numTxHT_216_Mbps:
+          type: integer
+          format: int64
+        
+        numTxHT_216_6_Mbps:
+          type: integer
+          format: int64
+        
+        numTxHT_231_1_Mbps:
+          type: integer
+          format: int64
+        
+        numTxHT_234_Mbps:
+          type: integer
+          format: int64
+        
+        numTxHT_240_Mbps:
+          type: integer
+          format: int64
+        
+        numTxHT_243_Mbps:
+          type: integer
+          format: int64
+        
+        numTxHT_260_Mbps:
+          type: integer
+          format: int64
+        
+        numTxHT_263_2_Mbps:
+          type: integer
+          format: int64
+        
+        numTxHT_270_Mbps:
+          type: integer
+          format: int64
+        
+        numTxHT_288_7_Mbps:
+          type: integer
+          format: int64
+        
+        numTxHT_288_8_Mbps:
+          type: integer
+          format: int64
+        
+        numTxHT_292_5_Mbps:
+          type: integer
+          format: int64
+        
+        numTxHT_300_Mbps:
+          type: integer
+          format: int64
+        
+        numTxHT_312_Mbps:
+          type: integer
+          format: int64
+        
+        numTxHT_324_Mbps:
+          type: integer
+          format: int64
+        
+        numTxHT_325_Mbps:
+          type: integer
+          format: int64
+        
+        numTxHT_346_7_Mbps:
+          type: integer
+          format: int64
+        
+        numTxHT_351_Mbps:
+          type: integer
+          format: int64
+        
+        numTxHT_351_2_Mbps:
+          type: integer
+          format: int64
+        
+        numTxHT_360_Mbps:
+          type: integer
+          format: int64
+        
+        numRxHT_6_5_Mbps:
+          type: integer
+          format: int64
+        
+        numRxHT_7_1_Mbps:
+          type: integer
+          format: int64
+        
+        numRxHT_13_Mbps:
+          type: integer
+          format: int64
+        
+        numRxHT_13_5_Mbps:
+          type: integer
+          format: int64
+        
+        numRxHT_14_3_Mbps:
+          type: integer
+          format: int64
+        
+        numRxHT_15_Mbps:
+          type: integer
+          format: int64
+        
+        numRxHT_19_5_Mbps:
+          type: integer
+          format: int64
+        
+        numRxHT_21_7_Mbps:
+          type: integer
+          format: int64
+        
+        numRxHT_26_Mbps:
+          type: integer
+          format: int64
+        
+        numRxHT_27_Mbps:
+          type: integer
+          format: int64
+        
+        numRxHT_28_7_Mbps:
+          type: integer
+          format: int64
+        
+        numRxHT_28_8_Mbps:
+          type: integer
+          format: int64
+        
+        numRxHT_29_2_Mbps:
+          type: integer
+          format: int64
+        
+        numRxHT_30_Mbps:
+          type: integer
+          format: int64
+        
+        numRxHT_32_5_Mbps:
+          type: integer
+          format: int64
+        
+        numRxHT_39_Mbps:
+          type: integer
+          format: int64
+        
+        numRxHT_40_5_Mbps:
+          type: integer
+          format: int64
+        
+        numRxHT_43_2_Mbps:
+          type: integer
+          format: int64
+        
+        numRxHT_45_Mbps:
+          type: integer
+          format: int64
+        
+        numRxHT_52_Mbps:
+          type: integer
+          format: int64
+        
+        numRxHT_54_Mbps:
+          type: integer
+          format: int64
+        
+        numRxHT_57_5_Mbps:
+          type: integer
+          format: int64
+        
+        numRxHT_57_7_Mbps:
+          type: integer
+          format: int64
+        
+        numRxHT_58_5_Mbps:
+          type: integer
+          format: int64
+        
+        numRxHT_60_Mbps:
+          type: integer
+          format: int64
+        
+        numRxHT_65_Mbps:
+          type: integer
+          format: int64
+        
+        numRxHT_72_1_Mbps:
+          type: integer
+          format: int64
+        
+        numRxHT_78_Mbps:
+          type: integer
+          format: int64
+        
+        numRxHT_81_Mbps:
+          type: integer
+          format: int64
+        
+        numRxHT_86_6_Mbps:
+          type: integer
+          format: int64
+        
+        numRxHT_86_8_Mbps:
+          type: integer
+          format: int64
+        
+        numRxHT_87_8_Mbps:
+          type: integer
+          format: int64
+        
+        numRxHT_90_Mbps:
+          type: integer
+          format: int64
+        
+        numRxHT_97_5_Mbps:
+          type: integer
+          format: int64
+        
+        numRxHT_104_Mbps:
+          type: integer
+          format: int64
+        
+        numRxHT_108_Mbps:
+          type: integer
+          format: int64
+        
+        numRxHT_115_5_Mbps:
+          type: integer
+          format: int64
+        
+        numRxHT_117_Mbps:
+          type: integer
+          format: int64
+        
+        numRxHT_117_1_Mbps:
+          type: integer
+          format: int64
+        
+        numRxHT_120_Mbps:
+          type: integer
+          format: int64
+        
+        numRxHT_121_5_Mbps:
+          type: integer
+          format: int64
+        
+        numRxHT_130_Mbps:
+          type: integer
+          format: int64
+        
+        numRxHT_130_3_Mbps:
+          type: integer
+          format: int64
+        
+        numRxHT_135_Mbps:
+          type: integer
+          format: int64
+        
+        numRxHT_144_3_Mbps:
+          type: integer
+          format: int64
+        
+        numRxHT_150_Mbps:
+          type: integer
+          format: int64
+        
+        numRxHT_156_Mbps:
+          type: integer
+          format: int64
+        
+        numRxHT_162_Mbps:
+          type: integer
+          format: int64
+        
+        numRxHT_173_1_Mbps:
+          type: integer
+          format: int64
+        
+        numRxHT_173_3_Mbps:
+          type: integer
+          format: int64
+        
+        numRxHT_175_5_Mbps:
+          type: integer
+          format: int64
+        
+        numRxHT_180_Mbps:
+          type: integer
+          format: int64
+        
+        numRxHT_195_Mbps:
+          type: integer
+          format: int64
+        
+        numRxHT_200_Mbps:
+          type: integer
+          format: int64
+        
+        numRxHT_208_Mbps:
+          type: integer
+          format: int64
+        
+        numRxHT_216_Mbps:
+          type: integer
+          format: int64
+        
+        numRxHT_216_6_Mbps:
+          type: integer
+          format: int64
+        
+        numRxHT_231_1_Mbps:
+          type: integer
+          format: int64
+        
+        numRxHT_234_Mbps:
+          type: integer
+          format: int64
+        
+        numRxHT_240_Mbps:
+          type: integer
+          format: int64
+        
+        numRxHT_243_Mbps:
+          type: integer
+          format: int64
+        
+        numRxHT_260_Mbps:
+          type: integer
+          format: int64
+        
+        numRxHT_263_2_Mbps:
+          type: integer
+          format: int64
+        
+        numRxHT_270_Mbps:
+          type: integer
+          format: int64
+        
+        numRxHT_288_7_Mbps:
+          type: integer
+          format: int64
+        
+        numRxHT_288_8_Mbps:
+          type: integer
+          format: int64
+        
+        numRxHT_292_5_Mbps:
+          type: integer
+          format: int64
+        
+        numRxHT_300_Mbps:
+          type: integer
+          format: int64
+        
+        numRxHT_312_Mbps:
+          type: integer
+          format: int64
+        
+        numRxHT_324_Mbps:
+          type: integer
+          format: int64
+        
+        numRxHT_325_Mbps:
+          type: integer
+          format: int64
+        
+        numRxHT_346_7_Mbps:
+          type: integer
+          format: int64
+        
+        numRxHT_351_Mbps:
+          type: integer
+          format: int64
+        
+        numRxHT_351_2_Mbps:
+          type: integer
+          format: int64
+        
+        numRxHT_360_Mbps:
+          type: integer
+          format: int64
+        
+        numTxVHT_292_5_Mbps:
+          type: integer
+          format: int64
+        
+        numTxVHT_325_Mbps:
+          type: integer
+          format: int64
+        
+        numTxVHT_364_5_Mbps:
+          type: integer
+          format: int64
+        
+        numTxVHT_390_Mbps:
+          type: integer
+          format: int64
+        
+        numTxVHT_400_Mbps:
+          type: integer
+          format: int64
+        
+        numTxVHT_403_Mbps:
+          type: integer
+          format: int64
+        
+        numTxVHT_405_Mbps:
+          type: integer
+          format: int64
+        
+        numTxVHT_432_Mbps:
+          type: integer
+          format: int64
+        
+        numTxVHT_433_2_Mbps:
+          type: integer
+          format: int64
+        
+        numTxVHT_450_Mbps:
+          type: integer
+          format: int64
+        
+        numTxVHT_468_Mbps:
+          type: integer
+          format: int64
+        
+        numTxVHT_480_Mbps:
+          type: integer
+          format: int64
+        
+        numTxVHT_486_Mbps:
+          type: integer
+          format: int64
+        
+        numTxVHT_520_Mbps:
+          type: integer
+          format: int64
+        
+        numTxVHT_526_5_Mbps:
+          type: integer
+          format: int64
+        
+        numTxVHT_540_Mbps:
+          type: integer
+          format: int64
+        
+        numTxVHT_585_Mbps:
+          type: integer
+          format: int64
+        
+        numTxVHT_600_Mbps:
+          type: integer
+          format: int64
+        
+        numTxVHT_648_Mbps:
+          type: integer
+          format: int64
+        
+        numTxVHT_650_Mbps:
+          type: integer
+          format: int64
+        
+        numTxVHT_702_Mbps:
+          type: integer
+          format: int64
+        
+        numTxVHT_720_Mbps:
+          type: integer
+          format: int64
+        
+        numTxVHT_780_Mbps:
+          type: integer
+          format: int64
+        
+        numTxVHT_800_Mbps:
+          type: integer
+          format: int64
+        
+        numTxVHT_866_7_Mbps:
+          type: integer
+          format: int64
+        
+        numTxVHT_877_5_Mbps:
+          type: integer
+          format: int64
+        
+        numTxVHT_936_Mbps:
+          type: integer
+          format: int64
+        
+        numTxVHT_975_Mbps:
+          type: integer
+          format: int64
+        
+        numTxVHT_1040_Mbps:
+          type: integer
+          format: int64
+        
+        numTxVHT_1053_Mbps:
+          type: integer
+          format: int64
+        
+        numTxVHT_1053_1_Mbps:
+          type: integer
+          format: int64
+        
+        numTxVHT_1170_Mbps:
+          type: integer
+          format: int64
+        
+        numTxVHT_1300_Mbps:
+          type: integer
+          format: int64
+        
+        numTxVHT_1404_Mbps:
+          type: integer
+          format: int64
+        
+        numTxVHT_1560_Mbps:
+          type: integer
+          format: int64
+        
+        numTxVHT_1579_5_Mbps:
+          type: integer
+          format: int64
+        
+        numTxVHT_1733_1_Mbps:
+          type: integer
+          format: int64
+        
+        numTxVHT_1733_4_Mbps:
+          type: integer
+          format: int64
+        
+        numTxVHT_1755_Mbps:
+          type: integer
+          format: int64
+        
+        numTxVHT_1872_Mbps:
+          type: integer
+          format: int64
+        
+        numTxVHT_1950_Mbps:
+          type: integer
+          format: int64
+        
+        numTxVHT_2080_Mbps:
+          type: integer
+          format: int64
+        
+        numTxVHT_2106_Mbps:
+          type: integer
+          format: int64
+        
+        numTxVHT_2340_Mbps:
+          type: integer
+          format: int64
+        
+        numTxVHT_2600_Mbps:
+          type: integer
+          format: int64
+        
+        numTxVHT_2808_Mbps:
+          type: integer
+          format: int64
+        
+        numTxVHT_3120_Mbps:
+          type: integer
+          format: int64
+        
+        numTxVHT_3466_8_Mbps:
+          type: integer
+          format: int64
+        
+        numRxVHT_292_5_Mbps:
+          type: integer
+          format: int64
+        
+        numRxVHT_325_Mbps:
+          type: integer
+          format: int64
+        
+        numRxVHT_364_5_Mbps:
+          type: integer
+          format: int64
+        
+        numRxVHT_390_Mbps:
+          type: integer
+          format: int64
+        
+        numRxVHT_400_Mbps:
+          type: integer
+          format: int64
+        
+        numRxVHT_403_Mbps:
+          type: integer
+          format: int64
+        
+        numRxVHT_405_Mbps:
+          type: integer
+          format: int64
+        
+        numRxVHT_432_Mbps:
+          type: integer
+          format: int64
+        
+        numRxVHT_433_2_Mbps:
+          type: integer
+          format: int64
+        
+        numRxVHT_450_Mbps:
+          type: integer
+          format: int64
+        
+        numRxVHT_468_Mbps:
+          type: integer
+          format: int64
+        
+        numRxVHT_480_Mbps:
+          type: integer
+          format: int64
+        
+        numRxVHT_486_Mbps:
+          type: integer
+          format: int64
+        
+        numRxVHT_520_Mbps:
+          type: integer
+          format: int64
+        
+        numRxVHT_526_5_Mbps:
+          type: integer
+          format: int64
+        
+        numRxVHT_540_Mbps:
+          type: integer
+          format: int64
+        
+        numRxVHT_585_Mbps:
+          type: integer
+          format: int64
+        
+        numRxVHT_600_Mbps:
+          type: integer
+          format: int64
+        
+        numRxVHT_648_Mbps:
+          type: integer
+          format: int64
+        
+        numRxVHT_650_Mbps:
+          type: integer
+          format: int64
+        
+        numRxVHT_702_Mbps:
+          type: integer
+          format: int64
+        
+        numRxVHT_720_Mbps:
+          type: integer
+          format: int64
+        
+        numRxVHT_780_Mbps:
+          type: integer
+          format: int64
+        
+        numRxVHT_800_Mbps:
+          type: integer
+          format: int64
+        
+        numRxVHT_866_7_Mbps:
+          type: integer
+          format: int64
+        
+        numRxVHT_877_5_Mbps:
+          type: integer
+          format: int64
+        
+        numRxVHT_936_Mbps:
+          type: integer
+          format: int64
+        
+        numRxVHT_975_Mbps:
+          type: integer
+          format: int64
+        
+        numRxVHT_1040_Mbps:
+          type: integer
+          format: int64
+        
+        numRxVHT_1053_Mbps:
+          type: integer
+          format: int64
+        
+        numRxVHT_1053_1_Mbps:
+          type: integer
+          format: int64
+        
+        numRxVHT_1170_Mbps:
+          type: integer
+          format: int64
+        
+        numRxVHT_1300_Mbps:
+          type: integer
+          format: int64
+        
+        numRxVHT_1404_Mbps:
+          type: integer
+          format: int64
+        
+        numRxVHT_1560_Mbps:
+          type: integer
+          format: int64
+        
+        numRxVHT_1579_5_Mbps:
+          type: integer
+          format: int64
+        
+        numRxVHT_1733_1_Mbps:
+          type: integer
+          format: int64
+        
+        numRxVHT_1733_4_Mbps:
+          type: integer
+          format: int64
+        
+        numRxVHT_1755_Mbps:
+          type: integer
+          format: int64
+        
+        numRxVHT_1872_Mbps:
+          type: integer
+          format: int64
+        
+        numRxVHT_1950_Mbps:
+          type: integer
+          format: int64
+        
+        numRxVHT_2080_Mbps:
+          type: integer
+          format: int64
+        
+        numRxVHT_2106_Mbps:
+          type: integer
+          format: int64
+        
+        numRxVHT_2340_Mbps:
+          type: integer
+          format: int64
+        
+        numRxVHT_2600_Mbps:
+          type: integer
+          format: int64
+        
+        numRxVHT_2808_Mbps:
+          type: integer
+          format: int64
+        
+        numRxVHT_3120_Mbps:
+          type: integer
+          format: int64
+        
+        numRxVHT_3466_8_Mbps:
+          type: integer
+          format: int64
+        
+    
+    ListOfRadioUtilizationPerRadioMap:
+      properties:
+        is5GHz:
+          type: array
+          items:
+            $ref: '#/components/schemas/RadioUtilization'
+        is5GHzU:
+          type: array
+          items:
+            $ref: '#/components/schemas/RadioUtilization'
+        is5GHzL:
+          type: array
+          items:
+            $ref: '#/components/schemas/RadioUtilization'
+        is2dot4GHz:
+          type: array
+          items:
+            $ref: '#/components/schemas/RadioUtilization'
+ 
+    
+    RadioUtilization:
+      properties:
+        assocClientTx:
+          type: integer
+          format: int32
+        unassocClientTx:
+          type: integer
+          format: int32
+        assocClientRx:
+          type: integer
+          format: int32
+        unassocClientRx:
+          type: integer
+          format: int32
+        nonWifi:
+          type: integer
+          format: int32
+        timestampSeconds:
+          type: integer
+          format: int32
+        ibss:
+          type: number
+          format: double
+        unAvailableCapacity:
+          type: number
+          format: double
+ 
+    ListOfMacsPerRadioMap:
+      properties:
+        is5GHz:
+          type: array
+          items:
+            $ref: '#/components/schemas/MacAddress'
+        is5GHzU:
+          type: array
+          items:
+            $ref: '#/components/schemas/MacAddress'
+        is5GHzL:
+          type: array
+          items:
+            $ref: '#/components/schemas/MacAddress'
+        is2dot4GHz:
+          type: array
+          items:
+            $ref: '#/components/schemas/MacAddress'
+ 
+#
+# Objects related to pagination
+#
+    SortOrder:
+      type: string
+      default: asc
+      enum:
+      - asc
+      - desc
+    
+    SortColumnsServiceMetric:
+      type: object
+      required:
+      - model_type
+      - columnName
+      - sortOrder
+      properties: 
+        model_type:
+          type: string
+          enum:
+          - ColumnAndSort
+        columnName:
+          type: string
+          default: createdTimestamp
+          enum:
+          - equipmentId
+          - clientMac
+          - dataType
+          - createdTimestamp
+        sortOrder:
+          $ref: '#/components/schemas/SortOrder'
+      example:
+        model_type: ColumnAndSort
+        columnName: equipmentId
+        sortOrder: asc
+          
+    PaginationContextServiceMetric:
+      type: object
+      required: 
+      - maxItemsPerPage
+      properties:
+        model_type:
+          type: string
+          enum:
+          - PaginationContext
+        maxItemsPerPage:
+          type: integer
+          format: int32
+          default: 20
+        lastReturnedPageNumber:
+          type: integer
+          format: int32
+        totalItemsReturned:
+          type: integer
+          format: int32
+        lastPage:
+          type: boolean
+        cursor:
+          type: string
+      example: 
+        model_type: PaginationContext
+        maxItemsPerPage: 10
+ 
+    PaginationResponseServiceMetric:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/ServiceMetric'
+        context:
+          $ref: '#/components/schemas/PaginationContextServiceMetric' 
+ 
+#
+# Other Objects
+#
+ 
+    MacAddress:
+      type: object
+      properties:
+        model_type:
+          type: string
+          enum:
+          - MacAddress
+        addressAsString:
+          type: string
+          
+    RadioType:
+      type: string
+      enum:
+        - is5GHz
+        - is2dot4GHz
+        - is5GHzU
+        - is5GHzL
+        
+    ChannelBandwidth:
+      description: On 2.4GHz radio only auto or is20MHz values can be used. On 5GHz radio all values can be used. 
+      type: string
+      enum:
+        - auto
+        - is20MHz
+        - is40MHz
+        - is80MHz
+        - is160MHz
+    
+    LongPerRadioTypeMap:
+      properties:
+        is5GHz:
+          type: integer
+          format: int64
+        is5GHzU:
+          type: integer
+          format: int64
+        is5GHzL:
+          type: integer
+          format: int64
+        is2dot4GHz:
+          type: integer
+          format: int64
+          
+    IntegerPerRadioTypeMap:
+      properties:
+        is5GHz:
+          type: integer
+          format: int32
+        is5GHzU:
+          type: integer
+          format: int32
+        is5GHzL:
+          type: integer
+          format: int32
+        is2dot4GHz:
+          type: integer
+          format: int32
+          
+    MinMaxAvgValueInt:
+      type: object
+      properties:
+        minValue:
+          type: integer
+          format: int32
+        maxValue:
+          type: integer
+          format: int32
+        avgValue:
+          type: integer
+          format: int32
+##-------------------------------------------------------------------------
+security:
+ - tip_wlan_ts_auth: []
+paths:
+    
+  /api/serviceMetric:
+    post:
+      tags:
+      - Service Metric Data
+      summary: Creates new service metric record
+      operationId: createServiceMetricRecord
+      requestBody:
+        description: Service metric record
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ServiceMetric'
+      responses:
+        200:
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericResponse'
+        500: 
+          $ref: '#/components/responses/GenericApiError'
+    delete:
+      tags:
+      - Service Metric Data
+      summary: Deletes service metric record
+      operationId: deleteServiceMetricRecord
+      parameters:
+      - name: customerId
+        in: query
+        description: Customer ID
+        required: true
+        schema:
+          type: integer
+          format: int32
+      - name: equipmentId
+        in: query
+        description: Equipment ID
+        required: true
+        schema:
+          type: integer
+          format: int64
+      - name: createdBeforeTimestamp
+        in: query
+        description: Created before timestamp
+        required: true
+        schema:
+          type: integer
+          format: int64
+      responses:
+        200:
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericResponse'
+        500: 
+          $ref: '#/components/responses/GenericApiError'
+  
+  /api/serviceMetric/bulk:
+    post:
+      tags:
+      - Service Metric Data
+      summary: Creates batch of service metric records
+      operationId: createBulkServiceMetric
+      requestBody:
+        description: Client session records
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/ServiceMetric'
+      responses:
+        200:
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/GenericResponse'
+        500: 
+          $ref: '#/components/responses/GenericApiError'
+          
+  /api/serviceMetric/forCustomer:  
+    get:
+      tags:
+      - Service Metric Data
+      summary: Gets service metric record for customer
+      operationId: getServiceMetricRecordForCustomer
+      parameters:
+      - name: fromTime
+        in: query
+        description: From Time
+        required: true
+        schema:
+          type: integer
+          format: int64
+      - name: toTime
+        in: query
+        description: To Time
+        required: true
+        schema:
+          type: integer
+          format: int64
+      - name: customerId
+        in: query
+        description: Customer ID
+        required: true
+        schema:
+          type: integer
+          format: int32
+      - name: locationIds
+        in: query
+        description: Set of Location IDs. Empty of null means all locations for the customer. Location hierarchy is not taken into account here - only leaf locations would have any data.
+        required: false
+        content:
+          text/plain:
+            schema:
+              type: array
+              items:
+                type: integer
+                format: int64
+      - name: equipmentIds
+        in: query
+        description: Set of Equipment IDs. Empty of null means all equipment for the customer.
+        required: false
+        content:
+          text/plain:
+            schema:
+              type: array
+              items:
+                type: integer
+                format: int64
+      - name: clientMacAddresses
+        in: query
+        description: Set of Client Mac Addresses. Empty of null means all clients for the customer.
+        required: false
+        schema:
+          type: array
+          items:
+            $ref: '#/components/schemas/MacAddress'
+      - name: dataTypes
+        in: query
+        description: Service Metric Data Types. Empty of null means all data types.
+        required: false
+        schema:
+          type: array
+          items:
+            $ref: '#/components/schemas/ServiceMetricDataType'
+      - name: sortBy
+        in: query
+        description: sort options
+        required: false
+        schema:
+          type: array
+          items:
+            $ref: '#/components/schemas/SortColumnsServiceMetric'
+      - name: paginationContext
+        in: query
+        description: pagination context
+        required: false
+        content:
+          application/json:
+            schema:
+                $ref: '#/components/schemas/PaginationContextServiceMetric'
+            examples:
+              initialPginationContext:
+                value:
+                  model_type: PaginationContext
+                  maxItemsPerPage: 10
+      responses:
+        200:
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginationResponseServiceMetric'
+        500: 
+          $ref: '#/components/responses/GenericApiError'
+          

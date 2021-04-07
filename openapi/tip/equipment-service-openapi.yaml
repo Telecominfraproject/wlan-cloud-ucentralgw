@@ -1,0 +1,1186 @@
+openapi: 3.0.3
+info:
+  title: CloudSDK Equipment API
+  description: APIs that provide services for viewing, updating and deleting various data elements of equipment.
+  version: 1.0.0
+servers:
+  - url: https://localhost:9091
+    description: Local Dev server
+  - url: https://10.0.0.61:9091
+    description: Local Dev server - all-in-one
+  - url: https://192.168.0.143:9051
+    description: Local Dev server - portal, prov, and ssc
+    
+tags:
+- name: Data Model Overview
+- name: Equipment Data
+  
+    
+components:
+  securitySchemes:
+    tip_wlan_ts_auth:
+      type: http
+      scheme: bearer
+      
+  responses:
+    GenericApiError:
+      description: this object is returned in the cases when an API throws an exception
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/JsonSerializedException'
+            
+  schemas:
+    
+#
+#Generic data models used for many APIs
+#
+    GenericResponse:
+      properties:
+        message:
+          type: string
+        success:
+          type: boolean
+          
+    JsonSerializedException:
+      description: this object is returned in the cases when an API throws an exception
+      properties:
+        exType:
+          type: string
+          enum:
+            - IllegalStateException
+        error:
+          description: error message
+          type: string
+        path:
+          description: API path with parameters that produced the exception
+          type: string
+        timestamp:
+          description: time stamp of when the exception was generated
+          type: integer
+          format: int64
+          
+#
+# Equipment data models
+#
+
+    MacAddress:
+      type: object
+      properties:
+        model_type:
+          type: string
+          enum:
+          - MacAddress
+        addressAsString:
+          type: string
+
+    EquipmentType:
+      type: string
+      enum:
+        - AP
+        - SWITCH
+
+    Equipment:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        equipmentType:
+          $ref: '#/components/schemas/EquipmentType'
+        inventoryId:
+          type: string
+        customerId:
+          type: integer
+          format: int32
+        profileId:
+          type: integer
+          format: int64
+        name:
+          type: string
+        locationId:
+          type: integer
+          format: int64
+        details:
+           $ref: '#/components/schemas/EquipmentDetails'
+        latitude:
+          type: string
+        longitude:
+          type: string
+        baseMacAddress:
+          $ref: '#/components/schemas/MacAddress'
+        serial:
+          type: string
+        createdTimestamp:
+          type: integer
+          format: int64
+        lastModifiedTimestamp:
+          description: must be provided for update operation, update will be rejected if provided value does not match the one currently stored in the database
+          type: integer
+          format: int64
+      example:
+        equipmentType: AP
+        customerId: 2
+        profileId: 1
+        locationId: 2
+        inventoryId: example_ap
+        serial: example_serial
+        name: example AP
+
+#
+# Equipment configuration data models
+#
+
+    EquipmentDetails:
+      description: Place to put extended equipment properties.
+      type: object
+      oneOf:
+        ## TODO: add other equipment types in here
+        - $ref: '#/components/schemas/ApElementConfiguration'
+      discriminator:
+        propertyName: model_type
+
+    AntennaType:
+      type: string
+      enum:
+       - OMNI
+       - OAP30_DIRECTIONAL
+
+    DeviceMode:
+      type: string
+      enum:
+       - standaloneAP
+       - managedAP
+       - gatewaywithAP
+       - gatewayOnly
+
+    DeploymentType:
+      type: string
+      enum:
+        - DESK
+        - CEILING
+
+    NetworkForwardMode:
+      type: string
+      enum:
+        - BRIDGE
+        - NAT
+
+    ApElementConfiguration:
+      type: object
+      properties:
+        elementConfigVersion:
+          type: string
+        equipmentType:
+          $ref: '#/components/schemas/EquipmentType'
+        deviceMode:
+          $ref: '#/components/schemas/DeviceMode'
+        gettingIP:
+          type: string
+          enum:
+            - dhcp
+            - manual
+        staticIP:
+          type: string
+        staticIpMaskCidr:
+          type: integer
+        staticIpGw:
+          type: string
+        gettingDNS:
+          type: string
+          enum:
+            - dhcp
+            - manual
+        staticDnsIp1:
+          type: string
+        staticDnsIp2:
+          type: string
+        peerInfoList:
+          type: array
+          items:
+            $ref: '#/components/schemas/PeerInfo'
+        deviceName:
+          type: string
+        locationData:
+          type: string
+        locallyConfiguredMgmtVlan:
+          type: integer
+          format: int32
+        locallyConfigured:
+          type: boolean
+        deploymentType:
+          $ref: '#/components/schemas/DeploymentType'
+        syntheticClientEnabled:
+          type: boolean
+        frameReportThrottleEnabled:
+          type: boolean
+        antennaType:
+          $ref: '#/components/schemas/AntennaType'
+        costSavingEventsEnabled:
+          type: boolean
+        forwardMode:
+          $ref: '#/components/schemas/NetworkForwardMode'
+        radioMap:
+           $ref: '#/components/schemas/RadioMap'
+        advancedRadioMap:
+          $ref: '#/components/schemas/AdvancedRadioMap'
+
+    TunnelIndicator:
+      type: string
+      enum:
+        - no
+        - primary
+        - secondary
+        
+    PeerInfo:
+      properties:
+        peerMAC:
+          type: array
+          items:
+            type: integer
+            format: byte
+            minItems: 6
+            maxItems: 6 
+        peerIP:
+          type: string
+        tunnel:
+          $ref: '#/components/schemas/TunnelIndicator'
+        vlans:
+          type: array
+          items:
+            type: integer
+            format: byte
+        radiusSecret:
+          type: string
+
+    RadioMap:
+      properties:
+        is5GHz:
+          $ref: '#/components/schemas/ElementRadioConfiguration'
+        is5GHzU:
+          $ref: '#/components/schemas/ElementRadioConfiguration'
+        is5GHzL:
+          $ref: '#/components/schemas/ElementRadioConfiguration'
+        is2dot4GHz:
+          $ref: '#/components/schemas/ElementRadioConfiguration'
+
+    RadioType:
+      type: string
+      enum:
+        - is5GHz
+        - is2dot4GHz
+        - is5GHzU
+        - is5GHzL
+
+    BannedChannel:
+      type: object
+      properties:
+        channelNumber:
+          type: integer
+          format: int32
+        bannedOnEpoc:
+          type: integer
+          format: int64
+          
+    MulticastRate:
+      type: string
+      enum:
+        - auto
+        - rate6mbps
+        - rate9mbps
+        - rate12mbps
+        - rate18mbps
+        - rate24mbps
+        - rate36mbps
+        - rate48mbps
+        - rate54mbps
+          
+    SourceType:
+      type: string
+      enum:
+        - auto
+        - manual
+        - profile
+          
+    SourceSelectionValue:
+      type: object
+      properties:
+        source:
+          $ref: '#/components/schemas/SourceType'
+        value:
+          type: integer
+          format: int32
+          
+    SourceSelectionSteering:
+      type: object
+      properties:
+        source:
+          $ref: '#/components/schemas/SourceType'
+        value:
+          $ref: '#/components/schemas/RadioBestApSettings'
+          
+    SourceSelectionManagement:
+      type: object
+      properties:
+        source:
+          $ref: '#/components/schemas/SourceType'
+        value:
+          $ref: '#/components/schemas/ManagementRate'
+          
+    SourceSelectionMulticast:
+      type: object
+      properties:
+        source:
+          $ref: '#/components/schemas/SourceType'
+        value:
+          $ref: '#/components/schemas/MulticastRate'
+      
+    BestAPSteerType:
+      type: string
+      enum:
+        - both
+        - loadBalanceOnly
+        - linkQualityOnly
+        
+    ChannelPowerLevel:
+      type: object
+      properties:
+        channelNumber:
+          type: integer
+          format: int32
+        powerLevel:
+          type: integer
+          format: int32
+        dfs:
+          type: boolean
+        channelWidth:
+          description: Value is in MHz, -1 means AUTO
+          type: integer
+          format: int32
+
+    ElementRadioConfiguration:
+      properties:
+        radioType:
+          $ref: '#/components/schemas/RadioType'
+        channelNumber:
+          description: The channel that was picked through the cloud's assigment
+          type: integer
+          format: int32
+        manualChannelNumber:
+          description: The channel that was manually entered
+          type: integer
+          format: int32
+        backupChannelNumber:
+          description: The backup channel that was picked through the cloud's assigment
+          type: integer
+          format: int32
+        manualBackupChannelNumber:
+          description: The backup channel that was manually entered
+          type: integer
+          format: int32
+        bannedChannels:
+          type: array
+          items:
+            $ref: '#/components/schemas/BannedChannel'
+        rxCellSizeDb:
+          $ref: '#/components/schemas/SourceSelectionValue'
+        probeResponseThresholdDb:
+          $ref: '#/components/schemas/SourceSelectionValue'
+        clientDisconnectThresholdDb:
+          $ref: '#/components/schemas/SourceSelectionValue'
+        eirpTxPower:
+          allOf:
+          - $ref: '#/components/schemas/SourceSelectionValue'
+          - type: object
+          properties:
+            source:
+              $ref: '#/components/schemas/SourceType'
+            value:
+              type: integer
+              format: int32
+              minimum: 1
+              maximum: 32
+              default: 18 
+        perimeterDetectionEnabled:
+          type: boolean
+        bestAPSteerType:  
+          $ref: '#/components/schemas/BestAPSteerType'
+        deauthAttackDetection:
+          type: boolean
+        allowedChannelsPowerLevels:
+          $ref: '#/components/schemas/ChannelPowerLevel'
+
+    AdvancedRadioMap:
+      properties:
+        is5GHz:
+          $ref: '#/components/schemas/RadioConfiguration'
+        is5GHzU:
+          $ref: '#/components/schemas/RadioConfiguration'
+        is5GHzL:
+          $ref: '#/components/schemas/RadioConfiguration'
+        is2dot4GHz:
+          $ref: '#/components/schemas/RadioConfiguration'
+
+    StateSetting:
+      type: string
+      enum:
+        - enabled
+        - disabled
+
+    ManagementRate:
+      type: string
+      enum:
+        - auto
+        - rate1mbps
+        - rate2mbps
+        - rate5dot5mbps
+        - rate6mbps
+        - rate9mbps
+        - rate11mbps
+        - rate12mbps
+        - rate18mbps
+        - rate24mbps
+
+    RadioConfiguration:
+      properties:
+        radioType:
+          $ref: '#/components/schemas/RadioType'
+        radioAdminState:
+          $ref: '#/components/schemas/StateSetting'
+        fragmentationThresholdBytes:
+          type: integer
+          format: int32
+        uapsdState:
+          $ref: '#/components/schemas/StateSetting'
+        stationIsolation:
+          $ref: '#/components/schemas/StateSetting'
+        multicastRate:
+          $ref: '#/components/schemas/SourceSelectionMulticast'
+        managementRate:
+          $ref: '#/components/schemas/SourceSelectionManagement'
+        bestApSettings:
+          $ref: '#/components/schemas/SourceSelectionSteering'
+        legacyBSSRate:
+          $ref: '#/components/schemas/StateSetting'
+        deauthAttackDetection:
+          type: boolean
+
+    RadioBestApSettings:
+      description: If mlComputed=true, then dropInSnrPercentage and minLoadFactor properties are populated by ML algorithms. If  mlComputed=false, then those values are supposed to be populated by hand (ML-computed ones will be ignored).
+      type: object
+      properties:
+        mlComputed:
+          type: boolean
+          default: true
+        dropInSnrPercentage:
+          type: integer
+          format: int32
+          default: 10
+        minLoadFactor:
+          type: integer
+          format: int32
+          default: 10
+          
+    PairLongLong:
+      properties:
+        value1:
+          type: integer
+          format: int64
+        value2:
+          type: integer
+          format: int64
+
+    IntegerValueMap:
+      type: object
+      additionalProperties:
+        type: integer
+
+    CustomerEquipmentCounts:
+      description: counts for the equipment provisioned for a single customer
+      properties:
+        customerId:
+          type: integer
+          format: int32
+        totalCount:
+          type: integer
+          format: int32
+        ouiCounts:
+          $ref: '#/components/schemas/IntegerValueMap'
+
+    IntegerPerRadioTypeMap:
+      properties:
+        is5GHz:
+          type: integer
+          format: int32
+        is5GHzU:
+          type: integer
+          format: int32
+        is5GHzL:
+          type: integer
+          format: int32
+        is2dot4GHz:
+          type: integer
+          format: int32
+
+    BooleanPerRadioTypeMap:
+      properties:
+        is5GHz:
+          type: boolean
+        is5GHzU:
+          type: boolean
+        is5GHzL:
+          type: boolean
+        is2dot4GHz:
+          type: boolean
+
+#
+# Objects related to pagination
+#
+
+    SortOrder:
+      type: string
+      default: asc
+      enum:
+      - asc
+      - desc
+
+    SortColumnsEquipment:
+      type: object
+      required:
+      - model_type
+      - columnName
+      - sortOrder
+      properties: 
+        model_type:
+          type: string
+          enum:
+          - ColumnAndSort
+        columnName:
+          type: string
+          default: id
+          enum: 
+          - id
+          - name
+          - profileId
+          - locationId
+          - equipmentType
+          - inventoryId
+        sortOrder:
+          $ref: '#/components/schemas/SortOrder'
+
+      
+    PaginationContextEquipment:
+      type: object
+      required: 
+      - maxItemsPerPage
+      properties:
+        model_type:
+          type: string
+          enum:
+          - PaginationContext
+        maxItemsPerPage:
+          type: integer
+          format: int32
+          default: 20
+        lastReturnedPageNumber:
+          type: integer
+          format: int32
+        totalItemsReturned:
+          type: integer
+          format: int32
+        lastPage:
+          type: boolean
+        cursor:
+          type: string
+      example: 
+        model_type: PaginationContext
+        maxItemsPerPage: 10
+  
+    PaginationResponseEquipment:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Equipment'
+        context:
+          $ref: '#/components/schemas/PaginationContextEquipment'
+      
+    PaginationContextPairLongLong:
+      type: object
+      required: 
+      - maxItemsPerPage
+      properties:
+        model_type:
+          type: string
+          enum:
+          - PaginationContext
+        maxItemsPerPage:
+          type: integer
+          format: int32
+          default: 20
+        lastReturnedPageNumber:
+          type: integer
+          format: int32
+        totalItemsReturned:
+          type: integer
+          format: int32
+        lastPage:
+          type: boolean
+        cursor:
+          type: string
+      example: 
+        model_type: PaginationContext
+        maxItemsPerPage: 10
+
+    PaginationResponsePairLongLong:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/PairLongLong'
+        context:
+          $ref: '#/components/schemas/PaginationContextPairLongLong'
+          
+#
+# Equipment bulk update data models
+#
+
+    EquipmentRrmBulkUpdateRequest:
+        properties:
+          items:
+            type: array
+            items:
+              $ref: '#/components/schemas/EquipmentRrmBulkUpdateItem'
+  
+    EquipmentRrmBulkUpdateItem:
+        properties:
+          equipmentId:
+            type: integer
+            format: int64
+          perRadioDetails:
+            $ref: '#/components/schemas/EquipmentRrmBulkUpdateItemPerRadioMap'
+            
+    EquipmentRrmBulkUpdateItemPerRadioMap:
+      properties:
+        is5GHz:
+          $ref: '#/components/schemas/RrmBulkUpdateApDetails'
+        is5GHzU:
+          $ref: '#/components/schemas/RrmBulkUpdateApDetails'
+        is5GHzL:
+          $ref: '#/components/schemas/RrmBulkUpdateApDetails'
+        is2dot4GHz:
+          $ref: '#/components/schemas/RrmBulkUpdateApDetails'
+      
+    RrmBulkUpdateApDetails:
+      properties:
+        channelNumber:
+          # mapped to equipment->details->radioMap->manualChannelNumber
+          type: integer
+          format: int32
+        backupChannelNumber:
+          # mapped to equipment->details->radioMap->manualBackupChannelNumber
+          type: integer
+          format: int32
+        rxCellSizeDb:
+          # if source is auto/manual, equipment->details->radioMap->rxCellSizeDb->SourceSelectionValue->value
+          # if source is profile, rfProfile->details->rfConfiguration->rfConfigMap->rfElementConfiguration->rxCellSizeDb
+          $ref: '#/components/schemas/SourceSelectionValue'
+        probeResponseThresholdDb:
+          # if source is auto/manual, equipment->details->radioMap->probeResponseThresholdDb->SourceSelectionValue->value
+          # if source is profile, rfProfile->details->rfConfiguration->rfConfigMap->rfElementConfiguration->probeResponseThresholdDb
+          $ref: '#/components/schemas/SourceSelectionValue'
+        clientDisconnectThresholdDb:
+          # if source is auto/manual, equipment->details->radioMap->clientDisconnectThresholdDb->SourceSelectionValue->value
+          # if source is profile, rfProfile->details->rfConfiguration->rfConfigMap->rfElementConfiguration->clientDisconnectThresholdDb
+          $ref: '#/components/schemas/SourceSelectionValue'
+        dropInSnrPercentage:
+          # if source is auto/manual, equipment->details->radioMap->SourceSelectionSteering->value->dropInSnrPercentage
+          # if source is profile, rfProfile->details->rfConfiguration->rfConfigMap->rfElementConfiguration->bestApSettings->dropInSnrPercentage
+          type: integer
+          format: int32
+        minLoadFactor:
+          # if source is auto/manual, equipment->details->radioMap->SourceSelectionSteering->value->minLoadFactor
+          # if source is profile, rfProfile->details->rfConfiguration->rfConfigMap->rfElementConfiguration->bestApSettings->minLoadFactor
+          type: integer
+          format: int32
+
+#
+# Equipment Channel update data models
+#
+    EquipmentChannelsUpdateRequest:
+      properties:
+        equipmentId:
+          type: integer
+          format: int64
+        primaryChannels:
+          $ref: '#/components/schemas/IntegerPerRadioTypeMap'
+        backupChannels:
+          $ref: '#/components/schemas/IntegerPerRadioTypeMap'
+        autoChannelSelections:
+          $ref: '#/components/schemas/BooleanPerRadioTypeMap'
+
+          
+## ---------------------------------------------------------------------------
+security:
+ - tip_wlan_ts_auth: []
+paths:
+ 
+  /api/equipment:
+    post:
+      tags:
+      - Equipment Data
+      summary: Creates new equipment
+      operationId: createEquipment
+      requestBody:
+        description: Equipment info
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Equipment'
+      responses:
+        200:
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Equipment'
+        500: 
+          $ref: '#/components/responses/GenericApiError'
+    put:
+      tags:
+      - Equipment Data
+      summary: Updates equipment record
+      operationId: updateEquipment
+      requestBody:
+        description: Equipment info
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Equipment'
+      responses:
+        200:
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Equipment'
+        500: 
+          $ref: '#/components/responses/GenericApiError'
+    delete:
+      tags:
+      - Equipment Data
+      summary: Deletes Equipment record
+      operationId: deleteEquipmentById
+      parameters:
+      - name: equipmentId
+        in: query
+        description: Equipment ID
+        required: true
+        schema:
+          type: integer
+          format: int64
+      responses:
+        200:
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Equipment'
+        500: 
+          $ref: '#/components/responses/GenericApiError'
+    get:
+      tags:
+      - Equipment Data
+      summary: Get equipment using equipmentId
+      operationId: getEquipmentById
+      parameters:
+      - name: equipmentId
+        in: query
+        description: Equipment ID
+        required: true
+        schema:
+          type: integer
+          format: int64
+      responses:
+        200:
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Equipment'
+        500: 
+          $ref: '#/components/responses/GenericApiError'
+    
+  /api/equipment/orNull:
+     get:
+      tags:
+      - Equipment Data
+      summary: Get equipment using equipmentId else returns null
+      operationId: getEquipmentByIdOrNull
+      parameters:
+      - name: equipmentId
+        in: query
+        description: Equipment ID
+        required: true
+        schema:
+          type: integer
+          format: int64
+      responses:
+        200:
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Equipment'
+        500: 
+          $ref: '#/components/responses/GenericApiError'
+          
+  /api/equipment/byInventoryIdOrNull:
+     get:
+      tags:
+      - Equipment Data
+      summary: Retrieves Equipment by inventory id
+      operationId: getEquipmentByInventoryIdOrNull
+      parameters:
+      - name: inventoryId
+        in: query
+        description: Inventory ID
+        required: true
+        schema:
+          type: string
+      responses:
+        200:
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Equipment'
+        500: 
+          $ref: '#/components/responses/GenericApiError'
+          
+  /api/equipment/inSet:
+     get:
+      tags:
+      - Equipment Data
+      summary: Retrieves equipment within a specified set
+      operationId: getEquipmentBySet
+      parameters:
+      - name: equipmentIdSet
+        in: query
+        description: Set of equipment IDs
+        required: true
+        content:
+          text/plain:
+            schema:
+              type: array
+              items:
+                type: integer
+                format: int64
+      responses:
+        200:
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Equipment'
+        500: 
+          $ref: '#/components/responses/GenericApiError'
+  
+  /api/equipment/forCustomer:
+     get:
+      tags:
+      - Equipment Data
+      summary: Get equipment By customerId
+      operationId: getEquipmentByCustomerId
+      parameters:
+      - name: customerId
+        in: query
+        description: customer id
+        required: true
+        schema:
+          type: integer
+          format: int32
+      - name: sortBy
+        in: query
+        description: sort options
+        required: true
+        schema:
+          type: array
+          items:
+            $ref: '#/components/schemas/SortColumnsEquipment'
+      - name: paginationContext
+        in: query
+        description: pagination context
+        required: false
+        content:
+          application/json:
+            schema:
+                $ref: '#/components/schemas/PaginationContextEquipment'
+            examples:
+              initialPginationContext:
+                value:
+                  model_type: PaginationContext
+                  maxItemsPerPage: 10
+      responses:
+        200:
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginationResponseEquipment'
+        500:
+          $ref: '#/components/responses/GenericApiError'
+          
+  /api/equipment/forCustomerWithFilter:
+     get:
+      tags:
+      - Equipment Data
+      summary: Get equipment By customerId with filter
+      operationId: getEquipmentByCustomerIdWithFilter
+      parameters:
+      - name: customerId
+        in: query
+        description: customer id
+        required: true
+        schema:
+          type: integer
+          format: int32
+      - name: equipmentType
+        in: query
+        description: equipment type
+        required: false
+        schema:
+          items:
+            $ref: '#/components/schemas/EquipmentType'
+      - name: locationIds
+        in: query
+        description: Set of Location IDs
+        required: false
+        content:
+          text/plain:
+            schema:
+              type: array
+              items:
+                type: integer
+                format: int64
+      - name: criteria
+        in: query
+        description: search criteria
+        required: false
+        schema:
+          type: string
+      - name: sortBy
+        in: query
+        description: sort options
+        required: false
+        schema:
+          type: array
+          items:
+            $ref: '#/components/schemas/SortColumnsEquipment'
+      - name: paginationContext
+        in: query
+        description: pagination context
+        required: false
+        content:
+          application/json:
+            schema:
+                $ref: '#/components/schemas/PaginationContextEquipment'
+            examples:
+              initialPginationContext:
+                value:
+                  model_type: PaginationContext
+                  maxItemsPerPage: 10
+      responses:
+        200:
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginationResponseEquipment'
+        500:
+          $ref: '#/components/responses/GenericApiError'
+
+  /api/equipment/defaultDetails:
+     get:
+      tags:
+      - Equipment Data
+      summary: Default Details
+      operationId: getDefaultDetails
+      parameters:
+      - name: equipmentType
+        in: query
+        description: equipment type
+        required: true
+        schema:
+          items:
+            $ref: '#/components/schemas/EquipmentType'
+      responses:
+        200:
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                  $ref: '#/components/schemas/ApElementConfiguration'
+        500: 
+          $ref: '#/components/responses/GenericApiError'
+  
+  /api/equipment/equipmentIdsByLocationIds:
+     get:
+      tags:
+      - Equipment Data
+      summary: Get equipment Ids by Location Ids
+      operationId: getEquipmentIdsByLocationIds
+      parameters:
+      - name: locationIds
+        in: query
+        description: Set of Location IDs
+        required: true
+        content:
+          text/plain:
+            schema:
+              type: array
+              items:
+                type: integer
+                format: int64
+      
+      - name: paginationContext
+        in: query
+        description: pagination context
+        required: true
+        content:
+          application/json:
+            schema:
+                $ref: '#/components/schemas/PaginationContextPairLongLong'
+            examples:
+              initialPginationContext:
+                value:
+                  model_type: PaginationContext
+                  maxItemsPerPage: 10
+      responses:
+        200:
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                  $ref: '#/components/schemas/PaginationResponsePairLongLong'
+        500: 
+          $ref: '#/components/responses/GenericApiError'
+  
+  /api/equipment/equipmentIdsByProfileIds:
+     get:
+      tags:
+      - Equipment Data
+      summary: Get equipment Ids by Profile Ids
+      operationId: getEquipmentIdsByProfileIds
+      parameters:
+      - name: profile Ids
+        in: query
+        description: Set of profile IDs
+        required: true
+        content:
+          text/plain:
+            schema:
+              type: array
+              items:
+                type: integer
+                format: int64
+      
+      - name: paginationContext
+        in: query
+        description: pagination context
+        required: true
+        content:
+          application/json:
+            schema:
+                $ref: '#/components/schemas/PaginationContextPairLongLong'
+            examples:
+              initialPginationContext:
+                value:
+                  model_type: PaginationContext
+                  maxItemsPerPage: 10
+      responses:
+        200:
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                  $ref: '#/components/schemas/PaginationResponsePairLongLong'
+        500: 
+          $ref: '#/components/responses/GenericApiError'
+          
+  /api/equipment/rrmBulk:
+    put:
+      tags:
+      - Equipment
+      summary: Update RRM related properties of Equipment in bulk
+      operationId: updateEquipmentRrmBulk
+      requestBody:
+        description: Equipment RRM bulk update request
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EquipmentRrmBulkUpdateRequest'
+      responses:
+        200:
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericResponse'
+        500:
+          $ref: '#/components/responses/GenericApiError'
+
+  /api/equipment/channel:
+    put:
+      tags:
+      - Equipment
+      summary: Update Equipment Channels
+      operationId: updateChannels
+      requestBody:
+        description: Equipment Channels update request
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EquipmentChannelsUpdateRequest'
+      responses:
+        200:
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Equipment'
+        500:
+          $ref: '#/components/responses/GenericApiError'
+
+  /api/equipment/countsForCustomer:
+     get:
+      tags:
+      - Equipment Data
+      summary: Count provisioned equipment for a given customer
+      operationId: getEquipmentCounts
+      parameters:
+      - name: customerId
+        in: query
+        description: customer id
+        required: true
+        schema:
+          type: integer
+          format: int32
+      responses:
+        200:
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                  $ref: '#/components/schemas/CustomerEquipmentCounts'
+        500: 
+          $ref: '#/components/responses/GenericApiError'
+  

@@ -1,0 +1,1024 @@
+openapi: 3.0.3
+info:
+  title: CloudSDK Client API
+  description: APIs that provide services for viewing, updating and deleting various data elements of clients.
+  version: 1.0.0
+servers:
+  - url: https://localhost:9091
+    description: Local Dev server
+  - url: https://10.0.0.61:9091
+    description: Local Dev server - all-in-one
+  - url: https://192.168.0.143:9051
+    description: Local Dev server - portal, prov, and ssc
+    
+tags:
+- name: Data Model Overview
+- name: Client Data
+- name: Session Data
+  
+    
+components:
+  securitySchemes:
+    tip_wlan_ts_auth:
+      type: http
+      scheme: bearer
+      
+  responses:
+    GenericApiError:
+      description: this object is returned in the cases when an API throws an exception
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/JsonSerializedException'
+            
+  schemas:
+    
+#
+#Generic data models used for many APIs
+#
+    GenericResponse:
+      properties:
+        message:
+          type: string
+        success:
+          type: boolean
+          
+    JsonSerializedException:
+      description: this object is returned in the cases when an API throws an exception
+      properties:
+        exType:
+          type: string
+          enum:
+            - IllegalStateException
+        error:
+          description: error message
+          type: string
+        path:
+          description: API path with parameters that produced the exception
+          type: string
+        timestamp:
+          description: time stamp of when the exception was generated
+          type: integer
+          format: int64
+          
+#
+# Objects related to Clients
+#
+ 
+    Client:
+      type: object
+      properties:
+        macAddress:
+          $ref: '#/components/schemas/MacAddress'
+        customerId:
+          type: integer
+          format: int32
+        details:
+          $ref: '#/components/schemas/ClientInfoDetails'
+        createdTimestamp:
+          type: integer
+          format: int64
+        lastModifiedTimestamp:
+          description: This class does not perform checks against concurrrent updates. Here last update always wins.
+          type: integer
+          format: int64
+ 
+    ClientInfoDetails:
+      type: object
+      properties:
+        alias:
+          type: string
+        clientType:
+          type: integer
+          format: int32
+        apFingerprint:
+          type: string
+        userName:
+          type: string
+        hostName:
+          type: string
+        lastUsedCpUsername:
+          type: string
+        lastUserAgent:
+          type: string
+        doNotSteer:
+          type: boolean
+        blocklistDetails:
+          $ref: '#/components/schemas/BlocklistDetails'
+ 
+    BlocklistDetails:
+      type: object
+      properties:
+        enabled:
+          description: When enabled, blocking applies to the client, subject to the optional start/end times.
+          type: boolean
+        startTime:
+          description: Optional startTime when blocking becomes enabled.
+          type: integer
+          format: int64
+        endTime:
+          description: Optional endTime when blocking ceases to be enabled
+          type: integer
+          format: int64
+ 
+#
+# Objects related to Client sessions
+#
+ 
+    ClientSession:
+      type: object
+      properties:
+        macAddress:
+          $ref: '#/components/schemas/MacAddress'
+        customerId:
+          type: integer
+          format: int32
+        equipmentId:
+          type: integer
+          format: int64
+        details:
+          $ref: '#/components/schemas/ClientSessionDetails'
+        lastModifiedTimestamp:
+          description: This class does not perform checks against concurrrent updates. Here last update always wins.
+          type: integer
+          format: int64
+ 
+    ClientSessionDetails:
+      type: object
+      properties:
+        sessionId:
+          type: integer
+          format: int64
+        authTimestamp:
+          type: integer
+          format: int64
+        assocTimestamp:
+          type: integer
+          format: int64
+        assocInternalSC:
+          type: integer
+          format: int32
+        ipTimestamp:
+          type: integer
+          format: int64
+        disconnectByApTimestamp:
+          type: integer
+          format: int64
+        disconnectByClientTimestamp:
+          type: integer
+          format: int64
+        timeoutTimestamp:
+          type: integer
+          format: int64
+        firstDataSentTimestamp:
+          type: integer
+          format: int64
+        firstDataRcvdTimestamp:
+          type: integer
+          format: int64
+        ipAddress:
+          type: string
+        radiusUsername:
+          type: string
+        ssid:
+          type: string
+        radioType:
+          $ref: '#/components/schemas/RadioType'
+        lastEventTimestamp:
+          type: integer
+          format: int64
+        hostname:
+          type: string
+        apFingerprint:
+          type: string
+        userAgentStr:
+          type: string
+        lastRxTimestamp:
+          type: integer
+          format: int64
+        lastTxTimestamp:
+          type: integer
+          format: int64
+        cpUsername:
+          type: string
+        dhcpDetails:
+          $ref: '#/components/schemas/ClientDhcpDetails'
+        eapDetails:
+          $ref: '#/components/schemas/ClientEapDetails'
+        metricDetails:
+          $ref: '#/components/schemas/ClientSessionMetricDetails'
+        isReassociation:
+          type: boolean
+        disconnectByApReasonCode:
+          type: integer
+          format: int32
+        disconnectByClientReasonCode:
+          type: integer
+          format: int32
+        disconnectByApInternalReasonCode:
+          type: integer
+          format: int32
+        disconnectByClientInternalReasonCode:
+          type: integer
+          format: int32
+        portEnabledTimestamp:
+          type: integer
+          format: int64
+        is11RUsed:
+          type: boolean
+        is11KUsed:
+          type: boolean
+        is11VUsed:
+          type: boolean
+        securityType:
+          $ref: '#/components/schemas/SecurityType'
+        steerType:
+          $ref: '#/components/schemas/SteerType'
+        previousValidSessionId:
+          type: integer
+          format: int64
+        lastFailureDetails:
+          $ref: '#/components/schemas/ClientFailureDetails'
+        firstFailureDetails:
+          $ref: '#/components/schemas/ClientFailureDetails'
+        associationStatus:
+          type: integer
+          format: int32
+        dynamicVlan:
+          type: integer
+          format: int32
+        assocRssi:
+          type: integer
+          format: int32
+        priorSessionId:
+          type: integer
+          format: int64
+        priorEquipmentId:
+          type: integer
+          format: int64
+        classificationName:
+          type: string
+        associationState:
+          type: string
+          enum:
+          - _802_11_Authenticated 
+          - _802_11_Associated, 
+          - _802_1x_Authenticated
+          - Valid_Ip
+          - Active_Data
+          - AP_Timeout
+          - Cloud_Timeout
+          - Disconnected
+           
+    ClientDhcpDetails:
+      type: object
+      properties:
+        dhcpServerIp:
+          type: string
+        primaryDns:
+          type: string
+        secondaryDns:
+          type: string
+        subnetMask:
+          type: string
+        gatewayIp:
+          type: string
+        leaseStartTimestamp:
+          type: integer
+          format: int64
+        leaseTimeInSeconds:
+          type: integer
+          format: int32
+        firstRequestTimestamp:
+          type: integer
+          format: int64
+        firstOfferTimestamp:
+          type: integer
+          format: int64
+        firstDiscoverTimestamp:
+          type: integer
+          format: int64
+        nakTimestamp:
+          type: integer
+          format: int64
+        fromInternal:
+          type: boolean
+          
+    ClientEapDetails:
+      type: object
+      properties:
+        eapKey1Timestamp:
+          type: integer
+          format: int64
+        eapKey2Timestamp:
+          type: integer
+          format: int64
+        eapKey3Timestamp:
+          type: integer
+          format: int64
+        eapKey4Timestamp:
+          type: integer
+          format: int64
+        requestIdentityTimestamp:
+          type: integer
+          format: int64
+        eapNegotiationStartTimestamp:
+          type: integer
+          format: int64
+        eapSuccessTimestamp:
+          type: integer
+          format: int64
+ 
+    ClientSessionMetricDetails:
+      type: object
+      properties:
+        rxBytes:
+          type: integer
+          format: int64
+        txBytes:
+          type: integer
+          format: int64
+        totalRxPackets:
+          type: integer
+          format: int64
+        totalTxPackets:
+          type: integer
+          format: int64
+        rxMbps:
+          type: number
+          #float
+        txMbps:
+          type: number
+          #float
+        rssi:
+          type: integer
+          format: int32
+        snr:
+          type: integer
+          format: int32
+        rxRateKbps:
+          # from MCS
+          type: integer
+          format: int64
+        txRateKbps:
+          # from MCS
+          type: integer
+          format: int64
+        lastMetricTimestamp:
+          type: integer
+          format: int64
+        lastRxTimestamp:
+          type: integer
+          format: int64
+        lastTxTimestamp:
+          type: integer
+          format: int64
+        classification:
+          type: string
+        txDataFrames:
+          description: The number of dataframes transmitted TO the client from the AP.
+          type: integer
+          format: int32
+        txDataFramesRetried:
+          description: The number of data frames transmitted TO the client that were retried. Note this is not the same as the number of retries.
+          type: integer
+          format: int32
+        rxDataFrames:
+          description: The number of dataframes transmitted FROM the client TO the AP.
+          type: integer
+          format: int32
+ 
+    SecurityType:
+      type: string
+      enum:
+      - OPEN
+      - RADIUS
+      - PSK
+      - SAE
+      
+    SteerType:
+      type: string
+      enum:
+      - steer_rsvd
+      - steer_deauth
+      - steer_11v
+      - steer_perimeter
+    
+    ClientFailureDetails:
+      type: object
+      properties:
+        failureTimestamp:
+          type: integer
+          format: int64
+        reasonCode:
+          type: integer
+          format: int32
+        reason:
+          type: string
+ 
+#
+# Objects related to pagination
+#
+    
+    SortOrder:
+      type: string
+      default: asc
+      enum:
+      - asc
+      - desc
+      
+    SortColumnsClientSession:
+      type: object
+      required:
+      - model_type
+      - columnName
+      - sortOrder
+      properties: 
+        model_type:
+          type: string
+          enum:
+          - ColumnAndSort
+        columnName:
+          type: string
+          default: id
+          enum: 
+          - customerId
+          - equipmentId
+          - macAddress
+        sortOrder:
+          $ref: '#/components/schemas/SortOrder'
+          
+    PaginationContextClientSession:
+      type: object
+      required: 
+      - maxItemsPerPage
+      properties:
+        model_type:
+          type: string
+          enum:
+          - PaginationContext
+        maxItemsPerPage:
+          type: integer
+          format: int32
+          default: 20
+        lastReturnedPageNumber:
+          type: integer
+          format: int32
+        totalItemsReturned:
+          type: integer
+          format: int32
+        lastPage:
+          type: boolean
+        cursor:
+          type: string
+      example: 
+        model_type: PaginationContext
+        maxItemsPerPage: 10
+          
+      
+    PaginationResponseClientSession:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/ClientSession'
+        context:
+          $ref: '#/components/schemas/PaginationContextClientSession'  
+    
+    SortColumnsClient:
+      type: object
+      required:
+      - model_type
+      - columnName
+      - sortOrder
+      properties: 
+        model_type:
+          type: string
+          enum:
+          - ColumnAndSort
+        columnName:
+          type: string
+          default: id
+          enum: 
+          - macAddress
+        sortOrder:
+          $ref: '#/components/schemas/SortOrder'
+          
+    PaginationContextClient:
+      type: object
+      required: 
+      - maxItemsPerPage
+      properties:
+        model_type:
+          type: string
+          enum:
+          - PaginationContext
+        maxItemsPerPage:
+          type: integer
+          format: int32
+          default: 20
+        lastReturnedPageNumber:
+          type: integer
+          format: int32
+        totalItemsReturned:
+          type: integer
+          format: int32
+        lastPage:
+          type: boolean
+        cursor:
+          type: string
+      example: 
+        model_type: PaginationContext
+        maxItemsPerPage: 10
+          
+      
+    PaginationResponseClient:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Client'
+        context:
+          $ref: '#/components/schemas/PaginationContextClient'  
+          
+#
+# Other related objects
+#
+    
+    MacAddress:
+      type: object
+      properties:
+        model_type:
+          type: string
+          enum:
+          - MacAddress
+        addressAsString:
+          type: string
+          
+    RadioType:
+      type: string
+      enum:
+        - is5GHz
+        - is2dot4GHz
+        - is5GHzU
+        - is5GHzL
+##-------------------------------------------------------------------------
+security:
+ - tip_wlan_ts_auth: []
+paths:
+    
+  /api/client:
+    post:
+      tags:
+      - Client Data
+      summary: Creates new client record
+      operationId: createClientRecord
+      requestBody:
+        description: Client record
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Client'
+      responses:
+        200:
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Client'
+        500: 
+          $ref: '#/components/responses/GenericApiError'
+    put:
+      tags:
+      - Client Data
+      summary: Updates client record
+      operationId: updateClientRecord
+      requestBody:
+        description: Client record
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Client'
+      responses:
+        200:
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Client'
+        500: 
+          $ref: '#/components/responses/GenericApiError'
+    delete:
+      tags:
+      - Client Data
+      summary: Deletes client record
+      operationId: deleteClientById
+      parameters:
+      - name: customerId
+        in: query
+        description: Customer ID
+        required: true
+        schema:
+          type: integer
+          format: int32
+      - name: macAddress
+        in: query
+        description: Mac Address
+        required: true
+        content:
+          application/json:
+            schema:
+                $ref: '#/components/schemas/MacAddress'
+      responses:
+        200:
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Client'
+        500: 
+          $ref: '#/components/responses/GenericApiError'
+    
+  /api/client/orNull:
+    get:
+      tags:
+      - Client Data
+      summary: Gets client record
+      operationId: getClientById
+      parameters:
+      - name: customerId
+        in: query
+        description: Customer ID
+        required: true
+        schema:
+          type: integer
+          format: int32
+      - name: macAddress
+        in: query
+        description: Client MAC address
+        required: true
+        content:
+          application/json:
+            schema:
+                $ref: '#/components/schemas/MacAddress'
+      responses:
+        200:
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Client'
+        500:
+          $ref: '#/components/responses/GenericApiError'
+          
+  /api/client/inSet:  
+    get:
+      tags:
+      - Client Data
+      summary: Gets client record set
+      operationId: getClientSetById
+      parameters:
+      - name: customerId
+        in: query
+        description: Customer ID
+        required: true
+        schema:
+          type: integer
+          format: int32
+      - name: clientMacSet
+        in: query
+        description: Client MAC address
+        required: true
+        schema:
+          type: array
+          items:
+            $ref: '#/components/schemas/MacAddress'
+      responses:
+        200:
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Client'
+        500: 
+          $ref: '#/components/responses/GenericApiError'
+
+  /api/client/blocked:  
+    get:
+      tags:
+      - Client Data
+      summary: Retrieves a list of Clients for the customer that are marked as blocked. This per-customer list of blocked clients is pushed to every AP, so it has to be limited in size.
+      operationId: getBlockedClients
+      parameters:
+      - name: customerId
+        in: query
+        description: Customer ID
+        required: true
+        schema:
+          type: integer
+          format: int32
+      responses:
+        200:
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Client'
+        500: 
+          $ref: '#/components/responses/GenericApiError'
+          
+  /api/client/forCustomer:  
+    get:
+      tags:
+      - Client Data
+      summary: Gets client record for customer
+      operationId: getClientForCustomer
+      parameters:
+      - name: customerId
+        in: query
+        description: Customer ID
+        required: true
+        schema:
+          type: integer
+          format: int32
+      - name: macSubstring
+        in: query
+        description: MacAddress search criteria
+        required: false
+        schema:
+          type: string
+      - name: sortBy
+        in: query
+        description: sort options
+        required: false
+        schema:
+          type: array
+          items:
+            $ref: '#/components/schemas/SortColumnsClient'
+      - name: paginationContext
+        in: query
+        description: pagination context
+        required: false
+        content:
+          application/json:
+            schema:
+                $ref: '#/components/schemas/PaginationContextClient'
+            examples:
+              initialPginationContext:
+                value:
+                  model_type: PaginationContext
+                  maxItemsPerPage: 10
+      responses:
+        200:
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginationResponseClient'
+        500:
+          $ref: '#/components/responses/GenericApiError'
+          
+## Client Session ----------------------------------------------------------
+  
+  /api/client/session:
+    put:
+      tags:
+      - Session Data
+      summary: Updates client session record
+      operationId: updateSession
+      requestBody:
+        description: Client record
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ClientSession'
+      responses:
+        200:
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClientSession'
+        500: 
+          $ref: '#/components/responses/GenericApiError'
+    delete:
+      tags:
+      - Session Data
+      summary: Deletes client session record
+      operationId: deleteClientSessionRecord
+      parameters:
+      - name: customerId
+        in: query
+        description: Customer ID
+        required: true
+        schema:
+          type: integer
+          format: int32
+      - name: equipmentId
+        in: query
+        description: Equipment ID
+        required: true
+        schema:
+          type: integer
+          format: int64
+      - name: macAddress
+        in: query
+        description: Client MAC address
+        required: true
+        content:
+          application/json:
+            schema:
+                $ref: '#/components/schemas/MacAddress'
+      responses:
+        200:
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClientSession'
+        500: 
+          $ref: '#/components/responses/GenericApiError'
+    
+  /api/client/session/orNull:  
+    get:
+      tags:
+      - Session Data
+      summary: Gets client session record
+      operationId: getClientSessionById
+      parameters:
+      - name: customerId
+        in: query
+        description: Customer ID
+        required: true
+        schema:
+          type: integer
+          format: int32
+      - name: equipmentId
+        in: query
+        description: Equipment ID
+        required: true
+        schema:
+          type: integer
+          format: int64
+      - name: macAddress
+        in: query
+        description: Client MAC address
+        required: true
+        content:
+          application/json:
+            schema:
+                $ref: '#/components/schemas/MacAddress'
+      responses:
+        200:
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClientSession'
+        500: 
+          $ref: '#/components/responses/GenericApiError'
+  
+  /api/client/session/inSet:  
+    get:
+      tags:
+      - Session Data
+      summary: Gets client session record set
+      operationId: getClientSessionSetById
+      parameters:
+      - name: customerId
+        in: query
+        description: Customer ID
+        required: true
+        schema:
+          type: integer
+          format: int32
+      - name: clientMacSet
+        in: query
+        description: Client MAC address
+        required: true
+        schema:
+          type: array
+          items:
+            $ref: '#/components/schemas/MacAddress'
+        
+      responses:
+        200:
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ClientSession'
+        500: 
+          $ref: '#/components/responses/GenericApiError'
+          
+  /api/client/session/forCustomer:  
+    get:
+      tags:
+      - Session Data
+      summary: Gets client session record for customer
+      operationId: getClientSessionForCustomer
+      parameters:
+      - name: customerId
+        in: query
+        description: Customer ID
+        required: true
+        schema:
+          type: integer
+          format: int32
+      - name: equipmentIds
+        in: query
+        description: Equipment ID
+        required: false
+        content:
+          text/plain:
+            schema:
+              type: array
+              items:
+                type: integer
+                format: long
+      - name: locationIds
+        in: query
+        description: Location IDs
+        required: false
+        content:
+          text/plain:
+            schema:
+              type: array
+              items:
+                type: integer
+                format: long
+      - name: macSubstring
+        in: query
+        description: MacAddress search criteria
+        required: false
+        schema:
+          type: string
+      - name: sortBy
+        in: query
+        description: sort options
+        required: false
+        schema:
+          type: array
+          items:
+            $ref: '#/components/schemas/SortColumnsClientSession'
+      - name: paginationContext
+        in: query
+        description: pagination context
+        required: false
+        content:
+          application/json:
+            schema:
+                $ref: '#/components/schemas/PaginationContextClientSession'
+            examples:
+              initialPginationContext:
+                value:
+                  model_type: PaginationContext
+                  maxItemsPerPage: 10
+      responses:
+        200:
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginationResponseClientSession'
+        500: 
+          $ref: '#/components/responses/GenericApiError'
+ 
+  /api/client/session/bulk:
+     put:
+      tags:
+      - Session Data
+      summary: Updates batch of client session records
+      operationId: updateBulkSession
+      requestBody:
+        description: Client session records
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/ClientSession'
+      responses:
+        200:
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ClientSession'
+        500: 
+          $ref: '#/components/responses/GenericApiError'
+ 
