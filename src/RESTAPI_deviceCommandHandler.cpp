@@ -620,19 +620,6 @@ void RESTAPI_deviceCommandHandler::Reboot(Poco::Net::HTTPServerRequest& Request,
     BadRequest(Response);
 }
 
-/*
-   FactoryRequest:
-      type: object
-      properties:
-        serialNumber:
-          type: string
-        when:
-          type: string
-          format: 'date-time'
-        keepRedirector:
-          type: boolean
- */
-
 void RESTAPI_deviceCommandHandler::Factory(Poco::Net::HTTPServerRequest &Request, Poco::Net::HTTPServerResponse &Response) {
     try {
         auto SNum = GetBinding("serialNumber", "");
@@ -717,20 +704,6 @@ void RESTAPI_deviceCommandHandler::Factory(Poco::Net::HTTPServerRequest &Request
     BadRequest(Response);
 }
 
-/*
-BlinkRequest:
-type: object
-        properties:
-serialNumber:
-type: string
-        when:
-type: string
-        format: 'date-time'
-duration:
-type: integer
-        format: int64
-        */
-
 void RESTAPI_deviceCommandHandler::Blink(Poco::Net::HTTPServerRequest &Request, Poco::Net::HTTPServerResponse &Response) {
     try {
         auto SNum = GetBinding("serialNumber", "");
@@ -804,60 +777,6 @@ void RESTAPI_deviceCommandHandler::Blink(Poco::Net::HTTPServerRequest &Request, 
     }
     BadRequest(Response);
 }
-
-/*
- *
-    TraceRequest:
-      type: object
-      properties:
-        serialNumber:
-          type: string
-        when:
-          type: string
-          format: 'date-time'
-        duration:
-          type: integer
-          format: int64
-        numberOfPackets:
-          type: integer
-          format: int64
-        network:
-          type: string
-        interface:
-          type: string
- *
- *
- *
-```
-{    "jsonrpc" : "2.0" ,
-     "method" : "trace" ,
-     "params" : {
-	        "serial" : <serial number> ,
-	        "when" : Optional - <UTC time when to reboot, 0 mean immediately, this is a suggestion>,
-	        "duration" : <integer representing the number of seconds to run the trace>
-	        "packets" : <integer for the number of packets to capture>
-	        "network" : <string identifying the network to trace>
-	        "interface" : <string identifying the interface to capture on>
-	        "uri" : <complete URI where to upload the trace. This URI will be available for 30 minutes following a trace request start>
-     },
-     "id" : <some number>
-}
-```
-
-The AP should answer:
-```
-{     "jsonrpc" : "2.0" ,
-      "result" : {
-      "serial" : <serial number> ,
-      "status" : {
-	    "error" : 0 or an error number,
-	    "text" : <description of the error or success>,
-	    "when" : <time when this will be performed as UTC seconds>,
-  	},
-  "id" : <same number>
-}
-```
- */
 
 void RESTAPI_deviceCommandHandler::Trace(Poco::Net::HTTPServerRequest &Request, Poco::Net::HTTPServerResponse &Response) {
     try {
