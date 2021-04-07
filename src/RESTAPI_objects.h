@@ -18,6 +18,8 @@ struct uCentralDevice {
     uint64_t    CreationTimestamp;
     uint64_t    LastConfigurationChange;
     uint64_t    LastConfigurationDownload;
+	std::string Owner;
+	std::string Location;
     [[nodiscard]] Poco::JSON::Object to_json() const;
     bool from_json(Poco::JSON::Object::Ptr Obj);
     void Print() const;

@@ -19,6 +19,8 @@ Poco::JSON::Object uCentralDevice::to_json() const
     Obj.set("createdTimestamp",RESTAPIHandler::to_RFC3339(CreationTimestamp));
     Obj.set("lastConfigurationChange",RESTAPIHandler::to_RFC3339(LastConfigurationChange));
     Obj.set("lastConfigurationDownload",RESTAPIHandler::to_RFC3339(LastConfigurationDownload));
+	Obj.set("owner",Owner);
+	Obj.set("location",Location);
 
     return Obj;
 }
@@ -38,6 +40,10 @@ bool uCentralDevice::from_json(Poco::JSON::Object::Ptr Obj) {
             Notes = ds["notes"].toString();
         if(ds.contains("manufacturer"))
             Manufacturer = ds["manufacturer"].toString();
+		if(ds.contains("owner"))
+			Owner = ds["owner"].toString();
+		if(ds.contains("location"))
+			Location = ds["location"].toString();
 
         return true;
     }

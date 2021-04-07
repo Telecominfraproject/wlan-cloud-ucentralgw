@@ -131,7 +131,15 @@ namespace uCentral::Storage {
         return uCentral::Storage::Service::instance()->UpdateDevice(Device);
     }
 
-    bool DeviceExists(std::string &SerialNumber) {
+	bool SetOwner(std::string & SerialNumber, std::string & OwnerUUID) {
+		return uCentral::Storage::Service::instance()->SetOwner(SerialNumber, OwnerUUID);
+	}
+
+	bool SetLocation(std::string & SerialNumber, std::string & LocationUUID) {
+		return uCentral::Storage::Service::instance()->SetLocation(SerialNumber, LocationUUID);
+	}
+
+	bool DeviceExists(std::string &SerialNumber) {
         return uCentral::Storage::Service::instance()->DeviceExists(SerialNumber);
     }
 
@@ -268,8 +276,12 @@ namespace uCentral::Storage {
                     "Notes         TEXT, "
                     "CreationTimestamp BIGINT, "
                     "LastConfigurationChange BIGINT, "
-                    "LastConfigurationDownload BIGINT"
+                    "LastConfigurationDownload BIGINT, "
+					"Owner  VARCHAR(64), 	"
+					"Location  VARCHAR(64) 	"
                     ")", Poco::Data::Keywords::now;
+		Sess << "CREATE INDEX IF NOT EXISTS DeviceOwner ON Devices (Owner ASC)", Poco::Data::Keywords::now;
+		Sess << "CREATE INDEX IF NOT EXISTS DeviceLocation ON Devices (Location ASC)", Poco::Data::Keywords::now;
 
         Sess << "CREATE TABLE IF NOT EXISTS Capabilities ("
                     "SerialNumber VARCHAR(30) PRIMARY KEY, "
@@ -372,8 +384,11 @@ namespace uCentral::Storage {
                     "Notes         TEXT, "
                     "CreationTimestamp BIGINT, "
                     "LastConfigurationChange BIGINT, "
-                    "LastConfigurationDownload BIGINT"
-                    ")", Poco::Data::Keywords::now;
+					"LastConfigurationDownload BIGINT, "
+					"Owner  VARCHAR(64), 	"
+					"Location  VARCHAR(64), 	"
+                    "INDEX DeviceOwner (Owner ASC),",
+					"INDEX LocationIndex (Location ASC))", Poco::Data::Keywords::now;
 
         Sess << "CREATE TABLE IF NOT EXISTS Capabilities ("
                     "SerialNumber VARCHAR(30) PRIMARY KEY, "
@@ -475,8 +490,12 @@ namespace uCentral::Storage {
                     "Notes         TEXT, "
                     "CreationTimestamp BIGINT, "
                     "LastConfigurationChange BIGINT, "
-                    "LastConfigurationDownload BIGINT"
+					"LastConfigurationDownload BIGINT, "
+					"Owner  VARCHAR(64), 	"
+					"Location  VARCHAR(64) 	"
                     ")", Poco::Data::Keywords::now;
+		Sess << "CREATE INDEX IF NOT EXISTS DeviceOwner ON Devices (Owner ASC)", Poco::Data::Keywords::now;
+		Sess << "CREATE INDEX IF NOT EXISTS DeviceLocation ON Devices (Location ASC)", Poco::Data::Keywords::now;
 
         Sess << "CREATE TABLE IF NOT EXISTS Capabilities ("
                     "SerialNumber VARCHAR(30) PRIMARY KEY, "
@@ -1085,14 +1104,17 @@ namespace uCentral::Storage {
                     "Notes         TEXT, "
                     "CreationTimestamp BIGINT, "
                     "LastConfigurationChange BIGINT, "
-                    "LastConfigurationDownload BIGINT"
+                    "LastConfigurationDownload BIGINT, "
+                    "Owner 			VARCHAR(64),
+                    "Location		VARCHAR(64)"
 
  */
                     Poco::Data::Statement   Insert(Sess);
 
-                    Insert  << "INSERT INTO Devices (SerialNumber, DeviceType, MACAddress, Manufacturer, UUID, "
-                               "Configuration, Notes, CreationTimestamp, LastConfigurationChange, LastConfigurationDownload )"
-                               "VALUES('%s', '%s', '%s', '%s', %Lu, '%s', '%s', %Lu, %Lu , %Lu)",
+                    Insert  << 	"INSERT INTO Devices (SerialNumber, DeviceType, MACAddress, Manufacturer, UUID, "
+								"Configuration, Notes, CreationTimestamp, LastConfigurationChange, LastConfigurationDownload,"
+							  	"Owner, Location )"
+                               "VALUES('%s', '%s', '%s', '%s', %Lu, '%s', '%s', %Lu, %Lu , %Lu, '%s', '%s')",
                             DeviceDetails.SerialNumber,
                             DeviceDetails.DeviceType,
                             DeviceDetails.MACAddress,
@@ -1102,7 +1124,9 @@ namespace uCentral::Storage {
                             SQLEscapeStr(DeviceDetails.Notes),
                             Now,
                             Now,
-                            Now;
+                            Now,
+							DeviceDetails.Owner,
+							DeviceDetails.Location;
 
                     Insert.execute();
 
@@ -1150,8 +1174,39 @@ namespace uCentral::Storage {
         return CreateDevice(D);
     }
 
+	bool Service::SetLocation(std::string & SerialNumber, std::string & LocationUUID) {
+		try {
+			Poco::Data::Session     Sess = Pool_->get();
+			Poco::Data::Statement   Update(Sess);
+			Update  << "UPDATE Devices SET Location='%s' WHERE SerialNumber='%s'",
+				LocationUUID,
+				SerialNumber;
+			Update.execute();
+		}
+		catch (const Poco::Exception &E) {
+			Logger_.warning(
+				Poco::format("%s(%s): Failed with: %s", std::string(__func__), SerialNumber, E.displayText()));
+		}
+		return false;
+	}
 
-    bool Service::DeleteDevice(std::string &SerialNumber) {
+	bool Service::SetOwner(std::string & SerialNumber, std::string & OwnerUUID) {
+		try {
+			Poco::Data::Session     Sess = Pool_->get();
+			Poco::Data::Statement   Update(Sess);
+			Update  << "UPDATE Devices SET Owner='%s' WHERE SerialNumber='%s'",
+				OwnerUUID,
+				SerialNumber;
+			Update.execute();
+		}
+		catch (const Poco::Exception &E) {
+			Logger_.warning(
+				Poco::format("%s(%s): Failed with: %s", std::string(__func__), SerialNumber, E.displayText()));
+		}
+		return false;
+	}
+
+	bool Service::DeleteDevice(std::string &SerialNumber) {
         // std::lock_guard<std::mutex> guard(mutex_);
 
         try {
@@ -1187,8 +1242,10 @@ namespace uCentral::Storage {
                         "Notes, "
                         "CreationTimestamp, "
                         "LastConfigurationChange, "
-                        "LastConfigurationDownload "
-                        " FROM Devices WHERE SerialNumber='%s'",
+                        "LastConfigurationDownload, "
+					  	"Owner,"
+					  	"Location "
+                        "FROM Devices WHERE SerialNumber='%s'",
                     Poco::Data::Keywords::into(DeviceDetails.SerialNumber),
                     Poco::Data::Keywords::into(DeviceDetails.DeviceType),
                     Poco::Data::Keywords::into(DeviceDetails.MACAddress),
@@ -1199,6 +1256,8 @@ namespace uCentral::Storage {
                     Poco::Data::Keywords::into(DeviceDetails.CreationTimestamp),
                     Poco::Data::Keywords::into(DeviceDetails.LastConfigurationChange),
                     Poco::Data::Keywords::into(DeviceDetails.LastConfigurationDownload),
+					Poco::Data::Keywords::into(DeviceDetails.Owner),
+					Poco::Data::Keywords::into(DeviceDetails.Location),
                     SerialNumber;
 
             Select.execute();
@@ -1285,7 +1344,9 @@ namespace uCentral::Storage {
                 std::string,
                 uint64_t,
                 uint64_t,
-                uint64_t> DeviceRecord;
+                uint64_t,
+				std::string,
+				std::string> DeviceRecord;
         typedef std::vector<DeviceRecord> RecordList;
 
         RecordList Records;
@@ -1304,8 +1365,10 @@ namespace uCentral::Storage {
                         "Notes, "
                         "CreationTimestamp, "
                         "LastConfigurationChange, "
-                        "LastConfigurationDownload "
-                        " FROM Devices",
+                        "LastConfigurationDownload, "
+					  	"Owner, "
+					  	"Location "
+                        "FROM Devices",
                     Poco::Data::Keywords::into(Records),
                     Poco::Data::Keywords::range(From, From + HowMany - 1);
             Select.execute();
@@ -1321,7 +1384,9 @@ namespace uCentral::Storage {
                         .Notes          = i.get<6>(),
                         .CreationTimestamp = i.get<7>(),
                         .LastConfigurationChange = i.get<8>(),
-                        .LastConfigurationDownload = i.get<9>()};
+                        .LastConfigurationDownload = i.get<9>(),
+						.Owner = i.get<10>(),
+						.Location = i.get<11>()};
 
                 Devices.push_back(R);
             }
