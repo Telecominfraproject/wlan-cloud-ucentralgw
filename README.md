@@ -36,8 +36,8 @@ cmake --build . --config Release
 sudo cmake --build . --target install
 
 cd ~
-git clone https://github.com/stephb9959/ucentralgw
-cd ucentralgw
+git clone https://github.com/Telecominfraproject/wlan-cloud-ucentralgw
+cd wlan-cloud-ucentralgw
 mkdir cmake-build
 cd cmake-build
 cmake ..
