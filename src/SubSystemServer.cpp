@@ -64,14 +64,16 @@ void SubSystemServer::defineOptions(Poco::Util::OptionSet& options)
 
 Poco::Net::SecureServerSocket PropertiesFileServerEntry::CreateSecureSocket() const
 {
+	auto BackLog = uCentral::instance()->config().getInt("ucentral.websocket.backlog", 64);
+
     if(address_=="*") {
-        return Poco::Net::SecureServerSocket(port_,64, new Poco::Net::Context(Poco::Net::Context::TLS_SERVER_USE, key_file_, cert_file_, ""));
+        return Poco::Net::SecureServerSocket(port_,BackLog, new Poco::Net::Context(Poco::Net::Context::TLS_SERVER_USE, key_file_, cert_file_, ""));
     }
     else
     {
         Poco::Net::IPAddress        Addr(address_);
         Poco::Net::SocketAddress    SockAddr(Addr,port_);
-        return Poco::Net::SecureServerSocket(SockAddr,64, new Poco::Net::Context(Poco::Net::Context::TLS_SERVER_USE, key_file_, cert_file_, ""));
+        return Poco::Net::SecureServerSocket(SockAddr,BackLog, new Poco::Net::Context(Poco::Net::Context::TLS_SERVER_USE, key_file_, cert_file_, ""));
     }
 }
 
