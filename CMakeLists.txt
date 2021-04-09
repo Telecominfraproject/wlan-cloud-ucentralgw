@@ -39,7 +39,7 @@ endif()
 
 include_directories(/usr/local/include  /usr/local/opt/openssl/include src)
 
-add_executable( ucentral
+add_executable( ucentralgw
                 src/main.cpp src/TIPGWServer.cpp src/TIPGWServer.h
                 src/TIP/Api.cpp src/TIP/Api.h
                 src/uCentral.cpp src/uCentral.h src/TIP/Routing.cpp src/TIP/Routing.h
@@ -54,15 +54,15 @@ add_executable( ucentral
                 src/RESTAPI_default_configuration.h src/RESTAPI_default_configurations.cpp src/RESTAPI_default_configurations.h src/RESTAPI_commands.cpp
                 src/RESTAPI_commands.h src/uCommandManager.cpp src/uCommandManager.h src/RESTAPI_command.cpp src/RESTAPI_command.h src/base64util.cpp src/base64util.h src/uFileUploader.cpp src/uFileUploader.h src/RESTAPI_file.cpp src/RESTAPI_file.h)
 
-INSTALL(TARGETS ucentral
+INSTALL(TARGETS ucentralgw
         RUNTIME DESTINATION /usr/bin
 )
 
 if(SMALL_BUILD)
-target_link_libraries(ucentral PRIVATE yaml-cpp
+target_link_libraries(ucentralgw PRIVATE yaml-cpp
                         ${Poco_LIBRARIES} ${Boost_LIBRARIES} ${ZLIB_LIBRARIES})
 else()
-    target_link_libraries(ucentral PRIVATE yaml-cpp
+    target_link_libraries(ucentralgw PRIVATE yaml-cpp
             ${Poco_LIBRARIES} ${Boost_LIBRARIES} ${PostgreSQL_LIBRARIES}
             ${MySQL_LIBRARIES} ${ODBC_LIBRARIES} ${ZLIB_LIBRARIES})
 endif()

@@ -34,8 +34,8 @@ RUN cmake ..
 RUN cmake --build . --config Release -j8
 
 RUN mkdir /ucentral
-RUN cp /ucentralgw/cmake-build/ucentral /ucentral/ucentral
-RUN chmod +x /ucentral/ucentral
+RUN cp /ucentralgw/cmake-build/ucentralgw /ucentral/ucentralgw
+RUN chmod +x /ucentral/ucentralgw
 RUN mkdir /ucentral-data
 
 RUN rm -rf /poco
@@ -45,6 +45,6 @@ EXPOSE 15002
 EXPOSE 16001
 EXPOSE 16003
 
-ENTRYPOINT /ucentral/ucentral
+ENTRYPOINT /ucentral/ucentralgw
 
 
