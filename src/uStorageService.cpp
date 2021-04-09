@@ -262,7 +262,7 @@ namespace uCentral::Storage {
 	}
 
     int Service::Setup_SQLite() {
-        Logger_.information("SQLite Storage enabled.");
+        Logger_.notice("SQLite Storage enabled.");
 
         auto DBName = uCentral::ServiceConfig::getString("storage.type.sqlite.db");
         auto NumSessions = uCentral::ServiceConfig::getInt("storage.type.sqlite.maxsessions", 64);
@@ -359,7 +359,7 @@ namespace uCentral::Storage {
 #ifndef SMALL_BUILD
 
     int Service::Setup_MySQL() {
-        Logger_.information("MySQL Storage enabled.");
+        Logger_.notice("MySQL Storage enabled.");
         auto NumSessions = uCentral::ServiceConfig::getInt("storage.type.mysql.maxsessions", 64);
         auto IdleTime = uCentral::ServiceConfig::getInt("storage.type.mysql.idletime", 60);
         auto Host = uCentral::ServiceConfig::getString("storage.type.mysql.host");
@@ -462,7 +462,7 @@ namespace uCentral::Storage {
     }
 
     int Service::Setup_PostgreSQL() {
-        Logger_.information("PostgreSQL Storage enabled.");
+        Logger_.notice("PostgreSQL Storage enabled.");
 
         auto NumSessions = uCentral::ServiceConfig::getInt("storage.type.postgresql.maxsessions", 64);
         auto IdleTime = uCentral::ServiceConfig::getInt("storage.type.postgresql.idletime", 60);
@@ -571,7 +571,7 @@ namespace uCentral::Storage {
     }
 
     int Service::Setup_ODBC() {
-        Logger_.information("ODBC Storage enabled.");
+        Logger_.notice("ODBC Storage enabled.");
 
         auto NumSessions = uCentral::ServiceConfig::getInt("storage.type.postgresql.maxsessions", 64);
         auto IdleTime = uCentral::ServiceConfig::getInt("storage.type.postgresql.idletime", 60);
@@ -617,7 +617,8 @@ namespace uCentral::Storage {
     int Service::Start() {
         std::lock_guard<std::mutex> guard(mutex_);
 
-        Logger_.information("Starting.");
+		Logger_.setLevel(Poco::Message::PRIO_NOTICE);
+        Logger_.notice("Starting.");
         std::string DBType = uCentral::ServiceConfig::getString("storage.type");
 
 #ifndef SMALL_BUILD
