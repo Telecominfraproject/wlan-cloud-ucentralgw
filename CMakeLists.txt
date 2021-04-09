@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.13)
-project(ucentral VERSION 0.3.0)
+project(ucentralgw VERSION 0.3.0)
 
 if(UNIX AND APPLE)
     set(OPENSSL_ROOT_DIR /usr/local/opt/openssl)
