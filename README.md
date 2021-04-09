@@ -61,8 +61,8 @@ cmake --build . --config Release
 sudo cmake --build . --target install
 
 cd ~
-git clone https://github.com/stephb9959/ucentralgw
-cd ucentralgw
+git clone https://github.com/Telecominfraproject/wlan-cloud-ucentralgw
+cd wlan-cloud-ucentralgw
 mkdir cmake-build
 cd cmake-build
 cmake ..
@@ -93,8 +93,8 @@ cmake --build . --config Release -j
 sudo cmake --build . --target install
 
 cd ~
-git clone https://github.com/stephb9959/ucentralgw
-cd ucentralgw
+git clone https://github.com/Telecominfraproject/wlan-cloud-ucentralgw
+cd wlan-cloud-ucentralgw
 mkdir cmake-build
 cd cmake-build
 cmake ..
@@ -117,8 +117,8 @@ cmake --build . --config Release
 sudo cmake --build . --target install
 
 cd ~
-git clone https://github.com/stephb9959/ucentralgw
-cd ucentralgw
+git clone https://github.com/Telecominfraproject/wlan-cloud-ucentralgw
+cd wlan-cloud-ucentralgw
 mkdir cmake-build
 cd cmake-build
 cmake -DSMALL_BUILD=1 ..
@@ -258,13 +258,16 @@ start at `0`.
 ###### ucentral.fileuploader.host.0.name
 This must point to the IP or FQDN of your uCentralGW.
 
+#### Running the gateway
+Tu run the gateway, you must run the executable `ucentralgw`. You can use several command line options to run as a daemon or specify the configuration file location. 
+
 #### Command line options
 The current implementation supports the following. If you use the built-in configuration file, you do not need to use any command-line
 options. However, you may decide to use the `--daemon` or `umask` options. 
 
 ```
-./ucentral --help
-usage: ucentral OPTIONS
+./ucentralgw --help
+usage: ucentralgw OPTIONS
 A uCentral gateway implementation for TIP.
 
 --daemon        Run application as a daemon.
