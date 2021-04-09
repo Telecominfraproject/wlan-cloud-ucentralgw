@@ -88,6 +88,7 @@ namespace uCentral::WebSocket {
             ParentAcceptorReactor_(reactor),
             Logger_(Service::instance()->Logger())
     {
+		Logger_.setLevel(Poco::Message::PRIO_NOTICE);
         auto Params = Poco::AutoPtr<Poco::Net::HTTPServerParams>(new Poco::Net::HTTPServerParams());
         Poco::Net::HTTPServerSession        Session(Socket_, Params);
         Poco::Net::HTTPServerResponseImpl   Response(Session);

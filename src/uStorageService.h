@@ -73,7 +73,6 @@ namespace uCentral::Storage {
 
     std::string SerialToMAC(const std::string & Serial);
 
-
     class Service : public SubSystemServer {
 
     public:

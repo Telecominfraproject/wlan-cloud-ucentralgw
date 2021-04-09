@@ -212,9 +212,10 @@ namespace uCentral {
 
         if (!helpRequested_) {
 
-            std::cout << "Starting ucentral..." << std::endl;
-
             Poco::Logger &logger = Poco::Logger::get("uCentral");
+
+			logger.setLevel(Poco::Message::PRIO_NOTICE);
+			logger.notice("Starting ucentral...");
 
             uCentral::Storage::Start();
             uCentral::Auth::Start();
@@ -241,6 +242,7 @@ namespace uCentral {
             uCentral::DeviceRegistry::Stop();
             uCentral::Auth::Stop();
             uCentral::Storage::Stop();
+			logger.notice("Stopped ucentral...");
         }
 
         return Application::EXIT_OK;

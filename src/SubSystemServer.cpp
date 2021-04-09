@@ -12,12 +12,12 @@ SubSystemServer::SubSystemServer( std::string Name,
         Logger_(Poco::Logger::get(LoggingPrefix)),
         SubSystemConfigPrefix_(std::move(SubSystemConfigPrefix))
 {
-
+	Logger_.setLevel(Poco::Message::PRIO_NOTICE);
 }
 
 void SubSystemServer::initialize(Poco::Util::Application & self)
 {
-    Logger_.information("Initializing...");
+    Logger_.notice("Initializing...");
     auto i=0;
     bool good=true;
 
@@ -45,7 +45,6 @@ void SubSystemServer::initialize(Poco::Util::Application & self)
             i++;
         }
     }
-    // uCentral::instance().config().
 }
 
 void SubSystemServer::uninitialize()
