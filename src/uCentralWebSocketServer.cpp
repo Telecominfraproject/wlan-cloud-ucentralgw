@@ -436,7 +436,7 @@ namespace uCentral::WebSocket {
         if (!Response.empty()) {
             if (Conn_ != nullptr)
                 Conn_->TX += Response.size();
-            Logger_.information(Poco::format("RESPONSE(%s): %s",SerialNumber_,Response));
+            // Logger_.information(Poco::format("RESPONSE(%s): %s",SerialNumber_,Response));
             try {
                 WS_->sendFrame(Response.c_str(), Response.size());
             }
