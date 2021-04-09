@@ -638,7 +638,7 @@ namespace uCentral::Storage {
     }
 
     void Service::Stop() {
-        Logger_.information("Stopping.");
+        Logger_.notice("Stopping.");
     }
 
     bool Service::AddStatisticsData(std::string &SerialNumber, uint64_t CfgUUID, std::string &NewStats) {
