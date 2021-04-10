@@ -1,8 +1,9 @@
 #!/bin/bash
 
+hn=$(hostname)
 howmany=10
 cert_life=365
-subject="/C=CA/ST=British Columbia/L=Vancouver/O=Arilia Wireless/OU=Engineering/CN=ucentral/emailAddress=support@example.com"
+subject="/C=CA/ST=British Columbia/L=Vancouver/O=Arilia Wireless/OU=Engineering/CN=$hn/emailAddress=support@example.com"
 
 openssl genrsa -out server-key.pem 2048
 openssl req -new -key server-key.pem -subj "$subject" -out server.csr
