@@ -41,7 +41,7 @@ namespace uCentral::WebSocket {
     int Service::Start() {
 
         for(const auto & Svr : ConfigServersList_ ) {
-            Logger_.information(Poco::format("Starting: %s:%s Keyfile:%s CertFile: %s", Svr.address(), std::to_string(Svr.port()),
+            Logger_.notice(Poco::format("Starting: %s:%s Keyfile:%s CertFile: %s", Svr.address(), std::to_string(Svr.port()),
 											 Svr.key_file(),Svr.cert_file()));
 
             auto Sock{Svr.CreateSecureSocket()};
@@ -64,7 +64,7 @@ namespace uCentral::WebSocket {
     }
 
     void Service::Stop() {
-        Logger_.information("Stopping reactors...");
+        Logger_.notice("Stopping reactors...");
 
         for(auto const &Svr : Servers_) {
             Svr.SocketReactor->stop();
@@ -88,7 +88,6 @@ namespace uCentral::WebSocket {
             ParentAcceptorReactor_(reactor),
             Logger_(Service::instance()->Logger())
     {
-		Logger_.setLevel(Poco::Message::PRIO_NOTICE);
         auto Params = Poco::AutoPtr<Poco::Net::HTTPServerParams>(new Poco::Net::HTTPServerParams());
         Poco::Net::HTTPServerSession        Session(Socket_, Params);
         Poco::Net::HTTPServerResponseImpl   Response(Session);

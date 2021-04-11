@@ -45,6 +45,7 @@ namespace uCentral {
         bool AutoProvisioning() const { return AutoProvisioning_ ; }
         bool Debug() const { return DebugMode_; }
         uint64_t ID() const { return ID_; }
+		static bool SetSubsystemLogLevel(const std::string & SubSystem, const std::string & Level);
 
     private:
         bool                        helpRequested_ = false;

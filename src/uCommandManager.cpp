@@ -52,19 +52,19 @@ namespace uCentral::CommandManager {
     }
 
     int Service::Start() {
-        Logger_.information("Starting...");
+        Logger_.notice("Starting...");
         ManagerThread.start(Manager_);
         return 0;
     }
 
     void Service::Stop() {
-        Logger_.information("Stopping...");
+        Logger_.notice("Stopping...");
         Manager_.stop();
         ManagerThread.join();
     }
 
     void Service::WakeUp() {
-        Logger_.information("Waking up..");
+        Logger_.notice("Waking up..");
         ManagerThread.wakeUp();
     }
 

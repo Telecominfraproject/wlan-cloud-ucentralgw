@@ -65,6 +65,7 @@ namespace uCentral::Auth {
     }
 
     int Service::Start() {
+		Logger_.notice("Starting...");
         Secure_ = uCentral::ServiceConfig::getBool(SubSystemConfigPrefix_+".enabled",true);
         DefaultPassword_ = uCentral::ServiceConfig::getString(SubSystemConfigPrefix_+".default.password","");
         DefaultUserName_ = uCentral::ServiceConfig::getString(SubSystemConfigPrefix_+".default.username","");
@@ -73,7 +74,7 @@ namespace uCentral::Auth {
     }
 
     void Service::Stop() {
-
+		Logger_.notice("Stopping...");
     }
 
     bool Service::IsAuthorized(Poco::Net::HTTPServerRequest & Request, std::string & SessionToken, std::string & UserName )

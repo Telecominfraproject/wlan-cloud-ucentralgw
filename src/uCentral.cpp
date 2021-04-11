@@ -27,6 +27,8 @@
 #include "uCentralConfig.h"
 #include "CommandChannel.h"
 
+#include <boost/algorithm/string.hpp>
+
 namespace uCentral {
 
     Daemon * instance() { return dynamic_cast<Daemon *>(&uCentral::Daemon::instance()); }
@@ -207,6 +209,41 @@ namespace uCentral {
     std::string Daemon::CreateUUID() {
         return UUIDGenerator_.create().toString();
     }
+
+	bool Daemon::SetSubsystemLogLevel(const std::string &SubSystem, const std::string &Level) {
+		try {
+			auto P = Poco::Logger::parseLevel(Level);
+			auto Sub = boost::algorithm::to_lower_copy(SubSystem);
+			if (Sub == "ufileuploader")
+				uCentral::uFileUploader::Service().Logger().setLevel(P);
+			else if (Sub == "websocket")
+				uCentral::WebSocket::Service().Logger().setLevel(P);
+			else if (Sub == "storage")
+				uCentral::Storage::Service().Logger().setLevel(P);
+			else if (Sub == "restapi")
+				uCentral::RESTAPI::Service().Logger().setLevel(P);
+			else if (Sub == "commandmanager")
+				uCentral::CommandManager::Service().Logger().setLevel(P);
+			else if (Sub == "auth")
+				uCentral::Auth::Service().Logger().setLevel(P);
+			else if (Sub == "deviceregistry")
+				uCentral::DeviceRegistry::Service().Logger().setLevel(P);
+			else if (Sub == "all") {
+				uCentral::Auth::Service().Logger().setLevel(P);
+				uCentral::uFileUploader::Service().Logger().setLevel(P);
+				uCentral::WebSocket::Service().Logger().setLevel(P);
+				uCentral::Storage::Service().Logger().setLevel(P);
+				uCentral::RESTAPI::Service().Logger().setLevel(P);
+				uCentral::CommandManager::Service().Logger().setLevel(P);
+				uCentral::DeviceRegistry::Service().Logger().setLevel(P);
+			} else
+				return false;
+			return true;
+		} catch (const Poco::Exception & E) {
+
+		}
+		return false;
+	}
 
     int Daemon::main(const ArgVec &args) {
 

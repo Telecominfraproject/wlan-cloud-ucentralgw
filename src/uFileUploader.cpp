@@ -64,7 +64,7 @@ namespace uCentral::uFileUploader {
     static const std::string URIBASE{"/v1/upload/"};
 
     int Service::Start() {
-        Logger_.information("Starting.");
+        Logger_.notice("Starting.");
 
         for(const auto & Svr: ConfigServersList_) {
             std::string l{"Starting: " +
@@ -286,7 +286,7 @@ namespace uCentral::uFileUploader {
     }
 
     void Service::Stop() {
-        Logger_.information("Stopping ");
+        Logger_.notice("Stopping ");
         for( const auto & svr : Servers_ )
             svr->stop();
     }

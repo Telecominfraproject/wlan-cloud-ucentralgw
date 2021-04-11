@@ -115,8 +115,6 @@ namespace uCentral::WebSocket {
                 }
             }
 
-            // std::cout << "Currently " << TotalSockets << " sockets." << std::endl;
-
             Tmp->first->Get();
 
             return Tmp->first;

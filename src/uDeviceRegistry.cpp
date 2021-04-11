@@ -57,13 +57,13 @@ namespace uCentral::DeviceRegistry {
 
     int Service::Start() {
         std::lock_guard<std::mutex> guard(mutex_);
-        Logger_.information("Starting ");
+        Logger_.notice("Starting ");
         return 0;
     }
 
     void Service::Stop() {
         std::lock_guard<std::mutex> guard(mutex_);
-        Logger_.information("Stopping ");
+        Logger_.notice("Stopping ");
     }
 
     bool Service::GetStatistics(const std::string &SerialNumber, std::string & Statistics) {
