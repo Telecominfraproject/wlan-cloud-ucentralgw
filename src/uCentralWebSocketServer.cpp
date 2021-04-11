@@ -99,6 +99,7 @@ namespace uCentral::WebSocket {
         Response.setVersion(Request.getVersion());
         Response.setKeepAlive(Params->getKeepAlive() && Request.getKeepAlive() && Session.canKeepAlive());
         WS_ = std::make_unique<Poco::Net::WebSocket>(Request, Response);
+		WS_->peerAddress().toString();
         Register();
     }
 
@@ -295,6 +296,7 @@ namespace uCentral::WebSocket {
                 Conn_->UUID = UUID;
                 Conn_->Firmware = Firmware;
                 Conn_->PendingUUID = 0;
+				Conn_->Address = WS_->peerAddress().toString();
 
                 uCentral::Storage::UpdateDeviceCapabilities(SerialNumber_, Capabilities);
 
