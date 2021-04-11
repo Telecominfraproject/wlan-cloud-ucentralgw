@@ -25,6 +25,7 @@
 #include "base64util.h"
 #include "uFileUploader.h"
 #include "uCentralConfig.h"
+#include "CommandChannel.h"
 
 namespace uCentral {
 
@@ -80,6 +81,7 @@ namespace uCentral {
         addSubsystem(uCentral::WebSocket::Service::instance());
         addSubsystem(uCentral::CommandManager::Service::instance());
         addSubsystem(uCentral::uFileUploader::Service::instance());
+		addSubsystem(uCentral::CommandChannel::Service::instance());
 
         ServerApplication::initialize(self);
 
@@ -224,6 +226,7 @@ namespace uCentral {
             uCentral::WebSocket::Start();
             uCentral::CommandManager::Start();
             uCentral::uFileUploader::Start();
+			uCentral::CommandChannel::Start();
 
 
 #ifndef SMALL_BUILD
@@ -235,6 +238,7 @@ namespace uCentral {
             uCentral::TIPGW::Stop();
 #endif
 
+			uCentral::CommandChannel::Stop();
             uCentral::uFileUploader::Stop();
             uCentral::CommandManager::Stop();
             uCentral::WebSocket::Stop();
@@ -251,7 +255,7 @@ namespace uCentral {
     namespace ServiceConfig {
 
         uint64_t getInt(const std::string &Key,uint64_t Default) {
-            return uCentral::Daemon::instance().config().getInt(Key,Default);
+            return uCentral::Daemon::instance().config().getInt64(Key,Default);
         }
 
         uint64_t getInt(const std::string &Key) {

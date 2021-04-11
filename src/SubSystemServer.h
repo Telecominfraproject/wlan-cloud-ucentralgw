@@ -59,9 +59,10 @@ public:
     const char *name() const override { return Name_.c_str(); };
     const PropertiesFileServerEntry & host(int index) { return ConfigServersList_[index]; };
     Poco::Logger                  & Logger() { return Logger_;};
+	void SetLoggingLevel(Poco::Message::Priority NewPriority) { Logger_.setLevel(NewPriority); }
 
 protected:
-    Poco::Logger            &Logger_;
+    Poco::Logger            & Logger_;
     std::string             Name_;
     std::vector<PropertiesFileServerEntry> ConfigServersList_;
     std::string             SubSystemConfigPrefix_;
