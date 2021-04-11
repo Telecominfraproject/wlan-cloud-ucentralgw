@@ -509,6 +509,36 @@ components:
         serialNumber:
           type: string
 
+    SystemCommandDetails:
+      type: object
+      properties:
+        command:
+          type: string
+          enum:
+            - setloglevel
+            - getloglevel
+            - stats
+        parameters:
+          type: array
+          items:
+            properties:
+              name:
+                type: string
+              value:
+                type: string
+
+    SystemsCommandResults:
+      type: object
+      properties:
+        command:
+          type: string
+        result:
+          type: integer
+        resultTxt:
+          type: array
+          items:
+            type: string
+
 paths:
   /oauth2:
     post:
@@ -555,6 +585,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/GenericGoodAnswer'
+        403:
+          $ref: '#/components/responses/Unauthorized'
         404:
           $ref: '#/components/responses/NotFound'
 
@@ -593,6 +625,8 @@ paths:
                 $ref: '#/components/schemas/DeviceList'
         403:
           $ref: '#/components/responses/Unauthorized'
+        404:
+          $ref: '#/components/responses/NotFound'
 
   /commands:
     get:
@@ -639,6 +673,8 @@ paths:
                 $ref: '#/components/schemas/CommandInfoList'
         403:
           $ref: '#/components/responses/Unauthorized'
+        404:
+          $ref: '#/components/responses/NotFound'
 
     delete:
       tags:
@@ -670,11 +706,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/GenericGoodAnswer'
-        404:
-          $ref: '#/components/responses/Unauthorized'
         403:
+          $ref: '#/components/responses/Unauthorized'
+        404:
           $ref: '#/components/responses/NotFound'
-
 
   /command/{commandUUID}:
     get:
@@ -744,6 +779,8 @@ paths:
                 $ref: '#/components/schemas/DefaultConfigurationList'
         403:
           $ref: '#/components/responses/Unauthorized'
+        404:
+          $ref: '#/components/responses/NotFound'
 
   /default_configuration/{name}:
     get:
@@ -765,10 +802,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/DefaultConfiguration'
-        404:
-          $ref: '#/components/responses/NotFound'
         403:
           $ref: '#/components/responses/Unauthorized'
+        404:
+          $ref: '#/components/responses/NotFound'
 
     post:
       tags:
@@ -791,9 +828,10 @@ paths:
       responses:
         200:
           $ref: '#/components/responses/Success'
-
         403:
           $ref: '#/components/responses/Unauthorized'
+        404:
+          $ref: '#/components/responses/NotFound'
 
     delete:
       tags:
@@ -810,10 +848,10 @@ paths:
       responses:
         200:
           $ref: '#/components/responses/Success'
-        404:
-          $ref: '#/components/responses/NotFound'
         403:
           $ref: '#/components/responses/Unauthorized'
+        404:
+          $ref: '#/components/responses/NotFound'
 
     put:
       tags:
@@ -861,10 +899,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Device'
-        404:
-          $ref: '#/components/responses/NotFound'
         403:
           $ref: '#/components/responses/Unauthorized'
+        404:
+          $ref: '#/components/responses/NotFound'
 
     post:
       tags:
@@ -886,6 +924,8 @@ paths:
                 $ref: '#/components/schemas/Device'
         403:
           $ref: '#/components/responses/Unauthorized'
+        404:
+          $ref: '#/components/responses/NotFound'
 
     put:
       tags:
@@ -907,6 +947,8 @@ paths:
                 $ref: '#/components/schemas/Device'
         403:
           $ref: '#/components/responses/Unauthorized'
+        404:
+          $ref: '#/components/responses/NotFound'
 
     delete:
       tags:
@@ -922,10 +964,10 @@ paths:
       responses:
         200:
           $ref: '#/components/responses/Success'
-        404:
-          $ref: '#/components/responses/NotFound'
         403:
           $ref: '#/components/responses/Unauthorized'
+        404:
+          $ref: '#/components/responses/NotFound'
 
   /device/{serialNumber}/logs:
     get:
@@ -976,9 +1018,9 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/DeviceLogList'
-        404:
-          $ref: '#/components/responses/Unauthorized'
         403:
+          $ref: '#/components/responses/Unauthorized'
+        404:
           $ref: '#/components/responses/NotFound'
 
     delete:
@@ -1017,9 +1059,9 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/GenericGoodAnswer'
-        404:
-          $ref: '#/components/responses/Unauthorized'
         403:
+          $ref: '#/components/responses/Unauthorized'
+        404:
           $ref: '#/components/responses/NotFound'
 
   /device/{serialNumber}/healthchecks:
@@ -1065,9 +1107,9 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/HealthCheckList'
-        404:
-          $ref: '#/components/responses/Unauthorized'
         403:
+          $ref: '#/components/responses/Unauthorized'
+        404:
           $ref: '#/components/responses/NotFound'
 
     delete:
@@ -1100,9 +1142,9 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/GenericGoodAnswer'
-        404:
-          $ref: '#/components/responses/Unauthorized'
         403:
+          $ref: '#/components/responses/Unauthorized'
+        404:
           $ref: '#/components/responses/NotFound'
 
   /device/{serialNumber}/capabilities:
@@ -1124,10 +1166,11 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/DeviceCapabilities'
-        404:
-          $ref: '#/components/responses/Unauthorized'
         403:
+          $ref: '#/components/responses/Unauthorized'
+        404:
           $ref: '#/components/responses/NotFound'
+
     delete:
       tags:
         - Commands
@@ -1146,11 +1189,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/GenericGoodAnswer'
-        404:
-          $ref: '#/components/responses/Unauthorized'
         403:
+          $ref: '#/components/responses/Unauthorized'
+        404:
           $ref: '#/components/responses/NotFound'
-
 
   /device/{serialNumber}/statistics:
     get:
@@ -1195,9 +1237,9 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/StatisticsRecords'
-        404:
-          $ref: '#/components/responses/Unauthorized'
         403:
+          $ref: '#/components/responses/Unauthorized'
+        404:
           $ref: '#/components/responses/NotFound'
 
     delete:
@@ -1230,9 +1272,9 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/GenericGoodAnswer'
-        404:
-          $ref: '#/components/responses/Unauthorized'
         403:
+          $ref: '#/components/responses/Unauthorized'
+        404:
           $ref: '#/components/responses/NotFound'
 
   /device/{serialNumber}/status:
@@ -1254,11 +1296,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/DeviceStatus'
-        404:
-          $ref: '#/components/responses/Unauthorized'
         403:
+          $ref: '#/components/responses/Unauthorized'
+        404:
           $ref: '#/components/responses/NotFound'
-
 
   /device/{serialNumber}/command:
     post:
@@ -1523,4 +1564,26 @@ paths:
         404:
           $ref: '#/components/responses/NotFound'
 
-
+  /system:
+    post:
+      tags:
+        - System Commands
+      summary: Perform some systeme wide commands
+      operationId: systemCommand
+      requestBody:
+        description: Command details
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SystemCommandDetails'
+      responses:
+        200:
+          description: Successfull command execution
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SystemCommandResults'
+        403:
+          $ref: '#/components/responses/Unauthorized'
+        404:
+          $ref: '#/components/responses/NotFound'
