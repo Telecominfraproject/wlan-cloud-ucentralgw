@@ -11,11 +11,11 @@ else
   serial=$1
 fi
 
-blink_cmd="{ \"serialNumber\" : \"$serial\" , \"duration\" : 10 }"
+leds_cmd="{ \"serialNumber\" : \"$serial\" , \"duration\" : 10, \"pattern\" : \"blink\" }"
 
 webtoken=`./login.sh | jq -r '.access_token'`
 
-curl -X POST "https://localhost:16001/api/v1/device/$serial/blink" \
+curl -X POST "https://localhost:16001/api/v1/device/$serial/leds" \
       -H  "accept: application/json" \
       -H "Authorization: Bearer $webtoken" \
-      --insecure -d "$blink_cmd"
+      --insecure -d "$leds_cmd"
