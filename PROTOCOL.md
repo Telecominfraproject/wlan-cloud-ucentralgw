@@ -287,11 +287,12 @@ The device should answer:
 Controller sends this command when it wants the device to flash its LEDs.
 ```
 {    "jsonrpc" : "2.0" , 
-     "method" : "blink" , 
+     "method" : "leds" , 
      "params" : {
         "serial" : <serial number> ,
         "when" : Optional - <UTC time when to upgrade the firmware, 0 mean immediate, this is a suggestion>,
-        "duration" : number in milliseconds
+        "duration" : number in milliseconds (only applies to the "blink" pattern)
+        "pattern" : One of "on", "off", or "blink"
      },
      "id" : <some number>
 }

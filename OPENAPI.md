@@ -35,7 +35,7 @@ a specific device. Here are some commands supported for each device:
 - `configure`: Configure sends a new configuration to a device. 
 - `factory`: Forces the device to perform a factory-reset.
 - `upgrade`: Forces the device to do a firmware upgrade.
-- `blink`: Ask the device to flash its LEDs so it may be visually recognised.
+- `leds`: Ask the device to flash its LEDs or turn them on or off.
 - `trace`: Performs a remove LAN trace. Once the trace is completed, the produced file may be removed using the `file` endpoint.
 - `command`: Performs a proprietary command. The meaning depends on the device. 
 - `request`: Request an immediate message of type `state` or `healthcheck`.

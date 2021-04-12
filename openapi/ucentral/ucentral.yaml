@@ -403,7 +403,7 @@ components:
         keepRedirector:
           type: boolean
 
-    BlinkRequest:
+    LEDsRequest:
       type: object
       properties:
         serialNumber:
@@ -412,8 +412,15 @@ components:
           type: string
           format: 'date-time'
         duration:
+          description: only applies to the blink pattern
           type: integer
           format: int64
+        pattern:
+          type: string
+          enum:
+            - on
+            - off
+            - blink
 
     MessageRequest:
       type: object
@@ -1435,12 +1442,12 @@ paths:
         404:
           $ref: '#/components/responses/NotFound'
 
-  /device/{serialNumber}/blink:
+  /device/{serialNumber}/leds:
     post:
       tags:
         - Commands
       summary: Blink the LEDs on a device
-      operationId: blinkRequest
+      operationId: ledsRequest
       parameters:
         - in: path
           name: serialNumber
@@ -1452,7 +1459,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/BlinkRequest'
+              $ref: '#/components/schemas/LEDsRequest'
       responses:
         200:
           $ref: '#/components/responses/CommandSubmitSuccess'
@@ -1465,8 +1472,8 @@ paths:
     post:
       tags:
         - Commands
-      summary: Blink the LEDs on a device
-      operationId: blinkRequest
+      summary: Launch a trace for a device
+      operationId: traceRequest
       parameters:
         - in: path
           name: serialNumber

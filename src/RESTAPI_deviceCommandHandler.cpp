@@ -59,8 +59,8 @@ void RESTAPI_deviceCommandHandler::handleRequest(Poco::Net::HTTPServerRequest& R
             Reboot(Request, Response);
         } else if (Command == "factory" && Request.getMethod() == Poco::Net::HTTPServerRequest::HTTP_POST) {
             Factory(Request, Response);
-        } else if (Command == "blink" && Request.getMethod() == Poco::Net::HTTPServerRequest::HTTP_POST) {
-            Blink(Request, Response);
+        } else if (Command == "leds" && Request.getMethod() == Poco::Net::HTTPServerRequest::HTTP_POST) {
+            LEDs(Request, Response);
         } else if (Command == "trace" && Request.getMethod() == Poco::Net::HTTPServerRequest::HTTP_POST) {
             Trace(Request, Response);
 		} else if (Command == "request" && Request.getMethod() == Poco::Net::HTTPServerRequest::HTTP_POST) {
@@ -704,7 +704,7 @@ void RESTAPI_deviceCommandHandler::Factory(Poco::Net::HTTPServerRequest &Request
     BadRequest(Response);
 }
 
-void RESTAPI_deviceCommandHandler::Blink(Poco::Net::HTTPServerRequest &Request, Poco::Net::HTTPServerResponse &Response) {
+void RESTAPI_deviceCommandHandler::LEDs(Poco::Net::HTTPServerRequest &Request, Poco::Net::HTTPServerResponse &Response) {
     try {
         auto SNum = GetBinding("serialNumber", "");
 
@@ -713,7 +713,7 @@ void RESTAPI_deviceCommandHandler::Blink(Poco::Net::HTTPServerRequest &Request, 
         Poco::JSON::Object::Ptr Obj = parser.parse(Request.stream()).extract<Poco::JSON::Object::Ptr>();
         Poco::DynamicStruct ds = *Obj;
 
-        if (ds.contains("duration") &&
+        if (ds.contains("pattern") &&
             ds.contains("serialNumber")) {
 
             auto SerialNumber = ds["serialNumber"].toString();
@@ -723,7 +723,16 @@ void RESTAPI_deviceCommandHandler::Blink(Poco::Net::HTTPServerRequest &Request, 
                 return;
             }
 
-            auto Duration = ds["duration"];
+			auto Pattern = ds["pattern"].toString();
+
+			if(Pattern!="on" && Pattern!="off" && Pattern!="blink")
+			{
+				Logger_.warning(Poco::format("LEDs(%s): Bad pattern",SerialNumber));
+				BadRequest(Response);
+				return;
+			}
+
+			auto Duration = ds.contains("duration") ? (uint64_t ) ds["duration"] : 20 ;
 
             uint64_t When = 0 ;
             if(ds.contains("when"))
@@ -734,16 +743,17 @@ void RESTAPI_deviceCommandHandler::Blink(Poco::Net::HTTPServerRequest &Request, 
             Cmd.SerialNumber = SerialNumber;
             Cmd.UUID = uCentral::instance()->CreateUUID();
             Cmd.SubmittedBy = UserName_;
-            Cmd.Command = "blink";
+            Cmd.Command = "leds";
             Cmd.Custom = 0;
             Cmd.RunAt = When;
             Cmd.WaitingForFile = 0;
 
             Poco::JSON::Object  Params;
 
-            Params.set( "serial" , SerialNumber );
-            Params.set( "duration", Duration);
-            Params.set( "when", When);
+            Params.set("serial" , SerialNumber );
+            Params.set("duration", Duration);
+            Params.set("when", When);
+			Params.set("pattern",Pattern);
 
             std::stringstream ParamStream;
             Params.stringify(ParamStream);

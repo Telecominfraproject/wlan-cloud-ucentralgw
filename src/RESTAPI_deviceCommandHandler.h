@@ -33,7 +33,7 @@ public:
     void Upgrade(Poco::Net::HTTPServerRequest& Request, Poco::Net::HTTPServerResponse& Response);
     void Reboot(Poco::Net::HTTPServerRequest& Request, Poco::Net::HTTPServerResponse& Response);
     void Factory(Poco::Net::HTTPServerRequest &Request, Poco::Net::HTTPServerResponse &Response);
-    void Blink(Poco::Net::HTTPServerRequest &Request, Poco::Net::HTTPServerResponse &Response);
+    void LEDs(Poco::Net::HTTPServerRequest &Request, Poco::Net::HTTPServerResponse &Response);
     void Trace(Poco::Net::HTTPServerRequest &Request, Poco::Net::HTTPServerResponse &Response);
 	void MakeRequest(Poco::Net::HTTPServerRequest &Request, Poco::Net::HTTPServerResponse &Response);
 };
