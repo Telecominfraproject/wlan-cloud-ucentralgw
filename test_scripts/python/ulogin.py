@@ -151,6 +151,7 @@ def cfg_device(args):
   "UUID": 0,
   "configuration":
 {
+ "uuid": 1,
  "stats": {
   "interval": 10,
   "neighbours": 1,
@@ -265,7 +266,7 @@ def cfg_device(args):
 
     basic_cfg_str = json.dumps(basic_cfg)
 
-    uri = build_uri("api/v1/device/" + args.serno)
+    uri = build_uri("api/v1/device/" + args.serno + "/configure")
     resp = requests.post(uri, data=basic_cfg_str, headers=make_headers(), verify=False)
     check_response("POST", resp, make_headers(), basic_cfg_str, uri)
     pprint(resp)
