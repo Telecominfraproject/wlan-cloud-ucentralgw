@@ -99,4 +99,12 @@ struct uCentralCommandDetails {
     [[nodiscard]] Poco::JSON::Object to_json() const;
 };
 
+struct uCentralBlackListedDevice {
+	std::string 	SerialNumber;
+	std::string 	Reason;
+	std::string 	Author;
+	uint64_t 		Created;
+	[[nodiscard]] Poco::JSON::Object to_json() const;
+};
+
 #endif //UCENTRAL_RESTAPI_OBJECTS_H

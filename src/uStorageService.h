@@ -71,6 +71,11 @@ namespace uCentral::Storage {
     bool CommandCompleted(std::string & UUID, Poco::DynamicStruct ReturnVars);
     bool AttachFileToCommand(std::string & UUID);
 
+	bool AddBlackListDevices(const std::vector<uCentralBlackListedDevice> &  Devices);
+	bool DeleteBlackListDevices(const std::string & SerialNumber);
+	bool GetBlackListDevices(uint64_t Offset, uint64_t HowMany, std::vector<uCentralBlackListedDevice> & Devices );
+	bool IsBlackListed(const std::string & SerialNumber);
+
     std::string SerialToMAC(const std::string & Serial);
 
     class Service : public SubSystemServer {
@@ -138,7 +143,12 @@ namespace uCentral::Storage {
         friend bool CommandCompleted(std::string & UUID, Poco::DynamicStruct ReturnVars);
         friend bool AttachFileToCommand(std::string & UUID);
 
-    private:
+		friend bool AddBlackListDevices(const std::vector<uCentralBlackListedDevice> &  Devices);
+		friend bool DeleteBlackListDevices(const std::string & SerialNumber);
+		friend bool GetBlackListDevices(uint64_t Offset, uint64_t HowMany, std::vector<uCentralBlackListedDevice> & Devices );
+		friend bool IsBlackListed(const std::string & SerialNumber);
+
+	  private:
         bool AddLog(std::string & SerialNumber, uCentralDeviceLog & Log, bool CrashLog );
         bool AddLog(std::string & SerialNumber, const std::string & Log );
         bool AddStatisticsData(std::string &SerialNumber, uint64_t CfgUUID, std::string &NewStats);
@@ -192,6 +202,11 @@ namespace uCentral::Storage {
         bool CommandExecuted(std::string & UUID);
         bool CommandCompleted(std::string & UUID, Poco::DynamicStruct ReturnVars);
         bool AttachFileToCommand(std::string & UUID);
+
+		bool AddBlackListDevices(const std::vector<uCentralBlackListedDevice> &  Devices);
+		bool DeleteBlackListDevices(const std::string & SerialNumber);
+		bool IsBlackListed(const std::string & SerialNumber);
+		bool GetBlackListDevices(uint64_t Offset, uint64_t HowMany, std::vector<uCentralBlackListedDevice> & Devices );
 
         int Start() override;
         void Stop() override;

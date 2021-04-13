@@ -16,6 +16,7 @@
 #include "RESTAPI_command.h"
 #include "RESTAPI_file.h"
 #include "RESTAPI_SystemCommand.h"
+#include "RESTAPI_BlackList.h"
 
 #include "RESTAPI_unknownRequestHandler.h"
 
@@ -95,6 +96,8 @@ namespace uCentral::RESTAPI {
             return new RESTAPI_file(bindings, Logger_);
 		} else if (RESTAPIHandler::ParseBindings(path, "/api/v1/system", bindings)) {
 			return new RESTAPI_SystemCommand(bindings, Logger_);
+		} else if (RESTAPIHandler::ParseBindings(path, "/api/v1/blacklist", bindings)) {
+			return new RESTAPI_BlackList(bindings, Logger_);
 		}
 
         return new RESTAPI_UnknownRequestHandler(bindings,Logger_);

@@ -29,7 +29,7 @@
               value:
                 type: string
 
-    SystemsCommandResults:
+    SystemCommandResults:
       type: object
       properties:
         command:

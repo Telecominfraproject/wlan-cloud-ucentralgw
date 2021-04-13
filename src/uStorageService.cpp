@@ -237,6 +237,22 @@ namespace uCentral::Storage {
         return uCentral::Storage::Service::instance()->AttachFileToCommand(UUID);
     }
 
+	bool AddBlackListDevices(const std::vector<uCentralBlackListedDevice> &  Devices) {
+		return uCentral::Storage::Service::instance()->AddBlackListDevices(Devices);
+	}
+
+	bool DeleteBlackListDevices(const std::string & SerialNumber) {
+		return uCentral::Storage::Service::instance()->DeleteBlackListDevices(SerialNumber);
+	}
+
+	bool GetBlackListDevices(uint64_t Offset, uint64_t HowMany, std::vector<uCentralBlackListedDevice> & Devices ) {
+		return uCentral::Storage::Service::instance()->GetBlackListDevices(Offset, HowMany, Devices );
+	}
+
+	bool IsBlackListed(const std::string &SerialNumber) {
+		return uCentral::Storage::Service::instance()->IsBlackListed(SerialNumber);
+	}
+
 	inline void padTo(std::string& str, size_t num, char paddingChar = '\0') {
 		str.append(num - str.length() % num, paddingChar);
 	}
@@ -353,6 +369,13 @@ namespace uCentral::Storage {
 
         Sess << "CREATE INDEX IF NOT EXISTS CommandListIndex ON CommandList (SerialNumber ASC, Submitted ASC)", Poco::Data::Keywords::now;
 
+		Sess << "CREATE TABLE IF NOT EXISTS BlackList ("
+				"SerialNumber	VARCHAR(30) PRIMARY KEY, "
+				"Reason			TEXT, "
+				"Created		BIGINT, "
+				"Author			VARCHAR(64)"
+				")", Poco::Data::Keywords::now;
+
         return 0;
     }
 
@@ -458,7 +481,14 @@ namespace uCentral::Storage {
                     "INDEX CommandListIndex (SerialNumber ASC, Submitted ASC)"
                     ")", Poco::Data::Keywords::now;
 
-        return 0;
+		Sess << "CREATE TABLE IF NOT EXISTS BlackList ("
+					"SerialNumber	VARCHAR(30) PRIMARY KEY, "
+					"Reason			TEXT, "
+					"Created		BIGINT, "
+					"Author			VARCHAR(64)"
+					")", Poco::Data::Keywords::now;
+
+		return 0;
     }
 
     int Service::Setup_PostgreSQL() {
@@ -566,6 +596,13 @@ namespace uCentral::Storage {
                     ")", Poco::Data::Keywords::now;
 
         Sess << "CREATE INDEX IF NOT EXISTS CommandListIndex ON CommandList (SerialNumber ASC, Submitted ASC)", Poco::Data::Keywords::now;
+
+		Sess << "CREATE TABLE IF NOT EXISTS BlackList ("
+					"SerialNumber	VARCHAR(30) PRIMARY KEY, "
+					"Reason			TEXT, "
+					"Created		BIGINT, "
+					"Author			VARCHAR(64)"
+					")", Poco::Data::Keywords::now;
 
         return 0;
     }
@@ -2044,37 +2081,45 @@ namespace uCentral::Storage {
 
             Poco::Data::Session     Sess = Pool_->get();
             Poco::Data::Statement   Select(Sess);
+			bool Done = false;
 
-            // range(Offset, Offset + HowMany - 1)
-            Select
-                    << "SELECT UUID, SerialNumber, Command, Status, SubmittedBy, Results, Details, ErrorText,"
-                       "Submitted, Executed, Completed, RunAt, ErrorCode, Custom, WaitingForFile, AttachDate FROM CommandList "
-                       " WHERE Executed=0",
-                    Poco::Data::Keywords::into(Records),
-                    Poco::Data::Keywords::range(Offset, Offset + HowMany - 1);
-            Select.execute();
+			while(Commands.size()<HowMany && !Done) {
+				// range(Offset, Offset + HowMany - 1)
+				Select << "SELECT UUID, SerialNumber, Command, Status, SubmittedBy, Results, Details, ErrorText,"
+						  "Submitted, Executed, Completed, RunAt, ErrorCode, Custom, WaitingForFile, AttachDate FROM CommandList "
+						  " WHERE Executed=0",
+					Poco::Data::Keywords::into(Records),
+					Poco::Data::Keywords::range(Offset, Offset + HowMany - 1);
+				Select.execute();
 
-            for (auto i: Records) {
-                uCentralCommandDetails R{
-                        .UUID = i.get<0>(),
-                        .SerialNumber = i.get<1>(),
-                        .Command = i.get<2>(),
-                        .Status = i.get<3>(),
-                        .SubmittedBy = i.get<4>(),
-                        .Results = i.get<5>(),
-                        .Details = i.get<6>(),
-                        .ErrorText = i.get<7>(),
-                        .Submitted = i.get<8>(),
-                        .Executed = i.get<9>(),
-                        .Completed = i.get<10>(),
-                        .RunAt = i.get<11>(),
-                        .ErrorCode = i.get<12>(),
-                        .Custom = i.get<13>(),
-                        .WaitingForFile = i.get<14>(),
-                        .AttachDate = i.get<15>() };
+				for (auto i : Records) {
+					Offset++;
+					uCentralCommandDetails R{.UUID = i.get<0>(),
+											 .SerialNumber = i.get<1>(),
+											 .Command = i.get<2>(),
+											 .Status = i.get<3>(),
+											 .SubmittedBy = i.get<4>(),
+											 .Results = i.get<5>(),
+											 .Details = i.get<6>(),
+											 .ErrorText = i.get<7>(),
+											 .Submitted = i.get<8>(),
+											 .Executed = i.get<9>(),
+											 .Completed = i.get<10>(),
+											 .RunAt = i.get<11>(),
+											 .ErrorCode = i.get<12>(),
+											 .Custom = i.get<13>(),
+											 .WaitingForFile = i.get<14>(),
+											 .AttachDate = i.get<15>()};
 
-                Commands.push_back(R);
-            }
+					//	Only return rhe commands for our own devices.
+					if (uCentral::DeviceRegistry::Connected(R.SerialNumber))
+						Commands.push_back(R);
+				}
+
+				//	If we could not return enough commands, we are done.
+				if(Records.size() < HowMany)
+					Done = true;
+			}
 
             return true;
         }
@@ -2344,6 +2389,107 @@ namespace uCentral::Storage {
         }
         return false;
     }
+
+	/*
+		Sess << "CREATE TABLE IF NOT EXISTS BlackList ("
+					"SerialNumber	VARCHAR(30) PRIMARY KEY, "
+					"Reason			TEXT, "
+					"Created		BIGINT, "
+					"Author			VARCHAR(64)"
+					")", Poco::Data::Keywords::now;
+	 */
+
+	bool Service::AddBlackListDevices(const std::vector<uCentralBlackListedDevice> &  Devices) {
+		try {
+
+			Poco::Data::Session Sess = Pool_->get();
+			Poco::Data::Statement Insert(Sess);
+
+			for(const auto &i:Devices) {
+				Insert << "INSERT INTO BlackList (SerialNumber, Reason, Author, Created) VALUES "
+						  "('%s', '%s', '%s', %Lu)",
+					i.SerialNumber,
+					SQLEscapeStr(i.Reason),
+					SQLEscapeStr(i.Author),
+					i.Created ;
+				Insert.execute();
+			}
+			return true;
+		} catch ( const Poco::Exception & E) {
+			Logger_.log(E);
+		}
+		return false;
+	}
+
+	bool Service::DeleteBlackListDevices(const std::string & SerialNumber)  {
+		try {
+			Poco::Data::Session Sess = Pool_->get();
+			Poco::Data::Statement Delete(Sess);
+
+			Delete << "DELETE FROM BlackList WHERE SerialNumber='%s'", SerialNumber;
+			Delete.execute();
+
+			return true;
+		} catch ( const Poco::Exception &E) {
+			Logger_.log(E);
+		}
+		return false;
+	}
+
+	bool Service::GetBlackListDevices(uint64_t Offset, uint64_t HowMany, std::vector<uCentralBlackListedDevice> & Devices )  {
+		try {
+			using tuple_list = Poco::Tuple<
+									std::string,
+									std::string,
+									std::string,
+									uint64_t>;
+			using record_list = std::vector<tuple_list>;
+
+			record_list Records;
+
+			Poco::Data::Session 	Sess = Pool_->get();
+			Poco::Data::Statement	Select(Sess);
+
+			Select << "SELECT SerialNumber, Reason, Author, Created FROM BlackList" ,
+				Poco::Data::Keywords::into(Records),
+				Poco::Data::Keywords::range(Offset, Offset + HowMany - 1);
+			Select.execute();
+
+			for (auto i: Records) {
+				uCentralBlackListedDevice R{
+					.SerialNumber = i.get<0>(),
+					.Reason = i.get<1>(),
+					.Author = i.get<2>(),
+					.Created = i.get<3>()};
+				Devices.push_back(R);
+			}
+			return true;
+		} catch (const Poco::Exception &E) {
+			Logger_.log(E);
+		}
+		return false;
+	}
+
+	bool Service::IsBlackListed(const std::string & SerialNumber) {
+		try {
+			Poco::Data::Session 	Sess = Pool_->get();
+			Poco::Data::Statement	Select(Sess);
+
+			std::string TmpSerialNumber;
+			Select << "SELECT SerialNumber FROM BlackList WHERE SerialNumber='%s'" ,
+				Poco::Data::Keywords::into(TmpSerialNumber),
+				SerialNumber ;
+			Select.execute();
+
+			return !TmpSerialNumber.empty();
+
+		} catch (const Poco::Exception &E) {
+			Logger_.log(E);
+		}
+		return false;
+	}
+
+
 };
 
 // namespace

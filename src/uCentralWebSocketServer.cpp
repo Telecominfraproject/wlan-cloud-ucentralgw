@@ -279,6 +279,13 @@ namespace uCentral::WebSocket {
         }
         auto Serial = ParamsObj["serial"].toString();
 
+		if(uCentral::Storage::IsBlackListed(Serial)) {
+			std::string Msg;
+			Msg = "Device " + Serial + " is Blacklisted and not allowed on this controller.";
+			Poco::Exception	E(Msg, 13);
+			E.rethrow();
+		}
+
         if (!Poco::icompare(Method, "connect")) {
             if( ParamsObj.contains("uuid") &&
                 ParamsObj.contains("firmware") &&

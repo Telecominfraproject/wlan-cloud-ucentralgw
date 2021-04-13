@@ -157,3 +157,12 @@ bool uCentralDefaultConfiguration::from_json(Poco::JSON::Object::Ptr Obj) {
 
     return false;
 };
+
+Poco::JSON::Object uCentralBlackListedDevice::to_json() const {
+	Poco::JSON::Object  Obj;
+	Obj.set("serialNumber",SerialNumber);
+	Obj.set("author",Author);
+	Obj.set("reason",Reason);
+	Obj.set("created",RESTAPIHandler::to_RFC3339(Created));
+	return Obj;
+};

@@ -25,6 +25,8 @@ find_package(Boost REQUIRED system)
 find_package(OpenSSL REQUIRED)
 find_package(yaml-cpp REQUIRED)
 find_package(ZLIB REQUIRED)
+find_package(Lua REQUIRED)
+
 if(NOT SMALL_BUILD)
 find_package(PostgreSQL REQUIRED)
 find_package(MySQL REQUIRED)
@@ -52,7 +54,7 @@ add_executable( ucentralgw
                 src/RESTAPI_objects.h src/RESTAPI_objects.cpp src/uAuthService.cpp src/uAuthService.h src/uCentralConfig.cpp src/uCentralConfig.h
                 src/RESTAPI_default_configuration.cpp
                 src/RESTAPI_default_configuration.h src/RESTAPI_default_configurations.cpp src/RESTAPI_default_configurations.h src/RESTAPI_commands.cpp
-                src/RESTAPI_commands.h src/uCommandManager.cpp src/uCommandManager.h src/RESTAPI_command.cpp src/RESTAPI_command.h src/base64util.cpp src/base64util.h src/uFileUploader.cpp src/uFileUploader.h src/RESTAPI_file.cpp src/RESTAPI_file.h src/CommandChannel.cpp src/CommandChannel.h src/RESTAPI_SystemCommand.cpp src/RESTAPI_SystemCommand.h)
+                src/RESTAPI_commands.h src/uCommandManager.cpp src/uCommandManager.h src/RESTAPI_command.cpp src/RESTAPI_command.h src/base64util.cpp src/base64util.h src/uFileUploader.cpp src/uFileUploader.h src/RESTAPI_file.cpp src/RESTAPI_file.h src/CommandChannel.cpp src/CommandChannel.h src/RESTAPI_SystemCommand.cpp src/RESTAPI_SystemCommand.h src/RESTAPI_BlackList.cpp src/RESTAPI_BlackList.h)
 
 INSTALL(TARGETS ucentralgw
         RUNTIME DESTINATION /usr/bin
@@ -64,5 +66,5 @@ target_link_libraries(ucentralgw PRIVATE yaml-cpp
 else()
     target_link_libraries(ucentralgw PRIVATE yaml-cpp
             ${Poco_LIBRARIES} ${Boost_LIBRARIES} ${PostgreSQL_LIBRARIES}
-            ${MySQL_LIBRARIES} ${ODBC_LIBRARIES} ${ZLIB_LIBRARIES})
+            ${MySQL_LIBRARIES} ${ODBC_LIBRARIES} ${ZLIB_LIBRARIES} ${LUA_LIBRARIES})
 endif()
