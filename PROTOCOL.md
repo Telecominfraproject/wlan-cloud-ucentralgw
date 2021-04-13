@@ -1,6 +1,7 @@
 # The uCentral communication protocol
 In order to operate in a uCentral system, devices and services must operate using a specific protocol. This protocol describes 
-the interaction between the managed devices and the controller that manaages the devices.
+the interaction between the managed devices and the controller that manages the devices. This communictaion protocol
+uses the [WebSocket protocol](https://tools.ietf.org/html/rfc6455) on port 15002.
 
 ## The controller
 The controller is an application waiting for connection from devices on a given port. The controller waits for connections
