@@ -534,7 +534,7 @@ components:
               value:
                 type: string
 
-    SystemsCommandResults:
+    SystemCommandResults:
       type: object
       properties:
         command:
@@ -542,6 +542,37 @@ components:
         result:
           type: integer
         resultTxt:
+          type: array
+          items:
+            type: string
+
+    BlackDeviceInfo:
+      type: object
+      properties:
+        serialNumber:
+          type: string
+        created:
+          type: string
+          format: 'date-time'
+          readOnly: true
+        author:
+          type: string
+          readOnly: true
+        reason:
+          type: string
+
+    BlackDeviceList:
+      type: object
+      properties:
+        devices:
+          type: array
+          items:
+            $ref: '#/components/schemas/BlackDeviceInfo'
+
+    SerialNumberList:
+      type: object
+      properties:
+        serialNumbers:
           type: array
           items:
             type: string
@@ -643,34 +674,34 @@ paths:
       description: Get a list of commands.
       operationId: getCommandList
       parameters:
-      - in: path
-        name: serialNumber
-        schema:
-          type: string
-        required: false
-      - in: query
-        name: startDate
-        schema:
-          type: string
-          # format 2021-03-05T05:27:37Z
-          format: 'date-time'
-        required: false
-      - in: query
-        name: endDate
-        schema:
-          type: string
-          # format 2021-03-05T05:27:37Z
-          format: 'date-time'
-      - in: query
-        name: offset
-        schema:
-          type: integer
-          format: int64
-      - in: query
-        name: limit
-        schema:
-          type: integer
-          format: int64
+        - in: query
+          name: serialNumber
+          schema:
+            type: string
+          required: false
+        - in: query
+          name: startDate
+          schema:
+            type: string
+            # format 2021-03-05T05:27:37Z
+            format: 'date-time'
+          required: false
+        - in: query
+          name: endDate
+          schema:
+            type: string
+            # format 2021-03-05T05:27:37Z
+            format: 'date-time'
+        - in: query
+          name: offset
+          schema:
+            type: integer
+            format: int64
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            format: int64
       responses:
         200:
           description: List commands
@@ -689,7 +720,7 @@ paths:
       summary: Delete some commands
       operationId: deleteCommands
       parameters:
-        - in: path
+        - in: query
           name: serialNumber
           schema:
             type: string
@@ -727,7 +758,7 @@ paths:
       operationId: getACommandDetails
       parameters:
         - in: path
-          name: CommandUUID
+          name: commandUUID
           schema:
             type: string
             format: uuid
@@ -752,7 +783,7 @@ paths:
       operationId: deleteACommand
       parameters:
         - in: path
-          name: CommandUUID
+          name: commandUUID
           schema:
             type: string
             format: uuid
@@ -816,7 +847,7 @@ paths:
 
     post:
       tags:
-      - Configurations
+        - Configurations
       summary: Create a default configuration
       description: Create a default configuration
       operationId: createDefaultConfiguration
@@ -916,6 +947,12 @@ paths:
         - Devices
       summary: Creating a new device
       operationId: createNewDevice
+      parameters:
+        - in: path
+          name: serialNumber
+          schema:
+            type: string
+          required: true
       requestBody:
         description: Information used to create the new device
         content:
@@ -939,6 +976,12 @@ paths:
         - Devices
       summary: Updating a new device
       operationId: updateNewDevice
+      parameters:
+        - in: path
+          name: serialNumber
+          schema:
+            type: string
+          required: true
       requestBody:
         description: Information used to create the new device
         content:
@@ -1253,7 +1296,7 @@ paths:
       tags:
         - Commands
       summary: Get the latest statistics for a given device
-      operationId: getDeviceStats
+      operationId: deleteDeviceStats
       parameters:
         - in: path
           name: serialNumber
@@ -1330,7 +1373,7 @@ paths:
         200:
           $ref: '#/components/responses/CommandSubmitSuccess'
         403:
-            $ref: '#/components/responses/Unauthorized'
+          $ref: '#/components/responses/Unauthorized'
         404:
           $ref: '#/components/responses/NotFound'
 
@@ -1395,7 +1438,7 @@ paths:
       tags:
         - Commands
       summary: Upgrade a device
-      operationId: UpgradeDeviceFirmware
+      operationId: rebootDevice
       parameters:
         - in: path
           name: serialNumber
@@ -1590,6 +1633,83 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/SystemCommandResults'
+        403:
+          $ref: '#/components/responses/Unauthorized'
+        404:
+          $ref: '#/components/responses/NotFound'
+
+  /blacklist:
+    get:
+      tags:
+        - Blacklist
+      summary: Returns a list blacklisted devices.
+      description: Get a list of blacklisteddevices.
+      operationId: getBlacklistDeviceList
+      parameters:
+        - in: query
+          description: Pagination start (starts at 1. If not specified, 1 is assumed)
+          name: offset
+          schema:
+            type: integer
+          required: false
+        - in: query
+          description: Maximum number of entries to return (if absent, no limit is assumed)
+          name: limit
+          schema:
+            type: integer
+          required: false
+        - in: query
+          description: Filter the results
+          name: filter
+          schema:
+            type: string
+          required: false
+      responses:
+        200:
+          description: List blacklisted devices
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BlackDeviceList'
+        403:
+          $ref: '#/components/responses/Unauthorized'
+        404:
+          $ref: '#/components/responses/NotFound'
+
+    post:
+      tags:
+        - Blacklist
+      summary: Adds to the blacklist
+      operationId: addToBlackList
+      requestBody:
+        description: Add blacklisted devices
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BlackDeviceList'
+      responses:
+        200:
+          $ref: '#/components/schemas/GenericGoodAnswer'
+        403:
+          $ref: '#/components/responses/Unauthorized'
+        404:
+          $ref: '#/components/responses/NotFound'
+
+    delete:
+      tags:
+        - Blacklist
+      summary: Delete from the blacklist
+      operationId: deleteFromBlackList
+      parameters:
+        - in: query
+          description: Serial Number
+          name: serialNumber
+          schema:
+            type: string
+          required: true
+      responses:
+        200:
+          $ref: '#/components/schemas/GenericGoodAnswer'
         403:
           $ref: '#/components/responses/Unauthorized'
         404:
