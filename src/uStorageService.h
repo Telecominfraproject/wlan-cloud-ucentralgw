@@ -71,10 +71,10 @@ namespace uCentral::Storage {
     bool CommandCompleted(std::string & UUID, Poco::DynamicStruct ReturnVars);
     bool AttachFileToCommand(std::string & UUID);
 
-	bool AddBlackListDevices(const std::vector<uCentralBlackListedDevice> &  Devices);
-	bool DeleteBlackListDevices(const std::string & SerialNumber);
+	bool AddBlackListDevices(std::vector<uCentralBlackListedDevice> &  Devices);
+	bool DeleteBlackListDevice(std::string & SerialNumber);
 	bool GetBlackListDevices(uint64_t Offset, uint64_t HowMany, std::vector<uCentralBlackListedDevice> & Devices );
-	bool IsBlackListed(const std::string & SerialNumber);
+	bool IsBlackListed(std::string & SerialNumber);
 
     std::string SerialToMAC(const std::string & Serial);
 
@@ -143,10 +143,10 @@ namespace uCentral::Storage {
         friend bool CommandCompleted(std::string & UUID, Poco::DynamicStruct ReturnVars);
         friend bool AttachFileToCommand(std::string & UUID);
 
-		friend bool AddBlackListDevices(const std::vector<uCentralBlackListedDevice> &  Devices);
-		friend bool DeleteBlackListDevices(const std::string & SerialNumber);
+		friend bool AddBlackListDevices(std::vector<uCentralBlackListedDevice> &  Devices);
+		friend bool DeleteBlackListDevice(std::string & SerialNumber);
 		friend bool GetBlackListDevices(uint64_t Offset, uint64_t HowMany, std::vector<uCentralBlackListedDevice> & Devices );
-		friend bool IsBlackListed(const std::string & SerialNumber);
+		friend bool IsBlackListed(std::string & SerialNumber);
 
 	  private:
         bool AddLog(std::string & SerialNumber, uCentralDeviceLog & Log, bool CrashLog );
@@ -203,14 +203,16 @@ namespace uCentral::Storage {
         bool CommandCompleted(std::string & UUID, Poco::DynamicStruct ReturnVars);
         bool AttachFileToCommand(std::string & UUID);
 
-		bool AddBlackListDevices(const std::vector<uCentralBlackListedDevice> &  Devices);
-		bool DeleteBlackListDevices(const std::string & SerialNumber);
-		bool IsBlackListed(const std::string & SerialNumber);
+		bool AddBlackListDevices(std::vector<uCentralBlackListedDevice> &  Devices);
+		bool DeleteBlackListDevice(std::string & SerialNumber);
+		bool IsBlackListed(std::string & SerialNumber);
 		bool GetBlackListDevices(uint64_t Offset, uint64_t HowMany, std::vector<uCentralBlackListedDevice> & Devices );
 
         int Start() override;
         void Stop() override;
         int Setup_SQLite();
+		std::string MakeFieldList(int N) const;
+		std::string ConvertParams(const std::string &S) const;
 
 #ifndef SMALL_BUILD
         int Setup_MySQL();
@@ -220,6 +222,7 @@ namespace uCentral::Storage {
         std::mutex          mutex_;
         static Service      *instance_;
         std::unique_ptr<Poco::Data::SessionPool>            Pool_;
+		bool 				IsPSQL_ = false;
         std::unique_ptr<Poco::Data::SQLite::Connector>      SQLiteConn_;
 #ifndef SMALL_BUILD
         std::unique_ptr<Poco::Data::PostgreSQL::Connector>  PostgresConn_;

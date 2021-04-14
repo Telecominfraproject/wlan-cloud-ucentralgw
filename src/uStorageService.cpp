@@ -237,19 +237,19 @@ namespace uCentral::Storage {
         return uCentral::Storage::Service::instance()->AttachFileToCommand(UUID);
     }
 
-	bool AddBlackListDevices(const std::vector<uCentralBlackListedDevice> &  Devices) {
+	bool AddBlackListDevices(std::vector<uCentralBlackListedDevice> &  Devices) {
 		return uCentral::Storage::Service::instance()->AddBlackListDevices(Devices);
 	}
 
-	bool DeleteBlackListDevices(const std::string & SerialNumber) {
-		return uCentral::Storage::Service::instance()->DeleteBlackListDevices(SerialNumber);
+	bool DeleteBlackListDevice(std::string & SerialNumber) {
+		return uCentral::Storage::Service::instance()->DeleteBlackListDevice(SerialNumber);
 	}
 
 	bool GetBlackListDevices(uint64_t Offset, uint64_t HowMany, std::vector<uCentralBlackListedDevice> & Devices ) {
 		return uCentral::Storage::Service::instance()->GetBlackListDevices(Offset, HowMany, Devices );
 	}
 
-	bool IsBlackListed(const std::string &SerialNumber) {
+	bool IsBlackListed(std::string &SerialNumber) {
 		return uCentral::Storage::Service::instance()->IsBlackListed(SerialNumber);
 	}
 
@@ -376,6 +376,13 @@ namespace uCentral::Storage {
 				"Author			VARCHAR(64)"
 				")", Poco::Data::Keywords::now;
 
+		Sess << "CREATE TABLE IF NOT EXISTS FileUploads ("
+				"UUID			VARCHAR(64) PRIMARY KEY, "
+				"Type			VARCHAR(32), "
+				"Created 		BIGINT, "
+				"FileContent	BLOB"
+				") ", Poco::Data::Keywords::now;
+
         return 0;
     }
 
@@ -488,11 +495,64 @@ namespace uCentral::Storage {
 					"Author			VARCHAR(64)"
 					")", Poco::Data::Keywords::now;
 
+		Sess << "CREATE TABLE IF NOT EXISTS FileUploads ("
+				"UUID			VARCHAR(64) PRIMARY KEY, "
+				"Type			VARCHAR(32), "
+				"Created 		BIGINT, "
+				"FileContent	LONGBLOB"
+				") ", Poco::Data::Keywords::now;
+
 		return 0;
     }
 
+	std::string Service::MakeFieldList(int N) const {
+		std::string Result;
+
+		if(IsPSQL_) {
+			for(auto i=0;i<N;++i)
+			{
+				Result += "$" + std::to_string(i+1);
+				if(i+1<N)
+					Result += ",";
+			}
+		} else {
+			for(auto i=0;i<N;++i)
+			{
+				Result += "?";
+				if(i+1<N)
+					Result += ",";
+			}
+		}
+
+		return "( " + Result + " )";
+	}
+
+	std::string Service::ConvertParams(const std::string & S) const {
+		std::string R;
+
+		R.reserve(S.size()*2+1);
+
+		if(IsPSQL_) {
+			auto Idx=1;
+			for(auto const & i:S)
+			{
+				if(i=='?') {
+					R += '$';
+					R.append(std::to_string(Idx++));
+				} else {
+					R += i;
+				}
+			}
+		} else {
+			R = S;
+		}
+		return R;
+	}
+
     int Service::Setup_PostgreSQL() {
         Logger_.notice("PostgreSQL Storage enabled.");
+
+		IsPSQL_ = true ;
 
         auto NumSessions = uCentral::ServiceConfig::getInt("storage.type.postgresql.maxsessions", 64);
         auto IdleTime = uCentral::ServiceConfig::getInt("storage.type.postgresql.idletime", 60);
@@ -604,6 +664,13 @@ namespace uCentral::Storage {
 					"Author			VARCHAR(64)"
 					")", Poco::Data::Keywords::now;
 
+		Sess << "CREATE TABLE IF NOT EXISTS FileUploads ("
+					"UUID			VARCHAR(64) PRIMARY KEY, "
+					"Type			VARCHAR(32), "
+					"Created 		BIGINT, "
+					"FileContent	BYTEA"
+					") ", Poco::Data::Keywords::now;
+
         return 0;
     }
 
@@ -695,12 +762,13 @@ namespace uCentral::Storage {
 
  */
             Poco::Data::Statement   Insert(Sess);
+			std::string St{"INSERT INTO Statistics (SerialNumber, UUID, Data, Recorded) VALUES(?,?,?,?)"};
 
-            Insert << "INSERT INTO Statistics (SerialNumber, UUID, Data, Recorded) VALUES('%s',%Lu,'%s',%Lu)",
-                        SerialNumber,
-                        CfgUUID,
-                        SQLEscapeStr(NewStats),
-                        Now;
+            Insert << ConvertParams(St),
+                        Poco::Data::Keywords::use(SerialNumber),
+						Poco::Data::Keywords::use(CfgUUID),
+						Poco::Data::Keywords::use(NewStats),
+						Poco::Data::Keywords::use(Now);
             Insert.execute();
 
             return true;
@@ -811,13 +879,14 @@ namespace uCentral::Storage {
             "Recorded BIGINT) ", now;
 */
             Poco::Data::Statement   Insert(Sess);
-            Insert  << "INSERT INTO HealthChecks (SerialNumber, UUID, Data, Sanity, Recorded) "
-                       "VALUES('%s', %Lu, '%s', %Lu, %Lu)",
-                    SerialNumber,
-                    Check.UUID,
-                    SQLEscapeStr(Check.Data),
-                    Check.Sanity,
-                    Check.Recorded;
+			std::string St{"INSERT INTO HealthChecks (SerialNumber, UUID, Data, Sanity, Recorded) VALUES(?,?,?,?,?)"};
+
+            Insert  << 	ConvertParams(St),
+						Poco::Data::Keywords::use(SerialNumber),
+						Poco::Data::Keywords::use(Check.UUID),
+						Poco::Data::Keywords::use(Check.Data),
+						Poco::Data::Keywords::use(Check.Sanity),
+						Poco::Data::Keywords::use(Check.Recorded);
             Insert.execute();
             return true;
         }
@@ -935,13 +1004,15 @@ namespace uCentral::Storage {
             Poco::Data::Session     Sess = Pool_->get();
             Poco::Data::Statement   Insert(Sess);
 
-            Insert << "INSERT INTO DeviceLogs (SerialNumber, Log, Data, Severity, Recorded, LogType ) VALUES('%s', '%s', '%s', %Lu, %Lu , %Lu)",
-                    SerialNumber,
-                    SQLEscapeStr(Log.Log),
-                    SQLEscapeStr(Log.Data),
-                    Log.Severity,
-                    Log.Recorded,
-                    LogType;
+			std::string St{"INSERT INTO DeviceLogs (SerialNumber, Log, Data, Severity, Recorded, LogType ) VALUES(?,?,?,?,?,?)"};
+
+            Insert << ConvertParams(St) ,
+						Poco::Data::Keywords::use(SerialNumber),
+						Poco::Data::Keywords::use(Log.Log),
+						Poco::Data::Keywords::use(Log.Data),
+						Poco::Data::Keywords::use(Log.Severity),
+						Poco::Data::Keywords::use(Log.Recorded),
+						Poco::Data::Keywords::use(LogType);
             Insert.execute();
             return true;
         }
@@ -1090,9 +1161,11 @@ namespace uCentral::Storage {
 
             uint64_t CurrentUUID;
 
-            Select << "SELECT UUID FROM Devices WHERE SerialNumber='%s'",
+			std::string St{"SELECT UUID FROM Devices WHERE SerialNumber=?"};
+
+            Select << ConvertParams(St),
                     Poco::Data::Keywords::into(CurrentUUID),
-                    SerialNumber;
+                    Poco::Data::Keywords::use(SerialNumber);
             Select.execute();
 
 			uint64_t Now = time(nullptr);
@@ -1103,11 +1176,12 @@ namespace uCentral::Storage {
                 std::string NewConfig = Cfg.get();
 
                 Poco::Data::Statement   Update(Sess);
-                Update  << "UPDATE Devices SET Configuration='%s', UUID=%Lu, LastConfigurationChange=%Lu WHERE SerialNumber='%s'",
-                        SQLEscapeStr(NewConfig),
-					NewUUID,
-                        Now,
-                        SerialNumber;
+				std::string St{"UPDATE Devices SET Configuration=? , UUID=?,  LastConfigurationChange=?  WHERE SerialNumber=?"};
+                Update  << ConvertParams(St),
+							Poco::Data::Keywords::use(NewConfig),
+							Poco::Data::Keywords::use(NewUUID),
+							Poco::Data::Keywords::use(Now),
+							Poco::Data::Keywords::use(SerialNumber);
                 Update.execute();
 
                 Logger_.information(Poco::format("CONFIG-UPDATE(%s): UUID is %Lu", SerialNumber, NewUUID));
@@ -1133,9 +1207,11 @@ namespace uCentral::Storage {
             Poco::Data::Session     Sess = Pool_->get();
             Poco::Data::Statement   Select(Sess);
 
-            Select << "SELECT SerialNumber FROM Devices WHERE SerialNumber='%s'",
+			std::string St{"SELECT SerialNumber FROM Devices WHERE SerialNumber=?"};
+
+            Select << ConvertParams(St),
                     Poco::Data::Keywords::into(SerialNumber),
-                    DeviceDetails.SerialNumber;
+                    Poco::Data::Keywords::use(DeviceDetails.SerialNumber);
             Select.execute();
 
             if (SerialNumber.empty()) {
@@ -1163,23 +1239,24 @@ namespace uCentral::Storage {
  */
                     Poco::Data::Statement   Insert(Sess);
 
-                    Insert  << 	"INSERT INTO Devices (SerialNumber, DeviceType, MACAddress, Manufacturer, UUID, "
-								"Configuration, Notes, CreationTimestamp, LastConfigurationChange, LastConfigurationDownload,"
-							  	"Owner, Location )"
-                               "VALUES('%s', '%s', '%s', '%s', %Lu, '%s', '%s', %Lu, %Lu , %Lu, '%s', '%s')",
-                            DeviceDetails.SerialNumber,
-                            DeviceDetails.DeviceType,
-                            DeviceDetails.MACAddress,
-                            DeviceDetails.Manufacturer,
-                            DeviceDetails.UUID,
-                            SQLEscapeStr(DeviceDetails.Configuration),
-                            SQLEscapeStr(DeviceDetails.Notes),
-                            Now,
-                            Now,
-                            Now,
-							DeviceDetails.Owner,
-							DeviceDetails.Location;
+					std::string St{"INSERT INTO Devices (SerialNumber, DeviceType, MACAddress, Manufacturer, UUID, "
+								   "Configuration, Notes, CreationTimestamp, LastConfigurationChange, LastConfigurationDownload,"
+								   "Owner, Location )"
+								   "VALUES(?,?,?,?,?,?,?,?,?,?,?,?)"};
 
+                    Insert  << ConvertParams(St),
+								Poco::Data::Keywords::use(DeviceDetails.SerialNumber),
+								Poco::Data::Keywords::use(DeviceDetails.DeviceType),
+								Poco::Data::Keywords::use(DeviceDetails.MACAddress),
+								Poco::Data::Keywords::use(DeviceDetails.Manufacturer),
+								Poco::Data::Keywords::use(DeviceDetails.UUID),
+								Poco::Data::Keywords::use(DeviceDetails.Configuration),
+								Poco::Data::Keywords::use(DeviceDetails.Notes),
+								Poco::Data::Keywords::use(Now),
+								Poco::Data::Keywords::use(Now),
+								Poco::Data::Keywords::use(Now),
+								Poco::Data::Keywords::use(DeviceDetails.Owner),
+								Poco::Data::Keywords::use(DeviceDetails.Location);
                     Insert.execute();
 
                     return true;
@@ -1230,10 +1307,14 @@ namespace uCentral::Storage {
 		try {
 			Poco::Data::Session     Sess = Pool_->get();
 			Poco::Data::Statement   Update(Sess);
-			Update  << "UPDATE Devices SET Location='%s' WHERE SerialNumber='%s'",
-				LocationUUID,
-				SerialNumber;
+
+			std::string St{"UPDATE Devices SET Location=? WHERE SerialNumber=?"};
+
+			Update  << ConvertParams(St) ,
+				Poco::Data::Keywords::use(LocationUUID),
+				Poco::Data::Keywords::use(SerialNumber);
 			Update.execute();
+			return true;
 		}
 		catch (const Poco::Exception &E) {
 			Logger_.warning(
@@ -1246,10 +1327,13 @@ namespace uCentral::Storage {
 		try {
 			Poco::Data::Session     Sess = Pool_->get();
 			Poco::Data::Statement   Update(Sess);
-			Update  << "UPDATE Devices SET Owner='%s' WHERE SerialNumber='%s'",
-				OwnerUUID,
-				SerialNumber;
+			std::string St{"UPDATE Devices SET Owner=?  WHERE SerialNumber=?"};
+
+			Update << ConvertParams(St) ,
+				Poco::Data::Keywords::use(OwnerUUID),
+				Poco::Data::Keywords::use(SerialNumber);
 			Update.execute();
+			return true;
 		}
 		catch (const Poco::Exception &E) {
 			Logger_.warning(
@@ -1265,8 +1349,10 @@ namespace uCentral::Storage {
             Poco::Data::Session     Sess = Pool_->get();
             Poco::Data::Statement   Delete(Sess);
 
-            Delete << "DELETE FROM Devices WHERE SerialNumber='%s'",
-                        SerialNumber;
+			std::string St{"DELETE FROM Devices WHERE SerialNumber=?"};
+
+            Delete << ConvertParams(St),
+                        Poco::Data::Keywords::use(SerialNumber);
             Delete.execute();
             return true;
         }
@@ -1284,20 +1370,22 @@ namespace uCentral::Storage {
             Poco::Data::Session     Sess = Pool_->get();
             Poco::Data::Statement   Select(Sess);
 
-            Select << "SELECT "
-                        "SerialNumber, "
-                        "DeviceType, "
-                        "MACAddress, "
-                        "Manufacturer, "
-                        "UUID, "
-                        "Configuration, "
-                        "Notes, "
-                        "CreationTimestamp, "
-                        "LastConfigurationChange, "
-                        "LastConfigurationDownload, "
-					  	"Owner,"
-					  	"Location "
-                        "FROM Devices WHERE SerialNumber='%s'",
+			std::string St{"SELECT "
+						   "SerialNumber, "
+						   "DeviceType, "
+						   "MACAddress, "
+						   "Manufacturer, "
+						   "UUID, "
+						   "Configuration, "
+						   "Notes, "
+						   "CreationTimestamp, "
+						   "LastConfigurationChange, "
+						   "LastConfigurationDownload, "
+						   "Owner,"
+						   "Location "
+							"FROM Devices WHERE SerialNumber=?"};
+
+            Select << ConvertParams(St),
                     Poco::Data::Keywords::into(DeviceDetails.SerialNumber),
                     Poco::Data::Keywords::into(DeviceDetails.DeviceType),
                     Poco::Data::Keywords::into(DeviceDetails.MACAddress),
@@ -1310,7 +1398,7 @@ namespace uCentral::Storage {
                     Poco::Data::Keywords::into(DeviceDetails.LastConfigurationDownload),
 					Poco::Data::Keywords::into(DeviceDetails.Owner),
 					Poco::Data::Keywords::into(DeviceDetails.Location),
-                    SerialNumber;
+					Poco::Data::Keywords::use(SerialNumber);
 
             Select.execute();
 
@@ -1333,11 +1421,11 @@ namespace uCentral::Storage {
 
             std::string Serial;
 
-            Select << "SELECT "
-                        "SerialNumber "
-                        "FROM Devices WHERE SerialNumber='%s'",
+			std::string St{"SELECT SerialNumber FROM Devices WHERE SerialNumber=?"};
+
+            Select << ConvertParams(St),
                     Poco::Data::Keywords::into(Serial),
-                    SerialNumber;
+					Poco::Data::Keywords::use(SerialNumber);
             Select.execute();
 
             if (Serial.empty())
@@ -1361,15 +1449,16 @@ namespace uCentral::Storage {
 
             uint64_t Now = time(nullptr);
 
-            Update
-                    << "UPDATE Devices SET Manufacturer='%s', DeviceType='%s', MACAddress='%s', Notes='%s', "
-                       "LastConfigurationChange=%Lu WHERE SerialNumber='%s'",
-                    SQLEscapeStr(NewConfig.Manufacturer),
-                    NewConfig.DeviceType,
-                    NewConfig.MACAddress,
-                    SQLEscapeStr(NewConfig.Notes),
-                    Now,
-                    NewConfig.SerialNumber;
+			std::string St{"UPDATE Devices SET Manufacturer=?, DeviceType=?, MACAddress=?, Notes=?, "
+						   "LastConfigurationChange=? WHERE SerialNumber=?"};
+
+            Update  << ConvertParams(St) ,
+						Poco::Data::Keywords::use(NewConfig.Manufacturer),
+						Poco::Data::Keywords::use(NewConfig.DeviceType),
+						Poco::Data::Keywords::use(NewConfig.MACAddress),
+						Poco::Data::Keywords::use(NewConfig.Notes),
+						Poco::Data::Keywords::use(Now),
+						Poco::Data::Keywords::use(NewConfig.SerialNumber);
 
             Update.execute();
 
@@ -1461,9 +1550,11 @@ namespace uCentral::Storage {
 
             uint64_t Now = time(nullptr);
 
-            Select << "SELECT SerialNumber FROM Capabilities WHERE SerialNumber='%s'",
+			std::string St{"SELECT SerialNumber FROM Capabilities WHERE SerialNumber=?"};
+
+            Select << ConvertParams(St),
                     Poco::Data::Keywords::into(SS),
-                    SerialNumber;
+                    Poco::Data::Keywords::use(SerialNumber);
             Select.execute();
 
 /*
@@ -1477,21 +1568,26 @@ namespace uCentral::Storage {
                 Logger_.information("Adding capabilities for " + SerialNumber);
                 Poco::Data::Statement   Insert(Sess);
 
-                Insert  << "INSERT INTO Capabilities (SerialNumber, Capabilities, FirstUpdate, LastUpdate) "
-                           "VALUES('%s', '%s', %Lu, %Lu)",
-                            SerialNumber,
-                            SQLEscapeStr(Capabs),
-                            Now,
-                            Now;
+				std::string St{"INSERT INTO Capabilities (SerialNumber, Capabilities, FirstUpdate, LastUpdate) "
+							   "VALUES(?,?,?,?)"};
+
+                Insert  << ConvertParams(St),
+                            Poco::Data::Keywords::use(SerialNumber),
+							Poco::Data::Keywords::use(Capabs),
+							Poco::Data::Keywords::use(Now),
+							Poco::Data::Keywords::use(Now);
                 Insert.execute();
 
             } else {
                 Logger_.information("Updating capabilities for " + SerialNumber);
                 Poco::Data::Statement   Update(Sess);
-                Update  << "UPDATE Capabilities SET Capabilities='%s', LastUpdate=%Lu WHERE SerialNumber='%s'",
-                            SQLEscapeStr(Capabs),
-                            Now,
-                            SerialNumber;
+
+				std::string St{"UPDATE Capabilities SET Capabilities=?, LastUpdate=? WHERE SerialNumber=?"};
+
+                Update  << 	ConvertParams(St),
+                            Poco::Data::Keywords::use(Capabs),
+							Poco::Data::Keywords::use(Now),
+							Poco::Data::Keywords::use(SerialNumber);
                 Update.execute();
             }
             return true;
@@ -1512,13 +1608,14 @@ namespace uCentral::Storage {
 
             std::string TmpSerialNumber;
 
-            Select
-                    << "SELECT SerialNumber, Capabilities, FirstUpdate, LastUpdate FROM Capabilities WHERE SerialNumber='%s'",
+			std::string St{"SELECT SerialNumber, Capabilities, FirstUpdate, LastUpdate FROM Capabilities WHERE SerialNumber=?"};
+
+            Select  << ConvertParams(St),
                     Poco::Data::Keywords::into(TmpSerialNumber),
                     Poco::Data::Keywords::into(Caps.Capabilities),
                     Poco::Data::Keywords::into(Caps.FirstUpdate),
                     Poco::Data::Keywords::into(Caps.LastUpdate),
-                    SerialNumber;
+                    Poco::Data::Keywords::use(SerialNumber);
             Select.execute();
 
             if (TmpSerialNumber.empty())
@@ -1540,8 +1637,10 @@ namespace uCentral::Storage {
             Poco::Data::Session     Sess = Pool_->get();
             Poco::Data::Statement   Delete(Sess);
 
-            Delete << "DELETE FROM Capabilities WHERE SerialNumber='%s'",
-                        SerialNumber;
+			std::string St{"DELETE FROM Capabilities WHERE SerialNumber=?"};
+
+            Delete << ConvertParams(St),
+                        Poco::Data::Keywords::use(SerialNumber);
             Delete.execute();
 
             return true;
@@ -1562,11 +1661,13 @@ namespace uCentral::Storage {
             Poco::Data::Statement   Select(Sess);
             uint64_t Now = time(nullptr);
 
-            Select << "SELECT SerialNumber, UUID, Configuration FROM Devices WHERE SerialNumber='%s'",
+			std::string St{"SELECT SerialNumber, UUID, Configuration FROM Devices WHERE SerialNumber=?"};
+
+            Select << ConvertParams(St),
                     Poco::Data::Keywords::into(SS),
                     Poco::Data::Keywords::into(UUID),
                     Poco::Data::Keywords::into(NewConfig),
-                    SerialNumber;
+                    Poco::Data::Keywords::use(SerialNumber);
 
             Select.execute();
 
@@ -1576,10 +1677,11 @@ namespace uCentral::Storage {
 
             //  Let's update the last downloaded time
             Poco::Data::Statement   Update(Sess);
+			std::string St2{"UPDATE Devices SET LastConfigurationDownload=?  WHERE SerialNumber=?"};
 
-            Update << "UPDATE Devices SET LastConfigurationDownload=%Lu WHERE SerialNumber='%s'",
-                    Now,
-                    SerialNumber;
+            Update << ConvertParams(St2),
+                    Poco::Data::Keywords::use(Now),
+                    Poco::Data::Keywords::use(SerialNumber);
             Update.execute();
 
             return true;
@@ -1634,14 +1736,16 @@ namespace uCentral::Storage {
                     uint64_t Now = time(nullptr);
                     Poco::Data::Statement   Insert(Sess);
 
-                    Insert  << "INSERT INTO DefaultConfigs (Name, Configuration, Models, Description, Created, LastModified) "
-                               "VALUES('%s', '%s', '%s', '%s', %Lu, %Lu)",
-                                    Name,
-                                    SQLEscapeStr(DefConfig.Configuration),
-                                    SQLEscapeStr(DefConfig.Models),
-                                    SQLEscapeStr(DefConfig.Description),
-                                    Now,
-                                    Now;
+					std::string St{"INSERT INTO DefaultConfigs (Name, Configuration, Models, Description, Created, LastModified) "
+								   "VALUES(?,?,?,?,?,?)"};
+
+					Insert  << ConvertParams(St),
+								Poco::Data::Keywords::use(Name),
+								Poco::Data::Keywords::use(DefConfig.Configuration),
+								Poco::Data::Keywords::use(DefConfig.Models),
+								Poco::Data::Keywords::use(DefConfig.Description),
+								Poco::Data::Keywords::use(Now),
+								Poco::Data::Keywords::use(Now);
 
                     Insert.execute();
 
@@ -1666,8 +1770,10 @@ namespace uCentral::Storage {
             Poco::Data::Session     Sess = Pool_->get();
             Poco::Data::Statement   Delete(Sess);
 
-            Delete <<   "DELETE FROM DefaultConfigs WHERE Name='%s'",
-                        Name;
+			std::string St{"DELETE FROM DefaultConfigs WHERE Name=?"};
+
+            Delete << ConvertParams(St),
+                        Poco::Data::Keywords::use(Name);
             Delete.execute();
 
             return true;
@@ -1690,13 +1796,14 @@ namespace uCentral::Storage {
                 uint64_t Now = time(nullptr);
                 Poco::Data::Statement   Update(Sess);
 
-                Update << "UPDATE DefaultConfigs SET Configuration='%s', Models='%s', Description='%s', LastModified=%Lu"
-                          "WHERE Name='%s'",
-                            SQLEscapeStr(DefConfig.Configuration),
-                            SQLEscapeStr(DefConfig.Models),
-                            SQLEscapeStr(DefConfig.Description),
-                            Now,
-                            SQLEscapeStr(Name);
+				std::string St{"UPDATE DefaultConfigs SET Configuration=?,  Models=?,  Description=?,  LastModified=?  WHERE Name=?"};
+
+                Update << ConvertParams(St),
+                            Poco::Data::Keywords::use(DefConfig.Configuration),
+							Poco::Data::Keywords::use(DefConfig.Models),
+							Poco::Data::Keywords::use(DefConfig.Description),
+							Poco::Data::Keywords::use(Now),
+							Poco::Data::Keywords::use(Name);
 
                 Update.execute();
                 return true;
@@ -1718,21 +1825,23 @@ namespace uCentral::Storage {
             Poco::Data::Session     Sess = Pool_->get();
             Poco::Data::Statement   Select(Sess);
 
-            Select << "SELECT "
-                        "Name, "
-                        "Configuration, "
-                        "Models, "
-                        "Description, "
-                        "Created, "
-                        "LastModified "
-                        "FROM DefaultConfigs WHERE Name='%s'",
+			std::string St{"SELECT "
+						   "Name, "
+						   "Configuration, "
+						   "Models, "
+						   "Description, "
+						   "Created, "
+						   "LastModified "
+						   "FROM DefaultConfigs WHERE Name=?"};
+
+            Select << ConvertParams(St),
                     Poco::Data::Keywords::into(DefConfig.Name),
                     Poco::Data::Keywords::into(DefConfig.Configuration),
                     Poco::Data::Keywords::into(DefConfig.Models),
                     Poco::Data::Keywords::into(DefConfig.Description),
                     Poco::Data::Keywords::into(DefConfig.Created),
                     Poco::Data::Keywords::into(DefConfig.LastModified),
-                    SQLEscapeStr(Name);
+                    Poco::Data::Keywords::use(Name);
 
             Select.execute();
 
@@ -1906,24 +2015,26 @@ namespace uCentral::Storage {
             Poco::Data::Session     Sess = Pool_->get();
             Poco::Data::Statement   Insert(Sess);
 
-            Insert  << "INSERT INTO CommandList (UUID, SerialNumber, Command, Status, SubmittedBy, Results, Details, "
-                       "Submitted, Executed, Completed, RunAt, ErrorCode, Custom, WaitingForFile, AttachDate) "
-                       "VALUES('%s', '%s', '%s', '%s', '%s', '%s', '%s', %Lu, %Lu, %Lu, %Lu, %Lu, %Lu , %Lu, %Lu)",
-                            Command.UUID,
-                            Command.SerialNumber,
-                            Command.Command,
-                            Command.Status,
-                            Command.SubmittedBy,
-                            SQLEscapeStr(Command.Results),
-                            SQLEscapeStr(Command.Details),
-                            Command.Submitted,
-                            Command.Executed,
-                            Command.Completed,
-                            Command.RunAt,
-                            Command.ErrorCode,
-                            Command.Custom,
-                            Command.WaitingForFile,
-                            Command.AttachDate;
+			std::string St{"INSERT INTO CommandList (UUID, SerialNumber, Command, Status, SubmittedBy, Results, Details, "
+						   "Submitted, Executed, Completed, RunAt, ErrorCode, Custom, WaitingForFile, AttachDate) "
+						   "VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)"};
+
+            Insert  << ConvertParams(St),
+				Poco::Data::Keywords::use(Command.UUID),
+				Poco::Data::Keywords::use(Command.SerialNumber),
+				Poco::Data::Keywords::use(Command.Command),
+				Poco::Data::Keywords::use(Command.Status),
+				Poco::Data::Keywords::use(Command.SubmittedBy),
+				Poco::Data::Keywords::use(Command.Results),
+				Poco::Data::Keywords::use(Command.Details),
+				Poco::Data::Keywords::use(Command.Submitted),
+				Poco::Data::Keywords::use(Command.Executed),
+				Poco::Data::Keywords::use(Command.Completed),
+				Poco::Data::Keywords::use(Command.RunAt),
+				Poco::Data::Keywords::use(Command.ErrorCode),
+				Poco::Data::Keywords::use(Command.Custom),
+				Poco::Data::Keywords::use(Command.WaitingForFile),
+				Poco::Data::Keywords::use(Command.AttachDate);
 
             Insert.execute();
 
@@ -2155,14 +2266,16 @@ namespace uCentral::Storage {
 
             Poco::Data::Statement   Update(Sess);
 
-            Update  << "UPDATE CommandList SET Status='%s', Executed=%Lu, Completed=%Lu, Results='%s', ErrorText='%s', ErrorCode=%Lu WHERE UUID='%s'",
-                    Command.Status,
-                    Command.Executed,
-                    Command.Completed,
-                    SQLEscapeStr(Command.Results),
-                    SQLEscapeStr(Command.ErrorText),
-                    Command.ErrorCode,
-                    UUID;
+			std::string St{"UPDATE CommandList SET Status=?,  Executed=?,  Completed=?,  Results=?,  ErrorText=?,  ErrorCode=?  WHERE UUID=?"};
+
+            Update  << ConvertParams(St),
+				Poco::Data::Keywords::use(Command.Status),
+				Poco::Data::Keywords::use(Command.Executed),
+				Poco::Data::Keywords::use(Command.Completed),
+				Poco::Data::Keywords::use(Command.Results),
+				Poco::Data::Keywords::use(Command.ErrorText),
+				Poco::Data::Keywords::use(Command.ErrorCode),
+				Poco::Data::Keywords::use(UUID);
 
             Update.execute();
 
@@ -2199,9 +2312,11 @@ namespace uCentral::Storage {
              */
             Poco::Data::Statement   Select(Sess);
 
-            Select << "SELECT UUID, SerialNumber, Command, Status, SubmittedBy, Results, Details, ErrorText, "
-                        "Submitted, Executed, Completed, RunAt, ErrorCode, Custom, WaitingForFile, AttachDate FROM CommandList "
-                        " WHERE UUID='%s'",
+			std::string St{"SELECT UUID, SerialNumber, Command, Status, SubmittedBy, Results, Details, ErrorText, "
+						   "Submitted, Executed, Completed, RunAt, ErrorCode, Custom, WaitingForFile, AttachDate FROM CommandList "
+						   "WHERE UUID=?"};
+
+            Select << ConvertParams(St),
                     Poco::Data::Keywords::into(Command.UUID),
                     Poco::Data::Keywords::into(Command.SerialNumber),
                     Poco::Data::Keywords::into(Command.Command),
@@ -2218,7 +2333,7 @@ namespace uCentral::Storage {
                     Poco::Data::Keywords::into(Command.Custom),
                     Poco::Data::Keywords::into(Command.WaitingForFile),
                     Poco::Data::Keywords::into(Command.AttachDate),
-                    UUID;
+                    Poco::Data::Keywords::use(UUID);
 
             Select.execute();
 
@@ -2236,8 +2351,10 @@ namespace uCentral::Storage {
             Poco::Data::Session     Sess = Pool_->get();
             Poco::Data::Statement   Delete(Sess);
 
-            Delete << "DELETE FROM CommandList WHERE UUID='%s'",
-                        UUID;
+			std::string St{"DELETE FROM CommandList WHERE UUID=?"};
+
+            Delete << ConvertParams(St),
+                        Poco::Data::Keywords::use(UUID);
             Delete.execute();
 
             return true;
@@ -2257,13 +2374,15 @@ namespace uCentral::Storage {
             Poco::Data::Session     Sess = Pool_->get();
             Poco::Data::Statement   Select(Sess);
 
+			std::string St{"SELECT UUID, SerialNumber, Command, Status, SubmittedBy, Results, Details, ErrorText, "
+						   "Submitted, Executed, Completed, RunAt, ErrorCode, Custom, WaitingForFile, AttachDate FROM CommandList "
+						   " WHERE RunAt < ? And Executed=0"};
+
             RecordList Records;
 
-            Select << "SELECT UUID, SerialNumber, Command, Status, SubmittedBy, Results, Details, ErrorText, "
-                        "Submitted, Executed, Completed, RunAt, ErrorCode, Custom, WaitingForFile, AttachDate FROM CommandList "
-                        " WHERE RunAt < %Lu And Executed=0",
+            Select << ConvertParams(St),
                     Poco::Data::Keywords::into(Records),
-                    Now,
+                    Poco::Data::Keywords::use(Now),
                     Poco::Data::Keywords::range(Offset, Offset + HowMany - 1);
             Select.execute();
 
@@ -2294,7 +2413,7 @@ namespace uCentral::Storage {
         }
         catch (const Poco::Exception &E) {
             Logger_.warning(
-                    Poco::format("GetReadyToExecuteCommands(): Failed to retreive the list. %s", E.displayText()));
+                    Poco::format("GetReadyToExecuteCommands(): Failed to retrieve the list. %s", E.displayText()));
         }
         return false;
     }
@@ -2306,9 +2425,11 @@ namespace uCentral::Storage {
             Poco::Data::Session     Sess = Pool_->get();
             Poco::Data::Statement   Update(Sess);
 
-            Update << "UPDATE CommandList SET Executed=%Lu WHERE UUID='%s'",
-                        Now,
-                        UUID;
+			std::string St{"UPDATE CommandList SET Executed=? WHERE UUID=?"};
+
+            Update << ConvertParams(St),
+				Poco::Data::Keywords::use(Now),
+				Poco::Data::Keywords::use(UUID);
 
             Update.execute();
 
@@ -2344,15 +2465,15 @@ namespace uCentral::Storage {
 
             std::string StatusText{"completed"};
 
-            Update
-                    << "UPDATE CommandList SET Completed=%Lu, ErrorCode=%Lu, ErrorText='%s', Results='%s', Status='%s' WHERE UUID='%s'",
-                    Now,
-                    ErrorCode,
-                    SQLEscapeStr(ErrorText),
-                    SQLEscapeStr(ResultStr),
-                    StatusText,
-                    UUID;
+			std::string St{"UPDATE CommandList SET Completed=?, ErrorCode=?, ErrorText=?, Results=?, Status=? WHERE UUID=?"};
 
+            Update  << ConvertParams(St),
+						Poco::Data::Keywords::use(Now),
+						Poco::Data::Keywords::use(ErrorCode),
+						Poco::Data::Keywords::use(ErrorText),
+						Poco::Data::Keywords::use(ResultStr),
+						Poco::Data::Keywords::use(StatusText),
+						Poco::Data::Keywords::use(UUID);
             Update.execute();
 
             return true;
@@ -2373,15 +2494,15 @@ namespace uCentral::Storage {
             Poco::Data::Session Sess = Pool_->get();
             Poco::Data::Statement   Update(Sess);
 
-            Update << "UPDATE CommandList SET WaitingForFile=%Lu, AttachDate=%Lu WHERE UUID='%s'",
-                    WaitForFile,
-                    Now,
-                    UUID;
+			std::string St{"UPDATE CommandList SET WaitingForFile=?, AttachDate=? WHERE UUID=?"};
 
+			Update << ConvertParams(St),
+				Poco::Data::Keywords::use(WaitForFile),
+				Poco::Data::Keywords::use(Now),
+				Poco::Data::Keywords::use(UUID);
             Update.execute();
 
             return true;
-
         }
         catch ( const Poco::Exception & E)
         {
@@ -2399,19 +2520,21 @@ namespace uCentral::Storage {
 					")", Poco::Data::Keywords::now;
 	 */
 
-	bool Service::AddBlackListDevices(const std::vector<uCentralBlackListedDevice> &  Devices) {
+	bool Service::AddBlackListDevices(std::vector<uCentralBlackListedDevice> &  Devices) {
 		try {
 
 			Poco::Data::Session Sess = Pool_->get();
 			Poco::Data::Statement Insert(Sess);
 
-			for(const auto &i:Devices) {
-				Insert << "INSERT INTO BlackList (SerialNumber, Reason, Author, Created) VALUES "
-						  "('%s', '%s', '%s', %Lu)",
-					i.SerialNumber,
-					SQLEscapeStr(i.Reason),
-					SQLEscapeStr(i.Author),
-					i.Created ;
+			for(auto &i:Devices) {
+				std::string St{"INSERT INTO BlackList (SerialNumber, Reason, Author, Created) "
+				"VALUES(?,?,?,?)"};
+				std::cout << "STATEMENT:" << St << std::endl;
+				Insert << ConvertParams(St),
+					Poco::Data::Keywords::use(i.SerialNumber),
+					Poco::Data::Keywords::use(i.Reason),
+					Poco::Data::Keywords::use(i.Author),
+					Poco::Data::Keywords::use(i.Created) ;
 				Insert.execute();
 			}
 			return true;
@@ -2421,12 +2544,15 @@ namespace uCentral::Storage {
 		return false;
 	}
 
-	bool Service::DeleteBlackListDevices(const std::string & SerialNumber)  {
+	bool Service::DeleteBlackListDevice(std::string & SerialNumber)  {
 		try {
 			Poco::Data::Session Sess = Pool_->get();
 			Poco::Data::Statement Delete(Sess);
 
-			Delete << "DELETE FROM BlackList WHERE SerialNumber='%s'", SerialNumber;
+			std::string St{"DELETE FROM BlackList WHERE SerialNumber=?"};
+
+			Delete << ConvertParams(St),
+				Poco::Data::Keywords::use(SerialNumber);
 			Delete.execute();
 
 			return true;
@@ -2470,15 +2596,18 @@ namespace uCentral::Storage {
 		return false;
 	}
 
-	bool Service::IsBlackListed(const std::string & SerialNumber) {
+	bool Service::IsBlackListed(std::string & SerialNumber) {
 		try {
 			Poco::Data::Session 	Sess = Pool_->get();
 			Poco::Data::Statement	Select(Sess);
 
 			std::string TmpSerialNumber;
-			Select << "SELECT SerialNumber FROM BlackList WHERE SerialNumber='%s'" ,
+
+			std::string St{"SELECT SerialNumber FROM BlackList WHERE SerialNumber=?"};
+
+			Select << ConvertParams(St),
 				Poco::Data::Keywords::into(TmpSerialNumber),
-				SerialNumber ;
+				Poco::Data::Keywords::use(SerialNumber) ;
 			Select.execute();
 
 			return !TmpSerialNumber.empty();

@@ -39,7 +39,7 @@ void RESTAPI_BlackList::DoDelete(Poco::Net::HTTPServerRequest &Request, Poco::Ne
 		auto SerialNumber = GetParameter("serialNumber", "");
 
 		if(!SerialNumber.empty()) {
-			if (uCentral::Storage::DeleteBlackListDevices(SerialNumber))
+			if (uCentral::Storage::DeleteBlackListDevice(SerialNumber))
 				OK(Response);
 			else
 				NotFound(Response);
