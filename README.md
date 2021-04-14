@@ -48,7 +48,7 @@ make
 The following instructions have proven to work on Fedora 33
 ```
 sudo yum install cmake g++ openssl-devel unixODBC-devel mysql-devel mysql apr-util-devel boost boost-devel
-sudo yum install yaml-cpp-devel 
+sudo yum install yaml-cpp-devel lua-devel
 sudo dnf install postgresql.x86_64
 sudo dnf install postgresql-devel
 
