@@ -8,7 +8,8 @@ RUN apk update && \
     apk add --no-cache bash util-linux coreutils curl && \
     apk add --no-cache make cmake gcc g++ libstdc++ libgcc git zlib-dev yaml-cpp-dev && \
     apk add --no-cache openssl-dev boost-dev unixodbc-dev postgresql-dev mariadb-dev && \
-    apk add --no-cache apache2-utils yaml-dev apr-util-dev
+    apk add --no-cache apache2-utils yaml-dev apr-util-dev && \
+    apk add --no-cache lua-dev
 
 RUN mkdir /root/.ssh
 ADD git_rsa /root/.ssh/git_rsa
