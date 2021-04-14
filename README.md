@@ -422,4 +422,8 @@ In the `test_scripts` directory, you will find a series of scripts that will sho
 More scripts will be added in the future.
 
  
+## Firewall:
+You must open port 15002 so that AP can communicate with ucentralgw
+You must open port 16001 so that JSON cfg API can communicate with ucentralgw
+You must open port 16003 so that AP can upload to ucentralgw
 
