@@ -825,6 +825,7 @@ void RESTAPI_deviceCommandHandler::Trace(Poco::Net::HTTPServerRequest &Request, 
             Cmd.Custom = 0;
             Cmd.RunAt = When;
             Cmd.WaitingForFile = 1;
+			Cmd.AttachType = "trace";
 
             Poco::JSON::Object  Params;
 

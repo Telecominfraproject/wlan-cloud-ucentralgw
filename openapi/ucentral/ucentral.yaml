@@ -499,6 +499,11 @@ components:
         attachFile:
           type: string
           format: 'date-time'
+        attachSize:
+          type: integer
+          format: int64
+        attachType:
+          type: string
 
     CommandInfoList:
       type: object
@@ -1583,7 +1588,11 @@ paths:
           required: true
       responses:
         200:
-          $ref: '#/components/schemas/FileRetrievalAnswer'
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
         403:
           $ref: '#/components/responses/Unauthorized'
         404:

@@ -96,6 +96,8 @@ struct uCentralCommandDetails {
     uint64_t        Custom;
     uint64_t        WaitingForFile;
     uint64_t        AttachDate;
+	uint64_t 		AttachSize;
+	std::string 	AttachType;
     [[nodiscard]] Poco::JSON::Object to_json() const;
 };
 

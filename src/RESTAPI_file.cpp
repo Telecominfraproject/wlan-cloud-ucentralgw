@@ -51,18 +51,16 @@ void RESTAPI_file::handleRequest(Poco::Net::HTTPServerRequest& Request, Poco::Ne
         } else if (Request.getMethod() == Poco::Net::HTTPRequest::HTTP_DELETE) {
             auto UUID = GetBinding("uuid", "");
 
-            //does the file exist
-            Poco::File  DownloadFile(uCentral::uFileUploader::Path() + "/" + UUID);
+			if(UUID.empty())
+			{
+				BadRequest(Response);
+				return;
+			}
 
-            if(DownloadFile.isFile())
-            {
-                DownloadFile.remove();
-                OK(Response);
-            }
-            else
-            {
-                NotFound(Response);
-            }
+			if(uCentral::Storage::RemoveAttachedFile(UUID))
+				OK(Response);
+			else
+				NotFound(Response);
         }
         return;
     }

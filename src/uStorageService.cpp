@@ -36,7 +36,9 @@ namespace uCentral::Storage {
             uint64_t,
             uint64_t,
             uint64_t,
-            uint64_t> CommandDetailsRecordTuple;
+            uint64_t,
+			uint64_t,
+			std::string> CommandDetailsRecordTuple;
 
     typedef Poco::Tuple<
             std::string,
@@ -246,6 +248,10 @@ namespace uCentral::Storage {
 		return uCentral::Storage::Service::instance()->GetAttachedFile(UUID,FileName);
 	}
 
+	bool RemoveAttachedFile(std::string & UUID) {
+		return uCentral::Storage::Service::instance()->RemoveAttachedFile(UUID);
+	}
+
 	bool AddBlackListDevices(std::vector<uCentralBlackListedDevice> &  Devices) {
 		return uCentral::Storage::Service::instance()->AddBlackListDevices(Devices);
 	}
@@ -373,7 +379,9 @@ namespace uCentral::Storage {
                     "ErrorCode      BIGINT, "
                     "Custom         BIGINT, "
                     "WaitingForFile BIGINT, "
-                    "AttachDate     BIGINT"
+                    "AttachDate     BIGINT,"
+					"AttachSize     BIGINT,"
+					"AttachType     VARCHAR(64)"
                     ")", Poco::Data::Keywords::now;
 
         Sess << "CREATE INDEX IF NOT EXISTS CommandListIndex ON CommandList (SerialNumber ASC, Submitted ASC)", Poco::Data::Keywords::now;
@@ -456,7 +464,7 @@ namespace uCentral::Storage {
                     "Data           TEXT, "
                     "Severity       BIGINT, "
                     "Recorded       BIGINT, "
-                    "LogType        BIGINT"
+                    "LogType        BIGINT, "
                     "INDEX LogSerial (SerialNumber ASC, Recorded ASC)"
                     ")", Poco::Data::Keywords::now;
 
@@ -493,7 +501,9 @@ namespace uCentral::Storage {
                     "ErrorCode      BIGINT, "
                     "Custom         BIGINT, "
                     "WaitingForFile BIGINT, "
-                    "AttachDate     BIGINT"
+					"AttachDate     BIGINT,"
+					"AttachSize     BIGINT,"
+					"AttachType     VARCHAR(64),"
                     "INDEX CommandListIndex (SerialNumber ASC, Submitted ASC)"
                     ")", Poco::Data::Keywords::now;
 
@@ -661,7 +671,9 @@ namespace uCentral::Storage {
                     "ErrorCode      BIGINT, "
                     "Custom         BIGINT, "
                     "WaitingForFile BIGINT, "
-                    "AttachDate     BIGINT"
+					"AttachDate     BIGINT, "
+					"AttachSize     BIGINT, "
+					"AttachType     VARCHAR(64)"
                     ")", Poco::Data::Keywords::now;
 
         Sess << "CREATE INDEX IF NOT EXISTS CommandListIndex ON CommandList (SerialNumber ASC, Submitted ASC)", Poco::Data::Keywords::now;
@@ -2003,7 +2015,9 @@ namespace uCentral::Storage {
                     "ErrorCode      BIGINT, "
                     "Custom         BIGINT, "
                     "WaitingForFile BIGINT, "
-                    "AttachDate     BIGINT"
+                    "AttachDate     BIGINT,"
+                    "AttachSize     BIGINT,"
+                    "AttachType     VARCHAR(64)"
              */
 
             uint64_t Now = time(nullptr);
@@ -2025,8 +2039,8 @@ namespace uCentral::Storage {
             Poco::Data::Statement   Insert(Sess);
 
 			std::string St{"INSERT INTO CommandList (UUID, SerialNumber, Command, Status, SubmittedBy, Results, Details, "
-						   "Submitted, Executed, Completed, RunAt, ErrorCode, Custom, WaitingForFile, AttachDate) "
-						   "VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)"};
+						   "Submitted, Executed, Completed, RunAt, ErrorCode, Custom, WaitingForFile, AttachDate, AttachSize, AttachType) "
+						   "VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)"};
 
             Insert  << ConvertParams(St),
 				Poco::Data::Keywords::use(Command.UUID),
@@ -2043,7 +2057,9 @@ namespace uCentral::Storage {
 				Poco::Data::Keywords::use(Command.ErrorCode),
 				Poco::Data::Keywords::use(Command.Custom),
 				Poco::Data::Keywords::use(Command.WaitingForFile),
-				Poco::Data::Keywords::use(Command.AttachDate);
+				Poco::Data::Keywords::use(Command.AttachDate),
+				Poco::Data::Keywords::use(Command.AttachSize),
+				Poco::Data::Keywords::use(Command.AttachType);
 
             Insert.execute();
 
@@ -2076,7 +2092,9 @@ namespace uCentral::Storage {
             "ErrorCode      BIGINT, "
             "Custom         BIGINT, "
             "WaitingForFile BIGINT, "
-            "AttachDate     BIGINT"
+			"AttachDate     BIGINT,"
+			"AttachSize     BIGINT,"
+			"AttachType     VARCHAR(64)"
          */
 
         try {
@@ -2085,8 +2103,9 @@ namespace uCentral::Storage {
 
             bool DatesIncluded = (FromDate != 0 || ToDate != 0);
 
-            std::string Fields{"SELECT UUID, SerialNumber, Command, Status, SubmittedBy, Results, Details, ErrorText, "
-                               "Submitted, Executed, Completed, RunAt, ErrorCode, Custom, WaitingForFile, AttachDate  FROM CommandList "};
+            std::string Fields{	"SELECT UUID, SerialNumber, Command, Status, SubmittedBy, Results, Details, ErrorText, "
+									"Submitted, Executed, Completed, RunAt, ErrorCode, Custom, WaitingForFile, AttachDate, "
+							   		"AttachSize, AttachType  FROM CommandList "};
             std::string IntroStatement = SerialNumber.empty()
                                     ? Fields + std::string(DatesIncluded ? "WHERE " : "")
                                     : Fields + "WHERE SerialNumber='" + SerialNumber + "'" +
@@ -2126,7 +2145,9 @@ namespace uCentral::Storage {
                         .ErrorCode = i.get<12>(),
                         .Custom = i.get<13>(),
                         .WaitingForFile = i.get<14>(),
-                        .AttachDate = i.get<15>()};
+                        .AttachDate = i.get<15>(),
+						.AttachSize = i.get<16>(),
+						.AttachType = i.get<17>()};
 
                 Commands.push_back(R);
             }
@@ -2193,7 +2214,9 @@ namespace uCentral::Storage {
             "ErrorCode      BIGINT, "
             "Custom         BIGINT, "
             "WaitingForFile BIGINT, "
-            "AttachDate     BIGINT"
+			"AttachDate     BIGINT,"
+			"AttachSize     BIGINT,"
+			"AttachType     VARCHAR(64)"
          */
 
         try {
@@ -2206,8 +2229,9 @@ namespace uCentral::Storage {
 			while(Commands.size()<HowMany && !Done) {
 				// range(Offset, Offset + HowMany - 1)
 				Select << "SELECT UUID, SerialNumber, Command, Status, SubmittedBy, Results, Details, ErrorText,"
-						  "Submitted, Executed, Completed, RunAt, ErrorCode, Custom, WaitingForFile, AttachDate FROM CommandList "
-						  " WHERE Executed=0",
+						  "Submitted, Executed, Completed, RunAt, ErrorCode, Custom, WaitingForFile, AttachDate,"
+						  "AttachSize, AttachType FROM CommandList "
+						  "WHERE Executed=0",
 					Poco::Data::Keywords::into(Records),
 					Poco::Data::Keywords::range(Offset, Offset + HowMany - 1);
 				Select.execute();
@@ -2229,7 +2253,9 @@ namespace uCentral::Storage {
 											 .ErrorCode = i.get<12>(),
 											 .Custom = i.get<13>(),
 											 .WaitingForFile = i.get<14>(),
-											 .AttachDate = i.get<15>()};
+											 .AttachDate = i.get<15>(),
+											 .AttachSize = i.get<16>(),
+											 .AttachType = i.get<17>()};
 
 					//	Only return rhe commands for our own devices.
 					if (uCentral::DeviceRegistry::Connected(R.SerialNumber))
@@ -2317,12 +2343,14 @@ namespace uCentral::Storage {
                 "ErrorCode      BIGINT, "
                 "Custom         BIGINT, "
                 "WaitingForFile BIGINT, "
-                "AttachDate     BIGINT"
+				"AttachDate     BIGINT,"
+				"AttachSize     BIGINT,"
+				"AttachType     VARCHAR(64)"
              */
             Poco::Data::Statement   Select(Sess);
 
 			std::string St{"SELECT UUID, SerialNumber, Command, Status, SubmittedBy, Results, Details, ErrorText, "
-						   "Submitted, Executed, Completed, RunAt, ErrorCode, Custom, WaitingForFile, AttachDate FROM CommandList "
+						   "Submitted, Executed, Completed, RunAt, ErrorCode, Custom, WaitingForFile, AttachDate, AttachSize, AttachType  FROM CommandList "
 						   "WHERE UUID=?"};
 
             Select << ConvertParams(St),
@@ -2342,6 +2370,8 @@ namespace uCentral::Storage {
                     Poco::Data::Keywords::into(Command.Custom),
                     Poco::Data::Keywords::into(Command.WaitingForFile),
                     Poco::Data::Keywords::into(Command.AttachDate),
+					Poco::Data::Keywords::into(Command.AttachSize),
+					Poco::Data::Keywords::into(Command.AttachType),
                     Poco::Data::Keywords::use(UUID);
 
             Select.execute();
@@ -2383,9 +2413,9 @@ namespace uCentral::Storage {
             Poco::Data::Session     Sess = Pool_->get();
             Poco::Data::Statement   Select(Sess);
 
-			std::string St{"SELECT UUID, SerialNumber, Command, Status, SubmittedBy, Results, Details, ErrorText, "
-						   "Submitted, Executed, Completed, RunAt, ErrorCode, Custom, WaitingForFile, AttachDate FROM CommandList "
-						   " WHERE RunAt < ? And Executed=0"};
+			std::string St{	"SELECT UUID, SerialNumber, Command, Status, SubmittedBy, Results, Details, ErrorText, "
+						   		"Submitted, Executed, Completed, RunAt, ErrorCode, Custom, WaitingForFile, AttachDate, AttachSize, AttachType FROM CommandList "
+						   		"WHERE RunAt < ? And Executed=0"};
 
             RecordList Records;
 
@@ -2412,7 +2442,9 @@ namespace uCentral::Storage {
                         .ErrorCode = i.get<12>(),
                         .Custom = i.get<13>(),
                         .WaitingForFile = i.get<14>(),
-                        .AttachDate = i.get<15>()};
+                        .AttachDate = i.get<15>(),
+						.AttachSize = i.get<16>(),
+						.AttachType = i.get<17>()};
 
                 if (uCentral::DeviceRegistry::Connected(R.SerialNumber))
                     Commands.push_back(R);
@@ -2503,18 +2535,20 @@ namespace uCentral::Storage {
 
             Poco::Data::Statement   Update(Sess);
 
-			std::string St{"UPDATE CommandList SET WaitingForFile=?, AttachDate=? WHERE UUID=?"};
+			Poco::File	FileName = uCentral::ServiceConfig::getString("ucentral.fileuploader.path","/tmp") + "/" + UUID;
+			uint64_t Size = FileName.getSize();
+
+			std::string St{"UPDATE CommandList SET WaitingForFile=?, AttachDate=?, AttachSize=? WHERE UUID=?"};
 
 			Update << ConvertParams(St),
 				Poco::Data::Keywords::use(WaitForFile),
 				Poco::Data::Keywords::use(Now),
+				Poco::Data::Keywords::use(Size),
 				Poco::Data::Keywords::use(UUID);
             Update.execute();
 
 			Poco::Data::LOB<char>		L;
 			Poco::Data::LOBOutputStream	OL(L);
-
-			Poco::File	FileName = uCentral::ServiceConfig::getString("ucentral.fileuploader.path","/tmp") + "/" + UUID;
 
 			if(FileName.getSize()<(1000*uCentral::ServiceConfig::getInt("ucentral.fileuploader.maxsize",10000))) {
 
@@ -2556,8 +2590,6 @@ namespace uCentral::Storage {
 	bool Service::GetAttachedFile(std::string &UUID, const std::string &FileName) {
 		try {
 			Poco::Data::LOB<char>		L;
-			Poco::Data::LOBInputStream	IL(L);
-
 			/*
 						"UUID			VARCHAR(64) PRIMARY KEY, "
 						"Type			VARCHAR(32), "
@@ -2574,6 +2606,8 @@ namespace uCentral::Storage {
 				Poco::Data::Keywords::use(UUID);
 			Select.execute();
 
+			Poco::Data::LOBInputStream	IL(L);
+
 			std::ofstream f(FileName, std::ios::binary);
 			Poco::StreamCopier::copyStream(IL, f);
 
@@ -2581,6 +2615,26 @@ namespace uCentral::Storage {
 		} catch (const Poco::Exception &E) {
 			Logger_.log(E);
 		}
+		return false;
+	}
+
+	bool Service::RemoveAttachedFile(std::string &UUID) {
+		try {
+			Poco::Data::Session Sess = Pool_->get();
+			Poco::Data::Statement Delete(Sess);
+
+			std::string St{"DELETE FROM FileUploads WHERE UUID=?"};
+
+			Delete << ConvertParams(St) ,
+				Poco::Data::Keywords::use(UUID);
+			Delete.execute();
+
+			return true;
+
+		} catch (const Poco::Exception &E) {
+			Logger_.log(E);
+		}
+
 		return false;
 	}
 
