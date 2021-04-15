@@ -421,9 +421,9 @@ And here is [how to use it](https://github.com/Telecominfraproject/wlan-cloud-uc
 In the `test_scripts` directory, you will find a series of scripts that will show you how to use the API with curl or Python3. 
 More scripts will be added in the future.
 
- 
-## Firewall:
-You must open port 15002 so that AP can communicate with ucentralgw
-You must open port 16001 so that JSON cfg API can communicate with ucentralgw
-You must open port 16003 so that AP can upload to ucentralgw
+## Firewall Considerations
+- The protocol uses TCP port 15002 between the devices and the gateway.
+- Devices use the TCP port 16003 to upload files. This port is configurable in the `ucentral.properties` file. Look for `ucentral.fileuploader.host.0.port`.
+- The RESTAPI is accessed through TCP port 16001 by default. This port is configurable in the `ucentral.properties` file. Loof for the entry `ucentral.restapi.host.0.port`.
+
 
