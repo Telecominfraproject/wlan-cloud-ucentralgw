@@ -422,8 +422,8 @@ In the `test_scripts` directory, you will find a series of scripts that will sho
 More scripts will be added in the future.
 
 ## Firewall Considerations
-- The protocol uses TCP port 15002 between the devices and the gateway.
+- The protocol uses TCP port 15002 between the devices and the gateway. This port must be opened.
 - Devices use the TCP port 16003 to upload files. This port is configurable in the `ucentral.properties` file. Look for `ucentral.fileuploader.host.0.port`.
-- The RESTAPI is accessed through TCP port 16001 by default. This port is configurable in the `ucentral.properties` file. Loof for the entry `ucentral.restapi.host.0.port`.
+- The RESTAPI is accessed through TCP port 16001 by default. This port is configurable in the `ucentral.properties` file. Look for the entry `ucentral.restapi.host.0.port`.
 
 
