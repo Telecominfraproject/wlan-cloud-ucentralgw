@@ -10,6 +10,13 @@
             </Attribute>
           </value>
         </entry>
+        <entry key="/src/CommandChannel.cpp">
+          <value>
+            <Attribute>
+              <option name="separator" value="&#9;" />
+            </Attribute>
+          </value>
+        </entry>
         <entry key="/src/DeviceStatusServer.h">
           <value>
             <Attribute>
@@ -28,6 +35,13 @@
           <value>
             <Attribute>
               <option name="separator" value=":" />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/src/RESTAPI_SystemCommand.cpp">
+          <value>
+            <Attribute>
+              <option name="separator" value="&#9;" />
             </Attribute>
           </value>
         </entry>

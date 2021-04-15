@@ -6,6 +6,7 @@
 
 #include "uAuthService.h"
 #include "uFileUploader.h"
+#include "uStorageService.h"
 #include "Poco/File.h"
 
 #include <fstream>
@@ -27,7 +28,7 @@ void RESTAPI_file::handleRequest(Poco::Net::HTTPServerRequest& Request, Poco::Ne
             //does the file exist
             Poco::File  DownloadFile(uCentral::uFileUploader::Path() + "/" + UUID);
 
-            if(!DownloadFile.isFile())
+            if(!uCentral::Storage::GetAttachedFile(UUID,DownloadFile.path()))
             {
                 NotFound(Response);
                 return;
@@ -42,6 +43,8 @@ void RESTAPI_file::handleRequest(Poco::Net::HTTPServerRequest& Request, Poco::Ne
             Response.set("Expires", "Mon, 26 Jul 2027 05:00:00 GMT");
             Response.set("Content-Length", std::to_string(DownloadFile.getSize()));
             Response.sendFile(DownloadFile.path(),"application/octet-stream");
+
+			DownloadFile.remove();
 
             return;
 

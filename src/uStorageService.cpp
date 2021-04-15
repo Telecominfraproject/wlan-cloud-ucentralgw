@@ -1,6 +1,8 @@
 //
 // Created by stephane bourque on 2021-03-01.
 //
+#include <iostream>
+#include <fstream>
 
 #include "uStorageService.h"
 #include "uCentral.h"
@@ -10,6 +12,9 @@
 #include "Poco/Data/RecordSet.h"
 #include "Poco/DateTime.h"
 #include "Poco/Util/Application.h"
+#include "Poco/Data/LOB.h"
+#include "Poco/Data/LOBStream.h"
+#include "Poco/File.h"
 
 namespace uCentral::Storage {
 
@@ -236,6 +241,10 @@ namespace uCentral::Storage {
     bool AttachFileToCommand(std::string &UUID) {
         return uCentral::Storage::Service::instance()->AttachFileToCommand(UUID);
     }
+
+	bool GetAttachedFile(std::string & UUID, const std::string & FileName) {
+		return uCentral::Storage::Service::instance()->GetAttachedFile(UUID,FileName);
+	}
 
 	bool AddBlackListDevices(std::vector<uCentralBlackListedDevice> &  Devices) {
 		return uCentral::Storage::Service::instance()->AddBlackListDevices(Devices);
@@ -2488,10 +2497,10 @@ namespace uCentral::Storage {
 
     bool Service::AttachFileToCommand(std::string &UUID) {
         try {
-            uint64_t Now = time(nullptr);
-            uint64_t WaitForFile=0;
+			Poco::Data::Session Sess = Pool_->get();
+			uint64_t Now = time(nullptr);
+            uint64_t WaitForFile = 0;
 
-            Poco::Data::Session Sess = Pool_->get();
             Poco::Data::Statement   Update(Sess);
 
 			std::string St{"UPDATE CommandList SET WaitingForFile=?, AttachDate=? WHERE UUID=?"};
@@ -2502,14 +2511,78 @@ namespace uCentral::Storage {
 				Poco::Data::Keywords::use(UUID);
             Update.execute();
 
-            return true;
+			Poco::Data::LOB<char>		L;
+			Poco::Data::LOBOutputStream	OL(L);
+
+			Poco::File	FileName = uCentral::ServiceConfig::getString("ucentral.fileuploader.path","/tmp") + "/" + UUID;
+
+			if(FileName.getSize()<(1000*uCentral::ServiceConfig::getInt("ucentral.fileuploader.maxsize",10000))) {
+
+				std::ifstream f(FileName.path(), std::ios::binary);
+				Poco::StreamCopier::copyStream(f, OL);
+				/*
+							"UUID			VARCHAR(64) PRIMARY KEY, "
+							"Type			VARCHAR(32), "
+							"Created 		BIGINT, "
+							"FileContent	BYTEA"
+				*/
+				Poco::Data::Statement Insert(Sess);
+				std::string FileType{"trace"};
+
+				std::string St2{ "INSERT INTO FileUploads (UUID,Type,Created,FileContent) VALUES(?,?,?,?)"};
+
+				Insert << ConvertParams(St2),
+					Poco::Data::Keywords::use(UUID),
+					Poco::Data::Keywords::use(FileType),
+					Poco::Data::Keywords::use(Now),
+					Poco::Data::Keywords::use(L);
+				Insert.execute();
+
+				FileName.remove();
+
+				return true;
+			} else {
+				Logger_.warning(Poco::format("File %s is too large.",FileName.path()));
+			}
         }
         catch ( const Poco::Exception & E)
         {
+			Logger_.log(E);
             Logger_.warning(Poco::format("Could not update outstanding command %s for file upload completion",UUID));
         }
         return false;
     }
+
+	bool Service::GetAttachedFile(std::string &UUID, const std::string &FileName) {
+		try {
+			Poco::Data::LOB<char>		L;
+			Poco::Data::LOBInputStream	IL(L);
+
+			/*
+						"UUID			VARCHAR(64) PRIMARY KEY, "
+						"Type			VARCHAR(32), "
+						"Created 		BIGINT, "
+						"FileContent	BYTEA"
+			*/
+			Poco::Data::Session Sess = Pool_->get();
+			Poco::Data::Statement Select(Sess);
+
+			std::string St2{ "SELECT FileContent FROM FileUploads WHERE UUID=?"};
+
+			Select << ConvertParams(St2),
+				Poco::Data::Keywords::into(L),
+				Poco::Data::Keywords::use(UUID);
+			Select.execute();
+
+			std::ofstream f(FileName, std::ios::binary);
+			Poco::StreamCopier::copyStream(IL, f);
+
+			return true;
+		} catch (const Poco::Exception &E) {
+			Logger_.log(E);
+		}
+		return false;
+	}
 
 	/*
 		Sess << "CREATE TABLE IF NOT EXISTS BlackList ("

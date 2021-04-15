@@ -70,6 +70,7 @@ namespace uCentral::Storage {
     bool CommandExecuted(std::string & UUID);
     bool CommandCompleted(std::string & UUID, Poco::DynamicStruct ReturnVars);
     bool AttachFileToCommand(std::string & UUID);
+	bool GetAttachedFile(std::string & UUID, const std::string & FileName);
 
 	bool AddBlackListDevices(std::vector<uCentralBlackListedDevice> &  Devices);
 	bool DeleteBlackListDevice(std::string & SerialNumber);
@@ -142,6 +143,7 @@ namespace uCentral::Storage {
         friend bool CommandExecuted(std::string & UUID);
         friend bool CommandCompleted(std::string & UUID, Poco::DynamicStruct ReturnVars);
         friend bool AttachFileToCommand(std::string & UUID);
+		friend bool GetAttachedFile(std::string & UUID, const std::string & FileName);
 
 		friend bool AddBlackListDevices(std::vector<uCentralBlackListedDevice> &  Devices);
 		friend bool DeleteBlackListDevice(std::string & SerialNumber);
@@ -202,6 +204,7 @@ namespace uCentral::Storage {
         bool CommandExecuted(std::string & UUID);
         bool CommandCompleted(std::string & UUID, Poco::DynamicStruct ReturnVars);
         bool AttachFileToCommand(std::string & UUID);
+		bool GetAttachedFile(std::string & UUID, const std::string & FileName);
 
 		bool AddBlackListDevices(std::vector<uCentralBlackListedDevice> &  Devices);
 		bool DeleteBlackListDevice(std::string & SerialNumber);

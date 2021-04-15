@@ -265,6 +265,8 @@ namespace uCentral {
             uCentral::uFileUploader::Start();
 			uCentral::CommandChannel::Start();
 
+//			std::string f{"devices.db"};
+//			uCentral::Storage::AttachFileToCommand(f);
 
 #ifndef SMALL_BUILD
             uCentral::TIPGW::Start();
