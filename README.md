@@ -48,7 +48,7 @@ make
 The following instructions have proven to work on Fedora 33
 ```
 sudo yum install cmake g++ openssl-devel unixODBC-devel mysql-devel mysql apr-util-devel boost boost-devel
-sudo yum install yaml-cpp-devel 
+sudo yum install yaml-cpp-devel lua-devel
 sudo dnf install postgresql.x86_64
 sudo dnf install postgresql-devel
 
@@ -421,5 +421,9 @@ And here is [how to use it](https://github.com/Telecominfraproject/wlan-cloud-uc
 In the `test_scripts` directory, you will find a series of scripts that will show you how to use the API with curl or Python3. 
 More scripts will be added in the future.
 
- 
+## Firewall Considerations
+- The protocol uses TCP port 15002 between the devices and the gateway. This port must be opened.
+- Devices use the TCP port 16003 to upload files. This port is configurable in the `ucentral.properties` file. Look for `ucentral.fileuploader.host.0.port`.
+- The RESTAPI is accessed through TCP port 16001 by default. This port is configurable in the `ucentral.properties` file. Look for the entry `ucentral.restapi.host.0.port`.
+
 
