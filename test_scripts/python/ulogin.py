@@ -3,11 +3,20 @@
 # Example
 # ./test_scripts/python/ulogin.py --ucentral_host bendt7 --cert ~/git/tip/ucentral-local/certs/server-cert.pem
 #
-# Configure 2-ssid setup with psk2 (aka wpa2)
+# Configure 2-ssid setup with psk2 (aka wpa2) in NAT/routed mode
 #
 # ./ulogin.py --serno c4411ef53f23 --cert ~/git/tip/ucentral-local/certs/server-cert.pem \
 #   --ucentral_host test-controller-1 --ssid24 Default-SSID-2g --ssid5 Default-SSID-5gl \
-#   --key24 12345678 --key5 12345678 --encryption24 psk2 --encryption5 psk2 --action cfg
+#   --key24 12345678 --key5 12345678 --encryption24 psk2 --encryption5 psk2 --action cfg \
+#   --network24 lan --network5 lan
+#
+# Configure 2 ssid setup with psk2 in bridge mode.
+# Use local cert downloaded from a remote ucentralgw
+# ./ulogin.py --serno c4411ef53f23 --cert ~/lab-ctlr-ucentral-cert.pem \
+#   --ucentral_host test-controller-1 --ssid24 Default-SSID-2g --ssid5 Default-SSID-5gl \
+#   --key24 12345678 --key5 12345678 --encryption24 psk2 --encryption5 psk2 --action cfg \
+#   --network24 wan --network5 wan
+
 
 import json
 from urllib.parse import urlparse
