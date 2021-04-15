@@ -2,6 +2,12 @@
 
 # Example
 # ./test_scripts/python/ulogin.py --ucentral_host bendt7 --cert ~/git/tip/ucentral-local/certs/server-cert.pem
+#
+# Configure 2-ssid setup with psk2 (aka wpa2)
+#
+# ./ulogin.py --serno c4411ef53f23 --cert ~/git/tip/ucentral-local/certs/server-cert.pem \
+#   --ucentral_host test-controller-1 --ssid24 Default-SSID-2g --ssid5 Default-SSID-5gl \
+#   --key24 12345678 --key5 12345678 --encryption24 psk2 --encryption5 psk2 --action cfg
 
 import json
 from urllib.parse import urlparse
