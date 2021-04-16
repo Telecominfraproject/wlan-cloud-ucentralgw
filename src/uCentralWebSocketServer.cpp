@@ -226,14 +226,16 @@ namespace uCentral::WebSocket {
         unsigned long MaxSize=OB.size()*10;
         std::vector<char> UncompressedBuffer(MaxSize);
         unsigned long FinalSize = MaxSize;
-        uncompress((Bytef *)&UncompressedBuffer[0], & FinalSize, (Bytef *)&OB[0],OB.size());
-
-        UncompressedBuffer[FinalSize]=0;
-        Poco::JSON::Parser parser;
-        auto result = parser.parse(&UncompressedBuffer[0]).extract<Poco::JSON::Object::Ptr>();
-        Poco::DynamicStruct Vars = *result;
-
-        return Vars;
+        if(uncompress((Bytef *)&UncompressedBuffer[0], & FinalSize, (Bytef *)&OB[0],OB.size())==Z_OK) {
+			UncompressedBuffer[FinalSize] = 0;
+			Poco::JSON::Parser parser;
+			auto result = parser.parse(&UncompressedBuffer[0]).extract<Poco::JSON::Object::Ptr>();
+			Poco::DynamicStruct Vars = *result;
+			return Vars;
+		} else {
+			Poco::DynamicStruct Vars;
+			return Vars;
+		}
     }
 
     void WSConnection::ProcessJSONRPCResult(Poco::DynamicStruct Vars) {
@@ -476,16 +478,18 @@ namespace uCentral::WebSocket {
     void WSConnection::OnSocketReadable(const Poco::AutoPtr<Poco::Net::ReadableNotification>& pNf) {
         try
         {
-//            std::thread Processor([Obj=this]() { Obj->ProcessIncomingFrame(); });
-//            Processor.detach();
-
             ProcessIncomingFrame();
         }
         catch ( const Poco::Exception & E )
         {
-            std::cout << "OnSocketReadable" << std::endl;
+            Logger_.log(E);
             delete this;
         }
+		catch ( const std::exception & E) {
+			std::string W = E.what();
+			Logger_.information(Poco::format("std::exception caught: %s. Connection terminated with %s",W,SerialNumber_));
+			delete this;
+		}
     }
 
     void WSConnection::ProcessIncomingFrame() {
