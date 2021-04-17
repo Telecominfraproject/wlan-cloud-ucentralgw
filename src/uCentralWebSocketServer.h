@@ -137,7 +137,7 @@ namespace uCentral::WebSocket {
     };
 
     class WSConnection {
-        static constexpr int BufSize = 16000;
+        static constexpr int BufSize = 32000;
     public:
         WSConnection(Poco::Net::StreamSocket& socket, Poco::Net::SocketReactor& reactor);
         ~WSConnection();

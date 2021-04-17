@@ -98,7 +98,7 @@ namespace uCentral::WebSocket {
         Response.setVersion(Request.getVersion());
         Response.setKeepAlive(Params->getKeepAlive() && Request.getKeepAlive() && Session.canKeepAlive());
         WS_ = std::make_unique<Poco::Net::WebSocket>(Request, Response);
-		WS_->peerAddress().toString();
+		WS_->setMaxPayloadSize(BufSize);
         Register();
     }
 
