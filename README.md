@@ -388,7 +388,7 @@ service. The path is defined under `logging.channels.c2.path`. Only `path names`
 environment variables. Here is a sample configuration:
 
 ### Certificates
-Love'em of hate'em, we gotta use'em. So we tried to make this as easy as possible for you. Under the `cert_scripts` you 
+Love'em of hate'em, we gotta use'em. So we tried to make this as easy as possible for you. Under the [`cert_scripts`](https://github.com/Telecominfraproject/wlan-cloud-ucentralgw/tree/master/cert_scripts) you 
 can run a single command (`create_sertificates.sh`) that will generate all the files you need. By default, this will generate the server side
 of the certificates as well as certificates for 10 devices. You can change the variable `howmany` in the script
 to change that number. 
