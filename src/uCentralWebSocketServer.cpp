@@ -497,22 +497,18 @@ namespace uCentral::WebSocket {
         int IncomingSize = 0;
 
         bool MustDisconnect=false;
-
-        std::array <char,BufSize>   IncomingMessage{0};
-        std::string IncomingMessageStr;
+		Poco::Buffer<char>			IncomingFrame(0);
 
         try {
-
             std::lock_guard<std::mutex> guard(Mutex_);
 
-            IncomingSize = WS_->receiveFrame(&IncomingMessage[0], BufSize, flags);
+			IncomingSize = WS_->receiveFrame(IncomingFrame,flags);
             Op = flags & Poco::Net::WebSocket::FRAME_OP_BITMASK;
 
             if (IncomingSize == 0 && flags == 0 && Op == 0) {
                 Logger_.information(Poco::format("DISCONNECT(%s)", SerialNumber_));
                 MustDisconnect = true;
             } else {
-                IncomingMessage[IncomingSize]=0;
                 switch (Op) {
                     case Poco::Net::WebSocket::FRAME_OP_PING: {
                         Logger_.information("WS-PING(" + SerialNumber_ + "): received. PONG sent back.");
@@ -526,15 +522,15 @@ namespace uCentral::WebSocket {
                         break;
 
                     case Poco::Net::WebSocket::FRAME_OP_TEXT: {
-                        Logger_.debug(
-                                Poco::format("Frame received (length=%d, flags=0x%x).", IncomingSize, unsigned(flags)));
+						IncomingFrame.append(0);
+						if(Logger_.is(Poco::Message::PRIO_DEBUG)) {
+							std::string IncomingMessageStr{std::string(IncomingFrame.begin())};
+							Logger_.debug(Poco::format("Frame received (length=%d, flags=0x%x). Msg=%s",
+													   IncomingSize, unsigned(flags),IncomingMessageStr));
+						}
 
                         Poco::JSON::Parser parser;
-                        std::string InMsg(&IncomingMessage[0]);
-
-                        IncomingMessageStr = std::string(&IncomingMessage[0]);
-
-                        auto ParsedMessage = parser.parse(InMsg);
+						auto ParsedMessage = parser.parse(IncomingFrame.begin());
                         auto Result = ParsedMessage.extract<Poco::JSON::Object::Ptr>();
                         Poco::DynamicStruct vars = *Result;
 
@@ -548,6 +544,7 @@ namespace uCentral::WebSocket {
                                    vars.contains("id")) {
                             ProcessJSONRPCResult(vars);
                         } else {
+							std::string IncomingMessageStr{std::string(IncomingFrame.begin())};
                             Logger_.warning(Poco::format("INVALID-PAYLOAD: Payload is not JSON-RPC 2.0: %s",IncomingMessageStr));
                         }
                         break;
@@ -572,36 +569,44 @@ namespace uCentral::WebSocket {
         }
         catch (const Poco::JSON::JSONException & E)
         {
-            Logger_.warning( Poco::format("%s(%s): Caught a JSONException: %s. Message: %s", std::string(__func__), SerialNumber_, E.displayText(), IncomingMessageStr ));
+			std::string IncomingMessageStr{std::string(IncomingFrame.begin())};
+			Logger_.warning( Poco::format("%s(%s): Caught a JSONException: %s. Message: %s", std::string(__func__), SerialNumber_, E.displayText(), IncomingMessageStr ));
         }
         catch (const Poco::Net::WebSocketException & E)
         {
-            Logger_.warning( Poco::format("%s(%s): Caught a websocket exception: %s. Message: %s", std::string(__func__), SerialNumber_, E.displayText(), IncomingMessageStr ));
+			std::string IncomingMessageStr{std::string(IncomingFrame.begin())};
+			Logger_.warning( Poco::format("%s(%s): Caught a websocket exception: %s. Message: %s", std::string(__func__), SerialNumber_, E.displayText(), IncomingMessageStr ));
             MustDisconnect = true ;
         }
         catch (const Poco::Net::SSLConnectionUnexpectedlyClosedException & E)
         {
-            Logger_.warning( Poco::format("%s(%s): Caught a SSLConnectionUnexpectedlyClosedException: %s. Message: %s", std::string(__func__), SerialNumber_, E.displayText(), IncomingMessageStr ));
+			std::string IncomingMessageStr{std::string(IncomingFrame.begin())};
+			Logger_.warning( Poco::format("%s(%s): Caught a SSLConnectionUnexpectedlyClosedException: %s. Message: %s", std::string(__func__), SerialNumber_, E.displayText(), IncomingMessageStr ));
             MustDisconnect = true ;
         }
         catch (const Poco::Net::SSLException & E)
         {
-            Logger_.warning( Poco::format("%s(%s): Caught a SSL exception: %s. Message: %s", std::string(__func__), SerialNumber_, E.displayText(), IncomingMessageStr ));
+			std::string IncomingMessageStr{std::string(IncomingFrame.begin())};
+			Logger_.warning( Poco::format("%s(%s): Caught a SSL exception: %s. Message: %s", std::string(__func__), SerialNumber_, E.displayText(), IncomingMessageStr ));
             MustDisconnect = true ;
         }
         catch (const Poco::Net::NetException & E) {
-            Logger_.warning( Poco::format("%s(%s): Caught a NetException: %s. Message: %s", std::string(__func__), SerialNumber_, E.displayText(), IncomingMessageStr ));
+			std::string IncomingMessageStr{std::string(IncomingFrame.begin())};
+			Logger_.warning( Poco::format("%s(%s): Caught a NetException: %s. Message: %s", std::string(__func__), SerialNumber_, E.displayText(), IncomingMessageStr ));
             MustDisconnect = true ;
         }
         catch (const Poco::IOException & E) {
-            Logger_.warning( Poco::format("%s(%s): Caught a IOException: %s. Message: %s", std::string(__func__), SerialNumber_, E.displayText(), IncomingMessageStr ));
+			std::string IncomingMessageStr{std::string(IncomingFrame.begin())};
+			Logger_.warning( Poco::format("%s(%s): Caught a IOException: %s. Message: %s", std::string(__func__), SerialNumber_, E.displayText(), IncomingMessageStr ));
             MustDisconnect = true ;
         }
         catch (const Poco::Exception &E) {
+			std::string IncomingMessageStr{std::string(IncomingFrame.begin())};
             Logger_.warning( Poco::format("%s(%s): Caught a more generic Poco exception: %s. Message: %s", std::string(__func__), SerialNumber_, E.displayText(), IncomingMessageStr ));
             MustDisconnect = true ;
         }
         catch (const std::exception & E) {
+			std::string IncomingMessageStr{std::string(IncomingFrame.begin())};
             Logger_.warning( Poco::format("%s(%s): Caught a std::exception: %s. Message: %s", std::string{__func__}, SerialNumber_, std::string{E.what()}, IncomingMessageStr) );
             MustDisconnect = true ;
         }
