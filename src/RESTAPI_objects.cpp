@@ -5,6 +5,9 @@
 #include "RESTAPI_objects.h"
 #include "RESTAPI_handler.h"
 
+#include "Poco/JSON/Parser.h"
+#include "Poco/JSON/Stringifier.h"
+
 Poco::JSON::Object uCentralDevice::to_json() const
 {
     Poco::JSON::Object  Obj;
@@ -14,7 +17,12 @@ Poco::JSON::Object uCentralDevice::to_json() const
     Obj.set("macAddress",MACAddress);
     Obj.set("manufacturer",Manufacturer);
     Obj.set("UUID",UUID);
-    Obj.set("configuration",Configuration);
+
+	Poco::JSON::Parser	P;
+	Poco::Dynamic::Var result = P.parse(Configuration);
+	const auto & CfgObj = result.extract<Poco::JSON::Object::Ptr>();
+	Obj.set("configuration",CfgObj);
+
     Obj.set("notes",Notes);
     Obj.set("createdTimestamp",RESTAPIHandler::to_RFC3339(CreationTimestamp));
     Obj.set("lastConfigurationChange",RESTAPIHandler::to_RFC3339(LastConfigurationChange));
@@ -34,7 +42,7 @@ bool uCentralDevice::from_json(Poco::JSON::Object::Ptr Obj) {
         DeviceType = ds["deviceType"].toString();
         MACAddress = ds["macAddress"].toString();
         UUID = ds["UUID"];
-        Configuration = ds["configuration"].toString();
+        // Configuration = ds["configuration"].toString();
 
         if(ds.contains("notes"))
             Notes = ds["notes"].toString();
@@ -66,14 +74,25 @@ void uCentralDevice::Print() const {
 Poco::JSON::Object uCentralStatistics::to_json() const {
     Poco::JSON::Object  Obj;
     Obj.set("UUID",UUID);
-    Obj.set("data",Data);
-    Obj.set("recorded",RESTAPIHandler::to_RFC3339(Recorded));
+
+	Poco::JSON::Parser	P;
+	Poco::Dynamic::Var result = P.parse(Data);
+	const auto & CfgObj = result.extract<Poco::JSON::Object::Ptr>();
+	Obj.set("data",CfgObj);
+
+	Obj.set("recorded",RESTAPIHandler::to_RFC3339(Recorded));
     return Obj;
 };
 
 Poco::JSON::Object uCentralCapabilities::to_json() const {
+
     Poco::JSON::Object  Obj;
-    Obj.set("capabilities",Capabilities);
+
+	Poco::JSON::Parser	P;
+	Poco::Dynamic::Var result = P.parse(Capabilities);
+	const auto & CfgObj = result.extract<Poco::JSON::Object::Ptr>();
+	Obj.set("capabilities",CfgObj);
+
     Obj.set("firstUpdate",RESTAPIHandler::to_RFC3339(FirstUpdate));
     Obj.set("lastUpdate",RESTAPIHandler::to_RFC3339(LastUpdate));
     return Obj;
@@ -84,7 +103,12 @@ Poco::JSON::Object uCentralDeviceLog::to_json() const
     Poco::JSON::Object  Obj;
     Obj.set("log",Log);
     Obj.set("severity",Severity);
-    Obj.set("data",Data);
+
+	Poco::JSON::Parser	P;
+	Poco::Dynamic::Var result = P.parse(Data);
+	const auto & CfgObj = result.extract<Poco::JSON::Object::Ptr>();
+	Obj.set("data",CfgObj);
+
     Obj.set("recorded",RESTAPIHandler::to_RFC3339(Recorded));
     Obj.set("logType",LogType);
     return Obj;
@@ -93,7 +117,12 @@ Poco::JSON::Object uCentralDeviceLog::to_json() const
 Poco::JSON::Object  uCentralHealthcheck::to_json() const {
     Poco::JSON::Object  Obj;
     Obj.set("UUID",UUID);
-    Obj.set("values",Data);
+
+	Poco::JSON::Parser	P;
+	Poco::Dynamic::Var result = P.parse(Data);
+	const auto & CfgObj = result.extract<Poco::JSON::Object::Ptr>();
+	Obj.set("values",CfgObj);
+
     Obj.set("sanity",Sanity);
     Obj.set("recorded",RESTAPIHandler::to_RFC3339(Recorded));
     return Obj;
@@ -112,7 +141,12 @@ Poco::JSON::Object uCentralDefaultConfiguration::to_json() const {
     Obj.set("name",Name);
     Obj.set("modelIds",Models);
     Obj.set("description",Description);
-    Obj.set("configuration",Configuration);
+
+	Poco::JSON::Parser	P;
+	Poco::Dynamic::Var result = P.parse(Configuration);
+	const auto & CfgObj = result.extract<Poco::JSON::Object::Ptr>();
+	Obj.set("configuration",CfgObj);
+
     Obj.set("created",RESTAPIHandler::to_RFC3339(Created));
     Obj.set("lastModified",RESTAPIHandler::to_RFC3339(LastModified));
     return Obj;
@@ -123,7 +157,12 @@ Poco::JSON::Object uCentralCommandDetails::to_json() const {
     Obj.set("UUID",UUID);
     Obj.set("serialNumber",SerialNumber);
     Obj.set("command",Command);
-    Obj.set("details",Details);
+
+	Poco::JSON::Parser	P;
+	Poco::Dynamic::Var result = P.parse(Details);
+	const auto & CfgObj = result.extract<Poco::JSON::Object::Ptr>();
+	Obj.set("details",CfgObj);
+
     Obj.set("errorText", ErrorText);
     Obj.set("submittedBy",SubmittedBy);
     Obj.set("status",Status);
