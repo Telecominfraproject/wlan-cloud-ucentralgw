@@ -15,6 +15,8 @@ In order to build the uCentralGW, you will need to install its dependencies, whi
 - openssl
 - libpq-dev (PortgreSQL development libraries)
 - mysql-client (MySQL client)
+- librdkafka
+- cppkafka
 
 The build is done in 2 parts. The first part is to build a local copy of the framework tailored to your environment. This 
 framework is called [Poco](https://github.com/pocoproject/poco). The version used in this project has a couple of fixes
@@ -26,9 +28,18 @@ These instructions have proven to work on Ubuntu 20.4.
 ```
 sudo apt install git cmake g++ libssl-dev libmysqlclient-dev unixodbc-dev postgesql-client-dev 
 sudo apt install libpq-dev libaprutil1-dev apache2-dev libboost-all-dev libyaml-cpp-dev
+sudo apt install librdkafka-dev
 
 git clone https://github.com/stephb9959/poco
 cd poco
+mkdir cmake-build
+cd cmake-build
+cmake ..
+cmake --build . --config Release
+sudo cmake --build . --target install
+
+git clone https://github.com/stephb9959/cppkafka
+cd cppkafka
 mkdir cmake-build
 cd cmake-build
 cmake ..
@@ -48,12 +59,20 @@ make
 The following instructions have proven to work on Fedora 33
 ```
 sudo yum install cmake g++ openssl-devel unixODBC-devel mysql-devel mysql apr-util-devel boost boost-devel
-sudo yum install yaml-cpp-devel lua-devel
-sudo dnf install postgresql.x86_64
+sudo yum install yaml-cpp-devel lua-devel 
+sudo dnf install postgresql.x86_64 librdkafka-devel
 sudo dnf install postgresql-devel
 
 git clone https://github.com/stephb9959/poco
 cd poco
+mkdir cmake-build
+cd cmake-build
+cmake ..
+cmake --build . --config Release
+sudo cmake --build . --target install
+
+git clone https://github.com/stephb9959/cppkafka
+cd cppkafka
 mkdir cmake-build
 cd cmake-build
 cmake ..
@@ -83,6 +102,7 @@ brew install boost
 brew install yaml-cpp
 brew install postgresql
 brew install unixodbc
+brew install librdkafka
 
 git clone https://github.com/stephb9959/poco
 cd poco
@@ -90,6 +110,14 @@ mkdir cmake-build
 cd cmake-build
 cmake ..
 cmake --build . --config Release -j
+sudo cmake --build . --target install
+
+git clone https://github.com/stephb9959/cppkafka
+cd cppkafka
+mkdir cmake-build
+cd cmake-build
+cmake ..
+cmake --build . --config Release
 sudo cmake --build . --target install
 
 cd ~
