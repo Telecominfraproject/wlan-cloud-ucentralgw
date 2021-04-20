@@ -33,6 +33,7 @@ namespace uCentral {
         void reinitialize(Application &self) override;
         void defineOptions(Poco::Util::OptionSet &options) override;
         void handleHelp(const std::string &name, const std::string &value);
+		void handleVersion(const std::string &name, const std::string &value);
         void handleDebug(const std::string &name, const std::string &value);
         void handleLogs(const std::string &name, const std::string &value);
         void handleConfig(const std::string &name, const std::string &value);

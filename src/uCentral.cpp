@@ -2,6 +2,7 @@
 // Created by stephane bourque on 2021-02-15.
 //
 #include <iostream>
+#include "version.h"
 
 #include "uCentral.h"
 
@@ -178,7 +179,14 @@ namespace uCentral {
                         .argument("dir")
                         .callback(Poco::Util::OptionCallback<Daemon>(this, &Daemon::handleLogs)));
 
-    }
+		options.addOption(
+			Poco::Util::Option("version", "", "get the version and quit.")
+				.required(false)
+				.repeatable(false)
+				.argument("")
+				.callback(Poco::Util::OptionCallback<Daemon>(this, &Daemon::handleVersion)));
+
+	}
 
     void Daemon::handleHelp(const std::string &name, const std::string &value) {
         helpRequested_ = true;
@@ -186,7 +194,13 @@ namespace uCentral {
         stopOptionsProcessing();
     }
 
-    void Daemon::handleDebug(const std::string &name, const std::string &value) {
+	void Daemon::handleVersion(const std::string &name, const std::string &value) {
+		helpRequested_ = true;
+		std::cout << __APP_VERSION__ << std::endl;
+		stopOptionsProcessing();
+	}
+
+	void Daemon::handleDebug(const std::string &name, const std::string &value) {
         if(value == "true")
             DebugMode_ = true ;
     }
