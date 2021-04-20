@@ -183,7 +183,6 @@ namespace uCentral {
 			Poco::Util::Option("version", "", "get the version and quit.")
 				.required(false)
 				.repeatable(false)
-				.argument("")
 				.callback(Poco::Util::OptionCallback<Daemon>(this, &Daemon::handleVersion)));
 
 	}
