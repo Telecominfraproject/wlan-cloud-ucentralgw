@@ -400,6 +400,40 @@ is left to the implementer.
 The `uri` for file upload is available for 30 minutes following the start of the capture. Once the file has been
 uploaded or the timeout occurs, the upload will be rejected.
 
+#### Controller wants the device to perform a WiFi Scan
+Controller sends this command when it needs the device to perform a WiFi Scan.
+```
+{    "jsonrpc" : "2.0" , 
+     "method" : "wifiscan" , 
+     "params" : {
+	        "serial" : <serial number> ,
+	        "bands" : [ "2","5","5l","5u",6" ], <optional this is a list of bands to scan: on or more bands >
+	        "channels" : [ 1,2,3...] , <optional list of discreet channels to scan >
+	        "verbose" : <optional boolean: true or false> (by default false)
+        },
+     "id" : <some number>
+}
+```
+
+The device should answer:
+```
+{   "jsonrpc" : "2.0" , 
+    "result" : {
+          "serial" : <serial number> ,
+          "status" : {
+            "error" : 0 or an error number,
+            "text" : <description of the error or success>,
+            "when" : <time when this will be performed as UTC seconds>
+  	        }
+          "scan" : <JSON document detailing the results of the scan>
+        },
+    "id" : <same number>
+}
+```
+
+##### Scanning: bands or channels
+In the command, bands and channels are mutually exclusive. If both parameters are omitted, then the scan will be performed for all bands and all channels.
+
 ### Message compression
 Some messages may be several KB in size. If these messages repeat often, they may cause added data charges over time. 
 As a result, the device may decide to compress and base64 outgoing messages. 

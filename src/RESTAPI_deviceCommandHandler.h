@@ -36,6 +36,7 @@ public:
     void LEDs(Poco::Net::HTTPServerRequest &Request, Poco::Net::HTTPServerResponse &Response);
     void Trace(Poco::Net::HTTPServerRequest &Request, Poco::Net::HTTPServerResponse &Response);
 	void MakeRequest(Poco::Net::HTTPServerRequest &Request, Poco::Net::HTTPServerResponse &Response);
+	void WifiScan(Poco::Net::HTTPServerRequest &Request, Poco::Net::HTTPServerResponse &Response);
 };
 
 #endif //UCENTRAL_RESTAPI_DEVICECOMMANDHANDLER_H

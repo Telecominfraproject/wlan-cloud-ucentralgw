@@ -12,10 +12,6 @@
 #include "Poco/Environment.h"
 #include "Poco/Path.h"
 
-#ifndef SMALL_BUILD
-#include "TIPGWServer.h"
-#endif
-
 #include "uCentralRESTAPIServer.h"
 #include "uCentralWebSocketServer.h"
 #include "uStorageService.h"
@@ -26,6 +22,10 @@
 #include "uFileUploader.h"
 #include "uCentralConfig.h"
 #include "CommandChannel.h"
+#ifndef SMALL_BUILD
+#include "TIPGWServer.h"
+#include "kafka_service.h"
+#endif
 
 #include <boost/algorithm/string.hpp>
 
@@ -78,6 +78,7 @@ namespace uCentral {
         addSubsystem(uCentral::DeviceRegistry::Service::instance());
 #ifndef SMALL_BUILD
         addSubsystem(uCentral::TIPGW::Service::instance());
+		addSubsystem(uCentral::Kafka::Service::instance());
 #endif
         addSubsystem(uCentral::RESTAPI::Service::instance());
         addSubsystem(uCentral::WebSocket::Service::instance());
@@ -270,10 +271,12 @@ namespace uCentral {
 
 #ifndef SMALL_BUILD
             uCentral::TIPGW::Start();
+			uCentral::Kafka::Start();
 #endif
             waitForTerminationRequest();
 
 #ifndef SMALL_BUILD
+			uCentral::Kafka::Stop();
             uCentral::TIPGW::Stop();
 #endif
 

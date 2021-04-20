@@ -65,7 +65,9 @@ void RESTAPI_deviceCommandHandler::handleRequest(Poco::Net::HTTPServerRequest& R
             Trace(Request, Response);
 		} else if (Command == "request" && Request.getMethod() == Poco::Net::HTTPServerRequest::HTTP_POST) {
 			MakeRequest(Request, Response);
-        } else {
+		} else if (Command == "wifiscan" && Request.getMethod() == Poco::Net::HTTPServerRequest::HTTP_POST) {
+			WifiScan(Request, Response);
+		} else {
             BadRequest(Response);
         }
         return;
@@ -869,6 +871,75 @@ void RESTAPI_deviceCommandHandler::Trace(Poco::Net::HTTPServerRequest &Request, 
         Logger_.error(Poco::format("%s: failed with %s",std::string(__func__), E.displayText()));
     }
     BadRequest(Response);
+}
+
+void RESTAPI_deviceCommandHandler::WifiScan(Poco::Net::HTTPServerRequest &Request, Poco::Net::HTTPServerResponse &Response) {
+	try{
+		auto SNum = GetBinding("serialNumber", "");
+
+		//  get the configuration from the body of the message
+		Poco::JSON::Parser parser;
+		Poco::JSON::Object::Ptr Obj = parser.parse(Request.stream()).extract<Poco::JSON::Object::Ptr>();
+		Poco::DynamicStruct ds = *Obj;
+
+		if(ds.contains("serialNumber")) {
+			auto SerialNumber = ds["serialNumber"].toString();
+			if(	(ds.contains("bands") && ds["bands"].isArray()) ||
+				(ds.contains("channels") && ds["channels"].isArray()) ||
+				(!ds.contains("bands") && !ds.contains("channels"))
+				)
+			{
+				bool Verbose = false ;
+
+				if(ds.contains("verbose"))
+				{
+					Verbose = ds["verbose"].toString() == "true";
+				}
+
+				auto UUID = uCentral::instance()->CreateUUID();
+				uCentralCommandDetails  Cmd;
+
+				Cmd.SerialNumber = SerialNumber;
+				Cmd.UUID = UUID;
+				Cmd.SubmittedBy = UserName_;
+				Cmd.Command = "wifiscan";
+				Cmd.Custom = 0;
+				Cmd.RunAt = 0;
+				Cmd.WaitingForFile = 1;
+
+				Poco::JSON::Object  Params;
+
+				Params.set("serial" , SerialNumber );
+				Params.set("verbose", Verbose);
+
+				if( ds.contains("bands")) {
+					Params.set("bands",ds["bands"]);
+				} else if ( ds.contains("channels")) {
+					Params.set("channels",ds["channels"]);
+				}
+
+				std::stringstream ParamStream;
+				Params.stringify(ParamStream);
+				Cmd.Details = ParamStream.str();
+
+				if(uCentral::Storage::AddCommand(SerialNumber,Cmd)) {
+
+					uCentral::uFileUploader::AddUUID(UUID);
+					Poco::JSON::Object RetObj;
+
+					RetObj.set("serialNumber", SerialNumber);
+					RetObj.set("command", Cmd.Command);
+					RetObj.set("UUID", Cmd.UUID);
+
+					ReturnObject(RetObj, Response);
+					return;
+				}
+			}
+		}
+	} catch (const Poco::Exception & E) {
+		Logger_.log(E);
+	}
+	BadRequest(Response);
 }
 
 void RESTAPI_deviceCommandHandler::MakeRequest(Poco::Net::HTTPServerRequest &Request, Poco::Net::HTTPServerResponse &Response) {
