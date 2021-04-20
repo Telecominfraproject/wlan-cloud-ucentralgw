@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/bash
 
 webtoken=`./login.sh | jq -r '.access_token'`
 

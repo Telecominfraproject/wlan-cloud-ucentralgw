@@ -11,9 +11,12 @@ else
   serial=$1
 fi
 
+payload="{ \"serialNumber\" : \"$serial\" , \"verbose\" : true }"
+
 webtoken=`./login.sh | jq -r '.access_token'`
 
-curl -X GET "https://localhost:16001/api/v1/device/$serial/logs" \
-  -H  "accept: application/json" \
-  -H "Authorization: Bearer $webtoken" \
-  --insecure
+curl -X POST \
+      -H "accept: application/json" \
+      -H "Authorization: Bearer $webtoken" \
+      --insecure -d "$payload" \
+      "https://localhost:16001/api/v1/device/$serial/wifiscan"

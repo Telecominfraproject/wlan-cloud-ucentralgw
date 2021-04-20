@@ -1,4 +1,4 @@
-#!/bin/zsh
+#!/bin/bash
 
 if [ $# -eq 0 ]; then
   if [ "$test_device" = "" ]; then
