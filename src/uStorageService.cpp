@@ -292,6 +292,50 @@ namespace uCentral::Storage {
 		return buf;
 	}
 
+	std::string Service::MakeFieldList(int N) const {
+		std::string Result;
+
+		if(IsPSQL_) {
+			for(auto i=0;i<N;++i)
+			{
+				Result += "$" + std::to_string(i+1);
+				if(i+1<N)
+					Result += ",";
+			}
+		} else {
+			for(auto i=0;i<N;++i)
+			{
+				Result += "?";
+				if(i+1<N)
+					Result += ",";
+			}
+		}
+
+		return "( " + Result + " )";
+	}
+
+	std::string Service::ConvertParams(const std::string & S) const {
+		std::string R;
+
+		R.reserve(S.size()*2+1);
+
+		if(IsPSQL_) {
+			auto Idx=1;
+			for(auto const & i:S)
+			{
+				if(i=='?') {
+					R += '$';
+					R.append(std::to_string(Idx++));
+				} else {
+					R += i;
+				}
+			}
+		} else {
+			R = S;
+		}
+		return R;
+	}
+
     int Service::Setup_SQLite() {
         Logger_.notice("SQLite Storage enabled.");
 
@@ -523,50 +567,6 @@ namespace uCentral::Storage {
 
 		return 0;
     }
-
-	std::string Service::MakeFieldList(int N) const {
-		std::string Result;
-
-		if(IsPSQL_) {
-			for(auto i=0;i<N;++i)
-			{
-				Result += "$" + std::to_string(i+1);
-				if(i+1<N)
-					Result += ",";
-			}
-		} else {
-			for(auto i=0;i<N;++i)
-			{
-				Result += "?";
-				if(i+1<N)
-					Result += ",";
-			}
-		}
-
-		return "( " + Result + " )";
-	}
-
-	std::string Service::ConvertParams(const std::string & S) const {
-		std::string R;
-
-		R.reserve(S.size()*2+1);
-
-		if(IsPSQL_) {
-			auto Idx=1;
-			for(auto const & i:S)
-			{
-				if(i=='?') {
-					R += '$';
-					R.append(std::to_string(Idx++));
-				} else {
-					R += i;
-				}
-			}
-		} else {
-			R = S;
-		}
-		return R;
-	}
 
     int Service::Setup_PostgreSQL() {
         Logger_.notice("PostgreSQL Storage enabled.");
