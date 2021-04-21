@@ -582,6 +582,23 @@ components:
           items:
             type: string
 
+    WifiBands:
+      type: object
+      properties:
+        bands:
+          type: array
+          items:
+            type: string
+            enum: [ "2" , "5", "5l", "5u" , "6" ]
+
+    WifiChannels:
+      type: object
+      properties:
+        channels:
+          type: array
+          items:
+            type: integer
+
     WifiScanRequest:
       type: object
       properties:
@@ -589,25 +606,12 @@ components:
           type: string
         verbose:
           type: boolean
-          required:
-            false
-        bands:
-          type: array
-          items:
-            type: string
-            enum:
-              - 2
-              - 5
-              - 5l
-              - 5u
-              - 6
-          required: false
-        channels:
-          type: array
-          items:
-            type: integer
-            format: int32
-          required: false
+        selector:
+          oneOf:
+            - $ref: '#/components/schemas/WifiBands'
+            - $ref: '#/components/schemas/WifiChannels'
+      required:
+        - serialNumber
 
     WifiScanResult:
       type: object
@@ -621,6 +625,30 @@ components:
           type: string
           format: 'date-time'
         scan:
+          type: string
+
+    EventQueueRequest:
+      type: object
+      properties:
+        serialNumber:
+          type: string
+        types:
+          type: array
+          items:
+            type: string
+            enum:
+              - dhcp
+              - rrm
+
+    EventQueueResponse:
+      type: object
+      properties:
+        serialNumber:
+          type: string
+        uuid:
+          type: integer
+          format: int64
+        result:
           type: string
 
 paths:
@@ -1603,7 +1631,7 @@ paths:
               $ref: '#/components/schemas/WifiScanRequest'
       responses:
         200:
-          $ref: '#/components/responses/WifiScanResult'
+          $ref: '#/components/schemas/WifiScanResult'
         403:
           $ref: '#/components/responses/Unauthorized'
         404:
@@ -1635,6 +1663,32 @@ paths:
         404:
           $ref: '#/components/responses/NotFound'
 
+  /device/{serialNumber}/eventrequest:
+    post:
+      tags:
+        - Commands
+      summary: Request a list of queued events
+      operationId: eventQueueRequest
+      parameters:
+        - in: path
+          name: serialNumber
+          schema:
+            type: string
+          required: true
+      requestBody:
+        description: Message request details
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EventQueueRequest'
+      responses:
+        200:
+          $ref: '#/components/schemas/EventQueueResponse'
+        403:
+          $ref: '#/components/responses/Unauthorized'
+        404:
+          $ref: '#/components/responses/NotFound'
+
   /file/{uuid}:
     get:
       tags:
@@ -1655,6 +1709,7 @@ paths:
           required: true
       responses:
         200:
+          description: Succesfull file retrieval
           content:
             application/octet-stream:
               schema:
