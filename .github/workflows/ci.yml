@@ -1,0 +1,25 @@
+name: CI
+
+on:
+  push:
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  docker:
+    runs-on: ubuntu-20.04
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: build Docker image
+      run: docker build -t wlan-cloud-ucentralgw:${{ github.sha }} .
+
+    - name: export Docker image
+      run: docker image save -o wlan-cloud-ucentralgw-${{ github.sha }}.tar wlan-cloud-ucentralgw:${{ github.sha }}
+
+    - uses: actions/upload-artifact@v2
+      with:
+        name: docker-image
+        path: wlan-cloud-ucentralgw-${{ github.sha }}.tar
