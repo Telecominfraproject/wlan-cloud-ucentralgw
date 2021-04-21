@@ -24,15 +24,15 @@ namespace uCentral::CommandChannel {
 		uCentral::CommandChannel::Service::instance()->Stop();
 	}
 
-	std::string  ProcessCommand(const std::string &Command) {
+	std::string  Service::ProcessCommand(const std::string &Command) {
 		std::vector<std::string>	Tokens{};
 		std::string Result{"OK"};
-		Poco::Logger	& Logger = uCentral::Daemon::instance().logger();
+		// Poco::Logger	& Logger = uCentral::Daemon::instance().logger();
 
 		size_t pos = 0, old_pos = 0 ;
 
 		try {
-			Logger.notice(Poco::format("COMMAND: %s",Command));
+			Logger_.notice(Poco::format("COMMAND: %s",Command));
 
 			while((pos = Command.find(' ', old_pos)) != std::string::npos) {
 				Tokens.push_back(Command.substr(old_pos,pos-old_pos));
@@ -72,13 +72,13 @@ namespace uCentral::CommandChannel {
 			} else {
 				Result = "ERROR: Invalid command: " + Tokens[0];
 			}
-			Logger.notice(Poco::format("COMMAND-RESULT: %s",Result));
+			Logger_.notice(Poco::format("COMMAND-RESULT: %s",Result));
 		}
 		catch ( const Poco::Exception & E) {
-			Logger.warning(Poco::format("COMMAND: Poco exception %s in performing command.",E.displayText()));
+			Logger_.warning(Poco::format("COMMAND: Poco exception %s in performing command.",E.displayText()));
 		}
 		catch ( const std::exception & E) {
-			Logger.warning(Poco::format("COMMAND: std::exception %s in performing command.",std::string(E.what())));
+			Logger_.warning(Poco::format("COMMAND: std::exception %s in performing command.",std::string(E.what())));
 		}
 
 		return Result;
@@ -108,7 +108,7 @@ namespace uCentral::CommandChannel {
 					Message += &buffer[0];
 					if(buffer.size() > n && !Message.empty())
 					{
-						ProcessCommand(Message);
+						uCentral::CommandChannel::Service::instance()->ProcessCommand(Message);
 						Message.clear();
 					}
 				}

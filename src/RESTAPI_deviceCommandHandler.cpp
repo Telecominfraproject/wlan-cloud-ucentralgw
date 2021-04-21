@@ -2,7 +2,6 @@
 // Created by stephane bourque on 2021-03-04.
 //
 
-#include "RESTAPI_deviceCommandHandler.h"
 #include "uStorageService.h"
 #include "uDeviceRegistry.h"
 #include "uCentral.h"
@@ -12,6 +11,9 @@
 #include "Poco/UUIDGenerator.h"
 #include "Poco/UUID.h"
 #include "Poco/JSON/Parser.h"
+#include "Poco/Thread.h"
+
+#include "RESTAPI_deviceCommandHandler.h"
 
 void RESTAPI_deviceCommandHandler::handleRequest(Poco::Net::HTTPServerRequest& Request, Poco::Net::HTTPServerResponse& Response)
 {
@@ -67,6 +69,8 @@ void RESTAPI_deviceCommandHandler::handleRequest(Poco::Net::HTTPServerRequest& R
 			MakeRequest(Request, Response);
 		} else if (Command == "wifiscan" && Request.getMethod() == Poco::Net::HTTPServerRequest::HTTP_POST) {
 			WifiScan(Request, Response);
+		} else if (Command == "eventqueue" && Request.getMethod() == Poco::Net::HTTPServerRequest::HTTP_POST) {
+			EventQueue(Request, Response);
 		} else {
             BadRequest(Response);
         }
@@ -77,7 +81,25 @@ void RESTAPI_deviceCommandHandler::handleRequest(Poco::Net::HTTPServerRequest& R
         Logger_.error(Poco::format("%s: failed with %s",std::string(__func__) ,E.displayText()));
     }
     BadRequest(Response);
-};
+}
+
+bool WaitForRPC(std::string & UUID, uCentralCommandDetails & Cmd, int ms_wait=5000) {
+
+	while(ms_wait>0) {
+		ms_wait -= 1000;
+
+		Poco::Thread::sleep(1000);
+
+		//	Is the command completed???
+		if(uCentral::Storage::GetCommand(UUID,Cmd))
+		{
+			if(Cmd.Completed)
+				return true;
+		}
+	}
+
+	return false;
+}
 
 void  RESTAPI_deviceCommandHandler::GetCapabilities(Poco::Net::HTTPServerRequest &Request, Poco::Net::HTTPServerResponse &Response) {
     uCentralCapabilities    Caps;
@@ -157,11 +179,10 @@ void RESTAPI_deviceCommandHandler::DeleteStatistics(Poco::Net::HTTPServerRequest
         auto StartDate = RESTAPIHandler::from_RFC3339(GetParameter("startDate", ""));
         auto EndDate = RESTAPIHandler::from_RFC3339(GetParameter("endDate", ""));
 
-        if (uCentral::Storage::DeleteStatisticsData(SerialNumber, StartDate, EndDate))
-            OK(Response);
-        else
-            BadRequest(Response);
-        return;
+        if (uCentral::Storage::DeleteStatisticsData(SerialNumber, StartDate, EndDate)) {
+			OK(Response);
+			return;
+		}
     }
     catch(const Poco::Exception &E)
     {
@@ -246,9 +267,9 @@ void RESTAPI_deviceCommandHandler::Configure(Poco::Net::HTTPServerRequest& Reque
 
                 Poco::JSON::Object  Params;
 
-                Params.set( "serial" , SerialNumber );
-                Params.set("uuid",NewUUID);
-                Params.set("when",When);
+                Params.set("serial", SerialNumber );
+                Params.set("uuid", NewUUID);
+                Params.set("when", When);
                 Params.set("config", Cfg.to_json());
 
                 std::stringstream ParamStream;
@@ -256,31 +277,14 @@ void RESTAPI_deviceCommandHandler::Configure(Poco::Net::HTTPServerRequest& Reque
                 Cmd.Details = ParamStream.str();
 
                 if(uCentral::Storage::AddCommand(SerialNumber,Cmd)) {
-					uCentralDevice	DeviceDetails;
-					if(uCentral::Storage::GetDevice(SerialNumber, DeviceDetails)) {
-						auto ReturnObj = DeviceDetails.to_json();
-
-						ReturnObject(ReturnObj,Response);
-						return;
-					} else {
-						BadRequest(Response);
-					}
-                    return;
-                }
-                else
-                {
-                    BadRequest(Response);
-                    return;
+					uCentralCommandDetails	ResCmd;
+					WaitForRPC(Cmd.UUID,ResCmd);
+					Poco::JSON::Object RetObj = ResCmd.to_json();
+					ReturnObject(RetObj, Response);
+					return;
                 }
             }
-            else {
-                BadRequest(Response);
-            }
         }
-        else {
-            BadRequest(Response);
-        }
-        return;
     }
     catch(const Poco::Exception &E)
     {
@@ -335,27 +339,13 @@ void RESTAPI_deviceCommandHandler::Upgrade(Poco::Net::HTTPServerRequest &Request
             Cmd.Details = ParamStream.str();
 
             if(uCentral::Storage::AddCommand(SerialNumber,Cmd)) {
-
-                Poco::JSON::Object RetObj;
-
-                RetObj.set("serialNumber", SerialNumber);
-                RetObj.set("command", Cmd.Command);
-                RetObj.set("UUID", Cmd.UUID);
-
-                ReturnObject(RetObj, Response);
-
-                return;
-            }
-            else
-            {
-                BadRequest(Response);
-                return;
+				uCentralCommandDetails	ResCmd;
+				WaitForRPC(Cmd.UUID,ResCmd);
+				Poco::JSON::Object RetObj = ResCmd.to_json();
+				ReturnObject(RetObj, Response);
+				return;
             }
         }
-
-        else
-            BadRequest(Response);
-        return;
     }
     catch(const Poco::Exception &E)
     {
@@ -404,11 +394,10 @@ void RESTAPI_deviceCommandHandler::DeleteLogs(Poco::Net::HTTPServerRequest& Requ
         auto EndDate = RESTAPIHandler::from_RFC3339(GetParameter("endDate", ""));
         auto LogType = GetParameter("logType",0);
 
-        if (uCentral::Storage::DeleteLogData(SerialNumber, StartDate, EndDate, LogType))
-            OK(Response);
-        else
-            BadRequest(Response);
-        return;
+        if (uCentral::Storage::DeleteLogData(SerialNumber, StartDate, EndDate, LogType)) {
+			OK(Response);
+			return;
+		}
     }
     catch(const Poco::Exception &E)
     {
@@ -456,11 +445,10 @@ void RESTAPI_deviceCommandHandler::DeleteChecks(Poco::Net::HTTPServerRequest& Re
         auto StartDate = RESTAPIHandler::from_RFC3339(GetParameter("startDate", ""));
         auto EndDate = RESTAPIHandler::from_RFC3339(GetParameter("endDate", ""));
 
-        if (uCentral::Storage::DeleteHealthCheckData(SerialNumber, StartDate, EndDate))
-            OK(Response);
-        else
-            BadRequest(Response);
-        return;
+        if (uCentral::Storage::DeleteHealthCheckData(SerialNumber, StartDate, EndDate)) {
+			OK(Response);
+			return;
+		}
     }
     catch(const Poco::Exception &E)
     {
@@ -523,27 +511,13 @@ void RESTAPI_deviceCommandHandler::ExecuteCommand(Poco::Net::HTTPServerRequest& 
             Cmd.Details = ParamStream.str();
 
             if(uCentral::Storage::AddCommand(SerialNumber,Cmd)) {
-
-                Poco::JSON::Object RetObj;
-
-                RetObj.set("serialNumber", SerialNumber);
-                RetObj.set("command", Cmd.Command);
-                RetObj.set("UUID", Cmd.UUID);
-
-                ReturnObject(RetObj, Response);
-
-                return;
-            }
-            else
-            {
-                BadRequest(Response);
-                return;
+				uCentralCommandDetails	ResCmd;
+				WaitForRPC(Cmd.UUID,ResCmd);
+				Poco::JSON::Object RetObj = ResCmd.to_json();
+				ReturnObject(RetObj, Response);
+				return;
             }
         }
-        else
-            BadRequest(Response);
-
-        return;
     }
     catch(const Poco::Exception &E)
     {
@@ -593,27 +567,13 @@ void RESTAPI_deviceCommandHandler::Reboot(Poco::Net::HTTPServerRequest& Request,
             Cmd.Details = ParamStream.str();
 
             if(uCentral::Storage::AddCommand(SerialNumber,Cmd)) {
-
-                Poco::JSON::Object RetObj;
-
-                RetObj.set("serialNumber", SerialNumber);
-                RetObj.set("command", Cmd.Command);
-                RetObj.set("UUID", Cmd.UUID);
-
-                ReturnObject(RetObj, Response);
-
-                return;
-            }
-            else
-            {
-                BadRequest(Response);
-                return;
+				uCentralCommandDetails	ResCmd;
+				WaitForRPC(Cmd.UUID,ResCmd);
+				Poco::JSON::Object RetObj = ResCmd.to_json();
+				ReturnObject(RetObj, Response);
+				return;
             }
         }
-        else {
-            BadRequest(Response);
-        }
-        return;
     }
     catch(const Poco::Exception &E)
     {
@@ -677,16 +637,9 @@ void RESTAPI_deviceCommandHandler::Factory(Poco::Net::HTTPServerRequest &Request
             Cmd.Details = ParamStream.str();
 
             if(uCentral::Storage::AddCommand(SerialNumber,Cmd)) {
-
-                Poco::JSON::Object RetObj;
-
-                RetObj.set("serialNumber", SerialNumber);
-                RetObj.set("command", Cmd.Command);
-                RetObj.set("UUID", Cmd.UUID);
-
-                ReturnObject(RetObj, Response);
-
-                return;
+				Poco::JSON::Object RetObj = Cmd.to_json();
+				ReturnObject(RetObj, Response);
+				return;
             }
             else
             {
@@ -762,26 +715,13 @@ void RESTAPI_deviceCommandHandler::LEDs(Poco::Net::HTTPServerRequest &Request, P
             Cmd.Details = ParamStream.str();
 
             if(uCentral::Storage::AddCommand(SerialNumber,Cmd)) {
-
-                Poco::JSON::Object RetObj;
-
-                RetObj.set("serialNumber", SerialNumber);
-                RetObj.set("command", Cmd.Command);
-                RetObj.set("UUID", Cmd.UUID);
-
-                ReturnObject(RetObj, Response);
-
-                return;
-            }
-            else
-            {
-                BadRequest(Response);
-                return;
+				uCentralCommandDetails	ResCmd;
+				WaitForRPC(Cmd.UUID,ResCmd,2000);
+				Poco::JSON::Object RetObj = ResCmd.to_json();
+				ReturnObject(RetObj, Response);
+				return;
             }
         }
-        else
-            BadRequest(Response);
-        return;
     }
     catch(const Poco::Exception &E)
     {
@@ -844,27 +784,14 @@ void RESTAPI_deviceCommandHandler::Trace(Poco::Net::HTTPServerRequest &Request, 
             Cmd.Details = ParamStream.str();
 
             if(uCentral::Storage::AddCommand(SerialNumber,Cmd)) {
-
                 uCentral::uFileUploader::AddUUID(UUID);
-                Poco::JSON::Object RetObj;
-
-                RetObj.set("serialNumber", SerialNumber);
-                RetObj.set("command", Cmd.Command);
-                RetObj.set("UUID", Cmd.UUID);
-
-                ReturnObject(RetObj, Response);
-
-                return;
-            }
-            else
-            {
-                BadRequest(Response);
-                return;
+				if(uCentral::Storage::AddCommand(SerialNumber,Cmd)) {
+					Poco::JSON::Object RetObj = Cmd.to_json();
+					ReturnObject(RetObj, Response);
+					return;
+				}
             }
         }
-        else
-            BadRequest(Response);
-        return;
     }
     catch(const Poco::Exception &E)
     {
@@ -905,7 +832,7 @@ void RESTAPI_deviceCommandHandler::WifiScan(Poco::Net::HTTPServerRequest &Reques
 				Cmd.Command = "wifiscan";
 				Cmd.Custom = 0;
 				Cmd.RunAt = 0;
-				Cmd.WaitingForFile = 1;
+				Cmd.WaitingForFile = 0;
 
 				Poco::JSON::Object  Params;
 
@@ -923,20 +850,68 @@ void RESTAPI_deviceCommandHandler::WifiScan(Poco::Net::HTTPServerRequest &Reques
 				Cmd.Details = ParamStream.str();
 
 				if(uCentral::Storage::AddCommand(SerialNumber,Cmd)) {
+					if(uCentral::Storage::AddCommand(SerialNumber,Cmd)) {
+						uCentralCommandDetails	ResCmd;
+						WaitForRPC(Cmd.UUID,ResCmd);
+						Poco::JSON::Object RetObj = ResCmd.to_json();
+						ReturnObject(RetObj, Response);
+						return;
+					}
+				}
+			}
+		}
+	} catch (const Poco::Exception & E) {
+		Logger_.log(E);
+	}
+	BadRequest(Response);
+}
 
-					uCentral::uFileUploader::AddUUID(UUID);
-					Poco::JSON::Object RetObj;
+void RESTAPI_deviceCommandHandler::EventQueue(Poco::Net::HTTPServerRequest &Request, Poco::Net::HTTPServerResponse &Response) {
+	try {
+		auto SNum = GetBinding("serialNumber", "");
 
-					RetObj.set("serialNumber", SerialNumber);
-					RetObj.set("command", Cmd.Command);
-					RetObj.set("UUID", Cmd.UUID);
+		//  get the configuration from the body of the message
+		Poco::JSON::Parser parser;
+		Poco::JSON::Object::Ptr Obj = parser.parse(Request.stream()).extract<Poco::JSON::Object::Ptr>();
+		Poco::DynamicStruct ds = *Obj;
 
+		if(ds.contains("serialNumber") &&
+			ds.contains("types") && ds["types"].isArray())
+		{
+			auto SerialNumber = ds["serialNumber"].toString();
+			auto Types = ds["types"];
+
+			if( SerialNumber == SNum ) {
+				auto UUID = uCentral::instance()->CreateUUID();
+				uCentralCommandDetails  Cmd;
+
+				Cmd.SerialNumber = SerialNumber;
+				Cmd.UUID = UUID;
+				Cmd.SubmittedBy = UserName_;
+				Cmd.Command = "eventqueue";
+				Cmd.Custom = 0;
+				Cmd.RunAt = 0;
+				Cmd.WaitingForFile = 0;
+
+				Poco::JSON::Object  Params;
+
+				Params.set("serial" , SerialNumber );
+				Params.set("types", Types);
+
+				std::stringstream ParamStream;
+				Params.stringify(ParamStream);
+				Cmd.Details = ParamStream.str();
+
+				if(uCentral::Storage::AddCommand(SerialNumber,Cmd)) {
+					uCentralCommandDetails	ResCmd;
+					WaitForRPC(Cmd.UUID,ResCmd);
+					Poco::JSON::Object RetObj = ResCmd.to_json();
 					ReturnObject(RetObj, Response);
 					return;
 				}
 			}
 		}
-	} catch (const Poco::Exception & E) {
+	} catch ( const Poco::Exception & E ) {
 		Logger_.log(E);
 	}
 	BadRequest(Response);
@@ -985,26 +960,13 @@ void RESTAPI_deviceCommandHandler::MakeRequest(Poco::Net::HTTPServerRequest &Req
 			Cmd.Details = ParamStream.str();
 
 			if(uCentral::Storage::AddCommand(SerialNumber,Cmd)) {
-
-				Poco::JSON::Object RetObj;
-
-				RetObj.set("serialNumber", SerialNumber);
-				RetObj.set("command", Cmd.Command);
-				RetObj.set("UUID", Cmd.UUID);
-
+				uCentralCommandDetails	ResCmd;
+				WaitForRPC(Cmd.UUID,ResCmd,2000);
+				Poco::JSON::Object RetObj = ResCmd.to_json();
 				ReturnObject(RetObj, Response);
-
-				return;
-			}
-			else
-			{
-				BadRequest(Response);
 				return;
 			}
 		}
-		else
-			BadRequest(Response);
-		return;
 	}
 	catch(const Poco::Exception &E)
 	{
@@ -1012,4 +974,3 @@ void RESTAPI_deviceCommandHandler::MakeRequest(Poco::Net::HTTPServerRequest &Req
 	}
 	BadRequest(Response);
 }
-

@@ -51,8 +51,6 @@ components:
             properties:
               serialNumber:
                 type: string
-              command:
-                type: string
               UUID:
                 type: string
                 format: uuid
@@ -513,14 +511,6 @@ components:
           items:
             $ref: '#/components/schemas/CommandInfo'
 
-    FileRetrievalAnswer:
-      type: object
-      properties:
-        uri:
-          type: string
-        serialNumber:
-          type: string
-
     SystemCommandDetails:
       type: object
       properties:
@@ -645,9 +635,9 @@ components:
       properties:
         serialNumber:
           type: string
-        uuid:
-          type: integer
-          format: int64
+        UUID:
+          type: string
+          format: uuid
         result:
           type: string
 
@@ -1445,7 +1435,7 @@ paths:
               $ref: '#/components/schemas/CommandDetails'
       responses:
         200:
-          $ref: '#/components/responses/CommandSubmitSuccess'
+          $ref: '#/components/schemas/CommandInfo'
         403:
           $ref: '#/components/responses/Unauthorized'
         404:
@@ -1471,11 +1461,7 @@ paths:
               $ref: '#/components/schemas/DeviceConfigureRequest'
       responses:
         200:
-          description: Successful device creation will return the device record with the proper device ID
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Device'
+          $ref: '#/components/schemas/CommandInfo'
         403:
           $ref: '#/components/responses/Unauthorized'
         404:
@@ -1501,7 +1487,7 @@ paths:
               $ref: '#/components/schemas/UpgradeRequest'
       responses:
         200:
-          $ref: '#/components/responses/CommandSubmitSuccess'
+          $ref: '#/components/schemas/CommandInfo'
         403:
           $ref: '#/components/responses/Unauthorized'
         404:
@@ -1527,7 +1513,7 @@ paths:
               $ref: '#/components/schemas/RebootRequest'
       responses:
         200:
-          $ref: '#/components/responses/CommandSubmitSuccess'
+          $ref: '#/components/schemas/CommandInfo'
         403:
           $ref: '#/components/responses/Unauthorized'
         404:
@@ -1553,7 +1539,7 @@ paths:
               $ref: '#/components/schemas/FactoryRequest'
       responses:
         200:
-          $ref: '#/components/responses/CommandSubmitSuccess'
+          $ref: '#/components/schemas/CommandInfo'
         403:
           $ref: '#/components/responses/Unauthorized'
         404:
@@ -1579,7 +1565,7 @@ paths:
               $ref: '#/components/schemas/LEDsRequest'
       responses:
         200:
-          $ref: '#/components/responses/CommandSubmitSuccess'
+          $ref: '#/components/schemas/CommandInfo'
         403:
           $ref: '#/components/responses/Unauthorized'
         404:
@@ -1605,7 +1591,7 @@ paths:
               $ref: '#/components/schemas/TraceRequest'
       responses:
         200:
-          $ref: '#/components/responses/CommandSubmitSuccess'
+          $ref: '#/components/schemas/CommandInfo'
         403:
           $ref: '#/components/responses/Unauthorized'
         404:
@@ -1631,7 +1617,7 @@ paths:
               $ref: '#/components/schemas/WifiScanRequest'
       responses:
         200:
-          $ref: '#/components/schemas/WifiScanResult'
+          $ref: '#/components/schemas/CommandInfo'
         403:
           $ref: '#/components/responses/Unauthorized'
         404:
@@ -1654,7 +1640,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/MessageRequest'
+              $ref: '#/components/schemas/CommandInfo'
       responses:
         200:
           $ref: '#/components/responses/CommandSubmitSuccess'
@@ -1680,7 +1666,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/EventQueueRequest'
+              $ref: '#/components/schemas/CommandInfo'
       responses:
         200:
           $ref: '#/components/schemas/EventQueueResponse'

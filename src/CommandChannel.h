@@ -34,6 +34,8 @@ class Service : public SubSystemServer {
 		return instance_;
 	}
 
+	std::string  ProcessCommand(const std::string &Command);
+
   private:
 	int Start() override;
 	void Stop() override;

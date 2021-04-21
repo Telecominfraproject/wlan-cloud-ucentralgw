@@ -163,10 +163,14 @@ Poco::JSON::Object uCentralCommandDetails::to_json() const {
 	const auto & CfgObj = result.extract<Poco::JSON::Object::Ptr>();
 	Obj.set("details",CfgObj);
 
+	Poco::JSON::Parser	P2;
+	Poco::Dynamic::Var result2 = P.parse(Results);
+	const auto & ResultsObj2 = result.extract<Poco::JSON::Object::Ptr>();
+	Obj.set("results",ResultsObj2);
+
     Obj.set("errorText", ErrorText);
     Obj.set("submittedBy",SubmittedBy);
     Obj.set("status",Status);
-    Obj.set("results",Results);
     Obj.set("submitted",RESTAPIHandler::to_RFC3339(Submitted));
     Obj.set("executed",RESTAPIHandler::to_RFC3339(Executed));
     Obj.set("completed",RESTAPIHandler::to_RFC3339(Completed));

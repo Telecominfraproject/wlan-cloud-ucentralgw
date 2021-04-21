@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 3.13)
 project(ucentralgw VERSION 0.3.0)
 
+set(CMAKE_CXX_STANDARD 17)
+
 if(UNIX AND APPLE)
     set(OPENSSL_ROOT_DIR /usr/local/opt/openssl)
     set(MYSQL_ROOT_DIR /usr/local/opt/mysql-client)
@@ -11,8 +13,6 @@ if(UNIX AND NOT APPLE)
     set(PostgreSQL_TYPE_INCLUDE_DIR /usr/include/postgresql)
     list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_LIST_DIR}/cmake)
 endif()
-
-set(CMAKE_CXX_STANDARD 17)
 
 if(SMALL_BUILD)
     add_definitions(-DSMALL_BUILD)
