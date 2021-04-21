@@ -10,11 +10,28 @@ defaults:
 jobs:
   docker:
     runs-on: ubuntu-20.04
+    env:
+      DOCKER_REGISTRY_URL: tip-tip-wlan-cloud-ucentral.jfrog.io
+      DOCKER_REGISTRY_USERNAME: ucentral
     steps:
     - uses: actions/checkout@v2
 
     - name: build Docker image
       run: docker build -t wlan-cloud-ucentralgw:${{ github.sha }} .
+
+    - name: log into Docker registry
+      uses: docker/login-action@v1
+      with:
+        registry: ${{ env.DOCKER_REGISTRY_URL }}
+        username: ${{ env.DOCKER_REGISTRY_USERNAME }}
+        password: ${{ secrets.DOCKER_REGISTRY_PASSWORD }}
+
+    - name: push Docker image
+      run: |
+        for tag in ${{ github.sha }} master; do
+          docker tag wlan-cloud-ucentralgw:${{ github.sha }} ${{ env.DOCKER_REGISTRY_URL }}/ucentralgw:$tag
+          docker push ${{ env.DOCKER_REGISTRY_URL }}/ucentralgw:$tag
+        done
 
     - name: export Docker image
       run: docker image save -o wlan-cloud-ucentralgw-${{ github.sha }}.tar wlan-cloud-ucentralgw:${{ github.sha }}
