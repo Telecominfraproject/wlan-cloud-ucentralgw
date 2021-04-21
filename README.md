@@ -28,7 +28,7 @@ These instructions have proven to work on Ubuntu 20.4.
 ```
 sudo apt install git cmake g++ libssl-dev libmysqlclient-dev unixodbc-dev postgesql-client-dev 
 sudo apt install libpq-dev libaprutil1-dev apache2-dev libboost-all-dev libyaml-cpp-dev
-sudo apt install librdkafka-dev
+sudo apt install librdkafka-dev lua5.3-dev
 
 git clone https://github.com/stephb9959/poco
 cd poco
