@@ -24,6 +24,11 @@
 #   --key24 12345678 --key5 12345678 --encryption24 psk2 --encryption5 psk2 --action cfg \
 #   --network24 lan --network5 lan
 
+# Request AP upgrade to specified firmware.
+# ./ulogin.py --serno c4411ef53f23 --cert ~/git/tip/ucentral-local/certs/server-cert.pem \
+#   --ucentral_host test-controller-1 --action upgrade \
+#   --url http://192.168.100.195/tip/openwrt-mediatek-mt7622-linksys_e8450-ubi-squashfs-sysupgrade.itb 
+
 
 import json
 from urllib.parse import urlparse
@@ -41,7 +46,7 @@ assert_bad_response = True
 parser = argparse.ArgumentParser()
 parser.add_argument('--ucentral_host', help="Specify ucentral host name/ip.", default="ucentral")
 parser.add_argument('--cert', help="Specify ucentral cert.", default="cert.pem")
-parser.add_argument("--action", help="Specify action: show_stats | blink | show_devices | cfg .", default="")
+parser.add_argument("--action", help="Specify action: show_stats | blink | show_devices | cfg | upgrade .", default="")
 parser.add_argument("--serno", help="Serial number of AP, used for some action.", default="")
 
 parser.add_argument("--ssid24", help="Configure ssid for 2.4 Ghz.", default="ucentral-24")
@@ -61,7 +66,10 @@ parser.add_argument("--mode24", help="Mode for 2.4Ghz, AUTO | HE20 | HT20 ...", 
 parser.add_argument("--mode5", help="Mode for 5Ghz, AUTO | HE80 | VHT80 ...", default="AUTO")
 
 
+parser.add_argument("--url", help="Specify URL for upgrading a device.", default="")
+
 parser.add_argument("--verbose", help="Enable verbose logging.", default=False, action='store_true')
+parser.add_argument("--noverify", help="Disable ssl cert verification.", default=False, action='store_true')
 
 args = parser.parse_args()
 
@@ -75,11 +83,15 @@ cert = args.cert
 if Path(cert).is_file():
     print("Using local self-signed cert: ", cert)
     sslcontext = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
-    sslcontext.verify_mode = ssl.CERT_REQUIRED
     sslcontext.check_hostname = False
+    if args.noverify:
+        sslcontext.verify_mode = ssl.CERT_NONE
+    else:
+        sslcontext.verify_mode = ssl.CERT_REQUIRED
     sslcontext.load_verify_locations(cert)
 else:
     context = True
+
 
 def check_response(cmd, response, headers, data_str, url):
     if response.status_code >= 400 or args.verbose:
@@ -157,6 +169,12 @@ def list_device_stats(serno):
         print("Recorded: ", s['recorded'])
         stats_data = json.loads(s['data'])
         pprint(stats_data)
+
+def upgrade_device(serno, url):
+    uri = build_uri("api/v1/device/" + serno + "/upgrade")
+    payload = json.dumps({ "serialNumber": serno, "uri": url, "digest": "1234567890" })
+    resp = requests.post(uri, data=payload, headers=make_headers(), verify=False)
+    check_response("POST", resp, make_headers(), "", uri)
 
 # Not sure this is working properly, it won't blink my e8450
 def blink_device(serno):
@@ -329,6 +347,12 @@ elif args.action == "show_stats":
     if args.serno == "":
         print("ERROR:  get_stats action needs serno set.\n")
     list_device_stats(args.serno)
+elif args.action == "upgrade":
+    if args.serno == "":
+        print("ERROR:  upgrade action needs serno set.\n")
+    if args.serno == "":
+        print("ERROR:  upgrate needs URL set.\n")
+    upgrade_device(args.serno, args.url)
 elif args.action == "blink":
     if args.serno == "":
         print("ERROR:  blink action needs serno set.\n")
