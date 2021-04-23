@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 
-# Example
-# ./test_scripts/python/ulogin.py --ucentral_host bendt7 --cert ~/git/tip/ucentral-local/certs/server-cert.pem
+# Example usage
+#
+# List all devices
+# ./ulogin.py --ucentral_host test-controller-1 --cert ~/git/tip/ucentral-local/certs/server-cert.pem
 #
 # Configure 2-ssid setup with psk2 (aka wpa2) in NAT/routed mode
 #
@@ -143,8 +145,8 @@ def list_devices(serno):
         # Parse the config before pretty-printing to make it more legible
         data = resp.json()
         cfg = data['configuration']
-        data['configuration'] = json.loads(cfg)
-        pprint(data)
+        pprint(cfg)
+        return cfg
     else:
         # Get all
         uri = build_uri("api/v1/devices")
@@ -155,9 +157,10 @@ def list_devices(serno):
         print("Devices:\n")
         for d in devices:
             # Parse the config before pretty-printing to make it more legible
-            cfg = d['configuration']
-            d['configuration'] = json.loads(cfg)
+            #cfg = d['configuration']
+            #d['configuration'] = json.loads(cfg)
             pprint(d)
+        return devices
 
 def list_device_stats(serno):
     uri = build_uri("api/v1/device/" + serno + "/statistics")
