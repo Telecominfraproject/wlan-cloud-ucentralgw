@@ -641,6 +641,87 @@ components:
         result:
           type: string
 
+    ClientClassTemplate:
+      type: object
+      properties:
+        UUID:
+          type: string
+          format: uuid
+        name:
+          type: string
+        description:
+          type: string
+        created:
+          type: string
+          format: 'date-time'
+        lastModified:
+          type: string
+          format: 'date-time'
+        createdBy:
+          type: string
+        weight:
+          type: integer
+          format: int32
+        configBlocks:
+          type: array
+          items:
+            type: string
+
+    ClientClassTemplateSummary:
+      type: object
+      properties:
+        UUID:
+          type: string
+          format: uuid
+        name:
+          type: string
+        description:
+          type: string
+
+    ClientClassEntry:
+      type: object
+      properties:
+        UUID:
+          type: string
+          format: uuid
+        name:
+          type: string
+        description:
+          type: string
+        notes:
+          type: string
+        templateList:
+          type: array
+          items:
+            $ref: '#/components/schemas/ClientClassTemplateSummary'
+
+    ClientClassEntrySummary:
+      type: object
+      properties:
+        UUID:
+          type: string
+          format: string
+        name:
+          type: string
+        description:
+          type: string
+
+    ClientClassList:
+      type: object
+      properties:
+        classes:
+          type: array
+          items:
+            $ref: '#/components/schemas/ClientClassEntrySummary'
+
+    ClientClassMembers:
+      type: object
+      properties:
+        members:
+          type: array
+          items:
+            type: string
+
 paths:
   /oauth2:
     post:
@@ -1640,7 +1721,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CommandInfo'
+              $ref: '#/components/schemas/MessageRequest'
       responses:
         200:
           $ref: '#/components/responses/CommandSubmitSuccess'
@@ -1827,6 +1908,144 @@ paths:
       responses:
         200:
           $ref: '#/components/schemas/GenericGoodAnswer'
+        403:
+          $ref: '#/components/responses/Unauthorized'
+        404:
+          $ref: '#/components/responses/NotFound'
+
+  /clientclasses:
+    get:
+      tags:
+        - ClientClass
+      summary: Client classes mechanism for device configuration
+      operationId: getClientClasses
+      parameters:
+        - in: query
+          description: Pagination start (starts at 1. If not specified, 1 is assumed)
+          name: offset
+          schema:
+            type: integer
+          required: false
+        - in: query
+          description: Maximum number of entries to return (if absent, no limit is assumed)
+          name: limit
+          schema:
+            type: integer
+          required: false
+        - in: query
+          description: Filter the results
+          name: filter
+          schema:
+            type: string
+          required: false
+      responses:
+        200:
+          description: List clientclasses
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClientClassList'
+        403:
+          $ref: '#/components/responses/Unauthorized'
+        404:
+          $ref: '#/components/responses/NotFound'
+
+  /clientclass/{classUUID}:
+    get:
+      tags:
+        - ClientClass
+      summary: Get the client class information for a giveb client class
+      operationId: getClientClass
+      parameters:
+        - in: path
+          name: classUUID
+          schema:
+            type: string
+          required: true
+      responses:
+        200:
+          description: Successfully retrieved a client class information
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClientClassEntry'
+        403:
+          $ref: '#/components/responses/Unauthorized'
+        404:
+          $ref: '#/components/responses/NotFound'
+
+    post:
+      tags:
+        - ClientClass
+      summary: Create a new client class
+      operationId: createClientClass
+      parameters:
+        - in: path
+          name: classUUID
+          schema:
+            type: string
+          required: true
+      requestBody:
+        description: New client class information
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ClientClassEntry'
+      responses:
+        200:
+          description: Succresfully created the client class
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClientClassEntry'
+        403:
+          $ref: '#/components/responses/Unauthorized'
+        404:
+          $ref: '#/components/responses/NotFound'
+
+    put:
+      tags:
+        - ClientClass
+      summary: Modify an existing client class
+      operationId: modifyClientClass
+      parameters:
+        - in: path
+          name: classUUID
+          schema:
+            type: string
+          required: true
+      requestBody:
+        description: New information class information
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ClientClassEntry'
+      responses:
+        200:
+          description: Succesfully modified the client class
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClientClassEntry'
+        403:
+          $ref: '#/components/responses/Unauthorized'
+        404:
+          $ref: '#/components/responses/NotFound'
+
+    delete:
+      tags:
+        - ClientClass
+      summary: Deleting a client class
+      operationId: deleteClientClass
+      parameters:
+        - in: path
+          name: classUUID
+          schema:
+            type: string
+          required: true
+      responses:
+        200:
+          description: Successfully deleted a client class.
         403:
           $ref: '#/components/responses/Unauthorized'
         404:

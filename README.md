@@ -26,7 +26,7 @@ Poco may take several minutes depending on the platform you are building on.
 ### Ubuntu
 These instructions have proven to work on Ubuntu 20.4.
 ```
-sudo apt install git cmake g++ libssl-dev libmysqlclient-dev unixodbc-dev postgesql-client-dev 
+sudo apt install git cmake g++ libssl-dev libmariabd-dev-compat unixodbc-dev 
 sudo apt install libpq-dev libaprutil1-dev apache2-dev libboost-all-dev libyaml-cpp-dev
 sudo apt install librdkafka-dev lua5.3-dev
 
