@@ -31,6 +31,10 @@
 #   --ucentral_host test-controller-1 --action upgrade \
 #   --url http://192.168.100.195/tip/openwrt-mediatek-mt7622-linksys_e8450-ubi-squashfs-sysupgrade.itb 
 
+# Get AP capabilities
+# ./ulogin.py --serno c4411ef53f23 --cert ~/git/tip/ucentral-local/certs/server-cert.pem \
+#   --ucentral_host test-controller-1 --action get_capabilities
+
 
 import json
 from urllib.parse import urlparse
@@ -48,7 +52,7 @@ assert_bad_response = True
 parser = argparse.ArgumentParser()
 parser.add_argument('--ucentral_host', help="Specify ucentral host name/ip.", default="ucentral")
 parser.add_argument('--cert', help="Specify ucentral cert.", default="cert.pem")
-parser.add_argument("--action", help="Specify action: show_stats | blink | show_devices | cfg | upgrade .", default="")
+parser.add_argument("--action", help="Specify action: show_stats | blink | show_devices | show_capabilities | cfg | upgrade .", default="")
 parser.add_argument("--serno", help="Serial number of AP, used for some action.", default="")
 
 parser.add_argument("--ssid24", help="Configure ssid for 2.4 Ghz.", default="ucentral-24")
@@ -135,6 +139,18 @@ def login():
     token = resp.json()
     access_token = token["access_token"]
 
+
+def show_capabilities(serno):
+    uri = build_uri("api/v1/device/" + serno + "/capabilities")
+    resp = requests.get(uri, headers=make_headers(), verify=False)
+    check_response("GET", resp, make_headers(), "", uri)
+    #pprint(data)
+    # Parse the config before pretty-printing to make it more legible
+    data = resp.json()
+    pprint(data)
+    #cfg = data['configuration']
+    #pprint(cfg)
+    #return cfg
 
 def list_devices(serno):
     if serno != "":
@@ -350,6 +366,10 @@ elif args.action == "show_stats":
     if args.serno == "":
         print("ERROR:  get_stats action needs serno set.\n")
     list_device_stats(args.serno)
+elif args.action == "show_capabilities":
+    if args.serno == "":
+        print("ERROR:  show_capabilities action needs serno set.\n")
+    show_capabilities(args.serno)
 elif args.action == "upgrade":
     if args.serno == "":
         print("ERROR:  upgrade action needs serno set.\n")
