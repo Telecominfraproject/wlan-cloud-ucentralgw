@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+#
+# See ../../openapi/ucentral/ucentral.yaml
 
 # Example usage
 #
@@ -65,7 +67,7 @@ assert_bad_response = True
 parser = argparse.ArgumentParser()
 parser.add_argument('--ucentral_host', help="Specify ucentral host name/ip.", default="ucentral")
 parser.add_argument('--cert', help="Specify ucentral cert.", default="cert.pem")
-parser.add_argument("--action", help="Specify action: show_stats | blink | show_devices | show_capabilities | show_status | show_logs | cfg | upgrade | request .", default="")
+parser.add_argument("--action", help="Specify action: show_stats | blink | show_devices | show_capabilities | show_healthcheck | show_status | show_logs | cfg | upgrade | request .", default="")
 parser.add_argument("--serno", help="Serial number of AP, used for some action.", default="")
 
 parser.add_argument("--ssid24", help="Configure ssid for 2.4 Ghz.", default="ucentral-24")
@@ -226,6 +228,14 @@ def list_device_stats(serno):
         print("Recorded: ", s['recorded'])
         pprint(s)
     return stats
+
+def show_healthcheck(serno):
+    uri = build_uri("api/v1/device/" + serno + "/healthchecks")
+    resp = requests.get(uri, headers=make_headers(), verify=False)
+    check_response("GET", resp, make_headers(), "", uri)
+    data = resp.json()
+    pprint(data)
+    return data
 
 def upgrade_device(serno, url):
     uri = build_uri("api/v1/device/" + serno + "/upgrade")
@@ -410,6 +420,10 @@ elif args.action == "show_stats":
     if args.serno == "":
         print("ERROR:  get_stats action needs serno set.\n")
     list_device_stats(args.serno)
+elif args.action == "show_healthcheck":
+    if args.serno == "":
+        print("ERROR:  show_healthcheck action needs serno set.\n")
+    show_healthcheck(args.serno)
 elif args.action == "show_capabilities":
     if args.serno == "":
         print("ERROR:  show_capabilities action needs serno set.\n")
