@@ -50,6 +50,14 @@
 # ./ulogin.py --serno c4411ef53f23 --cert ~/git/tip/ucentral-local/certs/server-cert.pem \
 #   --ucentral_host test-controller-1 --action show_logs
 
+# Get AP healthcheck
+# ./ulogin.py --serno c4411ef53f23 --cert ~/git/tip/ucentral-local/certs/server-cert.pem \
+#   --ucentral_host test-controller-1 --action show_healthcheck
+
+# Get ucentral commands
+# ./ulogin.py --serno c4411ef53f23 --cert ~/git/tip/ucentral-local/certs/server-cert.pem \
+#   --ucentral_host test-controller-1 --action show_commands
+
 
 import json
 from urllib.parse import urlparse
@@ -67,7 +75,7 @@ assert_bad_response = True
 parser = argparse.ArgumentParser()
 parser.add_argument('--ucentral_host', help="Specify ucentral host name/ip.", default="ucentral")
 parser.add_argument('--cert', help="Specify ucentral cert.", default="cert.pem")
-parser.add_argument("--action", help="Specify action: show_stats | blink | show_devices | show_capabilities | show_healthcheck | show_status | show_logs | cfg | upgrade | request .", default="")
+parser.add_argument("--action", help="Specify action: show_stats | blink | show_commands | show_devices | show_capabilities | show_healthcheck | show_status | show_logs | cfg | upgrade | request .", default="")
 parser.add_argument("--serno", help="Serial number of AP, used for some action.", default="")
 
 parser.add_argument("--ssid24", help="Configure ssid for 2.4 Ghz.", default="ucentral-24")
@@ -231,6 +239,18 @@ def list_device_stats(serno):
 
 def show_healthcheck(serno):
     uri = build_uri("api/v1/device/" + serno + "/healthchecks")
+    resp = requests.get(uri, headers=make_headers(), verify=False)
+    check_response("GET", resp, make_headers(), "", uri)
+    data = resp.json()
+    pprint(data)
+    return data
+
+def show_commands(serno):
+    uri = build_uri("commands")
+    if serno != "":
+        uri += "?serialNumber="
+        uri += serno
+
     resp = requests.get(uri, headers=make_headers(), verify=False)
     check_response("GET", resp, make_headers(), "", uri)
     data = resp.json()
@@ -424,6 +444,8 @@ elif args.action == "show_healthcheck":
     if args.serno == "":
         print("ERROR:  show_healthcheck action needs serno set.\n")
     show_healthcheck(args.serno)
+elif args.action == "show_commands":
+    show_commands(args.serno)
 elif args.action == "show_capabilities":
     if args.serno == "":
         print("ERROR:  show_capabilities action needs serno set.\n")
