@@ -31,6 +31,11 @@
 #   --ucentral_host test-controller-1 --action upgrade \
 #   --url http://192.168.100.195/tip/openwrt-mediatek-mt7622-linksys_e8450-ubi-squashfs-sysupgrade.itb 
 
+# Send request to AP.
+# ./ulogin.py --serno c4411ef53f23 --cert ~/git/tip/ucentral-local/certs/server-cert.pem \
+#   --ucentral_host test-controller-1 --action request \
+#   --request state
+
 # Get AP capabilities
 # ./ulogin.py --serno c4411ef53f23 --cert ~/git/tip/ucentral-local/certs/server-cert.pem \
 #   --ucentral_host test-controller-1 --action show_capabilities
@@ -38,6 +43,10 @@
 # Get AP status
 # ./ulogin.py --serno c4411ef53f23 --cert ~/git/tip/ucentral-local/certs/server-cert.pem \
 #   --ucentral_host test-controller-1 --action show_status
+
+# Get AP logs
+# ./ulogin.py --serno c4411ef53f23 --cert ~/git/tip/ucentral-local/certs/server-cert.pem \
+#   --ucentral_host test-controller-1 --action show_logs
 
 
 import json
@@ -56,7 +65,7 @@ assert_bad_response = True
 parser = argparse.ArgumentParser()
 parser.add_argument('--ucentral_host', help="Specify ucentral host name/ip.", default="ucentral")
 parser.add_argument('--cert', help="Specify ucentral cert.", default="cert.pem")
-parser.add_argument("--action", help="Specify action: show_stats | blink | show_devices | show_capabilities | show_status | show_logs | cfg | upgrade .", default="")
+parser.add_argument("--action", help="Specify action: show_stats | blink | show_devices | show_capabilities | show_status | show_logs | cfg | upgrade | request .", default="")
 parser.add_argument("--serno", help="Serial number of AP, used for some action.", default="")
 
 parser.add_argument("--ssid24", help="Configure ssid for 2.4 Ghz.", default="ucentral-24")
@@ -77,6 +86,7 @@ parser.add_argument("--mode5", help="Mode for 5Ghz, AUTO | HE80 | VHT80 ...", de
 
 
 parser.add_argument("--url", help="Specify URL for upgrading a device.", default="")
+parser.add_argument("--request", help="Specify request for request action:  state | healthcheck.", default="state")
 
 parser.add_argument("--verbose", help="Enable verbose logging.", default=False, action='store_true')
 parser.add_argument("--noverify", help="Disable ssl cert verification.", default=False, action='store_true')
@@ -214,12 +224,18 @@ def list_device_stats(serno):
     stats = data['data']
     for s in stats:
         print("Recorded: ", s['recorded'])
-        stats_data = json.loads(s['data'])
-        pprint(stats_data)
+        pprint(s)
+    return stats
 
 def upgrade_device(serno, url):
     uri = build_uri("api/v1/device/" + serno + "/upgrade")
     payload = json.dumps({ "serialNumber": serno, "uri": url, "digest": "1234567890" })
+    resp = requests.post(uri, data=payload, headers=make_headers(), verify=False)
+    check_response("POST", resp, make_headers(), "", uri)
+
+def do_request(serno, req):
+    uri = build_uri("api/v1/device/" + serno + "/request")
+    payload = json.dumps({ "serialNumber": serno, "message": req})
     resp = requests.post(uri, data=payload, headers=make_headers(), verify=False)
     check_response("POST", resp, make_headers(), "", uri)
 
@@ -409,9 +425,15 @@ elif args.action == "show_logs":
 elif args.action == "upgrade":
     if args.serno == "":
         print("ERROR:  upgrade action needs serno set.\n")
-    if args.serno == "":
+    if args.url == "":
         print("ERROR:  upgrate needs URL set.\n")
     upgrade_device(args.serno, args.url)
+elif args.action == "request":
+    if args.serno == "":
+        print("ERROR:  request action needs serno set.\n")
+    if args.request == "":
+        print("ERROR:  request action needs --request set.\n")
+    do_request(args.serno, args.request)
 elif args.action == "blink":
     if args.serno == "":
         print("ERROR:  blink action needs serno set.\n")
