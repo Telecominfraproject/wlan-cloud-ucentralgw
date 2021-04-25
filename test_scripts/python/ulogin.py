@@ -1,7 +1,11 @@
 #!/usr/bin/env python3
+#
+# See ../../openapi/ucentral/ucentral.yaml
 
-# Example
-# ./test_scripts/python/ulogin.py --ucentral_host bendt7 --cert ~/git/tip/ucentral-local/certs/server-cert.pem
+# Example usage
+#
+# List all devices
+# ./ulogin.py --ucentral_host test-controller-1 --cert ~/git/tip/ucentral-local/certs/server-cert.pem
 #
 # Configure 2-ssid setup with psk2 (aka wpa2) in NAT/routed mode
 #
@@ -24,6 +28,36 @@
 #   --key24 12345678 --key5 12345678 --encryption24 psk2 --encryption5 psk2 --action cfg \
 #   --network24 lan --network5 lan
 
+# Request AP upgrade to specified firmware.
+# ./ulogin.py --serno c4411ef53f23 --cert ~/git/tip/ucentral-local/certs/server-cert.pem \
+#   --ucentral_host test-controller-1 --action upgrade \
+#   --url http://192.168.100.195/tip/openwrt-mediatek-mt7622-linksys_e8450-ubi-squashfs-sysupgrade.itb 
+
+# Send request to AP.
+# ./ulogin.py --serno c4411ef53f23 --cert ~/git/tip/ucentral-local/certs/server-cert.pem \
+#   --ucentral_host test-controller-1 --action request \
+#   --request state
+
+# Get AP capabilities
+# ./ulogin.py --serno c4411ef53f23 --cert ~/git/tip/ucentral-local/certs/server-cert.pem \
+#   --ucentral_host test-controller-1 --action show_capabilities
+
+# Get AP status
+# ./ulogin.py --serno c4411ef53f23 --cert ~/git/tip/ucentral-local/certs/server-cert.pem \
+#   --ucentral_host test-controller-1 --action show_status
+
+# Get AP logs
+# ./ulogin.py --serno c4411ef53f23 --cert ~/git/tip/ucentral-local/certs/server-cert.pem \
+#   --ucentral_host test-controller-1 --action show_logs
+
+# Get AP healthcheck
+# ./ulogin.py --serno c4411ef53f23 --cert ~/git/tip/ucentral-local/certs/server-cert.pem \
+#   --ucentral_host test-controller-1 --action show_healthcheck
+
+# Get ucentral commands
+# ./ulogin.py --serno c4411ef53f23 --cert ~/git/tip/ucentral-local/certs/server-cert.pem \
+#   --ucentral_host test-controller-1 --action show_commands
+
 
 import json
 from urllib.parse import urlparse
@@ -41,7 +75,7 @@ assert_bad_response = True
 parser = argparse.ArgumentParser()
 parser.add_argument('--ucentral_host', help="Specify ucentral host name/ip.", default="ucentral")
 parser.add_argument('--cert', help="Specify ucentral cert.", default="cert.pem")
-parser.add_argument("--action", help="Specify action: show_stats | blink | show_devices | cfg .", default="")
+parser.add_argument("--action", help="Specify action: show_stats | blink | show_commands | show_devices | show_capabilities | show_healthcheck | show_status | show_logs | cfg | upgrade | request .", default="")
 parser.add_argument("--serno", help="Serial number of AP, used for some action.", default="")
 
 parser.add_argument("--ssid24", help="Configure ssid for 2.4 Ghz.", default="ucentral-24")
@@ -61,7 +95,11 @@ parser.add_argument("--mode24", help="Mode for 2.4Ghz, AUTO | HE20 | HT20 ...", 
 parser.add_argument("--mode5", help="Mode for 5Ghz, AUTO | HE80 | VHT80 ...", default="AUTO")
 
 
+parser.add_argument("--url", help="Specify URL for upgrading a device.", default="")
+parser.add_argument("--request", help="Specify request for request action:  state | healthcheck.", default="state")
+
 parser.add_argument("--verbose", help="Enable verbose logging.", default=False, action='store_true')
+parser.add_argument("--noverify", help="Disable ssl cert verification.", default=False, action='store_true')
 
 args = parser.parse_args()
 
@@ -75,11 +113,15 @@ cert = args.cert
 if Path(cert).is_file():
     print("Using local self-signed cert: ", cert)
     sslcontext = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
-    sslcontext.verify_mode = ssl.CERT_REQUIRED
     sslcontext.check_hostname = False
+    if args.noverify:
+        sslcontext.verify_mode = ssl.CERT_NONE
+    else:
+        sslcontext.verify_mode = ssl.CERT_REQUIRED
     sslcontext.load_verify_locations(cert)
 else:
     context = True
+
 
 def check_response(cmd, response, headers, data_str, url):
     if response.status_code >= 400 or args.verbose:
@@ -122,6 +164,42 @@ def login():
     access_token = token["access_token"]
 
 
+def show_capabilities(serno):
+    uri = build_uri("api/v1/device/" + serno + "/capabilities")
+    resp = requests.get(uri, headers=make_headers(), verify=False)
+    check_response("GET", resp, make_headers(), "", uri)
+    #pprint(data)
+    # Parse the config before pretty-printing to make it more legible
+    data = resp.json()
+    pprint(data)
+    #cfg = data['configuration']
+    #pprint(cfg)
+    #return cfg
+
+def show_status(serno):
+    uri = build_uri("api/v1/device/" + serno + "/status")
+    resp = requests.get(uri, headers=make_headers(), verify=False)
+    check_response("GET", resp, make_headers(), "", uri)
+    #pprint(data)
+    # Parse the config before pretty-printing to make it more legible
+    data = resp.json()
+    pprint(data)
+    #cfg = data['configuration']
+    #pprint(cfg)
+    #return cfg
+
+def show_logs(serno):
+    uri = build_uri("api/v1/device/" + serno + "/logs")
+    resp = requests.get(uri, headers=make_headers(), verify=False)
+    check_response("GET", resp, make_headers(), "", uri)
+    #pprint(data)
+    # Parse the config before pretty-printing to make it more legible
+    data = resp.json()
+    pprint(data)
+    #cfg = data['configuration']
+    #pprint(cfg)
+    #return cfg
+
 def list_devices(serno):
     if serno != "":
         uri = build_uri("api/v1/device/" + serno)
@@ -131,8 +209,8 @@ def list_devices(serno):
         # Parse the config before pretty-printing to make it more legible
         data = resp.json()
         cfg = data['configuration']
-        data['configuration'] = json.loads(cfg)
-        pprint(data)
+        pprint(cfg)
+        return cfg
     else:
         # Get all
         uri = build_uri("api/v1/devices")
@@ -143,9 +221,10 @@ def list_devices(serno):
         print("Devices:\n")
         for d in devices:
             # Parse the config before pretty-printing to make it more legible
-            cfg = d['configuration']
-            d['configuration'] = json.loads(cfg)
+            #cfg = d['configuration']
+            #d['configuration'] = json.loads(cfg)
             pprint(d)
+        return devices
 
 def list_device_stats(serno):
     uri = build_uri("api/v1/device/" + serno + "/statistics")
@@ -155,8 +234,40 @@ def list_device_stats(serno):
     stats = data['data']
     for s in stats:
         print("Recorded: ", s['recorded'])
-        stats_data = json.loads(s['data'])
-        pprint(stats_data)
+        pprint(s)
+    return stats
+
+def show_healthcheck(serno):
+    uri = build_uri("api/v1/device/" + serno + "/healthchecks")
+    resp = requests.get(uri, headers=make_headers(), verify=False)
+    check_response("GET", resp, make_headers(), "", uri)
+    data = resp.json()
+    pprint(data)
+    return data
+
+def show_commands(serno):
+    uri = build_uri("api/v1/commands")
+    if serno != "":
+        uri += "?serialNumber="
+        uri += serno
+
+    resp = requests.get(uri, headers=make_headers(), verify=False)
+    check_response("GET", resp, make_headers(), "", uri)
+    data = resp.json()
+    pprint(data)
+    return data
+
+def upgrade_device(serno, url):
+    uri = build_uri("api/v1/device/" + serno + "/upgrade")
+    payload = json.dumps({ "serialNumber": serno, "uri": url, "digest": "1234567890" })
+    resp = requests.post(uri, data=payload, headers=make_headers(), verify=False)
+    check_response("POST", resp, make_headers(), "", uri)
+
+def do_request(serno, req):
+    uri = build_uri("api/v1/device/" + serno + "/request")
+    payload = json.dumps({ "serialNumber": serno, "message": req})
+    resp = requests.post(uri, data=payload, headers=make_headers(), verify=False)
+    check_response("POST", resp, make_headers(), "", uri)
 
 # Not sure this is working properly, it won't blink my e8450
 def blink_device(serno):
@@ -329,6 +440,36 @@ elif args.action == "show_stats":
     if args.serno == "":
         print("ERROR:  get_stats action needs serno set.\n")
     list_device_stats(args.serno)
+elif args.action == "show_healthcheck":
+    if args.serno == "":
+        print("ERROR:  show_healthcheck action needs serno set.\n")
+    show_healthcheck(args.serno)
+elif args.action == "show_commands":
+    show_commands(args.serno)
+elif args.action == "show_capabilities":
+    if args.serno == "":
+        print("ERROR:  show_capabilities action needs serno set.\n")
+    show_capabilities(args.serno)
+elif args.action == "show_status":
+    if args.serno == "":
+        print("ERROR:  show_status action needs serno set.\n")
+    show_status(args.serno)
+elif args.action == "show_logs":
+    if args.serno == "":
+        print("ERROR:  show_logs action needs serno set.\n")
+    show_logs(args.serno)
+elif args.action == "upgrade":
+    if args.serno == "":
+        print("ERROR:  upgrade action needs serno set.\n")
+    if args.url == "":
+        print("ERROR:  upgrate needs URL set.\n")
+    upgrade_device(args.serno, args.url)
+elif args.action == "request":
+    if args.serno == "":
+        print("ERROR:  request action needs serno set.\n")
+    if args.request == "":
+        print("ERROR:  request action needs --request set.\n")
+    do_request(args.serno, args.request)
 elif args.action == "blink":
     if args.serno == "":
         print("ERROR:  blink action needs serno set.\n")
