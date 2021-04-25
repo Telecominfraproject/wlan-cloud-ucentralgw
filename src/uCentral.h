@@ -47,6 +47,7 @@ namespace uCentral {
         bool Debug() const { return DebugMode_; }
         uint64_t ID() const { return ID_; }
 		static bool SetSubsystemLogLevel(const std::string & SubSystem, const std::string & Level);
+		static std::string Version();
 
     private:
         bool                        helpRequested_ = false;

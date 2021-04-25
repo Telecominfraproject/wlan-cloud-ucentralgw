@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.13)
-project(ucentralgw VERSION 0.3.0)
+project(ucentralgw VERSION 0.4.0)
 
 set(CMAKE_CXX_STANDARD 17)
 
@@ -17,6 +17,19 @@ endif()
 if(SMALL_BUILD)
     add_definitions(-DSMALL_BUILD)
 endif()
+
+# Auto build increment. You must define BUILD_INCREMENT with cmake -DBUILD_INCREMENT=1
+if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/build)
+    file(READ build BUILD_NUM)
+    if(BUILD_INCREMENT)
+        MATH(EXPR BUILD_NUM "${BUILD_NUM}+1")
+        file(WRITE build ${BUILD_NUM})
+    endif()
+else()
+    set(BUILD_NUM 1)
+    file(WRITE build ${BUILD_NUM})
+endif()
+add_definitions(-DAPP_VERSION="${CMAKE_PROJECT_VERSION}" -DBUILD_NUMBER="${BUILD_NUM}")
 
 set(Boost_USE_STATIC_LIBS OFF)
 set(Boost_USE_MULTITHREADED ON)
@@ -40,6 +53,7 @@ endif()
 include_directories(/usr/local/include  /usr/local/opt/openssl/include src include/kafka)
 
 add_executable( ucentralgw
+                build
                 src/main.cpp src/TIPGWServer.cpp src/TIPGWServer.h
                 src/TIP/Api.cpp src/TIP/Api.h
                 src/uCentral.cpp src/uCentral.h src/TIP/Routing.cpp src/TIP/Routing.h
@@ -54,7 +68,7 @@ add_executable( ucentralgw
                 src/RESTAPI_default_configuration.h src/RESTAPI_default_configurations.cpp src/RESTAPI_default_configurations.h src/RESTAPI_commands.cpp
                 src/RESTAPI_commands.h src/uCommandManager.cpp src/uCommandManager.h src/RESTAPI_command.cpp src/RESTAPI_command.h src/base64util.cpp
                 src/base64util.h src/uFileUploader.cpp src/uFileUploader.h src/RESTAPI_file.cpp src/RESTAPI_file.h src/CommandChannel.cpp src/CommandChannel.h
-                src/RESTAPI_SystemCommand.cpp src/RESTAPI_SystemCommand.h src/RESTAPI_BlackList.cpp src/RESTAPI_BlackList.h src/version.h)
+                src/RESTAPI_SystemCommand.cpp src/RESTAPI_SystemCommand.h src/RESTAPI_BlackList.cpp src/RESTAPI_BlackList.h)
 
 if(NOT SMALL_BUILD)
     target_sources(ucentralgw PUBLIC src/kafka_service.cpp src/kafka_service.h)

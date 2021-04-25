@@ -2,7 +2,6 @@
 // Created by stephane bourque on 2021-02-15.
 //
 #include <iostream>
-#include "version.h"
 
 #include "uCentral.h"
 
@@ -23,6 +22,7 @@
 #include "uFileUploader.h"
 #include "uCentralConfig.h"
 #include "CommandChannel.h"
+
 #ifndef SMALL_BUILD
 #include "TIPGWServer.h"
 #include "kafka_service.h"
@@ -187,6 +187,12 @@ namespace uCentral {
 
 	}
 
+	std::string Daemon::Version() {
+		std::string V = APP_VERSION;
+		std::string B = BUILD_NUMBER;
+		return V + "(" + B +  ")";
+	}
+
     void Daemon::handleHelp(const std::string &name, const std::string &value) {
         helpRequested_ = true;
         displayHelp();
@@ -195,7 +201,7 @@ namespace uCentral {
 
 	void Daemon::handleVersion(const std::string &name, const std::string &value) {
 		helpRequested_ = true;
-		std::cout << __APP_VERSION__ << std::endl;
+		std::cout << Version() << std::endl;
 		stopOptionsProcessing();
 	}
 
