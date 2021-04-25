@@ -36,11 +36,13 @@ void SubSystemServer::initialize(Poco::Util::Application & self)
             std::string name{root + "name"};
 			std::string x509{root+"x509"};
 			std::string backlog{root+"backlog"};
+			std::string rootca{root+"rootca"};
 
             PropertiesFileServerEntry entry(   uCentral::ServiceConfig::getString(address,""),
                                                uCentral::ServiceConfig::getInt(port,0),
                                                uCentral::ServiceConfig::getString(key,""),
                                                uCentral::ServiceConfig::getString(cert,""),
+											   uCentral::ServiceConfig::getString(rootca,""),
                                                uCentral::ServiceConfig::getString(key_password,""),
                                                uCentral::ServiceConfig::getString(name,""),
 												uCentral::ServiceConfig::getBool(x509,false),

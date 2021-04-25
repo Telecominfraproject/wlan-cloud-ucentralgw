@@ -20,6 +20,7 @@ public:
                                	uint32_t port,
                                	std::string Key_file,
                                	std::string Cert_file,
+								std::string RootCa,
                                	std::string Key_file_password = "",
                                	std::string Name="",
 								bool x509=false,
@@ -28,6 +29,7 @@ public:
             port_(port),
             key_file_(std::move(Key_file)),
             cert_file_(std::move(Cert_file)),
+			root_ca_(std::move(RootCa)),
             key_file_password_(std::move(Key_file_password)),
             name_(std::move(Name)),
 		    is_x509_(x509),
@@ -37,6 +39,7 @@ public:
     [[nodiscard]] uint32_t port() const { return port_; };
     [[nodiscard]] const std::string & key_file() const { return key_file_; };
     [[nodiscard]] const std::string & cert_file() const { return cert_file_; };
+	[[nodiscard]] const std::string & root_ca() const { return root_ca_; };
     [[nodiscard]] const std::string & key_file_password() const { return key_file_password_; };
     [[nodiscard]] const std::string & name() const { return name_; };
     [[nodiscard]] Poco::Net::SecureServerSocket CreateSecureSocket() const;
@@ -47,6 +50,7 @@ private:
     std::string     address_;
     std::string     cert_file_;
     std::string     key_file_;
+	std::string 	root_ca_;
     std::string     key_file_password_;
     uint32_t        port_;
     std::string     name_;
