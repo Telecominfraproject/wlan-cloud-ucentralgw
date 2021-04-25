@@ -73,7 +73,7 @@ Poco::Net::SecureServerSocket PropertiesFileServerEntry::CreateSecureSocket() co
 		if(is_x509_) {
 			Poco::Net::Context::Params	P;
 			P.certificateFile = cert_file_;
-			P.loadDefaultCAs = true;
+			P.caLocation = root_ca_;
 			P.verificationDepth = 9 ;
 			P.verificationMode = Poco::Net::Context::VERIFY_STRICT;
 
