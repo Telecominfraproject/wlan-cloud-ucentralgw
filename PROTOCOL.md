@@ -50,6 +50,7 @@ may decide to send this new configuration to the AP.
     "params" : {
         "serial" : <serial number> ,
         "uuid" : <current active configuration uuid>,
+	"request_uuid" : <optional string idetifying the request that triggered this healthcheck. The absence means or empty field means this is a normal scheduled healthcheck>
         "state" : <JSON Document: current device state.>
       }
 }
@@ -64,6 +65,7 @@ if they need attention.
     "params" : {
         "serial" : <serial number> ,
         "uuid" : <current active configuration uuid>,
+	"request_uuid" : <optional string idetifying the request that triggered this healthcheck. The absence means or empty field means this is a normal scheduled healthcheck>
         "sanity: <integer representing a percentage level of operation. 0 - device is dead 100 - all perfect.>
         "data" : <Optiona/may be empty: JSON Document about current device healthcheck.>
       }
@@ -431,6 +433,39 @@ The device should answer:
 }
 ```
 
+#### Controller requesting a specific message
+Controller sends this command when it needs the device to provide a message back ASAP. The currently 
+supported messages are "state" and "healthcheck". More messages maybe added later. The messages will
+be returned the usual way. The RPC response to this message just says that the request has been accepted and the
+message will be returned "soon".
+```
+{    "jsonrpc" : "2.0" , 
+     "method" : "request" , 
+     "params" : {
+	        "serial" : <serial number> ,
+	        "when" : Optional - <UTC time when to reboot, 0 mean immediately, this is a suggestion>,
+	        "message" : "state" or "healthcheck",
+		"request_uuid" : <optional UUID string. If present during the request, the next message will also contains this field>
+        },
+     "id" : <some number>
+}
+```
+
+The device should answer:
+```
+{   "jsonrpc" : "2.0" , 
+    "result" : {
+          "serial" : <serial number> ,
+          "status" : {
+            "error" : 0 or an error number,
+            "text" : <description of the error or success>,
+            "when" : <time when this will be performed as UTC seconds>
+  	        }
+        },
+    "id" : <same number>
+}
+```
+
 ##### Scanning: bands or channels
 In the command, bands and channels are mutually exclusive. If both parameters are omitted, then the scan will be performed for all bands and all channels.
 
@@ -457,37 +492,6 @@ of the completed message. The following should how the `state` event could be co
 }
 ```
 
-#### Controller requesting a specific message
-Controller sends this command when it needs the device to provide a message back ASAP. The currently 
-supported messages are "state" and "healthcheck". More messages maybe added later. The messages will
-be returned the usual way. The RPC response to this message just says that the request has been accepted and the
-message will be returned "soon".
-```
-{    "jsonrpc" : "2.0" , 
-     "method" : "request" , 
-     "params" : {
-	        "serial" : <serial number> ,
-	        "when" : Optional - <UTC time when to reboot, 0 mean immediately, this is a suggestion>,
-	        "message" : "state" or "healthcheck"
-        },
-     "id" : <some number>
-}
-```
-
-The device should answer:
-```
-{   "jsonrpc" : "2.0" , 
-    "result" : {
-          "serial" : <serial number> ,
-          "status" : {
-            "error" : 0 or an error number,
-            "text" : <description of the error or success>,
-            "when" : <time when this will be performed as UTC seconds>
-  	        }
-        },
-    "id" : <same number>
-}
-```
 
 
 
