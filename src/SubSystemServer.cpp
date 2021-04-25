@@ -72,12 +72,11 @@ Poco::Net::SecureServerSocket PropertiesFileServerEntry::CreateSecureSocket() co
     if(address_=="*") {
 		if(is_x509_) {
 			Poco::Net::Context::Params	P;
-			P.certificateFile = cert_file_;
-			P.caLocation = root_ca_;
-			P.verificationDepth = 9 ;
 			P.verificationMode = Poco::Net::Context::VERIFY_STRICT;
-
+			P.verificationDepth = 9;
 			auto Context = new Poco::Net::Context(Poco::Net::Context::TLS_SERVER_USE, P);
+			Poco::Crypto::X509Certificate	C(cert_file_);
+			Context->useCertificate(C);
 			return Poco::Net::SecureServerSocket(port_, backlog_, Context);
 		} else {
 			return Poco::Net::SecureServerSocket(
