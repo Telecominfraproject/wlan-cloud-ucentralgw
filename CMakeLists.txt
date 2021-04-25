@@ -54,10 +54,8 @@ include_directories(/usr/local/include  /usr/local/opt/openssl/include src inclu
 
 add_executable( ucentralgw
                 build
-                src/main.cpp src/TIPGWServer.cpp src/TIPGWServer.h
-                src/TIP/Api.cpp src/TIP/Api.h
-                src/uCentral.cpp src/uCentral.h src/TIP/Routing.cpp src/TIP/Routing.h
-                src/TIP/WebTokenResult.cpp src/TIP/WebTokenResult.h src/uCentralRESTAPIServer.cpp src/uCentralRESTAPIServer.h
+                src/main.cpp
+                src/uCentral.cpp src/uCentral.h src/uCentralRESTAPIServer.cpp src/uCentralRESTAPIServer.h
                 src/uCentralWebSocketServer.cpp src/uCentralWebSocketServer.h src/SubSystemServer.cpp src/SubSystemServer.h
                 src/uStorageService.cpp src/uStorageService.h src/uDeviceRegistry.cpp src/uDeviceRegistry.h
                 src/RESTAPI_oauth2Handler.cpp src/RESTAPI_oauth2Handler.h src/RESTAPI_devicesHandler.cpp src/RESTAPI_devicesHandler.h

@@ -34,13 +34,17 @@ void SubSystemServer::initialize(Poco::Util::Application & self)
             std::string key_password{root + "key.password"};
             std::string cert{root + "cert"};
             std::string name{root + "name"};
+			std::string x509{root+"x509"};
+			std::string backlog{root+"backlog"};
 
             PropertiesFileServerEntry entry(   uCentral::ServiceConfig::getString(address,""),
                                                uCentral::ServiceConfig::getInt(port,0),
                                                uCentral::ServiceConfig::getString(key,""),
                                                uCentral::ServiceConfig::getString(cert,""),
                                                uCentral::ServiceConfig::getString(key_password,""),
-                                               uCentral::ServiceConfig::getString(name,""));
+                                               uCentral::ServiceConfig::getString(name,""),
+												uCentral::ServiceConfig::getBool(x509,false),
+											   (int) uCentral::ServiceConfig::getInt(backlog,64));
             ConfigServersList_.push_back(entry);
             i++;
         }
@@ -63,16 +67,30 @@ void SubSystemServer::defineOptions(Poco::Util::OptionSet& options)
 
 Poco::Net::SecureServerSocket PropertiesFileServerEntry::CreateSecureSocket() const
 {
-	auto BackLog = uCentral::instance()->config().getInt("ucentral.websocket.backlog", 64);
-
     if(address_=="*") {
-        return Poco::Net::SecureServerSocket(port_,BackLog, new Poco::Net::Context(Poco::Net::Context::TLS_SERVER_USE, key_file_, cert_file_, ""));
+		if(is_x509_) {
+			auto Context = new Poco::Net::Context(Poco::Net::Context::TLS_SERVER_USE, "", cert_file_, "");
+			return Poco::Net::SecureServerSocket(port_, backlog_, Context);
+		} else {
+			return Poco::Net::SecureServerSocket(
+				port_, backlog_,
+				new Poco::Net::Context(Poco::Net::Context::TLS_SERVER_USE, key_file_, cert_file_,
+									   ""));
+		}
     }
     else
     {
-        Poco::Net::IPAddress        Addr(address_);
-        Poco::Net::SocketAddress    SockAddr(Addr,port_);
-        return Poco::Net::SecureServerSocket(SockAddr,BackLog, new Poco::Net::Context(Poco::Net::Context::TLS_SERVER_USE, key_file_, cert_file_, ""));
+		Poco::Net::IPAddress        Addr(address_);
+		Poco::Net::SocketAddress    SockAddr(Addr,port_);
+		if(is_x509_) {
+			auto Context = new Poco::Net::Context(Poco::Net::Context::TLS_SERVER_USE, "", cert_file_, "");
+			return Poco::Net::SecureServerSocket(SockAddr, backlog_, Context);
+		} else {
+			return Poco::Net::SecureServerSocket(
+				SockAddr, backlog_,
+				new Poco::Net::Context(Poco::Net::Context::TLS_SERVER_USE, key_file_, cert_file_,
+									   ""));
+		}
     }
 }
 

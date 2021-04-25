@@ -24,7 +24,6 @@
 #include "CommandChannel.h"
 
 #ifndef SMALL_BUILD
-#include "TIPGWServer.h"
 #include "kafka_service.h"
 #endif
 
@@ -78,7 +77,6 @@ namespace uCentral {
         addSubsystem(uCentral::Auth::Service::instance());
         addSubsystem(uCentral::DeviceRegistry::Service::instance());
 #ifndef SMALL_BUILD
-        addSubsystem(uCentral::TIPGW::Service::instance());
 		addSubsystem(uCentral::Kafka::Service::instance());
 #endif
         addSubsystem(uCentral::RESTAPI::Service::instance());
@@ -289,14 +287,12 @@ namespace uCentral {
 //			uCentral::Storage::AttachFileToCommand(f);
 
 #ifndef SMALL_BUILD
-            uCentral::TIPGW::Start();
 			uCentral::Kafka::Start();
 #endif
             waitForTerminationRequest();
 
 #ifndef SMALL_BUILD
 			uCentral::Kafka::Stop();
-            uCentral::TIPGW::Stop();
 #endif
 
 			uCentral::CommandChannel::Stop();

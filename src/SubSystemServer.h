@@ -16,18 +16,22 @@
 
 class PropertiesFileServerEntry {
 public:
-    PropertiesFileServerEntry( std::string Address,
-                               uint32_t port,
-                               std::string Key_file,
-                               std::string Cert_file,
-                               std::string Key_file_password = "",
-                               std::string Name="") :
+    PropertiesFileServerEntry( 	std::string Address,
+                               	uint32_t port,
+                               	std::string Key_file,
+                               	std::string Cert_file,
+                               	std::string Key_file_password = "",
+                               	std::string Name="",
+								bool x509=false,
+								int backlog=64) :
             address_(std::move(Address)),
             port_(port),
             key_file_(std::move(Key_file)),
             cert_file_(std::move(Cert_file)),
             key_file_password_(std::move(Key_file_password)),
-            name_(std::move(Name)){};
+            name_(std::move(Name)),
+		    is_x509_(x509),
+			 backlog_(backlog){};
     
     [[nodiscard]] const std::string & address() const { return address_; };
     [[nodiscard]] uint32_t port() const { return port_; };
@@ -36,6 +40,8 @@ public:
     [[nodiscard]] const std::string & key_file_password() const { return key_file_password_; };
     [[nodiscard]] const std::string & name() const { return name_; };
     [[nodiscard]] Poco::Net::SecureServerSocket CreateSecureSocket() const;
+	[[nodiscard]] bool is_x509() const { return is_x509_; }
+	[[nodiscard]] int backlog() const { return backlog_; }
 
 private:
     std::string     address_;
@@ -44,6 +50,8 @@ private:
     std::string     key_file_password_;
     uint32_t        port_;
     std::string     name_;
+	bool 			is_x509_;
+	int 			backlog_;
 };
 
 class SubSystemServer : public Poco::Util::Application::Subsystem {
