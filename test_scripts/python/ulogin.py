@@ -246,7 +246,7 @@ def show_healthcheck(serno):
     return data
 
 def show_commands(serno):
-    uri = build_uri("commands")
+    uri = build_uri("api/v1/commands")
     if serno != "":
         uri += "?serialNumber="
         uri += serno
