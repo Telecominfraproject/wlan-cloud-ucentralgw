@@ -75,6 +75,7 @@ Poco::Net::SecureServerSocket PropertiesFileServerEntry::CreateSecureSocket() co
 			P.verificationMode = Poco::Net::Context::VERIFY_STRICT;
 			P.verificationDepth = 9;
 			P.loadDefaultCAs = true;
+			P.caLocation = root_ca_;
 			auto Context = new Poco::Net::Context(Poco::Net::Context::TLS_SERVER_USE, P);
 			Poco::Crypto::X509Certificate	C(cert_file_);
 			Context->useCertificate(C);
