@@ -83,7 +83,7 @@ Poco::Net::SecureServerSocket PropertiesFileServerEntry::CreateSecureSocket() co
 		} else {
 			Poco::Net::Context::Params	P;
 
-			P.verificationMode = Poco::Net::Context::VERIFY_STRICT;
+			P.verificationMode = Poco::Net::Context::VERIFY_RELAXED;
 			P.verificationDepth = 9;
 			P.loadDefaultCAs = true;
 			P.certificateFile = cert_file_;
