@@ -81,10 +81,16 @@ Poco::Net::SecureServerSocket PropertiesFileServerEntry::CreateSecureSocket() co
 			Context->useCertificate(C);
 			return Poco::Net::SecureServerSocket(port_, backlog_, Context);
 		} else {
-			return Poco::Net::SecureServerSocket(
-				port_, backlog_,
-				new Poco::Net::Context(Poco::Net::Context::TLS_SERVER_USE, key_file_, cert_file_,
-									   ""));
+			Poco::Net::Context::Params	P;
+
+			P.verificationMode = Poco::Net::Context::VERIFY_STRICT;
+			P.verificationDepth = 9;
+			P.loadDefaultCAs = true;
+			P.certificateFile = cert_file_;
+			P.cipherList = "ALL:!ADH:!LOW:!EXP:!MD5:@STRENGTH";
+
+			auto Context = new Poco::Net::Context(Poco::Net::Context::TLS_SERVER_USE, P);
+			return Poco::Net::SecureServerSocket(port_, backlog_,Context);
 		}
     }
     else

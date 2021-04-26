@@ -51,6 +51,8 @@ namespace uCentral {
 
     void Daemon::initialize(Application &self) {
 
+		Poco::Net::initializeSSL();
+
         std::string Location = Poco::Environment::get("UCENTRAL_CONFIG",".");
         Poco::Path ConfigFile;
 
