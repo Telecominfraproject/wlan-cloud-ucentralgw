@@ -68,10 +68,11 @@ namespace uCentral::Storage {
     bool DeleteCommand( std::string &UUID );
     bool GetReadyToExecuteCommands( uint64_t Offset, uint64_t HowMany, std::vector<uCentralCommandDetails> & Commands );
     bool CommandExecuted(std::string & UUID);
-    bool CommandCompleted(std::string & UUID, Poco::DynamicStruct ReturnVars);
+    bool CommandCompleted(std::string & UUID, Poco::DynamicStruct & ReturnVars, bool FullCommand);
     bool AttachFileToCommand(std::string & UUID);
 	bool GetAttachedFile(std::string & UUID, const std::string & FileName);
 	bool RemoveAttachedFile(std::string & UUID);
+	bool SetCommandResult(std::string & UUID, std::string & Result);
 
 	bool AddBlackListDevices(std::vector<uCentralBlackListedDevice> &  Devices);
 	bool DeleteBlackListDevice(std::string & SerialNumber);
@@ -142,7 +143,7 @@ namespace uCentral::Storage {
         friend bool DeleteCommand( std::string &UUID );
         friend bool GetReadyToExecuteCommands( uint64_t Offset, uint64_t HowMany, std::vector<uCentralCommandDetails> & Commands );
         friend bool CommandExecuted(std::string & UUID);
-        friend bool CommandCompleted(std::string & UUID, Poco::DynamicStruct ReturnVars);
+        friend bool CommandCompleted(std::string & UUID, Poco::DynamicStruct & ReturnVars, bool FullCommand);
         friend bool AttachFileToCommand(std::string & UUID);
 		friend bool GetAttachedFile(std::string & UUID, const std::string & FileName);
 		friend bool RemoveAttachedFile(std::string & UUID);
@@ -151,6 +152,7 @@ namespace uCentral::Storage {
 		friend bool DeleteBlackListDevice(std::string & SerialNumber);
 		friend bool GetBlackListDevices(uint64_t Offset, uint64_t HowMany, std::vector<uCentralBlackListedDevice> & Devices );
 		friend bool IsBlackListed(std::string & SerialNumber);
+		friend bool SetCommandResult(std::string & UUID, std::string & Result);
 
 	  private:
         bool AddLog(std::string & SerialNumber, uCentralDeviceLog & Log, bool CrashLog );
@@ -204,10 +206,11 @@ namespace uCentral::Storage {
         bool DeleteCommand( std::string &UUID );
         bool GetReadyToExecuteCommands( uint64_t Offset, uint64_t HowMany, std::vector<uCentralCommandDetails> & Commands );
         bool CommandExecuted(std::string & UUID);
-        bool CommandCompleted(std::string & UUID, Poco::DynamicStruct ReturnVars);
+        bool CommandCompleted(std::string & UUID, Poco::DynamicStruct & ReturnVars, bool FullCommand);
         bool AttachFileToCommand(std::string & UUID);
 		bool GetAttachedFile(std::string & UUID, const std::string & FileName);
 		bool RemoveAttachedFile(std::string & UUID);
+		bool SetCommandResult(std::string & UUID, std::string & Result);
 
 		bool AddBlackListDevices(std::vector<uCentralBlackListedDevice> &  Devices);
 		bool DeleteBlackListDevice(std::string & SerialNumber);

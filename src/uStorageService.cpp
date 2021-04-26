@@ -236,8 +236,8 @@ namespace uCentral::Storage {
         return uCentral::Storage::Service::instance()->CommandExecuted(UUID);
     }
 
-    bool CommandCompleted(std::string &UUID, Poco::DynamicStruct ReturnVars) {
-        return uCentral::Storage::Service::instance()->CommandCompleted(UUID, ReturnVars);
+    bool CommandCompleted(std::string &UUID, Poco::DynamicStruct & ReturnVars, bool FullCommand) {
+        return uCentral::Storage::Service::instance()->CommandCompleted(UUID, ReturnVars, FullCommand);
     }
 
     bool AttachFileToCommand(std::string &UUID) {
@@ -250,6 +250,10 @@ namespace uCentral::Storage {
 
 	bool RemoveAttachedFile(std::string & UUID) {
 		return uCentral::Storage::Service::instance()->RemoveAttachedFile(UUID);
+	}
+
+	bool SetCommandResult(std::string & UUID, std::string & Result) {
+		return uCentral::Storage::Service::instance()->SetCommandResult(UUID, Result);
 	}
 
 	bool AddBlackListDevices(std::vector<uCentralBlackListedDevice> &  Devices) {
@@ -2483,9 +2487,10 @@ namespace uCentral::Storage {
         return false;
     }
 
-    bool Service::CommandCompleted(std::string &UUID, Poco::DynamicStruct ReturnVars) {
+    bool Service::CommandCompleted(std::string &UUID, Poco::DynamicStruct & ReturnVars, bool FullCommand) {
         try {
-            uint64_t Now = time(nullptr);
+
+            uint64_t Now = FullCommand ? time(nullptr) : 0;
 
             // Parse the result to get the ErrorText and make sure that this is a JSON document
             auto ResultObj = ReturnVars["result"];
@@ -2500,7 +2505,6 @@ namespace uCentral::Storage {
             Poco::JSON::Stringifier::stringify(ResultObj, ResultText);
             std::string ResultStr{ResultText.str()};
 
-            // std::cout << ">>> UUID: " << UUID << " Errorcode: " << ErrorCode << " ErrorText: " << ErrorText << std::endl;
             Poco::Data::Session     Sess = Pool_->get();
             Poco::Data::Statement   Update(Sess);
 
@@ -2520,8 +2524,7 @@ namespace uCentral::Storage {
             return true;
         }
         catch (const Poco::Exception &E) {
-            std::cout << "Could not update record" << E.displayText() << "  " << E.className() << " " << E.what()
-                      << std::endl;
+			Logger_.log(E);
         }
 
         return false;
@@ -2612,6 +2615,27 @@ namespace uCentral::Storage {
 			Poco::StreamCopier::copyStream(IL, f);
 
 			return true;
+		} catch (const Poco::Exception &E) {
+			Logger_.log(E);
+		}
+		return false;
+	}
+
+	bool Service::SetCommandResult(std::string &UUID, std::string &Result) {
+		try {
+			Poco::Data::Session Sess = Pool_->get();
+			Poco::Data::Statement Update(Sess);
+
+			uint64_t Now = time(nullptr);
+			std::string St{"UPDATE CommandList SET Completed=?, Results=? WHERE UUID=?"};
+
+			Update << ConvertParams(St) ,
+				Poco::Data::Keywords::use(Now),
+				Poco::Data::Keywords::use(Result),
+				Poco::Data::Keywords::use(UUID);
+			Update.execute();
+			return true;
+
 		} catch (const Poco::Exception &E) {
 			Logger_.log(E);
 		}

@@ -954,6 +954,7 @@ void RESTAPI_deviceCommandHandler::MakeRequest(Poco::Net::HTTPServerRequest &Req
 			Params.set("serial" , SerialNumber );
 			Params.set("when", When);
 			Params.set("message",MessageType);
+			Params.set("request_uuid",Cmd.UUID);
 
 			std::stringstream ParamStream;
 			Params.stringify(ParamStream);
@@ -961,7 +962,7 @@ void RESTAPI_deviceCommandHandler::MakeRequest(Poco::Net::HTTPServerRequest &Req
 
 			if(uCentral::Storage::AddCommand(SerialNumber,Cmd)) {
 				uCentralCommandDetails	ResCmd;
-				WaitForRPC(Cmd.UUID,ResCmd,2000);
+				WaitForRPC(Cmd.UUID,ResCmd,4000);
 				Poco::JSON::Object RetObj = ResCmd.to_json();
 				ReturnObject(RetObj, Response);
 				return;

@@ -127,6 +127,11 @@ namespace uCentral::WebSocket {
         std::vector<std::pair<CountedSocketReactor *, Poco::Thread *>>  ReactorThreads_;
     };
 
+	struct CommandIDPair {
+		std::string UUID;
+		bool 		Full=true;
+	};
+
     class CountedReactor {
     public:
         CountedReactor();
@@ -163,7 +168,7 @@ namespace uCentral::WebSocket {
         std::unique_ptr<Poco::Net::WebSocket> WS_;
         std::string                         SerialNumber_;
         uCentral::DeviceRegistry::ConnectionState * Conn_ = nullptr;
-        std::map<uint64_t,std::string>      RPCs_;
+        std::map<uint64_t,CommandIDPair>    RPCs_;
         uint64_t                            RPC_ = time(nullptr);
         bool                                Registered_ = false ;
         bool                                WSup_ = false ;

@@ -209,7 +209,9 @@ namespace uCentral::WebSocket {
                     Logger_.warning(Poco::format("Could not submit configure command for %s",SerialNumber_));
                 } else {
                     Logger_.information(Poco::format("Submitted configure command %Lu for %s",CommandID, SerialNumber_));
-                    RPCs_[CommandID] = Cmd.UUID;
+					CommandIDPair	C{ 	.UUID = Cmd.UUID ,
+										.Full = true };
+                    RPCs_[CommandID] = C;
                 }
 
                 return true;
@@ -245,7 +247,7 @@ namespace uCentral::WebSocket {
         if(RPC!=RPCs_.end())
         {
             Logger_.information(Poco::format("RPC(%s): Completed outstanding RPC %Lu",SerialNumber_,ID));
-            uCentral::Storage::CommandCompleted(RPC->second,Vars);
+            uCentral::Storage::CommandCompleted(RPC->second.UUID,Vars,RPC->second.Full);
         }
         else
         {
@@ -326,6 +328,13 @@ namespace uCentral::WebSocket {
                 Conn_->UUID = UUID;
                 uCentral::Storage::AddStatisticsData(Serial, UUID, State);
                 uCentral::DeviceRegistry::SetStatistics(Serial, State);
+
+				if(ParamsObj.contains("request_uuid")) {
+					// we must complete the command...
+					std::string request_uuid = ParamsObj["request_uuid"].toString();
+					uCentral::Storage::SetCommandResult(request_uuid,State);
+				}
+
                 LookForUpgrade(Response);
             } else {
                 Logger_.warning(Poco::format("STATE(%s): Invalid request. Missing serial, uuid, or state",
@@ -352,6 +361,13 @@ namespace uCentral::WebSocket {
                 Check.Sanity = Sanity;
 
                 uCentral::Storage::AddHealthCheckData(Serial, Check);
+
+				if(ParamsObj.contains("request_uuid")) {
+					// we must complete the command...
+					std::string request_uuid = ParamsObj["request_uuid"].toString();
+					uCentral::Storage::SetCommandResult(request_uuid,CheckData);
+				}
+
                 LookForUpgrade(Response);
             }
             else
@@ -512,7 +528,7 @@ namespace uCentral::WebSocket {
                 switch (Op) {
                     case Poco::Net::WebSocket::FRAME_OP_PING: {
                         Logger_.information("WS-PING(" + SerialNumber_ + "): received. PONG sent back.");
-                        WS_->sendFrame("", 0,Poco::Net::WebSocket::FRAME_OP_PONG | Poco::Net::WebSocket::FRAME_FLAG_FIN);
+                        WS_->sendFrame("", 0,(int)Poco::Net::WebSocket::FRAME_OP_PONG | (int)Poco::Net::WebSocket::FRAME_FLAG_FIN);
                         }
                         break;
 
@@ -630,6 +646,10 @@ namespace uCentral::WebSocket {
             Obj.set("id",ID);
             Obj.set("method", Command.Custom ? "perform" : Command.Command );
 
+			bool FullCommand = true;
+			if(Command.Command=="request")
+				FullCommand = false;
+
             // the params section was composed earlier... just include it here
             Poco::JSON::Parser  parser;
             auto ParsedMessage = parser.parse(Command.Details);
@@ -638,10 +658,12 @@ namespace uCentral::WebSocket {
             std::stringstream ToSend;
             Poco::JSON::Stringifier::stringify(Obj,ToSend);
 
-            auto BytesSent = WS_->sendFrame(ToSend.str().c_str(),ToSend.str().size());
+            auto BytesSent = WS_->sendFrame(ToSend.str().c_str(),(int)ToSend.str().size());
             if(BytesSent == ToSend.str().size())
             {
-                RPCs_[ID] = Command.UUID;
+				CommandIDPair	C{ .UUID = Command.UUID,
+									.Full = FullCommand };
+                RPCs_[ID] = C;
                 uCentral::Storage::CommandExecuted(Command.UUID);
                 return true;
             }
