@@ -89,9 +89,9 @@ Poco::Net::SecureServerSocket PropertiesFileServerEntry::CreateSecureSocket() co
 			P.certificateFile = cert_file_;
 			P.cipherList = "ALL:!ADH:!LOW:!EXP:!MD5:@STRENGTH";
 			P.dhUse2048Bits = true;
-
+			P.privateKeyFile = key_file_;
 			auto Context = new Poco::Net::Context(Poco::Net::Context::TLS_SERVER_USE, P);
-			Context->requireMinimumProtocol(Poco::Net::Context::PROTO_TLSV1_2);
+
 			return Poco::Net::SecureServerSocket(port_, backlog_,Context);
 		}
     }
