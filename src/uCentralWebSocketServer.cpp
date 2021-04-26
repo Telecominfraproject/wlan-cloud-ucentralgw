@@ -83,11 +83,20 @@ namespace uCentral::WebSocket {
         Reactor_->Release();
     }
 
-    WSConnection::WSConnection(Poco::Net::StreamSocket& socket, Poco::Net::SocketReactor& reactor):
+    WSConnection::WSConnection(Poco::Net::StreamSocket & socket, Poco::Net::SocketReactor & reactor):
             Socket_(socket),
             ParentAcceptorReactor_(reactor),
             Logger_(Service::instance()->Logger())
     {
+		auto *SS = reinterpret_cast<Poco::Net::SecureStreamSocketImpl *>(socket.impl());
+
+		try {
+			auto P = SS->peerCertificate();
+			Logger_.information(Poco::format("Certificate: %s",P.commonName()));
+		} catch(const Poco::Exception &E) {
+			Logger_.log(E);
+		}
+
         auto Params = Poco::AutoPtr<Poco::Net::HTTPServerParams>(new Poco::Net::HTTPServerParams());
         Poco::Net::HTTPServerSession        Session(Socket_, Params);
         Poco::Net::HTTPServerResponseImpl   Response(Session);
@@ -99,6 +108,8 @@ namespace uCentral::WebSocket {
         Response.setKeepAlive(Params->getKeepAlive() && Request.getKeepAlive() && Session.canKeepAlive());
         WS_ = std::make_unique<Poco::Net::WebSocket>(Request, Response);
 		WS_->setMaxPayloadSize(BufSize);
+
+		// Get the cert info...
         Register();
     }
 
@@ -465,7 +476,7 @@ namespace uCentral::WebSocket {
                 Conn_->TX += Response.size();
             // Logger_.information(Poco::format("RESPONSE(%s): %s",SerialNumber_,Response));
             try {
-                WS_->sendFrame(Response.c_str(), Response.size());
+                WS_->sendFrame(Response.c_str(), (int)Response.size());
             }
             catch( Poco::Exception & E )
             {

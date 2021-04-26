@@ -24,6 +24,8 @@
 #include "Poco/Net/SocketAcceptor.h"
 #include "Poco/Net/SocketNotification.h"
 #include "Poco/Net/StreamSocket.h"
+#include "Poco/Net/SecureStreamSocket.h"
+#include "Poco/Net/SecureStreamSocketImpl.h"
 
 namespace uCentral::WebSocket {
 
@@ -163,7 +165,7 @@ namespace uCentral::WebSocket {
         std::mutex                          Mutex_;
         CountedReactor                      Reactor_;
         Poco::Logger                    &   Logger_;
-        Poco::Net::StreamSocket             Socket_;
+        Poco::Net::StreamSocket       		Socket_;
         Poco::Net::SocketReactor &          ParentAcceptorReactor_;
         std::unique_ptr<Poco::Net::WebSocket> WS_;
         std::string                         SerialNumber_;
