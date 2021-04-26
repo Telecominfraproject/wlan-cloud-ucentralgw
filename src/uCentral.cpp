@@ -36,7 +36,7 @@ namespace uCentral {
     void MyErrorHandler::exception(const Poco::Exception & E) {
         Poco::Thread * CurrentThread = Poco::Thread::current();
 		uCentral::instance()->logger().log(E);
-        uCentral::instance()->logger().warning(Poco::format("generic Poco exception on %s",CurrentThread->getName()));
+        uCentral::instance()->logger().error(Poco::format("Exception occurred in %s",CurrentThread->getName()));
     }
 
     void MyErrorHandler::exception(const std::exception & E) {
