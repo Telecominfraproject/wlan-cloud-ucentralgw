@@ -4,6 +4,9 @@ on:
   push:
     branches:
       - master
+  pull_request:
+    branches:
+      - master
 
 defaults:
   run:
@@ -30,15 +33,27 @@ jobs:
 
     - name: push Docker image
       run: |
-        for tag in ${{ github.sha }} master; do
+        TAGS="${{ github.sha }}"
+
+        if [ ${GITHUB_REF} == "refs/heads/master" ]
+        then
+          TAGS="$TAGS ${GITHUB_REF#refs/heads/}"
+        else # PR build
+          TAGS="$TAGS ${GITHUB_HEAD_REF#refs/heads/}"
+        fi
+
+        echo "Pushing tags $TAGS"
+
+        for tag in $TAGS; do
           docker tag wlan-cloud-ucentralgw:${{ github.sha }} ${{ env.DOCKER_REGISTRY_URL }}/ucentralgw:$tag
           docker push ${{ env.DOCKER_REGISTRY_URL }}/ucentralgw:$tag
         done
 
-    - name: export Docker image
-      run: docker image save -o wlan-cloud-ucentralgw-${{ github.sha }}.tar wlan-cloud-ucentralgw:${{ github.sha }}
+    # disable until repo is public
+    #- name: export Docker image
+    #  run: docker image save -o wlan-cloud-ucentralgw-${{ github.sha }}.tar wlan-cloud-ucentralgw:${{ github.sha }}
 
-    - uses: actions/upload-artifact@v2
-      with:
-        name: docker-image
-        path: wlan-cloud-ucentralgw-${{ github.sha }}.tar
+    #- uses: actions/upload-artifact@v2
+    #  with:
+    #    name: docker-image
+    #    path: wlan-cloud-ucentralgw-${{ github.sha }}.tar
