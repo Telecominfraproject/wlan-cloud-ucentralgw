@@ -1,0 +1,17 @@
+name: Clean up PR Docker images
+
+on:
+  pull_request:
+    branches:
+      - master
+    types: [ closed ]
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    steps:
+      - run: curl -uucentral:${{ secrets.DOCKER_REGISTRY_PASSWORD }} -X DELETE "https://tip.jfrog.io/artifactory/tip-wlan-cloud-ucentral/ucentralgw/${GITHUB_REF#refs/heads/}"
