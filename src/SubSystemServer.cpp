@@ -90,6 +90,7 @@ Poco::Net::SecureServerSocket PropertiesFileServerEntry::CreateSecureSocket() co
 			P.cipherList = "ALL:!ADH:!LOW:!EXP:!MD5:@STRENGTH";
 			P.dhUse2048Bits = true;
 			P.privateKeyFile = key_file_;
+			P.caLocation = root_ca_;
 			auto Context = new Poco::Net::Context(Poco::Net::Context::TLS_SERVER_USE, P);
 
 			return Poco::Net::SecureServerSocket(port_, backlog_,Context);
