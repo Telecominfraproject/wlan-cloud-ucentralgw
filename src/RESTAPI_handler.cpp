@@ -138,6 +138,7 @@ void RESTAPIHandler::PrepareResponse(Poco::Net::HTTPServerResponse &Response,Poc
     Response.setStatus(Status);
     Response.setChunkedTransferEncoding(true);
 	Response.setKeepAlive(true);
+	Response.set("Keep-Alive","timeout=8, max=1000");
 	Response.setContentType("application/json");
     Response.set("Access-Control-Allow-Origin", "*");
     Response.add("Access-Control-Allow-Headers", "*");
