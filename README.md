@@ -252,29 +252,42 @@ ucentral.autoprovisioning.type.2 = AP:ea8302,edge6
 
 ###### This is the RESTAPI endpoint
 ```asm
+ucentral.restapi.host.0.backlog = 100
+ucentral.restapi.host.0.security = relaxed
+ucentral.restapi.host.0.rootca = $UCENTRAL_ROOT/certs/rootca.pem
 ucentral.restapi.host.0.address = *
 ucentral.restapi.host.0.port = 16001
 ucentral.restapi.host.0.cert = $UCENTRAL_ROOT/certs/server-cert.pem
 ucentral.restapi.host.0.key = $UCENTRAL_ROOT/certs/server-key.pem
+ucentral.restapi.host.0.key.password = mypassword
 ```
 
 ###### This is the end point for the devices to connect with
 ```asm
+ucentral.websocket.host.0.backlog = 500
+ucentral.websocket.host.0.rootca = $UCENTRAL_ROOT/certs/rootca.pem
 ucentral.websocket.host.0.address = *
 ucentral.websocket.host.0.port = 15002
 ucentral.websocket.host.0.cert = $UCENTRAL_ROOT/certs/server-cert.pem
 ucentral.websocket.host.0.key = $UCENTRAL_ROOT/certs/server-key.pem
+ucentral.websocket.host.0.security = strict
+ucentral.websocket.host.0.key.password = mypassword
+ucentral.websocket.maxreactors = 20
 ```
 
 ###### This is the end point for the devices when uploading files
 ```asm
+ucentral.fileuploader.host.0.backlog = 100
+ucentral.fileuploader.host.0.rootca = $UCENTRAL_ROOT/certs/rootca.pem
+ucentral.fileuploader.host.0.security = relaxed
 ucentral.fileuploader.host.0.address = *
-ucentral.fileuploader.host.0.name = 192.168.1.176       <<<<<<< Replace this IP with the IP of your gateway or its FQDN
+ucentral.fileuploader.host.0.name = 192.168.1.176
 ucentral.fileuploader.host.0.port = 16003
 ucentral.fileuploader.host.0.cert = $UCENTRAL_ROOT/certs/server-cert.pem
 ucentral.fileuploader.host.0.key = $UCENTRAL_ROOT/certs/server-key.pem
 ucentral.fileuploader.host.0.key.password = mypassword
 ucentral.fileuploader.path = $UCENTRAL_ROOT/uploads
+ucentral.fileuploader.maxsize = 10000
 ```
 
 ###### host.0.address entries
