@@ -127,7 +127,7 @@ static std::string MakeList(const std::vector<std::string> & L)
 void RESTAPIHandler::ProcessOptions(Poco::Net::HTTPServerResponse & Response )
 {
     Response.setContentType("application/json");
-c    Response.set("Access-Control-Allow-Origin", "*");
+    Response.set("Access-Control-Allow-Origin", "*");
     Response.add("Access-Control-Allow-Headers", "*");
     Response.add("Access-Control-Allow-Method",MakeList(methods_));
     Response.send();
