@@ -25,7 +25,6 @@ void RESTAPI_oauth2Handler::handleRequest(Poco::Net::HTTPServerRequest & Request
             uCentral::Auth::WebToken Token;
 
             if (uCentral::Auth::Authorize(userId, password, Token)) {
-                PrepareResponse(Response);
                 auto ReturnObj = Token.to_JSON();
                 ReturnObject(ReturnObj, Response);
             } else {
