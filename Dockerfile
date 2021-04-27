@@ -43,8 +43,8 @@ RUN mkdir /ucentral-data
 RUN apk add --update --no-cache librdkafka mariadb-connector-c libpq unixodbc
 
 COPY --from=builder /ucentralgw/cmake-build/ucentralgw /ucentral/ucentralgw
-COPY --from=builder /cppkafka/cmake-build/src/lib64/* /lib
-COPY --from=builder /poco/cmake-build/lib/* /lib
+COPY --from=builder /cppkafka/cmake-build/src/lib64/* /lib/
+COPY --from=builder /poco/cmake-build/lib/* /lib/
 
 EXPOSE 15002
 EXPOSE 16001
