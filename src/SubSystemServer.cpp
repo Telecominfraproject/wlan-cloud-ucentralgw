@@ -69,52 +69,27 @@ void SubSystemServer::defineOptions(Poco::Util::OptionSet& options)
 
 Poco::Net::SecureServerSocket PropertiesFileServerEntry::CreateSecureSocket() const
 {
-    if(address_=="*") {
-		if(is_x509_) {
+	Poco::Net::Context::Params	P;
 
-			Poco::Net::Context::Params	P;
-			P.verificationMode = Poco::Net::Context::VERIFY_RELAXED;
-			P.verificationDepth = 9;
-			P.loadDefaultCAs = true;
-			P.cipherList = "ALL:!ADH:!LOW:!EXP:!MD5:@STRENGTH";
-			P.dhUse2048Bits = true;
-			P.privateKeyFile = key_file_;
-			P.caLocation = root_ca_;
+	P.verificationMode = Poco::Net::Context::VERIFY_RELAXED;
+	P.verificationDepth = 9;
+	P.loadDefaultCAs = true;
+	P.certificateFile = cert_file_;
+	P.cipherList = "ALL:!ADH:!LOW:!EXP:!MD5:@STRENGTH";
+	P.dhUse2048Bits = true;
+	P.privateKeyFile = key_file_;
+	P.caLocation = root_ca_;
+	auto Context = new Poco::Net::Context(Poco::Net::Context::TLS_SERVER_USE, P);
 
-			auto Context = new Poco::Net::Context(Poco::Net::Context::TLS_SERVER_USE, P);
-			Poco::Crypto::X509Certificate	C(cert_file_);
-			Context->useCertificate(C);
-
-			return Poco::Net::SecureServerSocket(port_, backlog_, Context);
-		} else {
-			Poco::Net::Context::Params	P;
-
-			P.verificationMode = Poco::Net::Context::VERIFY_STRICT;
-			P.verificationDepth = 9;
-			P.loadDefaultCAs = true;
-			P.certificateFile = cert_file_;
-			P.cipherList = "ALL:!ADH:!LOW:!EXP:!MD5:@STRENGTH";
-			P.dhUse2048Bits = true;
-			P.privateKeyFile = key_file_;
-			P.caLocation = root_ca_;
-			auto Context = new Poco::Net::Context(Poco::Net::Context::TLS_SERVER_USE, P);
-
-			return Poco::Net::SecureServerSocket(port_, backlog_,Context);
-		}
-    }
-    else
-    {
+	if(address_=="*")
+		return Poco::Net::SecureServerSocket(port_, backlog_,Context);
+	else {
 		Poco::Net::IPAddress        Addr(address_);
 		Poco::Net::SocketAddress    SockAddr(Addr,port_);
-		if(is_x509_) {
-			auto Context = new Poco::Net::Context(Poco::Net::Context::TLS_SERVER_USE, "", cert_file_, "");
-			return Poco::Net::SecureServerSocket(SockAddr, backlog_, Context);
-		} else {
-			return Poco::Net::SecureServerSocket(
-				SockAddr, backlog_,
-				new Poco::Net::Context(Poco::Net::Context::TLS_SERVER_USE, key_file_, cert_file_,
-									   ""));
-		}
-    }
+
+		return Poco::Net::SecureServerSocket(
+			SockAddr, backlog_,
+			new Poco::Net::Context(Poco::Net::Context::TLS_SERVER_USE,P));
+	}
 }
 
