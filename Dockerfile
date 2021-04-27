@@ -1,6 +1,4 @@
-#Build stage 0
-
-FROM alpine
+FROM alpine AS builder
 
 RUN apk update && \
     apk add --no-cache openssl openssh && \
@@ -11,8 +9,6 @@ RUN apk update && \
     apk add --no-cache apache2-utils yaml-dev apr-util-dev && \
     apk add --no-cache lua-dev librdkafka-dev
 
-
-ADD . /ucentralgw
 RUN git clone https://github.com/stephb9959/poco /poco
 RUN git clone https://github.com/stephb9959/cppkafka /cppkafka
 
@@ -30,25 +26,28 @@ RUN cmake ..
 RUN cmake --build . --config Release -j8
 RUN cmake --build . --target install
 
+ADD CMakeLists.txt /ucentralgw/
+ADD cmake /ucentralgw/cmake
+ADD src /ucentralgw/src
+
 WORKDIR /ucentralgw
 RUN mkdir cmake-build
 WORKDIR /ucentralgw/cmake-build
 RUN cmake ..
 RUN cmake --build . --config Release -j8
 
-RUN mkdir /ucentral
-RUN cp /ucentralgw/cmake-build/ucentralgw /ucentral/ucentralgw
-RUN chmod +x /ucentral/ucentralgw
-RUN mkdir /ucentral-data
+FROM alpine
 
-RUN rm -rf /poco
-RUN rm -rf /ucentralgw
-RUN rm -rf /cppkafka
+RUN mkdir /ucentral
+RUN mkdir /ucentral-data
+RUN apk add --update --no-cache librdkafka mariadb-connector-c libpq unixodbc
+
+COPY --from=builder /ucentralgw/cmake-build/ucentralgw /ucentral/ucentralgw
+COPY --from=builder /cppkafka/cmake-build/src/lib64/* /lib/
+COPY --from=builder /poco/cmake-build/lib/* /lib/
 
 EXPOSE 15002
 EXPOSE 16001
 EXPOSE 16003
 
 ENTRYPOINT /ucentral/ucentralgw
-
-
