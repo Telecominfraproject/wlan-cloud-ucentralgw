@@ -24,6 +24,7 @@ public:
                                	std::string Key_file_password = "",
                                	std::string Name="",
 								bool x509=false,
+								Poco::Net::Context::VerificationMode M=Poco::Net::Context::VerificationMode::VERIFY_RELAXED,
 								int backlog=64) :
             address_(std::move(Address)),
             port_(port),
@@ -33,7 +34,8 @@ public:
             key_file_password_(std::move(Key_file_password)),
             name_(std::move(Name)),
 		    is_x509_(x509),
-			 backlog_(backlog){};
+			level_(M),
+			backlog_(backlog){};
     
     [[nodiscard]] const std::string & address() const { return address_; };
     [[nodiscard]] uint32_t port() const { return port_; };
@@ -56,6 +58,7 @@ private:
     std::string     name_;
 	bool 			is_x509_;
 	int 			backlog_;
+	Poco::Net::Context::VerificationMode 			level_;
 };
 
 class SubSystemServer : public Poco::Util::Application::Subsystem {

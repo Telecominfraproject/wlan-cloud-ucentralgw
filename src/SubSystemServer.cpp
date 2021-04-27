@@ -38,6 +38,20 @@ void SubSystemServer::initialize(Poco::Util::Application & self)
 			std::string backlog{root+"backlog"};
 			std::string rootca{root+"rootca"};
 
+			std::string level{root+"security"};
+			Poco::Net::Context::VerificationMode	M=Poco::Net::Context::VERIFY_RELAXED;
+
+			auto L = uCentral::ServiceConfig::getString(level,"");
+
+			if(L=="strict") {
+				M=Poco::Net::Context::VERIFY_STRICT;
+			} else if(L=="none") {
+				M=Poco::Net::Context::VERIFY_NONE;
+			} else if(L=="relaxed") {
+				M=Poco::Net::Context::VERIFY_RELAXED;
+			} else if(L=="once")
+				M=Poco::Net::Context::VERIFY_ONCE;
+
             PropertiesFileServerEntry entry(   uCentral::ServiceConfig::getString(address,""),
                                                uCentral::ServiceConfig::getInt(port,0),
                                                uCentral::ServiceConfig::getString(key,""),
@@ -46,6 +60,7 @@ void SubSystemServer::initialize(Poco::Util::Application & self)
                                                uCentral::ServiceConfig::getString(key_password,""),
                                                uCentral::ServiceConfig::getString(name,""),
 												uCentral::ServiceConfig::getBool(x509,false),
+												M,
 											   (int) uCentral::ServiceConfig::getInt(backlog,64));
             ConfigServersList_.push_back(entry);
             i++;
@@ -71,7 +86,7 @@ Poco::Net::SecureServerSocket PropertiesFileServerEntry::CreateSecureSocket() co
 {
 	Poco::Net::Context::Params	P;
 
-	P.verificationMode = Poco::Net::Context::VERIFY_RELAXED;
+	P.verificationMode = level_;
 	P.verificationDepth = 9;
 	P.loadDefaultCAs = true;
 	P.certificateFile = cert_file_;
