@@ -36,7 +36,6 @@ set(Boost_USE_MULTITHREADED ON)
 set(Boost_USE_STATIC_RUNTIME OFF)
 find_package(Boost REQUIRED system)
 find_package(OpenSSL REQUIRED)
-find_package(yaml-cpp REQUIRED)
 find_package(ZLIB REQUIRED)
 find_package(Lua REQUIRED)
 
@@ -76,7 +75,7 @@ INSTALL(TARGETS ucentralgw
         RUNTIME DESTINATION /usr/bin
 )
 
-target_link_libraries(ucentralgw PUBLIC yaml-cpp
+target_link_libraries(ucentralgw PUBLIC
                         ${Poco_LIBRARIES} ${Boost_LIBRARIES} ${ZLIB_LIBRARIES})
 if(NOT SMALL_BUILD)
     target_link_libraries(ucentralgw PUBLIC
