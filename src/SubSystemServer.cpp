@@ -95,7 +95,7 @@ Poco::Net::SecureServerSocket PropertiesFileServerEntry::CreateSecureSocket() co
 	P.privateKeyFile = key_file_;
 	P.caLocation = root_ca_;
 	auto Context = new Poco::Net::Context(Poco::Net::Context::TLS_SERVER_USE, P);
-	Context->disableStatelessSessionResumption();
+	// Context->disableStatelessSessionResumption();
 	if(address_=="*")
 		return Poco::Net::SecureServerSocket(port_, backlog_,Context);
 	else {
