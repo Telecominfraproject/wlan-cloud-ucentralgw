@@ -2,7 +2,7 @@
 
 HUBNAME=tip-tip-wlan-cloud-ucentral.jfrog.io
 IMAGE_NAME=ucentralgw
-DOCKER_NAME=$HUBNAME/$IMAGE_NAME
+DOCKER_NAME=$HUBNAME/$IMAGE_NAME:master
 
 CONTAINER_NAME=ucentralgw
 
