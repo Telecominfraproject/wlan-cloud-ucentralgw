@@ -811,6 +811,7 @@ paths:
         404:
           $ref: '#/components/responses/NotFound'
 
+
   /commands:
     get:
       tags:
