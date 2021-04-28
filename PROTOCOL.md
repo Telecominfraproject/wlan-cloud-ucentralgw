@@ -12,6 +12,7 @@ is able to support thousands of devices.
 A device will be given a way to find the IP address of its controller as well s the port to communicate over. Devices always initiate 
 the connection to the controller.
 
+
 ## The connection
 The connection uses the WebSocket protocol to maintain and frame messages. The communication protocol used is modeled after JSON-RPC for sending JSON structured messages.
 
