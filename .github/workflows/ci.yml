@@ -2,6 +2,9 @@ name: CI
 
 on:
   push:
+    paths-ignore:
+      - 'openapi/**'
+      - '**.md'
     branches:
       - master
   pull_request:
