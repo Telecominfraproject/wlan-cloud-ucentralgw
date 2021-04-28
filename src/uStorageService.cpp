@@ -838,7 +838,7 @@ namespace uCentral::Storage {
 
             Select << StatementStr + DateSelector,
                     Poco::Data::Keywords::into(Records),
-                    Poco::Data::Keywords::range(Offset, Offset + HowMany - 1);
+                    Poco::Data::Keywords::range(Offset, Offset + HowMany );
             Select.execute();
 
             for (auto i: Records) {
@@ -955,7 +955,7 @@ namespace uCentral::Storage {
 
             Select << Statement + DateSelector,
                     Poco::Data::Keywords::into(Records),
-                    Poco::Data::Keywords::range(Offset, Offset + HowMany - 1);
+                    Poco::Data::Keywords::range(Offset, Offset + HowMany );
             Select.execute();
 
             for (auto i: Records) {
@@ -1106,7 +1106,7 @@ namespace uCentral::Storage {
 
             Select << Statement + DateSelector + TypeSelector,
                     Poco::Data::Keywords::into(Records),
-                    Poco::Data::Keywords::range(Offset, Offset + HowMany - 1);
+                    Poco::Data::Keywords::range(Offset, Offset + HowMany );
 
             Select.execute();
 
@@ -1536,7 +1536,7 @@ namespace uCentral::Storage {
 					  	"Location "
                         "FROM Devices",
                     Poco::Data::Keywords::into(Records),
-                    Poco::Data::Keywords::range(From, From + HowMany - 1);
+                    Poco::Data::Keywords::range(From, From + HowMany );
             Select.execute();
 
             for (auto i: Records) {
@@ -1907,7 +1907,7 @@ namespace uCentral::Storage {
                         "LastModified "
                         "FROM DefaultConfigs",
                     Poco::Data::Keywords::into(Records),
-                    Poco::Data::Keywords::range(From, From + HowMany - 1);
+                    Poco::Data::Keywords::range(From, From + HowMany );
 
             Select.execute();
 
@@ -2128,7 +2128,7 @@ namespace uCentral::Storage {
 
             Select << IntroStatement + DateSelector,
                     Poco::Data::Keywords::into(Records),
-                    Poco::Data::Keywords::range(Offset, Offset + HowMany - 1);
+                    Poco::Data::Keywords::range(Offset, Offset + HowMany );
 
             Select.execute();
 
@@ -2237,7 +2237,7 @@ namespace uCentral::Storage {
 						  "AttachSize, AttachType FROM CommandList "
 						  "WHERE Executed=0",
 					Poco::Data::Keywords::into(Records),
-					Poco::Data::Keywords::range(Offset, Offset + HowMany - 1);
+					Poco::Data::Keywords::range(Offset, Offset + HowMany );
 				Select.execute();
 
 				for (auto i : Records) {
@@ -2426,7 +2426,7 @@ namespace uCentral::Storage {
             Select << ConvertParams(St),
                     Poco::Data::Keywords::into(Records),
                     Poco::Data::Keywords::use(Now),
-                    Poco::Data::Keywords::range(Offset, Offset + HowMany - 1);
+                    Poco::Data::Keywords::range(Offset, Offset + HowMany );
             Select.execute();
 
             for (auto i: Records) {
@@ -2729,7 +2729,7 @@ namespace uCentral::Storage {
 
 			Select << "SELECT SerialNumber, Reason, Author, Created FROM BlackList" ,
 				Poco::Data::Keywords::into(Records),
-				Poco::Data::Keywords::range(Offset, Offset + HowMany - 1);
+				Poco::Data::Keywords::range(Offset, Offset + HowMany );
 			Select.execute();
 
 			for (auto i: Records) {
