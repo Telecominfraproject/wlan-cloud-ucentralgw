@@ -274,8 +274,7 @@ namespace uCentral {
 
             Poco::Logger &logger = Poco::Logger::get("uCentral");
 
-			logger.setLevel(Poco::Message::PRIO_NOTICE);
-			logger.notice("Starting ucentral...");
+			logger.notice(Poco::format("Starting uCentral version %s.",Version()));
 
             uCentral::Storage::Start();
             uCentral::Auth::Start();
