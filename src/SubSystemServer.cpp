@@ -123,6 +123,7 @@ void PropertiesFileServerEntry::log_cert_info(Poco::Logger &L, const Poco::Crypt
 	L.information(Poco::format(">      State/Prov: %s",C.issuerName(Poco::Crypto::X509Certificate::NID_STATE_OR_PROVINCE)));
 	L.information(Poco::format(">        Org name: %s",C.issuerName(Poco::Crypto::X509Certificate::NID_ORGANIZATION_NAME)));
 	L.information(Poco::format(">        Org unit: %s",C.issuerName(Poco::Crypto::X509Certificate::NID_ORGANIZATION_UNIT_NAME)));
+	L.information(Poco::format(">           Email: %s",C.issuerName(Poco::Crypto::X509Certificate::NID_PKCS9_EMAIL_ADDRESS)));
 	L.information(Poco::format(">         Serial#: %s",C.issuerName(Poco::Crypto::X509Certificate::NID_SERIAL_NUMBER)));
 	L.information("---------------------------------------------------------------------------------------------");
 	L.information(Poco::format(">         Subject: %s",C.subjectName()));
@@ -133,6 +134,7 @@ void PropertiesFileServerEntry::log_cert_info(Poco::Logger &L, const Poco::Crypt
 	L.information(Poco::format(">      State/Prov: %s",C.subjectName(Poco::Crypto::X509Certificate::NID_STATE_OR_PROVINCE)));
 	L.information(Poco::format(">        Org name: %s",C.subjectName(Poco::Crypto::X509Certificate::NID_ORGANIZATION_NAME)));
 	L.information(Poco::format(">        Org unit: %s",C.subjectName(Poco::Crypto::X509Certificate::NID_ORGANIZATION_UNIT_NAME)));
+	L.information(Poco::format(">           Email: %s",C.subjectName(Poco::Crypto::X509Certificate::NID_PKCS9_EMAIL_ADDRESS)));
 	L.information(Poco::format(">         Serial#: %s",C.subjectName(Poco::Crypto::X509Certificate::NID_SERIAL_NUMBER)));
 	L.information("---------------------------------------------------------------------------------------------");
 	L.information(Poco::format(">  Signature Algo: %s",C.signatureAlgorithm()));
