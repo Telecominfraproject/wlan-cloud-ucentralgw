@@ -44,6 +44,10 @@ namespace uCentral::WebSocket {
             Logger_.notice(Poco::format("Starting: %s:%s Keyfile:%s CertFile: %s", Svr.address(), std::to_string(Svr.port()),
 											 Svr.key_file(),Svr.cert_file()));
 
+			Svr.log_cert(Logger_);
+			if(!Svr.root_ca().empty())
+				Svr.log_cas(Logger_);
+
             auto Sock{Svr.CreateSecureSocket()};
             auto NewSocketReactor = std::make_unique<Poco::Net::SocketReactor>();
             auto NewSocketAcceptor = std::make_unique<Poco::Net::SocketAcceptor<WSConnection>>( Sock, *NewSocketReactor);

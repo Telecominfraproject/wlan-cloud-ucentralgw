@@ -5,6 +5,10 @@
 #include "SubSystemServer.h"
 #include "uCentral.h"
 
+#include "Poco/Net/X509Certificate.h"
+#include "Poco/DateTimeFormatter.h"
+#include "Poco/DateTimeFormat.h"
+
 SubSystemServer::SubSystemServer( std::string Name,
                                   const std::string & LoggingPrefix,
                                   std::string SubSystemConfigPrefix )
@@ -108,3 +112,72 @@ Poco::Net::SecureServerSocket PropertiesFileServerEntry::CreateSecureSocket() co
 	}
 }
 
+void PropertiesFileServerEntry::log_cert_info(Poco::Logger &L, const Poco::Crypto::X509Certificate &C) {
+
+	L.information("=============================================================================================");
+	L.information(Poco::format(">          Issuer: %s",C.issuerName()));
+	L.information("---------------------------------------------------------------------------------------------");
+	L.information(Poco::format(">     Common Name: %s",C.issuerName(Poco::Crypto::X509Certificate::NID_COMMON_NAME)));
+	L.information(Poco::format(">         Country: %s",C.issuerName(Poco::Crypto::X509Certificate::NID_COUNTRY)));
+	L.information(Poco::format(">        Locality: %s",C.issuerName(Poco::Crypto::X509Certificate::NID_LOCALITY_NAME)));
+	L.information(Poco::format(">      State/Prov: %s",C.issuerName(Poco::Crypto::X509Certificate::NID_STATE_OR_PROVINCE)));
+	L.information(Poco::format(">        Org name: %s",C.issuerName(Poco::Crypto::X509Certificate::NID_ORGANIZATION_NAME)));
+	L.information(Poco::format(">        Org unit: %s",C.issuerName(Poco::Crypto::X509Certificate::NID_ORGANIZATION_UNIT_NAME)));
+	L.information(Poco::format(">         Serial#: %s",C.issuerName(Poco::Crypto::X509Certificate::NID_SERIAL_NUMBER)));
+	L.information("---------------------------------------------------------------------------------------------");
+	L.information(Poco::format(">         Subject: %s",C.subjectName()));
+	L.information("---------------------------------------------------------------------------------------------");
+	L.information(Poco::format(">     Common Name: %s",C.subjectName(Poco::Crypto::X509Certificate::NID_COMMON_NAME)));
+	L.information(Poco::format(">         Country: %s",C.subjectName(Poco::Crypto::X509Certificate::NID_COUNTRY)));
+	L.information(Poco::format(">        Locality: %s",C.subjectName(Poco::Crypto::X509Certificate::NID_LOCALITY_NAME)));
+	L.information(Poco::format(">      State/Prov: %s",C.subjectName(Poco::Crypto::X509Certificate::NID_STATE_OR_PROVINCE)));
+	L.information(Poco::format(">        Org name: %s",C.subjectName(Poco::Crypto::X509Certificate::NID_ORGANIZATION_NAME)));
+	L.information(Poco::format(">        Org unit: %s",C.subjectName(Poco::Crypto::X509Certificate::NID_ORGANIZATION_UNIT_NAME)));
+	L.information(Poco::format(">         Serial#: %s",C.subjectName(Poco::Crypto::X509Certificate::NID_SERIAL_NUMBER)));
+	L.information("---------------------------------------------------------------------------------------------");
+	L.information(Poco::format(">  Signature Algo: %s",C.signatureAlgorithm()));
+	auto From = Poco::DateTimeFormatter::format(C.validFrom(),Poco::DateTimeFormat::HTTP_FORMAT);
+	L.information(Poco::format(">      Valid from: %s",From));
+	auto Expires = Poco::DateTimeFormatter::format(C.expiresOn(),Poco::DateTimeFormat::HTTP_FORMAT);
+	L.information(Poco::format(">      Expires on: %s",Expires));
+	L.information(Poco::format(">         Version: %d",(int)C.version()));
+	L.information(Poco::format(">        Serial #: %s",C.serialNumber()));
+	L.information("=============================================================================================");
+
+
+}
+
+void PropertiesFileServerEntry::log_cert(Poco::Logger & L) const {
+	try {
+		Poco::Crypto::X509Certificate C(cert_file_);
+		L.information("=============================================================================================");
+		L.information("=============================================================================================");
+		L.information(Poco::format("Certificate Filename: %s",cert_file_));
+		log_cert_info(L,C);
+		L.information("=============================================================================================");
+	} catch( const Poco::Exception & E) {
+		L.log(E);
+	}
+}
+
+void PropertiesFileServerEntry::log_cas(Poco::Logger & L) const {
+	try {
+		std::vector<Poco::Crypto::X509Certificate> Certs=Poco::Net::X509Certificate::readPEM(root_ca_);
+
+		L.information("=============================================================================================");
+		L.information("=============================================================================================");
+		L.information(Poco::format("CA Filename: %s",root_ca_));
+		L.information("=============================================================================================");
+		auto i=1;
+		for(const auto & C : Certs)
+		{
+			L.information(Poco::format(" Index: %d",i));
+			L.information("=============================================================================================");
+			log_cert_info(L, C);
+			i++;
+		}
+		L.information("=============================================================================================");
+	} catch ( const Poco::Exception & E ) {
+		L.log(E);
+	}
+}

@@ -78,6 +78,10 @@ namespace uCentral::uFileUploader {
 
             auto Sock{Svr.CreateSecureSocket()};
 
+			Svr.log_cert(Logger_);
+			if(!Svr.root_ca().empty())
+				Svr.log_cas(Logger_);
+
             auto Params = new Poco::Net::HTTPServerParams;
             Params->setMaxThreads(16);
             Params->setMaxQueued(100);

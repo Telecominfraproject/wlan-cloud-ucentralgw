@@ -14,6 +14,8 @@
 #include "Poco/Logger.h"
 #include "Poco/Net/SecureServerSocket.h"
 
+#include "Poco/Net/X509Certificate.h"
+
 class PropertiesFileServerEntry {
 public:
     PropertiesFileServerEntry( 	std::string Address,
@@ -47,6 +49,9 @@ public:
     [[nodiscard]] Poco::Net::SecureServerSocket CreateSecureSocket() const;
 	[[nodiscard]] bool is_x509() const { return is_x509_; }
 	[[nodiscard]] int backlog() const { return backlog_; }
+	void log_cert( Poco::Logger & L ) const;
+	void log_cas( Poco::Logger & L ) const;
+	static void log_cert_info(Poco::Logger &L, const Poco::Crypto::X509Certificate &C);
 
 private:
     std::string     address_;
