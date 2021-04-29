@@ -121,7 +121,7 @@ Poco::Net::SecureServerSocket PropertiesFileServerEntry::CreateSecureSocket() co
 	Context->usePrivateKey(Key);
 
 	Context->disableStatelessSessionResumption();
-	Context->enableExtendedCertificateVerification();
+	Context->enableExtendedCertificateVerification(false);
 
 	if(address_=="*")
 		return Poco::Net::SecureServerSocket(port_, backlog_,Context);
