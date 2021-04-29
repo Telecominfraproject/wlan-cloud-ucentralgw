@@ -100,6 +100,12 @@ Poco::Net::SecureServerSocket PropertiesFileServerEntry::CreateSecureSocket() co
 	auto Context = new Poco::Net::Context(Poco::Net::Context::TLS_SERVER_USE, P);
 	Context->disableStatelessSessionResumption();
 	Context->enableExtendedCertificateVerification();
+
+	Poco::Crypto::X509Certificate   Cert(cert_file_);
+	Poco::Crypto::RSAKey            Key("",key_file_,"");
+	Context->useCertificate(Cert);
+	Context->usePrivateKey(Key);
+
 	if(address_=="*")
 		return Poco::Net::SecureServerSocket(port_, backlog_,Context);
 	else {
