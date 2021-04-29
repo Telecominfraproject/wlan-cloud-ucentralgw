@@ -99,6 +99,7 @@ Poco::Net::SecureServerSocket PropertiesFileServerEntry::CreateSecureSocket() co
 	P.dhUse2048Bits = true;
 	// P.privateKeyFile = key_file_;
 	P.caLocation = root_ca_;
+
 	auto Context = new Poco::Net::Context(Poco::Net::Context::TLS_SERVER_USE, P);
 
 	Poco::Crypto::X509Certificate   Cert(cert_file_);
@@ -108,7 +109,6 @@ Poco::Net::SecureServerSocket PropertiesFileServerEntry::CreateSecureSocket() co
 	SSL_CTX * SSLCtx = Context->sslContext();
 
 	auto S = SSL_CTX_get_client_CA_list(SSLCtx);
-
 
 	Context->useCertificate(Cert);
 	Context->addChainCertificate(Issueing);
@@ -120,8 +120,11 @@ Poco::Net::SecureServerSocket PropertiesFileServerEntry::CreateSecureSocket() co
 	Poco::Crypto::RSAKey            Key("",key_file_,"");
 	Context->usePrivateKey(Key);
 
-	Context->disableStatelessSessionResumption();
-	Context->enableExtendedCertificateVerification(false);
+	// Context->disableStatelessSessionResumption();
+	Context->enableSessionCache();
+	Context->setSessionCacheSize(0);
+	Context->setSessionTimeout(10);
+	Context->enableExtendedCertificateVerification(true);
 
 	if(address_=="*")
 		return Poco::Net::SecureServerSocket(port_, backlog_,Context);
