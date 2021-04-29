@@ -164,7 +164,7 @@ namespace uCentral::uFileUploader {
             std::ofstream OutputStream(TmpFileName, std::ofstream::out);
             Poco::StreamCopier::copyStream(InputStream, OutputStream);
             Length_ = InputStream.chars();
-            std::filesystem::rename(TmpFileName.c_str(),FinalFileName.c_str());
+            rename(TmpFileName.c_str(),FinalFileName.c_str());
         }
 
         [[nodiscard]] int Length() const { return Length_; }
