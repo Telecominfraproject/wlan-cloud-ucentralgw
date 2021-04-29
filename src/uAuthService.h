@@ -71,7 +71,6 @@ namespace uCentral::Auth {
         void Logout(const std::string &token);
 
         static Service *instance_;
-        std::mutex mutex_;
         std::map<std::string,WebToken>   Tokens_;
         bool    		Secure_ = false ;
         std::string     DefaultUserName_,

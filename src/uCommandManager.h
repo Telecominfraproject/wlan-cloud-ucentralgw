@@ -52,6 +52,6 @@ namespace uCentral::CommandManager {
 
     };
 
-};  // namespace
+}  // namespace
 
 #endif //UCENTRAL_UCOMMANDMANAGER_H

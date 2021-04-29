@@ -17,14 +17,15 @@ namespace uCentral::Kafka {
 
 	int Start() {
 		return Service::instance_->Start();
-	};
+	}
 
 	void Stop() {
 		Service::instance_->Stop();
 	}
 
 	void Service::initialize(Poco::Util::Application & self) {
-		 KafkaEnabled_ = uCentral::ServiceConfig::getBool("ucentral.kafka.enable",false);
+		SubSystemServer::initialize(self);
+		KafkaEnabled_ = uCentral::ServiceConfig::getBool("ucentral.kafka.enable",false);
 	}
 
 	int Service::Start() {
@@ -47,4 +48,4 @@ namespace uCentral::Kafka {
 			return;
 	}
 
-}; // namespace
+} // namespace

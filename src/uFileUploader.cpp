@@ -59,6 +59,7 @@ namespace uCentral::uFileUploader {
     Service::Service() noexcept:
             SubSystemServer("FileUploader", "FILE-UPLOAD", "ucentral.fileuploader")
     {
+		std::lock_guard<std::mutex>	G(Mutex_);
     }
 
     static const std::string URIBASE{"/v1/upload/"};
@@ -90,8 +91,7 @@ namespace uCentral::uFileUploader {
                 FullName_ = "https://" + Svr.name() + ":" + std::to_string(Svr.port()) + URIBASE;
                 Logger_.information(Poco::format("Uploader URI base is '%s'", FullName_));
             }
-
-            auto NewServer = std::make_unique<Poco::Net::HTTPServer>(new RequestHandlerFactory, Sock, Params);
+            auto NewServer = std::make_unique<Poco::Net::HTTPServer>(new RequestHandlerFactory(Logger_), Pool_, Sock, Params);
             NewServer->start();
             Servers_.push_back(std::move(NewServer));
         }
@@ -139,32 +139,31 @@ namespace uCentral::uFileUploader {
     public:
         MyPartHandler(std::string UUID, Poco::Logger & Logger):
             UUID_(std::move(UUID)),
-            Length_(0),
             Logger_(Logger)
         {
         }
 
-        void handlePart(const Poco::Net::MessageHeader& header, std::istream& stream) override
+        void handlePart(const Poco::Net::MessageHeader& Header, std::istream& Stream) override
         {
-            FileType_ = header.get("Content-Type", "(unspecified)");
-            if (header.has("Content-Disposition"))
+            FileType_ = Header.get("Content-Type", "(unspecified)");
+            if (Header.has("Content-Disposition"))
             {
                 std::string Disposition;
                 Poco::Net::NameValueCollection Parameters;
-                Poco::Net::MessageHeader::splitParameters(header["Content-Disposition"], Disposition, Parameters);
+                Poco::Net::MessageHeader::splitParameters(Header["Content-Disposition"], Disposition, Parameters);
                 Name_ = Parameters.get("name", "(unnamed)");
             }
 
-            Poco::CountingInputStream istr(stream);
+            Poco::CountingInputStream InputStream(Stream);
             std::string TmpFileName = uCentral::uFileUploader::Path() + "/" + UUID_ + ".upload.start" ;
             std::string FinalFileName = uCentral::uFileUploader::Path() + "/" + UUID_ ;
 
             Logger_.information(Poco::format("FILE-UPLOADER: uploading %s",TmpFileName));
 
-            std::ofstream ofs(TmpFileName, std::ofstream::out);
-            Poco::StreamCopier::copyStream(istr, ofs);
-            Length_ = istr.chars();
-            rename(TmpFileName.c_str(),FinalFileName.c_str());
+            std::ofstream OutputStream(TmpFileName, std::ofstream::out);
+            Poco::StreamCopier::copyStream(InputStream, OutputStream);
+            Length_ = InputStream.chars();
+            std::filesystem::rename(TmpFileName.c_str(),FinalFileName.c_str());
         }
 
         [[nodiscard]] int Length() const { return Length_; }
@@ -172,7 +171,7 @@ namespace uCentral::uFileUploader {
         [[nodiscard]] const std::string& ContentType() const { return FileType_; }
 
     private:
-        uint64_t        Length_;
+        uint64_t        Length_=0;
         std::string     FileType_;
         std::string     Name_;
         std::string     UUID_;
@@ -184,9 +183,9 @@ namespace uCentral::uFileUploader {
         /// Return a HTML document with the current date and time.
     {
     public:
-        explicit FormRequestHandler(std::string UUID):
+        explicit FormRequestHandler(std::string UUID, Poco::Logger & L):
             UUID_(std::move(UUID)),
-            Logger_(uCentral::uFileUploader::Service().Logger())
+            Logger_(L)
         {
         }
 
@@ -228,8 +227,8 @@ namespace uCentral::uFileUploader {
                 ResponseStream << "URI: " << Request.getURI() << "<br>\n";
                 for (auto & i:Request) {
                     ResponseStream << i.first << ": " << i.second << "<br>\n";
-                    // std::cout << "F:" << i.first << "    S:" << i.second << std::endl;
                 }
+
                 ResponseStream << "</p>";
 
                 if (!form.empty()) {
@@ -279,7 +278,7 @@ namespace uCentral::uFileUploader {
             {
                 //  make sure we do not allow anyone else to overwrite our file
                 uCentral::uFileUploader::RemoveRequest(UUID);
-                return new FormRequestHandler(UUID);
+                return new FormRequestHandler(UUID,Logger_);
             }
             else
             {
@@ -295,4 +294,4 @@ namespace uCentral::uFileUploader {
             svr->stop();
     }
 
-};  //  Namespace
+}  //  Namespace

@@ -25,8 +25,6 @@ namespace uCentral::Config {
 
             stringifier.condense(ds, NewConfig);
 
-            // std::cout << "New Configuration:" << NewConfig.str() << std::endl;
-
             Config_ = NewConfig.str();
 
             return true;
@@ -157,4 +155,4 @@ namespace uCentral::Config {
         return ModelId_;
     }
 
-}; // namespace
+} // namespace

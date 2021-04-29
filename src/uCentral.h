@@ -6,17 +6,20 @@
 #define UCENTRAL_UCENTRAL_H
 
 #include <iostream>
-#include <sstream>
+#include <cstdlib>
 
+#include "Poco/Util/Application.h"
 #include "Poco/Util/ServerApplication.h"
 #include "Poco/Util/Option.h"
 #include "Poco/Util/OptionSet.h"
 #include "Poco/UUIDGenerator.h"
 #include "Poco/ErrorHandler.h"
 
+using Poco::Util::ServerApplication;
+
 namespace uCentral {
 
-    class MyErrorHandler : public Poco::ErrorHandler {
+	class MyErrorHandler : public Poco::ErrorHandler {
     public:
         void exception(const Poco::Exception & E) override;
         void exception(const std::exception & E) override;
@@ -25,7 +28,7 @@ namespace uCentral {
 
     };
 
-    class Daemon : public Poco::Util::ServerApplication {
+    class Daemon : public ServerApplication {
 
     public:
         void initialize(Application &self) override;
@@ -70,7 +73,7 @@ namespace uCentral {
         uint64_t getBool(const std::string &Key);
     }
 
-    Daemon * instance();
-};
+	Daemon * instance();
+}
 
 #endif //UCENTRAL_UCENTRAL_H

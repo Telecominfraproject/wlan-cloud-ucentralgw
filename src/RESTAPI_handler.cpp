@@ -1,7 +1,7 @@
 //
 // Created by stephane bourque on 2021-03-04.
 //
-
+#include <cctype>
 #include <algorithm>
 #include <iostream>
 #include <iterator>
@@ -115,7 +115,7 @@ static std::string MakeList(const std::vector<std::string> & L)
 {
     std::string Return;
 
-    for(const auto i : L)
+    for(const auto &i : L)
         if( Return.empty() )
             Return = i;
         else

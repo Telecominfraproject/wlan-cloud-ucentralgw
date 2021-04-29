@@ -1,5 +1,5 @@
 //
-// Created by stephane bourque on 2021-04-11.
+// Created by Stephane Bourque on 2021-04-11.
 //
 
 #ifndef UCENTRALGW_RESTAPI_SYSTEMCOMMAND_H

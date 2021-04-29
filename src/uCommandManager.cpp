@@ -68,4 +68,4 @@ namespace uCentral::CommandManager {
         ManagerThread.wakeUp();
     }
 
-};  // namespace
+}  // namespace

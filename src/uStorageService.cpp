@@ -3,6 +3,8 @@
 //
 #include <iostream>
 #include <fstream>
+#include <cstdlib>
+#include <ctime>
 
 #include "uStorageService.h"
 #include "uCentral.h"
@@ -294,28 +296,6 @@ namespace uCentral::Storage {
 		buf[15] = R[10] ; buf[16]= R[11];buf[17] = 0;
 
 		return buf;
-	}
-
-	std::string Service::MakeFieldList(int N) const {
-		std::string Result;
-
-		if(IsPSQL_) {
-			for(auto i=0;i<N;++i)
-			{
-				Result += "$" + std::to_string(i+1);
-				if(i+1<N)
-					Result += ",";
-			}
-		} else {
-			for(auto i=0;i<N;++i)
-			{
-				Result += "?";
-				if(i+1<N)
-					Result += ",";
-			}
-		}
-
-		return "( " + Result + " )";
 	}
 
 	std::string Service::ConvertParams(const std::string & S) const {
@@ -729,22 +709,8 @@ namespace uCentral::Storage {
 
 #endif
 
-    std::string SQLEscapeStr(const std::string & S) {
-        std::string R;
-
-        for(const auto &i:S)
-            if(i=='\'') {
-                R += '\'';
-                R += '\'';
-            }
-            else {
-                R += i;
-            }
-        return R;
-    }
-
     int Service::Start() {
-        std::lock_guard<std::mutex> guard(mutex_);
+        std::lock_guard<std::mutex> guard(Mutex_);
 
 		Logger_.setLevel(Poco::Message::PRIO_NOTICE);
         Logger_.notice("Starting.");
@@ -812,7 +778,7 @@ namespace uCentral::Storage {
         typedef Poco::Tuple<std::string, uint64_t, std::string, uint64_t> StatRecord;
         typedef std::vector<StatRecord> RecordList;
 
-        // std::lock_guard<std::mutex> guard(mutex_);
+        // std::lock_guard<std::mutex> guard(Mutex_);
 
         try {
             RecordList              Records;
@@ -929,7 +895,7 @@ namespace uCentral::Storage {
         typedef Poco::Tuple<std::string, uint64_t, std::string, uint64_t, uint64_t> Record;
         typedef std::vector<Record> RecordList;
 
-        // std::lock_guard<std::mutex> guard(mutex_);
+        // std::lock_guard<std::mutex> guard(Mutex_);
         try {
             RecordList Records;
             Poco::Data::Session Sess = Pool_->get();
@@ -1201,8 +1167,8 @@ namespace uCentral::Storage {
                 std::string NewConfig = Cfg.get();
 
                 Poco::Data::Statement   Update(Sess);
-				std::string St{"UPDATE Devices SET Configuration=? , UUID=?,  LastConfigurationChange=?  WHERE SerialNumber=?"};
-                Update  << ConvertParams(St),
+				std::string St2{"UPDATE Devices SET Configuration=? , UUID=?,  LastConfigurationChange=?  WHERE SerialNumber=?"};
+                Update  << ConvertParams(St2),
 							Poco::Data::Keywords::use(NewConfig),
 							Poco::Data::Keywords::use(NewUUID),
 							Poco::Data::Keywords::use(Now),
@@ -1224,7 +1190,7 @@ namespace uCentral::Storage {
     }
 
     bool Service::CreateDevice(uCentralDevice &DeviceDetails) {
-        // std::lock_guard<std::mutex> guard(mutex_);
+        // std::lock_guard<std::mutex> guard(Mutex_);
 
         std::string SerialNumber;
         try {
@@ -1264,12 +1230,12 @@ namespace uCentral::Storage {
  */
                     Poco::Data::Statement   Insert(Sess);
 
-					std::string St{"INSERT INTO Devices (SerialNumber, DeviceType, MACAddress, Manufacturer, UUID, "
+					std::string St2{"INSERT INTO Devices (SerialNumber, DeviceType, MACAddress, Manufacturer, UUID, "
 								   "Configuration, Notes, CreationTimestamp, LastConfigurationChange, LastConfigurationDownload,"
 								   "Owner, Location )"
 								   "VALUES(?,?,?,?,?,?,?,?,?,?,?,?)"};
 
-                    Insert  << ConvertParams(St),
+                    Insert  << ConvertParams(St2),
 								Poco::Data::Keywords::use(DeviceDetails.SerialNumber),
 								Poco::Data::Keywords::use(DeviceDetails.DeviceType),
 								Poco::Data::Keywords::use(DeviceDetails.MACAddress),
@@ -1368,7 +1334,7 @@ namespace uCentral::Storage {
 	}
 
 	bool Service::DeleteDevice(std::string &SerialNumber) {
-        // std::lock_guard<std::mutex> guard(mutex_);
+        // std::lock_guard<std::mutex> guard(Mutex_);
 
         try {
             Poco::Data::Session     Sess = Pool_->get();
@@ -1389,7 +1355,7 @@ namespace uCentral::Storage {
     }
 
     bool Service::GetDevice(std::string &SerialNumber, uCentralDevice &DeviceDetails) {
-        // std::lock_guard<std::mutex> guard(mutex_);
+        // std::lock_guard<std::mutex> guard(Mutex_);
 
         try {
             Poco::Data::Session     Sess = Pool_->get();
@@ -1466,7 +1432,7 @@ namespace uCentral::Storage {
     }
 
     bool Service::UpdateDevice(uCentralDevice &NewConfig) {
-        // std::lock_guard<std::mutex> guard(mutex_);
+        // std::lock_guard<std::mutex> guard(Mutex_);
 
         try {
             Poco::Data::Session     Sess = Pool_->get();
@@ -1564,8 +1530,8 @@ namespace uCentral::Storage {
         return false;
     }
 
-    bool Service::UpdateDeviceCapabilities(std::string &SerialNumber, std::string &Capabs) {
-        // std::lock_guard<std::mutex> guard(mutex_);
+    bool Service::UpdateDeviceCapabilities(std::string &SerialNumber, std::string & Capabilities) {
+        // std::lock_guard<std::mutex> guard(Mutex_);
 
         try {
             std::string SS;
@@ -1593,12 +1559,12 @@ namespace uCentral::Storage {
                 Logger_.information("Adding capabilities for " + SerialNumber);
                 Poco::Data::Statement   Insert(Sess);
 
-				std::string St{"INSERT INTO Capabilities (SerialNumber, Capabilities, FirstUpdate, LastUpdate) "
+				std::string St2{"INSERT INTO Capabilities (SerialNumber, Capabilities, FirstUpdate, LastUpdate) "
 							   "VALUES(?,?,?,?)"};
 
-                Insert  << ConvertParams(St),
+                Insert  << ConvertParams(St2),
                             Poco::Data::Keywords::use(SerialNumber),
-							Poco::Data::Keywords::use(Capabs),
+							Poco::Data::Keywords::use(Capabilities),
 							Poco::Data::Keywords::use(Now),
 							Poco::Data::Keywords::use(Now);
                 Insert.execute();
@@ -1607,10 +1573,10 @@ namespace uCentral::Storage {
                 Logger_.information("Updating capabilities for " + SerialNumber);
                 Poco::Data::Statement   Update(Sess);
 
-				std::string St{"UPDATE Capabilities SET Capabilities=?, LastUpdate=? WHERE SerialNumber=?"};
+				std::string St2{"UPDATE Capabilities SET Capabilities=?, LastUpdate=? WHERE SerialNumber=?"};
 
-                Update  << 	ConvertParams(St),
-                            Poco::Data::Keywords::use(Capabs),
+                Update  << 	ConvertParams(St2),
+                            Poco::Data::Keywords::use(Capabilities),
 							Poco::Data::Keywords::use(Now),
 							Poco::Data::Keywords::use(SerialNumber);
                 Update.execute();
@@ -1625,7 +1591,7 @@ namespace uCentral::Storage {
     }
 
     bool Service::GetDeviceCapabilities(std::string &SerialNumber, uCentralCapabilities &Caps) {
-        // std::lock_guard<std::mutex> guard(mutex_);
+        // std::lock_guard<std::mutex> guard(Mutex_);
 
         try {
             Poco::Data::Session     Sess = Pool_->get();
@@ -1656,7 +1622,7 @@ namespace uCentral::Storage {
     }
 
     bool Service::DeleteDeviceCapabilities(std::string &SerialNumber) {
-        // std::lock_guard<std::mutex> guard(mutex_);
+        // std::lock_guard<std::mutex> guard(Mutex_);
 
         try {
             Poco::Data::Session     Sess = Pool_->get();
@@ -1679,7 +1645,7 @@ namespace uCentral::Storage {
 
     bool Service::ExistingConfiguration(std::string &SerialNumber, uint64_t CurrentConfig, std::string &NewConfig,
                                         uint64_t &UUID) {
-        // std::lock_guard<std::mutex> guard(mutex_);
+        // std::lock_guard<std::mutex> guard(Mutex_);
         std::string SS;
         try {
             Poco::Data::Session     Sess = Pool_->get();
@@ -1931,7 +1897,7 @@ namespace uCentral::Storage {
     }
 
     bool FindInList(const std::string &Model, const std::string &List) {
-        auto P = 0;
+        unsigned long P = 0;
         std::string Token;
 
         while (P < List.size()) {
@@ -2770,6 +2736,5 @@ namespace uCentral::Storage {
 	}
 
 
-};
-
+}
 // namespace

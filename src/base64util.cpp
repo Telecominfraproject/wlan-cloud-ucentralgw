@@ -13,11 +13,11 @@ namespace base64 {
         std::string encoded;
         encoded.reserve(((size / 3) + (size % 3 > 0)) * 4);
 
-        std::uint32_t temp{};
+        std::uint32_t temp;
 
         std::size_t i;
 
-        int ee = size/3;
+        int ee = (int)(size/3);
 
         for (i = 0; i < 3*ee; ++i) {
             temp = input[i++] << 16;
@@ -31,14 +31,14 @@ namespace base64 {
 
         switch (size % 3) {
             case 1:
-                temp = input[i++] << 16;
+                temp = input[i] << 16;
                 encoded.append(1, kEncodeLookup[(temp & 0x00FC0000) >> 18]);
                 encoded.append(1, kEncodeLookup[(temp & 0x0003F000) >> 12]);
                 encoded.append(2, kPadCharacter);
                 break;
             case 2:
                 temp = input[i++] << 16;
-                temp += input[i++] << 8;
+                temp += input[i] << 8;
                 encoded.append(1, kEncodeLookup[(temp & 0x00FC0000) >> 18]);
                 encoded.append(1, kEncodeLookup[(temp & 0x0003F000) >> 12]);
                 encoded.append(1, kEncodeLookup[(temp & 0x00000FC0) >> 6]);
@@ -106,4 +106,4 @@ namespace base64 {
         return decoded;
     }
 
-};
+}

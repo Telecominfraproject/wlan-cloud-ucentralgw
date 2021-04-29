@@ -82,7 +82,7 @@ Poco::JSON::Object uCentralStatistics::to_json() const {
 
 	Obj.set("recorded",RESTAPIHandler::to_RFC3339(Recorded));
     return Obj;
-};
+}
 
 Poco::JSON::Object uCentralCapabilities::to_json() const {
 
@@ -96,7 +96,7 @@ Poco::JSON::Object uCentralCapabilities::to_json() const {
     Obj.set("firstUpdate",RESTAPIHandler::to_RFC3339(FirstUpdate));
     Obj.set("lastUpdate",RESTAPIHandler::to_RFC3339(LastUpdate));
     return Obj;
-};
+}
 
 Poco::JSON::Object uCentralDeviceLog::to_json() const
 {
@@ -126,7 +126,7 @@ Poco::JSON::Object  uCentralHealthcheck::to_json() const {
     Obj.set("sanity",Sanity);
     Obj.set("recorded",RESTAPIHandler::to_RFC3339(Recorded));
     return Obj;
-};
+}
 
 /*
     std::string     Configuration;
@@ -199,7 +199,7 @@ bool uCentralDefaultConfiguration::from_json(Poco::JSON::Object::Ptr Obj) {
     }
 
     return false;
-};
+}
 
 Poco::JSON::Object uCentralBlackListedDevice::to_json() const {
 	Poco::JSON::Object  Obj;
@@ -208,4 +208,4 @@ Poco::JSON::Object uCentralBlackListedDevice::to_json() const {
 	Obj.set("reason",Reason);
 	Obj.set("created",RESTAPIHandler::to_RFC3339(Created));
 	return Obj;
-};
+}

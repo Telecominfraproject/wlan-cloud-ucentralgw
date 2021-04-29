@@ -50,8 +50,8 @@ namespace uCentral::uFileUploader {
         const std::string & Path() { return Path_; };
 
         static Service *instance_;
-        std::mutex                              Mutex_;
         std::vector<std::unique_ptr<Poco::Net::HTTPServer>>   Servers_;
+		Poco::ThreadPool				Pool_;
         std::string                     FullName_;
         std::map<std::string,uint64_t>  OutStandingUploads_;
         std::string                     Path_;
@@ -59,8 +59,8 @@ namespace uCentral::uFileUploader {
 
     class RequestHandlerFactory : public Poco::Net::HTTPRequestHandlerFactory {
     public:
-        RequestHandlerFactory() :
-                Logger_(Service::instance()->Logger()){}
+        RequestHandlerFactory(Poco::Logger &L) :
+                Logger_(L){}
 
         Poco::Net::HTTPRequestHandler *createRequestHandler(const Poco::Net::HTTPServerRequest &request) override;
     private:

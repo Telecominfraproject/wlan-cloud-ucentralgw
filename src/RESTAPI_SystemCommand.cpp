@@ -85,7 +85,7 @@ void RESTAPI_SystemCommand::handleRequest(Poco::Net::HTTPServerRequest& Request,
 						}
 					}
 				} else if (Command=="getloglevel") {
-
+					Logger_.information("GETLOGLEVEL");
 				} else if (Command=="stats") {
 
 				}

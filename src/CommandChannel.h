@@ -47,6 +47,6 @@ class Service : public SubSystemServer {
 	std::unique_ptr<Poco::Net::TCPServer>		Srv_;
 };
 
-};		//namespace
+}		//namespace
 
 #endif // UCENTRALGW_COMMANDCHANNEL_H

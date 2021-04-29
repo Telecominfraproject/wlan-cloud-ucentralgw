@@ -4,7 +4,6 @@
 
 #include "RESTAPI_file.h"
 
-#include "uAuthService.h"
 #include "uFileUploader.h"
 #include "uStorageService.h"
 #include "Poco/File.h"

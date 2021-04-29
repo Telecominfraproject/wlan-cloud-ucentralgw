@@ -53,7 +53,6 @@ include_directories(/usr/local/include  /usr/local/opt/openssl/include src inclu
 
 add_executable( ucentralgw
                 build
-                src/main.cpp
                 src/uCentral.cpp src/uCentral.h src/uCentralRESTAPIServer.cpp src/uCentralRESTAPIServer.h
                 src/uCentralWebSocketServer.cpp src/uCentralWebSocketServer.h src/SubSystemServer.cpp src/SubSystemServer.h
                 src/uStorageService.cpp src/uStorageService.h src/uDeviceRegistry.cpp src/uDeviceRegistry.h

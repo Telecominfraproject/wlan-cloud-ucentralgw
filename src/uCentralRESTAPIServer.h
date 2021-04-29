@@ -34,11 +34,13 @@ namespace uCentral::RESTAPI {
         }
 
     private:
+		static Service *instance_;
+
         int Start() override;
         void Stop() override;
 
-        static Service *instance_;
         std::vector<std::unique_ptr<Poco::Net::HTTPServer>>   RESTServers_;
+		Poco::ThreadPool	Pool_;
     };
 
 class RequestHandlerFactory : public Poco::Net::HTTPRequestHandlerFactory {
@@ -52,8 +54,6 @@ class RequestHandlerFactory : public Poco::Net::HTTPRequestHandlerFactory {
     };
 
 
-}; //   namespace
-
-
+} //   namespace
 
 #endif //UCENTRAL_UCENTRALRESTAPISERVER_H

@@ -1,11 +1,11 @@
 //
 // Created by stephane bourque on 2021-02-15.
 //
-#include <iostream>
-
-#include "uCentral.h"
+#include <cstdlib>
+#include <boost/algorithm/string.hpp>
 
 #include "Poco/Util/Application.h"
+#include "Poco/Util/ServerApplication.h"
 #include "Poco/Util/Option.h"
 #include "Poco/Util/OptionSet.h"
 #include "Poco/Util/HelpFormatter.h"
@@ -27,26 +27,28 @@
 #include "kafka_service.h"
 #endif
 
-#include <boost/algorithm/string.hpp>
+#include "uCentral.h"
 
 namespace uCentral {
 
-    Daemon * instance() { return dynamic_cast<Daemon *>(&uCentral::Daemon::instance()); }
+	Daemon App;
+
+    Daemon * instance() { return &App; }
 
     void MyErrorHandler::exception(const Poco::Exception & E) {
         Poco::Thread * CurrentThread = Poco::Thread::current();
-		uCentral::instance()->logger().log(E);
-        uCentral::instance()->logger().error(Poco::format("Exception occurred in %s",CurrentThread->getName()));
+		App.logger().log(E);
+		App.logger().error(Poco::format("Exception occurred in %s",CurrentThread->getName()));
     }
 
     void MyErrorHandler::exception(const std::exception & E) {
         Poco::Thread * CurrentThread = Poco::Thread::current();
-        uCentral::instance()->logger().warning(Poco::format("std::exception on %s",CurrentThread->getName()));
+		App.logger().warning(Poco::format("std::exception on %s",CurrentThread->getName()));
     }
 
     void MyErrorHandler::exception() {
         Poco::Thread * CurrentThread = Poco::Thread::current();
-        uCentral::instance()->logger().warning(Poco::format("exception on %s",CurrentThread->getName()));
+		App.logger().warning(Poco::format("exception on %s",CurrentThread->getName()));
     }
 
     void Daemon::initialize(Application &self) {
@@ -61,7 +63,7 @@ namespace uCentral {
         if(!ConfigFile.isFile())
         {
             std::cerr << "uCentral: Configuration " << ConfigFile.toString() << " does not seem to exist. Please set UCENTRAL_CONFIG env variable the path of the ucentral.properties file." << std::endl;
-            std::exit(EXIT_CONFIG);
+            std::exit(Poco::Util::Application::EXIT_CONFIG);
         }
 
         static const char * LogFilePathKey = "logging.channels.c2.path";
@@ -102,7 +104,7 @@ namespace uCentral {
 
         // DeviceTypeIdentifications_
         std::vector<std::string>    Keys;
-        uCentral::instance()->config().keys("ucentral.autoprovisioning.type",Keys);
+        config().keys("ucentral.autoprovisioning.type",Keys);
         for(const auto & i:Keys)
         {
             std::string Line = config().getString("ucentral.autoprovisioning.type."+i);
@@ -111,7 +113,7 @@ namespace uCentral {
             auto List = Line.substr(P1+1);
             std::vector<std::string>    Tokens;
 
-            auto P=0;
+            unsigned long P=0;
 
             while(P<List.size())
             {
@@ -291,7 +293,7 @@ namespace uCentral {
 #ifndef SMALL_BUILD
 			uCentral::Kafka::Start();
 #endif
-            waitForTerminationRequest();
+            App.waitForTerminationRequest();
 
 #ifndef SMALL_BUILD
 			uCentral::Kafka::Stop();
@@ -314,32 +316,41 @@ namespace uCentral {
     namespace ServiceConfig {
 
         uint64_t getInt(const std::string &Key,uint64_t Default) {
-            return uCentral::Daemon::instance().config().getInt64(Key,Default);
+            return App.config().getInt64(Key,Default);
         }
 
         uint64_t getInt(const std::string &Key) {
-            return uCentral::Daemon::instance().config().getInt(Key);
+            return App.config().getInt(Key);
         }
 
         uint64_t getBool(const std::string &Key,bool Default) {
-            return uCentral::Daemon::instance().config().getBool(Key,Default);
+            return App.config().getBool(Key,Default);
         }
 
         uint64_t getBool(const std::string &Key) {
-            return uCentral::Daemon::instance().config().getBool(Key);
+            return App.config().getBool(Key);
         }
 
         std::string getString(const std::string &Key,const std::string & Default) {
-            std::string R = uCentral::Daemon::instance().config().getString(Key, Default);
-
+            std::string R = App.config().getString(Key, Default);
             return Poco::Path::expand(R);
         }
 
         std::string getString(const std::string &Key) {
-            std::string R = uCentral::Daemon::instance().config().getString(Key);
-
+            std::string R = App.config().getString(Key);
             return Poco::Path::expand(R);
         }
     }
 
-}; // end of namespace
+}
+
+int main(int argc, char **argv) {
+	try {
+		return uCentral::App.run(argc, argv);
+	} catch (Poco::Exception &exc) {
+		std::cerr << exc.displayText() << std::endl;
+		return Poco::Util::Application::EXIT_SOFTWARE;
+	}
+}
+
+// end of namespace

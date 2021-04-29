@@ -8,6 +8,7 @@
 #include <mutex>
 #include <thread>
 #include <array>
+#include <ctime>
 
 #include "SubSystemServer.h"
 #include "uDeviceRegistry.h"
@@ -35,7 +36,7 @@ namespace uCentral::WebSocket {
     class CountedSocketReactor : public Poco::Net::SocketReactor {
     public:
         explicit CountedSocketReactor(uint64_t Id): Id_(Id),SocketCount_(0) {
-            setTimeout(Poco::Timespan(0,10000));
+			setTimeout(Poco::Timespan(0,10000));
         }
 
         ~CountedSocketReactor() override {
@@ -53,7 +54,7 @@ namespace uCentral::WebSocket {
         uint64_t Id() const { return Id_;}
 
     private:
-        std::mutex       Mutex_;
+        std::mutex       Mutex_{};
         uint64_t         SocketCount_;
         uint64_t         Id_;
     };
@@ -102,7 +103,7 @@ namespace uCentral::WebSocket {
             std::lock_guard<std::mutex> guard(Mutex_);
 
             auto Tmp = ReactorThreads_.end();
-            int TotalSockets = 0 ;
+            uint64_t TotalSockets = 0 ;
 
             for( auto i = ReactorThreads_.begin() ; i != ReactorThreads_.end() ; i++ )
             {
@@ -123,7 +124,7 @@ namespace uCentral::WebSocket {
         }
 
     private:
-        std::mutex      Mutex_;
+        std::mutex      Mutex_{};
         Poco::Logger    & Logger_;
         uint64_t        NumReactors_;
         std::vector<std::pair<CountedSocketReactor *, Poco::Thread *>>  ReactorThreads_;
@@ -162,18 +163,16 @@ namespace uCentral::WebSocket {
         void DeRegister();
 
     private:
-        std::mutex                          Mutex_;
+        std::mutex                          Mutex_{};
         CountedReactor                      Reactor_;
         Poco::Logger                    &   Logger_;
         Poco::Net::StreamSocket       		Socket_;
-        Poco::Net::SocketReactor &          ParentAcceptorReactor_;
         std::unique_ptr<Poco::Net::WebSocket> WS_;
         std::string                         SerialNumber_;
         uCentral::DeviceRegistry::ConnectionState * Conn_ = nullptr;
         std::map<uint64_t,CommandIDPair>    RPCs_;
         uint64_t                            RPC_ = time(nullptr);
         bool                                Registered_ = false ;
-        bool                                WSup_ = false ;
     };
 
     struct WebSocketServerEntry {
@@ -211,6 +210,6 @@ namespace uCentral::WebSocket {
     };
 
 
-}; //namespace
+} //namespace
 
 #endif //UCENTRAL_UCENTRALWEBSOCKETSERVER_H

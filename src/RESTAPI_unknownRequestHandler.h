@@ -1,5 +1,5 @@
 //
-// Created by stephane bourque on 2021-03-03.
+// Created by Stephane Bourque on 2021-03-03.
 //
 
 #ifndef UCENTRAL_RESTAPI_UNKNOWNREQUESTHANDLER_H

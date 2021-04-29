@@ -173,7 +173,7 @@ namespace uCentral::Storage {
         bool CreateDefaultDevice(const std::string & SerialNumber, const std::string & Capabilities);
         
         bool GetDevice(std::string &SerialNumber, uCentralDevice &);
-        bool GetDevices(uint64_t From, uint64_t Howmany, std::vector<uCentralDevice> &Devices);
+        bool GetDevices(uint64_t From, uint64_t HowMany, std::vector<uCentralDevice> &Devices);
         bool DeleteDevice(std::string &SerialNumber);
         bool UpdateDevice(uCentralDevice &);
         bool DeviceExists(std::string & SerialNumber);
@@ -220,7 +220,6 @@ namespace uCentral::Storage {
         int Start() override;
         void Stop() override;
         int Setup_SQLite();
-		std::string MakeFieldList(int N) const;
 		std::string ConvertParams(const std::string &S) const;
 
 #ifndef SMALL_BUILD
@@ -228,7 +227,6 @@ namespace uCentral::Storage {
         int Setup_PostgreSQL();
         int Setup_ODBC();
 #endif
-        std::mutex          mutex_;
         static Service      *instance_;
         std::unique_ptr<Poco::Data::SessionPool>            Pool_;
 		bool 				IsPSQL_ = false;
@@ -240,6 +238,6 @@ namespace uCentral::Storage {
 #endif
     };
 
-};  // namespace
+}  // namespace
 
 #endif //UCENTRAL_USTORAGESERVICE_H

@@ -80,7 +80,7 @@ namespace uCentral::WebSocket {
     CountedReactor::CountedReactor()
     {
         Reactor_ = Service::instance()->GetAReactor();
-    };
+    }
 
     CountedReactor::~CountedReactor()
     {
@@ -89,7 +89,6 @@ namespace uCentral::WebSocket {
 
     WSConnection::WSConnection(Poco::Net::StreamSocket & socket, Poco::Net::SocketReactor & reactor):
             Socket_(socket),
-            ParentAcceptorReactor_(reactor),
             Logger_(Service::instance()->Logger())
     {
 		auto *SS = reinterpret_cast<Poco::Net::SecureStreamSocketImpl *>(socket.impl());
@@ -142,7 +141,6 @@ namespace uCentral::WebSocket {
                                                  Poco::Net::ErrorNotification>(*this,&WSConnection::OnSocketError));
 */
             Registered_ = true ;
-            WSup_ = true;
         }
     }
 
@@ -494,9 +492,8 @@ namespace uCentral::WebSocket {
         std::lock_guard<std::mutex> guard(Mutex_);
 
         Logger_.information(Poco::format("SOCKET-SHUTDOWN(%s): Closing.",SerialNumber_));
-        WSup_ = false;
         delete this;
-    };
+    }
 
     void WSConnection::OnSocketError(const Poco::AutoPtr<Poco::Net::ErrorNotification>& pNf) {
         std::lock_guard<std::mutex> guard(Mutex_);
@@ -525,7 +522,7 @@ namespace uCentral::WebSocket {
 
     void WSConnection::ProcessIncomingFrame() {
         int flags, Op;
-        int IncomingSize = 0;
+        int IncomingSize;
 
         bool MustDisconnect=false;
 		Poco::Buffer<char>			IncomingFrame(0);
@@ -694,4 +691,4 @@ namespace uCentral::WebSocket {
         }
         return false;
     }
-};      //namespace
+}      //namespace

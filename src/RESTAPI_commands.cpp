@@ -29,7 +29,7 @@ void RESTAPI_commands::handleRequest(Poco::Net::HTTPServerRequest& Request, Poco
                                            Commands);
             Poco::JSON::Array ArrayObj;
 
-            for (auto i : Commands) {
+            for (const auto &i : Commands) {
                 Poco::JSON::Object Obj = i.to_json();
                 ArrayObj.add(Obj);
             }

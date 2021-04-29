@@ -2,6 +2,7 @@
 // Created by stephane bourque on 2021-03-04.
 //
 #include <random>
+#include <ctime>
 
 #include "uAuthService.h"
 #include "uCentral.h"
@@ -87,7 +88,7 @@ namespace uCentral::Auth {
         if(!Authorization.empty() && Authorization.substr(0,6) == "Bearer")
         {
             auto RequestToken = Authorization.substr(7);
-            std::lock_guard<std::mutex> guard(mutex_);
+            std::lock_guard<std::mutex> guard(Mutex_);
 
             auto Token = Tokens_.find(RequestToken);
 
@@ -109,7 +110,7 @@ namespace uCentral::Auth {
     }
 
     void Service::Logout(const std::string &token) {
-        std::lock_guard<std::mutex> guard(mutex_);
+        std::lock_guard<std::mutex> guard(Mutex_);
 
         Tokens_.erase(token);
     }
@@ -129,7 +130,7 @@ namespace uCentral::Auth {
 
     void Service::CreateToken(const std::string & UserName, WebToken & ResultToken)
     {
-        std::lock_guard<std::mutex> guard(mutex_);
+        std::lock_guard<std::mutex> guard(Mutex_);
 
         ResultToken.acl_template_.PortalLogin_ = true ;
         ResultToken.acl_template_.Delete_ = true ;

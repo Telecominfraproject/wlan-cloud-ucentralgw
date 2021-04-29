@@ -79,10 +79,9 @@ namespace uCentral::DeviceRegistry {
         bool Connected(const std::string & SerialNumber);
 
         static Service                          *instance_;
-        std::mutex                              mutex_;
         std::map<std::string,ConnectionEntry>   Devices_;
     };
 
-};  // namespace
+}  // namespace
 
 #endif //UCENTRAL_UDEVICEREGISTRY_H

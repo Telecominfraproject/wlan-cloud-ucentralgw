@@ -58,6 +58,6 @@ namespace uCentral::Config {
         std::string ModelId_;
     };
 
-}; // namespace
+} // namespace
 
 #endif //UCENTRAL_UCENTRALCONFIG_H

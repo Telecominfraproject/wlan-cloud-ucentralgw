@@ -10,4 +10,4 @@ void RESTAPI_UnknownRequestHandler::handleRequest(Poco::Net::HTTPServerRequest& 
         return;
 
     BadRequest(Response);
-};
+}

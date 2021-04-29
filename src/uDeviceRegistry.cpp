@@ -56,18 +56,18 @@ namespace uCentral::DeviceRegistry {
     }
 
     int Service::Start() {
-        std::lock_guard<std::mutex> guard(mutex_);
+        std::lock_guard<std::mutex> guard(Mutex_);
         Logger_.notice("Starting ");
         return 0;
     }
 
     void Service::Stop() {
-        std::lock_guard<std::mutex> guard(mutex_);
+        std::lock_guard<std::mutex> guard(Mutex_);
         Logger_.notice("Stopping ");
     }
 
     bool Service::GetStatistics(const std::string &SerialNumber, std::string & Statistics) {
-        std::lock_guard<std::mutex> guard(mutex_);
+        std::lock_guard<std::mutex> guard(Mutex_);
 
         auto Device = Devices_.find(SerialNumber);
 
@@ -81,7 +81,7 @@ namespace uCentral::DeviceRegistry {
     }
 
     void Service::SetStatistics(const std::string &SerialNumber, const std::string &Statistics) {
-        std::lock_guard<std::mutex> guard(mutex_);
+        std::lock_guard<std::mutex> guard(Mutex_);
 
         auto Device = Devices_.find(SerialNumber);
 
@@ -92,7 +92,7 @@ namespace uCentral::DeviceRegistry {
     }
 
     bool Service::GetState(const std::string &SerialNumber, ConnectionState & State) {
-        std::lock_guard<std::mutex> guard(mutex_);
+        std::lock_guard<std::mutex> guard(Mutex_);
 
         auto Device = Devices_.find(SerialNumber);
 
@@ -106,7 +106,7 @@ namespace uCentral::DeviceRegistry {
     }
 
     void Service::SetState(const std::string & SerialNumber, ConnectionState & State) {
-        std::lock_guard<std::mutex> guard(mutex_);
+        std::lock_guard<std::mutex> guard(Mutex_);
 
         auto Device = Devices_.find(SerialNumber);
 
@@ -118,7 +118,7 @@ namespace uCentral::DeviceRegistry {
 
     ConnectionState * Service::Register(const std::string & SerialNumber, void *Ptr)
     {
-        std::lock_guard<std::mutex> guard(mutex_);
+        std::lock_guard<std::mutex> guard(Mutex_);
 
         auto Device = Devices_.find(SerialNumber);
 
@@ -152,7 +152,7 @@ namespace uCentral::DeviceRegistry {
     }
 
     bool Service::Connected(const std::string & SerialNumber) {
-        std::lock_guard<std::mutex> guard(mutex_);
+        std::lock_guard<std::mutex> guard(Mutex_);
 
         auto Device = Devices_.find(SerialNumber);
 
@@ -163,7 +163,7 @@ namespace uCentral::DeviceRegistry {
     }
 
     void Service::UnRegister(const std::string & SerialNumber, void *Ptr) {
-        std::lock_guard<std::mutex> guard(mutex_);
+        std::lock_guard<std::mutex> guard(Mutex_);
 
         auto Device = Devices_.find(SerialNumber);
 
@@ -177,7 +177,7 @@ namespace uCentral::DeviceRegistry {
 
     bool Service::SendCommand(uCentralCommandDetails & Cmd)
     {
-        std::lock_guard<std::mutex> guard(mutex_);
+        std::lock_guard<std::mutex> guard(Mutex_);
 
         auto Device = Devices_.find(Cmd.SerialNumber);
 
@@ -214,4 +214,4 @@ namespace uCentral::DeviceRegistry {
         return Obj;
     }
 
-};  // namespace
+}  // namespace

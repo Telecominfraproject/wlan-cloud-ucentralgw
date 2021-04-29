@@ -22,7 +22,7 @@ class Service : public SubSystemServer {
 	friend int uCentral::Kafka::Start();
 	friend void uCentral::Kafka::Stop();
 
-	void initialize(Poco::Util::Application & self);
+	void initialize(Poco::Util::Application & self) override;
 	static Service *instance() {
 		if(instance_== nullptr)
 			instance_ = new Service;
@@ -30,8 +30,8 @@ class Service : public SubSystemServer {
 	}
 
   private:
-	int Start();
-	void Stop();
+	int Start() override;
+	void Stop() override;
 
 	std::unique_ptr<cppkafka::Producer> 	producer_;
 	static Service *instance_;
@@ -39,6 +39,6 @@ class Service : public SubSystemServer {
 	bool KafkaEnabled_ = false;
 };
 
-};	// Namepsace
+}	// Namepsace
 
 #endif // UCENTRALGW_KAFKA_SERVICE_H

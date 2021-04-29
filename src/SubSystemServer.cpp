@@ -92,7 +92,7 @@ Poco::Net::SecureServerSocket PropertiesFileServerEntry::CreateSecureSocket() co
 
 	P.verificationMode = level_;
 	P.verificationDepth = 9;
-	P.loadDefaultCAs = true;
+	P.loadDefaultCAs = root_ca_.empty();
 	P.certificateFile = cert_file_;
 	P.cipherList = "ALL:!ADH:!LOW:!EXP:!MD5:@STRENGTH";
 	P.dhUse2048Bits = true;
@@ -100,6 +100,7 @@ Poco::Net::SecureServerSocket PropertiesFileServerEntry::CreateSecureSocket() co
 	P.caLocation = root_ca_;
 	auto Context = new Poco::Net::Context(Poco::Net::Context::TLS_SERVER_USE, P);
 	Context->disableStatelessSessionResumption();
+	Context->enableExtendedCertificateVerification();
 	if(address_=="*")
 		return Poco::Net::SecureServerSocket(port_, backlog_,Context);
 	else {

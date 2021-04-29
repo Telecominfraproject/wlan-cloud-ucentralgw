@@ -54,7 +54,7 @@ namespace uCentral::RESTAPI {
             Params->setMaxThreads(16);
             Params->setMaxQueued(100);
 
-            auto NewServer = std::make_unique<Poco::Net::HTTPServer>(new RequestHandlerFactory, Sock, Params);
+            auto NewServer = std::make_unique<Poco::Net::HTTPServer>(new RequestHandlerFactory, Pool_, Sock, Params);
             NewServer->start();
             RESTServers_.push_back(std::move(NewServer));
         }
@@ -113,4 +113,4 @@ namespace uCentral::RESTAPI {
             svr->stop();
     }
 
-};  // namespace
+}  // namespace

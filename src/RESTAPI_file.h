@@ -20,4 +20,4 @@ public:
 };
 
 
-#endif //UCENTRAL_RESTAPI_COMMAND_H
+#endif //UCENTRAL_RESTAPI_FILE_H
