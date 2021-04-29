@@ -98,13 +98,21 @@ Poco::Net::SecureServerSocket PropertiesFileServerEntry::CreateSecureSocket() co
 	P.privateKeyFile = key_file_;
 	P.caLocation = root_ca_;
 	auto Context = new Poco::Net::Context(Poco::Net::Context::TLS_SERVER_USE, P);
-	Context->disableStatelessSessionResumption();
-	Context->enableExtendedCertificateVerification();
 
 	Poco::Crypto::X509Certificate   Cert(cert_file_);
 	Poco::Crypto::RSAKey            Key("",key_file_,"");
 	Context->useCertificate(Cert);
+
+	Poco::Crypto::X509Certificate	Issueing( root_ca_ + "/issueing.pem");
+	Poco::Crypto::X509Certificate	Root( root_ca_ + "/root.pem");
+
+
 	Context->usePrivateKey(Key);
+	Context->addCertificateAuthority(Root);
+	Context->addChainCertificate(Issueing);
+
+	Context->disableStatelessSessionResumption();
+	Context->enableExtendedCertificateVerification();
 
 	if(address_=="*")
 		return Poco::Net::SecureServerSocket(port_, backlog_,Context);
