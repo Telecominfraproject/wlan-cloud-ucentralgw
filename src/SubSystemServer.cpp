@@ -9,6 +9,8 @@
 #include "Poco/DateTimeFormatter.h"
 #include "Poco/DateTimeFormat.h"
 
+#include "openssl/ssl.h"
+
 SubSystemServer::SubSystemServer( std::string Name,
                                   const std::string & LoggingPrefix,
                                   std::string SubSystemConfigPrefix )
@@ -103,20 +105,23 @@ Poco::Net::SecureServerSocket PropertiesFileServerEntry::CreateSecureSocket() co
 	Poco::Crypto::X509Certificate	Issueing( root_ca_ + "/issueing.pem");
 	Poco::Crypto::X509Certificate	Root( root_ca_ + "/root.pem");
 
+	SSL_CTX * SSLCtx = Context->sslContext();
+
+	auto S = SSL_CTX_get_client_CA_list(SSLCtx);
+
+
 	Context->useCertificate(Cert);
 	Context->addChainCertificate(Issueing);
-
 	Context->addChainCertificate(Root);
+
+	Context->addCertificateAuthority(Issueing);
+	Context->addCertificateAuthority(Root);
 
 	Poco::Crypto::RSAKey            Key("",key_file_,"");
 	Context->usePrivateKey(Key);
 
-	Context->addChainCertificate(Issueing);
-
 	Context->disableStatelessSessionResumption();
 	Context->enableExtendedCertificateVerification();
-
-	// Context->addCertificateAuthority(Root);
 
 	if(address_=="*")
 		return Poco::Net::SecureServerSocket(port_, backlog_,Context);
