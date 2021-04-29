@@ -4,7 +4,6 @@
 #include <iostream>
 #include <fstream>
 #include <cstdio>
-#include <filesystem>
 
 #include "uFileUploader.h"
 #include "uCentral.h"
@@ -12,11 +11,6 @@
 
 #include "Poco/Net/HTTPServerParams.h"
 #include "Poco/Net/HTTPServerResponse.h"
-#include "Poco/Net/ServerSocket.h"
-#include "Poco/Net/SecureServerSocket.h"
-#include "Poco/Net/NetException.h"
-#include "Poco/Net/Context.h"
-#include "Poco/JSON/Parser.h"
 #include "Poco/DynamicAny.h"
 #include "Poco/Net/HTMLForm.h"
 #include "Poco/Net/PartHandler.h"
@@ -63,7 +57,7 @@ namespace uCentral::uFileUploader {
 		std::lock_guard<std::mutex>	G(Mutex_);
     }
 
-    static const std::string URIBASE{"/v1/upload/"};
+    static const std::string URI_BASE{"/v1/upload/"};
 
     int Service::Start() {
         Logger_.notice("Starting.");
@@ -89,7 +83,7 @@ namespace uCentral::uFileUploader {
             Params->setMaxQueued(100);
 
             if(FullName_.empty()) {
-                FullName_ = "https://" + Svr.name() + ":" + std::to_string(Svr.port()) + URIBASE;
+                FullName_ = "https://" + Svr.name() + ":" + std::to_string(Svr.port()) + URI_BASE;
                 Logger_.information(Poco::format("Uploader URI base is '%s'", FullName_));
             }
             auto NewServer = std::make_unique<Poco::Net::HTTPServer>(new RequestHandlerFactory(Logger_), Pool_, Sock, Params);
@@ -167,7 +161,7 @@ namespace uCentral::uFileUploader {
             rename(TmpFileName.c_str(),FinalFileName.c_str());
         }
 
-        [[nodiscard]] int Length() const { return Length_; }
+        [[nodiscard]] uint64_t Length() const { return Length_; }
         [[nodiscard]] const std::string& Name() const { return Name_; }
         [[nodiscard]] const std::string& ContentType() const { return FileType_; }
 
@@ -270,11 +264,11 @@ namespace uCentral::uFileUploader {
 										 Request.getURI()));
 
         //  The UUID should be after the /v1/upload/ part...
-        auto UUIDLocation = Request.getURI().find_first_of(URIBASE);
+        auto UUIDLocation = Request.getURI().find_first_of(URI_BASE);
 
         if( UUIDLocation != std::string::npos )
         {
-            auto UUID = Request.getURI().substr(UUIDLocation+URIBASE.size());
+            auto UUID = Request.getURI().substr(UUIDLocation+URI_BASE.size());
             if(uCentral::uFileUploader::ValidRequest(UUID))
             {
                 //  make sure we do not allow anyone else to overwrite our file

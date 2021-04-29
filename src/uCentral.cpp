@@ -20,7 +20,6 @@
 #include "uCommandManager.h"
 #include "base64util.h"
 #include "uFileUploader.h"
-#include "uCentralConfig.h"
 #include "CommandChannel.h"
 
 #ifndef SMALL_BUILD
@@ -341,7 +340,6 @@ namespace uCentral {
             return Poco::Path::expand(R);
         }
     }
-
 }
 
 int main(int argc, char **argv) {

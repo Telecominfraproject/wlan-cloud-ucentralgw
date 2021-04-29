@@ -12,7 +12,6 @@ namespace uCentral::DeviceRegistry {
 
     Service::Service() noexcept:
             SubSystemServer("DeviceStatus", "DevStatus", "devicestatus") {
-
     }
 
     int Start() {

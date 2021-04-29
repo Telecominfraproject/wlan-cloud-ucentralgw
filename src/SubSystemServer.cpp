@@ -74,7 +74,6 @@ void SubSystemServer::initialize(Poco::Util::Application & self)
 
 void SubSystemServer::uninitialize()
 {
-    // add your own uninitialization code here
 }
 
 void SubSystemServer::reinitialize(Poco::Util::Application & self)

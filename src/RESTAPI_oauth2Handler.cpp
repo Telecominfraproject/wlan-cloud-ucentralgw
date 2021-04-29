@@ -48,5 +48,4 @@ void RESTAPI_oauth2Handler::handleRequest(Poco::Net::HTTPServerRequest & Request
     }
 
     BadRequest(Response);
-
 }

@@ -114,7 +114,7 @@ Poco::JSON::Object uCentralDeviceLog::to_json() const
     return Obj;
 }
 
-Poco::JSON::Object  uCentralHealthcheck::to_json() const {
+Poco::JSON::Object  uCentralHealthCheck::to_json() const {
     Poco::JSON::Object  Obj;
     Obj.set("UUID",UUID);
 

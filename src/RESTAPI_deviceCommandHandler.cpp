@@ -414,7 +414,7 @@ void RESTAPI_deviceCommandHandler::GetChecks(Poco::Net::HTTPServerRequest& Reque
         auto Offset = GetParameter("offset", 0);
         auto Limit = GetParameter("limit", 100);
 
-        std::vector<uCentralHealthcheck> Checks;
+        std::vector<uCentralHealthCheck> Checks;
 
         uCentral::Storage::GetHealthCheckData(SerialNumber, StartDate, EndDate, Offset, Limit,
                                       Checks);

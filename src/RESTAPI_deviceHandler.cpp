@@ -80,5 +80,4 @@ void RESTAPI_deviceHandler::handleRequest(Poco::Net::HTTPServerRequest& Request,
     } else {
         BadRequest(Response);
     }
-
 }

@@ -7,7 +7,6 @@
 #include "Poco/Array.h"
 #include "Poco/JSON/Stringifier.h"
 
-
 using Poco::Array;
 
 void RESTAPI_devicesHandler::handleRequest(Poco::Net::HTTPServerRequest& Request, Poco::Net::HTTPServerResponse& Response)

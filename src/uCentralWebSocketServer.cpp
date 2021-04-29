@@ -2,12 +2,6 @@
 // Created by stephane bourque on 2021-02-28.
 //
 #include <thread>
-#include <mutex>
-
-#include "uCentralWebSocketServer.h"
-#include "uStorageService.h"
-#include "uAuthService.h"
-#include "uCentral.h"
 
 #include "Poco/Net/IPAddress.h"
 #include "Poco/Net/SSLException.h"
@@ -17,6 +11,11 @@
 #include "Poco/JSON/Array.h"
 #include "Poco/zlib.h"
 #include "base64util.h"
+
+#include "uCentralWebSocketServer.h"
+#include "uStorageService.h"
+#include "uAuthService.h"
+#include "uCentral.h"
 
 
 namespace uCentral::WebSocket {
@@ -366,7 +365,7 @@ namespace uCentral::WebSocket {
 
                 Conn_->UUID = UUID;
 
-                uCentralHealthcheck Check;
+				uCentralHealthCheck Check;
 
                 Check.Recorded = time(nullptr);
                 Check.UUID = UUID;

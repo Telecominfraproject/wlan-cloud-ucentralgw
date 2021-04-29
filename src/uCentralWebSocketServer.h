@@ -108,11 +108,7 @@ namespace uCentral::WebSocket {
             for( auto i = ReactorThreads_.begin() ; i != ReactorThreads_.end() ; i++ )
             {
                 TotalSockets += i->first->Count();
-                if(Tmp == ReactorThreads_.end()) {
-                    Tmp = i;
-                    Min = i->first->Count();
-                }
-                else if(i->first->Count()<Min) {
+                if((Tmp == ReactorThreads_.end()) || (i->first->Count()<Min) ) {
                     Tmp = i;
                     Min = i->first->Count();
                 }

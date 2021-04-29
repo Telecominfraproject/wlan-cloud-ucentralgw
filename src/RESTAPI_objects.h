@@ -32,7 +32,7 @@ struct uCentralStatistics {
     [[nodiscard]] Poco::JSON::Object to_json() const;
 };
 
-struct uCentralHealthcheck {
+struct uCentralHealthCheck {
     uint64_t    UUID;
     std::string Data;
     uint64_t    Recorded;

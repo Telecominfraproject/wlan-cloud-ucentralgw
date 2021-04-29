@@ -77,5 +77,4 @@ void RESTAPI_default_configuration::handleRequest(Poco::Net::HTTPServerRequest& 
     } else {
         BadRequest(Response);
     }
-
 }

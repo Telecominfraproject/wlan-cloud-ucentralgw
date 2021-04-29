@@ -96,13 +96,13 @@ namespace uCentral::Storage {
         return uCentral::Storage::Service::instance()->DeleteStatisticsData(SerialNumber, FromDate, ToDate);
     }
 
-    bool AddHealthCheckData(std::string &SerialNumber, uCentralHealthcheck &Check) {
+    bool AddHealthCheckData(std::string &SerialNumber, uCentralHealthCheck &Check) {
         return uCentral::Storage::Service::instance()->AddHealthCheckData(SerialNumber, Check);
     }
 
     bool
     GetHealthCheckData(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate, uint64_t Offset, uint64_t HowMany,
-                       std::vector<uCentralHealthcheck> &Checks) {
+                       std::vector<uCentralHealthCheck> &Checks) {
         return uCentral::Storage::Service::instance()->GetHealthCheckData(SerialNumber, FromDate, ToDate, Offset,
                                                                           HowMany,
                                                                           Checks);
@@ -857,7 +857,7 @@ namespace uCentral::Storage {
         return false;
     }
 
-    bool Service::AddHealthCheckData(std::string &SerialNumber, uCentralHealthcheck &Check) {
+    bool Service::AddHealthCheckData(std::string &SerialNumber, uCentralHealthCheck &Check) {
         try {
             Logger_.information("Device:" + SerialNumber + " HealthCheck: sanity " + std::to_string(Check.Sanity));
 
@@ -890,7 +890,7 @@ namespace uCentral::Storage {
 
     bool Service::GetHealthCheckData(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate, uint64_t Offset,
                                      uint64_t HowMany,
-                                     std::vector<uCentralHealthcheck> &Checks) {
+                                     std::vector<uCentralHealthCheck> &Checks) {
 
         typedef Poco::Tuple<std::string, uint64_t, std::string, uint64_t, uint64_t> Record;
         typedef std::vector<Record> RecordList;
@@ -925,7 +925,7 @@ namespace uCentral::Storage {
             Select.execute();
 
             for (auto i: Records) {
-                uCentralHealthcheck R;
+				uCentralHealthCheck R;
 
                 R.UUID = i.get<1>();
                 R.Data = i.get<2>();

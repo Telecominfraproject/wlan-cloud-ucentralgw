@@ -59,7 +59,7 @@ namespace uCentral::uFileUploader {
 
     class RequestHandlerFactory : public Poco::Net::HTTPRequestHandlerFactory {
     public:
-        RequestHandlerFactory(Poco::Logger &L) :
+        explicit RequestHandlerFactory(Poco::Logger &L) :
                 Logger_(L){}
 
         Poco::Net::HTTPRequestHandler *createRequestHandler(const Poco::Net::HTTPServerRequest &request) override;
@@ -67,6 +67,6 @@ namespace uCentral::uFileUploader {
         Poco::Logger    & Logger_;
     };
 
-}; //   namespace
+} //   namespace
 
 #endif //UCENTRAL_UFILEUPLOADER_H

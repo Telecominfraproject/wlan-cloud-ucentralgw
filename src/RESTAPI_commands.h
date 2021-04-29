@@ -19,5 +19,4 @@ public:
     void handleRequest(Poco::Net::HTTPServerRequest& request, Poco::Net::HTTPServerResponse& response) override;
 };
 
-
 #endif //UCENTRAL_RESTAPI_COMMANDS_H

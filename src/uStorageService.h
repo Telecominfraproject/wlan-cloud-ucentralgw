@@ -27,9 +27,9 @@ namespace uCentral::Storage {
     bool GetStatisticsData(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate, uint64_t Offset, uint64_t HowMany, std::vector<uCentralStatistics> &Stats);
     bool DeleteStatisticsData(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate );
 
-    bool AddHealthCheckData(std::string &SerialNumber,uCentralHealthcheck & Check);
+    bool AddHealthCheckData(std::string &SerialNumber,uCentralHealthCheck & Check);
     bool GetHealthCheckData(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate, uint64_t Offset, uint64_t HowMany,
-                            std::vector<uCentralHealthcheck> &Checks);
+                            std::vector<uCentralHealthCheck> &Checks);
     bool DeleteHealthCheckData(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate );
 
     bool AddLog(std::string & SerialNumber, uCentralDeviceLog & Log, bool CrashLog = false );
@@ -101,9 +101,9 @@ namespace uCentral::Storage {
                                std::vector<uCentralStatistics> &Stats);
         friend bool DeleteStatisticsData(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate );
 
-        friend bool AddHealthCheckData(std::string &SerialNumber,  uCentralHealthcheck & Check);
+        friend bool AddHealthCheckData(std::string &SerialNumber, uCentralHealthCheck & Check);
         friend bool GetHealthCheckData(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate, uint64_t Offset, uint64_t HowMany,
-                                      std::vector<uCentralHealthcheck> &Checks);
+                                      std::vector<uCentralHealthCheck> &Checks);
         friend bool DeleteHealthCheckData(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate );
 
         friend bool CreateDefaultDevice(const std::string & SerialNumber, const std::string & Capabilities);
@@ -162,9 +162,9 @@ namespace uCentral::Storage {
                                std::vector<uCentralStatistics> &Stats);
         bool DeleteStatisticsData(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate );
 
-        bool AddHealthCheckData(std::string &SerialNumber, uCentralHealthcheck & Check);
+        bool AddHealthCheckData(std::string &SerialNumber, uCentralHealthCheck & Check);
         bool GetHealthCheckData(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate, uint64_t Offset, uint64_t HowMany,
-                                       std::vector<uCentralHealthcheck> &Checks);
+                                       std::vector<uCentralHealthCheck> &Checks);
         bool DeleteHealthCheckData(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate );
 
         bool UpdateDeviceConfiguration(std::string &SerialNumber, std::string &Configuration, uint64_t & NewUUID );

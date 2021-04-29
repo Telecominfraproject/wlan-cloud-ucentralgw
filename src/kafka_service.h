@@ -39,6 +39,6 @@ class Service : public SubSystemServer {
 	bool KafkaEnabled_ = false;
 };
 
-}	// Namepsace
+}	// NameSpace
 
 #endif // UCENTRALGW_KAFKA_SERVICE_H
