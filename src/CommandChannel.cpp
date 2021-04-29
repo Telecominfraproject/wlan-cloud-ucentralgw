@@ -27,11 +27,11 @@ namespace uCentral::CommandChannel {
 	std::string  Service::ProcessCommand(const std::string &Command) {
 		std::vector<std::string>	Tokens{};
 		std::string Result{"OK"};
-		// Poco::Logger	& Logger = uCentral::Daemon::instance().logger();
 
-		size_t pos = 0, old_pos = 0 ;
 
 		try {
+			size_t pos, old_pos = 0 ;
+
 			Logger_.notice(Poco::format("COMMAND: %s",Command));
 
 			while((pos = Command.find(' ', old_pos)) != std::string::npos) {
@@ -56,7 +56,7 @@ namespace uCentral::CommandChannel {
 					std::cout << " WebSocket: " << uCentral::WebSocket::Service().Logger().getLevel() << std::endl;
 					std::cout << " Storage: " << uCentral::Storage::Service().Logger().getLevel() << std::endl;
 					std::cout << " RESTAPI: " << uCentral::RESTAPI::Service().Logger().getLevel() << std::endl;
-					std::cout << " CommandManager: " << uCentral::CommandManager::Service().Logger().getLevel() << std::endl;
+					std::cout << " CommandManager: " << Logger_.getLevel() << std::endl;
 					std::cout << " DeviceRegistry: " << uCentral::DeviceRegistry::Service().Logger().getLevel() << std::endl;
 				} else if (Tokens[1]=="stats") {
 
@@ -64,11 +64,11 @@ namespace uCentral::CommandChannel {
 					Result =  "ERROR: Invalid: get command:" + Tokens[1];
 				}
 			} else if(Tokens[0]=="restart") {
-
+				Logger_.information("RESTART...");
 			} else if(Tokens[0]=="stop") {
-
+				Logger_.information("STOP...");
 			} else if(Tokens[0]=="stats") {
-
+				Logger_.information("STATS...");
 			} else {
 				Result = "ERROR: Invalid command: " + Tokens[0];
 			}
@@ -106,6 +106,7 @@ namespace uCentral::CommandChannel {
 					n = socket().receiveBytes(&buffer[0], (int)buffer.size());
 					buffer[n] = '\0';
 					Message += &buffer[0];
+					Logger_.information(Poco::format("COMMAND-CHANNEL: %s",Message));
 					if(buffer.size() > n && !Message.empty())
 					{
 						uCentral::CommandChannel::Service::instance()->ProcessCommand(Message);
@@ -113,19 +114,14 @@ namespace uCentral::CommandChannel {
 					}
 				}
 			}
-			catch (Poco::Exception& exc)
+			catch (const Poco::Exception & E)
 			{
-				std::cerr << "Error: " << exc.displayText() << std::endl;
+				Logger_.log(E);
 			}
 		}
 
 	  private:
 		Poco::Logger	& Logger_;
-		static inline void EchoBack(const std::string & message)
-		{
-			std::cout << "Message: " << message << std::endl;
-			// socket().sendBytes(message.c_str(), (int)message.size());
-		}
 	};
 
 	class UnixSocketServerConnectionFactory: public Poco::Net::TCPServerConnectionFactory
@@ -156,7 +152,7 @@ namespace uCentral::CommandChannel {
 
 	int Service::Start() {
 		Poco::File	F(uCentral::ServiceConfig::getString("ucentral.system.commandchannel","/tmp/app.ucentralgw"));
-		try { F.remove(); } catch (...) {};
+		try { F.remove(); } catch ( const Poco::Exception &E ) { Logger_.log(E); }
 		SocketFile_ = std::make_unique<Poco::File>(F);
 		UnixSocket_ = std::make_unique<Poco::Net::SocketAddress>(Poco::Net::SocketAddress::UNIX_LOCAL, SocketFile_->path());
 		Svs_ = std::make_unique<Poco::Net::ServerSocket>(*UnixSocket_);
@@ -165,4 +161,4 @@ namespace uCentral::CommandChannel {
 		Logger_.notice("Starting...");
 		return 0;
 	}
-};
+}
