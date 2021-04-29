@@ -1,0 +1,29 @@
+<component name="ProjectDictionaryState">
+  <dictionary name="stephb">
+    <words>
+      <w>DEVICECOMMANDHANDLER</w>
+      <w>DEVICEHANDLER</w>
+      <w>DEVICESHANDLER</w>
+      <w>SUBSYSTEMSERVER</w>
+      <w>SYSTEMCOMMAND</w>
+      <w>UAUTHSERVICE</w>
+      <w>UCENTRALWEBSOCKETSERVER</w>
+      <w>UCOMMANDMANAGER</w>
+      <w>UDEVICEREGISTRY</w>
+      <w>UFILEUPLOADER</w>
+      <w>UNKNOWNREQUESTHANDLER</w>
+      <w>USTORAGESERVICE</w>
+      <w>bourque</w>
+      <w>brokerlist</w>
+      <w>commandchannel</w>
+      <w>devicestatus</w>
+      <w>fileuploader</w>
+      <w>idletime</w>
+      <w>maxsessions</w>
+      <w>rootca</w>
+      <w>ucentral</w>
+      <w>ucentralgw</w>
+      <w>uninitialize</w>
+    </words>
+  </dictionary>
+</component>

@@ -144,7 +144,7 @@ def check_response(cmd, response, headers, data_str, url):
 
 def build_uri(path):
     global host
-    new_uri = 'https://%s:%d/%s' % (host.hostname, host.port, path)
+    new_uri = 'https://%s:%d/api/v1/%s' % (host.hostname, host.port, path)
     return new_uri
 
 
@@ -156,7 +156,7 @@ def make_headers():
 
 def login():
     global access_token, sslcontext
-    uri = build_uri("api/v1/oauth2")
+    uri = build_uri("oauth2")
     payload = json.dumps({"userId": username, "password": password})
     resp = requests.post(uri, data=payload, verify=cert)
     check_response("POST", resp, "", payload, uri)
@@ -165,7 +165,7 @@ def login():
 
 
 def show_capabilities(serno):
-    uri = build_uri("api/v1/device/" + serno + "/capabilities")
+    uri = build_uri("device/" + serno + "/capabilities")
     resp = requests.get(uri, headers=make_headers(), verify=False)
     check_response("GET", resp, make_headers(), "", uri)
     #pprint(data)
@@ -177,7 +177,7 @@ def show_capabilities(serno):
     #return cfg
 
 def show_status(serno):
-    uri = build_uri("api/v1/device/" + serno + "/status")
+    uri = build_uri("device/" + serno + "/status")
     resp = requests.get(uri, headers=make_headers(), verify=False)
     check_response("GET", resp, make_headers(), "", uri)
     #pprint(data)
@@ -189,7 +189,7 @@ def show_status(serno):
     #return cfg
 
 def show_logs(serno):
-    uri = build_uri("api/v1/device/" + serno + "/logs")
+    uri = build_uri("device/" + serno + "/logs")
     resp = requests.get(uri, headers=make_headers(), verify=False)
     check_response("GET", resp, make_headers(), "", uri)
     #pprint(data)
@@ -202,7 +202,7 @@ def show_logs(serno):
 
 def list_devices(serno):
     if serno != "":
-        uri = build_uri("api/v1/device/" + serno)
+        uri = build_uri("device/" + serno)
         resp = requests.get(uri, headers=make_headers(), verify=False)
         check_response("GET", resp, make_headers(), "", uri)
         #pprint(data)
@@ -213,7 +213,7 @@ def list_devices(serno):
         return cfg
     else:
         # Get all
-        uri = build_uri("api/v1/devices")
+        uri = build_uri("devices")
         resp = requests.get(uri, headers=make_headers(), verify=False)
         check_response("GET", resp, make_headers(), "", uri)
         data = resp.json()
@@ -227,7 +227,7 @@ def list_devices(serno):
         return devices
 
 def list_device_stats(serno):
-    uri = build_uri("api/v1/device/" + serno + "/statistics")
+    uri = build_uri("device/" + serno + "/statistics")
     resp = requests.get(uri, headers=make_headers(), verify=False)
     check_response("GET", resp, make_headers(), "", uri)
     data = resp.json()
@@ -238,7 +238,7 @@ def list_device_stats(serno):
     return stats
 
 def show_healthcheck(serno):
-    uri = build_uri("api/v1/device/" + serno + "/healthchecks")
+    uri = build_uri("device/" + serno + "/healthchecks")
     resp = requests.get(uri, headers=make_headers(), verify=False)
     check_response("GET", resp, make_headers(), "", uri)
     data = resp.json()
@@ -246,7 +246,7 @@ def show_healthcheck(serno):
     return data
 
 def show_commands(serno):
-    uri = build_uri("api/v1/commands")
+    uri = build_uri("commands")
     if serno != "":
         uri += "?serialNumber="
         uri += serno
@@ -258,20 +258,20 @@ def show_commands(serno):
     return data
 
 def upgrade_device(serno, url):
-    uri = build_uri("api/v1/device/" + serno + "/upgrade")
+    uri = build_uri("device/" + serno + "/upgrade")
     payload = json.dumps({ "serialNumber": serno, "uri": url, "digest": "1234567890" })
     resp = requests.post(uri, data=payload, headers=make_headers(), verify=False)
     check_response("POST", resp, make_headers(), "", uri)
 
 def do_request(serno, req):
-    uri = build_uri("api/v1/device/" + serno + "/request")
+    uri = build_uri("device/" + serno + "/request")
     payload = json.dumps({ "serialNumber": serno, "message": req})
     resp = requests.post(uri, data=payload, headers=make_headers(), verify=False)
     check_response("POST", resp, make_headers(), "", uri)
 
 # Not sure this is working properly, it won't blink my e8450
 def blink_device(serno):
-    uri = build_uri("api/v1/device/" + serno + "/blink")
+    uri = build_uri("device/" + serno + "/blink")
     resp = requests.post(uri, headers=make_headers(), verify=False)
     check_response("POST", resp, make_headers(), "", uri)
     pprint(resp)
@@ -404,19 +404,19 @@ def cfg_device(args):
 
     basic_cfg_str = json.dumps(basic_cfg)
 
-    uri = build_uri("api/v1/device/" + args.serno + "/configure")
+    uri = build_uri("device/" + args.serno + "/configure")
     resp = requests.post(uri, data=basic_cfg_str, headers=make_headers(), verify=False)
     check_response("POST", resp, make_headers(), basic_cfg_str, uri)
     pprint(resp)
 
 def get_device_stats(serno):
-    uri = build_uri("api/v1/device/" + serno + "/statistics")
+    uri = build_uri("device/" + serno + "/statistics")
     resp = requests.get(uri, headers=make_headers(), verify=False)
     check_response("GET", resp, make_headers(), "", uri)
     return resp.json()
 
 def get_devices():
-    uri = build_uri("api/v1/devices")
+    uri = build_uri("devices")
     resp = requests.get(uri, headers=make_headers(), verify=False)
     check_response("GET", resp, make_headers(), "", uri)
     data = resp.json()
@@ -426,7 +426,7 @@ def get_devices():
 
 def logout():
     global access_token
-    uri = build_uri('api/v1/oauth2/%s' % access_token)
+    uri = build_uri('oauth2/%s' % access_token)
     resp = requests.delete(uri, headers=make_headers(), verify=False)
     check_response("DELETE", resp, make_headers(), "", uri)
     print('Logged out:', resp.status_code)

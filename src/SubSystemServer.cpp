@@ -111,7 +111,6 @@ Poco::Net::SecureServerSocket PropertiesFileServerEntry::CreateSecureSocket() co
 	Context->usePrivateKey(Key);
 
 	Context->addChainCertificate(Issueing);
-	Context->addChainCertificate(Root);
 
 	Context->disableStatelessSessionResumption();
 	Context->enableExtendedCertificateVerification();

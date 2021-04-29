@@ -10,4 +10,4 @@ fi
 
 payload="{ \"userId\" : \"$username\" , \"password\" : \"$password\" }"
 
-curl -X POST -H "Content-Type: application/json" -d "$payload" "https://localhost:16001/api/v1/oauth2" --insecure
+curl -v -X POST -H "Content-Type: application/json" -d "$payload" "https://ucentral.dpaas.arilia.com:16001/api/v1/oauth2"
