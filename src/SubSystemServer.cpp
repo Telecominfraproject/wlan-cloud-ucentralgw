@@ -92,10 +92,10 @@ Poco::Net::SecureServerSocket PropertiesFileServerEntry::CreateSecureSocket() co
 	P.verificationMode = level_;
 	P.verificationDepth = 9;
 	P.loadDefaultCAs = root_ca_.empty();
-	P.certificateFile = cert_file_;
+	// P.certificateFile = cert_file_;
 	P.cipherList = "ALL:!ADH:!LOW:!EXP:!MD5:@STRENGTH";
 	P.dhUse2048Bits = true;
-	P.privateKeyFile = key_file_;
+	// P.privateKeyFile = key_file_;
 	P.caLocation = root_ca_;
 	auto Context = new Poco::Net::Context(Poco::Net::Context::TLS_SERVER_USE, P);
 
@@ -120,10 +120,7 @@ Poco::Net::SecureServerSocket PropertiesFileServerEntry::CreateSecureSocket() co
 	else {
 		Poco::Net::IPAddress        Addr(address_);
 		Poco::Net::SocketAddress    SockAddr(Addr,port_);
-
-		return Poco::Net::SecureServerSocket(
-			SockAddr, backlog_,
-			new Poco::Net::Context(Poco::Net::Context::TLS_SERVER_USE,P));
+		return Poco::Net::SecureServerSocket( SockAddr, backlog_, Context);
 	}
 }
 
