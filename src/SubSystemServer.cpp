@@ -105,7 +105,7 @@ Poco::Net::SecureServerSocket PropertiesFileServerEntry::CreateSecureSocket() co
 
 	Context->useCertificate(Cert);
 	Context->addChainCertificate(Issueing);
-	Context->addChainCertificate(Root);
+	// Context->addChainCertificate(Root);
 
 	Poco::Crypto::RSAKey            Key("",key_file_,"");
 	Context->usePrivateKey(Key);
