@@ -148,6 +148,10 @@ namespace uCentral::Storage {
 		return uCentral::Storage::Service::instance()->SetLocation(SerialNumber, LocationUUID);
 	}
 
+	bool SetFirmware(std::string & SerialNumber, std::string & Firmware ) {
+		return uCentral::Storage::Service::instance()->SetFirmware(SerialNumber, Firmware);
+	}
+
 	bool DeviceExists(std::string &SerialNumber) {
         return uCentral::Storage::Service::instance()->DeviceExists(SerialNumber);
     }
@@ -351,7 +355,8 @@ namespace uCentral::Storage {
                     "LastConfigurationChange BIGINT, "
                     "LastConfigurationDownload BIGINT, "
 					"Owner  VARCHAR(64), 	"
-					"Location  VARCHAR(64) 	"
+					"Location  VARCHAR(64), 	"
+					"Firmware VARCHAR(128)"
                     ")", Poco::Data::Keywords::now;
 		Sess << "CREATE INDEX IF NOT EXISTS DeviceOwner ON Devices (Owner ASC)", Poco::Data::Keywords::now;
 		Sess << "CREATE INDEX IF NOT EXISTS DeviceLocation ON Devices (Location ASC)", Poco::Data::Keywords::now;
@@ -476,6 +481,7 @@ namespace uCentral::Storage {
 					"LastConfigurationDownload BIGINT, "
 					"Owner  VARCHAR(64), 	"
 					"Location  VARCHAR(64), 	"
+					"Firmware VARCHAR(128)"
                     "INDEX DeviceOwner (Owner ASC),",
 					"INDEX LocationIndex (Location ASC))", Poco::Data::Keywords::now;
 
@@ -599,7 +605,8 @@ namespace uCentral::Storage {
                     "LastConfigurationChange BIGINT, "
 					"LastConfigurationDownload BIGINT, "
 					"Owner  VARCHAR(64), 	"
-					"Location  VARCHAR(64) 	"
+					"Location  VARCHAR(64), 	"
+					"Firmware VARCHAR(128)"
                     ")", Poco::Data::Keywords::now;
 		Sess << "CREATE INDEX IF NOT EXISTS DeviceOwner ON Devices (Owner ASC)", Poco::Data::Keywords::now;
 		Sess << "CREATE INDEX IF NOT EXISTS DeviceLocation ON Devices (Location ASC)", Poco::Data::Keywords::now;
@@ -1333,6 +1340,25 @@ namespace uCentral::Storage {
 		return false;
 	}
 
+	bool Service::SetFirmware(std::string &SerialNumber, std::string &Firmware) {
+		try {
+			Poco::Data::Session     Sess = Pool_->get();
+			Poco::Data::Statement   Update(Sess);
+			std::string St{"UPDATE Devices SET Firmware=?  WHERE SerialNumber=?"};
+
+			Update << ConvertParams(St) ,
+				Poco::Data::Keywords::use(Firmware),
+				Poco::Data::Keywords::use(SerialNumber);
+			Update.execute();
+			return true;
+		}
+		catch (const Poco::Exception &E) {
+			Logger_.warning(
+				Poco::format("%s(%s): Failed with: %s", std::string(__func__), SerialNumber, E.displayText()));
+		}
+		return false;
+	}
+
 	bool Service::DeleteDevice(std::string &SerialNumber) {
         // std::lock_guard<std::mutex> guard(Mutex_);
 
@@ -1373,7 +1399,8 @@ namespace uCentral::Storage {
 						   "LastConfigurationChange, "
 						   "LastConfigurationDownload, "
 						   "Owner,"
-						   "Location "
+						   "Location, "
+						   "Firmware "
 							"FROM Devices WHERE SerialNumber=?"};
 
             Select << ConvertParams(St),
@@ -1389,6 +1416,7 @@ namespace uCentral::Storage {
                     Poco::Data::Keywords::into(DeviceDetails.LastConfigurationDownload),
 					Poco::Data::Keywords::into(DeviceDetails.Owner),
 					Poco::Data::Keywords::into(DeviceDetails.Location),
+					Poco::Data::Keywords::into(DeviceDetails.Firmware),
 					Poco::Data::Keywords::use(SerialNumber);
 
             Select.execute();
@@ -1478,6 +1506,7 @@ namespace uCentral::Storage {
                 uint64_t,
                 uint64_t,
 				std::string,
+				std::string,
 				std::string> DeviceRecord;
         typedef std::vector<DeviceRecord> RecordList;
 
@@ -1499,7 +1528,8 @@ namespace uCentral::Storage {
                         "LastConfigurationChange, "
                         "LastConfigurationDownload, "
 					  	"Owner, "
-					  	"Location "
+					  	"Location, "
+					  	"Firmware "
                         "FROM Devices",
                     Poco::Data::Keywords::into(Records),
                     Poco::Data::Keywords::range(From, From + HowMany );
@@ -1518,7 +1548,8 @@ namespace uCentral::Storage {
                         .LastConfigurationChange = i.get<8>(),
                         .LastConfigurationDownload = i.get<9>(),
 						.Owner = i.get<10>(),
-						.Location = i.get<11>()};
+						.Location = i.get<11>(),
+						.Firmware = i.get<12>()};
 
                 Devices.push_back(R);
             }

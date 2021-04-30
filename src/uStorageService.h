@@ -52,6 +52,7 @@ namespace uCentral::Storage {
     bool DeleteDeviceCapabilities(std::string & SerialNumber);
 	bool SetOwner(std::string & SerialNumber, std::string & OwnerUUID);
 	bool SetLocation(std::string & SerialNumber, std::string & LocationUUID);
+	bool SetFirmware(std::string & SerialNumber, std::string & Firmware );
 
     bool CreateDefaultConfiguration(std::string & name, uCentralDefaultConfiguration & DefConfig);
     bool DeleteDefaultConfiguration(std::string & name);
@@ -153,6 +154,7 @@ namespace uCentral::Storage {
 		friend bool GetBlackListDevices(uint64_t Offset, uint64_t HowMany, std::vector<uCentralBlackListedDevice> & Devices );
 		friend bool IsBlackListed(std::string & SerialNumber);
 		friend bool SetCommandResult(std::string & UUID, std::string & Result);
+		friend bool SetFirmware(std::string & SerialNumber, std::string & Firmware );
 
 	  private:
         bool AddLog(std::string & SerialNumber, uCentralDeviceLog & Log, bool CrashLog );
@@ -179,6 +181,7 @@ namespace uCentral::Storage {
         bool DeviceExists(std::string & SerialNumber);
 		bool SetOwner(std::string & SerialNumber, std::string & OwnerUUID);
 		bool SetLocation(std::string & SerialNumber, std::string & LocationUUID);
+		bool SetFirmware(std::string & SerialNumber, std::string & Firmware );
 
         bool ExistingConfiguration(std::string &SerialNumber, uint64_t CurrentConfig, std::string &NewConfig, uint64_t &);
 

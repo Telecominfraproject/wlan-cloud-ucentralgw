@@ -374,6 +374,10 @@ namespace uCentral::WebSocket {
 
                 if (uCentral::instance()->AutoProvisioning() && !uCentral::Storage::DeviceExists(SerialNumber_))
                     uCentral::Storage::CreateDefaultDevice(SerialNumber_, Capabilities);
+
+				if(!Firmware.empty())
+					uCentral::Storage::SetFirmware(SerialNumber_, Firmware);
+
                 LookForUpgrade(Response);
             } else {
                 Logger_.warning(Poco::format("CONNECT(%s): Missing one of uuid, firmware, or capabilities",CId_));

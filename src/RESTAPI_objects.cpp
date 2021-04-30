@@ -29,6 +29,7 @@ Poco::JSON::Object uCentralDevice::to_json() const
     Obj.set("lastConfigurationDownload",RESTAPIHandler::to_RFC3339(LastConfigurationDownload));
 	Obj.set("owner",Owner);
 	Obj.set("location",Location);
+	Obj.set("firmware",Firmware);
 
     return Obj;
 }
