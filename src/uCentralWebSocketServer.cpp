@@ -103,16 +103,12 @@ namespace uCentral::WebSocket {
 
 		std::cout << __LINE__ << std::endl;
 
-        auto Now = time(nullptr);
-        Response.setDate(Now);
-        Response.setVersion(Request.getVersion());
-        Response.setKeepAlive(Params->getKeepAlive() && Request.getKeepAlive() && Session.canKeepAlive());
-        WS_ = std::make_unique<Poco::Net::WebSocket>(Request, Response);
-		WS_->setMaxPayloadSize(BufSize);
-
 		// Get the cert info...
 		try {
-			std::cout << __LINE__ << std::endl;
+			SSL_SESSION * S = SSL_Ses->sslSession();
+			X509 *C=SSL_SESSION_get0_peer(S);
+			C.
+				std::cout << __LINE__ << std::endl;
 			auto P = SS->peerCertificate();
 			std::cout << __LINE__ << std::endl;
 			Logger_.information(Poco::format("Certificate: %s",P.commonName()));
@@ -120,6 +116,14 @@ namespace uCentral::WebSocket {
 		} catch(const Poco::Exception &E) {
 			Logger_.log(E);
 		}
+
+		auto Now = time(nullptr);
+        Response.setDate(Now);
+        Response.setVersion(Request.getVersion());
+        Response.setKeepAlive(Params->getKeepAlive() && Request.getKeepAlive() && Session.canKeepAlive());
+        WS_ = std::make_unique<Poco::Net::WebSocket>(Request, Response);
+		WS_->setMaxPayloadSize(BufSize);
+
         Register();
     }
 
