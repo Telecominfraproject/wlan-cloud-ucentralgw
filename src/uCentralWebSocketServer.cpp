@@ -91,22 +91,23 @@ namespace uCentral::WebSocket {
             Logger_(Service::instance()->Logger())
     {
 		auto SS = dynamic_cast<Poco::Net::SecureStreamSocketImpl *>(Socket_.impl());
-        auto SSL_Ses = SS->currentSession();
-		if(SS->secure())
-			std::cout << "Connection is secure" << std::endl;
+		if(!SS->secure()) {
+			Logger_.error(Poco::format("%s: Connection is NOT secure.",SS->getPeerHostName()));
+		}
 
 		SSL_CTX * CTX = SS->context()->sslContext();
+		SSL_SESSION * Sess = SS->currentSession()->sslSession();
+
 		if(SS->havePeerCertificate()) {
 			// Get the cert info...
 			try {
 				auto P = SS->peerCertificate();
-				Logger_.information(Poco::format("Certificate: %s", P.commonName()));
-				std::cout << "Got a certificate..." << std::endl;
+				Logger_.information(Poco::format("%s: Certificate: %s", SS->getPeerHostName(), P.commonName()));
 			} catch (const Poco::Exception &E) {
 				Logger_.log(E);
 			}
 		} else {
-			std::cout << "No certificate..." << std::endl;
+			Logger_.error(Poco::format("%s: No certificates available..",SS->getPeerHostName()));
 		}
 
 		auto Params = Poco::AutoPtr<Poco::Net::HTTPServerParams>(new Poco::Net::HTTPServerParams);
