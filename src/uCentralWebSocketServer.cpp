@@ -90,7 +90,7 @@ namespace uCentral::WebSocket {
             Socket_(socket),
             Logger_(Service::instance()->Logger())
     {
-		auto SS = dynamic_cast<Poco::Net::SecureSocketImpl *>(socket.impl());
+		auto SS = dynamic_cast<Poco::Net::SecureSocketImpl *>(Socket_.impl());
         auto SSL_Ses = SS->currentSession();
 
 		auto Params = Poco::AutoPtr<Poco::Net::HTTPServerParams>(new Poco::Net::HTTPServerParams());
