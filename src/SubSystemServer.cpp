@@ -99,16 +99,22 @@ Poco::Net::SecureServerSocket PropertiesFileServerEntry::CreateSecureSocket(Poco
 	P.cipherList = "ALL:!ADH:!LOW:!EXP:!MD5:@STRENGTH";
 	P.dhUse2048Bits = true;
 	P.caLocation = root_ca_;
+	std::cout << __LINE__ << std::endl;
 
 	auto Context = new Poco::Net::Context(Poco::Net::Context::TLS_SERVER_USE, P);
+	std::cout << __LINE__ << std::endl;
 
 	if(!cert_file_.empty() && !key_file_.empty()) {
+		std::cout << __LINE__ << std::endl;
 		Poco::Crypto::X509Certificate Cert(cert_file_);
+		std::cout << __LINE__ << std::endl;
 		Poco::Crypto::X509Certificate Root(root_ca_);
+		std::cout << __LINE__ << std::endl;
 
 		Context->useCertificate(Cert);
 		Context->addChainCertificate(Root);
 		Context->addCertificateAuthority(Root);
+		std::cout << __LINE__ << std::endl;
 
 		if (level_ == Poco::Net::Context::VERIFY_STRICT) {
 			if (issuer_cert_file_.empty()) {
@@ -118,30 +124,38 @@ Poco::Net::SecureServerSocket PropertiesFileServerEntry::CreateSecureSocket(Poco
 			Context->addChainCertificate(Issuing);
 			Context->addCertificateAuthority(Issuing);
 		}
+		std::cout << __LINE__ << std::endl;
 
 		Poco::Crypto::RSAKey Key("", key_file_, "");
 		Context->usePrivateKey(Key);
+		std::cout << __LINE__ << std::endl;
 
 		SSL_CTX *SSLCtx = Context->sslContext();
 		if (!SSL_CTX_check_private_key(SSLCtx)) {
 			L.fatal(Poco::format("Wrong Certificate(%s) for Key(%s)", cert_file_, key_file_));
 		}
+		std::cout << __LINE__ << std::endl;
 
 		SSL_CTX_set_verify(SSLCtx, SSL_VERIFY_PEER, nullptr);
 
 		SSL_CTX_set_client_CA_list(SSLCtx, SSL_load_client_CA_file(issuer_cert_file_.c_str()));
 		SSL_CTX_enable_ct(SSLCtx, SSL_CT_VALIDATION_STRICT);
 		SSL_CTX_dane_enable(SSLCtx);
+		std::cout << __LINE__ << std::endl;
 
 		Context->enableSessionCache();
 		Context->setSessionCacheSize(0);
 		Context->setSessionTimeout(10);
 		Context->enableExtendedCertificateVerification(true);
 	}
+	std::cout << __LINE__ << std::endl;
 
-	if (address_ == "*")
+	if (address_ == "*") {
+		std::cout << __LINE__ << std::endl;
 		return Poco::Net::SecureServerSocket(port_, backlog_, Context);
+	}
 	else {
+		std::cout << __LINE__ << std::endl;
 		Poco::Net::IPAddress Addr(address_);
 		Poco::Net::SocketAddress SockAddr(Addr, port_);
 		return Poco::Net::SecureServerSocket(SockAddr, backlog_, Context);
