@@ -96,13 +96,6 @@ namespace uCentral::WebSocket {
         auto SSL_Ses = SS->currentSession();
 		std::cout << __LINE__ << std::endl;
 
-		auto Params = Poco::AutoPtr<Poco::Net::HTTPServerParams>(new Poco::Net::HTTPServerParams());
-        Poco::Net::HTTPServerSession        Session(Socket_, Params);
-        Poco::Net::HTTPServerResponseImpl   Response(Session);
-        Poco::Net::HTTPServerRequestImpl    Request(Response,Session,Params);
-
-		std::cout << __LINE__ << std::endl;
-
 		// Get the cert info...
 		try {
 			SSL_SESSION * S = SSL_Ses->sslSession();
@@ -115,6 +108,13 @@ namespace uCentral::WebSocket {
 		} catch(const Poco::Exception &E) {
 			Logger_.log(E);
 		}
+
+		auto Params = Poco::AutoPtr<Poco::Net::HTTPServerParams>();
+        Poco::Net::HTTPServerSession        Session(Socket_, Params);
+        Poco::Net::HTTPServerResponseImpl   Response(Session);
+        Poco::Net::HTTPServerRequestImpl    Request(Response,Session,Params);
+
+		std::cout << __LINE__ << std::endl;
 
 		auto Now = time(nullptr);
         Response.setDate(Now);
