@@ -44,7 +44,7 @@ namespace uCentral::RESTAPI {
 			Logger_.information(Poco::format("Starting: %s:%s Keyfile:%s CertFile: %s", Svr.address(), std::to_string(Svr.port()),
 											 Svr.key_file(),Svr.cert_file()));
 
-            auto Sock{Svr.CreateSecureSocket()};
+            auto Sock{Svr.CreateSecureSocket(Logger_)};
 
 			Svr.log_cert(Logger_);
 			if(!Svr.root_ca().empty())

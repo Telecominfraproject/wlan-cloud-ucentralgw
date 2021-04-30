@@ -169,6 +169,7 @@ namespace uCentral::WebSocket {
         std::map<uint64_t,CommandIDPair>    RPCs_;
         uint64_t                            RPC_ = time(nullptr);
         bool                                Registered_ = false ;
+		std::unique_ptr<Poco::Crypto::X509Certificate>		PeerCert_;
     };
 
     struct WebSocketServerEntry {
@@ -195,8 +196,13 @@ namespace uCentral::WebSocket {
             return Factory_.GetAReactor();
         }
 
+		bool IsCertOk() { return BaseCert_!= nullptr; }
+		const Poco::Crypto::X509Certificate & Certificate() const { return *BaseCert_; }
+		bool ValidateCertificate(const Poco::Crypto::X509Certificate & Certificate);
+
     private:
         static Service *instance_;
+		std::unique_ptr<Poco::Crypto::X509Certificate>	BaseCert_;
 
         int Start() override;
         void Stop() override;

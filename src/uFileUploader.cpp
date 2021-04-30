@@ -72,7 +72,7 @@ namespace uCentral::uFileUploader {
 
             Path_ = uCentral::ServiceConfig::getString("ucentral.fileuploader.path","/tmp");
 
-            auto Sock{Svr.CreateSecureSocket()};
+            auto Sock{Svr.CreateSecureSocket(Logger_)};
 
 			Svr.log_cert(Logger_);
 			if(!Svr.root_ca().empty())

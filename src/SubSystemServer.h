@@ -23,6 +23,7 @@ public:
                                	std::string Key_file,
                                	std::string Cert_file,
 								std::string RootCa,
+								std::string Issuer,
                                	std::string Key_file_password = "",
                                	std::string Name="",
 								bool x509=false,
@@ -33,6 +34,7 @@ public:
             key_file_(std::move(Key_file)),
             cert_file_(std::move(Cert_file)),
 			root_ca_(std::move(RootCa)),
+			issuer_cert_file_(std::move(Issuer)),
             key_file_password_(std::move(Key_file_password)),
             name_(std::move(Name)),
 		    is_x509_(x509),
@@ -45,8 +47,9 @@ public:
     [[nodiscard]] const std::string & cert_file() const { return cert_file_; };
 	[[nodiscard]] const std::string & root_ca() const { return root_ca_; };
     [[nodiscard]] const std::string & key_file_password() const { return key_file_password_; };
+	[[nodiscard]] const std::string & issuer_cert_file() const { return issuer_cert_file_; };
     [[nodiscard]] const std::string & name() const { return name_; };
-    [[nodiscard]] Poco::Net::SecureServerSocket CreateSecureSocket() const;
+    [[nodiscard]] Poco::Net::SecureServerSocket CreateSecureSocket(Poco::Logger &L) const;
 	[[nodiscard]] bool is_x509() const { return is_x509_; }
 	[[nodiscard]] int backlog() const { return backlog_; }
 	void log_cert( Poco::Logger & L ) const;
@@ -59,6 +62,7 @@ private:
     std::string     key_file_;
 	std::string 	root_ca_;
     std::string     key_file_password_;
+	std::string 	issuer_cert_file_;
     uint32_t        port_;
     std::string     name_;
 	bool 			is_x509_;

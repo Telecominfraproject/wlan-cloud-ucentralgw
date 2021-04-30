@@ -37,7 +37,15 @@ namespace uCentral::WebSocket {
 
     }
 
-    int Service::Start() {
+	bool Service::ValidateCertificate(const Poco::Crypto::X509Certificate & Certificate) {
+		if(IsCertOk()) {
+			Logger_.information("Validating the certificate against issuer...");
+			return Certificate.issuedBy(*BaseCert_);
+		}
+		return false;
+	}
+
+	int Service::Start() {
 
         for(const auto & Svr : ConfigServersList_ ) {
             Logger_.notice(Poco::format("Starting: %s:%s Keyfile:%s CertFile: %s", Svr.address(), std::to_string(Svr.port()),
@@ -47,7 +55,12 @@ namespace uCentral::WebSocket {
 			if(!Svr.root_ca().empty())
 				Svr.log_cas(Logger_);
 
-            auto Sock{Svr.CreateSecureSocket()};
+            auto Sock{Svr.CreateSecureSocket(Logger_)};
+
+			if(!IsCertOk()) {
+				BaseCert_ = std::make_unique<Poco::Crypto::X509Certificate>(Svr.cert_file());
+			}
+
             auto NewSocketReactor = std::make_unique<Poco::Net::SocketReactor>();
             auto NewSocketAcceptor = std::make_unique<Poco::Net::SocketAcceptor<WSConnection>>( Sock, *NewSocketReactor);
             auto NewThread = std::make_unique<Poco::Thread>();
@@ -108,7 +121,11 @@ namespace uCentral::WebSocket {
 			// Get the cert info...
 			try {
 				auto P = SS->peerCertificate();
-				Logger_.information(Poco::format("%s: Certificate: %s", HostName, P.commonName()));
+				PeerCert_ = std::make_unique<Poco::Crypto::X509Certificate>(P);
+				if(uCentral::WebSocket::Service().ValidateCertificate(*PeerCert_)) {
+					Logger_.information("Validate certificate");
+				}
+				Logger_.information(Poco::format("%s: Certificate: %s", HostName, PeerCert_->commonName()));
 			} catch (const Poco::Exception &E) {
 				Logger_.log(E);
 			}
@@ -335,6 +352,13 @@ namespace uCentral::WebSocket {
                 Conn_->Firmware = Firmware;
                 Conn_->PendingUUID = 0;
 				Conn_->Address = WS_->peerAddress().toString();
+
+				//	We need to verify the certificate if we have one
+				if(PeerCert_!= nullptr) {
+
+				} else {
+					Conn_->VerifiedCertificate = false;
+				}
 
                 uCentral::Storage::UpdateDeviceCapabilities(SerialNumber_, Capabilities);
 

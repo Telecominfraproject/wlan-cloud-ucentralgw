@@ -143,6 +143,8 @@ components:
           format: 'date-time'
         firmware:
           type: string
+        verifiedCertificate:
+          type: boolean
 
     DeviceCapabilities:
       type: object

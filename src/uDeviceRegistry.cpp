@@ -209,6 +209,7 @@ namespace uCentral::DeviceRegistry {
         Obj.set("connected",Connected);
         Obj.set("firmware",Firmware);
         Obj.set("lastContact",RESTAPIHandler::to_RFC3339(LastContact));
+		Obj.set("verifiedCertificate", VerifiedCertificate);
 
         return Obj;
     }

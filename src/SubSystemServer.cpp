@@ -43,6 +43,7 @@ void SubSystemServer::initialize(Poco::Util::Application & self)
 			std::string x509{root+"x509"};
 			std::string backlog{root+"backlog"};
 			std::string rootca{root+"rootca"};
+			std::string issuer{root+"issuer"};
 
 			std::string level{root+"security"};
 			Poco::Net::Context::VerificationMode	M=Poco::Net::Context::VERIFY_RELAXED;
@@ -63,6 +64,7 @@ void SubSystemServer::initialize(Poco::Util::Application & self)
                                                uCentral::ServiceConfig::getString(key,""),
                                                uCentral::ServiceConfig::getString(cert,""),
 											   uCentral::ServiceConfig::getString(rootca,""),
+												uCentral::ServiceConfig::getString(issuer,""),
                                                uCentral::ServiceConfig::getString(key_password,""),
                                                uCentral::ServiceConfig::getString(name,""),
 												uCentral::ServiceConfig::getBool(x509,false),
@@ -87,7 +89,7 @@ void SubSystemServer::defineOptions(Poco::Util::OptionSet& options)
 {
 }
 
-Poco::Net::SecureServerSocket PropertiesFileServerEntry::CreateSecureSocket() const
+Poco::Net::SecureServerSocket PropertiesFileServerEntry::CreateSecureSocket(Poco::Logger & L) const
 {
 	Poco::Net::Context::Params	P;
 
@@ -100,48 +102,49 @@ Poco::Net::SecureServerSocket PropertiesFileServerEntry::CreateSecureSocket() co
 
 	auto Context = new Poco::Net::Context(Poco::Net::Context::TLS_SERVER_USE, P);
 
-	Poco::Crypto::X509Certificate   Cert(cert_file_);
-	Poco::Crypto::X509Certificate	Issuing( root_ca_ + "/issuing.pem");
-	Poco::Crypto::X509Certificate	Root( root_ca_ + "/root.pem");
+	if(!cert_file_.empty() && !key_file_.empty()) {
+		Poco::Crypto::X509Certificate Cert(cert_file_);
+		Poco::Crypto::X509Certificate Root(root_ca_);
 
-	Context->useCertificate(Cert);
-	Context->addChainCertificate(Issuing);
-	Context->addChainCertificate(Root);
+		Context->useCertificate(Cert);
+		Context->addChainCertificate(Root);
+		Context->addCertificateAuthority(Root);
 
-	Context->addCertificateAuthority(Issuing);
-	Context->addCertificateAuthority(Root);
+		if (level_ == Poco::Net::Context::VERIFY_STRICT) {
+			if (issuer_cert_file_.empty()) {
+				L.fatal("In strict mode, you must supply ans issuer certificate");
+			}
+			Poco::Crypto::X509Certificate Issuing(issuer_cert_file_);
+			Context->addChainCertificate(Issuing);
+			Context->addCertificateAuthority(Issuing);
+		}
 
-	Poco::Crypto::RSAKey            Key("",key_file_,"");
-	Context->usePrivateKey(Key);
+		Poco::Crypto::RSAKey Key("", key_file_, "");
+		Context->usePrivateKey(Key);
 
-	SSL_CTX * SSLCtx = Context->sslContext();
-	if(!SSL_CTX_check_private_key(SSLCtx)) {
-		std::cout << "Key and cert do no match" << std::endl;
+		SSL_CTX *SSLCtx = Context->sslContext();
+		if (!SSL_CTX_check_private_key(SSLCtx)) {
+			L.fatal(Poco::format("Wrong Certificate(%s) for Key(%s)", cert_file_, key_file_));
+		}
+
+		SSL_CTX_set_verify(SSLCtx, SSL_VERIFY_PEER, nullptr);
+
+		SSL_CTX_set_client_CA_list(SSLCtx, SSL_load_client_CA_file(issuer_cert_file_.c_str()));
+		SSL_CTX_enable_ct(SSLCtx, SSL_CT_VALIDATION_STRICT);
+		SSL_CTX_dane_enable(SSLCtx);
+
+		Context->enableSessionCache();
+		Context->setSessionCacheSize(0);
+		Context->setSessionTimeout(10);
+		Context->enableExtendedCertificateVerification(true);
 	}
 
-	// std::string CAFile = root_ca_ + "/cas.pem";
-	std::string CAFile = root_ca_ + "/issuing.pem";
-
-	std::cout << __LINE__ << std::endl;
-	SSL_CTX_set_verify(SSLCtx, SSL_VERIFY_PEER, NULL);
-	std::cout << __LINE__ << std::endl;
-
-	SSL_CTX_set_client_CA_list(SSLCtx, SSL_load_client_CA_file(CAFile.c_str()));
-	SSL_CTX_enable_ct(SSLCtx,SSL_CT_VALIDATION_STRICT);
-	SSL_CTX_dane_enable(SSLCtx);
-	std::cout << __LINE__ << std::endl;
-
-	Context->enableSessionCache();
-	Context->setSessionCacheSize(0);
-	Context->setSessionTimeout(10);
-	Context->enableExtendedCertificateVerification(true);
-
-	if(address_=="*")
-		return Poco::Net::SecureServerSocket(port_, backlog_,Context);
+	if (address_ == "*")
+		return Poco::Net::SecureServerSocket(port_, backlog_, Context);
 	else {
-		Poco::Net::IPAddress        Addr(address_);
-		Poco::Net::SocketAddress    SockAddr(Addr,port_);
-		return Poco::Net::SecureServerSocket( SockAddr, backlog_, Context);
+		Poco::Net::IPAddress Addr(address_);
+		Poco::Net::SocketAddress SockAddr(Addr, port_);
+		return Poco::Net::SecureServerSocket(SockAddr, backlog_, Context);
 	}
 }
 

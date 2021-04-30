@@ -22,6 +22,7 @@ namespace uCentral::DeviceRegistry {
         bool            Connected;
         uint64_t        LastContact;
         std::string     Firmware;
+		bool 			VerifiedCertificate;
         [[nodiscard]] Poco::JSON::Object to_JSON() const;
     };
 
