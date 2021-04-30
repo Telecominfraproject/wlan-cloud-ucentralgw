@@ -125,13 +125,14 @@ namespace uCentral::WebSocket {
 			// Get the cert info...
 			try {
 				std::cout << __LINE__ << std::endl;
-				if(uCentral::WebSocket::Service().ValidateCertificate(SS->peerCertificate())) {
-					PeerCert_ = std::make_unique<Poco::Crypto::X509Certificate>(SS->peerCertificate());
+				Poco::Crypto::X509Certificate	PeerCert(SS->peerCertificate());
+
+				if(uCentral::WebSocket::Service().ValidateCertificate(PeerCert)) {
 					std::cout << __LINE__ << std::endl;
 					Logger_.information("Validate certificate");
 					std::cout << __LINE__ << std::endl;
 					std::cout << __LINE__ << std::endl;
-					Logger_.information(Poco::format("%s: Certificate: %s", CId_, PeerCert_->commonName()));
+					Logger_.information(Poco::format("%s: Certificate: %s", CId_, PeerCert.commonName()));
 					std::cout << __LINE__ << std::endl;
 				} else {
 					std::cout << __LINE__ << std::endl;
