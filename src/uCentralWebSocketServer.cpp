@@ -106,16 +106,17 @@ namespace uCentral::WebSocket {
 		auto SS = dynamic_cast<Poco::Net::SecureStreamSocketImpl *>(Socket_.impl());
 
 		SS->completeHandshake();
+		std::string HostName = 		SS->getPeerHostName().empty()
+									  ? SS->peerAddress().toString() : SS->getPeerHostName() ;
 
 		if(!SS->secure()) {
-			Logger_.error(Poco::format("%s: Connection is NOT secure.",SS->getPeerHostName()));
+			Logger_.error(Poco::format("%s: Connection is NOT secure.",HostName));
+		} else {
+			Logger_.error(Poco::format("%s: Connection is secure.",HostName));
 		}
 
 		// SSL_CTX * CTX = SS->context()->sslContext();
 		// SSL_SESSION * Sess = SS->currentSession()->sslSession();
-
-		std::string HostName = 		SS->getPeerHostName().empty()
-								   ? SS->peerAddress().toString() : SS->getPeerHostName() ;
 
 		if(SS->havePeerCertificate()) {
 			// Get the cert info...
