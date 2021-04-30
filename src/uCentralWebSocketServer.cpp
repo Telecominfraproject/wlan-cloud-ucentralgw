@@ -90,6 +90,7 @@ namespace uCentral::WebSocket {
             Socket_(socket),
             Logger_(Service::instance()->Logger())
     {
+
 		std::cout << __LINE__ << std::endl;
 		auto SS = dynamic_cast<Poco::Net::SecureStreamSocketImpl *>(Socket_.impl());
 		std::cout << __LINE__ << std::endl;
@@ -104,7 +105,7 @@ namespace uCentral::WebSocket {
 		// SSL_CTX * CTX = SS->context()->sslContext();
 		// SSL_SESSION * Sess = SS->currentSession()->sslSession();
 
-		std::string HostName = SS->getPeerHostName().empty()
+		std::string HostName = 		SS->getPeerHostName().empty()
 								   ? SS->peerAddress().toString() : SS->getPeerHostName() ;
 
 		if(SS->havePeerCertificate()) {
