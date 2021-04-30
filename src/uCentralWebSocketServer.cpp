@@ -38,14 +38,10 @@ namespace uCentral::WebSocket {
     }
 
 	bool Service::ValidateCertificate(const Poco::Crypto::X509Certificate & Certificate) {
-		std::cout << __LINE__ << std::endl;
 		if(IsCertOk()) {
-			std::cout << __LINE__ << std::endl;
 			Logger_.information("Validating the certificate against issuer...");
-			std::cout << __LINE__ << std::endl;
 			return Certificate.issuedBy(*IssuerCert_);
 		}
-		std::cout << __LINE__ << std::endl;
 		return false;
 	}
 
@@ -535,7 +531,7 @@ namespace uCentral::WebSocket {
             }
             catch( Poco::Exception & E )
             {
-                std::cout << "Caught exception while sending." << std::endl;
+                Logger_.log(E);
                 delete this;
             }
         }
@@ -551,7 +547,6 @@ namespace uCentral::WebSocket {
     void WSConnection::OnSocketError(const Poco::AutoPtr<Poco::Net::ErrorNotification>& pNf) {
         std::lock_guard<std::mutex> guard(Mutex_);
 
-        std::cout << "OnSocketError" << std::endl;
         Logger_.information(Poco::format("SOCKET-ERROR(%s): Closing.",CId_));
         delete this;
     }
