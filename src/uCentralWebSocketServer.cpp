@@ -90,38 +90,29 @@ namespace uCentral::WebSocket {
             Socket_(socket),
             Logger_(Service::instance()->Logger())
     {
-		std::cout << __LINE__ << std::endl;
 		auto SS = dynamic_cast<Poco::Net::SecureStreamSocketImpl *>(Socket_.impl());
-		std::cout << __LINE__ << std::endl;
         auto SSL_Ses = SS->currentSession();
 		if(SS->secure())
 			std::cout << "Connection is secure" << std::endl;
 
 		SSL_CTX * CTX = SS->context()->sslContext();
-
-		std::cout << __LINE__ << std::endl;
-
-		// Get the cert info...
-		try {
-			std::cout << __LINE__ << std::endl;
-			auto P = SS->peerCertificate();
-			std::cout << __LINE__ << std::endl;
-			Logger_.information(Poco::format("Certificate: %s",P.commonName()));
-			std::cout << "Got a certificate..." << std::endl;
-		} catch(const Poco::Exception &E) {
-			Logger_.log(E);
+		if(SS->havePeerCertificate()) {
+			// Get the cert info...
+			try {
+				auto P = SS->peerCertificate();
+				Logger_.information(Poco::format("Certificate: %s", P.commonName()));
+				std::cout << "Got a certificate..." << std::endl;
+			} catch (const Poco::Exception &E) {
+				Logger_.log(E);
+			}
+		} else {
+			std::cout << "No certificate..." << std::endl;
 		}
 
-		std::cout << __LINE__ << std::endl;
 		auto Params = Poco::AutoPtr<Poco::Net::HTTPServerParams>(new Poco::Net::HTTPServerParams);
-		std::cout << __LINE__ << std::endl;
         Poco::Net::HTTPServerSession        Session(Socket_, Params);
-		std::cout << __LINE__ << std::endl;
         Poco::Net::HTTPServerResponseImpl   Response(Session);
-		std::cout << __LINE__ << std::endl;
         Poco::Net::HTTPServerRequestImpl    Request(Response,Session,Params);
-
-		std::cout << __LINE__ << std::endl;
 
 		auto Now = time(nullptr);
         Response.setDate(Now);
