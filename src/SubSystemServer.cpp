@@ -106,9 +106,6 @@ Poco::Net::SecureServerSocket PropertiesFileServerEntry::CreateSecureSocket() co
 	Poco::Crypto::X509Certificate	Issueing( root_ca_ + "/issueing.pem");
 	Poco::Crypto::X509Certificate	Root( root_ca_ + "/root.pem");
 
-	SSL_CTX * SSLCtx = Context->sslContext();
-
-	auto S = SSL_CTX_get_client_CA_list(SSLCtx);
 
 	Context->useCertificate(Cert);
 	Context->addChainCertificate(Issueing);
@@ -119,6 +116,13 @@ Poco::Net::SecureServerSocket PropertiesFileServerEntry::CreateSecureSocket() co
 
 	Poco::Crypto::RSAKey            Key("",key_file_,"");
 	Context->usePrivateKey(Key);
+
+	SSL_CTX * SSLCtx = Context->sslContext();
+	if(!SSL_CTX_check_private_key(SSLCtx)) {
+		std::cout << "Key and cert do no match" << std::endl;
+	}
+
+	SSL_CTX_set_verify(SSLCtx, SSL_VERIFY_PEER, NULL);
 
 	// Context->disableStatelessSessionResumption();
 	Context->enableSessionCache();
