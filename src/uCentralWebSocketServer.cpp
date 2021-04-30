@@ -43,7 +43,7 @@ namespace uCentral::WebSocket {
 			std::cout << __LINE__ << std::endl;
 			Logger_.information("Validating the certificate against issuer...");
 			std::cout << __LINE__ << std::endl;
-			return Certificate.issuedBy(*BaseCert_);
+			return Certificate.issuedBy(*IssuerCert_);
 		}
 		std::cout << __LINE__ << std::endl;
 		return false;
@@ -62,8 +62,8 @@ namespace uCentral::WebSocket {
             auto Sock{Svr.CreateSecureSocket(Logger_)};
 
 			if(!IsCertOk()) {
-				BaseCert_ = std::make_unique<Poco::Crypto::X509Certificate>(Svr.issuer_cert_file());
-				std::cout << "Getting base cert:" << BaseCert_->commonName() << std::endl;
+				IssuerCert_ = std::make_unique<Poco::Crypto::X509Certificate>(Svr.issuer_cert_file());
+				Logger_.information(Poco::format("Certificate Issuer Name:%s",IssuerCert_->issuerName()));
 			}
 
             auto NewSocketReactor = std::make_unique<Poco::Net::SocketReactor>();
@@ -104,13 +104,18 @@ namespace uCentral::WebSocket {
         Reactor_->Release();
     }
 
-    WSConnection::WSConnection(Poco::Net::StreamSocket & socket, Poco::Net::SocketReactor & reactor):
+	void WSConnection::LogException(const Poco::Exception &E) {
+		Logger_.information(Poco::format("EXCEPTION(%s): %s",CId_,E.displayText()));
+	}
+
+	WSConnection::WSConnection(Poco::Net::StreamSocket & socket, Poco::Net::SocketReactor & reactor):
             Socket_(socket),
             Logger_(Service::instance()->Logger())
     {
 		auto SS = dynamic_cast<Poco::Net::SecureStreamSocketImpl *>(Socket_.impl());
 
 		SS->completeHandshake();
+
 		CId_ = SS->getPeerHostName().empty() ? SS->peerAddress().toString() : SS->getPeerHostName();
 
 		if(!SS->secure()) {
@@ -119,39 +124,24 @@ namespace uCentral::WebSocket {
 			Logger_.information(Poco::format("%s: Connection is secure.",CId_));
 		}
 
-		// SSL_CTX * CTX = SS->context()->sslContext();
-		// SSL_SESSION * Sess = SS->currentSession()->sslSession();
-
 		if(SS->havePeerCertificate()) {
 			// Get the cert info...
 			try {
-				std::cout << __LINE__ << std::endl;
 				Poco::Crypto::X509Certificate	PeerCert(SS->peerCertificate());
 
 				if(uCentral::WebSocket::Service::instance()->ValidateCertificate(PeerCert)) {
-					std::cout << __LINE__ << std::endl;
-					Logger_.information("Validate certificate");
-					std::cout << __LINE__ << std::endl;
-					std::cout << __LINE__ << std::endl;
-					Logger_.information(Poco::format("%s: Certificate: %s", CId_, PeerCert.commonName()));
-					std::cout << __LINE__ << std::endl;
+					CN_ = PeerCert.commonName();
+					Logger_.information(Poco::format("%s: Valid certificate: CN=%s", CId_, PeerCert.commonName()));
 				} else {
-					std::cout << __LINE__ << std::endl;
 					Logger_.information( Poco::format("%s: Certificate is not valid", CId_));
-					std::cout << __LINE__ << std::endl;
 				}
 			} catch (const Poco::Exception &E) {
-				std::cout << __LINE__ << std::endl;
-				Logger_.log(E);
-				std::cout << __LINE__ << std::endl;
+				LogException(E);
 			}
 		} else {
-			std::cout << __LINE__ << std::endl;
 			Logger_.error(Poco::format("%s: No certificates available..",CId_));
-			std::cout << __LINE__ << std::endl;
 		}
 
-		std::cout << __LINE__ << std::endl;
 		auto Params = Poco::AutoPtr<Poco::Net::HTTPServerParams>(new Poco::Net::HTTPServerParams);
         Poco::Net::HTTPServerSession        Session(Socket_, Params);
         Poco::Net::HTTPServerResponseImpl   Response(Session);
@@ -372,12 +362,15 @@ namespace uCentral::WebSocket {
 				Conn_->Address = WS_->peerAddress().toString();
 				CId_ = SerialNumber_ + "@" + CId_ ;
 
-				Logger_.information(Poco::format("CONNECT(%s): UUID=%Lu Starting.", CId_, UUID));
-
 				//	We need to verify the certificate if we have one
-				if(PeerCert_!= nullptr) {
-
+				if(!CN_.empty() && CN_==SerialNumber_) {
+					Conn_->VerifiedCertificate = true;
+					Logger_.information(Poco::format("CONNECT(%s): Fully validated and authenticated device..", CId_));
 				} else {
+					if(CN_.empty())
+						Logger_.information(Poco::format("CONNECT(%s): Not authenticated or validated.", CId_));
+					else
+						Logger_.information(Poco::format("CONNECT(%s): Authenticated but not validated.", CId_));
 					Conn_->VerifiedCertificate = false;
 				}
 

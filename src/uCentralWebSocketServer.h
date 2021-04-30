@@ -157,6 +157,7 @@ namespace uCentral::WebSocket {
         static Poco::DynamicStruct ExtractCompressedData(const std::string & CompressedData);
         void Register();
         void DeRegister();
+		void LogException(const Poco::Exception &E);
 
     private:
         std::mutex                          Mutex_{};
@@ -169,8 +170,8 @@ namespace uCentral::WebSocket {
         std::map<uint64_t,CommandIDPair>    RPCs_;
         uint64_t                            RPC_ = time(nullptr);
         bool                                Registered_ = false ;
-		std::unique_ptr<Poco::Crypto::X509Certificate>		PeerCert_;
 		std::string 						CId_;
+		std::string							CN_;
     };
 
     struct WebSocketServerEntry {
@@ -197,13 +198,13 @@ namespace uCentral::WebSocket {
             return Factory_.GetAReactor();
         }
 
-		bool IsCertOk() { return BaseCert_!= nullptr; }
-		const Poco::Crypto::X509Certificate & Certificate() const { return *BaseCert_; }
+		bool IsCertOk() { return IssuerCert_!= nullptr; }
+		const Poco::Crypto::X509Certificate & Certificate() const { return *IssuerCert_; }
 		bool ValidateCertificate(const Poco::Crypto::X509Certificate & Certificate);
 
     private:
         static Service *instance_;
-		std::unique_ptr<Poco::Crypto::X509Certificate>	BaseCert_;
+		std::unique_ptr<Poco::Crypto::X509Certificate>	IssuerCert_;
 
         int Start() override;
         void Stop() override;
