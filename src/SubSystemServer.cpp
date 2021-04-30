@@ -115,6 +115,7 @@ Poco::Net::SecureServerSocket PropertiesFileServerEntry::CreateSecureSocket(Poco
 
 		Context->useCertificate(Cert);
 		Context->addChainCertificate(Root);
+
 		Context->addCertificateAuthority(Root);
 		std::cout << __LINE__ << std::endl;
 
@@ -206,8 +207,6 @@ void PropertiesFileServerEntry::log_cert_info(Poco::Logger &L, const Poco::Crypt
 	L.information(Poco::format(">         Version: %d",(int)C.version()));
 	L.information(Poco::format(">        Serial #: %s",C.serialNumber()));
 	L.information("=============================================================================================");
-
-
 }
 
 void PropertiesFileServerEntry::log_cert(Poco::Logger & L) const {
@@ -218,6 +217,34 @@ void PropertiesFileServerEntry::log_cert(Poco::Logger & L) const {
 		L.information(Poco::format("Certificate Filename: %s",cert_file_));
 		log_cert_info(L,C);
 		L.information("=============================================================================================");
+
+		if(!issuer_cert_file_.empty()) {
+			Poco::Crypto::X509Certificate C(issuer_cert_file_);
+			L.information("=============================================================================================");
+			L.information("=============================================================================================");
+			L.information(Poco::format("Issues Certificate Filename: %s",issuer_cert_file_));
+			log_cert_info(L,C);
+			L.information("=============================================================================================");
+		}
+
+		if(!client_cas_.empty()) {
+			std::vector<Poco::Crypto::X509Certificate> Certs=Poco::Net::X509Certificate::readPEM(client_cas_);
+
+			L.information("=============================================================================================");
+			L.information("=============================================================================================");
+			L.information(Poco::format("Client CAs Filename: %s",client_cas_));
+			L.information("=============================================================================================");
+			auto i=1;
+			for(const auto & C : Certs)
+			{
+				L.information(Poco::format(" Index: %d",i));
+				L.information("=============================================================================================");
+				log_cert_info(L, C);
+				i++;
+			}
+			L.information("=============================================================================================");
+		}
+
 	} catch( const Poco::Exception & E) {
 		L.log(E);
 	}
