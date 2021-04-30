@@ -159,6 +159,7 @@ Once your build is done. You can remove the Poco source as it is no longer neede
 #### Expected directory layout
 From the directory where your cloned source is, you will need to create the `certs`, `logs`, and `uploads` directories.
 ```shell
+mkdir certs/cas
 mkdir certs
 mkdir logs
 mkdir uploads
@@ -263,13 +264,59 @@ ucentral.restapi.host.0.key.password = mypassword
 ```
 
 ###### This is the end point for the devices to connect with
+This is the crucial section. I bet that 97.4% of all your problems will come from here, and it's boring. So put some good music on, 
+give the kids the iPad, get a cup of coffee, and pay attention. Every field will be explained.
+
+####### ucentral.websocket.host.0.backlog
+This is the number of concurrent devices you are expecting to call all at once. Not the current number of devices. This is how many will connect in the same exact second. 
+Take the total number of devices you have and divide by 100. That's a good rule of thumb. Never go above 500.
+
+####### ucentral.websocket.host.0.rootca
+This is the root file as supplied by Digicert. You can find it [here](https://github.com/Telecominfraproject/wlan-cloud-ucentralgw/blob/main/certificates/root.pem) 
+
+####### ucentral.websocket.host.0.issuer
+This is the issuer file as supplied by Digicert. You can find it [here](https://github.com/Telecominfraproject/wlan-cloud-ucentralgw/blob/main/certificates/issuer.pem)
+
+####### ucentral.websocket.host.0.cert
+This is a `pem` file that you will receive from Digicert for the gateway itself. This is the certificate for the gateway. 
+
+####### ucentral.websocket.host.0.key
+This is a `pem` file that you will receive from Digicert for the gateway itself. The is the private key for the gateway.
+
+####### ucentral.websocket.host.0.clientcas
+This is a `pem` file that contains both the issuer and the root CA certificates. You can find it You can find it [here](https://github.com/Telecominfraproject/wlan-cloud-ucentralgw/blob/main/certificates/clientcas.pem)
+
+####### ucentral.websocket.host.0.cas
+This is a directory where you will copy your own `cert.pem`, the `root.pem`, and the `issuer.pem` files.
+
+####### ucentral.websocket.host.0.address
+Leve this a `*` in teh case you want to bind to all interfaces on your gateway host or select the address of a single interface.
+
+####### ucentral.websocket.host.0.port
+Leave to 15002 for now. 
+
+####### ucentral.websocket.host.0.security
+Leave this as strict for now for devices.
+
+####### ucentral.websocket.host.0.key.password
+If you key file uses a password, please enter it here.
+
+####### ucentral.websocket.maxreactors
+A single reactor can handle between 1000-2000 devices. Never leave this smaller than 5 or larger than 50.
+
+###### Conclusion 
+You will need to get the `cert.pem` and `key.pem` from Digicert. The rest is here.
+
 ```asm
 ucentral.websocket.host.0.backlog = 500
-ucentral.websocket.host.0.rootca = $UCENTRAL_ROOT/certs/rootca.pem
+ucentral.websocket.host.0.rootca = $UCENTRAL_ROOT/certs/root.pem
+ucentral.websocket.host.0.issuer = $UCENTRAL_ROOT/certs/issuer.pem
+ucentral.websocket.host.0.cert = $UCENTRAL_ROOT/certs/websocket-cert.pem
+ucentral.websocket.host.0.key = $UCENTRAL_ROOT/certs/websocket-key.pem
+ucentral.websocket.host.0.clientcas = $UCENTRAL_ROOT/certs/clientcas.pem
+ucentral.websocket.host.0.cas = $UCENTRAL_ROOT/certs/cas
 ucentral.websocket.host.0.address = *
 ucentral.websocket.host.0.port = 15002
-ucentral.websocket.host.0.cert = $UCENTRAL_ROOT/certs/server-cert.pem
-ucentral.websocket.host.0.key = $UCENTRAL_ROOT/certs/server-key.pem
 ucentral.websocket.host.0.security = strict
 ucentral.websocket.host.0.key.password = mypassword
 ucentral.websocket.maxreactors = 20
@@ -302,6 +349,18 @@ This must point to the IP or FQDN of your uCentralGW.
 #### Running the gateway
 Tu run the gateway, you must run the executable `ucentralgw`. You can use several command line options to run as a daemon or specify the configuration file location. 
 
+#### Device configuration
+Once you have the gateway configured, you will need to have some devices coming to it. For now, you will need to get
+the following in order to use the gateway:
+- A DigiCert certificate that you will call `cert.pem`
+- A DigiCert key that goes with that certificate. Please call this `key.pem`
+- The Digicert root certificate that you will find [here](https://github.com/Telecominfraproject/wlan-cloud-ucentralgw/blob/main/certificates/root.pem)
+
+You will need to upgrade your device to the latest firmware. Once updated, you will need to copy the 3 files mentionned above in 
+  the `/etc/ucentral` directory. You will need to modify the `/etc/config-shadow/ucentral` file with your hostname. At which point, 
+  you should be able to restart the uCentral client with `/etc/init.d/ucentral restart`. Then the command `logread -f` should tell you
+  if you device was able to connect to the gateway.
+ 
 #### Command line options
 The current implementation supports the following. If you use the built-in configuration file, you do not need to use any command-line
 options. However, you may decide to use the `--daemon` or `umask` options. 
