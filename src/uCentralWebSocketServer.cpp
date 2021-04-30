@@ -94,7 +94,8 @@ namespace uCentral::WebSocket {
 
 		try {
 			auto P = SS->peerCertificate();
-			Logger_.information(Poco::format("Certificate: %s",P.commonName()));
+			// Logger_.information(Poco::format("Certificate: %s",P.commonName()));
+			std::cout << "Got a certificate..." << std::endl;
 		} catch(const Poco::Exception &E) {
 			Logger_.log(E);
 		}
