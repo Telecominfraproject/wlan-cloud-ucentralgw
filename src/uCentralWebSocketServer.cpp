@@ -107,9 +107,13 @@ namespace uCentral::WebSocket {
 			Logger_.log(E);
 		}
 
+		std::cout << __LINE__ << std::endl;
 		auto Params = Poco::AutoPtr<Poco::Net::HTTPServerParams>();
+		std::cout << __LINE__ << std::endl;
         Poco::Net::HTTPServerSession        Session(Socket_, Params);
+		std::cout << __LINE__ << std::endl;
         Poco::Net::HTTPServerResponseImpl   Response(Session);
+		std::cout << __LINE__ << std::endl;
         Poco::Net::HTTPServerRequestImpl    Request(Response,Session,Params);
 
 		std::cout << __LINE__ << std::endl;
