@@ -90,17 +90,13 @@ namespace uCentral::WebSocket {
             Socket_(socket),
             Logger_(Service::instance()->Logger())
     {
-
-		std::cout << __LINE__ << std::endl;
 		auto SS = dynamic_cast<Poco::Net::SecureStreamSocketImpl *>(Socket_.impl());
-		std::cout << __LINE__ << std::endl;
 
 		SS->completeHandshake();
 
 		if(!SS->secure()) {
 			Logger_.error(Poco::format("%s: Connection is NOT secure.",SS->getPeerHostName()));
 		}
-		std::cout << __LINE__ << std::endl;
 
 		// SSL_CTX * CTX = SS->context()->sslContext();
 		// SSL_SESSION * Sess = SS->currentSession()->sslSession();
@@ -109,40 +105,28 @@ namespace uCentral::WebSocket {
 								   ? SS->peerAddress().toString() : SS->getPeerHostName() ;
 
 		if(SS->havePeerCertificate()) {
-			std::cout << __LINE__ << std::endl;
 			// Get the cert info...
 			try {
-				std::cout << __LINE__ << std::endl;
 				auto P = SS->peerCertificate();
 				Logger_.information(Poco::format("%s: Certificate: %s", HostName, P.commonName()));
-				std::cout << __LINE__ << std::endl;
 			} catch (const Poco::Exception &E) {
 				Logger_.log(E);
-				std::cout << __LINE__ << std::endl;
 			}
 		} else {
-			std::cout << __LINE__ << std::endl;
 			Logger_.error(Poco::format("%s: No certificates available..",HostName));
 		}
 
-		std::cout << __LINE__ << std::endl;
 		auto Params = Poco::AutoPtr<Poco::Net::HTTPServerParams>(new Poco::Net::HTTPServerParams);
-		std::cout << __LINE__ << std::endl;
         Poco::Net::HTTPServerSession        Session(Socket_, Params);
-		std::cout << __LINE__ << std::endl;
         Poco::Net::HTTPServerResponseImpl   Response(Session);
-		std::cout << __LINE__ << std::endl;
         Poco::Net::HTTPServerRequestImpl    Request(Response,Session,Params);
-		std::cout << __LINE__ << std::endl;
 
 		auto Now = time(nullptr);
-		std::cout << __LINE__ << std::endl;
         Response.setDate(Now);
         Response.setVersion(Request.getVersion());
         Response.setKeepAlive(Params->getKeepAlive() && Request.getKeepAlive() && Session.canKeepAlive());
         WS_ = std::make_unique<Poco::Net::WebSocket>(Request, Response);
 		WS_->setMaxPayloadSize(BufSize);
-		std::cout << __LINE__ << std::endl;
 
         Register();
     }
