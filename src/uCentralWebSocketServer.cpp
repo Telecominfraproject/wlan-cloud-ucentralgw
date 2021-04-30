@@ -98,8 +98,6 @@ namespace uCentral::WebSocket {
 
 		// Get the cert info...
 		try {
-			SSL_SESSION * S = SSL_Ses->sslSession();
-			X509 *C=SSL_SESSION_get0_peer(S);
 			std::cout << __LINE__ << std::endl;
 			auto P = SS->peerCertificate();
 			std::cout << __LINE__ << std::endl;
