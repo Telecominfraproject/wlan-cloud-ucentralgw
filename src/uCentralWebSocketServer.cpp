@@ -94,6 +94,11 @@ namespace uCentral::WebSocket {
 		auto SS = dynamic_cast<Poco::Net::SecureStreamSocketImpl *>(Socket_.impl());
 		std::cout << __LINE__ << std::endl;
         auto SSL_Ses = SS->currentSession();
+		if(SS->secure())
+			std::cout << "Connection is secure" << std::endl;
+
+		SSL_CTX * CTX = SS->context()->sslContext();
+
 		std::cout << __LINE__ << std::endl;
 
 		// Get the cert info...
