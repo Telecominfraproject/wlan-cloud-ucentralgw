@@ -170,6 +170,7 @@ namespace uCentral::WebSocket {
         uint64_t                            RPC_ = time(nullptr);
         bool                                Registered_ = false ;
 		std::unique_ptr<Poco::Crypto::X509Certificate>		PeerCert_;
+		std::string 						CId_;
     };
 
     struct WebSocketServerEntry {
