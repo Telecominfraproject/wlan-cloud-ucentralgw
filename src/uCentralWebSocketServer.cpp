@@ -90,13 +90,18 @@ namespace uCentral::WebSocket {
             Socket_(socket),
             Logger_(Service::instance()->Logger())
     {
-		auto SS = dynamic_cast<Poco::Net::SecureSocketImpl *>(Socket_.impl());
+		std::cout << __LINE__ << std::endl;
+		auto SS = dynamic_cast<Poco::Net::SecureStreamSocketImpl *>(Socket_.impl());
+		std::cout << __LINE__ << std::endl;
         auto SSL_Ses = SS->currentSession();
+		std::cout << __LINE__ << std::endl;
 
 		auto Params = Poco::AutoPtr<Poco::Net::HTTPServerParams>(new Poco::Net::HTTPServerParams());
         Poco::Net::HTTPServerSession        Session(Socket_, Params);
         Poco::Net::HTTPServerResponseImpl   Response(Session);
         Poco::Net::HTTPServerRequestImpl    Request(Response,Session,Params);
+
+		std::cout << __LINE__ << std::endl;
 
         auto Now = time(nullptr);
         Response.setDate(Now);
@@ -107,8 +112,10 @@ namespace uCentral::WebSocket {
 
 		// Get the cert info...
 		try {
-			X509 * P = SS->peerCertificate();
-			// Logger_.information(Poco::format("Certificate: %s",P.));
+			std::cout << __LINE__ << std::endl;
+			auto P = SS->peerCertificate();
+			std::cout << __LINE__ << std::endl;
+			Logger_.information(Poco::format("Certificate: %s",P.commonName()));
 			std::cout << "Got a certificate..." << std::endl;
 		} catch(const Poco::Exception &E) {
 			Logger_.log(E);
