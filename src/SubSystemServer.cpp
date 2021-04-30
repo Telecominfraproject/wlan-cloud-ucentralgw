@@ -119,15 +119,18 @@ Poco::Net::SecureServerSocket PropertiesFileServerEntry::CreateSecureSocket(Poco
 		std::cout << __LINE__ << std::endl;
 
 		if (level_ == Poco::Net::Context::VERIFY_STRICT) {
+			std::cout << __LINE__ << std::endl;
 			if (issuer_cert_file_.empty()) {
 				L.fatal("In strict mode, you must supply ans issuer certificate");
 			}
 			if(client_cas_.empty()) {
 				L.fatal("In strict mode, client cas must be supplied");
 			}
+			std::cout << __LINE__ << std::endl;
 			Poco::Crypto::X509Certificate Issuing(issuer_cert_file_);
 			Context->addChainCertificate(Issuing);
 			Context->addCertificateAuthority(Issuing);
+			std::cout << __LINE__ << std::endl;
 		}
 		std::cout << __LINE__ << std::endl;
 
@@ -143,8 +146,10 @@ Poco::Net::SecureServerSocket PropertiesFileServerEntry::CreateSecureSocket(Poco
 
 		SSL_CTX_set_verify(SSLCtx, SSL_VERIFY_PEER, nullptr);
 
-		if(level_==Poco::Net::Context::VERIFY_STRICT)
+		if(level_==Poco::Net::Context::VERIFY_STRICT) {
+			std::cout << __LINE__ << std::endl;
 			SSL_CTX_set_client_CA_list(SSLCtx, SSL_load_client_CA_file(client_cas_.c_str()));
+		}
 		SSL_CTX_enable_ct(SSLCtx, SSL_CT_VALIDATION_STRICT);
 		SSL_CTX_dane_enable(SSLCtx);
 		std::cout << __LINE__ << std::endl;
