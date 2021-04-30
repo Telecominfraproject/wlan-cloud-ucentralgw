@@ -93,6 +93,9 @@ namespace uCentral::WebSocket {
 		std::cout << __LINE__ << std::endl;
 		auto SS = dynamic_cast<Poco::Net::SecureStreamSocketImpl *>(Socket_.impl());
 		std::cout << __LINE__ << std::endl;
+
+		SS->completeHandshake();
+
 		if(!SS->secure()) {
 			Logger_.error(Poco::format("%s: Connection is NOT secure.",SS->getPeerHostName()));
 		}
@@ -101,13 +104,16 @@ namespace uCentral::WebSocket {
 		// SSL_CTX * CTX = SS->context()->sslContext();
 		// SSL_SESSION * Sess = SS->currentSession()->sslSession();
 
+		std::string HostName = SS->getPeerHostName().empty()
+								   ? SS->peerAddress().toString() : SS->getPeerHostName() ;
+
 		if(SS->havePeerCertificate()) {
 			std::cout << __LINE__ << std::endl;
 			// Get the cert info...
 			try {
 				std::cout << __LINE__ << std::endl;
 				auto P = SS->peerCertificate();
-				Logger_.information(Poco::format("%s: Certificate: %s", SS->getPeerHostName(), P.commonName()));
+				Logger_.information(Poco::format("%s: Certificate: %s", HostName, P.commonName()));
 				std::cout << __LINE__ << std::endl;
 			} catch (const Poco::Exception &E) {
 				Logger_.log(E);
@@ -115,7 +121,7 @@ namespace uCentral::WebSocket {
 			}
 		} else {
 			std::cout << __LINE__ << std::endl;
-			Logger_.error(Poco::format("%s: No certificates available..",SS->getPeerHostName()));
+			Logger_.error(Poco::format("%s: No certificates available..",HostName));
 		}
 
 		std::cout << __LINE__ << std::endl;
