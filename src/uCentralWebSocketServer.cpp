@@ -38,10 +38,14 @@ namespace uCentral::WebSocket {
     }
 
 	bool Service::ValidateCertificate(const Poco::Crypto::X509Certificate & Certificate) {
+		std::cout << __LINE__ << std::endl;
 		if(IsCertOk()) {
+			std::cout << __LINE__ << std::endl;
 			Logger_.information("Validating the certificate against issuer...");
+			std::cout << __LINE__ << std::endl;
 			return Certificate.issuedBy(*BaseCert_);
 		}
+		std::cout << __LINE__ << std::endl;
 		return false;
 	}
 
@@ -112,7 +116,7 @@ namespace uCentral::WebSocket {
 		if(!SS->secure()) {
 			Logger_.error(Poco::format("%s: Connection is NOT secure.",HostName));
 		} else {
-			Logger_.error(Poco::format("%s: Connection is secure.",HostName));
+			Logger_.information(Poco::format("%s: Connection is secure.",HostName));
 		}
 
 		// SSL_CTX * CTX = SS->context()->sslContext();
@@ -123,17 +127,27 @@ namespace uCentral::WebSocket {
 			try {
 				auto P = SS->peerCertificate();
 				PeerCert_ = std::make_unique<Poco::Crypto::X509Certificate>(P);
+				std::cout << __LINE__ << std::endl;
 				if(uCentral::WebSocket::Service().ValidateCertificate(*PeerCert_)) {
+					std::cout << __LINE__ << std::endl;
 					Logger_.information("Validate certificate");
+					std::cout << __LINE__ << std::endl;
 				}
+				std::cout << __LINE__ << std::endl;
 				Logger_.information(Poco::format("%s: Certificate: %s", HostName, PeerCert_->commonName()));
+				std::cout << __LINE__ << std::endl;
 			} catch (const Poco::Exception &E) {
+				std::cout << __LINE__ << std::endl;
 				Logger_.log(E);
+				std::cout << __LINE__ << std::endl;
 			}
 		} else {
+			std::cout << __LINE__ << std::endl;
 			Logger_.error(Poco::format("%s: No certificates available..",HostName));
+			std::cout << __LINE__ << std::endl;
 		}
 
+		std::cout << __LINE__ << std::endl;
 		auto Params = Poco::AutoPtr<Poco::Net::HTTPServerParams>(new Poco::Net::HTTPServerParams);
         Poco::Net::HTTPServerSession        Session(Socket_, Params);
         Poco::Net::HTTPServerResponseImpl   Response(Session);
