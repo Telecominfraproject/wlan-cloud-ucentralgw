@@ -63,6 +63,7 @@ namespace uCentral::WebSocket {
 
 			if(!IsCertOk()) {
 				BaseCert_ = std::make_unique<Poco::Crypto::X509Certificate>(Svr.cert_file());
+				std::cout << "Getting base cert:" << BaseCert_->commonName() << std::endl;
 			}
 
             auto NewSocketReactor = std::make_unique<Poco::Net::SocketReactor>();
@@ -127,7 +128,7 @@ namespace uCentral::WebSocket {
 				std::cout << __LINE__ << std::endl;
 				Poco::Crypto::X509Certificate	PeerCert(SS->peerCertificate());
 
-				if(uCentral::WebSocket::Service().ValidateCertificate(PeerCert)) {
+				if(uCentral::WebSocket::Service::instance()->ValidateCertificate(PeerCert)) {
 					std::cout << __LINE__ << std::endl;
 					Logger_.information("Validate certificate");
 					std::cout << __LINE__ << std::endl;
