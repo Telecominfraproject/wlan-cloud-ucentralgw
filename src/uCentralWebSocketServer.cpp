@@ -62,7 +62,7 @@ namespace uCentral::WebSocket {
             auto Sock{Svr.CreateSecureSocket(Logger_)};
 
 			if(!IsCertOk()) {
-				BaseCert_ = std::make_unique<Poco::Crypto::X509Certificate>(Svr.cert_file());
+				BaseCert_ = std::make_unique<Poco::Crypto::X509Certificate>(Svr.issuer_cert_file());
 				std::cout << "Getting base cert:" << BaseCert_->commonName() << std::endl;
 			}
 
