@@ -108,7 +108,7 @@ namespace uCentral::WebSocket {
 		}
 
 		std::cout << __LINE__ << std::endl;
-		auto Params = Poco::AutoPtr<Poco::Net::HTTPServerParams>();
+		auto Params = Poco::AutoPtr<Poco::Net::HTTPServerParams>(new Poco::Net::HTTPServerParams);
 		std::cout << __LINE__ << std::endl;
         Poco::Net::HTTPServerSession        Session(Socket_, Params);
 		std::cout << __LINE__ << std::endl;
