@@ -106,6 +106,8 @@ components:
         lastConfigurationDownload:
           type: string
           format: 'date-time'
+        firmware:
+          type: string
 
     DeviceList:
       type: object
