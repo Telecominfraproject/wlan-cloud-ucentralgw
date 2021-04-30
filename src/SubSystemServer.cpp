@@ -144,7 +144,7 @@ Poco::Net::SecureServerSocket PropertiesFileServerEntry::CreateSecureSocket(Poco
 		}
 		std::cout << __LINE__ << std::endl;
 
-		SSL_CTX_set_verify(SSLCtx, SSL_VERIFY_PEER, nullptr);
+		SSL_CTX_set_verify(SSLCtx, SSL_VERIFY_PEER, NULL);
 
 		if(level_==Poco::Net::Context::VERIFY_STRICT) {
 			std::cout << __LINE__ << std::endl;
