@@ -45,6 +45,7 @@ void SubSystemServer::initialize(Poco::Util::Application & self)
 			std::string rootca{root+"rootca"};
 			std::string issuer{root+"issuer"};
 			std::string clientcas(root+"clientcas");
+			std::string cas{root+"cas"};
 
 			std::string level{root+"security"};
 			Poco::Net::Context::VerificationMode	M=Poco::Net::Context::VERIFY_RELAXED;
@@ -67,6 +68,7 @@ void SubSystemServer::initialize(Poco::Util::Application & self)
 											   uCentral::ServiceConfig::getString(rootca,""),
 												uCentral::ServiceConfig::getString(issuer,""),
 											uCentral::ServiceConfig::getString(clientcas,""),
+											uCentral::ServiceConfig::getString(cas,""),
                                                uCentral::ServiceConfig::getString(key_password,""),
                                                uCentral::ServiceConfig::getString(name,""),
 												uCentral::ServiceConfig::getBool(x509,false),
@@ -100,7 +102,7 @@ Poco::Net::SecureServerSocket PropertiesFileServerEntry::CreateSecureSocket(Poco
 	P.loadDefaultCAs = root_ca_.empty();
 	P.cipherList = "ALL:!ADH:!LOW:!EXP:!MD5:@STRENGTH";
 	P.dhUse2048Bits = true;
-	P.caLocation = root_ca_;
+	P.caLocation = cas_;
 	std::cout << __LINE__ << std::endl;
 
 	auto Context = new Poco::Net::Context(Poco::Net::Context::TLS_SERVER_USE, P);
