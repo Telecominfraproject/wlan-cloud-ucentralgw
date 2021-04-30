@@ -134,7 +134,7 @@ namespace uCentral::WebSocket {
 					std::cout << __LINE__ << std::endl;
 				}
 				std::cout << __LINE__ << std::endl;
-				Logger_.information(Poco::format("%s: Certificate: %s", HostName, PeerCert_->commonName()));
+				Logger_.information(Poco::format("%s: Certificate: %s", HostName, P.commonName()));
 				std::cout << __LINE__ << std::endl;
 			} catch (const Poco::Exception &E) {
 				std::cout << __LINE__ << std::endl;
