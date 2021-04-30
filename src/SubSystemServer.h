@@ -24,6 +24,7 @@ public:
                                	std::string Cert_file,
 								std::string RootCa,
 								std::string Issuer,
+								std::string ClientCas,
                                	std::string Key_file_password = "",
                                	std::string Name="",
 								bool x509=false,
@@ -35,6 +36,7 @@ public:
             cert_file_(std::move(Cert_file)),
 			root_ca_(std::move(RootCa)),
 			issuer_cert_file_(std::move(Issuer)),
+			client_cas_(std::move(ClientCas)),
             key_file_password_(std::move(Key_file_password)),
             name_(std::move(Name)),
 		    is_x509_(x509),
@@ -63,6 +65,7 @@ private:
 	std::string 	root_ca_;
     std::string     key_file_password_;
 	std::string 	issuer_cert_file_;
+	std::string 	client_cas_;
     uint32_t        port_;
     std::string     name_;
 	bool 			is_x509_;

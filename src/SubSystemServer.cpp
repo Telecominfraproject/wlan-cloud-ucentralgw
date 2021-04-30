@@ -44,6 +44,7 @@ void SubSystemServer::initialize(Poco::Util::Application & self)
 			std::string backlog{root+"backlog"};
 			std::string rootca{root+"rootca"};
 			std::string issuer{root+"issuer"};
+			std::string clientcas(root+"clientcas");
 
 			std::string level{root+"security"};
 			Poco::Net::Context::VerificationMode	M=Poco::Net::Context::VERIFY_RELAXED;
@@ -65,6 +66,7 @@ void SubSystemServer::initialize(Poco::Util::Application & self)
                                                uCentral::ServiceConfig::getString(cert,""),
 											   uCentral::ServiceConfig::getString(rootca,""),
 												uCentral::ServiceConfig::getString(issuer,""),
+											uCentral::ServiceConfig::getString(clientcas,""),
                                                uCentral::ServiceConfig::getString(key_password,""),
                                                uCentral::ServiceConfig::getString(name,""),
 												uCentral::ServiceConfig::getBool(x509,false),
@@ -120,6 +122,9 @@ Poco::Net::SecureServerSocket PropertiesFileServerEntry::CreateSecureSocket(Poco
 			if (issuer_cert_file_.empty()) {
 				L.fatal("In strict mode, you must supply ans issuer certificate");
 			}
+			if(client_cas_.empty()) {
+				L.fatal("In strict mode, client cas must be supplied");
+			}
 			Poco::Crypto::X509Certificate Issuing(issuer_cert_file_);
 			Context->addChainCertificate(Issuing);
 			Context->addCertificateAuthority(Issuing);
@@ -138,7 +143,8 @@ Poco::Net::SecureServerSocket PropertiesFileServerEntry::CreateSecureSocket(Poco
 
 		SSL_CTX_set_verify(SSLCtx, SSL_VERIFY_PEER, nullptr);
 
-		SSL_CTX_set_client_CA_list(SSLCtx, SSL_load_client_CA_file(issuer_cert_file_.c_str()));
+		if(level_==Poco::Net::Context::VERIFY_STRICT)
+			SSL_CTX_set_client_CA_list(SSLCtx, SSL_load_client_CA_file(client_cas_.c_str()));
 		SSL_CTX_enable_ct(SSLCtx, SSL_CT_VALIDATION_STRICT);
 		SSL_CTX_dane_enable(SSLCtx);
 		std::cout << __LINE__ << std::endl;
