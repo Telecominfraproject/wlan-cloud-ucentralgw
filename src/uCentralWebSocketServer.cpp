@@ -92,14 +92,6 @@ namespace uCentral::WebSocket {
     {
 		auto *SS = reinterpret_cast<Poco::Net::SecureStreamSocketImpl *>(socket.impl());
 
-		try {
-			auto P = SS->peerCertificate();
-			// Logger_.information(Poco::format("Certificate: %s",P.commonName()));
-			std::cout << "Got a certificate..." << std::endl;
-		} catch(const Poco::Exception &E) {
-			Logger_.log(E);
-		}
-
         auto Params = Poco::AutoPtr<Poco::Net::HTTPServerParams>(new Poco::Net::HTTPServerParams());
         Poco::Net::HTTPServerSession        Session(Socket_, Params);
         Poco::Net::HTTPServerResponseImpl   Response(Session);
@@ -113,6 +105,13 @@ namespace uCentral::WebSocket {
 		WS_->setMaxPayloadSize(BufSize);
 
 		// Get the cert info...
+		try {
+			auto P = SS->peerCertificate();
+			// Logger_.information(Poco::format("Certificate: %s",P.commonName()));
+			std::cout << "Got a certificate..." << std::endl;
+		} catch(const Poco::Exception &E) {
+			Logger_.log(E);
+		}
         Register();
     }
 
