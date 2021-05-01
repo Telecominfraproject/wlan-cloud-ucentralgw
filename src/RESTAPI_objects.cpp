@@ -48,7 +48,8 @@ bool uCentralDevice::from_json(Poco::JSON::Object::Ptr Obj) {
         MACAddress = ds["macAddress"].toString();
 		std::cout << __LINE__ << std::endl;
         UUID = ds["UUID"];
-        // Configuration = ds["configuration"].toString();
+
+		Configuration = ds["configuration"].toString();
 
 		std::cout << __LINE__ << std::endl;
         if(ds.contains("notes"))
