@@ -18,6 +18,6 @@ webtoken=`./login.sh | jq -r '.access_token'`
 curl -X POST "https://localhost:16001/api/v1/blacklist" \
       -H  "accept: application/json" \
       -H "Authorization: Bearer $webtoken" \
-      --insecure -d $payload
+      -d $payload
 
 

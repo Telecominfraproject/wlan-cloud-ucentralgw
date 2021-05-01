@@ -16,7 +16,8 @@ payload="{ \"serialNumber\" : \"$serial\" , \"verbose\" : true }"
 webtoken=`./login.sh | jq -r '.access_token'`
 
 curl -X POST \
+      --max-time 20 \
       -H "accept: application/json" \
       -H "Authorization: Bearer $webtoken" \
       --insecure -d "$payload" \
-      "https://localhost:16001/api/v1/device/$serial/wifiscan"
+      "https://ucentral.dpaas.arilia.com:16001/api/v1/device/$serial/wifiscan"
