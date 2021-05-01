@@ -18,8 +18,9 @@ Poco::JSON::Object uCentralDevice::to_json() const
     Obj.set("manufacturer",Manufacturer);
     Obj.set("UUID",UUID);
 
+	std::string C = Configuration.empty() ? "{}" : Configuration;
 	Poco::JSON::Parser	P;
-	Poco::Dynamic::Var result = P.parse(Configuration);
+	Poco::Dynamic::Var result = P.parse(C);
 	const auto & CfgObj = result.extract<Poco::JSON::Object::Ptr>();
 	Obj.set("configuration",CfgObj);
 
@@ -74,11 +75,11 @@ Poco::JSON::Object uCentralStatistics::to_json() const {
     Poco::JSON::Object  Obj;
     Obj.set("UUID",UUID);
 
+	std::string D = Data.empty() ? "{}" : Data;
 	Poco::JSON::Parser	P;
-	Poco::Dynamic::Var result = P.parse(Data);
+	Poco::Dynamic::Var result = P.parse(D);
 	const auto & CfgObj = result.extract<Poco::JSON::Object::Ptr>();
 	Obj.set("data",CfgObj);
-
 	Obj.set("recorded",RESTAPIHandler::to_RFC3339(Recorded));
     return Obj;
 }
@@ -87,8 +88,9 @@ Poco::JSON::Object uCentralCapabilities::to_json() const {
 
     Poco::JSON::Object  Obj;
 
+	std::string C = Capabilities.empty() ? "{}" : Capabilities;
 	Poco::JSON::Parser	P;
-	Poco::Dynamic::Var result = P.parse(Capabilities);
+	Poco::Dynamic::Var result = P.parse(C);
 	const auto & CfgObj = result.extract<Poco::JSON::Object::Ptr>();
 	Obj.set("capabilities",CfgObj);
 
@@ -103,8 +105,10 @@ Poco::JSON::Object uCentralDeviceLog::to_json() const
     Obj.set("log",Log);
     Obj.set("severity",Severity);
 
+	std::string D = Data.empty() ? "{}" : Data;
+
 	Poco::JSON::Parser	P;
-	Poco::Dynamic::Var result = P.parse(Data);
+	Poco::Dynamic::Var result = P.parse(D);
 	const auto & CfgObj = result.extract<Poco::JSON::Object::Ptr>();
 	Obj.set("data",CfgObj);
 
@@ -117,8 +121,9 @@ Poco::JSON::Object  uCentralHealthCheck::to_json() const {
     Poco::JSON::Object  Obj;
     Obj.set("UUID",UUID);
 
+	std::string D = Data.empty() ? "{}" : Data;
 	Poco::JSON::Parser	P;
-	Poco::Dynamic::Var result = P.parse(Data);
+	Poco::Dynamic::Var result = P.parse(D);
 	const auto & CfgObj = result.extract<Poco::JSON::Object::Ptr>();
 	Obj.set("values",CfgObj);
 
@@ -141,8 +146,9 @@ Poco::JSON::Object uCentralDefaultConfiguration::to_json() const {
     Obj.set("modelIds",Models);
     Obj.set("description",Description);
 
+	std::string C = Configuration.empty() ? "{}" : Configuration ;
 	Poco::JSON::Parser	P;
-	Poco::Dynamic::Var result = P.parse(Configuration);
+	Poco::Dynamic::Var result = P.parse(C);
 	const auto & CfgObj = result.extract<Poco::JSON::Object::Ptr>();
 	Obj.set("configuration",CfgObj);
 
@@ -157,14 +163,16 @@ Poco::JSON::Object uCentralCommandDetails::to_json() const {
     Obj.set("serialNumber",SerialNumber);
     Obj.set("command",Command);
 
-	if(!Details.empty()) {
+	{
+		std::string D = Details.empty() ? "{}" : Details;
 		Poco::JSON::Parser P;
-		Poco::Dynamic::Var result = P.parse(Details);
+		Poco::Dynamic::Var result = P.parse(D);
 		const auto &DetailsObj = result.extract<Poco::JSON::Object::Ptr>();
 		Obj.set("details", DetailsObj);
 	}
 
-	if(!Results.empty()) {
+	{
+		std::string D = Results.empty() ? "{}" : Results;
 		Poco::JSON::Parser P;
 		Poco::Dynamic::Var result = P.parse(Results);
 		const auto &ResultsObj = result.extract<Poco::JSON::Object::Ptr>();

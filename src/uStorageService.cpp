@@ -2677,7 +2677,6 @@ namespace uCentral::Storage {
 			for(auto &i:Devices) {
 				std::string St{"INSERT INTO BlackList (SerialNumber, Reason, Author, Created) "
 				"VALUES(?,?,?,?)"};
-				std::cout << "STATEMENT:" << St << std::endl;
 				Insert << ConvertParams(St),
 					Poco::Data::Keywords::use(i.SerialNumber),
 					Poco::Data::Keywords::use(i.Reason),
