@@ -174,7 +174,7 @@ Poco::JSON::Object uCentralCommandDetails::to_json() const {
 	{
 		std::string D = Results.empty() ? "{}" : Results;
 		Poco::JSON::Parser P;
-		Poco::Dynamic::Var result = P.parse(Results);
+		Poco::Dynamic::Var result = P.parse(D);
 		const auto &ResultsObj = result.extract<Poco::JSON::Object::Ptr>();
 		Obj.set("results", ResultsObj);
 	}
