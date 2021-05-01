@@ -27,12 +27,16 @@ void RESTAPI_commands::handleRequest(Poco::Net::HTTPServerRequest& Request, Poco
 
             uCentral::Storage::GetCommands(SerialNumber, StartDate, EndDate, Offset, Limit,
                                            Commands);
+
+			std::cout << "Commands: " << Commands.size() << std::endl;
+
             Poco::JSON::Array ArrayObj;
 
             for (const auto &i : Commands) {
                 Poco::JSON::Object Obj = i.to_json();
                 ArrayObj.add(Obj);
             }
+
             Poco::JSON::Object RetObj;
             RetObj.set("commands", ArrayObj);
             ReturnObject(RetObj, Response);
