@@ -12,6 +12,9 @@
 #include "Poco/URI.h"
 #include "Poco/DateTimeParser.h"
 
+#include "uDeviceRegistry.h"
+#include "uStorageService.h"
+
 bool RESTAPIHandler::ParseBindings(const char *p,const char *r, BindingMap & bindings)
 {
     char param[256]={0},
@@ -163,6 +166,27 @@ void RESTAPIHandler::NotFound(Poco::Net::HTTPServerResponse &Response) {
 void RESTAPIHandler::OK(Poco::Net::HTTPServerResponse &Response) {
     PrepareResponse(Response);
     Response.send();
+}
+
+void RESTAPIHandler::WaitForRPC(uCentralCommandDetails & Cmd, Poco::Net::HTTPServerResponse &Response, uint64_t Timeout) {
+
+	if(uCentral::DeviceRegistry::Connected(Cmd.SerialNumber)) {
+		uCentralCommandDetails ResCmd;
+		while (Timeout > 0) {
+			Timeout -= 1000;
+			Poco::Thread::sleep(1000);
+
+			if (uCentral::Storage::GetCommand(Cmd.UUID, ResCmd)) {
+				if (ResCmd.Completed) {
+				}
+				Poco::JSON::Object RetObj = ResCmd.to_json();
+				ReturnObject(RetObj, Response);
+				return;
+			}
+		}
+	}
+	Poco::JSON::Object RetObj = Cmd.to_json();
+	ReturnObject(RetObj, Response);
 }
 
 bool RESTAPIHandler::ContinueProcessing(Poco::Net::HTTPServerRequest & Request, Poco::Net::HTTPServerResponse & Response )

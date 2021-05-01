@@ -14,6 +14,8 @@
 #include "Poco/Logger.h"
 #include "Poco/JSON/Object.h"
 
+#include "RESTAPI_objects.h"
+
 class RESTAPIHandler: public Poco::Net::HTTPRequestHandler
 {
 public:
@@ -46,6 +48,7 @@ public:
     void ReturnObject(Poco::JSON::Object & Object, Poco::Net::HTTPServerResponse & Response);
     void NotFound(Poco::Net::HTTPServerResponse &Response);
     void OK(Poco::Net::HTTPServerResponse &Response);
+	void WaitForRPC(uCentralCommandDetails & Cmd, Poco::Net::HTTPServerResponse &Response, uint64_t Timeout = 5000 );
 
     const std::string & GetBinding(const std::string &Name, const std::string &Default);
 
