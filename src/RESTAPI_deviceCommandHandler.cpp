@@ -96,6 +96,7 @@ bool WaitForRPC(std::string & UUID, uCentralCommandDetails & Cmd, int ms_wait=50
 			if(Cmd.Completed)
 				return true;
 		}
+		std::cout << "Time left: " << ms_wait << std::endl;
 	}
 
 	return false;
