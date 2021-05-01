@@ -53,6 +53,10 @@ namespace uCentral::RESTAPI {
             auto Params = new Poco::Net::HTTPServerParams;
             Params->setMaxThreads(16);
             Params->setMaxQueued(100);
+			Params->setKeepAlive(true);
+			Params->setKeepAliveTimeout(Poco::Timespan(45,0));
+			Params->setMaxKeepAliveRequests(200);
+			Params->setTimeout(Poco::Timespan(45,0));
 
             auto NewServer = std::make_unique<Poco::Net::HTTPServer>(new RequestHandlerFactory, Pool_, Sock, Params);
             NewServer->start();

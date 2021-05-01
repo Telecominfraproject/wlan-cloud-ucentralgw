@@ -851,7 +851,7 @@ void RESTAPI_deviceCommandHandler::WifiScan(Poco::Net::HTTPServerRequest &Reques
 
 				if(uCentral::Storage::AddCommand(SerialNumber,Cmd)) {
 					uCentralCommandDetails	ResCmd;
-					WaitForRPC(Cmd.UUID,ResCmd);
+					WaitForRPC(Cmd.UUID,ResCmd,20000);
 					Poco::JSON::Object RetObj = ResCmd.to_json();
 					ReturnObject(RetObj, Response);
 					return;
