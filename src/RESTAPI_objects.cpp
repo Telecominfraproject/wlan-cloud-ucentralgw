@@ -39,12 +39,18 @@ bool uCentralDevice::from_json(Poco::JSON::Object::Ptr Obj) {
     try {
         Poco::DynamicStruct ds = *Obj;
 
+		std::cout << __LINE__ << std::endl;
+
         SerialNumber = ds["serialNumber"].toString();
+		std::cout << __LINE__ << std::endl;
         DeviceType = ds["deviceType"].toString();
+		std::cout << __LINE__ << std::endl;
         MACAddress = ds["macAddress"].toString();
+		std::cout << __LINE__ << std::endl;
         UUID = ds["UUID"];
         // Configuration = ds["configuration"].toString();
 
+		std::cout << __LINE__ << std::endl;
         if(ds.contains("notes"))
             Notes = ds["notes"].toString();
         if(ds.contains("manufacturer"))
@@ -53,12 +59,13 @@ bool uCentralDevice::from_json(Poco::JSON::Object::Ptr Obj) {
 			Owner = ds["owner"].toString();
 		if(ds.contains("location"))
 			Location = ds["location"].toString();
+		std::cout << __LINE__ << std::endl;
 
         return true;
     }
     catch (const Poco::Exception &E )
     {
-
+		std::cout << __LINE__ << std::endl;
     }
 
     return false;
