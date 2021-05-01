@@ -147,6 +147,7 @@ Poco::Net::SecureServerSocket PropertiesFileServerEntry::CreateSecureSocket(Poco
 		Context->setSessionCacheSize(0);
 		Context->setSessionTimeout(10);
 		Context->enableExtendedCertificateVerification(true);
+		Context->disableStatelessSessionResumption();
 	}
 
 	if (address_ == "*") {
