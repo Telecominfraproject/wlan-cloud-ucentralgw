@@ -159,15 +159,19 @@ Poco::JSON::Object uCentralCommandDetails::to_json() const {
     Obj.set("serialNumber",SerialNumber);
     Obj.set("command",Command);
 
-	Poco::JSON::Parser	P;
-	Poco::Dynamic::Var result = P.parse(Details);
-	const auto & CfgObj = result.extract<Poco::JSON::Object::Ptr>();
-	Obj.set("details",CfgObj);
+	if(!Details.empty()) {
+		Poco::JSON::Parser P;
+		Poco::Dynamic::Var result = P.parse(Details);
+		const auto &DetailsObj = result.extract<Poco::JSON::Object::Ptr>();
+		Obj.set("details", DetailsObj);
+	}
 
-	Poco::JSON::Parser	P2;
-	Poco::Dynamic::Var result2 = P2.parse(Results);
-	const auto & ResultsObj2 = result2.extract<Poco::JSON::Object::Ptr>();
-	Obj.set("results",ResultsObj2);
+	if(!Results.empty()) {
+		Poco::JSON::Parser P;
+		Poco::Dynamic::Var result = P.parse(Results);
+		const auto &ResultsObj = result.extract<Poco::JSON::Object::Ptr>();
+		Obj.set("results", ResultsObj);
+	}
 
     Obj.set("errorText", ErrorText);
     Obj.set("submittedBy",SubmittedBy);
