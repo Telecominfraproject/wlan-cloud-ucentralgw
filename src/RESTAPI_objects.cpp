@@ -165,8 +165,8 @@ Poco::JSON::Object uCentralCommandDetails::to_json() const {
 	Obj.set("details",CfgObj);
 
 	Poco::JSON::Parser	P2;
-	Poco::Dynamic::Var result2 = P.parse(Results);
-	const auto & ResultsObj2 = result.extract<Poco::JSON::Object::Ptr>();
+	Poco::Dynamic::Var result2 = P2.parse(Results);
+	const auto & ResultsObj2 = result2.extract<Poco::JSON::Object::Ptr>();
 	Obj.set("results",ResultsObj2);
 
     Obj.set("errorText", ErrorText);
