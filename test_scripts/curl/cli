@@ -256,6 +256,44 @@ getblacklist() {
   jq < $rfile
 }
 
+eventqueue() {
+  payload="{ \"serialNumber\" : \"$1\" , \"types\" : [ \"dhcp\", \"rrm\" ] }"
+  curl  -s -X POST "https://$UCENTRALGW/api/v1/device/$1/eventqueue" \
+        --max-time 20 \
+        -H "accept: application/json" \
+        -H "Authorization: Bearer $token" \
+        -d "$payload"  > $rfile
+  jq < $rfile
+}
+
+selectdevices() {
+  curl  -s -X GET "https://$UCENTRALGW/api/v1/devices?select=$1" \
+        -H "accept: application/json" \
+        -H "Authorization: Bearer $token" > $rfile
+  jq < $rfile
+}
+
+deviceserialnumbers() {
+  curl  -s -X GET "https://$UCENTRALGW/api/v1/devices?serialOnly=true" \
+        -H "accept: application/json" \
+        -H "Authorization: Bearer $token" > $rfile
+  jq < $rfile
+}
+
+deviceswithstatus() {
+  curl  -s -X GET "https://$UCENTRALGW/api/v1/devices?deviceWithStatus=true" \
+        -H "accept: application/json" \
+        -H "Authorization: Bearer $token" > $rfile
+  jq < $rfile
+}
+
+devicecount() {
+  curl  -s -X GET "https://$UCENTRALGW/api/v1/devices?countOnly=true" \
+        -H "accept: application/json" \
+        -H "Authorization: Bearer $token" > $rfile
+  jq < $rfile
+}
+
 help() {
   echo
   echo "getdevice <serial>                Get the device JSON document."
@@ -295,6 +333,7 @@ help() {
   echo
   echo "getlogs <serial>                  Get logs for the device."
   echo "deletelogs <serial>               Delete logs for the device."
+  echo "eventqueue <serial>               Request event queue for the device."
   echo
   echo "listdefaultconfigs                List a default configurations"
   echo "createdefaultconfig <name> <ids> <cfg> Create a default configuration"
@@ -306,6 +345,11 @@ help() {
   echo "                                  <r> Reason for blacklisting"
   echo "getblacklist                      List all blacklisted devices"
   echo "deleteblacklistdevice  <serial>   Add a device to the black list"
+  echo
+  echo "devicecount                       Get the number of devices in the DB"
+  echo "deviceserialnumbers               Get only the serial numbers"
+  echo "selectdevices <serial list>       get a list of serial numbers (must be comma separated)"
+  echo "deviceswithstatus                 Get devices with their status"
   echo
 }
 
@@ -343,6 +387,11 @@ case "$1" in
   "addblacklistdevice") addblacklistdevice "$2" "$3";;
   "deleteblacklistdevice") deleteblacklistdevice "$2";;
   "getblacklist") getblacklist;;
+  "eventqueue") eventqueue "$2";;
+  "selectdevices") selectdevices "$2";;
+  "deviceserialnumbers") deviceserialnumbers ;;
+  "devicecount") devicecount ;;
+  "deviceswithstatus") deviceswithstatus ;;
  *) help ;;
 esac
 
