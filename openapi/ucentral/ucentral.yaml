@@ -109,6 +109,55 @@ components:
         firmware:
           type: string
 
+    DeviceWithStatus:
+      type: object
+      description: Definition of uCentral device
+      required:
+        - deviceType
+      properties:
+        owner:
+          type: string
+          format: uuid
+        location:
+          type: string
+          format: uuid
+        serialNumber:
+          type: string
+        deviceType:
+          $ref: '#/components/schemas/DeviceType'
+        macAddress:
+          type: string
+        manufacturer:
+          type: string
+        UUID:
+          type: integer
+          format: int64
+        configuration:
+          type: string
+        notes:
+          type: string
+        createdTimestamp:
+          type: string
+          format: 'date-time'
+        lastConfigurationChange:
+          type: string
+          format: 'date-time'
+        lastConfigurationDownload:
+          type: string
+          format: 'date-time'
+        firmware:
+          type: string
+        connected:
+          type: boolean
+        ipAddress:
+          type: string
+        txBytes:
+          type: integer
+          format: int64
+        rxBytes:
+          type: integer
+          format: int64
+
     DeviceList:
       type: object
       description: Definition of uCentral device
@@ -117,6 +166,15 @@ components:
           type: array
           items:
             $ref : '#/components/schemas/Device'
+
+    DeviceListWithStatus:
+      type: object
+      description: Definition of uCentral device
+      properties:
+        devicesWithStatus:
+          type: array
+          items:
+            $ref : '#/components/schemas/DeviceWithStatus'
 
     SerialNumberList:
       type: object
@@ -828,6 +886,11 @@ paths:
           name: countOnly
           schema:
             type: boolean
+        - in: query
+          description: Return extra information with the device information
+          name: deviceWithStatus
+          schema:
+            type: boolean
       responses:
         200:
           description: List devices
@@ -836,6 +899,7 @@ paths:
               schema:
                 oneOf:
                   - $ref: '#/components/schemas/DeviceList'
+                  - $ref: '#/components/schemas/DeviceListWithStatus'
                   - $ref: '#/components/schemas/SerialNumberList'
                   - $ref: '#/components/schemas/DeviceCount'
         403:
