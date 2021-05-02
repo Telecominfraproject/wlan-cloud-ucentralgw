@@ -29,6 +29,8 @@ void RESTAPI_devicesHandler::handleRequest(Poco::Net::HTTPServerRequest& Request
 			auto countOnly = GetBoolParameter("countOnly", false);
 			auto deviceWithStatus = GetBoolParameter("deviceWithStatus", false);
 
+			std::cout << "Select: " << Select << std::endl;
+
 			Logger_.information(Poco::format("DEVICES: from %Lu, limit of %Lu, filter='%s'.",
 											 (uint64_t)Offset, (uint64_t)Limit, Filter));
 
@@ -48,6 +50,7 @@ void RESTAPI_devicesHandler::handleRequest(Poco::Net::HTTPServerRequest& Request
 					auto P2 = Select.find_first_of(',', P);
 					if(P2==std::string::npos) {
 						S = Select.substr(P);
+						std::cout << "Serial number: " << S << std::endl;
 						if(uCentral::Storage::GetDevice(S,D))
 						{
 							Poco::JSON::Object	Obj;
@@ -58,6 +61,7 @@ void RESTAPI_devicesHandler::handleRequest(Poco::Net::HTTPServerRequest& Request
 					}
 					else {
 						S = Select.substr(P, P2);
+						std::cout << "Serial number: " << S << std::endl;
 						if(uCentral::Storage::GetDevice(S,D))
 						{
 							Poco::JSON::Object	Obj;
@@ -67,9 +71,7 @@ void RESTAPI_devicesHandler::handleRequest(Poco::Net::HTTPServerRequest& Request
 					}
 					P=P2+1;
 				}
-
 				RetObj.set("devices", Objects);
-
 			} else  if (countOnly == true) {
 				uint64_t Count = 0;
 				if (uCentral::Storage::GetDeviceCount(Count)) {
