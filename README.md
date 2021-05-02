@@ -518,7 +518,9 @@ The service supports an OpenAPI REST based interface for management. You can fin
 And here is [how to use it](https://github.com/Telecominfraproject/wlan-cloud-ucentralgw/blob/main/OPENAPI.md)
 
 ## Using the API
-In the `test_scripts` directory, you will find a series of scripts that will show you how to use the API with curl or Python3. 
+In the `test_scripts` directory, you will find a series of scripts that will show you how to use the API 
+with [curl](https://github.com/Telecominfraproject/wlan-cloud-ucentralgw/blob/main/TEST_CURL.md) 
+or [python](https://github.com/Telecominfraproject/wlan-cloud-ucentralgw/blob/main/TEST_PYTHON.md). 
 More scripts will be added in the future.
 
 ## Firewall Considerations
