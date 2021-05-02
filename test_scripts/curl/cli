@@ -1,0 +1,349 @@
+#!/bin/bash
+
+if [[ "$(which jq)" == "" ]]
+then
+  echo "You need the package jq installed to use this script."
+  exit 1
+fi
+
+if [[ "$(which curl)" == "" ]]
+then
+  echo "You need the package curl installed to use this script."
+  exit 1
+fi
+
+if [[ "$UCENTRALGW" == "" ]]
+then
+  echo "You must set the variable UCENTRALGW in order to use this script."
+  exit 1
+fi
+
+token=""
+rfile=result.json
+username="support@example.com"
+password="support"
+
+login() {
+  payload="{ \"userId\" : \"$username\" , \"password\" : \"$password\" }"
+  token=$(curl -s -X POST -H "Content-Type: application/json" -d "$payload" "https://$UCENTRALGW/api/v1/oauth2" | jq -r '.access_token')
+}
+
+logout() {
+  curl  -s -X DELETE -H "Content-Type: application/json" \
+        -H "Authorization: Bearer $token" \
+        "https://$UCENTRALGW/api/v1/oauth2/$token"
+}
+
+getdevice() {
+  curl  -s -X GET "https://$UCENTRALGW/api/v1/device/$1" \
+        -H "accept: application/json" \
+        -H "Authorization: Bearer $token" > $rfile
+  jq < $rfile
+}
+
+getcommand() {
+  curl  -s -X GET "https://$UCENTRALGW/api/v1/command/$1" \
+        -H "accept: application/json" \
+        -H "Authorization: Bearer $token" > $rfile
+  jq < $rfile
+}
+
+deletecommand() {
+  curl  -s -X DELETE "https://$UCENTRALGW/api/v1/command/$1" \
+        -H "accept: application/json" \
+        -H "Authorization: Bearer $token"
+}
+
+listcommands() {
+  curl  -s -X GET "https://$UCENTRALGW/api/v1/commands?serialNumber=$1" \
+        -H "accept: application/json" \
+        -H "Authorization: Bearer $token"  > $rfile
+  jq < $rfile
+}
+
+deletecommands() {
+  curl  -s -X DELETE "https://$UCENTRALGW/api/v1/commands?serialNumber=$1" \
+        -H "accept: application/json" \
+        -H "Authorization: Bearer $token"
+}
+
+getcapabilities() {
+  curl  -s -X GET "https://$UCENTRALGW/api/v1/device/$1/capabilities" \
+        -H "accept: application/json" \
+        -H "Authorization: Bearer $token" > $rfile
+  jq < $rfile
+}
+
+deletecapabilities() {
+  curl  -s -X DELETE "https://$UCENTRALGW/api/v1/device/$1/capabilities" \
+        -H "accept: application/json" \
+        -H "Authorization: Bearer $token"
+}
+
+listdevices() {
+  curl  -s -X GET "https://$UCENTRALGW/api/v1/devices" \
+        -H "accept: application/json" \
+        -H "Authorization: Bearer $token" > $rfile
+  jq < $rfile
+}
+
+deletedevice() {
+  curl  -s -X DELETE "https://$UCENTRALGW/api/v1/device/$1" \
+        -H "accept: application/json" \
+        -H "Authorization: Bearer $token"
+}
+
+createdevice() {
+  payload="{ \"serialNumber\": \"$1\", \"UUID\": 1234456, \"configuration\" : $(cat "$2") , \"deviceType\": \"AP_Default\",\"location\": \"\", \"macAddress\": \"$3\", \"manufacturer\": \"Linksys EA8300 (Dallas)\", \"notes\": \"auto created device.\", \"owner\": \"\" }"
+  curl  -s -X POST "https://$UCENTRALGW/api/v1/device/$1" \
+        -H "accept: application/json" \
+        -H "Authorization: Bearer $token" \
+        -d "$payload"  > $rfile
+  jq < $rfile
+}
+
+reboot() {
+  payload="{ \"serialNumber\" : \"$1\" }"
+  curl  -s -X POST "https://$UCENTRALGW/api/v1/device/$1/reboot" \
+        -H "accept: application/json" \
+        -H "Authorization: Bearer $token" \
+        -d "$payload"  > $rfile
+  jq < $rfile
+}
+
+setloglevel() {
+  # Possible log levels: none, fatal, critical, error, warning, notice, information, debug, trace
+  # Possible subsystem: ufileuploader, websocket, storage, restapi, commandmanager, auth, deviceregistry, all
+  payload='{ "command" : "setloglevel" , "parameters" : [ { "name" : "websocket" , "value" : "information" } ] }'
+  curl  -s -X POST "https://$UCENTRALGW/api/v1/system" \
+        -H  "accept: application/json" \
+        -H "Authorization: Bearer $token" \
+        -d "$payload"
+}
+
+getdevicestatus() {
+  curl  -s -X GET "https://$UCENTRALGW/api/v1/device/$1/status" \
+        -H  "accept: application/json" \
+        -H "Authorization: Bearer $token"  > $rfile
+  jq < $rfile
+}
+
+upgrade() {
+  payload="{ \"serialNumber\" : \"$1\" , \"uri\" : \"$2\" }"
+  curl  -s -X POST "https://$UCENTRALGW/api/v1/device/$1/upgrade" \
+        -H "accept: application/json" \
+        -H "Authorization: Bearer $token" \
+        -d "$payload"   > $rfile
+  jq < $rfile
+}
+
+leds() {
+  payload="{ \"serialNumber\" : \"$1\" , \"duration\" : $3, \"pattern\" : \"$2\" }"
+  curl  -s -X POST "https://$UCENTRALGW/api/v1/device/$1/leds" \
+        -H "accept: application/json" \
+        -H "Authorization: Bearer $token" \
+        -d "$payload" > $rfile
+  jq < $rfile
+}
+
+factory() {
+  payload="{ \"serialNumber\" : \"$1\" , \"keepRedirector\" : $2 }"
+  curl  -s -X POST "https://$UCENTRALGW/api/v1/device/$1/factory" \
+        -H "accept: application/json" \
+        -H "Authorization: Bearer $token" \
+        -d "$payload" > $rfile
+  jq < $rfile
+}
+
+configure() {
+  payload="{ \"serialNumber\" : \"$1\", \"UUID\" : 123456 , \"configuration\" : $(cat "$2") }"
+  curl  -s -X POST "https://$UCENTRALGW/api/v1/device/$1/configure" \
+        -H "accept: application/json" \
+        -H "Authorization: Bearer $token" \
+        -d "$payload" > $rfile
+  jq < $rfile
+}
+
+request() {
+  payload="{ \"serialNumber\" : \"$1\" , \"message\" : \"$2\" }"
+  curl  -s -X POST "https://$UCENTRALGW/api/v1/device/$1/request" \
+        -H "accept: application/json" \
+        -H "Authorization: Bearer $token" \
+        -d "$payload"  > $rfile
+  jq < $rfile
+}
+
+wifiscan() {
+  payload="{ \"serialNumber\" : \"$1\" , \"verbose\" : $2 }"
+  curl  -s -X POST "https://$UCENTRALGW/api/v1/device/$1/wifiscan" \
+        --max-time 20 \
+        -H "accept: application/json" \
+        -H "Authorization: Bearer $token" \
+        -d "$payload"  > $rfile
+  jq < $rfile
+}
+
+trace() {
+  payload="{ \"serialNumber\" : \"$1\" , \"duration\" : $2, \"network\" : \"$3\" }"
+  curl  -s -X POST "https://$UCENTRALGW/api/v1/device/$1/trace" \
+        -H "accept: application/json" \
+        -H "Authorization: Bearer $token" \
+        -d "$payload"  > $rfile
+  jq < $rfile
+}
+
+getstats() {
+  curl  -s -X GET "https://$UCENTRALGW/api/v1/device/$1/statistics" \
+        -H "accept: application/json" \
+        -H "Authorization: Bearer $token"   > $rfile
+  jq < $rfile
+}
+
+getlogs() {
+  curl  -s -X GET "https://$UCENTRALGW/api/v1/device/$1/logs" \
+        -H "accept: application/json" \
+        -H "Authorization: Bearer $token"    > $rfile
+  jq < $rfile
+}
+
+deletelogs() {
+  curl  -s -X DELETE "https://$UCENTRALGW/api/v1/device/$1/logs" \
+        -H "accept: application/json" \
+        -H "Authorization: Bearer $token"
+}
+
+gethealthchecks() {
+  curl  -s -X GET "https://$UCENTRALGW/api/v1/device/$1/healthchecks" \
+        -H "accept: application/json" \
+        -H "Authorization: Bearer $token"    > $rfile
+  jq < $rfile
+}
+
+createdefaultconfig() {
+  payload="{ \"name\": \"$1\", \"modelIds\" : \"$2\", \"configuration\" : $(cat "$3")}"
+  curl  -s -X POST "https://$UCENTRALGW/api/v1/default_configuration/$1" \
+        -H "accept: application/json" \
+        -H "Authorization: Bearer $token" \
+        -d "$payload" > $rfile
+  jq < $rfile
+}
+
+listdefaultconfigs() {
+  curl  -s -X GET "https://$UCENTRALGW/api/v1/default_configurations" \
+        -H "accept: application/json" \
+        -H "Authorization: Bearer $token" > $rfile
+  jq < $rfile
+}
+
+addblacklistdevice() {
+  payload="{ \"devices\" : [ {\"serialNumber\": \"$1\" , \"reason\" : \"$2\" } ] }"
+  curl  -s -X POST "https://$UCENTRALGW/api/v1/blacklist" \
+        -H "accept: application/json" \
+        -H "Authorization: Bearer $token" \
+        -d "$payload"
+}
+
+deleteblacklistdevice() {
+  curl  -s -X DELETE "https://$UCENTRALGW/api/v1/blacklist?serialNumber=$1" \
+        -H "accept: application/json" \
+        -H "Authorization: Bearer $token"
+}
+
+getblacklist() {
+  curl  -s -X GET "https://$UCENTRALGW/api/v1/blacklist" \
+        -H "accept: application/json" \
+        -H "Authorization: Bearer $token"  > $rfile
+  jq < $rfile
+}
+
+help() {
+  echo
+  echo "getdevice <serial>                Get the device JSON document."
+  echo "deletedevice <serial>             Delete the device."
+  echo "createdevice <serial> <cfg> <MAC> Create a device using the default configuration."
+  echo "                                  cfg: JSON config file name"
+  echo "                                  <MAC>: string MAC Address"
+  echo "getdevicestatus <serial>          Get the device status JSON document."
+  echo "getstats <serial>                 Get statistics for the device."
+  echo "gethealthchecks <serial>          Get gethealthchecks for a device."
+  echo
+  echo "getcapababilities <serial>        Get the device capabilities JSON document."
+  echo "deletecapababilities <serial>     Delete the device capabilities JSON."
+  echo
+  echo "reboot <serial>                   Reboot the device."
+  echo "upgrade <serial> <URI>            Do firmware upgrade for a device."
+  echo "leds <serial> <pattern> <d>       Activate LEDs a device."
+  echo "                                  pattern: on/off/blink"
+  echo "                                  d: number in seconds"
+  echo "configure <serial> <cfg>          Change configuration for a device."
+  echo "                                  cfg must be valid JSON config."
+  echo "factory <serial> <true/false>     Do factory reset for device. true=keep redirector, false=reset redirector"
+  echo "request <serial> <message>        Force a message from the device."
+  echo "                                  message=state/healthcheck"
+  echo "wifiscan <serial> <verbose>       Do wifiscan for a device."
+  echo "                                  verbose=true/false"
+  echo "trace <serial> <d> <n>            Launch a remote trace for a device."
+  echo "                                  d=number of seconds"
+  echo "                                  n=lan/wan"
+  echo
+  echo "getcommand <command-uuid>         Get the command JSON document."
+  echo "deletecommand <command-uuid>      Delete the command."
+  echo
+  echo "listdevices                       List devices"
+  echo "listcommands <serial>             List commands for a specific device"
+  echo "deletecommands <serial>           Delete commands for a device."
+  echo
+  echo "getlogs <serial>                  Get logs for the device."
+  echo "deletelogs <serial>               Delete logs for the device."
+  echo
+  echo "listdefaultconfigs                List a default configurations"
+  echo "createdefaultconfig <name> <ids> <cfg> Create a default configuration"
+  echo "                                  name=unique name, no spaces"
+  echo "                                  ids=coma separated list of models"
+  echo "                                  cfg=config file name"
+  echo
+  echo "addblacklistdevice <serial> <r>   Add a device to the black list"
+  echo "                                  <r> Reason for blacklisting"
+  echo "getblacklist                      List all blacklisted devices"
+  echo "deleteblacklistdevice  <serial>   Add a device to the black list"
+  echo
+}
+
+login
+
+shopt -s nocasematch
+case "$1" in
+  "getdevice") getdevice "$2";;
+  "help") help;;
+  "getcommand")  getcommand "$2";;
+  "deletecommand") deletecommand "$2";;
+  "getcapabilities") getcapabilities "$2";;
+  "deletecapabilities") deletecapabilities "$2";;
+  "listdevices") listdevices;;
+  "deletedevice") deletedevice "$2";;
+  "createdevice") createdevice "$2" "$3";;
+  "reboot") reboot "$2";;
+  "setloglevel") setloglevel "$2" "$3";;
+  "getdevicestatus") getdevicestatus "$2";;
+  "upgrade") upgrade "$2" "$3";;
+  "factory") factory "$2" "$3";;
+  "leds") leds "$2" "$3";;
+  "listcommands") listcommands "$2";;
+  "deletecommands") deletecommands "$2";;
+  "configure") configure "$2" "$3";;
+  "request") request "$2" "$3";;
+  "wifiscan") wifiscan "$2" "$3";;
+  "trace") trace "$2" "$3" "$4";;
+  "getstats") getstats "$2";;
+  "getlogs") getlogs "$2";;
+  "deletelogs") deletelogs "$2";;
+  "gethealthchecks") gethealthchecks "$2";;
+  "createdefaultconfig") createdefaultconfig "$2" "$3" "$4";;
+  "listdefaultconfigs") listdefaultconfigs "$2";;
+  "addblacklistdevice") addblacklistdevice "$2" "$3";;
+  "deleteblacklistdevice") deleteblacklistdevice "$2";;
+  "getblacklist") getblacklist;;
+ *) help ;;
+esac
+
+logout
