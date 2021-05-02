@@ -490,8 +490,7 @@ The device should answer:
           "serial" : <serial number> ,
           "status" : {
             "error" : 0 or an error number,
-            "text" : <description of the error or success>,
-            "when" : <time when this will be performed as UTC seconds>
+            "text" : <description of the error or success>
   	        },
           "events" : <JSON document describing the events> 
         },
