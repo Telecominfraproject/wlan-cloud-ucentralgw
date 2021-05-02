@@ -16,6 +16,8 @@ void RESTAPI_BlackList::handleRequest(Poco::Net::HTTPServerRequest& Request, Poc
 	if(!IsAuthorized(Request,Response))
 		return;
 
+	ParseParameters(Request);
+
 	try {
 		if(Request.getMethod()==Poco::Net::HTTPRequest::HTTP_DELETE)
 			DoDelete(Request, Response);
@@ -38,10 +40,11 @@ void RESTAPI_BlackList::DoDelete(Poco::Net::HTTPServerRequest &Request, Poco::Ne
 		auto SerialNumber = GetParameter("serialNumber", "");
 
 		if(!SerialNumber.empty()) {
-			if (uCentral::Storage::DeleteBlackListDevice(SerialNumber))
+			if (uCentral::Storage::DeleteBlackListDevice(SerialNumber)) {
 				OK(Response);
-			else
+			} else {
 				NotFound(Response);
+			}
 			return;
 		}
 	} catch (const Poco::Exception &E) {
