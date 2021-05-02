@@ -51,7 +51,10 @@ void RESTAPI_devicesHandler::handleRequest(Poco::Net::HTTPServerRequest& Request
 						if(uCentral::Storage::GetDevice(S,D))
 						{
 							Poco::JSON::Object	Obj;
-							D.to_json(Obj);
+							if(deviceWithStatus)
+								D.to_json_with_status(Obj);
+							else
+								D.to_json(Obj);
 							Objects.add(Obj);
 						}
 						break;
@@ -61,28 +64,24 @@ void RESTAPI_devicesHandler::handleRequest(Poco::Net::HTTPServerRequest& Request
 						if(uCentral::Storage::GetDevice(S,D))
 						{
 							Poco::JSON::Object	Obj;
-							D.to_json(Obj);
+							if(deviceWithStatus)
+								D.to_json_with_status(Obj);
+							else
+								D.to_json(Obj);
 							Objects.add(Obj);
 						}
 					}
 					P=P2+1;
 				}
-				RetObj.set("devices", Objects);
+				if(deviceWithStatus)
+					RetObj.set("devicesWithStatus", Objects);
+				else
+					RetObj.set("devices", Objects);
 			} else  if (countOnly == true) {
 				uint64_t Count = 0;
 				if (uCentral::Storage::GetDeviceCount(Count)) {
 					RetObj.set("count", Count);
 				}
-			} else if (deviceWithStatus) {
-				std::vector<uCentralDevice> Devices;
-				uCentral::Storage::GetDevices(Offset, Limit, Devices);
-				Poco::JSON::Array Objects;
-				for (const auto &i : Devices) {
-					Poco::JSON::Object	Obj;
-					i.to_json_with_status(Obj);
-					Objects.add(Obj);
-				}
-				RetObj.set("devicesWithStatus", Objects);
 			} else if (serialOnly) {
 				std::vector<std::string> SerialNumbers;
 				uCentral::Storage::GetDeviceSerialNumbers(Offset, Limit, SerialNumbers);
@@ -97,10 +96,16 @@ void RESTAPI_devicesHandler::handleRequest(Poco::Net::HTTPServerRequest& Request
 				Poco::JSON::Array Objects;
 				for (const auto &i : Devices) {
 					Poco::JSON::Object	Obj;
-					i.to_json(Obj);
+					if(deviceWithStatus)
+						i.to_json_with_status(Obj);
+					else
+						i.to_json(Obj);
 					Objects.add(Obj);
 				}
-				RetObj.set("devices", Objects);
+				if(deviceWithStatus)
+					RetObj.set("devicesWithStatus", Objects);
+				else
+					RetObj.set("devices", Objects);
 			}
 			ReturnObject(RetObj, Response);
 			return;
