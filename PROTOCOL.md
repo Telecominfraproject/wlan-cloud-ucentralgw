@@ -468,6 +468,37 @@ The device should answer:
 }
 ```
 
+#### Controller requesting eventqueue buffers
+Controller sends this command when it needs the device to provide the content of ist ring buffers.
+```
+{    "jsonrpc" : "2.0" , 
+     "method" : "event" , 
+     "params" : {
+	        "serial" : <serial number> ,
+	        "when" : Optional - <UTC time when to reboot, 0 mean immediately, this is a suggestion>,
+	        "types" : [ "dhcp", "rrm"], <this must be an array: array of 1 or 2 elements, right now only "rrm" and "dhcp" are supported>
+    		"request_uuid" : <optional UUID string. If present during the request, the next message will also contains this field>
+        },
+     "id" : <some number>
+}
+```
+
+The device should answer:
+```
+{   "jsonrpc" : "2.0" , 
+    "result" : {
+          "serial" : <serial number> ,
+          "status" : {
+            "error" : 0 or an error number,
+            "text" : <description of the error or success>,
+            "when" : <time when this will be performed as UTC seconds>
+  	        },
+          "events" : <JSON document describing the events> 
+        },
+    "id" : <same number>
+}
+```
+
 ##### Scanning: bands or channels
 In the command, bands and channels are mutually exclusive. If both parameters are omitted, then the scan will be performed for all bands and all channels.
 
