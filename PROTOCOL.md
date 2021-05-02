@@ -428,7 +428,7 @@ The device should answer:
             "error" : 0 or an error number,
             "text" : <description of the error or success>,
             "when" : <time when this will be performed as UTC seconds>
-  	        }
+  	        },
           "scan" : <JSON document detailing the results of the scan>
         },
     "id" : <same number>
@@ -447,7 +447,7 @@ message will be returned "soon".
 	        "serial" : <serial number> ,
 	        "when" : Optional - <UTC time when to reboot, 0 mean immediately, this is a suggestion>,
 	        "message" : "state" or "healthcheck",
-		"request_uuid" : <optional UUID string. If present during the request, the next message will also contains this field>
+		    "request_uuid" : <optional UUID string. If present during the request, the next message will also contains this field>
         },
      "id" : <some number>
 }
