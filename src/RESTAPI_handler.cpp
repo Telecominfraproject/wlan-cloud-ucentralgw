@@ -178,10 +178,10 @@ void RESTAPIHandler::WaitForRPC(uCentralCommandDetails & Cmd, Poco::Net::HTTPSer
 
 			if (uCentral::Storage::GetCommand(Cmd.UUID, ResCmd)) {
 				if (ResCmd.Completed) {
+					Poco::JSON::Object RetObj = ResCmd.to_json();
+					ReturnObject(RetObj, Response);
+					return;
 				}
-				Poco::JSON::Object RetObj = ResCmd.to_json();
-				ReturnObject(RetObj, Response);
-				return;
 			}
 		}
 	}
