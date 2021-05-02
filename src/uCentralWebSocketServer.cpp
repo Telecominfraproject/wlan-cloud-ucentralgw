@@ -622,6 +622,8 @@ namespace uCentral::WebSocket {
                         } else if (vars.contains("jsonrpc") &&
                                    vars.contains("result") &&
                                    vars.contains("id")) {
+							std::string IncomingMessageStr{std::string(IncomingFrame.begin())};
+							Logger_.information(Poco::format("RPC-RESULT(%s): payload: %s",CId_,IncomingMessageStr)));
                             ProcessJSONRPCResult(vars);
                         } else {
 							std::string IncomingMessageStr{std::string(IncomingFrame.begin())};
