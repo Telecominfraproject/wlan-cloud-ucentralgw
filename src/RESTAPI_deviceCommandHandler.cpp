@@ -840,7 +840,7 @@ void RESTAPI_deviceCommandHandler::EventQueue(Poco::Net::HTTPServerRequest &Requ
 				Cmd.SerialNumber = SerialNumber;
 				Cmd.UUID = UUID;
 				Cmd.SubmittedBy = UserName_;
-				Cmd.Command = "eventqueue";
+				Cmd.Command = "event";
 				Cmd.Custom = 0;
 				Cmd.RunAt = 0;
 				Cmd.WaitingForFile = 0;
