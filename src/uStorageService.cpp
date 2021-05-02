@@ -1163,7 +1163,7 @@ namespace uCentral::Storage {
 			std::string st{"SELECT COUNT(*) FROM Devices"};
 
 			Select << st ,
-				Poco::Data::Keywords::use(Count);
+				Poco::Data::Keywords::into(Count);
 			Select.execute();
 
 			return true;
