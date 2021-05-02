@@ -61,7 +61,13 @@ static bool is_number(const std::string &s) {
     return !s.empty() && std::all_of(s.begin(), s.end(), ::isdigit);
 }
 
-uint64_t RESTAPIHandler::GetParameter(const std::string &Name,const uint64_t Default){
+static bool is_bool(const std::string &s) {
+	if(s=="true" || s=="false")
+		return true;
+	return false;
+}
+
+uint64_t RESTAPIHandler::GetParameter(const std::string &Name,const uint64_t Default) {
 
     for(const auto & i:parameters_)
     {
@@ -72,6 +78,19 @@ uint64_t RESTAPIHandler::GetParameter(const std::string &Name,const uint64_t Def
         }
     }
     return Default;
+}
+
+bool RESTAPIHandler::GetBoolParameter(const std::string &Name,bool Default) {
+
+	for(const auto & i:parameters_)
+	{
+		if(i.first == Name) {
+			if(!is_bool(i.second))
+				return Default;
+			return i.second=="true";
+		}
+	}
+	return Default;
 }
 
 std::string RESTAPIHandler::GetParameter(const std::string &Name,const std::string & Default){
@@ -178,14 +197,16 @@ void RESTAPIHandler::WaitForRPC(uCentralCommandDetails & Cmd, Poco::Net::HTTPSer
 
 			if (uCentral::Storage::GetCommand(Cmd.UUID, ResCmd)) {
 				if (ResCmd.Completed) {
-					Poco::JSON::Object RetObj = ResCmd.to_json();
+					Poco::JSON::Object RetObj;
+					ResCmd.to_json(RetObj);
 					ReturnObject(RetObj, Response);
 					return;
 				}
 			}
 		}
 	}
-	Poco::JSON::Object RetObj = Cmd.to_json();
+	Poco::JSON::Object RetObj;
+	Cmd.to_json(RetObj);
 	ReturnObject(RetObj, Response);
 }
 

@@ -21,7 +21,8 @@ void RESTAPI_deviceHandler::handleRequest(Poco::Net::HTTPServerRequest& Request,
 
         if(uCentral::Storage::GetDevice(SerialNumber,Device))
         {
-            Poco::JSON::Object  Obj = Device.to_json();
+            Poco::JSON::Object  Obj;
+			Device.to_json(Obj);
             ReturnObject(Obj,Response);
         }
         else
@@ -52,7 +53,8 @@ void RESTAPI_deviceHandler::handleRequest(Poco::Net::HTTPServerRequest& Request,
 
 		Device.UUID = time(nullptr);
         if (uCentral::Storage::CreateDevice(Device)) {
-			Poco::JSON::Object  DevObj = Device.to_json();
+			Poco::JSON::Object  DevObj;
+			Device.to_json(DevObj);
 			ReturnObject(DevObj,Response);
         } else {
             BadRequest(Response);

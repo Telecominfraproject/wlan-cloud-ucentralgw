@@ -132,7 +132,11 @@ namespace uCentral::Storage {
         return uCentral::Storage::Service::instance()->GetDevices(From, HowMany, Devices);
     }
 
-    bool DeleteDevice(std::string &SerialNumber) {
+	bool GetDevices(uint64_t From, uint64_t HowMany, const std::string & Select, std::vector<uCentralDevice> &Devices) {
+		return uCentral::Storage::Service::instance()->GetDevices(From, HowMany, Select, Devices);
+	}
+
+	bool DeleteDevice(std::string &SerialNumber) {
         return uCentral::Storage::Service::instance()->DeleteDevice(SerialNumber);
     }
 
@@ -150,6 +154,14 @@ namespace uCentral::Storage {
 
 	bool SetFirmware(std::string & SerialNumber, std::string & Firmware ) {
 		return uCentral::Storage::Service::instance()->SetFirmware(SerialNumber, Firmware);
+	}
+
+	bool GetDeviceCount( uint64_t & Count ) {
+		return uCentral::Storage::Service::instance()->GetDeviceCount(Count);
+	}
+
+	bool GetDeviceSerialNumbers(uint64_t From, uint64_t HowMany, std::vector<std::string> & SerialNumbers) {
+		return uCentral::Storage::Service::instance()->GetDeviceSerialNumbers(From, HowMany, SerialNumbers);
 	}
 
 	bool DeviceExists(std::string &SerialNumber) {
@@ -1143,6 +1155,43 @@ namespace uCentral::Storage {
         return false;
     }
 
+	bool Service::GetDeviceCount(uint64_t &Count) {
+		try {
+			Poco::Data::Session 	Sess = Pool_->get();
+			Poco::Data::Statement   Select(Sess);
+
+			std::string st{"SELECT COUNT(*) FROM Devices"};
+
+			Select << st ,
+				Poco::Data::Keywords::use(Count);
+			Select.execute();
+
+			return true;
+
+		} catch(const Poco::Exception & E) {
+			Logger_.log(E);
+		}
+		return false;
+	}
+
+	bool Service::GetDeviceSerialNumbers(uint64_t From, uint64_t HowMany, std::vector<std::string> &SerialNumbers) {
+		try {
+			Poco::Data::Session Sess = Pool_->get();
+			Poco::Data::Statement   Select(Sess);
+
+			std::string st{"SELECT SerialNumber From Devices"};
+
+			Select << 	st,
+						Poco::Data::Keywords::into(SerialNumbers),
+						Poco::Data::Keywords::range(From, From + HowMany );
+			Select.execute();
+			return true;
+		} catch (const Poco::Exception &E ) {
+			Logger_.log(E);
+		}
+		return false;
+	}
+
     bool Service::UpdateDeviceConfiguration(std::string &SerialNumber, std::string &Configuration, uint64_t &NewUUID) {
         try {
 
@@ -1154,7 +1203,6 @@ namespace uCentral::Storage {
             }
 
             Poco::Data::Session Sess = Pool_->get();
-
             Poco::Data::Statement   Select(Sess);
 
             uint64_t CurrentUUID;
@@ -1491,6 +1539,9 @@ namespace uCentral::Storage {
         return false;
     }
 
+	bool Service::GetDevices(uint64_t From, uint64_t HowMany, const std::string &Select, std::vector<uCentralDevice> &Devices) {
+		return false;
+	}
 
     bool Service::GetDevices(uint64_t From, uint64_t HowMany, std::vector<uCentralDevice> &Devices) {
 
@@ -2490,17 +2541,27 @@ namespace uCentral::Storage {
             uint64_t Now = FullCommand ? time(nullptr) : 0;
 
             // Parse the result to get the ErrorText and make sure that this is a JSON document
-            auto ResultObj = ReturnVars["result"];
-            Poco::DynamicStruct ResultFields = ResultObj.extract<Poco::DynamicStruct>();
+			uint64_t ErrorCode=0;
+			std::string ErrorText, ResultStr;
 
-            auto StatusObj = ResultFields["status"];
-            Poco::DynamicStruct StatusInnerObj = StatusObj.extract<Poco::DynamicStruct>();
-            uint64_t ErrorCode = StatusInnerObj["error"];
-            auto ErrorText = StatusInnerObj["text"].toString();
+			if(ReturnVars.contains("result")) {
+				auto ResultObj = ReturnVars["result"];
+				Poco::DynamicStruct ResultFields = ResultObj.extract<Poco::DynamicStruct>();
 
-            std::stringstream ResultText;
-            Poco::JSON::Stringifier::stringify(ResultObj, ResultText);
-            std::string ResultStr{ResultText.str()};
+				if(ResultFields.contains("status")) {
+					auto StatusObj = ResultFields["status"];
+					Poco::DynamicStruct StatusInnerObj = StatusObj.extract<Poco::DynamicStruct>();
+
+					if(StatusInnerObj.contains("error"))
+						ErrorCode = StatusInnerObj["error"];
+					if(StatusInnerObj.contains("text"))
+						ErrorText = StatusInnerObj["text"].toString();
+
+					std::stringstream ResultText;
+					Poco::JSON::Stringifier::stringify(ResultObj, ResultText);
+					ResultStr = ResultText.str();
+				}
+			}
 
             Poco::Data::Session     Sess = Pool_->get();
             Poco::Data::Statement   Update(Sess);

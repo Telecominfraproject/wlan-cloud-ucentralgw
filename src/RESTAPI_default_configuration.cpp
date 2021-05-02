@@ -22,7 +22,8 @@ void RESTAPI_default_configuration::handleRequest(Poco::Net::HTTPServerRequest& 
 
         if(uCentral::Storage::GetDefaultConfiguration(Name,DefConfig))
         {
-            Poco::JSON::Object  Obj = DefConfig.to_json();
+            Poco::JSON::Object  Obj;
+			DefConfig.to_json(Obj);
             ReturnObject(Obj,Response);
         }
         else

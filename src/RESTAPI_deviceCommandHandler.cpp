@@ -89,7 +89,8 @@ void  RESTAPI_deviceCommandHandler::GetCapabilities(Poco::Net::HTTPServerRequest
         auto SerialNumber = GetBinding("serialNumber", "");
 
         if (uCentral::Storage::GetDeviceCapabilities(SerialNumber, Caps)) {
-            Poco::JSON::Object RetObj = Caps.to_json();
+            Poco::JSON::Object RetObj;
+			Caps.to_json(RetObj);
             RetObj.set("serialNumber", SerialNumber);
             ReturnObject( RetObj, Response );
         } else
@@ -136,7 +137,8 @@ void RESTAPI_deviceCommandHandler::GetStatistics(Poco::Net::HTTPServerRequest& R
         Poco::JSON::Array ArrayObj;
 
         for (auto i : Stats) {
-            Poco::JSON::Object Obj = i.to_json();
+            Poco::JSON::Object Obj;
+			i.to_json(Obj);
             ArrayObj.add(Obj);
         }
 
@@ -177,11 +179,12 @@ void RESTAPI_deviceCommandHandler::GetStatus(Poco::Net::HTTPServerRequest& Reque
     try {
         auto SerialNumber = GetBinding("serialNumber", "");
 
-        uCentral::DeviceRegistry::ConnectionState State;
+        uCentralConnectionState State;
 
         if (uCentral::DeviceRegistry::GetState(SerialNumber, State)) {
 
-            Poco::JSON::Object RetObject = State.to_JSON();
+            Poco::JSON::Object RetObject;
+			State.to_json(RetObject);
 
             ReturnObject(RetObject, Response);
 
@@ -346,7 +349,8 @@ void RESTAPI_deviceCommandHandler::GetLogs(Poco::Net::HTTPServerRequest& Request
         Poco::JSON::Array ArrayObj;
 
         for (auto i : Logs) {
-            Poco::JSON::Object Obj = i.to_json();
+            Poco::JSON::Object Obj;
+			i.to_json(Obj);
             ArrayObj.add(Obj);
         }
         Poco::JSON::Object RetObj;
@@ -397,7 +401,8 @@ void RESTAPI_deviceCommandHandler::GetChecks(Poco::Net::HTTPServerRequest& Reque
         Poco::JSON::Array ArrayObj;
 
         for (auto i : Checks) {
-            Poco::JSON::Object Obj = i.to_json();
+            Poco::JSON::Object Obj;
+			i.to_json(Obj);
             ArrayObj.add(Obj);
         }
         Poco::JSON::Object RetObj;
@@ -743,7 +748,8 @@ void RESTAPI_deviceCommandHandler::Trace(Poco::Net::HTTPServerRequest &Request, 
             if(uCentral::Storage::AddCommand(SerialNumber,Cmd)) {
                 uCentral::uFileUploader::AddUUID(UUID);
 				if(uCentral::Storage::AddCommand(SerialNumber,Cmd)) {
-					Poco::JSON::Object RetObj = Cmd.to_json();
+					Poco::JSON::Object RetObj;
+					Cmd.to_json(RetObj);
 					ReturnObject(RetObj, Response);
 					return;
 				}

@@ -42,6 +42,7 @@ public:
     bool IsAuthorized(Poco::Net::HTTPServerRequest & Request, Poco::Net::HTTPServerResponse & Response , std::string & UserName );
     uint64_t GetParameter(const std::string &Name,uint64_t Default);
     std::string GetParameter(const std::string &Name,const std::string & Default);
+	bool GetBoolParameter(const std::string &Name,bool Default);
 
     void BadRequest(Poco::Net::HTTPServerResponse & Response);
     void UnAuthorized(Poco::Net::HTTPServerResponse & Response );

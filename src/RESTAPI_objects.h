@@ -7,6 +7,20 @@
 
 #include "Poco/JSON/Object.h"
 
+struct uCentralConnectionState {
+	uint64_t        MessageCount;
+	std::string     SerialNumber;
+	std::string     Address;
+	uint64_t        UUID;
+	uint64_t        PendingUUID;
+	uint64_t        TX, RX;
+	bool            Connected;
+	uint64_t        LastContact;
+	std::string     Firmware;
+	bool 			VerifiedCertificate;
+	void 			to_json(Poco::JSON::Object  & Obj) const;
+};
+
 struct uCentralDevice {
     std::string SerialNumber;
     std::string DeviceType;
@@ -21,16 +35,17 @@ struct uCentralDevice {
 	std::string Owner;
 	std::string Location;
 	std::string Firmware;
-    [[nodiscard]] Poco::JSON::Object to_json() const;
-    bool from_json(Poco::JSON::Object::Ptr Obj);
-    void Print() const;
+	void 		to_json(Poco::JSON::Object & Obj) const;
+	void 		to_json_with_status(Poco::JSON::Object & Obj) const;
+    bool 		from_json(Poco::JSON::Object::Ptr Obj);
+    void 		Print() const;
 };
 
 struct uCentralStatistics {
     uint64_t    UUID;
     std::string Data;
     uint64_t    Recorded;
-    [[nodiscard]] Poco::JSON::Object to_json() const;
+	void 			to_json(Poco::JSON::Object  & Obj) const;
 };
 
 struct uCentralHealthCheck {
@@ -38,14 +53,14 @@ struct uCentralHealthCheck {
     std::string Data;
     uint64_t    Recorded;
     uint64_t    Sanity;
-    [[nodiscard]] Poco::JSON::Object to_json() const;
+	void 			to_json(Poco::JSON::Object  & Obj) const;
 };
 
 struct uCentralCapabilities {
     std::string Capabilities;
     uint64_t    FirstUpdate;
     uint64_t    LastUpdate;
-    [[nodiscard]] Poco::JSON::Object to_json() const;
+	void 			to_json(Poco::JSON::Object  & Obj) const;
 };
 
 struct uCentralDeviceLog {
@@ -66,7 +81,7 @@ struct uCentralDeviceLog {
     uint64_t    Severity;
     uint64_t    Recorded;
     uint64_t    LogType;
-    [[nodiscard]] Poco::JSON::Object to_json() const;
+	void 			to_json(Poco::JSON::Object  & Obj) const;
 };
 
 struct uCentralDefaultConfiguration {
@@ -76,7 +91,7 @@ struct uCentralDefaultConfiguration {
     std::string     Description;
     uint64_t        Created;
     uint64_t        LastModified;
-    [[nodiscard]] Poco::JSON::Object to_json() const;
+	void 			to_json(Poco::JSON::Object  & Obj) const;
     bool from_json(Poco::JSON::Object::Ptr Obj);
 };
 
@@ -99,7 +114,7 @@ struct uCentralCommandDetails {
     uint64_t        AttachDate;
 	uint64_t 		AttachSize;
 	std::string 	AttachType;
-    [[nodiscard]] Poco::JSON::Object to_json() const;
+	void 			to_json(Poco::JSON::Object  & Obj) const;
 };
 
 struct uCentralBlackListedDevice {
@@ -107,7 +122,7 @@ struct uCentralBlackListedDevice {
 	std::string 	Reason;
 	std::string 	Author;
 	uint64_t 		Created;
-	[[nodiscard]] Poco::JSON::Object to_json() const;
+	void 			to_json(Poco::JSON::Object  & Obj) const;
 };
 
 #endif //UCENTRAL_RESTAPI_OBJECTS_H

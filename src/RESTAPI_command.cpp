@@ -23,7 +23,8 @@ void RESTAPI_command::handleRequest(Poco::Net::HTTPServerRequest& Request, Poco:
             uCentralCommandDetails Command;
 
             if(uCentral::Storage::GetCommand(CommandUUID,  Command)) {
-                Poco::JSON::Object RetObj = Command.to_json();
+				Poco::JSON::Object	RetObj;
+                Command.to_json(RetObj);
                 ReturnObject(RetObj, Response);
             } else
                 NotFound(Response);

@@ -8,31 +8,39 @@
 #include "Poco/JSON/Parser.h"
 #include "Poco/JSON/Stringifier.h"
 
-Poco::JSON::Object uCentralDevice::to_json() const
-{
-    Poco::JSON::Object  Obj;
+#include "uDeviceRegistry.h"
 
-    Obj.set("serialNumber",SerialNumber);
-    Obj.set("deviceType",DeviceType);
-    Obj.set("macAddress",MACAddress);
-    Obj.set("manufacturer",Manufacturer);
-    Obj.set("UUID",UUID);
+void uCentralDevice::to_json(Poco::JSON::Object & Obj) const {
+	Obj.set("serialNumber", SerialNumber);
+	Obj.set("deviceType", DeviceType);
+	Obj.set("macAddress", MACAddress);
+	Obj.set("manufacturer", Manufacturer);
+	Obj.set("UUID", UUID);
 
 	std::string C = Configuration.empty() ? "{}" : Configuration;
-	Poco::JSON::Parser	P;
+	Poco::JSON::Parser P;
 	Poco::Dynamic::Var result = P.parse(C);
-	const auto & CfgObj = result.extract<Poco::JSON::Object::Ptr>();
-	Obj.set("configuration",CfgObj);
+	const auto &CfgObj = result.extract<Poco::JSON::Object::Ptr>();
+	Obj.set("configuration", CfgObj);
 
-    Obj.set("notes",Notes);
-    Obj.set("createdTimestamp",RESTAPIHandler::to_RFC3339(CreationTimestamp));
-    Obj.set("lastConfigurationChange",RESTAPIHandler::to_RFC3339(LastConfigurationChange));
-    Obj.set("lastConfigurationDownload",RESTAPIHandler::to_RFC3339(LastConfigurationDownload));
-	Obj.set("owner",Owner);
-	Obj.set("location",Location);
-	Obj.set("firmware",Firmware);
+	Obj.set("notes", Notes);
+	Obj.set("createdTimestamp", RESTAPIHandler::to_RFC3339(CreationTimestamp));
+	Obj.set("lastConfigurationChange", RESTAPIHandler::to_RFC3339(LastConfigurationChange));
+	Obj.set("lastConfigurationDownload", RESTAPIHandler::to_RFC3339(LastConfigurationDownload));
+	Obj.set("owner", Owner);
+	Obj.set("location", Location);
+	Obj.set("firmware", Firmware);
+}
 
-    return Obj;
+void uCentralDevice::to_json_with_status(Poco::JSON::Object & Obj) const
+{
+	to_json(Obj);
+
+	uCentralConnectionState	ConState;
+	if(uCentral::DeviceRegistry::GetState(SerialNumber,ConState))
+	{
+		ConState.to_json(Obj);
+	}
 }
 
 bool uCentralDevice::from_json(Poco::JSON::Object::Ptr Obj) {
@@ -71,8 +79,7 @@ void uCentralDevice::Print() const {
                             << Configuration << std::endl;
 }
 
-Poco::JSON::Object uCentralStatistics::to_json() const {
-    Poco::JSON::Object  Obj;
+void uCentralStatistics::to_json(Poco::JSON::Object & Obj) const {
     Obj.set("UUID",UUID);
 
 	std::string D = Data.empty() ? "{}" : Data;
@@ -81,13 +88,9 @@ Poco::JSON::Object uCentralStatistics::to_json() const {
 	const auto & CfgObj = result.extract<Poco::JSON::Object::Ptr>();
 	Obj.set("data",CfgObj);
 	Obj.set("recorded",RESTAPIHandler::to_RFC3339(Recorded));
-    return Obj;
 }
 
-Poco::JSON::Object uCentralCapabilities::to_json() const {
-
-    Poco::JSON::Object  Obj;
-
+void uCentralCapabilities::to_json(Poco::JSON::Object & Obj) const {
 	std::string C = Capabilities.empty() ? "{}" : Capabilities;
 	Poco::JSON::Parser	P;
 	Poco::Dynamic::Var result = P.parse(C);
@@ -96,12 +99,10 @@ Poco::JSON::Object uCentralCapabilities::to_json() const {
 
     Obj.set("firstUpdate",RESTAPIHandler::to_RFC3339(FirstUpdate));
     Obj.set("lastUpdate",RESTAPIHandler::to_RFC3339(LastUpdate));
-    return Obj;
 }
 
-Poco::JSON::Object uCentralDeviceLog::to_json() const
+void uCentralDeviceLog::to_json(Poco::JSON::Object & Obj) const
 {
-    Poco::JSON::Object  Obj;
     Obj.set("log",Log);
     Obj.set("severity",Severity);
 
@@ -114,11 +115,9 @@ Poco::JSON::Object uCentralDeviceLog::to_json() const
 
     Obj.set("recorded",RESTAPIHandler::to_RFC3339(Recorded));
     Obj.set("logType",LogType);
-    return Obj;
 }
 
-Poco::JSON::Object  uCentralHealthCheck::to_json() const {
-    Poco::JSON::Object  Obj;
+void uCentralHealthCheck::to_json(Poco::JSON::Object & Obj) const {
     Obj.set("UUID",UUID);
 
 	std::string D = Data.empty() ? "{}" : Data;
@@ -129,7 +128,6 @@ Poco::JSON::Object  uCentralHealthCheck::to_json() const {
 
     Obj.set("sanity",Sanity);
     Obj.set("recorded",RESTAPIHandler::to_RFC3339(Recorded));
-    return Obj;
 }
 
 /*
@@ -140,8 +138,7 @@ Poco::JSON::Object  uCentralHealthCheck::to_json() const {
     [[nodiscard]] Poco::JSON::Object to_json() const;
     bool from_JSON(Poco::JSON::Object::Ptr Obj);
  */
-Poco::JSON::Object uCentralDefaultConfiguration::to_json() const {
-    Poco::JSON::Object  Obj;
+void uCentralDefaultConfiguration::to_json(Poco::JSON::Object & Obj) const {
     Obj.set("name",Name);
     Obj.set("modelIds",Models);
     Obj.set("description",Description);
@@ -154,11 +151,9 @@ Poco::JSON::Object uCentralDefaultConfiguration::to_json() const {
 
     Obj.set("created",RESTAPIHandler::to_RFC3339(Created));
     Obj.set("lastModified",RESTAPIHandler::to_RFC3339(LastModified));
-    return Obj;
 }
 
-Poco::JSON::Object uCentralCommandDetails::to_json() const {
-    Poco::JSON::Object  Obj;
+void uCentralCommandDetails::to_json(Poco::JSON::Object & Obj) const {
     Obj.set("UUID",UUID);
     Obj.set("serialNumber",SerialNumber);
     Obj.set("command",Command);
@@ -190,7 +185,6 @@ Poco::JSON::Object uCentralCommandDetails::to_json() const {
     Obj.set("custom",Custom);
     Obj.set("waitingForFile", WaitingForFile);
     Obj.set("attachFile",RESTAPIHandler::to_RFC3339(AttachDate));
-    return Obj;
 }
 
 bool uCentralDefaultConfiguration::from_json(Poco::JSON::Object::Ptr Obj) {
@@ -212,11 +206,23 @@ bool uCentralDefaultConfiguration::from_json(Poco::JSON::Object::Ptr Obj) {
     return false;
 }
 
-Poco::JSON::Object uCentralBlackListedDevice::to_json() const {
-	Poco::JSON::Object  Obj;
+void  uCentralBlackListedDevice::to_json(Poco::JSON::Object & Obj) const {
 	Obj.set("serialNumber",SerialNumber);
 	Obj.set("author",Author);
 	Obj.set("reason",Reason);
 	Obj.set("created",RESTAPIHandler::to_RFC3339(Created));
-	return Obj;
+}
+
+void  uCentralConnectionState::to_json(Poco::JSON::Object & Obj) const
+{
+	Obj.set("serialNumber", SerialNumber);
+	Obj.set("ipAddress",Address);
+	Obj.set("txBytes",TX);
+	Obj.set("rxBytes",RX);
+	Obj.set("messageCount",MessageCount);
+	Obj.set("UUID",UUID);
+	Obj.set("connected",Connected);
+	Obj.set("firmware",Firmware);
+	Obj.set("lastContact",RESTAPIHandler::to_RFC3339(LastContact));
+	Obj.set("verifiedCertificate", VerifiedCertificate);
 }

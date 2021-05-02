@@ -32,8 +32,11 @@ void RESTAPI_default_configurations::handleRequest(Poco::Net::HTTPServerRequest&
             uCentral::Storage::GetDefaultConfigurations(Offset, Limit, DefConfigs);
 
             Poco::JSON::Array Objects;
-            for (const auto & i:DefConfigs)
-                Objects.add(i.to_json());
+            for (const auto & i:DefConfigs) {
+				Poco::JSON::Object	Obj;
+				i.to_json(Obj);
+				Objects.add(Obj);
+			}
 
             Poco::JSON::Object RetObj;
             RetObj.set("configurations", Objects);

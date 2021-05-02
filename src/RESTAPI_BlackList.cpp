@@ -63,8 +63,11 @@ void RESTAPI_BlackList::DoGet(Poco::Net::HTTPServerRequest &Request, Poco::Net::
 		if(uCentral::Storage::GetBlackListDevices(Offset,Limit,Devices))
 		{
 			Poco::JSON::Array Objects;
-			for (const auto & i:Devices)
-				Objects.add(i.to_json());
+			for (const auto & i:Devices) {
+				Poco::JSON::Object	Obj;
+				i.to_json(Obj);
+				Objects.add(Obj);
+			}
 
 			Poco::JSON::Object RetObj;
 			RetObj.set("devices", Objects);

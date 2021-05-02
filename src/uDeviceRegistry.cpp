@@ -30,15 +30,15 @@ namespace uCentral::DeviceRegistry {
         uCentral::DeviceRegistry::Service::instance()->SetStatistics(SerialNumber,Stats);
     }
 
-    bool GetState(const std::string & SerialNumber, ConnectionState & State) {
+    bool GetState(const std::string & SerialNumber, uCentralConnectionState & State) {
         return uCentral::DeviceRegistry::Service::instance()->GetState(SerialNumber,State);
     }
 
-    void SetState(const std::string & SerialNumber, ConnectionState & State) {
+    void SetState(const std::string & SerialNumber, uCentralConnectionState & State) {
         return uCentral::DeviceRegistry::Service::instance()->SetState(SerialNumber,State);
     }
 
-    ConnectionState *  Register(const std::string & SerialNumber, void *Ptr) {
+	uCentralConnectionState *  Register(const std::string & SerialNumber, void *Ptr) {
         return uCentral::DeviceRegistry::Service::instance()->Register(SerialNumber,Ptr);
     }
 
@@ -90,7 +90,7 @@ namespace uCentral::DeviceRegistry {
         }
     }
 
-    bool Service::GetState(const std::string &SerialNumber, ConnectionState & State) {
+    bool Service::GetState(const std::string &SerialNumber, uCentralConnectionState & State) {
         std::lock_guard<std::mutex> guard(Mutex_);
 
         auto Device = Devices_.find(SerialNumber);
@@ -104,7 +104,7 @@ namespace uCentral::DeviceRegistry {
         return false;
     }
 
-    void Service::SetState(const std::string & SerialNumber, ConnectionState & State) {
+    void Service::SetState(const std::string & SerialNumber, uCentralConnectionState & State) {
         std::lock_guard<std::mutex> guard(Mutex_);
 
         auto Device = Devices_.find(SerialNumber);
@@ -115,7 +115,7 @@ namespace uCentral::DeviceRegistry {
         }
     }
 
-    ConnectionState * Service::Register(const std::string & SerialNumber, void *Ptr)
+uCentralConnectionState * Service::Register(const std::string & SerialNumber, void *Ptr)
     {
         std::lock_guard<std::mutex> guard(Mutex_);
 
@@ -126,7 +126,7 @@ namespace uCentral::DeviceRegistry {
             ConnectionEntry E;
 
             E.WSConn_ = Ptr;
-            E.Conn_ = new ConnectionState;
+            E.Conn_ = new uCentralConnectionState;
             E.Conn_->SerialNumber = SerialNumber;
             E.Conn_->LastContact = time(nullptr);
             E.Conn_->Connected = true ;
@@ -194,24 +194,6 @@ namespace uCentral::DeviceRegistry {
             std::cout << "Problem sending..." << std::endl;
         }
         return false;
-    }
-
-    Poco::JSON::Object ConnectionState::to_JSON() const
-    {
-        Poco::JSON::Object  Obj;
-
-        Obj.set("serialNumber", SerialNumber);
-        Obj.set("ipAddress",Address);
-        Obj.set("txBytes",TX);
-        Obj.set("rxBytes",RX);
-        Obj.set("messageCount",MessageCount);
-        Obj.set("UUID",UUID);
-        Obj.set("connected",Connected);
-        Obj.set("firmware",Firmware);
-        Obj.set("lastContact",RESTAPIHandler::to_RFC3339(LastContact));
-		Obj.set("verifiedCertificate", VerifiedCertificate);
-
-        return Obj;
     }
 
 }  // namespace

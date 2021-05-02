@@ -166,7 +166,7 @@ namespace uCentral::WebSocket {
         Poco::Net::StreamSocket       		Socket_;
         std::unique_ptr<Poco::Net::WebSocket> WS_;
         std::string                         SerialNumber_;
-        uCentral::DeviceRegistry::ConnectionState * Conn_ = nullptr;
+		uCentralConnectionState 			* Conn_ = nullptr;
         std::map<uint64_t,CommandIDPair>    RPCs_;
         uint64_t                            RPC_ = time(nullptr);
         bool                                Registered_ = false ;
