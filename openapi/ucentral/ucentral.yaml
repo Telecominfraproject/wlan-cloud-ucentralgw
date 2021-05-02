@@ -118,6 +118,23 @@ components:
           items:
             $ref : '#/components/schemas/Device'
 
+    SerialNumberList:
+      type: object
+      description: List of serial numbers
+      properties:
+        serialNumbers:
+          type: array
+          items:
+            type: string
+
+    DeviceCount:
+      type: object
+      description: The number of devices in the DB
+      properties:
+        count:
+          type: integer
+          format: int64
+
     DeviceStatus:
       type: object
       description: Current device status
@@ -568,14 +585,6 @@ components:
           items:
             $ref: '#/components/schemas/BlackDeviceInfo'
 
-    SerialNumberList:
-      type: object
-      properties:
-        serialNumbers:
-          type: array
-          items:
-            type: string
-
     WifiBands:
       type: object
       properties:
@@ -803,13 +812,32 @@ paths:
           schema:
             type: string
           required: false
+        - in: query
+          description: Supply a list of devices comma separated
+          name: select
+          schema:
+            type: string
+            example: serial1,serial2,serial3
+        - in: query
+          description: only serial numbers of full device details
+          name: serialOnly
+          schema:
+            type: boolean
+        - in: query
+          description: return the number of devices
+          name: countOnly
+          schema:
+            type: boolean
       responses:
         200:
           description: List devices
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/DeviceList'
+                oneOf:
+                  - $ref: '#/components/schemas/DeviceList'
+                  - $ref: '#/components/schemas/SerialNumberList'
+                  - $ref: '#/components/schemas/DeviceCount'
         403:
           $ref: '#/components/responses/Unauthorized'
         404:
