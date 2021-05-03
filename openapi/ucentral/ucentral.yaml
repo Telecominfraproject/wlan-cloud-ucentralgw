@@ -18,10 +18,20 @@ servers:
 
 security:
   - bearerAuth: []
+  - ApiKeyAuth: []
 
 components:
-  responses:
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-KEY
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
 
+  responses:
     NotFound:
       description: The specified resource was not found
       content:
@@ -54,12 +64,6 @@ components:
               UUID:
                 type: string
                 format: uuid
-
-  securitySchemes:
-    bearerAuth:        # arbitrary name for the security scheme
-      type: http
-      scheme: bearer
-      bearerFormat: JWT
 
   schemas:
     DeviceType:
