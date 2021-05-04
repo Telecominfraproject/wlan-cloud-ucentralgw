@@ -102,7 +102,7 @@ void RESTAPI_BlackList::DoPost(Poco::Net::HTTPServerRequest &Request, Poco::Net:
 						auto Reason = Vars["reason"].toString();
 						uCentralBlackListedDevice	D{ .SerialNumber = SerialNumber,
 							.Reason = Reason,
-							.Author = UserName_,
+							.Author = UserInfo_.username_,
 							.Created = (uint64_t ) time(nullptr) };
 						Devices.push_back(D);
 					}

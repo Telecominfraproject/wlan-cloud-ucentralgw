@@ -240,7 +240,7 @@ void RESTAPI_deviceCommandHandler::Configure(Poco::Net::HTTPServerRequest& Reque
 
                 Cmd.SerialNumber = SerialNumber;
                 Cmd.UUID = uCentral::instance()->CreateUUID();
-                Cmd.SubmittedBy = UserName_;
+                Cmd.SubmittedBy = UserInfo_.username_;
                 Cmd.Command = "configure";
                 Cmd.Custom = 0;
                 Cmd.RunAt = When;
@@ -304,7 +304,7 @@ void RESTAPI_deviceCommandHandler::Upgrade(Poco::Net::HTTPServerRequest &Request
 
             Cmd.SerialNumber = SerialNumber;
             Cmd.UUID = uCentral::instance()->CreateUUID();
-            Cmd.SubmittedBy = UserName_;
+            Cmd.SubmittedBy = UserInfo_.username_;
             Cmd.Custom = 0;
             Cmd.Command = "upgrade";
             Cmd.RunAt = When;
@@ -469,7 +469,7 @@ void RESTAPI_deviceCommandHandler::ExecuteCommand(Poco::Net::HTTPServerRequest& 
 
             Cmd.SerialNumber = SerialNumber;
             Cmd.UUID = uCentral::instance()->CreateUUID();
-            Cmd.SubmittedBy = UserName_;
+            Cmd.SubmittedBy = UserInfo_.username_;
             Cmd.Command = Command;
             Cmd.Custom = 1;
             Cmd.RunAt = RunAt;
@@ -529,7 +529,7 @@ void RESTAPI_deviceCommandHandler::Reboot(Poco::Net::HTTPServerRequest& Request,
 
             Cmd.SerialNumber = SerialNumber;
             Cmd.UUID = uCentral::instance()->CreateUUID();
-            Cmd.SubmittedBy = UserName_;
+            Cmd.SubmittedBy = UserInfo_.username_;
             Cmd.Command = "reboot";
             Cmd.Custom = 0;
             Cmd.RunAt = When;
@@ -595,7 +595,7 @@ void RESTAPI_deviceCommandHandler::Factory(Poco::Net::HTTPServerRequest &Request
 
 			Cmd.SerialNumber = SerialNumber;
 			Cmd.UUID = uCentral::instance()->CreateUUID();
-			Cmd.SubmittedBy = UserName_;
+			Cmd.SubmittedBy = UserInfo_.username_;
 			Cmd.Command = "factory";
 			Cmd.Custom = 0;
 			Cmd.RunAt = When;
@@ -662,7 +662,7 @@ void RESTAPI_deviceCommandHandler::LEDs(Poco::Net::HTTPServerRequest &Request, P
 
             Cmd.SerialNumber = SerialNumber;
             Cmd.UUID = uCentral::instance()->CreateUUID();
-            Cmd.SubmittedBy = UserName_;
+            Cmd.SubmittedBy = UserInfo_.username_;
             Cmd.Command = "leds";
             Cmd.Custom = 0;
             Cmd.RunAt = When;
@@ -724,7 +724,7 @@ void RESTAPI_deviceCommandHandler::Trace(Poco::Net::HTTPServerRequest &Request, 
 
             Cmd.SerialNumber = SerialNumber;
             Cmd.UUID = UUID;
-            Cmd.SubmittedBy = UserName_;
+            Cmd.SubmittedBy = UserInfo_.username_;
             Cmd.Command = "trace";
             Cmd.Custom = 0;
             Cmd.RunAt = When;
@@ -791,7 +791,7 @@ void RESTAPI_deviceCommandHandler::WifiScan(Poco::Net::HTTPServerRequest &Reques
 
 				Cmd.SerialNumber = SerialNumber;
 				Cmd.UUID = UUID;
-				Cmd.SubmittedBy = UserName_;
+				Cmd.SubmittedBy = UserInfo_.username_;
 				Cmd.Command = "wifiscan";
 				Cmd.Custom = 0;
 				Cmd.RunAt = 0;
@@ -845,7 +845,7 @@ void RESTAPI_deviceCommandHandler::EventQueue(Poco::Net::HTTPServerRequest &Requ
 
 				Cmd.SerialNumber = SerialNumber;
 				Cmd.UUID = UUID;
-				Cmd.SubmittedBy = UserName_;
+				Cmd.SubmittedBy = UserInfo_.username_;
 				Cmd.Command = "event";
 				Cmd.Custom = 0;
 				Cmd.RunAt = 0;
@@ -897,7 +897,7 @@ void RESTAPI_deviceCommandHandler::MakeRequest(Poco::Net::HTTPServerRequest &Req
 			uCentralCommandDetails  Cmd;
 
 			Cmd.SerialNumber = SerialNumber;
-			Cmd.SubmittedBy = UserName_;
+			Cmd.SubmittedBy = UserInfo_.username_;
 			Cmd.UUID = uCentral::instance()->CreateUUID();
 			Cmd.Command = "request";
 			Cmd.Custom = 0;

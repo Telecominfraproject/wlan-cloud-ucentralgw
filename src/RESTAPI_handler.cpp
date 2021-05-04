@@ -227,7 +227,7 @@ bool RESTAPIHandler::ContinueProcessing(Poco::Net::HTTPServerRequest & Request, 
 
 bool RESTAPIHandler::IsAuthorized(Poco::Net::HTTPServerRequest & Request, Poco::Net::HTTPServerResponse & Response )
 {
-    if(uCentral::Auth::IsAuthorized(Request,SessionToken_, UserName_))
+    if(uCentral::Auth::IsAuthorized(Request,SessionToken_, UserInfo_))
     {
         return true;
     }
@@ -239,9 +239,9 @@ bool RESTAPIHandler::IsAuthorized(Poco::Net::HTTPServerRequest & Request, Poco::
 
 bool RESTAPIHandler::IsAuthorized(Poco::Net::HTTPServerRequest & Request, Poco::Net::HTTPServerResponse & Response , std::string & UserName ) {
 
-    if(uCentral::Auth::IsAuthorized(Request,SessionToken_, UserName_))
+    if(uCentral::Auth::IsAuthorized(Request,SessionToken_, UserInfo_))
     {
-        UserName = UserName_ ;
+        UserName = UserInfo_.username_ ;
         return true;
     }
     else {

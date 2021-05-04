@@ -15,6 +15,7 @@
 #include "Poco/JSON/Object.h"
 
 #include "RESTAPI_objects.h"
+#include "uAuthService.h"
 
 class RESTAPIHandler: public Poco::Net::HTTPRequestHandler
 {
@@ -53,12 +54,16 @@ public:
 
     const std::string & GetBinding(const std::string &Name, const std::string &Default);
 
+	[[nodiscard]] inline bool HasReadAccess() const { return UserInfo_.acl_template_.Read_ || UserInfo_.acl_template_.ReadWrite_ || UserInfo_.acl_template_.ReadWriteCreate_; }
+	[[nodiscard]] inline bool HasWriteAccess() const { return UserInfo_.acl_template_.ReadWrite_ || UserInfo_.acl_template_.ReadWriteCreate_; }
+	[[nodiscard]] inline bool HasCreateAccess() const { return UserInfo_.acl_template_.ReadWriteCreate_; }
+
 protected:
     BindingMap                  bindings_;
     Poco::URI::QueryParameters  parameters_;
     Poco::Logger                & Logger_;
-    std::string                 SessionToken_;
-    std::string                 UserName_;
+    std::string                 		SessionToken_;
+	struct uCentral::Auth::WebToken     UserInfo_;
     std::vector<std::string>    methods_;
 };
 

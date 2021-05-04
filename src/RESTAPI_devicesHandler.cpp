@@ -39,15 +39,15 @@ void RESTAPI_devicesHandler::handleRequest(Poco::Net::HTTPServerRequest& Request
 			if (!Select.empty()) {
 
 				unsigned long P=0;
-				std::string S;
-				uCentralDevice	D;
 				Poco::JSON::Array Objects;
 
 				while(P<Select.size())
 				{
 					auto P2 = Select.find_first_of(',', P);
 					if(P2==std::string::npos) {
-						S = Select.substr(P);
+						auto S = Select.substr(P);
+						std::cout << "Serisl: " << S << std::endl;
+						uCentralDevice	D;
 						if(uCentral::Storage::GetDevice(S,D))
 						{
 							Poco::JSON::Object	Obj;
@@ -60,7 +60,9 @@ void RESTAPI_devicesHandler::handleRequest(Poco::Net::HTTPServerRequest& Request
 						break;
 					}
 					else {
-						S = Select.substr(P, P2);
+						auto S = Select.substr(P, P2);
+						std::cout << "Serisl: " << S << std::endl;
+						uCentralDevice	D;
 						if(uCentral::Storage::GetDevice(S,D))
 						{
 							Poco::JSON::Object	Obj;

@@ -11,38 +11,32 @@
 namespace uCentral::Auth {
     Service *Service::instance_ = nullptr;
 
-    Poco::JSON::Object AclTemplate::to_JSON() const {
-        Poco::JSON::Object Obj;
-
+    void AclTemplate::to_JSON(Poco::JSON::Object &Obj) const {
         Obj.set("Read",Read_);
         Obj.set("ReadWrite",ReadWrite_);
         Obj.set("ReadWriteCreate",ReadWriteCreate_);
         Obj.set("Delete",Delete_);
         Obj.set("PortalLogin",PortalLogin_);
-
-        return Obj;
     }
 
-    Poco::JSON::Object WebToken::to_JSON() const {
-
-        Poco::JSON::Object  AclTemplateObj = acl_template_.to_JSON();
-        Poco::JSON::Object  WebTokenObj;
-
-        WebTokenObj.set("access_token",access_token_);
-        WebTokenObj.set("refresh_token",refresh_token_);
-        WebTokenObj.set("token_type",token_type_);
-        WebTokenObj.set("expires_in",expires_in_);
-        WebTokenObj.set("idle_timeout",idle_timeout_);
-        WebTokenObj.set("created",RESTAPIHandler::to_RFC3339(created_));
-        WebTokenObj.set("username",username_);
-        WebTokenObj.set("aclTemplate",AclTemplateObj);
-
-        return WebTokenObj;
+    void WebToken::to_JSON(Poco::JSON::Object & Obj) const {
+        Poco::JSON::Object  AclTemplateObj;
+		acl_template_.to_JSON(AclTemplateObj);
+		Obj.set("access_token",access_token_);
+		Obj.set("refresh_token",refresh_token_);
+		Obj.set("token_type",token_type_);
+		Obj.set("expires_in",expires_in_);
+		Obj.set("idle_timeout",idle_timeout_);
+		Obj.set("created",RESTAPIHandler::to_RFC3339(created_));
+		Obj.set("username",username_);
+		Obj.set("aclTemplate",AclTemplateObj);
     }
 
     Service::Service() noexcept:
             SubSystemServer("Authentication", "AUTH-SVR", "authentication")
     {
+		std::string E{"SHA512"};
+		DE_ = std::make_unique<Poco::Crypto::DigestEngine>(E);
     }
 
     int Start() {
@@ -53,8 +47,8 @@ namespace uCentral::Auth {
         uCentral::Auth::Service::instance()->Stop();
     }
 
-    bool IsAuthorized(Poco::Net::HTTPServerRequest & Request,std::string &SessionToken, std::string & UserName) {
-        return uCentral::Auth::Service::instance()->IsAuthorized(Request,SessionToken, UserName);
+    bool IsAuthorized(Poco::Net::HTTPServerRequest & Request,std::string &SessionToken, struct WebToken & UserInfo ) {
+        return uCentral::Auth::Service::instance()->IsAuthorized(Request,SessionToken, UserInfo);
     }
 
     bool Authorize( const std::string & UserName, const std::string & Password, WebToken & ResultToken ) {
@@ -78,7 +72,7 @@ namespace uCentral::Auth {
 		Logger_.notice("Stopping...");
     }
 
-    bool Service::IsAuthorized(Poco::Net::HTTPServerRequest & Request, std::string & SessionToken, std::string & UserName )
+    bool Service::IsAuthorized(Poco::Net::HTTPServerRequest & Request, std::string & SessionToken, struct WebToken & UserInfo  )
     {
         if(!Secure_)
             return true;
@@ -97,16 +91,23 @@ namespace uCentral::Auth {
 
             if((Token->second.created_ + Token->second.expires_in_) > time(nullptr)) {
                 SessionToken = RequestToken;
-                UserName = Token->second.username_ ;
+				UserInfo = Token->second ;
                 return true;
             }
-
             Tokens_.erase(Token);
-
             return false;
-        }
-
-        return false;
+        } else {
+			auto ApiToken = Request.get("X-API-KEY ", "");
+			if (!ApiToken.empty()) {
+				std::vector<unsigned char> M;
+				for (const auto &i : ApiToken)
+					M.push_back(i);
+				auto Hash = DE_->digestToHex(M);
+				return false;
+			} else {
+				return false;
+			}
+		}
     }
 
     void Service::Logout(const std::string &token) {

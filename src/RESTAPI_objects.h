@@ -125,4 +125,5 @@ struct uCentralBlackListedDevice {
 	void 			to_json(Poco::JSON::Object  & Obj) const;
 };
 
+
 #endif //UCENTRAL_RESTAPI_OBJECTS_H
