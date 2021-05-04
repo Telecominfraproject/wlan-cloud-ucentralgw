@@ -6,6 +6,7 @@
 #include "uStorageService.h"
 #include "Poco/Array.h"
 #include "Poco/JSON/Stringifier.h"
+#include "utils.h"
 
 using Poco::Array;
 
@@ -37,48 +38,25 @@ void RESTAPI_devicesHandler::handleRequest(Poco::Net::HTTPServerRequest& Request
 			Poco::JSON::Object RetObj;
 
 			if (!Select.empty()) {
-
-				unsigned long P=0;
 				Poco::JSON::Array Objects;
 
-				while(P<Select.size())
-				{
-					auto P2 = Select.find_first_of(',', P);
-					if(P2==std::string::npos) {
-						auto S = Select.substr(P);
-						std::cout << "Serisl: " << S << std::endl;
-						uCentralDevice	D;
-						if(uCentral::Storage::GetDevice(S,D))
-						{
-							Poco::JSON::Object	Obj;
-							if(deviceWithStatus)
-								D.to_json_with_status(Obj);
-							else
-								D.to_json(Obj);
-							Objects.add(Obj);
-						}
-						break;
-					}
-					else {
-						auto S = Select.substr(P, P2);
-						std::cout << "Serisl: " << S << std::endl;
-						uCentralDevice	D;
-						if(uCentral::Storage::GetDevice(S,D))
-						{
-							Poco::JSON::Object	Obj;
-							if(deviceWithStatus)
-								D.to_json_with_status(Obj);
-							else
-								D.to_json(Obj);
-							Objects.add(Obj);
-						}
-					}
-					P=P2+1;
+				std::vector<std::string>	Numbers = uCentral::Utils::Split(Select);
+
+				for(const auto &i:Numbers) {
+					Poco::JSON::Object	Obj;
+					uCentralDevice	D;
+					if(deviceWithStatus)
+						D.to_json_with_status(Obj);
+					else
+						D.to_json(Obj);
+					Objects.add(Obj);
 				}
+
 				if(deviceWithStatus)
 					RetObj.set("devicesWithStatus", Objects);
 				else
 					RetObj.set("devices", Objects);
+
 			} else  if (countOnly == true) {
 				uint64_t Count = 0;
 				if (uCentral::Storage::GetDeviceCount(Count)) {

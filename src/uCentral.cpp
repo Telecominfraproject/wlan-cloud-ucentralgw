@@ -21,6 +21,7 @@
 #include "base64util.h"
 #include "uFileUploader.h"
 #include "CommandChannel.h"
+#include "utils.h"
 
 #ifndef SMALL_BUILD
 #include "kafka_service.h"
@@ -110,22 +111,11 @@ namespace uCentral {
             auto P1 = Line.find_first_of(':');
             auto Type = Line.substr(0, P1);
             auto List = Line.substr(P1+1);
-            std::vector<std::string>    Tokens;
 
-            unsigned long P=0;
+            std::vector<std::string>    Tokens = uCentral::Utils::Split(List);
 
-            while(P<List.size())
-            {
-                auto P2 = List.find_first_of(',', P);
-                if(P2==std::string::npos) {
-                    Tokens.push_back(List.substr(P));
-                    break;
-                }
-                else
-                    Tokens.push_back(List.substr(P,P2));
-                P=P2+1;
-            }
             auto Entry = DeviceTypeIdentifications_[Type];
+
             Entry.insert(Entry.end(),Tokens.begin(),Tokens.end());
         }
     }
