@@ -42,14 +42,16 @@ void RESTAPI_devicesHandler::handleRequest(Poco::Net::HTTPServerRequest& Request
 
 				std::vector<std::string>	Numbers = uCentral::Utils::Split(Select);
 
-				for(const auto &i:Numbers) {
+				for(auto &i:Numbers) {
 					Poco::JSON::Object	Obj;
 					uCentralDevice	D;
-					if(deviceWithStatus)
-						D.to_json_with_status(Obj);
-					else
-						D.to_json(Obj);
-					Objects.add(Obj);
+					if(uCentral::Storage::GetDevice(i,D)) {
+						if (deviceWithStatus)
+							D.to_json_with_status(Obj);
+						else
+							D.to_json(Obj);
+						Objects.add(Obj);
+					}
 				}
 
 				if(deviceWithStatus)
