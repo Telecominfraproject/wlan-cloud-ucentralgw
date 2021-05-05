@@ -395,6 +395,9 @@ namespace uCentral::WebSocket {
                 uCentral::Storage::AddStatisticsData(Serial, UUID, State);
                 uCentral::DeviceRegistry::SetStatistics(Serial, State);
 
+				for(const auto &i:ParamsObj)
+					std::cout << "Name: " << i.first << std::endl;
+
 				if(ParamsObj.contains("request_uuid")) {
 					// we must complete the command...
 					std::string request_uuid = ParamsObj["request_uuid"].toString();
