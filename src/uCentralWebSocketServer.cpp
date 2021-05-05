@@ -390,19 +390,21 @@ namespace uCentral::WebSocket {
                 uint64_t UUID = ParamsObj["uuid"];
                 auto State = ParamsObj["state"].toString();
 
-                Logger_.information(Poco::format("STATE(%s): UUID=%Lu Updating.", CId_, UUID));
+				std::string request_uuid;
+				if(ParamsObj.contains("request_uuid"))
+					std::string request_uuid = ParamsObj["request_uuid"].toString();
+
+				if(request_uuid.empty())
+                	Logger_.information(Poco::format("STATE(%s): UUID=%Lu Updating.", CId_, UUID));
+				else
+					Logger_.information(Poco::format("STATE(%s): UUID=%Lu Updating for CMD=%s.", CId_, UUID,request_uuid));
+
                 Conn_->UUID = UUID;
                 uCentral::Storage::AddStatisticsData(Serial, UUID, State);
                 uCentral::DeviceRegistry::SetStatistics(Serial, State);
 
-//				for(const auto &i:ParamsObj)
-//					std::cout << "Name: " << i.first << std::endl;
-
-				if(ParamsObj.contains("request_uuid")) {
-					// we must complete the command...
-					std::string request_uuid = ParamsObj["request_uuid"].toString();
+				if(!request_uuid.empty()) {
 					uCentral::Storage::SetCommandResult(request_uuid,State);
-					std::cout << "Request_uuid:" << request_uuid << std::endl;
 				}
 
                 LookForUpgrade(Response);
@@ -419,7 +421,14 @@ namespace uCentral::WebSocket {
                 auto Sanity = ParamsObj["sanity"];
                 auto CheckData = ParamsObj["data"].toString();
 
-                Logger_.information(Poco::format("HEALTHCHECK(%s): UUID=%Lu. Updating: Data=%s", CId_, UUID, CheckData));
+				std::string request_uuid;
+				if(ParamsObj.contains("request_uuid"))
+					std::string request_uuid = ParamsObj["request_uuid"].toString();
+
+				if(request_uuid.empty())
+					Logger_.information(Poco::format("HEALTHCHECK(%s): UUID=%Lu Updating.", CId_, UUID));
+				else
+					Logger_.information(Poco::format("HEALTHCHECK(%s): UUID=%Lu Updating for CMD=%s.", CId_, UUID,request_uuid));
 
                 Conn_->UUID = UUID;
 
@@ -432,9 +441,7 @@ namespace uCentral::WebSocket {
 
                 uCentral::Storage::AddHealthCheckData(Serial, Check);
 
-				if(ParamsObj.contains("request_uuid")) {
-					// we must complete the command...
-					std::string request_uuid = ParamsObj["request_uuid"].toString();
+				if(!request_uuid.empty()) {
 					uCentral::Storage::SetCommandResult(request_uuid,CheckData);
 				}
 
