@@ -284,7 +284,6 @@ namespace uCentral {
 #endif
 			if(Poco::Net::Socket::supportsIPv6()) {
 				logger.information("System supports IPv6.");
-				std::cout << "System supports IPv6." << std::endl;
 			}
 			else
 				logger.information("System does NOT suppord IPv6.");

@@ -151,7 +151,7 @@ Poco::Net::SecureServerSocket PropertiesFileServerEntry::CreateSecureSocket(Poco
 	}
 
 	if (address_ == "*") {
-		Poco::Net::IPAddress Addr(Poco::Net::IPAddress::wildcard(Poco::Net::AddressFamily::IPv6));
+		Poco::Net::IPAddress Addr(Poco::Net::IPAddress::wildcard(Poco::Net::Socket::supportsIPv6() ? Poco::Net::AddressFamily::IPv6 : Poco::Net::AddressFamily::IPv4 ));
 		Poco::Net::SocketAddress SockAddr(Addr, port_);
 
 		return Poco::Net::SecureServerSocket(SockAddr, backlog_, Context);
