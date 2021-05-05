@@ -431,6 +431,9 @@ namespace uCentral::WebSocket {
                 Check.Data = CheckData;
                 Check.Sanity = Sanity;
 
+				for(const auto &i:ParamsObj)
+					std::cout << "Name: " << i.first << std::endl;
+
                 uCentral::Storage::AddHealthCheckData(Serial, Check);
 
 				if(ParamsObj.contains("request_uuid")) {
