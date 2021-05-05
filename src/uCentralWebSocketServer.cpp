@@ -16,6 +16,7 @@
 #include "uStorageService.h"
 #include "uAuthService.h"
 #include "uCentral.h"
+#include "utils.h"
 
 
 namespace uCentral::WebSocket {
@@ -112,7 +113,7 @@ namespace uCentral::WebSocket {
 
 		SS->completeHandshake();
 
-		CId_ = SS->getPeerHostName().empty() ? SS->peerAddress().toString() : SS->getPeerHostName();
+		CId_ = uCentral::Utils::FormatIPv6(SS->peerAddress().toString());
 
 		if(!SS->secure()) {
 			Logger_.error(Poco::format("%s: Connection is NOT secure.",CId_));
@@ -355,7 +356,7 @@ namespace uCentral::WebSocket {
                 Conn_->UUID = UUID;
                 Conn_->Firmware = Firmware;
                 Conn_->PendingUUID = 0;
-				Conn_->Address = WS_->peerAddress().toString();
+				Conn_->Address = uCentral::Utils::FormatIPv6(WS_->peerAddress().toString());
 				CId_ = SerialNumber_ + "@" + CId_ ;
 
 				//	We need to verify the certificate if we have one

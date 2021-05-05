@@ -11,6 +11,7 @@
 namespace uCentral::Utils {
 
 	[[nodiscard]] std::vector<std::string> Split(const std::string &List, char Delimiter=',');
+	[[nodiscard]] std::string FormatIPv6(const std::string & I );
 
 }
 #endif // UCENTRALGW_UTILS_H

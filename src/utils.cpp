@@ -25,4 +25,17 @@ namespace uCentral::Utils {
 		return ReturnList;
 	}
 
+	[[nodiscard]] std::string FormatIPv6(const std::string & I )
+	{
+		if(I.substr(0,8) == "[::ffff:")
+		{
+			unsigned long PClosingBracket = I.find_first_of(']');
+
+			std::string ip = I.substr(9, PClosingBracket-9);
+			std::string port = I.substr(PClosingBracket+1);
+			return ip + port;
+		}
+
+		return I;
+	}
 }
