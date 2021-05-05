@@ -399,6 +399,8 @@ namespace uCentral::WebSocket {
 					// we must complete the command...
 					std::string request_uuid = ParamsObj["request_uuid"].toString();
 					uCentral::Storage::SetCommandResult(request_uuid,State);
+					std::cout << "Request_uuid:" << request_uuid << std::endl;
+					std::cout << "State:" << State << std::endl;
 				}
 
                 LookForUpgrade(Response);
