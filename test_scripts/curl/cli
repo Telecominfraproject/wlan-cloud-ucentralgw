@@ -112,9 +112,7 @@ reboot() {
 }
 
 setloglevel() {
-  # Possible log levels: none, fatal, critical, error, warning, notice, information, debug, trace
-  # Possible subsystem: ufileuploader, websocket, storage, restapi, commandmanager, auth, deviceregistry, all
-  payload='{ "command" : "setloglevel" , "parameters" : [ { "name" : "websocket" , "value" : "information" } ] }'
+  payload="{ \"command\" : \"setloglevel\" , \"parameters\" : [ { \"name\" : \"$1\" , \"value\" : \"$2\" } ] }"
   curl  -s -X POST "https://$UCENTRALGW/api/v1/system" \
         -H  "accept: application/json" \
         -H "Authorization: Bearer $token" \
@@ -350,6 +348,10 @@ help() {
   echo "deviceserialnumbers               Get only the serial numbers"
   echo "selectdevices <serial list>       get a list of serial numbers (must be comma separated)"
   echo "deviceswithstatus                 Get devices with their status"
+  echo
+  echo "setloglevel <sys> <level>         Set the logging system level for individual subsystems."
+  echo "                                  sys:ufileuploader/websocket/storage/restapi/commandmanager/auth/deviceregistry/all"
+  echo "                                  level:none/fatal/critical/error/warning/notice/information/debug/trace"
   echo
 }
 
