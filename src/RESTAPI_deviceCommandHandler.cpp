@@ -916,7 +916,7 @@ void RESTAPI_deviceCommandHandler::MakeRequest(Poco::Net::HTTPServerRequest &Req
 			Cmd.Details = ParamStream.str();
 
 			if(uCentral::Storage::AddCommand(SerialNumber,Cmd)) {
-				WaitForRPC(Cmd,Response, 20000);
+				WaitForRPC(Cmd,Response, 4000);
 				return;
 			}
 		}

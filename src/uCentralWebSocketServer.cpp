@@ -395,15 +395,14 @@ namespace uCentral::WebSocket {
                 uCentral::Storage::AddStatisticsData(Serial, UUID, State);
                 uCentral::DeviceRegistry::SetStatistics(Serial, State);
 
-				for(const auto &i:ParamsObj)
-					std::cout << "Name: " << i.first << std::endl;
+//				for(const auto &i:ParamsObj)
+//					std::cout << "Name: " << i.first << std::endl;
 
 				if(ParamsObj.contains("request_uuid")) {
 					// we must complete the command...
 					std::string request_uuid = ParamsObj["request_uuid"].toString();
 					uCentral::Storage::SetCommandResult(request_uuid,State);
 					std::cout << "Request_uuid:" << request_uuid << std::endl;
-					std::cout << "State:" << State << std::endl;
 				}
 
                 LookForUpgrade(Response);
@@ -430,9 +429,6 @@ namespace uCentral::WebSocket {
                 Check.UUID = UUID;
                 Check.Data = CheckData;
                 Check.Sanity = Sanity;
-
-				for(const auto &i:ParamsObj)
-					std::cout << "Name: " << i.first << std::endl;
 
                 uCentral::Storage::AddHealthCheckData(Serial, Check);
 

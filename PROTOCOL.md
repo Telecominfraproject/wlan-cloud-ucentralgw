@@ -51,7 +51,7 @@ may decide to send this new configuration to the AP.
     "params" : {
         "serial" : <serial number> ,
         "uuid" : <current active configuration uuid>,
-	"request_uuid" : <optional string identifying the request that triggered this state event. The absence(or empty) means that this is a normal scheduled state>
+	    "request_uuid" : <optional string identifying the request that triggered this state event. The absence(or empty) means that this is a normal scheduled state>
         "state" : <JSON Document: current device state.>
       }
 }
@@ -66,7 +66,7 @@ if they need attention.
     "params" : {
         "serial" : <serial number> ,
         "uuid" : <current active configuration uuid>,
-	"request_uuid" : <optional string identifying the request that triggered this healthcheck. The absence(or empty) means that this is a normal scheduled healthcheck>
+	    "request_uuid" : <optional string identifying the request that triggered this healthcheck. The absence(or empty) means that this is a normal scheduled healthcheck>
         "sanity: <integer representing a percentage level of operation. 0 - device is dead 100 - all perfect.>
         "data" : <Optiona/may be empty: JSON Document about current device healthcheck.>
       }
