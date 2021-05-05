@@ -282,6 +282,12 @@ namespace uCentral {
 #ifndef SMALL_BUILD
 			uCentral::Kafka::Start();
 #endif
+			if(Poco::Net::Socket::supportsIPv6()) {
+				logger.information("System supports IPv6.");
+				std::cout << "System supports IPv6." << std::endl;
+			}
+			else
+				logger.information("System does NOT suppord IPv6.");
             App.waitForTerminationRequest();
 
 #ifndef SMALL_BUILD
