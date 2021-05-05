@@ -392,7 +392,7 @@ namespace uCentral::WebSocket {
 
 				std::string request_uuid;
 				if(ParamsObj.contains("request_uuid"))
-					std::string request_uuid = ParamsObj["request_uuid"].toString();
+					request_uuid = ParamsObj["request_uuid"].toString();
 
 				if(request_uuid.empty())
                 	Logger_.information(Poco::format("STATE(%s): UUID=%Lu Updating.", CId_, UUID));
@@ -423,7 +423,7 @@ namespace uCentral::WebSocket {
 
 				std::string request_uuid;
 				if(ParamsObj.contains("request_uuid"))
-					std::string request_uuid = ParamsObj["request_uuid"].toString();
+					request_uuid = ParamsObj["request_uuid"].toString();
 
 				if(request_uuid.empty())
 					Logger_.information(Poco::format("HEALTHCHECK(%s): UUID=%Lu Updating.", CId_, UUID));
