@@ -7,6 +7,7 @@
 #include "uAuthService.h"
 #include "uCentral.h"
 #include "RESTAPI_handler.h"
+#include "Poco/Net/OAuth20Credentials.h"
 
 namespace uCentral::Auth {
     Service *Service::instance_ = nullptr;
@@ -77,26 +78,25 @@ namespace uCentral::Auth {
         if(!Secure_)
             return true;
 
-        auto Authorization = Request.get("Authorization","");
+		try {
+			Poco::Net::OAuth20Credentials	Auth(Request);
 
-        if(!Authorization.empty() && Authorization.substr(0,6) == "Bearer")
-        {
-            auto RequestToken = Authorization.substr(7);
-            std::lock_guard<std::mutex> guard(Mutex_);
+			if(Auth.getScheme()=="Bearer") {
+				const auto & RequestToken = Auth.getBearerToken();
+				std::lock_guard<std::mutex> guard(Mutex_);
 
-            auto Token = Tokens_.find(RequestToken);
-
-            if( Token == Tokens_.end() )
-                return false;
-
-            if((Token->second.created_ + Token->second.expires_in_) > time(nullptr)) {
-                SessionToken = RequestToken;
-				UserInfo = Token->second ;
-                return true;
-            }
-            Tokens_.erase(Token);
-            return false;
-        } else {
+				auto Token = Tokens_.find(RequestToken);
+				if( Token == Tokens_.end() )
+					return false;
+				if((Token->second.created_ + Token->second.expires_in_) > time(nullptr)) {
+					SessionToken = RequestToken;
+					UserInfo = Token->second ;
+					return true;
+				}
+				Tokens_.erase(Token);
+				return false;
+			}
+		} catch (const Poco::Net::NotAuthenticatedException & E) {
 			auto ApiToken = Request.get("X-API-KEY ", "");
 			if (!ApiToken.empty()) {
 				std::vector<unsigned char> M;
@@ -108,6 +108,10 @@ namespace uCentral::Auth {
 				return false;
 			}
 		}
+		catch(const Poco::Exception & E) {
+			Logger_.log(E);
+		}
+		return false;
     }
 
     void Service::Logout(const std::string &token) {
