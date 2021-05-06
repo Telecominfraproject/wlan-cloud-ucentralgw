@@ -51,7 +51,11 @@ namespace uCentral {
 		App.logger().warning(Poco::format("exception on %s",CurrentThread->getName()));
     }
 
-    void Daemon::initialize(Application &self) {
+	void Daemon::exit(int Reason) {
+		std::exit(Reason);
+	}
+
+	void Daemon::initialize(Application &self) {
 
 		Poco::Net::initializeSSL();
 

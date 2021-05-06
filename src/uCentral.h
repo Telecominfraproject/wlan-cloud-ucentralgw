@@ -53,6 +53,7 @@ namespace uCentral {
 		static bool SetSubsystemLogLevel(const std::string & SubSystem, const std::string & Level);
 		static std::string Version();
 		const Poco::SharedPtr<Poco::Crypto::RSAKey> & Key() { return AppKey_; }
+		void exit(int Reason);
 
     private:
         bool                        helpRequested_ = false;

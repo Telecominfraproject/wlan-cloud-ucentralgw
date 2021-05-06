@@ -16,6 +16,8 @@
 
 #include "Poco/Net/X509Certificate.h"
 
+using SubMutex = std::recursive_mutex;
+
 class PropertiesFileServerEntry {
 public:
     PropertiesFileServerEntry( 	std::string Address,
@@ -92,7 +94,7 @@ public:
 	void SetLoggingLevel(Poco::Message::Priority NewPriority) { Logger_.setLevel(NewPriority); }
 
 protected:
-  	std::mutex				Mutex_{};
+  	SubMutex 				Mutex_{};
     Poco::Logger            & Logger_;
     std::string             Name_;
     std::vector<PropertiesFileServerEntry> ConfigServersList_;

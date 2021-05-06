@@ -56,7 +56,7 @@ namespace uCentral::uFileUploader {
     Service::Service() noexcept:
             SubSystemServer("FileUploader", "FILE-UPLOAD", "ucentral.fileuploader")
     {
-		std::lock_guard<std::mutex>	G(Mutex_);
+		std::lock_guard<SubMutex>	G(Mutex_);
     }
 
     static const std::string URI_BASE{"/v1/upload/"};
@@ -102,7 +102,7 @@ namespace uCentral::uFileUploader {
 
     //  if you pass in an empty UUID, it will just clean the list and not add it.
     bool Service::AddUUID( const std::string & UUID) {
-        std::lock_guard<std::mutex> guard(Mutex_);
+        std::lock_guard<SubMutex> guard(Mutex_);
 
         uint64_t Now = time(nullptr) ;
 
@@ -121,13 +121,13 @@ namespace uCentral::uFileUploader {
     }
 
     bool Service::ValidRequest(const std::string &UUID) {
-        std::lock_guard<std::mutex> guard(Mutex_);
+        std::lock_guard<SubMutex> guard(Mutex_);
 
         return OutStandingUploads_.find(UUID)!=OutStandingUploads_.end();
     }
 
     void Service::RemoveRequest(const std::string &UUID) {
-        std::lock_guard<std::mutex> guard(Mutex_);
+        std::lock_guard<SubMutex> guard(Mutex_);
         OutStandingUploads_.erase(UUID);
     }
 

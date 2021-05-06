@@ -10,9 +10,18 @@
 #include "Poco/JSON/Object.h"
 #include "Poco/Net/HTTPServerRequest.h"
 #include "Poco/Net/HTTPServerResponse.h"
-#include "Poco/Crypto/DigestEngine.h"
+#include "Poco/JWT/Signer.h"
 
 namespace uCentral::Auth {
+
+	enum ACCESS_TYPE {
+		USERNAME,
+		SERVER,
+		CUSTOM
+	};
+
+	ACCESS_TYPE IntToAccessType(int C);
+	int AccessTypeToInt(ACCESS_TYPE T);
 
     struct AclTemplate {
         bool Read_ = true ;
@@ -44,6 +53,7 @@ namespace uCentral::Auth {
 
     class Service : public SubSystemServer {
     public:
+
         Service() noexcept;
 
         friend int Start();
@@ -58,7 +68,9 @@ namespace uCentral::Auth {
 
         friend bool IsAuthorized(Poco::Net::HTTPServerRequest & Request,std::string &SessionToken, struct WebToken & UserInfo );
         friend bool Authorize( const std::string & UserName, const std::string & Password, WebToken & ResultToken );
-        static std::string GenerateToken(const std::string & UserName);
+        [[nodiscard]] std::string GenerateToken(const std::string & UserName, ACCESS_TYPE Type, int NumberOfDays);
+		[[nodiscard]] bool ValidateToken(const std::string & Token);
+		[[nodiscard]] bool TryRestoringToken(const std::string & Token);
         friend void Logout(const std::string &token);
 
     private:
@@ -76,7 +88,7 @@ namespace uCentral::Auth {
                         	DefaultPassword_;
         std::string     	Mechanism_;
         bool            	AutoProvisioning_ = false ;
-		std::unique_ptr<Poco::Crypto::DigestEngine>	DE_;
+		Poco::JWT::Signer	Signer_;
     };
 
 }; // end of namespace

@@ -18,6 +18,8 @@
 #include "Poco/Data/ODBC/Connector.h"
 #endif
 
+#include "uAuthService.h"
+
 namespace uCentral::Storage {
 
     int Start();
@@ -82,6 +84,13 @@ namespace uCentral::Storage {
 	bool DeleteBlackListDevice(std::string & SerialNumber);
 	bool GetBlackListDevices(uint64_t Offset, uint64_t HowMany, std::vector<uCentralBlackListedDevice> & Devices );
 	bool IsBlackListed(std::string & SerialNumber);
+
+	bool IdentityExists(std::string & Identity, uCentral::Auth::ACCESS_TYPE Type);
+	bool AddIdentity(std::string & Identity, std::string & Password, uCentral::Auth::ACCESS_TYPE Type, uCentral::Auth::AclTemplate & ACL);
+	bool GetIdentity(std::string & Identity, std::string & Password, uCentral::Auth::ACCESS_TYPE Type, uCentral::Auth::AclTemplate & ACL);
+	bool UpdateIdentity(std::string & Identity, std::string & Password, uCentral::Auth::ACCESS_TYPE Type, uCentral::Auth::AclTemplate & ACL);
+	bool DeleteIdentity(std::string & Identity, uCentral::Auth::ACCESS_TYPE Type);
+	bool ListIdentities(uint64_t Offset, uint64_t HowMany, std::vector<std::string> & Identities, uCentral::Auth::ACCESS_TYPE Type);
 
     std::string SerialToMAC(const std::string & Serial);
 
@@ -162,6 +171,14 @@ namespace uCentral::Storage {
 		friend bool SetCommandResult(std::string & UUID, std::string & Result);
 		friend bool SetFirmware(std::string & SerialNumber, std::string & Firmware );
 
+		friend bool IdentityExists(std::string & Identity, uCentral::Auth::ACCESS_TYPE Type);
+		friend bool AddIdentity(std::string & Identity, std::string & Password, uCentral::Auth::ACCESS_TYPE Type, uCentral::Auth::AclTemplate & ACL);
+		friend bool GetIdentity(std::string & Identity, std::string & Password, uCentral::Auth::ACCESS_TYPE Type, uCentral::Auth::AclTemplate & ACL);
+		friend bool UpdateIdentity(std::string & Identity, std::string & Password, uCentral::Auth::ACCESS_TYPE Type, uCentral::Auth::AclTemplate & ACL);
+		friend bool DeleteIdentity(std::string & Identity, uCentral::Auth::ACCESS_TYPE Type);
+		friend bool ListIdentities(uint64_t Offset, uint64_t HowMany, std::vector<std::string> & Identities, uCentral::Auth::ACCESS_TYPE Type);
+
+
 	  private:
         bool AddLog(std::string & SerialNumber, uCentralDeviceLog & Log, bool CrashLog );
         bool AddLog(std::string & SerialNumber, const std::string & Log );
@@ -229,6 +246,14 @@ namespace uCentral::Storage {
 		bool IsBlackListed(std::string & SerialNumber);
 		bool GetBlackListDevices(uint64_t Offset, uint64_t HowMany, std::vector<uCentralBlackListedDevice> & Devices );
 
+		//	for usernames
+		bool IdentityExists(std::string & Identity, uCentral::Auth::ACCESS_TYPE Type);
+		bool AddIdentity(std::string & Identity, std::string & Password, uCentral::Auth::ACCESS_TYPE Type, uCentral::Auth::AclTemplate & ACL);
+		bool GetIdentity(std::string & Identity, std::string & Password, uCentral::Auth::ACCESS_TYPE Type, uCentral::Auth::AclTemplate & ACL);
+		bool UpdateIdentity(std::string & Identity, std::string & Password, uCentral::Auth::ACCESS_TYPE Type, uCentral::Auth::AclTemplate & ACL);
+		bool DeleteIdentity(std::string & Identity, uCentral::Auth::ACCESS_TYPE Type);
+		bool ListIdentities(uint64_t Offset, uint64_t HowMany, std::vector<std::string> & Identities, uCentral::Auth::ACCESS_TYPE Type);
+
         int Start() override;
         void Stop() override;
         int Setup_SQLite();
@@ -240,13 +265,13 @@ namespace uCentral::Storage {
         int Setup_ODBC();
 #endif
         static Service      *instance_;
-        std::unique_ptr<Poco::Data::SessionPool>            Pool_;
+        std::unique_ptr<Poco::Data::SessionPool>            Pool_= nullptr;
 		bool 				IsPSQL_ = false;
-        std::unique_ptr<Poco::Data::SQLite::Connector>      SQLiteConn_;
+        std::unique_ptr<Poco::Data::SQLite::Connector>      SQLiteConn_= nullptr;
 #ifndef SMALL_BUILD
-        std::unique_ptr<Poco::Data::PostgreSQL::Connector>  PostgresConn_;
-        std::unique_ptr<Poco::Data::MySQL::Connector>       MySQLConn_;
-        std::unique_ptr<Poco::Data::ODBC::Connector>        ODBCConn_;
+        std::unique_ptr<Poco::Data::PostgreSQL::Connector>  PostgresConn_= nullptr;
+        std::unique_ptr<Poco::Data::MySQL::Connector>       MySQLConn_= nullptr;
+        std::unique_ptr<Poco::Data::ODBC::Connector>        ODBCConn_= nullptr;
 #endif
     };
 

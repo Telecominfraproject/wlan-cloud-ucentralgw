@@ -64,7 +64,7 @@ add_executable( ucentralgw
                 src/RESTAPI_default_configuration.h src/RESTAPI_default_configurations.cpp src/RESTAPI_default_configurations.h src/RESTAPI_commands.cpp
                 src/RESTAPI_commands.h src/uCommandManager.cpp src/uCommandManager.h src/RESTAPI_command.cpp src/RESTAPI_command.h src/base64util.cpp
                 src/base64util.h src/uFileUploader.cpp src/uFileUploader.h src/RESTAPI_file.cpp src/RESTAPI_file.h src/CommandChannel.cpp src/CommandChannel.h
-                src/RESTAPI_SystemCommand.cpp src/RESTAPI_SystemCommand.h src/RESTAPI_BlackList.cpp src/RESTAPI_BlackList.h src/utils.h src/utils.cpp)
+                src/RESTAPI_SystemCommand.cpp src/RESTAPI_SystemCommand.h src/RESTAPI_BlackList.cpp src/RESTAPI_BlackList.h src/utils.h src/utils.cpp src/storage_blacklist.cpp src/storage_identity.cpp src/storage_command.cpp src/storage_healthcheck.cpp src/storage_statistics.cpp src/storage_logs.cpp src/storage_device.cpp src/storage_capabilities.cpp src/storage_defconfig.cpp src/storage_sqlite.cpp src/storage_mysql.cpp src/storage_pgql.cpp src/storage_odbc.cpp)
 
 if(NOT SMALL_BUILD)
     target_sources(ucentralgw PUBLIC src/kafka_service.cpp src/kafka_service.h)

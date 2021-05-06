@@ -14,6 +14,23 @@
 namespace uCentral::Auth {
     Service *Service::instance_ = nullptr;
 
+	ACCESS_TYPE IntToAccessType(int C) {
+		switch (C) {
+		case 1: return USERNAME;
+		case 2: return SERVER;
+		case 3: return CUSTOM;
+		}
+		return USERNAME;
+	}
+
+	int AccessTypeToInt(ACCESS_TYPE T) {
+		switch (T) {
+		case USERNAME: return 1;
+		case SERVER: return 2;
+		case CUSTOM: return 3;
+		}
+	}
+
     void AclTemplate::to_JSON(Poco::JSON::Object &Obj) const {
         Obj.set("Read",Read_);
         Obj.set("ReadWrite",ReadWrite_);
@@ -39,7 +56,6 @@ namespace uCentral::Auth {
             SubSystemServer("Authentication", "AUTH-SVR", "authentication")
     {
 		std::string E{"SHA512"};
-		DE_ = std::make_unique<Poco::Crypto::DigestEngine>(E);
     }
 
     int Start() {
@@ -63,6 +79,7 @@ namespace uCentral::Auth {
     }
 
     int Service::Start() {
+		Signer_.setRSAKey(uCentral::instance()->Key());
 		Logger_.notice("Starting...");
         Secure_ = uCentral::ServiceConfig::getBool(SubSystemConfigPrefix_+".enabled",true);
         DefaultPassword_ = uCentral::ServiceConfig::getString(SubSystemConfigPrefix_+".default.password","");
@@ -75,69 +92,95 @@ namespace uCentral::Auth {
 		Logger_.notice("Stopping...");
     }
 
-    bool Service::IsAuthorized(Poco::Net::HTTPServerRequest & Request, std::string & SessionToken, struct WebToken & UserInfo  )
+	bool Service::TryRestoringToken(const std::string & Token) {
+		return false;
+	}
+
+	bool Service::IsAuthorized(Poco::Net::HTTPServerRequest & Request, std::string & SessionToken, struct WebToken & UserInfo  )
     {
         if(!Secure_)
             return true;
 
+		std::lock_guard<SubMutex> guard(Mutex_);
+
+		std::string CallToken;
+
 		try {
-			Poco::Net::OAuth20Credentials	Auth(Request);
+			Poco::Net::OAuth20Credentials Auth(Request);
 
-			if(Auth.getScheme()=="Bearer") {
-				const auto & RequestToken = Auth.getBearerToken();
-				std::lock_guard<std::mutex> guard(Mutex_);
+			if (Auth.getScheme() == "Bearer") {
+				CallToken = Auth.getBearerToken();
+			}
+		} catch(const Poco::Exception &E) {
+		}
 
-				auto Token = Tokens_.find(RequestToken);
-				if( Token == Tokens_.end() )
-					return false;
-				if((Token->second.created_ + Token->second.expires_in_) > time(nullptr)) {
-					SessionToken = RequestToken;
-					UserInfo = Token->second ;
-					return true;
-				}
-				Tokens_.erase(Token);
-				return false;
-			}
-		} catch (const Poco::Net::NotAuthenticatedException & E) {
-			auto ApiToken = Request.get("X-API-KEY ", "");
-			if (!ApiToken.empty()) {
-				std::vector<unsigned char> M;
-				for (const auto &i : ApiToken)
-					M.push_back(i);
-				auto Hash = DE_->digestToHex(M);
-				return false;
-			} else {
-				return false;
-			}
+		if(CallToken.empty())
+			CallToken = Request.get("X-API-KEY ", "");
+
+		if(CallToken.empty())
+			return false;
+
+		auto Client = Tokens_.find(CallToken);
+
+		if( Client == Tokens_.end() )
+			return ValidateToken(CallToken);
+
+		if((Client->second.created_ + Client->second.expires_in_) > time(nullptr)) {
+			SessionToken = CallToken;
+			UserInfo = Client->second ;
+			return true;
 		}
-		catch(const Poco::Exception & E) {
-			Logger_.log(E);
-		}
+
+		Tokens_.erase(CallToken);
 		return false;
     }
 
     void Service::Logout(const std::string &token) {
-        std::lock_guard<std::mutex> guard(Mutex_);
+        std::lock_guard<SubMutex> 	Lock(Mutex_);
 
         Tokens_.erase(token);
     }
 
-    std::string Service::GenerateToken(const std::string & UserName) {
+    std::string Service::GenerateToken(const std::string & Identity, ACCESS_TYPE Type, int NumberOfDays) {
+		std::lock_guard<SubMutex>	Lock(Mutex_);
+
 		Poco::JWT::Token	T;
 
 		T.setType("JWT");
-		T.setSubject("tiptoken");
-		T.payload().set("name", UserName);
+		switch(Type) {
+			case USERNAME:	T.setSubject("usertoken"); break;
+			case SERVER: 	T.setSubject("servertoken"); break;
+			case CUSTOM:	T.setSubject("customtoken"); break;
+		}
+
+		T.payload().set("identity", Identity);
 		T.setIssuedAt(Poco::Timestamp());
-		Poco::JWT::Signer	Signer(uCentral::instance()->Key());
-		std::string JWT = Signer.sign(T,Poco::JWT::Signer::ALGO_RS256);
+		T.setExpiration(Poco::Timestamp() + Poco::Timespan(NumberOfDays,0,0,0,0));
+		std::string JWT = Signer_.sign(T,Poco::JWT::Signer::ALGO_RS256);
 
 		return JWT;
     }
 
+	bool Service::ValidateToken(const std::string & Token) {
+		std::lock_guard<SubMutex>		Lock(Mutex_);
+		Poco::JWT::Token				DecryptedToken;
+
+		if(Signer_.tryVerify(Token,DecryptedToken)) {
+			/*
+			if(Expires>Poco::Timestamp() && DecryptedToken.getSubject()=="usertoken")
+			{
+				UserName = DecryptedToken.payload().get("username").toString();
+				return true;
+			}*/
+		}
+		return false;
+	}
+
     void Service::CreateToken(const std::string & UserName, WebToken & ResultToken)
     {
-        std::lock_guard<std::mutex> guard(Mutex_);
+        std::lock_guard<SubMutex> Lock(Mutex_);
+
+		std::string Token = GenerateToken(UserName,USERNAME,30);
 
         ResultToken.acl_template_.PortalLogin_ = true ;
         ResultToken.acl_template_.Delete_ = true ;
@@ -148,9 +191,9 @@ namespace uCentral::Auth {
         ResultToken.expires_in_ = 30 * 24 * 60 ;
         ResultToken.idle_timeout_ = 5 * 60;
         ResultToken.token_type_ = "Bearer";
-        ResultToken.access_token_ = GenerateToken(UserName);
-        ResultToken.id_token_ = GenerateToken(UserName);
-        ResultToken.refresh_token_ = GenerateToken(UserName);
+        ResultToken.access_token_ = Token;
+        ResultToken.id_token_ = Token;
+        ResultToken.refresh_token_ = Token;
         ResultToken.created_ = time(nullptr);
         ResultToken.username_ = UserName;
 
