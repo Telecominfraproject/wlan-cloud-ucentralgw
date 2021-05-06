@@ -360,6 +360,15 @@ You will need to upgrade your device to the latest firmware. Once updated, you w
   the `/etc/ucentral` directory. You will need to modify the `/etc/config-shadow/ucentral` file with your hostname. At which point, 
   you should be able to restart the uCentral client with `/etc/init.d/ucentral restart`. Then the command `logread -f` should tell you
   if you device was able to connect to the gateway.
+
+#### Server key entry
+The gateway needs to encrypt information from time to time. In order to do so, it must have a crypto key. This key
+can be any of the keys you are already using. You must keep that keep secret and always use it. In the configutation,
+this is the entry
+
+```asm
+ucentral.service.key = $UCENTRAL_ROOT/certs/websocket-key.pem
+```
  
 #### Command line options
 The current implementation supports the following. If you use the built-in configuration file, you do not need to use any command-line
