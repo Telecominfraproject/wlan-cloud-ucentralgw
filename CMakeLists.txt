@@ -40,7 +40,7 @@ find_package(ZLIB REQUIRED)
 find_package(Lua REQUIRED)
 
 if(SMALL_BUILD)
-    find_package(Poco REQUIRED COMPONENTS Crypto Net Util NetSSL Data DataSQLite)
+    find_package(Poco REQUIRED COMPONENTS Crypto JWT Net Util NetSSL Data DataSQLite)
 else()
     find_package(CppKafka REQUIRED)
     find_package(PostgreSQL REQUIRED)
