@@ -14,6 +14,7 @@
 #include "Poco/Util/OptionSet.h"
 #include "Poco/UUIDGenerator.h"
 #include "Poco/ErrorHandler.h"
+#include "Poco/Crypto/RSAKey.h"
 
 using Poco::Util::ServerApplication;
 
@@ -51,6 +52,7 @@ namespace uCentral {
         uint64_t ID() const { return ID_; }
 		static bool SetSubsystemLogLevel(const std::string & SubSystem, const std::string & Level);
 		static std::string Version();
+		const Poco::SharedPtr<Poco::Crypto::RSAKey> & Key() { return AppKey_; }
 
     private:
         bool                        helpRequested_ = false;
@@ -62,6 +64,7 @@ namespace uCentral {
         uint64_t                    ID_ = 1;
         Poco::UUIDGenerator         UUIDGenerator_;
         MyErrorHandler              AppErrorHandler_;
+		Poco::SharedPtr<Poco::Crypto::RSAKey>	AppKey_ = nullptr;
     };
 
     namespace ServiceConfig {

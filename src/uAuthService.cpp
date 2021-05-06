@@ -8,6 +8,8 @@
 #include "uCentral.h"
 #include "RESTAPI_handler.h"
 #include "Poco/Net/OAuth20Credentials.h"
+#include "Poco/JWT/Token.h"
+#include "Poco/JWT/Signer.h"
 
 namespace uCentral::Auth {
     Service *Service::instance_ = nullptr;
@@ -120,17 +122,17 @@ namespace uCentral::Auth {
         Tokens_.erase(token);
     }
 
-    std::string Service::GenerateToken() {
-        static char buf[]={"1234567890abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRESTUVWXYZ"};
+    std::string Service::GenerateToken(const std::string & UserName) {
+		Poco::JWT::Token	T;
 
-        std::string Res;
-        std::default_random_engine generator(time(nullptr) * (int64_t )(uCentral::Auth::Service::instance_) );
-        std::uniform_int_distribution<int> distribution(0,time(nullptr));
+		T.setType("JWT");
+		T.setSubject("tiptoken");
+		T.payload().set("name", UserName);
+		T.setIssuedAt(Poco::Timestamp());
+		Poco::JWT::Signer	Signer(uCentral::instance()->Key());
+		std::string JWT = Signer.sign(T,Poco::JWT::Signer::ALGO_RS256);
 
-        for(auto i=0;i<sizeof(buf);i++)
-            Res += buf[distribution(generator) % (sizeof(buf)-1)];
-
-        return Res;
+		return JWT;
     }
 
     void Service::CreateToken(const std::string & UserName, WebToken & ResultToken)
@@ -146,9 +148,9 @@ namespace uCentral::Auth {
         ResultToken.expires_in_ = 30 * 24 * 60 ;
         ResultToken.idle_timeout_ = 5 * 60;
         ResultToken.token_type_ = "Bearer";
-        ResultToken.access_token_ = GenerateToken();
-        ResultToken.id_token_ = GenerateToken();
-        ResultToken.refresh_token_ = GenerateToken();
+        ResultToken.access_token_ = GenerateToken(UserName);
+        ResultToken.id_token_ = GenerateToken(UserName);
+        ResultToken.refresh_token_ = GenerateToken(UserName);
         ResultToken.created_ = time(nullptr);
         ResultToken.username_ = UserName;
 

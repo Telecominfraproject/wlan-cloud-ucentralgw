@@ -31,7 +31,7 @@ namespace uCentral::Utils {
 		{
 			unsigned long PClosingBracket = I.find_first_of(']');
 
-			std::string ip = I.substr(9, PClosingBracket-9);
+			std::string ip = I.substr(8, PClosingBracket-8);
 			std::string port = I.substr(PClosingBracket+1);
 			return ip + port;
 		}

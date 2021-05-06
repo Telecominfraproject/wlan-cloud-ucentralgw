@@ -78,6 +78,10 @@ namespace uCentral {
             config().setString(LogFilePathKey, LogDir_);
         }
 
+		std::string KeyFile = Poco::Path::expand(config().getString("ucentral.service.key"));
+
+		AppKey_ = Poco::SharedPtr<Poco::Crypto::RSAKey>(new Poco::Crypto::RSAKey("", KeyFile, ""));
+
         addSubsystem(uCentral::Storage::Service::instance());
         addSubsystem(uCentral::Auth::Service::instance());
         addSubsystem(uCentral::DeviceRegistry::Service::instance());

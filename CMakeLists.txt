@@ -46,7 +46,7 @@ else()
     find_package(PostgreSQL REQUIRED)
     find_package(MySQL REQUIRED)
     find_package(ODBC REQUIRED)
-    find_package(Poco REQUIRED COMPONENTS Crypto Net Util NetSSL Data DataSQLite DataPostgreSQL DataMySQL DataODBC)
+    find_package(Poco REQUIRED COMPONENTS Crypto JWT Net Util NetSSL Data DataSQLite DataPostgreSQL DataMySQL DataODBC)
 endif()
 
 include_directories(/usr/local/include  /usr/local/opt/openssl/include src include/kafka)
