@@ -152,7 +152,12 @@ namespace uCentral::CommandChannel {
 
 	int Service::Start() {
 		Poco::File	F(uCentral::ServiceConfig::getString("ucentral.system.commandchannel","/tmp/app.ucentralgw"));
-		try { F.remove(); } catch ( const Poco::Exception &E ) { Logger_.log(E); }
+		try {
+			if (F.exists())
+				F.remove();
+		} catch (const Poco::Exception &E ) {
+
+		}
 		SocketFile_ = std::make_unique<Poco::File>(F);
 		UnixSocket_ = std::make_unique<Poco::Net::SocketAddress>(Poco::Net::SocketAddress::UNIX_LOCAL, SocketFile_->path());
 		Svs_ = std::make_unique<Poco::Net::ServerSocket>(*UnixSocket_);
