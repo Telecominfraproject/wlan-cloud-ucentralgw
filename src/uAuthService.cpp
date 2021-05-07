@@ -162,13 +162,35 @@ namespace uCentral::Auth {
 		SubMutexGuard		Guard(Mutex_);
 		Poco::JWT::Token	DecryptedToken;
 
-		if(Signer_.tryVerify(Token,DecryptedToken)) {
-			auto Expires = DecryptedToken.getExpiration();
-			if(Expires>Poco::Timestamp() && DecryptedToken.getSubject()=="usertoken")
-			{
-				auto UserName = DecryptedToken.payload().get("username").toString();
-				return true;
+		try {
+			if (Signer_.tryVerify(Token, DecryptedToken)) {
+				auto Expires = DecryptedToken.getExpiration();
+				if (Expires > Poco::Timestamp()) {
+					auto Identity = DecryptedToken.payload().get("identity").toString();
+					auto IssuedAt = DecryptedToken.getIssuedAt();
+					auto Subject = DecryptedToken.getSubject();
+
+					UserInfo.access_token_ = Token;
+					UserInfo.refresh_token_= Token;
+					UserInfo.username_ = Identity;
+					UserInfo.id_token_ = Token;
+					UserInfo.token_type_ = "Bearer";
+					UserInfo.created_ = IssuedAt.epochTime();
+					UserInfo.expires_in_ = Expires.epochTime() - IssuedAt.epochTime();
+					UserInfo.idle_timeout_ = 5*60;
+
+					UserInfo.acl_template_.ReadWriteCreate_ = true ;
+					UserInfo.acl_template_.ReadWrite_ = true ;
+					UserInfo.acl_template_.Read_ = true ;
+					UserInfo.acl_template_.PortalLogin_ = Subject == "usertoken" ? true : false;
+
+					Tokens_[UserInfo.access_token_] = UserInfo;
+
+					return true;
+				}
 			}
+		} catch (const Poco::Exception &E ) {
+			Logger_.log(E);
 		}
 		return false;
 	}
@@ -185,7 +207,7 @@ namespace uCentral::Auth {
         ResultToken.acl_template_.ReadWrite_ = true ;
         ResultToken.acl_template_.Read_ = true ;
 
-        ResultToken.expires_in_ = 30 * 24 * 60 ;
+        ResultToken.expires_in_ = 30 * 24 * 60 * 60 ;
         ResultToken.idle_timeout_ = 5 * 60;
         ResultToken.token_type_ = "Bearer";
         ResultToken.access_token_ = Token;
