@@ -17,12 +17,12 @@ namespace uCentral::Storage {
 		return uCentral::Storage::Service::instance()->AddLog(SerialNumber, Log);
 	}
 
-	bool AddLog(std::string &SerialNumber, uCentralDeviceLog &DeviceLog, bool CrashLog) {
+	bool AddLog(std::string &SerialNumber, uCentral::Objects::DeviceLog &DeviceLog, bool CrashLog) {
 		return uCentral::Storage::Service::instance()->AddLog(SerialNumber, DeviceLog, CrashLog);
 	}
 
 	bool GetLogData(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate, uint64_t Offset, uint64_t HowMany,
-					std::vector<uCentralDeviceLog> &Stats, uint64_t Type) {
+					std::vector<uCentral::Objects::DeviceLog> &Stats, uint64_t Type) {
 		return uCentral::Storage::Service::instance()->GetLogData(SerialNumber, FromDate, ToDate, Offset, HowMany,
 																  Stats, Type );
 	}
@@ -31,7 +31,7 @@ namespace uCentral::Storage {
 		return uCentral::Storage::Service::instance()->DeleteLogData(SerialNumber, FromDate, ToDate, Type);
 	}
 
-	bool Service::AddLog(std::string &SerialNumber, uCentralDeviceLog &Log, bool CrashLog) {
+	bool Service::AddLog(std::string &SerialNumber, uCentral::Objects::DeviceLog &Log, bool CrashLog) {
 
 		try {
 	/*
@@ -66,11 +66,11 @@ namespace uCentral::Storage {
 	}
 
 	bool Service::AddLog(std::string &SerialNumber, const std::string &Log) {
-		uCentralDeviceLog DeviceLog;
+		uCentral::Objects::DeviceLog DeviceLog;
 
 		DeviceLog.Log = Log;
 		DeviceLog.Data = "";
-		DeviceLog.Severity = uCentralDeviceLog::Level::LOG_INFO;
+		DeviceLog.Severity = uCentral::Objects::DeviceLog::Level::LOG_INFO;
 		DeviceLog.Recorded = time(nullptr);
 
 		return AddLog(SerialNumber, DeviceLog, false);
@@ -78,7 +78,7 @@ namespace uCentral::Storage {
 
 	bool Service::GetLogData(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate, uint64_t Offset,
 							 uint64_t HowMany,
-							 std::vector<uCentralDeviceLog> &Stats, uint64_t Type ) {
+							 std::vector<uCentral::Objects::DeviceLog> &Stats, uint64_t Type ) {
 
 	/*
 						"SerialNumber   VARCHAR(30), "
@@ -128,7 +128,7 @@ namespace uCentral::Storage {
 			Select.execute();
 
 			for (auto i: Records) {
-				uCentralDeviceLog R{
+				uCentral::Objects::DeviceLog R{
 					.Log = i.get<1>(),
 					.Data = i.get<2>(),
 					.Severity = i.get<3>(),

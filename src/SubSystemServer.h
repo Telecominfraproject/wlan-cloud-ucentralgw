@@ -48,20 +48,19 @@ public:
 			level_(M),
 			backlog_(backlog){};
     
-    [[nodiscard]] const std::string & address() const { return address_; };
-    [[nodiscard]] uint32_t port() const { return port_; };
-    [[nodiscard]] const std::string & key_file() const { return key_file_; };
-    [[nodiscard]] const std::string & cert_file() const { return cert_file_; };
-	[[nodiscard]] const std::string & root_ca() const { return root_ca_; };
-    [[nodiscard]] const std::string & key_file_password() const { return key_file_password_; };
-	[[nodiscard]] const std::string & issuer_cert_file() const { return issuer_cert_file_; };
-    [[nodiscard]] const std::string & name() const { return name_; };
+    [[nodiscard]] const std::string & Address() const { return address_; };
+    [[nodiscard]] uint32_t Port() const { return port_; };
+    [[nodiscard]] const std::string & KeyFile() const { return key_file_; };
+    [[nodiscard]] const std::string & CertFile() const { return cert_file_; };
+	[[nodiscard]] const std::string & RootCA() const { return root_ca_; };
+    [[nodiscard]] const std::string & KeyFilePassword() const { return key_file_password_; };
+	[[nodiscard]] const std::string & IssuerCertFile() const { return issuer_cert_file_; };
+    [[nodiscard]] const std::string & Name() const { return name_; };
     [[nodiscard]] Poco::Net::SecureServerSocket CreateSecureSocket(Poco::Logger &L) const;
-	[[nodiscard]] bool is_x509() const { return is_x509_; }
-	[[nodiscard]] int backlog() const { return backlog_; }
-	void log_cert( Poco::Logger & L ) const;
-	void log_cas( Poco::Logger & L ) const;
-	static void log_cert_info(Poco::Logger &L, const Poco::Crypto::X509Certificate &C);
+	[[nodiscard]] int Backlog() const { return backlog_; }
+	void LogCert( Poco::Logger & L ) const;
+	void LogCas( Poco::Logger & L ) const;
+	static void LogCertInfo(Poco::Logger &L, const Poco::Crypto::X509Certificate &C);
 
 private:
     std::string     address_;
@@ -83,16 +82,17 @@ class SubSystemServer : public Poco::Util::Application::Subsystem {
 
 public:
     SubSystemServer(std::string Name, const std::string & LoggingName, std::string SubSystemPrefix );
-    virtual int Start() = 0;
-    virtual void Stop() = 0;
     void initialize(Poco::Util::Application &self) override;
     void uninitialize() override;
     void reinitialize(Poco::Util::Application & self) override;
     void defineOptions(Poco::Util::OptionSet &options) override;
     const char *name() const override { return Name_.c_str(); };
-    const PropertiesFileServerEntry & host(int index) { return ConfigServersList_[index]; };
-    Poco::Logger                  & Logger() { return Logger_;};
+
+    const PropertiesFileServerEntry & Host(int index) { return ConfigServersList_[index]; };
+    Poco::Logger & Logger() { return Logger_;};
 	void SetLoggingLevel(Poco::Message::Priority NewPriority) { Logger_.setLevel(NewPriority); }
+	virtual int Start() = 0;
+	virtual void Stop() = 0;
 
 protected:
   	SubMutex 				Mutex_{};

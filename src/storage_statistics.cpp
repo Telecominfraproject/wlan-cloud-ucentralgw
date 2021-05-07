@@ -12,7 +12,7 @@ namespace uCentral::Storage {
 
 	bool
 	GetStatisticsData(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate, uint64_t Offset, uint64_t HowMany,
-					  std::vector<uCentralStatistics> &Stats) {
+					  std::vector<uCentral::Objects::Statistics> &Stats) {
 		return uCentral::Storage::Service::instance()->GetStatisticsData(SerialNumber, FromDate, ToDate, Offset,
 																		 HowMany, Stats);
 	}
@@ -59,7 +59,7 @@ namespace uCentral::Storage {
 
 	bool Service::GetStatisticsData(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate, uint64_t Offset,
 									uint64_t HowMany,
-									std::vector<uCentralStatistics> &Stats) {
+									std::vector<uCentral::Objects::Statistics> &Stats) {
 
 		typedef Poco::Tuple<std::string, uint64_t, std::string, uint64_t> StatRecord;
 		typedef std::vector<StatRecord> RecordList;
@@ -94,7 +94,7 @@ namespace uCentral::Storage {
 			Select.execute();
 
 			for (auto i: Records) {
-				uCentralStatistics R{
+				uCentral::Objects::Statistics R{
 					.UUID = i.get<1>(),
 					.Data = i.get<2>(),
 					.Recorded = i.get<3>()};

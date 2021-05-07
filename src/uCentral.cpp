@@ -51,7 +51,7 @@ namespace uCentral {
 		App.logger().warning(Poco::format("exception on %s",CurrentThread->getName()));
     }
 
-	void Daemon::exit(int Reason) {
+	void Daemon::Exit(int Reason) {
 		std::exit(Reason);
 	}
 
@@ -194,13 +194,13 @@ namespace uCentral {
 	}
 
     void Daemon::handleHelp(const std::string &name, const std::string &value) {
-        helpRequested_ = true;
+        HelpRequested_ = true;
         displayHelp();
         stopOptionsProcessing();
     }
 
 	void Daemon::handleVersion(const std::string &name, const std::string &value) {
-		helpRequested_ = true;
+		HelpRequested_ = true;
 		std::cout << Version() << std::endl;
 		stopOptionsProcessing();
 	}
@@ -269,12 +269,9 @@ namespace uCentral {
 
         Poco::ErrorHandler::set(&AppErrorHandler_);
 
-        if (!helpRequested_) {
-
+        if (!HelpRequested_) {
             Poco::Logger &logger = Poco::Logger::get("uCentral");
-
 			logger.notice(Poco::format("Starting uCentral version %s.",Version()));
-
             uCentral::Storage::Start();
             uCentral::Auth::Start();
             uCentral::DeviceRegistry::Start();
@@ -317,28 +314,28 @@ namespace uCentral {
 
     namespace ServiceConfig {
 
-        uint64_t getInt(const std::string &Key,uint64_t Default) {
-            return App.config().getInt64(Key,Default);
+        uint64_t GetInt(const std::string &Key,uint64_t Default) {
+            return (uint64_t) App.config().getInt64(Key,Default);
         }
 
-        uint64_t getInt(const std::string &Key) {
+        uint64_t GetInt(const std::string &Key) {
             return App.config().getInt(Key);
         }
 
-        uint64_t getBool(const std::string &Key,bool Default) {
+        uint64_t GetBool(const std::string &Key,bool Default) {
             return App.config().getBool(Key,Default);
         }
 
-        uint64_t getBool(const std::string &Key) {
+        uint64_t GetBool(const std::string &Key) {
             return App.config().getBool(Key);
         }
 
-        std::string getString(const std::string &Key,const std::string & Default) {
+        std::string GetString(const std::string &Key,const std::string & Default) {
             std::string R = App.config().getString(Key, Default);
             return Poco::Path::expand(R);
         }
 
-        std::string getString(const std::string &Key) {
+        std::string GetString(const std::string &Key) {
             std::string R = App.config().getString(Key);
             return Poco::Path::expand(R);
         }

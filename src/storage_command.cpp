@@ -3,12 +3,13 @@
 //
 
 #include <fstream>
-#include "uStorageService.h"
-#include "uDeviceRegistry.h"
 
 #include "Poco/File.h"
-#include "uCentral.h"
 #include "Poco/Data/LOBStream.h"
+
+#include "uCentral.h"
+#include "uStorageService.h"
+#include "uDeviceRegistry.h"
 
 
 namespace uCentral::Storage {
@@ -33,12 +34,12 @@ namespace uCentral::Storage {
 		uint64_t,
 		std::string> CommandDetailsRecordTuple;
 
-	bool AddCommand(std::string &SerialNumber, uCentralCommandDetails &Command, bool AlreadyExecuted) {
+	bool AddCommand(std::string &SerialNumber, uCentral::Objects::CommandDetails &Command, bool AlreadyExecuted) {
 		return uCentral::Storage::Service::instance()->AddCommand(SerialNumber, Command, AlreadyExecuted);
 	}
 
 	bool GetCommands(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate, uint64_t Offset, uint64_t HowMany,
-					 std::vector<uCentralCommandDetails> &Commands) {
+					 std::vector<uCentral::Objects::CommandDetails> &Commands) {
 		return uCentral::Storage::Service::instance()->GetCommands(SerialNumber, FromDate, ToDate, Offset, HowMany,
 																   Commands);
 	}
@@ -47,15 +48,15 @@ namespace uCentral::Storage {
 		return uCentral::Storage::Service::instance()->DeleteCommands(SerialNumber, FromDate, ToDate);
 	}
 
-	bool GetNonExecutedCommands(uint64_t Offset, uint64_t HowMany, std::vector<uCentralCommandDetails> &Commands) {
+	bool GetNonExecutedCommands(uint64_t Offset, uint64_t HowMany, std::vector<uCentral::Objects::CommandDetails> &Commands) {
 		return uCentral::Storage::Service::instance()->GetNonExecutedCommands(Offset, HowMany, Commands);
 	}
 
-	bool UpdateCommand(std::string &UUID, uCentralCommandDetails &Command) {
+	bool UpdateCommand(std::string &UUID, uCentral::Objects::CommandDetails &Command) {
 		return uCentral::Storage::Service::instance()->UpdateCommand(UUID, Command);
 	}
 
-	bool GetCommand(std::string &UUID, uCentralCommandDetails &Command) {
+	bool GetCommand(std::string &UUID, uCentral::Objects::CommandDetails &Command) {
 		return uCentral::Storage::Service::instance()->GetCommand(UUID, Command);
 	}
 
@@ -63,7 +64,7 @@ namespace uCentral::Storage {
 		return uCentral::Storage::Service::instance()->DeleteCommand(UUID);
 	}
 
-	bool GetReadyToExecuteCommands(uint64_t Offset, uint64_t HowMany, std::vector<uCentralCommandDetails> &Commands) {
+	bool GetReadyToExecuteCommands(uint64_t Offset, uint64_t HowMany, std::vector<uCentral::Objects::CommandDetails> &Commands) {
 		return uCentral::Storage::Service::instance()->GetReadyToExecuteCommands(Offset, HowMany, Commands);
 	}
 
@@ -91,7 +92,7 @@ namespace uCentral::Storage {
 		return uCentral::Storage::Service::instance()->SetCommandResult(UUID, Result);
 	}
 
-	bool Service::AddCommand(std::string &SerialNumber, uCentralCommandDetails &Command,
+	bool Service::AddCommand(std::string &SerialNumber, uCentral::Objects::CommandDetails &Command,
 							 bool AlreadyExecuted) {
 		try {
 			/*
@@ -162,7 +163,7 @@ namespace uCentral::Storage {
 
 	bool Service::GetCommands(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate,
 							  uint64_t Offset, uint64_t HowMany,
-							  std::vector<uCentralCommandDetails> &Commands) {
+							  std::vector<uCentral::Objects::CommandDetails> &Commands) {
 		typedef std::vector<CommandDetailsRecordTuple> RecordList;
 
 		/*
@@ -219,7 +220,7 @@ namespace uCentral::Storage {
 			Select.execute();
 
 			for (auto i : Records) {
-				uCentralCommandDetails R{.UUID = i.get<0>(),
+				uCentral::Objects::CommandDetails R{.UUID = i.get<0>(),
 										 .SerialNumber = i.get<1>(),
 										 .Command = i.get<2>(),
 										 .Status = i.get<3>(),
@@ -285,7 +286,7 @@ namespace uCentral::Storage {
 	}
 
 	bool Service::GetNonExecutedCommands(uint64_t Offset, uint64_t HowMany,
-										 std::vector<uCentralCommandDetails> &Commands) {
+										 std::vector<uCentral::Objects::CommandDetails> &Commands) {
 		typedef std::vector<CommandDetailsRecordTuple> RecordList;
 		/*
 			"UUID           VARCHAR(30) PRIMARY KEY, "
@@ -327,7 +328,7 @@ namespace uCentral::Storage {
 
 				for (auto i : Records) {
 					Offset++;
-					uCentralCommandDetails R{.UUID = i.get<0>(),
+					uCentral::Objects::CommandDetails R{.UUID = i.get<0>(),
 											 .SerialNumber = i.get<1>(),
 											 .Command = i.get<2>(),
 											 .Status = i.get<3>(),
@@ -364,7 +365,7 @@ namespace uCentral::Storage {
 		return false;
 	}
 
-	bool Service::UpdateCommand(std::string &UUID, uCentralCommandDetails &Command) {
+	bool Service::UpdateCommand(std::string &UUID, uCentral::Objects::CommandDetails &Command) {
 
 		try {
 			Poco::Data::Session Sess = Pool_->get();
@@ -409,7 +410,7 @@ namespace uCentral::Storage {
 		return false;
 	}
 
-	bool Service::GetCommand(std::string &UUID, uCentralCommandDetails &Command) {
+	bool Service::GetCommand(std::string &UUID, uCentral::Objects::CommandDetails &Command) {
 
 		try {
 			Poco::Data::Session Sess = Pool_->get();
@@ -488,7 +489,7 @@ namespace uCentral::Storage {
 	}
 
 	bool Service::GetReadyToExecuteCommands(uint64_t Offset, uint64_t HowMany,
-											std::vector<uCentralCommandDetails> &Commands) {
+											std::vector<uCentral::Objects::CommandDetails> &Commands) {
 		// todo: finish the GetReadyToExecuteCommands call...
 		try {
 			typedef std::vector<CommandDetailsRecordTuple> RecordList;
@@ -508,7 +509,7 @@ namespace uCentral::Storage {
 			Select.execute();
 
 			for (auto i : Records) {
-				uCentralCommandDetails R{.UUID = i.get<0>(),
+				uCentral::Objects::CommandDetails R{.UUID = i.get<0>(),
 										 .SerialNumber = i.get<1>(),
 										 .Command = i.get<2>(),
 										 .Status = i.get<3>(),
@@ -619,8 +620,7 @@ namespace uCentral::Storage {
 
 			Poco::Data::Statement Update(Sess);
 
-			Poco::File FileName =
-				uCentral::ServiceConfig::getString("ucentral.fileuploader.path", "/tmp") + "/" + UUID;
+			Poco::File FileName = uCentral::ServiceConfig::GetString("ucentral.fileuploader.path", "/tmp") + "/" + UUID;
 			uint64_t Size = FileName.getSize();
 
 			std::string St{
@@ -635,7 +635,7 @@ namespace uCentral::Storage {
 			Poco::Data::LOBOutputStream OL(L);
 
 			if (FileName.getSize() <
-				(1000 * uCentral::ServiceConfig::getInt("ucentral.fileuploader.maxsize", 10000))) {
+				(1000 * uCentral::ServiceConfig::GetInt("ucentral.fileuploader.maxsize", 10000))) {
 
 				std::ifstream f(FileName.path(), std::ios::binary);
 				Poco::StreamCopier::copyStream(f, OL);

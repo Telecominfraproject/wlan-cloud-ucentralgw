@@ -49,24 +49,24 @@ namespace uCentral::WebSocket {
 	int Service::Start() {
 
         for(const auto & Svr : ConfigServersList_ ) {
-            Logger_.notice(Poco::format("Starting: %s:%s Keyfile:%s CertFile: %s", Svr.address(), std::to_string(Svr.port()),
-											 Svr.key_file(),Svr.cert_file()));
+            Logger_.notice(Poco::format("Starting: %s:%s Keyfile:%s CertFile: %s", Svr.Address(), std::to_string(Svr.Port()),
+											 Svr.KeyFile(),Svr.CertFile()));
 
-			Svr.log_cert(Logger_);
-			if(!Svr.root_ca().empty())
-				Svr.log_cas(Logger_);
+			Svr.LogCert(Logger_);
+			if(!Svr.RootCA().empty())
+				Svr.LogCas(Logger_);
 
             auto Sock{Svr.CreateSecureSocket(Logger_)};
 
 			if(!IsCertOk()) {
-				IssuerCert_ = std::make_unique<Poco::Crypto::X509Certificate>(Svr.issuer_cert_file());
+				IssuerCert_ = std::make_unique<Poco::Crypto::X509Certificate>(Svr.IssuerCertFile());
 				Logger_.information(Poco::format("Certificate Issuer Name:%s",IssuerCert_->issuerName()));
 			}
 
             auto NewSocketReactor = std::make_unique<Poco::Net::SocketReactor>();
             auto NewSocketAcceptor = std::make_unique<Poco::Net::SocketAcceptor<WSConnection>>( Sock, *NewSocketReactor);
             auto NewThread = std::make_unique<Poco::Thread>();
-            NewThread->setName("WebSocketAcceptor."+Svr.address()+":"+std::to_string(Svr.port()));
+            NewThread->setName("WebSocketAcceptor."+Svr.Address()+":"+std::to_string(Svr.Port()));
             NewThread->start(*NewSocketReactor);
 
             WebSocketServerEntry WSE { .SocketReactor{std::move(NewSocketReactor)} ,
@@ -75,7 +75,7 @@ namespace uCentral::WebSocket {
             Servers_.push_back(std::move(WSE));
         }
 
-        uint64_t MaxThreads = uCentral::ServiceConfig::getInt("ucentral.websocket.maxreactors",5);
+        uint64_t MaxThreads = uCentral::ServiceConfig::GetInt("ucentral.websocket.maxreactors",5);
         Factory_.Init(MaxThreads);
 
         return 0;
@@ -241,7 +241,7 @@ namespace uCentral::WebSocket {
                 Response = Ret.str();
 
                 // create the command stub...
-                uCentralCommandDetails  Cmd;
+                uCentral::Objects::CommandDetails  Cmd;
 
                 Cmd.SerialNumber = SerialNumber_;
                 Cmd.UUID = uCentral::instance()->CreateUUID();
@@ -433,7 +433,7 @@ namespace uCentral::WebSocket {
 
                 Conn_->UUID = UUID;
 
-				uCentralHealthCheck Check;
+				uCentral::Objects::HealthCheck Check;
 
                 Check.Recorded = time(nullptr);
                 Check.UUID = UUID;
@@ -466,7 +466,7 @@ namespace uCentral::WebSocket {
                 if (ParamsObj.contains("data"))
                     Data = ParamsObj["data"].toString();
 
-                uCentralDeviceLog DeviceLog;
+                uCentral::Objects::DeviceLog DeviceLog;
 
                 DeviceLog.Log = Log;
                 DeviceLog.Data = Data;
@@ -492,7 +492,7 @@ namespace uCentral::WebSocket {
                 if(LogLines.isArray()) {
                     auto LogLinesArray = LogLines.extract<Poco::Dynamic::Array>();
 
-                    uCentralDeviceLog DeviceLog;
+                    uCentral::Objects::DeviceLog DeviceLog;
                     std::string LogText;
 
                     for(const auto & i : LogLinesArray)
@@ -500,7 +500,7 @@ namespace uCentral::WebSocket {
 
                     DeviceLog.Log = LogText;
                     DeviceLog.Data = "";
-                    DeviceLog.Severity = uCentralDeviceLog::LOG_EMERG;
+                    DeviceLog.Severity = uCentral::Objects::DeviceLog::LOG_EMERG;
                     DeviceLog.Recorded = time(nullptr);
                     DeviceLog.LogType = 1;
 
@@ -711,7 +711,7 @@ namespace uCentral::WebSocket {
         delete this;
     }
 
-    bool WSConnection::SendCommand(uCentralCommandDetails & Command) {
+    bool WSConnection::SendCommand(uCentral::Objects::CommandDetails & Command) {
         std::lock_guard<std::mutex> guard(Mutex_);
 
         Logger_.information(Poco::format("Sending command to %s",CId_));

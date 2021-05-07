@@ -22,7 +22,7 @@ namespace uCentral::Config {
         bool Valid();
         std::string get() { return Config_; };
         static std::string Default();
-        Poco::JSON::Object::Ptr   to_json();
+        void to_json(Poco::JSON::Object &Obj);
 
     private:
         std::string Config_;
@@ -31,14 +31,12 @@ namespace uCentral::Config {
     class Capabilities {
     public:
         explicit Capabilities(std::string Caps)
-        :   Capabilities_(std::move(Caps)),
-            Parsed_(false)
+        :   Capabilities_(std::move(Caps))
         {
 
         }
 
-        Capabilities():
-            Parsed_(false)
+        Capabilities()
         {
             Capabilities_ = Default();
         }
@@ -50,12 +48,13 @@ namespace uCentral::Config {
         [[nodiscard]] const std::string & ModelId();
 
     private:
-        void Parse();
         std::string Capabilities_;
-        bool        Parsed_;
+        bool        Parsed_=false;
         std::string Manufacturer_;
         std::string DeviceType_;
         std::string ModelId_;
+
+		void Parse();
     };
 
 } // namespace

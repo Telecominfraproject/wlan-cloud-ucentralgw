@@ -17,5 +17,6 @@ namespace uCentral::Utils {
 	}
 
 	[[nodiscard]] std::string SerialToMAC(const std::string &Serial);
+	[[nodiscard]] std::string ToHex(const std::vector<unsigned char> & B);
 }
 #endif // UCENTRALGW_UTILS_H

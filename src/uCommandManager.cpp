@@ -37,7 +37,7 @@ namespace uCentral::CommandManager {
         while(!Stop_)
         {
             Poco::Thread::trySleep(2000);
-            std::vector<uCentralCommandDetails> Commands;
+            std::vector<uCentral::Objects::CommandDetails> Commands;
 
             if(uCentral::Storage::GetReadyToExecuteCommands(0,1000,Commands))
             {

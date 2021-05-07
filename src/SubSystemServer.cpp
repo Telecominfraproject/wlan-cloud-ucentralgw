@@ -31,7 +31,7 @@ void SubSystemServer::initialize(Poco::Util::Application & self)
         std::string root{SubSystemConfigPrefix_ + ".host." + std::to_string(i) + "."};
 
         std::string address{root + "address"};
-        if(uCentral::ServiceConfig::getString(address,"").empty()) {
+        if(uCentral::ServiceConfig::GetString(address,"").empty()) {
             good = false;
         }
         else {
@@ -50,7 +50,7 @@ void SubSystemServer::initialize(Poco::Util::Application & self)
 			std::string level{root+"security"};
 			Poco::Net::Context::VerificationMode	M=Poco::Net::Context::VERIFY_RELAXED;
 
-			auto L = uCentral::ServiceConfig::getString(level,"");
+			auto L = uCentral::ServiceConfig::GetString(level,"");
 
 			if(L=="strict") {
 				M=Poco::Net::Context::VERIFY_STRICT;
@@ -61,19 +61,19 @@ void SubSystemServer::initialize(Poco::Util::Application & self)
 			} else if(L=="once")
 				M=Poco::Net::Context::VERIFY_ONCE;
 
-            PropertiesFileServerEntry entry(   uCentral::ServiceConfig::getString(address,""),
-                                               uCentral::ServiceConfig::getInt(port,0),
-                                               uCentral::ServiceConfig::getString(key,""),
-                                               uCentral::ServiceConfig::getString(cert,""),
-											   uCentral::ServiceConfig::getString(rootca,""),
-												uCentral::ServiceConfig::getString(issuer,""),
-											uCentral::ServiceConfig::getString(clientcas,""),
-											uCentral::ServiceConfig::getString(cas,""),
-                                               uCentral::ServiceConfig::getString(key_password,""),
-                                               uCentral::ServiceConfig::getString(name,""),
-												uCentral::ServiceConfig::getBool(x509,false),
+            PropertiesFileServerEntry entry(   uCentral::ServiceConfig::GetString(address,""),
+                                               uCentral::ServiceConfig::GetInt(port,0),
+                                               uCentral::ServiceConfig::GetString(key,""),
+                                               uCentral::ServiceConfig::GetString(cert,""),
+											   uCentral::ServiceConfig::GetString(rootca,""),
+												uCentral::ServiceConfig::GetString(issuer,""),
+											uCentral::ServiceConfig::GetString(clientcas,""),
+											uCentral::ServiceConfig::GetString(cas,""),
+                                               uCentral::ServiceConfig::GetString(key_password,""),
+                                               uCentral::ServiceConfig::GetString(name,""),
+												uCentral::ServiceConfig::GetBool(x509,false),
 												M,
-											   (int) uCentral::ServiceConfig::getInt(backlog,64));
+											   (int) uCentral::ServiceConfig::GetInt(backlog,64));
             ConfigServersList_.push_back(entry);
             i++;
         }
@@ -135,7 +135,7 @@ Poco::Net::SecureServerSocket PropertiesFileServerEntry::CreateSecureSocket(Poco
 			L.fatal(Poco::format("Wrong Certificate(%s) for Key(%s)", cert_file_, key_file_));
 		}
 
-		SSL_CTX_set_verify(SSLCtx, SSL_VERIFY_PEER, NULL);
+		SSL_CTX_set_verify(SSLCtx, SSL_VERIFY_PEER, nullptr);
 
 		if(level_==Poco::Net::Context::VERIFY_STRICT) {
 			SSL_CTX_set_client_CA_list(SSLCtx, SSL_load_client_CA_file(client_cas_.c_str()));
@@ -164,7 +164,7 @@ Poco::Net::SecureServerSocket PropertiesFileServerEntry::CreateSecureSocket(Poco
 	}
 }
 
-void PropertiesFileServerEntry::log_cert_info(Poco::Logger &L, const Poco::Crypto::X509Certificate &C) {
+void PropertiesFileServerEntry::LogCertInfo(Poco::Logger &L, const Poco::Crypto::X509Certificate &C) {
 
 	L.information("=============================================================================================");
 	L.information(Poco::format(">          Issuer: %s",C.issuerName()));
@@ -199,21 +199,21 @@ void PropertiesFileServerEntry::log_cert_info(Poco::Logger &L, const Poco::Crypt
 	L.information("=============================================================================================");
 }
 
-void PropertiesFileServerEntry::log_cert(Poco::Logger & L) const {
+void PropertiesFileServerEntry::LogCert(Poco::Logger & L) const {
 	try {
 		Poco::Crypto::X509Certificate C(cert_file_);
 		L.information("=============================================================================================");
 		L.information("=============================================================================================");
 		L.information(Poco::format("Certificate Filename: %s",cert_file_));
-		log_cert_info(L,C);
+		LogCertInfo(L,C);
 		L.information("=============================================================================================");
 
 		if(!issuer_cert_file_.empty()) {
-			Poco::Crypto::X509Certificate C(issuer_cert_file_);
+			Poco::Crypto::X509Certificate C1(issuer_cert_file_);
 			L.information("=============================================================================================");
 			L.information("=============================================================================================");
 			L.information(Poco::format("Issues Certificate Filename: %s",issuer_cert_file_));
-			log_cert_info(L,C);
+			LogCertInfo(L,C1);
 			L.information("=============================================================================================");
 		}
 
@@ -225,11 +225,11 @@ void PropertiesFileServerEntry::log_cert(Poco::Logger & L) const {
 			L.information(Poco::format("Client CAs Filename: %s",client_cas_));
 			L.information("=============================================================================================");
 			auto i=1;
-			for(const auto & C : Certs)
+			for(const auto & C3 : Certs)
 			{
 				L.information(Poco::format(" Index: %d",i));
 				L.information("=============================================================================================");
-				log_cert_info(L, C);
+				LogCertInfo(L, C3);
 				i++;
 			}
 			L.information("=============================================================================================");
@@ -240,7 +240,7 @@ void PropertiesFileServerEntry::log_cert(Poco::Logger & L) const {
 	}
 }
 
-void PropertiesFileServerEntry::log_cas(Poco::Logger & L) const {
+void PropertiesFileServerEntry::LogCas(Poco::Logger & L) const {
 	try {
 		std::vector<Poco::Crypto::X509Certificate> Certs=Poco::Net::X509Certificate::readPEM(root_ca_);
 
@@ -253,7 +253,7 @@ void PropertiesFileServerEntry::log_cas(Poco::Logger & L) const {
 		{
 			L.information(Poco::format(" Index: %d",i));
 			L.information("=============================================================================================");
-			log_cert_info(L, C);
+			LogCertInfo(L, C);
 			i++;
 		}
 		L.information("=============================================================================================");

@@ -2,13 +2,12 @@
 // Created by stephane bourque on 2021-03-03.
 //
 
-#include "RESTAPI_devicesHandler.h"
-#include "uStorageService.h"
 #include "Poco/Array.h"
 #include "Poco/JSON/Stringifier.h"
-#include "utils.h"
 
-using Poco::Array;
+#include "RESTAPI_devicesHandler.h"
+#include "uStorageService.h"
+#include "utils.h"
 
 void RESTAPI_devicesHandler::handleRequest(Poco::Net::HTTPServerRequest& Request, Poco::Net::HTTPServerResponse& Response)
 {
@@ -44,7 +43,7 @@ void RESTAPI_devicesHandler::handleRequest(Poco::Net::HTTPServerRequest& Request
 
 				for(auto &i:Numbers) {
 					Poco::JSON::Object	Obj;
-					uCentralDevice	D;
+					uCentral::Objects::Device	D;
 					if(uCentral::Storage::GetDevice(i,D)) {
 						if (deviceWithStatus)
 							D.to_json_with_status(Obj);
@@ -73,7 +72,7 @@ void RESTAPI_devicesHandler::handleRequest(Poco::Net::HTTPServerRequest& Request
 				}
 				RetObj.set("serialNumbers", Objects);
 			} else {
-				std::vector<uCentralDevice> Devices;
+				std::vector<uCentral::Objects::Device> Devices;
 				uCentral::Storage::GetDevices(Offset, Limit, Devices);
 				Poco::JSON::Array Objects;
 				for (const auto &i : Devices) {

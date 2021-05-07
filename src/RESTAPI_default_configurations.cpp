@@ -2,11 +2,11 @@
 // Created by stephane bourque on 2021-03-15.
 //
 
-#include "RESTAPI_default_configurations.h"
-#include "uStorageService.h"
-
 #include "Poco/Array.h"
 #include "Poco/JSON/Stringifier.h"
+
+#include "RESTAPI_default_configurations.h"
+#include "uStorageService.h"
 
 void RESTAPI_default_configurations::handleRequest(Poco::Net::HTTPServerRequest& Request, Poco::Net::HTTPServerResponse& Response)
 {
@@ -27,7 +27,7 @@ void RESTAPI_default_configurations::handleRequest(Poco::Net::HTTPServerRequest&
             Logger_.information(Poco::format("DEFAULT_CONFIGURATIONS: from %Lu, limit of %Lu, filter=%s.", (int64_t )Offset, (int64_t ) Limit, Filter));
             RESTAPIHandler::PrintBindings();
 
-            std::vector<uCentralDefaultConfiguration> DefConfigs;
+            std::vector<uCentral::Objects::DefaultConfiguration> DefConfigs;
 
             uCentral::Storage::GetDefaultConfigurations(Offset, Limit, DefConfigs);
 

@@ -9,9 +9,9 @@ namespace uCentral::Storage {
 	int Service::Setup_SQLite() {
 		Logger_.notice("SQLite Storage enabled.");
 
-		auto DBName = uCentral::ServiceConfig::getString("storage.type.sqlite.db");
-		auto NumSessions = uCentral::ServiceConfig::getInt("storage.type.sqlite.maxsessions", 64);
-		auto IdleTime = uCentral::ServiceConfig::getInt("storage.type.sqlite.idletime", 60);
+		auto DBName = uCentral::ServiceConfig::GetString("storage.type.sqlite.db");
+		auto NumSessions = uCentral::ServiceConfig::GetInt("storage.type.sqlite.maxsessions", 64);
+		auto IdleTime = uCentral::ServiceConfig::GetInt("storage.type.sqlite.idletime", 60);
 
 		SQLiteConn_ = std::make_unique<Poco::Data::SQLite::Connector>();
 		SQLiteConn_->registerConnector();

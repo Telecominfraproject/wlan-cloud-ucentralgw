@@ -23,9 +23,9 @@ public:
     typedef std::map<std::string,std::string>   BindingMap;
 
     RESTAPIHandler(BindingMap map, Poco::Logger & l, std::vector<std::string> Methods)
-            : bindings_(std::move(map)),
+            : Bindings_(std::move(map)),
             Logger_(l),
-            methods_(std::move(Methods))
+            Methods_(std::move(Methods))
     {
 
     }
@@ -50,7 +50,7 @@ public:
     void ReturnObject(Poco::JSON::Object & Object, Poco::Net::HTTPServerResponse & Response);
     void NotFound(Poco::Net::HTTPServerResponse &Response);
     void OK(Poco::Net::HTTPServerResponse &Response);
-	void WaitForRPC(uCentralCommandDetails & Cmd, Poco::Net::HTTPServerResponse &Response, uint64_t Timeout = 5000 );
+	void WaitForRPC(uCentral::Objects::CommandDetails & Cmd, Poco::Net::HTTPServerResponse &Response, uint64_t Timeout = 5000 );
 
     const std::string & GetBinding(const std::string &Name, const std::string &Default);
 
@@ -59,12 +59,12 @@ public:
 	[[nodiscard]] inline bool HasCreateAccess() const { return UserInfo_.acl_template_.ReadWriteCreate_; }
 
 protected:
-    BindingMap                  bindings_;
-    Poco::URI::QueryParameters  parameters_;
-    Poco::Logger                & Logger_;
+    BindingMap                  		Bindings_;
+    Poco::URI::QueryParameters  		Parameters_;
+    Poco::Logger                		& Logger_;
     std::string                 		SessionToken_;
-	struct uCentral::Auth::WebToken     UserInfo_;
-    std::vector<std::string>    methods_;
+	struct uCentral::Objects::WebToken  UserInfo_;
+    std::vector<std::string>    		Methods_;
 };
 
 

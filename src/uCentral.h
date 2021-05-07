@@ -32,6 +32,7 @@ namespace uCentral {
     class Daemon : public ServerApplication {
 
     public:
+		int main(const ArgVec &args) override;
         void initialize(Application &self) override;
         void uninitialize() override;
         void reinitialize(Application &self) override;
@@ -42,21 +43,19 @@ namespace uCentral {
         void handleLogs(const std::string &name, const std::string &value);
         void handleConfig(const std::string &name, const std::string &value);
         void displayHelp();
+
         std::string CreateUUID();
-        int main(const ArgVec &args) override;
-
         std::string IdentifyDevice(const std::string & Id ) const;
-
         bool AutoProvisioning() const { return AutoProvisioning_ ; }
         bool Debug() const { return DebugMode_; }
         uint64_t ID() const { return ID_; }
 		static bool SetSubsystemLogLevel(const std::string & SubSystem, const std::string & Level);
 		static std::string Version();
 		const Poco::SharedPtr<Poco::Crypto::RSAKey> & Key() { return AppKey_; }
-		void exit(int Reason);
+		void Exit(int Reason);
 
     private:
-        bool                        helpRequested_ = false;
+        bool                        HelpRequested_ = false;
         bool                        AutoProvisioning_ = false;
         std::map<std::string,std::vector<std::string>>    DeviceTypeIdentifications_;
         std::string                 ConfigFileName_;
@@ -69,12 +68,12 @@ namespace uCentral {
     };
 
     namespace ServiceConfig {
-        uint64_t getInt(const std::string &Key,uint64_t Default);
-        uint64_t getInt(const std::string &Key);
-        std::string getString(const std::string &Key,const std::string & Default);
-        std::string getString(const std::string &Key);
-        uint64_t getBool(const std::string &Key,bool Default);
-        uint64_t getBool(const std::string &Key);
+        uint64_t GetInt(const std::string &Key,uint64_t Default);
+        uint64_t GetInt(const std::string &Key);
+        std::string GetString(const std::string &Key,const std::string & Default);
+        std::string GetString(const std::string &Key);
+        uint64_t GetBool(const std::string &Key,bool Default);
+        uint64_t GetBool(const std::string &Key);
     }
 
 	Daemon * instance();

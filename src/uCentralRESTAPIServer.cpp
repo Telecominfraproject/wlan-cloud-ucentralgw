@@ -42,14 +42,14 @@ namespace uCentral::RESTAPI {
         Logger_.information("Starting.");
 
         for(const auto & Svr: ConfigServersList_) {
-			Logger_.information(Poco::format("Starting: %s:%s Keyfile:%s CertFile: %s", Svr.address(), std::to_string(Svr.port()),
-											 Svr.key_file(),Svr.cert_file()));
+			Logger_.information(Poco::format("Starting: %s:%s Keyfile:%s CertFile: %s", Svr.Address(), std::to_string(Svr.Port()),
+											 Svr.KeyFile(),Svr.CertFile()));
 
             auto Sock{Svr.CreateSecureSocket(Logger_)};
 
-			Svr.log_cert(Logger_);
-			if(!Svr.root_ca().empty())
-				Svr.log_cas(Logger_);
+			Svr.LogCert(Logger_);
+			if(!Svr.RootCA().empty())
+				Svr.LogCas(Logger_);
 
             auto Params = new Poco::Net::HTTPServerParams;
             Params->setMaxThreads(50);

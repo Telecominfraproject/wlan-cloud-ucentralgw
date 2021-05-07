@@ -1,13 +1,10 @@
 //
 // Created by stephane bourque on 2021-03-01.
 //
-#include <iostream>
 #include <fstream>
-#include <cstdlib>
 #include "uStorageService.h"
 #include "uCentral.h"
 #include "uDeviceRegistry.h"
-#include "Poco/Data/RecordSet.h"
 #include "Poco/Util/Application.h"
 #include "utils.h"
 
@@ -55,7 +52,7 @@ namespace uCentral::Storage {
 
 		Logger_.setLevel(Poco::Message::PRIO_NOTICE);
         Logger_.notice("Starting.");
-        std::string DBType = uCentral::ServiceConfig::getString("storage.type");
+        std::string DBType = uCentral::ServiceConfig::GetString("storage.type");
 
         if (DBType == "sqlite") {
             return Setup_SQLite();
@@ -66,7 +63,7 @@ namespace uCentral::Storage {
         } else if (DBType == "odbc") {
             return Setup_ODBC();
         }
-        uCentral::instance()->exit(Poco::Util::Application::EXIT_CONFIG);
+        uCentral::instance()->Exit(Poco::Util::Application::EXIT_CONFIG);
 		return -1;
     }
 

@@ -6,12 +6,11 @@
 #include <iostream>
 #include <iterator>
 
-#include "RESTAPI_handler.h"
-#include "uAuthService.h"
-
 #include "Poco/URI.h"
 #include "Poco/DateTimeParser.h"
 
+#include "RESTAPI_handler.h"
+#include "uAuthService.h"
 #include "uDeviceRegistry.h"
 #include "uStorageService.h"
 
@@ -47,14 +46,14 @@ bool RESTAPIHandler::ParseBindings(const char *p,const char *r, BindingMap & bin
 }
 
 void RESTAPIHandler::PrintBindings() {
-    for(auto &[key,value]:bindings_)
+    for(auto &[key,value]:Bindings_)
         std::cout << "Key = " << key << "  Value= " << value << std::endl;
 }
 
 void RESTAPIHandler::ParseParameters(Poco::Net::HTTPServerRequest& request) {
 
     Poco::URI uri(request.getURI());
-    parameters_ = uri.getQueryParameters();
+    Parameters_ = uri.getQueryParameters();
 }
 
 static bool is_number(const std::string &s) {
@@ -69,7 +68,7 @@ static bool is_bool(const std::string &s) {
 
 uint64_t RESTAPIHandler::GetParameter(const std::string &Name,const uint64_t Default) {
 
-    for(const auto & i:parameters_)
+    for(const auto & i:Parameters_)
     {
         if(i.first == Name) {
             if(!is_number(i.second))
@@ -82,7 +81,7 @@ uint64_t RESTAPIHandler::GetParameter(const std::string &Name,const uint64_t Def
 
 bool RESTAPIHandler::GetBoolParameter(const std::string &Name,bool Default) {
 
-	for(const auto & i:parameters_)
+	for(const auto & i:Parameters_)
 	{
 		if(i.first == Name) {
 			if(!is_bool(i.second))
@@ -94,7 +93,7 @@ bool RESTAPIHandler::GetBoolParameter(const std::string &Name,bool Default) {
 }
 
 std::string RESTAPIHandler::GetParameter(const std::string &Name,const std::string & Default){
-    for(const auto & i:parameters_)
+    for(const auto & i:Parameters_)
     {
         if(i.first == Name)
             return i.second;
@@ -103,9 +102,9 @@ std::string RESTAPIHandler::GetParameter(const std::string &Name,const std::stri
 }
 
 const std::string & RESTAPIHandler::GetBinding(const std::string &Name, const std::string &Default) {
-    auto E = bindings_.find(Name);
+    auto E = Bindings_.find(Name);
 
-    if(E==bindings_.end())
+    if(E==Bindings_.end())
         return Default;
 
     return E->second;
@@ -151,7 +150,7 @@ void RESTAPIHandler::ProcessOptions(Poco::Net::HTTPServerResponse & Response )
     Response.setContentType("application/json");
     Response.set("Access-Control-Allow-Origin", "*");
     Response.add("Access-Control-Allow-Headers", "*");
-    Response.add("Access-Control-Allow-Method",MakeList(methods_));
+    Response.add("Access-Control-Allow-Method",MakeList(Methods_));
     Response.send();
 }
 
@@ -163,7 +162,7 @@ void RESTAPIHandler::PrepareResponse(Poco::Net::HTTPServerResponse &Response,Poc
 	Response.setContentType("application/json");
     Response.set("Access-Control-Allow-Origin", "*");
     Response.add("Access-Control-Allow-Headers", "*");
-    Response.add("Access-Control-Allow-Method",MakeList(methods_));
+    Response.add("Access-Control-Allow-Method",MakeList(Methods_));
 }
 
 void RESTAPIHandler::BadRequest(Poco::Net::HTTPServerResponse & Response) {
@@ -187,10 +186,10 @@ void RESTAPIHandler::OK(Poco::Net::HTTPServerResponse &Response) {
     Response.send();
 }
 
-void RESTAPIHandler::WaitForRPC(uCentralCommandDetails & Cmd, Poco::Net::HTTPServerResponse &Response, uint64_t Timeout) {
+void RESTAPIHandler::WaitForRPC(uCentral::Objects::CommandDetails & Cmd, Poco::Net::HTTPServerResponse &Response, uint64_t Timeout) {
 
 	if(uCentral::DeviceRegistry::Connected(Cmd.SerialNumber)) {
-		uCentralCommandDetails ResCmd;
+		uCentral::Objects::CommandDetails ResCmd;
 		while (Timeout > 0) {
 			Timeout -= 1000;
 			Poco::Thread::sleep(1000);
@@ -216,7 +215,7 @@ bool RESTAPIHandler::ContinueProcessing(Poco::Net::HTTPServerRequest & Request, 
     {
         ProcessOptions(Response);
         return false;
-    } else if(std::find(methods_.begin(),methods_.end(),Request.getMethod()) == methods_.end())
+    } else if(std::find(Methods_.begin(),Methods_.end(),Request.getMethod()) == Methods_.end())
     {
         BadRequest(Response);
         return false;
@@ -239,7 +238,7 @@ bool RESTAPIHandler::IsAuthorized(Poco::Net::HTTPServerRequest & Request, Poco::
 
 bool RESTAPIHandler::IsAuthorized(Poco::Net::HTTPServerRequest & Request, Poco::Net::HTTPServerResponse & Response , std::string & UserName ) {
 
-    if(uCentral::Auth::IsAuthorized(Request,SessionToken_, UserInfo_))
+    if(uCentral::Auth::IsAuthorized(Request, SessionToken_, UserInfo_))
     {
         UserName = UserInfo_.username_ ;
         return true;

@@ -2,9 +2,10 @@
 // Created by stephane bourque on 2021-03-03.
 //
 
+#include "Poco/JSON/Parser.h"
+
 #include "RESTAPI_oauth2Handler.h"
 #include "uAuthService.h"
-#include "Poco/JSON/Parser.h"
 
 void RESTAPI_oauth2Handler::handleRequest(Poco::Net::HTTPServerRequest & Request, Poco::Net::HTTPServerResponse & Response)
 {
@@ -22,11 +23,11 @@ void RESTAPI_oauth2Handler::handleRequest(Poco::Net::HTTPServerRequest & Request
             auto userId = ds["userId"].toString();
             auto password = ds["password"].toString();
 
-            uCentral::Auth::WebToken Token;
+            uCentral::Objects::WebToken Token;
 
             if (uCentral::Auth::Authorize(userId, password, Token)) {
                 Poco::JSON::Object ReturnObj;
-				Token.to_JSON(ReturnObj);
+				Token.to_json(ReturnObj);
                 ReturnObject(ReturnObj, Response);
             } else {
                 UnAuthorized(Response);

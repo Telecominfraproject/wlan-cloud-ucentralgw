@@ -9,7 +9,7 @@ namespace uCentral::Storage {
 		return uCentral::Storage::Service::instance()->UpdateDeviceCapabilities(SerialNumber, State);
 	}
 
-	bool GetDeviceCapabilities(std::string &SerialNumber, uCentralCapabilities &Capabilities) {
+	bool GetDeviceCapabilities(std::string &SerialNumber, uCentral::Objects::Capabilities &Capabilities) {
 		return uCentral::Storage::Service::instance()->GetDeviceCapabilities(SerialNumber, Capabilities);
 	}
 
@@ -77,7 +77,7 @@ namespace uCentral::Storage {
 		return false;
 	}
 
-	bool Service::GetDeviceCapabilities(std::string &SerialNumber, uCentralCapabilities &Caps) {
+	bool Service::GetDeviceCapabilities(std::string &SerialNumber, uCentral::Objects::Capabilities &Caps) {
 		// std::lock_guard<std::mutex> guard(Mutex_);
 
 		try {

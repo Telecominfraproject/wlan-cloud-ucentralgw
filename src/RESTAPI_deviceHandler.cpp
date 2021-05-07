@@ -17,7 +17,7 @@ void RESTAPI_deviceHandler::handleRequest(Poco::Net::HTTPServerRequest& Request,
     ParseParameters(Request);
     if(Request.getMethod() == Poco::Net::HTTPRequest::HTTP_GET) {
         std::string     SerialNumber = GetBinding("serialNumber","0xdeadbeef");
-        uCentralDevice  Device;
+        uCentral::Objects::Device  Device;
 
         if(uCentral::Storage::GetDevice(SerialNumber,Device))
         {
@@ -43,7 +43,7 @@ void RESTAPI_deviceHandler::handleRequest(Poco::Net::HTTPServerRequest& Request,
         Poco::JSON::Parser      IncomingParser;
         Poco::JSON::Object::Ptr Obj = IncomingParser.parse(Request.stream()).extract<Poco::JSON::Object::Ptr>();
 
-        uCentralDevice  Device;
+        uCentral::Objects::Device  Device;
 
         if(!Device.from_json(Obj))
         {
@@ -65,7 +65,7 @@ void RESTAPI_deviceHandler::handleRequest(Poco::Net::HTTPServerRequest& Request,
         Poco::JSON::Parser      IncomingParser;
         Poco::JSON::Object::Ptr Obj = IncomingParser.parse(Request.stream()).extract<Poco::JSON::Object::Ptr>();
 
-        uCentralDevice  Device;
+        uCentral::Objects::Device  Device;
 
         if(!Device.from_json(Obj))
         {

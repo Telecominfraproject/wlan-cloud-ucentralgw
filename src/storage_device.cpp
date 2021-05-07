@@ -12,7 +12,7 @@ namespace uCentral::Storage {
 		return uCentral::Storage::Service::instance()->UpdateDeviceConfiguration(SerialNumber, Configuration, NewUUID);
 	}
 
-	bool CreateDevice(uCentralDevice &Device) {
+	bool CreateDevice(uCentral::Objects::Device &Device) {
 		return uCentral::Storage::Service::instance()->CreateDevice(Device);
 	}
 
@@ -20,15 +20,15 @@ namespace uCentral::Storage {
 		return uCentral::Storage::Service::instance()->CreateDefaultDevice(SerialNumber, Capabilities);
 	}
 
-	bool GetDevice(std::string &SerialNumber, uCentralDevice &Device) {
+	bool GetDevice(std::string &SerialNumber, uCentral::Objects::Device &Device) {
 		return uCentral::Storage::Service::instance()->GetDevice(SerialNumber, Device);
 	}
 
-	bool GetDevices(uint64_t From, uint64_t HowMany, std::vector<uCentralDevice> &Devices) {
+	bool GetDevices(uint64_t From, uint64_t HowMany, std::vector<uCentral::Objects::Device> &Devices) {
 		return uCentral::Storage::Service::instance()->GetDevices(From, HowMany, Devices);
 	}
 
-	bool GetDevices(uint64_t From, uint64_t HowMany, const std::string & Select, std::vector<uCentralDevice> &Devices) {
+	bool GetDevices(uint64_t From, uint64_t HowMany, const std::string & Select, std::vector<uCentral::Objects::Device> &Devices) {
 		return uCentral::Storage::Service::instance()->GetDevices(From, HowMany, Select, Devices);
 	}
 
@@ -36,7 +36,7 @@ namespace uCentral::Storage {
 		return uCentral::Storage::Service::instance()->DeleteDevice(SerialNumber);
 	}
 
-	bool UpdateDevice(uCentralDevice &Device) {
+	bool UpdateDevice(uCentral::Objects::Device &Device) {
 		return uCentral::Storage::Service::instance()->UpdateDevice(Device);
 	}
 
@@ -159,7 +159,7 @@ namespace uCentral::Storage {
 		return false;
 	}
 
-	bool Service::CreateDevice(uCentralDevice &DeviceDetails) {
+	bool Service::CreateDevice(uCentral::Objects::Device &DeviceDetails) {
 		// std::lock_guard<std::mutex> guard(Mutex_);
 
 		std::string SerialNumber;
@@ -236,12 +236,12 @@ namespace uCentral::Storage {
 
 	bool Service::CreateDefaultDevice(const std::string &SerialNumber, const std::string &Capabilities) {
 
-		uCentralDevice D;
+		uCentral::Objects::Device D;
 		Logger_.information(Poco::format("AUTO-CREATION(%s)", SerialNumber));
 		uint64_t Now = time(nullptr);
 
 		uCentral::Config::Capabilities Caps(Capabilities);
-		uCentralDefaultConfiguration DefConfig;
+		uCentral::Objects::DefaultConfiguration DefConfig;
 
 		if (FindDefaultConfigurationForModel(Caps.ModelId(), DefConfig)) {
 			uCentral::Config::Config NewConfig(DefConfig.Configuration);
@@ -343,7 +343,7 @@ namespace uCentral::Storage {
 		return false;
 	}
 
-	bool Service::GetDevice(std::string &SerialNumber, uCentralDevice &DeviceDetails) {
+	bool Service::GetDevice(std::string &SerialNumber, uCentral::Objects::Device &DeviceDetails) {
 		// std::lock_guard<std::mutex> guard(Mutex_);
 
 		try {
@@ -422,7 +422,7 @@ namespace uCentral::Storage {
 		return false;
 	}
 
-	bool Service::UpdateDevice(uCentralDevice &NewConfig) {
+	bool Service::UpdateDevice(uCentral::Objects::Device &NewConfig) {
 		// std::lock_guard<std::mutex> guard(Mutex_);
 
 		try {
@@ -454,11 +454,11 @@ namespace uCentral::Storage {
 		return false;
 	}
 
-	bool Service::GetDevices(uint64_t From, uint64_t HowMany, const std::string &Select, std::vector<uCentralDevice> &Devices) {
+	bool Service::GetDevices(uint64_t From, uint64_t HowMany, const std::string &Select, std::vector<uCentral::Objects::Device> &Devices) {
 		return false;
 	}
 
-	bool Service::GetDevices(uint64_t From, uint64_t HowMany, std::vector<uCentralDevice> &Devices) {
+	bool Service::GetDevices(uint64_t From, uint64_t HowMany, std::vector<uCentral::Objects::Device> &Devices) {
 
 		typedef Poco::Tuple<
 			std::string,
@@ -502,7 +502,7 @@ namespace uCentral::Storage {
 			Select.execute();
 
 			for (auto i: Records) {
-				uCentralDevice R{
+				uCentral::Objects::Device R{
 					.SerialNumber   = i.get<0>(),
 					.DeviceType     = i.get<1>(),
 					.MACAddress     = i.get<2>(),

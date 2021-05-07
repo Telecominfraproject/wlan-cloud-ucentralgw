@@ -149,7 +149,7 @@ namespace uCentral::WebSocket {
         void ProcessJSONRPCEvent(Poco::DynamicStruct ds);
         void ProcessJSONRPCResult(Poco::DynamicStruct ds);
         void ProcessIncomingFrame();
-        bool SendCommand(uCentralCommandDetails & Command);
+        bool SendCommand(uCentral::Objects::CommandDetails & Command);
         void OnSocketReadable(const Poco::AutoPtr<Poco::Net::ReadableNotification>& pNf);
         void OnSocketShutdown(const Poco::AutoPtr<Poco::Net::ShutdownNotification>& pNf);
         void OnSocketError(const Poco::AutoPtr<Poco::Net::ErrorNotification>& pNf);
@@ -166,7 +166,7 @@ namespace uCentral::WebSocket {
         Poco::Net::StreamSocket       		Socket_;
         std::unique_ptr<Poco::Net::WebSocket> WS_;
         std::string                         SerialNumber_;
-		uCentralConnectionState 			* Conn_ = nullptr;
+		uCentral::Objects::ConnectionState 	* Conn_ = nullptr;
         std::map<uint64_t,CommandIDPair>    RPCs_;
         uint64_t                            RPC_ = time(nullptr);
         bool                                Registered_ = false ;
@@ -205,12 +205,11 @@ namespace uCentral::WebSocket {
     private:
         static Service *instance_;
 		std::unique_ptr<Poco::Crypto::X509Certificate>	IssuerCert_;
+		std::vector<WebSocketServerEntry>      			Servers_;
+		CountedSocketReactorFactory            			Factory_;
 
         int Start() override;
         void Stop() override;
-
-        std::vector<WebSocketServerEntry>      Servers_;
-        CountedSocketReactorFactory            Factory_;
     };
 
 

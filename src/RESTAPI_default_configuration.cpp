@@ -2,10 +2,12 @@
 // Created by stephane bourque on 2021-03-15.
 //
 
-#include "RESTAPI_default_configuration.h"
-#include "uStorageService.h"
-
 #include "Poco/JSON/Parser.h"
+
+#include "RESTAPI_default_configuration.h"
+
+#include "uStorageService.h"
+#include "RESTAPI_objects.h"
 
 void RESTAPI_default_configuration::handleRequest(Poco::Net::HTTPServerRequest& Request, Poco::Net::HTTPServerResponse& Response)
 {
@@ -18,7 +20,7 @@ void RESTAPI_default_configuration::handleRequest(Poco::Net::HTTPServerRequest& 
     ParseParameters(Request);
     if(Request.getMethod() == Poco::Net::HTTPRequest::HTTP_GET) {
         std::string                   Name = GetBinding("name","0xdeadbeef");
-        uCentralDefaultConfiguration  DefConfig;
+        uCentral::Objects::DefaultConfiguration  DefConfig;
 
         if(uCentral::Storage::GetDefaultConfiguration(Name,DefConfig))
         {
@@ -44,7 +46,7 @@ void RESTAPI_default_configuration::handleRequest(Poco::Net::HTTPServerRequest& 
         Poco::JSON::Parser      IncomingParser;
         Poco::JSON::Object::Ptr Obj = IncomingParser.parse(Request.stream()).extract<Poco::JSON::Object::Ptr>();
 
-        uCentralDefaultConfiguration  DefConfig;
+        uCentral::Objects::DefaultConfiguration  DefConfig;
 
         if(!DefConfig.from_json(Obj))
         {
@@ -63,7 +65,7 @@ void RESTAPI_default_configuration::handleRequest(Poco::Net::HTTPServerRequest& 
         Poco::JSON::Parser      IncomingParser;
         Poco::JSON::Object::Ptr Obj = IncomingParser.parse(Request.stream()).extract<Poco::JSON::Object::Ptr>();
 
-        uCentralDefaultConfiguration  DefConfig;
+        uCentral::Objects::DefaultConfiguration  DefConfig;
         if(!DefConfig.from_json(Obj))
         {
             BadRequest(Response);

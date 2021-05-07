@@ -30,13 +30,12 @@ class Service : public SubSystemServer {
 	}
 
   private:
+	static Service *instance_;
+	std::unique_ptr<cppkafka::Producer> 	Producer_;
+	bool KafkaEnabled_ = false;
+
 	int Start() override;
 	void Stop() override;
-
-	std::unique_ptr<cppkafka::Producer> 	producer_;
-	static Service *instance_;
-
-	bool KafkaEnabled_ = false;
 };
 
 }	// NameSpace

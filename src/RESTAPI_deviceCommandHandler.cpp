@@ -2,18 +2,18 @@
 // Created by stephane bourque on 2021-03-04.
 //
 
-#include "uStorageService.h"
-#include "uDeviceRegistry.h"
-#include "uCentral.h"
-#include "uCentralConfig.h"
-#include "uFileUploader.h"
-
 #include "Poco/UUIDGenerator.h"
 #include "Poco/UUID.h"
 #include "Poco/JSON/Parser.h"
 #include "Poco/Thread.h"
 
+#include "uStorageService.h"
+#include "uDeviceRegistry.h"
+#include "uCentral.h"
+#include "uCentralConfig.h"
+#include "uFileUploader.h"
 #include "RESTAPI_deviceCommandHandler.h"
+#include "RESTAPI_objects.h"
 
 void RESTAPI_deviceCommandHandler::handleRequest(Poco::Net::HTTPServerRequest& Request, Poco::Net::HTTPServerResponse& Response)
 {
@@ -84,7 +84,7 @@ void RESTAPI_deviceCommandHandler::handleRequest(Poco::Net::HTTPServerRequest& R
 }
 
 void  RESTAPI_deviceCommandHandler::GetCapabilities(Poco::Net::HTTPServerRequest &Request, Poco::Net::HTTPServerResponse &Response) {
-    uCentralCapabilities    Caps;
+    uCentral::Objects::Capabilities    Caps;
     try {
         auto SerialNumber = GetBinding("serialNumber", "");
 
@@ -129,7 +129,7 @@ void RESTAPI_deviceCommandHandler::GetStatistics(Poco::Net::HTTPServerRequest& R
         auto Offset = GetParameter("offset", 0);
         auto Limit = GetParameter("limit", 100);
 
-        std::vector<uCentralStatistics> Stats;
+        std::vector<uCentral::Objects::Statistics> Stats;
 
         uCentral::Storage::GetStatisticsData(SerialNumber, StartDate, EndDate, Offset, Limit,
                                                                   Stats);
@@ -179,7 +179,7 @@ void RESTAPI_deviceCommandHandler::GetStatus(Poco::Net::HTTPServerRequest& Reque
     try {
         auto SerialNumber = GetBinding("serialNumber", "");
 
-        uCentralConnectionState State;
+        uCentral::Objects::ConnectionState State;
 
         if (uCentral::DeviceRegistry::GetState(SerialNumber, State)) {
 
@@ -236,7 +236,7 @@ void RESTAPI_deviceCommandHandler::Configure(Poco::Net::HTTPServerRequest& Reque
             uint64_t NewUUID;
 
             if (uCentral::Storage::UpdateDeviceConfiguration(SerialNumber, Configuration, NewUUID)) {
-                uCentralCommandDetails  Cmd;
+                uCentral::Objects::CommandDetails  Cmd;
 
                 Cmd.SerialNumber = SerialNumber;
                 Cmd.UUID = uCentral::instance()->CreateUUID();
@@ -251,11 +251,13 @@ void RESTAPI_deviceCommandHandler::Configure(Poco::Net::HTTPServerRequest& Reque
                 Cfg.SetUUID(NewUUID);
 
                 Poco::JSON::Object  Params;
+				Poco::JSON::Object	CfgObj;
 
                 Params.set("serial", SerialNumber );
                 Params.set("uuid", NewUUID);
                 Params.set("when", When);
-                Params.set("config", Cfg.to_json());
+				Cfg.to_json(CfgObj);
+                Params.set("config", CfgObj);
 
                 std::stringstream ParamStream;
                 Params.stringify(ParamStream);
@@ -300,7 +302,7 @@ void RESTAPI_deviceCommandHandler::Upgrade(Poco::Net::HTTPServerRequest &Request
             if(ds.contains("when"))
                 When = RESTAPIHandler::from_RFC3339(ds["when"].toString());
 
-            uCentralCommandDetails  Cmd;
+            uCentral::Objects::CommandDetails  Cmd;
 
             Cmd.SerialNumber = SerialNumber;
             Cmd.UUID = uCentral::instance()->CreateUUID();
@@ -342,7 +344,7 @@ void RESTAPI_deviceCommandHandler::GetLogs(Poco::Net::HTTPServerRequest& Request
         auto Limit = GetParameter("limit", 100);
         auto LogType = GetParameter("logType",0);
 
-        std::vector<uCentralDeviceLog> Logs;
+        std::vector<uCentral::Objects::DeviceLog> Logs;
 
         uCentral::Storage::GetLogData(SerialNumber, StartDate, EndDate, Offset, Limit,
                                                                   Logs,LogType);
@@ -394,7 +396,7 @@ void RESTAPI_deviceCommandHandler::GetChecks(Poco::Net::HTTPServerRequest& Reque
         auto Offset = GetParameter("offset", 0);
         auto Limit = GetParameter("limit", 100);
 
-        std::vector<uCentralHealthCheck> Checks;
+        std::vector<uCentral::Objects::HealthCheck> Checks;
 
         uCentral::Storage::GetHealthCheckData(SerialNumber, StartDate, EndDate, Offset, Limit,
                                       Checks);
@@ -465,7 +467,7 @@ void RESTAPI_deviceCommandHandler::ExecuteCommand(Poco::Net::HTTPServerRequest& 
             if(ds.contains("runAt"))
                 RunAt = RESTAPIHandler::from_RFC3339(ds["runAt"].toString());
 
-            uCentralCommandDetails  Cmd;
+            uCentral::Objects::CommandDetails  Cmd;
 
             Cmd.SerialNumber = SerialNumber;
             Cmd.UUID = uCentral::instance()->CreateUUID();
@@ -525,7 +527,7 @@ void RESTAPI_deviceCommandHandler::Reboot(Poco::Net::HTTPServerRequest& Request,
             if(ds.contains("when"))
                 When = RESTAPIHandler::from_RFC3339(ds["when"].toString());
 
-            uCentralCommandDetails  Cmd;
+            uCentral::Objects::CommandDetails  Cmd;
 
             Cmd.SerialNumber = SerialNumber;
             Cmd.UUID = uCentral::instance()->CreateUUID();
@@ -591,7 +593,7 @@ void RESTAPI_deviceCommandHandler::Factory(Poco::Net::HTTPServerRequest &Request
 			if (ds.contains("when"))
 				When = RESTAPIHandler::from_RFC3339(ds["when"].toString());
 
-			uCentralCommandDetails Cmd;
+			uCentral::Objects::CommandDetails Cmd;
 
 			Cmd.SerialNumber = SerialNumber;
 			Cmd.UUID = uCentral::instance()->CreateUUID();
@@ -658,7 +660,7 @@ void RESTAPI_deviceCommandHandler::LEDs(Poco::Net::HTTPServerRequest &Request, P
             if(ds.contains("when"))
                 When = RESTAPIHandler::from_RFC3339(ds["when"].toString());
 
-            uCentralCommandDetails  Cmd;
+            uCentral::Objects::CommandDetails  Cmd;
 
             Cmd.SerialNumber = SerialNumber;
             Cmd.UUID = uCentral::instance()->CreateUUID();
@@ -720,7 +722,7 @@ void RESTAPI_deviceCommandHandler::Trace(Poco::Net::HTTPServerRequest &Request, 
             auto UUID = uCentral::instance()->CreateUUID();
             auto URI = uCentral::uFileUploader::FullName() + UUID ;
 
-            uCentralCommandDetails  Cmd;
+            uCentral::Objects::CommandDetails  Cmd;
 
             Cmd.SerialNumber = SerialNumber;
             Cmd.UUID = UUID;
@@ -787,7 +789,7 @@ void RESTAPI_deviceCommandHandler::WifiScan(Poco::Net::HTTPServerRequest &Reques
 				}
 
 				auto UUID = uCentral::instance()->CreateUUID();
-				uCentralCommandDetails  Cmd;
+				uCentral::Objects::CommandDetails  Cmd;
 
 				Cmd.SerialNumber = SerialNumber;
 				Cmd.UUID = UUID;
@@ -841,7 +843,7 @@ void RESTAPI_deviceCommandHandler::EventQueue(Poco::Net::HTTPServerRequest &Requ
 
 			if( SerialNumber == SNum ) {
 				auto UUID = uCentral::instance()->CreateUUID();
-				uCentralCommandDetails  Cmd;
+				uCentral::Objects::CommandDetails  Cmd;
 
 				Cmd.SerialNumber = SerialNumber;
 				Cmd.UUID = UUID;
@@ -894,7 +896,7 @@ void RESTAPI_deviceCommandHandler::MakeRequest(Poco::Net::HTTPServerRequest &Req
 
 			uint64_t When = ds.contains("when") ? RESTAPIHandler::from_RFC3339(ds["when"].toString()) : 0;
 
-			uCentralCommandDetails  Cmd;
+			uCentral::Objects::CommandDetails  Cmd;
 
 			Cmd.SerialNumber = SerialNumber;
 			Cmd.SubmittedBy = UserInfo_.username_;

@@ -41,15 +41,13 @@ namespace uCentral::CommandManager {
         }
 
     private:
+		static Service *instance_;
+		Manager         Manager_;
+		Poco::Thread    ManagerThread;
+
         int Start() override;
         void Stop() override;
         void WakeUp();
-
-        Manager         Manager_;
-        Poco::Thread    ManagerThread;
-
-        static Service *instance_;
-
     };
 
 }  // namespace

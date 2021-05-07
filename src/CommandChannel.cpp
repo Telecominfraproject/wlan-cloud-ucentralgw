@@ -151,7 +151,7 @@ namespace uCentral::CommandChannel {
 	}
 
 	int Service::Start() {
-		Poco::File	F(uCentral::ServiceConfig::getString("ucentral.system.commandchannel","/tmp/app.ucentralgw"));
+		Poco::File	F(uCentral::ServiceConfig::GetString("ucentral.system.commandchannel","/tmp/app.ucentralgw"));
 		try {
 			if (F.exists())
 				F.remove();

@@ -23,7 +23,7 @@ void RESTAPI_commands::handleRequest(Poco::Net::HTTPServerRequest& Request, Poco
             auto Offset = GetParameter("offset", 0);
             auto Limit = GetParameter("limit", 100);
 
-            std::vector<uCentralCommandDetails> Commands;
+            std::vector<uCentral::Objects::CommandDetails> Commands;
 
             uCentral::Storage::GetCommands(SerialNumber, StartDate, EndDate, Offset, Limit,
                                            Commands);

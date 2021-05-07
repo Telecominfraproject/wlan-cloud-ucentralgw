@@ -58,4 +58,21 @@ namespace uCentral::Utils {
 
 		return buf;
 	}
+
+	[[nodiscard]] std::string ToHex(const std::vector<unsigned char> & B) {
+		std::string R;
+		R.reserve(B.size()*2);
+
+		static const char hex[] = "0123456789abcdef";
+
+		for(const auto &i:B)
+		{
+			R += (hex[ (i & 0xf0) >> 4]);
+			R += (hex[ (i & 0x0f) ]);
+		}
+
+		return R;
+	}
+
+
 }

@@ -5,13 +5,13 @@
 
 namespace uCentral::Storage {
 
-	bool AddHealthCheckData(std::string &SerialNumber, uCentralHealthCheck &Check) {
+	bool AddHealthCheckData(std::string &SerialNumber, uCentral::Objects::HealthCheck &Check) {
 		return uCentral::Storage::Service::instance()->AddHealthCheckData(SerialNumber, Check);
 	}
 
 	bool
 	GetHealthCheckData(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate, uint64_t Offset, uint64_t HowMany,
-					   std::vector<uCentralHealthCheck> &Checks) {
+					   std::vector<uCentral::Objects::HealthCheck> &Checks) {
 		return uCentral::Storage::Service::instance()->GetHealthCheckData(SerialNumber, FromDate, ToDate, Offset,
 																		  HowMany,
 																		  Checks);
@@ -22,7 +22,7 @@ namespace uCentral::Storage {
 	}
 
 
-	bool Service::AddHealthCheckData(std::string &SerialNumber, uCentralHealthCheck &Check) {
+	bool Service::AddHealthCheckData(std::string &SerialNumber, uCentral::Objects::HealthCheck &Check) {
 		try {
 			Logger_.information("Device:" + SerialNumber + " HealthCheck: sanity " + std::to_string(Check.Sanity));
 
@@ -55,7 +55,7 @@ namespace uCentral::Storage {
 
 	bool Service::GetHealthCheckData(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate, uint64_t Offset,
 									 uint64_t HowMany,
-									 std::vector<uCentralHealthCheck> &Checks) {
+									 std::vector<uCentral::Objects::HealthCheck> &Checks) {
 
 		typedef Poco::Tuple<std::string, uint64_t, std::string, uint64_t, uint64_t> Record;
 		typedef std::vector<Record> RecordList;
@@ -90,7 +90,7 @@ namespace uCentral::Storage {
 			Select.execute();
 
 			for (auto i: Records) {
-				uCentralHealthCheck R;
+				uCentral::Objects::HealthCheck R;
 
 				R.UUID = i.get<1>();
 				R.Data = i.get<2>();

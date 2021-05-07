@@ -12,13 +12,13 @@ namespace uCentral::Storage {
 
 	int Service::Setup_MySQL() {
 		Logger_.notice("MySQL Storage enabled.");
-		auto NumSessions = uCentral::ServiceConfig::getInt("storage.type.mysql.maxsessions", 64);
-		auto IdleTime = uCentral::ServiceConfig::getInt("storage.type.mysql.idletime", 60);
-		auto Host = uCentral::ServiceConfig::getString("storage.type.mysql.host");
-		auto Username = uCentral::ServiceConfig::getString("storage.type.mysql.username");
-		auto Password = uCentral::ServiceConfig::getString("storage.type.mysql.password");
-		auto Database = uCentral::ServiceConfig::getString("storage.type.mysql.database");
-		auto Port = uCentral::ServiceConfig::getString("storage.type.mysql.port");
+		auto NumSessions = uCentral::ServiceConfig::GetInt("storage.type.mysql.maxsessions", 64);
+		auto IdleTime = uCentral::ServiceConfig::GetInt("storage.type.mysql.idletime", 60);
+		auto Host = uCentral::ServiceConfig::GetString("storage.type.mysql.host");
+		auto Username = uCentral::ServiceConfig::GetString("storage.type.mysql.username");
+		auto Password = uCentral::ServiceConfig::GetString("storage.type.mysql.password");
+		auto Database = uCentral::ServiceConfig::GetString("storage.type.mysql.database");
+		auto Port = uCentral::ServiceConfig::GetString("storage.type.mysql.port");
 
 		std::string ConnectionStr =
 			"host=" + Host +

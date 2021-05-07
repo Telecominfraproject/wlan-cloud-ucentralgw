@@ -58,7 +58,7 @@ void RESTAPI_BlackList::DoGet(Poco::Net::HTTPServerRequest &Request, Poco::Net::
 		auto Offset = GetParameter("offset", 0);
 		auto Limit = GetParameter("limit", 100);
 
-		std::vector<uCentralBlackListedDevice>	Devices;
+		std::vector<uCentral::Objects::BlackListedDevice>	Devices;
 
 		if(uCentral::Storage::GetBlackListDevices(Offset,Limit,Devices))
 		{
@@ -90,7 +90,7 @@ void RESTAPI_BlackList::DoPost(Poco::Net::HTTPServerRequest &Request, Poco::Net:
 
 		if (ds.contains("devices") && ds["devices"].isArray()) {
 			auto List = ds["devices"];
-			std::vector<uCentralBlackListedDevice>	Devices;
+			std::vector<uCentral::Objects::BlackListedDevice>	Devices;
 			for (const auto &i : List) {
 				if(i.isStruct()) {
 					auto O = i.toString();
@@ -100,7 +100,7 @@ void RESTAPI_BlackList::DoPost(Poco::Net::HTTPServerRequest &Request, Poco::Net:
 					if (Vars.contains("serialNumber") && Vars.contains("reason")) {
 						auto SerialNumber = Vars["serialNumber"].toString();
 						auto Reason = Vars["reason"].toString();
-						uCentralBlackListedDevice	D{ .SerialNumber = SerialNumber,
+						uCentral::Objects::BlackListedDevice	D{ .SerialNumber = SerialNumber,
 							.Reason = Reason,
 							.Author = UserInfo_.username_,
 							.Created = (uint64_t ) time(nullptr) };

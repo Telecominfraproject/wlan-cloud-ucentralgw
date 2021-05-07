@@ -30,15 +30,15 @@ namespace uCentral::DeviceRegistry {
         uCentral::DeviceRegistry::Service::instance()->SetStatistics(SerialNumber,Stats);
     }
 
-    bool GetState(const std::string & SerialNumber, uCentralConnectionState & State) {
+    bool GetState(const std::string & SerialNumber, uCentral::Objects::ConnectionState & State) {
         return uCentral::DeviceRegistry::Service::instance()->GetState(SerialNumber,State);
     }
 
-    void SetState(const std::string & SerialNumber, uCentralConnectionState & State) {
+    void SetState(const std::string & SerialNumber, uCentral::Objects::ConnectionState & State) {
         return uCentral::DeviceRegistry::Service::instance()->SetState(SerialNumber,State);
     }
 
-	uCentralConnectionState *  Register(const std::string & SerialNumber, void *Ptr) {
+	uCentral::Objects::ConnectionState *  Register(const std::string & SerialNumber, void *Ptr) {
         return uCentral::DeviceRegistry::Service::instance()->Register(SerialNumber,Ptr);
     }
 
@@ -46,7 +46,7 @@ namespace uCentral::DeviceRegistry {
         uCentral::DeviceRegistry::Service::instance()->UnRegister(SerialNumber,Ptr);
     }
 
-    bool SendCommand(uCentralCommandDetails & Command) {
+    bool SendCommand(uCentral::Objects::CommandDetails & Command) {
         return uCentral::DeviceRegistry::Service::instance()->SendCommand(Command);
     }
 
@@ -90,7 +90,7 @@ namespace uCentral::DeviceRegistry {
         }
     }
 
-    bool Service::GetState(const std::string &SerialNumber, uCentralConnectionState & State) {
+    bool Service::GetState(const std::string &SerialNumber, uCentral::Objects::ConnectionState & State) {
 		SubMutexGuard		Guard(Mutex_);
 
         auto Device = Devices_.find(SerialNumber);
@@ -104,7 +104,7 @@ namespace uCentral::DeviceRegistry {
         return false;
     }
 
-    void Service::SetState(const std::string & SerialNumber, uCentralConnectionState & State) {
+    void Service::SetState(const std::string & SerialNumber, uCentral::Objects::ConnectionState & State) {
 		SubMutexGuard		Guard(Mutex_);
 
         auto Device = Devices_.find(SerialNumber);
@@ -115,7 +115,7 @@ namespace uCentral::DeviceRegistry {
         }
     }
 
-uCentralConnectionState * Service::Register(const std::string & SerialNumber, void *Ptr)
+	uCentral::Objects::ConnectionState * Service::Register(const std::string & SerialNumber, void *Ptr)
     {
 		SubMutexGuard		Guard(Mutex_);
 
@@ -126,7 +126,7 @@ uCentralConnectionState * Service::Register(const std::string & SerialNumber, vo
             ConnectionEntry E;
 
             E.WSConn_ = Ptr;
-            E.Conn_ = new uCentralConnectionState;
+            E.Conn_ = new uCentral::Objects::ConnectionState;
             E.Conn_->SerialNumber = SerialNumber;
             E.Conn_->LastContact = time(nullptr);
             E.Conn_->Connected = true ;
@@ -174,7 +174,7 @@ uCentralConnectionState * Service::Register(const std::string & SerialNumber, vo
         }
     }
 
-    bool Service::SendCommand(uCentralCommandDetails & Cmd)
+    bool Service::SendCommand(uCentral::Objects::CommandDetails & Cmd)
     {
 		SubMutexGuard		Guard(Mutex_);
 

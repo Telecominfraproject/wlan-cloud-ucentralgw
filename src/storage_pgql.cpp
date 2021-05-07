@@ -14,14 +14,14 @@ namespace uCentral::Storage {
 
 		IsPSQL_ = true ;
 
-		auto NumSessions = uCentral::ServiceConfig::getInt("storage.type.postgresql.maxsessions", 64);
-		auto IdleTime = uCentral::ServiceConfig::getInt("storage.type.postgresql.idletime", 60);
-		auto Host = uCentral::ServiceConfig::getString("storage.type.postgresql.host");
-		auto Username = uCentral::ServiceConfig::getString("storage.type.postgresql.username");
-		auto Password = uCentral::ServiceConfig::getString("storage.type.postgresql.password");
-		auto Database = uCentral::ServiceConfig::getString("storage.type.postgresql.database");
-		auto Port = uCentral::ServiceConfig::getString("storage.type.postgresql.port");
-		auto ConnectionTimeout = uCentral::ServiceConfig::getString("storage.type.postgresql.connectiontimeout");
+		auto NumSessions = uCentral::ServiceConfig::GetInt("storage.type.postgresql.maxsessions", 64);
+		auto IdleTime = uCentral::ServiceConfig::GetInt("storage.type.postgresql.idletime", 60);
+		auto Host = uCentral::ServiceConfig::GetString("storage.type.postgresql.host");
+		auto Username = uCentral::ServiceConfig::GetString("storage.type.postgresql.username");
+		auto Password = uCentral::ServiceConfig::GetString("storage.type.postgresql.password");
+		auto Database = uCentral::ServiceConfig::GetString("storage.type.postgresql.database");
+		auto Port = uCentral::ServiceConfig::GetString("storage.type.postgresql.port");
+		auto ConnectionTimeout = uCentral::ServiceConfig::GetString("storage.type.postgresql.connectiontimeout");
 
 		std::string ConnectionStr =
 			"host=" + Host +

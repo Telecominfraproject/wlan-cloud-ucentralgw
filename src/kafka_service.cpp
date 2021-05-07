@@ -25,7 +25,7 @@ namespace uCentral::Kafka {
 
 	void Service::initialize(Poco::Util::Application & self) {
 		SubSystemServer::initialize(self);
-		KafkaEnabled_ = uCentral::ServiceConfig::getBool("ucentral.kafka.enable",false);
+		KafkaEnabled_ = uCentral::ServiceConfig::GetBool("ucentral.kafka.enable",false);
 	}
 
 	int Service::Start() {
@@ -33,12 +33,11 @@ namespace uCentral::Kafka {
 			return 0;
 
 		cppkafka::Configuration Config({
-										   { "metadata.broker.list", uCentral::ServiceConfig::getString("ucentral.kafka.brokerlist") }
+										   { "metadata.broker.list", uCentral::ServiceConfig::GetString("ucentral.kafka.brokerlist") }
 									   });
 
 		// Create a producer instance.
-		producer_ = std::make_unique<cppkafka::Producer>(Config);
-
+		Producer_ = std::make_unique<cppkafka::Producer>(Config);
 
 		return 0;
 	}

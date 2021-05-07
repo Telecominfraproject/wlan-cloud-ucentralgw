@@ -55,11 +55,10 @@ namespace uCentral::Config {
         }
     }
 
-    Poco::JSON::Object::Ptr   Config::to_json() {
+    void Config::to_json(Poco::JSON::Object &Obj) {
         Poco::JSON::Parser parser;
         Poco::Dynamic::Var result = parser.parse(Config_);
-        Poco::JSON::Object::Ptr Obj = result.extract<Poco::JSON::Object::Ptr>();
-        return Obj;
+        Obj = result.extract<Poco::JSON::Object>();
     }
 
     std::string Config::Default() {

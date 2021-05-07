@@ -66,26 +66,26 @@ namespace uCentral::uFileUploader {
 
         for(const auto & Svr: ConfigServersList_) {
             std::string l{"Starting: " +
-                          Svr.address() + ":" + std::to_string(Svr.port()) +
-                          " key:" + Svr.key_file() +
-                          " cert:" + Svr.cert_file()};
+                          Svr.Address() + ":" + std::to_string(Svr.Port()) +
+                          " key:" + Svr.KeyFile() +
+                          " cert:" + Svr.CertFile()};
 
             Logger_.information(l);
 
-            Path_ = uCentral::ServiceConfig::getString("ucentral.fileuploader.path","/tmp");
+            Path_ = uCentral::ServiceConfig::GetString("ucentral.fileuploader.path","/tmp");
 
             auto Sock{Svr.CreateSecureSocket(Logger_)};
 
-			Svr.log_cert(Logger_);
-			if(!Svr.root_ca().empty())
-				Svr.log_cas(Logger_);
+			Svr.LogCert(Logger_);
+			if(!Svr.RootCA().empty())
+				Svr.LogCas(Logger_);
 
             auto Params = new Poco::Net::HTTPServerParams;
             Params->setMaxThreads(16);
             Params->setMaxQueued(100);
 
             if(FullName_.empty()) {
-                FullName_ = "https://" + Svr.name() + ":" + std::to_string(Svr.port()) + URI_BASE;
+                FullName_ = "https://" + Svr.Name() + ":" + std::to_string(Svr.Port()) + URI_BASE;
                 Logger_.information(Poco::format("Uploader URI base is '%s'", FullName_));
             }
             auto NewServer = std::make_unique<Poco::Net::HTTPServer>(new RequestHandlerFactory(Logger_), Pool_, Sock, Params);
