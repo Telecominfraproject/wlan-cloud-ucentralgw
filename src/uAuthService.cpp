@@ -29,6 +29,7 @@ namespace uCentral::Auth {
 		case SERVER: return 2;
 		case CUSTOM: return 3;
 		}
+		return 1;	// some compilers complain...
 	}
 
     void AclTemplate::to_JSON(Poco::JSON::Object &Obj) const {
