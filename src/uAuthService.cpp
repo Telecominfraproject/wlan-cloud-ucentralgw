@@ -94,16 +94,12 @@ namespace uCentral::Auth {
 		Logger_.notice("Stopping...");
     }
 
-	bool Service::TryRestoringToken(const std::string & Token) {
-		return false;
-	}
-
 	bool Service::IsAuthorized(Poco::Net::HTTPServerRequest & Request, std::string & SessionToken, struct WebToken & UserInfo  )
     {
         if(!Secure_)
             return true;
 
-		std::lock_guard<SubMutex> guard(Mutex_);
+		SubMutexGuard		Guard(Mutex_);
 
 		std::string CallToken;
 
@@ -125,7 +121,7 @@ namespace uCentral::Auth {
 		auto Client = Tokens_.find(CallToken);
 
 		if( Client == Tokens_.end() )
-			return ValidateToken(CallToken);
+			return ValidateToken(CallToken, CallToken, UserInfo);
 
 		if((Client->second.created_ + Client->second.expires_in_) > time(nullptr)) {
 			SessionToken = CallToken;
@@ -138,13 +134,12 @@ namespace uCentral::Auth {
     }
 
     void Service::Logout(const std::string &token) {
-        std::lock_guard<SubMutex> 	Lock(Mutex_);
-
+		SubMutexGuard		Guard(Mutex_);
         Tokens_.erase(token);
     }
 
     std::string Service::GenerateToken(const std::string & Identity, ACCESS_TYPE Type, int NumberOfDays) {
-		std::lock_guard<SubMutex>	Lock(Mutex_);
+		SubMutexGuard		Guard(Mutex_);
 
 		Poco::JWT::Token	T;
 
@@ -163,24 +158,24 @@ namespace uCentral::Auth {
 		return JWT;
     }
 
-	bool Service::ValidateToken(const std::string & Token) {
-		std::lock_guard<SubMutex>		Lock(Mutex_);
-		Poco::JWT::Token				DecryptedToken;
+	bool Service::ValidateToken(const std::string & Token, std::string & SessionToken, struct WebToken & UserInfo  ) {
+		SubMutexGuard		Guard(Mutex_);
+		Poco::JWT::Token	DecryptedToken;
 
 		if(Signer_.tryVerify(Token,DecryptedToken)) {
-			/*
+			auto Expires = DecryptedToken.getExpiration();
 			if(Expires>Poco::Timestamp() && DecryptedToken.getSubject()=="usertoken")
 			{
-				UserName = DecryptedToken.payload().get("username").toString();
+				auto UserName = DecryptedToken.payload().get("username").toString();
 				return true;
-			}*/
+			}
 		}
 		return false;
 	}
 
     void Service::CreateToken(const std::string & UserName, WebToken & ResultToken)
     {
-        std::lock_guard<SubMutex> Lock(Mutex_);
+		SubMutexGuard		Guard(Mutex_);
 
 		std::string Token = GenerateToken(UserName,USERNAME,30);
 

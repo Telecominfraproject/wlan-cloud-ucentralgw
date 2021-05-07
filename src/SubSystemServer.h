@@ -17,6 +17,7 @@
 #include "Poco/Net/X509Certificate.h"
 
 using SubMutex = std::recursive_mutex;
+using SubMutexGuard = std::lock_guard<SubMutex>;
 
 class PropertiesFileServerEntry {
 public:

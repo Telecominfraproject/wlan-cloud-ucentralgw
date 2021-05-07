@@ -69,8 +69,7 @@ namespace uCentral::Auth {
         friend bool IsAuthorized(Poco::Net::HTTPServerRequest & Request,std::string &SessionToken, struct WebToken & UserInfo );
         friend bool Authorize( const std::string & UserName, const std::string & Password, WebToken & ResultToken );
         [[nodiscard]] std::string GenerateToken(const std::string & UserName, ACCESS_TYPE Type, int NumberOfDays);
-		[[nodiscard]] bool ValidateToken(const std::string & Token);
-		[[nodiscard]] bool TryRestoringToken(const std::string & Token);
+		[[nodiscard]] bool ValidateToken(const std::string & Token, std::string & SessionToken, struct WebToken & UserInfo  );
         friend void Logout(const std::string &token);
 
     private:

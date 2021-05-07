@@ -51,7 +51,7 @@ namespace uCentral::Storage {
 	}
 
     int Service::Start() {
-        std::lock_guard<SubMutex> guard(Mutex_);
+		SubMutexGuard		Guard(Mutex_);
 
 		Logger_.setLevel(Poco::Message::PRIO_NOTICE);
         Logger_.notice("Starting.");
