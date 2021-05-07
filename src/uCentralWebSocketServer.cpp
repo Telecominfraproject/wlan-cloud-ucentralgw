@@ -118,7 +118,7 @@ namespace uCentral::WebSocket {
 		if(!SS->secure()) {
 			Logger_.error(Poco::format("%s: Connection is NOT secure.",CId_));
 		} else {
-			Logger_.information(Poco::format("%s: Connection is secure.",CId_));
+			Logger_.debug(Poco::format("%s: Connection is secure.",CId_));
 		}
 
 		if(SS->havePeerCertificate()) {
@@ -128,9 +128,9 @@ namespace uCentral::WebSocket {
 
 				if(uCentral::WebSocket::Service::instance()->ValidateCertificate(PeerCert)) {
 					CN_ = PeerCert.commonName();
-					Logger_.information(Poco::format("%s: Valid certificate: CN=%s", CId_, PeerCert.commonName()));
+					Logger_.debug(Poco::format("%s: Valid certificate: CN=%s", CId_, PeerCert.commonName()));
 				} else {
-					Logger_.information( Poco::format("%s: Certificate is not valid", CId_));
+					Logger_.debug( Poco::format("%s: Certificate is not valid", CId_));
 				}
 			} catch (const Poco::Exception &E) {
 				LogException(E);
@@ -297,7 +297,7 @@ namespace uCentral::WebSocket {
 
         if(RPC!=RPCs_.end())
         {
-            Logger_.information(Poco::format("RPC(%s): Completed outstanding RPC %Lu",SerialNumber_,ID));
+            Logger_.debug(Poco::format("RPC(%s): Completed outstanding RPC %Lu",SerialNumber_,ID));
             uCentral::Storage::CommandCompleted(RPC->second.UUID,Vars,RPC->second.Full);
         }
         else
@@ -315,7 +315,7 @@ namespace uCentral::WebSocket {
 
         if(!Params.isStruct())
         {
-            Logger_.warning(Poco::format("MISSING-PARAMS(%s): params must be an object.",SerialNumber_));
+            Logger_.warning(Poco::format("MISSING-PARAMS(%s): params must be an object.",CId_));
             return;
         }
 
@@ -323,13 +323,13 @@ namespace uCentral::WebSocket {
         Poco::DynamicStruct ParamsObj = Params.extract<Poco::DynamicStruct>();
         if(ParamsObj.contains("compress_64"))
         {
-            Logger_.information(Poco::format("EVENT(%s): Found compressed paylod.",SerialNumber_));
+            Logger_.information(Poco::format("EVENT(%s): Found compressed paylod.",CId_));
             ParamsObj = ExtractCompressedData(ParamsObj["compress_64"].toString());
         }
 
         if(!ParamsObj.contains("serial"))
         {
-            Logger_.warning(Poco::format("MISSING-PARAMS(%s): Serial number is missing in message.",SerialNumber_));
+            Logger_.warning(Poco::format("MISSING-PARAMS(%s): Serial number is missing in message.",CId_));
             return;
         }
         auto Serial = ParamsObj["serial"].toString();
@@ -396,9 +396,9 @@ namespace uCentral::WebSocket {
 					request_uuid = ParamsObj["request_uuid"].toString();
 
 				if(request_uuid.empty())
-                	Logger_.information(Poco::format("STATE(%s): UUID=%Lu Updating.", CId_, UUID));
+                	Logger_.debug(Poco::format("STATE(%s): UUID=%Lu Updating.", CId_, UUID));
 				else
-					Logger_.information(Poco::format("STATE(%s): UUID=%Lu Updating for CMD=%s.", CId_, UUID,request_uuid));
+					Logger_.debug(Poco::format("STATE(%s): UUID=%Lu Updating for CMD=%s.", CId_, UUID,request_uuid));
 
                 Conn_->UUID = UUID;
                 uCentral::Storage::AddStatisticsData(Serial, UUID, State);
@@ -427,9 +427,9 @@ namespace uCentral::WebSocket {
 					request_uuid = ParamsObj["request_uuid"].toString();
 
 				if(request_uuid.empty())
-					Logger_.information(Poco::format("HEALTHCHECK(%s): UUID=%Lu Updating.", CId_, UUID));
+					Logger_.debug(Poco::format("HEALTHCHECK(%s): UUID=%Lu Updating.", CId_, UUID));
 				else
-					Logger_.information(Poco::format("HEALTHCHECK(%s): UUID=%Lu Updating for CMD=%s.", CId_, UUID,request_uuid));
+					Logger_.debug(Poco::format("HEALTHCHECK(%s): UUID=%Lu Updating for CMD=%s.", CId_, UUID,request_uuid));
 
                 Conn_->UUID = UUID;
 
@@ -457,7 +457,7 @@ namespace uCentral::WebSocket {
             if( ParamsObj.contains("log") &&
                 ParamsObj.contains("severity")) {
 
-                Logger_.information(Poco::format("LOG(%s): new entry.", CId_));
+                Logger_.debug(Poco::format("LOG(%s): new entry.", CId_));
 
                 auto Log = ParamsObj["log"].toString();
                 auto Severity = ParamsObj["severity"];
@@ -484,7 +484,7 @@ namespace uCentral::WebSocket {
             if( ParamsObj.contains("uuid") &&
                 ParamsObj.contains("loglines")) {
 
-                Logger_.information(Poco::format("CRASH-LOG(%s): new entry.", CId_));
+                Logger_.debug(Poco::format("CRASH-LOG(%s): new entry.", CId_));
 
                 auto LogLines = ParamsObj["loglines"];
                 uint64_t UUID = ParamsObj["uuid"];
@@ -518,7 +518,7 @@ namespace uCentral::WebSocket {
         } else if (!Poco::icompare(Method, "ping")) {
             if(ParamsObj.contains("uuid")) {
                 uint64_t UUID = ParamsObj["uuid"];
-                Logger_.information(Poco::format("PING(%s): Current config is %Lu", CId_, UUID));
+                Logger_.debug(Poco::format("PING(%s): Current config is %Lu", CId_, UUID));
             }
             else
             {
@@ -531,7 +531,7 @@ namespace uCentral::WebSocket {
                 uint64_t UUID = ParamsObj["uuid"];
                 uint64_t Active = ParamsObj["active"];
 
-                Logger_.information(Poco::format("CFG-PENDING(%s): Active: %Lu Target: %Lu", CId_, Active, UUID));
+                Logger_.debug(Poco::format("CFG-PENDING(%s): Active: %Lu Target: %Lu", CId_, Active, UUID));
             }
             else {
                 Logger_.warning(Poco::format("CFG-PENDING(%s): Missing some parameters",CId_));
@@ -603,13 +603,13 @@ namespace uCentral::WebSocket {
             } else {
                 switch (Op) {
                     case Poco::Net::WebSocket::FRAME_OP_PING: {
-                        Logger_.information("WS-PING(" + CId_ + "): received. PONG sent back.");
+                        Logger_.debug("WS-PING(" + CId_ + "): received. PONG sent back.");
                         WS_->sendFrame("", 0,(int)Poco::Net::WebSocket::FRAME_OP_PONG | (int)Poco::Net::WebSocket::FRAME_FLAG_FIN);
                         }
                         break;
 
                     case Poco::Net::WebSocket::FRAME_OP_PONG: {
-                        Logger_.information("PONG(" + CId_ + "): received and ignored.");
+                        Logger_.debug("PONG(" + CId_ + "): received and ignored.");
                         }
                         break;
 
@@ -635,7 +635,7 @@ namespace uCentral::WebSocket {
                                    vars.contains("result") &&
                                    vars.contains("id")) {
 							std::string IncomingMessageStr{std::string(IncomingFrame.begin())};
-							Logger_.information(Poco::format("RPC-RESULT(%s): payload: %s",CId_,IncomingMessageStr));
+							Logger_.debug(Poco::format("RPC-RESULT(%s): payload: %s",CId_,IncomingMessageStr));
                             ProcessJSONRPCResult(vars);
                         } else {
 							std::string IncomingMessageStr{std::string(IncomingFrame.begin())};
