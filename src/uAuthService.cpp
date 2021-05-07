@@ -81,6 +81,7 @@ namespace uCentral::Auth {
 
     int Service::Start() {
 		Signer_.setRSAKey(uCentral::instance()->Key());
+		Signer_.addAllAlgorithms();
 		Logger_.notice("Starting...");
         Secure_ = uCentral::ServiceConfig::getBool(SubSystemConfigPrefix_+".enabled",true);
         DefaultPassword_ = uCentral::ServiceConfig::getString(SubSystemConfigPrefix_+".default.password","");
