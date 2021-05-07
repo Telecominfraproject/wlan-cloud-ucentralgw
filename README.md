@@ -537,4 +537,7 @@ More scripts will be added in the future.
 - Devices use the TCP port 16003 to upload files. This port is configurable in the `ucentral.properties` file. Look for `ucentral.fileuploader.host.0.port`.
 - The RESTAPI is accessed through TCP port 16001 by default. This port is configurable in the `ucentral.properties` file. Look for the entry `ucentral.restapi.host.0.port`.
 
-
+## Contributors
+We love ya! We need more of ya! If you want to contribute, make sure you review 
+the [coding style](https://github.com/Telecominfraproject/wlan-cloud-ucentralgw/blob/master/CODING_STYLE.md) document. 
+Feel free to ask questions and post issues. 
