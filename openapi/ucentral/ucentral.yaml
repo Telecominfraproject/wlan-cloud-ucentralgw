@@ -2,12 +2,10 @@ openapi: 3.0.1
 info:
   title: uCentral gateway API
   description: A process to manage configuration for devices.
-  version: 0.0.5
-  termsOfService:
-    http://example.com/terms/
+  version: 0.0.6
   license:
-    name: Apache 2.0
-    url: http://www.apache.org/licenses/LICENSE-2.0.html
+    name: BSD3
+    url: https://github.com/Telecominfraproject/wlan-cloud-ucentralgw/blob/master/LICENSE
   contact:
     name: Arilia Support
     email: ucentralsupport@arilia.com
@@ -346,6 +344,38 @@ components:
       type: object
       properties:
         aclTemplate:
+          $ref: '#/components/schemas/AclTemplate'
+
+    ApiKeyCreationRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        expiresOn:
+          type: string
+          format: 'date-time'
+        rights:
+          $ref: '#/components/schemas/AclTemplate'
+
+    ApiKeyCreationAnswer:
+      type: object
+      properties:
+        UUID:
+          type: string
+          format: uuid
+        name:
+          type: string
+        created:
+          type: string
+          format: 'date-time'
+        expiresOn:
+          type: string
+          format: 'date-time'
+        apiKey:
+          type: string
+        rights:
           $ref: '#/components/schemas/AclTemplate'
 
     AclTemplate:
