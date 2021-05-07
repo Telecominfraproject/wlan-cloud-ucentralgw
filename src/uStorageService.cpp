@@ -35,7 +35,7 @@ namespace uCentral::Storage {
 
 		R.reserve(S.size()*2+1);
 
-		if(IsPSQL_) {
+		if(dbType_==pgsql) {
 			auto Idx=1;
 			for(auto const & i:S)
 			{
@@ -60,16 +60,18 @@ namespace uCentral::Storage {
         std::string DBType = uCentral::ServiceConfig::GetString("storage.type");
 
         if (DBType == "sqlite") {
-            return Setup_SQLite();
+            Setup_SQLite();
         } else if (DBType == "postgresql") {
-            return Setup_PostgreSQL();
+            Setup_PostgreSQL();
         } else if (DBType == "mysql") {
-            return Setup_MySQL();
+            Setup_MySQL();
         } else if (DBType == "odbc") {
-            return Setup_ODBC();
+            Setup_ODBC();
         }
-        uCentral::instance()->Exit(Poco::Util::Application::EXIT_CONFIG);
-		return -1;
+
+		Create_Tables();
+
+		return 0;
     }
 
     void Service::Stop() {

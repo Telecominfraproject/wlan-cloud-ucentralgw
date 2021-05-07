@@ -45,7 +45,6 @@ namespace uCentral::WebSocket {
 
 	bool Service::ValidateCertificate(const Poco::Crypto::X509Certificate & Certificate) {
 		if(IsCertOk()) {
-			Logger_.information("Validating the certificate against issuer...");
 			return Certificate.issuedBy(*IssuerCert_);
 		}
 		return false;
@@ -264,7 +263,7 @@ namespace uCentral::WebSocket {
                 {
                     Logger_.warning(Poco::format("Could not submit configure command for %s",SerialNumber_));
                 } else {
-                    Logger_.information(Poco::format("Submitted configure command %Lu for %s",CommandID, SerialNumber_));
+                    Logger_.debug(Poco::format("Submitted configure command %Lu for %s",CommandID, SerialNumber_));
 					CommandIDPair	C{ 	.UUID = Cmd.UUID ,
 										.Full = true };
                     RPCs_[CommandID] = C;
@@ -328,7 +327,7 @@ namespace uCentral::WebSocket {
         Poco::DynamicStruct ParamsObj = Params.extract<Poco::DynamicStruct>();
         if(ParamsObj.contains("compress_64"))
         {
-            Logger_.information(Poco::format("EVENT(%s): Found compressed paylod.",CId_));
+            Logger_.debug(Poco::format("EVENT(%s): Found compressed paylod.",CId_));
             ParamsObj = ExtractCompressedData(ParamsObj["compress_64"].toString());
         }
 
@@ -546,7 +545,6 @@ namespace uCentral::WebSocket {
         if (!Response.empty()) {
             if (Conn_ != nullptr)
                 Conn_->TX += Response.size();
-            // Logger_.information(Poco::format("RESPONSE(%s): %s",SerialNumber_,Response));
             try {
                 WS_->sendFrame(Response.c_str(), (int)Response.size());
             }
@@ -719,7 +717,7 @@ namespace uCentral::WebSocket {
     bool WSConnection::SendCommand(uCentral::Objects::CommandDetails & Command) {
         std::lock_guard<std::mutex> guard(Mutex_);
 
-        Logger_.information(Poco::format("Sending command to %s",CId_));
+        Logger_.debug(Poco::format("Sending command to %s",CId_));
         try {
             Poco::JSON::Object Obj;
 

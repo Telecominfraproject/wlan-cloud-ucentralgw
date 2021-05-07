@@ -25,6 +25,13 @@
 
 namespace uCentral::Storage {
 
+	enum StorageType {
+		sqlite,
+		pgsql,
+		mysql,
+		odbc
+	};
+
     int Start();
     void Stop();
 
@@ -184,7 +191,7 @@ namespace uCentral::Storage {
 	  private:
 		static Service      							*instance_;
 		std::unique_ptr<Poco::Data::SessionPool>        Pool_= nullptr;
-		bool 											IsPSQL_ = false;
+		StorageType 									dbType_ = sqlite;
 		std::unique_ptr<Poco::Data::SQLite::Connector>  SQLiteConn_= nullptr;
 #ifndef SMALL_BUILD
 		std::unique_ptr<Poco::Data::PostgreSQL::Connector>  PostgresConn_= nullptr;
@@ -266,6 +273,20 @@ namespace uCentral::Storage {
 		bool DeleteIdentity(std::string & Identity, uCentral::Auth::ACCESS_TYPE Type);
 		bool ListIdentities(uint64_t Offset, uint64_t HowMany, std::vector<std::string> & Identities, uCentral::Auth::ACCESS_TYPE Type);
 		bool GetIdentityRights(std::string & Identity, uCentral::Objects::AclTemplate & ACL);
+
+		int Create_Tables();
+
+		int Create_Statistics();
+		int Create_Devices();
+		int Create_Capabilities();
+		int Create_HealthChecks();
+		int Create_Authentication();
+		int Create_DeviceLogs();
+		int Create_DefaultConfigs();
+		int Create_CommandList();
+		int Create_BlackList();
+		int Create_FileUploads();
+
 
         int 	Start() override;
         void 	Stop() override;

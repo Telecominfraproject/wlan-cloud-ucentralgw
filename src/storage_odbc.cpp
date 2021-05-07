@@ -15,6 +15,9 @@ namespace uCentral::Storage {
 	int Service::Setup_ODBC() { uCentral::instance()->exit(Poco::Util::Application::EXIT_CONFIG);}
 #else
 	int Service::Setup_ODBC() {
+
+		dbType_ = odbc ;
+
 		Logger_.notice("ODBC Storage enabled.");
 
 		auto NumSessions = uCentral::ServiceConfig::GetInt("storage.type.postgresql.maxsessions", 64);
@@ -37,7 +40,6 @@ namespace uCentral::Storage {
 		ODBCConn_ = std::make_unique<Poco::Data::ODBC::Connector>();
 		ODBCConn_->registerConnector();
 		Pool_ = std::make_unique<Poco::Data::SessionPool>(ODBCConn_->name(), ConnectionStr, 4, NumSessions, IdleTime);
-		Poco::Data::Session Sess = Pool_->get();
 
 		return 0;
 	}
