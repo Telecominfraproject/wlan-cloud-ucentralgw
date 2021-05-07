@@ -30,7 +30,7 @@ void RESTAPI_devicesHandler::handleRequest(Poco::Net::HTTPServerRequest& Request
 			auto countOnly = GetBoolParameter("countOnly", false);
 			auto deviceWithStatus = GetBoolParameter("deviceWithStatus", false);
 
-			Logger_.information(Poco::format("DEVICES: from %Lu, limit of %Lu, filter='%s'.",
+			Logger_.debug(Poco::format("DEVICES: from %Lu, limit of %Lu, filter='%s'.",
 											 (uint64_t)Offset, (uint64_t)Limit, Filter));
 
 			RESTAPIHandler::PrintBindings();
