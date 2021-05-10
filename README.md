@@ -267,45 +267,33 @@ ucentral.restapi.host.0.key.password = mypassword
 This is the crucial section. I bet that 97.4% of all your problems will come from here, and it's boring. So put some good music on, 
 give the kids the iPad, get a cup of coffee, and pay attention. Every field will be explained.
 
-####### ucentral.websocket.host.0.backlog
-This is the number of concurrent devices you are expecting to call all at once. Not the current number of devices. This is how many will connect in the same exact second. 
+- `ucentral.websocket.host.0.backlog`: This is the number of concurrent devices you are expecting to call all at once. Not the current number of devices. This is how many will connect in the same exact second. 
 Take the total number of devices you have and divide by 100. That's a good rule of thumb. Never go above 500.
 
-####### ucentral.websocket.host.0.rootca
-This is the root file as supplied by Digicert. You can find it [here](https://github.com/Telecominfraproject/wlan-cloud-ucentralgw/blob/main/certificates/root.pem) 
+- `ucentral.websocket.host.0.rootca`: This is the root file as supplied by DigiCert. You can find it [here](https://github.com/Telecominfraproject/wlan-cloud-ucentralgw/blob/main/certificates/root.pem) 
 
-####### ucentral.websocket.host.0.issuer
-This is the issuer file as supplied by Digicert. You can find it [here](https://github.com/Telecominfraproject/wlan-cloud-ucentralgw/blob/main/certificates/issuer.pem)
+- `ucentral.websocket.host.0.issuer`: This is the issuer file as supplied by DigiCert. You can find it [here](https://github.com/Telecominfraproject/wlan-cloud-ucentralgw/blob/main/certificates/issuer.pem)
 
-####### ucentral.websocket.host.0.cert
-This is a `pem` file that you will receive from Digicert for the gateway itself. This is the certificate for the gateway. 
+- `ucentral.websocket.host.0.cert`: This is a `pem` file that you will receive from DigiCert for the gateway itself. This is the certificate for the gateway. 
 
-####### ucentral.websocket.host.0.key
-This is a `pem` file that you will receive from Digicert for the gateway itself. The is the private key for the gateway.
+- `ucentral.websocket.host.0.key`: This is a `pem` file that you will receive from DigiCert for the gateway itself. The is the private key for the gateway.
 
-####### ucentral.websocket.host.0.clientcas
-This is a `pem` file that contains both the issuer and the root CA certificates. You can find it You can find it [here](https://github.com/Telecominfraproject/wlan-cloud-ucentralgw/blob/main/certificates/clientcas.pem)
+- `ucentral.websocket.host.0.clientcas`: This is a `pem` file that contains both the issuer and the root CA certificates. You can find it You can find it [here](https://github.com/Telecominfraproject/wlan-cloud-ucentralgw/blob/main/certificates/clientcas.pem)
 
-####### ucentral.websocket.host.0.cas
-This is a directory where you will copy your own `cert.pem`, the `root.pem`, and the `issuer.pem` files.
+- `ucentral.websocket.host.0.cas`: This is a directory where you will copy your own `cert.pem`, the `root.pem`, and the `issuer.pem` files.
 
-####### ucentral.websocket.host.0.address
-Leve this a `*` in teh case you want to bind to all interfaces on your gateway host or select the address of a single interface.
+- `ucentral.websocket.host.0.address`: Leave this a `*` in the case you want to bind to all interfaces on your gateway host or select the address of a single interface.
 
-####### ucentral.websocket.host.0.port
-Leave to 15002 for now. 
+- `ucentral.websocket.host.0.port`: Leave to 15002 for now. 
 
-####### ucentral.websocket.host.0.security
-Leave this as strict for now for devices.
+- `ucentral.websocket.host.0.security`: Leave this as strict for now for devices.
 
-####### ucentral.websocket.host.0.key.password
-If you key file uses a password, please enter it here.
+- `ucentral.websocket.host.0.key.password`: If you key file uses a password, please enter it here.
 
-####### ucentral.websocket.maxreactors
-A single reactor can handle between 1000-2000 devices. Never leave this smaller than 5 or larger than 50.
+- `ucentral.websocket.maxreactors`: A single reactor can handle between 1000-2000 devices. Never leave this smaller than 5 or larger than 50.
 
 ###### Conclusion 
-You will need to get the `cert.pem` and `key.pem` from Digicert. The rest is here.
+You will need to get the `cert.pem` and `key.pem` from DigiCert. The rest is here.
 
 ```asm
 ucentral.websocket.host.0.backlog = 500
@@ -354,16 +342,16 @@ Once you have the gateway configured, you will need to have some devices coming 
 the following in order to use the gateway:
 - A DigiCert certificate that you will call `cert.pem`
 - A DigiCert key that goes with that certificate. Please call this `key.pem`
-- The Digicert root certificate that you will find [here](https://github.com/Telecominfraproject/wlan-cloud-ucentralgw/blob/main/certificates/root.pem)
+- The DigiCert root certificate that you will find [here](https://github.com/Telecominfraproject/wlan-cloud-ucentralgw/blob/main/certificates/root.pem)
 
-You will need to upgrade your device to the latest firmware. Once updated, you will need to copy the 3 files mentionned above in 
+You will need to upgrade your device to the latest firmware. Once updated, you will need to copy the 3 files mentioned above in 
   the `/etc/ucentral` directory. You will need to modify the `/etc/config-shadow/ucentral` file with your hostname. At which point, 
   you should be able to restart the uCentral client with `/etc/init.d/ucentral restart`. Then the command `logread -f` should tell you
   if you device was able to connect to the gateway.
 
 #### Server key entry
 The gateway needs to encrypt information from time to time. In order to do so, it must have a crypto key. This key
-can be any of the keys you are already using. You must keep that keep secret and always use it. In the configutation,
+can be any of the keys you are already using. You must keep that keep secret and always use it. In the configuration,
 this is the entry
 
 ```asm
@@ -393,13 +381,13 @@ This allows you to point to another file without specifying the UCENTRAL_CONFIG 
 ##### daemon
 Run this as a UNIX service
 ##### pidfile
-When running as a daemon, the pid of the running service will be set in the speficied file
+When running as a daemon, the pid of the running service will be set in the specified file
 ##### debug
 Run the service in debug mode.
 ##### logs
-Speficy where logs should be kept. You must include an existing directory and a file name. For example `/var/ucentral/logs/log.0`.
+Specify where logs should be kept. You must include an existing directory and a file name. For example `/var/ucentral/logs/log.0`.
 ##### umask
-Seet the umask for the running service.
+Set the umask for the running service.
 
 
 ### Docker
