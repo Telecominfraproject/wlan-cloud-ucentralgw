@@ -9,11 +9,11 @@
 #include "Poco/Array.h"
 #include "Poco/JSON/Stringifier.h"
 
-#include "RESTAPI_devicesHandler.h"
+#include "RESTAPI_devices_handler.h"
 #include "uStorageService.h"
-#include "utils.h"
+#include "uUtils.h"
 
-void RESTAPI_devicesHandler::handleRequest(Poco::Net::HTTPServerRequest& Request, Poco::Net::HTTPServerResponse& Response)
+void RESTAPI_devices_handler::handleRequest(Poco::Net::HTTPServerRequest& Request, Poco::Net::HTTPServerResponse& Response)
 {
     if(!ContinueProcessing(Request,Response))
         return;

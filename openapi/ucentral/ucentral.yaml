@@ -136,6 +136,10 @@ components:
           format: int64
         configuration:
           type: string
+        compatible:
+          type: string
+        fwUpdatePolicy:
+          type: string
         notes:
           type: string
         createdTimestamp:
@@ -145,6 +149,9 @@ components:
           type: string
           format: 'date-time'
         lastConfigurationDownload:
+          type: string
+          format: 'date-time'
+        lastFWUpdate:
           type: string
           format: 'date-time'
         firmware:
@@ -826,6 +833,13 @@ components:
           type: array
           items:
             type: string
+
+    AnyPayload:
+      type: object
+      properties:
+        Document:
+          type: string
+
 
 paths:
   /oauth2:
@@ -2176,6 +2190,55 @@ paths:
       responses:
         200:
           description: Successfully deleted a client class.
+        403:
+          $ref: '#/components/responses/Unauthorized'
+        404:
+          $ref: '#/components/responses/NotFound'
+
+  /callbackChannel:
+    post:
+      tags:
+        - Callback
+      summary: Generic callback hook
+      operationId: postCallback
+      parameters:
+        - in: query
+          name: subscribe
+          schema:
+            type: boolean
+          required: false
+        - in: query
+          name: uri
+          schema:
+            type: string
+            format: uri
+        - in: query
+          name: key
+          schema:
+            type: string
+        - in: query
+          name: topics
+          schema:
+            type: string
+        - in: query
+          name: id
+          schema:
+            type: string
+        - in: query
+          name: topic
+          schema:
+            type: string
+      requestBody:
+        description: A generic JSONDocument, may be empty too {}
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AnyPayload'
+
+      responses:
+        200:
+          $ref: '#/components/responses/Success'
         403:
           $ref: '#/components/responses/Unauthorized'
         404:

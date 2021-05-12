@@ -12,11 +12,11 @@
 #include "Poco/JWT/Token.h"
 #include "Poco/JWT/Signer.h"
 
+#include "RESTAPI_handler.h"
 #include "uAuthService.h"
 #include "uCentral.h"
-#include "RESTAPI_handler.h"
-#include "utils.h"
 #include "uStorageService.h"
+#include "uUtils.h"
 
 namespace uCentral::Auth {
     Service *Service::instance_ = nullptr;
@@ -40,8 +40,7 @@ namespace uCentral::Auth {
 		return 1;	// some compilers complain...
 	}
 
-    Service::Service() noexcept:
-            SubSystemServer("Authentication", "AUTH-SVR", "authentication")
+    Service::Service() noexcept: uSubSystemServer("Authentication", "AUTH-SVR", "authentication")
     {
 		std::string E{"SHA512"};
     }

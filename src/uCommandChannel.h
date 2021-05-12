@@ -6,10 +6,10 @@
 //	Arilia Wireless Inc.
 //
 
-#ifndef UCENTRALGW_COMMANDCHANNEL_H
-#define UCENTRALGW_COMMANDCHANNEL_H
+#ifndef UCENTRALGW_UCOMMANDCHANNEL_H
+#define UCENTRALGW_UCOMMANDCHANNEL_H
 
-#include "SubSystemServer.h"
+#include "uSubSystemServer.h"
 
 #include "Poco/File.h"
 #include "Poco/Net/Socket.h"
@@ -24,7 +24,7 @@ namespace uCentral::CommandChannel {
 	int Start();
 	void Stop();
 
-class Service : public SubSystemServer {
+class Service : public uSubSystemServer {
   public:
 	Service() noexcept;
 
@@ -53,4 +53,4 @@ class Service : public SubSystemServer {
 
 }		//namespace
 
-#endif // UCENTRALGW_COMMANDCHANNEL_H
+#endif // UCENTRALGW_UCOMMANDCHANNEL_H

@@ -11,9 +11,9 @@
 
 #include "RESTAPI_handler.h"
 
-class RESTAPI_deviceCommandHandler : public RESTAPIHandler {
+class RESTAPI_device_commandHandler : public RESTAPIHandler {
 public:
-    RESTAPI_deviceCommandHandler(const RESTAPIHandler::BindingMap & bindings,Poco::Logger & L)
+  RESTAPI_device_commandHandler(const RESTAPIHandler::BindingMap & bindings,Poco::Logger & L)
             : RESTAPIHandler(bindings,L,
                              std::vector<std::string>
                                      {  Poco::Net::HTTPRequest::HTTP_GET,

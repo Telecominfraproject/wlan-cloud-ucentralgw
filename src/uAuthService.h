@@ -9,7 +9,7 @@
 #ifndef UCENTRAL_UAUTHSERVICE_H
 #define UCENTRAL_UAUTHSERVICE_H
 
-#include "SubSystemServer.h"
+#include "uSubSystemServer.h"
 
 #include "Poco/JSON/Object.h"
 #include "Poco/Net/HTTPServerRequest.h"
@@ -36,7 +36,7 @@ namespace uCentral::Auth {
     bool Authorize( const std::string & UserName, const std::string & Password, uCentral::Objects::WebToken & ResultToken );
     void Logout(const std::string &token);
 
-    class Service : public SubSystemServer {
+    class Service : public uSubSystemServer {
     public:
 
         Service() noexcept;
@@ -76,6 +76,6 @@ namespace uCentral::Auth {
         void Logout(const std::string &token);
     };
 
-}; // end of namespace
+} // end of namespace
 
 #endif //UCENTRAL_UAUTHSERVICE_H

@@ -14,8 +14,7 @@
 namespace uCentral::DeviceRegistry {
     Service *Service::instance_ = nullptr;
 
-    Service::Service() noexcept:
-            SubSystemServer("DeviceStatus", "DevStatus", "devicestatus") {
+    Service::Service() noexcept: uSubSystemServer("DeviceStatus", "DevStatus", "devicestatus") {
     }
 
     int Start() {

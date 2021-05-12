@@ -16,8 +16,7 @@ namespace uCentral::CommandManager {
 
     Service *Service::instance_ = nullptr;
 
-    Service::Service() noexcept:
-            SubSystemServer("CmdManager", "CMD_MGR", "command.manager"),
+    Service::Service() noexcept: uSubSystemServer("CmdManager", "CMD_MGR", "command.manager"),
             Manager_(Logger_)
     {
     }

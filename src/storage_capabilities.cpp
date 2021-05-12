@@ -8,9 +8,12 @@
 
 #include "uStorageService.h"
 
+#include "Poco/JSON/Parser.h"
+#include "Poco/JSON/Object.h"
+
 namespace uCentral::Storage {
-	bool UpdateDeviceCapabilities(std::string &SerialNumber, std::string &State) {
-		return uCentral::Storage::Service::instance()->UpdateDeviceCapabilities(SerialNumber, State);
+	bool UpdateDeviceCapabilities(std::string &SerialNumber, std::string &Capabilities) {
+		return uCentral::Storage::Service::instance()->UpdateDeviceCapabilities(SerialNumber, Capabilities);
 	}
 
 	bool GetDeviceCapabilities(std::string &SerialNumber, uCentral::Objects::Capabilities &Capabilities) {
@@ -32,20 +35,27 @@ namespace uCentral::Storage {
 
 			uint64_t Now = time(nullptr);
 
-			std::string St{"SELECT SerialNumber FROM Capabilities WHERE SerialNumber=?"};
+			//	Find compatible in the capabilities...
+			std::string Compatible;
 
+			Poco::JSON::Parser	P;
+			Poco::JSON::Parser      IncomingParser;
+			Poco::JSON::Object::Ptr Obj = IncomingParser.parse(Capabilities).extract<Poco::JSON::Object::Ptr>();
+			Poco::DynamicStruct ds = *Obj;
+
+			if(ds.contains("compatible"))
+				Compatible = ds["compatible"].toString();
+			else
+				Compatible = "unknown";
+
+			std::cout << SerialNumber << " is a " << Compatible << std::endl;
+
+			std::string St{"SELECT SerialNumber FROM Capabilities WHERE SerialNumber=?"};
 			Select << ConvertParams(St),
 				Poco::Data::Keywords::into(SS),
 				Poco::Data::Keywords::use(SerialNumber);
 			Select.execute();
 
-	/*
-						"SerialNumber VARCHAR(30) PRIMARY KEY, "
-						"Capabilities TEXT, "
-						"FirstUpdate BIGINT, "
-						"LastUpdate BIGINT"
-
-	 */
 			if (SS.empty()) {
 				Logger_.information("Adding capabilities for " + SerialNumber);
 				Poco::Data::Statement   Insert(Sess);
@@ -72,6 +82,8 @@ namespace uCentral::Storage {
 					Poco::Data::Keywords::use(SerialNumber);
 				Update.execute();
 			}
+
+			uCentral::Storage::SetDeviceCompatibility(SerialNumber, Compatible);
 			return true;
 		}
 		catch (const Poco::Exception &E) {

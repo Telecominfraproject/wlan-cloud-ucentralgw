@@ -6,24 +6,25 @@
 //	Arilia Wireless Inc.
 //
 
-#include "uCentralRESTAPIServer.h"
+#include "RESTAPI_server.h"
 
 #include "Poco/URI.h"
 
-#include "RESTAPI_oauth2Handler.h"
-#include "RESTAPI_devicesHandler.h"
-#include "RESTAPI_deviceHandler.h"
-#include "RESTAPI_deviceCommandHandler.h"
+#include "RESTAPI_BlackList.h"
+#include "RESTAPI_callback.h"
+#include "RESTAPI_command.h"
+#include "RESTAPI_commands.h"
 #include "RESTAPI_default_configuration.h"
 #include "RESTAPI_default_configurations.h"
-#include "RESTAPI_commands.h"
-#include "RESTAPI_command.h"
+#include "RESTAPI_device_commandHandler.h"
+#include "RESTAPI_device_handler.h"
+#include "RESTAPI_devices_handler.h"
 #include "RESTAPI_file.h"
-#include "RESTAPI_SystemCommand.h"
-#include "RESTAPI_BlackList.h"
+#include "RESTAPI_oauth2Handler.h"
+#include "RESTAPI_system_command.h"
 
 #include "RESTAPI_unknownRequestHandler.h"
-#include "utils.h"
+#include "uUtils.h"
 
 namespace uCentral::RESTAPI {
 
@@ -37,8 +38,7 @@ namespace uCentral::RESTAPI {
         uCentral::RESTAPI::Service::instance()->Stop();
     }
 
-    Service::Service() noexcept:
-            SubSystemServer("RESTAPIServer", "RESTAPIServer", "ucentral.restapi")
+    Service::Service() noexcept: uSubSystemServer("RESTAPIServer", "RESTAPIServer", "ucentral.restapi")
     {
     }
 
@@ -85,11 +85,11 @@ namespace uCentral::RESTAPI {
         } else if (RESTAPIHandler::ParseBindings(path, "/api/v1/oauth2/{token}", bindings)) {
             return new RESTAPI_oauth2Handler(bindings, Logger_);
         } else if (RESTAPIHandler::ParseBindings(path, "/api/v1/devices", bindings)) {
-            return new RESTAPI_devicesHandler(bindings, Logger_);
+            return new RESTAPI_devices_handler(bindings, Logger_);
         } else if (RESTAPIHandler::ParseBindings(path, "/api/v1/device/{serialNumber}/{command}", bindings)) {
-            return new RESTAPI_deviceCommandHandler(bindings, Logger_);
+            return new RESTAPI_device_commandHandler(bindings, Logger_);
         } else if (RESTAPIHandler::ParseBindings(path, "/api/v1/device/{serialNumber}", bindings)) {
-            return new RESTAPI_deviceHandler(bindings, Logger_);
+            return new RESTAPI_device_handler(bindings, Logger_);
         }  else if (RESTAPIHandler::ParseBindings(path, "/api/v1/default_configurations", bindings)) {
             return new RESTAPI_default_configurations(bindings, Logger_);
         } else if (RESTAPIHandler::ParseBindings(path, "/api/v1/default_configuration/{name}", bindings)) {
@@ -101,9 +101,11 @@ namespace uCentral::RESTAPI {
         } else if (RESTAPIHandler::ParseBindings(path, "/api/v1/file/{uuid}", bindings)) {
             return new RESTAPI_file(bindings, Logger_);
 		} else if (RESTAPIHandler::ParseBindings(path, "/api/v1/system", bindings)) {
-			return new RESTAPI_SystemCommand(bindings, Logger_);
+			return new RESTAPI_system_command(bindings, Logger_);
 		} else if (RESTAPIHandler::ParseBindings(path, "/api/v1/blacklist", bindings)) {
 			return new RESTAPI_BlackList(bindings, Logger_);
+		} else if(RESTAPIHandler::ParseBindings(path, "/api/v1/callbackChannel", bindings)) {
+			return new RESTAPI_callback(bindings, Logger_);
 		}
 
         return new RESTAPI_UnknownRequestHandler(bindings,Logger_);

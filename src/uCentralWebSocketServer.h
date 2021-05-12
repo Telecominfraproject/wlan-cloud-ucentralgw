@@ -14,9 +14,9 @@
 #include <array>
 #include <ctime>
 
-#include "SubSystemServer.h"
-#include "uDeviceRegistry.h"
 #include "RESTAPI_objects.h"
+#include "uDeviceRegistry.h"
+#include "uSubSystemServer.h"
 
 #include "Poco/AutoPtr.h"
 #include "Poco/Net/WebSocket.h"
@@ -184,7 +184,7 @@ namespace uCentral::WebSocket {
         std::unique_ptr<Poco::Thread>                               SocketReactorThread;
     };
 
-    class Service : public SubSystemServer {
+    class Service : public uSubSystemServer {
     public:
         Service() noexcept;
 

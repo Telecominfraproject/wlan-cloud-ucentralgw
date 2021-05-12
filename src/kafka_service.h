@@ -9,7 +9,7 @@
 #ifndef UCENTRALGW_KAFKA_SERVICE_H
 #define UCENTRALGW_KAFKA_SERVICE_H
 
-#include "SubSystemServer.h"
+#include "uSubSystemServer.h"
 
 #include "cppkafka/cppkafka.h"
 
@@ -18,7 +18,7 @@ namespace uCentral::Kafka {
 	int Start();
 	void Stop();
 
-class Service : public SubSystemServer {
+class Service : public uSubSystemServer {
   public:
 
 	Service() noexcept;

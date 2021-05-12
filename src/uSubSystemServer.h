@@ -82,10 +82,10 @@ private:
 	Poco::Net::Context::VerificationMode 			level_;
 };
 
-class SubSystemServer : public Poco::Util::Application::Subsystem {
+class uSubSystemServer : public Poco::Util::Application::Subsystem {
 
 public:
-    SubSystemServer(std::string Name, const std::string & LoggingName, std::string SubSystemPrefix );
+  uSubSystemServer(std::string Name, const std::string & LoggingName, std::string SubSystemPrefix );
     void initialize(Poco::Util::Application &self) override;
     void uninitialize() override;
     void reinitialize(Poco::Util::Application & self) override;

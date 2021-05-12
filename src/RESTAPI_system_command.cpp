@@ -5,7 +5,7 @@
 //	Created by Stephane Bourque on 2021-03-04.
 //	Arilia Wireless Inc.
 //
-#include "RESTAPI_SystemCommand.h"
+#include "RESTAPI_system_command.h"
 
 #include "Poco/Exception.h"
 #include "Poco/JSON/Parser.h"
@@ -45,7 +45,7 @@
             type: string
 
  */
-void RESTAPI_SystemCommand::handleRequest(Poco::Net::HTTPServerRequest& Request, Poco::Net::HTTPServerResponse& Response) {
+void RESTAPI_system_command::handleRequest(Poco::Net::HTTPServerRequest& Request, Poco::Net::HTTPServerResponse& Response) {
 
 	if(!ContinueProcessing(Request,Response))
 		return;

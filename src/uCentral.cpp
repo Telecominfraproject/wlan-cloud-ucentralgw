@@ -17,16 +17,17 @@
 #include "Poco/Environment.h"
 #include "Poco/Path.h"
 
-#include "uCentralRESTAPIServer.h"
-#include "uCentralWebSocketServer.h"
-#include "uStorageService.h"
-#include "uDeviceRegistry.h"
+#include "RESTAPI_server.h"
 #include "uAuthService.h"
+#include "uCallbackManager.h"
+#include "uCentralWebSocketServer.h"
+#include "uCommandChannel.h"
 #include "uCommandManager.h"
-#include "base64util.h"
+#include "uDeviceRegistry.h"
 #include "uFileUploader.h"
-#include "CommandChannel.h"
-#include "utils.h"
+#include "uStorageService.h"
+
+#include "uUtils.h"
 
 #ifndef SMALL_BUILD
 #include "kafka_service.h"
@@ -102,6 +103,7 @@ namespace uCentral {
         addSubsystem(uCentral::CommandManager::Service::instance());
         addSubsystem(uCentral::uFileUploader::Service::instance());
 		addSubsystem(uCentral::CommandChannel::Service::instance());
+		addSubsystem(uCentral::CallbackManager::Service::instance());
 
         ServerApplication::initialize(self);
 
@@ -285,6 +287,7 @@ namespace uCentral {
             uCentral::CommandManager::Start();
             uCentral::uFileUploader::Start();
 			uCentral::CommandChannel::Start();
+			uCentral::CallbackManager::Start();
 
 //			std::string f{"devices.db"};
 //			uCentral::Storage::AttachFileToCommand(f);
@@ -303,6 +306,7 @@ namespace uCentral {
 			uCentral::Kafka::Stop();
 #endif
 
+			uCentral::CallbackManager::Stop();
 			uCentral::CommandChannel::Stop();
             uCentral::uFileUploader::Stop();
             uCentral::CommandManager::Stop();

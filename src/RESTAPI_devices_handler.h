@@ -12,10 +12,10 @@
 #include "RESTAPI_handler.h"
 
 
-class RESTAPI_devicesHandler: public RESTAPIHandler
+class RESTAPI_devices_handler : public RESTAPIHandler
 {
 public:
-    RESTAPI_devicesHandler(const RESTAPIHandler::BindingMap &bindings, Poco::Logger &L)
+  RESTAPI_devices_handler(const RESTAPIHandler::BindingMap &bindings, Poco::Logger &L)
         : RESTAPIHandler(bindings,
                          L,
                          std::vector<std::string>{Poco::Net::HTTPRequest::HTTP_GET,

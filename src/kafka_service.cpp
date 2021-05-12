@@ -14,8 +14,7 @@ namespace uCentral::Kafka {
 
 	uCentral::Kafka::Service *uCentral::Kafka::Service::instance_ = nullptr;
 
-	Service::Service() noexcept:
-		SubSystemServer("KAFKA", "KAFKA-SVR", "ucentral.kafka")
+	Service::Service() noexcept: uSubSystemServer("KAFKA", "KAFKA-SVR", "ucentral.kafka")
 	{
 	}
 
@@ -28,7 +27,7 @@ namespace uCentral::Kafka {
 	}
 
 	void Service::initialize(Poco::Util::Application & self) {
-		SubSystemServer::initialize(self);
+		uSubSystemServer::initialize(self);
 		KafkaEnabled_ = uCentral::ServiceConfig::GetBool("ucentral.kafka.enable",false);
 	}
 

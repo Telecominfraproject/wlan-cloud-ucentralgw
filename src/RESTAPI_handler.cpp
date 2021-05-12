@@ -254,6 +254,15 @@ bool RESTAPIHandler::IsAuthorized(Poco::Net::HTTPServerRequest & Request, Poco::
     return false;
 }
 
+bool RESTAPIHandler::ValidateAPIKey(Poco::Net::HTTPServerRequest & Request , Poco::Net::HTTPServerResponse & Response) {
+	auto Key = Request.get("X-API-KEY","");
+
+	if(Key.empty())
+		return false;
+
+	return true;
+}
+
 
 void RESTAPIHandler::ReturnObject(Poco::JSON::Object & Object, Poco::Net::HTTPServerResponse & Response) {
     PrepareResponse(Response);

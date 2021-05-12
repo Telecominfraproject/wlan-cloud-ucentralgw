@@ -9,7 +9,7 @@
 #ifndef UCENTRAL_UCOMMANDMANAGER_H
 #define UCENTRAL_UCOMMANDMANAGER_H
 
-#include "SubSystemServer.h"
+#include "uSubSystemServer.h"
 
 namespace uCentral::CommandManager {
 
@@ -29,7 +29,7 @@ namespace uCentral::CommandManager {
         Poco::Logger    & Logger_;
     };
 
-    class Service : public SubSystemServer {
+    class Service : public uSubSystemServer {
     public:
         Service() noexcept;
 

@@ -14,10 +14,10 @@
 #include "Poco/Net/HTTPServerRequest.h"
 #include "Poco/Net/HTTPServerResponse.h"
 
-class RESTAPI_deviceHandler: public RESTAPIHandler
+class RESTAPI_device_handler : public RESTAPIHandler
 {
 public:
-    RESTAPI_deviceHandler(const RESTAPIHandler::BindingMap & bindings,Poco::Logger & L)
+  RESTAPI_device_handler(const RESTAPIHandler::BindingMap & bindings,Poco::Logger & L)
         : RESTAPIHandler(bindings,L,
                          std::vector<std::string>
                                  {  Poco::Net::HTTPRequest::HTTP_GET,

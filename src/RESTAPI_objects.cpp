@@ -15,6 +15,14 @@
 
 namespace uCentral::Objects {
 
+	void EmbedDocument(const std::string & ObjName, Poco::JSON::Object & Obj, const std::string &ObjStr) {
+		std::string D = ObjStr.empty() ? "{}" : ObjStr;
+		Poco::JSON::Parser P;
+		Poco::Dynamic::Var result = P.parse(D);
+		const auto &DetailsObj = result.extract<Poco::JSON::Object::Ptr>();
+		Obj.set(ObjName, DetailsObj);
+	}
+
 	void Device::to_json(Poco::JSON::Object &Obj) const {
 		Obj.set("serialNumber", SerialNumber);
 		Obj.set("deviceType", DeviceType);
@@ -22,19 +30,18 @@ namespace uCentral::Objects {
 		Obj.set("manufacturer", Manufacturer);
 		Obj.set("UUID", UUID);
 
-		std::string C = Configuration.empty() ? "{}" : Configuration;
-		Poco::JSON::Parser P;
-		Poco::Dynamic::Var result = P.parse(C);
-		const auto &CfgObj = result.extract<Poco::JSON::Object::Ptr>();
-		Obj.set("configuration", CfgObj);
+		EmbedDocument("configuration", Obj, Configuration);
 
 		Obj.set("notes", Notes);
 		Obj.set("createdTimestamp", RESTAPIHandler::to_RFC3339(CreationTimestamp));
 		Obj.set("lastConfigurationChange", RESTAPIHandler::to_RFC3339(LastConfigurationChange));
 		Obj.set("lastConfigurationDownload", RESTAPIHandler::to_RFC3339(LastConfigurationDownload));
+		Obj.set("lastFWUpdate", RESTAPIHandler::to_RFC3339(LastFWUpdate));
 		Obj.set("owner", Owner);
 		Obj.set("location", Location);
 		Obj.set("firmware", Firmware);
+		Obj.set("compatible", Compatible);
+		Obj.set("fwUpdatePolicy",FWUpdatePolicy);
 	}
 
 	void Device::to_json_with_status(Poco::JSON::Object &Obj) const {
@@ -55,9 +62,7 @@ namespace uCentral::Objects {
 			DeviceType = ds["deviceType"].toString();
 			MACAddress = ds["macAddress"].toString();
 			UUID = ds["UUID"];
-
 			Configuration = ds["configuration"].toString();
-
 			if (ds.contains("notes"))
 				Notes = ds["notes"].toString();
 			if (ds.contains("manufacturer"))
@@ -66,6 +71,8 @@ namespace uCentral::Objects {
 				Owner = ds["owner"].toString();
 			if (ds.contains("location"))
 				Location = ds["location"].toString();
+			if (ds.contains("compatible"))
+				Compatible = ds["compatible"].toString();
 			return true;
 		} catch (const Poco::Exception &E) {
 		}
@@ -78,23 +85,13 @@ namespace uCentral::Objects {
 	}
 
 	void Statistics::to_json(Poco::JSON::Object &Obj) const {
+		EmbedDocument("data", Obj, Data);
 		Obj.set("UUID", UUID);
-
-		std::string D = Data.empty() ? "{}" : Data;
-		Poco::JSON::Parser P;
-		Poco::Dynamic::Var result = P.parse(D);
-		const auto &CfgObj = result.extract<Poco::JSON::Object::Ptr>();
-		Obj.set("data", CfgObj);
 		Obj.set("recorded", RESTAPIHandler::to_RFC3339(Recorded));
 	}
 
 	void Capabilities::to_json(Poco::JSON::Object &Obj) const {
-		std::string C = Capabilities.empty() ? "{}" : Capabilities;
-		Poco::JSON::Parser P;
-		Poco::Dynamic::Var result = P.parse(C);
-		const auto &CfgObj = result.extract<Poco::JSON::Object::Ptr>();
-		Obj.set("capabilities", CfgObj);
-
+		EmbedDocument("capabilities", Obj, Capabilities);
 		Obj.set("firstUpdate", RESTAPIHandler::to_RFC3339(FirstUpdate));
 		Obj.set("lastUpdate", RESTAPIHandler::to_RFC3339(LastUpdate));
 	}
@@ -102,27 +99,14 @@ namespace uCentral::Objects {
 	void DeviceLog::to_json(Poco::JSON::Object &Obj) const {
 		Obj.set("log", Log);
 		Obj.set("severity", Severity);
-
-		std::string D = Data.empty() ? "{}" : Data;
-
-		Poco::JSON::Parser P;
-		Poco::Dynamic::Var result = P.parse(D);
-		const auto &CfgObj = result.extract<Poco::JSON::Object::Ptr>();
-		Obj.set("data", CfgObj);
-
+		EmbedDocument("data", Obj, Data);
 		Obj.set("recorded", RESTAPIHandler::to_RFC3339(Recorded));
 		Obj.set("logType", LogType);
 	}
 
 	void HealthCheck::to_json(Poco::JSON::Object &Obj) const {
 		Obj.set("UUID", UUID);
-
-		std::string D = Data.empty() ? "{}" : Data;
-		Poco::JSON::Parser P;
-		Poco::Dynamic::Var result = P.parse(D);
-		const auto &CfgObj = result.extract<Poco::JSON::Object::Ptr>();
-		Obj.set("values", CfgObj);
-
+		EmbedDocument("values", Obj, Data);
 		Obj.set("sanity", Sanity);
 		Obj.set("recorded", RESTAPIHandler::to_RFC3339(Recorded));
 	}
@@ -131,13 +115,7 @@ namespace uCentral::Objects {
 		Obj.set("name", Name);
 		Obj.set("modelIds", Models);
 		Obj.set("description", Description);
-
-		std::string C = Configuration.empty() ? "{}" : Configuration;
-		Poco::JSON::Parser P;
-		Poco::Dynamic::Var result = P.parse(C);
-		const auto &CfgObj = result.extract<Poco::JSON::Object::Ptr>();
-		Obj.set("configuration", CfgObj);
-
+		EmbedDocument("configuration", Obj, Configuration);
 		Obj.set("created", RESTAPIHandler::to_RFC3339(Created));
 		Obj.set("lastModified", RESTAPIHandler::to_RFC3339(LastModified));
 	}
@@ -146,23 +124,8 @@ namespace uCentral::Objects {
 		Obj.set("UUID", UUID);
 		Obj.set("serialNumber", SerialNumber);
 		Obj.set("command", Command);
-
-		{
-			std::string D = Details.empty() ? "{}" : Details;
-			Poco::JSON::Parser P;
-			Poco::Dynamic::Var result = P.parse(D);
-			const auto &DetailsObj = result.extract<Poco::JSON::Object::Ptr>();
-			Obj.set("details", DetailsObj);
-		}
-
-		{
-			std::string D = Results.empty() ? "{}" : Results;
-			Poco::JSON::Parser P;
-			Poco::Dynamic::Var result = P.parse(D);
-			const auto &ResultsObj = result.extract<Poco::JSON::Object::Ptr>();
-			Obj.set("results", ResultsObj);
-		}
-
+		EmbedDocument("details", Obj, Details);
+		EmbedDocument("results", Obj, Results);
 		Obj.set("errorText", ErrorText);
 		Obj.set("submittedBy", SubmittedBy);
 		Obj.set("status", Status);

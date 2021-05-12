@@ -9,7 +9,7 @@
 #ifndef UCENTRAL_UCENTRALRESTAPISERVER_H
 #define UCENTRAL_UCENTRALRESTAPISERVER_H
 
-#include "SubSystemServer.h"
+#include "uSubSystemServer.h"
 
 #include "Poco/Net/HTTPServer.h"
 #include "Poco/Net/HTTPRequestHandler.h"
@@ -22,7 +22,7 @@ namespace uCentral::RESTAPI {
     int Start();
     void Stop();
 
-    class Service : public SubSystemServer {
+    class Service : public uSubSystemServer {
 
     public:
         Service() noexcept;

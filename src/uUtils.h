@@ -6,8 +6,8 @@
 //	Arilia Wireless Inc.
 //
 
-#ifndef UCENTRALGW_UTILS_H
-#define UCENTRALGW_UTILS_H
+#ifndef UCENTRALGW_UUTILS_H
+#define UCENTRALGW_UUTILS_H
 
 #include <vector>
 #include <string>
@@ -22,5 +22,10 @@ namespace uCentral::Utils {
 
 	[[nodiscard]] std::string SerialToMAC(const std::string &Serial);
 	[[nodiscard]] std::string ToHex(const std::vector<unsigned char> & B);
+
+	using byte = std::uint8_t;
+
+	std::string base64encode(const byte *input, unsigned long size);
+	std::vector<byte> base64decode(const std::string& input);
 }
-#endif // UCENTRALGW_UTILS_H
+#endif // UCENTRALGW_UUTILS_H

@@ -5,14 +5,14 @@
 //	Created by Stephane Bourque on 2021-03-04.
 //	Arilia Wireless Inc.
 //
-#include "CommandChannel.h"
+#include "uCommandChannel.h"
+#include "RESTAPI_server.h"
+#include "uAuthService.h"
 #include "uCentral.h"
 #include "uCentralWebSocketServer.h"
+#include "uCommandManager.h"
 #include "uFileUploader.h"
 #include "uStorageService.h"
-#include "uCentralRESTAPIServer.h"
-#include "uCommandManager.h"
-#include "uAuthService.h"
 #include <boost/algorithm/string.hpp>
 
 namespace uCentral::CommandChannel {
@@ -143,8 +143,7 @@ namespace uCentral::CommandChannel {
 		Poco::Logger & Logger_;
 	};
 
-	Service::Service() noexcept:
-		SubSystemServer("Authentication", "AUTH-SVR", "authentication")
+	Service::Service() noexcept: uSubSystemServer("Authentication", "AUTH-SVR", "authentication")
 	{
 	}
 

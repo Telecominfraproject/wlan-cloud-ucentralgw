@@ -15,14 +15,12 @@
 #include "Poco/Net/HTTPServerRequestImpl.h"
 #include "Poco/JSON/Array.h"
 #include "Poco/zlib.h"
-#include "base64util.h"
 
-#include "uCentralWebSocketServer.h"
-#include "uStorageService.h"
 #include "uAuthService.h"
 #include "uCentral.h"
-#include "utils.h"
-
+#include "uCentralWebSocketServer.h"
+#include "uStorageService.h"
+#include "uUtils.h"
 
 namespace uCentral::WebSocket {
 
@@ -36,8 +34,7 @@ namespace uCentral::WebSocket {
         uCentral::WebSocket::Service::instance()->Stop();
     }
 
-    Service::Service() noexcept:
-            SubSystemServer("WebSocketServer", "WS-SVR", "ucentral.websocket"),
+    Service::Service() noexcept: uSubSystemServer("WebSocketServer", "WS-SVR", "ucentral.websocket"),
             Factory_(Logger_)
     {
 
@@ -272,13 +269,12 @@ namespace uCentral::WebSocket {
                 return true;
             }
         }
-
         return false;
     }
 
     Poco::DynamicStruct WSConnection::ExtractCompressedData(const std::string & CompressedData)
     {
-        std::vector<uint8_t> OB = base64::decode(CompressedData);
+        std::vector<uint8_t> OB = uCentral::Utils::base64decode(CompressedData);
 
         unsigned long MaxSize=OB.size()*10;
         std::vector<char> UncompressedBuffer(MaxSize);
@@ -375,10 +371,10 @@ namespace uCentral::WebSocket {
 					Conn_->VerifiedCertificate = false;
 				}
 
-                uCentral::Storage::UpdateDeviceCapabilities(SerialNumber_, Capabilities);
-
                 if (uCentral::instance()->AutoProvisioning() && !uCentral::Storage::DeviceExists(SerialNumber_))
                     uCentral::Storage::CreateDefaultDevice(SerialNumber_, Capabilities);
+
+				uCentral::Storage::UpdateDeviceCapabilities(SerialNumber_, Capabilities);
 
 				if(!Firmware.empty())
 					uCentral::Storage::SetFirmware(SerialNumber_, Firmware);

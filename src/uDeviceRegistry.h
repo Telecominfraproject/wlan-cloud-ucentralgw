@@ -11,8 +11,8 @@
 
 #include "Poco/JSON/Object.h"
 
-#include "SubSystemServer.h"
 #include "RESTAPI_objects.h"
+#include "uSubSystemServer.h"
 
 namespace uCentral::DeviceRegistry {
 
@@ -33,7 +33,7 @@ namespace uCentral::DeviceRegistry {
     bool SendCommand(uCentral::Objects::CommandDetails & Command);
     bool Connected(const std::string & SerialNumber);
 
-    class Service : public SubSystemServer {
+    class Service : public uSubSystemServer {
     public:
 
         Service() noexcept;

@@ -6,15 +6,15 @@
 //	Arilia Wireless Inc.
 //
 
-#ifndef UCENTRALGW_RESTAPI_SYSTEMCOMMAND_H
-#define UCENTRALGW_RESTAPI_SYSTEMCOMMAND_H
+#ifndef UCENTRALGW_RESTAPI_SYSTEM_COMMAND_H
+#define UCENTRALGW_RESTAPI_SYSTEM_COMMAND_H
 
 #include "RESTAPI_handler.h"
 
-class RESTAPI_SystemCommand: public RESTAPIHandler
+class RESTAPI_system_command : public RESTAPIHandler
 {
   public:
-	RESTAPI_SystemCommand(const RESTAPIHandler::BindingMap & bindings,Poco::Logger & L)
+	RESTAPI_system_command(const RESTAPIHandler::BindingMap & bindings,Poco::Logger & L)
 		: RESTAPIHandler(bindings,L,
 						 std::vector<std::string>
 						 {  Poco::Net::HTTPRequest::HTTP_POST,
@@ -22,4 +22,4 @@ class RESTAPI_SystemCommand: public RESTAPIHandler
 	void handleRequest(Poco::Net::HTTPServerRequest& request, Poco::Net::HTTPServerResponse& response) override;
 };
 
-#endif // UCENTRALGW_RESTAPI_SYSTEMCOMMAND_H
+#endif // UCENTRALGW_RESTAPI_SYSTEM_COMMAND_H

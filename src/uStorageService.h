@@ -20,8 +20,8 @@
 #endif
 
 #include "RESTAPI_objects.h"
-#include "SubSystemServer.h"
 #include "uAuthService.h"
+#include "uSubSystemServer.h"
 
 namespace uCentral::Storage {
 
@@ -68,6 +68,7 @@ namespace uCentral::Storage {
 	bool SetFirmware(std::string & SerialNumber, std::string & Firmware );
 	bool GetDeviceCount(uint64_t & Count);
 	bool GetDeviceSerialNumbers(uint64_t From, uint64_t HowMany, std::vector<std::string> & SerialNumbers);
+	bool SetDeviceCompatibility(std::string & SerialNumber, std::string & Compatible);
 
     bool CreateDefaultConfiguration(std::string & name, uCentral::Objects::DefaultConfiguration & DefConfig);
     bool DeleteDefaultConfiguration(std::string & name);
@@ -103,7 +104,7 @@ namespace uCentral::Storage {
 	bool ListIdentities(uint64_t Offset, uint64_t HowMany, std::vector<std::string> & Identities, uCentral::Auth::ACCESS_TYPE Type);
 	bool GetIdentityRights(std::string & Identity, uCentral::Objects::AclTemplate & ACL);
 
-    class Service : public SubSystemServer {
+    class Service : public uSubSystemServer {
 
     public:
         Service() noexcept;
@@ -146,6 +147,7 @@ namespace uCentral::Storage {
 		friend bool SetLocation(std::string & SerialNumber, std::string & LocationUUID);
 		friend bool GetDeviceCount(uint64_t & Count);
 		friend bool GetDeviceSerialNumbers(uint64_t From, uint64_t HowMany, std::vector<std::string> & SerialNumbers);
+		friend bool SetDeviceCompatibility(std::string & SerialNumber, std::string & Compatible);
 
 		friend bool GetLogData(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate, uint64_t Offset, uint64_t HowMany,
                                std::vector<uCentral::Objects::DeviceLog> &Stats, uint64_t Type);
@@ -227,6 +229,7 @@ namespace uCentral::Storage {
 		bool SetFirmware(std::string & SerialNumber, std::string & Firmware );
 		bool GetDeviceCount(uint64_t & Count);
 		bool GetDeviceSerialNumbers(uint64_t From, uint64_t HowMany, std::vector<std::string> & SerialNumbers);
+		bool SetDeviceCompatibility(std::string & SerialNumber, std::string & Compatible);
 
         bool ExistingConfiguration(std::string &SerialNumber, uint64_t CurrentConfig, std::string &NewConfig, uint64_t &);
 

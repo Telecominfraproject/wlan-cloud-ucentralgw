@@ -6,72 +6,76 @@
 //	Arilia Wireless Inc.
 //
 
-#include "uStorageService.h"
 #include "uCentralConfig.h"
-#include "utils.h"
+#include "uStorageService.h"
+#include "uUtils.h"
 
 namespace uCentral::Storage {
 
 	bool UpdateDeviceConfiguration(std::string &SerialNumber, std::string &Configuration, uint64_t &NewUUID) {
-		return uCentral::Storage::Service::instance()->UpdateDeviceConfiguration(SerialNumber, Configuration, NewUUID);
+		return Service::instance()->UpdateDeviceConfiguration(SerialNumber, Configuration, NewUUID);
 	}
 
 	bool CreateDevice(uCentral::Objects::Device &Device) {
-		return uCentral::Storage::Service::instance()->CreateDevice(Device);
+		return Service::instance()->CreateDevice(Device);
 	}
 
 	bool CreateDefaultDevice(const std::string &SerialNumber, const std::string &Capabilities) {
-		return uCentral::Storage::Service::instance()->CreateDefaultDevice(SerialNumber, Capabilities);
+		return Service::instance()->CreateDefaultDevice(SerialNumber, Capabilities);
 	}
 
 	bool GetDevice(std::string &SerialNumber, uCentral::Objects::Device &Device) {
-		return uCentral::Storage::Service::instance()->GetDevice(SerialNumber, Device);
+		return Service::instance()->GetDevice(SerialNumber, Device);
 	}
 
 	bool GetDevices(uint64_t From, uint64_t HowMany, std::vector<uCentral::Objects::Device> &Devices) {
-		return uCentral::Storage::Service::instance()->GetDevices(From, HowMany, Devices);
+		return Service::instance()->GetDevices(From, HowMany, Devices);
 	}
 
 	bool GetDevices(uint64_t From, uint64_t HowMany, const std::string & Select, std::vector<uCentral::Objects::Device> &Devices) {
-		return uCentral::Storage::Service::instance()->GetDevices(From, HowMany, Select, Devices);
+		return Service::instance()->GetDevices(From, HowMany, Select, Devices);
 	}
 
 	bool DeleteDevice(std::string &SerialNumber) {
-		return uCentral::Storage::Service::instance()->DeleteDevice(SerialNumber);
+		return Service::instance()->DeleteDevice(SerialNumber);
 	}
 
 	bool UpdateDevice(uCentral::Objects::Device &Device) {
-		return uCentral::Storage::Service::instance()->UpdateDevice(Device);
+		return Service::instance()->UpdateDevice(Device);
 	}
 
 	bool SetOwner(std::string & SerialNumber, std::string & OwnerUUID) {
-		return uCentral::Storage::Service::instance()->SetOwner(SerialNumber, OwnerUUID);
+		return Service::instance()->SetOwner(SerialNumber, OwnerUUID);
 	}
 
 	bool SetLocation(std::string & SerialNumber, std::string & LocationUUID) {
-		return uCentral::Storage::Service::instance()->SetLocation(SerialNumber, LocationUUID);
+		return Service::instance()->SetLocation(SerialNumber, LocationUUID);
 	}
 
 	bool SetFirmware(std::string & SerialNumber, std::string & Firmware ) {
-		return uCentral::Storage::Service::instance()->SetFirmware(SerialNumber, Firmware);
+		return Service::instance()->SetFirmware(SerialNumber, Firmware);
 	}
 
 	bool GetDeviceCount( uint64_t & Count ) {
-		return uCentral::Storage::Service::instance()->GetDeviceCount(Count);
+		return Service::instance()->GetDeviceCount(Count);
 	}
 
 	bool GetDeviceSerialNumbers(uint64_t From, uint64_t HowMany, std::vector<std::string> & SerialNumbers) {
-		return uCentral::Storage::Service::instance()->GetDeviceSerialNumbers(From, HowMany, SerialNumbers);
+		return Service::instance()->GetDeviceSerialNumbers(From, HowMany, SerialNumbers);
 	}
 
 	bool DeviceExists(std::string &SerialNumber) {
-		return uCentral::Storage::Service::instance()->DeviceExists(SerialNumber);
+		return Service::instance()->DeviceExists(SerialNumber);
 	}
 
 	bool ExistingConfiguration(std::string &SerialNumber, uint64_t CurrentConfig, std::string &NewConfig,
 							   uint64_t &NewerUUID) {
-		return uCentral::Storage::Service::instance()->ExistingConfiguration(SerialNumber, CurrentConfig, NewConfig,
+		return Service::instance()->ExistingConfiguration(SerialNumber, CurrentConfig, NewConfig,
 																			 NewerUUID);
+	}
+
+	bool SetDeviceCompatibility(std::string & SerialNumber, std::string & Compatible) {
+		return Service::instance()->SetDeviceCompatibility(SerialNumber, Compatible);
 	}
 
 	bool Service::GetDeviceCount(uint64_t &Count) {
@@ -186,42 +190,45 @@ namespace uCentral::Storage {
 					DeviceDetails.Configuration = Cfg.get();
 					uint64_t Now = time(nullptr);
 
-					// DeviceDetails.Print();
-	/*
-						 "SerialNumber  VARCHAR(30) UNIQUE PRIMARY KEY, "
-						"DeviceType    VARCHAR(32), "
-						"MACAddress    VARCHAR(30), "
-						"Manufacturer  VARCHAR(64), "
-						"UUID          BIGINT, "
-						"Configuration TEXT, "
-						"Notes         TEXT, "
-						"CreationTimestamp BIGINT, "
-						"LastConfigurationChange BIGINT, "
-						"LastConfigurationDownload BIGINT, "
-						"Owner 			VARCHAR(64),
-						"Location		VARCHAR(64)"
-
-	 */
 					Poco::Data::Statement   Insert(Sess);
 
-					std::string St2{"INSERT INTO Devices (SerialNumber, DeviceType, MACAddress, Manufacturer, UUID, "
-									"Configuration, Notes, CreationTimestamp, LastConfigurationChange, LastConfigurationDownload,"
-									"Owner, Location )"
-									"VALUES(?,?,?,?,?,?,?,?,?,?,?,?)"};
+					std::string St2{"INSERT INTO Devices ("
+									"SerialNumber,"
+									"DeviceType, "
+									"MACAddress, "
+									"Manufacturer, "
+									"Configuration, "
+									"Notes, "
+									"Owner, "
+									"Location, "
+									"Firmware,"
+									"Compatible,"
+									"FWUpdatePolicy,"
+									"UUID,      "
+									"CreationTimestamp,   "
+									"LastConfigurationChange, "
+									"LastConfigurationDownload, "
+									"LastFWUpdate "
+									")"
+									"VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)"};
 
 					Insert  << ConvertParams(St2),
-						Poco::Data::Keywords::use(DeviceDetails.SerialNumber),
-						Poco::Data::Keywords::use(DeviceDetails.DeviceType),
-						Poco::Data::Keywords::use(DeviceDetails.MACAddress),
-						Poco::Data::Keywords::use(DeviceDetails.Manufacturer),
-						Poco::Data::Keywords::use(DeviceDetails.UUID),
-						Poco::Data::Keywords::use(DeviceDetails.Configuration),
-						Poco::Data::Keywords::use(DeviceDetails.Notes),
-						Poco::Data::Keywords::use(Now),
-						Poco::Data::Keywords::use(Now),
-						Poco::Data::Keywords::use(Now),
-						Poco::Data::Keywords::use(DeviceDetails.Owner),
-						Poco::Data::Keywords::use(DeviceDetails.Location);
+						Poco::Data::Keywords::into(DeviceDetails.SerialNumber),
+						Poco::Data::Keywords::into(DeviceDetails.DeviceType),
+						Poco::Data::Keywords::into(DeviceDetails.MACAddress),
+						Poco::Data::Keywords::into(DeviceDetails.Manufacturer),
+						Poco::Data::Keywords::into(DeviceDetails.Configuration),
+						Poco::Data::Keywords::into(DeviceDetails.Notes),
+						Poco::Data::Keywords::into(DeviceDetails.Owner),
+						Poco::Data::Keywords::into(DeviceDetails.Location),
+						Poco::Data::Keywords::into(DeviceDetails.Firmware),
+						Poco::Data::Keywords::into(DeviceDetails.Compatible),
+						Poco::Data::Keywords::into(DeviceDetails.FWUpdatePolicy),
+						Poco::Data::Keywords::into(DeviceDetails.UUID),
+						Poco::Data::Keywords::into(Now),
+						Poco::Data::Keywords::into(Now),
+						Poco::Data::Keywords::into(Now),
+						Poco::Data::Keywords::into(Now),
 					Insert.execute();
 
 					return true;
@@ -310,13 +317,28 @@ namespace uCentral::Storage {
 	bool Service::SetFirmware(std::string &SerialNumber, std::string &Firmware) {
 		try {
 			Poco::Data::Session     Sess = Pool_->get();
-			Poco::Data::Statement   Update(Sess);
-			std::string St{"UPDATE Devices SET Firmware=?  WHERE SerialNumber=?"};
+			Poco::Data::Statement   Select(Sess);
 
-			Update << ConvertParams(St) ,
-				Poco::Data::Keywords::use(Firmware),
+			//	Get the old version and if they do not match, set the last date
+			std::string St{"SELECT Firmware FROM Devices  WHERE SerialNumber=?"};
+			std::string TmpFirmware;
+			Select << ConvertParams(St) ,
+				Poco::Data::Keywords::into(TmpFirmware),
 				Poco::Data::Keywords::use(SerialNumber);
-			Update.execute();
+			Select.execute();
+
+			if(TmpFirmware != Firmware) {
+				Poco::Data::Statement	Update(Sess);
+				std::string St2{"UPDATE Devices SET Firmware=?, LastFWUpdate=? WHERE SerialNumber=?"};
+				uint64_t 	Now = time(nullptr);
+
+				Update << 	ConvertParams(St2),
+							Poco::Data::Keywords::use(Firmware),
+							Poco::Data::Keywords::use(Now),
+							Poco::Data::Keywords::use(SerialNumber);
+				Update.execute();
+				return true;
+			}
 			return true;
 		}
 		catch (const Poco::Exception &E) {
@@ -355,19 +377,22 @@ namespace uCentral::Storage {
 			Poco::Data::Statement   Select(Sess);
 
 			std::string St{"SELECT "
-						   "SerialNumber, "
+						   "SerialNumber,"
 						   "DeviceType, "
 						   "MACAddress, "
 						   "Manufacturer, "
-						   "UUID, "
 						   "Configuration, "
 						   "Notes, "
-						   "CreationTimestamp, "
+						   "Owner, "
+						   "Location, "
+						   "Firmware,"
+						   "Compatible,"
+						   "FWUpdatePolicy,"
+						   "UUID,      "
+						   "CreationTimestamp,   "
 						   "LastConfigurationChange, "
 						   "LastConfigurationDownload, "
-						   "Owner,"
-						   "Location, "
-						   "Firmware "
+						   "LastFWUpdate "
 						   "FROM Devices WHERE SerialNumber=?"};
 
 			Select << ConvertParams(St),
@@ -375,15 +400,18 @@ namespace uCentral::Storage {
 				Poco::Data::Keywords::into(DeviceDetails.DeviceType),
 				Poco::Data::Keywords::into(DeviceDetails.MACAddress),
 				Poco::Data::Keywords::into(DeviceDetails.Manufacturer),
-				Poco::Data::Keywords::into(DeviceDetails.UUID),
 				Poco::Data::Keywords::into(DeviceDetails.Configuration),
 				Poco::Data::Keywords::into(DeviceDetails.Notes),
-				Poco::Data::Keywords::into(DeviceDetails.CreationTimestamp),
-				Poco::Data::Keywords::into(DeviceDetails.LastConfigurationChange),
-				Poco::Data::Keywords::into(DeviceDetails.LastConfigurationDownload),
 				Poco::Data::Keywords::into(DeviceDetails.Owner),
 				Poco::Data::Keywords::into(DeviceDetails.Location),
 				Poco::Data::Keywords::into(DeviceDetails.Firmware),
+				Poco::Data::Keywords::into(DeviceDetails.Compatible),
+				Poco::Data::Keywords::into(DeviceDetails.FWUpdatePolicy),
+				Poco::Data::Keywords::into(DeviceDetails.UUID),
+				Poco::Data::Keywords::into(DeviceDetails.CreationTimestamp),
+				Poco::Data::Keywords::into(DeviceDetails.LastConfigurationChange),
+				Poco::Data::Keywords::into(DeviceDetails.LastConfigurationDownload),
+				Poco::Data::Keywords::into(DeviceDetails.LastFWUpdate),
 				Poco::Data::Keywords::use(SerialNumber);
 
 			Select.execute();
@@ -469,15 +497,19 @@ namespace uCentral::Storage {
 			std::string,
 			std::string,
 			std::string,
-			uint64_t,
 			std::string,
 			std::string,
-			uint64_t,
-			uint64_t,
-			uint64_t,
 			std::string,
 			std::string,
-			std::string> DeviceRecord;
+			std::string,
+			std::string,
+			std::string,
+			uint64_t,
+			uint64_t,
+			uint64_t,
+			uint64_t,
+			uint64_t
+		> DeviceRecord;
 		typedef std::vector<DeviceRecord> RecordList;
 
 		RecordList Records;
@@ -487,19 +519,22 @@ namespace uCentral::Storage {
 			Poco::Data::Statement   Select(Sess);
 
 			Select << "SELECT "
-					  "SerialNumber, "
+					  "SerialNumber,"
 					  "DeviceType, "
 					  "MACAddress, "
 					  "Manufacturer, "
-					  "UUID, "
 					  "Configuration, "
 					  "Notes, "
-					  "CreationTimestamp, "
-					  "LastConfigurationChange, "
-					  "LastConfigurationDownload, "
 					  "Owner, "
 					  "Location, "
-					  "Firmware "
+					  "Firmware,"
+					  "Compatible,"
+					  "FWUpdatePolicy,"
+					  "UUID,      "
+					  "CreationTimestamp,   "
+					  "LastConfigurationChange, "
+					  "LastConfigurationDownload, "
+					  "LastFWUpdate "
 					  "FROM Devices",
 				Poco::Data::Keywords::into(Records),
 				Poco::Data::Keywords::range(From, From + HowMany );
@@ -511,16 +546,18 @@ namespace uCentral::Storage {
 					.DeviceType     = i.get<1>(),
 					.MACAddress     = i.get<2>(),
 					.Manufacturer   = i.get<3>(),
-					.UUID           = i.get<4>(),
-					.Configuration  = i.get<5>(),
-					.Notes          = i.get<6>(),
-					.CreationTimestamp = i.get<7>(),
-					.LastConfigurationChange = i.get<8>(),
-					.LastConfigurationDownload = i.get<9>(),
-					.Owner = i.get<10>(),
-					.Location = i.get<11>(),
-					.Firmware = i.get<12>()};
-
+					.Configuration  = i.get<4>(),
+					.Notes  		= i.get<5>(),
+					.Owner          = i.get<6>(),
+					.Location 		= i.get<7>(),
+					.Firmware 		= i.get<8>(),
+					.Compatible 	= i.get<9>(),
+					.FWUpdatePolicy = i.get<10>(),
+					.UUID			= i.get<11>(),
+					.CreationTimestamp = i.get<12>(),
+					.LastConfigurationChange = i.get<13>(),
+					.LastConfigurationDownload = i.get<14>(),
+					.LastFWUpdate = i.get<15>()};
 				Devices.push_back(R);
 			}
 			return true;
@@ -568,6 +605,25 @@ namespace uCentral::Storage {
 		catch (const Poco::Exception &E) {
 			Logger_.warning(
 				Poco::format("%s(%s): Failed with: %s", std::string(__func__), SerialNumber, E.displayText()));
+		}
+		return false;
+	}
+
+	bool Service::SetDeviceCompatibility(std::string &SerialNumber, std::string &Compatible) {
+		try {
+			Poco::Data::Session     Sess = Pool_->get();
+			Poco::Data::Statement   Update(Sess);
+
+			std::string st{"UPDATE Devices SET Compatible=? WHERE SerialNumber=?"};
+
+			Update << 	ConvertParams(st),
+						Poco::Data::Keywords::use(Compatible),
+						Poco::Data::Keywords::use(SerialNumber);
+			Update.execute();
+
+			return true;
+		} catch (const Poco::Exception &E) {
+			Logger_.log(E);
 		}
 		return false;
 	}

@@ -6,11 +6,11 @@
 //	Arilia Wireless Inc.
 //
 
-#include "RESTAPI_deviceHandler.h"
-#include "uStorageService.h"
+#include "RESTAPI_device_handler.h"
 #include "Poco/JSON/Parser.h"
+#include "uStorageService.h"
 
-void RESTAPI_deviceHandler::handleRequest(Poco::Net::HTTPServerRequest& Request, Poco::Net::HTTPServerResponse& Response)
+void RESTAPI_device_handler::handleRequest(Poco::Net::HTTPServerRequest& Request, Poco::Net::HTTPServerResponse& Response)
 {
     if(!ContinueProcessing(Request,Response))
         return;

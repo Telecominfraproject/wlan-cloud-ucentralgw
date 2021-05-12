@@ -6,19 +6,18 @@
 //	Arilia Wireless Inc.
 //
 
-#include <fstream>
 #include "uStorageService.h"
+#include "Poco/Util/Application.h"
 #include "uCentral.h"
 #include "uDeviceRegistry.h"
-#include "Poco/Util/Application.h"
-#include "utils.h"
+#include "uUtils.h"
+#include <fstream>
 
 namespace uCentral::Storage {
 
     Service *Service::instance_ = nullptr;
 
-    Service::Service() noexcept:
-            SubSystemServer("Storage", "STORAGE-SVR", "storage")
+    Service::Service() noexcept: uSubSystemServer("Storage", "STORAGE-SVR", "storage")
     {
     }
 

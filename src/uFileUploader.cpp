@@ -24,7 +24,7 @@
 #include "Poco/StreamCopier.h"
 #include "Poco/Exception.h"
 
-#include "utils.h"
+#include "uUtils.h"
 
 namespace uCentral::uFileUploader {
     Service *Service::instance_ = nullptr;
@@ -58,8 +58,7 @@ namespace uCentral::uFileUploader {
     }
 
 
-    Service::Service() noexcept:
-            SubSystemServer("FileUploader", "FILE-UPLOAD", "ucentral.fileuploader")
+    Service::Service() noexcept: uSubSystemServer("FileUploader", "FILE-UPLOAD", "ucentral.fileuploader")
     {
 		SubMutexGuard		Guard(Mutex_);
     }
