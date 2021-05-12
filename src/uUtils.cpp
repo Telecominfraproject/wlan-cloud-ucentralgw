@@ -7,6 +7,7 @@
 //
 
 #include "uUtils.h"
+#include <stdexcept>
 
 namespace uCentral::Utils {
 
