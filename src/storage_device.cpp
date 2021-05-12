@@ -176,28 +176,21 @@ namespace uCentral::Storage {
 			Poco::Data::Session     Sess = Pool_->get();
 			Poco::Data::Statement   Select(Sess);
 
-			std::cout << __LINE__ << std::endl;
 			std::string St{"SELECT SerialNumber FROM Devices WHERE SerialNumber=?"};
-			std::cout << __LINE__ << std::endl;
 
 			Select << ConvertParams(St),
 				Poco::Data::Keywords::into(SerialNumber),
 				Poco::Data::Keywords::use(DeviceDetails.SerialNumber);
 			Select.execute();
-			std::cout << __LINE__ << std::endl;
 
 			if (SerialNumber.empty()) {
 				uCentral::Config::Config Cfg(DeviceDetails.Configuration);
-				std::cout << __LINE__ << std::endl;
 
 				if (Cfg.Valid() && Cfg.SetUUID(DeviceDetails.UUID)) {
-					std::cout << __LINE__ << std::endl;
 					DeviceDetails.Configuration = Cfg.get();
 					uint64_t Now = time(nullptr);
-					std::cout << __LINE__ << std::endl;
 
 					Poco::Data::Statement   Insert(Sess);
-					std::cout << __LINE__ << std::endl;
 
 					std::string St2{"INSERT INTO Devices ("
 									"SerialNumber,"
@@ -235,9 +228,8 @@ namespace uCentral::Storage {
 						Poco::Data::Keywords::use(Now),
 						Poco::Data::Keywords::use(Now),
 						Poco::Data::Keywords::use(Now),
-						Poco::Data::Keywords::use(Now),
+						Poco::Data::Keywords::use(Now);
 					Insert.execute();
-					std::cout << __LINE__ << std::endl;
 
 					return true;
 				} else {
