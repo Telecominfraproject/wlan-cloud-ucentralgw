@@ -27,6 +27,9 @@ namespace uCentral::Storage {
 	bool Service::UpdateDeviceCapabilities(std::string &SerialNumber, std::string & Capabilities) {
 		// std::lock_guard<std::mutex> guard(Mutex_);
 
+		std::cout << "Capabilities:" << std::endl;
+		std::cout << Capabilities << std::endl;
+
 		try {
 			std::string SS;
 
