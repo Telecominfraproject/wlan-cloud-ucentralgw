@@ -49,7 +49,11 @@ namespace uCentral::Storage {
 			if(ds.contains("compatible")) {
 				Compatible= ds["compatible"].toString();
 			} else {
-				Compatible = "unknown";
+				//	Maybe this is an old firmware
+				auto TmpCompatible = ds["model"]["id"].toString();
+
+				for(const auto &i:TmpCompatible)
+					Compatible += (char) ( i==',' ? '_' : i);
 			}
 
 			std::cout << SerialNumber << " Type is a " << Compatible << std::endl;
