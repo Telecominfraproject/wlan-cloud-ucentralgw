@@ -117,8 +117,12 @@ namespace uCentral::FirmwareManager {
 	//	monthly@<dom>@time		: monthly@15@4:00 every month on the 15th @ 4am
 	//	date@date@time			: date@2021-05-21@5:00
 	uint64_t Service::CalculateWhen(std::string &SerialNumber) {
+
 		if(DefaultPolicy_=="auto")
 			return 0;
+
+		if(DefaultPolicy_=="off")
+			return std::numeric_limits<uint64_t>::max();
 
 		Poco::LocalDateTime	Now;
 
