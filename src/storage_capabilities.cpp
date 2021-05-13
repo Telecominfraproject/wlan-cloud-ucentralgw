@@ -27,8 +27,8 @@ namespace uCentral::Storage {
 	bool Service::UpdateDeviceCapabilities(std::string &SerialNumber, std::string & Capabilities) {
 		// std::lock_guard<std::mutex> guard(Mutex_);
 
-		std::cout << "Capabilities:" << std::endl;
-		std::cout << Capabilities << std::endl;
+//		std::cout << "Capabilities:" << std::endl;
+//		std::cout << Capabilities << std::endl;
 
 		try {
 			std::string SS;
@@ -46,12 +46,13 @@ namespace uCentral::Storage {
 			Poco::JSON::Object::Ptr Obj = IncomingParser.parse(Capabilities).extract<Poco::JSON::Object::Ptr>();
 			Poco::DynamicStruct ds = *Obj;
 
-			if(ds.contains("compatible"))
-				Compatible = ds["compatible"].toString();
-			else
+			if(ds.contains("compatible")) {
+				Compatible= ds["compatible"].toString();
+			} else {
 				Compatible = "unknown";
+			}
 
-			std::cout << SerialNumber << " is a " << Compatible << std::endl;
+			std::cout << SerialNumber << " Type is a " << Compatible << std::endl;
 
 			std::string St{"SELECT SerialNumber FROM Capabilities WHERE SerialNumber=?"};
 			Select << ConvertParams(St),

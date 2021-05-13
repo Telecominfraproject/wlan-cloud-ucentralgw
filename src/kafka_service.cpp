@@ -31,6 +31,16 @@ namespace uCentral::Kafka {
 		KafkaEnabled_ = uCentral::ServiceConfig::GetBool("ucentral.kafka.enable",false);
 	}
 
+#ifdef SMALL_BUILD
+
+	int Service::Start() {
+		return 0;
+	}
+	void Service::Stop() {
+	}
+
+#else
+
 	int Service::Start() {
 		if(!KafkaEnabled_)
 			return 0;
@@ -50,4 +60,5 @@ namespace uCentral::Kafka {
 			return;
 	}
 
+#endif
 } // namespace

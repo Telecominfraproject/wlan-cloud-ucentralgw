@@ -57,6 +57,7 @@ namespace uCentral {
 		static std::string Version();
 		const Poco::SharedPtr<Poco::Crypto::RSAKey> & Key() { return AppKey_; }
 		void Exit(int Reason);
+		[[nodiscard]] inline const std::string & DataDir() { return DataDir_; }
 
     private:
         bool                        HelpRequested_ = false;
@@ -69,6 +70,7 @@ namespace uCentral {
         Poco::UUIDGenerator         UUIDGenerator_;
         MyErrorHandler              AppErrorHandler_;
 		Poco::SharedPtr<Poco::Crypto::RSAKey>	AppKey_ = nullptr;
+		std::string 				DataDir_;
     };
 
     namespace ServiceConfig {

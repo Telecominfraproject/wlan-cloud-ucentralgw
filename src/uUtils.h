@@ -27,5 +27,9 @@ namespace uCentral::Utils {
 
 	std::string base64encode(const byte *input, unsigned long size);
 	std::vector<byte> base64decode(const std::string& input);
+
+	std::string to_RFC3339(uint64_t t);
+	uint64_t from_RFC3339(const std::string &t);
+
 }
 #endif // UCENTRALGW_UUTILS_H

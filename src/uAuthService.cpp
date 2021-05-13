@@ -46,23 +46,23 @@ namespace uCentral::Auth {
     }
 
     int Start() {
-        return uCentral::Auth::Service::instance()->Start();
+        return Service::instance()->Start();
     }
 
     void Stop() {
-        uCentral::Auth::Service::instance()->Stop();
+        Service::instance()->Stop();
     }
 
     bool IsAuthorized(Poco::Net::HTTPServerRequest & Request,std::string &SessionToken, struct uCentral::Objects::WebToken & UserInfo ) {
-        return uCentral::Auth::Service::instance()->IsAuthorized(Request,SessionToken, UserInfo);
+        return Service::instance()->IsAuthorized(Request,SessionToken, UserInfo);
     }
 
     bool Authorize( const std::string & UserName, const std::string & Password, uCentral::Objects::WebToken & ResultToken ) {
-        return uCentral::Auth::Service::instance()->Authorize(UserName,Password,ResultToken);
+        return Service::instance()->Authorize(UserName,Password,ResultToken);
     }
 
     void Logout(const std::string &Token) {
-        uCentral::Auth::Service::instance()->Logout(Token);
+        Service::instance()->Logout(Token);
     }
 
     int Service::Start() {

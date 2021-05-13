@@ -5,9 +5,15 @@
 //	Created by Stephane Bourque on 2021-03-04.
 //	Arilia Wireless Inc.
 //
+#include <stdexcept>
 
 #include "uUtils.h"
-#include <stdexcept>
+
+#include "Poco/Exception.h"
+#include "Poco/DateTimeFormat.h"
+#include "Poco/DateTimeFormatter.h"
+#include "Poco/DateTime.h"
+#include "Poco/DateTimeParser.h"
 
 namespace uCentral::Utils {
 
@@ -178,4 +184,27 @@ namespace uCentral::Utils {
 
 		return decoded;
 	}
+
+	std::string to_RFC3339(uint64_t t)
+	{
+		return Poco::DateTimeFormatter::format(Poco::DateTime(Poco::Timestamp::fromEpochTime(t)), Poco::DateTimeFormat::ISO8601_FORMAT);
+	}
+
+	uint64_t from_RFC3339(const std::string &TimeString)
+	{
+		if(TimeString.empty())
+			return 0;
+
+		try {
+			int             TZ;
+			Poco::DateTime  DT = Poco::DateTimeParser::parse(Poco::DateTimeFormat::ISO8601_FORMAT,TimeString,TZ);
+			return DT.timestamp().epochTime();
+		}
+		catch( const Poco::Exception & E )
+		{
+
+		}
+		return 0;
+	}
+
 }

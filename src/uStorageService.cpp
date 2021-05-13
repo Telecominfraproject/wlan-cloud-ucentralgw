@@ -22,11 +22,11 @@ namespace uCentral::Storage {
     }
 
     int Start() {
-        return uCentral::Storage::Service::instance()->Start();
+        return Service::instance()->Start();
     }
 
     void Stop() {
-        uCentral::Storage::Service::instance()->Stop();
+        Service::instance()->Stop();
     }
 
 	std::string Service::ConvertParams(const std::string & S) const {

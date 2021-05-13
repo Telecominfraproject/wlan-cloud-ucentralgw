@@ -12,6 +12,7 @@
 #include "RESTAPI_objects.h"
 #include "RESTAPI_handler.h"
 #include "uDeviceRegistry.h"
+#include "uUtils.h"
 
 namespace uCentral::Objects {
 
@@ -33,10 +34,10 @@ namespace uCentral::Objects {
 		EmbedDocument("configuration", Obj, Configuration);
 
 		Obj.set("notes", Notes);
-		Obj.set("createdTimestamp", RESTAPIHandler::to_RFC3339(CreationTimestamp));
-		Obj.set("lastConfigurationChange", RESTAPIHandler::to_RFC3339(LastConfigurationChange));
-		Obj.set("lastConfigurationDownload", RESTAPIHandler::to_RFC3339(LastConfigurationDownload));
-		Obj.set("lastFWUpdate", RESTAPIHandler::to_RFC3339(LastFWUpdate));
+		Obj.set("createdTimestamp", uCentral::Utils::to_RFC3339(CreationTimestamp));
+		Obj.set("lastConfigurationChange", uCentral::Utils::to_RFC3339(LastConfigurationChange));
+		Obj.set("lastConfigurationDownload", uCentral::Utils::to_RFC3339(LastConfigurationDownload));
+		Obj.set("lastFWUpdate", uCentral::Utils::to_RFC3339(LastFWUpdate));
 		Obj.set("owner", Owner);
 		Obj.set("location", Location);
 		Obj.set("firmware", Firmware);
@@ -87,20 +88,20 @@ namespace uCentral::Objects {
 	void Statistics::to_json(Poco::JSON::Object &Obj) const {
 		EmbedDocument("data", Obj, Data);
 		Obj.set("UUID", UUID);
-		Obj.set("recorded", RESTAPIHandler::to_RFC3339(Recorded));
+		Obj.set("recorded", uCentral::Utils::to_RFC3339(Recorded));
 	}
 
 	void Capabilities::to_json(Poco::JSON::Object &Obj) const {
 		EmbedDocument("capabilities", Obj, Capabilities);
-		Obj.set("firstUpdate", RESTAPIHandler::to_RFC3339(FirstUpdate));
-		Obj.set("lastUpdate", RESTAPIHandler::to_RFC3339(LastUpdate));
+		Obj.set("firstUpdate", uCentral::Utils::to_RFC3339(FirstUpdate));
+		Obj.set("lastUpdate", uCentral::Utils::to_RFC3339(LastUpdate));
 	}
 
 	void DeviceLog::to_json(Poco::JSON::Object &Obj) const {
 		Obj.set("log", Log);
 		Obj.set("severity", Severity);
 		EmbedDocument("data", Obj, Data);
-		Obj.set("recorded", RESTAPIHandler::to_RFC3339(Recorded));
+		Obj.set("recorded", uCentral::Utils::to_RFC3339(Recorded));
 		Obj.set("logType", LogType);
 	}
 
@@ -108,7 +109,7 @@ namespace uCentral::Objects {
 		Obj.set("UUID", UUID);
 		EmbedDocument("values", Obj, Data);
 		Obj.set("sanity", Sanity);
-		Obj.set("recorded", RESTAPIHandler::to_RFC3339(Recorded));
+		Obj.set("recorded", uCentral::Utils::to_RFC3339(Recorded));
 	}
 
 	void DefaultConfiguration::to_json(Poco::JSON::Object &Obj) const {
@@ -116,8 +117,8 @@ namespace uCentral::Objects {
 		Obj.set("modelIds", Models);
 		Obj.set("description", Description);
 		EmbedDocument("configuration", Obj, Configuration);
-		Obj.set("created", RESTAPIHandler::to_RFC3339(Created));
-		Obj.set("lastModified", RESTAPIHandler::to_RFC3339(LastModified));
+		Obj.set("created", uCentral::Utils::to_RFC3339(Created));
+		Obj.set("lastModified", uCentral::Utils::to_RFC3339(LastModified));
 	}
 
 	void CommandDetails::to_json(Poco::JSON::Object &Obj) const {
@@ -129,14 +130,14 @@ namespace uCentral::Objects {
 		Obj.set("errorText", ErrorText);
 		Obj.set("submittedBy", SubmittedBy);
 		Obj.set("status", Status);
-		Obj.set("submitted", RESTAPIHandler::to_RFC3339(Submitted));
-		Obj.set("executed", RESTAPIHandler::to_RFC3339(Executed));
-		Obj.set("completed", RESTAPIHandler::to_RFC3339(Completed));
-		Obj.set("when", RESTAPIHandler::to_RFC3339(RunAt));
+		Obj.set("submitted", uCentral::Utils::to_RFC3339(Submitted));
+		Obj.set("executed", uCentral::Utils::to_RFC3339(Executed));
+		Obj.set("completed", uCentral::Utils::to_RFC3339(Completed));
+		Obj.set("when", uCentral::Utils::to_RFC3339(RunAt));
 		Obj.set("errorCode", ErrorCode);
 		Obj.set("custom", Custom);
 		Obj.set("waitingForFile", WaitingForFile);
-		Obj.set("attachFile", RESTAPIHandler::to_RFC3339(AttachDate));
+		Obj.set("attachFile", uCentral::Utils::to_RFC3339(AttachDate));
 	}
 
 	bool DefaultConfiguration::from_json(Poco::JSON::Object::Ptr Obj) {
@@ -159,7 +160,7 @@ namespace uCentral::Objects {
 		Obj.set("serialNumber", SerialNumber);
 		Obj.set("author", Author);
 		Obj.set("reason", Reason);
-		Obj.set("created", RESTAPIHandler::to_RFC3339(Created));
+		Obj.set("created", uCentral::Utils::to_RFC3339(Created));
 	}
 
 	void ConnectionState::to_json(Poco::JSON::Object &Obj) const {
@@ -171,7 +172,7 @@ namespace uCentral::Objects {
 		Obj.set("UUID", UUID);
 		Obj.set("connected", Connected);
 		Obj.set("firmware", Firmware);
-		Obj.set("lastContact", RESTAPIHandler::to_RFC3339(LastContact));
+		Obj.set("lastContact", uCentral::Utils::to_RFC3339(LastContact));
 		Obj.set("verifiedCertificate", VerifiedCertificate);
 	}
 
@@ -191,7 +192,7 @@ namespace uCentral::Objects {
 		Obj.set("token_type",token_type_);
 		Obj.set("expires_in",expires_in_);
 		Obj.set("idle_timeout",idle_timeout_);
-		Obj.set("created",RESTAPIHandler::to_RFC3339(created_));
+		Obj.set("created",uCentral::Utils::to_RFC3339(created_));
 		Obj.set("username",username_);
 		Obj.set("aclTemplate",AclTemplateObj);
 	}

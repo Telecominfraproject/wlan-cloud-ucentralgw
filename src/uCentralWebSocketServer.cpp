@@ -27,11 +27,11 @@ namespace uCentral::WebSocket {
     Service *Service::instance_ = nullptr;
 
     int Start() {
-        return uCentral::WebSocket::Service::instance()->Start();
+        return Service::instance()->Start();
     }
 
     void Stop() {
-        uCentral::WebSocket::Service::instance()->Stop();
+        Service::instance()->Stop();
     }
 
     Service::Service() noexcept: uSubSystemServer("WebSocketServer", "WS-SVR", "ucentral.websocket"),
@@ -323,7 +323,7 @@ namespace uCentral::WebSocket {
         Poco::DynamicStruct ParamsObj = Params.extract<Poco::DynamicStruct>();
         if(ParamsObj.contains("compress_64"))
         {
-            Logger_.debug(Poco::format("EVENT(%s): Found compressed paylod.",CId_));
+            Logger_.debug(Poco::format("EVENT(%s): Found compressed payload.",CId_));
             ParamsObj = ExtractCompressedData(ParamsObj["compress_64"].toString());
         }
 

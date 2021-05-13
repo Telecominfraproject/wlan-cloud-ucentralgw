@@ -115,28 +115,6 @@ const std::string & RESTAPIHandler::GetBinding(const std::string &Name, const st
     return E->second;
 }
 
-std::string RESTAPIHandler::to_RFC3339(uint64_t t)
-{
-    return Poco::DateTimeFormatter::format(Poco::DateTime(Poco::Timestamp::fromEpochTime(t)), Poco::DateTimeFormat::ISO8601_FORMAT);
-}
-
-uint64_t RESTAPIHandler::from_RFC3339(const std::string &TimeString)
-{
-    if(TimeString.empty())
-        return 0;
-
-    try {
-        int             TZ;
-        Poco::DateTime  DT = Poco::DateTimeParser::parse(Poco::DateTimeFormat::ISO8601_FORMAT,TimeString,TZ);
-        return DT.timestamp().epochTime();
-    }
-    catch( const Poco::Exception & E )
-    {
-
-    }
-    return 0;
-}
-
 static std::string MakeList(const std::vector<std::string> & L)
 {
     std::string Return;

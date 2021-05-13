@@ -56,6 +56,10 @@ namespace uCentral::Storage {
 		return Service::instance()->SetFirmware(SerialNumber, Firmware);
 	}
 
+	bool GetDevicesWithoutFirmware(std::string &DeviceType, std::string &Version, std::vector<std::string> & SerialNumbers) {
+		return Service::instance()->GetDevicesWithoutFirmware(DeviceType,Version, SerialNumbers);
+	}
+
 	bool GetDeviceCount( uint64_t & Count ) {
 		return Service::instance()->GetDeviceCount(Count);
 	}
@@ -450,6 +454,27 @@ namespace uCentral::Storage {
 		catch (const Poco::Exception &E) {
 			Logger_.warning(
 				Poco::format("%s(%s): Failed with: %s", std::string(__func__), SerialNumber, E.displayText()));
+		}
+		return false;
+	}
+
+	bool Service::GetDevicesWithoutFirmware(std::string &Compatible, std::string &Version, std::vector<std::string> &SerialNumbers) {
+		try {
+			Poco::Data::Session     Sess = Pool_->get();
+			Poco::Data::Statement   Select(Sess);
+
+			std::string St{"SELECT SerialNumber FROM Devices WHERE Compatible=? AND Firmware!=?"};
+
+			Select << ConvertParams(St),
+				Poco::Data::Keywords::into(SerialNumbers),
+				Poco::Data::Keywords::use(Compatible),
+				Poco::Data::Keywords::use(Version);
+			Select.execute();
+
+			return true;
+		}
+		catch (const Poco::Exception &E) {
+			Logger_.log(E);
 		}
 		return false;
 	}

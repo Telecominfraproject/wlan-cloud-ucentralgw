@@ -23,12 +23,12 @@ namespace uCentral::CommandManager {
 
     int Start()
     {
-        return uCentral::CommandManager::Service::instance()->Start();
+        return Service::instance()->Start();
     }
 
     void Stop()
     {
-        uCentral::CommandManager::Service::instance()->Stop();
+        Service::instance()->Stop();
     }
 
     void WakeUp()

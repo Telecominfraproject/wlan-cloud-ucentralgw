@@ -38,7 +38,7 @@ void RESTAPI_callback::DoPost(Poco::Net::HTTPServerRequest &Request, Poco::Net::
 
 		auto Topic = GetParameter("topic","");
 		if(Topic=="ucentralfws") {
-			if(ds.contains("firmwares")) {
+			if(ds.contains("firmwares") && ds["firmwares"].isArray()) {
 				std::cout << "Proper manifest received..." << std::endl;
 				Logger_.information("New manifest...");
 				OK(Response);

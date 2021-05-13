@@ -30,31 +30,31 @@ namespace uCentral::uFileUploader {
     Service *Service::instance_ = nullptr;
 
     int Start() {
-        return uCentral::uFileUploader::Service::instance()->Start();
+        return Service::instance()->Start();
     }
 
     void Stop() {
-        uCentral::uFileUploader::Service::instance()->Stop();
+        Service::instance()->Stop();
     }
 
     const std::string & FullName() {
-        return uCentral::uFileUploader::Service::instance()->FullName();
+        return Service::instance()->FullName();
     }
 
     bool AddUUID( const std::string & UUID) {
-        return uCentral::uFileUploader::Service::instance()->AddUUID(UUID);
+        return Service::instance()->AddUUID(UUID);
     }
 
     bool ValidRequest(const std::string & UUID) {
-        return uCentral::uFileUploader::Service::instance()->ValidRequest(UUID);
+        return Service::instance()->ValidRequest(UUID);
     }
 
     void RemoveRequest(const std::string & UUID) {
-        uCentral::uFileUploader::Service::instance()->RemoveRequest(UUID);
+        Service::instance()->RemoveRequest(UUID);
     }
 
     const std::string & Path() {
-        return uCentral::uFileUploader::Service::instance()->Path();
+        return Service::instance()->Path();
     }
 
 

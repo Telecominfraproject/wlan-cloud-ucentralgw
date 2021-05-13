@@ -37,8 +37,6 @@ public:
     static bool ParseBindings(const char *path,const char *resource, BindingMap & Keys);
     void PrintBindings();
     void ParseParameters(Poco::Net::HTTPServerRequest& request);
-    static std::string to_RFC3339(uint64_t t);
-    static uint64_t from_RFC3339(const std::string &t);
 
     void ProcessOptions( Poco::Net::HTTPServerResponse & response );
     void PrepareResponse( Poco::Net::HTTPServerResponse & response, Poco::Net::HTTPResponse::HTTPStatus Status=Poco::Net::HTTPResponse::HTTP_OK);

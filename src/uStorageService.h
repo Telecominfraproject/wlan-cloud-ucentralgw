@@ -69,6 +69,7 @@ namespace uCentral::Storage {
 	bool GetDeviceCount(uint64_t & Count);
 	bool GetDeviceSerialNumbers(uint64_t From, uint64_t HowMany, std::vector<std::string> & SerialNumbers);
 	bool SetDeviceCompatibility(std::string & SerialNumber, std::string & Compatible);
+	bool GetDevicesWithoutFirmware(std::string &DeviceType, std::string &Version, std::vector<std::string> & SerialNumbers);
 
     bool CreateDefaultConfiguration(std::string & name, uCentral::Objects::DefaultConfiguration & DefConfig);
     bool DeleteDefaultConfiguration(std::string & name);
@@ -148,6 +149,7 @@ namespace uCentral::Storage {
 		friend bool GetDeviceCount(uint64_t & Count);
 		friend bool GetDeviceSerialNumbers(uint64_t From, uint64_t HowMany, std::vector<std::string> & SerialNumbers);
 		friend bool SetDeviceCompatibility(std::string & SerialNumber, std::string & Compatible);
+		friend bool GetDevicesWithoutFirmware(std::string &DeviceType, std::string &Version, std::vector<std::string> & SerialNumbers);
 
 		friend bool GetLogData(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate, uint64_t Offset, uint64_t HowMany,
                                std::vector<uCentral::Objects::DeviceLog> &Stats, uint64_t Type);
@@ -230,6 +232,7 @@ namespace uCentral::Storage {
 		bool GetDeviceCount(uint64_t & Count);
 		bool GetDeviceSerialNumbers(uint64_t From, uint64_t HowMany, std::vector<std::string> & SerialNumbers);
 		bool SetDeviceCompatibility(std::string & SerialNumber, std::string & Compatible);
+		bool GetDevicesWithoutFirmware(std::string &DeviceType, std::string &Version, std::vector<std::string> & SerialNumbers);
 
         bool ExistingConfiguration(std::string &SerialNumber, uint64_t CurrentConfig, std::string &NewConfig, uint64_t &);
 

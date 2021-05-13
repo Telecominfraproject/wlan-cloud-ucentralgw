@@ -18,43 +18,43 @@ namespace uCentral::DeviceRegistry {
     }
 
     int Start() {
-        return uCentral::DeviceRegistry::Service::instance()->Start();
+        return Service::instance()->Start();
     }
 
     void Stop() {
-        uCentral::DeviceRegistry::Service::instance()->Stop();
+        Service::instance()->Stop();
     }
 
     bool GetStatistics(const std::string &SerialNumber, std::string & Statistics) {
-        return uCentral::DeviceRegistry::Service::instance()->GetStatistics(SerialNumber,Statistics);
+        return Service::instance()->GetStatistics(SerialNumber,Statistics);
     }
 
     void SetStatistics(const std::string &SerialNumber, const std::string &Stats) {
-        uCentral::DeviceRegistry::Service::instance()->SetStatistics(SerialNumber,Stats);
+        Service::instance()->SetStatistics(SerialNumber,Stats);
     }
 
     bool GetState(const std::string & SerialNumber, uCentral::Objects::ConnectionState & State) {
-        return uCentral::DeviceRegistry::Service::instance()->GetState(SerialNumber,State);
+        return Service::instance()->GetState(SerialNumber,State);
     }
 
     void SetState(const std::string & SerialNumber, uCentral::Objects::ConnectionState & State) {
-        return uCentral::DeviceRegistry::Service::instance()->SetState(SerialNumber,State);
+        return Service::instance()->SetState(SerialNumber,State);
     }
 
 	uCentral::Objects::ConnectionState *  Register(const std::string & SerialNumber, void *Ptr) {
-        return uCentral::DeviceRegistry::Service::instance()->Register(SerialNumber,Ptr);
+        return Service::instance()->Register(SerialNumber,Ptr);
     }
 
     void UnRegister(const std::string & SerialNumber, void *Ptr) {
-        uCentral::DeviceRegistry::Service::instance()->UnRegister(SerialNumber,Ptr);
+        Service::instance()->UnRegister(SerialNumber,Ptr);
     }
 
     bool SendCommand(uCentral::Objects::CommandDetails & Command) {
-        return uCentral::DeviceRegistry::Service::instance()->SendCommand(Command);
+        return Service::instance()->SendCommand(Command);
     }
 
     bool Connected(const std::string & SerialNumber) {
-        return uCentral::DeviceRegistry::Service::instance()->Connected(SerialNumber);
+        return Service::instance()->Connected(SerialNumber);
     }
 
     int Service::Start() {

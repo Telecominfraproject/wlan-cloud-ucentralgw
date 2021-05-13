@@ -18,6 +18,7 @@
 #include "uDeviceRegistry.h"
 #include "uFileUploader.h"
 #include "uStorageService.h"
+#include "uUtils.h"
 
 void RESTAPI_device_commandHandler::handleRequest(Poco::Net::HTTPServerRequest& Request, Poco::Net::HTTPServerResponse& Response)
 {
@@ -128,8 +129,8 @@ void RESTAPI_device_commandHandler::DeleteCapabilities(Poco::Net::HTTPServerRequ
 void RESTAPI_device_commandHandler::GetStatistics(Poco::Net::HTTPServerRequest& Request, Poco::Net::HTTPServerResponse& Response) {
     try {
         auto SerialNumber = GetBinding("serialNumber", "");
-        auto StartDate = RESTAPIHandler::from_RFC3339(GetParameter("startDate", ""));
-        auto EndDate = RESTAPIHandler::from_RFC3339(GetParameter("endDate", ""));
+        auto StartDate = uCentral::Utils::from_RFC3339(GetParameter("startDate", ""));
+        auto EndDate = uCentral::Utils::from_RFC3339(GetParameter("endDate", ""));
         auto Offset = GetParameter("offset", 0);
         auto Limit = GetParameter("limit", 100);
 
@@ -164,8 +165,8 @@ void RESTAPI_device_commandHandler::GetStatistics(Poco::Net::HTTPServerRequest& 
 void RESTAPI_device_commandHandler::DeleteStatistics(Poco::Net::HTTPServerRequest& Request, Poco::Net::HTTPServerResponse& Response) {
     try {
         auto SerialNumber = GetBinding("serialNumber", "");
-        auto StartDate = RESTAPIHandler::from_RFC3339(GetParameter("startDate", ""));
-        auto EndDate = RESTAPIHandler::from_RFC3339(GetParameter("endDate", ""));
+        auto StartDate = uCentral::Utils::from_RFC3339(GetParameter("startDate", ""));
+        auto EndDate = uCentral::Utils::from_RFC3339(GetParameter("endDate", ""));
 
         if (uCentral::Storage::DeleteStatisticsData(SerialNumber, StartDate, EndDate)) {
 			OK(Response);
@@ -235,7 +236,7 @@ void RESTAPI_device_commandHandler::Configure(Poco::Net::HTTPServerRequest& Requ
             uint64_t When = 0 ;
 
             if(ds.contains("when"))
-                When = RESTAPIHandler::from_RFC3339(ds["when"].toString());
+                When = uCentral::Utils::from_RFC3339(ds["when"].toString());
 
             uint64_t NewUUID;
 
@@ -304,7 +305,7 @@ void RESTAPI_device_commandHandler::Upgrade(Poco::Net::HTTPServerRequest &Reques
 
             uint64_t When = 0 ;
             if(ds.contains("when"))
-                When = RESTAPIHandler::from_RFC3339(ds["when"].toString());
+                When = uCentral::Utils::from_RFC3339(ds["when"].toString());
 
             uCentral::Objects::CommandDetails  Cmd;
 
@@ -342,8 +343,8 @@ void RESTAPI_device_commandHandler::Upgrade(Poco::Net::HTTPServerRequest &Reques
 void RESTAPI_device_commandHandler::GetLogs(Poco::Net::HTTPServerRequest& Request, Poco::Net::HTTPServerResponse& Response) {
     try {
         auto SerialNumber = GetBinding("serialNumber", "");
-        auto StartDate = RESTAPIHandler::from_RFC3339(GetParameter("startDate", ""));
-        auto EndDate = RESTAPIHandler::from_RFC3339(GetParameter("endDate", ""));
+        auto StartDate = uCentral::Utils::from_RFC3339(GetParameter("startDate", ""));
+        auto EndDate = uCentral::Utils::from_RFC3339(GetParameter("endDate", ""));
         auto Offset = GetParameter("offset", 0);
         auto Limit = GetParameter("limit", 100);
         auto LogType = GetParameter("logType",0);
@@ -376,8 +377,8 @@ void RESTAPI_device_commandHandler::GetLogs(Poco::Net::HTTPServerRequest& Reques
 void RESTAPI_device_commandHandler::DeleteLogs(Poco::Net::HTTPServerRequest& Request, Poco::Net::HTTPServerResponse& Response) {
     try {
         auto SerialNumber = GetBinding("serialNumber", "");
-        auto StartDate = RESTAPIHandler::from_RFC3339(GetParameter("startDate", ""));
-        auto EndDate = RESTAPIHandler::from_RFC3339(GetParameter("endDate", ""));
+        auto StartDate = uCentral::Utils::from_RFC3339(GetParameter("startDate", ""));
+        auto EndDate = uCentral::Utils::from_RFC3339(GetParameter("endDate", ""));
         auto LogType = GetParameter("logType",0);
 
         if (uCentral::Storage::DeleteLogData(SerialNumber, StartDate, EndDate, LogType)) {
@@ -395,8 +396,8 @@ void RESTAPI_device_commandHandler::DeleteLogs(Poco::Net::HTTPServerRequest& Req
 void RESTAPI_device_commandHandler::GetChecks(Poco::Net::HTTPServerRequest& Request, Poco::Net::HTTPServerResponse& Response) {
     try {
         auto SerialNumber = GetBinding("serialNumber", "");
-        auto StartDate = RESTAPIHandler::from_RFC3339(GetParameter("startDate", ""));
-        auto EndDate = RESTAPIHandler::from_RFC3339(GetParameter("endDate", ""));
+        auto StartDate = uCentral::Utils::from_RFC3339(GetParameter("startDate", ""));
+        auto EndDate = uCentral::Utils::from_RFC3339(GetParameter("endDate", ""));
         auto Offset = GetParameter("offset", 0);
         auto Limit = GetParameter("limit", 100);
 
@@ -429,8 +430,8 @@ void RESTAPI_device_commandHandler::GetChecks(Poco::Net::HTTPServerRequest& Requ
 void RESTAPI_device_commandHandler::DeleteChecks(Poco::Net::HTTPServerRequest& Request, Poco::Net::HTTPServerResponse& Response) {
     try {
         auto SerialNumber = GetBinding("serialNumber", "");
-        auto StartDate = RESTAPIHandler::from_RFC3339(GetParameter("startDate", ""));
-        auto EndDate = RESTAPIHandler::from_RFC3339(GetParameter("endDate", ""));
+        auto StartDate = uCentral::Utils::from_RFC3339(GetParameter("startDate", ""));
+        auto EndDate = uCentral::Utils::from_RFC3339(GetParameter("endDate", ""));
 
         if (uCentral::Storage::DeleteHealthCheckData(SerialNumber, StartDate, EndDate)) {
 			OK(Response);
@@ -469,7 +470,7 @@ void RESTAPI_device_commandHandler::ExecuteCommand(Poco::Net::HTTPServerRequest&
 
             uint64_t RunAt = 0 ;
             if(ds.contains("runAt"))
-                RunAt = RESTAPIHandler::from_RFC3339(ds["runAt"].toString());
+                RunAt = uCentral::Utils::from_RFC3339(ds["runAt"].toString());
 
             uCentral::Objects::CommandDetails  Cmd;
 
@@ -529,7 +530,7 @@ void RESTAPI_device_commandHandler::Reboot(Poco::Net::HTTPServerRequest& Request
 
             uint64_t When = 0 ;
             if(ds.contains("when"))
-                When = RESTAPIHandler::from_RFC3339(ds["when"].toString());
+                When = uCentral::Utils::from_RFC3339(ds["when"].toString());
 
             uCentral::Objects::CommandDetails  Cmd;
 
@@ -595,7 +596,7 @@ void RESTAPI_device_commandHandler::Factory(Poco::Net::HTTPServerRequest &Reques
 
 			uint64_t When = 0;
 			if (ds.contains("when"))
-				When = RESTAPIHandler::from_RFC3339(ds["when"].toString());
+				When = uCentral::Utils::from_RFC3339(ds["when"].toString());
 
 			uCentral::Objects::CommandDetails Cmd;
 
@@ -662,7 +663,7 @@ void RESTAPI_device_commandHandler::LEDs(Poco::Net::HTTPServerRequest &Request, 
 
             uint64_t When = 0 ;
             if(ds.contains("when"))
-                When = RESTAPIHandler::from_RFC3339(ds["when"].toString());
+                When = uCentral::Utils::from_RFC3339(ds["when"].toString());
 
             uCentral::Objects::CommandDetails  Cmd;
 
@@ -719,7 +720,7 @@ void RESTAPI_device_commandHandler::Trace(Poco::Net::HTTPServerRequest &Request,
             }
 
             uint64_t Duration = ds.contains("duration") ? (uint64_t)ds["duration"] : 0;
-            uint64_t When = ds.contains("when") ? RESTAPIHandler::from_RFC3339(ds["when"].toString()) : 0;
+            uint64_t When = ds.contains("when") ? uCentral::Utils::from_RFC3339(ds["when"].toString()) : 0;
             uint64_t NumberOfPackets = ds.contains("numberOfPackets") ? (uint64_t)ds["numberOfPackets"] : 0;
             auto Network = ds["network"].toString();
             auto Interface = ds["interface"].toString();
@@ -898,7 +899,7 @@ void RESTAPI_device_commandHandler::MakeRequest(Poco::Net::HTTPServerRequest &Re
 				return;
 			}
 
-			uint64_t When = ds.contains("when") ? RESTAPIHandler::from_RFC3339(ds["when"].toString()) : 0;
+			uint64_t When = ds.contains("when") ? uCentral::Utils::from_RFC3339(ds["when"].toString()) : 0;
 
 			uCentral::Objects::CommandDetails  Cmd;
 

@@ -20,11 +20,11 @@ namespace uCentral::CommandChannel {
 	Service * Service::instance_ = nullptr;
 
 	int Start() {
-		return uCentral::CommandChannel::Service::instance()->Start();
+		return Service::instance()->Start();
 	}
 
 	void Stop() {
-		uCentral::CommandChannel::Service::instance()->Stop();
+		Service::instance()->Stop();
 	}
 
 	std::string  Service::ProcessCommand(const std::string &Command) {

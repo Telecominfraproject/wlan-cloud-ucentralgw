@@ -26,6 +26,7 @@
 #include "uDeviceRegistry.h"
 #include "uFileUploader.h"
 #include "uStorageService.h"
+#include "uFirmwareManager.h"
 
 #include "uUtils.h"
 
@@ -88,6 +89,13 @@ namespace uCentral {
             config().setString(LogFilePathKey, LogDir_);
         }
 
+		Poco::Path	DataDir(config().getString("system.directory.data"));
+		try {
+			DataDir.makeDirectory();
+			DataDir_ = DataDir.toString();
+		} catch(...) {
+		}
+
 		std::string KeyFile = Poco::Path::expand(config().getString("ucentral.service.key"));
 
 		AppKey_ = Poco::SharedPtr<Poco::Crypto::RSAKey>(new Poco::Crypto::RSAKey("", KeyFile, ""));
@@ -95,15 +103,14 @@ namespace uCentral {
         addSubsystem(uCentral::Storage::Service::instance());
         addSubsystem(uCentral::Auth::Service::instance());
         addSubsystem(uCentral::DeviceRegistry::Service::instance());
-#ifndef SMALL_BUILD
 		addSubsystem(uCentral::Kafka::Service::instance());
-#endif
         addSubsystem(uCentral::RESTAPI::Service::instance());
         addSubsystem(uCentral::WebSocket::Service::instance());
         addSubsystem(uCentral::CommandManager::Service::instance());
         addSubsystem(uCentral::uFileUploader::Service::instance());
 		addSubsystem(uCentral::CommandChannel::Service::instance());
 		addSubsystem(uCentral::CallbackManager::Service::instance());
+		addSubsystem(uCentral::FirmwareManager::Service::instance());
 
         ServerApplication::initialize(self);
 
@@ -288,24 +295,18 @@ namespace uCentral {
             uCentral::uFileUploader::Start();
 			uCentral::CommandChannel::Start();
 			uCentral::CallbackManager::Start();
-
-//			std::string f{"devices.db"};
-//			uCentral::Storage::AttachFileToCommand(f);
-
-#ifndef SMALL_BUILD
+			uCentral::FirmwareManager::Start();
 			uCentral::Kafka::Start();
-#endif
-			if(Poco::Net::Socket::supportsIPv6()) {
+
+			if(Poco::Net::Socket::supportsIPv6())
 				logger.information("System supports IPv6.");
-			}
 			else
-				logger.information("System does NOT suppord IPv6.");
+				logger.information("System does NOT support IPv6.");
+
             App.waitForTerminationRequest();
 
-#ifndef SMALL_BUILD
 			uCentral::Kafka::Stop();
-#endif
-
+			uCentral::FirmwareManager::Stop();
 			uCentral::CallbackManager::Stop();
 			uCentral::CommandChannel::Stop();
             uCentral::uFileUploader::Stop();
