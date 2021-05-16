@@ -59,7 +59,15 @@ namespace uCentral {
 		void Exit(int Reason);
 		[[nodiscard]] inline const std::string & DataDir() { return DataDir_; }
 
-    private:
+		static Daemon *instance() {
+			if (instance_ == nullptr) {
+				instance_ = new Daemon;
+			}
+			return instance_;
+		}
+
+	  private:
+		static Daemon 				*instance_;
         bool                        HelpRequested_ = false;
         bool                        AutoProvisioning_ = false;
         std::map<std::string,std::vector<std::string>>    DeviceTypeIdentifications_;

@@ -173,10 +173,21 @@ namespace uCentral::Objects {
 		Obj.set("connected", Connected);
 		Obj.set("firmware", Firmware);
 		Obj.set("lastContact", uCentral::Utils::to_RFC3339(LastContact));
-		Obj.set("verifiedCertificate", VerifiedCertificate);
+		switch(VerifiedCertificate) {
+		case NO_CERTIFICATE:
+			Obj.set("verifiedCertificate", "NO_CERTIFICATE"); break;
+		case VALID_CERTIFICATE:
+			Obj.set("verifiedCertificate", "VALID_CERTIFICATE"); break;
+		case MISMATCH_SERIAL:
+			Obj.set("verifiedCertificate", "MISMATCH_SERIAL"); break;
+		case VERIFIED:
+			Obj.set("verifiedCertificate", "VERIFIED"); break;
+		default:
+			Obj.set("verifiedCertificate", "NO_CERTIFICATE"); break;
+		}
 	}
 
-	void AclTemplate::to_json(Poco::JSON::Object &Obj) const {
+void AclTemplate::to_json(Poco::JSON::Object &Obj) const {
 		Obj.set("Read",Read_);
 		Obj.set("ReadWrite",ReadWrite_);
 		Obj.set("ReadWriteCreate",ReadWriteCreate_);

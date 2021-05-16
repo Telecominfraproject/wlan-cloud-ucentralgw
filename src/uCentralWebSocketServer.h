@@ -176,6 +176,7 @@ namespace uCentral::WebSocket {
         bool                                Registered_ = false ;
 		std::string 						CId_;
 		std::string							CN_;
+		uCentral::Objects::CertificateValidation	CertValidation_ = uCentral::Objects::CertificateValidation::NO_CERTIFICATE;
     };
 
     struct WebSocketServerEntry {

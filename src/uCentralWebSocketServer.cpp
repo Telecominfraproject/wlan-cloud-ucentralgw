@@ -124,11 +124,13 @@ namespace uCentral::WebSocket {
 
 		if(SS->havePeerCertificate()) {
 			// Get the cert info...
+			CertValidation_ = Objects::VALID_CERTIFICATE;
 			try {
 				Poco::Crypto::X509Certificate	PeerCert(SS->peerCertificate());
 
 				if(uCentral::WebSocket::Service::instance()->ValidateCertificate(PeerCert)) {
 					CN_ = PeerCert.commonName();
+					CertValidation_ = Objects::MISMATCH_SERIAL;
 					Logger_.debug(Poco::format("%s: Valid certificate: CN=%s", CId_, PeerCert.commonName()));
 				} else {
 					Logger_.debug( Poco::format("%s: Certificate is not valid", CId_));
@@ -361,14 +363,13 @@ namespace uCentral::WebSocket {
 
 				//	We need to verify the certificate if we have one
 				if(!CN_.empty() && CN_==SerialNumber_) {
-					Conn_->VerifiedCertificate = true;
+					Conn_->VerifiedCertificate = Objects::VERIFIED;
 					Logger_.information(Poco::format("CONNECT(%s): Fully validated and authenticated device..", CId_));
 				} else {
 					if(CN_.empty())
 						Logger_.information(Poco::format("CONNECT(%s): Not authenticated or validated.", CId_));
 					else
 						Logger_.information(Poco::format("CONNECT(%s): Authenticated but not validated.", CId_));
-					Conn_->VerifiedCertificate = false;
 				}
 
                 if (uCentral::instance()->AutoProvisioning() && !uCentral::Storage::DeviceExists(SerialNumber_))

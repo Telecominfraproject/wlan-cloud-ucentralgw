@@ -27,9 +27,6 @@ namespace uCentral::Storage {
 	bool Service::UpdateDeviceCapabilities(std::string &SerialNumber, std::string & Capabilities) {
 		// std::lock_guard<std::mutex> guard(Mutex_);
 
-		std::cout << "Capabilities:" << std::endl;
-		std::cout << Capabilities << std::endl;
-
 		try {
 			std::string SS;
 
@@ -55,8 +52,6 @@ namespace uCentral::Storage {
 				for(const auto &i:TmpCompatible)
 					Compatible += (char) ( i==',' ? '_' : i);
 			}
-
-			std::cout << SerialNumber << " Type is a " << Compatible << std::endl;
 
 			std::string St{"SELECT SerialNumber FROM Capabilities WHERE SerialNumber=?"};
 			Select << ConvertParams(St),

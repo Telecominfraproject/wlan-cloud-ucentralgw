@@ -35,6 +35,13 @@ namespace uCentral::Objects {
 		void to_json(Poco::JSON::Object &Obj) const ;
 	};
 
+	enum CertificateValidation {
+		NO_CERTIFICATE,
+		VALID_CERTIFICATE,
+		MISMATCH_SERIAL,
+		VERIFIED
+	};
+
 	struct ConnectionState {
 		uint64_t MessageCount;
 		std::string SerialNumber;
@@ -45,7 +52,7 @@ namespace uCentral::Objects {
 		bool Connected;
 		uint64_t LastContact;
 		std::string Firmware;
-		bool VerifiedCertificate;
+		CertificateValidation VerifiedCertificate;
 		void to_json(Poco::JSON::Object &Obj) const;
 	};
 

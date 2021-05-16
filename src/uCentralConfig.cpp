@@ -137,7 +137,7 @@ namespace uCentral::Config {
         }
         catch ( const Poco::Exception & E )
         {
-            uCentral::Daemon::instance().logger().warning(Poco::format("%s: Failed with: %s", std::string(__func__) , E.displayText()));
+            uCentral::Daemon::instance()->logger().warning(Poco::format("%s: Failed with: %s", std::string(__func__) , E.displayText()));
         }
     }
 
