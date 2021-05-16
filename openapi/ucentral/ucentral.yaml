@@ -230,7 +230,12 @@ components:
         firmware:
           type: string
         verifiedCertificate:
-          type: boolean
+          type: string
+          enum:
+            - NO_CERTIFICATE,
+            - VALID_CERTIFICATE,
+            - MISMATCH_SERIAL,
+            - VERIFIED
 
     DeviceCapabilities:
       type: object

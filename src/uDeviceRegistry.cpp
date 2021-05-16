@@ -11,6 +11,8 @@
 #include "uCentralWebSocketServer.h"
 #include "RESTAPI_handler.h"
 
+#include "uDeviceRegistry.h"
+
 namespace uCentral::DeviceRegistry {
     Service *Service::instance_ = nullptr;
 
@@ -124,8 +126,9 @@ namespace uCentral::DeviceRegistry {
 
         auto Device = Devices_.find(SerialNumber);
 
-        if( Device == Devices_.end()) {
+		auto Connection = static_cast<uCentral::WebSocket::WSConnection *>(Ptr);
 
+        if( Device == Devices_.end()) {
             ConnectionEntry E;
 
             E.WSConn_ = Ptr;
@@ -138,9 +141,8 @@ namespace uCentral::DeviceRegistry {
             E.Conn_->Address = "";
             E.Conn_->TX = 0 ;
             E.Conn_->RX = 0;
-
+			E.Conn_->VerifiedCertificate = Connection->CertificateValidation();
             Devices_[SerialNumber] = E;
-
             return E.Conn_;
         }
         else
@@ -148,6 +150,7 @@ namespace uCentral::DeviceRegistry {
             Device->second.WSConn_ = Ptr;
             Device->second.Conn_->Connected = true;
             Device->second.Conn_->LastContact = time(nullptr);
+			Device->second.Conn_->VerifiedCertificate = Connection->CertificateValidation();
 
             return Device->second.Conn_;
         }
@@ -174,6 +177,7 @@ namespace uCentral::DeviceRegistry {
             Device->second.WSConn_ = nullptr;
             Device->second.Conn_->Connected = false;
             Device->second.Conn_->LastContact = time(nullptr);
+			Device->second.Conn_->VerifiedCertificate = uCentral::Objects::NO_CERTIFICATE;
         }
     }
 
