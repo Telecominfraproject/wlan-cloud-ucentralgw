@@ -78,7 +78,12 @@ namespace uCentral::Storage {
 																			 NewerUUID);
 	}
 
-	bool SetDeviceCompatibility(std::string & SerialNumber, std::string & Compatible) {
+	bool GetDeviceFWUpdatePolicy(std::string & SerialNumber, std::string & Policy) {
+		return Service::instance()->GetDeviceFWUpdatePolicy(SerialNumber, Policy);
+	}
+
+
+bool SetDeviceCompatibility(std::string & SerialNumber, std::string & Compatible) {
 		return Service::instance()->SetDeviceCompatibility(SerialNumber, Compatible);
 	}
 
@@ -290,6 +295,25 @@ namespace uCentral::Storage {
 				Poco::Data::Keywords::use(LocationUUID),
 				Poco::Data::Keywords::use(SerialNumber);
 			Update.execute();
+			return true;
+		}
+		catch (const Poco::Exception &E) {
+			Logger_.warning(
+				Poco::format("%s(%s): Failed with: %s", std::string(__func__), SerialNumber, E.displayText()));
+		}
+		return false;
+	}
+
+	bool Service::GetDeviceFWUpdatePolicy(std::string &SerialNumber, std::string &Policy) {
+		try {
+			Poco::Data::Session     Sess = Pool_->get();
+			Poco::Data::Statement   Select(Sess);
+
+			std::string St{"SELECT FWUpdatePolicy FROM Devices WHERE SerialNumber=?"};
+			Select  << ConvertParams(St) ,
+				Poco::Data::Keywords::into(Policy),
+				Poco::Data::Keywords::use(SerialNumber);
+			Select.execute();
 			return true;
 		}
 		catch (const Poco::Exception &E) {

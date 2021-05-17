@@ -14,6 +14,8 @@
 #include "Poco/DateTimeFormatter.h"
 #include "Poco/DateTime.h"
 #include "Poco/DateTimeParser.h"
+#include "Poco/StringTokenizer.h"
+#include "Poco/LocalDateTime.h"
 
 namespace uCentral::Utils {
 
@@ -206,5 +208,52 @@ namespace uCentral::Utils {
 		}
 		return 0;
 	}
+
+	bool ParseTime(const std::string &Time, int & Hours, int & Minutes, int & Seconds) {
+		Poco::StringTokenizer	TimeTokens(Time,":",Poco::StringTokenizer::TOK_TRIM);
+
+		Hours =  Minutes = Hours = 0 ;
+		if(TimeTokens.count()==1) {
+			Hours 	= std::atoi(TimeTokens[0].c_str());
+		} else if(TimeTokens.count()==2) {
+			Hours 	= std::atoi(TimeTokens[0].c_str());
+			Minutes = std::atoi(TimeTokens[1].c_str());
+		} else if(TimeTokens.count()==3) {
+			Hours 	= std::atoi(TimeTokens[0].c_str());
+			Minutes = std::atoi(TimeTokens[1].c_str());
+			Seconds = std::atoi(TimeTokens[2].c_str());
+		} else
+			return false;
+		return true;
+	}
+
+
+	bool ParseDate(const std::string &Time, int & Year, int & Month, int & Day) {
+		Poco::StringTokenizer	DateTokens(Time,"-",Poco::StringTokenizer::TOK_TRIM);
+
+		Year =  Month = Day = 0 ;
+		if(DateTokens.count()==3) {
+			Year 	= std::atoi(DateTokens[0].c_str());
+			Month 	= std::atoi(DateTokens[1].c_str());
+			Day 	= std::atoi(DateTokens[2].c_str());
+		} else
+			return false;
+		return true;
+	}
+
+	bool CompareTime( int H1, int H2, int M1, int M2, int S1, int S2) {
+		if(H1<H2)
+			return true;
+		if(H1>H2)
+			return false;
+		if(M1<M2)
+			return true;
+		if(M2>M1)
+			return false;
+		if(S1<=S2)
+			return true;
+		return false;
+	}
+
 
 }

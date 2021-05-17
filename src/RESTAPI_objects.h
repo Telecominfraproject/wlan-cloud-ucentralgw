@@ -160,6 +160,18 @@ namespace uCentral::Objects {
 		uint64_t Created;
 		void to_json(Poco::JSON::Object &Obj) const;
 	};
+
+	struct PendingFirmwareUpgrade {
+		std::string SerialNumber;
+		std::string CommandUUID;
+		std::string NewFirmware;
+		std::string OldFirmware;
+		std::string URI;
+		uint64_t 	ScheduledAt;
+		uint64_t 	Created;
+		uint64_t 	UpdateDone;
+		void to_json(Poco::JSON::Object &Obj) const;
+	};
 }
 
 #endif //UCENTRAL_RESTAPI_OBJECTS_H

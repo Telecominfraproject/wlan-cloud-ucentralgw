@@ -70,7 +70,7 @@ namespace uCentral::Storage {
 	bool GetDeviceSerialNumbers(uint64_t From, uint64_t HowMany, std::vector<std::string> & SerialNumbers);
 	bool SetDeviceCompatibility(std::string & SerialNumber, std::string & Compatible);
 	bool GetDevicesWithoutFirmware(std::string &DeviceType, std::string &Version, std::vector<std::string> & SerialNumbers);
-
+	bool GetDeviceFWUpdatePolicy(std::string & SerialNumber, std::string & Policy);
     bool CreateDefaultConfiguration(std::string & name, uCentral::Objects::DefaultConfiguration & DefConfig);
     bool DeleteDefaultConfiguration(std::string & name);
     bool UpdateDefaultConfiguration(std::string & name, uCentral::Objects::DefaultConfiguration & DefConfig);
@@ -104,6 +104,8 @@ namespace uCentral::Storage {
 	bool DeleteIdentity(std::string & Identity, uCentral::Auth::ACCESS_TYPE Type);
 	bool ListIdentities(uint64_t Offset, uint64_t HowMany, std::vector<std::string> & Identities, uCentral::Auth::ACCESS_TYPE Type);
 	bool GetIdentityRights(std::string & Identity, uCentral::Objects::AclTemplate & ACL);
+
+	bool SetPendingUpgrade(std::string & SerialNumber, uCentral::Objects::PendingFirmwareUpgrade & Upgrade );
 
     class Service : public uSubSystemServer {
 
@@ -150,6 +152,7 @@ namespace uCentral::Storage {
 		friend bool GetDeviceSerialNumbers(uint64_t From, uint64_t HowMany, std::vector<std::string> & SerialNumbers);
 		friend bool SetDeviceCompatibility(std::string & SerialNumber, std::string & Compatible);
 		friend bool GetDevicesWithoutFirmware(std::string &DeviceType, std::string &Version, std::vector<std::string> & SerialNumbers);
+		friend bool GetDeviceFWUpdatePolicy(std::string & SerialNumber, std::string & Policy);
 
 		friend bool GetLogData(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate, uint64_t Offset, uint64_t HowMany,
                                std::vector<uCentral::Objects::DeviceLog> &Stats, uint64_t Type);
@@ -233,8 +236,10 @@ namespace uCentral::Storage {
 		bool GetDeviceSerialNumbers(uint64_t From, uint64_t HowMany, std::vector<std::string> & SerialNumbers);
 		bool SetDeviceCompatibility(std::string & SerialNumber, std::string & Compatible);
 		bool GetDevicesWithoutFirmware(std::string &DeviceType, std::string &Version, std::vector<std::string> & SerialNumbers);
+		bool GetDeviceFWUpdatePolicy(std::string & SerialNumber, std::string & Policy);
 
-        bool ExistingConfiguration(std::string &SerialNumber, uint64_t CurrentConfig, std::string &NewConfig, uint64_t &);
+
+		bool ExistingConfiguration(std::string &SerialNumber, uint64_t CurrentConfig, std::string &NewConfig, uint64_t &);
 
         bool UpdateDeviceCapabilities(std::string &SerialNumber, std::string &State);
         bool GetDeviceCapabilities(std::string &SerialNumber, uCentral::Objects::Capabilities &);
@@ -292,6 +297,7 @@ namespace uCentral::Storage {
 		int Create_CommandList();
 		int Create_BlackList();
 		int Create_FileUploads();
+		int Create_FirmwareUpgrades();
 
 
         int 	Start() override;

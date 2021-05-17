@@ -22,6 +22,7 @@ namespace uCentral::Storage {
 		Create_CommandList();
 		Create_BlackList();
 		Create_FileUploads();
+		Create_FirmwareUpgrades();
 
 		return 0;
 	}
@@ -340,6 +341,31 @@ namespace uCentral::Storage {
 			}
 
 			return 0;
+		} catch(const Poco::Exception &E) {
+			Logger_.log(E);
+		}
+		return -1;
+	}
+
+	int Service::Create_FirmwareUpgrades() {
+		try {
+			Poco::Data::Session Sess = Pool_->get();
+
+			if(dbType_==sqlite || dbType_==mysql || dbType_==pgsql) {
+				Sess << "CREATE TABLE IF NOT EXISTS PendingFirmwareUpgrades ("
+						"SerialNumber   VARCHAR(30) PRIMARY KEY, "
+						"UUID			VARCHAR(64), "
+						"NewFirmware 	VARCHAR(128), 	"
+						"OldFirmware 	VARCHAR(128), 	"
+						"URI			TEXT,			"
+						"ScheduleAt 	BIGINT, 		"
+						"Created 		BIGINT, 		"
+						"UpdateDone		BIGINT"
+						") ",
+					Poco::Data::Keywords::now;
+				return 0;
+			}
+
 		} catch(const Poco::Exception &E) {
 			Logger_.log(E);
 		}

@@ -7,9 +7,7 @@
 //
 
 #include "Poco/UUIDGenerator.h"
-#include "Poco/UUID.h"
 #include "Poco/JSON/Parser.h"
-#include "Poco/Thread.h"
 
 #include "RESTAPI_device_commandHandler.h"
 #include "RESTAPI_objects.h"
@@ -754,12 +752,10 @@ void RESTAPI_device_commandHandler::Trace(Poco::Net::HTTPServerRequest &Request,
 
             if(uCentral::Storage::AddCommand(SerialNumber,Cmd)) {
                 uCentral::uFileUploader::AddUUID(UUID);
-				if(uCentral::Storage::AddCommand(SerialNumber,Cmd)) {
-					Poco::JSON::Object RetObj;
-					Cmd.to_json(RetObj);
-					ReturnObject(RetObj, Response);
-					return;
-				}
+				Poco::JSON::Object RetObj;
+				Cmd.to_json(RetObj);
+				ReturnObject(RetObj, Response);
+				return;
             }
         }
     }

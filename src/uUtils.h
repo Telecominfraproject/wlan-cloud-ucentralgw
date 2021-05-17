@@ -31,5 +31,8 @@ namespace uCentral::Utils {
 	std::string to_RFC3339(uint64_t t);
 	uint64_t from_RFC3339(const std::string &t);
 
+	bool ParseTime(const std::string &Time, int & Hours, int & Minutes, int & Seconds);
+	bool ParseDate(const std::string &Time, int & Year, int & Month, int & Day);
+	bool CompareTime( int H1, int H2, int M1, int M2, int S1, int S2);
 }
 #endif // UCENTRALGW_UUTILS_H

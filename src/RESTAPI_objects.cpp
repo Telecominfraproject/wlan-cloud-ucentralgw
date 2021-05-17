@@ -187,7 +187,7 @@ namespace uCentral::Objects {
 		}
 	}
 
-void AclTemplate::to_json(Poco::JSON::Object &Obj) const {
+	void AclTemplate::to_json(Poco::JSON::Object &Obj) const {
 		Obj.set("Read",Read_);
 		Obj.set("ReadWrite",ReadWrite_);
 		Obj.set("ReadWriteCreate",ReadWriteCreate_);
@@ -207,4 +207,16 @@ void AclTemplate::to_json(Poco::JSON::Object &Obj) const {
 		Obj.set("username",username_);
 		Obj.set("aclTemplate",AclTemplateObj);
 	}
+
+	void PendingFirmwareUpgrade::to_json(Poco::JSON::Object &Obj) const {
+		Obj.set("serialNumber", SerialNumber);
+		Obj.set("commandUUID", CommandUUID);
+		Obj.set("newFirmware", NewFirmware);
+		Obj.set("oldFirmware",OldFirmware);
+		Obj.set("uti",URI);
+		Obj.set("scheduledAt", uCentral::Utils::to_RFC3339(ScheduledAt));
+		Obj.set("created", uCentral::Utils::to_RFC3339(Created));
+		Obj.set("updateDone",uCentral::Utils::to_RFC3339(UpdateDone));
+	};
 }
+

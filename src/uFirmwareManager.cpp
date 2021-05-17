@@ -80,37 +80,6 @@ namespace uCentral::FirmwareManager {
 		}
 	}
 
-	bool ParseTime(const std::string &Time, int & Hours, int & Minutes, int & Seconds) {
-		Poco::StringTokenizer	TimeTokens(Time,":",Poco::StringTokenizer::TOK_TRIM);
-
-		Hours =  Minutes = Hours = 0 ;
-		if(TimeTokens.count()==1) {
-			Hours 	= std::atoi(TimeTokens[0].c_str());
-		} else if(TimeTokens.count()==2) {
-			Hours 	= std::atoi(TimeTokens[0].c_str());
-			Minutes = std::atoi(TimeTokens[1].c_str());
-		} else if(TimeTokens.count()==3) {
-			Hours 	= std::atoi(TimeTokens[0].c_str());
-			Minutes = std::atoi(TimeTokens[1].c_str());
-			Seconds = std::atoi(TimeTokens[2].c_str());
-		} else
-			return false;
-		return true;
-	}
-
-	bool ParseDate(const std::string &Time, int & Year, int & Month, int & Day) {
-		Poco::StringTokenizer	DateTokens(Time,"-",Poco::StringTokenizer::TOK_TRIM);
-
-		Year =  Month = Day = 0 ;
-		if(DateTokens.count()==3) {
-			Year 	= std::atoi(DateTokens[0].c_str());
-			Month 	= std::atoi(DateTokens[1].c_str());
-			Day 	= std::atoi(DateTokens[2].c_str());
-		} else
-			return false;
-		return true;
-	}
-
 	//	schedule string is something like this
 	//	daily@time				: daily@03:00    daily @3am
 	//	weekly@<dow>@time		: weekly@5@2:00	 every week, on Saturday@2am 0=Monday.
@@ -118,39 +87,76 @@ namespace uCentral::FirmwareManager {
 	//	date@date@time			: date@2021-05-21@5:00
 	uint64_t Service::CalculateWhen(std::string &SerialNumber) {
 
-		if(DefaultPolicy_=="auto")
-			return 0;
-
-		if(DefaultPolicy_=="off")
-			return std::numeric_limits<uint64_t>::max();
-
 		Poco::LocalDateTime	Now;
 
 		int Hours, Minutes, Seconds=0;
 		int Year, Month, Day = 0 ;
 
-		Poco::StringTokenizer Tokens(SerialNumber,"@", Poco::StringTokenizer::TOK_TRIM);
-		if(Tokens.count()==2 && Tokens[0]=="daily") {
-			ParseTime(Tokens[1],Hours,Minutes,Seconds);
-			Poco::LocalDateTime	Cfg(Now.year(),Now.month(), Now.day(),Hours,Minutes,Seconds);
-			if(Cfg>Now)
-				return Poco::Timestamp(Cfg.utcTime()).epochTime();
-			//	Time tomorrow...
-			return (Poco::Timestamp(Cfg.utcTime()).epochTime()+(24*60*60));
-		} else if(Tokens.count()==3) {
-			ParseTime(Tokens[2],Hours,Minutes,Seconds);
-			if(Tokens[0]=="weekly") {
-				auto DOW = std::stol(Tokens[1]);
-				if(DOW>Now.dayOfWeek())
-					Poco::LocalDateTime	Cfg(Now.year(),Now.month(), Now.day(),Hours,Minutes,Seconds);
-			} else if(Tokens[0]=="monthly") {
-				auto DOM = std::stol(Tokens[1]);
-			} else if(Tokens[0]=="date") {
-				ParseDate(Tokens[1],Year,Month,Day);
-			}
-			Poco::LocalDateTime	Cfg(Now.year(),Now.month(), Now.day(),Hours,Minutes,Seconds);
-		}
+		std::string UpdatePolicy;
+		if(!uCentral::Storage::GetDeviceFWUpdatePolicy(SerialNumber, UpdatePolicy) ||
+			UpdatePolicy.empty())
+			UpdatePolicy = DefaultPolicy_;
 
+		if(UpdatePolicy=="auto")
+			return 0;
+
+		if(UpdatePolicy=="off")
+			return std::numeric_limits<uint64_t>::max();
+
+		try {
+			Poco::StringTokenizer Tokens(UpdatePolicy, "@", Poco::StringTokenizer::TOK_TRIM);
+			if (Tokens.count() == 2 && Tokens[0] == "daily") {
+				uCentral::Utils::ParseTime(Tokens[1], Hours, Minutes, Seconds);
+				Poco::LocalDateTime T(Now.year(), Now.month(), Now.day(), Hours, Minutes, Seconds);
+				if (T > Now)
+					return T.timestamp().epochTime();
+				//	Time tomorrow...
+				return T.timestamp().epochTime() + (24 * 60 * 60);
+			} else if (Tokens.count() == 3) {
+				uCentral::Utils::ParseTime(Tokens[2], Hours, Minutes, Seconds);
+				if (Tokens[0] == "date") {
+					uCentral::Utils::ParseDate(Tokens[1], Year, Month, Day);
+					Poco::LocalDateTime T(Year, Month, Day, Hours, Minutes, Seconds);
+					return T.timestamp().epochTime();
+				} else if (Tokens[0] == "monthly") {
+					int DOM = std::stoi(Tokens[1]);
+					if (Now.day() < DOM ||
+						(Now.day() == DOM &&
+						 uCentral::Utils::CompareTime(Now.hour(), Hours, Now.minute(), Minutes,
+													  Now.second(), Seconds))) {
+						Poco::LocalDateTime T(Now.year(), Now.month(), DOM, Hours, Minutes,
+											  Seconds);
+						return T.timestamp().epochTime();
+					}
+					// we must add a month.
+					Poco::LocalDateTime T(Now.month() == 12 ? Now.year() + 1 : Now.year(),
+										  Now.month() == 12 ? 1 : Now.month() + 1, DOM, Hours,
+										  Minutes, Seconds);
+					return T.timestamp().epochTime();
+				} else if (Tokens[0] == "weekly") {
+					auto DOW = std::stol(Tokens[1]);
+					//	this is today, we just need to set to the configured hour.
+					if (DOW == Now.dayOfWeek() &&
+						uCentral::Utils::CompareTime(Now.hour(), Hours, Now.minute(), Minutes,
+													 Now.second(), Seconds)) {
+						Poco::LocalDateTime T(Now.year(), Now.month(), Now.day(), Hours, Minutes,
+											  Seconds);
+						return T.timestamp().epochTime();
+					}
+					//	this is ahead, just add the number of seconds in days to today's date at the config time.
+					if (DOW > Now.dayOfWeek()) {
+						Poco::LocalDateTime T(Now.year(), Now.month(), Now.day(), Hours, Minutes,
+											  Seconds);
+						return T.timestamp().epochTime() + ((DOW - Now.dayOfWeek()) * 24 * 60 * 60);
+					}
+					Poco::LocalDateTime T(Now.year(), Now.month(), Now.day(), Hours, Minutes,
+										  Seconds);
+					return T.timestamp().epochTime() + (7 - (Now.dayOfWeek() - DOW) * 24 * 60 * 60);
+				}
+			}
+		} catch(const Poco::Exception &E) {
+			Logger_.log(E);
+		}
 		return 0;
 	}
 
@@ -158,6 +164,12 @@ namespace uCentral::FirmwareManager {
 
 		for(auto i:SerialNumbers) {
 			uCentral::Objects::CommandDetails  Cmd;
+
+			uint64_t When = CalculateWhen(i);
+
+			//	do we need to skip the update for this device???
+			if(When == std::numeric_limits<uint64_t>::max())
+				continue;
 
 			Cmd.SerialNumber = i;
 			Cmd.UUID = uCentral::instance()->CreateUUID();
