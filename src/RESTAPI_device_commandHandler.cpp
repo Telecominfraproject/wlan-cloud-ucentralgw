@@ -708,9 +708,9 @@ void RESTAPI_device_commandHandler::Trace(Poco::Net::HTTPServerRequest &Request,
         Poco::JSON::Object::Ptr Obj = parser.parse(Request.stream()).extract<Poco::JSON::Object::Ptr>();
         Poco::DynamicStruct ds = *Obj;
 
-        if (ds.contains("serialNumber") &&
-            ds.contains("network") &&
-            ds.contains("interface")) {
+        if (ds.contains("serialNumber") && (
+            	ds.contains("network") ||
+            	ds.contains("interface"))) {
 
             auto SerialNumber = ds["serialNumber"].toString();
 
@@ -722,13 +722,13 @@ void RESTAPI_device_commandHandler::Trace(Poco::Net::HTTPServerRequest &Request,
             uint64_t Duration = ds.contains("duration") ? (uint64_t)ds["duration"] : 0;
             uint64_t When = ds.contains("when") ? uCentral::Utils::from_RFC3339(ds["when"].toString()) : 0;
             uint64_t NumberOfPackets = ds.contains("numberOfPackets") ? (uint64_t)ds["numberOfPackets"] : 0;
-            auto Network = ds["network"].toString();
-            auto Interface = ds["interface"].toString();
+
+            auto Network = ds.contains("network") ? ds["network"].toString() : "";
+            auto Interface = ds.contains("interface") ? ds["interface"].toString() : "";
             auto UUID = uCentral::instance()->CreateUUID();
             auto URI = uCentral::uFileUploader::FullName() + UUID ;
 
             uCentral::Objects::CommandDetails  Cmd;
-
             Cmd.SerialNumber = SerialNumber;
             Cmd.UUID = UUID;
             Cmd.SubmittedBy = UserInfo_.username_;

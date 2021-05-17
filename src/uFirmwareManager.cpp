@@ -138,17 +138,15 @@ namespace uCentral::FirmwareManager {
 			//	Time tomorrow...
 			return (Poco::Timestamp(Cfg.utcTime()).epochTime()+(24*60*60));
 		} else if(Tokens.count()==3) {
+			ParseTime(Tokens[2],Hours,Minutes,Seconds);
 			if(Tokens[0]=="weekly") {
-				auto DOW = std::atoi(Tokens[1].c_str());
-				ParseTime(Tokens[2],Hours,Minutes,Seconds);
+				auto DOW = std::stol(Tokens[1]);
 				if(DOW>Now.dayOfWeek())
 					Poco::LocalDateTime	Cfg(Now.year(),Now.month(), Now.day(),Hours,Minutes,Seconds);
 			} else if(Tokens[0]=="monthly") {
-				auto DOM = std::atoi(Tokens[1].c_str());
-				ParseTime(Tokens[2],Hours,Minutes,Seconds);
+				auto DOM = std::stol(Tokens[1]);
 			} else if(Tokens[0]=="date") {
 				ParseDate(Tokens[1],Year,Month,Day);
-				ParseTime(Tokens[2],Hours,Minutes,Seconds);
 			}
 			Poco::LocalDateTime	Cfg(Now.year(),Now.month(), Now.day(),Hours,Minutes,Seconds);
 		}

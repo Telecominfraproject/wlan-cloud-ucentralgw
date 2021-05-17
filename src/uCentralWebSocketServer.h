@@ -162,7 +162,7 @@ namespace uCentral::WebSocket {
         void Register();
         void DeRegister();
 		void LogException(const Poco::Exception &E);
-		uCentral::Objects::CertificateValidation CertificateValidation() const { return CertValidation_; };
+		[[nodiscard]] uCentral::Objects::CertificateValidation CertificateValidation() const { return CertValidation_; };
     private:
         std::mutex                          Mutex_{};
         CountedReactor                      Reactor_;
