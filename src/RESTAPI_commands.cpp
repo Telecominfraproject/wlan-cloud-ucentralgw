@@ -22,7 +22,7 @@ void RESTAPI_commands::handleRequest(Poco::Net::HTTPServerRequest& Request, Poco
         ParseParameters(Request);
 
         if (Request.getMethod() == Poco::Net::HTTPRequest::HTTP_GET) {
-            auto SerialNumber = GetBinding("serialNumber", "");
+            auto SerialNumber = GetParameter("serialNumber", "");
             auto StartDate = uCentral::Utils::from_RFC3339(GetParameter("startDate", ""));
             auto EndDate = uCentral::Utils::from_RFC3339(GetParameter("endDate", ""));
             auto Offset = GetParameter("offset", 0);
