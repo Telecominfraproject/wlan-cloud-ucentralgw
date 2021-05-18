@@ -26,7 +26,7 @@ namespace uCentral::Objects {
 
 	void Device::to_json(Poco::JSON::Object &Obj) const {
 		Obj.set("serialNumber", SerialNumber);
-		Obj.set("deviceType", DeviceType);
+		Obj.set("deviceType", DeviceType.empty() ? "AP_Default" : DeviceType );
 		Obj.set("macAddress", MACAddress);
 		Obj.set("manufacturer", Manufacturer);
 		Obj.set("UUID", UUID);
