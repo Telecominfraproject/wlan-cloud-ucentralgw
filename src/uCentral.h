@@ -11,6 +11,8 @@
 
 #include <iostream>
 #include <cstdlib>
+#include <vector>
+#include <set>
 
 #include "Poco/Util/Application.h"
 #include "Poco/Util/ServerApplication.h"
@@ -49,7 +51,7 @@ namespace uCentral {
         void displayHelp();
 
         std::string CreateUUID();
-        std::string IdentifyDevice(const std::string & Id ) const;
+		[[nodiscard]] std::string IdentifyDevice(const std::string & Compatible) const;
         bool AutoProvisioning() const { return AutoProvisioning_ ; }
         bool Debug() const { return DebugMode_; }
         uint64_t ID() const { return ID_; }
@@ -70,7 +72,7 @@ namespace uCentral {
 		static Daemon 				*instance_;
         bool                        HelpRequested_ = false;
         bool                        AutoProvisioning_ = false;
-        std::map<std::string,std::vector<std::string>>    DeviceTypeIdentifications_;
+        std::map<std::string,std::set<std::string>>    DeviceTypeIdentifications_;
         std::string                 ConfigFileName_;
         std::string                 LogDir_;
         bool                        DebugMode_ = false;

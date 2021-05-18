@@ -125,32 +125,40 @@ namespace uCentral {
 
         // DeviceTypeIdentifications_
         std::vector<std::string>    Keys;
-        config().keys("ucentral.autoprovisioning.type",Keys);
+        config().keys("ucentral.devicetypes",Keys);
         for(const auto & i:Keys)
         {
-            std::string Line = config().getString("ucentral.autoprovisioning.type."+i);
+            std::string Line = config().getString("ucentral.devicetypes."+i);
             auto P1 = Line.find_first_of(':');
             auto Type = Line.substr(0, P1);
             auto List = Line.substr(P1+1);
 
             std::vector<std::string>    Tokens = uCentral::Utils::Split(List);
 
-            auto Entry = DeviceTypeIdentifications_[Type];
-
-            Entry.insert(Entry.end(),Tokens.begin(),Tokens.end());
+            auto Entry = DeviceTypeIdentifications_.find(Type);
+			if(DeviceTypeIdentifications_.end() == Entry) {
+				std::set<std::string>	S;
+				S.insert(Tokens.begin(),Tokens.end());
+				DeviceTypeIdentifications_[Type] = S;
+			} else {
+				Entry->second.insert(Tokens.begin(),Tokens.end());
+			}
         }
+
+		for(auto &[Type,List]:DeviceTypeIdentifications_) {
+			std::cout << "Type: " << Type << std::endl;
+			for(auto &i:List)
+				std::cout << "    " << i << std::endl;
+		}
     }
 
-    std::string Daemon::IdentifyDevice(const std::string & Id ) const {
+    [[nodiscard]] std::string Daemon::IdentifyDevice(const std::string & Id ) const {
         for(const auto &[Type,List]:DeviceTypeIdentifications_)
         {
-            for(const auto & i : List)
-            {
-                if(Id.find(i)!=std::string::npos)
-                    return Type;
-            }
+			if(List.find(Id)!=List.end())
+				return Type;
         }
-        return "AP_Default";
+        return "AP";
     }
 
     void Daemon::uninitialize() {

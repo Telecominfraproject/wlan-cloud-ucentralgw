@@ -218,12 +218,14 @@ namespace uCentral::Config {
             Poco::DynamicStruct ds = *object;
 
             auto Model = ds["model"];
-            auto Id = Model["id"].toString();
+			std::string Compatible{"unknown"};
+			if(ds.contains("compatible"))
+            	Compatible = Model["compatible"].toString();
             auto Name = Model["name"].toString();
 
             Manufacturer_ = Name;
-            DeviceType_ = uCentral::instance()->IdentifyDevice(Id);
-            ModelId_ = Id;
+            DeviceType_ = uCentral::instance()->IdentifyDevice(Compatible);
+            ModelId_ = Compatible;
             Parsed_ = true ;
         }
         catch ( const Poco::Exception & E )
