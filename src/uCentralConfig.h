@@ -26,7 +26,8 @@ namespace uCentral::Config {
         bool Valid();
         std::string get() { return Config_; };
         static std::string Default();
-        void to_json(Poco::JSON::Object &Obj);
+		static std::string Default_Old();
+		void to_json(Poco::JSON::Object &Obj);
 
     private:
         std::string Config_;

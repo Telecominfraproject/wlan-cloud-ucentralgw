@@ -66,7 +66,98 @@ namespace uCentral::Config {
         Obj = result.extract<Poco::JSON::Object>();
     }
 
-    std::string Config::Default() {
+	std::string Config::Default() {
+		return std::string(R"lit({
+			"uuid": 1,
+				"radios": [
+			{
+				"band": "6G",
+					"country": "CA",
+					"channel-mode": "HE",
+					"channel-width": 80
+			},
+			{
+				"band": "5G",
+					"country": "CA",
+					"channel-mode": "HE",
+					"channel-width": 80
+			},
+			{
+				"band": "2G",
+					"country": "CA",
+					"channel-mode": "HE",
+					"channel-width": 80
+			}
+			],
+
+			"interfaces": [
+			{
+				"name": "WAN",
+					"role": "upstream",
+					"ethernet": [
+				{
+					"select-ports": [
+					"WAN*"
+					]
+				}
+				],
+				"ipv4": {
+					"addressing": "dynamic"
+				},
+				"ssids": [
+				{
+					"name": "OpenWifi",
+						"wifi-bands": [
+					"5G",
+						"2G"
+					],
+					"bss-mode": "ap",
+						"encryption": {
+						"proto": "psk2",
+							"key": "OpenWifi",
+							"ieee80211w": "optional"
+					},
+					"roaming": {
+						"message-exchange": "ds",
+							"generate-psk": true
+					}
+				}
+				]
+			},
+			{
+				"name": "LAN",
+					"role": "downstream",
+					"ethernet": [
+				{
+					"select-ports": [
+					"LAN*"
+					]
+				}
+				],
+				"ipv4": {
+					"addressing": "static",
+						"subnet": "192.168.1.1/24",
+						"dhcp": {
+						"lease-first": 10,
+							"lease-count": 100,
+							"lease-time": "6h"
+					}
+				}
+			}
+			],
+			"metrics": {
+				"statistics": {
+					"interval": 30,
+						"types": [ "ssids", "lldp", "clients" ]
+				},
+				"health": {
+					"interval": 300
+				}
+			}
+		})lit");
+	}
+
+    std::string Config::Default_Old() {
         return std::string(
                 R"lit({"uuid":1613927736,"steer":{"enabled":1,"network":"wan","debug_level":0},"stats":
                 {"interval":60,"neighbours":1,"traffic":1,"wifiiface":1,"wifistation":1,"pids":1,
