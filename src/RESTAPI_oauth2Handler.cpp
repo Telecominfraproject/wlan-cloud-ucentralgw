@@ -27,6 +27,7 @@ void RESTAPI_oauth2Handler::handleRequest(Poco::Net::HTTPServerRequest & Request
             auto userId = ds["userId"].toString();
             auto password = ds["password"].toString();
 
+			Poco::toLowerInPlace(userId);
             uCentral::Objects::WebToken Token;
 
             if (uCentral::Auth::Authorize(userId, password, Token)) {
