@@ -63,7 +63,7 @@ deletecommand() {
 }
 
 listcommands() {
-  curl  -s -X GET "https://$UCENTRALGW/api/v1/commands?serialNumber=$1" \
+  curl  -s -X GET "https://$UCENTRALGW/api/v1/commands?serialNumber=$1&limit=3000" \
         -H "accept: application/json" \
         -H "Authorization: Bearer $token"  > $rfile
   jq < $rfile
@@ -300,6 +300,13 @@ devicecount() {
   jq < $rfile
 }
 
+getfile() {
+	curl  -s -X GET "https://$UCENTRALGW/api/v1/file/$2?serialNumber=$1" \
+        -H "accept: application/octet-stream" \
+        -H "Authorization: Bearer $token" \
+		-o "$2.pcap"
+}
+
 help() {
   echo
   echo "getdevice <serial>                Get the device JSON document."
@@ -360,6 +367,7 @@ help() {
   echo "setloglevel <sys> <level>         Set the logging system level for individual subsystems."
   echo "                                  sys:ufileuploader/websocket/storage/restapi/commandmanager/auth/deviceregistry/all"
   echo "                                  level:none/fatal/critical/error/warning/notice/information/debug/trace"
+  echo "getfile <uuid>					  Get teh file associated with trace command <uuid>"
   echo
 }
 
@@ -402,6 +410,7 @@ case "$1" in
   "deviceserialnumbers") deviceserialnumbers ;;
   "devicecount") devicecount ;;
   "deviceswithstatus") deviceswithstatus ;;
+  "getfile") getfile "$2" "$3";;
  *) help ;;
 esac
 
