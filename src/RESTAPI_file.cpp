@@ -27,11 +27,13 @@ void RESTAPI_file::handleRequest(Poco::Net::HTTPServerRequest& Request, Poco::Ne
 
         if (Request.getMethod() == Poco::Net::HTTPRequest::HTTP_GET) {
             auto UUID = GetBinding("uuid", "");
+			auto SerialNumber = GetParameter("serialNumber","");
 
             //does the file exist
             Poco::File  DownloadFile(uCentral::uFileUploader::Path() + "/" + UUID);
 
-            if(!uCentral::Storage::GetAttachedFile(UUID,DownloadFile.path()))
+			std::string FileType;
+			if(!uCentral::Storage::GetAttachedFile(UUID, SerialNumber, DownloadFile.path(),FileType))
             {
                 NotFound(Response);
                 return;

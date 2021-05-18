@@ -88,7 +88,7 @@ namespace uCentral::Storage {
     bool CommandExecuted(std::string & UUID);
     bool CommandCompleted(std::string & UUID, Poco::DynamicStruct & ReturnVars, bool FullCommand);
     bool AttachFileToCommand(std::string & UUID);
-	bool GetAttachedFile(std::string & UUID, const std::string & FileName);
+	bool GetAttachedFile(std::string & UUID, std::string & SerialNumber, const std::string & FileName, std::string &Type);
 	bool RemoveAttachedFile(std::string & UUID);
 	bool SetCommandResult(std::string & UUID, std::string & Result);
 
@@ -177,7 +177,7 @@ namespace uCentral::Storage {
         friend bool CommandExecuted(std::string & UUID);
         friend bool CommandCompleted(std::string & UUID, Poco::DynamicStruct & ReturnVars, bool FullCommand);
         friend bool AttachFileToCommand(std::string & UUID);
-		friend bool GetAttachedFile(std::string & UUID, const std::string & FileName);
+		friend bool GetAttachedFile(std::string & UUID, std::string & SerialNumber, const std::string & FileName, std::string &Type);
 		friend bool RemoveAttachedFile(std::string & UUID);
 
 		friend bool AddBlackListDevices(std::vector<uCentral::Objects::BlackListedDevice> &  Devices);
@@ -267,7 +267,7 @@ namespace uCentral::Storage {
         bool CommandExecuted(std::string & UUID);
         bool CommandCompleted(std::string & UUID, Poco::DynamicStruct & ReturnVars, bool FullCommand);
         bool AttachFileToCommand(std::string & UUID);
-		bool GetAttachedFile(std::string & UUID, const std::string & FileName);
+		bool GetAttachedFile(std::string & UUID, std::string & SerialNumber, const std::string & FileName, std::string &Type);
 		bool RemoveAttachedFile(std::string & UUID);
 		bool SetCommandResult(std::string & UUID, std::string & Result);
 

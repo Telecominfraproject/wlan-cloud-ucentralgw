@@ -84,8 +84,8 @@ namespace uCentral::Storage {
 		return uCentral::Storage::Service::instance()->AttachFileToCommand(UUID);
 	}
 
-	bool GetAttachedFile(std::string & UUID, const std::string & FileName) {
-		return uCentral::Storage::Service::instance()->GetAttachedFile(UUID,FileName);
+	bool GetAttachedFile(std::string & UUID, std::string & SerialNumber, const std::string & FileName, std::string &Type) {
+		return uCentral::Storage::Service::instance()->GetAttachedFile(UUID, SerialNumber, FileName, Type);
 	}
 
 	bool RemoveAttachedFile(std::string & UUID) {
@@ -674,7 +674,7 @@ namespace uCentral::Storage {
 		return false;
 	}
 
-	bool Service::GetAttachedFile(std::string &UUID, const std::string &FileName) {
+	bool Service::GetAttachedFile(std::string &UUID, std::string & SerialNumber, const std::string &FileName, std::string &Type) {
 		try {
 			Poco::Data::LOB<char> L;
 			/*
@@ -684,16 +684,29 @@ namespace uCentral::Storage {
 						"FileContent	BYTEA"
 			*/
 			Poco::Data::Session Sess = Pool_->get();
-			Poco::Data::Statement Select(Sess);
+			Poco::Data::Statement Select1(Sess);
 
-			std::string St2{"SELECT FileContent FROM FileUploads WHERE UUID=?"};
+			std::string TmpSerialNumber;
+			std::string st1{"SELECT SerialNumber FROM CommandList WHERE UUID=?"};
+			Select1	<< 	ConvertParams(st1),
+						Poco::Data::Keywords::into(TmpSerialNumber),
+						Poco::Data::Keywords::use(UUID);
+			Select1.execute();
 
-			Select << ConvertParams(St2), Poco::Data::Keywords::into(L),
+			if(TmpSerialNumber!=SerialNumber) {
+				return false;
+			}
+
+			std::string St2{"SELECT FileContent, Type FROM FileUploads WHERE UUID=?"};
+
+			Poco::Data::Statement Select2(Sess);
+			Select2 << ConvertParams(St2),
+				Poco::Data::Keywords::into(L),
+				Poco::Data::Keywords::into(Type),
 				Poco::Data::Keywords::use(UUID);
-			Select.execute();
+			Select2.execute();
 
 			Poco::Data::LOBInputStream IL(L);
-
 			std::ofstream f(FileName, std::ios::binary);
 			Poco::StreamCopier::copyStream(IL, f);
 
