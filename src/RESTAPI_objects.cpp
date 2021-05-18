@@ -55,9 +55,7 @@ namespace uCentral::Objects {
 			Obj.set("txBytes", 0);
 			Obj.set("rxBytes", 0);
 			Obj.set("messageCount", 0);
-			Obj.set("UUID", 0);
 			Obj.set("connected", false);
-			Obj.set("firmware", "unknown");
 			Obj.set("lastContact", "N/A");
 			Obj.set("verifiedCertificate", "NO_CERTIFICATE");
 		}
