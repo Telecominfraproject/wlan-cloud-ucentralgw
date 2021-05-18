@@ -147,7 +147,7 @@ namespace uCentral::Config {
 			],
 			"metrics": {
 				"statistics": {
-					"interval": 30,
+					"interval": 60,
 						"types": [ "ssids", "lldp", "clients" ]
 				},
 				"health": {
