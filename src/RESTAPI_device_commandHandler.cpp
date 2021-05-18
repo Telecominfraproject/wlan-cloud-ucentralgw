@@ -638,25 +638,17 @@ void RESTAPI_device_commandHandler::LEDs(Poco::Net::HTTPServerRequest &Request, 
         Poco::JSON::Object::Ptr Obj = parser.parse(Request.stream()).extract<Poco::JSON::Object::Ptr>();
         Poco::DynamicStruct ds = *Obj;
 
-		std::cout << __LINE__ <<std::endl;
-
         if (ds.contains("pattern") &&
             ds.contains("serialNumber")) {
-			std::cout << __LINE__ <<std::endl;
 
             auto SerialNumber = ds["serialNumber"].toString();
-			std::cout << __LINE__ <<std::endl;
 
             if(SerialNumber != SNum) {
-				std::cout << __LINE__ <<std::endl;
                 BadRequest(Response);
                 return;
             }
-			std::cout << __LINE__ <<std::endl;
 
 			auto Pattern = ds["pattern"].toString();
-
-			std::cout << "LEDS:" << Pattern << " " << SerialNumber << " " << std::endl;
 
 			if(Pattern!="on" && Pattern!="off" && Pattern!="blink")
 			{
@@ -670,6 +662,8 @@ void RESTAPI_device_commandHandler::LEDs(Poco::Net::HTTPServerRequest &Request, 
             uint64_t When = 0 ;
             if(ds.contains("when"))
                 When = uCentral::Utils::from_RFC3339(ds["when"].toString());
+
+			Logger_.information(Poco::format("LEDS(%s): Pattern:%s Duration: %d", SerialNumber, Pattern, (int)Duration));
 
             uCentral::Objects::CommandDetails  Cmd;
 
