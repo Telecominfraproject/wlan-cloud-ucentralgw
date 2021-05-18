@@ -389,7 +389,7 @@ case "$1" in
   "getdevicestatus") getdevicestatus "$2";;
   "upgrade") upgrade "$2" "$3";;
   "factory") factory "$2" "$3";;
-  "leds") leds "$2" "$3";;
+  "leds") leds "$2" "$3" "$4";;
   "listcommands") listcommands "$2";;
   "deletecommands") deletecommands "$2";;
   "configure") configure "$2" "$3";;
