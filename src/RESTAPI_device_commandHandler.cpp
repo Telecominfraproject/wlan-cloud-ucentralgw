@@ -650,6 +650,8 @@ void RESTAPI_device_commandHandler::LEDs(Poco::Net::HTTPServerRequest &Request, 
 
 			auto Pattern = ds["pattern"].toString();
 
+			std::cout << "LEDS:" << Pattern << " " << SerialNumber << " " << std::endl;
+
 			if(Pattern!="on" && Pattern!="off" && Pattern!="blink")
 			{
 				Logger_.warning(Poco::format("LEDs(%s): Bad pattern",SerialNumber));
