@@ -194,7 +194,7 @@ namespace uCentral::Utils {
 
 	uint64_t from_RFC3339(const std::string &TimeString)
 	{
-		if(TimeString.empty())
+		if(TimeString.empty() || TimeString=="0")
 			return 0;
 
 		try {

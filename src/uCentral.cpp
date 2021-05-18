@@ -302,6 +302,11 @@ namespace uCentral {
 			else
 				logger.information("System does NOT support IPv6.");
 
+			std::string T{"2021-05-18T21:31:39.000Z"};
+
+			uint64_t TT = uCentral::Utils::from_RFC3339(T);
+			//std::cout << "Time:" << TT << " now " << time(nullptr) << std::endl;
+
 			instance()->waitForTerminationRequest();
 
 			uCentral::Kafka::Stop();
