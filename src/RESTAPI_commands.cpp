@@ -30,7 +30,6 @@ void RESTAPI_commands::handleRequest(Poco::Net::HTTPServerRequest& Request, Poco
 
             std::vector<uCentral::Objects::CommandDetails> Commands;
 
-			std::cout << "Get commands: " << SerialNumber << " " << StartDate << " " << EndDate << " " << Offset << " " << Limit << std::endl;
 
             uCentral::Storage::GetCommands(SerialNumber, StartDate, EndDate, Offset, Limit,
                                            Commands);
@@ -42,8 +41,6 @@ void RESTAPI_commands::handleRequest(Poco::Net::HTTPServerRequest& Request, Poco
 				i.to_json(Obj);
                 ArrayObj.add(Obj);
             }
-
-			std::cout << "Returning " << Commands.size() << " commands." << std::endl;
 
             Poco::JSON::Object RetObj;
             RetObj.set("commands", ArrayObj);
