@@ -132,6 +132,7 @@ void RESTAPIHandler::AddCORS(Poco::Net::HTTPServerResponse &Response) {
 	Response.set("Access-Control-Allow-Origin", "*");
 	Response.set("Access-Control-Allow-Headers", "*");
 	Response.set("Access-Control-Allow-Method",MakeList(Methods_));
+	Response.set("Access-Control-Max-Age", "86400");
 }
 
 void RESTAPIHandler::SetCommonHeaders(Poco::Net::HTTPServerResponse &Response) {

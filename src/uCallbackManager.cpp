@@ -32,10 +32,7 @@ namespace uCentral::CallbackManager {
 
 	int Service::Start() {
 		Logger_.notice("Starting...");
-
-		InitHosts();
 		Mgr_.start(*this);
-
 		return 0;
 	}
 
