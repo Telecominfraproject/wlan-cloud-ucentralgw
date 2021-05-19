@@ -38,6 +38,8 @@ public:
     void PrintBindings();
     void ParseParameters(Poco::Net::HTTPServerRequest& request);
 
+	void AddCORS( Poco::Net::HTTPServerResponse & response );
+	void SetCommonHeaders( Poco::Net::HTTPServerResponse & response );
     void ProcessOptions( Poco::Net::HTTPServerResponse & response );
     void PrepareResponse( Poco::Net::HTTPServerResponse & response, Poco::Net::HTTPResponse::HTTPStatus Status=Poco::Net::HTTPResponse::HTTP_OK);
     bool ContinueProcessing( Poco::Net::HTTPServerRequest & Request , Poco::Net::HTTPServerResponse & Response );

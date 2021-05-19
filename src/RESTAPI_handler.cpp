@@ -128,24 +128,33 @@ static std::string MakeList(const std::vector<std::string> & L)
     return Return;
 }
 
+void RESTAPIHandler::AddCORS(Poco::Net::HTTPServerResponse &Response) {
+	Response.set("Access-Control-Allow-Origin", "*");
+	Response.set("Access-Control-Allow-Headers", "*");
+	Response.set("Access-Control-Allow-Method",MakeList(Methods_));
+}
+
+void RESTAPIHandler::SetCommonHeaders(Poco::Net::HTTPServerResponse &Response) {
+	Response.setChunkedTransferEncoding(true);
+	Response.setKeepAlive(true);
+	Response.setContentType("application/json");
+	Response.set("Connection","Keep-Alive");
+	Response.set("Keep-Alive","timeout=5, max=1000");
+}
+
 void RESTAPIHandler::ProcessOptions(Poco::Net::HTTPServerResponse & Response )
 {
-    Response.setContentType("application/json");
-    Response.set("Access-Control-Allow-Origin", "*");
-    Response.add("Access-Control-Allow-Headers", "*");
-    Response.add("Access-Control-Allow-Method",MakeList(Methods_));
+	AddCORS(Response);
+	SetCommonHeaders(Response);
+	Response.setStatus(Poco::Net::HTTPResponse::HTTP_NO_CONTENT);
     Response.send();
 }
 
 void RESTAPIHandler::PrepareResponse(Poco::Net::HTTPServerResponse &Response,Poco::Net::HTTPResponse::HTTPStatus Status)
 {
-    Response.setStatus(Status);
-    Response.setChunkedTransferEncoding(true);
-	Response.setKeepAlive(true);
-	Response.setContentType("application/json");
-    Response.set("Access-Control-Allow-Origin", "*");
-    Response.add("Access-Control-Allow-Headers", "*");
-    Response.add("Access-Control-Allow-Method",MakeList(Methods_));
+	Response.setStatus(Status);
+	AddCORS(Response);
+	SetCommonHeaders(Response);
 }
 
 void RESTAPIHandler::BadRequest(Poco::Net::HTTPServerResponse & Response) {
