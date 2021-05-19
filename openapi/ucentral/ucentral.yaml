@@ -71,6 +71,7 @@ components:
         - AP
         - SWITCH
         - IOT
+        - MESH
 
     Device:
       type: object
