@@ -15,7 +15,6 @@
 #include "Poco/DateTime.h"
 #include "Poco/DateTimeParser.h"
 #include "Poco/StringTokenizer.h"
-#include "Poco/LocalDateTime.h"
 
 namespace uCentral::Utils {
 

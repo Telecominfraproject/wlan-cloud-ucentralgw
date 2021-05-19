@@ -44,7 +44,6 @@ void uSubSystemServer::initialize(Poco::Util::Application & self)
             std::string key_password{root + "key.password"};
             std::string cert{root + "cert"};
             std::string name{root + "name"};
-			std::string x509{root+"x509"};
 			std::string backlog{root+"backlog"};
 			std::string rootca{root+"rootca"};
 			std::string issuer{root+"issuer"};
@@ -75,7 +74,6 @@ void uSubSystemServer::initialize(Poco::Util::Application & self)
 											uCentral::ServiceConfig::GetString(cas,""),
                                                uCentral::ServiceConfig::GetString(key_password,""),
                                                uCentral::ServiceConfig::GetString(name,""),
-												uCentral::ServiceConfig::GetBool(x509,false),
 												M,
 											   (int) uCentral::ServiceConfig::GetInt(backlog,64));
             ConfigServersList_.push_back(entry);

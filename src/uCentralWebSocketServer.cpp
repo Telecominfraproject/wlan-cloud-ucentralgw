@@ -487,8 +487,6 @@ namespace uCentral::WebSocket {
                 Logger_.debug(Poco::format("CRASH-LOG(%s): new entry.", CId_));
 
                 auto LogLines = ParamsObj["loglines"];
-                uint64_t UUID = ParamsObj["uuid"];
-
                 if(LogLines.isArray()) {
                     auto LogLinesArray = LogLines.extract<Poco::Dynamic::Array>();
 

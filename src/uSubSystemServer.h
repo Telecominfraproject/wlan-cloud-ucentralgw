@@ -35,7 +35,6 @@ public:
 								std::string Cas,
                                	std::string Key_file_password = "",
                                	std::string Name="",
-								bool x509=false,
 								Poco::Net::Context::VerificationMode M=Poco::Net::Context::VerificationMode::VERIFY_RELAXED,
 								int backlog=64) :
             address_(std::move(Address)),
@@ -48,7 +47,6 @@ public:
 			cas_(std::move(Cas)),
             key_file_password_(std::move(Key_file_password)),
             name_(std::move(Name)),
-		    is_x509_(x509),
 			level_(M),
 			backlog_(backlog){};
     
@@ -77,7 +75,6 @@ private:
 	std::string 	cas_;
     uint32_t        port_;
     std::string     name_;
-	bool 			is_x509_;
 	int 			backlog_;
 	Poco::Net::Context::VerificationMode 			level_;
 };
