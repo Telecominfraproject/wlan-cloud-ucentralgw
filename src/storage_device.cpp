@@ -617,8 +617,7 @@ bool SetDeviceCompatibility(std::string & SerialNumber, std::string & Compatible
 		return false;
 	}
 
-	bool Service::ExistingConfiguration(std::string &SerialNumber, uint64_t CurrentConfig, std::string &NewConfig,
-									uint64_t &UUID) {
+	bool Service::ExistingConfiguration(std::string &SerialNumber, uint64_t CurrentConfig, std::string &NewConfig, uint64_t & UUID) {
 		// std::lock_guard<std::mutex> guard(Mutex_);
 		std::string SS;
 		try {
@@ -637,6 +636,7 @@ bool SetDeviceCompatibility(std::string & SerialNumber, std::string & Compatible
 			Select.execute();
 
 			if (SS.empty()) {
+				//	No configuration exists, so we should
 				return false;
 			}
 

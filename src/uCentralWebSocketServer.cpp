@@ -408,7 +408,6 @@ namespace uCentral::WebSocket {
 				if(!request_uuid.empty()) {
 					uCentral::Storage::SetCommandResult(request_uuid,State);
 				}
-
                 LookForUpgrade(Response);
             } else {
                 Logger_.warning(Poco::format("STATE(%s): Invalid request. Missing serial, uuid, or state",
@@ -543,6 +542,7 @@ namespace uCentral::WebSocket {
             if (Conn_ != nullptr)
                 Conn_->TX += Response.size();
             try {
+				Logger_.debug(Poco::format("RESPONSE(%s): %s",CId_, Response));
                 WS_->sendFrame(Response.c_str(), (int)Response.size());
             }
             catch( Poco::Exception & E )
