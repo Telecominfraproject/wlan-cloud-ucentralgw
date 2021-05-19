@@ -26,7 +26,7 @@ void RESTAPI_commands::handleRequest(Poco::Net::HTTPServerRequest& Request, Poco
             auto StartDate = uCentral::Utils::from_RFC3339(GetParameter("startDate", ""));
             auto EndDate = uCentral::Utils::from_RFC3339(GetParameter("endDate", ""));
             auto Offset = GetParameter("offset", 0);
-            auto Limit = GetParameter("limit", 100);
+            auto Limit = GetParameter("limit", 500);
 
             std::vector<uCentral::Objects::CommandDetails> Commands;
 
