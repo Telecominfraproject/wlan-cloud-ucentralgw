@@ -159,8 +159,8 @@ Once your build is done. You can remove the Poco source as it is no longer neede
 #### Expected directory layout
 From the directory where your cloned source is, you will need to create the `certs`, `logs`, and `uploads` directories.
 ```shell
-mkdir certs/cas
 mkdir certs
+mkdir certs/cas
 mkdir logs
 mkdir uploads
 ```
@@ -171,22 +171,31 @@ You should now have the following:
 -- cert_scripts
   |
   +-- certs
-  |
+  |   +--- cas
   +-- cmake
-  |
   +-- cmake-build
-  |
   +-- logs (dir)
-  |
   +-- src
-  |
   +-- test_scripts
-  |
   +-- openapi
-  |
   +-- uploads
-  |
   +-- ucentral.properties
+```
+#### The `certs` directory
+For all deployments, you will need the following certs directory, populated with the proper files.
+
+```asm
+certs ---+--- root.pem
+         +--- issuer.pem
+         +--- websocket-cert.pem
+         +--- websocket-key.pem
+         +--- clientcas.pem
+         +--- +cas
+         |    +--- issuer.pem
+         |    +--- root.pem
+         +--- restapi-ca.pem
+         +--- restapi-cert.pem
+         +--- restapi-key.pem
 ```
 
 #### Certificates for your gateway
@@ -197,9 +206,7 @@ you must remember to copy the generated devices certificates on the devices. You
 ```
 -- cert_scripts
   |
-  +-- certs
-  |     +---- server-key.pem
-  |     +---- server-cert.pem
+  +-- certs (as above)
   |
   +-- cmake
   |
@@ -255,11 +262,11 @@ ucentral.autoprovisioning.type.2 = AP:ea8302,edge6
 ```asm
 ucentral.restapi.host.0.backlog = 100
 ucentral.restapi.host.0.security = relaxed
-ucentral.restapi.host.0.rootca = $UCENTRAL_ROOT/certs/rootca.pem
+ucentral.restapi.host.0.rootca = $UCENTRAL_ROOT/certs/restapi-ca.pem
 ucentral.restapi.host.0.address = *
 ucentral.restapi.host.0.port = 16001
-ucentral.restapi.host.0.cert = $UCENTRAL_ROOT/certs/server-cert.pem
-ucentral.restapi.host.0.key = $UCENTRAL_ROOT/certs/server-key.pem
+ucentral.restapi.host.0.cert = $UCENTRAL_ROOT/certs/restapi-cert.pem
+ucentral.restapi.host.0.key = $UCENTRAL_ROOT/certs/restapi-key.pem
 ucentral.restapi.host.0.key.password = mypassword
 ```
 
@@ -325,13 +332,13 @@ ucentral.websocket.maxreactors = 20
 ###### This is the end point for the devices when uploading files
 ```asm
 ucentral.fileuploader.host.0.backlog = 100
-ucentral.fileuploader.host.0.rootca = $UCENTRAL_ROOT/certs/rootca.pem
+ucentral.fileuploader.host.0.rootca = $UCENTRAL_ROOT/certs/restapi-ca.pem
 ucentral.fileuploader.host.0.security = relaxed
 ucentral.fileuploader.host.0.address = *
 ucentral.fileuploader.host.0.name = 192.168.1.176
 ucentral.fileuploader.host.0.port = 16003
-ucentral.fileuploader.host.0.cert = $UCENTRAL_ROOT/certs/server-cert.pem
-ucentral.fileuploader.host.0.key = $UCENTRAL_ROOT/certs/server-key.pem
+ucentral.fileuploader.host.0.cert = $UCENTRAL_ROOT/certs/restapi-cert.pem
+ucentral.fileuploader.host.0.key = $UCENTRAL_ROOT/certs/restapi-key.pem
 ucentral.fileuploader.host.0.key.password = mypassword
 ucentral.fileuploader.path = $UCENTRAL_ROOT/uploads
 ucentral.fileuploader.maxsize = 10000
@@ -354,7 +361,9 @@ Once you have the gateway configured, you will need to have some devices coming 
 the following in order to use the gateway:
 - A DigiCert certificate that you will call `cert.pem`
 - A DigiCert key that goes with that certificate. Please call this `key.pem`
-- The Digicert root certificate that you will find [here](https://github.com/Telecominfraproject/wlan-cloud-ucentralgw/blob/main/certificates/root.pem)
+- The Digicert root certificate that you will find [here](https://github.com/Telecominfraproject/wlan-cloud-ucentralgw/blob/main/certificates/root.pem). You must copy `root.pem`
+and rename it `cas.pem` on the device.
+- All 3 files mus be present in `/etc/ucentral` on the device.
 
 You will need to upgrade your device to the latest firmware. Once updated, you will need to copy the 3 files mentionned above in 
   the `/etc/ucentral` directory. You will need to modify the `/etc/config-shadow/ucentral` file with your hostname. At which point, 
@@ -458,14 +467,10 @@ file. Once all this is done, you can simply run `docker_run.sh`.
 #### Docker installation directory layout
 Here is the layout expected for your Docker installation
 
-```
+```asm
 Run-time root
     |
-    |
-    ----- certs (dir)
-    |        |
-    |        +-- server-key.pem
-    |        --- server-cert.pem
+    ----- certs (same as above)
     +---- logs  (dir)
     +---- uploads  (dir)
     +---- ucentral.properties (file)
@@ -483,9 +488,7 @@ This line should reflect the IP of your gateway or its FQDN. You must make sure 
 from your devices. This is used during file uploads from the devices.
 
 #### Certificates with Docker
-If you have not been provided with certificates, you should generate some using the procedure in this [section](#certificates). When done, 
-copy the `server-cert.pem` and `server-key.pem` files in the `certs` directory. If you generate your own certificates,
-you must remember to copy the generated devices certificates on the devices.
+Please refer to the `certs` directory from the sections above.
 
 #### Configuration with Docker
 The configuration for this service is kept in a properties file. Currently, this configuration file must be kept in the 
