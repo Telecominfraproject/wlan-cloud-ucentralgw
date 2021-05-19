@@ -40,10 +40,14 @@ namespace uCentral::CallbackManager {
 	}
 
 	bool Service::InitHosts() {
-
 		// get all the hosts we are registering with and register ourselves...
-		MyIDCallbackId_ = uCentral::ServiceConfig::GetString("ucentral.callback.id","");
 
+		if(uCentral::ServiceConfig::GetString("ucentral.callback.enable","false") == "false") {
+			Logger_.information("CALLBACK system disabled.");
+			return false;
+		}
+
+		MyIDCallbackId_ = uCentral::ServiceConfig::GetString("ucentral.callback.id","");
 		if(MyIDCallbackId_.empty()) {
 			Logger_.information("CALLBACK system disabled. No CallbackID present in ucentral.callback.id");
 			return false;
