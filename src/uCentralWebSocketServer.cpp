@@ -467,12 +467,12 @@ namespace uCentral::WebSocket {
                 if (ParamsObj.contains("data"))
                     Data = ParamsObj["data"].toString();
 
-                uCentral::Objects::DeviceLog DeviceLog;
-
-                DeviceLog.Log = Log;
-                DeviceLog.Data = Data;
-                DeviceLog.Severity = Severity;
-                DeviceLog.Recorded = time(nullptr);
+                uCentral::Objects::DeviceLog DeviceLog{
+					.Log = Log,
+					.Data = Data,
+					.Severity = Severity,
+					.Recorded = (uint64_t ) time(nullptr),
+					.LogType = 0 };
 
                 uCentral::Storage::AddLog(Serial, DeviceLog);
             }
@@ -491,18 +491,16 @@ namespace uCentral::WebSocket {
                 if(LogLines.isArray()) {
                     auto LogLinesArray = LogLines.extract<Poco::Dynamic::Array>();
 
-                    uCentral::Objects::DeviceLog DeviceLog;
                     std::string LogText;
-
                     for(const auto & i : LogLinesArray)
                         LogText += i.toString() + "\r\n";
 
-                    DeviceLog.Log = LogText;
-                    DeviceLog.Data = "";
-                    DeviceLog.Severity = uCentral::Objects::DeviceLog::LOG_EMERG;
-                    DeviceLog.Recorded = time(nullptr);
-                    DeviceLog.LogType = 1;
-
+					uCentral::Objects::DeviceLog DeviceLog{
+                    	.Log = LogText,
+                    	.Data = "",
+                    	.Severity = uCentral::Objects::DeviceLog::LOG_EMERG,
+                    	.Recorded = (uint64_t )time(nullptr),
+                    	.LogType = 1};
                     uCentral::Storage::AddLog(Serial, DeviceLog, true);
                 } else {
                     Logger_.warning(Poco::format("CRASH-LOG(%s): parameter loglines must be an array.",CId_));
