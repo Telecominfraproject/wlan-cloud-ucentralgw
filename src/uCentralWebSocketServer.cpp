@@ -583,6 +583,10 @@ namespace uCentral::WebSocket {
 		}
     }
 
+	std::string asString(Poco::Buffer<char> & buf ) {
+		return buf.sizeBytes() > 0 ? buf.begin() : "";
+	}
+
     void WSConnection::ProcessIncomingFrame() {
         int flags, Op;
         int IncomingSize;
@@ -657,49 +661,50 @@ namespace uCentral::WebSocket {
             }
         catch (const Poco::Net::ConnectionResetException & E)
         {
-            Logger_.warning( Poco::format("%s(%s): Caught a ConnectionResetException: %s", std::string(__func__), CId_, E.displayText()));
+			std::string IncomingMessageStr = asString(IncomingFrame);
+            Logger_.warning( Poco::format("%s(%s): Caught a ConnectionResetException: %s, Message: %s", std::string(__func__), CId_, E.displayText(),IncomingMessageStr));
             MustDisconnect= true;
         }
         catch (const Poco::JSON::JSONException & E)
         {
-			std::string IncomingMessageStr{IncomingFrame.begin()};
+			std::string IncomingMessageStr = asString(IncomingFrame);
 			Logger_.warning( Poco::format("%s(%s): Caught a JSONException: %s. Message: %s", std::string(__func__), CId_, E.displayText(), IncomingMessageStr ));
         }
         catch (const Poco::Net::WebSocketException & E)
         {
-			std::string IncomingMessageStr{IncomingFrame.begin()};
+			std::string IncomingMessageStr = asString(IncomingFrame);
 			Logger_.warning( Poco::format("%s(%s): Caught a websocket exception: %s. Message: %s", std::string(__func__), CId_, E.displayText(), IncomingMessageStr ));
             MustDisconnect = true ;
         }
         catch (const Poco::Net::SSLConnectionUnexpectedlyClosedException & E)
         {
-			std::string IncomingMessageStr{IncomingFrame.begin()};
+			std::string IncomingMessageStr = asString(IncomingFrame);
 			Logger_.warning( Poco::format("%s(%s): Caught a SSLConnectionUnexpectedlyClosedException: %s. Message: %s", std::string(__func__), CId_, E.displayText(), IncomingMessageStr ));
             MustDisconnect = true ;
         }
         catch (const Poco::Net::SSLException & E)
         {
-			std::string IncomingMessageStr{IncomingFrame.begin()};
+			std::string IncomingMessageStr = asString(IncomingFrame);
 			Logger_.warning( Poco::format("%s(%s): Caught a SSL exception: %s. Message: %s", std::string(__func__), CId_, E.displayText(), IncomingMessageStr ));
             MustDisconnect = true ;
         }
         catch (const Poco::Net::NetException & E) {
-			std::string IncomingMessageStr{IncomingFrame.begin()};
+			std::string IncomingMessageStr = asString(IncomingFrame);
 			Logger_.warning( Poco::format("%s(%s): Caught a NetException: %s. Message: %s", std::string(__func__), CId_, E.displayText(), IncomingMessageStr ));
             MustDisconnect = true ;
         }
         catch (const Poco::IOException & E) {
-			std::string IncomingMessageStr{IncomingFrame.begin()};
+			std::string IncomingMessageStr = asString(IncomingFrame);
 			Logger_.warning( Poco::format("%s(%s): Caught a IOException: %s. Message: %s", std::string(__func__), CId_, E.displayText(), IncomingMessageStr ));
             MustDisconnect = true ;
         }
         catch (const Poco::Exception &E) {
-			std::string IncomingMessageStr{IncomingFrame.begin()};
+			std::string IncomingMessageStr = asString(IncomingFrame);
             Logger_.warning( Poco::format("%s(%s): Caught a more generic Poco exception: %s. Message: %s", std::string(__func__), CId_, E.displayText(), IncomingMessageStr ));
             MustDisconnect = true ;
         }
         catch (const std::exception & E) {
-			std::string IncomingMessageStr{IncomingFrame.begin()};
+			std::string IncomingMessageStr = asString(IncomingFrame);
             Logger_.warning( Poco::format("%s(%s): Caught a std::exception: %s. Message: %s", std::string{__func__}, CId_, std::string{E.what()}, IncomingMessageStr) );
             MustDisconnect = true ;
         }
