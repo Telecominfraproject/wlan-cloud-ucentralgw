@@ -148,6 +148,9 @@ void RESTAPIHandler::ProcessOptions(Poco::Net::HTTPServerResponse & Response )
 	AddCORS(Response);
 	SetCommonHeaders(Response);
 	Response.setStatus(Poco::Net::HTTPResponse::HTTP_NO_CONTENT);
+	std::cout << "RESPONSE:" << std::endl;
+	for(const auto &[f,s]:Response)
+		std::cout << "First: " << f << " second:" << s << std::endl;
     Response.send();
 }
 
@@ -206,6 +209,9 @@ bool RESTAPIHandler::ContinueProcessing(Poco::Net::HTTPServerRequest & Request, 
 {
     if(Request.getMethod() == Poco::Net::HTTPRequest::HTTP_OPTIONS)
     {
+		std::cout << "REQUEST:" << std::endl;
+		for(const auto &[f,s]:Request)
+			std::cout << "First: " << f << " second:" << s << std::endl;
         ProcessOptions(Response);
         return false;
     } else if(std::find(Methods_.begin(),Methods_.end(),Request.getMethod()) == Methods_.end())
