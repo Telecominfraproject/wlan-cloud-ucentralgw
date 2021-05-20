@@ -22,7 +22,8 @@ fi
 
 if [[ "$UCENTRALGW" == "" ]]
 then
-  echo "You must set the variable UCENTRALGW in order to use this script."
+  echo "You must set the variable UCENTRALGW in order to use this script. Something like"
+  echo "UCENTRALGW=mygateway.isp.com:16001"
   exit 1
 fi
 
@@ -40,6 +41,12 @@ password="support"
 login() {
   payload="{ \"userId\" : \"$username\" , \"password\" : \"$password\" }"
   token=$(curl $FLAGS -X POST -H "Content-Type: application/json" -d "$payload" "https://$UCENTRALGW/api/v1/oauth2" | jq -r '.access_token')
+
+  if [[ "$token" == "" ]]
+  then
+  	echo "Could not login. Please verify the host and username/password."
+    exit 13
+  fi
 }
 
 logout() {
@@ -108,7 +115,7 @@ deletedevice() {
 }
 
 createdevice() {
-  payload="{ \"serialNumber\": \"$1\", \"UUID\": 1234456, \"configuration\" : $(cat "$2 ") login; , \"deviceType\": \"AP_Default\",\"location\": \"\", \"macAddress\": \"$3\", \"manufacturer\": \"Linksys EA8300 (Dallas)\", \"notes\": \"auto created device.\", \"owner\": \"\" }"
+  payload="{ \"serialNumber\": \"$1\", \"UUID\": 1234456, \"configuration\" : $(cat "$2") , \"deviceType\": \"AP_Default\",\"location\": \"\", \"macAddress\": \"$3\", \"manufacturer\": \"Linksys EA8300 (Dallas)\", \"notes\": \"auto created device.\", \"owner\": \"\" }"
   curl  $FLAGS -X POST "https://$UCENTRALGW/api/v1/device/$1" \
         -H "accept: application/json" \
         -H "Authorization: Bearer $token" \
@@ -168,7 +175,7 @@ factory() {
 }
 
 configure() {
-  payload="{ \"serialNumber\" : \"$1\", \"UUID\" : 123456 , \"configuration\" : $(cat "$2 ") login; }"
+  payload="{ \"serialNumber\" : \"$1\", \"UUID\" : 123456 , \"configuration\" : $(cat "$2") }"
   curl  $FLAGS -X POST "https://$UCENTRALGW/api/v1/device/$1/configure" \
         -H "accept: application/json" \
         -H "Authorization: Bearer $token" \
@@ -375,7 +382,7 @@ help() {
   echo "                                  level:none/fatal/critical/error/warning/notice/information/debug/trace"
   echo "getfile <uuid>					  Get teh file associated with trace command <uuid>"
   echo
-  echo "To pass additional flags to the CURL commnd, create an environment variable called FLAGS and git ve the values you"
+  echo "To pass additional flags to the CURL command, create an environment variable called FLAGS and git ve the values you"
   echo "want. For example, for force all call to use IPv6, set FLAGS=\"-6\", for verbose mode and IPv6, set FLAGS=\"-6 -v\""
   echo
   echo
@@ -383,7 +390,7 @@ help() {
 
 shopt -s nocasematch
 case "$1" in
-  "getdevice") login; login; getdevice "$2"; logout ;;
+  "getdevice") login; getdevice "$2"; logout ;;
   "help") login; help  ; logout ;;
   "getcommand") login;  getcommand "$2"  ; logout ;;
   "deletecommand") login; deletecommand "$2"  ; logout ;;
