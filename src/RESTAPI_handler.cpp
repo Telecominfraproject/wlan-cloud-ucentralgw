@@ -153,6 +153,7 @@ void RESTAPIHandler::ProcessOptions(Poco::Net::HTTPServerRequest & Request, Poco
 	AddCORS(Request, Response);
 	SetCommonHeaders(Response);
 	Response.setStatus(Poco::Net::HTTPResponse::HTTP_NO_CONTENT);
+	Response.setContentType("text/plain");
 	Response.setContentLength(0);
 	std::cout << "RESPONSE:" << std::endl;
 	for(const auto &[f,s]:Response)
