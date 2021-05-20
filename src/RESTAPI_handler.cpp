@@ -128,8 +128,13 @@ static std::string MakeList(const std::vector<std::string> & L)
     return Return;
 }
 
-void RESTAPIHandler::AddCORS(Poco::Net::HTTPServerResponse &Response) {
-	Response.set("Access-Control-Allow-Origin", "*");
+void RESTAPIHandler::AddCORS(Poco::Net::HTTPServerRequest & Request, Poco::Net::HTTPServerResponse &Response) {
+	auto Origin = Request.find("Origin");
+	if(Origin!=Request.end()) {
+		Response.set("Access-Control-Allow-Origin", Origin->second);
+	} else {
+		Response.set("Access-Control-Allow-Origin", "*");
+	}
 	Response.set("Access-Control-Allow-Headers", "*");
 	Response.set("Access-Control-Allow-Methods",MakeList(Methods_));
 	// Response.set("Access-Control-Max-Age", "86400");
@@ -143,46 +148,47 @@ void RESTAPIHandler::SetCommonHeaders(Poco::Net::HTTPServerResponse &Response) {
 	Response.set("Keep-Alive","timeout=5, max=1000");
 }
 
-void RESTAPIHandler::ProcessOptions(Poco::Net::HTTPServerResponse & Response )
+void RESTAPIHandler::ProcessOptions(Poco::Net::HTTPServerRequest & Request, Poco::Net::HTTPServerResponse & Response )
 {
-	AddCORS(Response);
+	AddCORS(Request, Response);
 	SetCommonHeaders(Response);
 	Response.setStatus(Poco::Net::HTTPResponse::HTTP_NO_CONTENT);
+	Response.setContentLength(0);
 	std::cout << "RESPONSE:" << std::endl;
 	for(const auto &[f,s]:Response)
 		std::cout << "First: " << f << " second:" << s << std::endl;
     Response.send();
 }
 
-void RESTAPIHandler::PrepareResponse(Poco::Net::HTTPServerResponse &Response,Poco::Net::HTTPResponse::HTTPStatus Status)
+void RESTAPIHandler::PrepareResponse(Poco::Net::HTTPServerRequest & Request, Poco::Net::HTTPServerResponse &Response,Poco::Net::HTTPResponse::HTTPStatus Status)
 {
 	Response.setStatus(Status);
-	AddCORS(Response);
+	AddCORS(Request, Response);
 	SetCommonHeaders(Response);
 }
 
-void RESTAPIHandler::BadRequest(Poco::Net::HTTPServerResponse & Response) {
-    PrepareResponse(Response, Poco::Net::HTTPResponse::HTTP_BAD_REQUEST);
+void RESTAPIHandler::BadRequest(Poco::Net::HTTPServerRequest & Request, Poco::Net::HTTPServerResponse & Response) {
+    PrepareResponse(Request, Response, Poco::Net::HTTPResponse::HTTP_BAD_REQUEST);
     Response.send();
 }
 
-void RESTAPIHandler::UnAuthorized(Poco::Net::HTTPServerResponse & Response )
+void RESTAPIHandler::UnAuthorized(Poco::Net::HTTPServerRequest & Request, Poco::Net::HTTPServerResponse & Response )
 {
-    PrepareResponse(Response, Poco::Net::HTTPResponse::HTTP_FORBIDDEN);
+    PrepareResponse(Request, Response, Poco::Net::HTTPResponse::HTTP_FORBIDDEN);
     Response.send();
 }
 
-void RESTAPIHandler::NotFound(Poco::Net::HTTPServerResponse &Response) {
-    PrepareResponse(Response, Poco::Net::HTTPResponse::HTTP_NOT_FOUND);
+void RESTAPIHandler::NotFound(Poco::Net::HTTPServerRequest & Request, Poco::Net::HTTPServerResponse &Response) {
+    PrepareResponse(Request, Response, Poco::Net::HTTPResponse::HTTP_NOT_FOUND);
     Response.send();
 }
 
-void RESTAPIHandler::OK(Poco::Net::HTTPServerResponse &Response) {
-    PrepareResponse(Response);
+void RESTAPIHandler::OK(Poco::Net::HTTPServerRequest & Request, Poco::Net::HTTPServerResponse &Response) {
+    PrepareResponse(Request, Response);
     Response.send();
 }
 
-void RESTAPIHandler::WaitForRPC(uCentral::Objects::CommandDetails & Cmd, Poco::Net::HTTPServerResponse &Response, uint64_t Timeout) {
+void RESTAPIHandler::WaitForRPC(uCentral::Objects::CommandDetails & Cmd,Poco::Net::HTTPServerRequest & Request, Poco::Net::HTTPServerResponse &Response, uint64_t Timeout) {
 
 	if(uCentral::DeviceRegistry::Connected(Cmd.SerialNumber)) {
 		uCentral::Objects::CommandDetails ResCmd;
@@ -194,7 +200,7 @@ void RESTAPIHandler::WaitForRPC(uCentral::Objects::CommandDetails & Cmd, Poco::N
 				if (ResCmd.Completed) {
 					Poco::JSON::Object RetObj;
 					ResCmd.to_json(RetObj);
-					ReturnObject(RetObj, Response);
+					ReturnObject(Request, RetObj, Response);
 					return;
 				}
 			}
@@ -202,7 +208,7 @@ void RESTAPIHandler::WaitForRPC(uCentral::Objects::CommandDetails & Cmd, Poco::N
 	}
 	Poco::JSON::Object RetObj;
 	Cmd.to_json(RetObj);
-	ReturnObject(RetObj, Response);
+	ReturnObject(Request, RetObj, Response);
 }
 
 bool RESTAPIHandler::ContinueProcessing(Poco::Net::HTTPServerRequest & Request, Poco::Net::HTTPServerResponse & Response )
@@ -212,11 +218,11 @@ bool RESTAPIHandler::ContinueProcessing(Poco::Net::HTTPServerRequest & Request, 
 		std::cout << "REQUEST:" << std::endl;
 		for(const auto &[f,s]:Request)
 			std::cout << "First: " << f << " second:" << s << std::endl;
-        ProcessOptions(Response);
+        ProcessOptions(Request,Response);
         return false;
     } else if(std::find(Methods_.begin(),Methods_.end(),Request.getMethod()) == Methods_.end())
     {
-        BadRequest(Response);
+        BadRequest(Request, Response);
         return false;
     }
 
@@ -230,7 +236,7 @@ bool RESTAPIHandler::IsAuthorized(Poco::Net::HTTPServerRequest & Request, Poco::
         return true;
     }
     else {
-        UnAuthorized(Response);
+        UnAuthorized(Request, Response);
     }
     return false;
 }
@@ -243,7 +249,7 @@ bool RESTAPIHandler::IsAuthorized(Poco::Net::HTTPServerRequest & Request, Poco::
         return true;
     }
     else {
-        UnAuthorized(Response);
+        UnAuthorized(Request, Response);
     }
     return false;
 }
@@ -258,8 +264,8 @@ bool RESTAPIHandler::ValidateAPIKey(Poco::Net::HTTPServerRequest & Request , Poc
 }
 
 
-void RESTAPIHandler::ReturnObject(Poco::JSON::Object & Object, Poco::Net::HTTPServerResponse & Response) {
-    PrepareResponse(Response);
+void RESTAPIHandler::ReturnObject(Poco::Net::HTTPServerRequest & Request, Poco::JSON::Object & Object, Poco::Net::HTTPServerResponse & Response) {
+    PrepareResponse(Request, Response);
     std::ostream & Answer = Response.send();
     Poco::JSON::Stringifier::stringify(Object, Answer);
 }

@@ -36,7 +36,7 @@ void RESTAPI_BlackList::handleRequest(Poco::Net::HTTPServerRequest& Request, Poc
 	{
 		Logger_.error(Poco::format("%s: failed with %s",std::string(__func__), E.displayText()));
 	}
-	BadRequest(Response);
+	BadRequest(Request, Response);
 }
 
 void RESTAPI_BlackList::DoDelete(Poco::Net::HTTPServerRequest &Request, Poco::Net::HTTPServerResponse &Response) {
@@ -46,16 +46,16 @@ void RESTAPI_BlackList::DoDelete(Poco::Net::HTTPServerRequest &Request, Poco::Ne
 
 		if(!SerialNumber.empty()) {
 			if (uCentral::Storage::DeleteBlackListDevice(SerialNumber)) {
-				OK(Response);
+				OK(Request, Response);
 			} else {
-				NotFound(Response);
+				NotFound(Request, Response);
 			}
 			return;
 		}
 	} catch (const Poco::Exception &E) {
 		Logger_.log(E);
 	}
-	BadRequest(Response);
+	BadRequest(Request, Response);
 }
 
 void RESTAPI_BlackList::DoGet(Poco::Net::HTTPServerRequest &Request, Poco::Net::HTTPServerResponse &Response) {
@@ -76,14 +76,14 @@ void RESTAPI_BlackList::DoGet(Poco::Net::HTTPServerRequest &Request, Poco::Net::
 
 			Poco::JSON::Object RetObj;
 			RetObj.set("devices", Objects);
-			ReturnObject(RetObj, Response);
+			ReturnObject(Request, RetObj, Response);
 
 			return;
 		}
 	} catch(const Poco::Exception & E) {
 		Logger_.log(E);
 	}
-	BadRequest(Response);
+	BadRequest(Request, Response);
 }
 
 void RESTAPI_BlackList::DoPost(Poco::Net::HTTPServerRequest &Request, Poco::Net::HTTPServerResponse &Response) {
@@ -115,7 +115,7 @@ void RESTAPI_BlackList::DoPost(Poco::Net::HTTPServerRequest &Request, Poco::Net:
 			}
 			if(!Devices.empty()) {
 				if(uCentral::Storage::AddBlackListDevices(Devices)) {
-					OK(Response);
+					OK(Request, Response);
 					return;
 				}
 			}
@@ -123,5 +123,5 @@ void RESTAPI_BlackList::DoPost(Poco::Net::HTTPServerRequest &Request, Poco::Net:
 	} catch (const Poco::Exception &E) {
 		Logger_.log(E);
 	}
-	BadRequest(Response);
+	BadRequest(Request, Response);
 }

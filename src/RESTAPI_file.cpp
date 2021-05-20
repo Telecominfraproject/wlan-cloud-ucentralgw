@@ -35,7 +35,7 @@ void RESTAPI_file::handleRequest(Poco::Net::HTTPServerRequest& Request, Poco::Ne
 			std::string FileType;
 			if(!uCentral::Storage::GetAttachedFile(UUID, SerialNumber, DownloadFile.path(),FileType))
             {
-                NotFound(Response);
+                NotFound(Request, Response);
                 return;
             }
             Response.set("Content-Type","application/octet-stream");
@@ -55,14 +55,14 @@ void RESTAPI_file::handleRequest(Poco::Net::HTTPServerRequest& Request, Poco::Ne
 
 			if(UUID.empty())
 			{
-				BadRequest(Response);
+				BadRequest(Request, Response);
 				return;
 			}
 
 			if(uCentral::Storage::RemoveAttachedFile(UUID))
-				OK(Response);
+				OK(Request, Response);
 			else
-				NotFound(Response);
+				NotFound(Request, Response);
         }
         return;
     }
@@ -70,5 +70,5 @@ void RESTAPI_file::handleRequest(Poco::Net::HTTPServerRequest& Request, Poco::Ne
     {
         Logger_.error(Poco::format("%s: failed with %s",std::string(__func__), E.displayText()));
     }
-    BadRequest(Response);
+    BadRequest(Request, Response);
 }

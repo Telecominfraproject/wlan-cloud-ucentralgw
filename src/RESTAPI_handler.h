@@ -38,24 +38,24 @@ public:
     void PrintBindings();
     void ParseParameters(Poco::Net::HTTPServerRequest& request);
 
-	void AddCORS( Poco::Net::HTTPServerResponse & response );
+	void AddCORS(Poco::Net::HTTPServerRequest & Request, Poco::Net::HTTPServerResponse & response );
 	void SetCommonHeaders( Poco::Net::HTTPServerResponse & response );
-    void ProcessOptions( Poco::Net::HTTPServerResponse & response );
-    void PrepareResponse( Poco::Net::HTTPServerResponse & response, Poco::Net::HTTPResponse::HTTPStatus Status=Poco::Net::HTTPResponse::HTTP_OK);
+    void ProcessOptions(Poco::Net::HTTPServerRequest & Request, Poco::Net::HTTPServerResponse & response );
+    void PrepareResponse(Poco::Net::HTTPServerRequest & Request,Poco::Net::HTTPServerResponse & response, Poco::Net::HTTPResponse::HTTPStatus Status=Poco::Net::HTTPResponse::HTTP_OK);
     bool ContinueProcessing( Poco::Net::HTTPServerRequest & Request , Poco::Net::HTTPServerResponse & Response );
     bool IsAuthorized(Poco::Net::HTTPServerRequest & Request, Poco::Net::HTTPServerResponse & Response );
     bool IsAuthorized(Poco::Net::HTTPServerRequest & Request, Poco::Net::HTTPServerResponse & Response , std::string & UserName );
     uint64_t GetParameter(const std::string &Name,uint64_t Default);
     std::string GetParameter(const std::string &Name,const std::string & Default);
 	bool GetBoolParameter(const std::string &Name,bool Default);
-	bool ValidateAPIKey(Poco::Net::HTTPServerRequest & Request , Poco::Net::HTTPServerResponse & Response);
+	bool ValidateAPIKey(Poco::Net::HTTPServerRequest & Request, Poco::Net::HTTPServerResponse & Response);
 
-    void BadRequest(Poco::Net::HTTPServerResponse & Response);
-    void UnAuthorized(Poco::Net::HTTPServerResponse & Response );
-    void ReturnObject(Poco::JSON::Object & Object, Poco::Net::HTTPServerResponse & Response);
-    void NotFound(Poco::Net::HTTPServerResponse &Response);
-    void OK(Poco::Net::HTTPServerResponse &Response);
-	void WaitForRPC(uCentral::Objects::CommandDetails & Cmd, Poco::Net::HTTPServerResponse &Response, uint64_t Timeout = 5000 );
+    void BadRequest(Poco::Net::HTTPServerRequest & Request,Poco::Net::HTTPServerResponse & Response);
+    void UnAuthorized(Poco::Net::HTTPServerRequest & Request,Poco::Net::HTTPServerResponse & Response );
+    void ReturnObject(Poco::Net::HTTPServerRequest & Request,Poco::JSON::Object & Object, Poco::Net::HTTPServerResponse & Response);
+    void NotFound(Poco::Net::HTTPServerRequest & Request,Poco::Net::HTTPServerResponse &Response);
+    void OK(Poco::Net::HTTPServerRequest & Request,Poco::Net::HTTPServerResponse &Response);
+	void WaitForRPC(uCentral::Objects::CommandDetails & Cmd, Poco::Net::HTTPServerRequest & Request, Poco::Net::HTTPServerResponse &Response, uint64_t Timeout = 5000 );
 
     const std::string & GetBinding(const std::string &Name, const std::string &Default);
 

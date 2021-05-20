@@ -31,7 +31,7 @@ void RESTAPI_callback::handleRequest(Poco::Net::HTTPServerRequest& Request, Poco
 	{
 		Logger_.error(Poco::format("%s: failed with %s",std::string(__func__), E.displayText()));
 	}
-	BadRequest(Response);
+	BadRequest(Request, Response);
 }
 
 void RESTAPI_callback::DoPost(Poco::Net::HTTPServerRequest &Request, Poco::Net::HTTPServerResponse &Response) {
@@ -45,7 +45,7 @@ void RESTAPI_callback::DoPost(Poco::Net::HTTPServerRequest &Request, Poco::Net::
 			if(ds.contains("firmwares") && ds["firmwares"].isArray()) {
 				std::cout << "Proper manifest received..." << std::endl;
 				Logger_.information("New manifest...");
-				OK(Response);
+				OK(Request, Response);
 				return;
 			} else {
 				std::cout << __LINE__ << std::endl;
@@ -57,5 +57,5 @@ void RESTAPI_callback::DoPost(Poco::Net::HTTPServerRequest &Request, Poco::Net::
 	} catch (const Poco::Exception &E) {
 		Logger_.log(E);
 	}
-	BadRequest(Response);
+	BadRequest(Request, Response);
 }

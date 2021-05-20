@@ -44,10 +44,9 @@ void RESTAPI_default_configurations::handleRequest(Poco::Net::HTTPServerRequest&
 
             Poco::JSON::Object RetObj;
             RetObj.set("configurations", Objects);
-            ReturnObject(RetObj, Response);
+            ReturnObject(Request, RetObj, Response);
         } else
-            BadRequest(Response);
-
+            BadRequest(Request, Response);
         return;
     }
     catch (const Poco::Exception & E)

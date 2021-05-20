@@ -83,7 +83,7 @@ void RESTAPI_system_command::handleRequest(Poco::Net::HTTPServerRequest& Request
 									}
 								}
 							}
-							OK(Response);
+							OK(Request, Response);
 							return;
 						}
 					}
@@ -98,5 +98,5 @@ void RESTAPI_system_command::handleRequest(Poco::Net::HTTPServerRequest& Request
 		Logger_.log(E);
 	}
 
-	BadRequest(Response);
+	BadRequest(Request, Response);
 }

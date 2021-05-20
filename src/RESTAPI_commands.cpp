@@ -44,7 +44,7 @@ void RESTAPI_commands::handleRequest(Poco::Net::HTTPServerRequest& Request, Poco
 
             Poco::JSON::Object RetObj;
             RetObj.set("commands", ArrayObj);
-            ReturnObject(RetObj, Response);
+            ReturnObject(Request, RetObj, Response);
 
             return;
 
@@ -54,10 +54,9 @@ void RESTAPI_commands::handleRequest(Poco::Net::HTTPServerRequest& Request, Poco
             auto EndDate = uCentral::Utils::from_RFC3339(GetParameter("endDate", ""));
 
             if (uCentral::Storage::DeleteCommands(SerialNumber, StartDate, EndDate))
-                OK(Response);
+                OK(Request, Response);
             else
-                BadRequest(Response);
-
+                BadRequest(Request, Response);
             return;
         }
     }
@@ -65,5 +64,5 @@ void RESTAPI_commands::handleRequest(Poco::Net::HTTPServerRequest& Request, Poco
     {
         Logger_.error(Poco::format("%s: failed with %s",std::string(__func__), E.displayText()));
     }
-    BadRequest(Response);
+    BadRequest(Request, Response);
 }

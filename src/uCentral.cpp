@@ -145,11 +145,12 @@ namespace uCentral {
 			}
         }
 
-		for(auto &[Type,List]:DeviceTypeIdentifications_) {
+/*		for(auto &[Type,List]:DeviceTypeIdentifications_) {
 			std::cout << "Type: " << Type << std::endl;
 			for(auto &i:List)
 				std::cout << "    " << i << std::endl;
 		}
+*/
     }
 
     [[nodiscard]] std::string Daemon::IdentifyDevice(const std::string & Id ) const {

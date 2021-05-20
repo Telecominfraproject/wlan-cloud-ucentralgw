@@ -30,19 +30,19 @@ void RESTAPI_default_configuration::handleRequest(Poco::Net::HTTPServerRequest& 
         {
             Poco::JSON::Object  Obj;
 			DefConfig.to_json(Obj);
-            ReturnObject(Obj,Response);
+            ReturnObject(Request,Obj,Response);
         }
         else
         {
-            NotFound(Response);
+            NotFound(Request, Response);
         }
     } else if(Request.getMethod() == Poco::Net::HTTPRequest::HTTP_DELETE) {
         std::string Name = GetBinding("name", "0xdeadbeef");
 
         if (uCentral::Storage::DeleteDefaultConfiguration(Name)) {
-            OK(Response);
+            OK(Request, Response);
         } else {
-            NotFound(Response);
+            NotFound(Request, Response);
         }
     } else if(Request.getMethod() == Poco::Net::HTTPRequest::HTTP_POST) {
         std::string Name = GetBinding("name", "0xdeadbeef");
@@ -54,14 +54,14 @@ void RESTAPI_default_configuration::handleRequest(Poco::Net::HTTPServerRequest& 
 
         if(!DefConfig.from_json(Obj))
         {
-            BadRequest(Response);
+            BadRequest(Request, Response);
             return;
         }
 
         if (uCentral::Storage::CreateDefaultConfiguration(Name,DefConfig)) {
-            OK(Response);
+            OK(Request, Response);
         } else {
-            BadRequest(Response);
+            BadRequest(Request, Response);
         }
     } else if(Request.getMethod() == Poco::Net::HTTPRequest::HTTP_PUT) {
         std::string Name = GetBinding("name", "0xdeadbeef");
@@ -72,16 +72,16 @@ void RESTAPI_default_configuration::handleRequest(Poco::Net::HTTPServerRequest& 
         uCentral::Objects::DefaultConfiguration  DefConfig;
         if(!DefConfig.from_json(Obj))
         {
-            BadRequest(Response);
+            BadRequest(Request, Response);
             return;
         }
 
         if (uCentral::Storage::UpdateDefaultConfiguration(Name, DefConfig)) {
-            OK(Response);
+            OK(Request, Response);
         } else {
-            BadRequest(Response);
+            BadRequest(Request, Response);
         }
     } else {
-        BadRequest(Response);
+        BadRequest(Request, Response);
     }
 }

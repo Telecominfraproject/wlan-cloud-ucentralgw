@@ -27,19 +27,19 @@ void RESTAPI_device_handler::handleRequest(Poco::Net::HTTPServerRequest& Request
         {
             Poco::JSON::Object  Obj;
 			Device.to_json(Obj);
-            ReturnObject(Obj,Response);
+            ReturnObject(Request, Obj,Response);
         }
         else
         {
-            NotFound(Response);
+            NotFound(Request, Response);
         }
     } else if(Request.getMethod() == Poco::Net::HTTPRequest::HTTP_DELETE) {
         std::string SerialNumber = GetBinding("serialNumber", "0xdeadbeef");
 
         if (uCentral::Storage::DeleteDevice(SerialNumber)) {
-            OK(Response);
+            OK(Request, Response);
         } else {
-            NotFound(Response);
+            NotFound(Request, Response);
         }
     } else if(Request.getMethod() == Poco::Net::HTTPRequest::HTTP_POST) {
         std::string SerialNumber = GetBinding("serialNumber", "0xdeadbeef");
@@ -51,7 +51,7 @@ void RESTAPI_device_handler::handleRequest(Poco::Net::HTTPServerRequest& Request
 
         if(!Device.from_json(Obj))
         {
-            BadRequest(Response);
+            BadRequest(Request, Response);
             return;
         }
 
@@ -59,9 +59,9 @@ void RESTAPI_device_handler::handleRequest(Poco::Net::HTTPServerRequest& Request
         if (uCentral::Storage::CreateDevice(Device)) {
 			Poco::JSON::Object  DevObj;
 			Device.to_json(DevObj);
-			ReturnObject(DevObj,Response);
+			ReturnObject(Request, DevObj,Response);
         } else {
-            BadRequest(Response);
+            BadRequest(Request, Response);
         }
     } else if(Request.getMethod() == Poco::Net::HTTPRequest::HTTP_PUT) {
         std::string SerialNumber = GetBinding("serialNumber", "0xdeadbeef");
@@ -73,16 +73,16 @@ void RESTAPI_device_handler::handleRequest(Poco::Net::HTTPServerRequest& Request
 
         if(!Device.from_json(Obj))
         {
-            BadRequest(Response);
+            BadRequest(Request, Response);
             return;
         }
 
         if (uCentral::Storage::UpdateDevice(Device)) {
-            OK(Response);
+            OK(Request, Response);
         } else {
-            BadRequest(Response);
+            BadRequest(Request, Response);
         }
     } else {
-        BadRequest(Response);
+        BadRequest(Request, Response);
     }
 }

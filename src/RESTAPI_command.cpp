@@ -29,18 +29,18 @@ void RESTAPI_command::handleRequest(Poco::Net::HTTPServerRequest& Request, Poco:
             if(uCentral::Storage::GetCommand(CommandUUID,  Command)) {
 				Poco::JSON::Object	RetObj;
                 Command.to_json(RetObj);
-                ReturnObject(RetObj, Response);
+                ReturnObject(Request, RetObj, Response);
             } else
-                NotFound(Response);
+                NotFound(Request, Response);
             return;
 
         } else if (Request.getMethod() == Poco::Net::HTTPRequest::HTTP_DELETE) {
             auto CommandUUID = GetBinding("commandUUID", "");
 
             if(uCentral::Storage::DeleteCommand(CommandUUID)) {
-                OK(Response);
+                OK(Request, Response);
             } else {
-                NotFound(Response);
+                NotFound(Request, Response);
             }
             return;
         }
@@ -49,5 +49,5 @@ void RESTAPI_command::handleRequest(Poco::Net::HTTPServerRequest& Request, Poco:
     {
         Logger_.error(Poco::format("%s: failed with %s",std::string(__func__), E.displayText()));
     }
-    BadRequest(Response);
+    BadRequest(Request, Response);
 }

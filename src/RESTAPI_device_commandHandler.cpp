@@ -30,7 +30,7 @@ void RESTAPI_device_commandHandler::handleRequest(Poco::Net::HTTPServerRequest& 
         std::string Command = GetBinding("command", "");
 
         if (Command.empty()) {
-            BadRequest(Response);
+            BadRequest(Request, Response);
             return;
         }
 
@@ -75,7 +75,7 @@ void RESTAPI_device_commandHandler::handleRequest(Poco::Net::HTTPServerRequest& 
 		} else if (Command == "eventqueue" && Request.getMethod() == Poco::Net::HTTPServerRequest::HTTP_POST) {
 			EventQueue(Request, Response);
 		} else {
-            BadRequest(Response);
+            BadRequest(Request, Response);
         }
         return;
     }
@@ -83,7 +83,7 @@ void RESTAPI_device_commandHandler::handleRequest(Poco::Net::HTTPServerRequest& 
     {
         Logger_.error(Poco::format("%s: failed with %s",std::string(__func__) ,E.displayText()));
     }
-    BadRequest(Response);
+    BadRequest(Request, Response);
 }
 
 void RESTAPI_device_commandHandler::GetCapabilities(Poco::Net::HTTPServerRequest &Request, Poco::Net::HTTPServerResponse &Response) {
@@ -95,16 +95,16 @@ void RESTAPI_device_commandHandler::GetCapabilities(Poco::Net::HTTPServerRequest
             Poco::JSON::Object RetObj;
 			Caps.to_json(RetObj);
             RetObj.set("serialNumber", SerialNumber);
-            ReturnObject( RetObj, Response );
+            ReturnObject(Request, RetObj, Response );
         } else
-            NotFound(Response);
+            NotFound(Request, Response);
         return;
     }
     catch(const Poco::Exception &E)
     {
         Logger_.error(Poco::format("%s: failed with %s",std::string(__func__), E.displayText()));
     }
-    BadRequest(Response);
+    BadRequest(Request, Response);
 }
 
 void RESTAPI_device_commandHandler::DeleteCapabilities(Poco::Net::HTTPServerRequest &Request, Poco::Net::HTTPServerResponse &Response) {
@@ -112,16 +112,16 @@ void RESTAPI_device_commandHandler::DeleteCapabilities(Poco::Net::HTTPServerRequ
         auto SerialNumber = GetBinding("serialNumber", "");
 
         if (uCentral::Storage::DeleteDeviceCapabilities(SerialNumber))
-            OK(Response);
+            OK(Request, Response);
         else
-            NotFound(Response);
+            NotFound(Request, Response);
         return;
     }
     catch(const Poco::Exception &E)
     {
         Logger_.error(Poco::format("%s: failed with %s",std::string(__func__) ,E.displayText()));
     }
-    BadRequest(Response);
+    BadRequest(Request, Response);
 }
 
 void RESTAPI_device_commandHandler::GetStatistics(Poco::Net::HTTPServerRequest& Request, Poco::Net::HTTPServerResponse& Response) {
@@ -150,14 +150,14 @@ void RESTAPI_device_commandHandler::GetStatistics(Poco::Net::HTTPServerRequest& 
         RetObj.set("data", ArrayObj);
         RetObj.set("serialNumber", SerialNumber);
 
-        ReturnObject(RetObj, Response);
+        ReturnObject(Request, RetObj, Response);
         return;
     }
     catch(const Poco::Exception &E)
     {
         Logger_.error(Poco::format("%s: failed with %s",std::string(__func__) ,E.displayText()));
     }
-    BadRequest(Response);
+    BadRequest(Request, Response);
 }
 
 void RESTAPI_device_commandHandler::DeleteStatistics(Poco::Net::HTTPServerRequest& Request, Poco::Net::HTTPServerResponse& Response) {
@@ -167,7 +167,7 @@ void RESTAPI_device_commandHandler::DeleteStatistics(Poco::Net::HTTPServerReques
         auto EndDate = uCentral::Utils::from_RFC3339(GetParameter("endDate", ""));
 
         if (uCentral::Storage::DeleteStatisticsData(SerialNumber, StartDate, EndDate)) {
-			OK(Response);
+			OK(Request, Response);
 			return;
 		}
     }
@@ -175,7 +175,7 @@ void RESTAPI_device_commandHandler::DeleteStatistics(Poco::Net::HTTPServerReques
     {
         Logger_.error(Poco::format("%s: failed with %s",std::string(__func__), E.displayText()));
     }
-    BadRequest(Response);
+    BadRequest(Request, Response);
 }
 
 void RESTAPI_device_commandHandler::GetStatus(Poco::Net::HTTPServerRequest& Request, Poco::Net::HTTPServerResponse& Response) {
@@ -189,17 +189,18 @@ void RESTAPI_device_commandHandler::GetStatus(Poco::Net::HTTPServerRequest& Requ
             Poco::JSON::Object RetObject;
 			State.to_json(RetObject);
 
-            ReturnObject(RetObject, Response);
+            ReturnObject(Request, RetObject, Response);
 
-        } else
-            NotFound(Response);
+        } else {
+			NotFound(Request, Response);
+		}
         return;
     }
     catch(const Poco::Exception &E)
     {
         Logger_.error(Poco::format("%s: failed with %s",std::string(__func__), E.displayText()));
     }
-    BadRequest(Response);
+    BadRequest(Request, Response);
 }
 
 void RESTAPI_device_commandHandler::Configure(Poco::Net::HTTPServerRequest& Request, Poco::Net::HTTPServerResponse& Response) {
@@ -208,7 +209,7 @@ void RESTAPI_device_commandHandler::Configure(Poco::Net::HTTPServerRequest& Requ
 
         if(SNum.empty())
         {
-            BadRequest(Response);
+            BadRequest(Request, Response);
             return;
         }
 
@@ -225,7 +226,7 @@ void RESTAPI_device_commandHandler::Configure(Poco::Net::HTTPServerRequest& Requ
 
             if(SerialNumber != SNum)
             {
-                BadRequest(Response);
+                BadRequest(Request, Response);
                 return;
             }
 
@@ -267,7 +268,7 @@ void RESTAPI_device_commandHandler::Configure(Poco::Net::HTTPServerRequest& Requ
                 Cmd.Details = ParamStream.str();
 
                 if(uCentral::Storage::AddCommand(SerialNumber,Cmd)) {
-					WaitForRPC(Cmd,Response);
+					WaitForRPC(Cmd,Request, Response);
 					return;
                 }
             }
@@ -277,7 +278,7 @@ void RESTAPI_device_commandHandler::Configure(Poco::Net::HTTPServerRequest& Requ
     {
         Logger_.error(Poco::format("%s: failed with %s",std::string(__func__), E.displayText()));
     }
-    BadRequest(Response);
+    BadRequest(Request, Response);
 }
 
 void RESTAPI_device_commandHandler::Upgrade(Poco::Net::HTTPServerRequest &Request, Poco::Net::HTTPServerResponse &Response) {
@@ -295,7 +296,7 @@ void RESTAPI_device_commandHandler::Upgrade(Poco::Net::HTTPServerRequest &Reques
             auto SerialNumber = ds["serialNumber"].toString();
 
             if(SerialNumber != SNum) {
-                BadRequest(Response);
+                BadRequest(Request, Response);
                 return;
             }
 
@@ -326,7 +327,7 @@ void RESTAPI_device_commandHandler::Upgrade(Poco::Net::HTTPServerRequest &Reques
             Cmd.Details = ParamStream.str();
 
             if(uCentral::Storage::AddCommand(SerialNumber,Cmd)) {
-				WaitForRPC(Cmd,Response, 20000);
+				WaitForRPC(Cmd,Request, Response, 20000);
 				return;
             }
         }
@@ -335,7 +336,7 @@ void RESTAPI_device_commandHandler::Upgrade(Poco::Net::HTTPServerRequest &Reques
     {
         Logger_.error(Poco::format("%s: failed with %s",std::string(__func__), E.displayText()));
     }
-    BadRequest(Response);
+    BadRequest(Request, Response);
 }
 
 void RESTAPI_device_commandHandler::GetLogs(Poco::Net::HTTPServerRequest& Request, Poco::Net::HTTPServerResponse& Response) {
@@ -362,14 +363,14 @@ void RESTAPI_device_commandHandler::GetLogs(Poco::Net::HTTPServerRequest& Reques
         RetObj.set("values", ArrayObj);
         RetObj.set("serialNumber", SerialNumber);
 
-        ReturnObject(RetObj, Response);
+        ReturnObject(Request, RetObj, Response);
         return;
     }
     catch(const Poco::Exception &E)
     {
         Logger_.error(Poco::format("%s: failed with %s",std::string(__func__), E.displayText()));
     }
-    BadRequest(Response);
+    BadRequest(Request, Response);
 }
 
 void RESTAPI_device_commandHandler::DeleteLogs(Poco::Net::HTTPServerRequest& Request, Poco::Net::HTTPServerResponse& Response) {
@@ -380,7 +381,7 @@ void RESTAPI_device_commandHandler::DeleteLogs(Poco::Net::HTTPServerRequest& Req
         auto LogType = GetParameter("logType",0);
 
         if (uCentral::Storage::DeleteLogData(SerialNumber, StartDate, EndDate, LogType)) {
-			OK(Response);
+			OK(Request, Response);
 			return;
 		}
     }
@@ -388,7 +389,7 @@ void RESTAPI_device_commandHandler::DeleteLogs(Poco::Net::HTTPServerRequest& Req
     {
         Logger_.error(Poco::format("%s: failed with %s",std::string(__func__), E.displayText()));
     }
-    BadRequest(Response);
+    BadRequest(Request, Response);
 }
 
 void RESTAPI_device_commandHandler::GetChecks(Poco::Net::HTTPServerRequest& Request, Poco::Net::HTTPServerResponse& Response) {
@@ -414,7 +415,7 @@ void RESTAPI_device_commandHandler::GetChecks(Poco::Net::HTTPServerRequest& Requ
         RetObj.set("values", ArrayObj);
         RetObj.set("serialNumber", SerialNumber);
 
-        ReturnObject(RetObj, Response);
+        ReturnObject(Request, RetObj, Response);
 
         return;
     }
@@ -422,7 +423,7 @@ void RESTAPI_device_commandHandler::GetChecks(Poco::Net::HTTPServerRequest& Requ
     {
         Logger_.error(Poco::format("%s: failed with %s",std::string(__func__), E.displayText()));
     }
-    BadRequest(Response);
+    BadRequest(Request, Response);
 }
 
 void RESTAPI_device_commandHandler::DeleteChecks(Poco::Net::HTTPServerRequest& Request, Poco::Net::HTTPServerResponse& Response) {
@@ -432,7 +433,7 @@ void RESTAPI_device_commandHandler::DeleteChecks(Poco::Net::HTTPServerRequest& R
         auto EndDate = uCentral::Utils::from_RFC3339(GetParameter("endDate", ""));
 
         if (uCentral::Storage::DeleteHealthCheckData(SerialNumber, StartDate, EndDate)) {
-			OK(Response);
+			OK(Request, Response);
 			return;
 		}
     }
@@ -440,7 +441,7 @@ void RESTAPI_device_commandHandler::DeleteChecks(Poco::Net::HTTPServerRequest& R
     {
         Logger_.error(Poco::format("%s: failed with %s",std::string(__func__) ,E.displayText()));
     }
-    BadRequest(Response);
+    BadRequest(Request, Response);
 }
 
 void RESTAPI_device_commandHandler::ExecuteCommand(Poco::Net::HTTPServerRequest& Request, Poco::Net::HTTPServerResponse& Response) {
@@ -459,7 +460,7 @@ void RESTAPI_device_commandHandler::ExecuteCommand(Poco::Net::HTTPServerRequest&
             auto SerialNumber = ds["serialNumber"].toString();
 
             if(SerialNumber != SNum) {
-                BadRequest(Response);
+                BadRequest(Request, Response);
                 return;
             }
 
@@ -497,7 +498,7 @@ void RESTAPI_device_commandHandler::ExecuteCommand(Poco::Net::HTTPServerRequest&
             Cmd.Details = ParamStream.str();
 
             if(uCentral::Storage::AddCommand(SerialNumber,Cmd)) {
-				WaitForRPC(Cmd,Response, 20000);
+				WaitForRPC(Cmd, Request, Response, 20000);
 				return;
             }
         }
@@ -506,7 +507,7 @@ void RESTAPI_device_commandHandler::ExecuteCommand(Poco::Net::HTTPServerRequest&
     {
         Logger_.error(Poco::format("%s: failed with %s",std::string(__func__), E.displayText()));
     }
-    BadRequest(Response);
+    BadRequest(Request, Response);
 }
 
 void RESTAPI_device_commandHandler::Reboot(Poco::Net::HTTPServerRequest& Request, Poco::Net::HTTPServerResponse& Response) {
@@ -522,7 +523,7 @@ void RESTAPI_device_commandHandler::Reboot(Poco::Net::HTTPServerRequest& Request
             auto SerialNumber = ds["serialNumber"].toString();
 
             if(SerialNumber != SNum) {
-                BadRequest(Response);
+                BadRequest(Request, Response);
                 return;
             }
 
@@ -550,7 +551,7 @@ void RESTAPI_device_commandHandler::Reboot(Poco::Net::HTTPServerRequest& Request
             Cmd.Details = ParamStream.str();
 
             if(uCentral::Storage::AddCommand(SerialNumber,Cmd)) {
-				WaitForRPC(Cmd,Response, 20000);
+				WaitForRPC(Cmd, Request, Response, 20000);
 				return;
             }
         }
@@ -559,7 +560,7 @@ void RESTAPI_device_commandHandler::Reboot(Poco::Net::HTTPServerRequest& Request
     {
         Logger_.error(Poco::format("%s: failed with %s",std::string(__func__), E.displayText()));
     }
-    BadRequest(Response);
+    BadRequest(Request, Response);
 }
 
 void RESTAPI_device_commandHandler::Factory(Poco::Net::HTTPServerRequest &Request, Poco::Net::HTTPServerResponse &Response) {
@@ -577,7 +578,7 @@ void RESTAPI_device_commandHandler::Factory(Poco::Net::HTTPServerRequest &Reques
 			auto SerialNumber = ds["serialNumber"].toString();
 
 			if (SerialNumber != SNum) {
-				BadRequest(Response);
+				BadRequest(Request, Response);
 				return;
 			}
 
@@ -588,7 +589,7 @@ void RESTAPI_device_commandHandler::Factory(Poco::Net::HTTPServerRequest &Reques
 			else if (KeepRedirector == "false")
 				KeepIt = 0;
 			else {
-				BadRequest(Response);
+				BadRequest(Request, Response);
 				return;
 			}
 
@@ -617,7 +618,7 @@ void RESTAPI_device_commandHandler::Factory(Poco::Net::HTTPServerRequest &Reques
 			Cmd.Details = ParamStream.str();
 
 			if (uCentral::Storage::AddCommand(SerialNumber, Cmd)) {
-				WaitForRPC(Cmd,Response, 20000);
+				WaitForRPC(Cmd, Request, Response, 20000);
 				return;
 			}
 		}
@@ -626,7 +627,7 @@ void RESTAPI_device_commandHandler::Factory(Poco::Net::HTTPServerRequest &Reques
     {
         Logger_.error(Poco::format("%s: failed with %s",std::string(__func__), E.displayText()));
     }
-    BadRequest(Response);
+    BadRequest(Request, Response);
 }
 
 void RESTAPI_device_commandHandler::LEDs(Poco::Net::HTTPServerRequest &Request, Poco::Net::HTTPServerResponse &Response) {
@@ -644,7 +645,7 @@ void RESTAPI_device_commandHandler::LEDs(Poco::Net::HTTPServerRequest &Request, 
             auto SerialNumber = ds["serialNumber"].toString();
 
             if(SerialNumber != SNum) {
-                BadRequest(Response);
+                BadRequest(Request, Response);
                 return;
             }
 
@@ -653,7 +654,7 @@ void RESTAPI_device_commandHandler::LEDs(Poco::Net::HTTPServerRequest &Request, 
 			if(Pattern!="on" && Pattern!="off" && Pattern!="blink")
 			{
 				Logger_.warning(Poco::format("LEDs(%s): Bad pattern",SerialNumber));
-				BadRequest(Response);
+				BadRequest(Request, Response);
 				return;
 			}
 
@@ -687,7 +688,7 @@ void RESTAPI_device_commandHandler::LEDs(Poco::Net::HTTPServerRequest &Request, 
             Cmd.Details = ParamStream.str();
 
             if(uCentral::Storage::AddCommand(SerialNumber,Cmd)) {
-				WaitForRPC(Cmd,Response, 20000);
+				WaitForRPC(Cmd, Request, Response, 20000);
 				return;
             }
         }
@@ -696,7 +697,7 @@ void RESTAPI_device_commandHandler::LEDs(Poco::Net::HTTPServerRequest &Request, 
     {
         Logger_.error(Poco::format("%s: failed with %s",std::string(__func__), E.displayText()));
     }
-    BadRequest(Response);
+    BadRequest(Request, Response);
 }
 
 void RESTAPI_device_commandHandler::Trace(Poco::Net::HTTPServerRequest &Request, Poco::Net::HTTPServerResponse &Response) {
@@ -715,7 +716,7 @@ void RESTAPI_device_commandHandler::Trace(Poco::Net::HTTPServerRequest &Request,
             auto SerialNumber = ds["serialNumber"].toString();
 
             if(SerialNumber != SNum) {
-                BadRequest(Response);
+                BadRequest(Request, Response);
                 return;
             }
 
@@ -756,7 +757,7 @@ void RESTAPI_device_commandHandler::Trace(Poco::Net::HTTPServerRequest &Request,
                 uCentral::uFileUploader::AddUUID(UUID);
 				Poco::JSON::Object RetObj;
 				Cmd.to_json(RetObj);
-				ReturnObject(RetObj, Response);
+				ReturnObject(Request, RetObj, Response);
 				return;
             }
         }
@@ -765,7 +766,7 @@ void RESTAPI_device_commandHandler::Trace(Poco::Net::HTTPServerRequest &Request,
     {
         Logger_.error(Poco::format("%s: failed with %s",std::string(__func__), E.displayText()));
     }
-    BadRequest(Response);
+    BadRequest(Request, Response);
 }
 
 void RESTAPI_device_commandHandler::WifiScan(Poco::Net::HTTPServerRequest &Request, Poco::Net::HTTPServerResponse &Response) {
@@ -818,7 +819,7 @@ void RESTAPI_device_commandHandler::WifiScan(Poco::Net::HTTPServerRequest &Reque
 				Cmd.Details = ParamStream.str();
 
 				if(uCentral::Storage::AddCommand(SerialNumber,Cmd)) {
-					WaitForRPC(Cmd,Response, 20000);
+					WaitForRPC(Cmd, Request, Response, 20000);
 					return;
 				}
 			}
@@ -826,7 +827,7 @@ void RESTAPI_device_commandHandler::WifiScan(Poco::Net::HTTPServerRequest &Reque
 	} catch (const Poco::Exception & E) {
 		Logger_.log(E);
 	}
-	BadRequest(Response);
+	BadRequest(Request, Response);
 }
 
 void RESTAPI_device_commandHandler::EventQueue(Poco::Net::HTTPServerRequest &Request, Poco::Net::HTTPServerResponse &Response) {
@@ -866,7 +867,7 @@ void RESTAPI_device_commandHandler::EventQueue(Poco::Net::HTTPServerRequest &Req
 				Cmd.Details = ParamStream.str();
 
 				if(uCentral::Storage::AddCommand(SerialNumber,Cmd)) {
-					WaitForRPC(Cmd,Response, 20000);
+					WaitForRPC(Cmd, Request, Response, 20000);
 					return;
 				}
 			}
@@ -874,7 +875,7 @@ void RESTAPI_device_commandHandler::EventQueue(Poco::Net::HTTPServerRequest &Req
 	} catch ( const Poco::Exception & E ) {
 		Logger_.log(E);
 	}
-	BadRequest(Response);
+	BadRequest(Request, Response);
 }
 
 void RESTAPI_device_commandHandler::MakeRequest(Poco::Net::HTTPServerRequest &Request, Poco::Net::HTTPServerResponse &Response) {
@@ -893,7 +894,7 @@ void RESTAPI_device_commandHandler::MakeRequest(Poco::Net::HTTPServerRequest &Re
 			auto MessageType = ds["message"].toString();
 
 			if((SerialNumber != SNum) || (MessageType!="state" && MessageType!="healthcheck")) {
-				BadRequest(Response);
+				BadRequest(Request, Response);
 				return;
 			}
 
@@ -921,7 +922,7 @@ void RESTAPI_device_commandHandler::MakeRequest(Poco::Net::HTTPServerRequest &Re
 			Cmd.Details = ParamStream.str();
 
 			if(uCentral::Storage::AddCommand(SerialNumber,Cmd)) {
-				WaitForRPC(Cmd,Response, 4000);
+				WaitForRPC(Cmd, Request, Response, 4000);
 				return;
 			}
 		}
@@ -930,5 +931,5 @@ void RESTAPI_device_commandHandler::MakeRequest(Poco::Net::HTTPServerRequest &Re
 	{
 		Logger_.error(Poco::format("%s: failed with %s",std::string(__func__), E.displayText()));
 	}
-	BadRequest(Response);
+	BadRequest(Request, Response);
 }

@@ -92,7 +92,7 @@ void RESTAPI_devices_handler::handleRequest(Poco::Net::HTTPServerRequest& Reques
 				else
 					RetObj.set("devices", Objects);
 			}
-			ReturnObject(RetObj, Response);
+			ReturnObject(Request, RetObj, Response);
 			return;
 		}
     }
@@ -100,4 +100,5 @@ void RESTAPI_devices_handler::handleRequest(Poco::Net::HTTPServerRequest& Reques
     {
         Logger_.warning(Poco::format("%s: Failed with: %s",std::string(__func__), E.displayText()));
     }
+	BadRequest(Request, Response);
 }
