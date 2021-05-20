@@ -51,6 +51,8 @@ namespace uCentral::RESTAPI {
 
             auto Sock{Svr.CreateSecureSocket(Logger_)};
 
+			Sock.setReceiveTimeout(Poco::Timespan(10,0));
+
 			Svr.LogCert(Logger_);
 			if(!Svr.RootCA().empty())
 				Svr.LogCas(Logger_);
