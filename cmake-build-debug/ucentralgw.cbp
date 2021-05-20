@@ -1,0 +1,684 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6"/>
+	<Project>
+		<Option title="ucentralgw"/>
+		<Option makefile_is_custom="1"/>
+		<Option compiler="gcc"/>
+		<Option virtualFolders="CMake Files\;CMake Files\..\;CMake Files\..\..\;CMake Files\..\..\..\;CMake Files\..\..\..\..\;CMake Files\..\..\..\..\..\;CMake Files\..\..\..\..\..\..\;CMake Files\..\..\..\..\..\..\usr\;CMake Files\..\..\..\..\..\..\usr\local\;CMake Files\..\..\..\..\..\..\usr\local\lib\;CMake Files\..\..\..\..\..\..\usr\local\lib\cmake\;CMake Files\..\..\..\..\..\..\usr\local\lib\cmake\Boost-1.75.0\;CMake Files\..\..\..\..\..\..\usr\local\lib\cmake\boost_headers-1.75.0\;CMake Files\..\..\..\..\..\..\usr\local\lib\cmake\boost_system-1.75.0\;CMake Files\..\..\..\..\..\..\usr\local\lib\cmake\CppKafka\;CMake Files\..\..\..\..\..\..\usr\local\lib\cmake\Poco\;CMake Files\cmake\;CMake Files\cmake-build-debug\;"/>
+		<Build>
+			<Target title="all">
+				<Option working_dir="/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/cmake-build-debug"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/local/bin/gmake -j16 -f &quot;/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/cmake-build-debug/Makefile&quot;  VERBOSE=1 all"/>
+					<CompileFile command="/usr/local/bin/gmake -j16 -f &quot;/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/local/bin/gmake -j16 -f &quot;/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/local/bin/gmake -j16 -f &quot;/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="install/local">
+				<Option working_dir="/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/cmake-build-debug"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/local/bin/gmake -j16 -f &quot;/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/cmake-build-debug/Makefile&quot;  VERBOSE=1 install/local"/>
+					<CompileFile command="/usr/local/bin/gmake -j16 -f &quot;/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/local/bin/gmake -j16 -f &quot;/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/local/bin/gmake -j16 -f &quot;/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="rebuild_cache">
+				<Option working_dir="/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/cmake-build-debug"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/local/bin/gmake -j16 -f &quot;/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/cmake-build-debug/Makefile&quot;  VERBOSE=1 rebuild_cache"/>
+					<CompileFile command="/usr/local/bin/gmake -j16 -f &quot;/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/local/bin/gmake -j16 -f &quot;/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/local/bin/gmake -j16 -f &quot;/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="edit_cache">
+				<Option working_dir="/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/cmake-build-debug"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/local/bin/gmake -j16 -f &quot;/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/cmake-build-debug/Makefile&quot;  VERBOSE=1 edit_cache"/>
+					<CompileFile command="/usr/local/bin/gmake -j16 -f &quot;/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/local/bin/gmake -j16 -f &quot;/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/local/bin/gmake -j16 -f &quot;/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="install/strip">
+				<Option working_dir="/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/cmake-build-debug"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/local/bin/gmake -j16 -f &quot;/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/cmake-build-debug/Makefile&quot;  VERBOSE=1 install/strip"/>
+					<CompileFile command="/usr/local/bin/gmake -j16 -f &quot;/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/local/bin/gmake -j16 -f &quot;/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/local/bin/gmake -j16 -f &quot;/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="install">
+				<Option working_dir="/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/cmake-build-debug"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/local/bin/gmake -j16 -f &quot;/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/cmake-build-debug/Makefile&quot;  VERBOSE=1 install"/>
+					<CompileFile command="/usr/local/bin/gmake -j16 -f &quot;/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/local/bin/gmake -j16 -f &quot;/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/local/bin/gmake -j16 -f &quot;/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="list_install_components">
+				<Option working_dir="/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/cmake-build-debug"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/local/bin/gmake -j16 -f &quot;/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/cmake-build-debug/Makefile&quot;  VERBOSE=1 list_install_components"/>
+					<CompileFile command="/usr/local/bin/gmake -j16 -f &quot;/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/local/bin/gmake -j16 -f &quot;/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/local/bin/gmake -j16 -f &quot;/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="ucentralgw">
+				<Option output="/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/cmake-build-debug/ucentralgw" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/cmake-build-debug"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add option="-DAPP_VERSION=&quot;0.4.0&quot;"/>
+					<Add option="-DBUILD_NUMBER=&quot;57&quot;"/>
+					<Add option="-D_DEBUG"/>
+					<Add option="-DPOCO_ENABLE_CPP14"/>
+					<Add option="-DPOCO_ENABLE_CPP11"/>
+					<Add option="-DPOCO_OS_FAMILY_UNIX"/>
+					<Add option="-DPOCO_HAVE_IPv6"/>
+					<Add option="-DPOCO_NO_STAT64"/>
+					<Add option="-DXML_DTD"/>
+					<Add option="-DTHREADSAFE"/>
+					<Add option="-DNO_TCL"/>
+					<Add option="-DBOOST_ALL_NO_LIB"/>
+					<Add directory="/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/src"/>
+					<Add directory="/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/include/kafka"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/local/opt/openssl/include"/>
+					<Add directory="/usr/local/opt/mysql-client/include/mysql"/>
+					<Add directory="/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/../include/c++/v1"/>
+					<Add directory="/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/12.0.5/include"/>
+					<Add directory="/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include"/>
+					<Add directory="/System/Library/Frameworks"/>
+					<Add directory="/Library/Frameworks"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/local/bin/gmake -j16 -f &quot;/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/cmake-build-debug/Makefile&quot;  VERBOSE=1 ucentralgw"/>
+					<CompileFile command="/usr/local/bin/gmake -j16 -f &quot;/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/local/bin/gmake -j16 -f &quot;/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/local/bin/gmake -j16 -f &quot;/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="ucentralgw/fast">
+				<Option output="/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/cmake-build-debug/ucentralgw" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/cmake-build-debug"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add option="-DAPP_VERSION=&quot;0.4.0&quot;"/>
+					<Add option="-DBUILD_NUMBER=&quot;57&quot;"/>
+					<Add option="-D_DEBUG"/>
+					<Add option="-DPOCO_ENABLE_CPP14"/>
+					<Add option="-DPOCO_ENABLE_CPP11"/>
+					<Add option="-DPOCO_OS_FAMILY_UNIX"/>
+					<Add option="-DPOCO_HAVE_IPv6"/>
+					<Add option="-DPOCO_NO_STAT64"/>
+					<Add option="-DXML_DTD"/>
+					<Add option="-DTHREADSAFE"/>
+					<Add option="-DNO_TCL"/>
+					<Add option="-DBOOST_ALL_NO_LIB"/>
+					<Add directory="/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/src"/>
+					<Add directory="/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/include/kafka"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/local/opt/openssl/include"/>
+					<Add directory="/usr/local/opt/mysql-client/include/mysql"/>
+					<Add directory="/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/../include/c++/v1"/>
+					<Add directory="/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/12.0.5/include"/>
+					<Add directory="/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include"/>
+					<Add directory="/System/Library/Frameworks"/>
+					<Add directory="/Library/Frameworks"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/local/bin/gmake -j16 -f &quot;/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/cmake-build-debug/Makefile&quot;  VERBOSE=1 ucentralgw/fast"/>
+					<CompileFile command="/usr/local/bin/gmake -j16 -f &quot;/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/local/bin/gmake -j16 -f &quot;/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/local/bin/gmake -j16 -f &quot;/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+		</Build>
+		<Unit filename="/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/build">
+			<Option target="ucentralgw"/>
+		</Unit>
+		<Unit filename="/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/src/RESTAPI_BlackList.cpp">
+			<Option target="ucentralgw"/>
+		</Unit>
+		<Unit filename="/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/src/RESTAPI_BlackList.h">
+			<Option target="ucentralgw"/>
+		</Unit>
+		<Unit filename="/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/src/RESTAPI_callback.cpp">
+			<Option target="ucentralgw"/>
+		</Unit>
+		<Unit filename="/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/src/RESTAPI_callback.h">
+			<Option target="ucentralgw"/>
+		</Unit>
+		<Unit filename="/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/src/RESTAPI_command.cpp">
+			<Option target="ucentralgw"/>
+		</Unit>
+		<Unit filename="/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/src/RESTAPI_command.h">
+			<Option target="ucentralgw"/>
+		</Unit>
+		<Unit filename="/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/src/RESTAPI_commands.cpp">
+			<Option target="ucentralgw"/>
+		</Unit>
+		<Unit filename="/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/src/RESTAPI_commands.h">
+			<Option target="ucentralgw"/>
+		</Unit>
+		<Unit filename="/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/src/RESTAPI_default_configuration.cpp">
+			<Option target="ucentralgw"/>
+		</Unit>
+		<Unit filename="/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/src/RESTAPI_default_configuration.h">
+			<Option target="ucentralgw"/>
+		</Unit>
+		<Unit filename="/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/src/RESTAPI_default_configurations.cpp">
+			<Option target="ucentralgw"/>
+		</Unit>
+		<Unit filename="/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/src/RESTAPI_default_configurations.h">
+			<Option target="ucentralgw"/>
+		</Unit>
+		<Unit filename="/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/src/RESTAPI_device_commandHandler.cpp">
+			<Option target="ucentralgw"/>
+		</Unit>
+		<Unit filename="/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/src/RESTAPI_device_commandHandler.h">
+			<Option target="ucentralgw"/>
+		</Unit>
+		<Unit filename="/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/src/RESTAPI_device_handler.cpp">
+			<Option target="ucentralgw"/>
+		</Unit>
+		<Unit filename="/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/src/RESTAPI_device_handler.h">
+			<Option target="ucentralgw"/>
+		</Unit>
+		<Unit filename="/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/src/RESTAPI_devices_handler.cpp">
+			<Option target="ucentralgw"/>
+		</Unit>
+		<Unit filename="/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/src/RESTAPI_devices_handler.h">
+			<Option target="ucentralgw"/>
+		</Unit>
+		<Unit filename="/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/src/RESTAPI_file.cpp">
+			<Option target="ucentralgw"/>
+		</Unit>
+		<Unit filename="/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/src/RESTAPI_file.h">
+			<Option target="ucentralgw"/>
+		</Unit>
+		<Unit filename="/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/src/RESTAPI_handler.cpp">
+			<Option target="ucentralgw"/>
+		</Unit>
+		<Unit filename="/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/src/RESTAPI_handler.h">
+			<Option target="ucentralgw"/>
+		</Unit>
+		<Unit filename="/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/src/RESTAPI_oauth2Handler.cpp">
+			<Option target="ucentralgw"/>
+		</Unit>
+		<Unit filename="/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/src/RESTAPI_oauth2Handler.h">
+			<Option target="ucentralgw"/>
+		</Unit>
+		<Unit filename="/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/src/RESTAPI_objects.cpp">
+			<Option target="ucentralgw"/>
+		</Unit>
+		<Unit filename="/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/src/RESTAPI_objects.h">
+			<Option target="ucentralgw"/>
+		</Unit>
+		<Unit filename="/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/src/RESTAPI_server.cpp">
+			<Option target="ucentralgw"/>
+		</Unit>
+		<Unit filename="/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/src/RESTAPI_server.h">
+			<Option target="ucentralgw"/>
+		</Unit>
+		<Unit filename="/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/src/RESTAPI_system_command.cpp">
+			<Option target="ucentralgw"/>
+		</Unit>
+		<Unit filename="/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/src/RESTAPI_system_command.h">
+			<Option target="ucentralgw"/>
+		</Unit>
+		<Unit filename="/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/src/RESTAPI_unknownRequestHandler.cpp">
+			<Option target="ucentralgw"/>
+		</Unit>
+		<Unit filename="/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/src/RESTAPI_unknownRequestHandler.h">
+			<Option target="ucentralgw"/>
+		</Unit>
+		<Unit filename="/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/src/kafka_service.cpp">
+			<Option target="ucentralgw"/>
+		</Unit>
+		<Unit filename="/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/src/kafka_service.h">
+			<Option target="ucentralgw"/>
+		</Unit>
+		<Unit filename="/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/src/storage_blacklist.cpp">
+			<Option target="ucentralgw"/>
+		</Unit>
+		<Unit filename="/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/src/storage_capabilities.cpp">
+			<Option target="ucentralgw"/>
+		</Unit>
+		<Unit filename="/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/src/storage_command.cpp">
+			<Option target="ucentralgw"/>
+		</Unit>
+		<Unit filename="/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/src/storage_defconfig.cpp">
+			<Option target="ucentralgw"/>
+		</Unit>
+		<Unit filename="/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/src/storage_device.cpp">
+			<Option target="ucentralgw"/>
+		</Unit>
+		<Unit filename="/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/src/storage_firmware_updates.cpp">
+			<Option target="ucentralgw"/>
+		</Unit>
+		<Unit filename="/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/src/storage_healthcheck.cpp">
+			<Option target="ucentralgw"/>
+		</Unit>
+		<Unit filename="/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/src/storage_identity.cpp">
+			<Option target="ucentralgw"/>
+		</Unit>
+		<Unit filename="/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/src/storage_logs.cpp">
+			<Option target="ucentralgw"/>
+		</Unit>
+		<Unit filename="/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/src/storage_mysql.cpp">
+			<Option target="ucentralgw"/>
+		</Unit>
+		<Unit filename="/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/src/storage_odbc.cpp">
+			<Option target="ucentralgw"/>
+		</Unit>
+		<Unit filename="/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/src/storage_pgql.cpp">
+			<Option target="ucentralgw"/>
+		</Unit>
+		<Unit filename="/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/src/storage_sqlite.cpp">
+			<Option target="ucentralgw"/>
+		</Unit>
+		<Unit filename="/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/src/storage_statistics.cpp">
+			<Option target="ucentralgw"/>
+		</Unit>
+		<Unit filename="/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/src/storage_tables.cpp">
+			<Option target="ucentralgw"/>
+		</Unit>
+		<Unit filename="/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/src/uAuthService.cpp">
+			<Option target="ucentralgw"/>
+		</Unit>
+		<Unit filename="/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/src/uAuthService.h">
+			<Option target="ucentralgw"/>
+		</Unit>
+		<Unit filename="/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/src/uCallbackManager.cpp">
+			<Option target="ucentralgw"/>
+		</Unit>
+		<Unit filename="/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/src/uCallbackManager.h">
+			<Option target="ucentralgw"/>
+		</Unit>
+		<Unit filename="/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/src/uCentral.cpp">
+			<Option target="ucentralgw"/>
+		</Unit>
+		<Unit filename="/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/src/uCentral.h">
+			<Option target="ucentralgw"/>
+		</Unit>
+		<Unit filename="/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/src/uCentralConfig.cpp">
+			<Option target="ucentralgw"/>
+		</Unit>
+		<Unit filename="/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/src/uCentralConfig.h">
+			<Option target="ucentralgw"/>
+		</Unit>
+		<Unit filename="/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/src/uCentralWebSocketServer.cpp">
+			<Option target="ucentralgw"/>
+		</Unit>
+		<Unit filename="/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/src/uCentralWebSocketServer.h">
+			<Option target="ucentralgw"/>
+		</Unit>
+		<Unit filename="/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/src/uCommandChannel.cpp">
+			<Option target="ucentralgw"/>
+		</Unit>
+		<Unit filename="/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/src/uCommandChannel.h">
+			<Option target="ucentralgw"/>
+		</Unit>
+		<Unit filename="/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/src/uCommandManager.cpp">
+			<Option target="ucentralgw"/>
+		</Unit>
+		<Unit filename="/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/src/uCommandManager.h">
+			<Option target="ucentralgw"/>
+		</Unit>
+		<Unit filename="/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/src/uDeviceRegistry.cpp">
+			<Option target="ucentralgw"/>
+		</Unit>
+		<Unit filename="/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/src/uDeviceRegistry.h">
+			<Option target="ucentralgw"/>
+		</Unit>
+		<Unit filename="/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/src/uFileUploader.cpp">
+			<Option target="ucentralgw"/>
+		</Unit>
+		<Unit filename="/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/src/uFileUploader.h">
+			<Option target="ucentralgw"/>
+		</Unit>
+		<Unit filename="/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/src/uFirmwareManager.cpp">
+			<Option target="ucentralgw"/>
+		</Unit>
+		<Unit filename="/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/src/uFirmwareManager.h">
+			<Option target="ucentralgw"/>
+		</Unit>
+		<Unit filename="/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/src/uStorageService.cpp">
+			<Option target="ucentralgw"/>
+		</Unit>
+		<Unit filename="/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/src/uStorageService.h">
+			<Option target="ucentralgw"/>
+		</Unit>
+		<Unit filename="/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/src/uSubSystemServer.cpp">
+			<Option target="ucentralgw"/>
+		</Unit>
+		<Unit filename="/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/src/uSubSystemServer.h">
+			<Option target="ucentralgw"/>
+		</Unit>
+		<Unit filename="/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/src/uUtils.cpp">
+			<Option target="ucentralgw"/>
+		</Unit>
+		<Unit filename="/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/src/uUtils.h">
+			<Option target="ucentralgw"/>
+		</Unit>
+		<Unit filename="/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\"/>
+		</Unit>
+		<Unit filename="/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/../../../../../../usr/local/lib/cmake/BoostDetectToolset-1.75.0.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\..\..\usr\local\lib\cmake\"/>
+		</Unit>
+		<Unit filename="/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/../../../../../../usr/local/lib/cmake/Boost-1.75.0/BoostConfig.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\..\..\usr\local\lib\cmake\Boost-1.75.0\"/>
+		</Unit>
+		<Unit filename="/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/../../../../../../usr/local/lib/cmake/Boost-1.75.0/BoostConfigVersion.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\..\..\usr\local\lib\cmake\Boost-1.75.0\"/>
+		</Unit>
+		<Unit filename="/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/../../../../../../usr/local/lib/cmake/boost_headers-1.75.0/boost_headers-config-version.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\..\..\usr\local\lib\cmake\boost_headers-1.75.0\"/>
+		</Unit>
+		<Unit filename="/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/../../../../../../usr/local/lib/cmake/boost_headers-1.75.0/boost_headers-config.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\..\..\usr\local\lib\cmake\boost_headers-1.75.0\"/>
+		</Unit>
+		<Unit filename="/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/../../../../../../usr/local/lib/cmake/boost_system-1.75.0/boost_system-config-version.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\..\..\usr\local\lib\cmake\boost_system-1.75.0\"/>
+		</Unit>
+		<Unit filename="/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/../../../../../../usr/local/lib/cmake/boost_system-1.75.0/boost_system-config.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\..\..\usr\local\lib\cmake\boost_system-1.75.0\"/>
+		</Unit>
+		<Unit filename="/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/../../../../../../usr/local/lib/cmake/boost_system-1.75.0/libboost_system-variant-mt-shared.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\..\..\usr\local\lib\cmake\boost_system-1.75.0\"/>
+		</Unit>
+		<Unit filename="/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/../../../../../../usr/local/lib/cmake/boost_system-1.75.0/libboost_system-variant-mt-static.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\..\..\usr\local\lib\cmake\boost_system-1.75.0\"/>
+		</Unit>
+		<Unit filename="/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/../../../../../../usr/local/lib/cmake/boost_system-1.75.0/libboost_system-variant-shared.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\..\..\usr\local\lib\cmake\boost_system-1.75.0\"/>
+		</Unit>
+		<Unit filename="/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/../../../../../../usr/local/lib/cmake/boost_system-1.75.0/libboost_system-variant-static.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\..\..\usr\local\lib\cmake\boost_system-1.75.0\"/>
+		</Unit>
+		<Unit filename="/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/../../../../../../usr/local/lib/cmake/CppKafka/CppKafkaConfig.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\..\..\usr\local\lib\cmake\CppKafka\"/>
+		</Unit>
+		<Unit filename="/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/../../../../../../usr/local/lib/cmake/CppKafka/CppKafkaConfigVersion.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\..\..\usr\local\lib\cmake\CppKafka\"/>
+		</Unit>
+		<Unit filename="/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/../../../../../../usr/local/lib/cmake/CppKafka/CppKafkaTargets-noconfig.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\..\..\usr\local\lib\cmake\CppKafka\"/>
+		</Unit>
+		<Unit filename="/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/../../../../../../usr/local/lib/cmake/CppKafka/CppKafkaTargets.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\..\..\usr\local\lib\cmake\CppKafka\"/>
+		</Unit>
+		<Unit filename="/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/../../../../../../usr/local/lib/cmake/Poco/PocoConfig.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\..\..\usr\local\lib\cmake\Poco\"/>
+		</Unit>
+		<Unit filename="/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/../../../../../../usr/local/lib/cmake/Poco/PocoConfigVersion.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\..\..\usr\local\lib\cmake\Poco\"/>
+		</Unit>
+		<Unit filename="/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/../../../../../../usr/local/lib/cmake/Poco/PocoCryptoConfig.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\..\..\usr\local\lib\cmake\Poco\"/>
+		</Unit>
+		<Unit filename="/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/../../../../../../usr/local/lib/cmake/Poco/PocoCryptoConfigVersion.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\..\..\usr\local\lib\cmake\Poco\"/>
+		</Unit>
+		<Unit filename="/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/../../../../../../usr/local/lib/cmake/Poco/PocoCryptoTargets-debug.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\..\..\usr\local\lib\cmake\Poco\"/>
+		</Unit>
+		<Unit filename="/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/../../../../../../usr/local/lib/cmake/Poco/PocoCryptoTargets-release.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\..\..\usr\local\lib\cmake\Poco\"/>
+		</Unit>
+		<Unit filename="/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/../../../../../../usr/local/lib/cmake/Poco/PocoCryptoTargets-relwithdebinfo.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\..\..\usr\local\lib\cmake\Poco\"/>
+		</Unit>
+		<Unit filename="/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/../../../../../../usr/local/lib/cmake/Poco/PocoCryptoTargets.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\..\..\usr\local\lib\cmake\Poco\"/>
+		</Unit>
+		<Unit filename="/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/../../../../../../usr/local/lib/cmake/Poco/PocoDataConfig.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\..\..\usr\local\lib\cmake\Poco\"/>
+		</Unit>
+		<Unit filename="/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/../../../../../../usr/local/lib/cmake/Poco/PocoDataConfigVersion.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\..\..\usr\local\lib\cmake\Poco\"/>
+		</Unit>
+		<Unit filename="/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/../../../../../../usr/local/lib/cmake/Poco/PocoDataMySQLConfig.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\..\..\usr\local\lib\cmake\Poco\"/>
+		</Unit>
+		<Unit filename="/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/../../../../../../usr/local/lib/cmake/Poco/PocoDataMySQLConfigVersion.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\..\..\usr\local\lib\cmake\Poco\"/>
+		</Unit>
+		<Unit filename="/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/../../../../../../usr/local/lib/cmake/Poco/PocoDataMySQLTargets-debug.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\..\..\usr\local\lib\cmake\Poco\"/>
+		</Unit>
+		<Unit filename="/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/../../../../../../usr/local/lib/cmake/Poco/PocoDataMySQLTargets-release.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\..\..\usr\local\lib\cmake\Poco\"/>
+		</Unit>
+		<Unit filename="/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/../../../../../../usr/local/lib/cmake/Poco/PocoDataMySQLTargets-relwithdebinfo.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\..\..\usr\local\lib\cmake\Poco\"/>
+		</Unit>
+		<Unit filename="/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/../../../../../../usr/local/lib/cmake/Poco/PocoDataMySQLTargets.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\..\..\usr\local\lib\cmake\Poco\"/>
+		</Unit>
+		<Unit filename="/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/../../../../../../usr/local/lib/cmake/Poco/PocoDataODBCConfig.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\..\..\usr\local\lib\cmake\Poco\"/>
+		</Unit>
+		<Unit filename="/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/../../../../../../usr/local/lib/cmake/Poco/PocoDataODBCConfigVersion.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\..\..\usr\local\lib\cmake\Poco\"/>
+		</Unit>
+		<Unit filename="/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/../../../../../../usr/local/lib/cmake/Poco/PocoDataODBCTargets-debug.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\..\..\usr\local\lib\cmake\Poco\"/>
+		</Unit>
+		<Unit filename="/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/../../../../../../usr/local/lib/cmake/Poco/PocoDataODBCTargets-release.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\..\..\usr\local\lib\cmake\Poco\"/>
+		</Unit>
+		<Unit filename="/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/../../../../../../usr/local/lib/cmake/Poco/PocoDataODBCTargets-relwithdebinfo.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\..\..\usr\local\lib\cmake\Poco\"/>
+		</Unit>
+		<Unit filename="/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/../../../../../../usr/local/lib/cmake/Poco/PocoDataODBCTargets.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\..\..\usr\local\lib\cmake\Poco\"/>
+		</Unit>
+		<Unit filename="/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/../../../../../../usr/local/lib/cmake/Poco/PocoDataPostgreSQLConfig.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\..\..\usr\local\lib\cmake\Poco\"/>
+		</Unit>
+		<Unit filename="/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/../../../../../../usr/local/lib/cmake/Poco/PocoDataPostgreSQLConfigVersion.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\..\..\usr\local\lib\cmake\Poco\"/>
+		</Unit>
+		<Unit filename="/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/../../../../../../usr/local/lib/cmake/Poco/PocoDataPostgreSQLTargets-debug.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\..\..\usr\local\lib\cmake\Poco\"/>
+		</Unit>
+		<Unit filename="/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/../../../../../../usr/local/lib/cmake/Poco/PocoDataPostgreSQLTargets-release.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\..\..\usr\local\lib\cmake\Poco\"/>
+		</Unit>
+		<Unit filename="/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/../../../../../../usr/local/lib/cmake/Poco/PocoDataPostgreSQLTargets-relwithdebinfo.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\..\..\usr\local\lib\cmake\Poco\"/>
+		</Unit>
+		<Unit filename="/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/../../../../../../usr/local/lib/cmake/Poco/PocoDataPostgreSQLTargets.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\..\..\usr\local\lib\cmake\Poco\"/>
+		</Unit>
+		<Unit filename="/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/../../../../../../usr/local/lib/cmake/Poco/PocoDataSQLiteConfig.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\..\..\usr\local\lib\cmake\Poco\"/>
+		</Unit>
+		<Unit filename="/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/../../../../../../usr/local/lib/cmake/Poco/PocoDataSQLiteConfigVersion.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\..\..\usr\local\lib\cmake\Poco\"/>
+		</Unit>
+		<Unit filename="/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/../../../../../../usr/local/lib/cmake/Poco/PocoDataSQLiteTargets-debug.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\..\..\usr\local\lib\cmake\Poco\"/>
+		</Unit>
+		<Unit filename="/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/../../../../../../usr/local/lib/cmake/Poco/PocoDataSQLiteTargets-release.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\..\..\usr\local\lib\cmake\Poco\"/>
+		</Unit>
+		<Unit filename="/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/../../../../../../usr/local/lib/cmake/Poco/PocoDataSQLiteTargets-relwithdebinfo.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\..\..\usr\local\lib\cmake\Poco\"/>
+		</Unit>
+		<Unit filename="/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/../../../../../../usr/local/lib/cmake/Poco/PocoDataSQLiteTargets.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\..\..\usr\local\lib\cmake\Poco\"/>
+		</Unit>
+		<Unit filename="/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/../../../../../../usr/local/lib/cmake/Poco/PocoDataTargets-debug.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\..\..\usr\local\lib\cmake\Poco\"/>
+		</Unit>
+		<Unit filename="/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/../../../../../../usr/local/lib/cmake/Poco/PocoDataTargets-release.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\..\..\usr\local\lib\cmake\Poco\"/>
+		</Unit>
+		<Unit filename="/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/../../../../../../usr/local/lib/cmake/Poco/PocoDataTargets-relwithdebinfo.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\..\..\usr\local\lib\cmake\Poco\"/>
+		</Unit>
+		<Unit filename="/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/../../../../../../usr/local/lib/cmake/Poco/PocoDataTargets.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\..\..\usr\local\lib\cmake\Poco\"/>
+		</Unit>
+		<Unit filename="/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/../../../../../../usr/local/lib/cmake/Poco/PocoFoundationConfig.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\..\..\usr\local\lib\cmake\Poco\"/>
+		</Unit>
+		<Unit filename="/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/../../../../../../usr/local/lib/cmake/Poco/PocoFoundationConfigVersion.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\..\..\usr\local\lib\cmake\Poco\"/>
+		</Unit>
+		<Unit filename="/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/../../../../../../usr/local/lib/cmake/Poco/PocoFoundationTargets-debug.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\..\..\usr\local\lib\cmake\Poco\"/>
+		</Unit>
+		<Unit filename="/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/../../../../../../usr/local/lib/cmake/Poco/PocoFoundationTargets-release.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\..\..\usr\local\lib\cmake\Poco\"/>
+		</Unit>
+		<Unit filename="/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/../../../../../../usr/local/lib/cmake/Poco/PocoFoundationTargets-relwithdebinfo.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\..\..\usr\local\lib\cmake\Poco\"/>
+		</Unit>
+		<Unit filename="/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/../../../../../../usr/local/lib/cmake/Poco/PocoFoundationTargets.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\..\..\usr\local\lib\cmake\Poco\"/>
+		</Unit>
+		<Unit filename="/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/../../../../../../usr/local/lib/cmake/Poco/PocoJSONConfig.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\..\..\usr\local\lib\cmake\Poco\"/>
+		</Unit>
+		<Unit filename="/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/../../../../../../usr/local/lib/cmake/Poco/PocoJSONConfigVersion.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\..\..\usr\local\lib\cmake\Poco\"/>
+		</Unit>
+		<Unit filename="/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/../../../../../../usr/local/lib/cmake/Poco/PocoJSONTargets-debug.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\..\..\usr\local\lib\cmake\Poco\"/>
+		</Unit>
+		<Unit filename="/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/../../../../../../usr/local/lib/cmake/Poco/PocoJSONTargets-release.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\..\..\usr\local\lib\cmake\Poco\"/>
+		</Unit>
+		<Unit filename="/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/../../../../../../usr/local/lib/cmake/Poco/PocoJSONTargets-relwithdebinfo.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\..\..\usr\local\lib\cmake\Poco\"/>
+		</Unit>
+		<Unit filename="/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/../../../../../../usr/local/lib/cmake/Poco/PocoJSONTargets.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\..\..\usr\local\lib\cmake\Poco\"/>
+		</Unit>
+		<Unit filename="/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/../../../../../../usr/local/lib/cmake/Poco/PocoJWTConfig.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\..\..\usr\local\lib\cmake\Poco\"/>
+		</Unit>
+		<Unit filename="/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/../../../../../../usr/local/lib/cmake/Poco/PocoJWTConfigVersion.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\..\..\usr\local\lib\cmake\Poco\"/>
+		</Unit>
+		<Unit filename="/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/../../../../../../usr/local/lib/cmake/Poco/PocoJWTTargets-debug.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\..\..\usr\local\lib\cmake\Poco\"/>
+		</Unit>
+		<Unit filename="/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/../../../../../../usr/local/lib/cmake/Poco/PocoJWTTargets-release.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\..\..\usr\local\lib\cmake\Poco\"/>
+		</Unit>
+		<Unit filename="/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/../../../../../../usr/local/lib/cmake/Poco/PocoJWTTargets-relwithdebinfo.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\..\..\usr\local\lib\cmake\Poco\"/>
+		</Unit>
+		<Unit filename="/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/../../../../../../usr/local/lib/cmake/Poco/PocoJWTTargets.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\..\..\usr\local\lib\cmake\Poco\"/>
+		</Unit>
+		<Unit filename="/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/../../../../../../usr/local/lib/cmake/Poco/PocoNetConfig.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\..\..\usr\local\lib\cmake\Poco\"/>
+		</Unit>
+		<Unit filename="/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/../../../../../../usr/local/lib/cmake/Poco/PocoNetConfigVersion.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\..\..\usr\local\lib\cmake\Poco\"/>
+		</Unit>
+		<Unit filename="/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/../../../../../../usr/local/lib/cmake/Poco/PocoNetSSLConfig.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\..\..\usr\local\lib\cmake\Poco\"/>
+		</Unit>
+		<Unit filename="/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/../../../../../../usr/local/lib/cmake/Poco/PocoNetSSLConfigVersion.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\..\..\usr\local\lib\cmake\Poco\"/>
+		</Unit>
+		<Unit filename="/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/../../../../../../usr/local/lib/cmake/Poco/PocoNetSSLTargets-debug.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\..\..\usr\local\lib\cmake\Poco\"/>
+		</Unit>
+		<Unit filename="/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/../../../../../../usr/local/lib/cmake/Poco/PocoNetSSLTargets-release.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\..\..\usr\local\lib\cmake\Poco\"/>
+		</Unit>
+		<Unit filename="/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/../../../../../../usr/local/lib/cmake/Poco/PocoNetSSLTargets-relwithdebinfo.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\..\..\usr\local\lib\cmake\Poco\"/>
+		</Unit>
+		<Unit filename="/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/../../../../../../usr/local/lib/cmake/Poco/PocoNetSSLTargets.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\..\..\usr\local\lib\cmake\Poco\"/>
+		</Unit>
+		<Unit filename="/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/../../../../../../usr/local/lib/cmake/Poco/PocoNetTargets-debug.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\..\..\usr\local\lib\cmake\Poco\"/>
+		</Unit>
+		<Unit filename="/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/../../../../../../usr/local/lib/cmake/Poco/PocoNetTargets-release.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\..\..\usr\local\lib\cmake\Poco\"/>
+		</Unit>
+		<Unit filename="/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/../../../../../../usr/local/lib/cmake/Poco/PocoNetTargets-relwithdebinfo.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\..\..\usr\local\lib\cmake\Poco\"/>
+		</Unit>
+		<Unit filename="/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/../../../../../../usr/local/lib/cmake/Poco/PocoNetTargets.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\..\..\usr\local\lib\cmake\Poco\"/>
+		</Unit>
+		<Unit filename="/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/../../../../../../usr/local/lib/cmake/Poco/PocoUtilConfig.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\..\..\usr\local\lib\cmake\Poco\"/>
+		</Unit>
+		<Unit filename="/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/../../../../../../usr/local/lib/cmake/Poco/PocoUtilConfigVersion.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\..\..\usr\local\lib\cmake\Poco\"/>
+		</Unit>
+		<Unit filename="/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/../../../../../../usr/local/lib/cmake/Poco/PocoUtilTargets-debug.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\..\..\usr\local\lib\cmake\Poco\"/>
+		</Unit>
+		<Unit filename="/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/../../../../../../usr/local/lib/cmake/Poco/PocoUtilTargets-release.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\..\..\usr\local\lib\cmake\Poco\"/>
+		</Unit>
+		<Unit filename="/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/../../../../../../usr/local/lib/cmake/Poco/PocoUtilTargets-relwithdebinfo.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\..\..\usr\local\lib\cmake\Poco\"/>
+		</Unit>
+		<Unit filename="/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/../../../../../../usr/local/lib/cmake/Poco/PocoUtilTargets.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\..\..\usr\local\lib\cmake\Poco\"/>
+		</Unit>
+		<Unit filename="/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/../../../../../../usr/local/lib/cmake/Poco/PocoXMLConfig.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\..\..\usr\local\lib\cmake\Poco\"/>
+		</Unit>
+		<Unit filename="/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/../../../../../../usr/local/lib/cmake/Poco/PocoXMLConfigVersion.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\..\..\usr\local\lib\cmake\Poco\"/>
+		</Unit>
+		<Unit filename="/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/../../../../../../usr/local/lib/cmake/Poco/PocoXMLTargets-debug.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\..\..\usr\local\lib\cmake\Poco\"/>
+		</Unit>
+		<Unit filename="/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/../../../../../../usr/local/lib/cmake/Poco/PocoXMLTargets-release.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\..\..\usr\local\lib\cmake\Poco\"/>
+		</Unit>
+		<Unit filename="/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/../../../../../../usr/local/lib/cmake/Poco/PocoXMLTargets-relwithdebinfo.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\..\..\usr\local\lib\cmake\Poco\"/>
+		</Unit>
+		<Unit filename="/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/../../../../../../usr/local/lib/cmake/Poco/PocoXMLTargets.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\..\..\usr\local\lib\cmake\Poco\"/>
+		</Unit>
+		<Unit filename="/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/cmake/FindMySQL.cmake">
+			<Option virtualFolder="CMake Files\cmake\"/>
+		</Unit>
+		<Unit filename="/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/cmake/FindPostgreSQL.cmake">
+			<Option virtualFolder="CMake Files\cmake\"/>
+		</Unit>
+		<Unit filename="/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/cmake/FindRdKafka.cmake">
+			<Option virtualFolder="CMake Files\cmake\"/>
+		</Unit>
+		<Unit filename="/Users/stephb/Desktop/Dropbox/clion/wlan-cloud-ucentralgw/cmake-build-debug/rdkafka_version_test.cpp">
+			<Option virtualFolder="CMake Files\cmake-build-debug\"/>
+		</Unit>
+	</Project>
+</CodeBlocks_project_file>

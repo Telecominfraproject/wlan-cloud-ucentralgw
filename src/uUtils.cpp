@@ -188,6 +188,8 @@ namespace uCentral::Utils {
 
 	std::string to_RFC3339(uint64_t t)
 	{
+		if(t==0)
+			return "";
 		return Poco::DateTimeFormatter::format(Poco::DateTime(Poco::Timestamp::fromEpochTime(t)), Poco::DateTimeFormat::ISO8601_FORMAT);
 	}
 
