@@ -301,6 +301,7 @@ namespace uCentral::WebSocket {
         {
             Logger_.debug(Poco::format("RPC(%s): Completed outstanding RPC %Lu",SerialNumber_,ID));
             uCentral::Storage::CommandCompleted(RPC->second.UUID,Vars,RPC->second.Full);
+			RPCs_.erase(RPC);
         }
         else
         {
@@ -601,13 +602,13 @@ namespace uCentral::WebSocket {
             } else {
                 switch (Op) {
                     case Poco::Net::WebSocket::FRAME_OP_PING: {
-                        Logger_.debug("WS-PING(" + CId_ + "): received. PONG sent back.");
+                        Logger_.debug(Poco::format("WS-PING(%s): received. PONG sent back.", CId_));
                         WS_->sendFrame("", 0,(int)Poco::Net::WebSocket::FRAME_OP_PONG | (int)Poco::Net::WebSocket::FRAME_FLAG_FIN);
                         }
                         break;
 
                     case Poco::Net::WebSocket::FRAME_OP_PONG: {
-                        Logger_.debug("PONG(" + CId_ + "): received and ignored.");
+                        Logger_.debug(Poco::format("PONG(%s): received and ignored.",CId_));
                         }
                         break;
 
