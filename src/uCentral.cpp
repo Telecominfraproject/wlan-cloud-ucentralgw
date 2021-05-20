@@ -294,6 +294,12 @@ namespace uCentral {
         if (!HelpRequested_) {
             Poco::Logger &logger = Poco::Logger::get("uCentral");
 			logger.notice(Poco::format("Starting uCentral version %s.",Version()));
+
+			if (config().getBool("application.runAsDaemon", false))
+			{
+				logger.information("Starting as a daemon.");
+			}
+
             uCentral::Storage::Start();
             uCentral::Auth::Start();
             uCentral::DeviceRegistry::Start();
