@@ -26,84 +26,90 @@ then
   exit 1
 fi
 
+if [[ "$FLAGS" == "" ]]
+then
+	FLAGS="-s"
+fi
+
 token=""
 rfile=result.json
 username="support@example.com"
 password="support"
 
+
 login() {
   payload="{ \"userId\" : \"$username\" , \"password\" : \"$password\" }"
-  token=$(curl -s -X POST -H "Content-Type: application/json" -d "$payload" "https://$UCENTRALGW/api/v1/oauth2" | jq -r '.access_token')
+  token=$(curl $FLAGS -X POST -H "Content-Type: application/json" -d "$payload" "https://$UCENTRALGW/api/v1/oauth2" | jq -r '.access_token')
 }
 
 logout() {
-  curl  -s -X DELETE -H "Content-Type: application/json" \
+  curl  $FLAGS -X DELETE -H "Content-Type: application/json" \
         -H "Authorization: Bearer $token" \
         "https://$UCENTRALGW/api/v1/oauth2/$token"
 }
 
 getdevice() {
-  curl  -s -X GET "https://$UCENTRALGW/api/v1/device/$1" \
+  curl  $FLAGS -X GET "https://$UCENTRALGW/api/v1/device/$1" \
         -H "accept: application/json" \
         -H "Authorization: Bearer $token" > $rfile
   jq < $rfile
 }
 
 getcommand() {
-  curl  -s -X GET "https://$UCENTRALGW/api/v1/command/$1" \
+  curl  $FLAGS -X GET "https://$UCENTRALGW/api/v1/command/$1" \
         -H "accept: application/json" \
         -H "Authorization: Bearer $token" > $rfile
   jq < $rfile
 }
 
 deletecommand() {
-  curl  -s -X DELETE "https://$UCENTRALGW/api/v1/command/$1" \
+  curl  $FLAGS -X DELETE "https://$UCENTRALGW/api/v1/command/$1" \
         -H "accept: application/json" \
         -H "Authorization: Bearer $token"
 }
 
 listcommands() {
-  curl  -s -X GET "https://$UCENTRALGW/api/v1/commands?serialNumber=$1&limit=3000" \
+  curl  $FLAGS -X GET "https://$UCENTRALGW/api/v1/commands?serialNumber=$1&limit=3000" \
         -H "accept: application/json" \
         -H "Authorization: Bearer $token"  > $rfile
   jq < $rfile
 }
 
 deletecommands() {
-  curl  -s -X DELETE "https://$UCENTRALGW/api/v1/commands?serialNumber=$1" \
+  curl  $FLAGS -X DELETE "https://$UCENTRALGW/api/v1/commands?serialNumber=$1" \
         -H "accept: application/json" \
         -H "Authorization: Bearer $token"
 }
 
 getcapabilities() {
-  curl  -s -X GET "https://$UCENTRALGW/api/v1/device/$1/capabilities" \
+  curl  -$FLAGS -X GET "https://$UCENTRALGW/api/v1/device/$1/capabilities" \
         -H "accept: application/json" \
         -H "Authorization: Bearer $token" > $rfile
   jq < $rfile
 }
 
 deletecapabilities() {
-  curl  -s -X DELETE "https://$UCENTRALGW/api/v1/device/$1/capabilities" \
+  curl  $FLAGS -X DELETE "https://$UCENTRALGW/api/v1/device/$1/capabilities" \
         -H "accept: application/json" \
         -H "Authorization: Bearer $token"
 }
 
 listdevices() {
-  curl  -s -X GET "https://$UCENTRALGW/api/v1/devices" \
+  curl  $FLAGS -X GET "https://$UCENTRALGW/api/v1/devices" \
         -H "accept: application/json" \
         -H "Authorization: Bearer $token" > $rfile
   jq < $rfile
 }
 
 deletedevice() {
-  curl  -s -X DELETE "https://$UCENTRALGW/api/v1/device/$1" \
+  curl  $FLAGS -X DELETE "https://$UCENTRALGW/api/v1/device/$1" \
         -H "accept: application/json" \
         -H "Authorization: Bearer $token"
 }
 
 createdevice() {
-  payload="{ \"serialNumber\": \"$1\", \"UUID\": 1234456, \"configuration\" : $(cat "$2") , \"deviceType\": \"AP_Default\",\"location\": \"\", \"macAddress\": \"$3\", \"manufacturer\": \"Linksys EA8300 (Dallas)\", \"notes\": \"auto created device.\", \"owner\": \"\" }"
-  curl  -s -X POST "https://$UCENTRALGW/api/v1/device/$1" \
+  payload="{ \"serialNumber\": \"$1\", \"UUID\": 1234456, \"configuration\" : $(cat "$2 ") login; , \"deviceType\": \"AP_Default\",\"location\": \"\", \"macAddress\": \"$3\", \"manufacturer\": \"Linksys EA8300 (Dallas)\", \"notes\": \"auto created device.\", \"owner\": \"\" }"
+  curl  $FLAGS -X POST "https://$UCENTRALGW/api/v1/device/$1" \
         -H "accept: application/json" \
         -H "Authorization: Bearer $token" \
         -d "$payload"  > $rfile
@@ -112,7 +118,7 @@ createdevice() {
 
 reboot() {
   payload="{ \"serialNumber\" : \"$1\" }"
-  curl  -s -X POST "https://$UCENTRALGW/api/v1/device/$1/reboot" \
+  curl  $FLAGS -X POST "https://$UCENTRALGW/api/v1/device/$1/reboot" \
         -H "accept: application/json" \
         -H "Authorization: Bearer $token" \
         -d "$payload"  > $rfile
@@ -121,14 +127,14 @@ reboot() {
 
 setloglevel() {
   payload="{ \"command\" : \"setloglevel\" , \"parameters\" : [ { \"name\" : \"$1\" , \"value\" : \"$2\" } ] }"
-  curl  -s -X POST "https://$UCENTRALGW/api/v1/system" \
+  curl  $FLAGS -X POST "https://$UCENTRALGW/api/v1/system" \
         -H  "accept: application/json" \
         -H "Authorization: Bearer $token" \
         -d "$payload"
 }
 
 getdevicestatus() {
-  curl  -s -X GET "https://$UCENTRALGW/api/v1/device/$1/status" \
+  curl  $FLAGS -X GET "https://$UCENTRALGW/api/v1/device/$1/status" \
         -H  "accept: application/json" \
         -H "Authorization: Bearer $token"  > $rfile
   jq < $rfile
@@ -136,7 +142,7 @@ getdevicestatus() {
 
 upgrade() {
   payload="{ \"serialNumber\" : \"$1\" , \"uri\" : \"$2\" }"
-  curl  -s -X POST "https://$UCENTRALGW/api/v1/device/$1/upgrade" \
+  curl  $FLAGS -X POST "https://$UCENTRALGW/api/v1/device/$1/upgrade" \
         -H "accept: application/json" \
         -H "Authorization: Bearer $token" \
         -d "$payload"   > $rfile
@@ -145,7 +151,7 @@ upgrade() {
 
 leds() {
   payload="{ \"serialNumber\" : \"$1\" , \"duration\" : $3, \"pattern\" : \"$2\" }"
-  curl  -s -X POST "https://$UCENTRALGW/api/v1/device/$1/leds" \
+  curl  $FLAGS -X POST "https://$UCENTRALGW/api/v1/device/$1/leds" \
         -H "accept: application/json" \
         -H "Authorization: Bearer $token" \
         -d "$payload" > $rfile
@@ -154,7 +160,7 @@ leds() {
 
 factory() {
   payload="{ \"serialNumber\" : \"$1\" , \"keepRedirector\" : $2 }"
-  curl  -s -X POST "https://$UCENTRALGW/api/v1/device/$1/factory" \
+  curl  $FLAGS -X POST "https://$UCENTRALGW/api/v1/device/$1/factory" \
         -H "accept: application/json" \
         -H "Authorization: Bearer $token" \
         -d "$payload" > $rfile
@@ -162,8 +168,8 @@ factory() {
 }
 
 configure() {
-  payload="{ \"serialNumber\" : \"$1\", \"UUID\" : 123456 , \"configuration\" : $(cat "$2") }"
-  curl  -s -X POST "https://$UCENTRALGW/api/v1/device/$1/configure" \
+  payload="{ \"serialNumber\" : \"$1\", \"UUID\" : 123456 , \"configuration\" : $(cat "$2 ") login; }"
+  curl  $FLAGS -X POST "https://$UCENTRALGW/api/v1/device/$1/configure" \
         -H "accept: application/json" \
         -H "Authorization: Bearer $token" \
         -d "$payload" > $rfile
@@ -172,7 +178,7 @@ configure() {
 
 request() {
   payload="{ \"serialNumber\" : \"$1\" , \"message\" : \"$2\" }"
-  curl  -s -X POST "https://$UCENTRALGW/api/v1/device/$1/request" \
+  curl  $FLAGS -X POST "https://$UCENTRALGW/api/v1/device/$1/request" \
         -H "accept: application/json" \
         -H "Authorization: Bearer $token" \
         -d "$payload"  > $rfile
@@ -181,7 +187,7 @@ request() {
 
 wifiscan() {
   payload="{ \"serialNumber\" : \"$1\" , \"verbose\" : $2 }"
-  curl  -s -X POST "https://$UCENTRALGW/api/v1/device/$1/wifiscan" \
+  curl  $FLAGS -X POST "https://$UCENTRALGW/api/v1/device/$1/wifiscan" \
         --max-time 20 \
         -H "accept: application/json" \
         -H "Authorization: Bearer $token" \
@@ -191,7 +197,7 @@ wifiscan() {
 
 trace() {
   payload="{ \"serialNumber\" : \"$1\" , \"duration\" : $2, \"network\" : \"$3\" }"
-  curl  -s -X POST "https://$UCENTRALGW/api/v1/device/$1/trace" \
+  curl  $FLAGS -X POST "https://$UCENTRALGW/api/v1/device/$1/trace" \
         -H "accept: application/json" \
         -H "Authorization: Bearer $token" \
         -d "$payload"  > $rfile
@@ -199,27 +205,27 @@ trace() {
 }
 
 getstats() {
-  curl  -s -X GET "https://$UCENTRALGW/api/v1/device/$1/statistics" \
+  curl  $FLAGS -X GET "https://$UCENTRALGW/api/v1/device/$1/statistics" \
         -H "accept: application/json" \
         -H "Authorization: Bearer $token"   > $rfile
   jq < $rfile
 }
 
 getlogs() {
-  curl  -s -X GET "https://$UCENTRALGW/api/v1/device/$1/logs" \
+  curl  $FLAGS -X GET "https://$UCENTRALGW/api/v1/device/$1/logs" \
         -H "accept: application/json" \
         -H "Authorization: Bearer $token"    > $rfile
   jq < $rfile
 }
 
 deletelogs() {
-  curl  -s -X DELETE "https://$UCENTRALGW/api/v1/device/$1/logs" \
+  curl  $FLAGS -X DELETE "https://$UCENTRALGW/api/v1/device/$1/logs" \
         -H "accept: application/json" \
         -H "Authorization: Bearer $token"
 }
 
 gethealthchecks() {
-  curl  -s -X GET "https://$UCENTRALGW/api/v1/device/$1/healthchecks" \
+  curl  $FLAGS -X GET "https://$UCENTRALGW/api/v1/device/$1/healthchecks" \
         -H "accept: application/json" \
         -H "Authorization: Bearer $token"    > $rfile
   jq < $rfile
@@ -227,7 +233,7 @@ gethealthchecks() {
 
 createdefaultconfig() {
   payload="{ \"name\": \"$1\", \"modelIds\" : \"$2\", \"configuration\" : $(cat "$3")}"
-  curl  -s -X POST "https://$UCENTRALGW/api/v1/default_configuration/$1" \
+  curl  $FLAGS -X POST "https://$UCENTRALGW/api/v1/default_configuration/$1" \
         -H "accept: application/json" \
         -H "Authorization: Bearer $token" \
         -d "$payload" > $rfile
@@ -235,7 +241,7 @@ createdefaultconfig() {
 }
 
 listdefaultconfigs() {
-  curl  -s -X GET "https://$UCENTRALGW/api/v1/default_configurations" \
+  curl  $FLAGS -X GET "https://$UCENTRALGW/api/v1/default_configurations" \
         -H "accept: application/json" \
         -H "Authorization: Bearer $token" > $rfile
   jq < $rfile
@@ -243,20 +249,20 @@ listdefaultconfigs() {
 
 addblacklistdevice() {
   payload="{ \"devices\" : [ {\"serialNumber\": \"$1\" , \"reason\" : \"$2\" } ] }"
-  curl  -s -X POST "https://$UCENTRALGW/api/v1/blacklist" \
+  curl  $FLAGS -X POST "https://$UCENTRALGW/api/v1/blacklist" \
         -H "accept: application/json" \
         -H "Authorization: Bearer $token" \
         -d "$payload"
 }
 
 deleteblacklistdevice() {
-  curl  -s -X DELETE "https://$UCENTRALGW/api/v1/blacklist?serialNumber=$1" \
+  curl  $FLAGS -X DELETE "https://$UCENTRALGW/api/v1/blacklist?serialNumber=$1" \
         -H "accept: application/json" \
         -H "Authorization: Bearer $token"
 }
 
 getblacklist() {
-  curl  -s -X GET "https://$UCENTRALGW/api/v1/blacklist" \
+  curl  $FLAGS -X GET "https://$UCENTRALGW/api/v1/blacklist" \
         -H "accept: application/json" \
         -H "Authorization: Bearer $token"  > $rfile
   jq < $rfile
@@ -264,7 +270,7 @@ getblacklist() {
 
 eventqueue() {
   payload="{ \"serialNumber\" : \"$1\" , \"types\" : [ \"dhcp\", \"rrm\" ] }"
-  curl  -s -X POST "https://$UCENTRALGW/api/v1/device/$1/eventqueue" \
+  curl  $FLAGS -X POST "https://$UCENTRALGW/api/v1/device/$1/eventqueue" \
         --max-time 20 \
         -H "accept: application/json" \
         -H "Authorization: Bearer $token" \
@@ -273,36 +279,36 @@ eventqueue() {
 }
 
 selectdevices() {
-  curl  -s -X GET "https://$UCENTRALGW/api/v1/devices?select=$1" \
+  curl  $FLAGS -X GET "https://$UCENTRALGW/api/v1/devices?select=$1" \
         -H "accept: application/json" \
         -H "Authorization: Bearer $token" > $rfile
   jq < $rfile
 }
 
 deviceserialnumbers() {
-  curl  -s -X GET "https://$UCENTRALGW/api/v1/devices?serialOnly=true" \
+  curl  $FLAGS -X GET "https://$UCENTRALGW/api/v1/devices?serialOnly=true" \
         -H "accept: application/json" \
         -H "Authorization: Bearer $token" > $rfile
   jq < $rfile
 }
 
 deviceswithstatus() {
-  curl  -s -X GET "https://$UCENTRALGW/api/v1/devices?deviceWithStatus=true" \
+  curl  $FLAGS -X GET "https://$UCENTRALGW/api/v1/devices?deviceWithStatus=true" \
         -H "accept: application/json" \
         -H "Authorization: Bearer $token" > $rfile
   jq < $rfile
 }
 
 devicecount() {
-  curl  -s -X GET "https://$UCENTRALGW/api/v1/devices?countOnly=true" \
+  curl  $FLAGS -X GET "https://$UCENTRALGW/api/v1/devices?countOnly=true" \
         -H "accept: application/json" \
         -H "Authorization: Bearer $token" > $rfile
   jq < $rfile
 }
 
 getfile() {
-	curl  -s -X GET "https://$UCENTRALGW/api/v1/file/$2?serialNumber=$1" \
-        -H "accept: application/octet-stream" \
+  curl  $FLAGS -X GET "https://$UCENTRALGW/api/v1/file/$2?serialNumber=$1" \
+        -H "accept: application/octettream" \
         -H "Authorization: Bearer $token" \
 		-o "$2.pcap"
 }
@@ -369,49 +375,50 @@ help() {
   echo "                                  level:none/fatal/critical/error/warning/notice/information/debug/trace"
   echo "getfile <uuid>					  Get teh file associated with trace command <uuid>"
   echo
+  echo "To pass additional flags to the CURL commnd, create an environment variable called FLAGS and git ve the values you"
+  echo "want. For example, for force all call to use IPv6, set FLAGS=\"-6\", for verbose mode and IPv6, set FLAGS=\"-6 -v\""
+  echo
+  echo
 }
-
-login
 
 shopt -s nocasematch
 case "$1" in
-  "getdevice") getdevice "$2";;
-  "help") help;;
-  "getcommand")  getcommand "$2";;
-  "deletecommand") deletecommand "$2";;
-  "getcapabilities") getcapabilities "$2";;
-  "deletecapabilities") deletecapabilities "$2";;
-  "listdevices") listdevices;;
-  "deletedevice") deletedevice "$2";;
-  "createdevice") createdevice "$2" "$3";;
-  "reboot") reboot "$2";;
-  "setloglevel") setloglevel "$2" "$3";;
-  "getdevicestatus") getdevicestatus "$2";;
-  "upgrade") upgrade "$2" "$3";;
-  "factory") factory "$2" "$3";;
-  "leds") leds "$2" "$3" "$4";;
-  "listcommands") listcommands "$2";;
-  "deletecommands") deletecommands "$2";;
-  "configure") configure "$2" "$3";;
-  "request") request "$2" "$3";;
-  "wifiscan") wifiscan "$2" "$3";;
-  "trace") trace "$2" "$3" "$4";;
-  "getstats") getstats "$2";;
-  "getlogs") getlogs "$2";;
-  "deletelogs") deletelogs "$2";;
-  "gethealthchecks") gethealthchecks "$2";;
-  "createdefaultconfig") createdefaultconfig "$2" "$3" "$4";;
-  "listdefaultconfigs") listdefaultconfigs "$2";;
-  "addblacklistdevice") addblacklistdevice "$2" "$3";;
-  "deleteblacklistdevice") deleteblacklistdevice "$2";;
-  "getblacklist") getblacklist;;
-  "eventqueue") eventqueue "$2";;
-  "selectdevices") selectdevices "$2";;
-  "deviceserialnumbers") deviceserialnumbers ;;
-  "devicecount") devicecount ;;
-  "deviceswithstatus") deviceswithstatus ;;
-  "getfile") getfile "$2" "$3";;
+  "getdevice") login; login; getdevice "$2"; logout ;;
+  "help") login; help  ; logout ;;
+  "getcommand") login;  getcommand "$2"  ; logout ;;
+  "deletecommand") login; deletecommand "$2"  ; logout ;;
+  "getcapabilities") login; getcapabilities "$2"  ; logout ;;
+  "deletecapabilities") login; deletecapabilities "$2"  ; logout ;;
+  "listdevices") login; listdevices  ; logout ;;
+  "deletedevice") login; deletedevice "$2"  ; logout ;;
+  "createdevice") login; createdevice "$2" "$3"  ; logout ;;
+  "reboot") login; reboot "$2"  ; logout ;;
+  "setloglevel") login; setloglevel "$2" "$3"  ; logout ;;
+  "getdevicestatus") login; getdevicestatus "$2"  ; logout ;;
+  "upgrade") login; upgrade "$2" "$3"  ; logout ;;
+  "factory") login; factory "$2" "$3"  ; logout ;;
+  "leds") login; leds "$2" "$3" "$4"  ; logout ;;
+  "listcommands") login; listcommands "$2"  ; logout ;;
+  "deletecommands") login; deletecommands "$2"  ; logout ;;
+  "configure") login; configure "$2" "$3"  ; logout ;;
+  "request") login; request "$2" "$3"  ; logout ;;
+  "wifiscan") login; wifiscan "$2" "$3"  ; logout ;;
+  "trace") login; trace "$2" "$3" "$4"  ; logout ;;
+  "getstats") login; getstats "$2"  ; logout ;;
+  "getlogs") login; getlogs "$2"  ; logout ;;
+  "deletelogs") login; deletelogs "$2"  ; logout ;;
+  "gethealthchecks") login; gethealthchecks "$2"  ; logout ;;
+  "createdefaultconfig") login; createdefaultconfig "$2" "$3" "$4"  ; logout ;;
+  "listdefaultconfigs") login; listdefaultconfigs "$2"  ; logout ;;
+  "addblacklistdevice") login; addblacklistdevice "$2" "$3"  ; logout ;;
+  "deleteblacklistdevice") login; deleteblacklistdevice "$2"  ; logout ;;
+  "getblacklist") login; getblacklist  ; logout ;;
+  "eventqueue") login; eventqueue "$2"  ; logout ;;
+  "selectdevices") login; selectdevices "$2"  ; logout ;;
+  "deviceserialnumbers") login; deviceserialnumbers   ; logout ;;
+  "devicecount") login; devicecount   ; logout ;;
+  "deviceswithstatus") login; deviceswithstatus   ; logout ;;
+  "getfile") login; getfile "$2" "$3"  ; logout ;;
  *) help ;;
 esac
 
-logout
