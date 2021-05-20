@@ -155,6 +155,7 @@ void RESTAPIHandler::ProcessOptions(Poco::Net::HTTPServerRequest & Request, Poco
 	AddCORS(Request, Response);
 	SetCommonHeaders(Response);
 	Response.setContentLength(0);
+	Response.set("Access-Control-Allow-Credentials", "true");
 	Response.setStatus(Poco::Net::HTTPResponse::HTTP_NO_CONTENT);
 	std::cout << "RESPONSE:" << std::endl;
 	for(const auto &[f,s]:Response)
