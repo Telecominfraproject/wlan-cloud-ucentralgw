@@ -85,7 +85,7 @@
 				<Option compiler="gcc"/>
 				<Compiler>
 					<Add option="-DAPP_VERSION=&quot;0.4.0&quot;"/>
-					<Add option="-DBUILD_NUMBER=&quot;57&quot;"/>
+					<Add option="-DBUILD_NUMBER=&quot;61&quot;"/>
 					<Add option="-D_DEBUG"/>
 					<Add option="-DPOCO_ENABLE_CPP14"/>
 					<Add option="-DPOCO_ENABLE_CPP11"/>
@@ -122,7 +122,7 @@
 				<Option compiler="gcc"/>
 				<Compiler>
 					<Add option="-DAPP_VERSION=&quot;0.4.0&quot;"/>
-					<Add option="-DBUILD_NUMBER=&quot;57&quot;"/>
+					<Add option="-DBUILD_NUMBER=&quot;61&quot;"/>
 					<Add option="-D_DEBUG"/>
 					<Add option="-DPOCO_ENABLE_CPP14"/>
 					<Add option="-DPOCO_ENABLE_CPP11"/>
