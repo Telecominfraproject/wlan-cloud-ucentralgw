@@ -142,6 +142,7 @@ void RESTAPIHandler::AddCORS(Poco::Net::HTTPServerRequest & Request, Poco::Net::
 }
 
 void RESTAPIHandler::SetCommonHeaders(Poco::Net::HTTPServerResponse &Response) {
+	Response.setVersion(Poco::Net::HTTPMessage::HTTP_1_1);
 	Response.setChunkedTransferEncoding(true);
 	Response.setKeepAlive(true);
 	Response.setContentType("application/json");
@@ -153,7 +154,6 @@ void RESTAPIHandler::ProcessOptions(Poco::Net::HTTPServerRequest & Request, Poco
 {
 	AddCORS(Request, Response);
 	SetCommonHeaders(Response);
-	Response.setContentType("text/plain");
 	Response.setContentLength(0);
 	Response.setStatus(Poco::Net::HTTPResponse::HTTP_NO_CONTENT);
 	std::cout << "RESPONSE:" << std::endl;
