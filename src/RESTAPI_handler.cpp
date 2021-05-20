@@ -123,7 +123,7 @@ static std::string MakeList(const std::vector<std::string> & L)
         if( Return.empty() )
             Return = i;
         else
-            Return += ',' + i;
+            Return += ", " + i;
 
     return Return;
 }
@@ -132,6 +132,7 @@ void RESTAPIHandler::AddCORS(Poco::Net::HTTPServerRequest & Request, Poco::Net::
 	auto Origin = Request.find("Origin");
 	if(Origin!=Request.end()) {
 		Response.set("Access-Control-Allow-Origin", Origin->second);
+		Response.set("Vary", "Origin");
 	} else {
 		Response.set("Access-Control-Allow-Origin", "*");
 	}
@@ -152,9 +153,9 @@ void RESTAPIHandler::ProcessOptions(Poco::Net::HTTPServerRequest & Request, Poco
 {
 	AddCORS(Request, Response);
 	SetCommonHeaders(Response);
-	Response.setStatus(Poco::Net::HTTPResponse::HTTP_NO_CONTENT);
 	Response.setContentType("text/plain");
 	Response.setContentLength(0);
+	Response.setStatus(Poco::Net::HTTPResponse::HTTP_NO_CONTENT);
 	std::cout << "RESPONSE:" << std::endl;
 	for(const auto &[f,s]:Response)
 		std::cout << "First: " << f << " second:" << s << std::endl;
