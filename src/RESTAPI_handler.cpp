@@ -157,6 +157,7 @@ void RESTAPIHandler::ProcessOptions(Poco::Net::HTTPServerRequest & Request, Poco
 	Response.setContentLength(0);
 	Response.set("Access-Control-Allow-Credentials", "true");
 	Response.setStatus(Poco::Net::HTTPResponse::HTTP_NO_CONTENT);
+	Response.set("Vary", "Origin, Access-Control-Request-Headers, Access-Control-Request-Method");
 	std::cout << "RESPONSE:" << std::endl;
 	for(const auto &[f,s]:Response)
 		std::cout << "First: " << f << " second:" << s << std::endl;
