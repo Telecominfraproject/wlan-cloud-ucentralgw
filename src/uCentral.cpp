@@ -295,11 +295,6 @@ namespace uCentral {
             Poco::Logger &logger = Poco::Logger::get("uCentral");
 			logger.notice(Poco::format("Starting uCentral version %s.",Version()));
 
-			if (config().getBool("application.runAsDaemon", false))
-			{
-				logger.information("Starting as a daemon.");
-			}
-
             uCentral::Storage::Start();
             uCentral::Auth::Start();
             uCentral::DeviceRegistry::Start();
@@ -317,10 +312,10 @@ namespace uCentral {
 			else
 				logger.information("System does NOT support IPv6.");
 
-			std::string T{"2021-05-18T21:31:39.000Z"};
-
-			uint64_t TT = uCentral::Utils::from_RFC3339(T);
-			//std::cout << "Time:" << TT << " now " << time(nullptr) << std::endl;
+			if (config().getBool("application.runAsDaemon", false))
+			{
+				logger.information("Starting as a daemon.");
+			}
 
 			instance()->waitForTerminationRequest();
 
