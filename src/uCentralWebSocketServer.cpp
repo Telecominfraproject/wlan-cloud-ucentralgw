@@ -174,13 +174,6 @@ namespace uCentral::WebSocket {
             Reactor_.Reactor()->addEventHandler(*WS_,
                                                  Poco::NObserver<WSConnection,
                                                  Poco::Net::ReadableNotification>(*this,&WSConnection::OnSocketReadable));
-/*            Reactor_.Reactor()->addEventHandler(*WS_,
-                                                 Poco::NObserver<WSConnection,
-                                                 Poco::Net::ShutdownNotification>(*this,&WSConnection::OnSocketShutdown));
-              Reactor_.Reactor()->addEventHandler(*WS_,
-                                                 Poco::NObserver<WSConnection,
-                                                 Poco::Net::ErrorNotification>(*this,&WSConnection::OnSocketError));
-*/
             Registered_ = true ;
         }
     }
@@ -192,16 +185,6 @@ namespace uCentral::WebSocket {
             Reactor_.Reactor()->removeEventHandler(*WS_,
                                                     Poco::NObserver<WSConnection,
                                                     Poco::Net::ReadableNotification>(*this,&WSConnection::OnSocketReadable));
-/*          Reactor_.Reactor()->removeEventHandler(*WS_,
-                                                    Poco::NObserver<WSConnection,
-                                                    Poco::Net::ShutdownNotification>(*this,&WSConnection::OnSocketShutdown));
-            Reactor_.Reactor()->removeEventHandler(*WS_,
-                                                    Poco::NObserver<WSConnection,
-                                                    Poco::Net::ErrorNotification>(*this,&WSConnection::OnSocketError));
-
-            if(WS_ && WSup_)
-                WS_->shutdown();
-*/
             (*WS_).close();
             Registered_ = false ;
         }
@@ -617,9 +600,9 @@ namespace uCentral::WebSocket {
                     case Poco::Net::WebSocket::FRAME_OP_TEXT: {
 						IncomingFrame.append(0);
 						if(Logger_.is(Poco::Message::PRIO_DEBUG)) {
-							std::string IncomingMessageStr{IncomingFrame.begin()};
-							Logger_.debug(Poco::format("FRAME(%s): Frame received (length=%d, flags=0x%x). Msg=%s", CId_,
-													   IncomingSize, unsigned(flags),IncomingMessageStr));
+							std::string IncomingMessageStr = asString(IncomingFrame);
+							Logger_.debug(Poco::format("FRAME(%s): Frame received (length=%d, flags=0x%x). Msg=%s",
+													   CId_, IncomingSize, unsigned(flags),IncomingMessageStr));
 						}
 
                         Poco::JSON::Parser parser;
