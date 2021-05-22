@@ -235,7 +235,7 @@ namespace uCentral::Objects {
 		Obj.set("timeout", TimeOut);
 		Obj.set("connectionId",ConnectionId);
 		Obj.set("commandUUID",CommandUUID);
-		Obj.set("scheduledAt", uCentral::Utils::to_RFC3339(Started));
+		Obj.set("started", uCentral::Utils::to_RFC3339(Started));
 	}
 }
 
