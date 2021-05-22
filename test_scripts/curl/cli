@@ -315,9 +315,16 @@ devicecount() {
 
 getfile() {
   curl  $FLAGS -X GET "https://$UCENTRALGW/api/v1/file/$2?serialNumber=$1" \
-        -H "accept: application/octettream" \
+        -H "accept: application/octet-stream" \
         -H "Authorization: Bearer $token" \
 		-o "$2.pcap"
+}
+
+rtty() {
+	curl  $FLAGS -X GET "https://$UCENTRALGW/api/v1/device/$1/rtty" \
+        -H "accept: application/json" \
+        -H "Authorization: Bearer $token" > $rfile
+	jq < $rfile
 }
 
 help() {
@@ -380,7 +387,9 @@ help() {
   echo "setloglevel <sys> <level>         Set the logging system level for individual subsystems."
   echo "                                  sys:ufileuploader/websocket/storage/restapi/commandmanager/auth/deviceregistry/all"
   echo "                                  level:none/fatal/critical/error/warning/notice/information/debug/trace"
-  echo "getfile <uuid>					  Get teh file associated with trace command <uuid>"
+  echo "getfile <uuid>					  Get the file associated with trace command <uuid>"
+  echo
+  echo "rtty <serial>					  Get the details for an rtty session."
   echo
   echo "To pass additional flags to the CURL command, create an environment variable called FLAGS and git ve the values you"
   echo "want. For example, for force all call to use IPv6, set FLAGS=\"-6\", for verbose mode and IPv6, set FLAGS=\"-6 -v\""
@@ -426,6 +435,8 @@ case "$1" in
   "devicecount") login; devicecount   ; logout ;;
   "deviceswithstatus") login; deviceswithstatus   ; logout ;;
   "getfile") login; getfile "$2" "$3"  ; logout ;;
+  "rtty") login; rtty "$2"  ; logout ;;
+
  *) help ;;
 esac
 
