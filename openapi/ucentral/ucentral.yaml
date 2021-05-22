@@ -868,6 +868,9 @@ components:
           format: 'date-time'
         commandUUID:
           type: string
+        viewport:
+          type: integer
+          format: int32
 
 paths:
   /oauth2:

@@ -236,6 +236,7 @@ namespace uCentral::Objects {
 		Obj.set("connectionId",ConnectionId);
 		Obj.set("commandUUID",CommandUUID);
 		Obj.set("started", uCentral::Utils::to_RFC3339(Started));
+		Obj.set("viewport",ViewPort);
 	}
 }
 

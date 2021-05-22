@@ -996,7 +996,8 @@ void RESTAPI_device_commandHandler::Rtty(Poco::Net::HTTPServerRequest &Request, 
 					.TimeOut = uCentral::ServiceConfig::GetInt("rtty.timeout",60),
 					.ConnectionId = CommandUUID,
 					.Started = (uint64_t) time(nullptr),
-					.CommandUUID = CommandUUID
+					.CommandUUID = CommandUUID,
+					.ViewPort = uCentral::ServiceConfig::GetInt("rtty.viewport",5913),
 					};
 
 				Poco::JSON::Object	ReturnedObject;

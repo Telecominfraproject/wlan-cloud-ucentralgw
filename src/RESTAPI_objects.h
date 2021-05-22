@@ -182,6 +182,7 @@ namespace uCentral::Objects {
 		std::string ConnectionId;
 		uint64_t 	Started;
 		std::string CommandUUID;
+		uint64_t 	ViewPort;
 		void to_json(Poco::JSON::Object &Obj) const;
 	};
 }
