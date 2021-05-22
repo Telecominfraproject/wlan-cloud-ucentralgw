@@ -435,6 +435,9 @@ The device should answer:
 }
 ```
 
+##### Scanning: bands or channels
+In the command, bands and channels are mutually exclusive. If both parameters are omitted, then the scan will be performed for all bands and all channels.
+
 #### Controller requesting a specific message
 Controller sends this command when it needs the device to provide a message back ASAP. The currently 
 supported messages are "state" and "healthcheck". More messages maybe added later. The messages will
@@ -498,8 +501,41 @@ The device should answer:
 }
 ```
 
-##### Scanning: bands or channels
-In the command, bands and channels are mutually exclusive. If both parameters are omitted, then the scan will be performed for all bands and all channels.
+#### Controller requesting an `rtty` session
+Controller sends this command an administrator requests to start an `rtty` session with the AP. 
+```
+{    "jsonrpc" : "2.0" , 
+     "method" : "remote_access" , 
+     "params" : {
+            "method" : "rtty"
+	        "serial" : <serial number> ,
+	        "token" : <string representing the rtty server token. Must be sent to the rtty server>,
+	        "id" : <string representing the device ID. Mus tbe sent to the rtty server.>,
+	        "server": <rtty server FQDN or IP address>,
+	        "port" : <integer reflecting the port the rtty server is listening on>,
+		    "user" : <username of the requester. The AP should log this into its logs to show who is accessing the AP>,
+		    "timeout" : <number of seconds the AP should wait for a connection>
+        },
+     "id" : <some number>
+}
+```
+
+The device should answer:
+```
+{   "jsonrpc" : "2.0" , 
+    "result" : {
+          "serial" : <serial number> ,
+          "status" : {
+            "error" : 0 or an error number,
+            "text" : <description of the error or success>,
+            "meta" : <optional JSON document including additional information about the connection.>
+  	        }
+        },
+    "id" : <same number>
+}
+```
+#### `rtty server`
+More information about the [rtty server](https://github.com/zhaojh329/rtty) can be found here.
 
 ### Message compression
 Some messages may be several KB in size. If these messages repeat often, they may cause added data charges over time. 
