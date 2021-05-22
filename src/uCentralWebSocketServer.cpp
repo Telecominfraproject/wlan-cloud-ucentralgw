@@ -565,7 +565,11 @@ namespace uCentral::WebSocket {
     }
 
 	std::string asString(Poco::Buffer<char> & buf ) {
-		return buf.sizeBytes() > 0 ? buf.begin() : "";
+		if(buf.sizeBytes()>0) {
+			buf.append(0);
+			return buf.begin();
+		}
+		return "";
 	}
 
     void WSConnection::ProcessIncomingFrame() {
