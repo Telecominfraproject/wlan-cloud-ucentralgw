@@ -598,15 +598,12 @@ namespace uCentral::WebSocket {
                         break;
 
                     case Poco::Net::WebSocket::FRAME_OP_TEXT: {
-						IncomingFrame.append(0);
-						if(Logger_.is(Poco::Message::PRIO_DEBUG)) {
-							std::string IncomingMessageStr = asString(IncomingFrame);
-							Logger_.debug(Poco::format("FRAME(%s): Frame received (length=%d, flags=0x%x). Msg=%s",
-													   CId_, IncomingSize, unsigned(flags),IncomingMessageStr));
-						}
+						std::string IncomingMessageStr = asString(IncomingFrame);
+						Logger_.debug(Poco::format("FRAME(%s): Frame received (length=%d, flags=0x%x). Msg=%s",
+							   		CId_, IncomingSize, unsigned(flags),IncomingMessageStr));
 
                         Poco::JSON::Parser parser;
-						auto ParsedMessage = parser.parse(IncomingFrame.begin());
+						auto ParsedMessage = parser.parse(IncomingMessageStr);
                         auto Result = ParsedMessage.extract<Poco::JSON::Object::Ptr>();
                         Poco::DynamicStruct vars = *Result;
 
@@ -618,12 +615,12 @@ namespace uCentral::WebSocket {
                         } else if (vars.contains("jsonrpc") &&
                                    vars.contains("result") &&
                                    vars.contains("id")) {
-							std::string IncomingMessageStr{std::string(IncomingFrame.begin())};
-							Logger_.debug(Poco::format("RPC-RESULT(%s): payload: %s",CId_,IncomingMessageStr));
+							Logger_.debug(Poco::format("RPC-RESULT(%s): payload: %s",CId_,
+											   IncomingMessageStr));
                             ProcessJSONRPCResult(vars);
                         } else {
-							std::string IncomingMessageStr{std::string(IncomingFrame.begin())};
-                            Logger_.warning(Poco::format("INVALID-PAYLOAD(%s): Payload is not JSON-RPC 2.0: %s",CId_, IncomingMessageStr));
+                            Logger_.warning(Poco::format("INVALID-PAYLOAD(%s): Payload is not JSON-RPC 2.0: %s",
+												 CId_, IncomingMessageStr));
                         }
                         break;
                     }

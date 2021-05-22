@@ -226,5 +226,16 @@ namespace uCentral::Objects {
 		Obj.set("created", uCentral::Utils::to_RFC3339(Created));
 		Obj.set("updateDone",uCentral::Utils::to_RFC3339(UpdateDone));
 	};
+
+	void RttySessionDetails::to_json(Poco::JSON::Object &Obj) const {
+		Obj.set("serialNumber", SerialNumber);
+		Obj.set("server", Server);
+		Obj.set("port", Port);
+		Obj.set("token",Token);
+		Obj.set("timeout", TimeOut);
+		Obj.set("connectionId",ConnectionId);
+		Obj.set("commandUUID",CommandUUID);
+		Obj.set("scheduledAt", uCentral::Utils::to_RFC3339(Started));
+	}
 }
 

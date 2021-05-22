@@ -34,8 +34,8 @@ fi
 
 token=""
 rfile=result.json
-username="support@example.com"
-password="support"
+username="tip@ucentral.com"
+password="openwifi"
 
 
 login() {

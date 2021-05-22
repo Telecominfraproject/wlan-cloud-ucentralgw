@@ -74,6 +74,8 @@ void RESTAPI_device_commandHandler::handleRequest(Poco::Net::HTTPServerRequest& 
 			WifiScan(Request, Response);
 		} else if (Command == "eventqueue" && Request.getMethod() == Poco::Net::HTTPServerRequest::HTTP_POST) {
 			EventQueue(Request, Response);
+		} else if (Command == "rtty" && Request.getMethod() == Poco::Net::HTTPServerRequest::HTTP_GET) {
+			Rtty(Request, Response);
 		} else {
             BadRequest(Request, Response);
         }
@@ -96,8 +98,9 @@ void RESTAPI_device_commandHandler::GetCapabilities(Poco::Net::HTTPServerRequest
 			Caps.to_json(RetObj);
             RetObj.set("serialNumber", SerialNumber);
             ReturnObject(Request, RetObj, Response );
-        } else
-            NotFound(Request, Response);
+        } else {
+			NotFound(Request, Response);
+		}
         return;
     }
     catch(const Poco::Exception &E)
@@ -270,7 +273,11 @@ void RESTAPI_device_commandHandler::Configure(Poco::Net::HTTPServerRequest& Requ
                 if(uCentral::Storage::AddCommand(SerialNumber,Cmd)) {
 					WaitForRPC(Cmd,Request, Response);
 					return;
-                }
+                } else {
+					ReturnStatus(Request, Response,
+								 Poco::Net::HTTPResponse::HTTP_INTERNAL_SERVER_ERROR);
+					return;
+				}
             }
         }
     }
@@ -329,7 +336,11 @@ void RESTAPI_device_commandHandler::Upgrade(Poco::Net::HTTPServerRequest &Reques
             if(uCentral::Storage::AddCommand(SerialNumber,Cmd)) {
 				WaitForRPC(Cmd,Request, Response, 20000);
 				return;
-            }
+            } else {
+				ReturnStatus(Request, Response,
+							 Poco::Net::HTTPResponse::HTTP_INTERNAL_SERVER_ERROR);
+				return;
+			}
         }
     }
     catch(const Poco::Exception &E)
@@ -500,7 +511,11 @@ void RESTAPI_device_commandHandler::ExecuteCommand(Poco::Net::HTTPServerRequest&
             if(uCentral::Storage::AddCommand(SerialNumber,Cmd)) {
 				WaitForRPC(Cmd, Request, Response, 20000);
 				return;
-            }
+            } else {
+				ReturnStatus(Request, Response,
+							 Poco::Net::HTTPResponse::HTTP_INTERNAL_SERVER_ERROR);
+				return;
+			}
         }
     }
     catch(const Poco::Exception &E)
@@ -553,7 +568,11 @@ void RESTAPI_device_commandHandler::Reboot(Poco::Net::HTTPServerRequest& Request
             if(uCentral::Storage::AddCommand(SerialNumber,Cmd)) {
 				WaitForRPC(Cmd, Request, Response, 20000);
 				return;
-            }
+            } else {
+				ReturnStatus(Request, Response,
+							 Poco::Net::HTTPResponse::HTTP_INTERNAL_SERVER_ERROR);
+				return;
+			}
         }
     }
     catch(const Poco::Exception &E)
@@ -619,6 +638,10 @@ void RESTAPI_device_commandHandler::Factory(Poco::Net::HTTPServerRequest &Reques
 
 			if (uCentral::Storage::AddCommand(SerialNumber, Cmd)) {
 				WaitForRPC(Cmd, Request, Response, 20000);
+				return;
+			} else {
+				ReturnStatus(Request, Response,
+							 Poco::Net::HTTPResponse::HTTP_INTERNAL_SERVER_ERROR);
 				return;
 			}
 		}
@@ -690,7 +713,11 @@ void RESTAPI_device_commandHandler::LEDs(Poco::Net::HTTPServerRequest &Request, 
             if(uCentral::Storage::AddCommand(SerialNumber,Cmd)) {
 				WaitForRPC(Cmd, Request, Response, 20000);
 				return;
-            }
+            } else {
+				ReturnStatus(Request, Response,
+							 Poco::Net::HTTPResponse::HTTP_INTERNAL_SERVER_ERROR);
+				return;
+			}
         }
     }
     catch(const Poco::Exception &E)
@@ -759,7 +786,11 @@ void RESTAPI_device_commandHandler::Trace(Poco::Net::HTTPServerRequest &Request,
 				Cmd.to_json(RetObj);
 				ReturnObject(Request, RetObj, Response);
 				return;
-            }
+            } else {
+				ReturnStatus(Request, Response,
+							 Poco::Net::HTTPResponse::HTTP_INTERNAL_SERVER_ERROR);
+				return;
+			}
         }
     }
     catch(const Poco::Exception &E)
@@ -821,11 +852,15 @@ void RESTAPI_device_commandHandler::WifiScan(Poco::Net::HTTPServerRequest &Reque
 				if(uCentral::Storage::AddCommand(SerialNumber,Cmd)) {
 					WaitForRPC(Cmd, Request, Response, 20000);
 					return;
+				} else {
+					ReturnStatus(Request, Response,
+								 Poco::Net::HTTPResponse::HTTP_INTERNAL_SERVER_ERROR);
+					return;
 				}
 			}
 		}
 	} catch (const Poco::Exception & E) {
-		Logger_.log(E);
+		Logger_.error(Poco::format("%s: failed with %s",std::string(__func__), E.displayText()));
 	}
 	BadRequest(Request, Response);
 }
@@ -869,11 +904,15 @@ void RESTAPI_device_commandHandler::EventQueue(Poco::Net::HTTPServerRequest &Req
 				if(uCentral::Storage::AddCommand(SerialNumber,Cmd)) {
 					WaitForRPC(Cmd, Request, Response, 20000);
 					return;
+				} else {
+					ReturnStatus(Request, Response,
+								 Poco::Net::HTTPResponse::HTTP_INTERNAL_SERVER_ERROR);
+					return;
 				}
 			}
 		}
 	} catch ( const Poco::Exception & E ) {
-		Logger_.log(E);
+		Logger_.error(Poco::format("%s: failed with %s",std::string(__func__), E.displayText()));
 	}
 	BadRequest(Request, Response);
 }
@@ -893,14 +932,16 @@ void RESTAPI_device_commandHandler::MakeRequest(Poco::Net::HTTPServerRequest &Re
 			auto SerialNumber = ds["serialNumber"].toString();
 			auto MessageType = ds["message"].toString();
 
-			if((SerialNumber != SNum) || (MessageType!="state" && MessageType!="healthcheck")) {
+			if ((SerialNumber != SNum) ||
+				(MessageType != "state" && MessageType != "healthcheck")) {
 				BadRequest(Request, Response);
 				return;
 			}
 
-			uint64_t When = ds.contains("when") ? uCentral::Utils::from_RFC3339(ds["when"].toString()) : 0;
+			uint64_t When =
+				ds.contains("when") ? uCentral::Utils::from_RFC3339(ds["when"].toString()) : 0;
 
-			uCentral::Objects::CommandDetails  Cmd;
+			uCentral::Objects::CommandDetails Cmd;
 
 			Cmd.SerialNumber = SerialNumber;
 			Cmd.SubmittedBy = UserInfo_.username_;
@@ -910,25 +951,98 @@ void RESTAPI_device_commandHandler::MakeRequest(Poco::Net::HTTPServerRequest &Re
 			Cmd.RunAt = When;
 			Cmd.WaitingForFile = 0;
 
-			Poco::JSON::Object  Params;
+			Poco::JSON::Object Params;
 
-			Params.set("serial" , SerialNumber );
+			Params.set("serial", SerialNumber);
 			Params.set("when", When);
-			Params.set("message",MessageType);
-			Params.set("request_uuid",Cmd.UUID);
+			Params.set("message", MessageType);
+			Params.set("request_uuid", Cmd.UUID);
 
 			std::stringstream ParamStream;
 			Params.stringify(ParamStream);
 			Cmd.Details = ParamStream.str();
 
-			if(uCentral::Storage::AddCommand(SerialNumber,Cmd)) {
+			if (uCentral::Storage::AddCommand(SerialNumber, Cmd)) {
 				WaitForRPC(Cmd, Request, Response, 4000);
+				return;
+			} else {
+				ReturnStatus(Request, Response,
+							 Poco::Net::HTTPResponse::HTTP_INTERNAL_SERVER_ERROR);
 				return;
 			}
 		}
 	}
 	catch(const Poco::Exception &E)
 	{
+		Logger_.error(Poco::format("%s: failed with %s",std::string(__func__), E.displayText()));
+	}
+	BadRequest(Request, Response);
+}
+
+void RESTAPI_device_commandHandler::Rtty(Poco::Net::HTTPServerRequest &Request, Poco::Net::HTTPServerResponse &Response) {
+	try {
+
+		auto SerialNumber = GetBinding("serialNumber", "");
+
+		if(uCentral::ServiceConfig::GetString("rtty.enabled","false") == "true") {
+
+			if (uCentral::Storage::DeviceExists(SerialNumber)) {
+				auto CommandUUID = uCentral::Daemon::instance()->CreateUUID();
+				uCentral::Objects::RttySessionDetails Rtty{
+					.SerialNumber = SerialNumber,
+					.Server = uCentral::ServiceConfig::GetString("rtty.server", "localhost") ,
+					.Port = uCentral::ServiceConfig::GetInt("rtty.port",5912),
+					.Token = uCentral::ServiceConfig::GetString("rtty.token","nothing"),
+					.TimeOut = uCentral::ServiceConfig::GetInt("rtty.timeout",60),
+					.ConnectionId = CommandUUID,
+					.Started = (uint64_t) time(nullptr),
+					.CommandUUID = CommandUUID
+					};
+
+				Poco::JSON::Object	ReturnedObject;
+				Rtty.to_json(ReturnedObject);
+
+				//	let's create the command for this request
+				uCentral::Objects::CommandDetails	Cmd;
+				Cmd.SerialNumber = SerialNumber;
+				Cmd.SubmittedBy = UserInfo_.username_;
+				Cmd.UUID = CommandUUID;
+				Cmd.Command = "rtty";
+				Cmd.Custom = 0;
+				Cmd.RunAt = 0;
+				Cmd.WaitingForFile = 0;
+
+				Poco::JSON::Object  Params;
+
+				Params.set("method","rtty");
+				Params.set("token",Rtty.Token);
+				Params.set("serial", SerialNumber);
+				Params.set("id", Rtty.ConnectionId);
+				Params.set("server", Rtty.Server);
+				Params.set("port", Rtty.Port);
+				Params.set("user", UserInfo_.username_);
+				Params.set("timeout", Rtty.TimeOut);
+
+				std::stringstream ParamStream;
+				Params.stringify(ParamStream);
+				Cmd.Details = ParamStream.str();
+
+				if(uCentral::Storage::AddCommand(SerialNumber,Cmd)) {
+					ReturnObject(Request, ReturnedObject, Response);
+					return;
+				} else {
+					ReturnStatus(Request, Response, Poco::Net::HTTPResponse::HTTP_INTERNAL_SERVER_ERROR);
+					return;
+				}
+			} else {
+				NotFound(Request, Response);
+				return;
+			}
+		} else {
+			ReturnStatus(Request, Response, Poco::Net::HTTPResponse::HTTP_SERVICE_UNAVAILABLE);
+			return;
+		}
+	} catch (const Poco::Exception &E) {
 		Logger_.error(Poco::format("%s: failed with %s",std::string(__func__), E.displayText()));
 	}
 	BadRequest(Request, Response);

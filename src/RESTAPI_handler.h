@@ -56,6 +56,7 @@ public:
     void NotFound(Poco::Net::HTTPServerRequest & Request,Poco::Net::HTTPServerResponse &Response);
     void OK(Poco::Net::HTTPServerRequest & Request,Poco::Net::HTTPServerResponse &Response);
 	void WaitForRPC(uCentral::Objects::CommandDetails & Cmd, Poco::Net::HTTPServerRequest & Request, Poco::Net::HTTPServerResponse &Response, uint64_t Timeout = 5000 );
+	void ReturnStatus(Poco::Net::HTTPServerRequest & Request, Poco::Net::HTTPServerResponse &Response, Poco::Net::HTTPResponse::HTTPStatus Status);
 
     const std::string & GetBinding(const std::string &Name, const std::string &Default);
 

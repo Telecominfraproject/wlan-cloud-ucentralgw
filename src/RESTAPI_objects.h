@@ -172,6 +172,18 @@ namespace uCentral::Objects {
 		uint64_t 	UpdateDone;
 		void to_json(Poco::JSON::Object &Obj) const;
 	};
+
+	struct RttySessionDetails {
+		std::string SerialNumber;
+		std::string Server;
+		uint64_t 	Port;
+		std::string Token;
+		uint64_t 	TimeOut;
+		std::string ConnectionId;
+		uint64_t 	Started;
+		std::string CommandUUID;
+		void to_json(Poco::JSON::Object &Obj) const;
+	};
 }
 
 #endif //UCENTRAL_RESTAPI_OBJECTS_H

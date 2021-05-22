@@ -354,13 +354,13 @@ namespace uCentral::Storage {
 			if(dbType_==sqlite || dbType_==mysql || dbType_==pgsql) {
 				Sess << "CREATE TABLE IF NOT EXISTS PendingFirmwareUpgrades ("
 						"SerialNumber   VARCHAR(30) PRIMARY KEY, "
-						"UUID			VARCHAR(64), "
+						"UUID			VARCHAR(64), 	"
 						"NewFirmware 	VARCHAR(128), 	"
 						"OldFirmware 	VARCHAR(128), 	"
 						"URI			TEXT,			"
 						"ScheduleAt 	BIGINT, 		"
 						"Created 		BIGINT, 		"
-						"UpdateDone		BIGINT"
+						"UpdateDone		BIGINT			"
 						") ",
 					Poco::Data::Keywords::now;
 				return 0;

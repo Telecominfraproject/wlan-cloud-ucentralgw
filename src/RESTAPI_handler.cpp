@@ -192,6 +192,11 @@ void RESTAPIHandler::OK(Poco::Net::HTTPServerRequest & Request, Poco::Net::HTTPS
     Response.send();
 }
 
+void RESTAPIHandler::ReturnStatus(Poco::Net::HTTPServerRequest & Request, Poco::Net::HTTPServerResponse &Response, Poco::Net::HTTPResponse::HTTPStatus Status) {
+	PrepareResponse(Request, Response, Status);
+	Response.send();
+}
+
 void RESTAPIHandler::WaitForRPC(uCentral::Objects::CommandDetails & Cmd,Poco::Net::HTTPServerRequest & Request, Poco::Net::HTTPServerResponse &Response, uint64_t Timeout) {
 
 	if(uCentral::DeviceRegistry::Connected(Cmd.SerialNumber)) {

@@ -2,7 +2,7 @@ openapi: 3.0.1
 info:
   title: uCentral gateway API
   description: A process to manage configuration for devices.
-  version: 0.0.6
+  version: 0.0.7
   license:
     name: BSD3
     url: https://github.com/Telecominfraproject/wlan-cloud-ucentralgw/blob/master/LICENSE
@@ -846,6 +846,28 @@ components:
         Document:
           type: string
 
+    RttySessionDetails:
+      type: object
+      properties:
+        serialNumber:
+          type: string
+        server:
+          type: string
+        port:
+          type: integer
+          format: int32
+        token:
+          type: string
+        timeout:
+          type: integer
+          format: int32
+        connectionId:
+          type: string
+        started:
+          type: string
+          format: 'date-time'
+        commandUUID:
+          type: string
 
 paths:
   /oauth2:
@@ -1901,6 +1923,30 @@ paths:
       responses:
         200:
           $ref: '#/components/schemas/EventQueueResponse'
+        403:
+          $ref: '#/components/responses/Unauthorized'
+        404:
+          $ref: '#/components/responses/NotFound'
+
+  /device/{serialNumber}/rtty:
+    get:
+      tags:
+        - Commands
+      summary: Get the rtty parameters to initiate a session
+      operationId: getRttySessionInfo
+      parameters:
+        - in: path
+          name: serialNumber
+          schema:
+            type: string
+          required: true
+      responses:
+        200:
+          description: Session information
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RttySessionDetails'
         403:
           $ref: '#/components/responses/Unauthorized'
         404:
