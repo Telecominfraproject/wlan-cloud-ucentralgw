@@ -153,6 +153,11 @@ namespace uCentral::Config {
 				"health": {
 					"interval": 300
 				}
+			},
+			"services": {
+				"ssh": {
+					"port": 22
+				}
 			}
 		})lit");
 	}
