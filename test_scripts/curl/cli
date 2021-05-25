@@ -327,6 +327,13 @@ rtty() {
 	jq < $rfile
 }
 
+lifetimestats() {
+	curl  $FLAGS -X GET "https://$UCENTRALGW/api/v1/device/$1/statistics?lifetime=true" \
+        -H "accept: application/json" \
+        -H "Authorization: Bearer $token" > $rfile
+	jq < $rfile
+}
+
 help() {
   echo
   echo "getdevice <serial>                Get the device JSON document."
@@ -391,6 +398,8 @@ help() {
   echo
   echo "rtty <serial>					  Get the details for an rtty session."
   echo
+  echo "lifetimestats <serial>			  Get the lifetime stats counters for a device"
+  echo
   echo "To pass additional flags to the CURL command, create an environment variable called FLAGS and git ve the values you"
   echo "want. For example, for force all call to use IPv6, set FLAGS=\"-6\", for verbose mode and IPv6, set FLAGS=\"-6 -v\""
   echo
@@ -436,6 +445,7 @@ case "$1" in
   "deviceswithstatus") login; deviceswithstatus   ; logout ;;
   "getfile") login; getfile "$2" "$3"  ; logout ;;
   "rtty") login; rtty "$2"  ; logout ;;
+  "lifetimestats") login; lifetimestats "$2"; logout;;
 
  *) help ;;
 esac
