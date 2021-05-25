@@ -158,9 +158,10 @@ void RESTAPIHandler::ProcessOptions(Poco::Net::HTTPServerRequest & Request, Poco
 	Response.set("Access-Control-Allow-Credentials", "true");
 	Response.setStatus(Poco::Net::HTTPResponse::HTTP_OK);
 	Response.set("Vary", "Origin, Access-Control-Request-Headers, Access-Control-Request-Method");
-	std::cout << "RESPONSE:" << std::endl;
+/*	std::cout << "RESPONSE:" << std::endl;
 	for(const auto &[f,s]:Response)
 		std::cout << "First: " << f << " second:" << s << std::endl;
+*/
     Response.send();
 }
 
@@ -224,9 +225,10 @@ bool RESTAPIHandler::ContinueProcessing(Poco::Net::HTTPServerRequest & Request, 
 {
     if(Request.getMethod() == Poco::Net::HTTPRequest::HTTP_OPTIONS)
     {
-		std::cout << "REQUEST:" << std::endl;
+/*		std::cout << "REQUEST:" << std::endl;
 		for(const auto &[f,s]:Request)
 			std::cout << "First: " << f << " second:" << s << std::endl;
+*/
         ProcessOptions(Request,Response);
         return false;
     } else if(std::find(Methods_.begin(),Methods_.end(),Request.getMethod()) == Methods_.end())
