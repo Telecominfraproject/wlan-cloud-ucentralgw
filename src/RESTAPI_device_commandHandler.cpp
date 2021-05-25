@@ -19,6 +19,7 @@
 #include "uUtils.h"
 
 #include "uCentralProtocol.h"
+#include "RESTAPI_protocol.h"
 
 void RESTAPI_device_commandHandler::handleRequest(Poco::Net::HTTPServerRequest& Request, Poco::Net::HTTPServerResponse& Response)
 {
@@ -29,8 +30,7 @@ void RESTAPI_device_commandHandler::handleRequest(Poco::Net::HTTPServerRequest& 
         if (!IsAuthorized(Request, Response))
             return;
 
-        std::string Command = GetBinding("command", "");
-
+        std::string Command = GetBinding(uCentral::RESTAPI::Protocol::COMMAND, "");
         if (Command.empty()) {
             BadRequest(Request, Response);
             return;
@@ -38,45 +38,45 @@ void RESTAPI_device_commandHandler::handleRequest(Poco::Net::HTTPServerRequest& 
 
         ParseParameters(Request);
 
-        if (Command == "capabilities" && Request.getMethod() == Poco::Net::HTTPServerRequest::HTTP_GET) {
+        if (Command == uCentral::RESTAPI::Protocol::CAPABILITIES && Request.getMethod() == Poco::Net::HTTPServerRequest::HTTP_GET) {
             GetCapabilities(Request, Response);
-        } else if (Command == "capabilities" && Request.getMethod() == Poco::Net::HTTPServerRequest::HTTP_DELETE) {
+        } else if (Command == uCentral::RESTAPI::Protocol::CAPABILITIES && Request.getMethod() == Poco::Net::HTTPServerRequest::HTTP_DELETE) {
             DeleteCapabilities(Request, Response);
-        } else if (Command == "logs" && Request.getMethod() == Poco::Net::HTTPServerRequest::HTTP_GET) {
+        } else if (Command == uCentral::RESTAPI::Protocol::LOGS && Request.getMethod() == Poco::Net::HTTPServerRequest::HTTP_GET) {
             GetLogs(Request, Response);
-        } else if (Command == "logs" && Request.getMethod() == Poco::Net::HTTPServerRequest::HTTP_DELETE) {
+        } else if (Command == uCentral::RESTAPI::Protocol::LOGS && Request.getMethod() == Poco::Net::HTTPServerRequest::HTTP_DELETE) {
             DeleteLogs(Request, Response);
-        } else if (Command == "healthchecks" && Request.getMethod() == Poco::Net::HTTPServerRequest::HTTP_GET) {
+        } else if (Command == uCentral::RESTAPI::Protocol::HEALTHCHECKS && Request.getMethod() == Poco::Net::HTTPServerRequest::HTTP_GET) {
             GetChecks(Request, Response);
-        } else if (Command == "healthchecks" && Request.getMethod() == Poco::Net::HTTPServerRequest::HTTP_DELETE) {
+        } else if (Command == uCentral::RESTAPI::Protocol::HEALTHCHECKS && Request.getMethod() == Poco::Net::HTTPServerRequest::HTTP_DELETE) {
             DeleteChecks(Request, Response);
-        } else if (Command == "statistics" && Request.getMethod() == Poco::Net::HTTPServerRequest::HTTP_GET) {
+        } else if (Command == uCentral::RESTAPI::Protocol::STATISTICS && Request.getMethod() == Poco::Net::HTTPServerRequest::HTTP_GET) {
             GetStatistics(Request, Response);
-        } else if (Command == "statistics" && Request.getMethod() == Poco::Net::HTTPServerRequest::HTTP_DELETE) {
+        } else if (Command == uCentral::RESTAPI::Protocol::STATISTICS && Request.getMethod() == Poco::Net::HTTPServerRequest::HTTP_DELETE) {
             DeleteStatistics(Request, Response);
-        } else if (Command == "status" && Request.getMethod() == Poco::Net::HTTPServerRequest::HTTP_GET) {
+        } else if (Command == uCentral::RESTAPI::Protocol::STATUS && Request.getMethod() == Poco::Net::HTTPServerRequest::HTTP_GET) {
             GetStatus(Request, Response);
-        } else if (Command == "perform" && Request.getMethod() == Poco::Net::HTTPServerRequest::HTTP_POST) {
+        } else if (Command == uCentral::RESTAPI::Protocol::PERFORM && Request.getMethod() == Poco::Net::HTTPServerRequest::HTTP_POST) {
             ExecuteCommand(Request, Response);
-        } else if (Command == "configure" && Request.getMethod() == Poco::Net::HTTPServerRequest::HTTP_POST) {
+        } else if (Command == uCentral::RESTAPI::Protocol::CONFIGURE && Request.getMethod() == Poco::Net::HTTPServerRequest::HTTP_POST) {
             Configure(Request, Response);
-        } else if (Command == "upgrade" && Request.getMethod() == Poco::Net::HTTPServerRequest::HTTP_POST) {
+        } else if (Command == uCentral::RESTAPI::Protocol::UPGRADE && Request.getMethod() == Poco::Net::HTTPServerRequest::HTTP_POST) {
             Upgrade(Request, Response);
-        } else if (Command == "reboot" && Request.getMethod() == Poco::Net::HTTPServerRequest::HTTP_POST) {
+        } else if (Command == uCentral::RESTAPI::Protocol::REBOOT && Request.getMethod() == Poco::Net::HTTPServerRequest::HTTP_POST) {
             Reboot(Request, Response);
-        } else if (Command == "factory" && Request.getMethod() == Poco::Net::HTTPServerRequest::HTTP_POST) {
+        } else if (Command == uCentral::RESTAPI::Protocol::FACTORY && Request.getMethod() == Poco::Net::HTTPServerRequest::HTTP_POST) {
             Factory(Request, Response);
-        } else if (Command == "leds" && Request.getMethod() == Poco::Net::HTTPServerRequest::HTTP_POST) {
+        } else if (Command == uCentral::RESTAPI::Protocol::LEDS && Request.getMethod() == Poco::Net::HTTPServerRequest::HTTP_POST) {
             LEDs(Request, Response);
-        } else if (Command == "trace" && Request.getMethod() == Poco::Net::HTTPServerRequest::HTTP_POST) {
+        } else if (Command == uCentral::RESTAPI::Protocol::TRACE && Request.getMethod() == Poco::Net::HTTPServerRequest::HTTP_POST) {
             Trace(Request, Response);
-		} else if (Command == "request" && Request.getMethod() == Poco::Net::HTTPServerRequest::HTTP_POST) {
+		} else if (Command == uCentral::RESTAPI::Protocol::REQUEST && Request.getMethod() == Poco::Net::HTTPServerRequest::HTTP_POST) {
 			MakeRequest(Request, Response);
-		} else if (Command == "wifiscan" && Request.getMethod() == Poco::Net::HTTPServerRequest::HTTP_POST) {
+		} else if (Command == uCentral::RESTAPI::Protocol::WIFISCAN && Request.getMethod() == Poco::Net::HTTPServerRequest::HTTP_POST) {
 			WifiScan(Request, Response);
-		} else if (Command == "eventqueue" && Request.getMethod() == Poco::Net::HTTPServerRequest::HTTP_POST) {
+		} else if (Command == uCentral::RESTAPI::Protocol::EVENTQUEUE && Request.getMethod() == Poco::Net::HTTPServerRequest::HTTP_POST) {
 			EventQueue(Request, Response);
-		} else if (Command == "rtty" && Request.getMethod() == Poco::Net::HTTPServerRequest::HTTP_GET) {
+		} else if (Command == uCentral::RESTAPI::Protocol::RTTY && Request.getMethod() == Poco::Net::HTTPServerRequest::HTTP_GET) {
 			Rtty(Request, Response);
 		} else {
             BadRequest(Request, Response);
@@ -93,12 +93,12 @@ void RESTAPI_device_commandHandler::handleRequest(Poco::Net::HTTPServerRequest& 
 void RESTAPI_device_commandHandler::GetCapabilities(Poco::Net::HTTPServerRequest &Request, Poco::Net::HTTPServerResponse &Response) {
     uCentral::Objects::Capabilities    Caps;
     try {
-        auto SerialNumber = GetBinding("serialNumber", "");
+        auto SerialNumber = GetBinding(uCentral::RESTAPI::Protocol::SERIALNUMBER, "");
 
         if (uCentral::Storage::GetDeviceCapabilities(SerialNumber, Caps)) {
             Poco::JSON::Object RetObj;
 			Caps.to_json(RetObj);
-            RetObj.set("serialNumber", SerialNumber);
+            RetObj.set(uCentral::RESTAPI::Protocol::SERIALNUMBER, SerialNumber);
             ReturnObject(Request, RetObj, Response );
         } else {
 			NotFound(Request, Response);
@@ -114,7 +114,7 @@ void RESTAPI_device_commandHandler::GetCapabilities(Poco::Net::HTTPServerRequest
 
 void RESTAPI_device_commandHandler::DeleteCapabilities(Poco::Net::HTTPServerRequest &Request, Poco::Net::HTTPServerResponse &Response) {
     try {
-        auto SerialNumber = GetBinding("serialNumber", "");
+        auto SerialNumber = GetBinding(uCentral::RESTAPI::Protocol::SERIALNUMBER, "");
 
         if (uCentral::Storage::DeleteDeviceCapabilities(SerialNumber))
             OK(Request, Response);
@@ -131,33 +131,19 @@ void RESTAPI_device_commandHandler::DeleteCapabilities(Poco::Net::HTTPServerRequ
 
 void RESTAPI_device_commandHandler::GetStatistics(Poco::Net::HTTPServerRequest& Request, Poco::Net::HTTPServerResponse& Response) {
     try {
-        auto SerialNumber = GetBinding("serialNumber", "");
+        auto SerialNumber = GetBinding(uCentral::RESTAPI::Protocol::SERIALNUMBER, "");
         auto StartDate = uCentral::Utils::from_RFC3339(GetParameter("startDate", ""));
         auto EndDate = uCentral::Utils::from_RFC3339(GetParameter("endDate", ""));
         auto Offset = GetParameter("offset", 0);
         auto Limit = GetParameter("limit", 100);
 		auto Lifetime = GetBoolParameter("lifetime",false);
 
-		std::cout << __LINE__ << std::endl;
 		if(Lifetime) {
-			std::cout << __LINE__ << std::endl;
 			std::string Stats;
-			std::cout << __LINE__ << std::endl;
-			std::cout << "STATS: " << Stats << std::endl;
-			std::cout << __LINE__ << std::endl;
-			std::cout << __LINE__ << std::endl;
 			uCentral::Storage::GetLifetimeStats(SerialNumber,Stats);
-			std::cout << __LINE__ << std::endl;
-			std::cout << __LINE__ << std::endl;
-			std::cout << "STATS: " << Stats << std::endl;
-			std::cout << __LINE__ << std::endl;
-
 			Poco::JSON::Parser	P;
-			std::cout << __LINE__ << std::endl;
 			if(Stats.empty())
 				Stats = uCentral::uCentralProtocol::EMPTY_JSON_DOC;
-
-			std::cout << __LINE__ << std::endl;
 			auto Obj = P.parse(Stats).extract<Poco::JSON::Object::Ptr>();
 			ReturnObject(Request, *Obj, Response);
 		} else {
