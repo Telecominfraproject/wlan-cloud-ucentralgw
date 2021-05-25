@@ -15,10 +15,11 @@ namespace uCentral::Storage {
 		std::string,
 		uint64_t,
 		uint64_t,
-		uint64_t> DeviceLogsRecordTuple;
+		uint64_t,
+		uint64_t > DeviceLogsRecordTuple;
 
-	bool AddLog(std::string &SerialNumber, const std::string &Log) {
-		return uCentral::Storage::Service::instance()->AddLog(SerialNumber, Log);
+	bool AddLog(std::string &SerialNumber, uint64_t UUID, const std::string &Log) {
+		return uCentral::Storage::Service::instance()->AddLog(SerialNumber, UUID, Log);
 	}
 
 	bool AddLog(std::string &SerialNumber, uCentral::Objects::DeviceLog &DeviceLog, bool CrashLog) {
@@ -50,7 +51,7 @@ namespace uCentral::Storage {
 			Poco::Data::Session     Sess = Pool_->get();
 			Poco::Data::Statement   Insert(Sess);
 
-			std::string St{"INSERT INTO DeviceLogs (SerialNumber, Log, Data, Severity, Recorded, LogType ) VALUES(?,?,?,?,?,?)"};
+			std::string St{"INSERT INTO DeviceLogs (SerialNumber, Log, Data, Severity, Recorded, LogType, UUID ) VALUES(?,?,?,?,?,?,?)"};
 
 			Insert << ConvertParams(St) ,
 				Poco::Data::Keywords::use(SerialNumber),
@@ -58,7 +59,8 @@ namespace uCentral::Storage {
 				Poco::Data::Keywords::use(Log.Data),
 				Poco::Data::Keywords::use(Log.Severity),
 				Poco::Data::Keywords::use(Log.Recorded),
-				Poco::Data::Keywords::use(LogType);
+				Poco::Data::Keywords::use(LogType),
+				Poco::Data::Keywords::use(Log.UUID);
 			Insert.execute();
 			return true;
 		}
@@ -69,13 +71,14 @@ namespace uCentral::Storage {
 		return false;
 	}
 
-	bool Service::AddLog(std::string &SerialNumber, const std::string &Log) {
+	bool Service::AddLog(std::string &SerialNumber, uint64_t UUID, const std::string &Log) {
 		uCentral::Objects::DeviceLog DeviceLog;
 
 		DeviceLog.Log = Log;
 		DeviceLog.Data = "";
 		DeviceLog.Severity = uCentral::Objects::DeviceLog::Level::LOG_INFO;
 		DeviceLog.Recorded = time(nullptr);
+		DeviceLog.UUID = UUID;
 
 		return AddLog(SerialNumber, DeviceLog, false);
 	}
@@ -90,7 +93,8 @@ namespace uCentral::Storage {
 						"Data           TEXT, "
 						"Severity       BIGINT, "
 						"Recorded       BIGINT, "
-						"LogType        BIGINT"
+						"LogType        BIGINT, "
+						"UUID			BIGINT
 	 */
 
 		typedef std::vector<DeviceLogsRecordTuple> RecordList;
@@ -102,7 +106,7 @@ namespace uCentral::Storage {
 			bool DatesIncluded = (FromDate != 0 || ToDate != 0);
 			bool HasWhere = DatesIncluded || !SerialNumber.empty();
 
-			std::string Prefix{"SELECT SerialNumber, Log, Data, Severity, Recorded, LogType FROM DeviceLogs  "};
+			std::string Prefix{"SELECT SerialNumber, Log, Data, Severity, Recorded, LogType, UUID FROM DeviceLogs  "};
 			std::string Statement = SerialNumber.empty()
 									? Prefix + std::string(DatesIncluded ? "WHERE " : "")
 									: Prefix + "WHERE SerialNumber='" + SerialNumber + "'" +
@@ -137,7 +141,8 @@ namespace uCentral::Storage {
 					.Data = i.get<2>(),
 					.Severity = i.get<3>(),
 					.Recorded = i.get<4>(),
-					.LogType = i.get<5>()};
+					.LogType = i.get<5>(),
+					.UUID = i.get<6>()};
 				Stats.push_back(R);
 			}
 			return true;

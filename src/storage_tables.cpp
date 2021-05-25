@@ -199,6 +199,7 @@ namespace uCentral::Storage {
 						"Severity       BIGINT, "
 						"Recorded       BIGINT, "
 						"LogType        BIGINT, "
+						"UUID	        BIGINT, "
 						"INDEX LogSerial (SerialNumber ASC, Recorded ASC)"
 						")", Poco::Data::Keywords::now;
 			} else if(dbType_==pgsql || dbType_==sqlite) {
@@ -208,7 +209,8 @@ namespace uCentral::Storage {
 						"Data           TEXT, "
 						"Severity       BIGINT, "
 						"Recorded       BIGINT, "
-						"LogType        BIGINT"
+						"LogType        BIGINT, "
+						"UUID	        BIGINT  "
 						")", Poco::Data::Keywords::now;
 				Sess << "CREATE INDEX IF NOT EXISTS LogSerial ON DeviceLogs (SerialNumber ASC, Recorded ASC)", Poco::Data::Keywords::now;
 			}

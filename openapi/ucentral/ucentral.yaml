@@ -464,6 +464,9 @@ components:
         logType:
           type: integer
           format: int64
+        UUID:
+          type: integer
+          format: int64
 
     DeviceLogList:
       type: object

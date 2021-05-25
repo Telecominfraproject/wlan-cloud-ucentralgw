@@ -18,6 +18,8 @@
 #include "uStorageService.h"
 #include "uUtils.h"
 
+#include "uCentralProtocol.h"
+
 void RESTAPI_device_commandHandler::handleRequest(Poco::Net::HTTPServerRequest& Request, Poco::Net::HTTPServerResponse& Response)
 {
     try {
@@ -263,7 +265,7 @@ void RESTAPI_device_commandHandler::Configure(Poco::Net::HTTPServerRequest& Requ
                 Cmd.SerialNumber = SerialNumber;
                 Cmd.UUID = uCentral::instance()->CreateUUID();
                 Cmd.SubmittedBy = UserInfo_.username_;
-                Cmd.Command = "configure";
+                Cmd.Command = uCentral::uCentralProtocol::CONFIGURE;
                 Cmd.Custom = 0;
                 Cmd.RunAt = When;
                 Cmd.WaitingForFile = 0;
@@ -275,11 +277,11 @@ void RESTAPI_device_commandHandler::Configure(Poco::Net::HTTPServerRequest& Requ
                 Poco::JSON::Object  Params;
 				Poco::JSON::Object	CfgObj;
 
-                Params.set("serial", SerialNumber );
-                Params.set("uuid", NewUUID);
-                Params.set("when", When);
+                Params.set(uCentral::uCentralProtocol::SERIAL, SerialNumber );
+                Params.set(uCentral::uCentralProtocol::UUID, NewUUID);
+                Params.set(uCentral::uCentralProtocol::WHEN, When);
 				Cfg.to_json(CfgObj);
-                Params.set("config", CfgObj);
+                Params.set(uCentral::uCentralProtocol::CONFIG, CfgObj);
 
                 std::stringstream ParamStream;
                 Params.stringify(ParamStream);
@@ -334,15 +336,15 @@ void RESTAPI_device_commandHandler::Upgrade(Poco::Net::HTTPServerRequest &Reques
             Cmd.UUID = uCentral::instance()->CreateUUID();
             Cmd.SubmittedBy = UserInfo_.username_;
             Cmd.Custom = 0;
-            Cmd.Command = "upgrade";
+            Cmd.Command = uCentral::uCentralProtocol::UPGRADE;
             Cmd.RunAt = When;
             Cmd.WaitingForFile = 0;
 
             Poco::JSON::Object  Params;
 
-            Params.set( "serial" , SerialNumber );
-            Params.set( "uri", URI);
-            Params.set( "when", When);
+            Params.set( uCentral::uCentralProtocol::SERIAL , SerialNumber );
+            Params.set( uCentral::uCentralProtocol::URI, URI);
+            Params.set( uCentral::uCentralProtocol::WHEN, When);
 
             std::stringstream ParamStream;
             Params.stringify(ParamStream);
@@ -514,10 +516,10 @@ void RESTAPI_device_commandHandler::ExecuteCommand(Poco::Net::HTTPServerRequest&
 
             Poco::JSON::Object  Params;
 
-            Params.set( "serial" , SerialNumber );
-            Params.set( "command", Command);
-            Params.set( "when", RunAt);
-            Params.set( "payload", PayloadObject);
+            Params.set( uCentral::uCentralProtocol::SERIAL , SerialNumber );
+            Params.set( uCentral::uCentralProtocol::COMMAND, Command);
+            Params.set( uCentral::uCentralProtocol::WHEN, RunAt);
+            Params.set( uCentral::uCentralProtocol::PAYLOAD, PayloadObject);
 
             std::stringstream ParamStream;
             Params.stringify(ParamStream);
@@ -566,15 +568,15 @@ void RESTAPI_device_commandHandler::Reboot(Poco::Net::HTTPServerRequest& Request
             Cmd.SerialNumber = SerialNumber;
             Cmd.UUID = uCentral::instance()->CreateUUID();
             Cmd.SubmittedBy = UserInfo_.username_;
-            Cmd.Command = "reboot";
+            Cmd.Command = uCentral::uCentralProtocol::REBOOT;
             Cmd.Custom = 0;
             Cmd.RunAt = When;
             Cmd.WaitingForFile = 0;
 
             Poco::JSON::Object  Params;
 
-            Params.set( "serial" , SerialNumber );
-            Params.set( "when", When);
+            Params.set( uCentral::uCentralProtocol::SERIAL , SerialNumber );
+            Params.set( uCentral::uCentralProtocol::WHEN, When);
 
             std::stringstream ParamStream;
             Params.stringify(ParamStream);
@@ -636,16 +638,16 @@ void RESTAPI_device_commandHandler::Factory(Poco::Net::HTTPServerRequest &Reques
 			Cmd.SerialNumber = SerialNumber;
 			Cmd.UUID = uCentral::instance()->CreateUUID();
 			Cmd.SubmittedBy = UserInfo_.username_;
-			Cmd.Command = "factory";
+			Cmd.Command = uCentral::uCentralProtocol::FACTORY;
 			Cmd.Custom = 0;
 			Cmd.RunAt = When;
 			Cmd.WaitingForFile = 0;
 
 			Poco::JSON::Object Params;
 
-			Params.set("serial", SerialNumber);
-			Params.set("keep_redirector", KeepIt);
-			Params.set("when", When);
+			Params.set(uCentral::uCentralProtocol::SERIAL, SerialNumber);
+			Params.set(uCentral::uCentralProtocol::KEEP_REDIRECTOR, KeepIt);
+			Params.set(uCentral::uCentralProtocol::WHEN, When);
 
 			std::stringstream ParamStream;
 			Params.stringify(ParamStream);
@@ -677,7 +679,7 @@ void RESTAPI_device_commandHandler::LEDs(Poco::Net::HTTPServerRequest &Request, 
         Poco::JSON::Object::Ptr Obj = parser.parse(Request.stream()).extract<Poco::JSON::Object::Ptr>();
         Poco::DynamicStruct ds = *Obj;
 
-        if (ds.contains("pattern") &&
+        if (ds.contains(uCentral::uCentralProtocol::PATTERN) &&
             ds.contains("serialNumber")) {
 
             auto SerialNumber = ds["serialNumber"].toString();
@@ -687,16 +689,16 @@ void RESTAPI_device_commandHandler::LEDs(Poco::Net::HTTPServerRequest &Request, 
                 return;
             }
 
-			auto Pattern = ds["pattern"].toString();
+			auto Pattern = ds[uCentral::uCentralProtocol::PATTERN].toString();
 
-			if(Pattern!="on" && Pattern!="off" && Pattern!="blink")
+			if(Pattern!=uCentral::uCentralProtocol::ON && Pattern!=uCentral::uCentralProtocol::OFF && Pattern!=uCentral::uCentralProtocol::BLINK)
 			{
 				Logger_.warning(Poco::format("LEDs(%s): Bad pattern",SerialNumber));
 				BadRequest(Request, Response);
 				return;
 			}
 
-			auto Duration = ds.contains("duration") ? (uint64_t ) ds["duration"] : 20 ;
+			auto Duration = ds.contains(uCentral::uCentralProtocol::DURATION) ? (uint64_t ) ds[uCentral::uCentralProtocol::DURATION] : 20 ;
 
             uint64_t When = 0 ;
             if(ds.contains("when"))
@@ -709,17 +711,17 @@ void RESTAPI_device_commandHandler::LEDs(Poco::Net::HTTPServerRequest &Request, 
             Cmd.SerialNumber = SerialNumber;
             Cmd.UUID = uCentral::instance()->CreateUUID();
             Cmd.SubmittedBy = UserInfo_.username_;
-            Cmd.Command = "leds";
+            Cmd.Command = uCentral::uCentralProtocol::LEDS;
             Cmd.Custom = 0;
             Cmd.RunAt = When;
             Cmd.WaitingForFile = 0;
 
             Poco::JSON::Object  Params;
 
-            Params.set("serial" , SerialNumber );
-            Params.set("duration", Duration);
-            Params.set("when", When);
-			Params.set("pattern",Pattern);
+            Params.set(uCentral::uCentralProtocol::SERIAL , SerialNumber );
+            Params.set(uCentral::uCentralProtocol::DURATION, Duration);
+            Params.set(uCentral::uCentralProtocol::WHEN, When);
+			Params.set(uCentral::uCentralProtocol::PATTERN,Pattern);
 
             std::stringstream ParamStream;
             Params.stringify(ParamStream);
@@ -775,7 +777,7 @@ void RESTAPI_device_commandHandler::Trace(Poco::Net::HTTPServerRequest &Request,
             Cmd.SerialNumber = SerialNumber;
             Cmd.UUID = UUID;
             Cmd.SubmittedBy = UserInfo_.username_;
-            Cmd.Command = "trace";
+            Cmd.Command = uCentral::uCentralProtocol::TRACE;
             Cmd.Custom = 0;
             Cmd.RunAt = When;
             Cmd.WaitingForFile = 1;
@@ -783,13 +785,13 @@ void RESTAPI_device_commandHandler::Trace(Poco::Net::HTTPServerRequest &Request,
 
             Poco::JSON::Object  Params;
 
-            Params.set("serial" , SerialNumber );
-            Params.set("duration", Duration);
-            Params.set("when", When);
-            Params.set("packets", NumberOfPackets);
-            Params.set("network", Network);
-            Params.set("interface", Interface);
-            Params.set("uri",URI);
+            Params.set(uCentral::uCentralProtocol::SERIAL , SerialNumber );
+            Params.set(uCentral::uCentralProtocol::DURATION, Duration);
+            Params.set(uCentral::uCentralProtocol::WHEN, When);
+            Params.set(uCentral::uCentralProtocol::PACKETS, NumberOfPackets);
+            Params.set(uCentral::uCentralProtocol::NETWORK, Network);
+            Params.set(uCentral::uCentralProtocol::INTERFACE, Interface);
+            Params.set(uCentral::uCentralProtocol::URI,URI);
 
             std::stringstream ParamStream;
             Params.stringify(ParamStream);
@@ -844,20 +846,20 @@ void RESTAPI_device_commandHandler::WifiScan(Poco::Net::HTTPServerRequest &Reque
 				Cmd.SerialNumber = SerialNumber;
 				Cmd.UUID = UUID;
 				Cmd.SubmittedBy = UserInfo_.username_;
-				Cmd.Command = "wifiscan";
+				Cmd.Command = uCentral::uCentralProtocol::WIFISCAN;
 				Cmd.Custom = 0;
 				Cmd.RunAt = 0;
 				Cmd.WaitingForFile = 0;
 
 				Poco::JSON::Object  Params;
 
-				Params.set("serial" , SerialNumber );
-				Params.set("verbose", Verbose);
+				Params.set(uCentral::uCentralProtocol::SERIAL , SerialNumber );
+				Params.set(uCentral::uCentralProtocol::VERBOSE, Verbose);
 
-				if( ds.contains("bands")) {
-					Params.set("bands",ds["bands"]);
-				} else if ( ds.contains("channels")) {
-					Params.set("channels",ds["channels"]);
+				if( ds.contains(uCentral::uCentralProtocol::BANDS)) {
+					Params.set(uCentral::uCentralProtocol::BANDS,ds["bands"]);
+				} else if ( ds.contains(uCentral::uCentralProtocol::CHANNELS)) {
+					Params.set(uCentral::uCentralProtocol::CHANNELS,ds["channels"]);
 				}
 
 				std::stringstream ParamStream;
@@ -902,15 +904,15 @@ void RESTAPI_device_commandHandler::EventQueue(Poco::Net::HTTPServerRequest &Req
 				Cmd.SerialNumber = SerialNumber;
 				Cmd.UUID = UUID;
 				Cmd.SubmittedBy = UserInfo_.username_;
-				Cmd.Command = "event";
+				Cmd.Command = uCentral::uCentralProtocol::EVENT;
 				Cmd.Custom = 0;
 				Cmd.RunAt = 0;
 				Cmd.WaitingForFile = 0;
 
 				Poco::JSON::Object  Params;
 
-				Params.set("serial" , SerialNumber );
-				Params.set("types", Types);
+				Params.set(uCentral::uCentralProtocol::SERIAL , SerialNumber );
+				Params.set(uCentral::uCentralProtocol::TYPES, Types);
 
 				std::stringstream ParamStream;
 				Params.stringify(ParamStream);
@@ -961,17 +963,17 @@ void RESTAPI_device_commandHandler::MakeRequest(Poco::Net::HTTPServerRequest &Re
 			Cmd.SerialNumber = SerialNumber;
 			Cmd.SubmittedBy = UserInfo_.username_;
 			Cmd.UUID = uCentral::instance()->CreateUUID();
-			Cmd.Command = "request";
+			Cmd.Command = uCentral::uCentralProtocol::REQUEST;
 			Cmd.Custom = 0;
 			Cmd.RunAt = When;
 			Cmd.WaitingForFile = 0;
 
 			Poco::JSON::Object Params;
 
-			Params.set("serial", SerialNumber);
-			Params.set("when", When);
-			Params.set("message", MessageType);
-			Params.set("request_uuid", Cmd.UUID);
+			Params.set(uCentral::uCentralProtocol::SERIAL, SerialNumber);
+			Params.set(uCentral::uCentralProtocol::WHEN, When);
+			Params.set(uCentral::uCentralProtocol::MESSAGE, MessageType);
+			Params.set(uCentral::uCentralProtocol::REQUEST_UUID, Cmd.UUID);
 
 			std::stringstream ParamStream;
 			Params.stringify(ParamStream);
@@ -1023,21 +1025,21 @@ void RESTAPI_device_commandHandler::Rtty(Poco::Net::HTTPServerRequest &Request, 
 				Cmd.SerialNumber = SerialNumber;
 				Cmd.SubmittedBy = UserInfo_.username_;
 				Cmd.UUID = CommandUUID;
-				Cmd.Command = "rtty";
+				Cmd.Command = uCentral::uCentralProtocol::RTTY;
 				Cmd.Custom = 0;
 				Cmd.RunAt = 0;
 				Cmd.WaitingForFile = 0;
 
 				Poco::JSON::Object  Params;
 
-				Params.set("method","rtty");
-				Params.set("token",Rtty.Token);
-				Params.set("serial", SerialNumber);
-				Params.set("id", Rtty.ConnectionId);
-				Params.set("server", Rtty.Server);
-				Params.set("port", Rtty.Port);
-				Params.set("user", UserInfo_.username_);
-				Params.set("timeout", Rtty.TimeOut);
+				Params.set(uCentral::uCentralProtocol::METHOD,uCentral::uCentralProtocol::RTTY);
+				Params.set(uCentral::uCentralProtocol::SERIAL, SerialNumber);
+				Params.set(uCentral::uCentralProtocol::ID, Rtty.ConnectionId);
+				Params.set(uCentral::uCentralProtocol::TOKEN,Rtty.Token);
+				Params.set(uCentral::uCentralProtocol::SERVER, Rtty.Server);
+				Params.set(uCentral::uCentralProtocol::PORT, Rtty.Port);
+				Params.set(uCentral::uCentralProtocol::USER, UserInfo_.username_);
+				Params.set(uCentral::uCentralProtocol::TIMEOUT, Rtty.TimeOut);
 
 				std::stringstream ParamStream;
 				Params.stringify(ParamStream);

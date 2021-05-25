@@ -45,7 +45,7 @@ namespace uCentral::Storage {
     bool DeleteHealthCheckData(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate );
 
     bool AddLog(std::string & SerialNumber, uCentral::Objects::DeviceLog & Log, bool CrashLog = false );
-    bool AddLog(std::string & SerialNumber, const std::string &Log );
+    bool AddLog(std::string & SerialNumber, uint64_t UUID, const std::string &Log );
 
     bool GetLogData(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate, uint64_t Offset, uint64_t HowMany, std::vector<uCentral::Objects::DeviceLog> &Stats, uint64_t Type);
     bool DeleteLogData(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate, uint64_t Type);
@@ -162,7 +162,7 @@ namespace uCentral::Storage {
 		friend bool GetLogData(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate, uint64_t Offset, uint64_t HowMany,
                                std::vector<uCentral::Objects::DeviceLog> &Stats, uint64_t Type);
         friend bool DeleteLogData(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate, uint64_t Type);
-        friend bool AddLog(std::string & SerialNumber, const std::string & Log);
+        friend bool AddLog(std::string & SerialNumber, uint64_t UUID, const std::string & Log);
         friend bool AddLog(std::string & SerialNumber, uCentral::Objects::DeviceLog & Log, bool CrashLog);
 
         friend bool CreateDefaultConfiguration(std::string & name, uCentral::Objects::DefaultConfiguration & DefConfig);
@@ -216,7 +216,7 @@ namespace uCentral::Storage {
 #endif
 
         bool AddLog(std::string & SerialNumber, uCentral::Objects::DeviceLog & Log, bool CrashLog );
-        bool AddLog(std::string & SerialNumber, const std::string & Log );
+        bool AddLog(std::string & SerialNumber, uint64_t UUID, const std::string & Log );
         bool AddStatisticsData(std::string &SerialNumber, uint64_t CfgUUID, std::string &NewStats);
         bool GetStatisticsData(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate, uint64_t Offset, uint64_t HowMany,
                                std::vector<uCentral::Objects::Statistics> &Stats);

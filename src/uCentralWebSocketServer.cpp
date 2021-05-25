@@ -22,6 +22,7 @@
 #include "uCentralWebSocketServer.h"
 #include "uStorageService.h"
 #include "uUtils.h"
+#include "uCentralProtocol.h"
 
 namespace uCentral::WebSocket {
 
@@ -191,35 +192,39 @@ namespace uCentral::WebSocket {
         }
     }
 
-    bool WSConnection::LookForUpgrade(std::string &Response) {
+    bool WSConnection::LookForUpgrade(uint64_t UUID, uint64_t & Pending, std::string &Response) {
 
         std::string NewConfig;
         uint64_t NewConfigUUID;
 
-        if (uCentral::Storage::ExistingConfiguration(SerialNumber_, Conn_->UUID,
+		//	A UUID of zero means ignore updates for tha connection.
+		if(UUID==0)
+			return false;
+
+        if (uCentral::Storage::ExistingConfiguration(SerialNumber_, Pending,
                                                      NewConfig, NewConfigUUID)) {
-            if (Conn_->UUID < NewConfigUUID) {
+            if (Pending < NewConfigUUID) {
                 Conn_->PendingUUID = NewConfigUUID;
-                std::string Log = Poco::format("Returning newer configuration %Lu.", Conn_->PendingUUID);
-                uCentral::Storage::AddLog(SerialNumber_, Log);
+                std::string Log = Poco::format("CFG-UPGRADE(%s):, Returning newer configuration %Lu.", SerialNumber_, NewConfigUUID);
+                uCentral::Storage::AddLog(SerialNumber_, Conn_->UUID, Log);
 
                 Poco::JSON::Parser  parser;
                 auto ParsedConfig = parser.parse(NewConfig).extract<Poco::JSON::Object::Ptr>();
-				ParsedConfig->set("uuid",NewConfigUUID);
+				ParsedConfig->set(uCentralProtocol::UUID,NewConfigUUID);
 
 				Poco::JSON::Object Params;
-                Params.set("serial", SerialNumber_);
-                Params.set("uuid", NewConfigUUID);
-                Params.set("when", 0);
-                Params.set("config", ParsedConfig);
+                Params.set(uCentralProtocol::SERIAL, SerialNumber_);
+                Params.set(uCentralProtocol::UUID, NewConfigUUID);
+                Params.set(uCentralProtocol::WHEN, 0);
+                Params.set(uCentralProtocol::CONFIG, ParsedConfig);
 
                 uint64_t CommandID = RPC_++;
 
                 Poco::JSON::Object ReturnObject;
-                ReturnObject.set("method", "configure");
-                ReturnObject.set("jsonrpc", "2.0");
-                ReturnObject.set("id", CommandID);
-                ReturnObject.set("params", Params);
+                ReturnObject.set(uCentralProtocol::METHOD, "configure");
+                ReturnObject.set(uCentralProtocol::JSONRPC, uCentralProtocol::JSONRPC_VERSION);
+                ReturnObject.set(uCentralProtocol::ID, CommandID);
+                ReturnObject.set(uCentralProtocol::PARAMS, Params);
 
                 std::stringstream Ret;
                 Poco::JSON::Stringifier::condense(ReturnObject, Ret);
@@ -231,10 +236,10 @@ namespace uCentral::WebSocket {
 
                 Cmd.SerialNumber = SerialNumber_;
                 Cmd.UUID = uCentral::instance()->CreateUUID();
-                Cmd.SubmittedBy = "*system";
+                Cmd.SubmittedBy = uCentralProtocol::SUBMITTED_BY_SYSTEM;
                 Cmd.ErrorCode = 0 ;
-                Cmd.Status = "Pending";
-                Cmd.Command = "configure";
+                Cmd.Status = uCentralProtocol::PENDING;
+                Cmd.Command = uCentralProtocol::CONFIGURE;
                 Cmd.Custom = 0;
                 Cmd.RunAt = 0;
 
@@ -276,7 +281,7 @@ namespace uCentral::WebSocket {
     }
 
     void WSConnection::ProcessJSONRPCResult(Poco::JSON::Object::Ptr Doc) {
-        uint64_t ID = Doc->get("id");
+        uint64_t ID = Doc->get(uCentralProtocol::ID);
         auto RPC = RPCs_.find(ID);
 
         if(RPC!=RPCs_.end())
@@ -293,10 +298,15 @@ namespace uCentral::WebSocket {
 
     void WSConnection::ProcessJSONRPCEvent(Poco::JSON::Object::Ptr Doc) {
 
-        std::string Response;
+        auto Method = Doc->get(uCentralProtocol::METHOD).toString();
+		auto EventType = uCentral::uCentralProtocol::EventFromString(Method);
+		if(EventType == uCentralProtocol::ET_UNKNOWN) {
+			Logger_.error(Poco::format("ILLEGAL-PROTOCOL(%s): Unknown message type '%s'",Method));
+			Errors_++;
+			return;
+		}
 
-        auto Method = Doc->get("method").toString();
-        auto Params = Doc->get("params");
+		auto Params = Doc->get(uCentralProtocol::PARAMS);
 /*        if(!Params.isStruct())
         {
             Logger_.warning(Poco::format("MISSING-PARAMS(%s): params must be an object.",CId_));
@@ -305,233 +315,258 @@ namespace uCentral::WebSocket {
 */
         //  expand params if necessary
         auto ParamsObj = Params.extract<Poco::JSON::Object::Ptr>();
-        if(ParamsObj->has("compress_64"))
+        if(ParamsObj->has(uCentralProtocol::COMPRESS_64))
         {
             Logger_.debug(Poco::format("EVENT(%s): Found compressed payload.",CId_));
-            ParamsObj = ExtractCompressedData(ParamsObj->get("compress_64").toString());
+            ParamsObj = ExtractCompressedData(ParamsObj->get(uCentralProtocol::COMPRESS_64).toString());
         }
 
-        if(!ParamsObj->has("serial"))
+        if(!ParamsObj->has(uCentralProtocol::SERIAL))
         {
             Logger_.warning(Poco::format("MISSING-PARAMS(%s): Serial number is missing in message.",CId_));
             return;
         }
 
-		auto Serial = Poco::toLower(ParamsObj->get("serial").toString());
+		auto Serial = Poco::toLower(ParamsObj->get(uCentralProtocol::SERIAL).toString());
 		if(uCentral::Storage::IsBlackListed(Serial)) {
 			Poco::Exception	E(Poco::format("BLACKLIST(%s): device is blacklisted and not allowed to connect.",Serial), EACCES);
 			E.rethrow();
 		}
 
-        if (!Poco::icompare(Method, "connect")) {
-            if( ParamsObj->has("uuid") &&
-                ParamsObj->has("firmware") &&
-                ParamsObj->has("capabilities")) {
-                uint64_t UUID = ParamsObj->get("uuid");
-                auto Firmware = ParamsObj->get("firmware").toString();
-                auto Capabilities = ParamsObj->get("capabilities").toString();
+		std::string Response;
 
-                Conn_ = uCentral::DeviceRegistry::Register(Serial, this);
-                SerialNumber_ = Serial;
-                Conn_->SerialNumber = Serial;
-                Conn_->UUID = UUID;
-                Conn_->Firmware = Firmware;
-                Conn_->PendingUUID = 0;
-				Conn_->Address = uCentral::Utils::FormatIPv6(WS_->peerAddress().toString());
-				CId_ = SerialNumber_ + "@" + CId_ ;
+		switch(EventType) {
+			case uCentralProtocol::ET_CONNECT: {
+				if( ParamsObj->has(uCentralProtocol::UUID) &&
+					ParamsObj->has(uCentralProtocol::FIRMWARE) &&
+					ParamsObj->has(uCentralProtocol::CAPABILITIES)) {
+						uint64_t UUID = ParamsObj->get(uCentralProtocol::UUID);
+						auto Firmware = ParamsObj->get(uCentralProtocol::FIRMWARE).toString();
+						auto Capabilities = ParamsObj->get(uCentralProtocol::CAPABILITIES).toString();
 
-				//	We need to verify the certificate if we have one
-				if(!CN_.empty() && CN_==SerialNumber_) {
-					Conn_->VerifiedCertificate = Objects::VERIFIED;
-					Logger_.information(Poco::format("CONNECT(%s): Fully validated and authenticated device..", CId_));
-				} else {
-					if(CN_.empty())
-						Logger_.information(Poco::format("CONNECT(%s): Not authenticated or validated.", CId_));
-					else
-						Logger_.information(Poco::format("CONNECT(%s): Authenticated but not validated.", CId_));
+						Conn_ = uCentral::DeviceRegistry::Register(Serial, this);
+						SerialNumber_ = Serial;
+						Conn_->SerialNumber = Serial;
+						Conn_->UUID = UUID;
+						Conn_->Firmware = Firmware;
+						Conn_->PendingUUID = UUID;
+						Conn_->Address = uCentral::Utils::FormatIPv6(WS_->peerAddress().toString());
+						CId_ = SerialNumber_ + "@" + CId_ ;
+
+						//	We need to verify the certificate if we have one
+						if(!CN_.empty() && CN_==SerialNumber_) {
+							Conn_->VerifiedCertificate = Objects::VERIFIED;
+							Logger_.information(Poco::format("CONNECT(%s): Fully validated and authenticated device..", CId_));
+						} else {
+							if(CN_.empty())
+								Logger_.information(Poco::format("CONNECT(%s): Not authenticated or validated.", CId_));
+							else
+								Logger_.information(Poco::format("CONNECT(%s): Authenticated but not validated.", CId_));
+						}
+
+						if (uCentral::instance()->AutoProvisioning() && !uCentral::Storage::DeviceExists(SerialNumber_))
+							uCentral::Storage::CreateDefaultDevice(SerialNumber_, Capabilities);
+
+						uCentral::Storage::UpdateDeviceCapabilities(SerialNumber_, Capabilities);
+
+						if(!Firmware.empty())
+							uCentral::Storage::SetFirmware(SerialNumber_, Firmware);
+
+						StatsProcessor_ = std::make_unique<uCentral::uStateProcessor>();
+						StatsProcessor_->Initialize(Serial);
+						LookForUpgrade(UUID, Conn_->PendingUUID, Response);
+					} else {
+						Logger_.warning(Poco::format("CONNECT(%s): Missing one of uuid, firmware, or capabilities",CId_));
+						return;
+					}
 				}
+				break;
 
-                if (uCentral::instance()->AutoProvisioning() && !uCentral::Storage::DeviceExists(SerialNumber_))
-                    uCentral::Storage::CreateDefaultDevice(SerialNumber_, Capabilities);
+			case uCentralProtocol::ET_STATE: {
+					if (ParamsObj->has(uCentralProtocol::UUID) && ParamsObj->has(uCentralProtocol::STATE)) {
+						uint64_t UUID = ParamsObj->get(uCentralProtocol::UUID);
+						auto State = ParamsObj->get(uCentralProtocol::STATE).toString();
 
-				uCentral::Storage::UpdateDeviceCapabilities(SerialNumber_, Capabilities);
+						std::string request_uuid;
+						if (ParamsObj->has(uCentralProtocol::REQUEST_UUID))
+							request_uuid = ParamsObj->get(uCentralProtocol::REQUEST_UUID).toString();
 
-				if(!Firmware.empty())
-					uCentral::Storage::SetFirmware(SerialNumber_, Firmware);
+						if (request_uuid.empty())
+							Logger_.debug(Poco::format("STATE(%s): UUID=%Lu Updating.", CId_, UUID));
+						else
+							Logger_.debug(Poco::format("STATE(%s): UUID=%Lu Updating for CMD=%s.", CId_,
+													   UUID, request_uuid));
 
-				// StatsProcessor_ = std::make_unique<uCentral::uStateProcessor>();
-				// StatsProcessor_->Initialize(Serial);
+						Conn_->UUID = UUID;
+						uCentral::Storage::AddStatisticsData(Serial, UUID, State);
+						uCentral::DeviceRegistry::SetStatistics(Serial, State);
 
-                LookForUpgrade(Response);
+						if (!request_uuid.empty()) {
+							uCentral::Storage::SetCommandResult(request_uuid, State);
+						}
 
-            } else {
-                Logger_.warning(Poco::format("CONNECT(%s): Missing one of uuid, firmware, or capabilities",CId_));
-                return;
-            }
-        } else if (!Poco::icompare(Method, "state")) {
-             if (ParamsObj->has("uuid") &&
-                ParamsObj->has("state")) {
+						if (StatsProcessor_)
+							StatsProcessor_->Add(State);
 
-                uint64_t UUID = ParamsObj->get("uuid");
-                auto State = ParamsObj->get("state").toString();
-
-				std::string request_uuid;
-				if(ParamsObj->has("request_uuid"))
-					request_uuid = ParamsObj->get("request_uuid").toString();
-
-				if(request_uuid.empty())
-                	Logger_.debug(Poco::format("STATE(%s): UUID=%Lu Updating.", CId_, UUID));
-				else
-					Logger_.debug(Poco::format("STATE(%s): UUID=%Lu Updating for CMD=%s.", CId_, UUID,request_uuid));
-
-                Conn_->UUID = UUID;
-                uCentral::Storage::AddStatisticsData(Serial, UUID, State);
-                uCentral::DeviceRegistry::SetStatistics(Serial, State);
-
-				if(!request_uuid.empty()) {
-					uCentral::Storage::SetCommandResult(request_uuid,State);
+						LookForUpgrade(UUID, Conn_->PendingUUID, Response);
+					} else {
+						Logger_.warning(Poco::format(
+							"STATE(%s): Invalid request. Missing serial, uuid, or state", CId_));
+					}
 				}
+				break;
 
-				if(StatsProcessor_)
-					StatsProcessor_->Add(State);
+			case uCentralProtocol::ET_HEALTHCHECK: {
+					if (ParamsObj->has(uCentralProtocol::UUID) && ParamsObj->has(uCentralProtocol::SANITY) && ParamsObj->has(uCentralProtocol::DATA)) {
+						uint64_t UUID = ParamsObj->get(uCentralProtocol::UUID);
+						auto Sanity = ParamsObj->get(uCentralProtocol::SANITY);
+						auto CheckData = ParamsObj->get(uCentralProtocol::DATA).toString();
+						if (CheckData.empty())
+							CheckData = uCentralProtocol::EMPTY_JSON_DOC;
 
-                LookForUpgrade(Response);
-            } else {
-                Logger_.warning(Poco::format("STATE(%s): Invalid request. Missing serial, uuid, or state",
-											 CId_));
-            }
-        } else if (!Poco::icompare(Method, "healthcheck")) {
-            if( ParamsObj->has("uuid") &&
-                ParamsObj->has("sanity") &&
-                ParamsObj->has("data"))
-            {
-                uint64_t UUID = ParamsObj->get("uuid");
-                auto Sanity = ParamsObj->get("sanity");
-				auto CheckData = ParamsObj->get("data").toString();
-				if(CheckData.empty())
-					CheckData = "{}";
+						std::string request_uuid;
+						if (ParamsObj->has(uCentralProtocol::REQUEST_UUID))
+							request_uuid = ParamsObj->get(uCentralProtocol::REQUEST_UUID).toString();
 
-				std::string request_uuid;
-				if(ParamsObj->has("request_uuid"))
-					request_uuid = ParamsObj->get("request_uuid").toString();
+						if (request_uuid.empty())
+							Logger_.debug(
+								Poco::format("HEALTHCHECK(%s): UUID=%Lu Updating.", CId_, UUID));
+						else
+							Logger_.debug(Poco::format("HEALTHCHECK(%s): UUID=%Lu Updating for CMD=%s.",
+													   CId_, UUID, request_uuid));
 
-				if(request_uuid.empty())
-					Logger_.debug(Poco::format("HEALTHCHECK(%s): UUID=%Lu Updating.", CId_, UUID));
-				else
-					Logger_.debug(Poco::format("HEALTHCHECK(%s): UUID=%Lu Updating for CMD=%s.", CId_, UUID,request_uuid));
+						Conn_->UUID = UUID;
 
-                Conn_->UUID = UUID;
+						uCentral::Objects::HealthCheck Check;
 
-				uCentral::Objects::HealthCheck Check;
+						Check.Recorded = time(nullptr);
+						Check.UUID = UUID;
+						Check.Data = CheckData;
+						Check.Sanity = Sanity;
 
-                Check.Recorded = time(nullptr);
-                Check.UUID = UUID;
-                Check.Data = CheckData;
-                Check.Sanity = Sanity;
+						uCentral::Storage::AddHealthCheckData(Serial, Check);
 
-                uCentral::Storage::AddHealthCheckData(Serial, Check);
+						if (!request_uuid.empty()) {
+							uCentral::Storage::SetCommandResult(request_uuid, CheckData);
+						}
 
-				if(!request_uuid.empty()) {
-					uCentral::Storage::SetCommandResult(request_uuid,CheckData);
+						LookForUpgrade(UUID, Conn_->PendingUUID, Response);
+					} else {
+						Logger_.warning(Poco::format("HEALTHCHECK(%s): Missing parameter", CId_));
+						return;
+					}
 				}
+				break;
 
-                LookForUpgrade(Response);
-            }
-            else
-            {
-                Logger_.warning(Poco::format("HEALTHCHECK(%s): Missing parameter",CId_));
-                return;
-            }
-        } else if (!Poco::icompare(Method, "log")) {
-            if( ParamsObj->has("log") &&
-                ParamsObj->has("severity")) {
+			case uCentralProtocol::ET_LOG: {
+					if (ParamsObj->has(uCentralProtocol::LOG) && ParamsObj->has(uCentralProtocol::SEVERITY)) {
+						Logger_.debug(Poco::format("LOG(%s): new entry.", CId_));
+						auto Log = ParamsObj->get(uCentralProtocol::LOG).toString();
+						auto Severity = ParamsObj->get(uCentralProtocol::SEVERITY);
+						std::string DataStr = uCentralProtocol::EMPTY_JSON_DOC;
+						if (ParamsObj->has(uCentralProtocol::DATA)) {
+							auto DataObj = ParamsObj->get(uCentralProtocol::DATA);
+							if (DataObj.isStruct())
+								DataStr = DataObj.toString();
+						}
 
-                Logger_.debug(Poco::format("LOG(%s): new entry.", CId_));
+						uCentral::Objects::DeviceLog DeviceLog{.Log = Log,
+															   .Data = DataStr,
+															   .Severity = Severity,
+															   .Recorded = (uint64_t)time(nullptr),
+															   .LogType = 0,
+															   .UUID = Conn_->UUID};
 
-                auto Log = ParamsObj->get("log").toString();
-                auto Severity = ParamsObj->get("severity");
-				std::string DataStr = "{}";
-
-				if(ParamsObj->has("data")) {
-					auto DataObj = ParamsObj->get("data");
-					if(DataObj.isStruct())
-						DataStr = DataObj.toString();
+						uCentral::Storage::AddLog(Serial, DeviceLog);
+					} else {
+						Logger_.warning(Poco::format("LOG(%s): Missing parameters.", CId_));
+						return;
+					}
 				}
+				break;
 
-                uCentral::Objects::DeviceLog DeviceLog{
-					.Log = Log,
-					.Data = DataStr,
-					.Severity = Severity,
-					.Recorded = (uint64_t ) time(nullptr),
-					.LogType = 0 };
+			case uCentralProtocol::ET_CRASHLOG: {
+					if (ParamsObj->has(uCentralProtocol::UUID) && ParamsObj->has(uCentralProtocol::LOGLINES)) {
 
-                uCentral::Storage::AddLog(Serial, DeviceLog);
-            }
-            else
-            {
-                Logger_.warning(Poco::format("LOG(%s): Missing parameters.",CId_));
-                return;
-            }
-        } else if (!Poco::icompare(Method, "crashlog")) {
-            if( ParamsObj->has("uuid") &&
-                ParamsObj->has("loglines")) {
+						Logger_.debug(Poco::format("CRASH-LOG(%s): new entry.", CId_));
+						auto LogLines = ParamsObj->get(uCentralProtocol::LOGLINES);
+						std::string LogText;
+						if (LogLines.isArray()) {
+							auto LogLinesArray = LogLines.extract<Poco::JSON::Array::Ptr>();
+							for (const auto &i : *LogLinesArray)
+								LogText += i.toString() + "\r\n";
+						}
 
-                Logger_.debug(Poco::format("CRASH-LOG(%s): new entry.", CId_));
-                auto LogLines = ParamsObj->get("loglines");
-				std::string LogText;
-				if(LogLines.isArray()) {
-					auto LogLinesArray = LogLines.extract<Poco::JSON::Array::Ptr>();
-					for(const auto & i : *LogLinesArray)
-						LogText += i.toString() + "\r\n";
+						uCentral::Objects::DeviceLog DeviceLog{
+							.Log = LogText,
+							.Data = "",
+							.Severity = uCentral::Objects::DeviceLog::LOG_EMERG,
+							.Recorded = (uint64_t)time(nullptr),
+							.LogType = 1,
+							.UUID = Conn_->UUID};
+
+						uCentral::Storage::AddLog(Serial, DeviceLog, true);
+					} else {
+						Logger_.warning(Poco::format("LOG(%s): Missing parameters.", CId_));
+						return;
+					}
 				}
+				break;
 
-				uCentral::Objects::DeviceLog DeviceLog{
-					.Log = LogText,
-					.Data = "",
-					.Severity = uCentral::Objects::DeviceLog::LOG_EMERG,
-					.Recorded = (uint64_t )time(nullptr),
-					.LogType = 1};
+			case uCentralProtocol::ET_PING: {
+					if (ParamsObj->has(uCentralProtocol::UUID)) {
+						uint64_t UUID = ParamsObj->get(uCentralProtocol::UUID);
+						Logger_.debug(Poco::format("PING(%s): Current config is %Lu", CId_, UUID));
+					} else {
+						Logger_.warning(Poco::format("PING(%s): Missing parameter.", CId_));
+					}
+				}
+				break;
 
-				uCentral::Storage::AddLog(Serial, DeviceLog, true);
-            }
-            else
-            {
-                Logger_.warning(Poco::format("LOG(%s): Missing parameters.",CId_));
-                return;
-            }
-        } else if (!Poco::icompare(Method, "ping")) {
-            if(ParamsObj->has("uuid")) {
-                uint64_t UUID = ParamsObj->get("uuid");
-                Logger_.debug(Poco::format("PING(%s): Current config is %Lu", CId_, UUID));
-            }
-            else
-            {
-                Logger_.warning(Poco::format("PING(%s): Missing parameter.",CId_));
-            }
-        } else if (!Poco::icompare(Method, "cfgpending")) {
-            if( ParamsObj->has("uuid") &&
-                ParamsObj->has("active")) {
+			case uCentralProtocol::ET_CFGPENDING: {
+					if (ParamsObj->has(uCentralProtocol::UUID) && ParamsObj->has(uCentralProtocol::ACTIVE)) {
 
-                uint64_t UUID = ParamsObj->get("uuid");
-                uint64_t Active = ParamsObj->get("active");
+						uint64_t UUID = ParamsObj->get(uCentralProtocol::UUID);
+						uint64_t Active = ParamsObj->get(uCentralProtocol::ACTIVE);
 
-                Logger_.debug(Poco::format("CFG-PENDING(%s): Active: %Lu Target: %Lu", CId_, Active, UUID));
-            }
-            else {
-                Logger_.warning(Poco::format("CFG-PENDING(%s): Missing some parameters",CId_));
-            }
-        } else if (!Poco::icompare(Method, "recovery")) {
-			if(	ParamsObj->has("serial") &&
-				ParamsObj->has("firmware") &&
-				ParamsObj->has("uuid") &&
-				ParamsObj->has("reboot") &&
-				ParamsObj->has("loglines")) {
+						Logger_.debug(Poco::format("CFG-PENDING(%s): Active: %Lu Target: %Lu", CId_,
+												   Active, UUID));
+					} else {
+						Logger_.warning(Poco::format("CFG-PENDING(%s): Missing some parameters", CId_));
+					}
+				}
+				break;
 
-			} else {
-				Logger_.error(Poco::format("RECOVERY(%s): Recovery missing one of firmware, uuid, loglines, reboot", Serial));
+			case uCentralProtocol::ET_RECOVERY: {
+					if (ParamsObj->has(uCentralProtocol::SERIAL) && ParamsObj->has(uCentralProtocol::FIRMWARE) &&
+						ParamsObj->has(uCentralProtocol::UUID) && ParamsObj->has(uCentralProtocol::REBOOT) &&
+						ParamsObj->has(uCentralProtocol::LOGLINES)) {
+
+						uint64_t UUID = ParamsObj->get(uCentralProtocol::UUID);
+						uint64_t Reboot = ParamsObj->get(uCentralProtocol::REBOOT);
+						auto Firmware = ParamsObj->get(uCentralProtocol::FIRMWARE).toString();
+						auto LogLines = ParamsObj->get(uCentralProtocol::LOGLINES);
+						std::string LogText;
+						if (LogLines.isArray()) {
+							auto LogLinesArray = LogLines.extract<Poco::JSON::Array::Ptr>();
+							for (const auto &i : *LogLinesArray)
+								LogText += i.toString() + "\r\n";
+						}
+
+					} else {
+						Logger_.error(Poco::format(
+							"RECOVERY(%s): Recovery missing one of firmware, uuid, loglines, reboot",
+							Serial));
+					}
+				}
+				break;
+
+			// 	this will never be called but some compilers will complain if we do not have a case for
+			//	every single values of an enum
+			case uCentralProtocol::ET_UNKNOWN: {
+				Logger_.error(Poco::format("ILLEGAL-EVENT(%s): Event '%s' unknown", CId_, Method));
+				Errors_++;
 			}
-		} else {
-
 		}
 
         if (!Response.empty()) {
@@ -626,12 +661,12 @@ namespace uCentral::WebSocket {
 						auto ParsedMessage = parser.parse(IncomingMessageStr);
                         auto IncomingJSON = ParsedMessage.extract<Poco::JSON::Object::Ptr>();
 
-                        if (IncomingJSON->has("jsonrpc")) {
-							if(IncomingJSON->has("method") &&
-								IncomingJSON->has("params")) {
+                        if (IncomingJSON->has(uCentralProtocol::JSONRPC)) {
+							if(IncomingJSON->has(uCentralProtocol::METHOD) &&
+								IncomingJSON->has(uCentralProtocol::PARAMS)) {
                             		ProcessJSONRPCEvent(IncomingJSON);
-                        	} else if (IncomingJSON->has("result") &&
-								IncomingJSON->has("id")) {
+                        	} else if (IncomingJSON->has(uCentralProtocol::RESULT) &&
+								IncomingJSON->has(uCentralProtocol::ID)) {
 								Logger_.debug(Poco::format("RPC-RESULT(%s): payload: %s",CId_,IncomingMessageStr));
                             	ProcessJSONRPCResult(IncomingJSON);
                         	} else {
@@ -732,19 +767,19 @@ namespace uCentral::WebSocket {
 
             auto ID = RPC_++;
 
-            Obj.set("jsonrpc","2.0");
-            Obj.set("id",ID);
-            Obj.set("method", Command.Custom ? "perform" : Command.Command );
+            Obj.set(uCentralProtocol::JSONRPC,uCentralProtocol::JSONRPC_VERSION);
+            Obj.set(uCentralProtocol::ID,ID);
+            Obj.set(uCentralProtocol::METHOD, Command.Custom ? uCentralProtocol::PERFORM : Command.Command );
 
 			bool FullCommand = true;
-			if(Command.Command=="request")
+			if(Command.Command==uCentralProtocol::REQUEST)
 				FullCommand = false;
 
             // the params section was composed earlier... just include it here
             Poco::JSON::Parser  parser;
             auto ParsedMessage = parser.parse(Command.Details);
             const auto & ParamsObj = ParsedMessage.extract<Poco::JSON::Object::Ptr>();
-            Obj.set("params",ParamsObj);
+            Obj.set(uCentralProtocol::PARAMS,ParamsObj);
             std::stringstream ToSend;
             Poco::JSON::Stringifier::stringify(Obj,ToSend);
 

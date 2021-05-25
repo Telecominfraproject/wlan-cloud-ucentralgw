@@ -117,6 +117,7 @@ namespace uCentral::Objects {
 		uint64_t 	Severity;
 		uint64_t 	Recorded;
 		uint64_t 	LogType;
+		uint64_t 	UUID;
 		void 		to_json(Poco::JSON::Object &Obj) const;
 	};
 

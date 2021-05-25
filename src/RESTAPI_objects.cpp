@@ -111,6 +111,7 @@ namespace uCentral::Objects {
 		EmbedDocument("data", Obj, Data);
 		Obj.set("recorded", uCentral::Utils::to_RFC3339(Recorded));
 		Obj.set("logType", LogType);
+		Obj.set("UUID", UUID);
 	}
 
 	void HealthCheck::to_json(Poco::JSON::Object &Obj) const {
