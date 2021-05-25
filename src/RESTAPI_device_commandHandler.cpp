@@ -158,9 +158,8 @@ void RESTAPI_device_commandHandler::GetStatistics(Poco::Net::HTTPServerRequest& 
 				Stats = uCentral::uCentralProtocol::EMPTY_JSON_DOC;
 
 			std::cout << __LINE__ << std::endl;
-			auto Obj = P.parse(Stats).extract<Poco::JSON::Object>();
-			ReturnObject(Request, Obj, Response);
-
+			auto Obj = P.parse(Stats).extract<Poco::JSON::Object::Ptr>();
+			ReturnObject(Request, *Obj, Response);
 		} else {
 			std::vector<uCentral::Objects::Statistics> Stats;
 			uCentral::Storage::GetStatisticsData(SerialNumber, StartDate, EndDate, Offset, Limit,
