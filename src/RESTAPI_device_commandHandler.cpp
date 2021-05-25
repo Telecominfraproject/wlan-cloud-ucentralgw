@@ -1029,7 +1029,10 @@ void RESTAPI_device_commandHandler::Rtty(Poco::Net::HTTPServerRequest &Request, 
 				Cmd.Details = ParamStream.str();
 
 				if(uCentral::Storage::AddCommand(SerialNumber,Cmd)) {
-					ReturnObject(Request, ReturnedObject, Response);
+					if(WaitForRPC(Cmd, Request, Response, 10000, false))
+						ReturnObject(Request, ReturnedObject, Response);
+					else
+						ReturnStatus(Request, Response,Poco::Net::HTTPResponse::HTTP_INTERNAL_SERVER_ERROR);
 					return;
 				} else {
 					ReturnStatus(Request, Response, Poco::Net::HTTPResponse::HTTP_INTERNAL_SERVER_ERROR);

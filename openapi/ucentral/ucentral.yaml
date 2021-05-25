@@ -277,6 +277,35 @@ components:
           items:
             $ref: '#/components/schemas/StatisticsDetails'
 
+    NameValuePair:
+      type: object
+      properties:
+        name:
+          type: string
+        value:
+          type: integer
+          format: int64
+
+    InterfaceStatistics:
+      type: object
+      properties:
+        name:
+          type: string
+        values:
+          type: array
+          items:
+            $ref: '#/components/schemas/NameValuePair'
+
+    LifetimeStatistics:
+      type: object
+      properties:
+        serialNumber:
+          type: string
+        interfaces:
+          type: array
+          items:
+            $ref: '#/components/schemas/InterfaceStatistics'
+
     CommandDetails:
       type: object
       properties:
@@ -1599,6 +1628,11 @@ paths:
           schema:
             type: integer
             format: int64
+        - in: query
+          description: Selecting this option means the LifetimeStatistics will be returned. All other parameters will be ignored.
+          name: lifetime
+          schema:
+            type: boolean
 
       responses:
         200:
@@ -1606,7 +1640,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/StatisticsRecords'
+                oneOf:
+                  - $ref: '#/components/schemas/StatisticsRecords'
+                  - $ref: '#/components/schemas/LifetimeStatistics'
         403:
           $ref: '#/components/responses/Unauthorized'
         404:

@@ -55,7 +55,7 @@ public:
     void ReturnObject(Poco::Net::HTTPServerRequest & Request,Poco::JSON::Object & Object, Poco::Net::HTTPServerResponse & Response);
     void NotFound(Poco::Net::HTTPServerRequest & Request,Poco::Net::HTTPServerResponse &Response);
     void OK(Poco::Net::HTTPServerRequest & Request,Poco::Net::HTTPServerResponse &Response);
-	void WaitForRPC(uCentral::Objects::CommandDetails & Cmd, Poco::Net::HTTPServerRequest & Request, Poco::Net::HTTPServerResponse &Response, uint64_t Timeout = 5000 );
+	bool WaitForRPC(uCentral::Objects::CommandDetails & Cmd, Poco::Net::HTTPServerRequest & Request, Poco::Net::HTTPServerResponse &Response, uint64_t Timeout = 5000 , bool ReturnObject = true);
 	void ReturnStatus(Poco::Net::HTTPServerRequest & Request, Poco::Net::HTTPServerResponse &Response, Poco::Net::HTTPResponse::HTTPStatus Status);
 
     const std::string & GetBinding(const std::string &Name, const std::string &Default);

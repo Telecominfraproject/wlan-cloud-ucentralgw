@@ -198,27 +198,31 @@ void RESTAPIHandler::ReturnStatus(Poco::Net::HTTPServerRequest & Request, Poco::
 	Response.send();
 }
 
-void RESTAPIHandler::WaitForRPC(uCentral::Objects::CommandDetails & Cmd,Poco::Net::HTTPServerRequest & Request, Poco::Net::HTTPServerResponse &Response, uint64_t Timeout) {
+bool RESTAPIHandler::WaitForRPC(uCentral::Objects::CommandDetails & Cmd,Poco::Net::HTTPServerRequest & Request, Poco::Net::HTTPServerResponse &Response, uint64_t Timeout,bool ReturnValue ) {
 
 	if(uCentral::DeviceRegistry::Connected(Cmd.SerialNumber)) {
 		uCentral::Objects::CommandDetails ResCmd;
 		while (Timeout > 0) {
 			Timeout -= 1000;
 			Poco::Thread::sleep(1000);
-
 			if (uCentral::Storage::GetCommand(Cmd.UUID, ResCmd)) {
 				if (ResCmd.Completed) {
-					Poco::JSON::Object RetObj;
-					ResCmd.to_json(RetObj);
-					ReturnObject(Request, RetObj, Response);
-					return;
+					if(ReturnValue) {
+						Poco::JSON::Object RetObj;
+						ResCmd.to_json(RetObj);
+						ReturnObject(Request, RetObj, Response);
+					}
+					return true;
 				}
 			}
 		}
 	}
-	Poco::JSON::Object RetObj;
-	Cmd.to_json(RetObj);
-	ReturnObject(Request, RetObj, Response);
+	if(ReturnValue) {
+		Poco::JSON::Object RetObj;
+		Cmd.to_json(RetObj);
+		ReturnObject(Request, RetObj, Response);
+	}
+	return false;
 }
 
 bool RESTAPIHandler::ContinueProcessing(Poco::Net::HTTPServerRequest & Request, Poco::Net::HTTPServerResponse & Response )
