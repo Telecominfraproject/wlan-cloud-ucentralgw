@@ -130,7 +130,7 @@ namespace uCentral::WebSocket {
 				Poco::Crypto::X509Certificate	PeerCert(SS->peerCertificate());
 
 				if(uCentral::WebSocket::Service::instance()->ValidateCertificate(PeerCert)) {
-					CN_ = PeerCert.commonName();
+					CN_ = Poco::toLower(PeerCert.commonName());
 					CertValidation_ = Objects::MISMATCH_SERIAL;
 					Logger_.debug(Poco::format("%s: Valid certificate: CN=%s", CId_, PeerCert.commonName()));
 				} else {
@@ -317,7 +317,7 @@ namespace uCentral::WebSocket {
             return;
         }
 
-		auto Serial = ParamsObj->get("serial").toString();
+		auto Serial = Poco::toLower(ParamsObj->get("serial").toString());
 		if(uCentral::Storage::IsBlackListed(Serial)) {
 			Poco::Exception	E(Poco::format("BLACKLIST(%s): device is blacklisted and not allowed to connect.",Serial), EACCES);
 			E.rethrow();
