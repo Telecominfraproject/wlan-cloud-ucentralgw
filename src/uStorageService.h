@@ -86,7 +86,7 @@ namespace uCentral::Storage {
     bool DeleteCommand( std::string &UUID );
     bool GetReadyToExecuteCommands( uint64_t Offset, uint64_t HowMany, std::vector<uCentral::Objects::CommandDetails> & Commands );
     bool CommandExecuted(std::string & UUID);
-    bool CommandCompleted(std::string & UUID, Poco::DynamicStruct & ReturnVars, bool FullCommand);
+    bool CommandCompleted(std::string & UUID, const Poco::JSON::Object::Ptr & ReturnVars, bool FullCommand);
     bool AttachFileToCommand(std::string & UUID);
 	bool GetAttachedFile(std::string & UUID, std::string & SerialNumber, const std::string & FileName, std::string &Type);
 	bool RemoveAttachedFile(std::string & UUID);
@@ -175,7 +175,7 @@ namespace uCentral::Storage {
         friend bool DeleteCommand( std::string &UUID );
         friend bool GetReadyToExecuteCommands( uint64_t Offset, uint64_t HowMany, std::vector<uCentral::Objects::CommandDetails> & Commands );
         friend bool CommandExecuted(std::string & UUID);
-        friend bool CommandCompleted(std::string & UUID, Poco::DynamicStruct & ReturnVars, bool FullCommand);
+        friend bool CommandCompleted(std::string & UUID, const Poco::JSON::Object::Ptr & ReturnVars, bool FullCommand);
         friend bool AttachFileToCommand(std::string & UUID);
 		friend bool GetAttachedFile(std::string & UUID, std::string & SerialNumber, const std::string & FileName, std::string &Type);
 		friend bool RemoveAttachedFile(std::string & UUID);
@@ -265,7 +265,7 @@ namespace uCentral::Storage {
         bool DeleteCommand( std::string &UUID );
         bool GetReadyToExecuteCommands( uint64_t Offset, uint64_t HowMany, std::vector<uCentral::Objects::CommandDetails> & Commands );
         bool CommandExecuted(std::string & UUID);
-        bool CommandCompleted(std::string & UUID, Poco::DynamicStruct & ReturnVars, bool FullCommand);
+        bool CommandCompleted(std::string & UUID, const Poco::JSON::Object::Ptr & ReturnVars, bool FullCommand);
         bool AttachFileToCommand(std::string & UUID);
 		bool GetAttachedFile(std::string & UUID, std::string & SerialNumber, const std::string & FileName, std::string &Type);
 		bool RemoveAttachedFile(std::string & UUID);

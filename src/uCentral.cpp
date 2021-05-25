@@ -28,6 +28,8 @@
 #include "uStorageService.h"
 #include "uFirmwareManager.h"
 
+#include "uStateProcessor.h"
+
 #include "uUtils.h"
 
 #ifndef SMALL_BUILD
@@ -316,6 +318,21 @@ namespace uCentral {
 			{
 				logger.information("Starting as a daemon.");
 			}
+
+/*
+			uCentral::uStateProcessor	P;
+
+			std::string S1(
+			R"lit({"unit":{"memory":{"total":254529536,"free":121118720},"localtime":1621706939,"uptime":313675,"load":[7392,12608,11648]},"radios":[{"frequencies":[5660,5690],"channel_width":"80","tx_power":24},{"frequencies":[2437,2437],"channel_width":"20","tx_power":30}],"interfaces":[
+						{"name":"wan","location":"/interfaces/0","uptime":313645,"ipv4_addresses":["10.2.155.233/16"],"dns_servers":["10.2.0.1"],"ipv4_leasetime":86400,"counters":{"rx_packets":1583580,"tx_packets":24432,"rx_bytes":443096230,"tx_bytes":5579666,"rx_errors":0,"tx_errors":0,"rx_dropped":988,"tx_dropped":0,"multicast":1186774,"collisions":0}},
+						{"name":"lan","location":"/interfaces/1","uptime":313651,"ipv4_addresses":["192.168.1.1/24"],"ipv4_leases":[{"assigned":"1621720735","mac":"00:23:a4:05:05:95","address":"192.168.1.86","hostname":"renegademac"}],"counters":{"rx_packets":53854,"tx_packets":336151,"rx_bytes":8306857,"tx_bytes":258730915,"rx_errors":0,"tx_errors":0,"rx_dropped":0,"tx_dropped":0,"multicast":28890,"collisions":0}}
+						]})lit");
+
+			P.Add(S1);
+			P.Print();
+			P.Add(S1);
+			P.Print();
+*/
 
 			instance()->waitForTerminationRequest();
 

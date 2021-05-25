@@ -7,6 +7,7 @@
 //
 
 #include <thread>
+#include <cerrno>
 
 #include "Poco/Net/IPAddress.h"
 #include "Poco/Net/SSLException.h"
@@ -204,14 +205,13 @@ namespace uCentral::WebSocket {
 
                 Poco::JSON::Parser  parser;
                 auto ParsedConfig = parser.parse(NewConfig).extract<Poco::JSON::Object::Ptr>();
-                Poco::DynamicStruct Vars = *ParsedConfig;
-                Vars["uuid"] = NewConfigUUID;
+				ParsedConfig->set("uuid",NewConfigUUID);
 
-                Poco::JSON::Object Params;
+				Poco::JSON::Object Params;
                 Params.set("serial", SerialNumber_);
                 Params.set("uuid", NewConfigUUID);
                 Params.set("when", 0);
-                Params.set("config", Vars);
+                Params.set("config", ParsedConfig);
 
                 uint64_t CommandID = RPC_++;
 
@@ -257,7 +257,7 @@ namespace uCentral::WebSocket {
         return false;
     }
 
-    Poco::DynamicStruct WSConnection::ExtractCompressedData(const std::string & CompressedData)
+	Poco::JSON::Object::Ptr WSConnection::ExtractCompressedData(const std::string & CompressedData)
     {
         std::vector<uint8_t> OB = uCentral::Utils::base64decode(CompressedData);
 
@@ -268,22 +268,21 @@ namespace uCentral::WebSocket {
 			UncompressedBuffer[FinalSize] = 0;
 			Poco::JSON::Parser parser;
 			auto result = parser.parse(&UncompressedBuffer[0]).extract<Poco::JSON::Object::Ptr>();
-			Poco::DynamicStruct Vars = *result;
-			return Vars;
+			return result;
 		} else {
-			Poco::DynamicStruct Vars;
+			Poco::JSON::Object::Ptr Vars;
 			return Vars;
 		}
     }
 
-    void WSConnection::ProcessJSONRPCResult(Poco::DynamicStruct Vars) {
-        uint64_t ID = Vars["id"];
+    void WSConnection::ProcessJSONRPCResult(Poco::JSON::Object::Ptr Doc) {
+        uint64_t ID = Doc->get("id");
         auto RPC = RPCs_.find(ID);
 
         if(RPC!=RPCs_.end())
         {
             Logger_.debug(Poco::format("RPC(%s): Completed outstanding RPC %Lu",SerialNumber_,ID));
-            uCentral::Storage::CommandCompleted(RPC->second.UUID,Vars,RPC->second.Full);
+            uCentral::Storage::CommandCompleted(RPC->second.UUID,Doc,RPC->second.Full);
 			RPCs_.erase(RPC);
         }
         else
@@ -292,12 +291,12 @@ namespace uCentral::WebSocket {
         }
     }
 
-    void WSConnection::ProcessJSONRPCEvent(Poco::DynamicStruct Vars) {
+    void WSConnection::ProcessJSONRPCEvent(Poco::JSON::Object::Ptr Doc) {
 
         std::string Response;
 
-        auto Method = Vars["method"].toString();
-        auto Params = Vars["params"];
+        auto Method = Doc->get("method").toString();
+        auto Params = Doc->get("params");
 
         if(!Params.isStruct())
         {
@@ -306,35 +305,32 @@ namespace uCentral::WebSocket {
         }
 
         //  expand params if necessary
-        Poco::DynamicStruct ParamsObj = Params.extract<Poco::DynamicStruct>();
-        if(ParamsObj.contains("compress_64"))
+        auto ParamsObj = Params.extract<Poco::JSON::Object::Ptr>();
+        if(ParamsObj->has("compress_64"))
         {
             Logger_.debug(Poco::format("EVENT(%s): Found compressed payload.",CId_));
-            ParamsObj = ExtractCompressedData(ParamsObj["compress_64"].toString());
+            ParamsObj = ExtractCompressedData(ParamsObj->get("compress_64").toString());
         }
 
-        if(!ParamsObj.contains("serial"))
+        if(!ParamsObj->has("serial"))
         {
             Logger_.warning(Poco::format("MISSING-PARAMS(%s): Serial number is missing in message.",CId_));
             return;
         }
-        auto Serial = ParamsObj["serial"].toString();
 
+		auto Serial = ParamsObj->get("serial").toString();
 		if(uCentral::Storage::IsBlackListed(Serial)) {
-			std::string Msg;
-			Msg = "Device " + Serial + " is Blacklisted and not allowed on this controller.";
-			Poco::Exception	E(Msg, 13);
+			Poco::Exception	E(Poco::format("BLACKLIST(%s): device is blacklisted and not allowed to connect.",Serial), EACCES);
 			E.rethrow();
 		}
 
         if (!Poco::icompare(Method, "connect")) {
-            if( ParamsObj.contains("uuid") &&
-                ParamsObj.contains("firmware") &&
-                ParamsObj.contains("capabilities")) {
-                uint64_t UUID = ParamsObj["uuid"];
-                auto Firmware = ParamsObj["firmware"].toString();
-                auto Capabilities = ParamsObj["capabilities"].toString();
-
+            if( ParamsObj->has("uuid") &&
+                ParamsObj->has("firmware") &&
+                ParamsObj->has("capabilities")) {
+                uint64_t UUID = ParamsObj->get("uuid");
+                auto Firmware = ParamsObj->get("firmware").toString();
+                auto Capabilities = ParamsObj->get("capabilities").toString();
 
                 Conn_ = uCentral::DeviceRegistry::Register(Serial, this);
                 SerialNumber_ = Serial;
@@ -370,15 +366,15 @@ namespace uCentral::WebSocket {
                 return;
             }
         } else if (!Poco::icompare(Method, "state")) {
-             if (ParamsObj.contains("uuid") &&
-                ParamsObj.contains("state")) {
+             if (ParamsObj->has("uuid") &&
+                ParamsObj->has("state")) {
 
-                uint64_t UUID = ParamsObj["uuid"];
-                auto State = ParamsObj["state"].toString();
+                uint64_t UUID = ParamsObj->get("uuid");
+                auto State = ParamsObj->get("state").toString();
 
 				std::string request_uuid;
-				if(ParamsObj.contains("request_uuid"))
-					request_uuid = ParamsObj["request_uuid"].toString();
+				if(ParamsObj->has("request_uuid"))
+					request_uuid = ParamsObj->get("request_uuid").toString();
 
 				if(request_uuid.empty())
                 	Logger_.debug(Poco::format("STATE(%s): UUID=%Lu Updating.", CId_, UUID));
@@ -398,17 +394,19 @@ namespace uCentral::WebSocket {
 											 CId_));
             }
         } else if (!Poco::icompare(Method, "healthcheck")) {
-            if( ParamsObj.contains("uuid") &&
-                ParamsObj.contains("sanity") &&
-                ParamsObj.contains("data"))
+            if( ParamsObj->has("uuid") &&
+                ParamsObj->has("sanity") &&
+                ParamsObj->has("data"))
             {
-                uint64_t UUID = ParamsObj["uuid"];
-                auto Sanity = ParamsObj["sanity"];
-                auto CheckData = ParamsObj["data"].toString();
+                uint64_t UUID = ParamsObj->get("uuid");
+                auto Sanity = ParamsObj->get("sanity");
+				auto CheckData = ParamsObj->get("data").toString();
+				if(CheckData.empty())
+					CheckData = "{}";
 
 				std::string request_uuid;
-				if(ParamsObj.contains("request_uuid"))
-					request_uuid = ParamsObj["request_uuid"].toString();
+				if(ParamsObj->has("request_uuid"))
+					request_uuid = ParamsObj->get("request_uuid").toString();
 
 				if(request_uuid.empty())
 					Logger_.debug(Poco::format("HEALTHCHECK(%s): UUID=%Lu Updating.", CId_, UUID));
@@ -438,21 +436,24 @@ namespace uCentral::WebSocket {
                 return;
             }
         } else if (!Poco::icompare(Method, "log")) {
-            if( ParamsObj.contains("log") &&
-                ParamsObj.contains("severity")) {
+            if( ParamsObj->has("log") &&
+                ParamsObj->has("severity")) {
 
                 Logger_.debug(Poco::format("LOG(%s): new entry.", CId_));
 
-                auto Log = ParamsObj["log"].toString();
-                auto Severity = ParamsObj["severity"];
+                auto Log = ParamsObj->get("log").toString();
+                auto Severity = ParamsObj->get("severity");
+				std::string DataStr = "{}";
 
-                std::string Data;
-                if (ParamsObj.contains("data"))
-                    Data = ParamsObj["data"].toString();
+				if(ParamsObj->has("data")) {
+					auto DataObj = ParamsObj->get("data");
+					if(DataObj.isStruct())
+						DataStr = DataObj.toString();
+				}
 
                 uCentral::Objects::DeviceLog DeviceLog{
 					.Log = Log,
-					.Data = Data,
+					.Data = DataStr,
 					.Severity = Severity,
 					.Recorded = (uint64_t ) time(nullptr),
 					.LogType = 0 };
@@ -465,30 +466,26 @@ namespace uCentral::WebSocket {
                 return;
             }
         } else if (!Poco::icompare(Method, "crashlog")) {
-            if( ParamsObj.contains("uuid") &&
-                ParamsObj.contains("loglines")) {
+            if( ParamsObj->has("uuid") &&
+                ParamsObj->has("loglines")) {
 
                 Logger_.debug(Poco::format("CRASH-LOG(%s): new entry.", CId_));
+                auto LogLines = ParamsObj->get("loglines");
+				std::string LogText;
+				if(LogLines.isArray()) {
+					auto LogLinesArray = LogLines.extract<Poco::JSON::Array::Ptr>();
+					for(const auto & i : *LogLinesArray)
+						LogText += i.toString() + "\r\n";
+				}
 
-                auto LogLines = ParamsObj["loglines"];
-                if(LogLines.isArray()) {
-                    auto LogLinesArray = LogLines.extract<Poco::Dynamic::Array>();
+				uCentral::Objects::DeviceLog DeviceLog{
+					.Log = LogText,
+					.Data = "",
+					.Severity = uCentral::Objects::DeviceLog::LOG_EMERG,
+					.Recorded = (uint64_t )time(nullptr),
+					.LogType = 1};
 
-                    std::string LogText;
-                    for(const auto & i : LogLinesArray)
-                        LogText += i.toString() + "\r\n";
-
-					uCentral::Objects::DeviceLog DeviceLog{
-                    	.Log = LogText,
-                    	.Data = "",
-                    	.Severity = uCentral::Objects::DeviceLog::LOG_EMERG,
-                    	.Recorded = (uint64_t )time(nullptr),
-                    	.LogType = 1};
-                    uCentral::Storage::AddLog(Serial, DeviceLog, true);
-                } else {
-                    Logger_.warning(Poco::format("CRASH-LOG(%s): parameter loglines must be an array.",CId_));
-                    return;
-                }
+				uCentral::Storage::AddLog(Serial, DeviceLog, true);
             }
             else
             {
@@ -496,8 +493,8 @@ namespace uCentral::WebSocket {
                 return;
             }
         } else if (!Poco::icompare(Method, "ping")) {
-            if(ParamsObj.contains("uuid")) {
-                uint64_t UUID = ParamsObj["uuid"];
+            if(ParamsObj->has("uuid")) {
+                uint64_t UUID = ParamsObj->get("uuid");
                 Logger_.debug(Poco::format("PING(%s): Current config is %Lu", CId_, UUID));
             }
             else
@@ -505,11 +502,11 @@ namespace uCentral::WebSocket {
                 Logger_.warning(Poco::format("PING(%s): Missing parameter.",CId_));
             }
         } else if (!Poco::icompare(Method, "cfgpending")) {
-            if( ParamsObj.contains("uuid") &&
-                ParamsObj.contains("active")) {
+            if( ParamsObj->has("uuid") &&
+                ParamsObj->has("active")) {
 
-                uint64_t UUID = ParamsObj["uuid"];
-                uint64_t Active = ParamsObj["active"];
+                uint64_t UUID = ParamsObj->get("uuid");
+                uint64_t Active = ParamsObj->get("active");
 
                 Logger_.debug(Poco::format("CFG-PENDING(%s): Active: %Lu Target: %Lu", CId_, Active, UUID));
             }
@@ -608,24 +605,25 @@ namespace uCentral::WebSocket {
 
                         Poco::JSON::Parser parser;
 						auto ParsedMessage = parser.parse(IncomingMessageStr);
-                        auto Result = ParsedMessage.extract<Poco::JSON::Object::Ptr>();
-                        Poco::DynamicStruct vars = *Result;
+                        auto IncomingJSON = ParsedMessage.extract<Poco::JSON::Object::Ptr>();
 
-                        if (vars.contains("jsonrpc") &&
-                            vars.contains("method") &&
-                            vars.contains("params")) {
-                            ProcessJSONRPCEvent(vars);
-
-                        } else if (vars.contains("jsonrpc") &&
-                                   vars.contains("result") &&
-                                   vars.contains("id")) {
-							Logger_.debug(Poco::format("RPC-RESULT(%s): payload: %s",CId_,
-											   IncomingMessageStr));
-                            ProcessJSONRPCResult(vars);
+                        if (IncomingJSON->has("jsonrpc")) {
+							if(IncomingJSON->has("method") &&
+								IncomingJSON->has("params")) {
+                            		ProcessJSONRPCEvent(IncomingJSON);
+                        	} else if (IncomingJSON->has("result") &&
+								IncomingJSON->has("id")) {
+								Logger_.debug(Poco::format("RPC-RESULT(%s): payload: %s",CId_,IncomingMessageStr));
+                            	ProcessJSONRPCResult(IncomingJSON);
+                        	} else {
+								Logger_.warning(Poco::format(
+									"INVALID-PAYLOAD(%s): Payload is not JSON-RPC 2.0: %s", CId_,
+									IncomingMessageStr));
+							}
                         } else {
-                            Logger_.warning(Poco::format("INVALID-PAYLOAD(%s): Payload is not JSON-RPC 2.0: %s",
-												 CId_, IncomingMessageStr));
-                        }
+							Logger_.error(Poco::format("FRAME(%s): illegal transaction header, missing 'jsonrpc'",CId_));
+							Errors_++;
+						}
                         break;
                     }
 
@@ -700,7 +698,7 @@ namespace uCentral::WebSocket {
             MustDisconnect = true ;
         }
 
-        if(!MustDisconnect)
+        if(!MustDisconnect || Errors_>10)
             return;
 
         delete this;

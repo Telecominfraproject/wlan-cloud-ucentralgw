@@ -150,15 +150,15 @@ namespace uCentral::WebSocket {
         WSConnection(Poco::Net::StreamSocket& socket, Poco::Net::SocketReactor& reactor);
         ~WSConnection();
 
-        void ProcessJSONRPCEvent(Poco::DynamicStruct ds);
-        void ProcessJSONRPCResult(Poco::DynamicStruct ds);
+        void ProcessJSONRPCEvent(Poco::JSON::Object::Ptr	Doc);
+        void ProcessJSONRPCResult(Poco::JSON::Object::Ptr	Doc);
         void ProcessIncomingFrame();
         bool SendCommand(uCentral::Objects::CommandDetails & Command);
         void OnSocketReadable(const Poco::AutoPtr<Poco::Net::ReadableNotification>& pNf);
         void OnSocketShutdown(const Poco::AutoPtr<Poco::Net::ShutdownNotification>& pNf);
         void OnSocketError(const Poco::AutoPtr<Poco::Net::ErrorNotification>& pNf);
         bool LookForUpgrade(std::string &Response);
-        static Poco::DynamicStruct ExtractCompressedData(const std::string & CompressedData);
+        static Poco::JSON::Object::Ptr ExtractCompressedData(const std::string & CompressedData);
         void Register();
         void DeRegister();
 		void LogException(const Poco::Exception &E);
@@ -177,6 +177,7 @@ namespace uCentral::WebSocket {
 		std::string 						CId_;
 		std::string							CN_;
 		uCentral::Objects::CertificateValidation	CertValidation_ = uCentral::Objects::CertificateValidation::NO_CERTIFICATE;
+		uint64_t 							Errors_=0;
     };
 
     struct WebSocketServerEntry {

@@ -76,7 +76,7 @@ namespace uCentral::Storage {
 		return uCentral::Storage::Service::instance()->CommandExecuted(UUID);
 	}
 
-	bool CommandCompleted(std::string &UUID, Poco::DynamicStruct & ReturnVars, bool FullCommand) {
+	bool CommandCompleted(std::string &UUID, const Poco::JSON::Object::Ptr & ReturnVars, bool FullCommand) {
 		return uCentral::Storage::Service::instance()->CommandCompleted(UUID, ReturnVars, FullCommand);
 	}
 
@@ -566,7 +566,7 @@ namespace uCentral::Storage {
 		return false;
 	}
 
-	bool Service::CommandCompleted(std::string &UUID, Poco::DynamicStruct &ReturnVars,
+	bool Service::CommandCompleted(std::string &UUID, const Poco::JSON::Object::Ptr & ReturnVars,
 								   bool FullCommand) {
 		try {
 
@@ -576,18 +576,16 @@ namespace uCentral::Storage {
 			uint64_t ErrorCode = 0;
 			std::string ErrorText, ResultStr;
 
-			if (ReturnVars.contains("result")) {
-				auto ResultObj = ReturnVars["result"];
-				Poco::DynamicStruct ResultFields = ResultObj.extract<Poco::DynamicStruct>();
-
-				if (ResultFields.contains("status")) {
-					auto StatusObj = ResultFields["status"];
-					Poco::DynamicStruct StatusInnerObj = StatusObj.extract<Poco::DynamicStruct>();
-
-					if (StatusInnerObj.contains("error"))
-						ErrorCode = StatusInnerObj["error"];
-					if (StatusInnerObj.contains("text"))
-						ErrorText = StatusInnerObj["text"].toString();
+			if (ReturnVars->has("result")) {
+				auto ResultObj = ReturnVars->get("result");
+				auto ResultFields = ResultObj.extract<Poco::JSON::Object::Ptr>();
+				if (ResultFields->has("status")) {
+					auto StatusObj = ResultFields->get("status");
+					auto StatusInnerObj = StatusObj.extract<Poco::JSON::Object::Ptr>();
+					if (StatusInnerObj->has("error"))
+						ErrorCode = StatusInnerObj->get("error");
+					if (StatusInnerObj->has("text"))
+						ErrorText = StatusInnerObj->get("text").toString();
 
 					std::stringstream ResultText;
 					Poco::JSON::Stringifier::stringify(ResultObj, ResultText);
