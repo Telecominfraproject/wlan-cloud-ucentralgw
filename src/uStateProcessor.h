@@ -12,12 +12,17 @@ namespace uCentral {
 	class uStateProcessor {
 	  public:
 
+		~uStateProcessor() {
+			Save();
+		}
+
 		const Poco::JSON::Object &Get() const { return State_; }
 		bool Add(const Poco::JSON::Object::Ptr &O);
 		bool Add(const std::string &S);
 		void Print() const;
 		void to_json(Poco::JSON::Object & Obj) const;
-		bool Initialize(const std::string & SerialNumber);
+		[[nodiscard]] std::string toString() const;
+		bool Initialize(std::string & SerialNumber);
 		bool Save();
 
 	  private:

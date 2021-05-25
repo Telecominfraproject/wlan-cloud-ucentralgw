@@ -69,7 +69,7 @@ add_executable( ucentralgw
                 src/storage_device.cpp src/storage_capabilities.cpp src/storage_defconfig.cpp src/storage_sqlite.cpp
                 src/storage_mysql.cpp src/storage_pgql.cpp src/storage_odbc.cpp src/storage_tables.cpp src/RESTAPI_callback.cpp
                 src/RESTAPI_callback.h src/uCallbackManager.cpp src/uCallbackManager.h src/uFirmwareManager.cpp
-                src/uFirmwareManager.h src/storage_firmware_updates.cpp src/uStateProcessor.cpp src/uStateProcessor.h)
+                src/uFirmwareManager.h src/storage_firmware_updates.cpp src/uStateProcessor.cpp src/uStateProcessor.h src/storage_lifetime_stats.cpp)
 
 if(NOT SMALL_BUILD)
     target_sources(ucentralgw PUBLIC src/kafka_service.cpp src/kafka_service.h)

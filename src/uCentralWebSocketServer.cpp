@@ -359,7 +359,11 @@ namespace uCentral::WebSocket {
 				if(!Firmware.empty())
 					uCentral::Storage::SetFirmware(SerialNumber_, Firmware);
 
+				// StatsProcessor_ = std::make_unique<uCentral::uStateProcessor>();
+				// StatsProcessor_->Initialize(Serial);
+
                 LookForUpgrade(Response);
+
             } else {
                 Logger_.warning(Poco::format("CONNECT(%s): Missing one of uuid, firmware, or capabilities",CId_));
                 return;
@@ -387,6 +391,10 @@ namespace uCentral::WebSocket {
 				if(!request_uuid.empty()) {
 					uCentral::Storage::SetCommandResult(request_uuid,State);
 				}
+
+				if(StatsProcessor_)
+					StatsProcessor_->Add(State);
+
                 LookForUpgrade(Response);
             } else {
                 Logger_.warning(Poco::format("STATE(%s): Invalid request. Missing serial, uuid, or state",
@@ -512,7 +520,19 @@ namespace uCentral::WebSocket {
             else {
                 Logger_.warning(Poco::format("CFG-PENDING(%s): Missing some parameters",CId_));
             }
-        }
+        } else if (!Poco::icompare(Method, "recovery")) {
+			if(	ParamsObj->has("serial") &&
+				ParamsObj->has("firmware") &&
+				ParamsObj->has("uuid") &&
+				ParamsObj->has("reboot") &&
+				ParamsObj->has("loglines")) {
+
+			} else {
+				Logger_.error(Poco::format("RECOVERY(%s): Recovery missing one of firmware, uuid, loglines, reboot", Serial));
+			}
+		} else {
+
+		}
 
         if (!Response.empty()) {
             if (Conn_ != nullptr)

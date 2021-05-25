@@ -69,89 +69,89 @@ namespace uCentral::Config {
 	std::string Config::Default() {
 		return std::string(R"lit({
 			"uuid": 1,
-				"radios": [
-			{
-				"band": "6G",
+			"radios": [
+				{
+					"band": "5G",
 					"country": "CA",
 					"channel-mode": "HE",
-					"channel-width": 80
-			},
-			{
-				"band": "5G",
-					"country": "CA",
-					"channel-mode": "HE",
-					"channel-width": 80
-			},
-			{
-				"band": "2G",
-					"country": "CA",
-					"channel-mode": "HE",
-					"channel-width": 80
-			}
+					"channel-width": 80,
+					"channel": 32
+				}
 			],
 
 			"interfaces": [
-			{
-				"name": "WAN",
+				{
+					"name": "WAN",
 					"role": "upstream",
 					"ethernet": [
-				{
-					"select-ports": [
-					"WAN*"
-					]
-				}
-				],
-				"ipv4": {
-					"addressing": "dynamic"
-				},
-				"ssids": [
-				{
-					"name": "OpenWifi",
-						"wifi-bands": [
-					"5G",
-						"2G"
+						{
+							"select-ports": [
+								"WAN*"
+							]
+						}
 					],
-					"bss-mode": "ap",
-						"encryption": {
-						"proto": "psk2",
-							"key": "OpenWifi",
-							"ieee80211w": "optional"
+					"ipv4": {
+						"addressing": "dynamic"
 					},
-					"roaming": {
-						"message-exchange": "ds",
-							"generate-psk": true
-					}
-				}
-				]
-			},
-			{
-				"name": "LAN",
-					"role": "downstream",
-					"ethernet": [
-				{
-					"select-ports": [
-					"LAN*"
+					"ssids": [
+						{
+							"name": "OpenWifi",
+							"wifi-bands": [
+								"5G"
+							],
+							"bss-mode": "ap",
+							"encryption": {
+								"proto": "psk2",
+								"key": "OpenWifi",
+								"ieee80211w": "optional"
+							}
+						}
 					]
-				}
-				],
-				"ipv4": {
-					"addressing": "static",
+				},
+				{
+					"name": "LAN",
+					"role": "downstream",
+					"services": [ "ssh" ],
+					"ethernet": [
+						{
+							"select-ports": [
+								"LAN*"
+							]
+						}
+					],
+					"ipv4": {
+						"addressing": "static",
 						"subnet": "192.168.1.1/24",
 						"dhcp": {
-						"lease-first": 10,
+							"lease-first": 10,
 							"lease-count": 100,
 							"lease-time": "6h"
-					}
+						}
+					},
+					"ssids": [
+						{
+							"name": "OpenWifi",
+							"wifi-bands": [
+								"5G"
+							],
+							"bss-mode": "ap",
+							"encryption": {
+								"proto": "psk2",
+								"key": "OpenWifi",
+								"ieee80211w": "optional"
+							}
+						}
+					]
+
 				}
-			}
 			],
 			"metrics": {
 				"statistics": {
-					"interval": 60,
-						"types": [ "ssids", "lldp", "clients" ]
+					"interval": 120,
+					"types": [ "ssids", "lldp", "clients" ]
 				},
 				"health": {
-					"interval": 300
+					"interval": 120
 				}
 			},
 			"services": {

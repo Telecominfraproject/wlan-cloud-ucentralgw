@@ -107,6 +107,11 @@ namespace uCentral::Storage {
 
 	bool SetPendingUpgrade(std::string & SerialNumber, uCentral::Objects::PendingFirmwareUpgrade & Upgrade );
 
+	bool SetLifetimeStats(std::string & SerialNumber, std::string & Stats);
+	bool GetLifetimeStats(std::string & SerialNumber, std::string & Stats);
+	bool ResetLifetimeStats(std::string & SerialNumber);
+
+
     class Service : public uSubSystemServer {
 
     public:
@@ -194,6 +199,10 @@ namespace uCentral::Storage {
 		friend bool DeleteIdentity(std::string & Identity, uCentral::Auth::ACCESS_TYPE Type);
 		friend bool ListIdentities(uint64_t Offset, uint64_t HowMany, std::vector<std::string> & Identities, uCentral::Auth::ACCESS_TYPE Type);
 		friend bool GetIdentityRights(std::string & Identity, uCentral::Objects::AclTemplate & ACL);
+
+		friend bool SetLifetimeStats(std::string & SerialNumber, std::string & Stats);
+		friend bool GetLifetimeStats(std::string & SerialNumber, std::string & Stats);
+		friend bool ResetLifetimeStats(std::string & SerialNumber);
 
 	  private:
 		static Service      							*instance_;
@@ -285,6 +294,10 @@ namespace uCentral::Storage {
 		bool ListIdentities(uint64_t Offset, uint64_t HowMany, std::vector<std::string> & Identities, uCentral::Auth::ACCESS_TYPE Type);
 		bool GetIdentityRights(std::string & Identity, uCentral::Objects::AclTemplate & ACL);
 
+		bool SetLifetimeStats(std::string & SerialNumber, std::string & Stats);
+		bool GetLifetimeStats(std::string & SerialNumber, std::string & Stats);
+		bool ResetLifetimeStats(std::string & SerialNumber);
+
 		int Create_Tables();
 
 		int Create_Statistics();
@@ -298,6 +311,7 @@ namespace uCentral::Storage {
 		int Create_BlackList();
 		int Create_FileUploads();
 		int Create_FirmwareUpgrades();
+		int Create_LifetimeStats();
 
 
         int 	Start() override;

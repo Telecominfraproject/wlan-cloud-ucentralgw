@@ -134,26 +134,30 @@ void RESTAPI_device_commandHandler::GetStatistics(Poco::Net::HTTPServerRequest& 
         auto EndDate = uCentral::Utils::from_RFC3339(GetParameter("endDate", ""));
         auto Offset = GetParameter("offset", 0);
         auto Limit = GetParameter("limit", 100);
+		auto Lifetime = GetBoolParameter("lifetime",false);
 
-        std::vector<uCentral::Objects::Statistics> Stats;
+		if(Lifetime) {
+			std::string Stats;
+			uCentral::Storage::GetLifetimeStats(SerialNumber,Stats);
+			Poco::JSON::Object RetObj;
+			RetObj.set("interfaces", Stats.empty() ? "{}" : Stats);
+			ReturnObject(Request, RetObj, Response);
+		} else {
+			std::vector<uCentral::Objects::Statistics> Stats;
+			uCentral::Storage::GetStatisticsData(SerialNumber, StartDate, EndDate, Offset, Limit,
+												 Stats);
+			Poco::JSON::Array ArrayObj;
+			for (auto i : Stats) {
+				Poco::JSON::Object Obj;
+				i.to_json(Obj);
+				ArrayObj.add(Obj);
+			}
+			Poco::JSON::Object RetObj;
+			RetObj.set("data", ArrayObj);
+			RetObj.set("serialNumber", SerialNumber);
+			ReturnObject(Request, RetObj, Response);
+		}
 
-        uCentral::Storage::GetStatisticsData(SerialNumber, StartDate, EndDate, Offset, Limit,
-                                                                  Stats);
-
-        Poco::JSON::Array ArrayObj;
-
-        for (auto i : Stats) {
-            Poco::JSON::Object Obj;
-			i.to_json(Obj);
-            ArrayObj.add(Obj);
-        }
-
-        Poco::JSON::Object RetObj;
-
-        RetObj.set("data", ArrayObj);
-        RetObj.set("serialNumber", SerialNumber);
-
-        ReturnObject(Request, RetObj, Response);
         return;
     }
     catch(const Poco::Exception &E)
@@ -168,11 +172,22 @@ void RESTAPI_device_commandHandler::DeleteStatistics(Poco::Net::HTTPServerReques
         auto SerialNumber = GetBinding("serialNumber", "");
         auto StartDate = uCentral::Utils::from_RFC3339(GetParameter("startDate", ""));
         auto EndDate = uCentral::Utils::from_RFC3339(GetParameter("endDate", ""));
+		auto Lifetime = GetBoolParameter("lifetime",false);
 
-        if (uCentral::Storage::DeleteStatisticsData(SerialNumber, StartDate, EndDate)) {
-			OK(Request, Response);
-			return;
+		if(Lifetime) {
+			if(uCentral::Storage::ResetLifetimeStats(SerialNumber)) {
+				OK(Request, Response);
+			} else {
+				NotFound(Request, Response);
+			}
+		} else {
+			if (uCentral::Storage::DeleteStatisticsData(SerialNumber, StartDate, EndDate)) {
+				OK(Request, Response);
+			} else {
+				NotFound(Request, Response);
+			}
 		}
+		return;
     }
     catch(const Poco::Exception &E)
     {

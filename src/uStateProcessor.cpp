@@ -3,9 +3,9 @@
 //
 
 #include "uStateProcessor.h"
-#include "Poco/JSON/Parser.h"
+#include "uStorageService.h"
 
-#include "uUtils.h"
+#include "Poco/JSON/Parser.h"
 
 namespace uCentral {
 
@@ -43,6 +43,8 @@ namespace uCentral {
 							return false;
 						}
 					}
+					if(UpdatesSinceLastWrite_>10)
+						Save();
 					return true;
 				}
 			} else {
@@ -76,26 +78,55 @@ namespace uCentral {
 	}
 
 	void uStateProcessor::to_json(Poco::JSON::Object & Obj) const {
+		/* interfaces: [
+			name:
+			counters: {
+
+			}
+		*/
+		Poco::JSON::Array	Interfaces;
 		for(const auto & Interface: Stats_) {
 			Poco::JSON::Object InnerObj;
+			Poco::JSON::Object	CountersObj;
 			for(const auto &[Name,Value]:Interface.second) {
-				InnerObj.set(Name,Value);
+				CountersObj.set(Name,Value);
 			}
-			Obj.set(Interface.first,InnerObj);
+			InnerObj.set("name",Interface.first);
+			InnerObj.set("counters",CountersObj);
+			Interfaces.add(InnerObj);
 		}
+		Obj.set("interfaces",Interfaces);
 	}
 
-	bool uStateProcessor::Initialize(const std::string &SerialNumber) {
+	std::string uStateProcessor::toString() const {
+		try {
+			Poco::JSON::Object Obj;
+			to_json(Obj);
+			std::ostringstream NewStats;
+			Poco::JSON::Stringifier stringifier;
+			stringifier.condense(Obj, NewStats);
+			return NewStats.str();
+		} catch( const Poco::Exception &E ) {
+
+		}
+		return "";
+	};
+
+	bool uStateProcessor::Initialize(std::string &SerialNumber) {
 		SerialNumber_ = SerialNumber;
 		UpdatesSinceLastWrite_ = 0;
 		Stats_.clear();
-
+		std::string Stats;
+		if(uCentral::Storage::GetLifetimeStats(SerialNumber,Stats)) {
+			Add(Stats);
+			return true;
+		}
 		return false;
 	}
 
 	bool uStateProcessor::Save() {
 		UpdatesSinceLastWrite_ = 0;
-
-		return false;
+		std::string StatsToSave = toString();
+		return uCentral::Storage::SetLifetimeStats(SerialNumber_, StatsToSave);
 	}
 }

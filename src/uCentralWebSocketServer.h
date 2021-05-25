@@ -17,6 +17,7 @@
 #include "RESTAPI_objects.h"
 #include "uDeviceRegistry.h"
 #include "uSubSystemServer.h"
+#include "uStateProcessor.h"
 
 #include "Poco/AutoPtr.h"
 #include "Poco/Net/WebSocket.h"
@@ -178,6 +179,7 @@ namespace uCentral::WebSocket {
 		std::string							CN_;
 		uCentral::Objects::CertificateValidation	CertValidation_ = uCentral::Objects::CertificateValidation::NO_CERTIFICATE;
 		uint64_t 							Errors_=0;
+		std::unique_ptr<uCentral::uStateProcessor>	StatsProcessor_;
     };
 
     struct WebSocketServerEntry {

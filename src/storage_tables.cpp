@@ -23,6 +23,7 @@ namespace uCentral::Storage {
 		Create_BlackList();
 		Create_FileUploads();
 		Create_FirmwareUpgrades();
+		Create_LifetimeStats();
 
 		return 0;
 	}
@@ -371,4 +372,24 @@ namespace uCentral::Storage {
 		}
 		return -1;
 	}
+
+	int Service::Create_LifetimeStats() {
+		try {
+			Poco::Data::Session Sess = Pool_->get();
+			if(dbType_==sqlite || dbType_==mysql || dbType_==pgsql) {
+				Sess << "CREATE TABLE IF NOT EXISTS LifetimeStats ("
+						"SerialNumber   VARCHAR(30) PRIMARY KEY, "
+						"Statistics		TEXT, "
+						"Created 		BIGINT, 		"
+						"Updated		BIGINT			"
+						") ",
+					Poco::Data::Keywords::now;
+				return 0;
+			}
+		} catch(const Poco::Exception &E) {
+			Logger_.log(E);
+		}
+		return -1;
+	}
+
 }
