@@ -297,13 +297,12 @@ namespace uCentral::WebSocket {
 
         auto Method = Doc->get("method").toString();
         auto Params = Doc->get("params");
-
-        if(!Params.isStruct())
+/*        if(!Params.isStruct())
         {
             Logger_.warning(Poco::format("MISSING-PARAMS(%s): params must be an object.",CId_));
             return;
         }
-
+*/
         //  expand params if necessary
         auto ParamsObj = Params.extract<Poco::JSON::Object::Ptr>();
         if(ParamsObj->has("compress_64"))
