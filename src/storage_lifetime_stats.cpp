@@ -75,7 +75,7 @@ namespace uCentral::Storage {
 			Poco::Data::Session     Sess = Pool_->get();
 			Poco::Data::Statement   Select(Sess);
 
-			std::string st1{"SELECT Stats FROM LifetimeStats WHERE SerialNumber=?"};
+			std::string st1{"SELECT Statistics FROM LifetimeStats WHERE SerialNumber=?"};
 			Select << 	ConvertParams(st1),
 						Poco::Data::Keywords::into(Stats),
 						Poco::Data::Keywords::use(SerialNumber);
