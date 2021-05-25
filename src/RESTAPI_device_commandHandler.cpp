@@ -138,16 +138,26 @@ void RESTAPI_device_commandHandler::GetStatistics(Poco::Net::HTTPServerRequest& 
         auto Limit = GetParameter("limit", 100);
 		auto Lifetime = GetBoolParameter("lifetime",false);
 
+		std::cout << __LINE__ << std::endl;
 		if(Lifetime) {
+			std::cout << __LINE__ << std::endl;
 			std::string Stats;
-			uCentral::Storage::GetLifetimeStats(SerialNumber,Stats);
-
+			std::cout << __LINE__ << std::endl;
 			std::cout << "STATS: " << Stats << std::endl;
-			Poco::JSON::Parser	Parser;
+			std::cout << __LINE__ << std::endl;
+			std::cout << __LINE__ << std::endl;
+			uCentral::Storage::GetLifetimeStats(SerialNumber,Stats);
+			std::cout << __LINE__ << std::endl;
+			std::cout << __LINE__ << std::endl;
+			std::cout << "STATS: " << Stats << std::endl;
+			std::cout << __LINE__ << std::endl;
 
+			Poco::JSON::Parser	Parser;
+			std::cout << __LINE__ << std::endl;
 			if(Stats.empty())
 				Stats = uCentral::uCentralProtocol::EMPTY_JSON_DOC;
 
+			std::cout << __LINE__ << std::endl;
 			auto Obj = Parser.parse(Stats).extract<Poco::JSON::Object::Ptr>();
 			ReturnObject(Request, *Obj, Response);
 
