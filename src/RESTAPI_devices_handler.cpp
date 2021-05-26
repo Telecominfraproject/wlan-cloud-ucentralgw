@@ -43,9 +43,7 @@ void RESTAPI_devices_handler::handleRequest(Poco::Net::HTTPServerRequest& Reques
 
 			if (!Select.empty()) {
 				Poco::JSON::Array Objects;
-
 				std::vector<std::string>	Numbers = uCentral::Utils::Split(Select);
-
 				for(auto &i:Numbers) {
 					Poco::JSON::Object	Obj;
 					uCentral::Objects::Device	D;
@@ -59,7 +57,7 @@ void RESTAPI_devices_handler::handleRequest(Poco::Net::HTTPServerRequest& Reques
 				}
 
 				if(deviceWithStatus)
-					RetObj.set(uCentral::RESTAPI::Protocol::DEVICEWITHSTATUS, Objects);
+					RetObj.set(uCentral::RESTAPI::Protocol::DEVICESWITHSTATUS, Objects);
 				else
 					RetObj.set(uCentral::RESTAPI::Protocol::DEVICES, Objects);
 
@@ -89,7 +87,7 @@ void RESTAPI_devices_handler::handleRequest(Poco::Net::HTTPServerRequest& Reques
 					Objects.add(Obj);
 				}
 				if(deviceWithStatus)
-					RetObj.set(uCentral::RESTAPI::Protocol::DEVICEWITHSTATUS, Objects);
+					RetObj.set(uCentral::RESTAPI::Protocol::DEVICESWITHSTATUS, Objects);
 				else
 					RetObj.set(uCentral::RESTAPI::Protocol::DEVICES, Objects);
 			}

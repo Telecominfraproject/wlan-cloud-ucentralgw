@@ -55,6 +55,7 @@ namespace uCentral::RESTAPI::Protocol {
 	static const char * SERIALONLY = "serialOnly";
 	static const char * COUNTONLY = "countOnly";
 	static const char * DEVICEWITHSTATUS = "deviceWithStatus";
+	static const char * DEVICESWITHSTATUS = "devicesWithStatus";
 	static const char * DEVICES = "devices";
 	static const char * COUNT = "count";
 	static const char * SERIALNUMBERS = "serialNumbers";
@@ -62,22 +63,17 @@ namespace uCentral::RESTAPI::Protocol {
 	static const char * NAME = "name";
 	static const char * COMMANDS = "commands";
 	static const char * COMMANDUUID = "commandUUID";
-
-static const char * FIRMWARES = "firmwares";
-static const char * TOPIC = "topic";
-static const char * REASON = "reason";
-static const char * FILEUUID = "uuid";
-
-static const char * USERID = "userId";
-static const char * PASSWORD = "password";
-static const char * TOKEN = "token";
-
-static const char * SETLOGLEVEL = "setloglevel";
-static const char * GETLOGLEVEL = "getloglevel";
-static const char * PARAMETERS = "parameters";
-static const char * VALUE = "value";
-
-
+	static const char * FIRMWARES = "firmwares";
+	static const char * TOPIC = "topic";
+	static const char * REASON = "reason";
+	static const char * FILEUUID = "uuid";
+	static const char * USERID = "userId";
+	static const char * PASSWORD = "password";
+	static const char * TOKEN = "token";
+	static const char * SETLOGLEVEL = "setloglevel";
+	static const char * GETLOGLEVEL = "getloglevel";
+	static const char * PARAMETERS = "parameters";
+	static const char * VALUE = "value";
 }
 
 #endif // UCENTRALGW_RESTAPI_PROTOCOL_H
