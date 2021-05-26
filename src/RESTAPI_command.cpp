@@ -31,8 +31,6 @@ void RESTAPI_command::handleRequest(Poco::Net::HTTPServerRequest& Request, Poco:
                 ReturnObject(Request, RetObj, Response);
             } else
                 NotFound(Request, Response);
-            return;
-
         } else if (Request.getMethod() == Poco::Net::HTTPRequest::HTTP_DELETE) {
 			auto CommandUUID = GetBinding(uCentral::RESTAPI::Protocol::COMMANDUUID, "");
             if(uCentral::Storage::DeleteCommand(CommandUUID)) {
@@ -40,8 +38,8 @@ void RESTAPI_command::handleRequest(Poco::Net::HTTPServerRequest& Request, Poco:
             } else {
                 NotFound(Request, Response);
             }
-            return;
         }
+		return;
     }
     catch(const Poco::Exception &E)
     {

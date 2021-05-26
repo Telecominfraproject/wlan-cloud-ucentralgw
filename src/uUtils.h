@@ -28,8 +28,8 @@ namespace uCentral::Utils {
 	[[nodiscard]] std::string base64encode(const byte *input, unsigned long size);
 	std::vector<byte> base64decode(const std::string& input);
 
-	[[nodiscard]] std::string to_RFC3339(uint64_t t);
-	[[nodiscard]] uint64_t from_RFC3339(const std::string &t);
+//	[[nodiscard]] std::string to_RFC3339(uint64_t t);
+//	[[nodiscard]] uint64_t from_RFC3339(const std::string &t);
 
 	bool ParseTime(const std::string &Time, int & Hours, int & Minutes, int & Seconds);
 	bool ParseDate(const std::string &Time, int & Year, int & Month, int & Day);

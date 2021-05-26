@@ -14,7 +14,7 @@
 #include "Poco/Net/HTTPServerRequest.h"
 #include "Poco/Net/HTTPServerResponse.h"
 
-class RESTAPI_device_handler : public RESTAPIHandler
+class RESTAPI_device_handler : public uCentral::RESTAPI::RESTAPIHandler
 {
 public:
   RESTAPI_device_handler(const RESTAPIHandler::BindingMap & bindings,Poco::Logger & L)

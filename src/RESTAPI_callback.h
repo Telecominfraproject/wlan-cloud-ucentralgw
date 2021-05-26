@@ -11,7 +11,7 @@
 
 #include "RESTAPI_handler.h"
 
-class RESTAPI_callback: public RESTAPIHandler
+class RESTAPI_callback: public uCentral::RESTAPI::RESTAPIHandler
 {
   public:
 	RESTAPI_callback(const RESTAPIHandler::BindingMap & bindings,Poco::Logger & L)

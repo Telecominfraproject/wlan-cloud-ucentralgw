@@ -61,26 +61,22 @@ void RESTAPI_BlackList::DoDelete(Poco::Net::HTTPServerRequest &Request, Poco::Ne
 
 void RESTAPI_BlackList::DoGet(Poco::Net::HTTPServerRequest &Request, Poco::Net::HTTPServerResponse &Response) {
 	try {
-		auto Offset = GetParameter(uCentral::RESTAPI::Protocol::OFFSET, 0);
-		auto Limit = GetParameter(uCentral::RESTAPI::Protocol::LIMIT, 100);
-
+		InitQueryBlock();
 		std::vector<uCentral::Objects::BlackListedDevice>	Devices;
 
-		if(uCentral::Storage::GetBlackListDevices(Offset,Limit,Devices))
+		Poco::JSON::Array Objects;
+		if(uCentral::Storage::GetBlackListDevices(QB_.Offset,QB_.Limit,Devices))
 		{
-			Poco::JSON::Array Objects;
 			for (const auto & i:Devices) {
 				Poco::JSON::Object	Obj;
 				i.to_json(Obj);
 				Objects.add(Obj);
 			}
-
-			Poco::JSON::Object RetObj;
-			RetObj.set(uCentral::RESTAPI::Protocol::DEVICES, Objects);
-			ReturnObject(Request, RetObj, Response);
-
-			return;
 		}
+		Poco::JSON::Object RetObj;
+		RetObj.set(uCentral::RESTAPI::Protocol::DEVICES, Objects);
+		ReturnObject(Request, RetObj, Response);
+		return;
 	} catch(const Poco::Exception & E) {
 		Logger_.log(E);
 	}
@@ -90,28 +86,23 @@ void RESTAPI_BlackList::DoGet(Poco::Net::HTTPServerRequest &Request, Poco::Net::
 void RESTAPI_BlackList::DoPost(Poco::Net::HTTPServerRequest &Request, Poco::Net::HTTPServerResponse &Response) {
 	try {
 		Poco::JSON::Parser parser;
-		Poco::JSON::Object::Ptr Obj =
-			parser.parse(Request.stream()).extract<Poco::JSON::Object::Ptr>();
-		Poco::DynamicStruct ds = *Obj;
+		Poco::JSON::Object::Ptr Obj = parser.parse(Request.stream()).extract<Poco::JSON::Object::Ptr>();
 
-		if (ds.contains(uCentral::RESTAPI::Protocol::DEVICES) && ds[uCentral::RESTAPI::Protocol::DEVICES].isArray()) {
-			auto List = ds[uCentral::RESTAPI::Protocol::DEVICES];
+		if (Obj->has(uCentral::RESTAPI::Protocol::DEVICES) && Obj->isArray(uCentral::RESTAPI::Protocol::DEVICES)) {
 			std::vector<uCentral::Objects::BlackListedDevice>	Devices;
-			for (const auto &i : List) {
-				if(i.isStruct()) {
-					auto O = i.toString();
-					Poco::JSON::Parser	pp;
-					auto InnerObj = pp.parse(i).extract<Poco::JSON::Object::Ptr>();
-					Poco::DynamicStruct Vars = *InnerObj;
-					if (Vars.contains(uCentral::RESTAPI::Protocol::SERIALNUMBER) && Vars.contains(uCentral::RESTAPI::Protocol::REASON)) {
-						auto SerialNumber = Vars[uCentral::RESTAPI::Protocol::SERIALNUMBER].toString();
-						auto Reason = Vars[uCentral::RESTAPI::Protocol::REASON].toString();
-						uCentral::Objects::BlackListedDevice	D{ .SerialNumber = SerialNumber,
-							.Reason = Reason,
-							.Author = UserInfo_.username_,
-							.Created = (uint64_t ) time(nullptr) };
-						Devices.push_back(D);
-					}
+			auto DeviceArray = Obj->getArray(uCentral::RESTAPI::Protocol::DEVICES);
+			for (const auto &i : *DeviceArray) {
+				Poco::JSON::Parser pp;
+				auto InnerObj = pp.parse(i).extract<Poco::JSON::Object::Ptr>();
+				Poco::DynamicStruct Vars = *InnerObj;
+				if (Vars.contains(uCentral::RESTAPI::Protocol::SERIALNUMBER) && Vars.contains(uCentral::RESTAPI::Protocol::REASON)) {
+					auto SerialNumber = Vars[uCentral::RESTAPI::Protocol::SERIALNUMBER].toString();
+					auto Reason = Vars[uCentral::RESTAPI::Protocol::REASON].toString();
+					uCentral::Objects::BlackListedDevice	D{ .SerialNumber = SerialNumber,
+						.Reason = Reason,
+						.Author = UserInfo_.username_,
+						.Created = (uint64_t ) time(nullptr) };
+					Devices.push_back(D);
 				}
 			}
 			if(!Devices.empty()) {

@@ -11,7 +11,7 @@
 
 #include "RESTAPI_handler.h"
 
-class RESTAPI_oauth2Handler: public RESTAPIHandler
+class RESTAPI_oauth2Handler: public uCentral::RESTAPI::RESTAPIHandler
 {
 public:
     RESTAPI_oauth2Handler(const RESTAPIHandler::BindingMap &bindings, Poco::Logger &L)

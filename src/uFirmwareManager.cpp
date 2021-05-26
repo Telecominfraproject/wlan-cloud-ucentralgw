@@ -20,6 +20,9 @@
 #include "uStorageService.h"
 #include "uUtils.h"
 
+#include "uCentralProtocol.h"
+#include "RESTAPI_protocol.h"
+
 namespace uCentral::FirmwareManager {
 	Service *Service::instance_ = nullptr;
 
@@ -179,15 +182,15 @@ namespace uCentral::FirmwareManager {
 			Cmd.UUID = uCentral::instance()->CreateUUID();
 			Cmd.SubmittedBy = "ucentralfws";
 			Cmd.Custom = 0;
-			Cmd.Command = "upgrade";
+			Cmd.Command = uCentral::uCentralProtocol::UPGRADE;
 			Cmd.RunAt = CalculateWhen(i);
 			Cmd.WaitingForFile = 0;
 
 			Poco::JSON::Object  Params;
 
-			Params.set( "serial" , i );
-			Params.set( "uri", Firmware.URI);
-			Params.set( "when", 0);
+			Params.set( uCentral::uCentralProtocol::SERIAL , i );
+			Params.set( uCentral::uCentralProtocol::URI, Firmware.URI);
+			Params.set( uCentral::uCentralProtocol::WHEN, 0);
 
 			std::stringstream ParamStream;
 			Params.stringify(ParamStream);
@@ -234,7 +237,7 @@ void Service::Stop() {
 		Poco::JSON::Object Obj = parser.parse(Manifest_).extract<Poco::JSON::Object>();
 		Poco::DynamicStruct ds = Obj;
 
-		Poco::JSON::Array	Elements = ds["firmwares"].extract<Poco::JSON::Array>();
+		Poco::JSON::Array	Elements = ds[uCentral::RESTAPI::Protocol::FIRMWARES].extract<Poco::JSON::Array>();
 
 		Firmwares_.clear();
 
@@ -245,9 +248,9 @@ void Service::Stop() {
 								.Uploader = i["uploader"].toString(),
 								.Version = i["version"].toString(),
 								.URI = i["uri"].toString(),
-								.Uploaded = uCentral::Utils::from_RFC3339(i["uploaded"].toString()),
+								.Uploaded = i["uploaded"],
 								.Size = i["size"],
-								.FirmwareDate = uCentral::Utils::from_RFC3339(i["date"].toString()),
+								.FirmwareDate = i["date"],
 								.Latest = i["latest"]};
 
 				Firmwares_[F.Compatible]=F;

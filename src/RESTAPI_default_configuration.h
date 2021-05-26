@@ -11,7 +11,7 @@
 
 #include "RESTAPI_handler.h"
 
-class RESTAPI_default_configuration: public RESTAPIHandler
+class RESTAPI_default_configuration: public uCentral::RESTAPI::RESTAPIHandler
 {
 public:
     RESTAPI_default_configuration(const RESTAPIHandler::BindingMap & bindings,Poco::Logger & L)

@@ -11,7 +11,7 @@
 
 #include "RESTAPI_handler.h"
 
-class RESTAPI_UnknownRequestHandler: public RESTAPIHandler
+class RESTAPI_UnknownRequestHandler: public uCentral::RESTAPI::RESTAPIHandler
 {
 public:
     RESTAPI_UnknownRequestHandler(const RESTAPIHandler::BindingMap & bindings,Poco::Logger & L)

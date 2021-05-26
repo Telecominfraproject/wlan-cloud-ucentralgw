@@ -22,11 +22,11 @@ void RESTAPI_default_configuration::handleRequest(Poco::Net::HTTPServerRequest& 
     if(!IsAuthorized(Request,Response))
         return;
 
+	std::string Name = GetBinding(uCentral::RESTAPI::Protocol::NAME, "");
     ParseParameters(Request);
-    if(Request.getMethod() == Poco::Net::HTTPRequest::HTTP_GET) {
-		std::string Name = GetBinding(uCentral::RESTAPI::Protocol::NAME, "");
-        uCentral::Objects::DefaultConfiguration  DefConfig;
 
+    if(Request.getMethod() == Poco::Net::HTTPRequest::HTTP_GET) {
+        uCentral::Objects::DefaultConfiguration  DefConfig;
         if(uCentral::Storage::GetDefaultConfiguration(Name,DefConfig))
         {
             Poco::JSON::Object  Obj;
@@ -38,19 +38,14 @@ void RESTAPI_default_configuration::handleRequest(Poco::Net::HTTPServerRequest& 
             NotFound(Request, Response);
         }
     } else if(Request.getMethod() == Poco::Net::HTTPRequest::HTTP_DELETE) {
-        std::string Name = GetBinding(uCentral::RESTAPI::Protocol::NAME, "");
-
         if (uCentral::Storage::DeleteDefaultConfiguration(Name)) {
             OK(Request, Response);
         } else {
             NotFound(Request, Response);
         }
     } else if(Request.getMethod() == Poco::Net::HTTPRequest::HTTP_POST) {
-		std::string Name = GetBinding(uCentral::RESTAPI::Protocol::NAME, "");
-
         Poco::JSON::Parser      IncomingParser;
         Poco::JSON::Object::Ptr Obj = IncomingParser.parse(Request.stream()).extract<Poco::JSON::Object::Ptr>();
-
         uCentral::Objects::DefaultConfiguration  DefConfig;
 
         if(!DefConfig.from_json(Obj))
@@ -65,8 +60,6 @@ void RESTAPI_default_configuration::handleRequest(Poco::Net::HTTPServerRequest& 
             BadRequest(Request, Response);
         }
     } else if(Request.getMethod() == Poco::Net::HTTPRequest::HTTP_PUT) {
-		std::string Name = GetBinding(uCentral::RESTAPI::Protocol::NAME, "");
-
         Poco::JSON::Parser      IncomingParser;
         Poco::JSON::Object::Ptr Obj = IncomingParser.parse(Request.stream()).extract<Poco::JSON::Object::Ptr>();
 

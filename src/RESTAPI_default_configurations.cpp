@@ -24,17 +24,14 @@ void RESTAPI_default_configurations::handleRequest(Poco::Net::HTTPServerRequest&
     try {
         if (Request.getMethod() == Poco::Net::HTTPRequest::HTTP_GET) {
             ParseParameters(Request);
+			InitQueryBlock();
 
-			auto Offset = GetParameter(uCentral::RESTAPI::Protocol::OFFSET, 0);
-			auto Limit = GetParameter(uCentral::RESTAPI::Protocol::LIMIT, 100);
-			auto Filter = GetParameter(uCentral::RESTAPI::Protocol::FILTER, "");
-
-            Logger_.information(Poco::format("DEFAULT_CONFIGURATIONS: from %Lu, limit of %Lu, filter=%s.", (int64_t )Offset, (int64_t ) Limit, Filter));
+            Logger_.information(Poco::format("DEFAULT_CONFIGURATIONS: from %Lu, limit of %Lu, filter=%s.", (int64_t )QB_.Offset, (int64_t )QB_.Limit, QB_.Filter));
             RESTAPIHandler::PrintBindings();
 
             std::vector<uCentral::Objects::DefaultConfiguration> DefConfigs;
 
-            uCentral::Storage::GetDefaultConfigurations(Offset, Limit, DefConfigs);
+            uCentral::Storage::GetDefaultConfigurations(QB_.Offset, QB_.Limit, DefConfigs);
 
             Poco::JSON::Array Objects;
             for (const auto & i:DefConfigs) {

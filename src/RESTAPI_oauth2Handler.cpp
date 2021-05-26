@@ -23,10 +23,9 @@ void RESTAPI_oauth2Handler::handleRequest(Poco::Net::HTTPServerRequest & Request
             // Extract the info for login...
             Poco::JSON::Parser parser;
             Poco::JSON::Object::Ptr Obj = parser.parse(Request.stream()).extract<Poco::JSON::Object::Ptr>();
-            Poco::DynamicStruct ds = *Obj;
 
-            auto userId = ds[uCentral::RESTAPI::Protocol::USERID].toString();
-            auto password = ds[uCentral::RESTAPI::Protocol::PASSWORD].toString();
+            auto userId = GetS(uCentral::RESTAPI::Protocol::USERID, Obj);
+            auto password = GetS(uCentral::RESTAPI::Protocol::PASSWORD, Obj);
 
 			Poco::toLowerInPlace(userId);
             uCentral::Objects::WebToken Token;

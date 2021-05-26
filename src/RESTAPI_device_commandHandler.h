@@ -11,7 +11,7 @@
 
 #include "RESTAPI_handler.h"
 
-class RESTAPI_device_commandHandler : public RESTAPIHandler {
+class RESTAPI_device_commandHandler : public uCentral::RESTAPI::RESTAPIHandler {
 public:
   RESTAPI_device_commandHandler(const RESTAPIHandler::BindingMap & bindings,Poco::Logger & L)
             : RESTAPIHandler(bindings,L,
@@ -43,6 +43,9 @@ public:
 	void WifiScan(Poco::Net::HTTPServerRequest &Request, Poco::Net::HTTPServerResponse &Response);
 	void EventQueue(Poco::Net::HTTPServerRequest &Request, Poco::Net::HTTPServerResponse &Response);
 	void Rtty(Poco::Net::HTTPServerRequest &Request, Poco::Net::HTTPServerResponse &Response);
+
+  private:
+	std::string SerialNumber_;
 };
 
 #endif //UCENTRAL_RESTAPI_DEVICECOMMANDHANDLER_H

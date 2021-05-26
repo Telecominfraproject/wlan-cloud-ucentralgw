@@ -12,7 +12,7 @@
 #include "RESTAPI_handler.h"
 
 
-class RESTAPI_devices_handler : public RESTAPIHandler
+class RESTAPI_devices_handler : public uCentral::RESTAPI::RESTAPIHandler
 {
 public:
   RESTAPI_devices_handler(const RESTAPIHandler::BindingMap &bindings, Poco::Logger &L)

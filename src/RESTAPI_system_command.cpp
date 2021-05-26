@@ -59,34 +59,29 @@ void RESTAPI_system_command::handleRequest(Poco::Net::HTTPServerRequest& Request
 		if(Request.getMethod()==Poco::Net::HTTPRequest::HTTP_POST) {
 			Poco::JSON::Parser parser;
 			auto Obj = parser.parse(Request.stream()).extract<Poco::JSON::Object::Ptr>();
-			Poco::DynamicStruct ds = *Obj;
 
-			if(ds.contains(uCentral::RESTAPI::Protocol::COMMAND)) {
-				auto Command = ds[uCentral::RESTAPI::Protocol::COMMAND].toString();
+			if(Obj->has(uCentral::RESTAPI::Protocol::COMMAND)) {
+				auto Command = Obj->get(uCentral::RESTAPI::Protocol::COMMAND).toString();
 				if(Command==uCentral::RESTAPI::Protocol::SETLOGLEVEL) {
-					if(ds.contains(uCentral::RESTAPI::Protocol::PARAMETERS)) {
-						auto ParametersBlock = ds[uCentral::RESTAPI::Protocol::PARAMETERS];
-						if(ParametersBlock.isArray())
+					if(Obj->has(uCentral::RESTAPI::Protocol::PARAMETERS) && Obj->isArray(uCentral::RESTAPI::Protocol::PARAMETERS)) {
+						auto ParametersBlock = Obj->getArray(uCentral::RESTAPI::Protocol::PARAMETERS);
+						for(const auto &i : *ParametersBlock)
 						{
-							for(const auto &i : ParametersBlock)
-							{
-								if(i.isStruct()) {
-									auto O = i.toString();
-									Poco::JSON::Parser	pp;
+							if(i.isStruct()) {
+								auto O = i.toString();
+								Poco::JSON::Parser	pp;
+								auto TLV = pp.parse(i).extract<Poco::JSON::Object::Ptr>();
 
-									auto TLV = pp.parse(i).extract<Poco::JSON::Object::Ptr>();
-									Poco::DynamicStruct Vars = *TLV;
-									if (Vars.contains(uCentral::RESTAPI::Protocol::NAME) && Vars.contains(uCentral::RESTAPI::Protocol::VALUE)) {
-										auto Name = Vars[uCentral::RESTAPI::Protocol::NAME].toString();
-										auto Value = Vars[uCentral::RESTAPI::Protocol::VALUE].toString();
-										uCentral::Daemon::SetSubsystemLogLevel(Name,Value);
-										Logger_.information(Poco::format("Setting log level for %s at %s",Name,Value));
-									}
+								if (TLV->has(uCentral::RESTAPI::Protocol::NAME) && TLV->has(uCentral::RESTAPI::Protocol::VALUE)) {
+									auto Name = GetS(uCentral::RESTAPI::Protocol::NAME, Obj);
+									auto Value = GetS(uCentral::RESTAPI::Protocol::VALUE, Obj);
+									uCentral::Daemon::SetSubsystemLogLevel(Name, Value);
+									Logger_.information(Poco::format("Setting log level for %s at %s",Name,Value));
 								}
 							}
-							OK(Request, Response);
-							return;
 						}
+						OK(Request, Response);
+						return;
 					}
 				} else if (Command==uCentral::RESTAPI::Protocol::GETLOGLEVEL) {
 					Logger_.information("GETLOGLEVEL");

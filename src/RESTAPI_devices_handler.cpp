@@ -25,25 +25,21 @@ void RESTAPI_devices_handler::handleRequest(Poco::Net::HTTPServerRequest& Reques
     try {
         if (Request.getMethod() == Poco::Net::HTTPRequest::HTTP_GET) {
 			ParseParameters(Request);
-
-			auto Offset = GetParameter(uCentral::RESTAPI::Protocol::OFFSET, 0);
-			auto Limit = GetParameter(uCentral::RESTAPI::Protocol::LIMIT, 100);
-			auto Filter = GetParameter(uCentral::RESTAPI::Protocol::FILTER, "");
-			auto Select = GetParameter(uCentral::RESTAPI::Protocol::SELECT, "");
+			InitQueryBlock();
 			auto serialOnly = GetBoolParameter(uCentral::RESTAPI::Protocol::SERIALONLY, false);
 			auto countOnly = GetBoolParameter(uCentral::RESTAPI::Protocol::COUNTONLY, false);
 			auto deviceWithStatus = GetBoolParameter(uCentral::RESTAPI::Protocol::DEVICEWITHSTATUS, false);
 
 			Logger_.debug(Poco::format("DEVICES: from %Lu, limit of %Lu, filter='%s'.",
-											 (uint64_t)Offset, (uint64_t)Limit, Filter));
+											 (uint64_t)QB_.Offset, (uint64_t)QB_.Limit, QB_.Filter));
 
 			RESTAPIHandler::PrintBindings();
 
 			Poco::JSON::Object RetObj;
 
-			if (!Select.empty()) {
+			if (!QB_.Select.empty()) {
 				Poco::JSON::Array Objects;
-				std::vector<std::string>	Numbers = uCentral::Utils::Split(Select);
+				std::vector<std::string>	Numbers = uCentral::Utils::Split(QB_.Select);
 				for(auto &i:Numbers) {
 					Poco::JSON::Object	Obj;
 					uCentral::Objects::Device	D;
@@ -68,7 +64,7 @@ void RESTAPI_devices_handler::handleRequest(Poco::Net::HTTPServerRequest& Reques
 				}
 			} else if (serialOnly) {
 				std::vector<std::string> SerialNumbers;
-				uCentral::Storage::GetDeviceSerialNumbers(Offset, Limit, SerialNumbers);
+				uCentral::Storage::GetDeviceSerialNumbers(QB_.Offset, QB_.Limit, SerialNumbers);
 				Poco::JSON::Array Objects;
 				for (const auto &i : SerialNumbers) {
 					Objects.add(i);
@@ -76,7 +72,7 @@ void RESTAPI_devices_handler::handleRequest(Poco::Net::HTTPServerRequest& Reques
 				RetObj.set(uCentral::RESTAPI::Protocol::SERIALNUMBERS, Objects);
 			} else {
 				std::vector<uCentral::Objects::Device> Devices;
-				uCentral::Storage::GetDevices(Offset, Limit, Devices);
+				uCentral::Storage::GetDevices(QB_.Offset, QB_.Limit, Devices);
 				Poco::JSON::Array Objects;
 				for (const auto &i : Devices) {
 					Poco::JSON::Object	Obj;

@@ -2,7 +2,7 @@ openapi: 3.0.1
 info:
   title: uCentral gateway API
   description: A process to manage configuration for devices.
-  version: 0.0.7
+  version: 0.0.8
   license:
     name: BSD3
     url: https://github.com/Telecominfraproject/wlan-cloud-ucentralgw/blob/master/LICENSE
@@ -101,14 +101,14 @@ components:
         notes:
           type: string
         createdTimestamp:
-          type: string
-          format: 'date-time'
+          type: integer
+          format: int64
         lastConfigurationChange:
-          type: string
-          format: 'date-time'
+          type: integer
+          format: int64
         lastConfigurationDownload:
-          type: string
-          format: 'date-time'
+          type: integer
+          format: int64
         firmware:
           type: string
 
@@ -144,17 +144,17 @@ components:
         notes:
           type: string
         createdTimestamp:
-          type: string
-          format: 'date-time'
+          type: integer
+          format: int64
         lastConfigurationChange:
-          type: string
-          format: 'date-time'
+          type: integer
+          format: int64
         lastConfigurationDownload:
-          type: string
-          format: 'date-time'
+          type: integer
+          format: int64
         lastFWUpdate:
-          type: string
-          format: 'date-time'
+          type: integer
+          format: int64
         firmware:
           type: string
         connected:
@@ -226,8 +226,8 @@ components:
         connected:
           type: boolean
         lastContact:
-          type: string
-          format: 'date-time'
+          type: integer
+          format: int64
         firmware:
           type: string
         verifiedCertificate:
@@ -247,11 +247,11 @@ components:
         capabilities:
           type: string
         lastUpdate:
-          type: string
-          format: 'date-time'
+          type: integer
+          format: int64
         firstUpdate:
-          type: string
-          format: 'date-time'
+          type: integer
+          format: int64
 
     StatisticsDetails:
       type: object
@@ -259,8 +259,8 @@ components:
         serialNumber:
           type: string
         recorded:
-          type: string
-          format: 'date-time'
+          type: integer
+          format: int64
         UUID:
           type: integer
           format: int64
@@ -314,8 +314,8 @@ components:
         payload:
           type: string
         when:
-          type: string
-          format: 'date-time'
+          type: integer
+          format: int64
         serialNumber:
           type: string
 
@@ -377,8 +377,8 @@ components:
         username:
           type: string
         created:
-          type: string
-          format: 'date-time'
+          type: integer
+          format: int64
         aclTemplate:
           $ref: '#/components/schemas/WebTokenAclTemplate'
 
@@ -396,8 +396,8 @@ components:
         description:
           type: string
         expiresOn:
-          type: string
-          format: 'date-time'
+          type: integer
+          format: int64
         rights:
           $ref: '#/components/schemas/AclTemplate'
 
@@ -410,11 +410,11 @@ components:
         name:
           type: string
         created:
-          type: string
-          format: 'date-time'
+          type: integer
+          format: int64
         expiresOn:
-          type: string
-          format: 'date-time'
+          type: integer
+          format: int64
         apiKey:
           type: string
         rights:
@@ -445,8 +445,8 @@ components:
         configuration:
           type: string
         when:
-          type: string
-          format: 'date-time'
+          type: integer
+          format: int64
 
     DeviceLog:
       type: object
@@ -454,8 +454,8 @@ components:
         log:
           type: string
         recorded:
-          type: string
-          format: 'date-time'
+          type: integer
+          format: int64
         severity:
           type: integer
           format: int64
@@ -490,8 +490,8 @@ components:
         data:
           type: string
         recorded:
-          type: string
-          format: 'date-time'
+          type: integer
+          format: int64
 
     HealthCheckList:
       type: object
@@ -515,11 +515,11 @@ components:
         configuration:
           type: string
         created:
-          type: string
-          format: 'date-time'
+          type: integer
+          format: int64
         lastModified:
-          type: string
-          format: 'date-time'
+          type: integer
+          format: int64
 
     DefaultConfigurationList:
       properties:
@@ -536,8 +536,8 @@ components:
         serialNumber:
           type: string
         when:
-          type: string
-          format: 'date-time'
+          type: integer
+          format: int64
 
     RebootRequest:
       type: object
@@ -545,8 +545,8 @@ components:
         serialNumber:
           type: string
         when:
-          type: string
-          format: 'date-time'
+          type: integer
+          format: int64
 
     FactoryRequest:
       type: object
@@ -554,8 +554,8 @@ components:
         serialNumber:
           type: string
         when:
-          type: string
-          format: 'date-time'
+          type: integer
+          format: int64
         keepRedirector:
           type: boolean
 
@@ -565,8 +565,8 @@ components:
         serialNumber:
           type: string
         when:
-          type: string
-          format: 'date-time'
+          type: integer
+          format: int64
         duration:
           description: only applies to the blink pattern
           type: integer
@@ -584,8 +584,8 @@ components:
         serialNumber:
           type: string
         when:
-          type: string
-          format: 'date-time'
+          type: integer
+          format: int64
         message:
           type: string
           enum:
@@ -598,8 +598,8 @@ components:
         serialNumber:
           type: string
         when:
-          type: string
-          format: 'date-time'
+          type: integer
+          format: int64
         duration:
           type: integer
           format: int64
@@ -624,17 +624,17 @@ components:
         serialNumber:
           type: string
         submitted:
-          type: string
-          format: 'date-time'
+          type: integer
+          format: int64
         executed:
-          type: string
-          format: 'date-time'
+          type: integer
+          format: int64
         completed:
-          type: string
-          format: 'date-time'
+          type: integer
+          format: int64
         when:
-          type: string
-          format: 'date-time'
+          type: integer
+          format: int64
         errorText:
           type: string
         results:
@@ -653,8 +653,8 @@ components:
           type: integer
           format: int64
         attachFile:
-          type: string
-          format: 'date-time'
+          type: integer
+          format: int64
         attachSize:
           type: integer
           format: int64
@@ -705,8 +705,8 @@ components:
         serialNumber:
           type: string
         created:
-          type: string
-          format: 'date-time'
+          type: integer
+          format: int64
           readOnly: true
         author:
           type: string
@@ -762,8 +762,8 @@ components:
         serialNumber:
           type: string
         created:
-          type: string
-          format: 'date-time'
+          type: integer
+          format: int64
         scan:
           type: string
 
@@ -802,11 +802,11 @@ components:
         description:
           type: string
         created:
-          type: string
-          format: 'date-time'
+          type: integer
+          format: int64
         lastModified:
-          type: string
-          format: 'date-time'
+          type: integer
+          format: int64
         createdBy:
           type: string
         weight:
@@ -896,8 +896,8 @@ components:
         connectionId:
           type: string
         started:
-          type: string
-          format: 'date-time'
+          type: integer
+          format: int64
         commandUUID:
           type: string
         viewport:
@@ -1034,16 +1034,14 @@ paths:
         - in: query
           name: startDate
           schema:
-            type: string
-            # format 2021-03-05T05:27:37Z
-            format: 'date-time'
+            type: integer
+            format: int64
           required: false
         - in: query
           name: endDate
           schema:
-            type: string
-            # format 2021-03-05T05:27:37Z
-            format: 'date-time'
+            type: integer
+            format: int64
         - in: query
           name: offset
           schema:
@@ -1080,14 +1078,14 @@ paths:
         - in: query
           name: startDate
           schema:
-            type: string
-            format: 'date-time'
+            type: integer
+            format: int64
           required: false
         - in: query
           name: endDate
           schema:
-            type: string
-            format: 'date-time'
+            type: integer
+            format: int64
 
       responses:
         200:
@@ -1386,16 +1384,14 @@ paths:
         - in: query
           name: startDate
           schema:
-            type: string
-            # format 2021-03-05T05:27:37Z
-            format: 'date-time'
+            type: integer
+            format: int64
           required: false
         - in: query
           name: endDate
           schema:
-            type: string
-            # format 2021-03-05T05:27:37Z
-            format: 'date-time'
+            type: integer
+            format: int64
         - in: query
           name: offset
           schema:
@@ -1439,14 +1435,14 @@ paths:
         - in: query
           name: startDate
           schema:
-            type: string
-            format: 'date-time'
+            type: integer
+            format: int64
           required: false
         - in: query
           name: endDate
           schema:
-            type: string
-            format: 'date-time'
+            type: integer
+            format: int64
         - in: query
           name: logType
           description: 0=any kind of logs (default) 1=normal logs only 2=crash logs only
@@ -1481,16 +1477,14 @@ paths:
         - in: query
           name: startDate
           schema:
-            type: string
-            # format 2021-03-05T05:27:37Z
-            format: 'date-time'
+            type: integer
+            format: int64
           required: false
         - in: query
           name: endDate
           schema:
-            type: string
-            # format 2021-03-05T05:27:37Z
-            format: 'date-time'
+            type: integer
+            format: int64
         - in: query
           name: offset
           schema:
@@ -1528,14 +1522,15 @@ paths:
         - in: query
           name: startDate
           schema:
-            type: string
-            format: 'date-time'
+            type: integer
+            format: int64
           required: false
         - in: query
           name: endDate
           schema:
-            type: string
-            format: 'date-time'
+            type: integer
+            format: int64
+          required: false
 
       responses:
         200:
@@ -1611,16 +1606,14 @@ paths:
         - in: query
           name: startDate
           schema:
-            type: string
-            # format 2021-03-05T05:27:37Z
-            format: 'date-time'
+            type: integer
+            format: int64
           required: false
         - in: query
           name: endDate
           schema:
-            type: string
-            # format 2021-03-05T05:27:37Z
-            format: 'date-time'
+            type: integer
+            format: int64
         - in: query
           name: offset
           schema:
@@ -1636,6 +1629,12 @@ paths:
           name: lifetime
           schema:
             type: boolean
+        - in: query
+          description: Selecting this option means the LifetimeStatistics will be returned. All other parameters will be ignored.
+          name: lastOnly
+          schema:
+            type: boolean
+          required: false
 
       responses:
         200:
@@ -1665,14 +1664,14 @@ paths:
         - in: query
           name: startDate
           schema:
-            type: string
-            format: 'date-time'
+            type: integer
+            format: int64
           required: false
         - in: query
           name: endDate
           schema:
-            type: string
-            format: 'date-time'
+            type: integer
+            format: int64
 
       responses:
         200:

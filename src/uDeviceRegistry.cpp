@@ -75,8 +75,7 @@ namespace uCentral::DeviceRegistry {
 
         auto Device = Devices_.find(SerialNumber);
 
-        if(Device != Devices_.end())
-        {
+        if(Device != Devices_.end()) {
             Statistics = Device->second.LastStats;
             return true;
         }

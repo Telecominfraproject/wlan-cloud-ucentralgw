@@ -11,7 +11,7 @@
 
 #include "RESTAPI_handler.h"
 
-class RESTAPI_BlackList: public RESTAPIHandler
+class RESTAPI_BlackList: public uCentral::RESTAPI::RESTAPIHandler
 {
   public:
 	RESTAPI_BlackList(const RESTAPIHandler::BindingMap & bindings,Poco::Logger & L)

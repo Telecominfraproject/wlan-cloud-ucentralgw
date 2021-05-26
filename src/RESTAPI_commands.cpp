@@ -21,16 +21,13 @@ void RESTAPI_commands::handleRequest(Poco::Net::HTTPServerRequest& Request, Poco
 
     try {
         ParseParameters(Request);
+		InitQueryBlock();
+
+		auto SerialNumber = GetBinding(uCentral::RESTAPI::Protocol::SERIALNUMBER, "");
 
         if (Request.getMethod() == Poco::Net::HTTPRequest::HTTP_GET) {
-			auto SerialNumber = GetBinding(uCentral::RESTAPI::Protocol::SERIALNUMBER, "");
-			auto StartDate = uCentral::Utils::from_RFC3339(GetParameter(uCentral::RESTAPI::Protocol::STARTDATE, ""));
-			auto EndDate = uCentral::Utils::from_RFC3339(GetParameter(uCentral::RESTAPI::Protocol::ENDDATE, ""));
-			auto Offset = GetParameter(uCentral::RESTAPI::Protocol::OFFSET, 0);
-			auto Limit = GetParameter(uCentral::RESTAPI::Protocol::LIMIT, 100);
-
             std::vector<uCentral::Objects::CommandDetails> Commands;
-            uCentral::Storage::GetCommands(SerialNumber, StartDate, EndDate, Offset, Limit,
+            uCentral::Storage::GetCommands(SerialNumber, QB_.StartDate, QB_.EndDate, QB_.Offset, QB_.Limit,
                                            Commands);
             Poco::JSON::Array ArrayObj;
             for (const auto &i : Commands) {
@@ -38,19 +35,13 @@ void RESTAPI_commands::handleRequest(Poco::Net::HTTPServerRequest& Request, Poco
 				i.to_json(Obj);
                 ArrayObj.add(Obj);
             }
-
             Poco::JSON::Object RetObj;
             RetObj.set(uCentral::RESTAPI::Protocol::COMMANDS, ArrayObj);
             ReturnObject(Request, RetObj, Response);
-
             return;
 
         } else if (Request.getMethod() == Poco::Net::HTTPRequest::HTTP_DELETE) {
-			auto SerialNumber = GetBinding(uCentral::RESTAPI::Protocol::SERIALNUMBER, "");
-			auto StartDate = uCentral::Utils::from_RFC3339(GetParameter(uCentral::RESTAPI::Protocol::STARTDATE, ""));
-			auto EndDate = uCentral::Utils::from_RFC3339(GetParameter(uCentral::RESTAPI::Protocol::ENDDATE, ""));
-
-            if (uCentral::Storage::DeleteCommands(SerialNumber, StartDate, EndDate))
+            if (uCentral::Storage::DeleteCommands(SerialNumber, QB_.StartDate, QB_.EndDate))
                 OK(Request, Response);
             else
                 BadRequest(Request, Response);
