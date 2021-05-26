@@ -140,8 +140,8 @@ namespace uCentral::Storage {
 				uCentral::Objects::HealthCheck R{
 					.UUID = i.get<1>(),
 					.Data = i.get<2>(),
-					.Sanity = i.get<3>(),
-					.Recorded = i.get<4>()};
+					.Recorded = i.get<4>(),
+					.Sanity = i.get<3>()};
 				Checks.push_back(R);
 			}
 
