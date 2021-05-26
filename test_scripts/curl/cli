@@ -82,6 +82,13 @@ listcommands() {
   jq < $rfile
 }
 
+newestcommands() {
+	curl  $FLAGS -X GET "https://$UCENTRALGW/api/v1/commands?serialNumber=$1&newest=true&limit=50" \
+        -H "accept: application/json" \
+        -H "Authorization: Bearer $token"  > $rfile
+	jq < $rfile
+}
+
 deletecommands() {
   curl  $FLAGS -X DELETE "https://$UCENTRALGW/api/v1/commands?serialNumber=$1" \
         -H "accept: application/json" \
@@ -341,6 +348,27 @@ laststats() {
 	jq < $rfile
 }
 
+neweststats() {
+	curl  $FLAGS -X GET "https://$UCENTRALGW/api/v1/device/$1/statistics?newest=true&limit=50" \
+        -H "accept: application/json" \
+        -H "Authorization: Bearer $token" > $rfile
+	jq < $rfile
+}
+
+newestlogs() {
+	curl  $FLAGS -X GET "https://$UCENTRALGW/api/v1/device/$1/logs?newest=true&limit=50" \
+        -H "accept: application/json" \
+        -H "Authorization: Bearer $token" > $rfile
+	jq < $rfile
+}
+
+newesthealthchecks() {
+	curl  $FLAGS -X GET "https://$UCENTRALGW/api/v1/device/$1/healthchecks?newest=true&limit=50" \
+        -H "accept: application/json" \
+        -H "Authorization: Bearer $token" > $rfile
+	jq < $rfile
+}
+
 help() {
   echo
   echo "getdevice <serial>                Get the device JSON document."
@@ -350,7 +378,8 @@ help() {
   echo "                                  <MAC>: string MAC Address"
   echo "getdevicestatus <serial>          Get the device status JSON document."
   echo "getstats <serial>                 Get statistics for the device."
-  echo "gethealthchecks <serial>          Get gethealthchecks for a device."
+  echo "gethealthchecks <serial>          Get healthchecks for a device."
+  echo "newesthealthchecks <serial>       Get newest healthchecks for a device."
   echo
   echo "getcapababilities <serial>        Get the device capabilities JSON document."
   echo "deletecapababilities <serial>     Delete the device capabilities JSON."
@@ -373,12 +402,13 @@ help() {
   echo
   echo "getcommand <command-uuid>         Get the command JSON document."
   echo "deletecommand <command-uuid>      Delete the command."
-  echo
+  echo "newestcommands <serial>           Get the newest commands for a device."
   echo "listdevices                       List devices"
   echo "listcommands <serial>             List commands for a specific device"
   echo "deletecommands <serial>           Delete commands for a device."
   echo
   echo "getlogs <serial>                  Get logs for the device."
+  echo "newestlogs <serial>               Get the latest logs for the device."
   echo "deletelogs <serial>               Delete logs for the device."
   echo "eventqueue <serial>               Request event queue for the device."
   echo
@@ -407,6 +437,9 @@ help() {
   echo
   echo "lifetimestats <serial>			  Get the lifetime stats counters for a device"
   echo "laststats <serial>			      Get the last statistics for a device"
+  echo "neweststats <serial>			  Get the newest statistics for a device"
+  echo
+  echo
   echo
   echo "To pass additional flags to the CURL command, create an environment variable called FLAGS and git ve the values you"
   echo "want. For example, for force all call to use IPv6, set FLAGS=\"-6\", for verbose mode and IPv6, set FLAGS=\"-6 -v\""
@@ -455,7 +488,10 @@ case "$1" in
   "rtty") login; rtty "$2"  ; logout ;;
   "lifetimestats") login; lifetimestats "$2"; logout;;
   "laststats") login; laststats "$2"; logout;;
-
+  "newestcommands") login; newestcommands "$2"; logout;;
+  "neweststats") login; neweststats "$2"; logout;;
+  "newestlogs") login; newestlogs "$2"; logout;;
+  "newesthealthchecks") login; newesthealthchecks "$2"; logout;;
  *) help ;;
 esac
 
