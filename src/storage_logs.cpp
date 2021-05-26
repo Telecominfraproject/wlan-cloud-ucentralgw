@@ -19,21 +19,25 @@ namespace uCentral::Storage {
 		uint64_t > DeviceLogsRecordTuple;
 
 	bool AddLog(std::string &SerialNumber, uint64_t UUID, const std::string &Log) {
-		return uCentral::Storage::Service::instance()->AddLog(SerialNumber, UUID, Log);
+		return Service::instance()->AddLog(SerialNumber, UUID, Log);
 	}
 
 	bool AddLog(std::string &SerialNumber, uCentral::Objects::DeviceLog &DeviceLog, bool CrashLog) {
-		return uCentral::Storage::Service::instance()->AddLog(SerialNumber, DeviceLog, CrashLog);
+		return Service::instance()->AddLog(SerialNumber, DeviceLog, CrashLog);
 	}
 
 	bool GetLogData(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate, uint64_t Offset, uint64_t HowMany,
 					std::vector<uCentral::Objects::DeviceLog> &Stats, uint64_t Type) {
-		return uCentral::Storage::Service::instance()->GetLogData(SerialNumber, FromDate, ToDate, Offset, HowMany,
+		return Service::instance()->GetLogData(SerialNumber, FromDate, ToDate, Offset, HowMany,
 																  Stats, Type );
 	}
 
 	bool DeleteLogData(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate, uint64_t Type) {
-		return uCentral::Storage::Service::instance()->DeleteLogData(SerialNumber, FromDate, ToDate, Type);
+		return Service::instance()->DeleteLogData(SerialNumber, FromDate, ToDate, Type);
+	}
+
+	bool GetNewestLogData(std::string &SerialNumber, uint64_t HowMany, std::vector<uCentral::Objects::DeviceLog> &Stats, uint64_t Type) {
+		return Service::instance()->GetNewestLogData(SerialNumber, HowMany, Stats, Type);
 	}
 
 	bool Service::AddLog(std::string &SerialNumber, uCentral::Objects::DeviceLog &Log, bool CrashLog) {
@@ -122,11 +126,7 @@ namespace uCentral::Storage {
 			}
 
 			std::string TypeSelector;
-			if(Type)
-			{
-				TypeSelector = (HasWhere ? " AND LogType=" : " WHERE LogType=" ) + std::to_string((Type==1 ? 0 : 1));
-			}
-
+			TypeSelector = (HasWhere ? " AND LogType=" : " WHERE LogType=" ) + std::to_string(Type);
 			Poco::Data::Statement   Select(Sess);
 
 			Select << Statement + DateSelector + TypeSelector,
@@ -177,16 +177,50 @@ namespace uCentral::Storage {
 			}
 
 			std::string TypeSelector;
-			if(Type)
-			{
-				TypeSelector = (HasWhere ? " AND LogType=" : " WHERE LogType=" ) + std::to_string((Type==1 ? 0 : 1));
-			}
+			TypeSelector = (HasWhere ? " AND LogType=" : " WHERE LogType=" ) + std::to_string(Type);
 
 			Poco::Data::Statement   Delete(Sess);
 			Delete << StatementStr + DateSelector + TypeSelector;
 
 			Delete.execute();
 
+			return true;
+		}
+		catch (const Poco::Exception &E) {
+			Logger_.warning(
+				Poco::format("%s(%s): Failed with: %s", std::string(__func__), SerialNumber, E.displayText()));
+		}
+		return false;
+	}
+
+	bool Service::GetNewestLogData(std::string &SerialNumber, uint64_t HowMany, std::vector<uCentral::Objects::DeviceLog> &Stats, uint64_t Type) {
+		typedef std::vector<DeviceLogsRecordTuple> RecordList;
+
+		try {
+			RecordList 				Records;
+			Poco::Data::Session 	Sess = Pool_->get();
+			Poco::Data::Statement   Select(Sess);
+
+
+			std::string st{"SELECT SerialNumber, Log, Data, Severity, Recorded, LogType, UUID FROM DeviceLogs WHERE SerialNumber=? AND Type=? ORDER BY Recorded DESC"};
+
+			Select << 	ConvertParams(st),
+						Poco::Data::Keywords::into(Records),
+						Poco::Data::Keywords::use(SerialNumber),
+						Poco::Data::Keywords::use(Type),
+						Poco::Data::Keywords::limit(HowMany);
+			Select.execute();
+
+			for (auto i: Records) {
+				uCentral::Objects::DeviceLog R{
+					.Log = i.get<1>(),
+					.Data = i.get<2>(),
+					.Severity = i.get<3>(),
+					.Recorded = i.get<4>(),
+					.LogType = i.get<5>(),
+					.UUID = i.get<6>()};
+				Stats.push_back(R);
+			}
 			return true;
 		}
 		catch (const Poco::Exception &E) {

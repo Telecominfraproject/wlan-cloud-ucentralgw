@@ -27,8 +27,12 @@ void RESTAPI_commands::handleRequest(Poco::Net::HTTPServerRequest& Request, Poco
 
         if (Request.getMethod() == Poco::Net::HTTPRequest::HTTP_GET) {
             std::vector<uCentral::Objects::CommandDetails> Commands;
-            uCentral::Storage::GetCommands(SerialNumber, QB_.StartDate, QB_.EndDate, QB_.Offset, QB_.Limit,
-                                           Commands);
+			if(QB_.Newest) {
+				uCentral::Storage::GetNewestCommands(SerialNumber, QB_.Limit, Commands);
+			} else {
+				uCentral::Storage::GetCommands(SerialNumber, QB_.StartDate, QB_.EndDate, QB_.Offset,
+											   QB_.Limit, Commands);
+			}
             Poco::JSON::Array ArrayObj;
             for (const auto &i : Commands) {
                 Poco::JSON::Object Obj;

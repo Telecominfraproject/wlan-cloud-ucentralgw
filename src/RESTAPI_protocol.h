@@ -75,6 +75,7 @@ namespace uCentral::RESTAPI::Protocol {
 	static const char * PARAMETERS = "parameters";
 	static const char * VALUE = "value";
 	static const char * LASTONLY = "lastOnly";
+	static const char * NEWEST = "newest";
 }
 
 #endif // UCENTRALGW_RESTAPI_PROTOCOL_H

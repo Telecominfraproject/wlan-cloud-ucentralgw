@@ -298,6 +298,7 @@ namespace uCentral::RESTAPI {
 		QB_.Lifetime = GetBoolParameter(uCentral::RESTAPI::Protocol::LIFETIME,false);
 		QB_.LogType = GetParameter(uCentral::RESTAPI::Protocol::LOGTYPE,0);
 		QB_.LastOnly = GetBoolParameter(uCentral::RESTAPI::Protocol::LASTONLY,false);
+		QB_.Newest = GetBoolParameter(uCentral::RESTAPI::Protocol::NEWEST,false);
 	}
 
 	[[nodiscard]] uint64_t RESTAPIHandler::Get(const char *Parameter,const Poco::JSON::Object::Ptr &Obj, uint64_t Default){

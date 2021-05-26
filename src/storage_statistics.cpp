@@ -12,20 +12,23 @@
 namespace uCentral::Storage {
 
 	bool AddStatisticsData(std::string &SerialNumber, uint64_t CfgUUID, std::string &NewStats) {
-		return uCentral::Storage::Service::instance()->AddStatisticsData(SerialNumber, CfgUUID, NewStats);
+		return Service::instance()->AddStatisticsData(SerialNumber, CfgUUID, NewStats);
 	}
 
 	bool
 	GetStatisticsData(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate, uint64_t Offset, uint64_t HowMany,
 					  std::vector<uCentral::Objects::Statistics> &Stats) {
-		return uCentral::Storage::Service::instance()->GetStatisticsData(SerialNumber, FromDate, ToDate, Offset,
+		return Service::instance()->GetStatisticsData(SerialNumber, FromDate, ToDate, Offset,
 																		 HowMany, Stats);
 	}
 
 	bool DeleteStatisticsData(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate) {
-		return uCentral::Storage::Service::instance()->DeleteStatisticsData(SerialNumber, FromDate, ToDate);
+		return Service::instance()->DeleteStatisticsData(SerialNumber, FromDate, ToDate);
 	}
 
+	bool GetNewestStatisticsData(std::string &SerialNumber, uint64_t HowMany, std::vector<uCentral::Objects::Statistics> &Stats) {
+		return Service::instance()->GetNewestStatisticsData(SerialNumber, HowMany, Stats);
+	}
 
 	bool Service::AddStatisticsData(std::string &SerialNumber, uint64_t CfgUUID, std::string &NewStats) {
 
@@ -114,7 +117,40 @@ namespace uCentral::Storage {
 		return false;
 	}
 
-	bool Service::DeleteStatisticsData(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate) {
+	bool Service::GetNewestStatisticsData(std::string &SerialNumber, uint64_t HowMany, std::vector<uCentral::Objects::Statistics> &Stats) {
+		typedef Poco::Tuple<std::string, uint64_t, std::string, uint64_t> StatRecord;
+		typedef std::vector<StatRecord> RecordList;
+
+		try {
+			RecordList              Records;
+			Poco::Data::Session     Sess = Pool_->get();
+			Poco::Data::Statement   Select(Sess);
+
+			std::string St{"SELECT SerialNumber, UUID, Data, Recorded FROM Statistics WHERE SerialNumber=? ORDER BY Recorded DESC"};
+
+			Select << 	ConvertParams(St),
+						Poco::Data::Keywords::into(Records),
+						Poco::Data::Keywords::use(SerialNumber),
+						Poco::Data::Keywords::limit(HowMany );
+			Select.execute();
+
+			for (auto i: Records) {
+				uCentral::Objects::Statistics R{
+					.UUID = i.get<1>(),
+					.Data = i.get<2>(),
+					.Recorded = i.get<3>()};
+				Stats.push_back(R);
+			}
+			return true;
+		}
+		catch (const Poco::Exception &E) {
+			Logger_.warning(
+				Poco::format("%s(%s): Failed with: %s", std::string(__func__), SerialNumber, E.displayText()));
+		}
+		return false;
+	}
+
+bool Service::DeleteStatisticsData(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate) {
 		try {
 			Poco::Data::Session Sess = Pool_->get();
 

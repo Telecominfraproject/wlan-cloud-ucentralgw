@@ -1404,10 +1404,16 @@ paths:
             format: int64
         - in: query
           name: logType
-          description: 0=any kind of logs (default) 1=normal logs only 2=crash logs only
+          description: 0=any kind of logs (default) 0=normal logs only 1=crash logs only
           schema:
             type: integer
             format: int64
+        - in: query
+          description: Selecting this option means the newest record will be returned. Use limit to select how many.
+          name: newest
+          schema:
+            type: boolean
+          required: false
 
       responses:
         200:
@@ -1495,6 +1501,12 @@ paths:
           schema:
             type: integer
             format: int64
+        - in: query
+          description: Selecting this option means the newest record will be returned. Use limit to select how many.
+          name: newest
+          schema:
+            type: boolean
+          required: false
 
       responses:
         200:
@@ -1632,6 +1644,12 @@ paths:
         - in: query
           description: Selecting this option means the LifetimeStatistics will be returned. All other parameters will be ignored.
           name: lastOnly
+          schema:
+            type: boolean
+          required: false
+        - in: query
+          description: Selecting this option means the newest record will be returned. Use limit to select how many.
+          name: newest
           schema:
             type: boolean
           required: false

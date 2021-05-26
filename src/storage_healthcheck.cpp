@@ -26,6 +26,10 @@ namespace uCentral::Storage {
 		return uCentral::Storage::Service::instance()->DeleteHealthCheckData(SerialNumber, FromDate, ToDate);
 	}
 
+	bool GetNewestHealthCheckData(std::string &SerialNumber, uint64_t HowMany,
+							  std::vector<uCentral::Objects::HealthCheck> &Checks) {
+		return Service::instance()->GetNewestHealthCheckData(SerialNumber, HowMany, Checks);
+	}
 
 	bool Service::AddHealthCheckData(std::string &SerialNumber, uCentral::Objects::HealthCheck &Check) {
 		try {
@@ -102,6 +106,42 @@ namespace uCentral::Storage {
 				R.Sanity = i.get<3>();
 				R.Recorded = i.get<4>();
 
+				Checks.push_back(R);
+			}
+
+			return true;
+		}
+		catch (const Poco::Exception &E) {
+			Logger_.warning(
+				Poco::format("%s(%s): Failed with: %s", std::string(__func__), SerialNumber, E.displayText()));
+		}
+		return false;
+	}
+
+	bool Service::GetNewestHealthCheckData(std::string &SerialNumber, uint64_t HowMany, std::vector<uCentral::Objects::HealthCheck> &Checks) {
+		typedef Poco::Tuple<std::string, uint64_t, std::string, uint64_t, uint64_t> Record;
+		typedef std::vector<Record> RecordList;
+
+		// std::lock_guard<std::mutex> guard(Mutex_);
+		try {
+			RecordList 				Records;
+			Poco::Data::Session 	Sess = Pool_->get();
+			Poco::Data::Statement   Select(Sess);
+
+			std::string st{"SELECT SerialNumber, UUID, Data, Sanity, Recorded FROM HealthChecks WHERE SerialNumber=? ORDER BY Recorded DESC"};
+
+			Select << 	ConvertParams(st),
+						Poco::Data::Keywords::into(Records),
+						Poco::Data::Keywords::use(SerialNumber),
+						Poco::Data::Keywords::limit(HowMany );
+			Select.execute();
+
+			for (auto i: Records) {
+				uCentral::Objects::HealthCheck R{
+					.UUID = i.get<1>(),
+					.Data = i.get<2>(),
+					.Sanity = i.get<3>(),
+					.Recorded = i.get<4>()};
 				Checks.push_back(R);
 			}
 

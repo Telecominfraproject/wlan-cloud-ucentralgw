@@ -144,7 +144,7 @@ void RESTAPI_device_commandHandler::GetStatistics(Poco::Net::HTTPServerRequest& 
 				Stats = uCentral::uCentralProtocol::EMPTY_JSON_DOC;
 			auto Obj = P.parse(Stats).extract<Poco::JSON::Object::Ptr>();
 			ReturnObject(Request, *Obj, Response);
-		} if (QB_.LastOnly) {
+		} else if (QB_.LastOnly) {
 			std::string Stats;
 			if(uCentral::DeviceRegistry::GetStatistics(SerialNumber_,Stats)) {
 				Poco::JSON::Parser	P;
@@ -157,8 +157,12 @@ void RESTAPI_device_commandHandler::GetStatistics(Poco::Net::HTTPServerRequest& 
 			}
 		} else {
 			std::vector<uCentral::Objects::Statistics> Stats;
-			uCentral::Storage::GetStatisticsData(SerialNumber_, QB_.StartDate, QB_.EndDate, QB_.Offset, QB_.Limit,
-												 Stats);
+			if(QB_.Newest) {
+				uCentral::Storage::GetNewestStatisticsData(SerialNumber_, QB_.Limit, Stats);
+			} else {
+				uCentral::Storage::GetStatisticsData(SerialNumber_, QB_.StartDate, QB_.EndDate,
+													 QB_.Offset, QB_.Limit, Stats);
+			}
 			Poco::JSON::Array ArrayObj;
 			for (auto i : Stats) {
 				Poco::JSON::Object Obj;
@@ -349,10 +353,15 @@ void RESTAPI_device_commandHandler::Upgrade(Poco::Net::HTTPServerRequest &Reques
 void RESTAPI_device_commandHandler::GetLogs(Poco::Net::HTTPServerRequest& Request, Poco::Net::HTTPServerResponse& Response) {
     try {
         std::vector<uCentral::Objects::DeviceLog> Logs;
-        uCentral::Storage::GetLogData(SerialNumber_, QB_.StartDate, QB_.EndDate, QB_.Offset, QB_.Limit,
-                                                                  Logs,QB_.LogType);
-        Poco::JSON::Array ArrayObj;
 
+		if(QB_.Newest) {
+			uCentral::Storage::GetNewestLogData(SerialNumber_, QB_.Limit, Logs, QB_.LogType);
+		} else {
+			uCentral::Storage::GetLogData(SerialNumber_, QB_.StartDate, QB_.EndDate, QB_.Offset,
+										  QB_.Limit, Logs, QB_.LogType);
+		}
+
+        Poco::JSON::Array ArrayObj;
         for (auto i : Logs) {
             Poco::JSON::Object Obj;
 			i.to_json(Obj);
@@ -361,8 +370,8 @@ void RESTAPI_device_commandHandler::GetLogs(Poco::Net::HTTPServerRequest& Reques
         Poco::JSON::Object RetObj;
         RetObj.set(uCentral::RESTAPI::Protocol::VALUES, ArrayObj);
         RetObj.set(uCentral::RESTAPI::Protocol::SERIALNUMBER, SerialNumber_);
-
         ReturnObject(Request, RetObj, Response);
+
         return;
     }
     catch(const Poco::Exception &E)
@@ -388,22 +397,23 @@ void RESTAPI_device_commandHandler::DeleteLogs(Poco::Net::HTTPServerRequest& Req
 
 void RESTAPI_device_commandHandler::GetChecks(Poco::Net::HTTPServerRequest& Request, Poco::Net::HTTPServerResponse& Response) {
     try {
-		Poco::JSON::Array ArrayObj;
-
         std::vector<uCentral::Objects::HealthCheck> Checks;
-		if(uCentral::Storage::GetHealthCheckData(SerialNumber_, QB_.StartDate, QB_.EndDate, QB_.Offset, QB_.Limit, Checks)) {
+		if(QB_.Newest) {
+			uCentral::Storage::GetNewestHealthCheckData(SerialNumber_, QB_.Limit, Checks);
+		} else {
+			uCentral::Storage::GetHealthCheckData(SerialNumber_, QB_.StartDate, QB_.EndDate, QB_.Offset, QB_.Limit, Checks);
+		}
 
-			for (auto i : Checks) {
-				Poco::JSON::Object Obj;
-				i.to_json(Obj);
-				ArrayObj.add(Obj);
-			}
+		Poco::JSON::Array ArrayObj;
+		for (auto i : Checks) {
+			Poco::JSON::Object Obj;
+			i.to_json(Obj);
+			ArrayObj.add(Obj);
 		}
 
         Poco::JSON::Object RetObj;
         RetObj.set(uCentral::RESTAPI::Protocol::VALUES, ArrayObj);
         RetObj.set(uCentral::RESTAPI::Protocol::SERIALNUMBER, SerialNumber_);
-
         ReturnObject(Request, RetObj, Response);
 
         return;

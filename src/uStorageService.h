@@ -38,17 +38,20 @@ namespace uCentral::Storage {
     bool AddStatisticsData(std::string &SerialNumber, uint64_t CfgUUID, std::string &NewStats);
     bool GetStatisticsData(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate, uint64_t Offset, uint64_t HowMany, std::vector<uCentral::Objects::Statistics> &Stats);
     bool DeleteStatisticsData(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate );
+	bool GetNewestStatisticsData(std::string &SerialNumber, uint64_t HowMany, std::vector<uCentral::Objects::Statistics> &Stats);
 
     bool AddHealthCheckData(std::string &SerialNumber,uCentral::Objects::HealthCheck & Check);
     bool GetHealthCheckData(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate, uint64_t Offset, uint64_t HowMany,
                             std::vector<uCentral::Objects::HealthCheck> &Checks);
     bool DeleteHealthCheckData(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate );
+	bool GetNewestHealthCheckData(std::string &SerialNumber, uint64_t HowMany,
+						std::vector<uCentral::Objects::HealthCheck> &Checks);
 
     bool AddLog(std::string & SerialNumber, uCentral::Objects::DeviceLog & Log, bool CrashLog = false );
     bool AddLog(std::string & SerialNumber, uint64_t UUID, const std::string &Log );
-
     bool GetLogData(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate, uint64_t Offset, uint64_t HowMany, std::vector<uCentral::Objects::DeviceLog> &Stats, uint64_t Type);
     bool DeleteLogData(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate, uint64_t Type);
+	bool GetNewestLogData(std::string &SerialNumber, uint64_t HowMany, std::vector<uCentral::Objects::DeviceLog> &Stats, uint64_t Type);
 
     bool UpdateDeviceConfiguration(std::string &SerialNumber, std::string &Configuration, uint64_t & NewUUID );
     bool CreateDevice(uCentral::Objects::Device &);
@@ -91,6 +94,7 @@ namespace uCentral::Storage {
 	bool GetAttachedFile(std::string & UUID, std::string & SerialNumber, const std::string & FileName, std::string &Type);
 	bool RemoveAttachedFile(std::string & UUID);
 	bool SetCommandResult(std::string & UUID, std::string & Result);
+	bool GetNewestCommands(std::string &SerialNumber, uint64_t HowMany, std::vector<uCentral::Objects::CommandDetails> & Commands);
 
 	bool AddBlackListDevices(std::vector<uCentral::Objects::BlackListedDevice> &  Devices);
 	bool DeleteBlackListDevice(std::string & SerialNumber);
@@ -131,11 +135,14 @@ namespace uCentral::Storage {
         friend bool GetStatisticsData(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate, uint64_t Offset, uint64_t HowMany,
                                std::vector<uCentral::Objects::Statistics> &Stats);
         friend bool DeleteStatisticsData(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate );
+		friend bool GetNewestStatisticsData(std::string &SerialNumber, uint64_t HowMany, std::vector<uCentral::Objects::Statistics> &Stats);
 
-        friend bool AddHealthCheckData(std::string &SerialNumber, uCentral::Objects::HealthCheck & Check);
+		friend bool AddHealthCheckData(std::string &SerialNumber, uCentral::Objects::HealthCheck & Check);
         friend bool GetHealthCheckData(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate, uint64_t Offset, uint64_t HowMany,
                                       std::vector<uCentral::Objects::HealthCheck> &Checks);
         friend bool DeleteHealthCheckData(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate );
+		friend bool GetNewestHealthCheckData(std::string &SerialNumber, uint64_t HowMany,
+											 std::vector<uCentral::Objects::HealthCheck> &Checks);
 
         friend bool CreateDefaultDevice(const std::string & SerialNumber, const std::string & Capabilities);
         friend bool DeviceExists(std::string & SerialNumber);
@@ -164,8 +171,10 @@ namespace uCentral::Storage {
         friend bool DeleteLogData(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate, uint64_t Type);
         friend bool AddLog(std::string & SerialNumber, uint64_t UUID, const std::string & Log);
         friend bool AddLog(std::string & SerialNumber, uCentral::Objects::DeviceLog & Log, bool CrashLog);
+		friend bool GetNewestLogData(std::string &SerialNumber, uint64_t HowMany, std::vector<uCentral::Objects::DeviceLog> &Stats, uint64_t Type);
 
-        friend bool CreateDefaultConfiguration(std::string & name, uCentral::Objects::DefaultConfiguration & DefConfig);
+
+		friend bool CreateDefaultConfiguration(std::string & name, uCentral::Objects::DefaultConfiguration & DefConfig);
         friend bool DeleteDefaultConfiguration(std::string & name);
         friend bool UpdateDefaultConfiguration(std::string & name, uCentral::Objects::DefaultConfiguration & DefConfig);
         friend bool GetDefaultConfiguration(std::string &name, uCentral::Objects::DefaultConfiguration & DefConfig);
@@ -184,6 +193,7 @@ namespace uCentral::Storage {
         friend bool AttachFileToCommand(std::string & UUID);
 		friend bool GetAttachedFile(std::string & UUID, std::string & SerialNumber, const std::string & FileName, std::string &Type);
 		friend bool RemoveAttachedFile(std::string & UUID);
+		friend bool GetNewestCommands(std::string &SerialNumber, uint64_t HowMany, std::vector<uCentral::Objects::CommandDetails> & Commands);
 
 		friend bool AddBlackListDevices(std::vector<uCentral::Objects::BlackListedDevice> &  Devices);
 		friend bool DeleteBlackListDevice(std::string & SerialNumber);
@@ -221,11 +231,14 @@ namespace uCentral::Storage {
         bool GetStatisticsData(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate, uint64_t Offset, uint64_t HowMany,
                                std::vector<uCentral::Objects::Statistics> &Stats);
         bool DeleteStatisticsData(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate );
+		bool GetNewestStatisticsData(std::string &SerialNumber, uint64_t HowMany, std::vector<uCentral::Objects::Statistics> &Stats);
 
         bool AddHealthCheckData(std::string &SerialNumber, uCentral::Objects::HealthCheck & Check);
         bool GetHealthCheckData(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate, uint64_t Offset, uint64_t HowMany,
                                        std::vector<uCentral::Objects::HealthCheck> &Checks);
         bool DeleteHealthCheckData(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate );
+		bool GetNewestHealthCheckData(std::string &SerialNumber, uint64_t HowMany,
+								  std::vector<uCentral::Objects::HealthCheck> &Checks);
 
         bool UpdateDeviceConfiguration(std::string &SerialNumber, std::string &Configuration, uint64_t & NewUUID );
         
@@ -257,6 +270,7 @@ namespace uCentral::Storage {
         bool GetLogData(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate, uint64_t Offset, uint64_t HowMany,
                         std::vector<uCentral::Objects::DeviceLog> &Stats, uint64_t Type);
         bool DeleteLogData(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate, uint64_t Type);
+		bool GetNewestLogData(std::string &SerialNumber, uint64_t HowMany, std::vector<uCentral::Objects::DeviceLog> &Stats, uint64_t Type);
 
         bool CreateDefaultConfiguration(std::string & name, uCentral::Objects::DefaultConfiguration & DefConfig);
         bool DeleteDefaultConfiguration(std::string & name);
@@ -279,6 +293,7 @@ namespace uCentral::Storage {
 		bool GetAttachedFile(std::string & UUID, std::string & SerialNumber, const std::string & FileName, std::string &Type);
 		bool RemoveAttachedFile(std::string & UUID);
 		bool SetCommandResult(std::string & UUID, std::string & Result);
+		bool GetNewestCommands(std::string &SerialNumber, uint64_t HowMany, std::vector<uCentral::Objects::CommandDetails> & Commands);
 
 		bool AddBlackListDevices(std::vector<uCentral::Objects::BlackListedDevice> &  Devices);
 		bool DeleteBlackListDevice(std::string & SerialNumber);
