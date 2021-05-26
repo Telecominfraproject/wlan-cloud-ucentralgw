@@ -519,7 +519,7 @@ namespace uCentral::Storage {
 						Poco::Data::Keywords::limit(HowMany);
 			Select.execute();
 
-			std::cout << "Returned " << Records.size() << " records" << std::endl;
+			// std::cout << "Returned " << Records.size() << " records" << std::endl;
 
 			for (auto i : Records) {
 				uCentral::Objects::CommandDetails R{

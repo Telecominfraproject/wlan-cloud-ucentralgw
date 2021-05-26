@@ -23,11 +23,10 @@ void RESTAPI_commands::handleRequest(Poco::Net::HTTPServerRequest& Request, Poco
         ParseParameters(Request);
 		InitQueryBlock();
 
-		auto SerialNumber = GetBinding(uCentral::RESTAPI::Protocol::SERIALNUMBER, "");
+		auto SerialNumber = GetParameter(uCentral::RESTAPI::Protocol::SERIALNUMBER, "");
 
         if (Request.getMethod() == Poco::Net::HTTPRequest::HTTP_GET) {
             std::vector<uCentral::Objects::CommandDetails> Commands;
-			std::cout << "Newest: " << QB_.Newest << " Limit: " << QB_.Limit << "Serial: " << SerialNumber << std::endl;
 			if(QB_.Newest) {
 				uCentral::Storage::GetNewestCommands(SerialNumber, QB_.Limit, Commands);
 			} else {
