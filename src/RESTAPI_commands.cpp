@@ -9,6 +9,7 @@
 #include "RESTAPI_commands.h"
 #include "uStorageService.h"
 #include "uUtils.h"
+#include "RESTAPI_protocol.h"
 
 void RESTAPI_commands::handleRequest(Poco::Net::HTTPServerRequest& Request, Poco::Net::HTTPServerResponse& Response)
 {
@@ -22,20 +23,16 @@ void RESTAPI_commands::handleRequest(Poco::Net::HTTPServerRequest& Request, Poco
         ParseParameters(Request);
 
         if (Request.getMethod() == Poco::Net::HTTPRequest::HTTP_GET) {
-            auto SerialNumber = GetParameter("serialNumber", "");
-            auto StartDate = uCentral::Utils::from_RFC3339(GetParameter("startDate", ""));
-            auto EndDate = uCentral::Utils::from_RFC3339(GetParameter("endDate", ""));
-            auto Offset = GetParameter("offset", 0);
-            auto Limit = GetParameter("limit", 500);
+			auto SerialNumber = GetBinding(uCentral::RESTAPI::Protocol::SERIALNUMBER, "");
+			auto StartDate = uCentral::Utils::from_RFC3339(GetParameter(uCentral::RESTAPI::Protocol::STARTDATE, ""));
+			auto EndDate = uCentral::Utils::from_RFC3339(GetParameter(uCentral::RESTAPI::Protocol::ENDDATE, ""));
+			auto Offset = GetParameter(uCentral::RESTAPI::Protocol::OFFSET, 0);
+			auto Limit = GetParameter(uCentral::RESTAPI::Protocol::LIMIT, 100);
 
             std::vector<uCentral::Objects::CommandDetails> Commands;
-
-
             uCentral::Storage::GetCommands(SerialNumber, StartDate, EndDate, Offset, Limit,
                                            Commands);
-
             Poco::JSON::Array ArrayObj;
-
             for (const auto &i : Commands) {
                 Poco::JSON::Object Obj;
 				i.to_json(Obj);
@@ -43,15 +40,15 @@ void RESTAPI_commands::handleRequest(Poco::Net::HTTPServerRequest& Request, Poco
             }
 
             Poco::JSON::Object RetObj;
-            RetObj.set("commands", ArrayObj);
+            RetObj.set(uCentral::RESTAPI::Protocol::COMMANDS, ArrayObj);
             ReturnObject(Request, RetObj, Response);
 
             return;
 
         } else if (Request.getMethod() == Poco::Net::HTTPRequest::HTTP_DELETE) {
-            auto SerialNumber = GetBinding("serialNumber", "");
-            auto StartDate = uCentral::Utils::from_RFC3339(GetParameter("startDate", ""));
-            auto EndDate = uCentral::Utils::from_RFC3339(GetParameter("endDate", ""));
+			auto SerialNumber = GetBinding(uCentral::RESTAPI::Protocol::SERIALNUMBER, "");
+			auto StartDate = uCentral::Utils::from_RFC3339(GetParameter(uCentral::RESTAPI::Protocol::STARTDATE, ""));
+			auto EndDate = uCentral::Utils::from_RFC3339(GetParameter(uCentral::RESTAPI::Protocol::ENDDATE, ""));
 
             if (uCentral::Storage::DeleteCommands(SerialNumber, StartDate, EndDate))
                 OK(Request, Response);

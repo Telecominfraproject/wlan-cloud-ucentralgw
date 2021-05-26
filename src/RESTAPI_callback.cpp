@@ -11,6 +11,7 @@
 #include "Poco/JSON/Parser.h"
 
 #include "uStorageService.h"
+#include "RESTAPI_protocol.h"
 
 void RESTAPI_callback::handleRequest(Poco::Net::HTTPServerRequest& Request, Poco::Net::HTTPServerResponse& Response) {
 
@@ -40,9 +41,9 @@ void RESTAPI_callback::DoPost(Poco::Net::HTTPServerRequest &Request, Poco::Net::
 		Poco::JSON::Object::Ptr Obj = parser.parse(Request.stream()).extract<Poco::JSON::Object::Ptr>();
 		Poco::DynamicStruct ds = *Obj;
 
-		auto Topic = GetParameter("topic","");
+		auto Topic = GetParameter(uCentral::RESTAPI::Protocol::TOPIC,"");
 		if(Topic=="ucentralfws") {
-			if(ds.contains("firmwares") && ds["firmwares"].isArray()) {
+			if(ds.contains(uCentral::RESTAPI::Protocol::FIRMWARES) && ds[uCentral::RESTAPI::Protocol::FIRMWARES].isArray()) {
 				std::cout << "Proper manifest received..." << std::endl;
 				Logger_.information("New manifest...");
 				OK(Request, Response);

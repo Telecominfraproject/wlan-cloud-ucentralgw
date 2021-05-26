@@ -13,6 +13,7 @@
 #include "Poco/File.h"
 
 #include <fstream>
+#include "RESTAPI_protocol.h"
 
 void RESTAPI_file::handleRequest(Poco::Net::HTTPServerRequest& Request, Poco::Net::HTTPServerResponse& Response)
 {
@@ -26,8 +27,8 @@ void RESTAPI_file::handleRequest(Poco::Net::HTTPServerRequest& Request, Poco::Ne
         ParseParameters(Request);
 
         if (Request.getMethod() == Poco::Net::HTTPRequest::HTTP_GET) {
-            auto UUID = GetBinding("uuid", "");
-			auto SerialNumber = GetParameter("serialNumber","");
+            auto UUID = GetBinding(uCentral::RESTAPI::Protocol::FILEUUID, "");
+			auto SerialNumber = GetParameter(uCentral::RESTAPI::Protocol::SERIALNUMBER,"");
 
             //does the file exist
             Poco::File  DownloadFile(uCentral::uFileUploader::Path() + "/" + UUID);
@@ -51,7 +52,7 @@ void RESTAPI_file::handleRequest(Poco::Net::HTTPServerRequest& Request, Poco::Ne
             return;
 
         } else if (Request.getMethod() == Poco::Net::HTTPRequest::HTTP_DELETE) {
-            auto UUID = GetBinding("uuid", "");
+            auto UUID = GetBinding(uCentral::RESTAPI::Protocol::FILEUUID, "");
 
 			if(UUID.empty())
 			{

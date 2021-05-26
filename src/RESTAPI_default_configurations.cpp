@@ -11,6 +11,7 @@
 
 #include "RESTAPI_default_configurations.h"
 #include "uStorageService.h"
+#include "RESTAPI_protocol.h"
 
 void RESTAPI_default_configurations::handleRequest(Poco::Net::HTTPServerRequest& Request, Poco::Net::HTTPServerResponse& Response)
 {
@@ -24,9 +25,9 @@ void RESTAPI_default_configurations::handleRequest(Poco::Net::HTTPServerRequest&
         if (Request.getMethod() == Poco::Net::HTTPRequest::HTTP_GET) {
             ParseParameters(Request);
 
-            auto Offset = GetParameter("offset", 0);
-            auto Limit = GetParameter("limit", 100);
-            auto Filter = GetParameter("filter", "");
+			auto Offset = GetParameter(uCentral::RESTAPI::Protocol::OFFSET, 0);
+			auto Limit = GetParameter(uCentral::RESTAPI::Protocol::LIMIT, 100);
+			auto Filter = GetParameter(uCentral::RESTAPI::Protocol::FILTER, "");
 
             Logger_.information(Poco::format("DEFAULT_CONFIGURATIONS: from %Lu, limit of %Lu, filter=%s.", (int64_t )Offset, (int64_t ) Limit, Filter));
             RESTAPIHandler::PrintBindings();
@@ -43,7 +44,7 @@ void RESTAPI_default_configurations::handleRequest(Poco::Net::HTTPServerRequest&
 			}
 
             Poco::JSON::Object RetObj;
-            RetObj.set("configurations", Objects);
+            RetObj.set(uCentral::RESTAPI::Protocol::CONFIGURATIONS, Objects);
             ReturnObject(Request, RetObj, Response);
         } else
             BadRequest(Request, Response);

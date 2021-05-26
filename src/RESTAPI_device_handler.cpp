@@ -9,6 +9,7 @@
 #include "RESTAPI_device_handler.h"
 #include "Poco/JSON/Parser.h"
 #include "uStorageService.h"
+#include "RESTAPI_protocol.h"
 
 void RESTAPI_device_handler::handleRequest(Poco::Net::HTTPServerRequest& Request, Poco::Net::HTTPServerResponse& Response)
 {
@@ -20,7 +21,7 @@ void RESTAPI_device_handler::handleRequest(Poco::Net::HTTPServerRequest& Request
 
     ParseParameters(Request);
     if(Request.getMethod() == Poco::Net::HTTPRequest::HTTP_GET) {
-        std::string     SerialNumber = GetBinding("serialNumber","0xdeadbeef");
+        std::string     SerialNumber = GetBinding(uCentral::RESTAPI::Protocol::SERIALNUMBER,"");
         uCentral::Objects::Device  Device;
 
         if(uCentral::Storage::GetDevice(SerialNumber,Device))
@@ -34,7 +35,7 @@ void RESTAPI_device_handler::handleRequest(Poco::Net::HTTPServerRequest& Request
             NotFound(Request, Response);
         }
     } else if(Request.getMethod() == Poco::Net::HTTPRequest::HTTP_DELETE) {
-        std::string SerialNumber = GetBinding("serialNumber", "0xdeadbeef");
+        std::string SerialNumber = GetBinding(uCentral::RESTAPI::Protocol::SERIALNUMBER, "");
 
         if (uCentral::Storage::DeleteDevice(SerialNumber)) {
             OK(Request, Response);
@@ -42,7 +43,7 @@ void RESTAPI_device_handler::handleRequest(Poco::Net::HTTPServerRequest& Request
             NotFound(Request, Response);
         }
     } else if(Request.getMethod() == Poco::Net::HTTPRequest::HTTP_POST) {
-        std::string SerialNumber = GetBinding("serialNumber", "0xdeadbeef");
+        std::string SerialNumber = GetBinding(uCentral::RESTAPI::Protocol::SERIALNUMBER, "");
 
         Poco::JSON::Parser      IncomingParser;
         Poco::JSON::Object::Ptr Obj = IncomingParser.parse(Request.stream()).extract<Poco::JSON::Object::Ptr>();
@@ -64,7 +65,7 @@ void RESTAPI_device_handler::handleRequest(Poco::Net::HTTPServerRequest& Request
             BadRequest(Request, Response);
         }
     } else if(Request.getMethod() == Poco::Net::HTTPRequest::HTTP_PUT) {
-        std::string SerialNumber = GetBinding("serialNumber", "0xdeadbeef");
+        std::string SerialNumber = GetBinding(uCentral::RESTAPI::Protocol::SERIALNUMBER, "");
 
         Poco::JSON::Parser      IncomingParser;
         Poco::JSON::Object::Ptr Obj = IncomingParser.parse(Request.stream()).extract<Poco::JSON::Object::Ptr>();

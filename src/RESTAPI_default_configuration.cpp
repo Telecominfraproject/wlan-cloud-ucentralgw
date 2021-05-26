@@ -12,6 +12,7 @@
 
 #include "uStorageService.h"
 #include "RESTAPI_objects.h"
+#include "RESTAPI_protocol.h"
 
 void RESTAPI_default_configuration::handleRequest(Poco::Net::HTTPServerRequest& Request, Poco::Net::HTTPServerResponse& Response)
 {
@@ -23,7 +24,7 @@ void RESTAPI_default_configuration::handleRequest(Poco::Net::HTTPServerRequest& 
 
     ParseParameters(Request);
     if(Request.getMethod() == Poco::Net::HTTPRequest::HTTP_GET) {
-        std::string                   Name = GetBinding("name","0xdeadbeef");
+		std::string Name = GetBinding(uCentral::RESTAPI::Protocol::NAME, "");
         uCentral::Objects::DefaultConfiguration  DefConfig;
 
         if(uCentral::Storage::GetDefaultConfiguration(Name,DefConfig))
@@ -37,7 +38,7 @@ void RESTAPI_default_configuration::handleRequest(Poco::Net::HTTPServerRequest& 
             NotFound(Request, Response);
         }
     } else if(Request.getMethod() == Poco::Net::HTTPRequest::HTTP_DELETE) {
-        std::string Name = GetBinding("name", "0xdeadbeef");
+        std::string Name = GetBinding(uCentral::RESTAPI::Protocol::NAME, "");
 
         if (uCentral::Storage::DeleteDefaultConfiguration(Name)) {
             OK(Request, Response);
@@ -45,7 +46,7 @@ void RESTAPI_default_configuration::handleRequest(Poco::Net::HTTPServerRequest& 
             NotFound(Request, Response);
         }
     } else if(Request.getMethod() == Poco::Net::HTTPRequest::HTTP_POST) {
-        std::string Name = GetBinding("name", "0xdeadbeef");
+		std::string Name = GetBinding(uCentral::RESTAPI::Protocol::NAME, "");
 
         Poco::JSON::Parser      IncomingParser;
         Poco::JSON::Object::Ptr Obj = IncomingParser.parse(Request.stream()).extract<Poco::JSON::Object::Ptr>();
@@ -64,7 +65,7 @@ void RESTAPI_default_configuration::handleRequest(Poco::Net::HTTPServerRequest& 
             BadRequest(Request, Response);
         }
     } else if(Request.getMethod() == Poco::Net::HTTPRequest::HTTP_PUT) {
-        std::string Name = GetBinding("name", "0xdeadbeef");
+		std::string Name = GetBinding(uCentral::RESTAPI::Protocol::NAME, "");
 
         Poco::JSON::Parser      IncomingParser;
         Poco::JSON::Object::Ptr Obj = IncomingParser.parse(Request.stream()).extract<Poco::JSON::Object::Ptr>();

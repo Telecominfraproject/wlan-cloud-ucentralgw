@@ -12,6 +12,7 @@
 #include "RESTAPI_devices_handler.h"
 #include "uStorageService.h"
 #include "uUtils.h"
+#include "RESTAPI_protocol.h"
 
 void RESTAPI_devices_handler::handleRequest(Poco::Net::HTTPServerRequest& Request, Poco::Net::HTTPServerResponse& Response)
 {
@@ -25,13 +26,13 @@ void RESTAPI_devices_handler::handleRequest(Poco::Net::HTTPServerRequest& Reques
         if (Request.getMethod() == Poco::Net::HTTPRequest::HTTP_GET) {
 			ParseParameters(Request);
 
-			auto Offset = GetParameter("offset", 0);
-			auto Limit = GetParameter("limit", 100);
-			auto Filter = GetParameter("filter", "");
-			auto Select = GetParameter("select", "");
-			auto serialOnly = GetBoolParameter("serialOnly", false);
-			auto countOnly = GetBoolParameter("countOnly", false);
-			auto deviceWithStatus = GetBoolParameter("deviceWithStatus", false);
+			auto Offset = GetParameter(uCentral::RESTAPI::Protocol::OFFSET, 0);
+			auto Limit = GetParameter(uCentral::RESTAPI::Protocol::LIMIT, 100);
+			auto Filter = GetParameter(uCentral::RESTAPI::Protocol::FILTER, "");
+			auto Select = GetParameter(uCentral::RESTAPI::Protocol::SELECT, "");
+			auto serialOnly = GetBoolParameter(uCentral::RESTAPI::Protocol::SERIALONLY, false);
+			auto countOnly = GetBoolParameter(uCentral::RESTAPI::Protocol::COUNTONLY, false);
+			auto deviceWithStatus = GetBoolParameter(uCentral::RESTAPI::Protocol::DEVICEWITHSTATUS, false);
 
 			Logger_.debug(Poco::format("DEVICES: from %Lu, limit of %Lu, filter='%s'.",
 											 (uint64_t)Offset, (uint64_t)Limit, Filter));
@@ -58,14 +59,14 @@ void RESTAPI_devices_handler::handleRequest(Poco::Net::HTTPServerRequest& Reques
 				}
 
 				if(deviceWithStatus)
-					RetObj.set("devicesWithStatus", Objects);
+					RetObj.set(uCentral::RESTAPI::Protocol::DEVICEWITHSTATUS, Objects);
 				else
-					RetObj.set("devices", Objects);
+					RetObj.set(uCentral::RESTAPI::Protocol::DEVICES, Objects);
 
 			} else  if (countOnly == true) {
 				uint64_t Count = 0;
 				if (uCentral::Storage::GetDeviceCount(Count)) {
-					RetObj.set("count", Count);
+					RetObj.set(uCentral::RESTAPI::Protocol::COUNT, Count);
 				}
 			} else if (serialOnly) {
 				std::vector<std::string> SerialNumbers;
@@ -74,7 +75,7 @@ void RESTAPI_devices_handler::handleRequest(Poco::Net::HTTPServerRequest& Reques
 				for (const auto &i : SerialNumbers) {
 					Objects.add(i);
 				}
-				RetObj.set("serialNumbers", Objects);
+				RetObj.set(uCentral::RESTAPI::Protocol::SERIALNUMBERS, Objects);
 			} else {
 				std::vector<uCentral::Objects::Device> Devices;
 				uCentral::Storage::GetDevices(Offset, Limit, Devices);
@@ -88,9 +89,9 @@ void RESTAPI_devices_handler::handleRequest(Poco::Net::HTTPServerRequest& Reques
 					Objects.add(Obj);
 				}
 				if(deviceWithStatus)
-					RetObj.set("devicesWithStatus", Objects);
+					RetObj.set(uCentral::RESTAPI::Protocol::DEVICEWITHSTATUS, Objects);
 				else
-					RetObj.set("devices", Objects);
+					RetObj.set(uCentral::RESTAPI::Protocol::DEVICES, Objects);
 			}
 			ReturnObject(Request, RetObj, Response);
 			return;

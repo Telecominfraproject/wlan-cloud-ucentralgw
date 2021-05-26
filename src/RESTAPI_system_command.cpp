@@ -11,6 +11,7 @@
 #include "Poco/JSON/Parser.h"
 
 #include "uCentral.h"
+#include "RESTAPI_protocol.h"
 
 /*
 
@@ -60,11 +61,11 @@ void RESTAPI_system_command::handleRequest(Poco::Net::HTTPServerRequest& Request
 			auto Obj = parser.parse(Request.stream()).extract<Poco::JSON::Object::Ptr>();
 			Poco::DynamicStruct ds = *Obj;
 
-			if(ds.contains("command")) {
-				auto Command = ds["command"].toString();
-				if(Command=="setloglevel") {
-					if(ds.contains("parameters")) {
-						auto ParametersBlock = ds["parameters"];
+			if(ds.contains(uCentral::RESTAPI::Protocol::COMMAND)) {
+				auto Command = ds[uCentral::RESTAPI::Protocol::COMMAND].toString();
+				if(Command==uCentral::RESTAPI::Protocol::SETLOGLEVEL) {
+					if(ds.contains(uCentral::RESTAPI::Protocol::PARAMETERS)) {
+						auto ParametersBlock = ds[uCentral::RESTAPI::Protocol::PARAMETERS];
 						if(ParametersBlock.isArray())
 						{
 							for(const auto &i : ParametersBlock)
@@ -75,9 +76,9 @@ void RESTAPI_system_command::handleRequest(Poco::Net::HTTPServerRequest& Request
 
 									auto TLV = pp.parse(i).extract<Poco::JSON::Object::Ptr>();
 									Poco::DynamicStruct Vars = *TLV;
-									if (Vars.contains("name") && Vars.contains("value")) {
-										auto Name = Vars["name"].toString();
-										auto Value = Vars["value"].toString();
+									if (Vars.contains(uCentral::RESTAPI::Protocol::NAME) && Vars.contains(uCentral::RESTAPI::Protocol::VALUE)) {
+										auto Name = Vars[uCentral::RESTAPI::Protocol::NAME].toString();
+										auto Value = Vars[uCentral::RESTAPI::Protocol::VALUE].toString();
 										uCentral::Daemon::SetSubsystemLogLevel(Name,Value);
 										Logger_.information(Poco::format("Setting log level for %s at %s",Name,Value));
 									}
@@ -87,7 +88,7 @@ void RESTAPI_system_command::handleRequest(Poco::Net::HTTPServerRequest& Request
 							return;
 						}
 					}
-				} else if (Command=="getloglevel") {
+				} else if (Command==uCentral::RESTAPI::Protocol::GETLOGLEVEL) {
 					Logger_.information("GETLOGLEVEL");
 				} else if (Command=="stats") {
 

@@ -9,6 +9,7 @@
 #include "RESTAPI_command.h"
 
 #include "uStorageService.h"
+#include "RESTAPI_protocol.h"
 
 void RESTAPI_command::handleRequest(Poco::Net::HTTPServerRequest& Request, Poco::Net::HTTPServerResponse& Response)
 {
@@ -22,10 +23,8 @@ void RESTAPI_command::handleRequest(Poco::Net::HTTPServerRequest& Request, Poco:
         ParseParameters(Request);
 
         if (Request.getMethod() == Poco::Net::HTTPRequest::HTTP_GET) {
-            auto CommandUUID = GetBinding("commandUUID", "");
-
+            auto CommandUUID = GetBinding(uCentral::RESTAPI::Protocol::COMMANDUUID, "");
             uCentral::Objects::CommandDetails Command;
-
             if(uCentral::Storage::GetCommand(CommandUUID,  Command)) {
 				Poco::JSON::Object	RetObj;
                 Command.to_json(RetObj);
@@ -35,8 +34,7 @@ void RESTAPI_command::handleRequest(Poco::Net::HTTPServerRequest& Request, Poco:
             return;
 
         } else if (Request.getMethod() == Poco::Net::HTTPRequest::HTTP_DELETE) {
-            auto CommandUUID = GetBinding("commandUUID", "");
-
+			auto CommandUUID = GetBinding(uCentral::RESTAPI::Protocol::COMMANDUUID, "");
             if(uCentral::Storage::DeleteCommand(CommandUUID)) {
                 OK(Request, Response);
             } else {

@@ -132,11 +132,11 @@ void RESTAPI_device_commandHandler::DeleteCapabilities(Poco::Net::HTTPServerRequ
 void RESTAPI_device_commandHandler::GetStatistics(Poco::Net::HTTPServerRequest& Request, Poco::Net::HTTPServerResponse& Response) {
     try {
         auto SerialNumber = GetBinding(uCentral::RESTAPI::Protocol::SERIALNUMBER, "");
-        auto StartDate = uCentral::Utils::from_RFC3339(GetParameter("startDate", ""));
-        auto EndDate = uCentral::Utils::from_RFC3339(GetParameter("endDate", ""));
-        auto Offset = GetParameter("offset", 0);
-        auto Limit = GetParameter("limit", 100);
-		auto Lifetime = GetBoolParameter("lifetime",false);
+        auto StartDate = uCentral::Utils::from_RFC3339(GetParameter(uCentral::RESTAPI::Protocol::STARTDATE, ""));
+        auto EndDate = uCentral::Utils::from_RFC3339(GetParameter(uCentral::RESTAPI::Protocol::ENDDATE, ""));
+        auto Offset = GetParameter(uCentral::RESTAPI::Protocol::OFFSET, 0);
+        auto Limit = GetParameter(uCentral::RESTAPI::Protocol::LIMIT, 100);
+		auto Lifetime = GetBoolParameter(uCentral::RESTAPI::Protocol::LIFETIME,false);
 
 		if(Lifetime) {
 			std::string Stats;
@@ -157,8 +157,8 @@ void RESTAPI_device_commandHandler::GetStatistics(Poco::Net::HTTPServerRequest& 
 				ArrayObj.add(Obj);
 			}
 			Poco::JSON::Object RetObj;
-			RetObj.set("data", ArrayObj);
-			RetObj.set("serialNumber", SerialNumber);
+			RetObj.set(uCentral::RESTAPI::Protocol::DATA, ArrayObj);
+			RetObj.set(uCentral::RESTAPI::Protocol::SERIALNUMBER, SerialNumber);
 			ReturnObject(Request, RetObj, Response);
 		}
 
@@ -173,10 +173,10 @@ void RESTAPI_device_commandHandler::GetStatistics(Poco::Net::HTTPServerRequest& 
 
 void RESTAPI_device_commandHandler::DeleteStatistics(Poco::Net::HTTPServerRequest& Request, Poco::Net::HTTPServerResponse& Response) {
     try {
-        auto SerialNumber = GetBinding("serialNumber", "");
-        auto StartDate = uCentral::Utils::from_RFC3339(GetParameter("startDate", ""));
-        auto EndDate = uCentral::Utils::from_RFC3339(GetParameter("endDate", ""));
-		auto Lifetime = GetBoolParameter("lifetime",false);
+		auto SerialNumber = GetBinding(uCentral::RESTAPI::Protocol::SERIALNUMBER, "");
+		auto StartDate = uCentral::Utils::from_RFC3339(GetParameter(uCentral::RESTAPI::Protocol::STARTDATE, ""));
+		auto EndDate = uCentral::Utils::from_RFC3339(GetParameter(uCentral::RESTAPI::Protocol::ENDDATE, ""));
+		auto Lifetime = GetBoolParameter(uCentral::RESTAPI::Protocol::LIFETIME,false);
 
 		if(Lifetime) {
 			if(uCentral::Storage::ResetLifetimeStats(SerialNumber)) {
@@ -202,17 +202,13 @@ void RESTAPI_device_commandHandler::DeleteStatistics(Poco::Net::HTTPServerReques
 
 void RESTAPI_device_commandHandler::GetStatus(Poco::Net::HTTPServerRequest& Request, Poco::Net::HTTPServerResponse& Response) {
     try {
-        auto SerialNumber = GetBinding("serialNumber", "");
-
+		auto SerialNumber = GetBinding(uCentral::RESTAPI::Protocol::SERIALNUMBER, "");
         uCentral::Objects::ConnectionState State;
 
         if (uCentral::DeviceRegistry::GetState(SerialNumber, State)) {
-
             Poco::JSON::Object RetObject;
 			State.to_json(RetObject);
-
             ReturnObject(Request, RetObject, Response);
-
         } else {
 			NotFound(Request, Response);
 		}
@@ -227,9 +223,8 @@ void RESTAPI_device_commandHandler::GetStatus(Poco::Net::HTTPServerRequest& Requ
 
 void RESTAPI_device_commandHandler::Configure(Poco::Net::HTTPServerRequest& Request, Poco::Net::HTTPServerResponse& Response) {
     try {
-        auto SNum = GetBinding("serialNumber", "");
-
-        if(SNum.empty())
+		auto SerialNumber = GetBinding(uCentral::RESTAPI::Protocol::SERIALNUMBER, "");
+        if(SerialNumber.empty())
         {
             BadRequest(Request, Response);
             return;
@@ -240,11 +235,11 @@ void RESTAPI_device_commandHandler::Configure(Poco::Net::HTTPServerRequest& Requ
         Poco::JSON::Object::Ptr Obj = parser.parse(Request.stream()).extract<Poco::JSON::Object::Ptr>();
         Poco::DynamicStruct ds = *Obj;
 
-        if (ds.contains("serialNumber") &&
-            ds.contains("UUID") &&
-            ds.contains("configuration")) {
+        if (ds.contains(uCentral::RESTAPI::Protocol::SERIALNUMBER) &&
+            ds.contains(uCentral::RESTAPI::Protocol::UUID) &&
+            ds.contains(uCentral::RESTAPI::Protocol::CONFIGURATION)) {
 
-            auto SerialNumber = ds["serialNumber"].toString();
+            auto SNum = ds[uCentral::RESTAPI::Protocol::SERIALNUMBER].toString();
 
             if(SerialNumber != SNum)
             {
@@ -252,12 +247,12 @@ void RESTAPI_device_commandHandler::Configure(Poco::Net::HTTPServerRequest& Requ
                 return;
             }
 
-            auto UUID = ds["UUID"];
-            auto Configuration = ds["configuration"].toString();
+            auto UUID = ds[uCentral::RESTAPI::Protocol::UUID];
+            auto Configuration = ds[uCentral::RESTAPI::Protocol::CONFIGURATION].toString();
             uint64_t When = 0 ;
 
-            if(ds.contains("when"))
-                When = uCentral::Utils::from_RFC3339(ds["when"].toString());
+            if(ds.contains(uCentral::RESTAPI::Protocol::WHEN))
+                When = uCentral::Utils::from_RFC3339(ds[uCentral::RESTAPI::Protocol::WHEN].toString());
 
             uint64_t NewUUID;
 
@@ -309,28 +304,28 @@ void RESTAPI_device_commandHandler::Configure(Poco::Net::HTTPServerRequest& Requ
 
 void RESTAPI_device_commandHandler::Upgrade(Poco::Net::HTTPServerRequest &Request, Poco::Net::HTTPServerResponse &Response) {
     try {
-        auto SNum = GetBinding("serialNumber", "");
+		auto SerialNumber = GetBinding(uCentral::RESTAPI::Protocol::SERIALNUMBER, "");
 
         //  get the configuration from the body of the message
         Poco::JSON::Parser parser;
         Poco::JSON::Object::Ptr Obj = parser.parse(Request.stream()).extract<Poco::JSON::Object::Ptr>();
         Poco::DynamicStruct ds = *Obj;
 
-        if (ds.contains("uri") &&
-            ds.contains("serialNumber")) {
+        if (ds.contains(uCentral::RESTAPI::Protocol::URI) &&
+            ds.contains(uCentral::RESTAPI::Protocol::SERIALNUMBER)) {
 
-            auto SerialNumber = ds["serialNumber"].toString();
+            auto SNum = ds[uCentral::RESTAPI::Protocol::SERIALNUMBER].toString();
 
             if(SerialNumber != SNum) {
                 BadRequest(Request, Response);
                 return;
             }
 
-            auto URI = ds["uri"].toString();
+            auto URI = ds[uCentral::RESTAPI::Protocol::URI].toString();
 
             uint64_t When = 0 ;
-            if(ds.contains("when"))
-                When = uCentral::Utils::from_RFC3339(ds["when"].toString());
+            if(ds.contains(uCentral::RESTAPI::Protocol::WHEN))
+                When = uCentral::Utils::from_RFC3339(ds[uCentral::RESTAPI::Protocol::WHEN].toString());
 
             uCentral::Objects::CommandDetails  Cmd;
 
@@ -371,12 +366,12 @@ void RESTAPI_device_commandHandler::Upgrade(Poco::Net::HTTPServerRequest &Reques
 
 void RESTAPI_device_commandHandler::GetLogs(Poco::Net::HTTPServerRequest& Request, Poco::Net::HTTPServerResponse& Response) {
     try {
-        auto SerialNumber = GetBinding("serialNumber", "");
-        auto StartDate = uCentral::Utils::from_RFC3339(GetParameter("startDate", ""));
-        auto EndDate = uCentral::Utils::from_RFC3339(GetParameter("endDate", ""));
-        auto Offset = GetParameter("offset", 0);
-        auto Limit = GetParameter("limit", 100);
-        auto LogType = GetParameter("logType",0);
+        auto SerialNumber = GetBinding(uCentral::RESTAPI::Protocol::SERIALNUMBER, "");
+		auto StartDate = uCentral::Utils::from_RFC3339(GetParameter(uCentral::RESTAPI::Protocol::STARTDATE, ""));
+		auto EndDate = uCentral::Utils::from_RFC3339(GetParameter(uCentral::RESTAPI::Protocol::ENDDATE, ""));
+		auto Offset = GetParameter(uCentral::RESTAPI::Protocol::OFFSET, 0);
+		auto Limit = GetParameter(uCentral::RESTAPI::Protocol::LIMIT, 100);
+        auto LogType = GetParameter(uCentral::RESTAPI::Protocol::LOGTYPE,0);
 
         std::vector<uCentral::Objects::DeviceLog> Logs;
 
@@ -390,8 +385,8 @@ void RESTAPI_device_commandHandler::GetLogs(Poco::Net::HTTPServerRequest& Reques
             ArrayObj.add(Obj);
         }
         Poco::JSON::Object RetObj;
-        RetObj.set("values", ArrayObj);
-        RetObj.set("serialNumber", SerialNumber);
+        RetObj.set(uCentral::RESTAPI::Protocol::VALUES, ArrayObj);
+        RetObj.set(uCentral::RESTAPI::Protocol::SERIALNUMBER, SerialNumber);
 
         ReturnObject(Request, RetObj, Response);
         return;
@@ -405,10 +400,10 @@ void RESTAPI_device_commandHandler::GetLogs(Poco::Net::HTTPServerRequest& Reques
 
 void RESTAPI_device_commandHandler::DeleteLogs(Poco::Net::HTTPServerRequest& Request, Poco::Net::HTTPServerResponse& Response) {
     try {
-        auto SerialNumber = GetBinding("serialNumber", "");
-        auto StartDate = uCentral::Utils::from_RFC3339(GetParameter("startDate", ""));
-        auto EndDate = uCentral::Utils::from_RFC3339(GetParameter("endDate", ""));
-        auto LogType = GetParameter("logType",0);
+        auto SerialNumber = GetBinding(uCentral::RESTAPI::Protocol::SERIALNUMBER, "");
+		auto StartDate = uCentral::Utils::from_RFC3339(GetParameter(uCentral::RESTAPI::Protocol::STARTDATE, ""));
+		auto EndDate = uCentral::Utils::from_RFC3339(GetParameter(uCentral::RESTAPI::Protocol::ENDDATE, ""));
+		auto LogType = GetParameter(uCentral::RESTAPI::Protocol::LOGTYPE,0);
 
         if (uCentral::Storage::DeleteLogData(SerialNumber, StartDate, EndDate, LogType)) {
 			OK(Request, Response);
@@ -424,16 +419,14 @@ void RESTAPI_device_commandHandler::DeleteLogs(Poco::Net::HTTPServerRequest& Req
 
 void RESTAPI_device_commandHandler::GetChecks(Poco::Net::HTTPServerRequest& Request, Poco::Net::HTTPServerResponse& Response) {
     try {
-        auto SerialNumber = GetBinding("serialNumber", "");
-        auto StartDate = uCentral::Utils::from_RFC3339(GetParameter("startDate", ""));
-        auto EndDate = uCentral::Utils::from_RFC3339(GetParameter("endDate", ""));
-        auto Offset = GetParameter("offset", 0);
-        auto Limit = GetParameter("limit", 100);
+        auto SerialNumber = GetBinding(uCentral::RESTAPI::Protocol::SERIALNUMBER, "");
+		auto StartDate = uCentral::Utils::from_RFC3339(GetParameter(uCentral::RESTAPI::Protocol::STARTDATE, ""));
+		auto EndDate = uCentral::Utils::from_RFC3339(GetParameter(uCentral::RESTAPI::Protocol::ENDDATE, ""));
+		auto Offset = GetParameter(uCentral::RESTAPI::Protocol::OFFSET, 0);
+		auto Limit = GetParameter(uCentral::RESTAPI::Protocol::LIMIT, 100);
 
         std::vector<uCentral::Objects::HealthCheck> Checks;
-
-        uCentral::Storage::GetHealthCheckData(SerialNumber, StartDate, EndDate, Offset, Limit,
-                                      Checks);
+        uCentral::Storage::GetHealthCheckData(SerialNumber, StartDate, EndDate, Offset, Limit, Checks);
         Poco::JSON::Array ArrayObj;
 
         for (auto i : Checks) {
@@ -441,9 +434,10 @@ void RESTAPI_device_commandHandler::GetChecks(Poco::Net::HTTPServerRequest& Requ
 			i.to_json(Obj);
             ArrayObj.add(Obj);
         }
+
         Poco::JSON::Object RetObj;
-        RetObj.set("values", ArrayObj);
-        RetObj.set("serialNumber", SerialNumber);
+        RetObj.set(uCentral::RESTAPI::Protocol::VALUES, ArrayObj);
+        RetObj.set(uCentral::RESTAPI::Protocol::SERIALNUMBER, SerialNumber);
 
         ReturnObject(Request, RetObj, Response);
 
@@ -458,9 +452,9 @@ void RESTAPI_device_commandHandler::GetChecks(Poco::Net::HTTPServerRequest& Requ
 
 void RESTAPI_device_commandHandler::DeleteChecks(Poco::Net::HTTPServerRequest& Request, Poco::Net::HTTPServerResponse& Response) {
     try {
-        auto SerialNumber = GetBinding("serialNumber", "");
-        auto StartDate = uCentral::Utils::from_RFC3339(GetParameter("startDate", ""));
-        auto EndDate = uCentral::Utils::from_RFC3339(GetParameter("endDate", ""));
+        auto SerialNumber = GetBinding(uCentral::RESTAPI::Protocol::SERIALNUMBER, "");
+		auto StartDate = uCentral::Utils::from_RFC3339(GetParameter(uCentral::RESTAPI::Protocol::STARTDATE, ""));
+		auto EndDate = uCentral::Utils::from_RFC3339(GetParameter(uCentral::RESTAPI::Protocol::ENDDATE, ""));
 
         if (uCentral::Storage::DeleteHealthCheckData(SerialNumber, StartDate, EndDate)) {
 			OK(Request, Response);
@@ -476,31 +470,28 @@ void RESTAPI_device_commandHandler::DeleteChecks(Poco::Net::HTTPServerRequest& R
 
 void RESTAPI_device_commandHandler::ExecuteCommand(Poco::Net::HTTPServerRequest& Request, Poco::Net::HTTPServerResponse& Response) {
     try {
-        auto SNum = GetBinding("serialNumber", "");
+        auto SNum = GetBinding(uCentral::RESTAPI::Protocol::SERIALNUMBER, "");
 
         //  get the configuration from the body of the message
         Poco::JSON::Parser parser;
         Poco::JSON::Object::Ptr Obj = parser.parse(Request.stream()).extract<Poco::JSON::Object::Ptr>();
         Poco::DynamicStruct ds = *Obj;
 
-        if (ds.contains("command") &&
-            ds.contains("serialNumber") &&
-            ds.contains("payload")) {
+        if (ds.contains(uCentral::RESTAPI::Protocol::COMMAND) &&
+            ds.contains(uCentral::RESTAPI::Protocol::SERIALNUMBER) &&
+            ds.contains(uCentral::RESTAPI::Protocol::PAYLOAD)) {
 
-            auto SerialNumber = ds["serialNumber"].toString();
+            auto SerialNumber = ds[uCentral::RESTAPI::Protocol::SERIALNUMBER].toString();
 
             if(SerialNumber != SNum) {
                 BadRequest(Request, Response);
                 return;
             }
 
-            auto Command = ds["command"].toString();
-            auto Payload = ds["payload"].toString();
+            auto Command = ds[uCentral::RESTAPI::Protocol::COMMAND].toString();
+            auto Payload = ds[uCentral::RESTAPI::Protocol::PAYLOAD].toString();
 
-            uint64_t RunAt = 0 ;
-            if(ds.contains("runAt"))
-                RunAt = uCentral::Utils::from_RFC3339(ds["runAt"].toString());
-
+			uint64_t When = ds.contains(uCentral::uCentralProtocol::WHEN) ? uCentral::Utils::from_RFC3339(ds[uCentral::uCentralProtocol::WHEN].toString()) : 0;
             uCentral::Objects::CommandDetails  Cmd;
 
             Cmd.SerialNumber = SerialNumber;
@@ -508,7 +499,7 @@ void RESTAPI_device_commandHandler::ExecuteCommand(Poco::Net::HTTPServerRequest&
             Cmd.SubmittedBy = UserInfo_.username_;
             Cmd.Command = Command;
             Cmd.Custom = 1;
-            Cmd.RunAt = RunAt;
+            Cmd.RunAt = When;
             Cmd.WaitingForFile = 0;
 
             Poco::JSON::Parser parser2;
@@ -520,7 +511,7 @@ void RESTAPI_device_commandHandler::ExecuteCommand(Poco::Net::HTTPServerRequest&
 
             Params.set( uCentral::uCentralProtocol::SERIAL , SerialNumber );
             Params.set( uCentral::uCentralProtocol::COMMAND, Command);
-            Params.set( uCentral::uCentralProtocol::WHEN, RunAt);
+            Params.set( uCentral::uCentralProtocol::WHEN, When);
             Params.set( uCentral::uCentralProtocol::PAYLOAD, PayloadObject);
 
             std::stringstream ParamStream;
@@ -546,15 +537,15 @@ void RESTAPI_device_commandHandler::ExecuteCommand(Poco::Net::HTTPServerRequest&
 
 void RESTAPI_device_commandHandler::Reboot(Poco::Net::HTTPServerRequest& Request, Poco::Net::HTTPServerResponse& Response) {
     try {
-        auto SNum = GetBinding("serialNumber", "");
+        auto SNum = GetBinding(uCentral::RESTAPI::Protocol::SERIALNUMBER, "");
 
         //  get the configuration from the body of the message
         Poco::JSON::Parser      IncomingParser;
         Poco::JSON::Object::Ptr Obj = IncomingParser.parse(Request.stream()).extract<Poco::JSON::Object::Ptr>();
         Poco::DynamicStruct     ds = *Obj;
 
-        if (ds.contains("serialNumber")) {
-            auto SerialNumber = ds["serialNumber"].toString();
+        if (ds.contains(uCentral::RESTAPI::Protocol::SERIALNUMBER)) {
+            auto SerialNumber = ds[uCentral::RESTAPI::Protocol::SERIALNUMBER].toString();
 
             if(SerialNumber != SNum) {
                 BadRequest(Request, Response);
@@ -562,8 +553,8 @@ void RESTAPI_device_commandHandler::Reboot(Poco::Net::HTTPServerRequest& Request
             }
 
             uint64_t When = 0 ;
-            if(ds.contains("when"))
-                When = uCentral::Utils::from_RFC3339(ds["when"].toString());
+            if(ds.contains(uCentral::uCentralProtocol::WHEN))
+                When = uCentral::Utils::from_RFC3339(ds[uCentral::uCentralProtocol::WHEN].toString());
 
             uCentral::Objects::CommandDetails  Cmd;
 
@@ -603,24 +594,24 @@ void RESTAPI_device_commandHandler::Reboot(Poco::Net::HTTPServerRequest& Request
 
 void RESTAPI_device_commandHandler::Factory(Poco::Net::HTTPServerRequest &Request, Poco::Net::HTTPServerResponse &Response) {
     try {
-        auto SNum = GetBinding("serialNumber", "");
+        auto SNum = GetBinding(uCentral::RESTAPI::Protocol::SERIALNUMBER, "");
 
         //  get the configuration from the body of the message
         Poco::JSON::Parser parser;
         Poco::JSON::Object::Ptr Obj = parser.parse(Request.stream()).extract<Poco::JSON::Object::Ptr>();
         Poco::DynamicStruct ds = *Obj;
 
-        if (ds.contains("keepRedirector") &&
-            ds.contains("serialNumber")) {
+        if (ds.contains(uCentral::RESTAPI::Protocol::KEEPREDIRECTOR) &&
+            ds.contains(uCentral::RESTAPI::Protocol::SERIALNUMBER)) {
 
-			auto SerialNumber = ds["serialNumber"].toString();
+			auto SerialNumber = ds[uCentral::RESTAPI::Protocol::SERIALNUMBER].toString();
 
 			if (SerialNumber != SNum) {
 				BadRequest(Request, Response);
 				return;
 			}
 
-			auto KeepRedirector = ds["keepRedirector"].toString();
+			auto KeepRedirector = ds[uCentral::RESTAPI::Protocol::KEEPREDIRECTOR].toString();
 			uint64_t KeepIt;
 			if (KeepRedirector == "true")
 				KeepIt = 1;
@@ -632,8 +623,8 @@ void RESTAPI_device_commandHandler::Factory(Poco::Net::HTTPServerRequest &Reques
 			}
 
 			uint64_t When = 0;
-			if (ds.contains("when"))
-				When = uCentral::Utils::from_RFC3339(ds["when"].toString());
+			if (ds.contains(uCentral::uCentralProtocol::WHEN))
+				When = uCentral::Utils::from_RFC3339(ds[uCentral::uCentralProtocol::WHEN].toString());
 
 			uCentral::Objects::CommandDetails Cmd;
 
@@ -674,7 +665,7 @@ void RESTAPI_device_commandHandler::Factory(Poco::Net::HTTPServerRequest &Reques
 
 void RESTAPI_device_commandHandler::LEDs(Poco::Net::HTTPServerRequest &Request, Poco::Net::HTTPServerResponse &Response) {
     try {
-        auto SNum = GetBinding("serialNumber", "");
+        auto SNum = GetBinding(uCentral::RESTAPI::Protocol::SERIALNUMBER, "");
 
         //  get the configuration from the body of the message
         Poco::JSON::Parser parser;
@@ -682,9 +673,9 @@ void RESTAPI_device_commandHandler::LEDs(Poco::Net::HTTPServerRequest &Request, 
         Poco::DynamicStruct ds = *Obj;
 
         if (ds.contains(uCentral::uCentralProtocol::PATTERN) &&
-            ds.contains("serialNumber")) {
+            ds.contains(uCentral::RESTAPI::Protocol::SERIALNUMBER)) {
 
-            auto SerialNumber = ds["serialNumber"].toString();
+            auto SerialNumber = ds[uCentral::RESTAPI::Protocol::SERIALNUMBER].toString();
 
             if(SerialNumber != SNum) {
                 BadRequest(Request, Response);
@@ -703,8 +694,8 @@ void RESTAPI_device_commandHandler::LEDs(Poco::Net::HTTPServerRequest &Request, 
 			auto Duration = ds.contains(uCentral::uCentralProtocol::DURATION) ? (uint64_t ) ds[uCentral::uCentralProtocol::DURATION] : 20 ;
 
             uint64_t When = 0 ;
-            if(ds.contains("when"))
-                When = uCentral::Utils::from_RFC3339(ds["when"].toString());
+            if(ds.contains(uCentral::uCentralProtocol::WHEN))
+                When = uCentral::Utils::from_RFC3339(ds[uCentral::uCentralProtocol::WHEN].toString());
 
 			Logger_.information(Poco::format("LEDS(%s): Pattern:%s Duration: %d", SerialNumber, Pattern, (int)Duration));
 
@@ -748,30 +739,30 @@ void RESTAPI_device_commandHandler::LEDs(Poco::Net::HTTPServerRequest &Request, 
 
 void RESTAPI_device_commandHandler::Trace(Poco::Net::HTTPServerRequest &Request, Poco::Net::HTTPServerResponse &Response) {
     try {
-        auto SNum = GetBinding("serialNumber", "");
+        auto SNum = GetBinding(uCentral::RESTAPI::Protocol::SERIALNUMBER, "");
 
         //  get the configuration from the body of the message
         Poco::JSON::Parser parser;
         Poco::JSON::Object::Ptr Obj = parser.parse(Request.stream()).extract<Poco::JSON::Object::Ptr>();
         Poco::DynamicStruct ds = *Obj;
 
-        if (ds.contains("serialNumber") && (
-            	ds.contains("network") ||
-            	ds.contains("interface"))) {
+        if (ds.contains(uCentral::RESTAPI::Protocol::SERIALNUMBER) && (
+            	ds.contains(uCentral::RESTAPI::Protocol::NETWORK) ||
+            	ds.contains(uCentral::RESTAPI::Protocol::INTERFACE))) {
 
-            auto SerialNumber = ds["serialNumber"].toString();
+            auto SerialNumber = ds[uCentral::RESTAPI::Protocol::SERIALNUMBER].toString();
 
             if(SerialNumber != SNum) {
                 BadRequest(Request, Response);
                 return;
             }
 
-            uint64_t Duration = ds.contains("duration") ? (uint64_t)ds["duration"] : 0;
-            uint64_t When = ds.contains("when") ? uCentral::Utils::from_RFC3339(ds["when"].toString()) : 0;
-            uint64_t NumberOfPackets = ds.contains("numberOfPackets") ? (uint64_t)ds["numberOfPackets"] : 0;
+            uint64_t Duration = ds.contains(uCentral::RESTAPI::Protocol::DURATION) ? (uint64_t)ds[uCentral::RESTAPI::Protocol::DURATION] : 0;
+            uint64_t When = ds.contains(uCentral::RESTAPI::Protocol::WHEN) ? uCentral::Utils::from_RFC3339(ds[uCentral::RESTAPI::Protocol::WHEN].toString()) : 0;
+            uint64_t NumberOfPackets = ds.contains(uCentral::RESTAPI::Protocol::NUMBEROFPACKETS) ? (uint64_t)ds[uCentral::RESTAPI::Protocol::NUMBEROFPACKETS] : 0;
 
-            auto Network = ds.contains("network") ? ds["network"].toString() : "";
-            auto Interface = ds.contains("interface") ? ds["interface"].toString() : "";
+            auto Network = ds.contains(uCentral::RESTAPI::Protocol::NETWORK) ? ds[uCentral::RESTAPI::Protocol::NETWORK].toString() : "";
+            auto Interface = ds.contains(uCentral::RESTAPI::Protocol::INTERFACE) ? ds[uCentral::RESTAPI::Protocol::INTERFACE].toString() : "";
             auto UUID = uCentral::instance()->CreateUUID();
             auto URI = uCentral::uFileUploader::FullName() + UUID ;
 
@@ -783,7 +774,7 @@ void RESTAPI_device_commandHandler::Trace(Poco::Net::HTTPServerRequest &Request,
             Cmd.Custom = 0;
             Cmd.RunAt = When;
             Cmd.WaitingForFile = 1;
-			Cmd.AttachType = "trace";
+			Cmd.AttachType = uCentral::RESTAPI::Protocol::PCAP_FILE_TYPE;
 
             Poco::JSON::Object  Params;
 
@@ -821,25 +812,25 @@ void RESTAPI_device_commandHandler::Trace(Poco::Net::HTTPServerRequest &Request,
 
 void RESTAPI_device_commandHandler::WifiScan(Poco::Net::HTTPServerRequest &Request, Poco::Net::HTTPServerResponse &Response) {
 	try{
-		auto SNum = GetBinding("serialNumber", "");
+		auto SNum = GetBinding(uCentral::RESTAPI::Protocol::SERIALNUMBER, "");
 
 		//  get the configuration from the body of the message
 		Poco::JSON::Parser parser;
 		Poco::JSON::Object::Ptr Obj = parser.parse(Request.stream()).extract<Poco::JSON::Object::Ptr>();
 		Poco::DynamicStruct ds = *Obj;
 
-		if(ds.contains("serialNumber")) {
-			auto SerialNumber = ds["serialNumber"].toString();
-			if(	(ds.contains("bands") && ds["bands"].isArray()) ||
-				(ds.contains("channels") && ds["channels"].isArray()) ||
-				(!ds.contains("bands") && !ds.contains("channels"))
+		if(ds.contains(uCentral::RESTAPI::Protocol::SERIALNUMBER)) {
+			auto SerialNumber = ds[uCentral::RESTAPI::Protocol::SERIALNUMBER].toString();
+			if(	(ds.contains(uCentral::RESTAPI::Protocol::BANDS) && ds[uCentral::RESTAPI::Protocol::BANDS].isArray()) ||
+				(ds.contains(uCentral::RESTAPI::Protocol::CHANNELS) && ds[uCentral::RESTAPI::Protocol::CHANNELS].isArray()) ||
+				(!ds.contains(uCentral::RESTAPI::Protocol::BANDS) && !ds.contains(uCentral::RESTAPI::Protocol::CHANNELS))
 				)
 			{
 				bool Verbose = false ;
 
-				if(ds.contains("verbose"))
+				if(ds.contains(uCentral::RESTAPI::Protocol::VERBOSE))
 				{
-					Verbose = ds["verbose"].toString() == "true";
+					Verbose = ds[uCentral::RESTAPI::Protocol::VERBOSE].toString() == "true";
 				}
 
 				auto UUID = uCentral::instance()->CreateUUID();
@@ -859,9 +850,9 @@ void RESTAPI_device_commandHandler::WifiScan(Poco::Net::HTTPServerRequest &Reque
 				Params.set(uCentral::uCentralProtocol::VERBOSE, Verbose);
 
 				if( ds.contains(uCentral::uCentralProtocol::BANDS)) {
-					Params.set(uCentral::uCentralProtocol::BANDS,ds["bands"]);
+					Params.set(uCentral::uCentralProtocol::BANDS,ds[uCentral::RESTAPI::Protocol::BANDS]);
 				} else if ( ds.contains(uCentral::uCentralProtocol::CHANNELS)) {
-					Params.set(uCentral::uCentralProtocol::CHANNELS,ds["channels"]);
+					Params.set(uCentral::uCentralProtocol::CHANNELS,ds[uCentral::RESTAPI::Protocol::CHANNELS]);
 				}
 
 				std::stringstream ParamStream;
@@ -886,18 +877,18 @@ void RESTAPI_device_commandHandler::WifiScan(Poco::Net::HTTPServerRequest &Reque
 
 void RESTAPI_device_commandHandler::EventQueue(Poco::Net::HTTPServerRequest &Request, Poco::Net::HTTPServerResponse &Response) {
 	try {
-		auto SNum = GetBinding("serialNumber", "");
+		auto SNum = GetBinding(uCentral::RESTAPI::Protocol::SERIALNUMBER, "");
 
 		//  get the configuration from the body of the message
 		Poco::JSON::Parser parser;
 		Poco::JSON::Object::Ptr Obj = parser.parse(Request.stream()).extract<Poco::JSON::Object::Ptr>();
 		Poco::DynamicStruct ds = *Obj;
 
-		if(ds.contains("serialNumber") &&
-			ds.contains("types") && ds["types"].isArray())
+		if(ds.contains(uCentral::RESTAPI::Protocol::SERIALNUMBER) &&
+			ds.contains(uCentral::RESTAPI::Protocol::TYPES) && ds[uCentral::RESTAPI::Protocol::TYPES].isArray())
 		{
-			auto SerialNumber = ds["serialNumber"].toString();
-			auto Types = ds["types"];
+			auto SerialNumber = ds[uCentral::RESTAPI::Protocol::SERIALNUMBER].toString();
+			auto Types = ds[uCentral::RESTAPI::Protocol::TYPES];
 
 			if( SerialNumber == SNum ) {
 				auto UUID = uCentral::instance()->CreateUUID();
@@ -938,27 +929,27 @@ void RESTAPI_device_commandHandler::EventQueue(Poco::Net::HTTPServerRequest &Req
 
 void RESTAPI_device_commandHandler::MakeRequest(Poco::Net::HTTPServerRequest &Request, Poco::Net::HTTPServerResponse &Response) {
 	try {
-		auto SNum = GetBinding("serialNumber", "");
+		auto SNum = GetBinding(uCentral::RESTAPI::Protocol::SERIALNUMBER, "");
 
 		//  get the configuration from the body of the message
 		Poco::JSON::Parser parser;
 		Poco::JSON::Object::Ptr Obj = parser.parse(Request.stream()).extract<Poco::JSON::Object::Ptr>();
 		Poco::DynamicStruct ds = *Obj;
 
-		if (ds.contains("serialNumber") &&
-			ds.contains("message")) {
+		if (ds.contains(uCentral::RESTAPI::Protocol::SERIALNUMBER) &&
+			ds.contains(uCentral::uCentralProtocol::MESSAGE)) {
 
-			auto SerialNumber = ds["serialNumber"].toString();
-			auto MessageType = ds["message"].toString();
+			auto SerialNumber = ds[uCentral::RESTAPI::Protocol::SERIALNUMBER].toString();
+			auto MessageType = ds[uCentral::uCentralProtocol::MESSAGE].toString();
 
 			if ((SerialNumber != SNum) ||
-				(MessageType != "state" && MessageType != "healthcheck")) {
+				(MessageType != uCentral::uCentralProtocol::STATE && MessageType != uCentral::uCentralProtocol::HEALTHCHECK)) {
 				BadRequest(Request, Response);
 				return;
 			}
 
 			uint64_t When =
-				ds.contains("when") ? uCentral::Utils::from_RFC3339(ds["when"].toString()) : 0;
+				ds.contains(uCentral::uCentralProtocol::WHEN) ? uCentral::Utils::from_RFC3339(ds[uCentral::uCentralProtocol::WHEN].toString()) : 0;
 
 			uCentral::Objects::CommandDetails Cmd;
 
@@ -1001,7 +992,7 @@ void RESTAPI_device_commandHandler::MakeRequest(Poco::Net::HTTPServerRequest &Re
 void RESTAPI_device_commandHandler::Rtty(Poco::Net::HTTPServerRequest &Request, Poco::Net::HTTPServerResponse &Response) {
 	try {
 
-		auto SerialNumber = GetBinding("serialNumber", "");
+		auto SerialNumber = GetBinding(uCentral::RESTAPI::Protocol::SERIALNUMBER, "");
 
 		if(uCentral::ServiceConfig::GetString("rtty.enabled","false") == "true") {
 

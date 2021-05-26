@@ -29,6 +29,55 @@ namespace uCentral::RESTAPI::Protocol {
 	static const char * OFFSET = "offset";
 	static const char * LIMIT = "limit";
 	static const char * LIFETIME = "lifetime";
+	static const char * UUID = "UUID";
+	static const char * DATA = "data";
+	static const char * CONFIGURATION = "configuration";
+	static const char * WHEN = "when";
+	static const char * URI = "uri";
+	static const char * LOGTYPE = "logType";
+	static const char * VALUES = "values";
+	static const char * TYPES = "types";
+	static const char * PAYLOAD = "payload";
+	static const char * KEEPREDIRECTOR = "keepRedirector";
+	static const char * NETWORK = "network";
+	static const char * INTERFACE = "interface";
+	static const char * BANDS = "bands";
+	static const char * CHANNELS = "channels";
+	static const char * VERBOSE = "verbose";
+	static const char * MESSAGE = "message";
+	static const char * STATE = "state";
+	static const char * HEALTHCHECK = "healthcheck";
+	static const char * PCAP_FILE_TYPE = "pcap";
+	static const char * DURATION = "duration";
+	static const char * NUMBEROFPACKETS = "numberOfPackets";
+	static const char * FILTER = "filter";
+	static const char * SELECT = "select";
+	static const char * SERIALONLY = "serialOnly";
+	static const char * COUNTONLY = "countOnly";
+	static const char * DEVICEWITHSTATUS = "deviceWithStatus";
+	static const char * DEVICES = "devices";
+	static const char * COUNT = "count";
+	static const char * SERIALNUMBERS = "serialNumbers";
+	static const char * CONFIGURATIONS = "configurations";
+	static const char * NAME = "name";
+	static const char * COMMANDS = "commands";
+	static const char * COMMANDUUID = "commandUUID";
+
+static const char * FIRMWARES = "firmwares";
+static const char * TOPIC = "topic";
+static const char * REASON = "reason";
+static const char * FILEUUID = "uuid";
+
+static const char * USERID = "userId";
+static const char * PASSWORD = "password";
+static const char * TOKEN = "token";
+
+static const char * SETLOGLEVEL = "setloglevel";
+static const char * GETLOGLEVEL = "getloglevel";
+static const char * PARAMETERS = "parameters";
+static const char * VALUE = "value";
+
+
 }
 
 #endif // UCENTRALGW_RESTAPI_PROTOCOL_H

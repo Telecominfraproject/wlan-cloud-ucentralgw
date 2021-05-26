@@ -10,6 +10,7 @@
 
 #include "RESTAPI_oauth2Handler.h"
 #include "uAuthService.h"
+#include "RESTAPI_protocol.h"
 
 void RESTAPI_oauth2Handler::handleRequest(Poco::Net::HTTPServerRequest & Request, Poco::Net::HTTPServerResponse & Response)
 {
@@ -24,8 +25,8 @@ void RESTAPI_oauth2Handler::handleRequest(Poco::Net::HTTPServerRequest & Request
             Poco::JSON::Object::Ptr Obj = parser.parse(Request.stream()).extract<Poco::JSON::Object::Ptr>();
             Poco::DynamicStruct ds = *Obj;
 
-            auto userId = ds["userId"].toString();
-            auto password = ds["password"].toString();
+            auto userId = ds[uCentral::RESTAPI::Protocol::USERID].toString();
+            auto password = ds[uCentral::RESTAPI::Protocol::PASSWORD].toString();
 
 			Poco::toLowerInPlace(userId);
             uCentral::Objects::WebToken Token;
@@ -41,9 +42,7 @@ void RESTAPI_oauth2Handler::handleRequest(Poco::Net::HTTPServerRequest & Request
         } else if (Request.getMethod() == Poco::Net::HTTPServerRequest::HTTP_DELETE) {
             if (!IsAuthorized(Request, Response))
                 return;
-
-            auto Token = GetBinding("token", "...");
-
+            auto Token = GetBinding(uCentral::RESTAPI::Protocol::TOKEN, "...");
             if (Token == SessionToken_)
                 uCentral::Auth::Logout(Token);
             OK(Request, Response);
