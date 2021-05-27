@@ -145,9 +145,12 @@ bool SetDeviceCompatibility(std::string & SerialNumber, std::string & Compatible
 						Poco::Data::Keywords::use(SerialNumber);
 			Select.execute();
 
+			std::cout << "CurrentUUID" << CurrentUUID << std::endl;
 			uint64_t Now = time(nullptr);
-
 			NewUUID = CurrentUUID==Now ? Now + 1 : Now;
+
+			std::cout << "NewUUID" << NewUUID << std::endl;
+
 			if (Cfg.SetUUID(NewUUID)) {
 				std::string NewConfig = Cfg.get();
 				Poco::Data::Statement   Update(Sess);

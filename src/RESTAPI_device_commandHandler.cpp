@@ -251,6 +251,8 @@ void RESTAPI_device_commandHandler::Configure(Poco::Net::HTTPServerRequest& Requ
             uint64_t NewUUID;
 
             if (uCentral::Storage::UpdateDeviceConfiguration(SerialNumber_, Configuration, NewUUID)) {
+
+				std::cout << "NewUUID: " << NewUUID << std::endl;
                 uCentral::Objects::CommandDetails  Cmd;
 
                 Cmd.SerialNumber = SerialNumber_;
