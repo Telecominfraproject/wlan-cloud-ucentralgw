@@ -18,9 +18,6 @@ namespace uCentral::Config {
         try {
             Poco::JSON::Parser Parser;
             Poco::JSON::Object::Ptr Object = Parser.parse(Config_).extract<Poco::JSON::Object::Ptr>();
-
-			std::cout << "Setting UUID:" << UUID << std::endl;
-
 			Object->set("uuid",UUID);
 			std::ostringstream NewConfig;
             Poco::JSON::Stringifier Stringifier;
