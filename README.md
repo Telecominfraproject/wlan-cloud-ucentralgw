@@ -259,6 +259,7 @@ ucentral.autoprovisioning.type.2 = AP:ea8302,edge6
 ```
 
 ###### This is the RESTAPI endpoint
+
 ```asm
 ucentral.restapi.host.0.backlog = 100
 ucentral.restapi.host.0.security = relaxed
@@ -270,48 +271,48 @@ ucentral.restapi.host.0.key = $UCENTRAL_ROOT/certs/restapi-key.pem
 ucentral.restapi.host.0.key.password = mypassword
 ```
 
-###### This is the end point for the devices to connect with
+##### This is the end point for the devices to connect with
 This is the crucial section. I bet that 97.4% of all your problems will come from here, and it's boring. So put some good music on, 
 give the kids the iPad, get a cup of coffee, and pay attention. Every field will be explained.
 
-####### ucentral.websocket.host.0.backlog
+###### ucentral.websocket.host.0.backlog
 This is the number of concurrent devices you are expecting to call all at once. Not the current number of devices. This is how many will connect in the same exact second. 
 Take the total number of devices you have and divide by 100. That's a good rule of thumb. Never go above 500.
 
-####### ucentral.websocket.host.0.rootca
+###### ucentral.websocket.host.0.rootca
 This is the root file as supplied by Digicert. You can find it [here](https://github.com/Telecominfraproject/wlan-cloud-ucentralgw/blob/main/certificates/root.pem) 
 
-####### ucentral.websocket.host.0.issuer
+###### ucentral.websocket.host.0.issuer
 This is the issuer file as supplied by Digicert. You can find it [here](https://github.com/Telecominfraproject/wlan-cloud-ucentralgw/blob/main/certificates/issuer.pem)
 
-####### ucentral.websocket.host.0.cert
+###### ucentral.websocket.host.0.cert
 This is a `pem` file that you will receive from Digicert for the gateway itself. This is the certificate for the gateway. 
 
-####### ucentral.websocket.host.0.key
+###### ucentral.websocket.host.0.key
 This is a `pem` file that you will receive from Digicert for the gateway itself. The is the private key for the gateway.
 
-####### ucentral.websocket.host.0.clientcas
+###### ucentral.websocket.host.0.clientcas
 This is a `pem` file that contains both the issuer and the root CA certificates. You can find it You can find it [here](https://github.com/Telecominfraproject/wlan-cloud-ucentralgw/blob/main/certificates/clientcas.pem)
 
-####### ucentral.websocket.host.0.cas
+###### ucentral.websocket.host.0.cas
 This is a directory where you will copy your own `cert.pem`, the `root.pem`, and the `issuer.pem` files.
 
-####### ucentral.websocket.host.0.address
+###### ucentral.websocket.host.0.address
 Leve this a `*` in teh case you want to bind to all interfaces on your gateway host or select the address of a single interface.
 
-####### ucentral.websocket.host.0.port
+###### ucentral.websocket.host.0.port
 Leave to 15002 for now. 
 
-####### ucentral.websocket.host.0.security
+###### ucentral.websocket.host.0.security
 Leave this as strict for now for devices.
 
-####### ucentral.websocket.host.0.key.password
+###### ucentral.websocket.host.0.key.password
 If you key file uses a password, please enter it here.
 
-####### ucentral.websocket.maxreactors
+###### ucentral.websocket.maxreactors
 A single reactor can handle between 1000-2000 devices. Never leave this smaller than 5 or larger than 50.
 
-###### Conclusion 
+#### Conclusion 
 You will need to get the `cert.pem` and `key.pem` from Digicert. The rest is here.
 
 ```asm
@@ -383,7 +384,7 @@ ucentral.service.key = $UCENTRAL_ROOT/certs/websocket-key.pem
 The current implementation supports the following. If you use the built-in configuration file, you do not need to use any command-line
 options. However, you may decide to use the `--daemon` or `umask` options. 
 
-```
+```bash
 ./ucentralgw --help
 usage: ucentralgw OPTIONS
 A uCentral gateway implementation for TIP.
@@ -505,7 +506,7 @@ can run a single command (`create_sertificates.sh`) that will generate all the f
 of the certificates as well as certificates for 10 devices. You can change the variable `howmany` in the script
 to change that number. 
 
-```shell
+```bash
 cd cert_scripts
 ./create_certificates.sh
 ls
