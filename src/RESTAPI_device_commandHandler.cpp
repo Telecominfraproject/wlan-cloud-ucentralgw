@@ -282,8 +282,7 @@ void RESTAPI_device_commandHandler::Configure(Poco::Net::HTTPServerRequest& Requ
                 Params.set(uCentral::uCentralProtocol::SERIAL, SerialNumber_ );
                 Params.set(uCentral::uCentralProtocol::UUID, NewUUID);
                 Params.set(uCentral::uCentralProtocol::WHEN, When);
-				Cfg.to_json(CfgObj);
-                Params.set(uCentral::uCentralProtocol::CONFIG, CfgObj);
+                Params.set(uCentral::uCentralProtocol::CONFIG, Cfg.to_json());
 				std::cout << __LINE__ << std::endl;
 
                 std::stringstream ParamStream;

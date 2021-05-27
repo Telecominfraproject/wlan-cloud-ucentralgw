@@ -24,10 +24,10 @@ namespace uCentral::Config {
         }
         bool SetUUID(uint64_t UUID);
         bool Valid();
-        std::string get() { return Config_; };
-        static std::string Default();
-		static std::string Default_Old();
-		void to_json(Poco::JSON::Object &Obj);
+		[[nodiscard]] std::string get() { return Config_; };
+		[[nodiscard]] static std::string Default();
+		[[nodiscard]] static std::string Default_Old();
+		[[nodiscard]] Poco::JSON::Object::Ptr to_json();
 
     private:
         std::string Config_;
