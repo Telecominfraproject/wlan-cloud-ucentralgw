@@ -15,8 +15,8 @@
 namespace uCentral::Config {
     class Config {
     public:
-        explicit Config(std::string c)
-        :Config_(std::move(c)) {}
+        explicit Config(const std::string &Config)
+        :Config_(Config) {}
 
         Config()
         {

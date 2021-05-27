@@ -62,8 +62,9 @@ namespace uCentral::Config {
 
     void Config::to_json(Poco::JSON::Object &Obj) {
         Poco::JSON::Parser parser;
-        Poco::Dynamic::Var result = parser.parse(Config_);
-        Obj = result.extract<Poco::JSON::Object>();
+		std::cout << __LINE__ << std::endl;
+        Obj = parser.parse(Config_).extract<Poco::JSON::Object>();
+		std::cout << __LINE__ << std::endl;
     }
 
 	std::string Config::Default() {
