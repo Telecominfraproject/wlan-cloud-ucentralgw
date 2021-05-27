@@ -249,6 +249,7 @@ void RESTAPI_device_commandHandler::Configure(Poco::Net::HTTPServerRequest& Requ
             auto When = GetWhen(Obj) ;
 
             uint64_t NewUUID;
+
             if (uCentral::Storage::UpdateDeviceConfiguration(SerialNumber_, Configuration, NewUUID)) {
                 uCentral::Objects::CommandDetails  Cmd;
 
@@ -261,8 +262,6 @@ void RESTAPI_device_commandHandler::Configure(Poco::Net::HTTPServerRequest& Requ
                 Cmd.WaitingForFile = 0;
 
                 uCentral::Config::Config    Cfg(Configuration);
-
-                Cfg.SetUUID(NewUUID);
 
                 Poco::JSON::Object  Params;
 				Poco::JSON::Object	CfgObj;

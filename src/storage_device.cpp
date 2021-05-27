@@ -128,31 +128,28 @@ bool SetDeviceCompatibility(std::string & SerialNumber, std::string & Compatible
 		try {
 
 			uCentral::Config::Config Cfg(Configuration);
-
 			if (!Cfg.Valid()) {
 				Logger_.warning(Poco::format("CONFIG-UPDATE(%s): Configuration was not valid", SerialNumber));
 				return false;
 			}
 
-			Poco::Data::Session Sess = Pool_->get();
+			Poco::Data::Session 	Sess = Pool_->get();
 			Poco::Data::Statement   Select(Sess);
 
 			uint64_t CurrentUUID;
 
 			std::string St{"SELECT UUID FROM Devices WHERE SerialNumber=?"};
 
-			Select << ConvertParams(St),
-				Poco::Data::Keywords::into(CurrentUUID),
-				Poco::Data::Keywords::use(SerialNumber);
+			Select << 	ConvertParams(St),
+						Poco::Data::Keywords::into(CurrentUUID),
+						Poco::Data::Keywords::use(SerialNumber);
 			Select.execute();
 
 			uint64_t Now = time(nullptr);
 
 			NewUUID = CurrentUUID==Now ? Now + 1 : Now;
-
-			if (Cfg.SetUUID(CurrentUUID)) {
+			if (Cfg.SetUUID(NewUUID)) {
 				std::string NewConfig = Cfg.get();
-
 				Poco::Data::Statement   Update(Sess);
 				std::string St2{"UPDATE Devices SET Configuration=? , UUID=?,  LastConfigurationChange=?  WHERE SerialNumber=?"};
 				Update  << ConvertParams(St2),
@@ -163,6 +160,8 @@ bool SetDeviceCompatibility(std::string & SerialNumber, std::string & Compatible
 				Update.execute();
 
 				Logger_.information(Poco::format("CONFIG-UPDATE(%s): UUID is %Lu", SerialNumber, NewUUID));
+
+				Configuration = NewConfig;
 
 				return true;
 			}
