@@ -197,9 +197,11 @@ certs ---+--- root.pem
          +--- restapi-cert.pem
          +--- restapi-key.pem
 ```
+### Certificates
+Love'em of hate'em, we gotta use'em. So we tried to make this as easy as possible for you. 
 
 #### DigiCert files
-For your gateway, you will need to provide tge following files in the directory above
+These are the files you should install on your gateway and devices. For your gateway, you will need to provide tge following files in the directory above
 - `root.pem` is [here](https://github.com/Telecominfraproject/wlan-cloud-ucentralgw/blob/main/certificates/root.pem).
 - `issuer.pem` is [here](https://github.com/Telecominfraproject/wlan-cloud-ucentralgw/blob/main/certificates/issuer.pem).
 - `clientcas.pem` is [here](https://github.com/Telecominfraproject/wlan-cloud-ucentralgw/blob/main/certificates/clientcas.pem).
@@ -241,9 +243,9 @@ storage.type = sqlite
 ###### Autoprovisioning settings
 ```asm
 ucentral.autoprovisioning = true
-ucentral.autoprovisioning.type.0 = AP:ea8300,edge
-ucentral.autoprovisioning.type.1 = IOT:ea8301,edge2
-ucentral.autoprovisioning.type.2 = AP:ea8302,edge6
+ucentral.devicetypes.0 = AP:linksys_ea8300,edgecore_eap101,linksys_e8450-ubi
+ucentral.devicetypes.1 = SWITCH:edgecore_ecs4100-12ph
+ucentral.devicetypes.2 = IOT:esp32
 ```
 
 ###### This is the RESTAPI endpoint
@@ -487,29 +489,6 @@ the directory set by the environment variable `UCENTRAL_CONFIG`. To use environm
 you must use `$<varname>`. The path for the logs for the service must exist prior to starting the 
 service. The path is defined under `logging.channels.c2.path`. Only `path names` support the use of 
 environment variables. Here is a sample configuration:
-
-### Certificates
-Love'em of hate'em, we gotta use'em. So we tried to make this as easy as possible for you. Under the [`cert_scripts`](https://github.com/Telecominfraproject/wlan-cloud-ucentralgw/tree/master/cert_scripts) you 
-can run a single command (`create_sertificates.sh`) that will generate all the files you need. By default, this will generate the server side
-of the certificates as well as certificates for 10 devices. You can change the variable `howmany` in the script
-to change that number. 
-
-```bash
-cd cert_scripts
-./create_certificates.sh
-ls
-clean.sh                dev-1-cert.pem          dev-2-cert.pem          dev-4-cert.pem          dev-6-cert.pem          dev-8-cert.pem          more_devices.sh         server-key.pem
-create_certificates.sh  dev-10-cert.pem         dev-3-cert.pem          dev-5-cert.pem          dev-7-cert.pem          dev-9-cert.pem          server-cert.pem         server.csr
-```
-
-You have now created: 
-- `server-key.pem`: this file is the server key and should be used in the `ucentral.properties` file.
-- `server-cert.pem`: this is the certificate to be used with the generated key. This should also be used in `ucentral.properties`.
-- `dev-1-cert.pem` .. `dev-10-cert.pem` : certificates to be used on the actual devices in the `/etc/config` directories of the devices. These files 
-  must be renamed `cert.pem` on the devices.
-
-The script `more_devices` can be used to generate more devices without regenerating the original key. Just change the `finish` variable to the number you need. The script `clean.sh` 
-let's you start from scratch again.
 
 ## uCentral communication protocol
 The communication protocol between the device and the controller is detailed in this [document](https://github.com/Telecominfraproject/wlan-cloud-ucentralgw/blob/main/PROTOCOL.md).
