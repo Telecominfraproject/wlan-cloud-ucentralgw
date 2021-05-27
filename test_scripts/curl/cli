@@ -448,7 +448,6 @@ help() {
   echo "neweststats <serial>			  Get the newest statistics for a device"
   echo
   echo
-  echo
   echo "To pass additional flags to the CURL command, create an environment variable called FLAGS and git ve the values you"
   echo "want. For example, for force all call to use IPv6, set FLAGS=\"-6\", for verbose mode and IPv6, set FLAGS=\"-6 -v\""
   echo
