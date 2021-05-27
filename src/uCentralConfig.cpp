@@ -67,99 +67,105 @@ namespace uCentral::Config {
     }
 
 	std::string Config::Default() {
-		return std::string(R"lit({
-			"uuid": 1,
-			"radios": [
+		return std::string(
+			R"lit({
+	"uuid": 1,
+	"radios": [
+		{
+			"band": "5G",
+			"country": "CA",
+			"channel-mode": "HE",
+			"channel-width": 80,
+			"channel": 32
+		}
+	],
+
+	"interfaces": [
+		{
+			"name": "WAN",
+			"role": "upstream",
+			"services": [ "lldp" ],
+			"ethernet": [
 				{
-					"band": "5G",
-					"country": "CA",
-					"channel-mode": "HE",
-					"channel-width": 80,
-					"channel": 32
+					"select-ports": [
+						"WAN*"
+					]
 				}
 			],
-
-			"interfaces": [
+			"ipv4": {
+				"addressing": "dynamic"
+			},
+			"ssids": [
 				{
-					"name": "WAN",
-					"role": "upstream",
-					"ethernet": [
-						{
-							"select-ports": [
-								"WAN*"
-							]
-						}
+					"name": "OpenWifi",
+					"wifi-bands": [
+						"5G"
 					],
-					"ipv4": {
-						"addressing": "dynamic"
-					},
-					"ssids": [
-						{
-							"name": "OpenWifi",
-							"wifi-bands": [
-								"5G"
-							],
-							"bss-mode": "ap",
-							"encryption": {
-								"proto": "psk2",
-								"key": "OpenWifi",
-								"ieee80211w": "optional"
-							}
-						}
-					]
-				},
+					"bss-mode": "ap",
+					"encryption": {
+						"proto": "psk2",
+						"key": "OpenWifi",
+						"ieee80211w": "optional"
+					}
+				}
+			]
+		},
+		{
+			"name": "LAN",
+			"role": "downstream",
+			"services": [ "ssh", "lldp" ],
+			"ethernet": [
 				{
-					"name": "LAN",
-					"role": "downstream",
-					"services": [ "ssh" ],
-					"ethernet": [
-						{
-							"select-ports": [
-								"LAN*"
-							]
-						}
-					],
-					"ipv4": {
-						"addressing": "static",
-						"subnet": "192.168.1.1/24",
-						"dhcp": {
-							"lease-first": 10,
-							"lease-count": 100,
-							"lease-time": "6h"
-						}
-					},
-					"ssids": [
-						{
-							"name": "OpenWifi",
-							"wifi-bands": [
-								"5G"
-							],
-							"bss-mode": "ap",
-							"encryption": {
-								"proto": "psk2",
-								"key": "OpenWifi",
-								"ieee80211w": "optional"
-							}
-						}
+					"select-ports": [
+						"LAN*"
 					]
-
 				}
 			],
-			"metrics": {
-				"statistics": {
-					"interval": 120,
-					"types": [ "ssids", "lldp", "clients" ]
-				},
-				"health": {
-					"interval": 120
+			"ipv4": {
+				"addressing": "static",
+				"subnet": "192.168.1.1/24",
+				"dhcp": {
+					"lease-first": 10,
+					"lease-count": 100,
+					"lease-time": "6h"
 				}
 			},
-			"services": {
-				"ssh": {
-					"port": 22
+			"ssids": [
+				{
+					"name": "OpenWifi",
+					"wifi-bands": [
+						"5G"
+					],
+					"bss-mode": "ap",
+					"encryption": {
+						"proto": "psk2",
+						"key": "OpenWifi",
+						"ieee80211w": "optional"
+					}
 				}
-			}
-		})lit");
+			]
+
+		}
+	],
+	"metrics": {
+		"statistics": {
+			"interval": 120,
+			"types": [ "ssids", "lldp", "clients" ]
+		},
+		"health": {
+			"interval": 120
+		}
+	},
+	"services": {
+		"lldp": {
+			"describe": "uCentral",
+			"location": "universe"
+		},
+		"ssh": {
+			"port": 22
+		}
+	}
+})lit");
 	}
 
     std::string Config::Default_Old() {
