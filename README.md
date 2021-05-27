@@ -198,32 +198,20 @@ certs ---+--- root.pem
          +--- restapi-key.pem
 ```
 
-#### Certificates for your gateway
-If you have not been provided with certificates, you need to [generate your own certificates](#certificates) using the procedure 
-in this document. When done, copy the `server-cert.pem` and `server-key.pem` files in the `certs` directory. If you generate your own,
-you must remember to copy the generated devices certificates on the devices. You should now have:
+#### DigiCert files
+For your gateway, you will need to provide tge following files in the directory above
+- `root.pem` is [here](https://github.com/Telecominfraproject/wlan-cloud-ucentralgw/blob/main/certificates/root.pem).
+- `issuer.pem` is [here](https://github.com/Telecominfraproject/wlan-cloud-ucentralgw/blob/main/certificates/issuer.pem).
+- `clientcas.pem` is [here](https://github.com/Telecominfraproject/wlan-cloud-ucentralgw/blob/main/certificates/clientcas.pem).
 
-```
--- cert_scripts
-  |
-  +-- certs (as above)
-  |
-  +-- cmake
-  |
-  +-- cmake-build
-  |
-  +-- logs (dir)
-  |
-  +-- src
-  |
-  +-- test_scripts
-  |
-  +-- openapi
-  |
-  +-- uploads
-  |
-  +-- ucentral.properties
-```
+#### Gateway certificates: TIP portion (* must be obtained from TIP)
+The gateway requires its own DigiCert certificate. Once obtained, you need to identify the `key` and the `certificate` rename
+them `websocket-key.pem` and `websocket-cert.pem`, and copy them in your `certs` directory. These files mus be obtained from TIP.
+
+#### Gateway certificates: for REST API
+The gateway requires a key/vertificate/ca for the REST interface. These files you need to obtain on your own of generate them. This is beyond the scope of this 
+document. Once you have these files, you need to renamed them `restapi-key.pem`, `restapi-cert.pem`, and `restapi-ca.pem`. This will guarantee proper HTTPS
+in your browner 
 
 #### Configuration
 The configuration for this service is kept in a properties file. This file is called `ucentral.properties` and you can 
