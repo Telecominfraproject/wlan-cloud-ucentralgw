@@ -237,21 +237,30 @@ void RESTAPI_device_commandHandler::Configure(Poco::Net::HTTPServerRequest& Requ
             Obj->has(uCentral::RESTAPI::Protocol::UUID) &&
             Obj->has(uCentral::RESTAPI::Protocol::CONFIGURATION)) {
 
+			std::cout << __LINE__ << std::endl;
+
             auto SNum = Obj->get(uCentral::RESTAPI::Protocol::SERIALNUMBER).toString();
+			std::cout << __LINE__ << std::endl;
             if(SerialNumber_!=SNum)
             {
+				std::cout << __LINE__ << std::endl;
                 BadRequest(Request, Response);
                 return;
             }
 
+			std::cout << __LINE__ << std::endl;
             auto UUID = Obj->get(uCentral::RESTAPI::Protocol::UUID);
-            auto Configuration = GetS(uCentral::RESTAPI::Protocol::CONFIGURATION, Obj, "{}");
+			std::cout << __LINE__ << std::endl;
+            auto Configuration = GetS(uCentral::RESTAPI::Protocol::CONFIGURATION, Obj, uCentral::uCentralProtocol::EMPTY_JSON_DOC);
+			std::cout << __LINE__ << std::endl;
             auto When = GetWhen(Obj) ;
+			std::cout << __LINE__ << std::endl;
 
             uint64_t NewUUID;
-
+			std::cout << __LINE__ << std::endl;
             if (uCentral::Storage::UpdateDeviceConfiguration(SerialNumber_, Configuration, NewUUID)) {
                 uCentral::Objects::CommandDetails  Cmd;
+				std::cout << __LINE__ << std::endl;
 
                 Cmd.SerialNumber = SerialNumber_;
                 Cmd.UUID = uCentral::instance()->CreateUUID();
@@ -261,25 +270,33 @@ void RESTAPI_device_commandHandler::Configure(Poco::Net::HTTPServerRequest& Requ
                 Cmd.RunAt = When;
                 Cmd.WaitingForFile = 0;
 
+				std::cout << __LINE__ << std::endl;
                 uCentral::Config::Config    Cfg(Configuration);
+				std::cout << __LINE__ << std::endl;
 
                 Cfg.SetUUID(NewUUID);
+				std::cout << __LINE__ << std::endl;
 
                 Poco::JSON::Object  Params;
 				Poco::JSON::Object	CfgObj;
-
                 Params.set(uCentral::uCentralProtocol::SERIAL, SerialNumber_ );
                 Params.set(uCentral::uCentralProtocol::UUID, NewUUID);
                 Params.set(uCentral::uCentralProtocol::WHEN, When);
 				Cfg.to_json(CfgObj);
                 Params.set(uCentral::uCentralProtocol::CONFIG, CfgObj);
+				std::cout << __LINE__ << std::endl;
 
                 std::stringstream ParamStream;
+				std::cout << __LINE__ << std::endl;
                 Params.stringify(ParamStream);
+				std::cout << __LINE__ << std::endl;
                 Cmd.Details = ParamStream.str();
+				std::cout << __LINE__ << std::endl;
 
                 if(uCentral::Storage::AddCommand(SerialNumber_,Cmd)) {
+					std::cout << __LINE__ << std::endl;
 					WaitForRPC(Cmd,Request, Response);
+					std::cout << __LINE__ << std::endl;
 					return;
                 } else {
 					ReturnStatus(Request, Response,
