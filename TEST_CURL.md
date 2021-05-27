@@ -170,7 +170,7 @@ Set the logging system level for individual subsystems.
 Get the file associated with trace command <uuid>.
 - `uuid`: UUID of file to retrieve
 
-### "rtty <serial>					  
+### rtty <serial>					  
 Get the details for an rtty session.
 - `serial`: device serial number
 
@@ -190,3 +190,6 @@ Get the newest statistics for a device.
 To pass additional flags to the CURL command, create an environment variable called FLAGS and git ve the values you
 want. For example, for force all call to use IPv6, set FLAGS=\"-6\", for verbose mode and IPv6, set FLAGS=\"-6 -v\"
 
+## Dates
+All dates are expressed in UNIX time UTC in seconds. If you are using JS or other languages, please make sure that 
+you convert your UTC time to seconds (some languages use microseconds or milliseconds).
