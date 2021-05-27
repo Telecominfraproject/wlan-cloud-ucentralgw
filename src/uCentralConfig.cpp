@@ -62,8 +62,6 @@ namespace uCentral::Config {
 
 	Poco::JSON::Object::Ptr Config::to_json() {
         Poco::JSON::Parser Parser;
-		std::cout << __LINE__ << std::endl;
-		std::cout << "Config: " << Config_ << std::endl;
         return Parser.parse(Config_).extract<Poco::JSON::Object::Ptr>();
     }
 
