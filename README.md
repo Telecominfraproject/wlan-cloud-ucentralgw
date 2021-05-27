@@ -181,6 +181,9 @@ You should now have the following:
   +-- uploads
   +-- ucentral.properties
 ```
+### Certificates
+Love'em of hate'em, we gotta use'em. So we tried to make this as easy as possible for you. 
+
 #### The `certs` directory
 For all deployments, you will need the following certs directory, populated with the proper files.
 
@@ -197,8 +200,6 @@ certs ---+--- root.pem
          +--- restapi-cert.pem
          +--- restapi-key.pem
 ```
-### Certificates
-Love'em of hate'em, we gotta use'em. So we tried to make this as easy as possible for you. 
 
 #### DigiCert files
 These are the files you should install on your gateway and devices. For your gateway, you will need to provide tge following files in the directory above
