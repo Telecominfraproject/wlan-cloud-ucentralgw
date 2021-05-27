@@ -306,15 +306,14 @@ namespace uCentral::WebSocket {
 			return;
 		}
 
-		auto Params = Doc->get(uCentralProtocol::PARAMS);
-/*        if(!Params.isStruct())
+        if(!Doc->isObject(uCentralProtocol::PARAMS))
         {
             Logger_.warning(Poco::format("MISSING-PARAMS(%s): params must be an object.",CId_));
             return;
         }
-*/
+
         //  expand params if necessary
-        auto ParamsObj = Params.extract<Poco::JSON::Object::Ptr>();
+        auto ParamsObj = Doc->get(uCentralProtocol::PARAMS).extract<Poco::JSON::Object::Ptr>();
         if(ParamsObj->has(uCentralProtocol::COMPRESS_64))
         {
             Logger_.debug(Poco::format("EVENT(%s): Found compressed payload.",CId_));
