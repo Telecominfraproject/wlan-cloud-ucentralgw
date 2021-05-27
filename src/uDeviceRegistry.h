@@ -20,12 +20,15 @@ namespace uCentral::DeviceRegistry {
         void             					* WSConn_;
 		uCentral::Objects::ConnectionState 	* Conn_;
         std::string        					LastStats;
+		std::string 						LastHealthcheck;
     };
 
     int Start();
     void Stop();
     bool GetStatistics(const std::string &SerialNumber, std::string & Statistics);
     void SetStatistics(const std::string &SerialNumber, const std::string &stats);
+	bool GetHealthcheck(const std::string &SerialNumber, std::string & Statistics);
+	void SetHealthcheck(const std::string &SerialNumber, const std::string &stats);
     bool GetState(const std::string & SerialNumber, uCentral::Objects::ConnectionState & State);
     void SetState(const std::string & SerialNumber, uCentral::Objects::ConnectionState & State);
 	uCentral::Objects::ConnectionState *  Register(const std::string & SerialNumber, void *);
@@ -50,6 +53,8 @@ namespace uCentral::DeviceRegistry {
 
         friend bool GetStatistics(const std::string &SerialNumber, std::string & Statistics);
         friend void SetStatistics(const std::string &SerialNumber, const std::string &stats);
+		friend bool GetHealthcheck(const std::string &SerialNumber, std::string & Statistics);
+		friend void SetHealthcheck(const std::string &SerialNumber, const std::string &stats);
         friend bool GetState(const std::string & SerialNumber, uCentral::Objects::ConnectionState & State);
         friend void SetState(const std::string & SerialNumber, uCentral::Objects::ConnectionState & State);
         friend uCentral::Objects::ConnectionState * Register(const std::string & SerialNumber, void *);
@@ -66,6 +71,8 @@ namespace uCentral::DeviceRegistry {
         void SetStatistics(const std::string &SerialNumber, const std::string &stats);
         bool GetState(const std::string & SerialNumber, uCentral::Objects::ConnectionState & State);
         void SetState(const std::string & SerialNumber, uCentral::Objects::ConnectionState & State);
+		bool GetHealthcheck(const std::string &SerialNumber, std::string & Statistics);
+		void SetHealthcheck(const std::string &SerialNumber, const std::string &stats);
 		uCentral::Objects::ConnectionState *  Register(const std::string & SerialNumber, void *);
         void UnRegister(const std::string & SerialNumber, void *);
         bool SendCommand(uCentral::Objects::CommandDetails & Command);

@@ -398,24 +398,38 @@ void RESTAPI_device_commandHandler::DeleteLogs(Poco::Net::HTTPServerRequest& Req
 void RESTAPI_device_commandHandler::GetChecks(Poco::Net::HTTPServerRequest& Request, Poco::Net::HTTPServerResponse& Response) {
     try {
         std::vector<uCentral::Objects::HealthCheck> Checks;
-		if(QB_.Newest) {
-			uCentral::Storage::GetNewestHealthCheckData(SerialNumber_, QB_.Limit, Checks);
+
+		if(QB_.LastOnly) {
+			std::string Healthcheck;
+			if(uCentral::DeviceRegistry::GetHealthcheck(SerialNumber_,Healthcheck)) {
+				Poco::JSON::Parser	P;
+				if(Healthcheck.empty())
+					Healthcheck = uCentral::uCentralProtocol::EMPTY_JSON_DOC;
+				auto Obj = P.parse(Healthcheck).extract<Poco::JSON::Object::Ptr>();
+				ReturnObject(Request, *Obj, Response);
+			} else {
+				NotFound(Request, Response);
+			}
 		} else {
-			uCentral::Storage::GetHealthCheckData(SerialNumber_, QB_.StartDate, QB_.EndDate, QB_.Offset, QB_.Limit, Checks);
+			if (QB_.Newest) {
+				uCentral::Storage::GetNewestHealthCheckData(SerialNumber_, QB_.Limit, Checks);
+			} else {
+				uCentral::Storage::GetHealthCheckData(SerialNumber_, QB_.StartDate, QB_.EndDate,
+													  QB_.Offset, QB_.Limit, Checks);
+			}
+
+			Poco::JSON::Array ArrayObj;
+			for (auto i : Checks) {
+				Poco::JSON::Object Obj;
+				i.to_json(Obj);
+				ArrayObj.add(Obj);
+			}
+
+			Poco::JSON::Object RetObj;
+			RetObj.set(uCentral::RESTAPI::Protocol::VALUES, ArrayObj);
+			RetObj.set(uCentral::RESTAPI::Protocol::SERIALNUMBER, SerialNumber_);
+			ReturnObject(Request, RetObj, Response);
 		}
-
-		Poco::JSON::Array ArrayObj;
-		for (auto i : Checks) {
-			Poco::JSON::Object Obj;
-			i.to_json(Obj);
-			ArrayObj.add(Obj);
-		}
-
-        Poco::JSON::Object RetObj;
-        RetObj.set(uCentral::RESTAPI::Protocol::VALUES, ArrayObj);
-        RetObj.set(uCentral::RESTAPI::Protocol::SERIALNUMBER, SerialNumber_);
-        ReturnObject(Request, RetObj, Response);
-
         return;
     }
     catch(const Poco::Exception &E)

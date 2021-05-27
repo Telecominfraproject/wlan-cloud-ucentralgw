@@ -450,6 +450,7 @@ namespace uCentral::WebSocket {
 							uCentral::Storage::SetCommandResult(request_uuid, CheckData);
 						}
 
+						uCentral::DeviceRegistry::SetHealthcheck(Serial, CheckData);
 						LookForUpgrade(UUID, Conn_->PendingUUID, Response);
 					} else {
 						Logger_.warning(Poco::format("HEALTHCHECK(%s): Missing parameter", CId_));

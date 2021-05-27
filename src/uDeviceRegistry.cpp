@@ -43,6 +43,14 @@ namespace uCentral::DeviceRegistry {
         return Service::instance()->SetState(SerialNumber,State);
     }
 
+	bool GetHealthcheck(const std::string &SerialNumber, std::string & CheckData) {
+		return Service::instance()->GetHealthcheck(SerialNumber, CheckData);
+	}
+
+	void SetHealthcheck(const std::string &SerialNumber, const std::string &CheckData) {
+		Service::instance()->SetHealthcheck(SerialNumber, CheckData);
+	}
+
 	uCentral::Objects::ConnectionState *  Register(const std::string & SerialNumber, void *Ptr) {
         return Service::instance()->Register(SerialNumber,Ptr);
     }
@@ -74,12 +82,10 @@ namespace uCentral::DeviceRegistry {
 		SubMutexGuard		Guard(Mutex_);
 
         auto Device = Devices_.find(SerialNumber);
-
         if(Device != Devices_.end()) {
             Statistics = Device->second.LastStats;
             return true;
         }
-
         return false;
     }
 
@@ -118,6 +124,28 @@ namespace uCentral::DeviceRegistry {
             *Device->second.Conn_ = State;
         }
     }
+
+	bool Service::GetHealthcheck(const std::string &SerialNumber, std::string & CheckData) {
+		SubMutexGuard		Guard(Mutex_);
+
+		auto Device = Devices_.find(SerialNumber);
+		if(Device != Devices_.end()) {
+			CheckData = Device->second.LastHealthcheck;
+			return true;
+		}
+		return false;
+	}
+
+	void Service::SetHealthcheck(const std::string &SerialNumber, const std::string &CheckData) {
+		SubMutexGuard		Guard(Mutex_);
+
+		auto Device = Devices_.find(SerialNumber);
+
+		if(Device != Devices_.end())
+		{
+			Device->second.LastHealthcheck = CheckData;
+		}
+	}
 
 	uCentral::Objects::ConnectionState * Service::Register(const std::string & SerialNumber, void *Ptr)
     {

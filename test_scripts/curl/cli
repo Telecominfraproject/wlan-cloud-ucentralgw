@@ -348,6 +348,13 @@ laststats() {
 	jq < $rfile
 }
 
+lasthealthcheck() {
+	curl  $FLAGS -X GET "https://$UCENTRALGW/api/v1/device/$1/healthchecks?lastOnly=true" \
+        -H "accept: application/json" \
+        -H "Authorization: Bearer $token" > $rfile
+	jq < $rfile
+}
+
 neweststats() {
 	curl  $FLAGS -X GET "https://$UCENTRALGW/api/v1/device/$1/statistics?newest=true&limit=50" \
         -H "accept: application/json" \
@@ -380,6 +387,7 @@ help() {
   echo "getstats <serial>                 Get statistics for the device."
   echo "gethealthchecks <serial>          Get healthchecks for a device."
   echo "newesthealthchecks <serial>       Get newest healthchecks for a device."
+  echo "lasthealthcheck <serial>          Get the last healthcheck"
   echo
   echo "getcapababilities <serial>        Get the device capabilities JSON document."
   echo "deletecapababilities <serial>     Delete the device capabilities JSON."
@@ -492,6 +500,7 @@ case "$1" in
   "neweststats") login; neweststats "$2"; logout;;
   "newestlogs") login; newestlogs "$2"; logout;;
   "newesthealthchecks") login; newesthealthchecks "$2"; logout;;
+  "lasthealthcheck") login; lasthealthcheck "$2"; logout;;
  *) help ;;
 esac
 

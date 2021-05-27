@@ -31,28 +31,28 @@ components:
 
   responses:
     NotFound:
-      description: The specified resource was not found
+      description: The specified resource was not found.
       content:
         application/json:
           schema:
             $ref: '#/components/schemas/GenericErrorResponse'
 
     Unauthorized:
-      description: Unauthorized
+      description: The requested does not have sufficient rights to perform the operation.
       content:
         application/json:
           schema:
             $ref: '#/components/schemas/GenericErrorResponse'
 
     Success:
-      description: Success
+      description: The requested operation was performed.
       content:
         application/json:
           schema:
             $ref: '#/components/schemas/GenericGoodAnswer'
 
     CommandSubmitSuccess:
-      description: Command was submitted succesfully
+      description: The command was submitted succesfully.
       content:
         application/json:
           schema:
@@ -170,7 +170,7 @@ components:
 
     DeviceList:
       type: object
-      description: Definition of uCentral device
+      description: Definition of uCentral device list
       properties:
         devices:
           type: array
@@ -179,7 +179,7 @@ components:
 
     DeviceListWithStatus:
       type: object
-      description: Definition of uCentral device
+      description: Definition of uCentral device list including device status.
       properties:
         devicesWithStatus:
           type: array
@@ -188,7 +188,7 @@ components:
 
     SerialNumberList:
       type: object
-      description: List of serial numbers
+      description: List of serial numbers.
       properties:
         serialNumbers:
           type: array
@@ -197,7 +197,7 @@ components:
 
     DeviceCount:
       type: object
-      description: The number of devices in the DB
+      description: The number of devices in the DB.
       properties:
         count:
           type: integer
@@ -205,7 +205,7 @@ components:
 
     DeviceStatus:
       type: object
-      description: Current device status
+      description: Current device status.
       properties:
         serialNumber:
           type: string
@@ -240,7 +240,7 @@ components:
 
     DeviceCapabilities:
       type: object
-      description: Describes the capabilities a device has recorded in uCentral
+      description: Describes the capabilities a device can support.
       properties:
         serialNumber:
           type: string
@@ -1491,19 +1491,28 @@ paths:
           schema:
             type: integer
             format: int64
+          required: false
         - in: query
           name: offset
           schema:
             type: integer
             format: int64
+          required: false
         - in: query
           name: limit
           schema:
             type: integer
             format: int64
+          required: false
         - in: query
           description: Selecting this option means the newest record will be returned. Use limit to select how many.
           name: newest
+          schema:
+            type: boolean
+          required: false
+        - in: query
+          description: Selecting this option means the last healthcheck will be returned. All other parameters will be ignored.
+          name: lastOnly
           schema:
             type: boolean
           required: false
@@ -1626,21 +1635,25 @@ paths:
           schema:
             type: integer
             format: int64
+          required: false
         - in: query
           name: offset
           schema:
             type: integer
             format: int64
+          required: false
         - in: query
           name: limit
           schema:
             type: integer
             format: int64
+          required: false
         - in: query
           description: Selecting this option means the LifetimeStatistics will be returned. All other parameters will be ignored.
           name: lifetime
           schema:
             type: boolean
+          required: false
         - in: query
           description: Selecting this option means the LifetimeStatistics will be returned. All other parameters will be ignored.
           name: lastOnly
@@ -1690,6 +1703,7 @@ paths:
           schema:
             type: integer
             format: int64
+          required: false
 
       responses:
         200:
