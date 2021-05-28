@@ -34,16 +34,11 @@ namespace uCentral::Config {
 
     bool Config::Valid() {
         try {
-            Poco::JSON::Parser parser;
-
-            Poco::Dynamic::Var result = parser.parse(Config_);
-            Poco::JSON::Object::Ptr object = result.extract<Poco::JSON::Object::Ptr>();
-            Poco::DynamicStruct ds = *object;
-
-            if(ds.find("uuid")==ds.end())
-                return false;
-
-            return true;
+            Poco::JSON::Parser Parser;
+            auto object = Parser.parse(Config_).extract<Poco::JSON::Object::Ptr>();
+            if(object->has("uuid"))
+                return true;
+            return false;
         }
         catch (const Poco::Exception &E)
         {
