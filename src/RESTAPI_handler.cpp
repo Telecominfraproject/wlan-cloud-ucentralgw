@@ -53,11 +53,12 @@ namespace uCentral::RESTAPI {
 	bool RESTAPIHandler::ParseBindings(const std::string & Path, const std::string & Request, BindingMap &bindings) {
 		std::string Param, Value;
 
-		const char *p = Path.c_str();
-
 		bindings.clear();
 		std::vector<std::string>	PathItems = uCentral::Utils::Split(Path,'/');
 		std::vector<std::string>	ParamItems = uCentral::Utils::Split(Request,'/');
+
+		if(PathItems.size()!=ParamItems.size())
+			return false;
 
 		for(auto i=0;i!=PathItems.size();i++)
 			if( PathItems[i] != ParamItems[i]) {
