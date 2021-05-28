@@ -23,33 +23,6 @@
 #include "uUtils.h"
 
 namespace uCentral::RESTAPI {
-/*	bool RESTAPIHandler::ParseBindings(const std::string & Path, const char *r, BindingMap &bindings) {
-		std::string Param, Value;
-
-		const char *p = Path.c_str();
-
-		bindings.clear();
-
-		while (*r) {
-			if (*r == '{') {
-				r++;
-				while (*r != '}')
-					Param += *r++;
-				r++;
-				while (*p != '/' && *p)
-					Value += *p++;
-				bindings[Param] = Value;
-			} else if (*p != *r) {
-				return false;
-			} else {
-				r++;
-				p++;
-			}
-		}
-		return (*p == *r);
-	}
-*/
-
 	bool RESTAPIHandler::ParseBindings(const std::string & Request, const std::string & Path, BindingMap &bindings) {
 		std::string Param, Value;
 
