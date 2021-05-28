@@ -60,16 +60,19 @@ namespace uCentral::RESTAPI {
 		if(PathItems.size()!=ParamItems.size())
 			return false;
 
-		for(auto i=0;i!=PathItems.size();i++)
-			if( PathItems[i] != ParamItems[i]) {
-				if(PathItems[i][0]=='{') {
-					auto ParamName = PathItems[i].substr(1,PathItems[i].size()-1);
+		for(auto i=0;i!=PathItems.size();i++) {
+			std::cout << "Path:" << PathItems[i] << std::endl;
+			std::cout << "Param:" << ParamItems[i] << std::endl;
+			if (PathItems[i] != ParamItems[i]) {
+				if (PathItems[i][0] == '{') {
+					auto ParamName = PathItems[i].substr(1, PathItems[i].size() - 1);
+					std::cout << "ParamName:" << ParamName << std::endl;
 					bindings[ParamName] = ParamItems[i];
 					std::cout << "Name:" << ParamName << "  Item:" << PathItems[i] << std::endl;
 				} else
 					return false;
 			}
-
+		}
 		return true;
 	}
 
