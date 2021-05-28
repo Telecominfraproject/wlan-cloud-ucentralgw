@@ -65,7 +65,7 @@ namespace uCentral::RESTAPI {
 			std::cout << "Param:" << ParamItems[i] << std::endl;
 			if (PathItems[i] != ParamItems[i]) {
 				if (PathItems[i][0] == '{') {
-					auto ParamName = PathItems[i].substr(1, PathItems[i].size() - 1);
+					auto ParamName = PathItems[i].substr(1, PathItems[i].size() - 2);
 					std::cout << "ParamName:" << ParamName << std::endl;
 					bindings[ParamName] = ParamItems[i];
 					std::cout << "Name:" << ParamName << "  Item:" << PathItems[i] << std::endl;
