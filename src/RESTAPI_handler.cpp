@@ -23,22 +23,19 @@
 
 namespace uCentral::RESTAPI {
 	bool RESTAPIHandler::ParseBindings(const char *p, const char *r, BindingMap &bindings) {
-		char param[256] = {0}, value[256] = {0};
+
+		std::string Param, Value;
 
 		bindings.clear();
 		while (*r) {
 			if (*r == '{') {
 				r++;
-				auto pi = 0;
-				while (*r != '}' && pi < sizeof(param))
-					param[pi++] = *r++;
+				while (*r != '}')
+					Param += *r++;
 				r++;
-				param[pi] = 0;
-				auto vi = 0;
-				while (*p != '/' && *p && vi < sizeof(value))
-					value[vi++] = *p++;
-				value[vi] = 0;
-				bindings[param] = value;
+				while (*p != '/' && *p)
+					Value += *p++;
+				bindings[Param] = Value;
 			} else if (*p != *r) {
 				return false;
 			} else {
@@ -46,7 +43,6 @@ namespace uCentral::RESTAPI {
 				p++;
 			}
 		}
-
 		return (*p == *r);
 	}
 
