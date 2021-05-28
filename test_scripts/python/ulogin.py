@@ -2,62 +2,63 @@
 #
 # See ../../openapi/ucentral/ucentral.yaml
 
+"""
 # Example usage
 #
 # List all devices
-# ./ulogin.py --ucentral_host test-controller-1 --cert ~/git/tip/ucentral-local/certs/server-cert.pem
-#
+ ./ulogin.py --ucentral_host tip-f34.candelatech.com
+
 # Configure 2-ssid setup with psk2 (aka wpa2) in NAT/routed mode
 #
-# ./ulogin.py --serno c4411ef53f23 --cert ~/git/tip/ucentral-local/certs/server-cert.pem \
-#   --ucentral_host test-controller-1 --ssid24 Default-SSID-2g --ssid5 Default-SSID-5gl \
-#   --key24 12345678 --key5 12345678 --encryption24 psk2 --encryption5 psk2 --action cfg \
-#   --network24 lan --network5 lan
-#
+ ./ulogin.py --serno c4411ef53f23 --cert ~/git/tip/ucentral-local/certs/server-cert.pem \
+   --ucentral_host test-controller-1 --ssid24 Default-SSID-2g --ssid5 Default-SSID-5gl \
+   --key24 12345678 --key5 12345678 --encryption24 psk2 --encryption5 psk2 --action cfg \
+   --network24 lan --network5 lan
+
 # Configure 2 ssid setup with psk2 in bridge mode.
 # Use local cert downloaded from a remote ucentralgw
-# ./ulogin.py --serno c4411ef53f23 --cert ~/lab-ctlr-ucentral-cert.pem \
-#   --ucentral_host test-controller-1 --ssid24 Default-SSID-2g --ssid5 Default-SSID-5gl \
-#   --key24 12345678 --key5 12345678 --encryption24 psk2 --encryption5 psk2 --action cfg \
-#   --network24 wan --network5 wan
+ ./ulogin.py --serno c4411ef52d0f \
+   --ucentral_host tip-f34.candelatech.com --ssid24 Default-SSID-2g --ssid5 Default-SSID-5gl \
+   --key24 12345678 --key5 12345678 --encryption24 psk2 --encryption5 psk2 --action cfg \
+   --network24 wan --network5 wan
 
 # Configure 2 ssid setup with psk2 in NAT/Routed mode.
 # Use local cert downloaded from a remote ucentralgw
-# ./ulogin.py --serno c4411ef53f23 --cert ~/lab-ctlr-ucentral-cert.pem \
-#   --ucentral_host test-controller-1 --ssid24 Default-SSID-2g --ssid5 Default-SSID-5gl \
-#   --key24 12345678 --key5 12345678 --encryption24 psk2 --encryption5 psk2 --action cfg \
-#   --network24 lan --network5 lan
+ ./ulogin.py --serno c4411ef53f23 --cert ~/lab-ctlr-ucentral-cert.pem \
+   --ucentral_host test-controller-1 --ssid24 Default-SSID-2g --ssid5 Default-SSID-5gl \
+   --key24 12345678 --key5 12345678 --encryption24 psk2 --encryption5 psk2 --action cfg \
+   --network24 lan --network5 lan
 
 # Request AP upgrade to specified firmware.
-# ./ulogin.py --serno c4411ef53f23 --cert ~/git/tip/ucentral-local/certs/server-cert.pem \
-#   --ucentral_host test-controller-1 --action upgrade \
-#   --url http://192.168.100.195/tip/openwrt-mediatek-mt7622-linksys_e8450-ubi-squashfs-sysupgrade.itb 
+ ./ulogin.py --serno c4411ef53f23 --cert ~/git/tip/ucentral-local/certs/server-cert.pem \
+   --ucentral_host test-controller-1 --action upgrade \
+   --url http://192.168.100.195/tip/openwrt-mediatek-mt7622-linksys_e8450-ubi-squashfs-sysupgrade.itb 
 
 # Send request to AP.
-# ./ulogin.py --serno c4411ef53f23 --cert ~/git/tip/ucentral-local/certs/server-cert.pem \
-#   --ucentral_host test-controller-1 --action request \
-#   --request state
+ ./ulogin.py --serno c4411ef53f23 --cert ~/git/tip/ucentral-local/certs/server-cert.pem \
+   --ucentral_host test-controller-1 --action request \
+   --request state
 
 # Get AP capabilities
-# ./ulogin.py --serno c4411ef53f23 --cert ~/git/tip/ucentral-local/certs/server-cert.pem \
-#   --ucentral_host test-controller-1 --action show_capabilities
+ ./ulogin.py --serno c4411ef53f23 --cert ~/git/tip/ucentral-local/certs/server-cert.pem \
+   --ucentral_host test-controller-1 --action show_capabilities
 
 # Get AP status
-# ./ulogin.py --serno c4411ef53f23 --cert ~/git/tip/ucentral-local/certs/server-cert.pem \
-#   --ucentral_host test-controller-1 --action show_status
+ ./ulogin.py --serno c4411ef53f23 --cert ~/git/tip/ucentral-local/certs/server-cert.pem \
+   --ucentral_host test-controller-1 --action show_status
 
 # Get AP logs
-# ./ulogin.py --serno c4411ef53f23 --cert ~/git/tip/ucentral-local/certs/server-cert.pem \
-#   --ucentral_host test-controller-1 --action show_logs
+ ./ulogin.py --serno c4411ef53f23 --cert ~/git/tip/ucentral-local/certs/server-cert.pem \
+   --ucentral_host test-controller-1 --action show_logs
 
 # Get AP healthcheck
-# ./ulogin.py --serno c4411ef53f23 --cert ~/git/tip/ucentral-local/certs/server-cert.pem \
-#   --ucentral_host test-controller-1 --action show_healthcheck
+ ./ulogin.py --serno c4411ef53f23 --cert ~/git/tip/ucentral-local/certs/server-cert.pem \
+   --ucentral_host test-controller-1 --action show_healthcheck
 
 # Get ucentral commands
-# ./ulogin.py --serno c4411ef53f23 --cert ~/git/tip/ucentral-local/certs/server-cert.pem \
-#   --ucentral_host test-controller-1 --action show_commands
-
+ ./ulogin.py --serno c4411ef53f23 --cert ~/git/tip/ucentral-local/certs/server-cert.pem \
+   --ucentral_host test-controller-1 --action show_commands
+"""
 
 import json
 from urllib.parse import urlparse
@@ -73,8 +74,12 @@ access_token = ""
 assert_bad_response = True
 
 parser = argparse.ArgumentParser()
+
 parser.add_argument('--ucentral_host', help="Specify ucentral host name/ip.", default="ucentral")
-parser.add_argument('--cert', help="Specify ucentral cert.", default="cert.pem")
+parser.add_argument('--user_name', help="Specify ucentral username.", default="tip@ucentral.com")
+parser.add_argument('--password', help="Specify ucentral password.", default="openwifi")
+
+parser.add_argument('--cert', help="Specify ucentral cert.", default="")
 parser.add_argument("--action", help="Specify action: show_stats | blink | show_commands | show_devices | show_capabilities | show_healthcheck | show_status | show_logs | cfg | upgrade | request .", default="")
 parser.add_argument("--serno", help="Serial number of AP, used for some action.", default="")
 
@@ -104,8 +109,9 @@ parser.add_argument("--noverify", help="Disable ssl cert verification.", default
 args = parser.parse_args()
 
 uri = "https://" + args.ucentral_host + ":16001/api/v1/oauth2"
-username = "support@example.com"
-password = "support"
+
+username = args.user_name
+password = args.password
 host = urlparse(uri)
 access_token = ""
 cert = args.cert
