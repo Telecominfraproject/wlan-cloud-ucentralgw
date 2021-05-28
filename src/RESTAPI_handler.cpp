@@ -50,7 +50,7 @@ namespace uCentral::RESTAPI {
 	}
 */
 
-	bool RESTAPIHandler::ParseBindings(const std::string & Path, const std::string & Request, BindingMap &bindings) {
+	bool RESTAPIHandler::ParseBindings(const std::string & Request, const std::string & Path, BindingMap &bindings) {
 		std::string Param, Value;
 
 		bindings.clear();
