@@ -12,6 +12,5 @@ void RESTAPI_UnknownRequestHandler::handleRequest(Poco::Net::HTTPServerRequest& 
 {
     if(!IsAuthorized(Request,Response))
         return;
-
     BadRequest(Request, Response);
 }

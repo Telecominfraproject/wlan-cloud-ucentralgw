@@ -22,11 +22,13 @@
 #include "RESTAPI_protocol.h"
 
 namespace uCentral::RESTAPI {
-	bool RESTAPIHandler::ParseBindings(const char *p, const char *r, BindingMap &bindings) {
-
+	bool RESTAPIHandler::ParseBindings(const std::string & Path, const char *r, BindingMap &bindings) {
 		std::string Param, Value;
 
+		const char *p = Path.c_str();
+
 		bindings.clear();
+
 		while (*r) {
 			if (*r == '{') {
 				r++;

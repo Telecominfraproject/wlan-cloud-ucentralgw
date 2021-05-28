@@ -36,7 +36,7 @@ namespace uCentral::RESTAPI {
 		RESTAPIHandler(BindingMap map, Poco::Logger &l, std::vector<std::string> Methods)
 			: Bindings_(std::move(map)), Logger_(l), Methods_(std::move(Methods)) {}
 
-		static bool ParseBindings(const char *path, const char *resource, BindingMap &Keys);
+		static bool ParseBindings(const std::string & Path, const char *resource, BindingMap &Keys);
 		void PrintBindings();
 		void ParseParameters(Poco::Net::HTTPServerRequest &request);
 

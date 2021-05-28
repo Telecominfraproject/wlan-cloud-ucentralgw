@@ -79,39 +79,38 @@ namespace uCentral::RESTAPI {
         Logger_.debug(Poco::format("REQUEST(%s): %s %s", uCentral::Utils::FormatIPv6(Request.clientAddress().toString()), Request.getMethod(), Request.getURI()));
 
         Poco::URI uri(Request.getURI());
-        auto *path = uri.getPath().c_str();
+        const auto & Path = uri.getPath();
         RESTAPIHandler::BindingMap bindings;
 
-        if (RESTAPIHandler::ParseBindings(path, "/api/v1/oauth2/{token}", bindings)) {
+        if (RESTAPIHandler::ParseBindings(Path, "/api/v1/oauth2/{token}", bindings)) {
             return new RESTAPI_oauth2Handler(bindings, Logger_);
-        } else if (RESTAPIHandler::ParseBindings(path, "/api/v1/oauth2", bindings)) {
+        } else if (RESTAPIHandler::ParseBindings(Path, "/api/v1/oauth2", bindings)) {
             return new RESTAPI_oauth2Handler(bindings, Logger_);
-        } else if (RESTAPIHandler::ParseBindings(path, "/api/v1/devices", bindings)) {
+        } else if (RESTAPIHandler::ParseBindings(Path, "/api/v1/devices", bindings)) {
             return new RESTAPI_devices_handler(bindings, Logger_);
-        } else if (RESTAPIHandler::ParseBindings(path, "/api/v1/device/{serialNumber}/{command}", bindings)) {
+        } else if (RESTAPIHandler::ParseBindings(Path, "/api/v1/device/{serialNumber}/{command}", bindings)) {
             return new RESTAPI_device_commandHandler(bindings, Logger_);
-        } else if (RESTAPIHandler::ParseBindings(path, "/api/v1/device/{serialNumber}", bindings)) {
+        } else if (RESTAPIHandler::ParseBindings(Path, "/api/v1/device/{serialNumber}", bindings)) {
             return new RESTAPI_device_handler(bindings, Logger_);
-        }  else if (RESTAPIHandler::ParseBindings(path, "/api/v1/default_configurations", bindings)) {
+        }  else if (RESTAPIHandler::ParseBindings(Path, "/api/v1/default_configurations", bindings)) {
             return new RESTAPI_default_configurations(bindings, Logger_);
-        } else if (RESTAPIHandler::ParseBindings(path, "/api/v1/default_configuration/{name}", bindings)) {
+        } else if (RESTAPIHandler::ParseBindings(Path, "/api/v1/default_configuration/{name}", bindings)) {
             return new RESTAPI_default_configuration(bindings, Logger_);
-        } else if (RESTAPIHandler::ParseBindings(path, "/api/v1/command/{commandUUID}", bindings)) {
+        } else if (RESTAPIHandler::ParseBindings(Path, "/api/v1/command/{commandUUID}", bindings)) {
             return new RESTAPI_command(bindings, Logger_);
-        } else if (RESTAPIHandler::ParseBindings(path, "/api/v1/commands", bindings)) {
+        } else if (RESTAPIHandler::ParseBindings(Path, "/api/v1/commands", bindings)) {
             return new RESTAPI_commands(bindings, Logger_);
-        } else if (RESTAPIHandler::ParseBindings(path, "/api/v1/file/{uuid}", bindings)) {
+        } else if (RESTAPIHandler::ParseBindings(Path, "/api/v1/file/{uuid}", bindings)) {
             return new RESTAPI_file(bindings, Logger_);
-		} else if (RESTAPIHandler::ParseBindings(path, "/api/v1/system", bindings)) {
+		} else if (RESTAPIHandler::ParseBindings(Path, "/api/v1/system", bindings)) {
 			return new RESTAPI_system_command(bindings, Logger_);
-		} else if (RESTAPIHandler::ParseBindings(path, "/api/v1/blacklist", bindings)) {
+		} else if (RESTAPIHandler::ParseBindings(Path, "/api/v1/blacklist", bindings)) {
 			return new RESTAPI_BlackList(bindings, Logger_);
-		} else if(RESTAPIHandler::ParseBindings(path, "/api/v1/callbackChannel", bindings)) {
+		} else if(RESTAPIHandler::ParseBindings(Path, "/api/v1/callbackChannel", bindings)) {
 			return new RESTAPI_callback(bindings, Logger_);
 		}
 
-		std::cout << "Invalid endpoint" << std::endl;
-
+		Logger_.error(Poco::format("INVALID-API-ENDPOINT: %s",Path));
         return new RESTAPI_UnknownRequestHandler(bindings,Logger_);
     }
 

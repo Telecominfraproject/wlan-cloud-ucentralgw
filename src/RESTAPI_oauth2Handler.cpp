@@ -14,16 +14,11 @@
 
 void RESTAPI_oauth2Handler::handleRequest(Poco::Net::HTTPServerRequest & Request, Poco::Net::HTTPServerResponse & Response)
 {
-	std::cout << __LINE__ << std::endl;
-
     if(!ContinueProcessing(Request,Response))
         return;
 
-	std::cout << __LINE__ << std::endl;
-
     try {
         if (Request.getMethod() == Poco::Net::HTTPServerRequest::HTTP_POST) {
-			std::cout << __LINE__ << std::endl;
 
             // Extract the info for login...
             Poco::JSON::Parser parser;
@@ -43,30 +38,23 @@ void RESTAPI_oauth2Handler::handleRequest(Poco::Net::HTTPServerRequest & Request
                 UnAuthorized(Request, Response);
             }
         } else if (Request.getMethod() == Poco::Net::HTTPServerRequest::HTTP_DELETE) {
-			std::cout << __LINE__ << std::endl;
             if (!IsAuthorized(Request, Response)) {
-				std::cout << __LINE__ << std::endl;
 				return;
 			}
             auto Token = GetBinding(uCentral::RESTAPI::Protocol::TOKEN, "...");
-			std::cout << "Token: " << Token << std::endl;
-			std::cout << "Session: " << SessionToken_ << std::endl;
             if (Token == SessionToken_) {
 				uCentral::Auth::Logout(Token);
-				OK(Request, Response);
+				ReturnStatus(Request, Response, Poco::Net::HTTPResponse::HTTP_NO_CONTENT);
 			} else {
 				NotFound(Request,Response);
 			}
         } else {
-			std::cout << __LINE__ << std::endl;
 			BadRequest(Request, Response);
 		}
-		std::cout << __LINE__ << std::endl;
 		return;
     }
     catch (const Poco::Exception &E) {
         Logger_.warning(Poco::format( "%s: Failed with: %s" , std::string(__func__), E.displayText()));
     }
-	std::cout << __LINE__ << std::endl;
     BadRequest(Request, Response);
 }
