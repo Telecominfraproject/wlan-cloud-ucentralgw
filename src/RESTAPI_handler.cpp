@@ -20,9 +20,10 @@
 #include "uStorageService.h"
 
 #include "RESTAPI_protocol.h"
+#include "uUtils.h"
 
 namespace uCentral::RESTAPI {
-	bool RESTAPIHandler::ParseBindings(const std::string & Path, const char *r, BindingMap &bindings) {
+/*	bool RESTAPIHandler::ParseBindings(const std::string & Path, const char *r, BindingMap &bindings) {
 		std::string Param, Value;
 
 		const char *p = Path.c_str();
@@ -46,6 +47,29 @@ namespace uCentral::RESTAPI {
 			}
 		}
 		return (*p == *r);
+	}
+*/
+
+	bool RESTAPIHandler::ParseBindings(const std::string & Path, const std::string & Request, BindingMap &bindings) {
+		std::string Param, Value;
+
+		const char *p = Path.c_str();
+
+		bindings.clear();
+		std::vector<std::string>	PathItems = uCentral::Utils::Split(Path,'/');
+		std::vector<std::string>	ParamItems = uCentral::Utils::Split(Request,'/');
+
+		for(auto i=0;i!=PathItems.size();i++)
+			if( PathItems[i] != ParamItems[i]) {
+				if(PathItems[i][0]=='{') {
+					auto ParamName = PathItems[i].substr(1,PathItems[i].size()-1);
+					bindings[ParamName] = ParamItems[i];
+					std::cout << "Name:" << ParamName << "  Item:" << PathItems[i] << std::endl;
+				} else
+					return false;
+			}
+
+		return true;
 	}
 
 	void RESTAPIHandler::PrintBindings() {
