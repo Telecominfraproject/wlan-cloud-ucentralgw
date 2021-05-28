@@ -41,12 +41,13 @@ namespace uCentral::RESTAPI {
 		void ParseParameters(Poco::Net::HTTPServerRequest &request);
 
 		void AddCORS(Poco::Net::HTTPServerRequest &Request, Poco::Net::HTTPServerResponse &response);
-		void SetCommonHeaders(Poco::Net::HTTPServerResponse &response);
+		void SetCommonHeaders(Poco::Net::HTTPServerResponse &response, bool CloseConnection=false);
 		void ProcessOptions(Poco::Net::HTTPServerRequest &Request,
 							Poco::Net::HTTPServerResponse &response);
 		void
 		PrepareResponse(Poco::Net::HTTPServerRequest &Request, Poco::Net::HTTPServerResponse &response,
-						Poco::Net::HTTPResponse::HTTPStatus Status = Poco::Net::HTTPResponse::HTTP_OK);
+						Poco::Net::HTTPResponse::HTTPStatus Status = Poco::Net::HTTPResponse::HTTP_OK,
+						bool CloseConnection = false);
 		bool ContinueProcessing(Poco::Net::HTTPServerRequest &Request,
 								Poco::Net::HTTPServerResponse &Response);
 		bool IsAuthorized(Poco::Net::HTTPServerRequest &Request,
@@ -71,7 +72,8 @@ namespace uCentral::RESTAPI {
 						bool ReturnObject = true);
 		void ReturnStatus(Poco::Net::HTTPServerRequest &Request,
 						  Poco::Net::HTTPServerResponse &Response,
-						  Poco::Net::HTTPResponse::HTTPStatus Status);
+						  Poco::Net::HTTPResponse::HTTPStatus Status,
+						  bool CloseConnection=false);
 
 		const std::string &GetBinding(const std::string &Name, const std::string &Default);
 		void InitQueryBlock();

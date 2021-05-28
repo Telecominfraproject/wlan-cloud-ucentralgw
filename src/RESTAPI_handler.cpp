@@ -136,13 +136,18 @@ namespace uCentral::RESTAPI {
 		Response.set("Access-Control-Max-Age", "86400");
 	}
 
-	void RESTAPIHandler::SetCommonHeaders(Poco::Net::HTTPServerResponse &Response) {
+	void RESTAPIHandler::SetCommonHeaders(Poco::Net::HTTPServerResponse &Response, bool CloseConnection) {
 		Response.setVersion(Poco::Net::HTTPMessage::HTTP_1_1);
 		Response.setChunkedTransferEncoding(true);
-		Response.setKeepAlive(true);
 		Response.setContentType("application/json");
-		Response.set("Connection", "Keep-Alive");
-		Response.set("Keep-Alive", "timeout=5, max=1000");
+		if(CloseConnection) {
+			Response.set("Connection", "close");
+			Response.setKeepAlive(false);
+		} else {
+			Response.setKeepAlive(true);
+			Response.set("Connection", "Keep-Alive");
+			Response.set("Keep-Alive", "timeout=5, max=1000");
+		}
 	}
 
 	void RESTAPIHandler::ProcessOptions(Poco::Net::HTTPServerRequest &Request,
@@ -162,10 +167,11 @@ namespace uCentral::RESTAPI {
 
 	void RESTAPIHandler::PrepareResponse(Poco::Net::HTTPServerRequest &Request,
 										 Poco::Net::HTTPServerResponse &Response,
-										 Poco::Net::HTTPResponse::HTTPStatus Status) {
+										 Poco::Net::HTTPResponse::HTTPStatus Status,
+										 bool CloseConnection) {
 		Response.setStatus(Status);
 		AddCORS(Request, Response);
-		SetCommonHeaders(Response);
+		SetCommonHeaders(Response, CloseConnection);
 	}
 
 	void RESTAPIHandler::BadRequest(Poco::Net::HTTPServerRequest &Request,
@@ -194,8 +200,13 @@ namespace uCentral::RESTAPI {
 
 	void RESTAPIHandler::ReturnStatus(Poco::Net::HTTPServerRequest &Request,
 									  Poco::Net::HTTPServerResponse &Response,
-									  Poco::Net::HTTPResponse::HTTPStatus Status) {
-		PrepareResponse(Request, Response, Status);
+									  Poco::Net::HTTPResponse::HTTPStatus Status,
+									  bool CloseConnection) {
+		PrepareResponse(Request, Response, Status, CloseConnection);
+		if(Status == Poco::Net::HTTPResponse::HTTP_NO_CONTENT) {
+			Response.setContentLength(0);
+			Response.erase("Content-Type");
+		}
 		Response.send();
 	}
 
