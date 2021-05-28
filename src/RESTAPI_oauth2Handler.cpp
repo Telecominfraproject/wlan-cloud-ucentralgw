@@ -37,16 +37,25 @@ void RESTAPI_oauth2Handler::handleRequest(Poco::Net::HTTPServerRequest & Request
             } else {
                 UnAuthorized(Request, Response);
             }
-
         } else if (Request.getMethod() == Poco::Net::HTTPServerRequest::HTTP_DELETE) {
-            if (!IsAuthorized(Request, Response))
-                return;
+			std::cout << __LINE__ << std::endl;
+            if (!IsAuthorized(Request, Response)) {
+				std::cout << __LINE__ << std::endl;
+				return;
+			}
             auto Token = GetBinding(uCentral::RESTAPI::Protocol::TOKEN, "...");
-            if (Token == SessionToken_)
-                uCentral::Auth::Logout(Token);
-            OK(Request, Response);
-        }
-        return;
+			std::cout << "Token: " << Token << std::endl;
+			std::cout << "Session: " << SessionToken_ << std::endl;
+            if (Token == SessionToken_) {
+				uCentral::Auth::Logout(Token);
+				OK(Request, Response);
+			} else {
+				NotFound(Request,Response);
+			}
+        } else {
+			BadRequest(Request, Response);
+		}
+		return;
     }
     catch (const Poco::Exception &E) {
         Logger_.warning(Poco::format( "%s: Failed with: %s" , std::string(__func__), E.displayText()));
