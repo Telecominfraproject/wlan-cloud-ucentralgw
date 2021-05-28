@@ -44,7 +44,7 @@ void RESTAPI_oauth2Handler::handleRequest(Poco::Net::HTTPServerRequest & Request
             auto Token = GetBinding(uCentral::RESTAPI::Protocol::TOKEN, "...");
             if (Token == SessionToken_) {
 				uCentral::Auth::Logout(Token);
-				ReturnStatus(Request, Response, Poco::Net::HTTPResponse::HTTP_NO_CONTENT);
+				ReturnStatus(Request, Response, Poco::Net::HTTPResponse::HTTP_NO_CONTENT, true);
 			} else {
 				NotFound(Request,Response);
 			}
