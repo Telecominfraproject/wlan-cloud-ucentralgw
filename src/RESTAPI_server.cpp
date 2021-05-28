@@ -110,6 +110,8 @@ namespace uCentral::RESTAPI {
 			return new RESTAPI_callback(bindings, Logger_);
 		}
 
+		std::cout << "Invalid endpoint" << std::endl;
+
         return new RESTAPI_UnknownRequestHandler(bindings,Logger_);
     }
 
