@@ -14,11 +14,16 @@
 
 void RESTAPI_oauth2Handler::handleRequest(Poco::Net::HTTPServerRequest & Request, Poco::Net::HTTPServerResponse & Response)
 {
+	std::cout << __LINE__ << std::endl;
+
     if(!ContinueProcessing(Request,Response))
         return;
 
+	std::cout << __LINE__ << std::endl;
+
     try {
         if (Request.getMethod() == Poco::Net::HTTPServerRequest::HTTP_POST) {
+			std::cout << __LINE__ << std::endl;
 
             // Extract the info for login...
             Poco::JSON::Parser parser;
@@ -53,12 +58,15 @@ void RESTAPI_oauth2Handler::handleRequest(Poco::Net::HTTPServerRequest & Request
 				NotFound(Request,Response);
 			}
         } else {
+			std::cout << __LINE__ << std::endl;
 			BadRequest(Request, Response);
 		}
+		std::cout << __LINE__ << std::endl;
 		return;
     }
     catch (const Poco::Exception &E) {
         Logger_.warning(Poco::format( "%s: Failed with: %s" , std::string(__func__), E.displayText()));
     }
+	std::cout << __LINE__ << std::endl;
     BadRequest(Request, Response);
 }
