@@ -82,9 +82,9 @@ namespace uCentral::RESTAPI {
         auto *path = uri.getPath().c_str();
         RESTAPIHandler::BindingMap bindings;
 
-        if (RESTAPIHandler::ParseBindings(path, "/api/v1/oauth2", bindings)) {
+        if (RESTAPIHandler::ParseBindings(path, "/api/v1/oauth2/{token}", bindings)) {
             return new RESTAPI_oauth2Handler(bindings, Logger_);
-        } else if (RESTAPIHandler::ParseBindings(path, "/api/v1/oauth2/{token}", bindings)) {
+        } else if (RESTAPIHandler::ParseBindings(path, "/api/v1/oauth2", bindings)) {
             return new RESTAPI_oauth2Handler(bindings, Logger_);
         } else if (RESTAPIHandler::ParseBindings(path, "/api/v1/devices", bindings)) {
             return new RESTAPI_devices_handler(bindings, Logger_);
