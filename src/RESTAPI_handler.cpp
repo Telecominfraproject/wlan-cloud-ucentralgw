@@ -203,6 +203,7 @@ namespace uCentral::RESTAPI {
 		if(Status == Poco::Net::HTTPResponse::HTTP_NO_CONTENT) {
 			Response.setContentLength(0);
 			Response.erase("Content-Type");
+			Response.setChunkedTransferEncoding(false);
 		}
 		Response.send();
 	}
