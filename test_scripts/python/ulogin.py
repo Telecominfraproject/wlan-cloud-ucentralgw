@@ -13,7 +13,7 @@
  ./ulogin.py --serno c4411ef53f23 --cert ~/git/tip/ucentral-local/certs/server-cert.pem \
    --ucentral_host test-controller-1 --ssid24 Default-SSID-2g --ssid5 Default-SSID-5gl \
    --key24 12345678 --key5 12345678 --encryption24 psk2 --encryption5 psk2 --action cfg \
-   --network24 lan --network5 lan
+   --network24 lan --network5 nat
 
 # Configure 2 ssid setup with psk2 in bridge mode.
 # Use local cert downloaded from a remote ucentralgw
@@ -90,11 +90,11 @@ parser.add_argument("--encryption24", help="Configure encryption for 2.4 Ghz: no
 parser.add_argument("--encryption5", help="Configure encryption for 5Ghz: none | psk | psk2 | psk-mixed | sae ...", default="psk2")
 parser.add_argument("--key24", help="Configure key/password for 2.4 Ghz.", default="ucentral")
 parser.add_argument("--key5", help="Configure key/password for 5Ghz.", default="ucentral")
-parser.add_argument("--network", help="bridge | nat.", default="bridge")
+parser.add_argument("--network", help="bridge | nat.", default="bridge", choices=["bridge", "nat"])
 
 # Phy config
-parser.add_argument("--channel24", help="Channel for 2.4Ghz, 0 means auto.", default="0")
-parser.add_argument("--channel5", help="Channel for 5Ghz, 0 means auto.", default="0")
+parser.add_argument("--channel24", help="Channel for 2.4Ghz, 0 means auto.", default="AUTO")
+parser.add_argument("--channel5", help="Channel for 5Ghz, 0 means auto.", default="AUTO")
 parser.add_argument("--mode24", help="Mode for 2.4Ghz, AUTO | HE20 | HT20 ...", default="AUTO")
 parser.add_argument("--mode5", help="Mode for 5Ghz, AUTO | HE80 | VHT80 ...", default="AUTO")
 
