@@ -8,6 +8,10 @@
 # List all devices
  ./ulogin.py --ucentral_host tip-f34.candelatech.com
 
+# Load default_config file from the curl example directory
+./ulogin.py --serno c4411ef52d0f    --ucentral_host tip-f34.candelatech.com --action cfg-file \
+  --cfg_file ../curl/default_config.json
+
 # Configure 2-ssid setup with psk2 (aka wpa2) in NAT/routed mode
 #
  ./ulogin.py --serno c4411ef53f23 --cert ~/git/tip/ucentral-local/certs/server-cert.pem \
@@ -80,8 +84,10 @@ parser.add_argument('--user_name', help="Specify ucentral username.", default="t
 parser.add_argument('--password', help="Specify ucentral password.", default="openwifi")
 
 parser.add_argument('--cert', help="Specify ucentral cert.", default="")
-parser.add_argument("--action", help="Specify action: show_stats | blink | show_commands | show_devices | show_capabilities | show_healthcheck | show_status | show_logs | cfg | upgrade | request .", default="")
+parser.add_argument("--action", help="Specify action: show_stats | blink | show_commands | show_devices | show_capabilities | show_healthcheck | show_status | show_logs | cfg | upgrade | request | cfg-file .", default="")
 parser.add_argument("--serno", help="Serial number of AP, used for some action.", default="")
+
+parser.add_argument('--cfg_file', help="Apply configuration from this text file, used by cfg-file action.", default="")
 
 parser.add_argument("--ssid24", help="Configure ssid for 2.4 Ghz.", default="ucentral-24")
 parser.add_argument("--ssid5", help="Configure ssid for 5 Ghz.", default="ucentral-5")
@@ -279,6 +285,32 @@ def blink_device(serno):
     uri = build_uri("device/" + serno + "/blink")
     resp = requests.post(uri, headers=make_headers(), verify=False)
     check_response("POST", resp, make_headers(), "", uri)
+    pprint(resp)
+
+def cfg_file_device(args):
+    f = open(args.cfg_file, mode='r')
+    cfg = f.read()
+
+    print("Submitting config from file: ", args.cfg_file)
+    print(cfg)
+    print("\n\n")
+
+    basic_cfg = json.loads(cfg)
+
+    payload = {}
+    payload["configuration"] = basic_cfg
+    payload['serialNumber'] = args.serno
+    payload['UUID'] = 0
+
+    basic_cfg_str = json.dumps(payload)
+
+    print("data-string: ")
+    print(basic_cfg_str)
+    print("\n\n")
+
+    uri = build_uri("device/" + args.serno + "/configure")
+    resp = requests.post(uri, data=basic_cfg_str, headers=make_headers(), verify=False)
+    check_response("POST", resp, make_headers(), basic_cfg_str, uri)
     pprint(resp)
 
 def cfg_device(args):
@@ -561,6 +593,12 @@ elif args.action == "cfg":
     if args.serno == "":
         print("ERROR:  cfg action needs serno set.\n")
     cfg_device(args)
+elif args.action == "cfg-file":
+    if args.serno == "":
+        print("ERROR:  cfg-file action needs serno set.\n")
+    if args.cfg_file == "":
+        print("ERROR:  cfg-file action needs cfg_file set.\n")
+    cfg_file_device(args)
 else:
     print("Unknown action: ", args.action)
 
