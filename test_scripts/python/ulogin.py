@@ -89,6 +89,7 @@ parser.add_argument("--encryption5", help="Configure encryption for 5Ghz: none |
 parser.add_argument("--key24", help="Configure key/password for 2.4 Ghz.", default="ucentral")
 parser.add_argument("--key5", help="Configure key/password for 5Ghz.", default="ucentral")
 parser.add_argument("--network", help="bridge | nat.", default="bridge", choices=["bridge", "nat"])
+parser.add_argument("--vlan", help="Specify VLAN ID to add to upstream network config.", default=[], action='append')
 
 # Phy config
 parser.add_argument("--channel24", help="Channel for 2.4Ghz, 0 means auto.", default="AUTO")
@@ -445,6 +446,26 @@ def cfg_device(args):
 """
     basic_cfg = json.loads(basic_cfg_text)
 
+    vlan_section = """
+               {
+                        "name": "WAN100",
+                        "role": "upstream",
+                        "vlan": {
+                                "id": 100
+                        },
+                        "ethernet": [
+                                {
+                                        "select-ports": [
+                                                "WAN*"
+                                        ]
+                                }
+                        ],
+                        "ipv4": {
+                                "addressing": "dynamic"
+                        }
+                }
+                """
+
     # And now modify it accordingly.
     if args.channel24 == "AUTO":
         if 'channel' in basic_cfg['radios'][0].keys():
@@ -470,6 +491,7 @@ def cfg_device(args):
     else:
         basic_cfg['radios'][1]['channel-mode'] = args.mode5
 
+    vsection = 0
     if args.network == "bridge":
         # Remove LAN section.
         del basic_cfg['interfaces'][1]
@@ -496,6 +518,21 @@ def cfg_device(args):
         basic_cfg['interfaces'][1]['ssids'][1]['name'] = args.ssid5
         basic_cfg['interfaces'][1]['ssids'][1]['encryption']['proto'] = args.encryption5
         basic_cfg['interfaces'][1]['ssids'][1]['encryption']['key'] = args.key5
+
+        # I think it probably makes no sense to try to do VLANs on a NAT ssid.
+        # More interesting logic will be needed to create complex networks.
+        vsection = 1
+
+    for vid in args.vlan:
+        v_cfg = json.loads(vlan_section)
+        v_cfg['name'] = "WANv%s"%(vid)
+        v_cfg['vlan']['id'] = int(vid)
+
+        basic_cfg['interfaces'].append(v_cfg)
+
+        # Add to the ssid section
+        basic_cfg['interfaces'][vsection]['vlan'] = { 'id': int(vid) }
+
 
     payload = {}
     payload["configuration"] = basic_cfg
