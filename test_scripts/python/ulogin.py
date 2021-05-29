@@ -20,48 +20,40 @@
    --network24 lan --network5 nat
 
 # Configure 2 ssid setup with psk2 in bridge mode.
-# Use local cert downloaded from a remote ucentralgw
  ./ulogin.py --serno c4411ef52d0f \
    --ucentral_host tip-f34.candelatech.com --ssid24 Default-SSID-2g --ssid5 Default-SSID-5gl \
    --key24 12345678 --key5 12345678 --encryption24 psk2 --encryption5 psk2 --action cfg \
    --network bridge
 
-# Configure 2 ssid setup with psk2 in NAT/Routed mode.
-# Use local cert downloaded from a remote ucentralgw
- ./ulogin.py --serno c4411ef53f23 --cert ~/lab-ctlr-ucentral-cert.pem \
-   --ucentral_host test-controller-1 --ssid24 Default-SSID-2g --ssid5 Default-SSID-5gl \
-   --key24 12345678 --key5 12345678 --encryption24 psk2 --encryption5 psk2 --action cfg \
-   --network24 lan --network5 lan
-
 # Request AP upgrade to specified firmware.
- ./ulogin.py --serno c4411ef53f23 --cert ~/git/tip/ucentral-local/certs/server-cert.pem \
-   --ucentral_host test-controller-1 --action upgrade \
+ ./ulogin.py --serno c4411ef53f23 \
+   --ucentral_host tip-f34.candelatech.com --action upgrade \
    --url http://192.168.100.195/tip/openwrt-mediatek-mt7622-linksys_e8450-ubi-squashfs-sysupgrade.itb 
 
 # Send request to AP.
- ./ulogin.py --serno c4411ef53f23 --cert ~/git/tip/ucentral-local/certs/server-cert.pem \
-   --ucentral_host test-controller-1 --action request \
+ ./ulogin.py --serno c4411ef52d0f \
+   --ucentral_host tip-f34.candelatech.com --action request \
    --request state
 
 # Get AP capabilities
- ./ulogin.py --serno c4411ef53f23 --cert ~/git/tip/ucentral-local/certs/server-cert.pem \
-   --ucentral_host test-controller-1 --action show_capabilities
+ ./ulogin.py --serno c4411ef52d0f \
+   --ucentral_host tip-f34.candelatech.com --action show_capabilities
 
 # Get AP status
- ./ulogin.py --serno c4411ef53f23 --cert ~/git/tip/ucentral-local/certs/server-cert.pem \
-   --ucentral_host test-controller-1 --action show_status
+ ./ulogin.py --serno c4411ef52d0f \
+   --ucentral_host tip-f34.candelatech.com --action show_status
 
 # Get AP logs
- ./ulogin.py --serno c4411ef53f23 --cert ~/git/tip/ucentral-local/certs/server-cert.pem \
-   --ucentral_host test-controller-1 --action show_logs
+ ./ulogin.py --serno c4411ef52d0f \
+   --ucentral_host tip-f34.candelatech.com --action show_logs
 
 # Get AP healthcheck
- ./ulogin.py --serno c4411ef53f23 --cert ~/git/tip/ucentral-local/certs/server-cert.pem \
-   --ucentral_host test-controller-1 --action show_healthcheck
+ ./ulogin.py --serno c4411ef52d0f \
+   --ucentral_host tip-f34.candelatech.com --action show_healthcheck
 
 # Get ucentral commands
- ./ulogin.py --serno c4411ef53f23 --cert ~/git/tip/ucentral-local/certs/server-cert.pem \
-   --ucentral_host test-controller-1 --action show_commands
+ ./ulogin.py --serno c4411ef52d0f \
+   --ucentral_host tip-f34.candelatech.com --action show_commands
 """
 
 import json
@@ -101,8 +93,10 @@ parser.add_argument("--network", help="bridge | nat.", default="bridge", choices
 # Phy config
 parser.add_argument("--channel24", help="Channel for 2.4Ghz, 0 means auto.", default="AUTO")
 parser.add_argument("--channel5", help="Channel for 5Ghz, 0 means auto.", default="AUTO")
-parser.add_argument("--mode24", help="Mode for 2.4Ghz, AUTO | HE20 | HT20 ...", default="AUTO")
-parser.add_argument("--mode5", help="Mode for 5Ghz, AUTO | HE80 | VHT80 ...", default="AUTO")
+
+# TODO:  Flip this back to default AUTO when ucentral can handle blank entries.
+parser.add_argument("--mode24", help="Mode for 2.4Ghz, AUTO | HE | HT | VHT ...", default="HE")
+parser.add_argument("--mode5", help="Mode for 5Ghz, AUTO | HE | HT | VHT ...", default="HE")
 
 
 parser.add_argument("--url", help="Specify URL for upgrading a device.", default="")
@@ -468,13 +462,13 @@ def cfg_device(args):
         if 'channel-mode' in basic_cfg['radios'][0].keys():
             del basic_cfg['radios'][0]['channel-mode']
     else:
-        basic_cfg['radios'][0]['channel-mode'] = int(args.mode24)
+        basic_cfg['radios'][0]['channel-mode'] = args.mode24
 
     if args.mode5 == "AUTO":
         if 'channel-mode' in basic_cfg['radios'][1].keys():
             del basic_cfg['radios'][1]['channel-mode']
     else:
-        basic_cfg['radios'][1]['channel-mode'] = int(args.mode5)
+        basic_cfg['radios'][1]['channel-mode'] = args.mode5
 
     if args.network == "bridge":
         # Remove LAN section.
