@@ -207,6 +207,7 @@ namespace uCentral::DeviceRegistry {
             Device->second->Conn_.LastContact = time(nullptr);
 			Device->second->Conn_.VerifiedCertificate = uCentral::Objects::NO_CERTIFICATE;
         }
+		
     }
 
     bool Service::SendCommand(uCentral::Objects::CommandDetails & Cmd)
