@@ -14,11 +14,13 @@
 #include "RESTAPI_objects.h"
 #include "uSubSystemServer.h"
 
+// class uCentral::WebSocket::WSConnection;
+
 namespace uCentral::DeviceRegistry {
 
     struct ConnectionEntry {
-        void             					* WSConn_;
-		uCentral::Objects::ConnectionState 	* Conn_;
+		void	*WSConn_;
+		uCentral::Objects::ConnectionState 	Conn_;
         std::string        					LastStats;
 		std::string 						LastHealthcheck;
     };
@@ -31,7 +33,7 @@ namespace uCentral::DeviceRegistry {
 	void SetHealthcheck(const std::string &SerialNumber, const std::string &stats);
     bool GetState(const std::string & SerialNumber, uCentral::Objects::ConnectionState & State);
     void SetState(const std::string & SerialNumber, uCentral::Objects::ConnectionState & State);
-	uCentral::Objects::ConnectionState *  Register(const std::string & SerialNumber, void *);
+	uCentral::Objects::ConnectionState * Register(const std::string & SerialNumber, void *);
     void UnRegister(const std::string & SerialNumber, void *);
     bool SendCommand(uCentral::Objects::CommandDetails & Command);
     bool Connected(const std::string & SerialNumber);
@@ -63,7 +65,7 @@ namespace uCentral::DeviceRegistry {
         friend bool Connected(const std::string & SerialNumber);
     private:
 		static Service                          *instance_;
-		std::map<std::string,ConnectionEntry>   Devices_;
+		std::map<std::string,std::unique_ptr<ConnectionEntry>>   Devices_;
 
         int Start() override;
         void Stop() override;
@@ -73,7 +75,7 @@ namespace uCentral::DeviceRegistry {
         void SetState(const std::string & SerialNumber, uCentral::Objects::ConnectionState & State);
 		bool GetHealthcheck(const std::string &SerialNumber, std::string & Statistics);
 		void SetHealthcheck(const std::string &SerialNumber, const std::string &stats);
-		uCentral::Objects::ConnectionState *  Register(const std::string & SerialNumber, void *);
+		uCentral::Objects::ConnectionState * Register(const std::string & SerialNumber, void *);
         void UnRegister(const std::string & SerialNumber, void *);
         bool SendCommand(uCentral::Objects::CommandDetails & Command);
         bool Connected(const std::string & SerialNumber);
