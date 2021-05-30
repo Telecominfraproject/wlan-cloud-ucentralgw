@@ -51,7 +51,7 @@ namespace uCentral::DeviceRegistry {
 		Service::instance()->SetHealthcheck(SerialNumber, CheckData);
 	}
 
-	uCentral::Objects::ConnectionState *  Register(const std::string & SerialNumber, void *Ptr) {
+	uCentral::Objects::ConnectionState * Register(const std::string & SerialNumber, void *Ptr) {
         return Service::instance()->Register(SerialNumber,Ptr);
     }
 
@@ -83,7 +83,7 @@ namespace uCentral::DeviceRegistry {
 
         auto Device = Devices_.find(SerialNumber);
         if(Device != Devices_.end()) {
-            Statistics = Device->second.LastStats;
+            Statistics = Device->second->LastStats;
             return true;
         }
         return false;
@@ -96,7 +96,8 @@ namespace uCentral::DeviceRegistry {
 
         if(Device != Devices_.end())
         {
-            Device->second.LastStats = Statistics;
+			Device->second->Conn_.LastContact = time(nullptr);
+            Device->second->LastStats = Statistics;
         }
     }
 
@@ -107,7 +108,7 @@ namespace uCentral::DeviceRegistry {
 
         if(Device != Devices_.end())
         {
-            State = *Device->second.Conn_;
+            State = Device->second->Conn_;
             return true;
         }
 
@@ -121,7 +122,8 @@ namespace uCentral::DeviceRegistry {
 
         if(Device != Devices_.end())
         {
-            *Device->second.Conn_ = State;
+			Device->second->Conn_.LastContact = time(nullptr);
+            Device->second->Conn_ = State;
         }
     }
 
@@ -130,7 +132,7 @@ namespace uCentral::DeviceRegistry {
 
 		auto Device = Devices_.find(SerialNumber);
 		if(Device != Devices_.end()) {
-			CheckData = Device->second.LastHealthcheck;
+			CheckData = Device->second->LastHealthcheck;
 			return true;
 		}
 		return false;
@@ -143,7 +145,7 @@ namespace uCentral::DeviceRegistry {
 
 		if(Device != Devices_.end())
 		{
-			Device->second.LastHealthcheck = CheckData;
+			Device->second->LastHealthcheck = CheckData;
 		}
 	}
 
@@ -156,30 +158,29 @@ namespace uCentral::DeviceRegistry {
 		auto Connection = static_cast<uCentral::WebSocket::WSConnection *>(Ptr);
 
         if( Device == Devices_.end()) {
-            ConnectionEntry E;
+            auto E = std::make_unique<ConnectionEntry>();
 
-            E.WSConn_ = Ptr;
-            E.Conn_ = new uCentral::Objects::ConnectionState;
-            E.Conn_->SerialNumber = SerialNumber;
-            E.Conn_->LastContact = time(nullptr);
-            E.Conn_->Connected = true ;
-            E.Conn_->UUID = 0 ;
-            E.Conn_->MessageCount = 0 ;
-            E.Conn_->Address = "";
-            E.Conn_->TX = 0 ;
-            E.Conn_->RX = 0;
-			E.Conn_->VerifiedCertificate = Connection->CertificateValidation();
-            Devices_[SerialNumber] = E;
-            return E.Conn_;
+            E->WSConn_ = Ptr;
+            E->Conn_.SerialNumber = SerialNumber;
+            E->Conn_.LastContact = time(nullptr);
+            E->Conn_.Connected = true ;
+            E->Conn_.UUID = 0 ;
+            E->Conn_.MessageCount = 0 ;
+            E->Conn_.Address = "";
+            E->Conn_.TX = 0 ;
+            E->Conn_.RX = 0;
+			E->Conn_.VerifiedCertificate = Connection->CertificateValidation();
+			auto R=&E->Conn_;
+            Devices_[SerialNumber] = std::move(E);
+            return R;
         }
         else
         {
-            Device->second.WSConn_ = Ptr;
-            Device->second.Conn_->Connected = true;
-            Device->second.Conn_->LastContact = time(nullptr);
-			Device->second.Conn_->VerifiedCertificate = Connection->CertificateValidation();
-
-            return Device->second.Conn_;
+            Device->second->WSConn_ = Ptr;
+            Device->second->Conn_.Connected = true;
+            Device->second->Conn_.LastContact = time(nullptr);
+			Device->second->Conn_.VerifiedCertificate = Connection->CertificateValidation();
+            return &Device->second->Conn_;
         }
     }
 
@@ -191,7 +192,7 @@ namespace uCentral::DeviceRegistry {
         if(Device == Devices_.end())
             return false;
 
-        return Device->second.Conn_->Connected;
+        return Device->second->Conn_.Connected;
     }
 
     void Service::UnRegister(const std::string & SerialNumber, void *Ptr) {
@@ -199,12 +200,12 @@ namespace uCentral::DeviceRegistry {
 
         auto Device = Devices_.find(SerialNumber);
 
-        if( Device != Devices_.end() && Device->second.WSConn_==Ptr) {
-            Device->second.Conn_->Address = "";
-            Device->second.WSConn_ = nullptr;
-            Device->second.Conn_->Connected = false;
-            Device->second.Conn_->LastContact = time(nullptr);
-			Device->second.Conn_->VerifiedCertificate = uCentral::Objects::NO_CERTIFICATE;
+        if( Device != Devices_.end() && Device->second->WSConn_==Ptr) {
+            Device->second->Conn_.Address = "";
+            Device->second->WSConn_ = nullptr;
+            Device->second->Conn_.Connected = false;
+            Device->second->Conn_.LastContact = time(nullptr);
+			Device->second->Conn_.VerifiedCertificate = uCentral::Objects::NO_CERTIFICATE;
         }
     }
 
@@ -216,16 +217,16 @@ namespace uCentral::DeviceRegistry {
 
         try {
             if (Device != Devices_.end()) {
-                if (Device->second.Conn_->Connected) {
-                    if (Device->second.WSConn_ != nullptr) {
-                        auto *WSConn = static_cast<uCentral::WebSocket::WSConnection *>(Device->second.WSConn_);
+                if (Device->second->Conn_.Connected) {
+                    if (Device->second->WSConn_ != nullptr) {
+                        auto *WSConn = static_cast<uCentral::WebSocket::WSConnection *>(Device->second->WSConn_);
                         WSConn->SendCommand(Cmd);
                         return true;
                     }
                 }
             }
         } catch(...) {
-            std::cout << "Problem sending..." << std::endl;
+            Logger_.error(Poco::format("COMMAND(%s): Cannot send command %s.",Cmd.SerialNumber, Cmd.Command));
         }
         return false;
     }
