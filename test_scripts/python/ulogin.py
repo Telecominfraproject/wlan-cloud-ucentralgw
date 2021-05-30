@@ -2,62 +2,59 @@
 #
 # See ../../openapi/ucentral/ucentral.yaml
 
+"""
 # Example usage
 #
 # List all devices
-# ./ulogin.py --ucentral_host test-controller-1 --cert ~/git/tip/ucentral-local/certs/server-cert.pem
-#
+ ./ulogin.py --ucentral_host tip-f34.candelatech.com
+
+# Load default_config file from the curl example directory
+./ulogin.py --serno c4411ef52d0f    --ucentral_host tip-f34.candelatech.com --action cfg-file \
+  --cfg_file ../curl/default_config.json
+
 # Configure 2-ssid setup with psk2 (aka wpa2) in NAT/routed mode
 #
-# ./ulogin.py --serno c4411ef53f23 --cert ~/git/tip/ucentral-local/certs/server-cert.pem \
-#   --ucentral_host test-controller-1 --ssid24 Default-SSID-2g --ssid5 Default-SSID-5gl \
-#   --key24 12345678 --key5 12345678 --encryption24 psk2 --encryption5 psk2 --action cfg \
-#   --network24 lan --network5 lan
-#
-# Configure 2 ssid setup with psk2 in bridge mode.
-# Use local cert downloaded from a remote ucentralgw
-# ./ulogin.py --serno c4411ef53f23 --cert ~/lab-ctlr-ucentral-cert.pem \
-#   --ucentral_host test-controller-1 --ssid24 Default-SSID-2g --ssid5 Default-SSID-5gl \
-#   --key24 12345678 --key5 12345678 --encryption24 psk2 --encryption5 psk2 --action cfg \
-#   --network24 wan --network5 wan
+ ./ulogin.py --serno c4411ef53f23 --cert ~/git/tip/ucentral-local/certs/server-cert.pem \
+   --ucentral_host test-controller-1 --ssid24 Default-SSID-2g --ssid5 Default-SSID-5gl \
+   --key24 12345678 --key5 12345678 --encryption24 psk2 --encryption5 psk2 --action cfg \
+   --network24 lan --network5 nat
 
-# Configure 2 ssid setup with psk2 in NAT/Routed mode.
-# Use local cert downloaded from a remote ucentralgw
-# ./ulogin.py --serno c4411ef53f23 --cert ~/lab-ctlr-ucentral-cert.pem \
-#   --ucentral_host test-controller-1 --ssid24 Default-SSID-2g --ssid5 Default-SSID-5gl \
-#   --key24 12345678 --key5 12345678 --encryption24 psk2 --encryption5 psk2 --action cfg \
-#   --network24 lan --network5 lan
+# Configure 2 ssid setup with psk2 in bridge mode.
+ ./ulogin.py --serno c4411ef52d0f \
+   --ucentral_host tip-f34.candelatech.com --ssid24 Default-SSID-2g --ssid5 Default-SSID-5gl \
+   --key24 12345678 --key5 12345678 --encryption24 psk2 --encryption5 psk2 --action cfg \
+   --network bridge
 
 # Request AP upgrade to specified firmware.
-# ./ulogin.py --serno c4411ef53f23 --cert ~/git/tip/ucentral-local/certs/server-cert.pem \
-#   --ucentral_host test-controller-1 --action upgrade \
-#   --url http://192.168.100.195/tip/openwrt-mediatek-mt7622-linksys_e8450-ubi-squashfs-sysupgrade.itb 
+ ./ulogin.py --serno c4411ef53f23 \
+   --ucentral_host tip-f34.candelatech.com --action upgrade \
+   --url http://192.168.100.195/tip/openwrt-mediatek-mt7622-linksys_e8450-ubi-squashfs-sysupgrade.itb 
 
 # Send request to AP.
-# ./ulogin.py --serno c4411ef53f23 --cert ~/git/tip/ucentral-local/certs/server-cert.pem \
-#   --ucentral_host test-controller-1 --action request \
-#   --request state
+ ./ulogin.py --serno c4411ef52d0f \
+   --ucentral_host tip-f34.candelatech.com --action request \
+   --request state
 
 # Get AP capabilities
-# ./ulogin.py --serno c4411ef53f23 --cert ~/git/tip/ucentral-local/certs/server-cert.pem \
-#   --ucentral_host test-controller-1 --action show_capabilities
+ ./ulogin.py --serno c4411ef52d0f \
+   --ucentral_host tip-f34.candelatech.com --action show_capabilities
 
 # Get AP status
-# ./ulogin.py --serno c4411ef53f23 --cert ~/git/tip/ucentral-local/certs/server-cert.pem \
-#   --ucentral_host test-controller-1 --action show_status
+ ./ulogin.py --serno c4411ef52d0f \
+   --ucentral_host tip-f34.candelatech.com --action show_status
 
 # Get AP logs
-# ./ulogin.py --serno c4411ef53f23 --cert ~/git/tip/ucentral-local/certs/server-cert.pem \
-#   --ucentral_host test-controller-1 --action show_logs
+ ./ulogin.py --serno c4411ef52d0f \
+   --ucentral_host tip-f34.candelatech.com --action show_logs
 
 # Get AP healthcheck
-# ./ulogin.py --serno c4411ef53f23 --cert ~/git/tip/ucentral-local/certs/server-cert.pem \
-#   --ucentral_host test-controller-1 --action show_healthcheck
+ ./ulogin.py --serno c4411ef52d0f \
+   --ucentral_host tip-f34.candelatech.com --action show_healthcheck
 
 # Get ucentral commands
-# ./ulogin.py --serno c4411ef53f23 --cert ~/git/tip/ucentral-local/certs/server-cert.pem \
-#   --ucentral_host test-controller-1 --action show_commands
-
+ ./ulogin.py --serno c4411ef52d0f \
+   --ucentral_host tip-f34.candelatech.com --action show_commands
+"""
 
 import json
 from urllib.parse import urlparse
@@ -73,10 +70,16 @@ access_token = ""
 assert_bad_response = True
 
 parser = argparse.ArgumentParser()
+
 parser.add_argument('--ucentral_host', help="Specify ucentral host name/ip.", default="ucentral")
-parser.add_argument('--cert', help="Specify ucentral cert.", default="cert.pem")
-parser.add_argument("--action", help="Specify action: show_stats | blink | show_commands | show_devices | show_capabilities | show_healthcheck | show_status | show_logs | cfg | upgrade | request .", default="")
+parser.add_argument('--user_name', help="Specify ucentral username.", default="tip@ucentral.com")
+parser.add_argument('--password', help="Specify ucentral password.", default="openwifi")
+
+parser.add_argument('--cert', help="Specify ucentral cert.", default="")
+parser.add_argument("--action", help="Specify action: show_stats | blink | show_commands | show_devices | show_capabilities | show_healthcheck | show_status | show_logs | cfg | upgrade | request | cfg-file .", default="")
 parser.add_argument("--serno", help="Serial number of AP, used for some action.", default="")
+
+parser.add_argument('--cfg_file', help="Apply configuration from this text file, used by cfg-file action.", default="")
 
 parser.add_argument("--ssid24", help="Configure ssid for 2.4 Ghz.", default="ucentral-24")
 parser.add_argument("--ssid5", help="Configure ssid for 5 Ghz.", default="ucentral-5")
@@ -85,14 +88,16 @@ parser.add_argument("--encryption24", help="Configure encryption for 2.4 Ghz: no
 parser.add_argument("--encryption5", help="Configure encryption for 5Ghz: none | psk | psk2 | psk-mixed | sae ...", default="psk2")
 parser.add_argument("--key24", help="Configure key/password for 2.4 Ghz.", default="ucentral")
 parser.add_argument("--key5", help="Configure key/password for 5Ghz.", default="ucentral")
-parser.add_argument("--network24", help="'lan' for NAT mode, 'wan' for bridged.", default="lan")
-parser.add_argument("--network5", help="'lan' for NAT mode, 'wan' for bridged.", default="lan")
+parser.add_argument("--network", help="bridge | nat.", default="bridge", choices=["bridge", "nat"])
+parser.add_argument("--vlan", help="Specify VLAN ID to add to upstream network config.", default=[], action='append')
 
 # Phy config
-parser.add_argument("--channel24", help="Channel for 2.4Ghz, 0 means auto.", default="0")
-parser.add_argument("--channel5", help="Channel for 5Ghz, 0 means auto.", default="0")
-parser.add_argument("--mode24", help="Mode for 2.4Ghz, AUTO | HE20 | HT20 ...", default="AUTO")
-parser.add_argument("--mode5", help="Mode for 5Ghz, AUTO | HE80 | VHT80 ...", default="AUTO")
+parser.add_argument("--channel24", help="Channel for 2.4Ghz, 0 means auto.", default="AUTO")
+parser.add_argument("--channel5", help="Channel for 5Ghz, 0 means auto.", default="AUTO")
+
+# TODO:  Flip this back to default AUTO when ucentral can handle blank entries.
+parser.add_argument("--mode24", help="Mode for 2.4Ghz, AUTO | HE | HT | VHT ...", default="HE")
+parser.add_argument("--mode5", help="Mode for 5Ghz, AUTO | HE | HT | VHT ...", default="HE")
 
 
 parser.add_argument("--url", help="Specify URL for upgrading a device.", default="")
@@ -104,8 +109,9 @@ parser.add_argument("--noverify", help="Disable ssl cert verification.", default
 args = parser.parse_args()
 
 uri = "https://" + args.ucentral_host + ":16001/api/v1/oauth2"
-username = "support@example.com"
-password = "support"
+
+username = args.user_name
+password = args.password
 host = urlparse(uri)
 access_token = ""
 cert = args.cert
@@ -276,133 +282,273 @@ def blink_device(serno):
     check_response("POST", resp, make_headers(), "", uri)
     pprint(resp)
 
+def cfg_file_device(args):
+    f = open(args.cfg_file, mode='r')
+    cfg = f.read()
+
+    print("Submitting config from file: ", args.cfg_file)
+    print(cfg)
+    print("\n\n")
+
+    basic_cfg = json.loads(cfg)
+
+    payload = {}
+    payload["configuration"] = basic_cfg
+    payload['serialNumber'] = args.serno
+    payload['UUID'] = 0
+
+    basic_cfg_str = json.dumps(payload)
+
+    print("data-string: ")
+    print(basic_cfg_str)
+    print("\n\n")
+
+    uri = build_uri("device/" + args.serno + "/configure")
+    resp = requests.post(uri, data=basic_cfg_str, headers=make_headers(), verify=False)
+    check_response("POST", resp, make_headers(), basic_cfg_str, uri)
+    pprint(resp)
+
 def cfg_device(args):
+    # See also: https://github.com/Telecominfraproject/wlan-ap/tree/uCentral-staging-john/feeds/ucentral/ucentral-schema/files/etc/ucentral/examples
+    # And http://ucentral.io/docs/ucentral-schema.html
+
     # Create json cfg file
     basic_cfg_text = """
 {
-  "serialNumber": "FILL_ME_IN",
-  "UUID": 0,
-  "configuration":
-{
- "uuid": 1,
- "stats": {
-  "interval": 10,
-  "neighbours": 1,
-  "traffic": 1,
-  "wifiiface": 1,
-  "wifistation": 1,
-  "pids": 1,
-  "serviceprobe": 1,
-  "lldp": 1,
-  "system": 1,
-  "poe": 1
- },
-"phy": [
-  {
-   "band": "2",
-   "cfg": {
-    "disabled": 0,
-    "channel": 6
-   }
-  },
-  {
-   "band": "5",
-   "cfg": {
-    "disabled": 0,
-    "country": "US",
-    "channel": 0,
-    "htmode": "HE80"
-   }
-  }
- ],
- "ssid": [
-  {
-   "band": [
-    "2"
-   ],
-   "cfg": {
-    "ssid": "uCentral",
-    "encryption": "psk2",
-    "key": "aaaaaaaa",
-    "mode": "ap",
-    "network": "lan"
-  }
- },
-  {
-   "band": [
-    "5u",
-    "5"
-   ],
-   "cfg": {
-    "ssid": "uCentral",
-    "encryption": "psk2",
-    "key": "aaaaaaaa",
-    "mode": "ap",
-    "network": "lan"
-   }
-  }
- ],
- "network": [
-  {
-   "mode": "wan",
-   "cfg": {
-    "proto": "dhcp"
-   }
-  },
-  {
-   "mode": "lan",
-   "cfg": {
-    "proto": "static",
-    "ipaddr": "192.168.1.1",
-    "dhcp": {
-     "start": 10,
-     "limit": 240,
-     "leasetime": "6h"
+  "uuid": 1,
+  "radios": [
+    {
+      "band": "2G",
+      "country": "US",
+      "channel-mode": "HE",
+      "channel-width": 20,
+      "channel": 11
+    },
+    {
+      "band": "5G",
+      "country": "US",
+      "channel-mode": "HE",
+      "channel-width": 80,
+      "channel": 36
     }
-   }
+  ],
+
+  "interfaces": [
+    {
+      "name": "WAN",
+      "role": "upstream",
+      "services": [ "lldp" ],
+      "ethernet": [
+        {
+          "select-ports": [
+            "WAN*"
+          ]
+        }
+      ],
+      "ipv4": {
+        "addressing": "dynamic"
+      },
+      "ssids": [
+        {
+          "name": "OpenWifi",
+          "wifi-bands": [
+            "2G"
+          ],
+          "bss-mode": "ap",
+          "encryption": {
+            "proto": "psk2",
+            "key": "OpenWifi",
+            "ieee80211w": "optional"
+          }
+        },
+        {
+          "name": "OpenWifi",
+          "wifi-bands": [
+            "5G"
+          ],
+          "bss-mode": "ap",
+          "encryption": {
+            "proto": "psk2",
+            "key": "OpenWifi",
+            "ieee80211w": "optional"
+          }
+        }
+      ]
+    },
+    {
+      "name": "LAN",
+      "role": "downstream",
+      "services": [ "ssh", "lldp" ],
+      "ethernet": [
+        {
+          "select-ports": [
+            "LAN*"
+          ]
+        }
+      ],
+      "ipv4": {
+        "addressing": "static",
+        "subnet": "192.168.1.1/24",
+        "dhcp": {
+          "lease-first": 10,
+          "lease-count": 100,
+          "lease-time": "6h"
+        }
+      },
+      "ssids": [
+        {
+          "name": "OpenWifi",
+          "wifi-bands": [
+            "2G"
+          ],
+          "bss-mode": "ap",
+          "encryption": {
+            "proto": "psk2",
+            "key": "OpenWifi",
+            "ieee80211w": "optional"
+          }
+        },
+        {
+          "name": "OpenWifi",
+          "wifi-bands": [
+            "5G"
+          ],
+          "bss-mode": "ap",
+          "encryption": {
+            "proto": "psk2",
+            "key": "OpenWifi",
+            "ieee80211w": "optional"
+          }
+        }
+      ]
+
+    }
+  ],
+  "metrics": {
+    "statistics": {
+      "interval": 120,
+      "types": [ "ssids", "lldp", "clients" ]
+    },
+    "health": {
+      "interval": 120
+    }
+  },
+  "services": {
+    "lldp": {
+      "describe": "uCentral",
+      "location": "universe"
+    },
+    "ssh": {
+      "port": 22
+    }
   }
- ]
-}
 }
 """
     basic_cfg = json.loads(basic_cfg_text)
 
-    basic_cfg['serialNumber'] = args.serno
+    vlan_section = """
+               {
+                        "name": "WAN100",
+                        "role": "upstream",
+                        "vlan": {
+                                "id": 100
+                        },
+                        "ethernet": [
+                                {
+                                        "select-ports": [
+                                                "WAN*"
+                                        ]
+                                }
+                        ],
+                        "ipv4": {
+                                "addressing": "dynamic"
+                        }
+                }
+                """
 
     # And now modify it accordingly.
     if args.channel24 == "AUTO":
-        basic_cfg['configuration']['phy'][0]['cfg']['channel'] = 0
+        if 'channel' in basic_cfg['radios'][0].keys():
+            del basic_cfg['radios'][0]['channel']
     else:
-        basic_cfg['configuration']['phy'][0]['cfg']['channel'] = int(args.channel24)
+        basic_cfg['radios'][0]['channel'] = int(args.channel24)
 
     if args.channel5 == "AUTO":
-        basic_cfg['configuration']['phy'][1]['cfg']['channel'] = 0
+        if 'channel' in basic_cfg['radios'][1].keys():
+            del basic_cfg['radios'][1]['channel']
     else:
-        basic_cfg['configuration']['phy'][1]['cfg']['channel'] = int(args.channel5)
+        basic_cfg['radios'][1]['channel'] = int(args.channel5)
 
     if args.mode24 == "AUTO":
-        if 'htmode' in basic_cfg['configuration']['phy'][0]['cfg'].keys():
-            del basic_cfg['configuration']['phy'][0]['cfg']['htmode']
+        if 'channel-mode' in basic_cfg['radios'][0].keys():
+            del basic_cfg['radios'][0]['channel-mode']
     else:
-        basic_cfg['configuration']['phy'][0]['cfg']['htmode'] = int(args.mode24)
+        basic_cfg['radios'][0]['channel-mode'] = args.mode24
 
     if args.mode5 == "AUTO":
-        if 'htmode' in basic_cfg['configuration']['phy'][1]['cfg'].keys():
-            del basic_cfg['configuration']['phy'][1]['cfg']['htmode']
+        if 'channel-mode' in basic_cfg['radios'][1].keys():
+            del basic_cfg['radios'][1]['channel-mode']
     else:
-        basic_cfg['configuration']['phy'][1]['cfg']['htmode'] = int(args.mode5)
+        basic_cfg['radios'][1]['channel-mode'] = args.mode5
 
-    basic_cfg['configuration']['ssid'][0]['cfg']['ssid'] = args.ssid24
-    basic_cfg['configuration']['ssid'][0]['cfg']['encryption'] = args.encryption24
-    basic_cfg['configuration']['ssid'][0]['cfg']['key'] = args.key24
-    basic_cfg['configuration']['ssid'][0]['cfg']['network'] = args.network24
+    vsection = 0
+    if args.network == "bridge":
+        # Remove LAN section.
+        del basic_cfg['interfaces'][1]
 
-    basic_cfg['configuration']['ssid'][1]['cfg']['ssid'] = args.ssid5
-    basic_cfg['configuration']['ssid'][1]['cfg']['encryption'] = args.encryption5
-    basic_cfg['configuration']['ssid'][1]['cfg']['key'] = args.key5
-    basic_cfg['configuration']['ssid'][1]['cfg']['network'] = args.network5
+        # Add lan ports to WAN section.
+        basic_cfg['interfaces'][0]['ethernet'][0]['select-ports'].append("LAN*")
 
-    basic_cfg_str = json.dumps(basic_cfg)
+        basic_cfg['interfaces'][0]['ssids'][0]['name'] = args.ssid24
+        basic_cfg['interfaces'][0]['ssids'][0]['encryption']['proto'] = args.encryption24
+        basic_cfg['interfaces'][0]['ssids'][0]['encryption']['key'] = args.key24
+
+        basic_cfg['interfaces'][0]['ssids'][1]['name'] = args.ssid5
+        basic_cfg['interfaces'][0]['ssids'][1]['encryption']['proto'] = args.encryption5
+        basic_cfg['interfaces'][0]['ssids'][1]['encryption']['key'] = args.key5
+
+    if args.network == "nat":
+        # Remove ssids from WAN sections.
+        del basic_cfg['interfaces'][0]['ssids']
+
+        basic_cfg['interfaces'][1]['ssids'][0]['name'] = args.ssid24
+        basic_cfg['interfaces'][1]['ssids'][0]['encryption']['proto'] = args.encryption24
+        basic_cfg['interfaces'][1]['ssids'][0]['encryption']['key'] = args.key24
+
+        basic_cfg['interfaces'][1]['ssids'][1]['name'] = args.ssid5
+        basic_cfg['interfaces'][1]['ssids'][1]['encryption']['proto'] = args.encryption5
+        basic_cfg['interfaces'][1]['ssids'][1]['encryption']['key'] = args.key5
+
+        # I think it probably makes no sense to try to do VLANs on a NAT ssid.
+        # More interesting logic will be needed to create complex networks.
+        vsection = 1
+
+    for vid in args.vlan:
+        v_cfg = json.loads(vlan_section)
+        v_cfg['name'] = "WANv%s"%(vid)
+        v_cfg['vlan']['id'] = int(vid)
+
+        basic_cfg['interfaces'].append(v_cfg)
+
+        # Add to the ssid section
+        basic_cfg['interfaces'][vsection]['vlan'] = { 'id': int(vid) }
+
+
+    payload = {}
+    payload["configuration"] = basic_cfg
+    payload['serialNumber'] = args.serno
+    payload['UUID'] = 0
+
+
+    print("Submitting config: ")
+    pprint(payload)
+    print("\n\n")
+
+    basic_cfg_str = json.dumps(payload)
+
+    print("data-string: ")
+    print(basic_cfg_str)
+    print("\n\n")
 
     uri = build_uri("device/" + args.serno + "/configure")
     resp = requests.post(uri, data=basic_cfg_str, headers=make_headers(), verify=False)
@@ -478,6 +624,12 @@ elif args.action == "cfg":
     if args.serno == "":
         print("ERROR:  cfg action needs serno set.\n")
     cfg_device(args)
+elif args.action == "cfg-file":
+    if args.serno == "":
+        print("ERROR:  cfg-file action needs serno set.\n")
+    if args.cfg_file == "":
+        print("ERROR:  cfg-file action needs cfg_file set.\n")
+    cfg_file_device(args)
 else:
     print("Unknown action: ", args.action)
 
