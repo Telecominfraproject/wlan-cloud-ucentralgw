@@ -1052,6 +1052,13 @@ paths:
           schema:
             type: integer
             format: int64
+        - in: query
+          description: Selecting this option means the newest record will be returned. Use limit to select how many.
+          name: newest
+          schema:
+            type: boolean
+          required: false
+
       responses:
         200:
           description: List commands
