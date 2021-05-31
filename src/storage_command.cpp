@@ -125,7 +125,6 @@ namespace uCentral::Storage {
 			uint64_t Now = time(nullptr);
 
 			if(Type == COMMAND_PENDING) {
-				Command.Executed = 0 ;
 				Command.Status = "pending";
 			} else if(Type == COMMAND_COMPLETED) {
 				Command.Status = "completed";
@@ -133,9 +132,6 @@ namespace uCentral::Storage {
 				Command.Executed = Now;
 				Command.Status = "executing";
 			}
-
-			Command.ErrorCode = 0;
-			Command.AttachDate = 0;
 
 			Poco::Data::Session Sess = Pool_->get();
 			Poco::Data::Statement Insert(Sess);

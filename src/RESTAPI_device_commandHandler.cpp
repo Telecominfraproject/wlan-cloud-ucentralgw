@@ -7,6 +7,7 @@
 //
 
 #include <chrono>
+#include <algorithm>
 
 #include "Poco/UUIDGenerator.h"
 #include "Poco/JSON/Parser.h"
@@ -262,9 +263,7 @@ void RESTAPI_device_commandHandler::Configure(Poco::Net::HTTPServerRequest& Requ
                 Cmd.UUID = uCentral::instance()->CreateUUID();
                 Cmd.SubmittedBy = UserInfo_.username_;
                 Cmd.Command = uCentral::uCentralProtocol::CONFIGURE;
-                Cmd.Custom = 0;
                 Cmd.RunAt = When;
-                Cmd.WaitingForFile = 0;
 
                 uCentral::Config::Config    Cfg(Configuration);
 
@@ -313,10 +312,8 @@ void RESTAPI_device_commandHandler::Upgrade(Poco::Net::HTTPServerRequest &Reques
             Cmd.SerialNumber = SerialNumber_;
             Cmd.UUID = uCentral::instance()->CreateUUID();
             Cmd.SubmittedBy = UserInfo_.username_;
-            Cmd.Custom = 0;
             Cmd.Command = uCentral::uCentralProtocol::UPGRADE;
             Cmd.RunAt = When;
-            Cmd.WaitingForFile = 0;
 
             Poco::JSON::Object  Params;
 
@@ -470,7 +467,6 @@ void RESTAPI_device_commandHandler::ExecuteCommand(Poco::Net::HTTPServerRequest&
             Cmd.Command = Command;
             Cmd.Custom = 1;
             Cmd.RunAt = When;
-            Cmd.WaitingForFile = 0;
 
             Poco::JSON::Parser parser2;
 
@@ -518,9 +514,7 @@ void RESTAPI_device_commandHandler::Reboot(Poco::Net::HTTPServerRequest& Request
             Cmd.UUID = uCentral::instance()->CreateUUID();
             Cmd.SubmittedBy = UserInfo_.username_;
             Cmd.Command = uCentral::uCentralProtocol::REBOOT;
-            Cmd.Custom = 0;
             Cmd.RunAt = When;
-            Cmd.WaitingForFile = 0;
 
             Poco::JSON::Object  Params;
 
@@ -567,9 +561,7 @@ void RESTAPI_device_commandHandler::Factory(Poco::Net::HTTPServerRequest &Reques
 			Cmd.UUID = uCentral::instance()->CreateUUID();
 			Cmd.SubmittedBy = UserInfo_.username_;
 			Cmd.Command = uCentral::uCentralProtocol::FACTORY;
-			Cmd.Custom = 0;
 			Cmd.RunAt = When;
-			Cmd.WaitingForFile = 0;
 
 			Poco::JSON::Object Params;
 
@@ -616,7 +608,7 @@ void RESTAPI_device_commandHandler::LEDs(Poco::Net::HTTPServerRequest &Request, 
 
 			auto Duration = Get(uCentral::uCentralProtocol::DURATION, Obj, 20);
             auto When = GetWhen(Obj);
-			Logger_.information(Poco::format("LEDS(%s): Pattern:%s Duration: %d", SerialNumber_, Pattern, (int)Duration));
+			Logger_.information(Poco::format("LEDS(%s): Pattern:%s Duration: %d", SerialNumber_, Pattern, std::min((int)Duration,20)));
 
             uCentral::Objects::CommandDetails  Cmd;
 
@@ -624,10 +616,7 @@ void RESTAPI_device_commandHandler::LEDs(Poco::Net::HTTPServerRequest &Request, 
             Cmd.UUID = uCentral::instance()->CreateUUID();
             Cmd.SubmittedBy = UserInfo_.username_;
             Cmd.Command = uCentral::uCentralProtocol::LEDS;
-            Cmd.Custom = 0;
             Cmd.RunAt = When;
-            Cmd.WaitingForFile = 0;
-
             Poco::JSON::Object  Params;
 
             Params.set(uCentral::uCentralProtocol::SERIAL , SerialNumber_ );
@@ -679,7 +668,6 @@ void RESTAPI_device_commandHandler::Trace(Poco::Net::HTTPServerRequest &Request,
             Cmd.UUID = UUID;
             Cmd.SubmittedBy = UserInfo_.username_;
             Cmd.Command = uCentral::uCentralProtocol::TRACE;
-            Cmd.Custom = 0;
             Cmd.RunAt = When;
             Cmd.WaitingForFile = 1;
 			Cmd.AttachType = uCentral::RESTAPI::Protocol::PCAP_FILE_TYPE;
@@ -734,9 +722,6 @@ void RESTAPI_device_commandHandler::WifiScan(Poco::Net::HTTPServerRequest &Reque
 			Cmd.UUID = UUID;
 			Cmd.SubmittedBy = UserInfo_.username_;
 			Cmd.Command = uCentral::uCentralProtocol::WIFISCAN;
-			Cmd.Custom = 0;
-			Cmd.RunAt = 0;
-			Cmd.WaitingForFile = 0;
 
 			Poco::JSON::Object  Params;
 
@@ -782,9 +767,6 @@ void RESTAPI_device_commandHandler::EventQueue(Poco::Net::HTTPServerRequest &Req
 				Cmd.UUID = UUID;
 				Cmd.SubmittedBy = UserInfo_.username_;
 				Cmd.Command = uCentral::uCentralProtocol::EVENT;
-				Cmd.Custom = 0;
-				Cmd.RunAt = 0;
-				Cmd.WaitingForFile = 0;
 
 				Poco::JSON::Object  Params;
 
@@ -830,9 +812,7 @@ void RESTAPI_device_commandHandler::MakeRequest(Poco::Net::HTTPServerRequest &Re
 			Cmd.SubmittedBy = UserInfo_.username_;
 			Cmd.UUID = uCentral::instance()->CreateUUID();
 			Cmd.Command = uCentral::uCentralProtocol::REQUEST;
-			Cmd.Custom = 0;
 			Cmd.RunAt = When;
-			Cmd.WaitingForFile = 0;
 
 			Poco::JSON::Object Params;
 
@@ -882,9 +862,6 @@ void RESTAPI_device_commandHandler::Rtty(Poco::Net::HTTPServerRequest &Request, 
 				Cmd.SubmittedBy = UserInfo_.username_;
 				Cmd.UUID = CommandUUID;
 				Cmd.Command = uCentral::uCentralProtocol::RTTY;
-				Cmd.Custom = 0;
-				Cmd.RunAt = 0;
-				Cmd.WaitingForFile = 0;
 
 				Poco::JSON::Object  Params;
 
