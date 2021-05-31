@@ -16,6 +16,8 @@
 #include "uCentralProtocol.h"
 #include "uCommandManager.h"
 
+#include "Poco/JSON/Parser.h"
+
 #define DBG		std::cout << __LINE__ << "   " __FILE__ << std::endl;
 
 namespace uCentral::CommandManager {
@@ -47,7 +49,7 @@ namespace uCentral::CommandManager {
     }
 
 	void PostCommandResult(const std::string &SerialNumber, Poco::JSON::Object::Ptr Result) {
-		Service::instance()->PostCommandResult(SerialNumber, Result);
+		Service::instance()->PostCommandResult(SerialNumber, std::move(Result));
 	}
 
 	bool SendCommand( const std::string & SerialNumber, const std::string & Method, const Poco::JSON::Object &Params, std::promise<Poco::JSON::Object::Ptr> Promise) {
@@ -56,6 +58,10 @@ namespace uCentral::CommandManager {
 
 	bool SendCommand( const std::string & SerialNumber, const std::string & Method, const Poco::JSON::Object &Params, const std::string & UUID) {
 		return Service::instance()->SendCommand(SerialNumber, Method, Params, UUID);
+	}
+
+	bool SendCommand(uCentral::Objects::CommandDetails & Command) {
+		return Service::instance()->SendCommand(Command);
 	}
 
 	void Manager::run() {
@@ -68,7 +74,7 @@ namespace uCentral::CommandManager {
             {
                 for(auto & Cmd: Commands)
                 {
-                    if(!uCentral::DeviceRegistry::SendCommand(Cmd)) {
+                    if(!SendCommand(Cmd)) {
                         Logger_.information(Poco::format("Failed to send command '%s' to %s",Cmd.Command,Cmd.SerialNumber));
                     }
                 }
@@ -145,8 +151,48 @@ namespace uCentral::CommandManager {
 
 	}
 
+	bool Service::SendCommand(uCentral::Objects::CommandDetails & Command) {
+		SubMutexGuard G(SubMutex);
 
-void Service::PostCommandResult(const std::string &SerialNumber, Poco::JSON::Object::Ptr Obj) {
+		Logger_.debug(Poco::format("Sending command to %s",Command.SerialNumber));
+		try {
+			Poco::JSON::Object Obj;
+
+			Obj.set(uCentralProtocol::JSONRPC,uCentralProtocol::JSONRPC_VERSION);
+			Obj.set(uCentralProtocol::ID,Id_);
+			Obj.set(uCentralProtocol::METHOD, Command.Custom ? uCentralProtocol::PERFORM : Command.Command );
+
+			bool FullCommand = true;
+			if(Command.Command==uCentralProtocol::REQUEST)
+				FullCommand = false;
+
+			// the params section was composed earlier... just include it here
+			Poco::JSON::Parser  parser;
+			auto ParsedMessage = parser.parse(Command.Details);
+			const auto & ParamsObj = ParsedMessage.extract<Poco::JSON::Object::Ptr>();
+			Obj.set(uCentralProtocol::PARAMS,ParamsObj);
+			std::stringstream ToSend;
+			Poco::JSON::Stringifier::stringify(Obj,ToSend);
+
+			if(uCentral::DeviceRegistry::SendFrame(Command.SerialNumber, ToSend.str())) {
+				uCentral::Storage::SetCommandExecuted(Command.UUID);
+				OutStandingCommands_[Id_] = Command.UUID;
+				Age_[Id_] = time(nullptr);
+				return true;
+			} else {
+
+			}
+			Id_++;
+		}
+		catch( const Poco::Exception & E )
+		{
+			Logger_.warning(Poco::format("COMMAND(%s): Exception while sending a command.",Command.SerialNumber));
+		}
+		return false;
+	}
+
+
+	void Service::PostCommandResult(const std::string &SerialNumber, Poco::JSON::Object::Ptr Obj) {
 		if(!Obj->has(uCentralProtocol::ID)){
 			Logger_.error("Invalid RPC response.");
 			return;

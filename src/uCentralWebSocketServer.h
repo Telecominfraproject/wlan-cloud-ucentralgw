@@ -154,12 +154,12 @@ namespace uCentral::WebSocket {
         void ProcessJSONRPCEvent(Poco::JSON::Object::Ptr	Doc);
         void ProcessJSONRPCResult(Poco::JSON::Object::Ptr	Doc);
         void ProcessIncomingFrame();
-        bool SendCommand(uCentral::Objects::CommandDetails & Command);
+        // bool SendCommand(uCentral::Objects::CommandDetails & Command);
 		bool Send(const std::string &Payload);
         void OnSocketReadable(const Poco::AutoPtr<Poco::Net::ReadableNotification>& pNf);
         void OnSocketShutdown(const Poco::AutoPtr<Poco::Net::ShutdownNotification>& pNf);
         void OnSocketError(const Poco::AutoPtr<Poco::Net::ErrorNotification>& pNf);
-        bool LookForUpgrade(uint64_t UUID, uint64_t & Pending, std::string &Response);
+        bool LookForUpgrade(uint64_t UUID, uint64_t & Pending);
         static Poco::JSON::Object::Ptr ExtractCompressedData(const std::string & CompressedData);
         void Register();
         void DeRegister();
@@ -173,8 +173,6 @@ namespace uCentral::WebSocket {
         std::unique_ptr<Poco::Net::WebSocket> WS_;
         std::string                         SerialNumber_;
 		uCentral::Objects::ConnectionState 	* Conn_ = nullptr;
-        std::map<uint64_t,CommandIDPair>    RPCs_;
-        uint64_t                            RPC_ = time(nullptr);
         bool                                Registered_ = false ;
 		std::string 						CId_;
 		std::string							CN_;

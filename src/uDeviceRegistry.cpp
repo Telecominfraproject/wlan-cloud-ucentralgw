@@ -59,10 +59,10 @@ namespace uCentral::DeviceRegistry {
         Service::instance()->UnRegister(SerialNumber,Ptr);
     }
 
-    bool SendCommand(uCentral::Objects::CommandDetails & Command) {
+/*    bool SendCommand(uCentral::Objects::CommandDetails & Command) {
         return Service::instance()->SendCommand(Command);
     }
-
+*/
     bool Connected(const std::string & SerialNumber) {
         return Service::instance()->Connected(SerialNumber);
     }
@@ -225,7 +225,7 @@ namespace uCentral::DeviceRegistry {
 		return false;
 	}
 
-	bool Service::SendCommand(uCentral::Objects::CommandDetails & Cmd)
+/*	bool Service::SendCommand(uCentral::Objects::CommandDetails & Cmd)
     {
 		SubMutexGuard		Guard(Mutex_);
 
@@ -246,5 +246,5 @@ namespace uCentral::DeviceRegistry {
         }
         return false;
     }
-
+*/
 }  // namespace

@@ -35,7 +35,7 @@ namespace uCentral::DeviceRegistry {
     void SetState(const std::string & SerialNumber, uCentral::Objects::ConnectionState & State);
 	uCentral::Objects::ConnectionState * Register(const std::string & SerialNumber, void *);
     void UnRegister(const std::string & SerialNumber, void *);
-    bool SendCommand(uCentral::Objects::CommandDetails & Command);
+    // bool SendCommand(uCentral::Objects::CommandDetails & Command);
 	bool SendFrame(const std::string & SerialNumber, const std::string & Payload);
     bool Connected(const std::string & SerialNumber);
 
@@ -62,7 +62,7 @@ namespace uCentral::DeviceRegistry {
         friend void SetState(const std::string & SerialNumber, uCentral::Objects::ConnectionState & State);
         friend uCentral::Objects::ConnectionState * Register(const std::string & SerialNumber, void *);
         friend void UnRegister(const std::string & SerialNumber, void *);
-        friend bool SendCommand(uCentral::Objects::CommandDetails & Command);
+        // friend bool SendCommand(uCentral::Objects::CommandDetails & Command);
         friend bool Connected(const std::string & SerialNumber);
 		friend bool SendFrame(const std::string & SerialNumber, const std::string & Payload);
 

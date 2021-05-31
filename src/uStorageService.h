@@ -100,6 +100,7 @@ namespace uCentral::Storage {
 	bool GetAttachedFile(std::string & UUID, std::string & SerialNumber, const std::string & FileName, std::string &Type);
 	bool RemoveAttachedFile(std::string & UUID);
 	bool SetCommandResult(std::string & UUID, std::string & Result);
+	bool SetCommandExecuted(std::string & CommandUUID);
 	bool GetNewestCommands(std::string &SerialNumber, uint64_t HowMany, std::vector<uCentral::Objects::CommandDetails> & Commands);
 
 	bool AddBlackListDevices(std::vector<uCentral::Objects::BlackListedDevice> &  Devices);
@@ -200,6 +201,7 @@ namespace uCentral::Storage {
 		friend bool GetAttachedFile(std::string & UUID, std::string & SerialNumber, const std::string & FileName, std::string &Type);
 		friend bool RemoveAttachedFile(std::string & UUID);
 		friend bool GetNewestCommands(std::string &SerialNumber, uint64_t HowMany, std::vector<uCentral::Objects::CommandDetails> & Commands);
+		friend bool SetCommandExecuted(std::string & CommandUUID);
 
 		friend bool AddBlackListDevices(std::vector<uCentral::Objects::BlackListedDevice> &  Devices);
 		friend bool DeleteBlackListDevice(std::string & SerialNumber);
@@ -300,6 +302,7 @@ namespace uCentral::Storage {
 		bool RemoveAttachedFile(std::string & UUID);
 		bool SetCommandResult(std::string & UUID, std::string & Result);
 		bool GetNewestCommands(std::string &SerialNumber, uint64_t HowMany, std::vector<uCentral::Objects::CommandDetails> & Commands);
+		bool SetCommandExecuted(std::string & CommandUUID);
 
 		bool AddBlackListDevices(std::vector<uCentral::Objects::BlackListedDevice> &  Devices);
 		bool DeleteBlackListDevice(std::string & SerialNumber);

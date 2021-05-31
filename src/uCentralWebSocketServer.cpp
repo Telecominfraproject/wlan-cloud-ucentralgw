@@ -193,7 +193,7 @@ namespace uCentral::WebSocket {
         }
     }
 
-    bool WSConnection::LookForUpgrade(uint64_t UUID, uint64_t & Pending, std::string &Response) {
+    bool WSConnection::LookForUpgrade(uint64_t UUID, uint64_t & Pending) {
 
         std::string NewConfig;
         uint64_t NewConfigUUID;
@@ -213,46 +213,24 @@ namespace uCentral::WebSocket {
                 auto ParsedConfig = parser.parse(NewConfig).extract<Poco::JSON::Object::Ptr>();
 				ParsedConfig->set(uCentralProtocol::UUID,NewConfigUUID);
 
-				Poco::JSON::Object Params;
-                Params.set(uCentralProtocol::SERIAL, SerialNumber_);
-                Params.set(uCentralProtocol::UUID, NewConfigUUID);
-                Params.set(uCentralProtocol::WHEN, 0);
-                Params.set(uCentralProtocol::CONFIG, ParsedConfig);
-
-                uint64_t CommandID = RPC_++;
-
-                Poco::JSON::Object ReturnObject;
-                ReturnObject.set(uCentralProtocol::METHOD, "configure");
-                ReturnObject.set(uCentralProtocol::JSONRPC, uCentralProtocol::JSONRPC_VERSION);
-                ReturnObject.set(uCentralProtocol::ID, CommandID);
-                ReturnObject.set(uCentralProtocol::PARAMS, Params);
-
-                std::stringstream Ret;
-                Poco::JSON::Stringifier::condense(ReturnObject, Ret);
-
-                Response = Ret.str();
-
                 // create the command stub...
                 uCentral::Objects::CommandDetails  Cmd;
-
                 Cmd.SerialNumber = SerialNumber_;
                 Cmd.UUID = uCentral::instance()->CreateUUID();
                 Cmd.SubmittedBy = uCentralProtocol::SUBMITTED_BY_SYSTEM;
-                Cmd.ErrorCode = 0 ;
                 Cmd.Status = uCentralProtocol::PENDING;
                 Cmd.Command = uCentralProtocol::CONFIGURE;
-                Cmd.Custom = 0;
-                Cmd.RunAt = 0;
 
-                std::stringstream ParamStream;
-                Params.stringify(ParamStream);
-                Cmd.Details = ParamStream.str();
-				uCentral::CommandManager::SendCommand( SerialNumber_ ,
-													  Cmd.Command,
-													  Params,
-													  Cmd.UUID);
+				Poco::JSON::Object Params;
+				Params.set(uCentralProtocol::SERIAL, SerialNumber_);
+				Params.set(uCentralProtocol::UUID, NewConfigUUID);
+				Params.set(uCentralProtocol::WHEN, 0);
+				Params.set(uCentralProtocol::CONFIG, ParsedConfig);
+
+				uCentral::CommandManager::SendCommand(SerialNumber_ , Cmd.Command, Params, Cmd.UUID);
 				uCentral::Storage::AddCommand(SerialNumber_, Cmd, Storage::COMMAND_EXECUTED);
-                return true;
+
+				return true;
             }
         }
         return false;
@@ -321,8 +299,6 @@ namespace uCentral::WebSocket {
 			E.rethrow();
 		}
 
-		std::string Response;
-
 		switch(EventType) {
 			case uCentralProtocol::ET_CONNECT: {
 				if( ParamsObj->has(uCentralProtocol::UUID) &&
@@ -362,7 +338,7 @@ namespace uCentral::WebSocket {
 
 						StatsProcessor_ = std::make_unique<uCentral::uStateProcessor>();
 						StatsProcessor_->Initialize(Serial);
-						LookForUpgrade(UUID, Conn_->PendingUUID, Response);
+						LookForUpgrade(UUID, Conn_->PendingUUID);
 					} else {
 						Logger_.warning(Poco::format("CONNECT(%s): Missing one of uuid, firmware, or capabilities",CId_));
 						return;
@@ -396,7 +372,7 @@ namespace uCentral::WebSocket {
 						if (StatsProcessor_)
 							StatsProcessor_->Add(State);
 
-						LookForUpgrade(UUID, Conn_->PendingUUID, Response);
+						LookForUpgrade(UUID, Conn_->PendingUUID);
 					} else {
 						Logger_.warning(Poco::format(
 							"STATE(%s): Invalid request. Missing serial, uuid, or state", CId_));
@@ -439,7 +415,7 @@ namespace uCentral::WebSocket {
 						}
 
 						uCentral::DeviceRegistry::SetHealthcheck(Serial, CheckData);
-						LookForUpgrade(UUID, Conn_->PendingUUID, Response);
+						LookForUpgrade(UUID, Conn_->PendingUUID);
 					} else {
 						Logger_.warning(Poco::format("HEALTHCHECK(%s): Missing parameter", CId_));
 						return;
@@ -557,20 +533,6 @@ namespace uCentral::WebSocket {
 				Errors_++;
 			}
 		}
-
-        if (!Response.empty()) {
-            if (Conn_ != nullptr)
-                Conn_->TX += Response.size();
-            try {
-				Logger_.debug(Poco::format("RESPONSE(%s): %s",CId_, Response));
-                WS_->sendFrame(Response.c_str(), (int)Response.size());
-            }
-            catch( Poco::Exception & E )
-            {
-                Logger_.log(E);
-                delete this;
-            }
-        }
     }
 
     void WSConnection::OnSocketShutdown(const Poco::AutoPtr<Poco::Net::ShutdownNotification>& pNf) {
@@ -749,53 +711,10 @@ namespace uCentral::WebSocket {
 
 	bool WSConnection::Send(const std::string &Payload) {
 		std::lock_guard<std::mutex> guard(Mutex_);
-		return  WS_->sendFrame(Payload.c_str(),(int)Payload.size()) == Payload.size();
+		auto BytesSent = WS_->sendFrame(Payload.c_str(),(int)Payload.size());
+		if(Conn_)
+			Conn_->TX += BytesSent;
+		return  BytesSent == Payload.size();
 	}
 
-	bool WSConnection::SendCommand(uCentral::Objects::CommandDetails & Command) {
-        std::lock_guard<std::mutex> guard(Mutex_);
-
-        Logger_.debug(Poco::format("Sending command to %s",CId_));
-        try {
-            Poco::JSON::Object Obj;
-
-            auto ID = RPC_++;
-
-            Obj.set(uCentralProtocol::JSONRPC,uCentralProtocol::JSONRPC_VERSION);
-            Obj.set(uCentralProtocol::ID,ID);
-            Obj.set(uCentralProtocol::METHOD, Command.Custom ? uCentralProtocol::PERFORM : Command.Command );
-
-			bool FullCommand = true;
-			if(Command.Command==uCentralProtocol::REQUEST)
-				FullCommand = false;
-
-            // the params section was composed earlier... just include it here
-            Poco::JSON::Parser  parser;
-            auto ParsedMessage = parser.parse(Command.Details);
-            const auto & ParamsObj = ParsedMessage.extract<Poco::JSON::Object::Ptr>();
-            Obj.set(uCentralProtocol::PARAMS,ParamsObj);
-            std::stringstream ToSend;
-            Poco::JSON::Stringifier::stringify(Obj,ToSend);
-
-            auto BytesSent = WS_->sendFrame(ToSend.str().c_str(),(int)ToSend.str().size());
-            if(BytesSent == ToSend.str().size())
-            {
-				CommandIDPair	C{ .UUID = Command.UUID,
-									.Full = FullCommand };
-                RPCs_[ID] = C;
-                uCentral::Storage::CommandExecuted(Command.UUID);
-                return true;
-            }
-            else
-            {
-                Logger_.warning(Poco::format("COMMAND(%s): Could not send the entire command.",CId_));
-                return false;
-            }
-        }
-        catch( const Poco::Exception & E )
-        {
-            Logger_.warning(Poco::format("COMMAND(%s): Exception while sending a command.",CId_));
-        }
-        return false;
-    }
 }      //namespace

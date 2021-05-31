@@ -36,6 +36,7 @@ namespace uCentral::CommandManager {
 						 const std::string & Method,
 						 const Poco::JSON::Object &Params,
 						 const std::string & UUID);
+	bool SendCommand(uCentral::Objects::CommandDetails & Command);
 	void Janitor();
 
 	class Manager : public Poco::Runnable {
@@ -66,6 +67,7 @@ namespace uCentral::CommandManager {
 								 const std::string & Method,
 								 const Poco::JSON::Object &Params,
 								 const std::string & UUID);
+			friend bool SendCommand(uCentral::Objects::CommandDetails & Command);
 			friend void Janitor();
 
 			static Service *instance() {
@@ -93,14 +95,12 @@ namespace uCentral::CommandManager {
 								const std::string & Method,
 								const Poco::JSON::Object &Params,
 								const std::string & UUID);
+			bool SendCommand(uCentral::Objects::CommandDetails & Command);
 			void Janitor();
 
 		std::map< uint64_t , std::promise<Poco::JSON::Object::Ptr>>	OutStandingRequests_;
 		std::map< uint64_t , std::string >	OutStandingCommands_;
 		std::map< uint64_t , uint64_t >		Age_;
-
-
-
 	};
 
 }  // namespace

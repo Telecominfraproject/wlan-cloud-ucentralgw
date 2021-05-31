@@ -100,6 +100,10 @@ namespace uCentral::Storage {
 		return Service::instance()->GetNewestCommands(SerialNumber, HowMany, Commands);
 	}
 
+	bool SetCommandExecuted(std::string & CommandUUID) {
+		return Service::instance()->SetCommandExecuted(CommandUUID);
+	}
+
 	bool Service::AddCommand(std::string &SerialNumber, uCentral::Objects::CommandDetails &Command, CommandExecutionType Type) {
 		try {
 			/*
@@ -417,6 +421,26 @@ namespace uCentral::Storage {
 		} catch (const Poco::Exception &E) {
 			Logger_.warning(
 				Poco::format("%s(%s): Failed with: %s", std::string(__func__), UUID, E.displayText()));
+		}
+		return false;
+	}
+
+	bool Service::SetCommandExecuted(std::string &CommandUUID) {
+		try {
+			Poco::Data::Session Sess = Pool_->get();
+			Poco::Data::Statement Update(Sess);
+
+			uint64_t Now = time(nullptr);
+			std::string St{"UPDATE CommandList SET Executed=? WHERE UUID=?"};
+
+			Update << ConvertParams(St),
+				Poco::Data::Keywords::use(Now),
+				Poco::Data::Keywords::use( CommandUUID);
+			Update.execute();
+			return true;
+		} catch (const Poco::Exception &E) {
+			Logger_.warning(
+				Poco::format("%s(%s): Failed with: %s", std::string(__func__), CommandUUID, E.displayText()));
 		}
 		return false;
 	}
