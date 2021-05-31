@@ -722,6 +722,7 @@ void RESTAPI_device_commandHandler::WifiScan(Poco::Net::HTTPServerRequest &Reque
 			Cmd.UUID = UUID;
 			Cmd.SubmittedBy = UserInfo_.username_;
 			Cmd.Command = uCentral::uCentralProtocol::WIFISCAN;
+			Cmd.Submitted = time(nullptr);
 
 			Poco::JSON::Object  Params;
 

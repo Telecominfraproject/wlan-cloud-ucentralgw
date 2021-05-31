@@ -141,7 +141,7 @@ namespace uCentral::Objects {
 		std::string Results;
 		std::string Details;
 		std::string ErrorText;
-		uint64_t Submitted = 0;
+		uint64_t Submitted = time(nullptr);
 		uint64_t Executed = 0;
 		uint64_t Completed = 0 ;
 		uint64_t RunAt = 0 ;
