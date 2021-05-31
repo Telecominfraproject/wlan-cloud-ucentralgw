@@ -81,6 +81,10 @@ namespace uCentral::RESTAPI {
 							 Poco::Net::HTTPServerResponse &Response,
 							 std::chrono::milliseconds D = std::chrono::milliseconds(8000));
 
+		void SetCommandAsPending(uCentral::Objects::CommandDetails &Cmd,
+												 Poco::Net::HTTPServerRequest &Request,
+												 Poco::Net::HTTPServerResponse &Response);
+
 		const std::string &GetBinding(const std::string &Name, const std::string &Default);
 		void InitQueryBlock();
 

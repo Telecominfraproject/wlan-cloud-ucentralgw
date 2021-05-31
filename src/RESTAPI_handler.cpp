@@ -213,6 +213,21 @@ namespace uCentral::RESTAPI {
 		Response.send();
 	}
 
+	void RESTAPIHandler::SetCommandAsPending(uCentral::Objects::CommandDetails &Cmd,
+							 Poco::Net::HTTPServerRequest &Request,
+							 Poco::Net::HTTPServerResponse &Response) {
+		if (uCentral::Storage::AddCommand(Cmd.SerialNumber, Cmd, Storage::COMMAND_PENDING)) {
+			Poco::JSON::Object RetObj;
+			Cmd.to_json(RetObj);
+			ReturnObject(Request, RetObj, Response);
+			return;
+		} else {
+			ReturnStatus(Request, Response,
+						 Poco::Net::HTTPResponse::HTTP_INTERNAL_SERVER_ERROR);
+			return;
+		}
+	}
+
 	void RESTAPIHandler::WaitForCommand(uCentral::Objects::CommandDetails &Cmd,
 		Poco::JSON::Object  & Params,
 		Poco::Net::HTTPServerRequest &Request,
@@ -222,34 +237,26 @@ namespace uCentral::RESTAPI {
 		// 	if the command should be executed in the future, or if the device is not connected, then we should just add the command to
 		//	the DB and let it figure out when to deliver the command.
 		if(Cmd.RunAt || !uCentral::DeviceRegistry::Connected(Cmd.SerialNumber)) {
-			if (uCentral::Storage::AddCommand(Cmd.SerialNumber, Cmd, Storage::COMMAND_PENDING)) {
-				Poco::JSON::Object RetObj;
-				Cmd.to_json(RetObj);
-				ReturnObject(Request, RetObj, Response);
-				return;
-			} else {
-				ReturnStatus(Request, Response,
-							 Poco::Net::HTTPResponse::HTTP_INTERNAL_SERVER_ERROR);
-				return;
-			}
+			SetCommandAsPending(Cmd, Request, Response);
+			return;
 		} else if(Cmd.RunAt==0 && uCentral::DeviceRegistry::Connected(Cmd.SerialNumber)) {
 			std::promise<Poco::JSON::Object::Ptr> Promise;
 			std::future<Poco::JSON::Object::Ptr> Future = Promise.get_future();
 
 			Cmd.Executed = time(nullptr);
 
-			if(uCentral::CommandManager::SendCommand(Cmd.SerialNumber,
-													  Cmd.Command,
-													  Params,
+			if (uCentral::CommandManager::SendCommand(Cmd.SerialNumber, Cmd.Command, Params,
 													  std::move(Promise))) {
 				auto Status = Future.wait_for(D);
-				if(Status==std::future_status::ready) {
+				if (Status == std::future_status::ready) {
 					auto Answer = Future.get();
 
 					if (Answer->has("result") && Answer->isObject("result")) {
-						auto ResultFields = Answer->get("result").extract<Poco::JSON::Object::Ptr>();
+						auto ResultFields =
+							Answer->get("result").extract<Poco::JSON::Object::Ptr>();
 						if (ResultFields->has("status") && ResultFields->isObject("status")) {
-							auto StatusInnerObj = ResultFields->get("status").extract<Poco::JSON::Object::Ptr>();
+							auto StatusInnerObj =
+								ResultFields->get("status").extract<Poco::JSON::Object::Ptr>();
 							if (StatusInnerObj->has("error"))
 								Cmd.ErrorCode = StatusInnerObj->get("error");
 							if (StatusInnerObj->has("text"))
@@ -261,37 +268,25 @@ namespace uCentral::RESTAPI {
 							Cmd.Completed = time(nullptr);
 
 							//	Add the completed command to the database...
-							uCentral::Storage::AddCommand(Cmd.SerialNumber,Cmd,Storage::COMMAND_COMPLETED);
-							Poco::JSON::Object	O;
+							uCentral::Storage::AddCommand(Cmd.SerialNumber, Cmd,
+														  Storage::COMMAND_COMPLETED);
+							Poco::JSON::Object O;
 							Cmd.to_json(O);
 
 							ReturnObject(Request, O, Response);
 							return;
 						}
+					} else {
+						SetCommandAsPending(Cmd, Request, Response);
+						return;
 					}
 				} else {
-					if (uCentral::Storage::AddCommand(Cmd.SerialNumber, Cmd, Storage::COMMAND_PENDING)) {
-						Poco::JSON::Object RetObj;
-						Cmd.to_json(RetObj);
-						ReturnObject(Request, RetObj, Response);
-						return;
-					} else {
-						ReturnStatus(Request, Response,
-									 Poco::Net::HTTPResponse::HTTP_INTERNAL_SERVER_ERROR);
-						return;
-					}
+					SetCommandAsPending(Cmd, Request, Response);
+					return;
 				}
 			} else {
-				if (uCentral::Storage::AddCommand(Cmd.SerialNumber, Cmd, Storage::COMMAND_PENDING)) {
-					Poco::JSON::Object RetObj;
-					Cmd.to_json(RetObj);
-					ReturnObject(Request, RetObj, Response);
-					return;
-				} else {
-					ReturnStatus(Request, Response,
-								 Poco::Net::HTTPResponse::HTTP_INTERNAL_SERVER_ERROR);
-					return;
-				}
+				SetCommandAsPending(Cmd, Request, Response);
+				return;
 			}
 		}
 	}
