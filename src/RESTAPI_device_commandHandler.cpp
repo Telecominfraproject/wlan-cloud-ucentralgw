@@ -6,6 +6,8 @@
 //	Arilia Wireless Inc.
 //
 
+#include <chrono>
+
 #include "Poco/UUIDGenerator.h"
 #include "Poco/JSON/Parser.h"
 
@@ -20,6 +22,8 @@
 
 #include "uCentralProtocol.h"
 #include "RESTAPI_protocol.h"
+
+#include "uCommandManager.h"
 
 void RESTAPI_device_commandHandler::handleRequest(Poco::Net::HTTPServerRequest& Request, Poco::Net::HTTPServerResponse& Response)
 {
@@ -275,14 +279,8 @@ void RESTAPI_device_commandHandler::Configure(Poco::Net::HTTPServerRequest& Requ
                 Params.stringify(ParamStream);
                 Cmd.Details = ParamStream.str();
 
-                if(uCentral::Storage::AddCommand(SerialNumber_,Cmd)) {
-					WaitForRPC(Cmd,Request, Response);
-					return;
-                } else {
-					ReturnStatus(Request, Response,
-								 Poco::Net::HTTPResponse::HTTP_INTERNAL_SERVER_ERROR);
-					return;
-				}
+				WaitForCommand(Cmd,Params,Request,Response);
+				return;
             }
         }
     }
@@ -330,14 +328,8 @@ void RESTAPI_device_commandHandler::Upgrade(Poco::Net::HTTPServerRequest &Reques
             Params.stringify(ParamStream);
             Cmd.Details = ParamStream.str();
 
-            if(uCentral::Storage::AddCommand(SerialNumber_,Cmd)) {
-				WaitForRPC(Cmd,Request, Response, 20000);
-				return;
-            } else {
-				ReturnStatus(Request, Response,
-							 Poco::Net::HTTPResponse::HTTP_INTERNAL_SERVER_ERROR);
-				return;
-			}
+			WaitForCommand(Cmd, Params, Request, Response, std::chrono::milliseconds(20000));
+			return;
         }
     }
     catch(const Poco::Exception &E)
@@ -496,14 +488,8 @@ void RESTAPI_device_commandHandler::ExecuteCommand(Poco::Net::HTTPServerRequest&
             Params.stringify(ParamStream);
             Cmd.Details = ParamStream.str();
 
-            if(uCentral::Storage::AddCommand(SerialNumber_,Cmd)) {
-				WaitForRPC(Cmd, Request, Response, 20000);
-				return;
-            } else {
-				ReturnStatus(Request, Response,
-							 Poco::Net::HTTPResponse::HTTP_INTERNAL_SERVER_ERROR);
-				return;
-			}
+			WaitForCommand(Cmd, Params, Request, Response, std::chrono::milliseconds(20000));
+			return;
         }
     }
     catch(const Poco::Exception &E)
@@ -545,14 +531,8 @@ void RESTAPI_device_commandHandler::Reboot(Poco::Net::HTTPServerRequest& Request
             Params.stringify(ParamStream);
             Cmd.Details = ParamStream.str();
 
-            if(uCentral::Storage::AddCommand(SerialNumber_,Cmd)) {
-				WaitForRPC(Cmd, Request, Response, 20000);
-				return;
-            } else {
-				ReturnStatus(Request, Response,
-							 Poco::Net::HTTPResponse::HTTP_INTERNAL_SERVER_ERROR);
-				return;
-			}
+			WaitForCommand(Cmd, Params, Request, Response, std::chrono::milliseconds(2000));
+			return;
         }
     }
     catch(const Poco::Exception &E)
@@ -601,14 +581,8 @@ void RESTAPI_device_commandHandler::Factory(Poco::Net::HTTPServerRequest &Reques
 			Params.stringify(ParamStream);
 			Cmd.Details = ParamStream.str();
 
-			if (uCentral::Storage::AddCommand(SerialNumber_, Cmd)) {
-				WaitForRPC(Cmd, Request, Response, 20000);
-				return;
-			} else {
-				ReturnStatus(Request, Response,
-							 Poco::Net::HTTPResponse::HTTP_INTERNAL_SERVER_ERROR);
-				return;
-			}
+			WaitForCommand(Cmd, Params, Request, Response, std::chrono::milliseconds(20000));
+			return;
 		}
     }
     catch(const Poco::Exception &E)
@@ -665,14 +639,8 @@ void RESTAPI_device_commandHandler::LEDs(Poco::Net::HTTPServerRequest &Request, 
             Params.stringify(ParamStream);
             Cmd.Details = ParamStream.str();
 
-            if(uCentral::Storage::AddCommand(SerialNumber_,Cmd)) {
-				WaitForRPC(Cmd, Request, Response, 20000);
-				return;
-            } else {
-				ReturnStatus(Request, Response,
-							 Poco::Net::HTTPResponse::HTTP_INTERNAL_SERVER_ERROR);
-				return;
-			}
+			WaitForCommand(Cmd, Params, Request, Response, std::chrono::milliseconds(20000));
+			return;
         }
     }
     catch(const Poco::Exception &E)
@@ -730,17 +698,9 @@ void RESTAPI_device_commandHandler::Trace(Poco::Net::HTTPServerRequest &Request,
             Params.stringify(ParamStream);
             Cmd.Details = ParamStream.str();
 
-            if(uCentral::Storage::AddCommand(SerialNumber_,Cmd)) {
-                uCentral::uFileUploader::AddUUID(UUID);
-				Poco::JSON::Object RetObj;
-				Cmd.to_json(RetObj);
-				ReturnObject(Request, RetObj, Response);
-				return;
-            } else {
-				ReturnStatus(Request, Response,
-							 Poco::Net::HTTPResponse::HTTP_INTERNAL_SERVER_ERROR);
-				return;
-			}
+			uCentral::uFileUploader::AddUUID(UUID);
+			WaitForCommand(Cmd, Params, Request, Response, std::chrono::milliseconds(3000));
+			return;
         }
     }
     catch(const Poco::Exception &E)
@@ -793,14 +753,8 @@ void RESTAPI_device_commandHandler::WifiScan(Poco::Net::HTTPServerRequest &Reque
 			Params.stringify(ParamStream);
 			Cmd.Details = ParamStream.str();
 
-			if(uCentral::Storage::AddCommand(SerialNumber_,Cmd)) {
-				WaitForRPC(Cmd, Request, Response, 20000);
-				return;
-			} else {
-				ReturnStatus(Request, Response,
-							 Poco::Net::HTTPResponse::HTTP_INTERNAL_SERVER_ERROR);
-				return;
-			}
+			WaitForCommand(Cmd, Params, Request, Response, std::chrono::milliseconds(20000));
+			return;
 		}
 	} catch (const Poco::Exception & E) {
 		Logger_.error(Poco::format("%s: failed with %s",std::string(__func__), E.displayText()));
@@ -841,14 +795,8 @@ void RESTAPI_device_commandHandler::EventQueue(Poco::Net::HTTPServerRequest &Req
 				Params.stringify(ParamStream);
 				Cmd.Details = ParamStream.str();
 
-				if(uCentral::Storage::AddCommand(SerialNumber_,Cmd)) {
-					WaitForRPC(Cmd, Request, Response, 20000);
-					return;
-				} else {
-					ReturnStatus(Request, Response,
-								 Poco::Net::HTTPResponse::HTTP_INTERNAL_SERVER_ERROR);
-					return;
-				}
+				WaitForCommand(Cmd, Params, Request, Response, std::chrono::milliseconds(20000));
+				return;
 			}
 		}
 	} catch ( const Poco::Exception & E ) {
@@ -897,14 +845,8 @@ void RESTAPI_device_commandHandler::MakeRequest(Poco::Net::HTTPServerRequest &Re
 			Params.stringify(ParamStream);
 			Cmd.Details = ParamStream.str();
 
-			if (uCentral::Storage::AddCommand(SerialNumber_, Cmd)) {
-				WaitForRPC(Cmd, Request, Response, 4000);
-				return;
-			} else {
-				ReturnStatus(Request, Response,
-							 Poco::Net::HTTPResponse::HTTP_INTERNAL_SERVER_ERROR);
-				return;
-			}
+			WaitForCommand(Cmd, Params, Request, Response, std::chrono::milliseconds(50000));
+			return;
 		}
 	}
 	catch(const Poco::Exception &E)
@@ -959,16 +901,8 @@ void RESTAPI_device_commandHandler::Rtty(Poco::Net::HTTPServerRequest &Request, 
 				Params.stringify(ParamStream);
 				Cmd.Details = ParamStream.str();
 
-				if(uCentral::Storage::AddCommand(SerialNumber_,Cmd)) {
-					if(WaitForRPC(Cmd, Request, Response, 10000, false))
-						ReturnObject(Request, ReturnedObject, Response);
-					else
-						ReturnStatus(Request, Response,Poco::Net::HTTPResponse::HTTP_INTERNAL_SERVER_ERROR);
-					return;
-				} else {
-					ReturnStatus(Request, Response, Poco::Net::HTTPResponse::HTTP_INTERNAL_SERVER_ERROR);
-					return;
-				}
+				WaitForCommand(Cmd, Params, Request, Response, std::chrono::milliseconds(15000));
+				return;
 			} else {
 				NotFound(Request, Response);
 				return;

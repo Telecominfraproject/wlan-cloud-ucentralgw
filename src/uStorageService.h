@@ -32,6 +32,12 @@ namespace uCentral::Storage {
 		odbc
 	};
 
+	enum CommandExecutionType {
+		COMMAND_PENDING,
+		COMMAND_EXECUTED,
+		COMMAND_COMPLETED
+	};
+
     int Start();
     void Stop();
 
@@ -80,7 +86,7 @@ namespace uCentral::Storage {
     bool GetDefaultConfiguration(std::string &name, uCentral::Objects::DefaultConfiguration & DefConfig);
     bool GetDefaultConfigurations(uint64_t From, uint64_t HowMany, std::vector<uCentral::Objects::DefaultConfiguration> &Devices);
 
-    bool AddCommand(std::string & SerialNumber, uCentral::Objects::CommandDetails & Command,bool AlreadyExecuted=false);
+    bool AddCommand(std::string & SerialNumber, uCentral::Objects::CommandDetails & Command,CommandExecutionType Type);
     bool GetCommands(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate, uint64_t Offset, uint64_t HowMany, std::vector<uCentral::Objects::CommandDetails> & Commands);
     bool DeleteCommands(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate);
     bool GetNonExecutedCommands( uint64_t Offset, uint64_t HowMany, std::vector<uCentral::Objects::CommandDetails> & Commands );
@@ -180,7 +186,7 @@ namespace uCentral::Storage {
         friend bool GetDefaultConfiguration(std::string &name, uCentral::Objects::DefaultConfiguration & DefConfig);
         friend bool GetDefaultConfigurations(uint64_t From, uint64_t HowMany, std::vector<uCentral::Objects::DefaultConfiguration> &Devices);
 
-        friend bool AddCommand(std::string & SerialNumber, uCentral::Objects::CommandDetails & Command,bool AlreadyExecuted);
+        friend bool AddCommand(std::string & SerialNumber, uCentral::Objects::CommandDetails & Command,CommandExecutionType Type);
         friend bool GetCommands(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate, uint64_t Offset, uint64_t HowMany, std::vector<uCentral::Objects::CommandDetails> & Commands);
         friend bool DeleteCommands(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate);
         friend bool GetNonExecutedCommands( uint64_t Offset, uint64_t HowMany, std::vector<uCentral::Objects::CommandDetails> & Commands );
@@ -279,7 +285,7 @@ namespace uCentral::Storage {
         bool GetDefaultConfigurations(uint64_t From, uint64_t HowMany, std::vector<uCentral::Objects::DefaultConfiguration> &Devices);
         bool FindDefaultConfigurationForModel(const std::string & Model, uCentral::Objects::DefaultConfiguration & DefConfig );
 
-        bool AddCommand(std::string & SerialNumber, uCentral::Objects::CommandDetails & Command,bool AlreadyExecuted=false);
+        bool AddCommand(std::string & SerialNumber, uCentral::Objects::CommandDetails & Command,CommandExecutionType Type);
         bool GetCommands(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate, uint64_t Offset, uint64_t HowMany, std::vector<uCentral::Objects::CommandDetails> & Commands);
         bool DeleteCommands(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate);
         bool GetNonExecutedCommands( uint64_t Offset, uint64_t HowMany, std::vector<uCentral::Objects::CommandDetails> & Commands );

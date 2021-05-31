@@ -41,7 +41,7 @@ namespace uCentral::RESTAPI {
 		void ParseParameters(Poco::Net::HTTPServerRequest &request);
 
 		void AddCORS(Poco::Net::HTTPServerRequest &Request, Poco::Net::HTTPServerResponse &response);
-		void SetCommonHeaders(Poco::Net::HTTPServerResponse &response, bool CloseConnection=false);
+	 	void SetCommonHeaders(Poco::Net::HTTPServerResponse &response, bool CloseConnection=false);
 		void ProcessOptions(Poco::Net::HTTPServerRequest &Request,
 							Poco::Net::HTTPServerResponse &response);
 		void
@@ -74,6 +74,12 @@ namespace uCentral::RESTAPI {
 						  Poco::Net::HTTPServerResponse &Response,
 						  Poco::Net::HTTPResponse::HTTPStatus Status,
 						  bool CloseConnection=false);
+
+		void WaitForCommand( uCentral::Objects::CommandDetails &Cmd,
+							 Poco::JSON::Object  & Params,
+							 Poco::Net::HTTPServerRequest &Request,
+							 Poco::Net::HTTPServerResponse &Response,
+							 std::chrono::milliseconds D = std::chrono::milliseconds(8000));
 
 		const std::string &GetBinding(const std::string &Name, const std::string &Default);
 		void InitQueryBlock();

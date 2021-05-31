@@ -38,8 +38,8 @@ namespace uCentral::Storage {
 		uint64_t,
 		std::string> CommandDetailsRecordTuple;
 
-	bool AddCommand(std::string &SerialNumber, uCentral::Objects::CommandDetails &Command, bool AlreadyExecuted) {
-		return Service::instance()->AddCommand(SerialNumber, Command, AlreadyExecuted);
+	bool AddCommand(std::string &SerialNumber, uCentral::Objects::CommandDetails &Command, CommandExecutionType Type) {
+		return Service::instance()->AddCommand(SerialNumber, Command, Type);
 	}
 
 	bool GetCommands(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate, uint64_t Offset, uint64_t HowMany,
@@ -100,8 +100,7 @@ namespace uCentral::Storage {
 		return Service::instance()->GetNewestCommands(SerialNumber, HowMany, Commands);
 	}
 
-	bool Service::AddCommand(std::string &SerialNumber, uCentral::Objects::CommandDetails &Command,
-							 bool AlreadyExecuted) {
+	bool Service::AddCommand(std::string &SerialNumber, uCentral::Objects::CommandDetails &Command, CommandExecutionType Type) {
 		try {
 			/*
 					"UUID           VARCHAR(30) PRIMARY KEY, "
@@ -125,14 +124,14 @@ namespace uCentral::Storage {
 
 			uint64_t Now = time(nullptr);
 
-			Command.Submitted = Now;
-			Command.Completed = 0;
-			if (AlreadyExecuted) {
+			if(Type == COMMAND_PENDING) {
+				Command.Executed = 0 ;
+				Command.Status = "pending";
+			} else if(Type == COMMAND_COMPLETED) {
+				Command.Status = "completed";
+			} else {
 				Command.Executed = Now;
 				Command.Status = "executing";
-			} else {
-				Command.Executed = 0;
-				Command.Status = "pending";
 			}
 
 			Command.ErrorCode = 0;
@@ -147,13 +146,17 @@ namespace uCentral::Storage {
 
 			Insert << ConvertParams(St), Poco::Data::Keywords::use(Command.UUID),
 				Poco::Data::Keywords::use(Command.SerialNumber),
-				Poco::Data::Keywords::use(Command.Command), Poco::Data::Keywords::use(Command.Status),
+				Poco::Data::Keywords::use(Command.Command),
+				Poco::Data::Keywords::use(Command.Status),
 				Poco::Data::Keywords::use(Command.SubmittedBy),
-				Poco::Data::Keywords::use(Command.Results), Poco::Data::Keywords::use(Command.Details),
+				Poco::Data::Keywords::use(Command.Results),
+				Poco::Data::Keywords::use(Command.Details),
 				Poco::Data::Keywords::use(Command.Submitted),
 				Poco::Data::Keywords::use(Command.Executed),
-				Poco::Data::Keywords::use(Command.Completed), Poco::Data::Keywords::use(Command.RunAt),
-				Poco::Data::Keywords::use(Command.ErrorCode), Poco::Data::Keywords::use(Command.Custom),
+				Poco::Data::Keywords::use(Command.Completed),
+				Poco::Data::Keywords::use(Command.RunAt),
+				Poco::Data::Keywords::use(Command.ErrorCode),
+				Poco::Data::Keywords::use(Command.Custom),
 				Poco::Data::Keywords::use(Command.WaitingForFile),
 				Poco::Data::Keywords::use(Command.AttachDate),
 				Poco::Data::Keywords::use(Command.AttachSize),

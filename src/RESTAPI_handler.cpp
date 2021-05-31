@@ -10,6 +10,9 @@
 #include <algorithm>
 #include <iostream>
 #include <iterator>
+#include <future>
+#include <numeric>
+#include <chrono>
 
 #include "Poco/URI.h"
 #include "Poco/DateTimeParser.h"
@@ -18,7 +21,7 @@
 #include "uAuthService.h"
 #include "uDeviceRegistry.h"
 #include "uStorageService.h"
-
+#include "uCommandManager.h"
 #include "RESTAPI_protocol.h"
 #include "uUtils.h"
 
@@ -206,6 +209,77 @@ namespace uCentral::RESTAPI {
 			Response.setChunkedTransferEncoding(false);
 		}
 		Response.send();
+	}
+
+	void RESTAPIHandler::WaitForCommand(uCentral::Objects::CommandDetails &Cmd,
+		Poco::JSON::Object  & Params,
+		Poco::Net::HTTPServerRequest &Request,
+		Poco::Net::HTTPServerResponse &Response,
+		std::chrono::milliseconds D) {
+
+		// 	if the command should be executed in the future, or if the device is not connected, then we should just add the command to
+		//	the DB and let it figure out when to deliver the command.
+		if(Cmd.RunAt || !uCentral::DeviceRegistry::Connected(Cmd.SerialNumber)) {
+			if (uCentral::Storage::AddCommand(Cmd.SerialNumber, Cmd, Storage::COMMAND_PENDING)) {
+				Poco::JSON::Object RetObj;
+				Cmd.to_json(RetObj);
+				ReturnObject(Request, RetObj, Response);
+				return;
+			} else {
+				ReturnStatus(Request, Response,
+							 Poco::Net::HTTPResponse::HTTP_INTERNAL_SERVER_ERROR);
+				return;
+			}
+		} else if(Cmd.RunAt==0 && uCentral::DeviceRegistry::Connected(Cmd.SerialNumber)) {
+			std::promise<Poco::JSON::Object::Ptr> Promise;
+			std::future<Poco::JSON::Object::Ptr> Future = Promise.get_future();
+
+			Cmd.Executed = time(nullptr);
+
+			if(uCentral::CommandManager::SendCommand(Cmd.SerialNumber,
+													  Cmd.Command,
+													  Params,
+													  std::move(Promise))) {
+				auto Status = Future.wait_for(D);
+				if(Status==std::future_status::ready) {
+					auto Answer = Future.get();
+
+					if (Answer->has("result") && Answer->isObject("result")) {
+						auto ResultFields = Answer->get("result").extract<Poco::JSON::Object::Ptr>();
+						if (ResultFields->has("status") && ResultFields->isObject("status")) {
+							auto StatusInnerObj = ResultFields->get("status").extract<Poco::JSON::Object::Ptr>();
+							if (StatusInnerObj->has("error"))
+								Cmd.ErrorCode = StatusInnerObj->get("error");
+							if (StatusInnerObj->has("text"))
+								Cmd.ErrorText = StatusInnerObj->get("text").toString();
+							std::stringstream ResultText;
+							Poco::JSON::Stringifier::stringify(Answer->get("result"), ResultText);
+							Cmd.Results = ResultText.str();
+							Cmd.Status = "completed";
+							Cmd.Completed = time(nullptr);
+
+							//	Add the completed command to the database...
+							uCentral::Storage::AddCommand(Cmd.SerialNumber,Cmd,Storage::COMMAND_COMPLETED);
+							Poco::JSON::Object	O;
+							Cmd.to_json(O);
+							ReturnObject(Request, O, Response);
+							return;
+						}
+					}
+				} else {
+					if (uCentral::Storage::AddCommand(Cmd.SerialNumber, Cmd, Storage::COMMAND_PENDING)) {
+						Poco::JSON::Object RetObj;
+						Cmd.to_json(RetObj);
+						ReturnObject(Request, RetObj, Response);
+						return;
+					} else {
+						ReturnStatus(Request, Response,
+									 Poco::Net::HTTPResponse::HTTP_INTERNAL_SERVER_ERROR);
+						return;
+					}
+				}
+			}
+		}
 	}
 
 	bool RESTAPIHandler::WaitForRPC(uCentral::Objects::CommandDetails &Cmd,

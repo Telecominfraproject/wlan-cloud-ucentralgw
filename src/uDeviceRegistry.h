@@ -36,6 +36,7 @@ namespace uCentral::DeviceRegistry {
 	uCentral::Objects::ConnectionState * Register(const std::string & SerialNumber, void *);
     void UnRegister(const std::string & SerialNumber, void *);
     bool SendCommand(uCentral::Objects::CommandDetails & Command);
+	bool SendFrame(const std::string & SerialNumber, const std::string & Payload);
     bool Connected(const std::string & SerialNumber);
 
     class Service : public uSubSystemServer {
@@ -63,7 +64,9 @@ namespace uCentral::DeviceRegistry {
         friend void UnRegister(const std::string & SerialNumber, void *);
         friend bool SendCommand(uCentral::Objects::CommandDetails & Command);
         friend bool Connected(const std::string & SerialNumber);
-    private:
+		friend bool SendFrame(const std::string & SerialNumber, const std::string & Payload);
+
+	  private:
 		static Service                          *instance_;
 		std::map<std::string,std::unique_ptr<ConnectionEntry>>   Devices_;
 
@@ -79,6 +82,8 @@ namespace uCentral::DeviceRegistry {
         void UnRegister(const std::string & SerialNumber, void *);
         bool SendCommand(uCentral::Objects::CommandDetails & Command);
         bool Connected(const std::string & SerialNumber);
+		bool SendFrame(const std::string & SerialNumber, const std::string & Payload);
+
     };
 
 }  // namespace

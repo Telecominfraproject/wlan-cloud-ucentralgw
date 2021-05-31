@@ -155,6 +155,7 @@ namespace uCentral::WebSocket {
         void ProcessJSONRPCResult(Poco::JSON::Object::Ptr	Doc);
         void ProcessIncomingFrame();
         bool SendCommand(uCentral::Objects::CommandDetails & Command);
+		bool Send(const std::string &Payload);
         void OnSocketReadable(const Poco::AutoPtr<Poco::Net::ReadableNotification>& pNf);
         void OnSocketShutdown(const Poco::AutoPtr<Poco::Net::ShutdownNotification>& pNf);
         void OnSocketError(const Poco::AutoPtr<Poco::Net::ErrorNotification>& pNf);

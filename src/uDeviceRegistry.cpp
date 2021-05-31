@@ -67,6 +67,10 @@ namespace uCentral::DeviceRegistry {
         return Service::instance()->Connected(SerialNumber);
     }
 
+	bool SendFrame(const std::string & SerialNumber, const std::string & Payload) {
+		return Service::instance()->SendFrame(SerialNumber, Payload);
+	}
+
     int Service::Start() {
 		SubMutexGuard		Guard(Mutex_);
         Logger_.notice("Starting ");
@@ -210,7 +214,18 @@ namespace uCentral::DeviceRegistry {
 
     }
 
-    bool Service::SendCommand(uCentral::Objects::CommandDetails & Cmd)
+	bool Service::SendFrame(const std::string & SerialNumber, const std::string & Payload) {
+		SubMutexGuard		Guard(Mutex_);
+		auto Device = Devices_.find(SerialNumber);
+		if(Device!=Devices_.end() && Device->second->WSConn_!= nullptr) {
+			auto *WSConn =
+				static_cast<uCentral::WebSocket::WSConnection *>(Device->second->WSConn_);
+			return WSConn->Send(Payload);
+		}
+		return false;
+	}
+
+	bool Service::SendCommand(uCentral::Objects::CommandDetails & Cmd)
     {
 		SubMutexGuard		Guard(Mutex_);
 

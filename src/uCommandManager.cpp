@@ -9,8 +9,10 @@
 #include "uCommandManager.h"
 
 #include "RESTAPI_objects.h"
+#include "RESTAPI_handler.h"
 #include "uStorageService.h"
 #include "uDeviceRegistry.h"
+#include "uCentralProtocol.h"
 
 namespace uCentral::CommandManager {
 
@@ -36,7 +38,19 @@ namespace uCentral::CommandManager {
         uCentral::CommandManager::Service::instance()->WakeUp();
     }
 
-    void Manager::run() {
+	void PostCommandResult(const std::string &SerialNumber, Poco::JSON::Object::Ptr Result) {
+		Service::instance()->PostCommandResult(SerialNumber, Result);
+	}
+
+	bool SendCommand( const std::string & SerialNumber, const std::string & Method, const Poco::JSON::Object &Params, std::promise<Poco::JSON::Object::Ptr> Promise) {
+		return Service::instance()->SendCommand(SerialNumber, Method, Params, std::move(Promise));
+	}
+
+	bool SendCommand( const std::string & SerialNumber, const std::string & Method, const Poco::JSON::Object &Params, const std::string & UUID) {
+		return Service::instance()->SendCommand(SerialNumber, Method, Params, UUID);
+	}
+
+	void Manager::run() {
         while(!Stop_)
         {
             Poco::Thread::trySleep(2000);
@@ -70,5 +84,68 @@ namespace uCentral::CommandManager {
         Logger_.notice("Waking up..");
         ManagerThread.wakeUp();
     }
+
+	bool Service::SendCommand(const std::string &SerialNumber,
+							  const std::string &Method,
+							  const Poco::JSON::Object &Params,
+							  std::promise<Poco::JSON::Object::Ptr> promise) {
+		SubMutexGuard G(SubMutex);
+
+		Poco::JSON::Object	CompleteRPC;
+		CompleteRPC.set(uCentralProtocol::JSONRPC,uCentralProtocol::JSONRPC_VERSION);
+		CompleteRPC.set(uCentralProtocol::ID,Id_);
+		CompleteRPC.set(uCentralProtocol::METHOD, Method );
+		CompleteRPC.set(uCentralProtocol::PARAMS, Params);
+		std::stringstream ToSend;
+		Poco::JSON::Stringifier::stringify(CompleteRPC,ToSend);
+
+		OutStandingRequests_[Id_] = std::move(promise);
+		Id_++;
+		return uCentral::DeviceRegistry::SendFrame(SerialNumber, ToSend.str());
+	}
+
+	bool Service::SendCommand( 	const std::string & SerialNumber,
+						 const std::string & Method,
+						 const Poco::JSON::Object &Params,
+						 const std::string & UUID) {
+		SubMutexGuard G(SubMutex);
+
+		Poco::JSON::Object	CompleteRPC;
+		CompleteRPC.set(uCentralProtocol::JSONRPC,uCentralProtocol::JSONRPC_VERSION);
+		CompleteRPC.set(uCentralProtocol::ID,Id_);
+		CompleteRPC.set(uCentralProtocol::METHOD, Method );
+		CompleteRPC.set(uCentralProtocol::PARAMS, Params);
+		std::stringstream ToSend;
+		Poco::JSON::Stringifier::stringify(CompleteRPC,ToSend);
+
+		OutStandingCommands_[Id_] = UUID;
+		Id_++;
+		return uCentral::DeviceRegistry::SendFrame(SerialNumber, ToSend.str());
+
+	}
+
+
+void Service::PostCommandResult(const std::string &SerialNumber, Poco::JSON::Object::Ptr Obj) {
+		if(!Obj->has(uCentralProtocol::ID)){
+			Logger_.error("Invalid RPC response.");
+			return;
+		}
+
+		SubMutexGuard G(SubMutex);
+
+		uint64_t ID = Obj->get(uCentralProtocol::ID);
+		auto RPC = OutStandingRequests_.find(ID);
+		if(RPC != OutStandingRequests_.end()) {
+			RPC->second.set_value(std::move(Obj));
+			OutStandingRequests_.erase(RPC);
+		} else {
+			auto Cmd = OutStandingCommands_.find(ID);
+			if(Cmd!=OutStandingCommands_.end()) {
+				uCentral::Storage::CommandCompleted(Cmd->second, Obj, true);
+				OutStandingCommands_.erase(Cmd);
+			}
+		}
+	}
+
 
 }  // namespace

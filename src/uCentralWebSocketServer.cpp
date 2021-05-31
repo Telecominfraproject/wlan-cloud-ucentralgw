@@ -23,6 +23,7 @@
 #include "uStorageService.h"
 #include "uUtils.h"
 #include "uCentralProtocol.h"
+#include "uCommandManager.h"
 
 namespace uCentral::WebSocket {
 
@@ -246,16 +247,11 @@ namespace uCentral::WebSocket {
                 std::stringstream ParamStream;
                 Params.stringify(ParamStream);
                 Cmd.Details = ParamStream.str();
-                if(!uCentral::Storage::AddCommand(SerialNumber_,Cmd,true))
-                {
-                    Logger_.warning(Poco::format("Could not submit configure command for %s",SerialNumber_));
-                } else {
-                    Logger_.debug(Poco::format("Submitted configure command %Lu for %s",CommandID, SerialNumber_));
-					CommandIDPair	C{ 	.UUID = Cmd.UUID ,
-										.Full = true };
-                    RPCs_[CommandID] = C;
-                }
-
+				uCentral::CommandManager::SendCommand( SerialNumber_ ,
+													  Cmd.Command,
+													  Params,
+													  Cmd.UUID);
+				uCentral::Storage::AddCommand(SerialNumber_, Cmd, Storage::COMMAND_EXECUTED);
                 return true;
             }
         }
@@ -281,19 +277,7 @@ namespace uCentral::WebSocket {
     }
 
     void WSConnection::ProcessJSONRPCResult(Poco::JSON::Object::Ptr Doc) {
-        uint64_t ID = Doc->get(uCentralProtocol::ID);
-        auto RPC = RPCs_.find(ID);
-
-        if(RPC!=RPCs_.end())
-        {
-            Logger_.debug(Poco::format("RPC(%s): Completed outstanding RPC %Lu",SerialNumber_,ID));
-            uCentral::Storage::CommandCompleted(RPC->second.UUID,Doc,RPC->second.Full);
-			RPCs_.erase(RPC);
-        }
-        else
-        {
-            Logger_.warning(Poco::format("RPC(%s): Could not find outstanding RPC %Lu",SerialNumber_,ID));
-        }
+		uCentral::CommandManager::PostCommandResult(SerialNumber_, Doc);
     }
 
     void WSConnection::ProcessJSONRPCEvent(Poco::JSON::Object::Ptr Doc) {
@@ -758,7 +742,12 @@ namespace uCentral::WebSocket {
         delete this;
     }
 
-    bool WSConnection::SendCommand(uCentral::Objects::CommandDetails & Command) {
+	bool WSConnection::Send(const std::string &Payload) {
+		std::lock_guard<std::mutex> guard(Mutex_);
+		return  WS_->sendFrame(Payload.c_str(),(int)Payload.size()) == Payload.size();
+	}
+
+	bool WSConnection::SendCommand(uCentral::Objects::CommandDetails & Command) {
         std::lock_guard<std::mutex> guard(Mutex_);
 
         Logger_.debug(Poco::format("Sending command to %s",CId_));

@@ -196,7 +196,7 @@ namespace uCentral::FirmwareManager {
 			Params.stringify(ParamStream);
 			Cmd.Details = ParamStream.str();
 
-			uCentral::Storage::AddCommand(i,Cmd);
+			uCentral::Storage::AddCommand(i,Cmd, Storage::COMMAND_PENDING);
 
 			Logger_.information(Poco::format("UPGRADING(%s): to %s",i,Firmware.Version));
 		}
