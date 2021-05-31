@@ -6,6 +6,7 @@
 //	Arilia Wireless Inc.
 //
 
+#include <algorithm>
 #include "uCommandManager.h"
 
 #include "RESTAPI_objects.h"
@@ -13,6 +14,7 @@
 #include "uStorageService.h"
 #include "uDeviceRegistry.h"
 #include "uCentralProtocol.h"
+#include "uCommandManager.h"
 
 #define DBG		std::cout << __LINE__ << "   " __FILE__ << std::endl;
 
@@ -35,6 +37,10 @@ namespace uCentral::CommandManager {
         Service::instance()->Stop();
     }
 
+	void Janitor() {
+		Service::instance()->Janitor();
+	}
+
     void WakeUp()
     {
         uCentral::CommandManager::Service::instance()->WakeUp();
@@ -55,7 +61,7 @@ namespace uCentral::CommandManager {
 	void Manager::run() {
         while(!Stop_)
         {
-            Poco::Thread::trySleep(2000);
+            Poco::Thread::trySleep(10000);
             std::vector<uCentral::Objects::CommandDetails> Commands;
 
             if(uCentral::Storage::GetReadyToExecuteCommands(0,1000,Commands))
@@ -67,6 +73,7 @@ namespace uCentral::CommandManager {
                     }
                 }
             }
+			Janitor();
         }
     }
 
@@ -87,6 +94,16 @@ namespace uCentral::CommandManager {
         ManagerThread.wakeUp();
     }
 
+	void Service::Janitor() {
+		SubMutexGuard G(SubMutex);
+		uint64_t Now = time(nullptr);
+		for(auto i = Age_.begin(); i!= Age_.end();)
+			if((Now-i->first)>300)
+				Age_.erase(i++);
+			else
+				++i;
+	}
+
 	bool Service::SendCommand(const std::string &SerialNumber,
 							  const std::string &Method,
 							  const Poco::JSON::Object &Params,
@@ -102,6 +119,7 @@ namespace uCentral::CommandManager {
 		Poco::JSON::Stringifier::stringify(CompleteRPC,ToSend);
 
 		OutStandingRequests_[Id_] = std::move(promise);
+		Age_[Id_] = time(nullptr);
 		Id_++;
 		return uCentral::DeviceRegistry::SendFrame(SerialNumber, ToSend.str());
 	}
@@ -121,6 +139,7 @@ namespace uCentral::CommandManager {
 		Poco::JSON::Stringifier::stringify(CompleteRPC,ToSend);
 
 		OutStandingCommands_[Id_] = UUID;
+		Age_[Id_] = time(nullptr);
 		Id_++;
 		return uCentral::DeviceRegistry::SendFrame(SerialNumber, ToSend.str());
 
@@ -133,28 +152,18 @@ void Service::PostCommandResult(const std::string &SerialNumber, Poco::JSON::Obj
 			return;
 		}
 
-		DBG;
-
 		SubMutexGuard G(SubMutex);
-	DBG;
 
 		uint64_t ID = Obj->get(uCentralProtocol::ID);
-	DBG;
 		auto RPC = OutStandingRequests_.find(ID);
-	DBG;
+		Age_.erase(ID);
 		if(RPC != OutStandingRequests_.end()) {
-			DBG;
 			RPC->second.set_value(std::move(Obj));
-			DBG;
 			OutStandingRequests_.erase(RPC);
-			DBG;
 		} else {
-			DBG;
 			auto Cmd = OutStandingCommands_.find(ID);
 			if(Cmd!=OutStandingCommands_.end()) {
-				DBG;
 				uCentral::Storage::CommandCompleted(Cmd->second, Obj, true);
-				DBG;
 				OutStandingCommands_.erase(Cmd);
 			}
 		}

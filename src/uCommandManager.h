@@ -36,63 +36,71 @@ namespace uCentral::CommandManager {
 						 const std::string & Method,
 						 const Poco::JSON::Object &Params,
 						 const std::string & UUID);
+	void Janitor();
 
-class Manager : public Poco::Runnable {
-    public:
-        explicit Manager(Poco::Logger & Logger):
-            Logger_(Logger)
-        {}
-        void run() override;
-        void stop() { Stop_ = true; }
-    private:
-        bool 			Stop_ = false;
-        Poco::Logger    & Logger_;
-    };
+	class Manager : public Poco::Runnable {
+		public:
+			explicit Manager(Poco::Logger & Logger):
+				Logger_(Logger)
+			{}
+			void run() override;
+			void stop() { Stop_ = true; }
+		private:
+			bool 			Stop_ = false;
+			Poco::Logger    & Logger_;
+		};
 
     class Service : public uSubSystemServer {
-    public:
-        Service() noexcept;
+	    public:
+			Service() noexcept;
 
-        friend int Start();
-        friend void Stop();
-        friend void WakeUp();
-		friend void PostCommandResult(const std::string &SerialNumber, Poco::JSON::Object::Ptr Obj);
-		friend bool SendCommand( 	const std::string & SerialNumber,
-									const std::string & Method,
-									const Poco::JSON::Object &Params,
-									std::promise<Poco::JSON::Object::Ptr> Promise);
-		friend bool SendCommand( 	const std::string & SerialNumber,
-							 const std::string & Method,
-							 const Poco::JSON::Object &Params,
-							 const std::string & UUID);
+			friend int Start();
+			friend void Stop();
+			friend void WakeUp();
+			friend void PostCommandResult(const std::string &SerialNumber, Poco::JSON::Object::Ptr Obj);
+			friend bool SendCommand( 	const std::string & SerialNumber,
+										const std::string & Method,
+										const Poco::JSON::Object &Params,
+										std::promise<Poco::JSON::Object::Ptr> Promise);
+			friend bool SendCommand( 	const std::string & SerialNumber,
+								 const std::string & Method,
+								 const Poco::JSON::Object &Params,
+								 const std::string & UUID);
+			friend void Janitor();
 
-		static Service *instance() {
-            if (instance_ == nullptr) {
-                instance_ = new Service;
-            }
-            return instance_;
-        }
+			static Service *instance() {
+				if (instance_ == nullptr) {
+					instance_ = new Service;
+				}
+				return instance_;
+			}
 
-    private:
-		static Service *instance_;
-		Manager         Manager_;
-		Poco::Thread    ManagerThread;
-		uint64_t 		Id_=1;
+	    private:
+			static Service *instance_;
+			Manager         Manager_;
+			Poco::Thread    ManagerThread;
+			uint64_t 		Id_=1;
 
-        int Start() override;
-        void Stop() override;
-        void WakeUp();
-		void PostCommandResult(const std::string &SerialNumber, Poco::JSON::Object::Ptr Obj);
-		bool SendCommand( 	const std::string & SerialNumber,
-						 	const std::string & Method,
-						 	const Poco::JSON::Object &Obj,
-						 	std::promise<Poco::JSON::Object::Ptr> Promise);
-		bool SendCommand( 	const std::string & SerialNumber,
-						 	const std::string & Method,
-						 	const Poco::JSON::Object &Params,
-						 	const std::string & UUID);
+			int Start() override;
+			void Stop() override;
+			void WakeUp();
+			void PostCommandResult(const std::string &SerialNumber, Poco::JSON::Object::Ptr Obj);
+			bool SendCommand( 	const std::string & SerialNumber,
+								const std::string & Method,
+								const Poco::JSON::Object &Obj,
+								std::promise<Poco::JSON::Object::Ptr> Promise);
+			bool SendCommand( 	const std::string & SerialNumber,
+								const std::string & Method,
+								const Poco::JSON::Object &Params,
+								const std::string & UUID);
+			void Janitor();
+
 		std::map< uint64_t , std::promise<Poco::JSON::Object::Ptr>>	OutStandingRequests_;
 		std::map< uint64_t , std::string >	OutStandingCommands_;
+		std::map< uint64_t , uint64_t >		Age_;
+
+
+
 	};
 
 }  // namespace
