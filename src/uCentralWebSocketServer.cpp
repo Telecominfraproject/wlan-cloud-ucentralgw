@@ -166,7 +166,7 @@ namespace uCentral::WebSocket {
     }
 
     void WSConnection::Register() {
-        std::lock_guard<std::mutex> guard(Mutex_);
+        SubMutexGuard Guard(Mutex_);
         if(!Registered_ && WS_)
         {
             auto TS = Poco::Timespan();
@@ -182,7 +182,7 @@ namespace uCentral::WebSocket {
     }
 
     void WSConnection::DeRegister() {
-        std::lock_guard<std::mutex> guard(Mutex_);
+		SubMutexGuard Guard(Mutex_);
         if(Registered_ && WS_)
         {
             Reactor_.Reactor()->removeEventHandler(*WS_,
@@ -536,14 +536,14 @@ namespace uCentral::WebSocket {
     }
 
     void WSConnection::OnSocketShutdown(const Poco::AutoPtr<Poco::Net::ShutdownNotification>& pNf) {
-        std::lock_guard<std::mutex> guard(Mutex_);
+		SubMutexGuard Guard(Mutex_);
 
         Logger_.information(Poco::format("SOCKET-SHUTDOWN(%s): Closing.",CId_));
         delete this;
     }
 
     void WSConnection::OnSocketError(const Poco::AutoPtr<Poco::Net::ErrorNotification>& pNf) {
-        std::lock_guard<std::mutex> guard(Mutex_);
+		SubMutexGuard Guard(Mutex_);
 
         Logger_.information(Poco::format("SOCKET-ERROR(%s): Closing.",CId_));
         delete this;
@@ -582,7 +582,7 @@ namespace uCentral::WebSocket {
 		Poco::Buffer<char>			IncomingFrame(0);
 
         try {
-            std::lock_guard<std::mutex> guard(Mutex_);
+			SubMutexGuard Guard(Mutex_);
 
 			IncomingSize = WS_->receiveFrame(IncomingFrame,flags);
             Op = flags & Poco::Net::WebSocket::FRAME_OP_BITMASK;
@@ -710,7 +710,7 @@ namespace uCentral::WebSocket {
     }
 
 	bool WSConnection::Send(const std::string &Payload) {
-		std::lock_guard<std::mutex> guard(Mutex_);
+		SubMutexGuard Guard(Mutex_);
 		auto BytesSent = WS_->sendFrame(Payload.c_str(),(int)Payload.size());
 		if(Conn_)
 			Conn_->TX += BytesSent;

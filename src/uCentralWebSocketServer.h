@@ -145,7 +145,10 @@ namespace uCentral::WebSocket {
         CountedSocketReactor * Reactor_;
     };
 
-    class WSConnection {
+	using SubMutex = std::recursive_mutex;
+	using SubMutexGuard = std::lock_guard<SubMutex>;
+
+	class WSConnection {
         static constexpr int BufSize = 64000;
     public:
         WSConnection(Poco::Net::StreamSocket& socket, Poco::Net::SocketReactor& reactor);
@@ -166,7 +169,7 @@ namespace uCentral::WebSocket {
 		void LogException(const Poco::Exception &E);
 		[[nodiscard]] uCentral::Objects::CertificateValidation CertificateValidation() const { return CertValidation_; };
     private:
-        std::mutex                          Mutex_{};
+		SubMutex                          	Mutex_{};
         CountedReactor                      Reactor_;
         Poco::Logger                    &   Logger_;
         Poco::Net::StreamSocket       		Socket_;
