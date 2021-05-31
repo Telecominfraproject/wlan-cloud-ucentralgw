@@ -337,6 +337,9 @@ def cfg_file_device(args):
 def cfg_device(args):
     # See also: https://github.com/Telecominfraproject/wlan-ap/tree/uCentral-staging-john/feeds/ucentral/ucentral-schema/files/etc/ucentral/examples
     # And http://ucentral.io/docs/ucentral-schema.html
+    # To manually apply a config:  /usr/share/ucentral/ucentral.uc /tmp/foo.json
+    # To view a config: cat /etc/ucentral/ucentral.active | jq
+    # To install jq:  opkg update && opkg install jq
 
     # Create json cfg file
     basic_cfg_text = """
@@ -414,10 +417,10 @@ def cfg_device(args):
       ],
       "ipv4": {
         "addressing": "static",
-        "subnet": "192.168.1.1/24",
+        "subnet": "192.168.1.1/16",
         "dhcp": {
           "lease-first": 10,
-          "lease-count": 100,
+          "lease-count": 10000,
           "lease-time": "6h"
         }
       },
