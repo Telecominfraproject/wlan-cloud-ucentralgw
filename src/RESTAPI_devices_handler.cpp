@@ -40,12 +40,10 @@ void RESTAPI_devices_handler::handleRequest(Poco::Net::HTTPServerRequest& Reques
 			if (!QB_.Select.empty()) {
 
 				Poco::JSON::Array Objects;
-				std::cout << __LINE__ << "Select: " << QB_.Select << std::endl;
 				std::vector<std::string>	Numbers = uCentral::Utils::Split(QB_.Select);
 				for(auto &i:Numbers) {
 					uCentral::Objects::Device	D;
 					if(uCentral::Storage::GetDevice(i,D)) {
-						std::cout << "Adding device: " << i << std::endl;
 						Poco::JSON::Object	Obj;
 						if (deviceWithStatus)
 							D.to_json_with_status(Obj);
@@ -53,7 +51,7 @@ void RESTAPI_devices_handler::handleRequest(Poco::Net::HTTPServerRequest& Reques
 							D.to_json(Obj);
 						Objects.add(Obj);
 					} else {
-						std::cout << "Could not add device: " << i << std::endl;
+						Logger_.error(Poco::format("DEVICE(%s): device in select cannot be found.",i));
 					}
 				}
 
