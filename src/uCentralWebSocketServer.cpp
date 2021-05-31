@@ -311,6 +311,11 @@ namespace uCentral::WebSocket {
         }
 
 		auto Serial = Poco::toLower(ParamsObj->get(uCentralProtocol::SERIAL).toString());
+		if(!uCentral::Utils::ValidSerialNumber(Serial)) {
+			Poco::Exception	E(Poco::format("ILLEGAL-DEVICE-NAME(%s): device name is illegal and not allowed to connect.",Serial), EACCES);
+			E.rethrow();
+		}
+
 		if(uCentral::Storage::IsBlackListed(Serial)) {
 			Poco::Exception	E(Poco::format("BLACKLIST(%s): device is blacklisted and not allowed to connect.",Serial), EACCES);
 			E.rethrow();

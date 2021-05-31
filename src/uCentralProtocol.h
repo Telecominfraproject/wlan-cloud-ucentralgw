@@ -12,6 +12,9 @@
 #include "Poco/String.h"
 
 namespace uCentral::uCentralProtocol {
+
+	const int SERIAL_NUMBER_LENGTH = 30;
+
 	// vocabulary used in the PROTOCOL.md file
 	static const char * JSONRPC = "jsonrpc";
 	static const char * ID = "id";

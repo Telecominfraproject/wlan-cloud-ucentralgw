@@ -15,8 +15,14 @@
 #include "Poco/DateTime.h"
 #include "Poco/DateTimeParser.h"
 #include "Poco/StringTokenizer.h"
+#include "uCentralProtocol.h"
 
 namespace uCentral::Utils {
+
+	[[nodiscard]] bool ValidSerialNumber(const std::string &Serial) {
+		return ((Serial.size() < uCentralProtocol::SERIAL_NUMBER_LENGTH) &&
+				std::all_of(Serial.begin(),Serial.end(),[](auto i){return std::isxdigit(i);}));
+	}
 
 	[[nodiscard]] std::vector<std::string> Split(const std::string &List, char Delimiter ) {
 		std::vector<std::string> ReturnList;

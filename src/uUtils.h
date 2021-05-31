@@ -34,5 +34,7 @@ namespace uCentral::Utils {
 	bool ParseTime(const std::string &Time, int & Hours, int & Minutes, int & Seconds);
 	bool ParseDate(const std::string &Time, int & Year, int & Month, int & Day);
 	bool CompareTime( int H1, int H2, int M1, int M2, int S1, int S2);
+
+	[[nodiscard]] bool ValidSerialNumber(const std::string &Serial);
 }
 #endif // UCENTRALGW_UUTILS_H

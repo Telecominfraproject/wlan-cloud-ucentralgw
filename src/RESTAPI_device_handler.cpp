@@ -10,6 +10,7 @@
 #include "Poco/JSON/Parser.h"
 #include "uStorageService.h"
 #include "RESTAPI_protocol.h"
+#include "uUtils.h"
 
 void RESTAPI_device_handler::handleRequest(Poco::Net::HTTPServerRequest& Request, Poco::Net::HTTPServerResponse& Response)
 {
@@ -55,6 +56,12 @@ void RESTAPI_device_handler::handleRequest(Poco::Net::HTTPServerRequest& Request
             BadRequest(Request, Response);
             return;
         }
+
+		if(!uCentral::Utils::ValidSerialNumber(Device.SerialNumber)) {
+			Logger_.warning(Poco::format("CREATE-DEVICE(%s): Illegal name.",Device.SerialNumber));
+			BadRequest(Request, Response);
+			return;
+		}
 
 		Device.UUID = time(nullptr);
         if (uCentral::Storage::CreateDevice(Device)) {
