@@ -14,6 +14,8 @@
 #include "uDeviceRegistry.h"
 #include "uCentralProtocol.h"
 
+#define DBG		std::cout << __LINE__ << "   " __FILE__ << std::endl;
+
 namespace uCentral::CommandManager {
 
     Service *Service::instance_ = nullptr;
@@ -131,17 +133,28 @@ void Service::PostCommandResult(const std::string &SerialNumber, Poco::JSON::Obj
 			return;
 		}
 
+		DBG;
+
 		SubMutexGuard G(SubMutex);
+	DBG;
 
 		uint64_t ID = Obj->get(uCentralProtocol::ID);
+	DBG;
 		auto RPC = OutStandingRequests_.find(ID);
+	DBG;
 		if(RPC != OutStandingRequests_.end()) {
+			DBG;
 			RPC->second.set_value(std::move(Obj));
+			DBG;
 			OutStandingRequests_.erase(RPC);
+			DBG;
 		} else {
+			DBG;
 			auto Cmd = OutStandingCommands_.find(ID);
 			if(Cmd!=OutStandingCommands_.end()) {
+				DBG;
 				uCentral::Storage::CommandCompleted(Cmd->second, Obj, true);
+				DBG;
 				OutStandingCommands_.erase(Cmd);
 			}
 		}

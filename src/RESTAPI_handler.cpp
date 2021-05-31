@@ -25,6 +25,8 @@
 #include "RESTAPI_protocol.h"
 #include "uUtils.h"
 
+#define DBG		std::cout << __LINE__ << "   " __FILE__ << std::endl;
+
 namespace uCentral::RESTAPI {
 	bool RESTAPIHandler::ParseBindings(const std::string & Request, const std::string & Path, BindingMap &bindings) {
 		std::string Param, Value;
@@ -219,33 +221,45 @@ namespace uCentral::RESTAPI {
 
 		// 	if the command should be executed in the future, or if the device is not connected, then we should just add the command to
 		//	the DB and let it figure out when to deliver the command.
+		DBG;
 		if(Cmd.RunAt || !uCentral::DeviceRegistry::Connected(Cmd.SerialNumber)) {
 			if (uCentral::Storage::AddCommand(Cmd.SerialNumber, Cmd, Storage::COMMAND_PENDING)) {
+				DBG;
 				Poco::JSON::Object RetObj;
 				Cmd.to_json(RetObj);
 				ReturnObject(Request, RetObj, Response);
+				DBG;
 				return;
 			} else {
+				DBG;
 				ReturnStatus(Request, Response,
 							 Poco::Net::HTTPResponse::HTTP_INTERNAL_SERVER_ERROR);
 				return;
 			}
 		} else if(Cmd.RunAt==0 && uCentral::DeviceRegistry::Connected(Cmd.SerialNumber)) {
+			DBG;
 			std::promise<Poco::JSON::Object::Ptr> Promise;
+			DBG;
 			std::future<Poco::JSON::Object::Ptr> Future = Promise.get_future();
+			DBG;
 
 			Cmd.Executed = time(nullptr);
+			DBG;
 
 			if(uCentral::CommandManager::SendCommand(Cmd.SerialNumber,
 													  Cmd.Command,
 													  Params,
 													  std::move(Promise))) {
 				auto Status = Future.wait_for(D);
+				DBG;
 				if(Status==std::future_status::ready) {
 					auto Answer = Future.get();
+					DBG;
 
 					if (Answer->has("result") && Answer->isObject("result")) {
+						DBG;
 						auto ResultFields = Answer->get("result").extract<Poco::JSON::Object::Ptr>();
+						DBG;
 						if (ResultFields->has("status") && ResultFields->isObject("status")) {
 							auto StatusInnerObj = ResultFields->get("status").extract<Poco::JSON::Object::Ptr>();
 							if (StatusInnerObj->has("error"))
@@ -259,10 +273,13 @@ namespace uCentral::RESTAPI {
 							Cmd.Completed = time(nullptr);
 
 							//	Add the completed command to the database...
+							DBG;
 							uCentral::Storage::AddCommand(Cmd.SerialNumber,Cmd,Storage::COMMAND_COMPLETED);
 							Poco::JSON::Object	O;
+							DBG;
 							Cmd.to_json(O);
 							ReturnObject(Request, O, Response);
+							DBG;
 							return;
 						}
 					}
