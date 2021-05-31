@@ -232,7 +232,8 @@ namespace uCentral::RESTAPI {
 		Poco::JSON::Object  & Params,
 		Poco::Net::HTTPServerRequest &Request,
 		Poco::Net::HTTPServerResponse &Response,
-		std::chrono::milliseconds D) {
+		std::chrono::milliseconds D,
+		Poco::JSON::Object * ObjectToReturn) {
 
 		// 	if the command should be executed in the future, or if the device is not connected, then we should just add the command to
 		//	the DB and let it figure out when to deliver the command.
@@ -268,12 +269,15 @@ namespace uCentral::RESTAPI {
 							Cmd.Completed = time(nullptr);
 
 							//	Add the completed command to the database...
-							uCentral::Storage::AddCommand(Cmd.SerialNumber, Cmd,
-														  Storage::COMMAND_COMPLETED);
-							Poco::JSON::Object O;
-							Cmd.to_json(O);
+							uCentral::Storage::AddCommand(Cmd.SerialNumber, Cmd,Storage::COMMAND_COMPLETED);
 
-							ReturnObject(Request, O, Response);
+							if(ObjectToReturn) {
+								ReturnObject(Request, *ObjectToReturn, Response);
+							} else {
+								Poco::JSON::Object O;
+								Cmd.to_json(O);
+								ReturnObject(Request, O, Response);
+							}
 							return;
 						}
 					} else {

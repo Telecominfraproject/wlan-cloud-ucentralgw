@@ -901,7 +901,7 @@ void RESTAPI_device_commandHandler::Rtty(Poco::Net::HTTPServerRequest &Request, 
 				Params.stringify(ParamStream);
 				Cmd.Details = ParamStream.str();
 
-				WaitForCommand(Cmd, Params, Request, Response, std::chrono::milliseconds(15000));
+				WaitForCommand(Cmd, Params, Request, Response, std::chrono::milliseconds(15000), &ReturnedObject);
 				return;
 			} else {
 				NotFound(Request, Response);

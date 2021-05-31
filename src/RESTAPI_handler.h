@@ -79,7 +79,8 @@ namespace uCentral::RESTAPI {
 							 Poco::JSON::Object  & Params,
 							 Poco::Net::HTTPServerRequest &Request,
 							 Poco::Net::HTTPServerResponse &Response,
-							 std::chrono::milliseconds D = std::chrono::milliseconds(8000));
+							 std::chrono::milliseconds D = std::chrono::milliseconds(8000),
+							 Poco::JSON::Object * ObjectToReturn = nullptr);
 
 		void SetCommandAsPending(uCentral::Objects::CommandDetails &Cmd,
 												 Poco::Net::HTTPServerRequest &Request,
