@@ -26,9 +26,14 @@
    --network bridge
 
 # Request AP upgrade to specified firmware.
- ./ulogin.py --serno c4411ef53f23 \
+ ./ulogin.py --serno c4411ef52d0f \
    --ucentral_host tip-f34.candelatech.com --action upgrade \
    --url http://192.168.100.195/tip/openwrt-mediatek-mt7622-linksys_e8450-ubi-squashfs-sysupgrade.itb 
+
+# Upgrade to latest image directly from jfrog
+ ./ulogin.py --serno c4411ef52d0f \
+   --ucentral_host tip-f34.candelatech.com --action upgrade_latest \
+   --url tip.jfrog.io/artifactory/tip-wlan-ap-firmware/uCentral/linksys_e8450-ubi --user u --password p
 
 # Send request to AP.
  ./ulogin.py --serno c4411ef52d0f \
@@ -63,6 +68,7 @@ import ssl
 import requests
 import argparse
 from pprint import pprint
+import requests
 
 username = "support@example.com"
 password = "support"
@@ -76,7 +82,7 @@ parser.add_argument('--user_name', help="Specify ucentral username.", default="t
 parser.add_argument('--password', help="Specify ucentral password.", default="openwifi")
 
 parser.add_argument('--cert', help="Specify ucentral cert.", default="")
-parser.add_argument("--action", help="Specify action: show_stats | blink | show_commands | show_devices | show_capabilities | show_healthcheck | show_status | show_logs | cfg | upgrade | request | cfg-file .", default="")
+parser.add_argument("--action", help="Specify action: show_stats | blink | show_commands | show_devices | show_capabilities | show_healthcheck | show_status | show_logs | cfg | upgrade | upgrade_latest | request | cfg-file .", default="")
 parser.add_argument("--serno", help="Serial number of AP, used for some action.", default="")
 
 parser.add_argument('--cfg_file', help="Apply configuration from this text file, used by cfg-file action.", default="")
@@ -101,6 +107,9 @@ parser.add_argument("--mode5", help="Mode for 5Ghz, AUTO | HE | HT | VHT ...", d
 
 
 parser.add_argument("--url", help="Specify URL for upgrading a device.", default="")
+parser.add_argument("--jfrog_user", help="JFrog user name for 'upgrade_latest' action.", default="")
+parser.add_argument("--jfrog_password", help="JFrog password name for 'upgrade_latest' action.", default="")
+
 parser.add_argument("--request", help="Specify request for request action:  state | healthcheck.", default="state")
 
 parser.add_argument("--verbose", help="Enable verbose logging.", default=False, action='store_true')
@@ -263,6 +272,23 @@ def show_commands(serno):
     pprint(data)
     return data
 
+def upgrade_latest_device(serno, url, user, password):
+    # First, grab latest-upgrade.json
+    my_url = "https://%s/latest-upgrade.json"%(url)
+    response = requests.get(my_url, auth=(user, password))
+    print("Response: ", response)
+    img_name = response.json()["image"]
+
+    # This must be 'wget' syntax.
+    img_url = "https://%s:%s@%s/%s"%(user, password, url, img_name)
+
+    print("Upgrading with url: %s"%(img_url))
+
+    uri = build_uri("device/" + serno + "/upgrade")
+    payload = json.dumps({ "serialNumber": serno, "uri": img_url, "digest": "1234567890" })
+    resp = requests.post(uri, data=payload, headers=make_headers(), verify=False)
+    check_response("POST", resp, make_headers(), "", uri)
+
 def upgrade_device(serno, url):
     uri = build_uri("device/" + serno + "/upgrade")
     payload = json.dumps({ "serialNumber": serno, "uri": url, "digest": "1234567890" })
@@ -311,6 +337,9 @@ def cfg_file_device(args):
 def cfg_device(args):
     # See also: https://github.com/Telecominfraproject/wlan-ap/tree/uCentral-staging-john/feeds/ucentral/ucentral-schema/files/etc/ucentral/examples
     # And http://ucentral.io/docs/ucentral-schema.html
+    # To manually apply a config:  /usr/share/ucentral/ucentral.uc /tmp/foo.json
+    # To view a config: cat /etc/ucentral/ucentral.active | jq
+    # To install jq:  opkg update && opkg install jq
 
     # Create json cfg file
     basic_cfg_text = """
@@ -388,10 +417,10 @@ def cfg_device(args):
       ],
       "ipv4": {
         "addressing": "static",
-        "subnet": "192.168.1.1/24",
+        "subnet": "192.168.1.1/16",
         "dhcp": {
           "lease-first": 10,
-          "lease-count": 100,
+          "lease-count": 10000,
           "lease-time": "6h"
         }
       },
@@ -610,6 +639,16 @@ elif args.action == "upgrade":
     if args.url == "":
         print("ERROR:  upgrate needs URL set.\n")
     upgrade_device(args.serno, args.url)
+elif args.action == "upgrade_latest":
+    if args.serno == "":
+        print("ERROR:  upgrade_latest action needs serno set.\n")
+    if args.url == "":
+        print("ERROR:  upgrade_latest needs URL set.\n")
+    if args.jfrog_user == "":
+        print("ERROR:  upgrade_latest action needs jfrog_user set.\n")
+    if args.jfrog_password == "":
+        print("ERROR:  upgrade_latest action needs jfrog_password set.\n")
+    upgrade_latest_device(args.serno, args.url, args.jfrog_user, args.jfrog_password)
 elif args.action == "request":
     if args.serno == "":
         print("ERROR:  request action needs serno set.\n")
