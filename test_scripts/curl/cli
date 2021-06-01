@@ -47,6 +47,7 @@ login() {
   	echo "Could not login. Please verify the host and username/password."
     exit 13
   fi
+  echo "$token" > token.json
 }
 
 logout() {
@@ -56,7 +57,7 @@ logout() {
 }
 
 getdevice() {
-  curl  $FLAGS -X GET "https://$UCENTRALGW/api/v1/device/$1" \
+  curl  $FLAGS -X GET --url "https://$UCENTRALGW/api/v1/device/$1" \
         -H "accept: application/json" \
         -H "Authorization: Bearer $token" > $rfile
   jq < $rfile
