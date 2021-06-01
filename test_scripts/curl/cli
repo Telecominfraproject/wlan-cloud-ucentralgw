@@ -501,6 +501,7 @@ case "$1" in
   "newestlogs") login; newestlogs "$2"; logout;;
   "newesthealthchecks") login; newesthealthchecks "$2"; logout;;
   "lasthealthcheck") login; lasthealthcheck "$2"; logout;;
+  "login") login ;;
  *) help ;;
 esac
 
