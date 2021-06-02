@@ -188,7 +188,7 @@ namespace uCentral::CommandManager {
 		if(RPC != OutStandingRequests_.end()) {
 			std::cout << __LINE__ << " ID:" << ID << std::endl;
 			std::cout << __LINE__ << " Count: " << RPC->second.first.use_count() << std::endl;
-			if(RPC->second.first != nullptr) {
+			if(RPC->second.first.use_count() > 1) {
 				std::cout << __LINE__ << " ID:" << ID << std::endl;
 				std::cout << __LINE__ << " Count: " << RPC->second.first.use_count() << std::endl;
 				try {
