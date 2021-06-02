@@ -246,7 +246,10 @@ namespace uCentral::RESTAPI {
 
 			Cmd.Executed = time(nullptr);
 
+			std::cout << "WF Count " << Promise.use_count() << std::endl;
+
 			if (uCentral::CommandManager::SendCommand(Cmd.SerialNumber, Cmd.Command, Params, Promise, Cmd.UUID)) {
+				std::cout << "WF Count " << Promise.use_count() << std::endl;
 				auto Status = Future.wait_for(D);
 				if (Status == std::future_status::ready) {
 					auto Answer = Future.get();
