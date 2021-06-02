@@ -37,6 +37,7 @@ rfile=result.json
 username="tip@ucentral.com"
 password="openwifi"
 
+browser=""
 
 login() {
   payload="{ \"userId\" : \"$username\" , \"password\" : \"$password\" }"
@@ -48,6 +49,26 @@ login() {
     exit 13
   fi
   echo "$token" > token.json
+}
+
+findbrowser() {
+	if [[ "$browser" != "" ]]
+	then
+		echo
+	elif [[ "$(uname)" == "Darwin" ]]
+	then
+		browser=open
+	else
+		BROWSER_LIST=(firefox sensible-browser xdg-open links links2 lynx youtube-dl)
+		for br_name in "${BROWSER_LIST[@]}"
+		do
+			if [[ $(which ${br_name}) != "" ]]
+			then
+				browser=${br_name}
+				break
+			fi
+		done
+	fi
 }
 
 logout() {
@@ -337,11 +358,13 @@ rtty() {
 	CID=$(cat $rfile | jq -r '.connectionId')
 	VPORT=$(cat $rfile | jq -r '.viewport')
 	SERVER=$(cat $rfile | jq -r '.server')
+	URL=https://$SERVER:$VPORT/connect/$CID
 
-	case `uname` in
-		"Darwin") open https://$SERVER:$VPORT/connect/$CID ;;
-		*) echo "Unable to start rtty client to access the session." ;;
-	esac
+	findbrowser
+	if [[ "$browser" != "" ]]
+	then
+		$browser $URL
+	fi
 }
 
 lifetimestats() {
@@ -511,6 +534,7 @@ case "$1" in
   "newesthealthchecks") login; newesthealthchecks "$2"; logout;;
   "lasthealthcheck") login; lasthealthcheck "$2"; logout;;
   "login") login ;;
+  "findbrowser") findbrowser; echo "Browser: ${browser}" ;;
   *) help ;;
 esac
 
