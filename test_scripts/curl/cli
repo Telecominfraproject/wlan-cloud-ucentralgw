@@ -333,6 +333,15 @@ rtty() {
         -H "accept: application/json" \
         -H "Authorization: Bearer $token" > $rfile
 	jq < $rfile
+
+	CID=$(cat $rfile | jq -r '.connectionId')
+	VPORT=$(cat $rfile | jq -r '.viewport')
+	SERVER=$(cat $rfile | jq -r '.server')
+
+	case `uname` in
+		"Darwin") open https://$SERVER:$VPORT/connect/$CID ;;
+		*) echo "Unable to start rtty client to access the session." ;;
+	esac
 }
 
 lifetimestats() {
@@ -502,6 +511,6 @@ case "$1" in
   "newesthealthchecks") login; newesthealthchecks "$2"; logout;;
   "lasthealthcheck") login; lasthealthcheck "$2"; logout;;
   "login") login ;;
- *) help ;;
+  *) help ;;
 esac
 
