@@ -229,7 +229,7 @@ namespace uCentral::WebSocket {
 			Params.set(uCentralProtocol::WHEN, 0);
 			Params.set(uCentralProtocol::CONFIG, ParsedConfig);
 
-			uCentral::CommandManager::SendCommand(SerialNumber_ , Cmd.Command, Params, Cmd.UUID);
+			uCentral::CommandManager::SendCommand(SerialNumber_ , Cmd.Command, Params, nullptr, Cmd.UUID);
 			uCentral::Storage::AddCommand(SerialNumber_, Cmd, Storage::COMMAND_EXECUTED);
 			return true;
         }

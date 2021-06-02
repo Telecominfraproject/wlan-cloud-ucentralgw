@@ -28,14 +28,11 @@ namespace uCentral::CommandManager {
     void Stop();
     void WakeUp();
 	void PostCommandResult(const std::string &SerialNumber, Poco::JSON::Object::Ptr Obj);
-	bool SendCommand( 	const std::string & SerialNumber,
-					 	const std::string & Method,
-					 	const Poco::JSON::Object & Params,
-					 	std::promise<Poco::JSON::Object::Ptr> Promise);
-	bool SendCommand( 	const std::string & SerialNumber,
-						 const std::string & Method,
+	bool SendCommand(	const std::string &SerialNumber,
+						 const std::string &Method,
 						 const Poco::JSON::Object &Params,
-						 const std::string & UUID);
+						 std::shared_ptr<std::promise<Poco::JSON::Object::Ptr>> Promise,
+						 const std::string &UUID);
 	bool SendCommand(uCentral::Objects::CommandDetails & Command);
 	void Janitor();
 
@@ -59,10 +56,11 @@ namespace uCentral::CommandManager {
 			friend void Stop();
 			friend void WakeUp();
 			friend void PostCommandResult(const std::string &SerialNumber, Poco::JSON::Object::Ptr Obj);
-			friend bool SendCommand( 	const std::string & SerialNumber,
-										const std::string & Method,
+			friend bool SendCommand(	const std::string &SerialNumber,
+										const std::string &Method,
 										const Poco::JSON::Object &Params,
-										std::promise<Poco::JSON::Object::Ptr> Promise);
+										std::shared_ptr<std::promise<Poco::JSON::Object::Ptr>> Promise,
+										const std::string &UUID);
 			friend bool SendCommand( 	const std::string & SerialNumber,
 								 const std::string & Method,
 								 const Poco::JSON::Object &Params,
@@ -87,10 +85,11 @@ namespace uCentral::CommandManager {
 			void Stop() override;
 			void WakeUp();
 			void PostCommandResult(const std::string &SerialNumber, Poco::JSON::Object::Ptr Obj);
-			bool SendCommand( 	const std::string & SerialNumber,
-								const std::string & Method,
-								const Poco::JSON::Object &Obj,
-								std::promise<Poco::JSON::Object::Ptr> Promise);
+			bool SendCommand(	const std::string &SerialNumber,
+								const std::string &Method,
+								const Poco::JSON::Object &Params,
+								std::shared_ptr<std::promise<Poco::JSON::Object::Ptr>> Promise,
+								const std::string &UUID);
 			bool SendCommand( 	const std::string & SerialNumber,
 								const std::string & Method,
 								const Poco::JSON::Object &Params,
@@ -98,8 +97,7 @@ namespace uCentral::CommandManager {
 			bool SendCommand(uCentral::Objects::CommandDetails & Command);
 			void Janitor();
 
-		std::map< uint64_t , std::promise<Poco::JSON::Object::Ptr>>	OutStandingRequests_;
-		std::map< uint64_t , std::string >	OutStandingCommands_;
+		std::map< uint64_t , std::pair< std::shared_ptr<std::promise<Poco::JSON::Object::Ptr>>, std::string> >	OutStandingRequests_;
 		std::map< uint64_t , uint64_t >		Age_;
 	};
 

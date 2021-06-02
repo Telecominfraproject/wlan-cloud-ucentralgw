@@ -473,7 +473,8 @@ help() {
   echo "setloglevel <sys> <level>         Set the logging system level for individual subsystems."
   echo "                                  sys:ufileuploader/websocket/storage/restapi/commandmanager/auth/deviceregistry/all"
   echo "                                  level:none/fatal/critical/error/warning/notice/information/debug/trace"
-  echo "getfile <uuid>					  Get the file associated with trace command <uuid>"
+  echo "getfile <serial> <uuid> <name>	  Get the file associated with trace command <uuid> for device <serial>"
+  echo "								  The file will be saved with the name <name>"
   echo
   echo "rtty <serial>					  Get the details for an rtty session."
   echo

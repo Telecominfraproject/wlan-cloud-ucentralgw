@@ -241,13 +241,12 @@ namespace uCentral::RESTAPI {
 			SetCommandAsPending(Cmd, Request, Response);
 			return;
 		} else if(Cmd.RunAt==0 && uCentral::DeviceRegistry::Connected(Cmd.SerialNumber)) {
-			std::promise<Poco::JSON::Object::Ptr> Promise;
-			std::future<Poco::JSON::Object::Ptr> Future = Promise.get_future();
+			auto Promise = std::make_shared<std::promise<Poco::JSON::Object::Ptr>>();
+			std::future<Poco::JSON::Object::Ptr> Future = Promise->get_future();
 
 			Cmd.Executed = time(nullptr);
 
-			if (uCentral::CommandManager::SendCommand(Cmd.SerialNumber, Cmd.Command, Params,
-													  std::move(Promise))) {
+			if (uCentral::CommandManager::SendCommand(Cmd.SerialNumber, Cmd.Command, Params, std::move(Promise), Cmd.UUID)) {
 				auto Status = Future.wait_for(D);
 				if (Status == std::future_status::ready) {
 					auto Answer = Future.get();

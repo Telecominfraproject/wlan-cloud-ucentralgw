@@ -52,12 +52,10 @@ namespace uCentral::CommandManager {
 		Service::instance()->PostCommandResult(SerialNumber, std::move(Result));
 	}
 
-	bool SendCommand( const std::string & SerialNumber, const std::string & Method, const Poco::JSON::Object &Params, std::promise<Poco::JSON::Object::Ptr> Promise) {
-		return Service::instance()->SendCommand(SerialNumber, Method, Params, std::move(Promise));
-	}
-
-	bool SendCommand( const std::string & SerialNumber, const std::string & Method, const Poco::JSON::Object &Params, const std::string & UUID) {
-		return Service::instance()->SendCommand(SerialNumber, Method, Params, UUID);
+	bool SendCommand( 	const std::string & SerialNumber, const std::string & Method,
+					 	const Poco::JSON::Object &Params, std::shared_ptr<std::promise<Poco::JSON::Object::Ptr>> Promise,
+					 	const std::string &UUID) {
+		return Service::instance()->SendCommand(SerialNumber, Method, Params, std::move(Promise), UUID);
 	}
 
 	bool SendCommand(uCentral::Objects::CommandDetails & Command) {
@@ -113,42 +111,23 @@ namespace uCentral::CommandManager {
 	bool Service::SendCommand(const std::string &SerialNumber,
 							  const std::string &Method,
 							  const Poco::JSON::Object &Params,
-							  std::promise<Poco::JSON::Object::Ptr> promise) {
+							  std::shared_ptr<std::promise<Poco::JSON::Object::Ptr>> Promise,
+							  const std::string &UUID) {
+
 		SubMutexGuard G(SubMutex);
 
 		Poco::JSON::Object	CompleteRPC;
-		CompleteRPC.set(uCentralProtocol::JSONRPC,uCentralProtocol::JSONRPC_VERSION);
-		CompleteRPC.set(uCentralProtocol::ID,Id_);
+		CompleteRPC.set(uCentralProtocol::JSONRPC, uCentralProtocol::JSONRPC_VERSION);
+		CompleteRPC.set(uCentralProtocol::ID, Id_);
 		CompleteRPC.set(uCentralProtocol::METHOD, Method );
 		CompleteRPC.set(uCentralProtocol::PARAMS, Params);
 		std::stringstream ToSend;
-		Poco::JSON::Stringifier::stringify(CompleteRPC,ToSend);
+		Poco::JSON::Stringifier::stringify(CompleteRPC, ToSend);
 
-		OutStandingRequests_[Id_] = std::move(promise);
+		OutStandingRequests_[Id_] = std::make_pair(std::move(Promise),UUID);
 		Age_[Id_] = time(nullptr);
 		Id_++;
 		return uCentral::DeviceRegistry::SendFrame(SerialNumber, ToSend.str());
-	}
-
-	bool Service::SendCommand( 	const std::string & SerialNumber,
-						 const std::string & Method,
-						 const Poco::JSON::Object &Params,
-						 const std::string & UUID) {
-		SubMutexGuard G(SubMutex);
-
-		Poco::JSON::Object	CompleteRPC;
-		CompleteRPC.set(uCentralProtocol::JSONRPC,uCentralProtocol::JSONRPC_VERSION);
-		CompleteRPC.set(uCentralProtocol::ID,Id_);
-		CompleteRPC.set(uCentralProtocol::METHOD, Method );
-		CompleteRPC.set(uCentralProtocol::PARAMS, Params);
-		std::stringstream ToSend;
-		Poco::JSON::Stringifier::stringify(CompleteRPC,ToSend);
-
-		OutStandingCommands_[Id_] = UUID;
-		Age_[Id_] = time(nullptr);
-		Id_++;
-		return uCentral::DeviceRegistry::SendFrame(SerialNumber, ToSend.str());
-
 	}
 
 	bool Service::SendCommand(uCentral::Objects::CommandDetails & Command) {
@@ -176,7 +155,7 @@ namespace uCentral::CommandManager {
 
 			if(uCentral::DeviceRegistry::SendFrame(Command.SerialNumber, ToSend.str())) {
 				uCentral::Storage::SetCommandExecuted(Command.UUID);
-				OutStandingCommands_[Id_] = Command.UUID;
+				OutStandingRequests_[Id_] = std::make_pair(nullptr,Command.UUID);
 				Age_[Id_] = time(nullptr);
 				return true;
 			} else {
@@ -204,16 +183,21 @@ namespace uCentral::CommandManager {
 		auto RPC = OutStandingRequests_.find(ID);
 		Age_.erase(ID);
 		if(RPC != OutStandingRequests_.end()) {
-			RPC->second.set_value(std::move(Obj));
+			if(RPC->second.first != nullptr) {
+				try {
+					RPC->second.first->set_value(std::move(Obj));
+				} catch (...) {
+					Logger_.error(Poco::format("COMPLETING-RPC(%Lu): future was lost", ID));
+					uCentral::Storage::CommandCompleted(RPC->second.second, Obj, true);
+				}
+			}
+			else {
+				uCentral::Storage::CommandCompleted(RPC->second.second, Obj, true);
+			}
 			OutStandingRequests_.erase(RPC);
 		} else {
-			auto Cmd = OutStandingCommands_.find(ID);
-			if(Cmd!=OutStandingCommands_.end()) {
-				uCentral::Storage::CommandCompleted(Cmd->second, Obj, true);
-				OutStandingCommands_.erase(Cmd);
-			}
+			Logger_.warning(Poco::format("OUTDATED-RPC(%lu): Nothing waiting for this RPC.",ID));
 		}
 	}
-
 
 }  // namespace
