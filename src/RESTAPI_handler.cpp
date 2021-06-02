@@ -246,7 +246,7 @@ namespace uCentral::RESTAPI {
 
 			Cmd.Executed = time(nullptr);
 
-			if (uCentral::CommandManager::SendCommand(Cmd.SerialNumber, Cmd.Command, Params, std::move(Promise), Cmd.UUID)) {
+			if (uCentral::CommandManager::SendCommand(Cmd.SerialNumber, Cmd.Command, Params, Promise, Cmd.UUID)) {
 				auto Status = Future.wait_for(D);
 				if (Status == std::future_status::ready) {
 					auto Answer = Future.get();

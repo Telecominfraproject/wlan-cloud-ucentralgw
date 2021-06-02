@@ -124,6 +124,8 @@ namespace uCentral::CommandManager {
 		std::stringstream ToSend;
 		Poco::JSON::Stringifier::stringify(CompleteRPC, ToSend);
 
+		std::cout << "Count: " << Promise.use_count() << std::endl;
+
 		OutStandingRequests_[Id_] = std::make_pair(std::move(Promise),UUID);
 		Age_[Id_] = time(nullptr);
 		Id_++;
@@ -185,11 +187,14 @@ namespace uCentral::CommandManager {
 		std::cout << __LINE__ << " ID:" << ID << std::endl;
 		if(RPC != OutStandingRequests_.end()) {
 			std::cout << __LINE__ << " ID:" << ID << std::endl;
+			std::cout << __LINE__ << " Count: " << RPC->second.first.use_count() << std::endl;
 			if(RPC->second.first != nullptr) {
 				std::cout << __LINE__ << " ID:" << ID << std::endl;
+				std::cout << __LINE__ << " Count: " << RPC->second.first.use_count() << std::endl;
 				try {
 					std::cout << __LINE__ << " ID:" << ID << std::endl;
 					RPC->second.first->set_value(std::move(Obj));
+					std::cout << __LINE__ << " Count: " << RPC->second.first.use_count() << std::endl;
 					std::cout << __LINE__ << " ID:" << ID << std::endl;
 				} catch (...) {
 					std::cout << __LINE__ << " ID:" << ID << std::endl;
