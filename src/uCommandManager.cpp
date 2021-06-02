@@ -184,35 +184,20 @@ namespace uCentral::CommandManager {
 		uint64_t ID = Obj->get(uCentralProtocol::ID);
 		auto RPC = OutStandingRequests_.find(ID);
 		Age_.erase(ID);
-		std::cout << __LINE__ << " ID:" << ID << std::endl;
 		if(RPC != OutStandingRequests_.end()) {
-			std::cout << __LINE__ << " ID:" << ID << std::endl;
-			std::cout << __LINE__ << " Count: " << RPC->second.first.use_count() << std::endl;
 			if(RPC->second.first.use_count() > 1) {
-				std::cout << __LINE__ << " ID:" << ID << std::endl;
-				std::cout << __LINE__ << " Count: " << RPC->second.first.use_count() << std::endl;
 				try {
-					std::cout << __LINE__ << " ID:" << ID << std::endl;
 					RPC->second.first->set_value(std::move(Obj));
-					std::cout << __LINE__ << " Count: " << RPC->second.first.use_count() << std::endl;
-					std::cout << __LINE__ << " ID:" << ID << std::endl;
 				} catch (...) {
-					std::cout << __LINE__ << " ID:" << ID << std::endl;
 					Logger_.error(Poco::format("COMPLETING-RPC(%Lu): future was lost", ID));
-					std::cout << __LINE__ << " ID:" << ID << std::endl;
 					uCentral::Storage::CommandCompleted(RPC->second.second, Obj, true);
 				}
 			}
 			else {
-				std::cout << __LINE__ << " ID:" << ID << std::endl;
 				uCentral::Storage::CommandCompleted(RPC->second.second, Obj, true);
-				std::cout << __LINE__ << " ID:" << ID << std::endl;
 			}
-			std::cout << __LINE__ << " ID:" << ID << std::endl;
 			OutStandingRequests_.erase(RPC);
-			std::cout << __LINE__ << " ID:" << ID << std::endl;
 		} else {
-			std::cout << __LINE__ << " ID:" << ID << std::endl;
 			Logger_.warning(Poco::format("OUTDATED-RPC(%lu): Nothing waiting for this RPC.",ID));
 		}
 	}

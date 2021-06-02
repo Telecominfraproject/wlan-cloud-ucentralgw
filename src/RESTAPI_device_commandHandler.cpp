@@ -688,9 +688,7 @@ void RESTAPI_device_commandHandler::Trace(Poco::Net::HTTPServerRequest &Request,
             Cmd.Details = ParamStream.str();
 
 			uCentral::uFileUploader::AddUUID(UUID);
-			std::cout << "Trace 0 " << std::endl;
 			WaitForCommand(Cmd, Params, Request, Response, std::chrono::milliseconds(3000));
-			std::cout << "Trace 1 " << std::endl;
 			return;
         }
     }
