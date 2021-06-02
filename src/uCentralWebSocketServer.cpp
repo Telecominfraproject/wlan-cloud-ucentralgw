@@ -193,7 +193,7 @@ namespace uCentral::WebSocket {
         }
     }
 
-    bool WSConnection::LookForUpgrade(uint64_t UUID, uint64_t & Pending) {
+    bool WSConnection::LookForUpgrade(uint64_t UUID) {
 
         std::string NewConfig;
         uint64_t NewConfigUUID;
@@ -202,36 +202,36 @@ namespace uCentral::WebSocket {
 		if(UUID==0)
 			return false;
 
-        if (uCentral::Storage::ExistingConfiguration(SerialNumber_, Pending,
-                                                     NewConfig, NewConfigUUID)) {
-            if (Pending < NewConfigUUID) {
-                Conn_->PendingUUID = NewConfigUUID;
-                std::string Log = Poco::format("CFG-UPGRADE(%s):, Returning newer configuration %Lu.", SerialNumber_, NewConfigUUID);
-                uCentral::Storage::AddLog(SerialNumber_, Conn_->UUID, Log);
+        if (uCentral::Storage::ExistingConfiguration(SerialNumber_,UUID, NewConfig, NewConfigUUID)) {
+			//	if the new config is already pending,
+			if( NewConfigUUID == Conn_->PendingUUID )
+				return false;
 
-                Poco::JSON::Parser  parser;
-                auto ParsedConfig = parser.parse(NewConfig).extract<Poco::JSON::Object::Ptr>();
-				ParsedConfig->set(uCentralProtocol::UUID,NewConfigUUID);
+			Conn_->PendingUUID = NewConfigUUID;
+			std::string Log = Poco::format("CFG-UPGRADE(%s):, Returning newer configuration %Lu.", SerialNumber_, NewConfigUUID);
+			uCentral::Storage::AddLog(SerialNumber_, Conn_->UUID, Log);
 
-                // create the command stub...
-                uCentral::Objects::CommandDetails  Cmd;
-                Cmd.SerialNumber = SerialNumber_;
-                Cmd.UUID = uCentral::instance()->CreateUUID();
-                Cmd.SubmittedBy = uCentralProtocol::SUBMITTED_BY_SYSTEM;
-                Cmd.Status = uCentralProtocol::PENDING;
-                Cmd.Command = uCentralProtocol::CONFIGURE;
+			Poco::JSON::Parser  parser;
+			auto ParsedConfig = parser.parse(NewConfig).extract<Poco::JSON::Object::Ptr>();
+			ParsedConfig->set(uCentralProtocol::UUID,NewConfigUUID);
 
-				Poco::JSON::Object Params;
-				Params.set(uCentralProtocol::SERIAL, SerialNumber_);
-				Params.set(uCentralProtocol::UUID, NewConfigUUID);
-				Params.set(uCentralProtocol::WHEN, 0);
-				Params.set(uCentralProtocol::CONFIG, ParsedConfig);
+			// create the command stub...
+			uCentral::Objects::CommandDetails  Cmd;
+			Cmd.SerialNumber = SerialNumber_;
+			Cmd.UUID = uCentral::instance()->CreateUUID();
+			Cmd.SubmittedBy = uCentralProtocol::SUBMITTED_BY_SYSTEM;
+			Cmd.Status = uCentralProtocol::PENDING;
+			Cmd.Command = uCentralProtocol::CONFIGURE;
 
-				uCentral::CommandManager::SendCommand(SerialNumber_ , Cmd.Command, Params, Cmd.UUID);
-				uCentral::Storage::AddCommand(SerialNumber_, Cmd, Storage::COMMAND_EXECUTED);
+			Poco::JSON::Object Params;
+			Params.set(uCentralProtocol::SERIAL, SerialNumber_);
+			Params.set(uCentralProtocol::UUID, NewConfigUUID);
+			Params.set(uCentralProtocol::WHEN, 0);
+			Params.set(uCentralProtocol::CONFIG, ParsedConfig);
 
-				return true;
-            }
+			uCentral::CommandManager::SendCommand(SerialNumber_ , Cmd.Command, Params, Cmd.UUID);
+			uCentral::Storage::AddCommand(SerialNumber_, Cmd, Storage::COMMAND_EXECUTED);
+			return true;
         }
         return false;
     }
@@ -313,7 +313,7 @@ namespace uCentral::WebSocket {
 						Conn_->SerialNumber = Serial;
 						Conn_->UUID = UUID;
 						Conn_->Firmware = Firmware;
-						Conn_->PendingUUID = UUID;
+						Conn_->PendingUUID = 0;
 						Conn_->Address = uCentral::Utils::FormatIPv6(WS_->peerAddress().toString());
 						CId_ = SerialNumber_ + "@" + CId_ ;
 
@@ -338,7 +338,7 @@ namespace uCentral::WebSocket {
 
 						StatsProcessor_ = std::make_unique<uCentral::uStateProcessor>();
 						StatsProcessor_->Initialize(Serial);
-						LookForUpgrade(UUID, Conn_->PendingUUID);
+						LookForUpgrade(UUID);
 					} else {
 						Logger_.warning(Poco::format("CONNECT(%s): Missing one of uuid, firmware, or capabilities",CId_));
 						return;
@@ -372,7 +372,7 @@ namespace uCentral::WebSocket {
 						if (StatsProcessor_)
 							StatsProcessor_->Add(State);
 
-						LookForUpgrade(UUID, Conn_->PendingUUID);
+						LookForUpgrade(UUID);
 					} else {
 						Logger_.warning(Poco::format(
 							"STATE(%s): Invalid request. Missing serial, uuid, or state", CId_));
@@ -415,7 +415,7 @@ namespace uCentral::WebSocket {
 						}
 
 						uCentral::DeviceRegistry::SetHealthcheck(Serial, CheckData);
-						LookForUpgrade(UUID, Conn_->PendingUUID);
+						LookForUpgrade(UUID);
 					} else {
 						Logger_.warning(Poco::format("HEALTHCHECK(%s): Missing parameter", CId_));
 						return;
