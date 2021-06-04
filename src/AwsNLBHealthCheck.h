@@ -5,6 +5,8 @@
 #ifndef UCENTRALGW_AWSNLBHEALTHCHECK_H
 #define UCENTRALGW_AWSNLBHEALTHCHECK_H
 
+#include <memory>
+
 #include "Poco/Thread.h"
 #include "Poco/Net/TCPServerConnection.h"
 #include "Poco/Net/TCPServer.h"
