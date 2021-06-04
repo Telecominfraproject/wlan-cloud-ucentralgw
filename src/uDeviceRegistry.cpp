@@ -71,7 +71,12 @@ namespace uCentral::DeviceRegistry {
 		return Service::instance()->SendFrame(SerialNumber, Payload);
 	}
 
-    int Service::Start() {
+	void SetPendingUUID(const std::string & SerialNumber, uint64_t PendingUUID) {
+		Service::instance()->SetPendingUUID(SerialNumber, PendingUUID);
+	}
+
+
+int Service::Start() {
 		SubMutexGuard		Guard(Mutex_);
         Logger_.notice("Starting ");
         return 0;
@@ -223,6 +228,14 @@ namespace uCentral::DeviceRegistry {
 			return WSConn->Send(Payload);
 		}
 		return false;
+	}
+
+	void Service::SetPendingUUID(const std::string & SerialNumber, uint64_t PendingUUID) {
+		SubMutexGuard		Guard(Mutex_);
+		auto Device = Devices_.find(SerialNumber);
+		if(Device!=Devices_.end()) {
+			Device->second->Conn_.PendingUUID = PendingUUID;
+		}
 	}
 
 /*	bool Service::SendCommand(uCentral::Objects::CommandDetails & Cmd)

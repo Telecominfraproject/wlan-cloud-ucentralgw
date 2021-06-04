@@ -162,7 +162,7 @@ namespace uCentral::WebSocket {
         void OnSocketReadable(const Poco::AutoPtr<Poco::Net::ReadableNotification>& pNf);
         void OnSocketShutdown(const Poco::AutoPtr<Poco::Net::ShutdownNotification>& pNf);
         void OnSocketError(const Poco::AutoPtr<Poco::Net::ErrorNotification>& pNf);
-        bool LookForUpgrade(uint64_t UUID, uint64_t & Pending);
+        bool LookForUpgrade(uint64_t UUID);
         static Poco::JSON::Object::Ptr ExtractCompressedData(const std::string & CompressedData);
         void Register();
         void DeRegister();

@@ -38,6 +38,7 @@ namespace uCentral::DeviceRegistry {
     // bool SendCommand(uCentral::Objects::CommandDetails & Command);
 	bool SendFrame(const std::string & SerialNumber, const std::string & Payload);
     bool Connected(const std::string & SerialNumber);
+	void SetPendingUUID(const std::string & SerialNumber, uint64_t PendingUUID);
 
     class Service : public uSubSystemServer {
     public:
@@ -65,6 +66,7 @@ namespace uCentral::DeviceRegistry {
         // friend bool SendCommand(uCentral::Objects::CommandDetails & Command);
         friend bool Connected(const std::string & SerialNumber);
 		friend bool SendFrame(const std::string & SerialNumber, const std::string & Payload);
+		friend void SetPendingUUID(const std::string & SerialNumber, uint64_t PendingUUID);
 
 	  private:
 		static Service                          *instance_;
@@ -83,6 +85,7 @@ namespace uCentral::DeviceRegistry {
         bool SendCommand(uCentral::Objects::CommandDetails & Command);
         bool Connected(const std::string & SerialNumber);
 		bool SendFrame(const std::string & SerialNumber, const std::string & Payload);
+		void SetPendingUUID(const std::string & SerialNumber, uint64_t PendingUUID);
 
     };
 

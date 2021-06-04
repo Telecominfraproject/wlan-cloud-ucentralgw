@@ -202,7 +202,7 @@ namespace uCentral::Storage {
 			Poco::Data::Statement   Select(Sess);
 
 
-			std::string st{"SELECT SerialNumber, Log, Data, Severity, Recorded, LogType, UUID FROM DeviceLogs WHERE SerialNumber=? AND Type=? ORDER BY Recorded DESC"};
+			std::string st{"SELECT SerialNumber, Log, Data, Severity, Recorded, LogType, UUID FROM DeviceLogs WHERE SerialNumber=? AND LogType=? ORDER BY Recorded DESC"};
 
 			Select << 	ConvertParams(st),
 						Poco::Data::Keywords::into(Records),

@@ -278,6 +278,7 @@ void RESTAPI_device_commandHandler::Configure(Poco::Net::HTTPServerRequest& Requ
                 Params.stringify(ParamStream);
                 Cmd.Details = ParamStream.str();
 
+				uCentral::DeviceRegistry::SetPendingUUID(SerialNumber_, NewUUID);
 				WaitForCommand(Cmd,Params,Request,Response);
 				return;
             }
