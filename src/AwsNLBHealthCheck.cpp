@@ -3,43 +3,49 @@
 //
 
 #include "AwsNLBHealthCheck.h"
-
+#include "Poco/DateTime.h"
+#include "Poco/DateTimeFormatter.h"
+#include "Poco/DateTimeFormat.h"
 #include "uCentral.h"
+#include "uUtils.h"
 
-void AwsNLBHealthCheck::run() {
+namespace uCentral::NLBHealthCheck {
+    static std::string LastModified{"Last-Modified: " +Poco::DateTimeFormatter::format(Poco::DateTime(),Poco::DateTimeFormat::HTTP_FORMAT)};
+    static std::string NLBMessage{"uCentralGW alive and kicking!\r\n"};
 
-	static std::string NLBMessage{"uCentralGW is here.\r\n"};
-	static std::string NLBResponse{"HTTP/1.1 200 OK\r\nServer: NLB Healthcheck\r\nConnection: close\r\nContent-Length : " + std::to_string(NLBMessage.length()) +"\r\n\r\n"+NLBMessage};
+    void NLBConnection::run() {
+        try {
+            Poco::DateTime  Now;
+            std::string Date = Poco::DateTimeFormatter::format(Now,Poco::DateTimeFormat::HTTP_FORMAT);
 
-	Running_ = true;
-	Sock_.bind(uCentral::ServiceConfig::GetInt("nlb.port",15015));
-	Sock_.listen();
+            std::string Response;
+            Response += "HTTP/1.1 200 OK\r\nServer: NLB Healthcheck\r\nContent-Type: text/html\r\nAccept-Ranges: bytes\r\nConnection: close\r\n";
+            Response += "Date: " + Date + "\r\n";
+            Response += LastModified + "\r\n";
+            Response += "Content-Length : " + std::to_string(NLBMessage.length()) + "\r\n\r\n";
+            Response += NLBMessage;
 
-	while(Running_) {
-		try {
-			auto NewSock = Sock_.acceptConnection();
-			if (Running_) {
-				auto b = NewSock.sendBytes(NLBResponse.c_str(), (int)NLBResponse.size());
-				NewSock.shutdown();
-				NewSock.close();
-			}
-		} catch(const Poco::Exception &E) {
-			break;
-		}
-	}
+            Poco::Net::StreamSocket &ss = socket();
+            ss.sendBytes(Response.c_str(), (int) Response.size());
+        } catch (...) {
+
+        }
+    }
+
+    int Service::Start() {
+        if(uCentral::ServiceConfig::GetBool("nlb.enable",false)) {
+            Port_ = (int)uCentral::ServiceConfig::GetInt("nlb.port",15015);
+            Srv_ = std::make_unique<Poco::Net::TCPServer>  ( new TCPFactory(), Port_ );
+            Srv_->start();
+        }
+        return 0;
+    }
+
+    void Service::Stop() {
+        if(Srv_) {
+            Srv_->stop();
+        }
+    }
+
 }
 
-int AwsNLBHealthCheck::Start() {
-	if(uCentral::ServiceConfig::GetBool("nlb.enable",false)) {
-		Th_.start(*this);
-	}
-	return 0;
-}
-
-void AwsNLBHealthCheck::Stop() {
-	if(Running_) {
-		Running_ = false;
-		Sock_.close();
-		Th_.join();
-	}
-}

@@ -7,18 +7,32 @@
 
 #include "Poco/Thread.h"
 #include "Poco/Net/TCPServerConnection.h"
+#include "Poco/Net/TCPServer.h"
+#include "Poco/Net/TCPServerConnectionFactory.h"
 #include "Poco/Net/ServerSocket.h"
+#include "Poco/Net/StreamSocket.h"
 
-class AwsNLBHealthCheck : public Poco::Runnable {
-  public:
-	void run() override;
-	int Start();
-	void Stop();
-  private:
-	std::atomic_bool 		Running_=false;
-	uint 					Port_=0;
-	Poco::Thread			Th_;
-	Poco::Net::ServerSocket	Sock_;
-};
+namespace uCentral::NLBHealthCheck {
+
+    class NLBConnection: public Poco::Net::TCPServerConnection
+    {
+        public:
+            NLBConnection(const Poco::Net::StreamSocket& s): TCPServerConnection(s)
+            {
+            }
+            void run();
+    };
+
+    typedef Poco::Net::TCPServerConnectionFactoryImpl<NLBConnection> TCPFactory;
+
+    class Service {
+    public:
+        int Start();
+        void Stop();
+    private:
+        std::unique_ptr<Poco::Net::TCPServer>   Srv_;
+        int                                     Port_ = 0;
+    };
+}
 
 #endif // UCENTRALGW_AWSNLBHEALTHCHECK_H
