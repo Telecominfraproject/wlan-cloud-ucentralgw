@@ -1,0 +1,110 @@
+{
+    "serialNumber" : "34efb6af490d",
+    "UUID" : 1,
+    "configuration" :  {  
+        "interfaces": [
+            {
+                "ethernet": [
+                    {
+                        "select-ports": [
+                            "WAN*"
+                        ]
+                    }
+                ],
+                "ipv4": {
+                    "addressing": "dynamic"
+                },
+                "name": "WAN",
+                "role": "upstream",
+                "services": [
+                    "lldp"
+                ],
+                "ssids": [
+                    {
+                        "bss-mode": "ap",
+                        "encryption": {
+                            "ieee80211w": "optional",
+                            "key": "OpenWifi",
+                            "proto": "psk2"
+                        },
+                        "name": "OpenWifi_SSID",
+                        "wifi-bands": [
+                            "5G"
+                        ]
+                    }
+                ]
+            },
+            {
+                "ethernet": [
+                    {
+                        "select-ports": [
+                            "LAN*"
+                        ]
+                    }
+                ],
+                "ipv4": {
+                    "addressing": "static",
+                    "dhcp": {
+                        "lease-count": 100,
+                        "lease-first": 10,
+                        "lease-time": "6h"
+                    },
+                    "subnet": "192.168.1.1/24"
+                },
+                "name": "LAN",
+                "role": "downstream",
+                "services": [
+                    "ssh",
+                    "lldp"
+                ],
+                "ssids": [
+                    {
+                        "bss-mode": "ap",
+                        "encryption": {
+                            "ieee80211w": "optional",
+                            "key": "OpenWifi",
+                            "proto": "psk2"
+                        },
+                        "name": "OpenWifiSSID",
+                        "wifi-bands": [
+                            "5G"
+                        ]
+                    }
+                ]
+            }
+        ],
+        "metrics": {
+            "health": {
+                "interval": 120
+            },
+            "statistics": {
+                "interval": 120,
+                "types": [
+                    "ssids",
+                    "lldp",
+                    "clients"
+                ]
+            }
+        },
+        "radios": [
+            {
+                "band": "5G",
+                "channel": 36,
+                "channel-mode": "HE",
+                "channel-width": 80,
+                "country": "CA"
+            }
+        ],
+        "services": {
+            "lldp": {
+                "describe": "uCentral",
+                "location": "universe"
+            },
+            "ssh": {
+                "port": 22
+            }
+        },
+        "uuid": 1
+    },
+        "when" : 0
+}
