@@ -37,6 +37,7 @@
 #endif
 
 #include "uCentral.h"
+#include "AwsNLBHealthCheck.h"
 
 namespace uCentral {
 	Daemon *Daemon::instance_ = nullptr;
@@ -319,6 +320,9 @@ namespace uCentral {
 				logger.information("Starting as a daemon.");
 			}
 
+
+			AwsNLBHealthCheck	NLBHealthCheck;
+			NLBHealthCheck.Start();
 /*
 			uCentral::uStateProcessor	P;
 
@@ -335,6 +339,8 @@ namespace uCentral {
 */
 
 			instance()->waitForTerminationRequest();
+
+			NLBHealthCheck.Stop();
 
 			uCentral::Kafka::Stop();
 			uCentral::FirmwareManager::Stop();
