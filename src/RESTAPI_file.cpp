@@ -39,15 +39,7 @@ void RESTAPI_file::handleRequest(Poco::Net::HTTPServerRequest& Request, Poco::Ne
                 NotFound(Request, Response);
                 return;
             }
-            Response.set("Content-Type","application/octet-stream");
-            Response.set("Content-Disposition", "attachment; filename=" + UUID );
-            Response.set("Content-Transfer-Encoding","binary");
-            Response.set("Accept-Ranges", "bytes");
-            Response.set("Cache-Control", "private");
-            Response.set("Pragma", "private");
-            Response.set("Expires", "Mon, 26 Jul 2027 05:00:00 GMT");
-            Response.set("Content-Length", std::to_string(DownloadFile.getSize()));
-            Response.sendFile(DownloadFile.path(),"application/octet-stream");
+			SendFile(DownloadFile,UUID,Request, Response);
 			DownloadFile.remove();
             return;
 

@@ -16,6 +16,7 @@
 #include "Poco/Net/HTTPServerResponse.h"
 #include "Poco/Net/NetException.h"
 #include "Poco/Logger.h"
+#include "Poco/File.h"
 #include "Poco/JSON/Object.h"
 
 #include "RESTAPI_objects.h"
@@ -74,6 +75,8 @@ namespace uCentral::RESTAPI {
 						  Poco::Net::HTTPServerResponse &Response,
 						  Poco::Net::HTTPResponse::HTTPStatus Status,
 						  bool CloseConnection=false);
+		void SendFile(Poco::File & File, const std::string & UUID,
+					  Poco::Net::HTTPServerRequest &Request, Poco::Net::HTTPServerResponse &Response);
 
 		void WaitForCommand( uCentral::Objects::CommandDetails &Cmd,
 							 Poco::JSON::Object  & Params,

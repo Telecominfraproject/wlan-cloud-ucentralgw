@@ -200,6 +200,19 @@ namespace uCentral::RESTAPI {
 		Response.send();
 	}
 
+	void RESTAPIHandler::SendFile(Poco::File & File, const std::string & UUID, Poco::Net::HTTPServerRequest &Request, Poco::Net::HTTPServerResponse &Response) {
+		Response.set("Content-Type","application/octet-stream");
+		Response.set("Content-Disposition", "attachment; filename=" + UUID );
+		Response.set("Content-Transfer-Encoding","binary");
+		Response.set("Accept-Ranges", "bytes");
+		Response.set("Cache-Control", "private");
+		Response.set("Pragma", "private");
+		Response.set("Expires", "Mon, 26 Jul 2027 05:00:00 GMT");
+		Response.set("Content-Length", std::to_string(File.getSize()));
+		AddCORS(Request, Response);
+		Response.sendFile(File.path(),"application/octet-stream");
+	}
+
 	void RESTAPIHandler::ReturnStatus(Poco::Net::HTTPServerRequest &Request,
 									  Poco::Net::HTTPServerResponse &Response,
 									  Poco::Net::HTTPResponse::HTTPStatus Status,
