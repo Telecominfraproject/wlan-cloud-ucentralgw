@@ -195,12 +195,13 @@ namespace uCentral::WebSocket {
 
     bool WSConnection::LookForUpgrade(uint64_t UUID) {
 
-        std::string NewConfig;
-        uint64_t NewConfigUUID;
 
-		//	A UUID of zero means ignore updates for tha connection.
+		//	A UUID of zero means ignore updates for that connection.
 		if(UUID==0)
 			return false;
+
+		std::string NewConfig;
+		uint64_t 	NewConfigUUID = 0 ;
 
         if (uCentral::Storage::ExistingConfiguration(SerialNumber_,UUID, NewConfig, NewConfigUUID)) {
 
@@ -385,7 +386,7 @@ namespace uCentral::WebSocket {
 						if (StatsProcessor_)
 							StatsProcessor_->Add(State);
 
-						LookForUpgrade(UUID);
+						// LookForUpgrade(UUID);
 					} else {
 						Logger_.warning(Poco::format(
 							"STATE(%s): Invalid request. Missing serial, uuid, or state", CId_));
@@ -428,7 +429,7 @@ namespace uCentral::WebSocket {
 						}
 
 						uCentral::DeviceRegistry::SetHealthcheck(Serial, CheckData);
-						LookForUpgrade(UUID);
+						// LookForUpgrade(UUID);
 					} else {
 						Logger_.warning(Poco::format("HEALTHCHECK(%s): Missing parameter", CId_));
 						return;
