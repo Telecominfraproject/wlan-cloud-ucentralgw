@@ -14,10 +14,10 @@
 
 # Configure 2-ssid setup with psk2 (aka wpa2) in NAT/routed mode
 #
- ./ulogin.py --serno c4411ef53f23 --cert ~/git/tip/ucentral-local/certs/server-cert.pem \
+ ./ulogin.py --serno c4411ef53f23 \
    --ucentral_host test-controller-1 --ssid24 Default-SSID-2g --ssid5 Default-SSID-5gl \
    --key24 12345678 --key5 12345678 --encryption24 psk2 --encryption5 psk2 --action cfg \
-   --network24 lan --network5 nat
+   --network nat
 
 # Configure 2 ssid setup with psk2 in bridge mode.
  ./ulogin.py --serno c4411ef52d0f \
