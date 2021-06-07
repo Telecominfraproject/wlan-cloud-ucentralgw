@@ -609,7 +609,7 @@ void RESTAPI_device_commandHandler::LEDs(Poco::Net::HTTPServerRequest &Request, 
 
 			auto Duration = Get(uCentral::uCentralProtocol::DURATION, Obj, 30);
             auto When = GetWhen(Obj);
-			Logger_.information(Poco::format("LEDS(%s): Pattern:%s Duration: %d", SerialNumber_, Pattern, Duration));
+			Logger_.information(Poco::format("LEDS(%s): Pattern:%s Duration: %Lu", SerialNumber_, Pattern, Duration));
 
             uCentral::Objects::CommandDetails  Cmd;
 
