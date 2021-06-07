@@ -36,8 +36,8 @@
 #include "kafka_service.h"
 #endif
 
+#include "ALBHealthCheckServer.h"
 #include "uCentral.h"
-#include "AwsNLBHealthCheck.h"
 
 namespace uCentral {
 	Daemon *Daemon::instance_ = nullptr;
@@ -320,9 +320,11 @@ namespace uCentral {
 				logger.information("Starting as a daemon.");
 			}
 
-			uCentral::NLBHealthCheck::Service	NLB;
+			uCentral::ALBHealthCheck::Service	NLB(logger);
 			NLB.Start();
+
 			instance()->waitForTerminationRequest();
+
 			NLB.Stop();
 
 			uCentral::Kafka::Stop();

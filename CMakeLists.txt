@@ -70,7 +70,8 @@ add_executable( ucentralgw
                 src/storage_mysql.cpp src/storage_pgql.cpp src/storage_odbc.cpp src/storage_tables.cpp src/RESTAPI_callback.cpp
                 src/RESTAPI_callback.h src/uCallbackManager.cpp src/uCallbackManager.h src/uFirmwareManager.cpp
                 src/uFirmwareManager.h src/storage_firmware_updates.cpp src/uStateProcessor.cpp src/uStateProcessor.h
-                src/storage_lifetime_stats.cpp src/uCentralProtocol.cpp src/uCentralProtocol.h src/RESTAPI_protocol.h src/AwsNLBHealthCheck.cpp src/AwsNLBHealthCheck.h)
+                src/storage_lifetime_stats.cpp src/uCentralProtocol.cpp src/uCentralProtocol.h src/RESTAPI_protocol.h
+                src/ALBHealthCheckServer.h)
 
 if(NOT SMALL_BUILD)
     target_sources(ucentralgw PUBLIC src/kafka_service.cpp src/kafka_service.h)

@@ -9,22 +9,30 @@
 #ifndef UCENTRALGW_KAFKA_SERVICE_H
 #define UCENTRALGW_KAFKA_SERVICE_H
 
+#include <queue>
+
 #include "uSubSystemServer.h"
 
 #include "cppkafka/cppkafka.h"
 
 namespace uCentral::Kafka {
+	struct KMessage {
+		std::string Topic, Key, Payload;
+	};
 
 	int Start();
 	void Stop();
+	void PostMessage(std::string topic, std::string key, std::string payload);
+	[[nodiscard]] inline bool Enabled();
 
-class Service : public uSubSystemServer {
+	class Service : public uSubSystemServer, Poco::Runnable {
   public:
 
 	Service() noexcept;
 
 	friend int uCentral::Kafka::Start();
 	friend void uCentral::Kafka::Stop();
+	friend void PostMessage(std::string topic, std::string key, std::string payload);
 
 	void initialize(Poco::Util::Application & self) override;
 	static Service *instance() {
@@ -33,13 +41,22 @@ class Service : public uSubSystemServer {
 		return instance_;
 	}
 
+	void run() override;
+
+	[[nodiscard]] inline bool Enabled() { return Running_ && KafkaEnabled_; }
+
   private:
 	static Service *instance_;
 	std::unique_ptr<cppkafka::Producer> 	Producer_;
-	bool KafkaEnabled_ = false;
+	bool 					KafkaEnabled_ = false;
+	std::atomic_bool 		Running_ = false;
+	std::queue<KMessage>	Queue_;
+
+	Poco::Thread			Th_;
 
 	int Start() override;
 	void Stop() override;
+	void PostMessage(std::string topic, std::string key, std::string payload);
 };
 
 }	// NameSpace
