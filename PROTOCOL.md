@@ -37,6 +37,8 @@ my decide to send the AP a newer configuration. The controller will record the d
         "serial" : <serial number> ,
         "uuid" : <current active configuration uuid>,
         "firmware" : <Current firmware version string>,
+        "wanip" : [ IP:Port, ... ], (a list of IPs the device is using as WAN IP and port as strings. IPv4 and IPv6, including the port)
+                                    (example: [ "24.17.1.23:54322" , "[2345:23::234]:32323" ] )
         "capabilities" : <JSON Document: current device capabilities.>
     }
 }
