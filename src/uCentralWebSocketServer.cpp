@@ -208,8 +208,6 @@ namespace uCentral::WebSocket {
 				return false;
 
 			Conn_->PendingUUID = NewConfigUUID;
-			std::string Log = Poco::format("CFG-UPGRADE(%s):, Returning newer configuration %Lu.", SerialNumber_, NewConfigUUID);
-			uCentral::Storage::AddLog(SerialNumber_, Conn_->UUID, Log);
 
 			Poco::JSON::Parser  parser;
 			auto ParsedConfig = parser.parse(NewConfig).extract<Poco::JSON::Object::Ptr>();
@@ -229,6 +227,10 @@ namespace uCentral::WebSocket {
 			Params.set(uCentralProtocol::WHEN, 0);
 			Params.set(uCentralProtocol::CONFIG, ParsedConfig);
 
+			std::string Log = Poco::format("CFG-UPGRADE(%s):, Current ID: %Lu, newer configuration %Lu.", SerialNumber_, UUID, NewConfigUUID);
+			uCentral::Storage::AddLog(SerialNumber_, Conn_->UUID, Log);
+			Logger_.debug(Log);
+
 			uCentral::CommandManager::SendCommand(SerialNumber_ , Cmd.Command, Params, nullptr, Cmd.UUID);
 			uCentral::Storage::AddCommand(SerialNumber_, Cmd, Storage::COMMAND_EXECUTED);
 			return true;
@@ -236,7 +238,7 @@ namespace uCentral::WebSocket {
         return false;
     }
 
-	Poco::JSON::Object::Ptr WSConnection::ExtractCompressedData(const std::string & CompressedData)
+	bool WSConnection::ExtractCompressedData(const std::string & CompressedData, std::string & UnCompressedData)
     {
         std::vector<uint8_t> OB = uCentral::Utils::base64decode(CompressedData);
 
@@ -245,13 +247,10 @@ namespace uCentral::WebSocket {
         unsigned long FinalSize = MaxSize;
         if(uncompress((Bytef *)&UncompressedBuffer[0], & FinalSize, (Bytef *)&OB[0],OB.size())==Z_OK) {
 			UncompressedBuffer[FinalSize] = 0;
-			Poco::JSON::Parser parser;
-			auto result = parser.parse(&UncompressedBuffer[0]).extract<Poco::JSON::Object::Ptr>();
-			return result;
-		} else {
-			Poco::JSON::Object::Ptr Vars;
-			return Vars;
+			UnCompressedData = &UncompressedBuffer[0];
+			return true;
 		}
+		return false;
     }
 
     void WSConnection::ProcessJSONRPCResult(Poco::JSON::Object::Ptr Doc) {
@@ -271,6 +270,7 @@ namespace uCentral::WebSocket {
         if(!Doc->isObject(uCentralProtocol::PARAMS))
         {
             Logger_.warning(Poco::format("MISSING-PARAMS(%s): params must be an object.",CId_));
+			Errors_++;
             return;
         }
 
@@ -278,8 +278,16 @@ namespace uCentral::WebSocket {
         auto ParamsObj = Doc->get(uCentralProtocol::PARAMS).extract<Poco::JSON::Object::Ptr>();
         if(ParamsObj->has(uCentralProtocol::COMPRESS_64))
         {
-            Logger_.debug(Poco::format("EVENT(%s): Found compressed payload.",CId_));
-            ParamsObj = ExtractCompressedData(ParamsObj->get(uCentralProtocol::COMPRESS_64).toString());
+			std::string UncompressedData;
+            if(ExtractCompressedData(ParamsObj->get(uCentralProtocol::COMPRESS_64).toString(),UncompressedData)) {
+				Logger_.debug(Poco::format("EVENT(%s): Found compressed payload expanded to '%s'.",CId_, UncompressedData));
+				Poco::JSON::Parser	Parser;
+				ParamsObj = Parser.parse(UncompressedData).extract<Poco::JSON::Object::Ptr>();
+			} else {
+				Logger_.warning(Poco::format("INVALID-COMPRESSED-DATA(%s): Compressed cannot be uncompressed - content must be corrupt..",CId_));
+				Errors_++;
+				return;
+			}
         }
 
         if(!ParamsObj->has(uCentralProtocol::SERIAL))
