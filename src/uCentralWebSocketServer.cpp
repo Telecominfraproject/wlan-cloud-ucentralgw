@@ -203,8 +203,13 @@ namespace uCentral::WebSocket {
 			return false;
 
         if (uCentral::Storage::ExistingConfiguration(SerialNumber_,UUID, NewConfig, NewConfigUUID)) {
+
+			//	Device is already using the latest configuration.
+			if(UUID == NewConfigUUID)
+				return false;
+
 			//	if the new config is already pending,
-			if( NewConfigUUID == Conn_->PendingUUID )
+			if(NewConfigUUID == Conn_->PendingUUID)
 				return false;
 
 			Conn_->PendingUUID = NewConfigUUID;

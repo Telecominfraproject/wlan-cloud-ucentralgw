@@ -83,7 +83,7 @@ namespace uCentral::Storage {
 	}
 
 
-bool SetDeviceCompatibility(std::string & SerialNumber, std::string & Compatible) {
+	bool SetDeviceCompatibility(std::string & SerialNumber, std::string & Compatible) {
 		return Service::instance()->SetDeviceCompatibility(SerialNumber, Compatible);
 	}
 
@@ -97,9 +97,7 @@ bool SetDeviceCompatibility(std::string & SerialNumber, std::string & Compatible
 			Select << st ,
 				Poco::Data::Keywords::into(Count);
 			Select.execute();
-
 			return true;
-
 		} catch(const Poco::Exception & E) {
 			Logger_.log(E);
 		}
@@ -616,7 +614,7 @@ bool SetDeviceCompatibility(std::string & SerialNumber, std::string & Compatible
 		return false;
 	}
 
-	bool Service::ExistingConfiguration(std::string &SerialNumber, uint64_t CurrentConfig, std::string &NewConfig, uint64_t & UUID) {
+	bool Service::ExistingConfiguration(std::string &SerialNumber, uint64_t CurrentConfig, std::string &NewConfig, uint64_t & NewUUID) {
 		// std::lock_guard<std::mutex> guard(Mutex_);
 		std::string SS;
 		try {
@@ -628,10 +626,9 @@ bool SetDeviceCompatibility(std::string & SerialNumber, std::string & Compatible
 
 			Select << ConvertParams(St),
 				Poco::Data::Keywords::into(SS),
-				Poco::Data::Keywords::into(UUID),
+				Poco::Data::Keywords::into(NewUUID),
 				Poco::Data::Keywords::into(NewConfig),
 				Poco::Data::Keywords::use(SerialNumber);
-
 			Select.execute();
 
 			if (SS.empty()) {
