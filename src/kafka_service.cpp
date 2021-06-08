@@ -52,9 +52,13 @@ namespace uCentral::Kafka {
 	int Service::Start() {
 		if(!KafkaEnabled_)
 			return 0;
+
 		cppkafka::Configuration Config({
 										   { "metadata.broker.list", uCentral::ServiceConfig::GetString("ucentral.kafka.brokerlist") }
 									   });
+		SystemInfoWrapper_ = "{ \"system\" : { \"id\" : " + std::to_string(uCentral::ServiceConfig::GetInt("ucentral.system.id")) +
+							 " , \"host\" : \"" + uCentral::ServiceConfig::GetString("ucentral.system.uri") + "\" } , \"payload\" : { " ;
+
 		// Create a producer instance.
 		Producer_ = std::make_unique<cppkafka::Producer>(Config);
 		Th_.start(*this);
@@ -83,7 +87,7 @@ namespace uCentral::Kafka {
 					const auto M = Queue_.front();
 					std::cout << "Producing Topic: " << M.Topic << " Key: "  << M.Key <<std::endl;
 					Producer_->produce(
-						cppkafka::MessageBuilder(M.Topic).key(M.Key).payload(M.Payload));
+						cppkafka::MessageBuilder(M.Topic).key(M.Key).payload(M.PayLoad));
 					Queue_.pop();
 				}
 				// Producer_->flush();
@@ -92,13 +96,17 @@ namespace uCentral::Kafka {
 		}
 	}
 
-	void Service::PostMessage(std::string topic, std::string key, std::string payload) {
+	std::string Service::WrapSystemId(const std::string & PayLoad) {
+		return std::move( SystemInfoWrapper_ + PayLoad + "}}");
+	}
+
+	void Service::PostMessage(std::string topic, std::string key, std::string PayLoad) {
 		if(KafkaEnabled_  && Running_) {
 			SubMutexGuard G(Mutex_);
 
 			KMessage M{
-				.Topic = std::move(topic), .Key = std::move(key), .Payload = std::move(payload)};
-			std::cout << "Posting Topic: " << M.Topic << " Key: "  << M.Key <<std::endl;
+				.Topic = std::move(topic), .Key = std::move(key), .PayLoad = std::move(WrapSystemId(PayLoad))};
+			std::cout << "Posting Topic: " << M.Topic << " Key: "  << M.Key << " Payload: " << M.PayLoad << std::endl;
 			Queue_.push(std::move(M));
 		}
 	}

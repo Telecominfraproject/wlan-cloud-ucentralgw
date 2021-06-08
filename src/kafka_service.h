@@ -17,7 +17,9 @@
 
 namespace uCentral::Kafka {
 	struct KMessage {
-		std::string Topic, Key, Payload;
+		std::string Topic,
+					Key,
+					PayLoad;
 	};
 
 	int Start();
@@ -26,38 +28,40 @@ namespace uCentral::Kafka {
 	[[nodiscard]] bool Enabled();
 
 	class Service : public uSubSystemServer, Poco::Runnable {
-  public:
+	  public:
 
-	Service() noexcept;
+		Service() noexcept;
 
-	friend int uCentral::Kafka::Start();
-	friend void uCentral::Kafka::Stop();
-	friend void PostMessage(std::string topic, std::string key, std::string payload);
+		friend int uCentral::Kafka::Start();
+		friend void uCentral::Kafka::Stop();
+		friend void PostMessage(std::string topic, std::string key, std::string payload);
 
-	void initialize(Poco::Util::Application & self) override;
-	static Service *instance() {
-		if(instance_== nullptr)
-			instance_ = new Service;
-		return instance_;
-	}
+		void initialize(Poco::Util::Application & self) override;
+		static Service *instance() {
+			if(instance_== nullptr)
+				instance_ = new Service;
+			return instance_;
+		}
 
-	void run() override;
+		void run() override;
 
-	[[nodiscard]] bool Enabled() { return Running_ && KafkaEnabled_; }
+		[[nodiscard]] bool Enabled() { return Running_ && KafkaEnabled_; }
 
-  private:
-	static Service *instance_;
-	std::unique_ptr<cppkafka::Producer> 	Producer_;
-	bool 					KafkaEnabled_ = false;
-	std::atomic_bool 		Running_ = false;
-	std::queue<KMessage>	Queue_;
+	  private:
+		static Service *instance_;
+		std::unique_ptr<cppkafka::Producer> 	Producer_;
+		bool 					KafkaEnabled_ = false;
+		std::atomic_bool 		Running_ = false;
+		std::queue<KMessage>	Queue_;
+		std::string 			SystemInfoWrapper_;
+		Poco::Thread			Th_;
 
-	Poco::Thread			Th_;
+		int Start() override;
+		void Stop() override;
 
-	int Start() override;
-	void Stop() override;
-	void PostMessage(std::string topic, std::string key, std::string payload);
-};
+		void PostMessage(std::string topic, std::string key, std::string payload);
+		[[nodiscard]] std::string WrapSystemId(const std::string & PayLoad);
+	};
 
 }	// NameSpace
 
