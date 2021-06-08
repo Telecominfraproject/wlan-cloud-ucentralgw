@@ -85,7 +85,7 @@ namespace uCentral::Kafka {
 
 				while (!Queue_.empty()) {
 					const auto M = Queue_.front();
-					std::cout << "Producing Topic: " << M.Topic << " Key: "  << M.Key <<std::endl;
+					// std::cout << "Producing Topic: " << M.Topic << " Key: "  << M.Key <<std::endl;
 					Producer_->produce(
 						cppkafka::MessageBuilder(M.Topic).key(M.Key).payload(M.PayLoad));
 					Queue_.pop();
@@ -106,7 +106,7 @@ namespace uCentral::Kafka {
 
 			KMessage M{
 				.Topic = std::move(topic), .Key = std::move(key), .PayLoad = std::move(WrapSystemId(PayLoad))};
-			std::cout << "Posting Topic: " << M.Topic << " Key: "  << M.Key << " Payload: " << M.PayLoad << std::endl;
+			// std::cout << "Posting Topic: " << M.Topic << " Key: "  << M.Key << " Payload: " << M.PayLoad << std::endl;
 			Queue_.push(std::move(M));
 		}
 	}

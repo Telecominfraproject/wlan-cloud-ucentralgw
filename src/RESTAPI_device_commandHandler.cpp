@@ -25,6 +25,8 @@
 #include "RESTAPI_protocol.h"
 
 #include "uCommandManager.h"
+#include "kafka_topics.h"
+#include "kafka_service.h"
 
 void RESTAPI_device_commandHandler::handleRequest(Poco::Net::HTTPServerRequest& Request, Poco::Net::HTTPServerResponse& Response)
 {
@@ -738,10 +740,12 @@ void RESTAPI_device_commandHandler::WifiScan(Poco::Net::HTTPServerRequest &Reque
 			std::stringstream ParamStream;
 			Params.stringify(ParamStream);
 			Cmd.Details = ParamStream.str();
-
 			WaitForCommand(Cmd, Params, Request, Response, std::chrono::milliseconds(20000));
+			uCentral::Kafka::PostMessage(uCentral::KafkaTopics::WIFISCAN, SerialNumber_, Cmd.Results);
+
 			return;
 		}
+
 	} catch (const Poco::Exception & E) {
 		Logger_.error(Poco::format("%s: failed with %s",std::string(__func__), E.displayText()));
 	}

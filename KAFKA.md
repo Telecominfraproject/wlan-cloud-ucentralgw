@@ -8,7 +8,8 @@ your Kafka service with the following topics:
 - `connection` : This is emitted whenever a device connects to the gateway. The report contains all ths information about the connection. 
 - `state` : This is emitted for every `state` report coming from the AP. This state report contains all the information of state reports.  
 - `healthcheck` : These are the `healthcheck` report sent from the AP.
-- `wifiscan` : Whenever a `wifiscan`report is generated, it will be submitted here.
+- `wifiscan` : Whenever a `wifiscan` report is generated, it will be submitted here.
+- `alerts` : Alerts originating from devices.
 
 ## Structure of `kafka` messages
 All messages are filed this way:
