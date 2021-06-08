@@ -86,7 +86,7 @@ namespace uCentral::Kafka {
 						cppkafka::MessageBuilder(M.Topic).key(M.Key).payload(M.Payload));
 					Queue_.pop();
 				}
-				Producer_->flush();
+				// Producer_->flush();
 
 			}
 		}
