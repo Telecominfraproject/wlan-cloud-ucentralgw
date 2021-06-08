@@ -71,6 +71,7 @@ namespace uCentral::Kafka {
 	}
 
 	void Service::run() {
+		Running_ = true ;
 		while(Running_) {
 			Poco::Thread::trySleep(3000);
 			if(!Running_)
@@ -80,6 +81,7 @@ namespace uCentral::Kafka {
 
 				while (!Queue_.empty()) {
 					const auto M = Queue_.front();
+					std::cout << "Topic: " << M.Topic << " Key: "  << M.Key <<std::endl;
 					Producer_->produce(
 						cppkafka::MessageBuilder(M.Topic).key(M.Key).payload(M.Payload));
 					Queue_.pop();
