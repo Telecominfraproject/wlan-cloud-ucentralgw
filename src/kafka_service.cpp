@@ -57,7 +57,7 @@ namespace uCentral::Kafka {
 										   { "metadata.broker.list", uCentral::ServiceConfig::GetString("ucentral.kafka.brokerlist") }
 									   });
 		SystemInfoWrapper_ = "{ \"system\" : { \"id\" : " + std::to_string(uCentral::ServiceConfig::GetInt("ucentral.system.id")) +
-							 " , \"host\" : \"" + uCentral::ServiceConfig::GetString("ucentral.system.uri") + "\" } , \"payload\" : { " ;
+							 " , \"host\" : \"" + uCentral::ServiceConfig::GetString("ucentral.system.uri") + "\" } , \"payload\" : " ;
 
 		// Create a producer instance.
 		Producer_ = std::make_unique<cppkafka::Producer>(Config);
@@ -97,7 +97,7 @@ namespace uCentral::Kafka {
 	}
 
 	std::string Service::WrapSystemId(const std::string & PayLoad) {
-		return std::move( SystemInfoWrapper_ + PayLoad + "}}");
+		return std::move( SystemInfoWrapper_ + PayLoad + "}");
 	}
 
 	void Service::PostMessage(std::string topic, std::string key, std::string PayLoad) {
