@@ -33,7 +33,8 @@
 # Upgrade to latest image directly from jfrog
  ./ulogin.py --serno c4411ef52d0f \
    --ucentral_host tip-f34.candelatech.com --action upgrade_latest \
-   --url tip.jfrog.io/artifactory/tip-wlan-ap-firmware/uCentral/linksys_e8450-ubi --user u --password p
+   --url tip.jfrog.io/artifactory/tip-wlan-ap-firmware/uCentral/linksys_e8450-ubi \
+   --jfrog_user tip-read --jfrog_password secret
 
 # Send request to AP.
  ./ulogin.py --serno c4411ef52d0f \
