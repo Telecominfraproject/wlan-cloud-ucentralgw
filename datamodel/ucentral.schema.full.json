@@ -5,7 +5,7 @@
     "type": "object",
     "properties": {
         "uuid": {
-            "description": "The uniquie ID of the configuration. This is the unix timestamp of when the config was created.",
+            "description": "The unique ID of the configuration. This is the unix timestamp of when the config was created.",
             "type": "integer"
         },
         "unit": {
@@ -76,14 +76,17 @@
         "radios": {
             "type": "array",
             "items": {
-                "description": "Describe a physical radio on the AP. A radio s be parent to several VAPs. They all share the same physical properties.",
+                "description": "Describe a physical radio on the AP. A radio is be parent to several VAPs. They all share the same physical properties.",
                 "type": "object",
                 "properties": {
                     "band": {
+                        "description": "Specifies the wireless band to configure the radio for. Available radio device phys on the target system are matched by the wireless band given here. If multiple radio phys support the same band, the settings specified here will be applied to all of them.",
                         "type": "string",
                         "enum": [
                             "2G",
                             "5G",
+                            "5G-lower",
+                            "5G-upper",
                             "6G"
                         ]
                     },
@@ -457,6 +460,23 @@
                                         "type": "string",
                                         "format": "ipv4",
                                         "example": "192.168.2.1"
+                                    },
+                                    "circuit-id-format": {
+                                        "description": "This option selects what info shall be contained within a relayed frames circuit ID. The string passed in has placeholders that are placed inside a bracket pair \"{}\". Any text not contained within brackets will be included as freetext. Valid placeholders are \"Name, Model, Location, Interface, VLAN-Id, SSID, Crypto, AP-MAC, AP-MAC-Hex, Client-MAC, Client-MAC-Hex\"",
+                                        "type": "string",
+                                        "example": [
+                                            "\\{Interface\\}:\\{VLAN-Id\\}:\\{SSID\\}:\\{Model\\}:\\{Name\\}:\\{AP-MAC\\}:\\{Location\\}",
+                                            "\\{AP-MAC\\};\\{SSID\\};\\{Crypto\\}",
+                                            "\\{Name\\} \\{ESSID\\}"
+                                        ]
+                                    },
+                                    "remote-id-format": {
+                                        "description": "This option selects what info shall be contained within a relayed frames remote ID. The string passed in has placeholders that are placed inside a bracket pair \"{}\". Any text not contained within brackets will be included as freetext. Valid placeholders are \"VLAN-Id, SSID, AP-MAC, AP-MAC-Hex, Client-MAC, Client-MAC-Hex\"",
+                                        "type": "string",
+                                        "example": [
+                                            "\\{Client-MAC-hex\\} \\{SSID\\}",
+                                            "\\{AP-MAC-hex\\} \\{SSID\\}"
+                                        ]
                                     }
                                 }
                             },
@@ -625,6 +645,8 @@
                                         "enum": [
                                             "2G",
                                             "5G",
+                                            "5G-lower",
+                                            "5G-upper",
                                             "6G"
                                         ]
                                     }
@@ -687,6 +709,11 @@
                                     "description": "Set the maximum number of clients that may connect to this VAP.",
                                     "type": "integer",
                                     "example": 64
+                                },
+                                "proxy-arp": {
+                                    "description": "Proxy ARP is the technique in which the host router, answers ARP requests intended for another machine.",
+                                    "type": "boolean",
+                                    "default": false
                                 },
                                 "encryption": {
                                     "description": "A device has certain properties that describe its identity and location. These properties are described inside this object.",
@@ -909,6 +936,11 @@
                                                 "ca-certificate": {
                                                     "description": "The local servers CA bundle.",
                                                     "type": "string"
+                                                },
+                                                "use-local-certificates": {
+                                                    "description": "The device will use its local certificate bundle for the Radius server and ignore all other certificate options in this section.",
+                                                    "type": "boolean",
+                                                    "default": false
                                                 },
                                                 "server-certificate": {
                                                     "description": "The local servers certificate.",
@@ -1577,10 +1609,55 @@
                     "description": "This section allows enabling wired ieee802.1X",
                     "type": "object",
                     "properties": {
-                        "enable": {
-                            "description": "This option defines if ieee8021x shall be enabled on the device.",
+                        "ca-certificate": {
+                            "description": "The local servers CA bundle.",
+                            "type": "string"
+                        },
+                        "use-local-certificates": {
+                            "description": "The device will use its local certificate bundle for the Radius server and ignore all other certificate options in this section.",
                             "type": "boolean",
                             "default": false
+                        },
+                        "server-certificate": {
+                            "description": "The local servers certificate.",
+                            "type": "string"
+                        },
+                        "private-key": {
+                            "description": "The local servers private key/",
+                            "type": "string"
+                        },
+                        "users": {
+                            "description": "Specifies a collection of local EAP user/psk/vid triplets.",
+                            "type": "array",
+                            "items": {
+                                "type": "object",
+                                "description": "Describes a local EAP user/psk/vid triplet.",
+                                "properties": {
+                                    "mac": {
+                                        "type": "string",
+                                        "format": "uc-mac"
+                                    },
+                                    "user-name": {
+                                        "type": "string",
+                                        "minLength": 1
+                                    },
+                                    "password": {
+                                        "type": "string",
+                                        "maxLength": 63,
+                                        "minLength": 8
+                                    },
+                                    "vlan-id": {
+                                        "type": "integer",
+                                        "maximum": 4096,
+                                        "examples": [
+                                            3,
+                                            100,
+                                            200,
+                                            4094
+                                        ]
+                                    }
+                                }
+                            }
                         }
                     }
                 },
@@ -1784,6 +1861,5 @@
                 ]
             }
         }
-    },
-    "$defs": {}
+    }
 }

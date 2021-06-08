@@ -509,6 +509,27 @@ More scripts will be added in the future.
 - Devices use the TCP port 16003 to upload files. This port is configurable in the `ucentral.properties` file. Look for `ucentral.fileuploader.host.0.port`.
 - The RESTAPI is accessed through TCP port 16001 by default. This port is configurable in the `ucentral.properties` file. Look for the entry `ucentral.restapi.host.0.port`.
 
+## Kafka integration
+So what about Kafka? Well, the gateway has basic integration with Kafka. It is turned off by default, to turn it on, in the configuration:
+
+```asm
+ucentral.kafka.enable = false
+ucentral.kafka.brokerlist = 127.0.0.1:9092
+ucentral.kafka.commit = false
+ucentral.kafka.queue.buffering.max.ms = 50
+```
+
+#### `ucentral.kafka.enable`
+Kind of obvious but hey, set `true` or `false`. Default is `false`
+
+#### `ucentral.kafka.brokerlist`
+This is a comma separator list of the brokers in your `kafka` deployment. 
+
+#### Kafka topics
+Toe read more about Kafka, follow the [document](https://github.com/Telecominfraproject/wlan-cloud-ucentralgw/blob/main/KAFKA.md)
+
+#### Securing `kafka`
+This is beyond the scope of this document. As it stands today, the communication between the gateway and `kafka` is expected to be behind a firewall.
 ## Contributors
 We love ya! We need more of ya! If you want to contribute, make sure you review 
 the [coding style](https://github.com/Telecominfraproject/wlan-cloud-ucentralgw/blob/master/CODING_STYLE.md) document. 
