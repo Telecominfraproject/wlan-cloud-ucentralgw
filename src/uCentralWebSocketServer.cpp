@@ -24,6 +24,8 @@
 #include "uUtils.h"
 #include "uCentralProtocol.h"
 #include "uCommandManager.h"
+#include "kafka_service.h"
+#include "kafka_topics.h"
 
 namespace uCentral::WebSocket {
 
@@ -353,6 +355,14 @@ namespace uCentral::WebSocket {
 						StatsProcessor_ = std::make_unique<uCentral::uStateProcessor>();
 						StatsProcessor_->Initialize(Serial);
 						LookForUpgrade(UUID);
+
+						if(uCentral::Kafka::Enabled()) {
+							Poco::JSON::Stringifier		Stringify;
+							std::ostringstream OS;
+							Stringify.condense(ParamsObj,OS);
+							uCentral::Kafka::PostMessage(uCentral::KafkaTopics::CONNECTION, SerialNumber_, OS.str());
+						}
+
 					} else {
 						Logger_.warning(Poco::format("CONNECT(%s): Missing one of uuid, firmware, or capabilities",CId_));
 						return;
@@ -386,7 +396,12 @@ namespace uCentral::WebSocket {
 						if (StatsProcessor_)
 							StatsProcessor_->Add(State);
 
-						// LookForUpgrade(UUID);
+						if(uCentral::Kafka::Enabled()) {
+							Poco::JSON::Stringifier		Stringify;
+							std::ostringstream OS;
+							Stringify.condense(ParamsObj,OS);
+							uCentral::Kafka::PostMessage(uCentral::KafkaTopics::STATE, SerialNumber_, OS.str());
+						}
 					} else {
 						Logger_.warning(Poco::format(
 							"STATE(%s): Invalid request. Missing serial, uuid, or state", CId_));
@@ -429,7 +444,12 @@ namespace uCentral::WebSocket {
 						}
 
 						uCentral::DeviceRegistry::SetHealthcheck(Serial, CheckData);
-						// LookForUpgrade(UUID);
+						if(uCentral::Kafka::Enabled()) {
+							Poco::JSON::Stringifier		Stringify;
+							std::ostringstream OS;
+							Stringify.condense(ParamsObj,OS);
+							uCentral::Kafka::PostMessage(uCentral::KafkaTopics::HEALTHCHECK, SerialNumber_, OS.str());
+						}
 					} else {
 						Logger_.warning(Poco::format("HEALTHCHECK(%s): Missing parameter", CId_));
 						return;

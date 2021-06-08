@@ -19,14 +19,14 @@ namespace uCentral::Kafka {
 	}
 
 	int Start() {
-		return Service::instance_->Start();
+		return Service::instance()->Start();
 	}
 
 	void Stop() {
-		Service::instance_->Stop();
+		Service::instance()->Stop();
 	}
 
-	[[nodiscard]] inline bool Enabled() {
+	bool Enabled() {
 		return Service::instance()->Enabled();
 	}
 

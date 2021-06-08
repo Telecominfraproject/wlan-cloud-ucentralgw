@@ -23,7 +23,7 @@ namespace uCentral::Kafka {
 	int Start();
 	void Stop();
 	void PostMessage(std::string topic, std::string key, std::string payload);
-	[[nodiscard]] inline bool Enabled();
+	[[nodiscard]] bool Enabled();
 
 	class Service : public uSubSystemServer, Poco::Runnable {
   public:
@@ -43,7 +43,7 @@ namespace uCentral::Kafka {
 
 	void run() override;
 
-	[[nodiscard]] inline bool Enabled() { return Running_ && KafkaEnabled_; }
+	[[nodiscard]] bool Enabled() { return Running_ && KafkaEnabled_; }
 
   private:
 	static Service *instance_;
