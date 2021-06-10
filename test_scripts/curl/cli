@@ -232,6 +232,16 @@ wifiscan() {
   jq < ${result_file}
 }
 
+activescan() {
+	payload="{ \"serialNumber\" : \"$1\" , \"verbose\" : $2, \"activeScan\" : true}"
+	curl  ${FLAGS} -X POST "https://${UCENTRALGW}/api/v1/device/$1/wifiscan" \
+        --max-time 20 \
+        -H "accept: application/json" \
+        -H "Authorization: Bearer ${token}" \
+        -d "$payload"  > ${result_file}
+	jq < ${result_file}
+}
+
 trace() {
   payload="{ \"serialNumber\" : \"$1\" , \"duration\" : $2, \"network\" : \"$3\" }"
   curl  ${FLAGS} -X POST "https://${UCENTRALGW}/api/v1/device/$1/trace" \
@@ -437,6 +447,8 @@ help() {
   echo "request <serial> <message>        Force a message from the device."
   echo "                                  message=state/healthcheck"
   echo "wifiscan <serial> <verbose>       Do wifiscan for a device."
+  echo "                                  verbose=true/false"
+  echo "active <serial> <verbose>         Do an active wifiscan for a device."
   echo "                                  verbose=true/false"
   echo "trace <serial> <d> <n>            Launch a remote trace for a device."
   echo "                                  d=number of seconds"
