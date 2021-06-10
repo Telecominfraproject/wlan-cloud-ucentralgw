@@ -523,6 +523,7 @@ case "$1" in
   "configure") login; configure "$2" "$3"  ; logout ;;
   "request") login; request "$2" "$3"  ; logout ;;
   "wifiscan") login; wifiscan "$2" "$3"  ; logout ;;
+  "activescan") login; activescan "$2" "$3"  ; logout ;;
   "trace") login; trace "$2" "$3" "$4"  ; logout ;;
   "getstats") login; getstats "$2"  ; logout ;;
   "getlogs") login; getlogs "$2"  ; logout ;;
