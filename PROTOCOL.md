@@ -415,7 +415,8 @@ Controller sends this command when it needs the device to perform a WiFi Scan.
 	        "serial" : <serial number> ,
 	        "bands" : [ "2","5","5l","5u",6" ], <optional this is a list of bands to scan: on or more bands >
 	        "channels" : [ 1,2,3...] , <optional list of discreet channels to scan >
-	        "verbose" : <optional boolean: true or false> (by default false)
+	        "verbose" : <optional boolean: true or false> (by default false),
+	        "active" : 0 or 1 (to select passive or active scan)
         },
      "id" : <some number>
 }

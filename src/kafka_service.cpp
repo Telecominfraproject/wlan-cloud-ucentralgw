@@ -54,7 +54,8 @@ namespace uCentral::Kafka {
 			return 0;
 
 		cppkafka::Configuration Config({
-										   { "metadata.broker.list", uCentral::ServiceConfig::GetString("ucentral.kafka.brokerlist") }
+										   { "metadata.broker.list", uCentral::ServiceConfig::GetString("ucentral.kafka.brokerlist") } ,
+										   { "enable.auto.commit", uCentral::ServiceConfig::GetBool("ucentral.kafka.auto.commit", false)}
 									   });
 		SystemInfoWrapper_ = "{ \"system\" : { \"id\" : " + std::to_string(uCentral::ServiceConfig::GetInt("ucentral.system.id")) +
 							 " , \"host\" : \"" + uCentral::ServiceConfig::GetString("ucentral.system.uri") + "\" } , \"payload\" : " ;

@@ -746,6 +746,8 @@ components:
           type: string
         verbose:
           type: boolean
+        activeScan:
+          type: boolean
         selector:
           oneOf:
             - $ref: '#/components/schemas/WifiBands'

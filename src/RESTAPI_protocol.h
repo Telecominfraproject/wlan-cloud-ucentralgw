@@ -80,6 +80,7 @@ namespace uCentral::RESTAPI::Protocol {
 	static const char * VALUE = "value";
 	static const char * LASTONLY = "lastOnly";
 	static const char * NEWEST = "newest";
+	static const char * ACTIVESCAN = "activeScan";
 }
 
 #endif // UCENTRALGW_RESTAPI_PROTOCOL_H

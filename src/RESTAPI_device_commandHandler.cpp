@@ -737,6 +737,12 @@ void RESTAPI_device_commandHandler::WifiScan(Poco::Net::HTTPServerRequest &Reque
 				Params.set(uCentral::uCentralProtocol::CHANNELS,Obj->get(uCentral::RESTAPI::Protocol::CHANNELS));
 			}
 
+			if(Obj->has(uCentral::RESTAPI::Protocol::ACTIVESCAN)) {
+				Params.set(uCentral::uCentralProtocol::ACTIVE, (int) (Obj->get(uCentral::RESTAPI::Protocol::ACTIVESCAN).toString() == "true") ? 1 : 0 );
+			} else {
+				Params.set(uCentral::uCentralProtocol::ACTIVE, 0 );
+			}
+
 			std::stringstream ParamStream;
 			Params.stringify(ParamStream);
 			Cmd.Details = ParamStream.str();
