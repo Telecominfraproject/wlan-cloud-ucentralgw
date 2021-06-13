@@ -402,6 +402,12 @@ Speficy where logs should be kept. You must include an existing directory and a 
 ##### umask
 Seet the umask for the running service.
 
+### ALB Support
+Support for AWS ALB is provided through the following configuration elements
+```asm
+alb.enable = true
+alb.port = 15015
+```
 
 ### Docker
 So building this thing from scratch is not your thing? I can't blame you. It takes some patience and 
@@ -530,6 +536,7 @@ Toe read more about Kafka, follow the [document](https://github.com/Telecominfra
 
 #### Securing `kafka`
 This is beyond the scope of this document. As it stands today, the communication between the gateway and `kafka` is expected to be behind a firewall.
+
 ## Contributors
 We love ya! We need more of ya! If you want to contribute, make sure you review 
 the [coding style](https://github.com/Telecominfraproject/wlan-cloud-ucentralgw/blob/master/CODING_STYLE.md) document. 

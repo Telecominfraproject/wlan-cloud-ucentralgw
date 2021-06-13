@@ -53,24 +53,24 @@ include_directories(/usr/local/include  /usr/local/opt/openssl/include src inclu
 
 add_executable( ucentralgw
                 build
-                src/uCentral.cpp src/uCentral.h src/RESTAPI_server.cpp src/RESTAPI_server.h
-                src/uCentralWebSocketServer.cpp src/uCentralWebSocketServer.h src/uSubSystemServer.cpp src/uSubSystemServer.h
-                src/uStorageService.cpp src/uStorageService.h src/uDeviceRegistry.cpp src/uDeviceRegistry.h
+                src/Daemon.cpp src/Daemon.h src/RESTAPI_server.cpp src/RESTAPI_server.h
+                src/WebSocketServer.cpp src/WebSocketServer.h src/SubSystemServer.cpp src/SubSystemServer.h
+                src/StorageService.cpp src/StorageService.h src/DeviceRegistry.cpp src/DeviceRegistry.h
                 src/RESTAPI_oauth2Handler.cpp src/RESTAPI_oauth2Handler.h src/RESTAPI_devices_handler.cpp src/RESTAPI_devices_handler.h
                 src/RESTAPI_device_handler.cpp src/RESTAPI_device_handler.h src/RESTAPI_unknownRequestHandler.cpp src/RESTAPI_unknownRequestHandler.h
                 src/RESTAPI_handler.cpp src/RESTAPI_handler.h src/RESTAPI_device_commandHandler.cpp src/RESTAPI_device_commandHandler.h
-                src/RESTAPI_objects.h src/RESTAPI_objects.cpp src/uAuthService.cpp src/uAuthService.h src/uCentralConfig.cpp src/uCentralConfig.h
+                src/RESTAPI_objects.h src/RESTAPI_objects.cpp src/AuthService.cpp src/AuthService.h src/CentralConfig.cpp src/CentralConfig.h
                 src/RESTAPI_default_configuration.cpp
                 src/RESTAPI_default_configuration.h src/RESTAPI_default_configurations.cpp src/RESTAPI_default_configurations.h src/RESTAPI_commands.cpp
-                src/RESTAPI_commands.h src/uCommandManager.cpp src/uCommandManager.h src/RESTAPI_command.cpp src/RESTAPI_command.h
-                src/uFileUploader.cpp src/uFileUploader.h src/RESTAPI_file.cpp src/RESTAPI_file.h src/uCommandChannel.cpp src/uCommandChannel.h
-                src/RESTAPI_system_command.cpp src/RESTAPI_system_command.h src/RESTAPI_BlackList.cpp src/RESTAPI_BlackList.h src/uUtils.h src/uUtils.cpp src/storage_blacklist.cpp src/storage_identity.cpp
+                src/RESTAPI_commands.h src/CommandManager.cpp src/CommandManager.h src/RESTAPI_command.cpp src/RESTAPI_command.h
+                src/FileUploader.cpp src/FileUploader.h src/RESTAPI_file.cpp src/RESTAPI_file.h src/CommandChannel.cpp src/CommandChannel.h
+                src/RESTAPI_system_command.cpp src/RESTAPI_system_command.h src/RESTAPI_BlackList.cpp src/RESTAPI_BlackList.h src/Utils.h src/Utils.cpp src/storage_blacklist.cpp src/storage_identity.cpp
                 src/storage_command.cpp src/storage_healthcheck.cpp src/storage_statistics.cpp src/storage_logs.cpp
                 src/storage_device.cpp src/storage_capabilities.cpp src/storage_defconfig.cpp src/storage_sqlite.cpp
                 src/storage_mysql.cpp src/storage_pgql.cpp src/storage_odbc.cpp src/storage_tables.cpp src/RESTAPI_callback.cpp
-                src/RESTAPI_callback.h src/uCallbackManager.cpp src/uCallbackManager.h src/uFirmwareManager.cpp
-                src/uFirmwareManager.h src/storage_firmware_updates.cpp src/uStateProcessor.cpp src/uStateProcessor.h
-                src/storage_lifetime_stats.cpp src/uCentralProtocol.cpp src/uCentralProtocol.h src/RESTAPI_protocol.h
+                src/RESTAPI_callback.h src/CallbackManager.cpp src/CallbackManager.h src/FirmwareManager.cpp
+                src/FirmwareManager.h src/storage_firmware_updates.cpp src/StateProcessor.cpp src/StateProcessor.h
+                src/storage_lifetime_stats.cpp src/uCentralProtocol.h src/RESTAPI_protocol.h
                 src/ALBHealthCheckServer.h src/kafka_topics.h)
 
 if(NOT SMALL_BUILD)
