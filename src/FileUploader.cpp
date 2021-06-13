@@ -10,9 +10,9 @@
 #include <fstream>
 #include <cstdio>
 
-#include "uFileUploader.h"
-#include "uCentral.h"
-#include "uStorageService.h"
+#include "Daemon.h"
+#include "FileUploader.h"
+#include "StorageService.h"
 
 #include "Poco/Net/HTTPServerParams.h"
 #include "Poco/Net/HTTPServerResponse.h"
@@ -24,48 +24,19 @@
 #include "Poco/StreamCopier.h"
 #include "Poco/Exception.h"
 
-#include "uUtils.h"
+#include "Utils.h"
 
-namespace uCentral::uFileUploader {
-    Service *Service::instance_ = nullptr;
+namespace uCentral {
+    class FileUploader *FileUploader::instance_ = nullptr;
 
-    int Start() {
-        return Service::instance()->Start();
-    }
-
-    void Stop() {
-        Service::instance()->Stop();
-    }
-
-    const std::string & FullName() {
-        return Service::instance()->FullName();
-    }
-
-    bool AddUUID( const std::string & UUID) {
-        return Service::instance()->AddUUID(UUID);
-    }
-
-    bool ValidRequest(const std::string & UUID) {
-        return Service::instance()->ValidRequest(UUID);
-    }
-
-    void RemoveRequest(const std::string & UUID) {
-        Service::instance()->RemoveRequest(UUID);
-    }
-
-    const std::string & Path() {
-        return Service::instance()->Path();
-    }
-
-
-    Service::Service() noexcept: uSubSystemServer("FileUploader", "FILE-UPLOAD", "ucentral.fileuploader")
+	FileUploader::FileUploader() noexcept: SubSystemServer("FileUploader", "FILE-UPLOAD", "ucentral.fileuploader")
     {
 		SubMutexGuard		Guard(Mutex_);
     }
 
     static const std::string URI_BASE{"/v1/upload/"};
 
-    int Service::Start() {
+    int FileUploader::Start() {
         Logger_.notice("Starting.");
 
         for(const auto & Svr: ConfigServersList_) {
@@ -76,7 +47,7 @@ namespace uCentral::uFileUploader {
 
             Logger_.information(l);
 
-            Path_ = uCentral::ServiceConfig::GetString("ucentral.fileuploader.path","/tmp");
+            Path_ = Daemon()->ConfigGetString("ucentral.fileuploader.path","/tmp");
 
             auto Sock{Svr.CreateSecureSocket(Logger_)};
 
@@ -92,7 +63,7 @@ namespace uCentral::uFileUploader {
                 FullName_ = "https://" + Svr.Name() + ":" + std::to_string(Svr.Port()) + URI_BASE;
                 Logger_.information(Poco::format("Uploader URI base is '%s'", FullName_));
             }
-            auto NewServer = std::make_unique<Poco::Net::HTTPServer>(new RequestHandlerFactory(Logger_), Pool_, Sock, Params);
+            auto NewServer = std::make_unique<Poco::Net::HTTPServer>(new FileUpLoaderRequestHandlerFactory(Logger_), Pool_, Sock, Params);
             NewServer->start();
             Servers_.push_back(std::move(NewServer));
         }
@@ -100,12 +71,12 @@ namespace uCentral::uFileUploader {
         return 0;
     }
 
-    const std::string & Service::FullName() {
+    const std::string & FileUploader::FullName() {
         return FullName_;
     }
 
     //  if you pass in an empty UUID, it will just clean the list and not add it.
-    bool Service::AddUUID( const std::string & UUID) {
+    bool FileUploader::AddUUID( const std::string & UUID) {
 		SubMutexGuard		Guard(Mutex_);
 
         uint64_t Now = time(nullptr) ;
@@ -124,13 +95,13 @@ namespace uCentral::uFileUploader {
         return true;
     }
 
-    bool Service::ValidRequest(const std::string &UUID) {
+    bool FileUploader::ValidRequest(const std::string &UUID) {
 		SubMutexGuard		Guard(Mutex_);
 
         return OutStandingUploads_.find(UUID)!=OutStandingUploads_.end();
     }
 
-    void Service::RemoveRequest(const std::string &UUID) {
+    void FileUploader::RemoveRequest(const std::string &UUID) {
 		SubMutexGuard		Guard(Mutex_);
         OutStandingUploads_.erase(UUID);
     }
@@ -156,8 +127,8 @@ namespace uCentral::uFileUploader {
             }
 
             Poco::CountingInputStream InputStream(Stream);
-            std::string TmpFileName = uCentral::uFileUploader::Path() + "/" + UUID_ + ".upload.start" ;
-            std::string FinalFileName = uCentral::uFileUploader::Path() + "/" + UUID_ ;
+            std::string TmpFileName = FileUploader()->Path() + "/" + UUID_ + ".upload.start" ;
+            std::string FinalFileName = FileUploader()->Path() + "/" + UUID_ ;
 
             Logger_.information(Poco::format("FILE-UPLOADER: uploading %s",TmpFileName));
 
@@ -248,7 +219,7 @@ namespace uCentral::uFileUploader {
                 }
                 ResponseStream << "</body>\n";
 
-                uCentral::Storage::AttachFileToCommand(UUID_);
+				Storage()->AttachFileToCommand(UUID_);
             }
             catch( const Poco::Exception & E )
             {
@@ -263,7 +234,7 @@ namespace uCentral::uFileUploader {
         Poco::Logger    & Logger_;
     };
 
-    Poco::Net::HTTPRequestHandler *RequestHandlerFactory::createRequestHandler(const Poco::Net::HTTPServerRequest & Request) {
+    Poco::Net::HTTPRequestHandler *FileUpLoaderRequestHandlerFactory::createRequestHandler(const Poco::Net::HTTPServerRequest & Request) {
 
 		Logger_.debug(Poco::format("REQUEST(%s): %s %s", uCentral::Utils::FormatIPv6(Request.clientAddress().toString()), Request.getMethod(), Request.getURI()));
 
@@ -273,10 +244,10 @@ namespace uCentral::uFileUploader {
         if( UUIDLocation != std::string::npos )
         {
             auto UUID = Request.getURI().substr(UUIDLocation+URI_BASE.size());
-            if(uCentral::uFileUploader::ValidRequest(UUID))
+            if(FileUploader()->ValidRequest(UUID))
             {
                 //  make sure we do not allow anyone else to overwrite our file
-                uCentral::uFileUploader::RemoveRequest(UUID);
+				FileUploader()->RemoveRequest(UUID);
                 return new FormRequestHandler(UUID,Logger_);
             }
             else
@@ -287,7 +258,7 @@ namespace uCentral::uFileUploader {
         return nullptr;
     }
 
-    void Service::Stop() {
+    void FileUploader::Stop() {
         Logger_.notice("Stopping ");
         for( const auto & svr : Servers_ )
             svr->stop();

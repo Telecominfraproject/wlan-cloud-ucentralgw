@@ -11,12 +11,11 @@
 #include "Poco/File.h"
 #include "Poco/Data/LOBStream.h"
 
-#include "uCentral.h"
-#include "uStorageService.h"
-#include "uDeviceRegistry.h"
+#include "Daemon.h"
+#include "DeviceRegistry.h"
+#include "StorageService.h"
 
-
-namespace uCentral::Storage {
+namespace uCentral {
 
 	typedef Poco::Tuple<
 		std::string,
@@ -38,73 +37,7 @@ namespace uCentral::Storage {
 		uint64_t,
 		std::string> CommandDetailsRecordTuple;
 
-	bool AddCommand(std::string &SerialNumber, uCentral::Objects::CommandDetails &Command, CommandExecutionType Type) {
-		return Service::instance()->AddCommand(SerialNumber, Command, Type);
-	}
-
-	bool GetCommands(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate, uint64_t Offset, uint64_t HowMany,
-					 std::vector<uCentral::Objects::CommandDetails> &Commands) {
-		return Service::instance()->GetCommands(SerialNumber, FromDate, ToDate, Offset, HowMany,
-																   Commands);
-	}
-
-	bool DeleteCommands(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate) {
-		return Service::instance()->DeleteCommands(SerialNumber, FromDate, ToDate);
-	}
-
-	bool GetNonExecutedCommands(uint64_t Offset, uint64_t HowMany, std::vector<uCentral::Objects::CommandDetails> &Commands) {
-		return Service::instance()->GetNonExecutedCommands(Offset, HowMany, Commands);
-	}
-
-	bool UpdateCommand(std::string &UUID, uCentral::Objects::CommandDetails &Command) {
-		return Service::instance()->UpdateCommand(UUID, Command);
-	}
-
-	bool GetCommand(std::string &UUID, uCentral::Objects::CommandDetails &Command) {
-		return Service::instance()->GetCommand(UUID, Command);
-	}
-
-	bool DeleteCommand(std::string &UUID) {
-		return Service::instance()->DeleteCommand(UUID);
-	}
-
-	bool GetReadyToExecuteCommands(uint64_t Offset, uint64_t HowMany, std::vector<uCentral::Objects::CommandDetails> &Commands) {
-		return Service::instance()->GetReadyToExecuteCommands(Offset, HowMany, Commands);
-	}
-
-	bool CommandExecuted(std::string &UUID) {
-		return Service::instance()->CommandExecuted(UUID);
-	}
-
-	bool CommandCompleted(std::string &UUID, const Poco::JSON::Object::Ptr & ReturnVars, bool FullCommand) {
-		return Service::instance()->CommandCompleted(UUID, ReturnVars, FullCommand);
-	}
-
-	bool AttachFileToCommand(std::string &UUID) {
-		return Service::instance()->AttachFileToCommand(UUID);
-	}
-
-	bool GetAttachedFile(std::string & UUID, std::string & SerialNumber, const std::string & FileName, std::string &Type) {
-		return Service::instance()->GetAttachedFile(UUID, SerialNumber, FileName, Type);
-	}
-
-	bool RemoveAttachedFile(std::string & UUID) {
-		return Service::instance()->RemoveAttachedFile(UUID);
-	}
-
-	bool SetCommandResult(std::string & UUID, std::string & Result) {
-		return Service::instance()->SetCommandResult(UUID, Result);
-	}
-
-	bool GetNewestCommands(std::string &SerialNumber, uint64_t HowMany, std::vector<uCentral::Objects::CommandDetails> & Commands) {
-		return Service::instance()->GetNewestCommands(SerialNumber, HowMany, Commands);
-	}
-
-	bool SetCommandExecuted(std::string & CommandUUID) {
-		return Service::instance()->SetCommandExecuted(CommandUUID);
-	}
-
-	bool Service::AddCommand(std::string &SerialNumber, uCentral::Objects::CommandDetails &Command, CommandExecutionType Type) {
+	bool Storage::AddCommand(std::string &SerialNumber, uCentral::Objects::CommandDetails &Command, CommandExecutionType Type) {
 		try {
 			/*
 					"UUID           VARCHAR(30) PRIMARY KEY, "
@@ -172,7 +105,7 @@ namespace uCentral::Storage {
 		return false;
 	}
 
-	bool Service::GetCommands(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate,
+	bool Storage::GetCommands(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate,
 							  uint64_t Offset, uint64_t HowMany,
 							  std::vector<uCentral::Objects::CommandDetails> &Commands) {
 
@@ -262,7 +195,7 @@ namespace uCentral::Storage {
 		return false;
 	}
 
-	bool Service::DeleteCommands(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate) {
+	bool Storage::DeleteCommands(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate) {
 		try {
 			Poco::Data::Session Sess = Pool_->get();
 			Poco::Data::Statement Delete(Sess);
@@ -299,7 +232,7 @@ namespace uCentral::Storage {
 
 	typedef std::vector<CommandDetailsRecordTuple> RecordList;
 
-	bool Service::GetNonExecutedCommands(uint64_t Offset, uint64_t HowMany,
+	bool Storage::GetNonExecutedCommands(uint64_t Offset, uint64_t HowMany,
 										 std::vector<uCentral::Objects::CommandDetails> &Commands) {
 	//	typedef std::vector<CommandDetailsRecordTuple> RecordList;
 		/*
@@ -363,7 +296,7 @@ namespace uCentral::Storage {
 											 .AttachType = i.get<17>()};
 
 					//	Only return rhe commands for our own devices.
-					if (uCentral::DeviceRegistry::Connected(R.SerialNumber))
+					if (DeviceRegistry()->Connected(R.SerialNumber))
 						Commands.push_back(R);
 				}
 
@@ -380,7 +313,7 @@ namespace uCentral::Storage {
 		return false;
 	}
 
-	bool Service::UpdateCommand(std::string &UUID, uCentral::Objects::CommandDetails &Command) {
+	bool Storage::UpdateCommand(std::string &UUID, uCentral::Objects::CommandDetails &Command) {
 
 		try {
 			Poco::Data::Session Sess = Pool_->get();
@@ -425,7 +358,7 @@ namespace uCentral::Storage {
 		return false;
 	}
 
-	bool Service::SetCommandExecuted(std::string &CommandUUID) {
+	bool Storage::SetCommandExecuted(std::string &CommandUUID) {
 		try {
 			Poco::Data::Session Sess = Pool_->get();
 			Poco::Data::Statement Update(Sess);
@@ -445,7 +378,7 @@ namespace uCentral::Storage {
 		return false;
 	}
 
-	bool Service::GetCommand(std::string &UUID, uCentral::Objects::CommandDetails &Command) {
+	bool Storage::GetCommand(std::string &UUID, uCentral::Objects::CommandDetails &Command) {
 
 		try {
 			Poco::Data::Session Sess = Pool_->get();
@@ -505,7 +438,7 @@ namespace uCentral::Storage {
 		return false;
 	}
 
-	bool Service::DeleteCommand(std::string &UUID) {
+	bool Storage::DeleteCommand(std::string &UUID) {
 		try {
 			Poco::Data::Session Sess = Pool_->get();
 			Poco::Data::Statement Delete(Sess);
@@ -523,7 +456,7 @@ namespace uCentral::Storage {
 		return false;
 	}
 
-	bool Service::GetNewestCommands(std::string &SerialNumber, uint64_t HowMany, std::vector<uCentral::Objects::CommandDetails> &Commands) {
+	bool Storage::GetNewestCommands(std::string &SerialNumber, uint64_t HowMany, std::vector<uCentral::Objects::CommandDetails> &Commands) {
 		try {
 			RecordList Records;
 
@@ -566,7 +499,7 @@ namespace uCentral::Storage {
 					.AttachType = i.get<17>()};
 
 				//	Only return rhe commands for our own devices.
-				if (uCentral::DeviceRegistry::Connected(R.SerialNumber))
+				if (DeviceRegistry()->Connected(R.SerialNumber))
 					Commands.push_back(R);
 			}
 			return true;
@@ -577,7 +510,7 @@ namespace uCentral::Storage {
 		return false;
 	}
 
-	bool Service::GetReadyToExecuteCommands(uint64_t Offset, uint64_t HowMany,
+	bool Storage::GetReadyToExecuteCommands(uint64_t Offset, uint64_t HowMany,
 											std::vector<uCentral::Objects::CommandDetails> &Commands) {
 		// todo: finish the GetReadyToExecuteCommands call...
 		try {
@@ -617,7 +550,7 @@ namespace uCentral::Storage {
 										 .AttachSize = i.get<16>(),
 										 .AttachType = i.get<17>()};
 
-				if (uCentral::DeviceRegistry::Connected(R.SerialNumber))
+				if (DeviceRegistry()->Connected(R.SerialNumber))
 					Commands.push_back(R);
 			}
 
@@ -629,7 +562,7 @@ namespace uCentral::Storage {
 		return false;
 	}
 
-	bool Service::CommandExecuted(std::string &UUID) {
+	bool Storage::CommandExecuted(std::string &UUID) {
 		try {
 			uint64_t Now = time(nullptr);
 
@@ -651,7 +584,7 @@ namespace uCentral::Storage {
 		return false;
 	}
 
-	bool Service::CommandCompleted(std::string &UUID, const Poco::JSON::Object::Ptr & ReturnVars,
+	bool Storage::CommandCompleted(std::string &UUID, const Poco::JSON::Object::Ptr & ReturnVars,
 								   bool FullCommand) {
 		try {
 
@@ -699,7 +632,7 @@ namespace uCentral::Storage {
 		return false;
 	}
 
-	bool Service::AttachFileToCommand(std::string &UUID) {
+	bool Storage::AttachFileToCommand(std::string &UUID) {
 		try {
 			Poco::Data::Session Sess = Pool_->get();
 			uint64_t Now = time(nullptr);
@@ -707,7 +640,7 @@ namespace uCentral::Storage {
 
 			Poco::Data::Statement Update(Sess);
 
-			Poco::File FileName = uCentral::ServiceConfig::GetString("ucentral.fileuploader.path", "/tmp") + "/" + UUID;
+			Poco::File FileName = Daemon()->ConfigGetString("ucentral.fileuploader.path", "/tmp") + "/" + UUID;
 			uint64_t Size = FileName.getSize();
 
 			std::string St{
@@ -722,7 +655,7 @@ namespace uCentral::Storage {
 			Poco::Data::LOBOutputStream OL(L);
 
 			if (FileName.getSize() <
-				(1000 * uCentral::ServiceConfig::GetInt("ucentral.fileuploader.maxsize", 10000))) {
+				(1000 * Daemon()->ConfigGetInt("ucentral.fileuploader.maxsize", 10000))) {
 
 				std::ifstream f(FileName.path(), std::ios::binary);
 				Poco::StreamCopier::copyStream(f, OL);
@@ -757,7 +690,7 @@ namespace uCentral::Storage {
 		return false;
 	}
 
-	bool Service::GetAttachedFile(std::string &UUID, std::string & SerialNumber, const std::string &FileName, std::string &Type) {
+	bool Storage::GetAttachedFile(std::string &UUID, std::string & SerialNumber, const std::string &FileName, std::string &Type) {
 		try {
 			Poco::Data::LOB<char> L;
 			/*
@@ -800,7 +733,7 @@ namespace uCentral::Storage {
 		return false;
 	}
 
-	bool Service::SetCommandResult(std::string &UUID, std::string &Result) {
+	bool Storage::SetCommandResult(std::string &UUID, std::string &Result) {
 		try {
 			Poco::Data::Session Sess = Pool_->get();
 			Poco::Data::Statement Update(Sess);
@@ -819,7 +752,7 @@ namespace uCentral::Storage {
 		return false;
 	}
 
-	bool Service::RemoveAttachedFile(std::string &UUID) {
+	bool Storage::RemoveAttachedFile(std::string &UUID) {
 		try {
 			Poco::Data::Session Sess = Pool_->get();
 			Poco::Data::Statement Delete(Sess);

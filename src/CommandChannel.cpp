@@ -5,29 +5,21 @@
 //	Created by Stephane Bourque on 2021-03-04.
 //	Arilia Wireless Inc.
 //
-#include "uCommandChannel.h"
+#include "CommandChannel.h"
+#include "AuthService.h"
+#include "CommandManager.h"
+#include "Daemon.h"
+#include "FileUploader.h"
 #include "RESTAPI_server.h"
-#include "uAuthService.h"
-#include "uCentral.h"
-#include "uCentralWebSocketServer.h"
-#include "uCommandManager.h"
-#include "uFileUploader.h"
-#include "uStorageService.h"
+#include "StorageService.h"
+#include "WebSocketServer.h"
 #include <boost/algorithm/string.hpp>
 
-namespace uCentral::CommandChannel {
+namespace uCentral {
 
-	Service * Service::instance_ = nullptr;
+	class CommandChannel * CommandChannel::instance_ = nullptr;
 
-	int Start() {
-		return Service::instance()->Start();
-	}
-
-	void Stop() {
-		Service::instance()->Stop();
-	}
-
-	std::string  Service::ProcessCommand(const std::string &Command) {
+	std::string  CommandChannel::ProcessCommand(const std::string &Command) {
 		std::vector<std::string>	Tokens{};
 		std::string Result{"OK"};
 
@@ -54,13 +46,13 @@ namespace uCentral::CommandChannel {
 			} else if(Tokens[0]=="get") {
 				if(Tokens[1]=="loglevel") {
 					std::cout << "LogLevels:" << std::endl;
-					std::cout << " Auth: " << uCentral::Auth::Service().Logger().getLevel() << std::endl;
-					std::cout << " uFileUploader: " << uCentral::uFileUploader::Service().Logger().getLevel() << std::endl;
-					std::cout << " WebSocket: " << uCentral::WebSocket::Service().Logger().getLevel() << std::endl;
-					std::cout << " Storage: " << uCentral::Storage::Service().Logger().getLevel() << std::endl;
-					std::cout << " RESTAPI: " << uCentral::RESTAPI::Service().Logger().getLevel() << std::endl;
+					std::cout << " Auth: " << AuthService()->Logger().getLevel() << std::endl;
+					std::cout << " uFileUploader: " << FileUploader()->Logger().getLevel() << std::endl;
+					std::cout << " WebSocket: " << WebSocketServer()->Logger().getLevel() << std::endl;
+					std::cout << " Storage: " << Storage()->Logger().getLevel() << std::endl;
+					std::cout << " RESTAPI: " << RESTAPI_server()->Logger().getLevel() << std::endl;
 					std::cout << " CommandManager: " << Logger_.getLevel() << std::endl;
-					std::cout << " DeviceRegistry: " << uCentral::DeviceRegistry::Service().Logger().getLevel() << std::endl;
+					std::cout << " DeviceRegistry: " << DeviceRegistry()->Logger().getLevel() << std::endl;
 				} else if (Tokens[1]=="stats") {
 
 				} else {
@@ -112,7 +104,7 @@ namespace uCentral::CommandChannel {
 					Logger_.information(Poco::format("COMMAND-CHANNEL: %s",Message));
 					if(buffer.size() > n && !Message.empty())
 					{
-						uCentral::CommandChannel::Service::instance()->ProcessCommand(Message);
+						CommandChannel()->ProcessCommand(Message);
 						Message.clear();
 					}
 				}
@@ -131,7 +123,7 @@ namespace uCentral::CommandChannel {
 	{
 	  public:
 		explicit UnixSocketServerConnectionFactory() :
-			Logger_(Service::instance()->Logger())
+			Logger_(CommandChannel()->Logger())
 		{
 		}
 
@@ -143,17 +135,17 @@ namespace uCentral::CommandChannel {
 		Poco::Logger & Logger_;
 	};
 
-	Service::Service() noexcept: uSubSystemServer("Authentication", "AUTH-SVR", "authentication")
+	CommandChannel::CommandChannel() noexcept: SubSystemServer("Authentication", "AUTH-SVR", "authentication")
 	{
 	}
 
-	void Service::Stop() {
+	void CommandChannel::Stop() {
 		Logger_.notice("Stopping...");
 		Srv_->stop();
 	}
 
-	int Service::Start() {
-		Poco::File	F(uCentral::ServiceConfig::GetString("ucentral.system.commandchannel","/tmp/app.ucentralgw"));
+	int CommandChannel::Start() {
+		Poco::File	F(Daemon()->ConfigGetString("ucentral.system.commandchannel","/tmp/app.ucentralgw"));
 		try {
 			if (F.exists())
 				F.remove();

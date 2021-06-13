@@ -9,11 +9,11 @@
 #include "Poco/JSON/Parser.h"
 #include "Poco/JSON/Stringifier.h"
 
-#include "RESTAPI_objects.h"
+#include "Daemon.h"
+#include "DeviceRegistry.h"
 #include "RESTAPI_handler.h"
-#include "uDeviceRegistry.h"
-#include "uUtils.h"
-#include "uCentral.h"
+#include "RESTAPI_objects.h"
+#include "Utils.h"
 
 namespace uCentral::Objects {
 
@@ -49,7 +49,7 @@ namespace uCentral::Objects {
 	void Device::to_json_with_status(Poco::JSON::Object &Obj) const {
 		to_json(Obj);
 		ConnectionState ConState;
-		if (uCentral::DeviceRegistry::GetState(SerialNumber, ConState)) {
+		if (DeviceRegistry()->GetState(SerialNumber, ConState)) {
 			ConState.to_json(Obj);
 		} else {
 			Obj.set("ipAddress", "N/A");

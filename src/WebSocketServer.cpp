@@ -17,42 +17,34 @@
 #include "Poco/JSON/Array.h"
 #include "Poco/zlib.h"
 
-#include "uAuthService.h"
-#include "uCentral.h"
-#include "uCentralWebSocketServer.h"
-#include "uStorageService.h"
-#include "uUtils.h"
-#include "uCentralProtocol.h"
-#include "uCommandManager.h"
+#include "AuthService.h"
+#include "CommandManager.h"
+#include "Daemon.h"
+#include "StorageService.h"
+#include "Utils.h"
+#include "WebSocketServer.h"
 #include "kafka_service.h"
 #include "kafka_topics.h"
+#include "uCentralProtocol.h"
 
-namespace uCentral::WebSocket {
+namespace uCentral {
 
-    Service *Service::instance_ = nullptr;
+    class WebSocketServer *WebSocketServer::instance_ = nullptr;
 
-    int Start() {
-        return Service::instance()->Start();
-    }
-
-    void Stop() {
-        Service::instance()->Stop();
-    }
-
-    Service::Service() noexcept: uSubSystemServer("WebSocketServer", "WS-SVR", "ucentral.websocket"),
+	WebSocketServer::WebSocketServer() noexcept: SubSystemServer("WebSocketServer", "WS-SVR", "ucentral.websocket"),
             Factory_(Logger_)
     {
 
     }
 
-	bool Service::ValidateCertificate(const Poco::Crypto::X509Certificate & Certificate) {
+	bool WebSocketServer::ValidateCertificate(const Poco::Crypto::X509Certificate & Certificate) {
 		if(IsCertOk()) {
 			return Certificate.issuedBy(*IssuerCert_);
 		}
 		return false;
 	}
 
-	int Service::Start() {
+	int WebSocketServer::Start() {
 
         for(const auto & Svr : ConfigServersList_ ) {
             Logger_.notice(Poco::format("Starting: %s:%s Keyfile:%s CertFile: %s", Svr.Address(), std::to_string(Svr.Port()),
@@ -81,13 +73,13 @@ namespace uCentral::WebSocket {
             Servers_.push_back(std::move(WSE));
         }
 
-        uint64_t MaxThreads = uCentral::ServiceConfig::GetInt("ucentral.websocket.maxreactors",5);
+        uint64_t MaxThreads = Daemon()->ConfigGetInt("ucentral.websocket.maxreactors",5);
         Factory_.Init(MaxThreads);
 
         return 0;
     }
 
-    void Service::Stop() {
+    void WebSocketServer::Stop() {
         Logger_.notice("Stopping reactors...");
 
         for(auto const &Svr : Servers_) {
@@ -99,7 +91,7 @@ namespace uCentral::WebSocket {
 
     CountedReactor::CountedReactor()
     {
-        Reactor_ = Service::instance()->GetAReactor();
+        Reactor_ = WebSocketServer()->GetAReactor();
     }
 
     CountedReactor::~CountedReactor()
@@ -113,7 +105,7 @@ namespace uCentral::WebSocket {
 
 	WSConnection::WSConnection(Poco::Net::StreamSocket & socket, Poco::Net::SocketReactor & reactor):
             Socket_(socket),
-            Logger_(Service::instance()->Logger())
+            Logger_(WebSocketServer()->Logger())
     {
 		auto SS = dynamic_cast<Poco::Net::SecureStreamSocketImpl *>(Socket_.impl());
 
@@ -133,7 +125,7 @@ namespace uCentral::WebSocket {
 			try {
 				Poco::Crypto::X509Certificate	PeerCert(SS->peerCertificate());
 
-				if(uCentral::WebSocket::Service::instance()->ValidateCertificate(PeerCert)) {
+				if(WebSocketServer()->ValidateCertificate(PeerCert)) {
 					CN_ = Poco::toLower(PeerCert.commonName());
 					CertValidation_ = Objects::MISMATCH_SERIAL;
 					Logger_.debug(Poco::format("%s: Valid certificate: CN=%s", CId_, PeerCert.commonName()));
@@ -163,7 +155,7 @@ namespace uCentral::WebSocket {
     }
 
     WSConnection::~WSConnection() {
-        uCentral::DeviceRegistry::UnRegister(SerialNumber_,this);
+        DeviceRegistry()->UnRegister(SerialNumber_,this);
         DeRegister();
     }
 
@@ -205,7 +197,7 @@ namespace uCentral::WebSocket {
 		std::string NewConfig;
 		uint64_t 	NewConfigUUID = 0 ;
 
-        if (uCentral::Storage::ExistingConfiguration(SerialNumber_,UUID, NewConfig, NewConfigUUID)) {
+        if (Storage()->ExistingConfiguration(SerialNumber_,UUID, NewConfig, NewConfigUUID)) {
 
 			//	Device is already using the latest configuration.
 			if(UUID == NewConfigUUID)
@@ -224,7 +216,7 @@ namespace uCentral::WebSocket {
 			// create the command stub...
 			uCentral::Objects::CommandDetails  Cmd;
 			Cmd.SerialNumber = SerialNumber_;
-			Cmd.UUID = uCentral::instance()->CreateUUID();
+			Cmd.UUID = Daemon()->CreateUUID();
 			Cmd.SubmittedBy = uCentralProtocol::SUBMITTED_BY_SYSTEM;
 			Cmd.Status = uCentralProtocol::PENDING;
 			Cmd.Command = uCentralProtocol::CONFIGURE;
@@ -236,11 +228,11 @@ namespace uCentral::WebSocket {
 			Params.set(uCentralProtocol::CONFIG, ParsedConfig);
 
 			std::string Log = Poco::format("CFG-UPGRADE(%s):, Current ID: %Lu, newer configuration %Lu.", SerialNumber_, UUID, NewConfigUUID);
-			uCentral::Storage::AddLog(SerialNumber_, Conn_->UUID, Log);
+			Storage()->AddLog(SerialNumber_, Conn_->UUID, Log);
 			Logger_.debug(Log);
 
-			uCentral::CommandManager::SendCommand(SerialNumber_ , Cmd.Command, Params, nullptr, Cmd.UUID);
-			uCentral::Storage::AddCommand(SerialNumber_, Cmd, Storage::COMMAND_EXECUTED);
+			CommandManager()->SendCommand(SerialNumber_ , Cmd.Command, Params, nullptr, Cmd.UUID);
+			Storage()->AddCommand(SerialNumber_, Cmd, Storage::COMMAND_EXECUTED);
 			return true;
         }
         return false;
@@ -262,7 +254,7 @@ namespace uCentral::WebSocket {
     }
 
     void WSConnection::ProcessJSONRPCResult(Poco::JSON::Object::Ptr Doc) {
-		uCentral::CommandManager::PostCommandResult(SerialNumber_, Doc);
+		CommandManager()->PostCommandResult(SerialNumber_, Doc);
     }
 
     void WSConnection::ProcessJSONRPCEvent(Poco::JSON::Object::Ptr Doc) {
@@ -310,7 +302,7 @@ namespace uCentral::WebSocket {
 			E.rethrow();
 		}
 
-		if(uCentral::Storage::IsBlackListed(Serial)) {
+		if(Storage()->IsBlackListed(Serial)) {
 			Poco::Exception	E(Poco::format("BLACKLIST(%s): device is blacklisted and not allowed to connect.",Serial), EACCES);
 			E.rethrow();
 		}
@@ -324,7 +316,7 @@ namespace uCentral::WebSocket {
 						auto Firmware = ParamsObj->get(uCentralProtocol::FIRMWARE).toString();
 						auto Capabilities = ParamsObj->get(uCentralProtocol::CAPABILITIES).toString();
 
-						Conn_ = uCentral::DeviceRegistry::Register(Serial, this);
+						Conn_ = DeviceRegistry()->Register(Serial, this);
 						SerialNumber_ = Serial;
 						Conn_->SerialNumber = Serial;
 						Conn_->UUID = UUID;
@@ -344,23 +336,23 @@ namespace uCentral::WebSocket {
 								Logger_.information(Poco::format("CONNECT(%s): Authenticated but not validated.", CId_));
 						}
 
-						if (uCentral::instance()->AutoProvisioning() && !uCentral::Storage::DeviceExists(SerialNumber_))
-							uCentral::Storage::CreateDefaultDevice(SerialNumber_, Capabilities);
+						if (Daemon()->AutoProvisioning() && !Storage()->DeviceExists(SerialNumber_))
+							Storage()->CreateDefaultDevice(SerialNumber_, Capabilities);
 
-						uCentral::Storage::UpdateDeviceCapabilities(SerialNumber_, Capabilities);
+						Storage()->UpdateDeviceCapabilities(SerialNumber_, Capabilities);
 
 						if(!Firmware.empty())
-							uCentral::Storage::SetFirmware(SerialNumber_, Firmware);
+							Storage()->SetFirmware(SerialNumber_, Firmware);
 
-						StatsProcessor_ = std::make_unique<uCentral::uStateProcessor>();
+						StatsProcessor_ = std::make_unique<uCentral::StateProcessor>();
 						StatsProcessor_->Initialize(Serial);
 						LookForUpgrade(UUID);
 
-						if(uCentral::Kafka::Enabled()) {
+						if(KafkaManager()->Enabled()) {
 							Poco::JSON::Stringifier		Stringify;
 							std::ostringstream OS;
 							Stringify.condense(ParamsObj,OS);
-							uCentral::Kafka::PostMessage(uCentral::KafkaTopics::CONNECTION, SerialNumber_, OS.str());
+							KafkaManager()->PostMessage(uCentral::KafkaTopics::CONNECTION, SerialNumber_, OS.str());
 						}
 
 					} else {
@@ -386,21 +378,21 @@ namespace uCentral::WebSocket {
 													   UUID, request_uuid));
 
 						Conn_->UUID = UUID;
-						uCentral::Storage::AddStatisticsData(Serial, UUID, State);
-						uCentral::DeviceRegistry::SetStatistics(Serial, State);
+						Storage()->AddStatisticsData(Serial, UUID, State);
+						DeviceRegistry()->SetStatistics(Serial, State);
 
 						if (!request_uuid.empty()) {
-							uCentral::Storage::SetCommandResult(request_uuid, State);
+							Storage()->SetCommandResult(request_uuid, State);
 						}
 
 						if (StatsProcessor_)
 							StatsProcessor_->Add(State);
 
-						if(uCentral::Kafka::Enabled()) {
+						if(KafkaManager()->Enabled()) {
 							Poco::JSON::Stringifier		Stringify;
 							std::ostringstream OS;
 							Stringify.condense(ParamsObj,OS);
-							uCentral::Kafka::PostMessage(uCentral::KafkaTopics::STATE, SerialNumber_, OS.str());
+							KafkaManager()->PostMessage(uCentral::KafkaTopics::STATE, SerialNumber_, OS.str());
 						}
 					} else {
 						Logger_.warning(Poco::format(
@@ -437,18 +429,18 @@ namespace uCentral::WebSocket {
 						Check.Data = CheckData;
 						Check.Sanity = Sanity;
 
-						uCentral::Storage::AddHealthCheckData(Serial, Check);
+						Storage()->AddHealthCheckData(Serial, Check);
 
 						if (!request_uuid.empty()) {
-							uCentral::Storage::SetCommandResult(request_uuid, CheckData);
+							Storage()->SetCommandResult(request_uuid, CheckData);
 						}
 
-						uCentral::DeviceRegistry::SetHealthcheck(Serial, CheckData);
-						if(uCentral::Kafka::Enabled()) {
+						DeviceRegistry()->SetHealthcheck(Serial, CheckData);
+						if(KafkaManager()->Enabled()) {
 							Poco::JSON::Stringifier		Stringify;
 							std::ostringstream OS;
 							Stringify.condense(ParamsObj,OS);
-							uCentral::Kafka::PostMessage(uCentral::KafkaTopics::HEALTHCHECK, SerialNumber_, OS.str());
+							KafkaManager()->PostMessage(uCentral::KafkaTopics::HEALTHCHECK, SerialNumber_, OS.str());
 						}
 					} else {
 						Logger_.warning(Poco::format("HEALTHCHECK(%s): Missing parameter", CId_));
@@ -476,7 +468,7 @@ namespace uCentral::WebSocket {
 															   .LogType = 0,
 															   .UUID = Conn_->UUID};
 
-						uCentral::Storage::AddLog(Serial, DeviceLog);
+						Storage()->AddLog(Serial, DeviceLog);
 					} else {
 						Logger_.warning(Poco::format("LOG(%s): Missing parameters.", CId_));
 						return;
@@ -504,7 +496,7 @@ namespace uCentral::WebSocket {
 							.LogType = 1,
 							.UUID = Conn_->UUID};
 
-						uCentral::Storage::AddLog(Serial, DeviceLog, true);
+						Storage()->AddLog(Serial, DeviceLog, true);
 					} else {
 						Logger_.warning(Poco::format("LOG(%s): Missing parameters.", CId_));
 						return;

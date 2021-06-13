@@ -10,45 +10,48 @@
 #include "Poco/JSON/Stringifier.h"
 
 #include "RESTAPI_default_configurations.h"
-#include "uStorageService.h"
 #include "RESTAPI_protocol.h"
+#include "StorageService.h"
 
-void RESTAPI_default_configurations::handleRequest(Poco::Net::HTTPServerRequest& Request, Poco::Net::HTTPServerResponse& Response)
-{
-    if(!ContinueProcessing(Request,Response))
-        return;
+namespace uCentral {
+void RESTAPI_default_configurations::handleRequest(Poco::Net::HTTPServerRequest &Request,
+												   Poco::Net::HTTPServerResponse &Response) {
+	if (!ContinueProcessing(Request, Response))
+		return;
 
-    if(!IsAuthorized(Request,Response))
-        return;
+	if (!IsAuthorized(Request, Response))
+		return;
 
-    try {
-        if (Request.getMethod() == Poco::Net::HTTPRequest::HTTP_GET) {
-            ParseParameters(Request);
+	try {
+		if (Request.getMethod() == Poco::Net::HTTPRequest::HTTP_GET) {
+			ParseParameters(Request);
 			InitQueryBlock();
 
-            Logger_.information(Poco::format("DEFAULT_CONFIGURATIONS: from %Lu, limit of %Lu, filter=%s.", (int64_t )QB_.Offset, (int64_t )QB_.Limit, QB_.Filter));
-            RESTAPIHandler::PrintBindings();
+			Logger_.information(
+				Poco::format("DEFAULT_CONFIGURATIONS: from %Lu, limit of %Lu, filter=%s.",
+							 (int64_t)QB_.Offset, (int64_t)QB_.Limit, QB_.Filter));
+			RESTAPIHandler::PrintBindings();
 
-            std::vector<uCentral::Objects::DefaultConfiguration> DefConfigs;
+			std::vector<uCentral::Objects::DefaultConfiguration> DefConfigs;
 
-            uCentral::Storage::GetDefaultConfigurations(QB_.Offset, QB_.Limit, DefConfigs);
+			Storage()->GetDefaultConfigurations(QB_.Offset, QB_.Limit, DefConfigs);
 
-            Poco::JSON::Array Objects;
-            for (const auto & i:DefConfigs) {
-				Poco::JSON::Object	Obj;
+			Poco::JSON::Array Objects;
+			for (const auto &i : DefConfigs) {
+				Poco::JSON::Object Obj;
 				i.to_json(Obj);
 				Objects.add(Obj);
 			}
 
-            Poco::JSON::Object RetObj;
-            RetObj.set(uCentral::RESTAPI::Protocol::CONFIGURATIONS, Objects);
-            ReturnObject(Request, RetObj, Response);
-        } else
-            BadRequest(Request, Response);
-        return;
-    }
-    catch (const Poco::Exception & E)
-    {
-        Logger_.warning(Poco::format("%s: Failed with: %s",std::string(__func__),E.displayText() ));
-    }
+			Poco::JSON::Object RetObj;
+			RetObj.set(uCentral::RESTAPI::Protocol::CONFIGURATIONS, Objects);
+			ReturnObject(Request, RetObj, Response);
+		} else
+			BadRequest(Request, Response);
+		return;
+	} catch (const Poco::Exception &E) {
+		Logger_.warning(
+			Poco::format("%s: Failed with: %s", std::string(__func__), E.displayText()));
+	}
+}
 }

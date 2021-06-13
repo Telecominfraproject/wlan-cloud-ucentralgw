@@ -8,57 +8,41 @@
 
 #include "kafka_service.h"
 
-#include "uCentral.h"
+#include "Daemon.h"
 
-namespace uCentral::Kafka {
+namespace uCentral {
 
-	uCentral::Kafka::Service *uCentral::Kafka::Service::instance_ = nullptr;
+	class KafkaManager *KafkaManager::instance_ = nullptr;
 
-	Service::Service() noexcept: uSubSystemServer("KAFKA", "KAFKA-SVR", "ucentral.kafka")
+	KafkaManager::KafkaManager() noexcept: SubSystemServer("KAFKA", "KAFKA-SVR", "ucentral.kafka")
 	{
 	}
 
-	int Start() {
-		return Service::instance()->Start();
-	}
-
-	void Stop() {
-		Service::instance()->Stop();
-	}
-
-	bool Enabled() {
-		return Service::instance()->Enabled();
-	}
-
-	void PostMessage(std::string Topic, std::string Key, std::string Payload) {
-		Service::instance()->PostMessage(std::move(Topic), std::move(Key), std::move(Payload));
-	}
-
-	void Service::initialize(Poco::Util::Application & self) {
-		uSubSystemServer::initialize(self);
-		KafkaEnabled_ = uCentral::ServiceConfig::GetBool("ucentral.kafka.enable",false);
+	void KafkaManager::initialize(Poco::Util::Application & self) {
+		SubSystemServer::initialize(self);
+		KafkaEnabled_ = Daemon()->ConfigGetBool("ucentral.kafka.enable",false);
 	}
 
 #ifdef SMALL_BUILD
 
-	int Service::Start() {
+	int KafkaManager::Start() {
 		return 0;
 	}
-	void Service::Stop() {
+	void KafkaManager::Stop() {
 	}
 
 #else
 
-	int Service::Start() {
+	int KafkaManager::Start() {
 		if(!KafkaEnabled_)
 			return 0;
 
 		cppkafka::Configuration Config({
-										   { "metadata.broker.list", uCentral::ServiceConfig::GetString("ucentral.kafka.brokerlist") } ,
-										   { "enable.auto.commit", uCentral::ServiceConfig::GetBool("ucentral.kafka.auto.commit", false)}
+										   { "metadata.broker.list", Daemon()->ConfigGetString("ucentral.kafka.brokerlist") } ,
+										   { "enable.auto.commit", Daemon()->ConfigGetBool("ucentral.kafka.auto.commit", false)}
 									   });
-		SystemInfoWrapper_ = "{ \"system\" : { \"id\" : " + std::to_string(uCentral::ServiceConfig::GetInt("ucentral.system.id")) +
-							 " , \"host\" : \"" + uCentral::ServiceConfig::GetString("ucentral.system.uri") + "\" } , \"payload\" : " ;
+		SystemInfoWrapper_ = "{ \"system\" : { \"id\" : " + std::to_string(Daemon()->ConfigGetInt("ucentral.system.id")) +
+							 " , \"host\" : \"" + Daemon()->ConfigGetString("ucentral.system.uri") + "\" } , \"payload\" : " ;
 
 		// Create a producer instance.
 		Producer_ = std::make_unique<cppkafka::Producer>(Config);
@@ -66,7 +50,7 @@ namespace uCentral::Kafka {
 		return 0;
 	}
 
-	void Service::Stop() {
+	void KafkaManager::Stop() {
 		if(KafkaEnabled_) {
 			Running_ = false;
 			Th_.wakeUp();
@@ -75,7 +59,7 @@ namespace uCentral::Kafka {
 		}
 	}
 
-	void Service::run() {
+	void KafkaManager::run() {
 		Running_ = true ;
 		while(Running_) {
 			Poco::Thread::trySleep(3000);
@@ -97,11 +81,11 @@ namespace uCentral::Kafka {
 		}
 	}
 
-	std::string Service::WrapSystemId(const std::string & PayLoad) {
+	std::string KafkaManager::WrapSystemId(const std::string & PayLoad) {
 		return std::move( SystemInfoWrapper_ + PayLoad + "}");
 	}
 
-	void Service::PostMessage(std::string topic, std::string key, std::string PayLoad) {
+	void KafkaManager::PostMessage(std::string topic, std::string key, std::string PayLoad) {
 		if(KafkaEnabled_  && Running_) {
 			SubMutexGuard G(Mutex_);
 

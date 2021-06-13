@@ -6,8 +6,8 @@
 //	Arilia Wireless Inc.
 //
 
-#ifndef UCENTRALGW_UUTILS_H
-#define UCENTRALGW_UUTILS_H
+#ifndef UCENTRALGW_UTILS_H
+#define UCENTRALGW_UTILS_H
 
 #include <vector>
 #include <string>
@@ -37,4 +37,4 @@ namespace uCentral::Utils {
 
 	[[nodiscard]] bool ValidSerialNumber(const std::string &Serial);
 }
-#endif // UCENTRALGW_UUTILS_H
+#endif // UCENTRALGW_UTILS_H

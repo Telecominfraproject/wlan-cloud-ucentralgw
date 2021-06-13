@@ -8,9 +8,11 @@
 
 #include "RESTAPI_unknownRequestHandler.h"
 
-void RESTAPI_UnknownRequestHandler::handleRequest(Poco::Net::HTTPServerRequest& Request, Poco::Net::HTTPServerResponse& Response)
-{
-    if(!IsAuthorized(Request,Response))
-        return;
-    BadRequest(Request, Response);
+namespace uCentral {
+void RESTAPI_UnknownRequestHandler::handleRequest(Poco::Net::HTTPServerRequest &Request,
+												  Poco::Net::HTTPServerResponse &Response) {
+	if (!IsAuthorized(Request, Response))
+		return;
+	BadRequest(Request, Response);
+}
 }

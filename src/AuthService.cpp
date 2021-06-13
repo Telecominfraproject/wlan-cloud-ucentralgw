@@ -12,16 +12,16 @@
 #include "Poco/JWT/Token.h"
 #include "Poco/JWT/Signer.h"
 
+#include "AuthService.h"
+#include "Daemon.h"
 #include "RESTAPI_handler.h"
-#include "uAuthService.h"
-#include "uCentral.h"
-#include "uStorageService.h"
-#include "uUtils.h"
+#include "StorageService.h"
+#include "Utils.h"
 
-namespace uCentral::Auth {
-    Service *Service::instance_ = nullptr;
+namespace uCentral {
+    class AuthService *AuthService::instance_ = nullptr;
 
-	ACCESS_TYPE IntToAccessType(int C) {
+	AuthService::ACCESS_TYPE AuthService::IntToAccessType(int C) {
 		switch (C) {
 		case 1: return USERNAME;
 		case 2: return SERVER;
@@ -31,7 +31,7 @@ namespace uCentral::Auth {
 		}
 	}
 
-	int AccessTypeToInt(ACCESS_TYPE T) {
+	int AuthService::AccessTypeToInt(ACCESS_TYPE T) {
 		switch (T) {
 		case USERNAME: return 1;
 		case SERVER: return 2;
@@ -40,47 +40,26 @@ namespace uCentral::Auth {
 		return 1;	// some compilers complain...
 	}
 
-    Service::Service() noexcept: uSubSystemServer("Authentication", "AUTH-SVR", "authentication")
+	AuthService::AuthService() noexcept: SubSystemServer("Authentication", "AUTH-SVR", "authentication")
     {
-		std::string E{"SHA512"};
     }
 
-    int Start() {
-        return Service::instance()->Start();
-    }
-
-    void Stop() {
-        Service::instance()->Stop();
-    }
-
-    bool IsAuthorized(Poco::Net::HTTPServerRequest & Request,std::string &SessionToken, struct uCentral::Objects::WebToken & UserInfo ) {
-        return Service::instance()->IsAuthorized(Request,SessionToken, UserInfo);
-    }
-
-    bool Authorize( const std::string & UserName, const std::string & Password, uCentral::Objects::WebToken & ResultToken ) {
-        return Service::instance()->Authorize(UserName,Password,ResultToken);
-    }
-
-    void Logout(const std::string &Token) {
-        Service::instance()->Logout(Token);
-    }
-
-    int Service::Start() {
-		Signer_.setRSAKey(uCentral::instance()->Key());
+    int AuthService::Start() {
+		Signer_.setRSAKey(Daemon()->Key());
 		Signer_.addAllAlgorithms();
 		Logger_.notice("Starting...");
-        Secure_ = uCentral::ServiceConfig::GetBool(SubSystemConfigPrefix_+".enabled",true);
-        DefaultPassword_ = uCentral::ServiceConfig::GetString(SubSystemConfigPrefix_+".default.password","");
-        DefaultUserName_ = uCentral::ServiceConfig::GetString(SubSystemConfigPrefix_+".default.username","");
-        Mechanism_ = uCentral::ServiceConfig::GetString(SubSystemConfigPrefix_+".service.type","internal");
+        Secure_ = Daemon()->ConfigGetBool(SubSystemConfigPrefix_+".enabled",true);
+        DefaultPassword_ = Daemon()->ConfigGetString(SubSystemConfigPrefix_+".default.password","");
+        DefaultUserName_ = Daemon()->ConfigGetString(SubSystemConfigPrefix_+".default.username","");
+        Mechanism_ = Daemon()->ConfigGetString(SubSystemConfigPrefix_+".service.type","internal");
         return 0;
     }
 
-    void Service::Stop() {
+    void AuthService::Stop() {
 		Logger_.notice("Stopping...");
     }
 
-	bool Service::IsAuthorized(Poco::Net::HTTPServerRequest & Request, std::string & SessionToken, struct uCentral::Objects::WebToken & UserInfo  )
+	bool AuthService::IsAuthorized(Poco::Net::HTTPServerRequest & Request, std::string & SessionToken, struct uCentral::Objects::WebToken & UserInfo  )
     {
         if(!Secure_)
             return true;
@@ -119,12 +98,12 @@ namespace uCentral::Auth {
 		return false;
     }
 
-    void Service::Logout(const std::string &token) {
+    void AuthService::Logout(const std::string &token) {
 		SubMutexGuard		Guard(Mutex_);
         Tokens_.erase(token);
     }
 
-    std::string Service::GenerateToken(const std::string & Identity, ACCESS_TYPE Type, int NumberOfDays) {
+    std::string AuthService::GenerateToken(const std::string & Identity, ACCESS_TYPE Type, int NumberOfDays) {
 		SubMutexGuard		Guard(Mutex_);
 
 		Poco::JWT::Token	T;
@@ -144,7 +123,7 @@ namespace uCentral::Auth {
 		return JWT;
     }
 
-	bool Service::ValidateToken(const std::string & Token, std::string & SessionToken, struct uCentral::Objects::WebToken & UserInfo  ) {
+	bool AuthService::ValidateToken(const std::string & Token, std::string & SessionToken, struct uCentral::Objects::WebToken & UserInfo  ) {
 		SubMutexGuard		Guard(Mutex_);
 		Poco::JWT::Token	DecryptedToken;
 
@@ -165,7 +144,7 @@ namespace uCentral::Auth {
 					UserInfo.expires_in_ = Expires.epochTime() - IssuedAt.epochTime();
 					UserInfo.idle_timeout_ = 5*60;
 
-					if(uCentral::Storage::GetIdentityRights(Identity, UserInfo.acl_template_)) {
+					if(Storage()->GetIdentityRights(Identity, UserInfo.acl_template_)) {
 					} else {
 						//	we can get in but we have no given rights... something is very wrong
 						UserInfo.acl_template_.Read_ = true ;
@@ -186,7 +165,7 @@ namespace uCentral::Auth {
 		return false;
 	}
 
-    void Service::CreateToken(const std::string & UserName, uCentral::Objects::WebToken & UserInfo, uCentral::Objects::AclTemplate & ACL)
+    void AuthService::CreateToken(const std::string & UserName, uCentral::Objects::WebToken & UserInfo, uCentral::Objects::AclTemplate & ACL)
     {
 		SubMutexGuard		Guard(Mutex_);
 
@@ -206,7 +185,7 @@ namespace uCentral::Auth {
         Tokens_[UserInfo.access_token_] = UserInfo;
     }
 
-    bool Service::Authorize( const std::string & UserName, const std::string & Password, uCentral::Objects::WebToken & ResultToken )
+    bool AuthService::Authorize( const std::string & UserName, const std::string & Password, uCentral::Objects::WebToken & ResultToken )
     {
 		SubMutexGuard					Guard(Mutex_);
 		uCentral::Objects::AclTemplate	ACL;
@@ -221,10 +200,10 @@ namespace uCentral::Auth {
             }
         } else if (Mechanism_=="db") {
 			SHA2_.update(Password + UserName);
-			auto EncryptedPassword = uCentral::Utils::ToHex(SHA2_.digest());
+			auto EncryptedPassword = Utils::ToHex(SHA2_.digest());
 
 			std::string TUser{UserName};
-			if(uCentral::Storage::GetIdentity(TUser,EncryptedPassword,USERNAME,ACL)) {
+			if(Storage()->GetIdentity(TUser,EncryptedPassword,USERNAME,ACL)) {
 				CreateToken(UserName, ResultToken, ACL);
 				return true;
 			}

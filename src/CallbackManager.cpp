@@ -6,8 +6,8 @@
 //	Arilia Wireless Inc.
 //
 
-#include "uCallbackManager.h"
-#include "uCentral.h"
+#include "CallbackManager.h"
+#include "Daemon.h"
 
 #include "Poco/Net/HTTPClientSession.h"
 #include "Poco/Net/HTTPSClientSession.h"
@@ -15,40 +15,28 @@
 #include "Poco/Net/HTTPResponse.h"
 #include "Poco/URI.h"
 
-namespace uCentral::CallbackManager {
-	Service *Service::instance_ = nullptr;
+namespace uCentral {
+	class CallbackManager *CallbackManager::instance_ = nullptr;
 
-	Service::Service() noexcept: uSubSystemServer("CallbackManager", "CBACK-MGR", "ucentral.callback")
+	CallbackManager::CallbackManager() noexcept: SubSystemServer("CallbackManager", "CBACK-MGR", "ucentral.callback")
 	{
 	}
 
-	int Start() {
-		return Service::instance()->Start();
-	}
-
-	void Stop() {
-		Service::instance()->Stop();
-	}
-
-	bool AddMessage(const CallBackMessage &Msg) {
-		return Service::instance()->AddMessage(Msg);
-	}
-
-	int Service::Start() {
+	int CallbackManager::Start() {
 		Logger_.notice("Starting...");
 		Mgr_.start(*this);
 		return 0;
 	}
 
-	bool Service::InitHosts() {
+	bool CallbackManager::InitHosts() {
 		// get all the hosts we are registering with and register ourselves...
 
-		if(uCentral::ServiceConfig::GetString("ucentral.callback.enable","false") == "false") {
+		if(Daemon()->ConfigGetString("ucentral.callback.enable","false") == "false") {
 			Logger_.information("CALLBACK system disabled.");
 			return false;
 		}
 
-		MyIDCallbackId_ = uCentral::ServiceConfig::GetString("ucentral.callback.id","");
+		MyIDCallbackId_ = Daemon()->ConfigGetString("ucentral.callback.id","");
 		if(MyIDCallbackId_.empty()) {
 			Logger_.information("CALLBACK system disabled. No CallbackID present in ucentral.callback.id");
 			return false;
@@ -59,11 +47,11 @@ namespace uCentral::CallbackManager {
 		while(true) {
 			std::string root = "ucentral.callback." + std::to_string(Index);
 
-			auto Local = uCentral::ServiceConfig::GetString(root + ".local","");
-			auto Remote = uCentral::ServiceConfig::GetString(root + ".remote","");
-			auto LocalKey = uCentral::ServiceConfig::GetString(root + ".localkey","");
-			auto RemoteKey = uCentral::ServiceConfig::GetString(root + ".localkey","");
-			auto Topics = uCentral::ServiceConfig::GetString(root + ".topics","");
+			auto Local = Daemon()->ConfigGetString(root + ".local","");
+			auto Remote = Daemon()->ConfigGetString(root + ".remote","");
+			auto LocalKey = Daemon()->ConfigGetString(root + ".localkey","");
+			auto RemoteKey = Daemon()->ConfigGetString(root + ".localkey","");
+			auto Topics = Daemon()->ConfigGetString(root + ".topics","");
 
 			if(Local.empty() || Remote.empty() || LocalKey.empty() || Topics.empty() || RemoteKey.empty())
 				break;
@@ -97,7 +85,7 @@ namespace uCentral::CallbackManager {
 		return (Response.getStatus() == Poco::Net::HTTPResponse::HTTP_OK);
 	}
 
-	bool Service::RegisterHosts() {
+	bool CallbackManager::RegisterHosts() {
 
 		if(MyIDCallbackId_.empty())
 			return false;
@@ -128,7 +116,7 @@ namespace uCentral::CallbackManager {
 		return true;
 	}
 
-	void Service::run() {
+	void CallbackManager::run() {
 		Running_ = true;
 
 		uint64_t LastContact = time(nullptr);
@@ -161,7 +149,7 @@ namespace uCentral::CallbackManager {
 		}
 	}
 
-	void Service::Stop() {
+	void CallbackManager::Stop() {
 		SubMutexGuard Guard(Mutex_);
 
 		Logger_.notice("Stopping...");
@@ -169,7 +157,7 @@ namespace uCentral::CallbackManager {
 		Mgr_.join();
 	}
 
-	bool Service::AddMessage(const CallBackMessage &Msg) {
+	bool CallbackManager::AddMessage(const CallBackMessage &Msg) {
 		SubMutexGuard Guard(Mutex_);
 
 		Calls_.push(Msg);

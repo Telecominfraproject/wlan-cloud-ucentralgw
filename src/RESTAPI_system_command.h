@@ -11,15 +11,15 @@
 
 #include "RESTAPI_handler.h"
 
-class RESTAPI_system_command : public uCentral::RESTAPI::RESTAPIHandler
-{
+namespace uCentral {
+class RESTAPI_system_command : public RESTAPIHandler {
   public:
-	RESTAPI_system_command(const RESTAPIHandler::BindingMap & bindings,Poco::Logger & L)
-		: RESTAPIHandler(bindings,L,
-						 std::vector<std::string>
-						 {  Poco::Net::HTTPRequest::HTTP_POST,
-							Poco::Net::HTTPRequest::HTTP_OPTIONS}) {}
-	void handleRequest(Poco::Net::HTTPServerRequest& request, Poco::Net::HTTPServerResponse& response) override;
+	RESTAPI_system_command(const RESTAPIHandler::BindingMap &bindings, Poco::Logger &L)
+		: RESTAPIHandler(bindings, L,
+						 std::vector<std::string>{Poco::Net::HTTPRequest::HTTP_POST,
+												  Poco::Net::HTTPRequest::HTTP_OPTIONS}) {}
+	void handleRequest(Poco::Net::HTTPServerRequest &request,
+					   Poco::Net::HTTPServerResponse &response) override;
 };
-
+}
 #endif // UCENTRALGW_RESTAPI_SYSTEM_COMMAND_H

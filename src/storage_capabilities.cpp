@@ -6,25 +6,14 @@
 //	Arilia Wireless Inc.
 //
 
-#include "uStorageService.h"
+#include "StorageService.h"
 
 #include "Poco/JSON/Parser.h"
 #include "Poco/JSON/Object.h"
 
-namespace uCentral::Storage {
-	bool UpdateDeviceCapabilities(std::string &SerialNumber, std::string &Capabilities) {
-		return uCentral::Storage::Service::instance()->UpdateDeviceCapabilities(SerialNumber, Capabilities);
-	}
+namespace uCentral {
 
-	bool GetDeviceCapabilities(std::string &SerialNumber, uCentral::Objects::Capabilities &Capabilities) {
-		return uCentral::Storage::Service::instance()->GetDeviceCapabilities(SerialNumber, Capabilities);
-	}
-
-	bool DeleteDeviceCapabilities(std::string &SerialNumber) {
-		return uCentral::Storage::Service::instance()->DeleteDeviceCapabilities(SerialNumber);
-	}
-
-	bool Service::UpdateDeviceCapabilities(std::string &SerialNumber, std::string & Capabilities) {
+	bool Storage::UpdateDeviceCapabilities(std::string &SerialNumber, std::string & Capabilities) {
 		// std::lock_guard<std::mutex> guard(Mutex_);
 
 		try {
@@ -96,7 +85,7 @@ namespace uCentral::Storage {
 		return false;
 	}
 
-	bool Service::GetDeviceCapabilities(std::string &SerialNumber, uCentral::Objects::Capabilities &Caps) {
+	bool Storage::GetDeviceCapabilities(std::string &SerialNumber, uCentral::Objects::Capabilities &Caps) {
 		// std::lock_guard<std::mutex> guard(Mutex_);
 
 		try {
@@ -127,7 +116,7 @@ namespace uCentral::Storage {
 		return false;
 	}
 
-	bool Service::DeleteDeviceCapabilities(std::string &SerialNumber) {
+	bool Storage::DeleteDeviceCapabilities(std::string &SerialNumber) {
 		// std::lock_guard<std::mutex> guard(Mutex_);
 
 		try {

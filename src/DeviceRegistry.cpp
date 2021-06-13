@@ -6,88 +6,31 @@
 //	Arilia Wireless Inc.
 //
 
-#include "uDeviceRegistry.h"
+#include "DeviceRegistry.h"
 
-#include "uCentralWebSocketServer.h"
 #include "RESTAPI_handler.h"
+#include "WebSocketServer.h"
 
-#include "uDeviceRegistry.h"
+#include "DeviceRegistry.h"
 
-namespace uCentral::DeviceRegistry {
-    Service *Service::instance_ = nullptr;
+namespace uCentral {
+    class DeviceRegistry *DeviceRegistry::instance_ = nullptr;
 
-    Service::Service() noexcept: uSubSystemServer("DeviceStatus", "DevStatus", "devicestatus") {
+	DeviceRegistry::DeviceRegistry() noexcept: SubSystemServer("DeviceStatus", "DevStatus", "devicestatus") {
     }
 
-    int Start() {
-        return Service::instance()->Start();
-    }
-
-    void Stop() {
-        Service::instance()->Stop();
-    }
-
-    bool GetStatistics(const std::string &SerialNumber, std::string & Statistics) {
-        return Service::instance()->GetStatistics(SerialNumber,Statistics);
-    }
-
-    void SetStatistics(const std::string &SerialNumber, const std::string &Stats) {
-        Service::instance()->SetStatistics(SerialNumber,Stats);
-    }
-
-    bool GetState(const std::string & SerialNumber, uCentral::Objects::ConnectionState & State) {
-        return Service::instance()->GetState(SerialNumber,State);
-    }
-
-    void SetState(const std::string & SerialNumber, uCentral::Objects::ConnectionState & State) {
-        return Service::instance()->SetState(SerialNumber,State);
-    }
-
-	bool GetHealthcheck(const std::string &SerialNumber, std::string & CheckData) {
-		return Service::instance()->GetHealthcheck(SerialNumber, CheckData);
-	}
-
-	void SetHealthcheck(const std::string &SerialNumber, const std::string &CheckData) {
-		Service::instance()->SetHealthcheck(SerialNumber, CheckData);
-	}
-
-	uCentral::Objects::ConnectionState * Register(const std::string & SerialNumber, void *Ptr) {
-        return Service::instance()->Register(SerialNumber,Ptr);
-    }
-
-    void UnRegister(const std::string & SerialNumber, void *Ptr) {
-        Service::instance()->UnRegister(SerialNumber,Ptr);
-    }
-
-/*    bool SendCommand(uCentral::Objects::CommandDetails & Command) {
-        return Service::instance()->SendCommand(Command);
-    }
-*/
-    bool Connected(const std::string & SerialNumber) {
-        return Service::instance()->Connected(SerialNumber);
-    }
-
-	bool SendFrame(const std::string & SerialNumber, const std::string & Payload) {
-		return Service::instance()->SendFrame(SerialNumber, Payload);
-	}
-
-	void SetPendingUUID(const std::string & SerialNumber, uint64_t PendingUUID) {
-		Service::instance()->SetPendingUUID(SerialNumber, PendingUUID);
-	}
-
-
-int Service::Start() {
+	int DeviceRegistry::Start() {
 		SubMutexGuard		Guard(Mutex_);
         Logger_.notice("Starting ");
         return 0;
     }
 
-    void Service::Stop() {
+    void DeviceRegistry::Stop() {
 		SubMutexGuard		Guard(Mutex_);
         Logger_.notice("Stopping ");
     }
 
-    bool Service::GetStatistics(const std::string &SerialNumber, std::string & Statistics) {
+    bool DeviceRegistry::GetStatistics(const std::string &SerialNumber, std::string & Statistics) {
 		SubMutexGuard		Guard(Mutex_);
 
         auto Device = Devices_.find(SerialNumber);
@@ -98,7 +41,7 @@ int Service::Start() {
         return false;
     }
 
-    void Service::SetStatistics(const std::string &SerialNumber, const std::string &Statistics) {
+    void DeviceRegistry::SetStatistics(const std::string &SerialNumber, const std::string &Statistics) {
 		SubMutexGuard		Guard(Mutex_);
 
         auto Device = Devices_.find(SerialNumber);
@@ -110,7 +53,7 @@ int Service::Start() {
         }
     }
 
-    bool Service::GetState(const std::string &SerialNumber, uCentral::Objects::ConnectionState & State) {
+    bool DeviceRegistry::GetState(const std::string &SerialNumber, uCentral::Objects::ConnectionState & State) {
 		SubMutexGuard		Guard(Mutex_);
 
         auto Device = Devices_.find(SerialNumber);
@@ -124,7 +67,7 @@ int Service::Start() {
         return false;
     }
 
-    void Service::SetState(const std::string & SerialNumber, uCentral::Objects::ConnectionState & State) {
+    void DeviceRegistry::SetState(const std::string & SerialNumber, uCentral::Objects::ConnectionState & State) {
 		SubMutexGuard		Guard(Mutex_);
 
         auto Device = Devices_.find(SerialNumber);
@@ -136,7 +79,7 @@ int Service::Start() {
         }
     }
 
-	bool Service::GetHealthcheck(const std::string &SerialNumber, std::string & CheckData) {
+	bool DeviceRegistry::GetHealthcheck(const std::string &SerialNumber, std::string & CheckData) {
 		SubMutexGuard		Guard(Mutex_);
 
 		auto Device = Devices_.find(SerialNumber);
@@ -147,7 +90,7 @@ int Service::Start() {
 		return false;
 	}
 
-	void Service::SetHealthcheck(const std::string &SerialNumber, const std::string &CheckData) {
+	void DeviceRegistry::SetHealthcheck(const std::string &SerialNumber, const std::string &CheckData) {
 		SubMutexGuard		Guard(Mutex_);
 
 		auto Device = Devices_.find(SerialNumber);
@@ -158,13 +101,13 @@ int Service::Start() {
 		}
 	}
 
-	uCentral::Objects::ConnectionState * Service::Register(const std::string & SerialNumber, void *Ptr)
+	uCentral::Objects::ConnectionState * DeviceRegistry::Register(const std::string & SerialNumber, void *Ptr)
     {
 		SubMutexGuard		Guard(Mutex_);
 
         auto Device = Devices_.find(SerialNumber);
 
-		auto Connection = static_cast<uCentral::WebSocket::WSConnection *>(Ptr);
+		auto Connection = static_cast<WSConnection *>(Ptr);
 
         if( Device == Devices_.end()) {
             auto E = std::make_unique<ConnectionEntry>();
@@ -193,7 +136,7 @@ int Service::Start() {
         }
     }
 
-    bool Service::Connected(const std::string & SerialNumber) {
+    bool DeviceRegistry::Connected(const std::string & SerialNumber) {
 		SubMutexGuard		Guard(Mutex_);
 
         auto Device = Devices_.find(SerialNumber);
@@ -204,7 +147,7 @@ int Service::Start() {
         return Device->second->Conn_.Connected;
     }
 
-    void Service::UnRegister(const std::string & SerialNumber, void *Ptr) {
+    void DeviceRegistry::UnRegister(const std::string & SerialNumber, void *Ptr) {
 		SubMutexGuard		Guard(Mutex_);
 
         auto Device = Devices_.find(SerialNumber);
@@ -219,18 +162,18 @@ int Service::Start() {
 
     }
 
-	bool Service::SendFrame(const std::string & SerialNumber, const std::string & Payload) {
+	bool DeviceRegistry::SendFrame(const std::string & SerialNumber, const std::string & Payload) {
 		SubMutexGuard		Guard(Mutex_);
 		auto Device = Devices_.find(SerialNumber);
 		if(Device!=Devices_.end() && Device->second->WSConn_!= nullptr) {
 			auto *WSConn =
-				static_cast<uCentral::WebSocket::WSConnection *>(Device->second->WSConn_);
+				static_cast<WSConnection *>(Device->second->WSConn_);
 			return WSConn->Send(Payload);
 		}
 		return false;
 	}
 
-	void Service::SetPendingUUID(const std::string & SerialNumber, uint64_t PendingUUID) {
+	void DeviceRegistry::SetPendingUUID(const std::string & SerialNumber, uint64_t PendingUUID) {
 		SubMutexGuard		Guard(Mutex_);
 		auto Device = Devices_.find(SerialNumber);
 		if(Device!=Devices_.end()) {

@@ -22,9 +22,16 @@
 #include "Poco/ErrorHandler.h"
 #include "Poco/Crypto/RSAKey.h"
 
+#include "SubSystemServer.h"
+
 using Poco::Util::ServerApplication;
 
 namespace uCentral {
+
+	static const char * DAEMON_PROPERTIES_FILENAME = "ucentral.properties";
+	static const char * DAEMON_ROOT_ENV_VAR = "UCENTRAL_ROOT";
+	static const char * DAEMON_CONFIG_ENV_VAR = "UCENTRAL_CONFIG";
+	static const char * DAEMON_APP_NAME = "uCentral";
 
 	class MyErrorHandler : public Poco::ErrorHandler {
     public:
@@ -61,12 +68,23 @@ namespace uCentral {
 		void Exit(int Reason);
 		[[nodiscard]] inline const std::string & DataDir() { return DataDir_; }
 
+		void InitializeSubSystemServers();
+		void StartSubSystemServers();
+		void StopSubSystemServers();
+
 		static Daemon *instance() {
 			if (instance_ == nullptr) {
 				instance_ = new Daemon;
 			}
 			return instance_;
 		}
+
+		uint64_t ConfigGetInt(const std::string &Key,uint64_t Default);
+		uint64_t ConfigGetInt(const std::string &Key);
+		std::string ConfigGetString(const std::string &Key,const std::string & Default);
+		std::string ConfigGetString(const std::string &Key);
+		uint64_t ConfigGetBool(const std::string &Key,bool Default);
+		uint64_t ConfigGetBool(const std::string &Key);
 
 	  private:
 		static Daemon 				*instance_;
@@ -81,18 +99,10 @@ namespace uCentral {
         MyErrorHandler              AppErrorHandler_;
 		Poco::SharedPtr<Poco::Crypto::RSAKey>	AppKey_ = nullptr;
 		std::string 				DataDir_;
+		std::unique_ptr<std::list<SubSystemServer*>> SubSystems_;
     };
 
-    namespace ServiceConfig {
-        uint64_t GetInt(const std::string &Key,uint64_t Default);
-        uint64_t GetInt(const std::string &Key);
-        std::string GetString(const std::string &Key,const std::string & Default);
-        std::string GetString(const std::string &Key);
-        uint64_t GetBool(const std::string &Key,bool Default);
-        uint64_t GetBool(const std::string &Key);
-    }
-
-	Daemon * instance();
+	inline Daemon * Daemon() { return Daemon::instance(); }
 }
 
 #endif //UCENTRAL_UCENTRAL_H

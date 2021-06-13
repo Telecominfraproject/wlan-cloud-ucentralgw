@@ -6,28 +6,28 @@
 //	Arilia Wireless Inc.
 //
 
-#include "uStorageService.h"
-#include "uCentral.h"
+#include "Daemon.h"
+#include "StorageService.h"
 
-namespace uCentral::Storage {
+namespace uCentral {
 
 #ifdef SMALL_BUILD
 	int Service::Setup_ODBC() { uCentral::instance()->exit(Poco::Util::Application::EXIT_CONFIG);}
 #else
-	int Service::Setup_ODBC() {
+	int Storage::Setup_ODBC() {
 
 		dbType_ = odbc ;
 
 		Logger_.notice("ODBC Storage enabled.");
 
-		auto NumSessions = uCentral::ServiceConfig::GetInt("storage.type.postgresql.maxsessions", 64);
-		auto IdleTime = uCentral::ServiceConfig::GetInt("storage.type.postgresql.idletime", 60);
-		auto Host = uCentral::ServiceConfig::GetString("storage.type.postgresql.host");
-		auto Username = uCentral::ServiceConfig::GetString("storage.type.postgresql.username");
-		auto Password = uCentral::ServiceConfig::GetString("storage.type.postgresql.password");
-		auto Database = uCentral::ServiceConfig::GetString("storage.type.postgresql.database");
-		auto Port = uCentral::ServiceConfig::GetString("storage.type.postgresql.port");
-		auto ConnectionTimeout = uCentral::ServiceConfig::GetString("storage.type.postgresql.connectiontimeout");
+		auto NumSessions = Daemon()->ConfigGetInt("storage.type.postgresql.maxsessions", 64);
+		auto IdleTime = Daemon()->ConfigGetInt("storage.type.postgresql.idletime", 60);
+		auto Host = Daemon()->ConfigGetString("storage.type.postgresql.host");
+		auto Username = Daemon()->ConfigGetString("storage.type.postgresql.username");
+		auto Password = Daemon()->ConfigGetString("storage.type.postgresql.password");
+		auto Database = Daemon()->ConfigGetString("storage.type.postgresql.database");
+		auto Port = Daemon()->ConfigGetString("storage.type.postgresql.port");
+		auto ConnectionTimeout = Daemon()->ConfigGetString("storage.type.postgresql.connectiontimeout");
 
 		std::string ConnectionStr =
 			"host=" + Host +

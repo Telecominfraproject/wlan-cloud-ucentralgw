@@ -2,14 +2,14 @@
 // Created by stephane bourque on 2021-05-23.
 //
 
-#include "uStateProcessor.h"
-#include "uStorageService.h"
+#include "StateProcessor.h"
+#include "StorageService.h"
 
 #include "Poco/JSON/Parser.h"
 
 namespace uCentral {
 
-	bool uStateProcessor::Add(const Poco::JSON::Object::Ptr & O) {
+	bool StateProcessor::Add(const Poco::JSON::Object::Ptr & O) {
 		try {
 			UpdatesSinceLastWrite_++;
 			//	get the interfaces section
@@ -56,7 +56,7 @@ namespace uCentral {
 		return false;
 	}
 
-	bool uStateProcessor::Add(const std::string &S) {
+	bool StateProcessor::Add(const std::string &S) {
 		try {
 			Poco::JSON::Parser parser;
 			auto ParsedMessage = parser.parse(S);
@@ -68,7 +68,7 @@ namespace uCentral {
 		return false;
 	}
 
-	void uStateProcessor::Print() const {
+	void StateProcessor::Print() const {
 		for(const auto & Interface: Stats_) {
 			std::cout << "Interface: " << Interface.first << std::endl;
 			for(const auto &[Name,Value]:Interface.second) {
@@ -77,7 +77,7 @@ namespace uCentral {
 		}
 	}
 
-	void uStateProcessor::to_json(Poco::JSON::Object & Obj) const {
+	void StateProcessor::to_json(Poco::JSON::Object & Obj) const {
 		/* interfaces: [
 			name:
 			counters: {
@@ -98,7 +98,7 @@ namespace uCentral {
 		Obj.set("interfaces",Interfaces);
 	}
 
-	std::string uStateProcessor::toString() const {
+	std::string StateProcessor::toString() const {
 		try {
 			Poco::JSON::Object Obj;
 			to_json(Obj);
@@ -112,21 +112,21 @@ namespace uCentral {
 		return "";
 	};
 
-	bool uStateProcessor::Initialize(std::string &SerialNumber) {
+	bool StateProcessor::Initialize(std::string &SerialNumber) {
 		SerialNumber_ = SerialNumber;
 		UpdatesSinceLastWrite_ = 0;
 		Stats_.clear();
 		std::string Stats;
-		if(uCentral::Storage::GetLifetimeStats(SerialNumber,Stats)) {
+		if(Storage()->GetLifetimeStats(SerialNumber,Stats)) {
 			Add(Stats);
 			return true;
 		}
 		return false;
 	}
 
-	bool uStateProcessor::Save() {
+	bool StateProcessor::Save() {
 		UpdatesSinceLastWrite_ = 0;
 		std::string StatsToSave = toString();
-		return uCentral::Storage::SetLifetimeStats(SerialNumber_, StatsToSave);
+		return Storage()->SetLifetimeStats(SerialNumber_, StatsToSave);
 	}
 }

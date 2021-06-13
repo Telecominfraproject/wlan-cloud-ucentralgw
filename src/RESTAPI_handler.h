@@ -19,19 +19,18 @@
 #include "Poco/File.h"
 #include "Poco/JSON/Object.h"
 
+#include "AuthService.h"
 #include "RESTAPI_objects.h"
-#include "uAuthService.h"
 
-namespace uCentral::RESTAPI {
-
-	struct QueryBlock {
-		uint64_t StartDate = 0 , EndDate = 0 , Offset = 0 , Limit = 0, LogType = 0 ;
-		std::string SerialNumber, Filter, Select;
-		bool Lifetime=false, LastOnly=false, Newest=false;
-	};
+namespace uCentral {
 
 	class RESTAPIHandler : public Poco::Net::HTTPRequestHandler {
 	  public:
+		struct QueryBlock {
+			uint64_t StartDate = 0 , EndDate = 0 , Offset = 0 , Limit = 0, LogType = 0 ;
+			std::string SerialNumber, Filter, Select;
+			bool Lifetime=false, LastOnly=false, Newest=false;
+		};
 		typedef std::map<std::string, std::string> BindingMap;
 
 		RESTAPIHandler(BindingMap map, Poco::Logger &l, std::vector<std::string> Methods)

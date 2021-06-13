@@ -11,44 +11,39 @@
 
 #include <queue>
 
-#include "uSubSystemServer.h"
+#include "SubSystemServer.h"
 
 #include "cppkafka/cppkafka.h"
 
-namespace uCentral::Kafka {
-	struct KMessage {
-		std::string Topic,
-					Key,
-					PayLoad;
-	};
+namespace uCentral {
 
-	int Start();
-	void Stop();
-	void PostMessage(std::string topic, std::string key, std::string payload);
-	[[nodiscard]] bool Enabled();
-
-	class Service : public uSubSystemServer, Poco::Runnable {
+	class KafkaManager : public SubSystemServer, Poco::Runnable {
 	  public:
 
-		Service() noexcept;
-
-		friend int uCentral::Kafka::Start();
-		friend void uCentral::Kafka::Stop();
-		friend void PostMessage(std::string topic, std::string key, std::string payload);
+		struct KMessage {
+			std::string Topic,
+				Key,
+				PayLoad;
+		};
 
 		void initialize(Poco::Util::Application & self) override;
-		static Service *instance() {
+		static KafkaManager *instance() {
 			if(instance_== nullptr)
-				instance_ = new Service;
+				instance_ = new KafkaManager;
 			return instance_;
 		}
 
-		void run() override;
+		void run() final;
+		int Start() override;
+		void Stop() override;
+
+		void PostMessage(std::string topic, std::string key, std::string payload);
+		[[nodiscard]] std::string WrapSystemId(const std::string & PayLoad);
 
 		[[nodiscard]] bool Enabled() { return Running_ && KafkaEnabled_; }
 
 	  private:
-		static Service *instance_;
+		static KafkaManager *instance_;
 		std::unique_ptr<cppkafka::Producer> 	Producer_;
 		bool 					KafkaEnabled_ = false;
 		std::atomic_bool 		Running_ = false;
@@ -56,13 +51,10 @@ namespace uCentral::Kafka {
 		std::string 			SystemInfoWrapper_;
 		Poco::Thread			Th_;
 
-		int Start() override;
-		void Stop() override;
-
-		void PostMessage(std::string topic, std::string key, std::string payload);
-		[[nodiscard]] std::string WrapSystemId(const std::string & PayLoad);
+		KafkaManager() noexcept;
 	};
 
+	inline KafkaManager * KafkaManager() { return KafkaManager::instance(); }
 }	// NameSpace
 
 #endif // UCENTRALGW_KAFKA_SERVICE_H

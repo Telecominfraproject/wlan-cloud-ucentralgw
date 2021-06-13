@@ -6,9 +6,9 @@
 //	Arilia Wireless Inc.
 //
 
-#include "uStorageService.h"
+#include "StorageService.h"
 
-namespace uCentral::Storage {
+namespace uCentral {
 
 	/*
 				"Identity			VARCHAR(128) PRIMARY KEY, "
@@ -26,33 +26,9 @@ namespace uCentral::Storage {
 				") ", Poco::Data::Keywords::now;
 	 */
 
-	bool IdentityExists(std::string & Identity, uCentral::Auth::ACCESS_TYPE Type) {
-		return uCentral::Storage::Service::instance()->IdentityExists(Identity, Type);
-	}
-
-	bool AddIdentity(std::string & Identity, std::string & Password, uCentral::Auth::ACCESS_TYPE Type, uCentral::Objects::AclTemplate & ACL) {
-		return uCentral::Storage::Service::instance()->AddIdentity(Identity, Password, Type, ACL);
-	}
-
-	bool GetIdentity(std::string & Identity, std::string & Password, uCentral::Auth::ACCESS_TYPE Type, uCentral::Objects::AclTemplate & ACL) {
-		return uCentral::Storage::Service::instance()->GetIdentity(Identity, Password, Type, ACL);
-	}
-
-	bool DeleteIdentity(std::string & Identity, uCentral::Auth::ACCESS_TYPE Type) {
-		return uCentral::Storage::Service::instance()->DeleteIdentity(Identity, Type);
-	}
-
-	bool ListIdentities(uint64_t Offset, uint64_t HowMany, std::vector<std::string> & Identities, uCentral::Auth::ACCESS_TYPE Type) {
-		return uCentral::Storage::Service::instance()->ListIdentities(Offset, HowMany, Identities, Type);
-	}
-
-	bool GetIdentityRights(std::string & Identity, uCentral::Objects::AclTemplate & ACL) {
-		return uCentral::Storage::Service::instance()->GetIdentityRights(Identity, ACL);
-	}
-
-	bool Service::IdentityExists(std::string & Identity, uCentral::Auth::ACCESS_TYPE Type) {
+	bool Storage::IdentityExists(std::string & Identity, AuthService::ACCESS_TYPE Type) {
 		try {
-			int TT = uCentral::Auth::AccessTypeToInt(Type);
+			int TT = AuthService::AccessTypeToInt(Type);
 			Poco::Data::Session 	Sess = Pool_->get();
 			Poco::Data::Statement	Select(Sess);
 
@@ -72,7 +48,7 @@ namespace uCentral::Storage {
 		return false;
 	}
 
-	bool Service::AddIdentity(std::string & Identity, std::string & Password, uCentral::Auth::ACCESS_TYPE Type, uCentral::Objects::AclTemplate & ACL) {
+	bool Storage::AddIdentity(std::string & Identity, std::string & Password, AuthService::ACCESS_TYPE Type, uCentral::Objects::AclTemplate & ACL) {
 		try {
 
 		} catch(const Poco::Exception &E )
@@ -82,7 +58,7 @@ namespace uCentral::Storage {
 		return false;
 	}
 
-	bool Service::GetIdentity(std::string & Identity, std::string & Password, uCentral::Auth::ACCESS_TYPE Type, uCentral::Objects::AclTemplate & ACL) {
+	bool Storage::GetIdentity(std::string & Identity, std::string & Password,AuthService::ACCESS_TYPE Type, uCentral::Objects::AclTemplate & ACL) {
 		try {
 
 		} catch(const Poco::Exception &E )
@@ -92,7 +68,7 @@ namespace uCentral::Storage {
 		return false;
 	}
 
-	bool Service::UpdateIdentity(std::string & Identity, std::string & Password, uCentral::Auth::ACCESS_TYPE Type, uCentral::Objects::AclTemplate & ACL) {
+	bool Storage::UpdateIdentity(std::string & Identity, std::string & Password, AuthService::ACCESS_TYPE Type, uCentral::Objects::AclTemplate & ACL) {
 		try {
 
 		} catch(const Poco::Exception &E )
@@ -102,9 +78,9 @@ namespace uCentral::Storage {
 		return false;
 	}
 
-	bool Service::DeleteIdentity(std::string & Identity, uCentral::Auth::ACCESS_TYPE Type) {
+	bool Storage::DeleteIdentity(std::string & Identity, AuthService::ACCESS_TYPE Type) {
 		try {
-			int TT = uCentral::Auth::AccessTypeToInt(Type);
+			int TT = AuthService::AccessTypeToInt(Type);
 			Poco::Data::Session 	Sess = Pool_->get();
 			Poco::Data::Statement	Delete(Sess);
 
@@ -124,7 +100,7 @@ namespace uCentral::Storage {
 		return false;
 	}
 
-	bool Service::ListIdentities(uint64_t Offset, uint64_t HowMany, std::vector<std::string> & Identities, uCentral::Auth::ACCESS_TYPE Type) {
+	bool Storage::ListIdentities(uint64_t Offset, uint64_t HowMany, std::vector<std::string> & Identities, AuthService::ACCESS_TYPE Type) {
 		try {
 
 		} catch(const Poco::Exception &E )
@@ -134,7 +110,7 @@ namespace uCentral::Storage {
 		return false;
 	}
 
-	bool Service::GetIdentityRights(std::string &Identity, uCentral::Objects::AclTemplate &ACL) {
+	bool Storage::GetIdentityRights(std::string &Identity, uCentral::Objects::AclTemplate &ACL) {
 		try {
 
 		} catch(const Poco::Exception &E )

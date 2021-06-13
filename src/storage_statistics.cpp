@@ -6,33 +6,14 @@
 //	Arilia Wireless Inc.
 //
 
-#include "uStorageService.h"
-#include "uDeviceRegistry.h"
+#include "DeviceRegistry.h"
+#include "StorageService.h"
 
-namespace uCentral::Storage {
+namespace uCentral {
 
-	bool AddStatisticsData(std::string &SerialNumber, uint64_t CfgUUID, std::string &NewStats) {
-		return Service::instance()->AddStatisticsData(SerialNumber, CfgUUID, NewStats);
-	}
+	bool Storage::AddStatisticsData(std::string &SerialNumber, uint64_t CfgUUID, std::string &NewStats) {
 
-	bool
-	GetStatisticsData(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate, uint64_t Offset, uint64_t HowMany,
-					  std::vector<uCentral::Objects::Statistics> &Stats) {
-		return Service::instance()->GetStatisticsData(SerialNumber, FromDate, ToDate, Offset,
-																		 HowMany, Stats);
-	}
-
-	bool DeleteStatisticsData(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate) {
-		return Service::instance()->DeleteStatisticsData(SerialNumber, FromDate, ToDate);
-	}
-
-	bool GetNewestStatisticsData(std::string &SerialNumber, uint64_t HowMany, std::vector<uCentral::Objects::Statistics> &Stats) {
-		return Service::instance()->GetNewestStatisticsData(SerialNumber, HowMany, Stats);
-	}
-
-	bool Service::AddStatisticsData(std::string &SerialNumber, uint64_t CfgUUID, std::string &NewStats) {
-
-		uCentral::DeviceRegistry::SetStatistics(SerialNumber, NewStats);
+		DeviceRegistry()->SetStatistics(SerialNumber, NewStats);
 
 		try {
 			Logger_.information("Device:" + SerialNumber + " Stats size:" + std::to_string(NewStats.size()));
@@ -65,7 +46,7 @@ namespace uCentral::Storage {
 		return false;
 	}
 
-	bool Service::GetStatisticsData(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate, uint64_t Offset,
+	bool Storage::GetStatisticsData(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate, uint64_t Offset,
 									uint64_t HowMany,
 									std::vector<uCentral::Objects::Statistics> &Stats) {
 
@@ -117,7 +98,7 @@ namespace uCentral::Storage {
 		return false;
 	}
 
-	bool Service::GetNewestStatisticsData(std::string &SerialNumber, uint64_t HowMany, std::vector<uCentral::Objects::Statistics> &Stats) {
+	bool Storage::GetNewestStatisticsData(std::string &SerialNumber, uint64_t HowMany, std::vector<uCentral::Objects::Statistics> &Stats) {
 		typedef Poco::Tuple<std::string, uint64_t, std::string, uint64_t> StatRecord;
 		typedef std::vector<StatRecord> RecordList;
 
@@ -150,7 +131,7 @@ namespace uCentral::Storage {
 		return false;
 	}
 
-bool Service::DeleteStatisticsData(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate) {
+bool Storage::DeleteStatisticsData(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate) {
 		try {
 			Poco::Data::Session Sess = Pool_->get();
 

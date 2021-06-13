@@ -2,17 +2,17 @@
 // Created by stephane bourque on 2021-05-23.
 //
 
-#ifndef UCENTRALGW_USTATEPROCESSOR_H
-#define UCENTRALGW_USTATEPROCESSOR_H
+#ifndef UCENTRALGW_STATEPROCESSOR_H
+#define UCENTRALGW_STATEPROCESSOR_H
 
 #include <map>
 #include "Poco/JSON/Object.h"
 
 namespace uCentral {
-	class uStateProcessor {
+	class StateProcessor {
 	  public:
 
-		~uStateProcessor() {
+		~StateProcessor() {
 			Save();
 		}
 
@@ -34,4 +34,4 @@ namespace uCentral {
 	};
 
 }
-#endif // UCENTRALGW_USTATEPROCESSOR_H
+#endif // UCENTRALGW_STATEPROCESSOR_H

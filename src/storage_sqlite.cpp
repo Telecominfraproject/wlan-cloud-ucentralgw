@@ -6,16 +6,16 @@
 //	Arilia Wireless Inc.
 //
 
-#include "uStorageService.h"
-#include "uCentral.h"
+#include "Daemon.h"
+#include "StorageService.h"
 
-namespace uCentral::Storage {
-	int Service::Setup_SQLite() {
+namespace uCentral {
+	int Storage::Setup_SQLite() {
 		Logger_.notice("SQLite Storage enabled.");
 
-		auto DBName = uCentral::ServiceConfig::GetString("storage.type.sqlite.db");
-		auto NumSessions = uCentral::ServiceConfig::GetInt("storage.type.sqlite.maxsessions", 64);
-		auto IdleTime = uCentral::ServiceConfig::GetInt("storage.type.sqlite.idletime", 60);
+		auto DBName = Daemon()->ConfigGetString("storage.type.sqlite.db");
+		auto NumSessions = Daemon()->ConfigGetInt("storage.type.sqlite.maxsessions", 64);
+		auto IdleTime = Daemon()->ConfigGetInt("storage.type.sqlite.idletime", 60);
 
 		SQLiteConn_ = std::make_unique<Poco::Data::SQLite::Connector>();
 		SQLiteConn_->registerConnector();

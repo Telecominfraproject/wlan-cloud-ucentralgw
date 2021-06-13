@@ -6,8 +6,8 @@
 //	Arilia Wireless Inc.
 //
 
-#include "uCentral.h"
-#include "uCentralConfig.h"
+#include "CentralConfig.h"
+#include "Daemon.h"
 
 #include "Poco/JSON/Object.h"
 #include "Poco/JSON/Parser.h"
@@ -220,7 +220,7 @@ namespace uCentral::Config {
             auto Name = Model["name"].toString();
 
             Manufacturer_ = Name;
-            DeviceType_ = uCentral::instance()->IdentifyDevice(Compatible);
+            DeviceType_ = Daemon()->IdentifyDevice(Compatible);
             ModelId_ = Compatible;
             Parsed_ = true ;
         }

@@ -14,10 +14,10 @@
 #include <array>
 #include <ctime>
 
+#include "DeviceRegistry.h"
 #include "RESTAPI_objects.h"
-#include "uDeviceRegistry.h"
-#include "uSubSystemServer.h"
-#include "uStateProcessor.h"
+#include "StateProcessor.h"
+#include "SubSystemServer.h"
 
 #include "Poco/AutoPtr.h"
 #include "Poco/Net/WebSocket.h"
@@ -33,10 +33,7 @@
 #include "Poco/Net/SecureStreamSocket.h"
 #include "Poco/Net/SecureStreamSocketImpl.h"
 
-namespace uCentral::WebSocket {
-
-    int Start();
-    void Stop();
+namespace uCentral {
 
     class CountedSocketReactor : public Poco::Net::SocketReactor {
     public:
@@ -181,7 +178,7 @@ namespace uCentral::WebSocket {
 		std::string							CN_;
 		uCentral::Objects::CertificateValidation	CertValidation_ = uCentral::Objects::CertificateValidation::NO_CERTIFICATE;
 		uint64_t 							Errors_=0;
-		std::unique_ptr<uCentral::uStateProcessor>	StatsProcessor_;
+		std::unique_ptr<uCentral::StateProcessor>	StatsProcessor_;
     };
 
     struct WebSocketServerEntry {
@@ -190,16 +187,11 @@ namespace uCentral::WebSocket {
         std::unique_ptr<Poco::Thread>                               SocketReactorThread;
     };
 
-    class Service : public uSubSystemServer {
+    class WebSocketServer : public SubSystemServer {
     public:
-        Service() noexcept;
-
-        friend int Start();
-        friend void Stop();
-
-        static Service *instance() {
+        static WebSocketServer *instance() {
             if (instance_ == nullptr) {
-                instance_ = new Service;
+                instance_ = new WebSocketServer;
             }
             return instance_;
         }
@@ -208,20 +200,21 @@ namespace uCentral::WebSocket {
             return Factory_.GetAReactor();
         }
 
+		int Start() override;
+		void Stop() override;
 		bool IsCertOk() { return IssuerCert_!= nullptr; }
 		const Poco::Crypto::X509Certificate & Certificate() const { return *IssuerCert_; }
 		bool ValidateCertificate(const Poco::Crypto::X509Certificate & Certificate);
 
     private:
-        static Service *instance_;
+        static WebSocketServer *instance_;
 		std::unique_ptr<Poco::Crypto::X509Certificate>	IssuerCert_;
 		std::vector<WebSocketServerEntry>      			Servers_;
 		CountedSocketReactorFactory            			Factory_;
-
-        int Start() override;
-        void Stop() override;
+		WebSocketServer() noexcept;
     };
 
+	inline WebSocketServer * WebSocketServer() { return WebSocketServer::instance(); }
 
 } //namespace
 

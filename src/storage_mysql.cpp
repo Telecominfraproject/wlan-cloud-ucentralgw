@@ -6,27 +6,27 @@
 //	Arilia Wireless Inc.
 //
 
-#include "uStorageService.h"
-#include "uCentral.h"
+#include "Daemon.h"
+#include "StorageService.h"
 
-namespace uCentral::Storage {
+namespace uCentral {
 
 #ifdef	SMALL_BUILD
 	int Service::Setup_MySQL() { uCentral::instance()->exit(Poco::Util::Application::EXIT_CONFIG);}
 #else
 
-	int Service::Setup_MySQL() {
+	int Storage::Setup_MySQL() {
 
 		dbType_ = mysql ;
 
 		Logger_.notice("MySQL Storage enabled.");
-		auto NumSessions = uCentral::ServiceConfig::GetInt("storage.type.mysql.maxsessions", 64);
-		auto IdleTime = uCentral::ServiceConfig::GetInt("storage.type.mysql.idletime", 60);
-		auto Host = uCentral::ServiceConfig::GetString("storage.type.mysql.host");
-		auto Username = uCentral::ServiceConfig::GetString("storage.type.mysql.username");
-		auto Password = uCentral::ServiceConfig::GetString("storage.type.mysql.password");
-		auto Database = uCentral::ServiceConfig::GetString("storage.type.mysql.database");
-		auto Port = uCentral::ServiceConfig::GetString("storage.type.mysql.port");
+		auto NumSessions = Daemon()->ConfigGetInt("storage.type.mysql.maxsessions", 64);
+		auto IdleTime = Daemon()->ConfigGetInt("storage.type.mysql.idletime", 60);
+		auto Host = Daemon()->ConfigGetString("storage.type.mysql.host");
+		auto Username = Daemon()->ConfigGetString("storage.type.mysql.username");
+		auto Password = Daemon()->ConfigGetString("storage.type.mysql.password");
+		auto Database = Daemon()->ConfigGetString("storage.type.mysql.database");
+		auto Port = Daemon()->ConfigGetString("storage.type.mysql.port");
 
 		std::string ConnectionStr =
 			"host=" + Host +

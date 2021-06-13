@@ -9,44 +9,32 @@
 #include <iostream>
 #include <fstream>
 
-#include "uFirmwareManager.h"
+#include "FirmwareManager.h"
 
 #include "Poco/JSON/Object.h"
 #include "Poco/JSON/Parser.h"
 #include "Poco/StringTokenizer.h"
 #include "Poco/LocalDateTime.h"
 
-#include "uCentral.h"
-#include "uStorageService.h"
-#include "uUtils.h"
+#include "Daemon.h"
+#include "StorageService.h"
+#include "Utils.h"
 
 #include "uCentralProtocol.h"
 #include "RESTAPI_protocol.h"
 
-namespace uCentral::FirmwareManager {
-	Service *Service::instance_ = nullptr;
+namespace uCentral {
+	class FirmwareManager *FirmwareManager::instance_ = nullptr;
 
-	Service::Service() noexcept: uSubSystemServer("FirmwareManager", "FW-MGR", "firmware")
+	FirmwareManager::FirmwareManager() noexcept: SubSystemServer("FirmwareManager", "FW-MGR", "firmware")
 	{
 	}
 
-	int Start() {
-		return Service::instance()->Start();
-	}
-
-	void Stop() {
-		Service::instance()->Stop();
-	}
-
-	bool SetManifest(const std::string & Manifest) {
-		return Service::instance()->SetManifest(Manifest);
-	}
-
-	int Service::Start() {
+	int FirmwareManager::Start() {
 		Logger_.notice("Starting...");
 
-		ManifestFileName_ = uCentral::instance()->DataDir() + "/firmware_manifest.json";
-		DefaultPolicy_= uCentral::ServiceConfig::GetString("firmware.autoupdate.policy.default","auto");
+		ManifestFileName_ = Daemon()->DataDir() + "/firmware_manifest.json";
+		DefaultPolicy_= Daemon()->ConfigGetString("firmware.autoupdate.policy.default","auto");
 
 		std::string Manifest;
 		{
@@ -64,7 +52,7 @@ namespace uCentral::FirmwareManager {
 		return 0;
 	}
 
-	void Service::run() {
+	void FirmwareManager::run() {
 		Running_ = true;
 
 		uint64_t LastContact = time(nullptr);
@@ -79,7 +67,7 @@ namespace uCentral::FirmwareManager {
 			for(auto &Entry:Firmwares_) {
 				std::vector<std::string>	SerialNumbers;
 
-				if(uCentral::Storage::GetDevicesWithoutFirmware(Entry.second.Compatible,Entry.second.Version,SerialNumbers)
+				if(Storage()->GetDevicesWithoutFirmware(Entry.second.Compatible,Entry.second.Version,SerialNumbers)
 					&& !SerialNumbers.empty()) {
 						DoUpgrade(Entry.second,SerialNumbers);
 				}
@@ -92,7 +80,7 @@ namespace uCentral::FirmwareManager {
 	//	weekly@<dow>@time		: weekly@5@2:00	 every week, on Saturday@2am 0=Monday.
 	//	monthly@<dom>@time		: monthly@15@4:00 every month on the 15th @ 4am
 	//	date@date@time			: date@2021-05-21@5:00
-	uint64_t Service::CalculateWhen(std::string &SerialNumber) {
+	uint64_t FirmwareManager::CalculateWhen(std::string &SerialNumber) {
 
 		Poco::LocalDateTime	Now;
 
@@ -100,7 +88,7 @@ namespace uCentral::FirmwareManager {
 		int Year, Month, Day = 0 ;
 
 		std::string UpdatePolicy;
-		if(!uCentral::Storage::GetDeviceFWUpdatePolicy(SerialNumber, UpdatePolicy) ||
+		if(!Storage()->GetDeviceFWUpdatePolicy(SerialNumber, UpdatePolicy) ||
 			UpdatePolicy.empty())
 			UpdatePolicy = DefaultPolicy_;
 
@@ -167,7 +155,7 @@ namespace uCentral::FirmwareManager {
 		return 0;
 	}
 
-	bool Service::DoUpgrade(const FirmwareEntry &Firmware, const std::vector<std::string> &SerialNumbers) {
+	bool FirmwareManager::DoUpgrade(const FirmwareEntry &Firmware, const std::vector<std::string> &SerialNumbers) {
 
 		for(auto i:SerialNumbers) {
 			uCentral::Objects::CommandDetails  Cmd;
@@ -179,7 +167,7 @@ namespace uCentral::FirmwareManager {
 				continue;
 
 			Cmd.SerialNumber = i;
-			Cmd.UUID = uCentral::instance()->CreateUUID();
+			Cmd.UUID = Daemon()->CreateUUID();
 			Cmd.SubmittedBy = "ucentralfws";
 			Cmd.Custom = 0;
 			Cmd.Command = uCentral::uCentralProtocol::UPGRADE;
@@ -196,7 +184,7 @@ namespace uCentral::FirmwareManager {
 			Params.stringify(ParamStream);
 			Cmd.Details = ParamStream.str();
 
-			uCentral::Storage::AddCommand(i,Cmd, Storage::COMMAND_PENDING);
+			Storage()->AddCommand(i,Cmd, Storage::COMMAND_PENDING);
 
 			Logger_.information(Poco::format("UPGRADING(%s): to %s",i,Firmware.Version));
 		}
@@ -205,7 +193,7 @@ namespace uCentral::FirmwareManager {
 	}
 
 
-void Service::Stop() {
+void FirmwareManager::Stop() {
 		SubMutexGuard Guard(Mutex_);
 
 		Logger_.notice("Stopping...");
@@ -214,7 +202,7 @@ void Service::Stop() {
 		Mgr_.join();
 	}
 
-	bool Service::SetManifest(const std::string & Manifest){
+	bool FirmwareManager::SetManifest(const std::string & Manifest){
 		SubMutexGuard Guard(Mutex_);
 		if(Manifest != Manifest_) {
 			Manifest_ = Manifest;
@@ -230,7 +218,7 @@ void Service::Stop() {
 		return true;
 	}
 
-	bool Service::ParseManifest() {
+	bool FirmwareManager::ParseManifest() {
 		SubMutexGuard Guard(Mutex_);
 
 		Poco::JSON::Parser parser;

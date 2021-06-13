@@ -17,47 +17,45 @@
 #include "Poco/Environment.h"
 #include "Poco/Path.h"
 
+#include "AuthService.h"
+#include "CallbackManager.h"
+#include "CommandChannel.h"
+#include "CommandManager.h"
+#include "DeviceRegistry.h"
+#include "FileUploader.h"
+#include "FirmwareManager.h"
 #include "RESTAPI_server.h"
-#include "uAuthService.h"
-#include "uCallbackManager.h"
-#include "uCentralWebSocketServer.h"
-#include "uCommandChannel.h"
-#include "uCommandManager.h"
-#include "uDeviceRegistry.h"
-#include "uFileUploader.h"
-#include "uStorageService.h"
-#include "uFirmwareManager.h"
+#include "StorageService.h"
+#include "WebSocketServer.h"
 
-#include "uStateProcessor.h"
+#include "StateProcessor.h"
 
-#include "uUtils.h"
+#include "Utils.h"
 
 #ifndef SMALL_BUILD
 #include "kafka_service.h"
 #endif
 
 #include "ALBHealthCheckServer.h"
-#include "uCentral.h"
+#include "Daemon.h"
 
 namespace uCentral {
-	Daemon *Daemon::instance_ = nullptr;
-
-    Daemon * instance() { return uCentral::Daemon::instance(); }
+	class Daemon *Daemon::instance_ = nullptr;
 
     void MyErrorHandler::exception(const Poco::Exception & E) {
         Poco::Thread * CurrentThread = Poco::Thread::current();
-		instance()->logger().log(E);
-		instance()->logger().error(Poco::format("Exception occurred in %s",CurrentThread->getName()));
+		Daemon()->logger().log(E);
+		Daemon()->logger().error(Poco::format("Exception occurred in %s",CurrentThread->getName()));
     }
 
     void MyErrorHandler::exception(const std::exception & E) {
         Poco::Thread * CurrentThread = Poco::Thread::current();
-		instance()->logger().warning(Poco::format("std::exception on %s",CurrentThread->getName()));
+		Daemon()->logger().warning(Poco::format("std::exception on %s",CurrentThread->getName()));
     }
 
     void MyErrorHandler::exception() {
         Poco::Thread * CurrentThread = Poco::Thread::current();
-		instance()->logger().warning(Poco::format("exception on %s",CurrentThread->getName()));
+		Daemon()->logger().warning(Poco::format("exception on %s",CurrentThread->getName()));
     }
 
 	void Daemon::Exit(int Reason) {
@@ -68,14 +66,33 @@ namespace uCentral {
 
 		Poco::Net::initializeSSL();
 
-        std::string Location = Poco::Environment::get("UCENTRAL_CONFIG",".");
+		SubSystems_ = std::make_unique<std::list<SubSystemServer*>>(
+			std::list<SubSystemServer*>{
+				Storage(),
+				AuthService(),
+				DeviceRegistry(),
+				RESTAPI_server(),
+				WebSocketServer(),
+				CommandManager(),
+				FileUploader(),
+				CommandChannel(),
+				CallbackManager(),
+				FirmwareManager(),
+				KafkaManager(),
+				ALBHealthCheckServer()
+			}
+		);
+
+		std::string Location = Poco::Environment::get(DAEMON_CONFIG_ENV_VAR,".");
         Poco::Path ConfigFile;
 
-        ConfigFile = ConfigFileName_.empty() ? Location + "/ucentral.properties" : ConfigFileName_;
+        ConfigFile = ConfigFileName_.empty() ? Location + "/" + std::string(DAEMON_PROPERTIES_FILENAME) : ConfigFileName_;
 
         if(!ConfigFile.isFile())
         {
-            std::cerr << "uCentral: Configuration " << ConfigFile.toString() << " does not seem to exist. Please set UCENTRAL_CONFIG env variable the path of the ucentral.properties file." << std::endl;
+            std::cerr << DAEMON_APP_NAME << ": Configuration "
+					  << ConfigFile.toString() << " does not seem to exist. Please set " + std::string(DAEMON_CONFIG_ENV_VAR)
+					  + " env variable the path of the " + std::string(DAEMON_PROPERTIES_FILENAME) + " file." << std::endl;
             std::exit(Poco::Util::Application::EXIT_CONFIG);
         }
 
@@ -102,18 +119,7 @@ namespace uCentral {
 
 		AppKey_ = Poco::SharedPtr<Poco::Crypto::RSAKey>(new Poco::Crypto::RSAKey("", KeyFile, ""));
 
-        addSubsystem(uCentral::Storage::Service::instance());
-        addSubsystem(uCentral::Auth::Service::instance());
-        addSubsystem(uCentral::DeviceRegistry::Service::instance());
-		addSubsystem(uCentral::Kafka::Service::instance());
-        addSubsystem(uCentral::RESTAPI::Service::instance());
-        addSubsystem(uCentral::WebSocket::Service::instance());
-        addSubsystem(uCentral::CommandManager::Service::instance());
-        addSubsystem(uCentral::uFileUploader::Service::instance());
-		addSubsystem(uCentral::CommandChannel::Service::instance());
-		addSubsystem(uCentral::CallbackManager::Service::instance());
-		addSubsystem(uCentral::FirmwareManager::Service::instance());
-
+		InitializeSubSystemServers();
         ServerApplication::initialize(self);
 
         logger().information("Starting...");
@@ -147,13 +153,6 @@ namespace uCentral {
 				Entry->second.insert(Tokens.begin(),Tokens.end());
 			}
         }
-
-/*		for(auto &[Type,List]:DeviceTypeIdentifications_) {
-			std::cout << "Type: " << Type << std::endl;
-			for(auto &i:List)
-				std::cout << "    " << i << std::endl;
-		}
-*/
     }
 
     [[nodiscard]] std::string Daemon::IdentifyDevice(const std::string & Id ) const {
@@ -247,11 +246,26 @@ namespace uCentral {
         Poco::Util::HelpFormatter helpFormatter(options());
         helpFormatter.setCommand(commandName());
         helpFormatter.setUsage("OPTIONS");
-        helpFormatter.setHeader("A uCentral gateway implementation for TIP.");
+		helpFormatter.setHeader("A " + std::string(uCentral::DAEMON_APP_NAME) + " implementation for TIP.");
         helpFormatter.format(std::cout);
     }
 
-    std::string Daemon::CreateUUID() {
+	void Daemon::InitializeSubSystemServers() {
+		for(auto i:*SubSystems_)
+			addSubsystem(i);
+	}
+
+	void Daemon::StartSubSystemServers() {
+		for(auto i:*SubSystems_)
+			i->Start();
+	}
+
+	void Daemon::StopSubSystemServers() {
+		for(auto i=(*SubSystems_).rbegin(); i!=(*SubSystems_).rend(); ++i)
+			(*i)->Stop();
+	}
+
+	std::string Daemon::CreateUUID() {
         return UUIDGenerator_.create().toString();
     }
 
@@ -260,27 +274,27 @@ namespace uCentral {
 			auto P = Poco::Logger::parseLevel(Level);
 			auto Sub = boost::algorithm::to_lower_copy(SubSystem);
 			if (Sub == "ufileuploader")
-				uCentral::uFileUploader::Service().Logger().setLevel(P);
+				FileUploader()->Logger().setLevel(P);
 			else if (Sub == "websocket")
-				uCentral::WebSocket::Service().Logger().setLevel(P);
+				WebSocketServer()->Logger().setLevel(P);
 			else if (Sub == "storage")
-				uCentral::Storage::Service().Logger().setLevel(P);
+				Storage()->Logger().setLevel(P);
 			else if (Sub == "restapi")
-				uCentral::RESTAPI::Service().Logger().setLevel(P);
+				RESTAPI_server()->Logger().setLevel(P);
 			else if (Sub == "commandmanager")
-				uCentral::CommandManager::Service().Logger().setLevel(P);
+				CommandManager()->Logger().setLevel(P);
 			else if (Sub == "auth")
-				uCentral::Auth::Service().Logger().setLevel(P);
+				AuthService()->Logger().setLevel(P);
 			else if (Sub == "deviceregistry")
-				uCentral::DeviceRegistry::Service().Logger().setLevel(P);
+				DeviceRegistry()->Logger().setLevel(P);
 			else if (Sub == "all") {
-				uCentral::Auth::Service().Logger().setLevel(P);
-				uCentral::uFileUploader::Service().Logger().setLevel(P);
-				uCentral::WebSocket::Service().Logger().setLevel(P);
-				uCentral::Storage::Service().Logger().setLevel(P);
-				uCentral::RESTAPI::Service().Logger().setLevel(P);
-				uCentral::CommandManager::Service().Logger().setLevel(P);
-				uCentral::DeviceRegistry::Service().Logger().setLevel(P);
+				AuthService()->Logger().setLevel(P);
+				FileUploader()->Logger().setLevel(P);
+				WebSocketServer()->Logger().setLevel(P);
+				Storage()->Logger().setLevel(P);
+				RESTAPI_server()->Logger().setLevel(P);
+				CommandManager()->Logger().setLevel(P);
+				DeviceRegistry()->Logger().setLevel(P);
 			} else
 				return false;
 			return true;
@@ -290,25 +304,39 @@ namespace uCentral {
 		return false;
 	}
 
+	uint64_t Daemon::ConfigGetInt(const std::string &Key,uint64_t Default) {
+		return (uint64_t) config().getInt64(Key,Default);
+	}
+
+	uint64_t Daemon::ConfigGetInt(const std::string &Key) {
+		return config().getInt(Key);
+	}
+
+	uint64_t Daemon::ConfigGetBool(const std::string &Key,bool Default) {
+		return config().getBool(Key,Default);
+	}
+
+	uint64_t Daemon::ConfigGetBool(const std::string &Key) {
+		return config().getBool(Key);
+	}
+
+	std::string Daemon::ConfigGetString(const std::string &Key,const std::string & Default) {
+		std::string R = config().getString(Key, Default);
+		return Poco::Path::expand(R);
+	}
+
+	std::string Daemon::ConfigGetString(const std::string &Key) {
+		std::string R = config().getString(Key);
+		return Poco::Path::expand(R);
+	}
+
     int Daemon::main(const ArgVec &args) {
 
         Poco::ErrorHandler::set(&AppErrorHandler_);
 
         if (!HelpRequested_) {
-            Poco::Logger &logger = Poco::Logger::get("uCentral");
-			logger.notice(Poco::format("Starting uCentral version %s.",Version()));
-
-            uCentral::Storage::Start();
-            uCentral::Auth::Start();
-            uCentral::DeviceRegistry::Start();
-            uCentral::RESTAPI::Start();
-            uCentral::WebSocket::Start();
-            uCentral::CommandManager::Start();
-            uCentral::uFileUploader::Start();
-			uCentral::CommandChannel::Start();
-			uCentral::CallbackManager::Start();
-			uCentral::FirmwareManager::Start();
-			uCentral::Kafka::Start();
+            Poco::Logger &logger = Poco::Logger::get(DAEMON_APP_NAME);
+			logger.notice(Poco::format("Starting %s version %s.",std::string(uCentral::DAEMON_APP_NAME), Version()));
 
 			if(Poco::Net::Socket::supportsIPv6())
 				logger.information("System supports IPv6.");
@@ -320,57 +348,14 @@ namespace uCentral {
 				logger.information("Starting as a daemon.");
 			}
 
-			uCentral::ALBHealthCheck::Service	NLB(logger);
-			NLB.Start();
-
+			StartSubSystemServers();
 			instance()->waitForTerminationRequest();
+			StopSubSystemServers();
 
-			NLB.Stop();
-
-			uCentral::Kafka::Stop();
-			uCentral::FirmwareManager::Stop();
-			uCentral::CallbackManager::Stop();
-			uCentral::CommandChannel::Stop();
-            uCentral::uFileUploader::Stop();
-            uCentral::CommandManager::Stop();
-            uCentral::WebSocket::Stop();
-            uCentral::RESTAPI::Stop();
-            uCentral::DeviceRegistry::Stop();
-            uCentral::Auth::Stop();
-            uCentral::Storage::Stop();
-			logger.notice("Stopped ucentral...");
+			logger.notice(Poco::format("Stopped %s...",std::string(uCentral::DAEMON_APP_NAME)));
         }
 
         return Application::EXIT_OK;
-    }
-
-    namespace ServiceConfig {
-
-        uint64_t GetInt(const std::string &Key,uint64_t Default) {
-            return (uint64_t) instance()->config().getInt64(Key,Default);
-        }
-
-        uint64_t GetInt(const std::string &Key) {
-            return instance()->config().getInt(Key);
-        }
-
-        uint64_t GetBool(const std::string &Key,bool Default) {
-            return instance()->config().getBool(Key,Default);
-        }
-
-        uint64_t GetBool(const std::string &Key) {
-            return instance()->config().getBool(Key);
-        }
-
-        std::string GetString(const std::string &Key,const std::string & Default) {
-            std::string R = instance()->config().getString(Key, Default);
-            return Poco::Path::expand(R);
-        }
-
-        std::string GetString(const std::string &Key) {
-            std::string R = instance()->config().getString(Key);
-            return Poco::Path::expand(R);
-        }
     }
 }
 
