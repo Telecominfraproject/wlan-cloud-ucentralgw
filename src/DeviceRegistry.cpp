@@ -16,7 +16,8 @@
 namespace uCentral {
     class DeviceRegistry *DeviceRegistry::instance_ = nullptr;
 
-	DeviceRegistry::DeviceRegistry() noexcept: SubSystemServer("DeviceStatus", "DevStatus", "devicestatus") {
+	DeviceRegistry::DeviceRegistry() noexcept:
+		SubSystemServer("DeviceRegistry", "DevStatus", "devicestatus") {
     }
 
 	int DeviceRegistry::Start() {

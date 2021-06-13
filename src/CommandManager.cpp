@@ -24,7 +24,8 @@ namespace uCentral {
 
     class CommandManager * CommandManager::instance_ = nullptr;
 
-	CommandManager::CommandManager() noexcept: SubSystemServer("CmdManager", "CMD_MGR", "command.manager")
+	CommandManager::CommandManager() noexcept:
+		SubSystemServer("CommandManager", "CMD_MGR", "command.manager")
     {
     }
 

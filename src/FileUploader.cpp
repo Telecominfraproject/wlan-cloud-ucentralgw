@@ -29,7 +29,8 @@
 namespace uCentral {
     class FileUploader *FileUploader::instance_ = nullptr;
 
-	FileUploader::FileUploader() noexcept: SubSystemServer("FileUploader", "FILE-UPLOAD", "ucentral.fileuploader")
+	FileUploader::FileUploader() noexcept:
+		SubSystemServer("FileUploader", "FILE-UPLOAD", "ucentral.fileuploader")
     {
 		SubMutexGuard		Guard(Mutex_);
     }

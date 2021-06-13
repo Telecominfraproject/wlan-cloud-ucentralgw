@@ -9,6 +9,8 @@
 #ifndef UCENTRAL_UCENTRAL_H
 #define UCENTRAL_UCENTRAL_H
 
+#include <array>
+
 #include <iostream>
 #include <cstdlib>
 #include <vector>
@@ -21,6 +23,8 @@
 #include "Poco/UUIDGenerator.h"
 #include "Poco/ErrorHandler.h"
 #include "Poco/Crypto/RSAKey.h"
+
+#include "uCentralTypes.h"
 
 #include "SubSystemServer.h"
 
@@ -57,12 +61,17 @@ namespace uCentral {
         void handleConfig(const std::string &name, const std::string &value);
         void displayHelp();
 
-        std::string CreateUUID();
+		std::string CreateUUID();
 		[[nodiscard]] std::string IdentifyDevice(const std::string & Compatible) const;
         bool AutoProvisioning() const { return AutoProvisioning_ ; }
         bool Debug() const { return DebugMode_; }
         uint64_t ID() const { return ID_; }
-		static bool SetSubsystemLogLevel(const std::string & SubSystem, const std::string & Level);
+
+		bool SetSubsystemLogLevel(const std::string & SubSystem, const std::string & Level);
+		[[nodiscard]] Types::StringVec GetSubSystems() const;
+		[[nodiscard]] Types::StringPairVec GetLogLevels() const;
+		[[nodiscard]] const Types::StringVec & GetLogLevelNames() const;
+
 		static std::string Version();
 		const Poco::SharedPtr<Poco::Crypto::RSAKey> & Key() { return AppKey_; }
 		void Exit(int Reason);
@@ -90,7 +99,7 @@ namespace uCentral {
 		static Daemon 				*instance_;
         bool                        HelpRequested_ = false;
         bool                        AutoProvisioning_ = false;
-        std::map<std::string,std::set<std::string>>    DeviceTypeIdentifications_;
+        Types::StringMapStringSet   DeviceTypeIdentifications_;
         std::string                 ConfigFileName_;
         std::string                 LogDir_;
         bool                        DebugMode_ = false;
@@ -99,7 +108,7 @@ namespace uCentral {
         MyErrorHandler              AppErrorHandler_;
 		Poco::SharedPtr<Poco::Crypto::RSAKey>	AppKey_ = nullptr;
 		std::string 				DataDir_;
-		std::unique_ptr<std::list<SubSystemServer*>> SubSystems_;
+		Types::SubSystemVec			SubSystems_;
     };
 
 	inline Daemon * Daemon() { return Daemon::instance(); }

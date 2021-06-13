@@ -40,7 +40,7 @@ namespace uCentral {
 
 			if(Tokens[0]=="set") {
 				if(Tokens[1]=="loglevel") {
-					if(!uCentral::Daemon::SetSubsystemLogLevel(Tokens[3],Tokens[2]))
+					if(!Daemon()->SetSubsystemLogLevel(Tokens[3],Tokens[2]))
 						Result =  "ERROR: Invalid: set logLevel subsystem name:" + Tokens[3];
 				}
 			} else if(Tokens[0]=="get") {
@@ -135,7 +135,8 @@ namespace uCentral {
 		Poco::Logger & Logger_;
 	};
 
-	CommandChannel::CommandChannel() noexcept: SubSystemServer("Authentication", "AUTH-SVR", "authentication")
+	CommandChannel::CommandChannel() noexcept:
+		SubSystemServer("CommandChannel", "COMMAND-CHANNEL", "commandchannel")
 	{
 	}
 

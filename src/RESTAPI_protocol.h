@@ -75,12 +75,18 @@ namespace uCentral::RESTAPI::Protocol {
 	static const char * PASSWORD = "password";
 	static const char * TOKEN = "token";
 	static const char * SETLOGLEVEL = "setloglevel";
-	static const char * GETLOGLEVEL = "getloglevel";
+	static const char * GETLOGLEVELS = "getloglevels";
+	static const char * GETSUBSYSTEMNAMES = "getsubsystemnames";
+	static const char * GETLOGLEVELNAMES = "getloglevelnames";
+	static const char * STATS = "stats";
 	static const char * PARAMETERS = "parameters";
 	static const char * VALUE = "value";
 	static const char * LASTONLY = "lastOnly";
 	static const char * NEWEST = "newest";
 	static const char * ACTIVESCAN = "activeScan";
+	static const char * LIST = "list";
+	static const char * TAG = "tag";
+	static const char * TAGLIST = "tagList";
 }
 
 #endif // UCENTRALGW_RESTAPI_PROTOCOL_H

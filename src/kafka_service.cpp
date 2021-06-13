@@ -14,7 +14,8 @@ namespace uCentral {
 
 	class KafkaManager *KafkaManager::instance_ = nullptr;
 
-	KafkaManager::KafkaManager() noexcept: SubSystemServer("KAFKA", "KAFKA-SVR", "ucentral.kafka")
+	KafkaManager::KafkaManager() noexcept:
+		SubSystemServer("KafkaManager", "KAFKA-SVR", "ucentral.kafka")
 	{
 	}
 

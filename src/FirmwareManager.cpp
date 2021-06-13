@@ -26,7 +26,8 @@
 namespace uCentral {
 	class FirmwareManager *FirmwareManager::instance_ = nullptr;
 
-	FirmwareManager::FirmwareManager() noexcept: SubSystemServer("FirmwareManager", "FW-MGR", "firmware")
+	FirmwareManager::FirmwareManager() noexcept:
+	  SubSystemServer("FirmwareManager", "FW-MGR", "firmware")
 	{
 	}
 

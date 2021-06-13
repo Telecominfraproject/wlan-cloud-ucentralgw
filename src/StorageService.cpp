@@ -16,7 +16,8 @@ namespace uCentral {
 
 	class Storage *Storage::instance_ = nullptr;
 
-	Storage::Storage() noexcept: SubSystemServer("Storage", "STORAGE-SVR", "storage")
+	Storage::Storage() noexcept:
+	  SubSystemServer("Storage", "STORAGE-SVR", "storage")
     {
     }
 

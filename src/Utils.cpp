@@ -15,6 +15,9 @@
 #include "Poco/DateTime.h"
 #include "Poco/DateTimeParser.h"
 #include "Poco/StringTokenizer.h"
+#include "Poco/Logger.h"
+#include "Poco/Message.h"
+
 #include "uCentralProtocol.h"
 
 namespace uCentral::Utils {
@@ -262,5 +265,18 @@ namespace uCentral::Utils {
 		return false;
 	}
 
+	std::string LogLevelToString(int Level) {
+		switch(Level) {
+			case Poco::Message::PRIO_DEBUG: return "debug";
+			case Poco::Message::PRIO_INFORMATION: return "information";
+			case Poco::Message::PRIO_FATAL: return "fatal";
+			case Poco::Message::PRIO_WARNING: return "warning";
+			case Poco::Message::PRIO_NOTICE: return "notice";
+			case Poco::Message::PRIO_CRITICAL: return "critical";
+			case Poco::Message::PRIO_ERROR: return "error";
+			case Poco::Message::PRIO_TRACE: return "trace";
+			default: return "none";
+		}
+	}
 
 }

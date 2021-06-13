@@ -40,7 +40,8 @@ namespace uCentral {
 		return 1;	// some compilers complain...
 	}
 
-	AuthService::AuthService() noexcept: SubSystemServer("Authentication", "AUTH-SVR", "authentication")
+	AuthService::AuthService() noexcept:
+	  SubSystemServer("Authentication", "AUTH-SVR", "authentication")
     {
     }
 

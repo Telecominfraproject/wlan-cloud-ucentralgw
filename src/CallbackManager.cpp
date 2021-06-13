@@ -18,7 +18,8 @@
 namespace uCentral {
 	class CallbackManager *CallbackManager::instance_ = nullptr;
 
-	CallbackManager::CallbackManager() noexcept: SubSystemServer("CallbackManager", "CBACK-MGR", "ucentral.callback")
+	CallbackManager::CallbackManager() noexcept:
+	  SubSystemServer("CallbackManager", "CBACK-MGR", "ucentral.callback")
 	{
 	}
 

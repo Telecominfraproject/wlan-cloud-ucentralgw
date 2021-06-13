@@ -66,8 +66,7 @@ namespace uCentral {
 
 		Poco::Net::initializeSSL();
 
-		SubSystems_ = std::make_unique<std::list<SubSystemServer*>>(
-			std::list<SubSystemServer*>{
+		SubSystems_ = Types::SubSystemVec{
 				Storage(),
 				AuthService(),
 				DeviceRegistry(),
@@ -80,8 +79,7 @@ namespace uCentral {
 				FirmwareManager(),
 				KafkaManager(),
 				ALBHealthCheckServer()
-			}
-		);
+			};
 
 		std::string Location = Poco::Environment::get(DAEMON_CONFIG_ENV_VAR,".");
         Poco::Path ConfigFile;
@@ -133,7 +131,7 @@ namespace uCentral {
         AutoProvisioning_ = config().getBool("ucentral.autoprovisioning",false);
 
         // DeviceTypeIdentifications_
-        std::vector<std::string>    Keys;
+        Types::StringVec   Keys;
         config().keys("ucentral.devicetypes",Keys);
         for(const auto & i:Keys)
         {
@@ -142,7 +140,7 @@ namespace uCentral {
             auto Type = Line.substr(0, P1);
             auto List = Line.substr(P1+1);
 
-            std::vector<std::string>    Tokens = uCentral::Utils::Split(List);
+            Types::StringVec  Tokens = uCentral::Utils::Split(List);
 
             auto Entry = DeviceTypeIdentifications_.find(Type);
 			if(DeviceTypeIdentifications_.end() == Entry) {
@@ -251,17 +249,17 @@ namespace uCentral {
     }
 
 	void Daemon::InitializeSubSystemServers() {
-		for(auto i:*SubSystems_)
+		for(auto i:SubSystems_)
 			addSubsystem(i);
 	}
 
 	void Daemon::StartSubSystemServers() {
-		for(auto i:*SubSystems_)
+		for(auto i:SubSystems_)
 			i->Start();
 	}
 
 	void Daemon::StopSubSystemServers() {
-		for(auto i=(*SubSystems_).rbegin(); i!=(*SubSystems_).rend(); ++i)
+		for(auto i=SubSystems_.rbegin(); i!=SubSystems_.rend(); ++i)
 			(*i)->Stop();
 	}
 
@@ -272,36 +270,48 @@ namespace uCentral {
 	bool Daemon::SetSubsystemLogLevel(const std::string &SubSystem, const std::string &Level) {
 		try {
 			auto P = Poco::Logger::parseLevel(Level);
-			auto Sub = boost::algorithm::to_lower_copy(SubSystem);
-			if (Sub == "ufileuploader")
-				FileUploader()->Logger().setLevel(P);
-			else if (Sub == "websocket")
-				WebSocketServer()->Logger().setLevel(P);
-			else if (Sub == "storage")
-				Storage()->Logger().setLevel(P);
-			else if (Sub == "restapi")
-				RESTAPI_server()->Logger().setLevel(P);
-			else if (Sub == "commandmanager")
-				CommandManager()->Logger().setLevel(P);
-			else if (Sub == "auth")
-				AuthService()->Logger().setLevel(P);
-			else if (Sub == "deviceregistry")
-				DeviceRegistry()->Logger().setLevel(P);
-			else if (Sub == "all") {
-				AuthService()->Logger().setLevel(P);
-				FileUploader()->Logger().setLevel(P);
-				WebSocketServer()->Logger().setLevel(P);
-				Storage()->Logger().setLevel(P);
-				RESTAPI_server()->Logger().setLevel(P);
-				CommandManager()->Logger().setLevel(P);
-				DeviceRegistry()->Logger().setLevel(P);
-			} else
-				return false;
-			return true;
-		} catch (const Poco::Exception & E) {
+			auto Sub = Poco::toLower(SubSystem);
 
+			if (Sub == "all") {
+				for (auto i : SubSystems_) {
+					i->Logger().setLevel(P);
+				}
+				return true;
+			} else {
+				std::cout << "Sub:" << SubSystem << " Level:" << Level << std::endl;
+				for (auto i : SubSystems_) {
+					if (Sub == Poco::toLower(i->Name())) {
+						i->Logger().setLevel(P);
+						return true;
+					}
+				}
+			}
+		} catch (const Poco::Exception & E) {
+			std::cout << "Exception" << std::endl;
 		}
 		return false;
+	}
+
+	Types::StringVec Daemon::GetSubSystems() const {
+		Types::StringVec Result;
+		for(auto i:SubSystems_)
+			Result.push_back(i->Name());
+		return Result;
+	}
+
+	Types::StringPairVec Daemon::GetLogLevels() const {
+		Types::StringPairVec Result;
+
+		for(auto &i:SubSystems_) {
+			auto P = std::make_pair( i->Name(), Utils::LogLevelToString(i->GetLoggingLevel()));
+			Result.push_back(P);
+		}
+		return Result;
+	}
+
+	const Types::StringVec & Daemon::GetLogLevelNames() const {
+		static Types::StringVec LevelNames{"none", "fatal", "critical", "error", "warning", "notice", "information", "debug", "trace" };
+		return LevelNames;
 	}
 
 	uint64_t Daemon::ConfigGetInt(const std::string &Key,uint64_t Default) {
