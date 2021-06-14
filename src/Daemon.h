@@ -94,18 +94,20 @@ namespace uCentral {
 
 	  private:
 		static Daemon 				*instance_;
-        bool                        HelpRequested_ = false;
-        bool                        AutoProvisioning_ = false;
-        Types::StringMapStringSet   DeviceTypeIdentifications_;
-        std::string                 ConfigFileName_;
-        std::string                 LogDir_;
-        bool                        DebugMode_ = false;
-        uint64_t                    ID_ = 1;
-        Poco::UUIDGenerator         UUIDGenerator_;
-        MyErrorHandler              AppErrorHandler_;
+		bool                        HelpRequested_ = false;
+		std::string                 LogDir_;
+		std::string                 ConfigFileName_;
+		Poco::UUIDGenerator         UUIDGenerator_;
+		MyErrorHandler              AppErrorHandler_;
+		uint64_t                    ID_ = 1;
 		Poco::SharedPtr<Poco::Crypto::RSAKey>	AppKey_ = nullptr;
+		bool                        DebugMode_ = false;
 		std::string 				DataDir_;
 		Types::SubSystemVec			SubSystems_;
+
+		bool                        AutoProvisioning_ = false;
+		Types::StringMapStringSet   DeviceTypeIdentifications_;
+
     };
 
 	inline Daemon * Daemon() { return Daemon::instance(); }
