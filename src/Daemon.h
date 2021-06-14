@@ -54,32 +54,9 @@ namespace uCentral {
         void uninitialize() override;
         void reinitialize(Application &self) override;
         void defineOptions(Poco::Util::OptionSet &options) override;
-        void handleHelp(const std::string &name, const std::string &value);
-		void handleVersion(const std::string &name, const std::string &value);
-        void handleDebug(const std::string &name, const std::string &value);
-        void handleLogs(const std::string &name, const std::string &value);
-        void handleConfig(const std::string &name, const std::string &value);
-        void displayHelp();
 
-		std::string CreateUUID();
+		bool AutoProvisioning() const { return AutoProvisioning_ ; }
 		[[nodiscard]] std::string IdentifyDevice(const std::string & Compatible) const;
-        bool AutoProvisioning() const { return AutoProvisioning_ ; }
-        bool Debug() const { return DebugMode_; }
-        uint64_t ID() const { return ID_; }
-
-		bool SetSubsystemLogLevel(const std::string & SubSystem, const std::string & Level);
-		[[nodiscard]] Types::StringVec GetSubSystems() const;
-		[[nodiscard]] Types::StringPairVec GetLogLevels() const;
-		[[nodiscard]] const Types::StringVec & GetLogLevelNames() const;
-
-		static std::string Version();
-		const Poco::SharedPtr<Poco::Crypto::RSAKey> & Key() { return AppKey_; }
-		void Exit(int Reason);
-		[[nodiscard]] inline const std::string & DataDir() { return DataDir_; }
-
-		void InitializeSubSystemServers();
-		void StartSubSystemServers();
-		void StopSubSystemServers();
 
 		static Daemon *instance() {
 			if (instance_ == nullptr) {
@@ -87,13 +64,33 @@ namespace uCentral {
 			}
 			return instance_;
 		}
+        void handleHelp(const std::string &name, const std::string &value);
+		void handleVersion(const std::string &name, const std::string &value);
+        void handleDebug(const std::string &name, const std::string &value);
+        void handleLogs(const std::string &name, const std::string &value);
+        void handleConfig(const std::string &name, const std::string &value);
+        void displayHelp();
 
-		uint64_t ConfigGetInt(const std::string &Key,uint64_t Default);
-		uint64_t ConfigGetInt(const std::string &Key);
-		std::string ConfigGetString(const std::string &Key,const std::string & Default);
-		std::string ConfigGetString(const std::string &Key);
-		uint64_t ConfigGetBool(const std::string &Key,bool Default);
-		uint64_t ConfigGetBool(const std::string &Key);
+		void InitializeSubSystemServers();
+		void StartSubSystemServers();
+		void StopSubSystemServers();
+		void Exit(int Reason);
+		bool SetSubsystemLogLevel(const std::string & SubSystem, const std::string & Level);
+		[[nodiscard]] static std::string Version();
+		[[nodiscard]] const Poco::SharedPtr<Poco::Crypto::RSAKey> & Key() { return AppKey_; }
+		[[nodiscard]] inline const std::string & DataDir() { return DataDir_; }
+		[[nodiscard]] std::string CreateUUID();
+		[[nodiscard]] bool Debug() const { return DebugMode_; }
+		[[nodiscard]] uint64_t ID() const { return ID_; }
+		[[nodiscard]] Types::StringVec GetSubSystems() const;
+		[[nodiscard]] Types::StringPairVec GetLogLevels() const;
+		[[nodiscard]] const Types::StringVec & GetLogLevelNames() const;
+		[[nodiscard]] std::string ConfigGetString(const std::string &Key,const std::string & Default);
+		[[nodiscard]] std::string ConfigGetString(const std::string &Key);
+		[[nodiscard]] uint64_t ConfigGetInt(const std::string &Key,uint64_t Default);
+		[[nodiscard]] uint64_t ConfigGetInt(const std::string &Key);
+		[[nodiscard]] uint64_t ConfigGetBool(const std::string &Key,bool Default);
+		[[nodiscard]] uint64_t ConfigGetBool(const std::string &Key);
 
 	  private:
 		static Daemon 				*instance_;

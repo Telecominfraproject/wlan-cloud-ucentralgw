@@ -112,20 +112,16 @@ namespace uCentral {
 			DataDir_ = DataDir.toString();
 		} catch(...) {
 		}
-
 		std::string KeyFile = Poco::Path::expand(config().getString("ucentral.service.key"));
-
 		AppKey_ = Poco::SharedPtr<Poco::Crypto::RSAKey>(new Poco::Crypto::RSAKey("", KeyFile, ""));
+		ID_ = config().getInt64("ucentral.system.id",1);
+		if(!DebugMode_)
+			DebugMode_ = config().getBool("ucentral.system.debug",false);
+		logger().information("Starting...");
 
 		InitializeSubSystemServers();
+
         ServerApplication::initialize(self);
-
-        logger().information("Starting...");
-
-        if(!DebugMode_)
-            DebugMode_ = config().getBool("ucentral.system.debug",false);
-
-        ID_ = config().getInt64("ucentral.system.id",1);
 
         // add your own initialization code here
         AutoProvisioning_ = config().getBool("ucentral.autoprovisioning",false);

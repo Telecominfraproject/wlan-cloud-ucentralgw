@@ -43,8 +43,6 @@ namespace uCentral {
 
             auto Sock{Svr.CreateSecureSocket(Logger_)};
 
-//			Sock.setReceiveTimeout(Poco::Timespan(10,0));
-
 			Svr.LogCert(Logger_);
 			if(!Svr.RootCA().empty())
 				Svr.LogCas(Logger_);
@@ -53,10 +51,6 @@ namespace uCentral {
             Params->setMaxThreads(50);
             Params->setMaxQueued(200);
 			Params->setKeepAlive(true);
-//			uint64_t T = 45000;
-//			Params->setKeepAliveTimeout(T);
-//			Params->setMaxKeepAliveRequests(200);
-//			Params->setTimeout();
 
             auto NewServer = std::make_unique<Poco::Net::HTTPServer>(new RESTAPIServerRequestHandlerFactory, Pool_, Sock, Params);
             NewServer->start();
@@ -101,7 +95,6 @@ namespace uCentral {
 		} else if(RESTAPIHandler::ParseBindings(Path, "/api/v1/callbackChannel", bindings)) {
 			return new RESTAPI_callback(bindings, Logger_);
 		}
-
 		Logger_.error(Poco::format("INVALID-API-ENDPOINT: %s",Path));
         return new RESTAPI_UnknownRequestHandler(bindings,Logger_);
     }
