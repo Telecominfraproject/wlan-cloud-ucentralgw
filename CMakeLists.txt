@@ -74,7 +74,7 @@ add_executable( ucentralgw
                 src/ALBHealthCheckServer.h src/kafka_topics.h src/uCentralTypes.h)
 
 if(NOT SMALL_BUILD)
-    target_sources(ucentralgw PUBLIC src/kafka_service.cpp src/kafka_service.h)
+    target_sources(ucentralgw PUBLIC src/KafkaManager.cpp src/KafkaManager.h)
 endif()
 
 INSTALL(TARGETS ucentralgw

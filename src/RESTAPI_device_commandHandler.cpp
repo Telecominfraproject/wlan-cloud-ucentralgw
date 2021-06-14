@@ -25,7 +25,7 @@
 #include "RESTAPI_protocol.h"
 
 #include "CommandManager.h"
-#include "kafka_service.h"
+#include "KafkaManager.h"
 #include "kafka_topics.h"
 
 namespace uCentral {

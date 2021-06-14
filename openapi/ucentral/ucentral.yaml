@@ -669,35 +669,51 @@ components:
           items:
             $ref: '#/components/schemas/CommandInfo'
 
+    StringList:
+      type: object
+      properties:
+        list:
+          type: array
+          items:
+            type: string
+
+    TagValuePair:
+      type: object
+      properties:
+        tag:
+          type: string
+        value:
+          type: string
+
+    TagValuePairList:
+      type: object
+      properties:
+        tagList:
+          type: array
+          items:
+            $ref: '#/components/schemas/TagValuePair'
+
     SystemCommandDetails:
       type: object
       properties:
         command:
           type: string
           enum:
-            - setloglevel
-            - getloglevel
+            - setloglevels
+            - getloglevels
+            - getSubSystemNames
+            - getLogLevelNames
             - stats
         parameters:
-          type: array
-          items:
-            properties:
-              name:
-                type: string
-              value:
-                type: string
+          oneOf:
+            - $ref: '#/components/schemas/StringList'
+            - $ref: '#/components/schemas/TagValuePairList'
 
     SystemCommandResults:
       type: object
-      properties:
-        command:
-          type: string
-        result:
-          type: integer
-        resultTxt:
-          type: array
-          items:
-            type: string
+      oneOf:
+        - $ref: '#/components/schemas/StringList'
+        - $ref: '#/components/schemas/TagValuePairList'
 
     BlackDeviceInfo:
       type: object

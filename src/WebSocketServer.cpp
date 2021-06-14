@@ -20,10 +20,10 @@
 #include "AuthService.h"
 #include "CommandManager.h"
 #include "Daemon.h"
+#include "KafkaManager.h"
 #include "StorageService.h"
 #include "Utils.h"
 #include "WebSocketServer.h"
-#include "kafka_service.h"
 #include "kafka_topics.h"
 #include "uCentralProtocol.h"
 

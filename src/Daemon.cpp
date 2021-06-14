@@ -33,7 +33,7 @@
 #include "Utils.h"
 
 #ifndef SMALL_BUILD
-#include "kafka_service.h"
+#include "KafkaManager.h"
 #endif
 
 #include "ALBHealthCheckServer.h"
