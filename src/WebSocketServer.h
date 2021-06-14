@@ -204,7 +204,7 @@ namespace uCentral {
 		void Stop() override;
 		bool IsCertOk() { return IssuerCert_!= nullptr; }
 		const Poco::Crypto::X509Certificate & Certificate() const { return *IssuerCert_; }
-		bool ValidateCertificate(const Poco::Crypto::X509Certificate & Certificate);
+		bool ValidateCertificate(const std::string & ConnectionId, const Poco::Crypto::X509Certificate & Certificate);
 
     private:
         static WebSocketServer *instance_;

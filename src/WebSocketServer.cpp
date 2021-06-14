@@ -37,9 +37,14 @@ namespace uCentral {
 
     }
 
-	bool WebSocketServer::ValidateCertificate(const Poco::Crypto::X509Certificate & Certificate) {
+	bool WebSocketServer::ValidateCertificate(const std::string & ConnectionId, const Poco::Crypto::X509Certificate & Certificate) {
 		if(IsCertOk()) {
-			return Certificate.issuedBy(*IssuerCert_);
+			Logger_.debug(Poco::format("CERTIFICATE(%s): issuer='%s' cn='%s'", ConnectionId, Certificate.issuerName(),Certificate.commonName()));
+			if(!Certificate.issuedBy(*IssuerCert_)) {
+				Logger_.debug(Poco::format("CERTIFICATE(%s): issuer mismatch. Local='%s' Incoming='%s'", ConnectionId, IssuerCert_->issuerName(), Certificate.issuerName()));
+				return false;
+			}
+			return true;
 		}
 		return false;
 	}
@@ -125,10 +130,10 @@ namespace uCentral {
 			try {
 				Poco::Crypto::X509Certificate	PeerCert(SS->peerCertificate());
 
-				if(WebSocketServer()->ValidateCertificate(PeerCert)) {
-					CN_ = Poco::toLower(PeerCert.commonName());
+				if(WebSocketServer()->ValidateCertificate(CId_, PeerCert)) {
+					CN_ = Poco::trim(Poco::toLower(PeerCert.commonName()));
 					CertValidation_ = Objects::MISMATCH_SERIAL;
-					Logger_.debug(Poco::format("%s: Valid certificate: CN=%s", CId_, PeerCert.commonName()));
+					Logger_.debug(Poco::format("%s: Valid certificate: CN=%s", CId_, CN_));
 				} else {
 					Logger_.debug( Poco::format("%s: Certificate is not valid", CId_));
 				}
@@ -296,7 +301,7 @@ namespace uCentral {
             return;
         }
 
-		auto Serial = Poco::toLower(ParamsObj->get(uCentralProtocol::SERIAL).toString());
+		auto Serial = Poco::trim(Poco::toLower(ParamsObj->get(uCentralProtocol::SERIAL).toString()));
 		if(!uCentral::Utils::ValidSerialNumber(Serial)) {
 			Poco::Exception	E(Poco::format("ILLEGAL-DEVICE-NAME(%s): device name is illegal and not allowed to connect.",Serial), EACCES);
 			E.rethrow();
