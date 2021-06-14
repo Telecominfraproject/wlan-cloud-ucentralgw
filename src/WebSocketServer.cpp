@@ -338,7 +338,7 @@ namespace uCentral {
 							if(CN_.empty())
 								Logger_.information(Poco::format("CONNECT(%s): Not authenticated or validated.", CId_));
 							else
-								Logger_.information(Poco::format("CONNECT(%s): Authenticated but not validated.", CId_));
+								Logger_.information(Poco::format("CONNECT(%s): Authenticated but not validated. Serial='%s' CN='%s'", CId_, Serial, CN_));
 						}
 
 						if (Daemon()->AutoProvisioning() && !Storage()->DeviceExists(SerialNumber_))
