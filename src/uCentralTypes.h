@@ -7,6 +7,13 @@
 
 #include "SubSystemServer.h"
 
+#include <vector>
+#include <string>
+#include <map>
+#include <functional>
+#include <list>
+#include <utility>
+
 namespace uCentral::Types {
 	typedef std::vector<std::pair<std::string,std::string>>	StringPairVec;
 	typedef std::vector<std::string>						StringVec;
