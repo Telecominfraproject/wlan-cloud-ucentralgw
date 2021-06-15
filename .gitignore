@@ -17,3 +17,5 @@ _deps
 /certs/
 /cmake-build/
 /uploads/
+test_scripts/curl/token.json
+.vscode/c_cpp_properties.json
