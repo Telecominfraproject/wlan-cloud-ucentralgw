@@ -388,38 +388,6 @@ components:
         aclTemplate:
           $ref: '#/components/schemas/AclTemplate'
 
-    ApiKeyCreationRequest:
-      type: object
-      properties:
-        name:
-          type: string
-        description:
-          type: string
-        expiresOn:
-          type: integer
-          format: int64
-        rights:
-          $ref: '#/components/schemas/AclTemplate'
-
-    ApiKeyCreationAnswer:
-      type: object
-      properties:
-        UUID:
-          type: string
-          format: uuid
-        name:
-          type: string
-        created:
-          type: integer
-          format: int64
-        expiresOn:
-          type: integer
-          format: int64
-        apiKey:
-          type: string
-        rights:
-          $ref: '#/components/schemas/AclTemplate'
-
     AclTemplate:
       type: object
       properties:
@@ -771,20 +739,6 @@ components:
       required:
         - serialNumber
 
-    WifiScanResult:
-      type: object
-      properties:
-        UUID:
-          type: string
-          format: uuid
-        serialNumber:
-          type: string
-        created:
-          type: integer
-          format: int64
-        scan:
-          type: string
-
     EventQueueRequest:
       type: object
       properties:
@@ -808,87 +762,6 @@ components:
           format: uuid
         result:
           type: string
-
-    ClientClassTemplate:
-      type: object
-      properties:
-        UUID:
-          type: string
-          format: uuid
-        name:
-          type: string
-        description:
-          type: string
-        created:
-          type: integer
-          format: int64
-        lastModified:
-          type: integer
-          format: int64
-        createdBy:
-          type: string
-        weight:
-          type: integer
-          format: int32
-        configBlocks:
-          type: array
-          items:
-            type: string
-
-    ClientClassTemplateSummary:
-      type: object
-      properties:
-        UUID:
-          type: string
-          format: uuid
-        name:
-          type: string
-        description:
-          type: string
-
-    ClientClassEntry:
-      type: object
-      properties:
-        UUID:
-          type: string
-          format: uuid
-        name:
-          type: string
-        description:
-          type: string
-        notes:
-          type: string
-        templateList:
-          type: array
-          items:
-            $ref: '#/components/schemas/ClientClassTemplateSummary'
-
-    ClientClassEntrySummary:
-      type: object
-      properties:
-        UUID:
-          type: string
-          format: string
-        name:
-          type: string
-        description:
-          type: string
-
-    ClientClassList:
-      type: object
-      properties:
-        classes:
-          type: array
-          items:
-            $ref: '#/components/schemas/ClientClassEntrySummary'
-
-    ClientClassMembers:
-      type: object
-      properties:
-        members:
-          type: array
-          items:
-            type: string
 
     AnyPayload:
       type: object
@@ -2106,30 +1979,6 @@ paths:
         404:
           $ref: '#/components/responses/NotFound'
 
-  /system:
-    post:
-      tags:
-        - System Commands
-      summary: Perform some systeme wide commands
-      operationId: systemCommand
-      requestBody:
-        description: Command details
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/SystemCommandDetails'
-      responses:
-        200:
-          description: Successfull command execution
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/SystemCommandResults'
-        403:
-          $ref: '#/components/responses/Unauthorized'
-        404:
-          $ref: '#/components/responses/NotFound'
-
   /blacklist:
     get:
       tags:
@@ -2207,139 +2056,31 @@ paths:
         404:
           $ref: '#/components/responses/NotFound'
 
-  /clientclasses:
-    get:
-      tags:
-        - ClientClass
-      summary: Client classes mechanism for device configuration
-      operationId: getClientClasses
-      parameters:
-        - in: query
-          description: Pagination start (starts at 1. If not specified, 1 is assumed)
-          name: offset
-          schema:
-            type: integer
-          required: false
-        - in: query
-          description: Maximum number of entries to return (if absent, no limit is assumed)
-          name: limit
-          schema:
-            type: integer
-          required: false
-        - in: query
-          description: Filter the results
-          name: filter
-          schema:
-            type: string
-          required: false
-      responses:
-        200:
-          description: List clientclasses
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ClientClassList'
-        403:
-          $ref: '#/components/responses/Unauthorized'
-        404:
-          $ref: '#/components/responses/NotFound'
+#########################################################################################
+##
+## These are endpoints that all services in the uCentral stack must provide
+##
+#########################################################################################
 
-  /clientclass/{classUUID}:
-    get:
-      tags:
-        - ClientClass
-      summary: Get the client class information for a giveb client class
-      operationId: getClientClass
-      parameters:
-        - in: path
-          name: classUUID
-          schema:
-            type: string
-          required: true
-      responses:
-        200:
-          description: Successfully retrieved a client class information
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ClientClassEntry'
-        403:
-          $ref: '#/components/responses/Unauthorized'
-        404:
-          $ref: '#/components/responses/NotFound'
-
+  /system:
     post:
       tags:
-        - ClientClass
-      summary: Create a new client class
-      operationId: createClientClass
-      parameters:
-        - in: path
-          name: classUUID
-          schema:
-            type: string
-          required: true
+        - System Commands
+      summary: Perform some systeme wide commands
+      operationId: systemCommand
       requestBody:
-        description: New client class information
+        description: Command details
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/ClientClassEntry'
+              $ref: '#/components/schemas/SystemCommandDetails'
       responses:
         200:
-          description: Succresfully created the client class
+          description: Successfull command execution
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ClientClassEntry'
-        403:
-          $ref: '#/components/responses/Unauthorized'
-        404:
-          $ref: '#/components/responses/NotFound'
-
-    put:
-      tags:
-        - ClientClass
-      summary: Modify an existing client class
-      operationId: modifyClientClass
-      parameters:
-        - in: path
-          name: classUUID
-          schema:
-            type: string
-          required: true
-      requestBody:
-        description: New information class information
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/ClientClassEntry'
-      responses:
-        200:
-          description: Succesfully modified the client class
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ClientClassEntry'
-        403:
-          $ref: '#/components/responses/Unauthorized'
-        404:
-          $ref: '#/components/responses/NotFound'
-
-    delete:
-      tags:
-        - ClientClass
-      summary: Deleting a client class
-      operationId: deleteClientClass
-      parameters:
-        - in: path
-          name: classUUID
-          schema:
-            type: string
-          required: true
-      responses:
-        200:
-          description: Successfully deleted a client class.
+                $ref: '#/components/schemas/SystemCommandResults'
         403:
           $ref: '#/components/responses/Unauthorized'
         404:
