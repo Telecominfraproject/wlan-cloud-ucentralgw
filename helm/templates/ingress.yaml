@@ -1,0 +1,47 @@
+{{- $root := . -}}
+{{- range $ingress, $ingressValue := .Values.ingresses }}
+{{- if $ingressValue.enabled }}
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: {{ include "ucentralgw.fullname" $root }}-{{ $ingress }}
+  labels:
+    app.kubernetes.io/name: {{ include "ucentralgw.name" $root }}
+    helm.sh/chart: {{ include "ucentralgw.chart" $root }}
+    app.kubernetes.io/instance: {{ $root.Release.Name }}
+    app.kubernetes.io/managed-by: {{ $root.Release.Service }}
+  {{- with $ingressValue.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+
+spec:
+
+{{- if $ingressValue.tls }}
+  tls:
+  {{- range $ingressValue.tls }}
+    - hosts:
+      {{- range .hosts }}
+        - {{ . | quote }}
+      {{- end }}
+      secretName: {{ tpl .secretName $root }}
+  {{- end }}
+{{- end }}
+
+  rules:
+  {{- range $ingressValue.hosts }}
+  - host: {{ . | quote }}
+    http:
+      paths:
+      {{- range $ingressValue.paths }}
+        - path: {{ .path }}
+          backend:
+            serviceName: {{ include "ucentralgw.fullname" $root }}-{{ .serviceName }}
+            servicePort: {{ .servicePort }}
+      {{- end }}
+  {{- end }}
+
+{{- end }}
+
+{{- end }}

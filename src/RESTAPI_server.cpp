@@ -24,25 +24,17 @@
 #include "RESTAPI_system_command.h"
 
 #include "RESTAPI_unknownRequestHandler.h"
-#include "uUtils.h"
+#include "Utils.h"
 
-namespace uCentral::RESTAPI {
+namespace uCentral {
 
-    Service *Service::instance_ = nullptr;
+    class RESTAPI_server *RESTAPI_server::instance_ = nullptr;
 
-    int Start() {
-        return Service::instance()->Start();
-    }
-
-    void Stop() {
-        Service::instance()->Stop();
-    }
-
-    Service::Service() noexcept: uSubSystemServer("RESTAPIServer", "RESTAPIServer", "ucentral.restapi")
+	RESTAPI_server::RESTAPI_server() noexcept: SubSystemServer("RESTAPIServer", "RESTAPIServer", "ucentral.restapi")
     {
     }
 
-    int Service::Start() {
+    int RESTAPI_server::Start() {
         Logger_.information("Starting.");
 
         for(const auto & Svr: ConfigServersList_) {
@@ -50,8 +42,6 @@ namespace uCentral::RESTAPI {
 											 Svr.KeyFile(),Svr.CertFile()));
 
             auto Sock{Svr.CreateSecureSocket(Logger_)};
-
-//			Sock.setReceiveTimeout(Poco::Timespan(10,0));
 
 			Svr.LogCert(Logger_);
 			if(!Svr.RootCA().empty())
@@ -61,12 +51,8 @@ namespace uCentral::RESTAPI {
             Params->setMaxThreads(50);
             Params->setMaxQueued(200);
 			Params->setKeepAlive(true);
-//			uint64_t T = 45000;
-//			Params->setKeepAliveTimeout(T);
-//			Params->setMaxKeepAliveRequests(200);
-//			Params->setTimeout();
 
-            auto NewServer = std::make_unique<Poco::Net::HTTPServer>(new RequestHandlerFactory, Pool_, Sock, Params);
+            auto NewServer = std::make_unique<Poco::Net::HTTPServer>(new RESTAPIServerRequestHandlerFactory, Pool_, Sock, Params);
             NewServer->start();
             RESTServers_.push_back(std::move(NewServer));
         }
@@ -74,7 +60,7 @@ namespace uCentral::RESTAPI {
         return 0;
     }
 
-    Poco::Net::HTTPRequestHandler *RequestHandlerFactory::createRequestHandler(const Poco::Net::HTTPServerRequest & Request) {
+    Poco::Net::HTTPRequestHandler *RESTAPIServerRequestHandlerFactory::createRequestHandler(const Poco::Net::HTTPServerRequest & Request) {
 
         Logger_.debug(Poco::format("REQUEST(%s): %s %s", uCentral::Utils::FormatIPv6(Request.clientAddress().toString()), Request.getMethod(), Request.getURI()));
 
@@ -109,12 +95,11 @@ namespace uCentral::RESTAPI {
 		} else if(RESTAPIHandler::ParseBindings(Path, "/api/v1/callbackChannel", bindings)) {
 			return new RESTAPI_callback(bindings, Logger_);
 		}
-
 		Logger_.error(Poco::format("INVALID-API-ENDPOINT: %s",Path));
         return new RESTAPI_UnknownRequestHandler(bindings,Logger_);
     }
 
-    void Service::Stop() {
+    void RESTAPI_server::Stop() {
         Logger_.information("Stopping ");
         for( const auto & svr : RESTServers_ )
             svr->stop();

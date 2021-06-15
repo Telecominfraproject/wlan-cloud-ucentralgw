@@ -42,7 +42,8 @@ jobs:
         then
           TAGS="$TAGS ${GITHUB_REF#refs/heads/}"
         else # PR build
-          TAGS="$TAGS ${GITHUB_HEAD_REF#refs/heads/}"
+          CURRENT_TAG=$(echo ${GITHUB_HEAD_REF#refs/heads/} | tr '/' '-')
+          TAGS="$TAGS $CURRENT_TAG"
         fi
 
         echo "Pushing tags $TAGS"

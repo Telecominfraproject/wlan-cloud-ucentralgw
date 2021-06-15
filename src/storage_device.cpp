@@ -6,88 +6,13 @@
 //	Arilia Wireless Inc.
 //
 
-#include "uCentralConfig.h"
-#include "uStorageService.h"
-#include "uUtils.h"
+#include "CentralConfig.h"
+#include "StorageService.h"
+#include "Utils.h"
 
-namespace uCentral::Storage {
+namespace uCentral {
 
-	bool UpdateDeviceConfiguration(std::string &SerialNumber, std::string &Configuration, uint64_t &NewUUID) {
-		return Service::instance()->UpdateDeviceConfiguration(SerialNumber, Configuration, NewUUID);
-	}
-
-	bool CreateDevice(uCentral::Objects::Device &Device) {
-		return Service::instance()->CreateDevice(Device);
-	}
-
-	bool CreateDefaultDevice(const std::string &SerialNumber, const std::string &Capabilities) {
-		return Service::instance()->CreateDefaultDevice(SerialNumber, Capabilities);
-	}
-
-	bool GetDevice(std::string &SerialNumber, uCentral::Objects::Device &Device) {
-		return Service::instance()->GetDevice(SerialNumber, Device);
-	}
-
-	bool GetDevices(uint64_t From, uint64_t HowMany, std::vector<uCentral::Objects::Device> &Devices) {
-		return Service::instance()->GetDevices(From, HowMany, Devices);
-	}
-
-	bool GetDevices(uint64_t From, uint64_t HowMany, const std::string & Select, std::vector<uCentral::Objects::Device> &Devices) {
-		return Service::instance()->GetDevices(From, HowMany, Select, Devices);
-	}
-
-	bool DeleteDevice(std::string &SerialNumber) {
-		return Service::instance()->DeleteDevice(SerialNumber);
-	}
-
-	bool UpdateDevice(uCentral::Objects::Device &Device) {
-		return Service::instance()->UpdateDevice(Device);
-	}
-
-	bool SetOwner(std::string & SerialNumber, std::string & OwnerUUID) {
-		return Service::instance()->SetOwner(SerialNumber, OwnerUUID);
-	}
-
-	bool SetLocation(std::string & SerialNumber, std::string & LocationUUID) {
-		return Service::instance()->SetLocation(SerialNumber, LocationUUID);
-	}
-
-	bool SetFirmware(std::string & SerialNumber, std::string & Firmware ) {
-		return Service::instance()->SetFirmware(SerialNumber, Firmware);
-	}
-
-	bool GetDevicesWithoutFirmware(std::string &DeviceType, std::string &Version, std::vector<std::string> & SerialNumbers) {
-		return Service::instance()->GetDevicesWithoutFirmware(DeviceType,Version, SerialNumbers);
-	}
-
-	bool GetDeviceCount( uint64_t & Count ) {
-		return Service::instance()->GetDeviceCount(Count);
-	}
-
-	bool GetDeviceSerialNumbers(uint64_t From, uint64_t HowMany, std::vector<std::string> & SerialNumbers) {
-		return Service::instance()->GetDeviceSerialNumbers(From, HowMany, SerialNumbers);
-	}
-
-	bool DeviceExists(std::string &SerialNumber) {
-		return Service::instance()->DeviceExists(SerialNumber);
-	}
-
-	bool ExistingConfiguration(std::string &SerialNumber, uint64_t CurrentConfig, std::string &NewConfig,
-							   uint64_t &NewerUUID) {
-		return Service::instance()->ExistingConfiguration(SerialNumber, CurrentConfig, NewConfig,
-																			 NewerUUID);
-	}
-
-	bool GetDeviceFWUpdatePolicy(std::string & SerialNumber, std::string & Policy) {
-		return Service::instance()->GetDeviceFWUpdatePolicy(SerialNumber, Policy);
-	}
-
-
-bool SetDeviceCompatibility(std::string & SerialNumber, std::string & Compatible) {
-		return Service::instance()->SetDeviceCompatibility(SerialNumber, Compatible);
-	}
-
-	bool Service::GetDeviceCount(uint64_t &Count) {
+	bool Storage::GetDeviceCount(uint64_t &Count) {
 		try {
 			Poco::Data::Session 	Sess = Pool_->get();
 			Poco::Data::Statement   Select(Sess);
@@ -97,16 +22,14 @@ bool SetDeviceCompatibility(std::string & SerialNumber, std::string & Compatible
 			Select << st ,
 				Poco::Data::Keywords::into(Count);
 			Select.execute();
-
 			return true;
-
 		} catch(const Poco::Exception & E) {
 			Logger_.log(E);
 		}
 		return false;
 	}
 
-	bool Service::GetDeviceSerialNumbers(uint64_t From, uint64_t HowMany, std::vector<std::string> &SerialNumbers) {
+	bool Storage::GetDeviceSerialNumbers(uint64_t From, uint64_t HowMany, std::vector<std::string> &SerialNumbers) {
 		try {
 			Poco::Data::Session Sess = Pool_->get();
 			Poco::Data::Statement   Select(Sess);
@@ -124,7 +47,7 @@ bool SetDeviceCompatibility(std::string & SerialNumber, std::string & Compatible
 		return false;
 	}
 
-	bool Service::UpdateDeviceConfiguration(std::string &SerialNumber, std::string &Configuration, uint64_t &NewUUID) {
+	bool Storage::UpdateDeviceConfiguration(std::string &SerialNumber, std::string &Configuration, uint64_t &NewUUID) {
 		try {
 
 			uCentral::Config::Config Cfg(Configuration);
@@ -175,7 +98,7 @@ bool SetDeviceCompatibility(std::string & SerialNumber, std::string & Compatible
 		return false;
 	}
 
-	bool Service::CreateDevice(uCentral::Objects::Device &DeviceDetails) {
+	bool Storage::CreateDevice(uCentral::Objects::Device &DeviceDetails) {
 		// std::lock_guard<std::mutex> guard(Mutex_);
 
 		std::string SerialNumber;
@@ -253,7 +176,7 @@ bool SetDeviceCompatibility(std::string & SerialNumber, std::string & Compatible
 		return false;
 	}
 
-	bool Service::CreateDefaultDevice(const std::string &SerialNumber, const std::string &Capabilities) {
+	bool Storage::CreateDefaultDevice(const std::string &SerialNumber, const std::string &Capabilities) {
 
 		uCentral::Objects::Device D;
 		Logger_.information(Poco::format("AUTO-CREATION(%s)", SerialNumber));
@@ -283,7 +206,7 @@ bool SetDeviceCompatibility(std::string & SerialNumber, std::string & Compatible
 		return CreateDevice(D);
 	}
 
-	bool Service::SetLocation(std::string & SerialNumber, std::string & LocationUUID) {
+	bool Storage::SetLocation(std::string & SerialNumber, std::string & LocationUUID) {
 		try {
 			Poco::Data::Session     Sess = Pool_->get();
 			Poco::Data::Statement   Update(Sess);
@@ -303,7 +226,7 @@ bool SetDeviceCompatibility(std::string & SerialNumber, std::string & Compatible
 		return false;
 	}
 
-	bool Service::GetDeviceFWUpdatePolicy(std::string &SerialNumber, std::string &Policy) {
+	bool Storage::GetDeviceFWUpdatePolicy(std::string &SerialNumber, std::string &Policy) {
 		try {
 			Poco::Data::Session     Sess = Pool_->get();
 			Poco::Data::Statement   Select(Sess);
@@ -322,7 +245,7 @@ bool SetDeviceCompatibility(std::string & SerialNumber, std::string & Compatible
 		return false;
 	}
 
-	bool Service::SetOwner(std::string & SerialNumber, std::string & OwnerUUID) {
+	bool Storage::SetOwner(std::string & SerialNumber, std::string & OwnerUUID) {
 		try {
 			Poco::Data::Session     Sess = Pool_->get();
 			Poco::Data::Statement   Update(Sess);
@@ -341,7 +264,7 @@ bool SetDeviceCompatibility(std::string & SerialNumber, std::string & Compatible
 		return false;
 	}
 
-	bool Service::SetFirmware(std::string &SerialNumber, std::string &Firmware) {
+	bool Storage::SetFirmware(std::string &SerialNumber, std::string &Firmware) {
 		try {
 			Poco::Data::Session     Sess = Pool_->get();
 			Poco::Data::Statement   Select(Sess);
@@ -375,7 +298,7 @@ bool SetDeviceCompatibility(std::string & SerialNumber, std::string & Compatible
 		return false;
 	}
 
-	bool Service::DeleteDevice(std::string &SerialNumber) {
+	bool Storage::DeleteDevice(std::string &SerialNumber) {
 		// std::lock_guard<std::mutex> guard(Mutex_);
 
 		try {
@@ -396,7 +319,7 @@ bool SetDeviceCompatibility(std::string & SerialNumber, std::string & Compatible
 		return false;
 	}
 
-	bool Service::GetDevice(std::string &SerialNumber, uCentral::Objects::Device &DeviceDetails) {
+	bool Storage::GetDevice(std::string &SerialNumber, uCentral::Objects::Device &DeviceDetails) {
 		// std::lock_guard<std::mutex> guard(Mutex_);
 
 		try {
@@ -455,7 +378,7 @@ bool SetDeviceCompatibility(std::string & SerialNumber, std::string & Compatible
 		return false;
 	}
 
-	bool Service::DeviceExists(std::string &SerialNumber) {
+	bool Storage::DeviceExists(std::string &SerialNumber) {
 		try {
 			Poco::Data::Session     Sess = Pool_->get();
 			Poco::Data::Statement   Select(Sess);
@@ -481,7 +404,7 @@ bool SetDeviceCompatibility(std::string & SerialNumber, std::string & Compatible
 		return false;
 	}
 
-	bool Service::GetDevicesWithoutFirmware(std::string &Compatible, std::string &Version, std::vector<std::string> &SerialNumbers) {
+	bool Storage::GetDevicesWithoutFirmware(std::string &Compatible, std::string &Version, std::vector<std::string> &SerialNumbers) {
 		try {
 			Poco::Data::Session     Sess = Pool_->get();
 			Poco::Data::Statement   Select(Sess);
@@ -502,7 +425,7 @@ bool SetDeviceCompatibility(std::string & SerialNumber, std::string & Compatible
 		return false;
 	}
 
-	bool Service::UpdateDevice(uCentral::Objects::Device &NewConfig) {
+	bool Storage::UpdateDevice(uCentral::Objects::Device &NewConfig) {
 		// std::lock_guard<std::mutex> guard(Mutex_);
 
 		try {
@@ -534,11 +457,11 @@ bool SetDeviceCompatibility(std::string & SerialNumber, std::string & Compatible
 		return false;
 	}
 
-	bool Service::GetDevices(uint64_t From, uint64_t HowMany, const std::string &Select, std::vector<uCentral::Objects::Device> &Devices) {
+	bool Storage::GetDevices(uint64_t From, uint64_t HowMany, const std::string &Select, std::vector<uCentral::Objects::Device> &Devices) {
 		return false;
 	}
 
-	bool Service::GetDevices(uint64_t From, uint64_t HowMany, std::vector<uCentral::Objects::Device> &Devices) {
+	bool Storage::GetDevices(uint64_t From, uint64_t HowMany, std::vector<uCentral::Objects::Device> &Devices) {
 
 		typedef Poco::Tuple<
 			std::string,
@@ -616,7 +539,7 @@ bool SetDeviceCompatibility(std::string & SerialNumber, std::string & Compatible
 		return false;
 	}
 
-	bool Service::ExistingConfiguration(std::string &SerialNumber, uint64_t CurrentConfig, std::string &NewConfig, uint64_t & UUID) {
+	bool Storage::ExistingConfiguration(std::string &SerialNumber, uint64_t CurrentConfig, std::string &NewConfig, uint64_t & NewUUID) {
 		// std::lock_guard<std::mutex> guard(Mutex_);
 		std::string SS;
 		try {
@@ -628,10 +551,9 @@ bool SetDeviceCompatibility(std::string & SerialNumber, std::string & Compatible
 
 			Select << ConvertParams(St),
 				Poco::Data::Keywords::into(SS),
-				Poco::Data::Keywords::into(UUID),
+				Poco::Data::Keywords::into(NewUUID),
 				Poco::Data::Keywords::into(NewConfig),
 				Poco::Data::Keywords::use(SerialNumber);
-
 			Select.execute();
 
 			if (SS.empty()) {
@@ -657,7 +579,7 @@ bool SetDeviceCompatibility(std::string & SerialNumber, std::string & Compatible
 		return false;
 	}
 
-	bool Service::SetDeviceCompatibility(std::string &SerialNumber, std::string &Compatible) {
+	bool Storage::SetDeviceCompatibility(std::string &SerialNumber, std::string &Compatible) {
 		try {
 			Poco::Data::Session     Sess = Pool_->get();
 			Poco::Data::Statement   Update(Sess);

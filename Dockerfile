@@ -47,6 +47,7 @@ COPY --from=builder /cppkafka/cmake-build/src/lib64/* /lib/
 COPY --from=builder /poco/cmake-build/lib/* /lib/
 
 EXPOSE 15002
+EXPOSE 15015
 EXPOSE 16001
 EXPOSE 16003
 

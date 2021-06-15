@@ -163,8 +163,32 @@ reboot() {
 }
 
 setloglevel() {
-  payload="{ \"command\" : \"setloglevel\" , \"parameters\" : [ { \"name\" : \"$1\" , \"value\" : \"$2\" } ] }"
+  payload="{ \"command\" : \"setloglevel\" , \"parameters\" : [ { \"tag\" : \"$1\" , \"value\" : \"$2\" } ] }"
   curl  ${FLAGS} -X POST "https://${UCENTRALGW}/api/v1/system" \
+        -H  "accept: application/json" \
+        -H "Authorization: Bearer ${token}" \
+        -d "$payload"
+}
+
+getloglevels() {
+	payload="{ \"command\" : \"getloglevels\" }"
+	curl  ${FLAGS} -X POST "https://${UCENTRALGW}/api/v1/system" \
+        -H  "accept: application/json" \
+        -H "Authorization: Bearer ${token}" \
+        -d "$payload"
+}
+
+getloglevelnames() {
+	payload="{ \"command\" : \"getloglevelnames\" }"
+	curl  ${FLAGS} -X POST "https://${UCENTRALGW}/api/v1/system" \
+        -H  "accept: application/json" \
+        -H "Authorization: Bearer ${token}" \
+        -d "$payload"
+}
+
+getsubsystemnames() {
+	payload="{ \"command\" : \"getsubsystemnames\" }"
+	curl  ${FLAGS} -X POST "https://${UCENTRALGW}/api/v1/system" \
         -H  "accept: application/json" \
         -H "Authorization: Bearer ${token}" \
         -d "$payload"
@@ -230,6 +254,16 @@ wifiscan() {
         -H "Authorization: Bearer ${token}" \
         -d "$payload"  > ${result_file}
   jq < ${result_file}
+}
+
+activescan() {
+	payload="{ \"serialNumber\" : \"$1\" , \"verbose\" : $2, \"activeScan\" : true}"
+	curl  ${FLAGS} -X POST "https://${UCENTRALGW}/api/v1/device/$1/wifiscan" \
+        --max-time 20 \
+        -H "accept: application/json" \
+        -H "Authorization: Bearer ${token}" \
+        -d "$payload"  > ${result_file}
+	jq < ${result_file}
 }
 
 trace() {
@@ -438,6 +472,8 @@ help() {
   echo "                                  message=state/healthcheck"
   echo "wifiscan <serial> <verbose>       Do wifiscan for a device."
   echo "                                  verbose=true/false"
+  echo "active <serial> <verbose>         Do an active wifiscan for a device."
+  echo "                                  verbose=true/false"
   echo "trace <serial> <d> <n>            Launch a remote trace for a device."
   echo "                                  d=number of seconds"
   echo "                                  n=lan/wan"
@@ -473,6 +509,9 @@ help() {
   echo "setloglevel <sys> <level>         Set the logging system level for individual subsystems."
   echo "                                  sys:ufileuploader/websocket/storage/restapi/commandmanager/auth/deviceregistry/all"
   echo "                                  level:none/fatal/critical/error/warning/notice/information/debug/trace"
+  echo "getloglevels 					  Get the log levels of all the subsystems"
+  echo "getloglevelnames                  Get the list of log level names possible"
+  echo "getsubsystemnames                 Get the subsystems that can be used when setting log levels."
   echo "getfile <serial> <uuid> <name>	  Get the file associated with trace command <uuid> for device <serial>"
   echo "								  The file will be saved with the name <name>"
   echo
@@ -511,6 +550,7 @@ case "$1" in
   "configure") login; configure "$2" "$3"  ; logout ;;
   "request") login; request "$2" "$3"  ; logout ;;
   "wifiscan") login; wifiscan "$2" "$3"  ; logout ;;
+  "activescan") login; activescan "$2" "$3"  ; logout ;;
   "trace") login; trace "$2" "$3" "$4"  ; logout ;;
   "getstats") login; getstats "$2"  ; logout ;;
   "getlogs") login; getlogs "$2"  ; logout ;;
@@ -537,6 +577,9 @@ case "$1" in
   "lasthealthcheck") login; lasthealthcheck "$2"; logout;;
   "login") login ;;
   "findbrowser") findbrowser; echo "Browser: ${browser}" ;;
+  "getloglevels") login; getloglevels; logout ;;
+  "getloglevelnames") login; getloglevelnames; logout ;;
+  "getsubsystemnames") login; getsubsystemnames; logout ;;
   *) help ;;
 esac
 

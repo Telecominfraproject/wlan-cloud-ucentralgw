@@ -6,30 +6,11 @@
 //	Arilia Wireless Inc.
 //
 
-#include "uStorageService.h"
+#include "StorageService.h"
 
-#include "uCentralConfig.h"
+#include "CentralConfig.h"
 
-namespace uCentral::Storage {
-	bool CreateDefaultConfiguration(std::string &name, uCentral::Objects::DefaultConfiguration &DefConfig) {
-		return uCentral::Storage::Service::instance()->CreateDefaultConfiguration(name, DefConfig);
-	}
-
-	bool DeleteDefaultConfiguration(std::string &name) {
-		return uCentral::Storage::Service::instance()->DeleteDefaultConfiguration(name);
-	}
-
-	bool UpdateDefaultConfiguration(std::string &name, uCentral::Objects::DefaultConfiguration &DefConfig) {
-		return uCentral::Storage::Service::instance()->UpdateDefaultConfiguration(name, DefConfig);
-	}
-
-	bool GetDefaultConfiguration(std::string &name, uCentral::Objects::DefaultConfiguration &DefConfig) {
-		return uCentral::Storage::Service::instance()->GetDefaultConfiguration(name, DefConfig);
-	}
-
-	bool GetDefaultConfigurations(uint64_t From, uint64_t HowMany, std::vector<uCentral::Objects::DefaultConfiguration> &Devices) {
-		return uCentral::Storage::Service::instance()->GetDefaultConfigurations(From, HowMany, Devices);
-	}
+namespace uCentral {
 
 	/*
 	 *  Data model for DefaultConfigurations:
@@ -44,7 +25,7 @@ namespace uCentral::Storage {
 					"LastModified BIGINT)", now;
 	 */
 
-	bool Service::CreateDefaultConfiguration(std::string &Name, uCentral::Objects::DefaultConfiguration &DefConfig) {
+	bool Storage::CreateDefaultConfiguration(std::string &Name, uCentral::Objects::DefaultConfiguration &DefConfig) {
 		try {
 
 			std::string TmpName;
@@ -102,7 +83,7 @@ namespace uCentral::Storage {
 		return false;
 	}
 
-	bool Service::DeleteDefaultConfiguration(std::string &Name) {
+	bool Storage::DeleteDefaultConfiguration(std::string &Name) {
 		try {
 
 			Poco::Data::Session     Sess = Pool_->get();
@@ -122,7 +103,7 @@ namespace uCentral::Storage {
 		return false;
 	}
 
-	bool Service::UpdateDefaultConfiguration(std::string &Name, uCentral::Objects::DefaultConfiguration &DefConfig) {
+	bool Storage::UpdateDefaultConfiguration(std::string &Name, uCentral::Objects::DefaultConfiguration &DefConfig) {
 		try {
 
 			Poco::Data::Session Sess = Pool_->get();
@@ -157,7 +138,7 @@ namespace uCentral::Storage {
 		return false;
 	}
 
-	bool Service::GetDefaultConfiguration(std::string &Name, uCentral::Objects::DefaultConfiguration &DefConfig) {
+	bool Storage::GetDefaultConfiguration(std::string &Name, uCentral::Objects::DefaultConfiguration &DefConfig) {
 		try {
 
 			Poco::Data::Session     Sess = Pool_->get();
@@ -194,7 +175,7 @@ namespace uCentral::Storage {
 		return false;
 	}
 
-	bool Service::GetDefaultConfigurations(uint64_t From, uint64_t HowMany,
+	bool Storage::GetDefaultConfigurations(uint64_t From, uint64_t HowMany,
 										   std::vector<uCentral::Objects::DefaultConfiguration> &DefConfigs) {
 		typedef Poco::Tuple<
 			std::string,
@@ -264,7 +245,7 @@ namespace uCentral::Storage {
 		return false;
 	}
 
-	bool Service::FindDefaultConfigurationForModel(const std::string &Model, uCentral::Objects::DefaultConfiguration &DefConfig) {
+	bool Storage::FindDefaultConfigurationForModel(const std::string &Model, uCentral::Objects::DefaultConfiguration &DefConfig) {
 		try {
 			typedef Poco::Tuple<
 				std::string,

@@ -8,89 +8,89 @@
 
 #include "RESTAPI_device_handler.h"
 #include "Poco/JSON/Parser.h"
-#include "uStorageService.h"
 #include "RESTAPI_protocol.h"
-#include "uUtils.h"
+#include "StorageService.h"
+#include "Utils.h"
 
-void RESTAPI_device_handler::handleRequest(Poco::Net::HTTPServerRequest& Request, Poco::Net::HTTPServerResponse& Response)
-{
-    if(!ContinueProcessing(Request,Response))
-        return;
+namespace uCentral {
+void RESTAPI_device_handler::handleRequest(Poco::Net::HTTPServerRequest &Request,
+										   Poco::Net::HTTPServerResponse &Response) {
+	if (!ContinueProcessing(Request, Response))
+		return;
 
-    if(!IsAuthorized(Request,Response))
-        return;
+	if (!IsAuthorized(Request, Response))
+		return;
 
-    ParseParameters(Request);
-    if(Request.getMethod() == Poco::Net::HTTPRequest::HTTP_GET) {
-        std::string     SerialNumber = GetBinding(uCentral::RESTAPI::Protocol::SERIALNUMBER,"");
-        uCentral::Objects::Device  Device;
+	ParseParameters(Request);
+	if (Request.getMethod() == Poco::Net::HTTPRequest::HTTP_GET) {
+		std::string SerialNumber = GetBinding(uCentral::RESTAPI::Protocol::SERIALNUMBER, "");
+		uCentral::Objects::Device Device;
 
-        if(uCentral::Storage::GetDevice(SerialNumber,Device))
-        {
-            Poco::JSON::Object  Obj;
+		if (Storage()->GetDevice(SerialNumber, Device)) {
+			Poco::JSON::Object Obj;
 			Device.to_json(Obj);
-            ReturnObject(Request, Obj,Response);
-        }
-        else
-        {
-            NotFound(Request, Response);
-        }
-    } else if(Request.getMethod() == Poco::Net::HTTPRequest::HTTP_DELETE) {
-        std::string SerialNumber = GetBinding(uCentral::RESTAPI::Protocol::SERIALNUMBER, "");
+			ReturnObject(Request, Obj, Response);
+		} else {
+			NotFound(Request, Response);
+		}
+	} else if (Request.getMethod() == Poco::Net::HTTPRequest::HTTP_DELETE) {
+		std::string SerialNumber = GetBinding(uCentral::RESTAPI::Protocol::SERIALNUMBER, "");
 
-        if (uCentral::Storage::DeleteDevice(SerialNumber)) {
-            OK(Request, Response);
-        } else {
-            NotFound(Request, Response);
-        }
-    } else if(Request.getMethod() == Poco::Net::HTTPRequest::HTTP_POST) {
-        std::string SerialNumber = GetBinding(uCentral::RESTAPI::Protocol::SERIALNUMBER, "");
+		if (Storage()->DeleteDevice(SerialNumber)) {
+			OK(Request, Response);
+		} else {
+			NotFound(Request, Response);
+		}
+	} else if (Request.getMethod() == Poco::Net::HTTPRequest::HTTP_POST) {
+		std::string SerialNumber = GetBinding(uCentral::RESTAPI::Protocol::SERIALNUMBER, "");
 
-        Poco::JSON::Parser      IncomingParser;
-        Poco::JSON::Object::Ptr Obj = IncomingParser.parse(Request.stream()).extract<Poco::JSON::Object::Ptr>();
+		Poco::JSON::Parser IncomingParser;
+		Poco::JSON::Object::Ptr Obj =
+			IncomingParser.parse(Request.stream()).extract<Poco::JSON::Object::Ptr>();
 
-        uCentral::Objects::Device  Device;
+		uCentral::Objects::Device Device;
 
-        if(!Device.from_json(Obj))
-        {
-            BadRequest(Request, Response);
-            return;
-        }
+		if (!Device.from_json(Obj)) {
+			BadRequest(Request, Response);
+			return;
+		}
 
-		if(!uCentral::Utils::ValidSerialNumber(Device.SerialNumber)) {
-			Logger_.warning(Poco::format("CREATE-DEVICE(%s): Illegal name.",Device.SerialNumber));
+		if (!uCentral::Utils::ValidSerialNumber(Device.SerialNumber)) {
+			Logger_.warning(Poco::format("CREATE-DEVICE(%s): Illegal name.", Device.SerialNumber));
 			BadRequest(Request, Response);
 			return;
 		}
 
 		Device.UUID = time(nullptr);
-        if (uCentral::Storage::CreateDevice(Device)) {
-			Poco::JSON::Object  DevObj;
+		if (Storage()->CreateDevice(Device)) {
+			Poco::JSON::Object DevObj;
 			Device.to_json(DevObj);
-			ReturnObject(Request, DevObj,Response);
-        } else {
-            BadRequest(Request, Response);
-        }
-    } else if(Request.getMethod() == Poco::Net::HTTPRequest::HTTP_PUT) {
-        std::string SerialNumber = GetBinding(uCentral::RESTAPI::Protocol::SERIALNUMBER, "");
+			ReturnObject(Request, DevObj, Response);
+		} else {
+			BadRequest(Request, Response);
+		}
+	} else if (Request.getMethod() == Poco::Net::HTTPRequest::HTTP_PUT) {
+		std::string SerialNumber = GetBinding(uCentral::RESTAPI::Protocol::SERIALNUMBER, "");
 
-        Poco::JSON::Parser      IncomingParser;
-        Poco::JSON::Object::Ptr Obj = IncomingParser.parse(Request.stream()).extract<Poco::JSON::Object::Ptr>();
+		Poco::JSON::Parser IncomingParser;
+		Poco::JSON::Object::Ptr Obj =
+			IncomingParser.parse(Request.stream()).extract<Poco::JSON::Object::Ptr>();
 
-        uCentral::Objects::Device  Device;
+		uCentral::Objects::Device Device;
 
-        if(!Device.from_json(Obj))
-        {
-            BadRequest(Request, Response);
-            return;
-        }
+		if (!Device.from_json(Obj)) {
+			BadRequest(Request, Response);
+			return;
+		}
 
-        if (uCentral::Storage::UpdateDevice(Device)) {
-            OK(Request, Response);
-        } else {
-            BadRequest(Request, Response);
-        }
-    } else {
-        BadRequest(Request, Response);
-    }
+		if (Storage()->UpdateDevice(Device)) {
+			OK(Request, Response);
+		} else {
+			BadRequest(Request, Response);
+		}
+	} else {
+		BadRequest(Request, Response);
+	}
+}
+
 }

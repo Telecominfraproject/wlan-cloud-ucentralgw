@@ -6,9 +6,9 @@
 //	Arilia Wireless Inc.
 //
 
-#include "uStorageService.h"
+#include "StorageService.h"
 
-namespace uCentral::Storage {
+namespace uCentral {
 	typedef Poco::Tuple<
 		std::string,
 		std::string,
@@ -18,29 +18,7 @@ namespace uCentral::Storage {
 		uint64_t,
 		uint64_t > DeviceLogsRecordTuple;
 
-	bool AddLog(std::string &SerialNumber, uint64_t UUID, const std::string &Log) {
-		return Service::instance()->AddLog(SerialNumber, UUID, Log);
-	}
-
-	bool AddLog(std::string &SerialNumber, uCentral::Objects::DeviceLog &DeviceLog, bool CrashLog) {
-		return Service::instance()->AddLog(SerialNumber, DeviceLog, CrashLog);
-	}
-
-	bool GetLogData(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate, uint64_t Offset, uint64_t HowMany,
-					std::vector<uCentral::Objects::DeviceLog> &Stats, uint64_t Type) {
-		return Service::instance()->GetLogData(SerialNumber, FromDate, ToDate, Offset, HowMany,
-																  Stats, Type );
-	}
-
-	bool DeleteLogData(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate, uint64_t Type) {
-		return Service::instance()->DeleteLogData(SerialNumber, FromDate, ToDate, Type);
-	}
-
-	bool GetNewestLogData(std::string &SerialNumber, uint64_t HowMany, std::vector<uCentral::Objects::DeviceLog> &Stats, uint64_t Type) {
-		return Service::instance()->GetNewestLogData(SerialNumber, HowMany, Stats, Type);
-	}
-
-	bool Service::AddLog(std::string &SerialNumber, uCentral::Objects::DeviceLog &Log, bool CrashLog) {
+	bool Storage::AddLog(std::string &SerialNumber, uCentral::Objects::DeviceLog &Log, bool CrashLog) {
 
 		try {
 	/*
@@ -75,7 +53,7 @@ namespace uCentral::Storage {
 		return false;
 	}
 
-	bool Service::AddLog(std::string &SerialNumber, uint64_t UUID, const std::string &Log) {
+	bool Storage::AddLog(std::string &SerialNumber, uint64_t UUID, const std::string &Log) {
 		uCentral::Objects::DeviceLog DeviceLog;
 
 		DeviceLog.Log = Log;
@@ -87,7 +65,7 @@ namespace uCentral::Storage {
 		return AddLog(SerialNumber, DeviceLog, false);
 	}
 
-	bool Service::GetLogData(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate, uint64_t Offset,
+	bool Storage::GetLogData(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate, uint64_t Offset,
 							 uint64_t HowMany,
 							 std::vector<uCentral::Objects::DeviceLog> &Stats, uint64_t Type ) {
 
@@ -154,7 +132,7 @@ namespace uCentral::Storage {
 		return false;
 	}
 
-	bool Service::DeleteLogData(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate, uint64_t Type) {
+	bool Storage::DeleteLogData(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate, uint64_t Type) {
 		try {
 			Poco::Data::Session Sess = Pool_->get();
 
@@ -193,7 +171,7 @@ namespace uCentral::Storage {
 		return false;
 	}
 
-	bool Service::GetNewestLogData(std::string &SerialNumber, uint64_t HowMany, std::vector<uCentral::Objects::DeviceLog> &Stats, uint64_t Type) {
+	bool Storage::GetNewestLogData(std::string &SerialNumber, uint64_t HowMany, std::vector<uCentral::Objects::DeviceLog> &Stats, uint64_t Type) {
 		typedef std::vector<DeviceLogsRecordTuple> RecordList;
 
 		try {

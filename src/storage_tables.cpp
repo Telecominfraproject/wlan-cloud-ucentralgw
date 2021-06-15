@@ -6,11 +6,11 @@
 //	Arilia Wireless Inc.
 //
 
-#include "uStorageService.h"
+#include "StorageService.h"
 
-namespace uCentral::Storage {
+namespace uCentral {
 
-	int Service::Create_Tables() {
+	int Storage::Create_Tables() {
 
 		Create_Statistics();
 		Create_Devices();
@@ -28,7 +28,7 @@ namespace uCentral::Storage {
 		return 0;
 	}
 
-	int Service::Create_Statistics() {
+	int Storage::Create_Statistics() {
 		try {
 			Poco::Data::Session Sess = Pool_->get();
 
@@ -57,7 +57,7 @@ namespace uCentral::Storage {
 		return -1;
 	}
 
-	int Service::Create_Devices() {
+	int Storage::Create_Devices() {
 		try {
 			Poco::Data::Session Sess = Pool_->get();
 
@@ -70,7 +70,7 @@ namespace uCentral::Storage {
 						"Configuration 	TEXT, "
 						"Notes         	TEXT, "
 						"Owner  		VARCHAR(64), "
-						"Location  		VARCHAR(64), "
+						"Location  		TEXT, "
 						"Firmware 		VARCHAR(128),"
 						"Compatible		VARCHAR(128),"
 						"FWUpdatePolicy	VARCHAR(128),"
@@ -90,7 +90,7 @@ namespace uCentral::Storage {
 						"Configuration 	TEXT, "
 						"Notes         	TEXT, "
 						"Owner  		VARCHAR(64), "
-						"Location  		VARCHAR(64), "
+						"Location  		TEXT, "
 						"Firmware 		VARCHAR(128),"
 						"Compatible		VARCHAR(128),"
 						"FWUpdatePolicy	VARCHAR(128),"
@@ -110,7 +110,7 @@ namespace uCentral::Storage {
 		return -1;
 	}
 
-	int Service::Create_Capabilities() {
+	int Storage::Create_Capabilities() {
 		try {
 			Poco::Data::Session Sess = Pool_->get();
 
@@ -131,7 +131,7 @@ namespace uCentral::Storage {
 		return -1;
 	}
 
-	int Service::Create_HealthChecks() {
+	int Storage::Create_HealthChecks() {
 		try {
 			Poco::Data::Session Sess = Pool_->get();
 
@@ -160,7 +160,7 @@ namespace uCentral::Storage {
 		return -1;
 	}
 
-	int Service::Create_Authentication() {
+	int Storage::Create_Authentication() {
 		try {
 			Poco::Data::Session Sess = Pool_->get();
 
@@ -187,7 +187,7 @@ namespace uCentral::Storage {
 		return -1;
 	}
 
-	int Service::Create_DeviceLogs() {
+	int Storage::Create_DeviceLogs() {
 		try {
 			Poco::Data::Session Sess = Pool_->get();
 
@@ -222,7 +222,7 @@ namespace uCentral::Storage {
 		return -1;
 	}
 
-	int Service::Create_DefaultConfigs() {
+	int Storage::Create_DefaultConfigs() {
 		try {
 			Poco::Data::Session Sess = Pool_->get();
 
@@ -242,7 +242,7 @@ namespace uCentral::Storage {
 		return -1;
 	}
 
-	int Service::Create_CommandList() {
+	int Storage::Create_CommandList() {
 		try {
 			Poco::Data::Session Sess = Pool_->get();
 			if(dbType_==mysql) {
@@ -297,7 +297,7 @@ namespace uCentral::Storage {
 		return -1;
 	}
 
-	int Service::Create_BlackList() {
+	int Storage::Create_BlackList() {
 		try {
 			Poco::Data::Session Sess = Pool_->get();
 
@@ -316,7 +316,7 @@ namespace uCentral::Storage {
 		return -1;
 	}
 
-	int Service::Create_FileUploads() {
+	int Storage::Create_FileUploads() {
 		try {
 			Poco::Data::Session Sess = Pool_->get();
 
@@ -350,7 +350,7 @@ namespace uCentral::Storage {
 		return -1;
 	}
 
-	int Service::Create_FirmwareUpgrades() {
+	int Storage::Create_FirmwareUpgrades() {
 		try {
 			Poco::Data::Session Sess = Pool_->get();
 
@@ -375,7 +375,7 @@ namespace uCentral::Storage {
 		return -1;
 	}
 
-	int Service::Create_LifetimeStats() {
+	int Storage::Create_LifetimeStats() {
 		try {
 			Poco::Data::Session Sess = Pool_->get();
 			if(dbType_==sqlite || dbType_==mysql || dbType_==pgsql) {

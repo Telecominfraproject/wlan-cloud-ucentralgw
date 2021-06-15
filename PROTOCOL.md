@@ -37,6 +37,8 @@ my decide to send the AP a newer configuration. The controller will record the d
         "serial" : <serial number> ,
         "uuid" : <current active configuration uuid>,
         "firmware" : <Current firmware version string>,
+        "wanip" : [ IP:Port, ... ], (a list of IPs the device is using as WAN IP and port as strings. IPv4 and IPv6, including the port)
+                                    (example: [ "24.17.1.23:54322" , "[2345:23::234]:32323" ] )
         "capabilities" : <JSON Document: current device capabilities.>
     }
 }
@@ -413,7 +415,8 @@ Controller sends this command when it needs the device to perform a WiFi Scan.
 	        "serial" : <serial number> ,
 	        "bands" : [ "2","5","5l","5u",6" ], <optional this is a list of bands to scan: on or more bands >
 	        "channels" : [ 1,2,3...] , <optional list of discreet channels to scan >
-	        "verbose" : <optional boolean: true or false> (by default false)
+	        "verbose" : <optional boolean: true or false> (by default false),
+	        "active" : 0 or 1 (to select passive or active scan)
         },
      "id" : <some number>
 }
