@@ -1,0 +1,474 @@
+# System
+replicaCount: 1
+strategyType: Recreate
+
+nameOverride: ""
+fullnameOverride: ""
+
+images:
+  ucentralgw:
+    repository: tip-tip-wlan-cloud-ucentral.jfrog.io/ucentralgw
+    tag: master
+    pullPolicy: Always
+#    regcred:
+#      registry: tip-tip-wlan-cloud-ucentral.jfrog.io
+#      username: username
+#      password: password
+
+services:
+  ucentralgwl4:
+    type: ClusterIP
+    ports:
+      websocket:
+        servicePort: 15002
+        targetPort: 15002
+        protocol: TCP
+  ucentralgwl7:
+    type: NodePort
+    ports:
+      restapi:
+        servicePort: 16001
+        targetPort: 16001
+        protocol: TCP
+      fileuploader:
+        servicePort: 16003
+        targetPort: 16003
+        protocol: TCP
+
+checks:
+  ucentralgw:
+    liveness:
+      httpGet:
+        path: /
+        port: 15015
+    readiness:
+      httpGet:
+        path: /
+        port: 15015
+
+ingresses:
+  restapi:
+    enabled: true
+    annotations: {}
+      # kubernetes.io/ingress.class: nginx
+      # kubernetes.io/tls-acme: "true"
+    hosts:
+    - restapi.chart-example.local
+    paths:
+    - path: /
+      serviceName: ucentralgwl7
+      servicePort: restapi
+  fileuploader:
+    enabled: true
+    annotations: {}
+      # kubernetes.io/ingress.class: nginx
+      # kubernetes.io/tls-acme: "true"
+    hosts:
+    - fileuploader.chart-example.local
+    paths:
+    - path: /
+      serviceName: ucentralgwl7
+      servicePort: fileuploader
+
+volumes:
+  ucentralgw:
+    - name: config
+      mountPath: /ucentral-data/ucentral.properties
+      subPath: ucentral.properties
+      # Template below will be rendered in template
+      volumeDefinition: |
+        configMap:
+          name: {{ include "ucentralgw.fullname" . }}-config
+    - name: certs
+      mountPath: /ucentral-data/certs
+      volumeDefinition: |
+        secret:
+          secretName: {{ include "ucentralgw.fullname" . }}-certs
+    - name: certs-cas
+      mountPath: /ucentral-data/certs/cas
+      volumeDefinition: |
+        secret:
+          secretName: {{ include "ucentralgw.fullname" . }}-certs-cas
+    # Change this if you want to use another volume type
+    - name: persist
+      mountPath: /ucentral-data/persist
+      volumeDefinition: |
+        persistentVolumeClaim:
+          claimName: {{ template "ucentralgw.fullname" . }}-pvc
+
+resources: {}
+  # We usually recommend not to specify default resources and to leave this as a conscious
+  # choice for the user. This also increases chances charts run on environments with little
+  # resources, such as Minikube. If you do want to specify resources, uncomment the following
+  # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+  # requests:
+  #  cpu: 100m
+  #  memory: 128Mi
+  # limits:
+  #  cpu: 100m
+  #  memory: 128Mi
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+persistence:
+  enabled: true
+  storageClassName: gp2
+  accessModes:
+    - ReadWriteOnce
+  size: 10Gi
+  annotations: {}
+
+# Application
+public_env_variables:
+  UCENTRAL_ROOT: /ucentral-data
+  UCENTRAL_CONFIG: /ucentral-data
+
+secret_env_variables: {}
+
+config: |
+  #
+  # uCentral protocol server for devices. This is where you point
+  # all your devices. You can replace the * for address by the specific
+  # address of one of your interfaces
+  #
+  ucentral.websocket.host.0.backlog = 500
+  ucentral.websocket.host.0.rootca = /ucentral-data/certs/root.pem
+  ucentral.websocket.host.0.issuer = /ucentral-data/certs/issuer.pem
+  ucentral.websocket.host.0.cert = /ucentral-data/certs/websocket-cert.pem
+  ucentral.websocket.host.0.key = /ucentral-data/certs/websocket-key.pem
+  ucentral.websocket.host.0.clientcas = /ucentral-data/certs/clientcas.pem
+  ucentral.websocket.host.0.cas = /ucentral-data/certs/cas
+  ucentral.websocket.host.0.address = *
+  ucentral.websocket.host.0.port = 15002
+  ucentral.websocket.host.0.security = strict
+  ucentral.websocket.host.0.key.password = mypassword
+  ucentral.websocket.maxreactors = 20
+
+  #
+  # REST API access
+  #
+  ucentral.restapi.host.0.backlog = 100
+  ucentral.restapi.host.0.security = relaxed
+  ucentral.restapi.host.0.rootca = /ucentral-data/certs/restapi-ca.pem
+  ucentral.restapi.host.0.address = *
+  ucentral.restapi.host.0.port = 16001
+  ucentral.restapi.host.0.cert = /ucentral-data/certs/restapi-cert.pem
+  ucentral.restapi.host.0.key = /ucentral-data/certs/restapi-key.pem
+  ucentral.restapi.host.0.key.password = mypassword
+
+  #
+  # Used to upload files to the service.
+  # You should replace the 'name' vaalue with the IP address of your gateway or an FQDN
+  # that your devices can reach
+  #
+  ucentral.fileuploader.host.0.backlog = 100
+  ucentral.fileuploader.host.0.rootca = /ucentral-data/certs/restapi-ca.pem
+  ucentral.fileuploader.host.0.security = relaxed
+  ucentral.fileuploader.host.0.address = *
+  ucentral.fileuploader.host.0.name = fileuploader-ucentral-2.cicd.lab.wlan.tip.build
+  ucentral.fileuploader.host.0.port = 16003
+  ucentral.fileuploader.host.0.cert = /ucentral-data/certs/restapi-cert.pem
+  ucentral.fileuploader.host.0.key = /ucentral-data/certs/restapi-key.pem
+  ucentral.fileuploader.host.0.key.password = mypassword
+  ucentral.fileuploader.path = /ucentral-data/persist/uploads
+  ucentral.fileuploader.maxsize = 10000
+
+  #
+  # This section descrive how to do autoprovisioning
+  # When enabled, it will allow devices that are not in the system
+  # to be managed and serviced
+  #
+  ucentral.autoprovisioning = true
+  ucentral.service.key = /ucentral-data/certs/websocket-key.pem
+  ucentral.devicetypes.0 = AP:linksys_ea8300,edgecore_eap101,linksys_e8450-ubi
+  ucentral.devicetypes.1 = SWITCH:edgecore_ecs4100-12ph
+  ucentral.devicetypes.2 = IOT:esp32
+
+  #
+  # Callback hosts
+  #
+  ucentral.callback.enable = false
+  ucentral.callback.id = qblat6dfDHxQAZ6yMe6MrypBpgRDhQrhUtTOovOXAKAWU8qOvjjKKiUai4t9hGjA
+  ucentral.callback.0.local = localhost:16001
+  ucentral.callback.0.remote = localhost:15055
+  ucentral.callback.0.localkey = t2dEOc88OIxVDb94mw7SLcLocgnCzZzzFoQ4JJv3OCU9UO6Ou5ds5Dh4CfBnHgrk
+  ucentral.callback.0.remotekey = t2dEOc88OIxVDb94mw7SLcLocgnCzZzzFoQ4JJv3OCU9UO6Ou5ds5Dh4CfBnHgrk
+  ucentral.callback.0.topics = ucentralfws
+
+  #
+  # rtty
+  #
+  rtty.enabled = false
+  rtty.server = localhost
+  rtty.port = 5912
+  rtty.token = 96181c567b4d0d98c50f127230068fa8
+  rtty.timeout = 60
+  rtty.viewport = 5913
+
+  #
+  # NLB Support
+  #
+  nlb.enable = true
+  nlb.port = 15015
+
+  #
+  # Kafka
+  #
+  ucentral.kafka.enable = false
+  ucentral.kafka.brokerlist = 127.0.0.1:9092
+
+  #
+  # This section select which form of persistence you need
+  # Only one selected at a time. If you select multiple, this service will die if a horrible
+  # death and might make your beer flat.
+  #
+  storage.type = sqlite
+  #storage.type = postgresql
+  #storage.type = mysql
+  #storage.type = odbc
+
+  storage.type.sqlite.db = /ucentral-data/persist/devices.db
+  storage.type.sqlite.idletime = 120
+  storage.type.sqlite.maxsessions = 128
+
+  storage.type.postgresql.maxsessions = 64
+  storage.type.postgresql.idletime = 60
+  storage.type.postgresql.host = localhost
+  storage.type.postgresql.username = stephb
+  storage.type.postgresql.password = snoopy99
+  storage.type.postgresql.database = ucentral
+  storage.type.postgresql.port = 5432
+  storage.type.postgresql.connectiontimeout = 60
+
+  storage.type.mysql.maxsessions = 64
+  storage.type.mysql.idletime = 60
+  storage.type.mysql.host = localhost
+  storage.type.mysql.username = stephb
+  storage.type.mysql.password = snoopy99
+  storage.type.mysql.database = ucentral
+  storage.type.mysql.port = 3306
+  storage.type.mysql.connectiontimeout = 60
+
+  #
+  # Authentication
+  #
+  authentication.enabled = true
+  authentication.default.username = tip@ucentral.com
+  authentication.default.password = openwifi
+  authentication.default.access = master
+  authentication.service.type = internal
+
+  firmware.autoupdate.policy.default = auto
+
+  system.directory.data = /ucentral-data/persist/data
+
+  ucentral.system.debug = true
+  ucentral.system.id = 1
+  ucentral.system.commandchannel = /tmp/app.ucentralgw
+  ucentral.system.host.0.path = https://host2.com:9010
+  ucentral.system.host.0.id = 2
+  ucentral.system.host.1.path = https://host3.com:9010
+  ucentral.system.host.1.id = 3
+  ucentral.system.host.2.path = https://host4.com:9010
+  ucentral.system.host.2.id = 4
+
+  ########################################################################
+  ########################################################################
+  #
+  # Thw following sections apply to the uCentral service
+  #
+  # Logging: please leave as is for now.
+  #
+  ########################################################################
+  ########################################################################
+
+  logging.formatters.f1.class = PatternFormatter
+  logging.formatters.f1.pattern = %s: [%p] %t
+  logging.formatters.f1.times = UTC
+  logging.channels.c1.class = ConsoleChannel
+  logging.channels.c1.formatter = f1
+  logging.channels.c2.class = FileChannel
+  # This is where the logs will be written. This path MUST exist
+  logging.channels.c2.path = /dev/stdout
+  logging.channels.c2.formatter.class = PatternFormatter
+  logging.channels.c2.formatter.pattern = %Y-%m-%d %H:%M:%S %s: [%p] %t
+  logging.channels.c3.class = ConsoleChannel
+  logging.channels.c3.pattern = %s: [%p] %t
+  # External Channel
+  logging.loggers.root.channel = c2
+  logging.loggers.root.level = information
+  # Inline Channel with PatternFormatter
+  # logging.loggers.l1.name = logger1
+  # logging.loggers.l1.channel.class = ConsoleChannel
+  # logging.loggers.l1.channel.pattern = %s: [%p] %t
+  # logging.loggers.l1.level = information
+  # SplitterChannel
+  # logging.channels.splitter.class = SplitterChannel
+  # logging.channels.splitter.channels = l1,l2
+  # logging.loggers.l2.name = logger2
+  # logging.loggers.l2.channel = splitter
+
+certs:
+  clientcas.pem: |
+    -----BEGIN CERTIFICATE-----
+    MIIEnDCCA4SgAwIBAgIUVpyCUx1MUeUwxg+7I1BvGFTz7HkwDQYJKoZIhvcNAQEL
+    BQAwaTELMAkGA1UEBhMCVVMxJDAiBgNVBAoTG1RlbGVjb20gSW5mcmEgUHJvamVj
+    dCwgSW5jLjEMMAoGA1UECxMDVElQMSYwJAYDVQQDEx1UZWxlY29tIEluZnJhIFBy
+    b2plY3QgUm9vdCBDQTAeFw0yMTA0MTMyMjUxMjZaFw0yNjA0MTMyMjM4NDZaMGwx
+    CzAJBgNVBAYTAlVTMSQwIgYDVQQKExtUZWxlY29tIEluZnJhIFByb2plY3QsIElu
+    Yy4xDDAKBgNVBAsTA1RJUDEpMCcGA1UEAxMgVGVsZWNvbSBJbmZyYSBQcm9qZWN0
+    IElzc3VpbmcgQ0EwggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQDtKBrq
+    qd2aKVSk25KfL5xHu8X7/8rJrz3IvyPuVKWhk/N1zabot3suBcGaYNKjnRHxg78R
+    yKwKzajKYWtiQFqztu24g16LQeAnoUxZnF6a0z3JkkRPsz14A2y8TUhdEe1tx+UU
+    4VGsk3n+FMmOQHL+79FO57zQC1LwylgfLSltrI6mF3jowVUQvnwzKhUzT87AJ6EO
+    ndK/q0T/Bgi+aI39zfVOjJjsTJwghvrmYW3iarP1THSKxeib2s02bZKrvvHa5HL4
+    UI8+LvREpVZl4mzt1z6Nl344Y6f+UeJlYa/Ci0jJqaXJmyVnUbAz+c0i5JfwAVn3
+    YQzfC4eLnZCmdF8zAgMBAAGjggE3MIIBMzAPBgNVHRMBAf8EBTADAQH/MB0GA1Ud
+    DgQWBBSzG1S44EerPfM4gOQ85f0AYW3R6DAfBgNVHSMEGDAWgBQCRpZgebFT9qny
+    98WfIUDk6ZEB+jAOBgNVHQ8BAf8EBAMCAYYwgYMGCCsGAQUFBwEBBHcwdTAoBggr
+    BgEFBQcwAYYcaHR0cDovL29jc3Aub25lLmRpZ2ljZXJ0LmNvbTBJBggrBgEFBQcw
+    AoY9aHR0cDovL2NhY2VydHMub25lLmRpZ2ljZXJ0LmNvbS9UZWxlY29tSW5mcmFQ
+    cm9qZWN0Um9vdENBLmNydDBKBgNVHR8EQzBBMD+gPaA7hjlodHRwOi8vY3JsLm9u
+    ZS5kaWdpY2VydC5jb20vVGVsZWNvbUluZnJhUHJvamVjdFJvb3RDQS5jcmwwDQYJ
+    KoZIhvcNAQELBQADggEBAFbz+K94bHIkBMJqps0dApniUmOn0pO6Q6cGh47UP/kX
+    IiPIsnYgG+hqYD/qtsiqJhaWi0hixRWn38UmvZxMRk27aSTGE/TWx0JTC3qDGsSe
+    XkUagumbSfmS0ZyiTwMPeGAjXwyzGorqZWeA95eKfImntMiOf3E7//GK0K7HpCx8
+    IPCnLZsZD2q/mLyBsduImFIRQJbLAhwIxpcd1qYJk+BlGFL+HtBpEbq6JxW2Xy+v
+    DpNWc2WIsUTle0rTc9JNJrLX4ChUJmKqf8obKHap3Xh3//qw/jDB9pOAinA33FLJ
+    EmCnwBvQr9mfNmPBGMYZVU8cPruDQJ57GjmmvdisbJY=
+    -----END CERTIFICATE-----
+    -----BEGIN CERTIFICATE-----
+    MIIDojCCAoqgAwIBAgIUPVYBpqNbcLYygF6Mx+qxSWwQyFowDQYJKoZIhvcNAQEL
+    BQAwaTELMAkGA1UEBhMCVVMxJDAiBgNVBAoTG1RlbGVjb20gSW5mcmEgUHJvamVj
+    dCwgSW5jLjEMMAoGA1UECxMDVElQMSYwJAYDVQQDEx1UZWxlY29tIEluZnJhIFBy
+    b2plY3QgUm9vdCBDQTAeFw0yMTA0MTMyMjQyNDRaFw0zMTA0MTMyMjM4NDZaMGkx
+    CzAJBgNVBAYTAlVTMSQwIgYDVQQKExtUZWxlY29tIEluZnJhIFByb2plY3QsIElu
+    Yy4xDDAKBgNVBAsTA1RJUDEmMCQGA1UEAxMdVGVsZWNvbSBJbmZyYSBQcm9qZWN0
+    IFJvb3QgQ0EwggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQDIGCibwf5u
+    AAwZ+1H8U0e3u2V+0d2gSctucoK86XwUmfe1V2a/qlCYZd29r80IuN1IIeB0naIm
+    KnK/MzXW87clF6tFd1+HzEvmlY/W4KyIXalVCTEzirFSvBEG2oZpM0yC3AefytAO
+    aOpA00LaM3xTfTqMKIRhJBuLy0I4ANUVG6ixVebbGuc78IodleqiLoWy2Q9QHyEO
+    t/7hZndJhiVogh0PveRhho45EbsACu7ymDY+JhlIleevqwlE3iQoq0YcmYADHno6
+    Eq8vcwLpZFxihupUafkd1T3WJYQAJf9coCjBu2qIhNgrcrGD8R9fGswwNRzMRMpX
+    720+GjcDW3bJAgMBAAGjQjBAMA8GA1UdEwEB/wQFMAMBAf8wHQYDVR0OBBYEFAJG
+    lmB5sVP2qfL3xZ8hQOTpkQH6MA4GA1UdDwEB/wQEAwIBhjANBgkqhkiG9w0BAQsF
+    AAOCAQEAVjl9dm4epG9NUYnagT9sg7scVQEPfz3Lt6w1NXJXgD8mAUlK0jXmEyvM
+    dCPD4514n+8+lM7US8fh+nxc7jO//LwK17Wm9FblgjNFR7+anv0Q99T9fP19DLlF
+    PSNHL2emogy1bl1lLTAoj8nxg2wVKPDSHBGviQ5LR9fsWUIJDv9Bs5k0qWugWYSj
+    19S6qnHeskRDB8MqRLhKMG82oDVLerSnhD0P6HjySBHgTTU7/tYS/OZr1jI6MPbG
+    L+/DtiR5fDVMNdBSGU89UNTi0wHY9+RFuNlIuvZC+x/swF0V9R5mN+ywquTPtDLA
+    5IOM7ItsRmen6u3qu+JXros54e4juQ==
+    -----END CERTIFICATE-----
+  issuer.pem: |
+    -----BEGIN CERTIFICATE-----
+    MIIEnDCCA4SgAwIBAgIUVpyCUx1MUeUwxg+7I1BvGFTz7HkwDQYJKoZIhvcNAQEL
+    BQAwaTELMAkGA1UEBhMCVVMxJDAiBgNVBAoTG1RlbGVjb20gSW5mcmEgUHJvamVj
+    dCwgSW5jLjEMMAoGA1UECxMDVElQMSYwJAYDVQQDEx1UZWxlY29tIEluZnJhIFBy
+    b2plY3QgUm9vdCBDQTAeFw0yMTA0MTMyMjUxMjZaFw0yNjA0MTMyMjM4NDZaMGwx
+    CzAJBgNVBAYTAlVTMSQwIgYDVQQKExtUZWxlY29tIEluZnJhIFByb2plY3QsIElu
+    Yy4xDDAKBgNVBAsTA1RJUDEpMCcGA1UEAxMgVGVsZWNvbSBJbmZyYSBQcm9qZWN0
+    IElzc3VpbmcgQ0EwggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQDtKBrq
+    qd2aKVSk25KfL5xHu8X7/8rJrz3IvyPuVKWhk/N1zabot3suBcGaYNKjnRHxg78R
+    yKwKzajKYWtiQFqztu24g16LQeAnoUxZnF6a0z3JkkRPsz14A2y8TUhdEe1tx+UU
+    4VGsk3n+FMmOQHL+79FO57zQC1LwylgfLSltrI6mF3jowVUQvnwzKhUzT87AJ6EO
+    ndK/q0T/Bgi+aI39zfVOjJjsTJwghvrmYW3iarP1THSKxeib2s02bZKrvvHa5HL4
+    UI8+LvREpVZl4mzt1z6Nl344Y6f+UeJlYa/Ci0jJqaXJmyVnUbAz+c0i5JfwAVn3
+    YQzfC4eLnZCmdF8zAgMBAAGjggE3MIIBMzAPBgNVHRMBAf8EBTADAQH/MB0GA1Ud
+    DgQWBBSzG1S44EerPfM4gOQ85f0AYW3R6DAfBgNVHSMEGDAWgBQCRpZgebFT9qny
+    98WfIUDk6ZEB+jAOBgNVHQ8BAf8EBAMCAYYwgYMGCCsGAQUFBwEBBHcwdTAoBggr
+    BgEFBQcwAYYcaHR0cDovL29jc3Aub25lLmRpZ2ljZXJ0LmNvbTBJBggrBgEFBQcw
+    AoY9aHR0cDovL2NhY2VydHMub25lLmRpZ2ljZXJ0LmNvbS9UZWxlY29tSW5mcmFQ
+    cm9qZWN0Um9vdENBLmNydDBKBgNVHR8EQzBBMD+gPaA7hjlodHRwOi8vY3JsLm9u
+    ZS5kaWdpY2VydC5jb20vVGVsZWNvbUluZnJhUHJvamVjdFJvb3RDQS5jcmwwDQYJ
+    KoZIhvcNAQELBQADggEBAFbz+K94bHIkBMJqps0dApniUmOn0pO6Q6cGh47UP/kX
+    IiPIsnYgG+hqYD/qtsiqJhaWi0hixRWn38UmvZxMRk27aSTGE/TWx0JTC3qDGsSe
+    XkUagumbSfmS0ZyiTwMPeGAjXwyzGorqZWeA95eKfImntMiOf3E7//GK0K7HpCx8
+    IPCnLZsZD2q/mLyBsduImFIRQJbLAhwIxpcd1qYJk+BlGFL+HtBpEbq6JxW2Xy+v
+    DpNWc2WIsUTle0rTc9JNJrLX4ChUJmKqf8obKHap3Xh3//qw/jDB9pOAinA33FLJ
+    EmCnwBvQr9mfNmPBGMYZVU8cPruDQJ57GjmmvdisbJY=
+    -----END CERTIFICATE-----
+  # restapi-ca.pem: ""
+  # restapi-cert.pem: ""
+  # restapi-key.pem: ""
+  root.pem: |
+    -----BEGIN CERTIFICATE-----
+    MIIDojCCAoqgAwIBAgIUPVYBpqNbcLYygF6Mx+qxSWwQyFowDQYJKoZIhvcNAQEL
+    BQAwaTELMAkGA1UEBhMCVVMxJDAiBgNVBAoTG1RlbGVjb20gSW5mcmEgUHJvamVj
+    dCwgSW5jLjEMMAoGA1UECxMDVElQMSYwJAYDVQQDEx1UZWxlY29tIEluZnJhIFBy
+    b2plY3QgUm9vdCBDQTAeFw0yMTA0MTMyMjQyNDRaFw0zMTA0MTMyMjM4NDZaMGkx
+    CzAJBgNVBAYTAlVTMSQwIgYDVQQKExtUZWxlY29tIEluZnJhIFByb2plY3QsIElu
+    Yy4xDDAKBgNVBAsTA1RJUDEmMCQGA1UEAxMdVGVsZWNvbSBJbmZyYSBQcm9qZWN0
+    IFJvb3QgQ0EwggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQDIGCibwf5u
+    AAwZ+1H8U0e3u2V+0d2gSctucoK86XwUmfe1V2a/qlCYZd29r80IuN1IIeB0naIm
+    KnK/MzXW87clF6tFd1+HzEvmlY/W4KyIXalVCTEzirFSvBEG2oZpM0yC3AefytAO
+    aOpA00LaM3xTfTqMKIRhJBuLy0I4ANUVG6ixVebbGuc78IodleqiLoWy2Q9QHyEO
+    t/7hZndJhiVogh0PveRhho45EbsACu7ymDY+JhlIleevqwlE3iQoq0YcmYADHno6
+    Eq8vcwLpZFxihupUafkd1T3WJYQAJf9coCjBu2qIhNgrcrGD8R9fGswwNRzMRMpX
+    720+GjcDW3bJAgMBAAGjQjBAMA8GA1UdEwEB/wQFMAMBAf8wHQYDVR0OBBYEFAJG
+    lmB5sVP2qfL3xZ8hQOTpkQH6MA4GA1UdDwEB/wQEAwIBhjANBgkqhkiG9w0BAQsF
+    AAOCAQEAVjl9dm4epG9NUYnagT9sg7scVQEPfz3Lt6w1NXJXgD8mAUlK0jXmEyvM
+    dCPD4514n+8+lM7US8fh+nxc7jO//LwK17Wm9FblgjNFR7+anv0Q99T9fP19DLlF
+    PSNHL2emogy1bl1lLTAoj8nxg2wVKPDSHBGviQ5LR9fsWUIJDv9Bs5k0qWugWYSj
+    19S6qnHeskRDB8MqRLhKMG82oDVLerSnhD0P6HjySBHgTTU7/tYS/OZr1jI6MPbG
+    L+/DtiR5fDVMNdBSGU89UNTi0wHY9+RFuNlIuvZC+x/swF0V9R5mN+ywquTPtDLA
+    5IOM7ItsRmen6u3qu+JXros54e4juQ==
+    -----END CERTIFICATE-----
+  # websocket-cert.pem: ""
+  # websocket-key.pem: ""
+
+certsCAs:
+  issuer.pem: |
+    -----BEGIN CERTIFICATE-----
+    MIIEnDCCA4SgAwIBAgIUVpyCUx1MUeUwxg+7I1BvGFTz7HkwDQYJKoZIhvcNAQEL
+    BQAwaTELMAkGA1UEBhMCVVMxJDAiBgNVBAoTG1RlbGVjb20gSW5mcmEgUHJvamVj
+    dCwgSW5jLjEMMAoGA1UECxMDVElQMSYwJAYDVQQDEx1UZWxlY29tIEluZnJhIFBy
+    b2plY3QgUm9vdCBDQTAeFw0yMTA0MTMyMjUxMjZaFw0yNjA0MTMyMjM4NDZaMGwx
+    CzAJBgNVBAYTAlVTMSQwIgYDVQQKExtUZWxlY29tIEluZnJhIFByb2plY3QsIElu
+    Yy4xDDAKBgNVBAsTA1RJUDEpMCcGA1UEAxMgVGVsZWNvbSBJbmZyYSBQcm9qZWN0
+    IElzc3VpbmcgQ0EwggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQDtKBrq
+    qd2aKVSk25KfL5xHu8X7/8rJrz3IvyPuVKWhk/N1zabot3suBcGaYNKjnRHxg78R
+    yKwKzajKYWtiQFqztu24g16LQeAnoUxZnF6a0z3JkkRPsz14A2y8TUhdEe1tx+UU
+    4VGsk3n+FMmOQHL+79FO57zQC1LwylgfLSltrI6mF3jowVUQvnwzKhUzT87AJ6EO
+    ndK/q0T/Bgi+aI39zfVOjJjsTJwghvrmYW3iarP1THSKxeib2s02bZKrvvHa5HL4
+    UI8+LvREpVZl4mzt1z6Nl344Y6f+UeJlYa/Ci0jJqaXJmyVnUbAz+c0i5JfwAVn3
+    YQzfC4eLnZCmdF8zAgMBAAGjggE3MIIBMzAPBgNVHRMBAf8EBTADAQH/MB0GA1Ud
+    DgQWBBSzG1S44EerPfM4gOQ85f0AYW3R6DAfBgNVHSMEGDAWgBQCRpZgebFT9qny
+    98WfIUDk6ZEB+jAOBgNVHQ8BAf8EBAMCAYYwgYMGCCsGAQUFBwEBBHcwdTAoBggr
+    BgEFBQcwAYYcaHR0cDovL29jc3Aub25lLmRpZ2ljZXJ0LmNvbTBJBggrBgEFBQcw
+    AoY9aHR0cDovL2NhY2VydHMub25lLmRpZ2ljZXJ0LmNvbS9UZWxlY29tSW5mcmFQ
+    cm9qZWN0Um9vdENBLmNydDBKBgNVHR8EQzBBMD+gPaA7hjlodHRwOi8vY3JsLm9u
+    ZS5kaWdpY2VydC5jb20vVGVsZWNvbUluZnJhUHJvamVjdFJvb3RDQS5jcmwwDQYJ
+    KoZIhvcNAQELBQADggEBAFbz+K94bHIkBMJqps0dApniUmOn0pO6Q6cGh47UP/kX
+    IiPIsnYgG+hqYD/qtsiqJhaWi0hixRWn38UmvZxMRk27aSTGE/TWx0JTC3qDGsSe
+    XkUagumbSfmS0ZyiTwMPeGAjXwyzGorqZWeA95eKfImntMiOf3E7//GK0K7HpCx8
+    IPCnLZsZD2q/mLyBsduImFIRQJbLAhwIxpcd1qYJk+BlGFL+HtBpEbq6JxW2Xy+v
+    DpNWc2WIsUTle0rTc9JNJrLX4ChUJmKqf8obKHap3Xh3//qw/jDB9pOAinA33FLJ
+    EmCnwBvQr9mfNmPBGMYZVU8cPruDQJ57GjmmvdisbJY=
+    -----END CERTIFICATE-----
+  root.pem: |
+    -----BEGIN CERTIFICATE-----
+    MIIDojCCAoqgAwIBAgIUPVYBpqNbcLYygF6Mx+qxSWwQyFowDQYJKoZIhvcNAQEL
+    BQAwaTELMAkGA1UEBhMCVVMxJDAiBgNVBAoTG1RlbGVjb20gSW5mcmEgUHJvamVj
+    dCwgSW5jLjEMMAoGA1UECxMDVElQMSYwJAYDVQQDEx1UZWxlY29tIEluZnJhIFBy
+    b2plY3QgUm9vdCBDQTAeFw0yMTA0MTMyMjQyNDRaFw0zMTA0MTMyMjM4NDZaMGkx
+    CzAJBgNVBAYTAlVTMSQwIgYDVQQKExtUZWxlY29tIEluZnJhIFByb2plY3QsIElu
+    Yy4xDDAKBgNVBAsTA1RJUDEmMCQGA1UEAxMdVGVsZWNvbSBJbmZyYSBQcm9qZWN0
+    IFJvb3QgQ0EwggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQDIGCibwf5u
+    AAwZ+1H8U0e3u2V+0d2gSctucoK86XwUmfe1V2a/qlCYZd29r80IuN1IIeB0naIm
+    KnK/MzXW87clF6tFd1+HzEvmlY/W4KyIXalVCTEzirFSvBEG2oZpM0yC3AefytAO
+    aOpA00LaM3xTfTqMKIRhJBuLy0I4ANUVG6ixVebbGuc78IodleqiLoWy2Q9QHyEO
+    t/7hZndJhiVogh0PveRhho45EbsACu7ymDY+JhlIleevqwlE3iQoq0YcmYADHno6
+    Eq8vcwLpZFxihupUafkd1T3WJYQAJf9coCjBu2qIhNgrcrGD8R9fGswwNRzMRMpX
+    720+GjcDW3bJAgMBAAGjQjBAMA8GA1UdEwEB/wQFMAMBAf8wHQYDVR0OBBYEFAJG
+    lmB5sVP2qfL3xZ8hQOTpkQH6MA4GA1UdDwEB/wQEAwIBhjANBgkqhkiG9w0BAQsF
+    AAOCAQEAVjl9dm4epG9NUYnagT9sg7scVQEPfz3Lt6w1NXJXgD8mAUlK0jXmEyvM
+    dCPD4514n+8+lM7US8fh+nxc7jO//LwK17Wm9FblgjNFR7+anv0Q99T9fP19DLlF
+    PSNHL2emogy1bl1lLTAoj8nxg2wVKPDSHBGviQ5LR9fsWUIJDv9Bs5k0qWugWYSj
+    19S6qnHeskRDB8MqRLhKMG82oDVLerSnhD0P6HjySBHgTTU7/tYS/OZr1jI6MPbG
+    L+/DtiR5fDVMNdBSGU89UNTi0wHY9+RFuNlIuvZC+x/swF0V9R5mN+ywquTPtDLA
+    5IOM7ItsRmen6u3qu+JXros54e4juQ==
+    -----END CERTIFICATE-----
