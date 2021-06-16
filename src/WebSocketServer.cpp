@@ -339,23 +339,34 @@ namespace uCentral {
 								Logger_.information(Poco::format("CONNECT(%s): Authenticated but not validated. Serial='%s' CN='%s'", CId_, Serial, CN_));
 						}
 
+						std::cout << __LINE__ << std::endl;
 						if (Daemon()->AutoProvisioning() && !Storage()->DeviceExists(SerialNumber_))
 							Storage()->CreateDefaultDevice(SerialNumber_, Capabilities);
 
+					std::cout << __LINE__ << std::endl;
 						Storage()->UpdateDeviceCapabilities(SerialNumber_, Capabilities);
+					std::cout << __LINE__ << std::endl;
 
+					std::cout << __LINE__ << std::endl;
 						if(!Firmware.empty())
 							Storage()->SetFirmware(SerialNumber_, Firmware);
+					std::cout << __LINE__ << std::endl;
 
 						StatsProcessor_ = std::make_unique<uCentral::StateProcessor>();
 						StatsProcessor_->Initialize(Serial);
+					std::cout << __LINE__ << std::endl;
 						LookForUpgrade(UUID);
+					std::cout << __LINE__ << std::endl;
 
 						if(KafkaManager()->Enabled()) {
+							std::cout << __LINE__ << std::endl;
 							Poco::JSON::Stringifier		Stringify;
 							std::ostringstream OS;
+							std::cout << __LINE__ << std::endl;
 							Stringify.condense(ParamsObj,OS);
+							std::cout << __LINE__ << std::endl;
 							KafkaManager()->PostMessage(uCentral::KafkaTopics::CONNECTION, SerialNumber_, OS.str());
+							std::cout << __LINE__ << std::endl;
 						}
 
 					} else {

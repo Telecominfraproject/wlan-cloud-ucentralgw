@@ -159,17 +159,11 @@ namespace uCentral::Config {
     bool Config::SetUUID(uint64_t UUID) {
         try {
             Poco::JSON::Parser Parser;
-			std::cout << __LINE__ << std::endl;
             Poco::JSON::Object::Ptr Object = Parser.parse(Config_).extract<Poco::JSON::Object::Ptr>();
-			std::cout << __LINE__ << std::endl;
 			Object->set("uuid",UUID);
-			std::cout << __LINE__ << std::endl;
 			std::ostringstream NewConfig;
-			std::cout << __LINE__ << std::endl;
             Poco::JSON::Stringifier Stringifier;
-			std::cout << __LINE__ << std::endl;
 			Stringifier.condense(Object, NewConfig);
-			std::cout << __LINE__ << std::endl;
             Config_ = NewConfig.str();
             return true;
         }

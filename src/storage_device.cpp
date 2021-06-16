@@ -115,14 +115,10 @@ namespace uCentral {
 			Select.execute();
 
 			if (SerialNumber.empty()) {
-				std::cout << __LINE__ << std::endl;
 				uCentral::Config::Config Cfg(DeviceDetails.Configuration);
-				std::cout << __LINE__ << std::endl;
 
 				if (Cfg.Valid() && Cfg.SetUUID(DeviceDetails.UUID)) {
-					std::cout << __LINE__ << std::endl;
 					DeviceDetails.Configuration = Cfg.get();
-					std::cout << __LINE__ << " : " << DeviceDetails.Configuration << std::endl;
 					uint64_t Now = time(nullptr);
 
 					Poco::Data::Statement   Insert(Sess);
@@ -188,28 +184,19 @@ namespace uCentral {
 		Logger_.information(Poco::format("AUTO-CREATION(%s)", SerialNumber));
 		uint64_t Now = time(nullptr);
 
-		std::cout << __LINE__ << std::endl;
 		uCentral::Config::Capabilities Caps(Capabilities);
-		std::cout << __LINE__ << std::endl;
 		uCentral::Objects::DefaultConfiguration DefConfig;
-		std::cout << __LINE__ << std::endl;
 
 		if (FindDefaultConfigurationForModel(Caps.ModelId(), DefConfig)) {
 			uCentral::Config::Config NewConfig(DefConfig.Configuration);
 			NewConfig.SetUUID(Now);
-			std::cout << __LINE__ << std::endl;
 			D.Configuration = NewConfig.get();
-			std::cout << __LINE__ << std::endl;
 		} else {
-			std::cout << __LINE__ << std::endl;
 			uCentral::Config::Config NewConfig;
 			NewConfig.SetUUID(Now);
-			std::cout << __LINE__ << std::endl;
 			D.Configuration = NewConfig.get();
-			std::cout << __LINE__ << std::endl;
 		}
 
-		std::cout << __LINE__ << std::endl;
 		D.SerialNumber = SerialNumber;
 		D.DeviceType = Caps.DeviceType();
 		D.MACAddress = uCentral::Utils::SerialToMAC(SerialNumber);
