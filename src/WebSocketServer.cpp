@@ -210,11 +210,17 @@ namespace uCentral {
 			if(NewConfigUUID == Conn_->PendingUUID)
 				return false;
 
+			std::cout << __LINE__ << std::endl;
+
 			Conn_->PendingUUID = NewConfigUUID;
+			std::cout << __LINE__ << std::endl;
 
 			Poco::JSON::Parser  parser;
+			std::cout << __LINE__ << std::endl;
 			auto ParsedConfig = parser.parse(NewConfig).extract<Poco::JSON::Object::Ptr>();
+			std::cout << __LINE__ << std::endl;
 			ParsedConfig->set(uCentralProtocol::UUID,NewConfigUUID);
+			std::cout << __LINE__ << std::endl;
 
 			// create the command stub...
 			uCentral::Objects::CommandDetails  Cmd;
@@ -224,18 +230,24 @@ namespace uCentral {
 			Cmd.Status = uCentralProtocol::PENDING;
 			Cmd.Command = uCentralProtocol::CONFIGURE;
 
+			std::cout << __LINE__ << std::endl;
 			Poco::JSON::Object Params;
 			Params.set(uCentralProtocol::SERIAL, SerialNumber_);
 			Params.set(uCentralProtocol::UUID, NewConfigUUID);
 			Params.set(uCentralProtocol::WHEN, 0);
 			Params.set(uCentralProtocol::CONFIG, ParsedConfig);
+			std::cout << __LINE__ << std::endl;
 
 			std::string Log = Poco::format("CFG-UPGRADE(%s):, Current ID: %Lu, newer configuration %Lu.", SerialNumber_, UUID, NewConfigUUID);
+			std::cout << __LINE__ << std::endl;
 			Storage()->AddLog(SerialNumber_, Conn_->UUID, Log);
 			Logger_.debug(Log);
 
+			std::cout << __LINE__ << std::endl;
 			CommandManager()->SendCommand(SerialNumber_ , Cmd.Command, Params, nullptr, Cmd.UUID);
+			std::cout << __LINE__ << std::endl;
 			Storage()->AddCommand(SerialNumber_, Cmd, Storage::COMMAND_EXECUTED);
+			std::cout << __LINE__ << std::endl;
 			return true;
         }
         return false;
