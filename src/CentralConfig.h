@@ -19,14 +19,11 @@ namespace uCentral::Config {
         explicit Config(const std::string &Config)
         :Config_(Config) {}
 
-        Config()
-        {
-            Config_ = Default();
-        }
+        Config();
 
 		static void Init();
         bool SetUUID(uint64_t UUID);
-        bool Valid();
+        [[nodiscard]] bool Valid();
 		[[nodiscard]] std::string get() { return Config_; };
 		[[nodiscard]] static std::string Default();
 		[[nodiscard]] static std::string Default_Old();
