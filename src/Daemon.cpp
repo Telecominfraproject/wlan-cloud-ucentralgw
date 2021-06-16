@@ -27,6 +27,7 @@
 #include "RESTAPI_server.h"
 #include "StorageService.h"
 #include "WebSocketServer.h"
+#include "CentralConfig.h"
 
 #include "StateProcessor.h"
 
@@ -99,31 +100,33 @@ namespace uCentral {
         loadConfiguration(ConfigFile.toString());
 
         if(LogDir_.empty()) {
-            std::string OriginalLogFileValue = config().getString(LogFilePathKey);
-            std::string RealLogFileValue = Poco::Path::expand(OriginalLogFileValue);
-            config().setString(LogFilePathKey, RealLogFileValue);
+            std::string OriginalLogFileValue = ConfigGetString(LogFilePathKey);
+            config().setString(LogFilePathKey, OriginalLogFileValue);
         } else {
             config().setString(LogFilePathKey, LogDir_);
         }
-
-		Poco::Path	DataDir(config().getString("system.directory.data"));
-		try {
-			DataDir.makeDirectory();
-			DataDir_ = DataDir.toString();
-		} catch(...) {
+		Poco::File	DataDir(ConfigGetString("ucentral.system.data"));
+		DataDir_ = DataDir.path();
+		if(!DataDir.exists()) {
+			try {
+				DataDir.createDirectory();
+			} catch (const Poco::Exception &E) {
+				logger().log(E);
+			}
 		}
-		std::string KeyFile = Poco::Path::expand(config().getString("ucentral.service.key"));
+		std::string KeyFile = ConfigGetString("ucentral.service.key");
 		AppKey_ = Poco::SharedPtr<Poco::Crypto::RSAKey>(new Poco::Crypto::RSAKey("", KeyFile, ""));
-		ID_ = config().getInt64("ucentral.system.id",1);
+		ID_ = ConfigGetInt("ucentral.system.id",1);
 		if(!DebugMode_)
-			DebugMode_ = config().getBool("ucentral.system.debug",false);
+			DebugMode_ = ConfigGetBool("ucentral.system.debug",false);
+
 		logger().information("Starting...");
-
 		InitializeSubSystemServers();
-
         ServerApplication::initialize(self);
 
         // add your own initialization code here
+		Config::Config::Init();
+
         AutoProvisioning_ = config().getBool("ucentral.autoprovisioning",false);
 
         // DeviceTypeIdentifications_

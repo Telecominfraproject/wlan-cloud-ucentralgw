@@ -13,7 +13,7 @@ namespace uCentral {
 	int Storage::Setup_SQLite() {
 		Logger_.notice("SQLite Storage enabled.");
 
-		auto DBName = Daemon()->ConfigGetString("storage.type.sqlite.db");
+		auto DBName = Daemon()->DataDir() + "/" + Daemon()->ConfigGetString("storage.type.sqlite.db");
 		auto NumSessions = Daemon()->ConfigGetInt("storage.type.sqlite.maxsessions", 64);
 		auto IdleTime = Daemon()->ConfigGetInt("storage.type.sqlite.idletime", 60);
 

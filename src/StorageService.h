@@ -76,6 +76,7 @@ namespace uCentral {
 		bool DeviceExists(std::string & SerialNumber);
 		bool SetOwner(std::string & SerialNumber, std::string & OwnerUUID);
 		bool SetLocation(std::string & SerialNumber, std::string & LocationUUID);
+		bool SetVenue(std::string & SerialNumber, std::string & OwnerUUID);
 		bool SetFirmware(std::string & SerialNumber, std::string & Firmware );
 		bool GetDeviceCount(uint64_t & Count);
 		bool GetDeviceSerialNumbers(uint64_t From, uint64_t HowMany, std::vector<std::string> & SerialNumbers);

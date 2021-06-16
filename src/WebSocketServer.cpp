@@ -6,7 +6,6 @@
 //	Arilia Wireless Inc.
 //
 
-#include <thread>
 #include <cerrno>
 
 #include "Poco/Net/IPAddress.h"
@@ -17,7 +16,6 @@
 #include "Poco/JSON/Array.h"
 #include "Poco/zlib.h"
 
-#include "AuthService.h"
 #include "CommandManager.h"
 #include "Daemon.h"
 #include "KafkaManager.h"

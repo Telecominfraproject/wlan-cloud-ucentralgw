@@ -124,6 +124,9 @@ components:
         location:
           type: string
           format: uuid
+        venue:
+          type: string
+          format: uuid
         serialNumber:
           type: string
         deviceType:
@@ -637,6 +640,17 @@ components:
           items:
             $ref: '#/components/schemas/CommandInfo'
 
+    #########################################################################################
+    ##
+    ## These are endpoints that all services in the uCentral stack must provide
+    ##
+    #########################################################################################
+    AnyPayload:
+      type: object
+      properties:
+        Document:
+          type: string
+
     StringList:
       type: object
       properties:
@@ -682,6 +696,11 @@ components:
       oneOf:
         - $ref: '#/components/schemas/StringList'
         - $ref: '#/components/schemas/TagValuePairList'
+    #########################################################################################
+    ##
+    ## End of uCentral system wide values
+    ##
+    #########################################################################################
 
     BlackDeviceInfo:
       type: object
@@ -761,12 +780,6 @@ components:
           type: string
           format: uuid
         result:
-          type: string
-
-    AnyPayload:
-      type: object
-      properties:
-        Document:
           type: string
 
     RttySessionDetails:

@@ -41,6 +41,7 @@ namespace uCentral::Objects {
 		Obj.set("lastFWUpdate", LastFWUpdate);
 		Obj.set("owner", Owner);
 		Obj.set("location", Location);
+		Obj.set("location", Venue);
 		Obj.set("firmware", Firmware);
 		Obj.set("compatible", Compatible);
 		Obj.set("fwUpdatePolicy",FWUpdatePolicy);
@@ -80,6 +81,8 @@ namespace uCentral::Objects {
 				Owner = ds["owner"].toString();
 			if (ds.contains("location"))
 				Location = ds["location"].toString();
+			if (ds.contains("venue"))
+				Owner = ds["venue"].toString();
 			if (ds.contains("compatible"))
 				Compatible = ds["compatible"].toString();
 			return true;

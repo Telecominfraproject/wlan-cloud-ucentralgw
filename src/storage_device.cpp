@@ -139,7 +139,8 @@ namespace uCentral {
 									"CreationTimestamp,   "
 									"LastConfigurationChange, "
 									"LastConfigurationDownload, "
-									"LastFWUpdate "
+									"LastFWUpdate, "
+									"Venue "
 									")"
 									"VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)"};
 
@@ -159,7 +160,8 @@ namespace uCentral {
 						Poco::Data::Keywords::use(Now),
 						Poco::Data::Keywords::use(Now),
 						Poco::Data::Keywords::use(Now),
-						Poco::Data::Keywords::use(Now);
+						Poco::Data::Keywords::use(Now),
+						Poco::Data::Keywords::use(DeviceDetails.Venue);
 					Insert.execute();
 
 					return true;
@@ -215,6 +217,26 @@ namespace uCentral {
 
 			Update  << ConvertParams(St) ,
 				Poco::Data::Keywords::use(LocationUUID),
+				Poco::Data::Keywords::use(SerialNumber);
+			Update.execute();
+			return true;
+		}
+		catch (const Poco::Exception &E) {
+			Logger_.warning(
+				Poco::format("%s(%s): Failed with: %s", std::string(__func__), SerialNumber, E.displayText()));
+		}
+		return false;
+	}
+
+	bool Storage::SetVenue(std::string & SerialNumber, std::string & VenueUUID) {
+		try {
+			Poco::Data::Session     Sess = Pool_->get();
+			Poco::Data::Statement   Update(Sess);
+
+			std::string St{"UPDATE Devices SET Venue=? WHERE SerialNumber=?"};
+
+			Update  << ConvertParams(St) ,
+				Poco::Data::Keywords::use(VenueUUID),
 				Poco::Data::Keywords::use(SerialNumber);
 			Update.execute();
 			return true;
@@ -342,7 +364,8 @@ namespace uCentral {
 						   "CreationTimestamp,   "
 						   "LastConfigurationChange, "
 						   "LastConfigurationDownload, "
-						   "LastFWUpdate "
+						   "LastFWUpdate, "
+						   "Venue "
 						   "FROM Devices WHERE SerialNumber=?"};
 
 			Select << ConvertParams(St),
@@ -362,6 +385,7 @@ namespace uCentral {
 				Poco::Data::Keywords::into(DeviceDetails.LastConfigurationChange),
 				Poco::Data::Keywords::into(DeviceDetails.LastConfigurationDownload),
 				Poco::Data::Keywords::into(DeviceDetails.LastFWUpdate),
+				Poco::Data::Keywords::into(DeviceDetails.Venue),
 				Poco::Data::Keywords::use(SerialNumber);
 
 			Select.execute();
@@ -479,7 +503,8 @@ namespace uCentral {
 			uint64_t,
 			uint64_t,
 			uint64_t,
-			uint64_t
+			uint64_t,
+			std::string
 		> DeviceRecord;
 		typedef std::vector<DeviceRecord> RecordList;
 
@@ -505,7 +530,8 @@ namespace uCentral {
 					  "CreationTimestamp,   "
 					  "LastConfigurationChange, "
 					  "LastConfigurationDownload, "
-					  "LastFWUpdate "
+					  "LastFWUpdate, "
+					  "Venue "
 					  "FROM Devices",
 				Poco::Data::Keywords::into(Records),
 				Poco::Data::Keywords::range(From, From + HowMany );
@@ -528,7 +554,8 @@ namespace uCentral {
 					.CreationTimestamp = i.get<12>(),
 					.LastConfigurationChange = i.get<13>(),
 					.LastConfigurationDownload = i.get<14>(),
-					.LastFWUpdate = i.get<15>()};
+					.LastFWUpdate = i.get<15>(),
+					.Venue = i.get<16>()};
 				Devices.push_back(R);
 			}
 			return true;

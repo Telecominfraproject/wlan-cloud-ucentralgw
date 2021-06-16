@@ -73,6 +73,7 @@ namespace uCentral::Objects {
 		uint64_t LastConfigurationChange;
 		uint64_t LastConfigurationDownload;
 		uint64_t LastFWUpdate;
+		std::string Venue;
 		void to_json(Poco::JSON::Object &Obj) const;
 		void to_json_with_status(Poco::JSON::Object &Obj) const;
 		bool from_json(Poco::JSON::Object::Ptr Obj);

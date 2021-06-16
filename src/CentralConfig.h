@@ -13,7 +13,8 @@
 #include "Poco/JSON/Object.h"
 
 namespace uCentral::Config {
-    class Config {
+
+	class Config {
     public:
         explicit Config(const std::string &Config)
         :Config_(Config) {}
@@ -22,6 +23,8 @@ namespace uCentral::Config {
         {
             Config_ = Default();
         }
+
+		static void Init();
         bool SetUUID(uint64_t UUID);
         bool Valid();
 		[[nodiscard]] std::string get() { return Config_; };

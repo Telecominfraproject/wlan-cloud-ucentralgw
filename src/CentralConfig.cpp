@@ -5,14 +5,152 @@
 //	Created by Stephane Bourque on 2021-03-04.
 //	Arilia Wireless Inc.
 //
+#include <fstream>
 
 #include "CentralConfig.h"
 #include "Daemon.h"
 
 #include "Poco/JSON/Object.h"
 #include "Poco/JSON/Parser.h"
+#include "Poco/File.h"
 
 namespace uCentral::Config {
+
+	static std::string DefaultConfiguration;
+
+	static std::string BasicConfig {
+	R"lit({
+	"uuid": 1,
+	"radios": [
+		{
+			"band": "5G",
+			"country": "CA",
+			"channel-mode": "HE",
+			"channel-width": 80,
+			"channel": 32
+		}
+	],
+
+	"interfaces": [
+		{
+			"name": "WAN",
+			"role": "upstream",
+			"services": [ "lldp" ],
+			"ethernet": [
+				{
+					"select-ports": [
+						"WAN*"
+					]
+				}
+			],
+			"ipv4": {
+				"addressing": "dynamic"
+			},
+			"ssids": [
+				{
+					"name": "OpenWifi",
+					"wifi-bands": [
+						"5G"
+					],
+					"bss-mode": "ap",
+					"encryption": {
+						"proto": "psk2",
+						"key": "OpenWifi",
+						"ieee80211w": "optional"
+					}
+				}
+			]
+		},
+		{
+			"name": "LAN",
+			"role": "downstream",
+			"services": [ "ssh", "lldp" ],
+			"ethernet": [
+				{
+					"select-ports": [
+						"LAN*"
+					]
+				}
+			],
+			"ipv4": {
+				"addressing": "static",
+				"subnet": "192.168.1.1/24",
+				"dhcp": {
+					"lease-first": 10,
+					"lease-count": 100,
+					"lease-time": "6h"
+				}
+			},
+			"ssids": [
+				{
+					"name": "OpenWifi",
+					"wifi-bands": [
+						"5G"
+					],
+					"bss-mode": "ap",
+					"encryption": {
+						"proto": "psk2",
+						"key": "OpenWifi",
+						"ieee80211w": "optional"
+					}
+				}
+			]
+
+		}
+	],
+	"metrics": {
+		"statistics": {
+			"interval": 120,
+			"types": [ "ssids", "lldp", "clients" ]
+		},
+		"health": {
+			"interval": 120
+		}
+	},
+	"services": {
+		"lldp": {
+			"describe": "uCentral",
+			"location": "universe"
+		},
+		"ssh": {
+			"port": 22
+		}
+	}
+})lit"};
+
+	void SetBasicConfigFile() {
+		Poco::File DefaultConfigFileName{Daemon()->DataDir()+"/default_config.json"};
+		DefaultConfiguration = BasicConfig;
+		std::ofstream F;
+		F.open(DefaultConfigFileName.path(),std::ios::binary);
+		F << BasicConfig ;
+		F.close();
+	}
+
+	void Config::Init() {
+		if(DefaultConfiguration.empty()) {
+			//	open the file
+			Poco::File DefaultConfigFileName{Daemon()->DataDir()+"/default_config.json"};
+			try {
+				if (!DefaultConfigFileName.exists()) {
+					SetBasicConfigFile();
+				} else {
+					std::ifstream F;
+					F.open(DefaultConfigFileName.path(),std::ios::binary);
+					std::cout << "Side:" << F.gcount() << std::endl;
+					while(!F.eof()) {
+						std::string Line;
+						F >> Line;
+						DefaultConfiguration += Line + "\n" ;
+					}
+					F.close();
+					// std::cout << "Default config: " << DefaultConfiguration << std::endl;
+				}
+			} catch (...) {
+				SetBasicConfigFile();
+			}
+		}
+	}
 
     bool Config::SetUUID(uint64_t UUID) {
         try {
