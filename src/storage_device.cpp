@@ -10,6 +10,8 @@
 #include "StorageService.h"
 #include "Utils.h"
 
+#include "Daemon.h"
+
 namespace uCentral {
 
 	bool Storage::GetDeviceCount(uint64_t &Count) {
@@ -187,7 +189,7 @@ namespace uCentral {
 		uCentral::Config::Capabilities Caps(Capabilities);
 		uCentral::Objects::DefaultConfiguration DefConfig;
 
-		if (FindDefaultConfigurationForModel(Caps.ModelId(), DefConfig)) {
+		if (FindDefaultConfigurationForModel(Caps.Model(), DefConfig)) {
 			uCentral::Config::Config NewConfig(DefConfig.Configuration);
 			NewConfig.SetUUID(Now);
 			D.Configuration = NewConfig.get();
@@ -198,9 +200,10 @@ namespace uCentral {
 		}
 
 		D.SerialNumber = SerialNumber;
-		D.DeviceType = Caps.DeviceType();
+		D.Compatible = Caps.Compatible();
+		D.DeviceType = Daemon()->IdentifyDevice(D.Compatible);
 		D.MACAddress = uCentral::Utils::SerialToMAC(SerialNumber);
-		D.Manufacturer = Caps.Manufacturer();
+		D.Manufacturer = Caps.Model();
 		D.UUID = Now;
 		D.Notes = "auto created device.";
 		D.CreationTimestamp = D.LastConfigurationDownload = D.LastConfigurationChange = Now;

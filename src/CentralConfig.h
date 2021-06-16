@@ -48,16 +48,16 @@ namespace uCentral::Config {
 
         static std::string Default();
         [[nodiscard]] const std::string & Get() const { return Capabilities_; };
-        [[nodiscard]] const std::string & Manufacturer();
-        [[nodiscard]] const std::string & DeviceType();
-        [[nodiscard]] const std::string & ModelId();
+        [[nodiscard]] const std::string & Compatible();
+        [[nodiscard]] const std::string & Model();
+		[[nodiscard]] const std::string & Platform();
 
     private:
         std::string Capabilities_;
         bool        Parsed_=false;
-        std::string Manufacturer_;
-        std::string DeviceType_;
-        std::string ModelId_;
+        std::string Compatible_;
+        std::string Model_;
+		std::string Platform_;
 
 		void Parse();
     };

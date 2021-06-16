@@ -217,19 +217,18 @@ namespace uCentral::Config {
         try {
             Poco::JSON::Parser parser;
 
-            auto result = parser.parse(Capabilities_);
-            auto object = result.extract<Poco::JSON::Object::Ptr>();
-            Poco::DynamicStruct ds = *object;
+            auto Result = parser.parse(Capabilities_);
+            auto Objects = Result.extract<Poco::JSON::Object::Ptr>();
 
-            auto Model = ds["model"];
-			std::string Compatible{"unknown"};
-			if(ds.contains("compatible"))
-            	Compatible = Model["compatible"].toString();
-            auto Name = Model["name"].toString();
+			if(Objects->has("compatible"))
+				Compatible_ = Objects->get("compatible").toString();
 
-            Manufacturer_ = Name;
-            DeviceType_ = Daemon()->IdentifyDevice(Compatible);
-            ModelId_ = Compatible;
+			if(Objects->has("model"))
+				Model_ = Objects->get("model").toString();
+
+			if(Objects->has("platform"))
+				Platform_ = Objects->get("platform").toString();
+
             Parsed_ = true ;
         }
         catch ( const Poco::Exception & E )
@@ -238,22 +237,22 @@ namespace uCentral::Config {
         }
     }
 
-    const std::string & Capabilities::DeviceType() {
-        if(!Parsed_)
-            Parse();
-        return DeviceType_;
-    }
+	const std::string & Capabilities::Compatible() {
+		if(!Parsed_)
+			Parse();
+		return Compatible_;
+	}
 
-    const std::string & Capabilities::Manufacturer() {
-        if(!Parsed_)
-            Parse();
-        return Manufacturer_;
-    }
+	const std::string & Capabilities::Model() {
+		if(!Parsed_)
+			Parse();
+		return Model_;
+	}
 
-    const std::string & Capabilities::ModelId() {
-        if(!Parsed_)
-            Parse();
-        return ModelId_;
-    }
+	const std::string & Capabilities::Platform() {
+		if(!Parsed_)
+			Parse();
+		return Platform_;
+	}
 
 } // namespace
