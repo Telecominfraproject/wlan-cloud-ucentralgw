@@ -807,6 +807,8 @@ components:
         viewport:
           type: integer
           format: int32
+        password:
+          type: string
 
 paths:
   /oauth2:

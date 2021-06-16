@@ -66,7 +66,7 @@ namespace uCentral {
 		bool UpdateDeviceConfiguration(std::string &SerialNumber, std::string &Configuration, uint64_t & NewUUID );
 
 		bool CreateDevice(uCentral::Objects::Device &);
-		bool CreateDefaultDevice(const std::string & SerialNumber, const std::string & Capabilities);
+		bool CreateDefaultDevice(const std::string & SerialNumber, const std::string & Capabilities, std::string & Firmware, std::string & DevicePassword);
 
 		bool GetDevice(std::string &SerialNumber, uCentral::Objects::Device &);
 		bool GetDevices(uint64_t From, uint64_t HowMany, std::vector<uCentral::Objects::Device> &Devices);
@@ -77,7 +77,7 @@ namespace uCentral {
 		bool SetOwner(std::string & SerialNumber, std::string & OwnerUUID);
 		bool SetLocation(std::string & SerialNumber, std::string & LocationUUID);
 		bool SetVenue(std::string & SerialNumber, std::string & OwnerUUID);
-		bool SetFirmware(std::string & SerialNumber, std::string & Firmware );
+		bool SetConnectInfo(std::string &SerialNumber, std::string &Firmware, std::string &DevicePassword);
 		bool GetDeviceCount(uint64_t & Count);
 		bool GetDeviceSerialNumbers(uint64_t From, uint64_t HowMany, std::vector<std::string> & SerialNumbers);
 		bool SetDeviceCompatibility(std::string & SerialNumber, std::string & Compatible);

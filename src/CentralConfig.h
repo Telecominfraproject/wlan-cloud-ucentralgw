@@ -26,7 +26,6 @@ namespace uCentral::Config {
         [[nodiscard]] bool Valid();
 		[[nodiscard]] std::string get() { return Config_; };
 		[[nodiscard]] static std::string Default();
-		[[nodiscard]] static std::string Default_Old();
 		[[nodiscard]] Poco::JSON::Object::Ptr to_json();
 
     private:

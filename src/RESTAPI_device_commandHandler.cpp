@@ -878,8 +878,10 @@ void RESTAPI_device_commandHandler::Rtty(Poco::Net::HTTPServerRequest &Request,
 										 Poco::Net::HTTPServerResponse &Response) {
 	try {
 		if (Daemon()->ConfigGetString("rtty.enabled", "false") == "true") {
-			if (Storage()->DeviceExists(SerialNumber_)) {
+			Objects::Device	Device;
+			if (Storage()->GetDevice(SerialNumber_, Device)) {
 				auto CommandUUID = uCentral::Daemon::instance()->CreateUUID();
+
 				uCentral::Objects::RttySessionDetails Rtty{
 					.SerialNumber = SerialNumber_,
 					.Server = Daemon()->ConfigGetString("rtty.server", "localhost"),
@@ -890,6 +892,7 @@ void RESTAPI_device_commandHandler::Rtty(Poco::Net::HTTPServerRequest &Request,
 					.Started = (uint64_t)time(nullptr),
 					.CommandUUID = CommandUUID,
 					.ViewPort = Daemon()->ConfigGetInt("rtty.viewport", 5913),
+
 				};
 
 				Poco::JSON::Object ReturnedObject;
@@ -912,13 +915,12 @@ void RESTAPI_device_commandHandler::Rtty(Poco::Net::HTTPServerRequest &Request,
 				Params.set(uCentral::uCentralProtocol::PORT, Rtty.Port);
 				Params.set(uCentral::uCentralProtocol::USER, UserInfo_.username_);
 				Params.set(uCentral::uCentralProtocol::TIMEOUT, Rtty.TimeOut);
+				Params.set(uCentral::uCentralProtocol::PASSWORD, Device.DevicePassword);
 
 				std::stringstream ParamStream;
 				Params.stringify(ParamStream);
 				Cmd.Details = ParamStream.str();
-
-				WaitForCommand(Cmd, Params, Request, Response, std::chrono::milliseconds(15000),
-							   &ReturnedObject);
+				WaitForCommand(Cmd, Params, Request, Response, std::chrono::milliseconds(15000), &ReturnedObject);
 				return;
 			} else {
 				NotFound(Request, Response);

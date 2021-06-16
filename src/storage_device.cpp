@@ -142,9 +142,10 @@ namespace uCentral {
 									"LastConfigurationChange, "
 									"LastConfigurationDownload, "
 									"LastFWUpdate, "
-									"Venue "
+									"Venue, "
+									"DevicePassword "
 									")"
-									"VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)"};
+									"VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)"};
 
 					Insert  << ConvertParams(St2),
 						Poco::Data::Keywords::use(DeviceDetails.SerialNumber),
@@ -163,7 +164,8 @@ namespace uCentral {
 						Poco::Data::Keywords::use(Now),
 						Poco::Data::Keywords::use(Now),
 						Poco::Data::Keywords::use(Now),
-						Poco::Data::Keywords::use(DeviceDetails.Venue);
+						Poco::Data::Keywords::use(DeviceDetails.Venue),
+						Poco::Data::Keywords::use(DeviceDetails.DevicePassword);
 					Insert.execute();
 
 					return true;
@@ -180,7 +182,7 @@ namespace uCentral {
 		return false;
 	}
 
-	bool Storage::CreateDefaultDevice(const std::string &SerialNumber, const std::string &Capabilities) {
+	bool Storage::CreateDefaultDevice(const std::string &SerialNumber, const std::string &Capabilities, std::string & Firmware, std::string &DevicePassword) {
 
 		uCentral::Objects::Device D;
 		Logger_.information(Poco::format("AUTO-CREATION(%s)", SerialNumber));
@@ -204,6 +206,8 @@ namespace uCentral {
 		D.DeviceType = Daemon()->IdentifyDevice(D.Compatible);
 		D.MACAddress = uCentral::Utils::SerialToMAC(SerialNumber);
 		D.Manufacturer = Caps.Model();
+		D.Firmware = Firmware;
+		D.DevicePassword = DevicePassword;
 		D.UUID = Now;
 		D.Notes = "auto created device.";
 		D.CreationTimestamp = D.LastConfigurationDownload = D.LastConfigurationChange = Now;
@@ -289,7 +293,7 @@ namespace uCentral {
 		return false;
 	}
 
-	bool Storage::SetFirmware(std::string &SerialNumber, std::string &Firmware) {
+	bool Storage::SetConnectInfo(std::string &SerialNumber, std::string &Firmware, std::string &DevicePassword) {
 		try {
 			Poco::Data::Session     Sess = Pool_->get();
 			Poco::Data::Statement   Select(Sess);
@@ -304,11 +308,12 @@ namespace uCentral {
 
 			if(TmpFirmware != Firmware) {
 				Poco::Data::Statement	Update(Sess);
-				std::string St2{"UPDATE Devices SET Firmware=?, LastFWUpdate=? WHERE SerialNumber=?"};
+				std::string St2{"UPDATE Devices SET Firmware=?, DevicePassword=?, LastFWUpdate=? WHERE SerialNumber=?"};
 				uint64_t 	Now = time(nullptr);
 
 				Update << 	ConvertParams(St2),
 							Poco::Data::Keywords::use(Firmware),
+							Poco::Data::Keywords::use(DevicePassword),
 							Poco::Data::Keywords::use(Now),
 							Poco::Data::Keywords::use(SerialNumber);
 				Update.execute();
@@ -368,7 +373,8 @@ namespace uCentral {
 						   "LastConfigurationChange, "
 						   "LastConfigurationDownload, "
 						   "LastFWUpdate, "
-						   "Venue "
+						   "Venue, "
+						   "DevicePassword "
 						   "FROM Devices WHERE SerialNumber=?"};
 
 			Select << ConvertParams(St),
@@ -389,6 +395,7 @@ namespace uCentral {
 				Poco::Data::Keywords::into(DeviceDetails.LastConfigurationDownload),
 				Poco::Data::Keywords::into(DeviceDetails.LastFWUpdate),
 				Poco::Data::Keywords::into(DeviceDetails.Venue),
+				Poco::Data::Keywords::into(DeviceDetails.DevicePassword),
 				Poco::Data::Keywords::use(SerialNumber);
 
 			Select.execute();
@@ -507,6 +514,7 @@ namespace uCentral {
 			uint64_t,
 			uint64_t,
 			uint64_t,
+			std::string,
 			std::string
 		> DeviceRecord;
 		typedef std::vector<DeviceRecord> RecordList;
@@ -534,7 +542,8 @@ namespace uCentral {
 					  "LastConfigurationChange, "
 					  "LastConfigurationDownload, "
 					  "LastFWUpdate, "
-					  "Venue "
+					  "Venue, "
+					  "DevicePassword "
 					  "FROM Devices",
 				Poco::Data::Keywords::into(Records),
 				Poco::Data::Keywords::range(From, From + HowMany );
@@ -558,7 +567,8 @@ namespace uCentral {
 					.LastConfigurationChange = i.get<13>(),
 					.LastConfigurationDownload = i.get<14>(),
 					.LastFWUpdate = i.get<15>(),
-					.Venue = i.get<16>()};
+					.Venue = i.get<16>(),
+					.DevicePassword = i.get<17>()};
 				Devices.push_back(R);
 			}
 			return true;

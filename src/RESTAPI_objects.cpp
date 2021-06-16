@@ -241,6 +241,7 @@ namespace uCentral::Objects {
 		Obj.set("commandUUID",CommandUUID);
 		Obj.set("started", Started);
 		Obj.set("viewport",ViewPort);
+		Obj.set("password",DevicePassword);
 	}
 }
 

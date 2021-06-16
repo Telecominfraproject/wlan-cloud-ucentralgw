@@ -339,13 +339,18 @@ namespace uCentral {
 								Logger_.information(Poco::format("CONNECT(%s): Authenticated but not validated. Serial='%s' CN='%s'", CId_, Serial, CN_));
 						}
 
-						if (Daemon()->AutoProvisioning() && !Storage()->DeviceExists(SerialNumber_)) {
-							Storage()->CreateDefaultDevice(SerialNumber_, Capabilities);
-						}
+						std::string DevicePassword;
+						if(ParamsObj->has("password"))
+							DevicePassword = ParamsObj->get("password").toString();
 
-						Storage()->UpdateDeviceCapabilities(SerialNumber_, Capabilities);
-						if(!Firmware.empty())
-							Storage()->SetFirmware(SerialNumber_, Firmware);
+						if (Daemon()->AutoProvisioning() && !Storage()->DeviceExists(SerialNumber_)) {
+							Storage()->CreateDefaultDevice(SerialNumber_, Capabilities, Firmware, DevicePassword);
+						} else if (Storage()->DeviceExists(SerialNumber_)) {
+							Storage()->UpdateDeviceCapabilities(SerialNumber_, Capabilities);
+							if(!Firmware.empty()) {
+								Storage()->SetConnectInfo(SerialNumber_, Firmware, DevicePassword );
+							}
+						}
 
 						StatsProcessor_ = std::make_unique<uCentral::StateProcessor>();
 						StatsProcessor_->Initialize(Serial);
