@@ -355,12 +355,12 @@ the following in order to use the gateway:
 - A DigiCert key that goes with that certificate. Please call this `key.pem`
 - The Digicert root certificate that you will find [here](https://github.com/Telecominfraproject/wlan-cloud-ucentralgw/blob/main/certificates/root.pem). You must copy `root.pem`
 and rename it `cas.pem` on the device.
-- All 3 files mus be present in `/etc/ucentral` on the device.
+- A Device ID file called `dev-id` or something similar
+- Copy all the 4 files to the `/certificates` directory of the AP (you must have firmware created Jun 15th or later).
 
-You will need to upgrade your device to the latest firmware. Once updated, you will need to copy the 3 files mentionned above in 
-  the `/etc/ucentral` directory. You will need to modify the `/etc/config-shadow/ucentral` file with your hostname. At which point, 
-  you should be able to restart the uCentral client with `/etc/init.d/ucentral restart`. Then the command `logread -f` should tell you
-  if you device was able to connect to the gateway.
+You will need to upgrade your device to the latest firmware. Once updated, you will need to copy the 4 files mentioned above in 
+the `/certificates` directory. Please remove all old keys or certificates from the `/etc/ucentral` directory 
+(anything ending in `.pem`).
 
 #### Server key entry
 The gateway needs to encrypt information from time to time. In order to do so, it must have a crypto key. This key
