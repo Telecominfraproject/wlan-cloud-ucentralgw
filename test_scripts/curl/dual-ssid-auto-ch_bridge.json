@@ -3,14 +3,14 @@
 	"radios": [
 		{
 			"band": "5G",
-			"channel": 149,
+			"channel": "auto",
 			"channel-mode": "HE",
 			"channel-width": 80,
 			"country": "CA"
 		},
 		{
 			"band": "2G",
-			"channel": 11,
+			"channel": "auto",
 			"channel-mode": "HE",
 			"channel-width": 20,
 			"country": "CA"
@@ -34,7 +34,7 @@
 			},
 			"ssids": [
 				{
-					"name": "OpenWifi_2GHz_490D",
+					"name": "OpenWifi_2GHz",
 					"wifi-bands": [
 						"2G"
 					],
@@ -46,7 +46,7 @@
 					}
                 },
                 {
-					"name": "OpenWifi_5GHz_490D",
+					"name": "OpenWifi_5GHz",
 					"wifi-bands": [
 						"5G"
 					],
