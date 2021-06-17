@@ -48,7 +48,7 @@ namespace uCentral {
 
             Logger_.information(l);
 
-            Path_ = Daemon()->ConfigGetString("ucentral.fileuploader.path","/tmp");
+            Path_ = Daemon()->ConfigPath("ucentral.fileuploader.path","/tmp");
 
             auto Sock{Svr.CreateSecureSocket(Logger_)};
 

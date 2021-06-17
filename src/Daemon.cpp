@@ -15,6 +15,10 @@
 #include "Poco/Util/OptionSet.h"
 #include "Poco/Util/HelpFormatter.h"
 #include "Poco/Environment.h"
+#include "Poco/Net/HTTPSStreamFactory.h"
+#include "Poco/Net/HTTPStreamFactory.h"
+#include "Poco/Net/FTPSStreamFactory.h"
+#include "Poco/Net/FTPStreamFactory.h"
 #include "Poco/Path.h"
 
 #include "AuthService.h"
@@ -28,6 +32,7 @@
 #include "StorageService.h"
 #include "WebSocketServer.h"
 #include "CentralConfig.h"
+#include "OUIServer.h"
 
 #include "StateProcessor.h"
 
@@ -67,6 +72,11 @@ namespace uCentral {
 
 		Poco::Net::initializeSSL();
 
+		Poco::Net::HTTPStreamFactory::registerFactory();
+		Poco::Net::HTTPSStreamFactory::registerFactory();
+		Poco::Net::FTPStreamFactory::registerFactory();
+		Poco::Net::FTPSStreamFactory::registerFactory();
+
 		SubSystems_ = Types::SubSystemVec{
 				Storage(),
 				AuthService(),
@@ -75,6 +85,7 @@ namespace uCentral {
 				WebSocketServer(),
 				CommandManager(),
 				FileUploader(),
+				OUIServer(),
 				CommandChannel(),
 				CallbackManager(),
 				FirmwareManager(),
@@ -100,12 +111,12 @@ namespace uCentral {
         loadConfiguration(ConfigFile.toString());
 
         if(LogDir_.empty()) {
-            std::string OriginalLogFileValue = ConfigGetString(LogFilePathKey);
+            std::string OriginalLogFileValue = ConfigPath(LogFilePathKey);
             config().setString(LogFilePathKey, OriginalLogFileValue);
         } else {
             config().setString(LogFilePathKey, LogDir_);
         }
-		Poco::File	DataDir(ConfigGetString("ucentral.system.data"));
+		Poco::File	DataDir(ConfigPath("ucentral.system.data"));
 		DataDir_ = DataDir.path();
 		if(!DataDir.exists()) {
 			try {
@@ -114,7 +125,7 @@ namespace uCentral {
 				logger().log(E);
 			}
 		}
-		std::string KeyFile = ConfigGetString("ucentral.service.key");
+		std::string KeyFile = ConfigPath("ucentral.service.key");
 		AppKey_ = Poco::SharedPtr<Poco::Crypto::RSAKey>(new Poco::Crypto::RSAKey("", KeyFile, ""));
 		ID_ = ConfigGetInt("ucentral.system.id",1);
 		if(!DebugMode_)
@@ -330,11 +341,19 @@ namespace uCentral {
 	}
 
 	std::string Daemon::ConfigGetString(const std::string &Key,const std::string & Default) {
+		return config().getString(Key, Default);
+	}
+
+	std::string Daemon::ConfigGetString(const std::string &Key) {
+		return config().getString(Key);
+	}
+
+	std::string Daemon::ConfigPath(const std::string &Key,const std::string & Default) {
 		std::string R = config().getString(Key, Default);
 		return Poco::Path::expand(R);
 	}
 
-	std::string Daemon::ConfigGetString(const std::string &Key) {
+	std::string Daemon::ConfigPath(const std::string &Key) {
 		std::string R = config().getString(Key);
 		return Poco::Path::expand(R);
 	}

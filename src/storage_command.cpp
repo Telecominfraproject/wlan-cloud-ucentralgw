@@ -640,7 +640,7 @@ namespace uCentral {
 
 			Poco::Data::Statement Update(Sess);
 
-			Poco::File FileName = Daemon()->ConfigGetString("ucentral.fileuploader.path", "/tmp") + "/" + UUID;
+			Poco::File FileName = Daemon()->ConfigPath("ucentral.fileuploader.path", "/tmp") + "/" + UUID;
 			uint64_t Size = FileName.getSize();
 
 			std::string St{

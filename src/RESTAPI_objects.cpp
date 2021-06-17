@@ -45,6 +45,7 @@ namespace uCentral::Objects {
 		Obj.set("firmware", Firmware);
 		Obj.set("compatible", Compatible);
 		Obj.set("fwUpdatePolicy",FWUpdatePolicy);
+		Obj.set("devicePassword",DevicePassword);
 	}
 
 	void Device::to_json_with_status(Poco::JSON::Object &Obj) const {
