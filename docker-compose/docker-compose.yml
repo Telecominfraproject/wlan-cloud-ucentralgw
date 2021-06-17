@@ -1,0 +1,78 @@
+version: '3'
+
+volumes:
+  postgresql_data:
+    driver: local
+  mysql_data:
+    driver: local
+  zookeeper_data:
+    driver: local
+  zookeeper_datalog:
+    driver: local
+  kafka_data:
+    driver: local
+
+services:
+  postgresql:
+    image: "postgres:${POSTGRES_TAG}"
+    restart: unless-stopped
+    volumes:
+      - postgresql_data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_PASSWORD=ucentral
+      - POSTGRES_USER=ucentral
+
+  mysql:
+    image: "mysql:${MYSQL_TAG}"
+    restart: unless-stopped
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    volumes:
+      - mysql_data:/var/lib/mysql
+    environment:
+      - MYSQL_ROOT_PASSWORD=root
+      - MYSQL_USER=rttys
+      - MYSQL_PASSWORD=rttys
+      - MYSQL_DATABASE=rttys
+
+  ucentralgw:
+    image: "tip-tip-wlan-cloud-ucentral.jfrog.io/ucentralgw:${UCENTRALGW_TAG}"
+    depends_on: postgresql
+    restart: unless-stopped
+    ports:
+      - "15002:15002"
+      - "16001:16001"
+      - "16003:16003"
+    volumes:
+      - ./ucentral-data:/ucentral-data
+    environment:
+      - UCENTRAL_ROOT=/ucentral-data
+      - UCENTRAL_CONFIG=/ucentral-data
+
+  rttys:
+    image: "tip-tip-wlan-cloud-ucentral.jfrog.io/rttys:${RTTYS_TAG}"
+    depends_on: mysql
+    restart: unless-stopped
+    volumes:
+      - ucentral-data/certs/restapi-cert.pem:/etc/rttys/restapi-cert.pem
+      - ucentral-data/certs/restapi-key.pem:/etc/rttys/restapi-key.pem
+      - rttys/rttys.conf:/rttys/rttys.conf
+
+  zookeeper:
+    image: "zookeeper:${ZOOKEEPER_TAG}"
+    restart: unless-stopped
+    volumes:
+      - zookeeper_data:/data
+      - zookeeper_datalog:/datalog
+
+  kafka:
+    image: "docker.io/bitnami/kafka:${KAFKA_TAG}"
+    restart: unless-stopped
+    depends_on:
+      - zookeeper
+    volumes:
+      - kafka_data:/bitnami/kafka
+    environment:
+      - KAFKA_CFG_ZOOKEEPER_CONNECT=zookeeper:2181
+      - ALLOW_PLAINTEXT_LISTENER=yes
+    depends_on:
+      - zookeeper
