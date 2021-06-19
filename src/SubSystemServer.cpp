@@ -64,12 +64,12 @@ void SubSystemServer::initialize(Poco::Util::Application &self) {
 
 			PropertiesFileServerEntry entry(Daemon()->ConfigGetString(address, ""),
 											Daemon()->ConfigGetInt(port, 0),
-											Daemon()->ConfigGetString(key, ""),
-											Daemon()->ConfigGetString(cert, ""),
-											Daemon()->ConfigGetString(rootca, ""),
-											Daemon()->ConfigGetString(issuer, ""),
-											Daemon()->ConfigGetString(clientcas, ""),
-											Daemon()->ConfigGetString(cas, ""),
+											Daemon()->ConfigPath(key, ""),
+											Daemon()->ConfigPath(cert, ""),
+											Daemon()->ConfigPath(rootca, ""),
+											Daemon()->ConfigPath(issuer, ""),
+											Daemon()->ConfigPath(clientcas, ""),
+											Daemon()->ConfigPath(cas, ""),
 											Daemon()->ConfigGetString(key_password, ""),
 											Daemon()->ConfigGetString(name, ""), M,
 											(int)Daemon()->ConfigGetInt(backlog, 64));

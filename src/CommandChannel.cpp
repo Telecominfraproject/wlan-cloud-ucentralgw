@@ -146,7 +146,7 @@ namespace uCentral {
 	}
 
 	int CommandChannel::Start() {
-		Poco::File	F(Daemon()->ConfigGetString("ucentral.system.commandchannel","/tmp/app.ucentralgw"));
+		Poco::File	F(Daemon()->ConfigPath("ucentral.system.commandchannel","/tmp/app.ucentralgw"));
 		try {
 			if (F.exists())
 				F.remove();

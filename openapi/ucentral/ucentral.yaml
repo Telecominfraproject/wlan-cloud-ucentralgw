@@ -111,6 +111,8 @@ components:
           format: int64
         firmware:
           type: string
+        devicePassword:
+          type: string
 
     DeviceWithStatus:
       type: object
@@ -170,6 +172,8 @@ components:
         rxBytes:
           type: integer
           format: int64
+        devicePassword:
+          type: string
 
     DeviceList:
       type: object
@@ -1914,6 +1918,26 @@ paths:
         404:
           $ref: '#/components/responses/NotFound'
 
+  /ouis:
+    get:
+      tags:
+        - OUIs
+      operationId: getOUIs
+      summary: Get a list of OUIs
+      parameters:
+        - in: query
+          name: macList
+          schema:
+            type: string
+        required: true
+      responses:
+        200:
+          $ref: '#/components/schemas/TagValuePairList'
+        403:
+          $ref: '#/components/responses/Unauthorized'
+        404:
+          $ref: '#/components/responses/NotFound'
+
   /device/{serialNumber}/rtty:
     get:
       tags:
@@ -2149,3 +2173,4 @@ paths:
           $ref: '#/components/responses/Unauthorized'
         404:
           $ref: '#/components/responses/NotFound'
+

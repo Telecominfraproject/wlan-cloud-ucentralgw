@@ -444,6 +444,13 @@ newesthealthchecks() {
 	jq < ${result_file}
 }
 
+ouilookup() {
+	curl  ${FLAGS} -X GET "https://${UCENTRALGW}/api/v1/ouis?macList=$1" \
+        -H "accept: application/json" \
+        -H "Authorization: Bearer ${token}" > ${result_file}
+	jq < ${result_file}
+}
+
 help() {
   echo
   echo "getdevice <serial>                Get the device JSON document."
@@ -521,6 +528,8 @@ help() {
   echo "laststats <serial>			      Get the last statistics for a device"
   echo "neweststats <serial>			  Get the newest statistics for a device"
   echo
+  echo "ouilookup <serial> 				  Lookup an OUI"
+  echo
   echo
   echo "To pass additional flags to the CURL command, create an environment variable called FLAGS and git ve the values you"
   echo "want. For example, for force all call to use IPv6, set FLAGS=\"-6\", for verbose mode and IPv6, set FLAGS=\"-6 -v\""
@@ -580,6 +589,7 @@ case "$1" in
   "getloglevels") login; getloglevels; logout ;;
   "getloglevelnames") login; getloglevelnames; logout ;;
   "getsubsystemnames") login; getsubsystemnames; logout ;;
+  "ouilookup") login; ouilookup "$2"; logout;;
   *) help ;;
 esac
 

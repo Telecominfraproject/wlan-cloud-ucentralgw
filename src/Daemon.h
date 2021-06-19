@@ -87,6 +87,8 @@ namespace uCentral {
 		[[nodiscard]] const Types::StringVec & GetLogLevelNames() const;
 		[[nodiscard]] std::string ConfigGetString(const std::string &Key,const std::string & Default);
 		[[nodiscard]] std::string ConfigGetString(const std::string &Key);
+		[[nodiscard]] std::string ConfigPath(const std::string &Key,const std::string & Default);
+		[[nodiscard]] std::string ConfigPath(const std::string &Key);
 		[[nodiscard]] uint64_t ConfigGetInt(const std::string &Key,uint64_t Default);
 		[[nodiscard]] uint64_t ConfigGetInt(const std::string &Key);
 		[[nodiscard]] uint64_t ConfigGetBool(const std::string &Key,bool Default);
