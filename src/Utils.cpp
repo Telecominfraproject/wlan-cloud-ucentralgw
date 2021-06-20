@@ -279,4 +279,27 @@ namespace uCentral::Utils {
 		}
 	}
 
+	bool SerialNumberMatch(const std::string &S1, const std::string &S2, int Bits) {
+		auto S1_i = SerialNUmberToInt(S1);
+		auto S2_i = SerialNUmberToInt(S2);
+		return ((S1_i>>Bits)==(S2_i>>Bits));
+	}
+
+	uint64_t SerialNUmberToInt(const std::string & S) {
+		uint64_t R=0;
+
+		for(const auto &i:S)
+			if(i>='0' && i<='9') {
+				R <<= 4;
+				R += (i-'0');
+			} else if(i>='a' && i<='f') {
+				R <<= 4;
+				R += (i-'a');
+			} else if(i>='A' && i<='F') {
+				R <<= 4;
+				R += (i-'A');
+			}
+		return R;
+	}
+
 }

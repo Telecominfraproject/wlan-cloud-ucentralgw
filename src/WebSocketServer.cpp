@@ -329,7 +329,7 @@ namespace uCentral {
 						CId_ = SerialNumber_ + "@" + CId_ ;
 
 						//	We need to verify the certificate if we have one
-						if(!CN_.empty() && CN_==SerialNumber_) {
+						if(!CN_.empty() && Utils::SerialNumberMatch(CN_,SerialNumber_)) {
 							Conn_->VerifiedCertificate = Objects::VERIFIED;
 							Logger_.information(Poco::format("CONNECT(%s): Fully validated and authenticated device..", CId_));
 						} else {
