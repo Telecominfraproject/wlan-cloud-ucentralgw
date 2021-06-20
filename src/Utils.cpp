@@ -282,6 +282,7 @@ namespace uCentral::Utils {
 	bool SerialNumberMatch(const std::string &S1, const std::string &S2, int Bits) {
 		auto S1_i = SerialNUmberToInt(S1);
 		auto S2_i = SerialNUmberToInt(S2);
+		std::cout << "S1: " << std::hex << S1_i << " S2:" << std::hex << S2_i << std::endl;
 		return ((S1_i>>Bits)==(S2_i>>Bits));
 	}
 
