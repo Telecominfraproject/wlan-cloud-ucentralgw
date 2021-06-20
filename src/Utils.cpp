@@ -295,10 +295,10 @@ namespace uCentral::Utils {
 				R += (i-'0');
 			} else if(i>='a' && i<='f') {
 				R <<= 4;
-				R += (i-'a');
+				R += (i-'a') + 10 ;
 			} else if(i>='A' && i<='F') {
 				R <<= 4;
-				R += (i-'A');
+				R += (i-'A') + 10 ;
 			}
 		return R;
 	}
