@@ -280,12 +280,12 @@ namespace uCentral::Utils {
 	}
 
 	bool SerialNumberMatch(const std::string &S1, const std::string &S2, int Bits) {
-		auto S1_i = SerialNUmberToInt(S1);
-		auto S2_i = SerialNUmberToInt(S2);
+		auto S1_i = SerialNumberToInt(S1);
+		auto S2_i = SerialNumberToInt(S2);
 		return ((S1_i>>Bits)==(S2_i>>Bits));
 	}
 
-	uint64_t SerialNUmberToInt(const std::string & S) {
+	uint64_t SerialNumberToInt(const std::string & S) {
 		uint64_t R=0;
 
 		for(const auto &i:S)
@@ -302,4 +302,27 @@ namespace uCentral::Utils {
 		return R;
 	}
 
+	uint64_t SerialNumberToOUI(const std::string & S) {
+		uint64_t Result = 0 ;
+		int Digits=0;
+
+		for(const auto &i:S) {
+			if(std::isxdigit(i)) {
+				if(i>='0' && i<='9') {
+					Result <<=4;
+					Result += i-'0';
+				} else if(i>='A' && i<='F') {
+					Result <<=4;
+					Result += i-'A'+10;
+				} else if(i>='a' && i<='f') {
+					Result <<=4;
+					Result += i-'a'+10;
+				}
+				Digits++;
+				if(Digits==6)
+					break;
+			}
+		}
+		return Result;
+	}
 }

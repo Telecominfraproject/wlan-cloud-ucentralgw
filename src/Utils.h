@@ -39,6 +39,7 @@ namespace uCentral::Utils {
 	[[nodiscard]] std::string LogLevelToString(int Level);
 
 	[[nodiscard]] bool SerialNumberMatch(const std::string &S1, const std::string &S2, int extrabits=2);
-	[[nodiscard]] uint64_t SerialNUmberToInt(const std::string & S);
+	[[nodiscard]] uint64_t SerialNumberToInt(const std::string & S);
+	[[nodiscard]] uint64_t SerialNumberToOUI(const std::string & S);
 }
 #endif // UCENTRALGW_UTILS_H

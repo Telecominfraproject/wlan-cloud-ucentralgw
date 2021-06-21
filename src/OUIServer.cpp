@@ -38,30 +38,6 @@ namespace uCentral {
 		Updater.detach();
 	}
 
-	static uint64_t MACtoInt(const std::string &MAC) {
-		uint64_t Result = 0 ;
-		int Digits=0;
-
-		for(auto i:MAC) {
-			if(std::isxdigit(i)) {
-				if(i>='0' && i<='9') {
-					Result <<=4;
-					Result += i-'0';
-				} else if(i>='A' && i<='F') {
-					Result <<=4;
-					Result += i-'A'+10;
-				} else if(i>='a' && i<='f') {
-					Result <<=4;
-					Result += i-'a'+10;
-				}
-				Digits++;
-				if(Digits==6)
-					break;
-			}
-		}
-		return Result;
-	}
-
 	bool OUIServer::GetFile(const std::string &FileName) {
 		try {
 			std::unique_ptr<std::istream> pStr(
@@ -96,7 +72,7 @@ namespace uCentral {
 
 				if (Tokens.count() > 2) {
 					if (Tokens[1] == "(hex)") {
-						auto MAC = MACtoInt(Tokens[0]);
+						auto MAC = Utils::SerialNumberToOUI(Tokens[0]);
 						if (MAC > 0) {
 							std::string Manufacturer;
 							for (auto i = 2; i < Tokens.count(); i++)
@@ -147,7 +123,7 @@ namespace uCentral {
 
 	std::string OUIServer::GetManufacturer(const std::string &MAC) {
 		SubMutexGuard Guard(Mutex_);
-		auto Manufacturer = OUIs_.find(MACtoInt(MAC));
+		auto Manufacturer = OUIs_.find(Utils::SerialNumberToOUI(MAC));
 		if(Manufacturer != OUIs_.end())
 			return Manufacturer->second;
 		return "";
