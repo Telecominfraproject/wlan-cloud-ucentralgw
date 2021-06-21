@@ -36,7 +36,10 @@ services:
 
   ucentralgw:
     image: "tip-tip-wlan-cloud-ucentral.jfrog.io/ucentralgw:${UCENTRALGW_TAG}"
-    depends_on: postgresql
+    depends_on: 
+      - postgresql
+      - kafka
+      - rttys
     restart: unless-stopped
     ports:
       - "127.0.0.1:15002:15002"
@@ -50,7 +53,8 @@ services:
 
   rttys:
     image: "tip-tip-wlan-cloud-ucentral.jfrog.io/rttys:${RTTYS_TAG}"
-    depends_on: mysql
+    depends_on: 
+      - mysql
     restart: unless-stopped
     volumes:
       - ucentral-data/certs/restapi-cert.pem:/etc/rttys/restapi-cert.pem
@@ -74,5 +78,3 @@ services:
     environment:
       - KAFKA_CFG_ZOOKEEPER_CONNECT=zookeeper:2181
       - ALLOW_PLAINTEXT_LISTENER=yes
-    depends_on:
-      - zookeeper
