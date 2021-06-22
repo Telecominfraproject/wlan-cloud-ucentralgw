@@ -47,6 +47,7 @@ namespace uCentral {
 		void CreateToken(const std::string & UserName, uCentral::Objects::WebToken & ResultToken, uCentral::Objects::AclTemplate & ACL);
 		bool Authorize( const std::string & UserName, const std::string & Password, uCentral::Objects::WebToken & ResultToken );
 		void Logout(const std::string &token);
+		[[nodiscard]] std::string ComputePasswordHash(const std::string &UserName, const std::string &Password);
 
     private:
 		static AuthService *instance_;

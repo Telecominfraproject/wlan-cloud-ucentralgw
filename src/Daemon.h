@@ -23,9 +23,10 @@
 #include "Poco/UUIDGenerator.h"
 #include "Poco/ErrorHandler.h"
 #include "Poco/Crypto/RSAKey.h"
+#include "Poco/Crypto/CipherFactory.h"
+#include "Poco/Crypto/Cipher.h"
 
 #include "uCentralTypes.h"
-
 #include "SubSystemServer.h"
 
 using Poco::Util::ServerApplication;
@@ -93,6 +94,8 @@ namespace uCentral {
 		[[nodiscard]] uint64_t ConfigGetInt(const std::string &Key);
 		[[nodiscard]] uint64_t ConfigGetBool(const std::string &Key,bool Default);
 		[[nodiscard]] uint64_t ConfigGetBool(const std::string &Key);
+		[[nodiscard]] std::string Encrypt(const std::string &S);
+		[[nodiscard]] std::string Decrypt(const std::string &S);
 
 	  private:
 		static Daemon 				*instance_;
@@ -106,6 +109,8 @@ namespace uCentral {
 		bool                        DebugMode_ = false;
 		std::string 				DataDir_;
 		Types::SubSystemVec			SubSystems_;
+		Poco::Crypto::CipherFactory & CipherFactory_ = Poco::Crypto::CipherFactory::defaultFactory();
+		Poco::Crypto::Cipher        * Cipher_ = nullptr;
 
 		bool                        AutoProvisioning_ = false;
 		Types::StringMapStringSet   DeviceTypeIdentifications_;

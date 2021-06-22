@@ -19,6 +19,7 @@
 #include "Poco/Net/HTTPStreamFactory.h"
 #include "Poco/Net/FTPSStreamFactory.h"
 #include "Poco/Net/FTPStreamFactory.h"
+#include "Poco/Net/NetworkInterface.h"
 #include "Poco/Path.h"
 
 #include "AuthService.h"
@@ -127,11 +128,11 @@ namespace uCentral {
 		}
 		std::string KeyFile = ConfigPath("ucentral.service.key");
 		AppKey_ = Poco::SharedPtr<Poco::Crypto::RSAKey>(new Poco::Crypto::RSAKey("", KeyFile, ""));
-		ID_ = ConfigGetInt("ucentral.system.id",1);
+		Cipher_ = CipherFactory_.createCipher(*AppKey_);
+		ID_ = Utils::GetSystemId();
 		if(!DebugMode_)
 			DebugMode_ = ConfigGetBool("ucentral.system.debug",false);
 
-		logger().information("Starting...");
 		InitializeSubSystemServers();
         ServerApplication::initialize(self);
 
@@ -358,6 +359,14 @@ namespace uCentral {
 		return Poco::Path::expand(R);
 	}
 
+	std::string Daemon::Encrypt(const std::string &S) {
+		return Cipher_->encryptString(S, Poco::Crypto::Cipher::Cipher::ENC_BASE64);;
+	}
+
+	std::string Daemon::Decrypt(const std::string &S) {
+		return Cipher_->decryptString(S, Poco::Crypto::Cipher::Cipher::ENC_BASE64);;
+	}
+
     int Daemon::main(const ArgVec &args) {
 
         Poco::ErrorHandler::set(&AppErrorHandler_);
@@ -371,10 +380,12 @@ namespace uCentral {
 			else
 				logger.information("System does NOT support IPv6.");
 
-			if (config().getBool("application.runAsDaemon", false))
-			{
+			if (config().getBool("application.runAsDaemon", false)) {
 				logger.information("Starting as a daemon.");
 			}
+			logger.information(Poco::format("System ID set to %Lu",ID_));
+
+			std::cout << "ID:" << ID_ << std::endl;
 
 			StartSubSystemServers();
 			instance()->waitForTerminationRequest();

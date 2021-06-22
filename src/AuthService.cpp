@@ -193,7 +193,7 @@ namespace uCentral {
 
 		if(Mechanism_=="internal")
         {
-            if(((UserName == DefaultUserName_) && (Password == DefaultPassword_)) || !Secure_)
+            if(((UserName == DefaultUserName_) && (DefaultPassword_== ComputePasswordHash(UserName,Password))) || !Secure_)
             {
 				ACL.PortalLogin_ = ACL.Read_ = ACL.ReadWrite_ = ACL.ReadWriteCreate_ = ACL.Delete_ = true;
                 CreateToken(UserName, ResultToken, ACL);
@@ -211,5 +211,11 @@ namespace uCentral {
 		}
         return false;
     }
+
+	std::string AuthService::ComputePasswordHash(const std::string &UserName, const std::string &Password) {
+		std::string UName = Poco::trim(Poco::toLower(UserName));
+		SHA2_.update(Password + UName);
+		return uCentral::Utils::ToHex(SHA2_.digest());
+	}
 
 }  // end of namespace
