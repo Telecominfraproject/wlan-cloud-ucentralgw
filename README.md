@@ -181,6 +181,35 @@ You should now have the following:
   +-- uploads
   +-- ucentral.properties
 ```
+
+### Default username and password
+The default username and password are set in `ucentral.properties` file. The following entries manage the username and password
+```text
+authentication.default.username = tip@ucentral.com
+authentication.default.password = XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+```
+The password is a long sequence of hexadecimal digits. It is the result of hashing the `username` and the `password`.
+In order to create the password, please follow these simple instructions.
+```bash
+echo -n "<password><username>" | shasum -a 256
+```
+ Here is a complete example for username "root@system.com" and the password being "weLoveWifi".
+```bash
+echo -n "weLoveWifiroot@system.com" | shasum -a 256
+b5bfed31e2a272e52973a57b95042ab842db3999475f3d79f1ce0f45f465e34c  -
+```
+Then you need to modify your properties file like this
+```text
+authentication.default.username = root@system.com
+authentication.default.password = b5bfed31e2a272e52973a57b95042ab842db3999475f3d79f1ce0f45f465e34c
+```
+Remember, when you login you use `root@system.com` with the password `weLoveWifi`, not this monster digit sequence.
+
+#### Is this safe?
+s this safe to show the hash in a text file? Let me put it this way, if you can find a way to break this encryption, you
+would have control over the entire internet. It's incredible safe. if you love math, you can find a lot of videos explaining
+how hashes work and why they are safe.
+
 ### Certificates
 Love'em of hate'em, we gotta use'em. So we tried to make this as easy as possible for you. 
 
