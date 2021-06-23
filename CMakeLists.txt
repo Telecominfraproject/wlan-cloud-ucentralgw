@@ -71,7 +71,7 @@ add_executable( ucentralgw
                 src/RESTAPI_callback.h src/CallbackManager.cpp src/CallbackManager.h src/FirmwareManager.cpp
                 src/FirmwareManager.h src/storage_firmware_updates.cpp src/StateProcessor.cpp src/StateProcessor.h
                 src/storage_lifetime_stats.cpp src/uCentralProtocol.h src/RESTAPI_protocol.h
-                src/ALBHealthCheckServer.h src/kafka_topics.h src/uCentralTypes.h src/OUIServer.cpp src/OUIServer.h src/RESTAPI_ouis.cpp src/RESTAPI_ouis.h)
+                src/ALBHealthCheckServer.h src/kafka_topics.h src/uCentralTypes.h src/OUIServer.cpp src/OUIServer.h src/RESTAPI_ouis.cpp src/RESTAPI_ouis.h src/MicroService.cpp src/MicroService.h)
 
 if(NOT SMALL_BUILD)
     target_sources(ucentralgw PUBLIC src/KafkaManager.cpp src/KafkaManager.h)
