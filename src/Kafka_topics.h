@@ -12,5 +12,6 @@ namespace uCentral::KafkaTopics {
 	static const std::string WIFISCAN{"wifiscan"};
 	static const std::string ALERTS{"alerts"};
 	static const std::string COMMAND{"command"};
+	static const std::string SERVICE_EVENTS{"service_events"};
 }
 #endif // UCENTRALGW_KAFKA_TOPICS_H

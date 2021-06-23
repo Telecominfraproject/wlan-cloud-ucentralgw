@@ -38,42 +38,37 @@ namespace uCentral {
 	int KafkaManager::Start() {
 		if(!KafkaEnabled_)
 			return 0;
-		Running_ = true;
 		ProducerThr_ = std::make_unique<std::thread>(Producer,this);
-		ProducerThr_->detach();
 		ConsumerThr_ = std::make_unique<std::thread>(Consumer,this);
-		ConsumerThr_->detach();
 		return 0;
 	}
 
 	void KafkaManager::Stop() {
 		if(KafkaEnabled_) {
-			Running_ = false;
-			ConsumerThr_->join();
+			ProducerRunning_ = ConsumerRunning_ = false;
 			ProducerThr_->join();
+			ConsumerThr_->join();
 			return;
 		}
 	}
 
 	void KafkaManager::Producer(KafkaManager *Mgr) {
 		cppkafka::Configuration Config({
-										   { "metadata.broker.list", Daemon()->ConfigGetString("ucentral.kafka.brokerlist") } ,
-										   { "enable.auto.commit", Daemon()->ConfigGetBool("ucentral.kafka.auto.commit", false)}
+										   { "metadata.broker.list", Daemon()->ConfigGetString("ucentral.kafka.brokerlist") }
 									   });
 		Mgr->SystemInfoWrapper_ = 	R"lit({ "system" : { "id" : )lit" +
-								  	std::to_string(Daemon()->ConfigGetInt("ucentral.system.id")) +
-									R"lit( , "host" : ")lit" + Daemon()->ConfigGetString("ucentral.system.uri") +
+								  	std::to_string(Daemon()->ID()) +
+									R"lit( , "host" : ")lit" + Daemon()->EndPoint() +
 									R"lit(" } , "payload" : ")lit" ;
-
 		cppkafka::Producer	Producer(Config);
-
-		while(Mgr->Running_) {
+		Mgr->ProducerRunning_ = true;
+		while(Mgr->ProducerRunning_) {
 			std::this_thread::sleep_for(std::chrono::milliseconds(2000));
-			if(!Mgr->Running_)
+			if(!Mgr->ProducerRunning_)
 				break;
 			{
 				SubMutexGuard G(Mgr->ProducerMutex_);
-				while (!Mgr->Queue_.empty() && Mgr->Running_) {
+				while (!Mgr->Queue_.empty() && Mgr->ProducerRunning_) {
 					const auto M = Mgr->Queue_.front();
 					// std::cout << "Producing Topic: " << M.Topic << " Key: "  << M.Key <<std::endl;
 					Producer.produce(
@@ -94,7 +89,6 @@ namespace uCentral {
 									   });
 
 		cppkafka::Consumer Consumer(Config);
-
 		Consumer.set_assignment_callback([Mgr](const cppkafka::TopicPartitionList& partitions) {
 		  Mgr->Logger_.information(Poco::format("Got assigned: %Lu...",(uint64_t )partitions.front().get_partition()));
 		});
@@ -107,8 +101,12 @@ namespace uCentral {
 			Topics.push_back(i.first);
 
 		Consumer.subscribe(Topics);
-		while(Mgr->Running_) {
+
+		Mgr->ConsumerRunning_ = true;
+		while(Mgr->ConsumerRunning_) {
 			cppkafka::Message Msg = Consumer.poll(std::chrono::milliseconds(2000));
+			if(!Mgr->ConsumerRunning_)
+				break;
 			if (Msg) {
 				if (Msg.get_error()) {
 					if (!Msg.is_eof()) {
@@ -133,19 +131,21 @@ namespace uCentral {
 		return std::move( SystemInfoWrapper_ + PayLoad + "}");
 	}
 
-	void KafkaManager::PostMessage(std::string topic, std::string key, std::string PayLoad) {
-		if(KafkaEnabled_  && Running_) {
+	void KafkaManager::PostMessage(std::string topic, std::string key, std::string PayLoad, bool WrapMessage ) {
+		if(KafkaEnabled_) {
 			SubMutexGuard G(Mutex_);
 
 			KMessage M{
-				.Topic = std::move(topic), .Key = std::move(key), .PayLoad = std::move(WrapSystemId(PayLoad))};
+				.Topic = std::move(topic),
+				.Key = std::move(key),
+				.PayLoad = std::move(WrapMessage ? WrapSystemId(PayLoad) : PayLoad )};
 			// std::cout << "Posting Topic: " << M.Topic << " Key: "  << M.Key << " Payload: " << M.PayLoad << std::endl;
 			Queue_.push(std::move(M));
 		}
 	}
 
 	int KafkaManager::RegisterTopicWatcher(const std::string &Topic, Types::TopicNotifyFunction &F) {
-		if(!Running_) {
+		if(KafkaEnabled_) {
 			SubMutexGuard G(Mutex_);
 			auto It = Notifiers_.find(Topic);
 			if(It == Notifiers_.end()) {
@@ -162,7 +162,7 @@ namespace uCentral {
 	}
 
 	void KafkaManager::UnregisterTopicWatcher(const std::string &Topic, int Id) {
-		if(!Running_) {
+		if(KafkaEnabled_) {
 			SubMutexGuard G(Mutex_);
 			auto It = Notifiers_.find(Topic);
 			if(It != Notifiers_.end()) {

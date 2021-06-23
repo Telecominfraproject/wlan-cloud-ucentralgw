@@ -26,7 +26,7 @@
 
 #include "CommandManager.h"
 #include "KafkaManager.h"
-#include "kafka_topics.h"
+#include "Kafka_topics.h"
 
 namespace uCentral {
 

@@ -16,7 +16,16 @@
 #include "Poco/Net/FTPStreamFactory.h"
 #include "Poco/Path.h"
 #include "Poco/File.h"
-#include "CentralConfig.h"
+#include "Poco/String.h"
+#include "Poco/JSON/Object.h"
+#include "Poco/JSON/Parser.h"
+#include "Poco/JSON/Stringifier.h"
+
+#include "ALBHealthCheckServer.h"
+#ifndef SMALL_BUILD
+#include "KafkaManager.h"
+#endif
+#include "Kafka_topics.h"
 
 #include "MicroService.h"
 #include "Utils.h"
@@ -43,7 +52,20 @@ namespace uCentral {
 		std::exit(Reason);
 	}
 
+	void MicroService::BusMessageReceived(std::string Key, std::string Message) {
+		std::cout << "Message arrived:" << Key << " ," << Message << std::endl;
+	}
+
 	void MicroService::initialize(Poco::Util::Application &self) {
+
+		std::string V{APP_VERSION};
+		std::string B{BUILD_NUMBER};
+		Version_ =  V + "(" + B +  ")";
+
+		// add the default services
+		SubSystems_.push_back(KafkaManager());
+		SubSystems_.push_back(ALBHealthCheckServer());
+
 		Poco::Net::initializeSSL();
 		Poco::Net::HTTPStreamFactory::registerFactory();
 		Poco::Net::HTTPSStreamFactory::registerFactory();
@@ -87,9 +109,13 @@ namespace uCentral {
 		ID_ = Utils::GetSystemId();
 		if(!DebugMode_)
 			DebugMode_ = ConfigGetBool("ucentral.system.debug",false);
-
+		MyEndPoint_ = ConfigGetString("ucentral.system.uri");
+		MyHash_ = CreateHash(MyEndPoint_);
 		InitializeSubSystemServers();
 		ServerApplication::initialize(self);
+
+		Types::TopicNotifyFunction F = [this](std::string s1,std::string s2) { this->BusMessageReceived(s1,s2); };
+		KafkaManager()->RegisterTopicWatcher(KafkaTopics::SERVICE_EVENTS, F);
 	}
 
 	void MicroService::uninitialize() {
@@ -137,12 +163,6 @@ namespace uCentral {
 				.repeatable(false)
 				.callback(Poco::Util::OptionCallback<MicroService>(this, &MicroService::handleVersion)));
 
-	}
-
-	std::string MicroService::Version() {
-		std::string V = APP_VERSION;
-		std::string B = BUILD_NUMBER;
-		return V + "(" + B +  ")";
 	}
 
 	void MicroService::handleHelp(const std::string &name, const std::string &value) {
@@ -286,6 +306,52 @@ namespace uCentral {
 		return Cipher_->decryptString(S, Poco::Crypto::Cipher::Cipher::ENC_BASE64);;
 	}
 
+	std::string MicroService::CreateHash(const std::string &S) {
+		SHA2_.update(S);
+		return Utils::ToHex(SHA2_.digest());
+	}
+
+	std::string MicroService::MakeSystemEventMessage( const std::string & Type ) const {
+		Poco::JSON::Object	Obj;
+		Obj.set("event",Type);
+		Obj.set("id",ID_);
+		Obj.set("type",DAEMON_APP_NAME);
+		Obj.set("endPoint",MyEndPoint_);
+		Obj.set("key",MyHash_);
+		Obj.set("version",Version_);
+		std::stringstream ResultText;
+		Poco::JSON::Stringifier::stringify(Obj, ResultText);
+		return ResultText.str();
+	}
+
+	void BusEventManager::run() {
+		Running_ = false;
+
+		auto Msg = Daemon()->MakeSystemEventMessage("join");
+		KafkaManager()->PostMessage(KafkaTopics::SERVICE_EVENTS,Daemon()->EndPoint(),Msg, false);
+
+		while(Running_) {
+			Poco::Thread::trySleep(60000);
+			if(!Running_)
+				break;
+			auto Msg = Daemon()->MakeSystemEventMessage("keep-alive");
+			KafkaManager()->PostMessage(KafkaTopics::SERVICE_EVENTS,Daemon()->EndPoint(),Msg, false);
+		}
+
+		Msg = Daemon()->MakeSystemEventMessage("leave");
+		KafkaManager()->PostMessage(KafkaTopics::SERVICE_EVENTS,Daemon()->EndPoint(),Msg, false);
+	};
+
+	void BusEventManager::Start() {
+		Thread_.start(*this);
+	}
+
+	void BusEventManager::Stop() {
+		Running_ = false;
+		Thread_.wakeUp();
+		Thread_.join();
+	}
+
 	int MicroService::main(const ArgVec &args) {
 
 		MyErrorHandler	ErrorHandler(*this);
@@ -305,7 +371,9 @@ namespace uCentral {
 			}
 			logger.information(Poco::format("System ID set to %Lu",ID_));
 			StartSubSystemServers();
+			BusEventManager_.Start();
 			waitForTerminationRequest();
+			BusEventManager_.Stop();
 			StopSubSystemServers();
 
 			logger.notice(Poco::format("Stopped %s...",DAEMON_APP_NAME));
@@ -313,7 +381,4 @@ namespace uCentral {
 
 		return Application::EXIT_OK;
 	}
-
-
-
 }

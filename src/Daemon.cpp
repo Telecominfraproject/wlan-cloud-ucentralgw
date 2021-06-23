@@ -26,14 +26,8 @@
 #include "WebSocketServer.h"
 #include "CentralConfig.h"
 #include "OUIServer.h"
-#include "ALBHealthCheckServer.h"
 #include "StateProcessor.h"
 #include "Utils.h"
-
-#ifndef SMALL_BUILD
-#include "KafkaManager.h"
-#endif
-
 
 namespace uCentral {
 	class Daemon *Daemon::instance_ = nullptr;
@@ -55,9 +49,7 @@ namespace uCentral {
 									   OUIServer(),
 									   CommandChannel(),
 									   CallbackManager(),
-									   FirmwareManager(),
-									   KafkaManager(),
-									   ALBHealthCheckServer()
+									   FirmwareManager()
 								   });
 		}
 		return instance_;
