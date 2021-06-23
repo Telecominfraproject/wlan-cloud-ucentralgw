@@ -47,6 +47,9 @@ services:
       - "127.0.0.1:16003:16003"
     volumes:
       - ./ucentral-data:/ucentral-data
+      - ../certificates/root.pem:/ucentral-data/certs/root.pem
+      - ../certificates/issuer.pem:/ucentral-data/certs/issuer.pem
+      - ../certificates/clientcas.pem:/ucentral-data/certs/clientcas.pem
     environment:
       - UCENTRAL_ROOT=/ucentral-data
       - UCENTRAL_CONFIG=/ucentral-data
@@ -57,9 +60,9 @@ services:
       - mysql
     restart: unless-stopped
     volumes:
-      - ucentral-data/certs/restapi-cert.pem:/etc/rttys/restapi-cert.pem
-      - ucentral-data/certs/restapi-key.pem:/etc/rttys/restapi-key.pem
-      - rttys/rttys.conf:/rttys/rttys.conf
+      - ./ucentral-data/certs/restapi-cert.pem:/etc/rttys/restapi-cert.pem
+      - ./ucentral-data/certs/restapi-key.pem:/etc/rttys/restapi-key.pem
+      - ./rttys/rttys.conf:/rttys/rttys.conf
 
   zookeeper:
     image: "zookeeper:${ZOOKEEPER_TAG}"
