@@ -15,27 +15,26 @@ volumes:
 services:
   postgresql:
     image: "postgres:${POSTGRES_TAG}"
+    env_file:
+      - .env_postgresql
     restart: unless-stopped
     volumes:
       - postgresql_data:/var/lib/postgresql/data
-    environment:
-      - POSTGRES_PASSWORD=ucentral
-      - POSTGRES_USER=ucentral
 
   mysql:
     image: "mysql:${MYSQL_TAG}"
+    env_file:
+      - .env_mysql
     restart: unless-stopped
     command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
     volumes:
       - mysql_data:/var/lib/mysql
-    environment:
-      - MYSQL_ROOT_PASSWORD=root
-      - MYSQL_USER=rttys
-      - MYSQL_PASSWORD=rttys
-      - MYSQL_DATABASE=rttys
 
   ucentralgw:
-    image: "tip-tip-wlan-cloud-ucentral.jfrog.io/ucentralgw:${UCENTRALGW_TAG}"
+    build: ../
+    image: "wlan-cloud-ucentralgw:${UCENTRALGW_TAG}"
+    env_file:
+      - .env_ucentralgw
     depends_on: 
       - postgresql
       - kafka
@@ -50,9 +49,6 @@ services:
       - ../certificates/root.pem:/ucentral-data/certs/root.pem
       - ../certificates/issuer.pem:/ucentral-data/certs/issuer.pem
       - ../certificates/clientcas.pem:/ucentral-data/certs/clientcas.pem
-    environment:
-      - UCENTRAL_ROOT=/ucentral-data
-      - UCENTRAL_CONFIG=/ucentral-data
 
   rttys:
     image: "tip-tip-wlan-cloud-ucentral.jfrog.io/rttys:${RTTYS_TAG}"
@@ -73,11 +69,10 @@ services:
 
   kafka:
     image: "docker.io/bitnami/kafka:${KAFKA_TAG}"
+    env_file:
+      - .env_kafka
     restart: unless-stopped
     depends_on:
       - zookeeper
     volumes:
       - kafka_data:/bitnami/kafka
-    environment:
-      - KAFKA_CFG_ZOOKEEPER_CONNECT=zookeeper:2181
-      - ALLOW_PLAINTEXT_LISTENER=yes
