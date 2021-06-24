@@ -118,8 +118,10 @@ namespace uCentral {
 					auto It = Mgr->Notifiers_.find(Msg.get_topic());
 					if (It != Mgr->Notifiers_.end()) {
 						Types::TopicNotifyFunctionList &FL = It->second;
-						for (auto &F : FL)
-							F.first(Msg.get_key(), Msg.get_payload());
+						for (auto &F : FL) {
+							std::thread T(F.first, std::string{Msg.get_key()}, std::string{Msg.get_payload()});
+							T.detach();
+						}
 					}
 					Consumer.commit(Msg);
 				}

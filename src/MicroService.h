@@ -48,7 +48,7 @@ namespace uCentral {
 	};
 
 	struct MicroServiceMeta {
-		uint64_t 		Id;
+		uint64_t 		Id=0;
 		std::string 	Type;
 		std::string 	EndPoint;
 		std::string 	AccessKey;
@@ -56,7 +56,8 @@ namespace uCentral {
 		uint64_t 		LastUpdate=0;
 	};
 
-	typedef std::vector<MicroServiceMeta>	MicroServiceMetaMap;
+	typedef std::map<uint64_t, MicroServiceMeta>	MicroServiceMetaMap;
+	typedef std::vector<MicroServiceMeta>			MicroServiceMetaVec;
 
 	class MicroService : public Poco::Util::ServerApplication {
 	  public:
@@ -113,7 +114,8 @@ namespace uCentral {
 		[[nodiscard]] std::string EndPoint() const { return MyEndPoint_; };
 		[[nodiscard]] std::string MakeSystemEventMessage( const std::string & Type ) const ;
 
-		void BusMessageReceived( std::string Key, std::string Message);
+		void BusMessageReceived( const std::string &Key, const std::string &Message);
+		[[nodiscard]] MicroServiceMetaVec GetServices(const std::string & type);
 
 	  private:
 		bool                        HelpRequested_ = false;
@@ -133,6 +135,7 @@ namespace uCentral {
 		std::string 				MyEndPoint_;
 		std::string 				Version_;
 		BusEventManager				BusEventManager_;
+		SubMutex 					InfraMutex_;
 
 		std::string DAEMON_PROPERTIES_FILENAME;
 		std::string DAEMON_ROOT_ENV_VAR;

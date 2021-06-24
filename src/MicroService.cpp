@@ -52,8 +52,60 @@ namespace uCentral {
 		std::exit(Reason);
 	}
 
-	void MicroService::BusMessageReceived(std::string Key, std::string Message) {
-		std::cout << "Message arrived:" << Key << " ," << Message << std::endl;
+	void MicroService::BusMessageReceived(const std::string &Key, const std::string &Message) {
+		SubMutexGuard G(InfraMutex_);
+//		std::cout << "Message arrived:" << Key << " ," << Message << std::endl;
+		try {
+			Poco::JSON::Parser	P;
+			auto Object = P.parse(Message).extract<Poco::JSON::Object::Ptr>();
+			if(Object->has("id")) {
+				uint64_t ID = Object->get("id");
+				if(ID!=ID_) {
+					if(	Object->has("event") &&
+						Object->has("type") &&
+						Object->has("endPoint") &&
+						Object->has("version") &&
+						Object->has("key")) {
+						auto Event = Object->get("event").toString();
+
+						if(Event == "keep-alive" && Services_.find(ID)!=Services_.end()) {
+							Services_[ID].LastUpdate = time(nullptr);
+						} else if (Event=="leave") {
+							Services_.erase(ID);
+						} else if (Event== "join" || Event=="keep_alive") {
+							Services_[ID] = MicroServiceMeta{
+								.Id = ID,
+								.Type = Poco::toLower(Object->get("type").toString()),
+								.EndPoint = Object->get("endPoint").toString(),
+								.AccessKey = Object->get("key").toString(),
+								.Version = Object->get("version").toString(),
+								.LastUpdate = (uint64_t )time(nullptr) };
+						} else {
+							logger().error(Poco::format("Malformed event from device %Lu, event=%s", ID, Event));
+						}
+					} else {
+						logger().error(Poco::format("Malformed event from device %Lu", ID));
+					}
+
+				} else {
+					std::cout << "Ignoring my own messages..." << std::endl;
+				}
+			}
+		} catch (const Poco::Exception &E) {
+			logger().log(E);
+		}
+	}
+
+	MicroServiceMetaVec MicroService::GetServices(const std::string & Type) {
+		SubMutexGuard G(InfraMutex_);
+
+		auto T = Poco::toLower(Type);
+		MicroServiceMetaVec	Res;
+		for(const auto &[Id,ServiceRec]:Services_) {
+			if(ServiceRec.Type==T)
+				Res.push_back(ServiceRec);
+		}
+		return Res;
 	}
 
 	void MicroService::initialize(Poco::Util::Application &self) {
@@ -206,9 +258,11 @@ namespace uCentral {
 	void MicroService::StartSubSystemServers() {
 		for(auto i:SubSystems_)
 			i->Start();
+		BusEventManager_.Start();
 	}
 
 	void MicroService::StopSubSystemServers() {
+		BusEventManager_.Stop();
 		for(auto i=SubSystems_.rbegin(); i!=SubSystems_.rend(); ++i)
 			(*i)->Stop();
 	}
@@ -325,7 +379,8 @@ namespace uCentral {
 	}
 
 	void BusEventManager::run() {
-		Running_ = false;
+
+		Running_ = true;
 
 		auto Msg = Daemon()->MakeSystemEventMessage("join");
 		KafkaManager()->PostMessage(KafkaTopics::SERVICE_EVENTS,Daemon()->EndPoint(),Msg, false);
@@ -343,13 +398,17 @@ namespace uCentral {
 	};
 
 	void BusEventManager::Start() {
-		Thread_.start(*this);
+		if(KafkaManager()->Enabled()) {
+			Thread_.start(*this);
+		}
 	}
 
 	void BusEventManager::Stop() {
-		Running_ = false;
-		Thread_.wakeUp();
-		Thread_.join();
+		if(KafkaManager()->Enabled()) {
+			Running_ = false;
+			Thread_.wakeUp();
+			Thread_.join();
+		}
 	}
 
 	int MicroService::main(const ArgVec &args) {
@@ -371,9 +430,7 @@ namespace uCentral {
 			}
 			logger.information(Poco::format("System ID set to %Lu",ID_));
 			StartSubSystemServers();
-			BusEventManager_.Start();
 			waitForTerminationRequest();
-			BusEventManager_.Stop();
 			StopSubSystemServers();
 
 			logger.notice(Poco::format("Stopped %s...",DAEMON_APP_NAME));
