@@ -14,6 +14,8 @@
 
 #include "Poco/Net/NetworkInterface.h"
 
+#define DBGLINE { std::cout << __FILE__ << ":" << __func__ << ":" << __LINE__ << std::endl; };
+
 namespace uCentral::Utils {
 
 	[[nodiscard]] std::vector<std::string> Split(const std::string &List, char Delimiter=',');

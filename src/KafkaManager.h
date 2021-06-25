@@ -35,8 +35,8 @@ namespace uCentral {
 			return instance_;
 		}
 
-		static void Producer(KafkaManager *);
-		static void Consumer(KafkaManager *);
+		void Producer();
+		void Consumer();
 
 		int Start() override;
 		void Stop() override;
@@ -46,6 +46,7 @@ namespace uCentral {
 		[[nodiscard]] bool Enabled() { return KafkaEnabled_; }
 		int RegisterTopicWatcher(const std::string &Topic, Types::TopicNotifyFunction & F);
 		void UnregisterTopicWatcher(const std::string &Topic, int FunctionId);
+		void WakeUp();
 
 	  private:
 		static KafkaManager *instance_;

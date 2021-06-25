@@ -38,8 +38,8 @@ namespace uCentral {
 	int KafkaManager::Start() {
 		if(!KafkaEnabled_)
 			return 0;
-		ProducerThr_ = std::make_unique<std::thread>(Producer,this);
-		ConsumerThr_ = std::make_unique<std::thread>(Consumer,this);
+		ProducerThr_ = std::make_unique<std::thread>([this]() { this->Producer(); });
+		ConsumerThr_ = std::make_unique<std::thread>([this]() { this->Consumer(); });
 		return 0;
 	}
 
@@ -52,79 +52,90 @@ namespace uCentral {
 		}
 	}
 
-	void KafkaManager::Producer(KafkaManager *Mgr) {
+	void KafkaManager::Producer() {
 		cppkafka::Configuration Config({
 										   { "metadata.broker.list", Daemon()->ConfigGetString("ucentral.kafka.brokerlist") }
 									   });
-		Mgr->SystemInfoWrapper_ = 	R"lit({ "system" : { "id" : )lit" +
+		SystemInfoWrapper_ = 	R"lit({ "system" : { "id" : )lit" +
 								  	std::to_string(Daemon()->ID()) +
-									R"lit( , "host" : ")lit" + Daemon()->EndPoint() +
+									R"lit( , "host" : ")lit" + Daemon()->PrivateEndPoint() +
 									R"lit(" } , "payload" : ")lit" ;
 		cppkafka::Producer	Producer(Config);
-		Mgr->ProducerRunning_ = true;
-		while(Mgr->ProducerRunning_) {
-			std::this_thread::sleep_for(std::chrono::milliseconds(2000));
-			if(!Mgr->ProducerRunning_)
-				break;
+		ProducerRunning_ = true;
+		while(ProducerRunning_) {
+			std::this_thread::sleep_for(std::chrono::milliseconds(200));
+			try
 			{
-				SubMutexGuard G(Mgr->ProducerMutex_);
-				while (!Mgr->Queue_.empty() && Mgr->ProducerRunning_) {
-					const auto M = Mgr->Queue_.front();
-					// std::cout << "Producing Topic: " << M.Topic << " Key: "  << M.Key <<std::endl;
+				SubMutexGuard G(ProducerMutex_);
+				while (!Queue_.empty()) {
+					const auto M = Queue_.front();
 					Producer.produce(
 						cppkafka::MessageBuilder(M.Topic).key(M.Key).payload(M.PayLoad));
-					Mgr->Queue_.pop();
+					Queue_.pop();
 				}
-				// Producer_->flush();
-
+				Producer.flush();
+			} catch (const cppkafka::HandleException &E ) {
+				Logger_.warning(Poco::format("Caught a Kafka exception (producer): %s",std::string{E.what()}));
+			} catch (const Poco::Exception &E) {
+				Logger_.log(E);
 			}
 		}
 	}
 
-	void KafkaManager::Consumer(KafkaManager *Mgr ) {
+	void KafkaManager::Consumer() {
 		cppkafka::Configuration Config({
-										   { "group.id", 1 },
+										   { "group.id", Daemon()->ConfigGetString("ucentral.kafka.group.id") },
 										   { "enable.auto.commit", Daemon()->ConfigGetBool("ucentral.kafka.auto.commit",false) },
-										   { "metadata.broker.list", Daemon()->ConfigGetString("ucentral.kafka.brokerlist") }
+										   { "metadata.broker.list", Daemon()->ConfigGetString("ucentral.kafka.brokerlist") },
+										   { "auto.offset.reset", "earliest" } ,
+										   { "enable.partition.eof", false }
 									   });
 
 		cppkafka::Consumer Consumer(Config);
-		Consumer.set_assignment_callback([Mgr](const cppkafka::TopicPartitionList& partitions) {
-		  Mgr->Logger_.information(Poco::format("Got assigned: %Lu...",(uint64_t )partitions.front().get_partition()));
+		Consumer.set_assignment_callback([=](const cppkafka::TopicPartitionList& partitions) {
+			std::cout << "Partition assigned: " << partitions.front().get_partition() << std::endl;
+		  	Logger_.information(Poco::format("Got assigned: %Lu...",(uint64_t )partitions.front().get_partition()));
 		});
-		Consumer.set_revocation_callback([Mgr](const cppkafka::TopicPartitionList& partitions) {
-		  Mgr->Logger_.information(Poco::format("Got revoked: %Lu...",(uint64_t )partitions.front().get_partition()));
+		Consumer.set_revocation_callback([this](const cppkafka::TopicPartitionList& partitions) {
+			std::cout << "Partition revocation: " << partitions.front().get_partition() << std::endl;
+		  Logger_.information(Poco::format("Got revoked: %Lu...",(uint64_t )partitions.front().get_partition()));
 		});
 
-		std::vector<std::string>    Topics;
-		for(const auto &i:Mgr->Notifiers_)
+		Types::StringVec    Topics;
+		for(const auto &i:Notifiers_)
 			Topics.push_back(i.first);
 
 		Consumer.subscribe(Topics);
 
-		Mgr->ConsumerRunning_ = true;
-		while(Mgr->ConsumerRunning_) {
-			cppkafka::Message Msg = Consumer.poll(std::chrono::milliseconds(2000));
-			if(!Mgr->ConsumerRunning_)
-				break;
-			if (Msg) {
+		ConsumerRunning_ = true;
+		while(ConsumerRunning_) {
+			try {
+				cppkafka::Message Msg = Consumer.poll(std::chrono::milliseconds(200));
+				if (!Msg)
+					continue;;
 				if (Msg.get_error()) {
 					if (!Msg.is_eof()) {
-						Mgr->Logger_.error(
-							Poco::format("Error: %s", Msg.get_error().to_string()));
-					}
-				} else {
-					SubMutexGuard G(Mgr->ConsumerMutex_);
-					auto It = Mgr->Notifiers_.find(Msg.get_topic());
-					if (It != Mgr->Notifiers_.end()) {
-						Types::TopicNotifyFunctionList &FL = It->second;
-						for (auto &F : FL) {
-							std::thread T(F.first, std::string{Msg.get_key()}, std::string{Msg.get_payload()});
-							T.detach();
-						}
+						Logger_.error(Poco::format("Error: %s", Msg.get_error().to_string()));
 					}
 					Consumer.commit(Msg);
+					continue;
 				}
+				SubMutexGuard G(ConsumerMutex_);
+				auto It = Notifiers_.find(Msg.get_topic());
+				if (It != Notifiers_.end()) {
+					Types::TopicNotifyFunctionList &FL = It->second;
+					for (auto &F : FL) {
+						std::string Key{Msg.get_key()};
+						std::string Payload{Msg.get_payload()};
+						std::thread T(F.first, Key, Payload);
+						T.detach();
+					}
+				}
+				Consumer.commit(Msg);
+			} catch (const cppkafka::HandleException &E) {
+				Logger_.warning(Poco::format("Caught a Kafka exception (consumer): %s",std::string{E.what()}));
+			} catch (const Poco::Exception &E) {
+				Logger_.log(E);
 			}
 		}
 	}
@@ -136,12 +147,10 @@ namespace uCentral {
 	void KafkaManager::PostMessage(std::string topic, std::string key, std::string PayLoad, bool WrapMessage ) {
 		if(KafkaEnabled_) {
 			SubMutexGuard G(Mutex_);
-
 			KMessage M{
 				.Topic = std::move(topic),
 				.Key = std::move(key),
 				.PayLoad = std::move(WrapMessage ? WrapSystemId(PayLoad) : PayLoad )};
-			// std::cout << "Posting Topic: " << M.Topic << " Key: "  << M.Key << " Payload: " << M.PayLoad << std::endl;
 			Queue_.push(std::move(M));
 		}
 	}

@@ -18,13 +18,14 @@
 
 namespace uCentral {
 
+	class WSConnection;
     class DeviceRegistry : public SubSystemServer {
     public:
 		struct ConnectionEntry {
-			void	*WSConn_;
-			uCentral::Objects::ConnectionState 	Conn_;
-			std::string        					LastStats;
-			std::string 						LastHealthcheck;
+			WSConnection 				*WSConn_;
+			Objects::ConnectionState 	Conn_;
+			std::string        			LastStats;
+			std::string 				LastHealthcheck;
 		};
 
         static DeviceRegistry *instance() {
@@ -42,8 +43,8 @@ namespace uCentral {
 		void SetState(const std::string & SerialNumber, uCentral::Objects::ConnectionState & State);
 		bool GetHealthcheck(const std::string &SerialNumber, std::string & Statistics);
 		void SetHealthcheck(const std::string &SerialNumber, const std::string &stats);
-		uCentral::Objects::ConnectionState * Register(const std::string & SerialNumber, void *);
-		void UnRegister(const std::string & SerialNumber, void *);
+		uCentral::Objects::ConnectionState * Register(const std::string & SerialNumber, WSConnection *);
+		void UnRegister(const std::string & SerialNumber, WSConnection *);
 		bool SendCommand(uCentral::Objects::CommandDetails & Command);
 		bool Connected(const std::string & SerialNumber);
 		bool SendFrame(const std::string & SerialNumber, const std::string & Payload);

@@ -102,27 +102,24 @@ namespace uCentral {
 		}
 	}
 
-	uCentral::Objects::ConnectionState * DeviceRegistry::Register(const std::string & SerialNumber, void *Ptr)
+	uCentral::Objects::ConnectionState * DeviceRegistry::Register(const std::string & SerialNumber, WSConnection *Ptr)
     {
 		SubMutexGuard		Guard(Mutex_);
 
         auto Device = Devices_.find(SerialNumber);
-
-		auto Connection = static_cast<WSConnection *>(Ptr);
-
         if( Device == Devices_.end()) {
             auto E = std::make_unique<ConnectionEntry>();
 
             E->WSConn_ = Ptr;
             E->Conn_.SerialNumber = SerialNumber;
-            E->Conn_.LastContact = time(nullptr);
+            E->Conn_.LastContact = std::time(nullptr);
             E->Conn_.Connected = true ;
             E->Conn_.UUID = 0 ;
             E->Conn_.MessageCount = 0 ;
             E->Conn_.Address = "";
             E->Conn_.TX = 0 ;
             E->Conn_.RX = 0;
-			E->Conn_.VerifiedCertificate = Connection->CertificateValidation();
+			E->Conn_.VerifiedCertificate = Objects::CertificateValidation::NO_CERTIFICATE;
 			auto R=&E->Conn_;
             Devices_[SerialNumber] = std::move(E);
             return R;
@@ -131,8 +128,8 @@ namespace uCentral {
         {
             Device->second->WSConn_ = Ptr;
             Device->second->Conn_.Connected = true;
-            Device->second->Conn_.LastContact = time(nullptr);
-			Device->second->Conn_.VerifiedCertificate = Connection->CertificateValidation();
+            Device->second->Conn_.LastContact = std::time(nullptr);
+			Device->second->Conn_.VerifiedCertificate = Objects::CertificateValidation::NO_CERTIFICATE;
             return &Device->second->Conn_;
         }
     }
@@ -148,7 +145,7 @@ namespace uCentral {
         return Device->second->Conn_.Connected;
     }
 
-    void DeviceRegistry::UnRegister(const std::string & SerialNumber, void *Ptr) {
+    void DeviceRegistry::UnRegister(const std::string & SerialNumber, WSConnection *Ptr) {
 		SubMutexGuard		Guard(Mutex_);
 
         auto Device = Devices_.find(SerialNumber);

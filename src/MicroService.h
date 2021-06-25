@@ -50,7 +50,8 @@ namespace uCentral {
 	struct MicroServiceMeta {
 		uint64_t 		Id=0;
 		std::string 	Type;
-		std::string 	EndPoint;
+		std::string 	PrivateEndPoint;
+		std::string 	PublicEndPoint;
 		std::string 	AccessKey;
 		std::string		Version;
 		uint64_t 		LastUpdate=0;
@@ -111,10 +112,11 @@ namespace uCentral {
 		[[nodiscard]] std::string CreateHash(const std::string &S);
 		[[nodiscard]] std::string Hash() const { return MyHash_; };
 		[[nodiscard]] std::string ServiceType() const { return DAEMON_APP_NAME; };
-		[[nodiscard]] std::string EndPoint() const { return MyEndPoint_; };
+		[[nodiscard]] std::string PrivateEndPoint() const { return MyPrivateEndPoint_; };
+		[[nodiscard]] std::string PublicEndPoint() const { return MyPublicEndPoint_; };
 		[[nodiscard]] std::string MakeSystemEventMessage( const std::string & Type ) const ;
 
-		void BusMessageReceived( const std::string &Key, const std::string &Message);
+		void BusMessageReceived( std::string Key, std::string Message);
 		[[nodiscard]] MicroServiceMetaVec GetServices(const std::string & type);
 
 	  private:
@@ -132,7 +134,8 @@ namespace uCentral {
 		Poco::SHA2Engine			SHA2_;
 		MicroServiceMetaMap			Services_;
 		std::string 				MyHash_;
-		std::string 				MyEndPoint_;
+		std::string 				MyPrivateEndPoint_;
+		std::string 				MyPublicEndPoint_;
 		std::string 				Version_;
 		BusEventManager				BusEventManager_;
 		SubMutex 					InfraMutex_;
