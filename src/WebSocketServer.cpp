@@ -158,6 +158,7 @@ namespace uCentral {
     }
 
     WSConnection::~WSConnection() {
+		std::cout << "Connection " << CId_ << " shutting down." << std::endl;
         DeviceRegistry()->UnRegister(SerialNumber_,this);
         DeRegister();
     }
