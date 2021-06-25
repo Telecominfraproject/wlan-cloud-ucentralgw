@@ -158,7 +158,7 @@ namespace uCentral {
     }
 
     WSConnection::~WSConnection() {
-		std::cout << "Connection " << CId_ << " shutting down." << std::endl;
+		// std::cout << "Connection " << CId_ << " shutting down." << std::endl;
         DeviceRegistry()->UnRegister(SerialNumber_,this);
         DeRegister();
     }
@@ -585,7 +585,7 @@ namespace uCentral {
     void WSConnection::OnSocketShutdown(const Poco::AutoPtr<Poco::Net::ShutdownNotification>& pNf) {
 		SubMutexGuard Guard(Mutex_);
 
-		std::cout << "Socket shutdown: " << CId_ << std::endl;
+		// std::cout << "Socket shutdown: " << CId_ << std::endl;
         Logger_.information(Poco::format("SOCKET-SHUTDOWN(%s): Closing.",CId_));
         delete this;
     }
@@ -593,7 +593,7 @@ namespace uCentral {
     void WSConnection::OnSocketError(const Poco::AutoPtr<Poco::Net::ErrorNotification>& pNf) {
 		SubMutexGuard Guard(Mutex_);
 
-		std::cout << "Socket error: " << CId_ << std::endl;
+		// std::cout << "Socket error: " << CId_ << std::endl;
         Logger_.information(Poco::format("SOCKET-ERROR(%s): Closing.",CId_));
         delete this;
     }
@@ -636,7 +636,7 @@ namespace uCentral {
 			IncomingSize = WS_->receiveFrame(IncomingFrame,flags);
             Op = flags & Poco::Net::WebSocket::FRAME_OP_BITMASK;
 
-			std::cout << "ID:" << CId_ << " Size=" << IncomingSize << " Flags=" << flags << " Op=" << Op << std::endl;
+			// std::cout << "ID:" << CId_ << " Size=" << IncomingSize << " Flags=" << flags << " Op=" << Op << std::endl;
 
             if (IncomingSize == 0 && flags == 0 && Op == 0) {
                 Logger_.information(Poco::format("DISCONNECT(%s)", CId_));
