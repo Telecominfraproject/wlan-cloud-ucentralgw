@@ -31,8 +31,7 @@ services:
       - mysql_data:/var/lib/mysql
 
   ucentralgw:
-    build: ../
-    image: "wlan-cloud-ucentralgw:${UCENTRALGW_TAG}"
+    image: "tip-tip-wlan-cloud-ucentral.jfrog.io/ucentralgw:${UCENTRALGW_TAG}"
     env_file:
       - .env_ucentralgw
     depends_on: 
