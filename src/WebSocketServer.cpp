@@ -636,6 +636,8 @@ namespace uCentral {
 			IncomingSize = WS_->receiveFrame(IncomingFrame,flags);
             Op = flags & Poco::Net::WebSocket::FRAME_OP_BITMASK;
 
+			std::cout << "ID:" << CId_ << " Size=" << IncomingSize << " Flags=" << flags << " Op=" << Op << std::endl;
+
             if (IncomingSize == 0 && flags == 0 && Op == 0) {
                 Logger_.information(Poco::format("DISCONNECT(%s)", CId_));
                 MustDisconnect = true;
