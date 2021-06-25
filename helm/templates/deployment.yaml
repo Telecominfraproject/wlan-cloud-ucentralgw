@@ -17,10 +17,7 @@ spec:
     matchLabels:
       app.kubernetes.io/name: {{ include "ucentralgw.name" . }}
       app.kubernetes.io/instance: {{ .Release.Name }}
-      {{- with .Values.services.ucentralgwl4.labels }}
-      {{- toYaml . | nindent 6 }}
-      {{- end }}
-      {{- with .Values.services.ucentralgwl7.labels }}
+      {{- with .Values.services.ucentralgw.labels }}
       {{- toYaml . | nindent 6 }}
       {{- end }}
   template:
@@ -28,10 +25,7 @@ spec:
       labels:
         app.kubernetes.io/name: {{ include "ucentralgw.name" . }}
         app.kubernetes.io/instance: {{ .Release.Name }}
-        {{- with .Values.services.ucentralgwl4.labels }}
-        {{- toYaml . | nindent 8 }}
-        {{- end }}
-        {{- with .Values.services.ucentralgwl7.labels }}
+        {{- with .Values.services.ucentralgw.labels }}
         {{- toYaml . | nindent 8 }}
         {{- end }}
     spec:
@@ -41,6 +35,10 @@ spec:
         - name: ucentralgw
           image: "{{ .Values.images.ucentralgw.repository }}:{{ .Values.images.ucentralgw.tag }}"
           imagePullPolicy: {{ .Values.images.ucentralgw.pullPolicy }}
+
+          command:
+            - /ucentral/ucentralgw
+            - --file=/ucentral-data/ucentral.properties
 
           env:
             - name: KUBERNETES_DEPLOYED
@@ -58,12 +56,7 @@ spec:
           {{- end }}
 
           ports:
-          {{- range $port, $portValue := .Values.services.ucentralgwl4.ports }}
-            - name: {{ $port }}
-              containerPort: {{ $portValue.targetPort }}
-              protocol: {{ $portValue.protocol }}
-          {{- end }}
-          {{- range $port, $portValue := .Values.services.ucentralgwl7.ports }}
+          {{- range $port, $portValue := .Values.services.ucentralgw.ports }}
             - name: {{ $port }}
               containerPort: {{ $portValue.targetPort }}
               protocol: {{ $portValue.protocol }}

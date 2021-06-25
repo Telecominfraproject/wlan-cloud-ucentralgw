@@ -526,6 +526,17 @@ you must use `$<varname>`. The path for the logs for the service must exist prio
 service. The path is defined under `logging.channels.c2.path`. Only `path names` support the use of 
 environment variables. Here is a sample configuration:
 
+### Docker Compose
+The repository also contains a Docker Compose file, which you can use to instantiate a complete deployment of uCentralGW and related components for local development purposes. To spin up a local development environment:
+1. Switch into the project directory with `cd docker-compose/`.
+2. Copy your certificates into the `ucentral-data/certs/` directory and reference them in the appropriate sections of the configuration file located at `ucentral-data/ucentral.properties`. For more information on which certificates you need please see the [certificates section](https://github.com/Telecominfraproject/wlan-cloud-ucentralgw#certificates) of this README and/or [CERTIFICATES.md](https://github.com/Telecominfraproject/wlan-cloud-ucentralgw/blob/master/CERTIFICATES.md).  
+Be aware that the `rttys` service also uses the same certificate and key file which is used for the REST API component of uCentralGW. If you want to change that make sure to adapt the configuration in that regard.
+4. Docker Compose pulls the ucentralgw image from the JFrog repository. If you want to change the image tag or some of the image versions which are used for the other services, have a look into the `.env` file. You'll also find service specific `.env` files in this directory. Edit them if you want to change database passwords (highly recommended!) or some other configuration data. Don't forget to adapt your changes in the application configuration files.
+5. Open `ucentral-data/ucentral.properties` and change the value for [ucentral.fileuploader.host.0.name](https://github.com/Telecominfraproject/wlan-cloud-ucentralgw#ucentralfileuploaderhost0name) according to your hostname. You can also set a different [password](https://github.com/Telecominfraproject/wlan-cloud-ucentralgw#default-username-and-password) for uCentralGW (again highly recommended!) or change some other configuration values.
+6. Spin up the deployment with `docker-compose up -d`.
+
+PS: The Docker Compose deployment creates five local volumes to persist mostly database data and data for Zookeeper and Kafka. If you want re-create the deployment once you already created one just delete the volumes with `docker volume rm $(docker volume ls -qf name=ucentral)` after you stopped the services.
+
 ## uCentral communication protocol
 The communication protocol between the device and the controller is detailed in this [document](https://github.com/Telecominfraproject/wlan-cloud-ucentralgw/blob/main/PROTOCOL.md).
 

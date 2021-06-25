@@ -16,15 +16,13 @@ images:
 #      password: password
 
 services:
-  ucentralgwl4:
-    type: ClusterIP
+  ucentralgw:
+    type: LoadBalancer
     ports:
       websocket:
         servicePort: 15002
         targetPort: 15002
         protocol: TCP
-  ucentralgwl7:
-    type: NodePort
     ports:
       restapi:
         servicePort: 16001
@@ -48,7 +46,7 @@ checks:
 
 ingresses:
   restapi:
-    enabled: true
+    enabled: false
     annotations: {}
       # kubernetes.io/ingress.class: nginx
       # kubernetes.io/tls-acme: "true"
@@ -56,10 +54,10 @@ ingresses:
     - restapi.chart-example.local
     paths:
     - path: /
-      serviceName: ucentralgwl7
+      serviceName: ucentralgw
       servicePort: restapi
   fileuploader:
-    enabled: true
+    enabled: false
     annotations: {}
       # kubernetes.io/ingress.class: nginx
       # kubernetes.io/tls-acme: "true"
@@ -67,7 +65,7 @@ ingresses:
     - fileuploader.chart-example.local
     paths:
     - path: /
-      serviceName: ucentralgwl7
+      serviceName: ucentralgw
       servicePort: fileuploader
 
 volumes:
@@ -212,14 +210,18 @@ config: |
   #
   # NLB Support
   #
-  nlb.enable = true
-  nlb.port = 15015
+  alb.enable = true
+  alb.port = 15015
+
+  oui.download.uri = https://linuxnet.ca/ieee/oui.txt
 
   #
   # Kafka
   #
   ucentral.kafka.enable = false
   ucentral.kafka.brokerlist = 127.0.0.1:9092
+  ucentral.kafka.auto.commit = false
+  ucentral.kafka.queue.buffering.max.ms = 50
 
   #
   # This section select which form of persistence you need
@@ -231,7 +233,7 @@ config: |
   #storage.type = mysql
   #storage.type = odbc
 
-  storage.type.sqlite.db = /ucentral-data/persist/devices.db
+  storage.type.sqlite.db = devices.db
   storage.type.sqlite.idletime = 120
   storage.type.sqlite.maxsessions = 128
 
@@ -258,7 +260,7 @@ config: |
   #
   authentication.enabled = true
   authentication.default.username = tip@ucentral.com
-  authentication.default.password = openwifi
+  authentication.default.password = 13268b7daa751240369d125e79c873bd8dd3bef7981bdfd38ea03dbb1fbe7dcf
   authentication.default.access = master
   authentication.service.type = internal
 
@@ -291,11 +293,14 @@ config: |
   logging.formatters.f1.times = UTC
   logging.channels.c1.class = ConsoleChannel
   logging.channels.c1.formatter = f1
-  logging.channels.c2.class = FileChannel
   # This is where the logs will be written. This path MUST exist
+  logging.channels.c2.class = FileChannel
   logging.channels.c2.path = /dev/stdout
   logging.channels.c2.formatter.class = PatternFormatter
   logging.channels.c2.formatter.pattern = %Y-%m-%d %H:%M:%S %s: [%p] %t
+  logging.channels.c2.rotation = 20 M
+  logging.channels.c2.archive = timestamp
+  logging.channels.c2.purgeCount = 20
   logging.channels.c3.class = ConsoleChannel
   logging.channels.c3.pattern = %s: [%p] %t
   # External Channel

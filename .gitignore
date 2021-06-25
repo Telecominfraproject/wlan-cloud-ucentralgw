@@ -17,7 +17,7 @@ _deps
 /certs/
 /docker-compose/ucentral-data/logs
 /docker-compose/ucentral-data/uploads
-/docker-compose/ucentral-data/certs
+/docker-compose/ucentral-data/data
 /docker-compose/.env
 /cmake-build/
 /uploads/
