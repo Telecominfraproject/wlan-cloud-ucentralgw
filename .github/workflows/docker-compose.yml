@@ -1,0 +1,40 @@
+name: Docker Compose deployment 
+
+on:
+  pull_request:
+    branches:
+      - master
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  docker-compose:
+    runs-on: ubuntu-20.04
+    steps:
+    - name: Check out repository
+      uses: actions/checkout@v2
+
+    - name: Create certificate and key files from Github secrets
+      env: 
+        DIGICERT_TIP_WILDCARD_CERT: ${{ secrets.DIGICERT_TIP_WILDCARD_CERT }}
+        DIGICERT_TIP_WILDCARD_KEY: ${{ secrets.DIGICERT_TIP_WILDCARD_KEY }}
+      run: |
+        cp certificates/root.pem docker-compose/ucentral-data/certs/restapi-ca.pem
+        'echo "$DIGICERT_TIP_WILDCARD_CERT" > docker-compose/ucentral-data/certs/{websocket-cert.pem,restapi-cert.pem}'
+        'echo "$DIGICERT_TIP_WILDCARD_KEY" > docker-compose/ucentral-data/certs/{websocket-key.pem,restapi-key.pem}'
+
+    - name: Instantiate Docker Compose deployment
+      env:
+        DOCKER_COMPOSE_PROJECT_NAME: ucentral-${{ github.sha }}
+        UCENTRALGW_TAG: ${{ github.sha }}      
+      run: docker-compose -f docker-compose/docker-compose.yml --project-directory docker-compose/ up -d
+
+    - name: Check functionality of uCentralGW
+      env: 
+        UCENTRALGW: "${{ github.sha }}.cicd.lab.wlan.tip.build:16001" 
+        FLAGS: "-s --resolve $UCENTRALGW:127.0.0.1"
+      run: |
+        apt-get install jq
+        ./test_scripts/curl/cli listdevices 
