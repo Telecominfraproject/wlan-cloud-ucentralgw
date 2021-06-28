@@ -1929,7 +1929,7 @@ paths:
           name: macList
           schema:
             type: string
-        required: true
+          required: true
       responses:
         200:
           $ref: '#/components/schemas/TagValuePairList'
