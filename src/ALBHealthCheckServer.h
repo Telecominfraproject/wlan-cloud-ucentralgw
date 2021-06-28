@@ -17,9 +17,10 @@
 #include "Poco/Net/HTTPRequestHandler.h"
 #include "Poco/Logger.h"
 
-#include "uCentral.h"
+#include "Daemon.h"
+#include "SubSystemServer.h"
 
-namespace uCentral::ALBHealthCheck {
+namespace uCentral {
 
 	class ALBRequestHandler: public Poco::Net::HTTPRequestHandler
 			/// Return a HTML document with the current date and time.
@@ -56,7 +57,7 @@ namespace uCentral::ALBHealthCheck {
 			{
 			}
 
-			ALBRequestHandler* createRequestHandler(const Poco::Net::HTTPServerRequest& request)
+			ALBRequestHandler* createRequestHandler(const Poco::Net::HTTPServerRequest& request) override
 			{
 				if (request.getURI() == "/")
 					return new ALBRequestHandler(Logger_);
@@ -68,34 +69,46 @@ namespace uCentral::ALBHealthCheck {
 			Poco::Logger	&Logger_;
 		};
 
-    class Service {
-    public:
-	  	explicit Service(Poco::Logger &L)
-			: Logger_(L) {};
+    class ALBHealthCheckServer : public SubSystemServer {
+        public:
+            ALBHealthCheckServer() noexcept:
+                    SubSystemServer("ALBHealthCheckServer", "ALB-SVR", "alb")
+            {
+            }
 
-        int Start() {
-			if(uCentral::ServiceConfig::GetBool("nlb.enable",false)) {
-				Port_ = (int)uCentral::ServiceConfig::GetInt("nlb.port",15015);
-				Socket_ = std::make_unique<Poco::Net::ServerSocket>(Port_);
-				auto Params = new Poco::Net::HTTPServerParams;
-				Server_ = std::make_unique<Poco::Net::HTTPServer>(new ALBRequestHandlerFactory(Logger_), *Socket_, Params);
-				Server_->start();
-			}
+            static ALBHealthCheckServer *instance() {
+                if (instance_ == nullptr) {
+                    instance_ = new ALBHealthCheckServer;
+                }
+                return instance_;
+            }
 
-			return 0;
-		}
+            int Start() {
+                if(Daemon()->ConfigGetBool("alb.enable",false)) {
+                    Port_ = (int)Daemon()->ConfigGetInt("alb.port",15015);
+                    Socket_ = std::make_unique<Poco::Net::ServerSocket>(Port_);
+                    auto Params = new Poco::Net::HTTPServerParams;
+                    Server_ = std::make_unique<Poco::Net::HTTPServer>(new ALBRequestHandlerFactory(Logger_), *Socket_, Params);
+                    Server_->start();
+                }
 
-        void Stop() {
-			if(Server_)
-				Server_->stop();
-		}
+                return 0;
+            }
 
-	  private:
-        std::unique_ptr<Poco::Net::HTTPServer>   	Server_;
-		std::unique_ptr<Poco::Net::ServerSocket> 	Socket_;
-        int                                     	Port_ = 0;
-		Poco::Logger		&Logger_;
-    };
+            void Stop() {
+                if(Server_)
+                    Server_->stop();
+            }
+
+          private:
+            static ALBHealthCheckServer *instance_;
+            std::unique_ptr<Poco::Net::HTTPServer>   	Server_;
+            std::unique_ptr<Poco::Net::ServerSocket> 	Socket_;
+            int                                     	Port_ = 0;
+        };
+
+    inline ALBHealthCheckServer * ALBHealthCheckServer() { return ALBHealthCheckServer::instance(); }
+    inline class ALBHealthCheckServer * ALBHealthCheckServer::instance_ = nullptr;
 }
 
 #endif // UCENTRALGW_ALBHEALTHCHECKSERVER_H

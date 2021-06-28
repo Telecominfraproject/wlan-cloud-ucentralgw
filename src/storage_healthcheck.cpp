@@ -6,32 +6,11 @@
 //	Arilia Wireless Inc.
 //
 
-#include "uStorageService.h"
+#include "StorageService.h"
 
-namespace uCentral::Storage {
+namespace uCentral {
 
-	bool AddHealthCheckData(std::string &SerialNumber, uCentral::Objects::HealthCheck &Check) {
-		return uCentral::Storage::Service::instance()->AddHealthCheckData(SerialNumber, Check);
-	}
-
-	bool
-	GetHealthCheckData(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate, uint64_t Offset, uint64_t HowMany,
-					   std::vector<uCentral::Objects::HealthCheck> &Checks) {
-		return uCentral::Storage::Service::instance()->GetHealthCheckData(SerialNumber, FromDate, ToDate, Offset,
-																		  HowMany,
-																		  Checks);
-	}
-
-	bool DeleteHealthCheckData(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate) {
-		return uCentral::Storage::Service::instance()->DeleteHealthCheckData(SerialNumber, FromDate, ToDate);
-	}
-
-	bool GetNewestHealthCheckData(std::string &SerialNumber, uint64_t HowMany,
-							  std::vector<uCentral::Objects::HealthCheck> &Checks) {
-		return Service::instance()->GetNewestHealthCheckData(SerialNumber, HowMany, Checks);
-	}
-
-	bool Service::AddHealthCheckData(std::string &SerialNumber, uCentral::Objects::HealthCheck &Check) {
+	bool Storage::AddHealthCheckData(std::string &SerialNumber, uCentral::Objects::HealthCheck &Check) {
 		try {
 			Logger_.information("Device:" + SerialNumber + " HealthCheck: sanity " + std::to_string(Check.Sanity));
 
@@ -62,7 +41,7 @@ namespace uCentral::Storage {
 		return false;
 	}
 
-	bool Service::GetHealthCheckData(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate, uint64_t Offset,
+	bool Storage::GetHealthCheckData(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate, uint64_t Offset,
 									 uint64_t HowMany,
 									 std::vector<uCentral::Objects::HealthCheck> &Checks) {
 
@@ -118,7 +97,7 @@ namespace uCentral::Storage {
 		return false;
 	}
 
-	bool Service::GetNewestHealthCheckData(std::string &SerialNumber, uint64_t HowMany, std::vector<uCentral::Objects::HealthCheck> &Checks) {
+	bool Storage::GetNewestHealthCheckData(std::string &SerialNumber, uint64_t HowMany, std::vector<uCentral::Objects::HealthCheck> &Checks) {
 		typedef Poco::Tuple<std::string, uint64_t, std::string, uint64_t, uint64_t> Record;
 		typedef std::vector<Record> RecordList;
 
@@ -154,7 +133,7 @@ namespace uCentral::Storage {
 		return false;
 	}
 
-	bool Service::DeleteHealthCheckData(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate) {
+	bool Storage::DeleteHealthCheckData(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate) {
 		try {
 			Poco::Data::Session Sess = Pool_->get();
 

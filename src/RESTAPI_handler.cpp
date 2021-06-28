@@ -17,17 +17,18 @@
 #include "Poco/URI.h"
 #include "Poco/DateTimeParser.h"
 
+#include "AuthService.h"
+#include "CommandManager.h"
+#include "DeviceRegistry.h"
 #include "RESTAPI_handler.h"
-#include "uAuthService.h"
-#include "uDeviceRegistry.h"
-#include "uStorageService.h"
-#include "uCommandManager.h"
 #include "RESTAPI_protocol.h"
-#include "uUtils.h"
+#include "StorageService.h"
+#include "Utils.h"
 
 #define DBG		std::cout << __LINE__ << "   " __FILE__ << std::endl;
 
-namespace uCentral::RESTAPI {
+namespace uCentral {
+
 	bool RESTAPIHandler::ParseBindings(const std::string & Request, const std::string & Path, BindingMap &bindings) {
 		std::string Param, Value;
 
@@ -229,7 +230,7 @@ namespace uCentral::RESTAPI {
 	void RESTAPIHandler::SetCommandAsPending(uCentral::Objects::CommandDetails &Cmd,
 							 Poco::Net::HTTPServerRequest &Request,
 							 Poco::Net::HTTPServerResponse &Response) {
-		if (uCentral::Storage::AddCommand(Cmd.SerialNumber, Cmd, Storage::COMMAND_PENDING)) {
+		if (Storage()->AddCommand(Cmd.SerialNumber, Cmd, Storage::COMMAND_PENDING)) {
 			Poco::JSON::Object RetObj;
 			Cmd.to_json(RetObj);
 			ReturnObject(Request, RetObj, Response);
@@ -250,16 +251,16 @@ namespace uCentral::RESTAPI {
 
 		// 	if the command should be executed in the future, or if the device is not connected, then we should just add the command to
 		//	the DB and let it figure out when to deliver the command.
-		if(Cmd.RunAt || !uCentral::DeviceRegistry::Connected(Cmd.SerialNumber)) {
+		if(Cmd.RunAt || !DeviceRegistry()->Connected(Cmd.SerialNumber)) {
 			SetCommandAsPending(Cmd, Request, Response);
 			return;
-		} else if(Cmd.RunAt==0 && uCentral::DeviceRegistry::Connected(Cmd.SerialNumber)) {
+		} else if(Cmd.RunAt==0 && DeviceRegistry()->Connected(Cmd.SerialNumber)) {
 			auto Promise = std::make_shared<std::promise<Poco::JSON::Object::Ptr>>();
 			std::future<Poco::JSON::Object::Ptr> Future = Promise->get_future();
 
 			Cmd.Executed = time(nullptr);
 
-			if (uCentral::CommandManager::SendCommand(Cmd.SerialNumber, Cmd.Command, Params, Promise, Cmd.UUID)) {
+			if (CommandManager()->SendCommand(Cmd.SerialNumber, Cmd.Command, Params, Promise, Cmd.UUID)) {
 				auto Status = Future.wait_for(D);
 				if (Status == std::future_status::ready) {
 					auto Answer = Future.get();
@@ -281,7 +282,7 @@ namespace uCentral::RESTAPI {
 							Cmd.Completed = time(nullptr);
 
 							//	Add the completed command to the database...
-							uCentral::Storage::AddCommand(Cmd.SerialNumber, Cmd,Storage::COMMAND_COMPLETED);
+							Storage()->AddCommand(Cmd.SerialNumber, Cmd,Storage::COMMAND_COMPLETED);
 
 							if(ObjectToReturn) {
 								ReturnObject(Request, *ObjectToReturn, Response);
@@ -312,12 +313,12 @@ namespace uCentral::RESTAPI {
 									Poco::Net::HTTPServerResponse &Response, uint64_t Timeout,
 									bool ReturnValue) {
 
-		if (uCentral::DeviceRegistry::Connected(Cmd.SerialNumber)) {
+		if (DeviceRegistry()->Connected(Cmd.SerialNumber)) {
 			uCentral::Objects::CommandDetails ResCmd;
 			while (Timeout > 0) {
 				Timeout -= 1000;
 				Poco::Thread::sleep(1000);
-				if (uCentral::Storage::GetCommand(Cmd.UUID, ResCmd)) {
+				if (Storage()->GetCommand(Cmd.UUID, ResCmd)) {
 					if (ResCmd.Completed) {
 						if (ReturnValue) {
 							Poco::JSON::Object RetObj;
@@ -356,7 +357,7 @@ namespace uCentral::RESTAPI {
 
 	bool RESTAPIHandler::IsAuthorized(Poco::Net::HTTPServerRequest &Request,
 									  Poco::Net::HTTPServerResponse &Response) {
-		if (uCentral::Auth::IsAuthorized(Request, SessionToken_, UserInfo_)) {
+		if (uCentral::AuthService()->IsAuthorized(Request, SessionToken_, UserInfo_)) {
 			return true;
 		} else {
 			UnAuthorized(Request, Response);
@@ -367,7 +368,7 @@ namespace uCentral::RESTAPI {
 	bool RESTAPIHandler::IsAuthorized(Poco::Net::HTTPServerRequest &Request,
 									  Poco::Net::HTTPServerResponse &Response, std::string &UserName) {
 
-		if (uCentral::Auth::IsAuthorized(Request, SessionToken_, UserInfo_)) {
+		if (uCentral::AuthService()->IsAuthorized(Request, SessionToken_, UserInfo_)) {
 			UserName = UserInfo_.username_;
 			return true;
 		} else {

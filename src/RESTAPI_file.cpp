@@ -8,60 +8,59 @@
 
 #include "RESTAPI_file.h"
 
-#include "uFileUploader.h"
-#include "uStorageService.h"
+#include "FileUploader.h"
 #include "Poco/File.h"
+#include "StorageService.h"
 
 #include <fstream>
 #include "RESTAPI_protocol.h"
 
-void RESTAPI_file::handleRequest(Poco::Net::HTTPServerRequest& Request, Poco::Net::HTTPServerResponse& Response)
-{
-    if(!ContinueProcessing(Request,Response))
-        return;
+namespace uCentral {
+	void RESTAPI_file::handleRequest(Poco::Net::HTTPServerRequest &Request,
+									 Poco::Net::HTTPServerResponse &Response) {
+		if (!ContinueProcessing(Request, Response))
+			return;
 
-    if(!IsAuthorized(Request,Response))
-        return;
+		if (!IsAuthorized(Request, Response))
+			return;
 
-    try {
-        ParseParameters(Request);
+		try {
+			ParseParameters(Request);
 
-        if (Request.getMethod() == Poco::Net::HTTPRequest::HTTP_GET) {
-            auto UUID = GetBinding(uCentral::RESTAPI::Protocol::FILEUUID, "");
-			auto SerialNumber = GetParameter(uCentral::RESTAPI::Protocol::SERIALNUMBER,"");
+			if (Request.getMethod() == Poco::Net::HTTPRequest::HTTP_GET) {
+				auto UUID = GetBinding(uCentral::RESTAPI::Protocol::FILEUUID, "");
+				auto SerialNumber = GetParameter(uCentral::RESTAPI::Protocol::SERIALNUMBER, "");
 
-            //does the file exist
-            Poco::File  DownloadFile(uCentral::uFileUploader::Path() + "/" + UUID);
+				// does the file exist
+				Poco::File DownloadFile(FileUploader()->Path() + "/" + UUID);
 
-			std::string FileType;
-			if(!uCentral::Storage::GetAttachedFile(UUID, SerialNumber, DownloadFile.path(),FileType))
-            {
-                NotFound(Request, Response);
-                return;
-            }
-			SendFile(DownloadFile,UUID,Request, Response);
-			DownloadFile.remove();
-            return;
-
-        } else if (Request.getMethod() == Poco::Net::HTTPRequest::HTTP_DELETE) {
-            auto UUID = GetBinding(uCentral::RESTAPI::Protocol::FILEUUID, "");
-
-			if(UUID.empty())
-			{
-				BadRequest(Request, Response);
+				std::string FileType;
+				if (!Storage()->GetAttachedFile(UUID, SerialNumber, DownloadFile.path(),
+														FileType)) {
+					NotFound(Request, Response);
+					return;
+				}
+				SendFile(DownloadFile, UUID, Request, Response);
+				DownloadFile.remove();
 				return;
-			}
 
-			if(uCentral::Storage::RemoveAttachedFile(UUID))
-				OK(Request, Response);
-			else
-				NotFound(Request, Response);
-        }
-        return;
-    }
-    catch(const Poco::Exception &E)
-    {
-        Logger_.error(Poco::format("%s: failed with %s",std::string(__func__), E.displayText()));
-    }
-    BadRequest(Request, Response);
+			} else if (Request.getMethod() == Poco::Net::HTTPRequest::HTTP_DELETE) {
+				auto UUID = GetBinding(uCentral::RESTAPI::Protocol::FILEUUID, "");
+
+				if (UUID.empty()) {
+					BadRequest(Request, Response);
+					return;
+				}
+
+				if (Storage()->RemoveAttachedFile(UUID))
+					OK(Request, Response);
+				else
+					NotFound(Request, Response);
+			}
+			return;
+		} catch (const Poco::Exception &E) {
+			Logger_.error(Poco::format("%s: failed with %s", std::string(__func__), E.displayText()));
+		}
+		BadRequest(Request, Response);
+	}
 }

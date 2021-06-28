@@ -6,7 +6,7 @@
 //	Arilia Wireless Inc.
 //
 
-#include "uStorageService.h"
+#include "StorageService.h"
 
 /*
 	Sess << "CREATE TABLE IF NOT EXISTS BlackList ("
@@ -19,25 +19,9 @@
 
 #include "RESTAPI_objects.h"
 
-namespace uCentral::Storage {
+namespace uCentral {
 
-	bool AddBlackListDevices(std::vector<uCentral::Objects::BlackListedDevice> &  Devices) {
-		return uCentral::Storage::Service::instance()->AddBlackListDevices(Devices);
-	}
-
-	bool DeleteBlackListDevice(std::string & SerialNumber) {
-		return uCentral::Storage::Service::instance()->DeleteBlackListDevice(SerialNumber);
-	}
-
-	bool GetBlackListDevices(uint64_t Offset, uint64_t HowMany, std::vector<uCentral::Objects::BlackListedDevice> & Devices ) {
-		return uCentral::Storage::Service::instance()->GetBlackListDevices(Offset, HowMany, Devices );
-	}
-
-	bool IsBlackListed(std::string &SerialNumber) {
-		return uCentral::Storage::Service::instance()->IsBlackListed(SerialNumber);
-	}
-
-	bool Service::AddBlackListDevices(std::vector<uCentral::Objects::BlackListedDevice> &Devices) {
+	bool Storage::AddBlackListDevices(std::vector<uCentral::Objects::BlackListedDevice> &Devices) {
 		try {
 
 			Poco::Data::Session Sess = Pool_->get();
@@ -58,7 +42,7 @@ namespace uCentral::Storage {
 		return false;
 	}
 
-	bool Service::DeleteBlackListDevice(std::string &SerialNumber) {
+	bool Storage::DeleteBlackListDevice(std::string &SerialNumber) {
 		try {
 			Poco::Data::Session Sess = Pool_->get();
 			Poco::Data::Statement Delete(Sess);
@@ -75,7 +59,7 @@ namespace uCentral::Storage {
 		return false;
 	}
 
-	bool Service::GetBlackListDevices(uint64_t Offset, uint64_t HowMany,
+	bool Storage::GetBlackListDevices(uint64_t Offset, uint64_t HowMany,
 									  std::vector<uCentral::Objects::BlackListedDevice> &Devices) {
 		try {
 			using tuple_list = Poco::Tuple<std::string, std::string, std::string, uint64_t>;
@@ -105,7 +89,7 @@ namespace uCentral::Storage {
 		return false;
 	}
 
-	bool Service::IsBlackListed(std::string &SerialNumber) {
+	bool Storage::IsBlackListed(std::string &SerialNumber) {
 		try {
 			Poco::Data::Session Sess = Pool_->get();
 			Poco::Data::Statement Select(Sess);

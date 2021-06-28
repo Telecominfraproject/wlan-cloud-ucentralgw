@@ -6,8 +6,8 @@
 //	Arilia Wireless Inc.
 //
 
-#include "uStorageService.h"
-#include "uStateProcessor.h"
+#include "StateProcessor.h"
+#include "StorageService.h"
 
 /*
 	Sess << "CREATE TABLE IF NOT EXISTS LifetimeStats ("
@@ -19,21 +19,9 @@
 	Poco::Data::Keywords::now;
 */
 
-namespace uCentral::Storage {
+namespace uCentral {
 
-	bool SetLifetimeStats(std::string & SerialNumber, std::string & Stats) {
-		return Service::instance()->SetLifetimeStats(SerialNumber, Stats);
-	}
-
-	bool GetLifetimeStats(std::string & SerialNumber, std::string & Stats) {
-		return Service::instance()->GetLifetimeStats(SerialNumber, Stats);
-	}
-
-	bool ResetLifetimeStats(std::string & SerialNumber) {
-		return Service::instance()->ResetLifetimeStats(SerialNumber);
-	}
-
-	bool Service::SetLifetimeStats(std::string &SerialNumber, std::string &Stats) {
+	bool Storage::SetLifetimeStats(std::string &SerialNumber, std::string &Stats) {
 		try {
 			Poco::Data::Session     Sess = Pool_->get();
 			Poco::Data::Statement   Select(Sess);
@@ -74,7 +62,7 @@ namespace uCentral::Storage {
 		return false;
 	}
 
-	bool Service::GetLifetimeStats(std::string &SerialNumber, std::string &Stats) {
+	bool Storage::GetLifetimeStats(std::string &SerialNumber, std::string &Stats) {
 		try {
 			Poco::Data::Session     Sess = Pool_->get();
 			Poco::Data::Statement   Select(Sess);
@@ -93,7 +81,7 @@ namespace uCentral::Storage {
 		return false;
 	}
 
-	bool Service::ResetLifetimeStats(std::string &SerialNumber) {
+	bool Storage::ResetLifetimeStats(std::string &SerialNumber) {
 		try {
 			Poco::Data::Session     Sess = Pool_->get();
 			Poco::Data::Statement   Delete(Sess);

@@ -11,15 +11,15 @@
 
 #include "RESTAPI_handler.h"
 
-class RESTAPI_UnknownRequestHandler: public uCentral::RESTAPI::RESTAPIHandler
-{
-public:
-    RESTAPI_UnknownRequestHandler(const RESTAPIHandler::BindingMap & bindings,Poco::Logger & L)
-    : RESTAPIHandler(bindings,L,
-            std::vector<std::string>{}) {}
-    void handleRequest(Poco::Net::HTTPServerRequest& request, Poco::Net::HTTPServerResponse& response) override;
+namespace uCentral {
+class RESTAPI_UnknownRequestHandler : public RESTAPIHandler {
+  public:
+	RESTAPI_UnknownRequestHandler(const RESTAPIHandler::BindingMap &bindings, Poco::Logger &L)
+		: RESTAPIHandler(bindings, L, std::vector<std::string>{}) {}
+	void handleRequest(Poco::Net::HTTPServerRequest &request,
+					   Poco::Net::HTTPServerResponse &response) override;
 };
-
+}
 
 
 #endif //UCENTRAL_RESTAPI_UNKNOWNREQUESTHANDLER_H

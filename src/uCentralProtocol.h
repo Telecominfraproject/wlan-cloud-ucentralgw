@@ -79,6 +79,7 @@ namespace uCentral::uCentralProtocol {
 	static const char * VERBOSE = "verbose";
 	static const char * BANDS = "bands";
 	static const char * CHANNELS = "channels";
+	static const char * PASSWORD = "password";
 
 	enum EVENT_MSG {
 			ET_UNKNOWN,

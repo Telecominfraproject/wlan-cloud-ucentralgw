@@ -26,8 +26,8 @@ Poco may take several minutes depending on the platform you are building on.
 ### Ubuntu
 These instructions have proven to work on Ubuntu 20.4.
 ```
-sudo apt install git cmake g++ libssl-dev libmariadb-dev-compat unixodbc-dev 
-sudo apt install libpq-dev libaprutil1-dev apache2-dev libboost-all-dev libyaml-cpp-dev
+sudo apt install git cmake g++ libssl-dev libmariabd-dev unixodbc-dev 
+sudo apt install libpq-dev libaprutil1-dev apache2-dev libboost-all-dev
 sudo apt install librdkafka-dev liblua5.3-dev
 
 git clone https://github.com/stephb9959/poco
@@ -181,6 +181,35 @@ You should now have the following:
   +-- uploads
   +-- ucentral.properties
 ```
+
+### Default username and password
+The default username and password are set in `ucentral.properties` file. The following entries manage the username and password
+```text
+authentication.default.username = tip@ucentral.com
+authentication.default.password = XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+```
+The password is a long sequence of hexadecimal digits. It is the result of hashing the `username` and the `password`.
+In order to create the password, please follow these simple instructions.
+```bash
+echo -n "<password><username>" | shasum -a 256
+```
+ Here is a complete example for username "root@system.com" and the password being "weLoveWifi".
+```bash
+echo -n "weLoveWifiroot@system.com" | shasum -a 256
+b5bfed31e2a272e52973a57b95042ab842db3999475f3d79f1ce0f45f465e34c  -
+```
+Then you need to modify your properties file like this
+```text
+authentication.default.username = root@system.com
+authentication.default.password = b5bfed31e2a272e52973a57b95042ab842db3999475f3d79f1ce0f45f465e34c
+```
+Remember, when you login you use `root@system.com` with the password `weLoveWifi`, not this monster digit sequence.
+
+#### Is this safe?
+s this safe to show the hash in a text file? Let me put it this way, if you can find a way to break this encryption, you
+would have control over the entire internet. It's incredible safe. if you love math, you can find a lot of videos explaining
+how hashes work and why they are safe.
+
 ### Certificates
 Love'em of hate'em, we gotta use'em. So we tried to make this as easy as possible for you. 
 
@@ -355,12 +384,12 @@ the following in order to use the gateway:
 - A DigiCert key that goes with that certificate. Please call this `key.pem`
 - The Digicert root certificate that you will find [here](https://github.com/Telecominfraproject/wlan-cloud-ucentralgw/blob/main/certificates/root.pem). You must copy `root.pem`
 and rename it `cas.pem` on the device.
-- All 3 files mus be present in `/etc/ucentral` on the device.
+- A Device ID file called `dev-id` or something similar
+- Copy all the 4 files to the `/certificates` directory of the AP (you must have firmware created Jun 15th or later).
 
-You will need to upgrade your device to the latest firmware. Once updated, you will need to copy the 3 files mentionned above in 
-  the `/etc/ucentral` directory. You will need to modify the `/etc/config-shadow/ucentral` file with your hostname. At which point, 
-  you should be able to restart the uCentral client with `/etc/init.d/ucentral restart`. Then the command `logread -f` should tell you
-  if you device was able to connect to the gateway.
+You will need to upgrade your device to the latest firmware. Once updated, you will need to copy the 4 files mentioned above in 
+the `/certificates` directory. Please remove all old keys or certificates from the `/etc/ucentral` directory 
+(anything ending in `.pem`).
 
 #### Server key entry
 The gateway needs to encrypt information from time to time. In order to do so, it must have a crypto key. This key
@@ -402,6 +431,12 @@ Speficy where logs should be kept. You must include an existing directory and a 
 ##### umask
 Seet the umask for the running service.
 
+### ALB Support
+Support for AWS ALB is provided through the following configuration elements
+```asm
+alb.enable = true
+alb.port = 15015
+```
 
 ### Docker
 So building this thing from scratch is not your thing? I can't blame you. It takes some patience and 
@@ -491,6 +526,17 @@ you must use `$<varname>`. The path for the logs for the service must exist prio
 service. The path is defined under `logging.channels.c2.path`. Only `path names` support the use of 
 environment variables. Here is a sample configuration:
 
+### Docker Compose
+The repository also contains a Docker Compose file, which you can use to instantiate a complete deployment of uCentralGW and related components for local development purposes. To spin up a local development environment:
+1. Switch into the project directory with `cd docker-compose/`.
+2. Copy your certificates into the `ucentral-data/certs/` directory and reference them in the appropriate sections of the configuration file located at `ucentral-data/ucentral.properties`. For more information on which certificates you need please see the [certificates section](https://github.com/Telecominfraproject/wlan-cloud-ucentralgw#certificates) of this README and/or [CERTIFICATES.md](https://github.com/Telecominfraproject/wlan-cloud-ucentralgw/blob/master/CERTIFICATES.md).  
+Be aware that the `rttys` service also uses the same certificate and key file which is used for the REST API component of uCentralGW. If you want to change that make sure to adapt the configuration in that regard.
+4. Docker Compose pulls the ucentralgw image from the JFrog repository. If you want to change the image tag or some of the image versions which are used for the other services, have a look into the `.env` file. You'll also find service specific `.env` files in this directory. Edit them if you want to change database passwords (highly recommended!) or some other configuration data. Don't forget to adapt your changes in the application configuration files.
+5. Open `ucentral-data/ucentral.properties` and change the value for [ucentral.fileuploader.host.0.name](https://github.com/Telecominfraproject/wlan-cloud-ucentralgw#ucentralfileuploaderhost0name) according to your hostname. You can also set a different [password](https://github.com/Telecominfraproject/wlan-cloud-ucentralgw#default-username-and-password) for uCentralGW (again highly recommended!) or change some other configuration values.
+6. Spin up the deployment with `docker-compose up -d`.
+
+PS: The Docker Compose deployment creates five local volumes to persist mostly database data and data for Zookeeper and Kafka. If you want re-create the deployment once you already created one just delete the volumes with `docker volume rm $(docker volume ls -qf name=ucentral)` after you stopped the services.
+
 ## uCentral communication protocol
 The communication protocol between the device and the controller is detailed in this [document](https://github.com/Telecominfraproject/wlan-cloud-ucentralgw/blob/main/PROTOCOL.md).
 
@@ -530,6 +576,7 @@ Toe read more about Kafka, follow the [document](https://github.com/Telecominfra
 
 #### Securing `kafka`
 This is beyond the scope of this document. As it stands today, the communication between the gateway and `kafka` is expected to be behind a firewall.
+
 ## Contributors
 We love ya! We need more of ya! If you want to contribute, make sure you review 
 the [coding style](https://github.com/Telecominfraproject/wlan-cloud-ucentralgw/blob/master/CODING_STYLE.md) document. 

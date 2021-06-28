@@ -1,0 +1,94 @@
+{
+	"uuid": 2,
+	"radios": [
+		{
+			"band": "5G",
+			"channel": 132,
+			"channel-mode": "HE",
+			"channel-width": 80,
+            "tx-power" : 30,
+			"country": "CA"
+		},
+		{
+			"band": "2G",
+			"channel": "auto",
+			"channel-mode": "HE",
+			"channel-width": 20,
+            "tx-power" : 30,
+			"country": "CA"
+		}
+	],
+
+	"interfaces": [
+		{
+			"name": "WAN",
+			"role": "upstream",
+			"services": [ "lldp" ],
+			"ethernet": [
+				{
+					"select-ports": [
+						"WAN*"
+					]
+				}
+			],
+			"ipv4": {
+				"addressing": "dynamic"
+			}
+		},
+		{
+			"name": "LAN",
+			"role": "downstream",
+			"services": [ "ssh", "lldp" ],
+			"ethernet": [
+				{
+					"select-ports": [
+						"LAN*"
+					]
+				}
+			],
+			"ssids": [
+				{
+					"name": "OpenWifi_WDS_AP",
+					"wifi-bands": [
+						"5G"
+					],
+					"bss-mode": "wds-sta",
+					"encryption": {
+						"proto": "psk2",
+						"key": "OpenWifi",
+						"ieee80211w": "optional"
+					},
+                    "roaming": {
+						"message-exchange": "ds",
+						"generate-psk": true
+					}
+                }
+			],
+			"ipv4": {
+				"addressing": "static",
+				"subnet": "192.168.1.1/24"
+			}
+		}
+	],
+	"metrics": {
+		"statistics": {
+			"interval": 120,
+			"types": [ "ssids", "lldp", "clients" ]
+		},
+		"health": {
+			"interval": 120
+		},
+		"wifi-frames": {
+			"filters": [ "probe", "auth" ]
+		}
+	},
+	"services": {
+		"lldp": {
+			"describe": "uCentral",
+			"location": "universe"
+		},
+		"ssh": {
+			"port": 22
+		}
+	}
+}

@@ -7,54 +7,54 @@
 //
 
 #include "RESTAPI_commands.h"
-#include "uStorageService.h"
-#include "uUtils.h"
 #include "RESTAPI_protocol.h"
+#include "StorageService.h"
+#include "Utils.h"
 
-void RESTAPI_commands::handleRequest(Poco::Net::HTTPServerRequest& Request, Poco::Net::HTTPServerResponse& Response)
-{
-    if(!ContinueProcessing(Request,Response))
-        return;
+namespace uCentral {
+void RESTAPI_commands::handleRequest(Poco::Net::HTTPServerRequest &Request,
+									 Poco::Net::HTTPServerResponse &Response) {
+	if (!ContinueProcessing(Request, Response))
+		return;
 
-    if(!IsAuthorized(Request,Response))
-        return;
+	if (!IsAuthorized(Request, Response))
+		return;
 
-    try {
-        ParseParameters(Request);
+	try {
+		ParseParameters(Request);
 		InitQueryBlock();
 
 		auto SerialNumber = GetParameter(uCentral::RESTAPI::Protocol::SERIALNUMBER, "");
 
-        if (Request.getMethod() == Poco::Net::HTTPRequest::HTTP_GET) {
-            std::vector<uCentral::Objects::CommandDetails> Commands;
-			if(QB_.Newest) {
-				uCentral::Storage::GetNewestCommands(SerialNumber, QB_.Limit, Commands);
+		if (Request.getMethod() == Poco::Net::HTTPRequest::HTTP_GET) {
+			std::vector<uCentral::Objects::CommandDetails> Commands;
+			if (QB_.Newest) {
+				Storage()->GetNewestCommands(SerialNumber, QB_.Limit, Commands);
 			} else {
-				uCentral::Storage::GetCommands(SerialNumber, QB_.StartDate, QB_.EndDate, QB_.Offset,
+				Storage()->GetCommands(SerialNumber, QB_.StartDate, QB_.EndDate, QB_.Offset,
 											   QB_.Limit, Commands);
 			}
-            Poco::JSON::Array ArrayObj;
-            for (const auto &i : Commands) {
-                Poco::JSON::Object Obj;
+			Poco::JSON::Array ArrayObj;
+			for (const auto &i : Commands) {
+				Poco::JSON::Object Obj;
 				i.to_json(Obj);
-                ArrayObj.add(Obj);
-            }
-            Poco::JSON::Object RetObj;
-            RetObj.set(uCentral::RESTAPI::Protocol::COMMANDS, ArrayObj);
-            ReturnObject(Request, RetObj, Response);
-            return;
+				ArrayObj.add(Obj);
+			}
+			Poco::JSON::Object RetObj;
+			RetObj.set(uCentral::RESTAPI::Protocol::COMMANDS, ArrayObj);
+			ReturnObject(Request, RetObj, Response);
+			return;
 
-        } else if (Request.getMethod() == Poco::Net::HTTPRequest::HTTP_DELETE) {
-            if (uCentral::Storage::DeleteCommands(SerialNumber, QB_.StartDate, QB_.EndDate))
-                OK(Request, Response);
-            else
-                BadRequest(Request, Response);
-            return;
-        }
-    }
-    catch(const Poco::Exception &E)
-    {
-        Logger_.error(Poco::format("%s: failed with %s",std::string(__func__), E.displayText()));
-    }
-    BadRequest(Request, Response);
+		} else if (Request.getMethod() == Poco::Net::HTTPRequest::HTTP_DELETE) {
+			if (Storage()->DeleteCommands(SerialNumber, QB_.StartDate, QB_.EndDate))
+				OK(Request, Response);
+			else
+				BadRequest(Request, Response);
+			return;
+		}
+	} catch (const Poco::Exception &E) {
+		Logger_.error(Poco::format("%s: failed with %s", std::string(__func__), E.displayText()));
+	}
+	BadRequest(Request, Response);
+}
 }

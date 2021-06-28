@@ -73,6 +73,8 @@ namespace uCentral::Objects {
 		uint64_t LastConfigurationChange;
 		uint64_t LastConfigurationDownload;
 		uint64_t LastFWUpdate;
+		std::string Venue;
+		std::string DevicePassword;
 		void to_json(Poco::JSON::Object &Obj) const;
 		void to_json_with_status(Poco::JSON::Object &Obj) const;
 		bool from_json(Poco::JSON::Object::Ptr Obj);
@@ -184,6 +186,7 @@ namespace uCentral::Objects {
 		uint64_t 	Started;
 		std::string CommandUUID;
 		uint64_t 	ViewPort;
+		std::string DevicePassword;
 		void to_json(Poco::JSON::Object &Obj) const;
 	};
 }

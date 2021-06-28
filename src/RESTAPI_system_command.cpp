@@ -10,7 +10,7 @@
 #include "Poco/Exception.h"
 #include "Poco/JSON/Parser.h"
 
-#include "uCentral.h"
+#include "Daemon.h"
 #include "RESTAPI_protocol.h"
 
 /*
@@ -46,53 +46,81 @@
             type: string
 
  */
-void RESTAPI_system_command::handleRequest(Poco::Net::HTTPServerRequest& Request, Poco::Net::HTTPServerResponse& Response) {
 
-	if(!ContinueProcessing(Request,Response))
-		return;
+namespace uCentral {
+	void RESTAPI_system_command::handleRequest(Poco::Net::HTTPServerRequest &Request,
+											   Poco::Net::HTTPServerResponse &Response) {
 
-	if(!IsAuthorized(Request,Response))
-		return;
+		if (!ContinueProcessing(Request, Response))
+			return;
 
-	try {
+		if (!IsAuthorized(Request, Response))
+			return;
 
-		if(Request.getMethod()==Poco::Net::HTTPRequest::HTTP_POST) {
-			Poco::JSON::Parser parser;
-			auto Obj = parser.parse(Request.stream()).extract<Poco::JSON::Object::Ptr>();
+		try {
+				if (Request.getMethod() == Poco::Net::HTTPRequest::HTTP_POST) {
+				Poco::JSON::Parser parser;
+				auto Obj = parser.parse(Request.stream()).extract<Poco::JSON::Object::Ptr>();
 
-			if(Obj->has(uCentral::RESTAPI::Protocol::COMMAND)) {
-				auto Command = Obj->get(uCentral::RESTAPI::Protocol::COMMAND).toString();
-				if(Command==uCentral::RESTAPI::Protocol::SETLOGLEVEL) {
-					if(Obj->has(uCentral::RESTAPI::Protocol::PARAMETERS) && Obj->isArray(uCentral::RESTAPI::Protocol::PARAMETERS)) {
-						auto ParametersBlock = Obj->getArray(uCentral::RESTAPI::Protocol::PARAMETERS);
-						for(const auto &i : *ParametersBlock)
-						{
-							if(i.isStruct()) {
-								auto O = i.toString();
-								Poco::JSON::Parser	pp;
-								auto TLV = pp.parse(i).extract<Poco::JSON::Object::Ptr>();
-
-								if (TLV->has(uCentral::RESTAPI::Protocol::NAME) && TLV->has(uCentral::RESTAPI::Protocol::VALUE)) {
-									auto Name = GetS(uCentral::RESTAPI::Protocol::NAME, Obj);
-									auto Value = GetS(uCentral::RESTAPI::Protocol::VALUE, Obj);
-									uCentral::Daemon::SetSubsystemLogLevel(Name, Value);
-									Logger_.information(Poco::format("Setting log level for %s at %s",Name,Value));
+				if (Obj->has(uCentral::RESTAPI::Protocol::COMMAND)) {
+					auto Command = Poco::toLower(Obj->get(uCentral::RESTAPI::Protocol::COMMAND).toString());
+					if (Command == uCentral::RESTAPI::Protocol::SETLOGLEVEL) {
+						if (Obj->has(uCentral::RESTAPI::Protocol::PARAMETERS) &&
+							Obj->isArray(uCentral::RESTAPI::Protocol::PARAMETERS)) {
+							auto ParametersBlock = Obj->getArray(uCentral::RESTAPI::Protocol::PARAMETERS);
+							for (const auto &i:*ParametersBlock) {
+								Poco::JSON::Parser pp;
+								auto InnerObj = pp.parse(i).extract<Poco::JSON::Object::Ptr>();
+								if (InnerObj->has(uCentral::RESTAPI::Protocol::TAG) &&
+									InnerObj->has(uCentral::RESTAPI::Protocol::VALUE)) {
+									auto Name = GetS(uCentral::RESTAPI::Protocol::TAG, InnerObj);
+									auto Value = GetS(uCentral::RESTAPI::Protocol::VALUE, InnerObj);
+									Daemon()->SetSubsystemLogLevel(Name, Value);
+									Logger_.information(Poco::format("Setting log level for %s at %s", Name, Value));
 								}
 							}
+							OK(Request, Response);
+							return;
 						}
-						OK(Request, Response);
+					} else if (Command == uCentral::RESTAPI::Protocol::GETLOGLEVELS) {
+						auto CurrentLogLevels = Daemon()->GetLogLevels();
+						Poco::JSON::Object	Result;
+						Poco::JSON::Array	Array;
+						for(auto &[Name,Level]:CurrentLogLevels) {
+							Poco::JSON::Object	Pair;
+							Pair.set( uCentral::RESTAPI::Protocol::TAG,Name);
+							Pair.set(uCentral::RESTAPI::Protocol::VALUE,Level);
+							Array.add(Pair);
+						}
+						Result.set(uCentral::RESTAPI::Protocol::TAGLIST,Array);
+						ReturnObject(Request,Result,Response);
 						return;
-					}
-				} else if (Command==uCentral::RESTAPI::Protocol::GETLOGLEVEL) {
-					Logger_.information("GETLOGLEVEL");
-				} else if (Command=="stats") {
+					} else if (Command == uCentral::RESTAPI::Protocol::GETLOGLEVELNAMES) {
+						Poco::JSON::Object	Result;
+						Poco::JSON::Array	LevelNamesArray;
+						const Types::StringVec & LevelNames = Daemon()->GetLogLevelNames();
+						for(const auto &i:LevelNames)
+							LevelNamesArray.add(i);
+						Result.set(uCentral::RESTAPI::Protocol::LIST,LevelNamesArray);
+						ReturnObject(Request,Result,Response);
+						return;
+					} else if (Command == uCentral::RESTAPI::Protocol::GETSUBSYSTEMNAMES) {
+						Poco::JSON::Object	Result;
+						Poco::JSON::Array	LevelNamesArray;
+						const Types::StringVec & SubSystemNames = Daemon()->GetSubSystems();
+						for(const auto &i:SubSystemNames)
+							LevelNamesArray.add(i);
+						Result.set(uCentral::RESTAPI::Protocol::LIST,LevelNamesArray);
+						ReturnObject(Request,Result,Response);
+						return;
+					} else if (Command == uCentral::RESTAPI::Protocol::STATS) {
 
+					}
 				}
 			}
+		} catch (const Poco::Exception &E) {
+			Logger_.log(E);
 		}
-	} catch ( const Poco::Exception & E ) {
-		Logger_.log(E);
+		BadRequest(Request, Response);
 	}
-
-	BadRequest(Request, Response);
 }

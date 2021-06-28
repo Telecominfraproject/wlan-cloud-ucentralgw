@@ -9,11 +9,11 @@
 #include "Poco/JSON/Parser.h"
 #include "Poco/JSON/Stringifier.h"
 
-#include "RESTAPI_objects.h"
+#include "Daemon.h"
+#include "DeviceRegistry.h"
 #include "RESTAPI_handler.h"
-#include "uDeviceRegistry.h"
-#include "uUtils.h"
-#include "uCentral.h"
+#include "RESTAPI_objects.h"
+#include "Utils.h"
 
 namespace uCentral::Objects {
 
@@ -41,15 +41,17 @@ namespace uCentral::Objects {
 		Obj.set("lastFWUpdate", LastFWUpdate);
 		Obj.set("owner", Owner);
 		Obj.set("location", Location);
+		Obj.set("location", Venue);
 		Obj.set("firmware", Firmware);
 		Obj.set("compatible", Compatible);
 		Obj.set("fwUpdatePolicy",FWUpdatePolicy);
+		Obj.set("devicePassword",DevicePassword);
 	}
 
 	void Device::to_json_with_status(Poco::JSON::Object &Obj) const {
 		to_json(Obj);
 		ConnectionState ConState;
-		if (uCentral::DeviceRegistry::GetState(SerialNumber, ConState)) {
+		if (DeviceRegistry()->GetState(SerialNumber, ConState)) {
 			ConState.to_json(Obj);
 		} else {
 			Obj.set("ipAddress", "N/A");
@@ -80,6 +82,8 @@ namespace uCentral::Objects {
 				Owner = ds["owner"].toString();
 			if (ds.contains("location"))
 				Location = ds["location"].toString();
+			if (ds.contains("venue"))
+				Owner = ds["venue"].toString();
 			if (ds.contains("compatible"))
 				Compatible = ds["compatible"].toString();
 			return true;
@@ -238,6 +242,7 @@ namespace uCentral::Objects {
 		Obj.set("commandUUID",CommandUUID);
 		Obj.set("started", Started);
 		Obj.set("viewport",ViewPort);
+		Obj.set("password",DevicePassword);
 	}
 }
 

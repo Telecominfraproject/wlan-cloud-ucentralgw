@@ -1,0 +1,48 @@
+{{- $root := . -}}
+{{- range $service, $serviceValue := .Values.services }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "ucentralgw.fullname" $root }}-{{ $service }}
+  {{- with $serviceValue.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  labels:
+    app.kubernetes.io/name: {{ include "ucentralgw.name" $root }}
+    helm.sh/chart: {{ include "ucentralgw.chart" $root }}
+    app.kubernetes.io/instance: {{ $root.Release.Name }}
+    app.kubernetes.io/managed-by: {{ $root.Release.Service }}
+
+    {{- with $serviceValue.labels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+
+    {{- if $serviceValue.serviceMonitor }}
+
+    {{- range $selector, $selectorValue := $serviceValue.serviceMonitor.serviceSelector }}
+    {{ $selector }}: {{ tpl $selectorValue $root }}
+    {{- end }}
+    {{- end }}
+spec:
+  type: {{ $serviceValue.type }}
+  ports:
+
+  {{- range $service_service, $service_value := $serviceValue.ports }}
+    - name: {{ $service_service }}
+      targetPort: {{ $service_value.targetPort }}
+      protocol: {{ $service_value.protocol }}
+      port: {{ $service_value.servicePort }}
+      {{- if and (eq "NodePort" $serviceValue.type) $service_value.nodePort }}
+      nodePort: {{ $service_value.nodePort }}
+      {{- end }}
+  {{- end }}
+  selector:
+    app.kubernetes.io/name: {{ include "ucentralgw.name" $root }}
+    app.kubernetes.io/instance: {{ $root.Release.Name }}
+    {{- with $serviceValue.labels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+
+{{- end }}
