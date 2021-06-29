@@ -67,8 +67,10 @@ jobs:
         DIGICERT_TIP_WILDCARD_KEY: ${{ secrets.DIGICERT_TIP_WILDCARD_KEY }}
       run: |
         cp certificates/root.pem docker-compose/ucentral-data/certs/restapi-ca.pem
-        'echo "$DIGICERT_TIP_WILDCARD_CERT" > docker-compose/ucentral-data/certs/{websocket-cert.pem,restapi-cert.pem}'
-        'echo "$DIGICERT_TIP_WILDCARD_KEY" > docker-compose/ucentral-data/certs/{websocket-key.pem,restapi-key.pem}'
+        echo "$DIGICERT_TIP_WILDCARD_CERT" > docker-compose/ucentral-data/certs/websocket-cert.pem
+        echo "$DIGICERT_TIP_WILDCARD_CERT" > docker-compose/ucentral-data/certs/restapi-cert.pem
+        echo "$DIGICERT_TIP_WILDCARD_KEY" > docker-compose/ucentral-data/certs/websocket-key.pem
+        echo "$DIGICERT_TIP_WILDCARD_KEY" > docker-compose/ucentral-data/certs/restapi-key.pem
 
     - name: Instantiate Docker Compose deployment
       env:
