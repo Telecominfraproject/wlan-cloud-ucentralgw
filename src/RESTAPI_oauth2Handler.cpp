@@ -15,6 +15,7 @@
 namespace uCentral {
 	void RESTAPI_oauth2Handler::handleRequest(Poco::Net::HTTPServerRequest &Request,
 											  Poco::Net::HTTPServerResponse &Response) {
+
 		if (!ContinueProcessing(Request, Response))
 			return;
 

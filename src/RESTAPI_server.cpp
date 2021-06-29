@@ -24,7 +24,6 @@
 #include "RESTAPI_system_command.h"
 #include "RESTAPI_ouis.h"
 
-#include "RESTAPI_unknownRequestHandler.h"
 #include "Utils.h"
 
 namespace uCentral {
@@ -67,39 +66,20 @@ namespace uCentral {
 
         Poco::URI uri(Request.getURI());
         const auto & Path = uri.getPath();
-        RESTAPIHandler::BindingMap bindings;
+        RESTAPIHandler::BindingMap Bindings;
 
-        if (RESTAPIHandler::ParseBindings(Path, "/api/v1/oauth2/{token}", bindings)) {
-            return new RESTAPI_oauth2Handler(bindings, Logger_);
-        } else if (RESTAPIHandler::ParseBindings(Path, "/api/v1/oauth2", bindings)) {
-            return new RESTAPI_oauth2Handler(bindings, Logger_);
-        } else if (RESTAPIHandler::ParseBindings(Path, "/api/v1/devices", bindings)) {
-            return new RESTAPI_devices_handler(bindings, Logger_);
-        } else if (RESTAPIHandler::ParseBindings(Path, "/api/v1/device/{serialNumber}/{command}", bindings)) {
-            return new RESTAPI_device_commandHandler(bindings, Logger_);
-        } else if (RESTAPIHandler::ParseBindings(Path, "/api/v1/device/{serialNumber}", bindings)) {
-            return new RESTAPI_device_handler(bindings, Logger_);
-        }  else if (RESTAPIHandler::ParseBindings(Path, "/api/v1/default_configurations", bindings)) {
-            return new RESTAPI_default_configurations(bindings, Logger_);
-        } else if (RESTAPIHandler::ParseBindings(Path, "/api/v1/default_configuration/{name}", bindings)) {
-            return new RESTAPI_default_configuration(bindings, Logger_);
-        } else if (RESTAPIHandler::ParseBindings(Path, "/api/v1/command/{commandUUID}", bindings)) {
-            return new RESTAPI_command(bindings, Logger_);
-        } else if (RESTAPIHandler::ParseBindings(Path, "/api/v1/commands", bindings)) {
-            return new RESTAPI_commands(bindings, Logger_);
-        } else if (RESTAPIHandler::ParseBindings(Path, "/api/v1/file/{uuid}", bindings)) {
-            return new RESTAPI_file(bindings, Logger_);
-		} else if (RESTAPIHandler::ParseBindings(Path, "/api/v1/system", bindings)) {
-			return new RESTAPI_system_command(bindings, Logger_);
-		} else if (RESTAPIHandler::ParseBindings(Path, "/api/v1/blacklist", bindings)) {
-			return new RESTAPI_BlackList(bindings, Logger_);
-		} else if(RESTAPIHandler::ParseBindings(Path, "/api/v1/callbackChannel", bindings)) {
-			return new RESTAPI_callback(bindings, Logger_);
-		} else if(RESTAPIHandler::ParseBindings(Path, "/api/v1/ouis", bindings)) {
-			return new RESTAPI_ouis(bindings, Logger_);
-		}
-		Logger_.error(Poco::format("INVALID-API-ENDPOINT: %s",Path));
-        return new RESTAPI_UnknownRequestHandler(bindings,Logger_);
+		return RESTAPI_Router<	RESTAPI_oauth2Handler,
+								RESTAPI_devices_handler,
+								RESTAPI_device_commandHandler,
+								RESTAPI_default_configurations,
+								RESTAPI_default_configuration,
+								RESTAPI_command,
+								RESTAPI_commands,
+							  	RESTAPI_ouis,
+								RESTAPI_file,
+								RESTAPI_system_command,
+								RESTAPI_BlackList,
+								RESTAPI_callback>(Path,Bindings,Logger_);
     }
 
     void RESTAPI_server::Stop() {

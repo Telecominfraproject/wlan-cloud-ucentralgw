@@ -21,6 +21,7 @@ class RESTAPI_commands : public RESTAPIHandler {
 												  Poco::Net::HTTPRequest::HTTP_OPTIONS}) {}
 	void handleRequest(Poco::Net::HTTPServerRequest &request,
 					   Poco::Net::HTTPServerResponse &response) override;
+	static const std::list<const char *> PathName() { return std::list<const char *>{"/api/v1/commands"};}
 };
 }
 #endif //UCENTRAL_RESTAPI_COMMANDS_H

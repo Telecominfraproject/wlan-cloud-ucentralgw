@@ -57,40 +57,28 @@ namespace uCentral {
 
 	void MicroService::BusMessageReceived(std::string Key, std::string Message) {
 		SubMutexGuard G(InfraMutex_);
-		DBGLINE
 		// std::cout << "Message arrived:" << Key << " ," << Message << std::endl;
 		try {
-			DBGLINE
 			Poco::JSON::Parser	P;
-			DBGLINE
 			auto Object = P.parse(Message).extract<Poco::JSON::Object::Ptr>();
-			DBGLINE
 			if(Object->has("id")) {
-				DBGLINE
 				uint64_t ID = Object->get("id");
-				DBGLINE
 				if(ID!=ID_) {
-					DBGLINE
 					if(	Object->has("event") &&
 						Object->has("type") &&
-						Object->has("endPoint") &&
+						Object->has("publicEndPoint") &&
+						Object->has("privateEndPoint") &&
 						Object->has("version") &&
 						Object->has("key")) {
 						auto Event = Object->get("event").toString();
-						DBGLINE
 
 						if(Event == "keep-alive" && Services_.find(ID)!=Services_.end()) {
-							DBGLINE
 							std::cout << "Keep-alive from " << ID << std::endl;
 							Services_[ID].LastUpdate = std::time(nullptr);
-							DBGLINE
 						} else if (Event=="leave") {
-							DBGLINE
 							Services_.erase(ID);
 							std::cout << "Leave from " << ID << std::endl;
-							DBGLINE
 						} else if (Event== "join" || Event=="keep_alive") {
-							DBGLINE
 							std::cout << "Join from " << ID << std::endl;
 							Services_[ID] = MicroServiceMeta{
 								.Id = ID,
@@ -100,21 +88,18 @@ namespace uCentral {
 								.AccessKey = Object->get("key").toString(),
 								.Version = Object->get("version").toString(),
 								.LastUpdate = (uint64_t )std::time(nullptr) };
-							DBGLINE
 							for(const auto &[Id,Svc]:Services_)
 								std::cout << "ID:" << Id << " Type:" << Svc.Type << " EndPoint:" << Svc.PublicEndPoint << std::endl;
-							DBGLINE
 						} else {
-							DBGLINE
+							std::cout << "Bad packet 2 ..." << std::endl;
 							logger().error(Poco::format("Malformed event from device %Lu, event=%s", ID, Event));
 						}
 					} else {
-						DBGLINE
+						std::cout << "Bad packet 1 ..." << std::endl;
 						logger().error(Poco::format("Malformed event from device %Lu", ID));
 					}
 
 				} else {
-					DBGLINE
 					std::cout << "Ignoring my own messages..." << std::endl;
 				}
 			}

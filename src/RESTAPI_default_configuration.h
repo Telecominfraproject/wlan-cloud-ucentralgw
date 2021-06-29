@@ -22,6 +22,7 @@ class RESTAPI_default_configuration : public RESTAPIHandler {
 							 Poco::Net::HTTPRequest::HTTP_OPTIONS}) {}
 	void handleRequest(Poco::Net::HTTPServerRequest &request,
 					   Poco::Net::HTTPServerResponse &response) override;
+	static const std::list<const char *> PathName() { return std::list<const char *>{"/api/v1/default_configuration/{name}"};}
 };
 }
 #endif //UCENTRAL_RESTAPI_DEFAULT_CONFIGURATION_H

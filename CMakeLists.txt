@@ -57,7 +57,7 @@ add_executable( ucentralgw
                 src/WebSocketServer.cpp src/WebSocketServer.h src/SubSystemServer.cpp src/SubSystemServer.h
                 src/StorageService.cpp src/StorageService.h src/DeviceRegistry.cpp src/DeviceRegistry.h
                 src/RESTAPI_oauth2Handler.cpp src/RESTAPI_oauth2Handler.h src/RESTAPI_devices_handler.cpp src/RESTAPI_devices_handler.h
-                src/RESTAPI_device_handler.cpp src/RESTAPI_device_handler.h src/RESTAPI_unknownRequestHandler.cpp src/RESTAPI_unknownRequestHandler.h
+                src/RESTAPI_device_handler.cpp src/RESTAPI_device_handler.h
                 src/RESTAPI_handler.cpp src/RESTAPI_handler.h src/RESTAPI_device_commandHandler.cpp src/RESTAPI_device_commandHandler.h
                 src/RESTAPI_objects.h src/RESTAPI_objects.cpp src/AuthService.cpp src/AuthService.h src/CentralConfig.cpp src/CentralConfig.h
                 src/RESTAPI_default_configuration.cpp
@@ -71,7 +71,7 @@ add_executable( ucentralgw
                 src/RESTAPI_callback.h src/CallbackManager.cpp src/CallbackManager.h src/FirmwareManager.cpp
                 src/FirmwareManager.h src/storage_firmware_updates.cpp src/StateProcessor.cpp src/StateProcessor.h
                 src/storage_lifetime_stats.cpp src/uCentralProtocol.h src/RESTAPI_protocol.h
-                src/ALBHealthCheckServer.h src/Kafka_topics.h src/uCentralTypes.h src/OUIServer.cpp src/OUIServer.h src/RESTAPI_ouis.cpp src/RESTAPI_ouis.h src/MicroService.cpp src/MicroService.h)
+                src/ALBHealthCheckServer.h src/Kafka_topics.h src/uCentralTypes.h src/OUIServer.cpp src/OUIServer.h src/RESTAPI_ouis.cpp src/RESTAPI_ouis.h src/MicroService.cpp src/MicroService.h src/RESTAPI_RPC.cpp src/RESTAPI_RPC.h)
 
 if(NOT SMALL_BUILD)
     target_sources(ucentralgw PUBLIC src/KafkaManager.cpp src/KafkaManager.h)

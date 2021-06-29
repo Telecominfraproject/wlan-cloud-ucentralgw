@@ -36,7 +36,7 @@ namespace uCentral {
 		RESTAPIHandler(BindingMap map, Poco::Logger &l, std::vector<std::string> Methods)
 			: Bindings_(std::move(map)), Logger_(l), Methods_(std::move(Methods)) {}
 
-		static bool ParseBindings(const std::string & Path, const std::string & Request, BindingMap &Keys);
+		static bool ParseBindings(const std::string & Request, const std::list<const char *> & EndPoints, BindingMap &Keys);
 		void PrintBindings();
 		void ParseParameters(Poco::Net::HTTPServerRequest &request);
 
@@ -67,26 +67,12 @@ namespace uCentral {
 						  Poco::Net::HTTPServerResponse &Response);
 		void NotFound(Poco::Net::HTTPServerRequest &Request, Poco::Net::HTTPServerResponse &Response);
 		void OK(Poco::Net::HTTPServerRequest &Request, Poco::Net::HTTPServerResponse &Response);
-		bool WaitForRPC(uCentral::Objects::CommandDetails &Cmd, Poco::Net::HTTPServerRequest &Request,
-						Poco::Net::HTTPServerResponse &Response, uint64_t Timeout = 5000,
-						bool ReturnObject = true);
 		void ReturnStatus(Poco::Net::HTTPServerRequest &Request,
 						  Poco::Net::HTTPServerResponse &Response,
 						  Poco::Net::HTTPResponse::HTTPStatus Status,
 						  bool CloseConnection=false);
 		void SendFile(Poco::File & File, const std::string & UUID,
 					  Poco::Net::HTTPServerRequest &Request, Poco::Net::HTTPServerResponse &Response);
-
-		void WaitForCommand( uCentral::Objects::CommandDetails &Cmd,
-							 Poco::JSON::Object  & Params,
-							 Poco::Net::HTTPServerRequest &Request,
-							 Poco::Net::HTTPServerResponse &Response,
-							 std::chrono::milliseconds D = std::chrono::milliseconds(8000),
-							 Poco::JSON::Object * ObjectToReturn = nullptr);
-
-		void SetCommandAsPending(uCentral::Objects::CommandDetails &Cmd,
-												 Poco::Net::HTTPServerRequest &Request,
-												 Poco::Net::HTTPServerResponse &Response);
 
 		const std::string &GetBinding(const std::string &Name, const std::string &Default);
 		void InitQueryBlock();
@@ -107,14 +93,52 @@ namespace uCentral {
 		[[nodiscard]] static uint64_t GetWhen(const Poco::JSON::Object::Ptr &Obj);
 
 	  protected:
-		BindingMap Bindings_;
-		Poco::URI::QueryParameters Parameters_;
+		BindingMap 					Bindings_;
+		Poco::URI::QueryParameters 	Parameters_;
 		Poco::Logger &Logger_;
 		std::string SessionToken_;
 		struct uCentral::Objects::WebToken UserInfo_;
 		std::vector<std::string> Methods_;
 		QueryBlock		QB_;
 	};
+
+	class RESTAPI_UnknownRequestHandler : public RESTAPIHandler {
+	  public:
+		RESTAPI_UnknownRequestHandler(const RESTAPIHandler::BindingMap &bindings, Poco::Logger &L)
+			: RESTAPIHandler(bindings, L, std::vector<std::string>{}) {}
+		void handleRequest(Poco::Net::HTTPServerRequest &Request,
+						   Poco::Net::HTTPServerResponse &Response) override {
+			if (!IsAuthorized(Request, Response))
+				return;
+			BadRequest(Request, Response);
+		}
+	};
+
+	template<class T>
+	constexpr auto test_has_PathName_method(T*)
+	-> decltype(  T::PathName() , std::true_type{} )
+	{
+		return std::true_type{};
+	}
+	constexpr auto test_has_PathName_method(...) -> std::false_type
+	{
+		return std::false_type{};
+	}
+
+	template<typename T, typename... Args>
+	RESTAPIHandler * RESTAPI_Router(const std::string & RequestedPath, RESTAPIHandler::BindingMap &Bindings, Poco::Logger & Logger) {
+		static_assert(test_has_PathName_method((T*)nullptr), "Class must have a static PathName() method.");
+		if(RESTAPIHandler::ParseBindings(RequestedPath,T::PathName(),Bindings)) {
+			return new T(Bindings, Logger);
+		}
+
+		if constexpr (sizeof...(Args) == 0) {
+			return new RESTAPI_UnknownRequestHandler(Bindings,Logger);
+		} else {
+			return RESTAPI_Router<Args...>(RequestedPath, Bindings, Logger);
+		}
+	}
+
 }
 
 #endif //UCENTRAL_RESTAPI_HANDLER_H

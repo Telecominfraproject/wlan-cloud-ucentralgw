@@ -21,6 +21,7 @@ class RESTAPI_callback : public RESTAPIHandler {
 	void handleRequest(Poco::Net::HTTPServerRequest &request,
 					   Poco::Net::HTTPServerResponse &response) override;
 	void DoPost(Poco::Net::HTTPServerRequest &request, Poco::Net::HTTPServerResponse &response);
+	static const std::list<const char *> PathName() { return std::list<const char *>{"/api/v1/callbackChannel"};}
 };
 }
 

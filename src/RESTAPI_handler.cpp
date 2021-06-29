@@ -11,44 +11,44 @@
 #include <iostream>
 #include <iterator>
 #include <future>
-#include <numeric>
 #include <chrono>
 
 #include "Poco/URI.h"
-#include "Poco/DateTimeParser.h"
 
 #include "AuthService.h"
-#include "CommandManager.h"
-#include "DeviceRegistry.h"
 #include "RESTAPI_handler.h"
 #include "RESTAPI_protocol.h"
-#include "StorageService.h"
 #include "Utils.h"
-
-#define DBG		std::cout << __LINE__ << "   " __FILE__ << std::endl;
 
 namespace uCentral {
 
-	bool RESTAPIHandler::ParseBindings(const std::string & Request, const std::string & Path, BindingMap &bindings) {
+	bool RESTAPIHandler::ParseBindings(const std::string & Request, const std::list<const char *> & EndPoints, BindingMap &bindings) {
 		std::string Param, Value;
 
 		bindings.clear();
-		std::vector<std::string>	PathItems = uCentral::Utils::Split(Path,'/');
-		std::vector<std::string>	ParamItems = uCentral::Utils::Split(Request,'/');
+		std::vector<std::string> PathItems = uCentral::Utils::Split(Request, '/');
 
-		if(PathItems.size()!=ParamItems.size())
-			return false;
+		for(const auto &EndPoint:EndPoints) {
+			std::vector<std::string> ParamItems = uCentral::Utils::Split(EndPoint, '/');
+			if (PathItems.size() != ParamItems.size())
+				continue;
 
-		for(auto i=0;i!=PathItems.size();i++) {
-			if (PathItems[i] != ParamItems[i]) {
-				if (PathItems[i][0] == '{') {
-					auto ParamName = PathItems[i].substr(1, PathItems[i].size() - 2);
-					bindings[ParamName] = ParamItems[i];
-				} else
-					return false;
+			bool Matched = true;
+			for (auto i = 0; i != PathItems.size() && Matched; i++) {
+				// std::cout << "PATH:" << PathItems[i] << "  ENDPOINT:" << ParamItems[i] << std::endl;
+				if (PathItems[i] != ParamItems[i]) {
+					if (ParamItems[i][0] == '{') {
+						auto ParamName = ParamItems[i].substr(1, ParamItems[i].size() - 2);
+						bindings[ParamName] = PathItems[i];
+					} else {
+						Matched = false;
+					}
+				}
 			}
+			if(Matched)
+				return true;
 		}
-		return true;
+		return false;
 	}
 
 	void RESTAPIHandler::PrintBindings() {
@@ -225,117 +225,6 @@ namespace uCentral {
 			Response.setChunkedTransferEncoding(false);
 		}
 		Response.send();
-	}
-
-	void RESTAPIHandler::SetCommandAsPending(uCentral::Objects::CommandDetails &Cmd,
-							 Poco::Net::HTTPServerRequest &Request,
-							 Poco::Net::HTTPServerResponse &Response) {
-		if (Storage()->AddCommand(Cmd.SerialNumber, Cmd, Storage::COMMAND_PENDING)) {
-			Poco::JSON::Object RetObj;
-			Cmd.to_json(RetObj);
-			ReturnObject(Request, RetObj, Response);
-			return;
-		} else {
-			ReturnStatus(Request, Response,
-						 Poco::Net::HTTPResponse::HTTP_INTERNAL_SERVER_ERROR);
-			return;
-		}
-	}
-
-	void RESTAPIHandler::WaitForCommand(uCentral::Objects::CommandDetails &Cmd,
-		Poco::JSON::Object  & Params,
-		Poco::Net::HTTPServerRequest &Request,
-		Poco::Net::HTTPServerResponse &Response,
-		std::chrono::milliseconds D,
-		Poco::JSON::Object * ObjectToReturn) {
-
-		// 	if the command should be executed in the future, or if the device is not connected, then we should just add the command to
-		//	the DB and let it figure out when to deliver the command.
-		if(Cmd.RunAt || !DeviceRegistry()->Connected(Cmd.SerialNumber)) {
-			SetCommandAsPending(Cmd, Request, Response);
-			return;
-		} else if(Cmd.RunAt==0 && DeviceRegistry()->Connected(Cmd.SerialNumber)) {
-			auto Promise = std::make_shared<std::promise<Poco::JSON::Object::Ptr>>();
-			std::future<Poco::JSON::Object::Ptr> Future = Promise->get_future();
-
-			Cmd.Executed = time(nullptr);
-
-			if (CommandManager()->SendCommand(Cmd.SerialNumber, Cmd.Command, Params, Promise, Cmd.UUID)) {
-				auto Status = Future.wait_for(D);
-				if (Status == std::future_status::ready) {
-					auto Answer = Future.get();
-
-					if (Answer->has("result") && Answer->isObject("result")) {
-						auto ResultFields =
-							Answer->get("result").extract<Poco::JSON::Object::Ptr>();
-						if (ResultFields->has("status") && ResultFields->isObject("status")) {
-							auto StatusInnerObj =
-								ResultFields->get("status").extract<Poco::JSON::Object::Ptr>();
-							if (StatusInnerObj->has("error"))
-								Cmd.ErrorCode = StatusInnerObj->get("error");
-							if (StatusInnerObj->has("text"))
-								Cmd.ErrorText = StatusInnerObj->get("text").toString();
-							std::stringstream ResultText;
-							Poco::JSON::Stringifier::stringify(Answer->get("result"), ResultText);
-							Cmd.Results = ResultText.str();
-							Cmd.Status = "completed";
-							Cmd.Completed = time(nullptr);
-
-							//	Add the completed command to the database...
-							Storage()->AddCommand(Cmd.SerialNumber, Cmd,Storage::COMMAND_COMPLETED);
-
-							if(ObjectToReturn) {
-								ReturnObject(Request, *ObjectToReturn, Response);
-							} else {
-								Poco::JSON::Object O;
-								Cmd.to_json(O);
-								ReturnObject(Request, O, Response);
-							}
-							return;
-						}
-					} else {
-						SetCommandAsPending(Cmd, Request, Response);
-						return;
-					}
-				} else {
-					SetCommandAsPending(Cmd, Request, Response);
-					return;
-				}
-			} else {
-				SetCommandAsPending(Cmd, Request, Response);
-				return;
-			}
-		}
-	}
-
-	bool RESTAPIHandler::WaitForRPC(uCentral::Objects::CommandDetails &Cmd,
-									Poco::Net::HTTPServerRequest &Request,
-									Poco::Net::HTTPServerResponse &Response, uint64_t Timeout,
-									bool ReturnValue) {
-
-		if (DeviceRegistry()->Connected(Cmd.SerialNumber)) {
-			uCentral::Objects::CommandDetails ResCmd;
-			while (Timeout > 0) {
-				Timeout -= 1000;
-				Poco::Thread::sleep(1000);
-				if (Storage()->GetCommand(Cmd.UUID, ResCmd)) {
-					if (ResCmd.Completed) {
-						if (ReturnValue) {
-							Poco::JSON::Object RetObj;
-							ResCmd.to_json(RetObj);
-							ReturnObject(Request, RetObj, Response);
-						}
-						return true;
-					}
-				}
-			}
-		}
-		if (ReturnValue) {
-			Poco::JSON::Object RetObj;
-			Cmd.to_json(RetObj);
-			ReturnObject(Request, RetObj, Response);
-		}
-		return false;
 	}
 
 	bool RESTAPIHandler::ContinueProcessing(Poco::Net::HTTPServerRequest &Request,

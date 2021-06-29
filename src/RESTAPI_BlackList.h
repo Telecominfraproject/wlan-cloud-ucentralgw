@@ -26,6 +26,7 @@ namespace uCentral {
 		void DoGet(Poco::Net::HTTPServerRequest &request, Poco::Net::HTTPServerResponse &response);
 		void DoDelete(Poco::Net::HTTPServerRequest &request, Poco::Net::HTTPServerResponse &response);
 		void DoPost(Poco::Net::HTTPServerRequest &request, Poco::Net::HTTPServerResponse &response);
+		static const std::list<const char *> PathName() { return std::list<const char *>{"/api/v1/blacklist"};}
 	};
 }
 

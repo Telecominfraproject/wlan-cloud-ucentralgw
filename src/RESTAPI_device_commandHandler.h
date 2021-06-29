@@ -51,6 +51,8 @@ class RESTAPI_device_commandHandler : public RESTAPIHandler {
 	void EventQueue(Poco::Net::HTTPServerRequest &Request, Poco::Net::HTTPServerResponse &Response);
 	void Rtty(Poco::Net::HTTPServerRequest &Request, Poco::Net::HTTPServerResponse &Response);
 
+	static const std::list<const char *> PathName() { return std::list<const char *>{"/api/v1/device/{serialNumber}/{command}"}; };
+
   private:
 	std::string SerialNumber_;
 };
