@@ -85,7 +85,7 @@ jobs:
         UCENTRALGW: "${{ github.sha }}.cicd.lab.wlan.tip.build:16001"
         FLAGS: "-s --resolve $UCENTRALGW:127.0.0.1"
       run: |
-        apt-get install jq
+        sudo apt-get install jq
         ./test_scripts/curl/cli listdevices
 
     # disable until repo is public
