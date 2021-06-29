@@ -39,7 +39,9 @@ jobs:
       env:
         DOCKER_COMPOSE_PROJECT_NAME: ucentral-${{ github.sha }}
         UCENTRALGW_TAG: ${{ github.sha }}      
-      run: docker-compose -f docker-compose/docker-compose.yml --project-directory docker-compose/ up -d
+      run: | 
+        docker-compose -f docker-compose/docker-compose.yml --project-directory docker-compose/ up -d
+        sleep 10
 
     - name: Check functionality of uCentralGW
       env: 
@@ -48,10 +50,3 @@ jobs:
       run: |
         apt-get install jq
         ./test_scripts/curl/cli listdevices 
-
-    - name: Re-tag image if test was successful and PR was merged
-      if: ${{ success() }} && github.event.pull_request.merged == true
-      run:  
-        docker pull ${{ env.DOCKER_REGISTRY_URL }}/ucentralgw:${{ github.sha }}
-        docker tag ${{ env.DOCKER_REGISTRY_URL }}/ucentralgw:${{ github.sha }} ${{ env.DOCKER_REGISTRY_URL }}/ucentralgw:master
-        docker push ${{ env.DOCKER_REGISTRY_URL }}/ucentralgw:master
