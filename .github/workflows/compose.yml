@@ -16,6 +16,16 @@ jobs:
     - name: Check out repository
       uses: actions/checkout@v2
 
+    - name: Log into Docker registry
+      env:
+        DOCKER_REGISTRY_URL: tip-tip-wlan-cloud-ucentral.jfrog.io
+        DOCKER_REGISTRY_USERNAME: ucentral
+      uses: docker/login-action@v1
+      with:
+        registry: ${{ env.DOCKER_REGISTRY_URL }}
+        username: ${{ env.DOCKER_REGISTRY_USERNAME }}
+        password: ${{ secrets.DOCKER_REGISTRY_PASSWORD }}
+
     - name: Create certificate and key files from Github secrets
       env: 
         DIGICERT_TIP_WILDCARD_CERT: ${{ secrets.DIGICERT_TIP_WILDCARD_CERT }}
@@ -38,3 +48,10 @@ jobs:
       run: |
         apt-get install jq
         ./test_scripts/curl/cli listdevices 
+
+    - name: Re-tag image if test was successful and PR was merged
+      if: ${{ success() }} && github.event.pull_request.merged == true
+      run:  
+        docker pull ${{ env.DOCKER_REGISTRY_URL }}/ucentralgw:${{ github.sha }}
+        docker tag ${{ env.DOCKER_REGISTRY_URL }}/ucentralgw:${{ github.sha }} ${{ env.DOCKER_REGISTRY_URL }}/ucentralgw:master
+        docker push ${{ env.DOCKER_REGISTRY_URL }}/ucentralgw:master
