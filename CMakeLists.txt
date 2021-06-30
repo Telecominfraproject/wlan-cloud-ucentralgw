@@ -61,6 +61,7 @@ add_executable( ucentralgw
                 src/RESTAPI_handler.cpp src/RESTAPI_handler.h src/RESTAPI_device_commandHandler.cpp src/RESTAPI_device_commandHandler.h
                 src/RESTAPI_objects.h src/RESTAPI_objects.cpp src/AuthService.cpp src/AuthService.h src/CentralConfig.cpp src/CentralConfig.h
                 src/RESTAPI_default_configuration.cpp
+                src/RESTAPI_InternalServer.cpp src/RESTAPI_InternalServer.h
                 src/RESTAPI_default_configuration.h src/RESTAPI_default_configurations.cpp src/RESTAPI_default_configurations.h src/RESTAPI_commands.cpp
                 src/RESTAPI_commands.h src/CommandManager.cpp src/CommandManager.h src/RESTAPI_command.cpp src/RESTAPI_command.h
                 src/FileUploader.cpp src/FileUploader.h src/RESTAPI_file.cpp src/RESTAPI_file.h src/CommandChannel.cpp src/CommandChannel.h

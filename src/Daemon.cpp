@@ -28,6 +28,7 @@
 #include "OUIServer.h"
 #include "StateProcessor.h"
 #include "Utils.h"
+#include "RESTAPI_InternalServer.h"
 
 namespace uCentral {
 	class Daemon *Daemon::instance_ = nullptr;
@@ -43,6 +44,7 @@ namespace uCentral {
 									   AuthService(),
 									   DeviceRegistry(),
 									   RESTAPI_server(),
+//									   RESTAPI_InternalServer(),
 									   WebSocketServer(),
 									   CommandManager(),
 									   FileUploader(),

@@ -70,6 +70,7 @@ namespace uCentral {
 
 		return RESTAPI_Router<	RESTAPI_oauth2Handler,
 								RESTAPI_devices_handler,
+							  	RESTAPI_device_handler,
 								RESTAPI_device_commandHandler,
 								RESTAPI_default_configurations,
 								RESTAPI_default_configuration,

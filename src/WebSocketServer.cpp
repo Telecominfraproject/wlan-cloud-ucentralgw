@@ -323,6 +323,9 @@ namespace uCentral {
 			E.rethrow();
 		}
 
+		if(Conn_!= nullptr)
+			Conn_->LastContact = std::time(nullptr);
+
 		switch(EventType) {
 			case uCentralProtocol::ET_CONNECT: {
 				if( ParamsObj->has(uCentralProtocol::UUID) &&
@@ -338,6 +341,7 @@ namespace uCentral {
 						Conn_->UUID = UUID;
 						Conn_->Firmware = Firmware;
 						Conn_->PendingUUID = 0;
+						Conn_->LastContact = std::time(nullptr);
 						Conn_->Address = uCentral::Utils::FormatIPv6(WS_->peerAddress().toString());
 						CId_ = SerialNumber_ + "@" + CId_ ;
 
