@@ -22,6 +22,8 @@ spec:
       {{- end }}
   template:
     metadata:
+      annotations:
+        checksum/config: {{ include "ucentralgw.config" . | sha256sum }}
       labels:
         app.kubernetes.io/name: {{ include "ucentralgw.name" . }}
         app.kubernetes.io/instance: {{ .Release.Name }}
