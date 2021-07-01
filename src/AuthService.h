@@ -56,7 +56,6 @@ namespace uCentral {
 		std::string     	DefaultUserName_;
 		std::string			DefaultPassword_;
 		std::string     	Mechanism_;
-		bool            	AutoProvisioning_ = false ;
 		Poco::JWT::Signer	Signer_;
 		Poco::SHA2Engine	SHA2_;
 

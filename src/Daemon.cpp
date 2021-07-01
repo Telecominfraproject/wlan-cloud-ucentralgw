@@ -44,7 +44,7 @@ namespace uCentral {
 									   AuthService(),
 									   DeviceRegistry(),
 									   RESTAPI_server(),
-//									   RESTAPI_InternalServer(),
+									   RESTAPI_InternalServer(),
 									   WebSocketServer(),
 									   CommandManager(),
 									   FileUploader(),

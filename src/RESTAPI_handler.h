@@ -50,15 +50,17 @@ namespace uCentral {
 						bool CloseConnection = false);
 		bool ContinueProcessing(Poco::Net::HTTPServerRequest &Request,
 								Poco::Net::HTTPServerResponse &Response);
+
 		bool IsAuthorized(Poco::Net::HTTPServerRequest &Request,
 						  Poco::Net::HTTPServerResponse &Response);
 		bool IsAuthorized(Poco::Net::HTTPServerRequest &Request,
 						  Poco::Net::HTTPServerResponse &Response, std::string &UserName);
+		bool ValidateAPIKey(Poco::Net::HTTPServerRequest &Request,
+							Poco::Net::HTTPServerResponse &Response);
+
 		uint64_t GetParameter(const std::string &Name, uint64_t Default);
 		std::string GetParameter(const std::string &Name, const std::string &Default);
 		bool GetBoolParameter(const std::string &Name, bool Default);
-		bool ValidateAPIKey(Poco::Net::HTTPServerRequest &Request,
-							Poco::Net::HTTPServerResponse &Response);
 
 		void BadRequest(Poco::Net::HTTPServerRequest &Request, Poco::Net::HTTPServerResponse &Response);
 		void UnAuthorized(Poco::Net::HTTPServerRequest &Request,
@@ -95,11 +97,11 @@ namespace uCentral {
 	  protected:
 		BindingMap 					Bindings_;
 		Poco::URI::QueryParameters 	Parameters_;
-		Poco::Logger &Logger_;
-		std::string SessionToken_;
+		Poco::Logger 				&Logger_;
+		std::string 				SessionToken_;
 		struct uCentral::Objects::WebToken UserInfo_;
-		std::vector<std::string> Methods_;
-		QueryBlock		QB_;
+		std::vector<std::string> 	Methods_;
+		QueryBlock					QB_;
 	};
 
 	class RESTAPI_UnknownRequestHandler : public RESTAPIHandler {
