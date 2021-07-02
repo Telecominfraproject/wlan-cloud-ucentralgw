@@ -20,15 +20,12 @@ namespace uCentral {
 	void RESTAPI_devices_handler::handleRequest(Poco::Net::HTTPServerRequest &Request,
 												Poco::Net::HTTPServerResponse &Response) {
 
-		DBGLINE
 		if (!ContinueProcessing(Request, Response))
 			return;
-		DBGLINE
 
 		if (!IsAuthorized(Request, Response))
 			return;
 
-		DBGLINE
 		try {
 			if (Request.getMethod() == Poco::Net::HTTPRequest::HTTP_GET) {
 				ParseParameters(Request);
