@@ -53,26 +53,42 @@ include_directories(/usr/local/include  /usr/local/opt/openssl/include src inclu
 
 add_executable( ucentralgw
                 build
-                src/Daemon.cpp src/Daemon.h src/RESTAPI_server.cpp src/RESTAPI_server.h
-                src/WebSocketServer.cpp src/WebSocketServer.h src/SubSystemServer.cpp src/SubSystemServer.h
-                src/StorageService.cpp src/StorageService.h src/DeviceRegistry.cpp src/DeviceRegistry.h
-                src/RESTAPI_oauth2Handler.cpp src/RESTAPI_oauth2Handler.h src/RESTAPI_devices_handler.cpp src/RESTAPI_devices_handler.h
+                src/Daemon.cpp src/Daemon.h
+                src/RESTAPI_server.cpp src/RESTAPI_server.h
+                src/WebSocketServer.cpp src/WebSocketServer.h
+                src/SubSystemServer.cpp src/SubSystemServer.h
+                src/StorageService.cpp src/StorageService.h
+                src/RESTAPI_SecurityObjects.cpp src/RESTAPI_SecurityObjects.h
+                src/DeviceRegistry.cpp src/DeviceRegistry.h
+                src/RESTAPI_devices_handler.cpp src/RESTAPI_devices_handler.h
                 src/RESTAPI_device_handler.cpp src/RESTAPI_device_handler.h
-                src/RESTAPI_handler.cpp src/RESTAPI_handler.h src/RESTAPI_device_commandHandler.cpp src/RESTAPI_device_commandHandler.h
-                src/RESTAPI_objects.h src/RESTAPI_objects.cpp src/AuthService.cpp src/AuthService.h src/CentralConfig.cpp src/CentralConfig.h
+                src/RESTAPI_handler.cpp src/RESTAPI_handler.h
+                src/RESTAPI_device_commandHandler.cpp src/RESTAPI_device_commandHandler.h
+                src/RESTAPI_objects.h src/RESTAPI_objects.cpp
+                src/CentralConfig.cpp src/CentralConfig.h
                 src/RESTAPI_default_configuration.cpp
                 src/RESTAPI_InternalServer.cpp src/RESTAPI_InternalServer.h
-                src/RESTAPI_default_configuration.h src/RESTAPI_default_configurations.cpp src/RESTAPI_default_configurations.h src/RESTAPI_commands.cpp
-                src/RESTAPI_commands.h src/CommandManager.cpp src/CommandManager.h src/RESTAPI_command.cpp src/RESTAPI_command.h
-                src/FileUploader.cpp src/FileUploader.h src/RESTAPI_file.cpp src/RESTAPI_file.h src/CommandChannel.cpp src/CommandChannel.h
-                src/RESTAPI_system_command.cpp src/RESTAPI_system_command.h src/RESTAPI_BlackList.cpp src/RESTAPI_BlackList.h src/Utils.h src/Utils.cpp src/storage_blacklist.cpp src/storage_identity.cpp
+                src/RESTAPI_default_configuration.h src/RESTAPI_default_configurations.cpp src/RESTAPI_default_configurations.h
+                src/RESTAPI_commands.cpp src/RESTAPI_commands.h
+                src/CommandManager.cpp src/CommandManager.h
+                src/RESTAPI_command.cpp src/RESTAPI_command.h
+                src/FileUploader.cpp src/FileUploader.h
+                src/RESTAPI_file.cpp src/RESTAPI_file.h
+                src/CommandChannel.cpp src/CommandChannel.h
+                src/RESTAPI_system_command.cpp src/RESTAPI_system_command.h
+                src/RESTAPI_BlackList.cpp src/RESTAPI_BlackList.h
+                src/Utils.h src/Utils.cpp src/storage_blacklist.cpp
                 src/storage_command.cpp src/storage_healthcheck.cpp src/storage_statistics.cpp src/storage_logs.cpp
                 src/storage_device.cpp src/storage_capabilities.cpp src/storage_defconfig.cpp src/storage_sqlite.cpp
                 src/storage_mysql.cpp src/storage_pgql.cpp src/storage_odbc.cpp src/storage_tables.cpp src/RESTAPI_callback.cpp
-                src/RESTAPI_callback.h src/CallbackManager.cpp src/CallbackManager.h src/FirmwareManager.cpp
-                src/FirmwareManager.h src/storage_firmware_updates.cpp src/StateProcessor.cpp src/StateProcessor.h
+                src/RESTAPI_callback.h src/CallbackManager.cpp src/CallbackManager.h
+                src/StateProcessor.cpp src/StateProcessor.h
                 src/storage_lifetime_stats.cpp src/uCentralProtocol.h src/RESTAPI_protocol.h
-                src/ALBHealthCheckServer.h src/Kafka_topics.h src/uCentralTypes.h src/OUIServer.cpp src/OUIServer.h src/RESTAPI_ouis.cpp src/RESTAPI_ouis.h src/MicroService.cpp src/MicroService.h src/RESTAPI_RPC.cpp src/RESTAPI_RPC.h)
+                src/ALBHealthCheckServer.h src/Kafka_topics.h src/uCentralTypes.h
+                src/OUIServer.cpp src/OUIServer.h
+                src/RESTAPI_ouis.cpp src/RESTAPI_ouis.h
+                src/MicroService.cpp src/MicroService.h
+                src/RESTAPI_RPC.cpp src/RESTAPI_RPC.h src/AuthClient.cpp src/AuthClient.h src/OpenAPIRequest.cpp src/OpenAPIRequest.h)
 
 if(NOT SMALL_BUILD)
     target_sources(ucentralgw PUBLIC src/KafkaManager.cpp src/KafkaManager.h)
