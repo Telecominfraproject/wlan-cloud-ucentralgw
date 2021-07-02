@@ -30,8 +30,8 @@ namespace uCentral {
 		if(User!=UserCache_.end())
 			std::cout << "User cached..." << std::endl;
 
-		if(User != UserCache_.end() && !IsTokenExpired(User->second.WebToken)) {
-			WebToken = User->second.WebToken;
+		if(User != UserCache_.end() && !IsTokenExpired(User->second.webtoken)) {
+			WebToken = User->second.webtoken;
 			std::cout << "User cached..." << std::endl;
 			return true;
 		} else {

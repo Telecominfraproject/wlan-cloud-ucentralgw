@@ -292,16 +292,16 @@ namespace uCentral::SecurityObjects {
 
 	void UserInfoAndPolicy::to_json(Poco::JSON::Object &Obj) const {
 		Poco::JSON::Object	UI, TI;
-		UserInfo.to_json(UI);
-		WebToken.to_json(TI);
+		userinfo.to_json(UI);
+		webtoken.to_json(TI);
 		Obj.set("tokenInfo",TI);
 		Obj.set("userInfo",UI);
 	}
 
 	bool UserInfoAndPolicy::from_json(const Poco::JSON::Object::Ptr &Obj) {
 		try {
-			field_from_json(Obj, "tokenInfo", WebToken);
-			field_from_json(Obj, "userInfo", UserInfo);
+			field_from_json(Obj, "tokenInfo", webtoken);
+			field_from_json(Obj, "userInfo", userinfo);
 			return true;
 		} catch(...) {
 
