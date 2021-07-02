@@ -21,6 +21,7 @@ namespace uCentral {
 
 	void AuthClient::RemovedCachedToken(const std::string &Token) {
 		SubMutexGuard G(Mutex_);
+		std::cout << "Removing cached token..." << std::endl;
 		UserCache_.erase(Token);
 	}
 
@@ -32,9 +33,6 @@ namespace uCentral {
 		SubMutexGuard G(Mutex_);
 
 		auto User = UserCache_.find(SessionToken);
-		if(User!=UserCache_.end())
-			std::cout << "User cached..." << std::endl;
-
 		if(User != UserCache_.end() && !IsTokenExpired(User->second.webtoken)) {
 			WebToken = User->second.webtoken;
 			std::cout << "User cached..." << std::endl;
@@ -52,9 +50,11 @@ namespace uCentral {
 					SecurityObjects::UserInfoAndPolicy	P;
 					P.from_json(Response);
 					UserCache_[SessionToken] = P;
+					std::cout << "Adding user to cache..." << std::endl;
 				}
 				return true;
 			}
+
 		}
 		return false;
 	}
