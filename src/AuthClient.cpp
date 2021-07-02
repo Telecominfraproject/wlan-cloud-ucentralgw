@@ -19,6 +19,11 @@ namespace uCentral {
 
 	}
 
+	void AuthClient::RemovedCachedToken(const std::string &Token) {
+		SubMutexGuard G(Mutex_);
+		UserCache_.erase(Token);
+	}
+
 	bool IsTokenExpired(const SecurityObjects::WebToken &T) {
 		return ((T.expires_in_+T.created_)<std::time(nullptr));
 	}

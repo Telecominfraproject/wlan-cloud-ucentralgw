@@ -32,6 +32,7 @@ namespace uCentral {
 		int Start() override;
 		void Stop() override;
 		bool IsAuthorized(Poco::Net::HTTPServerRequest & Request, std::string &SessionToken, SecurityObjects::WebToken & UserInfo );
+		void RemovedCachedToken(const std::string &Token);
 
 	  private:
 		static AuthClient 						*instance_;

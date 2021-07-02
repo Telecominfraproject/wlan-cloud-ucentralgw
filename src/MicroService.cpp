@@ -30,6 +30,10 @@
 #include "MicroService.h"
 #include "Utils.h"
 
+#ifndef TIP_SECURITY_SERVICE
+#include "AuthClient.h"
+#endif
+
 namespace uCentral {
 
 	void MyErrorHandler::exception(const Poco::Exception & E) {
@@ -56,26 +60,23 @@ namespace uCentral {
 		SubMutexGuard G(InfraMutex_);
 		// std::cout << "Message arrived:" << Key << " ," << Message << std::endl;
 		try {
-			Poco::JSON::Parser	P;
+			Poco::JSON::Parser P;
 			auto Object = P.parse(Message).extract<Poco::JSON::Object::Ptr>();
-			if(Object->has("id")) {
+			if (Object->has("id")) {
 				uint64_t ID = Object->get("id");
-				if(ID!=ID_) {
-					if(	Object->has("event") &&
-						Object->has("type") &&
-						Object->has("publicEndPoint") &&
-						Object->has("privateEndPoint") &&
-						Object->has("version") &&
-						Object->has("key")) {
+				if (ID != ID_) {
+					if (Object->has("event") && Object->has("type") &&
+						Object->has("publicEndPoint") && Object->has("privateEndPoint") &&
+						Object->has("version") && Object->has("key")) {
 						auto Event = Object->get("event").toString();
 
-						if(Event == "keep-alive" && Services_.find(ID)!=Services_.end()) {
+						if (Event == "keep-alive" && Services_.find(ID) != Services_.end()) {
 							// std::cout << "Keep-alive from " << ID << std::endl;
 							Services_[ID].LastUpdate = std::time(nullptr);
-						} else if (Event=="leave") {
+						} else if (Event == "leave") {
 							Services_.erase(ID);
 							std::cout << "Leave from " << ID << std::endl;
-						} else if (Event== "join" || Event=="keep-alive") {
+						} else if (Event == "join" || Event == "keep-alive") {
 							std::cout << "Join from " << ID << std::endl;
 							Services_[ID] = MicroServiceMeta{
 								.Id = ID,
@@ -84,21 +85,28 @@ namespace uCentral {
 								.PublicEndPoint = Object->get("publicEndPoint").toString(),
 								.AccessKey = Object->get("key").toString(),
 								.Version = Object->get("version").toString(),
-								.LastUpdate = (uint64_t )std::time(nullptr) };
-							for(const auto &[Id,Svc]:Services_)
-								std::cout << "ID:" << Id << " Type:" << Svc.Type << " EndPoint:" << Svc.PublicEndPoint << std::endl;
+								.LastUpdate = (uint64_t)std::time(nullptr)};
+							for (const auto &[Id, Svc] : Services_)
+								std::cout << "ID:" << Id << " Type:" << Svc.Type
+										  << " EndPoint:" << Svc.PublicEndPoint << std::endl;
 						} else {
 							std::cout << "Bad packet 2 ..." << Event << std::endl;
-							logger().error(Poco::format("Malformed event from device %Lu, event=%s", ID, Event));
+							logger().error(Poco::format("Malformed event from device %Lu, event=%s",
+														ID, Event));
 						}
-					} else {
+					} else if (Object->has("event") &&
+							   Object->get("event").toString() == "remove-token" &&
+							   Object->has("token")) {
+#ifndef TIP_SECURITY_SERVICE
+							AuthClient()->RemovedCachedToken(Object->get("token").toString());
+#endif
+					} else
 						std::cout << "Bad packet 1 ..." << std::endl;
-						logger().error(Poco::format("Malformed event from device %Lu", ID));
-					}
-
-				} else {
-					// std::cout << "Ignoring my own messages..." << std::endl;
+					logger().error(Poco::format("Malformed event from device %Lu", ID));
 				}
+
+			} else {
+				// std::cout << "Ignoring my own messages..." << std::endl;
 			}
 		} catch (const Poco::Exception &E) {
 			logger().log(E);
