@@ -33,7 +33,8 @@ namespace uCentral {
 	static const char * vDAEMON_PROPERTIES_FILENAME = "ucentral.properties";
 	static const char * vDAEMON_ROOT_ENV_VAR = "UCENTRAL_ROOT";
 	static const char * vDAEMON_CONFIG_ENV_VAR = "UCENTRAL_CONFIG";
-	static const char * vDAEMON_APP_NAME = "uCentral";
+	static const char * vDAEMON_APP_NAME = uSERVICE_GATEWAY.c_str();
+	static const uint64_t vDAEMON_BUS_TIMER = 10000;
 
     class Daemon : public MicroService {
 		public:
@@ -41,14 +42,15 @@ namespace uCentral {
 							std::string RootEnv,
 							std::string ConfigEnv,
 							std::string AppName,
+						  	uint64_t 	BusTimer,
 							Types::SubSystemVec SubSystems) :
-				MicroService( PropFile, RootEnv, ConfigEnv, AppName, SubSystems) {};
+				MicroService( PropFile, RootEnv, ConfigEnv, AppName, BusTimer, SubSystems) {};
 
 			bool AutoProvisioning() const { return AutoProvisioning_ ; }
 			[[nodiscard]] std::string IdentifyDevice(const std::string & Compatible) const;
 			void initialize(Poco::Util::Application &self);
 			static Daemon *instance();
-			private:
+	  	private:
 			static Daemon 				*instance_;
 			bool                        AutoProvisioning_ = false;
 			Types::StringMapStringSet   DeviceTypeIdentifications_;

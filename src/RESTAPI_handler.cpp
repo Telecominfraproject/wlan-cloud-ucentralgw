@@ -14,8 +14,14 @@
 #include <chrono>
 
 #include "Poco/URI.h"
+#include "Poco/Net/OAuth20Credentials.h"
 
+#ifdef	TIP_SECURITY_SERVICE
 #include "AuthService.h"
+#else
+#include "AuthClient.h"
+#endif
+
 #include "RESTAPI_handler.h"
 #include "RESTAPI_protocol.h"
 #include "Utils.h"
@@ -246,7 +252,22 @@ namespace uCentral {
 
 	bool RESTAPIHandler::IsAuthorized(Poco::Net::HTTPServerRequest &Request,
 									  Poco::Net::HTTPServerResponse &Response) {
-		if (uCentral::AuthService()->IsAuthorized(Request, SessionToken_, UserInfo_)) {
+		if(SessionToken_.empty()) {
+			try {
+				Poco::Net::OAuth20Credentials Auth(Request);
+
+				if (Auth.getScheme() == "Bearer") {
+					SessionToken_ = Auth.getBearerToken();
+				}
+			} catch(const Poco::Exception &E) {
+				Logger_.log(E);
+			}
+		}
+#ifdef	TIP_SECURITY_SERVICE
+		if (AuthService()->IsAuthorized(Request, SessionToken_, UserInfo_)) {
+#else
+		if (AuthClient()->IsAuthorized(Request, SessionToken_, UserInfo_)) {
+#endif
 			return true;
 		} else {
 			UnAuthorized(Request, Response);
@@ -257,7 +278,11 @@ namespace uCentral {
 	bool RESTAPIHandler::IsAuthorized(Poco::Net::HTTPServerRequest &Request,
 									  Poco::Net::HTTPServerResponse &Response, std::string &UserName) {
 
-		if (uCentral::AuthService()->IsAuthorized(Request, SessionToken_, UserInfo_)) {
+#ifdef	TIP_SECURITY_SERVICE
+		if (AuthService()->IsAuthorized(Request, SessionToken_, UserInfo_)) {
+#else
+		if (AuthClient()->IsAuthorized(Request, SessionToken_, UserInfo_)) {
+#endif
 			UserName = UserInfo_.username_;
 			return true;
 		} else {

@@ -13,28 +13,6 @@
 
 namespace uCentral::Objects {
 
-	struct AclTemplate {
-		bool Read_ = true ;
-		bool ReadWrite_ = true ;
-		bool ReadWriteCreate_ = true ;
-		bool Delete_ = true ;
-		bool PortalLogin_ = true ;
-		void to_json(Poco::JSON::Object &Obj) const ;
-	};
-
-	struct WebToken {
-		std::string access_token_;
-		std::string refresh_token_;
-		std::string id_token_;
-		std::string token_type_;
-		std::string username_;
-		unsigned int expires_in_;
-		unsigned int idle_timeout_;
-		AclTemplate acl_template_;
-		uint64_t    created_;
-		void to_json(Poco::JSON::Object &Obj) const ;
-	};
-
 	enum CertificateValidation {
 		NO_CERTIFICATE,
 		VALID_CERTIFICATE,
@@ -161,18 +139,6 @@ namespace uCentral::Objects {
 		std::string Reason;
 		std::string Author;
 		uint64_t Created;
-		void to_json(Poco::JSON::Object &Obj) const;
-	};
-
-	struct PendingFirmwareUpgrade {
-		std::string SerialNumber;
-		std::string CommandUUID;
-		std::string NewFirmware;
-		std::string OldFirmware;
-		std::string URI;
-		uint64_t 	ScheduledAt;
-		uint64_t 	Created;
-		uint64_t 	UpdateDone;
 		void to_json(Poco::JSON::Object &Obj) const;
 	};
 

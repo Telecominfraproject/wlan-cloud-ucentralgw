@@ -6,7 +6,7 @@
 //	Arilia Wireless Inc.
 //
 #include "CommandChannel.h"
-#include "AuthService.h"
+#include "AuthClient.h"
 #include "CommandManager.h"
 #include "Daemon.h"
 #include "FileUploader.h"
@@ -46,7 +46,7 @@ namespace uCentral {
 			} else if(Tokens[0]=="get") {
 				if(Tokens[1]=="loglevel") {
 					std::cout << "LogLevels:" << std::endl;
-					std::cout << " Auth: " << AuthService()->Logger().getLevel() << std::endl;
+					std::cout << " Auth: " << AuthClient()->Logger().getLevel() << std::endl;
 					std::cout << " uFileUploader: " << FileUploader()->Logger().getLevel() << std::endl;
 					std::cout << " WebSocket: " << WebSocketServer()->Logger().getLevel() << std::endl;
 					std::cout << " Storage: " << Storage()->Logger().getLevel() << std::endl;

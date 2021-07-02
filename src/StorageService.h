@@ -19,7 +19,6 @@
 #include "Poco/Data/ODBC/Connector.h"
 #endif
 
-#include "AuthService.h"
 #include "RESTAPI_objects.h"
 #include "SubSystemServer.h"
 
@@ -125,34 +124,21 @@ namespace uCentral {
 		bool IsBlackListed(std::string & SerialNumber);
 		bool GetBlackListDevices(uint64_t Offset, uint64_t HowMany, std::vector<uCentral::Objects::BlackListedDevice> & Devices );
 
-		//	for usernames
-		bool IdentityExists(std::string & Identity, uCentral::AuthService::ACCESS_TYPE Type);
-		bool AddIdentity(std::string & Identity, std::string & Password, uCentral::AuthService::ACCESS_TYPE Type, uCentral::Objects::AclTemplate & ACL);
-		bool GetIdentity(std::string & Identity, std::string & Password, uCentral::AuthService::ACCESS_TYPE Type, uCentral::Objects::AclTemplate & ACL);
-		bool UpdateIdentity(std::string & Identity, std::string & Password, uCentral::AuthService::ACCESS_TYPE Type, uCentral::Objects::AclTemplate & ACL);
-		bool DeleteIdentity(std::string & Identity, uCentral::AuthService::ACCESS_TYPE Type);
-		bool ListIdentities(uint64_t Offset, uint64_t HowMany, std::vector<std::string> & Identities, uCentral::AuthService::ACCESS_TYPE Type);
-		bool GetIdentityRights(std::string & Identity, uCentral::Objects::AclTemplate & ACL);
-
 		bool SetLifetimeStats(std::string & SerialNumber, std::string & Stats);
 		bool GetLifetimeStats(std::string & SerialNumber, std::string & Stats);
 		bool ResetLifetimeStats(std::string & SerialNumber);
 
 		int Create_Tables();
-
 		int Create_Statistics();
 		int Create_Devices();
 		int Create_Capabilities();
 		int Create_HealthChecks();
-		int Create_Authentication();
 		int Create_DeviceLogs();
 		int Create_DefaultConfigs();
 		int Create_CommandList();
 		int Create_BlackList();
 		int Create_FileUploads();
-		int Create_FirmwareUpgrades();
 		int Create_LifetimeStats();
-
 
 		int 	Start() override;
 		void 	Stop() override;

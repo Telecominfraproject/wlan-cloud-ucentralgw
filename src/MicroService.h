@@ -21,11 +21,16 @@
 #include "Poco/Crypto/CipherFactory.h"
 #include "Poco/Crypto/Cipher.h"
 #include "Poco/SHA2Engine.h"
+#include "Poco/Net/HTTPServerRequest.h"
 
 #include "uCentralTypes.h"
 #include "SubSystemServer.h"
 
 namespace uCentral {
+
+	static const std::string uSERVICE_SECURITY{"ucentralsec"};
+	static const std::string uSERVICE_GATEWAY{"ucentralgw"};
+	static const std::string uSERVICE_FIRMWARE{ "ucentralfws"};
 
 	class MyErrorHandler : public Poco::ErrorHandler {
 	  public:
@@ -66,12 +71,14 @@ namespace uCentral {
 					 	std::string RootEnv,
 					 	std::string ConfigVar,
 					 	std::string AppName,
+					  	uint64_t BusTimer,
 					  	Types::SubSystemVec Subsystems) :
 			DAEMON_PROPERTIES_FILENAME(std::move(PropFile)),
 			DAEMON_ROOT_ENV_VAR(std::move(RootEnv)),
 			DAEMON_CONFIG_ENV_VAR(std::move(ConfigVar)),
 			DAEMON_APP_NAME(std::move(AppName)),
-			SubSystems_(Subsystems) {}
+			DAEMON_BUS_TIMER(BusTimer),
+			SubSystems_(std::move(Subsystems)) {}
 
 		int main(const ArgVec &args) override;
 		void initialize(Application &self) override;
@@ -115,9 +122,12 @@ namespace uCentral {
 		[[nodiscard]] std::string PrivateEndPoint() const { return MyPrivateEndPoint_; };
 		[[nodiscard]] std::string PublicEndPoint() const { return MyPublicEndPoint_; };
 		[[nodiscard]] std::string MakeSystemEventMessage( const std::string & Type ) const ;
+		inline uint64_t DaemonBusTimer() const { return DAEMON_BUS_TIMER; };
 
 		void BusMessageReceived( std::string Key, std::string Message);
 		[[nodiscard]] MicroServiceMetaVec GetServices(const std::string & type);
+		[[nodiscard]] MicroServiceMetaVec GetServices();
+		[[nodiscard]] bool IsValidAPIKEY(const Poco::Net::HTTPServerRequest &Request);
 
 	  private:
 		bool                        HelpRequested_ = false;
@@ -144,6 +154,7 @@ namespace uCentral {
 		std::string DAEMON_ROOT_ENV_VAR;
 		std::string DAEMON_CONFIG_ENV_VAR;
 		std::string DAEMON_APP_NAME;
+		uint64_t 	DAEMON_BUS_TIMER;
 	};
 }
 

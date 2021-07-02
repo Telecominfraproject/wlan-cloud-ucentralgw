@@ -20,7 +20,6 @@
 #include "RESTAPI_device_handler.h"
 #include "RESTAPI_devices_handler.h"
 #include "RESTAPI_file.h"
-#include "RESTAPI_oauth2Handler.h"
 #include "RESTAPI_system_command.h"
 #include "RESTAPI_ouis.h"
 
@@ -68,7 +67,7 @@ namespace uCentral {
         const auto & Path = uri.getPath();
         RESTAPIHandler::BindingMap Bindings;
 
-		return RESTAPI_Router<	RESTAPI_oauth2Handler,
+		return RESTAPI_Router<
 								RESTAPI_devices_handler,
 							  	RESTAPI_device_handler,
 								RESTAPI_device_commandHandler,

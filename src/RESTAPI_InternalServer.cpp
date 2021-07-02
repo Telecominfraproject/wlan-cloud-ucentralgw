@@ -16,7 +16,6 @@
 #include "RESTAPI_device_handler.h"
 #include "RESTAPI_devices_handler.h"
 #include "RESTAPI_file.h"
-#include "RESTAPI_oauth2Handler.h"
 #include "RESTAPI_system_command.h"
 #include "RESTAPI_ouis.h"
 #include "Utils.h"
@@ -41,7 +40,6 @@ namespace uCentral {
             Svr.LogCert(Logger_);
             if(!Svr.RootCA().empty())
                 Svr.LogCas(Logger_);
-
             auto Params = new Poco::Net::HTTPServerParams;
             Params->setMaxThreads(50);
             Params->setMaxQueued(200);

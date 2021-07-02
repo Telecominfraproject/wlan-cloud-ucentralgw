@@ -10,6 +10,7 @@
 #include "KafkaManager.h"
 
 #include "Daemon.h"
+#include "Utils.h"
 
 namespace uCentral {
 
@@ -38,8 +39,8 @@ namespace uCentral {
 	int KafkaManager::Start() {
 		if(!KafkaEnabled_)
 			return 0;
-		ProducerThr_ = std::make_unique<std::thread>([this]() { this->Producer(); });
-		ConsumerThr_ = std::make_unique<std::thread>([this]() { this->Consumer(); });
+		ProducerThr_ = std::make_unique<std::thread>([this]() { this->ProducerThr(); });
+		ConsumerThr_ = std::make_unique<std::thread>([this]() { this->ConsumerThr(); });
 		return 0;
 	}
 
@@ -52,7 +53,7 @@ namespace uCentral {
 		}
 	}
 
-	void KafkaManager::Producer() {
+	void KafkaManager::ProducerThr() {
 		cppkafka::Configuration Config({
 										   { "metadata.broker.list", Daemon()->ConfigGetString("ucentral.kafka.brokerlist") }
 									   });
@@ -67,13 +68,16 @@ namespace uCentral {
 			try
 			{
 				SubMutexGuard G(ProducerMutex_);
+				auto Num=0;
 				while (!Queue_.empty()) {
 					const auto M = Queue_.front();
 					Producer.produce(
 						cppkafka::MessageBuilder(M.Topic).key(M.Key).payload(M.PayLoad));
 					Queue_.pop();
+					Num++;
 				}
-				Producer.flush();
+				if(Num)
+					Producer.flush();
 			} catch (const cppkafka::HandleException &E ) {
 				Logger_.warning(Poco::format("Caught a Kafka exception (producer): %s",std::string{E.what()}));
 			} catch (const Poco::Exception &E) {
@@ -82,17 +86,24 @@ namespace uCentral {
 		}
 	}
 
-	void KafkaManager::Consumer() {
+	void KafkaManager::ConsumerThr() {
 		cppkafka::Configuration Config({
 										   { "group.id", Daemon()->ConfigGetString("ucentral.kafka.group.id") },
 										   { "enable.auto.commit", Daemon()->ConfigGetBool("ucentral.kafka.auto.commit",false) },
 										   { "metadata.broker.list", Daemon()->ConfigGetString("ucentral.kafka.brokerlist") },
-										   { "auto.offset.reset", "earliest" } ,
+										   { "auto.offset.reset", "latest" } ,
 										   { "enable.partition.eof", false }
 									   });
 
+		cppkafka::TopicConfiguration topic_config = {
+			{ "auto.offset.reset", "smallest" }
+		};
+
+		// Now configure it to be the default topic config
+		Config.set_default_topic_configuration(topic_config);
+
 		cppkafka::Consumer Consumer(Config);
-		Consumer.set_assignment_callback([=](const cppkafka::TopicPartitionList& partitions) {
+		Consumer.set_assignment_callback([this](const cppkafka::TopicPartitionList& partitions) {
 			std::cout << "Partition assigned: " << partitions.front().get_partition() << std::endl;
 		  	Logger_.information(Poco::format("Got assigned: %Lu...",(uint64_t )partitions.front().get_partition()));
 		});
@@ -112,7 +123,7 @@ namespace uCentral {
 			try {
 				cppkafka::Message Msg = Consumer.poll(std::chrono::milliseconds(200));
 				if (!Msg)
-					continue;;
+					continue;
 				if (Msg.get_error()) {
 					if (!Msg.is_eof()) {
 						Logger_.error(Poco::format("Error: %s", Msg.get_error().to_string()));
@@ -124,9 +135,9 @@ namespace uCentral {
 				auto It = Notifiers_.find(Msg.get_topic());
 				if (It != Notifiers_.end()) {
 					Types::TopicNotifyFunctionList &FL = It->second;
+					std::string Key{Msg.get_key()};
+					std::string Payload{Msg.get_payload()};
 					for (auto &F : FL) {
-						std::string Key{Msg.get_key()};
-						std::string Payload{Msg.get_payload()};
 						std::thread T(F.first, Key, Payload);
 						T.detach();
 					}
@@ -148,10 +159,10 @@ namespace uCentral {
 		if(KafkaEnabled_) {
 			SubMutexGuard G(Mutex_);
 			KMessage M{
-				.Topic = std::move(topic),
-				.Key = std::move(key),
-				.PayLoad = std::move(WrapMessage ? WrapSystemId(PayLoad) : PayLoad )};
-			Queue_.push(std::move(M));
+				.Topic = topic,
+				.Key = key,
+				.PayLoad = WrapMessage ? WrapSystemId(PayLoad) : PayLoad };
+			Queue_.push(M);
 		}
 	}
 

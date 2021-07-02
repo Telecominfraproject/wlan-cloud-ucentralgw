@@ -30,9 +30,6 @@
 #include "MicroService.h"
 #include "Utils.h"
 
-#undef DBGLINE
-#define DBGLINE
-
 namespace uCentral {
 
 	void MyErrorHandler::exception(const Poco::Exception & E) {
@@ -73,12 +70,12 @@ namespace uCentral {
 						auto Event = Object->get("event").toString();
 
 						if(Event == "keep-alive" && Services_.find(ID)!=Services_.end()) {
-							std::cout << "Keep-alive from " << ID << std::endl;
+							// std::cout << "Keep-alive from " << ID << std::endl;
 							Services_[ID].LastUpdate = std::time(nullptr);
 						} else if (Event=="leave") {
 							Services_.erase(ID);
 							std::cout << "Leave from " << ID << std::endl;
-						} else if (Event== "join" || Event=="keep_alive") {
+						} else if (Event== "join" || Event=="keep-alive") {
 							std::cout << "Join from " << ID << std::endl;
 							Services_[ID] = MicroServiceMeta{
 								.Id = ID,
@@ -91,7 +88,7 @@ namespace uCentral {
 							for(const auto &[Id,Svc]:Services_)
 								std::cout << "ID:" << Id << " Type:" << Svc.Type << " EndPoint:" << Svc.PublicEndPoint << std::endl;
 						} else {
-							std::cout << "Bad packet 2 ..." << std::endl;
+							std::cout << "Bad packet 2 ..." << Event << std::endl;
 							logger().error(Poco::format("Malformed event from device %Lu, event=%s", ID, Event));
 						}
 					} else {
@@ -100,15 +97,12 @@ namespace uCentral {
 					}
 
 				} else {
-					std::cout << "Ignoring my own messages..." << std::endl;
+					// std::cout << "Ignoring my own messages..." << std::endl;
 				}
 			}
 		} catch (const Poco::Exception &E) {
-			DBGLINE
 			logger().log(E);
-			DBGLINE
 		}
-		DBGLINE
 	}
 
 	MicroServiceMetaVec MicroService::GetServices(const std::string & Type) {
@@ -119,6 +113,16 @@ namespace uCentral {
 		for(const auto &[Id,ServiceRec]:Services_) {
 			if(ServiceRec.Type==T)
 				Res.push_back(ServiceRec);
+		}
+		return Res;
+	}
+
+	MicroServiceMetaVec MicroService::GetServices() {
+		SubMutexGuard G(InfraMutex_);
+
+		MicroServiceMetaVec	Res;
+		for(const auto &[Id,ServiceRec]:Services_) {
+			Res.push_back(ServiceRec);
 		}
 		return Res;
 	}
@@ -178,7 +182,7 @@ namespace uCentral {
 			DebugMode_ = ConfigGetBool("ucentral.system.debug",false);
 		MyPrivateEndPoint_ = ConfigGetString("ucentral.system.uri.private");
 		MyPublicEndPoint_ = ConfigGetString("ucentral.system.uri.public");
-		MyHash_ = CreateHash(MyPrivateEndPoint_);
+		MyHash_ = CreateHash(MyPublicEndPoint_);
 		InitializeSubSystemServers();
 		ServerApplication::initialize(self);
 
@@ -272,8 +276,9 @@ namespace uCentral {
 	}
 
 	void MicroService::StartSubSystemServers() {
-		for(auto i:SubSystems_)
+		for(auto i:SubSystems_) {
 			i->Start();
+		}
 		BusEventManager_.Start();
 	}
 
@@ -298,7 +303,7 @@ namespace uCentral {
 				}
 				return true;
 			} else {
-				std::cout << "Sub:" << SubSystem << " Level:" << Level << std::endl;
+				// std::cout << "Sub:" << SubSystem << " Level:" << Level << std::endl;
 				for (auto i : SubSystems_) {
 					if (Sub == Poco::toLower(i->Name())) {
 						i->Logger().setLevel(P);
@@ -396,20 +401,17 @@ namespace uCentral {
 	}
 
 	void BusEventManager::run() {
-
 		Running_ = true;
-
 		auto Msg = Daemon()->MakeSystemEventMessage("join");
 		KafkaManager()->PostMessage(KafkaTopics::SERVICE_EVENTS,Daemon()->PrivateEndPoint(),Msg, false);
-
 		while(Running_) {
-			Poco::Thread::trySleep(60000);
+			Poco::Thread::trySleep((unsigned long)Daemon()->DaemonBusTimer());
 			if(!Running_)
 				break;
+			// std::cout << "Sending keep-alive:" << Daemon()->DaemonBusTimer() << std::endl;
 			auto Msg = Daemon()->MakeSystemEventMessage("keep-alive");
 			KafkaManager()->PostMessage(KafkaTopics::SERVICE_EVENTS,Daemon()->PrivateEndPoint(),Msg, false);
 		}
-
 		Msg = Daemon()->MakeSystemEventMessage("leave");
 		KafkaManager()->PostMessage(KafkaTopics::SERVICE_EVENTS,Daemon()->PrivateEndPoint(),Msg, false);
 	};
@@ -426,6 +428,16 @@ namespace uCentral {
 			Thread_.wakeUp();
 			Thread_.join();
 		}
+	}
+
+	[[nodiscard]] bool MicroService::IsValidAPIKEY(const Poco::Net::HTTPServerRequest &Request) {
+		try {
+			auto APIKEY = Request.get("X-API-KEY");
+			return APIKEY == MyHash_;
+		} catch (const Poco::Exception &E) {
+			logger().log(E);
+		}
+		return false;
 	}
 
 	int MicroService::main(const ArgVec &args) {
