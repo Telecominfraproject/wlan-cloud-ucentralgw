@@ -31,8 +31,8 @@
 namespace uCentral {
 
 	static const char * vDAEMON_PROPERTIES_FILENAME = "ucentralgw.properties";
-	static const char * vDAEMON_ROOT_ENV_VAR = "UCENTRAL_ROOT";
-	static const char * vDAEMON_CONFIG_ENV_VAR = "UCENTRAL_CONFIG";
+	static const char * vDAEMON_ROOT_ENV_VAR = "UCENTRALGW_ROOT";
+	static const char * vDAEMON_CONFIG_ENV_VAR = "UCENTRALGW_CONFIG";
 	static const char * vDAEMON_APP_NAME = uSERVICE_GATEWAY.c_str();
 	static const uint64_t vDAEMON_BUS_TIMER = 10000;
 
