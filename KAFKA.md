@@ -9,10 +9,10 @@ your Kafka service with the following topics:
 - `state` : This is emitted for every `state` report coming from the AP. This state report contains all the information of state reports.  
 - `healthcheck` : These are the `healthcheck` report sent from the AP.
 - `wifiscan` : Whenever a `wifiscan` report is generated, it will be submitted here.
-- `alerts` : Alerts originating from devices (future use).
 - `security` : This will have application information (future use).
-- `command` : Allow to send commands (future use).
 - `service_events` : Inter-service traffic.
+- `command` : Allow to send commands (future use).
+- `alerts` : Alerts originating from devices (future use).
 
 ## Structure of `kafka` messages
 Messages use 2 formats
