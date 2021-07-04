@@ -124,7 +124,7 @@ namespace uCentral {
 		[[nodiscard]] std::string MakeSystemEventMessage( const std::string & Type ) const ;
 		inline uint64_t DaemonBusTimer() const { return DAEMON_BUS_TIMER; };
 
-		void BusMessageReceived( std::string Key, std::string Message);
+		void BusMessageReceived( const std::string & Key, const std::string & Message);
 		[[nodiscard]] MicroServiceMetaVec GetServices(const std::string & type);
 		[[nodiscard]] MicroServiceMetaVec GetServices();
 		[[nodiscard]] bool IsValidAPIKEY(const Poco::Net::HTTPServerRequest &Request);

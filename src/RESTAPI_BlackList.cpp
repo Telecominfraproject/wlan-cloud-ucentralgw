@@ -105,7 +105,7 @@ namespace uCentral {
 						auto Reason = Vars[uCentral::RESTAPI::Protocol::REASON].toString();
 						uCentral::Objects::BlackListedDevice D{.SerialNumber = SerialNumber,
 															   .Reason = Reason,
-															   .Author = UserInfo_.username_,
+															   .Author = UserInfo_.webtoken.username_,
 															   .Created = (uint64_t)time(nullptr)};
 						Devices.push_back(D);
 					}

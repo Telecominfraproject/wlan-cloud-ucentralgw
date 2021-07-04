@@ -283,7 +283,7 @@ namespace uCentral {
 #else
 		if (AuthClient()->IsAuthorized(Request, SessionToken_, UserInfo_)) {
 #endif
-			UserName = UserInfo_.username_;
+			UserName = UserInfo_.webtoken.username_;
 			return true;
 		} else {
 			UnAuthorized(Request, Response);

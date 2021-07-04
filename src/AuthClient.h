@@ -31,12 +31,12 @@ namespace uCentral {
 
 		int Start() override;
 		void Stop() override;
-		bool IsAuthorized(Poco::Net::HTTPServerRequest & Request, std::string &SessionToken, SecurityObjects::WebToken & UserInfo );
+		bool IsAuthorized(Poco::Net::HTTPServerRequest & Request, std::string &SessionToken, SecurityObjects::UserInfoAndPolicy & UInfo );
 		void RemovedCachedToken(const std::string &Token);
 
 	  private:
-		static AuthClient 						*instance_;
-		std::map<std::string,SecurityObjects::UserInfoAndPolicy>	UserCache_;
+		static AuthClient 					*instance_;
+		SecurityObjects::UserInfoCache 		UserCache_;
 	};
 
 	inline AuthClient * AuthClient() { return AuthClient::instance(); }

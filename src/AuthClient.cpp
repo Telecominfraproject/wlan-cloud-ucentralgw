@@ -28,12 +28,12 @@ namespace uCentral {
 		return ((T.expires_in_+T.created_)<std::time(nullptr));
 	}
 
-	bool AuthClient::IsAuthorized(Poco::Net::HTTPServerRequest & Request, std::string &SessionToken, SecurityObjects::WebToken & WebToken ) {
+	bool AuthClient::IsAuthorized(Poco::Net::HTTPServerRequest & Request, std::string &SessionToken, SecurityObjects::UserInfoAndPolicy & UInfo ) {
 		SubMutexGuard G(Mutex_);
 
 		auto User = UserCache_.find(SessionToken);
 		if(User != UserCache_.end() && !IsTokenExpired(User->second.webtoken)) {
-			WebToken = User->second.webtoken;
+			UInfo = User->second;
 			return true;
 		} else {
 			Types::StringPairVec QueryData;
@@ -48,6 +48,7 @@ namespace uCentral {
 					SecurityObjects::UserInfoAndPolicy	P;
 					P.from_json(Response);
 					UserCache_[SessionToken] = P;
+					UInfo = P;
 				}
 				return true;
 			}

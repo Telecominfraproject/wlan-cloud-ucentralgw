@@ -114,6 +114,9 @@ namespace uCentral::SecurityObjects {
 		void to_json(Poco::JSON::Object &Obj) const;
 		bool from_json(const Poco::JSON::Object::Ptr &Obj);
 	};
+
+	typedef std::map<std::string,SecurityObjects::UserInfoAndPolicy>	UserInfoCache;
+
 }
 
 #endif //UCENTRAL_RESTAPI_SECURITYOBJECTS_H

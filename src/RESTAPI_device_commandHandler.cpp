@@ -282,7 +282,7 @@ void RESTAPI_device_commandHandler::Configure(Poco::Net::HTTPServerRequest &Requ
 
 				Cmd.SerialNumber = SerialNumber_;
 				Cmd.UUID = Daemon()->CreateUUID();
-				Cmd.SubmittedBy = UserInfo_.username_;
+				Cmd.SubmittedBy = UserInfo_.webtoken.username_;
 				Cmd.Command = uCentral::uCentralProtocol::CONFIGURE;
 				Cmd.RunAt = When;
 
@@ -332,7 +332,7 @@ void RESTAPI_device_commandHandler::Upgrade(Poco::Net::HTTPServerRequest &Reques
 
 			Cmd.SerialNumber = SerialNumber_;
 			Cmd.UUID = Daemon()->CreateUUID();
-			Cmd.SubmittedBy = UserInfo_.username_;
+			Cmd.SubmittedBy = UserInfo_.webtoken.username_;
 			Cmd.Command = uCentral::uCentralProtocol::UPGRADE;
 			Cmd.RunAt = When;
 
@@ -480,7 +480,7 @@ void RESTAPI_device_commandHandler::ExecuteCommand(Poco::Net::HTTPServerRequest 
 
 			Cmd.SerialNumber = SerialNumber_;
 			Cmd.UUID = Daemon()->CreateUUID();
-			Cmd.SubmittedBy = UserInfo_.username_;
+			Cmd.SubmittedBy = UserInfo_.webtoken.username_;
 			Cmd.Command = Command;
 			Cmd.Custom = 1;
 			Cmd.RunAt = When;
@@ -528,7 +528,7 @@ void RESTAPI_device_commandHandler::Reboot(Poco::Net::HTTPServerRequest &Request
 			uCentral::Objects::CommandDetails Cmd;
 			Cmd.SerialNumber = SerialNumber_;
 			Cmd.UUID = Daemon()->CreateUUID();
-			Cmd.SubmittedBy = UserInfo_.username_;
+			Cmd.SubmittedBy = UserInfo_.webtoken.username_;
 			Cmd.Command = uCentral::uCentralProtocol::REBOOT;
 			Cmd.RunAt = When;
 
@@ -575,7 +575,7 @@ void RESTAPI_device_commandHandler::Factory(Poco::Net::HTTPServerRequest &Reques
 
 			Cmd.SerialNumber = SerialNumber_;
 			Cmd.UUID = Daemon()->CreateUUID();
-			Cmd.SubmittedBy = UserInfo_.username_;
+			Cmd.SubmittedBy = UserInfo_.webtoken.username_;
 			Cmd.Command = uCentral::uCentralProtocol::FACTORY;
 			Cmd.RunAt = When;
 
@@ -633,7 +633,7 @@ void RESTAPI_device_commandHandler::LEDs(Poco::Net::HTTPServerRequest &Request,
 
 			Cmd.SerialNumber = SerialNumber_;
 			Cmd.UUID = Daemon()->CreateUUID();
-			Cmd.SubmittedBy = UserInfo_.username_;
+			Cmd.SubmittedBy = UserInfo_.webtoken.username_;
 			Cmd.Command = uCentral::uCentralProtocol::LEDS;
 			Cmd.RunAt = When;
 			Poco::JSON::Object Params;
@@ -685,7 +685,7 @@ void RESTAPI_device_commandHandler::Trace(Poco::Net::HTTPServerRequest &Request,
 			uCentral::Objects::CommandDetails Cmd;
 			Cmd.SerialNumber = SerialNumber_;
 			Cmd.UUID = UUID;
-			Cmd.SubmittedBy = UserInfo_.username_;
+			Cmd.SubmittedBy = UserInfo_.webtoken.username_;
 			Cmd.Command = uCentral::uCentralProtocol::TRACE;
 			Cmd.RunAt = When;
 			Cmd.WaitingForFile = 1;
@@ -741,7 +741,7 @@ void RESTAPI_device_commandHandler::WifiScan(Poco::Net::HTTPServerRequest &Reque
 
 			Cmd.SerialNumber = SerialNumber_;
 			Cmd.UUID = UUID;
-			Cmd.SubmittedBy = UserInfo_.username_;
+			Cmd.SubmittedBy = UserInfo_.webtoken.username_;
 			Cmd.Command = uCentral::uCentralProtocol::WIFISCAN;
 
 			Poco::JSON::Object Params;
@@ -803,7 +803,7 @@ void RESTAPI_device_commandHandler::EventQueue(Poco::Net::HTTPServerRequest &Req
 
 				Cmd.SerialNumber = SerialNumber_;
 				Cmd.UUID = UUID;
-				Cmd.SubmittedBy = UserInfo_.username_;
+				Cmd.SubmittedBy = UserInfo_.webtoken.username_;
 				Cmd.Command = uCentral::uCentralProtocol::EVENT;
 
 				Poco::JSON::Object Params;
@@ -850,7 +850,7 @@ void RESTAPI_device_commandHandler::MakeRequest(Poco::Net::HTTPServerRequest &Re
 			uCentral::Objects::CommandDetails Cmd;
 
 			Cmd.SerialNumber = SerialNumber_;
-			Cmd.SubmittedBy = UserInfo_.username_;
+			Cmd.SubmittedBy = UserInfo_.webtoken.username_;
 			Cmd.UUID = Daemon()->CreateUUID();
 			Cmd.Command = uCentral::uCentralProtocol::REQUEST;
 			Cmd.RunAt = When;
@@ -902,7 +902,7 @@ void RESTAPI_device_commandHandler::Rtty(Poco::Net::HTTPServerRequest &Request,
 				//	let's create the command for this request
 				uCentral::Objects::CommandDetails Cmd;
 				Cmd.SerialNumber = SerialNumber_;
-				Cmd.SubmittedBy = UserInfo_.username_;
+				Cmd.SubmittedBy = UserInfo_.webtoken.username_;
 				Cmd.UUID = CommandUUID;
 				Cmd.Command = uCentral::uCentralProtocol::RTTY;
 
@@ -914,7 +914,7 @@ void RESTAPI_device_commandHandler::Rtty(Poco::Net::HTTPServerRequest &Request,
 				Params.set(uCentral::uCentralProtocol::TOKEN, Rtty.Token);
 				Params.set(uCentral::uCentralProtocol::SERVER, Rtty.Server);
 				Params.set(uCentral::uCentralProtocol::PORT, Rtty.Port);
-				Params.set(uCentral::uCentralProtocol::USER, UserInfo_.username_);
+				Params.set(uCentral::uCentralProtocol::USER, UserInfo_.webtoken.username_);
 				Params.set(uCentral::uCentralProtocol::TIMEOUT, Rtty.TimeOut);
 				Params.set(uCentral::uCentralProtocol::PASSWORD, Device.DevicePassword);
 
