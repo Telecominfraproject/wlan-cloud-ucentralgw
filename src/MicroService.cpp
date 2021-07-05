@@ -72,7 +72,7 @@ namespace uCentral {
 						if(	Object->has(KafkaTopics::ServiceEvents::Fields::TYPE) &&
 						   	Object->has(KafkaTopics::ServiceEvents::Fields::PUBLIC) &&
 							Object->has(KafkaTopics::ServiceEvents::Fields::PRIVATE) &&
-						   	Object->has(KafkaTopics::ServiceEvents::Fields::VERSION) &&
+						   	Object->has(KafkaTopics::ServiceEvents::Fields::VRSN) &&
 							Object->has(KafkaTopics::ServiceEvents::Fields::KEY)) {
 
 							if (Event == KafkaTopics::ServiceEvents::EVENT_KEEP_ALIVE && Services_.find(ID) != Services_.end()) {
@@ -88,7 +88,7 @@ namespace uCentral {
 									.PrivateEndPoint = Object->get(KafkaTopics::ServiceEvents::Fields::PRIVATE).toString(),
 									.PublicEndPoint = Object->get(KafkaTopics::ServiceEvents::Fields::PUBLIC).toString(),
 									.AccessKey = Object->get(KafkaTopics::ServiceEvents::Fields::KEY).toString(),
-									.Version = Object->get(KafkaTopics::ServiceEvents::Fields::VERSION).toString(),
+									.Version = Object->get(KafkaTopics::ServiceEvents::Fields::VRSN).toString(),
 									.LastUpdate = (uint64_t)std::time(nullptr)};
 								for (const auto &[Id, Svc] : Services_) {
 									logger().information(Poco::format("ID: %Lu Type: %s EndPoint: %s",Id,Svc.Type,Svc.PrivateEndPoint));
@@ -406,7 +406,7 @@ namespace uCentral {
 		Obj.set(KafkaTopics::ServiceEvents::Fields::PUBLIC,MyPublicEndPoint_);
 		Obj.set(KafkaTopics::ServiceEvents::Fields::PRIVATE,MyPrivateEndPoint_);
 		Obj.set(KafkaTopics::ServiceEvents::Fields::KEY,MyHash_);
-		Obj.set(KafkaTopics::ServiceEvents::Fields::VERSION,Version_);
+		Obj.set(KafkaTopics::ServiceEvents::Fields::VRSN,Version_);
 		std::stringstream ResultText;
 		Poco::JSON::Stringifier::stringify(Obj, ResultText);
 		return ResultText.str();

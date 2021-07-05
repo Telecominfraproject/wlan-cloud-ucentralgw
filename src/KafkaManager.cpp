@@ -55,6 +55,7 @@ namespace uCentral {
 
 	void KafkaManager::ProducerThr() {
 		cppkafka::Configuration Config({
+										   { "client.id", Daemon()->ConfigGetString("ucentral.kafka.client.id") },
 										   { "metadata.broker.list", Daemon()->ConfigGetString("ucentral.kafka.brokerlist") }
 									   });
 		SystemInfoWrapper_ = 	R"lit({ "system" : { "id" : )lit" +
@@ -88,9 +89,10 @@ namespace uCentral {
 
 	void KafkaManager::ConsumerThr() {
 		cppkafka::Configuration Config({
+										   { "client.id", Daemon()->ConfigGetString("ucentral.kafka.client.id") },
+										   { "metadata.broker.list", Daemon()->ConfigGetString("ucentral.kafka.brokerlist") },
 										   { "group.id", Daemon()->ConfigGetString("ucentral.kafka.group.id") },
 										   { "enable.auto.commit", Daemon()->ConfigGetBool("ucentral.kafka.auto.commit",false) },
-										   { "metadata.broker.list", Daemon()->ConfigGetString("ucentral.kafka.brokerlist") },
 										   { "auto.offset.reset", "latest" } ,
 										   { "enable.partition.eof", false }
 									   });

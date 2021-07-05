@@ -27,7 +27,7 @@ namespace uCentral::KafkaTopics {
 			static const std::string PUBLIC{"publicEndPoint"};
 			static const std::string PRIVATE{"privateEndPoint"};
 			static const std::string KEY{"key"};
-			static const std::string VERSION{"version"};
+			static const std::string VRSN{"version"};
 			static const std::string TOKEN{"token"};
 		}
 	}
