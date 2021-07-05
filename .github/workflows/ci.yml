@@ -72,10 +72,11 @@ jobs:
         echo "$DIGICERT_TIP_WILDCARD_KEY" > docker-compose/ucentral-data/certs/restapi-key.pem
 
     - name: Instantiate Docker Compose deployment
+      working-directory: ./docker-compose
       env:
         UCENTRALGW_TAG: ${{ github.sha }}
       run: |
-        docker-compose -f docker-compose/docker-compose.yml --project-directory docker-compose/ up -d
+        docker-compose up -d
 
     - name: Wait for uCentralGW to be alive and kicking
       run: |
@@ -99,10 +100,11 @@ jobs:
         ./test_scripts/curl/cli listdevices
 
     - name: Display information about running containers and log ucentralgw output
-      if: success() || failure()
+      working-directory: ./docker-compose
+      if: always()
       run: |
-        docker ps -a
-        docker logs ucentral_ucentralgw_1
+        docker-compose ps -a
+        docker-compose logs 
 
     # disable until repo is public
     #- name: export Docker image
