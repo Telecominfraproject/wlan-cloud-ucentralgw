@@ -53,6 +53,59 @@ jobs:
           docker push ${{ env.DOCKER_REGISTRY_URL }}/ucentralgw:$tag
         done
 
+  docker-compose:
+    runs-on: ubuntu-20.04
+    needs: docker
+    steps:
+    - name: Check out repository
+      uses: actions/checkout@v2
+
+    - name: Create certificate and key files from Github secrets
+      env:
+        DIGICERT_TIP_WILDCARD_CERT: ${{ secrets.DIGICERT_TIP_WILDCARD_CERT }}
+        DIGICERT_TIP_WILDCARD_KEY: ${{ secrets.DIGICERT_TIP_WILDCARD_KEY }}
+      run: |
+        cat certificates/issuer.pem certificates/root.pem > docker-compose/ucentral-data/certs/restapi-ca.pem
+        echo "$DIGICERT_TIP_WILDCARD_CERT" > docker-compose/ucentral-data/certs/websocket-cert.pem
+        echo "$DIGICERT_TIP_WILDCARD_CERT" > docker-compose/ucentral-data/certs/restapi-cert.pem
+        echo "$DIGICERT_TIP_WILDCARD_KEY" > docker-compose/ucentral-data/certs/websocket-key.pem
+        echo "$DIGICERT_TIP_WILDCARD_KEY" > docker-compose/ucentral-data/certs/restapi-key.pem
+
+    - name: Instantiate Docker Compose deployment
+      working-directory: ./docker-compose
+      env:
+        UCENTRALGW_TAG: ${{ github.sha }}
+      run: |
+        docker-compose up -d
+
+    - name: Wait for uCentralGW to be alive and kicking
+      run: |
+        n=0
+        until [ "$n" -ge 3 ]
+        do
+          curl -s 127.0.0.1:15015 && break
+          n=$((n+1)) 
+          if [ "$n" -eq 3]; then        
+            exit 1
+          else
+            sleep 3
+          fi
+        done
+
+    - name: Check functionality of uCentralGW
+      env:
+        UCENTRALGW: "ucentral.cicd.lab.wlan.tip.build:16001"
+        FLAGS: "-s --cacert docker-compose/ucentral-data/certs/restapi-ca.pem --resolve ucentral.cicd.lab.wlan.tip.build:16001:127.0.0.1"
+      run: |
+        ./test_scripts/curl/cli listdevices
+
+    - name: Display information about running containers and log ucentralgw output
+      working-directory: ./docker-compose
+      if: always()
+      run: |
+        docker-compose ps -a
+        docker-compose logs 
+
     # disable until repo is public
     #- name: export Docker image
     #  run: docker image save -o wlan-cloud-ucentralgw-${{ github.sha }}.tar wlan-cloud-ucentralgw:${{ github.sha }}
