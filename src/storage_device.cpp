@@ -459,32 +459,56 @@ namespace uCentral {
 		return false;
 	}
 
-	bool Storage::UpdateDevice(uCentral::Objects::Device &NewConfig) {
-		// std::lock_guard<std::mutex> guard(Mutex_);
-
+	bool Storage::UpdateDevice(Objects::Device &NewDeviceDetails) {
 		try {
 			Poco::Data::Session     Sess = Pool_->get();
 			Poco::Data::Statement   Update(Sess);
 
-			uint64_t Now = time(nullptr);
+			Objects::Device	ExistingDevice;
+			if(!GetDevice(NewDeviceDetails.SerialNumber,ExistingDevice))
+				return false;
 
-			std::string St{"UPDATE Devices SET Manufacturer=?, DeviceType=?, MACAddress=?, Notes=?, "
-						   "LastConfigurationChange=? WHERE SerialNumber=?"};
+			uint64_t Now = std::time(nullptr);
+			if(!NewDeviceDetails.DeviceType.empty())
+				ExistingDevice.DeviceType=NewDeviceDetails.DeviceType;
+			if(!NewDeviceDetails.MACAddress.empty())
+				ExistingDevice.MACAddress=NewDeviceDetails.MACAddress;
+			if(!NewDeviceDetails.FWUpdatePolicy.empty())
+				ExistingDevice.FWUpdatePolicy=NewDeviceDetails.FWUpdatePolicy;
+			if(!NewDeviceDetails.DevicePassword.empty())
+				ExistingDevice.DevicePassword=NewDeviceDetails.DevicePassword;
+			if(!NewDeviceDetails.Notes.empty()) {
+				ExistingDevice.Notes += Poco::DateTimeFormatter::format(Poco::Timestamp(), Poco::DateTimeFormat::HTTP_FORMAT) + "\n" +
+					NewDeviceDetails.Notes;
+			}
 
-			Update  << ConvertParams(St) ,
-				Poco::Data::Keywords::use(NewConfig.Manufacturer),
-				Poco::Data::Keywords::use(NewConfig.DeviceType),
-				Poco::Data::Keywords::use(NewConfig.MACAddress),
-				Poco::Data::Keywords::use(NewConfig.Notes),
-				Poco::Data::Keywords::use(Now),
-				Poco::Data::Keywords::use(NewConfig.SerialNumber);
+			std::string St2{"UPDATE Devices SET "
+							"DeviceType=?, "
+							"MACAddress=?, "
+							"Manufacturer=?, "
+							"Notes=?, "
+							"Owner=?, "
+							"Location=?, "
+							"FWUpdatePolicy=?,"
+							"Venue=? "
+							" WHERE SerialNumber=?"};
 
+			Update  << ConvertParams(St2),
+				Poco::Data::Keywords::use(ExistingDevice.DeviceType),
+				Poco::Data::Keywords::use(ExistingDevice.MACAddress),
+				Poco::Data::Keywords::use(ExistingDevice.Manufacturer),
+				Poco::Data::Keywords::use(ExistingDevice.Notes),
+				Poco::Data::Keywords::use(ExistingDevice.Owner),
+				Poco::Data::Keywords::use(ExistingDevice.Location),
+				Poco::Data::Keywords::use(ExistingDevice.FWUpdatePolicy),
+				Poco::Data::Keywords::use(ExistingDevice.Venue),
+				Poco::Data::Keywords::use(ExistingDevice.DevicePassword);
 			Update.execute();
 
 			return true;
 		}
 		catch (const Poco::Exception &E) {
-			Logger_.warning(Poco::format("%s(%s): Failed with: %s", std::string(__func__), NewConfig.SerialNumber,
+			Logger_.warning(Poco::format("%s(%s): Failed with: %s", std::string(__func__), NewDeviceDetails.SerialNumber,
 										 E.displayText()));
 		}
 

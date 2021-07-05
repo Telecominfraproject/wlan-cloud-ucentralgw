@@ -14,38 +14,34 @@
 #include "RESTAPI_handler.h"
 #include "RESTAPI_objects.h"
 #include "Utils.h"
+#include "RESTAPI_utils.h"
+
+using uCentral::RESTAPI_utils::field_to_json;
+using uCentral::RESTAPI_utils::field_from_json;
+using uCentral::RESTAPI_utils::EmbedDocument;
 
 namespace uCentral::Objects {
 
-	void EmbedDocument(const std::string & ObjName, Poco::JSON::Object & Obj, const std::string &ObjStr) {
-		std::string D = ObjStr.empty() ? "{}" : ObjStr;
-		Poco::JSON::Parser P;
-		Poco::Dynamic::Var result = P.parse(D);
-		const auto &DetailsObj = result.extract<Poco::JSON::Object::Ptr>();
-		Obj.set(ObjName, DetailsObj);
-	}
-
 	void Device::to_json(Poco::JSON::Object &Obj) const {
-		Obj.set("serialNumber", SerialNumber);
-		Obj.set("deviceType", uCentral::Daemon::instance()->IdentifyDevice(Compatible));
-		Obj.set("macAddress", MACAddress);
-		Obj.set("manufacturer", Manufacturer);
-		Obj.set("UUID", UUID);
-
+		field_to_json(Obj,"serialNumber", SerialNumber);
+		field_to_json(Obj,"deviceType", uCentral::Daemon::instance()->IdentifyDevice(Compatible));
+		field_to_json(Obj,"macAddress", MACAddress);
+		field_to_json(Obj,"manufacturer", Manufacturer);
+		field_to_json(Obj,"UUID", UUID);
 		EmbedDocument("configuration", Obj, Configuration);
 
-		Obj.set("notes", Notes);
-		Obj.set("createdTimestamp", CreationTimestamp);
-		Obj.set("lastConfigurationChange", LastConfigurationChange);
-		Obj.set("lastConfigurationDownload", LastConfigurationDownload);
-		Obj.set("lastFWUpdate", LastFWUpdate);
-		Obj.set("owner", Owner);
-		Obj.set("location", Location);
-		Obj.set("location", Venue);
-		Obj.set("firmware", Firmware);
-		Obj.set("compatible", Compatible);
-		Obj.set("fwUpdatePolicy",FWUpdatePolicy);
-		Obj.set("devicePassword",DevicePassword);
+		field_to_json(Obj,"notes", Notes);
+		field_to_json(Obj,"createdTimestamp", CreationTimestamp);
+		field_to_json(Obj,"lastConfigurationChange", LastConfigurationChange);
+		field_to_json(Obj,"lastConfigurationDownload", LastConfigurationDownload);
+		field_to_json(Obj,"lastFWUpdate", LastFWUpdate);
+		field_to_json(Obj,"owner", Owner);
+		field_to_json(Obj,"location", Location);
+		field_to_json(Obj,"venue", Venue);
+		field_to_json(Obj,"firmware", Firmware);
+		field_to_json(Obj,"compatible", Compatible);
+		field_to_json(Obj,"fwUpdatePolicy", FWUpdatePolicy);
+		field_to_json(Obj,"devicePassword", DevicePassword);
 	}
 
 	void Device::to_json_with_status(Poco::JSON::Object &Obj) const {
@@ -54,38 +50,22 @@ namespace uCentral::Objects {
 		if (DeviceRegistry()->GetState(SerialNumber, ConState)) {
 			ConState.to_json(Obj);
 		} else {
-			Obj.set("ipAddress", "N/A");
-			Obj.set("txBytes", 0);
-			Obj.set("rxBytes", 0);
-			Obj.set("messageCount", 0);
-			Obj.set("connected", false);
-			Obj.set("lastContact", "N/A");
-			Obj.set("verifiedCertificate", "NO_CERTIFICATE");
+			ConState.to_json(Obj);
 		}
 	}
 
 	bool Device::from_json(Poco::JSON::Object::Ptr Obj) {
-
 		try {
-			Poco::DynamicStruct ds = *Obj;
-
-			SerialNumber = ds["serialNumber"].toString();
-			DeviceType = ds["deviceType"].toString();
-			MACAddress = ds["macAddress"].toString();
-			UUID = ds["UUID"];
-			Configuration = ds["configuration"].toString();
-			if (ds.contains("notes"))
-				Notes = ds["notes"].toString();
-			if (ds.contains("manufacturer"))
-				Manufacturer = ds["manufacturer"].toString();
-			if (ds.contains("owner"))
-				Owner = ds["owner"].toString();
-			if (ds.contains("location"))
-				Location = ds["location"].toString();
-			if (ds.contains("venue"))
-				Owner = ds["venue"].toString();
-			if (ds.contains("compatible"))
-				Compatible = ds["compatible"].toString();
+			field_from_json(Obj,"serialNumber",SerialNumber);
+			field_from_json(Obj,"deviceType",DeviceType);
+			field_from_json(Obj,"macAddress",MACAddress);
+			field_from_json(Obj,"configuration",Configuration);
+			field_from_json(Obj,"notes",Notes);
+			field_from_json(Obj,"manufacturer",Manufacturer);
+			field_from_json(Obj,"owner",Owner);
+			field_from_json(Obj,"location",Location);
+			field_from_json(Obj,"venue",Venue);
+			field_from_json(Obj,"compatible",Compatible);
 			return true;
 		} catch (const Poco::Exception &E) {
 		}
@@ -99,104 +79,100 @@ namespace uCentral::Objects {
 
 	void Statistics::to_json(Poco::JSON::Object &Obj) const {
 		EmbedDocument("data", Obj, Data);
-		Obj.set("UUID", UUID);
-		Obj.set("recorded", Recorded);
+		field_to_json(Obj,"UUID", UUID);
+		field_to_json(Obj,"recorded", Recorded);
 	}
 
 	void Capabilities::to_json(Poco::JSON::Object &Obj) const {
 		EmbedDocument("capabilities", Obj, Capabilities);
-		Obj.set("firstUpdate", FirstUpdate);
-		Obj.set("lastUpdate", LastUpdate);
+		field_to_json(Obj,"firstUpdate", FirstUpdate);
+		field_to_json(Obj,"lastUpdate", LastUpdate);
 	}
 
 	void DeviceLog::to_json(Poco::JSON::Object &Obj) const {
-		Obj.set("log", Log);
-		Obj.set("severity", Severity);
 		EmbedDocument("data", Obj, Data);
-		Obj.set("recorded", Recorded);
-		Obj.set("logType", LogType);
-		Obj.set("UUID", UUID);
+		field_to_json(Obj,"log", Log);
+		field_to_json(Obj,"severity", Severity);
+		field_to_json(Obj,"recorded", Recorded);
+		field_to_json(Obj,"logType", LogType);
+		field_to_json(Obj,"UUID", UUID);
 	}
 
 	void HealthCheck::to_json(Poco::JSON::Object &Obj) const {
-		Obj.set("UUID", UUID);
 		EmbedDocument("values", Obj, Data);
-		Obj.set("sanity", Sanity);
-		Obj.set("recorded", Recorded);
+		field_to_json(Obj,"UUID", UUID);
+		field_to_json(Obj,"sanity", Sanity);
+		field_to_json(Obj,"recorded", Recorded);
 	}
 
 	void DefaultConfiguration::to_json(Poco::JSON::Object &Obj) const {
-		Obj.set("name", Name);
-		Obj.set("modelIds", Models);
-		Obj.set("description", Description);
 		EmbedDocument("configuration", Obj, Configuration);
-		Obj.set("created", Created);
-		Obj.set("lastModified", LastModified);
+		field_to_json(Obj,"name", Name);
+		field_to_json(Obj,"modelIds", Models);
+		field_to_json(Obj,"description", Description);
+		field_to_json(Obj,"created", Created);
+		field_to_json(Obj,"lastModified", LastModified);
 	}
 
 	void CommandDetails::to_json(Poco::JSON::Object &Obj) const {
-		Obj.set("UUID", UUID);
-		Obj.set("serialNumber", SerialNumber);
-		Obj.set("command", Command);
 		EmbedDocument("details", Obj, Details);
 		EmbedDocument("results", Obj, Results);
-		Obj.set("errorText", ErrorText);
-		Obj.set("submittedBy", SubmittedBy);
-		Obj.set("status", Status);
-		Obj.set("submitted", Submitted);
-		Obj.set("executed", Executed);
-		Obj.set("completed", Completed);
-		Obj.set("when", RunAt);
-		Obj.set("errorCode", ErrorCode);
-		Obj.set("custom", Custom);
-		Obj.set("waitingForFile", WaitingForFile);
-		Obj.set("attachFile", AttachDate);
+		field_to_json(Obj,"UUID", UUID);
+		field_to_json(Obj,"serialNumber", SerialNumber);
+		field_to_json(Obj,"command", Command);
+		field_to_json(Obj,"errorText", ErrorText);
+		field_to_json(Obj,"submittedBy", SubmittedBy);
+		field_to_json(Obj,"status", Status);
+		field_to_json(Obj,"submitted", Submitted);
+		field_to_json(Obj,"executed", Executed);
+		field_to_json(Obj,"completed", Completed);
+		field_to_json(Obj,"when", RunAt);
+		field_to_json(Obj,"errorCode", ErrorCode);
+		field_to_json(Obj,"custom", Custom);
+		field_to_json(Obj,"waitingForFile", WaitingForFile);
+		field_to_json(Obj,"attachFile", AttachDate);
 	}
 
 	bool DefaultConfiguration::from_json(Poco::JSON::Object::Ptr Obj) {
-		Poco::DynamicStruct ds = *Obj;
-
 		try {
-			Name = ds["name"].toString();
-			Configuration = ds["configuration"].toString();
-			Models = ds["modelIds"].toString();
-			if (ds.contains("description"))
-				Description = ds["description"].toString();
+			field_from_json(Obj,"name",Name);
+			field_from_json(Obj,"configuration",Configuration);
+			field_from_json(Obj,"modelIds",Models);
+			field_from_json(Obj,"description",Description);
 			return true;
 		} catch (const Poco::Exception &E) {
 		}
-
 		return false;
 	}
 
 	void BlackListedDevice::to_json(Poco::JSON::Object &Obj) const {
-		Obj.set("serialNumber", SerialNumber);
-		Obj.set("author", Author);
-		Obj.set("reason", Reason);
-		Obj.set("created", Created);
+		field_to_json(Obj,"serialNumber", SerialNumber);
+		field_to_json(Obj,"author", Author);
+		field_to_json(Obj,"reason", Reason);
+		field_to_json(Obj,"created", Created);
 	}
 
 	void ConnectionState::to_json(Poco::JSON::Object &Obj) const {
-		Obj.set("serialNumber", SerialNumber);
-		Obj.set("ipAddress", Address);
-		Obj.set("txBytes", TX);
-		Obj.set("rxBytes", RX);
-		Obj.set("messageCount", MessageCount);
-		Obj.set("UUID", UUID);
-		Obj.set("connected", Connected);
-		Obj.set("firmware", Firmware);
-		Obj.set("lastContact", LastContact);
+		field_to_json(Obj,"serialNumber", SerialNumber);
+		field_to_json(Obj,"ipAddress", Address);
+		field_to_json(Obj,"txBytes", TX);
+		field_to_json(Obj,"rxBytes", RX);
+		field_to_json(Obj,"messageCount", MessageCount);
+		field_to_json(Obj,"UUID", UUID);
+		field_to_json(Obj,"connected", Connected);
+		field_to_json(Obj,"firmware", Firmware);
+		field_to_json(Obj,"lastContact", LastContact);
 		switch(VerifiedCertificate) {
 		case NO_CERTIFICATE:
-			Obj.set("verifiedCertificate", "NO_CERTIFICATE"); break;
+			field_to_json(Obj,"verifiedCertificate", "NO_CERTIFICATE"); break;
 		case VALID_CERTIFICATE:
-			Obj.set("verifiedCertificate", "VALID_CERTIFICATE"); break;
+			field_to_json(Obj,"verifiedCertificate", "VALID_CERTIFICATE"); break;
 		case MISMATCH_SERIAL:
-			Obj.set("verifiedCertificate", "MISMATCH_SERIAL"); break;
+			field_to_json(Obj,"verifiedCertificate", "MISMATCH_SERIAL"); break;
 		case VERIFIED:
-			Obj.set("verifiedCertificate", "VERIFIED"); break;
+			field_to_json(Obj,"verifiedCertificate", "VERIFIED"); break;
 		default:
-			Obj.set("verifiedCertificate", "NO_CERTIFICATE"); break;
+			field_to_json(Obj,"verifiedCertificate", "NO_CERTIFICATE"); break;
 		}
 	}
 
