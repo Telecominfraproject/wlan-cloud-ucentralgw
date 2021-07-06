@@ -357,16 +357,12 @@ namespace uCentral {
 						}
 						Conn_->VerifiedCertificate = CertValidation_;
 
-						std::string DevicePassword;
-						if(ParamsObj->has("password"))
-							DevicePassword = ParamsObj->get("password").toString();
-
 						if (Daemon()->AutoProvisioning() && !Storage()->DeviceExists(SerialNumber_)) {
-							Storage()->CreateDefaultDevice(SerialNumber_, Capabilities, Firmware, DevicePassword);
+							Storage()->CreateDefaultDevice(SerialNumber_, Capabilities, Firmware);
 						} else if (Storage()->DeviceExists(SerialNumber_)) {
 							Storage()->UpdateDeviceCapabilities(SerialNumber_, Capabilities);
 							if(!Firmware.empty()) {
-								Storage()->SetConnectInfo(SerialNumber_, Firmware, DevicePassword );
+								Storage()->SetConnectInfo(SerialNumber_, Firmware );
 							}
 						}
 
@@ -574,6 +570,17 @@ namespace uCentral {
 						Logger_.error(Poco::format(
 							"RECOVERY(%s): Recovery missing one of firmware, uuid, loglines, reboot",
 							Serial));
+					}
+				}
+				break;
+
+			case uCentralProtocol::ET_DEVICEUPDATE: {
+					if (ParamsObj->has("currentPassword")) {
+						auto Password = ParamsObj->get("currentPassword").toString();
+
+						Storage()->SetDevicePassword(Serial, Password);
+						Logger_.error(Poco::format(
+							"DEVICEUPDATE(%s): Device is updating its login password.", Serial));
 					}
 				}
 				break;

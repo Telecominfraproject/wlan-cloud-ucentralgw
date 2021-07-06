@@ -80,6 +80,7 @@ namespace uCentral::uCentralProtocol {
 	static const char * BANDS = "bands";
 	static const char * CHANNELS = "channels";
 	static const char * PASSWORD = "password";
+	static const char * DEVICEUPDATE = "deviceupdate";
 
 	enum EVENT_MSG {
 			ET_UNKNOWN,
@@ -90,7 +91,8 @@ namespace uCentral::uCentralProtocol {
 			ET_CRASHLOG,
 			ET_PING,
 			ET_CFGPENDING,
-			ET_RECOVERY
+			ET_RECOVERY,
+			ET_DEVICEUPDATE
 		};
 
 	static EVENT_MSG EventFromString(const std::string & Method) {
@@ -110,6 +112,8 @@ namespace uCentral::uCentralProtocol {
 			return ET_CFGPENDING;
 		} else if (!Poco::icompare(Method, RECOVERY)) {
 			return ET_RECOVERY;
+		} else if (!Poco::icompare(Method, DEVICEUPDATE)) {
+			return ET_DEVICEUPDATE;
 		} else
 			return ET_UNKNOWN;
 	};

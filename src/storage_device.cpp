@@ -142,10 +142,9 @@ namespace uCentral {
 									"LastConfigurationChange, "
 									"LastConfigurationDownload, "
 									"LastFWUpdate, "
-									"Venue, "
-									"DevicePassword "
+									"Venue "
 									")"
-									"VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)"};
+									"VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)"};
 
 					Insert  << ConvertParams(St2),
 						Poco::Data::Keywords::use(DeviceDetails.SerialNumber),
@@ -164,8 +163,7 @@ namespace uCentral {
 						Poco::Data::Keywords::use(Now),
 						Poco::Data::Keywords::use(Now),
 						Poco::Data::Keywords::use(Now),
-						Poco::Data::Keywords::use(DeviceDetails.Venue),
-						Poco::Data::Keywords::use(DeviceDetails.DevicePassword);
+						Poco::Data::Keywords::use(DeviceDetails.Venue);
 					Insert.execute();
 
 					return true;
@@ -182,7 +180,7 @@ namespace uCentral {
 		return false;
 	}
 
-	bool Storage::CreateDefaultDevice(const std::string &SerialNumber, const std::string &Capabilities, std::string & Firmware, std::string &DevicePassword) {
+	bool Storage::CreateDefaultDevice(const std::string &SerialNumber, const std::string &Capabilities, std::string & Firmware) {
 
 		uCentral::Objects::Device D;
 		Logger_.information(Poco::format("AUTO-CREATION(%s)", SerialNumber));
@@ -207,7 +205,6 @@ namespace uCentral {
 		D.MACAddress = Utils::SerialToMAC(SerialNumber);
 		D.Manufacturer = Caps.Model();
 		D.Firmware = Firmware;
-		D.DevicePassword = DevicePassword;
 		D.UUID = Now;
 		D.Notes = "Automatically created.";
 		D.CreationTimestamp = D.LastConfigurationDownload = D.LastConfigurationChange = Now;
@@ -274,6 +271,25 @@ namespace uCentral {
 		return false;
 	}
 
+	bool Storage::SetDevicePassword(std::string & SerialNumber, std::string & Password) {
+		try {
+			Poco::Data::Session     Sess = Pool_->get();
+			Poco::Data::Statement   Update(Sess);
+			std::string St{"UPDATE Devices SET DevicePassword=?  WHERE SerialNumber=?"};
+
+			Update << ConvertParams(St) ,
+				Poco::Data::Keywords::use(Password),
+				Poco::Data::Keywords::use(SerialNumber);
+			Update.execute();
+			return true;
+		}
+		catch (const Poco::Exception &E) {
+			Logger_.warning(
+				Poco::format("%s(%s): Failed with: %s", std::string(__func__), SerialNumber, E.displayText()));
+		}
+		return false;
+	}
+
 	bool Storage::SetOwner(std::string & SerialNumber, std::string & OwnerUUID) {
 		try {
 			Poco::Data::Session     Sess = Pool_->get();
@@ -293,7 +309,7 @@ namespace uCentral {
 		return false;
 	}
 
-	bool Storage::SetConnectInfo(std::string &SerialNumber, std::string &Firmware, std::string &DevicePassword) {
+	bool Storage::SetConnectInfo(std::string &SerialNumber, std::string &Firmware) {
 		try {
 			Poco::Data::Session     Sess = Pool_->get();
 			Poco::Data::Statement   Select(Sess);
@@ -308,12 +324,11 @@ namespace uCentral {
 
 			if(TmpFirmware != Firmware) {
 				Poco::Data::Statement	Update(Sess);
-				std::string St2{"UPDATE Devices SET Firmware=?, DevicePassword=?, LastFWUpdate=? WHERE SerialNumber=?"};
+				std::string St2{"UPDATE Devices SET Firmware=?, LastFWUpdate=? WHERE SerialNumber=?"};
 				uint64_t 	Now = time(nullptr);
 
 				Update << 	ConvertParams(St2),
 							Poco::Data::Keywords::use(Firmware),
-							Poco::Data::Keywords::use(DevicePassword),
 							Poco::Data::Keywords::use(Now),
 							Poco::Data::Keywords::use(SerialNumber);
 				Update.execute();
