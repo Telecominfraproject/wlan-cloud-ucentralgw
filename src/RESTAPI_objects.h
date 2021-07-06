@@ -30,7 +30,7 @@ namespace uCentral::Objects {
 		bool Connected=false;
 		uint64_t LastContact=0;
 		std::string Firmware;
-		CertificateValidation VerifiedCertificate = NO_CERTIFICATE;
+		CertificateValidation VerifiedCertificate;
 		void to_json(Poco::JSON::Object &Obj) const;
 	};
 

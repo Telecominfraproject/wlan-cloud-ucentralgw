@@ -163,16 +163,16 @@ namespace uCentral::Objects {
 		field_to_json(Obj,"firmware", Firmware);
 		field_to_json(Obj,"lastContact", LastContact);
 		switch(VerifiedCertificate) {
-		case NO_CERTIFICATE:
-			field_to_json(Obj,"verifiedCertificate", "NO_CERTIFICATE"); break;
-		case VALID_CERTIFICATE:
-			field_to_json(Obj,"verifiedCertificate", "VALID_CERTIFICATE"); break;
-		case MISMATCH_SERIAL:
-			field_to_json(Obj,"verifiedCertificate", "MISMATCH_SERIAL"); break;
-		case VERIFIED:
-			field_to_json(Obj,"verifiedCertificate", "VERIFIED"); break;
-		default:
-			field_to_json(Obj,"verifiedCertificate", "NO_CERTIFICATE"); break;
+			case NO_CERTIFICATE:
+				field_to_json(Obj,"verifiedCertificate", "NO_CERTIFICATE"); break;
+			case VALID_CERTIFICATE:
+				field_to_json(Obj,"verifiedCertificate", "VALID_CERTIFICATE"); break;
+			case MISMATCH_SERIAL:
+				field_to_json(Obj,"verifiedCertificate", "MISMATCH_SERIAL"); break;
+			case VERIFIED:
+				field_to_json(Obj,"verifiedCertificate", "VERIFIED"); break;
+			default:
+				field_to_json(Obj,"verifiedCertificate", "NO_CERTIFICATE"); break;
 		}
 	}
 
