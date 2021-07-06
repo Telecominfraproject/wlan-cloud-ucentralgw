@@ -73,7 +73,7 @@ namespace uCentral::Objects {
 	}
 
 	void Device::Print() const {
-		std::cout << "Device: " << SerialNumber << " " << DeviceType << " " << MACAddress << " "
+		std::cout << "Device: " << SerialNumber << " DeviceType:" << DeviceType << " MACAddress:" << MACAddress << " Manufacturer:"
 				  << Manufacturer << " " << Configuration << std::endl;
 	}
 

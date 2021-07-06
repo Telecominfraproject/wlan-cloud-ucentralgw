@@ -201,15 +201,15 @@ namespace uCentral {
 			D.Configuration = NewConfig.get();
 		}
 
-		D.SerialNumber = SerialNumber;
+		D.SerialNumber = Poco::toLower(SerialNumber);
 		D.Compatible = Caps.Compatible();
 		D.DeviceType = Daemon()->IdentifyDevice(D.Compatible);
-		D.MACAddress = uCentral::Utils::SerialToMAC(SerialNumber);
+		D.MACAddress = Utils::SerialToMAC(SerialNumber);
 		D.Manufacturer = Caps.Model();
 		D.Firmware = Firmware;
 		D.DevicePassword = DevicePassword;
 		D.UUID = Now;
-		D.Notes = "auto created device.";
+		D.Notes = "Automatically created.";
 		D.CreationTimestamp = D.LastConfigurationDownload = D.LastConfigurationChange = Now;
 
 		return CreateDevice(D);
@@ -478,7 +478,7 @@ namespace uCentral {
 			if(!NewDeviceDetails.DevicePassword.empty())
 				ExistingDevice.DevicePassword=NewDeviceDetails.DevicePassword;
 			if(!NewDeviceDetails.Notes.empty()) {
-				ExistingDevice.Notes += Poco::DateTimeFormatter::format(Poco::Timestamp(), Poco::DateTimeFormat::HTTP_FORMAT) + "\n" +
+				ExistingDevice.Notes += Poco::DateTimeFormatter::format(Poco::Timestamp(), Poco::DateTimeFormat::ISO8601_FORMAT) + "\\n" +
 					NewDeviceDetails.Notes;
 			}
 
@@ -502,9 +502,9 @@ namespace uCentral {
 				Poco::Data::Keywords::use(ExistingDevice.Location),
 				Poco::Data::Keywords::use(ExistingDevice.FWUpdatePolicy),
 				Poco::Data::Keywords::use(ExistingDevice.Venue),
-				Poco::Data::Keywords::use(ExistingDevice.DevicePassword);
+				Poco::Data::Keywords::use(ExistingDevice.SerialNumber);
 			Update.execute();
-
+			GetDevice(ExistingDevice.SerialNumber,NewDeviceDetails);
 			return true;
 		}
 		catch (const Poco::Exception &E) {

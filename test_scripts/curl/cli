@@ -183,12 +183,21 @@ deletedevice() {
 }
 
 createdevice() {
-  payload="{ \"serialNumber\": \"$1\", \"UUID\": 1234456, \"configuration\" : $(cat "$2") , \"deviceType\": \"AP_Default\",\"location\": \"\", \"macAddress\": \"$3\", \"manufacturer\": \"Linksys EA8300 (Dallas)\", \"notes\": \"auto created device.\", \"owner\": \"\" }"
+  payload="{ \"serialNumber\": \"$1\", \"UUID\": 1234456, \"configuration\" : $(cat "$2") , \"deviceType\": \"AP_Default\",\"location\": \"\", \"macAddress\": \"$3\", \"manufacturer\": \"Linksys EA8300 (Dallas)\", \"owner\": \"\" }"
   curl  ${FLAGS} -X POST "https://${UCENTRALGW}/api/v1/device/$1" \
         -H "accept: application/json" \
         -H "Authorization: Bearer ${token}" \
         -d "$payload"  > ${result_file}
   jq < ${result_file}
+}
+
+addnote() {
+	payload="{ \"serialNumber\": \"$1\", \"notes\" : \"$2\" }"
+	curl  ${FLAGS} -X PUT "https://${UCENTRALGW}/api/v1/device/$1" \
+        -H "accept: application/json" \
+        -H "Authorization: Bearer ${token}" \
+        -d "$payload"  > ${result_file}
+	jq < ${result_file}
 }
 
 reboot() {
@@ -501,6 +510,7 @@ help() {
   echo "gethealthchecks <serial>          Get healthchecks for a device."
   echo "newesthealthchecks <serial>       Get newest healthchecks for a device."
   echo "lasthealthcheck <serial>          Get the last healthcheck"
+  echo "addnote <serial> <note>           Add a notes to the notes section"
   echo
   echo "getcapababilities <serial>        Get the device capabilities JSON document."
   echo "deletecapababilities <serial>     Delete the device capabilities JSON."
@@ -585,7 +595,7 @@ case "$1" in
   "deletecapabilities") login; deletecapabilities "$2"  ; logout ;;
   "listdevices") login; listdevices  ; logout ;;
   "deletedevice") login; deletedevice "$2"  ; logout ;;
-  "createdevice") login; createdevice "$2" "$3"  ; logout ;;
+  "createdevice") login; createdevice "$2" "$3" "$4" ; logout ;;
   "reboot") login; reboot "$2"  ; logout ;;
   "setloglevel") login; setloglevel "$2" "$3"  ; logout ;;
   "getdevicestatus") login; getdevicestatus "$2"  ; logout ;;
@@ -628,6 +638,7 @@ case "$1" in
   "getloglevelnames") login; getloglevelnames; logout ;;
   "getsubsystemnames") login; getsubsystemnames; logout ;;
   "ouilookup") login; ouilookup "$2"; logout;;
+  "addnote") login; addnote "$2" "$3"; logout;;
   *) help ;;
 esac
 

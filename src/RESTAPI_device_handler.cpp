@@ -49,7 +49,6 @@ void RESTAPI_device_handler::handleRequest(Poco::Net::HTTPServerRequest &Request
 			IncomingParser.parse(Request.stream()).extract<Poco::JSON::Object::Ptr>();
 
 		uCentral::Objects::Device Device;
-
 		if (!Device.from_json(Obj)) {
 			BadRequest(Request, Response);
 			return;
@@ -60,6 +59,8 @@ void RESTAPI_device_handler::handleRequest(Poco::Net::HTTPServerRequest &Request
 			BadRequest(Request, Response);
 			return;
 		}
+
+		Device.Print();
 
 		Device.UUID = time(nullptr);
 		if (Storage()->CreateDevice(Device)) {
@@ -77,14 +78,15 @@ void RESTAPI_device_handler::handleRequest(Poco::Net::HTTPServerRequest &Request
 			IncomingParser.parse(Request.stream()).extract<Poco::JSON::Object::Ptr>();
 
 		uCentral::Objects::Device Device;
-
 		if (!Device.from_json(Obj)) {
 			BadRequest(Request, Response);
 			return;
 		}
 
 		if (Storage()->UpdateDevice(Device)) {
-			OK(Request, Response);
+			Poco::JSON::Object DevObj;
+			Device.to_json(DevObj);
+			ReturnObject(Request, DevObj, Response);
 		} else {
 			BadRequest(Request, Response);
 		}
