@@ -47,12 +47,15 @@ void RESTAPI_device_handler::handleRequest(Poco::Net::HTTPServerRequest &Request
 		Poco::JSON::Parser IncomingParser;
 		Poco::JSON::Object::Ptr Obj =
 			IncomingParser.parse(Request.stream()).extract<Poco::JSON::Object::Ptr>();
-
 		uCentral::Objects::Device Device;
 		if (!Device.from_json(Obj)) {
 			BadRequest(Request, Response);
 			return;
 		}
+
+		//	make sure the username is filled for the notes.
+		for(auto &i:Device.Notes)
+			i.createdBy = UserInfo_.userinfo.email;
 
 		if (!uCentral::Utils::ValidSerialNumber(Device.SerialNumber)) {
 			Logger_.warning(Poco::format("CREATE-DEVICE(%s): Illegal name.", Device.SerialNumber));
@@ -82,6 +85,9 @@ void RESTAPI_device_handler::handleRequest(Poco::Net::HTTPServerRequest &Request
 			BadRequest(Request, Response);
 			return;
 		}
+
+		for(auto &i:Device.Notes)
+			i.createdBy = UserInfo_.userinfo.email;
 
 		if (Storage()->UpdateDevice(Device)) {
 			Poco::JSON::Object DevObj;

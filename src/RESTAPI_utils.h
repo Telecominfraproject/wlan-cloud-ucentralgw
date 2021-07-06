@@ -8,6 +8,7 @@
 #include "Poco/JSON/Object.h"
 #include "Poco/JSON/Parser.h"
 #include "uCentralTypes.h"
+#include "Utils.h"
 
 namespace uCentral::RESTAPI_utils {
 
@@ -88,6 +89,62 @@ namespace uCentral::RESTAPI_utils {
 			Poco::JSON::Object::Ptr	A = Obj->getObject(Field);
 			Value.from_json(A);
 		}
+	}
+
+	template<class T> std::string to_string(const std::vector<T> & ObjectArray) {
+		Poco::JSON::Array OutputArr;
+		if(ObjectArray.empty())
+			return "[]";
+		for(auto const &i:ObjectArray) {
+			Poco::JSON::Object O;
+			i.to_json(O);
+			OutputArr.add(O);
+		}
+		std::ostringstream OS;
+		Poco::JSON::Stringifier::condense(OutputArr,OS);
+		return OS.str();
+	}
+
+	template<class T> std::string to_string(const T & Object) {
+		Poco::JSON::Object OutputObj;
+		Object.to_json(OutputObj);
+		std::ostringstream OS;
+		Poco::JSON::Stringifier::condense(OutputObj,OS);
+		return OS.str();
+	}
+
+	template<class T> std::vector<T> to_object_array(const std::string & ObjectString) {
+
+		std::vector<T>	Result;
+		if(ObjectString.empty())
+			return Result;
+
+		try {
+			Poco::JSON::Parser P;
+			auto Object = P.parse(ObjectString).template extract<Poco::JSON::Array::Ptr>();
+			for (auto const i : *Object) {
+				auto InnerObject = i.template extract<Poco::JSON::Object::Ptr>();
+				T Obj;
+				Obj.from_json(InnerObject);
+				Result.push_back(Obj);
+			}
+		} catch (...) {
+
+		}
+		return Result;
+	}
+
+	template<class T> T to_object(const std::string & ObjectString) {
+		T	Result;
+
+		if(ObjectString.empty())
+			return Result;
+
+		Poco::JSON::Parser	P;
+		auto Object = P.parse(ObjectString).template extract<Poco::JSON::Object::Ptr>();
+		Result.from_json(Object);
+
+		return Result;
 	}
 }
 

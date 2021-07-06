@@ -183,7 +183,7 @@ deletedevice() {
 }
 
 createdevice() {
-  payload="{ \"serialNumber\": \"$1\", \"UUID\": 1234456, \"configuration\" : $(cat "$2") , \"deviceType\": \"AP_Default\",\"location\": \"\", \"macAddress\": \"$3\", \"manufacturer\": \"Linksys EA8300 (Dallas)\", \"owner\": \"\" }"
+  payload="{ \"serialNumber\": \"$1\", \"UUID\": 1234456, \"configuration\" : $(cat "$2") , \"deviceType\": \"AP\",\"location\": \"\", \"macAddress\": \"$3\", \"manufacturer\": \"Linksys EA8300 (Dallas)\", \"owner\": \"\" }"
   curl  ${FLAGS} -X POST "https://${UCENTRALGW}/api/v1/device/$1" \
         -H "accept: application/json" \
         -H "Authorization: Bearer ${token}" \
@@ -192,7 +192,7 @@ createdevice() {
 }
 
 addnote() {
-	payload="{ \"serialNumber\": \"$1\", \"notes\" : \"$2\" }"
+	payload="{ \"serialNumber\": \"$1\", \"notes\" : [ {\"note\" : \"$2\"} ] }"
 	curl  ${FLAGS} -X PUT "https://${UCENTRALGW}/api/v1/device/$1" \
         -H "accept: application/json" \
         -H "Authorization: Bearer ${token}" \

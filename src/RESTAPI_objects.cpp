@@ -29,7 +29,6 @@ namespace uCentral::Objects {
 		field_to_json(Obj,"manufacturer", Manufacturer);
 		field_to_json(Obj,"UUID", UUID);
 		EmbedDocument("configuration", Obj, Configuration);
-
 		field_to_json(Obj,"notes", Notes);
 		field_to_json(Obj,"createdTimestamp", CreationTimestamp);
 		field_to_json(Obj,"lastConfigurationChange", LastConfigurationChange);
@@ -183,16 +182,17 @@ namespace uCentral::Objects {
 	}
 
 	void RttySessionDetails::to_json(Poco::JSON::Object &Obj) const {
-		Obj.set("serialNumber", SerialNumber);
-		Obj.set("server", Server);
-		Obj.set("port", Port);
-		Obj.set("token",Token);
-		Obj.set("timeout", TimeOut);
-		Obj.set("connectionId",ConnectionId);
-		Obj.set("commandUUID",CommandUUID);
-		Obj.set("started", Started);
-		Obj.set("viewport",ViewPort);
-		Obj.set("password",DevicePassword);
+		field_to_json(Obj,"serialNumber", SerialNumber);
+		field_to_json(Obj,"server", Server);
+		field_to_json(Obj,"port", Port);
+		field_to_json(Obj,"token",Token);
+		field_to_json(Obj,"timeout", TimeOut);
+		field_to_json(Obj,"connectionId",ConnectionId);
+		field_to_json(Obj,"commandUUID",CommandUUID);
+		field_to_json(Obj,"started", Started);
+		field_to_json(Obj,"viewport",ViewPort);
+		field_to_json(Obj,"password",DevicePassword);
 	}
+
 }
 

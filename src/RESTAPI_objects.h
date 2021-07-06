@@ -10,6 +10,7 @@
 #define UCENTRAL_RESTAPI_OBJECTS_H
 
 #include "Poco/JSON/Object.h"
+#include "RESTAPI_SecurityObjects.h"
 
 namespace uCentral::Objects {
 
@@ -40,7 +41,7 @@ namespace uCentral::Objects {
 		std::string MACAddress;
 		std::string Manufacturer;
 		std::string Configuration;
-		std::string Notes;
+		SecurityObjects::NoteInfoVec 	Notes;
 		std::string Owner;
 		std::string Location;
 		std::string Firmware;

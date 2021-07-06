@@ -117,6 +117,16 @@ namespace uCentral::SecurityObjects {
 
 	typedef std::map<std::string,SecurityObjects::UserInfoAndPolicy>	UserInfoCache;
 
+	struct NoteInfo {
+		uint64_t created = std::time(nullptr);
+		std::string createdBy;
+		std::string note;
+		void to_json(Poco::JSON::Object &Obj) const;
+		bool from_json(Poco::JSON::Object::Ptr Obj);
+	};
+
+	typedef std::vector<NoteInfo>	NoteInfoVec;
+
 }
 
 #endif //UCENTRAL_RESTAPI_SECURITYOBJECTS_H

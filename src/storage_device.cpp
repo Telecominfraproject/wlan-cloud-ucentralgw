@@ -10,6 +10,7 @@
 #include "StorageService.h"
 #include "Utils.h"
 
+#include "RESTAPI_utils.h"
 #include "Daemon.h"
 
 namespace uCentral {
@@ -146,13 +147,15 @@ namespace uCentral {
 									")"
 									"VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)"};
 
+					auto NotesString = RESTAPI_utils::to_string(DeviceDetails.Notes);
+
 					Insert  << ConvertParams(St2),
 						Poco::Data::Keywords::use(DeviceDetails.SerialNumber),
 						Poco::Data::Keywords::use(DeviceDetails.DeviceType),
 						Poco::Data::Keywords::use(DeviceDetails.MACAddress),
 						Poco::Data::Keywords::use(DeviceDetails.Manufacturer),
 						Poco::Data::Keywords::use(DeviceDetails.Configuration),
-						Poco::Data::Keywords::use(DeviceDetails.Notes),
+						Poco::Data::Keywords::use(NotesString),
 						Poco::Data::Keywords::use(DeviceDetails.Owner),
 						Poco::Data::Keywords::use(DeviceDetails.Location),
 						Poco::Data::Keywords::use(DeviceDetails.Firmware),
@@ -165,7 +168,6 @@ namespace uCentral {
 						Poco::Data::Keywords::use(Now),
 						Poco::Data::Keywords::use(DeviceDetails.Venue);
 					Insert.execute();
-
 					return true;
 				} else {
 					Logger_.warning("Cannot create device: invalid configuration.");
@@ -206,7 +208,7 @@ namespace uCentral {
 		D.Manufacturer = Caps.Model();
 		D.Firmware = Firmware;
 		D.UUID = Now;
-		D.Notes = "Automatically created.";
+		D.Notes = SecurityObjects::NoteInfoVec { SecurityObjects::NoteInfo{ (uint64_t)std::time(nullptr), "", "Auto-provisioned."}};
 		D.CreationTimestamp = D.LastConfigurationDownload = D.LastConfigurationChange = Now;
 
 		return CreateDevice(D);
@@ -392,13 +394,14 @@ namespace uCentral {
 						   "DevicePassword "
 						   "FROM Devices WHERE SerialNumber=?"};
 
+			std::string NI;
 			Select << ConvertParams(St),
 				Poco::Data::Keywords::into(DeviceDetails.SerialNumber),
 				Poco::Data::Keywords::into(DeviceDetails.DeviceType),
 				Poco::Data::Keywords::into(DeviceDetails.MACAddress),
 				Poco::Data::Keywords::into(DeviceDetails.Manufacturer),
 				Poco::Data::Keywords::into(DeviceDetails.Configuration),
-				Poco::Data::Keywords::into(DeviceDetails.Notes),
+				Poco::Data::Keywords::into(NI),
 				Poco::Data::Keywords::into(DeviceDetails.Owner),
 				Poco::Data::Keywords::into(DeviceDetails.Location),
 				Poco::Data::Keywords::into(DeviceDetails.Firmware),
@@ -412,8 +415,9 @@ namespace uCentral {
 				Poco::Data::Keywords::into(DeviceDetails.Venue),
 				Poco::Data::Keywords::into(DeviceDetails.DevicePassword),
 				Poco::Data::Keywords::use(SerialNumber);
-
 			Select.execute();
+
+			DeviceDetails.Notes = RESTAPI_utils::to_object_array<SecurityObjects::NoteInfo>(NI);
 
 			if (DeviceDetails.SerialNumber.empty())
 				return false;
@@ -493,9 +497,11 @@ namespace uCentral {
 			if(!NewDeviceDetails.DevicePassword.empty())
 				ExistingDevice.DevicePassword=NewDeviceDetails.DevicePassword;
 			if(!NewDeviceDetails.Notes.empty()) {
-				ExistingDevice.Notes += Poco::DateTimeFormatter::format(Poco::Timestamp(), Poco::DateTimeFormat::ISO8601_FORMAT) + "\\n" +
-					NewDeviceDetails.Notes;
+				for(const auto &i:NewDeviceDetails.Notes)
+					ExistingDevice.Notes.push_back(i);
 			}
+
+			std::string NotesString = RESTAPI_utils::to_string(ExistingDevice.Notes);
 
 			std::string St2{"UPDATE Devices SET "
 							"DeviceType=?, "
@@ -507,12 +513,12 @@ namespace uCentral {
 							"FWUpdatePolicy=?,"
 							"Venue=? "
 							" WHERE SerialNumber=?"};
-
+			auto NI = RESTAPI_utils::to_string(ExistingDevice.Notes);
 			Update  << ConvertParams(St2),
 				Poco::Data::Keywords::use(ExistingDevice.DeviceType),
 				Poco::Data::Keywords::use(ExistingDevice.MACAddress),
 				Poco::Data::Keywords::use(ExistingDevice.Manufacturer),
-				Poco::Data::Keywords::use(ExistingDevice.Notes),
+				Poco::Data::Keywords::use(NI),
 				Poco::Data::Keywords::use(ExistingDevice.Owner),
 				Poco::Data::Keywords::use(ExistingDevice.Location),
 				Poco::Data::Keywords::use(ExistingDevice.FWUpdatePolicy),
@@ -588,14 +594,19 @@ namespace uCentral {
 				Poco::Data::Keywords::range(From, From + HowMany );
 			Select.execute();
 
+
 			for (auto i: Records) {
+
+				SecurityObjects::NoteInfoVec 	NI;
+				NI = RESTAPI_utils::to_object_array<SecurityObjects::NoteInfo>(i.get<5>());
+
 				uCentral::Objects::Device R{
 					.SerialNumber   = i.get<0>(),
 					.DeviceType     = i.get<1>(),
 					.MACAddress     = i.get<2>(),
 					.Manufacturer   = i.get<3>(),
 					.Configuration  = i.get<4>(),
-					.Notes  		= i.get<5>(),
+					.Notes  		= NI,
 					.Owner          = i.get<6>(),
 					.Location 		= i.get<7>(),
 					.Firmware 		= i.get<8>(),

@@ -99,7 +99,9 @@ components:
         configuration:
           type: string
         notes:
-          type: string
+          type: array
+          items:
+            $ref: '#/components/schemas/NoteInfo'
         createdTimestamp:
           type: integer
           format: int64
@@ -703,6 +705,18 @@ components:
       oneOf:
         - $ref: '#/components/schemas/StringList'
         - $ref: '#/components/schemas/TagValuePairList'
+
+    NoteInfo:
+      type: object
+      properties:
+        created:
+          type: integer
+          format: int64
+        createdBy:
+          type: string
+        note:
+          type: string
+
     #########################################################################################
     ##
     ## End of uCentral system wide values

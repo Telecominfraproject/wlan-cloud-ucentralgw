@@ -232,5 +232,22 @@ namespace uCentral::SecurityObjects {
 		return false;
 	}
 
+	void NoteInfo::to_json(Poco::JSON::Object &Obj) const {
+		field_to_json(Obj,"created", created);
+		field_to_json(Obj,"createdBy", createdBy);
+		field_to_json(Obj,"note", note);
+	}
+
+	bool NoteInfo::from_json(Poco::JSON::Object::Ptr Obj) {
+		try {
+			field_from_json(Obj,"created",created);
+			field_from_json(Obj,"createdBy",createdBy);
+			field_from_json(Obj,"note",note);
+		} catch(...) {
+
+		}
+		return false;
+	}
+
 }
 
