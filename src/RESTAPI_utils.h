@@ -21,6 +21,10 @@ namespace uCentral::RESTAPI_utils {
 		Obj.set(Field,S);
 	}
 
+	inline void field_to_json(Poco::JSON::Object &Obj, const char *Field, const char * S) {
+		Obj.set(Field,S);
+	}
+
 	inline void field_to_json(Poco::JSON::Object &Obj, const char *Field, uint64_t V) {
 		Obj.set(Field,V);
 	}
