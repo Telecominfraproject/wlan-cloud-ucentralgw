@@ -58,13 +58,11 @@ namespace uCentral {
 		SubMutexGuard		Guard(Mutex_);
 
         auto Device = Devices_.find(SerialNumber);
-
         if(Device != Devices_.end())
         {
             State = Device->second->Conn_;
             return true;
         }
-
         return false;
     }
 
