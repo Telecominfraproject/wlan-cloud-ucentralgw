@@ -347,7 +347,7 @@ namespace uCentral {
 
 						//	We need to verify the certificate if we have one
 						if(!CN_.empty() && Utils::SerialNumberMatch(CN_,SerialNumber_)) {
-							Conn_->VerifiedCertificate = Objects::VERIFIED;
+							CertValidation_ = Objects::VERIFIED;
 							Logger_.information(Poco::format("CONNECT(%s): Fully validated and authenticated device..", CId_));
 						} else {
 							if(CN_.empty())
@@ -355,6 +355,7 @@ namespace uCentral {
 							else
 								Logger_.information(Poco::format("CONNECT(%s): Authenticated but not validated. Serial='%s' CN='%s'", CId_, Serial, CN_));
 						}
+						Conn_->VerifiedCertificate = CertValidation_;
 
 						std::string DevicePassword;
 						if(ParamsObj->has("password"))
