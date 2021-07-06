@@ -14,7 +14,8 @@ namespace uCentral::RESTAPI_utils {
 	void EmbedDocument(const std::string & ObjName, Poco::JSON::Object & Obj, const std::string &ObjStr);
 
 	inline void field_to_json(Poco::JSON::Object &Obj, const char *Field, bool V) {
-		Obj.set(Field,V ? "true" : "false");
+//		Obj.set(Field,V ? "true" : "false");
+		Obj.set(Field,V);
 	}
 
 	inline void field_to_json(Poco::JSON::Object &Obj, const char *Field, const std::string & S) {

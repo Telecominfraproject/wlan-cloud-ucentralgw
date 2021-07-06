@@ -23,14 +23,14 @@ namespace uCentral::Objects {
 	struct ConnectionState {
 		uint64_t MessageCount = 0 ;
 		std::string SerialNumber;
-		std::string Address="N/A";
+		std::string Address = "N/A";
 		uint64_t UUID = 0 ;
 		uint64_t PendingUUID = 0 ;
-		uint64_t TX=0, RX=0;
-		bool Connected=false;
+		uint64_t TX = 0, RX = 0;
+		bool Connected = false;
 		uint64_t LastContact=0;
 		std::string Firmware;
-		CertificateValidation VerifiedCertificate;
+		CertificateValidation VerifiedCertificate = NO_CERTIFICATE;
 		void to_json(Poco::JSON::Object &Obj) const;
 	};
 
