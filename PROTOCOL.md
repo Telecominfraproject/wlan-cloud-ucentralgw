@@ -128,6 +128,20 @@ reply to this message.
 }
 ```
 
+#### DeviceUpdate event
+Device sends this message to tell the controller it is changing something is its configuration because
+of some requirement or some changes.
+```
+{   "jsonrpc" : "2.0" , 
+    "method" : "deviceupdate" , 
+    "params" : {
+        "serial" : <serial number>,
+        # a list of key value pairs representing the change i.e
+        # "currentPassword" : "mynewpassword"
+    }
+}
+```
+
 #### Send a keepalive to the controller event
 Device sends a keepalive whenever necessary. The device will send this message to tell the controller
 which version it is running. The Controller may decide to send the device a newer configuration.
