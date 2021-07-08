@@ -213,7 +213,7 @@ configProperties:
   # Firmware
   firmware.autoupdate.policy.default: auto
   # System
-  ucentral.system.data: $UCENTRAL_ROOT/data
+  ucentral.system.data: $UCENTRAL_ROOT/persist
   ucentral.system.debug: "true"
   ucentral.system.uri.private: https://localhost:16001
   ucentral.system.uri.public: https://localhost:16001
