@@ -1,0 +1,180 @@
+#
+# uCentral protocol server for devices. This is where you point
+# all your devices. You can replace the * for address by the specific
+# address of one of your interfaces
+#
+ucentral.websocket.host.0.backlog = 500
+ucentral.websocket.host.0.rootca = $UCENTRALGW_ROOT/certs/root.pem
+ucentral.websocket.host.0.issuer = $UCENTRALGW_ROOT/certs/issuer.pem
+ucentral.websocket.host.0.cert = $UCENTRALGW_ROOT/certs/websocket-cert.pem
+ucentral.websocket.host.0.key = $UCENTRALGW_ROOT/certs/websocket-key.pem
+ucentral.websocket.host.0.clientcas = $UCENTRALGW_ROOT/certs/clientcas.pem
+ucentral.websocket.host.0.cas = $UCENTRALGW_ROOT/certs/cas
+ucentral.websocket.host.0.address = *
+ucentral.websocket.host.0.port = 15002
+ucentral.websocket.host.0.security = strict
+ucentral.websocket.host.0.key.password = mypassword
+ucentral.websocket.maxreactors = 20
+
+#
+# REST API access
+#
+ucentral.restapi.host.0.backlog = 100
+ucentral.restapi.host.0.security = relaxed
+ucentral.restapi.host.0.rootca = $UCENTRALGW_ROOT/certs/restapi-ca.pem
+ucentral.restapi.host.0.address = *
+ucentral.restapi.host.0.port = 16002
+ucentral.restapi.host.0.cert = $UCENTRALGW_ROOT/certs/restapi-cert.pem
+ucentral.restapi.host.0.key = $UCENTRALGW_ROOT/certs/restapi-key.pem
+ucentral.restapi.host.0.key.password = mypassword
+
+ucentral.internal.restapi.host.0.backlog = 100
+ucentral.internal.restapi.host.0.security = relaxed
+ucentral.internal.restapi.host.0.rootca = $UCENTRALGW_ROOT/certs/restapi-ca.pem
+ucentral.internal.restapi.host.0.address = *
+ucentral.internal.restapi.host.0.port = 17002
+ucentral.internal.restapi.host.0.cert = $UCENTRALGW_ROOT/certs/restapi-cert.pem
+ucentral.internal.restapi.host.0.key = $UCENTRALGW_ROOT/certs/restapi-key.pem
+ucentral.internal.restapi.host.0.key.password = mypassword
+
+#
+# Used to upload files to the service.
+# You should replace the 'name' vaalue with the IP address of your gateway or an FQDN
+# that your devices can reach
+#
+ucentral.fileuploader.host.0.backlog = 100
+ucentral.fileuploader.host.0.rootca = $UCENTRALGW_ROOT/certs/restapi-ca.pem
+ucentral.fileuploader.host.0.security = relaxed
+ucentral.fileuploader.host.0.address = *
+ucentral.fileuploader.host.0.name = ucentral.dpaas.arilia.com
+ucentral.fileuploader.host.0.port = 16003
+ucentral.fileuploader.host.0.cert = $UCENTRALGW_ROOT/certs/restapi-cert.pem
+ucentral.fileuploader.host.0.key = $UCENTRALGW_ROOT/certs/restapi-key.pem
+ucentral.fileuploader.host.0.key.password = mypassword
+ucentral.fileuploader.path = $UCENTRALGW_ROOT/uploads
+ucentral.fileuploader.maxsize = 10000
+
+#
+# Generic section that all microservices must have
+#
+ucentral.service.key = $UCENTRALGW_ROOT/certs/restapi-key.pem
+ucentral.system.data = $UCENTRALGW_ROOT/data
+ucentral.system.debug = true
+ucentral.system.uri.private = https://localhost:17002
+ucentral.system.uri.public = https://local.dpaas.arilia.com:16002
+ucentral.system.commandchannel = /tmp/app.ucentralgw
+
+#
+# Gateway Microservice Specific Section
+#
+ucentral.autoprovisioning = true
+ucentral.devicetypes.0 = AP:linksys_ea8300,edgecore_eap101,linksys_e8450-ubi
+ucentral.devicetypes.1 = SWITCH:edgecore_ecs4100-12ph
+ucentral.devicetypes.2 = IOT:esp32
+oui.download.uri = https://linuxnet.ca/ieee/oui.txt
+firmware.autoupdate.policy.default = auto
+
+#
+# rtty
+#
+rtty.enabled = true
+rtty.server = rtty-tip.arilia.com
+rtty.port = 5912
+rtty.token = 96181c567b4d0d98c50f127230068fa8
+rtty.timeout = 60
+rtty.viewport = 5913
+
+#############################
+# Generic information for all micro services
+#############################
+#
+# NLB Support
+#
+alb.enable = true
+alb.port = 16102
+
+#
+# Kafka
+#
+ucentral.kafka.group.id = gateway
+ucentral.kafka.client.id = gateway1
+ucentral.kafka.enable = true
+# ucentral.kafka.brokerlist = a1.arilia.com:9092
+ucentral.kafka.brokerlist = debfarm1-node-c.arilia.com:9092
+ucentral.kafka.auto.commit = false
+ucentral.kafka.queue.buffering.max.ms = 50
+
+#
+# This section select which form of persistence you need
+# Only one selected at a time. If you select multiple, this service will die if a horrible
+# death and might make your beer flat.
+#
+storage.type = sqlite
+#storage.type = postgresql
+#storage.type = mysql
+#storage.type = odbc
+
+storage.type.sqlite.db = devices.db
+storage.type.sqlite.idletime = 120
+storage.type.sqlite.maxsessions = 128
+
+storage.type.postgresql.maxsessions = 64
+storage.type.postgresql.idletime = 60
+storage.type.postgresql.host = localhost
+storage.type.postgresql.username = stephb
+storage.type.postgresql.password = snoopy99
+storage.type.postgresql.database = ucentral
+storage.type.postgresql.port = 5432
+storage.type.postgresql.connectiontimeout = 60
+
+storage.type.mysql.maxsessions = 64
+storage.type.mysql.idletime = 60
+storage.type.mysql.host = localhost
+storage.type.mysql.username = stephb
+storage.type.mysql.password = snoopy99
+storage.type.mysql.database = ucentral
+storage.type.mysql.port = 3306
+storage.type.mysql.connectiontimeout = 60
+
+
+########################################################################
+########################################################################
+#
+# Logging: please leave as is for now.
+#
+########################################################################
+
+logging.formatters.f1.class = PatternFormatter
+logging.formatters.f1.pattern = %s: [%p] %t
+logging.formatters.f1.times = UTC
+logging.channels.c1.class = ConsoleChannel
+logging.channels.c1.formatter = f1
+
+# This is where the logs will be written. This path MUST exist
+logging.channels.c2.class = FileChannel
+logging.channels.c2.path = $UCENTRALGW_ROOT/logs/log
+logging.channels.c2.formatter.class = PatternFormatter
+logging.channels.c2.formatter.pattern = %Y-%m-%d %H:%M:%S %s: [%p] %t
+logging.channels.c2.rotation = 20 M
+logging.channels.c2.archive = timestamp
+logging.channels.c2.purgeCount = 20
+logging.channels.c3.class = ConsoleChannel
+logging.channels.c3.pattern = %s: [%p] %t
+
+# External Channel
+logging.loggers.root.channel = c2
+logging.loggers.root.level = debug
+
+# Inline Channel with PatternFormatter
+# logging.loggers.l1.name = logger1
+# logging.loggers.l1.channel.class = ConsoleChannel
+# logging.loggers.l1.channel.pattern = %s: [%p] %t
+# logging.loggers.l1.level = information
+# SplitterChannel
+# logging.channels.splitter.class = SplitterChannel
+# logging.channels.splitter.channels = l1,l2
+# logging.loggers.l2.name = logger2
+# logging.loggers.l2.channel = splitter
+
+
+
