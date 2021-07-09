@@ -35,33 +35,39 @@ components:
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/GenericErrorResponse'
+            properties:
+              ErrorCode:
+                type: integer
+              ErrorDetails:
+                type: string
+              ErrorDescription:
+                type: string
 
     Unauthorized:
       description: The requested does not have sufficient rights to perform the operation.
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/GenericErrorResponse'
+            properties:
+              ErrorCode:
+                type: integer
+              ErrorDetails:
+                type: string
+              ErrorDescription:
+                type: string
 
     Success:
       description: The requested operation was performed.
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/GenericGoodAnswer'
-
-    CommandSubmitSuccess:
-      description: The command was submitted succesfully.
-      content:
-        application/json:
-          schema:
             properties:
-              serialNumber:
+              Operation:
                 type: string
-              UUID:
+              Details:
                 type: string
-                format: uuid
+              Code:
+                type: integer
 
   schemas:
     DeviceType:
@@ -331,88 +337,14 @@ components:
         serialNumber:
           type: string
 
-    GenericErrorResponse:
-      description: Typical error response
+    CommandSubmitSuccess:
+      description: The command was submitted succesfully.
       properties:
-        ErrorCode:
-          type: integer
-        ErrorDetails:
+        serialNumber:
           type: string
-        ErrorDescription:
+        UUID:
           type: string
-
-    GenericGoodAnswer:
-      description: used for all succesful responses.
-      properties:
-        Operation:
-          type: string
-        Details:
-          type: string
-        Code:
-          type: integer
-
-    WebTokenRequest:
-      description: User Id and password.
-      type: object
-      required:
-        - userId
-        - password
-      properties:
-        userId:
-          type: string
-          default: support@example.com
-        password:
-          type: string
-          default: support
-        refreshToken:
-          type: string
-      example:
-        userId: support@example.com
-        password: support
-
-    WebTokenResult:
-      description: Login and Refresh Tokens to be used in subsequent API calls.
-      type: object
-      properties:
-        access_token:
-          type: string
-        refresh_token:
-          type: string
-        token_type:
-          type: string
-        expires_in:
-          type: integer
-          format: int32
-        idle_timeout:
-          type: integer
-          format: int32
-        username:
-          type: string
-        created:
-          type: integer
-          format: int64
-        aclTemplate:
-          $ref: '#/components/schemas/WebTokenAclTemplate'
-
-    WebTokenAclTemplate:
-      type: object
-      properties:
-        aclTemplate:
-          $ref: '#/components/schemas/AclTemplate'
-
-    AclTemplate:
-      type: object
-      properties:
-        Read:
-          type: boolean
-        ReadWrite:
-          type: boolean
-        ReadWriteCreate:
-          type: boolean
-        Delete:
-          type: boolean
-        PortalLogin:
-          type: boolean
+          format: uuid
 
     DeviceConfigureRequest:
       type: object
@@ -722,7 +654,6 @@ components:
     ## End of uCentral system wide values
     ##
     #########################################################################################
-
     BlackDeviceInfo:
       type: object
       properties:
@@ -832,56 +763,6 @@ components:
           type: string
 
 paths:
-  /oauth2:
-    post:
-      tags:
-        - Authentication
-      summary: Get access token - to be used as Bearer token header for all other API requests.
-      operationId: getAccessToken
-      requestBody:
-        description: User id and password
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/WebTokenRequest'
-      responses:
-        200:
-          description: successful operation
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/WebTokenResult'
-        403:
-          $ref: '#/components/responses/Unauthorized'
-        404:
-          $ref: '#/components/responses/NotFound'
-
-  /oauth2/{token}:
-    delete:
-      tags:
-        - Authentication
-      summary: Revoke a token.
-      operationId: removeAccessToken
-      parameters:
-        - in: path
-          name: token
-          schema:
-            type:
-              string
-          required: true
-      responses:
-        200:
-          description: successful operation
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/GenericGoodAnswer'
-        403:
-          $ref: '#/components/responses/Unauthorized'
-        404:
-          $ref: '#/components/responses/NotFound'
-
   /devices:
     get:
       tags:
@@ -1027,7 +908,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/GenericGoodAnswer'
+                $ref: '#/components/responses/Success'
         403:
           $ref: '#/components/responses/Unauthorized'
         404:
@@ -1078,7 +959,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/GenericGoodAnswer'
+                $ref: '#/components/responses/Success'
         403:
           $ref: '#/components/responses/Unauthorized'
         404:
@@ -1396,7 +1277,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/GenericGoodAnswer'
+                $ref: '#/components/responses/Success'
         403:
           $ref: '#/components/responses/Unauthorized'
         404:
@@ -1493,7 +1374,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/GenericGoodAnswer'
+                $ref: '#/components/responses/Success'
         403:
           $ref: '#/components/responses/Unauthorized'
         404:
@@ -1540,7 +1421,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/GenericGoodAnswer'
+                $ref: '#/components/responses/Success'
         403:
           $ref: '#/components/responses/Unauthorized'
         404:
@@ -1645,7 +1526,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/GenericGoodAnswer'
+                $ref: '#/components/responses/Success'
         403:
           $ref: '#/components/responses/Unauthorized'
         404:
@@ -1903,7 +1784,7 @@ paths:
               $ref: '#/components/schemas/MessageRequest'
       responses:
         200:
-          $ref: '#/components/responses/CommandSubmitSuccess'
+          $ref: '#/components/schemas/CommandSubmitSuccess'
         403:
           $ref: '#/components/responses/Unauthorized'
         404:
@@ -2086,7 +1967,7 @@ paths:
               $ref: '#/components/schemas/BlackDeviceList'
       responses:
         200:
-          $ref: '#/components/schemas/GenericGoodAnswer'
+          $ref: '#/components/responses/Success'
         403:
           $ref: '#/components/responses/Unauthorized'
         404:
@@ -2106,17 +1987,17 @@ paths:
           required: true
       responses:
         200:
-          $ref: '#/components/schemas/GenericGoodAnswer'
+          $ref: '#/components/responses/Success'
         403:
           $ref: '#/components/responses/Unauthorized'
         404:
           $ref: '#/components/responses/NotFound'
 
-#########################################################################################
-##
-## These are endpoints that all services in the uCentral stack must provide
-##
-#########################################################################################
+  #########################################################################################
+  ##
+  ## These are endpoints that all services in the uCentral stack must provide
+  ##
+  #########################################################################################
 
   /system:
     post:

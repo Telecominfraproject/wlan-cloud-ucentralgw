@@ -72,7 +72,9 @@ namespace uCentral::RESTAPI::Protocol {
 	static const char * REASON = "reason";
 	static const char * FILEUUID = "uuid";
 	static const char * USERID = "userId";
+    static const char * USERS = "users";
 	static const char * PASSWORD = "password";
+    static const char * NEWPASSWORD = "newPassword";
 	static const char * TOKEN = "token";
 	static const char * SETLOGLEVEL = "setloglevel";
 	static const char * GETLOGLEVELS = "getloglevels";

@@ -45,7 +45,7 @@ namespace uCentral {
 				if (PathItems[i] != ParamItems[i]) {
 					if (ParamItems[i][0] == '{') {
 						auto ParamName = ParamItems[i].substr(1, ParamItems[i].size() - 2);
-						bindings[ParamName] = PathItems[i];
+						bindings[Poco::toLower(ParamName)] = PathItems[i];
 					} else {
 						Matched = false;
 					}
@@ -111,8 +111,7 @@ namespace uCentral {
 	}
 
 	const std::string &RESTAPIHandler::GetBinding(const std::string &Name, const std::string &Default) {
-		auto E = Bindings_.find(Name);
-
+		auto E = Bindings_.find(Poco::toLower(Name));
 		if (E == Bindings_.end())
 			return Default;
 
@@ -121,7 +120,6 @@ namespace uCentral {
 
 	static std::string MakeList(const std::vector<std::string> &L) {
 		std::string Return;
-
 		for (const auto &i : L)
 			if (Return.empty())
 				Return = i;
@@ -184,27 +182,53 @@ namespace uCentral {
 	}
 
 	void RESTAPIHandler::BadRequest(Poco::Net::HTTPServerRequest &Request,
-									Poco::Net::HTTPServerResponse &Response) {
+									Poco::Net::HTTPServerResponse &Response,
+									const std::string & Reason) {
 		PrepareResponse(Request, Response, Poco::Net::HTTPResponse::HTTP_BAD_REQUEST);
-		Response.send();
+		Poco::JSON::Object	ErrorObject;
+		ErrorObject.set("ErrorCode",500);
+		ErrorObject.set("ErrorDetails",Request.getMethod());
+		ErrorObject.set("ErrorDescription",Reason.empty() ? "Command is missing parameters or wrong values." : Reason) ;
+		std::ostream &Answer = Response.send();
+		Poco::JSON::Stringifier::stringify(ErrorObject, Answer);
 	}
 
 	void RESTAPIHandler::UnAuthorized(Poco::Net::HTTPServerRequest &Request,
 									  Poco::Net::HTTPServerResponse &Response) {
 		PrepareResponse(Request, Response, Poco::Net::HTTPResponse::HTTP_FORBIDDEN);
-		Response.send();
+		Poco::JSON::Object	ErrorObject;
+		ErrorObject.set("ErrorCode",403);
+		ErrorObject.set("ErrorDetails",Request.getMethod());
+		ErrorObject.set("ErrorDescription","You do not have access to this resource.");
+		std::ostream &Answer = Response.send();
+		Poco::JSON::Stringifier::stringify(ErrorObject, Answer);
 	}
 
 	void RESTAPIHandler::NotFound(Poco::Net::HTTPServerRequest &Request,
 								  Poco::Net::HTTPServerResponse &Response) {
 		PrepareResponse(Request, Response, Poco::Net::HTTPResponse::HTTP_NOT_FOUND);
-		Response.send();
+		Poco::JSON::Object	ErrorObject;
+		ErrorObject.set("ErrorCode",404);
+		ErrorObject.set("ErrorDetails",Request.getMethod());
+		ErrorObject.set("ErrorDescription","This resource does not exist.");
+		std::ostream &Answer = Response.send();
+		Poco::JSON::Stringifier::stringify(ErrorObject, Answer);
 	}
 
 	void RESTAPIHandler::OK(Poco::Net::HTTPServerRequest &Request,
 							Poco::Net::HTTPServerResponse &Response) {
 		PrepareResponse(Request, Response);
-		Response.send();
+		if(	Request.getMethod()==Poco::Net::HTTPRequest::HTTP_DELETE ||
+			Request.getMethod()==Poco::Net::HTTPRequest::HTTP_OPTIONS) {
+			Response.send();
+		} else {
+			Poco::JSON::Object ErrorObject;
+			ErrorObject.set("Code", 0);
+			ErrorObject.set("Operation", Request.getMethod());
+			ErrorObject.set("Details", "Command completed.");
+			std::ostream &Answer = Response.send();
+			Poco::JSON::Stringifier::stringify(ErrorObject, Answer);
+		}
 	}
 
 	void RESTAPIHandler::SendFile(Poco::File & File, const std::string & UUID, Poco::Net::HTTPServerRequest &Request, Poco::Net::HTTPServerResponse &Response) {

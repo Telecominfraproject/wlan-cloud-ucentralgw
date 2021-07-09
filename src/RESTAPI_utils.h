@@ -4,6 +4,7 @@
 
 #ifndef UCENTRALGW_RESTAPI_UTILS_H
 #define UCENTRALGW_RESTAPI_UTILS_H
+#include <functional>
 
 #include "Poco/JSON/Object.h"
 #include "Poco/JSON/Parser.h"
@@ -35,6 +36,20 @@ namespace uCentral::RESTAPI_utils {
 		for(const auto &i:V)
 			A.add(i);
 		Obj.set(Field,A);
+	}
+
+	template<typename T> void field_to_json(Poco::JSON::Object &Obj,
+					   						const char *Field,
+					   						const T &V,
+											std::function<std::string(const T &)> F) {
+		Obj.set(Field, F(V));
+	}
+
+	template<typename T> bool field_from_json(Poco::JSON::Object::Ptr Obj, const char *Field, T & V,
+											std::function<T(const std::string &)> F) {
+		if(Obj->has(Field))
+			V = F(Obj->get(Field).toString());
+		return true;
 	}
 
 	inline void field_from_json(Poco::JSON::Object::Ptr Obj, const char *Field, std::string &S) {
@@ -91,6 +106,18 @@ namespace uCentral::RESTAPI_utils {
 		}
 	}
 
+	inline std::string to_string(const Types::StringVec & ObjectArray) {
+		Poco::JSON::Array OutputArr;
+		if(ObjectArray.empty())
+			return "[]";
+		for(auto const &i:ObjectArray) {
+			OutputArr.add(i);
+		}
+		std::ostringstream OS;
+		Poco::JSON::Stringifier::condense(OutputArr,OS);
+		return OS.str();
+	}
+
 	template<class T> std::string to_string(const std::vector<T> & ObjectArray) {
 		Poco::JSON::Array OutputArr;
 		if(ObjectArray.empty())
@@ -113,7 +140,25 @@ namespace uCentral::RESTAPI_utils {
 		return OS.str();
 	}
 
-	template<class T> std::vector<T> to_object_array(const std::string & ObjectString) {
+    inline Types::StringVec to_object_array(const std::string & ObjectString) {
+
+        Types::StringVec 	Result;
+        if(ObjectString.empty())
+            return Result;
+
+        try {
+            Poco::JSON::Parser P;
+            auto Object = P.parse(ObjectString).template extract<Poco::JSON::Array::Ptr>();
+            for (auto const i : *Object) {
+                Result.push_back(i.toString());
+            }
+        } catch (...) {
+
+        }
+        return Result;
+    }
+
+    template<class T> std::vector<T> to_object_array(const std::string & ObjectString) {
 
 		std::vector<T>	Result;
 		if(ObjectString.empty())

@@ -25,6 +25,56 @@ namespace uCentral::SecurityObjects {
 		field_to_json(Obj,"PortalLogin",PortalLogin_);
 	}
 
+	ResourceAccessType ResourceAccessTypeFromString(const std::string &s) {
+		if(s=="READ") return READ;
+		if(s=="MODIFY") return MODIFY;
+		if(s=="DELETE") return DELETE;
+		if(s=="CREATE") return CREATE;
+		if(s=="TEST") return TEST;
+		if(s=="MOVE") return MOVE;
+		return NONE;
+	}
+
+	std::string ResourceAccessTypeToString(const ResourceAccessType & T) {
+		switch(T) {
+		case READ: return "READ";
+		case MODIFY: return "MODIFY";
+		case DELETE: return "DELETE";
+		case CREATE: return "CREATE";
+		case TEST: return "TEST";
+		case MOVE: return "MOVE";
+		default: return "NONE";
+		}
+	}
+
+    USER_ROLE UserTypeFromString(const std::string &U) {
+        if (U=="root")
+            return ROOT;
+        else if (U=="admin")
+            return ADMIN;
+        else if (U=="subscriber")
+            return SUBSCRIBER;
+        else if (U=="csr")
+            return CSR;
+        else if (U=="system")
+            return SYSTEM;
+        else if (U=="special")
+            return SPECIAL;
+        return UNKNOWN;
+    }
+
+    std::string UserTypeToString(USER_ROLE U) {
+        switch(U) {
+            case UNKNOWN: return "unknown";
+            case ROOT: return "root";
+            case SUBSCRIBER: return "subscriber";
+            case CSR: return "csr";
+            case SYSTEM: return "system";
+            case SPECIAL: return "special";
+            default: return "unknown";
+        }
+    }
+
 	bool AclTemplate::from_json(const Poco::JSON::Object::Ptr &Obj)  {
 		try {
 			field_from_json(Obj, "Read", Read_);
@@ -48,6 +98,8 @@ namespace uCentral::SecurityObjects {
 		field_to_json(Obj,"idle_timeout",idle_timeout_);
 		field_to_json(Obj,"created",created_);
 		field_to_json(Obj,"username",username_);
+        field_to_json(Obj,"userMustChangePassword",userMustChangePassword);
+        field_to_json(Obj,"errorCode", errorCode);
 		Obj.set("aclTemplate",AclTemplateObj);
 	}
 
@@ -64,6 +116,7 @@ namespace uCentral::SecurityObjects {
 			field_from_json(Obj, "idle_timeout", idle_timeout_);
 			field_from_json(Obj, "created", created_);
 			field_from_json(Obj, "username", username_);
+            field_from_json(Obj, "userMustChangePassword",userMustChangePassword);
 			return true;
 		} catch (...) {
 
@@ -94,7 +147,7 @@ namespace uCentral::SecurityObjects {
 		field_to_json(Obj,"owner", owner);
 		field_to_json(Obj,"suspended", suspended);
 		field_to_json(Obj,"blackListed", blackListed);
-		field_to_json(Obj,"userRole", userRole);
+		field_to_json<USER_ROLE>(Obj,"userRole", userRole, UserTypeToString);
 		field_to_json(Obj,"userTypeProprietaryInfo", userTypeProprietaryInfo);
 		field_to_json(Obj,"securityPolicy", securityPolicy);
 		field_to_json(Obj,"securityPolicyChange", securityPolicyChange);
@@ -116,7 +169,7 @@ namespace uCentral::SecurityObjects {
 			field_from_json(Obj,"currentLoginURI",currentLoginURI);
 			field_from_json(Obj,"locale",locale);
 			field_from_json(Obj,"notes",notes);
-			field_from_json(Obj,"userRole",userRole);
+			field_from_json<USER_ROLE>(Obj,"userRole",userRole, UserTypeFromString);
 			field_from_json(Obj,"securityPolicy",securityPolicy);
 			field_from_json(Obj,"userTypeProprietaryInfo",userTypeProprietaryInfo);
 			field_from_json(Obj,"validationDate",validationDate);
@@ -249,5 +302,55 @@ namespace uCentral::SecurityObjects {
 		return false;
 	}
 
+	void ProfileAction::to_json(Poco::JSON::Object &Obj) const {
+		field_to_json(Obj,"resource", resource);
+		field_to_json<ResourceAccessType>(Obj,"access", access, ResourceAccessTypeToString);
+	}
+
+	bool ProfileAction::from_json(Poco::JSON::Object::Ptr Obj) {
+		try {
+			field_from_json(Obj,"resource",resource);
+			field_from_json<ResourceAccessType>(Obj,"access",access,ResourceAccessTypeFromString );
+		} catch(...) {
+
+		}
+		return false;
+	}
+
+	void SecurityProfile::to_json(Poco::JSON::Object &Obj) const {
+		field_to_json(Obj,"id", id);
+		field_to_json(Obj,"name", name);
+		field_to_json(Obj,"description", description);
+		field_to_json(Obj,"policy", policy);
+		field_to_json(Obj,"role", role);
+		field_to_json(Obj,"notes", notes);
+	}
+
+	bool SecurityProfile::from_json(Poco::JSON::Object::Ptr Obj) {
+		try {
+			field_from_json(Obj,"id",id);
+			field_from_json(Obj,"name",name);
+			field_from_json(Obj,"description",description);
+			field_from_json(Obj,"policy",policy);
+			field_from_json(Obj,"role",role);
+			field_from_json(Obj,"notes",notes);
+		} catch(...) {
+
+		}
+		return false;
+	}
+
+	void SecurityProfileList::to_json(Poco::JSON::Object &Obj) const {
+		field_to_json(Obj, "profiles", profiles);
+	}
+
+	bool SecurityProfileList::from_json(Poco::JSON::Object::Ptr Obj) {
+		try {
+			field_from_json(Obj,"profiles",profiles);
+		} catch(...) {
+
+		}
+		return false;
+	}
 }
 

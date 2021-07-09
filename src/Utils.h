@@ -48,5 +48,7 @@ namespace uCentral::Utils {
 
 	[[nodiscard]] uint64_t GetDefaultMacAsInt64();
 	[[nodiscard]] uint64_t GetSystemId();
+
+	[[nodiscard]] bool ValidEMailAddress(const std::string &E);
 }
 #endif // UCENTRALGW_UTILS_H
