@@ -225,7 +225,7 @@ namespace uCentral {
 
 			Conn_->PendingUUID = NewConfigUUID;
 
-			Poco::JSON::Parser  Parser;
+			Poco::JSON::Parser  Parser( new Poco::JSON::ParseHandler);
 			auto ParsedConfig = Parser.parse(NewConfig).extract<Poco::JSON::Object::Ptr>();
 			ParsedConfig->set(uCentralProtocol::UUID,NewConfigUUID);
 
