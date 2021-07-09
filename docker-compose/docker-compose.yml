@@ -46,6 +46,7 @@ services:
       - "127.0.0.1:16102:16102"
     volumes:
       - ./ucentralgw-data:/ucentralgw-data
+      - ./certs:/ucentralgw-data/certs
       - ../certificates/root.pem:/ucentralgw-data/certs/root.pem
       - ../certificates/issuer.pem:/ucentralgw-data/certs/issuer.pem
       - ../certificates/clientcas.pem:/ucentralgw-data/certs/clientcas.pem
@@ -75,6 +76,7 @@ services:
       - "127.0.0.1:16101:16101"
     volumes:
       - ./ucentralsec-data:/ucentralsec-data
+      - ./certs:/ucentralsec-data/certs
       - ./init-ucentralsec-db.sh:/docker-entrypoint-initdb.d/init-ucentralsec-db.sh
       - ../certificates/root.pem:/ucentralsec-data/certs/root.pem
       - ../certificates/issuer.pem:/ucentralsec-data/certs/issuer.pem
