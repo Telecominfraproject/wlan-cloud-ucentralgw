@@ -105,4 +105,7 @@ if(NOT SMALL_BUILD)
             ${MySQL_LIBRARIES} ${ODBC_LIBRARIES} ${ZLIB_LIBRARIES} ${LUA_LIBRARIES}
             CppKafka::cppkafka
              )
+    if(UNIX AND NOT APPLE)
+        target_link_libraries(ucentralgw PUBLIC PocoJSON)
+    endif()
 endif()
