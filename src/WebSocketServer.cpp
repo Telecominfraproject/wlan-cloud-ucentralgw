@@ -225,8 +225,8 @@ namespace uCentral {
 
 			Conn_->PendingUUID = NewConfigUUID;
 
-			Poco::JSON::Parser  parser;
-			auto ParsedConfig = parser.parse(NewConfig).extract<Poco::JSON::Object::Ptr>();
+			Poco::JSON::Parser	NewParser;
+			auto ParsedConfig = NewParser.parse(NewConfig).extract<Poco::JSON::Object::Ptr>();
 			ParsedConfig->set(uCentralProtocol::UUID,NewConfigUUID);
 
 			// create the command stub...
