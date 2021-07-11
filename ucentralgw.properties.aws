@@ -62,6 +62,7 @@ ucentral.system.data = $UCENTRALGW_ROOT/data
 ucentral.system.debug = true
 ucentral.system.uri.private = https://localhost:17002
 ucentral.system.uri.public = https://ucentral.dpaas.arilia.com:16002
+ucentral.system.uri.ui = https://ucentral-ui.arilia.com
 ucentral.system.commandchannel = /tmp/app.ucentralgw
 
 #

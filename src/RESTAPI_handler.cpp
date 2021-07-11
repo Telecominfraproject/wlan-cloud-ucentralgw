@@ -194,12 +194,13 @@ namespace uCentral {
 	}
 
 	void RESTAPIHandler::UnAuthorized(Poco::Net::HTTPServerRequest &Request,
-									  Poco::Net::HTTPServerResponse &Response) {
+									  Poco::Net::HTTPServerResponse &Response,
+                                      const std::string & Reason) {
 		PrepareResponse(Request, Response, Poco::Net::HTTPResponse::HTTP_FORBIDDEN);
 		Poco::JSON::Object	ErrorObject;
 		ErrorObject.set("ErrorCode",403);
 		ErrorObject.set("ErrorDetails",Request.getMethod());
-		ErrorObject.set("ErrorDescription","You do not have access to this resource.");
+		ErrorObject.set("ErrorDescription",Reason.empty() ? "No access allowed." : Reason) ;
 		std::ostream &Answer = Response.send();
 		Poco::JSON::Stringifier::stringify(ErrorObject, Answer);
 	}
@@ -244,7 +245,37 @@ namespace uCentral {
 		Response.sendFile(File.path(),"application/octet-stream");
 	}
 
-	void RESTAPIHandler::ReturnStatus(Poco::Net::HTTPServerRequest &Request,
+    void RESTAPIHandler::SendFile(Poco::File & File, Poco::Net::HTTPServerRequest &Request, Poco::Net::HTTPServerResponse &Response) {
+        Response.set("Content-Type",Utils::FindMediaType(File));
+        Poco::Path  P(File.path());
+        Response.set("Content-Disposition", "attachment; filename=" + P.getBaseName()  );
+        Response.set("Content-Transfer-Encoding","binary");
+        Response.set("Accept-Ranges", "bytes");
+        Response.set("Cache-Control", "private");
+        Response.set("Pragma", "private");
+        Response.set("Expires", "Mon, 26 Jul 2027 05:00:00 GMT");
+        Response.set("Content-Length", std::to_string(File.getSize()));
+        AddCORS(Request, Response);
+        Response.sendFile(File.path(),Utils::FindMediaType(File));
+    }
+
+    void RESTAPIHandler::SendHTMLFileBack(Poco::File & File,
+                          Poco::Net::HTTPServerRequest &Request,
+                          Poco::Net::HTTPServerResponse &Response ,
+                          const Types::StringPairVec & FormVars) {
+        Response.set("Pragma", "private");
+        Response.set("Expires", "Mon, 26 Jul 2027 05:00:00 GMT");
+        Response.set("Content-Length", std::to_string(File.getSize()));
+        AddCORS(Request, Response);
+        auto FormContent = Utils::LoadFile(File.path());
+        Utils::ReplaceVariables(FormContent, FormVars);
+        Response.setChunkedTransferEncoding(true);
+        Response.setContentType("text/html");
+        std::ostream& ostr = Response.send();
+        ostr << FormContent;
+	}
+
+    void RESTAPIHandler::ReturnStatus(Poco::Net::HTTPServerRequest &Request,
 									  Poco::Net::HTTPServerResponse &Response,
 									  Poco::Net::HTTPResponse::HTTPStatus Status,
 									  bool CloseConnection) {

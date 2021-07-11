@@ -13,6 +13,9 @@
 #include <string>
 
 #include "Poco/Net/NetworkInterface.h"
+#include "Poco/String.h"
+#include "Poco/File.h"
+#include "uCentralTypes.h"
 
 #define DBGLINE { std::cout << __FILE__ << ":" << __func__ << ":" << __LINE__ << std::endl; };
 
@@ -50,5 +53,10 @@ namespace uCentral::Utils {
 	[[nodiscard]] uint64_t GetSystemId();
 
 	[[nodiscard]] bool ValidEMailAddress(const std::string &E);
+	[[nodiscard]] std::string LoadFile( const Poco::File & F);
+    void ReplaceVariables( std::string & Content , const Types::StringPairVec & P);
+
+    [[nodiscard]] std::string FindMediaType(const Poco::File &F);
+    [[nodiscard]] std::string BinaryFileToHexString( const Poco::File &F);
 }
 #endif // UCENTRALGW_UTILS_H

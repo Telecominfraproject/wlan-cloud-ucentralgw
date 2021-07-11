@@ -18,9 +18,10 @@
 #include "Poco/DateTime.h"
 #include "Poco/DateTimeParser.h"
 #include "Poco/StringTokenizer.h"
-#include "Poco/Logger.h"
 #include "Poco/Message.h"
 #include "Poco/File.h"
+#include "Poco/StreamCopier.h"
+#include "Poco/Path.h"
 
 #include "uCentralProtocol.h"
 #include "Daemon.h"
@@ -399,4 +400,72 @@ namespace uCentral::Utils {
 		// try to match the string with the regular expression
 		return std::regex_match(email, pattern);
 	}
+
+	std::string LoadFile( const Poco::File & F) {
+	    std::string Result;
+	    try {
+	        std::ostringstream OS;
+	        std::ifstream   IF(F.path());
+	        Poco::StreamCopier::copyStream(IF, OS);
+	        Result = OS.str();
+	    } catch (...) {
+
+	    }
+	    return Result;
+	}
+
+    void ReplaceVariables( std::string & Content , const Types::StringPairVec & P) {
+	    for(const auto &[Variable,Value]:P) {
+	        Poco::replaceInPlace(Content,"${" + Variable + "}", Value);
+	    }
+	}
+
+    std::string FindMediaType(const Poco::File &F) {
+	    Poco::Path  P(F.path());
+	    const auto E = P.getExtension();
+	    if(E=="png")
+	        return "image/png";
+	    if(E=="gif")
+            return "image/gif";
+        if(E=="jpeg")
+            return "image/jpeg";
+        if(E=="jpg")
+            return "image/jpeg";
+        if(E=="svg")
+            return "image/svg";
+        if(E=="html")
+            return "text/html";
+        if(E=="css")
+            return "text/css";
+        if(E=="js")
+            return "application/javascript";
+        return "application/octet-stream";
+	}
+
+	std::string BinaryFileToHexString(const Poco::File &F) {
+        static const char hex[] = "0123456789abcdef";
+        std::string Result;
+        try {
+            std::ifstream IF(F.path());
+
+            int Count = 0;
+            while (IF.good()) {
+                if (Count)
+                    Result += ", ";
+                if ((Count % 32) == 0)
+                    Result += "\r\n";
+                Count++;
+                unsigned char C = IF.get();
+                Result += "0x";
+                Result += (char) (hex[(C & 0xf0) >> 4]);
+                Result += (char) (hex[(C & 0x0f)]);
+            }
+        } catch(...) {
+
+        }
+        return Result;
+	}
+
+
+
 }
