@@ -15,10 +15,11 @@ _deps
 /uploads/
 /logs/
 /certs/
-/docker-compose/ucentral-data/logs
-/docker-compose/ucentral-data/uploads
-/docker-compose/ucentral-data/data
+/docker-compose/certs/
+/docker-compose/*-data/data/
+/docker-compose/*-data/uploads/
 /docker-compose/.env
+/docker-compose/.env_*
 /cmake-build/
 /uploads/
 test_scripts/curl/token.json
