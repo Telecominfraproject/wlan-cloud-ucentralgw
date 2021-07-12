@@ -20,6 +20,7 @@ services:
     restart: unless-stopped
     volumes:
       - postgresql_data:/var/lib/postgresql/data
+      - ./init-ucentralsec-db.sh:/docker-entrypoint-initdb.d/init-ucentralsec-db.sh
 
   mysql:
     image: "mysql:${MYSQL_TAG}"
@@ -77,7 +78,6 @@ services:
     volumes:
       - ./ucentralsec-data:/ucentralsec-data
       - ./certs:/ucentralsec-data/certs
-      - ./init-ucentralsec-db.sh:/docker-entrypoint-initdb.d/init-ucentralsec-db.sh
       - ../certificates/root.pem:/ucentralsec-data/certs/root.pem
       - ../certificates/issuer.pem:/ucentralsec-data/certs/issuer.pem
       - ../certificates/clientcas.pem:/ucentralsec-data/certs/clientcas.pem
@@ -88,8 +88,8 @@ services:
       - mysql
     restart: unless-stopped
     volumes:
-      - ./ucentralsec-data/certs/restapi-cert.pem:/etc/rttys/restapi-cert.pem
-      - ./ucentralsec-data/certs/restapi-key.pem:/etc/rttys/restapi-key.pem
+      - ./certs/restapi-cert.pem:/etc/rttys/restapi-cert.pem
+      - ./certs/restapi-key.pem:/etc/rttys/restapi-key.pem
       - ./rttys/rttys.conf:/rttys/rttys.conf
 
   zookeeper:
