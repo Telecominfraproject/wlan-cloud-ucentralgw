@@ -34,6 +34,8 @@ namespace uCentral {
         while(Running_)
         {
             Poco::Thread::trySleep(10000);
+			if(!Running_)
+				break;
             std::vector<uCentral::Objects::CommandDetails> Commands;
 
             if(Storage()->GetReadyToExecuteCommands(0,1000,Commands))
@@ -58,6 +60,7 @@ namespace uCentral {
     void CommandManager::Stop() {
         Logger_.notice("Stopping...");
 		Running_ = false;
+		ManagerThread.wakeUp();
         ManagerThread.join();
     }
 

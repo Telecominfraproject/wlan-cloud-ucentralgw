@@ -28,6 +28,7 @@
 #include "Utils.h"
 #include "RESTAPI_InternalServer.h"
 #include "AuthClient.h"
+#include "StorageArchiver.h"
 
 namespace uCentral {
 	class Daemon *Daemon::instance_ = nullptr;
@@ -50,7 +51,8 @@ namespace uCentral {
 									   FileUploader(),
 									   OUIServer(),
 									   CommandChannel(),
-									   CallbackManager()
+									   CallbackManager(),
+									   StorageArchiver(),
 								   });
 		}
 		return instance_;

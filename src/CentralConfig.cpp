@@ -141,7 +141,6 @@ namespace uCentral::Config {
 				} else {
 					std::ifstream F;
 					F.open(DefaultConfigFileName.path(),std::ios::binary);
-					std::cout << "Side:" << F.gcount() << std::endl;
 					while(!F.eof()) {
 						std::string Line;
 						F >> Line;

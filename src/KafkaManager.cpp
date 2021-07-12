@@ -106,12 +106,10 @@ namespace uCentral {
 
 		cppkafka::Consumer Consumer(Config);
 		Consumer.set_assignment_callback([this](const cppkafka::TopicPartitionList& partitions) {
-			std::cout << "Partition assigned: " << partitions.front().get_partition() << std::endl;
-		  	Logger_.information(Poco::format("Got assigned: %Lu...",(uint64_t )partitions.front().get_partition()));
+		  	Logger_.information(Poco::format("Partition assigned: %Lu...",(uint64_t )partitions.front().get_partition()));
 		});
 		Consumer.set_revocation_callback([this](const cppkafka::TopicPartitionList& partitions) {
-			std::cout << "Partition revocation: " << partitions.front().get_partition() << std::endl;
-		  Logger_.information(Poco::format("Got revoked: %Lu...",(uint64_t )partitions.front().get_partition()));
+		  	Logger_.information(Poco::format("Partition revocation: %Lu...",(uint64_t )partitions.front().get_partition()));
 		});
 
 		Types::StringVec    Topics;

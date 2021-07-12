@@ -208,5 +208,20 @@ namespace uCentral {
 		return false;
 	}
 
+	bool Storage::RemoveDeviceLogsRecordsOlderThan(uint64_t Date) {
+		try {
+			Poco::Data::Session Sess = Pool_->get();
+			Poco::Data::Statement Delete(Sess);
+
+			std::string St1{"delete from DeviceLogs where recorded<?"};
+			Delete << ConvertParams(St1), Poco::Data::Keywords::use(Date);
+			Delete.execute();
+			return true;
+		} catch (const Poco::Exception &E) {
+			Logger_.log(E);
+		}
+		return false;
+	}
+
 }
 

@@ -128,6 +128,11 @@ namespace uCentral {
 		bool GetLifetimeStats(std::string & SerialNumber, std::string & Stats);
 		bool ResetLifetimeStats(std::string & SerialNumber);
 
+		bool RemoveHealthchecksRecordsOlderThan(uint64_t Date);
+		bool RemoveDeviceLogsRecordsOlderThan(uint64_t Date);
+		bool RemoveStatisticsRecordsOlderThan(uint64_t Date);
+		bool RemoveCommandListRecordsOlderThan(uint64_t Date);
+
 		int Create_Tables();
 		int Create_Statistics();
 		int Create_Devices();
