@@ -39,7 +39,7 @@ RUN cmake --build . --config Release -j8
 FROM alpine
 
 RUN mkdir /ucentral
-RUN mkdir /ucentral-data
+RUN mkdir /ucentralgw-data
 RUN apk add --update --no-cache librdkafka mariadb-connector-c libpq unixodbc
 
 COPY --from=builder /ucentralgw/cmake-build/ucentralgw /ucentral/ucentralgw
@@ -47,8 +47,9 @@ COPY --from=builder /cppkafka/cmake-build/src/lib/* /lib/
 COPY --from=builder /poco/cmake-build/lib/* /lib/
 
 EXPOSE 15002
-EXPOSE 15015
-EXPOSE 16001
+EXPOSE 16002
 EXPOSE 16003
+EXPOSE 17002
+EXPOSE 16102
 
 ENTRYPOINT /ucentral/ucentralgw

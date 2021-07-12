@@ -7,9 +7,11 @@ on:
       - '**.md'
     branches:
       - master
+      - dev-microservice
   pull_request:
     branches:
       - master
+      - dev-microservice
 
 defaults:
   run:
