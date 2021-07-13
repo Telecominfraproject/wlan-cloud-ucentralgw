@@ -62,17 +62,6 @@ jobs:
     - name: Check out repository
       uses: actions/checkout@v2
 
-    - name: Create certificate and key files from Github secrets
-      env:
-        DIGICERT_TIP_WILDCARD_CERT: ${{ secrets.DIGICERT_TIP_WILDCARD_CERT }}
-        DIGICERT_TIP_WILDCARD_KEY: ${{ secrets.DIGICERT_TIP_WILDCARD_KEY }}
-      run: |
-        cat certificates/issuer.pem certificates/root.pem > docker-compose/ucentral-data/certs/restapi-ca.pem
-        echo "$DIGICERT_TIP_WILDCARD_CERT" > docker-compose/ucentral-data/certs/websocket-cert.pem
-        echo "$DIGICERT_TIP_WILDCARD_CERT" > docker-compose/ucentral-data/certs/restapi-cert.pem
-        echo "$DIGICERT_TIP_WILDCARD_KEY" > docker-compose/ucentral-data/certs/websocket-key.pem
-        echo "$DIGICERT_TIP_WILDCARD_KEY" > docker-compose/ucentral-data/certs/restapi-key.pem
-
     - name: Instantiate Docker Compose deployment
       working-directory: ./docker-compose
       env:
@@ -80,12 +69,12 @@ jobs:
       run: |
         docker-compose up -d
 
-    - name: Wait for uCentralGW to be alive and kicking
+    - name: Wait for uCentralSec to be alive and kicking
       run: |
         n=0
         until [ "$n" -ge 3 ]
         do
-          curl -s 127.0.0.1:15015 && break
+          curl -s 127.0.0.1:16102 && break
           n=$((n+1)) 
           if [ "$n" -eq 3]; then        
             exit 1
@@ -94,10 +83,15 @@ jobs:
           fi
         done
 
-    - name: Check functionality of uCentralGW
+    - name: Add self-signed certificates to system trust store of containers
+      working-directory: ./docker-compose
+      run: |
+        ./add-ca-cert.sh
+
+    - name: Check functionality of microservices
       env:
-        UCENTRALGW: "ucentral.cicd.lab.wlan.tip.build:16001"
-        FLAGS: "-s --cacert docker-compose/ucentral-data/certs/restapi-ca.pem --resolve ucentral.cicd.lab.wlan.tip.build:16001:127.0.0.1"
+        UCENTRALSEC: "ucentral.wlan.local:16001"
+        FLAGS: "-s --cacert docker-compose/certs/restapi-ca.pem --resolve ucentral.wlan.local:16001:127.0.0.1"
       run: |
         ./test_scripts/curl/cli listdevices
 
