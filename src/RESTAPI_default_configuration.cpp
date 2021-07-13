@@ -10,7 +10,7 @@
 
 #include "RESTAPI_default_configuration.h"
 
-#include "RESTAPI_objects.h"
+#include "RESTAPI_GWobjects.h"
 #include "RESTAPI_protocol.h"
 #include "StorageService.h"
 
@@ -27,7 +27,7 @@ void RESTAPI_default_configuration::handleRequest(Poco::Net::HTTPServerRequest &
 	ParseParameters(Request);
 
 	if (Request.getMethod() == Poco::Net::HTTPRequest::HTTP_GET) {
-		uCentral::Objects::DefaultConfiguration DefConfig;
+		GWObjects::DefaultConfiguration DefConfig;
 		if (Storage()->GetDefaultConfiguration(Name, DefConfig)) {
 			Poco::JSON::Object Obj;
 			DefConfig.to_json(Obj);
@@ -45,7 +45,7 @@ void RESTAPI_default_configuration::handleRequest(Poco::Net::HTTPServerRequest &
 		Poco::JSON::Parser IncomingParser;
 		Poco::JSON::Object::Ptr Obj =
 			IncomingParser.parse(Request.stream()).extract<Poco::JSON::Object::Ptr>();
-		uCentral::Objects::DefaultConfiguration DefConfig;
+		GWObjects::DefaultConfiguration DefConfig;
 
 		if (!DefConfig.from_json(Obj)) {
 			BadRequest(Request, Response);
@@ -62,7 +62,7 @@ void RESTAPI_default_configuration::handleRequest(Poco::Net::HTTPServerRequest &
 		Poco::JSON::Object::Ptr Obj =
 			IncomingParser.parse(Request.stream()).extract<Poco::JSON::Object::Ptr>();
 
-		uCentral::Objects::DefaultConfiguration DefConfig;
+		GWObjects::DefaultConfiguration DefConfig;
 		if (!DefConfig.from_json(Obj)) {
 			BadRequest(Request, Response);
 			return;

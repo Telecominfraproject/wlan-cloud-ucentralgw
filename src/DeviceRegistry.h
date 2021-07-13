@@ -11,7 +11,7 @@
 
 #include "Poco/JSON/Object.h"
 
-#include "RESTAPI_objects.h"
+#include "RESTAPI_GWobjects.h"
 #include "SubSystemServer.h"
 
 // class uCentral::WebSocket::WSConnection;
@@ -23,7 +23,7 @@ namespace uCentral {
     public:
 		struct ConnectionEntry {
 			WSConnection 				*WSConn_;
-			Objects::ConnectionState 	Conn_;
+			GWObjects::ConnectionState 	Conn_;
 			std::string        			LastStats;
 			std::string 				LastHealthcheck;
 		};
@@ -39,13 +39,13 @@ namespace uCentral {
 		void Stop() override;
 		bool GetStatistics(const std::string &SerialNumber, std::string & Statistics);
 		void SetStatistics(const std::string &SerialNumber, const std::string &stats);
-		bool GetState(const std::string & SerialNumber, uCentral::Objects::ConnectionState & State);
-		void SetState(const std::string & SerialNumber, uCentral::Objects::ConnectionState & State);
+		bool GetState(const std::string & SerialNumber, GWObjects::ConnectionState & State);
+		void SetState(const std::string & SerialNumber, GWObjects::ConnectionState & State);
 		bool GetHealthcheck(const std::string &SerialNumber, std::string & Statistics);
 		void SetHealthcheck(const std::string &SerialNumber, const std::string &stats);
-		uCentral::Objects::ConnectionState * Register(const std::string & SerialNumber, WSConnection *);
+		GWObjects::ConnectionState * Register(const std::string & SerialNumber, WSConnection *);
 		void UnRegister(const std::string & SerialNumber, WSConnection *);
-		bool SendCommand(uCentral::Objects::CommandDetails & Command);
+		bool SendCommand(GWObjects::CommandDetails & Command);
 		bool Connected(const std::string & SerialNumber);
 		bool SendFrame(const std::string & SerialNumber, const std::string & Payload);
 		void SetPendingUUID(const std::string & SerialNumber, uint64_t PendingUUID);

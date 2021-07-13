@@ -124,13 +124,13 @@ namespace uCentral {
 
 		if(SS->havePeerCertificate()) {
 			// Get the cert info...
-			CertValidation_ = Objects::VALID_CERTIFICATE;
+			CertValidation_ = GWObjects::VALID_CERTIFICATE;
 			try {
 				Poco::Crypto::X509Certificate	PeerCert(SS->peerCertificate());
 
 				if(WebSocketServer()->ValidateCertificate(CId_, PeerCert)) {
 					CN_ = Poco::trim(Poco::toLower(PeerCert.commonName()));
-					CertValidation_ = Objects::MISMATCH_SERIAL;
+					CertValidation_ = GWObjects::MISMATCH_SERIAL;
 					Logger_.debug(Poco::format("%s: Valid certificate: CN=%s", CId_, CN_));
 				} else {
 					Logger_.debug( Poco::format("%s: Certificate is not valid", CId_));
@@ -230,7 +230,7 @@ namespace uCentral {
 			ParsedConfig->set(uCentralProtocol::UUID,NewConfigUUID);
 
 			// create the command stub...
-			uCentral::Objects::CommandDetails  Cmd;
+			GWObjects::CommandDetails  Cmd;
 			Cmd.SerialNumber = SerialNumber_;
 			Cmd.UUID = Daemon()->CreateUUID();
 			Cmd.SubmittedBy = uCentralProtocol::SUBMITTED_BY_SYSTEM;
@@ -347,7 +347,7 @@ namespace uCentral {
 
 						//	We need to verify the certificate if we have one
 						if(!CN_.empty() && Utils::SerialNumberMatch(CN_,SerialNumber_)) {
-							CertValidation_ = Objects::VERIFIED;
+							CertValidation_ = GWObjects::VERIFIED;
 							Logger_.information(Poco::format("CONNECT(%s): Fully validated and authenticated device..", CId_));
 						} else {
 							if(CN_.empty())
@@ -444,7 +444,7 @@ namespace uCentral {
 
 						Conn_->UUID = UUID;
 
-						uCentral::Objects::HealthCheck Check;
+						GWObjects::HealthCheck Check;
 
 						Check.Recorded = time(nullptr);
 						Check.UUID = UUID;
@@ -483,7 +483,7 @@ namespace uCentral {
 								DataStr = DataObj.toString();
 						}
 
-						uCentral::Objects::DeviceLog DeviceLog{.Log = Log,
+						GWObjects::DeviceLog DeviceLog{.Log = Log,
 															   .Data = DataStr,
 															   .Severity = Severity,
 															   .Recorded = (uint64_t)time(nullptr),
@@ -510,10 +510,10 @@ namespace uCentral {
 								LogText += i.toString() + "\r\n";
 						}
 
-						uCentral::Objects::DeviceLog DeviceLog{
+						GWObjects::DeviceLog DeviceLog{
 							.Log = LogText,
 							.Data = "",
-							.Severity = uCentral::Objects::DeviceLog::LOG_EMERG,
+							.Severity = GWObjects::DeviceLog::LOG_EMERG,
 							.Recorded = (uint64_t)time(nullptr),
 							.LogType = 1,
 							.UUID = Conn_->UUID};

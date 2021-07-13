@@ -16,8 +16,8 @@
 #include "Daemon.h"
 #include "DeviceRegistry.h"
 #include "FileUploader.h"
+#include "RESTAPI_GWobjects.h"
 #include "RESTAPI_device_commandHandler.h"
-#include "RESTAPI_objects.h"
 #include "StorageService.h"
 #include "Utils.h"
 
@@ -129,7 +129,7 @@ void RESTAPI_device_commandHandler::handleRequest(Poco::Net::HTTPServerRequest &
 
 void RESTAPI_device_commandHandler::GetCapabilities(Poco::Net::HTTPServerRequest &Request,
 													Poco::Net::HTTPServerResponse &Response) {
-	uCentral::Objects::Capabilities Caps;
+	GWObjects::Capabilities Caps;
 	try {
 		if (Storage()->GetDeviceCapabilities(SerialNumber_, Caps)) {
 			Poco::JSON::Object RetObj;
@@ -183,7 +183,7 @@ void RESTAPI_device_commandHandler::GetStatistics(Poco::Net::HTTPServerRequest &
 				NotFound(Request, Response);
 			}
 		} else {
-			std::vector<uCentral::Objects::Statistics> Stats;
+			std::vector<GWObjects::Statistics> Stats;
 			if (QB_.Newest) {
 				Storage()->GetNewestStatisticsData(SerialNumber_, QB_.Limit, Stats);
 			} else {
@@ -235,7 +235,7 @@ void RESTAPI_device_commandHandler::DeleteStatistics(Poco::Net::HTTPServerReques
 void RESTAPI_device_commandHandler::GetStatus(Poco::Net::HTTPServerRequest &Request,
 											  Poco::Net::HTTPServerResponse &Response) {
 	try {
-		uCentral::Objects::ConnectionState State;
+		GWObjects::ConnectionState State;
 
 		if (DeviceRegistry()->GetState(SerialNumber_, State)) {
 			Poco::JSON::Object RetObject;
@@ -278,7 +278,7 @@ void RESTAPI_device_commandHandler::Configure(Poco::Net::HTTPServerRequest &Requ
 			if (Storage()->UpdateDeviceConfiguration(SerialNumber_, Configuration,
 															 NewUUID)) {
 
-				uCentral::Objects::CommandDetails Cmd;
+				GWObjects::CommandDetails Cmd;
 
 				Cmd.SerialNumber = SerialNumber_;
 				Cmd.UUID = Daemon()->CreateUUID();
@@ -328,7 +328,7 @@ void RESTAPI_device_commandHandler::Upgrade(Poco::Net::HTTPServerRequest &Reques
 			auto URI = GetS(uCentral::RESTAPI::Protocol::URI, Obj);
 			auto When = GetWhen(Obj);
 
-			uCentral::Objects::CommandDetails Cmd;
+			GWObjects::CommandDetails Cmd;
 
 			Cmd.SerialNumber = SerialNumber_;
 			Cmd.UUID = Daemon()->CreateUUID();
@@ -358,7 +358,7 @@ void RESTAPI_device_commandHandler::Upgrade(Poco::Net::HTTPServerRequest &Reques
 void RESTAPI_device_commandHandler::GetLogs(Poco::Net::HTTPServerRequest &Request,
 											Poco::Net::HTTPServerResponse &Response) {
 	try {
-		std::vector<uCentral::Objects::DeviceLog> Logs;
+		std::vector<GWObjects::DeviceLog> Logs;
 
 		if (QB_.Newest) {
 			Storage()->GetNewestLogData(SerialNumber_, QB_.Limit, Logs, QB_.LogType);
@@ -402,7 +402,7 @@ void RESTAPI_device_commandHandler::DeleteLogs(Poco::Net::HTTPServerRequest &Req
 void RESTAPI_device_commandHandler::GetChecks(Poco::Net::HTTPServerRequest &Request,
 											  Poco::Net::HTTPServerResponse &Response) {
 	try {
-		std::vector<uCentral::Objects::HealthCheck> Checks;
+		std::vector<GWObjects::HealthCheck> Checks;
 
 		if (QB_.LastOnly) {
 			std::string Healthcheck;
@@ -476,7 +476,7 @@ void RESTAPI_device_commandHandler::ExecuteCommand(Poco::Net::HTTPServerRequest 
 			auto Payload = GetS(uCentral::RESTAPI::Protocol::PAYLOAD, Obj);
 			auto When = GetWhen(Obj);
 
-			uCentral::Objects::CommandDetails Cmd;
+			GWObjects::CommandDetails Cmd;
 
 			Cmd.SerialNumber = SerialNumber_;
 			Cmd.UUID = Daemon()->CreateUUID();
@@ -525,7 +525,7 @@ void RESTAPI_device_commandHandler::Reboot(Poco::Net::HTTPServerRequest &Request
 			}
 
 			uint64_t When = GetWhen(Obj);
-			uCentral::Objects::CommandDetails Cmd;
+			GWObjects::CommandDetails Cmd;
 			Cmd.SerialNumber = SerialNumber_;
 			Cmd.UUID = Daemon()->CreateUUID();
 			Cmd.SubmittedBy = UserInfo_.webtoken.username_;
@@ -571,7 +571,7 @@ void RESTAPI_device_commandHandler::Factory(Poco::Net::HTTPServerRequest &Reques
 			auto KeepRedirector = GetB(uCentral::RESTAPI::Protocol::KEEPREDIRECTOR, Obj, true);
 			uint64_t When = GetWhen(Obj);
 
-			uCentral::Objects::CommandDetails Cmd;
+			GWObjects::CommandDetails Cmd;
 
 			Cmd.SerialNumber = SerialNumber_;
 			Cmd.UUID = Daemon()->CreateUUID();
@@ -629,7 +629,7 @@ void RESTAPI_device_commandHandler::LEDs(Poco::Net::HTTPServerRequest &Request,
 			Logger_.information(Poco::format("LEDS(%s): Pattern:%s Duration: %Lu", SerialNumber_,
 											 Pattern, Duration));
 
-			uCentral::Objects::CommandDetails Cmd;
+			GWObjects::CommandDetails Cmd;
 
 			Cmd.SerialNumber = SerialNumber_;
 			Cmd.UUID = Daemon()->CreateUUID();
@@ -682,7 +682,7 @@ void RESTAPI_device_commandHandler::Trace(Poco::Net::HTTPServerRequest &Request,
 			auto UUID = Daemon()->CreateUUID();
 			auto URI = FileUploader()->FullName() + UUID;
 
-			uCentral::Objects::CommandDetails Cmd;
+			GWObjects::CommandDetails Cmd;
 			Cmd.SerialNumber = SerialNumber_;
 			Cmd.UUID = UUID;
 			Cmd.SubmittedBy = UserInfo_.webtoken.username_;
@@ -737,7 +737,7 @@ void RESTAPI_device_commandHandler::WifiScan(Poco::Net::HTTPServerRequest &Reque
 			  !Obj->has(uCentral::RESTAPI::Protocol::CHANNELS)))) {
 			bool Verbose = GetB(uCentral::RESTAPI::Protocol::VERBOSE, Obj);
 			auto UUID = Daemon()->CreateUUID();
-			uCentral::Objects::CommandDetails Cmd;
+			GWObjects::CommandDetails Cmd;
 
 			Cmd.SerialNumber = SerialNumber_;
 			Cmd.UUID = UUID;
@@ -799,7 +799,7 @@ void RESTAPI_device_commandHandler::EventQueue(Poco::Net::HTTPServerRequest &Req
 
 			if (SerialNumber_ == SNum) {
 				auto UUID = Daemon()->CreateUUID();
-				uCentral::Objects::CommandDetails Cmd;
+				GWObjects::CommandDetails Cmd;
 
 				Cmd.SerialNumber = SerialNumber_;
 				Cmd.UUID = UUID;
@@ -847,7 +847,7 @@ void RESTAPI_device_commandHandler::MakeRequest(Poco::Net::HTTPServerRequest &Re
 			}
 
 			auto When = GetWhen(Obj);
-			uCentral::Objects::CommandDetails Cmd;
+			GWObjects::CommandDetails Cmd;
 
 			Cmd.SerialNumber = SerialNumber_;
 			Cmd.SubmittedBy = UserInfo_.webtoken.username_;
@@ -879,11 +879,11 @@ void RESTAPI_device_commandHandler::Rtty(Poco::Net::HTTPServerRequest &Request,
 										 Poco::Net::HTTPServerResponse &Response) {
 	try {
 		if (Daemon()->ConfigGetString("rtty.enabled", "false") == "true") {
-			Objects::Device	Device;
+			GWObjects::Device	Device;
 			if (Storage()->GetDevice(SerialNumber_, Device)) {
 				auto CommandUUID = uCentral::Daemon::instance()->CreateUUID();
 
-				uCentral::Objects::RttySessionDetails Rtty{
+				GWObjects::RttySessionDetails Rtty{
 					.SerialNumber = SerialNumber_,
 					.Server = Daemon()->ConfigGetString("rtty.server", "localhost"),
 					.Port = Daemon()->ConfigGetInt("rtty.port", 5912),
@@ -900,7 +900,7 @@ void RESTAPI_device_commandHandler::Rtty(Poco::Net::HTTPServerRequest &Request,
 				Rtty.to_json(ReturnedObject);
 
 				//	let's create the command for this request
-				uCentral::Objects::CommandDetails Cmd;
+				GWObjects::CommandDetails Cmd;
 				Cmd.SerialNumber = SerialNumber_;
 				Cmd.SubmittedBy = UserInfo_.webtoken.username_;
 				Cmd.UUID = CommandUUID;

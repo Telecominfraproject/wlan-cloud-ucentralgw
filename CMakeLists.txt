@@ -30,6 +30,7 @@ else()
     file(WRITE build ${BUILD_NUM})
 endif()
 add_definitions(-DAPP_VERSION="${CMAKE_PROJECT_VERSION}" -DBUILD_NUMBER="${BUILD_NUM}")
+add_definitions(-DTIP_GATEWAY_SERVICE="1")
 
 set(Boost_USE_STATIC_LIBS OFF)
 set(Boost_USE_MULTITHREADED ON)
@@ -37,7 +38,6 @@ set(Boost_USE_STATIC_RUNTIME OFF)
 find_package(Boost REQUIRED system)
 find_package(OpenSSL REQUIRED)
 find_package(ZLIB REQUIRED)
-find_package(Lua REQUIRED)
 
 if(SMALL_BUILD)
     find_package(Poco REQUIRED COMPONENTS Crypto JWT Net Util NetSSL Data DataSQLite)
@@ -64,7 +64,7 @@ add_executable( ucentralgw
                 src/RESTAPI_device_handler.cpp src/RESTAPI_device_handler.h
                 src/RESTAPI_handler.cpp src/RESTAPI_handler.h
                 src/RESTAPI_device_commandHandler.cpp src/RESTAPI_device_commandHandler.h
-                src/RESTAPI_objects.h src/RESTAPI_objects.cpp
+        src/RESTAPI_GWobjects.h src/RESTAPI_GWobjects.cpp
                 src/CentralConfig.cpp src/CentralConfig.h
                 src/RESTAPI_default_configuration.cpp
                 src/RESTAPI_InternalServer.cpp src/RESTAPI_InternalServer.h
@@ -102,7 +102,7 @@ target_link_libraries(ucentralgw PUBLIC
                         ${Poco_LIBRARIES} ${Boost_LIBRARIES} ${ZLIB_LIBRARIES})
 if(NOT SMALL_BUILD)
     target_link_libraries(ucentralgw PUBLIC
-            ${MySQL_LIBRARIES} ${ODBC_LIBRARIES} ${ZLIB_LIBRARIES} ${LUA_LIBRARIES}
+            ${MySQL_LIBRARIES} ${ODBC_LIBRARIES} ${ZLIB_LIBRARIES}
             CppKafka::cppkafka
              )
     if(UNIX AND NOT APPLE)

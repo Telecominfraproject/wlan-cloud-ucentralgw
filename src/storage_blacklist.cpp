@@ -17,11 +17,11 @@
 				")", Poco::Data::Keywords::now;
  */
 
-#include "RESTAPI_objects.h"
+#include "RESTAPI_GWobjects.h"
 
 namespace uCentral {
 
-	bool Storage::AddBlackListDevices(std::vector<uCentral::Objects::BlackListedDevice> &Devices) {
+	bool Storage::AddBlackListDevices(std::vector<GWObjects::BlackListedDevice> &Devices) {
 		try {
 
 			Poco::Data::Session Sess = Pool_->get();
@@ -60,7 +60,7 @@ namespace uCentral {
 	}
 
 	bool Storage::GetBlackListDevices(uint64_t Offset, uint64_t HowMany,
-									  std::vector<uCentral::Objects::BlackListedDevice> &Devices) {
+									  std::vector<GWObjects::BlackListedDevice> &Devices) {
 		try {
 			using tuple_list = Poco::Tuple<std::string, std::string, std::string, uint64_t>;
 			using record_list = std::vector<tuple_list>;
@@ -76,7 +76,7 @@ namespace uCentral {
 			Select.execute();
 
 			for (auto i : Records) {
-				uCentral::Objects::BlackListedDevice R{.SerialNumber = i.get<0>(),
+				GWObjects::BlackListedDevice R{.SerialNumber = i.get<0>(),
 											.Reason = i.get<1>(),
 											.Author = i.get<2>(),
 											.Created = i.get<3>()};

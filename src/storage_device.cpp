@@ -101,7 +101,7 @@ namespace uCentral {
 		return false;
 	}
 
-	bool Storage::CreateDevice(uCentral::Objects::Device &DeviceDetails) {
+	bool Storage::CreateDevice(GWObjects::Device &DeviceDetails) {
 		// std::lock_guard<std::mutex> guard(Mutex_);
 
 		std::string SerialNumber;
@@ -184,12 +184,12 @@ namespace uCentral {
 
 	bool Storage::CreateDefaultDevice(const std::string &SerialNumber, const std::string &Capabilities, std::string & Firmware) {
 
-		uCentral::Objects::Device D;
+		GWObjects::Device D;
 		Logger_.information(Poco::format("AUTO-CREATION(%s)", SerialNumber));
 		uint64_t Now = time(nullptr);
 
 		uCentral::Config::Capabilities Caps(Capabilities);
-		uCentral::Objects::DefaultConfiguration DefConfig;
+		GWObjects::DefaultConfiguration DefConfig;
 
 		if (FindDefaultConfigurationForModel(Caps.Model(), DefConfig)) {
 			uCentral::Config::Config NewConfig(DefConfig.Configuration);
@@ -366,7 +366,7 @@ namespace uCentral {
 		return false;
 	}
 
-	bool Storage::GetDevice(std::string &SerialNumber, uCentral::Objects::Device &DeviceDetails) {
+	bool Storage::GetDevice(std::string &SerialNumber, GWObjects::Device &DeviceDetails) {
 		// std::lock_guard<std::mutex> guard(Mutex_);
 
 		try {
@@ -478,12 +478,12 @@ namespace uCentral {
 		return false;
 	}
 
-	bool Storage::UpdateDevice(Objects::Device &NewDeviceDetails) {
+	bool Storage::UpdateDevice(GWObjects::Device &NewDeviceDetails) {
 		try {
 			Poco::Data::Session     Sess = Pool_->get();
 			Poco::Data::Statement   Update(Sess);
 
-			Objects::Device	ExistingDevice;
+			GWObjects::Device	ExistingDevice;
 			if(!GetDevice(NewDeviceDetails.SerialNumber,ExistingDevice))
 				return false;
 
@@ -536,11 +536,11 @@ namespace uCentral {
 		return false;
 	}
 
-	bool Storage::GetDevices(uint64_t From, uint64_t HowMany, const std::string &Select, std::vector<uCentral::Objects::Device> &Devices) {
+	bool Storage::GetDevices(uint64_t From, uint64_t HowMany, const std::string &Select, std::vector<GWObjects::Device> &Devices) {
 		return false;
 	}
 
-	bool Storage::GetDevices(uint64_t From, uint64_t HowMany, std::vector<uCentral::Objects::Device> &Devices) {
+	bool Storage::GetDevices(uint64_t From, uint64_t HowMany, std::vector<GWObjects::Device> &Devices) {
 
 		typedef Poco::Tuple<
 			std::string,
@@ -600,7 +600,7 @@ namespace uCentral {
 				SecurityObjects::NoteInfoVec 	NI;
 				NI = RESTAPI_utils::to_object_array<SecurityObjects::NoteInfo>(i.get<5>());
 
-				uCentral::Objects::Device R{
+				GWObjects::Device R{
 					.SerialNumber   = i.get<0>(),
 					.DeviceType     = i.get<1>(),
 					.MACAddress     = i.get<2>(),

@@ -15,19 +15,19 @@
 #include "Poco/File.h"
 #include "Poco/JSON/Object.h"
 
-#include "RESTAPI_objects.h"
+#include "RESTAPI_GWobjects.h"
 #include "RESTAPI_handler.h"
 
 namespace uCentral::RESTAPI_RPC {
 
-	bool WaitForRPC(uCentral::Objects::CommandDetails &Cmd,
+	bool WaitForRPC(GWObjects::CommandDetails &Cmd,
 					   Poco::Net::HTTPServerRequest &Request,
 					   Poco::Net::HTTPServerResponse &Response,
 					   uint64_t Timeout,
 					   bool ReturnObject,
 					   RESTAPIHandler * Handler);
 
-	void WaitForCommand( uCentral::Objects::CommandDetails &Cmd,
+	void WaitForCommand( GWObjects::CommandDetails &Cmd,
 							Poco::JSON::Object  & Params,
 							Poco::Net::HTTPServerRequest &Request,
 							Poco::Net::HTTPServerResponse &Response,
@@ -35,7 +35,7 @@ namespace uCentral::RESTAPI_RPC {
 							Poco::JSON::Object * ObjectToReturn,
 							RESTAPIHandler * Handler);
 
-	void SetCommandAsPending(uCentral::Objects::CommandDetails &Cmd,
+	void SetCommandAsPending(GWObjects::CommandDetails &Cmd,
 								Poco::Net::HTTPServerRequest &Request,
 								Poco::Net::HTTPServerResponse &Response, RESTAPIHandler * handler);
 

@@ -48,7 +48,7 @@ namespace uCentral {
 
 	bool Storage::GetStatisticsData(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate, uint64_t Offset,
 									uint64_t HowMany,
-									std::vector<uCentral::Objects::Statistics> &Stats) {
+									std::vector<GWObjects::Statistics> &Stats) {
 
 		typedef Poco::Tuple<std::string, uint64_t, std::string, uint64_t> StatRecord;
 		typedef std::vector<StatRecord> RecordList;
@@ -83,7 +83,7 @@ namespace uCentral {
 			Select.execute();
 
 			for (auto i: Records) {
-				uCentral::Objects::Statistics R{
+				GWObjects::Statistics R{
 					.UUID = i.get<1>(),
 					.Data = i.get<2>(),
 					.Recorded = i.get<3>()};
@@ -98,7 +98,7 @@ namespace uCentral {
 		return false;
 	}
 
-	bool Storage::GetNewestStatisticsData(std::string &SerialNumber, uint64_t HowMany, std::vector<uCentral::Objects::Statistics> &Stats) {
+	bool Storage::GetNewestStatisticsData(std::string &SerialNumber, uint64_t HowMany, std::vector<GWObjects::Statistics> &Stats) {
 		typedef Poco::Tuple<std::string, uint64_t, std::string, uint64_t> StatRecord;
 		typedef std::vector<StatRecord> RecordList;
 
@@ -116,7 +116,7 @@ namespace uCentral {
 			Select.execute();
 
 			for (auto i: Records) {
-				uCentral::Objects::Statistics R{
+				GWObjects::Statistics R{
 					.UUID = i.get<1>(),
 					.Data = i.get<2>(),
 					.Recorded = i.get<3>()};

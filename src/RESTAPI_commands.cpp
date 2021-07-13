@@ -27,7 +27,7 @@ void RESTAPI_commands::handleRequest(Poco::Net::HTTPServerRequest &Request,
 		auto SerialNumber = GetParameter(uCentral::RESTAPI::Protocol::SERIALNUMBER, "");
 
 		if (Request.getMethod() == Poco::Net::HTTPRequest::HTTP_GET) {
-			std::vector<uCentral::Objects::CommandDetails> Commands;
+			std::vector<GWObjects::CommandDetails> Commands;
 			if (QB_.Newest) {
 				Storage()->GetNewestCommands(SerialNumber, QB_.Limit, Commands);
 			} else {

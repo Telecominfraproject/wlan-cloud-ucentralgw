@@ -85,7 +85,7 @@ namespace uCentral {
 		return false;
 	}
 
-	bool Storage::GetDeviceCapabilities(std::string &SerialNumber, uCentral::Objects::Capabilities &Caps) {
+	bool Storage::GetDeviceCapabilities(std::string &SerialNumber, GWObjects::Capabilities &Caps) {
 		// std::lock_guard<std::mutex> guard(Mutex_);
 
 		try {

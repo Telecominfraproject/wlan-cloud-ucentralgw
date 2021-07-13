@@ -10,7 +10,7 @@
 
 namespace uCentral {
 
-	bool Storage::AddHealthCheckData(std::string &SerialNumber, uCentral::Objects::HealthCheck &Check) {
+	bool Storage::AddHealthCheckData(std::string &SerialNumber, GWObjects::HealthCheck &Check) {
 		try {
 			Logger_.information("Device:" + SerialNumber + " HealthCheck: sanity " + std::to_string(Check.Sanity));
 
@@ -43,7 +43,7 @@ namespace uCentral {
 
 	bool Storage::GetHealthCheckData(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate, uint64_t Offset,
 									 uint64_t HowMany,
-									 std::vector<uCentral::Objects::HealthCheck> &Checks) {
+									 std::vector<GWObjects::HealthCheck> &Checks) {
 
 		typedef Poco::Tuple<std::string, uint64_t, std::string, uint64_t, uint64_t> Record;
 		typedef std::vector<Record> RecordList;
@@ -78,7 +78,7 @@ namespace uCentral {
 			Select.execute();
 
 			for (auto i: Records) {
-				uCentral::Objects::HealthCheck R;
+				GWObjects::HealthCheck R;
 
 				R.UUID = i.get<1>();
 				R.Data = i.get<2>();
@@ -97,7 +97,7 @@ namespace uCentral {
 		return false;
 	}
 
-	bool Storage::GetNewestHealthCheckData(std::string &SerialNumber, uint64_t HowMany, std::vector<uCentral::Objects::HealthCheck> &Checks) {
+	bool Storage::GetNewestHealthCheckData(std::string &SerialNumber, uint64_t HowMany, std::vector<GWObjects::HealthCheck> &Checks) {
 		typedef Poco::Tuple<std::string, uint64_t, std::string, uint64_t, uint64_t> Record;
 		typedef std::vector<Record> RecordList;
 
@@ -116,7 +116,7 @@ namespace uCentral {
 			Select.execute();
 
 			for (auto i: Records) {
-				uCentral::Objects::HealthCheck R{
+				GWObjects::HealthCheck R{
 					.UUID = i.get<1>(),
 					.Data = i.get<2>(),
 					.Recorded = i.get<4>(),

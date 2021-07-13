@@ -54,7 +54,7 @@ namespace uCentral {
         }
     }
 
-    bool DeviceRegistry::GetState(const std::string &SerialNumber, uCentral::Objects::ConnectionState & State) {
+    bool DeviceRegistry::GetState(const std::string &SerialNumber, GWObjects::ConnectionState & State) {
 		SubMutexGuard		Guard(Mutex_);
 
         auto Device = Devices_.find(SerialNumber);
@@ -66,7 +66,7 @@ namespace uCentral {
         return false;
     }
 
-    void DeviceRegistry::SetState(const std::string & SerialNumber, uCentral::Objects::ConnectionState & State) {
+    void DeviceRegistry::SetState(const std::string & SerialNumber, GWObjects::ConnectionState & State) {
 		SubMutexGuard		Guard(Mutex_);
 
         auto Device = Devices_.find(SerialNumber);
@@ -100,7 +100,7 @@ namespace uCentral {
 		}
 	}
 
-	uCentral::Objects::ConnectionState * DeviceRegistry::Register(const std::string & SerialNumber, WSConnection *Ptr)
+	GWObjects::ConnectionState * DeviceRegistry::Register(const std::string & SerialNumber, WSConnection *Ptr)
     {
 		SubMutexGuard		Guard(Mutex_);
 
@@ -117,7 +117,7 @@ namespace uCentral {
             E->Conn_.Address = "";
             E->Conn_.TX = 0 ;
             E->Conn_.RX = 0;
-			E->Conn_.VerifiedCertificate = Objects::CertificateValidation::NO_CERTIFICATE;
+			E->Conn_.VerifiedCertificate = GWObjects::CertificateValidation::NO_CERTIFICATE;
 			auto R=&E->Conn_;
             Devices_[SerialNumber] = std::move(E);
             return R;
@@ -127,7 +127,7 @@ namespace uCentral {
             Device->second->WSConn_ = Ptr;
             Device->second->Conn_.Connected = true;
             Device->second->Conn_.LastContact = std::time(nullptr);
-			Device->second->Conn_.VerifiedCertificate = Objects::CertificateValidation::NO_CERTIFICATE;
+			Device->second->Conn_.VerifiedCertificate = GWObjects::CertificateValidation::NO_CERTIFICATE;
             return &Device->second->Conn_;
         }
     }
@@ -153,7 +153,7 @@ namespace uCentral {
             Device->second->WSConn_ = nullptr;
             Device->second->Conn_.Connected = false;
             Device->second->Conn_.LastContact = time(nullptr);
-			Device->second->Conn_.VerifiedCertificate = uCentral::Objects::NO_CERTIFICATE;
+			Device->second->Conn_.VerifiedCertificate = GWObjects::NO_CERTIFICATE;
         }
 
     }

@@ -10,21 +10,26 @@
 #include "Poco/JSON/Stringifier.h"
 
 #include "Daemon.h"
+#ifdef	TIP_GATEWAY_SERVICE
 #include "DeviceRegistry.h"
+#endif
+
+#include "RESTAPI_GWobjects.h"
 #include "RESTAPI_handler.h"
-#include "RESTAPI_objects.h"
-#include "Utils.h"
 #include "RESTAPI_utils.h"
+#include "Utils.h"
 
 using uCentral::RESTAPI_utils::field_to_json;
 using uCentral::RESTAPI_utils::field_from_json;
 using uCentral::RESTAPI_utils::EmbedDocument;
 
-namespace uCentral::Objects {
+namespace uCentral::GWObjects {
 
 	void Device::to_json(Poco::JSON::Object &Obj) const {
 		field_to_json(Obj,"serialNumber", SerialNumber);
+#ifdef TIP_GATEWAY_SERVICE
 		field_to_json(Obj,"deviceType", uCentral::Daemon::instance()->IdentifyDevice(Compatible));
+#endif
 		field_to_json(Obj,"macAddress", MACAddress);
 		field_to_json(Obj,"manufacturer", Manufacturer);
 		field_to_json(Obj,"UUID", UUID);
@@ -45,7 +50,10 @@ namespace uCentral::Objects {
 
 	void Device::to_json_with_status(Poco::JSON::Object &Obj) const {
 		to_json(Obj);
+
+#ifdef TIP_GATEWAY_SERVICE
 		ConnectionState ConState;
+
 		if (DeviceRegistry()->GetState(SerialNumber, ConState)) {
 			ConState.to_json(Obj);
 		} else {
@@ -57,6 +65,7 @@ namespace uCentral::Objects {
 			field_to_json(Obj,"lastContact", "N/A");
 			field_to_json(Obj,"verifiedCertificate", "NO_CERTIFICATE");
 		}
+#endif
 	}
 
 	bool Device::from_json(Poco::JSON::Object::Ptr Obj) {

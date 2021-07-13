@@ -47,7 +47,7 @@ namespace uCentral {
 					Poco::JSON::Array Objects;
 					std::vector<std::string> Numbers = uCentral::Utils::Split(QB_.Select);
 					for (auto &i : Numbers) {
-						uCentral::Objects::Device D;
+						GWObjects::Device D;
 						if (Storage()->GetDevice(i, D)) {
 							Poco::JSON::Object Obj;
 							if (deviceWithStatus)
@@ -80,7 +80,7 @@ namespace uCentral {
 					}
 					RetObj.set(uCentral::RESTAPI::Protocol::SERIALNUMBERS, Objects);
 				} else {
-					std::vector<uCentral::Objects::Device> Devices;
+					std::vector<GWObjects::Device> Devices;
 					Storage()->GetDevices(QB_.Offset, QB_.Limit, Devices);
 					Poco::JSON::Array Objects;
 					for (const auto &i : Devices) {
