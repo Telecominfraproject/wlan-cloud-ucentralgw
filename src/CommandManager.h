@@ -19,7 +19,7 @@
 #include "Poco/Net/HTTPServerRequest.h"
 #include "Poco/Net/HTTPServerResponse.h"
 
-#include "RESTAPI_objects.h"
+#include "RESTAPI_GWobjects.h"
 #include "SubSystemServer.h"
 
 namespace uCentral {
@@ -39,7 +39,7 @@ namespace uCentral {
 								 const std::string & Method,
 								 const Poco::JSON::Object &Params,
 								 const std::string & UUID);
-			bool SendCommand(uCentral::Objects::CommandDetails & Command);
+			bool SendCommand(GWObjects::CommandDetails & Command);
 			void Janitor();
 			void run() override;
 

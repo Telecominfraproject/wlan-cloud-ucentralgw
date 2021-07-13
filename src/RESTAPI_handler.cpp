@@ -14,8 +14,14 @@
 #include <chrono>
 
 #include "Poco/URI.h"
+#include "Poco/Net/OAuth20Credentials.h"
 
+#ifdef	TIP_SECURITY_SERVICE
 #include "AuthService.h"
+#else
+#include "AuthClient.h"
+#endif
+
 #include "RESTAPI_handler.h"
 #include "RESTAPI_protocol.h"
 #include "Utils.h"
@@ -39,7 +45,7 @@ namespace uCentral {
 				if (PathItems[i] != ParamItems[i]) {
 					if (ParamItems[i][0] == '{') {
 						auto ParamName = ParamItems[i].substr(1, ParamItems[i].size() - 2);
-						bindings[ParamName] = PathItems[i];
+						bindings[Poco::toLower(ParamName)] = PathItems[i];
 					} else {
 						Matched = false;
 					}
@@ -105,8 +111,7 @@ namespace uCentral {
 	}
 
 	const std::string &RESTAPIHandler::GetBinding(const std::string &Name, const std::string &Default) {
-		auto E = Bindings_.find(Name);
-
+		auto E = Bindings_.find(Poco::toLower(Name));
 		if (E == Bindings_.end())
 			return Default;
 
@@ -115,7 +120,6 @@ namespace uCentral {
 
 	static std::string MakeList(const std::vector<std::string> &L) {
 		std::string Return;
-
 		for (const auto &i : L)
 			if (Return.empty())
 				Return = i;
@@ -178,27 +182,54 @@ namespace uCentral {
 	}
 
 	void RESTAPIHandler::BadRequest(Poco::Net::HTTPServerRequest &Request,
-									Poco::Net::HTTPServerResponse &Response) {
+									Poco::Net::HTTPServerResponse &Response,
+									const std::string & Reason) {
 		PrepareResponse(Request, Response, Poco::Net::HTTPResponse::HTTP_BAD_REQUEST);
-		Response.send();
+		Poco::JSON::Object	ErrorObject;
+		ErrorObject.set("ErrorCode",500);
+		ErrorObject.set("ErrorDetails",Request.getMethod());
+		ErrorObject.set("ErrorDescription",Reason.empty() ? "Command is missing parameters or wrong values." : Reason) ;
+		std::ostream &Answer = Response.send();
+		Poco::JSON::Stringifier::stringify(ErrorObject, Answer);
 	}
 
 	void RESTAPIHandler::UnAuthorized(Poco::Net::HTTPServerRequest &Request,
-									  Poco::Net::HTTPServerResponse &Response) {
+									  Poco::Net::HTTPServerResponse &Response,
+                                      const std::string & Reason) {
 		PrepareResponse(Request, Response, Poco::Net::HTTPResponse::HTTP_FORBIDDEN);
-		Response.send();
+		Poco::JSON::Object	ErrorObject;
+		ErrorObject.set("ErrorCode",403);
+		ErrorObject.set("ErrorDetails",Request.getMethod());
+		ErrorObject.set("ErrorDescription",Reason.empty() ? "No access allowed." : Reason) ;
+		std::ostream &Answer = Response.send();
+		Poco::JSON::Stringifier::stringify(ErrorObject, Answer);
 	}
 
 	void RESTAPIHandler::NotFound(Poco::Net::HTTPServerRequest &Request,
 								  Poco::Net::HTTPServerResponse &Response) {
 		PrepareResponse(Request, Response, Poco::Net::HTTPResponse::HTTP_NOT_FOUND);
-		Response.send();
+		Poco::JSON::Object	ErrorObject;
+		ErrorObject.set("ErrorCode",404);
+		ErrorObject.set("ErrorDetails",Request.getMethod());
+		ErrorObject.set("ErrorDescription","This resource does not exist.");
+		std::ostream &Answer = Response.send();
+		Poco::JSON::Stringifier::stringify(ErrorObject, Answer);
 	}
 
 	void RESTAPIHandler::OK(Poco::Net::HTTPServerRequest &Request,
 							Poco::Net::HTTPServerResponse &Response) {
 		PrepareResponse(Request, Response);
-		Response.send();
+		if(	Request.getMethod()==Poco::Net::HTTPRequest::HTTP_DELETE ||
+			Request.getMethod()==Poco::Net::HTTPRequest::HTTP_OPTIONS) {
+			Response.send();
+		} else {
+			Poco::JSON::Object ErrorObject;
+			ErrorObject.set("Code", 0);
+			ErrorObject.set("Operation", Request.getMethod());
+			ErrorObject.set("Details", "Command completed.");
+			std::ostream &Answer = Response.send();
+			Poco::JSON::Stringifier::stringify(ErrorObject, Answer);
+		}
 	}
 
 	void RESTAPIHandler::SendFile(Poco::File & File, const std::string & UUID, Poco::Net::HTTPServerRequest &Request, Poco::Net::HTTPServerResponse &Response) {
@@ -214,7 +245,37 @@ namespace uCentral {
 		Response.sendFile(File.path(),"application/octet-stream");
 	}
 
-	void RESTAPIHandler::ReturnStatus(Poco::Net::HTTPServerRequest &Request,
+    void RESTAPIHandler::SendFile(Poco::File & File, Poco::Net::HTTPServerRequest &Request, Poco::Net::HTTPServerResponse &Response) {
+        Response.set("Content-Type",Utils::FindMediaType(File));
+        Poco::Path  P(File.path());
+        Response.set("Content-Disposition", "attachment; filename=" + P.getBaseName()  );
+        Response.set("Content-Transfer-Encoding","binary");
+        Response.set("Accept-Ranges", "bytes");
+        Response.set("Cache-Control", "private");
+        Response.set("Pragma", "private");
+        Response.set("Expires", "Mon, 26 Jul 2027 05:00:00 GMT");
+        Response.set("Content-Length", std::to_string(File.getSize()));
+        AddCORS(Request, Response);
+        Response.sendFile(File.path(),Utils::FindMediaType(File));
+    }
+
+    void RESTAPIHandler::SendHTMLFileBack(Poco::File & File,
+                          Poco::Net::HTTPServerRequest &Request,
+                          Poco::Net::HTTPServerResponse &Response ,
+                          const Types::StringPairVec & FormVars) {
+        Response.set("Pragma", "private");
+        Response.set("Expires", "Mon, 26 Jul 2027 05:00:00 GMT");
+        Response.set("Content-Length", std::to_string(File.getSize()));
+        AddCORS(Request, Response);
+        auto FormContent = Utils::LoadFile(File.path());
+        Utils::ReplaceVariables(FormContent, FormVars);
+        Response.setChunkedTransferEncoding(true);
+        Response.setContentType("text/html");
+        std::ostream& ostr = Response.send();
+        ostr << FormContent;
+	}
+
+    void RESTAPIHandler::ReturnStatus(Poco::Net::HTTPServerRequest &Request,
 									  Poco::Net::HTTPServerResponse &Response,
 									  Poco::Net::HTTPResponse::HTTPStatus Status,
 									  bool CloseConnection) {
@@ -246,7 +307,22 @@ namespace uCentral {
 
 	bool RESTAPIHandler::IsAuthorized(Poco::Net::HTTPServerRequest &Request,
 									  Poco::Net::HTTPServerResponse &Response) {
-		if (uCentral::AuthService()->IsAuthorized(Request, SessionToken_, UserInfo_)) {
+		if(SessionToken_.empty()) {
+			try {
+				Poco::Net::OAuth20Credentials Auth(Request);
+
+				if (Auth.getScheme() == "Bearer") {
+					SessionToken_ = Auth.getBearerToken();
+				}
+			} catch(const Poco::Exception &E) {
+				Logger_.log(E);
+			}
+		}
+#ifdef	TIP_SECURITY_SERVICE
+		if (AuthService()->IsAuthorized(Request, SessionToken_, UserInfo_)) {
+#else
+		if (AuthClient()->IsAuthorized(Request, SessionToken_, UserInfo_)) {
+#endif
 			return true;
 		} else {
 			UnAuthorized(Request, Response);
@@ -257,8 +333,12 @@ namespace uCentral {
 	bool RESTAPIHandler::IsAuthorized(Poco::Net::HTTPServerRequest &Request,
 									  Poco::Net::HTTPServerResponse &Response, std::string &UserName) {
 
-		if (uCentral::AuthService()->IsAuthorized(Request, SessionToken_, UserInfo_)) {
-			UserName = UserInfo_.username_;
+#ifdef	TIP_SECURITY_SERVICE
+		if (AuthService()->IsAuthorized(Request, SessionToken_, UserInfo_)) {
+#else
+		if (AuthClient()->IsAuthorized(Request, SessionToken_, UserInfo_)) {
+#endif
+			UserName = UserInfo_.webtoken.username_;
 			return true;
 		} else {
 			UnAuthorized(Request, Response);

@@ -32,7 +32,7 @@ void RESTAPI_default_configurations::handleRequest(Poco::Net::HTTPServerRequest 
 							 (int64_t)QB_.Offset, (int64_t)QB_.Limit, QB_.Filter));
 			RESTAPIHandler::PrintBindings();
 
-			std::vector<uCentral::Objects::DefaultConfiguration> DefConfigs;
+			std::vector<GWObjects::DefaultConfiguration> DefConfigs;
 
 			Storage()->GetDefaultConfigurations(QB_.Offset, QB_.Limit, DefConfigs);
 

@@ -15,7 +15,7 @@
 #include "CommandManager.h"
 
 namespace uCentral::RESTAPI_RPC {
-	void SetCommandAsPending(uCentral::Objects::CommandDetails &Cmd,
+	void SetCommandAsPending(GWObjects::CommandDetails &Cmd,
 											 Poco::Net::HTTPServerRequest &Request,
 											 Poco::Net::HTTPServerResponse &Response, RESTAPIHandler *Handler) {
 		if (Storage()->AddCommand(Cmd.SerialNumber, Cmd, Storage::COMMAND_PENDING)) {
@@ -30,7 +30,7 @@ namespace uCentral::RESTAPI_RPC {
 		}
 	}
 
-	void WaitForCommand(uCentral::Objects::CommandDetails &Cmd,
+	void WaitForCommand(GWObjects::CommandDetails &Cmd,
 										Poco::JSON::Object  & Params,
 										Poco::Net::HTTPServerRequest &Request,
 										Poco::Net::HTTPServerResponse &Response,
@@ -97,14 +97,14 @@ namespace uCentral::RESTAPI_RPC {
 		}
 	}
 
-	bool WaitForRPC(uCentral::Objects::CommandDetails &Cmd,
+	bool WaitForRPC(GWObjects::CommandDetails &Cmd,
 									Poco::Net::HTTPServerRequest &Request,
 									Poco::Net::HTTPServerResponse &Response, uint64_t Timeout,
 									bool ReturnValue,
 									RESTAPIHandler * Handler) {
 
 		if (DeviceRegistry()->Connected(Cmd.SerialNumber)) {
-			uCentral::Objects::CommandDetails ResCmd;
+			GWObjects::CommandDetails ResCmd;
 			while (Timeout > 0) {
 				Timeout -= 1000;
 				Poco::Thread::sleep(1000);

@@ -10,6 +10,7 @@
 #include "StorageService.h"
 #include "Utils.h"
 
+#include "RESTAPI_utils.h"
 #include "Daemon.h"
 
 namespace uCentral {
@@ -100,7 +101,7 @@ namespace uCentral {
 		return false;
 	}
 
-	bool Storage::CreateDevice(uCentral::Objects::Device &DeviceDetails) {
+	bool Storage::CreateDevice(GWObjects::Device &DeviceDetails) {
 		// std::lock_guard<std::mutex> guard(Mutex_);
 
 		std::string SerialNumber;
@@ -142,10 +143,11 @@ namespace uCentral {
 									"LastConfigurationChange, "
 									"LastConfigurationDownload, "
 									"LastFWUpdate, "
-									"Venue, "
-									"DevicePassword "
+									"Venue "
 									")"
-									"VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)"};
+									"VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)"};
+
+					auto NotesString = RESTAPI_utils::to_string(DeviceDetails.Notes);
 
 					Insert  << ConvertParams(St2),
 						Poco::Data::Keywords::use(DeviceDetails.SerialNumber),
@@ -153,7 +155,7 @@ namespace uCentral {
 						Poco::Data::Keywords::use(DeviceDetails.MACAddress),
 						Poco::Data::Keywords::use(DeviceDetails.Manufacturer),
 						Poco::Data::Keywords::use(DeviceDetails.Configuration),
-						Poco::Data::Keywords::use(DeviceDetails.Notes),
+						Poco::Data::Keywords::use(NotesString),
 						Poco::Data::Keywords::use(DeviceDetails.Owner),
 						Poco::Data::Keywords::use(DeviceDetails.Location),
 						Poco::Data::Keywords::use(DeviceDetails.Firmware),
@@ -164,10 +166,8 @@ namespace uCentral {
 						Poco::Data::Keywords::use(Now),
 						Poco::Data::Keywords::use(Now),
 						Poco::Data::Keywords::use(Now),
-						Poco::Data::Keywords::use(DeviceDetails.Venue),
-						Poco::Data::Keywords::use(DeviceDetails.DevicePassword);
+						Poco::Data::Keywords::use(DeviceDetails.Venue);
 					Insert.execute();
-
 					return true;
 				} else {
 					Logger_.warning("Cannot create device: invalid configuration.");
@@ -182,14 +182,14 @@ namespace uCentral {
 		return false;
 	}
 
-	bool Storage::CreateDefaultDevice(const std::string &SerialNumber, const std::string &Capabilities, std::string & Firmware, std::string &DevicePassword) {
+	bool Storage::CreateDefaultDevice(const std::string &SerialNumber, const std::string &Capabilities, std::string & Firmware) {
 
-		uCentral::Objects::Device D;
+		GWObjects::Device D;
 		Logger_.information(Poco::format("AUTO-CREATION(%s)", SerialNumber));
 		uint64_t Now = time(nullptr);
 
 		uCentral::Config::Capabilities Caps(Capabilities);
-		uCentral::Objects::DefaultConfiguration DefConfig;
+		GWObjects::DefaultConfiguration DefConfig;
 
 		if (FindDefaultConfigurationForModel(Caps.Model(), DefConfig)) {
 			uCentral::Config::Config NewConfig(DefConfig.Configuration);
@@ -201,15 +201,14 @@ namespace uCentral {
 			D.Configuration = NewConfig.get();
 		}
 
-		D.SerialNumber = SerialNumber;
+		D.SerialNumber = Poco::toLower(SerialNumber);
 		D.Compatible = Caps.Compatible();
 		D.DeviceType = Daemon()->IdentifyDevice(D.Compatible);
-		D.MACAddress = uCentral::Utils::SerialToMAC(SerialNumber);
+		D.MACAddress = Utils::SerialToMAC(SerialNumber);
 		D.Manufacturer = Caps.Model();
 		D.Firmware = Firmware;
-		D.DevicePassword = DevicePassword;
 		D.UUID = Now;
-		D.Notes = "auto created device.";
+		D.Notes = SecurityObjects::NoteInfoVec { SecurityObjects::NoteInfo{ (uint64_t)std::time(nullptr), "", "Auto-provisioned."}};
 		D.CreationTimestamp = D.LastConfigurationDownload = D.LastConfigurationChange = Now;
 
 		return CreateDevice(D);
@@ -274,6 +273,25 @@ namespace uCentral {
 		return false;
 	}
 
+	bool Storage::SetDevicePassword(std::string & SerialNumber, std::string & Password) {
+		try {
+			Poco::Data::Session     Sess = Pool_->get();
+			Poco::Data::Statement   Update(Sess);
+			std::string St{"UPDATE Devices SET DevicePassword=?  WHERE SerialNumber=?"};
+
+			Update << ConvertParams(St) ,
+				Poco::Data::Keywords::use(Password),
+				Poco::Data::Keywords::use(SerialNumber);
+			Update.execute();
+			return true;
+		}
+		catch (const Poco::Exception &E) {
+			Logger_.warning(
+				Poco::format("%s(%s): Failed with: %s", std::string(__func__), SerialNumber, E.displayText()));
+		}
+		return false;
+	}
+
 	bool Storage::SetOwner(std::string & SerialNumber, std::string & OwnerUUID) {
 		try {
 			Poco::Data::Session     Sess = Pool_->get();
@@ -293,7 +311,7 @@ namespace uCentral {
 		return false;
 	}
 
-	bool Storage::SetConnectInfo(std::string &SerialNumber, std::string &Firmware, std::string &DevicePassword) {
+	bool Storage::SetConnectInfo(std::string &SerialNumber, std::string &Firmware) {
 		try {
 			Poco::Data::Session     Sess = Pool_->get();
 			Poco::Data::Statement   Select(Sess);
@@ -308,12 +326,11 @@ namespace uCentral {
 
 			if(TmpFirmware != Firmware) {
 				Poco::Data::Statement	Update(Sess);
-				std::string St2{"UPDATE Devices SET Firmware=?, DevicePassword=?, LastFWUpdate=? WHERE SerialNumber=?"};
+				std::string St2{"UPDATE Devices SET Firmware=?, LastFWUpdate=? WHERE SerialNumber=?"};
 				uint64_t 	Now = time(nullptr);
 
 				Update << 	ConvertParams(St2),
 							Poco::Data::Keywords::use(Firmware),
-							Poco::Data::Keywords::use(DevicePassword),
 							Poco::Data::Keywords::use(Now),
 							Poco::Data::Keywords::use(SerialNumber);
 				Update.execute();
@@ -349,7 +366,7 @@ namespace uCentral {
 		return false;
 	}
 
-	bool Storage::GetDevice(std::string &SerialNumber, uCentral::Objects::Device &DeviceDetails) {
+	bool Storage::GetDevice(std::string &SerialNumber, GWObjects::Device &DeviceDetails) {
 		// std::lock_guard<std::mutex> guard(Mutex_);
 
 		try {
@@ -377,13 +394,14 @@ namespace uCentral {
 						   "DevicePassword "
 						   "FROM Devices WHERE SerialNumber=?"};
 
+			std::string NI;
 			Select << ConvertParams(St),
 				Poco::Data::Keywords::into(DeviceDetails.SerialNumber),
 				Poco::Data::Keywords::into(DeviceDetails.DeviceType),
 				Poco::Data::Keywords::into(DeviceDetails.MACAddress),
 				Poco::Data::Keywords::into(DeviceDetails.Manufacturer),
 				Poco::Data::Keywords::into(DeviceDetails.Configuration),
-				Poco::Data::Keywords::into(DeviceDetails.Notes),
+				Poco::Data::Keywords::into(NI),
 				Poco::Data::Keywords::into(DeviceDetails.Owner),
 				Poco::Data::Keywords::into(DeviceDetails.Location),
 				Poco::Data::Keywords::into(DeviceDetails.Firmware),
@@ -397,8 +415,9 @@ namespace uCentral {
 				Poco::Data::Keywords::into(DeviceDetails.Venue),
 				Poco::Data::Keywords::into(DeviceDetails.DevicePassword),
 				Poco::Data::Keywords::use(SerialNumber);
-
 			Select.execute();
+
+			DeviceDetails.Notes = RESTAPI_utils::to_object_array<SecurityObjects::NoteInfo>(NI);
 
 			if (DeviceDetails.SerialNumber.empty())
 				return false;
@@ -459,43 +478,69 @@ namespace uCentral {
 		return false;
 	}
 
-	bool Storage::UpdateDevice(uCentral::Objects::Device &NewConfig) {
-		// std::lock_guard<std::mutex> guard(Mutex_);
-
+	bool Storage::UpdateDevice(GWObjects::Device &NewDeviceDetails) {
 		try {
 			Poco::Data::Session     Sess = Pool_->get();
 			Poco::Data::Statement   Update(Sess);
 
-			uint64_t Now = time(nullptr);
+			GWObjects::Device	ExistingDevice;
+			if(!GetDevice(NewDeviceDetails.SerialNumber,ExistingDevice))
+				return false;
 
-			std::string St{"UPDATE Devices SET Manufacturer=?, DeviceType=?, MACAddress=?, Notes=?, "
-						   "LastConfigurationChange=? WHERE SerialNumber=?"};
+			uint64_t Now = std::time(nullptr);
+			if(!NewDeviceDetails.DeviceType.empty())
+				ExistingDevice.DeviceType=NewDeviceDetails.DeviceType;
+			if(!NewDeviceDetails.MACAddress.empty())
+				ExistingDevice.MACAddress=NewDeviceDetails.MACAddress;
+			if(!NewDeviceDetails.FWUpdatePolicy.empty())
+				ExistingDevice.FWUpdatePolicy=NewDeviceDetails.FWUpdatePolicy;
+			if(!NewDeviceDetails.DevicePassword.empty())
+				ExistingDevice.DevicePassword=NewDeviceDetails.DevicePassword;
+			if(!NewDeviceDetails.Notes.empty()) {
+				for(const auto &i:NewDeviceDetails.Notes)
+					ExistingDevice.Notes.push_back(i);
+			}
 
-			Update  << ConvertParams(St) ,
-				Poco::Data::Keywords::use(NewConfig.Manufacturer),
-				Poco::Data::Keywords::use(NewConfig.DeviceType),
-				Poco::Data::Keywords::use(NewConfig.MACAddress),
-				Poco::Data::Keywords::use(NewConfig.Notes),
-				Poco::Data::Keywords::use(Now),
-				Poco::Data::Keywords::use(NewConfig.SerialNumber);
+			std::string NotesString = RESTAPI_utils::to_string(ExistingDevice.Notes);
 
+			std::string St2{"UPDATE Devices SET "
+							"DeviceType=?, "
+							"MACAddress=?, "
+							"Manufacturer=?, "
+							"Notes=?, "
+							"Owner=?, "
+							"Location=?, "
+							"FWUpdatePolicy=?,"
+							"Venue=? "
+							" WHERE SerialNumber=?"};
+			auto NI = RESTAPI_utils::to_string(ExistingDevice.Notes);
+			Update  << ConvertParams(St2),
+				Poco::Data::Keywords::use(ExistingDevice.DeviceType),
+				Poco::Data::Keywords::use(ExistingDevice.MACAddress),
+				Poco::Data::Keywords::use(ExistingDevice.Manufacturer),
+				Poco::Data::Keywords::use(NI),
+				Poco::Data::Keywords::use(ExistingDevice.Owner),
+				Poco::Data::Keywords::use(ExistingDevice.Location),
+				Poco::Data::Keywords::use(ExistingDevice.FWUpdatePolicy),
+				Poco::Data::Keywords::use(ExistingDevice.Venue),
+				Poco::Data::Keywords::use(ExistingDevice.SerialNumber);
 			Update.execute();
-
+			GetDevice(ExistingDevice.SerialNumber,NewDeviceDetails);
 			return true;
 		}
 		catch (const Poco::Exception &E) {
-			Logger_.warning(Poco::format("%s(%s): Failed with: %s", std::string(__func__), NewConfig.SerialNumber,
+			Logger_.warning(Poco::format("%s(%s): Failed with: %s", std::string(__func__), NewDeviceDetails.SerialNumber,
 										 E.displayText()));
 		}
 
 		return false;
 	}
 
-	bool Storage::GetDevices(uint64_t From, uint64_t HowMany, const std::string &Select, std::vector<uCentral::Objects::Device> &Devices) {
+	bool Storage::GetDevices(uint64_t From, uint64_t HowMany, const std::string &Select, std::vector<GWObjects::Device> &Devices) {
 		return false;
 	}
 
-	bool Storage::GetDevices(uint64_t From, uint64_t HowMany, std::vector<uCentral::Objects::Device> &Devices) {
+	bool Storage::GetDevices(uint64_t From, uint64_t HowMany, std::vector<GWObjects::Device> &Devices) {
 
 		typedef Poco::Tuple<
 			std::string,
@@ -549,14 +594,19 @@ namespace uCentral {
 				Poco::Data::Keywords::range(From, From + HowMany );
 			Select.execute();
 
+
 			for (auto i: Records) {
-				uCentral::Objects::Device R{
+
+				SecurityObjects::NoteInfoVec 	NI;
+				NI = RESTAPI_utils::to_object_array<SecurityObjects::NoteInfo>(i.get<5>());
+
+				GWObjects::Device R{
 					.SerialNumber   = i.get<0>(),
 					.DeviceType     = i.get<1>(),
 					.MACAddress     = i.get<2>(),
 					.Manufacturer   = i.get<3>(),
 					.Configuration  = i.get<4>(),
-					.Notes  		= i.get<5>(),
+					.Notes  		= NI,
 					.Owner          = i.get<6>(),
 					.Location 		= i.get<7>(),
 					.Firmware 		= i.get<8>(),

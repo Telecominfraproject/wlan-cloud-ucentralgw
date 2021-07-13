@@ -18,7 +18,7 @@ namespace uCentral {
 		uint64_t,
 		uint64_t > DeviceLogsRecordTuple;
 
-	bool Storage::AddLog(std::string &SerialNumber, uCentral::Objects::DeviceLog &Log, bool CrashLog) {
+	bool Storage::AddLog(std::string &SerialNumber, GWObjects::DeviceLog &Log, bool CrashLog) {
 
 		try {
 	/*
@@ -54,11 +54,11 @@ namespace uCentral {
 	}
 
 	bool Storage::AddLog(std::string &SerialNumber, uint64_t UUID, const std::string &Log) {
-		uCentral::Objects::DeviceLog DeviceLog;
+		GWObjects::DeviceLog DeviceLog;
 
 		DeviceLog.Log = Log;
 		DeviceLog.Data = "";
-		DeviceLog.Severity = uCentral::Objects::DeviceLog::Level::LOG_INFO;
+		DeviceLog.Severity = GWObjects::DeviceLog::Level::LOG_INFO;
 		DeviceLog.Recorded = time(nullptr);
 		DeviceLog.UUID = UUID;
 
@@ -67,7 +67,7 @@ namespace uCentral {
 
 	bool Storage::GetLogData(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate, uint64_t Offset,
 							 uint64_t HowMany,
-							 std::vector<uCentral::Objects::DeviceLog> &Stats, uint64_t Type ) {
+							 std::vector<GWObjects::DeviceLog> &Stats, uint64_t Type ) {
 
 	/*
 						"SerialNumber   VARCHAR(30), "
@@ -114,7 +114,7 @@ namespace uCentral {
 			Select.execute();
 
 			for (auto i: Records) {
-				uCentral::Objects::DeviceLog R{
+				GWObjects::DeviceLog R{
 					.Log = i.get<1>(),
 					.Data = i.get<2>(),
 					.Severity = i.get<3>(),
@@ -171,7 +171,7 @@ namespace uCentral {
 		return false;
 	}
 
-	bool Storage::GetNewestLogData(std::string &SerialNumber, uint64_t HowMany, std::vector<uCentral::Objects::DeviceLog> &Stats, uint64_t Type) {
+	bool Storage::GetNewestLogData(std::string &SerialNumber, uint64_t HowMany, std::vector<GWObjects::DeviceLog> &Stats, uint64_t Type) {
 		typedef std::vector<DeviceLogsRecordTuple> RecordList;
 
 		try {
@@ -190,7 +190,7 @@ namespace uCentral {
 			Select.execute();
 
 			for (auto i: Records) {
-				uCentral::Objects::DeviceLog R{
+				GWObjects::DeviceLog R{
 					.Log = i.get<1>(),
 					.Data = i.get<2>(),
 					.Severity = i.get<3>(),
@@ -204,6 +204,21 @@ namespace uCentral {
 		catch (const Poco::Exception &E) {
 			Logger_.warning(
 				Poco::format("%s(%s): Failed with: %s", std::string(__func__), SerialNumber, E.displayText()));
+		}
+		return false;
+	}
+
+	bool Storage::RemoveDeviceLogsRecordsOlderThan(uint64_t Date) {
+		try {
+			Poco::Data::Session Sess = Pool_->get();
+			Poco::Data::Statement Delete(Sess);
+
+			std::string St1{"delete from DeviceLogs where recorded<?"};
+			Delete << ConvertParams(St1), Poco::Data::Keywords::use(Date);
+			Delete.execute();
+			return true;
+		} catch (const Poco::Exception &E) {
+			Logger_.log(E);
 		}
 		return false;
 	}

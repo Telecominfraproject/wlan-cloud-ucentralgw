@@ -11,8 +11,8 @@
 
 #include "CommandManager.h"
 #include "DeviceRegistry.h"
+#include "RESTAPI_GWobjects.h"
 #include "RESTAPI_handler.h"
-#include "RESTAPI_objects.h"
 #include "StorageService.h"
 #include "uCentralProtocol.h"
 
@@ -34,7 +34,9 @@ namespace uCentral {
         while(Running_)
         {
             Poco::Thread::trySleep(10000);
-            std::vector<uCentral::Objects::CommandDetails> Commands;
+			if(!Running_)
+				break;
+            std::vector<GWObjects::CommandDetails> Commands;
 
             if(Storage()->GetReadyToExecuteCommands(0,1000,Commands))
             {
@@ -58,6 +60,7 @@ namespace uCentral {
     void CommandManager::Stop() {
         Logger_.notice("Stopping...");
 		Running_ = false;
+		ManagerThread.wakeUp();
         ManagerThread.join();
     }
 
@@ -100,7 +103,7 @@ namespace uCentral {
 		return DeviceRegistry()->SendFrame(SerialNumber, ToSend.str());
 	}
 
-	bool CommandManager::SendCommand(uCentral::Objects::CommandDetails & Command) {
+	bool CommandManager::SendCommand(GWObjects::CommandDetails & Command) {
 		SubMutexGuard G(SubMutex);
 
 		Logger_.debug(Poco::format("Sending command to %s",Command.SerialNumber));

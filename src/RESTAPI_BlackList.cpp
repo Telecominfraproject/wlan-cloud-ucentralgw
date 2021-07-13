@@ -64,7 +64,7 @@ namespace uCentral {
 								  Poco::Net::HTTPServerResponse &Response) {
 		try {
 			InitQueryBlock();
-			std::vector<uCentral::Objects::BlackListedDevice> Devices;
+			std::vector<GWObjects::BlackListedDevice> Devices;
 
 			Poco::JSON::Array Objects;
 			if (Storage()->GetBlackListDevices(QB_.Offset, QB_.Limit, Devices)) {
@@ -93,7 +93,7 @@ namespace uCentral {
 
 			if (Obj->has(uCentral::RESTAPI::Protocol::DEVICES) &&
 				Obj->isArray(uCentral::RESTAPI::Protocol::DEVICES)) {
-				std::vector<uCentral::Objects::BlackListedDevice> Devices;
+				std::vector<GWObjects::BlackListedDevice> Devices;
 				auto DeviceArray = Obj->getArray(uCentral::RESTAPI::Protocol::DEVICES);
 				for (const auto &i : *DeviceArray) {
 					Poco::JSON::Parser pp;
@@ -103,9 +103,9 @@ namespace uCentral {
 						Vars.contains(uCentral::RESTAPI::Protocol::REASON)) {
 						auto SerialNumber = Vars[uCentral::RESTAPI::Protocol::SERIALNUMBER].toString();
 						auto Reason = Vars[uCentral::RESTAPI::Protocol::REASON].toString();
-						uCentral::Objects::BlackListedDevice D{.SerialNumber = SerialNumber,
+						GWObjects::BlackListedDevice D{.SerialNumber = SerialNumber,
 															   .Reason = Reason,
-															   .Author = UserInfo_.username_,
+															   .Author = UserInfo_.webtoken.username_,
 															   .Created = (uint64_t)time(nullptr)};
 						Devices.push_back(D);
 					}

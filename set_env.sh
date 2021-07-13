@@ -1,4 +1,4 @@
 #!/bin/bash
 
-export UCENTRAL_CONFIG=`pwd`
-export UCENTRAL_ROOT=`pwd`
+export UCENTRALGW_CONFIG=`pwd`
+export UCENTRALGW_ROOT=`pwd`

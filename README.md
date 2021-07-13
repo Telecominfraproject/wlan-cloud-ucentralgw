@@ -179,36 +179,8 @@ You should now have the following:
   +-- test_scripts
   +-- openapi
   +-- uploads
-  +-- ucentral.properties
+  +-- ucentralgw.properties
 ```
-
-### Default username and password
-The default username and password are set in `ucentral.properties` file. The following entries manage the username and password
-```text
-authentication.default.username = tip@ucentral.com
-authentication.default.password = XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-```
-The password is a long sequence of hexadecimal digits. It is the result of hashing the `username` and the `password`.
-In order to create the password, please follow these simple instructions.
-```bash
-echo -n "<password><username>" | shasum -a 256
-```
- Here is a complete example for username "root@system.com" and the password being "weLoveWifi".
-```bash
-echo -n "weLoveWifiroot@system.com" | shasum -a 256
-b5bfed31e2a272e52973a57b95042ab842db3999475f3d79f1ce0f45f465e34c  -
-```
-Then you need to modify your properties file like this
-```text
-authentication.default.username = root@system.com
-authentication.default.password = b5bfed31e2a272e52973a57b95042ab842db3999475f3d79f1ce0f45f465e34c
-```
-Remember, when you login you use `root@system.com` with the password `weLoveWifi`, not this monster digit sequence.
-
-#### Is this safe?
-s this safe to show the hash in a text file? Let me put it this way, if you can find a way to break this encryption, you
-would have control over the entire internet. It's incredible safe. if you love math, you can find a lot of videos explaining
-how hashes work and why they are safe.
 
 ### Certificates
 Love'em of hate'em, we gotta use'em. So we tried to make this as easy as possible for you. 
@@ -246,8 +218,8 @@ document. Once you have these files, you need to renamed them `restapi-key.pem`,
 in your browner 
 
 #### Configuration
-The configuration for this service is kept in a properties file. This file is called `ucentral.properties` and you can 
-see the latest version [here](https://github.com/Telecominfraproject/wlan-cloud-ucentralgw/blob/main/ucentral.properties). The file will be loaded from
+The configuration for this service is kept in a properties file. This file is called `ucentralgw.properties` and you can 
+see the latest version [here](https://github.com/Telecominfraproject/wlan-cloud-ucentralgw/blob/main/ucentralgw.properties). The file will be loaded from
 the directory set by the environment variable `UCENTRAL_CONFIG`. To use environment variables in the configuration,
 you must use `$<varname>`. Only `path names` support the use of environment variables. The sample configuration requires very 
 little changes if you keep the suggested directory structure. For the sample configuration to work, you need to define 2 
@@ -285,7 +257,7 @@ ucentral.restapi.host.0.backlog = 100
 ucentral.restapi.host.0.security = relaxed
 ucentral.restapi.host.0.rootca = $UCENTRAL_ROOT/certs/restapi-ca.pem
 ucentral.restapi.host.0.address = *
-ucentral.restapi.host.0.port = 16001
+ucentral.restapi.host.0.port = 16002
 ucentral.restapi.host.0.cert = $UCENTRAL_ROOT/certs/restapi-cert.pem
 ucentral.restapi.host.0.key = $UCENTRAL_ROOT/certs/restapi-key.pem
 ucentral.restapi.host.0.key.password = mypassword
@@ -435,7 +407,7 @@ Seet the umask for the running service.
 Support for AWS ALB is provided through the following configuration elements
 ```asm
 alb.enable = true
-alb.port = 15015
+alb.port = 16102
 ```
 
 ### Docker
@@ -468,14 +440,14 @@ then
   exit 1
 fi
 
-if [[ ! -f ucentral.properties ]]
+if [[ ! -f ucentralgw.properties ]]
 then
-  echo "Configuration file ucentral.properties is missing in the current directory"
+  echo "Configuration file ucentralgw.properties is missing in the current directory"
   exit 2
 fi
 
 docker run -d -p 15002:15002 \
-              -p 16001:16001 \
+              -p 16002:16002 \
               -p 16003:16003 \
               --init \
               --volume="$PWD:/ucentral-data" \
@@ -486,9 +458,9 @@ docker run -d -p 15002:15002 \
 ```
 
 Create yourself a directory and copy that script which you can also get from [here](https://github.com/Telecominfraproject/wlan-cloud-ucentralgw/blob/main/docker_run.sh).
-You must have the basic configuration file copied in the directory. This file must be called `ucentral.properties`. You can bring your own or
-copy it from [here](https://github.com/Telecominfraproject/wlan-cloud-ucentralgw/blob/main/ucentral.properties). Please look at [this](#certificates-with-docker) to have the right 
-certificates. You need to make sure that the names match the content of the `ucentral.properties`
+You must have the basic configuration file copied in the directory. This file must be called `ucentralgw.properties`. You can bring your own or
+copy it from [here](https://github.com/Telecominfraproject/wlan-cloud-ucentralgw/blob/main/ucentralgw.properties). Please look at [this](#certificates-with-docker) to have the right 
+certificates. You need to make sure that the names match the content of the `ucentralgw.properties`
 file. Once all this is done, you can simply run `docker_run.sh`.
 
 #### Docker installation directory layout
@@ -500,10 +472,10 @@ Run-time root
     ----- certs (same as above)
     +---- logs  (dir)
     +---- uploads  (dir)
-    +---- ucentral.properties (file)
+    +---- ucentralgw.properties (file)
 ```
 
-#### `ucentral.properties` for Docker
+#### `ucentralgw.properties` for Docker
 If you use the pre-made configuration file, and you follow the directory layout, the only line you must change 
 is the following line:
 
@@ -519,23 +491,30 @@ Please refer to the `certs` directory from the sections above.
 
 #### Configuration with Docker
 The configuration for this service is kept in a properties file. Currently, this configuration file must be kept in the 
-current directory of uCentral or one level up. This file is called `ucentral.properties` and you can see the latest version
-[here](https://github.com/Telecominfraproject/wlan-cloud-ucentralgw/blob/main/ucentral.properties). The file will be loaded from 
+current directory of uCentral or one level up. This file is called `ucentralgw.properties` and you can see the latest version
+[here](https://github.com/Telecominfraproject/wlan-cloud-ucentralgw/blob/main/ucentralgw.properties). The file will be loaded from 
 the directory set by the environment variable `UCENTRAL_CONFIG`. To use environment variables in the configuration,
 you must use `$<varname>`. The path for the logs for the service must exist prior to starting the 
 service. The path is defined under `logging.channels.c2.path`. Only `path names` support the use of 
 environment variables. Here is a sample configuration:
 
 ### Docker Compose
-The repository also contains a Docker Compose file, which you can use to instantiate a complete deployment of uCentralGW and related components for local development purposes. To spin up a local development environment:
+The repository also contains a Docker Compose file, which you can use to instantiate a complete deployment of the uCentral microservices and related components for local development purposes. To spin up a local development environment:
 1. Switch into the project directory with `cd docker-compose/`.
-2. Copy your certificates into the `ucentral-data/certs/` directory and reference them in the appropriate sections of the configuration file located at `ucentral-data/ucentral.properties`. For more information on which certificates you need please see the [certificates section](https://github.com/Telecominfraproject/wlan-cloud-ucentralgw#certificates) of this README and/or [CERTIFICATES.md](https://github.com/Telecominfraproject/wlan-cloud-ucentralgw/blob/master/CERTIFICATES.md).  
-Be aware that the `rttys` service also uses the same certificate and key file which is used for the REST API component of uCentralGW. If you want to change that make sure to adapt the configuration in that regard.
-4. Docker Compose pulls the ucentralgw image from the JFrog repository. If you want to change the image tag or some of the image versions which are used for the other services, have a look into the `.env` file. You'll also find service specific `.env` files in this directory. Edit them if you want to change database passwords (highly recommended!) or some other configuration data. Don't forget to adapt your changes in the application configuration files.
-5. Open `ucentral-data/ucentral.properties` and change the value for [ucentral.fileuploader.host.0.name](https://github.com/Telecominfraproject/wlan-cloud-ucentralgw#ucentralfileuploaderhost0name) according to your hostname. You can also set a different [password](https://github.com/Telecominfraproject/wlan-cloud-ucentralgw#default-username-and-password) for uCentralGW (again highly recommended!) or change some other configuration values.
+2. This repository contains a gateway certificate signed by TIP and a self-signed certificate for the REST API and other components which are used by default in the Compose deployment. The certificates are valid for the `*.wlan.local` domain and the Docker Compose uCentral microservice configs use `ucentral.wlan.local` as a hostname, so make sure you add an entry in your hosts file (or in your local DNS solution) which points to `127.0.0.1`.
+3. If you have your own certificates and want to use the deployment for anything other than local development copy your certs into the `certs/` directory and reference them in the appropriate sections of the microservice configuration files. Make sure to also adapt the sections which reference the hostname. For more information on certificates please see the [certificates section](https://github.com/Telecominfraproject/wlan-cloud-ucentralgw#certificates) of this README and/or [CERTIFICATES.md](https://github.com/Telecominfraproject/wlan-cloud-ucentralgw/blob/master/CERTIFICATES.md).  
+4. Docker Compose pulls the microservice images from the JFrog repository. If you want to change the image tag or some of the image versions which are used for the other services, have a look into the `.env` file. You'll also find service specific `.env` files in this directory. Edit them if you want to change database passwords (highly recommended!) or other configuration data. Don't forget to adapt your changes in the application configuration files.
+5. Open `docker-compose/ucentralgw-data/ucentral.properties` to change [authentication data](https://github.com/Telecominfraproject/wlan-cloud-ucentralgw#default-username-and-password) for uCentralGW (again highly recommended!).
 6. Spin up the deployment with `docker-compose up -d`.
+7. Navigate to the UI which listens to `127.0.0.1` and login with your uCentralGW authentication data.
+8. To use the [curl test script](https://github.com/Telecominfraproject/wlan-cloud-ucentralgw/blob/main/TEST_CURL.md) to talk to the API set the following environment variables: 
+```
+export UCENTRALSEC="ucentral.wlan.local:16001"
+export FLAGS="-s --cacert docker-compose/ucentral-data/certs/restapi-ca.pem" 
+```
+The `--cacert` option is necessary since the REST API certificates are self-signed. Omit the option if you provide your own signed certificates.
 
-PS: The Docker Compose deployment creates five local volumes to persist mostly database data and data for Zookeeper and Kafka. If you want re-create the deployment once you already created one just delete the volumes with `docker volume rm $(docker volume ls -qf name=ucentral)` after you stopped the services.
+PS: The Docker Compose deployment creates five local volumes to persist mostly database data and data for Zookeeper and Kafka. If you want re-create the deployment and remove all persistent application and database data just delete the volumes with `docker volume rm $(docker volume ls -qf name=ucentral)` after you stopped the services with `docker-compose down`.
 
 ## uCentral communication protocol
 The communication protocol between the device and the controller is detailed in this [document](https://github.com/Telecominfraproject/wlan-cloud-ucentralgw/blob/main/PROTOCOL.md).
@@ -552,8 +531,8 @@ More scripts will be added in the future.
 
 ## Firewall Considerations
 - The protocol uses TCP port 15002 between the devices and the gateway. This port must be opened.
-- Devices use the TCP port 16003 to upload files. This port is configurable in the `ucentral.properties` file. Look for `ucentral.fileuploader.host.0.port`.
-- The RESTAPI is accessed through TCP port 16001 by default. This port is configurable in the `ucentral.properties` file. Look for the entry `ucentral.restapi.host.0.port`.
+- Devices use the TCP port 16003 to upload files. This port is configurable in the `ucentralgw.properties` file. Look for `ucentral.fileuploader.host.0.port`.
+- The RESTAPI is accessed through TCP port 16002 by default. This port is configurable in the `ucentralgw.properties` file. Look for the entry `ucentral.restapi.host.0.port`.
 
 ## Kafka integration
 So what about Kafka? Well, the gateway has basic integration with Kafka. It is turned off by default, to turn it on, in the configuration:

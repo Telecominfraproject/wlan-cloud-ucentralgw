@@ -25,7 +25,7 @@ namespace uCentral {
 					"LastModified BIGINT)", now;
 	 */
 
-	bool Storage::CreateDefaultConfiguration(std::string &Name, uCentral::Objects::DefaultConfiguration &DefConfig) {
+	bool Storage::CreateDefaultConfiguration(std::string &Name, GWObjects::DefaultConfiguration &DefConfig) {
 		try {
 
 			std::string TmpName;
@@ -103,7 +103,7 @@ namespace uCentral {
 		return false;
 	}
 
-	bool Storage::UpdateDefaultConfiguration(std::string &Name, uCentral::Objects::DefaultConfiguration &DefConfig) {
+	bool Storage::UpdateDefaultConfiguration(std::string &Name, GWObjects::DefaultConfiguration &DefConfig) {
 		try {
 
 			Poco::Data::Session Sess = Pool_->get();
@@ -138,7 +138,7 @@ namespace uCentral {
 		return false;
 	}
 
-	bool Storage::GetDefaultConfiguration(std::string &Name, uCentral::Objects::DefaultConfiguration &DefConfig) {
+	bool Storage::GetDefaultConfiguration(std::string &Name, GWObjects::DefaultConfiguration &DefConfig) {
 		try {
 
 			Poco::Data::Session     Sess = Pool_->get();
@@ -176,7 +176,7 @@ namespace uCentral {
 	}
 
 	bool Storage::GetDefaultConfigurations(uint64_t From, uint64_t HowMany,
-										   std::vector<uCentral::Objects::DefaultConfiguration> &DefConfigs) {
+										   std::vector<GWObjects::DefaultConfiguration> &DefConfigs) {
 		typedef Poco::Tuple<
 			std::string,
 			std::string,
@@ -206,7 +206,7 @@ namespace uCentral {
 			Select.execute();
 
 			for (auto i: Records) {
-				uCentral::Objects::DefaultConfiguration R{
+				GWObjects::DefaultConfiguration R{
 					.Name           = i.get<0>(),
 					.Configuration  = i.get<1>(),
 					.Models         = i.get<2>(),
@@ -245,7 +245,7 @@ namespace uCentral {
 		return false;
 	}
 
-	bool Storage::FindDefaultConfigurationForModel(const std::string &Model, uCentral::Objects::DefaultConfiguration &DefConfig) {
+	bool Storage::FindDefaultConfigurationForModel(const std::string &Model, GWObjects::DefaultConfiguration &DefConfig) {
 		try {
 			typedef Poco::Tuple<
 				std::string,

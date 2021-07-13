@@ -14,13 +14,11 @@
 
 #include "Daemon.h"
 
-#include "AuthService.h"
 #include "CallbackManager.h"
 #include "CommandChannel.h"
 #include "CommandManager.h"
 #include "DeviceRegistry.h"
 #include "FileUploader.h"
-#include "FirmwareManager.h"
 #include "RESTAPI_server.h"
 #include "StorageService.h"
 #include "WebSocketServer.h"
@@ -29,6 +27,8 @@
 #include "StateProcessor.h"
 #include "Utils.h"
 #include "RESTAPI_InternalServer.h"
+#include "AuthClient.h"
+#include "StorageArchiver.h"
 
 namespace uCentral {
 	class Daemon *Daemon::instance_ = nullptr;
@@ -39,9 +39,10 @@ namespace uCentral {
 								   vDAEMON_ROOT_ENV_VAR,
 								   vDAEMON_CONFIG_ENV_VAR,
 								   vDAEMON_APP_NAME,
+								   vDAEMON_BUS_TIMER,
 								   Types::SubSystemVec{
 									   Storage(),
-									   AuthService(),
+									   AuthClient(),
 									   DeviceRegistry(),
 									   RESTAPI_server(),
 									   RESTAPI_InternalServer(),
@@ -51,7 +52,7 @@ namespace uCentral {
 									   OUIServer(),
 									   CommandChannel(),
 									   CallbackManager(),
-									   FirmwareManager()
+									   StorageArchiver(),
 								   });
 		}
 		return instance_;

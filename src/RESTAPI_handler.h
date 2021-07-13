@@ -15,22 +15,79 @@
 #include "Poco/Net/HTTPServerRequest.h"
 #include "Poco/Net/HTTPServerResponse.h"
 #include "Poco/Net/NetException.h"
+#include "Poco/Net/PartHandler.h"
+
 #include "Poco/Logger.h"
 #include "Poco/File.h"
 #include "Poco/JSON/Object.h"
+#include "Poco/CountingStream.h"
+#include "Poco/NullStream.h"
 
-#include "AuthService.h"
-#include "RESTAPI_objects.h"
+#include "RESTAPI_SecurityObjects.h"
 
 namespace uCentral {
 
-	class RESTAPIHandler : public Poco::Net::HTTPRequestHandler {
+    class RESTAPI_PartHandler: public Poco::Net::PartHandler
+    {
+    public:
+        RESTAPI_PartHandler():
+                _length(0)
+        {
+        }
+
+        void handlePart(const Poco::Net::MessageHeader& header, std::istream& stream) override
+        {
+            _type = header.get("Content-Type", "(unspecified)");
+            if (header.has("Content-Disposition"))
+            {
+                std::string disp;
+                Poco::Net::NameValueCollection params;
+                Poco::Net::MessageHeader::splitParameters(header["Content-Disposition"], disp, params);
+                _name = params.get("name", "(unnamed)");
+                _fileName = params.get("filename", "(unnamed)");
+            }
+
+            Poco::CountingInputStream istr(stream);
+            Poco::NullOutputStream ostr;
+            Poco::StreamCopier::copyStream(istr, ostr);
+            _length = (int)istr.chars();
+        }
+
+        [[nodiscard]] int length() const
+        {
+            return _length;
+        }
+
+        [[nodiscard]] const std::string& name() const
+        {
+            return _name;
+        }
+
+        [[nodiscard]] const std::string& fileName() const
+        {
+            return _fileName;
+        }
+
+        [[nodiscard]] const std::string& contentType() const
+        {
+            return _type;
+        }
+
+    private:
+        int _length;
+        std::string _type;
+        std::string _name;
+        std::string _fileName;
+    };
+
+    class RESTAPIHandler : public Poco::Net::HTTPRequestHandler {
 	  public:
 		struct QueryBlock {
 			uint64_t StartDate = 0 , EndDate = 0 , Offset = 0 , Limit = 0, LogType = 0 ;
 			std::string SerialNumber, Filter, Select;
 			bool Lifetime=false, LastOnly=false, Newest=false;
 		};
+
 		typedef std::map<std::string, std::string> BindingMap;
 
 		RESTAPIHandler(BindingMap map, Poco::Logger &l, std::vector<std::string> Methods)
@@ -62,9 +119,9 @@ namespace uCentral {
 		std::string GetParameter(const std::string &Name, const std::string &Default);
 		bool GetBoolParameter(const std::string &Name, bool Default);
 
-		void BadRequest(Poco::Net::HTTPServerRequest &Request, Poco::Net::HTTPServerResponse &Response);
+		void BadRequest(Poco::Net::HTTPServerRequest &Request, Poco::Net::HTTPServerResponse &Response, const std::string &Reason = "");
 		void UnAuthorized(Poco::Net::HTTPServerRequest &Request,
-						  Poco::Net::HTTPServerResponse &Response);
+						  Poco::Net::HTTPServerResponse &Response, const std::string &Reason = "");
 		void ReturnObject(Poco::Net::HTTPServerRequest &Request, Poco::JSON::Object &Object,
 						  Poco::Net::HTTPServerResponse &Response);
 		void NotFound(Poco::Net::HTTPServerRequest &Request, Poco::Net::HTTPServerResponse &Response);
@@ -75,20 +132,16 @@ namespace uCentral {
 						  bool CloseConnection=false);
 		void SendFile(Poco::File & File, const std::string & UUID,
 					  Poco::Net::HTTPServerRequest &Request, Poco::Net::HTTPServerResponse &Response);
+		void SendHTMLFileBack(Poco::File & File,
+                              Poco::Net::HTTPServerRequest &Request,
+                              Poco::Net::HTTPServerResponse &Response ,
+                              const Types::StringPairVec & FormVars);
 
-		const std::string &GetBinding(const std::string &Name, const std::string &Default);
+        void SendFile(Poco::File & File, Poco::Net::HTTPServerRequest &Request, Poco::Net::HTTPServerResponse &Response);
+
+        const std::string &GetBinding(const std::string &Name, const std::string &Default);
 		void InitQueryBlock();
 
-		[[nodiscard]] inline bool HasReadAccess() const {
-			return UserInfo_.acl_template_.Read_ || UserInfo_.acl_template_.ReadWrite_ ||
-				   UserInfo_.acl_template_.ReadWriteCreate_;
-		}
-		[[nodiscard]] inline bool HasWriteAccess() const {
-			return UserInfo_.acl_template_.ReadWrite_ || UserInfo_.acl_template_.ReadWriteCreate_;
-		}
-		[[nodiscard]] inline bool HasCreateAccess() const {
-			return UserInfo_.acl_template_.ReadWriteCreate_;
-		}
 		[[nodiscard]] static uint64_t Get(const char *Parameter,const Poco::JSON::Object::Ptr &Obj, uint64_t Default=0);
 		[[nodiscard]] static std::string GetS(const char *Parameter,const Poco::JSON::Object::Ptr &Obj, const std::string & Default="");
 		[[nodiscard]] static bool GetB(const char *Parameter,const Poco::JSON::Object::Ptr &Obj, bool Default=false);
@@ -99,7 +152,7 @@ namespace uCentral {
 		Poco::URI::QueryParameters 	Parameters_;
 		Poco::Logger 				&Logger_;
 		std::string 				SessionToken_;
-		struct uCentral::Objects::WebToken UserInfo_;
+		SecurityObjects::UserInfoAndPolicy 	UserInfo_;
 		std::vector<std::string> 	Methods_;
 		QueryBlock					QB_;
 	};

@@ -25,7 +25,7 @@ void RESTAPI_command::handleRequest(Poco::Net::HTTPServerRequest &Request,
 
 		if (Request.getMethod() == Poco::Net::HTTPRequest::HTTP_GET) {
 			auto CommandUUID = GetBinding(uCentral::RESTAPI::Protocol::COMMANDUUID, "");
-			uCentral::Objects::CommandDetails Command;
+			GWObjects::CommandDetails Command;
 			if (Storage()->GetCommand(CommandUUID, Command)) {
 				Poco::JSON::Object RetObj;
 				Command.to_json(RetObj);

@@ -20,7 +20,6 @@
 #include "RESTAPI_device_handler.h"
 #include "RESTAPI_devices_handler.h"
 #include "RESTAPI_file.h"
-#include "RESTAPI_oauth2Handler.h"
 #include "RESTAPI_system_command.h"
 #include "RESTAPI_ouis.h"
 
@@ -60,7 +59,13 @@ namespace uCentral {
         return 0;
     }
 
-    Poco::Net::HTTPRequestHandler *RESTAPIServerRequestHandlerFactory::createRequestHandler(const Poco::Net::HTTPServerRequest & Request) {
+	void RESTAPI_server::Stop() {
+		Logger_.information("Stopping ");
+		for( const auto & svr : RESTServers_ )
+			svr->stop();
+	}
+
+	Poco::Net::HTTPRequestHandler *RESTAPIServerRequestHandlerFactory::createRequestHandler(const Poco::Net::HTTPServerRequest & Request) {
 
         Logger_.debug(Poco::format("REQUEST(%s): %s %s", uCentral::Utils::FormatIPv6(Request.clientAddress().toString()), Request.getMethod(), Request.getURI()));
 
@@ -68,7 +73,7 @@ namespace uCentral {
         const auto & Path = uri.getPath();
         RESTAPIHandler::BindingMap Bindings;
 
-		return RESTAPI_Router<	RESTAPI_oauth2Handler,
+		return RESTAPI_Router<
 								RESTAPI_devices_handler,
 							  	RESTAPI_device_handler,
 								RESTAPI_device_commandHandler,
@@ -81,12 +86,6 @@ namespace uCentral {
 								RESTAPI_system_command,
 								RESTAPI_BlackList,
 								RESTAPI_callback>(Path,Bindings,Logger_);
-    }
-
-    void RESTAPI_server::Stop() {
-        Logger_.information("Stopping ");
-        for( const auto & svr : RESTServers_ )
-            svr->stop();
     }
 
 }  // namespace

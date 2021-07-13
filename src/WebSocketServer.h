@@ -15,7 +15,7 @@
 #include <ctime>
 
 #include "DeviceRegistry.h"
-#include "RESTAPI_objects.h"
+#include "RESTAPI_GWobjects.h"
 #include "StateProcessor.h"
 #include "SubSystemServer.h"
 
@@ -164,7 +164,7 @@ namespace uCentral {
         void Register();
         void DeRegister();
 		void LogException(const Poco::Exception &E);
-		[[nodiscard]] uCentral::Objects::CertificateValidation CertificateValidation() const { return CertValidation_; };
+		[[nodiscard]] GWObjects::CertificateValidation CertificateValidation() const { return CertValidation_; };
     private:
 		SubMutex                          	Mutex_{};
         CountedReactor                      Reactor_;
@@ -172,11 +172,11 @@ namespace uCentral {
         Poco::Net::StreamSocket       		Socket_;
         std::unique_ptr<Poco::Net::WebSocket> WS_;
         std::string                         SerialNumber_;
-		uCentral::Objects::ConnectionState 	* Conn_ = nullptr;
+		GWObjects::ConnectionState 	* Conn_ = nullptr;
         bool                                Registered_ = false ;
 		std::string 						CId_;
 		std::string							CN_;
-		uCentral::Objects::CertificateValidation	CertValidation_ = uCentral::Objects::CertificateValidation::NO_CERTIFICATE;
+		GWObjects::CertificateValidation	CertValidation_ = GWObjects::CertificateValidation::NO_CERTIFICATE;
 		uint64_t 							Errors_=0;
 		std::unique_ptr<uCentral::StateProcessor>	StatsProcessor_;
     };

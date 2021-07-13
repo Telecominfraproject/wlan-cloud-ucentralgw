@@ -12,6 +12,8 @@
 #include "Poco/Net/X509Certificate.h"
 #include "Poco/DateTimeFormatter.h"
 #include "Poco/DateTimeFormat.h"
+#include "Poco/Net/PrivateKeyPassphraseHandler.h"
+#include "Poco/Net/SSLManager.h"
 
 #include "openssl/ssl.h"
 
@@ -87,6 +89,21 @@ void SubSystemServer::reinitialize(Poco::Util::Application &self) {
 
 void SubSystemServer::defineOptions(Poco::Util::OptionSet &options) {}
 
+class MyPrivateKeyPassphraseHandler : public Poco::Net::PrivateKeyPassphraseHandler {
+  public:
+	explicit MyPrivateKeyPassphraseHandler(const std::string &Password, Poco::Logger & Logger):
+		PrivateKeyPassphraseHandler(true),
+		Logger_(Logger),
+	 	Password_(Password) {}
+		void onPrivateKeyRequested(const void * pSender,std::string & privateKey) {
+			Logger_.information("Returning key passphrase.");
+			privateKey = Password_;
+		};
+  private:
+	std::string Password_;
+	Poco::Logger & Logger_;
+};
+
 Poco::Net::SecureServerSocket PropertiesFileServerEntry::CreateSecureSocket(Poco::Logger &L) const {
 	Poco::Net::Context::Params P;
 
@@ -97,7 +114,12 @@ Poco::Net::SecureServerSocket PropertiesFileServerEntry::CreateSecureSocket(Poco
 	P.dhUse2048Bits = true;
 	P.caLocation = cas_;
 
-	auto Context = new Poco::Net::Context(Poco::Net::Context::TLS_SERVER_USE, P);
+	auto Context = Poco::AutoPtr<Poco::Net::Context>(new Poco::Net::Context(Poco::Net::Context::TLS_SERVER_USE, P));
+
+	if(!key_file_password_.empty()) {
+		auto PassphraseHandler = Poco::SharedPtr<MyPrivateKeyPassphraseHandler>( new MyPrivateKeyPassphraseHandler(KeyFilePassword(),L));
+		Poco::Net::SSLManager::instance().initializeServer(PassphraseHandler, nullptr,Context);
+	}
 
 	if (!cert_file_.empty() && !key_file_.empty()) {
 		Poco::Crypto::X509Certificate Cert(cert_file_);

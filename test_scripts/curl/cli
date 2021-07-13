@@ -20,10 +20,10 @@ then
   exit 1
 fi
 
-if [[ "${UCENTRALGW}" == "" ]]
+if [[ "${UCENTRALSEC}" == "" ]]
 then
-  echo "You must set the variable UCENTRALGW in order to use this script. Something like"
-  echo "UCENTRALGW=mygateway.isp.com:16001"
+  echo "You must set the variable UCENTRALSEC in order to use this script. Something like"
+  echo "UCENTRALSEC=security.isp.com:16001"
   exit 1
 fi
 
@@ -41,7 +41,7 @@ browser=""
 
 login() {
   payload="{ \"userId\" : \"$username\" , \"password\" : \"$password\" }"
-  token=$(curl ${FLAGS} -X POST -H "Content-Type: application/json" -d "$payload" "https://${UCENTRALGW}/api/v1/oauth2" | jq -r '.access_token')
+  token=$(curl ${FLAGS} -X POST -H "Content-Type: application/json" -d "$payload" "https://${UCENTRALSEC}/api/v1/oauth2" | jq -r '.access_token')
 
   if [[ "${token}" == "" ]]
   then
@@ -49,6 +49,7 @@ login() {
     exit 13
   fi
   echo "${token}" > token.json
+  setgateway
 }
 
 findbrowser() {
@@ -71,10 +72,47 @@ findbrowser() {
 	fi
 }
 
+setgateway() {
+	curl  ${FLAGS} -X GET "https://${UCENTRALSEC}/api/v1/systemEndpoints" \
+        -H "accept: application/json" \
+        -H "Authorization: Bearer ${token}"  > ${result_file}
+#	jq < ${result_file}
+
+	for index in {0..10}
+	do
+		endpointlocation=".endpoints[${index}].uri"
+	endpointlocationtype=".endpoints[${index}].type"
+	rawurl="$(cat ${result_file} | jq -r ${endpointlocation})"
+	svctype="$(cat ${result_file} | jq -r ${endpointlocationtype})"
+	proto="$(echo $rawurl | grep :// | sed -e's,^\(.*://\).*,\1,g')"
+	url="$(echo ${rawurl/$proto/})"
+	user="$(echo $url | grep @ | cut -d@ -f1)"
+	hostport="$(echo ${url/$user@/} | cut -d/ -f1)"
+	host="$(echo $hostport | sed -e 's,:.*,,g')"
+	port="$(echo $hostport | sed -e 's,^.*:,:,g' -e 's,.*:\([0-9]*\).*,\1,g' -e 's,[^0-9],,g')"
+	path="$(echo $url | grep / | cut -d/ -f2-)"
+	if [[ ${url} != "null" ]]
+		then
+		if [[ ${svctype} == "ucentralgw" ]]
+			then
+# echo "url: $url"
+# echo "  proto: $proto"
+#			echo "  user: $user"
+#			echo "  host: $host"
+#			echo "  port: $port"
+#			echo "  path: $path"
+			UCENTRALGW="${url}"
+			break
+		fi
+	fi
+	done
+	echo "Using ${UCENTRALGW}..."
+}
+
 logout() {
   curl  ${FLAGS} -X DELETE -H "Content-Type: application/json" \
         -H "Authorization: Bearer ${token}" \
-        "https://${UCENTRALGW}/api/v1/oauth2/${token}"
+        "https://${UCENTRALSEC}/api/v1/oauth2/${token}"
   rm -rf token.json
 }
 
@@ -145,12 +183,21 @@ deletedevice() {
 }
 
 createdevice() {
-  payload="{ \"serialNumber\": \"$1\", \"UUID\": 1234456, \"configuration\" : $(cat "$2") , \"deviceType\": \"AP_Default\",\"location\": \"\", \"macAddress\": \"$3\", \"manufacturer\": \"Linksys EA8300 (Dallas)\", \"notes\": \"auto created device.\", \"owner\": \"\" }"
+  payload="{ \"serialNumber\": \"$1\", \"UUID\": 1234456, \"configuration\" : $(cat "$2") , \"deviceType\": \"AP\",\"location\": \"\", \"macAddress\": \"$3\", \"manufacturer\": \"Linksys EA8300 (Dallas)\", \"owner\": \"\" }"
   curl  ${FLAGS} -X POST "https://${UCENTRALGW}/api/v1/device/$1" \
         -H "accept: application/json" \
         -H "Authorization: Bearer ${token}" \
         -d "$payload"  > ${result_file}
   jq < ${result_file}
+}
+
+addnote() {
+	payload="{ \"serialNumber\": \"$1\", \"notes\" : [ {\"note\" : \"$2\"} ] }"
+	curl  ${FLAGS} -X PUT "https://${UCENTRALGW}/api/v1/device/$1" \
+        -H "accept: application/json" \
+        -H "Authorization: Bearer ${token}" \
+        -d "$payload"  > ${result_file}
+	jq < ${result_file}
 }
 
 reboot() {
@@ -463,6 +510,7 @@ help() {
   echo "gethealthchecks <serial>          Get healthchecks for a device."
   echo "newesthealthchecks <serial>       Get newest healthchecks for a device."
   echo "lasthealthcheck <serial>          Get the last healthcheck"
+  echo "addnote <serial> <note>           Add a notes to the notes section"
   echo
   echo "getcapababilities <serial>        Get the device capabilities JSON document."
   echo "deletecapababilities <serial>     Delete the device capabilities JSON."
@@ -547,7 +595,7 @@ case "$1" in
   "deletecapabilities") login; deletecapabilities "$2"  ; logout ;;
   "listdevices") login; listdevices  ; logout ;;
   "deletedevice") login; deletedevice "$2"  ; logout ;;
-  "createdevice") login; createdevice "$2" "$3"  ; logout ;;
+  "createdevice") login; createdevice "$2" "$3" "$4" ; logout ;;
   "reboot") login; reboot "$2"  ; logout ;;
   "setloglevel") login; setloglevel "$2" "$3"  ; logout ;;
   "getdevicestatus") login; getdevicestatus "$2"  ; logout ;;
@@ -590,6 +638,7 @@ case "$1" in
   "getloglevelnames") login; getloglevelnames; logout ;;
   "getsubsystemnames") login; getsubsystemnames; logout ;;
   "ouilookup") login; ouilookup "$2"; logout;;
+  "addnote") login; addnote "$2" "$3"; logout;;
   *) help ;;
 esac
 

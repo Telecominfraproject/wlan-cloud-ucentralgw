@@ -30,8 +30,9 @@
 #include "MicroService.h"
 #include "Utils.h"
 
-#undef DBGLINE
-#define DBGLINE
+#ifndef TIP_SECURITY_SERVICE
+#include "AuthClient.h"
+#endif
 
 namespace uCentral {
 
@@ -55,60 +56,65 @@ namespace uCentral {
 		std::exit(Reason);
 	}
 
-	void MicroService::BusMessageReceived(std::string Key, std::string Message) {
+	void MicroService::BusMessageReceived(const std::string &Key, const std::string & Message) {
 		SubMutexGuard G(InfraMutex_);
-		// std::cout << "Message arrived:" << Key << " ," << Message << std::endl;
 		try {
-			Poco::JSON::Parser	P;
+			Poco::JSON::Parser P;
 			auto Object = P.parse(Message).extract<Poco::JSON::Object::Ptr>();
-			if(Object->has("id")) {
-				uint64_t ID = Object->get("id");
-				if(ID!=ID_) {
-					if(	Object->has("event") &&
-						Object->has("type") &&
-						Object->has("publicEndPoint") &&
-						Object->has("privateEndPoint") &&
-						Object->has("version") &&
-						Object->has("key")) {
-						auto Event = Object->get("event").toString();
+			if (Object->has(KafkaTopics::ServiceEvents::Fields::ID) &&
+				Object->has(KafkaTopics::ServiceEvents::Fields::EVENT)) {
+				uint64_t 	ID = Object->get(KafkaTopics::ServiceEvents::Fields::ID);
+				auto 		Event = Object->get(KafkaTopics::ServiceEvents::Fields::EVENT).toString();
+				if (ID != ID_) {
+					if(	Event==KafkaTopics::ServiceEvents::EVENT_JOIN ||
+						Event==KafkaTopics::ServiceEvents::EVENT_KEEP_ALIVE ||
+						Event==KafkaTopics::ServiceEvents::EVENT_LEAVE ) {
+						if(	Object->has(KafkaTopics::ServiceEvents::Fields::TYPE) &&
+						   	Object->has(KafkaTopics::ServiceEvents::Fields::PUBLIC) &&
+							Object->has(KafkaTopics::ServiceEvents::Fields::PRIVATE) &&
+						   	Object->has(KafkaTopics::ServiceEvents::Fields::VRSN) &&
+							Object->has(KafkaTopics::ServiceEvents::Fields::KEY)) {
 
-						if(Event == "keep-alive" && Services_.find(ID)!=Services_.end()) {
-							std::cout << "Keep-alive from " << ID << std::endl;
-							Services_[ID].LastUpdate = std::time(nullptr);
-						} else if (Event=="leave") {
-							Services_.erase(ID);
-							std::cout << "Leave from " << ID << std::endl;
-						} else if (Event== "join" || Event=="keep_alive") {
-							std::cout << "Join from " << ID << std::endl;
-							Services_[ID] = MicroServiceMeta{
-								.Id = ID,
-								.Type = Poco::toLower(Object->get("type").toString()),
-								.PrivateEndPoint = Object->get("privateEndPoint").toString(),
-								.PublicEndPoint = Object->get("publicEndPoint").toString(),
-								.AccessKey = Object->get("key").toString(),
-								.Version = Object->get("version").toString(),
-								.LastUpdate = (uint64_t )std::time(nullptr) };
-							for(const auto &[Id,Svc]:Services_)
-								std::cout << "ID:" << Id << " Type:" << Svc.Type << " EndPoint:" << Svc.PublicEndPoint << std::endl;
+							if (Event == KafkaTopics::ServiceEvents::EVENT_KEEP_ALIVE && Services_.find(ID) != Services_.end()) {
+								Services_[ID].LastUpdate = std::time(nullptr);
+							} else if (Event == KafkaTopics::ServiceEvents::EVENT_LEAVE) {
+								Services_.erase(ID);
+								logger().information(Poco::format("Service %s ID=%Lu leaving system.",Object->get(KafkaTopics::ServiceEvents::Fields::PRIVATE).toString(),ID));
+							} else if (Event == KafkaTopics::ServiceEvents::EVENT_JOIN || Event == KafkaTopics::ServiceEvents::EVENT_KEEP_ALIVE) {
+								logger().information(Poco::format("Service %s ID=%Lu joining system.",Object->get(KafkaTopics::ServiceEvents::Fields::PRIVATE).toString(),ID));
+								Services_[ID] = MicroServiceMeta{
+									.Id = ID,
+									.Type = Poco::toLower(Object->get(KafkaTopics::ServiceEvents::Fields::TYPE).toString()),
+									.PrivateEndPoint = Object->get(KafkaTopics::ServiceEvents::Fields::PRIVATE).toString(),
+									.PublicEndPoint = Object->get(KafkaTopics::ServiceEvents::Fields::PUBLIC).toString(),
+									.AccessKey = Object->get(KafkaTopics::ServiceEvents::Fields::KEY).toString(),
+									.Version = Object->get(KafkaTopics::ServiceEvents::Fields::VRSN).toString(),
+									.LastUpdate = (uint64_t)std::time(nullptr)};
+								for (const auto &[Id, Svc] : Services_) {
+									logger().information(Poco::format("ID: %Lu Type: %s EndPoint: %s",Id,Svc.Type,Svc.PrivateEndPoint));
+								}
+							}
 						} else {
-							std::cout << "Bad packet 2 ..." << std::endl;
-							logger().error(Poco::format("Malformed event from device %Lu, event=%s", ID, Event));
+							logger().error(Poco::format("KAFKA-MSG: invalid event '%s', missing a field.",Event));
+						}
+					} else if (Event==KafkaTopics::ServiceEvents::EVENT_REMOVE_TOKEN) {
+						if(Object->has(KafkaTopics::ServiceEvents::Fields::TOKEN)) {
+#ifndef TIP_SECURITY_SERVICE
+							AuthClient()->RemovedCachedToken(Object->get(KafkaTopics::ServiceEvents::Fields::TOKEN).toString());
+#endif
+						} else {
+							logger().error(Poco::format("KAFKA-MSG: invalid event '%s', missing token",Event));
 						}
 					} else {
-						std::cout << "Bad packet 1 ..." << std::endl;
-						logger().error(Poco::format("Malformed event from device %Lu", ID));
+						logger().error(Poco::format("Unknown Event: %s Source: %Lu", Event, ID));
 					}
-
-				} else {
-					std::cout << "Ignoring my own messages..." << std::endl;
 				}
+			} else {
+				logger().error("Bad bus message.");
 			}
 		} catch (const Poco::Exception &E) {
-			DBGLINE
 			logger().log(E);
-			DBGLINE
 		}
-		DBGLINE
 	}
 
 	MicroServiceMetaVec MicroService::GetServices(const std::string & Type) {
@@ -119,6 +125,16 @@ namespace uCentral {
 		for(const auto &[Id,ServiceRec]:Services_) {
 			if(ServiceRec.Type==T)
 				Res.push_back(ServiceRec);
+		}
+		return Res;
+	}
+
+	MicroServiceMetaVec MicroService::GetServices() {
+		SubMutexGuard G(InfraMutex_);
+
+		MicroServiceMetaVec	Res;
+		for(const auto &[Id,ServiceRec]:Services_) {
+			Res.push_back(ServiceRec);
 		}
 		return Res;
 	}
@@ -178,7 +194,8 @@ namespace uCentral {
 			DebugMode_ = ConfigGetBool("ucentral.system.debug",false);
 		MyPrivateEndPoint_ = ConfigGetString("ucentral.system.uri.private");
 		MyPublicEndPoint_ = ConfigGetString("ucentral.system.uri.public");
-		MyHash_ = CreateHash(MyPrivateEndPoint_);
+		UIURI_ = ConfigGetString("ucentral.system.uri.ui");
+		MyHash_ = CreateHash(MyPublicEndPoint_);
 		InitializeSubSystemServers();
 		ServerApplication::initialize(self);
 
@@ -272,8 +289,9 @@ namespace uCentral {
 	}
 
 	void MicroService::StartSubSystemServers() {
-		for(auto i:SubSystems_)
+		for(auto i:SubSystems_) {
 			i->Start();
+		}
 		BusEventManager_.Start();
 	}
 
@@ -298,7 +316,7 @@ namespace uCentral {
 				}
 				return true;
 			} else {
-				std::cout << "Sub:" << SubSystem << " Level:" << Level << std::endl;
+				// std::cout << "Sub:" << SubSystem << " Level:" << Level << std::endl;
 				for (auto i : SubSystems_) {
 					if (Sub == Poco::toLower(i->Name())) {
 						i->Logger().setLevel(P);
@@ -383,34 +401,30 @@ namespace uCentral {
 
 	std::string MicroService::MakeSystemEventMessage( const std::string & Type ) const {
 		Poco::JSON::Object	Obj;
-		Obj.set("event",Type);
-		Obj.set("id",ID_);
-		Obj.set("type",Poco::toLower(DAEMON_APP_NAME));
-		Obj.set("publicEndPoint",MyPublicEndPoint_);
-		Obj.set("privateEndPoint",MyPrivateEndPoint_);
-		Obj.set("key",MyHash_);
-		Obj.set("version",Version_);
+		Obj.set(KafkaTopics::ServiceEvents::Fields::EVENT,Type);
+		Obj.set(KafkaTopics::ServiceEvents::Fields::ID,ID_);
+		Obj.set(KafkaTopics::ServiceEvents::Fields::TYPE,Poco::toLower(DAEMON_APP_NAME));
+		Obj.set(KafkaTopics::ServiceEvents::Fields::PUBLIC,MyPublicEndPoint_);
+		Obj.set(KafkaTopics::ServiceEvents::Fields::PRIVATE,MyPrivateEndPoint_);
+		Obj.set(KafkaTopics::ServiceEvents::Fields::KEY,MyHash_);
+		Obj.set(KafkaTopics::ServiceEvents::Fields::VRSN,Version_);
 		std::stringstream ResultText;
 		Poco::JSON::Stringifier::stringify(Obj, ResultText);
 		return ResultText.str();
 	}
 
 	void BusEventManager::run() {
-
 		Running_ = true;
-
-		auto Msg = Daemon()->MakeSystemEventMessage("join");
+		auto Msg = Daemon()->MakeSystemEventMessage(KafkaTopics::ServiceEvents::EVENT_JOIN);
 		KafkaManager()->PostMessage(KafkaTopics::SERVICE_EVENTS,Daemon()->PrivateEndPoint(),Msg, false);
-
 		while(Running_) {
-			Poco::Thread::trySleep(60000);
+			Poco::Thread::trySleep((unsigned long)Daemon()->DaemonBusTimer());
 			if(!Running_)
 				break;
-			auto Msg = Daemon()->MakeSystemEventMessage("keep-alive");
+			auto Msg = Daemon()->MakeSystemEventMessage(KafkaTopics::ServiceEvents::EVENT_KEEP_ALIVE);
 			KafkaManager()->PostMessage(KafkaTopics::SERVICE_EVENTS,Daemon()->PrivateEndPoint(),Msg, false);
 		}
-
-		Msg = Daemon()->MakeSystemEventMessage("leave");
+		Msg = Daemon()->MakeSystemEventMessage(KafkaTopics::ServiceEvents::EVENT_LEAVE);
 		KafkaManager()->PostMessage(KafkaTopics::SERVICE_EVENTS,Daemon()->PrivateEndPoint(),Msg, false);
 	};
 
@@ -428,12 +442,35 @@ namespace uCentral {
 		}
 	}
 
+	[[nodiscard]] bool MicroService::IsValidAPIKEY(const Poco::Net::HTTPServerRequest &Request) {
+		try {
+			auto APIKEY = Request.get("X-API-KEY");
+			return APIKEY == MyHash_;
+		} catch (const Poco::Exception &E) {
+			logger().log(E);
+		}
+		return false;
+	}
+
+	void MicroService::SavePID() {
+		try {
+			std::ofstream O;
+			O.open(Daemon()->DataDir() + "/pidfile",std::ios::binary | std::ios::trunc);
+			O << Poco::Process::id();
+			O.close();
+		} catch (...)
+		{
+			std::cout << "Could not save system ID" << std::endl;
+		}
+	}
+
 	int MicroService::main(const ArgVec &args) {
 
 		MyErrorHandler	ErrorHandler(*this);
 		Poco::ErrorHandler::set(&ErrorHandler);
 
 		if (!HelpRequested_) {
+			SavePID();
 			Poco::Logger &logger = Poco::Logger::get(DAEMON_APP_NAME);
 			logger.notice(Poco::format("Starting %s version %s.",DAEMON_APP_NAME, Version()));
 

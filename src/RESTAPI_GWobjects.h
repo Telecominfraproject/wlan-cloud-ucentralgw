@@ -10,30 +10,9 @@
 #define UCENTRAL_RESTAPI_OBJECTS_H
 
 #include "Poco/JSON/Object.h"
+#include "RESTAPI_SecurityObjects.h"
 
-namespace uCentral::Objects {
-
-	struct AclTemplate {
-		bool Read_ = true ;
-		bool ReadWrite_ = true ;
-		bool ReadWriteCreate_ = true ;
-		bool Delete_ = true ;
-		bool PortalLogin_ = true ;
-		void to_json(Poco::JSON::Object &Obj) const ;
-	};
-
-	struct WebToken {
-		std::string access_token_;
-		std::string refresh_token_;
-		std::string id_token_;
-		std::string token_type_;
-		std::string username_;
-		unsigned int expires_in_;
-		unsigned int idle_timeout_;
-		AclTemplate acl_template_;
-		uint64_t    created_;
-		void to_json(Poco::JSON::Object &Obj) const ;
-	};
+namespace uCentral::GWObjects {
 
 	enum CertificateValidation {
 		NO_CERTIFICATE,
@@ -43,16 +22,16 @@ namespace uCentral::Objects {
 	};
 
 	struct ConnectionState {
-		uint64_t MessageCount;
+		uint64_t MessageCount = 0 ;
 		std::string SerialNumber;
-		std::string Address;
-		uint64_t UUID;
-		uint64_t PendingUUID;
-		uint64_t TX, RX;
-		bool Connected;
-		uint64_t LastContact;
+		std::string Address = "N/A";
+		uint64_t UUID = 0 ;
+		uint64_t PendingUUID = 0 ;
+		uint64_t TX = 0, RX = 0;
+		bool Connected = false;
+		uint64_t LastContact=0;
 		std::string Firmware;
-		CertificateValidation VerifiedCertificate;
+		CertificateValidation VerifiedCertificate = NO_CERTIFICATE;
 		void to_json(Poco::JSON::Object &Obj) const;
 	};
 
@@ -62,7 +41,7 @@ namespace uCentral::Objects {
 		std::string MACAddress;
 		std::string Manufacturer;
 		std::string Configuration;
-		std::string Notes;
+		SecurityObjects::NoteInfoVec 	Notes;
 		std::string Owner;
 		std::string Location;
 		std::string Firmware;
@@ -161,18 +140,6 @@ namespace uCentral::Objects {
 		std::string Reason;
 		std::string Author;
 		uint64_t Created;
-		void to_json(Poco::JSON::Object &Obj) const;
-	};
-
-	struct PendingFirmwareUpgrade {
-		std::string SerialNumber;
-		std::string CommandUUID;
-		std::string NewFirmware;
-		std::string OldFirmware;
-		std::string URI;
-		uint64_t 	ScheduledAt;
-		uint64_t 	Created;
-		uint64_t 	UpdateDone;
 		void to_json(Poco::JSON::Object &Obj) const;
 	};
 

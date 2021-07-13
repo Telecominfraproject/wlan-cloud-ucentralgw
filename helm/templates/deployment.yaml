@@ -38,10 +38,6 @@ spec:
           image: "{{ .Values.images.ucentralgw.repository }}:{{ .Values.images.ucentralgw.tag }}"
           imagePullPolicy: {{ .Values.images.ucentralgw.pullPolicy }}
 
-          command:
-            - /ucentral/ucentralgw
-            - --file=/ucentral-data/ucentral.properties
-
           env:
             - name: KUBERNETES_DEPLOYED
               value: "{{ now }}"

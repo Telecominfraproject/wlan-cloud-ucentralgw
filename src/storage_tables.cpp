@@ -16,13 +16,11 @@ namespace uCentral {
 		Create_Devices();
 		Create_Capabilities();
 		Create_HealthChecks();
-		Create_Authentication();
 		Create_DeviceLogs();
 		Create_DefaultConfigs();
 		Create_CommandList();
 		Create_BlackList();
 		Create_FileUploads();
-		Create_FirmwareUpgrades();
 		Create_LifetimeStats();
 
 		return 0;
@@ -156,33 +154,6 @@ namespace uCentral {
 						"Sanity BIGINT , "
 						"Recorded BIGINT) ", Poco::Data::Keywords::now;
 				Sess << "CREATE INDEX IF NOT EXISTS HealthSerial ON HealthChecks (SerialNumber ASC, Recorded ASC)", Poco::Data::Keywords::now;
-			}
-			return 0;
-		} catch(const Poco::Exception &E) {
-			Logger_.log(E);
-		}
-		return -1;
-	}
-
-	int Storage::Create_Authentication() {
-		try {
-			Poco::Data::Session Sess = Pool_->get();
-
-			if(dbType_==pgsql || dbType_==sqlite || dbType_==mysql) {
-				Sess << "CREATE TABLE IF NOT EXISTS Authentication ("
-						"Identity			VARCHAR(128) PRIMARY KEY, "
-						"Password			VARCHAR(128), "
-						"AccessType			INT, "
-						"Created			BIGINT, "
-						"Modified			BIGINT, "
-						"Expires 			BIGINT, "
-						"CreatedBy			VARCHAR(128), "
-						"ACLRead 			INT, "
-						"ACLReadWrite 		INT, "
-						"ACLReadWriteCreate INT, "
-						"ACLDelete 			INT, "
-						"ACLPortal 			INT "
-						") ", Poco::Data::Keywords::now;
 			}
 			return 0;
 		} catch(const Poco::Exception &E) {
@@ -348,31 +319,6 @@ namespace uCentral {
 			}
 
 			return 0;
-		} catch(const Poco::Exception &E) {
-			Logger_.log(E);
-		}
-		return -1;
-	}
-
-	int Storage::Create_FirmwareUpgrades() {
-		try {
-			Poco::Data::Session Sess = Pool_->get();
-
-			if(dbType_==sqlite || dbType_==mysql || dbType_==pgsql) {
-				Sess << "CREATE TABLE IF NOT EXISTS PendingFirmwareUpgrades ("
-						"SerialNumber   VARCHAR(30) PRIMARY KEY, "
-						"UUID			VARCHAR(64), 	"
-						"NewFirmware 	VARCHAR(128), 	"
-						"OldFirmware 	VARCHAR(128), 	"
-						"URI			TEXT,			"
-						"ScheduleAt 	BIGINT, 		"
-						"Created 		BIGINT, 		"
-						"UpdateDone		BIGINT			"
-						") ",
-					Poco::Data::Keywords::now;
-				return 0;
-			}
-
 		} catch(const Poco::Exception &E) {
 			Logger_.log(E);
 		}

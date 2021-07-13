@@ -37,7 +37,7 @@ namespace uCentral {
 		uint64_t,
 		std::string> CommandDetailsRecordTuple;
 
-	bool Storage::AddCommand(std::string &SerialNumber, uCentral::Objects::CommandDetails &Command, CommandExecutionType Type) {
+	bool Storage::AddCommand(std::string &SerialNumber, GWObjects::CommandDetails &Command, CommandExecutionType Type) {
 		try {
 			/*
 					"UUID           VARCHAR(30) PRIMARY KEY, "
@@ -107,7 +107,7 @@ namespace uCentral {
 
 	bool Storage::GetCommands(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate,
 							  uint64_t Offset, uint64_t HowMany,
-							  std::vector<uCentral::Objects::CommandDetails> &Commands) {
+							  std::vector<GWObjects::CommandDetails> &Commands) {
 
 		typedef std::vector<CommandDetailsRecordTuple> RecordList;
 
@@ -165,7 +165,7 @@ namespace uCentral {
 			Select.execute();
 
 			for (auto i : Records) {
-				uCentral::Objects::CommandDetails R{.UUID = i.get<0>(),
+				GWObjects::CommandDetails R{.UUID = i.get<0>(),
 										 .SerialNumber = i.get<1>(),
 										 .Command = i.get<2>(),
 										 .Status = i.get<3>(),
@@ -233,7 +233,7 @@ namespace uCentral {
 	typedef std::vector<CommandDetailsRecordTuple> RecordList;
 
 	bool Storage::GetNonExecutedCommands(uint64_t Offset, uint64_t HowMany,
-										 std::vector<uCentral::Objects::CommandDetails> &Commands) {
+										 std::vector<GWObjects::CommandDetails> &Commands) {
 	//	typedef std::vector<CommandDetailsRecordTuple> RecordList;
 		/*
 			"UUID           VARCHAR(30) PRIMARY KEY, "
@@ -276,7 +276,7 @@ namespace uCentral {
 
 				for (auto i : Records) {
 					Offset++;
-					uCentral::Objects::CommandDetails R{.UUID = i.get<0>(),
+					GWObjects::CommandDetails R{.UUID = i.get<0>(),
 											 .SerialNumber = i.get<1>(),
 											 .Command = i.get<2>(),
 											 .Status = i.get<3>(),
@@ -313,7 +313,7 @@ namespace uCentral {
 		return false;
 	}
 
-	bool Storage::UpdateCommand(std::string &UUID, uCentral::Objects::CommandDetails &Command) {
+	bool Storage::UpdateCommand(std::string &UUID, GWObjects::CommandDetails &Command) {
 
 		try {
 			Poco::Data::Session Sess = Pool_->get();
@@ -378,7 +378,7 @@ namespace uCentral {
 		return false;
 	}
 
-	bool Storage::GetCommand(std::string &UUID, uCentral::Objects::CommandDetails &Command) {
+	bool Storage::GetCommand(std::string &UUID, GWObjects::CommandDetails &Command) {
 
 		try {
 			Poco::Data::Session Sess = Pool_->get();
@@ -456,7 +456,7 @@ namespace uCentral {
 		return false;
 	}
 
-	bool Storage::GetNewestCommands(std::string &SerialNumber, uint64_t HowMany, std::vector<uCentral::Objects::CommandDetails> &Commands) {
+	bool Storage::GetNewestCommands(std::string &SerialNumber, uint64_t HowMany, std::vector<GWObjects::CommandDetails> &Commands) {
 		try {
 			RecordList Records;
 
@@ -478,7 +478,7 @@ namespace uCentral {
 			// std::cout << "Returned " << Records.size() << " records" << std::endl;
 
 			for (auto i : Records) {
-				uCentral::Objects::CommandDetails R{
+				GWObjects::CommandDetails R{
 					.UUID = i.get<0>(),
 					.SerialNumber = i.get<1>(),
 					.Command = i.get<2>(),
@@ -511,7 +511,7 @@ namespace uCentral {
 	}
 
 	bool Storage::GetReadyToExecuteCommands(uint64_t Offset, uint64_t HowMany,
-											std::vector<uCentral::Objects::CommandDetails> &Commands) {
+											std::vector<GWObjects::CommandDetails> &Commands) {
 		// todo: finish the GetReadyToExecuteCommands call...
 		try {
 			typedef std::vector<CommandDetailsRecordTuple> RecordList;
@@ -531,7 +531,7 @@ namespace uCentral {
 			Select.execute();
 
 			for (auto i : Records) {
-				uCentral::Objects::CommandDetails R{.UUID = i.get<0>(),
+				GWObjects::CommandDetails R{.UUID = i.get<0>(),
 										 .SerialNumber = i.get<1>(),
 										 .Command = i.get<2>(),
 										 .Status = i.get<3>(),
@@ -770,4 +770,20 @@ namespace uCentral {
 
 		return false;
 	}
+
+	bool Storage::RemoveCommandListRecordsOlderThan(uint64_t Date) {
+		try {
+			Poco::Data::Session Sess = Pool_->get();
+			Poco::Data::Statement Delete(Sess);
+
+			std::string St1{"delete from CommandList where Submitted<?"};
+			Delete << ConvertParams(St1), Poco::Data::Keywords::use(Date);
+			Delete.execute();
+			return true;
+		} catch (const Poco::Exception &E) {
+			Logger_.log(E);
+		}
+		return false;
+	}
+
 }

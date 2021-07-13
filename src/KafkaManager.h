@@ -23,9 +23,9 @@ namespace uCentral {
 	  public:
 
 		struct KMessage {
-			std::string Topic,
-				Key,
-				PayLoad;
+					std::string Topic,
+								Key,
+								PayLoad;
 		};
 
 		void initialize(Poco::Util::Application & self) override;
@@ -35,8 +35,8 @@ namespace uCentral {
 			return instance_;
 		}
 
-		void Producer();
-		void Consumer();
+		void ProducerThr();
+		void ConsumerThr();
 
 		int Start() override;
 		void Stop() override;
@@ -49,18 +49,18 @@ namespace uCentral {
 		void WakeUp();
 
 	  private:
-		static KafkaManager *instance_;
-		SubMutex 				ProducerMutex_;
-		SubMutex 				ConsumerMutex_;
-		bool 					KafkaEnabled_ = false;
-		std::atomic_bool 		ProducerRunning_ = false;
-		std::atomic_bool 		ConsumerRunning_ = false;
-		std::queue<KMessage>	Queue_;
-		std::string 			SystemInfoWrapper_;
+		static KafkaManager 			*instance_;
+		SubMutex 						ProducerMutex_;
+		SubMutex 						ConsumerMutex_;
+		bool 							KafkaEnabled_ = false;
+		std::atomic_bool 				ProducerRunning_ = false;
+		std::atomic_bool 				ConsumerRunning_ = false;
+		std::queue<KMessage>			Queue_;
+		std::string 					SystemInfoWrapper_;
 		std::unique_ptr<std::thread>	ConsumerThr_;
 		std::unique_ptr<std::thread>	ProducerThr_;
-		int                       FunctionId_=1;
-		Types::NotifyTable        Notifiers_;
+		int                       		FunctionId_=1;
+		Types::NotifyTable        		Notifiers_;
 		std::unique_ptr<cppkafka::Configuration>    Config_;
 
 		KafkaManager() noexcept;
