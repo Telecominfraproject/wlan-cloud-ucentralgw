@@ -82,6 +82,16 @@ services:
       - ../certificates/issuer.pem:/ucentralsec-data/certs/issuer.pem
       - ../certificates/clientcas.pem:/ucentralsec-data/certs/clientcas.pem
 
+  ucentralgw-ui:
+    image: "tip-tip-wlan-cloud-ucentral.jfrog.io/ucentralgw-ui:${UCENTRALGWUI_TAG}"
+    env_file:
+      - .env_ucentralgw-ui
+    depends_on:
+      - ucentralgw
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:80:80"
+
   rttys:
     image: "tip-tip-wlan-cloud-ucentral.jfrog.io/rttys:${RTTYS_TAG}"
     depends_on: 

@@ -1,0 +1,125 @@
+{
+	"uuid": 2,
+	"radios": [
+		{
+			"band": "5G",
+			"channel": 149,
+			"channel-mode": "VHT",
+			"channel-width": 80,
+			"country": "CA"
+		},
+		{
+			"band": "2G",
+			"channel": "auto",
+			"channel-mode": "HE",
+			"channel-width": 20,
+			"country": "CA"
+		}
+	],
+
+	"interfaces": [
+		{
+			"name": "WAN",
+			"role": "upstream",
+            "tunnel": {
+				"proto": "mesh"
+			},           
+			"services": [ "lldp" ],
+			"ethernet": [
+				{
+					"select-ports": [
+						"WAN*"
+					]
+				}
+			],
+			"ipv4": {
+				"addressing": "dynamic"
+			},         
+			"ssids": [
+				{
+					"name": "mesh_transit",
+					"wifi-bands": [
+						"5G"
+					],
+					"bss-mode": "mesh",
+					"encryption": {
+						"proto": "psk2",
+						"key": "tipmesh",
+						"ieee80211w": "optional"
+					}
+				},
+                {
+					"name": "DualBandSSID_Test",
+					"wifi-bands": [
+						"2G", "5G"
+					],
+					"bss-mode": "ap",
+					"encryption": {
+						"proto": "psk2",
+                        "key": "thisisapassword",
+						"ieee80211w": "optional"
+					},                  
+					"roaming": {
+						"message-exchange": "ds",
+						"generate-psk": true
+					},
+					"services": [ "wifi-steering"]
+                }
+			]
+		},
+		{
+			"name": "LAN",
+			"role": "downstream",
+			"services": [ "ssh", "lldp" ],
+			"ethernet": [
+				{
+					"select-ports": [
+						"LAN*"
+					]
+				}
+			],
+			"ipv4": {
+				"addressing": "static",
+				"subnet": "192.168.1.1/24",
+				"dhcp": {
+					"lease-first": 10,
+					"lease-count": 100,
+					"lease-time": "6h"
+				}
+			}
+		}
+	],
+	"metrics": {
+		"statistics": {
+			"interval": 120,
+			"types": [ "ssids", "lldp", "clients" ]
+		},
+		"health": {
+			"interval": 120
+		},
+		"wifi-frames": {
+			"filters": [ "probe", "auth" ]
+		},
+		"dhcp-snooping": {
+			"filters": [ "ack", "discover", "offer", "request", "solicit", "reply", "renew" ]
+		}        
+	},
+	"services": {
+        "wifi-steering": {
+			"mode": "local",
+			"network": "upstream",
+			"assoc-steering": true,
+			"required-snr": -75,
+			"required-probe-snr": -70,
+			"required-roam-snr": -85,
+			"load-kick-threshold": 90
+		},       
+		"lldp": {
+			"describe": "TIP OpenWiFi",
+			"location": "QA Lab"
+		},
+		"ssh": {
+			"port": 22
+		}
+	}
+}
