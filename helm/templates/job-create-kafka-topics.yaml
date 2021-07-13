@@ -1,0 +1,46 @@
+{{- if .Values.initKafkaTopics.enabled }}
+{{- $root := . -}}
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "ucentralgw.fullname" . }}-job-create-kafka-topics
+  annotations:
+    "helm.sh/hook": post-install,post-upgrade
+    "helm.sh/hook-weight": "10"
+    "helm.sh/hook-delete-policy": before-hook-creation
+  labels:
+    app.kubernetes.io/name: {{ include "ucentralgw.name" . }}
+    helm.sh/chart: {{ include "ucentralgw.chart" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+spec:
+  activeDeadlineSeconds: {{ .Values.initKafkaTopics.activeDeadlineSeconds }}
+  backoffLimit: {{ .Values.initKafkaTopics.backoffLimit }}
+  template:
+    metadata:
+      name: {{ include "ucentralgw.fullname" . }}-job-create-kafka-topics
+      labels:
+        app.kubernetes.io/name: {{ include "ucentralgw.name" . }}
+        helm.sh/chart: {{ include "ucentralgw.chart" . }}
+        app.kubernetes.io/instance: {{ .Release.Name }}
+        app.kubernetes.io/managed-by: {{ .Release.Service }}
+    spec:
+      containers:
+        - name: init-ucentralgw-kafka-topics
+          command: 
+            - /bin/bash
+            - -l
+            - -c
+            - |
+              export EXISTING_TOPICS=$(/opt/bitnami/kafka/bin/kafka-topics.sh --list --bootstrap-server {{ index .Values.configProperties "ucentral.kafka.brokerlist" }});
+              echo Existing Topics - $EXISTING_TOPICS;
+              export REQUIRED_TOPICS=({{ range .Values.initKafkaTopics.topics }} {{ . }} {{ end }});
+              for TOPIC in "${REQUIRED_TOPICS[@]}"; do
+                echo $TOPIC;
+                echo $EXISTING_TOPICS | grep -w $TOPIC 1>/dev/null &&  echo Topic $TOPIC already exists || /opt/bitnami/kafka/bin/kafka-topics.sh --create --topic $TOPIC --bootstrap-server {{ index .Values.configProperties "ucentral.kafka.brokerlist" }};
+              done
+          image: "{{ .Values.images.kafka.repository }}:{{ .Values.images.kafka.tag }}"
+          imagePullPolicy: {{ .Values.images.kafka.pullPolicy }}
+      restartPolicy: {{ .Values.initKafkaTopics.restartPolicy }}
+{{- end }}

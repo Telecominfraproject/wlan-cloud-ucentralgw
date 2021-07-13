@@ -14,6 +14,10 @@ images:
 #      registry: tip-tip-wlan-cloud-ucentral.jfrog.io
 #      username: username
 #      password: password
+  kafka:
+    repository: bitnami/kafka
+    tag: 2.8.0-debian-10-r43
+    pullPolicy: IfNotPresent
 
 services:
   ucentralgw:
@@ -218,12 +222,24 @@ configProperties:
   storage.type.mysql.database: ucentral
   storage.type.mysql.port: 3306
   storage.type.mysql.connectiontimeout: 60
+  # Archiver
+  archiver.enabled: true
+  archiver.schedule: 03:00
+  archiver.db.0.name: healthchecks
+  archiver.db.0.keep: 7
+  archiver.db.1.name: statistics
+  archiver.db.1.keep: 7
+  archiver.db.2.name: devicelogs
+  archiver.db.2.keep: 7
+  archiver.db.3.name: commandlist
+  archiver.db.3.keep: 7
   # System
   ucentral.service.key: $UCENTRALGW_ROOT/certs/restapi-key.pem
   ucentral.system.data: $UCENTRALGW_ROOT/persist
   ucentral.system.debug: "true"
   ucentral.system.uri.private: https://localhost:17002
   ucentral.system.uri.public: https://localhost:16002
+  ucentral.system.uri.ui: https://localhost
   ucentral.system.commandchannel: /tmp/app_ucentralgw
   # Logging
   logging.formatters.f1.class: PatternFormatter
@@ -264,6 +280,20 @@ configProperties:
   ## MySQL
   storage.type.mysql.username: stephb
   storage.type.mysql.password: snoopy99
+
+initKafkaTopics:
+  enabled: false
+  activeDeadlineSeconds: 300
+  restartPolicy: OnFailure
+  backoffLimit: 1
+  topics:
+    - connection
+    - state
+    - healthcheck
+    - wifiscan
+    - security
+    - command
+    - alerts
 
 certs:
   clientcas.pem: |
