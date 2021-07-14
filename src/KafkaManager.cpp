@@ -61,7 +61,7 @@ namespace uCentral {
 		SystemInfoWrapper_ = 	R"lit({ "system" : { "id" : )lit" +
 								  	std::to_string(Daemon()->ID()) +
 									R"lit( , "host" : ")lit" + Daemon()->PrivateEndPoint() +
-									R"lit(" } , "payload" : ")lit" ;
+									R"lit(" } , "payload" : )lit" ;
 		cppkafka::Producer	Producer(Config);
 		ProducerRunning_ = true;
 		while(ProducerRunning_) {
