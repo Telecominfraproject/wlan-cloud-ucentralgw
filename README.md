@@ -506,8 +506,9 @@ The repository also contains a Docker Compose file, which you can use to instant
 4. Docker Compose pulls the microservice images from the JFrog repository. If you want to change the image tag or some of the image versions which are used for the other services, have a look into the `.env` file. You'll also find service specific `.env` files in this directory. Edit them if you want to change database passwords (highly recommended!) or other configuration data. Don't forget to adapt your changes in the application configuration files.
 5. Open `docker-compose/ucentralgw-data/ucentral.properties` to change [authentication data](https://github.com/Telecominfraproject/wlan-cloud-ucentralgw#default-username-and-password) for uCentralGW (again highly recommended!).
 6. Spin up the deployment with `docker-compose up -d`.
-7. Navigate to the UI which listens to `127.0.0.1` and login with your uCentralGW authentication data.
-8. To use the [curl test script](https://github.com/Telecominfraproject/wlan-cloud-ucentralgw/blob/main/TEST_CURL.md) to talk to the API set the following environment variables: 
+7. Add the self-signed certificates to the system trust store of the containers with `./add-ca-cert.sh`.
+8. Navigate to the UI which listens to `127.0.0.1` and login with your uCentralGW authentication data.
+9. To use the [curl test script](https://github.com/Telecominfraproject/wlan-cloud-ucentralgw/blob/main/TEST_CURL.md) to talk to the API set the following environment variables: 
 ```
 export UCENTRALSEC="ucentral.wlan.local:16001"
 export FLAGS="-s --cacert docker-compose/ucentral-data/certs/restapi-ca.pem" 

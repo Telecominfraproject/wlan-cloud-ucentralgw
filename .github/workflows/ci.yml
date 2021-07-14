@@ -7,11 +7,9 @@ on:
       - '**.md'
     branches:
       - master
-      - dev-microservice
   pull_request:
     branches:
       - master
-      - dev-microservice
 
 defaults:
   run:
@@ -84,12 +82,13 @@ jobs:
         done
 
     - name: Add self-signed certificates to system trust store of containers
+      working-directory: ./docker-compose
       run: |
-        ./docker-compose/add-ca-cert.sh
+        ./add-ca-cert.sh
 
     - name: Check functionality of microservices
       env:
-        UCENTRALGW: "ucentral.wlan.local:16001"
+        UCENTRALSEC: "ucentral.wlan.local:16001"
         FLAGS: "-s --cacert docker-compose/certs/restapi-ca.pem --resolve ucentral.wlan.local:16001:127.0.0.1"
       run: |
         ./test_scripts/curl/cli listdevices
