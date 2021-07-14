@@ -117,7 +117,7 @@ Poco::Net::SecureServerSocket PropertiesFileServerEntry::CreateSecureSocket(Poco
 	auto Context = Poco::AutoPtr<Poco::Net::Context>(new Poco::Net::Context(Poco::Net::Context::TLS_SERVER_USE, P));
 
 	if(!key_file_password_.empty()) {
-		auto PassphraseHandler = Poco::SharedPtr<MyPrivateKeyPassphraseHandler>( new MyPrivateKeyPassphraseHandler(KeyFilePassword(),L));
+		auto PassphraseHandler = Poco::SharedPtr<MyPrivateKeyPassphraseHandler>( new MyPrivateKeyPassphraseHandler(key_file_password_,L));
 		Poco::Net::SSLManager::instance().initializeServer(PassphraseHandler, nullptr,Context);
 	}
 
@@ -142,7 +142,7 @@ Poco::Net::SecureServerSocket PropertiesFileServerEntry::CreateSecureSocket(Poco
 			Context->addCertificateAuthority(Issuing);
 		}
 
-		Poco::Crypto::RSAKey Key("", key_file_, "");
+		Poco::Crypto::RSAKey Key("", key_file_, key_file_password_);
 		Context->usePrivateKey(Key);
 
 		SSL_CTX *SSLCtx = Context->sslContext();

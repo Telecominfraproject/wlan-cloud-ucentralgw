@@ -187,7 +187,8 @@ namespace uCentral {
 			}
 		}
 		std::string KeyFile = ConfigPath("ucentral.service.key");
-		AppKey_ = Poco::SharedPtr<Poco::Crypto::RSAKey>(new Poco::Crypto::RSAKey("", KeyFile, ""));
+		std::string KeyFilePassword = ConfigPath("ucentral.service.key.password" , "" );
+		AppKey_ = Poco::SharedPtr<Poco::Crypto::RSAKey>(new Poco::Crypto::RSAKey("", KeyFile, KeyFilePassword));
 		Cipher_ = CipherFactory_.createCipher(*AppKey_);
 		ID_ = Utils::GetSystemId();
 		if(!DebugMode_)
