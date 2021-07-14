@@ -55,6 +55,52 @@ jobs:
           docker push ${{ env.DOCKER_REGISTRY_URL }}/ucentralgw:$tag
         done
 
+  docker-compose:
+    runs-on: ubuntu-20.04
+    needs: docker
+    steps:
+    - name: Check out repository
+      uses: actions/checkout@v2
+
+    - name: Instantiate Docker Compose deployment
+      working-directory: ./docker-compose
+      env:
+        UCENTRALGW_TAG: ${{ github.sha }}
+      run: |
+        docker-compose up -d
+
+    - name: Wait for uCentralSec to be alive and kicking
+      run: |
+        n=0
+        until [ "$n" -ge 3 ]
+        do
+          curl -s 127.0.0.1:16102 && break
+          n=$((n+1)) 
+          if [ "$n" -eq 3]; then        
+            exit 1
+          else
+            sleep 3
+          fi
+        done
+
+    - name: Add self-signed certificates to system trust store of containers
+      run: |
+        ./docker-compose/add-ca-cert.sh
+
+    - name: Check functionality of microservices
+      env:
+        UCENTRALGW: "ucentral.wlan.local:16001"
+        FLAGS: "-s --cacert docker-compose/certs/restapi-ca.pem --resolve ucentral.wlan.local:16001:127.0.0.1"
+      run: |
+        ./test_scripts/curl/cli listdevices
+
+    - name: Display information about running containers and log ucentralgw output
+      working-directory: ./docker-compose
+      if: always()
+      run: |
+        docker-compose ps -a
+        docker-compose logs 
+
     # disable until repo is public
     #- name: export Docker image
     #  run: docker image save -o wlan-cloud-ucentralgw-${{ github.sha }}.tar wlan-cloud-ucentralgw:${{ github.sha }}
