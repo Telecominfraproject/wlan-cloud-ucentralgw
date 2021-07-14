@@ -84,7 +84,7 @@ jobs:
     - name: Add self-signed certificates to system trust store of containers
       working-directory: ./docker-compose
       run: |
-        ./docker-compose/add-ca-cert.sh
+        ./add-ca-cert.sh
 
     - name: Check functionality of microservices
       env:
