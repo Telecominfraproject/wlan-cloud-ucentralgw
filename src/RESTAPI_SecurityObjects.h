@@ -41,16 +41,6 @@ namespace uCentral::SecurityObjects {
 		bool from_json(const Poco::JSON::Object::Ptr &Obj);
 	};
 
-    enum AUTH_ERROR {
-        SUCCESS,
-        PASSWORD_CHANGE_REQUIRED,
-        PASSWORD_DOES_NOT_MATCH,
-        PASSWORD_ALREADY_USED,
-        USERNAME_PENDING_VERIFICATION,
-        PASSWORD_INVALID,
-        INTERNAL_ERROR
-    };
-
     enum USER_ROLE {
         UNKNOWN, ROOT, ADMIN, SUBSCRIBER, CSR, SYSTEM, SPECIAL
     };

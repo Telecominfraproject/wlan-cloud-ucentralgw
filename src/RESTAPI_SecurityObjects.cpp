@@ -26,12 +26,12 @@ namespace uCentral::SecurityObjects {
 	}
 
 	ResourceAccessType ResourceAccessTypeFromString(const std::string &s) {
-		if(s=="READ") return READ;
-		if(s=="MODIFY") return MODIFY;
-		if(s=="DELETE") return DELETE;
-		if(s=="CREATE") return CREATE;
-		if(s=="TEST") return TEST;
-		if(s=="MOVE") return MOVE;
+		if(!Poco::icompare(s,"READ")) return READ;
+		if(!Poco::icompare(s,"MODIFY")) return MODIFY;
+		if(!Poco::icompare(s,"DELETE")) return DELETE;
+		if(!Poco::icompare(s,"CREATE")) return CREATE;
+		if(!Poco::icompare(s,"TEST")) return TEST;
+		if(!Poco::icompare(s,"MOVE")) return MOVE;
 		return NONE;
 	}
 
@@ -48,17 +48,17 @@ namespace uCentral::SecurityObjects {
 	}
 
     USER_ROLE UserTypeFromString(const std::string &U) {
-        if (U=="root")
+        if (!Poco::icompare(U,"root"))
             return ROOT;
-        else if (U=="admin")
+        else if (!Poco::icompare(U,"admin"))
             return ADMIN;
-        else if (U=="subscriber")
+        else if (!Poco::icompare(U,"subscriber"))
             return SUBSCRIBER;
-        else if (U=="csr")
+        else if (!Poco::icompare(U,"csr"))
             return CSR;
-        else if (U=="system")
+        else if (!Poco::icompare(U, "system"))
             return SYSTEM;
-        else if (U=="special")
+        else if (!Poco::icompare(U, "special"))
             return SPECIAL;
         return UNKNOWN;
     }
@@ -71,6 +71,7 @@ namespace uCentral::SecurityObjects {
             case CSR: return "csr";
             case SYSTEM: return "system";
             case SPECIAL: return "special";
+            case ADMIN: return "admin";
             default: return "unknown";
         }
     }

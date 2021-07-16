@@ -87,6 +87,13 @@ namespace uCentral {
 		}
 	}
 
+	void KafkaManager::PartitionAssignment(const cppkafka::TopicPartitionList& partitions) {
+		Logger_.information(Poco::format("Partition assigned: %Lu...",(uint64_t )partitions.front().get_partition()));
+	}
+	void KafkaManager::PartitionRevocation(const cppkafka::TopicPartitionList& partitions) {
+		Logger_.information(Poco::format("Partition revocation: %Lu...",(uint64_t )partitions.front().get_partition()));
+	}
+
 	void KafkaManager::ConsumerThr() {
 		cppkafka::Configuration Config({
 										   { "client.id", Daemon()->ConfigGetString("ucentral.kafka.client.id") },
@@ -105,12 +112,19 @@ namespace uCentral {
 		Config.set_default_topic_configuration(topic_config);
 
 		cppkafka::Consumer Consumer(Config);
-		Consumer.set_assignment_callback([this](const cppkafka::TopicPartitionList& partitions) {
-		  	Logger_.information(Poco::format("Partition assigned: %Lu...",(uint64_t )partitions.front().get_partition()));
+		Consumer.set_assignment_callback([this](cppkafka::TopicPartitionList& partitions) {
+			if(partitions.size()>0) {
+				Logger_.information(Poco::format("Partition assigned: %Lu...",
+												 (uint64_t)partitions.front().get_partition()));
+			}
 		});
 		Consumer.set_revocation_callback([this](const cppkafka::TopicPartitionList& partitions) {
-		  	Logger_.information(Poco::format("Partition revocation: %Lu...",(uint64_t )partitions.front().get_partition()));
+			if(partitions.size()>0) {
+				Logger_.information(Poco::format("Partition revocation: %Lu...",
+												 (uint64_t)partitions.front().get_partition()));
+			}
 		});
+
 
 		Types::StringVec    Topics;
 		for(const auto &i:Notifiers_)

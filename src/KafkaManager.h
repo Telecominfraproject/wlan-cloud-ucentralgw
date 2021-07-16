@@ -47,6 +47,8 @@ namespace uCentral {
 		int RegisterTopicWatcher(const std::string &Topic, Types::TopicNotifyFunction & F);
 		void UnregisterTopicWatcher(const std::string &Topic, int FunctionId);
 		void WakeUp();
+		void PartitionAssignment(const cppkafka::TopicPartitionList& partitions);
+		void PartitionRevocation(const cppkafka::TopicPartitionList& partitions);
 
 	  private:
 		static KafkaManager 			*instance_;
