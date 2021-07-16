@@ -57,6 +57,7 @@
 				{
 					"name": "OpenWifi_2GHz",
                     "role": "downstream",
+                    "services": [ "wifi-frame"],                    
 					"wifi-bands": [
 						"2G"
 					],
@@ -70,6 +71,7 @@
 				{
 					"name": "OpenWifi_5GHz",
                     "role": "downstream",
+                    "services": [ "wifi-frames"],                      
 					"wifi-bands": [
 						"5G"
 					],
