@@ -38,6 +38,8 @@ RUN cmake --build . --config Release -j8
 
 FROM alpine
 
+RUN addgroup -S ucentralgw && adduser -S -G ucentralgw ucentralgw
+
 RUN mkdir /ucentral
 RUN mkdir /ucentralgw-data
 RUN apk add --update --no-cache librdkafka mariadb-connector-c libpq unixodbc
@@ -52,4 +54,5 @@ EXPOSE 16003
 EXPOSE 17002
 EXPOSE 16102
 
+USER ucentralgw
 ENTRYPOINT /ucentral/ucentralgw
