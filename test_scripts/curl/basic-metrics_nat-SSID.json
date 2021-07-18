@@ -1,0 +1,121 @@
+{
+	"uuid": 2,
+	"radios": [
+		{
+			"band": "5G",
+			"channel": "auto",
+			"channel-mode": "VHT",
+			"channel-width": 80,
+			"country": "CA"
+		},
+		{
+			"band": "2G",
+			"channel": "auto",
+			"channel-mode": "HE",
+			"channel-width": 20,
+			"country": "CA"
+		}
+	],
+
+	"interfaces": [
+		{
+			"name": "WAN",
+			"role": "upstream",
+			"services": [ "lldp", "dhcp-snooping" ],
+			"ethernet": [
+				{
+					"select-ports": [
+						"WAN*"
+					]
+				}
+			],
+			"ipv4": {
+				"addressing": "dynamic"
+			}
+        },
+		{
+			"name": "LAN",
+			"role": "downstream",
+			"services": [ "ssh", "lldp", "dhcp-snooping" ],
+			"ethernet": [
+				{
+					"select-ports": [
+						"LAN*"
+					]
+				}
+			],
+			"ipv4": {
+				"addressing": "static",
+				"subnet": "192.168.1.1/24",
+				"dhcp": {
+					"lease-first": 10,
+					"lease-count": 100,
+					"lease-time": "6h"
+				}
+			},
+            "ssids": [
+				{
+					"name": "OpenWifi_2GHz",
+                    "role": "downstream",
+                    "services": [ "wifi-frames"],                    
+					"wifi-bands": [
+						"2G"
+					],
+					"bss-mode": "ap",
+					"encryption": {
+						"proto": "psk2",
+						"key": "OpenWifi",
+						"ieee80211w": "optional"
+					}
+				},
+				{
+					"name": "OpenWifi_5GHz",
+                    "role": "downstream",
+                    "services": [ "wifi-frames"],                      
+					"wifi-bands": [
+						"5G"
+					],
+					"bss-mode": "ap",
+					"encryption": {
+						"proto": "psk2",
+						"key": "OpenWifi",
+						"ieee80211w": "optional"
+					}
+				}				
+			]
+		}
+	],
+	"metrics": {
+		"statistics": {
+			"interval": 60,
+			"types": [ "ssids", "lldp", "clients" ]
+		},
+		"health": {
+			"interval": 120
+		},
+		"wifi-frames": {
+			"filters": [ "probe",
+				"auth",
+				"assoc",
+				"disassoc",
+				"deauth",
+				"local-deauth",
+				"inactive-deauth",
+				"key-mismatch",
+				"beacon-report",
+				"radar-detected"]
+		},
+		"dhcp-snooping": {
+			"filters": [ "ack", "discover", "offer", "request", "solicit", "reply", "renew" ]
+		}        
+	},
+	"services": {      
+		"lldp": {
+			"describe": "TIP OpenWiFi",
+			"location": "QA"
+		},
+		"ssh": {
+			"port": 22
+		}
+	}
+}
