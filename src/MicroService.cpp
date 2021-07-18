@@ -140,11 +140,6 @@ namespace uCentral {
 	}
 
 	void MicroService::initialize(Poco::Util::Application &self) {
-
-		std::string V{APP_VERSION};
-		std::string B{BUILD_NUMBER};
-		Version_ =  V + "(" + B +  ")";
-
 		// add the default services
 		SubSystems_.push_back(KafkaManager());
 		SubSystems_.push_back(ALBHealthCheckServer());

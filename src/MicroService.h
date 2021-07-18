@@ -79,7 +79,11 @@ namespace uCentral {
 			DAEMON_CONFIG_ENV_VAR(std::move(ConfigVar)),
 			DAEMON_APP_NAME(std::move(AppName)),
 			DAEMON_BUS_TIMER(BusTimer),
-			SubSystems_(std::move(Subsystems)) {}
+			SubSystems_(std::move(Subsystems)) {
+			std::string V{APP_VERSION};
+			std::string B{BUILD_NUMBER};
+			Version_ =  V + "(" + B +  ")";
+		}
 
 		int main(const ArgVec &args) override;
 		void initialize(Application &self) override;
