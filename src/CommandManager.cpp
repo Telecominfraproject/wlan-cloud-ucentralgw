@@ -18,8 +18,6 @@
 
 #include "Poco/JSON/Parser.h"
 
-#define DBG		std::cout << __LINE__ << "   " __FILE__ << std::endl;
-
 namespace uCentral {
 
     class CommandManager * CommandManager::instance_ = nullptr;
@@ -94,8 +92,6 @@ namespace uCentral {
 		CompleteRPC.set(uCentralProtocol::PARAMS, Params);
 		std::stringstream ToSend;
 		Poco::JSON::Stringifier::stringify(CompleteRPC, ToSend);
-
-		std::cout << "Count: " << Promise.use_count() << std::endl;
 
 		OutStandingRequests_[Id_] = std::make_pair(std::move(Promise),UUID);
 		Age_[Id_] = time(nullptr);

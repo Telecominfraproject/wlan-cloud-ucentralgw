@@ -45,8 +45,7 @@ else()
     find_package(CppKafka REQUIRED)
     find_package(PostgreSQL REQUIRED)
     find_package(MySQL REQUIRED)
-    find_package(ODBC REQUIRED)
-    find_package(Poco REQUIRED COMPONENTS JSON Crypto JWT Net Util NetSSL Data DataSQLite DataPostgreSQL DataMySQL DataODBC)
+    find_package(Poco REQUIRED COMPONENTS JSON Crypto JWT Net Util NetSSL Data DataSQLite DataPostgreSQL DataMySQL)
 endif()
 
 include_directories(/usr/local/include  /usr/local/opt/openssl/include src include/kafka /usr/local/opt/mysql-client/include)
@@ -80,7 +79,7 @@ add_executable( ucentralgw
                 src/Utils.h src/Utils.cpp src/storage_blacklist.cpp
                 src/storage_command.cpp src/storage_healthcheck.cpp src/storage_statistics.cpp src/storage_logs.cpp
                 src/storage_device.cpp src/storage_capabilities.cpp src/storage_defconfig.cpp src/storage_sqlite.cpp
-                src/storage_mysql.cpp src/storage_pgql.cpp src/storage_odbc.cpp src/storage_tables.cpp src/RESTAPI_callback.cpp
+                src/storage_mysql.cpp src/storage_pgql.cpp src/storage_tables.cpp src/RESTAPI_callback.cpp
                 src/RESTAPI_callback.h src/CallbackManager.cpp src/CallbackManager.h
                 src/StateProcessor.cpp src/StateProcessor.h
                 src/storage_lifetime_stats.cpp src/uCentralProtocol.h src/RESTAPI_protocol.h
@@ -102,7 +101,7 @@ target_link_libraries(ucentralgw PUBLIC
                         ${Poco_LIBRARIES} ${Boost_LIBRARIES} ${ZLIB_LIBRARIES})
 if(NOT SMALL_BUILD)
     target_link_libraries(ucentralgw PUBLIC
-            ${MySQL_LIBRARIES} ${ODBC_LIBRARIES} ${ZLIB_LIBRARIES}
+            ${MySQL_LIBRARIES} ${ZLIB_LIBRARIES}
             CppKafka::cppkafka
              )
     if(UNIX AND NOT APPLE)

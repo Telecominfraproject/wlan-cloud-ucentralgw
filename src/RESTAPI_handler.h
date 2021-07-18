@@ -19,6 +19,7 @@
 
 #include "Poco/Logger.h"
 #include "Poco/File.h"
+#include "Poco/TemporaryFile.h"
 #include "Poco/JSON/Object.h"
 #include "Poco/CountingStream.h"
 #include "Poco/NullStream.h"
@@ -136,6 +137,7 @@ namespace uCentral {
                               Poco::Net::HTTPServerRequest &Request,
                               Poco::Net::HTTPServerResponse &Response ,
                               const Types::StringPairVec & FormVars);
+        void SendFile(Poco::TemporaryFile &TempAvatar, const std::string &Type, const std::string & Name, Poco::Net::HTTPServerRequest &Request, Poco::Net::HTTPServerResponse &Response);
 
         void SendFile(Poco::File & File, Poco::Net::HTTPServerRequest &Request, Poco::Net::HTTPServerResponse &Response);
 

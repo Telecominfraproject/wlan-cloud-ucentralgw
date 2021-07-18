@@ -56,8 +56,6 @@ namespace uCentral {
             Setup_PostgreSQL();
         } else if (DBType == "mysql") {
             Setup_MySQL();
-        } else if (DBType == "odbc") {
-            Setup_ODBC();
         }
 
 		Create_Tables();

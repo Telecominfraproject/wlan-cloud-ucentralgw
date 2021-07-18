@@ -420,26 +420,31 @@ namespace uCentral::Utils {
 	    }
 	}
 
-    std::string FindMediaType(const Poco::File &F) {
-	    Poco::Path  P(F.path());
-	    const auto E = P.getExtension();
+    MediaTypeEncoding FindMediaType(const Poco::File &F) {
+	    const auto E = Poco::Path(F.path()).getExtension();
 	    if(E=="png")
-	        return "image/png";
+	        return MediaTypeEncoding{   .Encoding = BINARY,
+                                        .ContentType = "image/png" };
 	    if(E=="gif")
-            return "image/gif";
-        if(E=="jpeg")
-            return "image/jpeg";
-        if(E=="jpg")
-            return "image/jpeg";
-        if(E=="svg")
-            return "image/svg";
+            return MediaTypeEncoding{   .Encoding = BINARY,
+                                        .ContentType = "image/gif" };
+        if(E=="jpeg" || E=="jpg")
+            return MediaTypeEncoding{   .Encoding = BINARY,
+                                        .ContentType = "image/jpeg" };
+        if(E=="svg" || E=="svgz")
+            return MediaTypeEncoding{   .Encoding = PLAIN,
+                                        .ContentType = "image/svg+xml" };
         if(E=="html")
-            return "text/html";
+            return MediaTypeEncoding{   .Encoding = PLAIN,
+                                        .ContentType = "text/html" };
         if(E=="css")
-            return "text/css";
+            return MediaTypeEncoding{   .Encoding = PLAIN,
+                                        .ContentType = "text/css" };
         if(E=="js")
-            return "application/javascript";
-        return "application/octet-stream";
+            return MediaTypeEncoding{   .Encoding = PLAIN,
+                                        .ContentType = "application/javascript" };
+        return MediaTypeEncoding{       .Encoding = BINARY,
+                                        .ContentType = "application/octet-stream" };
 	}
 
 	std::string BinaryFileToHexString(const Poco::File &F) {

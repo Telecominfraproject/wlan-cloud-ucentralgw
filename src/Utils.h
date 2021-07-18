@@ -21,6 +21,16 @@
 
 namespace uCentral::Utils {
 
+    enum MediaTypeEncodings {
+        PLAIN,
+        BINARY,
+        BASE64
+    };
+    struct MediaTypeEncoding {
+        MediaTypeEncodings  Encoding=PLAIN;
+        std::string         ContentType;
+    };
+
 	[[nodiscard]] std::vector<std::string> Split(const std::string &List, char Delimiter=',');
 	[[nodiscard]] std::string FormatIPv6(const std::string & I );
 	inline void padTo(std::string& str, size_t num, char paddingChar = '\0') {
@@ -56,7 +66,7 @@ namespace uCentral::Utils {
 	[[nodiscard]] std::string LoadFile( const Poco::File & F);
     void ReplaceVariables( std::string & Content , const Types::StringPairVec & P);
 
-    [[nodiscard]] std::string FindMediaType(const Poco::File &F);
+    [[nodiscard]] MediaTypeEncoding FindMediaType(const Poco::File &F);
     [[nodiscard]] std::string BinaryFileToHexString( const Poco::File &F);
 }
 #endif // UCENTRALGW_UTILS_H
