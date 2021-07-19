@@ -125,8 +125,10 @@ namespace uCentral {
 			}
 		});
 
+        bool AutoCommit = Daemon()->ConfigGetBool("ucentral.kafka.auto.commit",false);
+        auto BatchSize = Daemon()->ConfigGetInt("ucentral.kafka.consumer.batchsize",20);
 
-		Types::StringVec    Topics;
+        Types::StringVec    Topics;
 		for(const auto &i:Notifiers_)
 			Topics.push_back(i.first);
 
@@ -135,28 +137,31 @@ namespace uCentral {
 		ConsumerRunning_ = true;
 		while(ConsumerRunning_) {
 			try {
-				cppkafka::Message Msg = Consumer.poll(std::chrono::milliseconds(200));
-				if (!Msg)
-					continue;
-				if (Msg.get_error()) {
-					if (!Msg.is_eof()) {
-						Logger_.error(Poco::format("Error: %s", Msg.get_error().to_string()));
-					}
-					Consumer.commit(Msg);
-					continue;
-				}
-				SubMutexGuard G(ConsumerMutex_);
-				auto It = Notifiers_.find(Msg.get_topic());
-				if (It != Notifiers_.end()) {
-					Types::TopicNotifyFunctionList &FL = It->second;
-					std::string Key{Msg.get_key()};
-					std::string Payload{Msg.get_payload()};
-					for (auto &F : FL) {
-						std::thread T(F.first, Key, Payload);
-						T.detach();
-					}
-				}
-				Consumer.commit(Msg);
+				std::vector<cppkafka::Message> MsgVec = Consumer.poll_batch(BatchSize, std::chrono::milliseconds(200));
+				for(auto const &Msg:MsgVec) {
+                    if (!Msg)
+                        continue;
+                    if (Msg.get_error()) {
+                        if (!Msg.is_eof()) {
+                            Logger_.error(Poco::format("Error: %s", Msg.get_error().to_string()));
+                        }if(!AutoCommit)
+                            Consumer.async_commit(Msg);
+                        continue;
+                    }
+                    SubMutexGuard G(ConsumerMutex_);
+                    auto It = Notifiers_.find(Msg.get_topic());
+                    if (It != Notifiers_.end()) {
+                        Types::TopicNotifyFunctionList &FL = It->second;
+                        std::string Key{Msg.get_key()};
+                        std::string Payload{Msg.get_payload()};
+                        for (auto &F : FL) {
+                            std::thread T(F.first, Key, Payload);
+                            T.detach();
+                        }
+                    }
+                    if (!AutoCommit)
+                        Consumer.async_commit(Msg);
+                }
 			} catch (const cppkafka::HandleException &E) {
 				Logger_.warning(Poco::format("Caught a Kafka exception (consumer): %s",std::string{E.what()}));
 			} catch (const Poco::Exception &E) {

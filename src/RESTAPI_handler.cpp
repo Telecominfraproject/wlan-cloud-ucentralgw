@@ -345,22 +345,7 @@ namespace uCentral {
 		return false;
 	}
 
-	bool RESTAPIHandler::IsAuthorized(Poco::Net::HTTPServerRequest &Request,
-									  Poco::Net::HTTPServerResponse &Response, std::string &UserName) {
-
-#ifdef	TIP_SECURITY_SERVICE
-		if (AuthService()->IsAuthorized(Request, SessionToken_, UserInfo_)) {
-#else
-		if (AuthClient()->IsAuthorized(Request, SessionToken_, UserInfo_)) {
-#endif
-			UserName = UserInfo_.webtoken.username_;
-			return true;
-		} else {
-			UnAuthorized(Request, Response);
-		}
-		return false;
-	}
-
+/*
 	bool RESTAPIHandler::ValidateAPIKey(Poco::Net::HTTPServerRequest &Request,
 										Poco::Net::HTTPServerResponse &Response) {
 		auto Key = Request.get("X-API-KEY", "");
@@ -370,7 +355,7 @@ namespace uCentral {
 
 		return true;
 	}
-
+*/
 	void RESTAPIHandler::ReturnObject(Poco::Net::HTTPServerRequest &Request, Poco::JSON::Object &Object,
 									  Poco::Net::HTTPServerResponse &Response) {
 		PrepareResponse(Request, Response);

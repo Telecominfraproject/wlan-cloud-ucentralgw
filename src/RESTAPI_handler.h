@@ -111,10 +111,8 @@ namespace uCentral {
 
 		bool IsAuthorized(Poco::Net::HTTPServerRequest &Request,
 						  Poco::Net::HTTPServerResponse &Response);
-		bool IsAuthorized(Poco::Net::HTTPServerRequest &Request,
-						  Poco::Net::HTTPServerResponse &Response, std::string &UserName);
-		bool ValidateAPIKey(Poco::Net::HTTPServerRequest &Request,
-							Poco::Net::HTTPServerResponse &Response);
+/*		bool ValidateAPIKey(Poco::Net::HTTPServerRequest &Request,
+							Poco::Net::HTTPServerResponse &Response); */
 
 		uint64_t GetParameter(const std::string &Name, uint64_t Default);
 		std::string GetParameter(const std::string &Name, const std::string &Default);

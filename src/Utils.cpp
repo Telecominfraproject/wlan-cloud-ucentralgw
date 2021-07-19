@@ -471,6 +471,17 @@ namespace uCentral::Utils {
         return Result;
 	}
 
+    std::string SecondsToNiceText(uint64_t Seconds) {
+	    std::string Result;
+	    int Days = Seconds / (24*60*60);
+	    Seconds -= Days * (24*60*60);
+	    int Hours= Seconds / (60*60);
+	    Seconds -= Hours * (60*60);
+	    int Minutes = Seconds / 60;
+	    Seconds -= Minutes * 60;
+	    Result = std::to_string(Days) +" days, " + std::to_string(Hours) + ":" + std::to_string(Minutes) + ":" + std::to_string(Seconds);
+	    return Result;
+	}
 
 
 }

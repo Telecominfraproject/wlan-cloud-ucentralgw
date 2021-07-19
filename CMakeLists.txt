@@ -63,7 +63,7 @@ add_executable( ucentralgw
                 src/RESTAPI_device_handler.cpp src/RESTAPI_device_handler.h
                 src/RESTAPI_handler.cpp src/RESTAPI_handler.h
                 src/RESTAPI_device_commandHandler.cpp src/RESTAPI_device_commandHandler.h
-        src/RESTAPI_GWobjects.h src/RESTAPI_GWobjects.cpp
+                src/RESTAPI_GWobjects.h src/RESTAPI_GWobjects.cpp
                 src/CentralConfig.cpp src/CentralConfig.h
                 src/RESTAPI_default_configuration.cpp
                 src/RESTAPI_InternalServer.cpp src/RESTAPI_InternalServer.h
@@ -79,15 +79,15 @@ add_executable( ucentralgw
                 src/Utils.h src/Utils.cpp src/storage_blacklist.cpp
                 src/storage_command.cpp src/storage_healthcheck.cpp src/storage_statistics.cpp src/storage_logs.cpp
                 src/storage_device.cpp src/storage_capabilities.cpp src/storage_defconfig.cpp src/storage_sqlite.cpp
-                src/storage_mysql.cpp src/storage_pgql.cpp src/storage_tables.cpp src/RESTAPI_callback.cpp
-                src/RESTAPI_callback.h src/CallbackManager.cpp src/CallbackManager.h
+                src/storage_mysql.cpp src/storage_pgql.cpp src/storage_tables.cpp
                 src/StateProcessor.cpp src/StateProcessor.h
                 src/storage_lifetime_stats.cpp src/uCentralProtocol.h src/RESTAPI_protocol.h
                 src/ALBHealthCheckServer.h src/Kafka_topics.h src/uCentralTypes.h
                 src/OUIServer.cpp src/OUIServer.h
                 src/RESTAPI_ouis.cpp src/RESTAPI_ouis.h
                 src/MicroService.cpp src/MicroService.h
-                src/RESTAPI_RPC.cpp src/RESTAPI_RPC.h src/AuthClient.cpp src/AuthClient.h src/OpenAPIRequest.cpp src/OpenAPIRequest.h src/RESTAPI_utils.h src/RESTAPI_utils.cpp src/StorageArchiver.cpp src/StorageArchiver.h)
+                src/RESTAPI_RPC.cpp src/RESTAPI_RPC.h src/AuthClient.cpp src/AuthClient.h src/OpenAPIRequest.cpp src/OpenAPIRequest.h
+                src/RESTAPI_utils.h src/RESTAPI_utils.cpp src/StorageArchiver.cpp src/StorageArchiver.h)
 
 if(NOT SMALL_BUILD)
     target_sources(ucentralgw PUBLIC src/KafkaManager.cpp src/KafkaManager.h)

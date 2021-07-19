@@ -11,7 +11,6 @@
 #include "Poco/URI.h"
 
 #include "RESTAPI_BlackList.h"
-#include "RESTAPI_callback.h"
 #include "RESTAPI_command.h"
 #include "RESTAPI_commands.h"
 #include "RESTAPI_default_configuration.h"
@@ -84,8 +83,7 @@ namespace uCentral {
 							  	RESTAPI_ouis,
 								RESTAPI_file,
 								RESTAPI_system_command,
-								RESTAPI_BlackList,
-								RESTAPI_callback>(Path,Bindings,Logger_);
+								RESTAPI_BlackList>(Path,Bindings,Logger_);
     }
 
 }  // namespace

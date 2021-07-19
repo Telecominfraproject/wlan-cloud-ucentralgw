@@ -14,7 +14,6 @@
 
 #include "Daemon.h"
 
-#include "CallbackManager.h"
 #include "CommandChannel.h"
 #include "CommandManager.h"
 #include "DeviceRegistry.h"
@@ -51,7 +50,6 @@ namespace uCentral {
 									   FileUploader(),
 									   OUIServer(),
 									   CommandChannel(),
-									   CallbackManager(),
 									   StorageArchiver(),
 								   });
 		}

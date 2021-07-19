@@ -7,7 +7,6 @@
 #include "Poco/URI.h"
 
 #include "RESTAPI_BlackList.h"
-#include "RESTAPI_callback.h"
 #include "RESTAPI_command.h"
 #include "RESTAPI_commands.h"
 #include "RESTAPI_default_configuration.h"
@@ -16,7 +15,6 @@
 #include "RESTAPI_device_handler.h"
 #include "RESTAPI_devices_handler.h"
 #include "RESTAPI_file.h"
-#include "RESTAPI_system_command.h"
 #include "RESTAPI_ouis.h"
 #include "Utils.h"
 

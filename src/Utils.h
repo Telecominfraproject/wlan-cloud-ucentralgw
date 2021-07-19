@@ -68,5 +68,7 @@ namespace uCentral::Utils {
 
     [[nodiscard]] MediaTypeEncoding FindMediaType(const Poco::File &F);
     [[nodiscard]] std::string BinaryFileToHexString( const Poco::File &F);
+
+    [[nodiscard]] std::string SecondsToNiceText(uint64_t Seconds);
 }
 #endif // UCENTRALGW_UTILS_H
