@@ -13,7 +13,7 @@
 
 namespace uCentral {
 
-	bool Storage::UpdateDeviceCapabilities(std::string &SerialNumber, std::string & Capabilities) {
+	bool Storage::UpdateDeviceCapabilities(std::string &SerialNumber, std::string & Capabilities, std::string & Compat) {
 		// std::lock_guard<std::mutex> guard(Mutex_);
 
 		try {
@@ -33,7 +33,7 @@ namespace uCentral {
 			Poco::DynamicStruct ds = *Obj;
 
 			if(ds.contains("compatible")) {
-				Compatible= ds["compatible"].toString();
+				Compat = Compatible = ds["compatible"].toString();
 			} else {
 				//	Maybe this is an old firmware
 				auto TmpCompatible = ds["model"]["id"].toString();

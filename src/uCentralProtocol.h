@@ -82,6 +82,13 @@ namespace uCentral::uCentralProtocol {
 	static const char * PASSWORD = "password";
 	static const char * DEVICEUPDATE = "deviceupdate";
 
+    static const char * SERIALNUMBER = "serialNumber";
+    static const char * COMPATIBLE = "compatible";
+    static const char * DISCONNECTION = "disconnection";
+    static const char * TIMESTAMP = "timestamp";
+    static const char * SYSTEM = "system";
+    static const char * HOST = "host";
+
 	enum EVENT_MSG {
 			ET_UNKNOWN,
 			ET_CONNECT,

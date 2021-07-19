@@ -25,6 +25,7 @@
 #include "RESTAPI_handler.h"
 #include "RESTAPI_protocol.h"
 #include "Utils.h"
+#include "Daemon.h"
 
 namespace uCentral {
 
@@ -306,10 +307,6 @@ namespace uCentral {
 	bool RESTAPIHandler::ContinueProcessing(Poco::Net::HTTPServerRequest &Request,
 											Poco::Net::HTTPServerResponse &Response) {
 		if (Request.getMethod() == Poco::Net::HTTPRequest::HTTP_OPTIONS) {
-			/*		std::cout << "REQUEST:" << std::endl;
-					for(const auto &[f,s]:Request)
-						std::cout << "First: " << f << " second:" << s << std::endl;
-			*/
 			ProcessOptions(Request, Response);
 			return false;
 		} else if (std::find(Methods_.begin(), Methods_.end(), Request.getMethod()) == Methods_.end()) {
@@ -322,27 +319,31 @@ namespace uCentral {
 
 	bool RESTAPIHandler::IsAuthorized(Poco::Net::HTTPServerRequest &Request,
 									  Poco::Net::HTTPServerResponse &Response) {
-		if(SessionToken_.empty()) {
-			try {
-				Poco::Net::OAuth20Credentials Auth(Request);
+	    if(Internal_) {
+	        return Daemon()->IsValidAPIKEY(Request);
+	    } else {
+            if (SessionToken_.empty()) {
+                try {
+                    Poco::Net::OAuth20Credentials Auth(Request);
 
-				if (Auth.getScheme() == "Bearer") {
-					SessionToken_ = Auth.getBearerToken();
-				}
-			} catch(const Poco::Exception &E) {
-				Logger_.log(E);
-			}
-		}
-#ifdef	TIP_SECURITY_SERVICE
-		if (AuthService()->IsAuthorized(Request, SessionToken_, UserInfo_)) {
+                    if (Auth.getScheme() == "Bearer") {
+                        SessionToken_ = Auth.getBearerToken();
+                    }
+                } catch (const Poco::Exception &E) {
+                    Logger_.log(E);
+                }
+            }
+#ifdef    TIP_SECURITY_SERVICE
+            if (AuthService()->IsAuthorized(Request, SessionToken_, UserInfo_)) {
 #else
-		if (AuthClient()->IsAuthorized(Request, SessionToken_, UserInfo_)) {
+            if (AuthClient()->IsAuthorized(Request, SessionToken_, UserInfo_)) {
 #endif
-			return true;
-		} else {
-			UnAuthorized(Request, Response);
-		}
-		return false;
+                return true;
+            } else {
+                UnAuthorized(Request, Response);
+            }
+            return false;
+        }
 	}
 
 /*

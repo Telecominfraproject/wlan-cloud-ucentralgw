@@ -91,8 +91,8 @@ namespace uCentral {
 
 		typedef std::map<std::string, std::string> BindingMap;
 
-		RESTAPIHandler(BindingMap map, Poco::Logger &l, std::vector<std::string> Methods)
-			: Bindings_(std::move(map)), Logger_(l), Methods_(std::move(Methods)) {}
+		RESTAPIHandler(BindingMap map, Poco::Logger &l, std::vector<std::string> Methods, bool Internal=false)
+			: Bindings_(std::move(map)), Logger_(l), Methods_(std::move(Methods)), Internal_(Internal) {}
 
 		static bool ParseBindings(const std::string & Request, const std::list<const char *> & EndPoints, BindingMap &Keys);
 		void PrintBindings();
@@ -155,6 +155,7 @@ namespace uCentral {
 		SecurityObjects::UserInfoAndPolicy 	UserInfo_;
 		std::vector<std::string> 	Methods_;
 		QueryBlock					QB_;
+		bool                        Internal_=false;
 	};
 
 	class RESTAPI_UnknownRequestHandler : public RESTAPIHandler {
@@ -181,10 +182,10 @@ namespace uCentral {
 	}
 
 	template<typename T, typename... Args>
-	RESTAPIHandler * RESTAPI_Router(const std::string & RequestedPath, RESTAPIHandler::BindingMap &Bindings, Poco::Logger & Logger) {
+	RESTAPIHandler * RESTAPI_Router(const std::string & RequestedPath, RESTAPIHandler::BindingMap &Bindings, Poco::Logger & Logger ) {
 		static_assert(test_has_PathName_method((T*)nullptr), "Class must have a static PathName() method.");
 		if(RESTAPIHandler::ParseBindings(RequestedPath,T::PathName(),Bindings)) {
-			return new T(Bindings, Logger);
+			return new T(Bindings, Logger, false);
 		}
 
 		if constexpr (sizeof...(Args) == 0) {
@@ -193,6 +194,21 @@ namespace uCentral {
 			return RESTAPI_Router<Args...>(RequestedPath, Bindings, Logger);
 		}
 	}
+
+    template<typename T, typename... Args>
+    RESTAPIHandler * RESTAPI_Router_I(const std::string & RequestedPath, RESTAPIHandler::BindingMap &Bindings, Poco::Logger & Logger) {
+        static_assert(test_has_PathName_method((T*)nullptr), "Class must have a static PathName() method.");
+        if(RESTAPIHandler::ParseBindings(RequestedPath,T::PathName(),Bindings)) {
+            return new T(Bindings, Logger, true);
+        }
+
+        if constexpr (sizeof...(Args) == 0) {
+            return new RESTAPI_UnknownRequestHandler(Bindings,Logger);
+        } else {
+            return RESTAPI_Router_I<Args...>(RequestedPath, Bindings, Logger);
+        }
+    }
+
 
 }
 

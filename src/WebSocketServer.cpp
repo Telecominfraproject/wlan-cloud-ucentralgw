@@ -201,7 +201,20 @@ namespace uCentral {
             (*WS_).close();
             Registered_ = false ;
         }
-    }
+
+		if(KafkaManager()->Enabled() && !SerialNumber_.empty()) {
+			Poco::JSON::Object	Disconnect;
+			Poco::JSON::Object	Details;
+			Details.set("serialNumber", SerialNumber_);
+			Details.set("timestamp",std::time(nullptr));
+			Disconnect.set("disconnection",Details);
+			Poco::JSON::Stringifier		Stringify;
+			std::ostringstream OS;
+			Stringify.condense(Disconnect,OS);
+			KafkaManager()->PostMessage(uCentral::KafkaTopics::CONNECTION, SerialNumber_, OS.str());
+		}
+
+	}
 
     bool WSConnection::LookForUpgrade(uint64_t UUID) {
 
@@ -357,10 +370,11 @@ namespace uCentral {
 						}
 						Conn_->VerifiedCertificate = CertValidation_;
 
+						std::string Compatible;
 						if (Daemon()->AutoProvisioning() && !Storage()->DeviceExists(SerialNumber_)) {
-							Storage()->CreateDefaultDevice(SerialNumber_, Capabilities, Firmware);
+							Storage()->CreateDefaultDevice(SerialNumber_, Capabilities, Firmware, Compatible_);
 						} else if (Storage()->DeviceExists(SerialNumber_)) {
-							Storage()->UpdateDeviceCapabilities(SerialNumber_, Capabilities);
+							Storage()->UpdateDeviceCapabilities(SerialNumber_, Capabilities, Compatible_);
 							if(!Firmware.empty()) {
 								Storage()->SetConnectInfo(SerialNumber_, Firmware );
 							}
@@ -656,9 +670,24 @@ namespace uCentral {
             } else {
                 switch (Op) {
                     case Poco::Net::WebSocket::FRAME_OP_PING: {
-                        Logger_.debug(Poco::format("WS-PING(%s): received. PONG sent back.", CId_));
-                        WS_->sendFrame("", 0,(int)Poco::Net::WebSocket::FRAME_OP_PONG | (int)Poco::Net::WebSocket::FRAME_FLAG_FIN);
-                        }
+							Logger_.debug(Poco::format("WS-PING(%s): received. PONG sent back.", CId_));
+							WS_->sendFrame("", 0,
+										   (int)Poco::Net::WebSocket::FRAME_OP_PONG |
+											   (int)Poco::Net::WebSocket::FRAME_FLAG_FIN);
+							if (KafkaManager()->Enabled() && Conn_) {
+								Poco::JSON::Object PingObject;
+								Poco::JSON::Object PingDetails;
+								PingDetails.set(uCentralProtocol::FIRMWARE, Conn_->Firmware);
+								PingDetails.set(uCentralProtocol::SERIALNUMBER, SerialNumber_);
+								PingDetails.set(uCentralProtocol::COMPATIBLE, Compatible_);
+								PingObject.set(uCentralProtocol::PING,PingDetails);
+								Poco::JSON::Stringifier Stringify;
+								std::ostringstream OS;
+								Stringify.condense(PingObject, OS);
+								KafkaManager()->PostMessage(uCentral::KafkaTopics::STATE, SerialNumber_,
+															OS.str());
+							}
+						}
                         break;
 
                     case Poco::Net::WebSocket::FRAME_OP_PONG: {

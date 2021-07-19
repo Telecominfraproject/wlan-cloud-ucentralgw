@@ -182,7 +182,7 @@ namespace uCentral {
 		return false;
 	}
 
-	bool Storage::CreateDefaultDevice(const std::string &SerialNumber, const std::string &Capabilities, std::string & Firmware) {
+	bool Storage::CreateDefaultDevice(const std::string &SerialNumber, const std::string &Capabilities, std::string & Firmware, std::string &Compat) {
 
 		GWObjects::Device D;
 		Logger_.information(Poco::format("AUTO-CREATION(%s)", SerialNumber));
@@ -202,7 +202,7 @@ namespace uCentral {
 		}
 
 		D.SerialNumber = Poco::toLower(SerialNumber);
-		D.Compatible = Caps.Compatible();
+		Compat = D.Compatible = Caps.Compatible();
 		D.DeviceType = Daemon()->IdentifyDevice(D.Compatible);
 		D.MACAddress = Utils::SerialToMAC(SerialNumber);
 		D.Manufacturer = Caps.Model();

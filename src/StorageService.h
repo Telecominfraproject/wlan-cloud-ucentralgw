@@ -63,7 +63,7 @@ namespace uCentral {
 		bool UpdateDeviceConfiguration(std::string &SerialNumber, std::string &Configuration, uint64_t & NewUUID );
 
 		bool CreateDevice(GWObjects::Device &);
-		bool CreateDefaultDevice(const std::string & SerialNumber, const std::string & Capabilities, std::string & Firmware);
+		bool CreateDefaultDevice(const std::string & SerialNumber, const std::string & Capabilities, std::string & Firmware, std::string &Compatible);
 
 		bool GetDevice(std::string &SerialNumber, GWObjects::Device &);
 		bool GetDevices(uint64_t From, uint64_t HowMany, std::vector<GWObjects::Device> &Devices);
@@ -84,7 +84,7 @@ namespace uCentral {
 
 		bool ExistingConfiguration(std::string &SerialNumber, uint64_t CurrentConfig, std::string &NewConfig, uint64_t &);
 
-		bool UpdateDeviceCapabilities(std::string &SerialNumber, std::string &State);
+		bool UpdateDeviceCapabilities(std::string &SerialNumber, std::string &State, std::string & Compatible);
 		bool GetDeviceCapabilities(std::string &SerialNumber, GWObjects::Capabilities &);
 		bool DeleteDeviceCapabilities(std::string & SerialNumber);
 

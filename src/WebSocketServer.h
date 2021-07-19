@@ -172,6 +172,7 @@ namespace uCentral {
         Poco::Net::StreamSocket       		Socket_;
         std::unique_ptr<Poco::Net::WebSocket> WS_;
         std::string                         SerialNumber_;
+		std::string 						Compatible_;
 		GWObjects::ConnectionState 	* Conn_ = nullptr;
         bool                                Registered_ = false ;
 		std::string 						CId_;
