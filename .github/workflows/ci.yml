@@ -73,11 +73,14 @@ jobs:
     runs-on: ubuntu-20.04
     needs: docker
     steps:
-    - name: Check out repository
+    - name: Check out wlan-cloud-ucentral-deploy repository
       uses: actions/checkout@v2
+      with:
+        repository: Telecominfraproject/wlan-cloud-ucentral-deploy
+        path: wlan-cloud-ucentral-deploy
 
     - name: Instantiate Docker Compose deployment
-      working-directory: ./docker-compose
+      working-directory: ./wlan-cloud-ucentral-deploy/docker-compose
       env:
         UCENTRALGW_TAG: ${{ github.sha }}
       run: |
@@ -98,11 +101,17 @@ jobs:
         done
 
     - name: Add self-signed certificates to system trust store of containers
-      working-directory: ./docker-compose
+      working-directory: ./wlan-cloud-ucentral-deploy/docker-compose
       run: |
         ./add-ca-cert.sh
 
+    - name: Check out wlan-cloud-ucentralgw repository
+      uses: actions/checkout@v2
+      with:
+        path: wlan-cloud-ucentralgw
+
     - name: Check functionality of microservices
+      working-directory: ./wlan-cloud-ucentralgw
       env:
         UCENTRALSEC: "ucentral.wlan.local:16001"
         FLAGS: "-s --cacert docker-compose/certs/restapi-ca.pem --resolve ucentral.wlan.local:16001:127.0.0.1"
@@ -110,7 +119,7 @@ jobs:
         ./test_scripts/curl/cli listdevices
 
     - name: Display information about running containers and log ucentralgw output
-      working-directory: ./docker-compose
+      working-directory: ./wlan-cloud-ucentral-deploy/docker-compose
       if: always()
       run: |
         docker-compose ps -a
