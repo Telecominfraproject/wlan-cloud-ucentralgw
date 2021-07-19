@@ -113,13 +113,13 @@ namespace uCentral {
 
 		cppkafka::Consumer Consumer(Config);
 		Consumer.set_assignment_callback([this](cppkafka::TopicPartitionList& partitions) {
-			if(partitions.empty()) {
+			if(!partitions.empty()) {
 				Logger_.information(Poco::format("Partition assigned: %Lu...",
 												 (uint64_t)partitions.front().get_partition()));
 			}
 		});
 		Consumer.set_revocation_callback([this](const cppkafka::TopicPartitionList& partitions) {
-			if(partitions.empty()) {
+			if(!partitions.empty()) {
 				Logger_.information(Poco::format("Partition revocation: %Lu...",
 												 (uint64_t)partitions.front().get_partition()));
 			}
