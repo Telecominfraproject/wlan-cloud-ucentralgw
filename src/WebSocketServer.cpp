@@ -684,7 +684,7 @@ namespace uCentral {
 								Poco::JSON::Stringifier Stringify;
 								std::ostringstream OS;
 								Stringify.condense(PingObject, OS);
-								KafkaManager()->PostMessage(uCentral::KafkaTopics::STATE, SerialNumber_,
+								KafkaManager()->PostMessage(uCentral::KafkaTopics::CONNECTION, SerialNumber_,
 															OS.str());
 							}
 						}
