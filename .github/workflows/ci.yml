@@ -114,9 +114,9 @@ jobs:
       working-directory: ./wlan-cloud-ucentralgw
       env:
         UCENTRALSEC: "ucentral.wlan.local:16001"
-        FLAGS: "-s --cacert docker-compose/certs/restapi-ca.pem --resolve ucentral.wlan.local:16001:127.0.0.1"
+        FLAGS: "-s --cacert ./wlan-cloud-ucentral-deploy/docker-compose/certs/restapi-ca.pem --resolve ucentral.wlan.local:16001:127.0.0.1"
       run: |
-        ./test_scripts/curl/cli listdevices
+        ./wlan-cloud-ucentralgw/test_scripts/curl/cli listdevices
 
     - name: Display information about running containers and log ucentralgw output
       working-directory: ./wlan-cloud-ucentral-deploy/docker-compose
