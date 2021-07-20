@@ -111,7 +111,6 @@ jobs:
         path: wlan-cloud-ucentralgw
 
     - name: Check functionality of microservices
-      working-directory: ./wlan-cloud-ucentralgw
       env:
         UCENTRALSEC: "ucentral.wlan.local:16001"
         FLAGS: "-s --cacert ./wlan-cloud-ucentral-deploy/docker-compose/certs/restapi-ca.pem --resolve ucentral.wlan.local:16001:127.0.0.1"
