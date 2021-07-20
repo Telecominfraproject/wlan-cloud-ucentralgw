@@ -205,9 +205,9 @@ namespace uCentral {
 		if(KafkaManager()->Enabled() && !SerialNumber_.empty()) {
 			Poco::JSON::Object	Disconnect;
 			Poco::JSON::Object	Details;
-			Details.set("serialNumber", SerialNumber_);
-			Details.set("timestamp",std::time(nullptr));
-			Disconnect.set("disconnection",Details);
+			Details.set(uCentralProtocol::SERIALNUMBER, SerialNumber_);
+			Details.set(uCentralProtocol::TIMESTAMP,std::time(nullptr));
+			Disconnect.set(uCentralProtocol::DISCONNECTION,Details);
 			Poco::JSON::Stringifier		Stringify;
 			std::ostringstream OS;
 			Stringify.condense(Disconnect,OS);
