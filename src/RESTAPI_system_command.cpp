@@ -135,14 +135,14 @@ namespace uCentral {
 		try {
 			ParseParameters(Request);
 			auto Command = GetParameter("command", "");
-			if (Poco::icompare(Command, "version")) {
+			if (!Poco::icompare(Command, "version")) {
 				Poco::JSON::Object Answer;
 				Answer.set("tag", "version");
 				Answer.set("value", Daemon()->Version());
 				ReturnObject(Request, Answer, Response);
 				return;
 			}
-			if (Poco::icompare(Command, "times")) {
+			if (!Poco::icompare(Command, "times")) {
 				Poco::JSON::Array	Array;
 				Poco::JSON::Object 	Answer;
 				Poco::JSON::Object	UpTimeObj;

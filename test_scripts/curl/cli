@@ -505,6 +505,21 @@ dashboard() {
 	jq < ${result_file}
 }
 
+gwversion() {
+	curl  ${FLAGS} -X GET "https://${UCENTRALGW}/api/v1/system?command=version" \
+        -H "accept: application/json" \
+        -H "Authorization: Bearer ${token}" > ${result_file}
+	jq < ${result_file}
+}
+
+gwtimes() {
+	curl  ${FLAGS} -X GET "https://${UCENTRALGW}/api/v1/system?command=times" \
+        -H "accept: application/json" \
+        -H "Authorization: Bearer ${token}" > ${result_file}
+	jq < ${result_file}
+}
+
+
 help() {
   echo
   echo "getdevice <serial>                Get the device JSON document."
@@ -648,6 +663,8 @@ case "$1" in
   "getsubsystemnames") login; getsubsystemnames; logout ;;
   "ouilookup") login; ouilookup "$2"; logout;;
   "dashboard") login; dashboard ; logout;;
+  "gwversion") login; gwversion ; logout;;
+  "gwtimes") login; gwtimes ; logout;;
   "addnote") login; addnote "$2" "$3"; logout;;
   *) help ;;
 esac
