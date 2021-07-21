@@ -255,6 +255,12 @@ namespace uCentral {
 					if (Unit->has("uptime")) {
 						Types::UpdateCountedMap(D.upTimes, ComputeUpTimeTag(Unit->get("uptime")));
 					}
+					if (Unit->has("memory")) {
+						auto Memory = Unit->getObject("memory");
+						uint64_t Free = Memory->get("free");
+						uint64_t Total = Memory->get("total");
+						Types::UpdateCountedMap(D.load1, ComputeFreeMemoryTag(Free, Total));
+					}
 					if (Unit->has("load")) {
 						auto Load = Unit->getArray("load");
 						Types::UpdateCountedMap(D.load1,
@@ -263,12 +269,6 @@ namespace uCentral {
 												ComputeLoadTag(Load->getElement<uint64_t>(1)));
 						Types::UpdateCountedMap(D.load15,
 												ComputeLoadTag(Load->getElement<uint64_t>(2)));
-					}
-					if (Unit->has("memory")) {
-						auto Memory = Unit->getObject("memory");
-						uint64_t Free = Memory->get("free");
-						uint64_t Total = Memory->get("total");
-						Types::UpdateCountedMap(D.load1, ComputeFreeMemoryTag(Free, Total));
 					}
 				}
 			}
