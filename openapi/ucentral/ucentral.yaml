@@ -2096,7 +2096,7 @@ paths:
             type: string
             enum:
               - version
-              - uptime
+              - times
         required: true
 
       responses:
