@@ -8,6 +8,9 @@
 
 #include "StateProcessor.h"
 #include "StorageService.h"
+#include "Poco/Data/RecordSet.h"
+#include "Poco/JSON/Object.h"
+#include "Poco/JSON/Parser.h"
 
 /*
 	Sess << "CREATE TABLE IF NOT EXISTS LifetimeStats ("
@@ -98,4 +101,5 @@ namespace uCentral {
 		}
 		return false;
 	}
+
 }

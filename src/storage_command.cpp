@@ -10,6 +10,7 @@
 
 #include "Poco/File.h"
 #include "Poco/Data/LOBStream.h"
+#include "Poco/Data/RecordSet.h"
 
 #include "Daemon.h"
 #include "DeviceRegistry.h"
@@ -781,6 +782,30 @@ namespace uCentral {
 			Delete.execute();
 			return true;
 		} catch (const Poco::Exception &E) {
+			Logger_.log(E);
+		}
+		return false;
+	}
+
+	bool Storage::AnalyzeCommands(Types::CountedMap &R) {
+		try {
+			Poco::Data::Session     Sess = Pool_->get();
+			Poco::Data::Statement   Select(Sess);
+
+			Select << "SELECT Command from CommandList";
+			Select.execute();
+
+			Poco::Data::RecordSet   RSet(Select);
+
+			bool More = RSet.moveFirst();
+			while(More) {
+				auto Command = RSet[0].convert<std::string>();
+				if(!Command.empty())
+					Types::UpdateCountedMap(R,Command);
+				More = RSet.moveNext();
+			}
+			return true;
+		} catch(const Poco::Exception &E) {
 			Logger_.log(E);
 		}
 		return false;

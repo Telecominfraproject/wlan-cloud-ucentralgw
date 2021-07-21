@@ -32,6 +32,7 @@ namespace uCentral::GWObjects {
 		uint64_t LastContact=0;
 		std::string Firmware;
 		CertificateValidation VerifiedCertificate = NO_CERTIFICATE;
+		std::string DeviceType;
 		void to_json(Poco::JSON::Object &Obj) const;
 	};
 
@@ -155,6 +156,23 @@ namespace uCentral::GWObjects {
 		uint64_t 	ViewPort;
 		std::string DevicePassword;
 		void to_json(Poco::JSON::Object &Obj) const;
+	};
+
+	struct Dashboard {
+		Types::CountedMap commands;
+		Types::CountedMap upTimes;
+		Types::CountedMap memoryUsed;
+		Types::CountedMap load1;
+		Types::CountedMap load5;
+		Types::CountedMap load15;
+		Types::CountedMap vendors;
+		Types::CountedMap status;
+		Types::CountedMap deviceType;
+		Types::CountedMap healths;
+		Types::CountedMap certificates;
+		Types::CountedMap lastContact;
+		void to_json(Poco::JSON::Object &Obj) const;
+		void reset();
 	};
 }
 

@@ -188,6 +188,7 @@ namespace uCentral::GWObjects {
 			default:
 				field_to_json(Obj,"verifiedCertificate", "NO_CERTIFICATE"); break;
 		}
+		field_to_json(Obj,"deviceType", DeviceType);
 	}
 
 	void RttySessionDetails::to_json(Poco::JSON::Object &Obj) const {
@@ -203,5 +204,34 @@ namespace uCentral::GWObjects {
 		field_to_json(Obj,"password",DevicePassword);
 	}
 
+	void Dashboard::to_json(Poco::JSON::Object &Obj) const {
+		field_to_json(Obj,"commands",commands);
+		field_to_json(Obj,"upTimes",upTimes);
+		field_to_json(Obj,"memoryUsed",memoryUsed);
+		field_to_json(Obj,"load1",load1);
+		field_to_json(Obj,"load5",load5);
+		field_to_json(Obj,"load15",load15);
+		field_to_json(Obj,"vendors",vendors);
+		field_to_json(Obj,"status",status);
+		field_to_json(Obj,"deviceType",deviceType);
+		field_to_json(Obj,"healths",healths);
+		field_to_json(Obj,"certificates",certificates);
+		field_to_json(Obj,"lastContact",lastContact);
+	}
+
+	void Dashboard::reset()  {
+		commands.clear();
+		upTimes.clear();
+		memoryUsed.clear();
+		load1.clear();
+		load5.clear();
+		load15.clear();
+		vendors.clear();
+		status.clear();
+		deviceType.clear();
+		healths.clear();
+		certificates.clear();
+		lastContact.clear();
+	}
 }
 

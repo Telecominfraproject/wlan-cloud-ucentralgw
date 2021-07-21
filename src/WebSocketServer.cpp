@@ -379,6 +379,7 @@ namespace uCentral {
 								Storage()->SetConnectInfo(SerialNumber_, Firmware );
 							}
 						}
+						Conn_->DeviceType = Compatible_;
 
 						StatsProcessor_ = std::make_unique<uCentral::StateProcessor>();
 						StatsProcessor_->Initialize(Serial);
@@ -471,7 +472,7 @@ namespace uCentral {
 							Storage()->SetCommandResult(request_uuid, CheckData);
 						}
 
-						DeviceRegistry()->SetHealthcheck(Serial, CheckData);
+						DeviceRegistry()->SetHealthcheck(Serial, Check);
 						if(KafkaManager()->Enabled()) {
 							Poco::JSON::Stringifier		Stringify;
 							std::ostringstream OS;

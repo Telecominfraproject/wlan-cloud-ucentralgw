@@ -143,6 +143,8 @@ namespace uCentral {
 		int Create_FileUploads();
 		int Create_LifetimeStats();
 
+		bool AnalyzeCommands(Types::CountedMap &R);
+
 		int 	Start() override;
 		void 	Stop() override;
 		int 	Setup_SQLite();

@@ -25,7 +25,7 @@ namespace uCentral {
 			WSConnection 				*WSConn_;
 			GWObjects::ConnectionState 	Conn_;
 			std::string        			LastStats;
-			std::string 				LastHealthcheck;
+			GWObjects::HealthCheck		LastHealthcheck;
 		};
 
         static DeviceRegistry *instance() {
@@ -41,14 +41,16 @@ namespace uCentral {
 		void SetStatistics(const std::string &SerialNumber, const std::string &stats);
 		bool GetState(const std::string & SerialNumber, GWObjects::ConnectionState & State);
 		void SetState(const std::string & SerialNumber, GWObjects::ConnectionState & State);
-		bool GetHealthcheck(const std::string &SerialNumber, std::string & Statistics);
-		void SetHealthcheck(const std::string &SerialNumber, const std::string &stats);
+		bool GetHealthcheck(const std::string &SerialNumber, GWObjects::HealthCheck & CheckData);
+		void SetHealthcheck(const std::string &SerialNumber, const GWObjects::HealthCheck &H);
 		GWObjects::ConnectionState * Register(const std::string & SerialNumber, WSConnection *);
 		void UnRegister(const std::string & SerialNumber, WSConnection *);
 		bool SendCommand(GWObjects::CommandDetails & Command);
 		bool Connected(const std::string & SerialNumber);
 		bool SendFrame(const std::string & SerialNumber, const std::string & Payload);
 		void SetPendingUUID(const std::string & SerialNumber, uint64_t PendingUUID);
+
+		bool AnalyzeRegistry(GWObjects::Dashboard &D);
 
 	  private:
 		static DeviceRegistry                          *instance_;

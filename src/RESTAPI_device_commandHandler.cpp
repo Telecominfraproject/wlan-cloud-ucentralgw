@@ -405,13 +405,11 @@ void RESTAPI_device_commandHandler::GetChecks(Poco::Net::HTTPServerRequest &Requ
 		std::vector<GWObjects::HealthCheck> Checks;
 
 		if (QB_.LastOnly) {
-			std::string Healthcheck;
-			if (DeviceRegistry()->GetHealthcheck(SerialNumber_, Healthcheck)) {
-				Poco::JSON::Parser P;
-				if (Healthcheck.empty())
-					Healthcheck = uCentral::uCentralProtocol::EMPTY_JSON_DOC;
-				auto Obj = P.parse(Healthcheck).extract<Poco::JSON::Object::Ptr>();
-				ReturnObject(Request, *Obj, Response);
+			GWObjects::HealthCheck	HC;
+			if (DeviceRegistry()->GetHealthcheck(SerialNumber_, HC)) {
+				Poco::JSON::Object	Answer;
+				HC.to_json(Answer);
+				ReturnObject(Request, Answer, Response);
 			} else {
 				NotFound(Request, Response);
 			}

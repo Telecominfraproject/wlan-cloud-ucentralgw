@@ -498,6 +498,13 @@ ouilookup() {
 	jq < ${result_file}
 }
 
+dashboard() {
+	curl  ${FLAGS} -X GET "https://${UCENTRALGW}/api/v1/deviceDashboard" \
+        -H "accept: application/json" \
+        -H "Authorization: Bearer ${token}" > ${result_file}
+	jq < ${result_file}
+}
+
 help() {
   echo
   echo "getdevice <serial>                Get the device JSON document."
@@ -578,6 +585,8 @@ help() {
   echo
   echo "ouilookup <serial> 				  Lookup an OUI"
   echo
+  echo "dashboard 				  		  Get the dashboard document"
+  echo
   echo
   echo "To pass additional flags to the CURL command, create an environment variable called FLAGS and git ve the values you"
   echo "want. For example, for force all call to use IPv6, set FLAGS=\"-6\", for verbose mode and IPv6, set FLAGS=\"-6 -v\""
@@ -638,6 +647,7 @@ case "$1" in
   "getloglevelnames") login; getloglevelnames; logout ;;
   "getsubsystemnames") login; getsubsystemnames; logout ;;
   "ouilookup") login; ouilookup "$2"; logout;;
+  "dashboard") login; dashboard ; logout;;
   "addnote") login; addnote "$2" "$3"; logout;;
   *) help ;;
 esac

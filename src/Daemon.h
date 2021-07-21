@@ -25,6 +25,7 @@
 #include "Poco/Crypto/CipherFactory.h"
 #include "Poco/Crypto/Cipher.h"
 
+#include "Dashboard.h"
 #include "MicroService.h"
 #include "uCentralTypes.h"
 
@@ -50,10 +51,13 @@ namespace uCentral {
 			[[nodiscard]] std::string IdentifyDevice(const std::string & Compatible) const;
 			void initialize(Poco::Util::Application &self);
 			static Daemon *instance();
+			inline DeviceDashboard	& GetDashboard() { return DB_; }
 	  	private:
 			static Daemon 				*instance_;
 			bool                        AutoProvisioning_ = false;
 			Types::StringMapStringSet   DeviceTypeIdentifications_;
+			DeviceDashboard				DB_;
+
     };
 
 	inline Daemon * Daemon() { return Daemon::instance(); }

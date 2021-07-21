@@ -21,6 +21,7 @@
 #include "RESTAPI_file.h"
 #include "RESTAPI_system_command.h"
 #include "RESTAPI_ouis.h"
+#include "RESTAPI_deviceDashboardHandler.h"
 
 #include "Utils.h"
 
@@ -83,6 +84,7 @@ namespace uCentral {
 							  	RESTAPI_ouis,
 								RESTAPI_file,
 								RESTAPI_system_command,
+								RESTAPI_deviceDashboardHandler,
 								RESTAPI_BlackList>(Path,Bindings,Logger_);
     }
 

@@ -581,6 +581,36 @@ components:
           items:
             $ref: '#/components/schemas/CommandInfo'
 
+    DeviceDashboard:
+      type: object
+      properties:
+        commands:
+          $ref: '#/components/schemas/TagIntPairList'
+        upTimes:
+          $ref: '#/components/schemas/TagIntPairList'
+        memoryUsed:
+          $ref: '#/components/schemas/TagIntPairList'
+        load1:
+          $ref: '#/components/schemas/TagIntPairList'
+        load5:
+          $ref: '#/components/schemas/TagIntPairList'
+        load15:
+          $ref: '#/components/schemas/TagIntPairList'
+        vendors:
+          $ref: '#/components/schemas/TagIntPairList'
+        status:
+          $ref: '#/components/schemas/TagIntPairList'
+        type:
+          $ref: '#/components/schemas/TagIntPairList'
+        deviceType:
+          $ref: '#/components/schemas/TagIntPairList'
+        healths:
+          $ref: '#/components/schemas/TagIntPairList'
+        certificates:
+          $ref: '#/components/schemas/TagIntPairList'
+        lastContact:
+          $ref: '#/components/schemas/TagIntPairList'
+
     #########################################################################################
     ##
     ## These are endpoints that all services in the uCentral stack must provide
@@ -615,6 +645,23 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/TagValuePair'
+
+    TagIntPair:
+      type: object
+      properties:
+        tag:
+          type: string
+        value:
+          type: integer
+          format: int64
+
+    TagIntPairList:
+      type: object
+      properties:
+        tagList:
+          type: array
+          items:
+            $ref: '#/components/schemas/TagIntPair'
 
     SystemCommandDetails:
       type: object
@@ -1988,6 +2035,20 @@ paths:
       responses:
         200:
           $ref: '#/components/responses/Success'
+        403:
+          $ref: '#/components/responses/Unauthorized'
+        404:
+          $ref: '#/components/responses/NotFound'
+
+  /deviceDashboard:
+    get:
+      tags:
+        - Dashboards
+      summary: Get the last version of the dashboard
+      operationId: getDeviceDashboard
+      responses:
+        200:
+          $ref: '#/components/schemas/DeviceDashboard'
         403:
           $ref: '#/components/responses/Unauthorized'
         404:

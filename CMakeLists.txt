@@ -87,7 +87,7 @@ add_executable( ucentralgw
                 src/RESTAPI_ouis.cpp src/RESTAPI_ouis.h
                 src/MicroService.cpp src/MicroService.h
                 src/RESTAPI_RPC.cpp src/RESTAPI_RPC.h src/AuthClient.cpp src/AuthClient.h src/OpenAPIRequest.cpp src/OpenAPIRequest.h
-                src/RESTAPI_utils.h src/RESTAPI_utils.cpp src/StorageArchiver.cpp src/StorageArchiver.h)
+                src/RESTAPI_utils.h src/RESTAPI_utils.cpp src/StorageArchiver.cpp src/StorageArchiver.h src/Dashboard.cpp src/Dashboard.h src/RESTAPI_deviceDashboardHandler.cpp src/RESTAPI_deviceDashboardHandler.h)
 
 if(NOT SMALL_BUILD)
     target_sources(ucentralgw PUBLIC src/KafkaManager.cpp src/KafkaManager.h)
