@@ -601,8 +601,8 @@ help() {
   echo "ouilookup <serial> 				  Lookup an OUI"
   echo
   echo "dashboard 				  		  Get the dashboard document"
-  echo
-  echo
+  echo "gwtimes							  Get the uptime and start time of the service."
+  echo "gwversion						  Get the service version."
   echo "To pass additional flags to the CURL command, create an environment variable called FLAGS and git ve the values you"
   echo "want. For example, for force all call to use IPv6, set FLAGS=\"-6\", for verbose mode and IPv6, set FLAGS=\"-6 -v\""
   echo
