@@ -32,7 +32,7 @@ namespace uCentral::GWObjects {
 		uint64_t LastContact=0;
 		std::string Firmware;
 		CertificateValidation VerifiedCertificate = NO_CERTIFICATE;
-		std::string DeviceType;
+		std::string Compatible;
 		void to_json(Poco::JSON::Object &Obj) const;
 	};
 

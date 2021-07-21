@@ -188,7 +188,6 @@ namespace uCentral::GWObjects {
 			default:
 				field_to_json(Obj,"verifiedCertificate", "NO_CERTIFICATE"); break;
 		}
-		field_to_json(Obj,"deviceType", DeviceType);
 	}
 
 	void RttySessionDetails::to_json(Poco::JSON::Object &Obj) const {

@@ -379,7 +379,7 @@ namespace uCentral {
 								Storage()->SetConnectInfo(SerialNumber_, Firmware );
 							}
 						}
-						Conn_->DeviceType = Compatible_;
+						Conn_->Compatible = Compatible_;
 
 						StatsProcessor_ = std::make_unique<uCentral::StateProcessor>();
 						StatsProcessor_->Initialize(Serial);

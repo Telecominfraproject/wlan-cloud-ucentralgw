@@ -244,7 +244,7 @@ namespace uCentral {
 			Types::UpdateCountedMap(D.certificates, ComputeCertificateTag(Connection->Conn_.VerifiedCertificate));
 			Types::UpdateCountedMap(D.lastContact, ComputeUpLastContactTag(Connection->Conn_.LastContact));
 			Types::UpdateCountedMap(D.healths, ComputeSanityTag(Connection->LastHealthcheck.Sanity));
-			Types::UpdateCountedMap(D.deviceType, Connection->Conn_.DeviceType);
+			Types::UpdateCountedMap(D.deviceType, Connection->Conn_.Compatible);
 			if(!Connection->LastStats.empty()) {
 				Poco::JSON::Parser	P;
 
