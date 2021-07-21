@@ -186,6 +186,7 @@ namespace uCentral {
 		case GWObjects::MISMATCH_SERIAL: return "serial mismatch";
 		case GWObjects::VERIFIED: return "verified";
 		}
+		return "unknown";
 	}
 
 	const uint64_t SECONDS_MONTH = 30*24*60*60;
