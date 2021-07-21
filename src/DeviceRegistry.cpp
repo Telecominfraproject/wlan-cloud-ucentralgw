@@ -259,7 +259,7 @@ namespace uCentral {
 						auto Memory = Unit->getObject("memory");
 						uint64_t Free = Memory->get("free");
 						uint64_t Total = Memory->get("total");
-						Types::UpdateCountedMap(D.load1, ComputeFreeMemoryTag(Free, Total));
+						Types::UpdateCountedMap(D.memoryUsed, ComputeFreeMemoryTag(Free, Total));
 					}
 					if (Unit->has("load")) {
 						auto Load = Unit->getArray("load");
