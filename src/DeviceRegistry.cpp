@@ -194,7 +194,8 @@ namespace uCentral {
 	const uint64_t SECONDS_DAY = 1*24*60*60;
 	const uint64_t SECONDS_HOUR = 1*24*60*60;
 
-	std::string ComputeUpLastContactTag(uint64_t T) {
+	std::string ComputeUpLastContactTag(uint64_t T1) {
+		uint64_t T = T1 - std::time(nullptr);
 		if( T>SECONDS_MONTH) return ">month";
 		if( T>SECONDS_WEEK) return ">week";
 		if( T>SECONDS_DAY) return ">day";
@@ -203,9 +204,9 @@ namespace uCentral {
 	}
 
 	std::string ComputeSanityTag(uint64_t T) {
-		if( T==100) return "100%%";
-		if( T>90) return ">90%%";
-		if( T>60) return ">60%%";
+		if( T==100) return "100%";
+		if( T>90) return ">90%";
+		if( T>60) return ">60%";
 		return "<60%%>";
 	}
 
