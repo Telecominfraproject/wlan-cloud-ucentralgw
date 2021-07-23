@@ -9,6 +9,8 @@
 #include <fstream>
 #include <cstdlib>
 #include <regex>
+#include <random>
+#include <chrono>
 
 #include "Utils.h"
 
@@ -363,8 +365,11 @@ namespace uCentral::Utils {
 	}
 
 	uint64_t InitializeSystemId() {
-		std::srand(std::time(nullptr));
-		auto S = GetDefaultMacAsInt64() ^ std::rand();
+		std::random_device	RDev;
+		std::srand(RDev());
+		std::chrono::high_resolution_clock	Clock;
+		auto Now = Clock.now().time_since_epoch().count();
+		auto S = (GetDefaultMacAsInt64() + std::rand() + Now)  ;
 		SaveSystemId(S);
 		std::cout << "ID: " << S << std::endl;
 		return S;
