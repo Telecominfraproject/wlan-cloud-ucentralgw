@@ -2097,7 +2097,7 @@ paths:
             enum:
               - version
               - times
-        required: true
+          required: true
 
       responses:
         200:
