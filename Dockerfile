@@ -26,7 +26,7 @@ RUN cmake ..
 RUN cmake --build . --config Release -j8
 RUN cmake --build . --target install
 
-ADD CMakeLists.txt /ucentralgw/
+ADD CMakeLists.txt build /ucentralgw/
 ADD cmake /ucentralgw/cmake
 ADD src /ucentralgw/src
 
