@@ -56,5 +56,7 @@ COPY --from=builder /poco/cmake-build/lib/* /lib/
 EXPOSE 15002 16002 16003 17002 16102
 
 COPY docker-entrypoint.sh /
+RUN chmod +x /docker-entrypoint.sh
+
 ENTRYPOINT ["/docker-entrypoint.sh"]
 CMD ["/ucentral/ucentralgw"]
