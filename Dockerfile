@@ -1,13 +1,13 @@
 FROM alpine AS builder
 
-RUN apk update && \
-    apk add --no-cache openssl openssh && \
-    apk add --no-cache ncurses-libs && \
-    apk add --no-cache bash util-linux coreutils curl && \
-    apk add --no-cache make cmake gcc g++ libstdc++ libgcc git zlib-dev yaml-cpp-dev && \
-    apk add --no-cache openssl-dev boost-dev unixodbc-dev postgresql-dev mariadb-dev && \
-    apk add --no-cache apache2-utils yaml-dev apr-util-dev && \
-    apk add --no-cache lua-dev librdkafka-dev
+RUN apk add --update --no-cache \
+    openssl openssh \
+    ncurses-libs \
+    bash util-linux coreutils curl \
+    make cmake gcc g++ libstdc++ libgcc git zlib-dev yaml-cpp-dev \
+    openssl-dev boost-dev unixodbc-dev postgresql-dev mariadb-dev \
+    apache2-utils yaml-dev apr-util-dev \
+    lua-dev librdkafka-dev
 
 RUN git clone https://github.com/stephb9959/poco /poco
 RUN git clone https://github.com/stephb9959/cppkafka /cppkafka
@@ -38,21 +38,23 @@ RUN cmake --build . --config Release -j8
 
 FROM alpine
 
-RUN addgroup -S ucentralgw && adduser -S -G ucentralgw ucentralgw
+ENV UCENTRALGW_USER=ucentralgw \
+    UCENTRALGW_ROOT=/ucentralgw-data \
+    UCENTRALGW_CONFIG=/ucentralgw-data
+
+RUN addgroup -S "$UCENTRALGW_USER" && \
+    adduser -S -G "$UCENTRALGW_USER" "$UCENTRALGW_USER"
 
 RUN mkdir /ucentral
-RUN mkdir /ucentralgw-data
-RUN apk add --update --no-cache librdkafka mariadb-connector-c libpq unixodbc
+RUN mkdir -p "$UCENTRALGW_ROOT" "$UCENTRALGW_CONFIG"
+RUN apk add --update --no-cache librdkafka mariadb-connector-c libpq unixodbc su-exec
 
 COPY --from=builder /ucentralgw/cmake-build/ucentralgw /ucentral/ucentralgw
 COPY --from=builder /cppkafka/cmake-build/src/lib/* /lib/
 COPY --from=builder /poco/cmake-build/lib/* /lib/
 
-EXPOSE 15002
-EXPOSE 16002
-EXPOSE 16003
-EXPOSE 17002
-EXPOSE 16102
+EXPOSE 15002 16002 16003 17002 16102
 
-USER ucentralgw
-ENTRYPOINT /ucentral/ucentralgw
+COPY docker-entrypoint.sh /
+ENTRYPOINT ["/docker-entrypoint.sh"]
+CMD ["/ucentral/ucentralgw"]
