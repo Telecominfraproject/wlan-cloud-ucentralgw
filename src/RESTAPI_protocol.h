@@ -72,9 +72,7 @@ namespace uCentral::RESTAPI::Protocol {
 	static const char * REASON = "reason";
 	static const char * FILEUUID = "uuid";
 	static const char * USERID = "userId";
-    static const char * USERS = "users";
 	static const char * PASSWORD = "password";
-    static const char * NEWPASSWORD = "newPassword";
 	static const char * TOKEN = "token";
 	static const char * SETLOGLEVEL = "setloglevel";
 	static const char * GETLOGLEVELS = "getloglevels";
@@ -89,6 +87,42 @@ namespace uCentral::RESTAPI::Protocol {
 	static const char * LIST = "list";
 	static const char * TAG = "tag";
 	static const char * TAGLIST = "tagList";
+    static const char * DESCRIPTION = "description";
+    static const char * NOTES = "notes";
+    static const char * DEVICETYPE = "deviceType";
+    static const char * REVISION = "revision";
+    static const char * AGES = "ages";
+    static const char * REVISIONS = "revisions";
+    static const char * DEVICETYPES = "deviceTypes";
+    static const char * LATESTONLY = "latestOnly";
+    static const char * IDONLY = "idOnly";
+    static const char * REVISIONSET = "revisionSet";
+    static const char * DEVICESET = "deviceSet";
+    static const char * HISTORY = "history";
+    static const char * ID = "id";
+    static const char * VERSION = "version";
+    static const char * TIMES = "times";
+    static const char * UPTIME = "uptime";
+    static const char * START = "start";
+
+    static const char * NEWPASSWORD = "newPassword";
+    static const char * USERS = "users";
+
+    static const char * ERRORTEXT = "errorText";
+    static const char * ERRORCODE = "errorCode";
+    static const char * AVATARID = "avatarId";
+    static const char * UNNAMED = "(unnamed)";
+    static const char * UNSPECIFIED = "(unspecified)";
+    static const char * CONTENTDISPOSITION = "Content-Disposition";
+    static const char * CONTENTTYPE = "Content-Type";
+
+    static const char * REQUIREMENTS = "requirements";
+    static const char * PASSWORDPATTERN = "passwordPattern";
+    static const char * ACCESSPOLICY = "accessPolicy";
+    static const char * PASSWORDPOLICY = "passwordPolicy";
+    static const char * FORGOTPASSWORD = "forgotPassword";
+    static const char * ME = "me";
+
 }
 
 #endif // UCENTRALGW_RESTAPI_PROTOCOL_H

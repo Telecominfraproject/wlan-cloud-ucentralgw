@@ -13,40 +13,6 @@
 #include "Daemon.h"
 #include "RESTAPI_protocol.h"
 
-/*
-
-    SystemCommandDetails:
-      type: object
-      properties:
-        command:
-          type: string
-          enum:
-            - setloglevel
-            - getloglevel
-            - stats
-        parameters:
-          type: array
-          items:
-            properties:
-              name:
-                type: string
-              value:
-                type: string
-
-    SystemCommandResults:
-      type: object
-      properties:
-        command:
-          type: string
-        result:
-          type: integer
-        resultTxt:
-          type: array
-          items:
-            type: string
-
- */
-
 namespace uCentral {
 	void RESTAPI_system_command::handleRequest(Poco::Net::HTTPServerRequest &Request,
 											   Poco::Net::HTTPServerResponse &Response) {
@@ -134,26 +100,26 @@ namespace uCentral {
 	void RESTAPI_system_command::DoGet(Poco::Net::HTTPServerRequest &Request, Poco::Net::HTTPServerResponse &Response) {
 		try {
 			ParseParameters(Request);
-			auto Command = GetParameter("command", "");
-			if (!Poco::icompare(Command, "version")) {
+			auto Command = GetParameter(RESTAPI::Protocol::COMMAND, "");
+			if (!Poco::icompare(Command, RESTAPI::Protocol::VERSION)) {
 				Poco::JSON::Object Answer;
-				Answer.set("tag", "version");
-				Answer.set("value", Daemon()->Version());
+				Answer.set(RESTAPI::Protocol::TAG, RESTAPI::Protocol::VERSION);
+				Answer.set(RESTAPI::Protocol::VALUE, Daemon()->Version());
 				ReturnObject(Request, Answer, Response);
 				return;
 			}
-			if (!Poco::icompare(Command, "times")) {
+			if (!Poco::icompare(Command, RESTAPI::Protocol::TIMES)) {
 				Poco::JSON::Array	Array;
 				Poco::JSON::Object 	Answer;
 				Poco::JSON::Object	UpTimeObj;
-				UpTimeObj.set("tag","uptime");
-				UpTimeObj.set("value", Daemon()->uptime().totalSeconds());
+				UpTimeObj.set(RESTAPI::Protocol::TAG,RESTAPI::Protocol::UPTIME);
+				UpTimeObj.set(RESTAPI::Protocol::VALUE, Daemon()->uptime().totalSeconds());
 				Poco::JSON::Object	StartObj;
-				StartObj.set("tag","start");
-				StartObj.set("value", Daemon()->startTime().epochTime());
+				StartObj.set(RESTAPI::Protocol::TAG,RESTAPI::Protocol::START);
+				StartObj.set(RESTAPI::Protocol::VALUE, Daemon()->startTime().epochTime());
 				Array.add(UpTimeObj);
 				Array.add(StartObj);
-				Answer.set("times", Array);
+				Answer.set(RESTAPI::Protocol::TIMES, Array);
 				ReturnObject(Request, Answer, Response);
 				return;
 			}
