@@ -15,6 +15,7 @@
 #include "Poco/Net/HTTPRequestHandler.h"
 #include "Poco/Net/HTTPRequestHandlerFactory.h"
 #include "Poco/Net/HTTPServerRequest.h"
+#include "RESTAPI_handler.h"
 
 namespace uCentral {
 
@@ -43,7 +44,11 @@ namespace uCentral {
         std::map<std::string,uint64_t>  OutStandingUploads_;
         std::string                     Path_;
 
-		FileUploader() noexcept;
+		explicit FileUploader() noexcept:
+			SubSystemServer("FileUploader", "FILE-UPLOAD", "ucentral.fileuploader")
+		{
+			SubMutexGuard		Guard(Mutex_);
+		}
     };
 
     class FileUpLoaderRequestHandlerFactory : public Poco::Net::HTTPRequestHandlerFactory {

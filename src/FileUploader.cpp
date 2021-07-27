@@ -29,12 +29,6 @@
 namespace uCentral {
     class FileUploader *FileUploader::instance_ = nullptr;
 
-	FileUploader::FileUploader() noexcept:
-		SubSystemServer("FileUploader", "FILE-UPLOAD", "ucentral.fileuploader")
-    {
-		SubMutexGuard		Guard(Mutex_);
-    }
-
     static const std::string URI_BASE{"/v1/upload/"};
 
     int FileUploader::Start() {
@@ -107,10 +101,10 @@ namespace uCentral {
         OutStandingUploads_.erase(UUID);
     }
 
-    class MyPartHandler: public Poco::Net::PartHandler
+    class FileUploaderPartHandler: public Poco::Net::PartHandler
     {
     public:
-        MyPartHandler(std::string UUID, Poco::Logger & Logger):
+		FileUploaderPartHandler(std::string UUID, Poco::Logger & Logger):
             UUID_(std::move(UUID)),
             Logger_(Logger)
         {
@@ -127,16 +121,15 @@ namespace uCentral {
                 Name_ = Parameters.get("name", "(unnamed)");
             }
 
-            Poco::CountingInputStream InputStream(Stream);
-            std::string TmpFileName = FileUploader()->Path() + "/" + UUID_ + ".upload.start" ;
+			Poco::TemporaryFile 		TmpFile;
             std::string FinalFileName = FileUploader()->Path() + "/" + UUID_ ;
+            Logger_.information(Poco::format("FILE-UPLOADER: uploading trace for %s",UUID_));
 
-            Logger_.information(Poco::format("FILE-UPLOADER: uploading %s",TmpFileName));
-
-            std::ofstream OutputStream(TmpFileName, std::ofstream::out);
+			Poco::CountingInputStream 	InputStream(Stream);
+            std::ofstream OutputStream(TmpFile.path(), std::ofstream::out);
             Poco::StreamCopier::copyStream(InputStream, OutputStream);
             Length_ = InputStream.chars();
-            rename(TmpFileName.c_str(),FinalFileName.c_str());
+            rename(TmpFile.path().c_str(),FinalFileName.c_str());
         }
 
         [[nodiscard]] uint64_t Length() const { return Length_; }
@@ -153,7 +146,6 @@ namespace uCentral {
 
 
     class FormRequestHandler: public Poco::Net::HTTPRequestHandler
-        /// Return a HTML document with the current date and time.
     {
     public:
         explicit FormRequestHandler(std::string UUID, Poco::Logger & L):
@@ -165,62 +157,26 @@ namespace uCentral {
         void handleRequest(Poco::Net::HTTPServerRequest& Request, Poco::Net::HTTPServerResponse& Response) override
         {
             try {
-                MyPartHandler partHandler(UUID_,Logger_);
+				FileUploaderPartHandler partHandler(UUID_,Logger_);
 
                 Poco::Net::HTMLForm form(Request, Request.stream(), partHandler);
-                Response.setChunkedTransferEncoding(true);
-                Response.setContentType("text/html");
-                std::ostream &ResponseStream = Response.send();
 
-                ResponseStream <<
-                     "<html>\n"
-                     "<head>\n"
-                     "<title>POCO Form Server Sample</title>\n"
-                     "</head>\n"
-                     "<body>\n"
-                     "<h1>POCO Form Server Sample</h1>\n"
-                     "<h2>GET Form</h2>\n"
-                     "<form method=\"GET\" action=\"/form\">\n"
-                     "<input type=\"text\" name=\"text\" size=\"31\">\n"
-                     "<input type=\"submit\" value=\"GET\">\n"
-                     "</form>\n"
-                     "<h2>POST Form</h2>\n"
-                     "<form method=\"POST\" action=\"/form\">\n"
-                     "<input type=\"text\" name=\"text\" size=\"31\">\n"
-                     "<input type=\"submit\" value=\"POST\">\n"
-                     "</form>\n"
-                     "<h2>File Upload</h2>\n"
-                     "<form method=\"POST\" action=\"/form\" enctype=\"multipart/form-data\">\n"
-                     "<input type=\"file\" name=\"file\" size=\"31\"> \n"
-                     "<input type=\"submit\" value=\"Upload\">\n"
-                     "</form>\n";
+				Response.setChunkedTransferEncoding(true);
+                Response.setContentType("application/json");
 
-                ResponseStream << "<h2>Request</h2><p>\n";
-                ResponseStream << "Method: " << Request.getMethod() << "<br>\n";
-                ResponseStream << "URI: " << Request.getURI() << "<br>\n";
-                for (auto & i:Request) {
-                    ResponseStream << i.first << ": " << i.second << "<br>\n";
-                }
-
-                ResponseStream << "</p>";
-
-                if (!form.empty()) {
-                    ResponseStream << "<h2>Form</h2><p>\n";
-                    for (const auto & i:form)
-                        ResponseStream << i.first << ": " << i.second << "<br>\n";
-                    ResponseStream << "</p>";
-                }
-
+				Poco::JSON::Object	Answer;
                 if (!partHandler.Name().empty()) {
-                    ResponseStream << "<h2>Upload</h2><p>\n";
-                    ResponseStream << "Name: " << partHandler.Name() << "<br>\n";
-                    ResponseStream << "Type: " << partHandler.ContentType() << "<br>\n";
-                    ResponseStream << "Size: " << partHandler.Length() << "<br>\n";
-                    ResponseStream << "</p>";
-                }
-                ResponseStream << "</body>\n";
-
-				Storage()->AttachFileToCommand(UUID_);
+					Answer.set("filename", UUID_);
+					Answer.set("error", 0);
+					Storage()->AttachFileToCommand(UUID_);
+				} else {
+					Answer.set("filename", UUID_);
+					Answer.set("error", 13);
+					Answer.set("errorText", "File could not be uploaded");
+				}
+				std::ostream &ResponseStream = Response.send();
+				Poco::JSON::Stringifier::stringify(Answer, ResponseStream);
+				return;
             }
             catch( const Poco::Exception & E )
             {

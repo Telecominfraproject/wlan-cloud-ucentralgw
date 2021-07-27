@@ -13,6 +13,7 @@
 #include <string>
 
 #include "Poco/Net/NetworkInterface.h"
+#include "Poco/Net/IPAddress.h"
 #include "Poco/String.h"
 #include "Poco/File.h"
 #include "uCentralTypes.h"
@@ -70,5 +71,7 @@ namespace uCentral::Utils {
     [[nodiscard]] std::string BinaryFileToHexString( const Poco::File &F);
 
     [[nodiscard]] std::string SecondsToNiceText(uint64_t Seconds);
+
+	[[nodiscard]] bool IPinRange(const std::string &Range, const Poco::Net::IPAddress &IP);
 }
 #endif // UCENTRALGW_UTILS_H
