@@ -2,7 +2,7 @@ openapi: 3.0.1
 info:
   title: uCentral gateway API
   description: A process to manage configuration for devices.
-  version: 0.0.8
+  version: 2.0.0
   license:
     name: BSD3
     url: https://github.com/Telecominfraproject/wlan-cloud-ucentralgw/blob/master/LICENSE
