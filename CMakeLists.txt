@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.13)
-project(ucentralgw VERSION 0.7.0)
+project(ucentralgw VERSION 2.0.0)
 
 set(CMAKE_CXX_STANDARD 17)
 
