@@ -153,8 +153,8 @@ cmake -DSMALL_BUILD=1 ..
 make
 ```
 
-### After the build step is completed
-Once your build is done. You can remove the Poco source as it is no longer needed. 
+### After completing the build
+After completing the build, you can remove the Poco source as it is no longer needed. 
 
 #### Expected directory layout
 From the directory where your cloned source is, you will need to create the `certs`, `logs`, and `uploads` directories.

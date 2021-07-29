@@ -48,17 +48,17 @@ namespace uCentral {
         uint64_t Count() const {
             return SocketCount_; }
         void Get() {
-            std::lock_guard<std::mutex> guard(Mutex_);
+			SubMutexGuard G(Mutex_);
             SocketCount_++; }
         void Release() {
-            std::lock_guard<std::mutex> guard(Mutex_);
+			SubMutexGuard G(Mutex_);
             SocketCount_--; }
         uint64_t Id() const { return Id_;}
 
     private:
-        std::mutex       Mutex_{};
-        uint64_t         SocketCount_;
-        uint64_t         Id_;
+        SubMutex      	Mutex_;
+        uint64_t        SocketCount_;
+        uint64_t        Id_;
     };
 
     class CountedSocketReactorFactory {
@@ -73,12 +73,11 @@ namespace uCentral {
             NumReactors_ = NumReactors;
             for(auto i=0;i<NumReactors_;i++)
             {
-                auto NewReactor = new CountedSocketReactor(i);
-                auto NewThread  = new Poco::Thread;
-
+                auto NewReactor = std::make_shared<CountedSocketReactor>(i);
+                auto NewThread  = std::make_shared<Poco::Thread>();
+				NewThread->start(*NewReactor);
+				NewThread->setName( "Reactor:" + std::to_string(i));
                 ReactorThreads_.emplace_back( std::pair(NewReactor, NewThread));
-                NewThread->start(*NewReactor);
-                NewThread->setName( "Reactor:" + std::to_string(i));
             }
         }
 
@@ -92,17 +91,12 @@ namespace uCentral {
         }
 
         ~CountedSocketReactorFactory() {
-            for(auto &[Reactor,Thread]:ReactorThreads_)
-            {
-                delete Reactor;
-                delete Thread;
-            }
         }
 
-        CountedSocketReactor * GetAReactor() {
+        std::shared_ptr<CountedSocketReactor> GetAReactor() {
             uint64_t Min;
 
-            std::lock_guard<std::mutex> guard(Mutex_);
+            SubMutexGuard G(Mutex_);
 
             auto Tmp = ReactorThreads_.end();
             uint64_t TotalSockets = 0 ;
@@ -122,10 +116,10 @@ namespace uCentral {
         }
 
     private:
-        std::mutex      Mutex_{};
+        SubMutex     	Mutex_;
         Poco::Logger    & Logger_;
         uint64_t        NumReactors_;
-        std::vector<std::pair<CountedSocketReactor *, Poco::Thread *>>  ReactorThreads_;
+        std::vector<std::pair<std::shared_ptr<CountedSocketReactor>, std::shared_ptr<Poco::Thread> >>  ReactorThreads_;
     };
 
 	struct CommandIDPair {
@@ -137,13 +131,10 @@ namespace uCentral {
     public:
         CountedReactor();
         ~CountedReactor();
-        CountedSocketReactor * Reactor() { return Reactor_; }
+		std::shared_ptr<CountedSocketReactor> Reactor() { return Reactor_; }
     private:
-        CountedSocketReactor * Reactor_;
+        std::shared_ptr<CountedSocketReactor> 	Reactor_;
     };
-
-	using SubMutex = std::recursive_mutex;
-	using SubMutexGuard = std::lock_guard<SubMutex>;
 
 	class WSConnection {
         static constexpr int BufSize = 64000;
@@ -166,7 +157,7 @@ namespace uCentral {
 		void LogException(const Poco::Exception &E);
 		[[nodiscard]] GWObjects::CertificateValidation CertificateValidation() const { return CertValidation_; };
     private:
-		SubMutex                          	Mutex_{};
+		SubMutex                          	Mutex_;
         CountedReactor                      Reactor_;
         Poco::Logger                    &   Logger_;
         Poco::Net::StreamSocket       		Socket_;
@@ -197,7 +188,7 @@ namespace uCentral {
             return instance_;
         }
 
-        CountedSocketReactor * GetAReactor() {
+        std::shared_ptr<CountedSocketReactor> GetAReactor() {
             return Factory_.GetAReactor();
         }
 

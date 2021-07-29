@@ -126,6 +126,7 @@ namespace uCentral {
 		if(Running_) {
 			Running_=false;
 			Janitor_.wakeUp();
+			Janitor_.wakeUp();
 			Janitor_.join();
 		}
 	}
