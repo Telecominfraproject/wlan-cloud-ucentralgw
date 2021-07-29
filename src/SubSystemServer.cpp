@@ -132,10 +132,10 @@ Poco::Net::SecureServerSocket PropertiesFileServerEntry::CreateSecureSocket(Poco
 
 		if (level_ == Poco::Net::Context::VERIFY_STRICT) {
 			if (issuer_cert_file_.empty()) {
-				L.fatal("In strict mode, you must supply ans issuer certificate");
+				L.fatal("In strict mode, you must supply an issuer certificate.");
 			}
 			if (client_cas_.empty()) {
-				L.fatal("In strict mode, client cas must be supplied");
+				L.fatal("In strict mode, client cas must be supplied.");
 			}
 			Poco::Crypto::X509Certificate Issuing(issuer_cert_file_);
 			Context->addChainCertificate(Issuing);
@@ -157,6 +157,7 @@ Poco::Net::SecureServerSocket PropertiesFileServerEntry::CreateSecureSocket(Poco
 		}
 		SSL_CTX_enable_ct(SSLCtx, SSL_CT_VALIDATION_STRICT);
 		// SSL_CTX_dane_enable(SSLCtx);
+
 
 		Context->enableSessionCache();
 		Context->setSessionCacheSize(0);

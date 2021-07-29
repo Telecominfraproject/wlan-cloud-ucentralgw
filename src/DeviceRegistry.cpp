@@ -207,7 +207,7 @@ namespace uCentral {
 		if( T==100) return "100%";
 		if( T>90) return ">90%";
 		if( T>60) return ">60%";
-		return "<60%%>";
+		return "<60%";
 	}
 
 	std::string ComputeUpTimeTag(uint64_t T) {
