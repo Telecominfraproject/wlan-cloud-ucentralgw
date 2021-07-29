@@ -161,7 +161,8 @@ Poco::Net::SecureServerSocket PropertiesFileServerEntry::CreateSecureSocket(Poco
 		Context->enableSessionCache();
 		Context->setSessionCacheSize(0);
 		Context->setSessionTimeout(10);
-		Context->enableExtendedCertificateVerification(true);
+		// Context->enableExtendedCertificateVerification(true);
+		Context->enableExtendedCertificateVerification(false);
 		Context->disableStatelessSessionResumption();
 	}
 
