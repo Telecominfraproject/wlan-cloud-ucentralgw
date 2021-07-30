@@ -13,7 +13,8 @@ namespace uCentral {
 		if(LastRun_==0 || (Now-LastRun_)>120) {
 			DB_.reset();
 			Storage()->AnalyzeCommands(DB_.commands);
-			DeviceRegistry()->AnalyzeRegistry(DB_);
+			// DeviceRegistry()->AnalyzeRegistry(DB_);
+			Storage()->AnalyzeDevices(DB_);
 			LastRun_ = Now;
 		}
 	}

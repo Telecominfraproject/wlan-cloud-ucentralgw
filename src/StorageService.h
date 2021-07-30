@@ -144,6 +144,7 @@ namespace uCentral {
 		int Create_LifetimeStats();
 
 		bool AnalyzeCommands(Types::CountedMap &R);
+		bool AnalyzeDevices(GWObjects::Dashboard &D);
 
 		int 	Start() override;
 		void 	Stop() override;

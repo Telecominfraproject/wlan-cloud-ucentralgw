@@ -584,6 +584,12 @@ components:
     DeviceDashboard:
       type: object
       properties:
+        snapshot:
+          type: integer
+          format: int64
+        numberOfDevices:
+          type: integer
+          format: int64
         commands:
           $ref: '#/components/schemas/TagIntPairList'
         upTimes:

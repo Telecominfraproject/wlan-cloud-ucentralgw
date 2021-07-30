@@ -159,6 +159,8 @@ namespace uCentral::GWObjects {
 	};
 
 	struct Dashboard {
+		uint64_t 		  snapshot;
+		uint64_t 		  numberOfDevices;
 		Types::CountedMap commands;
 		Types::CountedMap upTimes;
 		Types::CountedMap memoryUsed;

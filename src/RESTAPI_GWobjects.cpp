@@ -216,6 +216,8 @@ namespace uCentral::GWObjects {
 		field_to_json(Obj,"healths",healths);
 		field_to_json(Obj,"certificates",certificates);
 		field_to_json(Obj,"lastContact",lastContact);
+		field_to_json(Obj,"snapshot",snapshot);
+		field_to_json(Obj,"numberOfDevices",numberOfDevices);
 	}
 
 	void Dashboard::reset()  {
@@ -231,6 +233,8 @@ namespace uCentral::GWObjects {
 		healths.clear();
 		certificates.clear();
 		lastContact.clear();
+		numberOfDevices = 0 ;
+		snapshot = std::time(nullptr);
 	}
 }
 

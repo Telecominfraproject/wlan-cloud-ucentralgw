@@ -13,10 +13,10 @@ namespace uCentral {
 	  public:
 			void Create();
 			const GWObjects::Dashboard & Report() const { return DB_;}
-			inline void Reset() { LastRun_=0; DB_.reset(); }
 	  private:
 			GWObjects::Dashboard 	DB_;
 			uint64_t 				LastRun_=0;
+			inline void Reset() { DB_.reset(); }
 	};
 }
 
