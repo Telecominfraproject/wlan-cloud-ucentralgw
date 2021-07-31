@@ -616,6 +616,8 @@ components:
           $ref: '#/components/schemas/TagIntPairList'
         lastContact:
           $ref: '#/components/schemas/TagIntPairList'
+        associations:
+          $ref: '#/components/schemas/TagIntPairList'
 
     #########################################################################################
     ##

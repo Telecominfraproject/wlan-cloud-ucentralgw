@@ -145,6 +145,8 @@ Poco::Net::SecureServerSocket PropertiesFileServerEntry::CreateSecureSocket(Poco
 		Poco::Crypto::RSAKey Key("", key_file_, key_file_password_);
 		Context->usePrivateKey(Key);
 
+
+
 		SSL_CTX *SSLCtx = Context->sslContext();
 		if (!SSL_CTX_check_private_key(SSLCtx)) {
 			L.fatal(Poco::format("Wrong Certificate(%s) for Key(%s)", cert_file_, key_file_));

@@ -28,12 +28,12 @@ namespace uCentral::Types {
 	typedef std::map<std::string, TopicNotifyFunctionList>  NotifyTable;
     typedef std::map<std::string,uint64_t>                  CountedMap;
 
-    inline void UpdateCountedMap(CountedMap &M, const std::string &S ) {
+    inline void UpdateCountedMap(CountedMap &M, const std::string &S, uint64_t Increment=1) {
         auto it = M.find(S);
         if(it==M.end())
-            M[S]=1;
+            M[S] = Increment;
         else
-            it->second += 1;
+            it->second += Increment;
     }
 };
 

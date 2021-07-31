@@ -173,6 +173,7 @@ namespace uCentral::GWObjects {
 		Types::CountedMap healths;
 		Types::CountedMap certificates;
 		Types::CountedMap lastContact;
+		Types::CountedMap associations;
 		void to_json(Poco::JSON::Object &Obj) const;
 		void reset();
 	};
