@@ -127,9 +127,12 @@ int MyCertificateVerification(X509_STORE_CTX* pStore, void *arg) {
 
 		std::cout << "  Issuer: " << buf << std::endl;
 	} else {
-		// std::cout << "Could not get cert..." << std::endl;
-	}
 
+		// X509err(X509_F_X509_VERIFY_CERT, X509_R_NO_CERT_SET_FOR_US_TO_VERIFY);
+		X509_STORE_CTX_set_error(pStore, X509_V_ERR_INVALID_CALL);
+		// ctx->error = X509_V_ERR_INVALID_CALL;
+		return -1;
+	}
 	return 1;
 }
 
