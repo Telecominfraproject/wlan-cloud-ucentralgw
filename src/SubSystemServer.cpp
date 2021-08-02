@@ -113,7 +113,7 @@ int MyVerifyServerCallback(int ok, X509_STORE_CTX* pStore)
 //	return 1 on success, 0 on failure.
 int MyCertificateVerification(X509_STORE_CTX* pStore, void *arg) {
 
-	std::cout << __LINE__ << std::endl;
+	// std::cout << __LINE__ << std::endl;
 	X509* pCert = X509_STORE_CTX_get_current_cert(pStore);
 	if(pCert!= nullptr) {
 		std::cout << __LINE__ << std::endl;
@@ -127,7 +127,7 @@ int MyCertificateVerification(X509_STORE_CTX* pStore, void *arg) {
 
 		std::cout << "  Issuer: " << buf << std::endl;
 	} else {
-		std::cout << "Could not get cert..." << std::endl;
+		// std::cout << "Could not get cert..." << std::endl;
 	}
 
 	return 1;
