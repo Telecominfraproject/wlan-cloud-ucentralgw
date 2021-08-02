@@ -116,7 +116,7 @@ int MyCertificateVerification(X509_STORE_CTX* pStore, void *arg) {
 	std::cout << __LINE__ << std::endl;
 	X509* pCert = X509_STORE_CTX_get_current_cert(pStore);
 	std::cout << __LINE__ << std::endl;
-	Poco::Net::X509Certificate x509(pCert, true);
+	Poco::Net::X509Certificate x509(pCert);
 	std::cout << __LINE__ << std::endl;
 	Poco::DigestEngine::Digest fp = x509.fingerprint("SHA2");
 	std::cout << __LINE__ << std::endl;
