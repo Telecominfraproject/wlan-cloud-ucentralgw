@@ -125,9 +125,11 @@ int MyCertificateVerification(X509_STORE_CTX* pStore, void *arg) {
 		char buf[2048] = {0};
 		std::cout << __LINE__ << std::endl;
 		X509_NAME_get_text_by_NID(IssuerName, NID_commonName, buf, sizeof(buf));
-		std::cout << __LINE__ << std::endl;
-
 		std::cout << "  Issuer: " << buf << std::endl;
+		X509_NAME_get_text_by_NID(IssuerName, NID_serialNumber, buf, sizeof(buf));
+		std::cout << "  Serial: " << buf << std::endl;
+		X509_NAME_get_text_by_NID(IssuerName, NID_issuer_alt_name, buf, sizeof(buf));
+		std::cout << "  Altname: " << buf << std::endl;
 	} else {
 
 		// X509err(X509_F_X509_VERIFY_CERT, X509_R_NO_CERT_SET_FOR_US_TO_VERIFY);
