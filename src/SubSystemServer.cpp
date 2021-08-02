@@ -115,9 +115,14 @@ int MyCertificateVerification(X509_STORE_CTX* pStore, void *arg) {
 	auto N = X509_get_issuer_name(X);
 
 	char buf[1024]={0};
-	X509_NAME_get_text_by_NID(N, NID_certificate_issuer ,buf, sizeof(buf));
+	X509_NAME_get_text_by_NID(N, NID_issuer_alt_name ,buf, sizeof(buf));
+	std::cout << "NID_issuer_alt_name: " << buf << std::endl;
 
-	std::cout << "Certificate issuer: " << buf << std::endl;
+	X509_NAME_get_text_by_NID(N, NID_certificate_issuer ,buf, sizeof(buf));
+	std::cout << "NID_certificate_issuer: " << buf << std::endl;
+
+	X509_NAME_get_text_by_NID(N, NID_Domain ,buf, sizeof(buf));
+	std::cout << "NID_Domain: " << buf << std::endl;
 
 	return 1;
 }
