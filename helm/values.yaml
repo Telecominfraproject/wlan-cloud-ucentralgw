@@ -227,7 +227,7 @@ configProperties:
   ucentral.system.commandchannel: /tmp/app_ucentralgw
   # Logging
   logging.formatters.f1.class: PatternFormatter
-  logging.formatters.f1.pattern: "%s: [%p] %t"
+  logging.formatters.f1.pattern: "%Y-%m-%d %H:%M:%S %s: [%p] %t"
   logging.formatters.f1.times: UTC
   logging.channels.c1.class: ConsoleChannel
   logging.channels.c1.formatter: f1
@@ -240,7 +240,7 @@ configProperties:
   logging.channels.c2.purgeCount: 20
   logging.channels.c3.class: ConsoleChannel
   logging.channels.c3.pattern: "%s: [%p] %t"
-  logging.loggers.root.channel: c2
+  logging.loggers.root.channel: c1
   logging.loggers.root.level: debug
 
   # -> Secret part
