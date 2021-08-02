@@ -113,7 +113,7 @@ int MyVerifyServerCallback(int ok, X509_STORE_CTX* pStore)
 //	return 1 on success, 0 on failure.
 int MyCertificateVerification(X509_STORE_CTX* pStore, void *arg) {
 
-	// std::cout << __LINE__ << std::endl;
+	std::cout << __LINE__ << (char *)arg << std::endl;
 	X509* pCert = X509_STORE_CTX_get_current_cert(pStore);
 	if(pCert!= nullptr) {
 		std::cout << __LINE__ << std::endl;
@@ -132,6 +132,8 @@ int MyCertificateVerification(X509_STORE_CTX* pStore, void *arg) {
 
 	return 1;
 }
+
+static char * Hello{"Hello!"};
 
 Poco::Net::SecureServerSocket PropertiesFileServerEntry::CreateSecureSocket(Poco::Logger &L) const {
 	Poco::Net::Context::Params P;
@@ -185,7 +187,7 @@ Poco::Net::SecureServerSocket PropertiesFileServerEntry::CreateSecureSocket(Poco
 
 		SSL_CTX_enable_ct(SSLCtx, SSL_CT_VALIDATION_STRICT);
 		SSL_CTX_set_verify(SSLCtx, SSL_VERIFY_PEER, MyVerifyServerCallback);
-		SSL_CTX_set_cert_verify_callback(SSLCtx, MyCertificateVerification, (void *)this);
+		SSL_CTX_set_cert_verify_callback(SSLCtx, MyCertificateVerification, (void *)Hello);
 
 		SSL_CTX_dane_enable(SSLCtx);
 
