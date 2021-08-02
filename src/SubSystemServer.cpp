@@ -118,7 +118,7 @@ int MyCertificateVerification(X509_STORE_CTX* pStore, void *arg) {
 	std::cout << __LINE__ << (char *)arg << std::endl;
 	X509* pCert = X509_STORE_CTX_get0_cert(pStore);
 	if(pCert!= nullptr) {
-		Poco::Net::X509Certificate	C(pCert);
+		Poco::Net::X509Certificate	C(pCert,true);
 		std::cout << __LINE__ << std::endl;
 		std::cout << "  Issuer: " << C.issuerName() << std::endl;
 		std::cout << "  Serial: " << C.serialNumber() << std::endl;
