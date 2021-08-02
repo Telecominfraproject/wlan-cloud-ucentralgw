@@ -115,7 +115,7 @@ int MyCertificateVerification(X509_STORE_CTX* pStore, void *arg) {
 	X509* pCert = X509_STORE_CTX_get0_cert(pStore);
 	if(pCert!= nullptr) {
 		Poco::Net::X509Certificate	C(pCert,true);
-		auto FP = C.fingerprint("SHA2");
+		auto FP = C.fingerprint();
 		//std::cout << "  Issuer: " << C.issuerName() << std::endl;
 		//std::cout << "  Serial: " << C.serialNumber() << std::endl;
 		//std::cout << "  CN: " << C.commonName() << std::endl;
