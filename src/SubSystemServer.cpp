@@ -115,16 +115,20 @@ int MyCertificateVerification(X509_STORE_CTX* pStore, void *arg) {
 
 	std::cout << __LINE__ << std::endl;
 	X509* pCert = X509_STORE_CTX_get_current_cert(pStore);
-	std::cout << __LINE__ << std::endl;
-	auto IssuerName = X509_get_issuer_name(pCert);
-	std::cout << __LINE__ << std::endl;
+	if(pCert!= nullptr) {
+		std::cout << __LINE__ << std::endl;
+		auto IssuerName = X509_get_issuer_name(pCert);
+		std::cout << __LINE__ << std::endl;
 
-	char buf[2048]={0};
-	std::cout << __LINE__ << std::endl;
-	X509_NAME_get_text_by_NID(IssuerName, NID_certificate_issuer, buf, sizeof(buf));
-	std::cout << __LINE__ << std::endl;
+		char buf[2048] = {0};
+		std::cout << __LINE__ << std::endl;
+		X509_NAME_get_text_by_NID(IssuerName, NID_certificate_issuer, buf, sizeof(buf));
+		std::cout << __LINE__ << std::endl;
 
-	std::cout << "  Issuer: " << buf << std::endl;
+		std::cout << "  Issuer: " << buf << std::endl;
+	} else {
+		std::cout << "Could not get cert..." << std::endl;
+	}
 
 	return 1;
 }
