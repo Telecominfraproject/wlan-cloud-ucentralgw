@@ -112,19 +112,18 @@ int MyVerifyServerCallback(int ok, X509_STORE_CTX* pStore)
 
 //	return 1 on success, 0 on failure.
 int MyCertificateVerification(X509_STORE_CTX* pStore, void *arg) {
-
 	X509* pCert = X509_STORE_CTX_get0_cert(pStore);
 	if(pCert!= nullptr) {
 		Poco::Net::X509Certificate	C(pCert,true);
-		std::cout << "  Issuer: " << C.issuerName() << std::endl;
-		std::cout << "  Serial: " << C.serialNumber() << std::endl;
-		std::cout << "  CN: " << C.commonName() << std::endl << std::endl;
-		auto FP = C.fingerprint();
-		std::cout << "  FP: " << Poco::DigestEngine::digestToHex(FP) << std::endl;
+		auto FP = C.fingerprint("SHA2");
+		//std::cout << "  Issuer: " << C.issuerName() << std::endl;
+		//std::cout << "  Serial: " << C.serialNumber() << std::endl;
+		//std::cout << "  CN: " << C.commonName() << std::endl;
+		//std::cout << "  FP: " << Poco::DigestEngine::digestToHex(FP) << std::endl << std::endl;
+		return 1;
 	} else {
 		return 0;
 	}
-	return 1;
 }
 
 static char Hello[] = "Hello!";
@@ -198,6 +197,7 @@ Poco::Net::SecureServerSocket PropertiesFileServerEntry::CreateSecureSocket(Poco
 			Poco::Net::Socket::supportsIPv6() ? Poco::Net::AddressFamily::IPv6
 											  : Poco::Net::AddressFamily::IPv4));
 		Poco::Net::SocketAddress SockAddr(Addr, port_);
+		std::cout << "Backlog: " << backlog_ << std::endl;
 		return Poco::Net::SecureServerSocket(SockAddr, backlog_, Context);
 	} else {
 		Poco::Net::IPAddress Addr(address_);
