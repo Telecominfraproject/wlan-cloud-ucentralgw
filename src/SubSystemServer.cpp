@@ -113,10 +113,15 @@ int MyVerifyServerCallback(int ok, X509_STORE_CTX* pStore)
 //	return 1 on success, 0 on failure.
 int MyCertificateVerification(X509_STORE_CTX* pStore, void *arg) {
 
+	std::cout << __LINE__ << std::endl;
 	X509* pCert = X509_STORE_CTX_get_current_cert(pStore);
+	std::cout << __LINE__ << std::endl;
 	Poco::Net::X509Certificate x509(pCert, true);
+	std::cout << __LINE__ << std::endl;
 	Poco::DigestEngine::Digest fp = x509.fingerprint("SHA2");
+	std::cout << __LINE__ << std::endl;
 	auto F = Poco::DigestEngine::digestToHex(fp);
+	std::cout << __LINE__ << std::endl;
 
 	std::cout << "Digest:   " << F << std::endl;
 	std::cout << "  Issuer: " << x509.issuerName() << std::endl;
