@@ -104,6 +104,24 @@ class MyPrivateKeyPassphraseHandler : public Poco::Net::PrivateKeyPassphraseHand
 	Poco::Logger & Logger_;
 };
 
+int MyVerifyServerCallback(int ok, X509_STORE_CTX* pStore)
+{
+	return ok;
+}
+
+//	return 1 on success, 0 on failure.
+int MyCertificateVerification(X509_STORE_CTX* pStore, void *arg) {
+	auto X = X509_STORE_CTX_get0_cert(pStore);
+	auto N = X509_get_issuer_name(X);
+
+	char buf[1024]={0};
+	X509_NAME_get_text_by_NID(N, NID_certificate_issuer ,buf, sizeof(buf));
+
+	std::cout << "Certificate issuer: " << buf << std::endl;
+
+	return 1;
+}
+
 Poco::Net::SecureServerSocket PropertiesFileServerEntry::CreateSecureSocket(Poco::Logger &L) const {
 	Poco::Net::Context::Params P;
 
@@ -145,21 +163,20 @@ Poco::Net::SecureServerSocket PropertiesFileServerEntry::CreateSecureSocket(Poco
 		Poco::Crypto::RSAKey Key("", key_file_, key_file_password_);
 		Context->usePrivateKey(Key);
 
-
-
 		SSL_CTX *SSLCtx = Context->sslContext();
 		if (!SSL_CTX_check_private_key(SSLCtx)) {
 			L.fatal(Poco::format("Wrong Certificate(%s) for Key(%s)", cert_file_, key_file_));
 		}
 
-		// SSL_CTX_set_verify(SSLCtx, SSL_VERIFY_PEER, nullptr);
-
 		if (level_ == Poco::Net::Context::VERIFY_STRICT) {
 			SSL_CTX_set_client_CA_list(SSLCtx, SSL_load_client_CA_file(client_cas_.c_str()));
 		}
-		SSL_CTX_enable_ct(SSLCtx, SSL_CT_VALIDATION_STRICT);
-		// SSL_CTX_dane_enable(SSLCtx);
 
+		SSL_CTX_enable_ct(SSLCtx, SSL_CT_VALIDATION_STRICT);
+		SSL_CTX_set_verify(SSLCtx, SSL_VERIFY_PEER, MyVerifyServerCallback);
+		SSL_CTX_set_cert_verify_callback(SSLCtx, MyCertificateVerification, (void *)this);
+
+		SSL_CTX_dane_enable(SSLCtx);
 
 		Context->enableSessionCache();
 		Context->setSessionCacheSize(0);
@@ -174,12 +191,10 @@ Poco::Net::SecureServerSocket PropertiesFileServerEntry::CreateSecureSocket(Poco
 			Poco::Net::Socket::supportsIPv6() ? Poco::Net::AddressFamily::IPv6
 											  : Poco::Net::AddressFamily::IPv4));
 		Poco::Net::SocketAddress SockAddr(Addr, port_);
-
 		return Poco::Net::SecureServerSocket(SockAddr, backlog_, Context);
 	} else {
 		Poco::Net::IPAddress Addr(address_);
 		Poco::Net::SocketAddress SockAddr(Addr, port_);
-
 		return Poco::Net::SecureServerSocket(SockAddr, backlog_, Context);
 	}
 }
