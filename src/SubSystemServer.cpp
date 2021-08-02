@@ -118,15 +118,11 @@ int MyCertificateVerification(X509_STORE_CTX* pStore, void *arg) {
 	std::cout << __LINE__ << (char *)arg << std::endl;
 	X509* pCert = X509_STORE_CTX_get0_cert(pStore);
 	if(pCert!= nullptr) {
-		char buf[2048] = {0};
+		Poco::Net::X509Certificate	C(pCert);
 		std::cout << __LINE__ << std::endl;
-		auto IssuerName = X509_get_issuer_name(pCert);
-		X509_NAME_get_text_by_NID(IssuerName, NID_commonName, buf, sizeof(buf));
-		std::cout << "  Issuer: " << buf << std::endl;
-		std::cout << __LINE__ << std::endl;
-		auto SerialNumber = X509_get_serialNumber(pCert);
-		auto SNum = ASN1_INTEGER_get(SerialNumber);
-		std::cout << "  Serial: " << SNum << std::endl;
+		std::cout << "  Issuer: " << C.issuerName() << std::endl;
+		std::cout << "  Serial: " << C.serialNumber() << std::endl;
+		std::cout << "  CN: " << C.commonName() << std::endl;
 	} else {
 
 		// X509err(X509_F_X509_VERIFY_CERT, X509_R_NO_CERT_SET_FOR_US_TO_VERIFY);
