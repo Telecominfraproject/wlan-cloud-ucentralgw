@@ -115,18 +115,12 @@ int MyCertificateVerification(X509_STORE_CTX* pStore, void *arg) {
 
 	std::cout << __LINE__ << std::endl;
 	X509* pCert = X509_STORE_CTX_get_current_cert(pStore);
-	std::cout << __LINE__ << std::endl;
-	Poco::Net::X509Certificate x509(pCert,false);
-	std::cout << __LINE__ << std::endl;
-	Poco::DigestEngine::Digest fp = x509.fingerprint("SHA2");
-	std::cout << __LINE__ << std::endl;
-	auto F = Poco::DigestEngine::digestToHex(fp);
-	std::cout << __LINE__ << std::endl;
+	auto IssuerName = X509_get_issuer_name(pCert);
 
-	std::cout << "Digest:   " << F << std::endl;
-	std::cout << "  Issuer: " << x509.issuerName() << std::endl;
-	std::cout << "  Serial: " << x509.serialNumber() << std::endl;
-	std::cout << "  CN:     " << x509.commonName() << std::endl << std::endl;
+	char buf[2048]={0};
+	X509_NAME_get_text_by_NID(IssuerName, NID_certificate_issuer, buf, sizeof(buf));
+
+	std::cout << "  Issuer: " << buf << std::endl;
 
 	return 1;
 }
