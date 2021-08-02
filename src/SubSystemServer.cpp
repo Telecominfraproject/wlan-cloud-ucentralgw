@@ -113,20 +113,16 @@ int MyVerifyServerCallback(int ok, X509_STORE_CTX* pStore)
 //	return 1 on success, 0 on failure.
 int MyCertificateVerification(X509_STORE_CTX* pStore, void *arg) {
 
-	//X509_STORE_CTX_get0_cert(pStore)
-
 	X509* pCert = X509_STORE_CTX_get0_cert(pStore);
 	if(pCert!= nullptr) {
 		Poco::Net::X509Certificate	C(pCert,true);
 		std::cout << "  Issuer: " << C.issuerName() << std::endl;
 		std::cout << "  Serial: " << C.serialNumber() << std::endl;
 		std::cout << "  CN: " << C.commonName() << std::endl << std::endl;
+		auto FP = C.fingerprint();
+		std::cout << "  FP: " << Poco::DigestEngine::digestToHex(FP) << std::endl;
 	} else {
-
-		// X509err(X509_F_X509_VERIFY_CERT, X509_R_NO_CERT_SET_FOR_US_TO_VERIFY);
-		X509_STORE_CTX_set_error(pStore, X509_V_ERR_INVALID_CALL);
-		// ctx->error = X509_V_ERR_INVALID_CALL;
-		return -1;
+		return 0;
 	}
 	return 1;
 }
