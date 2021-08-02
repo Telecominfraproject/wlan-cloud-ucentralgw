@@ -133,7 +133,7 @@ int MyCertificateVerification(X509_STORE_CTX* pStore, void *arg) {
 	return 1;
 }
 
-static char * Hello{"Hello!"};
+static char Hello[] = "Hello!";
 
 Poco::Net::SecureServerSocket PropertiesFileServerEntry::CreateSecureSocket(Poco::Logger &L) const {
 	Poco::Net::Context::Params P;
