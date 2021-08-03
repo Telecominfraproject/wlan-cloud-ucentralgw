@@ -595,7 +595,7 @@ namespace uCentral {
 					  "DevicePassword "
 					  "FROM Devices",
 				Poco::Data::Keywords::into(Records),
-				Poco::Data::Keywords::limit(HowMany,true);
+				Poco::Data::Keywords::limit(HowMany,false);
 			Select.execute();
 
 
