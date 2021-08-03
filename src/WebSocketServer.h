@@ -66,7 +66,7 @@ namespace uCentral {
 				std::cout << __LINE__ << std::endl;
 				E->Thread_.start(E->Reactor_);
 				std::cout << __LINE__ << std::endl;
-                ReactorPool_[i] = std::move(E);
+                ReactorPool_.emplace_back( std::move(E) );
                 std::cout << __LINE__ << std::endl;
             }
         }
