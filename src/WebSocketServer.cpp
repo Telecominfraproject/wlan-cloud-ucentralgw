@@ -64,13 +64,10 @@ namespace uCentral {
 			}
 
 			auto NewSocketAcceptor = std::make_unique<Poco::Net::ParallelSocketAcceptor<WSConnection, Poco::Net::SocketReactor>>( Sock, Reactor_, Poco::Environment::processorCount ()*2);
-            auto NewThread = std::make_unique<Poco::Thread>();
-            NewThread->setName("WebSocketAcceptor."+Svr.Address()+":"+std::to_string(Svr.Port()));
-
             Acceptors_.push_back(std::move(NewSocketAcceptor));
         }
 
-		uint64_t MaxThreads = Daemon()->ConfigGetInt("ucentral.websocket.maxreactors",5);
+		// uint64_t MaxThreads = Daemon()->ConfigGetInt("ucentral.websocket.maxreactors",5);
 		Reactor_.run();
 
         return 0;

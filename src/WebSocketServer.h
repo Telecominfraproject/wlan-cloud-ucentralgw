@@ -57,7 +57,7 @@ namespace uCentral {
 		[[nodiscard]] GWObjects::CertificateValidation CertificateValidation() const { return CertValidation_; };
     private:
 		SubMutex                          	Mutex_;
-        Poco::Logger                    &   Logger_;
+        Poco::Logger                    	&Logger_;
         Poco::Net::StreamSocket       		Socket_;
 		Poco::Net::SocketReactor			& Reactor_;
         std::unique_ptr<Poco::Net::WebSocket> WS_;
@@ -70,11 +70,6 @@ namespace uCentral {
 		GWObjects::CertificateValidation	CertValidation_ = GWObjects::CertificateValidation::NO_CERTIFICATE;
 		uint64_t 							Errors_=0;
 		std::unique_ptr<uCentral::StateProcessor>	StatsProcessor_;
-    };
-
-    struct WebSocketServerEntry {
-        std::unique_ptr<Poco::Net::SocketReactor>                   SocketReactor;
-        std::unique_ptr<Poco::Net::ParallelSocketAcceptor<WSConnection,Poco::Net::SocketReactor>>    SocketAcceptor;
     };
 
     class WebSocketServer : public SubSystemServer {

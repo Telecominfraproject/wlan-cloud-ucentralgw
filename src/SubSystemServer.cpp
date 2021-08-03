@@ -112,6 +112,8 @@ int MyVerifyServerCallback(int ok, X509_STORE_CTX* pStore)
 
 //	return 1 on success, 0 on failure.
 int MyCertificateVerification(X509_STORE_CTX* pStore, void *arg) {
+	return 1;
+	/*
 	X509* pCert = X509_STORE_CTX_get0_cert(pStore);
 	if(pCert!= nullptr) {
 		// Poco::Net::X509Certificate	C(pCert,true);
@@ -123,7 +125,7 @@ int MyCertificateVerification(X509_STORE_CTX* pStore, void *arg) {
 		return 1;
 	} else {
 		return 0;
-	}
+	}*/
 }
 
 static char Hello[] = "Hello!";
