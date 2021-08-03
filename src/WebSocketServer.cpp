@@ -80,11 +80,7 @@ namespace uCentral {
 		Logger_.information(Poco::format("EXCEPTION(%s): %s",CId_,E.displayText()));
 	}
 
-	WSConnection::WSConnection(Poco::Net::StreamSocket & socket, Poco::Net::SocketReactor & reactor):
-            Socket_(socket),
-			Reactor_(reactor),
-			Logger_(WebSocketServer()->Logger())
-    {
+	void WSConnection::CompleteStartup() {
 		auto SS = dynamic_cast<Poco::Net::SecureStreamSocketImpl *>(Socket_.impl());
 
 		SS->completeHandshake();
@@ -118,18 +114,27 @@ namespace uCentral {
 		}
 
 		auto Params = Poco::AutoPtr<Poco::Net::HTTPServerParams>(new Poco::Net::HTTPServerParams);
-        Poco::Net::HTTPServerSession        Session(Socket_, Params);
-        Poco::Net::HTTPServerResponseImpl   Response(Session);
-        Poco::Net::HTTPServerRequestImpl    Request(Response,Session,Params);
+		Poco::Net::HTTPServerSession        Session(Socket_, Params);
+		Poco::Net::HTTPServerResponseImpl   Response(Session);
+		Poco::Net::HTTPServerRequestImpl    Request(Response,Session,Params);
 
 		auto Now = time(nullptr);
-        Response.setDate(Now);
-        Response.setVersion(Request.getVersion());
-        Response.setKeepAlive(Params->getKeepAlive() && Request.getKeepAlive() && Session.canKeepAlive());
-        WS_ = std::make_unique<Poco::Net::WebSocket>(Request, Response);
+		Response.setDate(Now);
+		Response.setVersion(Request.getVersion());
+		Response.setKeepAlive(Params->getKeepAlive() && Request.getKeepAlive() && Session.canKeepAlive());
+		WS_ = std::make_unique<Poco::Net::WebSocket>(Request, Response);
 		WS_->setMaxPayloadSize(BufSize);
 
-        Register();
+		Register();
+	}
+
+	WSConnection::WSConnection(Poco::Net::StreamSocket & socket, Poco::Net::SocketReactor & reactor):
+            Socket_(socket),
+			Reactor_(reactor),
+			Logger_(WebSocketServer()->Logger())
+    {
+		std::thread		T([this](){ this->CompleteStartup();});
+		T.detach();
     }
 
     WSConnection::~WSConnection() {
