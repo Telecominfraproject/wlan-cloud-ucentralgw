@@ -35,101 +35,77 @@
 
 namespace uCentral {
 
-    class CountedSocketReactor : public Poco::Net::SocketReactor {
-    public:
-        explicit CountedSocketReactor(uint64_t Id): Id_(Id),SocketCount_(0) {
-			setTimeout(Poco::Timespan(0,10000));
-        }
-
-        ~CountedSocketReactor() override {
-            Poco::Net::SocketReactor::stop();
-        }
-
-        uint64_t Count() const {
-            return SocketCount_; }
-        void Get() {
-        	std::lock_guard G(Mutex_);
-            SocketCount_++; }
-        void Release() {
-			std::lock_guard G(Mutex_);
-            SocketCount_--; }
-        uint64_t Id() const { return Id_;}
-
-    private:
-        std::mutex     	Mutex_;
-        uint64_t        SocketCount_;
-        uint64_t        Id_;
+    struct ReactorPoolEntry {
+    	uint64_t 					NumSockets_=0;
+		uint64_t 					Id_=0;
+    	Poco::Thread				Thread_;
+    	Poco::Net::SocketReactor	Reactor_;
     };
 
-    class CountedSocketReactorFactory {
+    class ReactorPool {
     public:
-        explicit CountedSocketReactorFactory(Poco::Logger & Logger):
-            Logger_(Logger),
-            NumReactors_(0)
+    	explicit ReactorPool(Poco::Logger & Logger):
+            Logger_(Logger)
         {
         }
 
         void Init(unsigned int NumReactors) {
             NumReactors_ = NumReactors;
+			ReactorPool_.reserve(NumReactors_);
             for(auto i=0;i<NumReactors_;i++)
             {
-                auto NewReactor = std::make_unique<CountedSocketReactor>(i);
-                auto NewThread  = std::make_unique<Poco::Thread>();
-				NewThread->start(*NewReactor);
-				NewThread->setName( "Reactor:" + std::to_string(i));
-                ReactorThreads_.emplace_back( std::pair(std::move(NewReactor), std::move(NewThread)));
+				auto E = std::make_unique<ReactorPoolEntry>();
+				E->Id_=i;
+				E->Thread_.setName( "WebSocketReactor:" + std::to_string(i));
+				E->Thread_.start(E->Reactor_);
+                ReactorPool_[i] = std::move(E);
             }
         }
 
         void Close() {
             Logger_.information("Closing Reactor factory...");
-            for(auto &[Reactor,Thread]:ReactorThreads_)
+            for(auto &i:ReactorPool_)
             {
-                Reactor->stop();
-                Thread->join();
+                i->Reactor_.stop();
+                i->Thread_.join();
             }
+			ReactorPool_.clear();
         }
 
-        ~CountedSocketReactorFactory() {
+        ~ReactorPool() {
+			Close();
         }
 
-        CountedSocketReactor* GetAReactor() {
+        ReactorPoolEntry* GetAReactor() {
             std::lock_guard G(Mutex_);
-            TotalSockets_ = 0 ;
+
             uint64_t Min;
-            CountedSocketReactor *Tmp = nullptr;
-            for( auto &[Reactor, Thread] : ReactorThreads_)
+
+            ReactorPoolEntry *Tmp = nullptr;
+            for( auto &i : ReactorPool_)
             {
-                TotalSockets_ += Reactor->Count();
-                if((Tmp == nullptr) || (Reactor->Count()<Min) ) {
-                    Tmp = Reactor.get();
-                    Min = Reactor->Count();
+                TotalSockets_ += i->NumSockets_;
+                if((Tmp == nullptr) || (i->NumSockets_<Min) ) {
+                    Tmp = i.get();
+                    Min = i->NumSockets_;
                 }
             }
-            std::cout << "Reactor: " << Tmp->Id() << "   Count: " << Tmp->Count() << "  Totalsockets: " << TotalSockets_ << std::endl;
+			Tmp->NumSockets_++;
+            std::cout << "Reactor: " << Tmp->Id_ << "   Count: " << Tmp->NumSockets_ << "  TotalSockets: " << TotalSockets_ << std::endl;
             return Tmp;
         }
 
-    private:
-        std::mutex     	Mutex_;
-        Poco::Logger    & Logger_;
-        uint64_t        NumReactors_;
-		uint64_t 		TotalSockets_=0;
-        std::vector<std::pair<std::unique_ptr<CountedSocketReactor>, std::unique_ptr<Poco::Thread> >>  ReactorThreads_;
-    };
+		void Release(ReactorPoolEntry *RE) {
+    		std::lock_guard G(Mutex_);
+			ReactorPool_[RE->Id_]->NumSockets_--;
+		}
 
-	struct CommandIDPair {
-		std::string UUID;
-		bool 		Full=true;
-	};
-
-    class CountedReactor {
-    public:
-        CountedReactor();
-        ~CountedReactor();
-		CountedSocketReactor* Reactor() { return Reactor_; }
     private:
-        CountedSocketReactor *Reactor_;
+        std::mutex     									Mutex_;
+        Poco::Logger    								& Logger_;
+        uint64_t        								NumReactors_=0;
+        uint64_t 										TotalSockets_ = 0 ;
+		std::vector<std::unique_ptr<ReactorPoolEntry>>  ReactorPool_;
     };
 
 	class WSConnection {
@@ -141,7 +117,6 @@ namespace uCentral {
         void ProcessJSONRPCEvent(Poco::JSON::Object::Ptr	Doc);
         void ProcessJSONRPCResult(Poco::JSON::Object::Ptr	Doc);
         void ProcessIncomingFrame();
-        // bool SendCommand(uCentral::Objects::CommandDetails & Command);
 		bool Send(const std::string &Payload);
         void OnSocketReadable(const Poco::AutoPtr<Poco::Net::ReadableNotification>& pNf);
         void OnSocketShutdown(const Poco::AutoPtr<Poco::Net::ShutdownNotification>& pNf);
@@ -154,7 +129,7 @@ namespace uCentral {
 		[[nodiscard]] GWObjects::CertificateValidation CertificateValidation() const { return CertValidation_; };
     private:
 		SubMutex                          	Mutex_;
-        CountedReactor                      Reactor_;
+		ReactorPoolEntry                    *Reactor_= nullptr;
         Poco::Logger                    &   Logger_;
         Poco::Net::StreamSocket       		Socket_;
         std::unique_ptr<Poco::Net::WebSocket> WS_;
@@ -184,9 +159,14 @@ namespace uCentral {
             return instance_;
         }
 
-        CountedSocketReactor* GetAReactor() {
-            return Factory_.GetAReactor();
+        ReactorPoolEntry* GetAReactor() {
+            return Reactors_.GetAReactor();
         }
+
+        void ReleaseAReactor(ReactorPoolEntry * E) {
+        	return Reactors_.Release(E);
+        }
+
 
 		int Start() override;
 		void Stop() override;
@@ -198,7 +178,7 @@ namespace uCentral {
         static WebSocketServer *instance_;
 		std::unique_ptr<Poco::Crypto::X509Certificate>	IssuerCert_;
 		std::vector<WebSocketServerEntry>      			Servers_;
-		CountedSocketReactorFactory            			Factory_;
+		ReactorPool				            			Reactors_;
 		WebSocketServer() noexcept;
     };
 

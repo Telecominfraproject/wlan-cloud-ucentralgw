@@ -30,7 +30,7 @@ namespace uCentral {
     class WebSocketServer *WebSocketServer::instance_ = nullptr;
 
 	WebSocketServer::WebSocketServer() noexcept: SubSystemServer("WebSocketServer", "WS-SVR", "ucentral.websocket"),
-            Factory_(Logger_)
+												  Reactors_(Logger_)
     {
 
     }
@@ -70,7 +70,6 @@ namespace uCentral {
             NewThread->setName("WebSocketAcceptor."+Svr.Address()+":"+std::to_string(Svr.Port()));
             NewThread->start(*NewSocketReactor);
 
-
             WebSocketServerEntry WSE { .SocketReactor{std::move(NewSocketReactor)} ,
                                        .SocketAcceptor{std::move(NewSocketAcceptor)} ,
                                        .SocketReactorThread{std::move(NewThread)}};
@@ -78,7 +77,7 @@ namespace uCentral {
         }
 
         uint64_t MaxThreads = Daemon()->ConfigGetInt("ucentral.websocket.maxreactors",5);
-        Factory_.Init(MaxThreads);
+        Reactors_.Init(MaxThreads);
 
         return 0;
     }
@@ -90,17 +89,7 @@ namespace uCentral {
             Svr.SocketReactor->stop();
             Svr.SocketReactorThread->join();
         }
-        Factory_.Close();
-    }
-
-    CountedReactor::CountedReactor()
-    {
-        Reactor_ = WebSocketServer()->GetAReactor();
-    }
-
-    CountedReactor::~CountedReactor()
-    {
-        Reactor_->Release();
+        Reactors_.Close();
     }
 
 	void WSConnection::LogException(const Poco::Exception &E) {
@@ -122,6 +111,8 @@ namespace uCentral {
 		} else {
 			Logger_.debug(Poco::format("%s: Connection is secure.",CId_));
 		}
+
+		Reactor_ = WebSocketServer()->GetAReactor();
 
 		if(SS->havePeerCertificate()) {
 			// Get the cert info...
@@ -162,6 +153,7 @@ namespace uCentral {
 		// std::cout << "Connection " << CId_ << " shutting down." << std::endl;
         DeviceRegistry()->UnRegister(SerialNumber_,this);
         DeRegister();
+		WebSocketServer()->ReleaseAReactor(Reactor_);
     }
 
     void WSConnection::Register() {
@@ -173,13 +165,13 @@ namespace uCentral {
             WS_->setReceiveTimeout(TS);
             WS_->setNoDelay(true);
             WS_->setKeepAlive(true);
-            Reactor_.Reactor()->addEventHandler(*WS_,
+            Reactor_->Reactor_.addEventHandler(*WS_,
                                                  Poco::NObserver<WSConnection,
                                                  Poco::Net::ReadableNotification>(*this,&WSConnection::OnSocketReadable));
-			Reactor_.Reactor()->addEventHandler(*WS_,
+            Reactor_->Reactor_.addEventHandler(*WS_,
 												Poco::NObserver<WSConnection,
 													Poco::Net::ShutdownNotification>(*this,&WSConnection::OnSocketShutdown));
-			Reactor_.Reactor()->addEventHandler(*WS_,
+            Reactor_->Reactor_.addEventHandler(*WS_,
 												Poco::NObserver<WSConnection,
 													Poco::Net::ErrorNotification>(*this,&WSConnection::OnSocketError));
             Registered_ = true ;
@@ -190,13 +182,13 @@ namespace uCentral {
 		SubMutexGuard Guard(Mutex_);
         if(Registered_ && WS_)
         {
-            Reactor_.Reactor()->removeEventHandler(*WS_,
+        	Reactor_->Reactor_.removeEventHandler(*WS_,
                                                     Poco::NObserver<WSConnection,
                                                     Poco::Net::ReadableNotification>(*this,&WSConnection::OnSocketReadable));
-			Reactor_.Reactor()->removeEventHandler(*WS_,
+        	Reactor_->Reactor_.removeEventHandler(*WS_,
 												   Poco::NObserver<WSConnection,
 													   Poco::Net::ShutdownNotification>(*this,&WSConnection::OnSocketShutdown));
-			Reactor_.Reactor()->removeEventHandler(*WS_,
+        	Reactor_->Reactor_.removeEventHandler(*WS_,
 												   Poco::NObserver<WSConnection,
 													   Poco::Net::ErrorNotification>(*this,&WSConnection::OnSocketError));
             (*WS_).close();
