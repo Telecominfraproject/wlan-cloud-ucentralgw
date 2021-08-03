@@ -81,65 +81,73 @@ namespace uCentral {
 	}
 
 	void WSConnection::CompleteStartup() {
-		auto SS = dynamic_cast<Poco::Net::SecureStreamSocketImpl *>(Socket_.impl());
+		try {
+			auto SS = dynamic_cast<Poco::Net::SecureStreamSocketImpl *>(Socket_.impl());
 
-		SS->completeHandshake();
+			SS->completeHandshake();
 
-		CId_ = uCentral::Utils::FormatIPv6(SS->peerAddress().toString());
+			CId_ = uCentral::Utils::FormatIPv6(SS->peerAddress().toString());
 
-		if(!SS->secure()) {
-			Logger_.error(Poco::format("%s: Connection is NOT secure.",CId_));
-		} else {
-			Logger_.debug(Poco::format("%s: Connection is secure.",CId_));
-		}
-
-		if(SS->havePeerCertificate()) {
-			// Get the cert info...
-			CertValidation_ = GWObjects::VALID_CERTIFICATE;
-			try {
-				Poco::Crypto::X509Certificate	PeerCert(SS->peerCertificate());
-
-				if(WebSocketServer()->ValidateCertificate(CId_, PeerCert)) {
-					CN_ = Poco::trim(Poco::toLower(PeerCert.commonName()));
-					CertValidation_ = GWObjects::MISMATCH_SERIAL;
-					Logger_.debug(Poco::format("%s: Valid certificate: CN=%s", CId_, CN_));
-				} else {
-					Logger_.debug( Poco::format("%s: Certificate is not valid", CId_));
-				}
-			} catch (const Poco::Exception &E) {
-				LogException(E);
+			if (!SS->secure()) {
+				Logger_.error(Poco::format("%s: Connection is NOT secure.", CId_));
+			} else {
+				Logger_.debug(Poco::format("%s: Connection is secure.", CId_));
 			}
-		} else {
-			Logger_.error(Poco::format("%s: No certificates available..",CId_));
+
+			if (SS->havePeerCertificate()) {
+				// Get the cert info...
+				CertValidation_ = GWObjects::VALID_CERTIFICATE;
+				try {
+					Poco::Crypto::X509Certificate PeerCert(SS->peerCertificate());
+
+					if (WebSocketServer()->ValidateCertificate(CId_, PeerCert)) {
+						CN_ = Poco::trim(Poco::toLower(PeerCert.commonName()));
+						CertValidation_ = GWObjects::MISMATCH_SERIAL;
+						Logger_.debug(Poco::format("%s: Valid certificate: CN=%s", CId_, CN_));
+					} else {
+						Logger_.debug(Poco::format("%s: Certificate is not valid", CId_));
+					}
+				} catch (const Poco::Exception &E) {
+					LogException(E);
+				}
+			} else {
+				Logger_.error(Poco::format("%s: No certificates available..", CId_));
+			}
+
+			auto Params =
+				Poco::AutoPtr<Poco::Net::HTTPServerParams>(new Poco::Net::HTTPServerParams);
+			Poco::Net::HTTPServerSession Session(Socket_, Params);
+			Poco::Net::HTTPServerResponseImpl Response(Session);
+			Poco::Net::HTTPServerRequestImpl Request(Response, Session, Params);
+
+			auto Now = time(nullptr);
+			Response.setDate(Now);
+			Response.setVersion(Request.getVersion());
+			Response.setKeepAlive(Params->getKeepAlive() && Request.getKeepAlive() &&
+								  Session.canKeepAlive());
+			WS_ = std::make_unique<Poco::Net::WebSocket>(Request, Response);
+			WS_->setMaxPayloadSize(BufSize);
+
+			auto TS = Poco::Timespan();
+
+			WS_->setReceiveTimeout(TS);
+			WS_->setNoDelay(true);
+			WS_->setKeepAlive(true);
+			Reactor_.addEventHandler(*WS_,
+									 Poco::NObserver<WSConnection, Poco::Net::ReadableNotification>(
+										 *this, &WSConnection::OnSocketReadable));
+			Reactor_.addEventHandler(*WS_,
+									 Poco::NObserver<WSConnection, Poco::Net::ShutdownNotification>(
+										 *this, &WSConnection::OnSocketShutdown));
+			Reactor_.addEventHandler(*WS_,
+									 Poco::NObserver<WSConnection, Poco::Net::ErrorNotification>(
+										 *this, &WSConnection::OnSocketError));
+			Registered_ = true;
+			return;
+		} catch (const Poco::Exception &E ) {
+			std::cout << "Caught exception... deleting myself" << std::endl;
 		}
-
-		auto Params = Poco::AutoPtr<Poco::Net::HTTPServerParams>(new Poco::Net::HTTPServerParams);
-		Poco::Net::HTTPServerSession        Session(Socket_, Params);
-		Poco::Net::HTTPServerResponseImpl   Response(Session);
-		Poco::Net::HTTPServerRequestImpl    Request(Response,Session,Params);
-
-		auto Now = time(nullptr);
-		Response.setDate(Now);
-		Response.setVersion(Request.getVersion());
-		Response.setKeepAlive(Params->getKeepAlive() && Request.getKeepAlive() && Session.canKeepAlive());
-		WS_ = std::make_unique<Poco::Net::WebSocket>(Request, Response);
-		WS_->setMaxPayloadSize(BufSize);
-
-		auto TS = Poco::Timespan();
-
-		WS_->setReceiveTimeout(TS);
-		WS_->setNoDelay(true);
-		WS_->setKeepAlive(true);
-		Reactor_.addEventHandler(*WS_,
-								 Poco::NObserver<WSConnection,
-								 Poco::Net::ReadableNotification>(*this,&WSConnection::OnSocketReadable));
-		Reactor_.addEventHandler(*WS_,
-								 Poco::NObserver<WSConnection,
-								 Poco::Net::ShutdownNotification>(*this,&WSConnection::OnSocketShutdown));
-		Reactor_.addEventHandler(*WS_,
-								 Poco::NObserver<WSConnection,
-								 Poco::Net::ErrorNotification>(*this,&WSConnection::OnSocketError));
-		Registered_ = true ;
+		delete this;
 	}
 
 	WSConnection::WSConnection(Poco::Net::StreamSocket & socket, Poco::Net::SocketReactor & reactor):
@@ -166,8 +174,9 @@ namespace uCentral {
 										Poco::NObserver<WSConnection,
 										Poco::Net::ErrorNotification>(*this,&WSConnection::OnSocketError));
         	(*WS_).close();
-        	Registered_ = false ;
-        }
+        } else if(WS_) {
+        	(*WS_).close();
+		}
 
         if(KafkaManager()->Enabled() && !SerialNumber_.empty()) {
         	Poco::JSON::Object	Disconnect;
