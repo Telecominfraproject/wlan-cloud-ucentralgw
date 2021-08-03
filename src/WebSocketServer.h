@@ -144,9 +144,23 @@ namespace uCentral {
 		std::unique_ptr<uCentral::StateProcessor>	StatsProcessor_;
     };
 
+	class ThreadedConnectionCreator {
+	  public:
+		ThreadedConnectionCreator(Poco::Net::StreamSocket& socket, Poco::Net::SocketReactor& reactor) {
+			std::thread		T([&](){
+				new WSConnection(socket,reactor);
+			});
+			T.detach();
+			delete this;
+		}
+	  private:
+
+	};
+
     struct WebSocketServerEntry {
         std::unique_ptr<Poco::Net::SocketReactor>                   SocketReactor;
-        std::unique_ptr<Poco::Net::SocketAcceptor<WSConnection>>    SocketAcceptor;
+        // std::unique_ptr<Poco::Net::SocketAcceptor<WSConnection>>    SocketAcceptor;
+        std::unique_ptr<Poco::Net::SocketAcceptor<ThreadedConnectionCreator>>    SocketAcceptor;
         std::unique_ptr<Poco::Thread>                               SocketReactorThread;
     };
 

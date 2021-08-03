@@ -65,7 +65,8 @@ namespace uCentral {
 			}
 
             auto NewSocketReactor = std::make_unique<Poco::Net::SocketReactor>();
-            auto NewSocketAcceptor = std::make_unique<Poco::Net::SocketAcceptor<WSConnection>>( Sock, *NewSocketReactor);
+            // auto NewSocketAcceptor = std::make_unique<Poco::Net::SocketAcceptor<WSConnection>>( Sock, *NewSocketReactor);
+            auto NewSocketAcceptor = std::make_unique<Poco::Net::SocketAcceptor<ThreadedConnectionCreator>>( Sock, *NewSocketReactor);
             auto NewThread = std::make_unique<Poco::Thread>();
             NewThread->setName("WebSocketAcceptor."+Svr.Address()+":"+std::to_string(Svr.Port()));
             NewThread->start(*NewSocketReactor);
