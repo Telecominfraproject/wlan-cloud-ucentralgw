@@ -161,7 +161,7 @@ namespace uCentral {
 			Poco::Data::Statement Select(Sess);
 
 			Select << IntroStatement + DateSelector, Poco::Data::Keywords::into(Records),
-				Poco::Data::Keywords::range(Offset, Offset + HowMany);
+				Poco::Data::Keywords::range(Offset, HowMany);
 
 			Select.execute();
 
@@ -272,7 +272,7 @@ namespace uCentral {
 								   	"WHERE Executed=0"};
 				Select << 	ConvertParams(st),
 							Poco::Data::Keywords::into(Records),
-							Poco::Data::Keywords::range(Offset, Offset + HowMany);
+							Poco::Data::Keywords::range(Offset, HowMany);
 				Select.execute();
 
 				for (auto i : Records) {
@@ -528,7 +528,7 @@ namespace uCentral {
 			RecordList Records;
 
 			Select << ConvertParams(St), Poco::Data::Keywords::into(Records),
-				Poco::Data::Keywords::use(Now), Poco::Data::Keywords::range(Offset, Offset + HowMany);
+				Poco::Data::Keywords::use(Now), Poco::Data::Keywords::range(Offset, HowMany);
 			Select.execute();
 
 			for (auto i : Records) {

@@ -72,7 +72,7 @@ namespace uCentral {
 
 			Select << "SELECT SerialNumber, Reason, Author, Created FROM BlackList",
 				Poco::Data::Keywords::into(Records),
-				Poco::Data::Keywords::range(Offset, Offset + HowMany);
+				Poco::Data::Keywords::range(Offset, HowMany);
 			Select.execute();
 
 			for (auto i : Records) {

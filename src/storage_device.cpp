@@ -43,7 +43,7 @@ namespace uCentral {
 
 			Select << 	st,
 				Poco::Data::Keywords::into(SerialNumbers),
-				Poco::Data::Keywords::range(From, From + HowMany );
+				Poco::Data::Keywords::range(From, HowMany );
 			Select.execute();
 			return true;
 		} catch (const Poco::Exception &E ) {
@@ -593,7 +593,7 @@ namespace uCentral {
 					  "DevicePassword "
 					  "FROM Devices",
 				Poco::Data::Keywords::into(Records),
-				Poco::Data::Keywords::range(From, From + HowMany );
+				Poco::Data::Keywords::range(From, HowMany );
 			Select.execute();
 
 

@@ -201,7 +201,7 @@ namespace uCentral {
 					  "LastModified "
 					  "FROM DefaultConfigs",
 				Poco::Data::Keywords::into(Records),
-				Poco::Data::Keywords::range(From, From + HowMany );
+				Poco::Data::Keywords::range(From, From);
 
 			Select.execute();
 
