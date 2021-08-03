@@ -94,30 +94,27 @@ namespace uCentral {
         }
 
         CountedSocketReactor* GetAReactor() {
-            uint64_t Min;
-
             std::lock_guard G(Mutex_);
-
-            auto Tmp = ReactorThreads_.end();
-            uint64_t TotalSockets = 0 ;
-
-            for( auto i = ReactorThreads_.begin() ; i != ReactorThreads_.end() ; i++ )
+            TotalSockets_ = 0 ;
+            uint64_t Min;
+            CountedSocketReactor *Tmp = nullptr;
+            for( auto &[Reactor, Thread] : ReactorThreads_)
             {
-                TotalSockets += i->first->Count();
-                if((Tmp == ReactorThreads_.end()) || (i->first->Count()<Min) ) {
-                    Tmp = i;
-                    Min = i->first->Count();
+                TotalSockets_ += Reactor->Count();
+                if((Tmp == nullptr) || (Reactor->Count()<Min) ) {
+                    Tmp = Reactor.get();
+                    Min = Reactor->Count();
                 }
             }
-			Tmp->first->Get();
-            std::cout << "Reactor: " << Tmp->first->Id() << "   Count: " << Tmp->first->Count() << std::endl;
-            return Tmp->first.get();
+            std::cout << "Reactor: " << Tmp->Id() << "   Count: " << Tmp->Count() << "  Totalsockets: " << TotalSockets_ << std::endl;
+            return Tmp;
         }
 
     private:
         std::mutex     	Mutex_;
         Poco::Logger    & Logger_;
         uint64_t        NumReactors_;
+		uint64_t 		TotalSockets_=0;
         std::vector<std::pair<std::unique_ptr<CountedSocketReactor>, std::unique_ptr<Poco::Thread> >>  ReactorThreads_;
     };
 
