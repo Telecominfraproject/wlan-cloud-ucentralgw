@@ -153,7 +153,7 @@ namespace uCentral {
 		[[nodiscard]] std::string ConvertParams(const std::string &S) const;
 		[[nodiscard]] inline std::string ComputeRange(uint64_t From, uint64_t HowMany) {
 			if(dbType_==sqlite) {
-				return " LIMIT " + std::to_string(HowMany) + " OFFSET " + std::to_string(From-1) + " ";
+				return " LIMIT " + std::to_string(From-1) + ", " + std::to_string(HowMany) + " ";
 			} else if(dbType_==pgsql) {
 				return " LIMIT " + std::to_string(HowMany) + " OFFSET " + std::to_string(From-1) + " ";
 			} else if(dbType_==mysql) {
