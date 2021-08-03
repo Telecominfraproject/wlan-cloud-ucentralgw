@@ -754,7 +754,7 @@ namespace uCentral {
             MustDisconnect = true ;
         }
 
-        if(!MustDisconnect || Errors_>10)
+        if(!MustDisconnect || Errors_<10)
             return;
 
         delete this;
