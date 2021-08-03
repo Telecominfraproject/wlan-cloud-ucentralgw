@@ -51,14 +51,23 @@ namespace uCentral {
 
         void Init(unsigned int NumReactors) {
             NumReactors_ = NumReactors;
+            std::cout << __LINE__ << std::endl;
 			ReactorPool_.reserve(NumReactors_);
+			std::cout << __LINE__ << std::endl;
             for(auto i=0;i<NumReactors_;i++)
             {
+            	std::cout << __LINE__ << std::endl;
 				auto E = std::make_unique<ReactorPoolEntry>();
+				std::cout << __LINE__ << std::endl;
+				std::cout << __LINE__ << std::endl;
 				E->Id_=i;
+				std::cout << __LINE__ << std::endl;
 				E->Thread_.setName( "WebSocketReactor:" + std::to_string(i));
+				std::cout << __LINE__ << std::endl;
 				E->Thread_.start(E->Reactor_);
+				std::cout << __LINE__ << std::endl;
                 ReactorPool_[i] = std::move(E);
+                std::cout << __LINE__ << std::endl;
             }
         }
 
