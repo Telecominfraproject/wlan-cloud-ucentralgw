@@ -110,6 +110,7 @@ namespace uCentral {
                 }
             }
 			Tmp->first->Get();
+            std::cout << "Reactor: " << Tmp->first->Id() << "   Count: " << Tmp->first->Count() << std::endl;
             return Tmp->first.get();
         }
 

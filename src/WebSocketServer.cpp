@@ -70,6 +70,7 @@ namespace uCentral {
             NewThread->setName("WebSocketAcceptor."+Svr.Address()+":"+std::to_string(Svr.Port()));
             NewThread->start(*NewSocketReactor);
 
+
             WebSocketServerEntry WSE { .SocketReactor{std::move(NewSocketReactor)} ,
                                        .SocketAcceptor{std::move(NewSocketAcceptor)} ,
                                        .SocketReactorThread{std::move(NewThread)}};

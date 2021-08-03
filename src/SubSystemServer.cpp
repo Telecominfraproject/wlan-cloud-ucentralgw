@@ -114,8 +114,8 @@ int MyVerifyServerCallback(int ok, X509_STORE_CTX* pStore)
 int MyCertificateVerification(X509_STORE_CTX* pStore, void *arg) {
 	X509* pCert = X509_STORE_CTX_get0_cert(pStore);
 	if(pCert!= nullptr) {
-		Poco::Net::X509Certificate	C(pCert,true);
-		auto FP = C.fingerprint();
+		// Poco::Net::X509Certificate	C(pCert,true);
+		// auto FP = C.fingerprint();
 		//std::cout << "  Issuer: " << C.issuerName() << std::endl;
 		//std::cout << "  Serial: " << C.serialNumber() << std::endl;
 		//std::cout << "  CN: " << C.commonName() << std::endl;
@@ -181,7 +181,6 @@ Poco::Net::SecureServerSocket PropertiesFileServerEntry::CreateSecureSocket(Poco
 		SSL_CTX_enable_ct(SSLCtx, SSL_CT_VALIDATION_STRICT);
 		SSL_CTX_set_verify(SSLCtx, SSL_VERIFY_PEER, MyVerifyServerCallback);
 		SSL_CTX_set_cert_verify_callback(SSLCtx, MyCertificateVerification, (void *)Hello);
-
 		SSL_CTX_dane_enable(SSLCtx);
 
 		Context->enableSessionCache();
@@ -197,7 +196,6 @@ Poco::Net::SecureServerSocket PropertiesFileServerEntry::CreateSecureSocket(Poco
 			Poco::Net::Socket::supportsIPv6() ? Poco::Net::AddressFamily::IPv6
 											  : Poco::Net::AddressFamily::IPv4));
 		Poco::Net::SocketAddress SockAddr(Addr, port_);
-		std::cout << "Backlog: " << backlog_ << std::endl;
 		return Poco::Net::SecureServerSocket(SockAddr, backlog_, Context);
 	} else {
 		Poco::Net::IPAddress Addr(address_);
