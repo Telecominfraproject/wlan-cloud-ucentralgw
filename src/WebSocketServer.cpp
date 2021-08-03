@@ -63,12 +63,16 @@ namespace uCentral {
 				Logger_.information(Poco::format("Certificate Issuer Name:%s",IssuerCert_->issuerName()));
 			}
 
+			std::cout << __LINE__ << std::endl;
 			auto NewSocketAcceptor = std::make_unique<Poco::Net::ParallelSocketAcceptor<WSConnection, Poco::Net::SocketReactor>>( Sock, Reactor_);
+			std::cout << __LINE__ << std::endl;
             Acceptors_.push_back(std::move(NewSocketAcceptor));
+            std::cout << __LINE__ << std::endl;
         }
 
-		// uint64_t MaxThreads = Daemon()->ConfigGetInt("ucentral.websocket.maxreactors",5);
+        std::cout << __LINE__ << std::endl;
 		Reactor_.run();
+		std::cout << __LINE__ << std::endl;
 
         return 0;
     }
