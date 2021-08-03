@@ -32,86 +32,14 @@
 #include "Poco/Net/StreamSocket.h"
 #include "Poco/Net/SecureStreamSocket.h"
 #include "Poco/Net/SecureStreamSocketImpl.h"
+#include "Poco/Net/ParallelSocketAcceptor.h"
 
 namespace uCentral {
-
-    struct ReactorPoolEntry {
-    	uint64_t 					NumSockets_=0;
-		uint64_t 					Id_=0;
-    	Poco::Thread				Thread_;
-    	Poco::Net::SocketReactor	Reactor_;
-    };
-
-    class ReactorPool {
-    public:
-    	explicit ReactorPool(Poco::Logger & Logger):
-            Logger_(Logger)
-        {
-        }
-
-        void Init(unsigned int NumReactors) {
-            NumReactors_ = NumReactors;
-			ReactorPool_.reserve(NumReactors_);
-            for(auto i=0;i<NumReactors_;i++)
-            {
-				auto E = std::make_unique<ReactorPoolEntry>();
-				E->Id_=i;
-				E->Thread_.setName( "WebSocketReactor:" + std::to_string(i));
-				E->Thread_.start(E->Reactor_);
-                ReactorPool_.emplace_back( std::move(E) );
-            }
-        }
-
-        void Close() {
-            Logger_.information("Closing Reactor factory...");
-            for(auto &i:ReactorPool_)
-            {
-                i->Reactor_.stop();
-                i->Thread_.join();
-            }
-			ReactorPool_.clear();
-        }
-
-        ~ReactorPool() {
-			Close();
-        }
-
-        ReactorPoolEntry* GetAReactor() {
-            std::lock_guard G(Mutex_);
-
-            uint64_t Min;
-			TotalSockets_=0;
-            ReactorPoolEntry *Tmp = nullptr;
-            for( auto &i : ReactorPool_)
-            {
-                TotalSockets_ += i->NumSockets_;
-                if((Tmp == nullptr) || (i->NumSockets_<Min) ) {
-                    Tmp = i.get();
-                    Min = i->NumSockets_;
-                }
-            }
-			Tmp->NumSockets_++;
-            // std::cout << "Reactor: " << Tmp->Id_ << "   Count: " << Tmp->NumSockets_ << "  TotalSockets: " << TotalSockets_ << std::endl;
-            return Tmp;
-        }
-
-		void Release(ReactorPoolEntry *RE) {
-    		std::lock_guard G(Mutex_);
-			ReactorPool_[RE->Id_]->NumSockets_--;
-		}
-
-    private:
-        std::mutex     									Mutex_;
-        Poco::Logger    								& Logger_;
-        uint64_t        								NumReactors_=0;
-        uint64_t 										TotalSockets_ = 0 ;
-		std::vector<std::unique_ptr<ReactorPoolEntry>>  ReactorPool_;
-    };
 
 	class WSConnection {
         static constexpr int BufSize = 64000;
     public:
-        WSConnection(Poco::Net::StreamSocket& socket, Poco::Net::SocketReactor& reactor);
+        WSConnection(Poco::Net::StreamSocket& Socket, Poco::Net::SocketReactor& Reactor);
         ~WSConnection();
 
         void ProcessJSONRPCEvent(Poco::JSON::Object::Ptr	Doc);
@@ -129,9 +57,9 @@ namespace uCentral {
 		[[nodiscard]] GWObjects::CertificateValidation CertificateValidation() const { return CertValidation_; };
     private:
 		SubMutex                          	Mutex_;
-		ReactorPoolEntry                    *Reactor_= nullptr;
         Poco::Logger                    &   Logger_;
         Poco::Net::StreamSocket       		Socket_;
+		Poco::Net::SocketReactor			& Reactor_;
         std::unique_ptr<Poco::Net::WebSocket> WS_;
         std::string                         SerialNumber_;
 		std::string 						Compatible_;
@@ -144,26 +72,9 @@ namespace uCentral {
 		std::unique_ptr<uCentral::StateProcessor>	StatsProcessor_;
     };
 
-	/*
-	class ThreadedConnectionCreator {
-	  public:
-		ThreadedConnectionCreator(Poco::Net::StreamSocket& socket, Poco::Net::SocketReactor& reactor) {
-			std::thread		T([=]{
-				new WSConnection(socket,reactor);
-			});
-			T.detach();
-			delete this;
-		}
-	  private:
-
-	};
-*/
-
     struct WebSocketServerEntry {
         std::unique_ptr<Poco::Net::SocketReactor>                   SocketReactor;
-        std::unique_ptr<Poco::Net::SocketAcceptor<WSConnection>>    SocketAcceptor;
-        // std::unique_ptr<Poco::Net::SocketAcceptor<ThreadedConnectionCreator>>    SocketAcceptor;
-        std::unique_ptr<Poco::Thread>                               SocketReactorThread;
+        std::unique_ptr<Poco::Net::ParallelSocketAcceptor<WSConnection,Poco::Net::SocketReactor>>    SocketAcceptor;
     };
 
     class WebSocketServer : public SubSystemServer {
@@ -175,15 +86,6 @@ namespace uCentral {
             return instance_;
         }
 
-        ReactorPoolEntry* GetAReactor() {
-            return Reactors_.GetAReactor();
-        }
-
-        void ReleaseAReactor(ReactorPoolEntry * E) {
-        	return Reactors_.Release(E);
-        }
-
-
 		int Start() override;
 		void Stop() override;
 		bool IsCertOk() { return IssuerCert_!= nullptr; }
@@ -193,8 +95,8 @@ namespace uCentral {
     private:
         static WebSocketServer *instance_;
 		std::unique_ptr<Poco::Crypto::X509Certificate>	IssuerCert_;
-		std::vector<WebSocketServerEntry>      			Servers_;
-		ReactorPool				            			Reactors_;
+		std::vector<std::unique_ptr<Poco::Net::ParallelSocketAcceptor<WSConnection, Poco::Net::SocketReactor>>>	Acceptors_;
+		Poco::Net::SocketReactor						Reactor_;
 		WebSocketServer() noexcept;
     };
 
