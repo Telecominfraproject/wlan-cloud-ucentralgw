@@ -92,6 +92,7 @@ namespace uCentral {
 		std::unique_ptr<Poco::Crypto::X509Certificate>	IssuerCert_;
 		std::vector<std::unique_ptr<Poco::Net::ParallelSocketAcceptor<WSConnection, Poco::Net::SocketReactor>>>	Acceptors_;
 		Poco::Net::SocketReactor						Reactor_;
+		Poco::Thread									ReactorThread_;
 		WebSocketServer() noexcept;
     };
 

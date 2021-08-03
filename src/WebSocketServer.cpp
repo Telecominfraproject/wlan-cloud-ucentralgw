@@ -62,21 +62,10 @@ namespace uCentral {
 				IssuerCert_ = std::make_unique<Poco::Crypto::X509Certificate>(Svr.IssuerCertFile());
 				Logger_.information(Poco::format("Certificate Issuer Name:%s",IssuerCert_->issuerName()));
 			}
-
-			std::cout << __LINE__ << std::endl;
 			auto NewSocketAcceptor = std::make_unique<Poco::Net::ParallelSocketAcceptor<WSConnection, Poco::Net::SocketReactor>>( Sock, Reactor_);
-			std::cout << __LINE__ << std::endl;
             Acceptors_.push_back(std::move(NewSocketAcceptor));
-            std::cout << __LINE__ << std::endl;
         }
-
-        std::cout << __LINE__ << std::endl;
-		std::thread	T([this](){
-			this->Reactor_.run();
-		});
-		T.detach();
-		std::cout << __LINE__ << std::endl;
-
+		ReactorThread_.start(Reactor_);
         return 0;
     }
 
@@ -84,8 +73,7 @@ namespace uCentral {
         Logger_.notice("Stopping reactors...");
 
 		Reactor_.stop();
-		for(auto const &Svr : Acceptors_) {
-        }
+		ReactorThread_.join();
     }
 
 	void WSConnection::LogException(const Poco::Exception &E) {
