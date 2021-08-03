@@ -91,7 +91,7 @@ namespace uCentral {
                 }
             }
 			Tmp->NumSockets_++;
-            std::cout << "Reactor: " << Tmp->Id_ << "   Count: " << Tmp->NumSockets_ << "  TotalSockets: " << TotalSockets_ << std::endl;
+            // std::cout << "Reactor: " << Tmp->Id_ << "   Count: " << Tmp->NumSockets_ << "  TotalSockets: " << TotalSockets_ << std::endl;
             return Tmp;
         }
 
