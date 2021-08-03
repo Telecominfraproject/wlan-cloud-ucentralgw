@@ -182,7 +182,7 @@ Poco::Net::SecureServerSocket PropertiesFileServerEntry::CreateSecureSocket(Poco
 
 		SSL_CTX_enable_ct(SSLCtx, SSL_CT_VALIDATION_STRICT);
 		SSL_CTX_set_verify(SSLCtx, SSL_VERIFY_PEER, MyVerifyServerCallback);
-		SSL_CTX_set_cert_verify_callback(SSLCtx, MyCertificateVerification, (void *)Hello);
+		// SSL_CTX_set_cert_verify_callback(SSLCtx, MyCertificateVerification, (void *)Hello);
 		SSL_CTX_dane_enable(SSLCtx);
 
 		Context->enableSessionCache();
