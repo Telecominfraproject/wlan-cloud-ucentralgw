@@ -125,7 +125,21 @@ namespace uCentral {
 		WS_ = std::make_unique<Poco::Net::WebSocket>(Request, Response);
 		WS_->setMaxPayloadSize(BufSize);
 
-		Register();
+		auto TS = Poco::Timespan();
+
+		WS_->setReceiveTimeout(TS);
+		WS_->setNoDelay(true);
+		WS_->setKeepAlive(true);
+		Reactor_.addEventHandler(*WS_,
+								 Poco::NObserver<WSConnection,
+								 Poco::Net::ReadableNotification>(*this,&WSConnection::OnSocketReadable));
+		Reactor_.addEventHandler(*WS_,
+								 Poco::NObserver<WSConnection,
+								 Poco::Net::ShutdownNotification>(*this,&WSConnection::OnSocketShutdown));
+		Reactor_.addEventHandler(*WS_,
+								 Poco::NObserver<WSConnection,
+								 Poco::Net::ErrorNotification>(*this,&WSConnection::OnSocketError));
+		Registered_ = true ;
 	}
 
 	WSConnection::WSConnection(Poco::Net::StreamSocket & socket, Poco::Net::SocketReactor & reactor):
@@ -138,63 +152,37 @@ namespace uCentral {
     }
 
     WSConnection::~WSConnection() {
-		// std::cout << "Connection " << CId_ << " shutting down." << std::endl;
-        DeviceRegistry()->UnRegister(SerialNumber_,this);
-        DeRegister();
-    }
-
-    void WSConnection::Register() {
-        SubMutexGuard Guard(Mutex_);
-        if(!Registered_ && WS_)
-        {
-            auto TS = Poco::Timespan();
-
-            WS_->setReceiveTimeout(TS);
-            WS_->setNoDelay(true);
-            WS_->setKeepAlive(true);
-            Reactor_.addEventHandler(*WS_,
-                                                 Poco::NObserver<WSConnection,
-                                                 Poco::Net::ReadableNotification>(*this,&WSConnection::OnSocketReadable));
-            Reactor_.addEventHandler(*WS_,
-												Poco::NObserver<WSConnection,
-													Poco::Net::ShutdownNotification>(*this,&WSConnection::OnSocketShutdown));
-            Reactor_.addEventHandler(*WS_,
-												Poco::NObserver<WSConnection,
-													Poco::Net::ErrorNotification>(*this,&WSConnection::OnSocketError));
-            Registered_ = true ;
-        }
-    }
-
-    void WSConnection::DeRegister() {
 		SubMutexGuard Guard(Mutex_);
+
+        DeviceRegistry()->UnRegister(SerialNumber_,this);
+
         if(Registered_ && WS_)
         {
         	Reactor_.removeEventHandler(*WS_,
-                                                    Poco::NObserver<WSConnection,
-                                                    Poco::Net::ReadableNotification>(*this,&WSConnection::OnSocketReadable));
+										Poco::NObserver<WSConnection,
+										Poco::Net::ReadableNotification>(*this,&WSConnection::OnSocketReadable));
         	Reactor_.removeEventHandler(*WS_,
-												   Poco::NObserver<WSConnection,
-													   Poco::Net::ShutdownNotification>(*this,&WSConnection::OnSocketShutdown));
+										Poco::NObserver<WSConnection,
+										Poco::Net::ShutdownNotification>(*this,&WSConnection::OnSocketShutdown));
         	Reactor_.removeEventHandler(*WS_,
-												   Poco::NObserver<WSConnection,
-													   Poco::Net::ErrorNotification>(*this,&WSConnection::OnSocketError));
-            (*WS_).close();
-            Registered_ = false ;
+										Poco::NObserver<WSConnection,
+										Poco::Net::ErrorNotification>(*this,&WSConnection::OnSocketError));
+        	(*WS_).close();
+        	Registered_ = false ;
         }
 
-		if(KafkaManager()->Enabled() && !SerialNumber_.empty()) {
-			Poco::JSON::Object	Disconnect;
-			Poco::JSON::Object	Details;
-			Details.set(uCentralProtocol::SERIALNUMBER, SerialNumber_);
-			Details.set(uCentralProtocol::TIMESTAMP,std::time(nullptr));
-			Disconnect.set(uCentralProtocol::DISCONNECTION,Details);
-			Poco::JSON::Stringifier		Stringify;
-			std::ostringstream OS;
-			Stringify.condense(Disconnect,OS);
-			KafkaManager()->PostMessage(uCentral::KafkaTopics::CONNECTION, SerialNumber_, OS.str());
-		}
-
-	}
+        if(KafkaManager()->Enabled() && !SerialNumber_.empty()) {
+        	Poco::JSON::Object	Disconnect;
+        	Poco::JSON::Object	Details;
+        	Details.set(uCentralProtocol::SERIALNUMBER, SerialNumber_);
+        	Details.set(uCentralProtocol::TIMESTAMP,std::time(nullptr));
+        	Disconnect.set(uCentralProtocol::DISCONNECTION,Details);
+        	Poco::JSON::Stringifier		Stringify;
+        	std::ostringstream OS;
+        	Stringify.condense(Disconnect,OS);
+        	KafkaManager()->PostMessage(uCentral::KafkaTopics::CONNECTION, SerialNumber_, OS.str());
+        }
+    }
 
     bool WSConnection::LookForUpgrade(uint64_t UUID) {
 

@@ -51,8 +51,6 @@ namespace uCentral {
         void OnSocketError(const Poco::AutoPtr<Poco::Net::ErrorNotification>& pNf);
         bool LookForUpgrade(uint64_t UUID);
 		static bool ExtractCompressedData(const std::string & CompressedData, std::string & UnCompressedData);
-        void Register();
-        void DeRegister();
 		void LogException(const Poco::Exception &E);
 		[[nodiscard]] GWObjects::CertificateValidation CertificateValidation() const { return CertValidation_; };
     private:
