@@ -71,7 +71,10 @@ namespace uCentral {
         }
 
         std::cout << __LINE__ << std::endl;
-		Reactor_.run();
+		std::thread	T([this](){
+			this->Reactor_.run();
+		});
+		T.detach();
 		std::cout << __LINE__ << std::endl;
 
         return 0;
