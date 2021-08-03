@@ -199,9 +199,9 @@ namespace uCentral {
 					  "Description, "
 					  "Created, "
 					  "LastModified "
-					  "FROM DefaultConfigs",
-				Poco::Data::Keywords::into(Records),
-				Poco::Data::Keywords::range(From, From);
+					  "FROM DefaultConfigs ORDER BY NAME " +
+						  ComputeRange(From, HowMany),
+				Poco::Data::Keywords::into(Records);
 
 			Select.execute();
 
@@ -267,9 +267,9 @@ namespace uCentral {
 					  "Description, "
 					  "Created, "
 					  "LastModified "
-					  "FROM DefaultConfigs",
-				Poco::Data::Keywords::into(Records),
-				Poco::Data::Keywords::range(0, 2);
+					  "FROM DefaultConfigs ORDER BY NAME " +
+						  ComputeRange(1,1),
+				Poco::Data::Keywords::into(Records);
 			Select.execute();
 
 			for (auto i: Records) {

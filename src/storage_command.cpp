@@ -142,7 +142,7 @@ namespace uCentral {
 			std::string Fields{
 				"SELECT UUID, SerialNumber, Command, Status, SubmittedBy, Results, Details, ErrorText, "
 				"Submitted, Executed, Completed, RunAt, ErrorCode, Custom, WaitingForFile, AttachDate, "
-				"AttachSize, AttachType  FROM CommandList "};
+				"AttachSize, AttachType  FROM CommandList ORDER BY UUID "};
 			std::string IntroStatement = SerialNumber.empty()
 											 ? Fields + std::string(DatesIncluded ? "WHERE " : "")
 											 : Fields + "WHERE SerialNumber='" + SerialNumber + "'" +
@@ -160,8 +160,8 @@ namespace uCentral {
 
 			Poco::Data::Statement Select(Sess);
 
-			Select << IntroStatement + DateSelector, Poco::Data::Keywords::into(Records),
-				Poco::Data::Keywords::range(Offset, HowMany);
+			Select << IntroStatement + DateSelector +
+						  ComputeRange(Offset, HowMany), Poco::Data::Keywords::into(Records);
 
 			Select.execute();
 
@@ -268,11 +268,10 @@ namespace uCentral {
 				// range(Offset, Offset + HowMany - 1)
 				std::string st{	"SELECT UUID, SerialNumber, Command, Status, SubmittedBy, Results, Details, ErrorText,"
 								   	"Submitted, Executed, Completed, RunAt, ErrorCode, Custom, WaitingForFile, AttachDate,"
-								   	"AttachSize, AttachType FROM CommandList "
-								   	"WHERE Executed=0"};
-				Select << 	ConvertParams(st),
-							Poco::Data::Keywords::into(Records),
-							Poco::Data::Keywords::range(Offset, HowMany);
+								   	"AttachSize, AttachType FROM CommandList ORDER BY UUID "
+								   	"WHERE Executed=0" };
+				Select << 	ConvertParams(st) + ComputeRange(Offset, HowMany),
+							Poco::Data::Keywords::into(Records);
 				Select.execute();
 
 				for (auto i : Records) {
@@ -522,13 +521,14 @@ namespace uCentral {
 
 			std::string St{
 				"SELECT UUID, SerialNumber, Command, Status, SubmittedBy, Results, Details, ErrorText, "
-				"Submitted, Executed, Completed, RunAt, ErrorCode, Custom, WaitingForFile, AttachDate, AttachSize, AttachType FROM CommandList "
-				"WHERE RunAt < ? And Executed=0"};
+				" Submitted, Executed, Completed, RunAt, ErrorCode, Custom, WaitingForFile, AttachDate, AttachSize, AttachType FROM CommandList ORDER BY UUID "
+				" WHERE RunAt < ? And Executed=0"};
 
 			RecordList Records;
 
-			Select << ConvertParams(St), Poco::Data::Keywords::into(Records),
-				Poco::Data::Keywords::use(Now), Poco::Data::Keywords::range(Offset, HowMany);
+			Select << ConvertParams(St) + ComputeRange(Offset, HowMany),
+				Poco::Data::Keywords::into(Records),
+				Poco::Data::Keywords::use(Now);
 			Select.execute();
 
 			for (auto i : Records) {

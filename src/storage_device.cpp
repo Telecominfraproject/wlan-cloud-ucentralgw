@@ -39,11 +39,10 @@ namespace uCentral {
 			Poco::Data::Session Sess = Pool_->get();
 			Poco::Data::Statement   Select(Sess);
 
-			std::string st{"SELECT SerialNumber From Devices"};
+			std::string st{"SELECT SerialNumber From Devices ORDER BY SerialNumber " };
 
-			Select << 	st,
-				Poco::Data::Keywords::into(SerialNumbers),
-				Poco::Data::Keywords::range(From, HowMany );
+			Select << 	st + ComputeRange(From, HowMany),
+				Poco::Data::Keywords::into(SerialNumbers);
 			Select.execute();
 			return true;
 		} catch (const Poco::Exception &E ) {
@@ -563,8 +562,6 @@ namespace uCentral {
 		typedef std::vector<DeviceRecord> RecordList;
 
 		RecordList Records;
-
-		std::cout << "Getting devices..." << std::endl;
 
 		try {
 			Poco::Data::Session     Sess = Pool_->get();

@@ -55,7 +55,10 @@ void RESTAPI_device_commandHandler::handleRequest(Poco::Net::HTTPServerRequest &
 		}
 
 		ParseParameters(Request);
-		InitQueryBlock();
+		if(!InitQueryBlock()) {
+			BadRequest(Request, Response, "Illegal parameter value.");
+			return;
+		}
 
 		if (Command == uCentral::RESTAPI::Protocol::CAPABILITIES &&
 			Request.getMethod() == Poco::Net::HTTPServerRequest::HTTP_GET) {

@@ -70,9 +70,9 @@ namespace uCentral {
 			Poco::Data::Session Sess = Pool_->get();
 			Poco::Data::Statement Select(Sess);
 
-			Select << "SELECT SerialNumber, Reason, Author, Created FROM BlackList",
-				Poco::Data::Keywords::into(Records),
-				Poco::Data::Keywords::range(Offset, HowMany);
+			Select << "SELECT SerialNumber, Reason, Author, Created FROM BlackList"
+						+ ComputeRange(Offset,HowMany),
+				Poco::Data::Keywords::into(Records);
 			Select.execute();
 
 			for (auto i : Records) {

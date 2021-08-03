@@ -29,7 +29,10 @@ namespace uCentral {
 		try {
 			if (Request.getMethod() == Poco::Net::HTTPRequest::HTTP_GET) {
 				ParseParameters(Request);
-				InitQueryBlock();
+				if(!InitQueryBlock()) {
+					BadRequest(Request, Response, "Illegal parameter value.");
+					return;
+				}
 				auto serialOnly = GetBoolParameter(uCentral::RESTAPI::Protocol::SERIALONLY, false);
 				auto countOnly = GetBoolParameter(uCentral::RESTAPI::Protocol::COUNTONLY, false);
 				auto deviceWithStatus =
@@ -82,7 +85,6 @@ namespace uCentral {
 				} else {
 					std::vector<GWObjects::Device> Devices;
 					Storage()->GetDevices(QB_.Offset, QB_.Limit, Devices);
-					std::cout << "Offset:" << QB_.Offset << " Limit:" << QB_.Limit << " Device:" << Devices.size() << std::endl;
 					Poco::JSON::Array Objects;
 					for (const auto &i : Devices) {
 						Poco::JSON::Object Obj;

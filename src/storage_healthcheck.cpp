@@ -72,9 +72,8 @@ namespace uCentral {
 
 			Poco::Data::Statement   Select(Sess);
 
-			Select << Statement + DateSelector,
-				Poco::Data::Keywords::into(Records),
-				Poco::Data::Keywords::range(Offset, HowMany );
+			Select << Statement + DateSelector + " ORDER BY Recorded " + ComputeRange(Offset,HowMany),
+				Poco::Data::Keywords::into(Records);
 			Select.execute();
 
 			for (auto i: Records) {

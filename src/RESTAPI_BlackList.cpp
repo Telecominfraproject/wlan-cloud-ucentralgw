@@ -63,7 +63,10 @@ namespace uCentral {
 	void RESTAPI_BlackList::DoGet(Poco::Net::HTTPServerRequest &Request,
 								  Poco::Net::HTTPServerResponse &Response) {
 		try {
-			InitQueryBlock();
+			if(!InitQueryBlock()) {
+				BadRequest(Request, Response, "Illegal parameter value.");
+				return;
+			}
 			std::vector<GWObjects::BlackListedDevice> Devices;
 
 			Poco::JSON::Array Objects;

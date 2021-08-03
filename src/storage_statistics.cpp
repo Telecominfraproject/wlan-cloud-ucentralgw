@@ -77,9 +77,8 @@ namespace uCentral {
 				DateSelector = " Recorded<=" + std::to_string(ToDate);
 			}
 
-			Select << StatementStr + DateSelector,
-				Poco::Data::Keywords::into(Records),
-				Poco::Data::Keywords::range(Offset, HowMany );
+			Select << StatementStr + DateSelector + " ORDER BY Recorded " + ComputeRange(Offset, HowMany),
+				Poco::Data::Keywords::into(Records);
 			Select.execute();
 
 			for (auto i: Records) {

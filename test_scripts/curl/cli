@@ -176,6 +176,13 @@ listdevices() {
   jq < ${result_file}
 }
 
+ldevs() {
+	curl  ${FLAGS} -X GET "https://${UCENTRALGW}/api/v1/devices?offset=$1&limit=$2" \
+	-H "accept: application/json" \
+	-H "Authorization: Bearer ${token}" > ${result_file}
+	jq < ${result_file}
+}
+
 deletedevice() {
   curl  ${FLAGS} -X DELETE "https://${UCENTRALGW}/api/v1/device/$1" \
         -H "accept: application/json" \
@@ -666,6 +673,7 @@ case "$1" in
   "gwversion") login; gwversion ; logout;;
   "gwtimes") login; gwtimes ; logout;;
   "addnote") login; addnote "$2" "$3"; logout;;
+  "ldevs") login; ldevs  "$2" "$3"; logout ;;
   *) help ;;
 esac
 

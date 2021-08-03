@@ -107,9 +107,8 @@ namespace uCentral {
 			TypeSelector = (HasWhere ? " AND LogType=" : " WHERE LogType=" ) + std::to_string(Type);
 			Poco::Data::Statement   Select(Sess);
 
-			Select << Statement + DateSelector + TypeSelector,
-				Poco::Data::Keywords::into(Records),
-				Poco::Data::Keywords::range(Offset, HowMany );
+			Select << Statement + DateSelector + TypeSelector + " ORDER BY Recorded " + ComputeRange(Offset, HowMany),
+				Poco::Data::Keywords::into(Records);
 
 			Select.execute();
 

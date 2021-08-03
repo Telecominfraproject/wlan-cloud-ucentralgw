@@ -140,7 +140,7 @@ namespace uCentral {
         void SendFile(Poco::File & File, Poco::Net::HTTPServerRequest &Request, Poco::Net::HTTPServerResponse &Response);
 
         const std::string &GetBinding(const std::string &Name, const std::string &Default);
-		void InitQueryBlock();
+		bool InitQueryBlock();
 
 		[[nodiscard]] static uint64_t Get(const char *Parameter,const Poco::JSON::Object::Ptr &Obj, uint64_t Default=0);
 		[[nodiscard]] static std::string GetS(const char *Parameter,const Poco::JSON::Object::Ptr &Obj, const std::string & Default="");

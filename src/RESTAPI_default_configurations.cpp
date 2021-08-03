@@ -25,7 +25,10 @@ void RESTAPI_default_configurations::handleRequest(Poco::Net::HTTPServerRequest 
 	try {
 		if (Request.getMethod() == Poco::Net::HTTPRequest::HTTP_GET) {
 			ParseParameters(Request);
-			InitQueryBlock();
+			if(!InitQueryBlock()) {
+				BadRequest(Request, Response, "Illegal parameter value.");
+				return;
+			}
 
 			Logger_.information(
 				Poco::format("DEFAULT_CONFIGURATIONS: from %Lu, limit of %Lu, filter=%s.",

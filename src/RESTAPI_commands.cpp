@@ -22,7 +22,10 @@ void RESTAPI_commands::handleRequest(Poco::Net::HTTPServerRequest &Request,
 
 	try {
 		ParseParameters(Request);
-		InitQueryBlock();
+		if(!InitQueryBlock()) {
+			BadRequest(Request, Response, "Illegal parameter value.");
+			return;
+		}
 
 		auto SerialNumber = GetParameter(uCentral::RESTAPI::Protocol::SERIALNUMBER, "");
 

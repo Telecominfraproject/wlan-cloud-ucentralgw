@@ -364,11 +364,11 @@ namespace uCentral {
 		Poco::JSON::Stringifier::stringify(Object, Answer);
 	}
 
-	void RESTAPIHandler::InitQueryBlock() {
+	bool RESTAPIHandler::InitQueryBlock() {
 		QB_.SerialNumber = GetParameter(uCentral::RESTAPI::Protocol::SERIALNUMBER, "");
 		QB_.StartDate = GetParameter(uCentral::RESTAPI::Protocol::STARTDATE, 0);
 		QB_.EndDate = GetParameter(uCentral::RESTAPI::Protocol::ENDDATE, 0);
-		QB_.Offset = GetParameter(uCentral::RESTAPI::Protocol::OFFSET, 0);
+		QB_.Offset = GetParameter(uCentral::RESTAPI::Protocol::OFFSET, 1);
 		QB_.Limit = GetParameter(uCentral::RESTAPI::Protocol::LIMIT, 100);
 		QB_.Filter = GetParameter(uCentral::RESTAPI::Protocol::FILTER, "");
 		QB_.Select = GetParameter(uCentral::RESTAPI::Protocol::SELECT, "");
@@ -376,6 +376,9 @@ namespace uCentral {
 		QB_.LogType = GetParameter(uCentral::RESTAPI::Protocol::LOGTYPE,0);
 		QB_.LastOnly = GetBoolParameter(uCentral::RESTAPI::Protocol::LASTONLY,false);
 		QB_.Newest = GetBoolParameter(uCentral::RESTAPI::Protocol::NEWEST,false);
+
+		if(QB_.Offset<1) return false;
+		return true;
 	}
 
 	[[nodiscard]] uint64_t RESTAPIHandler::Get(const char *Parameter,const Poco::JSON::Object::Ptr &Obj, uint64_t Default){
