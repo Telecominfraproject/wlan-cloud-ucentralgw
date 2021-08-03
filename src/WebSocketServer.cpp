@@ -248,11 +248,11 @@ namespace uCentral {
 		return false;
     }
 
-    void WSConnection::ProcessJSONRPCResult(Poco::JSON::Object::Ptr Doc) {
+    void WSConnection::ProcessJSONRPCResult(Poco::JSON::Object::Ptr & Doc) {
 		CommandManager()->PostCommandResult(SerialNumber_, Doc);
     }
 
-    void WSConnection::ProcessJSONRPCEvent(Poco::JSON::Object::Ptr Doc) {
+    void WSConnection::ProcessJSONRPCEvent(Poco::JSON::Object::Ptr & Doc) {
 
         auto Method = Doc->get(uCentralProtocol::METHOD).toString();
 		auto EventType = uCentral::uCentralProtocol::EventFromString(Method);
