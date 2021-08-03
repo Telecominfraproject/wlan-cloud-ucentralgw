@@ -62,7 +62,7 @@ namespace uCentral {
 				IssuerCert_ = std::make_unique<Poco::Crypto::X509Certificate>(Svr.IssuerCertFile());
 				Logger_.information(Poco::format("Certificate Issuer Name:%s",IssuerCert_->issuerName()));
 			}
-			auto NewSocketAcceptor = std::make_unique<Poco::Net::ParallelSocketAcceptor<WSConnection, Poco::Net::SocketReactor>>( Sock, Reactor_, Poco::Environment::processorCount()*2);
+			auto NewSocketAcceptor = std::make_unique<Poco::Net::ParallelSocketAcceptor<WSConnection, Poco::Net::SocketReactor>>( Sock, Reactor_);
             Acceptors_.push_back(std::move(NewSocketAcceptor));
         }
 		ReactorThread_.start(Reactor_);
