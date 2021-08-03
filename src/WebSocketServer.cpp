@@ -145,7 +145,7 @@ namespace uCentral {
 			Registered_ = true;
 			return;
 		} catch (const Poco::Exception &E ) {
-			std::cout << "Caught exception... deleting myself" << std::endl;
+			Logger_.error("Exception caught during device connection. Device will have to retry.");
 		}
 		delete this;
 	}
