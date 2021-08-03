@@ -596,7 +596,7 @@ namespace uCentral {
 					  "FROM Devices",
 				Poco::Data::Keywords::into(Records),
 				Poco::Data::Keywords::from(From),
-				Poco::Data::Keywords::limit(HowMany);
+				Poco::Data::Keywords::limit(HowMany,true);
 			Select.execute();
 
 
