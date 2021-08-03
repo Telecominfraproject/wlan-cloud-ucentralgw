@@ -568,6 +568,8 @@ namespace uCentral {
 
 		RecordList Records;
 
+		std::cout << "Getting devices..." << std::endl;
+
 		try {
 			Poco::Data::Session     Sess = Pool_->get();
 			Poco::Data::Statement   Select(Sess);

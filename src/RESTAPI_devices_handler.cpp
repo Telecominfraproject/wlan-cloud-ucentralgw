@@ -82,6 +82,7 @@ namespace uCentral {
 				} else {
 					std::vector<GWObjects::Device> Devices;
 					Storage()->GetDevices(QB_.Offset, QB_.Limit, Devices);
+					std::cout << "Offset:" << QB_.Offset << " Limit:" << QB_.Limit << " Device:" << Devices.size() << std::endl;
 					Poco::JSON::Array Objects;
 					for (const auto &i : Devices) {
 						Poco::JSON::Object Obj;
