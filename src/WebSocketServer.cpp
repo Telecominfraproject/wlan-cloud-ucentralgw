@@ -63,21 +63,31 @@ namespace uCentral {
 				IssuerCert_ = std::make_unique<Poco::Crypto::X509Certificate>(Svr.IssuerCertFile());
 				Logger_.information(Poco::format("Certificate Issuer Name:%s",IssuerCert_->issuerName()));
 			}
+			std::cout << __LINE__ << std::endl;
 
             auto NewSocketReactor = std::make_unique<Poco::Net::SocketReactor>();
+            std::cout << __LINE__ << std::endl;
             auto NewSocketAcceptor = std::make_unique<Poco::Net::SocketAcceptor<WSConnection>>( Sock, *NewSocketReactor);
+            std::cout << __LINE__ << std::endl;
             auto NewThread = std::make_unique<Poco::Thread>();
+            std::cout << __LINE__ << std::endl;
             NewThread->setName("WebSocketAcceptor."+Svr.Address()+":"+std::to_string(Svr.Port()));
+            std::cout << __LINE__ << std::endl;
             NewThread->start(*NewSocketReactor);
 
             WebSocketServerEntry WSE { .SocketReactor{std::move(NewSocketReactor)} ,
                                        .SocketAcceptor{std::move(NewSocketAcceptor)} ,
                                        .SocketReactorThread{std::move(NewThread)}};
+            std::cout << __LINE__ << std::endl;
             Servers_.push_back(std::move(WSE));
+            std::cout << __LINE__ << std::endl;
         }
 
+        std::cout << __LINE__ << std::endl;
         uint64_t MaxThreads = Daemon()->ConfigGetInt("ucentral.websocket.maxreactors",5);
+        std::cout << __LINE__ << std::endl;
         Reactors_.Init(MaxThreads);
+        std::cout << __LINE__ << std::endl;
 
         return 0;
     }
