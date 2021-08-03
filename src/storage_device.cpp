@@ -538,10 +538,6 @@ namespace uCentral {
 		return false;
 	}
 
-	bool Storage::GetDevices(uint64_t From, uint64_t HowMany, const std::string &Select, std::vector<GWObjects::Device> &Devices) {
-		return false;
-	}
-
 	bool Storage::GetDevices(uint64_t From, uint64_t HowMany, std::vector<GWObjects::Device> &Devices) {
 
 		typedef Poco::Tuple<
@@ -593,9 +589,9 @@ namespace uCentral {
 					  "LastFWUpdate, "
 					  "Venue, "
 					  "DevicePassword "
-					  "FROM Devices",
-				Poco::Data::Keywords::into(Records),
-				Poco::Data::Keywords::range(From,HowMany);
+					  "FROM Devices ORDER BY SerialNumber " +
+						  ComputeRange(From, HowMany),
+				Poco::Data::Keywords::into(Records);
 			Select.execute();
 
 
