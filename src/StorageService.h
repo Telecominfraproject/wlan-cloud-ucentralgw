@@ -159,6 +159,7 @@ namespace uCentral {
 			} else if(dbType_==mysql) {
 				return " LIMIT " + std::to_string(HowMany) + " OFFSET " + std::to_string(From-1) + " ";
 			}
+			return " LIMIT " + std::to_string(HowMany) + " OFFSET " + std::to_string(From-1) + " ";
 		}
 
 #ifndef SMALL_BUILD
