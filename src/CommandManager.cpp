@@ -36,7 +36,7 @@ namespace uCentral {
 				break;
             std::vector<GWObjects::CommandDetails> Commands;
 
-            if(Storage()->GetReadyToExecuteCommands(0,1000,Commands))
+            if(Storage()->GetReadyToExecuteCommands(1,1000,Commands))
             {
                 for(auto & Cmd: Commands)
                 {

@@ -523,7 +523,7 @@ namespace uCentral {
 			std::string St{
 				"SELECT UUID, SerialNumber, Command, Status, SubmittedBy, Results, Details, ErrorText, "
 				" Submitted, Executed, Completed, RunAt, ErrorCode, Custom, WaitingForFile, AttachDate, AttachSize, AttachType FROM CommandList ORDER BY UUID "
-				" WHERE RunAt < ? And Executed=0"};
+				" WHERE RunAt < ? And Executed=0 "};
 
 			RecordList Records;
 
