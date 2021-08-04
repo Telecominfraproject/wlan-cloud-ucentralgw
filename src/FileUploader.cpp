@@ -115,6 +115,9 @@ namespace uCentral {
         void handlePart(const Poco::Net::MessageHeader& Header, std::istream& Stream) override
         {
 			try {
+				for(const auto &i:Header) {
+					std::cout << i.first << " = " << i.second << std::endl;
+				}
 				FileType_ = Header.get("Content-Type", "(unspecified)");
 				auto SLength_ = Header.get("Content-Length","0");
 				Name_ = "(unnamed)";
