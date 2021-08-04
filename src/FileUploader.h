@@ -36,6 +36,8 @@ namespace uCentral {
             return instance_;
         }
 
+		[[nodiscard]] inline uint64_t MaxSize() const { return MaxSize_; }
+
     private:
         static FileUploader *instance_;
         std::vector<std::unique_ptr<Poco::Net::HTTPServer>>   Servers_;
@@ -43,6 +45,7 @@ namespace uCentral {
         std::string                     FullName_;
         std::map<std::string,uint64_t>  OutStandingUploads_;
         std::string                     Path_;
+		uint64_t 						MaxSize_=10000000;
 
 		explicit FileUploader() noexcept:
 			SubSystemServer("FileUploader", "FILE-UPLOAD", "ucentral.fileuploader")

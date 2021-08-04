@@ -15,6 +15,7 @@
 #include "Daemon.h"
 #include "DeviceRegistry.h"
 #include "StorageService.h"
+#include "FileUploader.h"
 
 namespace uCentral {
 
@@ -641,14 +642,16 @@ namespace uCentral {
 
 			Poco::Data::Statement Update(Sess);
 
-			Poco::File FileName = Daemon()->ConfigPath("ucentral.fileuploader.path", "/tmp") + "/" + UUID;
+			Poco::File FileName = FileUploader()->Path() + "/" + UUID;
 			uint64_t Size = FileName.getSize();
 
 			std::string St{
 				"UPDATE CommandList SET WaitingForFile=?, AttachDate=?, AttachSize=? WHERE UUID=?"};
 
-			Update << ConvertParams(St), Poco::Data::Keywords::use(WaitForFile),
-				Poco::Data::Keywords::use(Now), Poco::Data::Keywords::use(Size),
+			Update << ConvertParams(St),
+				Poco::Data::Keywords::use(WaitForFile),
+				Poco::Data::Keywords::use(Now),
+				Poco::Data::Keywords::use(Size),
 				Poco::Data::Keywords::use(UUID);
 			Update.execute();
 
@@ -673,7 +676,8 @@ namespace uCentral {
 					"INSERT INTO FileUploads (UUID,Type,Created,FileContent) VALUES(?,?,?,?)"};
 
 				Insert << ConvertParams(St2), Poco::Data::Keywords::use(UUID),
-					Poco::Data::Keywords::use(FileType), Poco::Data::Keywords::use(Now),
+					Poco::Data::Keywords::use(FileType),
+					Poco::Data::Keywords::use(Now),
 					Poco::Data::Keywords::use(L);
 				Insert.execute();
 

@@ -664,19 +664,19 @@ void RESTAPI_device_commandHandler::Trace(Poco::Net::HTTPServerRequest &Request,
 		Poco::JSON::Object::Ptr Obj =
 			parser.parse(Request.stream()).extract<Poco::JSON::Object::Ptr>();
 
-		if (Obj->has(uCentral::RESTAPI::Protocol::SERIALNUMBER) &&
+		if 	(Obj->has(uCentral::RESTAPI::Protocol::SERIALNUMBER) &&
 			(Obj->has(uCentral::RESTAPI::Protocol::NETWORK) ||
 			 Obj->has(uCentral::RESTAPI::Protocol::INTERFACE))) {
 
 			auto SNum = Obj->get(uCentral::RESTAPI::Protocol::SERIALNUMBER).toString();
 			if (SerialNumber_ != SNum) {
-				BadRequest(Request, Response);
+				BadRequest(Request, Response, "Missing serial number.");
 				return;
 			}
 
-			auto Duration = Get(uCentral::RESTAPI::Protocol::DURATION, Obj);
+			auto Duration = Get(uCentral::RESTAPI::Protocol::DURATION, Obj, 30);
 			auto When = GetWhen(Obj);
-			auto NumberOfPackets = Get(uCentral::RESTAPI::Protocol::NUMBEROFPACKETS, Obj);
+			auto NumberOfPackets = Get(uCentral::RESTAPI::Protocol::NUMBEROFPACKETS, Obj, 100);
 
 			auto Network = GetS(uCentral::RESTAPI::Protocol::NETWORK, Obj);
 			auto Interface = GetS(uCentral::RESTAPI::Protocol::INTERFACE, Obj);
@@ -707,7 +707,10 @@ void RESTAPI_device_commandHandler::Trace(Poco::Net::HTTPServerRequest &Request,
 			Cmd.Details = ParamStream.str();
 
 			FileUploader()->AddUUID(UUID);
-			RESTAPI_RPC::WaitForCommand(Cmd, Params, Request, Response, std::chrono::milliseconds(3000), nullptr, this);
+			RESTAPI_RPC::WaitForCommand(Cmd, Params, Request, Response, std::chrono::milliseconds(5000), nullptr, this);
+			return;
+		} else {
+			BadRequest(Request, Response, "Missing SerialNumber, Network, or Interface.");
 			return;
 		}
 	} catch (const Poco::Exception &E) {

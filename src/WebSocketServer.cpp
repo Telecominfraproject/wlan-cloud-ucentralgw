@@ -174,8 +174,10 @@ namespace uCentral {
 										Poco::NObserver<WSConnection,
 										Poco::Net::ErrorNotification>(*this,&WSConnection::OnSocketError));
         	(*WS_).close();
+			Socket_.shutdown();
         } else if(WS_) {
         	(*WS_).close();
+        	Socket_.shutdown();
 		}
 
         if(KafkaManager()->Enabled() && !SerialNumber_.empty()) {

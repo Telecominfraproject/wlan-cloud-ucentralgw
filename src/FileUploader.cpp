@@ -63,6 +63,8 @@ namespace uCentral {
             Servers_.push_back(std::move(NewServer));
         }
 
+        MaxSize_ = 1000 * Daemon()->ConfigGetInt("ucentral.fileuploader.maxsize", 10000);
+
         return 0;
     }
 
@@ -112,32 +114,44 @@ namespace uCentral {
 
         void handlePart(const Poco::Net::MessageHeader& Header, std::istream& Stream) override
         {
-            FileType_ = Header.get("Content-Type", "(unspecified)");
-            if (Header.has("Content-Disposition"))
-            {
-                std::string Disposition;
-                Poco::Net::NameValueCollection Parameters;
-                Poco::Net::MessageHeader::splitParameters(Header["Content-Disposition"], Disposition, Parameters);
-                Name_ = Parameters.get("name", "(unnamed)");
-            }
+			try {
+				FileType_ = Header.get("Content-Type", "(unspecified)");
+				Name_ = "(unnamed)";
+				if (Header.has("Content-Disposition")) {
+					std::string Disposition;
+					Poco::Net::NameValueCollection Parameters;
+					Poco::Net::MessageHeader::splitParameters(Header["Content-Disposition"],
+															  Disposition, Parameters);
+					Name_ = Parameters.get("name", "(unnamed)");
+				}
 
-			Poco::TemporaryFile 		TmpFile;
-            std::string FinalFileName = FileUploader()->Path() + "/" + UUID_ ;
-            Logger_.information(Poco::format("FILE-UPLOADER: uploading trace for %s",UUID_));
+				Poco::TemporaryFile TmpFile;
+				std::string FinalFileName = FileUploader()->Path() + "/" + UUID_;
+				Logger_.information(Poco::format("FILE-UPLOADER: uploading trace for %s", UUID_));
 
-			Poco::CountingInputStream 	InputStream(Stream);
-            std::ofstream OutputStream(TmpFile.path(), std::ofstream::out);
-            Poco::StreamCopier::copyStream(InputStream, OutputStream);
-            Length_ = InputStream.chars();
-            rename(TmpFile.path().c_str(),FinalFileName.c_str());
-        }
+				Poco::CountingInputStream InputStream(Stream);
+				std::ofstream OutputStream(TmpFile.path(), std::ofstream::out);
+				Poco::StreamCopier::copyStream(InputStream, OutputStream);
+				Length_ = InputStream.chars();
+
+				if (Length_ < FileUploader()->MaxSize()) {
+					rename(TmpFile.path().c_str(), FinalFileName.c_str());
+					Good_=true;
+				}
+				return;
+			} catch (const Poco::Exception &E ) {
+				Logger_.log(E);
+			}
+		}
 
         [[nodiscard]] uint64_t Length() const { return Length_; }
         [[nodiscard]] const std::string& Name() const { return Name_; }
         [[nodiscard]] const std::string& ContentType() const { return FileType_; }
+		[[nodiscard]] bool Good() const { return Good_; }
 
     private:
         uint64_t        Length_=0;
+		bool 			Good_=false;
         std::string     FileType_;
         std::string     Name_;
         std::string     UUID_;
@@ -165,7 +179,7 @@ namespace uCentral {
                 Response.setContentType("application/json");
 
 				Poco::JSON::Object	Answer;
-                if (!partHandler.Name().empty()) {
+                if (!partHandler.Good()) {
 					Answer.set("filename", UUID_);
 					Answer.set("error", 0);
 					Storage()->AttachFileToCommand(UUID_);
