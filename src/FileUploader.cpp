@@ -125,21 +125,27 @@ namespace uCentral {
 					Name_ = Parameters.get("name", "(unnamed)");
 				}
 
+				std::cout << "Name: " << Name_ << std::endl;
+
 				Poco::TemporaryFile TmpFile;
 				std::string FinalFileName = FileUploader()->Path() + "/" + UUID_;
 				Logger_.information(Poco::format("FILE-UPLOADER: uploading trace for %s", UUID_));
 
 				Poco::CountingInputStream InputStream(Stream);
+				Length_ = InputStream.chars();
 				std::ofstream OutputStream(TmpFile.path(), std::ofstream::out);
 				Poco::StreamCopier::copyStream(InputStream, OutputStream);
-				Length_ = InputStream.chars();
+
+				std::cout << "Length: " << Length_ << std::endl;
 
 				if (Length_ < FileUploader()->MaxSize()) {
+					std::cout << "From: " << TmpFile.path().c_str() << "  To:" << FinalFileName.c_str() << std::endl;
 					rename(TmpFile.path().c_str(), FinalFileName.c_str());
 					Good_=true;
 				}
 				return;
 			} catch (const Poco::Exception &E ) {
+				std::cout << "Exception:" << E.what() << std::endl;
 				Logger_.log(E);
 			}
 		}
@@ -179,7 +185,7 @@ namespace uCentral {
                 Response.setContentType("application/json");
 
 				Poco::JSON::Object	Answer;
-                if (!partHandler.Good()) {
+                if (partHandler.Good()) {
 					Answer.set("filename", UUID_);
 					Answer.set("error", 0);
 					Storage()->AttachFileToCommand(UUID_);
