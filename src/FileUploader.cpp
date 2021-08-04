@@ -115,7 +115,6 @@ namespace uCentral {
         void handlePart(const Poco::Net::MessageHeader& Header, std::istream& Stream) override
         {
 			try {
-				FileType_ = Header.get("Content-Type", "(unspecified)");
 				Name_ = "(unnamed)";
 				if (Header.has("Content-Disposition")) {
 					std::string Disposition;
@@ -137,23 +136,27 @@ namespace uCentral {
 				if (Length_ < FileUploader()->MaxSize()) {
 					rename(TmpFile.path().c_str(), FinalFileName.c_str());
 					Good_=true;
+				} else {
+					Error_ = "File is too large.";
 				}
 				return;
 			} catch (const Poco::Exception &E ) {
 				Logger_.log(E);
+				Error_ = std::string("Upload caused an internal error: ") + E.what() ;
 			}
 		}
 
         [[nodiscard]] uint64_t Length() const { return Length_; }
         [[nodiscard]] const std::string& Name() const { return Name_; }
 		[[nodiscard]] bool Good() const { return Good_; }
+		std::string & Error() { return Error_; }
 
     private:
         uint64_t        Length_=0;
 		bool 			Good_=false;
-        std::string     FileType_;
         std::string     Name_;
         std::string     UUID_;
+		std::string 	Error_;
         Poco::Logger    & Logger_;
     };
 
@@ -185,7 +188,8 @@ namespace uCentral {
 				} else {
 					Answer.set("filename", UUID_);
 					Answer.set("error", 13);
-					Answer.set("errorText", "File could not be uploaded");
+					Answer.set("errorText", partHandler.Error() );
+					Storage()->CancelWaitFile(UUID_, partHandler.Error() );
 				}
 				std::ostream &ResponseStream = Response.send();
 				Poco::JSON::Stringifier::stringify(Answer, ResponseStream);

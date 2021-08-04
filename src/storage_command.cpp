@@ -634,6 +634,33 @@ namespace uCentral {
 		return false;
 	}
 
+	bool Storage::CancelWaitFile( std::string & UUID, std::string & ErrorText ) {
+		try {
+			Poco::Data::Session Sess = Pool_->get();
+			uint64_t Now = time(nullptr);
+			uint64_t Size = 0, WaitForFile = 0;
+
+			Poco::Data::Statement Update(Sess);
+
+			std::string St{
+				"UPDATE CommandList SET WaitingForFile=?, AttachDate=?, AttachSize=?, ErrorText=?, Completed=?  WHERE UUID=?"};
+
+			Update << ConvertParams(St),
+				Poco::Data::Keywords::use(WaitForFile),
+				Poco::Data::Keywords::use(Now),
+				Poco::Data::Keywords::use(Size),
+				Poco::Data::Keywords::use(ErrorText),
+				Poco::Data::Keywords::use(Now),
+				Poco::Data::Keywords::use(UUID);
+			Update.execute();
+			return true;
+		} catch (const Poco::Exception &E) {
+			Logger_.log(E);
+		}
+		return false;
+
+	}
+
 	bool Storage::AttachFileToCommand(std::string &UUID) {
 		try {
 			Poco::Data::Session Sess = Pool_->get();
