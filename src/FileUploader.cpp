@@ -115,51 +115,37 @@ namespace uCentral {
         void handlePart(const Poco::Net::MessageHeader& Header, std::istream& Stream) override
         {
 			try {
-				for(const auto &i:Header) {
-					std::cout << i.first << " = " << i.second << std::endl;
-				}
 				FileType_ = Header.get("Content-Type", "(unspecified)");
-				auto SLength_ = Header.get("Content-Length","0");
 				Name_ = "(unnamed)";
 				if (Header.has("Content-Disposition")) {
 					std::string Disposition;
 					Poco::Net::NameValueCollection Parameters;
 					Poco::Net::MessageHeader::splitParameters(Header["Content-Disposition"],
 															  Disposition, Parameters);
-					Name_ = Parameters.get("name", "(unnamed)");
+					Name_ = Parameters.get("filename", "(unnamed)");
 				}
-
-				std::cout << "Name: " << Name_ << std::endl;
 
 				Poco::TemporaryFile TmpFile;
 				std::string FinalFileName = FileUploader()->Path() + "/" + UUID_;
 				Logger_.information(Poco::format("FILE-UPLOADER: uploading trace for %s", UUID_));
 
 				Poco::CountingInputStream InputStream(Stream);
-				Length_ = InputStream.chars();
-				std::cout << "Length: " << Length_ << std::endl;
 				std::ofstream OutputStream(TmpFile.path(), std::ofstream::out);
 				Poco::StreamCopier::copyStream(InputStream, OutputStream);
-
-				Length_ = InputStream.chars();
-
-				std::cout << "Length 2: " << std::atoi(SLength_.c_str()) << std::endl;
+				Length_ = TmpFile.getSize();
 
 				if (Length_ < FileUploader()->MaxSize()) {
-					std::cout << "From: " << TmpFile.path().c_str() << "  To:" << FinalFileName.c_str() << std::endl;
 					rename(TmpFile.path().c_str(), FinalFileName.c_str());
 					Good_=true;
 				}
 				return;
 			} catch (const Poco::Exception &E ) {
-				std::cout << "Exception:" << E.what() << std::endl;
 				Logger_.log(E);
 			}
 		}
 
         [[nodiscard]] uint64_t Length() const { return Length_; }
         [[nodiscard]] const std::string& Name() const { return Name_; }
-        [[nodiscard]] const std::string& ContentType() const { return FileType_; }
 		[[nodiscard]] bool Good() const { return Good_; }
 
     private:
