@@ -116,6 +116,7 @@ namespace uCentral {
         {
 			try {
 				FileType_ = Header.get("Content-Type", "(unspecified)");
+				auto SLength_ = Header.get("Content-Length","0");
 				Name_ = "(unnamed)";
 				if (Header.has("Content-Disposition")) {
 					std::string Disposition;
@@ -133,10 +134,13 @@ namespace uCentral {
 
 				Poco::CountingInputStream InputStream(Stream);
 				Length_ = InputStream.chars();
+				std::cout << "Length: " << Length_ << std::endl;
 				std::ofstream OutputStream(TmpFile.path(), std::ofstream::out);
 				Poco::StreamCopier::copyStream(InputStream, OutputStream);
 
-				std::cout << "Length: " << Length_ << std::endl;
+				Length_ = InputStream.chars();
+
+				std::cout << "Length 2: " << std::atoi(SLength_.c_str()) << std::endl;
 
 				if (Length_ < FileUploader()->MaxSize()) {
 					std::cout << "From: " << TmpFile.path().c_str() << "  To:" << FinalFileName.c_str() << std::endl;
