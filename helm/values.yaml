@@ -109,6 +109,9 @@ resources: {}
   #  cpu: 100m
   #  memory: 128Mi
 
+securityContext:
+  fsGroup: 101
+
 nodeSelector: {}
 
 tolerations: []
