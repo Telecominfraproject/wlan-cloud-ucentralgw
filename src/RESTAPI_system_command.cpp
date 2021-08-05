@@ -27,8 +27,8 @@ namespace uCentral {
 			DoPost(Request, Response);
 		else if(Request.getMethod()==Poco::Net::HTTPRequest::HTTP_GET)
 			DoGet(Request, Response);
-
-		BadRequest(Request, Response);
+		else
+            BadRequest(Request, Response, "Unsupported method.");
 	}
 
 	void RESTAPI_system_command::DoPost(Poco::Net::HTTPServerRequest &Request, Poco::Net::HTTPServerResponse &Response) {
@@ -94,7 +94,7 @@ namespace uCentral {
 		} catch(const Poco::Exception &E) {
 			Logger_.log(E);
 		}
-		BadRequest(Request, Response);
+		BadRequest(Request, Response, "Unsupported or missing parameters.");
 	}
 
 	void RESTAPI_system_command::DoGet(Poco::Net::HTTPServerRequest &Request, Poco::Net::HTTPServerResponse &Response) {
@@ -126,7 +126,7 @@ namespace uCentral {
 		} catch (const Poco::Exception &E) {
 			Logger_.log(E);
 		}
-		BadRequest(Request, Response);
+		BadRequest(Request, Response, "Unsupported or missing parameters.");
 	}
 
 }

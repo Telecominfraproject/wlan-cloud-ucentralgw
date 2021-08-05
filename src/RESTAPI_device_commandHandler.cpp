@@ -708,11 +708,10 @@ void RESTAPI_device_commandHandler::Trace(Poco::Net::HTTPServerRequest &Request,
 
 			FileUploader()->AddUUID(UUID);
 			RESTAPI_RPC::WaitForCommand(Cmd, Params, Request, Response, std::chrono::milliseconds(5000), nullptr, this);
-			return;
 		} else {
 			BadRequest(Request, Response, "Missing SerialNumber, Network, or Interface.");
-			return;
 		}
+		return;
 	} catch (const Poco::Exception &E) {
 		Logger_.error(Poco::format("%s: failed with %s", std::string(__func__), E.displayText()));
 	}

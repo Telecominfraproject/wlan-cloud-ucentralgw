@@ -18,7 +18,8 @@ namespace uCentral {
 
 		if (Request.getMethod() == Poco::Net::HTTPRequest::HTTP_GET) {
 			DoGet(Request, Response);
-			BadRequest(Request, Response);
+		} else {
+			BadRequest(Request, Response, "Unsupported method.");
 		}
 	}
 

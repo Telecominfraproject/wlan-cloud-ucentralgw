@@ -166,7 +166,7 @@ namespace uCentral {
 						   Poco::Net::HTTPServerResponse &Response) override {
 			if (!IsAuthorized(Request, Response))
 				return;
-			BadRequest(Request, Response);
+			BadRequest(Request, Response, "Unknown API endpoint");
 		}
 	};
 
