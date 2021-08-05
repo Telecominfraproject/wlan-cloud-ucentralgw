@@ -72,7 +72,7 @@ namespace uCentral {
 
 			Poco::Data::Statement   Select(Sess);
 
-			Select << Statement + DateSelector + " ORDER BY Recorded " + ComputeRange(Offset,HowMany),
+			Select << Statement + DateSelector + " ORDER BY Recorded DESC " + ComputeRange(Offset,HowMany),
 				Poco::Data::Keywords::into(Records);
 			Select.execute();
 
@@ -106,12 +106,11 @@ namespace uCentral {
 			Poco::Data::Session 	Sess = Pool_->get();
 			Poco::Data::Statement   Select(Sess);
 
-			std::string st{"SELECT SerialNumber, UUID, Data, Sanity, Recorded FROM HealthChecks WHERE SerialNumber=? ORDER BY Recorded DESC"};
+			std::string st{"SELECT SerialNumber, UUID, Data, Sanity, Recorded FROM HealthChecks WHERE SerialNumber=? ORDER BY Recorded DESC "};
 
-			Select << 	ConvertParams(st),
+			Select << 	ConvertParams(st) + ComputeRange(1,HowMany),
 						Poco::Data::Keywords::into(Records),
-						Poco::Data::Keywords::use(SerialNumber),
-						Poco::Data::Keywords::limit(HowMany );
+						Poco::Data::Keywords::use(SerialNumber);
 			Select.execute();
 
 			for (auto i: Records) {

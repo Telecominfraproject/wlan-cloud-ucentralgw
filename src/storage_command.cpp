@@ -143,7 +143,7 @@ namespace uCentral {
 			std::string Fields{
 				"SELECT UUID, SerialNumber, Command, Status, SubmittedBy, Results, Details, ErrorText, "
 				"Submitted, Executed, Completed, RunAt, ErrorCode, Custom, WaitingForFile, AttachDate, "
-				"AttachSize, AttachType  FROM CommandList ORDER BY UUID "};
+				"AttachSize, AttachType  FROM CommandList ORDER BY UUID ASC "};
 			std::string IntroStatement = SerialNumber.empty()
 											 ? Fields + std::string(DatesIncluded ? "WHERE " : "")
 											 : Fields + "WHERE SerialNumber='" + SerialNumber + "'" +
@@ -269,7 +269,7 @@ namespace uCentral {
 				// range(Offset, Offset + HowMany - 1)
 				std::string st{	"SELECT UUID, SerialNumber, Command, Status, SubmittedBy, Results, Details, ErrorText,"
 								   	"Submitted, Executed, Completed, RunAt, ErrorCode, Custom, WaitingForFile, AttachDate,"
-								   	"AttachSize, AttachType FROM CommandList ORDER BY UUID "
+								   	"AttachSize, AttachType FROM CommandList ORDER BY UUID ASC "
 								   	"WHERE Executed=0" };
 				Select << 	ConvertParams(st) + ComputeRange(Offset, HowMany),
 							Poco::Data::Keywords::into(Records);
@@ -523,7 +523,7 @@ namespace uCentral {
 			std::string St{
 				"SELECT UUID, SerialNumber, Command, Status, SubmittedBy, Results, Details, ErrorText, "
 				" Submitted, Executed, Completed, RunAt, ErrorCode, Custom, WaitingForFile, AttachDate, AttachSize, AttachType FROM CommandList "
-				" WHERE ((RunAt<=?) And (Executed=0)) ORDER BY UUID "};
+				" WHERE ((RunAt<=?) And (Executed=0)) ORDER BY UUID ASC "};
 			RecordList Records;
 
 			std::string SS = ConvertParams(St) + ComputeRange(Offset, HowMany);
@@ -557,7 +557,7 @@ namespace uCentral {
 			}
 			return true;
 		} catch (const Poco::Exception &E) {
-			std::cout << "Exception: " << E.displayText() << std::endl;
+			// std::cout << "Exception: " << E.displayText() << std::endl;
 			Logger_.warning(Poco::format("GetReadyToExecuteCommands(): Failed to retrieve the list. %s",
 										 E.displayText()));
 		}

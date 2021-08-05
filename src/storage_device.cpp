@@ -39,7 +39,7 @@ namespace uCentral {
 			Poco::Data::Session Sess = Pool_->get();
 			Poco::Data::Statement   Select(Sess);
 
-			std::string st{"SELECT SerialNumber From Devices ORDER BY SerialNumber " };
+			std::string st{"SELECT SerialNumber From Devices ORDER BY SerialNumber ASC " };
 
 			Select << 	st + ComputeRange(From, HowMany),
 				Poco::Data::Keywords::into(SerialNumbers);
@@ -586,7 +586,7 @@ namespace uCentral {
 					  "LastFWUpdate, "
 					  "Venue, "
 					  "DevicePassword "
-					  "FROM Devices ORDER BY SerialNumber " +
+					  "FROM Devices ORDER BY SerialNumber ASC " +
 						  ComputeRange(From, HowMany),
 				Poco::Data::Keywords::into(Records);
 			Select.execute();
