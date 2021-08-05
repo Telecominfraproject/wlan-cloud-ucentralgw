@@ -31,7 +31,7 @@ namespace uCentral {
 		Running_ = true;
         while(Running_)
         {
-            Poco::Thread::trySleep(30000);
+            Poco::Thread::trySleep(10000);
 			if(!Running_)
 				break;
             std::vector<GWObjects::CommandDetails> Commands;

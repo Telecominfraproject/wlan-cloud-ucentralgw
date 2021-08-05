@@ -513,7 +513,7 @@ namespace uCentral {
 
 	bool Storage::GetReadyToExecuteCommands(uint64_t Offset, uint64_t HowMany,
 											std::vector<GWObjects::CommandDetails> &Commands) {
-		// todo: finish the GetReadyToExecuteCommands call...
+
 		try {
 			typedef std::vector<CommandDetailsRecordTuple> RecordList;
 			uint64_t Now = time(nullptr);
@@ -522,8 +522,8 @@ namespace uCentral {
 
 			std::string St{
 				"SELECT UUID, SerialNumber, Command, Status, SubmittedBy, Results, Details, ErrorText, "
-				" Submitted, Executed, Completed, RunAt, ErrorCode, Custom, WaitingForFile, AttachDate, AttachSize, AttachType FROM CommandList ORDER BY UUID "
-				" WHERE RunAt < ? And Executed=0 "};
+				" Submitted, Executed, Completed, RunAt, ErrorCode, Custom, WaitingForFile, AttachDate, AttachSize, AttachType FROM CommandList "
+				" WHERE ((RunAt<=?) And (Executed=0)) ORDER BY UUID "};
 			RecordList Records;
 
 			std::string SS = ConvertParams(St) + ComputeRange(Offset, HowMany);
