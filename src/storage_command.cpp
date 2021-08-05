@@ -527,8 +527,6 @@ namespace uCentral {
 			RecordList Records;
 
 			std::string SS = ConvertParams(St) + ComputeRange(Offset, HowMany);
-			std::cout << "ST: " << SS << std::endl;
-
 			Select << SS,
 				Poco::Data::Keywords::into(Records),
 				Poco::Data::Keywords::use(Now);
