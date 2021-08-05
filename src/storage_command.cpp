@@ -524,10 +524,12 @@ namespace uCentral {
 				"SELECT UUID, SerialNumber, Command, Status, SubmittedBy, Results, Details, ErrorText, "
 				" Submitted, Executed, Completed, RunAt, ErrorCode, Custom, WaitingForFile, AttachDate, AttachSize, AttachType FROM CommandList ORDER BY UUID "
 				" WHERE RunAt < ? And Executed=0 "};
-
 			RecordList Records;
 
-			Select << ConvertParams(St) + ComputeRange(Offset, HowMany),
+			std::string SS = ConvertParams(St) + ComputeRange(Offset, HowMany);
+			std::cout << "ST: " << SS << std::endl;
+
+			Select << SS,
 				Poco::Data::Keywords::into(Records),
 				Poco::Data::Keywords::use(Now);
 			Select.execute();
@@ -555,9 +557,9 @@ namespace uCentral {
 				if (DeviceRegistry()->Connected(R.SerialNumber))
 					Commands.push_back(R);
 			}
-
 			return true;
 		} catch (const Poco::Exception &E) {
+			std::cout << "Exception: " << E.displayText() << std::endl;
 			Logger_.warning(Poco::format("GetReadyToExecuteCommands(): Failed to retrieve the list. %s",
 										 E.displayText()));
 		}

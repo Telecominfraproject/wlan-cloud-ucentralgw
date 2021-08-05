@@ -31,15 +31,18 @@ namespace uCentral {
 		Running_ = true;
         while(Running_)
         {
-            Poco::Thread::trySleep(10000);
+            Poco::Thread::trySleep(30000);
 			if(!Running_)
 				break;
             std::vector<GWObjects::CommandDetails> Commands;
 
-            if(Storage()->GetReadyToExecuteCommands(1,1000,Commands))
+            if(Storage()->GetReadyToExecuteCommands(1,200,Commands))
             {
                 for(auto & Cmd: Commands)
                 {
+                	if(!Running_)
+                		break;
+
                     if(!SendCommand(Cmd)) {
                         Logger_.information(Poco::format("Failed to send command '%s' to %s",Cmd.Command,Cmd.SerialNumber));
                     }
