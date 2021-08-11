@@ -43,12 +43,15 @@ namespace uCentral {
 							return false;
 						}
 					}
+
+					if(Conn_)
+						GetAssociations(O,Conn_->Associations_2G,Conn_->Associations_5G);
+					std::cout << "Assoc: " << Conn_->Associations_2G << ", " << Conn_->Associations_5G << std::endl;
+
 					if(UpdatesSinceLastWrite_>10)
 						Save();
 					return true;
 				}
-				if(Conn_)
-					GetAssociations(O,Conn_->Associations_2G,Conn_->Associations_5G);
 			} else {
 				std::cout << "No interfaces section" << std::endl;
 			}
@@ -132,7 +135,7 @@ namespace uCentral {
 		return Storage()->SetLifetimeStats(SerialNumber_, StatsToSave);
 	}
 
-	static 	int ChannelToBand(uint64_t C) {
+	static int ChannelToBand(uint64_t C) {
 		if(C>=1 && C<=16) return 2;
 		return 5;
 	}
@@ -168,9 +171,9 @@ namespace uCentral {
 								Radio = Rit->second;
 							auto AssocA = SSIDinfo->getArray("associations");
 							if(Radio==2)
-								++Radios_2G;
+								Radios_2G+=AssocA->size();
 							else
-								++Radios_5G;
+								Radios_5G+=AssocA->size();
 						}
 					}
 				}

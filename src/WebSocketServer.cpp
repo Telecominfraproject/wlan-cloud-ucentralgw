@@ -128,7 +128,7 @@ namespace uCentral {
 			WS_ = std::make_unique<Poco::Net::WebSocket>(Request, Response);
 			WS_->setMaxPayloadSize(BufSize);
 
-			auto TS = Poco::Timespan();
+			auto TS = Poco::Timespan(240,0);
 
 			WS_->setReceiveTimeout(TS);
 			WS_->setNoDelay(true);
@@ -588,11 +588,13 @@ namespace uCentral {
 
     void WSConnection::OnSocketShutdown(const Poco::AutoPtr<Poco::Net::ShutdownNotification>& pNf) {
         Logger_.information(Poco::format("SOCKET-SHUTDOWN(%s): Closing.",CId_));
+		std::cout << "Socket shutdown for " << SerialNumber_ << std::endl;
         delete this;
     }
 
     void WSConnection::OnSocketError(const Poco::AutoPtr<Poco::Net::ErrorNotification>& pNf) {
         Logger_.information(Poco::format("SOCKET-ERROR(%s): Closing.",CId_));
+        std::cout << "Socket error for " << SerialNumber_ << std::endl;
         delete this;
     }
 
