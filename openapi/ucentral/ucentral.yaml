@@ -180,6 +180,12 @@ components:
         rxBytes:
           type: integer
           format: int64
+        associations_2G:
+          type: integer
+          format: int64
+        associations_5G:
+          type: integer
+          format: int64
         devicePassword:
           type: string
         lastContact:
@@ -248,6 +254,12 @@ components:
           format: int64
         firmware:
           type: string
+        associations_2G:
+          type: integer
+          format: int64
+        associations_5G:
+          type: integer
+          format: int64
         verifiedCertificate:
           type: string
           enum:

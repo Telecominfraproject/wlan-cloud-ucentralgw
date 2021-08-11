@@ -14,6 +14,7 @@
 #include "Daemon.h"
 #include "DeviceRegistry.h"
 #include "OUIServer.h"
+#include "StateProcessor.h"
 
 namespace uCentral {
 
@@ -802,42 +803,11 @@ namespace uCentral {
 							}
 						}
 
-						if(RawObject->isArray("radios") && RawObject->isArray("interfaces")) {
-							auto RA = RawObject->getArray("radios");
-							// map of phy to 2g/5g
-							std::map<std::string,int>   RadioPHYs;
-							//  parse radios and get the phy out with the band
-							for(auto const &i:*RA) {
-								Poco::JSON::Parser p2;
-								auto RadioObj = i.extract<Poco::JSON::Object::Ptr>();
-								if(RadioObj->has("phy") && RadioObj->has("channel")) {
-									RadioPHYs[RadioObj->get("phy").toString()]= ChannelToBand(RadioObj->get("channel"));
-								}
-							}
+						uint64_t 	Associations_2G, Associations_5G;
+						StateProcessor::GetAssociations(RawObject, Associations_2G, Associations_5G);
+						Types::UpdateCountedMap(Dashboard.associations, "2G", Associations_2G);
+						Types::UpdateCountedMap(Dashboard.associations, "5G", Associations_5G);
 
-							auto IA = RawObject->getArray("interfaces");
-							for(auto const &i:*IA) {
-								auto InterfaceObj = i.extract<Poco::JSON::Object::Ptr>();
-								if(InterfaceObj->isArray("ssids")) {
-									auto SSIDA = InterfaceObj->getArray("ssids");
-									for(const auto &s:*SSIDA) {
-										auto SSIDinfo = s.extract<Poco::JSON::Object::Ptr>();
-										if(SSIDinfo->isArray("associations") && SSIDinfo->has("phy")) {
-											auto PHY = SSIDinfo->get("phy").toString();
-											int Radio = 2;
-											auto Rit = RadioPHYs.find(PHY);
-											if(Rit!=RadioPHYs.end())
-												Radio = Rit->second;
-											auto AssocA = SSIDinfo->getArray("associations");
-											if(Radio==2)
-												Types::UpdateCountedMap(Dashboard.associations, "2G", AssocA->size());
-											else
-												Types::UpdateCountedMap(Dashboard.associations, "5G", AssocA->size());
-										}
-									}
-								}
-							}
-						}
 					}
 					Types::UpdateCountedMap(Dashboard.status, ConnState.Connected ? "connected" : "not connected");
 				} else {

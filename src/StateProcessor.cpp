@@ -47,6 +47,8 @@ namespace uCentral {
 						Save();
 					return true;
 				}
+				if(Conn_)
+					GetAssociations(O,Conn_->Associations_2G,Conn_->Associations_5G);
 			} else {
 				std::cout << "No interfaces section" << std::endl;
 			}
@@ -128,5 +130,53 @@ namespace uCentral {
 		UpdatesSinceLastWrite_ = 0;
 		std::string StatsToSave = toString();
 		return Storage()->SetLifetimeStats(SerialNumber_, StatsToSave);
+	}
+
+	static 	int ChannelToBand(uint64_t C) {
+		if(C>=1 && C<=16) return 2;
+		return 5;
+	}
+
+	bool StateProcessor::GetAssociations(const Poco::JSON::Object::Ptr &RawObject, uint64_t &Radios_2G, uint64_t &Radios_5G) {
+		Radios_2G = 0 ;
+		Radios_5G = 0;
+		if(RawObject->isArray("radios") && RawObject->isArray("interfaces")) {
+			auto RA = RawObject->getArray("radios");
+			// map of phy to 2g/5g
+			std::map<std::string,int>   RadioPHYs;
+			//  parse radios and get the phy out with the band
+			for(auto const &i:*RA) {
+				Poco::JSON::Parser p2;
+				auto RadioObj = i.extract<Poco::JSON::Object::Ptr>();
+				if(RadioObj->has("phy") && RadioObj->has("channel")) {
+					RadioPHYs[RadioObj->get("phy").toString()]= ChannelToBand(RadioObj->get("channel"));
+				}
+			}
+
+			auto IA = RawObject->getArray("interfaces");
+			for(auto const &i:*IA) {
+				auto InterfaceObj = i.extract<Poco::JSON::Object::Ptr>();
+				if(InterfaceObj->isArray("ssids")) {
+					auto SSIDA = InterfaceObj->getArray("ssids");
+					for(const auto &s:*SSIDA) {
+						auto SSIDinfo = s.extract<Poco::JSON::Object::Ptr>();
+						if(SSIDinfo->isArray("associations") && SSIDinfo->has("phy")) {
+							auto PHY = SSIDinfo->get("phy").toString();
+							int Radio = 2;
+							auto Rit = RadioPHYs.find(PHY);
+							if(Rit!=RadioPHYs.end())
+								Radio = Rit->second;
+							auto AssocA = SSIDinfo->getArray("associations");
+							if(Radio==2)
+								++Radios_2G;
+							else
+								++Radios_5G;
+						}
+					}
+				}
+			}
+			return true;
+		}
+		return false;
 	}
 }

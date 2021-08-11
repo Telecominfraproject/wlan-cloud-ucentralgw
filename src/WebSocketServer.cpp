@@ -358,7 +358,7 @@ namespace uCentral {
 						}
 						Conn_->Compatible = Compatible_;
 
-						StatsProcessor_ = std::make_unique<uCentral::StateProcessor>();
+						StatsProcessor_ = std::make_unique<uCentral::StateProcessor>(Conn_);
 						StatsProcessor_->Initialize(Serial);
 						LookForUpgrade(UUID);
 

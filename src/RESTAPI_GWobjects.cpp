@@ -176,6 +176,9 @@ namespace uCentral::GWObjects {
 		field_to_json(Obj,"connected", Connected);
 		field_to_json(Obj,"firmware", Firmware);
 		field_to_json(Obj,"lastContact", LastContact);
+		field_to_json(Obj,"associations_2G", Associations_2G);
+		field_to_json(Obj,"associations_5G", Associations_5G);
+
 		switch(VerifiedCertificate) {
 			case NO_CERTIFICATE:
 				field_to_json(Obj,"verifiedCertificate", "NO_CERTIFICATE"); break;
