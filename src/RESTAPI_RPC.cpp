@@ -13,6 +13,7 @@
 #include "StorageService.h"
 #include "DeviceRegistry.h"
 #include "CommandManager.h"
+#include "uCentralProtocol.h"
 
 namespace uCentral::RESTAPI_RPC {
 	void SetCommandAsPending(GWObjects::CommandDetails &Cmd,
@@ -69,6 +70,12 @@ namespace uCentral::RESTAPI_RPC {
 							Cmd.Results = ResultText.str();
 							Cmd.Status = "completed";
 							Cmd.Completed = time(nullptr);
+
+							if(Cmd.ErrorCode && Cmd.Command==uCentral::uCentralProtocol::TRACE) {
+								Cmd.WaitingForFile = 0;
+								Cmd.AttachDate = Cmd.AttachSize = 0 ;
+								Cmd.AttachType = "";
+							}
 
 							//	Add the completed command to the database...
 							Storage()->AddCommand(Cmd.SerialNumber, Cmd,Storage::COMMAND_COMPLETED);
