@@ -46,7 +46,6 @@ namespace uCentral {
 
 					if(Conn_)
 						GetAssociations(O,Conn_->Associations_2G,Conn_->Associations_5G);
-					std::cout << "Assoc: " << Conn_->Associations_2G << ", " << Conn_->Associations_5G << std::endl;
 
 					if(UpdatesSinceLastWrite_>10)
 						Save();
