@@ -958,7 +958,7 @@ paths:
             format: int64
 
       responses:
-        200:
+        204:
           description: Successfully deleted commands for the device.
           content:
             application/json:
@@ -1009,7 +1009,7 @@ paths:
             format: uuid
           required: true
       responses:
-        200:
+        204:
           description: Delete command success
           content:
             application/json:
@@ -1104,7 +1104,7 @@ paths:
             type: string
           required: true
       responses:
-        200:
+        204:
           $ref: '#/components/responses/Success'
         403:
           $ref: '#/components/responses/Unauthorized'
@@ -1232,7 +1232,7 @@ paths:
             type: string
           required: true
       responses:
-        200:
+        204:
           $ref: '#/components/responses/Success'
         403:
           $ref: '#/components/responses/Unauthorized'
@@ -1327,7 +1327,7 @@ paths:
             format: int64
 
       responses:
-        200:
+        204:
           description: Successfully deleted logs for the device.
           content:
             application/json:
@@ -1424,7 +1424,7 @@ paths:
           required: false
 
       responses:
-        200:
+        204:
           description: Successfully deleted health checks for the device.
           content:
             application/json:
@@ -1471,7 +1471,7 @@ paths:
             type: string
           required: true
       responses:
-        200:
+        204:
           description: List of logs for this device
           content:
             application/json:
@@ -1576,7 +1576,7 @@ paths:
           required: false
 
       responses:
-        200:
+        204:
           description: Array of statistics for this device
           content:
             application/json:
@@ -1964,7 +1964,7 @@ paths:
             type: string
           required: true
       responses:
-        200:
+        204:
           $ref: '#/components/responses/Success'
         403:
           $ref: '#/components/responses/Unauthorized'
@@ -2041,7 +2041,7 @@ paths:
             type: string
           required: true
       responses:
-        200:
+        204:
           $ref: '#/components/responses/Success'
         403:
           $ref: '#/components/responses/Unauthorized'
