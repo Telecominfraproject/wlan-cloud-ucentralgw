@@ -57,13 +57,15 @@ namespace uCentral::GWObjects {
 		if (DeviceRegistry()->GetState(SerialNumber, ConState)) {
 			ConState.to_json(Obj);
 		} else {
-			field_to_json(Obj,"ipAddress", "N/A");
+			field_to_json(Obj,"ipAddress", "");
 			field_to_json(Obj,"txBytes", (uint64_t) 0);
 			field_to_json(Obj,"rxBytes", (uint64_t )0);
 			field_to_json(Obj,"messageCount", (uint64_t )0);
 			field_to_json(Obj,"connected", false);
-			field_to_json(Obj,"lastContact", "N/A");
+			field_to_json(Obj,"lastContact", "");
 			field_to_json(Obj,"verifiedCertificate", "NO_CERTIFICATE");
+			field_to_json(Obj,"associations_2G", (uint64_t) 0);
+			field_to_json(Obj,"associations_5G", (uint64_t) 0);
 		}
 #endif
 	}
