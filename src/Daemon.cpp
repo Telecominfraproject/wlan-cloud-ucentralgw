@@ -28,6 +28,7 @@
 #include "RESTAPI_InternalServer.h"
 #include "AuthClient.h"
 #include "StorageArchiver.h"
+#include "SerialNumberCache.h"
 
 namespace uCentral {
 	class Daemon *Daemon::instance_ = nullptr;
@@ -41,6 +42,7 @@ namespace uCentral {
 								   vDAEMON_BUS_TIMER,
 								   Types::SubSystemVec{
 									   Storage(),
+									   OpenWiFi::SerialNumberCache(),
 									   AuthClient(),
 									   DeviceRegistry(),
 									   RESTAPI_server(),

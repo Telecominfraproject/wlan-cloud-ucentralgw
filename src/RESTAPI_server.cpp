@@ -24,6 +24,7 @@
 #include "RESTAPI_deviceDashboardHandler.h"
 
 #include "Utils.h"
+#include "RESTAPI_webSocketServer.h"
 
 namespace uCentral {
 
@@ -85,6 +86,7 @@ namespace uCentral {
 								RESTAPI_file,
 								RESTAPI_system_command,
 								RESTAPI_deviceDashboardHandler,
+								RESTAPI_webSocketServer,
 								RESTAPI_BlackList>(Path,Bindings,Logger_);
     }
 

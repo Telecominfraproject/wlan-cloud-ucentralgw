@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.13)
-project(ucentralgw VERSION 2.0.0)
+project(ucentralgw VERSION 2.1.0)
 
 set(CMAKE_CXX_STANDARD 17)
 
@@ -86,8 +86,15 @@ add_executable( ucentralgw
                 src/OUIServer.cpp src/OUIServer.h
                 src/RESTAPI_ouis.cpp src/RESTAPI_ouis.h
                 src/MicroService.cpp src/MicroService.h
-                src/RESTAPI_RPC.cpp src/RESTAPI_RPC.h src/AuthClient.cpp src/AuthClient.h src/OpenAPIRequest.cpp src/OpenAPIRequest.h
-                src/RESTAPI_utils.h src/RESTAPI_utils.cpp src/StorageArchiver.cpp src/StorageArchiver.h src/Dashboard.cpp src/Dashboard.h src/RESTAPI_deviceDashboardHandler.cpp src/RESTAPI_deviceDashboardHandler.h)
+                src/RESTAPI_RPC.cpp src/RESTAPI_RPC.h
+                src/AuthClient.cpp src/AuthClient.h
+                src/OpenAPIRequest.cpp src/OpenAPIRequest.h
+                src/RESTAPI_utils.h src/RESTAPI_utils.cpp
+                src/StorageArchiver.cpp src/StorageArchiver.h
+                src/Dashboard.cpp src/Dashboard.h
+                src/RESTAPI_deviceDashboardHandler.cpp src/RESTAPI_deviceDashboardHandler.h
+                src/SerialNumberCache.cpp src/SerialNumberCache.h
+                src/RESTAPI_webSocketServer.cpp src/RESTAPI_webSocketServer.h )
 
 if(NOT SMALL_BUILD)
     target_sources(ucentralgw PUBLIC src/KafkaManager.cpp src/KafkaManager.h)

@@ -81,6 +81,7 @@ namespace uCentral {
 		bool GetDevicesWithoutFirmware(std::string &DeviceType, std::string &Version, std::vector<std::string> & SerialNumbers);
 		bool GetDeviceFWUpdatePolicy(std::string & SerialNumber, std::string & Policy);
 		bool SetDevicePassword(std::string & SerialNumber, std::string & Password);
+		bool UpdateSerialNumberCache();
 
 		bool ExistingConfiguration(std::string &SerialNumber, uint64_t CurrentConfig, std::string &NewConfig, uint64_t &);
 

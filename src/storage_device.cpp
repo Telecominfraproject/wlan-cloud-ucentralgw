@@ -15,6 +15,7 @@
 #include "DeviceRegistry.h"
 #include "OUIServer.h"
 #include "StateProcessor.h"
+#include "SerialNumberCache.h"
 
 namespace uCentral {
 
@@ -170,6 +171,7 @@ namespace uCentral {
 						Poco::Data::Keywords::use(Now),
 						Poco::Data::Keywords::use(DeviceDetails.Venue);
 					Insert.execute();
+					OpenWiFi::SerialNumberCache()->AddSerialNumber(DeviceDetails.SerialNumber);
 					return true;
 				} else {
 					Logger_.warning("Cannot create device: invalid configuration.");
@@ -359,6 +361,7 @@ namespace uCentral {
 			Delete << ConvertParams(St),
 				Poco::Data::Keywords::use(SerialNumber);
 			Delete.execute();
+			OpenWiFi::SerialNumberCache()->DeleteSerialNumber(SerialNumber);
 			return true;
 		}
 		catch (const Poco::Exception &E) {
@@ -681,6 +684,29 @@ namespace uCentral {
 
 			return true;
 		} catch (const Poco::Exception &E) {
+			Logger_.log(E);
+		}
+		return false;
+	}
+
+	bool Storage::UpdateSerialNumberCache() {
+		try {
+			Poco::Data::Session     Sess = Pool_->get();
+			Poco::Data::Statement   Select(Sess);
+
+			Select << "SELECT SerialNumber FROM Devices";
+			Select.execute();
+
+			Poco::Data::RecordSet   RSet(Select);
+
+			bool More = RSet.moveFirst();
+			while(More) {
+				auto SerialNumber = RSet[0].convert<std::string>();
+				OpenWiFi::SerialNumberCache()->AddSerialNumber(SerialNumber);
+				More = RSet.moveNext();
+			}
+			return true;
+		} catch(const Poco::Exception &E) {
 			Logger_.log(E);
 		}
 		return false;
