@@ -43,8 +43,6 @@ namespace OpenWiFi {
 	void SerialNumberCache::FindNumbers(const std::string &S, uint HowMany, std::vector<uint64_t> &A) {
 		std::lock_guard		G(M_);
 
-		assert(HowMany>0);
-
 		if(S.length()==12) {
 			uint64_t SN = std::stoull(S,0,16);
 			auto It = std::find(SNs_.begin(),SNs_.end(),SN);
