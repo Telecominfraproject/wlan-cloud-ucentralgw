@@ -11,6 +11,8 @@
 
 #include "SerialNumberCache.h"
 
+#include <iomanip>
+
 namespace uCentral {
 
 	void RESTAPI_webSocketServer::handleRequest(Poco::Net::HTTPServerRequest &Request, Poco::Net::HTTPServerResponse &Response) {
@@ -94,6 +96,15 @@ namespace uCentral {
 		}
 	}
 
+	template< typename T >
+	std::string int_to_hex( T i )
+	{
+		std::stringstream stream;
+		stream << std::setfill ('0') << std::setw(12)
+		<< std::hex << i;
+		return stream.str();
+	}
+
 	void RESTAPI_webSocketServer::Process(const Poco::JSON::Object::Ptr &O, std::string &Answer ) {
 		if(O->has("command")) {
 			auto Command = O->get("command").toString();
@@ -109,7 +120,7 @@ namespace uCentral {
 
 					Poco::JSON::Array	A;
 					for(const auto &i:Numbers)
-						A.add(i);
+						A.add(int_to_hex(i));
 					Poco::JSON::Object	AO;
 					AO.set("serialNumbers",A);
 					std::ostringstream SS;
