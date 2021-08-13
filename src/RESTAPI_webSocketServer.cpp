@@ -59,11 +59,9 @@ namespace uCentral {
 								if(!Authenticated) {
 									std::string Frame{IncomingFrame.begin()};
 									auto Tokens = Utils::Split(Frame,':');
-									std::cout << "Token:" << Tokens[0] << "," << Tokens[1] << std::endl;
-									std::cout << "Token size:" << Tokens[1].size() << std::endl;
 									if(Tokens.size()==2 && AuthClient()->IsTokenAuthorized(Tokens[1], UserInfo_)) {
 										Authenticated=true;
-										std::string S{"Welcome."};
+										std::string S{"Welcome! Bienvenue! Bienvenudos!"};
 										WS.sendFrame(S.c_str(),S.size());
 									} else {
 										std::string S{"Invalid token. Closing connection."};
