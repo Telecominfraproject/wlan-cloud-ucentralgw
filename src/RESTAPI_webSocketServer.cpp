@@ -137,6 +137,7 @@ namespace uCentral {
 							A.add(uCentral::Utils::int_to_hex(i));
 						Poco::JSON::Object AO;
 						AO.set("serialNumbers", A);
+						AO.set("command","serial_number_search");
 						std::ostringstream SS;
 						Poco::JSON::Stringifier::stringify(AO, SS);
 						Answer = SS.str();
