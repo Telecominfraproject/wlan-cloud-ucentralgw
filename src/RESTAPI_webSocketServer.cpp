@@ -12,6 +12,7 @@
 #include "SerialNumberCache.h"
 
 #include "Utils.h"
+#include "AuthClient.h"
 
 namespace uCentral {
 
@@ -39,6 +40,8 @@ namespace uCentral {
 				Logger_.information("WebSocket connection established.");
 				int flags;
 				int n;
+				bool Authenticated=false;
+				bool Done=false;
 				do
 				{
 					Poco::Buffer<char>			IncomingFrame(0);
@@ -56,16 +59,31 @@ namespace uCentral {
 							break;
 						case Poco::Net::WebSocket::FRAME_OP_TEXT: {
 								IncomingFrame.append(0);
-								Poco::JSON::Parser	P;
-								auto Obj = P.parse(IncomingFrame.begin()).extract<Poco::JSON::Object::Ptr>();
-								std::string Answer;
-								Process(Obj, Answer);
-								if(!Answer.empty())
-									WS.sendFrame(Answer.c_str(),Answer.size());
-								else {
-									WS.sendFrame("{}",2);
+								if(!Authenticated) {
+									auto Tokens = Utils::Split(IncomingFrame.begin(),':');
+									if(Tokens.size()==2 && AuthClient()->IsTokenAuthorized(Tokens[1], UserInfo_)) {
+										Authenticated=true;
+										std::string S{"Welcome."};
+										WS.sendFrame(S.c_str(),S.size());
+									} else {
+										std::string S{"Invalid token. Closing connection."};
+										WS.sendFrame(S.c_str(),S.size());
+										Done=true;
+									}
+
+								} else {
+									Poco::JSON::Parser P;
+									auto Obj = P.parse(IncomingFrame.begin())
+												   .extract<Poco::JSON::Object::Ptr>();
+									std::string Answer;
+									Process(Obj, Answer);
+									if (!Answer.empty())
+										WS.sendFrame(Answer.c_str(), Answer.size());
+									else {
+										WS.sendFrame("{}", 2);
+									}
 								}
-							}
+						}
 							break;
 						default:
 							{
@@ -73,7 +91,7 @@ namespace uCentral {
 							}
 					}
 				}
-				while (n > 0 && (flags & Poco::Net::WebSocket::FRAME_OP_BITMASK) != Poco::Net::WebSocket::FRAME_OP_CLOSE);
+				while (!Done && (n > 0 && (flags & Poco::Net::WebSocket::FRAME_OP_BITMASK) != Poco::Net::WebSocket::FRAME_OP_CLOSE));
 				Logger_.information("WebSocket connection closed.");
 			}
 			catch (const Poco::Net::WebSocketException & E)

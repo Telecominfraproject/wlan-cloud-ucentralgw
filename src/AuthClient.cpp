@@ -56,4 +56,14 @@ namespace uCentral {
 		}
 		return false;
 	}
+
+	bool AuthClient::IsTokenAuthorized(const std::string &Token, SecurityObjects::UserInfoAndPolicy & UInfo) {
+		auto User = UserCache_.find(Token);
+		if(User != UserCache_.end() && !IsTokenExpired(User->second.webtoken)) {
+			UInfo = User->second;
+			return true;
+		}
+		return false;
+	}
+
 }
