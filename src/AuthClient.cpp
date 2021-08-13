@@ -57,11 +57,31 @@ namespace uCentral {
 		return false;
 	}
 
-	bool AuthClient::IsTokenAuthorized(const std::string &Token, SecurityObjects::UserInfoAndPolicy & UInfo) {
-		auto User = UserCache_.find(Token);
+	bool AuthClient::IsTokenAuthorized(const std::string &SessionToken, SecurityObjects::UserInfoAndPolicy & UInfo) {
+		SubMutexGuard G(Mutex_);
+
+		auto User = UserCache_.find(SessionToken);
 		if(User != UserCache_.end() && !IsTokenExpired(User->second.webtoken)) {
 			UInfo = User->second;
 			return true;
+		} else {
+			Types::StringPairVec QueryData;
+			QueryData.push_back(std::make_pair("token",SessionToken));
+			OpenAPIRequestGet	Req(uSERVICE_SECURITY,
+									 "/api/v1/validateToken",
+									 QueryData,
+									 5000);
+			Poco::JSON::Object::Ptr Response;
+			if(Req.Do(Response)==Poco::Net::HTTPResponse::HTTP_OK) {
+				if(Response->has("tokenInfo") && Response->has("userInfo")) {
+					SecurityObjects::UserInfoAndPolicy	P;
+					P.from_json(Response);
+					UserCache_[SessionToken] = P;
+					UInfo = P;
+				}
+				return true;
+			}
+
 		}
 		return false;
 	}
