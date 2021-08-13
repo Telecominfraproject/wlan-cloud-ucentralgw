@@ -527,9 +527,9 @@ gwtimes() {
 }
 
 wstest() {
+	echo "Token:${token}"
 	wscat \
-	-H "Authorization: Bearer ${token}"  \
-	-c wss://${UCENTRALGW}/api/v1/ws
+		-c wss://${UCENTRALGW}/api/v1/ws
 }
 
 help() {

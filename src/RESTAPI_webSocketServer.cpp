@@ -61,7 +61,7 @@ namespace uCentral {
 									auto Tokens = Utils::Split(Frame,':');
 									if(Tokens.size()==2 && AuthClient()->IsTokenAuthorized(Tokens[1], UserInfo_)) {
 										Authenticated=true;
-										std::string S{"Welcome! Bienvenue! Bienvenudos!"};
+										std::string S{"Welcome! Bienvenue! Bienvenidos!"};
 										WS.sendFrame(S.c_str(),S.size());
 									} else {
 										std::string S{"Invalid token. Closing connection."};
@@ -81,7 +81,7 @@ namespace uCentral {
 										WS.sendFrame("{}", 2);
 									}
 								}
-						}
+							}
 							break;
 						default:
 							{
@@ -109,31 +109,38 @@ namespace uCentral {
 								break;
 				}
 			}
+			catch (const Poco::Exception &E) {
+				Logger_.log(E);
+			}
 		}
 	}
 
 	void RESTAPI_webSocketServer::Process(const Poco::JSON::Object::Ptr &O, std::string &Answer ) {
-		if(O->has("command")) {
-			auto Command = O->get("command").toString();
-			if(Command=="serial_number_search" && O->has("serial_prefix")) {
-				auto Prefix = O->get("serial_prefix").toString();
-				uint64_t HowMany = 32;
-				if(O->has("howMany"))
-					HowMany = O->get("howMany");
-				Logger_.information(Poco::format("serial_number_search: %s",Prefix));
-				if(!Prefix.empty() && Prefix.length()<13) {
-					std::vector<uint64_t>	Numbers;
-					OpenWiFi::SerialNumberCache()->FindNumbers(Prefix,50,Numbers);
-					Poco::JSON::Array	A;
-					for(const auto &i:Numbers)
-						A.add(uCentral::Utils::int_to_hex(i));
-					Poco::JSON::Object	AO;
-					AO.set("serialNumbers",A);
-					std::ostringstream SS;
-					Poco::JSON::Stringifier::stringify(AO,SS);
-					Answer = SS.str();
+		try {
+			if (O->has("command")) {
+				auto Command = O->get("command").toString();
+				if (Command == "serial_number_search" && O->has("serial_prefix")) {
+					auto Prefix = O->get("serial_prefix").toString();
+					uint64_t HowMany = 32;
+					if (O->has("howMany"))
+						HowMany = O->get("howMany");
+					Logger_.information(Poco::format("serial_number_search: %s", Prefix));
+					if (!Prefix.empty() && Prefix.length() < 13) {
+						std::vector<uint64_t> Numbers;
+						OpenWiFi::SerialNumberCache()->FindNumbers(Prefix, 50, Numbers);
+						Poco::JSON::Array A;
+						for (const auto &i : Numbers)
+							A.add(uCentral::Utils::int_to_hex(i));
+						Poco::JSON::Object AO;
+						AO.set("serialNumbers", A);
+						std::ostringstream SS;
+						Poco::JSON::Stringifier::stringify(AO, SS);
+						Answer = SS.str();
+					}
 				}
 			}
+		} catch (const Poco::Exception &E) {
+			Logger_.log(E);
 		}
 	}
 }
