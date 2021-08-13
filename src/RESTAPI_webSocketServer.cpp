@@ -21,9 +21,6 @@ namespace uCentral {
 		if (!ContinueProcessing(Request, Response))
 			return;
 
-		if (!IsAuthorized(Request, Response))
-			return;
-
 		if(Request.getMethod()==Poco::Net::HTTPRequest::HTTP_GET)
 			DoGet(Request,Response);
 		else
