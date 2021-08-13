@@ -5,6 +5,8 @@
 #include "SerialNumberCache.h"
 #include <mutex>
 
+#include "Utils.h"
+
 namespace OpenWiFi {
 
 	class SerialNumberCache * SerialNumberCache::instance_ = nullptr;
@@ -51,13 +53,19 @@ namespace OpenWiFi {
 			}
 		} else if (S.length()<12){
 			std::string SS{S};
-			SS.insert(0, 12 - SS.size(), '0');
+			SS.insert(SS.end(), 12 - SS.size(), '0');
 			uint64_t SN = std::stoull(SS,0,16);
 
 			auto LB = std::lower_bound(SNs_.begin(),SNs_.end(),SN);
 			if(LB!=SNs_.end()) {
-				for(;LB!=SNs_.end() && HowMany;++LB,--HowMany)
-					A.emplace_back(*LB);
+				for(;LB!=SNs_.end() && HowMany;++LB,--HowMany) {
+					std::string TSN = uCentral::Utils::int_to_hex(*LB);
+					if(S == TSN.substr(0,S.size())) {
+						A.emplace_back(*LB);
+					} else {
+						break;
+					}
+				}
 			}
 		}
 	}
