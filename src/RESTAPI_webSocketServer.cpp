@@ -70,15 +70,19 @@ namespace uCentral {
 									}
 
 								} else {
-									Poco::JSON::Parser P;
-									auto Obj = P.parse(IncomingFrame.begin())
-												   .extract<Poco::JSON::Object::Ptr>();
-									std::string Answer;
-									Process(Obj, Answer);
-									if (!Answer.empty())
-										WS.sendFrame(Answer.c_str(), Answer.size());
-									else {
-										WS.sendFrame("{}", 2);
+									try {
+										Poco::JSON::Parser P;
+										auto Obj = P.parse(IncomingFrame.begin())
+													   .extract<Poco::JSON::Object::Ptr>();
+										std::string Answer;
+										Process(Obj, Answer);
+										if (!Answer.empty())
+											WS.sendFrame(Answer.c_str(), Answer.size());
+										else {
+											WS.sendFrame("{}", 2);
+										}
+									} catch (const Poco::JSON::JSONException & E) {
+										Logger_.log(E);
 									}
 								}
 							}
