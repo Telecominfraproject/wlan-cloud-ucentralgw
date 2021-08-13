@@ -99,17 +99,21 @@ namespace uCentral {
 	void RESTAPI_webSocketServer::Process(const Poco::JSON::Object::Ptr &O, std::string &Answer ) {
 		if(O->has("command")) {
 			auto Command = O->get("command").toString();
+			std::cout << "Command: " << Command << std::endl;
 			if(Command=="serial_number_search" && O->has("serial_prefix")) {
 				auto Prefix = O->get("serial_prefix").toString();
 				uint64_t HowMany = 32;
 				if(O->has("howMany"))
 					HowMany = O->get("howMany");
 				Logger_.information(Poco::format("serial_number_search: %s",Prefix));
-				if(Prefix.length()>1 && Prefix.length()<13) {
+				if(!Prefix.empty() && Prefix.length()<13) {
 					std::vector<uint64_t>	Numbers;
 					OpenWiFi::SerialNumberCache()->FindNumbers(Prefix,50,Numbers);
 
+					std::cout << "Prefix: " << Prefix << std::endl;
+
 					Poco::JSON::Array	A;
+					std::cout << "Size: " << Numbers.size() << std::endl;
 					for(const auto &i:Numbers)
 						A.add(uCentral::Utils::int_to_hex(i));
 					Poco::JSON::Object	AO;
