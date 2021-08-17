@@ -239,6 +239,7 @@ namespace uCentral::GWObjects {
 		healths.clear();
 		certificates.clear();
 		lastContact.clear();
+		associations.clear();
 		numberOfDevices = 0 ;
 		snapshot = std::time(nullptr);
 	}
