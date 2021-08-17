@@ -428,3 +428,64 @@ certsCAs:
     L+/DtiR5fDVMNdBSGU89UNTi0wHY9+RFuNlIuvZC+x/swF0V9R5mN+ywquTPtDLA
     5IOM7ItsRmen6u3qu+JXros54e4juQ==
     -----END CERTIFICATE-----
+
+# PostgreSQL (https://github.com/bitnami/charts/tree/master/bitnami/postgresql)
+postgresql:
+  enabled: false
+
+  image:
+    registry: docker.io
+    repository: bitnami/postgresql
+    tag: 11.13.0-debian-10-r0
+
+  postgresqlPostgresPassword: ""
+  postgresqlUsername: postgres
+  postgresqlPassword: ""
+  postgresqlDatabase: ""
+
+  persistence:
+    enabled: true
+    storageClass: ""
+    size: 8Gi
+
+# MySQL (https://github.com/bitnami/charts/tree/master/bitnami/mysql)
+mysql:
+  enabled: false
+
+  image:
+    registry: docker.io
+    repository: bitnami/mysql
+    tag: 8.0.26-debian-10-r10
+
+  auth:
+    rootPassword: ""
+    database: my_database
+    username: ""
+    password: ""
+
+  primary:
+    persistence:
+      enabled: true
+      storageClass: ""
+      size: 8Gi
+
+# MariaDB (https://github.com/bitnami/charts/tree/master/bitnami/mariadb)
+mariadb:
+  enabled: false
+
+  image:
+    registry: docker.io
+    repository: bitnami/mariadb
+    tag: 10.5.12-debian-10-r0
+
+  auth:
+    rootPassword: ""
+    database: my_database
+    username: ""
+    password: ""
+
+  primary:
+    persistence:
+      enabled: true
+      storageClass: ""
+      size: 8Gi
