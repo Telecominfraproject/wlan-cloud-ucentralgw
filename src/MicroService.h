@@ -32,8 +32,8 @@ namespace uCentral {
 	static const std::string uSERVICE_SECURITY{"ucentralsec"};
 	static const std::string uSERVICE_GATEWAY{"ucentralgw"};
 	static const std::string uSERVICE_FIRMWARE{ "ucentralfws"};
-    static const std::string uSERVICE_TOPOLOGY{ "ucentraltopo"};
-    static const std::string uSERVICE_PROVISIONING{ "ucentralprov"};
+    static const std::string uSERVICE_TOPOLOGY{ "owtopo"};
+    static const std::string uSERVICE_PROVISIONING{ "owprov"};
 
 	class MyErrorHandler : public Poco::ErrorHandler {
 	  public:
