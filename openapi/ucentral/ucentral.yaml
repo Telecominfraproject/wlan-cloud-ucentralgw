@@ -1857,7 +1857,7 @@ paths:
         404:
           $ref: '#/components/responses/NotFound'
 
-  /device/{serialNumber}/eventrequest:
+  /device/{serialNumber}/eventqueue:
     post:
       tags:
         - Commands

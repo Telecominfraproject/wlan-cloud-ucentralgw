@@ -125,7 +125,7 @@ void RESTAPI_device_commandHandler::handleRequest(Poco::Net::HTTPServerRequest &
 		}
 		return;
 	} catch (const Poco::Exception &E) {
-		Logger_.error(Poco::format("%s: failed with %s", std::string(__func__), E.displayText()));
+		Logger_.log(E);
 	}
 	BadRequest(Request, Response);
 }
@@ -144,7 +144,7 @@ void RESTAPI_device_commandHandler::GetCapabilities(Poco::Net::HTTPServerRequest
 		}
 		return;
 	} catch (const Poco::Exception &E) {
-		Logger_.error(Poco::format("%s: failed with %s", std::string(__func__), E.displayText()));
+		Logger_.log(E);
 	}
 	BadRequest(Request, Response);
 }
@@ -158,7 +158,7 @@ void RESTAPI_device_commandHandler::DeleteCapabilities(Poco::Net::HTTPServerRequ
 			NotFound(Request, Response);
 		return;
 	} catch (const Poco::Exception &E) {
-		Logger_.error(Poco::format("%s: failed with %s", std::string(__func__), E.displayText()));
+		Logger_.log(E);
 	}
 	BadRequest(Request, Response);
 }
@@ -206,7 +206,7 @@ void RESTAPI_device_commandHandler::GetStatistics(Poco::Net::HTTPServerRequest &
 		}
 		return;
 	} catch (const Poco::Exception &E) {
-		Logger_.error(Poco::format("%s: failed with %s", std::string(__func__), E.displayText()));
+		Logger_.log(E);
 	}
 	BadRequest(Request, Response);
 }
@@ -230,7 +230,7 @@ void RESTAPI_device_commandHandler::DeleteStatistics(Poco::Net::HTTPServerReques
 		}
 		return;
 	} catch (const Poco::Exception &E) {
-		Logger_.error(Poco::format("%s: failed with %s", std::string(__func__), E.displayText()));
+		Logger_.log(E);
 	}
 	BadRequest(Request, Response);
 }
@@ -249,7 +249,7 @@ void RESTAPI_device_commandHandler::GetStatus(Poco::Net::HTTPServerRequest &Requ
 		}
 		return;
 	} catch (const Poco::Exception &E) {
-		Logger_.error(Poco::format("%s: failed with %s", std::string(__func__), E.displayText()));
+		Logger_.log(E);
 	}
 	BadRequest(Request, Response);
 }
@@ -308,7 +308,7 @@ void RESTAPI_device_commandHandler::Configure(Poco::Net::HTTPServerRequest &Requ
 			}
 		}
 	} catch (const Poco::Exception &E) {
-		Logger_.error(Poco::format("%s: failed with %s", std::string(__func__), E.displayText()));
+		Logger_.log(E);
 	}
 	BadRequest(Request, Response);
 }
@@ -353,7 +353,7 @@ void RESTAPI_device_commandHandler::Upgrade(Poco::Net::HTTPServerRequest &Reques
 			return;
 		}
 	} catch (const Poco::Exception &E) {
-		Logger_.error(Poco::format("%s: failed with %s", std::string(__func__), E.displayText()));
+		Logger_.log(E);
 	}
 	BadRequest(Request, Response);
 }
@@ -383,7 +383,7 @@ void RESTAPI_device_commandHandler::GetLogs(Poco::Net::HTTPServerRequest &Reques
 
 		return;
 	} catch (const Poco::Exception &E) {
-		Logger_.error(Poco::format("%s: failed with %s", std::string(__func__), E.displayText()));
+		Logger_.log(E);
 	}
 	BadRequest(Request, Response);
 }
@@ -397,7 +397,7 @@ void RESTAPI_device_commandHandler::DeleteLogs(Poco::Net::HTTPServerRequest &Req
 			return;
 		}
 	} catch (const Poco::Exception &E) {
-		Logger_.error(Poco::format("%s: failed with %s", std::string(__func__), E.displayText()));
+		Logger_.log(E);
 	}
 	BadRequest(Request, Response);
 }
@@ -438,7 +438,7 @@ void RESTAPI_device_commandHandler::GetChecks(Poco::Net::HTTPServerRequest &Requ
 		}
 		return;
 	} catch (const Poco::Exception &E) {
-		Logger_.error(Poco::format("%s: failed with %s", std::string(__func__), E.displayText()));
+		Logger_.log(E);
 	}
 	BadRequest(Request, Response);
 }
@@ -451,7 +451,7 @@ void RESTAPI_device_commandHandler::DeleteChecks(Poco::Net::HTTPServerRequest &R
 			return;
 		}
 	} catch (const Poco::Exception &E) {
-		Logger_.error(Poco::format("%s: failed with %s", std::string(__func__), E.displayText()));
+		Logger_.log(E);
 	}
 	BadRequest(Request, Response);
 }
@@ -506,7 +506,7 @@ void RESTAPI_device_commandHandler::ExecuteCommand(Poco::Net::HTTPServerRequest 
 			return;
 		}
 	} catch (const Poco::Exception &E) {
-		Logger_.error(Poco::format("%s: failed with %s", std::string(__func__), E.displayText()));
+		Logger_.log(E);
 	}
 	BadRequest(Request, Response);
 }
@@ -546,7 +546,7 @@ void RESTAPI_device_commandHandler::Reboot(Poco::Net::HTTPServerRequest &Request
 			return;
 		}
 	} catch (const Poco::Exception &E) {
-		Logger_.error(Poco::format("%s: failed with %s", std::string(__func__), E.displayText()));
+		Logger_.log(E);
 	}
 	BadRequest(Request, Response);
 }
@@ -594,7 +594,7 @@ void RESTAPI_device_commandHandler::Factory(Poco::Net::HTTPServerRequest &Reques
 			return;
 		}
 	} catch (const Poco::Exception &E) {
-		Logger_.error(Poco::format("%s: failed with %s", std::string(__func__), E.displayText()));
+		Logger_.log(E);
 	}
 	BadRequest(Request, Response);
 }
@@ -652,7 +652,7 @@ void RESTAPI_device_commandHandler::LEDs(Poco::Net::HTTPServerRequest &Request,
 			return;
 		}
 	} catch (const Poco::Exception &E) {
-		Logger_.error(Poco::format("%s: failed with %s", std::string(__func__), E.displayText()));
+		Logger_.log(E);
 	}
 	BadRequest(Request, Response);
 }
@@ -713,7 +713,7 @@ void RESTAPI_device_commandHandler::Trace(Poco::Net::HTTPServerRequest &Request,
 		}
 		return;
 	} catch (const Poco::Exception &E) {
-		Logger_.error(Poco::format("%s: failed with %s", std::string(__func__), E.displayText()));
+		Logger_.log(E);
 	}
 	BadRequest(Request, Response);
 }
@@ -774,14 +774,16 @@ void RESTAPI_device_commandHandler::WifiScan(Poco::Net::HTTPServerRequest &Reque
 			Params.stringify(ParamStream);
 			Cmd.Details = ParamStream.str();
 			RESTAPI_RPC::WaitForCommand(Cmd, Params, Request, Response, std::chrono::milliseconds(20000), nullptr, this);
-			KafkaManager()->PostMessage(uCentral::KafkaTopics::WIFISCAN, SerialNumber_,
-										 Cmd.Results);
+			if(Cmd.ErrorCode==0) {
+				KafkaManager()->PostMessage(uCentral::KafkaTopics::WIFISCAN, SerialNumber_,
+											Cmd.Results);
+			}
 
 			return;
 		}
 
 	} catch (const Poco::Exception &E) {
-		Logger_.error(Poco::format("%s: failed with %s", std::string(__func__), E.displayText()));
+		Logger_.log(E);
 	}
 	BadRequest(Request, Response);
 }
@@ -795,8 +797,8 @@ void RESTAPI_device_commandHandler::EventQueue(Poco::Net::HTTPServerRequest &Req
 			parser.parse(Request.stream()).extract<Poco::JSON::Object::Ptr>();
 
 		if (Obj->has(uCentral::RESTAPI::Protocol::SERIALNUMBER) &&
-			Obj->has(uCentral::RESTAPI::Protocol::TYPES) &&
 			Obj->isArray(uCentral::RESTAPI::Protocol::TYPES)) {
+
 			auto SNum = Obj->get(uCentral::RESTAPI::Protocol::SERIALNUMBER).toString();
 			auto Types = Obj->getArray(uCentral::RESTAPI::Protocol::TYPES);
 
@@ -810,7 +812,6 @@ void RESTAPI_device_commandHandler::EventQueue(Poco::Net::HTTPServerRequest &Req
 				Cmd.Command = uCentral::uCentralProtocol::EVENT;
 
 				Poco::JSON::Object Params;
-
 				Params.set(uCentral::uCentralProtocol::SERIAL, SerialNumber_);
 				Params.set(uCentral::uCentralProtocol::TYPES, Types);
 
@@ -819,11 +820,15 @@ void RESTAPI_device_commandHandler::EventQueue(Poco::Net::HTTPServerRequest &Req
 				Cmd.Details = ParamStream.str();
 
 				RESTAPI_RPC::WaitForCommand(Cmd, Params, Request, Response, std::chrono::milliseconds(20000), nullptr, this);
+				if(Cmd.ErrorCode==0) {
+					KafkaManager()->PostMessage(uCentral::KafkaTopics::DEVICE_EVENT_QUEUE, SerialNumber_,
+												Cmd.Results);
+				}
 				return;
 			}
 		}
 	} catch (const Poco::Exception &E) {
-		Logger_.error(Poco::format("%s: failed with %s", std::string(__func__), E.displayText()));
+		Logger_.log(E);
 	}
 	BadRequest(Request, Response);
 }
@@ -873,7 +878,7 @@ void RESTAPI_device_commandHandler::MakeRequest(Poco::Net::HTTPServerRequest &Re
 			return;
 		}
 	} catch (const Poco::Exception &E) {
-		Logger_.error(Poco::format("%s: failed with %s", std::string(__func__), E.displayText()));
+		Logger_.log(E);
 	}
 	BadRequest(Request, Response);
 }
@@ -935,7 +940,7 @@ void RESTAPI_device_commandHandler::Rtty(Poco::Net::HTTPServerRequest &Request,
 			return;
 		}
 	} catch (const Poco::Exception &E) {
-		Logger_.error(Poco::format("%s: failed with %s", std::string(__func__), E.displayText()));
+		Logger_.log(E);
 	}
 	BadRequest(Request, Response);
 }
