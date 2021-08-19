@@ -394,7 +394,7 @@ getblacklist() {
 }
 
 eventqueue() {
-  payload="{ \"serialNumber\" : \"$1\" , \"types\" : [ \"dhcp\", \"rrm\" ] }"
+  payload="{ \"serialNumber\" : \"$1\" , \"types\" : [ \"dhcp\", \"wifi\" ] }"
   curl  ${FLAGS} -X POST "https://${UCENTRALGW}/api/v1/device/$1/eventqueue" \
         --max-time 20 \
         -H "accept: application/json" \
