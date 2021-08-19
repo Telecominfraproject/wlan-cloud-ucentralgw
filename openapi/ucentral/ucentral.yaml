@@ -872,6 +872,7 @@ paths:
           name: countOnly
           schema:
             type: boolean
+            example: countOnly=true
         - in: query
           description: Return extra information with the device information
           name: deviceWithStatus
