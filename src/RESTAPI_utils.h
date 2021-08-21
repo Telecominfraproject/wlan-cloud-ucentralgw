@@ -9,10 +9,10 @@
 #include "Poco/JSON/Object.h"
 #include "Poco/JSON/Parser.h"
 #include "Poco/Net/HTTPServerRequest.h"
-#include "uCentralTypes.h"
+#include "OpenWifiTypes.h"
 #include "Utils.h"
 
-namespace uCentral::RESTAPI_utils {
+namespace OpenWifi::RESTAPI_utils {
 
 	void EmbedDocument(const std::string & ObjName, Poco::JSON::Object & Obj, const std::string &ObjStr);
 

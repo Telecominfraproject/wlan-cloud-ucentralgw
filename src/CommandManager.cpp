@@ -18,7 +18,7 @@
 
 #include "Poco/JSON/Parser.h"
 
-namespace uCentral {
+namespace OpenWifi {
 
     class CommandManager * CommandManager::instance_ = nullptr;
 

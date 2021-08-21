@@ -20,7 +20,7 @@
 #include "Poco/Net/StreamSocket.h"
 #include "Poco/Net/ServerSocket.h"
 
-namespace uCentral {
+namespace OpenWifi {
 
 	class CommandChannel : public SubSystemServer {
 	  public:

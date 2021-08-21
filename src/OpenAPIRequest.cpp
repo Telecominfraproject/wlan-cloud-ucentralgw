@@ -17,7 +17,7 @@
 #include "Utils.h"
 #include "Daemon.h"
 
-namespace uCentral {
+namespace OpenWifi {
 
 	OpenAPIRequestGet::OpenAPIRequestGet( 	const std::string & ServiceType,
 											const std::string & EndPoint,

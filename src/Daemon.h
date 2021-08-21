@@ -27,9 +27,9 @@
 
 #include "Dashboard.h"
 #include "MicroService.h"
-#include "uCentralTypes.h"
+#include "OpenWifiTypes.h"
 
-namespace uCentral {
+namespace OpenWifi {
 
 	static const char * vDAEMON_PROPERTIES_FILENAME = "ucentralgw.properties";
 	static const char * vDAEMON_ROOT_ENV_VAR = "UCENTRALGW_ROOT";

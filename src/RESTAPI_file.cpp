@@ -15,7 +15,7 @@
 #include <fstream>
 #include "RESTAPI_protocol.h"
 
-namespace uCentral {
+namespace OpenWifi {
 	void RESTAPI_file::handleRequest(Poco::Net::HTTPServerRequest &Request,
 									 Poco::Net::HTTPServerResponse &Response) {
 		if (!ContinueProcessing(Request, Response))
@@ -28,8 +28,8 @@ namespace uCentral {
 			ParseParameters(Request);
 
 			if (Request.getMethod() == Poco::Net::HTTPRequest::HTTP_GET) {
-				auto UUID = GetBinding(uCentral::RESTAPI::Protocol::FILEUUID, "");
-				auto SerialNumber = GetParameter(uCentral::RESTAPI::Protocol::SERIALNUMBER, "");
+				auto UUID = GetBinding(RESTAPI::Protocol::FILEUUID, "");
+				auto SerialNumber = GetParameter(RESTAPI::Protocol::SERIALNUMBER, "");
 
 				// does the file exist
 				Poco::File DownloadFile(FileUploader()->Path() + "/" + UUID);
@@ -45,7 +45,7 @@ namespace uCentral {
 				return;
 
 			} else if (Request.getMethod() == Poco::Net::HTTPRequest::HTTP_DELETE) {
-				auto UUID = GetBinding(uCentral::RESTAPI::Protocol::FILEUUID, "");
+				auto UUID = GetBinding(RESTAPI::Protocol::FILEUUID, "");
 
 				if (UUID.empty()) {
 					BadRequest(Request, Response);

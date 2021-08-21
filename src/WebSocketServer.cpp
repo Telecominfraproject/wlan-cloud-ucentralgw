@@ -25,7 +25,7 @@
 #include "WebSocketServer.h"
 #include "uCentralProtocol.h"
 
-namespace uCentral {
+namespace OpenWifi {
 
     class WebSocketServer *WebSocketServer::instance_ = nullptr;
 
@@ -86,7 +86,7 @@ namespace uCentral {
 
 			SS->completeHandshake();
 
-			CId_ = uCentral::Utils::FormatIPv6(SS->peerAddress().toString());
+			CId_ = Utils::FormatIPv6(SS->peerAddress().toString());
 
 			if (!SS->secure()) {
 				Logger_.error(Poco::format("%s: Connection is NOT secure.", CId_));
@@ -189,7 +189,7 @@ namespace uCentral {
         	Poco::JSON::Stringifier		Stringify;
         	std::ostringstream OS;
         	Stringify.condense(Disconnect,OS);
-        	KafkaManager()->PostMessage(uCentral::KafkaTopics::CONNECTION, SerialNumber_, OS.str());
+        	KafkaManager()->PostMessage(KafkaTopics::CONNECTION, SerialNumber_, OS.str());
         }
     }
 
@@ -246,7 +246,7 @@ namespace uCentral {
 
 	bool WSConnection::ExtractCompressedData(const std::string & CompressedData, std::string & UnCompressedData)
     {
-        std::vector<uint8_t> OB = uCentral::Utils::base64decode(CompressedData);
+        std::vector<uint8_t> OB = Utils::base64decode(CompressedData);
 
         unsigned long MaxSize=OB.size()*10;
         std::vector<char> UncompressedBuffer(MaxSize);
@@ -266,7 +266,7 @@ namespace uCentral {
     void WSConnection::ProcessJSONRPCEvent(Poco::JSON::Object::Ptr & Doc) {
 
         auto Method = Doc->get(uCentralProtocol::METHOD).toString();
-		auto EventType = uCentral::uCentralProtocol::EventFromString(Method);
+		auto EventType = uCentralProtocol::EventFromString(Method);
 		if(EventType == uCentralProtocol::ET_UNKNOWN) {
 			Logger_.error(Poco::format("ILLEGAL-PROTOCOL(%s): Unknown message type '%s'",Method));
 			Errors_++;
@@ -303,7 +303,7 @@ namespace uCentral {
         }
 
 		auto Serial = Poco::trim(Poco::toLower(ParamsObj->get(uCentralProtocol::SERIAL).toString()));
-		if(!uCentral::Utils::ValidSerialNumber(Serial)) {
+		if(!Utils::ValidSerialNumber(Serial)) {
 			Poco::Exception	E(Poco::format("ILLEGAL-DEVICE-NAME(%s): device name is illegal and not allowed to connect.",Serial), EACCES);
 			E.rethrow();
 		}
@@ -332,7 +332,7 @@ namespace uCentral {
 						Conn_->Firmware = Firmware;
 						Conn_->PendingUUID = 0;
 						Conn_->LastContact = std::time(nullptr);
-						Conn_->Address = uCentral::Utils::FormatIPv6(WS_->peerAddress().toString());
+						Conn_->Address = Utils::FormatIPv6(WS_->peerAddress().toString());
 						CId_ = SerialNumber_ + "@" + CId_ ;
 
 						//	We need to verify the certificate if we have one
@@ -358,7 +358,7 @@ namespace uCentral {
 						}
 						Conn_->Compatible = Compatible_;
 
-						StatsProcessor_ = std::make_unique<uCentral::StateProcessor>(Conn_);
+						StatsProcessor_ = std::make_unique<StateProcessor>(Conn_);
 						StatsProcessor_->Initialize(Serial);
 						LookForUpgrade(UUID);
 
@@ -366,7 +366,7 @@ namespace uCentral {
 							Poco::JSON::Stringifier		Stringify;
 							std::ostringstream OS;
 							Stringify.condense(ParamsObj,OS);
-							KafkaManager()->PostMessage(uCentral::KafkaTopics::CONNECTION, SerialNumber_, OS.str());
+							KafkaManager()->PostMessage(KafkaTopics::CONNECTION, SerialNumber_, OS.str());
 						}
 
 					} else {
@@ -406,7 +406,7 @@ namespace uCentral {
 							Poco::JSON::Stringifier		Stringify;
 							std::ostringstream OS;
 							Stringify.condense(ParamsObj,OS);
-							KafkaManager()->PostMessage(uCentral::KafkaTopics::STATE, SerialNumber_, OS.str());
+							KafkaManager()->PostMessage(KafkaTopics::STATE, SerialNumber_, OS.str());
 						}
 					} else {
 						Logger_.warning(Poco::format(
@@ -454,7 +454,7 @@ namespace uCentral {
 							Poco::JSON::Stringifier		Stringify;
 							std::ostringstream OS;
 							Stringify.condense(ParamsObj,OS);
-							KafkaManager()->PostMessage(uCentral::KafkaTopics::HEALTHCHECK, SerialNumber_, OS.str());
+							KafkaManager()->PostMessage(KafkaTopics::HEALTHCHECK, SerialNumber_, OS.str());
 						}
 					} else {
 						Logger_.warning(Poco::format("HEALTHCHECK(%s): Missing parameter", CId_));
@@ -656,7 +656,7 @@ namespace uCentral {
 								Poco::JSON::Stringifier Stringify;
 								std::ostringstream OS;
 								Stringify.condense(PingObject, OS);
-								KafkaManager()->PostMessage(uCentral::KafkaTopics::CONNECTION, SerialNumber_,
+								KafkaManager()->PostMessage(KafkaTopics::CONNECTION, SerialNumber_,
 															OS.str());
 							}
 						}

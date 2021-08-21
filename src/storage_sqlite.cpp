@@ -9,7 +9,7 @@
 #include "Daemon.h"
 #include "StorageService.h"
 
-namespace uCentral {
+namespace OpenWifi {
 	int Storage::Setup_SQLite() {
 		Logger_.notice("SQLite Storage enabled.");
 

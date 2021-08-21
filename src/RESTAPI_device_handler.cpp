@@ -12,7 +12,7 @@
 #include "StorageService.h"
 #include "Utils.h"
 
-namespace uCentral {
+namespace OpenWifi {
 void RESTAPI_device_handler::handleRequest(Poco::Net::HTTPServerRequest &Request,
 										   Poco::Net::HTTPServerResponse &Response) {
 	if (!ContinueProcessing(Request, Response))
@@ -23,7 +23,7 @@ void RESTAPI_device_handler::handleRequest(Poco::Net::HTTPServerRequest &Request
 
 	ParseParameters(Request);
 	if (Request.getMethod() == Poco::Net::HTTPRequest::HTTP_GET) {
-		std::string SerialNumber = GetBinding(uCentral::RESTAPI::Protocol::SERIALNUMBER, "");
+		std::string SerialNumber = GetBinding(RESTAPI::Protocol::SERIALNUMBER, "");
 		GWObjects::Device Device;
 
 		if (Storage()->GetDevice(SerialNumber, Device)) {
@@ -34,7 +34,7 @@ void RESTAPI_device_handler::handleRequest(Poco::Net::HTTPServerRequest &Request
 			NotFound(Request, Response);
 		}
 	} else if (Request.getMethod() == Poco::Net::HTTPRequest::HTTP_DELETE) {
-		std::string SerialNumber = GetBinding(uCentral::RESTAPI::Protocol::SERIALNUMBER, "");
+		std::string SerialNumber = GetBinding(RESTAPI::Protocol::SERIALNUMBER, "");
 
 		if (Storage()->DeleteDevice(SerialNumber)) {
 			OK(Request, Response);
@@ -42,7 +42,7 @@ void RESTAPI_device_handler::handleRequest(Poco::Net::HTTPServerRequest &Request
 			NotFound(Request, Response);
 		}
 	} else if (Request.getMethod() == Poco::Net::HTTPRequest::HTTP_POST) {
-		std::string SerialNumber = GetBinding(uCentral::RESTAPI::Protocol::SERIALNUMBER, "");
+		std::string SerialNumber = GetBinding(RESTAPI::Protocol::SERIALNUMBER, "");
 
 		Poco::JSON::Parser IncomingParser;
 		Poco::JSON::Object::Ptr Obj =
@@ -57,7 +57,7 @@ void RESTAPI_device_handler::handleRequest(Poco::Net::HTTPServerRequest &Request
 		for(auto &i:Device.Notes)
 			i.createdBy = UserInfo_.userinfo.email;
 
-		if (!uCentral::Utils::ValidSerialNumber(Device.SerialNumber)) {
+		if (!Utils::ValidSerialNumber(Device.SerialNumber)) {
 			Logger_.warning(Poco::format("CREATE-DEVICE(%s): Illegal name.", Device.SerialNumber));
 			BadRequest(Request, Response);
 			return;
@@ -74,7 +74,7 @@ void RESTAPI_device_handler::handleRequest(Poco::Net::HTTPServerRequest &Request
 			BadRequest(Request, Response);
 		}
 	} else if (Request.getMethod() == Poco::Net::HTTPRequest::HTTP_PUT) {
-		std::string SerialNumber = GetBinding(uCentral::RESTAPI::Protocol::SERIALNUMBER, "");
+		std::string SerialNumber = GetBinding(RESTAPI::Protocol::SERIALNUMBER, "");
 
 		Poco::JSON::Parser IncomingParser;
 		Poco::JSON::Object::Ptr Obj =

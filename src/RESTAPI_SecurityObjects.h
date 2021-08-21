@@ -10,9 +10,9 @@
 #define UCENTRAL_RESTAPI_SECURITYOBJECTS_H
 
 #include "Poco/JSON/Object.h"
-#include "uCentralTypes.h"
+#include "OpenWifiTypes.h"
 
-namespace uCentral::SecurityObjects {
+namespace OpenWifi::SecurityObjects {
 
 	struct AclTemplate {
 		bool Read_ = true;
@@ -93,6 +93,8 @@ namespace uCentral::SecurityObjects {
 		bool from_json(const Poco::JSON::Object::Ptr &Obj);
 	};
 	typedef std::vector<UserInfo>   UserInfoVec;
+
+	bool append_from_json(Poco::JSON::Object::Ptr Obj, const UserInfo &UInfo, NoteInfoVec & Notes);
 
 	struct InternalServiceInfo {
 		std::string privateURI;

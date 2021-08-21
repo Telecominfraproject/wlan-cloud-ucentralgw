@@ -10,7 +10,7 @@
 #include "Daemon.h"
 #include "Utils.h"
 
-namespace uCentral {
+namespace OpenWifi {
 
 	class StorageArchiver *StorageArchiver::instance_ = nullptr;
 

@@ -22,7 +22,7 @@
 	Poco::Data::Keywords::now;
 */
 
-namespace uCentral {
+namespace OpenWifi {
 
 	bool Storage::SetLifetimeStats(std::string &SerialNumber, std::string &Stats) {
 		try {

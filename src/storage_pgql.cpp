@@ -9,7 +9,7 @@
 #include "Daemon.h"
 #include "StorageService.h"
 
-namespace uCentral {
+namespace OpenWifi {
 
 #ifdef SMALL_BUILD
 	int Service::Setup_PostgreSQL() { uCentral::instance()->exit(Poco::Util::Application::EXIT_CONFIG);}

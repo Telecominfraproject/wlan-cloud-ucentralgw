@@ -18,11 +18,11 @@
 #include "Poco/Net/IPAddress.h"
 #include "Poco/String.h"
 #include "Poco/File.h"
-#include "uCentralTypes.h"
+#include "OpenWifiTypes.h"
 
 #define DBGLINE { std::cout << __FILE__ << ":" << __func__ << ":" << __LINE__ << std::endl; };
 
-namespace uCentral::Utils {
+namespace OpenWifi::Utils {
 
     enum MediaTypeEncodings {
         PLAIN,

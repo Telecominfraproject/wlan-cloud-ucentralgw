@@ -26,7 +26,7 @@
 
 #include "Utils.h"
 
-namespace uCentral {
+namespace OpenWifi {
     class FileUploader *FileUploader::instance_ = nullptr;
 
     static const std::string URI_BASE{"/v1/upload/"};
@@ -210,7 +210,7 @@ namespace uCentral {
 
     Poco::Net::HTTPRequestHandler *FileUpLoaderRequestHandlerFactory::createRequestHandler(const Poco::Net::HTTPServerRequest & Request) {
 
-		Logger_.debug(Poco::format("REQUEST(%s): %s %s", uCentral::Utils::FormatIPv6(Request.clientAddress().toString()), Request.getMethod(), Request.getURI()));
+		Logger_.debug(Poco::format("REQUEST(%s): %s %s", Utils::FormatIPv6(Request.clientAddress().toString()), Request.getMethod(), Request.getURI()));
 
         //  The UUID should be after the /v1/upload/ part...
         auto UUIDLocation = Request.getURI().find_first_of(URI_BASE);

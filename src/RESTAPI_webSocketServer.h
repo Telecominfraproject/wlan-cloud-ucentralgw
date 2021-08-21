@@ -9,7 +9,7 @@ class RESTAPI_webSocketServer {};
 
 #include "RESTAPI_handler.h"
 
-namespace uCentral {
+namespace OpenWifi {
 	class RESTAPI_webSocketServer : public RESTAPIHandler {
 	  public:
 		RESTAPI_webSocketServer(const RESTAPIHandler::BindingMap &bindings, Poco::Logger &L, bool Internal)

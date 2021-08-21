@@ -8,12 +8,12 @@
 #include "Utils.h"
 #include "StorageService.h"
 
-namespace OpenWiFi {
+namespace OpenWifi {
 
 	class SerialNumberCache * SerialNumberCache::instance_ = nullptr;
 
 	int SerialNumberCache::Start() {
-		uCentral::Storage()->UpdateSerialNumberCache();
+		Storage()->UpdateSerialNumberCache();
 		return 0;
 	}
 
@@ -60,7 +60,7 @@ namespace OpenWiFi {
 			auto LB = std::lower_bound(SNs_.begin(),SNs_.end(),SN);
 			if(LB!=SNs_.end()) {
 				for(;LB!=SNs_.end() && HowMany;++LB,--HowMany) {
-					std::string TSN = uCentral::Utils::int_to_hex(*LB);
+					std::string TSN = Utils::int_to_hex(*LB);
 					if(S == TSN.substr(0,S.size())) {
 						A.emplace_back(*LB);
 					} else {

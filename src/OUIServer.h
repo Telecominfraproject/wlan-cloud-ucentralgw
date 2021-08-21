@@ -7,7 +7,7 @@
 
 #include "SubSystemServer.h"
 
-namespace uCentral {
+namespace OpenWifi {
 
 	class OUIServer : public SubSystemServer {
 	  public:

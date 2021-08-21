@@ -9,7 +9,7 @@
 
 #include "SubSystemServer.h"
 
-namespace uCentral {
+namespace OpenWifi {
 
 struct ArchiverDBEntry {
 	std::string 					DBName;

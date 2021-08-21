@@ -6,7 +6,7 @@
 #include "DeviceRegistry.h"
 #include "StorageService.h"
 
-namespace uCentral {
+namespace OpenWifi {
 	void DeviceDashboard::Create() {
 		uint64_t Now = std::time(nullptr);
 

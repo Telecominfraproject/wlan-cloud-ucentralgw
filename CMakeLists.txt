@@ -82,7 +82,7 @@ add_executable( ucentralgw
                 src/storage_mysql.cpp src/storage_pgql.cpp src/storage_tables.cpp
                 src/StateProcessor.cpp src/StateProcessor.h
                 src/storage_lifetime_stats.cpp src/uCentralProtocol.h src/RESTAPI_protocol.h
-                src/ALBHealthCheckServer.h src/Kafka_topics.h src/uCentralTypes.h
+                src/ALBHealthCheckServer.h src/Kafka_topics.h
                 src/OUIServer.cpp src/OUIServer.h
                 src/RESTAPI_ouis.cpp src/RESTAPI_ouis.h
                 src/MicroService.cpp src/MicroService.h
@@ -94,7 +94,8 @@ add_executable( ucentralgw
                 src/Dashboard.cpp src/Dashboard.h
                 src/RESTAPI_deviceDashboardHandler.cpp src/RESTAPI_deviceDashboardHandler.h
                 src/SerialNumberCache.cpp src/SerialNumberCache.h
-                src/RESTAPI_webSocketServer.cpp src/RESTAPI_webSocketServer.h )
+                src/RESTAPI_webSocketServer.cpp src/RESTAPI_webSocketServer.h
+                src/OpenWifiTypes.h)
 
 if(NOT SMALL_BUILD)
     target_sources(ucentralgw PUBLIC src/KafkaManager.cpp src/KafkaManager.h)

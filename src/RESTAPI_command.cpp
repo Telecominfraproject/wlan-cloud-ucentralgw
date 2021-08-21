@@ -11,7 +11,7 @@
 #include "RESTAPI_protocol.h"
 #include "StorageService.h"
 
-namespace uCentral {
+namespace OpenWifi {
 void RESTAPI_command::handleRequest(Poco::Net::HTTPServerRequest &Request,
 									Poco::Net::HTTPServerResponse &Response) {
 	if (!ContinueProcessing(Request, Response))
@@ -24,7 +24,7 @@ void RESTAPI_command::handleRequest(Poco::Net::HTTPServerRequest &Request,
 		ParseParameters(Request);
 
 		if (Request.getMethod() == Poco::Net::HTTPRequest::HTTP_GET) {
-			auto CommandUUID = GetBinding(uCentral::RESTAPI::Protocol::COMMANDUUID, "");
+			auto CommandUUID = GetBinding(RESTAPI::Protocol::COMMANDUUID, "");
 			GWObjects::CommandDetails Command;
 			if (Storage()->GetCommand(CommandUUID, Command)) {
 				Poco::JSON::Object RetObj;
@@ -33,7 +33,7 @@ void RESTAPI_command::handleRequest(Poco::Net::HTTPServerRequest &Request,
 			} else
 				NotFound(Request, Response);
 		} else if (Request.getMethod() == Poco::Net::HTTPRequest::HTTP_DELETE) {
-			auto CommandUUID = GetBinding(uCentral::RESTAPI::Protocol::COMMANDUUID, "");
+			auto CommandUUID = GetBinding(RESTAPI::Protocol::COMMANDUUID, "");
 			if (Storage()->DeleteCommand(CommandUUID)) {
 				OK(Request, Response);
 			} else {

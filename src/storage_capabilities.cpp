@@ -11,7 +11,7 @@
 #include "Poco/JSON/Parser.h"
 #include "Poco/JSON/Object.h"
 
-namespace uCentral {
+namespace OpenWifi {
 
 	bool Storage::UpdateDeviceCapabilities(std::string &SerialNumber, std::string & Capabilities, std::string & Compat) {
 		// std::lock_guard<std::mutex> guard(Mutex_);
@@ -75,7 +75,7 @@ namespace uCentral {
 				Update.execute();
 			}
 
-			uCentral::Storage::SetDeviceCompatibility(SerialNumber, Compatible);
+			Storage::SetDeviceCompatibility(SerialNumber, Compatible);
 			return true;
 		}
 		catch (const Poco::Exception &E) {

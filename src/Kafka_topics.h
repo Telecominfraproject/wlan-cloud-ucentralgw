@@ -5,7 +5,7 @@
 #ifndef UCENTRALGW_KAFKA_TOPICS_H
 #define UCENTRALGW_KAFKA_TOPICS_H
 
-namespace uCentral::KafkaTopics {
+namespace OpenWifi::KafkaTopics {
 	static const std::string HEALTHCHECK{"healthcheck"};
 	static const std::string STATE{"state"};
 	static const std::string CONNECTION{"connection"};

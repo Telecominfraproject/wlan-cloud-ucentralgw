@@ -12,7 +12,6 @@
 #include "Poco/Net/X509Certificate.h"
 #include "Poco/DateTimeFormatter.h"
 #include "Poco/DateTimeFormat.h"
-#include "Poco/DigestEngine.h"
 #include "Poco/Net/PrivateKeyPassphraseHandler.h"
 #include "Poco/Net/SSLManager.h"
 
@@ -20,7 +19,7 @@
 
 #include "Daemon.h"
 
-namespace uCentral {
+namespace OpenWifi {
 SubSystemServer::SubSystemServer(std::string Name, const std::string &LoggingPrefix,
 								 std::string SubSystemConfigPrefix)
 	: Name_(std::move(Name)), Logger_(Poco::Logger::get(LoggingPrefix)),
@@ -105,31 +104,6 @@ class MyPrivateKeyPassphraseHandler : public Poco::Net::PrivateKeyPassphraseHand
 	Poco::Logger & Logger_;
 };
 
-int MyVerifyServerCallback(int ok, X509_STORE_CTX* pStore)
-{
-	return ok;
-}
-
-//	return 1 on success, 0 on failure.
-int MyCertificateVerification(X509_STORE_CTX* pStore, void *arg) {
-	return 1;
-	/*
-	X509* pCert = X509_STORE_CTX_get0_cert(pStore);
-	if(pCert!= nullptr) {
-		// Poco::Net::X509Certificate	C(pCert,true);
-		// auto FP = C.fingerprint();
-		//std::cout << "  Issuer: " << C.issuerName() << std::endl;
-		//std::cout << "  Serial: " << C.serialNumber() << std::endl;
-		//std::cout << "  CN: " << C.commonName() << std::endl;
-		//std::cout << "  FP: " << Poco::DigestEngine::digestToHex(FP) << std::endl << std::endl;
-		return 1;
-	} else {
-		return 0;
-	}*/
-}
-
-static char Hello[] = "Hello!";
-
 Poco::Net::SecureServerSocket PropertiesFileServerEntry::CreateSecureSocket(Poco::Logger &L) const {
 	Poco::Net::Context::Params P;
 
@@ -158,10 +132,10 @@ Poco::Net::SecureServerSocket PropertiesFileServerEntry::CreateSecureSocket(Poco
 
 		if (level_ == Poco::Net::Context::VERIFY_STRICT) {
 			if (issuer_cert_file_.empty()) {
-				L.fatal("In strict mode, you must supply an issuer certificate.");
+				L.fatal("In strict mode, you must supply ans issuer certificate");
 			}
 			if (client_cas_.empty()) {
-				L.fatal("In strict mode, client cas must be supplied.");
+				L.fatal("In strict mode, client cas must be supplied");
 			}
 			Poco::Crypto::X509Certificate Issuing(issuer_cert_file_);
 			Context->addChainCertificate(Issuing);
@@ -176,20 +150,18 @@ Poco::Net::SecureServerSocket PropertiesFileServerEntry::CreateSecureSocket(Poco
 			L.fatal(Poco::format("Wrong Certificate(%s) for Key(%s)", cert_file_, key_file_));
 		}
 
+		SSL_CTX_set_verify(SSLCtx, SSL_VERIFY_PEER, nullptr);
+
 		if (level_ == Poco::Net::Context::VERIFY_STRICT) {
 			SSL_CTX_set_client_CA_list(SSLCtx, SSL_load_client_CA_file(client_cas_.c_str()));
 		}
-
 		SSL_CTX_enable_ct(SSLCtx, SSL_CT_VALIDATION_STRICT);
-		SSL_CTX_set_verify(SSLCtx, SSL_VERIFY_PEER, MyVerifyServerCallback);
-		SSL_CTX_set_cert_verify_callback(SSLCtx, MyCertificateVerification, (void *)Hello);
 		SSL_CTX_dane_enable(SSLCtx);
 
 		Context->enableSessionCache();
 		Context->setSessionCacheSize(0);
-		Context->setSessionTimeout(24*60*60);
-		// Context->enableExtendedCertificateVerification(true);
-		Context->enableExtendedCertificateVerification(false);
+		Context->setSessionTimeout(10);
+		Context->enableExtendedCertificateVerification(true);
 		Context->disableStatelessSessionResumption();
 	}
 
@@ -198,10 +170,12 @@ Poco::Net::SecureServerSocket PropertiesFileServerEntry::CreateSecureSocket(Poco
 			Poco::Net::Socket::supportsIPv6() ? Poco::Net::AddressFamily::IPv6
 											  : Poco::Net::AddressFamily::IPv4));
 		Poco::Net::SocketAddress SockAddr(Addr, port_);
+
 		return Poco::Net::SecureServerSocket(SockAddr, backlog_, Context);
 	} else {
 		Poco::Net::IPAddress Addr(address_);
 		Poco::Net::SocketAddress SockAddr(Addr, port_);
+
 		return Poco::Net::SecureServerSocket(SockAddr, backlog_, Context);
 	}
 }

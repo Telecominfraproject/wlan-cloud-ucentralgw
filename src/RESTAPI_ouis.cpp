@@ -7,7 +7,7 @@
 #include "Utils.h"
 #include "OUIServer.h"
 
-namespace uCentral {
+namespace OpenWifi {
 
 	void RESTAPI_ouis::handleRequest(Poco::Net::HTTPServerRequest &Request, Poco::Net::HTTPServerResponse &Response) {
 		if (!ContinueProcessing(Request, Response))
@@ -21,7 +21,7 @@ namespace uCentral {
 			if (Request.getMethod() == Poco::Net::HTTPRequest::HTTP_GET) {
 				Poco::JSON::Array Objects;
 				auto Select = GetParameter("macList","");
-				std::vector<std::string> Macs = uCentral::Utils::Split(Select);
+				std::vector<std::string> Macs = Utils::Split(Select);
 				for (auto &i : Macs) {
 					Poco::JSON::Object O;
 					auto Manufacturer = OUIServer()->GetManufacturer(i);

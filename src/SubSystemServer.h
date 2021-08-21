@@ -23,7 +23,7 @@
 using SubMutex = std::recursive_mutex;
 using SubMutexGuard = std::lock_guard<SubMutex>;
 
-namespace uCentral {
+namespace OpenWifi {
 class PropertiesFileServerEntry {
   public:
 	PropertiesFileServerEntry(std::string Address, uint32_t port, std::string Key_file,

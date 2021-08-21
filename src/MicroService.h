@@ -24,10 +24,10 @@
 #include "Poco/Net/HTTPServerRequest.h"
 #include "Poco/Process.h"
 
-#include "uCentralTypes.h"
+#include "OpenWifiTypes.h"
 #include "SubSystemServer.h"
 
-namespace uCentral {
+namespace OpenWifi {
 
 	static const std::string uSERVICE_SECURITY{"ucentralsec"};
 	static const std::string uSERVICE_GATEWAY{"ucentralgw"};

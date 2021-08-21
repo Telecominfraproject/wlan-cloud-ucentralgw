@@ -8,7 +8,7 @@
 #include "Daemon.h"
 #include "OpenAPIRequest.h"
 
-namespace uCentral {
+namespace OpenWifi {
 	class AuthClient * AuthClient::instance_ = nullptr;
 
 	int AuthClient::Start() {
@@ -38,7 +38,7 @@ namespace uCentral {
 		} else {
 			Types::StringPairVec QueryData;
 			QueryData.push_back(std::make_pair("token",SessionToken));
-			OpenAPIRequestGet	Req(uSERVICE_SECURITY,
+			OpenAPIRequestGet	Req(    uSERVICE_SECURITY,
 								  	"/api/v1/validateToken",
 									 QueryData,
 								  5000);
@@ -85,5 +85,4 @@ namespace uCentral {
 		}
 		return false;
 	}
-
 }

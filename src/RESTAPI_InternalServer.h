@@ -12,7 +12,7 @@
 #include "Poco/Net/HTTPServerRequest.h"
 #include "Poco/Net/NetException.h"
 
-namespace uCentral {
+namespace OpenWifi {
 
     class RESTAPI_InternalServer : public SubSystemServer {
 

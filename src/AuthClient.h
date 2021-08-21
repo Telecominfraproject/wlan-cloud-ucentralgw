@@ -13,9 +13,9 @@
 #include "RESTAPI_SecurityObjects.h"
 #include "SubSystemServer.h"
 
-namespace uCentral {
+namespace OpenWifi {
 
-	class AuthClient : public SubSystemServer {
+class AuthClient : public SubSystemServer {
 	  public:
 		explicit AuthClient() noexcept:
 			SubSystemServer("Authentication", "AUTH-CLNT", "authentication")
@@ -31,13 +31,12 @@ namespace uCentral {
 
 		int Start() override;
 		void Stop() override;
-		bool IsAuthorized(Poco::Net::HTTPServerRequest & Request, std::string &SessionToken, SecurityObjects::UserInfoAndPolicy & UInfo );
+		bool IsAuthorized(Poco::Net::HTTPServerRequest & Request, std::string &SessionToken, OpenWifi::SecurityObjects::UserInfoAndPolicy & UInfo );
 		void RemovedCachedToken(const std::string &Token);
 		bool IsTokenAuthorized(const std::string &Token, SecurityObjects::UserInfoAndPolicy & UInfo);
-
 	  private:
 		static AuthClient 					*instance_;
-		SecurityObjects::UserInfoCache 		UserCache_;
+		OpenWifi::SecurityObjects::UserInfoCache 		UserCache_;
 	};
 
 	inline AuthClient * AuthClient() { return AuthClient::instance(); }

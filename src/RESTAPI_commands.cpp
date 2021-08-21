@@ -11,7 +11,7 @@
 #include "StorageService.h"
 #include "Utils.h"
 
-namespace uCentral {
+namespace OpenWifi {
 void RESTAPI_commands::handleRequest(Poco::Net::HTTPServerRequest &Request,
 									 Poco::Net::HTTPServerResponse &Response) {
 	if (!ContinueProcessing(Request, Response))
@@ -27,7 +27,7 @@ void RESTAPI_commands::handleRequest(Poco::Net::HTTPServerRequest &Request,
 			return;
 		}
 
-		auto SerialNumber = GetParameter(uCentral::RESTAPI::Protocol::SERIALNUMBER, "");
+		auto SerialNumber = GetParameter(RESTAPI::Protocol::SERIALNUMBER, "");
 
 		if (Request.getMethod() == Poco::Net::HTTPRequest::HTTP_GET) {
 			std::vector<GWObjects::CommandDetails> Commands;
@@ -44,7 +44,7 @@ void RESTAPI_commands::handleRequest(Poco::Net::HTTPServerRequest &Request,
 				ArrayObj.add(Obj);
 			}
 			Poco::JSON::Object RetObj;
-			RetObj.set(uCentral::RESTAPI::Protocol::COMMANDS, ArrayObj);
+			RetObj.set(RESTAPI::Protocol::COMMANDS, ArrayObj);
 			ReturnObject(Request, RetObj, Response);
 			return;
 

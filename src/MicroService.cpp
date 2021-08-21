@@ -34,7 +34,7 @@
 #include "AuthClient.h"
 #endif
 
-namespace uCentral {
+namespace OpenWifi {
 
 	void MyErrorHandler::exception(const Poco::Exception & E) {
 		Poco::Thread * CurrentThread = Poco::Thread::current();

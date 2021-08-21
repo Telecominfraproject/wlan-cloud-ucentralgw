@@ -11,7 +11,7 @@
 
 #include "Poco/String.h"
 
-namespace uCentral::uCentralProtocol {
+namespace OpenWifi::uCentralProtocol {
 
 	const int SERIAL_NUMBER_LENGTH = 30;
 

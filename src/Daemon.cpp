@@ -30,7 +30,7 @@
 #include "StorageArchiver.h"
 #include "SerialNumberCache.h"
 
-namespace uCentral {
+namespace OpenWifi {
 	class Daemon *Daemon::instance_ = nullptr;
 
 	class Daemon *Daemon::instance() {
@@ -42,7 +42,7 @@ namespace uCentral {
 								   vDAEMON_BUS_TIMER,
 								   Types::SubSystemVec{
 									   Storage(),
-									   OpenWiFi::SerialNumberCache(),
+									   SerialNumberCache(),
 									   AuthClient(),
 									   DeviceRegistry(),
 									   RESTAPI_server(),
@@ -73,7 +73,7 @@ namespace uCentral {
             auto Type = Line.substr(0, P1);
             auto List = Line.substr(P1+1);
 
-            Types::StringVec  Tokens = uCentral::Utils::Split(List);
+            Types::StringVec  Tokens = Utils::Split(List);
 
             auto Entry = DeviceTypeIdentifications_.find(Type);
 			if(DeviceTypeIdentifications_.end() == Entry) {
@@ -98,7 +98,7 @@ namespace uCentral {
 
 int main(int argc, char **argv) {
 	try {
-		auto App = uCentral::Daemon::instance();
+		auto App = OpenWifi::Daemon::instance();
 		auto ExitCode =  App->run(argc, argv);
 		delete App;
 

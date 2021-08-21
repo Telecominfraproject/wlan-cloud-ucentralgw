@@ -27,16 +27,16 @@
 #include "Utils.h"
 #include "Daemon.h"
 
-namespace uCentral {
+namespace OpenWifi {
 
 	bool RESTAPIHandler::ParseBindings(const std::string & Request, const std::list<const char *> & EndPoints, BindingMap &bindings) {
 		std::string Param, Value;
 
 		bindings.clear();
-		std::vector<std::string> PathItems = uCentral::Utils::Split(Request, '/');
+		std::vector<std::string> PathItems = Utils::Split(Request, '/');
 
 		for(const auto &EndPoint:EndPoints) {
-			std::vector<std::string> ParamItems = uCentral::Utils::Split(EndPoint, '/');
+			std::vector<std::string> ParamItems = Utils::Split(EndPoint, '/');
 			if (PathItems.size() != ParamItems.size())
 				continue;
 
@@ -365,17 +365,17 @@ namespace uCentral {
 	}
 
 	bool RESTAPIHandler::InitQueryBlock() {
-		QB_.SerialNumber = GetParameter(uCentral::RESTAPI::Protocol::SERIALNUMBER, "");
-		QB_.StartDate = GetParameter(uCentral::RESTAPI::Protocol::STARTDATE, 0);
-		QB_.EndDate = GetParameter(uCentral::RESTAPI::Protocol::ENDDATE, 0);
-		QB_.Offset = GetParameter(uCentral::RESTAPI::Protocol::OFFSET, 1);
-		QB_.Limit = GetParameter(uCentral::RESTAPI::Protocol::LIMIT, 100);
-		QB_.Filter = GetParameter(uCentral::RESTAPI::Protocol::FILTER, "");
-		QB_.Select = GetParameter(uCentral::RESTAPI::Protocol::SELECT, "");
-		QB_.Lifetime = GetBoolParameter(uCentral::RESTAPI::Protocol::LIFETIME,false);
-		QB_.LogType = GetParameter(uCentral::RESTAPI::Protocol::LOGTYPE,0);
-		QB_.LastOnly = GetBoolParameter(uCentral::RESTAPI::Protocol::LASTONLY,false);
-		QB_.Newest = GetBoolParameter(uCentral::RESTAPI::Protocol::NEWEST,false);
+		QB_.SerialNumber = GetParameter(RESTAPI::Protocol::SERIALNUMBER, "");
+		QB_.StartDate = GetParameter(RESTAPI::Protocol::STARTDATE, 0);
+		QB_.EndDate = GetParameter(RESTAPI::Protocol::ENDDATE, 0);
+		QB_.Offset = GetParameter(RESTAPI::Protocol::OFFSET, 1);
+		QB_.Limit = GetParameter(RESTAPI::Protocol::LIMIT, 100);
+		QB_.Filter = GetParameter(RESTAPI::Protocol::FILTER, "");
+		QB_.Select = GetParameter(RESTAPI::Protocol::SELECT, "");
+		QB_.Lifetime = GetBoolParameter(RESTAPI::Protocol::LIFETIME,false);
+		QB_.LogType = GetParameter(RESTAPI::Protocol::LOGTYPE,0);
+		QB_.LastOnly = GetBoolParameter(RESTAPI::Protocol::LASTONLY,false);
+		QB_.Newest = GetBoolParameter(RESTAPI::Protocol::NEWEST,false);
 
 		if(QB_.Offset<1) return false;
 		return true;
@@ -400,7 +400,7 @@ namespace uCentral {
 	}
 
 	[[nodiscard]] uint64_t RESTAPIHandler::GetWhen(const Poco::JSON::Object::Ptr &Obj) {
-		return RESTAPIHandler::Get(uCentral::RESTAPI::Protocol::WHEN, Obj);
+		return RESTAPIHandler::Get(RESTAPI::Protocol::WHEN, Obj);
 	}
 
 

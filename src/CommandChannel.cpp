@@ -15,7 +15,7 @@
 #include "WebSocketServer.h"
 #include <boost/algorithm/string.hpp>
 
-namespace uCentral {
+namespace OpenWifi {
 
 	class CommandChannel * CommandChannel::instance_ = nullptr;
 

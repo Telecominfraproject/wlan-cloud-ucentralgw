@@ -12,10 +12,10 @@
 #include "RESTAPI_SecurityObjects.h"
 #include "RESTAPI_utils.h"
 
-using uCentral::RESTAPI_utils::field_to_json;
-using uCentral::RESTAPI_utils::field_from_json;
+using OpenWifi::RESTAPI_utils::field_to_json;
+using OpenWifi::RESTAPI_utils::field_from_json;
 
-namespace uCentral::SecurityObjects {
+namespace OpenWifi::SecurityObjects {
 
 	void AclTemplate::to_json(Poco::JSON::Object &Obj) const {
 		field_to_json(Obj,"Read",Read_);
@@ -301,6 +301,20 @@ namespace uCentral::SecurityObjects {
 
 		}
 		return false;
+	}
+
+    bool append_from_json(Poco::JSON::Object::Ptr Obj, const UserInfo &UInfo, NoteInfoVec & Notes) {
+	    try {
+	        SecurityObjects::NoteInfoVec NIV;
+	        NIV = RESTAPI_utils::to_object_array<SecurityObjects::NoteInfo>(Obj->get("notes").toString());
+	        for(auto const &i:NIV) {
+	            SecurityObjects::NoteInfo   ii{.created=(uint64_t)std::time(nullptr), .createdBy=UInfo.email, .note=i.note};
+	            Notes.push_back(ii);
+	        }
+	    } catch(...) {
+
+	    }
+	    return false;
 	}
 
 	void ProfileAction::to_json(Poco::JSON::Object &Obj) const {

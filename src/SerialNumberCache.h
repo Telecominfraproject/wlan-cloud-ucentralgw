@@ -6,10 +6,9 @@
 #define UCENTRALGW_SERIALNUMBERCACHE_H
 
 #include "SubSystemServer.h"
-namespace OpenWiFi {
 
-	class SerialNumberCache : public uCentral::SubSystemServer {
-
+namespace OpenWifi {
+	class SerialNumberCache : public SubSystemServer {
 		public:
 
 		static SerialNumberCache *instance() {

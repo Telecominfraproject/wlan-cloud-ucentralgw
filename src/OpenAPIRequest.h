@@ -7,9 +7,9 @@
 
 #include "Poco/JSON/Object.h"
 
-#include "uCentralTypes.h"
+#include "OpenWifiTypes.h"
 
-namespace uCentral {
+namespace OpenWifi {
 
 	class OpenAPIRequestGet {
 	  public:

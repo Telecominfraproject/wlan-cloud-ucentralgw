@@ -12,7 +12,7 @@
 #include <string>
 #include "Poco/JSON/Object.h"
 
-namespace uCentral::Config {
+namespace OpenWifi::Config {
 
 	class Config {
     public:

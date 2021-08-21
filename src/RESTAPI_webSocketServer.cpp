@@ -14,7 +14,7 @@
 #include "Utils.h"
 #include "AuthClient.h"
 
-namespace uCentral {
+namespace OpenWifi {
 
 	void RESTAPI_webSocketServer::handleRequest(Poco::Net::HTTPServerRequest &Request, Poco::Net::HTTPServerResponse &Response) {
 
@@ -131,10 +131,10 @@ namespace uCentral {
 					Logger_.information(Poco::format("serial_number_search: %s", Prefix));
 					if (!Prefix.empty() && Prefix.length() < 13) {
 						std::vector<uint64_t> Numbers;
-						OpenWiFi::SerialNumberCache()->FindNumbers(Prefix, 50, Numbers);
+						SerialNumberCache()->FindNumbers(Prefix, 50, Numbers);
 						Poco::JSON::Array A;
 						for (const auto &i : Numbers)
-							A.add(uCentral::Utils::int_to_hex(i));
+							A.add(Utils::int_to_hex(i));
 						Poco::JSON::Object AO;
 						AO.set("serialNumbers", A);
 						AO.set("command","serial_number_search");

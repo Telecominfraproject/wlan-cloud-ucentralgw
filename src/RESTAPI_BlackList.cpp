@@ -14,7 +14,7 @@
 #include "RESTAPI_protocol.h"
 #include "StorageService.h"
 
-namespace uCentral {
+namespace OpenWifi {
 	void RESTAPI_BlackList::handleRequest(Poco::Net::HTTPServerRequest &Request,
 										  Poco::Net::HTTPServerResponse &Response) {
 
@@ -44,7 +44,7 @@ namespace uCentral {
 									 Poco::Net::HTTPServerResponse &Response) {
 
 		try {
-			auto SerialNumber = GetBinding(uCentral::RESTAPI::Protocol::SERIALNUMBER, "");
+			auto SerialNumber = GetBinding(RESTAPI::Protocol::SERIALNUMBER, "");
 
 			if (!SerialNumber.empty()) {
 				if (Storage()->DeleteBlackListDevice(SerialNumber)) {
@@ -78,7 +78,7 @@ namespace uCentral {
 				}
 			}
 			Poco::JSON::Object RetObj;
-			RetObj.set(uCentral::RESTAPI::Protocol::DEVICES, Objects);
+			RetObj.set(RESTAPI::Protocol::DEVICES, Objects);
 			ReturnObject(Request, RetObj, Response);
 			return;
 		} catch (const Poco::Exception &E) {
@@ -94,18 +94,18 @@ namespace uCentral {
 			Poco::JSON::Object::Ptr Obj =
 				parser.parse(Request.stream()).extract<Poco::JSON::Object::Ptr>();
 
-			if (Obj->has(uCentral::RESTAPI::Protocol::DEVICES) &&
-				Obj->isArray(uCentral::RESTAPI::Protocol::DEVICES)) {
+			if (Obj->has(RESTAPI::Protocol::DEVICES) &&
+				Obj->isArray(RESTAPI::Protocol::DEVICES)) {
 				std::vector<GWObjects::BlackListedDevice> Devices;
-				auto DeviceArray = Obj->getArray(uCentral::RESTAPI::Protocol::DEVICES);
+				auto DeviceArray = Obj->getArray(RESTAPI::Protocol::DEVICES);
 				for (const auto &i : *DeviceArray) {
 					Poco::JSON::Parser pp;
 					auto InnerObj = pp.parse(i).extract<Poco::JSON::Object::Ptr>();
 					Poco::DynamicStruct Vars = *InnerObj;
-					if (Vars.contains(uCentral::RESTAPI::Protocol::SERIALNUMBER) &&
-						Vars.contains(uCentral::RESTAPI::Protocol::REASON)) {
-						auto SerialNumber = Vars[uCentral::RESTAPI::Protocol::SERIALNUMBER].toString();
-						auto Reason = Vars[uCentral::RESTAPI::Protocol::REASON].toString();
+					if (Vars.contains(RESTAPI::Protocol::SERIALNUMBER) &&
+						Vars.contains(RESTAPI::Protocol::REASON)) {
+						auto SerialNumber = Vars[RESTAPI::Protocol::SERIALNUMBER].toString();
+						auto Reason = Vars[RESTAPI::Protocol::REASON].toString();
 						GWObjects::BlackListedDevice D{.SerialNumber = SerialNumber,
 															   .Reason = Reason,
 															   .Author = UserInfo_.webtoken.username_,
