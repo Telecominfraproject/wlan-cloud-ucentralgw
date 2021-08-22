@@ -116,9 +116,9 @@ namespace OpenWifi::SecurityObjects {
 	struct SystemEndpoint {
 		std::string type;
 		uint64_t 	id = 0;
-		std::string vendor;
+		std::string vendor{"OpenWiFi"};
 		std::string uri;
-		std::string authenticationType;
+		std::string authenticationType{"internal_v1"};
 		void to_json(Poco::JSON::Object &Obj) const;
 		bool from_json(const Poco::JSON::Object::Ptr &Obj);
 	};

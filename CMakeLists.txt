@@ -78,8 +78,9 @@ add_executable( ucentralgw
                 src/RESTAPI_BlackList.cpp src/RESTAPI_BlackList.h
                 src/Utils.h src/Utils.cpp src/storage_blacklist.cpp
                 src/storage_command.cpp src/storage_healthcheck.cpp src/storage_statistics.cpp src/storage_logs.cpp
-                src/storage_device.cpp src/storage_capabilities.cpp src/storage_defconfig.cpp src/storage_sqlite.cpp
-                src/storage_mysql.cpp src/storage_pgql.cpp src/storage_tables.cpp
+                src/storage_device.cpp src/storage_capabilities.cpp src/storage_defconfig.cpp
+                src/storage_tables.cpp
+                src/storage_setup.cpp
                 src/StateProcessor.cpp src/StateProcessor.h
                 src/storage_lifetime_stats.cpp src/uCentralProtocol.h src/RESTAPI_protocol.h
                 src/ALBHealthCheckServer.h src/Kafka_topics.h
