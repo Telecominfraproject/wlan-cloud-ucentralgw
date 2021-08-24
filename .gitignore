@@ -25,3 +25,6 @@ _deps
 test_scripts/curl/token.json
 .vscode/c_cpp_properties.json
 test_scripts/curl/result.json
+*.swp
+helm/charts/*
+!helm/charts/.gitkeep
