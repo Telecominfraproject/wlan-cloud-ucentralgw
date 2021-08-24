@@ -14,7 +14,6 @@
 
 #include "Daemon.h"
 
-#include "CommandChannel.h"
 #include "CommandManager.h"
 #include "DeviceRegistry.h"
 #include "FileUploader.h"
@@ -51,7 +50,6 @@ namespace OpenWifi {
 									   CommandManager(),
 									   FileUploader(),
 									   OUIServer(),
-									   CommandChannel(),
 									   StorageArchiver(),
 								   });
 		}

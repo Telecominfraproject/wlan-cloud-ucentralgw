@@ -73,7 +73,6 @@ add_executable( ucentralgw
                 src/RESTAPI_command.cpp src/RESTAPI_command.h
                 src/FileUploader.cpp src/FileUploader.h
                 src/RESTAPI_file.cpp src/RESTAPI_file.h
-                src/CommandChannel.cpp src/CommandChannel.h
                 src/RESTAPI_system_command.cpp src/RESTAPI_system_command.h
                 src/RESTAPI_BlackList.cpp src/RESTAPI_BlackList.h
                 src/Utils.h src/Utils.cpp src/storage_blacklist.cpp

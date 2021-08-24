@@ -16,11 +16,6 @@ namespace OpenWifi {
 
 	class Storage *Storage::instance_ = nullptr;
 
-	Storage::Storage() noexcept:
-	  SubSystemServer("Storage", "STORAGE-SVR", "storage")
-    {
-    }
-
 	std::string Storage::ConvertParams(const std::string & S) const {
 		std::string R;
 

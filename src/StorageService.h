@@ -150,7 +150,6 @@ namespace OpenWifi {
 
 		int 	Start() override;
 		void 	Stop() override;
-		int 	Setup_SQLite();
 
 		[[nodiscard]] std::string ConvertParams(const std::string &S) const;
 		[[nodiscard]] inline std::string ComputeRange(uint64_t From, uint64_t HowMany) {
@@ -164,11 +163,6 @@ namespace OpenWifi {
 			return " LIMIT " + std::to_string(HowMany) + " OFFSET " + std::to_string(From-1) + " ";
 		}
 
-#ifndef SMALL_BUILD
-		int 	Setup_MySQL();
-		int 	Setup_PostgreSQL();
-#endif
-
 	  private:
 		static Storage      								*instance_;
 		std::unique_ptr<Poco::Data::SessionPool>        	Pool_= nullptr;
@@ -179,7 +173,15 @@ namespace OpenWifi {
 		std::unique_ptr<Poco::Data::MySQL::Connector>       MySQLConn_= nullptr;
 #endif
 
-		Storage() noexcept;
+		Storage() noexcept:
+			SubSystemServer("Storage", "STORAGE-SVR", "storage")
+			{
+			}
+
+		int 	Setup_SQLite();
+		int 	Setup_MySQL();
+		int 	Setup_PostgreSQL();
+
    };
 
    inline Storage * Storage() { return Storage::instance(); }
