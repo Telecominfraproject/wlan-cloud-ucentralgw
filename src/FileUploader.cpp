@@ -23,6 +23,7 @@
 #include "Poco/CountingStream.h"
 #include "Poco/StreamCopier.h"
 #include "Poco/Exception.h"
+#include "Poco/File.h"
 
 #include "Utils.h"
 
@@ -42,7 +43,15 @@ namespace uCentral {
 
             Logger_.information(l);
 
-            Path_ = Daemon()->ConfigPath("ucentral.fileuploader.path","/tmp");
+            Poco::File UploadsDir(Daemon()->ConfigPath("ucentral.fileuploader.path","/tmp"));
+            Path_ = UploadsDir.path();
+            if(!UploadsDir.exists()) {
+                try {
+                    UploadsDir.createDirectory();
+                } catch (const Poco::Exception &E) {
+                    Logger_.log(E);
+                }
+            }
 
             auto Sock{Svr.CreateSecureSocket(Logger_)};
 
