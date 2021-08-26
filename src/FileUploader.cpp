@@ -42,7 +42,16 @@ namespace OpenWifi {
 
             Logger_.information(l);
 
-            Path_ = Daemon()->ConfigPath("ucentral.fileuploader.path","/tmp");
+			Poco::File UploadsDir(Daemon()->ConfigPath("ucentral.fileuploader.path","/tmp"));
+            Path_ = UploadsDir.path();
+            if(!UploadsDir.exists()) {
+            	try {
+            		UploadsDir.createDirectory();
+            	} catch (const Poco::Exception &E) {
+            		Logger_.log(E);
+					Path_ = "/tmp";
+            	}
+            }
 
             auto Sock{Svr.CreateSecureSocket(Logger_)};
 

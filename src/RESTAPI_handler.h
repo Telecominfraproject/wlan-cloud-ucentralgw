@@ -146,6 +146,8 @@ namespace OpenWifi {
 		[[nodiscard]] static std::string GetS(const char *Parameter,const Poco::JSON::Object::Ptr &Obj, const std::string & Default="");
 		[[nodiscard]] static bool GetB(const char *Parameter,const Poco::JSON::Object::Ptr &Obj, bool Default=false);
 		[[nodiscard]] static uint64_t GetWhen(const Poco::JSON::Object::Ptr &Obj);
+		bool HasParameter(const std::string &QueryParameter, std::string &Value);
+		bool HasParameter(const std::string &QueryParameter, uint64_t & Value);
 
 	  protected:
 		BindingMap 					Bindings_;
@@ -156,6 +158,7 @@ namespace OpenWifi {
 		std::vector<std::string> 	Methods_;
 		QueryBlock					QB_;
 		bool                        Internal_=false;
+		bool                        QueryBlockInitialized_=false;
 	};
 
 	class RESTAPI_UnknownRequestHandler : public RESTAPIHandler {
