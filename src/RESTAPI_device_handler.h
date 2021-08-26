@@ -10,11 +10,10 @@
 #define UCENTRAL_RESTAPI_DEVICEHANDLER_H
 
 #include "RESTAPI_handler.h"
-
 #include "Poco/Net/HTTPServerRequest.h"
 #include "Poco/Net/HTTPServerResponse.h"
 
-namespace uCentral {
+namespace OpenWifi {
 class RESTAPI_device_handler : public RESTAPIHandler {
   public:
 	RESTAPI_device_handler(const RESTAPIHandler::BindingMap &bindings, Poco::Logger &L, bool Internal)

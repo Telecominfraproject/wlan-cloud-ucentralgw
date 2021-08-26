@@ -17,7 +17,7 @@
 #include "Utils.h"
 #include "Daemon.h"
 
-namespace uCentral {
+namespace OpenWifi {
 
 	OpenAPIRequestGet::OpenAPIRequestGet( 	const std::string & ServiceType,
 											const std::string & EndPoint,
@@ -32,7 +32,7 @@ namespace uCentral {
 
 	int OpenAPIRequestGet::Do(Poco::JSON::Object::Ptr &ResponseObject) {
 		try {
-			auto Services = Daemon()->GetServices(Type_);
+		    auto Services = Daemon()->GetServices(Type_);
 			for(auto const &Svc:Services) {
 				Poco::URI	URI(Svc.PrivateEndPoint);
 				Poco::Net::HTTPSClientSession Session(URI.getHost(), URI.getPort());
@@ -42,7 +42,7 @@ namespace uCentral {
 					URI.addQueryParameter(qp.first, qp.second);
 
 				std::string Path(URI.getPathAndQuery());
-				Session.setTimeout(Poco::Timespan(5, 0));
+				Session.setTimeout(Poco::Timespan(msTimeout_/1000, msTimeout_ % 1000));
 
 				Poco::Net::HTTPRequest Request(Poco::Net::HTTPRequest::HTTP_GET,
 											   Path,

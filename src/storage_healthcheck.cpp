@@ -8,7 +8,7 @@
 
 #include "StorageService.h"
 
-namespace uCentral {
+namespace OpenWifi {
 
 	bool Storage::AddHealthCheckData(std::string &SerialNumber, GWObjects::HealthCheck &Check) {
 		try {

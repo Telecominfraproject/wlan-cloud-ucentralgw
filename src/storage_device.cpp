@@ -15,8 +15,9 @@
 #include "DeviceRegistry.h"
 #include "OUIServer.h"
 #include "StateProcessor.h"
+#include "SerialNumberCache.h"
 
-namespace uCentral {
+namespace OpenWifi {
 
 	bool Storage::GetDeviceCount(uint64_t &Count) {
 		try {
@@ -55,7 +56,7 @@ namespace uCentral {
 	bool Storage::UpdateDeviceConfiguration(std::string &SerialNumber, std::string &Configuration, uint64_t &NewUUID) {
 		try {
 
-			uCentral::Config::Config Cfg(Configuration);
+			Config::Config Cfg(Configuration);
 			if (!Cfg.Valid()) {
 				Logger_.warning(Poco::format("CONFIG-UPDATE(%s): Configuration was not valid", SerialNumber));
 				return false;
@@ -120,7 +121,7 @@ namespace uCentral {
 			Select.execute();
 
 			if (SerialNumber.empty()) {
-				uCentral::Config::Config Cfg(DeviceDetails.Configuration);
+				Config::Config Cfg(DeviceDetails.Configuration);
 
 				if (Cfg.Valid() && Cfg.SetUUID(DeviceDetails.UUID)) {
 					DeviceDetails.Configuration = Cfg.get();
@@ -170,6 +171,7 @@ namespace uCentral {
 						Poco::Data::Keywords::use(Now),
 						Poco::Data::Keywords::use(DeviceDetails.Venue);
 					Insert.execute();
+					SerialNumberCache()->AddSerialNumber(DeviceDetails.SerialNumber);
 					return true;
 				} else {
 					Logger_.warning("Cannot create device: invalid configuration.");
@@ -190,15 +192,15 @@ namespace uCentral {
 		Logger_.information(Poco::format("AUTO-CREATION(%s)", SerialNumber));
 		uint64_t Now = time(nullptr);
 
-		uCentral::Config::Capabilities Caps(Capabilities);
+		Config::Capabilities Caps(Capabilities);
 		GWObjects::DefaultConfiguration DefConfig;
 
 		if (FindDefaultConfigurationForModel(Caps.Model(), DefConfig)) {
-			uCentral::Config::Config NewConfig(DefConfig.Configuration);
+			Config::Config NewConfig(DefConfig.Configuration);
 			NewConfig.SetUUID(Now);
 			D.Configuration = NewConfig.get();
 		} else {
-			uCentral::Config::Config NewConfig;
+			Config::Config NewConfig;
 			NewConfig.SetUUID(Now);
 			D.Configuration = NewConfig.get();
 		}
@@ -359,6 +361,7 @@ namespace uCentral {
 			Delete << ConvertParams(St),
 				Poco::Data::Keywords::use(SerialNumber);
 			Delete.execute();
+			SerialNumberCache()->DeleteSerialNumber(SerialNumber);
 			return true;
 		}
 		catch (const Poco::Exception &E) {
@@ -681,6 +684,29 @@ namespace uCentral {
 
 			return true;
 		} catch (const Poco::Exception &E) {
+			Logger_.log(E);
+		}
+		return false;
+	}
+
+	bool Storage::UpdateSerialNumberCache() {
+		try {
+			Poco::Data::Session     Sess = Pool_->get();
+			Poco::Data::Statement   Select(Sess);
+
+			Select << "SELECT SerialNumber FROM Devices";
+			Select.execute();
+
+			Poco::Data::RecordSet   RSet(Select);
+
+			bool More = RSet.moveFirst();
+			while(More) {
+				auto SerialNumber = RSet[0].convert<std::string>();
+				SerialNumberCache()->AddSerialNumber(SerialNumber);
+				More = RSet.moveNext();
+			}
+			return true;
+		} catch(const Poco::Exception &E) {
 			Logger_.log(E);
 		}
 		return false;

@@ -7,7 +7,7 @@
 
 #include "Poco/JSON/Parser.h"
 
-namespace uCentral {
+namespace OpenWifi {
 
 	bool StateProcessor::Add(const Poco::JSON::Object::Ptr & O) {
 		try {

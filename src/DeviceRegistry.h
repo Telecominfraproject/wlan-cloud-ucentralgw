@@ -16,7 +16,7 @@
 
 // class uCentral::WebSocket::WSConnection;
 
-namespace uCentral {
+namespace OpenWifi {
 
 	class WSConnection;
     class DeviceRegistry : public SubSystemServer {

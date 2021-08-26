@@ -10,7 +10,7 @@
 
 #include "CentralConfig.h"
 
-namespace uCentral {
+namespace OpenWifi {
 
 	/*
 	 *  Data model for DefaultConfigurations:
@@ -40,7 +40,7 @@ namespace uCentral {
 
 			if (TmpName.empty()) {
 
-				uCentral::Config::Config Cfg(DefConfig.Configuration);
+				Config::Config Cfg(DefConfig.Configuration);
 	/*
 						 "Name VARCHAR(30) PRIMARY KEY, "
 						"Configuration TEXT, "
@@ -108,7 +108,7 @@ namespace uCentral {
 
 			Poco::Data::Session Sess = Pool_->get();
 
-			uCentral::Config::Config Cfg(DefConfig.Configuration);
+			Config::Config Cfg(DefConfig.Configuration);
 
 			if (Cfg.Valid()) {
 

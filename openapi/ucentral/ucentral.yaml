@@ -872,6 +872,7 @@ paths:
           name: countOnly
           schema:
             type: boolean
+            example: countOnly=true
         - in: query
           description: Return extra information with the device information
           name: deviceWithStatus
@@ -1857,7 +1858,7 @@ paths:
         404:
           $ref: '#/components/responses/NotFound'
 
-  /device/{serialNumber}/eventrequest:
+  /device/{serialNumber}/eventqueue:
     post:
       tags:
         - Commands

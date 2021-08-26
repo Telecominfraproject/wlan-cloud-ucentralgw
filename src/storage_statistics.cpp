@@ -9,7 +9,7 @@
 #include "DeviceRegistry.h"
 #include "StorageService.h"
 
-namespace uCentral {
+namespace OpenWifi {
 
 	bool Storage::AddStatisticsData(std::string &SerialNumber, uint64_t CfgUUID, std::string &NewStats) {
 

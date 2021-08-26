@@ -19,16 +19,16 @@
 #include "RESTAPI_utils.h"
 #include "Utils.h"
 
-using uCentral::RESTAPI_utils::field_to_json;
-using uCentral::RESTAPI_utils::field_from_json;
-using uCentral::RESTAPI_utils::EmbedDocument;
+using OpenWifi::RESTAPI_utils::field_to_json;
+using OpenWifi::RESTAPI_utils::field_from_json;
+using OpenWifi::RESTAPI_utils::EmbedDocument;
 
-namespace uCentral::GWObjects {
+namespace OpenWifi::GWObjects {
 
 	void Device::to_json(Poco::JSON::Object &Obj) const {
 		field_to_json(Obj,"serialNumber", SerialNumber);
 #ifdef TIP_GATEWAY_SERVICE
-		field_to_json(Obj,"deviceType", uCentral::Daemon::instance()->IdentifyDevice(Compatible));
+		field_to_json(Obj,"deviceType", Daemon::instance()->IdentifyDevice(Compatible));
 #endif
 		field_to_json(Obj,"macAddress", MACAddress);
 		field_to_json(Obj,"manufacturer", Manufacturer);
@@ -239,6 +239,7 @@ namespace uCentral::GWObjects {
 		healths.clear();
 		certificates.clear();
 		lastContact.clear();
+		associations.clear();
 		numberOfDevices = 0 ;
 		snapshot = std::time(nullptr);
 	}

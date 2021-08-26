@@ -17,7 +17,7 @@
 
 #include "Utils.h"
 
-namespace uCentral {
+namespace OpenWifi {
 	class OUIServer * OUIServer::instance_;
 
 	int OUIServer::Start() {

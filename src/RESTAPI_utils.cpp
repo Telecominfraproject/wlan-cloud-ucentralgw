@@ -4,7 +4,7 @@
 
 #include "RESTAPI_utils.h"
 
-namespace uCentral::RESTAPI_utils {
+namespace OpenWifi::RESTAPI_utils {
 
 	void EmbedDocument(const std::string & ObjName, Poco::JSON::Object & Obj, const std::string &ObjStr) {
 		std::string D = ObjStr.empty() ? "{}" : ObjStr;

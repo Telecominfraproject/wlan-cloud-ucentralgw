@@ -18,7 +18,7 @@
 #include "RESTAPI_GWobjects.h"
 #include "RESTAPI_handler.h"
 
-namespace uCentral::RESTAPI_RPC {
+namespace OpenWifi::RESTAPI_RPC {
 
 	bool WaitForRPC(GWObjects::CommandDetails &Cmd,
 					   Poco::Net::HTTPServerRequest &Request,

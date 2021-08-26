@@ -16,7 +16,7 @@
 #include "Poco/JSON/Object.h"
 #include "Poco/JSON/Parser.h"
 
-namespace uCentral {
+namespace OpenWifi {
     class DeviceRegistry *DeviceRegistry::instance_ = nullptr;
 
 	DeviceRegistry::DeviceRegistry() noexcept:

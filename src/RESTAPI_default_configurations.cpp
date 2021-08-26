@@ -13,7 +13,7 @@
 #include "RESTAPI_protocol.h"
 #include "StorageService.h"
 
-namespace uCentral {
+namespace OpenWifi {
 	void RESTAPI_default_configurations::handleRequest(Poco::Net::HTTPServerRequest &Request,
 													   Poco::Net::HTTPServerResponse &Response) {
 		if (!ContinueProcessing(Request, Response))
@@ -47,7 +47,7 @@ namespace uCentral {
 				}
 
 				Poco::JSON::Object RetObj;
-				RetObj.set(uCentral::RESTAPI::Protocol::CONFIGURATIONS, Objects);
+				RetObj.set(RESTAPI::Protocol::CONFIGURATIONS, Objects);
 				ReturnObject(Request, RetObj, Response);
 			} else
 				BadRequest(Request, Response);

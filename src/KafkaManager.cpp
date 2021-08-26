@@ -12,7 +12,7 @@
 #include "Daemon.h"
 #include "Utils.h"
 
-namespace uCentral {
+namespace OpenWifi {
 
 	class KafkaManager *KafkaManager::instance_ = nullptr;
 

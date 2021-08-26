@@ -16,7 +16,7 @@
 
 #include "Utils.h"
 
-namespace uCentral {
+namespace OpenWifi {
 	void RESTAPI_devices_handler::handleRequest(Poco::Net::HTTPServerRequest &Request,
 												Poco::Net::HTTPServerResponse &Response) {
 
@@ -33,10 +33,10 @@ namespace uCentral {
 					BadRequest(Request, Response, "Illegal parameter value.");
 					return;
 				}
-				auto serialOnly = GetBoolParameter(uCentral::RESTAPI::Protocol::SERIALONLY, false);
-				auto countOnly = GetBoolParameter(uCentral::RESTAPI::Protocol::COUNTONLY, false);
+				auto serialOnly = GetBoolParameter(RESTAPI::Protocol::SERIALONLY, false);
+				auto countOnly = GetBoolParameter(RESTAPI::Protocol::COUNTONLY, false);
 				auto deviceWithStatus =
-					GetBoolParameter(uCentral::RESTAPI::Protocol::DEVICEWITHSTATUS, false);
+					GetBoolParameter(RESTAPI::Protocol::DEVICEWITHSTATUS, false);
 
 				Logger_.debug(Poco::format("DEVICES: from %Lu, limit of %Lu, filter='%s'.",
 										   (uint64_t)QB_.Offset, (uint64_t)QB_.Limit, QB_.Filter));
@@ -48,7 +48,7 @@ namespace uCentral {
 				if (!QB_.Select.empty()) {
 
 					Poco::JSON::Array Objects;
-					std::vector<std::string> Numbers = uCentral::Utils::Split(QB_.Select);
+					std::vector<std::string> Numbers = Utils::Split(QB_.Select);
 					for (auto &i : Numbers) {
 						GWObjects::Device D;
 						if (Storage()->GetDevice(i, D)) {
@@ -65,14 +65,14 @@ namespace uCentral {
 					}
 
 					if (deviceWithStatus)
-						RetObj.set(uCentral::RESTAPI::Protocol::DEVICESWITHSTATUS, Objects);
+						RetObj.set(RESTAPI::Protocol::DEVICESWITHSTATUS, Objects);
 					else
-						RetObj.set(uCentral::RESTAPI::Protocol::DEVICES, Objects);
+						RetObj.set(RESTAPI::Protocol::DEVICES, Objects);
 
 				} else if (countOnly == true) {
 					uint64_t Count = 0;
 					if (Storage()->GetDeviceCount(Count)) {
-						RetObj.set(uCentral::RESTAPI::Protocol::COUNT, Count);
+						RetObj.set(RESTAPI::Protocol::COUNT, Count);
 					}
 				} else if (serialOnly) {
 					std::vector<std::string> SerialNumbers;
@@ -81,7 +81,7 @@ namespace uCentral {
 					for (const auto &i : SerialNumbers) {
 						Objects.add(i);
 					}
-					RetObj.set(uCentral::RESTAPI::Protocol::SERIALNUMBERS, Objects);
+					RetObj.set(RESTAPI::Protocol::SERIALNUMBERS, Objects);
 				} else {
 					std::vector<GWObjects::Device> Devices;
 					Storage()->GetDevices(QB_.Offset, QB_.Limit, Devices);
@@ -95,9 +95,9 @@ namespace uCentral {
 						Objects.add(Obj);
 					}
 					if (deviceWithStatus)
-						RetObj.set(uCentral::RESTAPI::Protocol::DEVICESWITHSTATUS, Objects);
+						RetObj.set(RESTAPI::Protocol::DEVICESWITHSTATUS, Objects);
 					else
-						RetObj.set(uCentral::RESTAPI::Protocol::DEVICES, Objects);
+						RetObj.set(RESTAPI::Protocol::DEVICES, Objects);
 				}
 				ReturnObject(Request, RetObj, Response);
 				return;

@@ -34,7 +34,7 @@
 #include "AuthClient.h"
 #endif
 
-namespace uCentral {
+namespace OpenWifi {
 
 	void MyErrorHandler::exception(const Poco::Exception & E) {
 		Poco::Thread * CurrentThread = Poco::Thread::current();
@@ -112,6 +112,16 @@ namespace uCentral {
 			} else {
 				logger().error("Bad bus message.");
 			}
+
+			auto i=Services_.begin();
+			auto Now = (uint64_t )std::time(nullptr);
+			for(;i!=Services_.end();) {
+			    if((Now - i->second.LastUpdate)>60) {
+			        i = Services_.erase(i);
+			    } else
+			        ++i;
+			}
+
 		} catch (const Poco::Exception &E) {
 			logger().log(E);
 		}

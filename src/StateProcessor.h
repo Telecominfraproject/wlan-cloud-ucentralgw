@@ -9,7 +9,7 @@
 #include "Poco/JSON/Object.h"
 #include "RESTAPI_GWobjects.h"
 
-namespace uCentral {
+namespace OpenWifi {
 	class StateProcessor {
 	  public:
 		StateProcessor(GWObjects::ConnectionState * Conn):

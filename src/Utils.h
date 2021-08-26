@@ -11,16 +11,18 @@
 
 #include <vector>
 #include <string>
+#include <iomanip>
+#include <sstream>
 
 #include "Poco/Net/NetworkInterface.h"
 #include "Poco/Net/IPAddress.h"
 #include "Poco/String.h"
 #include "Poco/File.h"
-#include "uCentralTypes.h"
+#include "OpenWifiTypes.h"
 
 #define DBGLINE { std::cout << __FILE__ << ":" << __func__ << ":" << __LINE__ << std::endl; };
 
-namespace uCentral::Utils {
+namespace OpenWifi::Utils {
 
     enum MediaTypeEncodings {
         PLAIN,
@@ -73,5 +75,16 @@ namespace uCentral::Utils {
     [[nodiscard]] std::string SecondsToNiceText(uint64_t Seconds);
 
 	[[nodiscard]] bool IPinRange(const std::string &Range, const Poco::Net::IPAddress &IP);
+
+	template< typename T >
+	std::string int_to_hex( T i )
+	{
+		std::stringstream stream;
+		stream << std::setfill ('0') << std::setw(12)
+		<< std::hex << i;
+		return stream.str();
+	}
+
+
 }
 #endif // UCENTRALGW_UTILS_H

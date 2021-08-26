@@ -14,7 +14,7 @@
 #include "RESTAPI_protocol.h"
 #include "StorageService.h"
 
-namespace uCentral {
+namespace OpenWifi {
 void RESTAPI_default_configuration::handleRequest(Poco::Net::HTTPServerRequest &Request,
 												  Poco::Net::HTTPServerResponse &Response) {
 	if (!ContinueProcessing(Request, Response))
@@ -23,7 +23,7 @@ void RESTAPI_default_configuration::handleRequest(Poco::Net::HTTPServerRequest &
 	if (!IsAuthorized(Request, Response))
 		return;
 
-	std::string Name = GetBinding(uCentral::RESTAPI::Protocol::NAME, "");
+	std::string Name = GetBinding(RESTAPI::Protocol::NAME, "");
 	ParseParameters(Request);
 
 	if (Request.getMethod() == Poco::Net::HTTPRequest::HTTP_GET) {

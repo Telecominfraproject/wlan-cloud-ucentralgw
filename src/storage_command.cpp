@@ -17,7 +17,7 @@
 #include "StorageService.h"
 #include "FileUploader.h"
 
-namespace uCentral {
+namespace OpenWifi {
 
 	typedef Poco::Tuple<
 		std::string,

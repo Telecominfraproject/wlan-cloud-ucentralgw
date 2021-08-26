@@ -13,11 +13,11 @@
 #include <thread>
 
 #include "SubSystemServer.h"
-#include "uCentralTypes.h"
+#include "OpenWifiTypes.h"
 
 #include "cppkafka/cppkafka.h"
 
-namespace uCentral {
+namespace OpenWifi {
 
 	class KafkaManager : public SubSystemServer {
 	  public:

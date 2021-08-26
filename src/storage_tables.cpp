@@ -8,7 +8,7 @@
 
 #include "StorageService.h"
 
-namespace uCentral {
+namespace OpenWifi {
 
 	int Storage::Create_Tables() {
 

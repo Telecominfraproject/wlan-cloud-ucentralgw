@@ -17,7 +17,7 @@
 #include "Poco/Net/HTTPServerRequest.h"
 #include "RESTAPI_handler.h"
 
-namespace uCentral {
+namespace OpenWifi {
 
     class FileUploader : public SubSystemServer {
     public:

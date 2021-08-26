@@ -6,7 +6,7 @@
 #include "Daemon.h"
 #include "Dashboard.h"
 
-namespace uCentral {
+namespace OpenWifi {
 	void RESTAPI_deviceDashboardHandler::handleRequest(Poco::Net::HTTPServerRequest &Request,
 													   Poco::Net::HTTPServerResponse &Response) {
 

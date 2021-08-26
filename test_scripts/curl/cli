@@ -394,7 +394,7 @@ getblacklist() {
 }
 
 eventqueue() {
-  payload="{ \"serialNumber\" : \"$1\" , \"types\" : [ \"dhcp\", \"rrm\" ] }"
+  payload="{ \"serialNumber\" : \"$1\" , \"types\" : [ \"dhcp\", \"wifi\" ] }"
   curl  ${FLAGS} -X POST "https://${UCENTRALGW}/api/v1/device/$1/eventqueue" \
         --max-time 20 \
         -H "accept: application/json" \
@@ -526,6 +526,11 @@ gwtimes() {
 	jq < ${result_file}
 }
 
+wstest() {
+	echo "Token:${token}"
+	wscat \
+		-c wss://${UCENTRALGW}/api/v1/ws
+}
 
 help() {
   echo
@@ -610,6 +615,10 @@ help() {
   echo "dashboard 				  		  Get the dashboard document"
   echo "gwtimes							  Get the uptime and start time of the service."
   echo "gwversion						  Get the service version."
+  echo
+  echo "wstest  						  Testing the WebSocket interface."
+  echo
+  echo
   echo "To pass additional flags to the CURL command, create an environment variable called FLAGS and git ve the values you"
   echo "want. For example, for force all call to use IPv6, set FLAGS=\"-6\", for verbose mode and IPv6, set FLAGS=\"-6 -v\""
   echo
@@ -674,6 +683,7 @@ case "$1" in
   "gwtimes") login; gwtimes ; logout;;
   "addnote") login; addnote "$2" "$3"; logout;;
   "ldevs") login; ldevs  "$2" "$3"; logout ;;
+  "wstest") login; wstest; logout;;
   *) help ;;
 esac
 

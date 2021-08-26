@@ -19,7 +19,7 @@
 
 #include "RESTAPI_GWobjects.h"
 
-namespace uCentral {
+namespace OpenWifi {
 
 	bool Storage::AddBlackListDevices(std::vector<GWObjects::BlackListedDevice> &Devices) {
 		try {

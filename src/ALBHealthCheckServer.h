@@ -20,7 +20,7 @@
 #include "Daemon.h"
 #include "SubSystemServer.h"
 
-namespace uCentral {
+namespace OpenWifi {
 
 	class ALBRequestHandler: public Poco::Net::HTTPRequestHandler
 			/// Return a HTML document with the current date and time.

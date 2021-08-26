@@ -34,7 +34,7 @@
 #include "Poco/Net/SecureStreamSocketImpl.h"
 #include "Poco/Net/ParallelSocketAcceptor.h"
 
-namespace uCentral {
+namespace OpenWifi {
 
 	class WSConnection {
         static constexpr int BufSize = 64000;
@@ -67,7 +67,7 @@ namespace uCentral {
 		std::string							CN_;
 		GWObjects::CertificateValidation	CertValidation_ = GWObjects::CertificateValidation::NO_CERTIFICATE;
 		uint64_t 							Errors_=0;
-		std::unique_ptr<uCentral::StateProcessor>	StatsProcessor_;
+		std::unique_ptr<StateProcessor>		StatsProcessor_;
 
 		void CompleteStartup();
     };

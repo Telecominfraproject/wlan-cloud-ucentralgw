@@ -26,7 +26,7 @@ then
   exit 1
 fi
 
-if [[ ! -f ucentral.properties ]]
+if [[ ! -f ucentralgw.properties ]]
 then
   echo "Configuration file ucentral.properties is missing in the current directory"
   exit 2
@@ -37,7 +37,7 @@ docker run -d -p 15002:15002 \
               -p 16003:16003 \
               --init \
               --volume="$PWD:/ucentral-data" \
-              -e UCENTRAL_ROOT="/ucentral-data" \
-              -e UCENTRAL_CONFIG="/ucentral-data" \
+              -e UCENTRALGW_ROOT="/ucentral-data" \
+              -e UCENTRALGW_CONFIG="/ucentral-data" \
               --name="ucentralgw" $DOCKER_NAME
 

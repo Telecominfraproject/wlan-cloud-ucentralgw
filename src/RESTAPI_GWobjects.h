@@ -12,7 +12,7 @@
 #include "Poco/JSON/Object.h"
 #include "RESTAPI_SecurityObjects.h"
 
-namespace uCentral::GWObjects {
+namespace OpenWifi::GWObjects {
 
 	enum CertificateValidation {
 		NO_CERTIFICATE,

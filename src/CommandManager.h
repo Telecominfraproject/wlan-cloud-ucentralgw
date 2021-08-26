@@ -22,7 +22,7 @@
 #include "RESTAPI_GWobjects.h"
 #include "SubSystemServer.h"
 
-namespace uCentral {
+namespace OpenWifi {
 
     class CommandManager : public SubSystemServer, Poco::Runnable {
 	    public:

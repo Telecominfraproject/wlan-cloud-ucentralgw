@@ -15,7 +15,7 @@
 #include "CommandManager.h"
 #include "uCentralProtocol.h"
 
-namespace uCentral::RESTAPI_RPC {
+namespace OpenWifi::RESTAPI_RPC {
 	void SetCommandAsPending(GWObjects::CommandDetails &Cmd,
 											 Poco::Net::HTTPServerRequest &Request,
 											 Poco::Net::HTTPServerResponse &Response, RESTAPIHandler *Handler) {
@@ -71,7 +71,7 @@ namespace uCentral::RESTAPI_RPC {
 							Cmd.Status = "completed";
 							Cmd.Completed = time(nullptr);
 
-							if(Cmd.ErrorCode && Cmd.Command==uCentral::uCentralProtocol::TRACE) {
+							if(Cmd.ErrorCode && Cmd.Command==uCentralProtocol::TRACE) {
 								Cmd.WaitingForFile = 0;
 								Cmd.AttachDate = Cmd.AttachSize = 0 ;
 								Cmd.AttachType = "";

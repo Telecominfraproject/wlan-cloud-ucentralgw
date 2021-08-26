@@ -26,7 +26,7 @@
 
 #include "RESTAPI_SecurityObjects.h"
 
-namespace uCentral {
+namespace OpenWifi {
 
     class RESTAPI_PartHandler: public Poco::Net::PartHandler
     {

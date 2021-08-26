@@ -9,7 +9,7 @@
 #ifndef UCENTRALGW_RESTAPI_PROTOCOL_H
 #define UCENTRALGW_RESTAPI_PROTOCOL_H
 
-namespace uCentral::RESTAPI::Protocol {
+namespace OpenWifi::RESTAPI::Protocol {
 	static const char * CAPABILITIES = "capabilities";
 	static const char * LOGS = "logs";
 	static const char * HEALTHCHECKS = "healthchecks";

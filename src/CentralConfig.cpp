@@ -14,7 +14,7 @@
 #include "Poco/JSON/Parser.h"
 #include "Poco/File.h"
 
-namespace uCentral::Config {
+namespace OpenWifi::Config {
 
 	static std::string DefaultConfiguration;
 
@@ -232,7 +232,7 @@ namespace uCentral::Config {
         }
         catch ( const Poco::Exception & E )
         {
-            uCentral::Daemon::instance()->logger().warning(Poco::format("%s: Failed with: %s", std::string(__func__) , E.displayText()));
+            Daemon::instance()->logger().warning(Poco::format("%s: Failed with: %s", std::string(__func__) , E.displayText()));
         }
     }
 

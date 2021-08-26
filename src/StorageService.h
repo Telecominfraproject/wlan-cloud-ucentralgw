@@ -21,7 +21,7 @@
 #include "RESTAPI_GWobjects.h"
 #include "SubSystemServer.h"
 
-namespace uCentral {
+namespace OpenWifi {
 
     class Storage : public SubSystemServer {
 
@@ -81,6 +81,7 @@ namespace uCentral {
 		bool GetDevicesWithoutFirmware(std::string &DeviceType, std::string &Version, std::vector<std::string> & SerialNumbers);
 		bool GetDeviceFWUpdatePolicy(std::string & SerialNumber, std::string & Policy);
 		bool SetDevicePassword(std::string & SerialNumber, std::string & Password);
+		bool UpdateSerialNumberCache();
 
 		bool ExistingConfiguration(std::string &SerialNumber, uint64_t CurrentConfig, std::string &NewConfig, uint64_t &);
 
@@ -149,7 +150,6 @@ namespace uCentral {
 
 		int 	Start() override;
 		void 	Stop() override;
-		int 	Setup_SQLite();
 
 		[[nodiscard]] std::string ConvertParams(const std::string &S) const;
 		[[nodiscard]] inline std::string ComputeRange(uint64_t From, uint64_t HowMany) {
@@ -163,11 +163,6 @@ namespace uCentral {
 			return " LIMIT " + std::to_string(HowMany) + " OFFSET " + std::to_string(From-1) + " ";
 		}
 
-#ifndef SMALL_BUILD
-		int 	Setup_MySQL();
-		int 	Setup_PostgreSQL();
-#endif
-
 	  private:
 		static Storage      								*instance_;
 		std::unique_ptr<Poco::Data::SessionPool>        	Pool_= nullptr;
@@ -178,7 +173,15 @@ namespace uCentral {
 		std::unique_ptr<Poco::Data::MySQL::Connector>       MySQLConn_= nullptr;
 #endif
 
-		Storage() noexcept;
+		Storage() noexcept:
+			SubSystemServer("Storage", "STORAGE-SVR", "storage")
+			{
+			}
+
+		int 	Setup_SQLite();
+		int 	Setup_MySQL();
+		int 	Setup_PostgreSQL();
+
    };
 
    inline Storage * Storage() { return Storage::instance(); }

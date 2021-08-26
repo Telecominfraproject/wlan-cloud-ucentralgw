@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.13)
-project(ucentralgw VERSION 2.0.0)
+project(ucentralgw VERSION 2.1.0)
 
 set(CMAKE_CXX_STANDARD 17)
 
@@ -73,21 +73,29 @@ add_executable( ucentralgw
                 src/RESTAPI_command.cpp src/RESTAPI_command.h
                 src/FileUploader.cpp src/FileUploader.h
                 src/RESTAPI_file.cpp src/RESTAPI_file.h
-                src/CommandChannel.cpp src/CommandChannel.h
                 src/RESTAPI_system_command.cpp src/RESTAPI_system_command.h
                 src/RESTAPI_BlackList.cpp src/RESTAPI_BlackList.h
                 src/Utils.h src/Utils.cpp src/storage_blacklist.cpp
                 src/storage_command.cpp src/storage_healthcheck.cpp src/storage_statistics.cpp src/storage_logs.cpp
-                src/storage_device.cpp src/storage_capabilities.cpp src/storage_defconfig.cpp src/storage_sqlite.cpp
-                src/storage_mysql.cpp src/storage_pgql.cpp src/storage_tables.cpp
+                src/storage_device.cpp src/storage_capabilities.cpp src/storage_defconfig.cpp
+                src/storage_tables.cpp
+                src/storage_setup.cpp
                 src/StateProcessor.cpp src/StateProcessor.h
                 src/storage_lifetime_stats.cpp src/uCentralProtocol.h src/RESTAPI_protocol.h
-                src/ALBHealthCheckServer.h src/Kafka_topics.h src/uCentralTypes.h
+                src/ALBHealthCheckServer.h src/Kafka_topics.h
                 src/OUIServer.cpp src/OUIServer.h
                 src/RESTAPI_ouis.cpp src/RESTAPI_ouis.h
                 src/MicroService.cpp src/MicroService.h
-                src/RESTAPI_RPC.cpp src/RESTAPI_RPC.h src/AuthClient.cpp src/AuthClient.h src/OpenAPIRequest.cpp src/OpenAPIRequest.h
-                src/RESTAPI_utils.h src/RESTAPI_utils.cpp src/StorageArchiver.cpp src/StorageArchiver.h src/Dashboard.cpp src/Dashboard.h src/RESTAPI_deviceDashboardHandler.cpp src/RESTAPI_deviceDashboardHandler.h)
+                src/RESTAPI_RPC.cpp src/RESTAPI_RPC.h
+                src/AuthClient.cpp src/AuthClient.h
+                src/OpenAPIRequest.cpp src/OpenAPIRequest.h
+                src/RESTAPI_utils.h src/RESTAPI_utils.cpp
+                src/StorageArchiver.cpp src/StorageArchiver.h
+                src/Dashboard.cpp src/Dashboard.h
+                src/RESTAPI_deviceDashboardHandler.cpp src/RESTAPI_deviceDashboardHandler.h
+                src/SerialNumberCache.cpp src/SerialNumberCache.h
+                src/RESTAPI_webSocketServer.cpp src/RESTAPI_webSocketServer.h
+                src/OpenWifiTypes.h)
 
 if(NOT SMALL_BUILD)
     target_sources(ucentralgw PUBLIC src/KafkaManager.cpp src/KafkaManager.h)

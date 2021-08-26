@@ -26,9 +26,9 @@ Poco may take several minutes depending on the platform you are building on.
 ### Ubuntu
 These instructions have proven to work on Ubuntu 20.4.
 ```
-sudo apt install git cmake g++ libssl-dev libmariabd-dev unixodbc-dev 
+sudo apt install git cmake g++ libssl-dev libmariadb-dev unixodbc-dev 
 sudo apt install libpq-dev libaprutil1-dev apache2-dev libboost-all-dev
-sudo apt install librdkafka-dev liblua5.3-dev
+sudo apt install librdkafka-dev liblua5.3-dev libmysqlclient-dev
 
 git clone https://github.com/stephb9959/poco
 cd poco
@@ -220,13 +220,13 @@ in your browner
 #### Configuration
 The configuration for this service is kept in a properties file. This file is called `ucentralgw.properties` and you can 
 see the latest version [here](https://github.com/Telecominfraproject/wlan-cloud-ucentralgw/blob/main/ucentralgw.properties). The file will be loaded from
-the directory set by the environment variable `UCENTRAL_CONFIG`. To use environment variables in the configuration,
+the directory set by the environment variable `UCENTRALGW_CONFIG`. To use environment variables in the configuration,
 you must use `$<varname>`. Only `path names` support the use of environment variables. The sample configuration requires very 
 little changes if you keep the suggested directory structure. For the sample configuration to work, you need to define 2 
 environment variables. 
 ```
-export UCENTRAL_ROOT=`pwd`
-export UCENTRAL_CONFIG=`pwd`
+export UCENTRALGW_ROOT=`pwd`
+export UCENTRALGW_CONFIG=`pwd`
 ```
 If you current working directory is the root of the project, this will set the variables properly. Otherwise, you can set the variables 
 to point to wherever is necessary.
@@ -234,7 +234,7 @@ to point to wherever is necessary.
 ##### Important config entries
 ###### This is the logging directory
 ```
-logging.channels.c2.path = $UCENTRAL_ROOT/logs/sample.log
+logging.channels.c2.path = $UCENTRALGW_ROOT/logs/sample.log
 ```
 
 ###### This is the type of storage in use
@@ -255,11 +255,11 @@ ucentral.devicetypes.2 = IOT:esp32
 ```asm
 ucentral.restapi.host.0.backlog = 100
 ucentral.restapi.host.0.security = relaxed
-ucentral.restapi.host.0.rootca = $UCENTRAL_ROOT/certs/restapi-ca.pem
+ucentral.restapi.host.0.rootca = $UCENTRALGW_ROOT/certs/restapi-ca.pem
 ucentral.restapi.host.0.address = *
 ucentral.restapi.host.0.port = 16002
-ucentral.restapi.host.0.cert = $UCENTRAL_ROOT/certs/restapi-cert.pem
-ucentral.restapi.host.0.key = $UCENTRAL_ROOT/certs/restapi-key.pem
+ucentral.restapi.host.0.cert = $UCENTRALGW_ROOT/certs/restapi-cert.pem
+ucentral.restapi.host.0.key = $UCENTRALGW_ROOT/certs/restapi-key.pem
 ucentral.restapi.host.0.key.password = mypassword
 ```
 
@@ -309,12 +309,12 @@ You will need to get the `cert.pem` and `key.pem` from Digicert. The rest is her
 
 ```asm
 ucentral.websocket.host.0.backlog = 500
-ucentral.websocket.host.0.rootca = $UCENTRAL_ROOT/certs/root.pem
-ucentral.websocket.host.0.issuer = $UCENTRAL_ROOT/certs/issuer.pem
-ucentral.websocket.host.0.cert = $UCENTRAL_ROOT/certs/websocket-cert.pem
-ucentral.websocket.host.0.key = $UCENTRAL_ROOT/certs/websocket-key.pem
-ucentral.websocket.host.0.clientcas = $UCENTRAL_ROOT/certs/clientcas.pem
-ucentral.websocket.host.0.cas = $UCENTRAL_ROOT/certs/cas
+ucentral.websocket.host.0.rootca = $UCENTRALGW_ROOT/certs/root.pem
+ucentral.websocket.host.0.issuer = $UCENTRALGW_ROOT/certs/issuer.pem
+ucentral.websocket.host.0.cert = $UCENTRALGW_ROOT/certs/websocket-cert.pem
+ucentral.websocket.host.0.key = $UCENTRALGW_ROOT/certs/websocket-key.pem
+ucentral.websocket.host.0.clientcas = $UCENTRALGW_ROOT/certs/clientcas.pem
+ucentral.websocket.host.0.cas = $UCENTRALGW_ROOT/certs/cas
 ucentral.websocket.host.0.address = *
 ucentral.websocket.host.0.port = 15002
 ucentral.websocket.host.0.security = strict
@@ -325,15 +325,15 @@ ucentral.websocket.maxreactors = 20
 ###### This is the end point for the devices when uploading files
 ```asm
 ucentral.fileuploader.host.0.backlog = 100
-ucentral.fileuploader.host.0.rootca = $UCENTRAL_ROOT/certs/restapi-ca.pem
+ucentral.fileuploader.host.0.rootca = $UCENTRALGW_ROOT/certs/restapi-ca.pem
 ucentral.fileuploader.host.0.security = relaxed
 ucentral.fileuploader.host.0.address = *
 ucentral.fileuploader.host.0.name = 192.168.1.176
 ucentral.fileuploader.host.0.port = 16003
-ucentral.fileuploader.host.0.cert = $UCENTRAL_ROOT/certs/restapi-cert.pem
-ucentral.fileuploader.host.0.key = $UCENTRAL_ROOT/certs/restapi-key.pem
+ucentral.fileuploader.host.0.cert = $UCENTRALGW_ROOT/certs/restapi-cert.pem
+ucentral.fileuploader.host.0.key = $UCENTRALGW_ROOT/certs/restapi-key.pem
 ucentral.fileuploader.host.0.key.password = mypassword
-ucentral.fileuploader.path = $UCENTRAL_ROOT/uploads
+ucentral.fileuploader.path = $UCENTRALGW_ROOT/uploads
 ucentral.fileuploader.maxsize = 10000
 ```
 
@@ -369,7 +369,7 @@ can be any of the keys you are already using. You must keep that keep secret and
 this is the entry
 
 ```asm
-ucentral.service.key = $UCENTRAL_ROOT/certs/websocket-key.pem
+ucentral.service.key = $UCENTRALGW_ROOT/certs/websocket-key.pem
 ```
  
 #### Command line options
@@ -391,7 +391,7 @@ A uCentral gateway implementation for TIP.
 ```
 
 ##### file
-This allows you to point to another file without specifying the UCENTRAL_CONFIG variable. The file name must end in `.properties`.
+This allows you to point to another file without specifying the UCENTRALGW_CONFIG variable. The file name must end in `.properties`.
 ##### daemon
 Run this as a UNIX service
 ##### pidfile
@@ -452,7 +452,7 @@ docker run -d -p 15002:15002 \
               --init \
               --volume="$PWD:/ucentral-data" \
               -e UCENTRAL_ROOT="/ucentral-data" \
-              -e UCENTRAL_CONFIG="/ucentral-data" \
+              -e UCENTRALGW_CONFIG="/ucentral-data" \
               --name="ucentralgw" $DOCKER_NAME
 
 ```
@@ -493,7 +493,7 @@ Please refer to the `certs` directory from the sections above.
 The configuration for this service is kept in a properties file. Currently, this configuration file must be kept in the 
 current directory of uCentral or one level up. This file is called `ucentralgw.properties` and you can see the latest version
 [here](https://github.com/Telecominfraproject/wlan-cloud-ucentralgw/blob/main/ucentralgw.properties). The file will be loaded from 
-the directory set by the environment variable `UCENTRAL_CONFIG`. To use environment variables in the configuration,
+the directory set by the environment variable `UCENTRALGW_CONFIG`. To use environment variables in the configuration,
 you must use `$<varname>`. The path for the logs for the service must exist prior to starting the 
 service. The path is defined under `logging.channels.c2.path`. Only `path names` support the use of 
 environment variables. Here is a sample configuration:
