@@ -1,7 +1,7 @@
 #!/bin/sh
 set -e
 
-if [[ "$TEMPLATE_CONFIG" = 'true' && ! -f "$UCENTRAL_CONFIG"/ucentralgw.properties ]]; then
+if [[ "$TEMPLATE_CONFIG" = 'true' && ! -f "$UCENTRALGW_CONFIG"/ucentralgw.properties ]]; then
   WEBSOCKET_HOST_ROOTCA=${WEBSOCKET_HOST_ROOTCA:-"\$UCENTRALGW_ROOT/certs/root.pem"} \
   WEBSOCKET_HOST_ISSUER=${WEBSOCKET_HOST_ISSUER:-"\$UCENTRALGW_ROOT/certs/issuer.pem"} \
   WEBSOCKET_HOST_CERT=${WEBSOCKET_HOST_CERT:-"\$UCENTRALGW_ROOT/certs/websocket-cert.pem"} \
