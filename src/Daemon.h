@@ -32,8 +32,8 @@
 namespace OpenWifi {
 
 	static const char * vDAEMON_PROPERTIES_FILENAME = "owgw.properties";
-	static const char * vDAEMON_ROOT_ENV_VAR = "UCENTRALGW_ROOT";
-	static const char * vDAEMON_CONFIG_ENV_VAR = "UCENTRALGW_CONFIG";
+	static const char * vDAEMON_ROOT_ENV_VAR = "OWGW_ROOT";
+	static const char * vDAEMON_CONFIG_ENV_VAR = "OWGW_CONFIG";
 	static const char * vDAEMON_APP_NAME = uSERVICE_GATEWAY.c_str();
 	static const uint64_t vDAEMON_BUS_TIMER = 10000;
 
