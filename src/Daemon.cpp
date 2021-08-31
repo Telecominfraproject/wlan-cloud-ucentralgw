@@ -59,14 +59,14 @@ namespace OpenWifi {
 	void Daemon::initialize(Poco::Util::Application &self) {
 		MicroService::initialize(*this);
 		Config::Config::Init();
-        AutoProvisioning_ = config().getBool("ucentral.autoprovisioning",false);
+        AutoProvisioning_ = config().getBool("openwifi.autoprovisioning",false);
 
         // DeviceTypeIdentifications_
         Types::StringVec   Keys;
-        config().keys("ucentral.devicetypes",Keys);
+        config().keys("openwifi.devicetypes",Keys);
         for(const auto & i:Keys)
         {
-            std::string Line = config().getString("ucentral.devicetypes."+i);
+        	std::string Line = config().getString("openwifi.devicetypes."+i);
             auto P1 = Line.find_first_of(':');
             auto Type = Line.substr(0, P1);
             auto List = Line.substr(P1+1);

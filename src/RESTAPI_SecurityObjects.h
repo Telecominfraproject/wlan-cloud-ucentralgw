@@ -160,7 +160,7 @@ namespace OpenWifi::SecurityObjects {
 	typedef std::vector<ProfileAction>	ProfileActionVec;
 
 	struct SecurityProfile {
-		uint64_t id;
+		uint64_t id=0;
 		std::string name;
 		std::string description;
 		ProfileActionVec policy;

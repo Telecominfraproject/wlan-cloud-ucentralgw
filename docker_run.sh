@@ -26,7 +26,7 @@ then
   exit 1
 fi
 
-if [[ ! -f ucentralgw.properties ]]
+if [[ ! -f owgw.properties ]]
 then
   echo "Configuration file ucentral.properties is missing in the current directory"
   exit 2

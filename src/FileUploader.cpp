@@ -42,7 +42,7 @@ namespace OpenWifi {
 
             Logger_.information(l);
 
-			Poco::File UploadsDir(Daemon()->ConfigPath("ucentral.fileuploader.path","/tmp"));
+            Poco::File UploadsDir(Daemon()->ConfigPath("openwifi.fileuploader.path","/tmp"));
             Path_ = UploadsDir.path();
             if(!UploadsDir.exists()) {
             	try {
@@ -72,7 +72,7 @@ namespace OpenWifi {
             Servers_.push_back(std::move(NewServer));
         }
 
-        MaxSize_ = 1000 * Daemon()->ConfigGetInt("ucentral.fileuploader.maxsize", 10000);
+        MaxSize_ = 1000 * Daemon()->ConfigGetInt("openwifi.fileuploader.maxsize", 10000);
 
         return 0;
     }

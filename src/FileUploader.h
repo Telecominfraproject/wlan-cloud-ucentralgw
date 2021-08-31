@@ -48,7 +48,7 @@ namespace OpenWifi {
 		uint64_t 						MaxSize_=10000000;
 
 		explicit FileUploader() noexcept:
-			SubSystemServer("FileUploader", "FILE-UPLOAD", "ucentral.fileuploader")
+			SubSystemServer("FileUploader", "FILE-UPLOAD", "openwifi.fileuploader")
 		{
 			SubMutexGuard		Guard(Mutex_);
 		}

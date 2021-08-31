@@ -34,7 +34,6 @@ namespace OpenWifi {
 					return;
 				}
 				auto serialOnly = GetBoolParameter(RESTAPI::Protocol::SERIALONLY, false);
-				auto countOnly = GetBoolParameter(RESTAPI::Protocol::COUNTONLY, false);
 				auto deviceWithStatus =
 					GetBoolParameter(RESTAPI::Protocol::DEVICEWITHSTATUS, false);
 
@@ -69,7 +68,7 @@ namespace OpenWifi {
 					else
 						RetObj.set(RESTAPI::Protocol::DEVICES, Objects);
 
-				} else if (countOnly == true) {
+				} else if (QB_.CountOnly == true) {
 					uint64_t Count = 0;
 					if (Storage()->GetDeviceCount(Count)) {
 						RetObj.set(RESTAPI::Protocol::COUNT, Count);

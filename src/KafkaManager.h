@@ -41,7 +41,7 @@ namespace OpenWifi {
 		int Start() override;
 		void Stop() override;
 
-		void PostMessage(std::string topic, std::string key, std::string payload, bool WrapMessage = true);
+		void PostMessage(const std::string &topic, const std::string & key, const std::string &payload, bool WrapMessage = true);
 		[[nodiscard]] std::string WrapSystemId(const std::string & PayLoad);
 		[[nodiscard]] bool Enabled() { return KafkaEnabled_; }
 		int RegisterTopicWatcher(const std::string &Topic, Types::TopicNotifyFunction & F);

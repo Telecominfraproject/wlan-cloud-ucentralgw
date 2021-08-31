@@ -1,17 +1,20 @@
 //
-// Created by stephane bourque on 2021-07-01.
+//	License type: BSD 3-Clause License
+//	License copy: https://github.com/Telecominfraproject/wlan-cloud-ucentralgw/blob/master/LICENSE
 //
+//	Created by Stephane Bourque on 2021-03-04.
+//	Arilia Wireless Inc.
+//
+//
+
 #include <iostream>
 
 #include "OpenAPIRequest.h"
 
 #include "Poco/Net/HTTPSClientSession.h"
-#include <Poco/Net/HTTPClientSession.h>
 #include <Poco/Net/HTTPRequest.h>
 #include <Poco/Net/HTTPResponse.h>
-#include <Poco/StreamCopier.h>
 #include <Poco/JSON/Parser.h>
-#include <Poco/Path.h>
 #include <Poco/URI.h>
 #include <Poco/Exception.h>
 #include "Utils.h"
@@ -19,12 +22,12 @@
 
 namespace OpenWifi {
 
-	OpenAPIRequestGet::OpenAPIRequestGet( 	const std::string & ServiceType,
-											const std::string & EndPoint,
+	OpenAPIRequestGet::OpenAPIRequestGet( 	std::string ServiceType,
+											std::string EndPoint,
 									 		Types::StringPairVec & QueryData,
 											uint64_t msTimeout):
- 		Type_(ServiceType),
- 		EndPoint_(EndPoint),
+ 		Type_(std::move(ServiceType)),
+ 		EndPoint_(std::move(EndPoint)),
 		QueryData_(QueryData),
 		msTimeout_(msTimeout) {
 

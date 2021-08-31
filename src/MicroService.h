@@ -1,5 +1,9 @@
 //
-// Created by stephane bourque on 2021-06-22.
+//	License type: BSD 3-Clause License
+//	License copy: https://github.com/Telecominfraproject/wlan-cloud-ucentralgw/blob/master/LICENSE
+//
+//	Created by Stephane Bourque on 2021-03-04.
+//	Arilia Wireless Inc.
 //
 
 #ifndef UCENTRALGW_MICROSERVICE_H
@@ -29,11 +33,12 @@
 
 namespace OpenWifi {
 
-	static const std::string uSERVICE_SECURITY{"ucentralsec"};
-	static const std::string uSERVICE_GATEWAY{"ucentralgw"};
-	static const std::string uSERVICE_FIRMWARE{ "ucentralfms"};
+	static const std::string uSERVICE_SECURITY{"owsec"};
+	static const std::string uSERVICE_GATEWAY{"owgw"};
+	static const std::string uSERVICE_FIRMWARE{ "owfms"};
     static const std::string uSERVICE_TOPOLOGY{ "owtopo"};
     static const std::string uSERVICE_PROVISIONING{ "owprov"};
+    static const std::string uSERVICE_OWLS{ "owls"};
 
 	class MyErrorHandler : public Poco::ErrorHandler {
 	  public:
@@ -82,9 +87,6 @@ namespace OpenWifi {
 			DAEMON_APP_NAME(std::move(AppName)),
 			DAEMON_BUS_TIMER(BusTimer),
 			SubSystems_(std::move(Subsystems)) {
-			std::string V{APP_VERSION};
-			std::string B{BUILD_NUMBER};
-			Version_ =  V + "(" + B +  ")";
 		}
 
 		int main(const ArgVec &args) override;
@@ -136,9 +138,9 @@ namespace OpenWifi {
 		[[nodiscard]] MicroServiceMetaVec GetServices();
 		[[nodiscard]] bool IsValidAPIKEY(const Poco::Net::HTTPServerRequest &Request);
 
-		void SavePID();
-		inline uint64_t GetPID() { return Poco::Process::id(); };
-		[[nodiscard]] inline const std::string GetPublicAPIEndPoint() const { return MyPublicEndPoint_ + "/api/v1"; };
+		static void SavePID();
+		static inline uint64_t GetPID() { return Poco::Process::id(); };
+		[[nodiscard]] inline const std::string GetPublicAPIEndPoint() { return MyPublicEndPoint_ + "/api/v1"; };
 		[[nodiscard]] inline const std::string & GetUIURI() const { return UIURI_;};
 
 	  private:
@@ -159,7 +161,7 @@ namespace OpenWifi {
 		std::string 				MyPrivateEndPoint_;
 		std::string 				MyPublicEndPoint_;
 		std::string                 UIURI_;
-		std::string 				Version_;
+		std::string 				Version_{std::string(APP_VERSION) + "("+ BUILD_NUMBER + ")"};
 		BusEventManager				BusEventManager_;
 		SubMutex 					InfraMutex_;
 

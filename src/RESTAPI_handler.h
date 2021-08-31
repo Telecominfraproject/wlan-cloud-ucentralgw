@@ -25,6 +25,7 @@
 #include "Poco/NullStream.h"
 
 #include "RESTAPI_SecurityObjects.h"
+#include "RESTAPI_utils.h"
 
 namespace OpenWifi {
 
@@ -86,7 +87,7 @@ namespace OpenWifi {
 		struct QueryBlock {
 			uint64_t StartDate = 0 , EndDate = 0 , Offset = 0 , Limit = 0, LogType = 0 ;
 			std::string SerialNumber, Filter, Select;
-			bool Lifetime=false, LastOnly=false, Newest=false;
+			bool Lifetime=false, LastOnly=false, Newest=false, CountOnly=false;
 		};
 
 		typedef std::map<std::string, std::string> BindingMap;
@@ -142,12 +143,25 @@ namespace OpenWifi {
         const std::string &GetBinding(const std::string &Name, const std::string &Default);
 		bool InitQueryBlock();
 
+		void ReturnCountOnly(Poco::Net::HTTPServerRequest &Request, uint64_t Count,
+                             Poco::Net::HTTPServerResponse &Response);
+
 		[[nodiscard]] static uint64_t Get(const char *Parameter,const Poco::JSON::Object::Ptr &Obj, uint64_t Default=0);
 		[[nodiscard]] static std::string GetS(const char *Parameter,const Poco::JSON::Object::Ptr &Obj, const std::string & Default="");
 		[[nodiscard]] static bool GetB(const char *Parameter,const Poco::JSON::Object::Ptr &Obj, bool Default=false);
 		[[nodiscard]] static uint64_t GetWhen(const Poco::JSON::Object::Ptr &Obj);
 		bool HasParameter(const std::string &QueryParameter, std::string &Value);
 		bool HasParameter(const std::string &QueryParameter, uint64_t & Value);
+
+		bool AssignIfPresent(const Poco::JSON::Object::Ptr &O, const std::string &Field, std::string &Value);
+		bool AssignIfPresent(const Poco::JSON::Object::Ptr &O, const std::string &Field, uint64_t &Value);
+
+		template<typename T> void ReturnObject(   Poco::Net::HTTPServerRequest &Request, const char *Name, const std::vector<T> & Objects,
+		                                                Poco::Net::HTTPServerResponse &Response) {
+		    Poco::JSON::Object  Answer;
+		    RESTAPI_utils::field_to_json(Answer,Name,Objects);
+            ReturnObject(Request, Answer, Response);
+		}
 
 	  protected:
 		BindingMap 					Bindings_;

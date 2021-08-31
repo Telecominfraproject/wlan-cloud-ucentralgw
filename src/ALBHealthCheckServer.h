@@ -1,5 +1,9 @@
 //
-// Created by stephane bourque on 2021-06-04.
+//	License type: BSD 3-Clause License
+//	License copy: https://github.com/Telecominfraproject/wlan-cloud-ucentralgw/blob/master/LICENSE
+//
+//	Created by Stephane Bourque on 2021-03-04.
+//	Arilia Wireless Inc.
 //
 
 #ifndef UCENTRALGW_ALBHEALTHCHECKSERVER_H
@@ -26,12 +30,12 @@ namespace OpenWifi {
 			/// Return a HTML document with the current date and time.
 		{
 		  public:
-			ALBRequestHandler(Poco::Logger & L)
+			explicit ALBRequestHandler(Poco::Logger & L)
 				: Logger_(L)
 			{
 			}
 
-			void handleRequest(Poco::Net::HTTPServerRequest& Request, Poco::Net::HTTPServerResponse& Response)
+			void handleRequest(Poco::Net::HTTPServerRequest& Request, Poco::Net::HTTPServerResponse& Response) override
 			{
 				Logger_.information(Poco::format("ALB-REQUEST(%s): New ALB request.",Request.clientAddress().toString()));
 				Response.setChunkedTransferEncoding(true);
@@ -83,7 +87,7 @@ namespace OpenWifi {
                 return instance_;
             }
 
-            int Start() {
+            int Start() override {
                 if(Daemon()->ConfigGetBool("alb.enable",false)) {
                     Port_ = (int)Daemon()->ConfigGetInt("alb.port",15015);
                     Socket_ = std::make_unique<Poco::Net::ServerSocket>(Port_);
@@ -95,7 +99,7 @@ namespace OpenWifi {
                 return 0;
             }
 
-            void Stop() {
+            void Stop() override {
                 if(Server_)
                     Server_->stop();
             }

@@ -12,7 +12,7 @@
 namespace OpenWifi {
 	class StateProcessor {
 	  public:
-		StateProcessor(GWObjects::ConnectionState * Conn):
+		explicit StateProcessor(GWObjects::ConnectionState * Conn):
  			Conn_(Conn) {}
 
 		~StateProcessor() {

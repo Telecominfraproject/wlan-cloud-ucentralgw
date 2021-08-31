@@ -347,7 +347,6 @@ namespace OpenWifi {
 						}
 						Conn_->VerifiedCertificate = CertValidation_;
 
-						std::string Compatible;
 						if (Daemon()->AutoProvisioning() && !Storage()->DeviceExists(SerialNumber_)) {
 							Storage()->CreateDefaultDevice(SerialNumber_, Capabilities, Firmware, Compatible_);
 						} else if (Storage()->DeviceExists(SerialNumber_)) {
@@ -547,9 +546,6 @@ namespace OpenWifi {
 						ParamsObj->has(uCentralProtocol::UUID) && ParamsObj->has(uCentralProtocol::REBOOT) &&
 						ParamsObj->has(uCentralProtocol::LOGLINES)) {
 
-						uint64_t UUID = ParamsObj->get(uCentralProtocol::UUID);
-						uint64_t Reboot = ParamsObj->get(uCentralProtocol::REBOOT);
-						auto Firmware = ParamsObj->get(uCentralProtocol::FIRMWARE).toString();
 						auto LogLines = ParamsObj->get(uCentralProtocol::LOGLINES);
 						std::string LogText;
 						if (LogLines.isArray()) {
@@ -624,13 +620,13 @@ namespace OpenWifi {
 	}
 
     void WSConnection::ProcessIncomingFrame() {
-        int flags, Op;
-        int IncomingSize;
 
         bool MustDisconnect=false;
 		Poco::Buffer<char>			IncomingFrame(0);
 
         try {
+			int Op,flags;
+			int IncomingSize;
 			IncomingSize = WS_->receiveFrame(IncomingFrame,flags);
             Op = flags & Poco::Net::WebSocket::FRAME_OP_BITMASK;
 

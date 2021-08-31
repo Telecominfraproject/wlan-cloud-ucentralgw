@@ -1,6 +1,11 @@
 //
-// Created by stephane bourque on 2021-06-22.
+//	License type: BSD 3-Clause License
+//	License copy: https://github.com/Telecominfraproject/wlan-cloud-ucentralgw/blob/master/LICENSE
 //
+//	Created by Stephane Bourque on 2021-03-04.
+//	Arilia Wireless Inc.
+//
+
 #include <cstdlib>
 #include <boost/algorithm/string.hpp>
 
@@ -182,7 +187,7 @@ namespace OpenWifi {
 		} else {
 			config().setString(LogFilePathKey, LogDir_);
 		}
-		Poco::File	DataDir(ConfigPath("ucentral.system.data"));
+		Poco::File	DataDir(ConfigPath("openwifi.system.data"));
 		DataDir_ = DataDir.path();
 		if(!DataDir.exists()) {
 			try {
@@ -191,16 +196,16 @@ namespace OpenWifi {
 				logger().log(E);
 			}
 		}
-		std::string KeyFile = ConfigPath("ucentral.service.key");
-		std::string KeyFilePassword = ConfigPath("ucentral.service.key.password" , "" );
+		std::string KeyFile = ConfigPath("openwifi.service.key");
+		std::string KeyFilePassword = ConfigPath("openwifi.service.key.password" , "" );
 		AppKey_ = Poco::SharedPtr<Poco::Crypto::RSAKey>(new Poco::Crypto::RSAKey("", KeyFile, KeyFilePassword));
 		Cipher_ = CipherFactory_.createCipher(*AppKey_);
 		ID_ = Utils::GetSystemId();
 		if(!DebugMode_)
-			DebugMode_ = ConfigGetBool("ucentral.system.debug",false);
-		MyPrivateEndPoint_ = ConfigGetString("ucentral.system.uri.private");
-		MyPublicEndPoint_ = ConfigGetString("ucentral.system.uri.public");
-		UIURI_ = ConfigGetString("ucentral.system.uri.ui");
+			DebugMode_ = ConfigGetBool("openwifi.system.debug",false);
+		MyPrivateEndPoint_ = ConfigGetString("openwifi.system.uri.private");
+		MyPublicEndPoint_ = ConfigGetString("openwifi.system.uri.public");
+		UIURI_ = ConfigGetString("openwifi.system.uri.ui");
 		MyHash_ = CreateHash(MyPublicEndPoint_);
 		InitializeSubSystemServers();
 		ServerApplication::initialize(self);
@@ -427,7 +432,7 @@ namespace OpenWifi {
 			Poco::Thread::trySleep((unsigned long)Daemon()->DaemonBusTimer());
 			if(!Running_)
 				break;
-			auto Msg = Daemon()->MakeSystemEventMessage(KafkaTopics::ServiceEvents::EVENT_KEEP_ALIVE);
+			Msg = Daemon()->MakeSystemEventMessage(KafkaTopics::ServiceEvents::EVENT_KEEP_ALIVE);
 			KafkaManager()->PostMessage(KafkaTopics::SERVICE_EVENTS,Daemon()->PrivateEndPoint(),Msg, false);
 		}
 		Msg = Daemon()->MakeSystemEventMessage(KafkaTopics::ServiceEvents::EVENT_LEAVE);
