@@ -101,12 +101,12 @@ setgateway() {
 #			echo "  host: $host"
 #			echo "  port: $port"
 #			echo "  path: $path"
-			OGWG="${url}"
+			OWGW="${url}"
 			break
 		fi
 	fi
 	done
-	echo "Using ${OGWG}..."
+	echo "Using ${OWGW}..."
 }
 
 logout() {
