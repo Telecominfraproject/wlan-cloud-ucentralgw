@@ -179,7 +179,7 @@ You should now have the following:
   +-- test_scripts
   +-- openapi
   +-- uploads
-  +-- ucentralgw.properties
+  +-- owgw.properties
 ```
 
 ### Certificates
@@ -218,14 +218,14 @@ document. Once you have these files, you need to renamed them `restapi-key.pem`,
 in your browner 
 
 #### Configuration
-The configuration for this service is kept in a properties file. This file is called `ucentralgw.properties` and you can 
-see the latest version [here](https://github.com/Telecominfraproject/wlan-cloud-ucentralgw/blob/main/ucentralgw.properties). The file will be loaded from
+The configuration for this service is kept in a properties file. This file is called `owgw.properties` and you can 
+see the latest version [here](https://github.com/Telecominfraproject/wlan-cloud-ucentralgw/blob/main/owgw.properties). The file will be loaded from
 the directory set by the environment variable `UCENTRALGW_CONFIG`. To use environment variables in the configuration,
 you must use `$<varname>`. Only `path names` support the use of environment variables. The sample configuration requires very 
 little changes if you keep the suggested directory structure. For the sample configuration to work, you need to define 2 
 environment variables. 
 ```
-export UCENTRALGW_ROOT=`pwd`
+export OWGW_ROOT=`pwd`
 export UCENTRALGW_CONFIG=`pwd`
 ```
 If you current working directory is the root of the project, this will set the variables properly. Otherwise, you can set the variables 
@@ -234,7 +234,7 @@ to point to wherever is necessary.
 ##### Important config entries
 ###### This is the logging directory
 ```
-logging.channels.c2.path = $UCENTRALGW_ROOT/logs/sample.log
+logging.channels.c2.path = $OWGW_ROOT/logs/sample.log
 ```
 
 ###### This is the type of storage in use
@@ -244,23 +244,23 @@ storage.type = sqlite
 
 ###### Autoprovisioning settings
 ```asm
-ucentral.autoprovisioning = true
-ucentral.devicetypes.0 = AP:linksys_ea8300,edgecore_eap101,linksys_e8450-ubi
-ucentral.devicetypes.1 = SWITCH:edgecore_ecs4100-12ph
-ucentral.devicetypes.2 = IOT:esp32
+openwifi.autoprovisioning = true
+openwifi.devicetypes.0 = AP:linksys_ea8300,edgecore_eap101,linksys_e8450-ubi
+openwifi.devicetypes.1 = SWITCH:edgecore_ecs4100-12ph
+openwifi.devicetypes.2 = IOT:esp32
 ```
 
 ###### This is the RESTAPI endpoint
 
 ```asm
-ucentral.restapi.host.0.backlog = 100
-ucentral.restapi.host.0.security = relaxed
-ucentral.restapi.host.0.rootca = $UCENTRALGW_ROOT/certs/restapi-ca.pem
-ucentral.restapi.host.0.address = *
-ucentral.restapi.host.0.port = 16002
-ucentral.restapi.host.0.cert = $UCENTRALGW_ROOT/certs/restapi-cert.pem
-ucentral.restapi.host.0.key = $UCENTRALGW_ROOT/certs/restapi-key.pem
-ucentral.restapi.host.0.key.password = mypassword
+openwifi.restapi.host.0.backlog = 100
+openwifi.restapi.host.0.security = relaxed
+openwifi.restapi.host.0.rootca = $OWGW_ROOT/certs/restapi-ca.pem
+openwifi.restapi.host.0.address = *
+openwifi.restapi.host.0.port = 16002
+openwifi.restapi.host.0.cert = $OWGW_ROOT/certs/restapi-cert.pem
+openwifi.restapi.host.0.key = $OWGW_ROOT/certs/restapi-key.pem
+openwifi.restapi.host.0.key.password = mypassword
 ```
 
 ##### This is the end point for the devices to connect with
@@ -309,12 +309,12 @@ You will need to get the `cert.pem` and `key.pem` from Digicert. The rest is her
 
 ```asm
 ucentral.websocket.host.0.backlog = 500
-ucentral.websocket.host.0.rootca = $UCENTRALGW_ROOT/certs/root.pem
-ucentral.websocket.host.0.issuer = $UCENTRALGW_ROOT/certs/issuer.pem
-ucentral.websocket.host.0.cert = $UCENTRALGW_ROOT/certs/websocket-cert.pem
-ucentral.websocket.host.0.key = $UCENTRALGW_ROOT/certs/websocket-key.pem
-ucentral.websocket.host.0.clientcas = $UCENTRALGW_ROOT/certs/clientcas.pem
-ucentral.websocket.host.0.cas = $UCENTRALGW_ROOT/certs/cas
+ucentral.websocket.host.0.rootca = $OWGW_ROOT/certs/root.pem
+ucentral.websocket.host.0.issuer = $OWGW_ROOT/certs/issuer.pem
+ucentral.websocket.host.0.cert = $OWGW_ROOT/certs/websocket-cert.pem
+ucentral.websocket.host.0.key = $OWGW_ROOT/certs/websocket-key.pem
+ucentral.websocket.host.0.clientcas = $OWGW_ROOT/certs/clientcas.pem
+ucentral.websocket.host.0.cas = $OWGW_ROOT/certs/cas
 ucentral.websocket.host.0.address = *
 ucentral.websocket.host.0.port = 15002
 ucentral.websocket.host.0.security = strict
@@ -324,17 +324,17 @@ ucentral.websocket.maxreactors = 20
 
 ###### This is the end point for the devices when uploading files
 ```asm
-ucentral.fileuploader.host.0.backlog = 100
-ucentral.fileuploader.host.0.rootca = $UCENTRALGW_ROOT/certs/restapi-ca.pem
-ucentral.fileuploader.host.0.security = relaxed
-ucentral.fileuploader.host.0.address = *
-ucentral.fileuploader.host.0.name = 192.168.1.176
-ucentral.fileuploader.host.0.port = 16003
-ucentral.fileuploader.host.0.cert = $UCENTRALGW_ROOT/certs/restapi-cert.pem
-ucentral.fileuploader.host.0.key = $UCENTRALGW_ROOT/certs/restapi-key.pem
-ucentral.fileuploader.host.0.key.password = mypassword
-ucentral.fileuploader.path = $UCENTRALGW_ROOT/uploads
-ucentral.fileuploader.maxsize = 10000
+openwifi.fileuploader.host.0.backlog = 100
+openwifi.fileuploader.host.0.rootca = $OWGW_ROOT/certs/restapi-ca.pem
+openwifi.fileuploader.host.0.security = relaxed
+openwifi.fileuploader.host.0.address = *
+openwifi.fileuploader.host.0.name = 192.168.1.176
+openwifi.fileuploader.host.0.port = 16003
+openwifi.fileuploader.host.0.cert = $OWGW_ROOT/certs/restapi-cert.pem
+openwifi.fileuploader.host.0.key = $OWGW_ROOT/certs/restapi-key.pem
+openwifi.fileuploader.host.0.key.password = mypassword
+openwifi.fileuploader.path = $OWGW_ROOT/uploads
+openwifi.fileuploader.maxsize = 10000
 ```
 
 ###### host.0.address entries
@@ -343,7 +343,7 @@ the `*`. Using the `*` means all interfaces will be able to accept connections. 
 by changing the `0` to another index. You need to repeat the whole configuration block for each index. Indexes must be sequential
 start at `0`.
 
-###### ucentral.fileuploader.host.0.name
+###### openwifi.fileuploader.host.0.name
 This must point to the IP or FQDN of your uCentralGW.
 
 #### Running the gateway
@@ -369,7 +369,7 @@ can be any of the keys you are already using. You must keep that keep secret and
 this is the entry
 
 ```asm
-ucentral.service.key = $UCENTRALGW_ROOT/certs/websocket-key.pem
+openwifi.service.key = $OWGW_ROOT/certs/websocket-key.pem
 ```
  
 #### Command line options
@@ -442,7 +442,7 @@ fi
 
 if [[ ! -f owgw.properties ]]
 then
-  echo "Configuration file ucentralgw.properties is missing in the current directory"
+  echo "Configuration file owgw.properties is missing in the current directory"
   exit 2
 fi
 
@@ -458,9 +458,9 @@ docker run -d -p 15002:15002 \
 ```
 
 Create yourself a directory and copy that script which you can also get from [here](https://github.com/Telecominfraproject/wlan-cloud-ucentralgw/blob/main/docker_run.sh).
-You must have the basic configuration file copied in the directory. This file must be called `ucentralgw.properties`. You can bring your own or
-copy it from [here](https://github.com/Telecominfraproject/wlan-cloud-ucentralgw/blob/main/ucentralgw.properties). Please look at [this](#certificates-with-docker) to have the right 
-certificates. You need to make sure that the names match the content of the `ucentralgw.properties`
+You must have the basic configuration file copied in the directory. This file must be called `owgw.properties`. You can bring your own or
+copy it from [here](https://github.com/Telecominfraproject/wlan-cloud-ucentralgw/blob/main/owgw.properties). Please look at [this](#certificates-with-docker) to have the right 
+certificates. You need to make sure that the names match the content of the `owgw.properties`
 file. Once all this is done, you can simply run `docker_run.sh`.
 
 #### Docker installation directory layout
@@ -472,15 +472,15 @@ Run-time root
     ----- certs (same as above)
     +---- logs  (dir)
     +---- uploads  (dir)
-    +---- ucentralgw.properties (file)
+    +---- owgw.properties (file)
 ```
 
-#### `ucentralgw.properties` for Docker
+#### `owgw.properties` for Docker
 If you use the pre-made configuration file, and you follow the directory layout, the only line you must change 
 is the following line:
 
 ```asm
-ucentral.fileuploader.host.0.name = 192.168.1.176
+openwifi.fileuploader.host.0.name = 192.168.1.176
 ```
 
 This line should reflect the IP of your gateway or its FQDN. You must make sure that this name or IP is accessible
@@ -491,8 +491,8 @@ Please refer to the `certs` directory from the sections above.
 
 #### Configuration with Docker
 The configuration for this service is kept in a properties file. Currently, this configuration file must be kept in the 
-current directory of uCentral or one level up. This file is called `ucentralgw.properties` and you can see the latest version
-[here](https://github.com/Telecominfraproject/wlan-cloud-ucentralgw/blob/main/ucentralgw.properties). The file will be loaded from 
+current directory of uCentral or one level up. This file is called `owgw.properties` and you can see the latest version
+[here](https://github.com/Telecominfraproject/wlan-cloud-ucentralgw/blob/main/owgw.properties). The file will be loaded from 
 the directory set by the environment variable `UCENTRALGW_CONFIG`. To use environment variables in the configuration,
 you must use `$<varname>`. The path for the logs for the service must exist prior to starting the 
 service. The path is defined under `logging.channels.c2.path`. Only `path names` support the use of 
@@ -513,23 +513,23 @@ More scripts will be added in the future.
 
 ## Firewall Considerations
 - The protocol uses TCP port 15002 between the devices and the gateway. This port must be opened.
-- Devices use the TCP port 16003 to upload files. This port is configurable in the `ucentralgw.properties` file. Look for `ucentral.fileuploader.host.0.port`.
-- The RESTAPI is accessed through TCP port 16002 by default. This port is configurable in the `ucentralgw.properties` file. Look for the entry `ucentral.restapi.host.0.port`.
+- Devices use the TCP port 16003 to upload files. This port is configurable in the `owgw.properties` file. Look for `openwifi.fileuploader.host.0.port`.
+- The RESTAPI is accessed through TCP port 16002 by default. This port is configurable in the `owgw.properties` file. Look for the entry `openwifi.restapi.host.0.port`.
 
 ## Kafka integration
 So what about Kafka? Well, the gateway has basic integration with Kafka. It is turned off by default, to turn it on, in the configuration:
 
 ```asm
-ucentral.kafka.enable = false
-ucentral.kafka.brokerlist = 127.0.0.1:9092
-ucentral.kafka.commit = false
-ucentral.kafka.queue.buffering.max.ms = 50
+openwifi.kafka.enable = false
+openwifi.kafka.brokerlist = 127.0.0.1:9092
+openwifi.kafka.commit = false
+openwifi.kafka.queue.buffering.max.ms = 50
 ```
 
-#### `ucentral.kafka.enable`
+#### `openwifi.kafka.enable`
 Kind of obvious but hey, set `true` or `false`. Default is `false`
 
-#### `ucentral.kafka.brokerlist`
+#### `openwifi.kafka.brokerlist`
 This is a comma separator list of the brokers in your `kafka` deployment. 
 
 #### Kafka topics
