@@ -81,6 +81,8 @@ namespace OpenWifi {
 	}
 
 	void WSConnection::CompleteStartup() {
+		std::lock_guard Guard(Mutex_);
+
 		try {
 			auto SS = dynamic_cast<Poco::Net::SecureStreamSocketImpl *>(Socket_.impl());
 
@@ -160,7 +162,6 @@ namespace OpenWifi {
     }
 
     WSConnection::~WSConnection() {
-		std::lock_guard Guard(Mutex_);
         DeviceRegistry()->UnRegister(SerialNumber_,this);
         if(Registered_ && WS_)
         {
@@ -587,18 +588,24 @@ namespace OpenWifi {
     }
 
     void WSConnection::OnSocketShutdown(const Poco::AutoPtr<Poco::Net::ShutdownNotification>& pNf) {
+		std::lock_guard Guard(Mutex_);
+
         Logger_.information(Poco::format("SOCKET-SHUTDOWN(%s): Closing.",CId_));
 		std::cout << "Socket shutdown for " << SerialNumber_ << std::endl;
         delete this;
     }
 
     void WSConnection::OnSocketError(const Poco::AutoPtr<Poco::Net::ErrorNotification>& pNf) {
+		std::lock_guard Guard(Mutex_);
+
         Logger_.information(Poco::format("SOCKET-ERROR(%s): Closing.",CId_));
         std::cout << "Socket error for " << SerialNumber_ << std::endl;
         delete this;
     }
 
     void WSConnection::OnSocketReadable(const Poco::AutoPtr<Poco::Net::ReadableNotification>& pNf) {
+		std::lock_guard Guard(Mutex_);
+
         try
         {
             ProcessIncomingFrame();
@@ -775,6 +782,7 @@ namespace OpenWifi {
 
 	bool WSConnection::Send(const std::string &Payload) {
 		std::lock_guard Guard(Mutex_);
+
 		auto BytesSent = WS_->sendFrame(Payload.c_str(),(int)Payload.size());
 		if(Conn_)
 			Conn_->TX += BytesSent;
