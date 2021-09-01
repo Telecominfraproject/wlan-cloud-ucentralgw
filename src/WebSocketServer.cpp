@@ -162,6 +162,7 @@ namespace OpenWifi {
     }
 
     WSConnection::~WSConnection() {
+		Logger_.information("New message #3");
         DeviceRegistry()->UnRegister(SerialNumber_,this);
         if(Registered_ && WS_)
         {
@@ -645,6 +646,7 @@ namespace OpenWifi {
 
             if (IncomingSize == 0 && flags == 0 && Op == 0) {
                 Logger_.information(Poco::format("DISCONNECT(%s)", CId_));
+				Logger_.information("New message #1");
                 MustDisconnect = true;
             } else {
                 switch (Op) {
@@ -777,6 +779,7 @@ namespace OpenWifi {
         if(!MustDisconnect || Errors_<10)
             return;
 
+        Logger_.information("New message #2");
         delete this;
     }
 
