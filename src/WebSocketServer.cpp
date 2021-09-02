@@ -776,10 +776,12 @@ namespace OpenWifi {
             MustDisconnect = true ;
         }
 
-        if(!MustDisconnect || Errors_<10)
-            return;
+        if(!MustDisconnect && Errors_<10) {
+        	Errors_++;
+			return;
+		}
 
-        Logger_.information("New message #2");
+		Logger_.information("New message #2");
         delete this;
     }
 
