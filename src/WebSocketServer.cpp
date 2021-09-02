@@ -81,6 +81,7 @@ namespace OpenWifi {
 	}
 
 	void WSConnection::CompleteStartup() {
+		std::lock_guard Guard(Mutex_);
 		try {
 			auto SS = dynamic_cast<Poco::Net::SecureStreamSocketImpl *>(Socket_.impl());
 
@@ -143,6 +144,7 @@ namespace OpenWifi {
 									 Poco::NObserver<WSConnection, Poco::Net::ErrorNotification>(
 										 *this, &WSConnection::OnSocketError));
 			Registered_ = true;
+			Logger_.information(Poco::format("CONNECTION(%s): completed.",CId_));
 			return;
 		} catch (const Poco::Exception &E ) {
 			Logger_.error("Exception caught during device connection. Device will have to retry.");

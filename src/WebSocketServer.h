@@ -54,7 +54,7 @@ namespace OpenWifi {
 		void LogException(const Poco::Exception &E);
 		[[nodiscard]] GWObjects::CertificateValidation CertificateValidation() const { return CertValidation_; };
     private:
-		std::mutex                         	Mutex_;
+		std::recursive_mutex                         	Mutex_;
         Poco::Logger                    	&Logger_;
         Poco::Net::StreamSocket       		Socket_;
 		Poco::Net::SocketReactor			& Reactor_;
