@@ -585,18 +585,13 @@ namespace OpenWifi {
 
     void WSConnection::OnSocketShutdown(const Poco::AutoPtr<Poco::Net::ShutdownNotification>& pNf) {
 		std::lock_guard Guard(Mutex_);
-
         Logger_.information(Poco::format("SOCKET-SHUTDOWN(%s): Closing.",CId_));
-		std::cout << "Socket shutdown for " << SerialNumber_ << std::endl;
-
         delete this;
     }
 
     void WSConnection::OnSocketError(const Poco::AutoPtr<Poco::Net::ErrorNotification>& pNf) {
 		std::lock_guard Guard(Mutex_);
-
         Logger_.information(Poco::format("SOCKET-ERROR(%s): Closing.",CId_));
-        std::cout << "Socket error for " << SerialNumber_ << std::endl;
         delete this;
     }
 
@@ -606,14 +601,18 @@ namespace OpenWifi {
         {
             ProcessIncomingFrame();
         }
-        catch ( const Poco::Exception & E )
+        catch (const Poco::Exception & E)
         {
             Logger_.log(E);
             delete this;
         }
-		catch ( const std::exception & E) {
+		catch (const std::exception & E) {
 			std::string W = E.what();
 			Logger_.information(Poco::format("std::exception caught: %s. Connection terminated with %s",W,CId_));
+			delete this;
+		}
+		catch ( ... ) {
+			Logger_.information(Poco::format("Unknown exception for %s. Connection terminated.",CId_));
 			delete this;
 		}
     }
