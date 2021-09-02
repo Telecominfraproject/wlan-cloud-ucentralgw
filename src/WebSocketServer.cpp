@@ -81,7 +81,6 @@ namespace OpenWifi {
 	}
 
 	void WSConnection::CompleteStartup() {
-		std::lock_guard Guard(Mutex_);
 		try {
 			auto SS = dynamic_cast<Poco::Net::SecureStreamSocketImpl *>(Socket_.impl());
 
