@@ -361,7 +361,6 @@ namespace OpenWifi {
             if (SessionToken_.empty()) {
                 try {
                     Poco::Net::OAuth20Credentials Auth(Request);
-
                     if (Auth.getScheme() == "Bearer") {
                         SessionToken_ = Auth.getBearerToken();
                     }
@@ -382,17 +381,6 @@ namespace OpenWifi {
         }
 	}
 
-/*
-	bool RESTAPIHandler::ValidateAPIKey(Poco::Net::HTTPServerRequest &Request,
-										Poco::Net::HTTPServerResponse &Response) {
-		auto Key = Request.get("X-API-KEY", "");
-
-		if (Key.empty())
-			return false;
-
-		return true;
-	}
-*/
 	void RESTAPIHandler::ReturnObject(Poco::Net::HTTPServerRequest &Request, Poco::JSON::Object &Object,
 									  Poco::Net::HTTPServerResponse &Response) {
 		PrepareResponse(Request, Response);
