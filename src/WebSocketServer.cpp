@@ -24,6 +24,7 @@
 #include "Utils.h"
 #include "WebSocketServer.h"
 #include "uCentralProtocol.h"
+#include "TelemetryStream.h"
 
 namespace OpenWifi {
 
@@ -570,6 +571,14 @@ namespace OpenWifi {
 						Storage()->SetDevicePassword(Serial, Password);
 						Logger_.error(Poco::format(
 							"DEVICEUPDATE(%s): Device is updating its login password.", Serial));
+					}
+				}
+				break;
+
+			case uCentralProtocol::ET_TELEMETRY: {
+					if(ParamsObj->has("data")) {
+						auto Payload = ParamsObj->get("data").toString();
+						TelemetryStream()->UpdateEndPoint(SerialNumber_, Payload);
 					}
 				}
 				break;

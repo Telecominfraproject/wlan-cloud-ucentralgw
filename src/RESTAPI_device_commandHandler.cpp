@@ -28,6 +28,7 @@
 #include "CommandManager.h"
 #include "KafkaManager.h"
 #include "Kafka_topics.h"
+#include "TelemetryStream.h"
 
 namespace OpenWifi {
 
@@ -120,6 +121,9 @@ void RESTAPI_device_commandHandler::handleRequest(Poco::Net::HTTPServerRequest &
 		} else if (Command == RESTAPI::Protocol::RTTY &&
 				   Request.getMethod() == Poco::Net::HTTPServerRequest::HTTP_GET) {
 			Rtty(Request, Response);
+		} else if (Command == RESTAPI::Protocol::TELEMETRY &&
+					Request.getMethod() == Poco::Net::HTTPServerRequest::HTTP_GET) {
+			Telemetry(Request, Response);
 		} else {
 			BadRequest(Request, Response);
 		}
@@ -883,66 +887,147 @@ void RESTAPI_device_commandHandler::MakeRequest(Poco::Net::HTTPServerRequest &Re
 	BadRequest(Request, Response);
 }
 
-void RESTAPI_device_commandHandler::Rtty(Poco::Net::HTTPServerRequest &Request,
-										 Poco::Net::HTTPServerResponse &Response) {
-	try {
-		if (Daemon()->ConfigGetString("rtty.enabled", "false") == "true") {
-			GWObjects::Device	Device;
-			if (Storage()->GetDevice(SerialNumber_, Device)) {
-				auto CommandUUID = Daemon::instance()->CreateUUID();
+	void RESTAPI_device_commandHandler::Rtty(Poco::Net::HTTPServerRequest &Request,
+											 Poco::Net::HTTPServerResponse &Response) {
+		try {
+			if (Daemon()->ConfigGetString("rtty.enabled", "false") == "true") {
+				GWObjects::Device	Device;
+				if (Storage()->GetDevice(SerialNumber_, Device)) {
+					auto CommandUUID = Daemon::instance()->CreateUUID();
 
-				GWObjects::RttySessionDetails Rtty{
-					.SerialNumber = SerialNumber_,
-					.Server = Daemon()->ConfigGetString("rtty.server", "localhost"),
-					.Port = Daemon()->ConfigGetInt("rtty.port", 5912),
-					.Token = Daemon()->ConfigGetString("rtty.token", "nothing"),
-					.TimeOut = Daemon()->ConfigGetInt("rtty.timeout", 60),
-					.ConnectionId = CommandUUID,
-					.Started = (uint64_t)time(nullptr),
-					.CommandUUID = CommandUUID,
-					.ViewPort = Daemon()->ConfigGetInt("rtty.viewport", 5913),
+					GWObjects::RttySessionDetails Rtty{
+						.SerialNumber = SerialNumber_,
+						.Server = Daemon()->ConfigGetString("rtty.server", "localhost"),
+						.Port = Daemon()->ConfigGetInt("rtty.port", 5912),
+						.Token = Daemon()->ConfigGetString("rtty.token", "nothing"),
+						.TimeOut = Daemon()->ConfigGetInt("rtty.timeout", 60),
+						.ConnectionId = CommandUUID,
+						.Started = (uint64_t)time(nullptr),
+						.CommandUUID = CommandUUID,
+						.ViewPort = Daemon()->ConfigGetInt("rtty.viewport", 5913),
 
-				};
+					};
 
-				Poco::JSON::Object ReturnedObject;
-				Rtty.to_json(ReturnedObject);
+					Poco::JSON::Object ReturnedObject;
+					Rtty.to_json(ReturnedObject);
 
-				//	let's create the command for this request
+					//	let's create the command for this request
+					GWObjects::CommandDetails Cmd;
+					Cmd.SerialNumber = SerialNumber_;
+					Cmd.SubmittedBy = UserInfo_.webtoken.username_;
+					Cmd.UUID = CommandUUID;
+					Cmd.Command = uCentralProtocol::RTTY;
+
+					Poco::JSON::Object Params;
+
+					Params.set(uCentralProtocol::METHOD, uCentralProtocol::RTTY);
+					Params.set(uCentralProtocol::SERIAL, SerialNumber_);
+					Params.set(uCentralProtocol::ID, Rtty.ConnectionId);
+					Params.set(uCentralProtocol::TOKEN, Rtty.Token);
+					Params.set(uCentralProtocol::SERVER, Rtty.Server);
+					Params.set(uCentralProtocol::PORT, Rtty.Port);
+					Params.set(uCentralProtocol::USER, UserInfo_.webtoken.username_);
+					Params.set(uCentralProtocol::TIMEOUT, Rtty.TimeOut);
+					Params.set(uCentralProtocol::PASSWORD, Device.DevicePassword);
+
+					std::stringstream ParamStream;
+					Params.stringify(ParamStream);
+					Cmd.Details = ParamStream.str();
+					RESTAPI_RPC::WaitForCommand(Cmd, Params, Request, Response, std::chrono::milliseconds(15000), &ReturnedObject, this);
+					return;
+				} else {
+					NotFound(Request, Response);
+					return;
+				}
+			} else {
+				ReturnStatus(Request, Response, Poco::Net::HTTPResponse::HTTP_SERVICE_UNAVAILABLE);
+				return;
+			}
+		} catch (const Poco::Exception &E) {
+			Logger_.log(E);
+		}
+		BadRequest(Request, Response);
+	}
+
+	void RESTAPI_device_commandHandler::Telemetry(Poco::Net::HTTPServerRequest &Request, Poco::Net::HTTPServerResponse &Response){
+		try {
+			Poco::JSON::Parser parser;
+			Poco::JSON::Object::Ptr Obj =
+				parser.parse(Request.stream()).extract<Poco::JSON::Object::Ptr>();
+
+			if (Obj->has(RESTAPI::Protocol::SERIALNUMBER) &&
+				Obj->has(RESTAPI::Protocol::INTERVAL) && Obj->has(RESTAPI::Protocol::TYPES)) {
+
+				auto SNum = GetS(RESTAPI::Protocol::SERIALNUMBER, Obj);
+
+				if (SNum != SerialNumber_) {
+					BadRequest(Request, Response, "Serial Number mismatch");
+					return;
+				}
+
+				GWObjects::Device Device;
+				if (!Storage()->GetDevice(SerialNumber_, Device)) {
+					NotFound(Request, Response);
+					return;
+				}
+
+				if (!DeviceRegistry()->Connected(SerialNumber_)) {
+					BadRequest(Request, Response, "Device is not currently connected.");
+					return;
+				}
+
+				auto Interval = Obj->get(RESTAPI::Protocol::INTERVAL);
+				std::string UUID;
+				if (Obj->has(RESTAPI::Protocol::UUID))
+					UUID = Obj->get(RESTAPI::Protocol::UUID).toString();
+
 				GWObjects::CommandDetails Cmd;
+
 				Cmd.SerialNumber = SerialNumber_;
 				Cmd.SubmittedBy = UserInfo_.webtoken.username_;
-				Cmd.UUID = CommandUUID;
-				Cmd.Command = uCentralProtocol::RTTY;
+				Cmd.UUID = Daemon()->CreateUUID();
+				Cmd.Command = uCentralProtocol::REQUEST;
 
 				Poco::JSON::Object Params;
 
-				Params.set(uCentralProtocol::METHOD, uCentralProtocol::RTTY);
-				Params.set(uCentralProtocol::SERIAL, SerialNumber_);
-				Params.set(uCentralProtocol::ID, Rtty.ConnectionId);
-				Params.set(uCentralProtocol::TOKEN, Rtty.Token);
-				Params.set(uCentralProtocol::SERVER, Rtty.Server);
-				Params.set(uCentralProtocol::PORT, Rtty.Port);
-				Params.set(uCentralProtocol::USER, UserInfo_.webtoken.username_);
-				Params.set(uCentralProtocol::TIMEOUT, Rtty.TimeOut);
-				Params.set(uCentralProtocol::PASSWORD, Device.DevicePassword);
+				Params.set(RESTAPI::Protocol::SERIALNUMBER, SerialNumber_);
+				Params.set(RESTAPI::Protocol::INTERVAL, Interval);
+				if (Interval > 0)
+					Params.set(RESTAPI::Protocol::TYPES, Obj->getArray(RESTAPI::Protocol::TYPES));
 
 				std::stringstream ParamStream;
 				Params.stringify(ParamStream);
 				Cmd.Details = ParamStream.str();
-				RESTAPI_RPC::WaitForCommand(Cmd, Params, Request, Response, std::chrono::milliseconds(15000), &ReturnedObject, this);
-				return;
-			} else {
-				NotFound(Request, Response);
+				RESTAPI_RPC::WaitForCommand(Cmd, Params, Request, Response,
+											std::chrono::milliseconds(50000), nullptr, this);
+
+				if (Interval) {
+					if (Cmd.ErrorCode == 0) {
+						std::string Endpoint, NewUUID;
+						if (TelemetryStream()->CreateEndpoint(SerialNumber_, Endpoint, NewUUID)) {
+							Poco::JSON::Object Answer;
+
+							Answer.set("serialNumber", SerialNumber_);
+							Answer.set("uuid", NewUUID);
+							Answer.set("uri", Endpoint);
+							ReturnObject(Request, Answer, Response);
+							return;
+						}
+					} else {
+						BadRequest(
+							Request, Response,
+							"Telemetry system could not create WS endpoint. Please try again.");
+						return;
+					}
+				} else {
+					TelemetryStream()->DeleteEndPoint(SerialNumber_);
+					OK(Request, Response);
+				}
 				return;
 			}
-		} else {
-			ReturnStatus(Request, Response, Poco::Net::HTTPResponse::HTTP_SERVICE_UNAVAILABLE);
-			return;
+		} catch (const Poco::Exception &E) {
+			Logger_.log(E);
 		}
-	} catch (const Poco::Exception &E) {
-		Logger_.log(E);
+		BadRequest(Request, Response, "Ill-formed request.");
 	}
-	BadRequest(Request, Response);
-}
-
 }

@@ -631,6 +631,38 @@ components:
         associations:
           $ref: '#/components/schemas/TagIntPairList'
 
+    TelemetryStreamRequest:
+      type: object
+      properties:
+        serialNumber:
+          type: string
+        interval:
+          type: integer
+          example:
+            0 - means to stop streaming, values 1-120 in seconds.
+        types:
+          type: array
+          items:
+            type: string
+        uuid:
+          type: string
+          example:
+            only valid when terminating a stream
+
+    TelemetryStreamResponse:
+      type: object
+      properties:
+        serialNumber:
+          type: string
+        uuid:
+          type: string
+          format: uuid
+        uri:
+          type: string
+          format: uri
+          example:
+            wss://host.domain:port/endpoint
+
     #########################################################################################
     ##
     ## These are endpoints that all services in the uCentral stack must provide
@@ -1879,6 +1911,32 @@ paths:
       responses:
         200:
           $ref: '#/components/schemas/EventQueueResponse'
+        403:
+          $ref: '#/components/responses/Unauthorized'
+        404:
+          $ref: '#/components/responses/NotFound'
+
+  /device/{serialNumber}/telemetry:
+    post:
+      tags:
+        - Commands
+      summary: Request a telemetry stream
+      operationId: eventTelemetryStreamRequest
+      parameters:
+        - in: path
+          name: serialNumber
+          schema:
+            type: string
+          required: true
+      requestBody:
+        description: Message request details
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TelemetryStreamRequest'
+      responses:
+        200:
+          $ref: '#/components/schemas/TelemetryStreamResponse'
         403:
           $ref: '#/components/responses/Unauthorized'
         404:

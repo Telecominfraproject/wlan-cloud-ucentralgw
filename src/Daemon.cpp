@@ -28,6 +28,7 @@
 #include "AuthClient.h"
 #include "StorageArchiver.h"
 #include "SerialNumberCache.h"
+#include "TelemetryStream.h"
 
 namespace OpenWifi {
 	class Daemon *Daemon::instance_ = nullptr;
@@ -51,6 +52,7 @@ namespace OpenWifi {
 									   FileUploader(),
 									   OUIServer(),
 									   StorageArchiver(),
+									   TelemetryStream()
 								   });
 		}
 		return instance_;

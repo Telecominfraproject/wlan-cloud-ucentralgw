@@ -518,6 +518,48 @@ The device should answer:
 }
 ```
 
+#### Controller requesting telemetry stream information
+Controller sends this command when it needs the device to telemetry streaming.
+```
+{    "jsonrpc" : "2.0" , 
+     "method" : "telemetry" , 
+     "params" : {
+	        "serial" : <serial number> ,
+	        "interval" : 0-60, # number of seconds for polling information. 0 means to shutdown the stream 
+	        "types" : [ "dhcp", "rrm"], <this must be an array: array of 1 or 2 elements, right now only "rrm" and "dhcp" are supported
+        },
+     "id" : <some number>
+}
+```
+
+The device should answer:
+```
+{   "jsonrpc" : "2.0" , 
+    "result" : {
+          "serial" : <serial number> ,
+          "status" : {
+            "error" : 0 or an error number,
+            "text" : <description of the error or success>
+  	        }
+        },
+    "id" : <same number>
+}
+```
+
+When the interval is greater than 0, the gateway will start to receive messages
+```
+{   "jsonrpc" : "2.0" , 
+    "method" : "telemetry" , 
+    "params" : {
+        "serial" : <serial number> ,
+        "data" : <A JSON document describing the information coming from the device>
+      }
+}
+```
+
+The device will stop sending data after 30 minutes or if it receives a `telemetry` command with an interval of 0.
+
+
 #### Controller requesting an `rtty` session
 Controller sends this command an administrator requests to start an `rtty` session with the AP. 
 ```

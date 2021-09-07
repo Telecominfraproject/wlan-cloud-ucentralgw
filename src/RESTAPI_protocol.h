@@ -122,6 +122,8 @@ namespace OpenWifi::RESTAPI::Protocol {
     static const char * PASSWORDPOLICY = "passwordPolicy";
     static const char * FORGOTPASSWORD = "forgotPassword";
     static const char * ME = "me";
+    static const char * TELEMETRY = "telemetry";
+    static const char * INTERVAL = "interval";
 
 }
 
