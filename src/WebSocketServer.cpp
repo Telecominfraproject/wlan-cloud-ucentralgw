@@ -775,9 +775,13 @@ namespace OpenWifi {
         }
 
         if(!MustDisconnect && Errors_<10) {
-        	Errors_++;
 			return;
 		}
+
+        if(Errors_>10) {
+        	Logger_.information(Poco::format("DISCONNECTING(%s): Too many errors",CId_));
+        }
+
         delete this;
     }
 
