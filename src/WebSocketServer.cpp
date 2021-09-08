@@ -439,7 +439,7 @@ namespace OpenWifi {
 
 						GWObjects::HealthCheck Check;
 
-						Check.Recorded = time(nullptr);
+						Check.Recorded = std::time(nullptr);
 						Check.UUID = UUID;
 						Check.Data = CheckData;
 						Check.Sanity = Sanity;
@@ -454,6 +454,7 @@ namespace OpenWifi {
 						if(KafkaManager()->Enabled()) {
 							Poco::JSON::Stringifier		Stringify;
 							std::ostringstream OS;
+							ParamsObj->set("timestamp",std::time(nullptr));
 							Stringify.condense(ParamsObj,OS);
 							KafkaManager()->PostMessage(KafkaTopics::HEALTHCHECK, SerialNumber_, OS.str());
 						}
