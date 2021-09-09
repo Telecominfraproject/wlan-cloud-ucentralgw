@@ -34,24 +34,22 @@ namespace OpenWifi {
     int FileUploader::Start() {
         Logger_.notice("Starting.");
 
+        Poco::File UploadsDir(Daemon()->ConfigPath("openwifi.fileuploader.path","/tmp"));
+        Path_ = UploadsDir.path();
+        if(!UploadsDir.exists()) {
+        	try {
+        		UploadsDir.createDirectory();
+        	} catch (const Poco::Exception &E) {
+        		Logger_.log(E);
+        		Path_ = "/tmp";
+        	}
+        }
         for(const auto & Svr: ConfigServersList_) {
             std::string l{"Starting: " +
                           Svr.Address() + ":" + std::to_string(Svr.Port()) +
                           " key:" + Svr.KeyFile() +
                           " cert:" + Svr.CertFile()};
-
             Logger_.information(l);
-
-            Poco::File UploadsDir(Daemon()->ConfigPath("openwifi.fileuploader.path","/tmp"));
-            Path_ = UploadsDir.path();
-            if(!UploadsDir.exists()) {
-            	try {
-            		UploadsDir.createDirectory();
-            	} catch (const Poco::Exception &E) {
-            		Logger_.log(E);
-					Path_ = "/tmp";
-            	}
-            }
 
             auto Sock{Svr.CreateSecureSocket(Logger_)};
 
@@ -73,6 +71,7 @@ namespace OpenWifi {
             	}
             	Logger_.information(Poco::format("Uploader URI base is '%s'", FullName_));
             }
+
             auto NewServer = std::make_unique<Poco::Net::HTTPServer>(new FileUpLoaderRequestHandlerFactory(Logger_), Pool_, Sock, Params);
             NewServer->start();
             Servers_.push_back(std::move(NewServer));
@@ -139,19 +138,19 @@ namespace OpenWifi {
 					Name_ = Parameters.get("filename", "(unnamed)");
 				}
 
-				Poco::TemporaryFile TmpFile;
 				std::string FinalFileName = FileUploader()->Path() + "/" + UUID_;
-				Logger_.information(Poco::format("FILE-UPLOADER: uploading trace for %s", UUID_));
 
+				Logger_.information(Poco::format("FILE-UPLOADER: uploading trace for %s", FinalFileName));
 				Poco::CountingInputStream InputStream(Stream);
-				std::ofstream OutputStream(TmpFile.path(), std::ofstream::out);
+				std::ofstream OutputStream(FinalFileName, std::ofstream::out);
 				Poco::StreamCopier::copyStream(InputStream, OutputStream);
-				Length_ = TmpFile.getSize();
 
+				Poco::File TmpFile(FinalFileName);
+				Length_ = TmpFile.getSize();
 				if (Length_ < FileUploader()->MaxSize()) {
-					rename(TmpFile.path().c_str(), FinalFileName.c_str());
 					Good_=true;
 				} else {
+					TmpFile.remove();
 					Error_ = "File is too large.";
 				}
 				return;
