@@ -64,8 +64,14 @@ namespace OpenWifi {
             Params->setMaxQueued(100);
 
             if(FullName_.empty()) {
-                FullName_ = "https://" + Svr.Name() + ":" + std::to_string(Svr.Port()) + URI_BASE;
-                Logger_.information(Poco::format("Uploader URI base is '%s'", FullName_));
+            	std::string TmpName = Daemon()->ConfigGetString("openwifi.fileuploader.uri","");
+            	if(TmpName.empty()) {
+            		FullName_ =
+            			"https://" + Svr.Name() + ":" + std::to_string(Svr.Port()) + URI_BASE;
+            	} else {
+            		FullName_ = TmpName + URI_BASE ;
+            	}
+            	Logger_.information(Poco::format("Uploader URI base is '%s'", FullName_));
             }
             auto NewServer = std::make_unique<Poco::Net::HTTPServer>(new FileUpLoaderRequestHandlerFactory(Logger_), Pool_, Sock, Params);
             NewServer->start();
