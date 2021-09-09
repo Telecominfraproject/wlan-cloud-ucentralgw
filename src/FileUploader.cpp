@@ -34,6 +34,17 @@ namespace OpenWifi {
     int FileUploader::Start() {
         Logger_.notice("Starting.");
 
+        Poco::File UploadsDir(Daemon()->ConfigPath("ucentral.fileuploader.path","/tmp"));
+        Path_ = UploadsDir.path();
+        if(!UploadsDir.exists()) {
+        	try {
+        		UploadsDir.createDirectory();
+        	} catch (const Poco::Exception &E) {
+        		Logger_.log(E);
+        		Path_ = "/tmp";
+        	}
+        }
+
         for(const auto & Svr: ConfigServersList_) {
             std::string l{"Starting: " +
                           Svr.Address() + ":" + std::to_string(Svr.Port()) +
@@ -41,18 +52,6 @@ namespace OpenWifi {
                           " cert:" + Svr.CertFile()};
 
             Logger_.information(l);
-
-			Poco::File UploadsDir(Daemon()->ConfigPath("ucentral.fileuploader.path","/tmp"));
-            Path_ = UploadsDir.path();
-            if(!UploadsDir.exists()) {
-            	try {
-            		UploadsDir.createDirectory();
-            	} catch (const Poco::Exception &E) {
-            		Logger_.log(E);
-					Path_ = "/tmp";
-            	}
-            }
-
             auto Sock{Svr.CreateSecureSocket(Logger_)};
 
 			Svr.LogCert(Logger_);
@@ -139,19 +138,19 @@ namespace OpenWifi {
 					Name_ = Parameters.get("filename", "(unnamed)");
 				}
 
-				Poco::TemporaryFile TmpFile;
 				std::string FinalFileName = FileUploader()->Path() + "/" + UUID_;
-				Logger_.information(Poco::format("FILE-UPLOADER: uploading trace for %s", UUID_));
 
+				Logger_.information(Poco::format("FILE-UPLOADER: uploading trace for %s", FinalFileName));
 				Poco::CountingInputStream InputStream(Stream);
-				std::ofstream OutputStream(TmpFile.path(), std::ofstream::out);
+				std::ofstream OutputStream(FinalFileName, std::ofstream::out);
 				Poco::StreamCopier::copyStream(InputStream, OutputStream);
-				Length_ = TmpFile.getSize();
 
+				Poco::File TmpFile(FinalFileName);
+				Length_ = TmpFile.getSize();
 				if (Length_ < FileUploader()->MaxSize()) {
-					rename(TmpFile.path().c_str(), FinalFileName.c_str());
 					Good_=true;
 				} else {
+					TmpFile.remove();
 					Error_ = "File is too large.";
 				}
 				return;
