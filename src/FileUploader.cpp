@@ -236,6 +236,7 @@ namespace OpenWifi {
             if(FileUploader()->ValidRequest(UUID))
             {
                 //  make sure we do not allow anyone else to overwrite our file
+                Logger_.information(Poco::format("Preparing to receive file for UUID=%s",UUID));
 				FileUploader()->RemoveRequest(UUID);
                 return new FormRequestHandler(UUID,Logger_);
             }
@@ -243,7 +244,9 @@ namespace OpenWifi {
             {
                 Logger_.warning(Poco::format("Unknown UUID=%s",UUID));
             }
-        }
+        } else {
+        	Logger_.warning(Poco::format("Unknown FileUploader endpoint '%s'", Request.getURI()));
+		}
         return nullptr;
     }
 
