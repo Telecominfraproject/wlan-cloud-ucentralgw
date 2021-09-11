@@ -55,7 +55,7 @@ namespace OpenWifi::RESTAPI_RPC {
 			CommandTag T;
 
 			while (!Done && CommandManager()->Running() && WaitTimeInMs > 0) {
-				if (!CommandManager()->GetCommand(RPC_Id, Cmd.SerialNumber, T)) {
+				if (CommandManager()->GetCommand(RPC_Id, Cmd.SerialNumber, T)) {
 					auto Answer = T.Result;
 					if (Answer->has("result") && Answer->isObject("result")) {
 						auto ResultFields =
