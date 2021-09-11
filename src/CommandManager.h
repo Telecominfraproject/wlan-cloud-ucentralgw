@@ -24,6 +24,32 @@
 
 namespace OpenWifi {
 
+	struct CommandTagIndex {
+		uint64_t 	Id=0;
+		std::string SerialNumber;
+	};
+
+	inline bool operator <(const CommandTagIndex& lhs, const CommandTagIndex& rhs) {
+		if(lhs.Id<rhs.Id)
+			return true;
+		if(lhs.Id>rhs.Id)
+			return false;
+		return lhs.SerialNumber<rhs.SerialNumber;
+	}
+
+	inline bool operator ==(const CommandTagIndex& lhs, const CommandTagIndex& rhs) {
+		if(lhs.Id == rhs.Id && lhs.SerialNumber == rhs.SerialNumber)
+			return true;
+		return false;
+	}
+
+	struct CommandTag {
+		std::string 			UUID;
+		Poco::JSON::Object::Ptr Result;
+		uint64_t 				Submitted=0;
+		uint64_t 				Completed=0;
+	};
+
     class CommandManager : public SubSystemServer, Poco::Runnable {
 	    public:
 			int Start() override;
@@ -33,15 +59,21 @@ namespace OpenWifi {
 			bool SendCommand(	const std::string &SerialNumber,
 								 const std::string &Method,
 								 const Poco::JSON::Object &Params,
-								 std::shared_ptr<std::promise<Poco::JSON::Object::Ptr>> Promise,
-								 const std::string &UUID);
-			bool SendCommand( 	const std::string & SerialNumber,
+								 const std::string &UUID,
+								 uint64_t & Id);
+
+/*			bool SendCommand( 	const std::string & SerialNumber,
 								 const std::string & Method,
 								 const Poco::JSON::Object &Params,
 								 const std::string & UUID);
+
 			bool SendCommand(GWObjects::CommandDetails & Command);
+*/
+
 			void Janitor();
 			void run() override;
+
+			bool GetCommand(uint64_t Id, const std::string & SerialNumber, CommandTag &T);
 
 			static CommandManager *instance() {
 				if (instance_ == nullptr) {
@@ -49,15 +81,14 @@ namespace OpenWifi {
 				}
 				return instance_;
 			}
+			inline bool Running() const { return Running_; }
 
 	    private:
 			static CommandManager 		* instance_;
-			std::atomic_bool 	Running_ = false;
-			Poco::Thread    	ManagerThread;
-			uint64_t 			Id_=1;
-			std::map< uint64_t , std::pair< std::shared_ptr<std::promise<Poco::JSON::Object::Ptr>>, std::string> >	OutStandingRequests_;
-			std::map< uint64_t , uint64_t >		Age_;
-
+			std::atomic_bool 			Running_ = false;
+			Poco::Thread    			ManagerThread;
+			uint64_t 					Id_=1;
+			std::map<CommandTagIndex,CommandTag>	OutStandingRequests_;
 			CommandManager() noexcept;
 	};
 

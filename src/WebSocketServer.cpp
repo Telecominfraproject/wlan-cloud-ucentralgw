@@ -239,7 +239,8 @@ namespace OpenWifi {
 			Storage()->AddLog(SerialNumber_, Conn_->UUID, Log);
 			Logger_.debug(Log);
 
-			CommandManager()->SendCommand(SerialNumber_ , Cmd.Command, Params, nullptr, Cmd.UUID);
+			uint64_t RPC_Id;
+			CommandManager()->SendCommand(SerialNumber_ , Cmd.Command, Params, Cmd.UUID, RPC_Id);
 			Storage()->AddCommand(SerialNumber_, Cmd, Storage::COMMAND_EXECUTED);
 			return true;
         }

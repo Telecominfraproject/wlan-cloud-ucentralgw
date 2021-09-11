@@ -43,7 +43,25 @@ namespace OpenWifi {
                 	if(!Running_)
                 		break;
 
-                    if(!SendCommand(Cmd)) {
+                	/*
+					const std::string &SerialNumber,
+															  const std::string &Method,
+															const Poco::JSON::Object &Params,
+															  const std::string &UUID,
+															 uint64_t & Id) {
+
+					 */
+					uint64_t RPC_Id;
+					Poco::JSON::Parser	P;
+
+					auto Params = P.parse(Cmd.Details).extract<Poco::JSON::Object::Ptr>();
+					if(SendCommand(	Cmd.SerialNumber,
+									Cmd.Command,
+									*Params,
+									Cmd.UUID,
+									RPC_Id)) {
+						Logger_.information(Poco::format("Sent command '%s' to '%s'",Cmd.Command,Cmd.SerialNumber));
+					} else {
                         Logger_.information(Poco::format("Failed to send command '%s' to %s",Cmd.Command,Cmd.SerialNumber));
                     }
                 }
@@ -71,22 +89,39 @@ namespace OpenWifi {
     }
 
 	void CommandManager::Janitor() {
-		SubMutexGuard G(SubMutex);
+		std::lock_guard G(Mutex_);
 		uint64_t Now = time(nullptr);
-		for(auto i = Age_.begin(); i!= Age_.end();)
-			if((Now-i->first)>300)
-				Age_.erase(i++);
+
+		for(auto i=OutStandingRequests_.begin();i!=OutStandingRequests_.end();) {
+			if((Now-i->second.Submitted)>120)
+				i = OutStandingRequests_.erase(i);
 			else
 				++i;
+		}
 	}
 
-	bool CommandManager::SendCommand(const std::string &SerialNumber,
-							  const std::string &Method,
-							  const Poco::JSON::Object &Params,
-							  std::shared_ptr<std::promise<Poco::JSON::Object::Ptr>> Promise,
-							  const std::string &UUID) {
+	bool CommandManager::GetCommand(uint64_t Id, const std::string &SerialNumber, CommandTag &T) {
+		std::lock_guard G(Mutex_);
 
-		SubMutexGuard G(SubMutex);
+		CommandTagIndex	TI{.Id=Id,.SerialNumber=SerialNumber};
+		auto Hint=OutStandingRequests_.find(TI);
+		if(Hint!=OutStandingRequests_.end()) {
+			if(Hint->second.Completed) {
+				T = Hint->second;
+				OutStandingRequests_.erase(Hint);
+				return true;
+			}
+		}
+		return false;
+	}
+
+	bool CommandManager::SendCommand(	const std::string &SerialNumber,
+							  			const std::string &Method,
+										const Poco::JSON::Object &Params,
+							  			const std::string &UUID,
+									 	uint64_t & Id) {
+
+		std::lock_guard G(Mutex_);
 
 		Poco::JSON::Object	CompleteRPC;
 		CompleteRPC.set(uCentralProtocol::JSONRPC, uCentralProtocol::JSONRPC_VERSION);
@@ -95,78 +130,32 @@ namespace OpenWifi {
 		CompleteRPC.set(uCentralProtocol::PARAMS, Params);
 		std::stringstream ToSend;
 		Poco::JSON::Stringifier::stringify(CompleteRPC, ToSend);
-
-		OutStandingRequests_[Id_] = std::make_pair(std::move(Promise),UUID);
-		Age_[Id_] = time(nullptr);
-		Id_++;
+		Id = ++Id_;
+		CommandTagIndex Idx{.Id=Id, .SerialNumber=SerialNumber};
+		CommandTag		Tag;
+		Tag.UUID = UUID;
+		Tag.Submitted=std::time(nullptr);
+		Tag.Completed=0;
+		Tag.Result = Poco::makeShared<Poco::JSON::Object>();
+		OutStandingRequests_[Idx] = Tag;
 		return DeviceRegistry()->SendFrame(SerialNumber, ToSend.str());
 	}
 
-	bool CommandManager::SendCommand(GWObjects::CommandDetails & Command) {
-		SubMutexGuard G(SubMutex);
-
-		Logger_.debug(Poco::format("Sending command to %s",Command.SerialNumber));
-		try {
-			Poco::JSON::Object Obj;
-
-			Obj.set(uCentralProtocol::JSONRPC,uCentralProtocol::JSONRPC_VERSION);
-			Obj.set(uCentralProtocol::ID,Id_);
-			Obj.set(uCentralProtocol::METHOD, Command.Custom ? uCentralProtocol::PERFORM : Command.Command );
-
-			bool FullCommand = true;
-			if(Command.Command==uCentralProtocol::REQUEST)
-				FullCommand = false;
-
-			// the params section was composed earlier... just include it here
-			Poco::JSON::Parser  parser;
-			auto ParsedMessage = parser.parse(Command.Details);
-			const auto & ParamsObj = ParsedMessage.extract<Poco::JSON::Object::Ptr>();
-			Obj.set(uCentralProtocol::PARAMS,ParamsObj);
-			std::stringstream ToSend;
-			Poco::JSON::Stringifier::stringify(Obj,ToSend);
-
-			if(DeviceRegistry()->SendFrame(Command.SerialNumber, ToSend.str())) {
-				Storage()->SetCommandExecuted(Command.UUID);
-				OutStandingRequests_[Id_] = std::make_pair(nullptr,Command.UUID);
-				Age_[Id_] = time(nullptr);
-				return true;
-			} else {
-
-			}
-			Id_++;
-		}
-		catch( const Poco::Exception & E )
-		{
-			Logger_.warning(Poco::format("COMMAND(%s): Exception while sending a command.",Command.SerialNumber));
-		}
-		return false;
-	}
-
-
 	void CommandManager::PostCommandResult(const std::string &SerialNumber, Poco::JSON::Object::Ptr Obj) {
+
 		if(!Obj->has(uCentralProtocol::ID)){
 			Logger_.error("Invalid RPC response.");
 			return;
 		}
 
-		SubMutexGuard G(SubMutex);
-
 		uint64_t ID = Obj->get(uCentralProtocol::ID);
-		auto RPC = OutStandingRequests_.find(ID);
-		Age_.erase(ID);
+		std::lock_guard G(Mutex_);
+		auto Idx = CommandTagIndex{.Id=ID,.SerialNumber=SerialNumber};
+		auto RPC = OutStandingRequests_.find(Idx);
 		if(RPC != OutStandingRequests_.end()) {
-			if(RPC->second.first.use_count() > 1) {
-				try {
-					RPC->second.first->set_value(std::move(Obj));
-				} catch (...) {
-					Logger_.error(Poco::format("COMPLETING-RPC(%Lu): future was lost", ID));
-					Storage()->CommandCompleted(RPC->second.second, Obj, true);
-				}
-			}
-			else {
-				Storage()->CommandCompleted(RPC->second.second, Obj, true);
-			}
-			OutStandingRequests_.erase(RPC);
+			RPC->second.Completed=std::time(nullptr);
+			RPC->second.Result=Obj;
+			Storage()->CommandCompleted(RPC->second.UUID, Obj, true);
 		} else {
 			Logger_.warning(Poco::format("OUTDATED-RPC(%lu): Nothing waiting for this RPC.",ID));
 		}
