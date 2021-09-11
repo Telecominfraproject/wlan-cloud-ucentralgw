@@ -95,7 +95,7 @@ namespace OpenWifi {
 	bool CommandManager::GetCommand(uint64_t Id, const std::string &SerialNumber, CommandTag &T) {
 		std::lock_guard G(Mutex_);
 
-		std::cout << "Looking for > " << SerialNumber << "    >> " << Id << std::endl;
+		std::cout << "Looking for " << Id << " from " << SerialNumber << std::endl;
 
 		CommandTagIndex	TI{.Id=Id,.SerialNumber=SerialNumber};
 		auto Hint=OutStandingRequests_.find(TI);
@@ -103,7 +103,7 @@ namespace OpenWifi {
 			if(Hint->second.Completed) {
 				T = Hint->second;
 				OutStandingRequests_.erase(Hint);
-				std::cout << "Command " << Id << std::endl;
+				std::cout << "Returning Command " << Id << " for " << SerialNumber << std::endl;
 				return true;
 			}
 		}
@@ -126,7 +126,7 @@ namespace OpenWifi {
 		std::stringstream ToSend;
 		Poco::JSON::Stringifier::stringify(CompleteRPC, ToSend);
 		Id = ++Id_;
-		std::cout << "Sending command " << Id << "  for " << SerialNumber << std::endl;
+		std::cout << "Sending command (" << Method << ") " << Id << "  for " << SerialNumber << std::endl;
 		CommandTagIndex Idx{.Id=Id, .SerialNumber=SerialNumber};
 		CommandTag		Tag;
 		Tag.UUID = UUID;
@@ -139,13 +139,14 @@ namespace OpenWifi {
 
 	void CommandManager::PostCommandResult(const std::string &SerialNumber, Poco::JSON::Object::Ptr Obj) {
 
-		std::cout << "Received command for " << SerialNumber << std::endl;
 		if(!Obj->has(uCentralProtocol::ID)){
 			Logger_.error("Invalid RPC response.");
+			std::cout << "Invalid RPC response from " << SerialNumber << std::endl;
 			return;
 		}
 
 		uint64_t ID = Obj->get(uCentralProtocol::ID);
+		std::cout << "Received " << ID << " command for " << SerialNumber << std::endl;
 		std::lock_guard G(Mutex_);
 		auto Idx = CommandTagIndex{.Id=ID,.SerialNumber=SerialNumber};
 		auto RPC = OutStandingRequests_.find(Idx);
