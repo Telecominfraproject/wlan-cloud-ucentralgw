@@ -52,6 +52,7 @@ namespace OpenWifi {
 									*Params,
 									Cmd.UUID,
 									RPC_Id)) {
+						Storage()->SetCommandExecuted(Cmd.UUID);
 						Logger_.information(Poco::format("Sent command '%s' to '%s'",Cmd.Command,Cmd.SerialNumber));
 					} else {
                         Logger_.information(Poco::format("Failed to send command '%s' to %s",Cmd.Command,Cmd.SerialNumber));
