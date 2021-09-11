@@ -43,14 +43,6 @@ namespace OpenWifi {
                 	if(!Running_)
                 		break;
 
-                	/*
-					const std::string &SerialNumber,
-															  const std::string &Method,
-															const Poco::JSON::Object &Params,
-															  const std::string &UUID,
-															 uint64_t & Id) {
-
-					 */
 					uint64_t RPC_Id;
 					Poco::JSON::Parser	P;
 
@@ -109,6 +101,7 @@ namespace OpenWifi {
 			if(Hint->second.Completed) {
 				T = Hint->second;
 				OutStandingRequests_.erase(Hint);
+				std::cout << "Command " << Id << std::endl;
 				return true;
 			}
 		}
@@ -131,6 +124,7 @@ namespace OpenWifi {
 		std::stringstream ToSend;
 		Poco::JSON::Stringifier::stringify(CompleteRPC, ToSend);
 		Id = ++Id_;
+		std::cout << "Sending command " << Id << std::endl;
 		CommandTagIndex Idx{.Id=Id, .SerialNumber=SerialNumber};
 		CommandTag		Tag;
 		Tag.UUID = UUID;
@@ -143,6 +137,7 @@ namespace OpenWifi {
 
 	void CommandManager::PostCommandResult(const std::string &SerialNumber, Poco::JSON::Object::Ptr Obj) {
 
+		std::cout << "Received command for " << SerialNumber << std::endl;
 		if(!Obj->has(uCentralProtocol::ID)){
 			Logger_.error("Invalid RPC response.");
 			return;

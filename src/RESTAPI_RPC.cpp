@@ -93,8 +93,8 @@ namespace OpenWifi::RESTAPI_RPC {
 							return;
 						}
 						SetCommandAsPending(Cmd, Request, Response, Handler);
-						Done=true;
 					}
+					Done=true;
 				} else {
 					Poco::Thread::trySleep(100);
 					WaitTimeInMs -= 100;
