@@ -118,14 +118,14 @@ namespace OpenWifi {
 
 		std::lock_guard G(Mutex_);
 
+		Id = ++Id_;
 		Poco::JSON::Object	CompleteRPC;
 		CompleteRPC.set(uCentralProtocol::JSONRPC, uCentralProtocol::JSONRPC_VERSION);
-		CompleteRPC.set(uCentralProtocol::ID, Id_);
+		CompleteRPC.set(uCentralProtocol::ID, Id);
 		CompleteRPC.set(uCentralProtocol::METHOD, Method );
 		CompleteRPC.set(uCentralProtocol::PARAMS, Params);
 		std::stringstream ToSend;
 		Poco::JSON::Stringifier::stringify(CompleteRPC, ToSend);
-		Id = ++Id_;
 		std::cout << "Sending command (" << Method << ") " << Id << "  for " << SerialNumber << std::endl;
 		CommandTagIndex Idx{.Id=Id, .SerialNumber=SerialNumber};
 		CommandTag		Tag;
