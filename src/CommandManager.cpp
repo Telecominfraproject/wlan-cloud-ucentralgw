@@ -95,6 +95,8 @@ namespace OpenWifi {
 	bool CommandManager::GetCommand(uint64_t Id, const std::string &SerialNumber, CommandTag &T) {
 		std::lock_guard G(Mutex_);
 
+		std::cout << "Looking for > " << SerialNumber << "    >> " << Id << std::endl;
+
 		CommandTagIndex	TI{.Id=Id,.SerialNumber=SerialNumber};
 		auto Hint=OutStandingRequests_.find(TI);
 		if(Hint!=OutStandingRequests_.end()) {
@@ -124,7 +126,7 @@ namespace OpenWifi {
 		std::stringstream ToSend;
 		Poco::JSON::Stringifier::stringify(CompleteRPC, ToSend);
 		Id = ++Id_;
-		std::cout << "Sending command " << Id << std::endl;
+		std::cout << "Sending command " << Id << "  for " << SerialNumber << std::endl;
 		CommandTagIndex Idx{.Id=Id, .SerialNumber=SerialNumber};
 		CommandTag		Tag;
 		Tag.UUID = UUID;
