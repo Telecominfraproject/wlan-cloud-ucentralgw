@@ -95,16 +95,12 @@ namespace OpenWifi {
 
 	bool CommandManager::GetCommand(uint64_t Id, const std::string &SerialNumber, CommandTag &T) {
 		std::lock_guard G(Mutex_);
-
-		std::cout << "Looking for " << Id << " from " << SerialNumber << std::endl;
-
 		CommandTagIndex	TI{.Id=Id,.SerialNumber=SerialNumber};
 		auto Hint=OutStandingRequests_.find(TI);
 		if(Hint!=OutStandingRequests_.end()) {
 			if(Hint->second.Completed) {
 				T = Hint->second;
 				OutStandingRequests_.erase(Hint);
-				std::cout << "Returning Command " << Id << " for " << SerialNumber << std::endl;
 				return true;
 			}
 		}
@@ -127,7 +123,7 @@ namespace OpenWifi {
 		CompleteRPC.set(uCentralProtocol::PARAMS, Params);
 		std::stringstream ToSend;
 		Poco::JSON::Stringifier::stringify(CompleteRPC, ToSend);
-		std::cout << "Sending command (" << Method << ") " << Id << "  for " << SerialNumber << std::endl;
+		Logger_.error(Poco::format("(%s): Sending command '%s', ID: %lu", SerialNumber, Method, Id));
 		CommandTagIndex Idx{.Id=Id, .SerialNumber=SerialNumber};
 		CommandTag		Tag;
 		Tag.UUID = UUID;
@@ -141,22 +137,21 @@ namespace OpenWifi {
 	void CommandManager::PostCommandResult(const std::string &SerialNumber, Poco::JSON::Object::Ptr Obj) {
 
 		if(!Obj->has(uCentralProtocol::ID)){
-			Logger_.error("Invalid RPC response.");
-			std::cout << "Invalid RPC response from " << SerialNumber << std::endl;
+			Logger_.error(Poco::format("(%s): Invalid RPC response.",SerialNumber));
 			return;
 		}
 
 		uint64_t ID = Obj->get(uCentralProtocol::ID);
-		std::cout << "Received " << ID << " command for " << SerialNumber << std::endl;
 		std::lock_guard G(Mutex_);
 		auto Idx = CommandTagIndex{.Id=ID,.SerialNumber=SerialNumber};
 		auto RPC = OutStandingRequests_.find(Idx);
 		if(RPC != OutStandingRequests_.end()) {
 			RPC->second.Completed=std::time(nullptr);
 			RPC->second.Result=Obj;
+			Logger_.information(Poco::format("(%s): Received RPC answer %lu", SerialNumber, ID));
 			Storage()->CommandCompleted(RPC->second.UUID, Obj, true);
 		} else {
-			Logger_.warning(Poco::format("OUTDATED-RPC(%lu): Nothing waiting for this RPC.",ID));
+			Logger_.warning(Poco::format("(%s): Outdated RPC %lu", SerialNumber, ID));
 		}
 	}
 
