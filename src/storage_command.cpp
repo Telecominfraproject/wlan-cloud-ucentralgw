@@ -685,17 +685,10 @@ namespace OpenWifi {
 			Poco::Data::LOB<char> L;
 			Poco::Data::LOBOutputStream OL(L);
 
-			if (FileName.getSize() <
-				(1000 * Daemon()->ConfigGetInt("openwifi.fileuploader.maxsize", 10000))) {
+			if (FileName.getSize()<FileUploader()->MaxSize()) {
 
 				std::ifstream f(FileName.path(), std::ios::binary);
 				Poco::StreamCopier::copyStream(f, OL);
-				/*
-							"UUID			VARCHAR(64) PRIMARY KEY, "
-							"Type			VARCHAR(32), "
-							"Created 		BIGINT, "
-							"FileContent	BYTEA"
-				*/
 				Poco::Data::Statement Insert(Sess);
 				std::string FileType{"trace"};
 
