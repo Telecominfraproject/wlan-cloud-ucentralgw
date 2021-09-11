@@ -32,29 +32,31 @@ namespace OpenWifi::RESTAPI_RPC {
 	}
 
 	void WaitForCommand(GWObjects::CommandDetails &Cmd,
-										Poco::JSON::Object  & Params,
-										Poco::Net::HTTPServerRequest &Request,
-										Poco::Net::HTTPServerResponse &Response,
-										std::chrono::milliseconds D,
-										Poco::JSON::Object * ObjectToReturn,
-										RESTAPIHandler * Handler) {
+						Poco::JSON::Object  & Params,
+						Poco::Net::HTTPServerRequest &Request,
+						Poco::Net::HTTPServerResponse &Response,
+						int64_t WaitTimeInMs,
+						Poco::JSON::Object * ObjectToReturn,
+						RESTAPIHandler * Handler) {
 
 		// 	if the command should be executed in the future, or if the device is not connected, then we should just add the command to
 		//	the DB and let it figure out when to deliver the command.
 		if(Cmd.RunAt || !DeviceRegistry()->Connected(Cmd.SerialNumber)) {
 			SetCommandAsPending(Cmd, Request, Response, Handler);
 			return;
-		} else if(Cmd.RunAt==0 && DeviceRegistry()->Connected(Cmd.SerialNumber)) {
-			auto Promise = std::make_shared<std::promise<Poco::JSON::Object::Ptr>>();
-			std::future<Poco::JSON::Object::Ptr> Future = Promise->get_future();
+		}
 
-			Cmd.Executed = time(nullptr);
+		Cmd.Executed = std::time(nullptr);
 
-			if (CommandManager()->SendCommand(Cmd.SerialNumber, Cmd.Command, Params, Promise, Cmd.UUID)) {
-				auto Status = Future.wait_for(D);
-				if (Status == std::future_status::ready) {
-					auto Answer = Future.get();
+		uint64_t RPC_Id=0;
+		if (CommandManager()->SendCommand(Cmd.SerialNumber, Cmd.Command, Params, Cmd.UUID, RPC_Id)) {
 
+			bool Done = false;
+			CommandTag T;
+
+			while (!Done && CommandManager()->Running() && WaitTimeInMs > 0) {
+				if (CommandManager()->GetCommand(RPC_Id, Cmd.SerialNumber, T)) {
+					auto Answer = T.Result;
 					if (Answer->has("result") && Answer->isObject("result")) {
 						auto ResultFields =
 							Answer->get("result").extract<Poco::JSON::Object::Ptr>();
@@ -71,16 +73,17 @@ namespace OpenWifi::RESTAPI_RPC {
 							Cmd.Status = "completed";
 							Cmd.Completed = time(nullptr);
 
-							if(Cmd.ErrorCode && Cmd.Command==uCentralProtocol::TRACE) {
+							if (Cmd.ErrorCode && Cmd.Command == uCentralProtocol::TRACE) {
 								Cmd.WaitingForFile = 0;
-								Cmd.AttachDate = Cmd.AttachSize = 0 ;
+								Cmd.AttachDate = Cmd.AttachSize = 0;
 								Cmd.AttachType = "";
 							}
 
 							//	Add the completed command to the database...
-							Storage()->AddCommand(Cmd.SerialNumber, Cmd,Storage::COMMAND_COMPLETED);
+							Storage()->AddCommand(Cmd.SerialNumber, Cmd,
+												  Storage::COMMAND_COMPLETED);
 
-							if(ObjectToReturn) {
+							if (ObjectToReturn) {
 								Handler->ReturnObject(Request, *ObjectToReturn, Response);
 							} else {
 								Poco::JSON::Object O;
@@ -89,22 +92,21 @@ namespace OpenWifi::RESTAPI_RPC {
 							}
 							return;
 						}
-					} else {
 						SetCommandAsPending(Cmd, Request, Response, Handler);
-						return;
 					}
+					Done=true;
 				} else {
-					SetCommandAsPending(Cmd, Request, Response, Handler);
-					return;
+					Poco::Thread::trySleep(100);
+					WaitTimeInMs -= 100;
 				}
-			} else {
-				SetCommandAsPending(Cmd, Request, Response, Handler);
-				return;
 			}
+		} else {
+			SetCommandAsPending(Cmd, Request, Response, Handler);
 		}
 	}
 
-	bool WaitForRPC(GWObjects::CommandDetails &Cmd,
+	/*
+		bool WaitForRPC(GWObjects::CommandDetails &Cmd,
 									Poco::Net::HTTPServerRequest &Request,
 									Poco::Net::HTTPServerResponse &Response, uint64_t Timeout,
 									bool ReturnValue,
@@ -134,6 +136,6 @@ namespace OpenWifi::RESTAPI_RPC {
 		}
 		return false;
 	}
-
+*/
 
 }

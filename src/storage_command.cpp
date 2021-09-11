@@ -685,8 +685,7 @@ namespace OpenWifi {
 			Poco::Data::LOB<char> L;
 			Poco::Data::LOBOutputStream OL(L);
 
-			if (FileName.getSize() <
-				(1000 * Daemon()->ConfigGetInt("ucentral.fileuploader.maxsize", 10000))) {
+			if (FileName.getSize() < FileUploader()->MaxSize()) {
 
 				std::ifstream f(FileName.path(), std::ios::binary);
 				Poco::StreamCopier::copyStream(f, OL);

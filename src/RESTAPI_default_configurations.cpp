@@ -30,15 +30,9 @@ namespace OpenWifi {
 					return;
 				}
 
-				Logger_.information(
-					Poco::format("DEFAULT_CONFIGURATIONS: from %Lu, limit of %Lu, filter=%s.",
-								 (int64_t)QB_.Offset, (int64_t)QB_.Limit, QB_.Filter));
 				RESTAPIHandler::PrintBindings();
-
 				std::vector<GWObjects::DefaultConfiguration> DefConfigs;
-
 				Storage()->GetDefaultConfigurations(QB_.Offset, QB_.Limit, DefConfigs);
-
 				Poco::JSON::Array Objects;
 				for (const auto &i : DefConfigs) {
 					Poco::JSON::Object Obj;

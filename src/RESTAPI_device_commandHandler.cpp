@@ -303,7 +303,7 @@ void RESTAPI_device_commandHandler::Configure(Poco::Net::HTTPServerRequest &Requ
 				Cmd.Details = ParamStream.str();
 
 				DeviceRegistry()->SetPendingUUID(SerialNumber_, NewUUID);
-				RESTAPI_RPC::WaitForCommand(Cmd, Params, Request, Response, std::chrono::milliseconds(5000), nullptr, this);
+				RESTAPI_RPC::WaitForCommand(Cmd, Params, Request, Response, 5000, nullptr, this);
 				return;
 			}
 		}
@@ -349,7 +349,7 @@ void RESTAPI_device_commandHandler::Upgrade(Poco::Net::HTTPServerRequest &Reques
 			Params.stringify(ParamStream);
 			Cmd.Details = ParamStream.str();
 
-			RESTAPI_RPC::WaitForCommand(Cmd, Params, Request, Response, std::chrono::milliseconds(20000), nullptr, this);
+			RESTAPI_RPC::WaitForCommand(Cmd, Params, Request, Response, 20000, nullptr, this);
 			return;
 		}
 	} catch (const Poco::Exception &E) {
@@ -502,7 +502,7 @@ void RESTAPI_device_commandHandler::ExecuteCommand(Poco::Net::HTTPServerRequest 
 			Params.stringify(ParamStream);
 			Cmd.Details = ParamStream.str();
 
-			RESTAPI_RPC::WaitForCommand(Cmd, Params, Request, Response, std::chrono::milliseconds(20000), nullptr, this);
+			RESTAPI_RPC::WaitForCommand(Cmd, Params, Request, Response, 20000, nullptr, this);
 			return;
 		}
 	} catch (const Poco::Exception &E) {
@@ -542,7 +542,7 @@ void RESTAPI_device_commandHandler::Reboot(Poco::Net::HTTPServerRequest &Request
 			Params.stringify(ParamStream);
 			Cmd.Details = ParamStream.str();
 
-			RESTAPI_RPC::WaitForCommand(Cmd, Params, Request, Response, std::chrono::milliseconds(2000), nullptr, this);
+			RESTAPI_RPC::WaitForCommand(Cmd, Params, Request, Response, 5000, nullptr, this);
 			return;
 		}
 	} catch (const Poco::Exception &E) {
@@ -590,7 +590,7 @@ void RESTAPI_device_commandHandler::Factory(Poco::Net::HTTPServerRequest &Reques
 			Params.stringify(ParamStream);
 			Cmd.Details = ParamStream.str();
 
-			RESTAPI_RPC::WaitForCommand(Cmd, Params, Request, Response, std::chrono::milliseconds(20000), nullptr, this);
+			RESTAPI_RPC::WaitForCommand(Cmd, Params, Request, Response, 20000, nullptr, this);
 			return;
 		}
 	} catch (const Poco::Exception &E) {
@@ -648,7 +648,7 @@ void RESTAPI_device_commandHandler::LEDs(Poco::Net::HTTPServerRequest &Request,
 			Params.stringify(ParamStream);
 			Cmd.Details = ParamStream.str();
 
-			RESTAPI_RPC::WaitForCommand(Cmd, Params, Request, Response, std::chrono::milliseconds(20000), nullptr, this);
+			RESTAPI_RPC::WaitForCommand(Cmd, Params, Request, Response, 20000, nullptr, this);
 			return;
 		}
 	} catch (const Poco::Exception &E) {
@@ -707,7 +707,7 @@ void RESTAPI_device_commandHandler::Trace(Poco::Net::HTTPServerRequest &Request,
 			Cmd.Details = ParamStream.str();
 
 			FileUploader()->AddUUID(UUID);
-			RESTAPI_RPC::WaitForCommand(Cmd, Params, Request, Response, std::chrono::milliseconds(5000), nullptr, this);
+			RESTAPI_RPC::WaitForCommand(Cmd, Params, Request, Response, 5000, nullptr, this);
 		} else {
 			BadRequest(Request, Response, "Missing SerialNumber, Network, or Interface.");
 		}
@@ -773,7 +773,7 @@ void RESTAPI_device_commandHandler::WifiScan(Poco::Net::HTTPServerRequest &Reque
 			std::stringstream ParamStream;
 			Params.stringify(ParamStream);
 			Cmd.Details = ParamStream.str();
-			RESTAPI_RPC::WaitForCommand(Cmd, Params, Request, Response, std::chrono::milliseconds(20000), nullptr, this);
+			RESTAPI_RPC::WaitForCommand(Cmd, Params, Request, Response, 20000, nullptr, this);
 			if(Cmd.ErrorCode==0) {
 				KafkaManager()->PostMessage(KafkaTopics::WIFISCAN, SerialNumber_,
 											Cmd.Results);
@@ -819,7 +819,7 @@ void RESTAPI_device_commandHandler::EventQueue(Poco::Net::HTTPServerRequest &Req
 				Params.stringify(ParamStream);
 				Cmd.Details = ParamStream.str();
 
-				RESTAPI_RPC::WaitForCommand(Cmd, Params, Request, Response, std::chrono::milliseconds(20000), nullptr, this);
+				RESTAPI_RPC::WaitForCommand(Cmd, Params, Request, Response, 20000, nullptr, this);
 				if(Cmd.ErrorCode==0) {
 					KafkaManager()->PostMessage(KafkaTopics::DEVICE_EVENT_QUEUE, SerialNumber_,
 												Cmd.Results);
@@ -874,7 +874,7 @@ void RESTAPI_device_commandHandler::MakeRequest(Poco::Net::HTTPServerRequest &Re
 			Params.stringify(ParamStream);
 			Cmd.Details = ParamStream.str();
 
-			RESTAPI_RPC::WaitForCommand(Cmd, Params, Request, Response, std::chrono::milliseconds(50000), nullptr, this );
+			RESTAPI_RPC::WaitForCommand(Cmd, Params, Request, Response, 50000, nullptr, this );
 			return;
 		}
 	} catch (const Poco::Exception &E) {
@@ -929,7 +929,7 @@ void RESTAPI_device_commandHandler::Rtty(Poco::Net::HTTPServerRequest &Request,
 				std::stringstream ParamStream;
 				Params.stringify(ParamStream);
 				Cmd.Details = ParamStream.str();
-				RESTAPI_RPC::WaitForCommand(Cmd, Params, Request, Response, std::chrono::milliseconds(15000), &ReturnedObject, this);
+				RESTAPI_RPC::WaitForCommand(Cmd, Params, Request, Response, 15000, &ReturnedObject, this);
 				return;
 			} else {
 				NotFound(Request, Response);
