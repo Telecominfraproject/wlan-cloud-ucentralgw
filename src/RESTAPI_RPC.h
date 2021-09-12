@@ -26,11 +26,19 @@ namespace OpenWifi::RESTAPI_RPC {
 							Poco::Net::HTTPServerResponse &Response,
 							int64_t WaitTimeInMs,
 							Poco::JSON::Object * ObjectToReturn,
-							RESTAPIHandler * Handler);
+							RESTAPIHandler * Handler,
+							Poco::Logger &Logger);
 
 	void SetCommandAsPending(	GWObjects::CommandDetails &Cmd,
 								Poco::Net::HTTPServerRequest &Request,
-								Poco::Net::HTTPServerResponse &Response, RESTAPIHandler * handler);
+								Poco::Net::HTTPServerResponse &Response, RESTAPIHandler * handler,
+								Poco::Logger &Logger);
+
+	void SetCommandAsTimedOut(	GWObjects::CommandDetails &Cmd,
+								 Poco::Net::HTTPServerRequest &Request,
+								 Poco::Net::HTTPServerResponse &Response, RESTAPIHandler * handler,
+								 Poco::Logger &Logger);
+
 
 }
 #endif // UCENTRALGW_RESTAPI_RPC_H

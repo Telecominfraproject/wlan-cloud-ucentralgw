@@ -67,6 +67,9 @@ namespace OpenWifi {
 				Command.Status = "pending";
 			} else if(Type == COMMAND_COMPLETED) {
 				Command.Status = "completed";
+			} else if (Type == COMMAND_TIMEDOUT) {
+				Command.Executed = Now;
+				Command.Status = "timedout";
 			} else {
 				Command.Executed = Now;
 				Command.Status = "executing";
@@ -685,10 +688,16 @@ namespace OpenWifi {
 			Poco::Data::LOB<char> L;
 			Poco::Data::LOBOutputStream OL(L);
 
-			if (FileName.getSize()<FileUploader()->MaxSize()) {
+			if (FileName.getSize() < FileUploader()->MaxSize()) {
 
 				std::ifstream f(FileName.path(), std::ios::binary);
 				Poco::StreamCopier::copyStream(f, OL);
+				/*
+							"UUID			VARCHAR(64) PRIMARY KEY, "
+							"Type			VARCHAR(32), "
+							"Created 		BIGINT, "
+							"FileContent	BYTEA"
+				*/
 				Poco::Data::Statement Insert(Sess);
 				std::string FileType{"trace"};
 
