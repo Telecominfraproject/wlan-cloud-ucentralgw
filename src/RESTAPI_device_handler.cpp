@@ -13,76 +13,72 @@
 #include "Utils.h"
 
 namespace OpenWifi {
-void RESTAPI_device_handler::handleRequest(Poco::Net::HTTPServerRequest &Request,
-										   Poco::Net::HTTPServerResponse &Response) {
-	if (!ContinueProcessing(Request, Response))
-		return;
-
-	if (!IsAuthorized(Request, Response))
-		return;
-
-	ParseParameters(Request);
-	if (Request.getMethod() == Poco::Net::HTTPRequest::HTTP_GET) {
+	void RESTAPI_device_handler::DoGet() {
 		std::string SerialNumber = GetBinding(RESTAPI::Protocol::SERIALNUMBER, "");
 		GWObjects::Device Device;
 
 		if (Storage()->GetDevice(SerialNumber, Device)) {
 			Poco::JSON::Object Obj;
 			Device.to_json(Obj);
-			ReturnObject(Request, Obj, Response);
+			ReturnObject(Obj);
 		} else {
-			NotFound(Request, Response);
+			NotFound();
 		}
-	} else if (Request.getMethod() == Poco::Net::HTTPRequest::HTTP_DELETE) {
-		std::string SerialNumber = GetBinding(RESTAPI::Protocol::SERIALNUMBER, "");
+	}
 
+	void RESTAPI_device_handler::DoDelete() {
+		std::string SerialNumber = GetBinding(RESTAPI::Protocol::SERIALNUMBER, "");
 		if (Storage()->DeleteDevice(SerialNumber)) {
-			OK(Request, Response);
+			OK();
 		} else {
-			NotFound(Request, Response);
+			NotFound();
 		}
-	} else if (Request.getMethod() == Poco::Net::HTTPRequest::HTTP_POST) {
-		std::string SerialNumber = GetBinding(RESTAPI::Protocol::SERIALNUMBER, "");
+	}
 
-		Poco::JSON::Parser IncomingParser;
-		Poco::JSON::Object::Ptr Obj =
-			IncomingParser.parse(Request.stream()).extract<Poco::JSON::Object::Ptr>();
-		GWObjects::Device Device;
-		if (!Device.from_json(Obj)) {
-			BadRequest(Request, Response);
+	void RESTAPI_device_handler::DoPost() {
+		std::string SerialNumber = GetBinding(RESTAPI::Protocol::SERIALNUMBER, "");
+		if(SerialNumber.empty()) {
+			BadRequest("Missing Serial number.");
 			return;
 		}
 
-		//	make sure the username is filled for the notes.
+		auto Obj = ParseStream();
+		GWObjects::Device Device;
+		if (!Device.from_json(Obj)) {
+			BadRequest("Ill-formed JSON doc.");
+			return;
+		}
+
 		for(auto &i:Device.Notes)
 			i.createdBy = UserInfo_.userinfo.email;
 
 		if (!Utils::ValidSerialNumber(Device.SerialNumber)) {
 			Logger_.warning(Poco::format("CREATE-DEVICE(%s): Illegal name.", Device.SerialNumber));
-			BadRequest(Request, Response);
+			BadRequest("Invalid serial number.");
 			return;
 		}
-
-		Device.Print();
 
 		Device.UUID = time(nullptr);
 		if (Storage()->CreateDevice(Device)) {
 			Poco::JSON::Object DevObj;
 			Device.to_json(DevObj);
-			ReturnObject(Request, DevObj, Response);
+			ReturnObject(DevObj);
 		} else {
-			BadRequest(Request, Response);
+			BadRequest("Internal error.");
 		}
-	} else if (Request.getMethod() == Poco::Net::HTTPRequest::HTTP_PUT) {
+	}
+
+	void RESTAPI_device_handler::DoPut() {
 		std::string SerialNumber = GetBinding(RESTAPI::Protocol::SERIALNUMBER, "");
+		if(SerialNumber.empty()) {
+			BadRequest("Missing Serial number.");
+			return;
+		}
 
-		Poco::JSON::Parser IncomingParser;
-		Poco::JSON::Object::Ptr Obj =
-			IncomingParser.parse(Request.stream()).extract<Poco::JSON::Object::Ptr>();
-
+		auto Obj = ParseStream();
 		GWObjects::Device Device;
 		if (!Device.from_json(Obj)) {
-			BadRequest(Request, Response);
+			BadRequest("Ill-formed JSON document.");
 			return;
 		}
 
@@ -92,13 +88,9 @@ void RESTAPI_device_handler::handleRequest(Poco::Net::HTTPServerRequest &Request
 		if (Storage()->UpdateDevice(Device)) {
 			Poco::JSON::Object DevObj;
 			Device.to_json(DevObj);
-			ReturnObject(Request, DevObj, Response);
+			ReturnObject(DevObj);
 		} else {
-			BadRequest(Request, Response);
+			BadRequest("Could not update device.");
 		}
-	} else {
-		BadRequest(Request, Response);
 	}
-}
-
 }

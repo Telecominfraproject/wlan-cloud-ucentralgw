@@ -14,43 +14,19 @@
 #include "StorageService.h"
 
 namespace OpenWifi {
-	void RESTAPI_default_configurations::handleRequest(Poco::Net::HTTPServerRequest &Request,
-													   Poco::Net::HTTPServerResponse &Response) {
-		if (!ContinueProcessing(Request, Response))
-			return;
+	void RESTAPI_default_configurations::DoGet() {
+		std::vector<GWObjects::DefaultConfiguration> DefConfigs;
+		Storage()->GetDefaultConfigurations(QB_.Offset, QB_.Limit, DefConfigs);
 
-		if (!IsAuthorized(Request, Response))
-			return;
-
-		try {
-			if (Request.getMethod() == Poco::Net::HTTPRequest::HTTP_GET) {
-				ParseParameters(Request);
-				if(!InitQueryBlock()) {
-					BadRequest(Request, Response, "Illegal parameter value.");
-					return;
-				}
-
-				RESTAPIHandler::PrintBindings();
-				std::vector<GWObjects::DefaultConfiguration> DefConfigs;
-				Storage()->GetDefaultConfigurations(QB_.Offset, QB_.Limit, DefConfigs);
-
-				Poco::JSON::Array Objects;
-				for (const auto &i : DefConfigs) {
-					Poco::JSON::Object Obj;
-					i.to_json(Obj);
-					Objects.add(Obj);
-				}
-
-				Poco::JSON::Object RetObj;
-				RetObj.set(RESTAPI::Protocol::CONFIGURATIONS, Objects);
-				ReturnObject(Request, RetObj, Response);
-			} else
-				BadRequest(Request, Response);
-			return;
-		} catch (const Poco::Exception &E) {
-			Logger_.warning(
-				Poco::format("%s: Failed with: %s", std::string(__func__), E.displayText()));
+		Poco::JSON::Array Objects;
+		for (const auto &i : DefConfigs) {
+			Poco::JSON::Object Obj;
+			i.to_json(Obj);
+			Objects.add(Obj);
 		}
-		BadRequest(Request, Response);
+
+		Poco::JSON::Object RetObj;
+		RetObj.set(RESTAPI::Protocol::CONFIGURATIONS, Objects);
+		ReturnObject(RetObj);
 	}
 }

@@ -14,28 +14,9 @@
 #include "RESTAPI_protocol.h"
 
 namespace OpenWifi {
-	void RESTAPI_system_command::handleRequest(Poco::Net::HTTPServerRequest &Request,
-											   Poco::Net::HTTPServerResponse &Response) {
-
-		if (!ContinueProcessing(Request, Response))
-			return;
-
-		if (!IsAuthorized(Request, Response))
-			return;
-
-		if (Request.getMethod() == Poco::Net::HTTPRequest::HTTP_POST)
-			DoPost(Request, Response);
-		else if(Request.getMethod()==Poco::Net::HTTPRequest::HTTP_GET)
-			DoGet(Request, Response);
-		else
-            BadRequest(Request, Response, "Unsupported method.");
-	}
-
-	void RESTAPI_system_command::DoPost(Poco::Net::HTTPServerRequest &Request, Poco::Net::HTTPServerResponse &Response) {
+	void RESTAPI_system_command::DoPost() {
 		try {
-			Poco::JSON::Parser parser;
-			auto Obj = parser.parse(Request.stream()).extract<Poco::JSON::Object::Ptr>();
-
+			auto Obj = ParseStream();
 			if (Obj->has(RESTAPI::Protocol::COMMAND)) {
 				auto Command = Poco::toLower(Obj->get(RESTAPI::Protocol::COMMAND).toString());
 				if (Command == RESTAPI::Protocol::SETLOGLEVEL) {
@@ -53,7 +34,7 @@ namespace OpenWifi {
 								Logger_.information(Poco::format("Setting log level for %s at %s", Name, Value));
 							}
 						}
-						OK(Request, Response);
+						OK();
 						return;
 					}
 				} else if (Command == RESTAPI::Protocol::GETLOGLEVELS) {
@@ -67,7 +48,7 @@ namespace OpenWifi {
 						Array.add(Pair);
 					}
 					Result.set(RESTAPI::Protocol::TAGLIST,Array);
-					ReturnObject(Request,Result,Response);
+					ReturnObject(Result);
 					return;
 				} else if (Command == RESTAPI::Protocol::GETLOGLEVELNAMES) {
 					Poco::JSON::Object	Result;
@@ -76,7 +57,7 @@ namespace OpenWifi {
 					for(const auto &i:LevelNames)
 						LevelNamesArray.add(i);
 					Result.set(RESTAPI::Protocol::LIST,LevelNamesArray);
-					ReturnObject(Request,Result,Response);
+					ReturnObject(Result);
 					return;
 				} else if (Command == RESTAPI::Protocol::GETSUBSYSTEMNAMES) {
 					Poco::JSON::Object	Result;
@@ -85,7 +66,7 @@ namespace OpenWifi {
 					for(const auto &i:SubSystemNames)
 						LevelNamesArray.add(i);
 					Result.set(RESTAPI::Protocol::LIST,LevelNamesArray);
-					ReturnObject(Request,Result,Response);
+					ReturnObject(Result);
 					return;
 				} else if (Command == RESTAPI::Protocol::STATS) {
 
@@ -94,18 +75,17 @@ namespace OpenWifi {
 		} catch(const Poco::Exception &E) {
 			Logger_.log(E);
 		}
-		BadRequest(Request, Response, "Unsupported or missing parameters.");
+		BadRequest("Unsupported or missing parameters.");
 	}
 
-	void RESTAPI_system_command::DoGet(Poco::Net::HTTPServerRequest &Request, Poco::Net::HTTPServerResponse &Response) {
+	void RESTAPI_system_command::DoGet() {
 		try {
-			ParseParameters(Request);
 			auto Command = GetParameter(RESTAPI::Protocol::COMMAND, "");
 			if (!Poco::icompare(Command, RESTAPI::Protocol::VERSION)) {
 				Poco::JSON::Object Answer;
 				Answer.set(RESTAPI::Protocol::TAG, RESTAPI::Protocol::VERSION);
 				Answer.set(RESTAPI::Protocol::VALUE, Daemon()->Version());
-				ReturnObject(Request, Answer, Response);
+				ReturnObject(Answer);
 				return;
 			}
 			if (!Poco::icompare(Command, RESTAPI::Protocol::TIMES)) {
@@ -120,13 +100,15 @@ namespace OpenWifi {
 				Array.add(UpTimeObj);
 				Array.add(StartObj);
 				Answer.set(RESTAPI::Protocol::TIMES, Array);
-				ReturnObject(Request, Answer, Response);
+				ReturnObject(Answer);
 				return;
 			}
 		} catch (const Poco::Exception &E) {
 			Logger_.log(E);
 		}
-		BadRequest(Request, Response, "Unsupported or missing parameters.");
+		BadRequest("Unsupported or missing parameters.");
 	}
 
+	void RESTAPI_system_command::DoDelete() {}
+	void RESTAPI_system_command::DoPut() {}
 }

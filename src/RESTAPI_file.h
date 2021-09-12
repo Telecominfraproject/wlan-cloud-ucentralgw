@@ -20,9 +20,11 @@ namespace OpenWifi {
 													  Poco::Net::HTTPRequest::HTTP_DELETE,
 													  Poco::Net::HTTPRequest::HTTP_OPTIONS},
 							 Internal) {}
-		void handleRequest(Poco::Net::HTTPServerRequest &request,
-						   Poco::Net::HTTPServerResponse &response) override;
 		static const std::list<const char *> PathName() { return std::list<const char *>{"/api/v1/file/{uuid}"};}
+		void DoGet() final;
+		void DoDelete() final;
+		void DoPost() final {};
+		void DoPut() final {};
 	};
 }
 

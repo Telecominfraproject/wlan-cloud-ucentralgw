@@ -17,94 +17,65 @@
 #include "Utils.h"
 
 namespace OpenWifi {
-	void RESTAPI_devices_handler::handleRequest(Poco::Net::HTTPServerRequest &Request,
-												Poco::Net::HTTPServerResponse &Response) {
+	void RESTAPI_devices_handler::DoGet() {
 
-		if (!ContinueProcessing(Request, Response))
-			return;
+		auto serialOnly = GetBoolParameter(RESTAPI::Protocol::SERIALONLY, false);
+		auto deviceWithStatus = GetBoolParameter(RESTAPI::Protocol::DEVICEWITHSTATUS, false);
 
-		if (!IsAuthorized(Request, Response))
-			return;
-
-		try {
-			if (Request.getMethod() == Poco::Net::HTTPRequest::HTTP_GET) {
-				ParseParameters(Request);
-				if(!InitQueryBlock()) {
-					BadRequest(Request, Response, "Illegal parameter value.");
-					return;
-				}
-				auto serialOnly = GetBoolParameter(RESTAPI::Protocol::SERIALONLY, false);
-				auto deviceWithStatus =
-					GetBoolParameter(RESTAPI::Protocol::DEVICEWITHSTATUS, false);
-
-				Logger_.debug(Poco::format("DEVICES: from %Lu, limit of %Lu, filter='%s'.",
-										   (uint64_t)QB_.Offset, (uint64_t)QB_.Limit, QB_.Filter));
-
-				RESTAPIHandler::PrintBindings();
-
-				Poco::JSON::Object RetObj;
-
-				if (!QB_.Select.empty()) {
-
-					Poco::JSON::Array Objects;
-					std::vector<std::string> Numbers = Utils::Split(QB_.Select);
-					for (auto &i : Numbers) {
-						GWObjects::Device D;
-						if (Storage()->GetDevice(i, D)) {
-							Poco::JSON::Object Obj;
-							if (deviceWithStatus)
-								D.to_json_with_status(Obj);
-							else
-								D.to_json(Obj);
-							Objects.add(Obj);
-						} else {
-							Logger_.error(
-								Poco::format("DEVICE(%s): device in select cannot be found.", i));
-						}
-					}
-
+		Poco::JSON::Object RetObj;
+		if (!QB_.Select.empty()) {
+			Poco::JSON::Array Objects;
+			std::vector<std::string> Numbers = Utils::Split(QB_.Select);
+			for (auto &i : Numbers) {
+				GWObjects::Device D;
+				if (Storage()->GetDevice(i, D)) {
+					Poco::JSON::Object Obj;
 					if (deviceWithStatus)
-						RetObj.set(RESTAPI::Protocol::DEVICESWITHSTATUS, Objects);
+						D.to_json_with_status(Obj);
 					else
-						RetObj.set(RESTAPI::Protocol::DEVICES, Objects);
-
-				} else if (QB_.CountOnly == true) {
-					uint64_t Count = 0;
-					if (Storage()->GetDeviceCount(Count)) {
-						RetObj.set(RESTAPI::Protocol::COUNT, Count);
-					}
-				} else if (serialOnly) {
-					std::vector<std::string> SerialNumbers;
-					Storage()->GetDeviceSerialNumbers(QB_.Offset, QB_.Limit, SerialNumbers);
-					Poco::JSON::Array Objects;
-					for (const auto &i : SerialNumbers) {
-						Objects.add(i);
-					}
-					RetObj.set(RESTAPI::Protocol::SERIALNUMBERS, Objects);
+						D.to_json(Obj);
+					Objects.add(Obj);
 				} else {
-					std::vector<GWObjects::Device> Devices;
-					Storage()->GetDevices(QB_.Offset, QB_.Limit, Devices);
-					Poco::JSON::Array Objects;
-					for (const auto &i : Devices) {
-						Poco::JSON::Object Obj;
-						if (deviceWithStatus)
-							i.to_json_with_status(Obj);
-						else
-							i.to_json(Obj);
-						Objects.add(Obj);
-					}
-					if (deviceWithStatus)
-						RetObj.set(RESTAPI::Protocol::DEVICESWITHSTATUS, Objects);
-					else
-						RetObj.set(RESTAPI::Protocol::DEVICES, Objects);
+					Logger_.error(
+						Poco::format("DEVICE(%s): device in select cannot be found.", i));
 				}
-				ReturnObject(Request, RetObj, Response);
+			}
+			if (deviceWithStatus)
+				RetObj.set(RESTAPI::Protocol::DEVICESWITHSTATUS, Objects);
+			else
+				RetObj.set(RESTAPI::Protocol::DEVICES, Objects);
+
+		} else if (QB_.CountOnly == true) {
+			uint64_t Count = 0;
+			if (Storage()->GetDeviceCount(Count)) {
+				ReturnCountOnly(Count);
 				return;
 			}
-		} catch (const Poco::Exception &E) {
-			Logger_.warning(
-				Poco::format("%s: Failed with: %s", std::string(__func__), E.displayText()));
+		} else if (serialOnly) {
+			std::vector<std::string> SerialNumbers;
+			Storage()->GetDeviceSerialNumbers(QB_.Offset, QB_.Limit, SerialNumbers);
+			Poco::JSON::Array Objects;
+			for (const auto &i : SerialNumbers) {
+				Objects.add(i);
+			}
+			RetObj.set(RESTAPI::Protocol::SERIALNUMBERS, Objects);
+		} else {
+			std::vector<GWObjects::Device> Devices;
+			Storage()->GetDevices(QB_.Offset, QB_.Limit, Devices);
+			Poco::JSON::Array Objects;
+			for (const auto &i : Devices) {
+				Poco::JSON::Object Obj;
+				if (deviceWithStatus)
+					i.to_json_with_status(Obj);
+				else
+					i.to_json(Obj);
+				Objects.add(Obj);
+			}
+			if (deviceWithStatus)
+				RetObj.set(RESTAPI::Protocol::DEVICESWITHSTATUS, Objects);
+			else
+				RetObj.set(RESTAPI::Protocol::DEVICES, Objects);
 		}
-		BadRequest(Request, Response);
+		ReturnObject(RetObj);
 	}
 }

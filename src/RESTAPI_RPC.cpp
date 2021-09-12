@@ -23,11 +23,10 @@ namespace OpenWifi::RESTAPI_RPC {
 		if (Storage()->AddCommand(Cmd.SerialNumber, Cmd, Storage::COMMAND_PENDING)) {
 			Poco::JSON::Object RetObj;
 			Cmd.to_json(RetObj);
-			Handler->ReturnObject(Request, RetObj, Response);
+			Handler->ReturnObject(RetObj);
 			return;
 		} else {
-			Handler->ReturnStatus(Request, Response,
-								  Poco::Net::HTTPResponse::HTTP_INTERNAL_SERVER_ERROR);
+			Handler->ReturnStatus(Poco::Net::HTTPResponse::HTTP_INTERNAL_SERVER_ERROR);
 			return;
 		}
 	}
@@ -39,11 +38,10 @@ namespace OpenWifi::RESTAPI_RPC {
 		if (Storage()->AddCommand(Cmd.SerialNumber, Cmd, Storage::COMMAND_TIMEDOUT)) {
 			Poco::JSON::Object RetObj;
 			Cmd.to_json(RetObj);
-			Handler->ReturnObject(Request, RetObj, Response);
+			Handler->ReturnObject(RetObj);
 			return;
 		} else {
-			Handler->ReturnStatus(Request, Response,
-								  Poco::Net::HTTPResponse::HTTP_INTERNAL_SERVER_ERROR);
+			Handler->ReturnStatus(Poco::Net::HTTPResponse::HTTP_INTERNAL_SERVER_ERROR);
 			return;
 		}
 	}
@@ -99,11 +97,11 @@ namespace OpenWifi::RESTAPI_RPC {
 												  Storage::COMMAND_COMPLETED);
 
 							if (ObjectToReturn) {
-								Handler->ReturnObject(Request, *ObjectToReturn, Response);
+								Handler->ReturnObject(*ObjectToReturn);
 							} else {
 								Poco::JSON::Object O;
 								Cmd.to_json(O);
-								Handler->ReturnObject(Request, O, Response);
+								Handler->ReturnObject(O);
 							}
 							return;
 						} else {

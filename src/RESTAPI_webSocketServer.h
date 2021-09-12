@@ -16,12 +16,12 @@ namespace OpenWifi {
 		: RESTAPIHandler(bindings, L,
 						 std::vector<std::string>{Poco::Net::HTTPRequest::HTTP_GET,
 												  Poco::Net::HTTPRequest::HTTP_OPTIONS},
-												  Internal) {}
-		void handleRequest(Poco::Net::HTTPServerRequest &Request,
-						 Poco::Net::HTTPServerResponse &Response) override final;
+												  Internal,false) {}
 		static const std::list<const char *> PathName() { return std::list<const char *>{"/api/v1/ws"};}
-		void DoGet(Poco::Net::HTTPServerRequest &Request,
-				   Poco::Net::HTTPServerResponse &Response);
+		void DoGet() final;
+		void DoDelete() final {};
+		void DoPost() final {};
+		void DoPut() final {};
 	  private:
 		void Process(const Poco::JSON::Object::Ptr &O, std::string &Answer);
 	};

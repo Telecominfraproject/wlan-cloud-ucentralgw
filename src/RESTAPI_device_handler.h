@@ -23,9 +23,11 @@ class RESTAPI_device_handler : public RESTAPIHandler {
 							 Poco::Net::HTTPRequest::HTTP_PUT, Poco::Net::HTTPRequest::HTTP_DELETE,
 							 Poco::Net::HTTPRequest::HTTP_OPTIONS},
 						 Internal) {}
-	void handleRequest(Poco::Net::HTTPServerRequest &request,
-					   Poco::Net::HTTPServerResponse &response) override;
 	static const std::list<const char *> PathName() { return std::list<const char *>{"/api/v1/device/{serialNumber}"}; };
+	void DoGet() final;
+	void DoDelete() final;
+	void DoPost() final;
+	void DoPut() final;
 
 	};
 }

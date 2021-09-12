@@ -12,38 +12,23 @@
 #include "StorageService.h"
 
 namespace OpenWifi {
-void RESTAPI_command::handleRequest(Poco::Net::HTTPServerRequest &Request,
-									Poco::Net::HTTPServerResponse &Response) {
-	if (!ContinueProcessing(Request, Response))
-		return;
-
-	if (!IsAuthorized(Request, Response))
-		return;
-
-	try {
-		ParseParameters(Request);
-
-		if (Request.getMethod() == Poco::Net::HTTPRequest::HTTP_GET) {
-			auto CommandUUID = GetBinding(RESTAPI::Protocol::COMMANDUUID, "");
-			GWObjects::CommandDetails Command;
-			if (Storage()->GetCommand(CommandUUID, Command)) {
-				Poco::JSON::Object RetObj;
-				Command.to_json(RetObj);
-				ReturnObject(Request, RetObj, Response);
-			} else
-				NotFound(Request, Response);
-		} else if (Request.getMethod() == Poco::Net::HTTPRequest::HTTP_DELETE) {
-			auto CommandUUID = GetBinding(RESTAPI::Protocol::COMMANDUUID, "");
-			if (Storage()->DeleteCommand(CommandUUID)) {
-				OK(Request, Response);
-			} else {
-				NotFound(Request, Response);
-			}
-		}
-		return;
-	} catch (const Poco::Exception &E) {
-		Logger_.error(Poco::format("%s: failed with %s", std::string(__func__), E.displayText()));
+	void RESTAPI_command::DoGet() {
+		auto CommandUUID = GetBinding(RESTAPI::Protocol::COMMANDUUID, "");
+		GWObjects::CommandDetails Command;
+		if (Storage()->GetCommand(CommandUUID, Command)) {
+			Poco::JSON::Object RetObj;
+			Command.to_json(RetObj);
+			ReturnObject(RetObj);
+		} else
+			NotFound();
 	}
-	BadRequest(Request, Response);
-}
+
+	void RESTAPI_command::DoDelete() {
+		auto CommandUUID = GetBinding(RESTAPI::Protocol::COMMANDUUID, "");
+		if (Storage()->DeleteCommand(CommandUUID)) {
+			OK();
+		} else {
+			NotFound();
+		}
+	}
 }

@@ -20,13 +20,12 @@ class RESTAPI_system_command : public RESTAPIHandler {
 														  Poco::Net::HTTPRequest::HTTP_GET,
 														  Poco::Net::HTTPRequest::HTTP_OPTIONS},
 						 Internal) {}
-	void handleRequest(Poco::Net::HTTPServerRequest &request,
-					   Poco::Net::HTTPServerResponse &response) override;
 	static const std::list<const char *> PathName() { return std::list<const char *>{"/api/v1/system"};}
-	void DoGet(Poco::Net::HTTPServerRequest &Request,
-			   Poco::Net::HTTPServerResponse &Response);
-	void DoPost(Poco::Net::HTTPServerRequest &Request,
-				Poco::Net::HTTPServerResponse &Response);
+
+	void DoGet();
+	void DoPost();
+	void DoPut();
+	void DoDelete();
 	};
 }
 #endif // UCENTRALGW_RESTAPI_SYSTEM_COMMAND_H
