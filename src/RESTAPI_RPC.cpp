@@ -18,8 +18,25 @@
 namespace OpenWifi::RESTAPI_RPC {
 	void SetCommandAsPending(GWObjects::CommandDetails &Cmd,
 											 Poco::Net::HTTPServerRequest &Request,
-											 Poco::Net::HTTPServerResponse &Response, RESTAPIHandler *Handler) {
+											 Poco::Net::HTTPServerResponse &Response, RESTAPIHandler *Handler,
+											 Poco::Logger &Logger) {
 		if (Storage()->AddCommand(Cmd.SerialNumber, Cmd, Storage::COMMAND_PENDING)) {
+			Poco::JSON::Object RetObj;
+			Cmd.to_json(RetObj);
+			Handler->ReturnObject(Request, RetObj, Response);
+			return;
+		} else {
+			Handler->ReturnStatus(Request, Response,
+								  Poco::Net::HTTPResponse::HTTP_INTERNAL_SERVER_ERROR);
+			return;
+		}
+	}
+
+	void SetCommandAsTimedOut(GWObjects::CommandDetails &Cmd,
+							 Poco::Net::HTTPServerRequest &Request,
+							 Poco::Net::HTTPServerResponse &Response, RESTAPIHandler *Handler,
+							 Poco::Logger &Logger) {
+		if (Storage()->AddCommand(Cmd.SerialNumber, Cmd, Storage::COMMAND_TIMEDOUT)) {
 			Poco::JSON::Object RetObj;
 			Cmd.to_json(RetObj);
 			Handler->ReturnObject(Request, RetObj, Response);
@@ -37,12 +54,13 @@ namespace OpenWifi::RESTAPI_RPC {
 						Poco::Net::HTTPServerResponse &Response,
 						int64_t WaitTimeInMs,
 						Poco::JSON::Object * ObjectToReturn,
-						RESTAPIHandler * Handler) {
+						RESTAPIHandler * Handler,
+						Poco::Logger &Logger) {
 
 		// 	if the command should be executed in the future, or if the device is not connected, then we should just add the command to
 		//	the DB and let it figure out when to deliver the command.
 		if(Cmd.RunAt || !DeviceRegistry()->Connected(Cmd.SerialNumber)) {
-			SetCommandAsPending(Cmd, Request, Response, Handler);
+			SetCommandAsPending(Cmd, Request, Response, Handler, Logger);
 			return;
 		}
 
@@ -50,11 +68,8 @@ namespace OpenWifi::RESTAPI_RPC {
 
 		uint64_t RPC_Id=0;
 		if (CommandManager()->SendCommand(Cmd.SerialNumber, Cmd.Command, Params, Cmd.UUID, RPC_Id)) {
-
-			bool Done = false;
 			CommandTag T;
-
-			while (!Done && CommandManager()->Running() && WaitTimeInMs > 0) {
+			while (CommandManager()->Running() && WaitTimeInMs > 0) {
 				if (CommandManager()->GetCommand(RPC_Id, Cmd.SerialNumber, T)) {
 					auto Answer = T.Result;
 					if (Answer->has("result") && Answer->isObject("result")) {
@@ -91,51 +106,24 @@ namespace OpenWifi::RESTAPI_RPC {
 								Handler->ReturnObject(Request, O, Response);
 							}
 							return;
+						} else {
+							Logger.information(Poco::format("Invalid response for command '%s'. Missing status.", Cmd.UUID));
 						}
-						SetCommandAsPending(Cmd, Request, Response, Handler);
+					} else {
+						Logger.information(Poco::format("Invalid response for command '%s'. Missing result.", Cmd.UUID));
 					}
-					Done=true;
 				} else {
 					Poco::Thread::trySleep(100);
 					WaitTimeInMs -= 100;
 				}
 			}
+			if(WaitTimeInMs<0)
+				SetCommandAsTimedOut(Cmd, Request, Response, Handler, Logger);
+			else
+				SetCommandAsPending(Cmd, Request, Response, Handler, Logger);
 		} else {
-			SetCommandAsPending(Cmd, Request, Response, Handler);
+			SetCommandAsPending(Cmd, Request, Response, Handler, Logger);
 		}
 	}
-
-	/*
-		bool WaitForRPC(GWObjects::CommandDetails &Cmd,
-									Poco::Net::HTTPServerRequest &Request,
-									Poco::Net::HTTPServerResponse &Response, uint64_t Timeout,
-									bool ReturnValue,
-									RESTAPIHandler * Handler) {
-
-		if (DeviceRegistry()->Connected(Cmd.SerialNumber)) {
-			GWObjects::CommandDetails ResCmd;
-			while (Timeout > 0) {
-				Timeout -= 1000;
-				Poco::Thread::sleep(1000);
-				if (Storage()->GetCommand(Cmd.UUID, ResCmd)) {
-					if (ResCmd.Completed) {
-						if (ReturnValue) {
-							Poco::JSON::Object RetObj;
-							ResCmd.to_json(RetObj);
-							Handler->ReturnObject(Request, RetObj, Response);
-						}
-						return true;
-					}
-				}
-			}
-		}
-		if (ReturnValue) {
-			Poco::JSON::Object RetObj;
-			Cmd.to_json(RetObj);
-			Handler->ReturnObject(Request, RetObj, Response);
-		}
-		return false;
-	}
-*/
 
 }

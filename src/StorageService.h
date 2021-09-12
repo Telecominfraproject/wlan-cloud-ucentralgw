@@ -35,7 +35,8 @@ namespace OpenWifi {
 		enum CommandExecutionType {
 			COMMAND_PENDING,
 			COMMAND_EXECUTED,
-			COMMAND_COMPLETED
+			COMMAND_COMPLETED,
+			COMMAND_TIMEDOUT
 		};
 
         static Storage *instance() {
