@@ -52,12 +52,12 @@ namespace OpenWifi {
 			else if (Request->getMethod() == Poco::Net::HTTPRequest::HTTP_PUT)
 				DoPut();
 			else
-				BadRequest("Unknown HTTP Method");
+				BadRequest("Unsupported HTTP Method");
 			return;
 		} catch (const Poco::Exception &E) {
 			Logger_.log(E);
+			BadRequest("Internal error.");
 		}
-		BadRequest("Internal error.");
 	}
 
     const Poco::JSON::Object::Ptr &RESTAPIHandler::ParseStream() {

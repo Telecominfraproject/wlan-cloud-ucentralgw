@@ -77,8 +77,11 @@ namespace OpenWifi {
 					OK();
 					return;
 				}
+			} else {
+				BadRequest("No devices to add.");
 			}
+		} else {
+			BadRequest("Missing parameters.");
 		}
-		BadRequest("Internal error.");
 	}
 }
