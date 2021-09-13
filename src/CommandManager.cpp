@@ -123,7 +123,7 @@ namespace OpenWifi {
 		CompleteRPC.set(uCentralProtocol::PARAMS, Params);
 		std::stringstream ToSend;
 		Poco::JSON::Stringifier::stringify(CompleteRPC, ToSend);
-		Logger_.error(Poco::format("(%s): Sending command '%s', ID: %lu", SerialNumber, Method, Id));
+		Logger_.information(Poco::format("(%s): Sending command '%s', ID: %lu", SerialNumber, Method, Id));
 		CommandTagIndex Idx{.Id=Id, .SerialNumber=SerialNumber};
 		CommandTag		Tag;
 		Tag.UUID = UUID;
