@@ -212,10 +212,9 @@ namespace OpenWifi {
 		return  BytesSent == Payload.size();
 	}
 
-	void TelemetryClient::OnSocketShutdown(const Poco::AutoPtr<Poco::Net::ShutdownNotification>& pNf) {
-		std::lock_guard Guard(Mutex_);
-		Logger_.information(Poco::format("SOCKET-SHUTDOWN(%s): Closing.",CId_));
-
+	void TelemetryClient::SendTelemetryShutdown() {
+		Logger_.information(Poco::format("TELEMETRY-SHUTDOWN(%s): Closing.",CId_));
+		std::cout << "TELEMETRY-SHUTDOWN" << std::endl;
 		TelemetryStream()->DeRegisterClient(UUID_);
 		Poco::JSON::Object	StopMessage;
 		StopMessage.set("jsonrpc","2.0");
@@ -233,13 +232,18 @@ namespace OpenWifi {
 		delete this;
 	}
 
+	void TelemetryClient::OnSocketShutdown(const Poco::AutoPtr<Poco::Net::ShutdownNotification>& pNf) {
+		std::lock_guard Guard(Mutex_);
+		std::cout << "OnSocketShutdown" << std::endl;
+		Logger_.information(Poco::format("SOCKET-SHUTDOWN(%s): Orderly shutdown.", CId_));
+		SendTelemetryShutdown();
+	}
+
 	void TelemetryClient::OnSocketError(const Poco::AutoPtr<Poco::Net::ErrorNotification>& pNf) {
 		std::lock_guard Guard(Mutex_);
+		std::cout << "OnSocketError" << std::endl;
 		Logger_.information(Poco::format("SOCKET-ERROR(%s): Closing.",CId_));
-
-		TelemetryStream()->DeRegisterClient(UUID_);
-
-		delete this;
+		SendTelemetryShutdown();
 	}
 
 	void TelemetryClient::OnSocketReadable(const Poco::AutoPtr<Poco::Net::ReadableNotification>& pNf) {
@@ -251,19 +255,16 @@ namespace OpenWifi {
 		catch (const Poco::Exception & E)
 		{
 			Logger_.log(E);
-			TelemetryStream()->DeRegisterClient(UUID_);
-			delete this;
+			SendTelemetryShutdown();
 		}
 		catch (const std::exception & E) {
 			std::string W = E.what();
 			Logger_.information(Poco::format("std::exception caught: %s. Connection terminated with %s",W,CId_));
-			TelemetryStream()->DeRegisterClient(UUID_);
-			delete this;
+			SendTelemetryShutdown();
 		}
 		catch ( ... ) {
 			Logger_.information(Poco::format("Unknown exception for %s. Connection terminated.",CId_));
-			TelemetryStream()->DeRegisterClient(UUID_);
-			delete this;
+			SendTelemetryShutdown();
 		}
 	}
 
