@@ -707,8 +707,8 @@ namespace OpenWifi {
 							Logger_.error(Poco::format("FRAME(%s): illegal transaction header, missing 'jsonrpc'",CId_));
 							Errors_++;
 						}
-                        break;
-                    }
+	                    }
+    	                break;
 
 					case Poco::Net::WebSocket::FRAME_OP_CLOSE: {
 							Logger_.warning(Poco::format("CLOSE(%s): Device is closing its connection.",CId_));
