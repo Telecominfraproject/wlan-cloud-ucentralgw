@@ -283,6 +283,9 @@ namespace OpenWifi {
 					WS_->sendFrame("", 0,
 								   (int)Poco::Net::WebSocket::FRAME_OP_PONG |
 									   (int)Poco::Net::WebSocket::FRAME_FLAG_FIN);
+				} else if (Op == Poco::Net::WebSocket::FRAME_OP_CLOSE) {
+					Logger_.information(Poco::format("DISCONNECT(%s): device wants to disconnect.", CId_));
+					MustDisconnect = true ;
 				}
 			}
 		} catch (...) {
