@@ -123,18 +123,24 @@ namespace OpenWifi {
 		Reactor_(Reactor),
 		Logger_(TelemetryStream()->Logger())
 	{
+		std::cout << __LINE__ <<std::endl;
+
 		std::lock_guard Guard(Mutex_);
+		std::cout << __LINE__ <<std::endl;
 		try {
 			auto SS = dynamic_cast<Poco::Net::SecureStreamSocketImpl *>(Socket_.impl());
 			SS->completeHandshake();
+			std::cout << __LINE__ <<std::endl;
 
 			CId_ = Utils::FormatIPv6(SS->peerAddress().toString());
+			std::cout << __LINE__ <<std::endl;
 
 			if (!SS->secure()) {
 				Logger_.error(Poco::format("%s: Connection is NOT secure.", CId_));
 			} else {
 				Logger_.debug(Poco::format("%s: Connection is secure.", CId_));
 			}
+			std::cout << __LINE__ <<std::endl;
 
 			auto Params =
 				Poco::AutoPtr<Poco::Net::HTTPServerParams>(new Poco::Net::HTTPServerParams);
@@ -142,6 +148,7 @@ namespace OpenWifi {
 			Poco::Net::HTTPServerResponseImpl Response(Session);
 			Poco::Net::HTTPServerRequestImpl Request(Response, Session, Params);
 			Poco::URI	U(Request.getURI());
+			std::cout << __LINE__ <<std::endl;
 
 			UUID_ = U.getPath().substr(1);
 			if(TelemetryStream()->RegisterClient(UUID_,this)) {
@@ -159,6 +166,7 @@ namespace OpenWifi {
 				WS_->setMaxPayloadSize(BufSize);
 
 				auto TS = Poco::Timespan(240, 0);
+				std::cout << __LINE__ <<std::endl;
 
 				WS_->setReceiveTimeout(TS);
 				WS_->setNoDelay(true);
@@ -172,13 +180,17 @@ namespace OpenWifi {
 				Reactor_.addEventHandler(
 					*WS_, Poco::NObserver<TelemetryClient, Poco::Net::ErrorNotification>(
 							  *this, &TelemetryClient::OnSocketError));
+				std::cout << __LINE__ <<std::endl;
 				Registered_ = true;
+				std::cout << __LINE__ <<std::endl;
 				Logger_.information(Poco::format("CONNECTION(%s): completed.", CId_));
 				return;
 			}
 		} catch (const Poco::Exception &E ) {
+			std::cout << __LINE__ <<std::endl;
 			Logger_.error("Exception caught during device connection. Device will have to retry.");
 		}
+		std::cout << __LINE__ <<std::endl;
 		delete this;
 	}
 
