@@ -135,8 +135,14 @@ namespace OpenWifi {
 					std::cout << __LINE__ << std::endl;
 					auto SS = dynamic_cast<Poco::Net::SecureStreamSocketImpl *>(Socket_.impl());
 					std::cout << __LINE__ << std::endl;
-					SS->completeHandshake();
-					std::cout << __LINE__ << std::endl;
+					int R;
+					try {
+						R = SS->completeHandshake();
+					} catch (...) {
+						std::cout << __LINE__ << std::endl;
+					}
+
+					std::cout << __LINE__ << "R: " << R << std::endl;
 
 					CId_ = Utils::FormatIPv6(SS->peerAddress().toString());
 					std::cout << __LINE__ << std::endl;
