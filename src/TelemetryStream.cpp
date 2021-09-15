@@ -150,6 +150,7 @@ namespace OpenWifi {
 			Poco::URI	U(Request.getURI());
 			std::cout << __LINE__ << std::endl;
 
+			std::cout << "Registering :" << U.getPath() << std::endl;
 			if(TelemetryStream()->RegisterClient(U.getPath(),this)) {
 				UUID_ = U.getPath();
 				auto Parameters = U.getQueryParameters();

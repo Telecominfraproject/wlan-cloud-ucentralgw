@@ -541,7 +541,7 @@ telemetry() {
 	jq < ${result_file}
 	socket=$(jq -r '.uri' < result.json)
 	wscat \
-		-c socket
+		-c "${socket}"
 }
 
 help() {
