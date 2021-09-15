@@ -824,10 +824,13 @@ void RESTAPI_device_commandHandler::MakeRequest() {
 			Params.stringify(ParamStream);
 			Cmd.Details = ParamStream.str();
 
+			std::cout << __LINE__ <<std::endl;
 			RESTAPI_RPC::WaitForCommand(Cmd, Params, *Request, *Response,
 										60000, &Answer, this, Logger_);
+			std::cout << __LINE__ <<std::endl;
 		} else {
 			BadRequest("Missing parameters.");
 		}
+		std::cout << __LINE__ <<std::endl;
 	}
 }
