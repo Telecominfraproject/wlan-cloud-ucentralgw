@@ -283,6 +283,7 @@ namespace OpenWifi {
 
 			if (IncomingSize == 0 && flags == 0 && Op == 0) {
 				Logger_.information(Poco::format("DISCONNECT(%s): device has disconnected.", CId_));
+				std::cout << "Disconnect detected." << std::endl;
 				MustDisconnect = true;
 			} else {
 				if (Op == Poco::Net::WebSocket::FRAME_OP_PING) {
@@ -299,8 +300,7 @@ namespace OpenWifi {
 		if(!MustDisconnect)
 			return;
 
-		TelemetryStream()->DeRegisterClient(UUID_);
-		delete this;
+		SendTelemetryShutdown();
 	}
 
 
