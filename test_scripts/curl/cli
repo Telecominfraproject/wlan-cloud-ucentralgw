@@ -540,8 +540,13 @@ telemetry() {
 	-d "$payload"  > ${result_file}
 	jq < ${result_file}
 	socket=$(jq -r '.uri' < result.json)
-	wscat \
-		-c "${socket}"
+	if [[ "$(which wscat)" == "" ]]
+    then
+	   echo "wscat command not found. Cannot start a websocket session."
+    else
+		wscat \
+			-c "${socket}"
+	fi
 }
 
 help() {
