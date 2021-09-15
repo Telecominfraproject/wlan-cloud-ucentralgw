@@ -124,12 +124,9 @@ namespace OpenWifi {
 		Logger_(TelemetryStream()->Logger())
 	{
 		std::lock_guard Guard(Mutex_);
-		std::cout << __LINE__ << std::endl;
 		try {
 			auto SS = dynamic_cast<Poco::Net::SecureStreamSocketImpl *>(Socket_.impl());
-			std::cout << __LINE__ << std::endl;
 			SS->completeHandshake();
-			std::cout << __LINE__ << std::endl;
 
 			CId_ = Utils::FormatIPv6(SS->peerAddress().toString());
 
@@ -138,29 +135,22 @@ namespace OpenWifi {
 			} else {
 				Logger_.debug(Poco::format("%s: Connection is secure.", CId_));
 			}
-			std::cout << __LINE__ << std::endl;
 
 			auto Params =
 				Poco::AutoPtr<Poco::Net::HTTPServerParams>(new Poco::Net::HTTPServerParams);
 			Poco::Net::HTTPServerSession Session(Socket_, Params);
 			Poco::Net::HTTPServerResponseImpl Response(Session);
 			Poco::Net::HTTPServerRequestImpl Request(Response, Session, Params);
-			std::cout << __LINE__ << std::endl;
-
 			Poco::URI	U(Request.getURI());
-			std::cout << __LINE__ << std::endl;
 
-			std::string UUID = U.getPath().substr(1);
-			std::cout << "Registering :" << UUID << std::endl;
-			if(TelemetryStream()->RegisterClient(UUID,this)) {
-				UUID_ = U.getPath();
+			UUID_ = U.getPath().substr(1);
+			std::cout << "Registering :" << UUID_ << std::endl;
+			if(TelemetryStream()->RegisterClient(UUID_,this)) {
 				auto Parameters = U.getQueryParameters();
 				for(const auto &i:Parameters) {
 					if (i.first == "serialNumber")
 						SerialNumber_ = i.second;
 				}
-				std::cout << __LINE__ << std::endl;
-
 				auto Now = time(nullptr);
 				Response.setDate(Now);
 				Response.setVersion(Request.getVersion());
@@ -185,18 +175,17 @@ namespace OpenWifi {
 							  *this, &TelemetryClient::OnSocketError));
 				Registered_ = true;
 				Logger_.information(Poco::format("CONNECTION(%s): completed.", CId_));
-				std::cout << __LINE__ << std::endl;
 				return;
 			}
 		} catch (const Poco::Exception &E ) {
-			std::cout << __LINE__ << std::endl;
 			Logger_.error("Exception caught during device connection. Device will have to retry.");
 		}
-		std::cout << __LINE__ << std::endl;
 		delete this;
 	}
 
 	TelemetryClient::~TelemetryClient() {
+		Logger_.information("Closing telemetry session.");
+		std::cout << "Closing down session..." << std:::endl;
 		if(Registered_ && WS_)
 		{
 			Reactor_.removeEventHandler(*WS_,
@@ -210,8 +199,9 @@ namespace OpenWifi {
 										Poco::Net::ErrorNotification>(*this,&TelemetryClient::OnSocketError));
 			(*WS_).close();
 			Socket_.shutdown();
-		} else if(WS_) {
-			(*WS_).close();
+		} else {
+			if(WS_)
+				(*WS_).close();
 			Socket_.shutdown();
 		}
 	}
@@ -239,14 +229,16 @@ namespace OpenWifi {
 		std::ostringstream OS;
 		Stringify.condense(StopMessage,OS);
 		DeviceRegistry()->SendFrame(SerialNumber_, OS.str());
-
+		TelemetryStream()->DeRegisterClient(UUID_);
 		delete this;
 	}
 
 	void TelemetryClient::OnSocketError(const Poco::AutoPtr<Poco::Net::ErrorNotification>& pNf) {
 		std::lock_guard Guard(Mutex_);
 		Logger_.information(Poco::format("SOCKET-ERROR(%s): Closing.",CId_));
+
 		TelemetryStream()->DeRegisterClient(UUID_);
+
 		delete this;
 	}
 
@@ -277,7 +269,6 @@ namespace OpenWifi {
 
 	void TelemetryClient::ProcessIncomingFrame() {
 
-		std::cout << __LINE__ << std::endl;
 		bool MustDisconnect=false;
 		Poco::Buffer<char>			IncomingFrame(0);
 
