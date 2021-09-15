@@ -808,33 +808,24 @@ void RESTAPI_device_commandHandler::MakeRequest() {
 			if (Interval > 0)
 				Params.set(RESTAPI::Protocol::TYPES, Obj->getArray(RESTAPI::Protocol::TYPES));
 
+			Poco::JSON::Object Answer;
+			if (Interval) {
+				std::string Endpoint, NewUUID;
+				if (TelemetryStream()->CreateEndpoint(SerialNumber_, Endpoint, NewUUID)) {
+					Answer.set("serialNumber", SerialNumber_);
+					Answer.set("uuid", NewUUID);
+					Answer.set("uri", Endpoint);
+				}
+			} else {
+				BadRequest("Telemetry system could not create WS endpoint. Please try again.");
+				return;
+			}
+
 			std::stringstream ParamStream;
 			Params.stringify(ParamStream);
 			Cmd.Details = ParamStream.str();
 			RESTAPI_RPC::WaitForCommand(Cmd, Params, *Request, *Response,
-										60000, nullptr, this, Logger_);
-
-			if (Interval) {
-				if (Cmd.ErrorCode == 0) {
-					std::string Endpoint, NewUUID;
-					if (TelemetryStream()->CreateEndpoint(SerialNumber_, Endpoint, NewUUID)) {
-						Poco::JSON::Object Answer;
-
-						Answer.set("serialNumber", SerialNumber_);
-						Answer.set("uuid", NewUUID);
-						Answer.set("uri", Endpoint);
-						ReturnObject(Answer);
-						return;
-					}
-				} else {
-					BadRequest("Telemetry system could not create WS endpoint. Please try again.");
-					return;
-				}
-			} else {
-				TelemetryStream()->DeleteEndPoint(SerialNumber_);
-				OK();
-			}
-			return;
+										60000, &Answer, this, Logger_);
 		} else {
 			BadRequest("Missing parameters.");
 		}
