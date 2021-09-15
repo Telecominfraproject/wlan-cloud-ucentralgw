@@ -539,6 +539,9 @@ telemetry() {
 	-H "Authorization: Bearer ${token}" \
 	-d "$payload"  > ${result_file}
 	jq < ${result_file}
+	socket=$(jq -r '.uri' < result.json)
+	wscat \
+		-c socket
 }
 
 help() {

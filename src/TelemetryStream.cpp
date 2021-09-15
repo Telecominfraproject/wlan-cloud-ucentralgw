@@ -124,9 +124,12 @@ namespace OpenWifi {
 		Logger_(TelemetryStream()->Logger())
 	{
 		std::lock_guard Guard(Mutex_);
+		std::cout << __LINE__ << std::endl;
 		try {
 			auto SS = dynamic_cast<Poco::Net::SecureStreamSocketImpl *>(Socket_.impl());
+			std::cout << __LINE__ << std::endl;
 			SS->completeHandshake();
+			std::cout << __LINE__ << std::endl;
 
 			CId_ = Utils::FormatIPv6(SS->peerAddress().toString());
 
@@ -135,14 +138,17 @@ namespace OpenWifi {
 			} else {
 				Logger_.debug(Poco::format("%s: Connection is secure.", CId_));
 			}
+			std::cout << __LINE__ << std::endl;
 
 			auto Params =
 				Poco::AutoPtr<Poco::Net::HTTPServerParams>(new Poco::Net::HTTPServerParams);
 			Poco::Net::HTTPServerSession Session(Socket_, Params);
 			Poco::Net::HTTPServerResponseImpl Response(Session);
 			Poco::Net::HTTPServerRequestImpl Request(Response, Session, Params);
+			std::cout << __LINE__ << std::endl;
 
 			Poco::URI	U(Request.getURI());
+			std::cout << __LINE__ << std::endl;
 
 			if(TelemetryStream()->RegisterClient(U.getPath(),this)) {
 				UUID_ = U.getPath();
@@ -151,6 +157,7 @@ namespace OpenWifi {
 					if (i.first == "serialNumber")
 						SerialNumber_ = i.second;
 				}
+				std::cout << __LINE__ << std::endl;
 
 				auto Now = time(nullptr);
 				Response.setDate(Now);
@@ -176,11 +183,14 @@ namespace OpenWifi {
 							  *this, &TelemetryClient::OnSocketError));
 				Registered_ = true;
 				Logger_.information(Poco::format("CONNECTION(%s): completed.", CId_));
+				std::cout << __LINE__ << std::endl;
 				return;
 			}
 		} catch (const Poco::Exception &E ) {
+			std::cout << __LINE__ << std::endl;
 			Logger_.error("Exception caught during device connection. Device will have to retry.");
 		}
+		std::cout << __LINE__ << std::endl;
 		delete this;
 	}
 
@@ -265,6 +275,7 @@ namespace OpenWifi {
 
 	void TelemetryClient::ProcessIncomingFrame() {
 
+		std::cout << __LINE__ << std::endl;
 		bool MustDisconnect=false;
 		Poco::Buffer<char>			IncomingFrame(0);
 
