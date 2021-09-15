@@ -532,6 +532,15 @@ wstest() {
 		-c wss://${OWGW}/api/v1/ws
 }
 
+telemetry() {
+	payload="{ \"serialNumber\" : \"$1\", \"interval\" : 10 , \"types\" : [ \"wifi-frames\", \"dhcp-snooping\" ] }"
+	curl  ${FLAGS} -X POST "https://${OWGW}/api/v1/device/$1/telemetry" \
+	-H "accept: application/json" \
+	-H "Authorization: Bearer ${token}" \
+	-d "$payload"  > ${result_file}
+	jq < ${result_file}
+}
+
 help() {
   echo
   echo "getdevice <serial>                Get the device JSON document."
@@ -678,6 +687,7 @@ case "$1" in
   "getloglevelnames") login; getloglevelnames; logout ;;
   "getsubsystemnames") login; getsubsystemnames; logout ;;
   "ouilookup") login; ouilookup "$2"; logout;;
+  "telemetry") login; telemetry "$2"; logout;;
   "dashboard") login; dashboard ; logout;;
   "gwversion") login; gwversion ; logout;;
   "gwtimes") login; gwtimes ; logout;;

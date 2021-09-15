@@ -50,8 +50,6 @@ namespace OpenWifi {
 			GetStatus();
 		} else if (Command_ == RESTAPI::Protocol::RTTY) {
 			Rtty();
-		} else if (Command_ == RESTAPI::Protocol::TELEMETRY) {
-			Telemetry();
 		} else {
 			BadRequest("Bad command.");
 		}
@@ -101,6 +99,8 @@ namespace OpenWifi {
 			WifiScan();
 		} else if (Command_ == RESTAPI::Protocol::EVENTQUEUE) {
 			EventQueue();
+		} else if (Command_ == RESTAPI::Protocol::TELEMETRY) {
+			Telemetry();
 		} else {
 			BadRequest("Unknown command.");
 		}
