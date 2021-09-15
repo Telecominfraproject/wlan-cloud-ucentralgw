@@ -189,14 +189,12 @@ namespace OpenWifi {
 					Logger_.information(Poco::format("CONNECTION(%s): completed.", CId_));
 					return;
 				}
-			} catch (const Poco::Net::SSLException) {
+			} catch (const Poco::Net::SSLException &E) {
 				std::cout << __LINE__ << std::endl;
-				Logger_.error(
-					"SSL Exception caught during device connection. Device will have to retry.");
+				Logger_.log(E);
 			} catch (const Poco::Exception &E) {
 				std::cout << __LINE__ << std::endl;
-				Logger_.error(
-					"Exception caught during device connection. Device will have to retry.");
+				Logger_.log(E);
 			}
 			std::cout << __LINE__ << std::endl;
 		}
