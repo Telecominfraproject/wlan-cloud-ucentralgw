@@ -799,7 +799,7 @@ void RESTAPI_device_commandHandler::MakeRequest() {
 			Cmd.SerialNumber = SerialNumber_;
 			Cmd.SubmittedBy = UserInfo_.webtoken.username_;
 			Cmd.UUID = Daemon()->CreateUUID();
-			Cmd.Command = uCentralProtocol::REQUEST;
+			Cmd.Command = uCentralProtocol::TELEMETRY;
 
 			Poco::JSON::Object Params;
 
