@@ -82,7 +82,7 @@ namespace OpenWifi {
 		auto H1 = SerialNumbers_.find(SerialNumber);
 		if(H1!=SerialNumbers_.end()) {
 			auto H2 = Clients_.find(H1->second);
-			if(H2!=Clients_.end()) {
+			if(H2!=Clients_.end() && H2->second!=nullptr) {
 				try {
 					H2->second->Send(PayLoad);
 				} catch (const Poco::Exception &E ) {
