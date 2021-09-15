@@ -185,7 +185,7 @@ namespace OpenWifi {
 
 	TelemetryClient::~TelemetryClient() {
 		Logger_.information("Closing telemetry session.");
-		std::cout << "Closing down session..." << std:::endl;
+		std::cout << "Closing down session..." << std::endl;
 		if(Registered_ && WS_)
 		{
 			Reactor_.removeEventHandler(*WS_,
