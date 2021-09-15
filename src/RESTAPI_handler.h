@@ -26,6 +26,7 @@
 
 #include "RESTAPI_SecurityObjects.h"
 #include "RESTAPI_utils.h"
+#include "RESTAPI_GenericServer.h"
 
 namespace OpenWifi {
 
@@ -92,8 +93,8 @@ namespace OpenWifi {
 
 		typedef std::map<std::string, std::string> BindingMap;
 
-		RESTAPIHandler(BindingMap map, Poco::Logger &l, std::vector<std::string> Methods, bool Internal=false, bool AlwaysAuthorize=true)
-		: Bindings_(std::move(map)), Logger_(l), Methods_(std::move(Methods)), Internal_(Internal), AlwaysAuthorize_(AlwaysAuthorize) {}
+		RESTAPIHandler(BindingMap map, Poco::Logger &l, std::vector<std::string> Methods, RESTAPI_GenericServer & Server, bool Internal=false, bool AlwaysAuthorize=true)
+		: Bindings_(std::move(map)), Logger_(l), Methods_(std::move(Methods)), Server_(Server), Internal_(Internal), AlwaysAuthorize_(AlwaysAuthorize) {}
 
 		static bool ParseBindings(const std::string & Request, const std::list<const char *> & EndPoints, BindingMap &Keys);
 		void PrintBindings();
@@ -173,12 +174,13 @@ namespace OpenWifi {
 		Poco::Net::HTTPServerResponse   *Response= nullptr;
 		bool                        AlwaysAuthorize_=true;
 		Poco::JSON::Parser          IncomingParser_;
+		RESTAPI_GenericServer       & Server_;
 	};
 
 	class RESTAPI_UnknownRequestHandler : public RESTAPIHandler {
 	  public:
-		RESTAPI_UnknownRequestHandler(const RESTAPIHandler::BindingMap &bindings, Poco::Logger &L)
-			: RESTAPIHandler(bindings, L, std::vector<std::string>{}) {}
+		RESTAPI_UnknownRequestHandler(const RESTAPIHandler::BindingMap &bindings, Poco::Logger &L, RESTAPI_GenericServer & Server)
+			: RESTAPIHandler(bindings, L, std::vector<std::string>{}, Server) {}
         inline void DoGet() override {};
 		inline void DoPost() override {};
 		inline void DoPut() override {};
@@ -197,30 +199,30 @@ namespace OpenWifi {
 	}
 
 	template<typename T, typename... Args>
-	RESTAPIHandler * RESTAPI_Router(const std::string & RequestedPath, RESTAPIHandler::BindingMap &Bindings, Poco::Logger & Logger ) {
+	RESTAPIHandler * RESTAPI_Router(const std::string & RequestedPath, RESTAPIHandler::BindingMap &Bindings, Poco::Logger & Logger, RESTAPI_GenericServer & Server) {
 		static_assert(test_has_PathName_method((T*)nullptr), "Class must have a static PathName() method.");
 		if(RESTAPIHandler::ParseBindings(RequestedPath,T::PathName(),Bindings)) {
-			return new T(Bindings, Logger, false);
+			return new T(Bindings, Logger, Server, false);
 		}
 
 		if constexpr (sizeof...(Args) == 0) {
-			return new RESTAPI_UnknownRequestHandler(Bindings,Logger);
+			return new RESTAPI_UnknownRequestHandler(Bindings,Logger, Server);
 		} else {
-			return RESTAPI_Router<Args...>(RequestedPath, Bindings, Logger);
+			return RESTAPI_Router<Args...>(RequestedPath, Bindings, Logger, Server);
 		}
 	}
 
     template<typename T, typename... Args>
-    RESTAPIHandler * RESTAPI_Router_I(const std::string & RequestedPath, RESTAPIHandler::BindingMap &Bindings, Poco::Logger & Logger) {
+    RESTAPIHandler * RESTAPI_Router_I(const std::string & RequestedPath, RESTAPIHandler::BindingMap &Bindings, Poco::Logger & Logger, RESTAPI_GenericServer & Server) {
         static_assert(test_has_PathName_method((T*)nullptr), "Class must have a static PathName() method.");
         if(RESTAPIHandler::ParseBindings(RequestedPath,T::PathName(),Bindings)) {
-            return new T(Bindings, Logger, true);
+            return new T(Bindings, Logger, Server, true);
         }
 
         if constexpr (sizeof...(Args) == 0) {
-            return new RESTAPI_UnknownRequestHandler(Bindings,Logger);
+            return new RESTAPI_UnknownRequestHandler(Bindings,Logger, Server);
         } else {
-            return RESTAPI_Router_I<Args...>(RequestedPath, Bindings, Logger);
+            return RESTAPI_Router_I<Args...>(RequestedPath, Bindings, Logger, Server);
         }
     }
 

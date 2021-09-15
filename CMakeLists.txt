@@ -95,7 +95,9 @@ add_executable( owgw
                 src/RESTAPI_deviceDashboardHandler.cpp src/RESTAPI_deviceDashboardHandler.h
                 src/SerialNumberCache.cpp src/SerialNumberCache.h
                 src/RESTAPI_webSocketServer.cpp src/RESTAPI_webSocketServer.h
-                src/OpenWifiTypes.h src/TelemetryStream.cpp src/TelemetryStream.h)
+                src/OpenWifiTypes.h src/TelemetryStream.cpp src/TelemetryStream.h
+                src/RESTAPI_GenericServer.cpp src/RESTAPI_GenericServer.h
+                src/RESTAPI_errors.h)
 
 if(NOT SMALL_BUILD)
     target_sources(owgw PUBLIC src/KafkaManager.cpp src/KafkaManager.h)

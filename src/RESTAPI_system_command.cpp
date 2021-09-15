@@ -12,6 +12,7 @@
 
 #include "Daemon.h"
 #include "RESTAPI_protocol.h"
+#include "RESTAPI_errors.h"
 
 namespace OpenWifi {
 	void RESTAPI_system_command::DoPost() {

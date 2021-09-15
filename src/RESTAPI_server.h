@@ -16,6 +16,7 @@
 #include "Poco/Net/HTTPRequestHandlerFactory.h"
 #include "Poco/Net/HTTPServerRequest.h"
 #include "Poco/Net/NetException.h"
+#include "RESTAPI_GenericServer.h"
 
 namespace OpenWifi {
 
@@ -34,18 +35,24 @@ namespace OpenWifi {
     private:
 		static RESTAPI_server *instance_;
         std::vector<std::unique_ptr<Poco::Net::HTTPServer>>   RESTServers_;
-		Poco::ThreadPool	Pool_;
-		RESTAPI_server() noexcept;
+		Poco::ThreadPool		Pool_;
+		RESTAPI_GenericServer	Server_;
+
+		RESTAPI_server() noexcept: SubSystemServer("RESTAPIServer", "RESTAPIServer", "openwifi.restapi")
+			{
+			}
     };
 
 class RESTAPIServerRequestHandlerFactory : public Poco::Net::HTTPRequestHandlerFactory {
     public:
-	RESTAPIServerRequestHandlerFactory() :
-            Logger_(RESTAPI_server::instance()->Logger()){}
+	RESTAPIServerRequestHandlerFactory(RESTAPI_GenericServer &Server) :
+            Logger_(RESTAPI_server::instance()->Logger()),
+	  		Server_(Server){}
 
         Poco::Net::HTTPRequestHandler *createRequestHandler(const Poco::Net::HTTPServerRequest &request) override;
     private:
-        Poco::Logger    & Logger_;
+        Poco::Logger    		&Logger_;
+        RESTAPI_GenericServer	&Server_;
     };
 
 	inline RESTAPI_server * RESTAPI_server() { return RESTAPI_server::instance(); }

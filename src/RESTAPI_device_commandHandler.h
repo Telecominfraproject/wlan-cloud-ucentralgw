@@ -15,12 +15,13 @@
 namespace OpenWifi {
 class RESTAPI_device_commandHandler : public RESTAPIHandler {
   public:
-	RESTAPI_device_commandHandler(const RESTAPIHandler::BindingMap &bindings, Poco::Logger &L, bool Internal)
+	RESTAPI_device_commandHandler(const RESTAPIHandler::BindingMap &bindings, Poco::Logger &L, RESTAPI_GenericServer & Server, bool Internal)
 		: RESTAPIHandler(bindings, L,
 						 std::vector<std::string>{
 							 Poco::Net::HTTPRequest::HTTP_GET, Poco::Net::HTTPRequest::HTTP_POST,
 							 Poco::Net::HTTPRequest::HTTP_DELETE,
 							 Poco::Net::HTTPRequest::HTTP_OPTIONS},
+						 Server,
 						 Internal) {}
 
 	void GetCapabilities();
