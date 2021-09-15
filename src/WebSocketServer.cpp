@@ -578,6 +578,7 @@ namespace OpenWifi {
 				break;
 
 			case uCentralProtocol::ET_TELEMETRY: {
+					std::cout << "Telemetry date..." << std::endl;
 					if(ParamsObj->has("data")) {
 						auto Payload = ParamsObj->get("data").toString();
 						TelemetryStream()->UpdateEndPoint(SerialNumber_, Payload);
