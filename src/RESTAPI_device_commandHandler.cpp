@@ -819,7 +819,6 @@ void RESTAPI_device_commandHandler::MakeRequest() {
 				return;
 			}
 
-			std::cout << "EndPoint: " << Endpoint << "  UUID:" << NewUUID << std::endl;
 			Cmd.UUID = NewUUID;
 			std::stringstream ParamStream;
 			Params.stringify(ParamStream);

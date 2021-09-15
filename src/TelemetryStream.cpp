@@ -144,7 +144,6 @@ namespace OpenWifi {
 			Poco::URI	U(Request.getURI());
 
 			UUID_ = U.getPath().substr(1);
-			std::cout << "Registering :" << UUID_ << std::endl;
 			if(TelemetryStream()->RegisterClient(UUID_,this)) {
 				auto Parameters = U.getQueryParameters();
 				for(const auto &i:Parameters) {
@@ -185,7 +184,6 @@ namespace OpenWifi {
 
 	TelemetryClient::~TelemetryClient() {
 		Logger_.information("Closing telemetry session.");
-		std::cout << "Closing down session..." << std::endl;
 		if(Registered_ && WS_)
 		{
 			Reactor_.removeEventHandler(*WS_,
@@ -214,7 +212,6 @@ namespace OpenWifi {
 
 	void TelemetryClient::SendTelemetryShutdown() {
 		Logger_.information(Poco::format("TELEMETRY-SHUTDOWN(%s): Closing.",CId_));
-		std::cout << "TELEMETRY-SHUTDOWN" << std::endl;
 		TelemetryStream()->DeRegisterClient(UUID_);
 		Poco::JSON::Object	StopMessage;
 		StopMessage.set("jsonrpc","2.0");
@@ -234,14 +231,12 @@ namespace OpenWifi {
 
 	void TelemetryClient::OnSocketShutdown(const Poco::AutoPtr<Poco::Net::ShutdownNotification>& pNf) {
 		std::lock_guard Guard(Mutex_);
-		std::cout << "OnSocketShutdown" << std::endl;
 		Logger_.information(Poco::format("SOCKET-SHUTDOWN(%s): Orderly shutdown.", CId_));
 		SendTelemetryShutdown();
 	}
 
 	void TelemetryClient::OnSocketError(const Poco::AutoPtr<Poco::Net::ErrorNotification>& pNf) {
 		std::lock_guard Guard(Mutex_);
-		std::cout << "OnSocketError" << std::endl;
 		Logger_.information(Poco::format("SOCKET-ERROR(%s): Closing.",CId_));
 		SendTelemetryShutdown();
 	}
@@ -279,11 +274,8 @@ namespace OpenWifi {
 			IncomingSize = WS_->receiveFrame(IncomingFrame,flags);
 			Op = flags & Poco::Net::WebSocket::FRAME_OP_BITMASK;
 
-			// std::cout << "ID:" << CId_ << " Size=" << IncomingSize << " Flags=" << flags << " Op=" << Op << std::endl;
-
 			if (IncomingSize == 0 && flags == 0 && Op == 0) {
 				Logger_.information(Poco::format("DISCONNECT(%s): device has disconnected.", CId_));
-				std::cout << "Disconnect detected." << std::endl;
 				MustDisconnect = true;
 			} else {
 				if (Op == Poco::Net::WebSocket::FRAME_OP_PING) {
