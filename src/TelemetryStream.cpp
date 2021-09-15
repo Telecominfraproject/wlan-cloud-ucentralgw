@@ -57,7 +57,7 @@ namespace OpenWifi {
 		EndPoint = U.toString();
 		SerialNumbers_[SerialNumber] = UUID;
 		Clients_[UUID] = nullptr;
-		return false;
+		return true;
 	}
 
 	void TelemetryStream::DeleteEndPoint(const std::string &SerialNumber) {
