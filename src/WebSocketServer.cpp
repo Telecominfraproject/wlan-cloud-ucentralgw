@@ -710,6 +710,12 @@ namespace OpenWifi {
                         break;
                     }
 
+					case Poco::Net::WebSocket::FRAME_OP_CLOSE: {
+							Logger_.warning(Poco::format("CLOSE(%s): Device is closing its connection.",CId_));
+							MustDisconnect = true;
+						}
+						break;
+
                     default: {
                             Logger_.warning(Poco::format("UNKNOWN(%s): unknownWS Frame operation: %s",CId_, std::to_string(Op)));
                         }
