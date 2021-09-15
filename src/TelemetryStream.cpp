@@ -48,7 +48,6 @@ namespace OpenWifi {
 		std::lock_guard	G(Mutex_);
 
 		Poco::URI	U;
-
 		UUID = Daemon()->CreateUUID();
 		U.setScheme("wss");
 		U.setHost(ConfigServersList_[0].Name());
@@ -58,7 +57,6 @@ namespace OpenWifi {
 		EndPoint = U.toString();
 		SerialNumbers_[SerialNumber] = UUID;
 		Clients_[UUID] = nullptr;
-
 		return false;
 	}
 

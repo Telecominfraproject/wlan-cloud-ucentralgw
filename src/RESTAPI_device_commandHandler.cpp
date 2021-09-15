@@ -798,9 +798,7 @@ void RESTAPI_device_commandHandler::MakeRequest() {
 
 			Cmd.SerialNumber = SerialNumber_;
 			Cmd.SubmittedBy = UserInfo_.webtoken.username_;
-			Cmd.UUID = Daemon()->CreateUUID();
 			Cmd.Command = uCentralProtocol::TELEMETRY;
-
 			Poco::JSON::Object Params;
 
 			Params.set(RESTAPI::Protocol::SERIALNUMBER, SerialNumber_);
@@ -808,9 +806,9 @@ void RESTAPI_device_commandHandler::MakeRequest() {
 			if (Interval > 0)
 				Params.set(RESTAPI::Protocol::TYPES, Obj->getArray(RESTAPI::Protocol::TYPES));
 
+			std::string Endpoint, NewUUID;
 			Poco::JSON::Object Answer;
 			if (Interval) {
-				std::string Endpoint, NewUUID;
 				if (TelemetryStream()->CreateEndpoint(SerialNumber_, Endpoint, NewUUID)) {
 					Answer.set("serialNumber", SerialNumber_);
 					Answer.set("uuid", NewUUID);
@@ -821,9 +819,12 @@ void RESTAPI_device_commandHandler::MakeRequest() {
 				return;
 			}
 
+			std::cout << "EndPoint: " << Endpoint << "  UUID:" << NewUUID << std::endl;
+			Cmd.UUID = NewUUID;
 			std::stringstream ParamStream;
 			Params.stringify(ParamStream);
 			Cmd.Details = ParamStream.str();
+
 			RESTAPI_RPC::WaitForCommand(Cmd, Params, *Request, *Response,
 										60000, &Answer, this, Logger_);
 		} else {
