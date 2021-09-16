@@ -40,7 +40,6 @@ namespace OpenWifi {
 			Params->setMaxThreads(50);
 			Params->setMaxQueued(200);
 			Params->setKeepAlive(true);
-
 			auto NewServer = std::make_unique<Poco::Net::HTTPServer>(new TelemetryRequestHandlerFactory(Reactor_, Logger_), Pool_, Sock, Params);
 			NewServer->start();
 		}
@@ -133,13 +132,19 @@ namespace OpenWifi {
 			Poco::Net::HTTPServerRequest &Request, Poco::Net::HTTPServerResponse & Response,
 			Poco::Net::SocketReactor& Reactor, Poco::Logger &Logger):
 			UUID_(UUID), SerialNumber_(SerialNumber), Reactor_(Reactor), Logger_(Logger) {
+		std::cout << __LINE__ << std::endl;
 
 		try {
+			std::cout << __LINE__ << std::endl;
 			WS_ = std::make_unique<Poco::Net::WebSocket>(Request, Response);
+			std::cout << __LINE__ << std::endl;
 			std::thread T([this]() { this->CompleteStartup(); });
+			std::cout << __LINE__ << std::endl;
 			T.detach();
+			std::cout << __LINE__ << std::endl;
 			return;
 		} catch (...) {
+			std::cout << __LINE__ << std::endl;
 			delete this;
 		}
 	}
