@@ -137,9 +137,12 @@ namespace OpenWifi {
 	}
 
 	TelemetryClient::TelemetryClient(
-			std::string UUID, std::string SerialNumber,
-			Poco::Net::HTTPServerRequest &Request, Poco::Net::HTTPServerResponse & Response,
-			Poco::Net::SocketReactor& Reactor, Poco::Logger &Logger):
+			std::string UUID,
+			std::string SerialNumber,
+			Poco::Net::HTTPServerRequest &Request,
+			Poco::Net::HTTPServerResponse & Response,
+			Poco::Net::SocketReactor& Reactor,
+			Poco::Logger &Logger):
 			UUID_(std::move(UUID)), SerialNumber_(std::move(SerialNumber)), Reactor_(Reactor), Logger_(Logger) {
 
 		std::cout << __LINE__ << std::endl;
@@ -156,6 +159,7 @@ namespace OpenWifi {
 			std::cout << __LINE__ << std::endl;
 			delete this;
 		}
+		std::cout << __LINE__ << std::endl;
 	}
 
 	void TelemetryClient::CompleteStartup() {

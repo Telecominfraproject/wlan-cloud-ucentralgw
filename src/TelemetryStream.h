@@ -59,6 +59,7 @@ namespace OpenWifi {
 		void handleRequest(Poco::Net::HTTPServerRequest & Request, Poco::Net::HTTPServerResponse & Response) final {
 			std::cout << __LINE__ << std::endl;
 			new TelemetryClient(UUID_, SerialNumber_, Request, Response, Reactor_, Logger_);
+			std::cout << __LINE__ << std::endl;
 		}
 	  private:
 		const std::string 			&UUID_;
