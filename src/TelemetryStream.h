@@ -55,8 +55,8 @@ namespace OpenWifi {
 
 	class TelemetryRequestHandler : public Poco::Net::HTTPRequestHandler {
 	  public:
-		explicit TelemetryRequestHandler( const std::string & UUID, const std::string & SerialNumber, Poco::Net::SocketReactor &Reactor, Poco::Logger &Logger) :
- 			UUID_(UUID), SerialNumber_(SerialNumber), Reactor_(Reactor), Logger_(Logger) {}
+		explicit TelemetryRequestHandler( std::string UUID, std::string SerialNumber, Poco::Net::SocketReactor &Reactor, Poco::Logger &Logger) :
+ 			UUID_(std::move(UUID)), SerialNumber_(std::move(SerialNumber)), Reactor_(Reactor), Logger_(Logger) {}
 
 		void handleRequest(Poco::Net::HTTPServerRequest & Request, Poco::Net::HTTPServerResponse & Response) final {
 			std::cout << __LINE__ << std::endl;
@@ -75,8 +75,8 @@ namespace OpenWifi {
 			std::cout << __LINE__ << std::endl;
 		}
 	  private:
-		const std::string 			&UUID_;
-		const std::string 			&SerialNumber_;
+		std::string 				UUID_;
+		std::string 				SerialNumber_;
 		Poco::Net::SocketReactor	&Reactor_;
 		Poco::Logger				&Logger_;
 	};
