@@ -47,14 +47,6 @@ namespace OpenWifi {
 		std::cout << __LINE__ << std::endl;
 		ReactorPool_.Start();
 		std::cout << __LINE__ << std::endl;
-		for(const auto & Svr: ConfigServersList_) {
-			Logger_.information(Poco::format("Starting: %s:%s Keyfile:%s CertFile: %s", Svr.Address(), std::to_string(Svr.Port()),
-											 Svr.KeyFile(),Svr.CertFile()));
-
-			std::cout << Poco::format("Starting: %s:%s Keyfile:%s CertFile: %s", Svr.Address(), std::to_string(Svr.Port()),
-									  Svr.KeyFile(),Svr.CertFile()) << std::endl;
-
-
 			Poco::Net::Context::Params P;
 			P.verificationMode = Poco::Net::Context::VERIFY_STRICT;
 			P.certificateFile = Daemon()->ConfigPath("ucentral.websocket.host.0.cert");
@@ -64,12 +56,6 @@ namespace OpenWifi {
 			P.cipherList = "ALL:!ADH:!LOW:!EXP:!MD5:@STRENGTH";
 			P.dhUse2048Bits = true;
 
-			/*
-						auto Sock{Svr.CreateSecureSocket(Logger_)};
-						 Svr.LogCert(Logger_);
-						if(!Svr.RootCA().empty())
-							Svr.LogCas(Logger_);
-			*/
 			std::cout << __LINE__ << std::endl;
 			Poco::Net::IPAddress Addr(Poco::Net::IPAddress::wildcard(Poco::Net::Socket::supportsIPv6() ? Poco::Net::AddressFamily::IPv6	: Poco::Net::AddressFamily::IPv4));
 			std::cout << __LINE__ << std::endl;
@@ -94,7 +80,7 @@ namespace OpenWifi {
 			NewServer->start();
 			std::cout << __LINE__ << std::endl;
 			WebServers_.push_back(std::move(NewServer));
-		}
+
         return 0;
     }
 
