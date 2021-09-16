@@ -59,20 +59,15 @@ namespace OpenWifi {
  			UUID_(std::move(UUID)), SerialNumber_(std::move(SerialNumber)), Reactor_(Reactor), Logger_(Logger) {}
 
 		void handleRequest(Poco::Net::HTTPServerRequest & Request, Poco::Net::HTTPServerResponse & Response) final {
-			std::cout << __LINE__ << std::endl;
 			try {
-				std::cout << __LINE__ << std::endl;
 				auto Now = time(nullptr);
 				auto WS = Poco::SharedPtr<Poco::Net::WebSocket>(new Poco::Net::WebSocket(Request, Response));
-				std::cout << __LINE__ << std::endl;
 				new TelemetryClient(UUID_, SerialNumber_, WS, Reactor_, Logger_);
-				std::cout << __LINE__ << std::endl;
 			} catch (const Poco::Exception &E) {
 				std::cout << E.what() << " " << E.name() << " " << E.displayText() << std::endl;
 			} catch (...) {
 				std::cout << __LINE__ << std::endl;
 			}
-			std::cout << __LINE__ << std::endl;
 		}
 	  private:
 		std::string 				UUID_;
@@ -88,7 +83,6 @@ namespace OpenWifi {
 		{}
 
 		inline Poco::Net::HTTPRequestHandler *createRequestHandler(const Poco::Net::HTTPServerRequest & Request) final {
-			std::cout << __LINE__ << std::endl;
 			Poco::URI U(Request.getURI());
 			std::string UUID_ = U.getPath().substr(1);
 			std::string SerialNumber_;
@@ -99,7 +93,6 @@ namespace OpenWifi {
 					break;
 				}
 			}
-			std::cout << "Serial:" << SerialNumber_ << " UUID:" << UUID_ << std::endl;
 			return new TelemetryRequestHandler( UUID_, SerialNumber_, Reactor_, Logger_);
 		}
 

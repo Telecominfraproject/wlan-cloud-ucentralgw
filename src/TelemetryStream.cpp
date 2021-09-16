@@ -144,35 +144,24 @@ namespace OpenWifi {
 			Poco::Logger &Logger):
 			UUID_(std::move(UUID)), SerialNumber_(std::move(SerialNumber)), WS_(WSock),Reactor_(Reactor), Logger_(Logger) {
 
-		std::cout << __LINE__ << std::endl;
 		try {
-			std::cout << __LINE__ << std::endl;
-			std::cout << __LINE__ << std::endl;
 			std::thread T([this]() { this->CompleteStartup(); });
-			std::cout << __LINE__ << std::endl;
 			T.detach();
-			std::cout << __LINE__ << std::endl;
 			return;
 		} catch (...) {
-			std::cout << __LINE__ << std::endl;
 			delete this;
 		}
-		std::cout << __LINE__ << std::endl;
 	}
 
 	void TelemetryClient::CompleteStartup() {
-		std::cout << __LINE__ << std::endl;
 		std::lock_guard Guard(Mutex_);
-		std::cout << __LINE__ << std::endl;
 		try {
 			Socket_ = *WS_;
 
 			CId_ = Utils::FormatIPv6(Socket_.peerAddress().toString());
-			std::cout << __LINE__ << std::endl;
 
 			if (TelemetryStream()->RegisterClient(UUID_, this)) {
 				auto TS = Poco::Timespan(240, 0);
-				std::cout << __LINE__ << std::endl;
 
 				WS_->setReceiveTimeout(TS);
 				WS_->setNoDelay(true);
@@ -186,18 +175,14 @@ namespace OpenWifi {
 				Reactor_.addEventHandler(
 					*WS_, Poco::NObserver<TelemetryClient, Poco::Net::ErrorNotification>(
 						*this, &TelemetryClient::OnSocketError));
-				std::cout << __LINE__ << std::endl;
 				Registered_ = true;
-				std::cout << __LINE__ << std::endl;
 				Logger_.information(Poco::format("CONNECTION(%s): completed.", CId_));
 				return;
 			}
 		} catch (const Poco::Net::SSLException &E) {
-			std::cout << __LINE__ << std::endl;
 			Logger_.log(E);
 		}
 		catch (const Poco::Exception &E) {
-			std::cout << __LINE__ << std::endl;
 			Logger_.log(E);
 		}
 		delete this;
