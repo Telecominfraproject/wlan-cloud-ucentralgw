@@ -142,7 +142,7 @@ namespace OpenWifi {
 			Poco::Net::WebSocket * WSock,
 			Poco::Net::SocketReactor& Reactor,
 			Poco::Logger &Logger):
-			UUID_(std::move(UUID)), SerialNumber_(std::move(SerialNumber)), WS_(std::move(WSock)),Reactor_(Reactor), Logger_(Logger) {
+			UUID_(std::move(UUID)), SerialNumber_(std::move(SerialNumber)), WS_(WSock),Reactor_(Reactor), Logger_(Logger) {
 
 		std::cout << __LINE__ << std::endl;
 		try {
