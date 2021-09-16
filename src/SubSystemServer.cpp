@@ -128,8 +128,8 @@ Poco::Net::SecureServerSocket PropertiesFileServerEntry::CreateSecureSocket(Poco
 
 		Context->useCertificate(Cert);
 
-		Context->addChainCertificate(Issuer);
-		Context->addCertificateAuthority(Issuer);
+		Context->addChainCertificate(Root);
+		Context->addCertificateAuthority(Root);
 
 		if (level_ == Poco::Net::Context::VERIFY_STRICT) {
 			if (issuer_cert_file_.empty()) {
