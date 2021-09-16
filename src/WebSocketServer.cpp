@@ -51,6 +51,7 @@ namespace OpenWifi {
 			P.verificationMode = Poco::Net::Context::VERIFY_STRICT;
 			P.certificateFile = Daemon()->ConfigPath("ucentral.websocket.host.0.cert");
 			P.privateKeyFile = Daemon()->ConfigPath("ucentral.websocket.host.0.key");
+			P.loadDefaultCAs = true ;
 			P.caLocation = Daemon()->ConfigPath("ucentral.websocket.host.0.cas");
 			P.verificationDepth = 9 ;
 			P.cipherList = "ALL:!ADH:!LOW:!EXP:!MD5:@STRENGTH";
