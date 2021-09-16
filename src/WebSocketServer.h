@@ -127,13 +127,15 @@ namespace OpenWifi {
 		bool IsCertOk() { return IssuerCert_!= nullptr; }
 		const Poco::Crypto::X509Certificate & Certificate() const { return *IssuerCert_; }
 		bool ValidateCertificate(const std::string & ConnectionId, const Poco::Crypto::X509Certificate & Certificate);
+		Poco::Net::SocketReactor & GetNextReactor() { return ReactorPool_.NextReactor(); }
 
 	  private:
-		static WebSocketServer *instance_;
+		static WebSocketServer 			*instance_;
 		std::unique_ptr<Poco::Crypto::X509Certificate>	IssuerCert_;
 		std::vector<std::unique_ptr<Poco::Net::ParallelSocketAcceptor<WSConnection, Poco::Net::SocketReactor>>>	Acceptors_;
-		Poco::Net::SocketReactor						Reactor_;
-		Poco::Thread									ReactorThread_;
+		Poco::Net::SocketReactor		Reactor_;
+		Poco::Thread					ReactorThread_;
+		ReactorPool						ReactorPool_;
 		WebSocketServer() noexcept;
 	};
 

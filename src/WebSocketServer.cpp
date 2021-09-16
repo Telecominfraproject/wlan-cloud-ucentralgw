@@ -30,7 +30,8 @@ namespace OpenWifi {
 
     class WebSocketServer *WebSocketServer::instance_ = nullptr;
 
-	WebSocketServer::WebSocketServer() noexcept: SubSystemServer("WebSocketServer", "WS-SVR", "ucentral.websocket")
+	WebSocketServer::WebSocketServer() noexcept:
+	  	SubSystemServer("WebSocketServer", "WS-SVR", "ucentral.websocket")
     {
 
     }
@@ -48,7 +49,7 @@ namespace OpenWifi {
 	}
 
 	int WebSocketServer::Start() {
-
+		ReactorPool_.Start();
         for(const auto & Svr : ConfigServersList_ ) {
             Logger_.notice(Poco::format("Starting: %s:%s Keyfile:%s CertFile: %s", Svr.Address(), std::to_string(Svr.Port()),
 											 Svr.KeyFile(),Svr.CertFile()));
@@ -63,7 +64,7 @@ namespace OpenWifi {
 				IssuerCert_ = std::make_unique<Poco::Crypto::X509Certificate>(Svr.IssuerCertFile());
 				Logger_.information(Poco::format("Certificate Issuer Name:%s",IssuerCert_->issuerName()));
 			}
-			auto NewSocketAcceptor = std::make_unique<Poco::Net::ParallelSocketAcceptor<WSConnection, Poco::Net::SocketReactor>>( Sock, Reactor_);
+			auto NewSocketAcceptor = std::make_unique<Poco::Net::ParallelSocketAcceptor<WSConnection, Poco::Net::SocketReactor>>(Sock, Reactor_);
             Acceptors_.push_back(std::move(NewSocketAcceptor));
         }
 		ReactorThread_.start(Reactor_);
@@ -72,7 +73,7 @@ namespace OpenWifi {
 
     void WebSocketServer::Stop() {
         Logger_.notice("Stopping reactors...");
-
+		ReactorPool_.Stop();
 		Reactor_.stop();
 		ReactorThread_.join();
     }
@@ -117,9 +118,7 @@ namespace OpenWifi {
 				Logger_.error(Poco::format("%s: No certificates available..", CId_));
 			}
 			std::cout << __LINE__ << std::endl;
-/*
-			auto Params =
-				Poco::AutoPtr<Poco::Net::HTTPServerParams>(new Poco::Net::HTTPServerParams);
+			auto Params = Poco::AutoPtr<Poco::Net::HTTPServerParams>(new Poco::Net::HTTPServerParams);
 			Poco::Net::HTTPServerSession Session(Socket_, Params);
 			Poco::Net::HTTPServerResponseImpl Response(Session);
 			Poco::Net::HTTPServerRequestImpl Request(Response, Session, Params);
@@ -127,12 +126,9 @@ namespace OpenWifi {
 			auto Now = time(nullptr);
 			Response.setDate(Now);
 			Response.setVersion(Request.getVersion());
-			Response.setKeepAlive(Params->getKeepAlive() && Request.getKeepAlive() &&
-								  Session.canKeepAlive());
+			Response.setKeepAlive(Params->getKeepAlive() && Request.getKeepAlive() && Session.canKeepAlive());
 			WS_ = std::make_unique<Poco::Net::WebSocket>(Request, Response);
-*/
-std::cout << __LINE__ << std::endl;
-			WS_ = std::make_unique<Poco::Net::WebSocket>(Socket_);
+
 			std::cout << __LINE__ << std::endl;
 			WS_->setMaxPayloadSize(BufSize);
 			std::cout << __LINE__ << std::endl;
@@ -169,7 +165,7 @@ std::cout << __LINE__ << std::endl;
 
 	WSConnection::WSConnection(Poco::Net::StreamSocket & socket, Poco::Net::SocketReactor & reactor):
             Socket_(socket),
-			Reactor_(reactor),
+            Reactor_(WebSocketServer()->GetNextReactor()),
 			Logger_(WebSocketServer()->Logger())
     {
 		std::thread		T([this](){ this->CompleteStartup();});
