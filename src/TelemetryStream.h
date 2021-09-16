@@ -12,13 +12,21 @@
 #include "Poco/Net/WebSocket.h"
 #include "Poco/Net/SecureStreamSocket.h"
 #include "Poco/Net/SecureStreamSocketImpl.h"
+#include "Poco/Net/HTTPRequestHandlerFactory.h"
+#include "Poco/Net/HTTPRequestHandler.h"
+#include "Poco/Net/HTTPServerRequest.h"
+#include "Poco/Timespan.h"
+#include "Poco/URI.h"
 
 namespace OpenWifi {
 
 	class TelemetryClient {
 		static constexpr int BufSize = 64000;
 	  public:
-		TelemetryClient(Poco::Net::StreamSocket& Socket, Poco::Net::SocketReactor& Reactor);
+		TelemetryClient(
+			const std::string &UUID, const std::string &SerialNumber,
+			Poco::Net::HTTPServerRequest & Request, Poco::Net::HTTPServerResponse & Response,
+			Poco::Net::SocketReactor& Reactor, Poco::Logger &Logger);
 		~TelemetryClient();
 
 		void OnSocketReadable(const Poco::AutoPtr<Poco::Net::ReadableNotification>& pNf);
@@ -28,17 +36,56 @@ namespace OpenWifi {
 		void ProcessIncomingFrame();
 	  private:
 		std::recursive_mutex        			Mutex_;
-		Poco::Logger               				&Logger_;
-		Poco::Net::StreamSocket     			Socket_;
-		Poco::Net::SecureStreamSocketImpl		* SocketImpl_;
-		Poco::Net::SocketReactor				&Reactor_;
-		std::string 							CId_;
-		std::unique_ptr<Poco::Net::WebSocket>	WS_;
 		std::string 							UUID_;
 		std::string 							SerialNumber_;
+		Poco::Net::SocketReactor				&Reactor_;
+		Poco::Logger               				&Logger_;
+		Poco::Net::StreamSocket     			Socket_;
+		std::string 							CId_;
+		std::unique_ptr<Poco::Net::WebSocket>	WS_;
 		bool 									Registered_=false;
 		void SendTelemetryShutdown();
 		void CompleteStartup();
+	};
+
+	class TelemetryRequestHandler : public Poco::Net::HTTPRequestHandler {
+	  public:
+		explicit TelemetryRequestHandler( const std::string & UUID, const std::string & SerialNumber, Poco::Net::SocketReactor &Reactor, Poco::Logger &Logger) :
+ 			UUID_(UUID), SerialNumber_(SerialNumber), Reactor_(Reactor), Logger_(Logger) {}
+
+		void handleRequest(Poco::Net::HTTPServerRequest & Request, Poco::Net::HTTPServerResponse & Response) final {
+			new TelemetryClient(UUID_, SerialNumber_, Request, Response, Reactor_, Logger_);
+		}
+	  private:
+		const std::string 			&UUID_;
+		const std::string 			&SerialNumber_;
+		Poco::Net::SocketReactor	&Reactor_;
+		Poco::Logger				&Logger_;
+	};
+
+	class TelemetryRequestHandlerFactory : public Poco::Net::HTTPRequestHandlerFactory {
+	  public:
+		explicit TelemetryRequestHandlerFactory(Poco::Net::SocketReactor & Reactor, Poco::Logger & Logger) :
+			Reactor_(Reactor), Logger_(Logger)
+		{}
+
+		inline Poco::Net::HTTPRequestHandler *createRequestHandler(const Poco::Net::HTTPServerRequest & Request) final {
+			Poco::URI U(Request.getURI());
+			std::string UUID_ = U.getPath().substr(1);
+			std::string SerialNumber_;
+			auto Parameters = U.getQueryParameters();
+			for (const auto &i : Parameters) {
+				if (i.first == "serialNumber") {
+					SerialNumber_ = i.second;
+					break;
+				}
+			}
+			return new TelemetryRequestHandler( UUID_, SerialNumber_, Reactor_, Logger_);
+		}
+
+	  private:
+		Poco::Net::SocketReactor	& Reactor_;
+		Poco::Logger 				& Logger_;
 	};
 
 	class TelemetryStream : public SubSystemServer {
@@ -60,12 +107,12 @@ namespace OpenWifi {
 		void DeRegisterClient(const std::string &UUID);
 
 	  private:
-		static TelemetryStream 	* 	instance_;
-		Poco::Thread				ReactorThread_;
-		Poco::Net::SocketReactor	Reactor_;
+		static TelemetryStream 					* 	instance_;
+		Poco::Thread								ReactorThread_;
+		Poco::Net::SocketReactor					Reactor_;
 		std::map<std::string, TelemetryClient *>	Clients_;			// 	uuid -> client
 		std::map<std::string, std::string>			SerialNumbers_;		//	serialNumber -> uuid
-		std::vector<std::unique_ptr<Poco::Net::ParallelSocketAcceptor<TelemetryClient, Poco::Net::SocketReactor>>>	Acceptors_;
+		Poco::ThreadPool							Pool_;
 
 		TelemetryStream() noexcept:
 			SubSystemServer("TelemetryServer", "TELEMETRY-SVR", "openwifi.telemetry")

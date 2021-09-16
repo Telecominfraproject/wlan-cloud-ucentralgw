@@ -20,6 +20,7 @@
 #include "Utils.h"
 #include "Daemon.h"
 #include "DeviceRegistry.h"
+#include "Poco/Net/HTTPServer.h"
 
 namespace OpenWifi {
 
@@ -35,8 +36,13 @@ namespace OpenWifi {
 				Svr.LogCas(Logger_);
 
 			auto Sock{Svr.CreateSecureSocket(Logger_)};
-			auto NewSocketAcceptor = std::make_unique<Poco::Net::ParallelSocketAcceptor<TelemetryClient, Poco::Net::SocketReactor>>( Sock, Reactor_);
-			Acceptors_.push_back(std::move(NewSocketAcceptor));
+			auto Params = new Poco::Net::HTTPServerParams;
+			Params->setMaxThreads(50);
+			Params->setMaxQueued(200);
+			Params->setKeepAlive(true);
+
+			auto NewServer = std::make_unique<Poco::Net::HTTPServer>(new TelemetryRequestHandlerFactory(Reactor_, Logger_), Pool_, Sock, Params);
+			NewServer->start();
 		}
 		ReactorThread_.start(Reactor_);
 		return 0;
@@ -122,47 +128,33 @@ namespace OpenWifi {
 		}
 	}
 
+	TelemetryClient::TelemetryClient(
+			const std::string &UUID, const std::string &SerialNumber,
+			Poco::Net::HTTPServerRequest &Request, Poco::Net::HTTPServerResponse & Response,
+			Poco::Net::SocketReactor& Reactor, Poco::Logger &Logger):
+			UUID_(UUID), SerialNumber_(SerialNumber), Reactor_(Reactor), Logger_(Logger) {
+
+		try {
+			WS_ = std::make_unique<Poco::Net::WebSocket>(Request, Response);
+			std::thread T([this]() { this->CompleteStartup(); });
+			T.detach();
+			return;
+		} catch (...) {
+			delete this;
+		}
+	}
+
 	void TelemetryClient::CompleteStartup() {
 		std::cout << __LINE__ << std::endl;
 		std::lock_guard Guard(Mutex_);
 		std::cout << __LINE__ << std::endl;
 		try {
+			Socket_ = *WS_;
 
-			auto Params = Poco::AutoPtr<Poco::Net::HTTPServerParams>(new Poco::Net::HTTPServerParams);
-			std::cout << __LINE__ << std::endl;
-			Poco::Net::HTTPServerSession Session(Socket_, Params);
-			std::cout << __LINE__ << std::endl;
-			Poco::Net::HTTPServerResponseImpl Response(Session);
-			std::cout << __LINE__ << std::endl;
-			Poco::Net::HTTPServerRequestImpl Request(Response, Session, Params);
-			std::cout << __LINE__ << std::endl;
-			WS_ = std::make_unique<Poco::Net::WebSocket>(Request, Response);
-			std::cout << __LINE__ << std::endl;
 			CId_ = Utils::FormatIPv6(Socket_.peerAddress().toString());
 			std::cout << __LINE__ << std::endl;
 
-			Poco::URI U(Request.getURI());
-			std::cout << __LINE__ << std::endl;
-			UUID_ = U.getPath().substr(1);
-			std::cout << __LINE__ << std::endl;
-
 			if (TelemetryStream()->RegisterClient(UUID_, this)) {
-				std::cout << __LINE__ << std::endl;
-				auto Parameters = U.getQueryParameters();
-				std::cout << __LINE__ << std::endl;
-				for (const auto &i : Parameters) {
-					std::cout << __LINE__ << std::endl;
-					if (i.first == "serialNumber")
-						SerialNumber_ = i.second;
-				}
-				std::cout << __LINE__ << std::endl;
-				auto Now = time(nullptr);
-				Response.setDate(Now);
-				std::cout << __LINE__ << std::endl;
-				Response.setVersion(Request.getVersion());
-				Response.setKeepAlive(Params->getKeepAlive() && Request.getKeepAlive() &&
-				Session.canKeepAlive());
-				std::cout << __LINE__ << std::endl;
 				auto TS = Poco::Timespan(240, 0);
 				std::cout << __LINE__ << std::endl;
 
@@ -193,14 +185,6 @@ namespace OpenWifi {
 			Logger_.log(E);
 		}
 		delete this;
-	}
-
-	TelemetryClient::TelemetryClient(Poco::Net::StreamSocket &Socket, Poco::Net::SocketReactor &Reactor) :
-		Socket_(Socket),
-		Reactor_(Reactor),
-		Logger_(TelemetryStream()->Logger()) {
-		std::thread T([this]() { this->CompleteStartup(); });
-		T.detach();
 	}
 
 	TelemetryClient::~TelemetryClient() {

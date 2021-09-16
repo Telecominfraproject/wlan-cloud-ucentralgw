@@ -45,7 +45,7 @@ namespace OpenWifi {
 
 class RESTAPIServerRequestHandlerFactory : public Poco::Net::HTTPRequestHandlerFactory {
     public:
-	RESTAPIServerRequestHandlerFactory(RESTAPI_GenericServer &Server) :
+	explicit RESTAPIServerRequestHandlerFactory(RESTAPI_GenericServer &Server) :
             Logger_(RESTAPI_server::instance()->Logger()),
 	  		Server_(Server){}
 
