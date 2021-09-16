@@ -135,7 +135,7 @@ namespace OpenWifi {
 			} else {
 				try {
 					std::cout << __LINE__ << std::endl;
-					SocketImpl_ = dynamic_cast<Poco::Net::SecureStreamSocketImpl *>(Socket_.impl());
+					SocketImpl_ = reinterpret_cast<Poco::Net::SecureStreamSocketImpl *>(Socket_.impl());
 					std::cout << __LINE__ << std::endl;
 					int R;
 					try {
