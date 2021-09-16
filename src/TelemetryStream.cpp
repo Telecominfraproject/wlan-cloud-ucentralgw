@@ -29,34 +29,12 @@ namespace OpenWifi {
 
 	int TelemetryStream::Start() {
 		ReactorPool_.Start();
-		for(const auto & Svr : ConfigServersList_ ) {
-			Logger_.notice(Poco::format("Starting: %s:%s Keyfile:%s CertFile: %s", Svr.Address(), std::to_string(Svr.Port()),
-										Svr.KeyFile(),Svr.CertFile()));
-			auto Sock{Svr.CreateSecureSocket(Logger_)};
-
-			Svr.LogCert(Logger_);
-			if(!Svr.RootCA().empty())
-				Svr.LogCas(Logger_);
-
-			auto Params = new Poco::Net::HTTPServerParams;
-			Params->setMaxThreads(50);
-			Params->setMaxQueued(200);
-			Params->setKeepAlive(true);
-			auto NewServer = std::make_unique<Poco::Net::HTTPServer>(new TelemetryRequestHandlerFactory(Reactor_, Logger_), Pool_, Sock, Params);
-			NewServer->start();
-			TelemetryServers_.push_back(std::move(NewServer));
-		}
-		ReactorThread_.start(Reactor_);
 		return 0;
 	}
 
 	void TelemetryStream::Stop() {
 		Logger_.notice("Stopping reactors...");
 		ReactorPool_.Stop();
-		for( const auto & svr : TelemetryServers_ )
-			svr->stop();
-		Reactor_.stop();
-		ReactorThread_.join();
 	}
 
 	bool TelemetryStream::CreateEndpoint(const std::string &SerialNumber, std::string &EndPoint, std::string &UUID) {
