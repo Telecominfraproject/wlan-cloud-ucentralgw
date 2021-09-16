@@ -61,8 +61,8 @@ namespace OpenWifi {
 			try {
 				auto WS = std::make_shared<Poco::Net::WebSocket>(Request, Response);
 				new TelemetryClient(UUID_, SerialNumber_, WS, Reactor_, Logger_);
-			} catch (...) {
-				std::cout << __LINE__ << std::endl;
+			} catch (const Poco::Exception &E) {
+				std::cout << E.what() << " " << E.name() << " " << E.displayText() << std::endl;
 			}
 			std::cout << __LINE__ << std::endl;
 		}
