@@ -82,14 +82,20 @@ namespace OpenWifi {
 		std::lock_guard Guard(Mutex_);
 		try {
 			Socket_ = *WS_;
+			std::cout << __LINE__ << std::endl;
+
 			auto SS = dynamic_cast<Poco::Net::SecureStreamSocketImpl *>(WS_->impl());
+			std::cout << __LINE__ << std::endl;
 			SS->completeHandshake();
+			std::cout << __LINE__ << std::endl;
 			CId_ = Utils::FormatIPv6(SS->peerAddress().toString());
+			std::cout << __LINE__ << std::endl;
 			if (!SS->secure()) {
 				Logger_.error(Poco::format("%s: Connection is NOT secure.", CId_));
 			} else {
 				Logger_.debug(Poco::format("%s: Connection is secure.", CId_));
 			}
+			std::cout << __LINE__ << std::endl;
 			if (SS->havePeerCertificate()) {
 				// Get the cert info...
 				CertValidation_ = GWObjects::VALID_CERTIFICATE;
@@ -106,9 +112,11 @@ namespace OpenWifi {
 				} catch (const Poco::Exception &E) {
 					LogException(E);
 				}
+				std::cout << __LINE__ << std::endl;
 			} else {
 				Logger_.error(Poco::format("%s: No certificates available..", CId_));
 			}
+			std::cout << __LINE__ << std::endl;
 
 			WS_->setMaxPayloadSize(BufSize);
 			auto TS = Poco::Timespan(240,0);
@@ -126,6 +134,7 @@ namespace OpenWifi {
 										 *this, &WSConnection::OnSocketError));
 			Registered_ = true;
 			Logger_.information(Poco::format("CONNECTION(%s): completed.",CId_));
+			std::cout << __LINE__ << std::endl;
 			return;
 		} catch (const Poco::Exception &E ) {
 			Logger_.error("Exception caught during device connection. Device will have to retry.");
@@ -136,8 +145,12 @@ namespace OpenWifi {
 	WSConnection::WSConnection(Poco::SharedPtr<Poco::Net::WebSocket> WS, Poco::Net::SocketReactor& Reactor, Poco::Logger &Logger):
             WS_(WS), Reactor_(Reactor), Logger_(WebSocketServer()->Logger())
     {
+		std::cout << __LINE__ << std::endl;
+
 		std::thread		T([this](){ this->CompleteStartup();});
+		std::cout << __LINE__ << std::endl;
 		T.detach();
+		std::cout << __LINE__ << std::endl;
     }
 
     WSConnection::~WSConnection() {

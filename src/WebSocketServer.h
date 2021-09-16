@@ -121,8 +121,12 @@ namespace OpenWifi {
 
 		void handleRequest(Poco::Net::HTTPServerRequest & Request, Poco::Net::HTTPServerResponse & Response) final {
 			try {
+				std::cout << __LINE__ << std::endl;
 				auto WS = Poco::SharedPtr<Poco::Net::WebSocket>(new Poco::Net::WebSocket(Request, Response));
+				std::cout << __LINE__ << std::endl;
 				new WSConnection(WS, Pool_.NextReactor(), Logger_);
+				std::cout << __LINE__ << std::endl;
+
 			} catch (const Poco::Exception &E) {
 				std::cout << E.what() << " " << E.name() << " " << E.displayText() << std::endl;
 			} catch (...) {
@@ -143,6 +147,7 @@ namespace OpenWifi {
 		{}
 
 		inline Poco::Net::HTTPRequestHandler *createRequestHandler(const Poco::Net::HTTPServerRequest & Request) final {
+			std::cout << __LINE__ << std::endl;
 			return new WebSocketRequestHandler(Pool_,Logger_);
 		}
 
