@@ -21,13 +21,14 @@
 #include "Daemon.h"
 #include "DeviceRegistry.h"
 #include "Poco/Net/HTTPServer.h"
+#include "RESTAPI_TelemetryWebSocket.h"
 
 namespace OpenWifi {
 
 	class TelemetryStream *TelemetryStream::instance_ = nullptr;
 
 	int TelemetryStream::Start() {
-
+		ReactorPool_.Start();
 		for(const auto & Svr : ConfigServersList_ ) {
 			Logger_.notice(Poco::format("Starting: %s:%s Keyfile:%s CertFile: %s", Svr.Address(), std::to_string(Svr.Port()),
 										Svr.KeyFile(),Svr.CertFile()));
@@ -51,7 +52,7 @@ namespace OpenWifi {
 
 	void TelemetryStream::Stop() {
 		Logger_.notice("Stopping reactors...");
-
+		ReactorPool_.Stop();
 		for( const auto & svr : TelemetryServers_ )
 			svr->stop();
 		Reactor_.stop();
@@ -61,12 +62,15 @@ namespace OpenWifi {
 	bool TelemetryStream::CreateEndpoint(const std::string &SerialNumber, std::string &EndPoint, std::string &UUID) {
 		std::lock_guard	G(Mutex_);
 
+		Poco::URI	Public(Daemon()->ConfigGetString("openwifi.system.uri.public"));
 		Poco::URI	U;
 		UUID = Daemon()->CreateUUID();
 		U.setScheme("wss");
-		U.setHost(ConfigServersList_[0].Name());
-		U.setPort(ConfigServersList_[0].Port());
-		U.setPath(UUID);
+		U.setHost(Public.getHost());
+		U.setPort(Public.getPort());
+		auto RESTAPI_Path = std::string(*(RESTAPI_TelemetryWebSocket::PathName().begin()));
+		U.setPath(RESTAPI_Path);
+		U.addQueryParameter("uuid", UUID);
 		U.addQueryParameter("serialNumber", SerialNumber);
 		EndPoint = U.toString();
 		SerialNumbers_[SerialNumber] = UUID;

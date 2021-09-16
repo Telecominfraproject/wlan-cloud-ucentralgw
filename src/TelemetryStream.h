@@ -24,6 +24,45 @@
 
 namespace OpenWifi {
 
+	class TelemetryReactorPool {
+	  public:
+		TelemetryReactorPool( unsigned int NumberOfThreads = Poco::Environment::processorCount() )
+		: NumberOfThreads_(NumberOfThreads)
+		{
+		}
+
+		void Start() {
+			for(auto i=0;i<NumberOfThreads_;++i) {
+				auto NewReactor = std::make_unique<Poco::Net::SocketReactor>();
+				auto NewThread = std::make_unique<Poco::Thread>();
+				NewThread->start(*NewReactor);
+				Reactors_.emplace_back( std::move(NewReactor));
+				Threads_.emplace_back( std::move(NewThread));
+			}
+		}
+
+		void Stop() {
+			for(auto &i:Reactors_)
+				i->stop();
+			for(auto &i:Threads_) {
+				i->join();
+			}
+		}
+
+		Poco::Net::SocketReactor & NextReactor() {
+			NextReactor_ ++;
+			NextReactor_ %= NumberOfThreads_;
+			return *Reactors_[NextReactor_];
+		}
+
+	  private:
+		unsigned int NumberOfThreads_;
+		unsigned int NextReactor_=0;
+		std::vector<std::unique_ptr<Poco::Net::SocketReactor>> 	Reactors_;
+		std::vector<std::unique_ptr<Poco::Thread>>				Threads_;
+	};
+
+
 	class TelemetryClient {
 		static constexpr int BufSize = 64000;
 	  public:
@@ -121,6 +160,7 @@ namespace OpenWifi {
 		void UpdateEndPoint(const std::string &SerialNumber, const std::string &PayLoad);
 		bool RegisterClient(const std::string &UUID, TelemetryClient *Client);
 		void DeRegisterClient(const std::string &UUID);
+		Poco::Net::SocketReactor & NextReactor() { return ReactorPool_.NextReactor(); }
 
 	  private:
 		static TelemetryStream 					* 	instance_;
@@ -130,7 +170,7 @@ namespace OpenWifi {
 		std::map<std::string, std::string>			SerialNumbers_;		//	serialNumber -> uuid
 		Poco::ThreadPool							Pool_;
 		std::vector<std::unique_ptr<Poco::Net::HTTPServer>>   TelemetryServers_;
-
+		TelemetryReactorPool						ReactorPool_;
 		TelemetryStream() noexcept:
 			SubSystemServer("TelemetryServer", "TELEMETRY-SVR", "openwifi.telemetry")
 		{

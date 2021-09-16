@@ -5,8 +5,6 @@
 #ifndef UCENTRALGW_RESTAPI_WEBSOCKETSERVER_H
 #define UCENTRALGW_RESTAPI_WEBSOCKETSERVER_H
 
-class RESTAPI_webSocketServer {};
-
 #include "RESTAPI_handler.h"
 
 namespace OpenWifi {
