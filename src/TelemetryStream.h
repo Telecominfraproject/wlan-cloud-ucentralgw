@@ -19,6 +19,7 @@
 #include "Poco/Net/HTTPServerRequest.h"
 #include "Poco/Timespan.h"
 #include "Poco/URI.h"
+#include "Poco/Net/HTTPServer.h"
 
 namespace OpenWifi {
 
@@ -117,6 +118,7 @@ namespace OpenWifi {
 		std::map<std::string, TelemetryClient *>	Clients_;			// 	uuid -> client
 		std::map<std::string, std::string>			SerialNumbers_;		//	serialNumber -> uuid
 		Poco::ThreadPool							Pool_;
+		std::vector<std::unique_ptr<Poco::Net::HTTPServer>>   TelemetryServers_;
 
 		TelemetryStream() noexcept:
 			SubSystemServer("TelemetryServer", "TELEMETRY-SVR", "openwifi.telemetry")
