@@ -157,8 +157,10 @@ namespace OpenWifi {
 		std::lock_guard Guard(Mutex_);
 		try {
 			Socket_ = *WS_;
-
 			CId_ = Utils::FormatIPv6(Socket_.peerAddress().toString());
+
+			// auto SS = static_cast<Poco::Net::SecureStreamSocketImpl*>((WS_->impl()));
+			// SS->havePeerCertificate();
 
 			if (TelemetryStream()->RegisterClient(UUID_, this)) {
 				auto TS = Poco::Timespan(240, 0);

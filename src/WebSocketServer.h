@@ -33,13 +33,55 @@
 #include "Poco/Net/SecureStreamSocket.h"
 #include "Poco/Net/SecureStreamSocketImpl.h"
 #include "Poco/Net/ParallelSocketAcceptor.h"
+#include "Poco/Environment.h"
+#include "Poco/Net/HTTPRequestHandlerFactory.h"
+#include "Poco/Net/HTTPRequestHandler.h"
+#include "Poco/Net/HTTPServer.h"
 
 namespace OpenWifi {
+
+	class ReactorPool {
+	  public:
+		ReactorPool( unsigned int NumberOfThreads = Poco::Environment::processorCount() )
+			: NumberOfThreads_(NumberOfThreads)
+		{
+		}
+
+		void Start() {
+			for(auto i=0;i<NumberOfThreads_;++i) {
+				auto NewReactor = std::make_unique<Poco::Net::SocketReactor>();
+				auto NewThread = std::make_unique<Poco::Thread>();
+				NewThread->start(*NewReactor);
+				Reactors_.emplace_back( std::move(NewReactor));
+				Threads_.emplace_back( std::move(NewThread));
+			}
+		}
+
+		void Stop() {
+			for(auto &i:Reactors_)
+				i->stop();
+			for(auto &i:Threads_) {
+				i->join();
+			}
+		}
+
+		Poco::Net::SocketReactor & NextReactor() {
+			NextReactor_ ++;
+			NextReactor_ %= NumberOfThreads_;
+			return *Reactors_[NextReactor_];
+		}
+
+	  private:
+		unsigned int NumberOfThreads_;
+		unsigned int NextReactor_=0;
+		std::vector<std::unique_ptr<Poco::Net::SocketReactor>> 	Reactors_;
+		std::vector<std::unique_ptr<Poco::Thread>>				Threads_;
+	};
 
 	class WSConnection {
         static constexpr int BufSize = 64000;
     public:
-        WSConnection(Poco::Net::StreamSocket& Socket, Poco::Net::SocketReactor& Reactor);
+		WSConnection(Poco::SharedPtr<Poco::Net::WebSocket> WS, Poco::Net::SocketReactor& Reactor, Poco::Logger &Logger);
         ~WSConnection();
 
         void ProcessJSONRPCEvent(Poco::JSON::Object::Ptr & Doc);
@@ -54,11 +96,11 @@ namespace OpenWifi {
 		void LogException(const Poco::Exception &E);
 		[[nodiscard]] GWObjects::CertificateValidation CertificateValidation() const { return CertValidation_; };
     private:
-		std::recursive_mutex                         	Mutex_;
+		std::recursive_mutex                Mutex_;
+		Poco::SharedPtr<Poco::Net::WebSocket> WS_;
+		Poco::Net::SocketReactor			& Reactor_;
         Poco::Logger                    	&Logger_;
         Poco::Net::StreamSocket       		Socket_;
-		Poco::Net::SocketReactor			& Reactor_;
-        std::unique_ptr<Poco::Net::WebSocket> WS_;
         std::string                         SerialNumber_;
 		std::string 						Compatible_;
 		GWObjects::ConnectionState 	* Conn_ = nullptr;
@@ -71,6 +113,44 @@ namespace OpenWifi {
 
 		void CompleteStartup();
     };
+
+	class WebSocketRequestHandler : public Poco::Net::HTTPRequestHandler {
+	  public:
+		explicit WebSocketRequestHandler(ReactorPool &Pool, Poco::Logger &Logger) :
+ 			Pool_(Pool), Logger_(Logger) {}
+
+		void handleRequest(Poco::Net::HTTPServerRequest & Request, Poco::Net::HTTPServerResponse & Response) final {
+			try {
+				auto WS = Poco::SharedPtr<Poco::Net::WebSocket>(new Poco::Net::WebSocket(Request, Response));
+				new WSConnection(WS, Pool_.NextReactor(), Logger_);
+			} catch (const Poco::Exception &E) {
+				std::cout << E.what() << " " << E.name() << " " << E.displayText() << std::endl;
+			} catch (...) {
+				std::cout << __LINE__ << std::endl;
+			}
+		}
+	  private:
+		ReactorPool		&Pool_;
+		Poco::Logger	&Logger_;
+	};
+
+
+	class WebSocketRequestHandlerFactory : public Poco::Net::HTTPRequestHandlerFactory {
+	  public:
+		explicit WebSocketRequestHandlerFactory(ReactorPool &  Pool, Poco::Logger & Logger) :
+ 			Pool_(Pool),
+			Logger_(Logger)
+		{}
+
+		inline Poco::Net::HTTPRequestHandler *createRequestHandler(const Poco::Net::HTTPServerRequest & Request) final {
+			return new WebSocketRequestHandler(Pool_,Logger_);
+		}
+
+	  private:
+	Poco::Logger 			& Logger_;
+		ReactorPool			& Pool_;
+	};
+
 
     class WebSocketServer : public SubSystemServer {
     public:
@@ -90,10 +170,12 @@ namespace OpenWifi {
     private:
         static WebSocketServer *instance_;
 		std::unique_ptr<Poco::Crypto::X509Certificate>	IssuerCert_;
-		std::vector<std::unique_ptr<Poco::Net::ParallelSocketAcceptor<WSConnection, Poco::Net::SocketReactor>>>	Acceptors_;
-		Poco::Net::SocketReactor						Reactor_;
-		Poco::Thread									ReactorThread_;
-		WebSocketServer() noexcept;
+		ReactorPool										ReactorPool_;
+		std::vector<std::unique_ptr<Poco::Net::HTTPServer>>   RESTServers_;
+		Poco::ThreadPool		Pool_;
+
+		WebSocketServer() noexcept: SubSystemServer("WebSocketServer", "WS-SVR", "ucentral.websocket")
+			{ }
     };
 
 	inline WebSocketServer * WebSocketServer() { return WebSocketServer::instance(); }

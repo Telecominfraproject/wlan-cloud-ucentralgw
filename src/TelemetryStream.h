@@ -17,6 +17,7 @@
 #include "Poco/Net/HTTPRequestHandlerFactory.h"
 #include "Poco/Net/HTTPRequestHandler.h"
 #include "Poco/Net/HTTPServerRequest.h"
+#include "Poco/Net/HTTPServerRequestImpl.h"
 #include "Poco/Timespan.h"
 #include "Poco/URI.h"
 #include "Poco/Net/HTTPServer.h"
@@ -51,6 +52,12 @@ namespace OpenWifi {
 		bool 									Registered_=false;
 		void SendTelemetryShutdown();
 		void CompleteStartup();
+
+
+		// SecureStreamSocket socket = static_cast<HTTPServerRequestImpl&>(request).socket()
+
+
+
 	};
 
 	class TelemetryRequestHandler : public Poco::Net::HTTPRequestHandler {
@@ -60,7 +67,6 @@ namespace OpenWifi {
 
 		void handleRequest(Poco::Net::HTTPServerRequest & Request, Poco::Net::HTTPServerResponse & Response) final {
 			try {
-				auto Now = time(nullptr);
 				auto WS = Poco::SharedPtr<Poco::Net::WebSocket>(new Poco::Net::WebSocket(Request, Response));
 				new TelemetryClient(UUID_, SerialNumber_, WS, Reactor_, Logger_);
 			} catch (const Poco::Exception &E) {
