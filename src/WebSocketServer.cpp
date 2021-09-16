@@ -117,7 +117,6 @@ namespace OpenWifi {
 			} else {
 				Logger_.error(Poco::format("%s: No certificates available..", CId_));
 			}
-			std::cout << __LINE__ << std::endl;
 			auto Params = Poco::AutoPtr<Poco::Net::HTTPServerParams>(new Poco::Net::HTTPServerParams);
 			Poco::Net::HTTPServerSession Session(Socket_, Params);
 			Poco::Net::HTTPServerResponseImpl Response(Session);
@@ -128,28 +127,18 @@ namespace OpenWifi {
 			Response.setVersion(Request.getVersion());
 			Response.setKeepAlive(Params->getKeepAlive() && Request.getKeepAlive() && Session.canKeepAlive());
 			WS_ = std::make_unique<Poco::Net::WebSocket>(Request, Response);
-
-			std::cout << __LINE__ << std::endl;
 			WS_->setMaxPayloadSize(BufSize);
-			std::cout << __LINE__ << std::endl;
-
 			auto TS = Poco::Timespan(240,0);
-			std::cout << __LINE__ << std::endl;
 
 			WS_->setReceiveTimeout(TS);
-			std::cout << __LINE__ << std::endl;
 			WS_->setNoDelay(true);
-			std::cout << __LINE__ << std::endl;
 			WS_->setKeepAlive(true);
-			std::cout << __LINE__ << std::endl;
 			Reactor_.addEventHandler(*WS_,
 									 Poco::NObserver<WSConnection, Poco::Net::ReadableNotification>(
 										 *this, &WSConnection::OnSocketReadable));
-			std::cout << __LINE__ << std::endl;
 			Reactor_.addEventHandler(*WS_,
 									 Poco::NObserver<WSConnection, Poco::Net::ShutdownNotification>(
 										 *this, &WSConnection::OnSocketShutdown));
-			std::cout << __LINE__ << std::endl;
 			Reactor_.addEventHandler(*WS_,
 									 Poco::NObserver<WSConnection, Poco::Net::ErrorNotification>(
 										 *this, &WSConnection::OnSocketError));
@@ -157,7 +146,6 @@ namespace OpenWifi {
 			Logger_.information(Poco::format("CONNECTION(%s): completed.",CId_));
 			return;
 		} catch (const Poco::Exception &E ) {
-			std::cout << __LINE__ << std::endl;
 			Logger_.error("Exception caught during device connection. Device will have to retry.");
 		}
 		delete this;
@@ -589,7 +577,6 @@ namespace OpenWifi {
 				break;
 
 			case uCentralProtocol::ET_TELEMETRY: {
-					std::cout << "Telemetry date..." << std::endl;
 					if(ParamsObj->has("data")) {
 						auto Payload = ParamsObj->get("data").toString();
 						TelemetryStream()->UpdateEndPoint(SerialNumber_, Payload);
@@ -658,8 +645,6 @@ namespace OpenWifi {
 			int IncomingSize;
 			IncomingSize = WS_->receiveFrame(IncomingFrame,flags);
             Op = flags & Poco::Net::WebSocket::FRAME_OP_BITMASK;
-
-			// std::cout << "ID:" << CId_ << " Size=" << IncomingSize << " Flags=" << flags << " Op=" << Op << std::endl;
 
             if (IncomingSize == 0 && flags == 0 && Op == 0) {
                 Logger_.information(Poco::format("DISCONNECT(%s): device has disconnected.", CId_));
