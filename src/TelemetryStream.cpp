@@ -7,6 +7,8 @@
 #include "Poco/Net/IPAddress.h"
 #include "Poco/Net/SSLException.h"
 #include "Poco/Net/HTTPServerSession.h"
+#include "Poco/Net/HTTPServerRequest.h"
+#include "Poco/Net/HTTPServerResponse.h"
 #include "Poco/Net/HTTPHeaderStream.h"
 #include "Poco/Net/HTTPServerRequestImpl.h"
 #include "Poco/Net/SecureStreamSocketImpl.h"
@@ -125,84 +127,55 @@ namespace OpenWifi {
 		std::lock_guard Guard(Mutex_);
 		std::cout << __LINE__ << std::endl;
 		try {
-			if (!Socket_.secure()) {
-				std::cout << "Not secure socket..." << std::endl;
-			} else {
-/*				std::cout << __LINE__ << std::endl;
-				SocketImpl_ = dynamic_cast<Poco::Net::SecureStreamSocketImpl *>(Socket_.impl());
 
+			auto Params = Poco::AutoPtr<Poco::Net::HTTPServerParams>(new Poco::Net::HTTPServerParams);
+			std::cout << __LINE__ << std::endl;
+			Poco::Net::HTTPServerSession Session(Socket_, Params);
+			Poco::Net::HTTPServerResponseImpl Response(Session);
+			Poco::Net::HTTPServerRequestImpl Request(Response, Session, Params);
+			WS_ = std::make_unique<Poco::Net::WebSocket>(Request, Response);
+			CId_ = Utils::FormatIPv6(Socket_.peerAddress().toString());
+
+			Poco::URI U(Request.getURI());
+			UUID_ = U.getPath().substr(1);
+
+			if (TelemetryStream()->RegisterClient(UUID_, this)) {
 				std::cout << __LINE__ << std::endl;
-				if (SocketImpl_->getLazyHandshake()) {
+				auto Parameters = U.getQueryParameters();
+				std::cout << __LINE__ << std::endl;
+				for (const auto &i : Parameters) {
 					std::cout << __LINE__ << std::endl;
-					SocketImpl_->completeHandshake();
+					if (i.first == "serialNumber")
+						SerialNumber_ = i.second;
 				}
-
 				std::cout << __LINE__ << std::endl;
-*/
-				CId_ = Utils::FormatIPv6(Socket_.peerAddress().toString());
+				auto Now = time(nullptr);
+				Response.setDate(Now);
 				std::cout << __LINE__ << std::endl;
-
-				if (!Socket_.secure()) {
-					Logger_.error(Poco::format("%s: Connection is NOT secure.", CId_));
-				} else {
-					Logger_.debug(Poco::format("%s: Connection is secure.", CId_));
-				}
+				Response.setVersion(Request.getVersion());
+				Response.setKeepAlive(Params->getKeepAlive() && Request.getKeepAlive() &&
+				Session.canKeepAlive());
+				std::cout << __LINE__ << std::endl;
+				auto TS = Poco::Timespan(240, 0);
 				std::cout << __LINE__ << std::endl;
 
-				auto Params = Poco::AutoPtr<Poco::Net::HTTPServerParams>(new Poco::Net::HTTPServerParams);
+				WS_->setReceiveTimeout(TS);
+				WS_->setNoDelay(true);
+				WS_->setKeepAlive(true);
+				Reactor_.addEventHandler(
+					*WS_, Poco::NObserver<TelemetryClient, Poco::Net::ReadableNotification>(
+						*this, &TelemetryClient::OnSocketReadable));
+				Reactor_.addEventHandler(
+					*WS_, Poco::NObserver<TelemetryClient, Poco::Net::ShutdownNotification>(
+						*this, &TelemetryClient::OnSocketShutdown));
+				Reactor_.addEventHandler(
+					*WS_, Poco::NObserver<TelemetryClient, Poco::Net::ErrorNotification>(
+						*this, &TelemetryClient::OnSocketError));
 				std::cout << __LINE__ << std::endl;
-				Poco::Net::HTTPServerSession Session(Socket_, Params);
+				Registered_ = true;
 				std::cout << __LINE__ << std::endl;
-				Poco::Net::HTTPServerResponseImpl Response(Session);
-				std::cout << __LINE__ << std::endl;
-				Poco::Net::HTTPServerRequestImpl Request(Response, Session, Params);
-				std::cout << __LINE__ << std::endl;
-				Poco::URI U(Request.getURI());
-				std::cout << __LINE__ << std::endl;
-
-				UUID_ = U.getPath().substr(1);
-				std::cout << __LINE__ << std::endl;
-				if (TelemetryStream()->RegisterClient(UUID_, this)) {
-					std::cout << __LINE__ << std::endl;
-					auto Parameters = U.getQueryParameters();
-					std::cout << __LINE__ << std::endl;
-					for (const auto &i : Parameters) {
-						std::cout << __LINE__ << std::endl;
-						if (i.first == "serialNumber")
-							SerialNumber_ = i.second;
-					}
-					std::cout << __LINE__ << std::endl;
-					auto Now = time(nullptr);
-					Response.setDate(Now);
-					std::cout << __LINE__ << std::endl;
-					Response.setVersion(Request.getVersion());
-					Response.setKeepAlive(Params->getKeepAlive() && Request.getKeepAlive() &&
-					Session.canKeepAlive());
-					WS_ = std::make_unique<Poco::Net::WebSocket>(Request, Response);
-					WS_->setMaxPayloadSize(BufSize);
-
-					std::cout << __LINE__ << std::endl;
-					auto TS = Poco::Timespan(240, 0);
-					std::cout << __LINE__ << std::endl;
-
-					WS_->setReceiveTimeout(TS);
-					WS_->setNoDelay(true);
-					WS_->setKeepAlive(true);
-					Reactor_.addEventHandler(
-						*WS_, Poco::NObserver<TelemetryClient, Poco::Net::ReadableNotification>(
-							*this, &TelemetryClient::OnSocketReadable));
-					Reactor_.addEventHandler(
-						*WS_, Poco::NObserver<TelemetryClient, Poco::Net::ShutdownNotification>(
-							*this, &TelemetryClient::OnSocketShutdown));
-					Reactor_.addEventHandler(
-						*WS_, Poco::NObserver<TelemetryClient, Poco::Net::ErrorNotification>(
-							*this, &TelemetryClient::OnSocketError));
-					std::cout << __LINE__ << std::endl;
-					Registered_ = true;
-					std::cout << __LINE__ << std::endl;
-					Logger_.information(Poco::format("CONNECTION(%s): completed.", CId_));
-					return;
-				}
+				Logger_.information(Poco::format("CONNECTION(%s): completed.", CId_));
+				return;
 			}
 		} catch (const Poco::Net::SSLException &E) {
 			std::cout << __LINE__ << std::endl;
