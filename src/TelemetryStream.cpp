@@ -146,10 +146,10 @@ namespace OpenWifi {
 
 					std::cout << __LINE__ << "R: " << R << std::endl;
 
-					CId_ = Utils::FormatIPv6(SS->peerAddress().toString());
+					CId_ = Utils::FormatIPv6(SocketImpl_->peerAddress().toString());
 					std::cout << __LINE__ << std::endl;
 
-					if (!SS->secure()) {
+					if (!SocketImpl_->secure()) {
 						Logger_.error(Poco::format("%s: Connection is NOT secure.", CId_));
 					} else {
 						Logger_.debug(Poco::format("%s: Connection is secure.", CId_));
