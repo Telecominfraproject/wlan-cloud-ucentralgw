@@ -38,6 +38,7 @@ namespace OpenWifi {
 		std::string 							SerialNumber_;
 		bool 									Registered_=false;
 		void SendTelemetryShutdown();
+		void CompleteStartup();
 	};
 
 	class TelemetryStream : public SubSystemServer {

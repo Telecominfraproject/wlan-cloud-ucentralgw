@@ -1,6 +1,7 @@
 //
 // Created by stephane bourque on 2021-09-07.
 //
+#include <thread>
 
 #include "TelemetryStream.h"
 #include "Poco/Net/IPAddress.h"
@@ -119,12 +120,8 @@ namespace OpenWifi {
 		}
 	}
 
-	TelemetryClient::TelemetryClient(Poco::Net::StreamSocket &Socket, Poco::Net::SocketReactor &Reactor) :
-		Socket_(Socket),
-		Reactor_(Reactor),
-		Logger_(TelemetryStream()->Logger()) {
+	void TelemetryClient::CompleteStartup() {
 		std::cout << __LINE__ << std::endl;
-		Poco::Net::Context::Ptr P;
 		std::lock_guard Guard(Mutex_);
 		std::cout << __LINE__ << std::endl;
 		try {
@@ -152,7 +149,7 @@ namespace OpenWifi {
 				}
 				std::cout << __LINE__ << std::endl;
 
-				auto Params = Poco::AutoPtr<Poco::Net::HTTPServerParams>();
+				auto Params = Poco::AutoPtr<Poco::Net::HTTPServerParams>(new Poco::Net::HTTPServerParams);
 				Poco::Net::HTTPServerSession Session(Socket_, Params);
 				Poco::Net::HTTPServerResponseImpl Response(Session);
 				Poco::Net::HTTPServerRequestImpl Request(Response, Session, Params);
@@ -170,7 +167,7 @@ namespace OpenWifi {
 					Response.setDate(Now);
 					Response.setVersion(Request.getVersion());
 					Response.setKeepAlive(Params->getKeepAlive() && Request.getKeepAlive() &&
-										  Session.canKeepAlive());
+					Session.canKeepAlive());
 					WS_ = std::make_unique<Poco::Net::WebSocket>(Request, Response);
 					WS_->setMaxPayloadSize(BufSize);
 
@@ -182,13 +179,13 @@ namespace OpenWifi {
 					WS_->setKeepAlive(true);
 					Reactor_.addEventHandler(
 						*WS_, Poco::NObserver<TelemetryClient, Poco::Net::ReadableNotification>(
-								  *this, &TelemetryClient::OnSocketReadable));
+							*this, &TelemetryClient::OnSocketReadable));
 					Reactor_.addEventHandler(
 						*WS_, Poco::NObserver<TelemetryClient, Poco::Net::ShutdownNotification>(
-								  *this, &TelemetryClient::OnSocketShutdown));
+							*this, &TelemetryClient::OnSocketShutdown));
 					Reactor_.addEventHandler(
 						*WS_, Poco::NObserver<TelemetryClient, Poco::Net::ErrorNotification>(
-								  *this, &TelemetryClient::OnSocketError));
+							*this, &TelemetryClient::OnSocketError));
 					std::cout << __LINE__ << std::endl;
 					Registered_ = true;
 					std::cout << __LINE__ << std::endl;
@@ -204,7 +201,15 @@ namespace OpenWifi {
 			std::cout << __LINE__ << std::endl;
 			Logger_.log(E);
 		}
-			delete this;
+		delete this;
+	}
+
+	TelemetryClient::TelemetryClient(Poco::Net::StreamSocket &Socket, Poco::Net::SocketReactor &Reactor) :
+		Socket_(Socket),
+		Reactor_(Reactor),
+		Logger_(TelemetryStream()->Logger()) {
+		std::thread T([this]() { this->CompleteStartup(); });
+		T.detach();
 	}
 
 	TelemetryClient::~TelemetryClient() {
