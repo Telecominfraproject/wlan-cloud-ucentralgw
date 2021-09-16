@@ -139,7 +139,7 @@ namespace OpenWifi {
 	TelemetryClient::TelemetryClient(
 			std::string UUID,
 			std::string SerialNumber,
-			Poco::Net::WebSocket * WSock,
+			Poco::SharedPtr<Poco::Net::WebSocket> WSock,
 			Poco::Net::SocketReactor& Reactor,
 			Poco::Logger &Logger):
 			UUID_(std::move(UUID)), SerialNumber_(std::move(SerialNumber)), WS_(WSock),Reactor_(Reactor), Logger_(Logger) {

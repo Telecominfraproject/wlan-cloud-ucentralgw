@@ -27,9 +27,11 @@ namespace OpenWifi {
 		static constexpr int BufSize = 64000;
 	  public:
 		TelemetryClient(
-			std::string UUID, std::string SerialNumber,
-			Poco::Net::WebSocket * WSock,
-			Poco::Net::SocketReactor& Reactor, Poco::Logger &Logger);
+			std::string UUID,
+			std::string SerialNumber,
+			Poco::SharedPtr<Poco::Net::WebSocket> WSock,
+			Poco::Net::SocketReactor& Reactor,
+			Poco::Logger &Logger);
 		~TelemetryClient();
 
 		void OnSocketReadable(const Poco::AutoPtr<Poco::Net::ReadableNotification>& pNf);
@@ -45,7 +47,7 @@ namespace OpenWifi {
 		Poco::Logger               				&Logger_;
 		Poco::Net::StreamSocket     			Socket_;
 		std::string 							CId_;
-		Poco::Net::WebSocket *					WS_ = nullptr;
+		Poco::SharedPtr<Poco::Net::WebSocket>	WS_;
 		bool 									Registered_=false;
 		void SendTelemetryShutdown();
 		void CompleteStartup();
@@ -61,7 +63,7 @@ namespace OpenWifi {
 			try {
 				std::cout << __LINE__ << std::endl;
 				auto Now = time(nullptr);
-				auto WS = new Poco::Net::WebSocket(Request, Response);
+				auto WS = Poco::SharedPtr<Poco::Net::WebSocket>(new Poco::Net::WebSocket(Request, Response));
 				std::cout << __LINE__ << std::endl;
 				new TelemetryClient(UUID_, SerialNumber_, WS, Reactor_, Logger_);
 				std::cout << __LINE__ << std::endl;
