@@ -68,7 +68,7 @@ namespace OpenWifi {
 							Svr.LogCas(Logger_);
 			*/
 			Poco::Net::IPAddress Addr(Poco::Net::IPAddress::wildcard(Poco::Net::Socket::supportsIPv6() ? Poco::Net::AddressFamily::IPv6	: Poco::Net::AddressFamily::IPv4));
-			Poco::Net::SocketAddress SockAddr(Addr, Daemon()->ConfigGetInt("ucentral.websocket.host.0.port"));
+			Poco::Net::SocketAddress SockAddr(Addr, 15002);
 
 			auto Context = Poco::AutoPtr<Poco::Net::Context>(new Poco::Net::Context(Poco::Net::Context::TLS_SERVER_USE, P));
 			auto Params = new Poco::Net::HTTPServerParams;
