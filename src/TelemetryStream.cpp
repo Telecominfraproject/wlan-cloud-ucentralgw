@@ -133,18 +133,17 @@ namespace OpenWifi {
 			if (!Socket_.secure()) {
 				std::cout << "Not secure socket..." << std::endl;
 			} else {
-				try {
 					std::cout << __LINE__ << std::endl;
-					SocketImpl_ = reinterpret_cast<Poco::Net::SecureStreamSocketImpl *>(Socket_.impl());
+					SocketImpl_ =
+						reinterpret_cast<Poco::Net::SecureStreamSocketImpl *>(Socket_.impl());
+
 					std::cout << __LINE__ << std::endl;
-					int R;
-					try {
-						R = SocketImpl_->completeHandshake();
-					} catch (...) {
+					if (SocketImpl_->getLazyHandshake()) {
 						std::cout << __LINE__ << std::endl;
+					SocketImpl_->completeHandshake();
 					}
 
-					std::cout << __LINE__ << "R: " << R << std::endl;
+					std::cout << __LINE__ << std::endl;
 
 					CId_ = Utils::FormatIPv6(SocketImpl_->peerAddress().toString());
 					std::cout << __LINE__ << std::endl;
