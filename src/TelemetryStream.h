@@ -52,12 +52,6 @@ namespace OpenWifi {
 		bool 									Registered_=false;
 		void SendTelemetryShutdown();
 		void CompleteStartup();
-
-
-		// SecureStreamSocket socket = static_cast<HTTPServerRequestImpl&>(request).socket()
-
-
-
 	};
 
 	class TelemetryRequestHandler : public Poco::Net::HTTPRequestHandler {
@@ -67,6 +61,9 @@ namespace OpenWifi {
 
 		void handleRequest(Poco::Net::HTTPServerRequest & Request, Poco::Net::HTTPServerResponse & Response) final {
 			try {
+				for(const auto &i:Request) {
+					std::cout << "i: " << i.first << "  >> " << i.second << std::endl;
+				}
 				auto WS = Poco::SharedPtr<Poco::Net::WebSocket>(new Poco::Net::WebSocket(Request, Response));
 				new TelemetryClient(UUID_, SerialNumber_, WS, Reactor_, Logger_);
 			} catch (const Poco::Exception &E) {
