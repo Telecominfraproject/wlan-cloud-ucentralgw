@@ -50,16 +50,34 @@ namespace OpenWifi {
 
 			std::cout << Poco::format("Starting: %s:%s Keyfile:%s CertFile: %s", Svr.Address(), std::to_string(Svr.Port()),
 									  Svr.KeyFile(),Svr.CertFile()) << std::endl;
-			auto Sock{Svr.CreateSecureSocket(Logger_)};
 
-			Svr.LogCert(Logger_);
-			if(!Svr.RootCA().empty())
-				Svr.LogCas(Logger_);
 
+			Poco::Net::Context::Params P;
+			P.verificationMode = Poco::Net::Context::VERIFY_STRICT;
+			P.certificateFile = Daemon()->ConfigPath("ucentral.websocket.host.0.cert");
+			P.privateKeyFile = Daemon()->ConfigPath("ucentral.websocket.host.0.key");
+			P.caLocation = Daemon()->ConfigPath("ucentral.websocket.host.0.cas");
+			P.verificationDepth = 9 ;
+			P.cipherList = "ALL:!ADH:!LOW:!EXP:!MD5:@STRENGTH";
+			P.dhUse2048Bits = true;
+
+			/*
+						auto Sock{Svr.CreateSecureSocket(Logger_)};
+						 Svr.LogCert(Logger_);
+						if(!Svr.RootCA().empty())
+							Svr.LogCas(Logger_);
+			*/
+			Poco::Net::IPAddress Addr(Poco::Net::IPAddress::wildcard(Poco::Net::Socket::supportsIPv6() ? Poco::Net::AddressFamily::IPv6	: Poco::Net::AddressFamily::IPv4));
+			Poco::Net::SocketAddress SockAddr(Addr, Daemon()->ConfigGetInt("ucentral.websocket.host.0.port"));
+
+			auto Context = Poco::AutoPtr<Poco::Net::Context>(new Poco::Net::Context(Poco::Net::Context::TLS_SERVER_USE, P));
 			auto Params = new Poco::Net::HTTPServerParams;
+
 			Params->setMaxThreads(50);
 			Params->setMaxQueued(200);
 			Params->setKeepAlive(true);
+
+			auto Sock = Poco::Net::SecureServerSocket(SockAddr, 200, Context);
 
 			auto NewServer = std::make_unique<Poco::Net::HTTPServer>(new WebSocketRequestHandlerFactory(ReactorPool_,Logger_), Pool_, Sock, Params);
 			NewServer->start();
