@@ -5,6 +5,8 @@
 #ifndef OWGW_TELEMETRYSTREAM_H
 #define OWGW_TELEMETRYSTREAM_H
 
+#include <iostream>
+
 #include "SubSystemServer.h"
 
 #include "Poco/Net/SocketReactor.h"
