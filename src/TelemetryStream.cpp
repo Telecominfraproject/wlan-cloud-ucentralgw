@@ -31,6 +31,9 @@ namespace OpenWifi {
 			Logger_.notice(Poco::format("Starting: %s:%s Keyfile:%s CertFile: %s", Svr.Address(), std::to_string(Svr.Port()),
 										Svr.KeyFile(),Svr.CertFile()));
 
+			std::cout << Poco::format("Starting: %s:%s Keyfile:%s CertFile: %s", Svr.Address(), std::to_string(Svr.Port()),
+									  Svr.KeyFile(),Svr.CertFile()) << std::endl;
+
 			Svr.LogCert(Logger_);
 			if(!Svr.RootCA().empty())
 				Svr.LogCas(Logger_);
