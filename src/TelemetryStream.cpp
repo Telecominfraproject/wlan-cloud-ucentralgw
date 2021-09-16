@@ -152,8 +152,7 @@ namespace OpenWifi {
 				}
 				std::cout << __LINE__ << std::endl;
 
-				auto Params =
-					Poco::AutoPtr<Poco::Net::HTTPServerParams>(new Poco::Net::HTTPServerParams);
+				auto Params = Poco::AutoPtr<Poco::Net::HTTPServerParams>();
 				Poco::Net::HTTPServerSession Session(Socket_, Params);
 				Poco::Net::HTTPServerResponseImpl Response(Session);
 				Poco::Net::HTTPServerRequestImpl Request(Response, Session, Params);
