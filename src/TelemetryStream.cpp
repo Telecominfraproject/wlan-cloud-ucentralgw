@@ -150,27 +150,38 @@ namespace OpenWifi {
 				std::cout << __LINE__ << std::endl;
 
 				auto Params = Poco::AutoPtr<Poco::Net::HTTPServerParams>(new Poco::Net::HTTPServerParams);
+				std::cout << __LINE__ << std::endl;
 				Poco::Net::HTTPServerSession Session(Socket_, Params);
+				std::cout << __LINE__ << std::endl;
 				Poco::Net::HTTPServerResponseImpl Response(Session);
+				std::cout << __LINE__ << std::endl;
 				Poco::Net::HTTPServerRequestImpl Request(Response, Session, Params);
+				std::cout << __LINE__ << std::endl;
 				Poco::URI U(Request.getURI());
 				std::cout << __LINE__ << std::endl;
 
 				UUID_ = U.getPath().substr(1);
+				std::cout << __LINE__ << std::endl;
 				if (TelemetryStream()->RegisterClient(UUID_, this)) {
+					std::cout << __LINE__ << std::endl;
 					auto Parameters = U.getQueryParameters();
+					std::cout << __LINE__ << std::endl;
 					for (const auto &i : Parameters) {
+						std::cout << __LINE__ << std::endl;
 						if (i.first == "serialNumber")
 							SerialNumber_ = i.second;
 					}
+					std::cout << __LINE__ << std::endl;
 					auto Now = time(nullptr);
 					Response.setDate(Now);
+					std::cout << __LINE__ << std::endl;
 					Response.setVersion(Request.getVersion());
 					Response.setKeepAlive(Params->getKeepAlive() && Request.getKeepAlive() &&
 					Session.canKeepAlive());
 					WS_ = std::make_unique<Poco::Net::WebSocket>(Request, Response);
 					WS_->setMaxPayloadSize(BufSize);
 
+					std::cout << __LINE__ << std::endl;
 					auto TS = Poco::Timespan(240, 0);
 					std::cout << __LINE__ << std::endl;
 
