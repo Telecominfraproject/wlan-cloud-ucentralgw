@@ -163,6 +163,7 @@ namespace OpenWifi {
 		delete this;
 	}
 
+
 	WSConnection::WSConnection(Poco::Net::StreamSocket & socket, Poco::Net::SocketReactor & reactor):
             Socket_(socket),
             Reactor_(WebSocketServer()->GetNextReactor()),
