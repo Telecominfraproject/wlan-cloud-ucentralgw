@@ -30,11 +30,6 @@ namespace OpenWifi {
 
     class WebSocketServer *WebSocketServer::instance_ = nullptr;
 
-	WebSocketServer::WebSocketServer() noexcept: SubSystemServer("WebSocketServer", "WS-SVR", "ucentral.websocket")
-    {
-
-    }
-
 	bool WebSocketServer::ValidateCertificate(const std::string & ConnectionId, const Poco::Crypto::X509Certificate & Certificate) {
 		if(IsCertOk()) {
 			Logger_.debug(Poco::format("CERTIFICATE(%s): issuer='%s' cn='%s'", ConnectionId, Certificate.issuerName(),Certificate.commonName()));
@@ -49,32 +44,53 @@ namespace OpenWifi {
 
 	int WebSocketServer::Start() {
 
-        for(const auto & Svr : ConfigServersList_ ) {
-            Logger_.notice(Poco::format("Starting: %s:%s Keyfile:%s CertFile: %s", Svr.Address(), std::to_string(Svr.Port()),
-											 Svr.KeyFile(),Svr.CertFile()));
+		std::cout << __LINE__ << std::endl;
+		ReactorPool_.Start();
+		std::cout << __LINE__ << std::endl;
+			Poco::Net::Context::Params P;
+			P.verificationMode = Poco::Net::Context::VERIFY_STRICT;
+			P.certificateFile = Daemon()->ConfigPath("ucentral.websocket.host.0.cert");
+			P.privateKeyFile = Daemon()->ConfigPath("ucentral.websocket.host.0.key");
+			P.loadDefaultCAs = true ;
+			P.caLocation = Daemon()->ConfigPath("ucentral.websocket.host.0.cas");
+			P.verificationDepth = 9 ;
+			P.cipherList = "ALL:!ADH:!LOW:!EXP:!MD5:@STRENGTH";
+			P.dhUse2048Bits = true;
 
-			Svr.LogCert(Logger_);
-			if(!Svr.RootCA().empty())
-				Svr.LogCas(Logger_);
+			std::cout << __LINE__ << std::endl;
+			Poco::Net::IPAddress Addr(Poco::Net::IPAddress::wildcard(Poco::Net::Socket::supportsIPv6() ? Poco::Net::AddressFamily::IPv6	: Poco::Net::AddressFamily::IPv4));
+			std::cout << __LINE__ << std::endl;
+			Poco::Net::SocketAddress SockAddr(Addr, 15002);
+			std::cout << __LINE__ << std::endl;
 
-            auto Sock{Svr.CreateSecureSocket(Logger_)};
+			auto Context = Poco::AutoPtr<Poco::Net::Context>(new Poco::Net::Context(Poco::Net::Context::TLS_SERVER_USE, P));
+			std::cout << __LINE__ << std::endl;
+			auto Params = new Poco::Net::HTTPServerParams;
+			std::cout << __LINE__ << std::endl;
 
-			if(!IsCertOk()) {
-				IssuerCert_ = std::make_unique<Poco::Crypto::X509Certificate>(Svr.IssuerCertFile());
-				Logger_.information(Poco::format("Certificate Issuer Name:%s",IssuerCert_->issuerName()));
-			}
-			auto NewSocketAcceptor = std::make_unique<Poco::Net::ParallelSocketAcceptor<WSConnection, Poco::Net::SocketReactor>>( Sock, Reactor_);
-            Acceptors_.push_back(std::move(NewSocketAcceptor));
-        }
-		ReactorThread_.start(Reactor_);
+			Params->setMaxThreads(50);
+			Params->setMaxQueued(200);
+			Params->setKeepAlive(true);
+
+			std::cout << __LINE__ << std::endl;
+			auto Sock = Poco::Net::SecureServerSocket(SockAddr, 200, Context);
+			std::cout << __LINE__ << std::endl;
+
+			auto NewServer = std::make_unique<Poco::Net::HTTPServer>(new WebSocketRequestHandlerFactory(ReactorPool_,Logger_), Pool_, Sock, Params);
+			std::cout << __LINE__ << std::endl;
+			NewServer->start();
+			std::cout << __LINE__ << std::endl;
+			WebServers_.push_back(std::move(NewServer));
+
         return 0;
     }
 
     void WebSocketServer::Stop() {
         Logger_.notice("Stopping reactors...");
-
-		Reactor_.stop();
-		ReactorThread_.join();
+        Logger_.information("Stopping ");
+        for( const auto & svr : WebServers_ )
+        	svr->stop();
+		ReactorPool_.Stop();
     }
 
 	void WSConnection::LogException(const Poco::Exception &E) {
@@ -84,19 +100,21 @@ namespace OpenWifi {
 	void WSConnection::CompleteStartup() {
 		std::lock_guard Guard(Mutex_);
 		try {
+			Socket_ = *WS_;
+			std::cout << __LINE__ << std::endl;
 
-			auto SS = dynamic_cast<Poco::Net::SecureStreamSocketImpl *>(Socket_.impl());
-
+			auto SS = dynamic_cast<Poco::Net::SecureStreamSocketImpl *>(WS_->impl());
+			std::cout << __LINE__ << std::endl;
 			SS->completeHandshake();
-
+			std::cout << __LINE__ << std::endl;
 			CId_ = Utils::FormatIPv6(SS->peerAddress().toString());
-
+			std::cout << __LINE__ << std::endl;
 			if (!SS->secure()) {
 				Logger_.error(Poco::format("%s: Connection is NOT secure.", CId_));
 			} else {
 				Logger_.debug(Poco::format("%s: Connection is secure.", CId_));
 			}
-
+			std::cout << __LINE__ << std::endl;
 			if (SS->havePeerCertificate()) {
 				// Get the cert info...
 				CertValidation_ = GWObjects::VALID_CERTIFICATE;
@@ -113,26 +131,14 @@ namespace OpenWifi {
 				} catch (const Poco::Exception &E) {
 					LogException(E);
 				}
+				std::cout << __LINE__ << std::endl;
 			} else {
 				Logger_.error(Poco::format("%s: No certificates available..", CId_));
 			}
+			std::cout << __LINE__ << std::endl;
 
-			auto Params =
-				Poco::AutoPtr<Poco::Net::HTTPServerParams>(new Poco::Net::HTTPServerParams);
-			Poco::Net::HTTPServerSession Session(Socket_, Params);
-			Poco::Net::HTTPServerResponseImpl Response(Session);
-			Poco::Net::HTTPServerRequestImpl Request(Response, Session, Params);
-
-			auto Now = time(nullptr);
-			Response.setDate(Now);
-			Response.setVersion(Request.getVersion());
-			Response.setKeepAlive(Params->getKeepAlive() && Request.getKeepAlive() &&
-								  Session.canKeepAlive());
-			WS_ = std::make_unique<Poco::Net::WebSocket>(Request, Response);
 			WS_->setMaxPayloadSize(BufSize);
-
 			auto TS = Poco::Timespan(240,0);
-
 			WS_->setReceiveTimeout(TS);
 			WS_->setNoDelay(true);
 			WS_->setKeepAlive(true);
@@ -147,6 +153,7 @@ namespace OpenWifi {
 										 *this, &WSConnection::OnSocketError));
 			Registered_ = true;
 			Logger_.information(Poco::format("CONNECTION(%s): completed.",CId_));
+			std::cout << __LINE__ << std::endl;
 			return;
 		} catch (const Poco::Exception &E ) {
 			Logger_.error("Exception caught during device connection. Device will have to retry.");
@@ -154,13 +161,15 @@ namespace OpenWifi {
 		delete this;
 	}
 
-	WSConnection::WSConnection(Poco::Net::StreamSocket & socket, Poco::Net::SocketReactor & reactor):
-            Socket_(socket),
-			Reactor_(reactor),
-			Logger_(WebSocketServer()->Logger())
+	WSConnection::WSConnection(Poco::SharedPtr<Poco::Net::WebSocket> WS, Poco::Net::SocketReactor& Reactor, Poco::Logger &Logger):
+            WS_(WS), Reactor_(Reactor), Logger_(WebSocketServer()->Logger())
     {
+		std::cout << __LINE__ << std::endl;
+
 		std::thread		T([this](){ this->CompleteStartup();});
+		std::cout << __LINE__ << std::endl;
 		T.detach();
+		std::cout << __LINE__ << std::endl;
     }
 
     WSConnection::~WSConnection() {
