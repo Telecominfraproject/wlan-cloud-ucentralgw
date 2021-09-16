@@ -28,7 +28,7 @@ namespace OpenWifi {
 	  public:
 		TelemetryClient(
 			std::string UUID, std::string SerialNumber,
-			std::shared_ptr<Poco::Net::WebSocket> WSock,
+			Poco::Net::WebSocket * WSock,
 			Poco::Net::SocketReactor& Reactor, Poco::Logger &Logger);
 		~TelemetryClient();
 
@@ -45,7 +45,7 @@ namespace OpenWifi {
 		Poco::Logger               				&Logger_;
 		Poco::Net::StreamSocket     			Socket_;
 		std::string 							CId_;
-		std::shared_ptr<Poco::Net::WebSocket>	WS_;
+		Poco::Net::WebSocket *					WS_ = nullptr;
 		bool 									Registered_=false;
 		void SendTelemetryShutdown();
 		void CompleteStartup();
@@ -60,7 +60,8 @@ namespace OpenWifi {
 			std::cout << __LINE__ << std::endl;
 			try {
 				std::cout << __LINE__ << std::endl;
-				auto WS = std::make_shared<Poco::Net::WebSocket>(Request, Response);
+				auto Now = time(nullptr);
+				auto WS = new Poco::Net::WebSocket(Request, Response);
 				std::cout << __LINE__ << std::endl;
 				new TelemetryClient(UUID_, SerialNumber_, WS, Reactor_, Logger_);
 				std::cout << __LINE__ << std::endl;
