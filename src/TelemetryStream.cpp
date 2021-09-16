@@ -150,9 +150,9 @@ namespace OpenWifi {
 			std::cout << __LINE__ << std::endl;
 			WS_ = std::make_unique<Poco::Net::WebSocket>(Request, Response);
 			std::cout << __LINE__ << std::endl;
-			std::thread T([this]() { this->CompleteStartup(); });
+			// std::thread T([this]() { this->CompleteStartup(); });
 			std::cout << __LINE__ << std::endl;
-			T.detach();
+			// T.detach();
 			std::cout << __LINE__ << std::endl;
 			return;
 		} catch (...) {
