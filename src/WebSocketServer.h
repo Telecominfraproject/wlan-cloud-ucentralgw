@@ -180,7 +180,9 @@ namespace OpenWifi {
 		Poco::ThreadPool									Pool_;
 
 		WebSocketServer() noexcept: SubSystemServer("WebSocketServer", "WS-SVR", "nano")
-			{ }
+			{
+			std::cout << __LINE__ << std::endl;
+		}
     };
 
 	inline WebSocketServer * WebSocketServer() { return WebSocketServer::instance(); }

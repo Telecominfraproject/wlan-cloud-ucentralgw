@@ -43,7 +43,10 @@ namespace OpenWifi {
 	}
 
 	int WebSocketServer::Start() {
+
+		std::cout << __LINE__ << std::endl;
 		ReactorPool_.Start();
+		std::cout << __LINE__ << std::endl;
 		for(const auto & Svr: ConfigServersList_) {
 			Logger_.information(Poco::format("Starting: %s:%s Keyfile:%s CertFile: %s", Svr.Address(), std::to_string(Svr.Port()),
 											 Svr.KeyFile(),Svr.CertFile()));
