@@ -132,7 +132,7 @@ namespace OpenWifi {
 				std::cout << "Not secure socket..." << std::endl;
 			} else {
 				std::cout << __LINE__ << std::endl;
-				SocketImpl_ = reinterpret_cast<Poco::Net::SecureStreamSocketImpl *>(Socket_.impl());
+				SocketImpl_ = dynamic_cast<Poco::Net::SecureStreamSocketImpl *>(Socket_.impl());
 
 				std::cout << __LINE__ << std::endl;
 				if (SocketImpl_->getLazyHandshake()) {
