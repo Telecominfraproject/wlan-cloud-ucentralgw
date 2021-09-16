@@ -67,20 +67,29 @@ namespace OpenWifi {
 						if(!Svr.RootCA().empty())
 							Svr.LogCas(Logger_);
 			*/
+			std::cout << __LINE__ << std::endl;
 			Poco::Net::IPAddress Addr(Poco::Net::IPAddress::wildcard(Poco::Net::Socket::supportsIPv6() ? Poco::Net::AddressFamily::IPv6	: Poco::Net::AddressFamily::IPv4));
+			std::cout << __LINE__ << std::endl;
 			Poco::Net::SocketAddress SockAddr(Addr, 15002);
+			std::cout << __LINE__ << std::endl;
 
 			auto Context = Poco::AutoPtr<Poco::Net::Context>(new Poco::Net::Context(Poco::Net::Context::TLS_SERVER_USE, P));
+			std::cout << __LINE__ << std::endl;
 			auto Params = new Poco::Net::HTTPServerParams;
+			std::cout << __LINE__ << std::endl;
 
 			Params->setMaxThreads(50);
 			Params->setMaxQueued(200);
 			Params->setKeepAlive(true);
 
+			std::cout << __LINE__ << std::endl;
 			auto Sock = Poco::Net::SecureServerSocket(SockAddr, 200, Context);
+			std::cout << __LINE__ << std::endl;
 
 			auto NewServer = std::make_unique<Poco::Net::HTTPServer>(new WebSocketRequestHandlerFactory(ReactorPool_,Logger_), Pool_, Sock, Params);
+			std::cout << __LINE__ << std::endl;
 			NewServer->start();
+			std::cout << __LINE__ << std::endl;
 			WebServers_.push_back(std::move(NewServer));
 		}
         return 0;
