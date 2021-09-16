@@ -48,6 +48,8 @@ namespace OpenWifi {
 			Logger_.information(Poco::format("Starting: %s:%s Keyfile:%s CertFile: %s", Svr.Address(), std::to_string(Svr.Port()),
 											 Svr.KeyFile(),Svr.CertFile()));
 
+			std::cout << Poco::format("Starting: %s:%s Keyfile:%s CertFile: %s", Svr.Address(), std::to_string(Svr.Port()),
+									  Svr.KeyFile(),Svr.CertFile()) << std::endl;
 			auto Sock{Svr.CreateSecureSocket(Logger_)};
 
 			Svr.LogCert(Logger_);
