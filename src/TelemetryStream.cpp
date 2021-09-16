@@ -9,6 +9,7 @@
 #include "Poco/Net/HTTPHeaderStream.h"
 #include "Poco/Net/HTTPServerRequestImpl.h"
 #include "Poco/Net/SecureStreamSocketImpl.h"
+#include "Poco/Net/SecureStreamSocket.h"
 #include "Poco/Net/WebSocket.h"
 #include "Poco/JSON/Array.h"
 #include "Poco/zlib.h"
@@ -124,7 +125,8 @@ namespace OpenWifi {
 		Logger_(TelemetryStream()->Logger())
 	{
 		std::cout << __LINE__ <<std::endl;
-
+		Poco::Net::Context::Ptr P;
+// 		Poco::Net::SecureStreamSocket	TheSock(&Socket,P);
 		{
 			std::lock_guard Guard(Mutex_);
 			std::cout << __LINE__ << std::endl;
@@ -133,11 +135,11 @@ namespace OpenWifi {
 			} else {
 				try {
 					std::cout << __LINE__ << std::endl;
-					auto SS = dynamic_cast<Poco::Net::SecureStreamSocketImpl *>(Socket_.impl());
+					SocketImpl_ = dynamic_cast<Poco::Net::SecureStreamSocketImpl *>(Socket_.impl());
 					std::cout << __LINE__ << std::endl;
 					int R;
 					try {
-						R = SS->completeHandshake();
+						R = SocketImpl_->completeHandshake();
 					} catch (...) {
 						std::cout << __LINE__ << std::endl;
 					}

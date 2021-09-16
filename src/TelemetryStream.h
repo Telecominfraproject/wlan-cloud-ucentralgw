@@ -10,6 +10,8 @@
 #include "Poco/Net/SocketReactor.h"
 #include "Poco/Net/ParallelSocketAcceptor.h"
 #include "Poco/Net/WebSocket.h"
+#include "Poco/Net/SecureStreamSocket.h"
+#include "Poco/Net/SecureStreamSocketImpl.h"
 
 namespace OpenWifi {
 
@@ -28,6 +30,7 @@ namespace OpenWifi {
 		std::recursive_mutex        			Mutex_;
 		Poco::Logger               				&Logger_;
 		Poco::Net::StreamSocket     			Socket_;
+		Poco::Net::SecureStreamSocketImpl		* SocketImpl_;
 		Poco::Net::SocketReactor				&Reactor_;
 		std::string 							CId_;
 		std::unique_ptr<Poco::Net::WebSocket>	WS_;
