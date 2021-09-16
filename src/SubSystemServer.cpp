@@ -124,11 +124,10 @@ Poco::Net::SecureServerSocket PropertiesFileServerEntry::CreateSecureSocket(Poco
 	if (!cert_file_.empty() && !key_file_.empty()) {
 		Poco::Crypto::X509Certificate Cert(cert_file_);
 		Poco::Crypto::X509Certificate Root(root_ca_);
-		Poco::Crypto::X509Certificate Issuer(issuer_cert_file_);
 
 		Context->useCertificate(Cert);
-
 		Context->addChainCertificate(Root);
+
 		Context->addCertificateAuthority(Root);
 
 		if (level_ == Poco::Net::Context::VERIFY_STRICT) {
