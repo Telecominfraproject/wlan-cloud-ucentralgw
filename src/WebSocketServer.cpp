@@ -85,6 +85,8 @@ namespace OpenWifi {
 		std::lock_guard Guard(Mutex_);
 		try {
 
+			WS_ = std::make_unique<Poco::Net::WebSocket>(Socket_);
+
 			auto SS = dynamic_cast<Poco::Net::SecureStreamSocketImpl *>(Socket_.impl());
 
 			SS->completeHandshake();
@@ -116,7 +118,7 @@ namespace OpenWifi {
 			} else {
 				Logger_.error(Poco::format("%s: No certificates available..", CId_));
 			}
-
+/*
 			auto Params =
 				Poco::AutoPtr<Poco::Net::HTTPServerParams>(new Poco::Net::HTTPServerParams);
 			Poco::Net::HTTPServerSession Session(Socket_, Params);
@@ -129,6 +131,7 @@ namespace OpenWifi {
 			Response.setKeepAlive(Params->getKeepAlive() && Request.getKeepAlive() &&
 								  Session.canKeepAlive());
 			WS_ = std::make_unique<Poco::Net::WebSocket>(Request, Response);
+*/
 			WS_->setMaxPayloadSize(BufSize);
 
 			auto TS = Poco::Timespan(240,0);
