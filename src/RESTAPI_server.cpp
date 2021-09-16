@@ -33,7 +33,6 @@ namespace OpenWifi {
     int RESTAPI_server::Start() {
         Logger_.information("Starting.");
 		Server_.InitLogging();
-
         for(const auto & Svr: ConfigServersList_) {
 			Logger_.information(Poco::format("Starting: %s:%s Keyfile:%s CertFile: %s", Svr.Address(), std::to_string(Svr.Port()),
 											 Svr.KeyFile(),Svr.CertFile()));

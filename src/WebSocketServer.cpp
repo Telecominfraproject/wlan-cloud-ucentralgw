@@ -61,7 +61,7 @@ namespace OpenWifi {
 
 			auto NewServer = std::make_unique<Poco::Net::HTTPServer>(new WebSocketRequestHandlerFactory(ReactorPool_,Logger_), Pool_, Sock, Params);
 			NewServer->start();
-			RESTServers_.push_back(std::move(NewServer));
+			WebServers_.push_back(std::move(NewServer));
 		}
         return 0;
     }
@@ -69,7 +69,7 @@ namespace OpenWifi {
     void WebSocketServer::Stop() {
         Logger_.notice("Stopping reactors...");
         Logger_.information("Stopping ");
-        for( const auto & svr : RESTServers_ )
+        for( const auto & svr : WebServers_ )
         	svr->stop();
 		ReactorPool_.Stop();
     }

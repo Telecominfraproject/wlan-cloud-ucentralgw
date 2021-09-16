@@ -49,6 +49,7 @@ namespace OpenWifi {
 
 		void Start() {
 			for(auto i=0;i<NumberOfThreads_;++i) {
+				std::cout << "Creating reactor : " << i << std::endl;
 				auto NewReactor = std::make_unique<Poco::Net::SocketReactor>();
 				auto NewThread = std::make_unique<Poco::Thread>();
 				NewThread->start(*NewReactor);
@@ -176,7 +177,7 @@ namespace OpenWifi {
         static WebSocketServer *instance_;
 		std::unique_ptr<Poco::Crypto::X509Certificate>	IssuerCert_;
 		ReactorPool										ReactorPool_;
-		std::vector<std::unique_ptr<Poco::Net::HTTPServer>>   RESTServers_;
+		std::vector<std::unique_ptr<Poco::Net::HTTPServer>>   WebServers_;
 		Poco::ThreadPool		Pool_;
 
 		WebSocketServer() noexcept: SubSystemServer("WebSocketServer", "WS-SVR", "ucentral.websocket")
