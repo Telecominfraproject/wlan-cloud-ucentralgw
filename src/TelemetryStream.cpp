@@ -128,7 +128,7 @@ namespace OpenWifi {
 			if (!Socket_.secure()) {
 				std::cout << "Not secure socket..." << std::endl;
 			} else {
-				std::cout << __LINE__ << std::endl;
+/*				std::cout << __LINE__ << std::endl;
 				SocketImpl_ = dynamic_cast<Poco::Net::SecureStreamSocketImpl *>(Socket_.impl());
 
 				std::cout << __LINE__ << std::endl;
@@ -138,11 +138,11 @@ namespace OpenWifi {
 				}
 
 				std::cout << __LINE__ << std::endl;
-
-				CId_ = Utils::FormatIPv6(SocketImpl_->peerAddress().toString());
+*/
+				CId_ = Utils::FormatIPv6(Socket_.peerAddress().toString());
 				std::cout << __LINE__ << std::endl;
 
-				if (!SocketImpl_->secure()) {
+				if (!Socket_.secure()) {
 					Logger_.error(Poco::format("%s: Connection is NOT secure.", CId_));
 				} else {
 					Logger_.debug(Poco::format("%s: Connection is secure.", CId_));
