@@ -151,7 +151,7 @@ Poco::Net::SecureServerSocket PropertiesFileServerEntry::CreateSecureSocket(Poco
 		}
 
 		SSL_CTX_set_verify(SSLCtx, SSL_VERIFY_PEER, nullptr);
-		SSL_CTX_set0_CA_list(SSLCtx, SSL_load_client_CA_file(issuer_cert_file_.c_str())); // new
+		SSL_CTX_set0_CA_list(SSLCtx, SSL_load_client_CA_file(root_ca_.c_str())); // new
 
 		if (level_ == Poco::Net::Context::VERIFY_STRICT) {
 			SSL_CTX_set_client_CA_list(SSLCtx, SSL_load_client_CA_file(client_cas_.c_str()));
