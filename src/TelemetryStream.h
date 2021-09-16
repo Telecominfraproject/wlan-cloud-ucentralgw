@@ -85,6 +85,7 @@ namespace OpenWifi {
 					break;
 				}
 			}
+			std::cout << "Serial:" << SerialNumber_ << " UUID:" << UUID_ << std::endl;
 			return new TelemetryRequestHandler( UUID_, SerialNumber_, Reactor_, Logger_);
 		}
 

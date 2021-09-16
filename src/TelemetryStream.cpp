@@ -141,8 +141,8 @@ namespace OpenWifi {
 			Poco::Net::HTTPServerRequest &Request, Poco::Net::HTTPServerResponse & Response,
 			Poco::Net::SocketReactor& Reactor, Poco::Logger &Logger):
 			UUID_(UUID), SerialNumber_(SerialNumber), Reactor_(Reactor), Logger_(Logger) {
-		std::cout << __LINE__ << std::endl;
 
+		std::cout << __LINE__ << std::endl;
 		try {
 			std::cout << __LINE__ << std::endl;
 			WS_ = std::make_unique<Poco::Net::WebSocket>(Request, Response);
