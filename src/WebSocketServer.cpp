@@ -85,8 +85,6 @@ namespace OpenWifi {
 		std::lock_guard Guard(Mutex_);
 		try {
 
-			WS_ = std::make_unique<Poco::Net::WebSocket>(Socket_);
-
 			auto SS = dynamic_cast<Poco::Net::SecureStreamSocketImpl *>(Socket_.impl());
 
 			SS->completeHandshake();
@@ -132,6 +130,7 @@ namespace OpenWifi {
 								  Session.canKeepAlive());
 			WS_ = std::make_unique<Poco::Net::WebSocket>(Request, Response);
 */
+			WS_ = std::make_unique<Poco::Net::WebSocket>(Socket_);
 			WS_->setMaxPayloadSize(BufSize);
 
 			auto TS = Poco::Timespan(240,0);
