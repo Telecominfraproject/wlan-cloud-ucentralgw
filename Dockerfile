@@ -48,7 +48,7 @@ RUN addgroup -S "$UCENTRALGW_USER" && \
 RUN mkdir /ucentral
 RUN mkdir -p "$UCENTRALGW_ROOT" "$UCENTRALGW_CONFIG" && \
     chown "$UCENTRALGW_USER": "$UCENTRALGW_ROOT" "$UCENTRALGW_CONFIG"
-RUN apk add --update --no-cache librdkafka mariadb-connector-c libpq unixodbc su-exec gettext
+RUN apk add --update --no-cache librdkafka mariadb-connector-c libpq unixodbc su-exec gettext ca-certificates
 
 COPY --from=builder /ucentralgw/cmake-build/ucentralgw /ucentral/ucentralgw
 COPY --from=builder /cppkafka/cmake-build/src/lib/* /lib/
