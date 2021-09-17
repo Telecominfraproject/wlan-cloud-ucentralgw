@@ -20,9 +20,6 @@
 
 #include "Poco/Net/X509Certificate.h"
 
-using SubMutex = std::recursive_mutex;
-using SubMutexGuard = std::lock_guard<SubMutex>;
-
 namespace OpenWifi {
 class PropertiesFileServerEntry {
   public:
@@ -87,11 +84,11 @@ class SubSystemServer : public Poco::Util::Application::Subsystem {
 	virtual void Stop() = 0;
 
   protected:
-	SubMutex Mutex_{};
-	Poco::Logger &Logger_;
-	std::string Name_;
+	std::recursive_mutex Mutex_{};
+	Poco::Logger 		&Logger_;
+	std::string 		Name_;
 	std::vector<PropertiesFileServerEntry> ConfigServersList_;
-	std::string SubSystemConfigPrefix_;
+	std::string 		SubSystemConfigPrefix_;
 };
 }
 #endif //UCENTRAL_SUBSYSTEMSERVER_H

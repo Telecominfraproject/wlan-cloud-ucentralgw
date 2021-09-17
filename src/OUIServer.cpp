@@ -102,7 +102,7 @@ namespace OpenWifi {
 
 		OUIMap TmpOUIs;
 		if(GetFile(LatestOUIFileName) && ProcessFile(LatestOUIFileName, TmpOUIs)) {
-			SubMutexGuard G(Mutex_);
+			std::lock_guard G(Mutex_);
 			OUIs_ = std::move(TmpOUIs);
 			LastUpdate_ = time(nullptr);
 			Poco::File F1(CurrentOUIFileName);
@@ -114,7 +114,7 @@ namespace OpenWifi {
 		} else if(OUIs_.empty()) {
 			if(ProcessFile(CurrentOUIFileName, TmpOUIs)) {
 				LastUpdate_ = time(nullptr);
-				SubMutexGuard G(Mutex_);
+				std::lock_guard G(Mutex_);
 				OUIs_ = std::move(TmpOUIs);
 			}
 		}
@@ -122,7 +122,7 @@ namespace OpenWifi {
 	}
 
 	std::string OUIServer::GetManufacturer(const std::string &MAC) {
-		SubMutexGuard Guard(Mutex_);
+		std::lock_guard Guard(Mutex_);
 		auto Manufacturer = OUIs_.find(Utils::SerialNumberToOUI(MAC));
 		if(Manufacturer != OUIs_.end())
 			return Manufacturer->second;

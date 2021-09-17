@@ -26,7 +26,7 @@ namespace OpenWifi {
 
 			if(LastRun_!=Now.day()) {
 				if(Now.hour()>=RunAtHour_ && Now.minute()>=RunAtMin_) {
-					SubMutexGuard G(Mutex_);
+					std::lock_guard G(Mutex_);
 					for(const auto &i:DBs_) {
 						if (!Poco::icompare(i.DBName, "healthchecks")) {
 							std::cout << "Cleaning: " << i.DBName << std::endl;

@@ -88,7 +88,7 @@ namespace OpenWifi {
 
     //  if you pass in an empty UUID, it will just clean the list and not add it.
     bool FileUploader::AddUUID( const std::string & UUID) {
-		SubMutexGuard		Guard(Mutex_);
+		std::lock_guard		Guard(Mutex_);
 
         uint64_t Now = time(nullptr) ;
 
@@ -107,13 +107,13 @@ namespace OpenWifi {
     }
 
     bool FileUploader::ValidRequest(const std::string &UUID) {
-		SubMutexGuard		Guard(Mutex_);
+		std::lock_guard		Guard(Mutex_);
 
         return OutStandingUploads_.find(UUID)!=OutStandingUploads_.end();
     }
 
     void FileUploader::RemoveRequest(const std::string &UUID) {
-		SubMutexGuard		Guard(Mutex_);
+		std::lock_guard		Guard(Mutex_);
         OutStandingUploads_.erase(UUID);
     }
 

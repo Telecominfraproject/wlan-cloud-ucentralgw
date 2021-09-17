@@ -61,15 +61,6 @@ namespace OpenWifi {
 								 const Poco::JSON::Object &Params,
 								 const std::string &UUID,
 								 uint64_t & Id);
-
-/*			bool SendCommand( 	const std::string & SerialNumber,
-								 const std::string & Method,
-								 const Poco::JSON::Object &Params,
-								 const std::string & UUID);
-
-			bool SendCommand(GWObjects::CommandDetails & Command);
-*/
-
 			void Janitor();
 			void run() override;
 
@@ -89,7 +80,11 @@ namespace OpenWifi {
 			Poco::Thread    			ManagerThread;
 			uint64_t 					Id_=1;
 			std::map<CommandTagIndex,CommandTag>	OutStandingRequests_;
-			CommandManager() noexcept;
+
+			CommandManager() noexcept:
+				SubSystemServer("CommandManager", "CMD-MGR", "command.manager")
+				{
+				}
 	};
 
 	inline CommandManager * CommandManager() { return CommandManager::instance(); }

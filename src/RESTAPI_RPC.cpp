@@ -17,9 +17,9 @@
 
 namespace OpenWifi::RESTAPI_RPC {
 	void SetCommandAsPending(GWObjects::CommandDetails &Cmd,
-											 Poco::Net::HTTPServerRequest &Request,
-											 Poco::Net::HTTPServerResponse &Response, RESTAPIHandler *Handler,
-											 Poco::Logger &Logger) {
+							 Poco::Net::HTTPServerRequest &Request,
+							 Poco::Net::HTTPServerResponse &Response, RESTAPIHandler *Handler,
+							 Poco::Logger &Logger) {
 		if (Storage()->AddCommand(Cmd.SerialNumber, Cmd, Storage::COMMAND_PENDING)) {
 			Poco::JSON::Object RetObj;
 			Cmd.to_json(RetObj);

@@ -25,7 +25,7 @@ namespace OpenWifi {
 	}
 
 	void AuthClient::RemovedCachedToken(const std::string &Token) {
-		SubMutexGuard G(Mutex_);
+		std::lock_guard	G(Mutex_);
 		UserCache_.erase(Token);
 	}
 
@@ -34,7 +34,7 @@ namespace OpenWifi {
 	}
 
 	bool AuthClient::IsAuthorized(Poco::Net::HTTPServerRequest & Request, std::string &SessionToken, SecurityObjects::UserInfoAndPolicy & UInfo ) {
-		SubMutexGuard G(Mutex_);
+		std::lock_guard G(Mutex_);
 
 		auto User = UserCache_.find(SessionToken);
 		if(User != UserCache_.end() && !IsTokenExpired(User->second.webtoken)) {
@@ -63,7 +63,7 @@ namespace OpenWifi {
 	}
 
 	bool AuthClient::IsTokenAuthorized(const std::string &SessionToken, SecurityObjects::UserInfoAndPolicy & UInfo) {
-		SubMutexGuard G(Mutex_);
+		std::lock_guard G(Mutex_);
 
 		auto User = UserCache_.find(SessionToken);
 		if(User != UserCache_.end() && !IsTokenExpired(User->second.webtoken)) {

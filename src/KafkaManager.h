@@ -52,8 +52,8 @@ namespace OpenWifi {
 
 	  private:
 		static KafkaManager 			*instance_;
-		SubMutex 						ProducerMutex_;
-		SubMutex 						ConsumerMutex_;
+		std::mutex 						ProducerMutex_;
+		std::mutex						ConsumerMutex_;
 		bool 							KafkaEnabled_ = false;
 		std::atomic_bool 				ProducerRunning_ = false;
 		std::atomic_bool 				ConsumerRunning_ = false;

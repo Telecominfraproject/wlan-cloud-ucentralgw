@@ -163,7 +163,7 @@ namespace OpenWifi {
 		std::string                 UIURI_;
 		std::string 				Version_{std::string(APP_VERSION) + "("+ BUILD_NUMBER + ")"};
 		BusEventManager				BusEventManager_;
-		SubMutex 					InfraMutex_;
+		std::mutex 					InfraMutex_;
 
 		std::string DAEMON_PROPERTIES_FILENAME;
 		std::string DAEMON_ROOT_ENV_VAR;

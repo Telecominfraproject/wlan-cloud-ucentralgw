@@ -68,7 +68,7 @@ namespace OpenWifi {
 			std::this_thread::sleep_for(std::chrono::milliseconds(200));
 			try
 			{
-				SubMutexGuard G(ProducerMutex_);
+				std::lock_guard G(ProducerMutex_);
 				auto Num=0;
 				while (!Queue_.empty()) {
 					const auto M = Queue_.front();
@@ -148,7 +148,7 @@ namespace OpenWifi {
                             Consumer.async_commit(Msg);
                         continue;
                     }
-                    SubMutexGuard G(ConsumerMutex_);
+                    std::lock_guard G(ConsumerMutex_);
                     auto It = Notifiers_.find(Msg.get_topic());
                     if (It != Notifiers_.end()) {
                         Types::TopicNotifyFunctionList &FL = It->second;
@@ -176,7 +176,7 @@ namespace OpenWifi {
 
 	void KafkaManager::PostMessage(const std::string &topic, const std::string & key, const std::string &PayLoad, bool WrapMessage ) {
 		if(KafkaEnabled_) {
-			SubMutexGuard G(Mutex_);
+			std::lock_guard G(Mutex_);
 			KMessage M{
 				.Topic = topic,
 				.Key = key,
@@ -187,7 +187,7 @@ namespace OpenWifi {
 
 	int KafkaManager::RegisterTopicWatcher(const std::string &Topic, Types::TopicNotifyFunction &F) {
 		if(KafkaEnabled_) {
-			SubMutexGuard G(Mutex_);
+			std::lock_guard G(Mutex_);
 			auto It = Notifiers_.find(Topic);
 			if(It == Notifiers_.end()) {
 				Types::TopicNotifyFunctionList L;
@@ -204,7 +204,7 @@ namespace OpenWifi {
 
 	void KafkaManager::UnregisterTopicWatcher(const std::string &Topic, int Id) {
 		if(KafkaEnabled_) {
-			SubMutexGuard G(Mutex_);
+			std::lock_guard G(Mutex_);
 			auto It = Notifiers_.find(Topic);
 			if(It != Notifiers_.end()) {
 				Types::TopicNotifyFunctionList & L = It->second;

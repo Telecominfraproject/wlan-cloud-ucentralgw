@@ -22,11 +22,6 @@ namespace OpenWifi {
 
     class CommandManager * CommandManager::instance_ = nullptr;
 
-	CommandManager::CommandManager() noexcept:
-		SubSystemServer("CommandManager", "CMD_MGR", "command.manager")
-    {
-    }
-
 	void CommandManager::run() {
 		Running_ = true;
         while(Running_)
@@ -34,8 +29,8 @@ namespace OpenWifi {
             Poco::Thread::trySleep(30000);
 			if(!Running_)
 				break;
-            std::vector<GWObjects::CommandDetails> Commands;
 
+            std::vector<GWObjects::CommandDetails> Commands;
             if(Storage()->GetReadyToExecuteCommands(1,200,Commands))
             {
                 for(auto & Cmd: Commands)
@@ -84,13 +79,14 @@ namespace OpenWifi {
 	void CommandManager::Janitor() {
 		std::lock_guard G(Mutex_);
 		uint64_t Now = time(nullptr);
-
+		Logger_.information("Janitor starting.");
 		for(auto i=OutStandingRequests_.begin();i!=OutStandingRequests_.end();) {
 			if((Now-i->second.Submitted)>120)
 				i = OutStandingRequests_.erase(i);
 			else
 				++i;
 		}
+		Logger_.information("Janitor finished.");
 	}
 
 	bool CommandManager::GetCommand(uint64_t Id, const std::string &SerialNumber, CommandTag &T) {

@@ -50,7 +50,6 @@ namespace OpenWifi {
 		explicit FileUploader() noexcept:
 			SubSystemServer("FileUploader", "FILE-UPLOAD", "openwifi.fileuploader")
 		{
-			SubMutexGuard		Guard(Mutex_);
 		}
     };
 

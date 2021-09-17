@@ -62,7 +62,7 @@ namespace OpenWifi {
 	}
 
 	void MicroService::BusMessageReceived(const std::string &Key, const std::string & Message) {
-		SubMutexGuard G(InfraMutex_);
+		std::lock_guard G(InfraMutex_);
 		try {
 			Poco::JSON::Parser P;
 			auto Object = P.parse(Message).extract<Poco::JSON::Object::Ptr>();
@@ -133,7 +133,7 @@ namespace OpenWifi {
 	}
 
 	MicroServiceMetaVec MicroService::GetServices(const std::string & Type) {
-		SubMutexGuard G(InfraMutex_);
+		std::lock_guard G(InfraMutex_);
 
 		auto T = Poco::toLower(Type);
 		MicroServiceMetaVec	Res;
@@ -145,7 +145,7 @@ namespace OpenWifi {
 	}
 
 	MicroServiceMetaVec MicroService::GetServices() {
-		SubMutexGuard G(InfraMutex_);
+		std::lock_guard G(InfraMutex_);
 
 		MicroServiceMetaVec	Res;
 		for(const auto &[Id,ServiceRec]:Services_) {
