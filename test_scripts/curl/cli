@@ -248,6 +248,14 @@ getsubsystemnames() {
         -d "$payload"
 }
 
+reloadsubsystem() {
+	payload="{ \"command\" : \"reload\", \"subsystems\" : [ \"OUIServer\" , \"CommandManager\" ] }"
+		curl  ${FLAGS} -X POST "https://${OWGW}/api/v1/system" \
+		-H  "accept: application/json" \
+		-H "Authorization: Bearer ${token}" \
+		-d "$payload"
+}
+
 getdevicestatus() {
   curl  ${FLAGS} -X GET "https://${OWGW}/api/v1/device/$1/status" \
         -H  "accept: application/json" \
@@ -686,6 +694,7 @@ case "$1" in
   "getloglevels") login; getloglevels; logout ;;
   "getloglevelnames") login; getloglevelnames; logout ;;
   "getsubsystemnames") login; getsubsystemnames; logout ;;
+  "reloadsubsystem") login; reloadsubsystem; logout ;;
   "ouilookup") login; ouilookup "$2"; logout;;
   "telemetry") login; telemetry "$2"; logout;;
   "dashboard") login; dashboard ; logout;;

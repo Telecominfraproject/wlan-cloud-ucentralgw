@@ -82,12 +82,13 @@ namespace OpenWifi {
 					std::vector<std::string> Names;
 					for (const auto &i : *SubSystems)
 						Names.push_back(i.toString());
-						std::thread	ReloadThread([Names](){
-							std::this_thread::sleep_for(10000ms);
-							for(const auto &i:Names) {
-								Daemon()->Reload(i);
-							}
-						 });
+					std::thread	ReloadThread([Names](){
+						std::this_thread::sleep_for(10000ms);
+						for(const auto &i:Names) {
+							std::cout << "Name: " << i << std::endl;
+							Daemon()->Reload(i);
+						}
+					 });
 					ReloadThread.detach();
 				}
 				OK();
