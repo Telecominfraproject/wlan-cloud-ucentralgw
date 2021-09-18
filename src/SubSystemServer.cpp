@@ -86,7 +86,6 @@ void SubSystemServer::uninitialize() {
 }
 
 void SubSystemServer::reinitialize(Poco::Util::Application &self) {
-	std::cout << "Reinitialize: " + Name_ << std::endl;
 	Logger_.information("Reloading of this subsystem is not supported.");
 }
 
