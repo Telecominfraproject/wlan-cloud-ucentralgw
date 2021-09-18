@@ -39,6 +39,7 @@ namespace OpenWifi {
 	}
 
 	void OUIServer::reinitialize(Poco::Util::Application &self) {
+		std::cout << "Reinitializing OUIserver" << std::endl;
 		Stop();
 		Start();
 	}
