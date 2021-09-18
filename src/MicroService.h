@@ -113,8 +113,8 @@ namespace OpenWifi {
 		[[nodiscard]] bool Debug() const { return DebugMode_; }
 		[[nodiscard]] uint64_t ID() const { return ID_; }
 		[[nodiscard]] Types::StringVec GetSubSystems() const;
-		[[nodiscard]] Types::StringPairVec GetLogLevels() const;
-		[[nodiscard]] const Types::StringVec & GetLogLevelNames() const;
+		[[nodiscard]] Types::StringPairVec GetLogLevels() ;
+		[[nodiscard]] static const Types::StringVec & GetLogLevelNames();
 		[[nodiscard]] std::string ConfigGetString(const std::string &Key,const std::string & Default);
 		[[nodiscard]] std::string ConfigGetString(const std::string &Key);
 		[[nodiscard]] std::string ConfigPath(const std::string &Key,const std::string & Default);
