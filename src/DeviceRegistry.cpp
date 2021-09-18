@@ -38,11 +38,11 @@ namespace OpenWifi {
 		std::lock_guard		Guard(Mutex_);
 
         auto Device = Devices_.find(SerialNumber);
-        if(Device != Devices_.end()) {
-            Statistics = Device->second->LastStats;
-            return true;
-        }
-        return false;
+        if(Device == Devices_.end())
+			return false;
+
+		Statistics = Device->second->LastStats;
+		return true;
     }
 
     void DeviceRegistry::SetStatistics(const std::string &SerialNumber, const std::string &Statistics) {
@@ -59,21 +59,17 @@ namespace OpenWifi {
 
     bool DeviceRegistry::GetState(const std::string &SerialNumber, GWObjects::ConnectionState & State) {
 		std::lock_guard		Guard(Mutex_);
-
         auto Device = Devices_.find(SerialNumber);
-        if(Device != Devices_.end())
-        {
-            State = Device->second->Conn_;
-            return true;
-        }
-        return false;
+        if(Device == Devices_.end())
+			return false;
+
+		State = Device->second->Conn_;
+		return true;
     }
 
     void DeviceRegistry::SetState(const std::string & SerialNumber, GWObjects::ConnectionState & State) {
 		std::lock_guard		Guard(Mutex_);
-
         auto Device = Devices_.find(SerialNumber);
-
         if(Device != Devices_.end())
         {
 			Device->second->Conn_.LastContact = time(nullptr);
@@ -157,16 +153,13 @@ namespace OpenWifi {
             Device->second->Conn_.Connected = false;
 			Device->second->Conn_.VerifiedCertificate = GWObjects::NO_CERTIFICATE;
         }
-
     }
 
 	bool DeviceRegistry::SendFrame(const std::string & SerialNumber, const std::string & Payload) {
 		std::lock_guard		Guard(Mutex_);
 		auto Device = Devices_.find(SerialNumber);
 		if(Device!=Devices_.end() && Device->second->WSConn_!= nullptr) {
-			auto *WSConn =
-				static_cast<WSConnection *>(Device->second->WSConn_);
-			return WSConn->Send(Payload);
+			return Device->second->WSConn_->Send(Payload);
 		}
 		return false;
 	}

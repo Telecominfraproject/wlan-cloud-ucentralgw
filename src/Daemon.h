@@ -56,7 +56,7 @@ namespace OpenWifi {
 			static Daemon 				*instance_;
 			bool                        AutoProvisioning_ = false;
 			Types::StringMapStringSet   DeviceTypeIdentifications_;
-			DeviceDashboard				DB_{};
+			DeviceDashboard				DB_;
 
     };
 

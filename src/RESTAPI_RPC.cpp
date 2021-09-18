@@ -16,26 +16,13 @@
 #include "uCentralProtocol.h"
 
 namespace OpenWifi::RESTAPI_RPC {
-	void SetCommandAsPending(GWObjects::CommandDetails &Cmd,
+	void SetCommandStatus(GWObjects::CommandDetails &Cmd,
 							 Poco::Net::HTTPServerRequest &Request,
-							 Poco::Net::HTTPServerResponse &Response, RESTAPIHandler *Handler,
+							 Poco::Net::HTTPServerResponse &Response,
+					  		 RESTAPIHandler *Handler,
+					  		 OpenWifi::Storage::CommandExecutionType Status,
 							 Poco::Logger &Logger) {
-		if (Storage()->AddCommand(Cmd.SerialNumber, Cmd, Storage::COMMAND_PENDING)) {
-			Poco::JSON::Object RetObj;
-			Cmd.to_json(RetObj);
-			Handler->ReturnObject(RetObj);
-			return;
-		} else {
-			Handler->ReturnStatus(Poco::Net::HTTPResponse::HTTP_INTERNAL_SERVER_ERROR);
-			return;
-		}
-	}
-
-	void SetCommandAsTimedOut(GWObjects::CommandDetails &Cmd,
-							 Poco::Net::HTTPServerRequest &Request,
-							 Poco::Net::HTTPServerResponse &Response, RESTAPIHandler *Handler,
-							 Poco::Logger &Logger) {
-		if (Storage()->AddCommand(Cmd.SerialNumber, Cmd, Storage::COMMAND_TIMEDOUT)) {
+		if (Storage()->AddCommand(Cmd.SerialNumber, Cmd, Status)) {
 			Poco::JSON::Object RetObj;
 			Cmd.to_json(RetObj);
 			Handler->ReturnObject(RetObj);
@@ -58,7 +45,7 @@ namespace OpenWifi::RESTAPI_RPC {
 		// 	if the command should be executed in the future, or if the device is not connected, then we should just add the command to
 		//	the DB and let it figure out when to deliver the command.
 		if(Cmd.RunAt || !DeviceRegistry()->Connected(Cmd.SerialNumber)) {
-			SetCommandAsPending(Cmd, Request, Response, Handler, Logger);
+			SetCommandStatus(Cmd, Request, Response, Handler, Storage::COMMAND_PENDING, Logger);
 			return;
 		}
 
@@ -105,10 +92,14 @@ namespace OpenWifi::RESTAPI_RPC {
 							}
 							return;
 						} else {
+							SetCommandStatus(Cmd, Request, Response, Handler, Storage::COMMAND_FAILED, Logger);
 							Logger.information(Poco::format("Invalid response for command '%s'. Missing status.", Cmd.UUID));
+							return;
 						}
 					} else {
+						SetCommandStatus(Cmd, Request, Response, Handler, Storage::COMMAND_FAILED, Logger);
 						Logger.information(Poco::format("Invalid response for command '%s'. Missing result.", Cmd.UUID));
+						return;
 					}
 				} else {
 					Poco::Thread::trySleep(100);
@@ -116,11 +107,11 @@ namespace OpenWifi::RESTAPI_RPC {
 				}
 			}
 			if(WaitTimeInMs<0)
-				SetCommandAsTimedOut(Cmd, Request, Response, Handler, Logger);
+				SetCommandStatus(Cmd, Request, Response, Handler, Storage::COMMAND_TIMEDOUT, Logger);
 			else
-				SetCommandAsPending(Cmd, Request, Response, Handler, Logger);
+				SetCommandStatus(Cmd, Request, Response, Handler, Storage::COMMAND_PENDING, Logger);
 		} else {
-			SetCommandAsPending(Cmd, Request, Response, Handler, Logger);
+			SetCommandStatus(Cmd, Request, Response, Handler, Storage::COMMAND_PENDING, Logger);
 		}
 	}
 

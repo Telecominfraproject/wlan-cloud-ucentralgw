@@ -36,7 +36,8 @@ namespace OpenWifi {
 			COMMAND_PENDING,
 			COMMAND_EXECUTED,
 			COMMAND_COMPLETED,
-			COMMAND_TIMEDOUT
+			COMMAND_TIMEDOUT,
+			COMMAND_FAILED
 		};
 
         static Storage *instance() {

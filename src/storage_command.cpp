@@ -67,9 +67,13 @@ namespace OpenWifi {
 				Command.Status = "pending";
 			} else if(Type == COMMAND_COMPLETED) {
 				Command.Status = "completed";
+				Command.Executed = Now;
 			} else if (Type == COMMAND_TIMEDOUT) {
 				Command.Executed = Now;
 				Command.Status = "timedout";
+			} else if (Type == COMMAND_FAILED) {
+				Command.Executed = Now;
+				Command.Status = "failed";
 			} else {
 				Command.Executed = Now;
 				Command.Status = "executing";

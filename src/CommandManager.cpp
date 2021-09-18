@@ -109,24 +109,26 @@ namespace OpenWifi {
 							  			const std::string &UUID,
 									 	uint64_t & Id) {
 
-		std::lock_guard G(Mutex_);
-
-		Id = ++Id_;
-		Poco::JSON::Object	CompleteRPC;
-		CompleteRPC.set(uCentralProtocol::JSONRPC, uCentralProtocol::JSONRPC_VERSION);
-		CompleteRPC.set(uCentralProtocol::ID, Id);
-		CompleteRPC.set(uCentralProtocol::METHOD, Method );
-		CompleteRPC.set(uCentralProtocol::PARAMS, Params);
 		std::stringstream ToSend;
-		Poco::JSON::Stringifier::stringify(CompleteRPC, ToSend);
-		Logger_.information(Poco::format("(%s): Sending command '%s', ID: %lu", SerialNumber, Method, Id));
-		CommandTagIndex Idx{.Id=Id, .SerialNumber=SerialNumber};
-		CommandTag		Tag;
-		Tag.UUID = UUID;
-		Tag.Submitted=std::time(nullptr);
-		Tag.Completed=0;
-		Tag.Result = Poco::makeShared<Poco::JSON::Object>();
-		OutStandingRequests_[Idx] = Tag;
+		{
+			std::lock_guard G(Mutex_);
+			Id = ++Id_;
+			Poco::JSON::Object CompleteRPC;
+			CompleteRPC.set(uCentralProtocol::JSONRPC, uCentralProtocol::JSONRPC_VERSION);
+			CompleteRPC.set(uCentralProtocol::ID, Id);
+			CompleteRPC.set(uCentralProtocol::METHOD, Method);
+			CompleteRPC.set(uCentralProtocol::PARAMS, Params);
+			Poco::JSON::Stringifier::stringify(CompleteRPC, ToSend);
+			Logger_.information(
+				Poco::format("(%s): Sending command '%s', ID: %lu", SerialNumber, Method, Id));
+			CommandTagIndex Idx{.Id = Id, .SerialNumber = SerialNumber};
+			CommandTag Tag;
+			Tag.UUID = UUID;
+			Tag.Submitted = std::time(nullptr);
+			Tag.Completed = 0;
+			Tag.Result = Poco::makeShared<Poco::JSON::Object>();
+			OutStandingRequests_[Idx] = Tag;
+		}
 		return DeviceRegistry()->SendFrame(SerialNumber, ToSend.str());
 	}
 
@@ -138,17 +140,19 @@ namespace OpenWifi {
 		}
 
 		uint64_t ID = Obj->get(uCentralProtocol::ID);
+		if(ID<2)
+			return;
 		std::lock_guard G(Mutex_);
-		auto Idx = CommandTagIndex{.Id=ID,.SerialNumber=SerialNumber};
+		auto Idx = CommandTagIndex{.Id = ID, .SerialNumber = SerialNumber};
 		auto RPC = OutStandingRequests_.find(Idx);
-		if(RPC != OutStandingRequests_.end()) {
-			RPC->second.Completed=std::time(nullptr);
-			RPC->second.Result=Obj;
-			Logger_.information(Poco::format("(%s): Received RPC answer %lu", SerialNumber, ID));
-			Storage()->CommandCompleted(RPC->second.UUID, Obj, true);
-		} else {
+		if (RPC == OutStandingRequests_.end()) {
 			Logger_.warning(Poco::format("(%s): Outdated RPC %lu", SerialNumber, ID));
+			return;
 		}
+		RPC->second.Completed = std::time(nullptr);
+		RPC->second.Result = Obj;
+		Logger_.information(Poco::format("(%s): Received RPC answer %lu", SerialNumber, ID));
+		Storage()->CommandCompleted(RPC->second.UUID, Obj, true);
 	}
 
 }  // namespace

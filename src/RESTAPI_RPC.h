@@ -17,6 +17,7 @@
 
 #include "RESTAPI_GWobjects.h"
 #include "RESTAPI_handler.h"
+#include "StorageService.h"
 
 namespace OpenWifi::RESTAPI_RPC {
 
@@ -29,15 +30,11 @@ namespace OpenWifi::RESTAPI_RPC {
 							RESTAPIHandler * Handler,
 							Poco::Logger &Logger);
 
-	void SetCommandAsPending(	GWObjects::CommandDetails &Cmd,
-								Poco::Net::HTTPServerRequest &Request,
-								Poco::Net::HTTPServerResponse &Response, RESTAPIHandler * handler,
-								Poco::Logger &Logger);
-
-	void SetCommandAsTimedOut(	GWObjects::CommandDetails &Cmd,
-								 Poco::Net::HTTPServerRequest &Request,
-								 Poco::Net::HTTPServerResponse &Response, RESTAPIHandler * handler,
-								 Poco::Logger &Logger);
+	void SetCommandStatus(	GWObjects::CommandDetails &Cmd,
+							  Poco::Net::HTTPServerRequest &Request,
+							  Poco::Net::HTTPServerResponse &Response, RESTAPIHandler * handler,
+							  OpenWifi::Storage::CommandExecutionType Status,
+							  Poco::Logger &Logger);
 
 
 }

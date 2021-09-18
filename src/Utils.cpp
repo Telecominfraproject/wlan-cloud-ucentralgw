@@ -151,7 +151,7 @@ namespace OpenWifi::Utils {
 		if(input.length() % 4)
 			throw std::runtime_error("Invalid base64 length!");
 
-		std::size_t padding{};
+		std::size_t padding=0;
 
 		if(input.length())
 		{
@@ -162,7 +162,7 @@ namespace OpenWifi::Utils {
 		std::vector<byte> decoded;
 		decoded.reserve(((input.length() / 4) * 3) - padding);
 
-		std::uint32_t temp{};
+		std::uint32_t temp=0;
 		auto it = input.begin();
 
 		while(it < input.end())

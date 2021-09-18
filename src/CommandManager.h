@@ -78,7 +78,7 @@ namespace OpenWifi {
 			static CommandManager 		* instance_;
 			std::atomic_bool 			Running_ = false;
 			Poco::Thread    			ManagerThread;
-			uint64_t 					Id_=1;
+			uint64_t 					Id_=2;	//	do not start @1. We ignore ID=1 & 0 is illegal..
 			std::map<CommandTagIndex,CommandTag>	OutStandingRequests_;
 
 			CommandManager() noexcept:

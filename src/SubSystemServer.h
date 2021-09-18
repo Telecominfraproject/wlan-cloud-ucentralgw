@@ -84,7 +84,7 @@ class SubSystemServer : public Poco::Util::Application::Subsystem {
 	virtual void Stop() = 0;
 
   protected:
-	std::recursive_mutex Mutex_{};
+	std::recursive_mutex Mutex_;
 	Poco::Logger 		&Logger_;
 	std::string 		Name_;
 	std::vector<PropertiesFileServerEntry> ConfigServersList_;
