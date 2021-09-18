@@ -82,6 +82,11 @@ namespace OpenWifi {
         return 0;
     }
 
+	void FileUploader::reinitialize(Poco::Util::Application &self) {
+		Stop();
+		Start();
+	}
+
     const std::string & FileUploader::FullName() {
         return FullName_;
     }
@@ -250,6 +255,7 @@ namespace OpenWifi {
         Logger_.notice("Stopping ");
         for( const auto & svr : Servers_ )
             svr->stop();
+		Servers_.clear();
     }
 
 }  //  Namespace

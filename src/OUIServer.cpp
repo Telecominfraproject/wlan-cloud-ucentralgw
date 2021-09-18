@@ -38,6 +38,11 @@ namespace OpenWifi {
 		Updater.detach();
 	}
 
+	void OUIServer::reinitialize(Poco::Util::Application &self) {
+		Stop();
+		Start();
+	}
+
 	bool OUIServer::GetFile(const std::string &FileName) {
 		try {
 			std::unique_ptr<std::istream> pStr(

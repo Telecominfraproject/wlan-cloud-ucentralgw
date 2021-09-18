@@ -74,6 +74,8 @@ namespace OpenWifi::RESTAPI::Protocol {
 	static const char * HOSTNAME = "hostname";
 	static const char * PROCESSORS = "processors";
 	static const char * REASON = "reason";
+	static const char * RELOAD = "reload";
+	static const char * SUBSYSTEMS = "subsystems";
 	static const char * FILEUUID = "uuid";
 	static const char * USERID = "userId";
 	static const char * PASSWORD = "password";

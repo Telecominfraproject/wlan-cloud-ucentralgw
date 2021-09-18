@@ -23,6 +23,7 @@ namespace OpenWifi {
     public:
 		int Start() override;
 		void Stop() override;
+		void reinitialize(Poco::Util::Application &self) override;
 		const std::string & FullName();
 		bool AddUUID( const std::string & UUID);
 		bool ValidRequest(const std::string & UUID);

@@ -32,6 +32,7 @@ void SubSystemServer::initialize(Poco::Util::Application &self) {
 	auto i = 0;
 	bool good = true;
 
+	ConfigServersList_.clear();
 	while (good) {
 		std::string root{SubSystemConfigPrefix_ + ".host." + std::to_string(i) + "."};
 
@@ -81,10 +82,11 @@ void SubSystemServer::initialize(Poco::Util::Application &self) {
 	}
 }
 
-void SubSystemServer::uninitialize() {}
+void SubSystemServer::uninitialize() {
+}
 
 void SubSystemServer::reinitialize(Poco::Util::Application &self) {
-	// add your own reinitialization code here
+	Logger_.information("Reloading of this subsystem is not supported.");
 }
 
 void SubSystemServer::defineOptions(Poco::Util::OptionSet &options) {}

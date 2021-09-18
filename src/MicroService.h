@@ -142,6 +142,7 @@ namespace OpenWifi {
 		static inline uint64_t GetPID() { return Poco::Process::id(); };
 		[[nodiscard]] inline const std::string GetPublicAPIEndPoint() { return MyPublicEndPoint_ + "/api/v1"; };
 		[[nodiscard]] inline const std::string & GetUIURI() const { return UIURI_;};
+		void Reload(const std::string &Name);
 
 	  private:
 		bool                        HelpRequested_ = false;

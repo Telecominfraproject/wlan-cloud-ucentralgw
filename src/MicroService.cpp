@@ -341,6 +341,15 @@ namespace OpenWifi {
 		return false;
 	}
 
+	void MicroService::Reload(const std::string &Sub) {
+		for (auto i : SubSystems_) {
+			if (Sub == Poco::toLower(i->Name())) {
+				i->reinitialize(Poco::Util::Application::instance());
+				return;
+			}
+		}
+	}
+
 	Types::StringVec MicroService::GetSubSystems() const {
 		Types::StringVec Result;
 		for(auto i:SubSystems_)

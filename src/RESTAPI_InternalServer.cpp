@@ -52,7 +52,13 @@ namespace OpenWifi {
         Logger_.information("Stopping ");
         for( const auto & svr : RESTServers_ )
             svr->stop();
+		RESTServers_.clear();
     }
+
+	void RESTAPI_InternalServer::reinitialize(Poco::Util::Application &self) {
+		Stop();
+		Start();
+	}
 
     Poco::Net::HTTPRequestHandler *InternalRequestHandlerFactory::createRequestHandler(const Poco::Net::HTTPServerRequest & Request) {
         Poco::URI uri(Request.getURI());

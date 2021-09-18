@@ -57,10 +57,17 @@ namespace OpenWifi {
         return 0;
     }
 
+	void RESTAPI_server::reinitialize(Poco::Util::Application &self) {
+		Logger_.information("Reinitializing.");
+		Stop();
+		Start();
+	}
+
 	void RESTAPI_server::Stop() {
 		Logger_.information("Stopping ");
 		for( const auto & svr : RESTServers_ )
 			svr->stop();
+		RESTServers_.clear();
 	}
 
 	Poco::Net::HTTPRequestHandler *RESTAPIServerRequestHandlerFactory::createRequestHandler(const Poco::Net::HTTPServerRequest & Request) {

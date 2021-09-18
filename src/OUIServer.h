@@ -23,6 +23,9 @@ namespace OpenWifi {
 
 		int Start() override;
 		void Stop() override;
+
+		void reinitialize(Poco::Util::Application &self) override;
+
 		void Update();
 		void UpdateImpl();
 		[[nodiscard]] std::string GetManufacturer(const std::string &MAC);

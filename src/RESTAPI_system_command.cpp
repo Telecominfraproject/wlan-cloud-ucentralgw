@@ -13,6 +13,10 @@
 #include "Daemon.h"
 #include "RESTAPI_protocol.h"
 #include "RESTAPI_errors.h"
+#include <thread>
+#include <chrono>
+
+using namespace std::chrono_literals;
 
 namespace OpenWifi {
 	void RESTAPI_system_command::DoPost() {
@@ -23,7 +27,7 @@ namespace OpenWifi {
 				if (Obj->has(RESTAPI::Protocol::PARAMETERS) &&
 					Obj->isArray(RESTAPI::Protocol::PARAMETERS)) {
 					auto ParametersBlock = Obj->getArray(RESTAPI::Protocol::PARAMETERS);
-					for (const auto &i:*ParametersBlock) {
+					for (const auto &i : *ParametersBlock) {
 						Poco::JSON::Parser pp;
 						auto InnerObj = pp.parse(i).extract<Poco::JSON::Object::Ptr>();
 						if (InnerObj->has(RESTAPI::Protocol::TAG) &&
@@ -31,7 +35,8 @@ namespace OpenWifi {
 							auto Name = GetS(RESTAPI::Protocol::TAG, InnerObj);
 							auto Value = GetS(RESTAPI::Protocol::VALUE, InnerObj);
 							Daemon()->SetSubsystemLogLevel(Name, Value);
-							Logger_.information(Poco::format("Setting log level for %s at %s", Name, Value));
+							Logger_.information(
+								Poco::format("Setting log level for %s at %s", Name, Value));
 						}
 					}
 					OK();
@@ -39,43 +44,60 @@ namespace OpenWifi {
 				}
 			} else if (Command == RESTAPI::Protocol::GETLOGLEVELS) {
 				auto CurrentLogLevels = Daemon()->GetLogLevels();
-				Poco::JSON::Object	Result;
-				Poco::JSON::Array	Array;
-				for(auto &[Name,Level]:CurrentLogLevels) {
-					Poco::JSON::Object	Pair;
-					Pair.set( RESTAPI::Protocol::TAG,Name);
-					Pair.set(RESTAPI::Protocol::VALUE,Level);
+				Poco::JSON::Object Result;
+				Poco::JSON::Array Array;
+				for (auto &[Name, Level] : CurrentLogLevels) {
+					Poco::JSON::Object Pair;
+					Pair.set(RESTAPI::Protocol::TAG, Name);
+					Pair.set(RESTAPI::Protocol::VALUE, Level);
 					Array.add(Pair);
 				}
-				Result.set(RESTAPI::Protocol::TAGLIST,Array);
+				Result.set(RESTAPI::Protocol::TAGLIST, Array);
 				ReturnObject(Result);
 				return;
 			} else if (Command == RESTAPI::Protocol::GETLOGLEVELNAMES) {
-				Poco::JSON::Object	Result;
-				Poco::JSON::Array	LevelNamesArray;
-				const Types::StringVec & LevelNames = Daemon()->GetLogLevelNames();
-				for(const auto &i:LevelNames)
+				Poco::JSON::Object Result;
+				Poco::JSON::Array LevelNamesArray;
+				const Types::StringVec &LevelNames = Daemon()->GetLogLevelNames();
+				for (const auto &i : LevelNames)
 					LevelNamesArray.add(i);
-				Result.set(RESTAPI::Protocol::LIST,LevelNamesArray);
+				Result.set(RESTAPI::Protocol::LIST, LevelNamesArray);
 				ReturnObject(Result);
 				return;
 			} else if (Command == RESTAPI::Protocol::GETSUBSYSTEMNAMES) {
-				Poco::JSON::Object	Result;
-				Poco::JSON::Array	LevelNamesArray;
-				const Types::StringVec & SubSystemNames = Daemon()->GetSubSystems();
-				for(const auto &i:SubSystemNames)
+				Poco::JSON::Object Result;
+				Poco::JSON::Array LevelNamesArray;
+				const Types::StringVec &SubSystemNames = Daemon()->GetSubSystems();
+				for (const auto &i : SubSystemNames)
 					LevelNamesArray.add(i);
-				Result.set(RESTAPI::Protocol::LIST,LevelNamesArray);
+				Result.set(RESTAPI::Protocol::LIST, LevelNamesArray);
 				ReturnObject(Result);
 				return;
 			} else if (Command == RESTAPI::Protocol::STATS) {
 
-			} else {
-				BadRequest("Unknown command.");
+			} else if (Command == RESTAPI::Protocol::RELOAD) {
+				if (Obj->has(RESTAPI::Protocol::SUBSYSTEMS) &&
+					Obj->isArray(RESTAPI::Protocol::SUBSYSTEMS)) {
+					auto SubSystems = Obj->getArray(RESTAPI::Protocol::SUBSYSTEMS);
+					std::vector<std::string> Names;
+					for (const auto &i : *SubSystems)
+						Names.push_back(i.toString());
+						std::thread	ReloadThread([Names](){
+							std::this_thread::sleep_for(10000ms);
+							for(const auto &i:Names) {
+								Daemon()->Reload(i);
+							}
+						 });
+					ReloadThread.detach();
+				}
+				OK();
+				return;
 			}
 		} else {
-			BadRequest("Missing command.");
+			BadRequest("Unknown command.");
+			return;
 		}
+		BadRequest("Missing command.");
 	}
 
 	void RESTAPI_system_command::DoGet() {

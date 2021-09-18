@@ -31,7 +31,7 @@ namespace OpenWifi {
             }
             return instance_;
         }
-
+        void reinitialize(Poco::Util::Application &self) override;
     private:
 		static RESTAPI_server *instance_;
         std::vector<std::unique_ptr<Poco::Net::HTTPServer>>   RESTServers_;
