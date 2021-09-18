@@ -93,14 +93,11 @@ namespace OpenWifi {
 		std::lock_guard G(Mutex_);
 		CommandTagIndex	TI{.Id=Id,.SerialNumber=SerialNumber};
 		auto Hint=OutStandingRequests_.find(TI);
-		if(Hint!=OutStandingRequests_.end()) {
-			if(Hint->second.Completed) {
-				T = Hint->second;
-				OutStandingRequests_.erase(Hint);
-				return true;
-			}
-		}
-		return false;
+		if(Hint==OutStandingRequests_.end() || Hint->second.Completed==0)
+			return false;
+		T = Hint->second;
+		OutStandingRequests_.erase(Hint);
+		return true;
 	}
 
 	bool CommandManager::SendCommand(	const std::string &SerialNumber,
@@ -110,25 +107,24 @@ namespace OpenWifi {
 									 	uint64_t & Id) {
 
 		std::stringstream ToSend;
-		{
-			std::lock_guard G(Mutex_);
-			Id = ++Id_;
-			Poco::JSON::Object CompleteRPC;
-			CompleteRPC.set(uCentralProtocol::JSONRPC, uCentralProtocol::JSONRPC_VERSION);
-			CompleteRPC.set(uCentralProtocol::ID, Id);
-			CompleteRPC.set(uCentralProtocol::METHOD, Method);
-			CompleteRPC.set(uCentralProtocol::PARAMS, Params);
-			Poco::JSON::Stringifier::stringify(CompleteRPC, ToSend);
-			Logger_.information(
-				Poco::format("(%s): Sending command '%s', ID: %lu", SerialNumber, Method, Id));
-			CommandTagIndex Idx{.Id = Id, .SerialNumber = SerialNumber};
-			CommandTag Tag;
-			Tag.UUID = UUID;
-			Tag.Submitted = std::time(nullptr);
-			Tag.Completed = 0;
-			Tag.Result = Poco::makeShared<Poco::JSON::Object>();
-			OutStandingRequests_[Idx] = Tag;
-		}
+		std::unique_lock G(Mutex_);
+		Id = ++Id_;
+		Poco::JSON::Object CompleteRPC;
+		CompleteRPC.set(uCentralProtocol::JSONRPC, uCentralProtocol::JSONRPC_VERSION);
+		CompleteRPC.set(uCentralProtocol::ID, Id);
+		CompleteRPC.set(uCentralProtocol::METHOD, Method);
+		CompleteRPC.set(uCentralProtocol::PARAMS, Params);
+		Poco::JSON::Stringifier::stringify(CompleteRPC, ToSend);
+		Logger_.information(
+			Poco::format("(%s): Sending command '%s', ID: %lu", SerialNumber, Method, Id));
+		CommandTagIndex Idx{.Id = Id, .SerialNumber = SerialNumber};
+		CommandTag Tag;
+		Tag.UUID = UUID;
+		Tag.Submitted = std::time(nullptr);
+		Tag.Completed = 0;
+		Tag.Result = Poco::makeShared<Poco::JSON::Object>();
+		OutStandingRequests_[Idx] = Tag;
+		G.unlock();
 		return DeviceRegistry()->SendFrame(SerialNumber, ToSend.str());
 	}
 
@@ -142,7 +138,7 @@ namespace OpenWifi {
 		uint64_t ID = Obj->get(uCentralProtocol::ID);
 		if(ID<2)
 			return;
-		std::lock_guard G(Mutex_);
+		std::unique_lock G(Mutex_);
 		auto Idx = CommandTagIndex{.Id = ID, .SerialNumber = SerialNumber};
 		auto RPC = OutStandingRequests_.find(Idx);
 		if (RPC == OutStandingRequests_.end()) {
@@ -152,6 +148,7 @@ namespace OpenWifi {
 		RPC->second.Completed = std::time(nullptr);
 		RPC->second.Result = Obj;
 		Logger_.information(Poco::format("(%s): Received RPC answer %lu", SerialNumber, ID));
+		G.unlock();
 		Storage()->CommandCompleted(RPC->second.UUID, Obj, true);
 	}
 

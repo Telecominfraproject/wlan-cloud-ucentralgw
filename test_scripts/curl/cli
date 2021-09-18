@@ -513,7 +513,7 @@ dashboard() {
 }
 
 gwversion() {
-	curl  ${FLAGS} -X GET "https://${OWGW}/api/v1/system?command=version" \
+	curl  ${FLAGS} -X GET "https://${OWGW}/api/v1/system?command=version,times,host" \
         -H "accept: application/json" \
         -H "Authorization: Bearer ${token}" > ${result_file}
 	jq < ${result_file}

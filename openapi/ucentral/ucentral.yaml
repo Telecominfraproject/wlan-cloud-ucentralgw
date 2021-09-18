@@ -2173,9 +2173,7 @@ paths:
           name: command
           schema:
             type: string
-            enum:
-              - version
-              - times
+            description: A list made up of the words - version, times, host
           required: true
 
       responses:

@@ -38,6 +38,7 @@ namespace OpenWifi {
 		uint64_t,
 		uint64_t,
 		std::string> CommandDetailsRecordTuple;
+	typedef std::vector<CommandDetailsRecordTuple> CommandDetailsRecordList;
 
 	bool Storage::AddCommand(std::string &SerialNumber, GWObjects::CommandDetails &Command, CommandExecutionType Type) {
 		try {
@@ -239,7 +240,7 @@ namespace OpenWifi {
 		return false;
 	}
 
-	typedef std::vector<CommandDetailsRecordTuple> RecordList;
+	// typedef std::vector<CommandDetailsRecordTuple> RecordList;
 
 	bool Storage::GetNonExecutedCommands(uint64_t Offset, uint64_t HowMany,
 										 std::vector<GWObjects::CommandDetails> &Commands) {
@@ -266,7 +267,7 @@ namespace OpenWifi {
 		 */
 
 		try {
-			RecordList Records;
+			CommandDetailsRecordList Records;
 
 			Poco::Data::Session Sess = Pool_->get();
 			Poco::Data::Statement Select(Sess);
@@ -466,7 +467,7 @@ namespace OpenWifi {
 
 	bool Storage::GetNewestCommands(std::string &SerialNumber, uint64_t HowMany, std::vector<GWObjects::CommandDetails> &Commands) {
 		try {
-			RecordList Records;
+			CommandDetailsRecordList Records;
 
 			Poco::Data::Session Sess = Pool_->get();
 			Poco::Data::Statement Select(Sess);
@@ -728,7 +729,7 @@ namespace OpenWifi {
 		return false;
 	}
 
-	bool Storage::GetAttachedFile(std::string &UUID, std::string & SerialNumber, const std::string &FileName, std::string &Type) {
+	bool Storage::GetAttachedFile(std::string &UUID, const std::string & SerialNumber, const std::string &FileName, std::string &Type) {
 		try {
 			Poco::Data::LOB<char> L;
 			/*

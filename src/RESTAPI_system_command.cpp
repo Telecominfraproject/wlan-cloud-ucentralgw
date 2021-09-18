@@ -80,28 +80,31 @@ namespace OpenWifi {
 
 	void RESTAPI_system_command::DoGet() {
 		auto Command = GetParameter(RESTAPI::Protocol::COMMAND, "");
-		if (!Poco::icompare(Command, RESTAPI::Protocol::VERSION)) {
-			Poco::JSON::Object Answer;
-			Answer.set(RESTAPI::Protocol::TAG, RESTAPI::Protocol::VERSION);
-			Answer.set(RESTAPI::Protocol::VALUE, Daemon()->Version());
-			ReturnObject(Answer);
-			return;
+		Poco::StringTokenizer	Tokens(Command,",");
+
+		Poco::JSON::Object Answer;
+
+		for(const auto &i:Tokens) {
+			if (!Poco::icompare(i, RESTAPI::Protocol::VERSION)) {
+				Answer.set(RESTAPI::Protocol::TAG, RESTAPI::Protocol::VERSION);
+				Answer.set(RESTAPI::Protocol::VALUE, Daemon()->Version());
+			} else if (!Poco::icompare(i, RESTAPI::Protocol::TIMES)) {
+				Poco::JSON::Array Array;
+				Poco::JSON::Object UpTimeObj;
+				UpTimeObj.set(RESTAPI::Protocol::TAG, RESTAPI::Protocol::UPTIME);
+				UpTimeObj.set(RESTAPI::Protocol::VALUE, Daemon()->uptime().totalSeconds());
+				Poco::JSON::Object StartObj;
+				StartObj.set(RESTAPI::Protocol::TAG, RESTAPI::Protocol::START);
+				StartObj.set(RESTAPI::Protocol::VALUE, Daemon()->startTime().epochTime());
+				Array.add(UpTimeObj);
+				Array.add(StartObj);
+				Answer.set(RESTAPI::Protocol::TIMES, Array);
+			} else if (!Poco::icompare(i, RESTAPI::Protocol::HOST)) {
+				Answer.set("os", Poco::Environment::osName());
+				Answer.set("processors", Poco::Environment::processorCount());
+				Answer.set("hostname",Poco::Environment::nodeName());
+			}
 		}
-		if (!Poco::icompare(Command, RESTAPI::Protocol::TIMES)) {
-			Poco::JSON::Array	Array;
-			Poco::JSON::Object 	Answer;
-			Poco::JSON::Object	UpTimeObj;
-			UpTimeObj.set(RESTAPI::Protocol::TAG,RESTAPI::Protocol::UPTIME);
-			UpTimeObj.set(RESTAPI::Protocol::VALUE, Daemon()->uptime().totalSeconds());
-			Poco::JSON::Object	StartObj;
-			StartObj.set(RESTAPI::Protocol::TAG,RESTAPI::Protocol::START);
-			StartObj.set(RESTAPI::Protocol::VALUE, Daemon()->startTime().epochTime());
-			Array.add(UpTimeObj);
-			Array.add(StartObj);
-			Answer.set(RESTAPI::Protocol::TIMES, Array);
-			ReturnObject(Answer);
-			return;
-		}
-		BadRequest("Unsupported or missing parameters.");
+		ReturnObject(Answer);
 	}
 }

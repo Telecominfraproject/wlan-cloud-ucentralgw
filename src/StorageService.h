@@ -115,7 +115,7 @@ namespace OpenWifi {
 		bool CommandCompleted(std::string & UUID, const Poco::JSON::Object::Ptr & ReturnVars, bool FullCommand);
 		bool AttachFileToCommand(std::string & UUID);
 		bool CancelWaitFile( std::string & UUID, std::string & ErrorText );
-		bool GetAttachedFile(std::string & UUID, std::string & SerialNumber, const std::string & FileName, std::string &Type);
+		bool GetAttachedFile(std::string & UUID, const std::string & SerialNumber, const std::string & FileName, std::string &Type);
 		bool RemoveAttachedFile(std::string & UUID);
 		bool SetCommandResult(std::string & UUID, std::string & Result);
 		bool GetNewestCommands(std::string &SerialNumber, uint64_t HowMany, std::vector<GWObjects::CommandDetails> & Commands);

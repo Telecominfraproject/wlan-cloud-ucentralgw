@@ -69,6 +69,7 @@ namespace OpenWifi::RESTAPI::Protocol {
 	static const char * COMMANDUUID = "commandUUID";
 	static const char * FIRMWARES = "firmwares";
 	static const char * TOPIC = "topic";
+	static const char * HOST = "host";
 	static const char * REASON = "reason";
 	static const char * FILEUUID = "uuid";
 	static const char * USERID = "userId";
