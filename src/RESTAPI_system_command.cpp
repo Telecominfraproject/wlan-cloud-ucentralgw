@@ -79,32 +79,18 @@ namespace OpenWifi {
 	}
 
 	void RESTAPI_system_command::DoGet() {
-		auto Command = GetParameter(RESTAPI::Protocol::COMMAND, "");
-		Poco::StringTokenizer	Tokens(Command,",");
-
-		Poco::JSON::Object Answer;
-
-		for(const auto &i:Tokens) {
-			if (!Poco::icompare(i, RESTAPI::Protocol::VERSION)) {
-				Answer.set(RESTAPI::Protocol::TAG, RESTAPI::Protocol::VERSION);
-				Answer.set(RESTAPI::Protocol::VALUE, Daemon()->Version());
-			} else if (!Poco::icompare(i, RESTAPI::Protocol::TIMES)) {
-				Poco::JSON::Array Array;
-				Poco::JSON::Object UpTimeObj;
-				UpTimeObj.set(RESTAPI::Protocol::TAG, RESTAPI::Protocol::UPTIME);
-				UpTimeObj.set(RESTAPI::Protocol::VALUE, Daemon()->uptime().totalSeconds());
-				Poco::JSON::Object StartObj;
-				StartObj.set(RESTAPI::Protocol::TAG, RESTAPI::Protocol::START);
-				StartObj.set(RESTAPI::Protocol::VALUE, Daemon()->startTime().epochTime());
-				Array.add(UpTimeObj);
-				Array.add(StartObj);
-				Answer.set(RESTAPI::Protocol::TIMES, Array);
-			} else if (!Poco::icompare(i, RESTAPI::Protocol::HOST)) {
-				Answer.set("os", Poco::Environment::osName());
-				Answer.set("processors", Poco::Environment::processorCount());
-				Answer.set("hostname",Poco::Environment::nodeName());
-			}
+		std::string Arg;
+		if(HasParameter("command",Arg) && Arg=="info") {
+			Poco::JSON::Object Answer;
+			Answer.set(RESTAPI::Protocol::VERSION, Daemon()->Version());
+			Answer.set(RESTAPI::Protocol::UPTIME, Daemon()->uptime().totalSeconds());
+			Answer.set(RESTAPI::Protocol::START, Daemon()->startTime().epochTime());
+			Answer.set(RESTAPI::Protocol::OS, Poco::Environment::osName());
+			Answer.set(RESTAPI::Protocol::PROCESSORS, Poco::Environment::processorCount());
+			Answer.set(RESTAPI::Protocol::HOSTNAME, Poco::Environment::nodeName());
+			ReturnObject(Answer);
+			return;
 		}
-		ReturnObject(Answer);
+		BadRequest("Unknown command.");
 	}
 }

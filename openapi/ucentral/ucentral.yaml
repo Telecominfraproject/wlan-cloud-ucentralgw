@@ -748,6 +748,24 @@ components:
         note:
           type: string
 
+    SystemInfoResults:
+      type: object
+      properties:
+        version:
+          type: string
+        uptime:
+          type: integer
+          format: integer64
+        start:
+          type: integer
+          format: integer64
+        os:
+          type: string
+        processors:
+          type: integer
+        hostname:
+          type: string
+
     #########################################################################################
     ##
     ## End of uCentral system wide values
@@ -2173,7 +2191,8 @@ paths:
           name: command
           schema:
             type: string
-            description: A list made up of the words - version, times, host
+            enum:
+              - info
           required: true
 
       responses:
@@ -2182,7 +2201,8 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/TagValuePair'
+                oneOf:
+                  - $ref: '#/components/schemas/SystemInfoResults'
         403:
           $ref: '#/components/responses/Unauthorized'
         404:

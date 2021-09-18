@@ -512,15 +512,8 @@ dashboard() {
 	jq < ${result_file}
 }
 
-gwversion() {
-	curl  ${FLAGS} -X GET "https://${OWGW}/api/v1/system?command=version,times,host" \
-        -H "accept: application/json" \
-        -H "Authorization: Bearer ${token}" > ${result_file}
-	jq < ${result_file}
-}
-
-gwtimes() {
-	curl  ${FLAGS} -X GET "https://${OWGW}/api/v1/system?command=times" \
+systeminfo() {
+	curl  ${FLAGS} -X GET "https://${OWGW}/api/v1/system?command=info" \
         -H "accept: application/json" \
         -H "Authorization: Bearer ${token}" > ${result_file}
 	jq < ${result_file}
@@ -630,8 +623,7 @@ help() {
   echo "ouilookup <serial> 				  Lookup an OUI"
   echo
   echo "dashboard 				  		  Get the dashboard document"
-  echo "gwtimes							  Get the uptime and start time of the service."
-  echo "gwversion						  Get the service version."
+  echo "systeminfo						  Get information on the system running the service."
   echo
   echo "wstest  						  Testing the WebSocket interface."
   echo
@@ -697,8 +689,7 @@ case "$1" in
   "ouilookup") login; ouilookup "$2"; logout;;
   "telemetry") login; telemetry "$2"; logout;;
   "dashboard") login; dashboard ; logout;;
-  "gwversion") login; gwversion ; logout;;
-  "gwtimes") login; gwtimes ; logout;;
+  "systeminfo") login; systeminfo ; logout;;
   "addnote") login; addnote "$2" "$3"; logout;;
   "ldevs") login; ldevs  "$2" "$3"; logout ;;
   "wstest") login; wstest; logout;;
