@@ -82,6 +82,9 @@ Do wifiscan for a device.
 - `serial`: device serial number
 - `verbose`: verbose=true/false
 
+### telemetry <serial>
+Start `telemetry` stream for a device.
+
 ### trace <serial> <duration> <network>            
 Launch a remote trace for a device.
 - `serial`: device serial number
@@ -161,12 +164,23 @@ Get a list of devices based on a list.
 ### deviceswithstatus                 
 Get devices with their status.
 
-### setloglevel <sys> <level>         
-Set the logging system level for individual subsystems.
-- `sys`: ufileuploader/websocket/storage/restapi/commandmanager/auth/deviceregistry/all
-- `level`: level:none/fatal/critical/error/warning/notice/information/debug/trace
+### setloglevel <subsystem> <loglevel>
+Set the log level for s specific subsystem.
 
-### getfile <uuid>					  
+### getloglevels
+Get the current log levels for all subsystems.
+
+### getloglevelnames
+Get the log level names available.
+
+### getsubsystemnames
+Get the list of subsystems.
+
+### systeminfo
+Get basic system information.
+
+### reloadsubsystem <subsystem name>
+Reload the configuration for a subsystem.### getfile <uuid>					  
 Get the file associated with trace command <uuid>.
 - `uuid`: UUID of file to retrieve
 

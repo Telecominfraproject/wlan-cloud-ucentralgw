@@ -256,7 +256,7 @@ systeminfo() {
 }
 
 reloadsubsystem() {
-	payload="{ \"command\" : \"reload\", \"subsystems\" : [ \"OUIServer\" , \"CommandManager\" ] }"
+	payload="{ \"command\" : \"reload\", \"subsystems\" : [ \"$1\" ] }"
 		curl  ${FLAGS} -X POST "https://${OWGW}/api/v1/system" \
 		-H  "accept: application/json" \
 		-H "Authorization: Bearer ${token}" \
