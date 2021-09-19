@@ -217,7 +217,7 @@ reboot() {
 }
 
 setloglevel() {
-  payload="{ \"command\" : \"setloglevel\" , \"parameters\" : [ { \"tag\" : \"$1\" , \"value\" : \"$2\" } ] }"
+  payload="{ \"command\" : \"setloglevel\" , \"subsystems\" : [ { \"tag\" : \"$1\" , \"value\" : \"$2\" } ] }"
   curl  ${FLAGS} -X POST "https://${OWGW}/api/v1/system" \
         -H  "accept: application/json" \
         -H "Authorization: Bearer ${token}" \
@@ -246,6 +246,13 @@ getsubsystemnames() {
         -H  "accept: application/json" \
         -H "Authorization: Bearer ${token}" \
         -d "$payload"
+}
+
+systeminfo() {
+	curl  ${FLAGS} -X GET "https://${OWGW}/api/v1/system?command=info" \
+	-H "accept: application/json" \
+	-H "Authorization: Bearer ${token}" > ${result_file}
+	jq < ${result_file}
 }
 
 reloadsubsystem() {
@@ -520,13 +527,6 @@ dashboard() {
 	jq < ${result_file}
 }
 
-systeminfo() {
-	curl  ${FLAGS} -X GET "https://${OWGW}/api/v1/system?command=info" \
-        -H "accept: application/json" \
-        -H "Authorization: Bearer ${token}" > ${result_file}
-	jq < ${result_file}
-}
-
 wstest() {
 	echo "Token:${token}"
 	wscat \
@@ -654,7 +654,6 @@ case "$1" in
   "deletedevice") login; deletedevice "$2"  ; logout ;;
   "createdevice") login; createdevice "$2" "$3" "$4" ; logout ;;
   "reboot") login; reboot "$2"  ; logout ;;
-  "setloglevel") login; setloglevel "$2" "$3"  ; logout ;;
   "getdevicestatus") login; getdevicestatus "$2"  ; logout ;;
   "upgrade") login; upgrade "$2" "$3"  ; logout ;;
   "factory") login; factory "$2" "$3"  ; logout ;;
@@ -691,14 +690,15 @@ case "$1" in
   "lasthealthcheck") login; lasthealthcheck "$2"; logout;;
   "login") login ;;
   "findbrowser") findbrowser; echo "Browser: ${browser}" ;;
+  "setloglevel") login; setloglevel "$2" "$3"  ; logout ;;
   "getloglevels") login; getloglevels; logout ;;
   "getloglevelnames") login; getloglevelnames; logout ;;
   "getsubsystemnames") login; getsubsystemnames; logout ;;
   "reloadsubsystem") login; reloadsubsystem; logout ;;
+  "systeminfo") login; systeminfo ; logout;;
   "ouilookup") login; ouilookup "$2"; logout;;
   "telemetry") login; telemetry "$2"; logout;;
   "dashboard") login; dashboard ; logout;;
-  "systeminfo") login; systeminfo ; logout;;
   "addnote") login; addnote "$2" "$3"; logout;;
   "ldevs") login; ldevs  "$2" "$3"; logout ;;
   "wstest") login; wstest; logout;;
