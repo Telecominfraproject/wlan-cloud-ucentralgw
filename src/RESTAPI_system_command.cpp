@@ -24,9 +24,9 @@ namespace OpenWifi {
 		if (Obj->has(RESTAPI::Protocol::COMMAND)) {
 			auto Command = Poco::toLower(Obj->get(RESTAPI::Protocol::COMMAND).toString());
 			if (Command == RESTAPI::Protocol::SETLOGLEVEL) {
-				if (Obj->has(RESTAPI::Protocol::PARAMETERS) &&
-					Obj->isArray(RESTAPI::Protocol::PARAMETERS)) {
-					auto ParametersBlock = Obj->getArray(RESTAPI::Protocol::PARAMETERS);
+				if (Obj->has(RESTAPI::Protocol::SUBSYSTEMS) &&
+					Obj->isArray(RESTAPI::Protocol::SUBSYSTEMS)) {
+					auto ParametersBlock = Obj->getArray(RESTAPI::Protocol::SUBSYSTEMS);
 					for (const auto &i : *ParametersBlock) {
 						Poco::JSON::Parser pp;
 						auto InnerObj = pp.parse(i).extract<Poco::JSON::Object::Ptr>();
