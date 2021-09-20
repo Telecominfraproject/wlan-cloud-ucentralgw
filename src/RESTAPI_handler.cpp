@@ -390,9 +390,12 @@ namespace OpenWifi {
             if (AuthClient()->IsAuthorized(*Request, SessionToken_, UserInfo_)) {
 #endif
                 if(Server_.LogIt(Request->getMethod(),true)) {
-                    Logger_.debug(Poco::format("X-REQ-ALLOWED(%s): User='%s' Method='%s' Path='%s",
-                         Utils::FormatIPv6(Request->clientAddress().toString()), UserInfo_.userinfo.email,
-                         Request->getMethod(), Request->getURI()));
+                    Logger_.debug(Poco::format("X-REQ-ALLOWED(%s): User='%s@%s' Method='%s' Path='%s",
+                         Utils::FormatIPv6(Request->clientAddress().toString()),
+                         UserInfo_.userinfo.email,
+                         Request->clientAddress().toString(),
+                         Request->getMethod(),
+                         Request->getURI()));
                 }
                 return true;
             } else {
