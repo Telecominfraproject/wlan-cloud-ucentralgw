@@ -38,6 +38,8 @@ set(Boost_USE_STATIC_RUNTIME OFF)
 find_package(Boost REQUIRED system)
 find_package(OpenSSL REQUIRED)
 find_package(ZLIB REQUIRED)
+find_package(nlohmann_json  REQUIRED)
+find_package(nlohmann_json_schema_validator REQUIRED)
 
 if(SMALL_BUILD)
     find_package(Poco REQUIRED COMPONENTS Crypto JWT Net Util NetSSL Data DataSQLite)
@@ -97,7 +99,8 @@ add_executable( owgw
                 src/RESTAPI_webSocketServer.cpp src/RESTAPI_webSocketServer.h
                 src/OpenWifiTypes.h src/TelemetryStream.cpp src/TelemetryStream.h
                 src/RESTAPI_GenericServer.cpp src/RESTAPI_GenericServer.h
-                src/RESTAPI_errors.h src/RESTAPI_TelemetryWebSocket.cpp src/RESTAPI_TelemetryWebSocket.h)
+                src/RESTAPI_errors.h src/RESTAPI_TelemetryWebSocket.cpp src/RESTAPI_TelemetryWebSocket.h
+                src/ConfigurationValidator.cpp src/ConfigurationValidator.h src/ConfigurationCache.cpp src/ConfigurationCache.h)
 
 if(NOT SMALL_BUILD)
     target_sources(owgw PUBLIC src/KafkaManager.cpp src/KafkaManager.h)
@@ -112,7 +115,8 @@ target_link_libraries(owgw PUBLIC
 if(NOT SMALL_BUILD)
     target_link_libraries(owgw PUBLIC
             ${MySQL_LIBRARIES} ${ZLIB_LIBRARIES}
-            CppKafka::cppkafka
+                CppKafka::cppkafka
+                nlohmann_json_schema_validator
              )
     if(UNIX AND NOT APPLE)
         target_link_libraries(owgw PUBLIC PocoJSON)

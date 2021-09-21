@@ -11,6 +11,9 @@
 #include "RESTAPI_protocol.h"
 #include "StorageService.h"
 #include "Utils.h"
+#include "ConfigurationValidator.h"
+#include "ConfigurationCache.h"
+#include "CentralConfig.h"
 
 namespace OpenWifi {
 	void RESTAPI_device_handler::DoGet() {
@@ -49,6 +52,11 @@ namespace OpenWifi {
 			return;
 		}
 
+		if(!Device.Configuration.empty() && !ValidateUCentralConfiguration(Device.Configuration)) {
+			BadRequest("Illegal configuration.");
+			return;
+		}
+
 		for(auto &i:Device.Notes)
 			i.createdBy = UserInfo_.userinfo.email;
 
@@ -58,7 +66,6 @@ namespace OpenWifi {
 			return;
 		}
 
-		Device.UUID = time(nullptr);
 		if (Storage()->CreateDevice(Device)) {
 			Poco::JSON::Object DevObj;
 			Device.to_json(DevObj);
@@ -76,18 +83,46 @@ namespace OpenWifi {
 		}
 
 		auto Obj = ParseStream();
-		GWObjects::Device Device;
-		if (!Device.from_json(Obj)) {
+		GWObjects::Device NewDevice;
+		if (!NewDevice.from_json(Obj)) {
 			BadRequest("Ill-formed JSON document.");
 			return;
 		}
 
-		for(auto &i:Device.Notes)
-			i.createdBy = UserInfo_.userinfo.email;
+		GWObjects::Device	Existing;
+		if(!Storage()->GetDevice(SerialNumber, Existing)) {
+			NotFound();
+			return;
+		}
 
-		if (Storage()->UpdateDevice(Device)) {
+		uint64_t NewConfigUUID=0;
+		if(!NewDevice.Configuration.empty()) {
+			if (!ValidateUCentralConfiguration(NewDevice.Configuration)) {
+				BadRequest("Illegal configuration.");
+				return;
+			}
+			Config::Config NewConfig(NewDevice.Configuration);
+			NewConfigUUID = std::time(nullptr);
+			NewConfig.SetUUID(NewConfigUUID);
+			Existing.Configuration = NewConfig.get();
+			Existing.UUID = NewConfigUUID;
+		}
+
+		AssignIfPresent(Obj, "venue", Existing.Venue);
+		AssignIfPresent(Obj, "owner", Existing.Owner);
+		AssignIfPresent(Obj, "location", Existing.Location);
+
+		for(auto &i:NewDevice.Notes) {
+			i.createdBy = UserInfo_.userinfo.email;
+			Existing.Notes.push_back(i);
+		}
+
+		Existing.LastConfigurationChange = std::time(nullptr);
+		if (Storage()->UpdateDevice(Existing)) {
+			if(NewConfigUUID)
+				SetCurrentConfigurationID(SerialNumber, NewConfigUUID);
 			Poco::JSON::Object DevObj;
-			Device.to_json(DevObj);
+			NewDevice.to_json(DevObj);
 			ReturnObject(DevObj);
 		} else {
 			BadRequest("Could not update device.");

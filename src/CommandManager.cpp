@@ -104,11 +104,15 @@ namespace OpenWifi {
 							  			const std::string &Method,
 										const Poco::JSON::Object &Params,
 							  			const std::string &UUID,
-									 	uint64_t & Id) {
+									 	uint64_t & Id,
+									 	bool oneway_rpc) {
 
 		std::stringstream ToSend;
 		std::unique_lock G(Mutex_);
-		Id = ++Id_;
+		if(oneway_rpc)
+			Id = 1;
+		else
+			Id = ++Id_;
 		Poco::JSON::Object CompleteRPC;
 		CompleteRPC.set(uCentralProtocol::JSONRPC, uCentralProtocol::JSONRPC_VERSION);
 		CompleteRPC.set(uCentralProtocol::ID, Id);

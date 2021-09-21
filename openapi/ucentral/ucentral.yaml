@@ -91,6 +91,9 @@ components:
         location:
           type: string
           format: uuid
+        venue:
+          type: string
+          format: uuid
         serialNumber:
           type: string
         deviceType:

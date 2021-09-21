@@ -57,10 +57,11 @@ namespace OpenWifi {
 			void WakeUp();
 			void PostCommandResult(const std::string &SerialNumber, Poco::JSON::Object::Ptr Obj);
 			bool SendCommand(	const std::string &SerialNumber,
-								 const std::string &Method,
-								 const Poco::JSON::Object &Params,
-								 const std::string &UUID,
-								 uint64_t & Id);
+								const std::string &Method,
+								const Poco::JSON::Object &Params,
+								const std::string &UUID,
+							 	uint64_t & Id,
+							 	bool oneway_rpc=false);
 			void Janitor();
 			void run() override;
 

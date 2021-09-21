@@ -25,6 +25,7 @@
 #include "WebSocketServer.h"
 #include "uCentralProtocol.h"
 #include "TelemetryStream.h"
+#include "ConfigurationCache.h"
 
 namespace OpenWifi {
 
@@ -196,53 +197,42 @@ namespace OpenWifi {
 
     bool WSConnection::LookForUpgrade(uint64_t UUID) {
 
-
 		//	A UUID of zero means ignore updates for that connection.
 		if(UUID==0)
 			return false;
 
-		std::string NewConfig;
-		uint64_t 	NewConfigUUID = 0 ;
+		uint64_t GoodConfig=ConfigurationCache().CurrentConfig(SerialNumber_);
+		if(GoodConfig && (GoodConfig==UUID || GoodConfig==Conn_->PendingUUID))
+			return false;
 
-        if (Storage()->ExistingConfiguration(SerialNumber_,UUID, NewConfig, NewConfigUUID)) {
+		GWObjects::Device	D;
+		if(Storage()->GetDevice(SerialNumber_,D)) {
 
-			//	Device is already using the latest configuration.
-			if(UUID == NewConfigUUID)
-				return false;
-
-			//	if the new config is already pending,
-			if(NewConfigUUID == Conn_->PendingUUID)
-				return false;
-
-			Conn_->PendingUUID = NewConfigUUID;
-
-			Poco::JSON::Parser  Parser( new Poco::JSON::ParseHandler);
-			auto ParsedConfig = Parser.parse(NewConfig).extract<Poco::JSON::Object::Ptr>();
-			ParsedConfig->set(uCentralProtocol::UUID,NewConfigUUID);
-
-			// create the command stub...
+			Conn_->PendingUUID = D.UUID;
 			GWObjects::CommandDetails  Cmd;
 			Cmd.SerialNumber = SerialNumber_;
 			Cmd.UUID = Daemon()->CreateUUID();
 			Cmd.SubmittedBy = uCentralProtocol::SUBMITTED_BY_SYSTEM;
 			Cmd.Status = uCentralProtocol::PENDING;
 			Cmd.Command = uCentralProtocol::CONFIGURE;
-
+			Poco::JSON::Parser	P;
+			auto ParsedConfig = P.parse(D.Configuration).extract<Poco::JSON::Object::Ptr>();
 			Poco::JSON::Object Params;
 			Params.set(uCentralProtocol::SERIAL, SerialNumber_);
-			Params.set(uCentralProtocol::UUID, NewConfigUUID);
+			Params.set(uCentralProtocol::UUID, D.UUID);
 			Params.set(uCentralProtocol::WHEN, 0);
 			Params.set(uCentralProtocol::CONFIG, ParsedConfig);
 
-			std::string Log = Poco::format("CFG-UPGRADE(%s):, Current ID: %Lu, newer configuration %Lu.", SerialNumber_, UUID, NewConfigUUID);
+			std::string Log = Poco::format("CFG-UPGRADE(%s):, Current ID: %Lu, newer configuration %Lu.", SerialNumber_, UUID, D.UUID);
 			Storage()->AddLog(SerialNumber_, Conn_->UUID, Log);
 			Logger_.debug(Log);
 
 			uint64_t RPC_Id;
 			CommandManager()->SendCommand(SerialNumber_ , Cmd.Command, Params, Cmd.UUID, RPC_Id);
 			Storage()->AddCommand(SerialNumber_, Cmd, Storage::COMMAND_EXECUTED);
+
 			return true;
-        }
+		}
         return false;
     }
 
@@ -393,6 +383,9 @@ namespace OpenWifi {
 													   UUID, request_uuid));
 
 						Conn_->UUID = UUID;
+
+						LookForUpgrade(UUID);
+
 						Storage()->AddStatisticsData(Serial, UUID, State);
 						DeviceRegistry()->SetStatistics(Serial, State);
 
@@ -436,6 +429,7 @@ namespace OpenWifi {
 													   CId_, UUID, request_uuid));
 
 						Conn_->UUID = UUID;
+						LookForUpgrade(UUID);
 
 						GWObjects::HealthCheck Check;
 
