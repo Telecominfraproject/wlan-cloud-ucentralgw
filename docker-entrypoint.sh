@@ -2,7 +2,6 @@
 set -e
 
 if [ "$SELFSIGNED_CERTS" = 'true' ]; then
-    wget https://raw.githubusercontent.com/Telecominfraproject/wlan-cloud-ucentral-deploy/main/docker-compose/certs/restapi-ca.pem -O /usr/local/share/ca-certificates/restapi-ca-selfsigned.pem
     update-ca-certificates
 fi
 

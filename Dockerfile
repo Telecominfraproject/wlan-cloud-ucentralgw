@@ -56,6 +56,8 @@ COPY --from=builder /poco/cmake-build/lib/* /lib/
 
 COPY ucentralgw.properties.tmpl ${UCENTRALGW_CONFIG}/
 COPY docker-entrypoint.sh /
+RUN wget https://raw.githubusercontent.com/Telecominfraproject/wlan-cloud-ucentral-deploy/main/docker-compose/certs/restapi-ca.pem \
+    -O /usr/local/share/ca-certificates/restapi-ca-selfsigned.pem 
 
 EXPOSE 15002 16002 16003 17002 16102
 
