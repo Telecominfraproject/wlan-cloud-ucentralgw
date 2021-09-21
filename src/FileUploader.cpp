@@ -83,6 +83,7 @@ namespace OpenWifi {
     }
 
 	void FileUploader::reinitialize(Poco::Util::Application &self) {
+		Daemon()->LoadConfigurationFile();
     	Logger_.information("Reinitializing.");
 		Stop();
 		Start();

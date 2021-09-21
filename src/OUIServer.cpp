@@ -39,6 +39,7 @@ namespace OpenWifi {
 	}
 
 	void OUIServer::reinitialize(Poco::Util::Application &self) {
+		Daemon()->LoadConfigurationFile();
 		Logger_.information("Reinitializing.");
 		Stop();
 		Start();

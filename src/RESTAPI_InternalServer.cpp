@@ -56,9 +56,10 @@ namespace OpenWifi {
     }
 
 	void RESTAPI_InternalServer::reinitialize(Poco::Util::Application &self) {
+    	Daemon()->LoadConfigurationFile();
     	Logger_.information("Reinitializing.");
-		Stop();
-		Start();
+    	Stop();
+    	Start();
 	}
 
     Poco::Net::HTTPRequestHandler *InternalRequestHandlerFactory::createRequestHandler(const Poco::Net::HTTPServerRequest & Request) {

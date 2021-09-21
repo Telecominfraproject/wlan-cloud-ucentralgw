@@ -85,7 +85,10 @@ namespace OpenWifi {
 						std::thread	ReloadThread([Names](){
 						std::this_thread::sleep_for(10000ms);
 						for(const auto &i:Names) {
-							Daemon()->Reload(i);
+						    if(i=="daemon")
+						        Daemon()->Reload();
+						    else
+    							Daemon()->Reload(i);
 						}
 					 });
 					ReloadThread.detach();
