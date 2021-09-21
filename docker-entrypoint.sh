@@ -1,6 +1,10 @@
 #!/bin/sh
 set -e
 
+if [ "$SELFSIGNED_CERTS" = 'true' ]; then
+    update-ca-certificates
+fi
+
 if [[ "$TEMPLATE_CONFIG" = 'true' && ! -f "$UCENTRALGW_CONFIG"/ucentralgw.properties ]]; then
   WEBSOCKET_HOST_ROOTCA=${WEBSOCKET_HOST_ROOTCA:-"\$UCENTRALGW_ROOT/certs/root.pem"} \
   WEBSOCKET_HOST_ISSUER=${WEBSOCKET_HOST_ISSUER:-"\$UCENTRALGW_ROOT/certs/issuer.pem"} \

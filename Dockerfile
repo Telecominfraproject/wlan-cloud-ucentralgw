@@ -48,7 +48,7 @@ RUN addgroup -S "$UCENTRALGW_USER" && \
 RUN mkdir /ucentral
 RUN mkdir -p "$UCENTRALGW_ROOT" "$UCENTRALGW_CONFIG" && \
     chown "$UCENTRALGW_USER": "$UCENTRALGW_ROOT" "$UCENTRALGW_CONFIG"
-RUN apk add --update --no-cache librdkafka mariadb-connector-c libpq unixodbc su-exec gettext
+RUN apk add --update --no-cache librdkafka mariadb-connector-c libpq unixodbc su-exec gettext ca-certificates
 
 COPY --from=builder /ucentralgw/cmake-build/ucentralgw /ucentral/ucentralgw
 COPY --from=builder /cppkafka/cmake-build/src/lib/* /lib/
@@ -56,6 +56,8 @@ COPY --from=builder /poco/cmake-build/lib/* /lib/
 
 COPY ucentralgw.properties.tmpl ${UCENTRALGW_CONFIG}/
 COPY docker-entrypoint.sh /
+RUN wget https://raw.githubusercontent.com/Telecominfraproject/wlan-cloud-ucentral-deploy/main/docker-compose/certs/restapi-ca.pem \
+    -O /usr/local/share/ca-certificates/restapi-ca-selfsigned.pem 
 
 EXPOSE 15002 16002 16003 17002 16102
 
