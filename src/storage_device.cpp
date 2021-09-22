@@ -175,13 +175,11 @@ namespace OpenWifi {
 				return false;
 
 			uint64_t Now = time(nullptr);
-			NewUUID = D.LastConfigurationChange = (D.LastConfigurationChange==Now ? Now + 1 : Now);
+			D.UUID = NewUUID = D.LastConfigurationChange = (D.LastConfigurationChange==Now ? Now + 1 : Now);
 			if (Cfg.SetUUID(NewUUID)) {
 				Poco::Data::Statement   Update(Sess);
 				D.Configuration = Cfg.get();
-				D.UUID = D.LastConfigurationChange;
-
-				SetCurrentConfigurationID(SerialNumber, D.UUID);
+				SetCurrentConfigurationID(SerialNumber, NewUUID);
 
 				DeviceRecordTuple R;
 				ConvertDeviceRecord(D,R);
@@ -190,7 +188,7 @@ namespace OpenWifi {
 					Poco::Data::Keywords::use(R),
 					Poco::Data::Keywords::use(SerialNumber);
 				Update.execute();
-				Logger_.information(Poco::format("CONFIG-UPDATE(%s): UUID is %Lu", SerialNumber, NewUUID));
+				Logger_.information(Poco::format("DEVICE-CONFIGURATION-UPDATED(%s): New UUID is %Lu", SerialNumber, NewUUID));
 				Configuration = D.Configuration;
 				return true;
 			}

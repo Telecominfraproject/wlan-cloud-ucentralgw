@@ -234,7 +234,7 @@ namespace OpenWifi {
 			Poco::JSON::Stringifier::stringify(Params, O);
 			Cmd.Details = O.str();
 
-			std::string Log = Poco::format("CFG-UPGRADE(%s):, Current ID: %Lu, newer configuration %Lu.", CId_, UUID, D.UUID);
+			std::string Log = Poco::format("CFG-UPGRADE(%s): Current ID: %Lu, newer configuration %Lu.", CId_, UUID, D.UUID);
 			Logger_.debug(Log);
 			uint64_t RPC_Id;
 			CommandManager()->SendCommand(SerialNumber_ , Cmd.Command, Params, Cmd.UUID, RPC_Id);
