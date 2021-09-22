@@ -140,8 +140,10 @@ namespace OpenWifi {
 		}
 
 		uint64_t ID = Obj->get(uCentralProtocol::ID);
-		if(ID<2)
+		if(ID<2) {
+			Logger_.error(Poco::format("(%s): Ignoring RPC response.",SerialNumber));
 			return;
+		}
 		std::unique_lock G(Mutex_);
 		auto Idx = CommandTagIndex{.Id = ID, .SerialNumber = SerialNumber};
 		auto RPC = OutStandingRequests_.find(Idx);

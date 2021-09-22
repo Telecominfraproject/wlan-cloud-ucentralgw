@@ -148,10 +148,10 @@ namespace OpenWifi {
 			return;
 		} catch (const Poco::Exception &E ) {
 			Logger_.error("Exception caught during device connection. Device will have to retry.");
+			Logger_.log(E);
 		}
 		delete this;
 	}
-
 
 	WSConnection::WSConnection(Poco::Net::StreamSocket & socket, Poco::Net::SocketReactor & reactor):
             Socket_(socket),
@@ -230,14 +230,15 @@ namespace OpenWifi {
 			Params.set(uCentralProtocol::WHEN, 0);
 			Params.set(uCentralProtocol::CONFIG, ParsedConfig);
 
-			std::string Log = Poco::format("CFG-UPGRADE(%s):, Current ID: %Lu, newer configuration %Lu.", SerialNumber_, UUID, D.UUID);
-			Storage()->AddLog(SerialNumber_, Conn_->UUID, Log);
-			Logger_.debug(Log);
+			std::ostringstream O;
+			Poco::JSON::Stringifier::stringify(Params, O);
+			Cmd.Details = O.str();
 
+			std::string Log = Poco::format("CFG-UPGRADE(%s):, Current ID: %Lu, newer configuration %Lu.", CId_, UUID, D.UUID);
+			Logger_.debug(Log);
 			uint64_t RPC_Id;
 			CommandManager()->SendCommand(SerialNumber_ , Cmd.Command, Params, Cmd.UUID, RPC_Id);
 			Storage()->AddCommand(SerialNumber_, Cmd, Storage::COMMAND_EXECUTED);
-
 			return true;
 		}
         return false;

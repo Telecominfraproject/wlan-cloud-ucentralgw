@@ -628,9 +628,12 @@ namespace OpenWifi {
 
 			std::string St{"UPDATE CommandList SET Completed=?, ErrorCode=?, ErrorText=?, Results=?, Status=? WHERE UUID=?"};
 
-			Update << ConvertParams(St), Poco::Data::Keywords::use(Now),
-				Poco::Data::Keywords::use(ErrorCode), Poco::Data::Keywords::use(ErrorText),
-				Poco::Data::Keywords::use(ResultStr), Poco::Data::Keywords::use(StatusText),
+			Update << ConvertParams(St),
+				Poco::Data::Keywords::use(Now),
+				Poco::Data::Keywords::use(ErrorCode),
+				Poco::Data::Keywords::use(ErrorText),
+				Poco::Data::Keywords::use(ResultStr),
+				Poco::Data::Keywords::use(StatusText),
 				Poco::Data::Keywords::use(UUID);
 			Update.execute();
 

@@ -226,12 +226,10 @@ void RESTAPI_device_commandHandler::Configure() {
 			Config::Config Cfg(Configuration);
 
 			Poco::JSON::Object Params;
-			Poco::JSON::Object CfgObj;
 			Params.set(uCentralProtocol::SERIAL, SerialNumber_);
 			Params.set(uCentralProtocol::UUID, NewUUID);
 			Params.set(uCentralProtocol::WHEN, When);
 			Params.set(uCentralProtocol::CONFIG, Cfg.to_json());
-
 			std::stringstream ParamStream;
 			Params.stringify(ParamStream);
 			Cmd.Details = ParamStream.str();
