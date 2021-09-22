@@ -27,40 +27,27 @@ namespace OpenWifi {
 	bool Storage::SetLifetimeStats(std::string &SerialNumber, std::string &Stats) {
 		try {
 			Poco::Data::Session     Sess = Pool_->get();
-			Poco::Data::Statement   Select(Sess);
+			Poco::Data::Statement   InsertOrUpdate(Sess);
 
-			std::string TmpSerial;
-			std::string st1{"SELECT SerialNumber FROM LifetimeStats WHERE SerialNumber=?"};
-			Select << 	ConvertParams(st1),
-						Poco::Data::Keywords::into(TmpSerial),
-						Poco::Data::Keywords::use(SerialNumber);
-			Select.execute();
+			std::string InsertOrReplace{
+				"insert into LifetimeStats (SerialNumber, Statistics, Created, Updated) VALUES(?,?,?,?) on conflict(SerialNumber) do  "
+				"update Statistics=?, Updated=?"
+			};
 
-			if(TmpSerial.empty()) {
-				Poco::Data::Statement   Insert(Sess);
-				uint64_t Now = time(nullptr);
-				std::string st2{"INSERT INTO LifetimeStats (SerialNumber, Statistics, Created, Updated) VALUES(?,?,?,?)"};
-				Insert << 	ConvertParams(st2),
-							Poco::Data::Keywords::use(SerialNumber),
-							Poco::Data::Keywords::use(Stats),
-							Poco::Data::Keywords::use(Now),
-							Poco::Data::Keywords::use(Now);
-				Insert.execute();
-			} else {
-				Poco::Data::Statement   Update(Sess);
-				uint64_t Now = time(nullptr);
-				std::string st2{"UPDATE LifetimeStats SET Statistics=?, Updated=? WHERE SerialNumber=?"};
-				Update << 	ConvertParams(st2),
-							Poco::Data::Keywords::use(Stats),
-							Poco::Data::Keywords::use(Now),
-							Poco::Data::Keywords::use(SerialNumber);
-				Update.execute();
-			}
+			uint64_t Now = time(nullptr);
+			InsertOrUpdate << 	ConvertParams(InsertOrReplace),
+				Poco::Data::Keywords::use(SerialNumber),
+				Poco::Data::Keywords::use(Stats),
+				Poco::Data::Keywords::use(Now),
+				Poco::Data::Keywords::use(Now),
+				Poco::Data::Keywords::use(Stats),
+				Poco::Data::Keywords::use(Now);
+			InsertOrUpdate.execute();
 			return true;
 		}
 		catch (const Poco::Exception &E) {
-			Logger_.warning(
-				Poco::format("%s(%s): Failed with: %s", std::string(__func__), SerialNumber, E.displayText()));
+			std::cout << "Cannot update lifetime stats..." << std::endl;
+			Logger_.log(E);
 		}
 		return false;
 	}
@@ -78,8 +65,7 @@ namespace OpenWifi {
 			return !Stats.empty();
 		}
 		catch (const Poco::Exception &E) {
-			Logger_.warning(
-				Poco::format("%s(%s): Failed with: %s", std::string(__func__), SerialNumber, E.displayText()));
+			Logger_.log(E);
 		}
 		return false;
 	}
@@ -96,8 +82,7 @@ namespace OpenWifi {
 			return true;
 		}
 		catch (const Poco::Exception &E) {
-			Logger_.warning(
-				Poco::format("%s(%s): Failed with: %s", std::string(__func__), SerialNumber, E.displayText()));
+			Logger_.log(E);
 		}
 		return false;
 	}

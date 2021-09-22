@@ -49,7 +49,7 @@ namespace OpenWifi {
 
 		bool AddLog(std::string & SerialNumber, GWObjects::DeviceLog & Log, bool CrashLog = false );
 		bool AddLog(std::string & SerialNumber, uint64_t UUID, const std::string & Log );
-		bool AddStatisticsData(std::string &SerialNumber, uint64_t CfgUUID, std::string &NewStats);
+		bool AddStatisticsData(GWObjects::Statistics & Stats);
 		bool GetStatisticsData(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate, uint64_t Offset, uint64_t HowMany,
 							   std::vector<GWObjects::Statistics> &Stats);
 		bool DeleteStatisticsData(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate );

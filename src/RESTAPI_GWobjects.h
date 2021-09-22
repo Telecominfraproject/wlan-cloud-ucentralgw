@@ -64,6 +64,7 @@ namespace OpenWifi::GWObjects {
 	};
 
 	struct Statistics {
+		std::string SerialNumber;
 		uint64_t 	UUID;
 		std::string Data;
 		uint64_t 	Recorded;

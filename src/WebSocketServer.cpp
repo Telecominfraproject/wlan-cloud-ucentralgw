@@ -389,14 +389,10 @@ namespace OpenWifi {
 						else
 							Logger_.debug(Poco::format("STATE(%s): UUID=%Lu Updating for CMD=%s.", CId_,
 													   UUID, request_uuid));
-
 						Conn_->UUID = UUID;
-
 						LookForUpgrade(UUID);
-
-						Storage()->AddStatisticsData(Serial, UUID, State);
-						DeviceRegistry()->SetStatistics(Serial, State);
-
+						GWObjects::Statistics	Stats{ .SerialNumber = SerialNumber_, .UUID = UUID, .Data = State};
+						Storage()->AddStatisticsData(Stats);
 						if (!request_uuid.empty()) {
 							Storage()->SetCommandResult(request_uuid, State);
 						}
