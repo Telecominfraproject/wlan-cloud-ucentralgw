@@ -506,9 +506,6 @@ namespace OpenWifi {
 					.AttachDate = i.get<15>(),
 					.AttachSize = i.get<16>(),
 					.AttachType = i.get<17>()};
-
-				//	Only return rhe commands for our own devices.
-				if (DeviceRegistry()->Connected(R.SerialNumber))
 					Commands.push_back(R);
 			}
 			return true;
