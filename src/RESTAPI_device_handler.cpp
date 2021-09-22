@@ -79,6 +79,7 @@ namespace OpenWifi {
 		Poco::toLowerInPlace(Device.SerialNumber);
 
 		if (Storage()->CreateDevice(Device)) {
+			SetCurrentConfigurationID(SerialNumber, Device.UUID);
 			Poco::JSON::Object DevObj;
 			Device.to_json(DevObj);
 			ReturnObject(DevObj);
@@ -131,8 +132,7 @@ namespace OpenWifi {
 
 		Existing.LastConfigurationChange = std::time(nullptr);
 		if (Storage()->UpdateDevice(Existing)) {
-			if(NewConfigUUID)
-				SetCurrentConfigurationID(SerialNumber, NewConfigUUID);
+			SetCurrentConfigurationID(SerialNumber, Existing.UUID);
 			Poco::JSON::Object DevObj;
 			NewDevice.to_json(DevObj);
 			ReturnObject(DevObj);
