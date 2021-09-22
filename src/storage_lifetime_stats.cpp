@@ -31,7 +31,7 @@ namespace OpenWifi {
 
 			std::string InsertOrReplace{
 				"insert into LifetimeStats (SerialNumber, Statistics, Created, Updated) VALUES(?,?,?,?) on conflict(SerialNumber) do  "
-				"update Statistics=?, Updated=?"
+				"update set Statistics=?, Updated=?"
 			};
 
 			uint64_t Now = time(nullptr);
