@@ -47,15 +47,14 @@ namespace OpenWifi {
             return instance_;
         }
 
-		bool AddLog(std::string & SerialNumber, GWObjects::DeviceLog & Log, bool CrashLog = false );
-		bool AddLog(std::string & SerialNumber, uint64_t UUID, const std::string & Log );
+        bool AddLog(const GWObjects::DeviceLog & Log);
 		bool AddStatisticsData(GWObjects::Statistics & Stats);
 		bool GetStatisticsData(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate, uint64_t Offset, uint64_t HowMany,
 							   std::vector<GWObjects::Statistics> &Stats);
 		bool DeleteStatisticsData(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate );
 		bool GetNewestStatisticsData(std::string &SerialNumber, uint64_t HowMany, std::vector<GWObjects::Statistics> &Stats);
 
-		bool AddHealthCheckData(std::string &SerialNumber, GWObjects::HealthCheck & Check);
+		bool AddHealthCheckData(const GWObjects::HealthCheck &Check);
 		bool GetHealthCheckData(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate, uint64_t Offset, uint64_t HowMany,
 								std::vector<GWObjects::HealthCheck> &Checks);
 		bool DeleteHealthCheckData(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate );
@@ -130,7 +129,7 @@ namespace OpenWifi {
 		bool GetLifetimeStats(std::string & SerialNumber, std::string & Stats);
 		bool ResetLifetimeStats(std::string & SerialNumber);
 
-		bool RemoveHealthchecksRecordsOlderThan(uint64_t Date);
+		bool RemoveHealthChecksRecordsOlderThan(uint64_t Date);
 		bool RemoveDeviceLogsRecordsOlderThan(uint64_t Date);
 		bool RemoveStatisticsRecordsOlderThan(uint64_t Date);
 		bool RemoveCommandListRecordsOlderThan(uint64_t Date);

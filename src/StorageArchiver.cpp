@@ -30,7 +30,7 @@ namespace OpenWifi {
 					for(const auto &i:DBs_) {
 						if (!Poco::icompare(i.DBName, "healthchecks")) {
 							std::cout << "Cleaning: " << i.DBName << std::endl;
-							Storage()->RemoveHealthchecksRecordsOlderThan(
+							Storage()->RemoveHealthChecksRecordsOlderThan(
 								std::time(nullptr) - (i.HowManyDays * 24 * 60 * 60));
 						} else if (!Poco::icompare(i.DBName, "statistics")) {
 							std::cout << "Cleaning: " << i.DBName << std::endl;

@@ -437,12 +437,13 @@ namespace OpenWifi {
 
 						GWObjects::HealthCheck Check;
 
+						Check.SerialNumber = SerialNumber_;
 						Check.Recorded = std::time(nullptr);
 						Check.UUID = UUID;
 						Check.Data = CheckData;
 						Check.Sanity = Sanity;
 
-						Storage()->AddHealthCheckData(Serial, Check);
+						Storage()->AddHealthCheckData(Check);
 
 						if (!request_uuid.empty()) {
 							Storage()->SetCommandResult(request_uuid, CheckData);
@@ -475,14 +476,14 @@ namespace OpenWifi {
 								DataStr = DataObj.toString();
 						}
 
-						GWObjects::DeviceLog DeviceLog{.Log = Log,
-															   .Data = DataStr,
-															   .Severity = Severity,
-															   .Recorded = (uint64_t)time(nullptr),
-															   .LogType = 0,
-															   .UUID = Conn_->UUID};
-
-						Storage()->AddLog(Serial, DeviceLog);
+						GWObjects::DeviceLog DeviceLog{		.SerialNumber = SerialNumber_,
+															.Log = Log,
+														   .Data = DataStr,
+														   .Severity = Severity,
+														   .Recorded = (uint64_t)time(nullptr),
+														   .LogType = 0,
+														   .UUID = Conn_->UUID};
+						Storage()->AddLog(DeviceLog);
 					} else {
 						Logger_.warning(Poco::format("LOG(%s): Missing parameters.", CId_));
 						return;
@@ -503,14 +504,15 @@ namespace OpenWifi {
 						}
 
 						GWObjects::DeviceLog DeviceLog{
+							.SerialNumber = SerialNumber_,
 							.Log = LogText,
 							.Data = "",
 							.Severity = GWObjects::DeviceLog::LOG_EMERG,
 							.Recorded = (uint64_t)time(nullptr),
 							.LogType = 1,
 							.UUID = Conn_->UUID};
+						Storage()->AddLog(DeviceLog);
 
-						Storage()->AddLog(Serial, DeviceLog, true);
 					} else {
 						Logger_.warning(Poco::format("LOG(%s): Missing parameters.", CId_));
 						return;

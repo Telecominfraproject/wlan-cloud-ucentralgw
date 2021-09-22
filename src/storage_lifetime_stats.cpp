@@ -46,7 +46,7 @@ namespace OpenWifi {
 			return true;
 		}
 		catch (const Poco::Exception &E) {
-			std::cout << "Cannot update lifetime stats...: " << E.what() << " .. " << E.displayText() << " .. " << E.className() << " .. " << E.message() << std::endl;
+//			std::cout << "Cannot update lifetime stats...: " << E.what() << " .. " << E.displayText() << " .. " << E.className() << " .. " << E.message() << std::endl;
 			Logger_.log(E);
 		}
 		return false;
