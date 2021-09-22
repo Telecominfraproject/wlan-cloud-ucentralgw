@@ -45,6 +45,12 @@ namespace OpenWifi {
 			return;
 		}
 
+		if (!Utils::ValidSerialNumber(SerialNumber)) {
+			Logger_.warning(Poco::format("CREATE-DEVICE(%s): Illegal serial number.", SerialNumber));
+			BadRequest("Invalid serial number.");
+			return;
+		}
+
 		auto Obj = ParseStream();
 		GWObjects::Device Device;
 		if (!Device.from_json(Obj)) {
@@ -52,7 +58,12 @@ namespace OpenWifi {
 			return;
 		}
 
-		if(!Device.Configuration.empty() && !ValidateUCentralConfiguration(Device.Configuration)) {
+		if(SerialNumber!=Device.SerialNumber) {
+			BadRequest("Serial Number mismatch.");
+			return;
+		}
+
+		if(Device.Configuration.empty() || (!Device.Configuration.empty() && !ValidateUCentralConfiguration(Device.Configuration))) {
 			BadRequest("Illegal configuration.");
 			return;
 		}
@@ -60,11 +71,12 @@ namespace OpenWifi {
 		for(auto &i:Device.Notes)
 			i.createdBy = UserInfo_.userinfo.email;
 
-		if (!Utils::ValidSerialNumber(Device.SerialNumber)) {
-			Logger_.warning(Poco::format("CREATE-DEVICE(%s): Illegal name.", Device.SerialNumber));
-			BadRequest("Invalid serial number.");
-			return;
-		}
+		Config::Config NewConfig(Device.Configuration);
+		Device.UUID = std::time(nullptr);
+		NewConfig.SetUUID(Device.UUID);
+		Device.Configuration = NewConfig.get();
+
+		Poco::toLowerInPlace(Device.SerialNumber);
 
 		if (Storage()->CreateDevice(Device)) {
 			Poco::JSON::Object DevObj;
