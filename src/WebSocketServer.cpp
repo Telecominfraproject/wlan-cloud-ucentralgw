@@ -208,6 +208,13 @@ namespace OpenWifi {
 		GWObjects::Device	D;
 		if(Storage()->GetDevice(SerialNumber_,D)) {
 
+			//	This is the case where the cache is empty after a restart. So GoodConfig will 0. If the device already
+			//	has the right UUID, we just return.
+			if(D.UUID == UUID ) {
+				ConfigurationCache().Add(SerialNumber_,UUID);
+				return false;
+			}
+
 			Conn_->PendingUUID = D.UUID;
 			GWObjects::CommandDetails  Cmd;
 			Cmd.SerialNumber = SerialNumber_;
