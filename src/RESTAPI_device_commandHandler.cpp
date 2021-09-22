@@ -208,13 +208,10 @@ void RESTAPI_device_commandHandler::Configure() {
 			return;
 		}
 
-		auto Configuration = GetS(RESTAPI::Protocol::CONFIGURATION, Obj,
-								  uCentralProtocol::EMPTY_JSON_DOC);
+		auto Configuration = GetS(RESTAPI::Protocol::CONFIGURATION, Obj,uCentralProtocol::EMPTY_JSON_DOC);
 		auto When = GetWhen(Obj);
-
 		uint64_t NewUUID;
-		if (Storage()->UpdateDeviceConfiguration(SerialNumber_, Configuration,
-														 NewUUID)) {
+		if (Storage()->UpdateDeviceConfiguration(SerialNumber_, Configuration, NewUUID)) {
 			GWObjects::CommandDetails Cmd;
 
 			Cmd.SerialNumber = SerialNumber_;

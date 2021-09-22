@@ -175,8 +175,7 @@ namespace OpenWifi {
 				return false;
 
 			uint64_t Now = time(nullptr);
-			D.LastConfigurationChange = (D.LastConfigurationChange==Now ? Now + 1 : Now);
-
+			NewUUID = D.LastConfigurationChange = (D.LastConfigurationChange==Now ? Now + 1 : Now);
 			if (Cfg.SetUUID(NewUUID)) {
 				Poco::Data::Statement   Update(Sess);
 				D.Configuration = Cfg.get();
