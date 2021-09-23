@@ -29,23 +29,22 @@ namespace OpenWifi {
 					std::lock_guard G(Mutex_);
 					for(const auto &i:DBs_) {
 						if (!Poco::icompare(i.DBName, "healthchecks")) {
-							std::cout << "Cleaning: " << i.DBName << std::endl;
+							Logger_.information("Archiving HealthChecks...");
 							Storage()->RemoveHealthChecksRecordsOlderThan(
 								std::time(nullptr) - (i.HowManyDays * 24 * 60 * 60));
 						} else if (!Poco::icompare(i.DBName, "statistics")) {
-							std::cout << "Cleaning: " << i.DBName << std::endl;
+							Logger_.information("Archiving Statistics...");
 							Storage()->RemoveStatisticsRecordsOlderThan(
 								std::time(nullptr) - (i.HowManyDays * 24 * 60 * 60));
 						} else if (!Poco::icompare(i.DBName, "devicelogs")) {
-							std::cout << "Cleaning: " << i.DBName << std::endl;
+							Logger_.information("Archiving Device Logs...");
 							Storage()->RemoveDeviceLogsRecordsOlderThan(
 								std::time(nullptr) - (i.HowManyDays * 24 * 60 * 60));
 						} else if (!Poco::icompare(i.DBName, "commandlist")) {
-							std::cout << "Cleaning: " << i.DBName << std::endl;
+							Logger_.information("Archiving Command History...");
 							Storage()->RemoveCommandListRecordsOlderThan(
 								std::time(nullptr) - (i.HowManyDays * 24 * 60 * 60));
 						} else {
-							std::cout << "Unknown DB name: " << i.DBName << std::endl;
 						}
 					}
 					LastRun_ = Now.day();
@@ -125,7 +124,6 @@ namespace OpenWifi {
 
 		if(Running_) {
 			Running_=false;
-			Janitor_.wakeUp();
 			Janitor_.wakeUp();
 			Janitor_.join();
 		}
