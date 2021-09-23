@@ -392,6 +392,7 @@ namespace OpenWifi {
 						Conn_->UUID = UUID;
 						LookForUpgrade(UUID);
 						GWObjects::Statistics	Stats{ .SerialNumber = SerialNumber_, .UUID = UUID, .Data = State};
+						Stats.Recorded = std::time(nullptr);
 						Storage()->AddStatisticsData(Stats);
 						if (!request_uuid.empty()) {
 							Storage()->SetCommandResult(request_uuid, State);
