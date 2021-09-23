@@ -11,7 +11,7 @@
 
 namespace OpenWifi {
 
-	const static std::string DB_StatsSelectFields{" SerialNumber, UUID INTEGER, Data TEXT, Recorded BIGINT "};
+	const static std::string DB_StatsSelectFields{" SerialNumber, UUID, Data, Recorded "};
 	const static std::string DB_StatsInsertValues{ "?,?,?,?"};
 
 	typedef Poco::Tuple<
