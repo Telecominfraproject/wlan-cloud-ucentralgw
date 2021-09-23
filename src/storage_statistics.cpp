@@ -45,7 +45,7 @@ namespace OpenWifi {
 			Logger_.information("Device:" + Stats.SerialNumber + " Stats size:" + std::to_string(Stats.Data.size()));
 			std::string St{"INSERT INTO Statistics ( " +
 								DB_StatsSelectFields +
-								" VALUES ( " +
+								" ) VALUES ( " +
 								DB_StatsInsertValues + " )"};
 			StatsRecordTuple R;
 			ConvertStatsRecord(Stats, R);
