@@ -7,10 +7,12 @@ RUN apk add --update --no-cache \
     make cmake gcc g++ libstdc++ libgcc git zlib-dev yaml-cpp-dev \
     openssl-dev boost-dev unixodbc-dev postgresql-dev mariadb-dev \
     apache2-utils yaml-dev apr-util-dev \
-    lua-dev librdkafka-dev
+    lua-dev librdkafka-dev \
+    nlohmann-json
 
 RUN git clone https://github.com/stephb9959/poco /poco
 RUN git clone https://github.com/stephb9959/cppkafka /cppkafka
+RUN git clone https://github.com/pboettch/json-schema-validator /json-schema-validator
 
 WORKDIR /cppkafka
 RUN mkdir cmake-build
@@ -25,6 +27,13 @@ WORKDIR cmake-build
 RUN cmake ..
 RUN cmake --build . --config Release -j8
 RUN cmake --build . --target install
+
+WORKDIR /json-schema-validator
+RUN mkdir cmake-build
+WORKDIR cmake-build
+RUN cmake ..
+RUN make
+RUN make install
 
 ADD CMakeLists.txt build /owgw/
 ADD cmake /owgw/cmake
