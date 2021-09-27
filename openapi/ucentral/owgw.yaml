@@ -768,6 +768,16 @@ components:
           type: integer
         hostname:
           type: string
+        certificates:
+          type: array
+          items:
+            type: object
+            properties:
+              filename:
+                type: string
+              expires:
+                type: integer
+                format: int64
 
     SystemCommandSetLogLevel:
       type: object

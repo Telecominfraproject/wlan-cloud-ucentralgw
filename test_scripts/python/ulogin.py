@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 #
-# See ../../openapi/ucentral/ucentral.yaml
+# See ../../openapi/ucentral/owgw.yaml
 
 """
 # Example usage
