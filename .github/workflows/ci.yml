@@ -28,7 +28,7 @@ jobs:
     - uses: actions/checkout@v2
 
     - name: Build Docker image
-      run: docker build -t wlan-cloud-ucentralgw:${{ github.sha }} .
+      run: docker build -t wlan-cloud-owgw:${{ github.sha }} .
 
     - name: Tag Docker image
       run: |
@@ -52,7 +52,7 @@ jobs:
         echo "Result tags: $TAGS"
 
         for tag in $TAGS; do
-          docker tag wlan-cloud-ucentralgw:${{ github.sha }} ${{ env.DOCKER_REGISTRY_URL }}/ucentralgw:$tag
+          docker tag wlan-cloud-owgw:${{ github.sha }} ${{ env.DOCKER_REGISTRY_URL }}/owgw:$tag
         done
 
     - name: Log into Docker registry
@@ -66,7 +66,7 @@ jobs:
     - name: Push Docker images
       if: startsWith(github.ref, 'refs/tags/') || startsWith(github.ref, 'refs/pull/') || github.ref == 'refs/heads/master'
       run: |
-        docker images | grep ${{ env.DOCKER_REGISTRY_URL }}/ucentralgw | awk -F ' ' '{print $1":"$2}' | xargs -I {} docker push {}
+        docker images | grep ${{ env.DOCKER_REGISTRY_URL }}/owgw | awk -F ' ' '{print $1":"$2}' | xargs -I {} docker push {}
 
   docker-compose:
     if: startsWith(github.ref, 'refs/tags/') || startsWith(github.ref, 'refs/pull/') || github.ref == 'refs/heads/master'
@@ -82,11 +82,11 @@ jobs:
     - name: Instantiate Docker Compose deployment
       working-directory: ./wlan-cloud-ucentral-deploy/docker-compose
       env:
-        UCENTRALGW_TAG: ${{ github.sha }}
+        OWGW_TAG: ${{ github.sha }}
       run: |
-        docker-compose up -d
+        docker-compose -f docker-compose.yml -f docker-compose.selfsigned.yml --env-file .env.selfsigned up -d
 
-    - name: Wait for uCentralSec to be alive and kicking
+    - name: Wait for OWSec to be alive and kicking
       run: |
         n=0
         until [ "$n" -ge 3 ]
@@ -100,11 +100,6 @@ jobs:
           fi
         done
 
-    - name: Add self-signed certificates to system trust store of containers
-      working-directory: ./wlan-cloud-ucentral-deploy/docker-compose
-      run: |
-        ./add-ca-cert.sh
-
     - name: Check out wlan-cloud-ucentralgw repository
       uses: actions/checkout@v2
       with:
@@ -112,8 +107,8 @@ jobs:
 
     - name: Check functionality of microservices
       env:
-        UCENTRALSEC: "ucentral.wlan.local:16001"
-        FLAGS: "-s --cacert ./wlan-cloud-ucentral-deploy/docker-compose/certs/restapi-ca.pem --resolve ucentral.wlan.local:16001:127.0.0.1"
+        OWSEC: "openwifi.wlan.local:16001"
+        FLAGS: "-s --cacert ./wlan-cloud-ucentral-deploy/docker-compose/certs/restapi-ca.pem --resolve openwifi.wlan.local:16001:127.0.0.1"
       run: |
         ./wlan-cloud-ucentralgw/test_scripts/curl/cli listdevices
 
