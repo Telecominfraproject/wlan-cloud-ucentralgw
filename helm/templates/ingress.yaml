@@ -5,10 +5,10 @@
 apiVersion: extensions/v1beta1
 kind: Ingress
 metadata:
-  name: {{ include "ucentralgw.fullname" $root }}-{{ $ingress }}
+  name: {{ include "owgw.fullname" $root }}-{{ $ingress }}
   labels:
-    app.kubernetes.io/name: {{ include "ucentralgw.name" $root }}
-    helm.sh/chart: {{ include "ucentralgw.chart" $root }}
+    app.kubernetes.io/name: {{ include "owgw.name" $root }}
+    helm.sh/chart: {{ include "owgw.chart" $root }}
     app.kubernetes.io/instance: {{ $root.Release.Name }}
     app.kubernetes.io/managed-by: {{ $root.Release.Service }}
   {{- with $ingressValue.annotations }}
@@ -37,7 +37,7 @@ spec:
       {{- range $ingressValue.paths }}
         - path: {{ .path }}
           backend:
-            serviceName: {{ include "ucentralgw.fullname" $root }}-{{ .serviceName }}
+            serviceName: {{ include "owgw.fullname" $root }}-{{ .serviceName }}
             servicePort: {{ .servicePort }}
       {{- end }}
   {{- end }}

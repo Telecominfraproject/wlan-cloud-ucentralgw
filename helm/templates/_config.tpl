@@ -1,4 +1,4 @@
-{{- define "ucentralgw.config" -}}
+{{- define "owgw.config" -}}
 {{- range $key, $value := .Values.configProperties }}
 {{ $key }} = {{ $value }}
 {{- end }}

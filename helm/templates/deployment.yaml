@@ -3,10 +3,10 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "ucentralgw.fullname" . }}
+  name: {{ include "owgw.fullname" . }}
   labels:
-    app.kubernetes.io/name: {{ include "ucentralgw.name" . }}
-    helm.sh/chart: {{ include "ucentralgw.chart" . }}
+    app.kubernetes.io/name: {{ include "owgw.name" . }}
+    helm.sh/chart: {{ include "owgw.chart" . }}
     app.kubernetes.io/instance: {{ .Release.Name }}
     app.kubernetes.io/managed-by: {{ .Release.Service }}
 spec:
@@ -15,19 +15,19 @@ spec:
     type: {{ .Values.strategyType }}
   selector:
     matchLabels:
-      app.kubernetes.io/name: {{ include "ucentralgw.name" . }}
+      app.kubernetes.io/name: {{ include "owgw.name" . }}
       app.kubernetes.io/instance: {{ .Release.Name }}
-      {{- with .Values.services.ucentralgw.labels }}
+      {{- with .Values.services.owgw.labels }}
       {{- toYaml . | nindent 6 }}
       {{- end }}
   template:
     metadata:
       annotations:
-        checksum/config: {{ include "ucentralgw.config" . | sha256sum }}
+        checksum/config: {{ include "owgw.config" . | sha256sum }}
       labels:
-        app.kubernetes.io/name: {{ include "ucentralgw.name" . }}
+        app.kubernetes.io/name: {{ include "owgw.name" . }}
         app.kubernetes.io/instance: {{ .Release.Name }}
-        {{- with .Values.services.ucentralgw.labels }}
+        {{- with .Values.services.owgw.labels }}
         {{- toYaml . | nindent 8 }}
         {{- end }}
     spec:
@@ -35,8 +35,8 @@ spec:
       containers:
 
         - name: ucentralgw
-          image: "{{ .Values.images.ucentralgw.repository }}:{{ .Values.images.ucentralgw.tag }}"
-          imagePullPolicy: {{ .Values.images.ucentralgw.pullPolicy }}
+          image: "{{ .Values.images.owgw.repository }}:{{ .Values.images.owgw.tag }}"
+          imagePullPolicy: {{ .Values.images.owgw.pullPolicy }}
 
           env:
             - name: KUBERNETES_DEPLOYED
@@ -49,12 +49,12 @@ spec:
             - name: {{ $key }}
               valueFrom:
                 secretKeyRef:
-                  name: {{ include "ucentralgw.fullname" $root }}-env
+                  name: {{ include "owgw.fullname" $root }}-env
                   key: {{ $key }}
           {{- end }}
 
           ports:
-          {{- range $port, $portValue := .Values.services.ucentralgw.ports }}
+          {{- range $port, $portValue := .Values.services.owgw.ports }}
             - name: {{ $port }}
               containerPort: {{ $portValue.targetPort }}
               protocol: {{ $portValue.protocol }}
@@ -69,13 +69,13 @@ spec:
             {{- end }}
           {{- end }}
 
-          {{- if .Values.checks.ucentralgw.liveness }}
+          {{- if .Values.checks.owgw.liveness }}
           livenessProbe:
-            {{- toYaml .Values.checks.ucentralgw.liveness | nindent 12 }}
+            {{- toYaml .Values.checks.owgw.liveness | nindent 12 }}
           {{- end }}
-          {{- if .Values.checks.ucentralgw.readiness }}
+          {{- if .Values.checks.owgw.readiness }}
           readinessProbe:
-            {{- toYaml .Values.checks.ucentralgw.readiness | nindent 12 }}
+            {{- toYaml .Values.checks.owgw.readiness | nindent 12 }}
           {{- end }}
 
           {{- with .Values.resources }}
@@ -91,7 +91,7 @@ spec:
       imagePullSecrets:
       {{- range $image, $imageValue := .Values.images }}
         {{- if $imageValue.regcred }}
-      - name: {{ include "ucentralgw.fullname" $root }}-{{ $image }}-regcred
+      - name: {{ include "owgw.fullname" $root }}-{{ $image }}-regcred
         {{- end }}
       {{- end }}
 
