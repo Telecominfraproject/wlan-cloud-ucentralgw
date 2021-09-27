@@ -22,11 +22,6 @@ namespace OpenWifi {
 
     class CommandManager * CommandManager::instance_ = nullptr;
 
-	CommandManager::CommandManager() noexcept:
-		SubSystemServer("CommandManager", "CMD_MGR", "command.manager")
-    {
-    }
-
 	void CommandManager::run() {
 		Running_ = true;
         while(Running_)
@@ -34,8 +29,8 @@ namespace OpenWifi {
             Poco::Thread::trySleep(30000);
 			if(!Running_)
 				break;
-            std::vector<GWObjects::CommandDetails> Commands;
 
+            std::vector<GWObjects::CommandDetails> Commands;
             if(Storage()->GetReadyToExecuteCommands(1,200,Commands))
             {
                 for(auto & Cmd: Commands)
@@ -84,53 +79,56 @@ namespace OpenWifi {
 	void CommandManager::Janitor() {
 		std::lock_guard G(Mutex_);
 		uint64_t Now = time(nullptr);
-
+		Logger_.information("Janitor starting.");
 		for(auto i=OutStandingRequests_.begin();i!=OutStandingRequests_.end();) {
 			if((Now-i->second.Submitted)>120)
 				i = OutStandingRequests_.erase(i);
 			else
 				++i;
 		}
+		Logger_.information("Janitor finished.");
 	}
 
 	bool CommandManager::GetCommand(uint64_t Id, const std::string &SerialNumber, CommandTag &T) {
 		std::lock_guard G(Mutex_);
 		CommandTagIndex	TI{.Id=Id,.SerialNumber=SerialNumber};
 		auto Hint=OutStandingRequests_.find(TI);
-		if(Hint!=OutStandingRequests_.end()) {
-			if(Hint->second.Completed) {
-				T = Hint->second;
-				OutStandingRequests_.erase(Hint);
-				return true;
-			}
-		}
-		return false;
+		if(Hint==OutStandingRequests_.end() || Hint->second.Completed==0)
+			return false;
+		T = Hint->second;
+		OutStandingRequests_.erase(Hint);
+		return true;
 	}
 
 	bool CommandManager::SendCommand(	const std::string &SerialNumber,
 							  			const std::string &Method,
 										const Poco::JSON::Object &Params,
 							  			const std::string &UUID,
-									 	uint64_t & Id) {
+									 	uint64_t & Id,
+									 	bool oneway_rpc) {
 
-		std::lock_guard G(Mutex_);
-
-		Id = ++Id_;
-		Poco::JSON::Object	CompleteRPC;
+		std::stringstream ToSend;
+		std::unique_lock G(Mutex_);
+		if(oneway_rpc)
+			Id = 1;
+		else
+			Id = ++Id_;
+		Poco::JSON::Object CompleteRPC;
 		CompleteRPC.set(uCentralProtocol::JSONRPC, uCentralProtocol::JSONRPC_VERSION);
 		CompleteRPC.set(uCentralProtocol::ID, Id);
-		CompleteRPC.set(uCentralProtocol::METHOD, Method );
+		CompleteRPC.set(uCentralProtocol::METHOD, Method);
 		CompleteRPC.set(uCentralProtocol::PARAMS, Params);
-		std::stringstream ToSend;
 		Poco::JSON::Stringifier::stringify(CompleteRPC, ToSend);
-		Logger_.information(Poco::format("(%s): Sending command '%s', ID: %lu", SerialNumber, Method, Id));
-		CommandTagIndex Idx{.Id=Id, .SerialNumber=SerialNumber};
-		CommandTag		Tag;
+		Logger_.information(
+			Poco::format("(%s): Sending command '%s', ID: %lu", SerialNumber, Method, Id));
+		CommandTagIndex Idx{.Id = Id, .SerialNumber = SerialNumber};
+		CommandTag Tag;
 		Tag.UUID = UUID;
-		Tag.Submitted=std::time(nullptr);
-		Tag.Completed=0;
+		Tag.Submitted = std::time(nullptr);
+		Tag.Completed = 0;
 		Tag.Result = Poco::makeShared<Poco::JSON::Object>();
 		OutStandingRequests_[Idx] = Tag;
+		G.unlock();
 		return DeviceRegistry()->SendFrame(SerialNumber, ToSend.str());
 	}
 
@@ -142,17 +140,22 @@ namespace OpenWifi {
 		}
 
 		uint64_t ID = Obj->get(uCentralProtocol::ID);
-		std::lock_guard G(Mutex_);
-		auto Idx = CommandTagIndex{.Id=ID,.SerialNumber=SerialNumber};
-		auto RPC = OutStandingRequests_.find(Idx);
-		if(RPC != OutStandingRequests_.end()) {
-			RPC->second.Completed=std::time(nullptr);
-			RPC->second.Result=Obj;
-			Logger_.information(Poco::format("(%s): Received RPC answer %lu", SerialNumber, ID));
-			Storage()->CommandCompleted(RPC->second.UUID, Obj, true);
-		} else {
-			Logger_.warning(Poco::format("(%s): Outdated RPC %lu", SerialNumber, ID));
+		if(ID<2) {
+			Logger_.error(Poco::format("(%s): Ignoring RPC response.",SerialNumber));
+			return;
 		}
+		std::unique_lock G(Mutex_);
+		auto Idx = CommandTagIndex{.Id = ID, .SerialNumber = SerialNumber};
+		auto RPC = OutStandingRequests_.find(Idx);
+		if (RPC == OutStandingRequests_.end()) {
+			Logger_.warning(Poco::format("(%s): Outdated RPC %lu", SerialNumber, ID));
+			return;
+		}
+		RPC->second.Completed = std::time(nullptr);
+		RPC->second.Result = Obj;
+		Logger_.information(Poco::format("(%s): Received RPC answer %lu", SerialNumber, ID));
+		G.unlock();
+		Storage()->CommandCompleted(RPC->second.UUID, Obj, true);
 	}
 
 }  // namespace

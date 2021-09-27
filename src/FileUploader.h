@@ -23,6 +23,7 @@ namespace OpenWifi {
     public:
 		int Start() override;
 		void Stop() override;
+		void reinitialize(Poco::Util::Application &self) override;
 		const std::string & FullName();
 		bool AddUUID( const std::string & UUID);
 		bool ValidRequest(const std::string & UUID);
@@ -48,9 +49,8 @@ namespace OpenWifi {
 		uint64_t 						MaxSize_=10000000;
 
 		explicit FileUploader() noexcept:
-			SubSystemServer("FileUploader", "FILE-UPLOAD", "ucentral.fileuploader")
+			SubSystemServer("FileUploader", "FILE-UPLOAD", "openwifi.fileuploader")
 		{
-			SubMutexGuard		Guard(Mutex_);
 		}
     };
 

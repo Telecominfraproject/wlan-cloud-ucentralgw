@@ -57,19 +57,11 @@ namespace OpenWifi {
 			void WakeUp();
 			void PostCommandResult(const std::string &SerialNumber, Poco::JSON::Object::Ptr Obj);
 			bool SendCommand(	const std::string &SerialNumber,
-								 const std::string &Method,
-								 const Poco::JSON::Object &Params,
-								 const std::string &UUID,
-								 uint64_t & Id);
-
-/*			bool SendCommand( 	const std::string & SerialNumber,
-								 const std::string & Method,
-								 const Poco::JSON::Object &Params,
-								 const std::string & UUID);
-
-			bool SendCommand(GWObjects::CommandDetails & Command);
-*/
-
+								const std::string &Method,
+								const Poco::JSON::Object &Params,
+								const std::string &UUID,
+							 	uint64_t & Id,
+							 	bool oneway_rpc=false);
 			void Janitor();
 			void run() override;
 
@@ -87,9 +79,13 @@ namespace OpenWifi {
 			static CommandManager 		* instance_;
 			std::atomic_bool 			Running_ = false;
 			Poco::Thread    			ManagerThread;
-			uint64_t 					Id_=1;
+			uint64_t 					Id_=2;	//	do not start @1. We ignore ID=1 & 0 is illegal..
 			std::map<CommandTagIndex,CommandTag>	OutStandingRequests_;
-			CommandManager() noexcept;
+
+			CommandManager() noexcept:
+				SubSystemServer("CommandManager", "CMD-MGR", "command.manager")
+				{
+				}
 	};
 
 	inline CommandManager * CommandManager() { return CommandManager::instance(); }

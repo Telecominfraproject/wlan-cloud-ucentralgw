@@ -36,7 +36,8 @@ namespace OpenWifi {
 			COMMAND_PENDING,
 			COMMAND_EXECUTED,
 			COMMAND_COMPLETED,
-			COMMAND_TIMEDOUT
+			COMMAND_TIMEDOUT,
+			COMMAND_FAILED
 		};
 
         static Storage *instance() {
@@ -46,15 +47,14 @@ namespace OpenWifi {
             return instance_;
         }
 
-		bool AddLog(std::string & SerialNumber, GWObjects::DeviceLog & Log, bool CrashLog = false );
-		bool AddLog(std::string & SerialNumber, uint64_t UUID, const std::string & Log );
-		bool AddStatisticsData(std::string &SerialNumber, uint64_t CfgUUID, std::string &NewStats);
+        bool AddLog(const GWObjects::DeviceLog & Log);
+		bool AddStatisticsData(const GWObjects::Statistics & Stats);
 		bool GetStatisticsData(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate, uint64_t Offset, uint64_t HowMany,
 							   std::vector<GWObjects::Statistics> &Stats);
 		bool DeleteStatisticsData(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate );
 		bool GetNewestStatisticsData(std::string &SerialNumber, uint64_t HowMany, std::vector<GWObjects::Statistics> &Stats);
 
-		bool AddHealthCheckData(std::string &SerialNumber, GWObjects::HealthCheck & Check);
+		bool AddHealthCheckData(const GWObjects::HealthCheck &Check);
 		bool GetHealthCheckData(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate, uint64_t Offset, uint64_t HowMany,
 								std::vector<GWObjects::HealthCheck> &Checks);
 		bool DeleteHealthCheckData(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate );
@@ -114,13 +114,14 @@ namespace OpenWifi {
 		bool CommandCompleted(std::string & UUID, const Poco::JSON::Object::Ptr & ReturnVars, bool FullCommand);
 		bool AttachFileToCommand(std::string & UUID);
 		bool CancelWaitFile( std::string & UUID, std::string & ErrorText );
-		bool GetAttachedFile(std::string & UUID, std::string & SerialNumber, const std::string & FileName, std::string &Type);
+		bool GetAttachedFile(std::string & UUID, const std::string & SerialNumber, const std::string & FileName, std::string &Type);
 		bool RemoveAttachedFile(std::string & UUID);
 		bool SetCommandResult(std::string & UUID, std::string & Result);
 		bool GetNewestCommands(std::string &SerialNumber, uint64_t HowMany, std::vector<GWObjects::CommandDetails> & Commands);
 		bool SetCommandExecuted(std::string & CommandUUID);
 
 		bool AddBlackListDevices(std::vector<GWObjects::BlackListedDevice> &  Devices);
+		bool GetBlackListDevice(std::string & SerialNumber, GWObjects::BlackListedDevice & Device);
 		bool DeleteBlackListDevice(std::string & SerialNumber);
 		bool IsBlackListed(std::string & SerialNumber);
 		bool GetBlackListDevices(uint64_t Offset, uint64_t HowMany, std::vector<GWObjects::BlackListedDevice> & Devices );
@@ -129,7 +130,7 @@ namespace OpenWifi {
 		bool GetLifetimeStats(std::string & SerialNumber, std::string & Stats);
 		bool ResetLifetimeStats(std::string & SerialNumber);
 
-		bool RemoveHealthchecksRecordsOlderThan(uint64_t Date);
+		bool RemoveHealthChecksRecordsOlderThan(uint64_t Date);
 		bool RemoveDeviceLogsRecordsOlderThan(uint64_t Date);
 		bool RemoveStatisticsRecordsOlderThan(uint64_t Date);
 		bool RemoveCommandListRecordsOlderThan(uint64_t Date);

@@ -171,7 +171,7 @@ configProperties:
   ucentral.fileuploader.host.0.port: 16003
   ucentral.fileuploader.host.0.cert: $UCENTRALGW_ROOT/certs/restapi-cert.pem
   ucentral.fileuploader.host.0.key: $UCENTRALGW_ROOT/certs/restapi-key.pem
-  ucentral.fileuploader.path: $UCENTRALGW_ROOT/persist/uploads
+  ucentral.fileuploader.path: $UCENTRALGW_ROOT/uploads
   ucentral.fileuploader.maxsize: 10000
   # Auto provisioning
   ucentral.autoprovisioning: "true"

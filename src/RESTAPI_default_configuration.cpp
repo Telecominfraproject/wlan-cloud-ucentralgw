@@ -13,68 +13,72 @@
 #include "RESTAPI_GWobjects.h"
 #include "RESTAPI_protocol.h"
 #include "StorageService.h"
+#include "RESTAPI_errors.h"
 
 namespace OpenWifi {
-void RESTAPI_default_configuration::handleRequest(Poco::Net::HTTPServerRequest &Request,
-												  Poco::Net::HTTPServerResponse &Response) {
-	if (!ContinueProcessing(Request, Response))
-		return;
-
-	if (!IsAuthorized(Request, Response))
-		return;
-
-	std::string Name = GetBinding(RESTAPI::Protocol::NAME, "");
-	ParseParameters(Request);
-
-	if (Request.getMethod() == Poco::Net::HTTPRequest::HTTP_GET) {
+	void RESTAPI_default_configuration::DoGet() {
+		std::string Name = GetBinding(RESTAPI::Protocol::NAME, "");
 		GWObjects::DefaultConfiguration DefConfig;
 		if (Storage()->GetDefaultConfiguration(Name, DefConfig)) {
 			Poco::JSON::Object Obj;
 			DefConfig.to_json(Obj);
-			ReturnObject(Request, Obj, Response);
-		} else {
-			NotFound(Request, Response);
+			ReturnObject(Obj);
+			return;
 		}
-	} else if (Request.getMethod() == Poco::Net::HTTPRequest::HTTP_DELETE) {
-		if (Storage()->DeleteDefaultConfiguration(Name)) {
-			OK(Request, Response);
-		} else {
-			NotFound(Request, Response);
-		}
-	} else if (Request.getMethod() == Poco::Net::HTTPRequest::HTTP_POST) {
-		Poco::JSON::Parser IncomingParser;
-		Poco::JSON::Object::Ptr Obj =
-			IncomingParser.parse(Request.stream()).extract<Poco::JSON::Object::Ptr>();
-		GWObjects::DefaultConfiguration DefConfig;
+		NotFound();
+	}
 
-		if (!DefConfig.from_json(Obj)) {
-			BadRequest(Request, Response);
+	void RESTAPI_default_configuration::DoDelete() {
+		std::string Name = GetBinding(RESTAPI::Protocol::NAME, "");
+		if(Name.empty()) {
+			BadRequest(RESTAPI::Errors::MissingOrInvalidParameters);
+			return;
+		}
+
+		if (Storage()->DeleteDefaultConfiguration(Name)) {
+			OK();
+			return;
+		}
+		NotFound();
+	}
+
+	void RESTAPI_default_configuration::DoPost() {
+		std::string Name = GetBinding(RESTAPI::Protocol::NAME, "");
+
+		if(Name.empty()) {
+			BadRequest(RESTAPI::Errors::MissingOrInvalidParameters);
+			return;
+		}
+
+		auto Obj = ParseStream();
+		GWObjects::DefaultConfiguration DefConfig;
+			if (!DefConfig.from_json(Obj)) {
+			BadRequest(RESTAPI::Errors::InvalidJSONDocument);
 			return;
 		}
 
 		if (Storage()->CreateDefaultConfiguration(Name, DefConfig)) {
-			OK(Request, Response);
-		} else {
-			BadRequest(Request, Response);
+			OK();
+			return;
 		}
-	} else if (Request.getMethod() == Poco::Net::HTTPRequest::HTTP_PUT) {
-		Poco::JSON::Parser IncomingParser;
-		Poco::JSON::Object::Ptr Obj =
-			IncomingParser.parse(Request.stream()).extract<Poco::JSON::Object::Ptr>();
+		InternalError();
+	}
 
-		GWObjects::DefaultConfiguration DefConfig;
+	void RESTAPI_default_configuration::DoPut() {
+		std::string Name = GetBinding(RESTAPI::Protocol::NAME, "");
+
+		auto  Obj = ParseStream();
+			GWObjects::DefaultConfiguration DefConfig;
+
 		if (!DefConfig.from_json(Obj)) {
-			BadRequest(Request, Response);
+			BadRequest(RESTAPI::Errors::InvalidJSONDocument);
 			return;
 		}
 
 		if (Storage()->UpdateDefaultConfiguration(Name, DefConfig)) {
-			OK(Request, Response);
-		} else {
-			BadRequest(Request, Response);
+			OK();
+			return;
 		}
-	} else {
-		BadRequest(Request, Response);
+		InternalError();
 	}
-}
 }

@@ -19,57 +19,107 @@
 
 namespace OpenWifi {
 
-	typedef Poco::Tuple<
-		std::string,
-		std::string,
-		std::string,
-		std::string,
-		std::string,
-		std::string,
-		std::string,
-		std::string,
-		uint64_t,
-		uint64_t,
-		uint64_t,
-		uint64_t,
-		uint64_t,
-		uint64_t,
-		uint64_t,
-		uint64_t,
-		uint64_t,
-		std::string> CommandDetailsRecordTuple;
+const static std::string	DB_Command_SelectFields{
+				"UUID, "
+				"SerialNumber, "
+				"Command, "
+				"Status, "
+				"SubmittedBy, "
+				"Results, "
+				"Details, "
+				"ErrorText, "
+				"Submitted, "
+				"Executed, "
+				"Completed, "
+				"RunAt, "
+				"ErrorCode, "
+				"Custom, "
+				"WaitingForFile, "
+				"AttachDate, "
+				"AttachSize, "
+				"AttachType " };
+
+const static std::string 	DB_Command_InsertValues{"?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?"};
+
+typedef Poco::Tuple<
+			std::string,
+			std::string,
+			std::string,
+			std::string,
+			std::string,
+			std::string,
+			std::string,
+			std::string,
+			uint64_t,
+			uint64_t,
+			uint64_t,
+			uint64_t,
+			uint64_t,
+			uint64_t,
+			uint64_t,
+			uint64_t,
+			uint64_t,
+			std::string
+		> CommandDetailsRecordTuple;
+	typedef std::vector<CommandDetailsRecordTuple> CommandDetailsRecordList;
+
+	void ConvertCommandRecord(const CommandDetailsRecordTuple &R, GWObjects::CommandDetails & Command) {
+		Command.UUID = R.get<0>();
+		Command.SerialNumber = R.get<1>();
+		Command.Command = R.get<2>();
+		Command.Status = R.get<3>();
+		Command.SubmittedBy = R.get<4>();
+		Command.Results = R.get<5>();
+		Command.Details = R.get<6>();
+		Command.ErrorText = R.get<7>();
+		Command.Submitted = R.get<8>();
+		Command.Executed = R.get<9>();
+		Command.Completed = R.get<10>();
+		Command.RunAt = R.get<11>();
+		Command.ErrorCode = R.get<12>();
+		Command.Custom = R.get<13>();
+		Command.WaitingForFile = R.get<14>();
+		Command.AttachDate = R.get<15>();
+		Command.AttachSize = R.get<16>();
+		Command.AttachType = R.get<17>();
+	}
+
+	void ConvertCommandRecord(const GWObjects::CommandDetails & Command, CommandDetailsRecordTuple &R) {
+		R.set<0>(Command.UUID);
+		R.set<1>(Command.SerialNumber);
+		R.set<2>(Command.Command);
+		R.set<3>(Command.Status);
+		R.set<4>(Command.SubmittedBy);
+		R.set<5>(Command.Results);
+		R.set<6>(Command.Details);
+		R.set<7>(Command.ErrorText);
+		R.set<8>(Command.Submitted);
+		R.set<9>(Command.Executed);
+		R.set<10>(Command.Completed);
+		R.set<11>(Command.RunAt);
+		R.set<12>(Command.ErrorCode);
+		R.set<13>(Command.Custom);
+		R.set<14>(Command.WaitingForFile);
+		R.set<15>(Command.AttachDate);
+		R.set<16>(Command.AttachSize);
+		R.set<17>(Command.AttachType);
+	}
 
 	bool Storage::AddCommand(std::string &SerialNumber, GWObjects::CommandDetails &Command, CommandExecutionType Type) {
 		try {
-			/*
-					"UUID           VARCHAR(30) PRIMARY KEY, "
-					"SerialNumber   VARCHAR(30), "
-					"Command        VARCHAR(32), "
-					"Status         VARCHAR(64), "
-					"SubmittedBy    VARCHAR(64), "
-					"Results        TEXT, "
-					"Details        TEXT, "
-					"Submitted      BIGINT, "
-					"Executed       BIGINT, "
-					"Completed      BIGINT, "
-					"RunAt          BIGINT, "
-					"ErrorCode      BIGINT, "
-					"Custom         BIGINT, "
-					"WaitingForFile BIGINT, "
-					"AttachDate     BIGINT,"
-					"AttachSize     BIGINT,"
-					"AttachType     VARCHAR(64)"
-			 */
-
 			uint64_t Now = time(nullptr);
 
 			if(Type == COMMAND_PENDING) {
 				Command.Status = "pending";
 			} else if(Type == COMMAND_COMPLETED) {
 				Command.Status = "completed";
+				Command.Executed = Now;
 			} else if (Type == COMMAND_TIMEDOUT) {
 				Command.Executed = Now;
 				Command.Status = "timedout";
+			} else if (Type == COMMAND_FAILED) {
+				Command.Executed = Now;
+				Command.Status = "failed";
 			} else {
 				Command.Executed = Now;
 				Command.Status = "executing";
@@ -78,34 +128,21 @@ namespace OpenWifi {
 			Poco::Data::Session Sess = Pool_->get();
 			Poco::Data::Statement Insert(Sess);
 
-			std::string St{"INSERT INTO CommandList (UUID, SerialNumber, Command, Status, SubmittedBy, Results, Details, "
-						   "Submitted, Executed, Completed, RunAt, ErrorCode, Custom, WaitingForFile, AttachDate, AttachSize, AttachType) "
-						   "VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)"};
+			std::string St{"INSERT INTO CommandList ( " +
+						   DB_Command_SelectFields + " ) VALUES( " +
+						   DB_Command_InsertValues + " )"};
 
-			Insert << ConvertParams(St), Poco::Data::Keywords::use(Command.UUID),
-				Poco::Data::Keywords::use(Command.SerialNumber),
-				Poco::Data::Keywords::use(Command.Command),
-				Poco::Data::Keywords::use(Command.Status),
-				Poco::Data::Keywords::use(Command.SubmittedBy),
-				Poco::Data::Keywords::use(Command.Results),
-				Poco::Data::Keywords::use(Command.Details),
-				Poco::Data::Keywords::use(Command.Submitted),
-				Poco::Data::Keywords::use(Command.Executed),
-				Poco::Data::Keywords::use(Command.Completed),
-				Poco::Data::Keywords::use(Command.RunAt),
-				Poco::Data::Keywords::use(Command.ErrorCode),
-				Poco::Data::Keywords::use(Command.Custom),
-				Poco::Data::Keywords::use(Command.WaitingForFile),
-				Poco::Data::Keywords::use(Command.AttachDate),
-				Poco::Data::Keywords::use(Command.AttachSize),
-				Poco::Data::Keywords::use(Command.AttachType);
+			CommandDetailsRecordTuple R;
+			ConvertCommandRecord(Command, R);
 
+			Insert << ConvertParams(St),
+				Poco::Data::Keywords::use(R);
 			Insert.execute();
 
 			return true;
+
 		} catch (const Poco::Exception &E) {
-			Logger_.warning(Poco::format("%s(%s): Failed with: %s", std::string(__func__), SerialNumber,
-										 E.displayText()));
+			Logger_.log(E);
 		}
 		return false;
 	}
@@ -113,40 +150,16 @@ namespace OpenWifi {
 	bool Storage::GetCommands(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate,
 							  uint64_t Offset, uint64_t HowMany,
 							  std::vector<GWObjects::CommandDetails> &Commands) {
-
-		typedef std::vector<CommandDetailsRecordTuple> RecordList;
-
-		/*
-			"UUID           VARCHAR(30) PRIMARY KEY, "
-			"SerialNumber   VARCHAR(30), "
-			"Command        VARCHAR(32), "
-			"Status         VARCHAR(64), "
-			"SubmittedBy    VARCHAR(64), "
-			"Results        TEXT, "
-			"Details        TEXT, "
-			"ErrorText      TEXT, "
-			"Submitted      BIGINT, "
-			"Executed       BIGINT, "
-			"Completed      BIGINT, "
-			"RunAt          BIGINT, "
-			"ErrorCode      BIGINT, "
-			"Custom         BIGINT, "
-			"WaitingForFile BIGINT, "
-			"AttachDate     BIGINT,"
-			"AttachSize     BIGINT,"
-			"AttachType     VARCHAR(64)"
-		 */
-
 		try {
-			RecordList Records;
+			CommandDetailsRecordList Records;
 			Poco::Data::Session Sess = Pool_->get();
 
 			bool DatesIncluded = (FromDate != 0 || ToDate != 0);
 
 			std::string Fields{
-				"SELECT UUID, SerialNumber, Command, Status, SubmittedBy, Results, Details, ErrorText, "
-				"Submitted, Executed, Completed, RunAt, ErrorCode, Custom, WaitingForFile, AttachDate, "
-				"AttachSize, AttachType  FROM CommandList ORDER BY UUID ASC "};
+				"SELECT " +
+					DB_Command_SelectFields +
+					" FROM CommandList ORDER BY UUID ASC "};
 			std::string IntroStatement = SerialNumber.empty()
 											 ? Fields + std::string(DatesIncluded ? "WHERE " : "")
 											 : Fields + "WHERE SerialNumber='" + SerialNumber + "'" +
@@ -164,38 +177,17 @@ namespace OpenWifi {
 
 			Poco::Data::Statement Select(Sess);
 
-			Select << IntroStatement + DateSelector +
-						  ComputeRange(Offset, HowMany), Poco::Data::Keywords::into(Records);
-
+			Select << 	IntroStatement + DateSelector + ComputeRange(Offset, HowMany),
+				Poco::Data::Keywords::into(Records);
 			Select.execute();
-
-			for (auto i : Records) {
-				GWObjects::CommandDetails R{.UUID = i.get<0>(),
-										 .SerialNumber = i.get<1>(),
-										 .Command = i.get<2>(),
-										 .Status = i.get<3>(),
-										 .SubmittedBy = i.get<4>(),
-										 .Results = i.get<5>(),
-										 .Details = i.get<6>(),
-										 .ErrorText = i.get<7>(),
-										 .Submitted = i.get<8>(),
-										 .Executed = i.get<9>(),
-										 .Completed = i.get<10>(),
-										 .RunAt = i.get<11>(),
-										 .ErrorCode = i.get<12>(),
-										 .Custom = i.get<13>(),
-										 .WaitingForFile = i.get<14>(),
-										 .AttachDate = i.get<15>(),
-										 .AttachSize = i.get<16>(),
-										 .AttachType = i.get<17>()};
-
+			for (const auto &i : Records) {
+				GWObjects::CommandDetails R;
+				ConvertCommandRecord(i, R);
 				Commands.push_back(R);
 			}
-
 			return true;
 		} catch (const Poco::Exception &E) {
-			Logger_.warning(Poco::format("%s(%s): Failed with: %s", std::string(__func__), SerialNumber,
-										 E.displayText()));
+			Logger_.log(E);
 		}
 		return false;
 	}
@@ -224,82 +216,36 @@ namespace OpenWifi {
 			}
 
 			Delete << IntroStatement + DateSelector;
-
 			Delete.execute();
 
 			return true;
 		} catch (const Poco::Exception &E) {
-			Logger_.warning(Poco::format("%s(%s): Failed with: %s", std::string(__func__), SerialNumber,
-										 E.displayText()));
+			Logger_.log(E);
 		}
 		return false;
 	}
 
-	typedef std::vector<CommandDetailsRecordTuple> RecordList;
-
 	bool Storage::GetNonExecutedCommands(uint64_t Offset, uint64_t HowMany,
 										 std::vector<GWObjects::CommandDetails> &Commands) {
-	//	typedef std::vector<CommandDetailsRecordTuple> RecordList;
-		/*
-			"UUID           VARCHAR(30) PRIMARY KEY, "
-			"SerialNumber   VARCHAR(30), "
-			"Command        VARCHAR(32), "
-			"Status         VARCHAR(64), "
-			"SubmittedBy    VARCHAR(64), "
-			"Results        TEXT, "
-			"Details        TEXT, "
-			"ErrorText      TEXT, "
-			"Submitted      BIGINT, "
-			"Executed       BIGINT, "
-			"Completed      BIGINT, "
-			"RunAt          BIGINT, "
-			"ErrorCode      BIGINT, "
-			"Custom         BIGINT, "
-			"WaitingForFile BIGINT, "
-			"AttachDate     BIGINT,"
-			"AttachSize     BIGINT,"
-			"AttachType     VARCHAR(64)"
-		 */
-
 		try {
-			RecordList Records;
+			CommandDetailsRecordList Records;
 
 			Poco::Data::Session Sess = Pool_->get();
 			Poco::Data::Statement Select(Sess);
 			bool Done = false;
 
 			while (Commands.size() < HowMany && !Done) {
-				// range(Offset, Offset + HowMany - 1)
-				std::string st{	"SELECT UUID, SerialNumber, Command, Status, SubmittedBy, Results, Details, ErrorText,"
-								   	"Submitted, Executed, Completed, RunAt, ErrorCode, Custom, WaitingForFile, AttachDate,"
-								   	"AttachSize, AttachType FROM CommandList ORDER BY UUID ASC "
-								   	"WHERE Executed=0" };
+				std::string st{	"SELECT " +
+								   DB_Command_SelectFields +
+								   " FROM CommandList ORDER BY UUID ASC WHERE Executed=0" };
 				Select << 	ConvertParams(st) + ComputeRange(Offset, HowMany),
 							Poco::Data::Keywords::into(Records);
 				Select.execute();
 
-				for (auto i : Records) {
+				for (const auto &i : Records) {
 					Offset++;
-					GWObjects::CommandDetails R{.UUID = i.get<0>(),
-											 .SerialNumber = i.get<1>(),
-											 .Command = i.get<2>(),
-											 .Status = i.get<3>(),
-											 .SubmittedBy = i.get<4>(),
-											 .Results = i.get<5>(),
-											 .Details = i.get<6>(),
-											 .ErrorText = i.get<7>(),
-											 .Submitted = i.get<8>(),
-											 .Executed = i.get<9>(),
-											 .Completed = i.get<10>(),
-											 .RunAt = i.get<11>(),
-											 .ErrorCode = i.get<12>(),
-											 .Custom = i.get<13>(),
-											 .WaitingForFile = i.get<14>(),
-											 .AttachDate = i.get<15>(),
-											 .AttachSize = i.get<16>(),
-											 .AttachType = i.get<17>()};
-
-					//	Only return rhe commands for our own devices.
+					GWObjects::CommandDetails R;
+					ConvertCommandRecord(i,R);
 					if (DeviceRegistry()->Connected(R.SerialNumber))
 						Commands.push_back(R);
 				}
@@ -311,8 +257,7 @@ namespace OpenWifi {
 
 			return true;
 		} catch (const Poco::Exception &E) {
-			Logger_.warning(
-				Poco::format("%s: Failed with: %s", std::string(__func__), E.displayText()));
+			Logger_.log(E);
 		}
 		return false;
 	}
@@ -321,25 +266,6 @@ namespace OpenWifi {
 
 		try {
 			Poco::Data::Session Sess = Pool_->get();
-			/*
-				"UUID           VARCHAR(30) PRIMARY KEY, "
-				"SerialNumber   VARCHAR(30), "
-				"Command        VARCHAR(32), "
-				"Status         VARCHAR(64), "
-				"SubmittedBy    VARCHAR(64), "
-				"Results        TEXT, "
-				"Details        TEXT, "
-				"ErrorText      TEXT, "
-				"Submitted      BIGINT, "
-				"Executed       BIGINT, "
-				"Completed      BIGINT, "
-				"RunAt          BIGINT, "
-				"ErrorCode      BIGINT, "
-				"Custom         BIGINT, "
-				"WaitingForFile BIGINT, "
-				"AttachDate     BIGINT"
-			 */
-
 			Poco::Data::Statement Update(Sess);
 
 			std::string St{"UPDATE CommandList SET Status=?,  Executed=?,  Completed=?,  Results=?,  ErrorText=?,  ErrorCode=?  WHERE UUID=?"};
@@ -356,8 +282,7 @@ namespace OpenWifi {
 			return true;
 
 		} catch (const Poco::Exception &E) {
-			Logger_.warning(
-				Poco::format("%s(%s): Failed with: %s", std::string(__func__), UUID, E.displayText()));
+			Logger_.log(E);
 		}
 		return false;
 	}
@@ -376,8 +301,7 @@ namespace OpenWifi {
 			Update.execute();
 			return true;
 		} catch (const Poco::Exception &E) {
-			Logger_.warning(
-				Poco::format("%s(%s): Failed with: %s", std::string(__func__), CommandUUID, E.displayText()));
+			Logger_.log(E);
 		}
 		return false;
 	}
@@ -386,58 +310,21 @@ namespace OpenWifi {
 
 		try {
 			Poco::Data::Session Sess = Pool_->get();
-			/*
-				"UUID           VARCHAR(30) PRIMARY KEY, "
-				"SerialNumber   VARCHAR(30), "
-				"Command        VARCHAR(32), "
-				"Status         VARCHAR(64), "
-				"SubmittedBy    VARCHAR(64), "
-				"Results        TEXT, "
-				"Details        TEXT, "
-				"ErrorText      TEXT, "
-				"Submitted      BIGINT, "
-				"Executed       BIGINT, "
-				"Completed      BIGINT, "
-				"RunAt          BIGINT, "
-				"ErrorCode      BIGINT, "
-				"Custom         BIGINT, "
-				"WaitingForFile BIGINT, "
-				"AttachDate     BIGINT,"
-				"AttachSize     BIGINT,"
-				"AttachType     VARCHAR(64)"
-			 */
 			Poco::Data::Statement Select(Sess);
 
 			std::string St{
-				"SELECT UUID, SerialNumber, Command, Status, SubmittedBy, Results, Details, ErrorText, "
-				"Submitted, Executed, Completed, RunAt, ErrorCode, Custom, WaitingForFile, AttachDate, AttachSize, AttachType  FROM CommandList "
-				"WHERE UUID=?"};
+				"SELECT " +
+				DB_Command_SelectFields +
+				" FROM CommandList WHERE UUID=?"};
 
-			Select << ConvertParams(St), Poco::Data::Keywords::into(Command.UUID),
-				Poco::Data::Keywords::into(Command.SerialNumber),
-				Poco::Data::Keywords::into(Command.Command), Poco::Data::Keywords::into(Command.Status),
-				Poco::Data::Keywords::into(Command.SubmittedBy),
-				Poco::Data::Keywords::into(Command.Results),
-				Poco::Data::Keywords::into(Command.Details),
-				Poco::Data::Keywords::into(Command.ErrorText),
-				Poco::Data::Keywords::into(Command.Submitted),
-				Poco::Data::Keywords::into(Command.Executed),
-				Poco::Data::Keywords::into(Command.Completed),
-				Poco::Data::Keywords::into(Command.RunAt),
-				Poco::Data::Keywords::into(Command.ErrorCode),
-				Poco::Data::Keywords::into(Command.Custom),
-				Poco::Data::Keywords::into(Command.WaitingForFile),
-				Poco::Data::Keywords::into(Command.AttachDate),
-				Poco::Data::Keywords::into(Command.AttachSize),
-				Poco::Data::Keywords::into(Command.AttachType), Poco::Data::Keywords::use(UUID);
-
+			CommandDetailsRecordTuple R;
+			Select << ConvertParams(St),
+				Poco::Data::Keywords::into(R),
+				Poco::Data::Keywords::use(UUID);
 			Select.execute();
-
 			return true;
-
 		} catch (const Poco::Exception &E) {
-			Logger_.warning(
-				Poco::format("%s(%s): Failed with: %s", std::string(__func__), UUID, E.displayText()));
+			Logger_.log(E);
 		}
 		return false;
 	}
@@ -454,24 +341,21 @@ namespace OpenWifi {
 
 			return true;
 		} catch (const Poco::Exception &E) {
-			Logger_.warning(
-				Poco::format("%s(%s): Failed with: %s", std::string(__func__), UUID, E.displayText()));
+			Logger_.log(E);
 		}
 		return false;
 	}
 
 	bool Storage::GetNewestCommands(std::string &SerialNumber, uint64_t HowMany, std::vector<GWObjects::CommandDetails> &Commands) {
 		try {
-			RecordList Records;
+			CommandDetailsRecordList Records;
 
 			Poco::Data::Session Sess = Pool_->get();
 			Poco::Data::Statement Select(Sess);
-			// select uuid, submitted from commandlist  where serialnumber='24f5a207a130' order by submitted desc
 
-			std::string st{"SELECT UUID, SerialNumber, Command, Status, SubmittedBy, Results, Details, ErrorText,"
-						   "Submitted, Executed, Completed, RunAt, ErrorCode, Custom, WaitingForFile, AttachDate,"
-						   "AttachSize, AttachType FROM CommandList "
-						   "WHERE SerialNumber=? ORDER BY Submitted DESC"};
+			std::string st{"SELECT " +
+							   DB_Command_SelectFields +
+							   " FROM CommandList WHERE SerialNumber=? ORDER BY Submitted DESC"};
 
 			Select << 	ConvertParams(st),
 						Poco::Data::Keywords::into(Records),
@@ -479,37 +363,14 @@ namespace OpenWifi {
 						Poco::Data::Keywords::limit(HowMany);
 			Select.execute();
 
-			// std::cout << "Returned " << Records.size() << " records" << std::endl;
-
 			for (auto i : Records) {
-				GWObjects::CommandDetails R{
-					.UUID = i.get<0>(),
-					.SerialNumber = i.get<1>(),
-					.Command = i.get<2>(),
-					.Status = i.get<3>(),
-					.SubmittedBy = i.get<4>(),
-					.Results = i.get<5>(),
-					.Details = i.get<6>(),
-					.ErrorText = i.get<7>(),
-					.Submitted = i.get<8>(),
-					.Executed = i.get<9>(),
-					.Completed = i.get<10>(),
-					.RunAt = i.get<11>(),
-					.ErrorCode = i.get<12>(),
-					.Custom = i.get<13>(),
-					.WaitingForFile = i.get<14>(),
-					.AttachDate = i.get<15>(),
-					.AttachSize = i.get<16>(),
-					.AttachType = i.get<17>()};
-
-				//	Only return rhe commands for our own devices.
-				if (DeviceRegistry()->Connected(R.SerialNumber))
-					Commands.push_back(R);
+				GWObjects::CommandDetails R;
+				ConvertCommandRecord(i,R);
+				Commands.push_back(R);
 			}
 			return true;
 		} catch (const Poco::Exception &E) {
-			Logger_.warning(
-				Poco::format("%s: Failed with: %s", std::string(__func__), E.displayText()));
+			Logger_.log(E);
 		}
 		return false;
 	}
@@ -518,16 +379,16 @@ namespace OpenWifi {
 											std::vector<GWObjects::CommandDetails> &Commands) {
 
 		try {
-			typedef std::vector<CommandDetailsRecordTuple> RecordList;
-			uint64_t Now = time(nullptr);
 			Poco::Data::Session Sess = Pool_->get();
 			Poco::Data::Statement Select(Sess);
 
+			uint64_t Now = time(nullptr);
 			std::string St{
-				"SELECT UUID, SerialNumber, Command, Status, SubmittedBy, Results, Details, ErrorText, "
-				" Submitted, Executed, Completed, RunAt, ErrorCode, Custom, WaitingForFile, AttachDate, AttachSize, AttachType FROM CommandList "
+				"SELECT " +
+				DB_Command_SelectFields
+				+ " FROM CommandList "
 				" WHERE ((RunAt<=?) And (Executed=0)) ORDER BY UUID ASC "};
-			RecordList Records;
+			CommandDetailsRecordList Records;
 
 			std::string SS = ConvertParams(St) + ComputeRange(Offset, HowMany);
 			Select << SS,
@@ -535,34 +396,15 @@ namespace OpenWifi {
 				Poco::Data::Keywords::use(Now);
 			Select.execute();
 
-			for (auto i : Records) {
-				GWObjects::CommandDetails R{.UUID = i.get<0>(),
-										 .SerialNumber = i.get<1>(),
-										 .Command = i.get<2>(),
-										 .Status = i.get<3>(),
-										 .SubmittedBy = i.get<4>(),
-										 .Results = i.get<5>(),
-										 .Details = i.get<6>(),
-										 .ErrorText = i.get<7>(),
-										 .Submitted = i.get<8>(),
-										 .Executed = i.get<9>(),
-										 .Completed = i.get<10>(),
-										 .RunAt = i.get<11>(),
-										 .ErrorCode = i.get<12>(),
-										 .Custom = i.get<13>(),
-										 .WaitingForFile = i.get<14>(),
-										 .AttachDate = i.get<15>(),
-										 .AttachSize = i.get<16>(),
-										 .AttachType = i.get<17>()};
-
+			for(const auto &i : Records) {
+				GWObjects::CommandDetails R;
+				ConvertCommandRecord(i,R);
 				if (DeviceRegistry()->Connected(R.SerialNumber))
 					Commands.push_back(R);
 			}
 			return true;
 		} catch (const Poco::Exception &E) {
-			// std::cout << "Exception: " << E.displayText() << std::endl;
-			Logger_.warning(Poco::format("GetReadyToExecuteCommands(): Failed to retrieve the list. %s",
-										 E.displayText()));
+			Logger_.log(E);
 		}
 		return false;
 	}
@@ -583,7 +425,7 @@ namespace OpenWifi {
 
 			return true;
 		} catch (const Poco::Exception &E) {
-			Logger_.warning(Poco::format("Could not update field on command %s", UUID));
+			Logger_.log(E);
 		}
 
 		return false;
@@ -623,9 +465,12 @@ namespace OpenWifi {
 
 			std::string St{"UPDATE CommandList SET Completed=?, ErrorCode=?, ErrorText=?, Results=?, Status=? WHERE UUID=?"};
 
-			Update << ConvertParams(St), Poco::Data::Keywords::use(Now),
-				Poco::Data::Keywords::use(ErrorCode), Poco::Data::Keywords::use(ErrorText),
-				Poco::Data::Keywords::use(ResultStr), Poco::Data::Keywords::use(StatusText),
+			Update << ConvertParams(St),
+				Poco::Data::Keywords::use(Now),
+				Poco::Data::Keywords::use(ErrorCode),
+				Poco::Data::Keywords::use(ErrorText),
+				Poco::Data::Keywords::use(ResultStr),
+				Poco::Data::Keywords::use(StatusText),
 				Poco::Data::Keywords::use(UUID);
 			Update.execute();
 
@@ -718,13 +563,11 @@ namespace OpenWifi {
 			}
 		} catch (const Poco::Exception &E) {
 			Logger_.log(E);
-			Logger_.warning(Poco::format(
-				"Could not update outstanding command %s for file upload completion", UUID));
 		}
 		return false;
 	}
 
-	bool Storage::GetAttachedFile(std::string &UUID, std::string & SerialNumber, const std::string &FileName, std::string &Type) {
+	bool Storage::GetAttachedFile(std::string &UUID, const std::string & SerialNumber, const std::string &FileName, std::string &Type) {
 		try {
 			Poco::Data::LOB<char> L;
 			/*

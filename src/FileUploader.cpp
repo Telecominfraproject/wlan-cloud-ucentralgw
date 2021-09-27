@@ -34,7 +34,7 @@ namespace OpenWifi {
     int FileUploader::Start() {
         Logger_.notice("Starting.");
 
-        Poco::File UploadsDir(Daemon()->ConfigPath("ucentral.fileuploader.path","/tmp"));
+        Poco::File UploadsDir(Daemon()->ConfigPath("openwifi.fileuploader.path","/tmp"));
         Path_ = UploadsDir.path();
         if(!UploadsDir.exists()) {
         	try {
@@ -44,14 +44,13 @@ namespace OpenWifi {
         		Path_ = "/tmp";
         	}
         }
-
         for(const auto & Svr: ConfigServersList_) {
             std::string l{"Starting: " +
                           Svr.Address() + ":" + std::to_string(Svr.Port()) +
                           " key:" + Svr.KeyFile() +
                           " cert:" + Svr.CertFile()};
-
             Logger_.information(l);
+
             auto Sock{Svr.CreateSecureSocket(Logger_)};
 
 			Svr.LogCert(Logger_);
@@ -63,24 +62,32 @@ namespace OpenWifi {
             Params->setMaxQueued(100);
 
             if(FullName_.empty()) {
-            	std::string TmpName = Daemon()->ConfigGetString("ucentral.fileuploader.uri","");
-				if(TmpName.empty()) {
-					FullName_ =
-						"https://" + Svr.Name() + ":" + std::to_string(Svr.Port()) + URI_BASE;
-				} else {
-					FullName_ = TmpName + URI_BASE ;
-				}
-				Logger_.information(Poco::format("Uploader URI base is '%s'", FullName_));
-			}
+            	std::string TmpName = Daemon()->ConfigGetString("openwifi.fileuploader.uri","");
+            	if(TmpName.empty()) {
+            		FullName_ =
+            			"https://" + Svr.Name() + ":" + std::to_string(Svr.Port()) + URI_BASE;
+            	} else {
+            		FullName_ = TmpName + URI_BASE ;
+            	}
+            	Logger_.information(Poco::format("Uploader URI base is '%s'", FullName_));
+            }
+
             auto NewServer = std::make_unique<Poco::Net::HTTPServer>(new FileUpLoaderRequestHandlerFactory(Logger_), Pool_, Sock, Params);
             NewServer->start();
             Servers_.push_back(std::move(NewServer));
         }
 
-        MaxSize_ = 1000 * Daemon()->ConfigGetInt("ucentral.fileuploader.maxsize", 10000);
+        MaxSize_ = 1000 * Daemon()->ConfigGetInt("openwifi.fileuploader.maxsize", 10000);
 
         return 0;
     }
+
+	void FileUploader::reinitialize(Poco::Util::Application &self) {
+		Daemon()->LoadConfigurationFile();
+    	Logger_.information("Reinitializing.");
+		Stop();
+		Start();
+	}
 
     const std::string & FileUploader::FullName() {
         return FullName_;
@@ -88,7 +95,7 @@ namespace OpenWifi {
 
     //  if you pass in an empty UUID, it will just clean the list and not add it.
     bool FileUploader::AddUUID( const std::string & UUID) {
-		SubMutexGuard		Guard(Mutex_);
+		std::lock_guard		Guard(Mutex_);
 
         uint64_t Now = time(nullptr) ;
 
@@ -107,13 +114,13 @@ namespace OpenWifi {
     }
 
     bool FileUploader::ValidRequest(const std::string &UUID) {
-		SubMutexGuard		Guard(Mutex_);
+		std::lock_guard		Guard(Mutex_);
 
         return OutStandingUploads_.find(UUID)!=OutStandingUploads_.end();
     }
 
     void FileUploader::RemoveRequest(const std::string &UUID) {
-		SubMutexGuard		Guard(Mutex_);
+		std::lock_guard		Guard(Mutex_);
         OutStandingUploads_.erase(UUID);
     }
 
@@ -235,7 +242,6 @@ namespace OpenWifi {
             if(FileUploader()->ValidRequest(UUID))
             {
                 //  make sure we do not allow anyone else to overwrite our file
-                Logger_.information(Poco::format("Preparing to receive file for UUID=%s",UUID));
 				FileUploader()->RemoveRequest(UUID);
                 return new FormRequestHandler(UUID,Logger_);
             }
@@ -243,9 +249,7 @@ namespace OpenWifi {
             {
                 Logger_.warning(Poco::format("Unknown UUID=%s",UUID));
             }
-        } else {
-        	Logger_.warning(Poco::format("Unknown FileUploader endpoint '%s'", Request.getURI()));
-		}
+        }
         return nullptr;
     }
 
@@ -253,6 +257,7 @@ namespace OpenWifi {
         Logger_.notice("Stopping ");
         for( const auto & svr : Servers_ )
             svr->stop();
+		Servers_.clear();
     }
 
 }  //  Namespace
