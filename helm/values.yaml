@@ -6,8 +6,8 @@ nameOverride: ""
 fullnameOverride: ""
 
 images:
-  ucentralgw:
-    repository: tip-tip-wlan-cloud-ucentral.jfrog.io/ucentralgw
+  owgw:
+    repository: tip-tip-wlan-cloud-ucentral.jfrog.io/owgw
     tag: master
     pullPolicy: Always
 #    regcred:
@@ -16,7 +16,7 @@ images:
 #      password: password
 
 services:
-  ucentralgw:
+  owgw:
     type: LoadBalancer
     ports:
       websocket:
@@ -37,7 +37,7 @@ services:
         protocol: TCP
 
 checks:
-  ucentralgw:
+  owgw:
     liveness:
       httpGet:
         path: /
@@ -57,7 +57,7 @@ ingresses:
     - restapi.chart-example.local
     paths:
     - path: /
-      serviceName: ucentralgw
+      serviceName: owgw
       servicePort: restapi
   fileuploader:
     enabled: false
@@ -68,34 +68,34 @@ ingresses:
     - fileuploader.chart-example.local
     paths:
     - path: /
-      serviceName: ucentralgw
+      serviceName: owgw
       servicePort: fileuploader
 
 volumes:
-  ucentralgw:
+  owgw:
     - name: config
-      mountPath: /ucentralgw-data/ucentralgw.properties
-      subPath: ucentralgw.properties
+      mountPath: /owgw-data/owgw.properties
+      subPath: owgw.properties
       # Template below will be rendered in template
       volumeDefinition: |
         secret:
-          secretName: {{ include "ucentralgw.fullname" . }}-config
+          secretName: {{ include "owgw.fullname" . }}-config
     - name: certs
-      mountPath: /ucentralgw-data/certs
+      mountPath: /owgw-data/certs
       volumeDefinition: |
         secret:
-          secretName: {{ include "ucentralgw.fullname" . }}-certs
+          secretName: {{ include "owgw.fullname" . }}-certs
     - name: certs-cas
-      mountPath: /ucentralgw-data/certs/cas
+      mountPath: /owgw-data/certs/cas
       volumeDefinition: |
         secret:
-          secretName: {{ include "ucentralgw.fullname" . }}-certs-cas
+          secretName: {{ include "owgw.fullname" . }}-certs-cas
     # Change this if you want to use another volume type
     - name: persist
-      mountPath: /ucentralgw-data/persist
+      mountPath: /owgw-data/persist
       volumeDefinition: |
         persistentVolumeClaim:
-          claimName: {{ template "ucentralgw.fullname" . }}-pvc
+          claimName: {{ template "owgw.fullname" . }}-pvc
 
 resources: {}
   # We usually recommend not to specify default resources and to leave this as a conscious
@@ -128,63 +128,63 @@ persistence:
 
 # Application
 public_env_variables:
-  UCENTRALGW_ROOT: /ucentralgw-data
-  UCENTRALGW_CONFIG: /ucentralgw-data
+  OWGW_ROOT: /owgw-data
+  OWGW_CONFIG: /owgw-data
 
 secret_env_variables: {}
 
 configProperties:
   # -> Public part
   # Websocket
-  ucentral.websocket.host.0.backlog: 500
-  ucentral.websocket.host.0.rootca: $UCENTRALGW_ROOT/certs/root.pem
-  ucentral.websocket.host.0.issuer: $UCENTRALGW_ROOT/certs/issuer.pem
-  ucentral.websocket.host.0.cert: $UCENTRALGW_ROOT/certs/websocket-cert.pem
-  ucentral.websocket.host.0.key: $UCENTRALGW_ROOT/certs/websocket-key.pem
-  ucentral.websocket.host.0.clientcas: $UCENTRALGW_ROOT/certs/clientcas.pem
-  ucentral.websocket.host.0.cas: $UCENTRALGW_ROOT/certs/cas
-  ucentral.websocket.host.0.address: "*"
-  ucentral.websocket.host.0.port: 15002
-  ucentral.websocket.host.0.security: strict
-  ucentral.websocket.maxreactors: 20
+  openwifi.websocket.host.0.backlog: 500
+  openwifi.websocket.host.0.rootca: $OWGW_ROOT/certs/root.pem
+  openwifi.websocket.host.0.issuer: $OWGW_ROOT/certs/issuer.pem
+  openwifi.websocket.host.0.cert: $OWGW_ROOT/certs/websocket-cert.pem
+  openwifi.websocket.host.0.key: $OWGW_ROOT/certs/websocket-key.pem
+  openwifi.websocket.host.0.clientcas: $OWGW_ROOT/certs/clientcas.pem
+  openwifi.websocket.host.0.cas: $OWGW_ROOT/certs/cas
+  openwifi.websocket.host.0.address: "*"
+  openwifi.websocket.host.0.port: 15002
+  openwifi.websocket.host.0.security: strict
+  openwifi.websocket.maxreactors: 20
   # REST API
-  ucentral.restapi.host.0.backlog: 100
-  ucentral.restapi.host.0.security: relaxed
-  ucentral.restapi.host.0.rootca: $UCENTRALGW_ROOT/certs/restapi-ca.pem
-  ucentral.restapi.host.0.address: "*"
-  ucentral.restapi.host.0.port: 16002
-  ucentral.restapi.host.0.cert: $UCENTRALGW_ROOT/certs/restapi-cert.pem
-  ucentral.restapi.host.0.key: $UCENTRALGW_ROOT/certs/restapi-key.pem
-  ucentral.internal.restapi.host.0.backlog: 100
-  ucentral.internal.restapi.host.0.security: relaxed
-  ucentral.internal.restapi.host.0.rootca: $UCENTRALGW_ROOT/certs/restapi-ca.pem
-  ucentral.internal.restapi.host.0.address: "*"
-  ucentral.internal.restapi.host.0.port: 17002
-  ucentral.internal.restapi.host.0.cert: $UCENTRALGW_ROOT/certs/restapi-cert.pem
-  ucentral.internal.restapi.host.0.key: $UCENTRALGW_ROOT/certs/restapi-key.pem
+  openwifi.restapi.host.0.backlog: 100
+  openwifi.restapi.host.0.security: relaxed
+  openwifi.restapi.host.0.rootca: $OWGW_ROOT/certs/restapi-ca.pem
+  openwifi.restapi.host.0.address: "*"
+  openwifi.restapi.host.0.port: 16002
+  openwifi.restapi.host.0.cert: $OWGW_ROOT/certs/restapi-cert.pem
+  openwifi.restapi.host.0.key: $OWGW_ROOT/certs/restapi-key.pem
+  openwifi.internal.restapi.host.0.backlog: 100
+  openwifi.internal.restapi.host.0.security: relaxed
+  openwifi.internal.restapi.host.0.rootca: $OWGW_ROOT/certs/restapi-ca.pem
+  openwifi.internal.restapi.host.0.address: "*"
+  openwifi.internal.restapi.host.0.port: 17002
+  openwifi.internal.restapi.host.0.cert: $OWGW_ROOT/certs/restapi-cert.pem
+  openwifi.internal.restapi.host.0.key: $OWGW_ROOT/certs/restapi-key.pem
   # File uploader
-  ucentral.fileuploader.host.0.backlog: 100
-  ucentral.fileuploader.host.0.rootca: $UCENTRALGW_ROOT/certs/restapi-ca.pem
-  ucentral.fileuploader.host.0.security: relaxed
-  ucentral.fileuploader.host.0.address: "*"
-  ucentral.fileuploader.host.0.name: localhost
-  ucentral.fileuploader.host.0.port: 16003
-  ucentral.fileuploader.host.0.cert: $UCENTRALGW_ROOT/certs/restapi-cert.pem
-  ucentral.fileuploader.host.0.key: $UCENTRALGW_ROOT/certs/restapi-key.pem
-  ucentral.fileuploader.path: $UCENTRALGW_ROOT/uploads
-  ucentral.fileuploader.maxsize: 10000
+  openwifi.fileuploader.host.0.backlog: 100
+  openwifi.fileuploader.host.0.rootca: $OWGW_ROOT/certs/restapi-ca.pem
+  openwifi.fileuploader.host.0.security: relaxed
+  openwifi.fileuploader.host.0.address: "*"
+  openwifi.fileuploader.host.0.name: localhost
+  openwifi.fileuploader.host.0.port: 16003
+  openwifi.fileuploader.host.0.cert: $OWGW_ROOT/certs/restapi-cert.pem
+  openwifi.fileuploader.host.0.key: $OWGW_ROOT/certs/restapi-key.pem
+  openwifi.fileuploader.path: $OWGW_ROOT/uploads
+  openwifi.fileuploader.maxsize: 10000
   # Auto provisioning
-  ucentral.autoprovisioning: "true"
-  ucentral.devicetypes.0: AP:linksys_ea8300,edgecore_eap101,linksys_e8450-ubi
-  ucentral.devicetypes.1: SWITCH:edgecore_ecs4100-12ph
-  ucentral.devicetypes.2: IOT:esp32
+  openwifi.autoprovisioning: "true"
+  openwifi.devicetypes.0: AP:linksys_ea8300,edgecore_eap101,linksys_e8450-ubi
+  openwifi.devicetypes.1: SWITCH:edgecore_ecs4100-12ph
+  openwifi.devicetypes.2: IOT:esp32
   oui.download.uri: https://linuxnet.ca/ieee/oui.txt
   firmware.autoupdate.policy.default: auto
   # Callback
-  ucentral.callback.enable: "false"
-  ucentral.callback.0.local: localhost:16001
-  ucentral.callback.0.remote: localhost:15055
-  ucentral.callback.0.topics: ucentralfws
+  openwifi.callback.enable: "false"
+  openwifi.callback.0.local: localhost:16001
+  openwifi.callback.0.remote: localhost:15055
+  openwifi.callback.0.topics: owfws
   # rtty
   rtty.enabled: "true"
   rtty.server: localhost
@@ -195,12 +195,12 @@ configProperties:
   alb.enable: "true"
   alb.port: 16102
   # Kafka
-  ucentral.kafka.enable: "false"
-  ucentral.kafka.group.id: gateway
-  ucentral.kafka.client.id: gateway1
-  ucentral.kafka.brokerlist: localhost:9092
-  ucentral.kafka.auto.commit: false
-  ucentral.kafka.queue.buffering.max.ms: 50
+  openwifi.kafka.enable: "false"
+  openwifi.kafka.group.id: gateway
+  openwifi.kafka.client.id: gateway1
+  openwifi.kafka.brokerlist: localhost:9092
+  openwifi.kafka.auto.commit: false
+  openwifi.kafka.queue.buffering.max.ms: 50
   # Storage
   storage.type: sqlite # (sqlite|postgresql|mysql|odbc)
   ## SQLite
@@ -211,23 +211,23 @@ configProperties:
   storage.type.postgresql.maxsessions: 64
   storage.type.postgresql.idletime: 60
   storage.type.postgresql.host: localhost
-  storage.type.postgresql.database: ucentral
+  storage.type.postgresql.database: owgw
   storage.type.postgresql.port: 5432
   storage.type.postgresql.connectiontimeout: 60
   ## MySQL
   storage.type.mysql.maxsessions: 64
   storage.type.mysql.idletime: 60
   storage.type.mysql.host: localhost
-  storage.type.mysql.database: ucentral
+  storage.type.mysql.database: owgw
   storage.type.mysql.port: 3306
   storage.type.mysql.connectiontimeout: 60
   # System
-  ucentral.service.key: $UCENTRALGW_ROOT/certs/restapi-key.pem
-  ucentral.system.data: $UCENTRALGW_ROOT/persist
-  ucentral.system.debug: "true"
-  ucentral.system.uri.private: https://localhost:17002
-  ucentral.system.uri.public: https://localhost:16002
-  ucentral.system.commandchannel: /tmp/app_ucentralgw
+  openwifi.service.key: $OWGW_ROOT/certs/restapi-key.pem
+  openwifi.system.data: $OWGW_ROOT/persist
+  openwifi.system.debug: "true"
+  openwifi.system.uri.private: https://localhost:17002
+  openwifi.system.uri.public: https://localhost:16002
+  openwifi.system.commandchannel: /tmp/app_owgw
   # Logging
   logging.formatters.f1.class: PatternFormatter
   logging.formatters.f1.pattern: "%Y-%m-%d %H:%M:%S %s: [%p] %t"
@@ -235,7 +235,7 @@ configProperties:
   logging.channels.c1.class: ConsoleChannel
   logging.channels.c1.formatter: f1
   logging.channels.c2.class: FileChannel
-  logging.channels.c2.path: /tmp/log_ucentralgw
+  logging.channels.c2.path: /tmp/log_owgw
   logging.channels.c2.formatter.class: PatternFormatter
   logging.channels.c2.formatter.pattern: "%Y-%m-%d %H:%M:%S %s: [%p] %t"
   logging.channels.c2.rotation: "20 M"
@@ -248,16 +248,16 @@ configProperties:
 
   # -> Secret part
   # Websocket
-  ucentral.websocket.host.0.key.password: mypassword
+  openwifi.websocket.host.0.key.password: mypassword
   # REST API
-  ucentral.restapi.host.0.key.password: mypassword
-  ucentral.internal.restapi.host.0.key.password: mypassword
+  openwifi.restapi.host.0.key.password: mypassword
+  openwifi.internal.restapi.host.0.key.password: mypassword
   # File uploader
-  ucentral.fileuploader.host.0.key.password: mypassword
+  openwifi.fileuploader.host.0.key.password: mypassword
   # Callback
-  ucentral.callback.id: qblat6dfDHxQAZ6yMe6MrypBpgRDhQrhUtTOovOXAKAWU8qOvjjKKiUai4t9hGjA
-  ucentral.callback.0.localkey: t2dEOc88OIxVDb94mw7SLcLocgnCzZzzFoQ4JJv3OCU9UO6Ou5ds5Dh4CfBnHgrk
-  ucentral.callback.0.remotekey: t2dEOc88OIxVDb94mw7SLcLocgnCzZzzFoQ4JJv3OCU9UO6Ou5ds5Dh4CfBnHgrk
+  openwifi.callback.id: qblat6dfDHxQAZ6yMe6MrypBpgRDhQrhUtTOovOXAKAWU8qOvjjKKiUai4t9hGjA
+  openwifi.callback.0.localkey: t2dEOc88OIxVDb94mw7SLcLocgnCzZzzFoQ4JJv3OCU9UO6Ou5ds5Dh4CfBnHgrk
+  openwifi.callback.0.remotekey: t2dEOc88OIxVDb94mw7SLcLocgnCzZzzFoQ4JJv3OCU9UO6Ou5ds5Dh4CfBnHgrk
   # rtty
   rtty.token: 96181c567b4d0d98c50f127230068fa8
   # Storage
@@ -438,10 +438,10 @@ postgresql:
     repository: bitnami/postgresql
     tag: 11.13.0-debian-10-r0
 
-  postgresqlPostgresPassword: ""
-  postgresqlUsername: postgres
-  postgresqlPassword: ""
-  postgresqlDatabase: ""
+  postgresqlPostgresPassword: "rootPassword"
+  postgresqlUsername: stephb
+  postgresqlPassword: snoopy99
+  postgresqlDatabase: owgw
 
   persistence:
     enabled: true
@@ -458,10 +458,10 @@ mysql:
     tag: 8.0.26-debian-10-r10
 
   auth:
-    rootPassword: ""
-    database: my_database
-    username: ""
-    password: ""
+    rootPassword: rootPassword
+    database: owgw
+    username: stephb
+    password: snoopy99
 
   primary:
     persistence:
@@ -479,10 +479,10 @@ mariadb:
     tag: 10.5.12-debian-10-r0
 
   auth:
-    rootPassword: ""
-    database: my_database
-    username: ""
-    password: ""
+    rootPassword: rootPassword
+    database: owgw
+    username: stephb
+    password: snoopy99
 
   primary:
     persistence:
