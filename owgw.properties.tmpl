@@ -19,60 +19,61 @@ ucentral.websocket.maxreactors = 20
 #
 # REST API access
 #
-ucentral.restapi.host.0.backlog = 100
-ucentral.restapi.host.0.security = relaxed
-ucentral.restapi.host.0.rootca = ${RESTAPI_HOST_ROOTCA}
-ucentral.restapi.host.0.address = *
-ucentral.restapi.host.0.port = ${RESTAPI_HOST_PORT}
-ucentral.restapi.host.0.cert = ${RESTAPI_HOST_CERT}
-ucentral.restapi.host.0.key = ${RESTAPI_HOST_KEY}
-ucentral.restapi.host.0.key.password = ${RESTAPI_HOST_KEY_PASSWORD}
+openwifi.restapi.host.0.backlog = 100
+openwifi.restapi.host.0.security = relaxed
+openwifi.restapi.host.0.rootca = ${RESTAPI_HOST_ROOTCA}
+openwifi.restapi.host.0.address = *
+openwifi.restapi.host.0.port = ${RESTAPI_HOST_PORT}
+openwifi.restapi.host.0.cert = ${RESTAPI_HOST_CERT}
+openwifi.restapi.host.0.key = ${RESTAPI_HOST_KEY}
+openwifi.restapi.host.0.key.password = ${RESTAPI_HOST_KEY_PASSWORD}
 
-ucentral.internal.restapi.host.0.backlog = 100
-ucentral.internal.restapi.host.0.security = relaxed
-ucentral.internal.restapi.host.0.rootca = ${INTERNAL_RESTAPI_HOST_ROOTCA}
-ucentral.internal.restapi.host.0.address = *
-ucentral.internal.restapi.host.0.port = ${INTERNAL_RESTAPI_HOST_PORT}
-ucentral.internal.restapi.host.0.cert = ${INTERNAL_RESTAPI_HOST_CERT}
-ucentral.internal.restapi.host.0.key = ${INTERNAL_RESTAPI_HOST_KEY}
-ucentral.internal.restapi.host.0.key.password = ${INTERNAL_RESTAPI_HOST_KEY_PASSWORD}
+openwifi.internal.restapi.host.0.backlog = 100
+openwifi.internal.restapi.host.0.security = relaxed
+openwifi.internal.restapi.host.0.rootca = ${INTERNAL_RESTAPI_HOST_ROOTCA}
+openwifi.internal.restapi.host.0.address = *
+openwifi.internal.restapi.host.0.port = ${INTERNAL_RESTAPI_HOST_PORT}
+openwifi.internal.restapi.host.0.cert = ${INTERNAL_RESTAPI_HOST_CERT}
+openwifi.internal.restapi.host.0.key = ${INTERNAL_RESTAPI_HOST_KEY}
+openwifi.internal.restapi.host.0.key.password = ${INTERNAL_RESTAPI_HOST_KEY_PASSWORD}
 
 #
 # Used to upload files to the service.
 # You should replace the 'name' vaalue with the IP address of your gateway or an FQDN
 # that your devices can reach
 #
-ucentral.fileuploader.host.0.backlog = 100
-ucentral.fileuploader.host.0.rootca = ${FILEUPLOADER_HOST_ROOTCA}
-ucentral.fileuploader.host.0.security = relaxed
-ucentral.fileuploader.host.0.address = *
-ucentral.fileuploader.host.0.name = ${FILEUPLOADER_HOST_NAME}
-ucentral.fileuploader.host.0.port = ${FILEUPLOADER_HOST_PORT}
-ucentral.fileuploader.host.0.cert = ${FILEUPLOADER_HOST_CERT}
-ucentral.fileuploader.host.0.key = ${FILEUPLOADER_HOST_KEY}
-ucentral.fileuploader.host.0.key.password = ${FILEUPLOADER_HOST_KEY_PASSWORD}
-ucentral.fileuploader.path = ${FILEUPLOADER_PATH}
-ucentral.fileuploader.maxsize = 10000
+openwifi.fileuploader.host.0.backlog = 100
+openwifi.fileuploader.host.0.rootca = ${FILEUPLOADER_HOST_ROOTCA}
+openwifi.fileuploader.host.0.security = relaxed
+openwifi.fileuploader.host.0.address = *
+openwifi.fileuploader.host.0.name = ${FILEUPLOADER_HOST_NAME}
+openwifi.fileuploader.host.0.port = ${FILEUPLOADER_HOST_PORT}
+openwifi.fileuploader.host.0.cert = ${FILEUPLOADER_HOST_CERT}
+openwifi.fileuploader.host.0.key = ${FILEUPLOADER_HOST_KEY}
+openwifi.fileuploader.host.0.key.password = ${FILEUPLOADER_HOST_KEY_PASSWORD}
+openwifi.fileuploader.path = ${FILEUPLOADER_PATH}
+openwifi.fileuploader.uri = ${FILEUPLOADER_URI}
+openwifi.fileuploader.maxsize = 10000
 
 #
 # Generic section that all microservices must have
 #
-ucentral.service.key = ${SERVICE_KEY}
-ucentral.service.key.password = ${SERVICE_KEY_PASSWORD}
-ucentral.system.data = ${SYSTEM_DATA}
-ucentral.system.debug = true
-ucentral.system.uri.private = ${SYSTEM_URI_PRIVATE}
-ucentral.system.uri.public = ${SYSTEM_URI_PUBLIC}
-ucentral.system.uri.ui = ${SYSTEM_URI_UI}
-ucentral.system.commandchannel = /tmp/app.ucentralgw
+openwifi.service.key = ${SERVICE_KEY}
+openwifi.service.key.password = ${SERVICE_KEY_PASSWORD}
+openwifi.system.data = ${SYSTEM_DATA}
+openwifi.system.debug = true
+openwifi.system.uri.private = ${SYSTEM_URI_PRIVATE}
+openwifi.system.uri.public = ${SYSTEM_URI_PUBLIC}
+openwifi.system.uri.ui = ${SYSTEM_URI_UI}
+openwifi.system.commandchannel = /tmp/app.ucentralgw
 
 #
 # Gateway Microservice Specific Section
 #
-ucentral.autoprovisioning = true
-ucentral.devicetypes.0 = AP:linksys_ea8300,edgecore_eap101,linksys_e8450-ubi
-ucentral.devicetypes.1 = SWITCH:edgecore_ecs4100-12ph
-ucentral.devicetypes.2 = IOT:esp32
+openwifi.autoprovisioning = true
+openwifi.devicetypes.0 = AP:linksys_ea8300,edgecore_eap101,linksys_e8450-ubi
+openwifi.devicetypes.1 = SWITCH:edgecore_ecs4100-12ph
+openwifi.devicetypes.2 = IOT:esp32
 oui.download.uri = https://linuxnet.ca/ieee/oui.txt
 firmware.autoupdate.policy.default = auto
 
@@ -98,12 +99,12 @@ alb.port = 16102
 #
 # Kafka
 #
-ucentral.kafka.group.id = gateway
-ucentral.kafka.client.id = gateway1
-ucentral.kafka.enable = ${KAFKA_ENABLE}
-ucentral.kafka.brokerlist = ${KAFKA_BROKERLIST}
-ucentral.kafka.auto.commit = false
-ucentral.kafka.queue.buffering.max.ms = 50
+openwifi.kafka.group.id = gateway
+openwifi.kafka.client.id = gateway1
+openwifi.kafka.enable = ${KAFKA_ENABLE}
+openwifi.kafka.brokerlist = ${KAFKA_BROKERLIST}
+openwifi.kafka.auto.commit = false
+openwifi.kafka.queue.buffering.max.ms = 50
 
 #
 # This section select which form of persistence you need
