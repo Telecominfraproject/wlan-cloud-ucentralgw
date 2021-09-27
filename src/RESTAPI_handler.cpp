@@ -235,12 +235,22 @@ namespace OpenWifi {
 	void RESTAPIHandler::BadRequest(const std::string & Reason) {
 		PrepareResponse(Poco::Net::HTTPResponse::HTTP_BAD_REQUEST);
 		Poco::JSON::Object	ErrorObject;
-		ErrorObject.set("ErrorCode",500);
+		ErrorObject.set("ErrorCode",400);
 		ErrorObject.set("ErrorDetails",Request->getMethod());
 		ErrorObject.set("ErrorDescription",Reason.empty() ? "Command is missing parameters or wrong values." : Reason) ;
 		std::ostream &Answer = Response->send();
 		Poco::JSON::Stringifier::stringify(ErrorObject, Answer);
 	}
+
+	void RESTAPIHandler::InternalError(const std::string & Reason) {
+        PrepareResponse(Poco::Net::HTTPResponse::HTTP_INTERNAL_SERVER_ERROR);
+        Poco::JSON::Object	ErrorObject;
+        ErrorObject.set("ErrorCode",500);
+        ErrorObject.set("ErrorDetails",Request->getMethod());
+        ErrorObject.set("ErrorDescription",Reason.empty() ? "Please try later or review the data submitted." : Reason) ;
+        std::ostream &Answer = Response->send();
+        Poco::JSON::Stringifier::stringify(ErrorObject, Answer);
+    }
 
 	void RESTAPIHandler::UnAuthorized(const std::string & Reason) {
 		PrepareResponse(Poco::Net::HTTPResponse::HTTP_FORBIDDEN);

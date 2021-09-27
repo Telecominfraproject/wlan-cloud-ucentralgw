@@ -13,6 +13,7 @@
 #include "RESTAPI_GWobjects.h"
 #include "RESTAPI_protocol.h"
 #include "StorageService.h"
+#include "RESTAPI_errors.h"
 
 namespace OpenWifi {
 	void RESTAPI_default_configuration::DoGet() {
@@ -22,34 +23,45 @@ namespace OpenWifi {
 			Poco::JSON::Object Obj;
 			DefConfig.to_json(Obj);
 			ReturnObject(Obj);
-		} else {
-			NotFound();
+			return;
 		}
+		NotFound();
 	}
 
 	void RESTAPI_default_configuration::DoDelete() {
 		std::string Name = GetBinding(RESTAPI::Protocol::NAME, "");
+		if(Name.empty()) {
+			BadRequest(RESTAPI::Errors::MissingOrInvalidParameters);
+			return;
+		}
+
 		if (Storage()->DeleteDefaultConfiguration(Name)) {
 			OK();
-		} else {
-			NotFound();
+			return;
 		}
+		NotFound();
 	}
 
 	void RESTAPI_default_configuration::DoPost() {
 		std::string Name = GetBinding(RESTAPI::Protocol::NAME, "");
+
+		if(Name.empty()) {
+			BadRequest(RESTAPI::Errors::MissingOrInvalidParameters);
+			return;
+		}
+
 		auto Obj = ParseStream();
 		GWObjects::DefaultConfiguration DefConfig;
 			if (!DefConfig.from_json(Obj)) {
-			BadRequest("Ill-formed JSON document");
+			BadRequest(RESTAPI::Errors::InvalidJSONDocument);
 			return;
 		}
 
 		if (Storage()->CreateDefaultConfiguration(Name, DefConfig)) {
 			OK();
-		} else {
-			BadRequest("Could not create default configuration.");
+			return;
 		}
+		InternalError();
 	}
 
 	void RESTAPI_default_configuration::DoPut() {
@@ -57,15 +69,16 @@ namespace OpenWifi {
 
 		auto  Obj = ParseStream();
 			GWObjects::DefaultConfiguration DefConfig;
+
 		if (!DefConfig.from_json(Obj)) {
-			BadRequest("Ill-formed JSON document.");
+			BadRequest(RESTAPI::Errors::InvalidJSONDocument);
 			return;
 		}
 
 		if (Storage()->UpdateDefaultConfiguration(Name, DefConfig)) {
 			OK();
-		} else {
-			BadRequest("Could not update configuration.");
+			return;
 		}
+		InternalError();
 	}
 }

@@ -131,6 +131,7 @@ namespace OpenWifi {
 		[[nodiscard]] std::string PrivateEndPoint() const { return MyPrivateEndPoint_; };
 		[[nodiscard]] std::string PublicEndPoint() const { return MyPublicEndPoint_; };
 		[[nodiscard]] std::string MakeSystemEventMessage( const std::string & Type ) const ;
+		[[nodiscard]] const Types::SubSystemVec & GetFullSubSystems() { return SubSystems_; }
 		inline uint64_t DaemonBusTimer() const { return DAEMON_BUS_TIMER; };
 
 		void BusMessageReceived( const std::string & Key, const std::string & Message);

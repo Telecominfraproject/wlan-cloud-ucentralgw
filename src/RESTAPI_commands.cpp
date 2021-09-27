@@ -10,6 +10,7 @@
 #include "RESTAPI_protocol.h"
 #include "StorageService.h"
 #include "Utils.h"
+#include "RESTAPI_errors.h"
 
 namespace OpenWifi {
 	void RESTAPI_commands::DoGet() {
@@ -34,9 +35,17 @@ namespace OpenWifi {
 
 	void RESTAPI_commands::DoDelete() {
 		auto SerialNumber = GetParameter(RESTAPI::Protocol::SERIALNUMBER, "");
-		if (Storage()->DeleteCommands(SerialNumber, QB_.StartDate, QB_.EndDate))
+
+		if(SerialNumber.empty()) {
+			BadRequest(RESTAPI::Errors::MissingSerialNumber);
+			return;
+		}
+
+		if (Storage()->DeleteCommands(SerialNumber, QB_.StartDate, QB_.EndDate)) {
 			OK();
-		else
-			BadRequest("Illegal parameters.");
+			return;
+		}
+
+		InternalError();
 	}
 }

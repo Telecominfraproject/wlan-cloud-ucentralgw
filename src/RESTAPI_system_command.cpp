@@ -9,6 +9,8 @@
 
 #include "Poco/Exception.h"
 #include "Poco/JSON/Parser.h"
+#include "Poco/DateTime.h"
+#include "Poco/DateTimeFormat.h"
 
 #include "Daemon.h"
 #include "RESTAPI_protocol.h"
@@ -113,6 +115,26 @@ namespace OpenWifi {
 			Answer.set(RESTAPI::Protocol::OS, Poco::Environment::osName());
 			Answer.set(RESTAPI::Protocol::PROCESSORS, Poco::Environment::processorCount());
 			Answer.set(RESTAPI::Protocol::HOSTNAME, Poco::Environment::nodeName());
+
+			Poco::JSON::Array   Certificates;
+			auto SubSystems = Daemon()->GetFullSubSystems();
+			std::set<std::string>   CertNames;
+			for(const auto &i:SubSystems) {
+			    auto Hosts=i->HostSize();
+			    for(uint64_t j=0;j<Hosts;++j) {
+			        auto CertFileName = i->Host(j).CertFile();
+			        auto InsertResult = CertNames.insert(CertFileName);
+			        if( InsertResult.second ) {
+			            Poco::JSON::Object  Inner;
+			            Inner.set("filename", CertFileName);
+			            Poco::Crypto::X509Certificate   C(CertFileName);
+			            auto ExpiresOn = C.expiresOn();
+			            Inner.set("expiresOn",ExpiresOn.timestamp().epochTime());
+			            Certificates.add(Inner);
+			        }
+			    }
+			}
+			Answer.set("certificates", Certificates);
 			ReturnObject(Answer);
 			return;
 		}

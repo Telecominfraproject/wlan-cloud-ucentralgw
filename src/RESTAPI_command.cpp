@@ -10,6 +10,7 @@
 
 #include "RESTAPI_protocol.h"
 #include "StorageService.h"
+#include "RESTAPI_errors.h"
 
 namespace OpenWifi {
 	void RESTAPI_command::DoGet() {
@@ -19,16 +20,30 @@ namespace OpenWifi {
 			Poco::JSON::Object RetObj;
 			Command.to_json(RetObj);
 			ReturnObject(RetObj);
-		} else
-			NotFound();
+			return;
+		}
+		NotFound();
 	}
 
 	void RESTAPI_command::DoDelete() {
-		auto CommandUUID = GetBinding(RESTAPI::Protocol::COMMANDUUID, "");
-		if (Storage()->DeleteCommand(CommandUUID)) {
-			OK();
-		} else {
-			NotFound();
+		auto UUID = GetBinding(RESTAPI::Protocol::COMMANDUUID, "");
+
+		if(UUID.empty()) {
+			BadRequest(RESTAPI::Errors::MissingUUID);
+			return;
 		}
+
+		GWObjects::CommandDetails	C;
+		if(!Storage()->GetCommand(UUID, C)) {
+			NotFound();
+			return;
+		}
+
+		if (Storage()->DeleteCommand(UUID)) {
+			OK();
+			return;
+		}
+
+		InternalError();
 	}
 }

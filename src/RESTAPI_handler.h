@@ -114,6 +114,7 @@ namespace OpenWifi {
 		bool GetBoolParameter(const std::string &Name, bool Default);
 
 		void BadRequest(const std::string &Reason );
+		void InternalError(const std::string &Reason = "");
 		void UnAuthorized(const std::string &Reason = "");
 		void ReturnObject(Poco::JSON::Object &Object);
 		void NotFound();

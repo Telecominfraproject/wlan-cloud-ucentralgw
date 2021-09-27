@@ -76,7 +76,8 @@ class SubSystemServer : public Poco::Util::Application::Subsystem {
 	inline const std::string & Name() const { return Name_; };
 	const char * name() const override { return Name_.c_str(); }
 
-	const PropertiesFileServerEntry &Host(int index) { return ConfigServersList_[index]; };
+	const PropertiesFileServerEntry & Host(uint64_t index) { return ConfigServersList_[index]; };
+	uint64_t HostSize() const { return ConfigServersList_.size(); }
 	Poco::Logger &Logger() { return Logger_; };
 	void SetLoggingLevel(Poco::Message::Priority NewPriority) { Logger_.setLevel(NewPriority); }
 	int GetLoggingLevel() { return Logger_.getLevel(); }

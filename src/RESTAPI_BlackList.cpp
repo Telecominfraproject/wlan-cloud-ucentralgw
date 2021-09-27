@@ -13,30 +13,32 @@
 #include "RESTAPI_BlackList.h"
 #include "RESTAPI_protocol.h"
 #include "StorageService.h"
+#include "RESTAPI_errors.h"
 
 namespace OpenWifi {
 
 	void RESTAPI_BlackList::DoDelete() {
 		auto SerialNumber = GetBinding(RESTAPI::Protocol::SERIALNUMBER, "");
 
-		if (!SerialNumber.empty()) {
-			if (Storage()->DeleteBlackListDevice(SerialNumber)) {
-				OK();
-			} else {
-				NotFound();
-			}
+		if(SerialNumber.empty()) {
+			BadRequest(RESTAPI::Errors::MissingSerialNumber);
 			return;
-		} else {
-			BadRequest("Missing serial number.");
 		}
+
+		GWObjects::BlackListedDevice	D;
+		if(!Storage()->GetBlackListDevice(SerialNumber, D)) {
+			NotFound();
+			return;
+		}
+
+		if (Storage()->DeleteBlackListDevice(SerialNumber)) {
+			OK();
+			return;
+		}
+		InternalError();
 	}
 
 	void RESTAPI_BlackList::DoGet() {
-		if(!InitQueryBlock()) {
-			BadRequest("Illegal parameter value.");
-			return;
-		}
-
 		std::vector<GWObjects::BlackListedDevice> Devices;
 		Poco::JSON::Array Objects;
 		if (Storage()->GetBlackListDevices(QB_.Offset, QB_.Limit, Devices)) {
@@ -78,10 +80,10 @@ namespace OpenWifi {
 					return;
 				}
 			} else {
-				BadRequest("No devices to add.");
+				BadRequest(RESTAPI::Errors::MissingOrInvalidParameters);
 			}
 		} else {
-			BadRequest("Missing parameters.");
+			BadRequest(RESTAPI::Errors::MissingOrInvalidParameters);
 		}
 	}
 }
