@@ -17,13 +17,13 @@ namespace OpenWifi {
 	class KafkaManager *KafkaManager::instance_ = nullptr;
 
 	KafkaManager::KafkaManager() noexcept:
-		SubSystemServer("KafkaManager", "KAFKA-SVR", "ucentral.kafka")
+		SubSystemServer("KafkaManager", "KAFKA-SVR", "openwifi.kafka")
 	{
 	}
 
 	void KafkaManager::initialize(Poco::Util::Application & self) {
 		SubSystemServer::initialize(self);
-		KafkaEnabled_ = Daemon()->ConfigGetBool("ucentral.kafka.enable",false);
+		KafkaEnabled_ = Daemon()->ConfigGetBool("openwifi.kafka.enable",false);
 	}
 
 #ifdef SMALL_BUILD
@@ -55,8 +55,8 @@ namespace OpenWifi {
 
 	void KafkaManager::ProducerThr() {
 		cppkafka::Configuration Config({
-										   { "client.id", Daemon()->ConfigGetString("ucentral.kafka.client.id") },
-										   { "metadata.broker.list", Daemon()->ConfigGetString("ucentral.kafka.brokerlist") }
+										   { "client.id", Daemon()->ConfigGetString("openwifi.kafka.client.id") },
+										   { "metadata.broker.list", Daemon()->ConfigGetString("openwifi.kafka.brokerlist") }
 									   });
 		SystemInfoWrapper_ = 	R"lit({ "system" : { "id" : )lit" +
 								  	std::to_string(Daemon()->ID()) +
@@ -68,7 +68,7 @@ namespace OpenWifi {
 			std::this_thread::sleep_for(std::chrono::milliseconds(200));
 			try
 			{
-				SubMutexGuard G(ProducerMutex_);
+				std::lock_guard G(ProducerMutex_);
 				auto Num=0;
 				while (!Queue_.empty()) {
 					const auto M = Queue_.front();
@@ -96,10 +96,10 @@ namespace OpenWifi {
 
 	void KafkaManager::ConsumerThr() {
 		cppkafka::Configuration Config({
-										   { "client.id", Daemon()->ConfigGetString("ucentral.kafka.client.id") },
-										   { "metadata.broker.list", Daemon()->ConfigGetString("ucentral.kafka.brokerlist") },
-										   { "group.id", Daemon()->ConfigGetString("ucentral.kafka.group.id") },
-										   { "enable.auto.commit", Daemon()->ConfigGetBool("ucentral.kafka.auto.commit",false) },
+										   { "client.id", Daemon()->ConfigGetString("openwifi.kafka.client.id") },
+										   { "metadata.broker.list", Daemon()->ConfigGetString("openwifi.kafka.brokerlist") },
+										   { "group.id", Daemon()->ConfigGetString("openwifi.kafka.group.id") },
+										   { "enable.auto.commit", Daemon()->ConfigGetBool("openwifi.kafka.auto.commit",false) },
 										   { "auto.offset.reset", "latest" } ,
 										   { "enable.partition.eof", false }
 									   });
@@ -125,8 +125,8 @@ namespace OpenWifi {
 			}
 		});
 
-        bool AutoCommit = Daemon()->ConfigGetBool("ucentral.kafka.auto.commit",false);
-        auto BatchSize = Daemon()->ConfigGetInt("ucentral.kafka.consumer.batchsize",20);
+        bool AutoCommit = Daemon()->ConfigGetBool("openwifi.kafka.auto.commit",false);
+        auto BatchSize = Daemon()->ConfigGetInt("openwifi.kafka.consumer.batchsize",20);
 
         Types::StringVec    Topics;
 		for(const auto &i:Notifiers_)
@@ -148,7 +148,7 @@ namespace OpenWifi {
                             Consumer.async_commit(Msg);
                         continue;
                     }
-                    SubMutexGuard G(ConsumerMutex_);
+                    std::lock_guard G(ConsumerMutex_);
                     auto It = Notifiers_.find(Msg.get_topic());
                     if (It != Notifiers_.end()) {
                         Types::TopicNotifyFunctionList &FL = It->second;
@@ -174,9 +174,9 @@ namespace OpenWifi {
 		return std::move( SystemInfoWrapper_ + PayLoad + "}");
 	}
 
-	void KafkaManager::PostMessage(std::string topic, std::string key, std::string PayLoad, bool WrapMessage ) {
+	void KafkaManager::PostMessage(const std::string &topic, const std::string & key, const std::string &PayLoad, bool WrapMessage ) {
 		if(KafkaEnabled_) {
-			SubMutexGuard G(Mutex_);
+			std::lock_guard G(Mutex_);
 			KMessage M{
 				.Topic = topic,
 				.Key = key,
@@ -187,7 +187,7 @@ namespace OpenWifi {
 
 	int KafkaManager::RegisterTopicWatcher(const std::string &Topic, Types::TopicNotifyFunction &F) {
 		if(KafkaEnabled_) {
-			SubMutexGuard G(Mutex_);
+			std::lock_guard G(Mutex_);
 			auto It = Notifiers_.find(Topic);
 			if(It == Notifiers_.end()) {
 				Types::TopicNotifyFunctionList L;
@@ -204,7 +204,7 @@ namespace OpenWifi {
 
 	void KafkaManager::UnregisterTopicWatcher(const std::string &Topic, int Id) {
 		if(KafkaEnabled_) {
-			SubMutexGuard G(Mutex_);
+			std::lock_guard G(Mutex_);
 			auto It = Notifiers_.find(Topic);
 			if(It != Notifiers_.end()) {
 				Types::TopicNotifyFunctionList & L = It->second;

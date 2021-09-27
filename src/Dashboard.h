@@ -11,8 +11,9 @@
 namespace OpenWifi {
 	class DeviceDashboard {
 	  public:
+			DeviceDashboard() { DB_.reset(); }
 			void Create();
-			const GWObjects::Dashboard & Report() const { return DB_;}
+			[[nodiscard]] const GWObjects::Dashboard & Report() const { return DB_;}
 	  private:
 			GWObjects::Dashboard 	DB_;
 			uint64_t 				LastRun_=0;

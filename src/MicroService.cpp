@@ -1,6 +1,11 @@
 //
-// Created by stephane bourque on 2021-06-22.
+//	License type: BSD 3-Clause License
+//	License copy: https://github.com/Telecominfraproject/wlan-cloud-ucentralgw/blob/master/LICENSE
 //
+//	Created by Stephane Bourque on 2021-03-04.
+//	Arilia Wireless Inc.
+//
+
 #include <cstdlib>
 #include <boost/algorithm/string.hpp>
 
@@ -57,7 +62,7 @@ namespace OpenWifi {
 	}
 
 	void MicroService::BusMessageReceived(const std::string &Key, const std::string & Message) {
-		SubMutexGuard G(InfraMutex_);
+		std::lock_guard G(InfraMutex_);
 		try {
 			Poco::JSON::Parser P;
 			auto Object = P.parse(Message).extract<Poco::JSON::Object::Ptr>();
@@ -128,7 +133,7 @@ namespace OpenWifi {
 	}
 
 	MicroServiceMetaVec MicroService::GetServices(const std::string & Type) {
-		SubMutexGuard G(InfraMutex_);
+		std::lock_guard G(InfraMutex_);
 
 		auto T = Poco::toLower(Type);
 		MicroServiceMetaVec	Res;
@@ -140,13 +145,49 @@ namespace OpenWifi {
 	}
 
 	MicroServiceMetaVec MicroService::GetServices() {
-		SubMutexGuard G(InfraMutex_);
+		std::lock_guard G(InfraMutex_);
 
 		MicroServiceMetaVec	Res;
 		for(const auto &[Id,ServiceRec]:Services_) {
 			Res.push_back(ServiceRec);
 		}
 		return Res;
+	}
+
+    void MicroService::LoadConfigurationFile() {
+	    std::string Location = Poco::Environment::get(DAEMON_CONFIG_ENV_VAR,".");
+	    Poco::Path ConfigFile;
+
+	    ConfigFile = ConfigFileName_.empty() ? Location + "/" + DAEMON_PROPERTIES_FILENAME : ConfigFileName_;
+
+	    if(!ConfigFile.isFile())
+	    {
+	        std::cerr << DAEMON_APP_NAME << ": Configuration "
+	        << ConfigFile.toString() << " does not seem to exist. Please set " + DAEMON_CONFIG_ENV_VAR
+	        + " env variable the path of the " + DAEMON_PROPERTIES_FILENAME + " file." << std::endl;
+	        std::exit(Poco::Util::Application::EXIT_CONFIG);
+	    }
+
+	    loadConfiguration(ConfigFile.toString());
+	}
+
+    void MicroService::Reload() {
+	    LoadConfigurationFile();
+	    LoadMyConfig();
+	}
+
+    void MicroService::LoadMyConfig() {
+	    std::string KeyFile = ConfigPath("openwifi.service.key");
+	    std::string KeyFilePassword = ConfigPath("openwifi.service.key.password" , "" );
+	    AppKey_ = Poco::SharedPtr<Poco::Crypto::RSAKey>(new Poco::Crypto::RSAKey("", KeyFile, KeyFilePassword));
+	    Cipher_ = CipherFactory_.createCipher(*AppKey_);
+	    ID_ = Utils::GetSystemId();
+	    if(!DebugMode_)
+	        DebugMode_ = ConfigGetBool("openwifi.system.debug",false);
+	    MyPrivateEndPoint_ = ConfigGetString("openwifi.system.uri.private");
+	    MyPublicEndPoint_ = ConfigGetString("openwifi.system.uri.public");
+	    UIURI_ = ConfigGetString("openwifi.system.uri.ui");
+	    MyHash_ = CreateHash(MyPublicEndPoint_);
 	}
 
 	void MicroService::initialize(Poco::Util::Application &self) {
@@ -159,22 +200,10 @@ namespace OpenWifi {
 		Poco::Net::HTTPSStreamFactory::registerFactory();
 		Poco::Net::FTPStreamFactory::registerFactory();
 		Poco::Net::FTPSStreamFactory::registerFactory();
-		std::string Location = Poco::Environment::get(DAEMON_CONFIG_ENV_VAR,".");
-		Poco::Path ConfigFile;
 
-		ConfigFile = ConfigFileName_.empty() ? Location + "/" + DAEMON_PROPERTIES_FILENAME : ConfigFileName_;
+		LoadConfigurationFile();
 
-		if(!ConfigFile.isFile())
-		{
-			std::cerr << DAEMON_APP_NAME << ": Configuration "
-					  << ConfigFile.toString() << " does not seem to exist. Please set " + DAEMON_CONFIG_ENV_VAR
-												  + " env variable the path of the " + DAEMON_PROPERTIES_FILENAME + " file." << std::endl;
-			std::exit(Poco::Util::Application::EXIT_CONFIG);
-		}
-
-		static const char * LogFilePathKey = "logging.channels.c2.path";
-
-		loadConfiguration(ConfigFile.toString());
+        static const char * LogFilePathKey = "logging.channels.c2.path";
 
 		if(LogDir_.empty()) {
 			std::string OriginalLogFileValue = ConfigPath(LogFilePathKey);
@@ -182,7 +211,8 @@ namespace OpenWifi {
 		} else {
 			config().setString(LogFilePathKey, LogDir_);
 		}
-		Poco::File	DataDir(ConfigPath("ucentral.system.data"));
+
+		Poco::File	DataDir(ConfigPath("openwifi.system.data"));
 		DataDir_ = DataDir.path();
 		if(!DataDir.exists()) {
 			try {
@@ -191,17 +221,9 @@ namespace OpenWifi {
 				logger().log(E);
 			}
 		}
-		std::string KeyFile = ConfigPath("ucentral.service.key");
-		std::string KeyFilePassword = ConfigPath("ucentral.service.key.password" , "" );
-		AppKey_ = Poco::SharedPtr<Poco::Crypto::RSAKey>(new Poco::Crypto::RSAKey("", KeyFile, KeyFilePassword));
-		Cipher_ = CipherFactory_.createCipher(*AppKey_);
-		ID_ = Utils::GetSystemId();
-		if(!DebugMode_)
-			DebugMode_ = ConfigGetBool("ucentral.system.debug",false);
-		MyPrivateEndPoint_ = ConfigGetString("ucentral.system.uri.private");
-		MyPublicEndPoint_ = ConfigGetString("ucentral.system.uri.public");
-		UIURI_ = ConfigGetString("ucentral.system.uri.ui");
-		MyHash_ = CreateHash(MyPublicEndPoint_);
+
+		LoadMyConfig();
+
 		InitializeSubSystemServers();
 		ServerApplication::initialize(self);
 
@@ -336,14 +358,23 @@ namespace OpenWifi {
 		return false;
 	}
 
+	void MicroService::Reload(const std::string &Sub) {
+		for (auto i : SubSystems_) {
+			if (Poco::toLower(Sub) == Poco::toLower(i->Name())) {
+				i->reinitialize(Poco::Util::Application::instance());
+				return;
+			}
+		}
+	}
+
 	Types::StringVec MicroService::GetSubSystems() const {
 		Types::StringVec Result;
 		for(auto i:SubSystems_)
-			Result.push_back(i->Name());
+			Result.push_back(Poco::toLower(i->Name()));
 		return Result;
 	}
 
-	Types::StringPairVec MicroService::GetLogLevels() const {
+	Types::StringPairVec MicroService::GetLogLevels() {
 		Types::StringPairVec Result;
 
 		for(auto &i:SubSystems_) {
@@ -353,7 +384,7 @@ namespace OpenWifi {
 		return Result;
 	}
 
-	const Types::StringVec & MicroService::GetLogLevelNames() const {
+	const Types::StringVec & MicroService::GetLogLevelNames() {
 		static Types::StringVec LevelNames{"none", "fatal", "critical", "error", "warning", "notice", "information", "debug", "trace" };
 		return LevelNames;
 	}
@@ -427,7 +458,7 @@ namespace OpenWifi {
 			Poco::Thread::trySleep((unsigned long)Daemon()->DaemonBusTimer());
 			if(!Running_)
 				break;
-			auto Msg = Daemon()->MakeSystemEventMessage(KafkaTopics::ServiceEvents::EVENT_KEEP_ALIVE);
+			Msg = Daemon()->MakeSystemEventMessage(KafkaTopics::ServiceEvents::EVENT_KEEP_ALIVE);
 			KafkaManager()->PostMessage(KafkaTopics::SERVICE_EVENTS,Daemon()->PrivateEndPoint(),Msg, false);
 		}
 		Msg = Daemon()->MakeSystemEventMessage(KafkaTopics::ServiceEvents::EVENT_LEAVE);

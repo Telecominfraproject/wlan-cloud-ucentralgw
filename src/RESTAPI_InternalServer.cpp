@@ -22,12 +22,9 @@ namespace OpenWifi {
 
     class RESTAPI_InternalServer *RESTAPI_InternalServer::instance_ = nullptr;
 
-    RESTAPI_InternalServer::RESTAPI_InternalServer() noexcept: SubSystemServer("RESTAPIInternalServer", "REST-ISRV", "ucentral.internal.restapi")
-    {
-    }
-
     int RESTAPI_InternalServer::Start() {
         Logger_.information("Starting.");
+		Server_.InitLogging();
 
         for(const auto & Svr: ConfigServersList_) {
             Logger_.information(Poco::format("Starting: %s:%s Keyfile:%s CertFile: %s", Svr.Address(), std::to_string(Svr.Port()),
@@ -43,7 +40,7 @@ namespace OpenWifi {
             Params->setMaxQueued(200);
             Params->setKeepAlive(true);
 
-            auto NewServer = std::make_unique<Poco::Net::HTTPServer>(new InternalRequestHandlerFactory, Pool_, Sock, Params);
+            auto NewServer = std::make_unique<Poco::Net::HTTPServer>(new InternalRequestHandlerFactory(Server_), Pool_, Sock, Params);
             NewServer->start();
             RESTServers_.push_back(std::move(NewServer));
         }
@@ -55,12 +52,17 @@ namespace OpenWifi {
         Logger_.information("Stopping ");
         for( const auto & svr : RESTServers_ )
             svr->stop();
+		RESTServers_.clear();
     }
 
+	void RESTAPI_InternalServer::reinitialize(Poco::Util::Application &self) {
+    	Daemon()->LoadConfigurationFile();
+    	Logger_.information("Reinitializing.");
+    	Stop();
+    	Start();
+	}
+
     Poco::Net::HTTPRequestHandler *InternalRequestHandlerFactory::createRequestHandler(const Poco::Net::HTTPServerRequest & Request) {
-
-        Logger_.debug(Poco::format("REQUEST(%s): %s %s", Utils::FormatIPv6(Request.clientAddress().toString()), Request.getMethod(), Request.getURI()));
-
         Poco::URI uri(Request.getURI());
         const auto & Path = uri.getPath();
         RESTAPIHandler::BindingMap Bindings;
@@ -75,6 +77,6 @@ namespace OpenWifi {
 			RESTAPI_commands,
 			RESTAPI_ouis,
 			RESTAPI_file,
-			RESTAPI_BlackList>(Path,Bindings,Logger_);    }
+			RESTAPI_BlackList>(Path,Bindings,Logger_, Server_);    }
 
 }

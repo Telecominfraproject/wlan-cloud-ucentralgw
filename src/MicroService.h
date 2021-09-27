@@ -1,5 +1,9 @@
 //
-// Created by stephane bourque on 2021-06-22.
+//	License type: BSD 3-Clause License
+//	License copy: https://github.com/Telecominfraproject/wlan-cloud-ucentralgw/blob/master/LICENSE
+//
+//	Created by Stephane Bourque on 2021-03-04.
+//	Arilia Wireless Inc.
 //
 
 #ifndef UCENTRALGW_MICROSERVICE_H
@@ -29,11 +33,12 @@
 
 namespace OpenWifi {
 
-	static const std::string uSERVICE_SECURITY{"ucentralsec"};
-	static const std::string uSERVICE_GATEWAY{"ucentralgw"};
-	static const std::string uSERVICE_FIRMWARE{ "ucentralfms"};
+	static const std::string uSERVICE_SECURITY{"owsec"};
+	static const std::string uSERVICE_GATEWAY{"owgw"};
+	static const std::string uSERVICE_FIRMWARE{ "owfms"};
     static const std::string uSERVICE_TOPOLOGY{ "owtopo"};
     static const std::string uSERVICE_PROVISIONING{ "owprov"};
+    static const std::string uSERVICE_OWLS{ "owls"};
 
 	class MyErrorHandler : public Poco::ErrorHandler {
 	  public:
@@ -82,9 +87,6 @@ namespace OpenWifi {
 			DAEMON_APP_NAME(std::move(AppName)),
 			DAEMON_BUS_TIMER(BusTimer),
 			SubSystems_(std::move(Subsystems)) {
-			std::string V{APP_VERSION};
-			std::string B{BUILD_NUMBER};
-			Version_ =  V + "(" + B +  ")";
 		}
 
 		int main(const ArgVec &args) override;
@@ -111,8 +113,8 @@ namespace OpenWifi {
 		[[nodiscard]] bool Debug() const { return DebugMode_; }
 		[[nodiscard]] uint64_t ID() const { return ID_; }
 		[[nodiscard]] Types::StringVec GetSubSystems() const;
-		[[nodiscard]] Types::StringPairVec GetLogLevels() const;
-		[[nodiscard]] const Types::StringVec & GetLogLevelNames() const;
+		[[nodiscard]] Types::StringPairVec GetLogLevels() ;
+		[[nodiscard]] static const Types::StringVec & GetLogLevelNames();
 		[[nodiscard]] std::string ConfigGetString(const std::string &Key,const std::string & Default);
 		[[nodiscard]] std::string ConfigGetString(const std::string &Key);
 		[[nodiscard]] std::string ConfigPath(const std::string &Key,const std::string & Default);
@@ -129,6 +131,7 @@ namespace OpenWifi {
 		[[nodiscard]] std::string PrivateEndPoint() const { return MyPrivateEndPoint_; };
 		[[nodiscard]] std::string PublicEndPoint() const { return MyPublicEndPoint_; };
 		[[nodiscard]] std::string MakeSystemEventMessage( const std::string & Type ) const ;
+		[[nodiscard]] const Types::SubSystemVec & GetFullSubSystems() { return SubSystems_; }
 		inline uint64_t DaemonBusTimer() const { return DAEMON_BUS_TIMER; };
 
 		void BusMessageReceived( const std::string & Key, const std::string & Message);
@@ -136,10 +139,16 @@ namespace OpenWifi {
 		[[nodiscard]] MicroServiceMetaVec GetServices();
 		[[nodiscard]] bool IsValidAPIKEY(const Poco::Net::HTTPServerRequest &Request);
 
-		void SavePID();
-		inline uint64_t GetPID() { return Poco::Process::id(); };
-		[[nodiscard]] inline const std::string GetPublicAPIEndPoint() const { return MyPublicEndPoint_ + "/api/v1"; };
+		static void SavePID();
+		static inline uint64_t GetPID() { return Poco::Process::id(); };
+		[[nodiscard]] inline const std::string GetPublicAPIEndPoint() { return MyPublicEndPoint_ + "/api/v1"; };
 		[[nodiscard]] inline const std::string & GetUIURI() const { return UIURI_;};
+
+		void Reload(const std::string &Name);   //  reload a subsystem
+		void Reload();                          //  reload the daemon itself
+		void LoadMyConfig();
+
+		void LoadConfigurationFile();
 
 	  private:
 		bool                        HelpRequested_ = false;
@@ -159,9 +168,9 @@ namespace OpenWifi {
 		std::string 				MyPrivateEndPoint_;
 		std::string 				MyPublicEndPoint_;
 		std::string                 UIURI_;
-		std::string 				Version_;
+		std::string 				Version_{std::string(APP_VERSION) + "("+ BUILD_NUMBER + ")"};
 		BusEventManager				BusEventManager_;
-		SubMutex 					InfraMutex_;
+		std::mutex 					InfraMutex_;
 
 		std::string DAEMON_PROPERTIES_FILENAME;
 		std::string DAEMON_ROOT_ENV_VAR;

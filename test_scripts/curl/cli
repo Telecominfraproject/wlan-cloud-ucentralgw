@@ -20,11 +20,11 @@ then
   exit 1
 fi
 
-if [[ "${UCENTRALSEC}" == "" ]]
+if [[ "${OWSEC}" == "" ]]
 then
-  echo "You must set the variable UCENTRALSEC in order to use this script. Something like"
-  echo "UCENTRALSEC=security.isp.com:16001"
-  exit 1
+	echo "You must set the variable OWSEC in order to use this script. Something like"
+	echo "OWSEC=security.isp.com:16001"
+	exit 1
 fi
 
 if [[ "${FLAGS}" == "" ]]
@@ -41,7 +41,7 @@ browser=""
 
 login() {
   payload="{ \"userId\" : \"$username\" , \"password\" : \"$password\" }"
-  token=$(curl ${FLAGS} -X POST -H "Content-Type: application/json" -d "$payload" "https://${UCENTRALSEC}/api/v1/oauth2" | jq -r '.access_token')
+  	token=$(curl ${FLAGS} -X POST -H "Content-Type: application/json" -d "$payload" "https://${OWSEC}/api/v1/oauth2" | jq -r '.access_token')
 
   if [[ "${token}" == "" ]]
   then
@@ -73,14 +73,14 @@ findbrowser() {
 }
 
 setgateway() {
-	curl  ${FLAGS} -X GET "https://${UCENTRALSEC}/api/v1/systemEndpoints" \
+	curl  ${FLAGS} -X GET "https://${OWSEC}/api/v1/systemEndpoints" \
         -H "accept: application/json" \
         -H "Authorization: Bearer ${token}"  > ${result_file}
 #	jq < ${result_file}
 
 	for index in {0..10}
 	do
-		endpointlocation=".endpoints[${index}].uri"
+	endpointlocation=".endpoints[${index}].uri"
 	endpointlocationtype=".endpoints[${index}].type"
 	rawurl="$(cat ${result_file} | jq -r ${endpointlocation})"
 	svctype="$(cat ${result_file} | jq -r ${endpointlocationtype})"
@@ -93,7 +93,7 @@ setgateway() {
 	path="$(echo $url | grep / | cut -d/ -f2-)"
 	if [[ ${url} != "null" ]]
 		then
-		if [[ ${svctype} == "ucentralgw" ]]
+		if [[ ${svctype} == "owgw" ]]
 			then
 # echo "url: $url"
 # echo "  proto: $proto"
@@ -101,97 +101,97 @@ setgateway() {
 #			echo "  host: $host"
 #			echo "  port: $port"
 #			echo "  path: $path"
-			UCENTRALGW="${url}"
+			OWGW="${url}"
 			break
 		fi
 	fi
 	done
-	echo "Using ${UCENTRALGW}..."
+	echo "Using ${OWGW}..."
 }
 
 logout() {
   curl  ${FLAGS} -X DELETE -H "Content-Type: application/json" \
         -H "Authorization: Bearer ${token}" \
-        "https://${UCENTRALSEC}/api/v1/oauth2/${token}"
+        "https://${OWSEC}/api/v1/oauth2/${token}"
   rm -rf token.json
 }
 
 getdevice() {
-  curl  ${FLAGS} -X GET --url "https://${UCENTRALGW}/api/v1/device/$1" \
+  curl  ${FLAGS} -X GET --url "https://${OWGW}/api/v1/device/$1" \
         -H "accept: application/json" \
         -H "Authorization: Bearer ${token}" > ${result_file}
   jq < ${result_file}
 }
 
 getcommand() {
-  curl  ${FLAGS} -X GET "https://${UCENTRALGW}/api/v1/command/$1" \
+  curl  ${FLAGS} -X GET "https://${OWGW}/api/v1/command/$1" \
         -H "accept: application/json" \
         -H "Authorization: Bearer ${token}" > ${result_file}
   jq < ${result_file}
 }
 
 deletecommand() {
-  curl  ${FLAGS} -X DELETE "https://${UCENTRALGW}/api/v1/command/$1" \
+  curl  ${FLAGS} -X DELETE "https://${OWGW}/api/v1/command/$1" \
         -H "accept: application/json" \
         -H "Authorization: Bearer ${token}"
 }
 
 listcommands() {
-  curl  ${FLAGS} -X GET "https://${UCENTRALGW}/api/v1/commands?serialNumber=$1&limit=3000" \
+  curl  ${FLAGS} -X GET "https://${OWGW}/api/v1/commands?serialNumber=$1&limit=3000" \
         -H "accept: application/json" \
         -H "Authorization: Bearer ${token}"  > ${result_file}
   jq < ${result_file}
 }
 
 newestcommands() {
-	curl  ${FLAGS} -X GET "https://${UCENTRALGW}/api/v1/commands?serialNumber=$1&newest=true&limit=50" \
+	curl  ${FLAGS} -X GET "https://${OWGW}/api/v1/commands?serialNumber=$1&newest=true&limit=50" \
         -H "accept: application/json" \
         -H "Authorization: Bearer ${token}"  > ${result_file}
 	jq < ${result_file}
 }
 
 deletecommands() {
-  curl  ${FLAGS} -X DELETE "https://${UCENTRALGW}/api/v1/commands?serialNumber=$1" \
+  curl  ${FLAGS} -X DELETE "https://${OWGW}/api/v1/commands?serialNumber=$1" \
         -H "accept: application/json" \
         -H "Authorization: Bearer ${token}"
 }
 
 getcapabilities() {
-  curl  -${FLAGS} -X GET "https://${UCENTRALGW}/api/v1/device/$1/capabilities" \
+  curl  -${FLAGS} -X GET "https://${OWGW}/api/v1/device/$1/capabilities" \
         -H "accept: application/json" \
         -H "Authorization: Bearer ${token}" > ${result_file}
   jq < ${result_file}
 }
 
 deletecapabilities() {
-  curl  ${FLAGS} -X DELETE "https://${UCENTRALGW}/api/v1/device/$1/capabilities" \
+  curl  ${FLAGS} -X DELETE "https://${OWGW}/api/v1/device/$1/capabilities" \
         -H "accept: application/json" \
         -H "Authorization: Bearer ${token}"
 }
 
 listdevices() {
-  curl  ${FLAGS} -X GET "https://${UCENTRALGW}/api/v1/devices" \
+  curl  ${FLAGS} -X GET "https://${OWGW}/api/v1/devices" \
         -H "accept: application/json" \
         -H "Authorization: Bearer ${token}" > ${result_file}
   jq < ${result_file}
 }
 
 ldevs() {
-	curl  ${FLAGS} -X GET "https://${UCENTRALGW}/api/v1/devices?offset=$1&limit=$2" \
+	curl  ${FLAGS} -X GET "https://${OWGW}/api/v1/devices?offset=$1&limit=$2" \
 	-H "accept: application/json" \
 	-H "Authorization: Bearer ${token}" > ${result_file}
 	jq < ${result_file}
 }
 
 deletedevice() {
-  curl  ${FLAGS} -X DELETE "https://${UCENTRALGW}/api/v1/device/$1" \
+  curl  ${FLAGS} -X DELETE "https://${OWGW}/api/v1/device/$1" \
         -H "accept: application/json" \
         -H "Authorization: Bearer ${token}"
 }
 
 createdevice() {
   payload="{ \"serialNumber\": \"$1\", \"UUID\": 1234456, \"configuration\" : $(cat "$2") , \"deviceType\": \"AP\",\"location\": \"\", \"macAddress\": \"$3\", \"manufacturer\": \"Linksys EA8300 (Dallas)\", \"owner\": \"\" }"
-  curl  ${FLAGS} -X POST "https://${UCENTRALGW}/api/v1/device/$1" \
+  curl  ${FLAGS} -X POST "https://${OWGW}/api/v1/device/$1" \
         -H "accept: application/json" \
         -H "Authorization: Bearer ${token}" \
         -d "$payload"  > ${result_file}
@@ -200,7 +200,7 @@ createdevice() {
 
 addnote() {
 	payload="{ \"serialNumber\": \"$1\", \"notes\" : [ {\"note\" : \"$2\"} ] }"
-	curl  ${FLAGS} -X PUT "https://${UCENTRALGW}/api/v1/device/$1" \
+	curl  ${FLAGS} -X PUT "https://${OWGW}/api/v1/device/$1" \
         -H "accept: application/json" \
         -H "Authorization: Bearer ${token}" \
         -d "$payload"  > ${result_file}
@@ -209,7 +209,7 @@ addnote() {
 
 reboot() {
   payload="{ \"serialNumber\" : \"$1\" }"
-  curl  ${FLAGS} -X POST "https://${UCENTRALGW}/api/v1/device/$1/reboot" \
+  curl  ${FLAGS} -X POST "https://${OWGW}/api/v1/device/$1/reboot" \
         -H "accept: application/json" \
         -H "Authorization: Bearer ${token}" \
         -d "$payload"  > ${result_file}
@@ -217,8 +217,8 @@ reboot() {
 }
 
 setloglevel() {
-  payload="{ \"command\" : \"setloglevel\" , \"parameters\" : [ { \"tag\" : \"$1\" , \"value\" : \"$2\" } ] }"
-  curl  ${FLAGS} -X POST "https://${UCENTRALGW}/api/v1/system" \
+  payload="{ \"command\" : \"setloglevel\" , \"subsystems\" : [ { \"tag\" : \"$1\" , \"value\" : \"$2\" } ] }"
+  curl  ${FLAGS} -X POST "https://${OWGW}/api/v1/system" \
         -H  "accept: application/json" \
         -H "Authorization: Bearer ${token}" \
         -d "$payload"
@@ -226,7 +226,7 @@ setloglevel() {
 
 getloglevels() {
 	payload="{ \"command\" : \"getloglevels\" }"
-	curl  ${FLAGS} -X POST "https://${UCENTRALGW}/api/v1/system" \
+	curl  ${FLAGS} -X POST "https://${OWGW}/api/v1/system" \
         -H  "accept: application/json" \
         -H "Authorization: Bearer ${token}" \
         -d "$payload"
@@ -234,7 +234,7 @@ getloglevels() {
 
 getloglevelnames() {
 	payload="{ \"command\" : \"getloglevelnames\" }"
-	curl  ${FLAGS} -X POST "https://${UCENTRALGW}/api/v1/system" \
+	curl  ${FLAGS} -X POST "https://${OWGW}/api/v1/system" \
         -H  "accept: application/json" \
         -H "Authorization: Bearer ${token}" \
         -d "$payload"
@@ -242,14 +242,29 @@ getloglevelnames() {
 
 getsubsystemnames() {
 	payload="{ \"command\" : \"getsubsystemnames\" }"
-	curl  ${FLAGS} -X POST "https://${UCENTRALGW}/api/v1/system" \
+	curl  ${FLAGS} -X POST "https://${OWGW}/api/v1/system" \
         -H  "accept: application/json" \
         -H "Authorization: Bearer ${token}" \
         -d "$payload"
 }
 
+systeminfo() {
+	curl  ${FLAGS} -X GET "https://${OWGW}/api/v1/system?command=info" \
+	-H "accept: application/json" \
+	-H "Authorization: Bearer ${token}" > ${result_file}
+	jq < ${result_file}
+}
+
+reloadsubsystem() {
+	payload="{ \"command\" : \"reload\", \"subsystems\" : [ \"$1\" ] }"
+		curl  ${FLAGS} -X POST "https://${OWGW}/api/v1/system" \
+		-H  "accept: application/json" \
+		-H "Authorization: Bearer ${token}" \
+		-d "$payload"
+}
+
 getdevicestatus() {
-  curl  ${FLAGS} -X GET "https://${UCENTRALGW}/api/v1/device/$1/status" \
+  curl  ${FLAGS} -X GET "https://${OWGW}/api/v1/device/$1/status" \
         -H  "accept: application/json" \
         -H "Authorization: Bearer ${token}"  > ${result_file}
   jq < ${result_file}
@@ -257,7 +272,7 @@ getdevicestatus() {
 
 upgrade() {
   payload="{ \"serialNumber\" : \"$1\" , \"uri\" : \"$2\" }"
-  curl  ${FLAGS} -X POST "https://${UCENTRALGW}/api/v1/device/$1/upgrade" \
+  curl  ${FLAGS} -X POST "https://${OWGW}/api/v1/device/$1/upgrade" \
         -H "accept: application/json" \
         -H "Authorization: Bearer ${token}" \
         -d "$payload"   > ${result_file}
@@ -266,7 +281,7 @@ upgrade() {
 
 leds() {
   payload="{ \"serialNumber\" : \"$1\" , \"duration\" : $3, \"pattern\" : \"$2\" }"
-  curl  ${FLAGS} -X POST "https://${UCENTRALGW}/api/v1/device/$1/leds" \
+  curl  ${FLAGS} -X POST "https://${OWGW}/api/v1/device/$1/leds" \
         -H "accept: application/json" \
         -H "Authorization: Bearer ${token}" \
         -d "$payload" > ${result_file}
@@ -275,7 +290,7 @@ leds() {
 
 factory() {
   payload="{ \"serialNumber\" : \"$1\" , \"keepRedirector\" : $2 }"
-  curl  ${FLAGS} -X POST "https://${UCENTRALGW}/api/v1/device/$1/factory" \
+  curl  ${FLAGS} -X POST "https://${OWGW}/api/v1/device/$1/factory" \
         -H "accept: application/json" \
         -H "Authorization: Bearer ${token}" \
         -d "$payload" > ${result_file}
@@ -284,7 +299,7 @@ factory() {
 
 configure() {
   payload="{ \"serialNumber\" : \"$1\", \"UUID\" : 123456 , \"configuration\" : $(cat "$2") }"
-  curl  ${FLAGS} -X POST "https://${UCENTRALGW}/api/v1/device/$1/configure" \
+  curl  ${FLAGS} -X POST "https://${OWGW}/api/v1/device/$1/configure" \
         -H "accept: application/json" \
         -H "Authorization: Bearer ${token}" \
         -d "$payload" > ${result_file}
@@ -293,7 +308,7 @@ configure() {
 
 request() {
   payload="{ \"serialNumber\" : \"$1\" , \"message\" : \"$2\" }"
-  curl  ${FLAGS} -X POST "https://${UCENTRALGW}/api/v1/device/$1/request" \
+  curl  ${FLAGS} -X POST "https://${OWGW}/api/v1/device/$1/request" \
         -H "accept: application/json" \
         -H "Authorization: Bearer ${token}" \
         -d "$payload"  > ${result_file}
@@ -302,7 +317,7 @@ request() {
 
 wifiscan() {
   payload="{ \"serialNumber\" : \"$1\" , \"verbose\" : $2 }"
-  curl  ${FLAGS} -X POST "https://${UCENTRALGW}/api/v1/device/$1/wifiscan" \
+  curl  ${FLAGS} -X POST "https://${OWGW}/api/v1/device/$1/wifiscan" \
         --max-time 20 \
         -H "accept: application/json" \
         -H "Authorization: Bearer ${token}" \
@@ -312,7 +327,7 @@ wifiscan() {
 
 activescan() {
 	payload="{ \"serialNumber\" : \"$1\" , \"verbose\" : $2, \"activeScan\" : true}"
-	curl  ${FLAGS} -X POST "https://${UCENTRALGW}/api/v1/device/$1/wifiscan" \
+	curl  ${FLAGS} -X POST "https://${OWGW}/api/v1/device/$1/wifiscan" \
         --max-time 20 \
         -H "accept: application/json" \
         -H "Authorization: Bearer ${token}" \
@@ -322,7 +337,7 @@ activescan() {
 
 trace() {
   payload="{ \"serialNumber\" : \"$1\" , \"duration\" : $2, \"network\" : \"$3\" }"
-  curl  ${FLAGS} -X POST "https://${UCENTRALGW}/api/v1/device/$1/trace" \
+  curl  ${FLAGS} -X POST "https://${OWGW}/api/v1/device/$1/trace" \
         -H "accept: application/json" \
         -H "Authorization: Bearer ${token}" \
         -d "$payload"  > ${result_file}
@@ -330,27 +345,27 @@ trace() {
 }
 
 getstats() {
-  curl  ${FLAGS} -X GET "https://${UCENTRALGW}/api/v1/device/$1/statistics" \
+  curl  ${FLAGS} -X GET "https://${OWGW}/api/v1/device/$1/statistics" \
         -H "accept: application/json" \
         -H "Authorization: Bearer ${token}"   > ${result_file}
   jq < ${result_file}
 }
 
 getlogs() {
-  curl  ${FLAGS} -X GET "https://${UCENTRALGW}/api/v1/device/$1/logs" \
+  curl  ${FLAGS} -X GET "https://${OWGW}/api/v1/device/$1/logs" \
         -H "accept: application/json" \
         -H "Authorization: Bearer ${token}"    > ${result_file}
   jq < ${result_file}
 }
 
 deletelogs() {
-  curl  ${FLAGS} -X DELETE "https://${UCENTRALGW}/api/v1/device/$1/logs" \
+  curl  ${FLAGS} -X DELETE "https://${OWGW}/api/v1/device/$1/logs" \
         -H "accept: application/json" \
         -H "Authorization: Bearer ${token}"
 }
 
 gethealthchecks() {
-  curl  ${FLAGS} -X GET "https://${UCENTRALGW}/api/v1/device/$1/healthchecks" \
+  curl  ${FLAGS} -X GET "https://${OWGW}/api/v1/device/$1/healthchecks" \
         -H "accept: application/json" \
         -H "Authorization: Bearer ${token}"    > ${result_file}
   jq < ${result_file}
@@ -358,7 +373,7 @@ gethealthchecks() {
 
 createdefaultconfig() {
   payload="{ \"name\": \"$1\", \"modelIds\" : \"$2\", \"configuration\" : $(cat "$3")}"
-  curl  ${FLAGS} -X POST "https://${UCENTRALGW}/api/v1/default_configuration/$1" \
+  curl  ${FLAGS} -X POST "https://${OWGW}/api/v1/default_configuration/$1" \
         -H "accept: application/json" \
         -H "Authorization: Bearer ${token}" \
         -d "$payload" > ${result_file}
@@ -366,7 +381,7 @@ createdefaultconfig() {
 }
 
 listdefaultconfigs() {
-  curl  ${FLAGS} -X GET "https://${UCENTRALGW}/api/v1/default_configurations" \
+  curl  ${FLAGS} -X GET "https://${OWGW}/api/v1/default_configurations" \
         -H "accept: application/json" \
         -H "Authorization: Bearer ${token}" > ${result_file}
   jq < ${result_file}
@@ -374,20 +389,20 @@ listdefaultconfigs() {
 
 addblacklistdevice() {
   payload="{ \"devices\" : [ {\"serialNumber\": \"$1\" , \"reason\" : \"$2\" } ] }"
-  curl  ${FLAGS} -X POST "https://${UCENTRALGW}/api/v1/blacklist" \
+  curl  ${FLAGS} -X POST "https://${OWGW}/api/v1/blacklist" \
         -H "accept: application/json" \
         -H "Authorization: Bearer ${token}" \
         -d "$payload"
 }
 
 deleteblacklistdevice() {
-  curl  ${FLAGS} -X DELETE "https://${UCENTRALGW}/api/v1/blacklist?serialNumber=$1" \
+  curl  ${FLAGS} -X DELETE "https://${OWGW}/api/v1/blacklist?serialNumber=$1" \
         -H "accept: application/json" \
         -H "Authorization: Bearer ${token}"
 }
 
 getblacklist() {
-  curl  ${FLAGS} -X GET "https://${UCENTRALGW}/api/v1/blacklist" \
+  curl  ${FLAGS} -X GET "https://${OWGW}/api/v1/blacklist" \
         -H "accept: application/json" \
         -H "Authorization: Bearer ${token}"  > ${result_file}
   jq < ${result_file}
@@ -395,7 +410,7 @@ getblacklist() {
 
 eventqueue() {
   payload="{ \"serialNumber\" : \"$1\" , \"types\" : [ \"dhcp\", \"wifi\" ] }"
-  curl  ${FLAGS} -X POST "https://${UCENTRALGW}/api/v1/device/$1/eventqueue" \
+  curl  ${FLAGS} -X POST "https://${OWGW}/api/v1/device/$1/eventqueue" \
         --max-time 20 \
         -H "accept: application/json" \
         -H "Authorization: Bearer ${token}" \
@@ -404,42 +419,42 @@ eventqueue() {
 }
 
 selectdevices() {
-  curl  ${FLAGS} -X GET "https://${UCENTRALGW}/api/v1/devices?select=$1" \
+  curl  ${FLAGS} -X GET "https://${OWGW}/api/v1/devices?select=$1" \
         -H "accept: application/json" \
         -H "Authorization: Bearer ${token}" > ${result_file}
   jq < ${result_file}
 }
 
 deviceserialnumbers() {
-  curl  ${FLAGS} -X GET "https://${UCENTRALGW}/api/v1/devices?serialOnly=true" \
+  curl  ${FLAGS} -X GET "https://${OWGW}/api/v1/devices?serialOnly=true" \
         -H "accept: application/json" \
         -H "Authorization: Bearer ${token}" > ${result_file}
   jq < ${result_file}
 }
 
 deviceswithstatus() {
-  curl  ${FLAGS} -X GET "https://${UCENTRALGW}/api/v1/devices?deviceWithStatus=true" \
+  curl  ${FLAGS} -X GET "https://${OWGW}/api/v1/devices?deviceWithStatus=true" \
         -H "accept: application/json" \
         -H "Authorization: Bearer ${token}" > ${result_file}
   jq < ${result_file}
 }
 
 devicecount() {
-  curl  ${FLAGS} -X GET "https://${UCENTRALGW}/api/v1/devices?countOnly=true" \
+  curl  ${FLAGS} -X GET "https://${OWGW}/api/v1/devices?countOnly=true" \
         -H "accept: application/json" \
         -H "Authorization: Bearer ${token}" > ${result_file}
   jq < ${result_file}
 }
 
 getfile() {
-  curl  ${FLAGS} -X GET "https://${UCENTRALGW}/api/v1/file/$2?serialNumber=$1" \
+  curl  ${FLAGS} -X GET "https://${OWGW}/api/v1/file/$2?serialNumber=$1" \
         -H "accept: application/octet-stream" \
         -H "Authorization: Bearer ${token}" \
 		-o "$2.pcap"
 }
 
 rtty() {
-	curl  ${FLAGS} -X GET "https://${UCENTRALGW}/api/v1/device/$1/rtty" \
+	curl  ${FLAGS} -X GET "https://${OWGW}/api/v1/device/$1/rtty" \
         -H "accept: application/json" \
         -H "Authorization: Bearer ${token}" > ${result_file}
 	jq < ${result_file}
@@ -457,70 +472,56 @@ rtty() {
 }
 
 lifetimestats() {
-	curl  ${FLAGS} -X GET "https://${UCENTRALGW}/api/v1/device/$1/statistics?lifetime=true" \
+	curl  ${FLAGS} -X GET "https://${OWGW}/api/v1/device/$1/statistics?lifetime=true" \
         -H "accept: application/json" \
         -H "Authorization: Bearer ${token}" > ${result_file}
 	jq < ${result_file}
 }
 
 laststats() {
-	curl  ${FLAGS} -X GET "https://${UCENTRALGW}/api/v1/device/$1/statistics?lastOnly=true" \
+	curl  ${FLAGS} -X GET "https://${OWGW}/api/v1/device/$1/statistics?lastOnly=true" \
         -H "accept: application/json" \
         -H "Authorization: Bearer ${token}" > ${result_file}
 	jq < ${result_file}
 }
 
 lasthealthcheck() {
-	curl  ${FLAGS} -X GET "https://${UCENTRALGW}/api/v1/device/$1/healthchecks?lastOnly=true" \
+	curl  ${FLAGS} -X GET "https://${OWGW}/api/v1/device/$1/healthchecks?lastOnly=true" \
         -H "accept: application/json" \
         -H "Authorization: Bearer ${token}" > ${result_file}
 	jq < ${result_file}
 }
 
 neweststats() {
-	curl  ${FLAGS} -X GET "https://${UCENTRALGW}/api/v1/device/$1/statistics?newest=true&limit=50" \
+	curl  ${FLAGS} -X GET "https://${OWGW}/api/v1/device/$1/statistics?newest=true&limit=50" \
         -H "accept: application/json" \
         -H "Authorization: Bearer ${token}" > ${result_file}
 	jq < ${result_file}
 }
 
 newestlogs() {
-	curl  ${FLAGS} -X GET "https://${UCENTRALGW}/api/v1/device/$1/logs?newest=true&limit=50" \
+	curl  ${FLAGS} -X GET "https://${OWGW}/api/v1/device/$1/logs?newest=true&limit=50" \
         -H "accept: application/json" \
         -H "Authorization: Bearer ${token}" > ${result_file}
 	jq < ${result_file}
 }
 
 newesthealthchecks() {
-	curl  ${FLAGS} -X GET "https://${UCENTRALGW}/api/v1/device/$1/healthchecks?newest=true&limit=50" \
+	curl  ${FLAGS} -X GET "https://${OWGW}/api/v1/device/$1/healthchecks?newest=true&limit=50" \
         -H "accept: application/json" \
         -H "Authorization: Bearer ${token}" > ${result_file}
 	jq < ${result_file}
 }
 
 ouilookup() {
-	curl  ${FLAGS} -X GET "https://${UCENTRALGW}/api/v1/ouis?macList=$1" \
+	curl  ${FLAGS} -X GET "https://${OWGW}/api/v1/ouis?macList=$1" \
         -H "accept: application/json" \
         -H "Authorization: Bearer ${token}" > ${result_file}
 	jq < ${result_file}
 }
 
 dashboard() {
-	curl  ${FLAGS} -X GET "https://${UCENTRALGW}/api/v1/deviceDashboard" \
-        -H "accept: application/json" \
-        -H "Authorization: Bearer ${token}" > ${result_file}
-	jq < ${result_file}
-}
-
-gwversion() {
-	curl  ${FLAGS} -X GET "https://${UCENTRALGW}/api/v1/system?command=version" \
-        -H "accept: application/json" \
-        -H "Authorization: Bearer ${token}" > ${result_file}
-	jq < ${result_file}
-}
-
-gwtimes() {
-	curl  ${FLAGS} -X GET "https://${UCENTRALGW}/api/v1/system?command=times" \
+	curl  ${FLAGS} -X GET "https://${OWGW}/api/v1/deviceDashboard" \
         -H "accept: application/json" \
         -H "Authorization: Bearer ${token}" > ${result_file}
 	jq < ${result_file}
@@ -529,7 +530,24 @@ gwtimes() {
 wstest() {
 	echo "Token:${token}"
 	wscat \
-		-c wss://${UCENTRALGW}/api/v1/ws
+		-c wss://${OWGW}/api/v1/ws
+}
+
+telemetry() {
+	payload="{ \"serialNumber\" : \"$1\", \"interval\" : 2 , \"types\" : [ \"wifi-frames\", \"dhcp-snooping\" ] }"
+	curl  ${FLAGS} -X POST "https://${OWGW}/api/v1/device/$1/telemetry" \
+	-H "accept: application/json" \
+	-H "Authorization: Bearer ${token}" \
+	-d "$payload"  > ${result_file}
+	jq < ${result_file}
+	socket=$(jq -r '.uri' < result.json)
+	if [[ "$(which wscat)" == "" ]]
+    then
+	   echo "wscat command not found. Cannot start a websocket session."
+    else
+		wscat \
+			-c "${socket}"
+	fi
 }
 
 help() {
@@ -613,8 +631,7 @@ help() {
   echo "ouilookup <serial> 				  Lookup an OUI"
   echo
   echo "dashboard 				  		  Get the dashboard document"
-  echo "gwtimes							  Get the uptime and start time of the service."
-  echo "gwversion						  Get the service version."
+  echo "systeminfo						  Get information on the system running the service."
   echo
   echo "wstest  						  Testing the WebSocket interface."
   echo
@@ -637,7 +654,6 @@ case "$1" in
   "deletedevice") login; deletedevice "$2"  ; logout ;;
   "createdevice") login; createdevice "$2" "$3" "$4" ; logout ;;
   "reboot") login; reboot "$2"  ; logout ;;
-  "setloglevel") login; setloglevel "$2" "$3"  ; logout ;;
   "getdevicestatus") login; getdevicestatus "$2"  ; logout ;;
   "upgrade") login; upgrade "$2" "$3"  ; logout ;;
   "factory") login; factory "$2" "$3"  ; logout ;;
@@ -674,13 +690,15 @@ case "$1" in
   "lasthealthcheck") login; lasthealthcheck "$2"; logout;;
   "login") login ;;
   "findbrowser") findbrowser; echo "Browser: ${browser}" ;;
+  "setloglevel") login; setloglevel "$2" "$3"  ; logout ;;
   "getloglevels") login; getloglevels; logout ;;
   "getloglevelnames") login; getloglevelnames; logout ;;
   "getsubsystemnames") login; getsubsystemnames; logout ;;
+  "reloadsubsystem") login; reloadsubsystem; logout ;;
+  "systeminfo") login; systeminfo ; logout;;
   "ouilookup") login; ouilookup "$2"; logout;;
+  "telemetry") login; telemetry "$2"; logout;;
   "dashboard") login; dashboard ; logout;;
-  "gwversion") login; gwversion ; logout;;
-  "gwtimes") login; gwtimes ; logout;;
   "addnote") login; addnote "$2" "$3"; logout;;
   "ldevs") login; ldevs  "$2" "$3"; logout ;;
   "wstest") login; wstest; logout;;

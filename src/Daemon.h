@@ -31,25 +31,25 @@
 
 namespace OpenWifi {
 
-	static const char * vDAEMON_PROPERTIES_FILENAME = "ucentralgw.properties";
-	static const char * vDAEMON_ROOT_ENV_VAR = "UCENTRALGW_ROOT";
-	static const char * vDAEMON_CONFIG_ENV_VAR = "UCENTRALGW_CONFIG";
+	static const char * vDAEMON_PROPERTIES_FILENAME = "owgw.properties";
+	static const char * vDAEMON_ROOT_ENV_VAR = "OWGW_ROOT";
+	static const char * vDAEMON_CONFIG_ENV_VAR = "OWGW_CONFIG";
 	static const char * vDAEMON_APP_NAME = uSERVICE_GATEWAY.c_str();
 	static const uint64_t vDAEMON_BUS_TIMER = 10000;
 
     class Daemon : public MicroService {
 		public:
-			explicit Daemon(std::string PropFile,
-							std::string RootEnv,
-							std::string ConfigEnv,
-							std::string AppName,
+			explicit Daemon(const std::string & PropFile,
+							const std::string & RootEnv,
+							const std::string & ConfigEnv,
+							const std::string & AppName,
 						  	uint64_t 	BusTimer,
-							Types::SubSystemVec SubSystems) :
+							const Types::SubSystemVec & SubSystems) :
 				MicroService( PropFile, RootEnv, ConfigEnv, AppName, BusTimer, SubSystems) {};
 
 			bool AutoProvisioning() const { return AutoProvisioning_ ; }
 			[[nodiscard]] std::string IdentifyDevice(const std::string & Compatible) const;
-			void initialize(Poco::Util::Application &self);
+			void initialize(Poco::Util::Application &self) override;
 			static Daemon *instance();
 			inline DeviceDashboard	& GetDashboard() { return DB_; }
 	  	private:

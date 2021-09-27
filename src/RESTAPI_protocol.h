@@ -69,7 +69,13 @@ namespace OpenWifi::RESTAPI::Protocol {
 	static const char * COMMANDUUID = "commandUUID";
 	static const char * FIRMWARES = "firmwares";
 	static const char * TOPIC = "topic";
+	static const char * HOST = "host";
+	static const char * OS = "os";
+	static const char * HOSTNAME = "hostname";
+	static const char * PROCESSORS = "processors";
 	static const char * REASON = "reason";
+	static const char * RELOAD = "reload";
+	static const char * SUBSYSTEMS = "subsystems";
 	static const char * FILEUUID = "uuid";
 	static const char * USERID = "userId";
 	static const char * PASSWORD = "password";
@@ -122,6 +128,8 @@ namespace OpenWifi::RESTAPI::Protocol {
     static const char * PASSWORDPOLICY = "passwordPolicy";
     static const char * FORGOTPASSWORD = "forgotPassword";
     static const char * ME = "me";
+    static const char * TELEMETRY = "telemetry";
+    static const char * INTERVAL = "interval";
 
 }
 

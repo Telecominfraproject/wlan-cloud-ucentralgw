@@ -10,33 +10,54 @@
 
 namespace OpenWifi {
 
-	bool Storage::AddHealthCheckData(std::string &SerialNumber, GWObjects::HealthCheck &Check) {
+	const static std::string DB_HealthCheckSelectFields{"SerialNumber, UUID, Data, Sanity, Recorded"};
+	const static std::string DB_HealthCheckInsertValues{"?,?,?,?,?"};
+
+	typedef Poco::Tuple<
+		std::string,
+		uint64_t,
+		std::string,
+		uint64_t,
+		uint64_t
+	> HealthCheckRecordTuple;
+	typedef std::vector<HealthCheckRecordTuple> HealthCheckRecordList;
+
+	void ConvertHealthCheckRecord(const HealthCheckRecordTuple &R, GWObjects::HealthCheck &H) {
+		H.SerialNumber = R.get<0>();
+		H.UUID = R.get<1>();
+		H.Data = R.get<2>();
+		H.Sanity = R.get<3>();
+		H.Recorded = R.get<4>();
+	}
+
+	void ConvertHealthCheckRecord(const GWObjects::HealthCheck &H, HealthCheckRecordTuple &R) {
+		R.set<0>(H.SerialNumber);
+		R.set<1>(H.UUID);
+		R.set<2>(H.Data);
+		R.set<3>(H.Sanity);
+		R.set<4>(H.Recorded);
+	}
+
+	bool Storage::AddHealthCheckData(const GWObjects::HealthCheck &Check) {
 		try {
-			Logger_.information("Device:" + SerialNumber + " HealthCheck: sanity " + std::to_string(Check.Sanity));
-
 			Poco::Data::Session Sess = Pool_->get();
-
-	/*          "SerialNumber VARCHAR(30), "
-				"UUID          BIGINT, "
-				"Data TEXT, "
-				"Sanity BIGINT , "
-				"Recorded BIGINT) ", now;
-	*/
 			Poco::Data::Statement   Insert(Sess);
-			std::string St{"INSERT INTO HealthChecks (SerialNumber, UUID, Data, Sanity, Recorded) VALUES(?,?,?,?,?)"};
 
+			std::string St{"INSERT INTO HealthChecks ( " +
+				DB_HealthCheckSelectFields +
+				" ) VALUES( " +
+				DB_HealthCheckInsertValues +
+				" )"};
+
+			HealthCheckRecordTuple 		R;
+			ConvertHealthCheckRecord(Check, R);
 			Insert  << 	ConvertParams(St),
-				Poco::Data::Keywords::use(SerialNumber),
-				Poco::Data::Keywords::use(Check.UUID),
-				Poco::Data::Keywords::use(Check.Data),
-				Poco::Data::Keywords::use(Check.Sanity),
-				Poco::Data::Keywords::use(Check.Recorded);
+				Poco::Data::Keywords::use(R);
 			Insert.execute();
 			return true;
 		}
 		catch (const Poco::Exception &E) {
-			Logger_.warning(
-				Poco::format("%s(%s): Failed with: %s", std::string(__func__), SerialNumber, E.displayText()));
+			Logger_.log(E);
 		}
 		return false;
 	}
@@ -44,18 +65,13 @@ namespace OpenWifi {
 	bool Storage::GetHealthCheckData(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate, uint64_t Offset,
 									 uint64_t HowMany,
 									 std::vector<GWObjects::HealthCheck> &Checks) {
-
-		typedef Poco::Tuple<std::string, uint64_t, std::string, uint64_t, uint64_t> Record;
-		typedef std::vector<Record> RecordList;
-
-		// std::lock_guard<std::mutex> guard(Mutex_);
 		try {
-			RecordList Records;
+			HealthCheckRecordList Records;
 			Poco::Data::Session Sess = Pool_->get();
 
 			bool DatesIncluded = (FromDate != 0 || ToDate != 0);
 
-			std::string Prefix{"SELECT SerialNumber, UUID, Data, Sanity, Recorded FROM HealthChecks "};
+			std::string Prefix{"SELECT " + DB_HealthCheckSelectFields + " FROM HealthChecks "};
 			std::string Statement = SerialNumber.empty()
 									? Prefix + std::string(DatesIncluded ? "WHERE " : "")
 									: Prefix + "WHERE SerialNumber='" + SerialNumber + "'" +
@@ -76,57 +92,42 @@ namespace OpenWifi {
 				Poco::Data::Keywords::into(Records);
 			Select.execute();
 
-			for (auto i: Records) {
+			for (const auto &i: Records) {
 				GWObjects::HealthCheck R;
-
-				R.UUID = i.get<1>();
-				R.Data = i.get<2>();
-				R.Sanity = i.get<3>();
-				R.Recorded = i.get<4>();
-
+				ConvertHealthCheckRecord(i,R);
 				Checks.push_back(R);
 			}
-
 			return true;
 		}
 		catch (const Poco::Exception &E) {
-			Logger_.warning(
-				Poco::format("%s(%s): Failed with: %s", std::string(__func__), SerialNumber, E.displayText()));
+			Logger_.log(E);
 		}
 		return false;
 	}
 
 	bool Storage::GetNewestHealthCheckData(std::string &SerialNumber, uint64_t HowMany, std::vector<GWObjects::HealthCheck> &Checks) {
-		typedef Poco::Tuple<std::string, uint64_t, std::string, uint64_t, uint64_t> Record;
-		typedef std::vector<Record> RecordList;
 
-		// std::lock_guard<std::mutex> guard(Mutex_);
 		try {
-			RecordList 				Records;
+			HealthCheckRecordList 	Records;
 			Poco::Data::Session 	Sess = Pool_->get();
 			Poco::Data::Statement   Select(Sess);
 
-			std::string st{"SELECT SerialNumber, UUID, Data, Sanity, Recorded FROM HealthChecks WHERE SerialNumber=? ORDER BY Recorded DESC "};
+			std::string st{"SELECT " + DB_HealthCheckSelectFields + " FROM HealthChecks WHERE SerialNumber=? ORDER BY Recorded DESC "};
 
 			Select << 	ConvertParams(st) + ComputeRange(1,HowMany),
 						Poco::Data::Keywords::into(Records),
 						Poco::Data::Keywords::use(SerialNumber);
 			Select.execute();
 
-			for (auto i: Records) {
-				GWObjects::HealthCheck R{
-					.UUID = i.get<1>(),
-					.Data = i.get<2>(),
-					.Recorded = i.get<4>(),
-					.Sanity = i.get<3>()};
+			for (const auto &i: Records) {
+				GWObjects::HealthCheck R;
+				ConvertHealthCheckRecord(i,R);
 				Checks.push_back(R);
 			}
-
 			return true;
 		}
 		catch (const Poco::Exception &E) {
-			Logger_.warning(
-				Poco::format("%s(%s): Failed with: %s", std::string(__func__), SerialNumber, E.displayText()));
+			Logger_.log(E);
 		}
 		return false;
 	}
@@ -161,13 +162,12 @@ namespace OpenWifi {
 			return true;
 		}
 		catch (const Poco::Exception &E) {
-			Logger_.warning(
-				Poco::format("%s(%s): Failed with: %s", std::string(__func__), SerialNumber, E.displayText()));
+			Logger_.log(E);
 		}
 		return false;
 	}
 
-	bool Storage::RemoveHealthchecksRecordsOlderThan(uint64_t Date) {
+	bool Storage::RemoveHealthChecksRecordsOlderThan(uint64_t Date) {
 		try {
 			Poco::Data::Session Sess = Pool_->get();
 			Poco::Data::Statement Delete(Sess);

@@ -9,6 +9,9 @@
 #include "StorageService.h"
 
 namespace OpenWifi {
+	const static std::string DB_LogsSelectFields{"SerialNumber, Log, Data, Severity, Recorded, LogType, UUID"};
+	const static std::string DB_LogsInsertValues{"?,?,?,?,?,?,?"};
+
 	typedef Poco::Tuple<
 		std::string,
 		std::string,
@@ -16,79 +19,66 @@ namespace OpenWifi {
 		uint64_t,
 		uint64_t,
 		uint64_t,
-		uint64_t > DeviceLogsRecordTuple;
+		uint64_t
+	> DeviceLogsRecordTuple;
+	typedef std::vector<DeviceLogsRecordTuple >	DeviceLogsRecordList;
 
-	bool Storage::AddLog(std::string &SerialNumber, GWObjects::DeviceLog &Log, bool CrashLog) {
+	void ConvertLogsRecord( const DeviceLogsRecordTuple & R, GWObjects::DeviceLog & Log ) {
+		Log.SerialNumber = R.get<0>();
+		Log.Log = R.get<1>();
+		Log.Data = R.get<2>();
+		Log.Severity = R.get<3>();
+		Log.Recorded = R.get<4>();
+		Log.LogType = R.get<5>();
+		Log.UUID = R.get<6>();
+	}
 
+	void ConvertLogsRecord( const GWObjects::DeviceLog & Log , DeviceLogsRecordTuple & R ) {
+		R.set<0>(Log.SerialNumber);
+		R.set<1>(Log.Log);
+		R.set<2>(Log.Data);
+		R.set<3>(Log.Severity);
+		R.set<4>(Log.Recorded);
+		R.set<5>(Log.LogType);
+		R.set<6>(Log.UUID);
+	}
+
+	bool Storage::AddLog(const GWObjects::DeviceLog & Log) {
 		try {
-	/*
-						"SerialNumber   VARCHAR(30), "
-						"Log            TEXT, "
-						"Data           TEXT, "
-						"Severity       BIGINT, "
-						"Recorded       BIGINT, "
-						"LogType        BIGINT"
-	 */
-			uint64_t LogType = CrashLog ? 1 : 0 ;
+
 			Poco::Data::Session     Sess = Pool_->get();
 			Poco::Data::Statement   Insert(Sess);
 
-			std::string St{"INSERT INTO DeviceLogs (SerialNumber, Log, Data, Severity, Recorded, LogType, UUID ) VALUES(?,?,?,?,?,?,?)"};
+			std::string St{"INSERT INTO DeviceLogs (" +
+				DB_LogsSelectFields +
+				") values( " +
+				DB_LogsInsertValues + " )"};
+
+			DeviceLogsRecordTuple	R;
+			ConvertLogsRecord(Log, R);
 
 			Insert << ConvertParams(St) ,
-				Poco::Data::Keywords::use(SerialNumber),
-				Poco::Data::Keywords::use(Log.Log),
-				Poco::Data::Keywords::use(Log.Data),
-				Poco::Data::Keywords::use(Log.Severity),
-				Poco::Data::Keywords::use(Log.Recorded),
-				Poco::Data::Keywords::use(LogType),
-				Poco::Data::Keywords::use(Log.UUID);
+				Poco::Data::Keywords::use(R);
 			Insert.execute();
 			return true;
 		}
 		catch (const Poco::Exception &E) {
-			Logger_.warning(
-				Poco::format("%s(%s): Failed with: %s", std::string(__func__), SerialNumber, E.displayText()));
+			Logger_.log(E);
 		}
 		return false;
-	}
-
-	bool Storage::AddLog(std::string &SerialNumber, uint64_t UUID, const std::string &Log) {
-		GWObjects::DeviceLog DeviceLog;
-
-		DeviceLog.Log = Log;
-		DeviceLog.Data = "";
-		DeviceLog.Severity = GWObjects::DeviceLog::Level::LOG_INFO;
-		DeviceLog.Recorded = time(nullptr);
-		DeviceLog.UUID = UUID;
-
-		return AddLog(SerialNumber, DeviceLog, false);
 	}
 
 	bool Storage::GetLogData(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate, uint64_t Offset,
 							 uint64_t HowMany,
 							 std::vector<GWObjects::DeviceLog> &Stats, uint64_t Type ) {
-
-	/*
-						"SerialNumber   VARCHAR(30), "
-						"Log            TEXT, "
-						"Data           TEXT, "
-						"Severity       BIGINT, "
-						"Recorded       BIGINT, "
-						"LogType        BIGINT, "
-						"UUID			BIGINT
-	 */
-
-		typedef std::vector<DeviceLogsRecordTuple> RecordList;
-
 		try {
-			RecordList Records;
+			DeviceLogsRecordList Records;
 			Poco::Data::Session Sess = Pool_->get();
 
 			bool DatesIncluded = (FromDate != 0 || ToDate != 0);
 			bool HasWhere = DatesIncluded || !SerialNumber.empty();
 
-			std::string Prefix{"SELECT SerialNumber, Log, Data, Severity, Recorded, LogType, UUID FROM DeviceLogs  "};
+			std::string Prefix{"SELECT " + DB_LogsSelectFields + " FROM DeviceLogs  "};
 			std::string Statement = SerialNumber.empty()
 									? Prefix + std::string(DatesIncluded ? "WHERE " : "")
 									: Prefix + "WHERE SerialNumber='" + SerialNumber + "'" +
@@ -109,24 +99,17 @@ namespace OpenWifi {
 
 			Select << Statement + DateSelector + TypeSelector + " ORDER BY Recorded DESC " + ComputeRange(Offset, HowMany),
 				Poco::Data::Keywords::into(Records);
-
 			Select.execute();
 
-			for (auto i: Records) {
-				GWObjects::DeviceLog R{
-					.Log = i.get<1>(),
-					.Data = i.get<2>(),
-					.Severity = i.get<3>(),
-					.Recorded = i.get<4>(),
-					.LogType = i.get<5>(),
-					.UUID = i.get<6>()};
+			for (const auto &i: Records) {
+				GWObjects::DeviceLog R;
+				ConvertLogsRecord(i,R);
 				Stats.push_back(R);
 			}
 			return true;
 		}
 		catch (const Poco::Exception &E) {
-			Logger_.warning(
-				Poco::format("%s(%s): Failed with: %s", std::string(__func__), SerialNumber, E.displayText()));
+			Logger_.log(E);
 		}
 		return false;
 	}
@@ -164,8 +147,7 @@ namespace OpenWifi {
 			return true;
 		}
 		catch (const Poco::Exception &E) {
-			Logger_.warning(
-				Poco::format("%s(%s): Failed with: %s", std::string(__func__), SerialNumber, E.displayText()));
+			Logger_.log(E);
 		}
 		return false;
 	}
@@ -174,35 +156,27 @@ namespace OpenWifi {
 		typedef std::vector<DeviceLogsRecordTuple> RecordList;
 
 		try {
-			RecordList 				Records;
+			DeviceLogsRecordList 	Records;
 			Poco::Data::Session 	Sess = Pool_->get();
 			Poco::Data::Statement   Select(Sess);
 
 
-			std::string st{"SELECT SerialNumber, Log, Data, Severity, Recorded, LogType, UUID FROM DeviceLogs WHERE SerialNumber=? AND LogType=? ORDER BY Recorded DESC"};
-
+			std::string st{"SELECT " + DB_LogsSelectFields + " FROM DeviceLogs WHERE SerialNumber=? AND LogType=? ORDER BY Recorded DESC " + ComputeRange(1, HowMany)};
 			Select << 	ConvertParams(st),
 						Poco::Data::Keywords::into(Records),
 						Poco::Data::Keywords::use(SerialNumber),
-						Poco::Data::Keywords::use(Type),
-						Poco::Data::Keywords::limit(HowMany);
+						Poco::Data::Keywords::use(Type);
 			Select.execute();
 
-			for (auto i: Records) {
-				GWObjects::DeviceLog R{
-					.Log = i.get<1>(),
-					.Data = i.get<2>(),
-					.Severity = i.get<3>(),
-					.Recorded = i.get<4>(),
-					.LogType = i.get<5>(),
-					.UUID = i.get<6>()};
+			for (const auto &i: Records) {
+				GWObjects::DeviceLog R;
+				ConvertLogsRecord(i,R);
 				Stats.push_back(R);
 			}
 			return true;
 		}
 		catch (const Poco::Exception &E) {
-			Logger_.warning(
-				Poco::format("%s(%s): Failed with: %s", std::string(__func__), SerialNumber, E.displayText()));
+			Logger_.log(E);
 		}
 		return false;
 	}

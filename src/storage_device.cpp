@@ -16,8 +16,113 @@
 #include "OUIServer.h"
 #include "StateProcessor.h"
 #include "SerialNumberCache.h"
+#include "ConfigurationCache.h"
 
 namespace OpenWifi {
+
+	const static std::string DB_DeviceSelectFields{	"SerialNumber,"
+													   "DeviceType, "
+													   "MACAddress, "
+													   "Manufacturer, "
+													   "Configuration, "
+													   "Notes, "
+													   "Owner, "
+													   "Location, "
+													   "Firmware,"
+													   "Compatible,"
+													   "FWUpdatePolicy,"
+													   "UUID,      "
+													   "CreationTimestamp,   "
+													   "LastConfigurationChange, "
+													   "LastConfigurationDownload, "
+													   "LastFWUpdate, "
+													   "Venue, "
+													   "DevicePassword "};
+
+	const static std::string DB_DeviceUpdateFields{	"SerialNumber=?,"
+													   "DeviceType=?, "
+													   "MACAddress=?, "
+													   "Manufacturer=?, "
+													   "Configuration=?, "
+													   "Notes=?, "
+													   "Owner=?, "
+													   "Location=?, "
+													   "Firmware=?,"
+													   "Compatible=?,"
+													   "FWUpdatePolicy=?,"
+													   "UUID=?,      "
+													   "CreationTimestamp=?,   "
+													   "LastConfigurationChange=?, "
+													   "LastConfigurationDownload=?, "
+													   "LastFWUpdate=?, "
+													   "Venue=?,"
+													   "DevicePassword=? "};
+
+	const static std::string DB_DeviceInsertValues{" VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?) "};
+
+		typedef Poco::Tuple<
+			std::string,
+			std::string,
+			std::string,
+			std::string,
+			std::string,
+			std::string,
+			std::string,
+			std::string,
+			std::string,
+			std::string,
+			std::string,
+			uint64_t,
+			uint64_t,
+			uint64_t,
+			uint64_t,
+			uint64_t,
+			std::string,
+			std::string
+		> DeviceRecordTuple;
+		typedef std::vector<DeviceRecordTuple> DeviceRecordList;
+
+	void ConvertDeviceRecord(const DeviceRecordTuple & R, GWObjects::Device &D) {
+		D.SerialNumber = R.get<0>();
+		D.DeviceType = R.get<1>();
+		D.MACAddress = R.get<2>();
+		D.Manufacturer = R.get<3>();
+		D.Configuration = R.get<4>();
+		D.Notes = RESTAPI_utils::to_object_array<SecurityObjects::NoteInfo>(R.get<5>());
+		D.Owner = R.get<6>();
+		D.Location = R.get<7>();
+		D.Firmware = R.get<8>();
+		D.Compatible = R.get<9>();
+		D.FWUpdatePolicy = R.get<10>();
+		D.UUID = R.get<11>();
+		D.CreationTimestamp = R.get<12>();
+		D.LastConfigurationChange = R.get<13>();
+		D.LastConfigurationDownload = R.get<14>();
+		D.LastFWUpdate = R.get<15>();
+		D.Venue = R.get<16>();
+		D.DevicePassword = R.get<17>();
+	}
+
+	void ConvertDeviceRecord(const GWObjects::Device &D, DeviceRecordTuple & R) {
+		R.set<0>(D.SerialNumber);
+		R.set<1>(D.DeviceType);
+		R.set<2>(D.MACAddress);
+		R.set<3>(D.Manufacturer);
+		R.set<4>(D.Configuration);
+		R.set<5>(RESTAPI_utils::to_string(D.Notes));
+		R.set<6>(D.Owner);
+		R.set<7>(D.Location);
+		R.set<8>(D.Firmware);
+		R.set<9>(D.Compatible);
+		R.set<10>(D.FWUpdatePolicy);
+		R.set<11>(D.UUID);
+		R.set<12>(D.CreationTimestamp);
+		R.set<13>(D.LastConfigurationChange);
+		R.set<14>(D.LastConfigurationDownload);
+		R.set<15>(D.LastFWUpdate);
+		R.set<16>(D.Venue);
+		R.set<17>(D.DevicePassword);
+	}
 
 	bool Storage::GetDeviceCount(uint64_t &Count) {
 		try {
@@ -65,41 +170,32 @@ namespace OpenWifi {
 			Poco::Data::Session 	Sess = Pool_->get();
 			Poco::Data::Statement   Select(Sess);
 
-			uint64_t CurrentUUID;
-
-			std::string St{"SELECT UUID FROM Devices WHERE SerialNumber=?"};
-
-			Select << 	ConvertParams(St),
-						Poco::Data::Keywords::into(CurrentUUID),
-						Poco::Data::Keywords::use(SerialNumber);
-			Select.execute();
+			GWObjects::Device	D;
+			if(!GetDevice(SerialNumber,D))
+				return false;
 
 			uint64_t Now = time(nullptr);
-			NewUUID = CurrentUUID==Now ? Now + 1 : Now;
-
+			D.UUID = NewUUID = D.LastConfigurationChange = (D.LastConfigurationChange==Now ? Now + 1 : Now);
 			if (Cfg.SetUUID(NewUUID)) {
-				std::string NewConfig = Cfg.get();
 				Poco::Data::Statement   Update(Sess);
-				std::string St2{"UPDATE Devices SET Configuration=? , UUID=?,  LastConfigurationChange=?  WHERE SerialNumber=?"};
+				D.Configuration = Cfg.get();
+				SetCurrentConfigurationID(SerialNumber, NewUUID);
+
+				DeviceRecordTuple R;
+				ConvertDeviceRecord(D,R);
+				std::string St2{"UPDATE Devices SET " + DB_DeviceUpdateFields + " WHERE SerialNumber=?"};
 				Update  << ConvertParams(St2),
-					Poco::Data::Keywords::use(NewConfig),
-					Poco::Data::Keywords::use(NewUUID),
-					Poco::Data::Keywords::use(Now),
+					Poco::Data::Keywords::use(R),
 					Poco::Data::Keywords::use(SerialNumber);
 				Update.execute();
-
-				Logger_.information(Poco::format("CONFIG-UPDATE(%s): UUID is %Lu", SerialNumber, NewUUID));
-
-				Configuration = NewConfig;
-
+				Logger_.information(Poco::format("DEVICE-CONFIGURATION-UPDATED(%s): New UUID is %Lu", SerialNumber, NewUUID));
+				Configuration = D.Configuration;
 				return true;
 			}
-
 			return false;
 		}
 		catch (const Poco::Exception &E) {
-			Logger_.warning(
-				Poco::format("%s(%s): Failed with: %s", std::string(__func__), SerialNumber, E.displayText()));
+			Logger_.log(E);
 		}
 		return false;
 	}
@@ -120,79 +216,54 @@ namespace OpenWifi {
 				Poco::Data::Keywords::use(DeviceDetails.SerialNumber);
 			Select.execute();
 
-			if (SerialNumber.empty()) {
+			if (Select.rowsExtracted()==0) {
 				Config::Config Cfg(DeviceDetails.Configuration);
+				uint64_t Now = std::time(nullptr);
+
+				DeviceDetails.CreationTimestamp = DeviceDetails.LastConfigurationDownload =
+				DeviceDetails.UUID = DeviceDetails.LastConfigurationChange = Now;
 
 				if (Cfg.Valid() && Cfg.SetUUID(DeviceDetails.UUID)) {
-					DeviceDetails.Configuration = Cfg.get();
-					uint64_t Now = time(nullptr);
 
+					DeviceDetails.Configuration = Cfg.get();
 					Poco::Data::Statement   Insert(Sess);
 
-					std::string St2{"INSERT INTO Devices ("
-									"SerialNumber,"
-									"DeviceType, "
-									"MACAddress, "
-									"Manufacturer, "
-									"Configuration, "
-									"Notes, "
-									"Owner, "
-									"Location, "
-									"Firmware,"
-									"Compatible,"
-									"FWUpdatePolicy,"
-									"UUID,      "
-									"CreationTimestamp,   "
-									"LastConfigurationChange, "
-									"LastConfigurationDownload, "
-									"LastFWUpdate, "
-									"Venue "
-									")"
-									"VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)"};
+					std::string St2{"INSERT INTO Devices ( " +
+										DB_DeviceSelectFields + " ) " +
+										DB_DeviceInsertValues };
 
-					auto NotesString = RESTAPI_utils::to_string(DeviceDetails.Notes);
-
+					SetCurrentConfigurationID(SerialNumber, DeviceDetails.UUID);
+					DeviceRecordTuple R;
+					ConvertDeviceRecord(DeviceDetails, R);
 					Insert  << ConvertParams(St2),
-						Poco::Data::Keywords::use(DeviceDetails.SerialNumber),
-						Poco::Data::Keywords::use(DeviceDetails.DeviceType),
-						Poco::Data::Keywords::use(DeviceDetails.MACAddress),
-						Poco::Data::Keywords::use(DeviceDetails.Manufacturer),
-						Poco::Data::Keywords::use(DeviceDetails.Configuration),
-						Poco::Data::Keywords::use(NotesString),
-						Poco::Data::Keywords::use(DeviceDetails.Owner),
-						Poco::Data::Keywords::use(DeviceDetails.Location),
-						Poco::Data::Keywords::use(DeviceDetails.Firmware),
-						Poco::Data::Keywords::use(DeviceDetails.Compatible),
-						Poco::Data::Keywords::use(DeviceDetails.FWUpdatePolicy),
-						Poco::Data::Keywords::use(DeviceDetails.UUID),
-						Poco::Data::Keywords::use(Now),
-						Poco::Data::Keywords::use(Now),
-						Poco::Data::Keywords::use(Now),
-						Poco::Data::Keywords::use(Now),
-						Poco::Data::Keywords::use(DeviceDetails.Venue);
+						Poco::Data::Keywords::use(R);
 					Insert.execute();
+					SetCurrentConfigurationID(SerialNumber, DeviceDetails.UUID);
 					SerialNumberCache()->AddSerialNumber(DeviceDetails.SerialNumber);
 					return true;
 				} else {
 					Logger_.warning("Cannot create device: invalid configuration.");
 					return false;
 				}
+			} else {
+				Logger_.warning(Poco::format("Device %s already exists.", SerialNumber));
+				return false;
 			}
+
 		}
 		catch (const Poco::Exception &E) {
-			Logger_.warning(
-				Poco::format("%s(%s): Failed with: %s", std::string(__func__), SerialNumber, E.displayText()));
+			Logger_.log(E);
 		}
 		return false;
 	}
 
 	bool Storage::CreateDefaultDevice(const std::string &SerialNumber, const std::string &Capabilities, std::string & Firmware, std::string &Compat) {
-
 		GWObjects::Device D;
+
 		Logger_.information(Poco::format("AUTO-CREATION(%s)", SerialNumber));
 		uint64_t Now = time(nullptr);
 
-		Config::Capabilities Caps(Capabilities);
+		Config::Capabilities 			Caps(Capabilities);
 		GWObjects::DefaultConfiguration DefConfig;
 
 		if (FindDefaultConfigurationForModel(Caps.Model(), DefConfig)) {
@@ -211,10 +282,7 @@ namespace OpenWifi {
 		D.MACAddress = Utils::SerialToMAC(SerialNumber);
 		D.Manufacturer = Caps.Model();
 		D.Firmware = Firmware;
-		D.UUID = Now;
 		D.Notes = SecurityObjects::NoteInfoVec { SecurityObjects::NoteInfo{ (uint64_t)std::time(nullptr), "", "Auto-provisioned."}};
-		D.CreationTimestamp = D.LastConfigurationDownload = D.LastConfigurationChange = Now;
-
 		return CreateDevice(D);
 	}
 
@@ -232,8 +300,7 @@ namespace OpenWifi {
 			return true;
 		}
 		catch (const Poco::Exception &E) {
-			Logger_.warning(
-				Poco::format("%s(%s): Failed with: %s", std::string(__func__), SerialNumber, E.displayText()));
+			Logger_.log(E);
 		}
 		return false;
 	}
@@ -252,8 +319,7 @@ namespace OpenWifi {
 			return true;
 		}
 		catch (const Poco::Exception &E) {
-			Logger_.warning(
-				Poco::format("%s(%s): Failed with: %s", std::string(__func__), SerialNumber, E.displayText()));
+			Logger_.log(E);
 		}
 		return false;
 	}
@@ -271,8 +337,7 @@ namespace OpenWifi {
 			return true;
 		}
 		catch (const Poco::Exception &E) {
-			Logger_.warning(
-				Poco::format("%s(%s): Failed with: %s", std::string(__func__), SerialNumber, E.displayText()));
+			Logger_.log(E);
 		}
 		return false;
 	}
@@ -290,8 +355,7 @@ namespace OpenWifi {
 			return true;
 		}
 		catch (const Poco::Exception &E) {
-			Logger_.warning(
-				Poco::format("%s(%s): Failed with: %s", std::string(__func__), SerialNumber, E.displayText()));
+			Logger_.log(E);
 		}
 		return false;
 	}
@@ -309,8 +373,7 @@ namespace OpenWifi {
 			return true;
 		}
 		catch (const Poco::Exception &E) {
-			Logger_.warning(
-				Poco::format("%s(%s): Failed with: %s", std::string(__func__), SerialNumber, E.displayText()));
+			Logger_.log(E);
 		}
 		return false;
 	}
@@ -343,8 +406,7 @@ namespace OpenWifi {
 			return true;
 		}
 		catch (const Poco::Exception &E) {
-			Logger_.warning(
-				Poco::format("%s(%s): Failed with: %s", std::string(__func__), SerialNumber, E.displayText()));
+			Logger_.log(E);
 		}
 		return false;
 	}
@@ -365,8 +427,7 @@ namespace OpenWifi {
 			return true;
 		}
 		catch (const Poco::Exception &E) {
-			Logger_.warning(
-				Poco::format("%s(%s): Failed with: %s", std::string(__func__), SerialNumber, E.displayText()));
+			Logger_.log(E);
 		}
 		return false;
 	}
@@ -378,60 +439,22 @@ namespace OpenWifi {
 			Poco::Data::Session     Sess = Pool_->get();
 			Poco::Data::Statement   Select(Sess);
 
-			std::string St{"SELECT "
-						   "SerialNumber,"
-						   "DeviceType, "
-						   "MACAddress, "
-						   "Manufacturer, "
-						   "Configuration, "
-						   "Notes, "
-						   "Owner, "
-						   "Location, "
-						   "Firmware,"
-						   "Compatible,"
-						   "FWUpdatePolicy,"
-						   "UUID,      "
-						   "CreationTimestamp,   "
-						   "LastConfigurationChange, "
-						   "LastConfigurationDownload, "
-						   "LastFWUpdate, "
-						   "Venue, "
-						   "DevicePassword "
-						   "FROM Devices WHERE SerialNumber=?"};
+			std::string St{"SELECT " + DB_DeviceSelectFields +
+						   " FROM Devices WHERE SerialNumber=?"};
 
-			std::string NI;
-			Select << ConvertParams(St),
-				Poco::Data::Keywords::into(DeviceDetails.SerialNumber),
-				Poco::Data::Keywords::into(DeviceDetails.DeviceType),
-				Poco::Data::Keywords::into(DeviceDetails.MACAddress),
-				Poco::Data::Keywords::into(DeviceDetails.Manufacturer),
-				Poco::Data::Keywords::into(DeviceDetails.Configuration),
-				Poco::Data::Keywords::into(NI),
-				Poco::Data::Keywords::into(DeviceDetails.Owner),
-				Poco::Data::Keywords::into(DeviceDetails.Location),
-				Poco::Data::Keywords::into(DeviceDetails.Firmware),
-				Poco::Data::Keywords::into(DeviceDetails.Compatible),
-				Poco::Data::Keywords::into(DeviceDetails.FWUpdatePolicy),
-				Poco::Data::Keywords::into(DeviceDetails.UUID),
-				Poco::Data::Keywords::into(DeviceDetails.CreationTimestamp),
-				Poco::Data::Keywords::into(DeviceDetails.LastConfigurationChange),
-				Poco::Data::Keywords::into(DeviceDetails.LastConfigurationDownload),
-				Poco::Data::Keywords::into(DeviceDetails.LastFWUpdate),
-				Poco::Data::Keywords::into(DeviceDetails.Venue),
-				Poco::Data::Keywords::into(DeviceDetails.DevicePassword),
-				Poco::Data::Keywords::use(SerialNumber);
+			DeviceRecordTuple R;
+			Select << 	ConvertParams(St),
+						Poco::Data::Keywords::into(R),
+						Poco::Data::Keywords::use(SerialNumber);
 			Select.execute();
 
-			DeviceDetails.Notes = RESTAPI_utils::to_object_array<SecurityObjects::NoteInfo>(NI);
-
-			if (DeviceDetails.SerialNumber.empty())
+			if (Select.rowsExtracted()==0)
 				return false;
-
+			ConvertDeviceRecord(R,DeviceDetails);
 			return true;
 		}
 		catch (const Poco::Exception &E) {
-			Logger_.warning(
-				Poco::format("%s(%s): Failed with: %s", std::string(__func__), SerialNumber, E.displayText()));
+			Logger_.log(E);
 		}
 		return false;
 	}
@@ -450,14 +473,13 @@ namespace OpenWifi {
 				Poco::Data::Keywords::use(SerialNumber);
 			Select.execute();
 
-			if (Serial.empty())
+			if (Select.rowsExtracted()==0)
 				return false;
 
 			return true;
 		}
 		catch (const Poco::Exception &E) {
-			Logger_.warning(
-				Poco::format("%s(%s): Failed with: %s", std::string(__func__), SerialNumber, E.displayText()));
+			Logger_.log(E);
 		}
 		return false;
 	}
@@ -488,144 +510,47 @@ namespace OpenWifi {
 			Poco::Data::Session     Sess = Pool_->get();
 			Poco::Data::Statement   Update(Sess);
 
-			GWObjects::Device	ExistingDevice;
-			if(!GetDevice(NewDeviceDetails.SerialNumber,ExistingDevice))
-				return false;
+			DeviceRecordTuple R;
 
-			uint64_t Now = std::time(nullptr);
-			if(!NewDeviceDetails.DeviceType.empty())
-				ExistingDevice.DeviceType=NewDeviceDetails.DeviceType;
-			if(!NewDeviceDetails.MACAddress.empty())
-				ExistingDevice.MACAddress=NewDeviceDetails.MACAddress;
-			if(!NewDeviceDetails.FWUpdatePolicy.empty())
-				ExistingDevice.FWUpdatePolicy=NewDeviceDetails.FWUpdatePolicy;
-			if(!NewDeviceDetails.DevicePassword.empty())
-				ExistingDevice.DevicePassword=NewDeviceDetails.DevicePassword;
-			if(!NewDeviceDetails.Notes.empty()) {
-				for(const auto &i:NewDeviceDetails.Notes)
-					ExistingDevice.Notes.push_back(i);
-			}
+			ConvertDeviceRecord(NewDeviceDetails,R);
 
-			std::string NotesString = RESTAPI_utils::to_string(ExistingDevice.Notes);
-
-			std::string St2{"UPDATE Devices SET "
-							"DeviceType=?, "
-							"MACAddress=?, "
-							"Manufacturer=?, "
-							"Notes=?, "
-							"Owner=?, "
-							"Location=?, "
-							"FWUpdatePolicy=?,"
-							"Venue=? "
+			NewDeviceDetails.LastConfigurationChange = std::time(nullptr);
+			std::string St2{"UPDATE Devices SET " +
+									DB_DeviceUpdateFields +
 							" WHERE SerialNumber=?"};
-			auto NI = RESTAPI_utils::to_string(ExistingDevice.Notes);
 			Update  << ConvertParams(St2),
-				Poco::Data::Keywords::use(ExistingDevice.DeviceType),
-				Poco::Data::Keywords::use(ExistingDevice.MACAddress),
-				Poco::Data::Keywords::use(ExistingDevice.Manufacturer),
-				Poco::Data::Keywords::use(NI),
-				Poco::Data::Keywords::use(ExistingDevice.Owner),
-				Poco::Data::Keywords::use(ExistingDevice.Location),
-				Poco::Data::Keywords::use(ExistingDevice.FWUpdatePolicy),
-				Poco::Data::Keywords::use(ExistingDevice.Venue),
-				Poco::Data::Keywords::use(ExistingDevice.SerialNumber);
+				Poco::Data::Keywords::use(R),
+				Poco::Data::Keywords::use(NewDeviceDetails.SerialNumber);
 			Update.execute();
-			GetDevice(ExistingDevice.SerialNumber,NewDeviceDetails);
+			GetDevice(NewDeviceDetails.SerialNumber,NewDeviceDetails);
 			return true;
 		}
 		catch (const Poco::Exception &E) {
-			Logger_.warning(Poco::format("%s(%s): Failed with: %s", std::string(__func__), NewDeviceDetails.SerialNumber,
-										 E.displayText()));
+			Logger_.log(E);
 		}
-
 		return false;
 	}
 
 	bool Storage::GetDevices(uint64_t From, uint64_t HowMany, std::vector<GWObjects::Device> &Devices) {
-
-		typedef Poco::Tuple<
-			std::string,
-			std::string,
-			std::string,
-			std::string,
-			std::string,
-			std::string,
-			std::string,
-			std::string,
-			std::string,
-			std::string,
-			std::string,
-			uint64_t,
-			uint64_t,
-			uint64_t,
-			uint64_t,
-			uint64_t,
-			std::string,
-			std::string
-		> DeviceRecord;
-		typedef std::vector<DeviceRecord> RecordList;
-
-		RecordList Records;
-
+		DeviceRecordList Records;
 		try {
 			Poco::Data::Session     Sess = Pool_->get();
 			Poco::Data::Statement   Select(Sess);
 
-			Select << "SELECT "
-					  "SerialNumber,"
-					  "DeviceType, "
-					  "MACAddress, "
-					  "Manufacturer, "
-					  "Configuration, "
-					  "Notes, "
-					  "Owner, "
-					  "Location, "
-					  "Firmware,"
-					  "Compatible,"
-					  "FWUpdatePolicy,"
-					  "UUID,      "
-					  "CreationTimestamp,   "
-					  "LastConfigurationChange, "
-					  "LastConfigurationDownload, "
-					  "LastFWUpdate, "
-					  "Venue, "
-					  "DevicePassword "
-					  "FROM Devices ORDER BY SerialNumber ASC " +
-						  ComputeRange(From, HowMany),
-				Poco::Data::Keywords::into(Records);
+			std::string st{"SELECT " + DB_DeviceSelectFields + " FROM Devices ORDER BY SerialNumber ASC " + ComputeRange(From, HowMany)};
+			Select << 	ConvertParams(st),
+						Poco::Data::Keywords::into(Records);
 			Select.execute();
 
-
 			for (auto i: Records) {
-
-				SecurityObjects::NoteInfoVec 	NI;
-				NI = RESTAPI_utils::to_object_array<SecurityObjects::NoteInfo>(i.get<5>());
-
-				GWObjects::Device R{
-					.SerialNumber   = i.get<0>(),
-					.DeviceType     = i.get<1>(),
-					.MACAddress     = i.get<2>(),
-					.Manufacturer   = i.get<3>(),
-					.Configuration  = i.get<4>(),
-					.Notes  		= NI,
-					.Owner          = i.get<6>(),
-					.Location 		= i.get<7>(),
-					.Firmware 		= i.get<8>(),
-					.Compatible 	= i.get<9>(),
-					.FWUpdatePolicy = i.get<10>(),
-					.UUID			= i.get<11>(),
-					.CreationTimestamp = i.get<12>(),
-					.LastConfigurationChange = i.get<13>(),
-					.LastConfigurationDownload = i.get<14>(),
-					.LastFWUpdate = i.get<15>(),
-					.Venue = i.get<16>(),
-					.DevicePassword = i.get<17>()};
-				Devices.push_back(R);
+				GWObjects::Device D;
+				ConvertDeviceRecord(i, D);
+				Devices.push_back(D);
 			}
 			return true;
 		}
 		catch (const Poco::Exception &E) {
-			Logger_.warning(Poco::format("%s: Failed with: %s", std::string(__func__), E.displayText()));
+			Logger_.log(E);
 		}
 		return false;
 	}
@@ -664,8 +589,7 @@ namespace OpenWifi {
 			return true;
 		}
 		catch (const Poco::Exception &E) {
-			Logger_.warning(
-				Poco::format("%s(%s): Failed with: %s", std::string(__func__), SerialNumber, E.displayText()));
+			Logger_.log(E);
 		}
 		return false;
 	}

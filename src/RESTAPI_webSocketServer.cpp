@@ -16,24 +16,13 @@
 
 namespace OpenWifi {
 
-	void RESTAPI_webSocketServer::handleRequest(Poco::Net::HTTPServerRequest &Request, Poco::Net::HTTPServerResponse &Response) {
-
-		if (!ContinueProcessing(Request, Response))
-			return;
-
-		if(Request.getMethod()==Poco::Net::HTTPRequest::HTTP_GET)
-			DoGet(Request,Response);
-		else
-			BadRequest(Request, Response, "Can only do get for WebSocket.");
-	}
-
-	void RESTAPI_webSocketServer::DoGet(Poco::Net::HTTPServerRequest &Request, Poco::Net::HTTPServerResponse &Response) {
+	void RESTAPI_webSocketServer::DoGet() {
 
 		//	try and upgrade this session to websocket...
-		if(Request.find("Upgrade") != Request.end() && Poco::icompare(Request["Upgrade"], "websocket") == 0) {
+		if(Request->find("Upgrade") != Request->end() && Poco::icompare((*Request)["Upgrade"], "websocket") == 0) {
 			try
 			{
-				Poco::Net::WebSocket WS(Request, Response);
+				Poco::Net::WebSocket WS(*Request, *Response);
 				Logger_.information("WebSocket connection established.");
 				int flags;
 				int n;
@@ -102,14 +91,14 @@ namespace OpenWifi {
 				switch (E.code())
 				{
 				case Poco::Net::WebSocket::WS_ERR_HANDSHAKE_UNSUPPORTED_VERSION:
-					Response.set("Sec-WebSocket-Version", Poco::Net::WebSocket::WEBSOCKET_VERSION);
+					Response->set("Sec-WebSocket-Version", Poco::Net::WebSocket::WEBSOCKET_VERSION);
 					// fallthrough
 					case Poco::Net::WebSocket::WS_ERR_NO_HANDSHAKE:
 						case Poco::Net::WebSocket::WS_ERR_HANDSHAKE_NO_VERSION:
 							case Poco::Net::WebSocket::WS_ERR_HANDSHAKE_NO_KEY:
-								Response.setStatusAndReason(Poco::Net::HTTPResponse::HTTP_BAD_REQUEST);
-								Response.setContentLength(0);
-								Response.send();
+								Response->setStatusAndReason(Poco::Net::HTTPResponse::HTTP_BAD_REQUEST);
+								Response->setContentLength(0);
+								Response->send();
 								break;
 				}
 			}

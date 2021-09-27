@@ -25,6 +25,8 @@
 #include "Poco/NullStream.h"
 
 #include "RESTAPI_SecurityObjects.h"
+#include "RESTAPI_utils.h"
+#include "RESTAPI_GenericServer.h"
 
 namespace OpenWifi {
 
@@ -86,61 +88,50 @@ namespace OpenWifi {
 		struct QueryBlock {
 			uint64_t StartDate = 0 , EndDate = 0 , Offset = 0 , Limit = 0, LogType = 0 ;
 			std::string SerialNumber, Filter, Select;
-			bool Lifetime=false, LastOnly=false, Newest=false;
+			bool Lifetime=false, LastOnly=false, Newest=false, CountOnly=false;
 		};
 
 		typedef std::map<std::string, std::string> BindingMap;
 
-		RESTAPIHandler(BindingMap map, Poco::Logger &l, std::vector<std::string> Methods, bool Internal=false)
-			: Bindings_(std::move(map)), Logger_(l), Methods_(std::move(Methods)), Internal_(Internal) {}
+		RESTAPIHandler(BindingMap map, Poco::Logger &l, std::vector<std::string> Methods, RESTAPI_GenericServer & Server, bool Internal=false, bool AlwaysAuthorize=true)
+		: Bindings_(std::move(map)), Logger_(l), Methods_(std::move(Methods)), Server_(Server), Internal_(Internal), AlwaysAuthorize_(AlwaysAuthorize) {}
 
 		static bool ParseBindings(const std::string & Request, const std::list<const char *> & EndPoints, BindingMap &Keys);
 		void PrintBindings();
-		void ParseParameters(Poco::Net::HTTPServerRequest &request);
+		void ParseParameters();
 
-		void AddCORS(Poco::Net::HTTPServerRequest &Request, Poco::Net::HTTPServerResponse &response);
-	 	void SetCommonHeaders(Poco::Net::HTTPServerResponse &response, bool CloseConnection=false);
-		void ProcessOptions(Poco::Net::HTTPServerRequest &Request,
-							Poco::Net::HTTPServerResponse &response);
+		void AddCORS();
+	 	void SetCommonHeaders(bool CloseConnection=false);
+		void ProcessOptions();
 		void
-		PrepareResponse(Poco::Net::HTTPServerRequest &Request, Poco::Net::HTTPServerResponse &response,
-						Poco::Net::HTTPResponse::HTTPStatus Status = Poco::Net::HTTPResponse::HTTP_OK,
+		PrepareResponse(Poco::Net::HTTPResponse::HTTPStatus Status = Poco::Net::HTTPResponse::HTTP_OK,
 						bool CloseConnection = false);
-		bool ContinueProcessing(Poco::Net::HTTPServerRequest &Request,
-								Poco::Net::HTTPServerResponse &Response);
-
-		bool IsAuthorized(Poco::Net::HTTPServerRequest &Request,
-						  Poco::Net::HTTPServerResponse &Response);
-/*		bool ValidateAPIKey(Poco::Net::HTTPServerRequest &Request,
-							Poco::Net::HTTPServerResponse &Response); */
+		bool ContinueProcessing();
+		bool IsAuthorized();
 
 		uint64_t GetParameter(const std::string &Name, uint64_t Default);
 		std::string GetParameter(const std::string &Name, const std::string &Default);
 		bool GetBoolParameter(const std::string &Name, bool Default);
 
-		void BadRequest(Poco::Net::HTTPServerRequest &Request, Poco::Net::HTTPServerResponse &Response, const std::string &Reason = "");
-		void UnAuthorized(Poco::Net::HTTPServerRequest &Request,
-						  Poco::Net::HTTPServerResponse &Response, const std::string &Reason = "");
-		void ReturnObject(Poco::Net::HTTPServerRequest &Request, Poco::JSON::Object &Object,
-						  Poco::Net::HTTPServerResponse &Response);
-		void NotFound(Poco::Net::HTTPServerRequest &Request, Poco::Net::HTTPServerResponse &Response);
-		void OK(Poco::Net::HTTPServerRequest &Request, Poco::Net::HTTPServerResponse &Response);
-		void ReturnStatus(Poco::Net::HTTPServerRequest &Request,
-						  Poco::Net::HTTPServerResponse &Response,
-						  Poco::Net::HTTPResponse::HTTPStatus Status,
+		void BadRequest(const std::string &Reason );
+		void InternalError(const std::string &Reason = "");
+		void UnAuthorized(const std::string &Reason = "");
+		void ReturnObject(Poco::JSON::Object &Object);
+		void NotFound();
+		void OK();
+		void ReturnStatus(Poco::Net::HTTPResponse::HTTPStatus Status,
 						  bool CloseConnection=false);
-		void SendFile(Poco::File & File, const std::string & UUID,
-					  Poco::Net::HTTPServerRequest &Request, Poco::Net::HTTPServerResponse &Response);
+		void SendFile(Poco::File & File, const std::string & UUID);
 		void SendHTMLFileBack(Poco::File & File,
-                              Poco::Net::HTTPServerRequest &Request,
-                              Poco::Net::HTTPServerResponse &Response ,
                               const Types::StringPairVec & FormVars);
-        void SendFile(Poco::TemporaryFile &TempAvatar, const std::string &Type, const std::string & Name, Poco::Net::HTTPServerRequest &Request, Poco::Net::HTTPServerResponse &Response);
+        void SendFile(Poco::TemporaryFile &TempAvatar, const std::string &Type, const std::string & Name);
 
-        void SendFile(Poco::File & File, Poco::Net::HTTPServerRequest &Request, Poco::Net::HTTPServerResponse &Response);
+        void SendFile(Poco::File & File);
 
         const std::string &GetBinding(const std::string &Name, const std::string &Default);
 		bool InitQueryBlock();
+
+		void ReturnCountOnly(uint64_t Count);
 
 		[[nodiscard]] static uint64_t Get(const char *Parameter,const Poco::JSON::Object::Ptr &Obj, uint64_t Default=0);
 		[[nodiscard]] static std::string GetS(const char *Parameter,const Poco::JSON::Object::Ptr &Obj, const std::string & Default="");
@@ -148,6 +139,27 @@ namespace OpenWifi {
 		[[nodiscard]] static uint64_t GetWhen(const Poco::JSON::Object::Ptr &Obj);
 		bool HasParameter(const std::string &QueryParameter, std::string &Value);
 		bool HasParameter(const std::string &QueryParameter, uint64_t & Value);
+
+		static bool AssignIfPresent(const Poco::JSON::Object::Ptr &O, const std::string &Field, std::string &Value);
+		static bool AssignIfPresent(const Poco::JSON::Object::Ptr &O, const std::string &Field, uint64_t &Value);
+
+		template<typename T> void ReturnObject(const char *Name, const std::vector<T> & Objects) {
+		    Poco::JSON::Object  Answer;
+		    RESTAPI_utils::field_to_json(Answer,Name,Objects);
+            ReturnObject(Answer);
+		}
+
+		Poco::Logger & Logger() { return Logger_; }
+
+		void handleRequest(Poco::Net::HTTPServerRequest &request,
+                           Poco::Net::HTTPServerResponse &response) final;
+
+		virtual void DoGet() = 0 ;
+		virtual void DoDelete() = 0 ;
+		virtual void DoPost() = 0 ;
+		virtual void DoPut() = 0 ;
+
+		const Poco::JSON::Object::Ptr & ParseStream();
 
 	  protected:
 		BindingMap 					Bindings_;
@@ -159,19 +171,22 @@ namespace OpenWifi {
 		QueryBlock					QB_;
 		bool                        Internal_=false;
 		bool                        QueryBlockInitialized_=false;
+		Poco::Net::HTTPServerRequest    *Request= nullptr;
+		Poco::Net::HTTPServerResponse   *Response= nullptr;
+		bool                        AlwaysAuthorize_=true;
+		Poco::JSON::Parser          IncomingParser_;
+		RESTAPI_GenericServer       & Server_;
 	};
 
 	class RESTAPI_UnknownRequestHandler : public RESTAPIHandler {
 	  public:
-		RESTAPI_UnknownRequestHandler(const RESTAPIHandler::BindingMap &bindings, Poco::Logger &L)
-			: RESTAPIHandler(bindings, L, std::vector<std::string>{}) {}
-		void handleRequest(Poco::Net::HTTPServerRequest &Request,
-						   Poco::Net::HTTPServerResponse &Response) override {
-			if (!IsAuthorized(Request, Response))
-				return;
-			BadRequest(Request, Response, "Unknown API endpoint");
-		}
-	};
+		RESTAPI_UnknownRequestHandler(const RESTAPIHandler::BindingMap &bindings, Poco::Logger &L, RESTAPI_GenericServer & Server)
+			: RESTAPIHandler(bindings, L, std::vector<std::string>{}, Server) {}
+        inline void DoGet() override {};
+		inline void DoPost() override {};
+		inline void DoPut() override {};
+		inline void DoDelete() override {};
+    };
 
 	template<class T>
 	constexpr auto test_has_PathName_method(T*)
@@ -185,30 +200,30 @@ namespace OpenWifi {
 	}
 
 	template<typename T, typename... Args>
-	RESTAPIHandler * RESTAPI_Router(const std::string & RequestedPath, RESTAPIHandler::BindingMap &Bindings, Poco::Logger & Logger ) {
+	RESTAPIHandler * RESTAPI_Router(const std::string & RequestedPath, RESTAPIHandler::BindingMap &Bindings, Poco::Logger & Logger, RESTAPI_GenericServer & Server) {
 		static_assert(test_has_PathName_method((T*)nullptr), "Class must have a static PathName() method.");
 		if(RESTAPIHandler::ParseBindings(RequestedPath,T::PathName(),Bindings)) {
-			return new T(Bindings, Logger, false);
+			return new T(Bindings, Logger, Server, false);
 		}
 
 		if constexpr (sizeof...(Args) == 0) {
-			return new RESTAPI_UnknownRequestHandler(Bindings,Logger);
+			return new RESTAPI_UnknownRequestHandler(Bindings,Logger, Server);
 		} else {
-			return RESTAPI_Router<Args...>(RequestedPath, Bindings, Logger);
+			return RESTAPI_Router<Args...>(RequestedPath, Bindings, Logger, Server);
 		}
 	}
 
     template<typename T, typename... Args>
-    RESTAPIHandler * RESTAPI_Router_I(const std::string & RequestedPath, RESTAPIHandler::BindingMap &Bindings, Poco::Logger & Logger) {
+    RESTAPIHandler * RESTAPI_Router_I(const std::string & RequestedPath, RESTAPIHandler::BindingMap &Bindings, Poco::Logger & Logger, RESTAPI_GenericServer & Server) {
         static_assert(test_has_PathName_method((T*)nullptr), "Class must have a static PathName() method.");
         if(RESTAPIHandler::ParseBindings(RequestedPath,T::PathName(),Bindings)) {
-            return new T(Bindings, Logger, true);
+            return new T(Bindings, Logger, Server, true);
         }
 
         if constexpr (sizeof...(Args) == 0) {
-            return new RESTAPI_UnknownRequestHandler(Bindings,Logger);
+            return new RESTAPI_UnknownRequestHandler(Bindings,Logger, Server);
         } else {
-            return RESTAPI_Router_I<Args...>(RequestedPath, Bindings, Logger);
+            return RESTAPI_Router_I<Args...>(RequestedPath, Bindings, Logger, Server);
         }
     }
 

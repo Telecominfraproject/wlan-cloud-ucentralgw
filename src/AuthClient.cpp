@@ -1,6 +1,11 @@
 //
-// Created by stephane bourque on 2021-06-30.
+//	License type: BSD 3-Clause License
+//	License copy: https://github.com/Telecominfraproject/wlan-cloud-ucentralgw/blob/master/LICENSE
 //
+//	Created by Stephane Bourque on 2021-03-04.
+//	Arilia Wireless Inc.
+//
+
 #include <utility>
 
 #include "AuthClient.h"
@@ -20,7 +25,7 @@ namespace OpenWifi {
 	}
 
 	void AuthClient::RemovedCachedToken(const std::string &Token) {
-		SubMutexGuard G(Mutex_);
+		std::lock_guard	G(Mutex_);
 		UserCache_.erase(Token);
 	}
 
@@ -29,7 +34,7 @@ namespace OpenWifi {
 	}
 
 	bool AuthClient::IsAuthorized(Poco::Net::HTTPServerRequest & Request, std::string &SessionToken, SecurityObjects::UserInfoAndPolicy & UInfo ) {
-		SubMutexGuard G(Mutex_);
+		std::lock_guard G(Mutex_);
 
 		auto User = UserCache_.find(SessionToken);
 		if(User != UserCache_.end() && !IsTokenExpired(User->second.webtoken)) {
@@ -58,7 +63,7 @@ namespace OpenWifi {
 	}
 
 	bool AuthClient::IsTokenAuthorized(const std::string &SessionToken, SecurityObjects::UserInfoAndPolicy & UInfo) {
-		SubMutexGuard G(Mutex_);
+		std::lock_guard G(Mutex_);
 
 		auto User = UserCache_.find(SessionToken);
 		if(User != UserCache_.end() && !IsTokenExpired(User->second.webtoken)) {

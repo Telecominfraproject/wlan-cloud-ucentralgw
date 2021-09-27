@@ -81,6 +81,7 @@ namespace OpenWifi::uCentralProtocol {
 	static const char * CHANNELS = "channels";
 	static const char * PASSWORD = "password";
 	static const char * DEVICEUPDATE = "deviceupdate";
+	static const char * TELEMETRY = "telemetry";
 
     static const char * SERIALNUMBER = "serialNumber";
     static const char * COMPATIBLE = "compatible";
@@ -99,7 +100,8 @@ namespace OpenWifi::uCentralProtocol {
 			ET_PING,
 			ET_CFGPENDING,
 			ET_RECOVERY,
-			ET_DEVICEUPDATE
+			ET_DEVICEUPDATE,
+			ET_TELEMETRY
 		};
 
 	static EVENT_MSG EventFromString(const std::string & Method) {
@@ -121,6 +123,8 @@ namespace OpenWifi::uCentralProtocol {
 			return ET_RECOVERY;
 		} else if (!Poco::icompare(Method, DEVICEUPDATE)) {
 			return ET_DEVICEUPDATE;
+		} else if (!Poco::icompare(Method, TELEMETRY)) {
+			return ET_TELEMETRY;
 		} else
 			return ET_UNKNOWN;
 	};

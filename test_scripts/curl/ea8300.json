@@ -1,0 +1,194 @@
+{
+    "interfaces": [{
+            "ethernet": [{
+                "select-ports": [
+                    "WAN*"
+                ]
+            }],
+            "ipv4": {
+                "addressing": "dynamic"
+            },
+            "name": "WAN",
+            "role": "upstream",
+            "services": [
+                "lldp",
+                "dhcp-snooping"
+            ],
+            "ssids": [{
+                    "bss-mode": "ap",
+                    "encryption": {
+                        "ieee80211w": "optional",
+                        "key": "snoopy4ever",
+                        "proto": "psk2"
+                    },
+                    "name": "Arilia Vancouver 2GHz",
+                    "rate-limit": {
+                        "egress-rate": 100,
+                        "ingress-rate": 100
+                    },
+                    "roaming": {
+                        "generate-psk": true,
+                        "message-exchange": "ds"
+                    },
+                    "services": [
+                        "wifi-steering",
+                        "wifi-frames"
+                    ],
+                    "wifi-bands": [
+                        "2G"
+                    ]
+                },
+                {
+                    "bss-mode": "ap",
+                    "encryption": {
+                        "ieee80211w": "optional",
+                        "key": "snoopy4ever",
+                        "proto": "psk2"
+                    },
+                    "name": "Arilia Vancouver 5GHzL",
+                    "rate-limit": {
+                        "egress-rate": 100,
+                        "ingress-rate": 100
+                    },
+                    "roaming": {
+                        "generate-psk": true,
+                        "message-exchange": "ds"
+                    },
+                    "services": [
+                        "wifi-steering",
+                        "wifi-frames"
+                    ],
+                    "wifi-bands": [
+                        "5G-lower"
+                    ]
+                },
+                {
+                    "bss-mode": "ap",
+                    "encryption": {
+                        "ieee80211w": "optional",
+                        "key": "snoopy4ever",
+                        "proto": "psk2"
+                    },
+                    "name": "Arilia Vancouver 5GHzU",
+                    "rate-limit": {
+                        "egress-rate": 100,
+                        "ingress-rate": 100
+                    },
+                    "roaming": {
+                        "generate-psk": true,
+                        "message-exchange": "ds"
+                    },
+                    "services": [
+                        "wifi-steering",
+                        "wifi-frames"
+                    ],
+                    "wifi-bands": [
+                        "5G-upper"
+                    ]
+                }
+            ]
+        },
+        {
+            "ethernet": [{
+                "select-ports": [
+                    "LAN*"
+                ]
+            }],
+            "ipv4": {
+                "addressing": "static",
+                "dhcp": {
+                    "lease-count": 100,
+                    "lease-first": 10,
+                    "lease-time": "6h"
+                },
+                "subnet": "192.168.1.1/24"
+            },
+            "name": "LAN",
+            "role": "downstream",
+            "services": [
+                "ssh",
+                "lldp",
+                "dhcp-snooping"
+            ]
+        }
+    ],
+    "metrics": {
+        "dhcp-snooping": {
+            "filters": [
+                "ack",
+                "discover",
+                "offer",
+                "request",
+                "solicit",
+                "reply",
+                "renew"
+            ]
+        },
+        "health": {
+            "interval": 120
+        },
+        "statistics": {
+            "interval": 120,
+            "types": [
+                "ssids",
+                "lldp",
+                "clients"
+            ]
+        },
+        "wifi-frames": {
+            "filters": [
+                "probe",
+                "auth",
+                "assoc",
+                "disassoc",
+                "deauth",
+                "local-deauth",
+                "inactive-deauth",
+                "key-mismatch",
+                "beacon-report",
+                "radar-detected"
+            ]
+        }
+    },
+    "radios": [{
+            "band": "5G-lower",
+            "channel": 36,
+            "channel-mode": "VHT",
+            "channel-width": 80,
+            "country": "CA"
+        },
+        {
+            "band": "5G-upper",
+            "channel": 149,
+            "channel-mode": "VHT",
+            "channel-width": 80,
+            "country": "CA"
+        },
+        {
+            "band": "2G",
+            "channel": "auto",
+            "channel-mode": "VHT",
+            "channel-width": 20,
+            "country": "CA"
+        }
+    ],
+    "services": {
+        "lldp": {
+            "describe": "TIP OpenWiFi",
+            "location": "LivingLab"
+        },
+        "ssh": {
+            "port": 22
+        },
+        "wifi-steering": {
+            "assoc-steering": true,
+            "load-kick-threshold": 90,
+            "mode": "local",
+            "network": "upstream",
+            "required-probe-snr": -70,
+            "required-roam-snr": -85,
+            "required-snr": -75
+        }
+    },
+    "uuid": 1631490949
+}

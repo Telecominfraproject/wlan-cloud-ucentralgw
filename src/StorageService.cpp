@@ -39,7 +39,7 @@ namespace OpenWifi {
 	}
 
     int Storage::Start() {
-		SubMutexGuard		Guard(Mutex_);
+		std::lock_guard		Guard(Mutex_);
 
 		Logger_.setLevel(Poco::Message::PRIO_NOTICE);
         Logger_.notice("Starting.");

@@ -14,20 +14,19 @@
 namespace OpenWifi {
 	class RESTAPI_BlackList : public RESTAPIHandler {
 	  public:
-		RESTAPI_BlackList(const RESTAPIHandler::BindingMap &bindings, Poco::Logger &L, bool Internal)
+		RESTAPI_BlackList(const RESTAPIHandler::BindingMap &bindings, Poco::Logger &L, RESTAPI_GenericServer & Server, bool Internal)
 			: RESTAPIHandler(bindings, L,
 							 std::vector<std::string>{Poco::Net::HTTPRequest::HTTP_GET,
 													  Poco::Net::HTTPRequest::HTTP_POST,
 													  Poco::Net::HTTPRequest::HTTP_DELETE,
 													  Poco::Net::HTTPRequest::HTTP_OPTIONS},
+							 							Server,
 							 							Internal) {}
-		void handleRequest(Poco::Net::HTTPServerRequest &request,
-						   Poco::Net::HTTPServerResponse &response) override;
-
-		void DoGet(Poco::Net::HTTPServerRequest &request, Poco::Net::HTTPServerResponse &response);
-		void DoDelete(Poco::Net::HTTPServerRequest &request, Poco::Net::HTTPServerResponse &response);
-		void DoPost(Poco::Net::HTTPServerRequest &request, Poco::Net::HTTPServerResponse &response);
 		static const std::list<const char *> PathName() { return std::list<const char *>{"/api/v1/blacklist"};}
+		void DoGet() final;
+		void DoDelete() final;
+		void DoPost() final;
+		void DoPut() final {};
 	};
 }
 

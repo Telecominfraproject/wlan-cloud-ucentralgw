@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.13)
-project(ucentralgw VERSION 2.1.0)
+project(owgw VERSION 2.2.0)
 
 set(CMAKE_CXX_STANDARD 17)
 
@@ -38,6 +38,8 @@ set(Boost_USE_STATIC_RUNTIME OFF)
 find_package(Boost REQUIRED system)
 find_package(OpenSSL REQUIRED)
 find_package(ZLIB REQUIRED)
+find_package(nlohmann_json  REQUIRED)
+find_package(nlohmann_json_schema_validator REQUIRED)
 
 if(SMALL_BUILD)
     find_package(Poco REQUIRED COMPONENTS Crypto JWT Net Util NetSSL Data DataSQLite)
@@ -50,7 +52,7 @@ endif()
 
 include_directories(/usr/local/include  /usr/local/opt/openssl/include src include/kafka /usr/local/opt/mysql-client/include)
 
-add_executable( ucentralgw
+add_executable( owgw
                 build
                 src/Daemon.cpp src/Daemon.h
                 src/RESTAPI_server.cpp src/RESTAPI_server.h
@@ -95,24 +97,28 @@ add_executable( ucentralgw
                 src/RESTAPI_deviceDashboardHandler.cpp src/RESTAPI_deviceDashboardHandler.h
                 src/SerialNumberCache.cpp src/SerialNumberCache.h
                 src/RESTAPI_webSocketServer.cpp src/RESTAPI_webSocketServer.h
-                src/OpenWifiTypes.h)
+                src/OpenWifiTypes.h src/TelemetryStream.cpp src/TelemetryStream.h
+                src/RESTAPI_GenericServer.cpp src/RESTAPI_GenericServer.h
+                src/RESTAPI_errors.h src/RESTAPI_TelemetryWebSocket.cpp src/RESTAPI_TelemetryWebSocket.h
+                src/ConfigurationValidator.cpp src/ConfigurationValidator.h src/ConfigurationCache.cpp src/ConfigurationCache.h)
 
 if(NOT SMALL_BUILD)
-    target_sources(ucentralgw PUBLIC src/KafkaManager.cpp src/KafkaManager.h)
+    target_sources(owgw PUBLIC src/KafkaManager.cpp src/KafkaManager.h)
 endif()
 
-INSTALL(TARGETS ucentralgw
+INSTALL(TARGETS owgw
         RUNTIME DESTINATION /usr/bin
 )
 
-target_link_libraries(ucentralgw PUBLIC
+target_link_libraries(owgw PUBLIC
                         ${Poco_LIBRARIES} ${Boost_LIBRARIES} ${ZLIB_LIBRARIES})
 if(NOT SMALL_BUILD)
-    target_link_libraries(ucentralgw PUBLIC
+    target_link_libraries(owgw PUBLIC
             ${MySQL_LIBRARIES} ${ZLIB_LIBRARIES}
-            CppKafka::cppkafka
+                CppKafka::cppkafka
+                nlohmann_json_schema_validator
              )
     if(UNIX AND NOT APPLE)
-        target_link_libraries(ucentralgw PUBLIC PocoJSON)
+        target_link_libraries(owgw PUBLIC PocoJSON)
     endif()
 endif()

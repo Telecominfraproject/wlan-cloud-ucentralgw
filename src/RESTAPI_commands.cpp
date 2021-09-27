@@ -10,54 +10,42 @@
 #include "RESTAPI_protocol.h"
 #include "StorageService.h"
 #include "Utils.h"
+#include "RESTAPI_errors.h"
 
 namespace OpenWifi {
-void RESTAPI_commands::handleRequest(Poco::Net::HTTPServerRequest &Request,
-									 Poco::Net::HTTPServerResponse &Response) {
-	if (!ContinueProcessing(Request, Response))
-		return;
-
-	if (!IsAuthorized(Request, Response))
-		return;
-
-	try {
-		ParseParameters(Request);
-		if(!InitQueryBlock()) {
-			BadRequest(Request, Response, "Illegal parameter value.");
-			return;
+	void RESTAPI_commands::DoGet() {
+		auto SerialNumber = GetParameter(RESTAPI::Protocol::SERIALNUMBER, "");
+		std::vector<GWObjects::CommandDetails> Commands;
+		if (QB_.Newest) {
+			Storage()->GetNewestCommands(SerialNumber, QB_.Limit, Commands);
+		} else {
+			Storage()->GetCommands(SerialNumber, QB_.StartDate, QB_.EndDate, QB_.Offset, QB_.Limit,
+								   Commands);
 		}
+		Poco::JSON::Array ArrayObj;
+		for (const auto &i : Commands) {
+			Poco::JSON::Object Obj;
+			i.to_json(Obj);
+			ArrayObj.add(Obj);
+		}
+		Poco::JSON::Object RetObj;
+		RetObj.set(RESTAPI::Protocol::COMMANDS, ArrayObj);
+		ReturnObject(RetObj);
+	}
 
+	void RESTAPI_commands::DoDelete() {
 		auto SerialNumber = GetParameter(RESTAPI::Protocol::SERIALNUMBER, "");
 
-		if (Request.getMethod() == Poco::Net::HTTPRequest::HTTP_GET) {
-			std::vector<GWObjects::CommandDetails> Commands;
-			if (QB_.Newest) {
-				Storage()->GetNewestCommands(SerialNumber, QB_.Limit, Commands);
-			} else {
-				Storage()->GetCommands(SerialNumber, QB_.StartDate, QB_.EndDate, QB_.Offset,
-											   QB_.Limit, Commands);
-			}
-			Poco::JSON::Array ArrayObj;
-			for (const auto &i : Commands) {
-				Poco::JSON::Object Obj;
-				i.to_json(Obj);
-				ArrayObj.add(Obj);
-			}
-			Poco::JSON::Object RetObj;
-			RetObj.set(RESTAPI::Protocol::COMMANDS, ArrayObj);
-			ReturnObject(Request, RetObj, Response);
-			return;
-
-		} else if (Request.getMethod() == Poco::Net::HTTPRequest::HTTP_DELETE) {
-			if (Storage()->DeleteCommands(SerialNumber, QB_.StartDate, QB_.EndDate))
-				OK(Request, Response);
-			else
-				BadRequest(Request, Response);
+		if(SerialNumber.empty()) {
+			BadRequest(RESTAPI::Errors::MissingSerialNumber);
 			return;
 		}
-	} catch (const Poco::Exception &E) {
-		Logger_.error(Poco::format("%s: failed with %s", std::string(__func__), E.displayText()));
+
+		if (Storage()->DeleteCommands(SerialNumber, QB_.StartDate, QB_.EndDate)) {
+			OK();
+			return;
+		}
+
+		InternalError();
 	}
-	BadRequest(Request, Response);
-}
 }

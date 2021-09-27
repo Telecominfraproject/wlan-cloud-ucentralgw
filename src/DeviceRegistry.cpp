@@ -24,29 +24,29 @@ namespace OpenWifi {
     }
 
 	int DeviceRegistry::Start() {
-		SubMutexGuard		Guard(Mutex_);
+		std::lock_guard		Guard(Mutex_);
         Logger_.notice("Starting ");
         return 0;
     }
 
     void DeviceRegistry::Stop() {
-		SubMutexGuard		Guard(Mutex_);
+		std::lock_guard		Guard(Mutex_);
         Logger_.notice("Stopping ");
     }
 
     bool DeviceRegistry::GetStatistics(const std::string &SerialNumber, std::string & Statistics) {
-		SubMutexGuard		Guard(Mutex_);
+		std::lock_guard		Guard(Mutex_);
 
         auto Device = Devices_.find(SerialNumber);
-        if(Device != Devices_.end()) {
-            Statistics = Device->second->LastStats;
-            return true;
-        }
-        return false;
+        if(Device == Devices_.end())
+			return false;
+
+		Statistics = Device->second->LastStats;
+		return true;
     }
 
     void DeviceRegistry::SetStatistics(const std::string &SerialNumber, const std::string &Statistics) {
-		SubMutexGuard		Guard(Mutex_);
+		std::lock_guard		Guard(Mutex_);
 
         auto Device = Devices_.find(SerialNumber);
 
@@ -58,22 +58,18 @@ namespace OpenWifi {
     }
 
     bool DeviceRegistry::GetState(const std::string &SerialNumber, GWObjects::ConnectionState & State) {
-		SubMutexGuard		Guard(Mutex_);
-
+		std::lock_guard		Guard(Mutex_);
         auto Device = Devices_.find(SerialNumber);
-        if(Device != Devices_.end())
-        {
-            State = Device->second->Conn_;
-            return true;
-        }
-        return false;
+        if(Device == Devices_.end())
+			return false;
+
+		State = Device->second->Conn_;
+		return true;
     }
 
     void DeviceRegistry::SetState(const std::string & SerialNumber, GWObjects::ConnectionState & State) {
-		SubMutexGuard		Guard(Mutex_);
-
+		std::lock_guard		Guard(Mutex_);
         auto Device = Devices_.find(SerialNumber);
-
         if(Device != Devices_.end())
         {
 			Device->second->Conn_.LastContact = time(nullptr);
@@ -82,7 +78,7 @@ namespace OpenWifi {
     }
 
 	bool DeviceRegistry::GetHealthcheck(const std::string &SerialNumber, GWObjects::HealthCheck & CheckData) {
-		SubMutexGuard		Guard(Mutex_);
+		std::lock_guard		Guard(Mutex_);
 
 		auto Device = Devices_.find(SerialNumber);
 		if(Device != Devices_.end()) {
@@ -93,7 +89,7 @@ namespace OpenWifi {
 	}
 
 	void DeviceRegistry::SetHealthcheck(const std::string &SerialNumber, const GWObjects::HealthCheck & CheckData) {
-		SubMutexGuard		Guard(Mutex_);
+		std::lock_guard		Guard(Mutex_);
 
 		auto Device = Devices_.find(SerialNumber);
 
@@ -105,7 +101,7 @@ namespace OpenWifi {
 
 	GWObjects::ConnectionState * DeviceRegistry::Register(const std::string & SerialNumber, WSConnection *Ptr)
     {
-		SubMutexGuard		Guard(Mutex_);
+		std::lock_guard		Guard(Mutex_);
 
         auto Device = Devices_.find(SerialNumber);
         if( Device == Devices_.end()) {
@@ -136,7 +132,7 @@ namespace OpenWifi {
     }
 
     bool DeviceRegistry::Connected(const std::string & SerialNumber) {
-		SubMutexGuard		Guard(Mutex_);
+		std::lock_guard		Guard(Mutex_);
 
         auto Device = Devices_.find(SerialNumber);
 
@@ -147,7 +143,7 @@ namespace OpenWifi {
     }
 
     void DeviceRegistry::UnRegister(const std::string & SerialNumber, WSConnection *Ptr) {
-		SubMutexGuard		Guard(Mutex_);
+		std::lock_guard		Guard(Mutex_);
 
         auto Device = Devices_.find(SerialNumber);
 
@@ -157,22 +153,19 @@ namespace OpenWifi {
             Device->second->Conn_.Connected = false;
 			Device->second->Conn_.VerifiedCertificate = GWObjects::NO_CERTIFICATE;
         }
-
     }
 
 	bool DeviceRegistry::SendFrame(const std::string & SerialNumber, const std::string & Payload) {
-		SubMutexGuard		Guard(Mutex_);
+		std::lock_guard		Guard(Mutex_);
 		auto Device = Devices_.find(SerialNumber);
 		if(Device!=Devices_.end() && Device->second->WSConn_!= nullptr) {
-			auto *WSConn =
-				static_cast<WSConnection *>(Device->second->WSConn_);
-			return WSConn->Send(Payload);
+			return Device->second->WSConn_->Send(Payload);
 		}
 		return false;
 	}
 
 	void DeviceRegistry::SetPendingUUID(const std::string & SerialNumber, uint64_t PendingUUID) {
-		SubMutexGuard		Guard(Mutex_);
+		std::lock_guard		Guard(Mutex_);
 		auto Device = Devices_.find(SerialNumber);
 		if(Device!=Devices_.end()) {
 			Device->second->Conn_.PendingUUID = PendingUUID;
@@ -237,7 +230,7 @@ namespace OpenWifi {
 	}
 
 	bool DeviceRegistry::AnalyzeRegistry(GWObjects::Dashboard &D) {
-		SubMutexGuard		Guard(Mutex_);
+		std::lock_guard		Guard(Mutex_);
 
 		for(auto const &[SerialNumber,Connection]:Devices_) {
 			Types::UpdateCountedMap(D.status, Connection->Conn_.Connected ? "connected" : "not connected");

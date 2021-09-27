@@ -59,6 +59,27 @@ namespace OpenWifi {
 		return false;
 	}
 
+	bool Storage::GetBlackListDevice(std::string & SerialNumber, GWObjects::BlackListedDevice &Device) {
+		try {
+			Poco::Data::Session Sess = Pool_->get();
+			Poco::Data::Statement Select(Sess);
+
+			std::string st{"SELECT SerialNumber, Reason, Author, Created FROM BlackList where SerialNumber=? "};
+
+			Select << 	ConvertParams(st),
+						Poco::Data::Keywords::into(Device.SerialNumber),
+						Poco::Data::Keywords::into(Device.Reason),
+						Poco::Data::Keywords::into(Device.Author),
+						Poco::Data::Keywords::into(Device.Created),
+						Poco::Data::Keywords::use(SerialNumber);
+			Select.execute();
+			return Select.rowsExtracted()==1;
+		} catch (const Poco::Exception &E) {
+			Logger_.log(E);
+		}
+		return false;
+	}
+
 	bool Storage::GetBlackListDevices(uint64_t Offset, uint64_t HowMany,
 									  std::vector<GWObjects::BlackListedDevice> &Devices) {
 		try {

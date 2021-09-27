@@ -25,18 +25,15 @@
 
 #include "Utils.h"
 #include "RESTAPI_webSocketServer.h"
+#include "RESTAPI_TelemetryWebSocket.h"
 
 namespace OpenWifi {
 
     class RESTAPI_server *RESTAPI_server::instance_ = nullptr;
 
-	RESTAPI_server::RESTAPI_server() noexcept: SubSystemServer("RESTAPIServer", "RESTAPIServer", "ucentral.restapi")
-    {
-    }
-
     int RESTAPI_server::Start() {
         Logger_.information("Starting.");
-
+		Server_.InitLogging();
         for(const auto & Svr: ConfigServersList_) {
 			Logger_.information(Poco::format("Starting: %s:%s Keyfile:%s CertFile: %s", Svr.Address(), std::to_string(Svr.Port()),
 											 Svr.KeyFile(),Svr.CertFile()));
@@ -52,7 +49,7 @@ namespace OpenWifi {
             Params->setMaxQueued(200);
 			Params->setKeepAlive(true);
 
-            auto NewServer = std::make_unique<Poco::Net::HTTPServer>(new RESTAPIServerRequestHandlerFactory, Pool_, Sock, Params);
+            auto NewServer = std::make_unique<Poco::Net::HTTPServer>(new RESTAPIServerRequestHandlerFactory(Server_), Pool_, Sock, Params);
             NewServer->start();
             RESTServers_.push_back(std::move(NewServer));
         }
@@ -60,16 +57,21 @@ namespace OpenWifi {
         return 0;
     }
 
+	void RESTAPI_server::reinitialize(Poco::Util::Application &self) {
+    	Daemon()->LoadConfigurationFile();
+    	Logger_.information("Reinitializing.");
+    	Stop();
+    	Start();
+	}
+
 	void RESTAPI_server::Stop() {
 		Logger_.information("Stopping ");
 		for( const auto & svr : RESTServers_ )
 			svr->stop();
+		RESTServers_.clear();
 	}
 
 	Poco::Net::HTTPRequestHandler *RESTAPIServerRequestHandlerFactory::createRequestHandler(const Poco::Net::HTTPServerRequest & Request) {
-
-        Logger_.debug(Poco::format("REQUEST(%s): %s %s", Utils::FormatIPv6(Request.clientAddress().toString()), Request.getMethod(), Request.getURI()));
-
         Poco::URI uri(Request.getURI());
         const auto & Path = uri.getPath();
         RESTAPIHandler::BindingMap Bindings;
@@ -87,7 +89,8 @@ namespace OpenWifi {
 								RESTAPI_system_command,
 								RESTAPI_deviceDashboardHandler,
 								RESTAPI_webSocketServer,
-								RESTAPI_BlackList>(Path,Bindings,Logger_);
+								RESTAPI_BlackList,
+								RESTAPI_TelemetryWebSocket>(Path,Bindings,Logger_, Server_);
     }
 
 }  // namespace

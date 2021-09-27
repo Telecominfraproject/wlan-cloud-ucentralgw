@@ -1,4 +1,4 @@
 #!/bin/bash
 
-export UCENTRALGW_CONFIG=`pwd`
-export UCENTRALGW_ROOT=`pwd`
+export OWGW_CONFIG=`pwd`
+export OWGW_ROOT=`pwd`

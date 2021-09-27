@@ -11,37 +11,51 @@
 
 namespace OpenWifi {
 
-	bool Storage::AddStatisticsData(std::string &SerialNumber, uint64_t CfgUUID, std::string &NewStats) {
+	const static std::string DB_StatsSelectFields{" SerialNumber, UUID, Data, Recorded "};
+	const static std::string DB_StatsInsertValues{ "?,?,?,?"};
 
-		DeviceRegistry()->SetStatistics(SerialNumber, NewStats);
+	typedef Poco::Tuple<
+			std::string,
+			uint64_t,
+			std::string,
+			uint64_t> StatsRecordTuple;
+	typedef std::vector<StatsRecordTuple> StatsRecordList;
 
+	void ConvertStatsRecord(const StatsRecordTuple &R, GWObjects::Statistics & Stats) {
+		Stats.SerialNumber = R.get<0>();
+		Stats.UUID = R.get<1>();
+		Stats.Data = R.get<2>();
+		Stats.Recorded = R.get<3>();
+	}
+
+	void ConvertStatsRecord(const GWObjects::Statistics & Stats, StatsRecordTuple & R) {
+		R.set<0>(Stats.SerialNumber);
+		R.set<1>(Stats.UUID);
+		R.set<2>(Stats.Data);
+		R.set<3>(Stats.Recorded);
+	}
+
+	bool Storage::AddStatisticsData(const GWObjects::Statistics & Stats) {
+		DeviceRegistry()->SetStatistics(Stats.SerialNumber, Stats.Data);
 		try {
-			Logger_.information("Device:" + SerialNumber + " Stats size:" + std::to_string(NewStats.size()));
+			Poco::Data::Session Sess = Pool_->get();
+			Poco::Data::Statement   Insert(Sess);
 
 			uint64_t Now = time(nullptr);
-			Poco::Data::Session Sess = Pool_->get();
-	/*
-						"SerialNumber VARCHAR(30), "
-						"UUID INTEGER, "
-						"Data TEXT, "
-						"Recorded BIGINT)", now;
-
-	 */
-			Poco::Data::Statement   Insert(Sess);
-			std::string St{"INSERT INTO Statistics (SerialNumber, UUID, Data, Recorded) VALUES(?,?,?,?)"};
-
+			Logger_.information("Device:" + Stats.SerialNumber + " Stats size:" + std::to_string(Stats.Data.size()));
+			std::string St{"INSERT INTO Statistics ( " +
+								DB_StatsSelectFields +
+								" ) VALUES ( " +
+								DB_StatsInsertValues + " )"};
+			StatsRecordTuple R;
+			ConvertStatsRecord(Stats, R);
 			Insert << ConvertParams(St),
-				Poco::Data::Keywords::use(SerialNumber),
-				Poco::Data::Keywords::use(CfgUUID),
-				Poco::Data::Keywords::use(NewStats),
-				Poco::Data::Keywords::use(Now);
+				Poco::Data::Keywords::use(R);
 			Insert.execute();
-
 			return true;
 		}
 		catch (const Poco::Exception &E) {
-			Logger_.warning(
-				Poco::format("%s(%s): Failed with: %s", std::string(__func__), SerialNumber, E.displayText()));
+			Logger_.log(E);
 		}
 		return false;
 	}
@@ -49,20 +63,15 @@ namespace OpenWifi {
 	bool Storage::GetStatisticsData(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate, uint64_t Offset,
 									uint64_t HowMany,
 									std::vector<GWObjects::Statistics> &Stats) {
-
-		typedef Poco::Tuple<std::string, uint64_t, std::string, uint64_t> StatRecord;
-		typedef std::vector<StatRecord> RecordList;
-
-		// std::lock_guard<std::mutex> guard(Mutex_);
-
 		try {
-			RecordList              Records;
 			Poco::Data::Session     Sess = Pool_->get();
 			Poco::Data::Statement   Select(Sess);
 
+			StatsRecordList         Records;
+
 			bool DatesIncluded = (FromDate != 0 || ToDate != 0);
 
-			std::string Prefix{"SELECT SerialNumber, UUID, Data, Recorded FROM Statistics "};
+			std::string Prefix{"SELECT " + DB_StatsSelectFields + " FROM Statistics "};
 			std::string StatementStr = SerialNumber.empty()
 									   ? Prefix + std::string(DatesIncluded ? "WHERE " : "")
 									   : Prefix + "WHERE SerialNumber='" + SerialNumber + "'" +
@@ -81,51 +90,42 @@ namespace OpenWifi {
 				Poco::Data::Keywords::into(Records);
 			Select.execute();
 
-			for (auto i: Records) {
-				GWObjects::Statistics R{
-					.UUID = i.get<1>(),
-					.Data = i.get<2>(),
-					.Recorded = i.get<3>()};
+			for (const auto &i: Records) {
+				GWObjects::Statistics R;
+				ConvertStatsRecord(i,R);
 				Stats.push_back(R);
 			}
 			return true;
 		}
 		catch (const Poco::Exception &E) {
-			Logger_.warning(
-				Poco::format("%s(%s): Failed with: %s", std::string(__func__), SerialNumber, E.displayText()));
+			Logger_.log(E);
 		}
 		return false;
 	}
 
 	bool Storage::GetNewestStatisticsData(std::string &SerialNumber, uint64_t HowMany, std::vector<GWObjects::Statistics> &Stats) {
-		typedef Poco::Tuple<std::string, uint64_t, std::string, uint64_t> StatRecord;
-		typedef std::vector<StatRecord> RecordList;
-
 		try {
-			RecordList              Records;
+			StatsRecordList         Records;
 			Poco::Data::Session     Sess = Pool_->get();
 			Poco::Data::Statement   Select(Sess);
 
-			std::string St{"SELECT SerialNumber, UUID, Data, Recorded FROM Statistics WHERE SerialNumber=? ORDER BY Recorded DESC"};
-
-			Select << 	ConvertParams(St),
+			std::string St{"SELECT " +
+						   		DB_StatsSelectFields +
+						   		" FROM Statistics WHERE SerialNumber=? ORDER BY Recorded DESC "};
+			Select << 	ConvertParams(St) + ComputeRange(1, HowMany),
 						Poco::Data::Keywords::into(Records),
-						Poco::Data::Keywords::use(SerialNumber),
-						Poco::Data::Keywords::limit(HowMany );
+						Poco::Data::Keywords::use(SerialNumber);
 			Select.execute();
 
-			for (auto i: Records) {
-				GWObjects::Statistics R{
-					.UUID = i.get<1>(),
-					.Data = i.get<2>(),
-					.Recorded = i.get<3>()};
+			for (const auto &i: Records) {
+				GWObjects::Statistics R;
+				ConvertStatsRecord(i,R);
 				Stats.push_back(R);
 			}
 			return true;
 		}
 		catch (const Poco::Exception &E) {
-			Logger_.warning(
-				Poco::format("%s(%s): Failed with: %s", std::string(__func__), SerialNumber, E.displayText()));
+			Logger_.log(E);
 		}
 		return false;
 	}
@@ -158,8 +158,7 @@ bool Storage::DeleteStatisticsData(std::string &SerialNumber, uint64_t FromDate,
 			return true;
 		}
 		catch (const Poco::Exception &E) {
-			Logger_.warning(
-				Poco::format("%s(%s): Failed with: %s", std::string(__func__), SerialNumber, E.displayText()));
+			Logger_.log(E);
 		}
 		return false;
 	}

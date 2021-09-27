@@ -1,5 +1,9 @@
 //
-// Created by stephane bourque on 2021-06-13.
+//	License type: BSD 3-Clause License
+//	License copy: https://github.com/Telecominfraproject/wlan-cloud-ucentralgw/blob/master/LICENSE
+//
+//	Created by Stephane Bourque on 2021-03-04.
+//	Arilia Wireless Inc.
 //
 
 #ifndef UCENTRALGW_UCENTRALTYPES_H
@@ -16,6 +20,8 @@
 #include <queue>
 
 #include "Poco/StringTokenizer.h"
+#include "Poco/JSON/Parser.h"
+#include "Poco/JSON/Stringifier.h"
 
 namespace OpenWifi::Types {
     typedef std::pair<std::string,std::string>              StringPair;
@@ -42,26 +48,58 @@ namespace OpenWifi::Types {
     }
 
     inline std::string to_string( const StringVec &V) {
-        std::string Result;
-
-        bool first=true;
+        Poco::JSON::Array   O;
         for(const auto &i:V) {
-            if(first) {
-                Result += i;
-                first = false;
-            } else {
-                Result += ",";
-                Result += i;
-            }
+            O.add(i);
         }
-        return Result;
+        std::stringstream SS;
+        Poco::JSON::Stringifier::stringify(O,SS);
+        return SS.str();
+    }
+
+    inline std::string to_string( const StringPairVec &V) {
+        Poco::JSON::Array   O;
+        for(const auto &i:V) {
+            Poco::JSON::Array OO;
+            OO.add(i.first);
+            OO.add(i.second);
+            O.add(OO);
+        }
+
+        std::stringstream SS;
+        Poco::JSON::Stringifier::stringify(O,SS);
+        return SS.str();
+    }
+
+    inline void from_string(const std::string &S, StringPairVec &V) {
+        try {
+            Poco::JSON::Parser      P;
+            auto O = P.parse(S).extract<Poco::JSON::Array::Ptr>();
+
+            for(const auto &i:*O) {
+                auto Inner = i.extract<Poco::JSON::Array::Ptr>();
+                for(const auto &j:*Inner) {
+                    auto S1 = i[0].toString();
+                    auto S2 = i[1].toString();
+                    V.push_back(std::make_pair(S1,S2));
+                }
+            }
+        } catch (...) {
+
+        }
     }
 
     inline void from_string(const std::string &S, StringVec &V) {
-        Poco::StringTokenizer   Tokens(S,",",Poco::StringTokenizer::TOK_TRIM | Poco::StringTokenizer::TOK_IGNORE_EMPTY);
+        try {
+            Poco::JSON::Parser      P;
+            auto O = P.parse(S).extract<Poco::JSON::Array::Ptr>();
 
-        for(auto const &i:Tokens)
-            V.emplace_back(i);
+            for(auto const &i:*O) {
+                V.push_back(i.toString());
+            }
+        } catch (...) {
+
+        }
     }
 };
 
