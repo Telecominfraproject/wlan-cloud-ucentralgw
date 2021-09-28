@@ -41,6 +41,14 @@ namespace OpenWifi::RESTAPI::Errors {
     static const std::string NoRecordsDeleted{"No records deleted."};
     static const std::string DeviceNotConnected{"Device is not currently connected."};
     static const std::string CannotCreateWS{"Telemetry system could not create WS endpoint. Please try again."};
+    static const std::string BothDeviceTypeRevision{"Both deviceType and revision must be set."};
+    static const std::string IdOrSerialEmpty{"SerialNumber and Id must not be empty."};
+    static const std::string MissingUserID{"Missing user ID."};
+    static const std::string IdMustBe0{"To create a user, you must set the ID to 0"};
+    static const std::string InvalidUserRole{"Invalid userRole."};
+    static const std::string InvalidEmailAddress{"Invalid email address."};
+    static const std::string InvalidPassword{"Invalid password."};
+    static const std::string PasswordRejected{"Password was rejected. This maybe an old password."};
 }
 
 #endif //OWPROV_RESTAPI_ERRORS_H
