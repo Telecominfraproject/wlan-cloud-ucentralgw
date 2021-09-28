@@ -14,6 +14,7 @@
 
 #include <fstream>
 #include "RESTAPI_protocol.h"
+#include "RESTAPI_errors.h"
 
 namespace OpenWifi {
 	void RESTAPI_file::DoGet() {
@@ -24,8 +25,7 @@ namespace OpenWifi {
 		Poco::File DownloadFile(FileUploader()->Path() + "/" + UUID);
 
 		std::string FileType;
-		if (!Storage()->GetAttachedFile(UUID, SerialNumber, DownloadFile.path(),
-										FileType)) {
+		if (!Storage()->GetAttachedFile(UUID, SerialNumber, DownloadFile.path(), FileType)) {
 			NotFound();
 			return;
 		}
@@ -37,13 +37,14 @@ namespace OpenWifi {
 		auto UUID = GetBinding(RESTAPI::Protocol::FILEUUID, "");
 
 		if (UUID.empty()) {
-			BadRequest("Missing UUID.");
+			BadRequest(RESTAPI::Errors::MissingUUID);
 			return;
 		}
 
-		if (Storage()->RemoveAttachedFile(UUID))
+		if (Storage()->RemoveAttachedFile(UUID)) {
 			OK();
-		else
-			NotFound();
+			return;
+		}
+		BadRequest(RESTAPI::Errors::CouldNotBeDeleted);
 	}
 }

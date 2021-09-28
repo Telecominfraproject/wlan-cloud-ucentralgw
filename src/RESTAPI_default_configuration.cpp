@@ -39,7 +39,7 @@ namespace OpenWifi {
 			OK();
 			return;
 		}
-		NotFound();
+		BadRequest(RESTAPI::Errors::CouldNotBeDeleted);
 	}
 
 	void RESTAPI_default_configuration::DoPost() {
@@ -52,7 +52,7 @@ namespace OpenWifi {
 
 		auto Obj = ParseStream();
 		GWObjects::DefaultConfiguration DefConfig;
-			if (!DefConfig.from_json(Obj)) {
+		if (!DefConfig.from_json(Obj)) {
 			BadRequest(RESTAPI::Errors::InvalidJSONDocument);
 			return;
 		}
@@ -61,7 +61,7 @@ namespace OpenWifi {
 			OK();
 			return;
 		}
-		InternalError();
+		BadRequest(RESTAPI::Errors::RecordNotCreated);
 	}
 
 	void RESTAPI_default_configuration::DoPut() {
@@ -79,6 +79,6 @@ namespace OpenWifi {
 			OK();
 			return;
 		}
-		InternalError();
+		BadRequest(RESTAPI::Errors::RecordNotUpdated);
 	}
 }

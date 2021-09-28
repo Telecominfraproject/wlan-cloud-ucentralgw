@@ -14,57 +14,71 @@
 #include "ConfigurationValidator.h"
 #include "ConfigurationCache.h"
 #include "CentralConfig.h"
+#include "RESTAPI_errors.h"
 
 namespace OpenWifi {
 	void RESTAPI_device_handler::DoGet() {
 		std::string SerialNumber = GetBinding(RESTAPI::Protocol::SERIALNUMBER, "");
+
+		if(SerialNumber.empty()) {
+			BadRequest(RESTAPI::Errors::MissingSerialNumber);
+			return;
+		}
+
 		GWObjects::Device Device;
 
 		if (Storage()->GetDevice(SerialNumber, Device)) {
 			Poco::JSON::Object Obj;
 			Device.to_json(Obj);
 			ReturnObject(Obj);
-		} else {
-			NotFound();
+			return;
 		}
+		NotFound();
 	}
 
 	void RESTAPI_device_handler::DoDelete() {
 		std::string SerialNumber = GetBinding(RESTAPI::Protocol::SERIALNUMBER, "");
+
+		if(SerialNumber.empty()) {
+			BadRequest(RESTAPI::Errors::MissingSerialNumber);
+			return;
+		}
+
 		if (Storage()->DeleteDevice(SerialNumber)) {
 			OK();
-		} else {
-			NotFound();
+			return;
 		}
+		NotFound();
 	}
 
 	void RESTAPI_device_handler::DoPost() {
 		std::string SerialNumber = GetBinding(RESTAPI::Protocol::SERIALNUMBER, "");
+
 		if(SerialNumber.empty()) {
-			BadRequest("Missing Serial number.");
+			BadRequest(RESTAPI::Errors::MissingSerialNumber);
 			return;
 		}
 
 		if (!Utils::ValidSerialNumber(SerialNumber)) {
 			Logger_.warning(Poco::format("CREATE-DEVICE(%s): Illegal serial number.", SerialNumber));
-			BadRequest("Invalid serial number.");
+			BadRequest( RESTAPI::Errors::InvalidSerialNumber);
 			return;
 		}
 
 		auto Obj = ParseStream();
 		GWObjects::Device Device;
 		if (!Device.from_json(Obj)) {
-			BadRequest("Ill-formed JSON doc.");
+			BadRequest(RESTAPI::Errors::InvalidJSONDocument);
 			return;
 		}
 
 		if(SerialNumber!=Device.SerialNumber) {
-			BadRequest("Serial Number mismatch.");
+			BadRequest(RESTAPI::Errors::SerialNumberMismatch);
 			return;
 		}
 
 		if(Device.Configuration.empty() || (!Device.Configuration.empty() && !ValidateUCentralConfiguration(Device.Configuration))) {
-			BadRequest("Illegal configuration.");
+			BadRequest(RESTAPI::Errors::ConfigBlockInvalid);
 			return;
 		}
 
@@ -83,22 +97,23 @@ namespace OpenWifi {
 			Poco::JSON::Object DevObj;
 			Device.to_json(DevObj);
 			ReturnObject(DevObj);
-		} else {
-			BadRequest("Internal error.");
+			return;
 		}
+		InternalError(RESTAPI::Errors::RecordNotCreated);
 	}
 
 	void RESTAPI_device_handler::DoPut() {
 		std::string SerialNumber = GetBinding(RESTAPI::Protocol::SERIALNUMBER, "");
+
 		if(SerialNumber.empty()) {
-			BadRequest("Missing Serial number.");
+			BadRequest(RESTAPI::Errors::MissingSerialNumber);
 			return;
 		}
 
 		auto Obj = ParseStream();
 		GWObjects::Device NewDevice;
 		if (!NewDevice.from_json(Obj)) {
-			BadRequest("Ill-formed JSON document.");
+			BadRequest(RESTAPI::Errors::InvalidJSONDocument);
 			return;
 		}
 
@@ -108,14 +123,13 @@ namespace OpenWifi {
 			return;
 		}
 
-		uint64_t NewConfigUUID=0;
 		if(!NewDevice.Configuration.empty()) {
 			if (!ValidateUCentralConfiguration(NewDevice.Configuration)) {
-				BadRequest("Illegal configuration.");
+				BadRequest(RESTAPI::Errors::ConfigBlockInvalid);
 				return;
 			}
 			Config::Config NewConfig(NewDevice.Configuration);
-			NewConfigUUID = std::time(nullptr);
+			uint64_t NewConfigUUID = std::time(nullptr);
 			NewConfig.SetUUID(NewConfigUUID);
 			Existing.Configuration = NewConfig.get();
 			Existing.UUID = NewConfigUUID;
@@ -136,8 +150,8 @@ namespace OpenWifi {
 			Poco::JSON::Object DevObj;
 			NewDevice.to_json(DevObj);
 			ReturnObject(DevObj);
-		} else {
-			BadRequest("Could not update device.");
+			return;
 		}
+		InternalError(RESTAPI::Errors::RecordNotUpdated);
 	}
 }

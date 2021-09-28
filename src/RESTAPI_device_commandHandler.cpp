@@ -29,12 +29,13 @@
 #include "KafkaManager.h"
 #include "Kafka_topics.h"
 #include "TelemetryStream.h"
+#include "RESTAPI_errors.h"
 
 namespace OpenWifi {
 
 	void RESTAPI_device_commandHandler::DoGet() {
 		if(!ValidateParameters()) {
-			BadRequest("Missing command or serial number.");
+			BadRequest(RESTAPI::Errors::MissingOrInvalidParameters);
 			return;
 		}
 
@@ -51,14 +52,14 @@ namespace OpenWifi {
 		} else if (Command_ == RESTAPI::Protocol::RTTY) {
 			Rtty();
 		} else {
-			BadRequest("Bad command.");
+			BadRequest(RESTAPI::Errors::InvalidCommand);
 		}
 	}
 
 
 	void RESTAPI_device_commandHandler::DoDelete() {
 		if(!ValidateParameters()) {
-			BadRequest("Missing command or serial number.");
+			BadRequest(RESTAPI::Errors::MissingOrInvalidParameters);
 			return;
 		}
 		if (Command_ == RESTAPI::Protocol::CAPABILITIES) {
@@ -70,13 +71,13 @@ namespace OpenWifi {
 		} else if (Command_ == RESTAPI::Protocol::STATISTICS) {
 			DeleteStatistics();
 		} else {
-			BadRequest("Unknown command.");
+			BadRequest(RESTAPI::Errors::InvalidCommand);
 		}
 	}
 
 	void RESTAPI_device_commandHandler::DoPost() {
 		if(!ValidateParameters()) {
-			BadRequest("Missing command or serial number.");
+			BadRequest(RESTAPI::Errors::MissingOrInvalidParameters);
 			return;
 		}
 		if (Command_ == RESTAPI::Protocol::PERFORM) {
@@ -102,7 +103,7 @@ namespace OpenWifi {
 		} else if (Command_ == RESTAPI::Protocol::TELEMETRY) {
 			Telemetry();
 		} else {
-			BadRequest("Unknown command.");
+			BadRequest(RESTAPI::Errors::InvalidCommand);
 		}
 	}
 
@@ -113,16 +114,18 @@ void RESTAPI_device_commandHandler::GetCapabilities() {
 		Caps.to_json(RetObj);
 		RetObj.set(RESTAPI::Protocol::SERIALNUMBER, SerialNumber_);
 		ReturnObject(RetObj);
-	} else {
-		NotFound();
+		return;
 	}
+	NotFound();
 }
 
 void RESTAPI_device_commandHandler::DeleteCapabilities() {
-	if (Storage()->DeleteDeviceCapabilities(SerialNumber_))
+	Logger_.information(Poco::format("DELETE-CAPABILITIES: user=%s serial=%s", UserInfo_.userinfo.email,SerialNumber_));
+	if (Storage()->DeleteDeviceCapabilities(SerialNumber_)) {
 		OK();
-	else
-		NotFound();
+		return;
+	}
+	NotFound();
 }
 
 void RESTAPI_device_commandHandler::GetStatistics() {
@@ -167,20 +170,19 @@ void RESTAPI_device_commandHandler::GetStatistics() {
 }
 
 void RESTAPI_device_commandHandler::DeleteStatistics() {
+	Logger_.information(Poco::format("DELETE-STATISTICS: user=%s serial=%s", UserInfo_.userinfo.email,SerialNumber_));
 	if (QB_.Lifetime) {
 		if (Storage()->ResetLifetimeStats(SerialNumber_)) {
 			OK();
-		} else {
-			NotFound();
+			return;
 		}
 	} else {
-		if (Storage()->DeleteStatisticsData(SerialNumber_, QB_.StartDate,
-													QB_.EndDate)) {
+		if (Storage()->DeleteStatisticsData(SerialNumber_, QB_.StartDate, QB_.EndDate)) {
 			OK();
-		} else {
-			NotFound();
+			return;
 		}
 	}
+	NotFound();
 }
 
 void RESTAPI_device_commandHandler::GetStatus() {
@@ -190,13 +192,14 @@ void RESTAPI_device_commandHandler::GetStatus() {
 		Poco::JSON::Object RetObject;
 		State.to_json(RetObject);
 		ReturnObject(RetObject);
-	} else {
-		NotFound();
+		return;
 	}
+	NotFound();
 }
 
 void RESTAPI_device_commandHandler::Configure() {
 	//  get the configuration from the body of the message
+	Logger_.information(Poco::format("CONFIGURE: user=%s serial=%s", UserInfo_.userinfo.email,SerialNumber_));
 	auto Obj = ParseStream();
 	if (Obj->has(RESTAPI::Protocol::SERIALNUMBER) &&
 		Obj->has(RESTAPI::Protocol::UUID) &&
@@ -204,7 +207,7 @@ void RESTAPI_device_commandHandler::Configure() {
 
 		auto SNum = Obj->get(RESTAPI::Protocol::SERIALNUMBER).toString();
 		if (SerialNumber_ != SNum) {
-			BadRequest("Missing serial number in configuration.");
+			BadRequest(RESTAPI::Errors::SerialNumberMismatch);
 			return;
 		}
 
@@ -235,10 +238,14 @@ void RESTAPI_device_commandHandler::Configure() {
 			RESTAPI_RPC::WaitForCommand(Cmd, Params, *Request, *Response, 60000, nullptr, this, Logger_);
 			return;
 		}
+		BadRequest(RESTAPI::Errors::RecordNotUpdated);
+		return;
 	}
+	BadRequest(RESTAPI::Errors::MissingOrInvalidParameters);
 }
 
 void RESTAPI_device_commandHandler::Upgrade() {
+	Logger_.information(Poco::format("UPGRADE: user=%s serial=%s", UserInfo_.userinfo.email,SerialNumber_));
 	auto Obj = ParseStream();
 
 	if (Obj->has(RESTAPI::Protocol::URI) &&
@@ -246,7 +253,7 @@ void RESTAPI_device_commandHandler::Upgrade() {
 
 		auto SNum = Obj->get(RESTAPI::Protocol::SERIALNUMBER).toString();
 		if (SerialNumber_ != SNum) {
-			BadRequest("Missing serial number.");
+			BadRequest(RESTAPI::Errors::SerialNumberMismatch);
 			return;
 		}
 
@@ -273,9 +280,8 @@ void RESTAPI_device_commandHandler::Upgrade() {
 
 		RESTAPI_RPC::WaitForCommand(Cmd, Params, *Request, *Response, 60000, nullptr, this, Logger_);
 		return;
-	} else {
-		BadRequest("Missing URI/Serial number.");
 	}
+	BadRequest(RESTAPI::Errors::MissingOrInvalidParameters);
 }
 
 void RESTAPI_device_commandHandler::GetLogs() {
@@ -300,12 +306,13 @@ void RESTAPI_device_commandHandler::GetLogs() {
 }
 
 void RESTAPI_device_commandHandler::DeleteLogs() {
+	Logger_.information(Poco::format("DELETE-LOGS: user=%s serial=%s", UserInfo_.userinfo.email,SerialNumber_));
 	if (Storage()->DeleteLogData(SerialNumber_, QB_.StartDate, QB_.EndDate,
 										 QB_.LogType)) {
 		OK();
-	} else {
-		BadRequest("Could not delete the selected logs.");
+		return;
 	}
+	BadRequest(RESTAPI::Errors::NoRecordsDeleted);
 }
 
 void RESTAPI_device_commandHandler::GetChecks() {
@@ -343,15 +350,16 @@ void RESTAPI_device_commandHandler::GetChecks() {
 }
 
 void RESTAPI_device_commandHandler::DeleteChecks() {
+	Logger_.information(Poco::format("DELETE-HEALTHCHECKS: user=%s serial=%s", UserInfo_.userinfo.email,SerialNumber_));
 	if (Storage()->DeleteHealthCheckData(SerialNumber_, QB_.StartDate, QB_.EndDate)) {
 		OK();
-	} else {
-		BadRequest("Healthchecks could not be deleted.");
+		return;
 	}
+	BadRequest(RESTAPI::Errors::NoRecordsDeleted);
 }
 
 void RESTAPI_device_commandHandler::ExecuteCommand() {
-	//  get the configuration from the body of the message
+	Logger_.information(Poco::format("EXECUTE: user=%s serial=%s", UserInfo_.userinfo.email,SerialNumber_));
 	auto Obj = ParseStream();
 	if (Obj->has(RESTAPI::Protocol::COMMAND) &&
 		Obj->has(RESTAPI::Protocol::SERIALNUMBER) &&
@@ -394,18 +402,18 @@ void RESTAPI_device_commandHandler::ExecuteCommand() {
 
 		RESTAPI_RPC::WaitForCommand(Cmd, Params, *Request, *Response, 60000, nullptr, this, Logger_);
 		return;
-	} else {
-		BadRequest("Missing command parameters");
 	}
+	BadRequest(RESTAPI::Errors::MissingOrInvalidParameters);
 }
 
 void RESTAPI_device_commandHandler::Reboot() {
+	Logger_.information(Poco::format("REBOOT: user=%s serial=%s", UserInfo_.userinfo.email,SerialNumber_));
 	auto Obj = ParseStream();
 
 	if (Obj->has(RESTAPI::Protocol::SERIALNUMBER)) {
 		auto SNum = Obj->get(RESTAPI::Protocol::SERIALNUMBER).toString();
 		if (SerialNumber_ != SNum) {
-			BadRequest("Missing serial number.");
+			BadRequest(RESTAPI::Errors::SerialNumberMismatch);
 			return;
 		}
 
@@ -428,12 +436,12 @@ void RESTAPI_device_commandHandler::Reboot() {
 
 		RESTAPI_RPC::WaitForCommand(Cmd, Params, *Request, *Response, 60000, nullptr, this, Logger_);
 		return;
-	} else {
-		BadRequest("Missing serial number.");
 	}
+	BadRequest(RESTAPI::Errors::MissingSerialNumber);
 }
 
 void RESTAPI_device_commandHandler::Factory() {
+	Logger_.information(Poco::format("FACTORY-RESET: user=%s serial=%s", UserInfo_.userinfo.email,SerialNumber_));
 	Poco::JSON::Object::Ptr Obj = ParseStream();
 	if (Obj->has(RESTAPI::Protocol::KEEPREDIRECTOR) &&
 		Obj->has(RESTAPI::Protocol::SERIALNUMBER)) {
@@ -441,7 +449,7 @@ void RESTAPI_device_commandHandler::Factory() {
 		auto SNum = Obj->get(RESTAPI::Protocol::SERIALNUMBER).toString();
 
 		if (SerialNumber_ != SNum) {
-			BadRequest("Missing serial number.");
+			BadRequest(RESTAPI::Errors::SerialNumberMismatch);
 			return;
 		}
 
@@ -468,12 +476,12 @@ void RESTAPI_device_commandHandler::Factory() {
 
 		RESTAPI_RPC::WaitForCommand(Cmd, Params, *Request, *Response, 60000, nullptr, this, Logger_);
 		return;
-	} else {
-		BadRequest("Missing parameters.");
 	}
+	BadRequest(RESTAPI::Errors::MissingOrInvalidParameters);
 }
 
 void RESTAPI_device_commandHandler::LEDs() {
+	Logger_.information(Poco::format("LEDS: user=%s serial=%s", UserInfo_.userinfo.email,SerialNumber_));
 	auto Obj = ParseStream();
 
 	if (Obj->has(uCentralProtocol::PATTERN) &&
@@ -481,7 +489,7 @@ void RESTAPI_device_commandHandler::LEDs() {
 
 		auto SNum = Obj->get(RESTAPI::Protocol::SERIALNUMBER).toString();
 		if (SerialNumber_ != SNum) {
-			BadRequest("Missing serial number.");
+			BadRequest(RESTAPI::Errors::SerialNumberMismatch);
 			return;
 		}
 
@@ -490,15 +498,12 @@ void RESTAPI_device_commandHandler::LEDs() {
 		if (Pattern != uCentralProtocol::ON &&
 			Pattern != uCentralProtocol::OFF &&
 			Pattern != uCentralProtocol::BLINK) {
-			Logger_.warning(Poco::format("LEDs(%s): Bad pattern", SerialNumber_));
-			BadRequest("Missing parameters.");
+			BadRequest(RESTAPI::Errors::MissingOrInvalidParameters);
 			return;
 		}
 
 		auto Duration = Get(uCentralProtocol::DURATION, Obj, 30);
 		auto When = GetWhen(Obj);
-		Logger_.information(Poco::format("LEDS(%s): Pattern:%s Duration: %Lu", SerialNumber_,
-										 Pattern, Duration));
 
 		GWObjects::CommandDetails Cmd;
 
@@ -520,12 +525,12 @@ void RESTAPI_device_commandHandler::LEDs() {
 
 		RESTAPI_RPC::WaitForCommand(Cmd, Params, *Request, *Response, 60000, nullptr, this, Logger_);
 		return;
-	} else {
-		BadRequest("Missing parameters.");
 	}
+	BadRequest(RESTAPI::Errors::MissingOrInvalidParameters);
 }
 
 void RESTAPI_device_commandHandler::Trace() {
+	Logger_.information(Poco::format("TRACE: user=%s serial=%s", UserInfo_.userinfo.email,SerialNumber_));
 	auto Obj = ParseStream();
 
 	if 	(Obj->has(RESTAPI::Protocol::SERIALNUMBER) &&
@@ -534,7 +539,7 @@ void RESTAPI_device_commandHandler::Trace() {
 
 		auto SNum = Obj->get(RESTAPI::Protocol::SERIALNUMBER).toString();
 		if (SerialNumber_ != SNum) {
-			BadRequest("Missing serial number.");
+			BadRequest(RESTAPI::Errors::SerialNumberMismatch);
 			return;
 		}
 
@@ -572,17 +577,18 @@ void RESTAPI_device_commandHandler::Trace() {
 
 		FileUploader()->AddUUID(UUID);
 		RESTAPI_RPC::WaitForCommand(Cmd, Params, *Request, *Response, 60000, nullptr, this, Logger_);
-	} else {
-		BadRequest("Missing SerialNumber, Network, or Interface.");
+		return;
 	}
+	BadRequest(RESTAPI::Errors::MissingOrInvalidParameters);
 }
 
 void RESTAPI_device_commandHandler::WifiScan() {
+	Logger_.information(Poco::format("WIFISCAN: user=%s serial=%s", UserInfo_.userinfo.email,SerialNumber_));
 	auto Obj = ParseStream();
 
 	auto SNum = Obj->get(RESTAPI::Protocol::SERIALNUMBER).toString();
 	if (SerialNumber_ != SNum) {
-		BadRequest("Missing serial number.");
+		BadRequest(RESTAPI::Errors::SerialNumberMismatch);
 		return;
 	}
 
@@ -626,17 +632,23 @@ void RESTAPI_device_commandHandler::WifiScan() {
 		if (Cmd.ErrorCode == 0) {
 			KafkaManager()->PostMessage(KafkaTopics::WIFISCAN, SerialNumber_, Cmd.Results);
 		}
-	} else {
-		BadRequest("Missing parameters.");
+		return;
 	}
+	BadRequest(RESTAPI::Errors::MissingOrInvalidParameters);
 }
 
 void RESTAPI_device_commandHandler::EventQueue() {
+	Logger_.information(Poco::format("EVENT-QUEUE: user=%s serial=%s", UserInfo_.userinfo.email,SerialNumber_));
 	auto Obj = ParseStream();
 	if (Obj->has(RESTAPI::Protocol::SERIALNUMBER) &&
 		Obj->isArray(RESTAPI::Protocol::TYPES)) {
 
 		auto SNum = Obj->get(RESTAPI::Protocol::SERIALNUMBER).toString();
+		if (SerialNumber_ != SNum) {
+			BadRequest(RESTAPI::Errors::SerialNumberMismatch);
+			return;
+		}
+
 		auto Types = Obj->getArray(RESTAPI::Protocol::TYPES);
 
 		auto UUID = Daemon()->CreateUUID();
@@ -660,12 +672,13 @@ void RESTAPI_device_commandHandler::EventQueue() {
 			KafkaManager()->PostMessage(KafkaTopics::DEVICE_EVENT_QUEUE, SerialNumber_,
 										Cmd.Results);
 		}
-	} else {
-		BadRequest("Missing parameters.");
+		return;
 	}
+	BadRequest(RESTAPI::Errors::MissingOrInvalidParameters);
 }
 
 void RESTAPI_device_commandHandler::MakeRequest() {
+	Logger_.information(Poco::format("FORCE-REQUEST: user=%s serial=%s", UserInfo_.userinfo.email,SerialNumber_));
 	auto Obj = ParseStream();
 	if (Obj->has(RESTAPI::Protocol::SERIALNUMBER) &&
 		Obj->has(uCentralProtocol::MESSAGE)) {
@@ -676,7 +689,7 @@ void RESTAPI_device_commandHandler::MakeRequest() {
 		if ((SerialNumber_ != SNum) ||
 			(MessageType != uCentralProtocol::STATE &&
 			 MessageType != uCentralProtocol::HEALTHCHECK)) {
-			BadRequest("Missing parameters");
+			BadRequest(RESTAPI::Errors::MissingOrInvalidParameters);
 			return;
 		}
 
@@ -702,12 +715,12 @@ void RESTAPI_device_commandHandler::MakeRequest() {
 
 		RESTAPI_RPC::WaitForCommand(Cmd, Params, *Request, *Response, 60000, nullptr, this, Logger_ );
 		return;
-	} else {
-		BadRequest("Missing parameters.");
 	}
+	BadRequest(RESTAPI::Errors::MissingOrInvalidParameters);
 }
 
 	void RESTAPI_device_commandHandler::Rtty() {
+		Logger_.information(Poco::format("RTTY: user=%s serial=%s", UserInfo_.userinfo.email,SerialNumber_));
 		if (Daemon()->ConfigGetString("rtty.enabled", "false") == "true") {
 			GWObjects::Device	Device;
 			if (Storage()->GetDevice(SerialNumber_, Device)) {
@@ -752,24 +765,24 @@ void RESTAPI_device_commandHandler::MakeRequest() {
 				Params.stringify(ParamStream);
 				Cmd.Details = ParamStream.str();
 				RESTAPI_RPC::WaitForCommand(Cmd, Params, *Request, *Response, 60000, &ReturnedObject, this, Logger_);
-			} else {
-				NotFound();
+				return;
 			}
-		} else {
-			ReturnStatus(Poco::Net::HTTPResponse::HTTP_SERVICE_UNAVAILABLE);
+			NotFound();
+			return;
 		}
+		ReturnStatus(Poco::Net::HTTPResponse::HTTP_SERVICE_UNAVAILABLE);
 	}
 
 	void RESTAPI_device_commandHandler::Telemetry(){
+		Logger_.information(Poco::format("TELEMETRY: user=%s serial=%s", UserInfo_.userinfo.email,SerialNumber_));
 		auto Obj = ParseStream();
 
 		if (Obj->has(RESTAPI::Protocol::SERIALNUMBER) &&
 			Obj->has(RESTAPI::Protocol::INTERVAL) && Obj->has(RESTAPI::Protocol::TYPES)) {
 
-			auto SNum = GetS(RESTAPI::Protocol::SERIALNUMBER, Obj);
-
-			if (SNum != SerialNumber_) {
-				BadRequest("Serial Number mismatch");
+			auto SNum = Obj->get(RESTAPI::Protocol::SERIALNUMBER).toString();
+			if (SerialNumber_ != SNum) {
+				BadRequest(RESTAPI::Errors::SerialNumberMismatch);
 				return;
 			}
 
@@ -780,7 +793,7 @@ void RESTAPI_device_commandHandler::MakeRequest() {
 			}
 
 			if (!DeviceRegistry()->Connected(SerialNumber_)) {
-				BadRequest("Device is not currently connected.");
+				BadRequest(RESTAPI::Errors::DeviceNotConnected);
 				return;
 			}
 
@@ -810,7 +823,7 @@ void RESTAPI_device_commandHandler::MakeRequest() {
 					Answer.set("uri", Endpoint);
 				}
 			} else {
-				BadRequest("Telemetry system could not create WS endpoint. Please try again.");
+				BadRequest(RESTAPI::Errors::CannotCreateWS);
 				return;
 			}
 
@@ -821,8 +834,8 @@ void RESTAPI_device_commandHandler::MakeRequest() {
 
 			RESTAPI_RPC::WaitForCommand(Cmd, Params, *Request, *Response,
 										60000, &Answer, this, Logger_);
-		} else {
-			BadRequest("Missing parameters.");
+			return;
 		}
+		BadRequest(RESTAPI::Errors::MissingOrInvalidParameters);
 	}
 }

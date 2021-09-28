@@ -99,10 +99,10 @@ namespace OpenWifi {
 				return;
 			}
 		} else {
-			BadRequest("Unknown command.");
+			BadRequest(RESTAPI::Errors::InvalidCommand);
 			return;
 		}
-		BadRequest("Missing command.");
+		BadRequest(RESTAPI::Errors::MissingOrInvalidParameters);
 	}
 
 	void RESTAPI_system_command::DoGet() {
@@ -141,6 +141,6 @@ namespace OpenWifi {
 			ReturnObject(Answer);
 			return;
 		}
-		BadRequest("Unknown command.");
+		BadRequest(RESTAPI::Errors::InvalidCommand);
 	}
 }

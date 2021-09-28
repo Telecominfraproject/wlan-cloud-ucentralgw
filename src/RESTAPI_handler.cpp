@@ -358,7 +358,7 @@ namespace OpenWifi {
 			ProcessOptions();
 			return false;
 		} else if (std::find(Methods_.begin(), Methods_.end(), Request->getMethod()) == Methods_.end()) {
-			BadRequest("Unsupported method");
+			BadRequest(RESTAPI::Errors::UnsupportedHTTPMethod);
 			return false;
 		}
 

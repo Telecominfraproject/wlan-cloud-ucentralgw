@@ -35,7 +35,7 @@ namespace OpenWifi {
 			OK();
 			return;
 		}
-		InternalError();
+		BadRequest(RESTAPI::Errors::CouldNotBeDeleted);
 	}
 
 	void RESTAPI_BlackList::DoGet() {
