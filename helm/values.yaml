@@ -136,17 +136,17 @@ secret_env_variables: {}
 configProperties:
   # -> Public part
   # Websocket
-  openwifi.websocket.host.0.backlog: 500
-  openwifi.websocket.host.0.rootca: $OWGW_ROOT/certs/root.pem
-  openwifi.websocket.host.0.issuer: $OWGW_ROOT/certs/issuer.pem
-  openwifi.websocket.host.0.cert: $OWGW_ROOT/certs/websocket-cert.pem
-  openwifi.websocket.host.0.key: $OWGW_ROOT/certs/websocket-key.pem
-  openwifi.websocket.host.0.clientcas: $OWGW_ROOT/certs/clientcas.pem
-  openwifi.websocket.host.0.cas: $OWGW_ROOT/certs/cas
-  openwifi.websocket.host.0.address: "*"
-  openwifi.websocket.host.0.port: 15002
-  openwifi.websocket.host.0.security: strict
-  openwifi.websocket.maxreactors: 20
+  ucentral.websocket.host.0.backlog: 500
+  ucentral.websocket.host.0.rootca: $OWGW_ROOT/certs/root.pem
+  ucentral.websocket.host.0.issuer: $OWGW_ROOT/certs/issuer.pem
+  ucentral.websocket.host.0.cert: $OWGW_ROOT/certs/websocket-cert.pem
+  ucentral.websocket.host.0.key: $OWGW_ROOT/certs/websocket-key.pem
+  ucentral.websocket.host.0.clientcas: $OWGW_ROOT/certs/clientcas.pem
+  ucentral.websocket.host.0.cas: $OWGW_ROOT/certs/cas
+  ucentral.websocket.host.0.address: "*"
+  ucentral.websocket.host.0.port: 15002
+  ucentral.websocket.host.0.security: strict
+  ucentral.websocket.maxreactors: 20
   # REST API
   openwifi.restapi.host.0.backlog: 100
   openwifi.restapi.host.0.security: relaxed
@@ -248,7 +248,7 @@ configProperties:
 
   # -> Secret part
   # Websocket
-  openwifi.websocket.host.0.key.password: mypassword
+  ucentral.websocket.host.0.key.password: mypassword
   # REST API
   openwifi.restapi.host.0.key.password: mypassword
   openwifi.internal.restapi.host.0.key.password: mypassword
