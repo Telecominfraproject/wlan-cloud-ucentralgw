@@ -363,7 +363,7 @@ namespace OpenWifi {
 
 						if(KafkaManager()->Enabled()) {
 							Poco::JSON::Stringifier		Stringify;
-							// ParamsObj->set(uCentralProtocol::CONNECTIONIP,CId_);
+							ParamsObj->set(uCentralProtocol::CONNECTIONIP,CId_);
 							std::ostringstream OS;
 							Stringify.condense(ParamsObj,OS);
 							KafkaManager()->PostMessage(KafkaTopics::CONNECTION, SerialNumber_, OS.str());
@@ -664,6 +664,7 @@ namespace OpenWifi {
 								PingDetails.set(uCentralProtocol::FIRMWARE, Conn_->Firmware);
 								PingDetails.set(uCentralProtocol::SERIALNUMBER, SerialNumber_);
 								PingDetails.set(uCentralProtocol::COMPATIBLE, Compatible_);
+								PingDetails.set(uCentralProtocol::CONNECTIONIP, CId_);
 								PingObject.set(uCentralProtocol::PING,PingDetails);
 								Poco::JSON::Stringifier Stringify;
 								std::ostringstream OS;
