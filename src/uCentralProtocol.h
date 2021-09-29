@@ -81,7 +81,6 @@ namespace OpenWifi::uCentralProtocol {
 	static const char * CHANNELS = "channels";
 	static const char * PASSWORD = "password";
 	static const char * DEVICEUPDATE = "deviceupdate";
-	static const char * TELEMETRY = "telemetry";
 
     static const char * SERIALNUMBER = "serialNumber";
     static const char * COMPATIBLE = "compatible";
@@ -89,6 +88,8 @@ namespace OpenWifi::uCentralProtocol {
     static const char * TIMESTAMP = "timestamp";
     static const char * SYSTEM = "system";
     static const char * HOST = "host";
+    static const char * CONNECTIONIP = "connectionIp";
+    static const char * TELEMETRY = "telemetry";
 
 	enum EVENT_MSG {
 			ET_UNKNOWN,
