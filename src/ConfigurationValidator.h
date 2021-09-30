@@ -7,16 +7,14 @@
 
 #include <nlohmann/json-schema.hpp>
 #include "Poco/Logger.h"
+#include "SubSystemServer.h"
 
 using nlohmann::json;
 using nlohmann::json_schema::json_validator;
 
 namespace OpenWifi {
-    class ConfigurationValidator {
+    class ConfigurationValidator : public  SubSystemServer {
     public:
-        ConfigurationValidator() {
-            Validator_ = std::make_unique<json_validator>(nullptr, my_format_checker);
-        }
 
         static ConfigurationValidator *instance() {
             if(instance_== nullptr)
@@ -49,14 +47,23 @@ namespace OpenWifi {
             */
         }
 
+        int Start() override;
+        void Stop() override;
+        void reinitialize(Poco::Util::Application &self) override;
+
     private:
         static  ConfigurationValidator * instance_;
         bool            Initialized_=false;
         bool            Working_=false;
         void            Init();
-        std::unique_ptr<json_validator>  Validator_;
+        std::unique_ptr<json_validator>  Validator_=std::make_unique<json_validator>(nullptr, my_format_checker);
+
+        ConfigurationValidator():
+            SubSystemServer("configvalidator", "CFG-VALIDATOR", "config.validator") {
+        }
     };
 
+    inline ConfigurationValidator * ConfigurationValidator() { return ConfigurationValidator::instance(); }
     inline bool ValidateUCentralConfiguration(const std::string &C) { return ConfigurationValidator::instance()->Validate(C); }
 }
 

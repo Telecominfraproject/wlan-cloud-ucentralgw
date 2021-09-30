@@ -2165,7 +2165,7 @@ namespace OpenWifi {
         if(Utils::wgets(GitUCentralJSONSchemaFile, GitSchema)) {
             auto schema = json::parse(GitSchema);
             Validator_->set_root_schema(schema);
-            Daemon()->instance()->Log().information("Using uCentral validation schema from GIT.");
+            Logger_.information("Using uCentral validation schema from GIT.");
         } else {
             std::string FileName{ Daemon()->DataDir() + "/ucentral.schema.json" };
             try {
@@ -2175,17 +2175,25 @@ namespace OpenWifi {
                 input.close();
                 auto schema = json::parse(schema_file.str());
                 Validator_->set_root_schema(schema);
-                Daemon()->instance()->Log().information("Using uCentral validation schema from local file.");
+                Logger_.information("Using uCentral validation schema from local file.");
             } catch (const Poco::Exception &E) {
                 Validator_->set_root_schema(DefaultUCentralSchema);
-                Daemon()->instance()->Log().information("Using uCentral validation from built-in default.");
+                Logger_.information("Using uCentral validation from built-in default.");
             }
         }
         Initialized_ = Working_ = true;
     }
 
-    bool ConfigurationValidator::Validate(const std::string &C) {
+    int ConfigurationValidator::Start() {
         Init();
+        return 0;
+    }
+
+    void ConfigurationValidator::Stop() {
+
+    }
+
+    bool ConfigurationValidator::Validate(const std::string &C) {
         if(Working_) {
             try {
                 auto Doc = json::parse(C);
@@ -2197,4 +2205,11 @@ namespace OpenWifi {
         }
         return true;
     }
+
+    void ConfigurationValidator::reinitialize(Poco::Util::Application &self) {
+        Logger_.information("Reinitializing.");
+        Working_ = Initialized_ = false;
+        Init();
+    }
+
 }

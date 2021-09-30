@@ -29,6 +29,7 @@
 #include "StorageArchiver.h"
 #include "SerialNumberCache.h"
 #include "TelemetryStream.h"
+#include "ConfigurationValidator.h"
 
 namespace OpenWifi {
 	class Daemon *Daemon::instance_ = nullptr;
@@ -43,6 +44,7 @@ namespace OpenWifi {
 								   Types::SubSystemVec{
 									   Storage(),
 									   SerialNumberCache(),
+									   ConfigurationValidator(),
 									   AuthClient(),
 									   DeviceRegistry(),
 									   RESTAPI_server(),
