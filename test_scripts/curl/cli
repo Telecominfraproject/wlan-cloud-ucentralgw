@@ -527,6 +527,16 @@ dashboard() {
 	jq < ${result_file}
 }
 
+validateconfig() {
+	curl    ${FLAGS} -X POST "https://${OWGW}/api/v1/device/1?validateOnly=true" \
+	-H "Content-Type: application/json" \
+	-H "Authorization: Bearer ${token}" \
+	-H "accept: application/json" \
+	-d @"$1" > ${result_file}
+	jq < ${result_file}
+}
+
+
 wstest() {
 	echo "Token:${token}"
 	wscat \
@@ -555,6 +565,7 @@ help() {
   echo "getdevice <serial>                Get the device JSON document."
   echo "deletedevice <serial>             Delete the device."
   echo "createdevice <serial> <cfg> <MAC> Create a device using the default configuration."
+  echo "validateconfig <config file>	  Validate a configuration file."
   echo "                                  cfg: JSON config file name"
   echo "                                  <MAC>: string MAC Address"
   echo "getdevicestatus <serial>          Get the device status JSON document."
@@ -701,6 +712,7 @@ case "$1" in
   "dashboard") login; dashboard ; logout;;
   "addnote") login; addnote "$2" "$3"; logout;;
   "ldevs") login; ldevs  "$2" "$3"; logout ;;
+  "validateconfig") login; validateconfig  "$2" ; logout ;;
   "wstest") login; wstest; logout;;
   *) help ;;
 esac
