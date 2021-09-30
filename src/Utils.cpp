@@ -24,6 +24,9 @@
 #include "Poco/File.h"
 #include "Poco/StreamCopier.h"
 #include "Poco/Path.h"
+#include "Poco/URI.h"
+#include "Poco/Net/HTTPSClientSession.h"
+#include "Poco/Net/HTTPResponse.h"
 
 #include "uCentralProtocol.h"
 #include "Daemon.h"
@@ -486,6 +489,35 @@ namespace OpenWifi::Utils {
 	    Seconds -= Minutes * 60;
 	    Result = std::to_string(Days) +" days, " + std::to_string(Hours) + ":" + std::to_string(Minutes) + ":" + std::to_string(Seconds);
 	    return Result;
+	}
+
+	bool wgets(const std::string &URL, std::string &Response) {
+	    try {
+	        Poco::URI uri(URL);
+	        Poco::Net::HTTPSClientSession session(uri.getHost(), uri.getPort());
+
+	        // prepare path
+	        std::string path(uri.getPathAndQuery());
+	        if (path.empty()) {
+	            path = "/";
+	        }
+
+	        // send request
+	        Poco::Net::HTTPRequest req(Poco::Net::HTTPRequest::HTTP_GET, path, Poco::Net::HTTPMessage::HTTP_1_1);
+	        session.sendRequest(req);
+
+	        Poco::Net::HTTPResponse res;
+	        std::istream &is = session.receiveResponse(res);
+	        std::ostringstream os;
+
+	        Poco::StreamCopier::copyStream(is,os);
+	        Response = os.str();
+
+	        return true;
+	    } catch (...) {
+
+	    }
+	    return false;
 	}
 
 }

@@ -6,6 +6,7 @@
 #define OWPROV_CONFIGURATIONVALIDATOR_H
 
 #include <nlohmann/json-schema.hpp>
+#include "Poco/Logger.h"
 
 using nlohmann::json;
 using nlohmann::json_schema::json_validator;
@@ -50,9 +51,9 @@ namespace OpenWifi {
 
     private:
         static  ConfigurationValidator * instance_;
-        bool    Initialized_=false;
-        bool    Working_=false;
-        void    Init();
+        bool            Initialized_=false;
+        bool            Working_=false;
+        void            Init();
         std::unique_ptr<json_validator>  Validator_;
     };
 

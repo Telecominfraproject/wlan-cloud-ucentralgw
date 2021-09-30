@@ -52,6 +52,7 @@ namespace OpenWifi {
 			void initialize(Poco::Util::Application &self) override;
 			static Daemon *instance();
 			inline DeviceDashboard	& GetDashboard() { return DB_; }
+			Poco::Logger & Log() { return Poco::Logger::get(AppName()); }
 	  	private:
 			static Daemon 				*instance_;
 			bool                        AutoProvisioning_ = false;

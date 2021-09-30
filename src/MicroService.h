@@ -138,6 +138,7 @@ namespace OpenWifi {
 		[[nodiscard]] MicroServiceMetaVec GetServices(const std::string & type);
 		[[nodiscard]] MicroServiceMetaVec GetServices();
 		[[nodiscard]] bool IsValidAPIKEY(const Poco::Net::HTTPServerRequest &Request);
+        [[nodiscard]] const std::string & AppName() { return DAEMON_APP_NAME; }
 
 		static void SavePID();
 		static inline uint64_t GetPID() { return Poco::Process::id(); };
