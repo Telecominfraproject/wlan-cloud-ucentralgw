@@ -67,8 +67,6 @@ namespace OpenWifi {
     }
 
 	bool RESTAPIHandler::ParseBindings(const std::string & Request, const std::list<const char *> & EndPoints, BindingMap &bindings) {
-		std::string Param, Value;
-
 		bindings.clear();
 		std::vector<std::string> PathItems = Utils::Split(Request, '/');
 
@@ -79,7 +77,6 @@ namespace OpenWifi {
 
 			bool Matched = true;
 			for (auto i = 0; i != PathItems.size() && Matched; i++) {
-				// std::cout << "PATH:" << PathItems[i] << "  ENDPOINT:" << ParamItems[i] << std::endl;
 				if (PathItems[i] != ParamItems[i]) {
 					if (ParamItems[i][0] == '{') {
 						auto ParamName = ParamItems[i].substr(1, ParamItems[i].size() - 2);
@@ -270,6 +267,10 @@ namespace OpenWifi {
 		ErrorObject.set("ErrorDescription","This resource does not exist.");
 		std::ostream &Answer = Response->send();
 		Poco::JSON::Stringifier::stringify(ErrorObject, Answer);
+		Logger_.debug(Poco::format("RES-NOTFOUND: User='%s' Method='%s' Path='%s",
+                                   Utils::FormatIPv6(Request->clientAddress().toString()),
+                                   Request->getMethod(),
+                                   Request->getURI()));
 	}
 
 	void RESTAPIHandler::OK() {

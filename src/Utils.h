@@ -71,10 +71,7 @@ namespace OpenWifi::Utils {
 
     [[nodiscard]] MediaTypeEncoding FindMediaType(const Poco::File &F);
     [[nodiscard]] std::string BinaryFileToHexString( const Poco::File &F);
-
     [[nodiscard]] std::string SecondsToNiceText(uint64_t Seconds);
-
-	[[nodiscard]] bool IPinRange(const std::string &Range, const Poco::Net::IPAddress &IP);
 
 	template< typename T >
 	std::string int_to_hex( T i )
