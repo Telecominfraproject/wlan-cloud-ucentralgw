@@ -52,10 +52,25 @@ namespace OpenWifi {
 	}
 
 	void RESTAPI_device_handler::DoPost() {
-		std::string SerialNumber = GetBinding(RESTAPI::Protocol::SERIALNUMBER, "");
 
+		std::string SerialNumber = GetBinding(RESTAPI::Protocol::SERIALNUMBER, "");
 		if(SerialNumber.empty()) {
 			BadRequest(RESTAPI::Errors::MissingSerialNumber);
+			return;
+		}
+
+		std::string Arg;
+		if(HasParameter("validateOnly",Arg) && Arg=="true") {
+			auto Body = ParseStream();
+			if(!Body->has("configuration")) {
+				BadRequest("Must have 'configuration' element.");
+				return;
+			}
+			auto Config=Body->get("configuration").toString();
+			Poco::JSON::Object  Answer;
+			auto Res = ValidateUCentralConfiguration(Config);
+			Answer.set("valid",Res);
+			ReturnObject(Answer);
 			return;
 		}
 

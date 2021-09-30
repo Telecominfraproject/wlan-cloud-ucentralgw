@@ -1322,6 +1322,11 @@ paths:
           schema:
             type: string
           required: true
+        - in: query
+          name: validateOnly
+          schema:
+            type: boolean
+          required: false
       requestBody:
         description: Information used to create the new device
         content:
