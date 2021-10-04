@@ -81,7 +81,7 @@ namespace OpenWifi {
 			if(H2!=Clients_.end() && H2->second!=nullptr) {
 				try {
 					H2->second->Send(PayLoad);
-				} catch (const Poco::Exception &E ) {
+				} catch (...) {
 
 				}
 			}

@@ -785,6 +785,9 @@ namespace OpenWifi {
 							 std::string{__func__}, CId_, std::string{E.what()}, IncomingMessageStr) );
             MustDisconnect = true ;
         }
+		catch (...) {
+			MustDisconnect = true;
+		}
 
         if(!MustDisconnect && Errors_<10)
             return;
