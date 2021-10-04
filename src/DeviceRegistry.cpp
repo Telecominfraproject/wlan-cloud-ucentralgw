@@ -157,13 +157,17 @@ namespace OpenWifi {
 
 	bool DeviceRegistry::SendFrame(const std::string & SerialNumber, const std::string & Payload) {
 		std::lock_guard		Guard(Mutex_);
-		try {
-			auto Device = Devices_.find(SerialNumber);
-			if(Device!=Devices_.end() && Device->second->WSConn_!= nullptr) {
+		auto Device = Devices_.find(SerialNumber);
+		if(Device!=Devices_.end() && Device->second->WSConn_!= nullptr) {
+			try {
 				return Device->second->WSConn_->Send(Payload);
+			} catch (...) {
+				Logger_.debug(Poco::format("Could not send data to device '%s'", SerialNumber));
+				Device->second->Conn_.Address = "";
+				Device->second->WSConn_ = nullptr;
+				Device->second->Conn_.Connected = false;
+				Device->second->Conn_.VerifiedCertificate = GWObjects::NO_CERTIFICATE;
 			}
-		} catch(...) {
-			Logger_.debug(Poco::format("Could not send data to device '%s'",SerialNumber));
 		}
 		return false;
 	}
