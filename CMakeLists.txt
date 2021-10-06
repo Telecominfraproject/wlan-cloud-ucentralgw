@@ -100,6 +100,7 @@ add_executable( owgw
                 src/OpenWifiTypes.h src/TelemetryStream.cpp src/TelemetryStream.h
                 src/RESTAPI_GenericServer.cpp src/RESTAPI_GenericServer.h
                 src/RESTAPI_errors.h src/RESTAPI_TelemetryWebSocket.cpp src/RESTAPI_TelemetryWebSocket.h
+                src/Storage.h
                 src/ConfigurationValidator.cpp src/ConfigurationValidator.h src/ConfigurationCache.cpp src/ConfigurationCache.h)
 
 if(NOT SMALL_BUILD)

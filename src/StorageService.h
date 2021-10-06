@@ -20,17 +20,13 @@
 
 #include "RESTAPI_GWobjects.h"
 #include "SubSystemServer.h"
+#include "Storage.h"
 
 namespace OpenWifi {
 
     class Storage : public SubSystemServer {
 
     public:
-		enum StorageType {
-			sqlite,
-			pgsql,
-			mysql
-		};
 
 		enum CommandExecutionType {
 			COMMAND_PENDING,
@@ -168,7 +164,7 @@ namespace OpenWifi {
 	  private:
 		static Storage      								*instance_;
 		std::unique_ptr<Poco::Data::SessionPool>        	Pool_= nullptr;
-		StorageType 										dbType_ = sqlite;
+		DBType		 										dbType_ = sqlite;
 		std::unique_ptr<Poco::Data::SQLite::Connector>  	SQLiteConn_= nullptr;
 #ifndef SMALL_BUILD
 		std::unique_ptr<Poco::Data::PostgreSQL::Connector>  PostgresConn_= nullptr;

@@ -185,6 +185,14 @@ namespace OpenWifi {
 	    return false;
 	}
 
+	bool RESTAPIHandler::AssignIfPresent(const Poco::JSON::Object::Ptr &O, const std::string &Field, bool &Value) {
+        if(O->has(Field)) {
+            Value = O->get(Field).toString()=="true";
+            return true;
+        }
+        return false;
+    }
+
 	void RESTAPIHandler::AddCORS() {
 		auto Origin = Request->find("Origin");
 		if (Origin != Request->end()) {

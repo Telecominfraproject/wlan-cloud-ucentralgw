@@ -22,17 +22,6 @@
 
 namespace OpenWifi {
 
-	OpenAPIRequestGet::OpenAPIRequestGet( 	std::string ServiceType,
-											std::string EndPoint,
-									 		Types::StringPairVec & QueryData,
-											uint64_t msTimeout):
- 		Type_(std::move(ServiceType)),
- 		EndPoint_(std::move(EndPoint)),
-		QueryData_(QueryData),
-		msTimeout_(msTimeout) {
-
-	}
-
 	int OpenAPIRequestGet::Do(Poco::JSON::Object::Ptr &ResponseObject) {
 		try {
 		    auto Services = Daemon()->GetServices(Type_);
@@ -51,6 +40,7 @@ namespace OpenWifi {
 											   Path,
 											   Poco::Net::HTTPMessage::HTTP_1_1);
 				Request.add("X-API-KEY", Svc.AccessKey);
+				Request.add("X-INTERNAL-NAME", Daemon()->PublicEndPoint());
 				Session.sendRequest(Request);
 
 				Poco::Net::HTTPResponse Response;
@@ -68,4 +58,105 @@ namespace OpenWifi {
 		}
 		return -1;
 	}
+
+    int OpenAPIRequestPut::Do(Poco::JSON::Object::Ptr &ResponseObject) {
+	    try {
+	        auto Services = Daemon()->GetServices(Type_);
+	        for(auto const &Svc:Services) {
+	            Poco::URI	URI(Svc.PrivateEndPoint);
+	            Poco::Net::HTTPSClientSession Session(URI.getHost(), URI.getPort());
+
+	            URI.setPath(EndPoint_);
+	            for (const auto &qp : QueryData_)
+	                URI.addQueryParameter(qp.first, qp.second);
+
+	            std::string Path(URI.getPathAndQuery());
+	            Session.setTimeout(Poco::Timespan(msTimeout_/1000, msTimeout_ % 1000));
+
+	            Poco::Net::HTTPRequest Request(Poco::Net::HTTPRequest::HTTP_PUT,
+                                               Path,
+                                               Poco::Net::HTTPMessage::HTTP_1_1);
+	            std::ostringstream obody;
+	            Poco::JSON::Stringifier::stringify(Body_,obody);
+
+	            Request.setContentType("application/json");
+	            Request.setContentLength(obody.str().size());
+
+	            Request.add("X-API-KEY", Svc.AccessKey);
+	            Request.add("X-INTERNAL-NAME", Daemon()->PublicEndPoint());
+
+	            std::ostream & os = Session.sendRequest(Request);
+	            os << obody.str();
+
+	            Poco::Net::HTTPResponse Response;
+	            std::istream &is = Session.receiveResponse(Response);
+	            if(Response.getStatus()==Poco::Net::HTTPResponse::HTTP_OK) {
+	                Poco::JSON::Parser	P;
+	                ResponseObject = P.parse(is).extract<Poco::JSON::Object::Ptr>();
+//	                std::cout << "Response OK" << std::endl;
+	            } else {
+	                Poco::JSON::Parser	P;
+	                ResponseObject = P.parse(is).extract<Poco::JSON::Object::Ptr>();
+//	                std::cout << "Response: " << Response.getStatus() << std::endl;
+	            }
+	            return Response.getStatus();
+	        }
+	    }
+	    catch (const Poco::Exception &E)
+	    {
+	        std::cerr << E.displayText() << std::endl;
+	    }
+	    return -1;
+	}
+
+	int OpenAPIRequestPost::Do(Poco::JSON::Object::Ptr &ResponseObject) {
+	    try {
+	        auto Services = Daemon()->GetServices(Type_);
+	        for(auto const &Svc:Services) {
+	            Poco::URI	URI(Svc.PrivateEndPoint);
+	            Poco::Net::HTTPSClientSession Session(URI.getHost(), URI.getPort());
+
+	            URI.setPath(EndPoint_);
+	            for (const auto &qp : QueryData_)
+	                URI.addQueryParameter(qp.first, qp.second);
+
+	            std::string Path(URI.getPathAndQuery());
+	            Session.setTimeout(Poco::Timespan(msTimeout_/1000, msTimeout_ % 1000));
+
+	            Poco::Net::HTTPRequest Request(Poco::Net::HTTPRequest::HTTP_POST,
+                                               Path,
+                                               Poco::Net::HTTPMessage::HTTP_1_1);
+	            std::ostringstream obody;
+	            Poco::JSON::Stringifier::stringify(Body_,obody);
+
+	            Request.setContentType("application/json");
+	            Request.setContentLength(obody.str().size());
+
+	            Request.add("X-API-KEY", Svc.AccessKey);
+	            Request.add("X-INTERNAL-NAME", Daemon()->PublicEndPoint());
+
+	            std::ostream & os = Session.sendRequest(Request);
+	            os << obody.str();
+
+	            Poco::Net::HTTPResponse Response;
+	            std::istream &is = Session.receiveResponse(Response);
+	            if(Response.getStatus()==Poco::Net::HTTPResponse::HTTP_OK) {
+	                Poco::JSON::Parser	P;
+	                ResponseObject = P.parse(is).extract<Poco::JSON::Object::Ptr>();
+	                //	                std::cout << "Response OK" << std::endl;
+	            } else {
+	                Poco::JSON::Parser	P;
+	                ResponseObject = P.parse(is).extract<Poco::JSON::Object::Ptr>();
+	                //	                std::cout << "Response: " << Response.getStatus() << std::endl;
+	            }
+	            return Response.getStatus();
+	        }
+	    }
+	    catch (const Poco::Exception &E)
+	    {
+	        std::cerr << E.displayText() << std::endl;
+	    }
+	    return -1;
+	}
+
 }

@@ -17,23 +17,21 @@ namespace OpenWifi {
 	class Storage *Storage::instance_ = nullptr;
 
 	std::string Storage::ConvertParams(const std::string & S) const {
+
+		if(dbType_!=pgsql)
+			return S;
+
 		std::string R;
-
 		R.reserve(S.size()*2+1);
-
-		if(dbType_==pgsql) {
-			auto Idx=1;
-			for(auto const & i:S)
-			{
-				if(i=='?') {
-					R += '$';
-					R.append(std::to_string(Idx++));
-				} else {
-					R += i;
-				}
+		auto Idx=1;
+		for(auto const & i:S)
+		{
+			if(i=='?') {
+				R += '$';
+				R.append(std::to_string(Idx++));
+			} else {
+				R += i;
 			}
-		} else {
-			R = S;
 		}
 		return R;
 	}
@@ -51,7 +49,9 @@ namespace OpenWifi {
             Setup_PostgreSQL();
         } else if (DBType == "mysql") {
             Setup_MySQL();
-        }
+        } else {
+
+		}
 
 		Create_Tables();
 

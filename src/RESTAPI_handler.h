@@ -142,6 +142,7 @@ namespace OpenWifi {
 
 		static bool AssignIfPresent(const Poco::JSON::Object::Ptr &O, const std::string &Field, std::string &Value);
 		static bool AssignIfPresent(const Poco::JSON::Object::Ptr &O, const std::string &Field, uint64_t &Value);
+		static bool AssignIfPresent(const Poco::JSON::Object::Ptr &O, const std::string &Field, bool &Value);
 
 		template<typename T> void ReturnObject(const char *Name, const std::vector<T> & Objects) {
 		    Poco::JSON::Object  Answer;

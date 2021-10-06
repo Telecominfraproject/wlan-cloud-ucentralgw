@@ -14,6 +14,7 @@ namespace OpenWifi {
 
     int Storage::Setup_SQLite() {
         Logger_.notice("SQLite Storage enabled.");
+		dbType_ = sqlite;
         auto DBName = Daemon()->DataDir() + "/" + Daemon()->ConfigGetString("storage.type.sqlite.db");
         auto NumSessions = Daemon()->ConfigGetInt("storage.type.sqlite.maxsessions", 64);
         auto IdleTime = Daemon()->ConfigGetInt("storage.type.sqlite.idletime", 60);
@@ -24,8 +25,8 @@ namespace OpenWifi {
     }
 
     int Storage::Setup_MySQL() {
-
         Logger_.notice("MySQL Storage enabled.");
+		dbType_ = mysql;
         auto NumSessions = Daemon()->ConfigGetInt("storage.type.mysql.maxsessions", 64);
         auto IdleTime = Daemon()->ConfigGetInt("storage.type.mysql.idletime", 60);
         auto Host = Daemon()->ConfigGetString("storage.type.mysql.host");
@@ -51,7 +52,7 @@ namespace OpenWifi {
 
     int Storage::Setup_PostgreSQL() {
         Logger_.notice("PostgreSQL Storage enabled.");
-
+		dbType_ = pgsql;
         auto NumSessions = Daemon()->ConfigGetInt("storage.type.postgresql.maxsessions", 64);
         auto IdleTime = Daemon()->ConfigGetInt("storage.type.postgresql.idletime", 60);
         auto Host = Daemon()->ConfigGetString("storage.type.postgresql.host");
