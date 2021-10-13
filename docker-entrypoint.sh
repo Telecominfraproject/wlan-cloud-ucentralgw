@@ -57,7 +57,7 @@ if [[ "$TEMPLATE_CONFIG" = 'true' && ! -f "$OWGW_CONFIG"/owgw.properties ]]; the
   STORAGE_TYPE_MYSQL_PASSWORD=${STORAGE_TYPE_MYSQL_PASSWORD:-"owgw"} \
   STORAGE_TYPE_MYSQL_DATABASE=${STORAGE_TYPE_MYSQL_DATABASE:-"owgw"} \
   STORAGE_TYPE_MYSQL_PORT=${STORAGE_TYPE_MYSQL_PORT:-"3306"} \
-  envsubst < $OWGW_CONFIG/owgw.properties.tmpl > $OWGW_CONFIG/owgw.properties
+  envsubst < /owgw.properties.tmpl > $OWGW_CONFIG/owgw.properties
 fi
 
 if [ "$1" = '/openwifi/owgw' -a "$(id -u)" = '0' ]; then
