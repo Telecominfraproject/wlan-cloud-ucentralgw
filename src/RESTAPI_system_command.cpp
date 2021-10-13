@@ -41,8 +41,7 @@ namespace OpenWifi {
 								Poco::format("Setting log level for %s at %s", Name, Value));
 						}
 					}
-					OK();
-					return;
+					return OK();
 				}
 			} else if (Command == RESTAPI::Protocol::GETLOGLEVELS) {
 				auto CurrentLogLevels = Daemon()->GetLogLevels();
@@ -55,8 +54,7 @@ namespace OpenWifi {
 					Array.add(Pair);
 				}
 				Result.set(RESTAPI::Protocol::TAGLIST, Array);
-				ReturnObject(Result);
-				return;
+				return ReturnObject(Result);
 			} else if (Command == RESTAPI::Protocol::GETLOGLEVELNAMES) {
 				Poco::JSON::Object Result;
 				Poco::JSON::Array LevelNamesArray;
@@ -64,8 +62,7 @@ namespace OpenWifi {
 				for (const auto &i : LevelNames)
 					LevelNamesArray.add(i);
 				Result.set(RESTAPI::Protocol::LIST, LevelNamesArray);
-				ReturnObject(Result);
-				return;
+				return ReturnObject(Result);
 			} else if (Command == RESTAPI::Protocol::GETSUBSYSTEMNAMES) {
 				Poco::JSON::Object Result;
 				Poco::JSON::Array LevelNamesArray;
@@ -73,8 +70,7 @@ namespace OpenWifi {
 				for (const auto &i : SubSystemNames)
 					LevelNamesArray.add(i);
 				Result.set(RESTAPI::Protocol::LIST, LevelNamesArray);
-				ReturnObject(Result);
-				return;
+				return ReturnObject(Result);
 			} else if (Command == RESTAPI::Protocol::STATS) {
 
 			} else if (Command == RESTAPI::Protocol::RELOAD) {
@@ -95,12 +91,10 @@ namespace OpenWifi {
 					 });
 					ReloadThread.detach();
 				}
-				OK();
-				return;
+				return OK();
 			}
 		} else {
-			BadRequest(RESTAPI::Errors::InvalidCommand);
-			return;
+			return BadRequest(RESTAPI::Errors::InvalidCommand);
 		}
 		BadRequest(RESTAPI::Errors::MissingOrInvalidParameters);
 	}
@@ -115,6 +109,7 @@ namespace OpenWifi {
 			Answer.set(RESTAPI::Protocol::OS, Poco::Environment::osName());
 			Answer.set(RESTAPI::Protocol::PROCESSORS, Poco::Environment::processorCount());
 			Answer.set(RESTAPI::Protocol::HOSTNAME, Poco::Environment::nodeName());
+			Answer.set(RESTAPI::Protocol::UI, Daemon()->GetUIURI());
 
 			Poco::JSON::Array   Certificates;
 			auto SubSystems = Daemon()->GetFullSubSystems();
@@ -138,8 +133,7 @@ namespace OpenWifi {
 			    }
 			}
 			Answer.set("certificates", Certificates);
-			ReturnObject(Answer);
-			return;
+			return ReturnObject(Answer);
 		}
 		BadRequest(RESTAPI::Errors::InvalidCommand);
 	}
