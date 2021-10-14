@@ -89,7 +89,8 @@ namespace OpenWifi {
 								RESTAPI_file,
 								RESTAPI_system_command,
 								RESTAPI_deviceDashboardHandler,
-								RESTAPI_webSocketServer, RESTAPI_blacklist,
+								RESTAPI_webSocketServer,
+								RESTAPI_blacklist,
 								RESTAPI_blacklist_list,
 								RESTAPI_TelemetryWebSocket>(Path,Bindings,Logger_, Server_);
     }

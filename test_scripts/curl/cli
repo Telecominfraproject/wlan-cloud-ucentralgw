@@ -388,7 +388,7 @@ listdefaultconfigs() {
 }
 
 addblacklistdevice() {
-  payload="{ \"devices\" : [ {\"serialNumber\": \"$1\" , \"reason\" : \"$2\" } ] }"
+  payload="{ \"serialNumber\": \"$1\" , \"reason\" : \"$2\" }"
   curl  ${FLAGS} -X POST "https://${OWGW}/api/v1/blacklist" \
         -H "accept: application/json" \
         -H "Authorization: Bearer ${token}" \
@@ -396,7 +396,7 @@ addblacklistdevice() {
 }
 
 deleteblacklistdevice() {
-  curl  ${FLAGS} -X DELETE "https://${OWGW}/api/v1/blacklist?serialNumber=$1" \
+  curl  ${FLAGS} -X DELETE "https://${OWGW}/api/v1/blacklist/$1" \
         -H "accept: application/json" \
         -H "Authorization: Bearer ${token}"
 }
