@@ -84,7 +84,7 @@ jobs:
       env:
         OWGW_TAG: ${{ github.sha }}
       run: |
-        docker-compose -f docker-compose.yml -f docker-compose.selfsigned.yml --env-file .env.selfsigned up -d
+        docker-compose up -d
 
     - name: Wait for OWSec to be alive and kicking
       run: |
@@ -116,8 +116,8 @@ jobs:
       working-directory: ./wlan-cloud-ucentral-deploy/docker-compose
       if: always()
       run: |
-        docker-compose -f docker-compose.yml -f docker-compose.selfsigned.yml --env-file .env.selfsigned ps -a
-        docker-compose -f docker-compose.yml -f docker-compose.selfsigned.yml --env-file .env.selfsigned logs
+        docker-compose ps -a
+        docker-compose logs
 
     # disable until repo is public
     #- name: export Docker image
