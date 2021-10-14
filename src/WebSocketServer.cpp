@@ -118,6 +118,13 @@ namespace OpenWifi {
 			} else {
 				Logger_.error(Poco::format("%s: No certificates available..", CId_));
 			}
+
+			SerialNumber_ = CN_;
+			if(!CN_.empty() && Storage()->IsBlackListed(SerialNumber_)) {
+				Logger_.debug(Poco::format("CONNECTION(%s): Device %s is black listed. Disconnecting.", CId_, CN_));
+				delete this;
+				return;
+			}
 			auto Params = Poco::AutoPtr<Poco::Net::HTTPServerParams>(new Poco::Net::HTTPServerParams);
 			Poco::Net::HTTPServerSession Session(Socket_, Params);
 			Poco::Net::HTTPServerResponseImpl Response(Session);
@@ -371,6 +378,7 @@ namespace OpenWifi {
 						Connected_ = true;
 					} else {
 						Logger_.warning(Poco::format("CONNECT(%s): Missing one of uuid, firmware, or capabilities",CId_));
+						Errors_++;
 						return;
 					}
 				}
@@ -379,6 +387,7 @@ namespace OpenWifi {
 			case uCentralProtocol::ET_STATE: {
 					if(!Connected_) {
 						Logger_.debug(Poco::format("INVALID-PROTOCOL(%s): Device '%s' is not following protocol", CId_, CN_));
+						Errors_++;
 						return;
 					}
 					if (ParamsObj->has(uCentralProtocol::UUID) && ParamsObj->has(uCentralProtocol::STATE)) {
@@ -422,6 +431,7 @@ namespace OpenWifi {
 			case uCentralProtocol::ET_HEALTHCHECK: {
 					if(!Connected_) {
 						Logger_.debug(Poco::format("INVALID-PROTOCOL(%s): Device '%s' is not following protocol", CId_, CN_));
+						Errors_++;
 						return;
 					}
 					if (ParamsObj->has(uCentralProtocol::UUID) && ParamsObj->has(uCentralProtocol::SANITY) && ParamsObj->has(uCentralProtocol::DATA)) {
@@ -477,6 +487,7 @@ namespace OpenWifi {
 			case uCentralProtocol::ET_LOG: {
 					if(!Connected_) {
 						Logger_.debug(Poco::format("INVALID-PROTOCOL(%s): Device '%s' is not following protocol", CId_, CN_));
+						Errors_++;
 						return;
 					}
 					if (ParamsObj->has(uCentralProtocol::LOG) && ParamsObj->has(uCentralProtocol::SEVERITY)) {
@@ -547,6 +558,7 @@ namespace OpenWifi {
 			case uCentralProtocol::ET_CFGPENDING: {
 					if(!Connected_) {
 						Logger_.debug(Poco::format("INVALID-PROTOCOL(%s): Device '%s' is not following protocol", CId_, CN_));
+						Errors_++;
 						return;
 					}
 					if (ParamsObj->has(uCentralProtocol::UUID) && ParamsObj->has(uCentralProtocol::ACTIVE)) {
@@ -586,6 +598,7 @@ namespace OpenWifi {
 			case uCentralProtocol::ET_DEVICEUPDATE: {
 					if(!Connected_) {
 						Logger_.debug(Poco::format("INVALID-PROTOCOL(%s): Device '%s' is not following protocol", CId_, CN_));
+						Errors_++;
 						return;
 					}
 					if (ParamsObj->has("currentPassword")) {
@@ -601,6 +614,7 @@ namespace OpenWifi {
 			case uCentralProtocol::ET_TELEMETRY: {
 					if(!Connected_) {
 						Logger_.debug(Poco::format("INVALID-PROTOCOL(%s): Device '%s' is not following protocol", CId_, CN_));
+						Errors_++;
 						return;
 					}
 					if(ParamsObj->has("data")) {
@@ -613,7 +627,7 @@ namespace OpenWifi {
 			// 	this will never be called but some compilers will complain if we do not have a case for
 			//	every single values of an enum
 			case uCentralProtocol::ET_UNKNOWN: {
-				Logger_.error(Poco::format("ILLEGAL-EVENT(%s): Event '%s' unknown", CId_, Method));
+				Logger_.error(Poco::format("ILLEGAL-EVENT(%s): Event '%s' unknown. CN=%s", CId_, Method, CN_));
 				Errors_++;
 			}
 		}
