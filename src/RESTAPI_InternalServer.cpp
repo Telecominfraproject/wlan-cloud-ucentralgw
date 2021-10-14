@@ -6,7 +6,8 @@
 
 #include "Poco/URI.h"
 
-#include "RESTAPI_BlackList.h"
+#include "RESTAPI_blacklist.h"
+#include "RESTAPI_blacklist_list.h"
 #include "RESTAPI_command.h"
 #include "RESTAPI_commands.h"
 #include "RESTAPI_default_configuration.h"
@@ -76,7 +77,8 @@ namespace OpenWifi {
 			RESTAPI_command,
 			RESTAPI_commands,
 			RESTAPI_ouis,
-			RESTAPI_file,
-			RESTAPI_BlackList>(Path,Bindings,Logger_, Server_);    }
+			RESTAPI_file, RESTAPI_blacklist,
+			RESTAPI_blacklist_list>(Path,Bindings,Logger_, Server_);
+	}
 
 }

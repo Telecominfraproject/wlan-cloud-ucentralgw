@@ -2189,17 +2189,76 @@ paths:
         404:
           $ref: '#/components/responses/NotFound'
 
+  /blacklist/{serialNumber}:
+    get:
+      tags:
+        - Blacklist
+      summary: Returns a blacklist entry
+      description: Get a list of blacklisteddevices.
+      operationId: getBlacklistDevice
+      parameters:
+        - in: path
+          description: Pagination start (starts at 1. If not specified, 1 is assumed)
+          name: serialNumber
+          schema:
+            type: string
+          required: true
+      responses:
+        200:
+          description: List blacklisted devices
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BlackDeviceInfo'
+        403:
+          $ref: '#/components/responses/Unauthorized'
+        404:
+          $ref: '#/components/responses/NotFound'
+
     post:
       tags:
         - Blacklist
-      summary: Adds to the blacklist
-      operationId: addToBlackList
+      summary: Create to the blacklist
+      operationId: createBlackListDevice
+      parameters:
+        - in: path
+          description: Pagination start (starts at 1. If not specified, 1 is assumed)
+          name: serialNumber
+          schema:
+            type: string
+          required: true
+      requestBody:
+        description: Add blacklisted device
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BlackDeviceInfo'
+      responses:
+        200:
+          $ref: '#/components/responses/Success'
+        403:
+          $ref: '#/components/responses/Unauthorized'
+        404:
+          $ref: '#/components/responses/NotFound'
+
+    put:
+      tags:
+        - Blacklist
+      summary: Modify to the blacklist
+      operationId: modifyBlackList
+      parameters:
+        - in: path
+          description: Pagination start (starts at 1. If not specified, 1 is assumed)
+          name: serialNumber
+          schema:
+            type: string
+          required: true
       requestBody:
         description: Add blacklisted devices
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/BlackDeviceList'
+              $ref: '#/components/schemas/BlackDeviceInfo'
       responses:
         200:
           $ref: '#/components/responses/Success'
@@ -2214,8 +2273,7 @@ paths:
       summary: Delete from the blacklist
       operationId: deleteFromBlackList
       parameters:
-        - in: query
-          description: Serial Number
+        - in: path
           name: serialNumber
           schema:
             type: string

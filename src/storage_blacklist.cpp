@@ -40,32 +40,43 @@ namespace OpenWifi {
 	typedef std::vector<BlackListDeviceRecordTuple> BlackListDeviceRecordList;
 
 	void ConvertBlackListDeviceRecord(const BlackListDeviceRecordTuple & R, GWObjects::BlackListedDevice &D) {
-		D.SerialNumber = Poco::toLower(R.get<0>());
-		D.Reason = R.get<1>();
-		D.Created = R.get<2>();
-		D.Author = R.get<3>();
+		D.serialNumber = Poco::toLower(R.get<0>());
+		D.reason = R.get<1>();
+		D.created = R.get<2>();
+		D.author = R.get<3>();
 	}
 
 	void ConvertBlackListDeviceRecord(const GWObjects::BlackListedDevice &D, BlackListDeviceRecordTuple & R) {
-		R.set<0>(Poco::toLower(D.SerialNumber));
-		R.set<1>(D.Reason);
-		R.set<2>(D.Created);
-		R.set<3>(D.Author);
+		R.set<0>(Poco::toLower(D.serialNumber));
+		R.set<1>(D.reason);
+		R.set<2>(D.created);
+		R.set<3>(D.author);
 	}
 
-	bool Storage::AddBlackListDevices(const std::vector<GWObjects::BlackListedDevice> &Devices) {
+	bool Storage::AddBlackListDevice(GWObjects::BlackListedDevice &  Device) {
 		try {
-
 			Poco::Data::Session Sess = Pool_->get();
 			Poco::Data::Statement Insert(Sess);
 
+			std::string St{"INSERT INTO BlackList (" + DB_BlackListDeviceSelectFields + ") " + DB_BlackListDeviceInsertValues };
+
+			BlackListDeviceRecordTuple T;
+			ConvertBlackListDeviceRecord(Device,T);
+			Insert << ConvertParams(St),
+				Poco::Data::Keywords::use(T);
+			Insert.execute();
+			return true;
+
+		} catch (const Poco::Exception &E) {
+			Logger_.log(E);
+		}
+		return false;
+	}
+
+	bool Storage::AddBlackListDevices(std::vector<GWObjects::BlackListedDevice> &Devices) {
+		try {
 			for (auto &i : Devices) {
-				std::string St{"INSERT INTO BlackList (" + DB_BlackListDeviceSelectFields + ") " + DB_BlackListDeviceInsertValues };
-				BlackListDeviceRecordTuple T;
-				ConvertBlackListDeviceRecord(i,T);
-				Insert << ConvertParams(St),
-					Poco::Data::Keywords::use(T);
-				Insert.execute();
+				AddBlackListDevice(i);
 			}
 			return true;
 		} catch (const Poco::Exception &E) {
@@ -110,6 +121,28 @@ namespace OpenWifi {
 				ConvertBlackListDeviceRecord(T,Device);
 
 			return Select.rowsExtracted()==1;
+		} catch (const Poco::Exception &E) {
+			Logger_.log(E);
+		}
+		return false;
+	}
+
+	bool Storage::UpdateBlackListDevice(std::string & SerialNumber, GWObjects::BlackListedDevice & Device) {
+		try {
+			Poco::Data::Session Sess = Pool_->get();
+			Poco::Data::Statement Update(Sess);
+
+			std::string St{"UPDATE BlackList " + DB_BlackListDeviceUpdateFields + " where serialNumber=?" };
+
+			BlackListDeviceRecordTuple T;
+			ConvertBlackListDeviceRecord(Device,T);
+			Update << ConvertParams(St),
+				Poco::Data::Keywords::use(T),
+				Poco::Data::Keywords::use(SerialNumber);
+			Update.execute();
+
+			return true;
+
 		} catch (const Poco::Exception &E) {
 			Logger_.log(E);
 		}

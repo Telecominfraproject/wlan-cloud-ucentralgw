@@ -76,7 +76,7 @@ add_executable( owgw
                 src/FileUploader.cpp src/FileUploader.h
                 src/RESTAPI_file.cpp src/RESTAPI_file.h
                 src/RESTAPI_system_command.cpp src/RESTAPI_system_command.h
-                src/RESTAPI_BlackList.cpp src/RESTAPI_BlackList.h
+        src/RESTAPI_blacklist.cpp src/RESTAPI_blacklist.h
                 src/Utils.h src/Utils.cpp src/storage_blacklist.cpp
                 src/storage_command.cpp src/storage_healthcheck.cpp src/storage_statistics.cpp src/storage_logs.cpp
                 src/storage_device.cpp src/storage_capabilities.cpp src/storage_defconfig.cpp
@@ -101,7 +101,7 @@ add_executable( owgw
                 src/RESTAPI_GenericServer.cpp src/RESTAPI_GenericServer.h
                 src/RESTAPI_errors.h src/RESTAPI_TelemetryWebSocket.cpp src/RESTAPI_TelemetryWebSocket.h
                 src/Storage.h
-                src/ConfigurationValidator.cpp src/ConfigurationValidator.h src/ConfigurationCache.cpp src/ConfigurationCache.h)
+                src/ConfigurationValidator.cpp src/ConfigurationValidator.h src/ConfigurationCache.cpp src/ConfigurationCache.h src/RESTAPI_blacklist_list.cpp src/RESTAPI_blacklist_list.h)
 
 if(NOT SMALL_BUILD)
     target_sources(owgw PUBLIC src/KafkaManager.cpp src/KafkaManager.h)

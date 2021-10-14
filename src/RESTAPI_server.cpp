@@ -10,18 +10,19 @@
 
 #include "Poco/URI.h"
 
-#include "RESTAPI_BlackList.h"
+#include "RESTAPI_blacklist.h"
+#include "RESTAPI_blacklist_list.h"
 #include "RESTAPI_command.h"
 #include "RESTAPI_commands.h"
 #include "RESTAPI_default_configuration.h"
 #include "RESTAPI_default_configurations.h"
+#include "RESTAPI_deviceDashboardHandler.h"
 #include "RESTAPI_device_commandHandler.h"
 #include "RESTAPI_device_handler.h"
 #include "RESTAPI_devices_handler.h"
 #include "RESTAPI_file.h"
-#include "RESTAPI_system_command.h"
 #include "RESTAPI_ouis.h"
-#include "RESTAPI_deviceDashboardHandler.h"
+#include "RESTAPI_system_command.h"
 
 #include "Utils.h"
 #include "RESTAPI_webSocketServer.h"
@@ -88,8 +89,8 @@ namespace OpenWifi {
 								RESTAPI_file,
 								RESTAPI_system_command,
 								RESTAPI_deviceDashboardHandler,
-								RESTAPI_webSocketServer,
-								RESTAPI_BlackList,
+								RESTAPI_webSocketServer, RESTAPI_blacklist,
+								RESTAPI_blacklist_list,
 								RESTAPI_TelemetryWebSocket>(Path,Bindings,Logger_, Server_);
     }
 

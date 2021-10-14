@@ -162,10 +162,22 @@ namespace OpenWifi::GWObjects {
 	}
 
 	void BlackListedDevice::to_json(Poco::JSON::Object &Obj) const {
-		field_to_json(Obj,"serialNumber", SerialNumber);
-		field_to_json(Obj,"author", Author);
-		field_to_json(Obj,"reason", Reason);
-		field_to_json(Obj,"created", Created);
+		field_to_json(Obj,"serialNumber", serialNumber);
+		field_to_json(Obj,"author", author);
+		field_to_json(Obj,"reason", reason);
+		field_to_json(Obj,"created", created);
+	}
+
+	bool BlackListedDevice::from_json(Poco::JSON::Object::Ptr Obj) {
+		try {
+			field_from_json(Obj,"serialNumber",serialNumber);
+			field_from_json(Obj,"author",author);
+			field_from_json(Obj,"reason",reason);
+			field_from_json(Obj,"created",created);
+			return true;
+		} catch (const Poco::Exception &E) {
+		}
+		return false;
 	}
 
 	void ConnectionState::to_json(Poco::JSON::Object &Obj) const {

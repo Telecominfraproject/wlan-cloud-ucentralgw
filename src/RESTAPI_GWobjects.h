@@ -142,11 +142,12 @@ namespace OpenWifi::GWObjects {
 	};
 
 	struct BlackListedDevice {
-		std::string SerialNumber;
-		std::string Reason;
-		std::string Author;
-		uint64_t Created;
+		std::string serialNumber;
+		std::string reason;
+		std::string author;
+		uint64_t created;
 		void to_json(Poco::JSON::Object &Obj) const;
+		bool from_json(Poco::JSON::Object::Ptr Obj);
 	};
 
 	struct RttySessionDetails {

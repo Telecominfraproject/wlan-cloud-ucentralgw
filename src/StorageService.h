@@ -116,12 +116,13 @@ namespace OpenWifi {
 		bool GetNewestCommands(std::string &SerialNumber, uint64_t HowMany, std::vector<GWObjects::CommandDetails> & Commands);
 		bool SetCommandExecuted(std::string & CommandUUID);
 
-		bool AddBlackListDevices(const std::vector<GWObjects::BlackListedDevice> &  Devices);
+		bool AddBlackListDevices(std::vector<GWObjects::BlackListedDevice> &  Devices);
+		bool AddBlackListDevice(GWObjects::BlackListedDevice &  Device);
 		bool GetBlackListDevice(std::string & SerialNumber, GWObjects::BlackListedDevice & Device);
 		bool DeleteBlackListDevice(std::string & SerialNumber);
 		bool IsBlackListed(std::string & SerialNumber);
 		bool GetBlackListDevices(uint64_t Offset, uint64_t HowMany, std::vector<GWObjects::BlackListedDevice> & Devices );
-
+		bool UpdateBlackListDevice(std::string & SerialNumber, GWObjects::BlackListedDevice & Device);
 		bool SetLifetimeStats(std::string & SerialNumber, std::string & Stats);
 		bool GetLifetimeStats(std::string & SerialNumber, std::string & Stats);
 		bool ResetLifetimeStats(std::string & SerialNumber);
