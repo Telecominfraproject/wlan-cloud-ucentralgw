@@ -368,7 +368,7 @@ namespace OpenWifi {
 							Stringify.condense(ParamsObj,OS);
 							KafkaManager()->PostMessage(KafkaTopics::CONNECTION, SerialNumber_, OS.str());
 						}
-
+						Connected_ = true;
 					} else {
 						Logger_.warning(Poco::format("CONNECT(%s): Missing one of uuid, firmware, or capabilities",CId_));
 						return;
@@ -377,6 +377,10 @@ namespace OpenWifi {
 				break;
 
 			case uCentralProtocol::ET_STATE: {
+					if(!Connected_) {
+						Logger_.debug(Poco::format("INVALID-PROTOCOL(%s): Device %s is not following protocol", CId_, SerialNumber_));
+						return;
+					}
 					if (ParamsObj->has(uCentralProtocol::UUID) && ParamsObj->has(uCentralProtocol::STATE)) {
 						uint64_t UUID = ParamsObj->get(uCentralProtocol::UUID);
 						auto State = ParamsObj->get(uCentralProtocol::STATE).toString();
@@ -416,6 +420,10 @@ namespace OpenWifi {
 				break;
 
 			case uCentralProtocol::ET_HEALTHCHECK: {
+					if(!Connected_) {
+						Logger_.debug(Poco::format("INVALID-PROTOCOL(%s): Device %s is not following protocol", CId_, SerialNumber_));
+						return;
+					}
 					if (ParamsObj->has(uCentralProtocol::UUID) && ParamsObj->has(uCentralProtocol::SANITY) && ParamsObj->has(uCentralProtocol::DATA)) {
 						uint64_t UUID = ParamsObj->get(uCentralProtocol::UUID);
 						auto Sanity = ParamsObj->get(uCentralProtocol::SANITY);
@@ -467,6 +475,10 @@ namespace OpenWifi {
 				break;
 
 			case uCentralProtocol::ET_LOG: {
+					if(!Connected_) {
+						Logger_.debug(Poco::format("INVALID-PROTOCOL(%s): Device %s is not following protocol", CId_, SerialNumber_));
+						return;
+					}
 					if (ParamsObj->has(uCentralProtocol::LOG) && ParamsObj->has(uCentralProtocol::SEVERITY)) {
 						Logger_.debug(Poco::format("LOG(%s): new entry.", CId_));
 						auto Log = ParamsObj->get(uCentralProtocol::LOG).toString();
@@ -512,7 +524,7 @@ namespace OpenWifi {
 							.Severity = GWObjects::DeviceLog::LOG_EMERG,
 							.Recorded = (uint64_t)time(nullptr),
 							.LogType = 1,
-							.UUID = Conn_->UUID};
+							.UUID = 0};
 						Storage()->AddLog(DeviceLog);
 
 					} else {
@@ -533,6 +545,10 @@ namespace OpenWifi {
 				break;
 
 			case uCentralProtocol::ET_CFGPENDING: {
+					if(!Connected_) {
+						Logger_.debug(Poco::format("INVALID-PROTOCOL(%s): Device %s is not following protocol", CId_, SerialNumber_));
+						return;
+					}
 					if (ParamsObj->has(uCentralProtocol::UUID) && ParamsObj->has(uCentralProtocol::ACTIVE)) {
 
 						uint64_t UUID = ParamsObj->get(uCentralProtocol::UUID);
@@ -568,6 +584,10 @@ namespace OpenWifi {
 				break;
 
 			case uCentralProtocol::ET_DEVICEUPDATE: {
+					if(!Connected_) {
+						Logger_.debug(Poco::format("INVALID-PROTOCOL(%s): Device %s is not following protocol", CId_, SerialNumber_));
+						return;
+					}
 					if (ParamsObj->has("currentPassword")) {
 						auto Password = ParamsObj->get("currentPassword").toString();
 
@@ -579,6 +599,10 @@ namespace OpenWifi {
 				break;
 
 			case uCentralProtocol::ET_TELEMETRY: {
+					if(!Connected_) {
+						Logger_.debug(Poco::format("INVALID-PROTOCOL(%s): Device %s is not following protocol", CId_, SerialNumber_));
+						return;
+					}
 					if(ParamsObj->has("data")) {
 						auto Payload = ParamsObj->get("data").toString();
 						TelemetryStream()->UpdateEndPoint(SerialNumber_, Payload);

@@ -109,6 +109,7 @@ namespace OpenWifi {
 		GWObjects::CertificateValidation	CertValidation_ = GWObjects::CertificateValidation::NO_CERTIFICATE;
 		uint64_t 							Errors_=0;
 		std::unique_ptr<StateProcessor>		StatsProcessor_;
+		bool 								Connected_=false;
 
 		void CompleteStartup();
 	};
