@@ -275,7 +275,8 @@ namespace OpenWifi {
 		ErrorObject.set("ErrorDescription","This resource does not exist.");
 		std::ostream &Answer = Response->send();
 		Poco::JSON::Stringifier::stringify(ErrorObject, Answer);
-		Logger_.debug(Poco::format("RES-NOTFOUND: User='%s' Method='%s' Path='%s",
+		Logger_.debug(Poco::format("RES-NOTFOUND: User='%s@%s' Method='%s' Path='%s",
+                                   UserInfo_.userinfo.email,
                                    Utils::FormatIPv6(Request->clientAddress().toString()),
                                    Request->getMethod(),
                                    Request->getURI()));
@@ -410,8 +411,8 @@ namespace OpenWifi {
 #endif
                 if(Server_.LogIt(Request->getMethod(),true)) {
                     Logger_.debug(Poco::format("X-REQ-ALLOWED(%s): User='%s@%s' Method='%s' Path='%s",
-                         Utils::FormatIPv6(Request->clientAddress().toString()),
                          UserInfo_.userinfo.email,
+                         Utils::FormatIPv6(Request->clientAddress().toString()),
                          Request->clientAddress().toString(),
                          Request->getMethod(),
                          Request->getURI()));
