@@ -37,15 +37,11 @@ namespace OpenWifi {
 		auto SerialNumber = GetParameter(RESTAPI::Protocol::SERIALNUMBER, "");
 
 		if(SerialNumber.empty()) {
-			BadRequest(RESTAPI::Errors::MissingSerialNumber);
-			return;
+			return BadRequest(RESTAPI::Errors::MissingSerialNumber);
 		}
-
 		if (Storage()->DeleteCommands(SerialNumber, QB_.StartDate, QB_.EndDate)) {
-			OK();
-			return;
+			return OK();
 		}
-
 		InternalError();
 	}
 }

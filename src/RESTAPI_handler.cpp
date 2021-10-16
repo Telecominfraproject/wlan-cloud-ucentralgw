@@ -458,6 +458,7 @@ namespace OpenWifi {
 		QB_.LastOnly = GetBoolParameter(RESTAPI::Protocol::LASTONLY,false);
 		QB_.Newest = GetBoolParameter(RESTAPI::Protocol::NEWEST,false);
 		QB_.CountOnly = GetBoolParameter(RESTAPI::Protocol::COUNTONLY,false);
+		QB_.AdditionalInfo = GetBoolParameter(RESTAPI::Protocol::WITHEXTENDEDINFO,false);
 
 		if(QB_.Offset<1)
 		    QB_.Offset=1;

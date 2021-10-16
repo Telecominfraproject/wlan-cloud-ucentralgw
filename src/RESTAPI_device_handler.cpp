@@ -21,8 +21,7 @@ namespace OpenWifi {
 		std::string SerialNumber = GetBinding(RESTAPI::Protocol::SERIALNUMBER, "");
 
 		if(SerialNumber.empty()) {
-			BadRequest(RESTAPI::Errors::MissingSerialNumber);
-			return;
+			return BadRequest(RESTAPI::Errors::MissingSerialNumber);
 		}
 
 		GWObjects::Device Device;
@@ -30,8 +29,7 @@ namespace OpenWifi {
 		if (Storage()->GetDevice(SerialNumber, Device)) {
 			Poco::JSON::Object Obj;
 			Device.to_json(Obj);
-			ReturnObject(Obj);
-			return;
+			return ReturnObject(Obj);
 		}
 		NotFound();
 	}
@@ -40,13 +38,11 @@ namespace OpenWifi {
 		std::string SerialNumber = GetBinding(RESTAPI::Protocol::SERIALNUMBER, "");
 
 		if(SerialNumber.empty()) {
-			BadRequest(RESTAPI::Errors::MissingSerialNumber);
-			return;
+			return BadRequest(RESTAPI::Errors::MissingSerialNumber);
 		}
 
 		if (Storage()->DeleteDevice(SerialNumber)) {
-			OK();
-			return;
+			return OK();
 		}
 		NotFound();
 	}
@@ -55,46 +51,39 @@ namespace OpenWifi {
 
 		std::string SerialNumber = GetBinding(RESTAPI::Protocol::SERIALNUMBER, "");
 		if(SerialNumber.empty()) {
-			BadRequest(RESTAPI::Errors::MissingSerialNumber);
-			return;
+			return BadRequest(RESTAPI::Errors::MissingSerialNumber);
 		}
 
 		std::string Arg;
 		if(HasParameter("validateOnly",Arg) && Arg=="true") {
 			auto Body = ParseStream();
 			if(!Body->has("configuration")) {
-				BadRequest("Must have 'configuration' element.");
-				return;
+				return BadRequest("Must have 'configuration' element.");
 			}
 			auto Config=Body->get("configuration").toString();
 			Poco::JSON::Object  Answer;
 			auto Res = ValidateUCentralConfiguration(Config);
 			Answer.set("valid",Res);
-			ReturnObject(Answer);
-			return;
+			return ReturnObject(Answer);
 		}
 
 		if (!Utils::ValidSerialNumber(SerialNumber)) {
 			Logger_.warning(Poco::format("CREATE-DEVICE(%s): Illegal serial number.", SerialNumber));
-			BadRequest( RESTAPI::Errors::InvalidSerialNumber);
-			return;
+			return BadRequest( RESTAPI::Errors::InvalidSerialNumber);
 		}
 
 		auto Obj = ParseStream();
 		GWObjects::Device Device;
 		if (!Device.from_json(Obj)) {
-			BadRequest(RESTAPI::Errors::InvalidJSONDocument);
-			return;
+			return BadRequest(RESTAPI::Errors::InvalidJSONDocument);
 		}
 
 		if(SerialNumber!=Device.SerialNumber) {
-			BadRequest(RESTAPI::Errors::SerialNumberMismatch);
-			return;
+			return BadRequest(RESTAPI::Errors::SerialNumberMismatch);
 		}
 
 		if(Device.Configuration.empty() || (!Device.Configuration.empty() && !ValidateUCentralConfiguration(Device.Configuration))) {
-			BadRequest(RESTAPI::Errors::ConfigBlockInvalid);
-			return;
+			return BadRequest(RESTAPI::Errors::ConfigBlockInvalid);
 		}
 
 		for(auto &i:Device.Notes)
@@ -111,8 +100,7 @@ namespace OpenWifi {
 			SetCurrentConfigurationID(SerialNumber, Device.UUID);
 			Poco::JSON::Object DevObj;
 			Device.to_json(DevObj);
-			ReturnObject(DevObj);
-			return;
+			return ReturnObject(DevObj);
 		}
 		InternalError(RESTAPI::Errors::RecordNotCreated);
 	}
@@ -121,27 +109,23 @@ namespace OpenWifi {
 		std::string SerialNumber = GetBinding(RESTAPI::Protocol::SERIALNUMBER, "");
 
 		if(SerialNumber.empty()) {
-			BadRequest(RESTAPI::Errors::MissingSerialNumber);
-			return;
+			return BadRequest(RESTAPI::Errors::MissingSerialNumber);
 		}
 
 		auto Obj = ParseStream();
 		GWObjects::Device NewDevice;
 		if (!NewDevice.from_json(Obj)) {
-			BadRequest(RESTAPI::Errors::InvalidJSONDocument);
-			return;
+			return BadRequest(RESTAPI::Errors::InvalidJSONDocument);
 		}
 
 		GWObjects::Device	Existing;
 		if(!Storage()->GetDevice(SerialNumber, Existing)) {
-			NotFound();
-			return;
+			return NotFound();
 		}
 
 		if(!NewDevice.Configuration.empty()) {
 			if (!ValidateUCentralConfiguration(NewDevice.Configuration)) {
-				BadRequest(RESTAPI::Errors::ConfigBlockInvalid);
-				return;
+				return BadRequest(RESTAPI::Errors::ConfigBlockInvalid);
 			}
 			Config::Config NewConfig(NewDevice.Configuration);
 			uint64_t NewConfigUUID = std::time(nullptr);
@@ -164,8 +148,7 @@ namespace OpenWifi {
 			SetCurrentConfigurationID(SerialNumber, Existing.UUID);
 			Poco::JSON::Object DevObj;
 			NewDevice.to_json(DevObj);
-			ReturnObject(DevObj);
-			return;
+			return ReturnObject(DevObj);
 		}
 		InternalError(RESTAPI::Errors::RecordNotUpdated);
 	}

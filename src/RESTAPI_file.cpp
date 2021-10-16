@@ -26,8 +26,7 @@ namespace OpenWifi {
 
 		std::string FileType;
 		if (!Storage()->GetAttachedFile(UUID, SerialNumber, DownloadFile.path(), FileType)) {
-			NotFound();
-			return;
+			return NotFound();
 		}
 		SendFile(DownloadFile, UUID);
 		DownloadFile.remove();
@@ -37,13 +36,11 @@ namespace OpenWifi {
 		auto UUID = GetBinding(RESTAPI::Protocol::FILEUUID, "");
 
 		if (UUID.empty()) {
-			BadRequest(RESTAPI::Errors::MissingUUID);
-			return;
+			return BadRequest(RESTAPI::Errors::MissingUUID);
 		}
 
 		if (Storage()->RemoveAttachedFile(UUID)) {
-			OK();
-			return;
+			return OK();
 		}
 		BadRequest(RESTAPI::Errors::CouldNotBeDeleted);
 	}

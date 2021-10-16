@@ -48,8 +48,7 @@ namespace OpenWifi {
 		} else if (QB_.CountOnly == true) {
 			uint64_t Count = 0;
 			if (Storage()->GetDeviceCount(Count)) {
-				ReturnCountOnly(Count);
-				return;
+				return ReturnCountOnly(Count);
 			}
 		} else if (serialOnly) {
 			std::vector<std::string> SerialNumbers;

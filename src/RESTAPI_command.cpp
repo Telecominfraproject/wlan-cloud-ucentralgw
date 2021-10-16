@@ -19,31 +19,26 @@ namespace OpenWifi {
 		if (Storage()->GetCommand(CommandUUID, Command)) {
 			Poco::JSON::Object RetObj;
 			Command.to_json(RetObj);
-			ReturnObject(RetObj);
-			return;
+			return ReturnObject(RetObj);
 		}
-		NotFound();
+		return NotFound();
 	}
 
 	void RESTAPI_command::DoDelete() {
 		auto UUID = GetBinding(RESTAPI::Protocol::COMMANDUUID, "");
 
 		if(UUID.empty()) {
-			BadRequest(RESTAPI::Errors::MissingUUID);
-			return;
+			return BadRequest(RESTAPI::Errors::MissingUUID);
 		}
 
 		GWObjects::CommandDetails	C;
 		if(!Storage()->GetCommand(UUID, C)) {
-			NotFound();
-			return;
+			return NotFound();
 		}
 
 		if (Storage()->DeleteCommand(UUID)) {
-			OK();
-			return;
+			return OK();
 		}
-
-		InternalError();
+		return InternalError();
 	}
 }

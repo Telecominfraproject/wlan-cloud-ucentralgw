@@ -88,7 +88,7 @@ namespace OpenWifi {
 		struct QueryBlock {
 			uint64_t StartDate = 0 , EndDate = 0 , Offset = 0 , Limit = 0, LogType = 0 ;
 			std::string SerialNumber, Filter, Select;
-			bool Lifetime=false, LastOnly=false, Newest=false, CountOnly=false;
+			bool Lifetime=false, LastOnly=false, Newest=false, CountOnly=false, AdditionalInfo=false;
 		};
 
 		typedef std::map<std::string, std::string> BindingMap;

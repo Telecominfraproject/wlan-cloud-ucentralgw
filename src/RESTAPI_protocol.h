@@ -113,6 +113,7 @@ namespace OpenWifi::RESTAPI::Protocol {
 
     static const char * NEWPASSWORD = "newPassword";
     static const char * USERS = "users";
+    static const char * WITHEXTENDEDINFO = "withExtendedInfo";
 
     static const char * ERRORTEXT = "errorText";
     static const char * ERRORCODE = "errorCode";

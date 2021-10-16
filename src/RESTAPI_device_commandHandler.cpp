@@ -35,75 +35,72 @@ namespace OpenWifi {
 
 	void RESTAPI_device_commandHandler::DoGet() {
 		if(!ValidateParameters()) {
-			BadRequest(RESTAPI::Errors::MissingOrInvalidParameters);
-			return;
+			return BadRequest(RESTAPI::Errors::MissingOrInvalidParameters);
 		}
 
 		if (Command_ == RESTAPI::Protocol::CAPABILITIES){
-			GetCapabilities();
+			return GetCapabilities();
 		} else if (Command_ == RESTAPI::Protocol::LOGS) {
-			GetLogs();
+			return GetLogs();
 		} else if (Command_ == RESTAPI::Protocol::HEALTHCHECKS) {
-			GetChecks();
+			return GetChecks();
 		} else if (Command_ == RESTAPI::Protocol::STATISTICS) {
-			GetStatistics();
+			return GetStatistics();
 		} else if (Command_ == RESTAPI::Protocol::STATUS) {
-			GetStatus();
+			return GetStatus();
 		} else if (Command_ == RESTAPI::Protocol::RTTY) {
-			Rtty();
+			return Rtty();
 		} else {
-			BadRequest(RESTAPI::Errors::InvalidCommand);
+			return BadRequest(RESTAPI::Errors::InvalidCommand);
 		}
 	}
 
 
 	void RESTAPI_device_commandHandler::DoDelete() {
 		if(!ValidateParameters()) {
-			BadRequest(RESTAPI::Errors::MissingOrInvalidParameters);
-			return;
+			return BadRequest(RESTAPI::Errors::MissingOrInvalidParameters);
 		}
 		if (Command_ == RESTAPI::Protocol::CAPABILITIES) {
-			DeleteCapabilities();
+			return DeleteCapabilities();
 		} else if (Command_ == RESTAPI::Protocol::LOGS){
-			DeleteLogs();
+			return DeleteLogs();
 		} else if (Command_ == RESTAPI::Protocol::HEALTHCHECKS){
-			DeleteChecks();
+			return DeleteChecks();
 		} else if (Command_ == RESTAPI::Protocol::STATISTICS) {
-			DeleteStatistics();
+			return DeleteStatistics();
 		} else {
-			BadRequest(RESTAPI::Errors::InvalidCommand);
+			return BadRequest(RESTAPI::Errors::InvalidCommand);
 		}
 	}
 
 	void RESTAPI_device_commandHandler::DoPost() {
 		if(!ValidateParameters()) {
-			BadRequest(RESTAPI::Errors::MissingOrInvalidParameters);
-			return;
+			return BadRequest(RESTAPI::Errors::MissingOrInvalidParameters);
 		}
 		if (Command_ == RESTAPI::Protocol::PERFORM) {
-			ExecuteCommand();
+			return ExecuteCommand();
 		} else if (Command_ == RESTAPI::Protocol::CONFIGURE) {
-			Configure();
+			return Configure();
 		} else if (Command_ == RESTAPI::Protocol::UPGRADE) {
-			Upgrade();
+			return Upgrade();
 		} else if (Command_ == RESTAPI::Protocol::REBOOT) {
-			Reboot();
+			return Reboot();
 		} else if (Command_ == RESTAPI::Protocol::FACTORY) {
-			Factory();
+			return Factory();
 		} else if (Command_ == RESTAPI::Protocol::LEDS) {
-			LEDs();
+			return LEDs();
 		} else if (Command_ == RESTAPI::Protocol::TRACE) {
-			Trace();
+			return Trace();
 		} else if (Command_ == RESTAPI::Protocol::REQUEST) {
-			MakeRequest();
+			return MakeRequest();
 		} else if (Command_ == RESTAPI::Protocol::WIFISCAN) {
-			WifiScan();
+			return WifiScan();
 		} else if (Command_ == RESTAPI::Protocol::EVENTQUEUE) {
-			EventQueue();
+			return EventQueue();
 		} else if (Command_ == RESTAPI::Protocol::TELEMETRY) {
-			Telemetry();
+			return Telemetry();
 		} else {
-			BadRequest(RESTAPI::Errors::InvalidCommand);
+			return BadRequest(RESTAPI::Errors::InvalidCommand);
 		}
 	}
 
@@ -113,8 +110,7 @@ void RESTAPI_device_commandHandler::GetCapabilities() {
 		Poco::JSON::Object RetObj;
 		Caps.to_json(RetObj);
 		RetObj.set(RESTAPI::Protocol::SERIALNUMBER, SerialNumber_);
-		ReturnObject(RetObj);
-		return;
+		return ReturnObject(RetObj);
 	}
 	NotFound();
 }
@@ -122,8 +118,7 @@ void RESTAPI_device_commandHandler::GetCapabilities() {
 void RESTAPI_device_commandHandler::DeleteCapabilities() {
 	Logger_.information(Poco::format("DELETE-CAPABILITIES: user=%s serial=%s", UserInfo_.userinfo.email,SerialNumber_));
 	if (Storage()->DeleteDeviceCapabilities(SerialNumber_)) {
-		OK();
-		return;
+		return OK();
 	}
 	NotFound();
 }
@@ -136,7 +131,7 @@ void RESTAPI_device_commandHandler::GetStatistics() {
 		if (Stats.empty())
 			Stats = uCentralProtocol::EMPTY_JSON_DOC;
 		auto Obj = P.parse(Stats).extract<Poco::JSON::Object::Ptr>();
-		ReturnObject(*Obj);
+		return ReturnObject(*Obj);
 	} else if (QB_.LastOnly) {
 		std::string Stats;
 		if (DeviceRegistry()->GetStatistics(SerialNumber_, Stats)) {
@@ -144,9 +139,9 @@ void RESTAPI_device_commandHandler::GetStatistics() {
 			if (Stats.empty())
 				Stats = uCentralProtocol::EMPTY_JSON_DOC;
 			auto Obj = P.parse(Stats).extract<Poco::JSON::Object::Ptr>();
-			ReturnObject(*Obj);
+			return ReturnObject(*Obj);
 		} else {
-			NotFound();
+			return NotFound();
 		}
 	} else {
 		std::vector<GWObjects::Statistics> Stats;
@@ -165,7 +160,7 @@ void RESTAPI_device_commandHandler::GetStatistics() {
 		Poco::JSON::Object RetObj;
 		RetObj.set(RESTAPI::Protocol::DATA, ArrayObj);
 		RetObj.set(RESTAPI::Protocol::SERIALNUMBER, SerialNumber_);
-		ReturnObject(RetObj);
+		return ReturnObject(RetObj);
 	}
 }
 
@@ -173,13 +168,11 @@ void RESTAPI_device_commandHandler::DeleteStatistics() {
 	Logger_.information(Poco::format("DELETE-STATISTICS: user=%s serial=%s", UserInfo_.userinfo.email,SerialNumber_));
 	if (QB_.Lifetime) {
 		if (Storage()->ResetLifetimeStats(SerialNumber_)) {
-			OK();
-			return;
+			return OK();
 		}
 	} else {
 		if (Storage()->DeleteStatisticsData(SerialNumber_, QB_.StartDate, QB_.EndDate)) {
-			OK();
-			return;
+			return OK();
 		}
 	}
 	NotFound();
@@ -191,8 +184,7 @@ void RESTAPI_device_commandHandler::GetStatus() {
 	if (DeviceRegistry()->GetState(SerialNumber_, State)) {
 		Poco::JSON::Object RetObject;
 		State.to_json(RetObject);
-		ReturnObject(RetObject);
-		return;
+		return ReturnObject(RetObject);
 	}
 	NotFound();
 }
@@ -207,8 +199,7 @@ void RESTAPI_device_commandHandler::Configure() {
 
 		auto SNum = Obj->get(RESTAPI::Protocol::SERIALNUMBER).toString();
 		if (SerialNumber_ != SNum) {
-			BadRequest(RESTAPI::Errors::SerialNumberMismatch);
-			return;
+			return BadRequest(RESTAPI::Errors::SerialNumberMismatch);
 		}
 
 		auto Configuration = GetS(RESTAPI::Protocol::CONFIGURATION, Obj,uCentralProtocol::EMPTY_JSON_DOC);
@@ -235,11 +226,9 @@ void RESTAPI_device_commandHandler::Configure() {
 			Cmd.Details = ParamStream.str();
 
 			DeviceRegistry()->SetPendingUUID(SerialNumber_, NewUUID);
-			RESTAPI_RPC::WaitForCommand(Cmd, Params, *Request, *Response, 60000, nullptr, this, Logger_);
-			return;
+			return RESTAPI_RPC::WaitForCommand(Cmd, Params, *Request, *Response, 60000, nullptr, this, Logger_);
 		}
-		BadRequest(RESTAPI::Errors::RecordNotUpdated);
-		return;
+		return BadRequest(RESTAPI::Errors::RecordNotUpdated);
 	}
 	BadRequest(RESTAPI::Errors::MissingOrInvalidParameters);
 }
@@ -253,8 +242,7 @@ void RESTAPI_device_commandHandler::Upgrade() {
 
 		auto SNum = Obj->get(RESTAPI::Protocol::SERIALNUMBER).toString();
 		if (SerialNumber_ != SNum) {
-			BadRequest(RESTAPI::Errors::SerialNumberMismatch);
-			return;
+			return BadRequest(RESTAPI::Errors::SerialNumberMismatch);
 		}
 
 		auto URI = GetS(RESTAPI::Protocol::URI, Obj);
@@ -278,8 +266,7 @@ void RESTAPI_device_commandHandler::Upgrade() {
 		Params.stringify(ParamStream);
 		Cmd.Details = ParamStream.str();
 
-		RESTAPI_RPC::WaitForCommand(Cmd, Params, *Request, *Response, 60000, nullptr, this, Logger_);
-		return;
+		return RESTAPI_RPC::WaitForCommand(Cmd, Params, *Request, *Response, 60000, nullptr, this, Logger_);
 	}
 	BadRequest(RESTAPI::Errors::MissingOrInvalidParameters);
 }
@@ -309,8 +296,7 @@ void RESTAPI_device_commandHandler::DeleteLogs() {
 	Logger_.information(Poco::format("DELETE-LOGS: user=%s serial=%s", UserInfo_.userinfo.email,SerialNumber_));
 	if (Storage()->DeleteLogData(SerialNumber_, QB_.StartDate, QB_.EndDate,
 										 QB_.LogType)) {
-		OK();
-		return;
+		return OK();
 	}
 	BadRequest(RESTAPI::Errors::NoRecordsDeleted);
 }
@@ -323,9 +309,9 @@ void RESTAPI_device_commandHandler::GetChecks() {
 		if (DeviceRegistry()->GetHealthcheck(SerialNumber_, HC)) {
 			Poco::JSON::Object	Answer;
 			HC.to_json(Answer);
-			ReturnObject(Answer);
+			return ReturnObject(Answer);
 		} else {
-			NotFound();
+			return NotFound();
 		}
 	} else {
 		if (QB_.Newest) {
@@ -352,8 +338,7 @@ void RESTAPI_device_commandHandler::GetChecks() {
 void RESTAPI_device_commandHandler::DeleteChecks() {
 	Logger_.information(Poco::format("DELETE-HEALTHCHECKS: user=%s serial=%s", UserInfo_.userinfo.email,SerialNumber_));
 	if (Storage()->DeleteHealthCheckData(SerialNumber_, QB_.StartDate, QB_.EndDate)) {
-		OK();
-		return;
+		return OK();
 	}
 	BadRequest(RESTAPI::Errors::NoRecordsDeleted);
 }
@@ -367,8 +352,7 @@ void RESTAPI_device_commandHandler::ExecuteCommand() {
 
 		auto SNum = Obj->get(RESTAPI::Protocol::SERIALNUMBER).toString();
 		if (SerialNumber_ != SNum) {
-			BadRequest("Missing serial number.");
-			return;
+			return BadRequest("Missing serial number.");
 		}
 
 		auto Command = GetS(RESTAPI::Protocol::COMMAND, Obj);
@@ -400,8 +384,7 @@ void RESTAPI_device_commandHandler::ExecuteCommand() {
 		Params.stringify(ParamStream);
 		Cmd.Details = ParamStream.str();
 
-		RESTAPI_RPC::WaitForCommand(Cmd, Params, *Request, *Response, 60000, nullptr, this, Logger_);
-		return;
+		return RESTAPI_RPC::WaitForCommand(Cmd, Params, *Request, *Response, 60000, nullptr, this, Logger_);
 	}
 	BadRequest(RESTAPI::Errors::MissingOrInvalidParameters);
 }
@@ -413,8 +396,7 @@ void RESTAPI_device_commandHandler::Reboot() {
 	if (Obj->has(RESTAPI::Protocol::SERIALNUMBER)) {
 		auto SNum = Obj->get(RESTAPI::Protocol::SERIALNUMBER).toString();
 		if (SerialNumber_ != SNum) {
-			BadRequest(RESTAPI::Errors::SerialNumberMismatch);
-			return;
+			return BadRequest(RESTAPI::Errors::SerialNumberMismatch);
 		}
 
 		uint64_t When = GetWhen(Obj);
@@ -434,8 +416,7 @@ void RESTAPI_device_commandHandler::Reboot() {
 		Params.stringify(ParamStream);
 		Cmd.Details = ParamStream.str();
 
-		RESTAPI_RPC::WaitForCommand(Cmd, Params, *Request, *Response, 60000, nullptr, this, Logger_);
-		return;
+		return RESTAPI_RPC::WaitForCommand(Cmd, Params, *Request, *Response, 60000, nullptr, this, Logger_);
 	}
 	BadRequest(RESTAPI::Errors::MissingSerialNumber);
 }
@@ -449,8 +430,7 @@ void RESTAPI_device_commandHandler::Factory() {
 		auto SNum = Obj->get(RESTAPI::Protocol::SERIALNUMBER).toString();
 
 		if (SerialNumber_ != SNum) {
-			BadRequest(RESTAPI::Errors::SerialNumberMismatch);
-			return;
+			return BadRequest(RESTAPI::Errors::SerialNumberMismatch);
 		}
 
 		auto KeepRedirector = GetB(RESTAPI::Protocol::KEEPREDIRECTOR, Obj, true);
@@ -474,8 +454,7 @@ void RESTAPI_device_commandHandler::Factory() {
 		Params.stringify(ParamStream);
 		Cmd.Details = ParamStream.str();
 
-		RESTAPI_RPC::WaitForCommand(Cmd, Params, *Request, *Response, 60000, nullptr, this, Logger_);
-		return;
+		return RESTAPI_RPC::WaitForCommand(Cmd, Params, *Request, *Response, 60000, nullptr, this, Logger_);
 	}
 	BadRequest(RESTAPI::Errors::MissingOrInvalidParameters);
 }
@@ -489,8 +468,7 @@ void RESTAPI_device_commandHandler::LEDs() {
 
 		auto SNum = Obj->get(RESTAPI::Protocol::SERIALNUMBER).toString();
 		if (SerialNumber_ != SNum) {
-			BadRequest(RESTAPI::Errors::SerialNumberMismatch);
-			return;
+			return BadRequest(RESTAPI::Errors::SerialNumberMismatch);
 		}
 
 		auto Pattern =
@@ -498,8 +476,7 @@ void RESTAPI_device_commandHandler::LEDs() {
 		if (Pattern != uCentralProtocol::ON &&
 			Pattern != uCentralProtocol::OFF &&
 			Pattern != uCentralProtocol::BLINK) {
-			BadRequest(RESTAPI::Errors::MissingOrInvalidParameters);
-			return;
+			return BadRequest(RESTAPI::Errors::MissingOrInvalidParameters);
 		}
 
 		auto Duration = Get(uCentralProtocol::DURATION, Obj, 30);
@@ -523,8 +500,7 @@ void RESTAPI_device_commandHandler::LEDs() {
 		Params.stringify(ParamStream);
 		Cmd.Details = ParamStream.str();
 
-		RESTAPI_RPC::WaitForCommand(Cmd, Params, *Request, *Response, 60000, nullptr, this, Logger_);
-		return;
+		return RESTAPI_RPC::WaitForCommand(Cmd, Params, *Request, *Response, 60000, nullptr, this, Logger_);
 	}
 	BadRequest(RESTAPI::Errors::MissingOrInvalidParameters);
 }
@@ -539,8 +515,7 @@ void RESTAPI_device_commandHandler::Trace() {
 
 		auto SNum = Obj->get(RESTAPI::Protocol::SERIALNUMBER).toString();
 		if (SerialNumber_ != SNum) {
-			BadRequest(RESTAPI::Errors::SerialNumberMismatch);
-			return;
+			return BadRequest(RESTAPI::Errors::SerialNumberMismatch);
 		}
 
 		auto Duration = Get(RESTAPI::Protocol::DURATION, Obj, 30);
@@ -576,8 +551,7 @@ void RESTAPI_device_commandHandler::Trace() {
 		Cmd.Details = ParamStream.str();
 
 		FileUploader()->AddUUID(UUID);
-		RESTAPI_RPC::WaitForCommand(Cmd, Params, *Request, *Response, 60000, nullptr, this, Logger_);
-		return;
+		return RESTAPI_RPC::WaitForCommand(Cmd, Params, *Request, *Response, 60000, nullptr, this, Logger_);
 	}
 	BadRequest(RESTAPI::Errors::MissingOrInvalidParameters);
 }
@@ -588,8 +562,7 @@ void RESTAPI_device_commandHandler::WifiScan() {
 
 	auto SNum = Obj->get(RESTAPI::Protocol::SERIALNUMBER).toString();
 	if (SerialNumber_ != SNum) {
-		BadRequest(RESTAPI::Errors::SerialNumberMismatch);
-		return;
+		return BadRequest(RESTAPI::Errors::SerialNumberMismatch);
 	}
 
 	if ((Obj->has(RESTAPI::Protocol::BANDS) &&
@@ -645,8 +618,7 @@ void RESTAPI_device_commandHandler::EventQueue() {
 
 		auto SNum = Obj->get(RESTAPI::Protocol::SERIALNUMBER).toString();
 		if (SerialNumber_ != SNum) {
-			BadRequest(RESTAPI::Errors::SerialNumberMismatch);
-			return;
+			return BadRequest(RESTAPI::Errors::SerialNumberMismatch);
 		}
 
 		auto Types = Obj->getArray(RESTAPI::Protocol::TYPES);
@@ -689,8 +661,7 @@ void RESTAPI_device_commandHandler::MakeRequest() {
 		if ((SerialNumber_ != SNum) ||
 			(MessageType != uCentralProtocol::STATE &&
 			 MessageType != uCentralProtocol::HEALTHCHECK)) {
-			BadRequest(RESTAPI::Errors::MissingOrInvalidParameters);
-			return;
+			return BadRequest(RESTAPI::Errors::MissingOrInvalidParameters);
 		}
 
 		auto When = GetWhen(Obj);
@@ -713,8 +684,7 @@ void RESTAPI_device_commandHandler::MakeRequest() {
 		Params.stringify(ParamStream);
 		Cmd.Details = ParamStream.str();
 
-		RESTAPI_RPC::WaitForCommand(Cmd, Params, *Request, *Response, 60000, nullptr, this, Logger_ );
-		return;
+		return RESTAPI_RPC::WaitForCommand(Cmd, Params, *Request, *Response, 60000, nullptr, this, Logger_ );
 	}
 	BadRequest(RESTAPI::Errors::MissingOrInvalidParameters);
 }
@@ -764,11 +734,9 @@ void RESTAPI_device_commandHandler::MakeRequest() {
 				std::stringstream ParamStream;
 				Params.stringify(ParamStream);
 				Cmd.Details = ParamStream.str();
-				RESTAPI_RPC::WaitForCommand(Cmd, Params, *Request, *Response, 60000, &ReturnedObject, this, Logger_);
-				return;
+				return RESTAPI_RPC::WaitForCommand(Cmd, Params, *Request, *Response, 60000, &ReturnedObject, this, Logger_);
 			}
-			NotFound();
-			return;
+			return NotFound();
 		}
 		ReturnStatus(Poco::Net::HTTPResponse::HTTP_SERVICE_UNAVAILABLE);
 	}
@@ -782,19 +750,16 @@ void RESTAPI_device_commandHandler::MakeRequest() {
 
 			auto SNum = Obj->get(RESTAPI::Protocol::SERIALNUMBER).toString();
 			if (SerialNumber_ != SNum) {
-				BadRequest(RESTAPI::Errors::SerialNumberMismatch);
-				return;
+				return BadRequest(RESTAPI::Errors::SerialNumberMismatch);
 			}
 
 			GWObjects::Device Device;
 			if (!Storage()->GetDevice(SerialNumber_, Device)) {
-				NotFound();
-				return;
+				return NotFound();
 			}
 
 			if (!DeviceRegistry()->Connected(SerialNumber_)) {
-				BadRequest(RESTAPI::Errors::DeviceNotConnected);
-				return;
+				return BadRequest(RESTAPI::Errors::DeviceNotConnected);
 			}
 
 			auto Interval = Obj->get(RESTAPI::Protocol::INTERVAL);
@@ -823,8 +788,7 @@ void RESTAPI_device_commandHandler::MakeRequest() {
 					Answer.set("uri", Endpoint);
 				}
 			} else {
-				BadRequest(RESTAPI::Errors::CannotCreateWS);
-				return;
+				return BadRequest(RESTAPI::Errors::CannotCreateWS);
 			}
 
 			Cmd.UUID = NewUUID;
@@ -832,9 +796,8 @@ void RESTAPI_device_commandHandler::MakeRequest() {
 			Params.stringify(ParamStream);
 			Cmd.Details = ParamStream.str();
 
-			RESTAPI_RPC::WaitForCommand(Cmd, Params, *Request, *Response,
+			return RESTAPI_RPC::WaitForCommand(Cmd, Params, *Request, *Response,
 										60000, &Answer, this, Logger_);
-			return;
 		}
 		BadRequest(RESTAPI::Errors::MissingOrInvalidParameters);
 	}
