@@ -35,9 +35,9 @@ namespace OpenWifi::Types {
 	typedef std::list<std::pair<TopicNotifyFunction,int>>   TopicNotifyFunctionList;
 	typedef std::map<std::string, TopicNotifyFunctionList>  NotifyTable;
     typedef std::map<std::string,uint64_t>                  CountedMap;
-
-    typedef std::string         UUID_t;
-    typedef std::vector<UUID_t> UUIDvec_t;
+    typedef std::vector<uint64_t>                           TagList;
+    typedef std::string                                     UUID_t;
+    typedef std::vector<UUID_t>                             UUIDvec_t;
 
     inline void UpdateCountedMap(CountedMap &M, const std::string &S, uint64_t Increment=1) {
         auto it = M.find(S);
