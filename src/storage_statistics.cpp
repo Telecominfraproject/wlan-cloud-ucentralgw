@@ -86,7 +86,7 @@ namespace OpenWifi {
 				DateSelector = " Recorded<=" + std::to_string(ToDate);
 			}
 
-			Select << StatementStr + DateSelector + " ORDER BY Recorded DESC " + ComputeRange(Offset, HowMany),
+			Select << StatementStr + DateSelector + " ORDER BY Recorded ASC " + ComputeRange(Offset, HowMany),
 				Poco::Data::Keywords::into(Records);
 			Select.execute();
 
