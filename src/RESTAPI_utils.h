@@ -100,6 +100,12 @@ namespace OpenWifi::RESTAPI_utils {
 		Obj.set(Field, Arr);
 	}
 
+	template<class T> void field_to_json(Poco::JSON::Object &Obj, const char *Field, const T &Value) {
+	    Poco::JSON::Object  Answer;
+        Value.to_json(Answer);
+	    Obj.set(Field, Answer);
+	}
+
 	template<class T> void field_from_json(const Poco::JSON::Object::Ptr &Obj, const char *Field, std::vector<T> &Value) {
 		if(Obj->isArray(Field)) {
 			Poco::JSON::Array::Ptr	Arr = Obj->getArray(Field);

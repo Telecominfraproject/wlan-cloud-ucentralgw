@@ -57,6 +57,49 @@ namespace OpenWifi::SecurityObjects {
 	};
 	typedef std::vector<NoteInfo>	NoteInfoVec;
 
+	struct MobilePhoneNumber {
+	    std::string number;
+	    bool verified;
+	    bool primary;
+
+	    void to_json(Poco::JSON::Object &Obj) const;
+	    bool from_json(Poco::JSON::Object::Ptr Obj);
+	};
+
+	struct MfaAuthInfo {
+	    bool enabled;
+	    std::string method;
+
+	    void to_json(Poco::JSON::Object &Obj) const;
+	    bool from_json(Poco::JSON::Object::Ptr Obj);
+	};
+
+	struct UserLoginLoginExtensions {
+	    std::vector<MobilePhoneNumber>  mobiles;
+	    struct MfaAuthInfo mfa;
+
+	    void to_json(Poco::JSON::Object &Obj) const;
+	    bool from_json(Poco::JSON::Object::Ptr Obj);
+	};
+
+	struct MFAChallengeRequest {
+	    std::string uuid;
+	    std::string question;
+	    std::string method;
+	    uint64_t    created;
+
+	    void to_json(Poco::JSON::Object &Obj) const;
+	    bool from_json(Poco::JSON::Object::Ptr Obj);
+	};
+
+    struct MFAChallengeResponse {
+        std::string uuid;
+        std::string answer;
+
+        void to_json(Poco::JSON::Object &Obj) const;
+        bool from_json(Poco::JSON::Object::Ptr Obj);
+    };
+
 	struct UserInfo {
         std::string Id;
 		std::string name;
@@ -81,7 +124,7 @@ namespace OpenWifi::SecurityObjects {
 		bool suspended = false;
 		bool blackListed = false;
         USER_ROLE userRole;
-		std::string userTypeProprietaryInfo;
+        UserLoginLoginExtensions userTypeProprietaryInfo;
 		std::string securityPolicy;
 		uint64_t securityPolicyChange = 0 ;
 		std::string currentPassword;

@@ -125,6 +125,94 @@ namespace OpenWifi::SecurityObjects {
 		return false;
 	}
 
+	void MobilePhoneNumber::to_json(Poco::JSON::Object &Obj) const {
+	    field_to_json(Obj,"number", number);
+	    field_to_json(Obj,"verified", verified);
+	    field_to_json(Obj,"primary", primary);
+	}
+
+	bool MobilePhoneNumber::from_json(Poco::JSON::Object::Ptr Obj) {
+	    try {
+	        field_from_json(Obj,"number",number);
+	        field_from_json(Obj,"verified",verified);
+	        field_from_json(Obj,"primary",primary);
+	        return true;
+	    } catch (...) {
+
+	    }
+	    return false;
+	};
+
+	void MfaAuthInfo::to_json(Poco::JSON::Object &Obj) const {
+	    field_to_json(Obj,"enabled", enabled);
+	    field_to_json(Obj,"method", method);
+	}
+
+	bool MfaAuthInfo::from_json(Poco::JSON::Object::Ptr Obj) {
+	    try {
+	        field_from_json(Obj,"enabled",enabled);
+	        field_from_json(Obj,"method",method);
+	        return true;
+	    } catch (...) {
+
+	    }
+	    return false;
+	}
+
+	void UserLoginLoginExtensions::to_json(Poco::JSON::Object &Obj) const {
+	    field_to_json(Obj, "mobiles", mobiles);
+	    field_to_json(Obj, "mfa", mfa);
+	}
+
+	bool UserLoginLoginExtensions::from_json(Poco::JSON::Object::Ptr Obj) {
+	    try {
+	        field_from_json(Obj,"mobiles",mobiles);
+	        field_from_json(Obj,"mfa",mfa);
+	        return true;
+	    } catch (...) {
+
+	    }
+	    return false;
+	}
+
+    void MFAChallengeRequest::to_json(Poco::JSON::Object &Obj) const {
+        field_to_json(Obj, "uuid", uuid);
+        field_to_json(Obj, "question", question);
+        field_to_json(Obj, "created", created);
+        field_to_json(Obj, "method", method);
+    }
+
+    bool MFAChallengeRequest::from_json(Poco::JSON::Object::Ptr Obj) {
+	    try {
+	        field_from_json(Obj,"uuid",uuid);
+	        field_from_json(Obj,"question",question);
+	        field_from_json(Obj,"created",created);
+	        field_from_json(Obj,"method",method);
+	        return true;
+	    } catch (...) {
+
+	    }
+	    return false;
+	};
+
+    void MFAChallengeResponse::to_json(Poco::JSON::Object &Obj) const {
+        field_to_json(Obj, "uuid", uuid);
+        field_to_json(Obj, "answer", answer);
+
+    }
+
+    bool MFAChallengeResponse::from_json(Poco::JSON::Object::Ptr Obj) {
+        try {
+            field_from_json(Obj,"uuid",uuid);
+            field_from_json(Obj,"answer",answer);
+            return true;
+        } catch (...) {
+
+        }
+        return false;
+
+    }
+
     void UserInfo::to_json(Poco::JSON::Object &Obj) const {
 		field_to_json(Obj,"Id",Id);
 		field_to_json(Obj,"name",name);
