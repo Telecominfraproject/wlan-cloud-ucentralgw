@@ -255,5 +255,11 @@ namespace OpenWifi::GWObjects {
 		numberOfDevices = 0 ;
 		snapshot = std::time(nullptr);
 	}
+
+	void CapabilitiesModel::to_json(Poco::JSON::Object &Obj) const{
+		field_to_json(Obj,"deviceType", deviceType);
+		field_to_json(Obj,"capabilities", capabilities);
+	};
+
 }
 

@@ -101,7 +101,7 @@ add_executable( owgw
                 src/RESTAPI_GenericServer.cpp src/RESTAPI_GenericServer.h
                 src/RESTAPI_errors.h src/RESTAPI_TelemetryWebSocket.cpp src/RESTAPI_TelemetryWebSocket.h
                 src/Storage.h
-                src/ConfigurationValidator.cpp src/ConfigurationValidator.h src/ConfigurationCache.cpp src/ConfigurationCache.h src/RESTAPI_blacklist_list.cpp src/RESTAPI_blacklist_list.h)
+                src/ConfigurationValidator.cpp src/ConfigurationValidator.h src/ConfigurationCache.cpp src/ConfigurationCache.h src/RESTAPI_blacklist_list.cpp src/RESTAPI_blacklist_list.h src/RESTAPI_capabilities_handler.cpp src/RESTAPI_capabilities_handler.h)
 
 if(NOT SMALL_BUILD)
     target_sources(owgw PUBLIC src/KafkaManager.cpp src/KafkaManager.h)

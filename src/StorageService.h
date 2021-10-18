@@ -43,6 +43,8 @@ namespace OpenWifi {
             return instance_;
         }
 
+		typedef std::map<std::string,std::string>	DeviceCapabilitiesCache;
+
         bool AddLog(const GWObjects::DeviceLog & Log);
 		bool AddStatisticsData(const GWObjects::Statistics & Stats);
 		bool GetStatisticsData(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate, uint64_t Offset, uint64_t HowMany,
@@ -85,6 +87,7 @@ namespace OpenWifi {
 		bool UpdateDeviceCapabilities(std::string &SerialNumber, std::string &State, std::string & Compatible);
 		bool GetDeviceCapabilities(std::string &SerialNumber, GWObjects::Capabilities &);
 		bool DeleteDeviceCapabilities(std::string & SerialNumber);
+		bool InitCapabilitiesCache();
 
 		bool GetLogData(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate, uint64_t Offset, uint64_t HowMany,
 						std::vector<GWObjects::DeviceLog> &Stats, uint64_t Type);
@@ -161,6 +164,7 @@ namespace OpenWifi {
 			}
 			return " LIMIT " + std::to_string(HowMany) + " OFFSET " + std::to_string(From-1) + " ";
 		}
+		inline bool GetDeviceCapabilitiesCache(DeviceCapabilitiesCache & Caps) { std::lock_guard G(Mutex_); Caps = CapsCache_; return true; };
 
 	  private:
 		static Storage      								*instance_;
@@ -171,6 +175,7 @@ namespace OpenWifi {
 		std::unique_ptr<Poco::Data::PostgreSQL::Connector>  PostgresConn_= nullptr;
 		std::unique_ptr<Poco::Data::MySQL::Connector>       MySQLConn_= nullptr;
 #endif
+		DeviceCapabilitiesCache								CapsCache_;
 
 		Storage() noexcept:
 			SubSystemServer("Storage", "STORAGE-SVR", "storage")

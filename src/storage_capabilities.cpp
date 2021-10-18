@@ -10,6 +10,7 @@
 
 #include "Poco/JSON/Parser.h"
 #include "Poco/JSON/Object.h"
+#include "poco/Data/RecordSet.h"
 
 namespace OpenWifi {
 
@@ -48,6 +49,8 @@ namespace OpenWifi {
 				Poco::Data::Keywords::use(SerialNumber);
 			Select.execute();
 
+			{ std::lock_guard	G(Mutex_); CapsCache_[Compatible] = Capabilities; }
+
 			if (SS.empty()) {
 				Logger_.information("Adding capabilities for " + SerialNumber);
 				Poco::Data::Statement   Insert(Sess);
@@ -79,8 +82,7 @@ namespace OpenWifi {
 			return true;
 		}
 		catch (const Poco::Exception &E) {
-			Logger_.warning(
-				Poco::format("%s(%s): Failed with: %s", std::string(__func__), SerialNumber, E.displayText()));
+			Logger_.log(E);
 		}
 		return false;
 	}
@@ -110,8 +112,7 @@ namespace OpenWifi {
 			return true;
 		}
 		catch (const Poco::Exception &E) {
-			Logger_.warning(
-				Poco::format("%s(%s): Failed with: %s", std::string(__func__), SerialNumber, E.displayText()));
+			Logger_.log(E);
 		}
 		return false;
 	}
@@ -132,8 +133,38 @@ namespace OpenWifi {
 			return true;
 		}
 		catch (const Poco::Exception &E) {
-			Logger_.warning(
-				Poco::format("%s(%s): Failed with: %s", std::string(__func__), SerialNumber, E.displayText()));
+			Logger_.log(E);
+		}
+		return false;
+	}
+
+	bool Storage::InitCapabilitiesCache() {
+		try {
+
+			Poco::Data::Session     Sess = Pool_->get();
+			Poco::Data::Statement   Select(Sess);
+
+			std::string st{"select capabilities from Capabilities"};
+			Select << st;
+			Select.execute();
+
+			Poco::Data::RecordSet   RSet(Select);
+			bool More = RSet.moveFirst();
+			while(More) {
+				auto Caps = RSet[0].convert<std::string>();
+				try {
+					Poco::JSON::Parser	P;
+					auto RawObject = P.parse(Caps).extract<Poco::JSON::Object::Ptr>();
+					std::string Compatible = RawObject->get("compatible").toString();
+					CapsCache_[Compatible] = Caps;
+				} catch (...) {
+
+				}
+				More = RSet.moveNext();
+			}
+			return true;
+		} catch (const Poco::Exception &E) {
+			Logger_.log(E);
 		}
 		return false;
 	}

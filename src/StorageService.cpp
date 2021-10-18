@@ -55,6 +55,8 @@ namespace OpenWifi {
 
 		Create_Tables();
 
+        InitCapabilitiesCache();
+
 		return 0;
     }
 

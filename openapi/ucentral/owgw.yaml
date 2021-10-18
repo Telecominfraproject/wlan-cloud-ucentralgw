@@ -844,7 +844,7 @@ components:
           items:
             type: string
 
-    SystemGetSubSystemNemesResult:
+    SystemGetSubSystemNamesResult:
       type: object
       properties:
         taglist:
@@ -964,6 +964,22 @@ components:
           format: int32
         password:
           type: string
+
+    CapabilitiesModel:
+      type: object
+      properties:
+        deviceType:
+          type: string
+        capabilities:
+          type: string
+
+    CapabilitiesModelList:
+      type: object
+      properties:
+        devices:
+          type: array
+          items:
+            $ref: '#/components/schemas/CapabilitiesModel'
 
 paths:
   /devices:
@@ -2286,6 +2302,24 @@ paths:
         404:
           $ref: '#/components/responses/NotFound'
 
+  /capabilities:
+    get:
+      tags:
+        - Devices
+      summary: Get the list of device types and capabilities.
+      operationId: getCapabilitiesList
+      responses:
+        200:
+          description: Successfull command execution
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CapabilitiesModelList'
+        403:
+          $ref: '#/components/responses/Unauthorized'
+        404:
+          $ref: '#/components/responses/NotFound'
+
   /deviceDashboard:
     get:
       tags:
@@ -2331,7 +2365,7 @@ paths:
                 oneOf:
                   - $ref: '#/components/schemas/SystemGetLogLevelsResult'
                   - $ref: '#/components/schemas/SystemCommandGetLogLevelNamesResult'
-                  - $ref: '#/components/schemas/SystemGetSubSystemNemesResult'
+                  - $ref: '#/components/schemas/SystemGetSubSystemNamesResult'
         403:
           $ref: '#/components/responses/Unauthorized'
         404:

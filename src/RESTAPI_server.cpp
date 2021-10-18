@@ -27,6 +27,7 @@
 #include "Utils.h"
 #include "RESTAPI_webSocketServer.h"
 #include "RESTAPI_TelemetryWebSocket.h"
+#include "RESTAPI_capabilities_handler.h"
 
 namespace OpenWifi {
 
@@ -92,6 +93,7 @@ namespace OpenWifi {
 								RESTAPI_webSocketServer,
 								RESTAPI_blacklist,
 								RESTAPI_blacklist_list,
+								RESTAPI_capabilities_handler,
 								RESTAPI_TelemetryWebSocket>(Path,Bindings,Logger_, Server_);
     }
 

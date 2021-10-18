@@ -183,6 +183,13 @@ namespace OpenWifi::GWObjects {
 		void to_json(Poco::JSON::Object &Obj) const;
 		void reset();
 	};
+
+	struct CapabilitiesModel {
+		std::string deviceType;
+		std::string capabilities;
+
+		void to_json(Poco::JSON::Object &Obj) const;
+	};
 }
 
 #endif //UCENTRAL_RESTAPI_OBJECTS_H
