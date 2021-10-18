@@ -15,7 +15,9 @@ namespace OpenWifi {
 		for(const auto &[deviceType,capabilities]:DevCaps) {
 			Poco::JSON::Object	Inner;
 			Inner.set("deviceType",deviceType);
-			Inner.set("capabilities", capabilities);
+			Poco::JSON::Parser	P;
+			auto R = P.parse(capabilities).extract<Poco::JSON::Object::Ptr>();
+			Inner.set("capabilities", R);
 			ObjArr.add(Inner);
 		}
 		Poco::JSON::Object	Answer;

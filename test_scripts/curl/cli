@@ -560,6 +560,15 @@ telemetry() {
 	fi
 }
 
+caplist() {
+	curl    ${FLAGS} -X GET "https://${OWGW}/api/v1/capabilities" \
+	-H "Content-Type: application/json" \
+	-H "Authorization: Bearer ${token}" \
+	-H "accept: application/json" > ${result_file}
+	jq < ${result_file}
+}
+
+
 help() {
   echo
   echo "getdevice <serial>                Get the device JSON document."
@@ -714,6 +723,7 @@ case "$1" in
   "ldevs") login; ldevs  "$2" "$3"; logout ;;
   "validateconfig") login; validateconfig  "$2" ; logout ;;
   "wstest") login; wstest; logout;;
+  "caplist") login; caplist; logout;;
   *) help ;;
 esac
 
