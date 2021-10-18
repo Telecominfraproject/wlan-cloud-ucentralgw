@@ -10,7 +10,7 @@
 
 #include "Poco/JSON/Parser.h"
 #include "Poco/JSON/Object.h"
-#include "poco/Data/RecordSet.h"
+#include "Poco/Data/RecordSet.h"
 
 namespace OpenWifi {
 
