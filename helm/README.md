@@ -20,7 +20,7 @@ Currently this chart is not assembled in charts archives, so [helm-git](https://
 To install the chart with the release name `my-release`:
 
 ```bash
-$ helm install --name my-release git+https://github.com/Telecominfraproject/wlan-cloud-ucentralgw@helm?ref=master
+$ helm install --name my-release git+https://github.com/Telecominfraproject/wlan-cloud-ucentralgw@helm/owgw-0.1.0.tgz?ref=master
 ```
 
 The command deploys the Gateway on the Kubernetes cluster in the default configuration. The [configuration](#configuration) section lists the parameters that can be configured during installation.
