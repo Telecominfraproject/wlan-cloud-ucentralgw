@@ -58,21 +58,28 @@ namespace OpenWifi::SecurityObjects {
             return CSR;
         else if (!Poco::icompare(U, "system"))
             return SYSTEM;
-        else if (!Poco::icompare(U, "special"))
-            return SPECIAL;
+        else if (!Poco::icompare(U, "installer"))
+            return INSTALLER;
+        else if (!Poco::icompare(U, "noc"))
+            return NOC;
+        else if (!Poco::icompare(U, "accounting"))
+            return ACCOUNTING;
         return UNKNOWN;
     }
 
     std::string UserTypeToString(USER_ROLE U) {
         switch(U) {
-            case UNKNOWN: return "unknown";
             case ROOT: return "root";
+            case ADMIN: return "admin";
             case SUBSCRIBER: return "subscriber";
             case CSR: return "csr";
             case SYSTEM: return "system";
-            case SPECIAL: return "special";
-            case ADMIN: return "admin";
-            default: return "unknown";
+            case INSTALLER: return "installer";
+            case NOC: return "noc";
+            case ACCOUNTING: return "accounting";
+            case UNKNOWN:
+            default:
+                return "unknown";
         }
     }
 
