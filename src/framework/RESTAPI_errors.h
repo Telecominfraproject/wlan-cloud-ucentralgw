@@ -50,6 +50,10 @@ namespace OpenWifi::RESTAPI::Errors {
     static const std::string InvalidPassword{"Invalid password."};
     static const std::string PasswordRejected{"Password was rejected. This maybe an old password."};
     static const std::string InvalidIPRanges{"Invalid IP range specifications."};
+    static const std::string InvalidLOrderBy{"Invalid orderBy specification."};
+    static const std::string NeedMobileNumber{"You must provide at least one validated phone number."};
+    static const std::string BadMFAMethod{"MFA only supports sms or email."};
+
 }
 
 #endif //OWPROV_RESTAPI_ERRORS_H

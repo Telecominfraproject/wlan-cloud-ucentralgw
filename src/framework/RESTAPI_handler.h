@@ -25,8 +25,8 @@
 #include "Poco/NullStream.h"
 
 #include "RESTAPI/RESTAPI_SecurityObjects.h"
-#include "RESTAPI_GenericServer.h"
 #include "RESTAPI_utils.h"
+#include "RESTAPI_GenericServer.h"
 
 namespace OpenWifi {
 

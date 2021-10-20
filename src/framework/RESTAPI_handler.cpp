@@ -17,7 +17,7 @@
 #include "Poco/URI.h"
 #include "Poco/Net/OAuth20Credentials.h"
 
-#include "framework/RESTAPI_errors.h"
+#include "RESTAPI_errors.h"
 
 #ifdef	TIP_SECURITY_SERVICE
 #include "AuthService.h"

@@ -9,9 +9,9 @@
 #include <utility>
 
 #include "AuthClient.h"
+#include "RESTAPI/RESTAPI_SecurityObjects.h"
 #include "Daemon.h"
 #include "OpenAPIRequest.h"
-#include "RESTAPI/RESTAPI_SecurityObjects.h"
 
 namespace OpenWifi {
 	class AuthClient * AuthClient::instance_ = nullptr;

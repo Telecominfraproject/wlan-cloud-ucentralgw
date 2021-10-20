@@ -13,10 +13,10 @@
 #include "Poco/DateTimeFormat.h"
 
 #include "Daemon.h"
-#include "framework/RESTAPI_errors.h"
 #include "framework/RESTAPI_protocol.h"
-#include <chrono>
+#include "framework/RESTAPI_errors.h"
 #include <thread>
+#include <chrono>
 
 using namespace std::chrono_literals;
 
