@@ -11,10 +11,10 @@
 
 #include "CommandManager.h"
 #include "DeviceRegistry.h"
-#include "RESTAPI_GWobjects.h"
-#include "RESTAPI_handler.h"
+#include "RESTAPI/RESTAPI_GWobjects.h"
 #include "StorageService.h"
-#include "uCentralProtocol.h"
+#include "framework/RESTAPI_handler.h"
+#include "framework/uCentralProtocol.h"
 
 #include "Poco/JSON/Parser.h"
 

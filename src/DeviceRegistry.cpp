@@ -8,8 +8,8 @@
 
 #include "DeviceRegistry.h"
 
-#include "RESTAPI_handler.h"
 #include "WebSocketServer.h"
+#include "framework/RESTAPI_handler.h"
 
 #include "DeviceRegistry.h"
 #include "OUIServer.h"

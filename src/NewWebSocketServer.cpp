@@ -18,13 +18,13 @@
 
 #include "CommandManager.h"
 #include "Daemon.h"
-#include "KafkaManager.h"
-#include "Kafka_topics.h"
 #include "StorageService.h"
-#include "Utils.h"
-#include "WebSocketServer.h"
-#include "uCentralProtocol.h"
 #include "TelemetryStream.h"
+#include "WebSocketServer.h"
+#include "framework/KafkaManager.h"
+#include "framework/Kafka_topics.h"
+#include "framework/Utils.h"
+#include "framework/uCentralProtocol.h"
 
 namespace OpenWifi {
 

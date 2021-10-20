@@ -9,13 +9,13 @@
 #ifndef UCENTRAL_UFILEUPLOADER_H
 #define UCENTRAL_UFILEUPLOADER_H
 
-#include "SubSystemServer.h"
+#include "framework/SubSystemServer.h"
 
-#include "Poco/Net/HTTPServer.h"
 #include "Poco/Net/HTTPRequestHandler.h"
 #include "Poco/Net/HTTPRequestHandlerFactory.h"
+#include "Poco/Net/HTTPServer.h"
 #include "Poco/Net/HTTPServerRequest.h"
-#include "RESTAPI_handler.h"
+#include "framework/RESTAPI_handler.h"
 
 namespace OpenWifi {
 

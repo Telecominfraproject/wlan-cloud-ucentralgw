@@ -18,9 +18,9 @@
 #include "Poco/Data/MySQL/Connector.h"
 #endif
 
-#include "RESTAPI_GWobjects.h"
-#include "SubSystemServer.h"
-#include "Storage.h"
+#include "RESTAPI/RESTAPI_GWobjects.h"
+#include "framework/Storage.h"
+#include "framework/SubSystemServer.h"
 
 namespace OpenWifi {
 

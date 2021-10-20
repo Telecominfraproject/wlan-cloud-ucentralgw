@@ -5,9 +5,9 @@
 #ifndef UCENTRALGW_STATEPROCESSOR_H
 #define UCENTRALGW_STATEPROCESSOR_H
 
-#include <map>
 #include "Poco/JSON/Object.h"
-#include "RESTAPI_GWobjects.h"
+#include "RESTAPI/RESTAPI_GWobjects.h"
+#include <map>
 
 namespace OpenWifi {
 	class StateProcessor {

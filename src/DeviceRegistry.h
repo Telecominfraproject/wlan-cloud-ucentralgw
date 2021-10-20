@@ -11,8 +11,8 @@
 
 #include "Poco/JSON/Object.h"
 
-#include "RESTAPI_GWobjects.h"
-#include "SubSystemServer.h"
+#include "RESTAPI/RESTAPI_GWobjects.h"
+#include "framework/SubSystemServer.h"
 
 // class uCentral::WebSocket::WSConnection;
 

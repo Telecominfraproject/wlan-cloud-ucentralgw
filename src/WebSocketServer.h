@@ -15,9 +15,9 @@
 #include <ctime>
 
 #include "DeviceRegistry.h"
-#include "RESTAPI_GWobjects.h"
+#include "RESTAPI/RESTAPI_GWobjects.h"
 #include "StateProcessor.h"
-#include "SubSystemServer.h"
+#include "framework/SubSystemServer.h"
 
 #include "Poco/AutoPtr.h"
 #include "Poco/Net/WebSocket.h"

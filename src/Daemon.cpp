@@ -14,22 +14,22 @@
 
 #include "Daemon.h"
 
+#include "CentralConfig.h"
 #include "CommandManager.h"
+#include "ConfigurationValidator.h"
 #include "DeviceRegistry.h"
 #include "FileUploader.h"
-#include "RESTAPI_server.h"
-#include "StorageService.h"
-#include "WebSocketServer.h"
-#include "CentralConfig.h"
 #include "OUIServer.h"
-#include "StateProcessor.h"
-#include "Utils.h"
-#include "RESTAPI_InternalServer.h"
-#include "AuthClient.h"
-#include "StorageArchiver.h"
+#include "RESTAPI/RESTAPI_InternalServer.h"
+#include "RESTAPI/RESTAPI_server.h"
 #include "SerialNumberCache.h"
+#include "StateProcessor.h"
+#include "StorageArchiver.h"
+#include "StorageService.h"
 #include "TelemetryStream.h"
-#include "ConfigurationValidator.h"
+#include "WebSocketServer.h"
+#include "framework/AuthClient.h"
+#include "framework/Utils.h"
 
 namespace OpenWifi {
 	class Daemon *Daemon::instance_ = nullptr;

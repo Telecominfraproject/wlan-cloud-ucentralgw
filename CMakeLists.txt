@@ -55,56 +55,56 @@ include_directories(/usr/local/include  /usr/local/opt/openssl/include src inclu
 add_executable( owgw
                 build
                 src/Daemon.cpp src/Daemon.h
-                src/RESTAPI_server.cpp src/RESTAPI_server.h
+        src/RESTAPI/RESTAPI_server.cpp src/RESTAPI/RESTAPI_server.h
                 src/WebSocketServer.cpp src/WebSocketServer.h
-                src/SubSystemServer.cpp src/SubSystemServer.h
+        src/framework/SubSystemServer.cpp src/framework/SubSystemServer.h
                 src/StorageService.cpp src/StorageService.h
-                src/RESTAPI_SecurityObjects.cpp src/RESTAPI_SecurityObjects.h
+        src/RESTAPI/RESTAPI_SecurityObjects.cpp src/RESTAPI/RESTAPI_SecurityObjects.h
                 src/DeviceRegistry.cpp src/DeviceRegistry.h
-                src/RESTAPI_devices_handler.cpp src/RESTAPI_devices_handler.h
-                src/RESTAPI_device_handler.cpp src/RESTAPI_device_handler.h
-                src/RESTAPI_handler.cpp src/RESTAPI_handler.h
-                src/RESTAPI_device_commandHandler.cpp src/RESTAPI_device_commandHandler.h
-                src/RESTAPI_GWobjects.h src/RESTAPI_GWobjects.cpp
+        src/RESTAPI/RESTAPI_devices_handler.cpp src/RESTAPI/RESTAPI_devices_handler.h
+        src/RESTAPI/RESTAPI_device_handler.cpp src/RESTAPI/RESTAPI_device_handler.h
+        src/framework/RESTAPI_handler.cpp src/framework/RESTAPI_handler.h
+        src/RESTAPI/RESTAPI_device_commandHandler.cpp src/RESTAPI/RESTAPI_device_commandHandler.h
+        src/RESTAPI/RESTAPI_GWobjects.h src/RESTAPI/RESTAPI_GWobjects.cpp
                 src/CentralConfig.cpp src/CentralConfig.h
-                src/RESTAPI_default_configuration.cpp
-                src/RESTAPI_InternalServer.cpp src/RESTAPI_InternalServer.h
-                src/RESTAPI_default_configuration.h src/RESTAPI_default_configurations.cpp src/RESTAPI_default_configurations.h
-                src/RESTAPI_commands.cpp src/RESTAPI_commands.h
+        src/RESTAPI/RESTAPI_default_configuration.cpp
+        src/RESTAPI/RESTAPI_InternalServer.cpp src/RESTAPI/RESTAPI_InternalServer.h
+        src/RESTAPI/RESTAPI_default_configuration.h src/RESTAPI/RESTAPI_default_configurations.cpp src/RESTAPI/RESTAPI_default_configurations.h
+        src/RESTAPI/RESTAPI_commands.cpp src/RESTAPI/RESTAPI_commands.h
                 src/CommandManager.cpp src/CommandManager.h
-                src/RESTAPI_command.cpp src/RESTAPI_command.h
+        src/RESTAPI/RESTAPI_command.cpp src/RESTAPI/RESTAPI_command.h
                 src/FileUploader.cpp src/FileUploader.h
-                src/RESTAPI_file.cpp src/RESTAPI_file.h
-                src/RESTAPI_system_command.cpp src/RESTAPI_system_command.h
-        src/RESTAPI_blacklist.cpp src/RESTAPI_blacklist.h
-                src/Utils.h src/Utils.cpp src/storage_blacklist.cpp
-                src/storage_command.cpp src/storage_healthcheck.cpp src/storage_statistics.cpp src/storage_logs.cpp
-                src/storage_device.cpp src/storage_capabilities.cpp src/storage_defconfig.cpp
-                src/storage_tables.cpp
-                src/storage_setup.cpp
+        src/RESTAPI/RESTAPI_file.cpp src/RESTAPI/RESTAPI_file.h
+        src/framework/RESTAPI_system_command.cpp src/framework/RESTAPI_system_command.h
+        src/RESTAPI/RESTAPI_blacklist.cpp src/RESTAPI/RESTAPI_blacklist.h
+        src/framework/Utils.h src/framework/Utils.cpp src/storage/storage_blacklist.cpp
+        src/storage/storage_command.cpp src/storage/storage_healthcheck.cpp src/storage/storage_statistics.cpp src/storage/storage_logs.cpp
+        src/storage/storage_device.cpp src/storage/storage_capabilities.cpp src/storage/storage_defconfig.cpp
+        src/storage/storage_tables.cpp
+        src/framework/storage_setup.cpp
                 src/StateProcessor.cpp src/StateProcessor.h
-                src/storage_lifetime_stats.cpp src/uCentralProtocol.h src/RESTAPI_protocol.h
-                src/ALBHealthCheckServer.h src/Kafka_topics.h
+        src/storage/storage_lifetime_stats.cpp src/framework/uCentralProtocol.h src/framework/RESTAPI_protocol.h
+        src/framework/ALBHealthCheckServer.h src/framework/Kafka_topics.h
                 src/OUIServer.cpp src/OUIServer.h
-                src/RESTAPI_ouis.cpp src/RESTAPI_ouis.h
-                src/MicroService.cpp src/MicroService.h
-                src/RESTAPI_RPC.cpp src/RESTAPI_RPC.h
-                src/AuthClient.cpp src/AuthClient.h
-                src/OpenAPIRequest.cpp src/OpenAPIRequest.h
-                src/RESTAPI_utils.h src/RESTAPI_utils.cpp
+        src/RESTAPI/RESTAPI_ouis.cpp src/RESTAPI/RESTAPI_ouis.h
+        src/framework/MicroService.cpp src/framework/MicroService.h
+        src/RESTAPI/RESTAPI_RPC.cpp src/RESTAPI/RESTAPI_RPC.h
+        src/framework/AuthClient.cpp src/framework/AuthClient.h
+        src/framework/OpenAPIRequest.cpp src/framework/OpenAPIRequest.h
+        src/framework/RESTAPI_utils.h src/framework/RESTAPI_utils.cpp
                 src/StorageArchiver.cpp src/StorageArchiver.h
                 src/Dashboard.cpp src/Dashboard.h
-                src/RESTAPI_deviceDashboardHandler.cpp src/RESTAPI_deviceDashboardHandler.h
+        src/RESTAPI/RESTAPI_deviceDashboardHandler.cpp src/RESTAPI/RESTAPI_deviceDashboardHandler.h
                 src/SerialNumberCache.cpp src/SerialNumberCache.h
-                src/RESTAPI_webSocketServer.cpp src/RESTAPI_webSocketServer.h
-                src/OpenWifiTypes.h src/TelemetryStream.cpp src/TelemetryStream.h
-                src/RESTAPI_GenericServer.cpp src/RESTAPI_GenericServer.h
-                src/RESTAPI_errors.h src/RESTAPI_TelemetryWebSocket.cpp src/RESTAPI_TelemetryWebSocket.h
-                src/Storage.h
-                src/ConfigurationValidator.cpp src/ConfigurationValidator.h src/ConfigurationCache.cpp src/ConfigurationCache.h src/RESTAPI_blacklist_list.cpp src/RESTAPI_blacklist_list.h src/RESTAPI_capabilities_handler.cpp src/RESTAPI_capabilities_handler.h)
+        src/RESTAPI/RESTAPI_webSocketServer.cpp src/RESTAPI/RESTAPI_webSocketServer.h
+        src/framework/OpenWifiTypes.h src/TelemetryStream.cpp src/TelemetryStream.h
+        src/framework/RESTAPI_GenericServer.cpp src/framework/RESTAPI_GenericServer.h
+        src/framework/RESTAPI_errors.h src/RESTAPI/RESTAPI_TelemetryWebSocket.cpp src/RESTAPI/RESTAPI_TelemetryWebSocket.h
+        src/framework/Storage.h
+                src/ConfigurationValidator.cpp src/ConfigurationValidator.h src/ConfigurationCache.cpp src/ConfigurationCache.h src/RESTAPI/RESTAPI_blacklist_list.cpp src/RESTAPI/RESTAPI_blacklist_list.h src/RESTAPI/RESTAPI_capabilities_handler.cpp src/RESTAPI/RESTAPI_capabilities_handler.h)
 
 if(NOT SMALL_BUILD)
-    target_sources(owgw PUBLIC src/KafkaManager.cpp src/KafkaManager.h)
+    target_sources(owgw PUBLIC src/framework/KafkaManager.cpp src/framework/KafkaManager.h)
 endif()
 
 INSTALL(TARGETS owgw
