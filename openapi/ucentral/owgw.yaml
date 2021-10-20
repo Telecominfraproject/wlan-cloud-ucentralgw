@@ -647,6 +647,10 @@ components:
           type: array
           items:
             type: string
+            enum:
+              - dhcp-snooping
+              - wire-frames
+              - state
         uuid:
           type: string
           example:
