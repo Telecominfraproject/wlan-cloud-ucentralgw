@@ -544,7 +544,7 @@ wstest() {
 }
 
 telemetry() {
-	payload="{ \"serialNumber\" : \"$1\", \"interval\" : 2 , \"types\" : [ \"wifi-frames\", \"dhcp-snooping\" ] }"
+	payload="{ \"serialNumber\" : \"$1\", \"interval\" : 2 , \"types\" : [ \"wifi-frames\", \"dhcp-snooping\", \"state\" ] }"
 	curl  ${FLAGS} -X POST "https://${OWGW}/api/v1/device/$1/telemetry" \
 	-H "accept: application/json" \
 	-H "Authorization: Bearer ${token}" \
