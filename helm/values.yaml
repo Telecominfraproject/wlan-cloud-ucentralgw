@@ -43,9 +43,10 @@ checks:
         path: /
         port: 16102
     readiness:
-      httpGet:
-        path: /
-        port: 16102
+      exec:
+        command:
+          - /readiness_check
+      failureThreshold: 1
 
 ingresses:
   restapi:
@@ -130,8 +131,16 @@ persistence:
 public_env_variables:
   OWGW_ROOT: /owgw-data
   OWGW_CONFIG: /owgw-data
+  # Environment variables required for the readiness checks using script
+  FLAGS: "-s --connect-timeout 3"
+  # NOTE in order for readiness check to use system info you need to set READINESS_METHOD to "systeminfo" and set OWSEC to the OWSEC's REST API endpoint
+  #READINESS_METHOD: systeminfo
+  #OWSEC: gw-qa01.cicd.lab.wlan.tip.build:16001
 
-secret_env_variables: {}
+secret_env_variables:
+  # NOTE in order for readiness check to use system info method you need to override these values to the real OWSEC credentials
+  OWSEC_USERNAME: tip@ucentral.com
+  OWSEC_PASSWORD: openwifi
 
 configProperties:
   # -> Public part
