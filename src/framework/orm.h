@@ -24,7 +24,7 @@
 #include "Poco/Data/SQLite/Connector.h"
 #include "Poco/Logger.h"
 #include "Poco/StringTokenizer.h"
-#include "Storage.h"
+#include "StorageClass.h"
 
 namespace ORM {
 

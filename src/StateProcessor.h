@@ -6,7 +6,7 @@
 #define UCENTRALGW_STATEPROCESSOR_H
 
 #include "Poco/JSON/Object.h"
-#include "RESTAPI/RESTAPI_GWobjects.h"
+#include "RESTObjects//RESTAPI_GWobjects.h"
 #include <map>
 
 namespace OpenWifi {

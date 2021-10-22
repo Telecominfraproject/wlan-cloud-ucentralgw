@@ -18,14 +18,13 @@
 
 #include "CommandManager.h"
 #include "ConfigurationCache.h"
-#include "Daemon.h"
 #include "StorageService.h"
 #include "TelemetryStream.h"
 #include "WebSocketServer.h"
-#include "framework/KafkaManager.h"
-#include "framework/Kafka_topics.h"
-#include "framework/Utils.h"
-#include "framework/uCentralProtocol.h"
+#include "framework/KafkaTopics.h"
+#include "framework/uCentral_Protocol.h"
+#include "framework/MicroService.h"
+#include "Daemon.h"
 
 namespace OpenWifi {
 
@@ -120,7 +119,7 @@ namespace OpenWifi {
 			}
 
 			SerialNumber_ = CN_;
-			if(!CN_.empty() && Storage()->IsBlackListed(SerialNumber_)) {
+			if(!CN_.empty() && StorageService()->IsBlackListed(SerialNumber_)) {
 				Logger_.debug(Poco::format("CONNECTION(%s): Device %s is black listed. Disconnecting.", CId_, CN_));
 				delete this;
 				return;
@@ -213,7 +212,7 @@ namespace OpenWifi {
 			return false;
 
 		GWObjects::Device	D;
-		if(Storage()->GetDevice(SerialNumber_,D)) {
+		if(StorageService()->GetDevice(SerialNumber_,D)) {
 
 			//	This is the case where the cache is empty after a restart. So GoodConfig will 0. If the device already
 			//	has the right UUID, we just return.
@@ -225,7 +224,7 @@ namespace OpenWifi {
 			Conn_->PendingUUID = D.UUID;
 			GWObjects::CommandDetails  Cmd;
 			Cmd.SerialNumber = SerialNumber_;
-			Cmd.UUID = Daemon()->CreateUUID();
+			Cmd.UUID = MicroService::instance().CreateUUID();
 			Cmd.SubmittedBy = uCentralProtocol::SUBMITTED_BY_SYSTEM;
 			Cmd.Status = uCentralProtocol::PENDING;
 			Cmd.Command = uCentralProtocol::CONFIGURE;
@@ -245,7 +244,7 @@ namespace OpenWifi {
 			Logger_.debug(Log);
 			uint64_t RPC_Id;
 			CommandManager()->SendCommand(SerialNumber_ , Cmd.Command, Params, Cmd.UUID, RPC_Id);
-			Storage()->AddCommand(SerialNumber_, Cmd, Storage::COMMAND_EXECUTED);
+			StorageService()->AddCommand(SerialNumber_, Cmd, Storage::COMMAND_EXECUTED);
 			return true;
 		}
         return false;
@@ -315,7 +314,7 @@ namespace OpenWifi {
 			E.rethrow();
 		}
 
-		if(Storage()->IsBlackListed(Serial)) {
+		if(StorageService()->IsBlackListed(Serial)) {
 			Poco::Exception	E(Poco::format("BLACKLIST(%s): device is blacklisted and not allowed to connect.",Serial), EACCES);
 			E.rethrow();
 		}
@@ -354,12 +353,12 @@ namespace OpenWifi {
 						}
 						Conn_->VerifiedCertificate = CertValidation_;
 
-						if (Daemon()->AutoProvisioning() && !Storage()->DeviceExists(SerialNumber_)) {
-							Storage()->CreateDefaultDevice(SerialNumber_, Capabilities, Firmware, Compatible_);
-						} else if (Storage()->DeviceExists(SerialNumber_)) {
-							Storage()->UpdateDeviceCapabilities(SerialNumber_, Capabilities, Compatible_);
+						if (Daemon()->AutoProvisioning() && !StorageService()->DeviceExists(SerialNumber_)) {
+							StorageService()->CreateDefaultDevice(SerialNumber_, Capabilities, Firmware, Compatible_);
+						} else if (StorageService()->DeviceExists(SerialNumber_)) {
+							StorageService()->UpdateDeviceCapabilities(SerialNumber_, Capabilities, Compatible_);
 							if(!Firmware.empty()) {
-								Storage()->SetConnectInfo(SerialNumber_, Firmware );
+								StorageService()->SetConnectInfo(SerialNumber_, Firmware );
 							}
 						}
 						Conn_->Compatible = Compatible_;
@@ -407,9 +406,9 @@ namespace OpenWifi {
 						LookForUpgrade(UUID);
 						GWObjects::Statistics	Stats{ .SerialNumber = SerialNumber_, .UUID = UUID, .Data = State};
 						Stats.Recorded = std::time(nullptr);
-						Storage()->AddStatisticsData(Stats);
+						StorageService()->AddStatisticsData(Stats);
 						if (!request_uuid.empty()) {
-							Storage()->SetCommandResult(request_uuid, State);
+							StorageService()->SetCommandResult(request_uuid, State);
 						}
 
 						if (StatsProcessor_)
@@ -463,10 +462,10 @@ namespace OpenWifi {
 						Check.Data = CheckData;
 						Check.Sanity = Sanity;
 
-						Storage()->AddHealthCheckData(Check);
+						StorageService()->AddHealthCheckData(Check);
 
 						if (!request_uuid.empty()) {
-							Storage()->SetCommandResult(request_uuid, CheckData);
+							StorageService()->SetCommandResult(request_uuid, CheckData);
 						}
 
 						DeviceRegistry()->SetHealthcheck(Serial, Check);
@@ -508,7 +507,7 @@ namespace OpenWifi {
 														   .Recorded = (uint64_t)time(nullptr),
 														   .LogType = 0,
 														   .UUID = Conn_->UUID};
-						Storage()->AddLog(DeviceLog);
+						StorageService()->AddLog(DeviceLog);
 					} else {
 						Logger_.warning(Poco::format("LOG(%s): Missing parameters.", CId_));
 						return;
@@ -536,7 +535,7 @@ namespace OpenWifi {
 							.Recorded = (uint64_t)time(nullptr),
 							.LogType = 1,
 							.UUID = 0};
-						Storage()->AddLog(DeviceLog);
+						StorageService()->AddLog(DeviceLog);
 
 					} else {
 						Logger_.warning(Poco::format("LOG(%s): Missing parameters.", CId_));
@@ -604,7 +603,7 @@ namespace OpenWifi {
 					if (ParamsObj->has("currentPassword")) {
 						auto Password = ParamsObj->get("currentPassword").toString();
 
-						Storage()->SetDevicePassword(Serial, Password);
+						StorageService()->SetDevicePassword(Serial, Password);
 						Logger_.error(Poco::format(
 							"DEVICEUPDATE(%s): Device is updating its login password.", Serial));
 					}

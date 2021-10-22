@@ -6,7 +6,6 @@
 #include <vector>
 
 #include "OUIServer.h"
-#include "Daemon.h"
 
 #include "Poco/String.h"
 #include "Poco/StringTokenizer.h"
@@ -15,7 +14,8 @@
 #include "Poco/URI.h"
 #include "Poco/File.h"
 
-#include "framework/Utils.h"
+#include "OUIServer.h"
+#include "framework/MicroService.h"
 
 namespace OpenWifi {
 	class OUIServer * OUIServer::instance_;
@@ -39,7 +39,7 @@ namespace OpenWifi {
 	}
 
 	void OUIServer::reinitialize(Poco::Util::Application &self) {
-		Daemon()->LoadConfigurationFile();
+		MicroService::instance().LoadConfigurationFile();
 		Logger_.information("Reinitializing.");
 		Stop();
 		Start();
@@ -48,7 +48,7 @@ namespace OpenWifi {
 	bool OUIServer::GetFile(const std::string &FileName) {
 		try {
 			std::unique_ptr<std::istream> pStr(
-				Poco::URIStreamOpener::defaultOpener().open(Daemon()->ConfigGetString("oui.download.uri")));
+				Poco::URIStreamOpener::defaultOpener().open(MicroService::instance().ConfigGetString("oui.download.uri")));
 			std::ofstream OS;
 			Poco::File	F(FileName);
 			if(F.exists())
@@ -104,8 +104,8 @@ namespace OpenWifi {
 		Updating_ = true;
 
 		//	fetch data from server, if not available, just use the file we already have.
-		std::string LatestOUIFileName{ Daemon()->DataDir() + "/newOUIFile.txt"};
-		std::string CurrentOUIFileName{ Daemon()->DataDir() + "/current_oui.txt"};
+		std::string LatestOUIFileName{ MicroService::instance().DataDir() + "/newOUIFile.txt"};
+		std::string CurrentOUIFileName{ MicroService::instance().DataDir() + "/current_oui.txt"};
 
 		OUIMap TmpOUIs;
 		if(GetFile(LatestOUIFileName) && ProcessFile(LatestOUIFileName, TmpOUIs)) {

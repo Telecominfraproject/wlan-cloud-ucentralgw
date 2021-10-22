@@ -5,7 +5,7 @@
 #ifndef OWGW_RESTAPI_TELEMETRYWEBSOCKET_H
 #define OWGW_RESTAPI_TELEMETRYWEBSOCKET_H
 
-#include "framework/RESTAPI_handler.h"
+#include "framework/MicroService.h"
 
 namespace OpenWifi {
 class RESTAPI_TelemetryWebSocket : public RESTAPIHandler {

@@ -4,6 +4,7 @@
 
 #include "RESTAPI_TelemetryWebSocket.h"
 #include "Poco/Net/WebSocket.h"
+#include "Poco/Net/NetException.h"
 #include "TelemetryStream.h"
 
 namespace OpenWifi {

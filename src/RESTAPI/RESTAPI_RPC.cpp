@@ -13,7 +13,7 @@
 #include "CommandManager.h"
 #include "DeviceRegistry.h"
 #include "StorageService.h"
-#include "framework/uCentralProtocol.h"
+#include "framework/uCentral_Protocol.h"
 
 namespace OpenWifi::RESTAPI_RPC {
 	void SetCommandStatus(GWObjects::CommandDetails &Cmd,
@@ -22,7 +22,7 @@ namespace OpenWifi::RESTAPI_RPC {
 					  		 RESTAPIHandler *Handler,
 					  		 OpenWifi::Storage::CommandExecutionType Status,
 							 Poco::Logger &Logger) {
-		if (Storage()->AddCommand(Cmd.SerialNumber, Cmd, Status)) {
+		if (StorageService()->AddCommand(Cmd.SerialNumber, Cmd, Status)) {
 			Poco::JSON::Object RetObj;
 			Cmd.to_json(RetObj);
 			Handler->ReturnObject(RetObj);
@@ -80,7 +80,7 @@ namespace OpenWifi::RESTAPI_RPC {
 							}
 
 							//	Add the completed command to the database...
-							Storage()->AddCommand(Cmd.SerialNumber, Cmd,
+							StorageService()->AddCommand(Cmd.SerialNumber, Cmd,
 												  Storage::COMMAND_COMPLETED);
 
 							if (ObjectToReturn) {

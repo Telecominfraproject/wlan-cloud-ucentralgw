@@ -15,7 +15,7 @@ namespace OpenWifi {
 		Poco::JSON::Array	Arr;
 		Poco::JSON::Object	Answer;
 
-		if(Storage()->GetBlackListDevices(QB_.Offset, QB_.Limit, Devices)) {
+		if(StorageService()->GetBlackListDevices(QB_.Offset, QB_.Limit, Devices)) {
 			for(const auto &i:Devices) {
 				Poco::JSON::Object O;
 				i.to_json(O);

@@ -5,7 +5,7 @@
 #ifndef UCENTRALGW_OUISERVER_H
 #define UCENTRALGW_OUISERVER_H
 
-#include "framework/SubSystemServer.h"
+#include "framework/MicroService.h"
 
 namespace OpenWifi {
 

@@ -24,11 +24,11 @@ namespace OpenWifi {
 		}
 
 		GWObjects::BlackListedDevice	D;
-		if(!Storage()->GetBlackListDevice(SerialNumber, D)) {
+		if(!StorageService()->GetBlackListDevice(SerialNumber, D)) {
 			return NotFound();
 		}
 
-		if (Storage()->DeleteBlackListDevice(SerialNumber)) {
+		if (StorageService()->DeleteBlackListDevice(SerialNumber)) {
 			return OK();
 		}
 		BadRequest(RESTAPI::Errors::CouldNotBeDeleted);
@@ -42,7 +42,7 @@ namespace OpenWifi {
 		}
 
 		GWObjects::BlackListedDevice	D;
-		if(!Storage()->GetBlackListDevice(SerialNumber, D)) {
+		if(!StorageService()->GetBlackListDevice(SerialNumber, D)) {
 			return NotFound();
 		}
 
@@ -64,17 +64,17 @@ namespace OpenWifi {
 		}
 
 		Poco::toLowerInPlace(D.serialNumber);
-		if(Storage()->IsBlackListed(D.serialNumber)) {
+		if(StorageService()->IsBlackListed(D.serialNumber)) {
 			return BadRequest(RESTAPI::Errors::SerialNumberExists);
 		}
 
 		D.author = UserInfo_.userinfo.email;
 		D.created = std::time(nullptr);
 
-		if(Storage()->AddBlackListDevice(D)) {
+		if(StorageService()->AddBlackListDevice(D)) {
 			GWObjects::BlackListedDevice	CreatedDevice;
 
-			Storage()->GetBlackListDevice(D.serialNumber,CreatedDevice);
+			StorageService()->GetBlackListDevice(D.serialNumber,CreatedDevice);
 			Poco::JSON::Object	Answer;
 
 			CreatedDevice.to_json(Answer);
@@ -93,7 +93,7 @@ namespace OpenWifi {
 		auto Obj = ParseStream();
 
 		GWObjects::BlackListedDevice	Existing;
-		if(!Storage()->GetBlackListDevice(SerialNumber, Existing)) {
+		if(!StorageService()->GetBlackListDevice(SerialNumber, Existing)) {
 			return BadRequest(RESTAPI::Errors::InvalidJSONDocument);
 		}
 
@@ -105,10 +105,10 @@ namespace OpenWifi {
 		Existing.reason = NewDevice.reason;
 		Existing.author = UserInfo_.userinfo.email;
 
-		if(Storage()->UpdateBlackListDevice(SerialNumber, Existing)) {
+		if(StorageService()->UpdateBlackListDevice(SerialNumber, Existing)) {
 			GWObjects::BlackListedDevice	CreatedDevice;
 
-			Storage()->GetBlackListDevice(SerialNumber,CreatedDevice);
+			StorageService()->GetBlackListDevice(SerialNumber,CreatedDevice);
 			Poco::JSON::Object	Answer;
 
 			CreatedDevice.to_json(Answer);

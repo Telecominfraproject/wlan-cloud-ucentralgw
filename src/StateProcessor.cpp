@@ -121,7 +121,7 @@ namespace OpenWifi {
 		UpdatesSinceLastWrite_ = 0;
 		Stats_.clear();
 		std::string Stats;
-		if(Storage()->GetLifetimeStats(SerialNumber,Stats)) {
+		if(StorageService()->GetLifetimeStats(SerialNumber,Stats)) {
 			Add(Stats);
 			return true;
 		}
@@ -131,7 +131,7 @@ namespace OpenWifi {
 	bool StateProcessor::Save() {
 		UpdatesSinceLastWrite_ = 0;
 		std::string StatsToSave = toString();
-		return Storage()->SetLifetimeStats(SerialNumber_, StatsToSave);
+		return StorageService()->SetLifetimeStats(SerialNumber_, StatsToSave);
 	}
 
 	static int ChannelToBand(uint64_t C) {

@@ -9,14 +9,13 @@
 #ifndef UCENTRAL_UCENTRALRESTAPISERVER_H
 #define UCENTRAL_UCENTRALRESTAPISERVER_H
 
-#include "framework/SubSystemServer.h"
-
 #include "Poco/Net/HTTPRequestHandler.h"
 #include "Poco/Net/HTTPRequestHandlerFactory.h"
 #include "Poco/Net/HTTPServer.h"
 #include "Poco/Net/HTTPServerRequest.h"
 #include "Poco/Net/NetException.h"
-#include "framework/RESTAPI_GenericServer.h"
+
+#include "framework/MicroService.h"
 
 namespace OpenWifi {
 

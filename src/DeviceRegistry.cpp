@@ -6,15 +6,13 @@
 //	Arilia Wireless Inc.
 //
 
-#include "DeviceRegistry.h"
-
-#include "WebSocketServer.h"
-#include "framework/RESTAPI_handler.h"
-
-#include "DeviceRegistry.h"
-#include "OUIServer.h"
 #include "Poco/JSON/Object.h"
 #include "Poco/JSON/Parser.h"
+
+#include "DeviceRegistry.h"
+#include "WebSocketServer.h"
+#include "framework/MicroService.h"
+#include "OUIServer.h"
 
 namespace OpenWifi {
     class DeviceRegistry *DeviceRegistry::instance_ = nullptr;

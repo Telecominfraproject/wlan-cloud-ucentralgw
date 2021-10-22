@@ -6,14 +6,13 @@
 #include <mutex>
 
 #include "StorageService.h"
-#include "framework/Utils.h"
 
 namespace OpenWifi {
 
 	class SerialNumberCache * SerialNumberCache::instance_ = nullptr;
 
 	int SerialNumberCache::Start() {
-		Storage()->UpdateSerialNumberCache();
+		StorageService()->UpdateSerialNumberCache();
 		return 0;
 	}
 

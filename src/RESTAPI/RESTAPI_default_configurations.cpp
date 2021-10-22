@@ -16,7 +16,7 @@
 namespace OpenWifi {
 	void RESTAPI_default_configurations::DoGet() {
 		std::vector<GWObjects::DefaultConfiguration> DefConfigs;
-		Storage()->GetDefaultConfigurations(QB_.Offset, QB_.Limit, DefConfigs);
+		StorageService()->GetDefaultConfigurations(QB_.Offset, QB_.Limit, DefConfigs);
 
 		Poco::JSON::Array Objects;
 		for (const auto &i : DefConfigs) {

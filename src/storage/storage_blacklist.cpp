@@ -6,8 +6,9 @@
 //	Arilia Wireless Inc.
 //
 
-#include "RESTAPI/RESTAPI_GWobjects.h"
+#include "RESTObjects/RESTAPI_GWobjects.h"
 #include "StorageService.h"
+
 namespace OpenWifi {
 
 	/*

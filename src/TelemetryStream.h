@@ -7,7 +7,7 @@
 
 #include <iostream>
 
-#include "framework/SubSystemServer.h"
+#include "framework/MicroService.h"
 
 #include "Poco/Net/SocketReactor.h"
 #include "Poco/Net/ParallelSocketAcceptor.h"

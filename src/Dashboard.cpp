@@ -12,8 +12,8 @@ namespace OpenWifi {
 
 		if(LastRun_==0 || (Now-LastRun_)>120) {
 			DB_.reset();
-			Storage()->AnalyzeCommands(DB_.commands);
-			Storage()->AnalyzeDevices(DB_);
+			StorageService()->AnalyzeCommands(DB_.commands);
+			StorageService()->AnalyzeDevices(DB_);
 			LastRun_ = Now;
 		}
 	}

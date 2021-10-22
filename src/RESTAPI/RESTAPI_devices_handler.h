@@ -9,7 +9,7 @@
 #ifndef UCENTRAL_RESTAPI_DEVICESHANDLER_H
 #define UCENTRAL_RESTAPI_DEVICESHANDLER_H
 
-#include "framework/RESTAPI_handler.h"
+#include "framework/MicroService.h"
 
 namespace OpenWifi {
 	class RESTAPI_devices_handler : public RESTAPIHandler {

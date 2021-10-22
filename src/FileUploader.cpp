@@ -10,10 +10,6 @@
 #include <fstream>
 #include <cstdio>
 
-#include "Daemon.h"
-#include "FileUploader.h"
-#include "StorageService.h"
-
 #include "Poco/Net/HTTPServerParams.h"
 #include "Poco/Net/HTTPServerResponse.h"
 #include "Poco/DynamicAny.h"
@@ -24,7 +20,9 @@
 #include "Poco/StreamCopier.h"
 #include "Poco/Exception.h"
 
-#include "framework/Utils.h"
+#include "FileUploader.h"
+#include "StorageService.h"
+#include "framework/MicroService.h"
 
 namespace OpenWifi {
     class FileUploader *FileUploader::instance_ = nullptr;
@@ -34,7 +32,7 @@ namespace OpenWifi {
     int FileUploader::Start() {
         Logger_.notice("Starting.");
 
-        Poco::File UploadsDir(Daemon()->ConfigPath("openwifi.fileuploader.path","/tmp"));
+        Poco::File UploadsDir(MicroService::instance().ConfigPath("openwifi.fileuploader.path","/tmp"));
         Path_ = UploadsDir.path();
         if(!UploadsDir.exists()) {
         	try {
@@ -62,7 +60,7 @@ namespace OpenWifi {
             Params->setMaxQueued(100);
 
             if(FullName_.empty()) {
-            	std::string TmpName = Daemon()->ConfigGetString("openwifi.fileuploader.uri","");
+            	std::string TmpName = MicroService::instance().ConfigGetString("openwifi.fileuploader.uri","");
             	if(TmpName.empty()) {
             		FullName_ =
             			"https://" + Svr.Name() + ":" + std::to_string(Svr.Port()) + URI_BASE;
@@ -77,13 +75,13 @@ namespace OpenWifi {
             Servers_.push_back(std::move(NewServer));
         }
 
-        MaxSize_ = 1000 * Daemon()->ConfigGetInt("openwifi.fileuploader.maxsize", 10000);
+        MaxSize_ = 1000 * MicroService::instance().ConfigGetInt("openwifi.fileuploader.maxsize", 10000);
 
         return 0;
     }
 
 	void FileUploader::reinitialize(Poco::Util::Application &self) {
-		Daemon()->LoadConfigurationFile();
+		MicroService::instance().LoadConfigurationFile();
     	Logger_.information("Reinitializing.");
 		Stop();
 		Start();
@@ -205,12 +203,12 @@ namespace OpenWifi {
                 if (partHandler.Good()) {
 					Answer.set("filename", UUID_);
 					Answer.set("error", 0);
-					Storage()->AttachFileToCommand(UUID_);
+					StorageService()->AttachFileToCommand(UUID_);
 				} else {
 					Answer.set("filename", UUID_);
 					Answer.set("error", 13);
 					Answer.set("errorText", partHandler.Error() );
-					Storage()->CancelWaitFile(UUID_, partHandler.Error() );
+					StorageService()->CancelWaitFile(UUID_, partHandler.Error() );
 				}
 				std::ostream &ResponseStream = Response.send();
 				Poco::JSON::Stringifier::stringify(Answer, ResponseStream);

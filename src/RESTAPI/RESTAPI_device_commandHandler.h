@@ -9,7 +9,7 @@
 #ifndef UCENTRAL_RESTAPI_DEVICECOMMANDHANDLER_H
 #define UCENTRAL_RESTAPI_DEVICECOMMANDHANDLER_H
 
-#include "framework/RESTAPI_handler.h"
+#include "framework/MicroService.h"
 #include "framework/RESTAPI_protocol.h"
 
 namespace OpenWifi {

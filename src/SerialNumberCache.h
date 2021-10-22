@@ -5,7 +5,7 @@
 #ifndef UCENTRALGW_SERIALNUMBERCACHE_H
 #define UCENTRALGW_SERIALNUMBERCACHE_H
 
-#include "framework/SubSystemServer.h"
+#include "framework/MicroService.h"
 
 namespace OpenWifi {
 	class SerialNumberCache : public SubSystemServer {

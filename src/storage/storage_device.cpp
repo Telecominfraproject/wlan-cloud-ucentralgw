@@ -15,8 +15,7 @@
 #include "SerialNumberCache.h"
 #include "StateProcessor.h"
 #include "StorageService.h"
-#include "framework/RESTAPI_utils.h"
-#include "framework/Utils.h"
+#include "framework/MicroService.h"
 
 namespace OpenWifi {
 

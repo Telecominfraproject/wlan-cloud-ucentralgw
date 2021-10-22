@@ -4,8 +4,6 @@
 
 #include "RESTAPI_ouis.h"
 #include "OUIServer.h"
-#include "framework/RESTAPI_protocol.h"
-#include "framework/Utils.h"
 
 namespace OpenWifi {
 	void RESTAPI_ouis::DoGet() {

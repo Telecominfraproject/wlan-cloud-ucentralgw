@@ -12,9 +12,7 @@
 #include "RESTAPI_devices_handler.h"
 #include "StorageService.h"
 #include "framework/RESTAPI_protocol.h"
-#include "framework/Utils.h"
-
-#include "framework/Utils.h"
+#include "framework/MicroService.h"
 
 namespace OpenWifi {
 	void RESTAPI_devices_handler::DoGet() {
@@ -28,7 +26,7 @@ namespace OpenWifi {
 			std::vector<std::string> Numbers = Utils::Split(QB_.Select);
 			for (auto &i : Numbers) {
 				GWObjects::Device D;
-				if (Storage()->GetDevice(i, D)) {
+				if (StorageService()->GetDevice(i, D)) {
 					Poco::JSON::Object Obj;
 					if (deviceWithStatus)
 						D.to_json_with_status(Obj);
@@ -47,12 +45,12 @@ namespace OpenWifi {
 
 		} else if (QB_.CountOnly == true) {
 			uint64_t Count = 0;
-			if (Storage()->GetDeviceCount(Count)) {
+			if (StorageService()->GetDeviceCount(Count)) {
 				return ReturnCountOnly(Count);
 			}
 		} else if (serialOnly) {
 			std::vector<std::string> SerialNumbers;
-			Storage()->GetDeviceSerialNumbers(QB_.Offset, QB_.Limit, SerialNumbers);
+			StorageService()->GetDeviceSerialNumbers(QB_.Offset, QB_.Limit, SerialNumbers);
 			Poco::JSON::Array Objects;
 			for (const auto &i : SerialNumbers) {
 				Objects.add(i);
@@ -60,7 +58,7 @@ namespace OpenWifi {
 			RetObj.set(RESTAPI::Protocol::SERIALNUMBERS, Objects);
 		} else {
 			std::vector<GWObjects::Device> Devices;
-			Storage()->GetDevices(QB_.Offset, QB_.Limit, Devices);
+			StorageService()->GetDevices(QB_.Offset, QB_.Limit, Devices);
 			Poco::JSON::Array Objects;
 			for (const auto &i : Devices) {
 				Poco::JSON::Object Obj;

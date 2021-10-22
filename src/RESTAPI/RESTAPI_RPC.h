@@ -15,9 +15,9 @@
 #include "Poco/File.h"
 #include "Poco/JSON/Object.h"
 
-#include "RESTAPI/RESTAPI_GWobjects.h"
+#include "RESTObjects//RESTAPI_GWobjects.h"
 #include "StorageService.h"
-#include "framework/RESTAPI_handler.h"
+#include "framework/MicroService.h"
 
 namespace OpenWifi::RESTAPI_RPC {
 

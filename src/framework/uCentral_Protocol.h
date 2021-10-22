@@ -105,7 +105,7 @@ namespace OpenWifi::uCentralProtocol {
 			ET_TELEMETRY
 		};
 
-	static EVENT_MSG EventFromString(const std::string & Method) {
+	inline static EVENT_MSG EventFromString(const std::string & Method) {
 		if (!Poco::icompare(Method, CONNECT)) {
 			return ET_CONNECT;
 		} else if (!Poco::icompare(Method, STATE)) {

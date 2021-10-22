@@ -14,7 +14,7 @@
 #include "StorageService.h"
 #include "framework/RESTAPI_errors.h"
 #include "framework/RESTAPI_protocol.h"
-#include "framework/Utils.h"
+#include "framework/MicroService.h"
 
 namespace OpenWifi {
 	void RESTAPI_device_handler::DoGet() {
@@ -26,7 +26,7 @@ namespace OpenWifi {
 
 		GWObjects::Device Device;
 
-		if (Storage()->GetDevice(SerialNumber, Device)) {
+		if (StorageService()->GetDevice(SerialNumber, Device)) {
 			Poco::JSON::Object Obj;
 			Device.to_json(Obj);
 			return ReturnObject(Obj);
@@ -41,7 +41,7 @@ namespace OpenWifi {
 			return BadRequest(RESTAPI::Errors::MissingSerialNumber);
 		}
 
-		if (Storage()->DeleteDevice(SerialNumber)) {
+		if (StorageService()->DeleteDevice(SerialNumber)) {
 			return OK();
 		}
 		NotFound();
@@ -96,7 +96,7 @@ namespace OpenWifi {
 
 		Poco::toLowerInPlace(Device.SerialNumber);
 
-		if (Storage()->CreateDevice(Device)) {
+		if (StorageService()->CreateDevice(Device)) {
 			SetCurrentConfigurationID(SerialNumber, Device.UUID);
 			Poco::JSON::Object DevObj;
 			Device.to_json(DevObj);
@@ -119,7 +119,7 @@ namespace OpenWifi {
 		}
 
 		GWObjects::Device	Existing;
-		if(!Storage()->GetDevice(SerialNumber, Existing)) {
+		if(!StorageService()->GetDevice(SerialNumber, Existing)) {
 			return NotFound();
 		}
 
@@ -144,7 +144,7 @@ namespace OpenWifi {
 		}
 
 		Existing.LastConfigurationChange = std::time(nullptr);
-		if (Storage()->UpdateDevice(Existing)) {
+		if (StorageService()->UpdateDevice(Existing)) {
 			SetCurrentConfigurationID(SerialNumber, Existing.UUID);
 			Poco::JSON::Object DevObj;
 			NewDevice.to_json(DevObj);

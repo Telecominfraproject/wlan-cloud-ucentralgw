@@ -2,12 +2,12 @@
 // Created by stephane bourque on 2021-09-14.
 //
 
-#include "ConfigurationValidator.h"
-#include "Daemon.h"
 #include "Poco/Logger.h"
-#include "framework/Utils.h"
 #include <fstream>
 #include <iostream>
+
+#include "ConfigurationValidator.h"
+#include "framework/MicroService.h"
 
 namespace OpenWifi {
 
@@ -2167,7 +2167,7 @@ namespace OpenWifi {
             Validator_->set_root_schema(schema);
             Logger_.information("Using uCentral validation schema from GIT.");
         } else {
-            std::string FileName{ Daemon()->DataDir() + "/ucentral.schema.json" };
+            std::string FileName{ MicroService::instance().DataDir() + "/ucentral.schema.json" };
             try {
                 std::ifstream       input(FileName);
                 std::stringstream   schema_file;

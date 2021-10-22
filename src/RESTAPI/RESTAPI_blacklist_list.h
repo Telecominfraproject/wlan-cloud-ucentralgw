@@ -5,7 +5,7 @@
 #ifndef UCENTRALGW_RESTAPI_BLACKLIST_LIST_H
 #define UCENTRALGW_RESTAPI_BLACKLIST_LIST_H
 
-#include "framework/RESTAPI_handler.h"
+#include "framework/MicroService.h"
 
 namespace OpenWifi {
 	class RESTAPI_blacklist_list : public RESTAPIHandler {

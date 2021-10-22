@@ -16,7 +16,7 @@ namespace OpenWifi {
         std::string     name;
     };
     
-    static const std::vector<CountryInfo> CountryCodes {
+    inline static const std::vector<CountryInfo> CountryCodes {
         { .code= "US", .name= "United States" },
         { .code= "GB", .name= "United Kingdom" },
         { .code= "CA", .name= "Canada" },

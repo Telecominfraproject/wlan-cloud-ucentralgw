@@ -7,12 +7,13 @@
 //
 #include <fstream>
 
-#include "CentralConfig.h"
-#include "Daemon.h"
-
 #include "Poco/JSON/Object.h"
 #include "Poco/JSON/Parser.h"
 #include "Poco/File.h"
+
+#include "CentralConfig.h"
+#include "framework/MicroService.h"
+#include "Daemon.h"
 
 namespace OpenWifi::Config {
 
@@ -119,7 +120,7 @@ namespace OpenWifi::Config {
 })lit"};
 
 	void SetBasicConfigFile() {
-		Poco::File DefaultConfigFileName{Daemon()->DataDir()+"/default_config.json"};
+		Poco::File DefaultConfigFileName{MicroService::instance().DataDir()+"/default_config.json"};
 		DefaultConfiguration = BasicConfig;
 		std::ofstream F;
 		F.open(DefaultConfigFileName.path(),std::ios::binary);
@@ -134,7 +135,7 @@ namespace OpenWifi::Config {
 	void Config::Init() {
 		if(DefaultConfiguration.empty()) {
 			//	open the file
-			Poco::File DefaultConfigFileName{Daemon()->DataDir()+"/default_config.json"};
+			Poco::File DefaultConfigFileName{MicroService::instance().DataDir()+"/default_config.json"};
 			try {
 				if (!DefaultConfigFileName.exists()) {
 					SetBasicConfigFile();
@@ -232,7 +233,7 @@ namespace OpenWifi::Config {
         }
         catch ( const Poco::Exception & E )
         {
-            Daemon::instance()->logger().warning(Poco::format("%s: Failed with: %s", std::string(__func__) , E.displayText()));
+            Daemon()->logger().log(E);
         }
     }
 

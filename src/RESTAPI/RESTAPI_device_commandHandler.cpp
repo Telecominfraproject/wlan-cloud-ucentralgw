@@ -13,22 +13,17 @@
 #include "Poco/JSON/Parser.h"
 
 #include "CentralConfig.h"
-#include "Daemon.h"
 #include "DeviceRegistry.h"
 #include "FileUploader.h"
-#include "RESTAPI_GWobjects.h"
+#include "RESTObjects/RESTAPI_GWobjects.h"
 #include "RESTAPI_device_commandHandler.h"
 #include "StorageService.h"
-#include "framework/Utils.h"
-
 #include "RESTAPI_RPC.h"
-#include "framework/RESTAPI_protocol.h"
-#include "framework/uCentralProtocol.h"
-
 #include "CommandManager.h"
 #include "TelemetryStream.h"
-#include "framework/KafkaManager.h"
-#include "framework/Kafka_topics.h"
+#include "framework/RESTAPI_protocol.h"
+#include "framework/uCentral_Protocol.h"
+#include "framework/KafkaTopics.h"
 #include "framework/RESTAPI_errors.h"
 
 namespace OpenWifi {
@@ -106,7 +101,7 @@ namespace OpenWifi {
 
 void RESTAPI_device_commandHandler::GetCapabilities() {
 	GWObjects::Capabilities Caps;
-	if (Storage()->GetDeviceCapabilities(SerialNumber_, Caps)) {
+	if (StorageService()->GetDeviceCapabilities(SerialNumber_, Caps)) {
 		Poco::JSON::Object RetObj;
 		Caps.to_json(RetObj);
 		RetObj.set(RESTAPI::Protocol::SERIALNUMBER, SerialNumber_);
@@ -117,7 +112,7 @@ void RESTAPI_device_commandHandler::GetCapabilities() {
 
 void RESTAPI_device_commandHandler::DeleteCapabilities() {
 	Logger_.information(Poco::format("DELETE-CAPABILITIES: user=%s serial=%s", UserInfo_.userinfo.email,SerialNumber_));
-	if (Storage()->DeleteDeviceCapabilities(SerialNumber_)) {
+	if (StorageService()->DeleteDeviceCapabilities(SerialNumber_)) {
 		return OK();
 	}
 	NotFound();
@@ -126,7 +121,7 @@ void RESTAPI_device_commandHandler::DeleteCapabilities() {
 void RESTAPI_device_commandHandler::GetStatistics() {
 	if (QB_.Lifetime) {
 		std::string Stats;
-		Storage()->GetLifetimeStats(SerialNumber_, Stats);
+		StorageService()->GetLifetimeStats(SerialNumber_, Stats);
 		Poco::JSON::Parser P;
 		if (Stats.empty())
 			Stats = uCentralProtocol::EMPTY_JSON_DOC;
@@ -146,9 +141,9 @@ void RESTAPI_device_commandHandler::GetStatistics() {
 	} else {
 		std::vector<GWObjects::Statistics> Stats;
 		if (QB_.Newest) {
-			Storage()->GetNewestStatisticsData(SerialNumber_, QB_.Limit, Stats);
+			StorageService()->GetNewestStatisticsData(SerialNumber_, QB_.Limit, Stats);
 		} else {
-			Storage()->GetStatisticsData(SerialNumber_, QB_.StartDate, QB_.EndDate,
+			StorageService()->GetStatisticsData(SerialNumber_, QB_.StartDate, QB_.EndDate,
 												 QB_.Offset, QB_.Limit, Stats);
 		}
 		Poco::JSON::Array ArrayObj;
@@ -167,11 +162,11 @@ void RESTAPI_device_commandHandler::GetStatistics() {
 void RESTAPI_device_commandHandler::DeleteStatistics() {
 	Logger_.information(Poco::format("DELETE-STATISTICS: user=%s serial=%s", UserInfo_.userinfo.email,SerialNumber_));
 	if (QB_.Lifetime) {
-		if (Storage()->ResetLifetimeStats(SerialNumber_)) {
+		if (StorageService()->ResetLifetimeStats(SerialNumber_)) {
 			return OK();
 		}
 	} else {
-		if (Storage()->DeleteStatisticsData(SerialNumber_, QB_.StartDate, QB_.EndDate)) {
+		if (StorageService()->DeleteStatisticsData(SerialNumber_, QB_.StartDate, QB_.EndDate)) {
 			return OK();
 		}
 	}
@@ -205,11 +200,11 @@ void RESTAPI_device_commandHandler::Configure() {
 		auto Configuration = GetS(RESTAPI::Protocol::CONFIGURATION, Obj,uCentralProtocol::EMPTY_JSON_DOC);
 		auto When = GetWhen(Obj);
 		uint64_t NewUUID;
-		if (Storage()->UpdateDeviceConfiguration(SerialNumber_, Configuration, NewUUID)) {
+		if (StorageService()->UpdateDeviceConfiguration(SerialNumber_, Configuration, NewUUID)) {
 			GWObjects::CommandDetails Cmd;
 
 			Cmd.SerialNumber = SerialNumber_;
-			Cmd.UUID = Daemon()->CreateUUID();
+			Cmd.UUID = MicroService::instance().CreateUUID();
 			Cmd.SubmittedBy = UserInfo_.webtoken.username_;
 			Cmd.Command = uCentralProtocol::CONFIGURE;
 			Cmd.RunAt = When;
@@ -251,7 +246,7 @@ void RESTAPI_device_commandHandler::Upgrade() {
 		GWObjects::CommandDetails Cmd;
 
 		Cmd.SerialNumber = SerialNumber_;
-		Cmd.UUID = Daemon()->CreateUUID();
+		Cmd.UUID = MicroService::instance().CreateUUID();
 		Cmd.SubmittedBy = UserInfo_.webtoken.username_;
 		Cmd.Command = uCentralProtocol::UPGRADE;
 		Cmd.RunAt = When;
@@ -274,9 +269,9 @@ void RESTAPI_device_commandHandler::Upgrade() {
 void RESTAPI_device_commandHandler::GetLogs() {
 	std::vector<GWObjects::DeviceLog> Logs;
 	if (QB_.Newest) {
-		Storage()->GetNewestLogData(SerialNumber_, QB_.Limit, Logs, QB_.LogType);
+		StorageService()->GetNewestLogData(SerialNumber_, QB_.Limit, Logs, QB_.LogType);
 	} else {
-		Storage()->GetLogData(SerialNumber_, QB_.StartDate, QB_.EndDate, QB_.Offset,
+		StorageService()->GetLogData(SerialNumber_, QB_.StartDate, QB_.EndDate, QB_.Offset,
 									  QB_.Limit, Logs, QB_.LogType);
 	}
 
@@ -294,7 +289,7 @@ void RESTAPI_device_commandHandler::GetLogs() {
 
 void RESTAPI_device_commandHandler::DeleteLogs() {
 	Logger_.information(Poco::format("DELETE-LOGS: user=%s serial=%s", UserInfo_.userinfo.email,SerialNumber_));
-	if (Storage()->DeleteLogData(SerialNumber_, QB_.StartDate, QB_.EndDate,
+	if (StorageService()->DeleteLogData(SerialNumber_, QB_.StartDate, QB_.EndDate,
 										 QB_.LogType)) {
 		return OK();
 	}
@@ -315,9 +310,9 @@ void RESTAPI_device_commandHandler::GetChecks() {
 		}
 	} else {
 		if (QB_.Newest) {
-			Storage()->GetNewestHealthCheckData(SerialNumber_, QB_.Limit, Checks);
+			StorageService()->GetNewestHealthCheckData(SerialNumber_, QB_.Limit, Checks);
 		} else {
-			Storage()->GetHealthCheckData(SerialNumber_, QB_.StartDate, QB_.EndDate,
+			StorageService()->GetHealthCheckData(SerialNumber_, QB_.StartDate, QB_.EndDate,
 												  QB_.Offset, QB_.Limit, Checks);
 		}
 
@@ -337,7 +332,7 @@ void RESTAPI_device_commandHandler::GetChecks() {
 
 void RESTAPI_device_commandHandler::DeleteChecks() {
 	Logger_.information(Poco::format("DELETE-HEALTHCHECKS: user=%s serial=%s", UserInfo_.userinfo.email,SerialNumber_));
-	if (Storage()->DeleteHealthCheckData(SerialNumber_, QB_.StartDate, QB_.EndDate)) {
+	if (StorageService()->DeleteHealthCheckData(SerialNumber_, QB_.StartDate, QB_.EndDate)) {
 		return OK();
 	}
 	BadRequest(RESTAPI::Errors::NoRecordsDeleted);
@@ -362,7 +357,7 @@ void RESTAPI_device_commandHandler::ExecuteCommand() {
 		GWObjects::CommandDetails Cmd;
 
 		Cmd.SerialNumber = SerialNumber_;
-		Cmd.UUID = Daemon()->CreateUUID();
+		Cmd.UUID = MicroService::instance().CreateUUID();
 		Cmd.SubmittedBy = UserInfo_.webtoken.username_;
 		Cmd.Command = Command;
 		Cmd.Custom = 1;
@@ -402,7 +397,7 @@ void RESTAPI_device_commandHandler::Reboot() {
 		uint64_t When = GetWhen(Obj);
 		GWObjects::CommandDetails Cmd;
 		Cmd.SerialNumber = SerialNumber_;
-		Cmd.UUID = Daemon()->CreateUUID();
+		Cmd.UUID = MicroService::instance().CreateUUID();
 		Cmd.SubmittedBy = UserInfo_.webtoken.username_;
 		Cmd.Command = uCentralProtocol::REBOOT;
 		Cmd.RunAt = When;
@@ -439,7 +434,7 @@ void RESTAPI_device_commandHandler::Factory() {
 		GWObjects::CommandDetails Cmd;
 
 		Cmd.SerialNumber = SerialNumber_;
-		Cmd.UUID = Daemon()->CreateUUID();
+		Cmd.UUID = MicroService::instance().CreateUUID();
 		Cmd.SubmittedBy = UserInfo_.webtoken.username_;
 		Cmd.Command = uCentralProtocol::FACTORY;
 		Cmd.RunAt = When;
@@ -485,7 +480,7 @@ void RESTAPI_device_commandHandler::LEDs() {
 		GWObjects::CommandDetails Cmd;
 
 		Cmd.SerialNumber = SerialNumber_;
-		Cmd.UUID = Daemon()->CreateUUID();
+		Cmd.UUID = MicroService::instance().CreateUUID();
 		Cmd.SubmittedBy = UserInfo_.webtoken.username_;
 		Cmd.Command = uCentralProtocol::LEDS;
 		Cmd.RunAt = When;
@@ -524,7 +519,7 @@ void RESTAPI_device_commandHandler::Trace() {
 
 		auto Network = GetS(RESTAPI::Protocol::NETWORK, Obj);
 		auto Interface = GetS(RESTAPI::Protocol::INTERFACE, Obj);
-		auto UUID = Daemon()->CreateUUID();
+		auto UUID = MicroService::instance().CreateUUID();
 		auto URI = FileUploader()->FullName() + UUID;
 
 		GWObjects::CommandDetails Cmd;
@@ -572,7 +567,7 @@ void RESTAPI_device_commandHandler::WifiScan() {
 		 (!Obj->has(RESTAPI::Protocol::BANDS) &&
 		  !Obj->has(RESTAPI::Protocol::CHANNELS)))) {
 		bool Verbose = GetB(RESTAPI::Protocol::VERBOSE, Obj);
-		auto UUID = Daemon()->CreateUUID();
+		auto UUID = MicroService::instance().CreateUUID();
 		GWObjects::CommandDetails Cmd;
 
 		Cmd.SerialNumber = SerialNumber_;
@@ -623,7 +618,7 @@ void RESTAPI_device_commandHandler::EventQueue() {
 
 		auto Types = Obj->getArray(RESTAPI::Protocol::TYPES);
 
-		auto UUID = Daemon()->CreateUUID();
+		auto UUID = MicroService::instance().CreateUUID();
 		GWObjects::CommandDetails Cmd;
 
 		Cmd.SerialNumber = SerialNumber_;
@@ -669,7 +664,7 @@ void RESTAPI_device_commandHandler::MakeRequest() {
 
 		Cmd.SerialNumber = SerialNumber_;
 		Cmd.SubmittedBy = UserInfo_.webtoken.username_;
-		Cmd.UUID = Daemon()->CreateUUID();
+		Cmd.UUID = MicroService::instance().CreateUUID();
 		Cmd.Command = uCentralProtocol::REQUEST;
 		Cmd.RunAt = When;
 
@@ -691,21 +686,21 @@ void RESTAPI_device_commandHandler::MakeRequest() {
 
 	void RESTAPI_device_commandHandler::Rtty() {
 		Logger_.information(Poco::format("RTTY: user=%s serial=%s", UserInfo_.userinfo.email,SerialNumber_));
-		if (Daemon()->ConfigGetString("rtty.enabled", "false") == "true") {
+		if (MicroService::instance().ConfigGetString("rtty.enabled", "false") == "true") {
 			GWObjects::Device	Device;
-			if (Storage()->GetDevice(SerialNumber_, Device)) {
-				auto CommandUUID = Daemon::instance()->CreateUUID();
+			if (StorageService()->GetDevice(SerialNumber_, Device)) {
+				auto CommandUUID = MicroService::instance().CreateUUID();
 
 				GWObjects::RttySessionDetails Rtty{
 					.SerialNumber = SerialNumber_,
-					.Server = Daemon()->ConfigGetString("rtty.server", "localhost"),
-					.Port = Daemon()->ConfigGetInt("rtty.port", 5912),
-					.Token = Daemon()->ConfigGetString("rtty.token", "nothing"),
-					.TimeOut = Daemon()->ConfigGetInt("rtty.timeout", 60),
+					.Server = MicroService::instance().ConfigGetString("rtty.server", "localhost"),
+					.Port = MicroService::instance().ConfigGetInt("rtty.port", 5912),
+					.Token = MicroService::instance().ConfigGetString("rtty.token", "nothing"),
+					.TimeOut = MicroService::instance().ConfigGetInt("rtty.timeout", 60),
 					.ConnectionId = CommandUUID,
 					.Started = (uint64_t)time(nullptr),
 					.CommandUUID = CommandUUID,
-					.ViewPort = Daemon()->ConfigGetInt("rtty.viewport", 5913),
+					.ViewPort = MicroService::instance().ConfigGetInt("rtty.viewport", 5913),
 
 				};
 
@@ -754,7 +749,7 @@ void RESTAPI_device_commandHandler::MakeRequest() {
 			}
 
 			GWObjects::Device Device;
-			if (!Storage()->GetDevice(SerialNumber_, Device)) {
+			if (!StorageService()->GetDevice(SerialNumber_, Device)) {
 				return NotFound();
 			}
 

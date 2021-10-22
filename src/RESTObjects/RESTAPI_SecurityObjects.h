@@ -10,7 +10,7 @@
 #define UCENTRAL_RESTAPI_SECURITYOBJECTS_H
 
 #include "Poco/JSON/Object.h"
-#include "framework/OpenWifiTypes.h"
+#include "../framework/OpenWifiTypes.h"
 
 namespace OpenWifi::SecurityObjects {
 

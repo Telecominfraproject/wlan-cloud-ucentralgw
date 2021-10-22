@@ -7,61 +7,27 @@
 //
 
 #include "StorageService.h"
-#include "Daemon.h"
 #include "DeviceRegistry.h"
 #include "Poco/Util/Application.h"
-#include "framework/Utils.h"
 
 namespace OpenWifi {
 
 	class Storage *Storage::instance_ = nullptr;
 
-	std::string Storage::ConvertParams(const std::string & S) const {
-
-		if(dbType_!=pgsql)
-			return S;
-
-		std::string R;
-		R.reserve(S.size()*2+1);
-		auto Idx=1;
-		for(auto const & i:S)
-		{
-			if(i=='?') {
-				R += '$';
-				R.append(std::to_string(Idx++));
-			} else {
-				R += i;
-			}
-		}
-		return R;
-	}
-
     int Storage::Start() {
 		std::lock_guard		Guard(Mutex_);
-
-		Logger_.setLevel(Poco::Message::PRIO_NOTICE);
-        Logger_.notice("Starting.");
-        std::string DBType = Daemon()->ConfigGetString("storage.type");
-
-        if (DBType == "sqlite") {
-            Setup_SQLite();
-        } else if (DBType == "postgresql") {
-            Setup_PostgreSQL();
-        } else if (DBType == "mysql") {
-            Setup_MySQL();
-        } else {
-
-		}
+		StorageClass::Start();
 
 		Create_Tables();
-
         InitCapabilitiesCache();
 
 		return 0;
     }
 
     void Storage::Stop() {
+    	std::lock_guard		Guard(Mutex_);
         Logger_.notice("Stopping.");
+		StorageClass::Stop();
     }
 }
 // namespace

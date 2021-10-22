@@ -19,8 +19,8 @@
 #include "Poco/Net/HTTPServerRequest.h"
 #include "Poco/Net/HTTPServerResponse.h"
 
-#include "RESTAPI/RESTAPI_GWobjects.h"
-#include "framework/SubSystemServer.h"
+#include "RESTObjects//RESTAPI_GWobjects.h"
+#include "framework/MicroService.h"
 
 namespace OpenWifi {
 

@@ -10,16 +10,15 @@
 #include "StorageService.h"
 #include "framework/RESTAPI_errors.h"
 #include "framework/RESTAPI_protocol.h"
-#include "framework/Utils.h"
 
 namespace OpenWifi {
 	void RESTAPI_commands::DoGet() {
 		auto SerialNumber = GetParameter(RESTAPI::Protocol::SERIALNUMBER, "");
 		std::vector<GWObjects::CommandDetails> Commands;
 		if (QB_.Newest) {
-			Storage()->GetNewestCommands(SerialNumber, QB_.Limit, Commands);
+			StorageService()->GetNewestCommands(SerialNumber, QB_.Limit, Commands);
 		} else {
-			Storage()->GetCommands(SerialNumber, QB_.StartDate, QB_.EndDate, QB_.Offset, QB_.Limit,
+			StorageService()->GetCommands(SerialNumber, QB_.StartDate, QB_.EndDate, QB_.Offset, QB_.Limit,
 								   Commands);
 		}
 		Poco::JSON::Array ArrayObj;
@@ -39,7 +38,7 @@ namespace OpenWifi {
 		if(SerialNumber.empty()) {
 			return BadRequest(RESTAPI::Errors::MissingSerialNumber);
 		}
-		if (Storage()->DeleteCommands(SerialNumber, QB_.StartDate, QB_.EndDate)) {
+		if (StorageService()->DeleteCommands(SerialNumber, QB_.StartDate, QB_.EndDate)) {
 			return OK();
 		}
 		InternalError();

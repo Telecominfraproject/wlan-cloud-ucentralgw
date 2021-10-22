@@ -2,17 +2,15 @@
 // Created by stephane bourque on 2021-08-12.
 //
 
-#include "RESTAPI_webSocketServer.h"
 #include "Poco/Net/WebSocket.h"
+#include "Poco/Net/NetException.h"
 #include "Poco/Net/HTTPResponse.h"
 #include "Poco/JSON/Object.h"
 #include "Poco/JSON/Parser.h"
 #include "Poco/JSON/Stringifier.h"
-
+#include "RESTAPI_webSocketServer.h"
 #include "SerialNumberCache.h"
-
-#include "framework/AuthClient.h"
-#include "framework/Utils.h"
+#include "framework/MicroService.h"
 
 namespace OpenWifi {
 

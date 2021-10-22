@@ -9,7 +9,7 @@
 #ifndef UCENTRAL_RESTAPI_DEFAULT_CONFIGURATION_H
 #define UCENTRAL_RESTAPI_DEFAULT_CONFIGURATION_H
 
-#include "framework/RESTAPI_handler.h"
+#include "framework/MicroService.h"
 
 namespace OpenWifi {
 class RESTAPI_default_configuration : public RESTAPIHandler {

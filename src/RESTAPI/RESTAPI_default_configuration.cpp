@@ -10,7 +10,7 @@
 
 #include "RESTAPI_default_configuration.h"
 
-#include "RESTAPI_GWobjects.h"
+#include "RESTObjects/RESTAPI_GWobjects.h"
 #include "StorageService.h"
 #include "framework/RESTAPI_errors.h"
 #include "framework/RESTAPI_protocol.h"
@@ -19,7 +19,7 @@ namespace OpenWifi {
 	void RESTAPI_default_configuration::DoGet() {
 		std::string Name = GetBinding(RESTAPI::Protocol::NAME, "");
 		GWObjects::DefaultConfiguration DefConfig;
-		if (Storage()->GetDefaultConfiguration(Name, DefConfig)) {
+		if (StorageService()->GetDefaultConfiguration(Name, DefConfig)) {
 			Poco::JSON::Object Obj;
 			DefConfig.to_json(Obj);
 			return ReturnObject(Obj);
@@ -33,7 +33,7 @@ namespace OpenWifi {
 			return BadRequest(RESTAPI::Errors::MissingOrInvalidParameters);
 		}
 
-		if (Storage()->DeleteDefaultConfiguration(Name)) {
+		if (StorageService()->DeleteDefaultConfiguration(Name)) {
 			return OK();
 		}
 		BadRequest(RESTAPI::Errors::CouldNotBeDeleted);
@@ -52,7 +52,7 @@ namespace OpenWifi {
 			return BadRequest(RESTAPI::Errors::InvalidJSONDocument);
 		}
 
-		if (Storage()->CreateDefaultConfiguration(Name, DefConfig)) {
+		if (StorageService()->CreateDefaultConfiguration(Name, DefConfig)) {
 			return OK();
 		}
 		BadRequest(RESTAPI::Errors::RecordNotCreated);
@@ -68,7 +68,7 @@ namespace OpenWifi {
 			return BadRequest(RESTAPI::Errors::InvalidJSONDocument);
 		}
 
-		if (Storage()->UpdateDefaultConfiguration(Name, DefConfig)) {
+		if (StorageService()->UpdateDefaultConfiguration(Name, DefConfig)) {
 			return OK();
 		}
 		BadRequest(RESTAPI::Errors::RecordNotUpdated);

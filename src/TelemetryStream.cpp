@@ -3,8 +3,6 @@
 //
 #include <thread>
 
-#include "Daemon.h"
-#include "DeviceRegistry.h"
 #include "Poco/JSON/Array.h"
 #include "Poco/Net/HTTPHeaderStream.h"
 #include "Poco/Net/HTTPServer.h"
@@ -19,9 +17,11 @@
 #include "Poco/Net/WebSocket.h"
 #include "Poco/URI.h"
 #include "Poco/zlib.h"
+
+#include "DeviceRegistry.h"
 #include "RESTAPI/RESTAPI_TelemetryWebSocket.h"
 #include "TelemetryStream.h"
-#include "framework/Utils.h"
+#include "framework/MicroService.h"
 
 namespace OpenWifi {
 
@@ -40,9 +40,9 @@ namespace OpenWifi {
 	bool TelemetryStream::CreateEndpoint(const std::string &SerialNumber, std::string &EndPoint, std::string &UUID) {
 		std::lock_guard	G(Mutex_);
 
-		Poco::URI	Public(Daemon()->ConfigGetString("openwifi.system.uri.public"));
+		Poco::URI	Public(MicroService::instance().ConfigGetString("openwifi.system.uri.public"));
 		Poco::URI	U;
-		UUID = Daemon()->CreateUUID();
+		UUID = MicroService::instance().CreateUUID();
 		U.setScheme("wss");
 		U.setHost(Public.getHost());
 		U.setPort(Public.getPort());

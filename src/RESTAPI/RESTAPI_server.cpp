@@ -22,12 +22,11 @@
 #include "RESTAPI/RESTAPI_devices_handler.h"
 #include "RESTAPI/RESTAPI_file.h"
 #include "RESTAPI/RESTAPI_ouis.h"
-#include "framework/RESTAPI_system_command.h"
 
 #include "RESTAPI/RESTAPI_capabilities_handler.h"
 #include "RESTAPI_TelemetryWebSocket.h"
 #include "RESTAPI_webSocketServer.h"
-#include "framework/Utils.h"
+#include "framework/MicroService.h"
 
 namespace OpenWifi {
 
@@ -60,7 +59,7 @@ namespace OpenWifi {
     }
 
 	void RESTAPI_server::reinitialize(Poco::Util::Application &self) {
-    	Daemon()->LoadConfigurationFile();
+    	MicroService::instance().LoadConfigurationFile();
     	Logger_.information("Reinitializing.");
     	Stop();
     	Start();

@@ -6,9 +6,7 @@
 
 #include "StorageArchiver.h"
 #include "StorageService.h"
-
-#include "Daemon.h"
-#include "framework/Utils.h"
+#include "framework/MicroService.h"
 
 namespace OpenWifi {
 
@@ -30,19 +28,19 @@ namespace OpenWifi {
 					for(const auto &i:DBs_) {
 						if (!Poco::icompare(i.DBName, "healthchecks")) {
 							Logger_.information("Archiving HealthChecks...");
-							Storage()->RemoveHealthChecksRecordsOlderThan(
+							StorageService()->RemoveHealthChecksRecordsOlderThan(
 								std::time(nullptr) - (i.HowManyDays * 24 * 60 * 60));
 						} else if (!Poco::icompare(i.DBName, "statistics")) {
 							Logger_.information("Archiving Statistics...");
-							Storage()->RemoveStatisticsRecordsOlderThan(
+							StorageService()->RemoveStatisticsRecordsOlderThan(
 								std::time(nullptr) - (i.HowManyDays * 24 * 60 * 60));
 						} else if (!Poco::icompare(i.DBName, "devicelogs")) {
 							Logger_.information("Archiving Device Logs...");
-							Storage()->RemoveDeviceLogsRecordsOlderThan(
+							StorageService()->RemoveDeviceLogsRecordsOlderThan(
 								std::time(nullptr) - (i.HowManyDays * 24 * 60 * 60));
 						} else if (!Poco::icompare(i.DBName, "commandlist")) {
 							Logger_.information("Archiving Command History...");
-							Storage()->RemoveCommandListRecordsOlderThan(
+							StorageService()->RemoveCommandListRecordsOlderThan(
 								std::time(nullptr) - (i.HowManyDays * 24 * 60 * 60));
 						} else {
 						}
@@ -87,26 +85,26 @@ namespace OpenWifi {
 
 	int StorageArchiver::Start() {
 
-		Enabled_ = Daemon()->ConfigGetBool("archiver.enabled",false);
+		Enabled_ = MicroService::instance().ConfigGetBool("archiver.enabled",false);
 
 		if(!Enabled_) {
 			Logger_.information("Archiver is disabled.");
 			return 0;
 		}
 
-		auto Schedule = Daemon()->ConfigGetString("archiver.schedule","03:00");
+		auto Schedule = MicroService::instance().ConfigGetString("archiver.schedule","03:00");
 		Types::StringVec S = Utils::Split(Schedule,':');
 		RunAtHour_ = std::atoi(S[0].c_str());
 		RunAtMin_ = std::atoi(S[1].c_str());
 
 		for(int i=0;i<20;i++) {
 			std::string key = "archiver.db." + std::to_string(i) + ".name";
-			auto DBName = Daemon()->ConfigGetString(key,"");
+			auto DBName = MicroService::instance().ConfigGetString(key,"");
 			if(!DBName.empty()) {
 				for(auto const &DB:AllInternalDBNames) {
 					if(Poco::icompare(DBName,DB)==0) {
 						std::string Key = "archiver.db." + std::to_string(i) + ".keep";
-						auto Keep = Daemon()->ConfigGetInt(Key,7);
+						auto Keep = MicroService::instance().ConfigGetInt(Key,7);
 						DBs_.push_back(ArchiverDBEntry{
 							.DBName = DB,
 							.HowManyDays = Keep
@@ -115,7 +113,7 @@ namespace OpenWifi {
 				}
 			}
 		}
-		LastRunFileName_ = Daemon()->DataDir() + "/archiver_lastrun.txt";
+		LastRunFileName_ = MicroService::instance().DataDir() + "/archiver_lastrun.txt";
 		Janitor_.start(*this);
 		return 0;
 	}

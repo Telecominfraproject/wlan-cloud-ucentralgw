@@ -5,7 +5,7 @@
 #ifndef UCENTRALGW_DASHBOARD_H
 #define UCENTRALGW_DASHBOARD_H
 
-#include "RESTAPI/RESTAPI_GWobjects.h"
+#include "RESTObjects//RESTAPI_GWobjects.h"
 #include "framework/OpenWifiTypes.h"
 
 namespace OpenWifi {

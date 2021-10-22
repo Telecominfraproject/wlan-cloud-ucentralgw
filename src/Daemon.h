@@ -44,7 +44,7 @@ namespace OpenWifi {
 							const std::string & ConfigEnv,
 							const std::string & AppName,
 						  	uint64_t 	BusTimer,
-							const Types::SubSystemVec & SubSystems) :
+							const SubSystemVec & SubSystems) :
 				MicroService( PropFile, RootEnv, ConfigEnv, AppName, BusTimer, SubSystems) {};
 
 			bool AutoProvisioning() const { return AutoProvisioning_ ; }

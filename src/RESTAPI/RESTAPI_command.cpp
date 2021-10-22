@@ -16,7 +16,7 @@ namespace OpenWifi {
 	void RESTAPI_command::DoGet() {
 		auto CommandUUID = GetBinding(RESTAPI::Protocol::COMMANDUUID, "");
 		GWObjects::CommandDetails Command;
-		if (Storage()->GetCommand(CommandUUID, Command)) {
+		if (StorageService()->GetCommand(CommandUUID, Command)) {
 			Poco::JSON::Object RetObj;
 			Command.to_json(RetObj);
 			return ReturnObject(RetObj);
@@ -32,11 +32,11 @@ namespace OpenWifi {
 		}
 
 		GWObjects::CommandDetails	C;
-		if(!Storage()->GetCommand(UUID, C)) {
+		if(!StorageService()->GetCommand(UUID, C)) {
 			return NotFound();
 		}
 
-		if (Storage()->DeleteCommand(UUID)) {
+		if (StorageService()->DeleteCommand(UUID)) {
 			return OK();
 		}
 		return InternalError();

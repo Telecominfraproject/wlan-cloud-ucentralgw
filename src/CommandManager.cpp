@@ -6,17 +6,17 @@
 //	Arilia Wireless Inc.
 //
 
-#include "CommandManager.h"
 #include <algorithm>
+
+#include "Poco/JSON/Parser.h"
 
 #include "CommandManager.h"
 #include "DeviceRegistry.h"
-#include "RESTAPI/RESTAPI_GWobjects.h"
+#include "RESTObjects//RESTAPI_GWobjects.h"
 #include "StorageService.h"
-#include "framework/RESTAPI_handler.h"
-#include "framework/uCentralProtocol.h"
+#include "framework/MicroService.h"
+#include "framework/uCentral_Protocol.h"
 
-#include "Poco/JSON/Parser.h"
 
 namespace OpenWifi {
 
@@ -31,7 +31,7 @@ namespace OpenWifi {
 				break;
 
             std::vector<GWObjects::CommandDetails> Commands;
-            if(Storage()->GetReadyToExecuteCommands(1,200,Commands))
+            if(StorageService()->GetReadyToExecuteCommands(1,200,Commands))
             {
                 for(auto & Cmd: Commands)
                 {
@@ -47,7 +47,7 @@ namespace OpenWifi {
 									*Params,
 									Cmd.UUID,
 									RPC_Id)) {
-						Storage()->SetCommandExecuted(Cmd.UUID);
+						StorageService()->SetCommandExecuted(Cmd.UUID);
 						Logger_.information(Poco::format("Sent command '%s' to '%s'",Cmd.Command,Cmd.SerialNumber));
 					} else {
                         Logger_.information(Poco::format("Failed to send command '%s' to %s",Cmd.Command,Cmd.SerialNumber));
@@ -155,7 +155,7 @@ namespace OpenWifi {
 		RPC->second.Result = Obj;
 		Logger_.information(Poco::format("(%s): Received RPC answer %lu", SerialNumber, ID));
 		G.unlock();
-		Storage()->CommandCompleted(RPC->second.UUID, Obj, true);
+		StorageService()->CommandCompleted(RPC->second.UUID, Obj, true);
 	}
 
 }  // namespace

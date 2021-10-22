@@ -28,8 +28,7 @@
 #include "StorageService.h"
 #include "TelemetryStream.h"
 #include "WebSocketServer.h"
-#include "framework/AuthClient.h"
-#include "framework/Utils.h"
+#include "framework/MicroService.h"
 
 namespace OpenWifi {
 	class Daemon *Daemon::instance_ = nullptr;
@@ -41,8 +40,8 @@ namespace OpenWifi {
 								   vDAEMON_CONFIG_ENV_VAR,
 								   vDAEMON_APP_NAME,
 								   vDAEMON_BUS_TIMER,
-								   Types::SubSystemVec{
-									   Storage(),
+								   SubSystemVec{
+									   StorageService(),
 									   SerialNumberCache(),
 									   ConfigurationValidator(),
 									   AuthClient(),

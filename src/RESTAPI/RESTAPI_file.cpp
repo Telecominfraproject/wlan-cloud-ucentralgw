@@ -25,7 +25,7 @@ namespace OpenWifi {
 		Poco::File DownloadFile(FileUploader()->Path() + "/" + UUID);
 
 		std::string FileType;
-		if (!Storage()->GetAttachedFile(UUID, SerialNumber, DownloadFile.path(), FileType)) {
+		if (!StorageService()->GetAttachedFile(UUID, SerialNumber, DownloadFile.path(), FileType)) {
 			return NotFound();
 		}
 		SendFile(DownloadFile, UUID);
@@ -39,7 +39,7 @@ namespace OpenWifi {
 			return BadRequest(RESTAPI::Errors::MissingUUID);
 		}
 
-		if (Storage()->RemoveAttachedFile(UUID)) {
+		if (StorageService()->RemoveAttachedFile(UUID)) {
 			return OK();
 		}
 		BadRequest(RESTAPI::Errors::CouldNotBeDeleted);
