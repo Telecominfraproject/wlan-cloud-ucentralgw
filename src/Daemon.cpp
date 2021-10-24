@@ -10,20 +10,15 @@
 #include "Poco/Util/Application.h"
 #include "Poco/Util/Option.h"
 #include "Poco/Environment.h"
-#include "Poco/Net/HTTPStreamFactory.h"
 
 #include "Daemon.h"
-
 #include "CentralConfig.h"
 #include "CommandManager.h"
 #include "ConfigurationValidator.h"
 #include "DeviceRegistry.h"
 #include "FileUploader.h"
 #include "OUIServer.h"
-#include "RESTAPI/RESTAPI_InternalServer.h"
-#include "RESTAPI/RESTAPI_server.h"
 #include "SerialNumberCache.h"
-#include "StateProcessor.h"
 #include "StorageArchiver.h"
 #include "StorageService.h"
 #include "TelemetryStream.h"
@@ -44,10 +39,7 @@ namespace OpenWifi {
 									   StorageService(),
 									   SerialNumberCache(),
 									   ConfigurationValidator(),
-									   AuthClient(),
 									   DeviceRegistry(),
-									   RESTAPI_server(),
-									   RESTAPI_InternalServer(),
 									   WebSocketServer(),
 									   CommandManager(),
 									   FileUploader(),
@@ -59,7 +51,7 @@ namespace OpenWifi {
 		return instance_;
 	}
 
-	void Daemon::initialize(Poco::Util::Application &self) {
+	void Daemon::initialize() {
 		MicroService::initialize(*this);
 		Config::Config::Init();
         AutoProvisioning_ = config().getBool("openwifi.autoprovisioning",false);
@@ -86,6 +78,10 @@ namespace OpenWifi {
 			}
         }
     }
+
+    void MicroServicePostInitialization() {
+		Daemon()->initialize();
+	}
 
     [[nodiscard]] std::string Daemon::IdentifyDevice(const std::string & Id ) const {
         for(const auto &[Type,List]:DeviceTypeIdentifications_)

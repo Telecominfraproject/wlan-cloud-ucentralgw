@@ -2097,6 +2097,182 @@ namespace OpenWifi {
 	inline ALBHealthCheckServer * ALBHealthCheckServer() { return ALBHealthCheckServer::instance(); }
 	inline class ALBHealthCheckServer * ALBHealthCheckServer::instance_ = nullptr;
 
+	Poco::Net::HTTPRequestHandler * RESTAPI_external_server(const char *Path, RESTAPIHandler::BindingMap &Bindings,
+                                           Poco::Logger & L, RESTAPI_GenericServer & S);
+
+	Poco::Net::HTTPRequestHandler * RESTAPI_internal_server(const char *Path, RESTAPIHandler::BindingMap &Bindings,
+                                                            Poco::Logger & L, RESTAPI_GenericServer & S);
+
+
+	class RESTAPI_server : public SubSystemServer {
+	public:
+	    static RESTAPI_server *instance() {
+	        if (instance_ == nullptr) {
+	            instance_ = new RESTAPI_server;
+	        }
+	        return instance_;
+	    }
+	    int Start() override;
+	    inline void Stop() override {
+	        Logger_.information("Stopping ");
+	        for( const auto & svr : RESTServers_ )
+	            svr->stop();
+	        RESTServers_.clear();
+
+	    }
+	    inline void reinitialize(Poco::Util::Application &self) override;
+
+	    inline Poco::Net::HTTPRequestHandler *CallServer(const char *Path) {
+	        RESTAPIHandler::BindingMap Bindings;
+	        return RESTAPI_external_server(Path, Bindings, Logger_, Server_);
+	    }
+
+	private:
+	    static RESTAPI_server *instance_;
+	    std::vector<std::unique_ptr<Poco::Net::HTTPServer>>   RESTServers_;
+	    Poco::ThreadPool	    Pool_;
+	    RESTAPI_GenericServer   Server_;
+
+	    RESTAPI_server() noexcept:
+	    SubSystemServer("RESTAPIServer", "RESTAPIServer", "openwifi.restapi")
+            {
+            }
+	};
+
+	inline RESTAPI_server * RESTAPI_server() { return RESTAPI_server::instance(); };
+
+	class RequestHandlerFactory : public Poco::Net::HTTPRequestHandlerFactory {
+	public:
+	    RequestHandlerFactory(RESTAPI_GenericServer & Server) :
+	    Logger_(RESTAPI_server::instance()->Logger()),
+	    Server_(Server)
+	    {
+
+	    }
+
+	    inline Poco::Net::HTTPRequestHandler *createRequestHandler(const Poco::Net::HTTPServerRequest &Request) override {
+	        Poco::URI uri(Request.getURI());
+	        auto *Path = uri.getPath().c_str();
+	        return RESTAPI_server()->CallServer(Path);
+	    }
+
+	private:
+	    Poco::Logger            &Logger_;
+	    RESTAPI_GenericServer   &Server_;
+	};
+
+
+	inline class RESTAPI_server *RESTAPI_server::instance_ = nullptr;
+
+	inline int RESTAPI_server::Start() {
+	    Logger_.information("Starting.");
+	    Server_.InitLogging();
+
+	    for(const auto & Svr: ConfigServersList_) {
+	        Logger_.information(Poco::format("Starting: %s:%s Keyfile:%s CertFile: %s", Svr.Address(), std::to_string(Svr.Port()),
+                                             Svr.KeyFile(),Svr.CertFile()));
+
+	        auto Sock{Svr.CreateSecureSocket(Logger_)};
+
+	        Svr.LogCert(Logger_);
+	        if(!Svr.RootCA().empty())
+	            Svr.LogCas(Logger_);
+
+	        auto Params = new Poco::Net::HTTPServerParams;
+	        Params->setMaxThreads(50);
+	        Params->setMaxQueued(200);
+	        Params->setKeepAlive(true);
+
+	        auto NewServer = std::make_unique<Poco::Net::HTTPServer>(new RequestHandlerFactory(Server_), Pool_, Sock, Params);
+	        NewServer->start();
+	        RESTServers_.push_back(std::move(NewServer));
+	    }
+
+	    return 0;
+	}
+
+	class RESTAPI_InternalServer : public SubSystemServer {
+
+	public:
+	    static RESTAPI_InternalServer *instance() {
+	        if (instance_ == nullptr) {
+	            instance_ = new RESTAPI_InternalServer;
+	        }
+	        return instance_;
+	    }
+
+	    inline int Start() override;
+	    inline void Stop() override {
+	        Logger_.information("Stopping ");
+	        for( const auto & svr : RESTServers_ )
+	            svr->stop();
+	        RESTServers_.clear();
+	    }
+
+	    inline void reinitialize(Poco::Util::Application &self) override;
+
+	    inline Poco::Net::HTTPRequestHandler *CallServer(const char *Path) {
+	        RESTAPIHandler::BindingMap Bindings;
+	        return RESTAPI_internal_server(Path, Bindings, Logger_, Server_);
+	    }
+	private:
+	    static RESTAPI_InternalServer *instance_;
+	    std::vector<std::unique_ptr<Poco::Net::HTTPServer>>   RESTServers_;
+	    Poco::ThreadPool	    Pool_;
+	    RESTAPI_GenericServer   Server_;
+
+	    RESTAPI_InternalServer() noexcept: SubSystemServer("RESTAPIInternalServer", "REST-ISRV", "openwifi.internal.restapi")
+	    {
+	    }
+
+	};
+
+	inline class RESTAPI_InternalServer* RESTAPI_InternalServer::instance_ = nullptr;
+
+	inline RESTAPI_InternalServer * RESTAPI_InternalServer() { return RESTAPI_InternalServer::instance(); };
+
+	class InternalRequestHandlerFactory : public Poco::Net::HTTPRequestHandlerFactory {
+	public:
+	    InternalRequestHandlerFactory(RESTAPI_GenericServer & Server) :
+	    Logger_(RESTAPI_InternalServer()->Logger()),
+	    Server_(Server){}
+
+	    inline Poco::Net::HTTPRequestHandler *createRequestHandler(const Poco::Net::HTTPServerRequest &Request) override {
+	        Poco::URI uri(Request.getURI());
+	        auto *Path = uri.getPath().c_str();
+	        return RESTAPI_InternalServer()->CallServer(Path);
+	    }
+	private:
+	    Poco::Logger    & Logger_;
+	    RESTAPI_GenericServer   &Server_;
+	};
+
+	inline int RESTAPI_InternalServer::Start() {
+	    Logger_.information("Starting.");
+	    Server_.InitLogging();
+
+	    for(const auto & Svr: ConfigServersList_) {
+	        Logger_.information(Poco::format("Starting: %s:%s Keyfile:%s CertFile: %s", Svr.Address(), std::to_string(Svr.Port()),
+                                             Svr.KeyFile(),Svr.CertFile()));
+
+	        auto Sock{Svr.CreateSecureSocket(Logger_)};
+
+	        Svr.LogCert(Logger_);
+	        if(!Svr.RootCA().empty())
+	            Svr.LogCas(Logger_);
+	        auto Params = new Poco::Net::HTTPServerParams;
+	        Params->setMaxThreads(50);
+	        Params->setMaxQueued(200);
+	        Params->setKeepAlive(true);
+
+	        auto NewServer = std::make_unique<Poco::Net::HTTPServer>(new InternalRequestHandlerFactory(Server_), Pool_, Sock, Params);
+	        NewServer->start();
+	        RESTServers_.push_back(std::move(NewServer));
+	    }
+
+	    return 0;
+	}
+
 	struct MicroServiceMeta {
 		uint64_t 		Id=0;
 		std::string 	Type;
@@ -2351,10 +2527,14 @@ namespace OpenWifi {
 	    MyHash_ = CreateHash(MyPublicEndPoint_);
 	}
 
+	void MicroServicePostInitialization();
+
 	inline void MicroService::initialize(Poco::Util::Application &self) {
 	    // add the default services
 	    SubSystems_.push_back(KafkaManager());
 	    SubSystems_.push_back(ALBHealthCheckServer());
+	    SubSystems_.push_back(RESTAPI_server());
+	    SubSystems_.push_back(RESTAPI_InternalServer());
 
 	    Poco::Net::initializeSSL();
 	    Poco::Net::HTTPStreamFactory::registerFactory();
@@ -2390,6 +2570,8 @@ namespace OpenWifi {
 
 	    Types::TopicNotifyFunction F = [this](std::string s1,std::string s2) { this->BusMessageReceived(s1,s2); };
 	    KafkaManager()->RegisterTopicWatcher(KafkaTopics::SERVICE_EVENTS, F);
+
+	    MicroServicePostInitialization();
 	}
 
 	inline void MicroService::uninitialize() {
@@ -2871,6 +3053,20 @@ namespace OpenWifi {
 	            Logger_.log(E);
 	        }
 	    }
+	}
+
+	inline void RESTAPI_server::reinitialize(Poco::Util::Application &self) {
+	    MicroService::instance().LoadConfigurationFile();
+	    Logger_.information("Reinitializing.");
+	    Stop();
+	    Start();
+	}
+
+	void RESTAPI_InternalServer::reinitialize(Poco::Util::Application &self) {
+	    MicroService::instance().LoadConfigurationFile();
+	    Logger_.information("Reinitializing.");
+	    Stop();
+	    Start();
 	}
 
 	class RESTAPI_system_command : public RESTAPIHandler {

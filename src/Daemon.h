@@ -49,7 +49,7 @@ namespace OpenWifi {
 
 			bool AutoProvisioning() const { return AutoProvisioning_ ; }
 			[[nodiscard]] std::string IdentifyDevice(const std::string & Compatible) const;
-			void initialize(Poco::Util::Application &self) override;
+			void initialize();
 			static Daemon *instance();
 			inline DeviceDashboard	& GetDashboard() { return DB_; }
 			Poco::Logger & Log() { return Poco::Logger::get(AppName()); }

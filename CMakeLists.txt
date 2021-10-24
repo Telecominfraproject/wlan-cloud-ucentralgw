@@ -54,8 +54,8 @@ include_directories(/usr/local/include  /usr/local/opt/openssl/include src inclu
 
 add_executable( owgw
         build
+        src/APIServers.cpp
         src/Daemon.cpp src/Daemon.h
-        src/RESTAPI/RESTAPI_server.cpp src/RESTAPI/RESTAPI_server.h
         src/WebSocketServer.cpp src/WebSocketServer.h
         src/StorageService.cpp src/StorageService.h
         src/DeviceRegistry.cpp src/DeviceRegistry.h
@@ -64,7 +64,6 @@ add_executable( owgw
         src/RESTAPI/RESTAPI_device_commandHandler.cpp src/RESTAPI/RESTAPI_device_commandHandler.h
         src/CentralConfig.cpp src/CentralConfig.h
         src/RESTAPI/RESTAPI_default_configuration.cpp
-        src/RESTAPI/RESTAPI_InternalServer.cpp src/RESTAPI/RESTAPI_InternalServer.h
         src/RESTAPI/RESTAPI_default_configuration.h src/RESTAPI/RESTAPI_default_configurations.cpp src/RESTAPI/RESTAPI_default_configurations.h
         src/RESTAPI/RESTAPI_commands.cpp src/RESTAPI/RESTAPI_commands.h
         src/CommandManager.cpp src/CommandManager.h
