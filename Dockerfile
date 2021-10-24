@@ -57,7 +57,7 @@ RUN addgroup -S "$OWGW_USER" && \
 RUN mkdir /openwifi
 RUN mkdir -p "$OWGW_ROOT" "$OWGW_CONFIG" && \
     chown "$OWGW_USER": "$OWGW_ROOT" "$OWGW_CONFIG"
-RUN apk add --update --no-cache librdkafka mariadb-connector-c libpq unixodbc su-exec gettext ca-certificates
+RUN apk add --update --no-cache librdkafka mariadb-connector-c libpq unixodbc su-exec gettext ca-certificates bash jq curl
 
 COPY --from=builder /owgw/cmake-build/owgw /openwifi/owgw
 COPY --from=builder /cppkafka/cmake-build/src/lib/* /lib/
@@ -66,7 +66,9 @@ COPY --from=builder /poco/cmake-build/lib/* /lib/
 COPY owgw.properties.tmpl /
 COPY docker-entrypoint.sh /
 RUN wget https://raw.githubusercontent.com/Telecominfraproject/wlan-cloud-ucentral-deploy/main/docker-compose/certs/restapi-ca.pem \
-    -O /usr/local/share/ca-certificates/restapi-ca-selfsigned.pem 
+    -O /usr/local/share/ca-certificates/restapi-ca-selfsigned.pem
+
+COPY readiness_check /readiness_check
 
 EXPOSE 15002 16002 16003 17002 16102
 

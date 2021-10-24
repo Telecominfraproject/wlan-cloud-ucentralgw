@@ -380,6 +380,13 @@ createdefaultconfig() {
   jq < ${result_file}
 }
 
+deletedefaultconfig() {
+  curl  ${FLAGS} -X DELETE "https://${OWGW}/api/v1/default_configuration/$1" \
+        -H "accept: application/json" \
+        -H "Authorization: Bearer ${token}"
+  jq < ${result_file}
+}
+
 listdefaultconfigs() {
   curl  ${FLAGS} -X GET "https://${OWGW}/api/v1/default_configurations" \
         -H "accept: application/json" \
@@ -622,6 +629,7 @@ help() {
   echo "                                  name=unique name, no spaces"
   echo "                                  ids=coma separated list of models"
   echo "                                  cfg=config file name"
+  echo "deletedefaultconfig <name>        Delete a default configuration"
   echo
   echo "addblacklistdevice <serial> <r>   Add a device to the black list"
   echo "                                  <r> Reason for blacklisting"
@@ -690,6 +698,7 @@ case "$1" in
   "deletelogs") login; deletelogs "$2"  ; logout ;;
   "gethealthchecks") login; gethealthchecks "$2"  ; logout ;;
   "createdefaultconfig") login; createdefaultconfig "$2" "$3" "$4"  ; logout ;;
+  "deletedefaultconfig") login; deletedefaultconfig "$2" ; logout ;;
   "listdefaultconfigs") login; listdefaultconfigs "$2"  ; logout ;;
   "addblacklistdevice") login; addblacklistdevice "$2" "$3"  ; logout ;;
   "deleteblacklistdevice") login; deleteblacklistdevice "$2"  ; logout ;;

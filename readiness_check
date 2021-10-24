@@ -1,0 +1,65 @@
+#!/bin/bash
+set -e
+
+if [[ "$(which jq)" == "" ]]
+then
+  echo "You need the package jq installed to use this script."
+  exit 1
+fi
+
+if [[ "$(which curl)" == "" ]]
+then
+  echo "You need the package curl installed to use this script."
+  exit 1
+fi
+
+if [[ "${OWSEC}" == "" ]]
+then
+  echo "You must set the variable OWSEC in order to use this script. Something like"
+  echo "OWSEC=security.isp.com:16001"
+  exit 1
+fi
+
+if [[ "${OWSEC_USERNAME}" == "" ]]
+then
+  echo "You must set the variable OWSEC_USERNAME in order to use this script. Something like"
+  echo "OWSEC_USERNAME=tip@ucentral.com"
+  exit 1
+fi
+
+if [[ "${OWSEC_PASSWORD}" == "" ]]
+then
+  echo "You must set the variable OWSEC_PASSWORD in order to use this script. Something like"
+  echo "OWSEC_PASSWORD=openwifi"
+  exit 1
+fi
+
+if [[ "${READINESS_METHOD}" == "systeminfo" ]]
+then
+  # Get OAuth token from OWSEC and cache it or use cached one
+  payload="{ \"userId\" : \"$OWSEC_USERNAME\" , \"password\" : \"$OWSEC_PASSWORD\" }"
+  if [[ -f "/tmp/token" ]]
+  then
+    token=$(cat /tmp/token)
+  else
+    token=$(curl ${FLAGS} -X POST -H "Content-Type: application/json" -d "$payload" "https://${OWSEC}/api/v1/oauth2" | jq -r '.access_token')
+  fi
+  if [[ "${token}" == "" ]]
+  then
+    echo "Could not login. Please verify the host and username/password."
+    exit 13
+  fi
+  echo -n $token > /tmp/token
+
+  # Make systeminfo request to the local owgw instance
+  export RESTAPI_PORT=$(grep 'openwifi.restapi.host.0.port' $OWGW_CONFIG/owgw.properties | awk -F '=' '{print $2}' | xargs | envsubst)
+  curl ${FLAGS} -k -X GET "https://localhost:$RESTAPI_PORT/api/v1/system?command=info" \
+    -H "accept: application/json" \
+    -H "Authorization: Bearer ${token}" > /tmp/result.json
+  exit_code=$?
+  jq < /tmp/result.json
+  exit $exit_code
+else
+  export ALB_PORT=$(grep 'alb.port' $OWGW_CONFIG/owgw.properties | awk -F '=' '{print $2}' | xargs | envsubst)
+  curl localhost:$ALB_PORT
+fi
