@@ -52,7 +52,6 @@ namespace OpenWifi {
 	}
 
 	void Daemon::initialize() {
-		MicroService::initialize(*this);
 		Config::Config::Init();
         AutoProvisioning_ = config().getBool("openwifi.autoprovisioning",false);
 
