@@ -580,15 +580,48 @@ namespace OpenWifi {
 
 						auto LogLines = ParamsObj->get(uCentralProtocol::LOGLINES);
 						std::string LogText;
+
+						LogText = "Firmware: " + ParamsObj->get(uCentralProtocol::FIRMWARE).toString() + "\r\n";
 						if (LogLines.isArray()) {
 							auto LogLinesArray = LogLines.extract<Poco::JSON::Array::Ptr>();
 							for (const auto &i : *LogLinesArray)
 								LogText += i.toString() + "\r\n";
 						}
 
+						GWObjects::DeviceLog DeviceLog{
+							.SerialNumber = SerialNumber_,
+							.Log = LogText,
+							.Data = "",
+							.Severity = GWObjects::DeviceLog::LOG_EMERG,
+							.Recorded = (uint64_t)time(nullptr),
+							.LogType = 1,
+							.UUID = 0};
+
+						StorageService()->AddLog(DeviceLog);
+
+						if(ParamsObj->get(uCentralProtocol::REBOOT).toString()=="true") {
+							GWObjects::CommandDetails  Cmd;
+							Cmd.SerialNumber = SerialNumber_;
+							Cmd.UUID = MicroService::instance().CreateUUID();
+							Cmd.SubmittedBy = uCentralProtocol::SUBMITTED_BY_SYSTEM;
+							Cmd.Status = uCentralProtocol::PENDING;
+							Cmd.Command = uCentralProtocol::REBOOT;
+							Poco::JSON::Object Params;
+							Params.set(uCentralProtocol::SERIAL, SerialNumber_);
+							Params.set(uCentralProtocol::WHEN, 0);
+							std::ostringstream O;
+							Poco::JSON::Stringifier::stringify(Params, O);
+							Cmd.Details = O.str();
+							uint64_t RPC_Id;
+							CommandManager()->SendCommand(SerialNumber_ , Cmd.Command, Params, Cmd.UUID, RPC_Id);
+							StorageService()->AddCommand(SerialNumber_, Cmd, Storage::COMMAND_EXECUTED);
+							Logger_.information(Poco::format("RECOVERY(%s): Recovery mode received, need for a reboot.",CId_));
+						} else {
+							Logger_.information(Poco::format("RECOVERY(%s): Recovery mode received, no need for a reboot.",CId_));
+						}
 					} else {
 						Logger_.error(Poco::format(
-							"RECOVERY(%s): Recovery missing one of firmware, uuid, loglines, reboot",
+							"RECOVERY(%s): Recovery missing one of serialnumber, firmware, uuid, loglines, reboot",
 							Serial));
 					}
 				}

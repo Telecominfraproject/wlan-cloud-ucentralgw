@@ -155,6 +155,22 @@ which version it is running. The Controller may decide to send the device a newe
 }
 ```
 
+#### Recovery Event
+Device may decide it has to do into recovery mode. This event should be used.
+```
+{   "jsonrpc" : "2.0" , 
+    "method" : "recovery" , 
+    "params" : {
+        "serial" : <serial number> ,
+        "uuid"   : <the UUID of the configuration that generated the crash log>,
+        "firmware: <the string describing the current firmware>,
+        "reboot" : true/false    (shoudld the device be instructed to reboot after loggin the information),
+        "loglines" : [ an array of strings representing the logs from the log file ]
+      }
+}
+```
+
+
 ### Controller commands
 Most controller commands include a `when` member. This is a UTC clock time asking the AP
 to perform the command at that time. This is a suggestion only. The AP may ignore this
