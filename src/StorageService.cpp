@@ -7,8 +7,6 @@
 //
 
 #include "StorageService.h"
-#include "DeviceRegistry.h"
-#include "Poco/Util/Application.h"
 
 namespace OpenWifi {
 

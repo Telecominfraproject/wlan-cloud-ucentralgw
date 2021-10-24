@@ -5,6 +5,16 @@
 #ifndef OPENWIFI_STORAGE_H
 #define OPENWIFI_STORAGE_H
 
+#include "Poco/Data/Session.h"
+#include "Poco/Data/SessionPool.h"
+#include "Poco/Data/SQLite/Connector.h"
+#include "Poco/JSON/Object.h"
+
+#ifndef SMALL_BUILD
+#include "Poco/Data/PostgreSQL/Connector.h"
+#include "Poco/Data/MySQL/Connector.h"
+#endif
+
 #include "framework/MicroService.h"
 
 namespace OpenWifi {
