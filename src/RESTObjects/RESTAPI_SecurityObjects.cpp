@@ -398,18 +398,29 @@ namespace OpenWifi::SecurityObjects {
 		return false;
 	}
 
-    bool append_from_json(Poco::JSON::Object::Ptr Obj, const UserInfo &UInfo, NoteInfoVec & Notes) {
+    bool MergeNotes(Poco::JSON::Object::Ptr Obj, const UserInfo &UInfo, NoteInfoVec & Notes) {
 	    try {
-	        SecurityObjects::NoteInfoVec NIV;
-	        NIV = RESTAPI_utils::to_object_array<SecurityObjects::NoteInfo>(Obj->get("notes").toString());
-	        for(auto const &i:NIV) {
-	            SecurityObjects::NoteInfo   ii{.created=(uint64_t)std::time(nullptr), .createdBy=UInfo.email, .note=i.note};
-	            Notes.push_back(ii);
+	        if(Obj->has("notes") && Obj->isArray("notes")) {
+	            SecurityObjects::NoteInfoVec NIV;
+	            NIV = RESTAPI_utils::to_object_array<SecurityObjects::NoteInfo>(Obj->get("notes").toString());
+	            for(auto const &i:NIV) {
+	                SecurityObjects::NoteInfo   ii{.created=(uint64_t)std::time(nullptr), .createdBy=UInfo.email, .note=i.note};
+	                Notes.push_back(ii);
+	            }
 	        }
+	        return true;
 	    } catch(...) {
 
 	    }
 	    return false;
+	}
+
+	bool MergeNotes(const NoteInfoVec & NewNotes, const UserInfo &UInfo, NoteInfoVec & ExistingNotes) {
+	    for(auto const &i:NewNotes) {
+	        SecurityObjects::NoteInfo   ii{.created=(uint64_t)std::time(nullptr), .createdBy=UInfo.email, .note=i.note};
+	        ExistingNotes.push_back(ii);
+	    }
+        return true;
 	}
 
 	void ProfileAction::to_json(Poco::JSON::Object &Obj) const {

@@ -57,7 +57,7 @@ namespace OpenWifi::ProvObjects {
         Types::UUIDvec_t        contacts;       // all contacts associated in this entity
         Types::UUIDvec_t        locations;      // all locations associated in this entity
         Types::UUID_t           managementPolicy;
-        std::string             deviceConfiguration;
+        Types::UUIDvec_t        deviceConfiguration;
         Types::UUIDvec_t        devices;
         std::string             rrm;
         Types::StringVec        sourceIP;
@@ -86,7 +86,7 @@ namespace OpenWifi::ProvObjects {
         Types::UUIDvec_t    devices;
         DiGraph             topology;
         std::string         design;
-        std::string         deviceConfiguration;
+        Types::UUIDvec_t    deviceConfiguration;
         std::string         contact;
         std::string         location;
         std::string         rrm;
@@ -316,6 +316,8 @@ namespace OpenWifi::ProvObjects {
         void to_json(Poco::JSON::Object &Obj) const;
         bool from_json(const Poco::JSON::Object::Ptr &Obj);
     };
+
+    bool UpdateObjectInfo(const Poco::JSON::Object::Ptr &O, const SecurityObjects::UserInfo &U, ObjectInfo &I);
 };
 
 

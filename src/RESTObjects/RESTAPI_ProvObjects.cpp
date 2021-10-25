@@ -437,4 +437,14 @@ namespace OpenWifi::ProvObjects {
         return false;
     }
 
+    bool UpdateObjectInfo(const Poco::JSON::Object::Ptr &O, const SecurityObjects::UserInfo &U, ObjectInfo &I) {
+        if(O->has("name"))
+            I.name = O->get("name").toString();
+        if(O->has("description"))
+            I.description = O->get("description").toString();
+        SecurityObjects::MergeNotes(O,U,I.notes);
+        I.modified = std::time(nullptr);
+        return true;
+    }
+
 };

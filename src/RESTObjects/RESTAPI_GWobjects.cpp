@@ -14,7 +14,7 @@
 #include "DeviceRegistry.h"
 #endif
 
-#include "RESTObjects/RESTAPI_GWobjects.h"
+#include "RESTAPI_GWobjects.h"
 #include "framework/MicroService.h"
 
 using OpenWifi::RESTAPI_utils::field_to_json;

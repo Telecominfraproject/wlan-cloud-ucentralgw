@@ -137,7 +137,9 @@ namespace OpenWifi::SecurityObjects {
 	};
 	typedef std::vector<UserInfo>   UserInfoVec;
 
-	bool append_from_json(Poco::JSON::Object::Ptr Obj, const UserInfo &UInfo, NoteInfoVec & Notes);
+	// bool append_from_json(Poco::JSON::Object::Ptr Obj, const UserInfo &UInfo, NoteInfoVec & Notes);
+	bool MergeNotes(Poco::JSON::Object::Ptr Obj, const UserInfo &UInfo, NoteInfoVec & Notes);
+	bool MergeNotes(const NoteInfoVec & NewNotes, const UserInfo &UInfo, NoteInfoVec & ExistingNotes);
 
 	struct InternalServiceInfo {
 		std::string privateURI;
