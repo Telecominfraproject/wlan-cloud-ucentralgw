@@ -88,7 +88,7 @@ namespace OpenWifi {
 
 			Poco::Data::Statement   Select(Sess);
 
-			Select << Statement + DateSelector + " ORDER BY Recorded DESC " + ComputeRange(Offset,HowMany),
+			Select << Statement + DateSelector + " ORDER BY Recorded ASC " + ComputeRange(Offset,HowMany),
 				Poco::Data::Keywords::into(Records);
 			Select.execute();
 

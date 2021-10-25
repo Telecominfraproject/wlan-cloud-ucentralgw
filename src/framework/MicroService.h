@@ -1292,9 +1292,13 @@ namespace OpenWifi {
 	        }
 	    }
 
+	    inline bool NeedAdditionalInfo() const { return QB_.AdditionalInfo; }
+	    inline const std::string & SelectedRecords() const { return QB_.Select; }
+
 	    inline const Poco::JSON::Object::Ptr & ParseStream() {
 	        return IncomingParser_.parse(Request->stream()).extract<Poco::JSON::Object::Ptr>();
 	    }
+
 
 	    inline static bool ParseBindings(const std::string & Request, const std::list<const char *> & EndPoints, BindingMap &bindings) {
 	        bindings.clear();
