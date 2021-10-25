@@ -1142,7 +1142,7 @@ paths:
     get:
       tags:
         - Commands
-      summary: Returns a specific command
+      summary: Returns a specific command.
       description: Returns a specific command
       operationId: getACommandDetails
       parameters:
@@ -1167,7 +1167,7 @@ paths:
     delete:
       tags:
         - Commands
-      summary: Delete a specific command
+      summary: Delete a specific command.
       description: Delete a specific command
       operationId: deleteACommand
       parameters:
@@ -1193,8 +1193,8 @@ paths:
     get:
       tags:
         - Configurations
-      summary: Retrieve the lists of all default configurations
-      description: Retrieve the lists of all default configurations
+      summary: Retrieve the lists of all default configurations.
+      description: Retrieve the lists of all default configurations.
       operationId: getDefaultConfigurations
 
       responses:
@@ -1213,8 +1213,8 @@ paths:
     get:
       tags:
         - Configurations
-      summary: Retrieve a default configuration
-      description: Retrieve a default configuration
+      summary: Retrieve a default configuration.
+      description: Retrieve a default configuration.
       operationId: getDefaultConfiguration
       parameters:
         - in: path
@@ -1237,8 +1237,8 @@ paths:
     post:
       tags:
         - Configurations
-      summary: Create a default configuration
-      description: Create a default configuration
+      summary: Create a default configuration.
+      description: Create a default configuration.
       operationId: createDefaultConfiguration
       parameters:
         - in: path
@@ -1310,7 +1310,7 @@ paths:
     get:
       tags:
         - Devices
-      summary: Retrieve information for a single device
+      summary: Retrieve information for a single device.
       description: Retrieve all the inforamtion about a single device
       operationId: getDeviceInformation
       parameters:
@@ -1334,7 +1334,7 @@ paths:
     post:
       tags:
         - Devices
-      summary: Creating a new device
+      summary: Create a new device.
       operationId: createNewDevice
       parameters:
         - in: path
@@ -1368,7 +1368,7 @@ paths:
     put:
       tags:
         - Devices
-      summary: Updating a new device
+      summary: Update a device.
       operationId: updateNewDevice
       parameters:
         - in: path
@@ -1397,7 +1397,7 @@ paths:
     delete:
       tags:
         - Devices
-      summary: Deleting a single device
+      summary: Delete a single device.
       operationId: deleteDevice
       parameters:
         - in: path
@@ -1474,7 +1474,7 @@ paths:
     delete:
       tags:
         - Commands
-      summary: Delete some device logs
+      summary: Delete some device logs.
       operationId: deleteDeviceLogs
       parameters:
         - in: path
@@ -1516,7 +1516,7 @@ paths:
     get:
       tags:
         - Commands
-      summary: Get the latest health checks for a given device
+      summary: Get the latest health checks for a given device.
       operationId: getDeviceHealthChecks
       parameters:
         - in: path
@@ -1563,7 +1563,7 @@ paths:
 
       responses:
         200:
-          description: Array of device health checks  for this device
+          description: Array of device health checks for this device
           content:
             application/json:
               schema:
@@ -1576,7 +1576,7 @@ paths:
     delete:
       tags:
         - Commands
-      summary: Delete some device health checks
+      summary: Delete some device health checks.
       operationId: deleteDeviceHealthChecks
       parameters:
         - in: path
@@ -1613,7 +1613,7 @@ paths:
     get:
       tags:
         - Commands
-      summary: Get the latest capabilities for a given device
+      summary: Get the latest capabilities for a given device.
       operationId: getDeviceCapabilities
       parameters:
         - in: path
@@ -1636,7 +1636,7 @@ paths:
     delete:
       tags:
         - Commands
-      summary: Delete the capabilities for a given device
+      summary: Delete the capabilities for a given device.
       operationId: deleteDeviceCapabilities
       parameters:
         - in: path
@@ -1660,7 +1660,7 @@ paths:
     get:
       tags:
         - Commands
-      summary: Get the latest statistics for a given device
+      summary: Get the latest statistics for a given device.
       operationId: getDeviceStats
       parameters:
         - in: path
@@ -1728,7 +1728,7 @@ paths:
     delete:
       tags:
         - Commands
-      summary: Get the latest statistics for a given device
+      summary: Get the latest statistics for a given device.
       operationId: deleteDeviceStats
       parameters:
         - in: path
@@ -1765,7 +1765,7 @@ paths:
     get:
       tags:
         - Commands
-      summary: Get the latest status for a given device
+      summary: Get the latest status for a given device.
       operationId: getDeviceStatus
       parameters:
         - in: path
@@ -1815,7 +1815,7 @@ paths:
     post:
       tags:
         - Commands
-      summary: Configura a device
+      summary: Configure a device.
       operationId: updateConfigurationForADevice
       parameters:
         - in: path
@@ -1841,7 +1841,7 @@ paths:
     post:
       tags:
         - Commands
-      summary: Upgrade a device
+      summary: Upgrade a device.
       operationId: UpgradeDeviceFirmware
       parameters:
         - in: path
@@ -1867,7 +1867,7 @@ paths:
     post:
       tags:
         - Commands
-      summary: Upgrade a device
+      summary: Reboot a device.
       operationId: rebootDevice
       parameters:
         - in: path
@@ -1893,7 +1893,7 @@ paths:
     post:
       tags:
         - Commands
-      summary: Factory reset a device a device
+      summary: Factory reset a device.
       operationId: factoryReset
       parameters:
         - in: path
@@ -1919,7 +1919,7 @@ paths:
     post:
       tags:
         - Commands
-      summary: Blink the LEDs on a device
+      summary: Blink the LEDs on a device.
       operationId: ledsRequest
       parameters:
         - in: path
@@ -1945,7 +1945,7 @@ paths:
     post:
       tags:
         - Commands
-      summary: Launch a trace for a device
+      summary: Launch a trace for a device.
       operationId: traceRequest
       parameters:
         - in: path
@@ -1971,7 +1971,7 @@ paths:
     post:
       tags:
         - Commands
-      summary: Launch a wifi scan for a device
+      summary: Launch a wifi scan for a device.
       operationId: wifiscanRequest
       parameters:
         - in: path
@@ -2023,7 +2023,7 @@ paths:
     post:
       tags:
         - Commands
-      summary: Request a list of queued events
+      summary: Request a list of queued events.
       operationId: eventQueueRequest
       parameters:
         - in: path
@@ -2049,7 +2049,7 @@ paths:
     post:
       tags:
         - Commands
-      summary: Request a telemetry stream
+      summary: Request a telemetry stream.
       operationId: eventTelemetryStreamRequest
       parameters:
         - in: path
@@ -2076,7 +2076,7 @@ paths:
       tags:
         - OUIs
       operationId: getOUIs
-      summary: Get a list of OUIs
+      summary: Get a list of OUIs.
       parameters:
         - in: query
           name: macList
@@ -2095,7 +2095,7 @@ paths:
     get:
       tags:
         - Commands
-      summary: Get the rtty parameters to initiate a session
+      summary: Get the rtty parameters to initiate a session.
       operationId: getRttySessionInfo
       parameters:
         - in: path
@@ -2119,7 +2119,7 @@ paths:
     get:
       tags:
         - Files
-      summary: Get a file from the upload directory
+      summary: Get a file from the upload directory.
       operationId: getUploadFile
       parameters:
         - in: path
@@ -2149,7 +2149,7 @@ paths:
     delete:
       tags:
         - Files
-      summary: Delete a file from the upload directory
+      summary: Delete a file from the upload directory.
       operationId: deleteUploadFidelete
       parameters:
         - in: path
@@ -2176,7 +2176,7 @@ paths:
       tags:
         - Blacklist
       summary: Returns a list blacklisted devices.
-      description: Get a list of blacklisteddevices.
+      description: Get a list of blacklisted devices.
       operationId: getBlacklistDeviceList
       parameters:
         - in: query
@@ -2213,8 +2213,8 @@ paths:
     get:
       tags:
         - Blacklist
-      summary: Returns a blacklist entry
-      description: Get a list of blacklisteddevices.
+      summary: Returns a blacklist entry.
+      description: Get a list of blacklisted devices.
       operationId: getBlacklistDevice
       parameters:
         - in: path
@@ -2238,7 +2238,7 @@ paths:
     post:
       tags:
         - Blacklist
-      summary: Create to the blacklist
+      summary: Create to the blacklist.
       operationId: createBlackListDevice
       parameters:
         - in: path
@@ -2264,7 +2264,7 @@ paths:
     put:
       tags:
         - Blacklist
-      summary: Modify to the blacklist
+      summary: Modify to the blacklist.
       operationId: modifyBlackList
       parameters:
         - in: path
@@ -2290,7 +2290,7 @@ paths:
     delete:
       tags:
         - Blacklist
-      summary: Delete from the blacklist
+      summary: Delete from the blacklist.
       operationId: deleteFromBlackList
       parameters:
         - in: path
@@ -2314,7 +2314,7 @@ paths:
       operationId: getCapabilitiesList
       responses:
         200:
-          description: Successfull command execution
+          description: Successful command execution
           content:
             application/json:
               schema:
@@ -2328,7 +2328,7 @@ paths:
     get:
       tags:
         - Dashboards
-      summary: Get the last version of the dashboard
+      summary: Get the last version of the dashboard.
       operationId: getDeviceDashboard
       responses:
         200:
@@ -2347,7 +2347,7 @@ paths:
     post:
       tags:
         - System Commands
-      summary: Perform some systeme wide commands
+      summary: Perform some system wide commands.
       operationId: systemCommand
       requestBody:
         description: Command details
@@ -2362,7 +2362,7 @@ paths:
                 - $ref: '#/components/schemas/SystemCommandGetSubsystemNames'
       responses:
         200:
-          description: Successfull command execution
+          description: Successful command execution
           content:
             application/json:
               schema:
@@ -2391,7 +2391,7 @@ paths:
 
       responses:
         200:
-          description: Successfull command execution
+          description: Successful command execution
           content:
             application/json:
               schema:
