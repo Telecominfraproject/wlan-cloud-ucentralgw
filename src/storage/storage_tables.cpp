@@ -146,7 +146,7 @@ namespace OpenWifi {
 						"Recorded BIGINT, "
 						"INDEX HealthSerial (SerialNumber ASC, Recorded ASC)"
 						")", Poco::Data::Keywords::now;
-			} else if(dbType_==sqlite) {
+			} else if(dbType_==sqlite || dbType_==pgsql) {
 				Sess << "CREATE TABLE IF NOT EXISTS HealthChecks ("
 						"SerialNumber VARCHAR(30), "
 						"UUID          BIGINT, "

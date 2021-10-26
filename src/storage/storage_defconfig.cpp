@@ -52,7 +52,7 @@ namespace OpenWifi {
 	 */
 
 				if (Cfg.Valid()) {
-					uint64_t Now = time(nullptr);
+					uint64_t Now = std::time(nullptr);
 					Poco::Data::Statement   Insert(Sess);
 
 					std::string St{"INSERT INTO DefaultConfigs (Name, Configuration, Models, Description, Created, LastModified) "

@@ -23,7 +23,7 @@ namespace OpenWifi {
 			Poco::Data::Session     Sess = Pool_->get();
 			Poco::Data::Statement   Select(Sess);
 
-			uint64_t Now = time(nullptr);
+			uint64_t Now = std::time(nullptr);
 
 			//	Find compatible in the capabilities...
 			std::string Compatible;
