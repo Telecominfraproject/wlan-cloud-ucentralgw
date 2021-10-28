@@ -204,6 +204,10 @@ namespace OpenWifi::RESTAPI_utils {
         Obj.set(Field, Arr);
     }
 
+    inline void field_to_json(Poco::JSON::Object &Obj, const char *Field, int Value) {
+        Obj.set(Field, Value);
+    }
+
     template<class T> void field_to_json(Poco::JSON::Object &Obj, const char *Field, const T &Value) {
         Poco::JSON::Object  Answer;
         Value.to_json(Answer);
@@ -219,6 +223,12 @@ namespace OpenWifi::RESTAPI_utils {
                 NewItem.from_json(InnerObj);
                 Value.push_back(NewItem);
             }
+        }
+    }
+
+    inline void field_from_json(const Poco::JSON::Object::Ptr &Obj, const char *Field, int &Value) {
+        if(Obj->isObject(Field)) {
+            Value = Obj->get(Field);
         }
     }
 
