@@ -51,25 +51,15 @@ namespace OpenWifi {
 		U.addQueryParameter("uuid", UUID);
 		U.addQueryParameter("serialNumber", SerialNumber);
 		EndPoint = U.toString();
-		SerialNumbers_[SerialNumber] = UUID;
+		auto H = SerialNumbers_.find(SerialNumber);
+		if(H == SerialNumbers_.end()) {
+			std::set<std::string>	UUIDs{UUID};
+			SerialNumbers_[SerialNumber] = UUIDs;
+		} else {
+			H->second.insert(UUID);
+		}
 		Clients_[UUID] = nullptr;
 		return true;
-	}
-
-	void TelemetryStream::DeleteEndPoint(const std::string &SerialNumber) {
-		std::lock_guard	G(Mutex_);
-
-		auto H1 = SerialNumbers_.find(SerialNumber);
-		if(H1!=SerialNumbers_.end()) {
-			auto H2 = Clients_.find(H1->second);
-			if(H2!=Clients_.end()) {
-				try {
-					delete H2->second;
-				} catch (const Poco::Exception &E ) {
-
-				}
-			}
-		}
 	}
 
 	void TelemetryStream::UpdateEndPoint(const std::string &SerialNumber, const std::string &PayLoad) {
@@ -77,12 +67,14 @@ namespace OpenWifi {
 
 		auto H1 = SerialNumbers_.find(SerialNumber);
 		if(H1!=SerialNumbers_.end()) {
-			auto H2 = Clients_.find(H1->second);
-			if(H2!=Clients_.end() && H2->second!=nullptr) {
-				try {
-					H2->second->Send(PayLoad);
-				} catch (...) {
+			for(auto &i:H1->second) {
+				auto H2 = Clients_.find(i);
+				if(H2!=Clients_.end() && H2->second!= nullptr) {
+					try {
+						H2->second->Send(PayLoad);
+					} catch(...) {
 
+					}
 				}
 			}
 		}
@@ -90,13 +82,8 @@ namespace OpenWifi {
 
 	bool TelemetryStream::RegisterClient(const std::string &UUID, TelemetryClient *Client) {
 		std::lock_guard	G(Mutex_);
-
-		auto Hint = Clients_.find(UUID);
-		if(Hint!=Clients_.end()) {
-			Hint->second = Client;
-			return true;
-		}
-		return false;
+		Clients_[UUID] = Client;
+		return true;
 	}
 
 	void TelemetryStream::DeRegisterClient(const std::string &UUID) {
@@ -106,9 +93,16 @@ namespace OpenWifi {
 		if(Hint!=Clients_.end()) {
 			Clients_.erase(Hint);
 			for(const auto &i:SerialNumbers_) {
-				if(i.second==UUID) {
-					SerialNumbers_.erase(i.first);
-					break;
+				auto S = i.second;
+				S.erase(UUID);
+			}
+
+			//	remove empty slots
+			for( auto i = SerialNumbers_.begin(); i!= SerialNumbers_.end();) {
+				if(i->second.empty()) {
+					i = SerialNumbers_.erase(i);
+				} else {
+					++i;
 				}
 			}
 		}

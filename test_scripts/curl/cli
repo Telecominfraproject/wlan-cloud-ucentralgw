@@ -106,7 +106,7 @@ setgateway() {
 		fi
 	fi
 	done
-	echo "Using ${OWGW}..."
+# echo "Using ${OWGW}..."
 }
 
 logout() {
@@ -157,7 +157,7 @@ deletecommands() {
 }
 
 getcapabilities() {
-  curl  -${FLAGS} -X GET "https://${OWGW}/api/v1/device/$1/capabilities" \
+  curl  ${FLAGS} -X GET "https://${OWGW}/api/v1/device/$1/capabilities" \
         -H "accept: application/json" \
         -H "Authorization: Bearer ${token}" > ${result_file}
   jq < ${result_file}

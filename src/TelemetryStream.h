@@ -106,17 +106,16 @@ namespace OpenWifi {
 		void Stop() override;
 
 		bool CreateEndpoint(const std::string &SerialNumber, std::string &EndPoint, std::string &UUID);
-		void DeleteEndPoint(const std::string &SerialNumber);
 		void UpdateEndPoint(const std::string &SerialNumber, const std::string &PayLoad);
 		bool RegisterClient(const std::string &UUID, TelemetryClient *Client);
 		void DeRegisterClient(const std::string &UUID);
 		Poco::Net::SocketReactor & NextReactor() { return ReactorPool_.NextReactor(); }
 
 	  private:
-		static TelemetryStream 					* 	instance_;
-		std::map<std::string, TelemetryClient *>	Clients_;			// 	uuid -> client
-		std::map<std::string, std::string>			SerialNumbers_;		//	serialNumber -> uuid
-		TelemetryReactorPool						ReactorPool_;
+		static TelemetryStream 					* 		instance_;
+		std::map<std::string, TelemetryClient *>		Clients_;			// 	uuid -> client
+		std::map<std::string, std::set<std::string>>	SerialNumbers_;		//	serialNumber -> uuid
+		TelemetryReactorPool							ReactorPool_;
 		TelemetryStream() noexcept:
 			SubSystemServer("TelemetryServer", "TELEMETRY-SVR", "openwifi.telemetry")
 		{

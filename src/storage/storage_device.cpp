@@ -724,6 +724,8 @@ namespace OpenWifi {
 					GWObjects::HealthCheck	HC;
 					if(DeviceRegistry()->GetHealthcheck(SerialNumber,HC))
 						Types::UpdateCountedMap(Dashboard.healths, ComputeSanityTag(HC.Sanity));
+					else
+						Types::UpdateCountedMap(Dashboard.healths, ComputeSanityTag(100));
 					std::string LastStats;
 					if(DeviceRegistry()->GetStatistics(SerialNumber, LastStats) && !LastStats.empty()) {
 						Poco::JSON::Parser	P;

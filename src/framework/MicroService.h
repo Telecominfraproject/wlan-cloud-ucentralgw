@@ -277,6 +277,31 @@ namespace OpenWifi::RESTAPI_utils {
         return OS.str();
     }
 
+    template<class T> std::string to_string(const std::vector<std::vector<T>> & ObjectArray) {
+        Poco::JSON::Array OutputArr;
+        if(ObjectArray.empty())
+            return "[]";
+        for(auto const &i:ObjectArray) {
+            Poco::JSON::Array InnerArr;
+            for(auto const &j:i) {
+                if constexpr(std::is_integral<T>::value) {
+                    InnerArr.add(j);
+                } if constexpr(std::is_same_v<T,std::string>) {
+                    InnerArr.add(j);
+                } else {
+                    InnerArr.add(j);
+                    Poco::JSON::Object O;
+                    j.to_json(O);
+                    InnerArr.add(O);
+                }
+            }
+            OutputArr.add(InnerArr);
+        }
+        std::ostringstream OS;
+        Poco::JSON::Stringifier::condense(OutputArr,OS);
+        return OS.str();
+    }
+
     template<class T> std::string to_string(const T & Object) {
         Poco::JSON::Object OutputObj;
         Object.to_json(OutputObj);
@@ -321,7 +346,6 @@ namespace OpenWifi::RESTAPI_utils {
     }
 
     template<class T> std::vector<T> to_object_array(const std::string & ObjectString) {
-
         std::vector<T>	Result;
         if(ObjectString.empty())
             return Result;
@@ -334,6 +358,31 @@ namespace OpenWifi::RESTAPI_utils {
                 T Obj;
                 Obj.from_json(InnerObject);
                 Result.push_back(Obj);
+            }
+        } catch (...) {
+
+        }
+        return Result;
+    }
+
+    template<class T> std::vector<std::vector<T>> to_array_of_array_of_object(const std::string & ObjectString) {
+        std::vector<std::vector<T>>	Result;
+        if(ObjectString.empty())
+            return Result;
+        try {
+            Poco::JSON::Parser P1;
+            auto OutterArray = P1.parse(ObjectString).template extract<Poco::JSON::Array::Ptr>();
+            for (auto const &i : *OutterArray) {
+                Poco::JSON::Parser P2;
+                auto InnerArray = P2.parse(i).template extract<Poco::JSON::Array::Ptr>();
+                std::vector<T>  InnerVector;
+                for(auto const &j: *InnerArray) {
+                    auto Object = j.template extract<Poco::JSON::Object::Ptr>();
+                    T Obj;
+                    Obj.from_json(Object);
+                    InnerVector.push_back(Obj);
+                }
+                Result.push_back(InnerVector);
             }
         } catch (...) {
 

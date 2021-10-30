@@ -168,6 +168,22 @@ namespace OpenWifi {
 		T.detach();
     }
 
+	static void NotifyKafkaDisconnect(std::string SerialNumber) {
+		try {
+			Poco::JSON::Object Disconnect;
+			Poco::JSON::Object Details;
+			Details.set(uCentralProtocol::SERIALNUMBER, SerialNumber);
+			Details.set(uCentralProtocol::TIMESTAMP, std::time(nullptr));
+			Disconnect.set(uCentralProtocol::DISCONNECTION, Details);
+			Poco::JSON::Stringifier Stringify;
+			std::ostringstream OS;
+			Stringify.condense(Disconnect, OS);
+			KafkaManager()->PostMessage(KafkaTopics::CONNECTION, SerialNumber, OS.str());
+		} catch (...) {
+
+		}
+	}
+
     WSConnection::~WSConnection() {
         DeviceRegistry()->UnRegister(SerialNumber_,this);
         if(Registered_ && WS_)
@@ -189,15 +205,9 @@ namespace OpenWifi {
 		}
 
         if(KafkaManager()->Enabled() && !SerialNumber_.empty()) {
-        	Poco::JSON::Object	Disconnect;
-        	Poco::JSON::Object	Details;
-        	Details.set(uCentralProtocol::SERIALNUMBER, SerialNumber_);
-        	Details.set(uCentralProtocol::TIMESTAMP,std::time(nullptr));
-        	Disconnect.set(uCentralProtocol::DISCONNECTION,Details);
-        	Poco::JSON::Stringifier		Stringify;
-        	std::ostringstream OS;
-        	Stringify.condense(Disconnect,OS);
-        	KafkaManager()->PostMessage(KafkaTopics::CONNECTION, SerialNumber_, OS.str());
+			std::string s(SerialNumber_);
+        	std::thread	t([s](){ NotifyKafkaDisconnect(s);});
+			t.detach();
         }
     }
 
@@ -720,7 +730,8 @@ namespace OpenWifi {
 
             if (IncomingSize == 0 && flags == 0 && Op == 0) {
                 Logger_.information(Poco::format("DISCONNECT(%s): device has disconnected.", CId_));
-                MustDisconnect = true;
+				return delete this;
+                // MustDisconnect = true;
             } else {
                 switch (Op) {
                     case Poco::Net::WebSocket::FRAME_OP_PING: {
