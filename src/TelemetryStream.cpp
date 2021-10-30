@@ -81,7 +81,9 @@ namespace OpenWifi {
 		std::unique_lock	QLock(QueueMutex_);
 		std::unique_lock	CLock(Mutex_);
 		CLock.unlock();
+		QLock.unlock();
 		while(Running_) {
+			QLock.lock();
 			if(Queue_.empty()) {
 				QLock.unlock();
 				Poco::Thread::trySleep(2000);
@@ -92,14 +94,14 @@ namespace OpenWifi {
 			if(!Running_)
 				break;
 
-			{
-				QLock.lock();
-				if(Queue_.empty())
-					continue;
-				Entry = Queue_.front();
-				Queue_.pop();
+			QLock.lock();
+			if(Queue_.empty()) {
 				QLock.unlock();
+				continue;
 			}
+			Entry = Queue_.front();
+			Queue_.pop();
+			QLock.unlock();
 
 			CLock.lock();
 			auto H1 = SerialNumbers_.find(Entry.SerialNumber);
