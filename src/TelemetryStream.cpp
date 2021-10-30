@@ -75,20 +75,21 @@ namespace OpenWifi {
 	}
 
 	void TelemetryStream::run() {
-
 		Running_ = true;
 		QueueUpdate	Entry;
 		std::unique_lock	QLock(QueueMutex_);
 		std::unique_lock	CLock(Mutex_);
+
 		CLock.unlock();
 		QLock.unlock();
+
 		while(Running_) {
+
 			QLock.lock();
 			if(Queue_.empty()) {
 				QLock.unlock();
 				Poco::Thread::trySleep(2000);
-			} else {
-				QLock.unlock();
+				continue;
 			}
 
 			if(!Running_)
@@ -99,6 +100,7 @@ namespace OpenWifi {
 				QLock.unlock();
 				continue;
 			}
+
 			Entry = Queue_.front();
 			Queue_.pop();
 			QLock.unlock();

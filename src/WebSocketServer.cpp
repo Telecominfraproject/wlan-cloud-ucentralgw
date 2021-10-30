@@ -155,6 +155,8 @@ namespace OpenWifi {
 		} catch (const Poco::Exception &E ) {
 			Logger_.error("Exception caught during device connection. Device will have to retry.");
 			Logger_.log(E);
+		} catch (...) {
+			Logger_.error("Exception caught during device connection. Device will have to retry. Unsecure connect denied.");
 		}
 		delete this;
 	}
