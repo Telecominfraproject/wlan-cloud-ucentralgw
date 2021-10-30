@@ -93,8 +93,13 @@ namespace OpenWifi {
 		void CompleteStartup();
 	};
 
-	class TelemetryStream : public SubSystemServer {
+	class TelemetryStream : public SubSystemServer, Poco::Runnable {
 	  public:
+		struct QueueUpdate {
+			std::string SerialNumber;
+			std::string Payload;
+		};
+
 		static TelemetryStream *instance() {
 			if (instance_ == nullptr) {
 				instance_ = new TelemetryStream;
@@ -110,12 +115,16 @@ namespace OpenWifi {
 		bool RegisterClient(const std::string &UUID, TelemetryClient *Client);
 		void DeRegisterClient(const std::string &UUID);
 		Poco::Net::SocketReactor & NextReactor() { return ReactorPool_.NextReactor(); }
-
+		void run() override;
 	  private:
 		static TelemetryStream 					* 		instance_;
+		std::atomic_bool 								Running_=false;
 		std::map<std::string, TelemetryClient *>		Clients_;			// 	uuid -> client
 		std::map<std::string, std::set<std::string>>	SerialNumbers_;		//	serialNumber -> uuid
 		TelemetryReactorPool							ReactorPool_;
+		std::mutex										QueueMutex_;
+		Poco::Thread									Runner;
+		std::queue<QueueUpdate>							Queue_;
 		TelemetryStream() noexcept:
 			SubSystemServer("TelemetryServer", "TELEMETRY-SVR", "openwifi.telemetry")
 		{

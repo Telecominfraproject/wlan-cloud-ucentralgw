@@ -29,10 +29,16 @@ namespace OpenWifi {
 
 	int TelemetryStream::Start() {
 		ReactorPool_.Start();
+		Runner.start(*this);
 		return 0;
 	}
 
 	void TelemetryStream::Stop() {
+		if(Running_) {
+			Running_ = false;
+			Runner.join();
+		}
+
 		Logger_.notice("Stopping reactors...");
 		ReactorPool_.Stop();
 	}
@@ -63,20 +69,53 @@ namespace OpenWifi {
 	}
 
 	void TelemetryStream::UpdateEndPoint(const std::string &SerialNumber, const std::string &PayLoad) {
-		std::lock_guard	G(Mutex_);
+		std::lock_guard	G(QueueMutex_);
+		Queue_.push(QueueUpdate{.SerialNumber=SerialNumber,.Payload=PayLoad});
+		Runner.wakeUp();
+	}
 
-		auto H1 = SerialNumbers_.find(SerialNumber);
-		if(H1!=SerialNumbers_.end()) {
-			for(auto &i:H1->second) {
-				auto H2 = Clients_.find(i);
-				if(H2!=Clients_.end() && H2->second!= nullptr) {
-					try {
-						H2->second->Send(PayLoad);
-					} catch(...) {
+	void TelemetryStream::run() {
 
+		Running_ = true;
+		QueueUpdate	Entry;
+		std::unique_lock	QLock(QueueMutex_);
+		std::unique_lock	CLock(Mutex_);
+		CLock.unlock();
+		while(Running_) {
+			if(Queue_.empty()) {
+				QLock.unlock();
+				Poco::Thread::trySleep(2000);
+			} else {
+				QLock.unlock();
+			}
+
+			if(!Running_)
+				break;
+
+			{
+				QLock.lock();
+				if(Queue_.empty())
+					continue;
+				Entry = Queue_.front();
+				Queue_.pop();
+				QLock.unlock();
+			}
+
+			CLock.lock();
+			auto H1 = SerialNumbers_.find(Entry.SerialNumber);
+			if(H1!=SerialNumbers_.end()) {
+				for(auto &i:H1->second) {
+					auto H2 = Clients_.find(i);
+					if(H2!=Clients_.end() && H2->second!= nullptr) {
+						try {
+							H2->second->Send(Entry.Payload);
+						} catch(...) {
+
+						}
 					}
 				}
 			}
+			CLock.unlock();
 		}
 	}
 

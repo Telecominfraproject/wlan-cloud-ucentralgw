@@ -719,7 +719,7 @@ namespace OpenWifi {
 
     void WSConnection::ProcessIncomingFrame() {
 
-        bool MustDisconnect=false;
+        // bool MustDisconnect=false;
 		Poco::Buffer<char>			IncomingFrame(0);
 
         try {
@@ -731,7 +731,6 @@ namespace OpenWifi {
             if (IncomingSize == 0 && flags == 0 && Op == 0) {
                 Logger_.information(Poco::format("DISCONNECT(%s): device has disconnected.", CId_));
 				return delete this;
-                // MustDisconnect = true;
             } else {
                 switch (Op) {
                     case Poco::Net::WebSocket::FRAME_OP_PING: {
@@ -757,42 +756,42 @@ namespace OpenWifi {
                         break;
 
                     case Poco::Net::WebSocket::FRAME_OP_PONG: {
-                        Logger_.debug(Poco::format("PONG(%s): received and ignored.",CId_));
+                        	Logger_.debug(Poco::format("PONG(%s): received and ignored.",CId_));
                         }
                         break;
 
                     case Poco::Net::WebSocket::FRAME_OP_TEXT: {
-						std::string IncomingMessageStr = asString(IncomingFrame);
-						Logger_.debug(Poco::format("FRAME(%s): Frame received (length=%d, flags=0x%x). Msg=%s",
-							   		CId_, IncomingSize, unsigned(flags),IncomingMessageStr));
+							std::string IncomingMessageStr = asString(IncomingFrame);
+							Logger_.debug(Poco::format("FRAME(%s): Frame received (length=%d, flags=0x%x). Msg=%s",
+										CId_, IncomingSize, unsigned(flags),IncomingMessageStr));
 
-                        Poco::JSON::Parser parser;
-						auto ParsedMessage = parser.parse(IncomingMessageStr);
-                        auto IncomingJSON = ParsedMessage.extract<Poco::JSON::Object::Ptr>();
+							Poco::JSON::Parser parser;
+							auto ParsedMessage = parser.parse(IncomingMessageStr);
+							auto IncomingJSON = ParsedMessage.extract<Poco::JSON::Object::Ptr>();
 
-                        if (IncomingJSON->has(uCentralProtocol::JSONRPC)) {
-							if(IncomingJSON->has(uCentralProtocol::METHOD) &&
-								IncomingJSON->has(uCentralProtocol::PARAMS)) {
-                            		ProcessJSONRPCEvent(IncomingJSON);
-                        	} else if (IncomingJSON->has(uCentralProtocol::RESULT) &&
-								IncomingJSON->has(uCentralProtocol::ID)) {
-								Logger_.debug(Poco::format("RPC-RESULT(%s): payload: %s",CId_,IncomingMessageStr));
-                            	ProcessJSONRPCResult(IncomingJSON);
-                        	} else {
-								Logger_.warning(Poco::format(
-									"INVALID-PAYLOAD(%s): Payload is not JSON-RPC 2.0: %s", CId_,
-									IncomingMessageStr));
+							if (IncomingJSON->has(uCentralProtocol::JSONRPC)) {
+								if(IncomingJSON->has(uCentralProtocol::METHOD) &&
+									IncomingJSON->has(uCentralProtocol::PARAMS)) {
+										ProcessJSONRPCEvent(IncomingJSON);
+								} else if (IncomingJSON->has(uCentralProtocol::RESULT) &&
+									IncomingJSON->has(uCentralProtocol::ID)) {
+									Logger_.debug(Poco::format("RPC-RESULT(%s): payload: %s",CId_,IncomingMessageStr));
+									ProcessJSONRPCResult(IncomingJSON);
+								} else {
+									Logger_.warning(Poco::format(
+										"INVALID-PAYLOAD(%s): Payload is not JSON-RPC 2.0: %s", CId_,
+										IncomingMessageStr));
+								}
+							} else {
+								Logger_.error(Poco::format("FRAME(%s): illegal transaction header, missing 'jsonrpc'",CId_));
+								Errors_++;
 							}
-                        } else {
-							Logger_.error(Poco::format("FRAME(%s): illegal transaction header, missing 'jsonrpc'",CId_));
-							Errors_++;
-						}
 	                    }
     	                break;
 
 					case Poco::Net::WebSocket::FRAME_OP_CLOSE: {
 							Logger_.warning(Poco::format("CLOSE(%s): Device is closing its connection.",CId_));
-							MustDisconnect = true;
+							return delete this;
 						}
 						break;
 
@@ -813,7 +812,7 @@ namespace OpenWifi {
 			std::string IncomingMessageStr = asString(IncomingFrame);
             Logger_.warning(Poco::format("%s(%s): Caught a ConnectionResetException: %s, Message: %s",
 							std::string(__func__), CId_, E.displayText(),IncomingMessageStr));
-            MustDisconnect= true;
+            return delete this;
         }
         catch (const Poco::JSON::JSONException & E)
         {
@@ -826,57 +825,54 @@ namespace OpenWifi {
 			std::string IncomingMessageStr = asString(IncomingFrame);
 			Logger_.warning(Poco::format("%s(%s): Caught a websocket exception: %s. Message: %s",
 							std::string(__func__), CId_, E.displayText(), IncomingMessageStr ));
-            MustDisconnect = true ;
+			return delete this;
         }
         catch (const Poco::Net::SSLConnectionUnexpectedlyClosedException & E)
         {
 			std::string IncomingMessageStr = asString(IncomingFrame);
 			Logger_.warning(Poco::format("%s(%s): Caught a SSLConnectionUnexpectedlyClosedException: %s. Message: %s",
 							std::string(__func__), CId_, E.displayText(), IncomingMessageStr ));
-            MustDisconnect = true ;
+			return delete this;
         }
         catch (const Poco::Net::SSLException & E)
         {
 			std::string IncomingMessageStr = asString(IncomingFrame);
 			Logger_.warning(Poco::format("%s(%s): Caught a SSL exception: %s. Message: %s",
 							std::string(__func__), CId_, E.displayText(), IncomingMessageStr ));
-            MustDisconnect = true ;
+			return delete this;
         }
         catch (const Poco::Net::NetException & E) {
 			std::string IncomingMessageStr = asString(IncomingFrame);
 			Logger_.warning( Poco::format("%s(%s): Caught a NetException: %s. Message: %s",
 							 std::string(__func__), CId_, E.displayText(), IncomingMessageStr ));
-            MustDisconnect = true ;
+			return delete this;
         }
         catch (const Poco::IOException & E) {
 			std::string IncomingMessageStr = asString(IncomingFrame);
 			Logger_.warning( Poco::format("%s(%s): Caught a IOException: %s. Message: %s",
 							 std::string(__func__), CId_, E.displayText(), IncomingMessageStr ));
-            MustDisconnect = true ;
+			return delete this;
         }
         catch (const Poco::Exception &E) {
 			std::string IncomingMessageStr = asString(IncomingFrame);
             Logger_.warning( Poco::format("%s(%s): Caught a more generic Poco exception: %s. Message: %s",
 							 std::string(__func__), CId_, E.displayText(), IncomingMessageStr ));
-            MustDisconnect = true ;
+            return delete this;
         }
         catch (const std::exception & E) {
 			std::string IncomingMessageStr = asString(IncomingFrame);
             Logger_.warning( Poco::format("%s(%s): Caught a std::exception: %s. Message: %s",
 							 std::string{__func__}, CId_, std::string{E.what()}, IncomingMessageStr) );
-            MustDisconnect = true ;
+            return delete this;
         }
 		catch (...) {
-			MustDisconnect = true;
+			return delete this;
 		}
 
-        if(!MustDisconnect && Errors_<10)
-            return;
+		if(Errors_<10)
+			return;
 
-		if(Errors_>10) {
-			Logger_.information(Poco::format("DISCONNECTING(%s): Too many errors",CId_));
-		}
-
+		Logger_.information(Poco::format("DISCONNECTING(%s): Too many errors",CId_));
         delete this;
     }
 
