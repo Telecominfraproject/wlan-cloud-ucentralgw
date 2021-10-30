@@ -76,7 +76,7 @@ namespace OpenWifi {
 
 	void TelemetryStream::run() {
 		Running_ = true;
-		QueueUpdate	Entry;
+		std::vector<QueueUpdate>	Entries;
 
 		while(Running_) {
 			bool QueueEmpty = true;
@@ -95,23 +95,31 @@ namespace OpenWifi {
 
 			{
 				std::lock_guard	G(QueueMutex_);
-				Entry = Queue_.front();
-				Queue_.pop();
+				while(!Queue_.empty()) {
+					Entries.push_back(Queue_.front());
+					Queue_.pop();
+				}
 			}
 
 			{
 				std::lock_guard	G(Mutex_);
-				auto H1 = SerialNumbers_.find(Entry.SerialNumber);
-				if(H1!=SerialNumbers_.end()) {
-					for (auto &i : H1->second) {
-						auto H2 = Clients_.find(i);
-						if (H2 != Clients_.end() && H2->second != nullptr) {
-							try {
-								H2->second->Send(Entry.Payload);
-							} catch (...) {
+				for(auto &E:Entries) {
+					auto H1 = SerialNumbers_.find(E.SerialNumber);
+					if (H1 != SerialNumbers_.end()) {
+						for (auto &i : H1->second) {
+							auto H2 = Clients_.find(i);
+							if (H2 != Clients_.end() && H2->second != nullptr) {
+								try {
+									H2->second->Send(E.Payload);
+								} catch (...) {
+								}
 							}
+							if(!Running_)
+								break;
 						}
 					}
+					if(!Running_)
+						break;
 				}
 			}
 		}
