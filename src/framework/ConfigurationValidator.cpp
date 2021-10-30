@@ -2,12 +2,14 @@
 // Created by stephane bourque on 2021-09-14.
 //
 
-#include "Poco/Logger.h"
-#include <fstream>
 #include <iostream>
+#include <fstream>
+#include <regex>
 
-#include "ConfigurationValidator.h"
 #include "framework/MicroService.h"
+#include "ConfigurationValidator.h"
+#include "framework/CountryCodes.h"
+#include "Poco/StringTokenizer.h"
 
 namespace OpenWifi {
 
@@ -94,6 +96,69 @@ namespace OpenWifi {
                 }
             }
         },
+        "globals.wireless-multimedia.class-selector": {
+            "type": "array",
+            "items": {
+                "type": "string",
+                "enum": [
+                    "CS1",
+                    "CS2",
+                    "CS3",
+                    "CS4",
+                    "CS5",
+                    "CS6",
+                    "AF11",
+                    "AF12",
+                    "AF13",
+                    "AF21",
+                    "AF22",
+                    "AF23",
+                    "AF31",
+                    "AF32",
+                    "AF33",
+                    "AF41",
+                    "AF42",
+                    "AF43",
+                    "DF",
+                    "EF"
+                ]
+            }
+        },
+        "globals.wireless-multimedia": {
+            "type": "object",
+            "properties": {
+                "UP0": {
+                    "$ref": "#/$defs/globals.wireless-multimedia.class-selector"
+                },
+                "UP1": {
+                    "$ref": "#/$defs/globals.wireless-multimedia.class-selector"
+                },
+                "UP2": {
+                    "$ref": "#/$defs/globals.wireless-multimedia.class-selector"
+                },
+                "UP3": {
+                    "$ref": "#/$defs/globals.wireless-multimedia.class-selector"
+                },
+                "UP4": {
+                    "$ref": "#/$defs/globals.wireless-multimedia.class-selector"
+                },
+                "UP5": {
+                    "$ref": "#/$defs/globals.wireless-multimedia.class-selector"
+                },
+                "UP6": {
+                    "$ref": "#/$defs/globals.wireless-multimedia.class-selector"
+                },
+                "UP7": {
+                    "$ref": "#/$defs/globals.wireless-multimedia.class-selector"
+                }
+            }
+        },
+        "globals.wireless-multimedia-profile": {
+            "type": "string",
+            "enum": [
+                "enterprise"
+            ]
+        },
         "globals": {
             "type": "object",
             "properties": {
@@ -109,6 +174,16 @@ namespace OpenWifi {
                     "format": "uc-cidr6",
                     "examples": [
                         "fdca:1234:4567::/48"
+                    ]
+                },
+                "wireless-multimedia": {
+                    "oneOf": [
+                        {
+                            "$ref": "#/$defs/globals.wireless-multimedia"
+                        },
+                        {
+                            "$ref": "#/$defs/globals.wireless-multimedia-profile"
+                        }
                     ]
                 }
             }
@@ -805,6 +880,7 @@ namespace OpenWifi {
                     "sae",
                     "sae-mixed",
                     "wpa3",
+                    "wpa3-192",
                     "wpa3-mixed"
                     ],
                     "examples": [
@@ -1141,8 +1217,11 @@ namespace OpenWifi {
                 "maxLength": 2
                 },
                 "domain-name": {
-            "type": "string",
-            "format": "hostname"
+            "type": "array",
+            "items": {
+                "type": "string",
+                "format": "hostname"
+            }
             },
             "nai-realm": {
             "type": "array",
@@ -1262,6 +1341,25 @@ namespace OpenWifi {
                     "icon": "R0lGODlhEAAQAMQAAORHHOVSKudfOulrSOp3WOyDZu6QdvCchPGolfO0o/XBs/fNwfjZ0frl3/zy7////wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAkAABAALAAAAAAQABAAAAVVICSOZGlCQAosJ6mu7fiyZeKqNKToQGDsM8hBADgUXoGAiqhSvp5QAnQKGIgUhwFUYLCVDFCrKUE1lBavAViFIDlTImbKC5Gm2hB0SlBCBMQiB0UjIQA7"
                             }
                             ]
+            }
+            },
+            "wan-metrics": {
+            "type": "object",
+            "properties": {
+                "info": {
+                    "type": "string",
+                    "enum": [
+                            "up",
+                            "down",
+                            "testing"
+                            ]
+                            },
+                            "downlink": {
+                    "type": "integer"
+                    },
+                    "uplink": {
+                    "type": "integer"
+                }
             }
         }
     }
@@ -1479,10 +1577,6 @@ namespace OpenWifi {
             "type": "string",
             "format": "ipv4",
             "example": "192.168.100.1"
-            },
-            "vlan-id": {
-            "type": "integer",
-            "maximum": 4096
         }
     }
     },
@@ -1840,8 +1934,12 @@ namespace OpenWifi {
     "properties": {
         "controller": {
             "type": "string",
-            "uc-format": "cidr",
+            "format": "ip",
             "example": "192.168.10.1"
+            },
+            "datapath-description": {
+            "type": "string",
+            "example": "Building 2, Floor 6, AP 2"
             },
             "mode": {
             "type": "string",
@@ -1850,7 +1948,8 @@ namespace OpenWifi {
                     "ptcp",
                     "ssl",
                     "tcp"
-                    ]
+                    ],
+                    "default": "ssl"
                     },
                     "ca-certificate": {
             "type": "string"
@@ -1925,13 +2024,76 @@ namespace OpenWifi {
     "service.quality-of-service": {
     "type": "object",
     "properties": {
-        "upload-rate": {
+        "select-ports": {
+            "type": "array",
+            "items": {
+                "type": "string",
+                "default": "WAN"
+            }
+            },
+            "bandwidth-up": {
             "type": "integer",
             "default": 0
             },
-            "download-rate": {
+            "bandwidth-down": {
             "type": "integer",
             "default": 0
+            },
+            "classifier": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "dscp": {
+                        "type": "string",
+                        "enum": [
+                                "CS0",
+                                "CS1",
+                                "CS2",
+                                "CS3",
+                                "CS4",
+                                "CS5",
+                                "CS6",
+                                "CS7"
+                                ],
+                                "default": "CS1"
+                                },
+                                "ports": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "protocol": {
+                                    "type": "string",
+                                    "enum": [
+                                            "any",
+                                            "tcp",
+                                            "udp"
+                                            ],
+                                            "default": "any"
+                                            },
+                                            "port": {
+                                    "type": "integer"
+                                    },
+                                    "range-end": {
+                                    "type": "integer"
+                                    },
+                                    "reclassify": {
+                                    "type": "boolean",
+                                    "default": true
+                                }
+                            }
+                            },
+                            "dns": {
+                            "type": "array",
+                            "items": {
+                                "type": "string",
+                                "format": "fqdn"
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
     },
@@ -2153,7 +2315,6 @@ namespace OpenWifi {
 }
 }
 }
-
     )"_json;
 
     class ConfigurationValidator *ConfigurationValidator::instance_ = nullptr;
@@ -2162,13 +2323,13 @@ namespace OpenWifi {
         if(Initialized_)
             return;
         std::string GitSchema;
-        if(Utils::wgets(GitUCentralJSONSchemaFile, GitSchema)) {
-            auto schema = json::parse(GitSchema);
-            Validator_->set_root_schema(schema);
-            Logger_.information("Using uCentral validation schema from GIT.");
-        } else {
-            std::string FileName{ MicroService::instance().DataDir() + "/ucentral.schema.json" };
-            try {
+        try {
+            if(Utils::wgets(GitUCentralJSONSchemaFile, GitSchema)) {
+                auto schema = json::parse(GitSchema);
+                Validator_->set_root_schema(schema);
+                Logger_.information("Using uCentral validation schema from GIT.");
+            } else {
+                std::string FileName{ MicroService::instance().DataDir() + "/ucentral.schema.json" };
                 std::ifstream       input(FileName);
                 std::stringstream   schema_file;
                 schema_file << input.rdbuf();
@@ -2176,10 +2337,10 @@ namespace OpenWifi {
                 auto schema = json::parse(schema_file.str());
                 Validator_->set_root_schema(schema);
                 Logger_.information("Using uCentral validation schema from local file.");
-            } catch (const Poco::Exception &E) {
-                Validator_->set_root_schema(DefaultUCentralSchema);
-                Logger_.information("Using uCentral validation from built-in default.");
             }
+        } catch (const Poco::Exception &E) {
+            Validator_->set_root_schema(DefaultUCentralSchema);
+            Logger_.information("Using uCentral validation from built-in default.");
         }
         Initialized_ = Working_ = true;
     }
@@ -2193,13 +2354,116 @@ namespace OpenWifi {
 
     }
 
-    bool ConfigurationValidator::Validate(const std::string &C) {
+    static inline bool IsIPv4(const std::string &value) {
+        Poco::Net::IPAddress    A;
+        return ((Poco::Net::IPAddress::tryParse(value,A) && A.family()==Poco::Net::IPAddress::IPv4));
+    }
+
+    static inline bool IsIPv6(const std::string &value) {
+        Poco::Net::IPAddress    A;
+        return ((Poco::Net::IPAddress::tryParse(value,A) && A.family()==Poco::Net::IPAddress::IPv6));
+    }
+
+    static inline bool IsIP(const std::string &value) {
+        return IsIPv4(value) || IsIPv6(value);
+    }
+
+    static inline bool IsCIDRv6(const std::string &value) {
+        auto Tokens = Poco::StringTokenizer(value,"/");
+        if(Tokens.count()==2 && IsIPv6(Tokens[0])) {
+            auto Mask = std::atoi(Tokens[1].c_str());
+            if(Mask>=48 && Mask<=128)
+                return true;
+        }
+        return false;
+    }
+
+    static inline bool IsCIDRv4(const std::string &value) {
+        auto Tokens = Poco::StringTokenizer(value,"/");
+        if(Tokens.count()==2 && IsIPv4(Tokens[0])) {
+            auto Mask = std::atoi(Tokens[1].c_str());
+            if(Mask>=0 && Mask<=32)
+                return true;
+        }
+        return false;
+    }
+
+    static inline bool IsCIDR(const std::string &value) {
+        return IsCIDRv4(value) || IsCIDRv6(value);
+    }
+
+    void ConfigurationValidator::my_format_checker(const std::string &format, const std::string &value)
+    {
+        static const std::regex host_regex{"^(?=.{1,254}$)((?=[a-z0-9-]{1,63}\\.)(xn--+)?[a-z0-9]+(-[a-z0-9]+)*\\.)+[a-z]{2,63}$"};
+        static const std::regex mac_regex{"^([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})$"};
+        static const std::regex uc_timeout_regex{"^[0-9]+[dmshw]$"};
+        static const std::regex b64_regex("^[a-zA-Z0-9\\+/]*={0,3}$");
+
+        if(format == "uc-cidr4") {
+            if(IsCIDRv4(value))
+                return;
+            throw std::invalid_argument(value + " is not a valid CIDR IPv4: should be something like 192.168.0.0/16.");
+        } else if(format == "uc-cidr6") {
+            if(IsCIDRv6(value))
+                return;
+            throw std::invalid_argument(value + " is not a valid CIDR IPv6: should be something like 2e60:3500::/64.");
+        } else if(format=="uc-cidr") {
+            if(IsCIDR(value))
+                return;
+            throw std::invalid_argument(value + " is not a valid CIDR IPv6/IPv4: should be something like 2e60:3500::/64.");
+        } else if(format == "uc-mac") {
+            if(std::regex_match(value,mac_regex))
+                return;
+            throw std::invalid_argument(value + " is not a valid MAC: should be something like 2e60:3500::/64.");
+        } else if(format == "uc-timeout") {
+            if(std::regex_match(value,uc_timeout_regex))
+                return;
+            throw std::invalid_argument(value + " is not a proper timeout value: 6d, 300m, 24h, 84000s, infinite");
+        } else if(format == "uc-host") {
+            if(IsIP(value))
+                return;
+            if(std::regex_match(value,host_regex))
+                return;
+            throw std::invalid_argument(value + " is not a proper FQDN.");
+        } else if(format == "fqdn") {
+            if(std::regex_match(value,host_regex))
+                return;
+            throw std::invalid_argument(value + " is not a proper FQDN.");
+        } else if(format == "uc-base64") {
+            std::string s{value};
+            Poco::trimInPlace(s);
+            if( (s.size() %4 ==0) && std::regex_match(s,b64_regex))
+                return;
+            throw std::invalid_argument(value + " is not a base64 encoded value.");
+        } else if(format == "uri") {
+            try {
+                Poco::URI   uri(value);
+                return;
+            } catch (...) {
+            }
+            throw std::invalid_argument(value + " is not a valid URI: should be something like https://hello.world.com.");
+        } else if(format == "ip") {
+            if (IsIP(value))
+                return;
+            throw std::invalid_argument(value + " is not a valid IP address.");
+        } else {
+            try {
+                nlohmann::json_schema::default_string_format_check(format,value);
+            } catch (const std::logic_error &E) {
+                std::string Error{"JSON Schema validation: "};
+            }
+        }
+    }
+
+    bool ConfigurationValidator::Validate(const std::string &C, std::string &Error) {
         if(Working_) {
             try {
                 auto Doc = json::parse(C);
                 Validator_->validate(Doc);
                 return true;
             } catch(const std::exception &E) {
+                Error = E.what();
+                std::cout << "Validation failed, here is why: " << E.what() << "\n";
                 return false;
             }
         }

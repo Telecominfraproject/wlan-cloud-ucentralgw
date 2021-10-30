@@ -102,7 +102,7 @@ add_executable( owgw
         src/Dashboard.cpp src/Dashboard.h
         src/SerialNumberCache.cpp src/SerialNumberCache.h
         src/TelemetryStream.cpp src/TelemetryStream.h
-        src/ConfigurationValidator.cpp src/ConfigurationValidator.h
+        src/framework/ConfigurationValidator.cpp src/framework/ConfigurationValidator.h
         src/ConfigurationCache.cpp src/ConfigurationCache.h
         )
 

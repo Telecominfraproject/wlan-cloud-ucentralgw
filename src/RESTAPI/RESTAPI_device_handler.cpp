@@ -9,12 +9,12 @@
 #include "RESTAPI_device_handler.h"
 #include "CentralConfig.h"
 #include "ConfigurationCache.h"
-#include "ConfigurationValidator.h"
 #include "Poco/JSON/Parser.h"
 #include "StorageService.h"
+#include "framework/ConfigurationValidator.h"
+#include "framework/MicroService.h"
 #include "framework/RESTAPI_errors.h"
 #include "framework/RESTAPI_protocol.h"
-#include "framework/MicroService.h"
 
 namespace OpenWifi {
 	void RESTAPI_device_handler::DoGet() {

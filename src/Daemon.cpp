@@ -11,10 +11,9 @@
 #include "Poco/Util/Option.h"
 #include "Poco/Environment.h"
 
-#include "Daemon.h"
 #include "CentralConfig.h"
 #include "CommandManager.h"
-#include "ConfigurationValidator.h"
+#include "Daemon.h"
 #include "DeviceRegistry.h"
 #include "FileUploader.h"
 #include "OUIServer.h"
@@ -23,6 +22,7 @@
 #include "StorageService.h"
 #include "TelemetryStream.h"
 #include "WebSocketServer.h"
+#include "framework/ConfigurationValidator.h"
 #include "framework/MicroService.h"
 
 namespace OpenWifi {
