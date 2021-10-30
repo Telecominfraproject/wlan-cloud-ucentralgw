@@ -80,9 +80,6 @@ namespace OpenWifi {
 		std::unique_lock	QLock(QueueMutex_);
 		std::unique_lock	CLock(Mutex_);
 
-		CLock.unlock();
-		QLock.unlock();
-
 		while(Running_) {
 
 			QLock.lock();
