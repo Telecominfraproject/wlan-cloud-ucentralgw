@@ -77,14 +77,15 @@ namespace OpenWifi {
 	void TelemetryStream::run() {
 		Running_ = true;
 		QueueUpdate	Entry;
-		std::unique_lock	QLock(QueueMutex_);
-		std::unique_lock	CLock(Mutex_);
 
 		while(Running_) {
+			bool QueueEmpty = true;
+			{
+				std::lock_guard	G(QueueMutex_);
+				QueueEmpty = Queue_.empty();
+			}
 
-			QLock.lock();
-			if(Queue_.empty()) {
-				QLock.unlock();
+			if(QueueEmpty) {
 				Poco::Thread::trySleep(2000);
 				continue;
 			}
@@ -92,31 +93,27 @@ namespace OpenWifi {
 			if(!Running_)
 				break;
 
-			QLock.lock();
-			if(Queue_.empty()) {
-				QLock.unlock();
-				continue;
+			{
+				std::lock_guard	G(QueueMutex_);
+				Entry = Queue_.front();
+				Queue_.pop();
 			}
 
-			Entry = Queue_.front();
-			Queue_.pop();
-			QLock.unlock();
-
-			CLock.lock();
-			auto H1 = SerialNumbers_.find(Entry.SerialNumber);
-			if(H1!=SerialNumbers_.end()) {
-				for(auto &i:H1->second) {
-					auto H2 = Clients_.find(i);
-					if(H2!=Clients_.end() && H2->second!= nullptr) {
-						try {
-							H2->second->Send(Entry.Payload);
-						} catch(...) {
-
+			{
+				std::lock_guard	G(Mutex_);
+				auto H1 = SerialNumbers_.find(Entry.SerialNumber);
+				if(H1!=SerialNumbers_.end()) {
+					for (auto &i : H1->second) {
+						auto H2 = Clients_.find(i);
+						if (H2 != Clients_.end() && H2->second != nullptr) {
+							try {
+								H2->second->Send(Entry.Payload);
+							} catch (...) {
+							}
 						}
 					}
 				}
 			}
-			CLock.unlock();
 		}
 	}
 
