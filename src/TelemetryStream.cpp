@@ -95,6 +95,7 @@ namespace OpenWifi {
 
 			{
 				std::lock_guard	G(QueueMutex_);
+				Entries.clear();
 				while(!Queue_.empty()) {
 					Entries.push_back(Queue_.front());
 					Queue_.pop();
