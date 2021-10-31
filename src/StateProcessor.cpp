@@ -175,7 +175,9 @@ namespace OpenWifi {
 				auto RadioObj = i.extract<Poco::JSON::Object::Ptr>();
 				std::cout << __LINE__ << std::endl;
 				if(RadioObj->has("phy") && RadioObj->has("channel")) {
+					std::cout << __LINE__ << std::endl;
 					RadioPHYs[RadioObj->get("phy").toString()]= ChannelToBand(RadioObj->get("channel"));
+					std::cout << __LINE__ << std::endl;
 				}
 				std::cout << __LINE__ << std::endl;
 			}
