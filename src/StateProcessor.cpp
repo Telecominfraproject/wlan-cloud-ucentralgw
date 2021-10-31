@@ -76,9 +76,13 @@ namespace OpenWifi {
 
 	bool StateProcessor::Add(const std::string &S) {
 		try {
+			std::cout << __LINE__ << std::endl;
 			Poco::JSON::Parser parser;
+			std::cout << __LINE__ << std::endl;
 			auto ParsedMessage = parser.parse(S);
+			std::cout << __LINE__ << std::endl;
 			const auto & Result = ParsedMessage.extract<Poco::JSON::Object::Ptr>();
+			std::cout << __LINE__ << std::endl;
 			return Add(Result);
 		} catch (const Poco::Exception &E) {
 			std::cout << "Exception1.." << std::endl;
