@@ -4,16 +4,17 @@
 
 #ifndef UCENTRALGW_STATEPROCESSOR_H
 #define UCENTRALGW_STATEPROCESSOR_H
+#include <map>
 
 #include "Poco/JSON/Object.h"
+#include "Poco/Logger.h"
 #include "RESTObjects//RESTAPI_GWobjects.h"
-#include <map>
 
 namespace OpenWifi {
 	class StateProcessor {
 	  public:
-		explicit StateProcessor(GWObjects::ConnectionState * Conn):
- 			Conn_(Conn) {}
+		explicit StateProcessor(GWObjects::ConnectionState * Conn, Poco::Logger & L):
+ 			Conn_(Conn), Logger_(L) {}
 
 		~StateProcessor() {
 			Save();
@@ -31,7 +32,8 @@ namespace OpenWifi {
 
 	  private:
 		std::string 					SerialNumber_;
-		Poco::JSON::Object 	State_;
+		Poco::JSON::Object 				State_;
+		Poco::Logger					& Logger_;
 		// interface name is the key, each entry is a map with the stats name as key and then the value
 		std::map<std::string,std::map<std::string,uint64_t>>	Stats_;
 		uint64_t 						UpdatesSinceLastWrite_ = 0 ;

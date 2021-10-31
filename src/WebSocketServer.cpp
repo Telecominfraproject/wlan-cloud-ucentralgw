@@ -375,7 +375,7 @@ namespace OpenWifi {
 						}
 						Conn_->Compatible = Compatible_;
 
-						StatsProcessor_ = std::make_unique<StateProcessor>(Conn_);
+						StatsProcessor_ = std::make_unique<StateProcessor>(Conn_, Logger_);
 						StatsProcessor_->Initialize(Serial);
 						LookForUpgrade(UUID);
 

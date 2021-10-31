@@ -46,23 +46,22 @@ namespace OpenWifi {
 					Save();
 				return true;
 			} else {
-				std::cout << "No interfaces section" << std::endl;
+				Logger_.information(Poco::format("DEVICE(%s): State is missing interfaces",SerialNumber_));
 			}
 		} catch (const Poco::Exception &E ) {
-			std::cout << "Exception0.. " <<  E.displayText() << " " << E.what() << std::endl;
+			Logger_.log(E);
 		}
 		return false;
 	}
 
 	bool StateProcessor::Add(const std::string &S) {
 		try {
-			std::cout << "State: " << std::endl << S << std::endl;
 			Poco::JSON::Parser parser;
 			auto ParsedMessage = parser.parse(S);
 			const auto & Result = ParsedMessage.extract<Poco::JSON::Object::Ptr>();
 			return Add(Result);
 		} catch (const Poco::Exception &E) {
-			std::cout << "Exception1.." << std::endl;
+			Logger_.log(E);
 		}
 		return false;
 	}
@@ -77,12 +76,6 @@ namespace OpenWifi {
 	}
 
 	void StateProcessor::to_json(Poco::JSON::Object & Obj) const {
-		/* interfaces: [
-			name:
-			counters: {
-
-			}
-		*/
 		Poco::JSON::Array	Interfaces;
 		for(const auto & Interface: Stats_) {
 			Poco::JSON::Object InnerObj;
@@ -137,22 +130,15 @@ namespace OpenWifi {
 	bool StateProcessor::GetAssociations(const Poco::JSON::Object::Ptr &RawObject, uint64_t &Radios_2G, uint64_t &Radios_5G) {
 		Radios_2G = 0 ;
 		Radios_5G = 0;
-		std::cout << __LINE__ << std::endl;
 		if(RawObject->isArray("radios") && RawObject->isArray("interfaces")) {
-			std::cout << __LINE__ << std::endl;
 			auto RA = RawObject->getArray("radios");
 			// map of phy to 2g/5g
-			std::cout << __LINE__ << std::endl;
 			std::map<std::string,int>   RadioPHYs;
 			//  parse radios and get the phy out with the band
-			std::cout << __LINE__ << std::endl;
 			for(auto const &i:*RA) {
-				std::cout << __LINE__ << std::endl;
 				Poco::JSON::Parser p2;
 				auto RadioObj = i.extract<Poco::JSON::Object::Ptr>();
-				std::cout << __LINE__ << std::endl;
 				if(RadioObj->has("phy") && RadioObj->has("channel")) {
-					std::cout << __LINE__ << std::endl;
 					if(RadioObj->isArray("channel")) {
 						auto ChannelArray = RadioObj->getArray("channel");
 						if(ChannelArray->size()) {
@@ -163,39 +149,27 @@ namespace OpenWifi {
 						RadioPHYs[RadioObj->get("phy").toString()] =
 							ChannelToBand(RadioObj->get("channel"));
 					}
-					std::cout << __LINE__ << std::endl;
 				}
-				std::cout << __LINE__ << std::endl;
 			}
 
-			std::cout << __LINE__ << std::endl;
 			auto IA = RawObject->getArray("interfaces");
-			std::cout << __LINE__ << std::endl;
 			for(auto const &i:*IA) {
-				std::cout << __LINE__ << std::endl;
 				auto InterfaceObj = i.extract<Poco::JSON::Object::Ptr>();
-				std::cout << __LINE__ << std::endl;
 				if(InterfaceObj->isArray("ssids")) {
 					auto SSIDA = InterfaceObj->getArray("ssids");
-					std::cout << __LINE__ << std::endl;
 					for(const auto &s:*SSIDA) {
-						std::cout << __LINE__ << std::endl;
 						auto SSIDinfo = s.extract<Poco::JSON::Object::Ptr>();
 						if(SSIDinfo->isArray("associations") && SSIDinfo->has("phy")) {
-							std::cout << __LINE__ << std::endl;
 							auto PHY = SSIDinfo->get("phy").toString();
 							int Radio = 2;
 							auto Rit = RadioPHYs.find(PHY);
-							std::cout << __LINE__ << std::endl;
 							if(Rit!=RadioPHYs.end())
 								Radio = Rit->second;
-							std::cout << __LINE__ << std::endl;
 							auto AssocA = SSIDinfo->getArray("associations");
 							if(Radio==2)
 								Radios_2G+=AssocA->size();
 							else
 								Radios_5G+=AssocA->size();
-							std::cout << __LINE__ << std::endl;
 						}
 					}
 				}
