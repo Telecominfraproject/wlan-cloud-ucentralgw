@@ -67,7 +67,6 @@ namespace OpenWifi {
 				std::cout << "No interfaces section" << std::endl;
 			}
 		} catch (const Poco::Exception &E ) {
-			std::cout << __LINE__ << std::endl;
 			std::cout << "Exception0.. " <<  E.displayText() << " " << E.what() << std::endl;
 		}
 		std::cout << __LINE__ << std::endl;
@@ -76,13 +75,10 @@ namespace OpenWifi {
 
 	bool StateProcessor::Add(const std::string &S) {
 		try {
-			std::cout << __LINE__ << std::endl;
+			std::cout << "State: " << std::endl << S << std::endl;
 			Poco::JSON::Parser parser;
-			std::cout << __LINE__ << std::endl;
 			auto ParsedMessage = parser.parse(S);
-			std::cout << __LINE__ << std::endl;
 			const auto & Result = ParsedMessage.extract<Poco::JSON::Object::Ptr>();
-			std::cout << __LINE__ << std::endl;
 			return Add(Result);
 		} catch (const Poco::Exception &E) {
 			std::cout << "Exception1.." << std::endl;
