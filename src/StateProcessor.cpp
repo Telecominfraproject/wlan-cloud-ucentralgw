@@ -13,50 +13,64 @@ namespace OpenWifi {
 		try {
 			UpdatesSinceLastWrite_++;
 			//	get the interfaces section
-			if(O->has("interfaces")) {
-				auto IFaces = O->get("interfaces");
-				if(IFaces.isArray()) {
-					auto IFaceObjs = IFaces.extract<Poco::JSON::Array::Ptr>();
-					for (auto const &i : *IFaceObjs) {
-						auto Interface = i.extract<Poco::JSON::Object::Ptr>();
-						if (Interface->has("name") && Interface->has("counters")) {
-							auto InterfaceName = Interface->get("name").toString();
-							auto InterfaceMapEntry = Stats_.find(InterfaceName);
-							if(InterfaceMapEntry == Stats_.end()) {
-								std::map<std::string,uint64_t>	NewStatEntry;
-								Stats_[InterfaceName] = NewStatEntry;
-								InterfaceMapEntry = Stats_.find(InterfaceName);
-							}
-
-							auto CountersObj = Interface->get("counters").extract<Poco::JSON::Object::Ptr>();
-							Poco::DynamicStruct CounterVars = *CountersObj;
-
-							for (const auto &j : CounterVars) {
-								auto Entry = InterfaceMapEntry->second.find(j.first);
-								if(Entry==InterfaceMapEntry->second.end()) {
-									InterfaceMapEntry->second[j.first] = j.second;
-								} else {
-									InterfaceMapEntry->second[j.first] += j.second;
-								}
-							}
-						} else {
-							return false;
+			std::cout << __LINE__ << std::endl;
+			if(O->has("interfaces") && O->isArray("interfaces")) {
+				std::cout << __LINE__ << std::endl;
+				auto IFaces = O->getArray("interfaces");
+				std::cout << __LINE__ << std::endl;
+				for (auto const &i : *IFaces) {
+					std::cout << __LINE__ << std::endl;
+					auto Interface = i.extract<Poco::JSON::Object::Ptr>();
+					std::cout << __LINE__ << std::endl;
+					if (Interface->has("name") && Interface->has("counters")) {
+						std::cout << __LINE__ << std::endl;
+						auto InterfaceName = Interface->get("name").toString();
+						auto InterfaceMapEntry = Stats_.find(InterfaceName);
+						std::cout << __LINE__ << std::endl;
+						if(InterfaceMapEntry == Stats_.end()) {
+							std::cout << __LINE__ << std::endl;
+							std::map<std::string,uint64_t>	NewStatEntry;
+							Stats_[InterfaceName] = NewStatEntry;
+							InterfaceMapEntry = Stats_.find(InterfaceName);
 						}
+						std::cout << __LINE__ << std::endl;
+						auto CountersObj = Interface->getObject("counters");
+						std::cout << __LINE__ << std::endl;
+						for (const auto &j : *CountersObj) {
+							std::cout << __LINE__ << std::endl;
+							auto Entry = InterfaceMapEntry->second.find(j.first);
+							if(Entry==InterfaceMapEntry->second.end()) {
+								std::cout << __LINE__ << std::endl;
+								InterfaceMapEntry->second[j.first] = j.second;
+							} else {
+								std::cout << __LINE__ << std::endl;
+								InterfaceMapEntry->second[j.first] += j.second;
+							}
+						}
+					} else {
+						std::cout << __LINE__ << std::endl;
+						return false;
 					}
-
-					if(Conn_)
-						GetAssociations(O,Conn_->Associations_2G,Conn_->Associations_5G);
-
-					if(UpdatesSinceLastWrite_>10)
-						Save();
-					return true;
 				}
+				std::cout << __LINE__ << std::endl;
+
+				if(Conn_)
+					GetAssociations(O,Conn_->Associations_2G,Conn_->Associations_5G);
+
+				std::cout << __LINE__ << std::endl;
+				if(UpdatesSinceLastWrite_>10)
+					Save();
+				std::cout << __LINE__ << std::endl;
+				return true;
 			} else {
+				std::cout << __LINE__ << std::endl;
 				std::cout << "No interfaces section" << std::endl;
 			}
 		} catch (const Poco::Exception &E ) {
+			std::cout << __LINE__ << std::endl;
 			std::cout << "Exception0.. " <<  E.displayText() << " " << E.what() << std::endl;
 		}
+		std::cout << __LINE__ << std::endl;
 		return false;
 	}
 
