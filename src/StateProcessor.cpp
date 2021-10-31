@@ -160,37 +160,54 @@ namespace OpenWifi {
 	bool StateProcessor::GetAssociations(const Poco::JSON::Object::Ptr &RawObject, uint64_t &Radios_2G, uint64_t &Radios_5G) {
 		Radios_2G = 0 ;
 		Radios_5G = 0;
+		std::cout << __LINE__ << std::endl;
 		if(RawObject->isArray("radios") && RawObject->isArray("interfaces")) {
+			std::cout << __LINE__ << std::endl;
 			auto RA = RawObject->getArray("radios");
 			// map of phy to 2g/5g
+			std::cout << __LINE__ << std::endl;
 			std::map<std::string,int>   RadioPHYs;
 			//  parse radios and get the phy out with the band
+			std::cout << __LINE__ << std::endl;
 			for(auto const &i:*RA) {
+				std::cout << __LINE__ << std::endl;
 				Poco::JSON::Parser p2;
 				auto RadioObj = i.extract<Poco::JSON::Object::Ptr>();
+				std::cout << __LINE__ << std::endl;
 				if(RadioObj->has("phy") && RadioObj->has("channel")) {
 					RadioPHYs[RadioObj->get("phy").toString()]= ChannelToBand(RadioObj->get("channel"));
 				}
+				std::cout << __LINE__ << std::endl;
 			}
 
+			std::cout << __LINE__ << std::endl;
 			auto IA = RawObject->getArray("interfaces");
+			std::cout << __LINE__ << std::endl;
 			for(auto const &i:*IA) {
+				std::cout << __LINE__ << std::endl;
 				auto InterfaceObj = i.extract<Poco::JSON::Object::Ptr>();
+				std::cout << __LINE__ << std::endl;
 				if(InterfaceObj->isArray("ssids")) {
 					auto SSIDA = InterfaceObj->getArray("ssids");
+					std::cout << __LINE__ << std::endl;
 					for(const auto &s:*SSIDA) {
+						std::cout << __LINE__ << std::endl;
 						auto SSIDinfo = s.extract<Poco::JSON::Object::Ptr>();
 						if(SSIDinfo->isArray("associations") && SSIDinfo->has("phy")) {
+							std::cout << __LINE__ << std::endl;
 							auto PHY = SSIDinfo->get("phy").toString();
 							int Radio = 2;
 							auto Rit = RadioPHYs.find(PHY);
+							std::cout << __LINE__ << std::endl;
 							if(Rit!=RadioPHYs.end())
 								Radio = Rit->second;
+							std::cout << __LINE__ << std::endl;
 							auto AssocA = SSIDinfo->getArray("associations");
 							if(Radio==2)
 								Radios_2G+=AssocA->size();
 							else
 								Radios_5G+=AssocA->size();
+							std::cout << __LINE__ << std::endl;
 						}
 					}
 				}
