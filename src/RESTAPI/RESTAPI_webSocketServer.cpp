@@ -74,6 +74,12 @@ namespace OpenWifi {
 								}
 							}
 							break;
+						case Poco::Net::WebSocket::FRAME_OP_CLOSE: {
+								Logger_.warning(Poco::format("CLOSE(%s): Client is closing its WS connection.", UserInfo_.userinfo.email));
+								Done=true;
+							}
+						break;
+
 						default:
 							{
 
