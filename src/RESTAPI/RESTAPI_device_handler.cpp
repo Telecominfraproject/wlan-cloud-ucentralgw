@@ -48,7 +48,7 @@ namespace OpenWifi {
 			std::vector<GWObjects::Device>	Devices;
 
 			bool Done = false;
-			uint64_t Offset=0;
+			uint64_t Offset=1;
 			while(!Done) {
 
 				StorageService()->GetDevices(Offset,500,Devices);
