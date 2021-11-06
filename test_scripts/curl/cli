@@ -189,6 +189,13 @@ deletedevice() {
         -H "Authorization: Bearer ${token}"
 }
 
+deleteoui() {
+	curl  ${FLAGS} -X DELETE "https://${OWGW}/api/v1/device/$1?oui=true" \
+	-H "accept: application/json" \
+	-H "Authorization: Bearer ${token}"
+}
+
+
 createdevice() {
   payload="{ \"serialNumber\": \"$1\", \"UUID\": 1234456, \"configuration\" : $(cat "$2") , \"deviceType\": \"AP\",\"location\": \"\", \"macAddress\": \"$3\", \"manufacturer\": \"Linksys EA8300 (Dallas)\", \"owner\": \"\" }"
   curl  ${FLAGS} -X POST "https://${OWGW}/api/v1/device/$1" \
@@ -680,6 +687,7 @@ case "$1" in
   "deletecapabilities") login; deletecapabilities "$2"  ; logout ;;
   "listdevices") login; listdevices  ; logout ;;
   "deletedevice") login; deletedevice "$2"  ; logout ;;
+  "deleteoui") login; deleteoui "$2"  ; logout ;;
   "createdevice") login; createdevice "$2" "$3" "$4" ; logout ;;
   "reboot") login; reboot "$2"  ; logout ;;
   "getdevicestatus") login; getdevicestatus "$2"  ; logout ;;
