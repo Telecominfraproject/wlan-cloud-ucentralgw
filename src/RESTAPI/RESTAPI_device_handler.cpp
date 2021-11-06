@@ -41,9 +41,40 @@ namespace OpenWifi {
 			return BadRequest(RESTAPI::Errors::MissingSerialNumber);
 		}
 
-		if (StorageService()->DeleteDevice(SerialNumber)) {
+		std::string Arg;
+		if(HasParameter("oui",Arg) && Arg=="true" && SerialNumber.size()==6) {
+
+			std::set<std::string>	Set;
+			std::vector<GWObjects::Device>	Devices;
+
+			bool Done = false;
+			uint64_t Offset=0;
+			while(!Done) {
+
+				StorageService()->GetDevices(Offset,500,Devices);
+				for(const auto &i:Devices) {
+					if(i.SerialNumber.substr(0,6) == SerialNumber) {
+						Set.insert(i.SerialNumber);
+					}
+				}
+
+				if(Devices.size()<500)
+					Done=true;
+
+				Offset += Devices.size();
+			}
+
+			for(auto &i:Set) {
+				std::string SNum{i};
+				StorageService()->DeleteDevice(SNum);
+			}
+
+			return OK();
+
+		} else if (StorageService()->DeleteDevice(SerialNumber)) {
 			return OK();
 		}
+
 		NotFound();
 	}
 
