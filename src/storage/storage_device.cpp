@@ -417,11 +417,18 @@ namespace OpenWifi {
 			Poco::Data::Session     Sess = Pool_->get();
 			Poco::Data::Statement   Delete(Sess);
 
-			std::string St{"DELETE FROM Devices WHERE SerialNumber=?"};
+			std::vector<std::string>	DBList{"Devices", "Statistics", "CommandList", "HealthChecks", "LifetimeStats", "Capabilities", "DeviceLogs"};
 
-			Delete << ConvertParams(St),
-				Poco::Data::Keywords::use(SerialNumber);
-			Delete.execute();
+			for(const auto &i:DBList) {
+				std::string St{"DELETE FROM " + i + " WHERE SerialNumber=?"};
+				try {
+					Delete << ConvertParams(St), Poco::Data::Keywords::use(SerialNumber);
+					Delete.execute();
+				} catch (...) {
+
+				}
+			}
+
 			SerialNumberCache()->DeleteSerialNumber(SerialNumber);
 			return true;
 		}
