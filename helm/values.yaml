@@ -119,6 +119,8 @@ tolerations: []
 
 affinity: {}
 
+podAnnotations: {}
+
 persistence:
   enabled: true
   # storageClassName: "-"
