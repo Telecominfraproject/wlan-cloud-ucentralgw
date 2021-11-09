@@ -28,8 +28,6 @@
 
 namespace OpenWifi {
 
-    class WebSocketServer *WebSocketServer::instance_ = nullptr;
-
 	WebSocketServer::WebSocketServer() noexcept:
 	  	SubSystemServer("WebSocketServer", "WS-SVR", "ucentral.websocket")
     {

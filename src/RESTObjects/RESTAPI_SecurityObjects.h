@@ -10,7 +10,7 @@
 #define UCENTRAL_RESTAPI_SECURITYOBJECTS_H
 
 #include "Poco/JSON/Object.h"
-#include "../framework/OpenWifiTypes.h"
+#include "framework/OpenWifiTypes.h"
 
 namespace OpenWifi::SecurityObjects {
 
@@ -53,7 +53,7 @@ namespace OpenWifi::SecurityObjects {
 		std::string createdBy;
 		std::string note;
 		void to_json(Poco::JSON::Object &Obj) const;
-		bool from_json(Poco::JSON::Object::Ptr Obj);
+		bool from_json(Poco::JSON::Object::Ptr &Obj);
 	};
 	typedef std::vector<NoteInfo>	NoteInfoVec;
 
@@ -63,7 +63,7 @@ namespace OpenWifi::SecurityObjects {
 	    bool primary;
 
 	    void to_json(Poco::JSON::Object &Obj) const;
-	    bool from_json(Poco::JSON::Object::Ptr Obj);
+	    bool from_json(Poco::JSON::Object::Ptr &Obj);
 	};
 
 	struct MfaAuthInfo {
@@ -71,7 +71,7 @@ namespace OpenWifi::SecurityObjects {
 	    std::string method;
 
 	    void to_json(Poco::JSON::Object &Obj) const;
-	    bool from_json(Poco::JSON::Object::Ptr Obj);
+	    bool from_json(Poco::JSON::Object::Ptr &Obj);
 	};
 
 	struct UserLoginLoginExtensions {
@@ -79,7 +79,7 @@ namespace OpenWifi::SecurityObjects {
 	    struct MfaAuthInfo mfa;
 
 	    void to_json(Poco::JSON::Object &Obj) const;
-	    bool from_json(Poco::JSON::Object::Ptr Obj);
+	    bool from_json(Poco::JSON::Object::Ptr &Obj);
 	};
 
 	struct MFAChallengeRequest {
@@ -89,7 +89,7 @@ namespace OpenWifi::SecurityObjects {
 	    uint64_t    created;
 
 	    void to_json(Poco::JSON::Object &Obj) const;
-	    bool from_json(Poco::JSON::Object::Ptr Obj);
+	    bool from_json(Poco::JSON::Object::Ptr &Obj);
 	};
 
     struct MFAChallengeResponse {
@@ -97,7 +97,7 @@ namespace OpenWifi::SecurityObjects {
         std::string answer;
 
         void to_json(Poco::JSON::Object &Obj) const;
-        bool from_json(Poco::JSON::Object::Ptr Obj);
+        bool from_json(Poco::JSON::Object::Ptr &Obj);
     };
 
 	struct UserInfo {
@@ -200,7 +200,7 @@ namespace OpenWifi::SecurityObjects {
 		std::string resource;
 		ResourceAccessType access;
 		void to_json(Poco::JSON::Object &Obj) const;
-		bool from_json(Poco::JSON::Object::Ptr Obj);
+		bool from_json(Poco::JSON::Object::Ptr &Obj);
 	};
 	typedef std::vector<ProfileAction>	ProfileActionVec;
 
@@ -212,14 +212,32 @@ namespace OpenWifi::SecurityObjects {
 		std::string role;
 		NoteInfoVec notes;
 		void to_json(Poco::JSON::Object &Obj) const;
-		bool from_json(Poco::JSON::Object::Ptr Obj);
+		bool from_json(Poco::JSON::Object::Ptr &Obj);
 	};
 	typedef std::vector<SecurityProfile> SecurityProfileVec;
 
 	struct SecurityProfileList {
 		SecurityProfileVec profiles;
 		void to_json(Poco::JSON::Object &Obj) const;
-		bool from_json(Poco::JSON::Object::Ptr Obj);
+		bool from_json(Poco::JSON::Object::Ptr &Obj);
+	};
+
+	struct ActionLink {
+	    std::string         id;
+	    std::string         action;
+	    std::string         userId;
+	    std::string         actionTemplate;
+	    Types::StringPairVec variables;
+	    std::string         locale;
+	    std::string         message;
+	    uint64_t            sent=0;
+	    uint64_t            created=std::time(nullptr);
+	    uint64_t            expires=0;
+	    uint64_t            completed=0;
+	    uint64_t            canceled=0;
+
+        void to_json(Poco::JSON::Object &Obj) const;
+	    bool from_json(Poco::JSON::Object::Ptr &Obj);
 	};
 }
 

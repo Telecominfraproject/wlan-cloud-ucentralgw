@@ -20,8 +20,6 @@
 
 namespace OpenWifi {
 
-    class CommandManager * CommandManager::instance_ = nullptr;
-
 	void CommandManager::run() {
 		Running_ = true;
         while(Running_)

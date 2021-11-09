@@ -101,10 +101,8 @@ namespace OpenWifi {
 		};
 
 		static TelemetryStream *instance() {
-			if (instance_ == nullptr) {
-				instance_ = new TelemetryStream;
-			}
-			return instance_;
+			static TelemetryStream instance;
+			return &instance;
 		}
 
 		int Start() override;
@@ -117,7 +115,6 @@ namespace OpenWifi {
 		Poco::Net::SocketReactor & NextReactor() { return ReactorPool_.NextReactor(); }
 		void run() override;
 	  private:
-		static TelemetryStream 					* 		instance_;
 		std::atomic_bool 								Running_=false;
 		std::map<std::string, TelemetryClient *>		Clients_;			// 	uuid -> client
 		std::map<std::string, std::set<std::string>>	SerialNumbers_;		//	serialNumber -> uuid

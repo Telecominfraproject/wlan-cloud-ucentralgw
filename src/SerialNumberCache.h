@@ -12,10 +12,8 @@ namespace OpenWifi {
 		public:
 
 		static SerialNumberCache *instance() {
-			if (instance_ == nullptr) {
-				instance_ = new SerialNumberCache;
-			}
-			return instance_;
+			static SerialNumberCache instance;
+			return &instance;
 		}
 
 		int Start() override;
@@ -25,7 +23,6 @@ namespace OpenWifi {
 		void FindNumbers(const std::string &S, uint HowMany, std::vector<uint64_t> &A);
 
 	  private:
-		static SerialNumberCache 	* instance_;
 		uint64_t 					LastUpdate_ = 0 ;
 		std::vector<uint64_t>		SNs_;
 		std::mutex					M_;

@@ -28,10 +28,8 @@ namespace OpenWifi {
 		};
 
         static Storage *instance() {
-            if (instance_ == nullptr) {
-                instance_ = new Storage;
-            }
-            return instance_;
+			static Storage instance;
+			return &instance;
         }
 
 		typedef std::map<std::string,std::string>	DeviceCapabilitiesCache;
@@ -147,7 +145,6 @@ namespace OpenWifi {
 		inline bool GetDeviceCapabilitiesCache(DeviceCapabilitiesCache & Caps) { std::lock_guard G(Mutex_); Caps = CapsCache_; return true; };
 
 	  private:
-		static Storage      								*instance_;
 		DeviceCapabilitiesCache								CapsCache_;
 
    };

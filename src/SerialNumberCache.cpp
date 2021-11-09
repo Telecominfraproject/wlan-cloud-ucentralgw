@@ -9,8 +9,6 @@
 
 namespace OpenWifi {
 
-	class SerialNumberCache * SerialNumberCache::instance_ = nullptr;
-
 	int SerialNumberCache::Start() {
 		StorageService()->UpdateSerialNumberCache();
 		return 0;

@@ -5,5 +5,4 @@
 #include "ConfigurationCache.h"
 
 namespace OpenWifi {
-	class ConfigurationCache * ConfigurationCache::instance_ = nullptr;
 }

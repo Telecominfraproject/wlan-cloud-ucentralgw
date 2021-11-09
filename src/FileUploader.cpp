@@ -25,7 +25,6 @@
 #include "framework/MicroService.h"
 
 namespace OpenWifi {
-    class FileUploader *FileUploader::instance_ = nullptr;
 
     static const std::string URI_BASE{"/v1/upload/"};
 

@@ -23,10 +23,8 @@ class StorageArchiver : public SubSystemServer, Poco::Runnable {
 
   	public:
 		static StorageArchiver *instance() {
-			if (instance_ == nullptr) {
-				instance_ = new StorageArchiver;
-			}
-			return instance_;
+			static StorageArchiver instance;
+			return &instance;
 		}
 
 		void 	run() override;
@@ -38,7 +36,6 @@ class StorageArchiver : public SubSystemServer, Poco::Runnable {
 		inline bool Enabled() const { return Enabled_; }
 
 	private:
-		static StorageArchiver      *instance_;
 		std::atomic_bool 			Running_ = false;
 		std::atomic_bool 			Enabled_ = false;
 		Poco::Thread				Janitor_;

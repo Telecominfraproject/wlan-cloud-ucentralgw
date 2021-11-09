@@ -25,8 +25,6 @@
 
 namespace OpenWifi {
 
-	class TelemetryStream *TelemetryStream::instance_ = nullptr;
-
 	int TelemetryStream::Start() {
 		ReactorPool_.Start();
 		Runner.start(*this);

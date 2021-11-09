@@ -263,6 +263,21 @@ namespace OpenWifi::RESTAPI_utils {
         return OS.str();
     }
 
+    inline std::string to_string(const Types::StringPairVec & ObjectArray) {
+        Poco::JSON::Array OutputArr;
+        if(ObjectArray.empty())
+            return "[]";
+        for(auto const &i:ObjectArray) {
+            Poco::JSON::Array InnerArray;
+            InnerArray.add(i.first);
+            InnerArray.add(i.second);
+            OutputArr.add(InnerArray);
+        }
+        std::ostringstream OS;
+        Poco::JSON::Stringifier::condense(OutputArr,OS);
+        return OS.str();
+    }
+
     template<class T> std::string to_string(const std::vector<T> & ObjectArray) {
         Poco::JSON::Array OutputArr;
         if(ObjectArray.empty())
@@ -343,6 +358,27 @@ namespace OpenWifi::RESTAPI_utils {
 
         }
         return Result;
+    }
+
+    inline Types::StringPairVec to_stringpair_array(const std::string &S) {
+        Types::StringPairVec   R;
+        if(S.empty())
+            return R;
+        try {
+            Poco::JSON::Parser P;
+            auto Object = P.parse(S).template extract<Poco::JSON::Array::Ptr>();
+            for (auto const &i : *Object) {
+                auto InnerObject = i.template extract<Poco::JSON::Array::Ptr>();
+                if(InnerObject->size()==2) {
+                    Types::StringPair P{InnerObject->get(0).toString(), InnerObject->get(1).toString()};
+                    R.push_back(P);
+                }
+            }
+        } catch (...) {
+
+        }
+
+        return R;
     }
 
     template<class T> std::vector<T> to_object_array(const std::string & ObjectString) {
@@ -1890,9 +1926,8 @@ namespace OpenWifi {
 	    inline void initialize(Poco::Util::Application & self) override;
 
 	    static KafkaManager *instance() {
-	        if(instance_== nullptr)
-	            instance_ = new KafkaManager;
-	        return instance_;
+	        static KafkaManager instance;
+	        return &instance;
 	    }
 
 	    inline int Start() override {
@@ -1967,7 +2002,6 @@ namespace OpenWifi {
 	    // void WakeUp();
 
 	private:
-	    static KafkaManager 			*instance_;
 	    std::mutex 						ProducerMutex_;
 	    std::mutex						ConsumerMutex_;
 	    bool 							KafkaEnabled_ = false;
@@ -1995,7 +2029,6 @@ namespace OpenWifi {
 	};
 
 	inline KafkaManager * KafkaManager() { return KafkaManager::instance(); }
-	inline 	class KafkaManager *KafkaManager::instance_ = nullptr;
 
 	class AuthClient : public SubSystemServer {
 	public:
@@ -2005,10 +2038,8 @@ namespace OpenWifi {
 	    }
 
 	    static AuthClient *instance() {
-	        if (instance_ == nullptr) {
-	            instance_ = new AuthClient;
-	        }
-	        return instance_;
+	        static AuthClient instance;
+	        return &instance;
 	    }
 
 	    inline int Start() override {
@@ -2086,12 +2117,10 @@ namespace OpenWifi {
 	    }
 
 	private:
-	    static AuthClient 					*instance_;
 	    OpenWifi::SecurityObjects::UserInfoCache 		UserCache_;
 	};
 
 	inline AuthClient * AuthClient() { return AuthClient::instance(); }
-	inline class AuthClient * AuthClient::instance_ = nullptr;
 
 	class ALBRequestHandler: public Poco::Net::HTTPRequestHandler
 	        /// Return a HTML document with the current date and time.
@@ -2148,10 +2177,8 @@ namespace OpenWifi {
 	    }
 
 	    static ALBHealthCheckServer *instance() {
-	        if (instance_ == nullptr) {
-	            instance_ = new ALBHealthCheckServer;
-	        }
-	        return instance_;
+	        static ALBHealthCheckServer instance;
+	        return &instance;
 	    }
 
 	    inline int Start() override;
@@ -2162,14 +2189,12 @@ namespace OpenWifi {
 	    }
 
 	private:
-	    static ALBHealthCheckServer *instance_;
 	    std::unique_ptr<Poco::Net::HTTPServer>   	Server_;
 	    std::unique_ptr<Poco::Net::ServerSocket> 	Socket_;
 	    int                                     	Port_ = 0;
 	};
 
 	inline ALBHealthCheckServer * ALBHealthCheckServer() { return ALBHealthCheckServer::instance(); }
-	inline class ALBHealthCheckServer * ALBHealthCheckServer::instance_ = nullptr;
 
 	Poco::Net::HTTPRequestHandler * RESTAPI_external_server(const char *Path, RESTAPIHandler::BindingMap &Bindings,
                                            Poco::Logger & L, RESTAPI_GenericServer & S);
@@ -2181,10 +2206,8 @@ namespace OpenWifi {
 	class RESTAPI_server : public SubSystemServer {
 	public:
 	    static RESTAPI_server *instance() {
-	        if (instance_ == nullptr) {
-	            instance_ = new RESTAPI_server;
-	        }
-	        return instance_;
+	        static RESTAPI_server instance;
+	        return &instance;
 	    }
 	    int Start() override;
 	    inline void Stop() override {
@@ -2202,7 +2225,6 @@ namespace OpenWifi {
 	    }
 
 	private:
-	    static RESTAPI_server *instance_;
 	    std::vector<std::unique_ptr<Poco::Net::HTTPServer>>   RESTServers_;
 	    Poco::ThreadPool	    Pool_;
 	    RESTAPI_GenericServer   Server_;
@@ -2235,9 +2257,6 @@ namespace OpenWifi {
 	    RESTAPI_GenericServer   &Server_;
 	};
 
-
-	inline class RESTAPI_server *RESTAPI_server::instance_ = nullptr;
-
 	inline int RESTAPI_server::Start() {
 	    Logger_.information("Starting.");
 	    Server_.InitLogging();
@@ -2269,10 +2288,8 @@ namespace OpenWifi {
 
 	public:
 	    static RESTAPI_InternalServer *instance() {
-	        if (instance_ == nullptr) {
-	            instance_ = new RESTAPI_InternalServer;
-	        }
-	        return instance_;
+	        static RESTAPI_InternalServer instance;
+	        return &instance;
 	    }
 
 	    inline int Start() override;
@@ -2290,7 +2307,6 @@ namespace OpenWifi {
 	        return RESTAPI_internal_server(Path, Bindings, Logger_, Server_);
 	    }
 	private:
-	    static RESTAPI_InternalServer *instance_;
 	    std::vector<std::unique_ptr<Poco::Net::HTTPServer>>   RESTServers_;
 	    Poco::ThreadPool	    Pool_;
 	    RESTAPI_GenericServer   Server_;
@@ -2300,8 +2316,6 @@ namespace OpenWifi {
 	    }
 
 	};
-
-	inline class RESTAPI_InternalServer* RESTAPI_InternalServer::instance_ = nullptr;
 
 	inline RESTAPI_InternalServer * RESTAPI_InternalServer() { return RESTAPI_InternalServer::instance(); };
 

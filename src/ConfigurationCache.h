@@ -13,10 +13,9 @@ namespace OpenWifi {
 	class ConfigurationCache {
 	  public:
 
-		static ConfigurationCache &instance() {
-			if(instance_== nullptr)
-				instance_ = new ConfigurationCache;
-			return *instance_;
+		static ConfigurationCache & instance() {
+			static ConfigurationCache instance;
+			return instance;
 		}
 
 		inline uint64_t CurrentConfig(const std::string &SerialNumber) {
@@ -27,13 +26,12 @@ namespace OpenWifi {
 			return Hint->second;
 		}
 
-		void Add(const std::string &SerialNumber, uint64_t Id) {
+		inline void Add(const std::string &SerialNumber, uint64_t Id) {
 			std::lock_guard	G(Mutex_);
 			Cache_[SerialNumber]=Id;
 		}
 
 	  private:
-		static ConfigurationCache		*instance_;
 		std::mutex						Mutex_;
 		std::map<std::string,uint64_t>	Cache_;
 	};

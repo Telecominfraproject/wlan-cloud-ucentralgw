@@ -18,7 +18,6 @@
 #include "framework/MicroService.h"
 
 namespace OpenWifi {
-	class OUIServer * OUIServer::instance_;
 
 	int OUIServer::Start() {
 		Running_=true;

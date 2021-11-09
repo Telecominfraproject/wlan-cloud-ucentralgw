@@ -15,10 +15,8 @@ namespace OpenWifi {
 		typedef std::map<uint64_t,std::string>	OUIMap;
 
 		static OUIServer *instance() {
-			if (instance_ == nullptr) {
-				instance_ = new OUIServer;
-			}
-			return instance_;
+			static OUIServer instance;
+			return &instance;
 		}
 
 		int Start() override;
@@ -33,7 +31,6 @@ namespace OpenWifi {
 		[[nodiscard]] bool ProcessFile(const std::string &FileName, OUIMap &Map);
 
 	  private:
-		static OUIServer 	* instance_;
 		uint64_t 			LastUpdate_ = 0 ;
 		bool 				ValidFile_=false;
 		OUIMap 				OUIs_;

@@ -15,7 +15,6 @@
 #include "OUIServer.h"
 
 namespace OpenWifi {
-    class DeviceRegistry *DeviceRegistry::instance_ = nullptr;
 
 	DeviceRegistry::DeviceRegistry() noexcept:
 		SubSystemServer("DeviceRegistry", "DevStatus", "devicestatus") {

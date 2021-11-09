@@ -10,8 +10,6 @@
 
 namespace OpenWifi {
 
-	class Storage *Storage::instance_ = nullptr;
-
     int Storage::Start() {
 		std::lock_guard		Guard(Mutex_);
 		StorageClass::Start();

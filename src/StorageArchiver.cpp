@@ -10,8 +10,6 @@
 
 namespace OpenWifi {
 
-	class StorageArchiver *StorageArchiver::instance_ = nullptr;
-
 	void StorageArchiver::run() {
 		Running_ = true ;
 		GetLastRun();

@@ -117,10 +117,8 @@ namespace OpenWifi {
 	class WebSocketServer : public SubSystemServer {
 	  public:
 		static WebSocketServer *instance() {
-			if (instance_ == nullptr) {
-				instance_ = new WebSocketServer;
-			}
-			return instance_;
+			static WebSocketServer instance;
+			return &instance;
 		}
 
 		int Start() override;
@@ -131,7 +129,6 @@ namespace OpenWifi {
 		Poco::Net::SocketReactor & GetNextReactor() { return ReactorPool_.NextReactor(); }
 
 	  private:
-		static WebSocketServer 			*instance_;
 		std::unique_ptr<Poco::Crypto::X509Certificate>	IssuerCert_;
 		std::vector<std::unique_ptr<Poco::Net::ParallelSocketAcceptor<WSConnection, Poco::Net::SocketReactor>>>	Acceptors_;
 		Poco::Net::SocketReactor		Reactor_;

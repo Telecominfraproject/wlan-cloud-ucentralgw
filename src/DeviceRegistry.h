@@ -29,10 +29,8 @@ namespace OpenWifi {
 		};
 
         static DeviceRegistry *instance() {
-            if (instance_ == nullptr) {
-                instance_ = new DeviceRegistry;
-            }
-            return instance_;
+			static DeviceRegistry instance;
+            return &instance;
         }
 
 		int Start() override;
@@ -53,7 +51,6 @@ namespace OpenWifi {
 		bool AnalyzeRegistry(GWObjects::Dashboard &D);
 
 	  private:
-		static DeviceRegistry                          *instance_;
 		std::map<std::string,std::unique_ptr<ConnectionEntry>>   Devices_;
 
 		DeviceRegistry() noexcept;

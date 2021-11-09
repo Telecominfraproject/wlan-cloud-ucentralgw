@@ -68,15 +68,12 @@ namespace OpenWifi {
 			bool GetCommand(uint64_t Id, const std::string & SerialNumber, CommandTag &T);
 
 			static CommandManager *instance() {
-				if (instance_ == nullptr) {
-					instance_ = new CommandManager;
-				}
-				return instance_;
+				static CommandManager instance;
+				return &instance;
 			}
 			inline bool Running() const { return Running_; }
 
 	    private:
-			static CommandManager 		* instance_;
 			std::atomic_bool 			Running_ = false;
 			Poco::Thread    			ManagerThread;
 			uint64_t 					Id_=2;	//	do not start @1. We ignore ID=1 & 0 is illegal..

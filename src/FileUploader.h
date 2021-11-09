@@ -30,16 +30,13 @@ namespace OpenWifi {
 		const std::string & Path() { return Path_; };
 
         static FileUploader *instance() {
-            if (instance_ == nullptr) {
-                instance_ = new FileUploader;
-            }
-            return instance_;
+			static FileUploader instance;
+			return &instance;
         }
 
 		[[nodiscard]] inline uint64_t MaxSize() const { return MaxSize_; }
 
     private:
-        static FileUploader *instance_;
         std::vector<std::unique_ptr<Poco::Net::HTTPServer>>   Servers_;
 		Poco::ThreadPool				Pool_;
         std::string                     FullName_;
