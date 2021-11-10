@@ -68,7 +68,7 @@ namespace OpenWifi::GWObjects {
 #endif
 	}
 
-	bool Device::from_json(Poco::JSON::Object::Ptr Obj) {
+	bool Device::from_json(Poco::JSON::Object::Ptr &Obj) {
 		try {
 			field_from_json(Obj,"serialNumber",SerialNumber);
 			field_from_json(Obj,"deviceType",DeviceType);
@@ -147,7 +147,7 @@ namespace OpenWifi::GWObjects {
 		field_to_json(Obj,"attachFile", AttachDate);
 	}
 
-	bool DefaultConfiguration::from_json(Poco::JSON::Object::Ptr Obj) {
+	bool DefaultConfiguration::from_json(Poco::JSON::Object::Ptr &Obj) {
 		try {
 			field_from_json(Obj,"name",Name);
 			field_from_json(Obj,"configuration",Configuration);
@@ -166,7 +166,7 @@ namespace OpenWifi::GWObjects {
 		field_to_json(Obj,"created", created);
 	}
 
-	bool BlackListedDevice::from_json(Poco::JSON::Object::Ptr Obj) {
+	bool BlackListedDevice::from_json(Poco::JSON::Object::Ptr &Obj) {
 		try {
 			field_from_json(Obj,"serialNumber",serialNumber);
 			field_from_json(Obj,"author",author);

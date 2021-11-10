@@ -59,7 +59,7 @@ namespace OpenWifi::GWObjects {
 		std::string DevicePassword;
 		void to_json(Poco::JSON::Object &Obj) const;
 		void to_json_with_status(Poco::JSON::Object &Obj) const;
-		bool from_json(Poco::JSON::Object::Ptr Obj);
+		bool from_json(Poco::JSON::Object::Ptr &Obj);
 		void Print() const;
 	};
 
@@ -116,7 +116,7 @@ namespace OpenWifi::GWObjects {
 		uint64_t 	Created;
 		uint64_t 	LastModified;
 		void 		to_json(Poco::JSON::Object &Obj) const;
-		bool 		from_json(Poco::JSON::Object::Ptr Obj);
+		bool 		from_json(Poco::JSON::Object::Ptr &Obj);
 	};
 
 	struct CommandDetails {
@@ -147,7 +147,7 @@ namespace OpenWifi::GWObjects {
 		std::string author;
 		uint64_t created;
 		void to_json(Poco::JSON::Object &Obj) const;
-		bool from_json(Poco::JSON::Object::Ptr Obj);
+		bool from_json(Poco::JSON::Object::Ptr &Obj);
 	};
 
 	struct RttySessionDetails {
