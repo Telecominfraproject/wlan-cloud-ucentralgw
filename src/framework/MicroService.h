@@ -57,6 +57,7 @@ using namespace std::chrono_literals;
 #include "Poco/URI.h"
 #include "Poco/Net/HTTPSClientSession.h"
 #include "Poco/Net/NetworkInterface.h"
+#include "Poco/ExpireLRUCache.h"
 
 #include "cppkafka/cppkafka.h"
 
@@ -1345,6 +1346,63 @@ namespace OpenWifi {
 	            std::string _fileName;
     };
 
+	class RESTAPI_RateLimiter : public SubSystemServer {
+	public:
+
+	    struct ClientCacheEntry {
+	        int64_t  Start=0;
+	        int      Count=0;
+	    };
+
+	    static RESTAPI_RateLimiter *instance() {
+	        static RESTAPI_RateLimiter instance;
+	        return &instance;
+	    }
+
+	    inline int Start() final { return 0;};
+	    inline void Stop() final { };
+
+	    inline bool IsRateLimited(const Poco::Net::HTTPServerRequest &R, int64_t Period, int64_t MaxCalls) {
+	        Poco::URI   uri(R.getURI());
+	        auto H = str_hash(uri.getPath() + R.clientAddress().host().toString());
+	        auto E = Cache_.get(H);
+	        const auto p1 = std::chrono::system_clock::now();
+	        auto Now = std::chrono::duration_cast<std::chrono::milliseconds>(p1.time_since_epoch()).count();
+	        if(E.isNull()) {
+	            Cache_.add(H,ClientCacheEntry{.Start=Now, .Count=1});
+	            Logger_.warning(Poco::format("RATE-LIMIT-EXCEEDED: from '%s'", R.clientAddress().toString()));
+	            return false;
+	        }
+	        if((Now-E->Start)<Period) {
+	            E->Count++;
+	            Cache_.update(H,E);
+	            if(E->Count > MaxCalls)
+	                return true;
+	            return false;
+	        }
+	        E->Start = Now;
+	        E->Count = 1;
+	        Cache_.update(H,E);
+	        return false;
+	    }
+
+	    inline void Clear() {
+	        Cache_.clear();
+	    }
+
+	private:
+	    Poco::ExpireLRUCache<uint64_t,ClientCacheEntry>      Cache_{2048};
+	    std::hash<std::string>          str_hash;
+
+	    RESTAPI_RateLimiter() noexcept:
+	    SubSystemServer("RateLimiter", "RATE-LIMITER", "rate.limiter")
+	    {
+	    }
+
+	};
+
+	inline RESTAPI_RateLimiter * RESTAPI_RateLimiter() { return RESTAPI_RateLimiter::instance(); }
+
 	class RESTAPIHandler : public Poco::Net::HTTPRequestHandler {
 	public:
 	    struct QueryBlock {
@@ -1354,8 +1412,28 @@ namespace OpenWifi {
 	    };
 	    typedef std::map<std::string, std::string> BindingMap;
 
-	    RESTAPIHandler(BindingMap map, Poco::Logger &l, std::vector<std::string> Methods, RESTAPI_GenericServer & Server, bool Internal=false, bool AlwaysAuthorize=true)
-	    : Bindings_(std::move(map)), Logger_(l), Methods_(std::move(Methods)), Server_(Server), Internal_(Internal), AlwaysAuthorize_(AlwaysAuthorize) {}
+	    struct RateLimit {
+	        int64_t     Interval=1000;
+	        int64_t     MaxCalls=10;
+	    };
+
+	    RESTAPIHandler( BindingMap map,
+                        Poco::Logger &l,
+                        std::vector<std::string> Methods,
+                        RESTAPI_GenericServer & Server,
+                        bool Internal=false,
+                        bool AlwaysAuthorize=true,
+                        bool RateLimited=false,
+	                    const RateLimit & Profile = RateLimit{.Interval=1000,.MaxCalls=100})
+	    :   Bindings_(std::move(map)),
+	        Logger_(l),
+	        Methods_(std::move(Methods)),
+	        Server_(Server),
+	        Internal_(Internal),
+	        AlwaysAuthorize_(AlwaysAuthorize),
+	        RateLimited_(RateLimited),
+	        MyRates_(Profile){
+	    }
 
 	    inline bool RoleIsAuthorized(const std::string & Path, const std::string & Method, std::string & Reason) {
 	        return true;
@@ -1366,6 +1444,9 @@ namespace OpenWifi {
 	        try {
 	            Request = &RequestIn;
 	            Response = &ResponseIn;
+
+	            if(RateLimited_ && RESTAPI_RateLimiter()->IsRateLimited(RequestIn,MyRates_.Interval, MyRates_.MaxCalls))
+	                return;
 
 	            if (!ContinueProcessing())
 	                return;
@@ -1645,7 +1726,7 @@ namespace OpenWifi {
 	        Response->set("Cache-Control", "private");
 	        Response->set("Pragma", "private");
 	        Response->set("Expires", "Mon, 26 Jul 2027 05:00:00 GMT");
-	        Response->set("Content-Length", std::to_string(File.getSize()));
+	        Response->setContentLength(File.getSize());
 	        AddCORS();
 	        Response->sendFile(File.path(),"application/octet-stream");
 	    }
@@ -1683,10 +1764,10 @@ namespace OpenWifi {
                                      const Types::StringPairVec & FormVars) {
 	        Response->set("Pragma", "private");
 	        Response->set("Expires", "Mon, 26 Jul 2027 05:00:00 GMT");
-	        Response->set("Content-Length", std::to_string(File.getSize()));
-	        AddCORS();
-	        auto FormContent = Utils::LoadFile(File.path());
+	        std::string FormContent = Utils::LoadFile(File.path());
 	        Utils::ReplaceVariables(FormContent, FormVars);
+	        Response->setContentLength(FormContent.size());
+	        AddCORS();
 	        Response->setChunkedTransferEncoding(true);
 	        Response->setContentType("text/html");
 	        std::ostream& ostr = Response->send();
@@ -1796,12 +1877,14 @@ namespace OpenWifi {
 	        std::vector<std::string> 	Methods_;
 	        QueryBlock					QB_;
 	        bool                        Internal_=false;
+	        bool                        RateLimited_=false;
 	        bool                        QueryBlockInitialized_=false;
 	        Poco::Net::HTTPServerRequest    *Request= nullptr;
 	        Poco::Net::HTTPServerResponse   *Response= nullptr;
 	        bool                        AlwaysAuthorize_=true;
 	        Poco::JSON::Parser          IncomingParser_;
 	        RESTAPI_GenericServer       & Server_;
+	        RateLimit                   MyRates_;
 	    };
 
 	    class RESTAPI_UnknownRequestHandler : public RESTAPIHandler {
@@ -3192,7 +3275,8 @@ namespace OpenWifi {
 	                        auto InsertResult = CertNames.insert(CertFileName);
 	                        if(InsertResult.second) {
 	                            Poco::JSON::Object  Inner;
-	                            Inner.set("filename", CertFileName);
+	                            Poco::Path  F(CertFileName);
+	                            Inner.set("filename", F.getFileName());
 	                            Poco::Crypto::X509Certificate   C(CertFileName);
 	                            auto ExpiresOn = C.expiresOn();
 	                            Inner.set("expiresOn",ExpiresOn.timestamp().epochTime());

@@ -222,9 +222,14 @@ namespace OpenWifi::SecurityObjects {
 		bool from_json(Poco::JSON::Object::Ptr &Obj);
 	};
 
+	enum LinkActions {
+	    FORGOT_PASSWORD=1,
+	    VERIFY_EMAIL
+	};
+
 	struct ActionLink {
 	    std::string         id;
-	    std::string         action;
+	    uint64_t            action;
 	    std::string         userId;
 	    std::string         actionTemplate;
 	    Types::StringPairVec variables;
