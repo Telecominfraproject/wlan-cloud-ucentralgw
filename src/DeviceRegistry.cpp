@@ -96,13 +96,13 @@ namespace OpenWifi {
 		}
 	}
 
-	GWObjects::ConnectionState * DeviceRegistry::Register(const std::string & SerialNumber, WSConnection *Ptr)
+	std::shared_ptr<DeviceRegistry::ConnectionEntry> DeviceRegistry::Register(const std::string & SerialNumber, WSConnection *Ptr)
     {
 		std::lock_guard		Guard(Mutex_);
 
         auto Device = Devices_.find(SerialNumber);
         if( Device == Devices_.end()) {
-            auto E = std::make_unique<ConnectionEntry>();
+        	auto E = Devices_[SerialNumber] = std::make_shared<ConnectionEntry>();
 
             E->WSConn_ = Ptr;
             E->Conn_.SerialNumber = SerialNumber;
@@ -114,9 +114,7 @@ namespace OpenWifi {
             E->Conn_.TX = 0 ;
             E->Conn_.RX = 0;
 			E->Conn_.VerifiedCertificate = GWObjects::CertificateValidation::NO_CERTIFICATE;
-			auto R=&E->Conn_;
-            Devices_[SerialNumber] = std::move(E);
-            return R;
+            return E;
         }
         else
         {
@@ -124,7 +122,7 @@ namespace OpenWifi {
             Device->second->Conn_.Connected = true;
             Device->second->Conn_.LastContact = std::time(nullptr);
 			Device->second->Conn_.VerifiedCertificate = GWObjects::CertificateValidation::NO_CERTIFICATE;
-            return &Device->second->Conn_;
+            return Device->second;
         }
     }
 
@@ -141,15 +139,7 @@ namespace OpenWifi {
 
     void DeviceRegistry::UnRegister(const std::string & SerialNumber, WSConnection *Ptr) {
 		std::lock_guard		Guard(Mutex_);
-
-        auto Device = Devices_.find(SerialNumber);
-
-        if( Device != Devices_.end() && Device->second->WSConn_==Ptr) {
-            Device->second->Conn_.Address = "";
-            Device->second->WSConn_ = nullptr;
-            Device->second->Conn_.Connected = false;
-			Device->second->Conn_.VerifiedCertificate = GWObjects::NO_CERTIFICATE;
-        }
+		Devices_.erase(SerialNumber);
     }
 
 	bool DeviceRegistry::SendFrame(const std::string & SerialNumber, const std::string & Payload) {

@@ -40,7 +40,7 @@ namespace OpenWifi {
 				}
 
 				if(Conn_)
-					GetAssociations(O,Conn_->Associations_2G,Conn_->Associations_5G);
+					GetAssociations(O,Conn_->Conn_.Associations_2G,Conn_->Conn_.Associations_5G);
 
 				if(UpdatesSinceLastWrite_>10)
 					Save();

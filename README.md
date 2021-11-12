@@ -26,9 +26,9 @@ Poco may take several minutes depending on the platform you are building on.
 ### Ubuntu
 These instructions have proven to work on Ubuntu 20.4.
 ```
-sudo apt install git cmake g++ libssl-dev libmariadb-dev unixodbc-dev 
+sudo apt install git cmake g++ libssl-dev libmariadb-dev 
 sudo apt install libpq-dev libaprutil1-dev apache2-dev libboost-all-dev
-sudo apt install librdkafka-dev liblua5.3-dev libmysqlclient-dev
+sudo apt install librdkafka-dev libmysqlclient-dev default-libmysqlclient-dev
 
 git clone https://github.com/stephb9959/poco
 cd poco

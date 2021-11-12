@@ -102,7 +102,7 @@ namespace OpenWifi {
 		std::unique_ptr<Poco::Net::WebSocket> WS_;
 		std::string                         SerialNumber_;
 		std::string 						Compatible_;
-		GWObjects::ConnectionState 	* Conn_ = nullptr;
+		std::shared_ptr<DeviceRegistry::ConnectionEntry> 	Conn_;
 		bool                                Registered_ = false ;
 		std::string 						CId_;
 		std::string							CN_;

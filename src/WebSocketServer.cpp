@@ -218,7 +218,7 @@ namespace OpenWifi {
 			return false;
 
 		uint64_t GoodConfig=ConfigurationCache().CurrentConfig(SerialNumber_);
-		if(GoodConfig && (GoodConfig==UUID || GoodConfig==Conn_->PendingUUID))
+		if(GoodConfig && (GoodConfig==UUID || GoodConfig==Conn_->Conn_.PendingUUID))
 			return false;
 
 		GWObjects::Device	D;
@@ -231,7 +231,7 @@ namespace OpenWifi {
 				return false;
 			}
 
-			Conn_->PendingUUID = D.UUID;
+			Conn_->Conn_.PendingUUID = D.UUID;
 			GWObjects::CommandDetails  Cmd;
 			Cmd.SerialNumber = SerialNumber_;
 			Cmd.UUID = MicroService::instance().CreateUUID();
@@ -334,7 +334,7 @@ namespace OpenWifi {
 		}
 
 		if(Conn_!= nullptr)
-			Conn_->LastContact = std::time(nullptr);
+			Conn_->Conn_.LastContact = std::time(nullptr);
 
 		switch(EventType) {
 			case uCentralProtocol::ET_CONNECT: {
@@ -347,12 +347,12 @@ namespace OpenWifi {
 
 						Conn_ = DeviceRegistry()->Register(Serial, this);
 						SerialNumber_ = Serial;
-						Conn_->SerialNumber = Serial;
-						Conn_->UUID = UUID;
-						Conn_->Firmware = Firmware;
-						Conn_->PendingUUID = 0;
-						Conn_->LastContact = std::time(nullptr);
-						Conn_->Address = Utils::FormatIPv6(WS_->peerAddress().toString());
+						Conn_->Conn_.SerialNumber = Serial;
+						Conn_->Conn_.UUID = UUID;
+						Conn_->Conn_.Firmware = Firmware;
+						Conn_->Conn_.PendingUUID = 0;
+						Conn_->Conn_.LastContact = std::time(nullptr);
+						Conn_->Conn_.Address = Utils::FormatIPv6(WS_->peerAddress().toString());
 						CId_ = SerialNumber_ + "@" + CId_ ;
 
 						//	We need to verify the certificate if we have one
@@ -365,7 +365,7 @@ namespace OpenWifi {
 							else
 								Logger_.information(Poco::format("CONNECT(%s): Authenticated but not validated. Serial='%s' CN='%s'", CId_, Serial, CN_));
 						}
-						Conn_->VerifiedCertificate = CertValidation_;
+						Conn_->Conn_.VerifiedCertificate = CertValidation_;
 
 						if (Daemon()->AutoProvisioning() && !StorageService()->DeviceExists(SerialNumber_)) {
 							StorageService()->CreateDefaultDevice(SerialNumber_, Capabilities, Firmware, Compatible_);
@@ -375,7 +375,7 @@ namespace OpenWifi {
 								StorageService()->SetConnectInfo(SerialNumber_, Firmware );
 							}
 						}
-						Conn_->Compatible = Compatible_;
+						Conn_->Conn_.Compatible = Compatible_;
 
 						StatsProcessor_ = std::make_unique<StateProcessor>(Conn_, Logger_);
 						StatsProcessor_->Initialize(Serial);
@@ -416,7 +416,7 @@ namespace OpenWifi {
 						else
 							Logger_.debug(Poco::format("STATE(%s): UUID=%Lu Updating for CMD=%s.", CId_,
 													   UUID, request_uuid));
-						Conn_->UUID = UUID;
+						Conn_->Conn_.UUID = UUID;
 						LookForUpgrade(UUID);
 						GWObjects::Statistics	Stats{ .SerialNumber = SerialNumber_, .UUID = UUID, .Data = State};
 						Stats.Recorded = std::time(nullptr);
@@ -465,7 +465,7 @@ namespace OpenWifi {
 							Logger_.debug(Poco::format("HEALTHCHECK(%s): UUID=%Lu Updating for CMD=%s.",
 													   CId_, UUID, request_uuid));
 
-						Conn_->UUID = UUID;
+						Conn_->Conn_.UUID = UUID;
 						LookForUpgrade(UUID);
 
 						GWObjects::HealthCheck Check;
@@ -520,7 +520,7 @@ namespace OpenWifi {
 														   .Severity = Severity,
 														   .Recorded = (uint64_t)time(nullptr),
 														   .LogType = 0,
-														   .UUID = Conn_->UUID};
+														   .UUID = Conn_->Conn_.UUID};
 						StorageService()->AddLog(DeviceLog);
 					} else {
 						Logger_.warning(Poco::format("LOG(%s): Missing parameters.", CId_));
@@ -736,16 +736,26 @@ namespace OpenWifi {
                 Logger_.information(Poco::format("DISCONNECT(%s): device has disconnected.", CId_));
 				return delete this;
             } else {
+
+            	if (Conn_ != nullptr) {
+            		Conn_->Conn_.RX += IncomingSize;
+            		Conn_->Conn_.MessageCount++;
+            	}
+
                 switch (Op) {
                     case Poco::Net::WebSocket::FRAME_OP_PING: {
 							Logger_.debug(Poco::format("WS-PING(%s): received. PONG sent back.", CId_));
 							WS_->sendFrame("", 0,
 										   (int)Poco::Net::WebSocket::FRAME_OP_PONG |
 											   (int)Poco::Net::WebSocket::FRAME_FLAG_FIN);
+							if (Conn_ != nullptr) {
+								Conn_->Conn_.MessageCount++;
+							}
+
 							if (KafkaManager()->Enabled() && Conn_) {
 								Poco::JSON::Object PingObject;
 								Poco::JSON::Object PingDetails;
-								PingDetails.set(uCentralProtocol::FIRMWARE, Conn_->Firmware);
+								PingDetails.set(uCentralProtocol::FIRMWARE, Conn_->Conn_.Firmware);
 								PingDetails.set(uCentralProtocol::SERIALNUMBER, SerialNumber_);
 								PingDetails.set(uCentralProtocol::COMPATIBLE, Compatible_);
 								PingDetails.set(uCentralProtocol::CONNECTIONIP, CId_);
@@ -756,11 +766,13 @@ namespace OpenWifi {
 								KafkaManager()->PostMessage(KafkaTopics::CONNECTION, SerialNumber_,
 															OS.str());
 							}
+							return;
 						}
                         break;
 
                     case Poco::Net::WebSocket::FRAME_OP_PONG: {
                         	Logger_.debug(Poco::format("PONG(%s): received and ignored.",CId_));
+							return;
                         }
                         break;
 
@@ -790,6 +802,7 @@ namespace OpenWifi {
 								Logger_.error(Poco::format("FRAME(%s): illegal transaction header, missing 'jsonrpc'",CId_));
 								Errors_++;
 							}
+							return;
 	                    }
     	                break;
 
@@ -803,11 +816,6 @@ namespace OpenWifi {
                             Logger_.warning(Poco::format("UNKNOWN(%s): unknownWS Frame operation: %s",CId_, std::to_string(Op)));
                         }
                         break;
-                    }
-
-                    if (Conn_ != nullptr) {
-                        Conn_->RX += IncomingSize;
-                        Conn_->MessageCount++;
                     }
                 }
             }
@@ -885,7 +893,7 @@ namespace OpenWifi {
 
 		auto BytesSent = WS_->sendFrame(Payload.c_str(),(int)Payload.size());
 		if(Conn_)
-			Conn_->TX += BytesSent;
+			Conn_->Conn_.TX += BytesSent;
 		return  BytesSent == Payload.size();
 	}
 

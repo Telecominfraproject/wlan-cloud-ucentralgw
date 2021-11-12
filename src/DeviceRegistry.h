@@ -41,7 +41,7 @@ namespace OpenWifi {
 		void SetState(const std::string & SerialNumber, GWObjects::ConnectionState & State);
 		bool GetHealthcheck(const std::string &SerialNumber, GWObjects::HealthCheck & CheckData);
 		void SetHealthcheck(const std::string &SerialNumber, const GWObjects::HealthCheck &H);
-		GWObjects::ConnectionState * Register(const std::string & SerialNumber, WSConnection *);
+		std::shared_ptr<ConnectionEntry> Register(const std::string & SerialNumber, WSConnection *);
 		void UnRegister(const std::string & SerialNumber, WSConnection *);
 		bool SendCommand(GWObjects::CommandDetails & Command);
 		bool Connected(const std::string & SerialNumber);
@@ -51,7 +51,7 @@ namespace OpenWifi {
 		bool AnalyzeRegistry(GWObjects::Dashboard &D);
 
 	  private:
-		std::map<std::string,std::unique_ptr<ConnectionEntry>>   Devices_;
+		std::map<std::string,std::shared_ptr<ConnectionEntry>>   Devices_;
 
 		DeviceRegistry() noexcept;
 	};
