@@ -47,13 +47,17 @@ namespace OpenWifi::RESTAPI::Errors {
     static const std::string IdMustBe0{"To create a user, you must set the ID to 0"};
     static const std::string InvalidUserRole{"Invalid userRole."};
     static const std::string InvalidEmailAddress{"Invalid email address."};
-    static const std::string InvalidPassword{"Invalid password."};
     static const std::string PasswordRejected{"Password was rejected. This maybe an old password."};
     static const std::string InvalidIPRanges{"Invalid IP range specifications."};
     static const std::string InvalidLOrderBy{"Invalid orderBy specification."};
     static const std::string NeedMobileNumber{"You must provide at least one validated phone number."};
     static const std::string BadMFAMethod{"MFA only supports sms or email."};
-
+    static const std::string InvalidCredentials{"Invalid credentials (username/password)."};
+    static const std::string InvalidPassword{"Password does not conform to basic password rules."};
+    static const std::string UserPendingVerification{"User access denied pending email verification."};
+    static const std::string PasswordMustBeChanged{"Password must be changed."};
+    static const std::string UnrecognizedRequest{"Ill-formed request. Please consult documentation."};
+    static const std::string MissingAuthenticationInformation{"Missing authentication information."};
 }
 
 #endif //OWPROV_RESTAPI_ERRORS_H
