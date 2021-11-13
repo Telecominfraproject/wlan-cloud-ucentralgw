@@ -46,7 +46,7 @@ namespace OpenWifi {
 								if(!Authenticated) {
 									std::string Frame{IncomingFrame.begin()};
 									auto Tokens = Utils::Split(Frame,':');
-									if(Tokens.size()==2 && AuthClient()->IsTokenAuthorized(Tokens[1], UserInfo_)) {
+									if(Tokens.size()==2 && AuthClient()->IsAuthorized(Tokens[1], UserInfo_)) {
 										Authenticated=true;
 										std::string S{"Welcome! Bienvenue! Bienvenidos!"};
 										WS.sendFrame(S.c_str(),S.size());

@@ -2208,25 +2208,20 @@ namespace OpenWifi {
 	    }
 
 	    inline void Stop() override {
+	        Cache_.clear();
 	    }
 
 	    inline void RemovedCachedToken(const std::string &Token) {
 	        std::lock_guard	G(Mutex_);
-	        UserCache_.erase(Token);
+	        Cache_.remove(Token);
 	    }
 
 	    inline static bool IsTokenExpired(const SecurityObjects::WebToken &T) {
 	        return ((T.expires_in_+T.created_)<std::time(nullptr));
 	    }
 
-	    inline bool IsAuthorized(Poco::Net::HTTPServerRequest & Request, std::string &SessionToken, SecurityObjects::UserInfoAndPolicy & UInfo ) {
-	        std::lock_guard G(Mutex_);
-
-	        auto User = UserCache_.find(SessionToken);
-	        if(User != UserCache_.end() && !IsTokenExpired(User->second.webtoken)) {
-	            UInfo = User->second;
-	            return true;
-	        } else {
+	    inline bool RetrieveTokenInformation(const std::string & SessionToken, SecurityObjects::UserInfoAndPolicy & UInfo) {
+	        try {
 	            Types::StringPairVec QueryData;
 	            QueryData.push_back(std::make_pair("token",SessionToken));
 	            OpenAPIRequestGet	Req(    uSERVICE_SECURITY,
@@ -2236,49 +2231,28 @@ namespace OpenWifi {
 	            Poco::JSON::Object::Ptr Response;
 	            if(Req.Do(Response)==Poco::Net::HTTPResponse::HTTP_OK) {
 	                if(Response->has("tokenInfo") && Response->has("userInfo")) {
-	                    SecurityObjects::UserInfoAndPolicy	P;
-	                    P.from_json(Response);
-	                    UserCache_[SessionToken] = P;
-	                    UInfo = P;
+	                    UInfo.from_json(Response);
+	                    Cache_.update(SessionToken, UInfo);
+	                    return true;
 	                }
-	                return true;
 	            }
+	        } catch (...) {
 
 	        }
 	        return false;
 	    }
 
-	    inline bool IsTokenAuthorized(const std::string &SessionToken, SecurityObjects::UserInfoAndPolicy & UInfo) {
-	        std::lock_guard G(Mutex_);
-
-	        auto User = UserCache_.find(SessionToken);
-	        if(User != UserCache_.end() && !IsTokenExpired(User->second.webtoken)) {
-	            UInfo = User->second;
+        inline bool IsAuthorized(const std::string &SessionToken, SecurityObjects::UserInfoAndPolicy & UInfo) {
+	        auto User = Cache_.get(SessionToken);
+	        if(!User.isNull() && !IsTokenExpired(User->webtoken)) {
+	            UInfo = *User;
 	            return true;
-	        } else {
-	            Types::StringPairVec QueryData;
-	            QueryData.push_back(std::make_pair("token",SessionToken));
-	            OpenAPIRequestGet	Req(uSERVICE_SECURITY,
-                                         "/api/v1/validateToken",
-                                         QueryData,
-                                         5000);
-	            Poco::JSON::Object::Ptr Response;
-	            if(Req.Do(Response)==Poco::Net::HTTPResponse::HTTP_OK) {
-	                if(Response->has("tokenInfo") && Response->has("userInfo")) {
-	                    SecurityObjects::UserInfoAndPolicy	P;
-	                    P.from_json(Response);
-	                    UserCache_[SessionToken] = P;
-	                    UInfo = P;
-	                }
-	                return true;
-	            }
-
 	        }
-	        return false;
+	        return RetrieveTokenInformation(SessionToken, UInfo);
 	    }
 
 	private:
-	    OpenWifi::SecurityObjects::UserInfoCache 		UserCache_;
+	    Poco::ExpireLRUCache<std::string,OpenWifi::SecurityObjects::UserInfoAndPolicy>      Cache_{1024,1200000 };
 	};
 
 	inline AuthClient * AuthClient() { return AuthClient::instance(); }
@@ -3668,7 +3642,7 @@ namespace OpenWifi {
 #ifdef    TIP_SECURITY_SERVICE
             if (AuthServiceIsAuthorized(*Request, SessionToken_, UserInfo_)) {
 #else
-            if (AuthClient()->IsAuthorized(*Request, SessionToken_, UserInfo_)) {
+            if (AuthClient()->IsAuthorized( SessionToken_, UserInfo_)) {
 #endif
                 if(Server_.LogIt(Request->getMethod(),true)) {
                     Logger_.debug(Poco::format("X-REQ-ALLOWED(%s): User='%s@%s' Method='%s' Path='%s",
