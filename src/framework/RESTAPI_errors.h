@@ -58,6 +58,8 @@ namespace OpenWifi::RESTAPI::Errors {
     static const std::string PasswordMustBeChanged{"Password must be changed."};
     static const std::string UnrecognizedRequest{"Ill-formed request. Please consult documentation."};
     static const std::string MissingAuthenticationInformation{"Missing authentication information."};
+    static const std::string InsufficientAccessRights{"Insufficient access rights to complete the operation."};
+    static const std::string ExpiredToken{"Token has expired, user must login."};
 }
 
 #endif //OWPROV_RESTAPI_ERRORS_H

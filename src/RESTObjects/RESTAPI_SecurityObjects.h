@@ -59,15 +59,15 @@ namespace OpenWifi::SecurityObjects {
 
 	struct MobilePhoneNumber {
 	    std::string number;
-	    bool verified;
-	    bool primary;
+	    bool verified = false;
+	    bool primary = false;
 
 	    void to_json(Poco::JSON::Object &Obj) const;
 	    bool from_json(Poco::JSON::Object::Ptr &Obj);
 	};
 
 	struct MfaAuthInfo {
-	    bool enabled;
+	    bool enabled = false;
 	    std::string method;
 
 	    void to_json(Poco::JSON::Object &Obj) const;
@@ -86,7 +86,7 @@ namespace OpenWifi::SecurityObjects {
 	    std::string uuid;
 	    std::string question;
 	    std::string method;
-	    uint64_t    created;
+	    uint64_t    created = std::time(nullptr);
 
 	    void to_json(Poco::JSON::Object &Obj) const;
 	    bool from_json(Poco::JSON::Object::Ptr &Obj);
