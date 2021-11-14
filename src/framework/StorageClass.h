@@ -96,7 +96,7 @@ namespace OpenWifi {
         inline int Setup_PostgreSQL();
 
     protected:
-        std::unique_ptr<Poco::Data::SessionPool>        	Pool_;
+    	std::unique_ptr<Poco::Data::SessionPool>        	Pool_;
         std::unique_ptr<Poco::Data::SQLite::Connector>  	SQLiteConn_;
         std::unique_ptr<Poco::Data::PostgreSQL::Connector>  PostgresConn_;
         std::unique_ptr<Poco::Data::MySQL::Connector>       MySQLConn_;

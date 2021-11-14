@@ -425,8 +425,7 @@ namespace OpenWifi {
 							StorageService()->SetCommandResult(request_uuid, State);
 						}
 
-						if (StatsProcessor_)
-							StatsProcessor_->Add(State);
+						StatsProcessor_->Add(State);
 
 						if(KafkaManager()->Enabled()) {
 							Poco::JSON::Stringifier		Stringify;
