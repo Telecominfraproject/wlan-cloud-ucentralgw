@@ -2927,6 +2927,9 @@ namespace OpenWifi {
 	    	std::cout << "Stopping: " << (*i)->Name() << std::endl;
 			(*i)->Stop();
 		}
+
+	    while(!SubSystems_.empty())
+	        SubSystems_.pop_back();
 	}
 
 	[[nodiscard]] inline std::string MicroService::CreateUUID() {

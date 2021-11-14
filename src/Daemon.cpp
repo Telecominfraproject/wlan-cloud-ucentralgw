@@ -93,7 +93,8 @@ int main(int argc, char **argv) {
 	try {
 		auto App = OpenWifi::Daemon::instance();
 		auto ExitCode =  App->run(argc, argv);
-		// delete App;
+
+		std::cout << "Everything stopped and destroyed" << std::endl;
 
 		return ExitCode;
 
