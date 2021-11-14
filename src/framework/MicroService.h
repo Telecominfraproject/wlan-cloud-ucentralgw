@@ -2081,6 +2081,16 @@ namespace OpenWifi {
 	    Poco::JSON::Object      Body_;
 	};
 
+    class KafkaProducer : public Poco::Runnable {
+    public:
+        inline void run();
+    };
+
+    class KafkaConsumer : public Poco::Runnable {
+    public:
+        inline void run();
+    };
+
 	class KafkaManager : public SubSystemServer {
 	public:
 	    struct KMessage {
@@ -2088,6 +2098,9 @@ namespace OpenWifi {
 	        Key,
 	        PayLoad;
 	    };
+
+	    friend class KafkaConsumer;
+	    friend class KafkaProducer;
 
 	    inline void initialize(Poco::Util::Application & self) override;
 
@@ -2099,22 +2112,19 @@ namespace OpenWifi {
 	    inline int Start() override {
 	        if(!KafkaEnabled_)
 	            return 0;
-	        ProducerThr_ = std::make_unique<std::thread>([this]() { this->ProducerThr(); });
-	        ConsumerThr_ = std::make_unique<std::thread>([this]() { this->ConsumerThr(); });
+	        ConsumerThr_.start(ConsumerWorker_);
+	        ProducerThr_.start(ProducerWorker_);
 	        return 0;
 	    }
 
 	    inline void Stop() override {
 	        if(KafkaEnabled_) {
 	            ProducerRunning_ = ConsumerRunning_ = false;
-	            ProducerThr_->join();
-	            ConsumerThr_->join();
+	            ProducerThr_.join();
+	            ConsumerThr_.join();
 	            return;
 	        }
 	    }
-
-	    inline void ProducerThr();
-	    inline void ConsumerThr();
 
 	    inline void PostMessage(const std::string &topic, const std::string & key, const std::string &PayLoad, bool WrapMessage = true  ) {
 	        if(KafkaEnabled_) {
@@ -2171,14 +2181,16 @@ namespace OpenWifi {
 	    std::mutex 						ProducerMutex_;
 	    std::mutex						ConsumerMutex_;
 	    bool 							KafkaEnabled_ = false;
-	    std::atomic_bool 				ProducerRunning_ = false;
-	    std::atomic_bool 				ConsumerRunning_ = false;
+	    volatile std::atomic_bool 		ProducerRunning_ = false;
+	    volatile std::atomic_bool 		ConsumerRunning_ = false;
 	    std::queue<KMessage>			Queue_;
 	    std::string 					SystemInfoWrapper_;
-	    std::unique_ptr<std::thread>	ConsumerThr_;
-	    std::unique_ptr<std::thread>	ProducerThr_;
+	    Poco::Thread	                ConsumerThr_;
+	    Poco::Thread	                ProducerThr_;
 	    int                       		FunctionId_=1;
 	    Types::NotifyTable        		Notifiers_;
+	    KafkaProducer                   ProducerWorker_;
+	    KafkaConsumer                   ConsumerWorker_;
 	    std::unique_ptr<cppkafka::Configuration>    Config_;
 
 	    inline void PartitionAssignment(const cppkafka::TopicPartitionList& partitions) {
@@ -3246,41 +3258,41 @@ namespace OpenWifi {
 	    KafkaEnabled_ = MicroService::instance().ConfigGetBool("openwifi.kafka.enable",false);
 	}
 
-	inline void KafkaManager::ProducerThr() {
+	inline void KafkaProducer::run() {
 	    cppkafka::Configuration Config({
 	        { "client.id", MicroService::instance().ConfigGetString("openwifi.kafka.client.id") },
 	        { "metadata.broker.list", MicroService::instance().ConfigGetString("openwifi.kafka.brokerlist") }
 	    });
-	    SystemInfoWrapper_ = 	R"lit({ "system" : { "id" : )lit" +
+	    KafkaManager()->SystemInfoWrapper_ = 	R"lit({ "system" : { "id" : )lit" +
 	            std::to_string(MicroService::instance().ID()) +
 	            R"lit( , "host" : ")lit" + MicroService::instance().PrivateEndPoint() +
 	            R"lit(" } , "payload" : )lit" ;
 	    cppkafka::Producer	Producer(Config);
-	    ProducerRunning_ = true;
-	    while(ProducerRunning_) {
+	    KafkaManager()->ProducerRunning_ = true;
+	    while(KafkaManager()->ProducerRunning_) {
 	        std::this_thread::sleep_for(std::chrono::milliseconds(200));
 	        try
 	        {
-	            std::lock_guard G(ProducerMutex_);
+	            std::lock_guard G(KafkaManager()->ProducerMutex_);
 	            auto Num=0;
-	            while (!Queue_.empty()) {
-	                const auto M = Queue_.front();
+	            while (!KafkaManager()->Queue_.empty()) {
+	                const auto M = KafkaManager()->Queue_.front();
 	                Producer.produce(
 	                        cppkafka::MessageBuilder(M.Topic).key(M.Key).payload(M.PayLoad));
-	                Queue_.pop();
+	                KafkaManager()->Queue_.pop();
 	                Num++;
 	            }
 	            if(Num)
 	                Producer.flush();
 	        } catch (const cppkafka::HandleException &E ) {
-	            Logger_.warning(Poco::format("Caught a Kafka exception (producer): %s",std::string{E.what()}));
+	            KafkaManager()->Logger_.warning(Poco::format("Caught a Kafka exception (producer): %s",std::string{E.what()}));
 	        } catch (const Poco::Exception &E) {
-	            Logger_.log(E);
+	            KafkaManager()->Logger_.log(E);
 	        }
 	    }
 	}
 
-	inline void KafkaManager::ConsumerThr() {
+	inline void KafkaConsumer::run() {
 	    cppkafka::Configuration Config({
 	        { "client.id", MicroService::instance().ConfigGetString("openwifi.kafka.client.id") },
 	        { "metadata.broker.list", MicroService::instance().ConfigGetString("openwifi.kafka.brokerlist") },
@@ -3300,13 +3312,13 @@ namespace OpenWifi {
 	    cppkafka::Consumer Consumer(Config);
 	    Consumer.set_assignment_callback([this](cppkafka::TopicPartitionList& partitions) {
 	        if(!partitions.empty()) {
-	            Logger_.information(Poco::format("Partition assigned: %Lu...",
+	            KafkaManager()->Logger_.information(Poco::format("Partition assigned: %Lu...",
                                                  (uint64_t)partitions.front().get_partition()));
 	        }
 	    });
 	    Consumer.set_revocation_callback([this](const cppkafka::TopicPartitionList& partitions) {
 	        if(!partitions.empty()) {
-	            Logger_.information(Poco::format("Partition revocation: %Lu...",
+	            KafkaManager()->Logger_.information(Poco::format("Partition revocation: %Lu...",
                                                  (uint64_t)partitions.front().get_partition()));
 	        }
 	    });
@@ -3315,13 +3327,13 @@ namespace OpenWifi {
 	    auto BatchSize = MicroService::instance().ConfigGetInt("openwifi.kafka.consumer.batchsize",20);
 
 	    Types::StringVec    Topics;
-	    for(const auto &i:Notifiers_)
+	    for(const auto &i:KafkaManager()->Notifiers_)
 	        Topics.push_back(i.first);
 
 	    Consumer.subscribe(Topics);
 
-	    ConsumerRunning_ = true;
-	    while(ConsumerRunning_) {
+	    KafkaManager()->ConsumerRunning_ = true;
+	    while(KafkaManager()->ConsumerRunning_) {
 	        try {
 	            std::vector<cppkafka::Message> MsgVec = Consumer.poll_batch(BatchSize, std::chrono::milliseconds(200));
 	            for(auto const &Msg:MsgVec) {
@@ -3329,14 +3341,14 @@ namespace OpenWifi {
 	                    continue;
 	                if (Msg.get_error()) {
 	                    if (!Msg.is_eof()) {
-	                        Logger_.error(Poco::format("Error: %s", Msg.get_error().to_string()));
+	                        KafkaManager()->Logger_.error(Poco::format("Error: %s", Msg.get_error().to_string()));
 	                    }if(!AutoCommit)
 	                        Consumer.async_commit(Msg);
 	                    continue;
 	                }
-	                std::lock_guard G(ConsumerMutex_);
-	                auto It = Notifiers_.find(Msg.get_topic());
-	                if (It != Notifiers_.end()) {
+	                std::lock_guard G(KafkaManager()->ConsumerMutex_);
+	                auto It = KafkaManager()->Notifiers_.find(Msg.get_topic());
+	                if (It != KafkaManager()->Notifiers_.end()) {
 	                    Types::TopicNotifyFunctionList &FL = It->second;
 	                    std::string Key{Msg.get_key()};
 	                    std::string Payload{Msg.get_payload()};
@@ -3349,9 +3361,9 @@ namespace OpenWifi {
 	                    Consumer.async_commit(Msg);
 	            }
 	        } catch (const cppkafka::HandleException &E) {
-	            Logger_.warning(Poco::format("Caught a Kafka exception (consumer): %s",std::string{E.what()}));
+	            KafkaManager()->Logger_.warning(Poco::format("Caught a Kafka exception (consumer): %s",std::string{E.what()}));
 	        } catch (const Poco::Exception &E) {
-	            Logger_.log(E);
+	            KafkaManager()->Logger_.log(E);
 	        }
 	    }
 	}
