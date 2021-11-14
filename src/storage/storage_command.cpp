@@ -179,7 +179,7 @@ typedef Poco::Tuple<
 
 			std::string FullQuery = IntroStatement + DateSelector + ComputeRange(Offset, HowMany);
 
-			std::cout << FullQuery << std::endl;
+			std::cout << "Offset: " << Offset << "  >>  " << FullQuery << std::endl;
 
 			Select << 	FullQuery,
 				Poco::Data::Keywords::into(Records);
