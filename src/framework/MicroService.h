@@ -2084,16 +2084,45 @@ namespace OpenWifi {
     class KafkaProducer : public Poco::Runnable {
     public:
         inline void run();
+        void Start() {
+            if(!Running_) {
+                Running_=true;
+                Worker_.start(*this);
+            }
+        }
+        void Stop() {
+            if(Running_) {
+                Running_=false;
+                Worker_.wakeUp();
+                Worker_.join();
+            }
+        }
     private:
-        std::mutex  Mutex_;
+        std::mutex          Mutex_;
+        Poco::Thread        Worker_;
+        std::atomic_bool    Running_=false;
     };
 
     class KafkaConsumer : public Poco::Runnable {
     public:
         inline void run();
+        void Start() {
+            if(!Running_) {
+                Running_=true;
+                Worker_.start(*this);
+            }
+        }
+        void Stop() {
+            if(Running_) {
+                Running_=false;
+                Worker_.wakeUp();
+                Worker_.join();
+            }
+        }
     private:
-        std::mutex                  Mutex_;
-        cppkafka::Configuration     Config_;
+        std::mutex          Mutex_;
+        Poco::Thread        Worker_;
+        std::atomic_bool    Running_=false;
     };
 
 	class KafkaManager : public SubSystemServer {
@@ -2117,18 +2146,15 @@ namespace OpenWifi {
 	    inline int Start() override {
 	        if(!KafkaEnabled_)
 	            return 0;
-	        ConsumerThr_.start(ConsumerWorker_);
-	        ProducerThr_.start(ProducerWorker_);
+	        ConsumerThr_.Start();
+	        ProducerThr_.Start();
 	        return 0;
 	    }
 
 	    inline void Stop() override {
 	        if(KafkaEnabled_) {
-	            ProducerRunning_ = ConsumerRunning_ = false;
-	            ProducerThr_.wakeUp();
-	            ConsumerThr_.wakeUp();
-	            ProducerThr_.join();
-	            ConsumerThr_.join();
+	            ProducerThr_.Stop();
+	            ConsumerThr_.Stop();
 	            return;
 	        }
 	    }
@@ -2186,16 +2212,12 @@ namespace OpenWifi {
 
 	private:
 	    bool 							KafkaEnabled_ = false;
-	    volatile std::atomic_bool 		ProducerRunning_ = false;
-	    volatile std::atomic_bool 		ConsumerRunning_ = false;
 	    std::queue<KMessage>			Queue_;
 	    std::string 					SystemInfoWrapper_;
-	    Poco::Thread	                ConsumerThr_;
-	    Poco::Thread	                ProducerThr_;
 	    int                       		FunctionId_=1;
 	    Types::NotifyTable        		Notifiers_;
-	    KafkaProducer                   ProducerWorker_;
-	    KafkaConsumer                   ConsumerWorker_;
+	    KafkaProducer                   ProducerThr_;
+	    KafkaConsumer                   ConsumerThr_;
 
 	    inline void PartitionAssignment(const cppkafka::TopicPartitionList& partitions) {
 	        Logger_.information(Poco::format("Partition assigned: %Lu...",(uint64_t )partitions.front().get_partition()));
@@ -3272,8 +3294,8 @@ namespace OpenWifi {
 	            R"lit( , "host" : ")lit" + MicroService::instance().PrivateEndPoint() +
 	            R"lit(" } , "payload" : )lit" ;
 	    cppkafka::Producer	Producer(Config);
-	    KafkaManager()->ProducerRunning_ = true;
-	    while(KafkaManager()->ProducerRunning_) {
+	    Running_ = true;
+	    while(Running_) {
 	        std::this_thread::sleep_for(std::chrono::milliseconds(200));
 	        try
 	        {
@@ -3340,8 +3362,8 @@ namespace OpenWifi {
 
 	    Consumer.subscribe(Topics);
 
-	    KafkaManager()->ConsumerRunning_ = true;
-	    while(KafkaManager()->ConsumerRunning_) {
+	    Running_ = true;
+	    while(Running_) {
 	        try {
 	            std::vector<cppkafka::Message> MsgVec = Consumer.poll_batch(BatchSize, std::chrono::milliseconds(200));
 	            for(auto const &Msg:MsgVec) {
