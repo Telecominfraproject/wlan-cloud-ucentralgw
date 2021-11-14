@@ -2084,11 +2084,16 @@ namespace OpenWifi {
     class KafkaProducer : public Poco::Runnable {
     public:
         inline void run();
+    private:
+        std::mutex  Mutex_;
     };
 
     class KafkaConsumer : public Poco::Runnable {
     public:
         inline void run();
+    private:
+        std::mutex                  Mutex_;
+        cppkafka::Configuration     Config_;
     };
 
 	class KafkaManager : public SubSystemServer {
@@ -2180,8 +2185,6 @@ namespace OpenWifi {
 	    // void WakeUp();
 
 	private:
-	    std::mutex 						ProducerMutex_;
-	    std::mutex						ConsumerMutex_;
 	    bool 							KafkaEnabled_ = false;
 	    volatile std::atomic_bool 		ProducerRunning_ = false;
 	    volatile std::atomic_bool 		ConsumerRunning_ = false;
@@ -2193,7 +2196,6 @@ namespace OpenWifi {
 	    Types::NotifyTable        		Notifiers_;
 	    KafkaProducer                   ProducerWorker_;
 	    KafkaConsumer                   ConsumerWorker_;
-	    std::unique_ptr<cppkafka::Configuration>    Config_;
 
 	    inline void PartitionAssignment(const cppkafka::TopicPartitionList& partitions) {
 	        Logger_.information(Poco::format("Partition assigned: %Lu...",(uint64_t )partitions.front().get_partition()));
@@ -3275,7 +3277,7 @@ namespace OpenWifi {
 	        std::this_thread::sleep_for(std::chrono::milliseconds(200));
 	        try
 	        {
-	            std::lock_guard G(KafkaManager()->ProducerMutex_);
+	            std::lock_guard G(Mutex_);
 	            auto Num=0;
 	            while (!KafkaManager()->Queue_.empty()) {
 	                const auto M = KafkaManager()->Queue_.front();
@@ -3352,7 +3354,7 @@ namespace OpenWifi {
 	                        Consumer.async_commit(Msg);
 	                    continue;
 	                }
-	                std::lock_guard G(KafkaManager()->ConsumerMutex_);
+	                std::lock_guard G(Mutex_);
 	                auto It = KafkaManager()->Notifiers_.find(Msg.get_topic());
 	                if (It != KafkaManager()->Notifiers_.end()) {
 	                    Types::TopicNotifyFunctionList &FL = It->second;
