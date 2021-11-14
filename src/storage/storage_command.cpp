@@ -179,7 +179,7 @@ typedef Poco::Tuple<
 			std::string FullQuery = IntroStatement + DateSelector +
 					" ORDER BY Submitted ASC " + ComputeRange(Offset, HowMany);
 
-			std::cout << "Offset: " << Offset << "  >>  " << FullQuery << std::endl;
+			// std::cout << "Offset: " << Offset << "  >>  " << FullQuery << std::endl;
 
 			Select << 	FullQuery,
 				Poco::Data::Keywords::into(Records);
@@ -359,7 +359,7 @@ typedef Poco::Tuple<
 
 			std::string st{"SELECT " +
 							   DB_Command_SelectFields +
-							   " FROM CommandList WHERE SerialNumber=? ORDER BY Submitted DESC"};
+							   " FROM CommandList WHERE SerialNumber=? ORDER BY Submitted DESC " + ComputeRange(0, HowMany)};
 
 			Select << 	ConvertParams(st),
 						Poco::Data::Keywords::into(Records),
