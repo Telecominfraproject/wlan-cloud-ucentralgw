@@ -2923,8 +2923,10 @@ namespace OpenWifi {
 
 	inline void MicroService::StopSubSystemServers() {
 	    BusEventManager_.Stop();
-	    for(auto i=SubSystems_.rbegin(); i!=SubSystems_.rend(); ++i)
-	        (*i)->Stop();
+	    for(auto i=SubSystems_.rbegin(); i!=SubSystems_.rend(); ++i) {
+	    	std::cout << "Stopping: " << (*i)->Name() << std::endl;
+			(*i)->Stop();
+		}
 	}
 
 	[[nodiscard]] inline std::string MicroService::CreateUUID() {
