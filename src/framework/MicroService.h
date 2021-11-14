@@ -2402,6 +2402,10 @@ namespace OpenWifi {
 	    SubSystemServer("RESTAPIServer", "RESTAPIServer", "openwifi.restapi")
             {
             }
+
+        ~RESTAPI_server() {
+	        std::cout << __func__ << std::endl;
+	    }
 	};
 
 	inline RESTAPI_server * RESTAPI_server() { return RESTAPI_server::instance(); };
@@ -2484,6 +2488,9 @@ namespace OpenWifi {
 	    {
 	    }
 
+	    ~RESTAPI_InternalServer() {
+	        std::cout << __func__ << std::endl;
+	    }
 	};
 
 	inline RESTAPI_InternalServer * RESTAPI_InternalServer() { return RESTAPI_InternalServer::instance(); };
