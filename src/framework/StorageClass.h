@@ -26,20 +26,13 @@ namespace OpenWifi {
 
     class StorageClass : public SubSystemServer {
     public:
-/*        static StorageClass *instance() {
-            if (instance_ == nullptr) {
-                instance_ = new StorageClass;
-            }
-            return instance_;
-        }
-*/
         StorageClass() noexcept:
             SubSystemServer("StorageClass", "STORAGE-SVR", "storage")
         {
         }
 
         ~StorageClass() {
-            std::cout << __func__ << std::endl;
+            std::cout << __FILE__ << " : " << __func__ << ":" << __LINE__ << std::endl;
         }
 
         int Start() override {
@@ -60,9 +53,9 @@ namespace OpenWifi {
         }
 
         void Stop() override {
-            std::cout << __func__ << ":" << __LINE__ << std::endl;
+            std::cout << __FILE__ << " : " << __func__ << ":" << __LINE__ << std::endl;
             Pool_->shutdown();
-            std::cout << __func__ << ":" << __LINE__ << std::endl;
+            std::cout << __FILE__ << " : " << __func__ << ":" << __LINE__ << std::endl;
         }
 
         [[nodiscard]] inline std::string ComputeRange(uint64_t From, uint64_t HowMany) {
@@ -108,8 +101,6 @@ namespace OpenWifi {
         Poco::Data::MySQL::Connector                MySQLConn_;
         DBType                                      dbType_ = sqlite;
     };
-
-//    inline StorageClass * Storage() { return StorageClass::instance(); }
 
 #ifdef	SMALL_BUILD
     int Service::Setup_MySQL() { Daemon()->exit(Poco::Util::Application::EXIT_CONFIG); return 0; }
