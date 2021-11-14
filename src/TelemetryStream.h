@@ -120,7 +120,7 @@ namespace OpenWifi {
 		std::map<std::string, std::set<std::string>>	SerialNumbers_;		//	serialNumber -> uuid
 		TelemetryReactorPool							ReactorPool_;
 		std::mutex										QueueMutex_;
-		Poco::Thread									Runner;
+		Poco::Thread									Runner_;
 		std::queue<QueueUpdate>							Queue_;
 		TelemetryStream() noexcept:
 			SubSystemServer("TelemetryServer", "TELEMETRY-SVR", "openwifi.telemetry")
