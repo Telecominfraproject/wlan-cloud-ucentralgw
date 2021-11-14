@@ -157,9 +157,8 @@ typedef Poco::Tuple<
 			bool DatesIncluded = (FromDate != 0 || ToDate != 0);
 
 			std::string Fields{
-				"SELECT " +
-					DB_Command_SelectFields +
-					" FROM CommandList ORDER BY Submitted ASC "};
+				"SELECT " + DB_Command_SelectFields + " FROM CommandList " };
+
 			std::string IntroStatement = SerialNumber.empty()
 											 ? Fields + std::string(DatesIncluded ? "WHERE " : "")
 											 : Fields + "WHERE SerialNumber='" + SerialNumber + "'" +
@@ -177,7 +176,8 @@ typedef Poco::Tuple<
 
 			Poco::Data::Statement Select(Sess);
 
-			std::string FullQuery = IntroStatement + DateSelector + ComputeRange(Offset, HowMany);
+			std::string FullQuery = IntroStatement + DateSelector +
+					" ORDER BY Submitted ASC " + ComputeRange(Offset, HowMany);
 
 			std::cout << "Offset: " << Offset << "  >>  " << FullQuery << std::endl;
 
