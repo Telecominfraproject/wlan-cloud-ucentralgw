@@ -81,7 +81,8 @@ namespace OpenWifi {
         INTERNAL_ERROR,
         ACCESS_DENIED,
         INVALID_TOKEN,
-        EXPIRED_TOKEN
+        EXPIRED_TOKEN,
+        RATE_LIMIT_EXCEEDED
     };
 
 	class AppServiceRegistry {
@@ -1445,18 +1446,18 @@ namespace OpenWifi {
 	        Poco::URI   uri(R.getURI());
 	        auto H = str_hash(uri.getPath() + R.clientAddress().host().toString());
 	        auto E = Cache_.get(H);
-	        const auto p1 = std::chrono::system_clock::now();
-	        auto Now = std::chrono::duration_cast<std::chrono::milliseconds>(p1.time_since_epoch()).count();
+	        auto Now = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
 	        if(E.isNull()) {
 	            Cache_.add(H,ClientCacheEntry{.Start=Now, .Count=1});
-	            Logger_.warning(Poco::format("RATE-LIMIT-EXCEEDED: from '%s'", R.clientAddress().toString()));
 	            return false;
 	        }
 	        if((Now-E->Start)<Period) {
 	            E->Count++;
 	            Cache_.update(H,E);
-	            if(E->Count > MaxCalls)
+	            if(E->Count > MaxCalls) {
+	                Logger_.warning(Poco::format("RATE-LIMIT-EXCEEDED: from '%s'", R.clientAddress().toString()));
 	                return true;
+	            }
 	            return false;
 	        }
 	        E->Start = Now;
@@ -1524,8 +1525,9 @@ namespace OpenWifi {
 	            Request = &RequestIn;
 	            Response = &ResponseIn;
 
-	            if(RateLimited_ && RESTAPI_RateLimiter()->IsRateLimited(RequestIn,MyRates_.Interval, MyRates_.MaxCalls))
-	                return;
+	            if(RateLimited_ && RESTAPI_RateLimiter()->IsRateLimited(RequestIn,MyRates_.Interval, MyRates_.MaxCalls)) {
+	                return UnAuthorized("Rate limit exceeded.",RATE_LIMIT_EXCEEDED);
+	            }
 
 	            if (!ContinueProcessing())
 	                return;

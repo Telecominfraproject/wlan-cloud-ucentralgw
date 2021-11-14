@@ -35,7 +35,7 @@ fi
 token=""
 result_file=result.json
 username="tip@ucentral.com"
-password="openwifi"
+password="Snoopy99!!!"
 browser_list=(firefox sensible-browser xdg-open w3m links links2 lynx youtube-dl)
 browser=""
 
@@ -137,7 +137,7 @@ deletecommand() {
 }
 
 listcommands() {
-  curl  ${FLAGS} -X GET "https://${OWGW}/api/v1/commands?serialNumber=$1&limit=3000" \
+  curl  ${FLAGS} -X GET "https://${OWGW}/api/v1/commands?serialNumber=$1&limit=300" \
         -H "accept: application/json" \
         -H "Authorization: Bearer ${token}"  > ${result_file}
   jq < ${result_file}
