@@ -2139,8 +2139,8 @@ namespace OpenWifi {
 	    inline void initialize(Poco::Util::Application & self) override;
 
 	    static KafkaManager *instance() {
-	        static KafkaManager instance;
-	        return &instance;
+	        static KafkaManager * instance = new KafkaManager;
+	        return instance;
 	    }
 
 	    inline int Start() override {
