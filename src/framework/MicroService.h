@@ -3094,7 +3094,6 @@ namespace OpenWifi {
 	        StartSubSystemServers();
 	        waitForTerminationRequest();
 	        StopSubSystemServers();
-
 	        logger.notice(Poco::format("Stopped %s...",DAEMON_APP_NAME));
 	    }
 
