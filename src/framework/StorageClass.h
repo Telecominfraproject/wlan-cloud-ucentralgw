@@ -38,6 +38,10 @@ namespace OpenWifi {
         {
         }
 
+        ~StorageClass() {
+            std::cout << __func__ << std::endl;
+        }
+
         int Start() override {
             std::lock_guard		Guard(Mutex_);
 

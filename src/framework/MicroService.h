@@ -2421,9 +2421,10 @@ namespace OpenWifi {
 	        Logger_.information("Stopping ");
 	        for( const auto & svr : RESTServers_ )
 	            svr->stop();
-	        Pool_.stopAll();
+	        Pool_.joinAll();
 	        RESTServers_.clear();
 	    }
+
 	    inline void reinitialize(Poco::Util::Application &self) override;
 
 	    inline Poco::Net::HTTPRequestHandler *CallServer(const char *Path) {
@@ -2508,7 +2509,7 @@ namespace OpenWifi {
 	        Logger_.information("Stopping ");
 	        for( const auto & svr : RESTServers_ )
 	            svr->stop();
-	        RESTServers_.clear();
+	        Pool_.stopAll();
 	    }
 
 	    inline void reinitialize(Poco::Util::Application &self) override;
