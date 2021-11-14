@@ -139,11 +139,6 @@ namespace OpenWifi {
 		    SubSystemServer("WebSocketServer", "WS-SVR", "ucentral.websocket") {
 
 		}
-
-		~WebSocketServer() {
-		    std::cout << __func__ << std::endl;
-		}
-
 	};
 
 	inline WebSocketServer * WebSocketServer() { return WebSocketServer::instance(); }

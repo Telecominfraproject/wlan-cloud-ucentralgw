@@ -2230,11 +2230,6 @@ namespace OpenWifi {
 	    SubSystemServer("KafkaManager", "KAFKA-SVR", "openwifi.kafka")
 	    {
 	    }
-
-	    ~KafkaManager() {
-	        std::cout << __func__ << std::endl;
-	    }
-
 	};
 
 	inline KafkaManager * KafkaManager() { return KafkaManager::instance(); }
@@ -2244,10 +2239,6 @@ namespace OpenWifi {
 	    explicit AuthClient() noexcept:
 	    SubSystemServer("Authentication", "AUTH-CLNT", "authentication")
 	    {
-	    }
-
-	    ~AuthClient() {
-	        std::cout << __func__ << std::endl;
 	    }
 
 	    static AuthClient *instance() {
@@ -2329,10 +2320,6 @@ namespace OpenWifi {
 	            {
 	            }
 
-	            ~ALBRequestHandler() {
-	                std::cout << __func__ << std::endl;
-	            }
-
 	            void handleRequest(Poco::Net::HTTPServerRequest& Request, Poco::Net::HTTPServerResponse& Response)
 	            {
 	                Logger_.information(Poco::format("ALB-REQUEST(%s): New ALB request.",Request.clientAddress().toString()));
@@ -2376,10 +2363,6 @@ namespace OpenWifi {
 	    ALBHealthCheckServer() noexcept:
 	    SubSystemServer("ALBHealthCheckServer", "ALB-SVR", "alb")
 	    {
-	    }
-
-	    ~ALBHealthCheckServer() {
-	        std::cout << __func__ << std::endl;
 	    }
 
 	    static ALBHealthCheckServer *instance() {
@@ -2441,10 +2424,6 @@ namespace OpenWifi {
 	    SubSystemServer("RESTAPIServer", "RESTAPIServer", "openwifi.restapi")
             {
             }
-
-        ~RESTAPI_server() {
-	        std::cout << __func__ << std::endl;
-	    }
 	};
 
 	inline RESTAPI_server * RESTAPI_server() { return RESTAPI_server::instance(); };
@@ -2525,10 +2504,6 @@ namespace OpenWifi {
 
 	    RESTAPI_InternalServer() noexcept: SubSystemServer("RESTAPIInternalServer", "REST-ISRV", "openwifi.internal.restapi")
 	    {
-	    }
-
-	    ~RESTAPI_InternalServer() {
-	        std::cout << __func__ << std::endl;
 	    }
 	};
 
