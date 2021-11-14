@@ -26,11 +26,8 @@
 #include "framework/MicroService.h"
 
 namespace OpenWifi {
-	class Daemon *Daemon::instance_ = nullptr;
-
 	class Daemon *Daemon::instance() {
-		if (instance_ == nullptr) {
-			instance_ = new Daemon(vDAEMON_PROPERTIES_FILENAME,
+	    static Daemon instance(vDAEMON_PROPERTIES_FILENAME,
 								   vDAEMON_ROOT_ENV_VAR,
 								   vDAEMON_CONFIG_ENV_VAR,
 								   vDAEMON_APP_NAME,
@@ -47,8 +44,7 @@ namespace OpenWifi {
 									   StorageArchiver(),
 									   TelemetryStream()
 								   });
-		}
-		return instance_;
+        return &instance;
 	}
 
 	void Daemon::initialize() {
