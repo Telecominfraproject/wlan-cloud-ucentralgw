@@ -2383,8 +2383,8 @@ namespace OpenWifi {
 	    }
 
 	    static ALBHealthCheckServer *instance() {
-	        static ALBHealthCheckServer instance;
-	        return &instance;
+	        static ALBHealthCheckServer * instance = new ALBHealthCheckServer;
+	        return instance;
 	    }
 
 	    inline int Start() override;
