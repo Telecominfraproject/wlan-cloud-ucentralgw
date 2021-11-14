@@ -3292,8 +3292,9 @@ namespace OpenWifi {
 	            KafkaManager()->Logger_.log(E);
 	        }
 	    }
-
+	    std::cout << __func__ << " : " << __LINE__ << std::endl;
 	    Producer.flush();
+	    std::cout << __func__ << " : " << __LINE__ << std::endl;
 
 	}
 
@@ -3371,7 +3372,9 @@ namespace OpenWifi {
 	            KafkaManager()->Logger_.log(E);
 	        }
 	    }
+	    std::cout << __func__ << " : " << __LINE__ << std::endl;
 	    Consumer.unsubscribe();
+	    std::cout << __func__ << " : " << __LINE__ << std::endl;
 	}
 
 	inline void RESTAPI_server::reinitialize(Poco::Util::Application &self) {
