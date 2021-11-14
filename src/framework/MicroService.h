@@ -2120,6 +2120,8 @@ namespace OpenWifi {
 	    inline void Stop() override {
 	        if(KafkaEnabled_) {
 	            ProducerRunning_ = ConsumerRunning_ = false;
+	            ProducerThr_.wakeup();
+	            ConsumerThr_.wakeup();
 	            ProducerThr_.join();
 	            ConsumerThr_.join();
 	            return;
@@ -3290,6 +3292,9 @@ namespace OpenWifi {
 	            KafkaManager()->Logger_.log(E);
 	        }
 	    }
+
+	    Producer.flush();
+
 	}
 
 	inline void KafkaConsumer::run() {
@@ -3366,6 +3371,8 @@ namespace OpenWifi {
 	            KafkaManager()->Logger_.log(E);
 	        }
 	    }
+	    Consumer.unsubscribe();
+	    Consumer.close();
 	}
 
 	inline void RESTAPI_server::reinitialize(Poco::Util::Application &self) {
