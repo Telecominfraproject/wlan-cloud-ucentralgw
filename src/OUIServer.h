@@ -41,6 +41,11 @@ namespace OpenWifi {
 			SubSystemServer("OUIServer", "OUI-SVR", "ouiservr")
 		{
 		}
+
+		~OUIServer() {
+		    std::cout << __func__ << std::endl;
+		}
+
 	};
 
 	inline OUIServer * OUIServer() { return OUIServer::instance(); }

@@ -32,6 +32,11 @@ namespace OpenWifi {
 			{
 				SNs_.reserve(2000);
 			}
+
+        ~SerialNumberCache() {
+		    std::cout << __func__ << std::endl;
+		}
+
 	};
 
 	inline SerialNumberCache * SerialNumberCache() { return SerialNumberCache::instance(); }

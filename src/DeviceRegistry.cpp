@@ -16,10 +16,6 @@
 
 namespace OpenWifi {
 
-	DeviceRegistry::DeviceRegistry() noexcept:
-		SubSystemServer("DeviceRegistry", "DevStatus", "devicestatus") {
-    }
-
 	int DeviceRegistry::Start() {
 		std::lock_guard		Guard(Mutex_);
         Logger_.notice("Starting ");

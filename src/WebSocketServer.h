@@ -134,7 +134,16 @@ namespace OpenWifi {
 		Poco::Net::SocketReactor		Reactor_;
 		Poco::Thread					ReactorThread_;
 		ReactorPool						ReactorPool_;
-		WebSocketServer() noexcept;
+
+		WebSocketServer() noexcept:
+		    SubSystemServer("WebSocketServer", "WS-SVR", "ucentral.websocket") {
+
+		}
+
+		~WebSocketServer() {
+		    std::cout << __func__ << std::endl;
+		}
+
 	};
 
 	inline WebSocketServer * WebSocketServer() { return WebSocketServer::instance(); }

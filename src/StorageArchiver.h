@@ -50,6 +50,10 @@ class StorageArchiver : public SubSystemServer, Poco::Runnable {
 		{
 		}
 
+		~StorageArchiver() {
+		    std::cout << __func__ << std::endl;
+		}
+
 };
 
 inline StorageArchiver * StorageArchiver() { return StorageArchiver::instance(); }

@@ -28,12 +28,6 @@
 
 namespace OpenWifi {
 
-	WebSocketServer::WebSocketServer() noexcept:
-	  	SubSystemServer("WebSocketServer", "WS-SVR", "ucentral.websocket")
-    {
-
-    }
-
 	bool WebSocketServer::ValidateCertificate(const std::string & ConnectionId, const Poco::Crypto::X509Certificate & Certificate) {
 		if(IsCertOk()) {
 			Logger_.debug(Poco::format("CERTIFICATE(%s): issuer='%s' cn='%s'", ConnectionId, Certificate.issuerName(),Certificate.commonName()));

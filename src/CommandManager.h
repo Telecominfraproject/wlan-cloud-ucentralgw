@@ -83,6 +83,11 @@ namespace OpenWifi {
 				SubSystemServer("CommandManager", "CMD-MGR", "command.manager")
 				{
 				}
+
+            ~CommandManager() {
+			    std::cout << __func__ << std::endl;
+			}
+
 	};
 
 	inline CommandManager * CommandManager() { return CommandManager::instance(); }

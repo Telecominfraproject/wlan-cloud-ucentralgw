@@ -53,7 +53,14 @@ namespace OpenWifi {
 	  private:
 		std::map<std::string,std::shared_ptr<ConnectionEntry>>   Devices_;
 
-		DeviceRegistry() noexcept;
+		DeviceRegistry() noexcept:
+    		SubSystemServer("DeviceRegistry", "DevStatus", "devicestatus") {
+		}
+
+		~DeviceRegistry() {
+		    std::cout << __func__ << std::endl;
+		}
+
 	};
 
 	inline DeviceRegistry * DeviceRegistry() { return DeviceRegistry::instance(); }
