@@ -12,8 +12,8 @@ namespace OpenWifi {
 		public:
 
 		static SerialNumberCache * instance() {
-			static SerialNumberCache instance_;
-			return & instance_;
+		    static SerialNumberCache * instance_ = new SerialNumberCache;
+			return instance_;
 		}
 
 		int Start() override;

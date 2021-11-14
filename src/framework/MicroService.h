@@ -90,8 +90,8 @@ namespace OpenWifi {
 		inline AppServiceRegistry();
 
 		static AppServiceRegistry & instance() {
-			static AppServiceRegistry instance;
-			return instance;
+		    static AppServiceRegistry *instance_= new AppServiceRegistry;
+			return *instance_;
 		}
 
 		inline ~AppServiceRegistry() {
@@ -1435,8 +1435,8 @@ namespace OpenWifi {
 	    };
 
 	    static RESTAPI_RateLimiter *instance() {
-	        static RESTAPI_RateLimiter instance;
-	        return &instance;
+	        static RESTAPI_RateLimiter * instance_ = new RESTAPI_RateLimiter;
+	        return instance_;
 	    }
 
 	    inline int Start() final { return 0;};
@@ -2139,8 +2139,8 @@ namespace OpenWifi {
 	    inline void initialize(Poco::Util::Application & self) override;
 
 	    static KafkaManager *instance() {
-	        static KafkaManager * instance = new KafkaManager;
-	        return instance;
+	        static KafkaManager * instance_ = new KafkaManager;
+	        return instance_;
 	    }
 
 	    inline int Start() override {
@@ -2251,8 +2251,8 @@ namespace OpenWifi {
 	    }
 
 	    static AuthClient *instance() {
-	        static AuthClient instance;
-	        return &instance;
+	        static AuthClient * instance_ = new AuthClient;
+	        return instance_;
 	    }
 
 	    inline int Start() override {
@@ -2413,8 +2413,8 @@ namespace OpenWifi {
 	class RESTAPI_server : public SubSystemServer {
 	public:
 	    static RESTAPI_server *instance() {
-	        static RESTAPI_server instance;
-	        return &instance;
+	        static RESTAPI_server *instance_ = new RESTAPI_server;
+	        return instance_;
 	    }
 	    int Start() override;
 	    inline void Stop() override {
@@ -2500,8 +2500,8 @@ namespace OpenWifi {
 
 	public:
 	    static RESTAPI_InternalServer *instance() {
-	        static RESTAPI_InternalServer instance;
-	        return &instance;
+	        static RESTAPI_InternalServer *instance_ = new RESTAPI_InternalServer;
+	        return instance_;
 	    }
 
 	    inline int Start() override;

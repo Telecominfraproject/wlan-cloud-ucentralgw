@@ -117,8 +117,8 @@ namespace OpenWifi {
 	class WebSocketServer : public SubSystemServer {
 	  public:
 		static WebSocketServer *instance() {
-			static WebSocketServer instance;
-			return &instance;
+		    static WebSocketServer *instance_ = new WebSocketServer;
+			return instance_;
 		}
 
 		int Start() override;

@@ -23,8 +23,8 @@ class StorageArchiver : public SubSystemServer, Poco::Runnable {
 
   	public:
 		static StorageArchiver *instance() {
-			static StorageArchiver instance;
-			return &instance;
+		    static StorageArchiver * instance_ = new StorageArchiver;
+		    return instance_;
 		}
 
 		void 	run() override;

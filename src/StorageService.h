@@ -28,8 +28,8 @@ namespace OpenWifi {
 		};
 
         static Storage *instance() {
-			static Storage * instance = new Storage;
-			return instance;
+			static Storage * instance_ = new Storage;
+			return instance_;
         }
 
 		typedef std::map<std::string,std::string>	DeviceCapabilitiesCache;

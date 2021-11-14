@@ -101,8 +101,8 @@ namespace OpenWifi {
 		};
 
 		static TelemetryStream *instance() {
-			static TelemetryStream instance;
-			return &instance;
+		    static TelemetryStream * instance_ = new TelemetryStream;
+			return instance_;
 		}
 
 		int Start() override;

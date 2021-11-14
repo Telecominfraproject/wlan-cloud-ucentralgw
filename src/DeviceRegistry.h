@@ -29,8 +29,8 @@ namespace OpenWifi {
 		};
 
         static DeviceRegistry *instance() {
-			static DeviceRegistry instance;
-            return &instance;
+            static DeviceRegistry *instance_ = new DeviceRegistry;
+            return instance_;
         }
 
 		int Start() override;
