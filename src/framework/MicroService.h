@@ -2192,6 +2192,11 @@ namespace OpenWifi {
 	    SubSystemServer("KafkaManager", "KAFKA-SVR", "openwifi.kafka")
 	    {
 	    }
+
+	    ~KafkaManager() {
+	        std::cout << __func__ << std::endl;
+	    }
+
 	};
 
 	inline KafkaManager * KafkaManager() { return KafkaManager::instance(); }
@@ -2201,6 +2206,10 @@ namespace OpenWifi {
 	    explicit AuthClient() noexcept:
 	    SubSystemServer("Authentication", "AUTH-CLNT", "authentication")
 	    {
+	    }
+
+	    ~AuthClient() {
+	        std::cout << __func__ << std::endl;
 	    }
 
 	    static AuthClient *instance() {
@@ -2282,6 +2291,10 @@ namespace OpenWifi {
 	            {
 	            }
 
+	            ~ALBRequestHandler() {
+	                std::cout << __func__ << std::endl;
+	            }
+
 	            void handleRequest(Poco::Net::HTTPServerRequest& Request, Poco::Net::HTTPServerResponse& Response)
 	            {
 	                Logger_.information(Poco::format("ALB-REQUEST(%s): New ALB request.",Request.clientAddress().toString()));
@@ -2327,6 +2340,10 @@ namespace OpenWifi {
 	    {
 	    }
 
+	    ~ALBHealthCheckServer() {
+	        std::cout << __func__ << std::endl;
+	    }
+
 	    static ALBHealthCheckServer *instance() {
 	        static ALBHealthCheckServer instance;
 	        return &instance;
@@ -2335,7 +2352,7 @@ namespace OpenWifi {
 	    inline int Start() override;
 
 	    inline void Stop() override {
-	        if(Server_)
+	        if(Running_)
 	            Server_->stop();
 	    }
 
@@ -2343,6 +2360,7 @@ namespace OpenWifi {
 	    std::unique_ptr<Poco::Net::HTTPServer>   	Server_;
 	    std::unique_ptr<Poco::Net::ServerSocket> 	Socket_;
 	    int                                     	Port_ = 0;
+	    std::atomic_bool                            Running_=false;
 	};
 
 	inline ALBHealthCheckServer * ALBHealthCheckServer() { return ALBHealthCheckServer::instance(); }
@@ -2621,7 +2639,7 @@ namespace OpenWifi {
 		std::string                 ConfigFileName_;
 		Poco::UUIDGenerator         UUIDGenerator_;
 		uint64_t                    ID_ = 1;
-		Poco::SharedPtr<Poco::Crypto::RSAKey>	AppKey_ = nullptr;
+		Poco::SharedPtr<Poco::Crypto::RSAKey>	AppKey_;
 		bool                        DebugMode_ = false;
 		std::string 				DataDir_;
 		std::string                 WWWAssetsDir_;
@@ -2924,7 +2942,6 @@ namespace OpenWifi {
 	inline void MicroService::StopSubSystemServers() {
 	    BusEventManager_.Stop();
 	    for(auto i=SubSystems_.rbegin(); i!=SubSystems_.rend(); ++i) {
-	    	std::cout << "Stopping: " << (*i)->Name() << std::endl;
 			(*i)->Stop();
 		}
 
@@ -3176,6 +3193,7 @@ namespace OpenWifi {
 
 	inline int ALBHealthCheckServer::Start() {
 	    if(MicroService::instance().ConfigGetBool("alb.enable",false)) {
+	        Running_=true;
 	        Port_ = (int)MicroService::instance().ConfigGetInt("alb.port",15015);
 	        Socket_ = std::make_unique<Poco::Net::ServerSocket>(Port_);
 	        auto Params = new Poco::Net::HTTPServerParams;
