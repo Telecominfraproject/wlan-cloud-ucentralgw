@@ -2421,8 +2421,8 @@ namespace OpenWifi {
 	        Logger_.information("Stopping ");
 	        for( const auto & svr : RESTServers_ )
 	            svr->stop();
+	        Pool_.stopAll();
 	        RESTServers_.clear();
-
 	    }
 	    inline void reinitialize(Poco::Util::Application &self) override;
 
@@ -2482,7 +2482,7 @@ namespace OpenWifi {
 	        if(!Svr.RootCA().empty())
 	            Svr.LogCas(Logger_);
 
-	        auto Params = new Poco::Net::HTTPServerParams;
+	        Poco::Net::HTTPServerParams::Ptr Params = new Poco::Net::HTTPServerParams;
 	        Params->setMaxThreads(50);
 	        Params->setMaxQueued(200);
 	        Params->setKeepAlive(true);
@@ -2546,7 +2546,7 @@ namespace OpenWifi {
 	    }
 	private:
 	    Poco::Logger    & Logger_;
-	    RESTAPI_GenericServer   &Server_;
+	    RESTAPI_GenericServer   & Server_;
 	};
 
 	inline int RESTAPI_InternalServer::Start() {
