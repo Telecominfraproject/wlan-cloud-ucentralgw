@@ -56,7 +56,9 @@ namespace OpenWifi {
         }
 
         void Stop() override {
+            std::cout << __func__ << ":" << __LINE__ << std::endl;
             Pool_->shutdown();
+            std::cout << __func__ << ":" << __LINE__ << std::endl;
         }
 
         [[nodiscard]] inline std::string ComputeRange(uint64_t From, uint64_t HowMany) {
