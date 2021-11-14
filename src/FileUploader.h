@@ -48,10 +48,6 @@ namespace OpenWifi {
 			SubSystemServer("FileUploader", "FILE-UPLOAD", "openwifi.fileuploader")
 		{
 		}
-
-		~FileUploader() {
-		    std::cout << __func__ << std::endl;
-		}
     };
 
     class FileUpLoaderRequestHandlerFactory : public Poco::Net::HTTPRequestHandlerFactory {

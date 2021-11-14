@@ -56,11 +56,6 @@ namespace OpenWifi {
 		DeviceRegistry() noexcept:
     		SubSystemServer("DeviceRegistry", "DevStatus", "devicestatus") {
 		}
-
-		~DeviceRegistry() {
-		    std::cout << __func__ << std::endl;
-		}
-
 	};
 
 	inline DeviceRegistry * DeviceRegistry() { return DeviceRegistry::instance(); }

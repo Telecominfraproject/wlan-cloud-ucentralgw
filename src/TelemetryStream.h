@@ -126,11 +126,6 @@ namespace OpenWifi {
 			SubSystemServer("TelemetryServer", "TELEMETRY-SVR", "openwifi.telemetry")
 		{
 		}
-
-		~TelemetryStream() {
-		    std::cout << __func__ << std::endl;
-		}
-
 	};
 
 	inline TelemetryStream * TelemetryStream() { return TelemetryStream::instance(); }
