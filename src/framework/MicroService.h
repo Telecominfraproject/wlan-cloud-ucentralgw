@@ -2950,6 +2950,7 @@ namespace OpenWifi {
 	    BusEventManager_.Stop();
 	    for(auto i=SubSystems_.rbegin(); i!=SubSystems_.rend(); ++i) {
 			(*i)->Stop();
+			std::cout << "Stopping " << (*i)->Name() << std::endl;
 		}
 
 	    while(!SubSystems_.empty())
