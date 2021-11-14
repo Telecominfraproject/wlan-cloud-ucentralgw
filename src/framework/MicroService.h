@@ -2964,11 +2964,7 @@ namespace OpenWifi {
 	    BusEventManager_.Stop();
 	    for(auto i=SubSystems_.rbegin(); i!=SubSystems_.rend(); ++i) {
 			(*i)->Stop();
-			std::cout << "Stopping " << (*i)->Name() << std::endl;
 		}
-
-	    while(!SubSystems_.empty())
-	        SubSystems_.pop_back();
 	}
 
 	[[nodiscard]] inline std::string MicroService::CreateUUID() {
@@ -2986,7 +2982,6 @@ namespace OpenWifi {
 	            }
 	            return true;
 	        } else {
-	            // std::cout << "Sub:" << SubSystem << " Level:" << Level << std::endl;
 	            for (auto i : SubSystems_) {
 	                if (Sub == Poco::toLower(i->Name())) {
 	                    i->Logger().setLevel(P);
@@ -3292,10 +3287,7 @@ namespace OpenWifi {
 	            KafkaManager()->Logger_.log(E);
 	        }
 	    }
-	    std::cout << __func__ << " : " << __LINE__ << std::endl;
 	    Producer.flush();
-	    std::cout << __func__ << " : " << __LINE__ << std::endl;
-
 	}
 
 	inline void KafkaConsumer::run() {
@@ -3372,9 +3364,7 @@ namespace OpenWifi {
 	            KafkaManager()->Logger_.log(E);
 	        }
 	    }
-	    std::cout << __func__ << " : " << __LINE__ << std::endl;
 	    Consumer.unsubscribe();
-	    std::cout << __func__ << " : " << __LINE__ << std::endl;
 	}
 
 	inline void RESTAPI_server::reinitialize(Poco::Util::Application &self) {
@@ -3595,11 +3585,9 @@ namespace OpenWifi {
                 if(Response.getStatus()==Poco::Net::HTTPResponse::HTTP_OK) {
                     Poco::JSON::Parser	P;
                     ResponseObject = P.parse(is).extract<Poco::JSON::Object::Ptr>();
-                    //	                std::cout << "Response OK" << std::endl;
                 } else {
                     Poco::JSON::Parser	P;
                     ResponseObject = P.parse(is).extract<Poco::JSON::Object::Ptr>();
-                    //	                std::cout << "Response: " << Response.getStatus() << std::endl;
                 }
                 return Response.getStatus();
             }
@@ -3645,11 +3633,9 @@ namespace OpenWifi {
                 if(Response.getStatus()==Poco::Net::HTTPResponse::HTTP_OK) {
                     Poco::JSON::Parser	P;
                     ResponseObject = P.parse(is).extract<Poco::JSON::Object::Ptr>();
-                    //	                std::cout << "Response OK" << std::endl;
                 } else {
                     Poco::JSON::Parser	P;
                     ResponseObject = P.parse(is).extract<Poco::JSON::Object::Ptr>();
-                    //	                std::cout << "Response: " << Response.getStatus() << std::endl;
                 }
                 return Response.getStatus();
             }

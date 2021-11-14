@@ -31,10 +31,6 @@ namespace OpenWifi {
         {
         }
 
-        ~StorageClass() {
-            std::cout << __FILE__ << " : " << __func__ << ":" << __LINE__ << std::endl;
-        }
-
         int Start() override {
             std::lock_guard		Guard(Mutex_);
 
@@ -53,9 +49,7 @@ namespace OpenWifi {
         }
 
         void Stop() override {
-            std::cout << __FILE__ << " : " << __func__ << ":" << __LINE__ << std::endl;
             Pool_->shutdown();
-            std::cout << __FILE__ << " : " << __func__ << ":" << __LINE__ << std::endl;
         }
 
         [[nodiscard]] inline std::string ComputeRange(uint64_t From, uint64_t HowMany) {
