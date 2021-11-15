@@ -59,11 +59,17 @@ namespace OpenWifi {
 
 		ArchiverCallback_ = std::make_unique<Poco::TimerCallback<Archiver>>(Archiver_,&Archiver::onTimer);
 
-		auto Schedule = MicroService::instance().ConfigGetString("archiver.schedule","3:00");
-		Types::StringVec S = Utils::Split(Schedule,':');
+		auto Schedule = MicroService::instance().ConfigGetString("archiver.schedule","03:00");
+		auto S = Poco::StringTokenizer(Schedule,":");
 
-		int RunAtHour_ = std::atoi(S[0].c_str());
-		int RunAtMin_ = std::atoi(S[1].c_str());
+		int RunAtHour_, RunAtMin_;
+		if(S.count()!=2) {
+			RunAtHour_ = 3 ;
+			RunAtMin_ = 0;
+		} else {
+			RunAtHour_ = std::atoi(S[0].c_str());
+			RunAtMin_ = std::atoi(S[1].c_str());
+		}
 
 		for(int i=0;i<20;i++) {
 			std::string key = "archiver.db." + std::to_string(i) + ".name";
