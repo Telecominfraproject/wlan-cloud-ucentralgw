@@ -40,6 +40,9 @@ namespace OpenWifi {
 		Poco::LocalDateTime dt;
 		Poco::LocalDateTime scheduled(dt.year(), dt.month(), dt.day(), H, M, 0);
 
+		std::cout << "DT:" << dt.timestamp().epochTime() << std::endl;
+		std::cout << "SC:" << scheduled.timestamp().epochTime() << std::endl;
+
 		size_t delta = 0;
 		if ((dt.hour() < H) || (dt.hour()==H && dt.minute()<M)) {
 			delta = scheduled.timestamp().epochTime() - dt.timestamp().epochTime();
