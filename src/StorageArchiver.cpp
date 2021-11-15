@@ -43,11 +43,15 @@ namespace OpenWifi {
 		std::cout << "DT:" << dt.timestamp().epochTime() << std::endl;
 		std::cout << "SC:" << scheduled.timestamp().epochTime() << std::endl;
 
+		std::cout << "Current time: " << dt.hour() << ":" << dt.minute() << ":" << dt.second() << std::endl;
+
 		size_t delta = 0;
 		if ((dt.hour() < H) || (dt.hour()==H && dt.minute()<M)) {
+			std::cout << "true" << std::endl;
 			delta = scheduled.timestamp().epochTime() - dt.timestamp().epochTime();
 		} else {
-			delta = (24 * 60 * 60) - (dt.timestamp().epochTime() - scheduled.timestamp().epochTime());
+			std::cout << "false" << std::endl;
+			delta = (24*60*60) - (dt.timestamp().epochTime() - scheduled.timestamp().epochTime());
 		}
 		return delta;
 	}
