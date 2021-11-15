@@ -2630,7 +2630,7 @@ namespace OpenWifi {
 		inline void InitializeSubSystemServers();
 		inline void StartSubSystemServers();
 		inline void StopSubSystemServers();
-		[[nodiscard]] inline std::string CreateUUID();
+		[[nodiscard]] static inline std::string CreateUUID();
 		inline bool SetSubsystemLogLevel(const std::string &SubSystem, const std::string &Level);
 		inline void Reload(const std::string &Sub);
 		inline Types::StringVec GetSubSystems() const;
@@ -2969,7 +2969,7 @@ namespace OpenWifi {
 
 	[[nodiscard]] inline std::string MicroService::CreateUUID() {
         static std::random_device              rd;
-        static std::mt19937                    gen(rd());
+        static std::mt19937_64                 gen(rd());
         static std::uniform_int_distribution<> dis(0, 15);
         static std::uniform_int_distribution<> dis2(8, 11);
 

@@ -46,7 +46,7 @@ namespace OpenWifi {
 
 		Poco::URI	Public(MicroService::instance().ConfigGetString("openwifi.system.uri.public"));
 		Poco::URI	U;
-		UUID = MicroService::instance().CreateUUID();
+		UUID = MicroService::CreateUUID();
 		U.setScheme("wss");
 		U.setHost(Public.getHost());
 		U.setPort(Public.getPort());

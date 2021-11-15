@@ -228,7 +228,7 @@ namespace OpenWifi {
 			Conn_->Conn_.PendingUUID = D.UUID;
 			GWObjects::CommandDetails  Cmd;
 			Cmd.SerialNumber = SerialNumber_;
-			Cmd.UUID = MicroService::instance().CreateUUID();
+			Cmd.UUID = MicroService::CreateUUID();
 			Cmd.SubmittedBy = uCentralProtocol::SUBMITTED_BY_SYSTEM;
 			Cmd.Status = uCentralProtocol::PENDING;
 			Cmd.Command = uCentralProtocol::CONFIGURE;
@@ -609,7 +609,7 @@ namespace OpenWifi {
 						if(ParamsObj->get(uCentralProtocol::REBOOT).toString()=="true") {
 							GWObjects::CommandDetails  Cmd;
 							Cmd.SerialNumber = SerialNumber_;
-							Cmd.UUID = MicroService::instance().CreateUUID();
+							Cmd.UUID = MicroService::CreateUUID();
 							Cmd.SubmittedBy = uCentralProtocol::SUBMITTED_BY_SYSTEM;
 							Cmd.Status = uCentralProtocol::PENDING;
 							Cmd.Command = uCentralProtocol::REBOOT;
