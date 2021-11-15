@@ -90,6 +90,8 @@ namespace OpenWifi {
 
 		int NextRun = CalculateDelta(RunAtHour_,RunAtMin_);
 
+		std::cout << NextRun << std::endl;
+
 		Logger_.information(Poco::format("Next run in %d seconds.",NextRun));
 
 		Timer_.setStartInterval( NextRun * 1000);
