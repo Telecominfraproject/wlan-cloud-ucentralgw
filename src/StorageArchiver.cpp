@@ -40,17 +40,10 @@ namespace OpenWifi {
 		Poco::LocalDateTime dt;
 		Poco::LocalDateTime scheduled(dt.year(), dt.month(), dt.day(), H, M, 0);
 
-		std::cout << "DT:" << dt.timestamp().epochTime() << std::endl;
-		std::cout << "SC:" << scheduled.timestamp().epochTime() << std::endl;
-
-		std::cout << "Current time: " << dt.hour() << ":" << dt.minute() << ":" << dt.second() << std::endl;
-
 		size_t delta = 0;
 		if ((dt.hour() < H) || (dt.hour()==H && dt.minute()<M)) {
-			std::cout << "true" << std::endl;
 			delta = scheduled.timestamp().epochTime() - dt.timestamp().epochTime();
 		} else {
-			std::cout << "false" << std::endl;
 			delta = (24*60*60) - (dt.timestamp().epochTime() - scheduled.timestamp().epochTime());
 		}
 		return delta;
@@ -96,8 +89,6 @@ namespace OpenWifi {
 		}
 
 		int NextRun = CalculateDelta(RunAtHour_,RunAtMin_);
-
-		std::cout << NextRun << std::endl;
 
 		Logger_.information(Poco::format("Next run in %d seconds.",NextRun));
 
