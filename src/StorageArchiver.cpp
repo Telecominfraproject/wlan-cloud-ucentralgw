@@ -62,8 +62,8 @@ namespace OpenWifi {
 		auto Schedule = MicroService::instance().ConfigGetString("archiver.schedule","3:00");
 		Types::StringVec S = Utils::Split(Schedule,':');
 
-		RunAtHour_ = std::atoi(S[0].c_str());
-		RunAtMin_ = std::atoi(S[1].c_str());
+		int RunAtHour_ = std::atoi(S[0].c_str());
+		int RunAtMin_ = std::atoi(S[1].c_str());
 
 		for(int i=0;i<20;i++) {
 			std::string key = "archiver.db." + std::to_string(i) + ".name";
