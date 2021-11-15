@@ -82,7 +82,11 @@ namespace OpenWifi {
 			}
 		}
 
-		Timer_.setStartInterval( CalculateDelta(RunAtHour_,RunAtMin_) * 1000);
+		int NextRun = CalculateDelta(RunAtHour_,RunAtMin_);
+
+		Logger_.information(Poco::format("Next run in %d seconds.",NextRun));
+
+		Timer_.setStartInterval( NextRun * 1000);
 		Timer_.setPeriodicInterval(24 * 60 * 60 * 1000); // 1 hours
 		Timer_.start(*ArchiverCallback_);
 
