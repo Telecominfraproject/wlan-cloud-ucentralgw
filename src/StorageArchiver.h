@@ -8,18 +8,34 @@
 #include <functional>
 
 #include "framework/MicroService.h"
+#include "Poco/Timer.h"
 
 namespace OpenWifi {
 
-    struct ArchiverDBEntry {
-        std::string 					DBName;
-        uint64_t 						HowManyDays=7;
-    };
-    typedef std::vector<ArchiverDBEntry>	ArchiverDBEntryVec;
-
     static const std::list<std::string>		AllInternalDBNames{"healthchecks", "statistics", "devicelogs" , "commandlist" };
 
-    class StorageArchiver : public SubSystemServer, Poco::Runnable {
+    class Archiver {
+      public:
+    	struct ArchiverDBEntry {
+    		std::string 					DBName;
+    		uint64_t 						HowManyDays=7;
+    	};
+    	typedef std::vector<ArchiverDBEntry>	ArchiverDBEntryVec;
+
+		explicit Archiver(Poco::Logger &Logger):
+			Logger_(Logger) {
+		}
+
+    	void onTimer(Poco::Timer & timer);
+    	inline void AddDb(const ArchiverDBEntry &E ) {
+			DBs_.push_back(E);
+		}
+      private:
+		Poco::Logger		&Logger_;
+    	ArchiverDBEntryVec	DBs_;
+    };
+
+    class StorageArchiver : public SubSystemServer {
 
         public:
             static StorageArchiver *instance() {
@@ -27,23 +43,17 @@ namespace OpenWifi {
                 return instance_;
             }
 
-            void 	run() override;
             int 	Start() override;
             void 	Stop() override;
-            void 	GetLastRun();
-            void 	SetLastRun();
-
             inline bool Enabled() const { return Enabled_; }
 
         private:
-            std::atomic_bool 			Running_ = false;
-            std::atomic_bool 			Enabled_ = false;
-            Poco::Thread				Janitor_;
-            ArchiverDBEntryVec			DBs_;
-            uint64_t 					RunAtHour_=0;
-            uint64_t 					RunAtMin_=0;
-            uint64_t 					LastRun_=0;
-            std::string 				LastRunFileName_;
+            std::atomic_bool 				Enabled_ = false;
+            int 							RunAtHour_=0;
+            int		 						RunAtMin_=0;
+            Poco::Timer                     Timer_;
+            Archiver                        Archiver_{Logger_};
+            std::unique_ptr<Poco::TimerCallback<Archiver>>   ArchiverCallback_;
 
             StorageArchiver() noexcept:
                 SubSystemServer("StorageArchiver", "STORAGE-ARCHIVE", "archiver")
