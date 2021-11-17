@@ -359,7 +359,7 @@ typedef Poco::Tuple<
 
 			std::string st{"SELECT " +
 							   DB_Command_SelectFields +
-							   " FROM CommandList WHERE SerialNumber=? ORDER BY Submitted DESC " + ComputeRange(1, HowMany)};
+							   " FROM CommandList WHERE SerialNumber=? ORDER BY Submitted DESC " + ComputeRange(0, HowMany)};
 			Select << 	ConvertParams(st),
 						Poco::Data::Keywords::into(Records),
 						Poco::Data::Keywords::use(SerialNumber);
