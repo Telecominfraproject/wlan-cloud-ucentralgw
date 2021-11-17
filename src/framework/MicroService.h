@@ -1904,7 +1904,7 @@ namespace OpenWifi {
 	            QB_.SerialNumber = GetParameter(RESTAPI::Protocol::SERIALNUMBER, "");
 	            QB_.StartDate = GetParameter(RESTAPI::Protocol::STARTDATE, 0);
 	            QB_.EndDate = GetParameter(RESTAPI::Protocol::ENDDATE, 0);
-	            QB_.Offset = GetParameter(RESTAPI::Protocol::OFFSET, 1);
+	            QB_.Offset = GetParameter(RESTAPI::Protocol::OFFSET, 0);
 	            QB_.Limit = GetParameter(RESTAPI::Protocol::LIMIT, 100);
 	            QB_.Filter = GetParameter(RESTAPI::Protocol::FILTER, "");
 	            QB_.Select = GetParameter(RESTAPI::Protocol::SELECT, "");
@@ -1916,7 +1916,7 @@ namespace OpenWifi {
 	            QB_.AdditionalInfo = GetBoolParameter(RESTAPI::Protocol::WITHEXTENDEDINFO,false);
 
 	            if(QB_.Offset<1)
-	                QB_.Offset=1;
+	                QB_.Offset=0;
 	            return true;
 	        }
 

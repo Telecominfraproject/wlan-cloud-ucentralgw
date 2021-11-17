@@ -161,7 +161,7 @@ namespace OpenWifi {
 			Poco::Data::Statement   Select(Sess);
 
 
-			std::string st{"SELECT " + DB_LogsSelectFields + " FROM DeviceLogs WHERE SerialNumber=? AND LogType=? ORDER BY Recorded DESC " + ComputeRange(1, HowMany)};
+			std::string st{"SELECT " + DB_LogsSelectFields + " FROM DeviceLogs WHERE SerialNumber=? AND LogType=? ORDER BY Recorded DESC " + ComputeRange(0, HowMany)};
 			Select << 	ConvertParams(st),
 						Poco::Data::Keywords::into(Records),
 						Poco::Data::Keywords::use(SerialNumber),

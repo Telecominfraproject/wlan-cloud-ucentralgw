@@ -54,13 +54,13 @@ namespace OpenWifi {
 
         [[nodiscard]] inline std::string ComputeRange(uint64_t From, uint64_t HowMany) {
             if(dbType_==sqlite) {
-                return " LIMIT " + std::to_string(From-1) + ", " + std::to_string(HowMany) + " ";
+                return " LIMIT " + std::to_string(From) + ", " + std::to_string(HowMany) + " ";
             } else if(dbType_==pgsql) {
-                return " LIMIT " + std::to_string(HowMany) + " OFFSET " + std::to_string(From-1) + " ";
+                return " LIMIT " + std::to_string(HowMany) + " OFFSET " + std::to_string(From) + " ";
             } else if(dbType_==mysql) {
-                return " LIMIT " + std::to_string(HowMany) + " OFFSET " + std::to_string(From-1) + " ";
+                return " LIMIT " + std::to_string(HowMany) + " OFFSET " + std::to_string(From) + " ";
             }
-            return " LIMIT " + std::to_string(HowMany) + " OFFSET " + std::to_string(From-1) + " ";
+            return " LIMIT " + std::to_string(HowMany) + " OFFSET " + std::to_string(From) + " ";
         }
 
         inline std::string ConvertParams(const std::string & S) const {

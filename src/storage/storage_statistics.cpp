@@ -112,7 +112,7 @@ namespace OpenWifi {
 			std::string St{"SELECT " +
 						   		DB_StatsSelectFields +
 						   		" FROM Statistics WHERE SerialNumber=? ORDER BY Recorded DESC "};
-			Select << 	ConvertParams(St) + ComputeRange(1, HowMany),
+			Select << 	ConvertParams(St) + ComputeRange(0, HowMany),
 						Poco::Data::Keywords::into(Records),
 						Poco::Data::Keywords::use(SerialNumber);
 			Select.execute();
