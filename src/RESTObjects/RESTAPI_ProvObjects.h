@@ -324,16 +324,21 @@ namespace OpenWifi::ProvObjects {
         bool from_json(const Poco::JSON::Object::Ptr &Obj);
     };
 
-    struct UserList {
+    struct UuidList {
         std::vector<std::string>    list;
 
         void to_json(Poco::JSON::Object &Obj) const;
         bool from_json(const Poco::JSON::Object::Ptr &Obj);
     };
 
+    enum ACLACCESS {
+        NONE, READ, MODIFY, CREATE, DELETE
+    };
+
     struct ObjectACL {
-        UserList        users;
-        std::string     access;
+        UuidList        users;
+        UuidList        roles;
+        ACLACCESS       access = NONE;
 
         void to_json(Poco::JSON::Object &Obj) const;
         bool from_json(const Poco::JSON::Object::Ptr &Obj);
@@ -346,12 +351,19 @@ namespace OpenWifi::ProvObjects {
         bool from_json(const Poco::JSON::Object::Ptr &Obj);
     };
 
+    enum VISIBILITY {
+        PUBLIC, PRIVATE, SELECT
+    };
+
+    std::string to_string(VISIBILITY A);
+    VISIBILITY visibility_from_string(const std::string &V);
+
     struct Map {
         ObjectInfo          info;
         std::string         data;
         std::string         entity;
         std::string         creator;
-        std::string         visibility;
+        VISIBILITY          visibility = PRIVATE;
         ObjectACLList       access;
 
         void to_json(Poco::JSON::Object &Obj) const;
@@ -367,7 +379,6 @@ namespace OpenWifi::ProvObjects {
 
     bool UpdateObjectInfo(const Poco::JSON::Object::Ptr &O, const SecurityObjects::UserInfo &U, ObjectInfo &I);
     bool CreateObjectInfo(const Poco::JSON::Object::Ptr &O, const SecurityObjects::UserInfo &U, ObjectInfo &I);
-
 };
 
 

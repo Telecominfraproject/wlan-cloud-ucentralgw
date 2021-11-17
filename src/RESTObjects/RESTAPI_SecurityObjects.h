@@ -9,8 +9,8 @@
 #ifndef UCENTRAL_RESTAPI_SECURITYOBJECTS_H
 #define UCENTRAL_RESTAPI_SECURITYOBJECTS_H
 
-#include "Poco/JSON/Object.h"
 #include "framework/OpenWifiTypes.h"
+#include "Poco/JSON/Object.h"
 
 namespace OpenWifi::SecurityObjects {
 
@@ -242,6 +242,14 @@ namespace OpenWifi::SecurityObjects {
 	    uint64_t            canceled=0;
 
         void to_json(Poco::JSON::Object &Obj) const;
+	    bool from_json(Poco::JSON::Object::Ptr &Obj);
+	};
+
+	struct Preferences {
+	    std::string                         id;
+	    uint64_t                            modified;
+	    Types::StringPairVec                data;
+	    void to_json(Poco::JSON::Object &Obj) const;
 	    bool from_json(Poco::JSON::Object::Ptr &Obj);
 	};
 }

@@ -440,11 +440,11 @@ namespace OpenWifi::ProvObjects {
         return false;
     }
 
-    void UserList::to_json(Poco::JSON::Object &Obj) const {
+    void UuidList::to_json(Poco::JSON::Object &Obj) const {
         field_to_json(Obj, "list", list);
     }
 
-    bool UserList::from_json(const Poco::JSON::Object::Ptr &Obj) {
+    bool UuidList::from_json(const Poco::JSON::Object::Ptr &Obj) {
         try {
             field_from_json(Obj, "list", list);
             return true;
@@ -454,14 +454,46 @@ namespace OpenWifi::ProvObjects {
         return false;
     }
 
+    void field_to_json(Poco::JSON::Object &Obj, const char * FieldName, ACLACCESS A) {
+        switch(A) {
+            case READ: Obj.set(FieldName,"read"); break;
+            case MODIFY: Obj.set(FieldName,"modify"); break;
+            case CREATE: Obj.set(FieldName,"create"); break;
+            case DELETE: Obj.set(FieldName,"delete"); break;
+            case NONE:
+                default:
+                    Obj.set(FieldName,"none");
+        }
+    }
+
+    void field_from_json(const Poco::JSON::Object::Ptr &Obj, const char * FieldName, ACLACCESS &A) {
+        if(Obj->has(FieldName)) {
+            auto V = Obj->getValue<std::string>(FieldName);
+            if(V=="read")
+                A = READ;
+            else if(V=="modify")
+                A = MODIFY;
+            else if(V=="create")
+                A = CREATE;
+            else if(V=="delete")
+                A = DELETE;
+            else if(V=="none")
+                A = NONE;
+            else
+                throw Poco::Exception("invalid JSON");
+        }
+    }
+
     void ObjectACL::to_json(Poco::JSON::Object &Obj) const {
-        field_to_json(Obj, "users", users);
+        RESTAPI_utils::field_to_json(Obj, "users", users);
+        RESTAPI_utils::field_to_json(Obj, "roles", roles);
         field_to_json(Obj, "access", access);
     }
 
     bool ObjectACL::from_json(const Poco::JSON::Object::Ptr &Obj) {
         try {
-            field_from_json(Obj, "users", users);
+            RESTAPI_utils::field_from_json(Obj, "users", users);
+            RESTAPI_utils::field_from_json(Obj, "roles", roles);
             field_from_json(Obj, "access", access);
             return true;
         } catch(...) {
@@ -471,12 +503,12 @@ namespace OpenWifi::ProvObjects {
     }
     
     void ObjectACLList::to_json(Poco::JSON::Object &Obj) const {
-        field_to_json(Obj, "list", list);
+        RESTAPI_utils::field_to_json(Obj, "list", list);
     }
 
     bool ObjectACLList::from_json(const Poco::JSON::Object::Ptr &Obj) {
         try {
-            field_from_json(Obj, "list", list);
+            RESTAPI_utils::field_from_json(Obj, "list", list);
             return true;
         } catch(...) {
 
@@ -484,23 +516,54 @@ namespace OpenWifi::ProvObjects {
         return false;
     }
 
+    std::string to_string(VISIBILITY A) {
+        switch(A) {
+            case PUBLIC: return "public";
+            case SELECT: return "select";
+            case PRIVATE:
+            default:
+                return "private";
+        }
+    }
+
+    void field_to_json(Poco::JSON::Object &Obj, const char * FieldName, VISIBILITY A) {
+        Obj.set(FieldName,to_string(A));
+    }
+
+    VISIBILITY visibility_from_string(const std::string &V) {
+        if(V=="public")
+            return PUBLIC;
+        else if(V=="select")
+            return SELECT;
+        else if(V=="private")
+            return PRIVATE;
+        throw Poco::Exception("invalid json");
+    }
+
+    void field_from_json(const Poco::JSON::Object::Ptr &Obj, const char * FieldName, VISIBILITY &A) {
+        if(Obj->has(FieldName)) {
+            auto V = Obj->getValue<std::string>(FieldName);
+            A = visibility_from_string(V);
+        }
+    }
+
     void Map::to_json(Poco::JSON::Object &Obj) const {
         info.to_json(Obj);
-        field_to_json( Obj,"data",data);
-        field_to_json( Obj,"entity",entity);
-        field_to_json( Obj,"creator",creator);
+        RESTAPI_utils::field_to_json( Obj,"data",data);
+        RESTAPI_utils::field_to_json( Obj,"entity",entity);
+        RESTAPI_utils::field_to_json( Obj,"creator",creator);
         field_to_json( Obj,"visibility",visibility);
-        field_to_json( Obj,"access",access);
+        RESTAPI_utils::field_to_json( Obj,"access",access);
     }
 
     bool Map::from_json(const Poco::JSON::Object::Ptr &Obj) {
         try {
             info.from_json(Obj);
-            field_from_json( Obj,"data",data);
-            field_from_json( Obj,"entity",entity);
-            field_from_json( Obj,"creator",creator);
+            RESTAPI_utils::field_from_json( Obj,"data",data);
+            RESTAPI_utils::field_from_json( Obj,"entity",entity);
+            RESTAPI_utils::field_from_json( Obj,"creator",creator);
             field_from_json( Obj,"visibility",visibility);
-            field_from_json( Obj,"access",access);
+            RESTAPI_utils::field_from_json( Obj,"access",access);
             return true;
         } catch(...) {
 
@@ -509,12 +572,12 @@ namespace OpenWifi::ProvObjects {
     }
 
     void MapList::to_json(Poco::JSON::Object &Obj) const {
-        field_to_json( Obj,"list",list);
+        RESTAPI_utils::field_to_json( Obj,"list",list);
     }
 
     bool MapList::from_json(const Poco::JSON::Object::Ptr &Obj) {
         try {
-            field_from_json( Obj,"list",list);
+            RESTAPI_utils::field_from_json( Obj,"list",list);
             return true;
         } catch(...) {
 
@@ -530,7 +593,7 @@ namespace OpenWifi::ProvObjects {
         if(I.name.empty())
             return false;
 
-       if(O->has("description"))
+        if(O->has("description"))
             I.description = O->get("description").toString();
         SecurityObjects::MergeNotes(O,U,I.notes);
         SecurityObjects::NoteInfoVec N;
@@ -566,4 +629,5 @@ namespace OpenWifi::ProvObjects {
 
         return true;
     }
-};
+}
+
