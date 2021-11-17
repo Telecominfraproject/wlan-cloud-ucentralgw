@@ -224,12 +224,12 @@ namespace OpenWifi {
 		std::lock_guard		Guard(Mutex_);
 
 		for(auto const &[SerialNumber,Connection]:Devices_) {
-			Types::UpdateCountedMap(D.status, Connection->Conn_.Connected ? "connected" : "not connected");
-			Types::UpdateCountedMap(D.vendors, OUIServer()->GetManufacturer(SerialNumber));
-			Types::UpdateCountedMap(D.certificates, ComputeCertificateTag(Connection->Conn_.VerifiedCertificate));
-			Types::UpdateCountedMap(D.lastContact, ComputeUpLastContactTag(Connection->Conn_.LastContact));
-			Types::UpdateCountedMap(D.healths, ComputeSanityTag(Connection->LastHealthcheck.Sanity));
-			Types::UpdateCountedMap(D.deviceType, Connection->Conn_.Compatible);
+			UpdateCountedMap(D.status, Connection->Conn_.Connected ? "connected" : "not connected");
+			UpdateCountedMap(D.vendors, OUIServer()->GetManufacturer(SerialNumber));
+			UpdateCountedMap(D.certificates, ComputeCertificateTag(Connection->Conn_.VerifiedCertificate));
+			UpdateCountedMap(D.lastContact, ComputeUpLastContactTag(Connection->Conn_.LastContact));
+			UpdateCountedMap(D.healths, ComputeSanityTag(Connection->LastHealthcheck.Sanity));
+			UpdateCountedMap(D.deviceType, Connection->Conn_.Compatible);
 			if(!Connection->LastStats.empty()) {
 				Poco::JSON::Parser	P;
 
@@ -238,21 +238,21 @@ namespace OpenWifi {
 				if(RawObject->has("unit")) {
 					auto Unit = RawObject->getObject("unit");
 					if (Unit->has("uptime")) {
-						Types::UpdateCountedMap(D.upTimes, ComputeUpTimeTag(Unit->get("uptime")));
+						UpdateCountedMap(D.upTimes, ComputeUpTimeTag(Unit->get("uptime")));
 					}
 					if (Unit->has("memory")) {
 						auto Memory = Unit->getObject("memory");
 						uint64_t Free = Memory->get("free");
 						uint64_t Total = Memory->get("total");
-						Types::UpdateCountedMap(D.memoryUsed, ComputeFreeMemoryTag(Free, Total));
+						UpdateCountedMap(D.memoryUsed, ComputeFreeMemoryTag(Free, Total));
 					}
 					if (Unit->has("load")) {
 						auto Load = Unit->getArray("load");
-						Types::UpdateCountedMap(D.load1,
+						UpdateCountedMap(D.load1,
 												ComputeLoadTag(Load->getElement<uint64_t>(0)));
-						Types::UpdateCountedMap(D.load5,
+						UpdateCountedMap(D.load5,
 												ComputeLoadTag(Load->getElement<uint64_t>(1)));
-						Types::UpdateCountedMap(D.load15,
+						UpdateCountedMap(D.load15,
 												ComputeLoadTag(Load->getElement<uint64_t>(2)));
 					}
 				}

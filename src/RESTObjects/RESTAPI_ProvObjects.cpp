@@ -562,7 +562,7 @@ namespace OpenWifi::ProvObjects {
         }
         I.notes = N;
         I.modified = I.created = Now;
-        I.id = MicroService::instance().CreateUUID();
+        I.id = MicroService::CreateUUID();
 
         return true;
     }

@@ -681,7 +681,7 @@ typedef Poco::Tuple<
 			while(More) {
 				auto Command = RSet[0].convert<std::string>();
 				if(!Command.empty())
-					Types::UpdateCountedMap(R,Command);
+					UpdateCountedMap(R,Command);
 				More = RSet.moveNext();
 			}
 			return true;

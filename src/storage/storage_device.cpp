@@ -722,19 +722,19 @@ namespace OpenWifi {
 				auto SerialNumber = RSet[0].convert<std::string>();
 				auto DeviceType = RSet[1].convert<std::string>();
 				auto Revision = RSet[2].convert<std::string>();
-				Types::UpdateCountedMap(Dashboard.vendors, OUIServer()->GetManufacturer(SerialNumber));
-				Types::UpdateCountedMap(Dashboard.deviceType, DeviceType);
+				UpdateCountedMap(Dashboard.vendors, OUIServer()->GetManufacturer(SerialNumber));
+				UpdateCountedMap(Dashboard.deviceType, DeviceType);
 
 				GWObjects::ConnectionState	ConnState;
 				if(DeviceRegistry()->GetState(SerialNumber, ConnState)) {
-					Types::UpdateCountedMap(Dashboard.status, ConnState.Connected ? "connected" : "not connected");
-					Types::UpdateCountedMap(Dashboard.certificates, ComputeCertificateTag(ConnState.VerifiedCertificate));
-					Types::UpdateCountedMap(Dashboard.lastContact, ComputeUpLastContactTag(ConnState.LastContact));
+					UpdateCountedMap(Dashboard.status, ConnState.Connected ? "connected" : "not connected");
+					UpdateCountedMap(Dashboard.certificates, ComputeCertificateTag(ConnState.VerifiedCertificate));
+					UpdateCountedMap(Dashboard.lastContact, ComputeUpLastContactTag(ConnState.LastContact));
 					GWObjects::HealthCheck	HC;
 					if(DeviceRegistry()->GetHealthcheck(SerialNumber,HC))
-						Types::UpdateCountedMap(Dashboard.healths, ComputeSanityTag(HC.Sanity));
+						UpdateCountedMap(Dashboard.healths, ComputeSanityTag(HC.Sanity));
 					else
-						Types::UpdateCountedMap(Dashboard.healths, ComputeSanityTag(100));
+						UpdateCountedMap(Dashboard.healths, ComputeSanityTag(100));
 					std::string LastStats;
 					if(DeviceRegistry()->GetStatistics(SerialNumber, LastStats) && !LastStats.empty()) {
 						Poco::JSON::Parser	P;
@@ -744,34 +744,33 @@ namespace OpenWifi {
 						if(RawObject->has("unit")) {
 							auto Unit = RawObject->getObject("unit");
 							if (Unit->has("uptime")) {
-								Types::UpdateCountedMap(Dashboard.upTimes, ComputeUpTimeTag(Unit->get("uptime")));
+								UpdateCountedMap(Dashboard.upTimes, ComputeUpTimeTag(Unit->get("uptime")));
 							}
 							if (Unit->has("memory")) {
 								auto Memory = Unit->getObject("memory");
 								uint64_t Free = Memory->get("free");
 								uint64_t Total = Memory->get("total");
-								Types::UpdateCountedMap(Dashboard.memoryUsed, ComputeFreeMemoryTag(Free, Total));
+								UpdateCountedMap(Dashboard.memoryUsed, ComputeFreeMemoryTag(Free, Total));
 							}
 							if (Unit->has("load")) {
 								auto Load = Unit->getArray("load");
-								Types::UpdateCountedMap(Dashboard.load1,
+								UpdateCountedMap(Dashboard.load1,
 														ComputeLoadTag(Load->getElement<uint64_t>(0)));
-								Types::UpdateCountedMap(Dashboard.load5,
+								UpdateCountedMap(Dashboard.load5,
 														ComputeLoadTag(Load->getElement<uint64_t>(1)));
-								Types::UpdateCountedMap(Dashboard.load15,
+								UpdateCountedMap(Dashboard.load15,
 														ComputeLoadTag(Load->getElement<uint64_t>(2)));
 							}
 						}
 
 						uint64_t 	Associations_2G, Associations_5G;
 						StateProcessor::GetAssociations(RawObject, Associations_2G, Associations_5G);
-						Types::UpdateCountedMap(Dashboard.associations, "2G", Associations_2G);
-						Types::UpdateCountedMap(Dashboard.associations, "5G", Associations_5G);
-
+						UpdateCountedMap(Dashboard.associations, "2G", Associations_2G);
+						UpdateCountedMap(Dashboard.associations, "5G", Associations_5G);
 					}
-					Types::UpdateCountedMap(Dashboard.status, ConnState.Connected ? "connected" : "not connected");
+					UpdateCountedMap(Dashboard.status, ConnState.Connected ? "connected" : "not connected");
 				} else {
-					Types::UpdateCountedMap(Dashboard.status, "not connected");
+					UpdateCountedMap(Dashboard.status, "not connected");
 				}
 				More = RSet.moveNext();
 			}
