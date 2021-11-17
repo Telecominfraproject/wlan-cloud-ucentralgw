@@ -265,7 +265,7 @@ namespace OpenWifi {
 		Config::Capabilities 			Caps(Capabilities);
 		GWObjects::DefaultConfiguration DefConfig;
 
-		if (FindDefaultConfigurationForModel(Caps.Model(), DefConfig)) {
+		if (FindDefaultConfigurationForModel(Compat, DefConfig)) {
 			Config::Config NewConfig(DefConfig.Configuration);
 			NewConfig.SetUUID(Now);
 			D.Configuration = NewConfig.get();
@@ -282,6 +282,7 @@ namespace OpenWifi {
 		D.Manufacturer = Caps.Model();
 		D.Firmware = Firmware;
 		D.Notes = SecurityObjects::NoteInfoVec { SecurityObjects::NoteInfo{ (uint64_t)std::time(nullptr), "", "Auto-provisioned."}};
+
 		return CreateDevice(D);
 	}
 

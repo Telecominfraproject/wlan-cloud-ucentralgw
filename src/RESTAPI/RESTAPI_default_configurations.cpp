@@ -15,6 +15,12 @@
 
 namespace OpenWifi {
 	void RESTAPI_default_configurations::DoGet() {
+
+		if(QB_.CountOnly) {
+			auto Count = StorageService()->GetDefaultConfigurationsCount();
+			return ReturnCountOnly(Count);
+		}
+
 		std::vector<GWObjects::DefaultConfiguration> DefConfigs;
 		StorageService()->GetDefaultConfigurations(QB_.Offset, QB_.Limit, DefConfigs);
 
