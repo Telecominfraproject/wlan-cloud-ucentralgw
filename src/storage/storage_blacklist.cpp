@@ -175,6 +175,25 @@ namespace OpenWifi {
 		return false;
 	}
 
+	uint64_t Storage::GetBlackListDeviceCount() {
+		try {
+			Poco::Data::Session Sess = Pool_->get();
+			Poco::Data::Statement Select(Sess);
+
+			std::string St{"SELECT Count(*) FROM BlackList"};
+			uint64_t Count = 0 ;
+
+			Select << ConvertParams(St),
+			Poco::Data::Keywords::into(Count);
+
+			Select.execute();
+			return Count;
+		} catch (const Poco::Exception &E) {
+			Logger_.log(E);
+		}
+		return 0;
+	}
+
 	bool Storage::IsBlackListed(std::string &SerialNumber) {
 		try {
 			Poco::Data::Session Sess = Pool_->get();
