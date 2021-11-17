@@ -2,8 +2,7 @@
 // Created by stephane bourque on 2021-10-06.
 //
 
-#ifndef OPENWIFI_STORAGE_H
-#define OPENWIFI_STORAGE_H
+#pragma once
 
 #include "Poco/Data/Session.h"
 #include "Poco/Data/SessionPool.h"
@@ -165,5 +164,3 @@ namespace OpenWifi {
 #endif
 
 }
-
-#endif //OPENWIFI_STORAGE_H

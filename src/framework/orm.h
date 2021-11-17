@@ -6,8 +6,7 @@
 //	Arilia Wireless Inc.
 //
 
-#ifndef __OPENWIFI_ORM_H__
-#define __OPENWIFI_ORM_H__
+#pragma once
 
 #include <string>
 #include <memory>
@@ -755,4 +754,3 @@ namespace ORM {
     };
 }
 
-#endif

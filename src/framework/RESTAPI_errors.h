@@ -2,8 +2,7 @@
 // Created by stephane bourque on 2021-09-12.
 //
 
-#ifndef OWPROV_RESTAPI_ERRORS_H
-#define OWPROV_RESTAPI_ERRORS_H
+#pragma once
 
 namespace OpenWifi::RESTAPI::Errors {
     static const std::string MissingUUID{"Missing UUID."};
@@ -62,4 +61,3 @@ namespace OpenWifi::RESTAPI::Errors {
     static const std::string ExpiredToken{"Token has expired, user must login."};
 }
 
-#endif //OWPROV_RESTAPI_ERRORS_H

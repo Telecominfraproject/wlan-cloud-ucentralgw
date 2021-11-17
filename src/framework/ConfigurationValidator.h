@@ -2,8 +2,7 @@
 // Created by stephane bourque on 2021-09-14.
 //
 
-#ifndef OWPROV_CONFIGURATIONVALIDATOR_H
-#define OWPROV_CONFIGURATIONVALIDATOR_H
+#pragma once
 
 #include <nlohmann/json-schema.hpp>
 #include "framework/MicroService.h"
@@ -43,4 +42,3 @@ namespace OpenWifi {
     inline bool ValidateUCentralConfiguration(const std::string &C, std::string &Error) { return ConfigurationValidator::instance()->Validate(C, Error); }
 }
 
-#endif //OWPROV_CONFIGURATIONVALIDATOR_H
