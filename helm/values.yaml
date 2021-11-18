@@ -112,13 +112,17 @@ resources: {}
 
 securityContext:
   fsGroup: 101
-  sysctls:
-  - name: net.ipv4.tcp_keepalive_intvl
-    value: "5"
-  - name: net.ipv4.tcp_keepalive_probes
-    value: "2"
-  - name: net.ipv4.tcp_keepalive_time
-    value: "45"
+  # Usage of unsafe sysctls requires multiple things:
+  # - allow these unsafe sysctls on kubelet level (by adding --allowed-unsafe-sysctls flag)
+  # - enabling addition of PodSecurityContext setting podSecurityPolicy.enabled to "true" below
+  # - uncommenting parameters below
+  #sysctls:
+  #- name: net.ipv4.tcp_keepalive_intvl
+  #  value: "5"
+  #- name: net.ipv4.tcp_keepalive_probes
+  #  value: "2"
+  #- name: net.ipv4.tcp_keepalive_time
+  #  value: "45"
 
 nodeSelector: {}
 
@@ -127,6 +131,9 @@ tolerations: []
 affinity: {}
 
 podAnnotations: {}
+
+podSecurityPolicy:
+  enabled: false
 
 persistence:
   enabled: true

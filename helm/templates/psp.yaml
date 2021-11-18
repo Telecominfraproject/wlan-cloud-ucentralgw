@@ -1,0 +1,28 @@
+{{- if .Values.podSecurityPolicy.enabled }}
+---
+apiVersion: policy/v1beta1
+kind: PodSecurityPolicy
+metadata:
+  name: {{ include "owgw.fullname" . }}-{{ .Release.Namespace }}-unsafe-sysctl
+  labels:
+    app.kubernetes.io/name: {{ include "owgw.name" . }}
+    helm.sh/chart: {{ include "owgw.chart" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+spec:
+  allowedUnsafeSysctls:
+  {{- range $unsafeSysctl := .Values.securityContext.sysctls }}
+  - {{ $unsafeSysctl.name }}
+  {{- end }}
+  privileged: false
+  seLinux:
+    rule: RunAsAny
+  supplementalGroups:
+    rule: RunAsAny
+  runAsUser:
+    rule: RunAsAny
+  fsGroup:
+    rule: RunAsAny
+  volumes:
+  - '*'
+{{- end }}

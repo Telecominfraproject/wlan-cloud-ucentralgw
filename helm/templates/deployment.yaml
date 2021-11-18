@@ -24,6 +24,9 @@ spec:
     metadata:
       annotations:
         checksum/config: {{ include "owgw.config" . | sha256sum }}
+        {{- if .Values.podSecurityPolicy.enabled }}
+        kubernetes.io/psp: {{ include "owgw.fullname" . }}-{{ .Release.Namespace }}-unsafe-sysctl
+        {{- end }}
         {{- with .Values.podAnnotations }}
         {{- toYaml . | nindent 8 }}
         {{- end }}
