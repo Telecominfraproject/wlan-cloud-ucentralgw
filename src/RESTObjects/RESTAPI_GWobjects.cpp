@@ -12,6 +12,7 @@
 #include "Daemon.h"
 #ifdef	TIP_GATEWAY_SERVICE
 #include "DeviceRegistry.h"
+#include "CapabilitiesCache.h"
 #endif
 
 #include "RESTAPI_GWobjects.h"
@@ -26,7 +27,7 @@ namespace OpenWifi::GWObjects {
 	void Device::to_json(Poco::JSON::Object &Obj) const {
 		field_to_json(Obj,"serialNumber", SerialNumber);
 #ifdef TIP_GATEWAY_SERVICE
-		field_to_json(Obj,"deviceType", Daemon::instance()->IdentifyDevice(Compatible));
+		field_to_json(Obj,"deviceType", CapabilitiesCache::instance()->Get(Compatible));
 #endif
 		field_to_json(Obj,"macAddress", MACAddress);
 		field_to_json(Obj,"manufacturer", Manufacturer);

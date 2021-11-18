@@ -369,11 +369,13 @@ namespace OpenWifi {
 								StorageService()->SetConnectInfo(SerialNumber_, Firmware );
 							}
 						}
-						Conn_->Conn_.Compatible = Compatible_;
 
+						Conn_->Conn_.Compatible = Compatible_;
 						StatsProcessor_ = std::make_unique<StateProcessor>(Conn_, Logger_);
 						StatsProcessor_->Initialize(Serial);
 						LookForUpgrade(UUID);
+
+
 
 						if(KafkaManager()->Enabled()) {
 							Poco::JSON::Stringifier		Stringify;

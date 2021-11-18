@@ -16,6 +16,7 @@
 #include "StateProcessor.h"
 #include "StorageService.h"
 #include "framework/MicroService.h"
+#include "CapabilitiesCache.h"
 
 namespace OpenWifi {
 
@@ -264,6 +265,9 @@ namespace OpenWifi {
 
 		Config::Capabilities 			Caps(Capabilities);
 		GWObjects::DefaultConfiguration DefConfig;
+
+		if(!Caps.Platform().empty() && !Caps.Compatible().empty())
+			CapabilitiesCache::instance()->Add(Caps.Compatible(),Caps.Platform());
 
 		if (FindDefaultConfigurationForModel(Compat, DefConfig)) {
 			Config::Config NewConfig(DefConfig.Configuration);
