@@ -7,10 +7,11 @@
 //
 
 #include "StorageService.h"
-
+#include "CentralConfig.h"
 #include "Poco/JSON/Parser.h"
 #include "Poco/JSON/Object.h"
 #include "Poco/Data/RecordSet.h"
+#include "CapabilitiesCache.h"
 
 namespace OpenWifi {
 
@@ -25,23 +26,11 @@ namespace OpenWifi {
 
 			uint64_t Now = std::time(nullptr);
 
-			//	Find compatible in the capabilities...
-			std::string Compatible;
+			OpenWifi::Config::Capabilities	Caps(Capabilities);
 
-			Poco::JSON::Parser	P;
-			Poco::JSON::Parser      IncomingParser;
-			Poco::JSON::Object::Ptr Obj = IncomingParser.parse(Capabilities).extract<Poco::JSON::Object::Ptr>();
-			Poco::DynamicStruct ds = *Obj;
-
-			if(ds.contains("compatible")) {
-				Compat = Compatible = ds["compatible"].toString();
-			} else {
-				//	Maybe this is an old firmware
-				auto TmpCompatible = ds["model"]["id"].toString();
-
-				for(const auto &i:TmpCompatible)
-					Compatible += (char) ( i==',' ? '_' : i);
-			}
+			Compat = Caps.Compatible();
+			if(!Caps.Compatible().empty() && !Caps.Platform().empty())
+				CapabilitiesCache::instance()->Add(Caps.Compatible(),Caps.Platform());
 
 			std::string St{"SELECT SerialNumber FROM Capabilities WHERE SerialNumber=?"};
 			Select << ConvertParams(St),
@@ -49,7 +38,10 @@ namespace OpenWifi {
 				Poco::Data::Keywords::use(SerialNumber);
 			Select.execute();
 
-			{ std::lock_guard	G(Mutex_); CapsCache_[Compatible] = Capabilities; }
+			{
+				std::lock_guard	G(Mutex_);
+				CapsCache_[Compat] = Capabilities;
+			}
 
 			if (SS.empty()) {
 				Logger_.information("Adding capabilities for " + SerialNumber);
@@ -78,7 +70,7 @@ namespace OpenWifi {
 				Update.execute();
 			}
 
-			Storage::SetDeviceCompatibility(SerialNumber, Compatible);
+			Storage::SetDeviceCompatibility(SerialNumber, Compat);
 			return true;
 		}
 		catch (const Poco::Exception &E) {
