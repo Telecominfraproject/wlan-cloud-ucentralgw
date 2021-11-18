@@ -102,7 +102,7 @@ namespace OpenWifi {
 		std::unique_ptr<Poco::Net::WebSocket> WS_;
 		std::string                         SerialNumber_;
 		std::string 						Compatible_;
-		GWObjects::ConnectionState 	* Conn_ = nullptr;
+		std::shared_ptr<DeviceRegistry::ConnectionEntry> 	Conn_;
 		bool                                Registered_ = false ;
 		std::string 						CId_;
 		std::string							CN_;
@@ -117,8 +117,8 @@ namespace OpenWifi {
 	class WebSocketServer : public SubSystemServer {
 	  public:
 		static WebSocketServer *instance() {
-			static WebSocketServer instance;
-			return &instance;
+		    static WebSocketServer *instance_ = new WebSocketServer;
+			return instance_;
 		}
 
 		int Start() override;
@@ -134,7 +134,11 @@ namespace OpenWifi {
 		Poco::Net::SocketReactor		Reactor_;
 		Poco::Thread					ReactorThread_;
 		ReactorPool						ReactorPool_;
-		WebSocketServer() noexcept;
+
+		WebSocketServer() noexcept:
+		    SubSystemServer("WebSocketServer", "WS-SVR", "ucentral.websocket") {
+
+		}
 	};
 
 	inline WebSocketServer * WebSocketServer() { return WebSocketServer::instance(); }

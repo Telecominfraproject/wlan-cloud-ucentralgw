@@ -16,10 +16,6 @@
 
 namespace OpenWifi {
 
-	DeviceRegistry::DeviceRegistry() noexcept:
-		SubSystemServer("DeviceRegistry", "DevStatus", "devicestatus") {
-    }
-
 	int DeviceRegistry::Start() {
 		std::lock_guard		Guard(Mutex_);
         Logger_.notice("Starting ");
@@ -96,13 +92,13 @@ namespace OpenWifi {
 		}
 	}
 
-	GWObjects::ConnectionState * DeviceRegistry::Register(const std::string & SerialNumber, WSConnection *Ptr)
+	std::shared_ptr<DeviceRegistry::ConnectionEntry> DeviceRegistry::Register(const std::string & SerialNumber, WSConnection *Ptr)
     {
 		std::lock_guard		Guard(Mutex_);
 
         auto Device = Devices_.find(SerialNumber);
         if( Device == Devices_.end()) {
-            auto E = std::make_unique<ConnectionEntry>();
+        	auto E = Devices_[SerialNumber] = std::make_shared<ConnectionEntry>();
 
             E->WSConn_ = Ptr;
             E->Conn_.SerialNumber = SerialNumber;
@@ -114,9 +110,7 @@ namespace OpenWifi {
             E->Conn_.TX = 0 ;
             E->Conn_.RX = 0;
 			E->Conn_.VerifiedCertificate = GWObjects::CertificateValidation::NO_CERTIFICATE;
-			auto R=&E->Conn_;
-            Devices_[SerialNumber] = std::move(E);
-            return R;
+            return E;
         }
         else
         {
@@ -124,7 +118,7 @@ namespace OpenWifi {
             Device->second->Conn_.Connected = true;
             Device->second->Conn_.LastContact = std::time(nullptr);
 			Device->second->Conn_.VerifiedCertificate = GWObjects::CertificateValidation::NO_CERTIFICATE;
-            return &Device->second->Conn_;
+            return Device->second;
         }
     }
 
@@ -141,15 +135,7 @@ namespace OpenWifi {
 
     void DeviceRegistry::UnRegister(const std::string & SerialNumber, WSConnection *Ptr) {
 		std::lock_guard		Guard(Mutex_);
-
-        auto Device = Devices_.find(SerialNumber);
-
-        if( Device != Devices_.end() && Device->second->WSConn_==Ptr) {
-            Device->second->Conn_.Address = "";
-            Device->second->WSConn_ = nullptr;
-            Device->second->Conn_.Connected = false;
-			Device->second->Conn_.VerifiedCertificate = GWObjects::NO_CERTIFICATE;
-        }
+		Devices_.erase(SerialNumber);
     }
 
 	bool DeviceRegistry::SendFrame(const std::string & SerialNumber, const std::string & Payload) {
@@ -238,12 +224,12 @@ namespace OpenWifi {
 		std::lock_guard		Guard(Mutex_);
 
 		for(auto const &[SerialNumber,Connection]:Devices_) {
-			Types::UpdateCountedMap(D.status, Connection->Conn_.Connected ? "connected" : "not connected");
-			Types::UpdateCountedMap(D.vendors, OUIServer()->GetManufacturer(SerialNumber));
-			Types::UpdateCountedMap(D.certificates, ComputeCertificateTag(Connection->Conn_.VerifiedCertificate));
-			Types::UpdateCountedMap(D.lastContact, ComputeUpLastContactTag(Connection->Conn_.LastContact));
-			Types::UpdateCountedMap(D.healths, ComputeSanityTag(Connection->LastHealthcheck.Sanity));
-			Types::UpdateCountedMap(D.deviceType, Connection->Conn_.Compatible);
+			UpdateCountedMap(D.status, Connection->Conn_.Connected ? "connected" : "not connected");
+			UpdateCountedMap(D.vendors, OUIServer()->GetManufacturer(SerialNumber));
+			UpdateCountedMap(D.certificates, ComputeCertificateTag(Connection->Conn_.VerifiedCertificate));
+			UpdateCountedMap(D.lastContact, ComputeUpLastContactTag(Connection->Conn_.LastContact));
+			UpdateCountedMap(D.healths, ComputeSanityTag(Connection->LastHealthcheck.Sanity));
+			UpdateCountedMap(D.deviceType, Connection->Conn_.Compatible);
 			if(!Connection->LastStats.empty()) {
 				Poco::JSON::Parser	P;
 
@@ -252,21 +238,21 @@ namespace OpenWifi {
 				if(RawObject->has("unit")) {
 					auto Unit = RawObject->getObject("unit");
 					if (Unit->has("uptime")) {
-						Types::UpdateCountedMap(D.upTimes, ComputeUpTimeTag(Unit->get("uptime")));
+						UpdateCountedMap(D.upTimes, ComputeUpTimeTag(Unit->get("uptime")));
 					}
 					if (Unit->has("memory")) {
 						auto Memory = Unit->getObject("memory");
 						uint64_t Free = Memory->get("free");
 						uint64_t Total = Memory->get("total");
-						Types::UpdateCountedMap(D.memoryUsed, ComputeFreeMemoryTag(Free, Total));
+						UpdateCountedMap(D.memoryUsed, ComputeFreeMemoryTag(Free, Total));
 					}
 					if (Unit->has("load")) {
 						auto Load = Unit->getArray("load");
-						Types::UpdateCountedMap(D.load1,
+						UpdateCountedMap(D.load1,
 												ComputeLoadTag(Load->getElement<uint64_t>(0)));
-						Types::UpdateCountedMap(D.load5,
+						UpdateCountedMap(D.load5,
 												ComputeLoadTag(Load->getElement<uint64_t>(1)));
-						Types::UpdateCountedMap(D.load15,
+						UpdateCountedMap(D.load15,
 												ComputeLoadTag(Load->getElement<uint64_t>(2)));
 					}
 				}

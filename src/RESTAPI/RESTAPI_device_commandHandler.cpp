@@ -204,7 +204,7 @@ void RESTAPI_device_commandHandler::Configure() {
 			GWObjects::CommandDetails Cmd;
 
 			Cmd.SerialNumber = SerialNumber_;
-			Cmd.UUID = MicroService::instance().CreateUUID();
+			Cmd.UUID = MicroService::CreateUUID();
 			Cmd.SubmittedBy = UserInfo_.webtoken.username_;
 			Cmd.Command = uCentralProtocol::CONFIGURE;
 			Cmd.RunAt = When;
@@ -246,7 +246,7 @@ void RESTAPI_device_commandHandler::Upgrade() {
 		GWObjects::CommandDetails Cmd;
 
 		Cmd.SerialNumber = SerialNumber_;
-		Cmd.UUID = MicroService::instance().CreateUUID();
+		Cmd.UUID = MicroService::CreateUUID();
 		Cmd.SubmittedBy = UserInfo_.webtoken.username_;
 		Cmd.Command = uCentralProtocol::UPGRADE;
 		Cmd.RunAt = When;
@@ -357,7 +357,7 @@ void RESTAPI_device_commandHandler::ExecuteCommand() {
 		GWObjects::CommandDetails Cmd;
 
 		Cmd.SerialNumber = SerialNumber_;
-		Cmd.UUID = MicroService::instance().CreateUUID();
+		Cmd.UUID = MicroService::CreateUUID();
 		Cmd.SubmittedBy = UserInfo_.webtoken.username_;
 		Cmd.Command = Command;
 		Cmd.Custom = 1;
@@ -397,7 +397,7 @@ void RESTAPI_device_commandHandler::Reboot() {
 		uint64_t When = GetWhen(Obj);
 		GWObjects::CommandDetails Cmd;
 		Cmd.SerialNumber = SerialNumber_;
-		Cmd.UUID = MicroService::instance().CreateUUID();
+		Cmd.UUID = MicroService::CreateUUID();
 		Cmd.SubmittedBy = UserInfo_.webtoken.username_;
 		Cmd.Command = uCentralProtocol::REBOOT;
 		Cmd.RunAt = When;
@@ -434,7 +434,7 @@ void RESTAPI_device_commandHandler::Factory() {
 		GWObjects::CommandDetails Cmd;
 
 		Cmd.SerialNumber = SerialNumber_;
-		Cmd.UUID = MicroService::instance().CreateUUID();
+		Cmd.UUID = MicroService::CreateUUID();
 		Cmd.SubmittedBy = UserInfo_.webtoken.username_;
 		Cmd.Command = uCentralProtocol::FACTORY;
 		Cmd.RunAt = When;
@@ -480,7 +480,7 @@ void RESTAPI_device_commandHandler::LEDs() {
 		GWObjects::CommandDetails Cmd;
 
 		Cmd.SerialNumber = SerialNumber_;
-		Cmd.UUID = MicroService::instance().CreateUUID();
+		Cmd.UUID = MicroService::CreateUUID();
 		Cmd.SubmittedBy = UserInfo_.webtoken.username_;
 		Cmd.Command = uCentralProtocol::LEDS;
 		Cmd.RunAt = When;
@@ -519,7 +519,7 @@ void RESTAPI_device_commandHandler::Trace() {
 
 		auto Network = GetS(RESTAPI::Protocol::NETWORK, Obj);
 		auto Interface = GetS(RESTAPI::Protocol::INTERFACE, Obj);
-		auto UUID = MicroService::instance().CreateUUID();
+		auto UUID = MicroService::CreateUUID();
 		auto URI = FileUploader()->FullName() + UUID;
 
 		GWObjects::CommandDetails Cmd;
@@ -567,7 +567,7 @@ void RESTAPI_device_commandHandler::WifiScan() {
 		 (!Obj->has(RESTAPI::Protocol::BANDS) &&
 		  !Obj->has(RESTAPI::Protocol::CHANNELS)))) {
 		bool Verbose = GetB(RESTAPI::Protocol::VERBOSE, Obj);
-		auto UUID = MicroService::instance().CreateUUID();
+		auto UUID = MicroService::CreateUUID();
 		GWObjects::CommandDetails Cmd;
 
 		Cmd.SerialNumber = SerialNumber_;
@@ -618,7 +618,7 @@ void RESTAPI_device_commandHandler::EventQueue() {
 
 		auto Types = Obj->getArray(RESTAPI::Protocol::TYPES);
 
-		auto UUID = MicroService::instance().CreateUUID();
+		auto UUID = MicroService::CreateUUID();
 		GWObjects::CommandDetails Cmd;
 
 		Cmd.SerialNumber = SerialNumber_;
@@ -664,7 +664,7 @@ void RESTAPI_device_commandHandler::MakeRequest() {
 
 		Cmd.SerialNumber = SerialNumber_;
 		Cmd.SubmittedBy = UserInfo_.webtoken.username_;
-		Cmd.UUID = MicroService::instance().CreateUUID();
+		Cmd.UUID = MicroService::CreateUUID();
 		Cmd.Command = uCentralProtocol::REQUEST;
 		Cmd.RunAt = When;
 
@@ -689,7 +689,7 @@ void RESTAPI_device_commandHandler::MakeRequest() {
 		if (MicroService::instance().ConfigGetString("rtty.enabled", "false") == "true") {
 			GWObjects::Device	Device;
 			if (StorageService()->GetDevice(SerialNumber_, Device)) {
-				auto CommandUUID = MicroService::instance().CreateUUID();
+				auto CommandUUID = MicroService::CreateUUID();
 
 				GWObjects::RttySessionDetails Rtty{
 					.SerialNumber = SerialNumber_,

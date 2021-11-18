@@ -15,8 +15,8 @@ namespace OpenWifi {
 		typedef std::map<uint64_t,std::string>	OUIMap;
 
 		static OUIServer *instance() {
-			static OUIServer instance;
-			return &instance;
+		    static OUIServer *instance_ = new OUIServer;
+			return instance_;
 		}
 
 		int Start() override;

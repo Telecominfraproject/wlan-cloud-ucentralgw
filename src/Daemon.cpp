@@ -26,11 +26,8 @@
 #include "framework/MicroService.h"
 
 namespace OpenWifi {
-	class Daemon *Daemon::instance_ = nullptr;
-
 	class Daemon *Daemon::instance() {
-		if (instance_ == nullptr) {
-			instance_ = new Daemon(vDAEMON_PROPERTIES_FILENAME,
+	    static Daemon instance(vDAEMON_PROPERTIES_FILENAME,
 								   vDAEMON_ROOT_ENV_VAR,
 								   vDAEMON_CONFIG_ENV_VAR,
 								   vDAEMON_APP_NAME,
@@ -47,35 +44,46 @@ namespace OpenWifi {
 									   StorageArchiver(),
 									   TelemetryStream()
 								   });
-		}
-		return instance_;
+        return &instance;
 	}
 
+	static const std::vector<std::pair<std::string,std::string>>		DefaultDeviceTypes{
+		{"cig_wf160d","AP"},
+		{"cig_wf188","AP"},
+		{"cig_wf188n","AP"},
+		{"cig_wf194c","AP"},
+		{"cig_wf194c4","AP"},
+		{"edgecore_eap101","AP"},
+		{"edgecore_eap102","AP"},
+		{"edgecore_ecs4100-12ph","AP"},
+		{"edgecore_ecw5211","AP"},
+		{"edgecore_ecw5410","AP"},
+		{"edgecore_oap100","AP"},
+		{"edgecore_spw2ac1200","SWITCH"},
+		{"edgecore_spw2ac1200-lan-poe","SWITCH"},
+		{"edgecore_ssw2ac2600","SWITCH"},
+		{"hfcl_ion4","AP"},
+		{"indio_um-305ac","AP"},
+		{"linksys_e8450-ubi","AP"},
+		{"linksys_ea6350","AP"},
+		{"linksys_ea6350-v4","AP"},
+		{"linksys_ea8300","AP"},
+		{"mikrotik_nand","AP"},
+		{"tp-link_ec420-g1","AP"},
+		{"tplink_cpe210_v3","AP"},
+		{"tplink_cpe510_v3","AP"},
+		{"tplink_eap225_outdoor_v1","AP"},
+		{"tplink_ec420","AP"},
+		{"tplink_ex227","AP"},
+		{"tplink_ex228","AP"},
+		{"tplink_ex447","AP"},
+		{"wallys_dr40x9","AP"}
+	};
+	
 	void Daemon::initialize() {
 		Config::Config::Init();
         AutoProvisioning_ = config().getBool("openwifi.autoprovisioning",false);
-
-        // DeviceTypeIdentifications_
-        Types::StringVec   Keys;
-        config().keys("openwifi.devicetypes",Keys);
-        for(const auto & i:Keys)
-        {
-        	std::string Line = config().getString("openwifi.devicetypes."+i);
-            auto P1 = Line.find_first_of(':');
-            auto Type = Line.substr(0, P1);
-            auto List = Line.substr(P1+1);
-
-            Types::StringVec  Tokens = Utils::Split(List);
-
-            auto Entry = DeviceTypeIdentifications_.find(Type);
-			if(DeviceTypeIdentifications_.end() == Entry) {
-				std::set<std::string>	S;
-				S.insert(Tokens.begin(),Tokens.end());
-				DeviceTypeIdentifications_[Type] = S;
-			} else {
-				Entry->second.insert(Tokens.begin(),Tokens.end());
-			}
-        }
+        DeviceTypes_ = DefaultDeviceTypes;
     }
 
     void MicroServicePostInitialization() {
@@ -83,22 +91,20 @@ namespace OpenWifi {
 	}
 
     [[nodiscard]] std::string Daemon::IdentifyDevice(const std::string & Id ) const {
-        for(const auto &[Type,List]:DeviceTypeIdentifications_)
+	    for(const auto &[DeviceType,Type]:DeviceTypes_)
         {
-			if(List.find(Id)!=List.end())
-				return Type;
+        	if(Id == DeviceType)
+        		return Type;
         }
         return "AP";
     }
 }
 
-
 int main(int argc, char **argv) {
 	try {
+
 		auto App = OpenWifi::Daemon::instance();
 		auto ExitCode =  App->run(argc, argv);
-		delete App;
-
 		return ExitCode;
 
 	} catch (Poco::Exception &exc) {

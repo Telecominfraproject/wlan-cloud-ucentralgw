@@ -5,9 +5,7 @@
 //	Created by Stephane Bourque on 2021-03-04.
 //	Arilia Wireless Inc.
 //
-
-#ifndef UCENTRALGW_UCENTRALPROTOCOL_H
-#define UCENTRALGW_UCENTRALPROTOCOL_H
+#pragma once
 
 #include "Poco/String.h"
 
@@ -130,5 +128,3 @@ namespace OpenWifi::uCentralProtocol {
 			return ET_UNKNOWN;
 	};
 }
-
-#endif // UCENTRALGW_UCENTRALPROTOCOL_H

@@ -6,8 +6,7 @@
 //	Arilia Wireless Inc.
 //
 
-#ifndef UCENTRALGW_RESTAPI_PROTOCOL_H
-#define UCENTRALGW_RESTAPI_PROTOCOL_H
+#pragma once
 
 namespace OpenWifi::RESTAPI::Protocol {
 	static const char * CAPABILITIES = "capabilities";
@@ -136,5 +135,3 @@ namespace OpenWifi::RESTAPI::Protocol {
     static const char * UI = "UI";
 
 }
-
-#endif // UCENTRALGW_RESTAPI_PROTOCOL_H

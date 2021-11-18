@@ -9,8 +9,8 @@
 #ifndef UCENTRAL_RESTAPI_SECURITYOBJECTS_H
 #define UCENTRAL_RESTAPI_SECURITYOBJECTS_H
 
-#include "Poco/JSON/Object.h"
 #include "framework/OpenWifiTypes.h"
+#include "Poco/JSON/Object.h"
 
 namespace OpenWifi::SecurityObjects {
 
@@ -59,15 +59,15 @@ namespace OpenWifi::SecurityObjects {
 
 	struct MobilePhoneNumber {
 	    std::string number;
-	    bool verified;
-	    bool primary;
+	    bool verified = false;
+	    bool primary = false;
 
 	    void to_json(Poco::JSON::Object &Obj) const;
 	    bool from_json(Poco::JSON::Object::Ptr &Obj);
 	};
 
 	struct MfaAuthInfo {
-	    bool enabled;
+	    bool enabled = false;
 	    std::string method;
 
 	    void to_json(Poco::JSON::Object &Obj) const;
@@ -86,7 +86,7 @@ namespace OpenWifi::SecurityObjects {
 	    std::string uuid;
 	    std::string question;
 	    std::string method;
-	    uint64_t    created;
+	    uint64_t    created = std::time(nullptr);
 
 	    void to_json(Poco::JSON::Object &Obj) const;
 	    bool from_json(Poco::JSON::Object::Ptr &Obj);
@@ -242,6 +242,14 @@ namespace OpenWifi::SecurityObjects {
 	    uint64_t            canceled=0;
 
         void to_json(Poco::JSON::Object &Obj) const;
+	    bool from_json(Poco::JSON::Object::Ptr &Obj);
+	};
+
+	struct Preferences {
+	    std::string                         id;
+	    uint64_t                            modified;
+	    Types::StringPairVec                data;
+	    void to_json(Poco::JSON::Object &Obj) const;
 	    bool from_json(Poco::JSON::Object::Ptr &Obj);
 	};
 }

@@ -157,9 +157,8 @@ typedef Poco::Tuple<
 			bool DatesIncluded = (FromDate != 0 || ToDate != 0);
 
 			std::string Fields{
-				"SELECT " +
-					DB_Command_SelectFields +
-					" FROM CommandList ORDER BY UUID ASC "};
+				"SELECT " + DB_Command_SelectFields + " FROM CommandList " };
+
 			std::string IntroStatement = SerialNumber.empty()
 											 ? Fields + std::string(DatesIncluded ? "WHERE " : "")
 											 : Fields + "WHERE SerialNumber='" + SerialNumber + "'" +
@@ -177,7 +176,12 @@ typedef Poco::Tuple<
 
 			Poco::Data::Statement Select(Sess);
 
-			Select << 	IntroStatement + DateSelector + ComputeRange(Offset, HowMany),
+			std::string FullQuery = IntroStatement + DateSelector +
+					" ORDER BY Submitted ASC " + ComputeRange(Offset, HowMany);
+
+			// std::cout << "Offset: " << Offset << "  >>  " << FullQuery << std::endl;
+
+			Select << 	FullQuery,
 				Poco::Data::Keywords::into(Records);
 			Select.execute();
 			for (const auto &i : Records) {
@@ -355,12 +359,10 @@ typedef Poco::Tuple<
 
 			std::string st{"SELECT " +
 							   DB_Command_SelectFields +
-							   " FROM CommandList WHERE SerialNumber=? ORDER BY Submitted DESC"};
-
+							   " FROM CommandList WHERE SerialNumber=? ORDER BY Submitted DESC " + ComputeRange(0, HowMany)};
 			Select << 	ConvertParams(st),
 						Poco::Data::Keywords::into(Records),
-						Poco::Data::Keywords::use(SerialNumber),
-						Poco::Data::Keywords::limit(HowMany);
+						Poco::Data::Keywords::use(SerialNumber);
 			Select.execute();
 
 			for (auto i : Records) {
@@ -677,7 +679,7 @@ typedef Poco::Tuple<
 			while(More) {
 				auto Command = RSet[0].convert<std::string>();
 				if(!Command.empty())
-					Types::UpdateCountedMap(R,Command);
+					UpdateCountedMap(R,Command);
 				More = RSet.moveNext();
 			}
 			return true;

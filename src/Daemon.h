@@ -54,9 +54,8 @@ namespace OpenWifi {
 			inline DeviceDashboard	& GetDashboard() { return DB_; }
 			Poco::Logger & Log() { return Poco::Logger::get(AppName()); }
 	  	private:
-			static Daemon 				*instance_;
 			bool                        AutoProvisioning_ = false;
-			Types::StringMapStringSet   DeviceTypeIdentifications_;
+			std::vector<std::pair<std::string,std::string>> DeviceTypes_;
 			DeviceDashboard				DB_;
 
     };

@@ -3,7 +3,7 @@
 apiVersion: policy/v1beta1
 kind: PodSecurityPolicy
 metadata:
-  name: {{ include "owgw.fullname" . }}-{{ .Release.Namespace }}-unsafe-sysctl
+  name: {{ include "owgw.fullname" . }}-{{ .Release.Namespace }}-owgw-unsafe-sysctl
   labels:
     app.kubernetes.io/name: {{ include "owgw.name" . }}
     helm.sh/chart: {{ include "owgw.chart" . }}

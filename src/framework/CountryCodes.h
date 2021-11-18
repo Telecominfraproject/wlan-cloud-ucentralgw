@@ -2,8 +2,7 @@
 // Created by stephane bourque on 2021-10-08.
 //
 
-#ifndef OWPROV_COUNTRYCODES_H
-#define OWPROV_COUNTRYCODES_H
+#pragma once
 
 #include <vector>
 #include <string>
@@ -270,4 +269,3 @@ namespace OpenWifi {
 
 }
 
-#endif //OWPROV_COUNTRYCODES_H

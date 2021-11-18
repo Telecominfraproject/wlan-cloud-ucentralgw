@@ -5,8 +5,8 @@
 //	Created by Stephane Bourque on 2021-03-04.
 //	Arilia Wireless Inc.
 //
-#ifndef UCENTRALGW_KAFKA_TOPICS_H
-#define UCENTRALGW_KAFKA_TOPICS_H
+
+#pragma once
 
 namespace OpenWifi::KafkaTopics {
 	static const std::string HEALTHCHECK{"healthcheck"};
@@ -37,4 +37,3 @@ namespace OpenWifi::KafkaTopics {
 	}
 }
 
-#endif // UCENTRALGW_KAFKA_TOPICS_H

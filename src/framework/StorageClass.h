@@ -2,8 +2,7 @@
 // Created by stephane bourque on 2021-10-06.
 //
 
-#ifndef OPENWIFI_STORAGE_H
-#define OPENWIFI_STORAGE_H
+#pragma once
 
 #include "Poco/Data/Session.h"
 #include "Poco/Data/SessionPool.h"
@@ -26,13 +25,6 @@ namespace OpenWifi {
 
     class StorageClass : public SubSystemServer {
     public:
-/*        static StorageClass *instance() {
-            if (instance_ == nullptr) {
-                instance_ = new StorageClass;
-            }
-            return instance_;
-        }
-*/
         StorageClass() noexcept:
             SubSystemServer("StorageClass", "STORAGE-SVR", "storage")
         {
@@ -56,18 +48,18 @@ namespace OpenWifi {
         }
 
         void Stop() override {
-
+            Pool_->shutdown();
         }
 
         [[nodiscard]] inline std::string ComputeRange(uint64_t From, uint64_t HowMany) {
             if(dbType_==sqlite) {
-                return " LIMIT " + std::to_string(From-1) + ", " + std::to_string(HowMany) + " ";
+                return " LIMIT " + std::to_string(From) + ", " + std::to_string(HowMany) + " ";
             } else if(dbType_==pgsql) {
-                return " LIMIT " + std::to_string(HowMany) + " OFFSET " + std::to_string(From-1) + " ";
+                return " LIMIT " + std::to_string(HowMany) + " OFFSET " + std::to_string(From) + " ";
             } else if(dbType_==mysql) {
-                return " LIMIT " + std::to_string(HowMany) + " OFFSET " + std::to_string(From-1) + " ";
+                return " LIMIT " + std::to_string(HowMany) + " OFFSET " + std::to_string(From) + " ";
             }
-            return " LIMIT " + std::to_string(HowMany) + " OFFSET " + std::to_string(From-1) + " ";
+            return " LIMIT " + std::to_string(HowMany) + " OFFSET " + std::to_string(From) + " ";
         }
 
         inline std::string ConvertParams(const std::string & S) const {
@@ -96,14 +88,12 @@ namespace OpenWifi {
         inline int Setup_PostgreSQL();
 
     protected:
-        std::unique_ptr<Poco::Data::SessionPool>        	Pool_;
-        std::unique_ptr<Poco::Data::SQLite::Connector>  	SQLiteConn_;
-        std::unique_ptr<Poco::Data::PostgreSQL::Connector>  PostgresConn_;
-        std::unique_ptr<Poco::Data::MySQL::Connector>       MySQLConn_;
-        DBType                                              dbType_ = sqlite;
+    	Poco::SharedPtr<Poco::Data::SessionPool>    Pool_;
+        Poco::Data::SQLite::Connector  	            SQLiteConn_;
+        Poco::Data::PostgreSQL::Connector           PostgresConn_;
+        Poco::Data::MySQL::Connector                MySQLConn_;
+        DBType                                      dbType_ = sqlite;
     };
-
-//    inline StorageClass * Storage() { return StorageClass::instance(); }
 
 #ifdef	SMALL_BUILD
     int Service::Setup_MySQL() { Daemon()->exit(Poco::Util::Application::EXIT_CONFIG); return 0; }
@@ -116,9 +106,8 @@ namespace OpenWifi {
         auto DBName = MicroService::instance().DataDir() + "/" + MicroService::instance().ConfigGetString("storage.type.sqlite.db");
         auto NumSessions = MicroService::instance().ConfigGetInt("storage.type.sqlite.maxsessions", 64);
         auto IdleTime = MicroService::instance().ConfigGetInt("storage.type.sqlite.idletime", 60);
-        SQLiteConn_ = std::make_unique<Poco::Data::SQLite::Connector>();
-        SQLiteConn_->registerConnector();
-        Pool_ = std::make_unique<Poco::Data::SessionPool>(SQLiteConn_->name(), DBName, 4, NumSessions, IdleTime);
+        SQLiteConn_.registerConnector();
+        Pool_ = Poco::SharedPtr<Poco::Data::SessionPool>(new Poco::Data::SessionPool(SQLiteConn_.name(), DBName, 4, NumSessions, IdleTime));
         return 0;
     }
 
@@ -141,9 +130,8 @@ namespace OpenWifi {
                 ";port=" + Port +
                 ";compress=true;auto-reconnect=true";
 
-        MySQLConn_ = std::make_unique<Poco::Data::MySQL::Connector>();
-        MySQLConn_->registerConnector();
-        Pool_ = std::make_unique<Poco::Data::SessionPool>(MySQLConn_->name(), ConnectionStr, 4, NumSessions, IdleTime);
+        MySQLConn_.registerConnector();
+        Pool_ = Poco::SharedPtr<Poco::Data::SessionPool>(new Poco::Data::SessionPool(MySQLConn_.name(), ConnectionStr, 4, NumSessions, IdleTime));
 
         return 0;
     }
@@ -168,14 +156,11 @@ namespace OpenWifi {
                 " port=" + Port +
                 " connect_timeout=" + ConnectionTimeout;
 
-        PostgresConn_ = std::make_unique<Poco::Data::PostgreSQL::Connector>();
-        PostgresConn_->registerConnector();
-        Pool_ = std::make_unique<Poco::Data::SessionPool>(PostgresConn_->name(), ConnectionStr, 4, NumSessions, IdleTime);
+        PostgresConn_.registerConnector();
+        Pool_ = Poco::SharedPtr<Poco::Data::SessionPool>(new Poco::Data::SessionPool(PostgresConn_.name(), ConnectionStr, 4, NumSessions, IdleTime));
 
         return 0;
     }
 #endif
 
 }
-
-#endif //OPENWIFI_STORAGE_H

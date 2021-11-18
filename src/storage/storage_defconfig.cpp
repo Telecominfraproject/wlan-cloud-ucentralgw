@@ -12,18 +12,51 @@
 
 namespace OpenWifi {
 
-	/*
-	 *  Data model for DefaultConfigurations:
+	const static std::string	DB_DefConfig_SelectFields_ForCreation{
+		"Name VARCHAR(30) PRIMARY KEY, "
+		"Configuration TEXT, "
+		"Models TEXT, "
+		"Description TEXT, "
+		"Created BIGINT , "
+		"LastModified BIGINT)"};
 
-		Table name: DefaultConfigs
+	const static std::string	DB_DefConfig_SelectFields{
+		"Name, "
+		"Configuration, "
+		"Models, "
+		"Description, "
+		"Created, "
+		"LastModified "};
 
-					"Name VARCHAR(30) PRIMARY KEY, "
-					"Configuration TEXT, "
-					"Models TEXT, "
-					"Description TEXT, "
-					"Created BIGINT , "
-					"LastModified BIGINT)", now;
-	 */
+	const static std::string 	DB_DefConfig_InsertValues{"?,?,?,?,?,?"};
+
+	typedef Poco::Tuple<
+		std::string,
+		std::string,
+		std::string,
+		std::string,
+		uint64_t,
+		uint64_t
+	> DefConfigRecordTuple;
+	typedef std::vector<DefConfigRecordTuple> DefConfigRecordList;
+
+	void Convert(const DefConfigRecordTuple &R, GWObjects::DefaultConfiguration & T) {
+		T.Name = R.get<0>();
+		T.Configuration = R.get<1>();
+		T.Models = R.get<2>();
+		T.Description = R.get<3>();
+		T.Created = R.get<4>();
+		T.LastModified = R.get<5>();
+	}
+
+	void Convert(const GWObjects::DefaultConfiguration & R, DefConfigRecordTuple &T) {
+		T.set<0>(R.Name);
+		T.set<1>(R.Configuration);
+		T.set<2>(R.Models);
+		T.set<3>(R.Description);
+		T.set<4>(R.Created);
+		T.set<5>(R.LastModified);
+	}
 
 	bool Storage::CreateDefaultConfiguration(std::string &Name, GWObjects::DefaultConfiguration &DefConfig) {
 		try {
@@ -38,43 +71,27 @@ namespace OpenWifi {
 				Name;
 			Select.execute();
 
-			if (TmpName.empty()) {
+			if (!TmpName.empty())
+				return false;
 
-				Config::Config Cfg(DefConfig.Configuration);
-	/*
-						 "Name VARCHAR(30) PRIMARY KEY, "
-						"Configuration TEXT, "
-						"Models TEXT, "
-						"Description TEXT, "
-						"Created BIGINT , "
-						"LastModified BIGINT)", now;
+			Config::Config Cfg(DefConfig.Configuration);
 
-	 */
+			if (Cfg.Valid()) {
+				uint64_t Now = std::time(nullptr);
+				Poco::Data::Statement   Insert(Sess);
 
-				if (Cfg.Valid()) {
-					uint64_t Now = std::time(nullptr);
-					Poco::Data::Statement   Insert(Sess);
+				std::string St{"INSERT INTO DefaultConfigs " + DB_DefConfig_SelectFields + ") "
+						"VALUES(" + DB_DefConfig_InsertValues + ")"};
 
-					std::string St{"INSERT INTO DefaultConfigs (Name, Configuration, Models, Description, Created, LastModified) "
-								   "VALUES(?,?,?,?,?,?)"};
-
-					Insert  << ConvertParams(St),
-						Poco::Data::Keywords::use(Name),
-						Poco::Data::Keywords::use(DefConfig.Configuration),
-						Poco::Data::Keywords::use(DefConfig.Models),
-						Poco::Data::Keywords::use(DefConfig.Description),
-						Poco::Data::Keywords::use(Now),
-						Poco::Data::Keywords::use(Now);
-
-					Insert.execute();
-
-					return true;
-				} else {
-					Logger_.warning("Cannot create device: invalid configuration.");
-					return false;
-				}
+				DefConfigRecordTuple R;
+				Convert(DefConfig,R);
+				Insert  << ConvertParams(St),
+					Poco::Data::Keywords::use(R);
+				Insert.execute();
+				return true;
 			} else {
-				Logger_.warning("Default configuration already exists.");
+				Logger_.warning("Cannot create device: invalid configuration.");
+				return false;
 			}
 		}
 		catch (const Poco::Exception &E) {
@@ -115,16 +132,16 @@ namespace OpenWifi {
 				uint64_t Now = time(nullptr);
 				Poco::Data::Statement   Update(Sess);
 
-				std::string St{"UPDATE DefaultConfigs SET Configuration=?,  Models=?,  Description=?,  LastModified=?  WHERE Name=?"};
+				std::string St{"UPDATE DefaultConfigs SET Name=?, Configuration=?,  Models=?,  Description=?,  Created=? , LastModified=?  WHERE Name=?"};
+
+				DefConfigRecordTuple R;
+				Convert(DefConfig, R);
 
 				Update << ConvertParams(St),
-					Poco::Data::Keywords::use(DefConfig.Configuration),
-					Poco::Data::Keywords::use(DefConfig.Models),
-					Poco::Data::Keywords::use(DefConfig.Description),
-					Poco::Data::Keywords::use(Now),
+					Poco::Data::Keywords::use(R),
 					Poco::Data::Keywords::use(Name);
-
 				Update.execute();
+
 				return true;
 			} else {
 				Logger_.warning(
@@ -144,30 +161,20 @@ namespace OpenWifi {
 			Poco::Data::Session     Sess = Pool_->get();
 			Poco::Data::Statement   Select(Sess);
 
-			std::string St{"SELECT "
-						   "Name, "
-						   "Configuration, "
-						   "Models, "
-						   "Description, "
-						   "Created, "
-						   "LastModified "
-						   "FROM DefaultConfigs WHERE Name=?"};
+			std::string St{"SELECT " + DB_DefConfig_SelectFields +
+						   " FROM DefaultConfigs WHERE Name=?"};
 
+			DefConfigRecordTuple R;
 			Select << ConvertParams(St),
-				Poco::Data::Keywords::into(DefConfig.Name),
-				Poco::Data::Keywords::into(DefConfig.Configuration),
-				Poco::Data::Keywords::into(DefConfig.Models),
-				Poco::Data::Keywords::into(DefConfig.Description),
-				Poco::Data::Keywords::into(DefConfig.Created),
-				Poco::Data::Keywords::into(DefConfig.LastModified),
+				Poco::Data::Keywords::into(R),
 				Poco::Data::Keywords::use(Name);
-
 			Select.execute();
 
-			if (DefConfig.Name.empty())
-				return false;
-
-			return true;
+			if (!DefConfig.Name.empty()) {
+				Convert(R,DefConfig);
+				return true;
+			}
+			return false;
 		}
 		catch (const Poco::Exception &E) {
 			Logger_.warning(Poco::format("%s(%s): Failed with: %s", std::string(__func__), Name, E.displayText()));
@@ -177,43 +184,19 @@ namespace OpenWifi {
 
 	bool Storage::GetDefaultConfigurations(uint64_t From, uint64_t HowMany,
 										   std::vector<GWObjects::DefaultConfiguration> &DefConfigs) {
-		typedef Poco::Tuple<
-			std::string,
-			std::string,
-			std::string,
-			std::string,
-			uint64_t,
-			uint64_t> DeviceRecord;
-		typedef std::vector<DeviceRecord> RecordList;
-
-		RecordList Records;
-
 		try {
 			Poco::Data::Session     Sess = Pool_->get();
 			Poco::Data::Statement   Select(Sess);
 
-			Select << "SELECT "
-					  "Name, "
-					  "Configuration, "
-					  "Models, "
-					  "Description, "
-					  "Created, "
-					  "LastModified "
-					  "FROM DefaultConfigs ORDER BY NAME ASC " +
-						  ComputeRange(From, HowMany),
-				Poco::Data::Keywords::into(Records);
-
+			DefConfigRecordList Records;
+			Select << "SELECT "  + DB_DefConfig_SelectFields +
+					  " FROM DefaultConfigs ORDER BY NAME ASC " + ComputeRange(From, HowMany) ,
+					Poco::Data::Keywords::into(Records);
 			Select.execute();
 
 			for (auto i: Records) {
-				GWObjects::DefaultConfiguration R{
-					.Name           = i.get<0>(),
-					.Configuration  = i.get<1>(),
-					.Models         = i.get<2>(),
-					.Description    = i.get<3>(),
-					.Created        = i.get<4>(),
-					.LastModified   = i.get<5>()};
-
+				GWObjects::DefaultConfiguration R;
+				Convert(i,R);
 				DefConfigs.push_back(R);
 			}
 			return true;
@@ -224,67 +207,41 @@ namespace OpenWifi {
 		return false;
 	}
 
-	bool FindInList(const std::string &Model, const std::string &List) {
-		unsigned long P = 0;
-		std::string Token;
-
-		while (P < List.size()) {
-			auto P2 = List.find_first_of(',', P);
-			if (P2 == std::string::npos) {
-				Token = List.substr(P);
-				if (Model.find(Token) != std::string::npos)
-					return true;
-				return false;
-			} else {
-				Token = List.substr(P, P2);
-				if (Model.find(Token) != std::string::npos)
-					return true;
-			}
-			P = P2 + 1;
-		}
-		return false;
-	}
-
 	bool Storage::FindDefaultConfigurationForModel(const std::string &Model, GWObjects::DefaultConfiguration &DefConfig) {
 		try {
-			typedef Poco::Tuple<
-				std::string,
-				std::string,
-				std::string,
-				std::string,
-				uint64_t,
-				uint64_t> DeviceRecord;
-			typedef std::vector<DeviceRecord> RecordList;
-			RecordList Records;
+			DefConfigRecordList Records;
 
 			Poco::Data::Session     Sess = Pool_->get();
 			Poco::Data::Statement   Select(Sess);
 
-			Select << "SELECT "
-					  "Name, "
-					  "Configuration, "
-					  "Models, "
-					  "Description, "
-					  "Created, "
-					  "LastModified "
-					  "FROM DefaultConfigs ORDER BY NAME ASC " +
-						  ComputeRange(1,1),
+			Select << "SELECT "  + DB_DefConfig_SelectFields + " FROM DefaultConfigs",
 				Poco::Data::Keywords::into(Records);
 			Select.execute();
 
 			for (auto i: Records) {
-				DefConfig.Models = i.get<2>();
-				if (FindInList(Model, DefConfig.Models)) {
-					DefConfig.Name = i.get<0>();
-					Logger_.information(Poco::format("AUTO-PROVISIONING: found default configuration '%s' for model:%s",
-													 DefConfig.Name, Model));
-					DefConfig.Name = i.get<0>();
-					DefConfig.Configuration = i.get<1>();
-					DefConfig.Models = i.get<2>();
-					DefConfig.Description = i.get<3>();
-					DefConfig.Created = i.get<4>();
-					DefConfig.LastModified = i.get<5>();
-					return true;
+				GWObjects::DefaultConfiguration Config;
+				Convert(i,Config);
+
+				//	We need to account for possible old values in config...
+				if(Config.Models[0]!='[') {
+					if(Config.Models.empty())
+						Config.Models = "[]";
+					else
+						Config.Models = "[" + Config.Models + "]";
+				}
+
+				try {
+					Poco::JSON::Parser P;
+					auto List = P.parse(Config.Models).extract<Poco::JSON::Array::Ptr>();
+
+					for(const auto &j:*List) {
+						if(j.toString()=="*" || j.toString()==Model) {
+							DefConfig = Config;
+							return true;
+						}
+					}
+				} catch(...) {
+					// if we had problems parsing this entry, just skip it.
 				}
 			}
 			Logger_.information(Poco::format("AUTO-PROVISIONING: no default configuration for model:%s", Model));
@@ -296,5 +253,20 @@ namespace OpenWifi {
 		return false;
 	}
 
+	uint64_t Storage::GetDefaultConfigurationsCount() {
+		uint64_t Count = 0;
+		try {
+			Poco::Data::Session     Sess = Pool_->get();
+			Poco::Data::Statement   Select(Sess);
+			Select << "SELECT Count(*) from DefaultConfigs" ,
+				Poco::Data::Keywords::into(Count);
+			Select.execute();
+			return Count;
+		}
+		catch (const Poco::Exception &E) {
+			Logger_.warning(Poco::format("%s: Failed with: %s", std::string(__func__), E.displayText()));
+		}
+		return Count;
+	}
 
 }

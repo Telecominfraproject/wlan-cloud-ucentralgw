@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.13)
-project(owgw VERSION 2.4.0)
+project(owgw VERSION 2.5.0)
 
 set(CMAKE_CXX_STANDARD 17)
 
@@ -104,7 +104,7 @@ add_executable( owgw
         src/TelemetryStream.cpp src/TelemetryStream.h
         src/framework/ConfigurationValidator.cpp src/framework/ConfigurationValidator.h
         src/ConfigurationCache.cpp src/ConfigurationCache.h
-        )
+        src/CapabilitiesCache.h)
 
 if(NOT SMALL_BUILD)
 

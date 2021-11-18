@@ -30,8 +30,8 @@ namespace OpenWifi {
 		const std::string & Path() { return Path_; };
 
         static FileUploader *instance() {
-			static FileUploader instance;
-			return &instance;
+            static FileUploader * instance_ = new FileUploader;
+			return instance_;
         }
 
 		[[nodiscard]] inline uint64_t MaxSize() const { return MaxSize_; }

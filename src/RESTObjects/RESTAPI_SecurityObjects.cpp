@@ -491,7 +491,6 @@ namespace OpenWifi::SecurityObjects {
 	    field_to_json(Obj,"expires",expires);
 	    field_to_json(Obj,"completed",completed);
 	    field_to_json(Obj,"canceled",canceled);
-
 	}
 
     bool ActionLink::from_json(Poco::JSON::Object::Ptr &Obj) {
@@ -508,6 +507,24 @@ namespace OpenWifi::SecurityObjects {
 	        field_from_json(Obj,"expires",expires);
 	        field_from_json(Obj,"completed",completed);
 	        field_from_json(Obj,"canceled",canceled);
+	        return true;
+	    } catch(...) {
+
+	    }
+	    return false;
+	}
+
+    void Preferences::to_json(Poco::JSON::Object &Obj) const {
+	    field_to_json(Obj,"id",id);
+	    field_to_json(Obj,"modified",modified);
+	    field_to_json(Obj,"data",data);
+	}
+
+    bool Preferences::from_json(Poco::JSON::Object::Ptr &Obj) {
+	    try {
+	        field_from_json(Obj,"id",id);
+	        field_from_json(Obj,"modified",modified);
+	        field_from_json(Obj,"data",data);
 	        return true;
 	    } catch(...) {
 

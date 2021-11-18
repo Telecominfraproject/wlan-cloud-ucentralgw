@@ -101,8 +101,8 @@ namespace OpenWifi {
 		};
 
 		static TelemetryStream *instance() {
-			static TelemetryStream instance;
-			return &instance;
+		    static TelemetryStream * instance_ = new TelemetryStream;
+			return instance_;
 		}
 
 		int Start() override;
@@ -120,7 +120,7 @@ namespace OpenWifi {
 		std::map<std::string, std::set<std::string>>	SerialNumbers_;		//	serialNumber -> uuid
 		TelemetryReactorPool							ReactorPool_;
 		std::mutex										QueueMutex_;
-		Poco::Thread									Runner;
+		Poco::Thread									Runner_;
 		std::queue<QueueUpdate>							Queue_;
 		TelemetryStream() noexcept:
 			SubSystemServer("TelemetryServer", "TELEMETRY-SVR", "openwifi.telemetry")

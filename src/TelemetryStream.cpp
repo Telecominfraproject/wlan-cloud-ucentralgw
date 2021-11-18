@@ -27,18 +27,18 @@ namespace OpenWifi {
 
 	int TelemetryStream::Start() {
 		ReactorPool_.Start();
-		Runner.start(*this);
+		Runner_.start(*this);
 		return 0;
 	}
 
 	void TelemetryStream::Stop() {
+	    Logger_.notice("Stopping reactors...");
+	    ReactorPool_.Stop();
+
 		if(Running_) {
 			Running_ = false;
-			Runner.join();
+			Runner_.join();
 		}
-
-		Logger_.notice("Stopping reactors...");
-		ReactorPool_.Stop();
 	}
 
 	bool TelemetryStream::CreateEndpoint(const std::string &SerialNumber, std::string &EndPoint, std::string &UUID) {
@@ -46,7 +46,7 @@ namespace OpenWifi {
 
 		Poco::URI	Public(MicroService::instance().ConfigGetString("openwifi.system.uri.public"));
 		Poco::URI	U;
-		UUID = MicroService::instance().CreateUUID();
+		UUID = MicroService::CreateUUID();
 		U.setScheme("wss");
 		U.setHost(Public.getHost());
 		U.setPort(Public.getPort());
@@ -69,7 +69,7 @@ namespace OpenWifi {
 	void TelemetryStream::UpdateEndPoint(const std::string &SerialNumber, const std::string &PayLoad) {
 		std::lock_guard	G(QueueMutex_);
 		Queue_.push(QueueUpdate{.SerialNumber=SerialNumber,.Payload=PayLoad});
-		Runner.wakeUp();
+		Runner_.wakeUp();
 	}
 
 	void TelemetryStream::run() {

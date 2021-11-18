@@ -15,6 +15,13 @@
 
 namespace OpenWifi::ProvObjects {
 
+    enum FIRMWARE_UPGRADE_RULES {
+        dont_upgrade,
+        upgrade_inherit,
+        upgrade_release_only,
+        upgrade_latest
+    };
+
     struct ObjectInfo {
         Types::UUID_t   id;
         std::string     name;
@@ -317,7 +324,61 @@ namespace OpenWifi::ProvObjects {
         bool from_json(const Poco::JSON::Object::Ptr &Obj);
     };
 
+    struct UuidList {
+        std::vector<std::string>    list;
+
+        void to_json(Poco::JSON::Object &Obj) const;
+        bool from_json(const Poco::JSON::Object::Ptr &Obj);
+    };
+
+    enum ACLACCESS {
+        NONE, READ, MODIFY, CREATE, DELETE
+    };
+
+    struct ObjectACL {
+        UuidList        users;
+        UuidList        roles;
+        ACLACCESS       access = NONE;
+
+        void to_json(Poco::JSON::Object &Obj) const;
+        bool from_json(const Poco::JSON::Object::Ptr &Obj);
+    };
+
+    struct ObjectACLList {
+        std::vector<ObjectACL>  list;
+
+        void to_json(Poco::JSON::Object &Obj) const;
+        bool from_json(const Poco::JSON::Object::Ptr &Obj);
+    };
+
+    enum VISIBILITY {
+        PUBLIC, PRIVATE, SELECT
+    };
+
+    std::string to_string(VISIBILITY A);
+    VISIBILITY visibility_from_string(const std::string &V);
+
+    struct Map {
+        ObjectInfo          info;
+        std::string         data;
+        std::string         entity;
+        std::string         creator;
+        VISIBILITY          visibility = PRIVATE;
+        ObjectACLList       access;
+
+        void to_json(Poco::JSON::Object &Obj) const;
+        bool from_json(const Poco::JSON::Object::Ptr &Obj);
+    };
+
+    struct MapList {
+        std::vector<Map>    list;
+
+        void to_json(Poco::JSON::Object &Obj) const;
+        bool from_json(const Poco::JSON::Object::Ptr &Obj);
+    };
+
     bool UpdateObjectInfo(const Poco::JSON::Object::Ptr &O, const SecurityObjects::UserInfo &U, ObjectInfo &I);
+    bool CreateObjectInfo(const Poco::JSON::Object::Ptr &O, const SecurityObjects::UserInfo &U, ObjectInfo &I);
 };
 
 
