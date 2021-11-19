@@ -350,7 +350,7 @@ namespace OpenWifi {
 						CId_ = SerialNumber_ + "@" + CId_ ;
 
 						//	We need to verify the certificate if we have one
-						if(!CN_.empty() && (Utils::SerialNumberMatch(CN_,SerialNumber_) || IsSimSerialNumber(CN_))) {
+						if((!CN_.empty() && Utils::SerialNumberMatch(CN_,SerialNumber_)) || IsSimSerialNumber(CN_)) {
 							CertValidation_ = GWObjects::VERIFIED;
 							Logger_.information(Poco::format("CONNECT(%s): Fully validated and authenticated device..", CId_));
 						} else {

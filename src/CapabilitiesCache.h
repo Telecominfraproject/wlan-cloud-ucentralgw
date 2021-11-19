@@ -59,7 +59,6 @@ namespace OpenWifi {
 				i >> cache;
 
 				for(const auto &[Type,Platform]:cache.items()) {
-					std::cout << "Type:" << Type << std::endl;
 					Caps_[Type] = Platform;
 				}
 			} catch(...) {
@@ -69,9 +68,13 @@ namespace OpenWifi {
 		}
 
 		inline void SaveIt() {
-			std::ofstream i(MicroService::instance().DataDir()+CapabilitiesCacheFileName);
-			nlohmann::json cache(Caps_);
-			i << cache;
+			try {
+				std::ofstream i(MicroService::instance().DataDir() + CapabilitiesCacheFileName);
+				nlohmann::json cache(Caps_);
+				i << cache;
+			} catch (...) {
+
+			}
 		}
 	};
 }
