@@ -243,6 +243,8 @@ void RESTAPI_device_commandHandler::Upgrade() {
 		auto URI = GetS(RESTAPI::Protocol::URI, Obj);
 		auto When = GetWhen(Obj);
 
+		auto KeepRedirector = GetB(RESTAPI::Protocol::KEEPREDIRECTOR, Obj, true);
+
 		GWObjects::CommandDetails Cmd;
 
 		Cmd.SerialNumber = SerialNumber_;
@@ -255,6 +257,7 @@ void RESTAPI_device_commandHandler::Upgrade() {
 
 		Params.set(uCentralProtocol::SERIAL, SerialNumber_);
 		Params.set(uCentralProtocol::URI, URI);
+		Params.set(uCentralProtocol::KEEP_REDIRECTOR, KeepRedirector ? 1 : 0);
 		Params.set(uCentralProtocol::WHEN, When);
 
 		std::stringstream ParamStream;
