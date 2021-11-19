@@ -3,35 +3,22 @@ name: Ensure Jira issue is linked
 on:
   pull_request:
     types: [opened, edited, reopened, synchronize]
+    branches:
+      - 'release/*'
 
 jobs:
   check_for_issue_key:
     runs-on: ubuntu-latest
     steps:
-      - name: Log into Jira
-        uses: atlassian/gajira-login@v2.0.0
-        env:
-          JIRA_BASE_URL: ${{ secrets.TIP_JIRA_URL }}
-          JIRA_USER_EMAIL: ${{ secrets.TIP_JIRA_USER_EMAIL }}
-          JIRA_API_TOKEN: ${{ secrets.TIP_JIRA_API_TOKEN }}
-      - name: Find issue key in PR title
-        id: issue_key_pr_title
-        continue-on-error: true
-        uses: atlassian/gajira-find-issue-key@v2.0.2
+      - name: Checkout actions repo
+        uses: actions/checkout@v2
         with:
-          string: ${{ github.event.pull_request.title }}
-          from: "" # required workaround for bug https://github.com/atlassian/gajira-find-issue-key/issues/24
-      - name: Find issue key in branch name
-        continue-on-error: true
-        id: issue_key_branch_name
-        uses: atlassian/gajira-find-issue-key@v2.0.2
-        with:
-          string: ${{ github.event.pull_request.head.ref }}
-          from: "" # required workaround for bug https://github.com/atlassian/gajira-find-issue-key/issues/24
+          repository: Telecominfraproject/.github
+          path: github
 
-      - name: Check if issue key was found
-        run: |
-          if [[ -z "${{ steps.issue_key_pr_title.outputs.issue }}" && -z "${{ steps.issue_key_branch_name.outputs.issue }}" ]]; then
-             echo "Jira issue key could not be found!"
-             exit 1
-          fi
+      - name: Run JIRA check
+        uses: ./github/composite-actions/enforce-jira-issue-key
+        with:
+          jira_base_url: ${{ secrets.TIP_JIRA_URL }}
+          jira_user_email: ${{ secrets.TIP_JIRA_USER_EMAIL }}
+          jira_api_token: ${{ secrets.TIP_JIRA_API_TOKEN }}
