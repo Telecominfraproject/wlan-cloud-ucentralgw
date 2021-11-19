@@ -88,10 +88,11 @@ namespace OpenWifi {
 			return NotFound();
 		}
 
-		std::string Error;
-		if (!NewConfig.Configuration.empty())
+		if (!NewConfig.Configuration.empty()) {
+			std::string Error;
 			if(!ValidateUCentralConfiguration(NewConfig.Configuration, Error)) {
 				return BadRequest(RESTAPI::Errors::ConfigBlockInvalid);
+			}
 			Existing.Configuration = NewConfig.Configuration;
 		}
 

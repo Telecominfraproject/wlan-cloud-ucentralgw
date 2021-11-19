@@ -122,32 +122,22 @@ namespace OpenWifi {
 
 	bool Storage::UpdateDefaultConfiguration(std::string &Name, GWObjects::DefaultConfiguration &DefConfig) {
 		try {
-
 			Poco::Data::Session Sess = Pool_->get();
 
-			Config::Config Cfg(DefConfig.Configuration);
+			uint64_t Now = time(nullptr);
+			Poco::Data::Statement   Update(Sess);
+			DefConfig.LastModified = Now;
 
-			if (Cfg.Valid()) {
+			std::string St{"UPDATE DefaultConfigs SET Name=?, Configuration=?,  Models=?,  Description=?,  Created=? , LastModified=?  WHERE Name=?"};
 
-				uint64_t Now = time(nullptr);
-				Poco::Data::Statement   Update(Sess);
+			DefConfigRecordTuple R;
+			Convert(DefConfig, R);
 
-				std::string St{"UPDATE DefaultConfigs SET Name=?, Configuration=?,  Models=?,  Description=?,  Created=? , LastModified=?  WHERE Name=?"};
-
-				DefConfigRecordTuple R;
-				Convert(DefConfig, R);
-
-				Update << ConvertParams(St),
-					Poco::Data::Keywords::use(R),
-					Poco::Data::Keywords::use(Name);
-				Update.execute();
-
-				return true;
-			} else {
-				Logger_.warning(
-					Poco::format("Default configuration: %s cannot be set to an invalid configuration.", Name));
-			}
-			return false;
+			Update << ConvertParams(St),
+				Poco::Data::Keywords::use(R),
+				Poco::Data::Keywords::use(Name);
+			Update.execute();
+			return true;
 		}
 		catch (const Poco::Exception &E) {
 			Logger_.warning(Poco::format("%s: Failed with: %s", std::string(__func__), E.displayText()));
