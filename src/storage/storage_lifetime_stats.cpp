@@ -46,8 +46,7 @@ namespace OpenWifi {
 			return true;
 		}
 		catch (const Poco::Exception &E) {
-//			std::cout << "Cannot update lifetime stats...: " << E.what() << " .. " << E.displayText() << " .. " << E.className() << " .. " << E.message() << std::endl;
-			Logger_.log(E);
+			Logger_.warning(Poco::format("%s: Failed with: %s", std::string(__func__), E.displayText()));
 		}
 		return false;
 	}
@@ -65,7 +64,7 @@ namespace OpenWifi {
 			return !Stats.empty();
 		}
 		catch (const Poco::Exception &E) {
-			Logger_.log(E);
+			Logger_.warning(Poco::format("%s: Failed with: %s", std::string(__func__), E.displayText()));
 		}
 		return false;
 	}
@@ -82,7 +81,7 @@ namespace OpenWifi {
 			return true;
 		}
 		catch (const Poco::Exception &E) {
-			Logger_.log(E);
+			Logger_.warning(Poco::format("%s: Failed with: %s", std::string(__func__), E.displayText()));
 		}
 		return false;
 	}
