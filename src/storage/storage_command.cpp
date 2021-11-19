@@ -360,11 +360,9 @@ typedef Poco::Tuple<
 			std::string st{"SELECT " +
 							   DB_Command_SelectFields +
 							   " FROM CommandList WHERE SerialNumber=? ORDER BY Submitted DESC " + ComputeRange(0, HowMany)};
-
 			Select << 	ConvertParams(st),
 						Poco::Data::Keywords::into(Records),
-						Poco::Data::Keywords::use(SerialNumber),
-						Poco::Data::Keywords::limit(HowMany);
+						Poco::Data::Keywords::use(SerialNumber);
 			Select.execute();
 
 			for (auto i : Records) {
@@ -681,7 +679,7 @@ typedef Poco::Tuple<
 			while(More) {
 				auto Command = RSet[0].convert<std::string>();
 				if(!Command.empty())
-					Types::UpdateCountedMap(R,Command);
+					OpenWifi::Types::UpdateCountedMap(R,Command);
 				More = RSet.moveNext();
 			}
 			return true;
