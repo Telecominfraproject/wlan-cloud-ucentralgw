@@ -25,6 +25,7 @@
 #include "framework/uCentral_Protocol.h"
 #include "framework/KafkaTopics.h"
 #include "framework/RESTAPI_errors.h"
+#include "framework/ConfigurationValidator.h"
 
 namespace OpenWifi {
 
@@ -198,8 +199,14 @@ void RESTAPI_device_commandHandler::Configure() {
 		}
 
 		auto Configuration = GetS(RESTAPI::Protocol::CONFIGURATION, Obj,uCentralProtocol::EMPTY_JSON_DOC);
+		std::string Error;
+		if (!ValidateUCentralConfiguration(Configuration, Error)) {
+			return BadRequest(RESTAPI::Errors::ConfigBlockInvalid);
+		}
+
 		auto When = GetWhen(Obj);
 		uint64_t NewUUID;
+
 		if (StorageService()->UpdateDeviceConfiguration(SerialNumber_, Configuration, NewUUID)) {
 			GWObjects::CommandDetails Cmd;
 

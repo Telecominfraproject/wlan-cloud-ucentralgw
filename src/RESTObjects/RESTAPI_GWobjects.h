@@ -111,7 +111,7 @@ namespace OpenWifi::GWObjects {
 	struct DefaultConfiguration {
 		std::string Name;
 		std::string Configuration;
-		std::string Models;
+		Types::StringVec Models;
 		std::string Description;
 		uint64_t 	Created;
 		uint64_t 	LastModified;

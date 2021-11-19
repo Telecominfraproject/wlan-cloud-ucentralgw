@@ -43,7 +43,7 @@ namespace OpenWifi {
 	void Convert(const DefConfigRecordTuple &R, GWObjects::DefaultConfiguration & T) {
 		T.Name = R.get<0>();
 		T.Configuration = R.get<1>();
-		T.Models = R.get<2>();
+		T.Models = RESTAPI_utils::to_object_array(R.get<2>());
 		T.Description = R.get<3>();
 		T.Created = R.get<4>();
 		T.LastModified = R.get<5>();
@@ -52,7 +52,7 @@ namespace OpenWifi {
 	void Convert(const GWObjects::DefaultConfiguration & R, DefConfigRecordTuple &T) {
 		T.set<0>(R.Name);
 		T.set<1>(R.Configuration);
-		T.set<2>(R.Models);
+		T.set<2>(RESTAPI_utils::to_string(R.Models));
 		T.set<3>(R.Description);
 		T.set<4>(R.Created);
 		T.set<5>(R.LastModified);
@@ -218,30 +218,14 @@ namespace OpenWifi {
 				Poco::Data::Keywords::into(Records);
 			Select.execute();
 
-			for (auto i: Records) {
+			for (const auto &i: Records) {
 				GWObjects::DefaultConfiguration Config;
 				Convert(i,Config);
-
-				//	We need to account for possible old values in config...
-				if(Config.Models[0]!='[') {
-					if(Config.Models.empty())
-						Config.Models = "[]";
-					else
-						Config.Models = "[" + Config.Models + "]";
-				}
-
-				try {
-					Poco::JSON::Parser P;
-					auto List = P.parse(Config.Models).extract<Poco::JSON::Array::Ptr>();
-
-					for(const auto &j:*List) {
-						if(j.toString()=="*" || j.toString()==Model) {
-							DefConfig = Config;
-							return true;
-						}
+				for(const auto &j:Config.Models) {
+					if (j == "*" || j == Model) {
+						DefConfig = Config;
+						return true;
 					}
-				} catch(...) {
-					// if we had problems parsing this entry, just skip it.
 				}
 			}
 			Logger_.information(Poco::format("AUTO-PROVISIONING: no default configuration for model:%s", Model));

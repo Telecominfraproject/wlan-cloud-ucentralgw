@@ -14,6 +14,7 @@
 #include "StorageService.h"
 #include "framework/RESTAPI_errors.h"
 #include "framework/RESTAPI_protocol.h"
+#include "framework/ConfigurationValidator.h"
 
 namespace OpenWifi {
 	void RESTAPI_default_configuration::DoGet() {
@@ -52,9 +53,20 @@ namespace OpenWifi {
 			return BadRequest(RESTAPI::Errors::InvalidJSONDocument);
 		}
 
+		if(DefConfig.Models.empty()) {
+			return BadRequest("modelIds cannot be empty");
+		}
+
+		std::string Error;
+		if (!ValidateUCentralConfiguration(DefConfig.Configuration, Error)) {
+			return BadRequest(RESTAPI::Errors::ConfigBlockInvalid);
+		}
+
+		DefConfig.Created = DefConfig.LastModified = std::time(nullptr);
 		if (StorageService()->CreateDefaultConfiguration(Name, DefConfig)) {
 			return OK();
 		}
+
 		BadRequest(RESTAPI::Errors::RecordNotCreated);
 	}
 
@@ -62,15 +74,38 @@ namespace OpenWifi {
 		std::string Name = GetBinding(RESTAPI::Protocol::NAME, "");
 
 		auto  Obj = ParseStream();
-			GWObjects::DefaultConfiguration DefConfig;
-
-		if (!DefConfig.from_json(Obj)) {
+		GWObjects::DefaultConfiguration 		NewConfig;
+		if (!NewConfig.from_json(Obj)) {
 			return BadRequest(RESTAPI::Errors::InvalidJSONDocument);
 		}
 
-		if (StorageService()->UpdateDefaultConfiguration(Name, DefConfig)) {
-			return OK();
+		GWObjects::DefaultConfiguration 		Existing;
+		if(!StorageService()->GetDefaultConfiguration(Name,Existing)) {
+			return NotFound();
 		}
+
+		std::string Error;
+		if (!NewConfig.Configuration.empty())
+			if(!ValidateUCentralConfiguration(NewConfig.Configuration, Error)) {
+				return BadRequest(RESTAPI::Errors::ConfigBlockInvalid);
+			Existing.Configuration = NewConfig.Configuration;
+		}
+
+		Existing.LastModified = std::time(nullptr);
+		AssignIfPresent(Obj,"description",Existing.Description);
+		if(Obj->has("modelIds"))
+			Existing.Models = NewConfig.Models;
+
+		if (StorageService()->UpdateDefaultConfiguration(Name, Existing)) {
+			GWObjects::DefaultConfiguration	ModifiedConfig;
+
+			StorageService()->GetDefaultConfiguration(Name,ModifiedConfig);
+			Poco::JSON::Object	Answer;
+			ModifiedConfig.to_json(Answer);
+			return ReturnObject(Answer);
+		}
+
 		BadRequest(RESTAPI::Errors::RecordNotUpdated);
+
 	}
 }
