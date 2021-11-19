@@ -1,0 +1,24 @@
+name: Ensure Jira issue is linked
+
+on:
+  pull_request:
+    types: [opened, edited, reopened, synchronize]
+    branches:
+      - 'release/*'
+
+jobs:
+  check_for_issue_key:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout actions repo
+        uses: actions/checkout@v2
+        with:
+          repository: Telecominfraproject/.github
+          path: github
+
+      - name: Run JIRA check
+        uses: ./github/composite-actions/enforce-jira-issue-key
+        with:
+          jira_base_url: ${{ secrets.TIP_JIRA_URL }}
+          jira_user_email: ${{ secrets.TIP_JIRA_USER_EMAIL }}
+          jira_api_token: ${{ secrets.TIP_JIRA_API_TOKEN }}
