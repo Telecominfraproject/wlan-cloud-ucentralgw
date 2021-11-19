@@ -25,7 +25,7 @@ namespace OpenWifi {
 																   "Created, "
 																   "Author "};
 
-	const static std::string DB_BlackListDeviceUpdateFields{	"SerialNumber=?,"
+	const static std::string DB_BlackListDeviceUpdateFields{	"SerialNumber=?, "
 																   "Reason=?, "
 																   "Created=?, "
 																   "Author=? "};
@@ -133,7 +133,7 @@ namespace OpenWifi {
 			Poco::Data::Session Sess = Pool_->get();
 			Poco::Data::Statement Update(Sess);
 
-			std::string St{"UPDATE BlackList " + DB_BlackListDeviceUpdateFields + " where serialNumber=?" };
+			std::string St{"UPDATE BlackList SET " + DB_BlackListDeviceUpdateFields + " where serialNumber=?" };
 
 			BlackListDeviceRecordTuple T;
 			ConvertBlackListDeviceRecord(Device,T);

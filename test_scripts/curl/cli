@@ -34,8 +34,8 @@ fi
 
 token=""
 result_file=result.json
-username="tip@ucentral.com"
-password="Snoopy99!!!"
+username="script.runner@arilia.com"
+password="RunningScript100#"
 browser_list=(firefox sensible-browser xdg-open w3m links links2 lynx youtube-dl)
 browser=""
 
@@ -403,10 +403,11 @@ listdefaultconfigs() {
 
 addblacklistdevice() {
   payload="{ \"serialNumber\": \"$1\" , \"reason\" : \"$2\" }"
-  curl  ${FLAGS} -X POST "https://${OWGW}/api/v1/blacklist" \
+  curl  ${FLAGS} -X POST "https://${OWGW}/api/v1/blacklist/1" \
         -H "accept: application/json" \
         -H "Authorization: Bearer ${token}" \
-        -d "$payload"
+        -d "$payload" > ${result_file}
+	jq < ${result_file}
 }
 
 deleteblacklistdevice() {
@@ -420,6 +421,15 @@ getblacklist() {
         -H "accept: application/json" \
         -H "Authorization: Bearer ${token}"  > ${result_file}
   jq < ${result_file}
+}
+
+modblacklistdevice() {
+	payload="{ \"serialNumber\": \"$1\" , \"reason\" : \"$2\" }"
+		curl  ${FLAGS} -X PUT "https://${OWGW}/api/v1/blacklist/$1" \
+		-H "accept: application/json" \
+		-H "Authorization: Bearer ${token}" \
+		-d "$payload"   > ${result_file}
+	jq < ${result_file}
 }
 
 eventqueue() {
@@ -711,6 +721,7 @@ case "$1" in
   "addblacklistdevice") login; addblacklistdevice "$2" "$3"  ; logout ;;
   "deleteblacklistdevice") login; deleteblacklistdevice "$2"  ; logout ;;
   "getblacklist") login; getblacklist  ; logout ;;
+  "modblacklistdevice") login; modblacklistdevice "$2" "$3" ; logout;;
   "eventqueue") login; eventqueue "$2"  ; logout ;;
   "selectdevices") login; selectdevices "$2"  ; logout ;;
   "deviceserialnumbers") login; deviceserialnumbers   ; logout ;;

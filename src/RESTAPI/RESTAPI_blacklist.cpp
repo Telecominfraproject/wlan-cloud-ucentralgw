@@ -85,7 +85,6 @@ namespace OpenWifi {
 
 	void RESTAPI_blacklist::DoPut() {
 		auto SerialNumber = Poco::toLower(GetBinding(RESTAPI::Protocol::SERIALNUMBER, ""));
-
 		if(SerialNumber.empty()) {
 			return BadRequest(RESTAPI::Errors::MissingSerialNumber);
 		}
