@@ -378,8 +378,15 @@ gethealthchecks() {
   jq < ${result_file}
 }
 
+getdefaultconfig() {
+		curl  ${FLAGS} -X GET "https://${OWGW}/api/v1/default_configuration/$1" \
+		-H "accept: application/json" \
+		-H "Authorization: Bearer ${token}" > ${result_file}
+		jq < ${result_file}
+}
+
 createdefaultconfig() {
-  payload="{ \"name\": \"$1\", \"modelIds\" : \"$2\", \"configuration\" : $(cat "$3")}"
+  payload="{ \"name\": \"$1\", \"modelIds\" : \"[$2]\", \"configuration\" : $(cat "$3")}"
   curl  ${FLAGS} -X POST "https://${OWGW}/api/v1/default_configuration/$1" \
         -H "accept: application/json" \
         -H "Authorization: Bearer ${token}" \
@@ -716,6 +723,7 @@ case "$1" in
   "deletelogs") login; deletelogs "$2"  ; logout ;;
   "gethealthchecks") login; gethealthchecks "$2"  ; logout ;;
   "createdefaultconfig") login; createdefaultconfig "$2" "$3" "$4"  ; logout ;;
+  "getdefaultconfig") login; getdefaultconfig "$2" ; logout ;;
   "deletedefaultconfig") login; deletedefaultconfig "$2" ; logout ;;
   "listdefaultconfigs") login; listdefaultconfigs "$2"  ; logout ;;
   "addblacklistdevice") login; addblacklistdevice "$2" "$3"  ; logout ;;
