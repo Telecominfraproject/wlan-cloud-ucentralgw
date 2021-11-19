@@ -80,7 +80,7 @@ namespace OpenWifi {
 				uint64_t Now = std::time(nullptr);
 				Poco::Data::Statement   Insert(Sess);
 
-				std::string St{"INSERT INTO DefaultConfigs " + DB_DefConfig_SelectFields + ") "
+				std::string St{"INSERT INTO DefaultConfigs ( " + DB_DefConfig_SelectFields + " ) "
 						"VALUES(" + DB_DefConfig_InsertValues + ")"};
 
 				DefConfigRecordTuple R;
