@@ -446,7 +446,9 @@ components:
         name:
           type: string
         modelIds:
-          type: string
+          type: array
+          items:
+            type: string
         description:
           type: string
         configuration:
