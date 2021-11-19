@@ -90,6 +90,7 @@ namespace OpenWifi {
 		bool GetDefaultConfigurations(uint64_t From, uint64_t HowMany, std::vector<GWObjects::DefaultConfiguration> &Devices);
 		bool FindDefaultConfigurationForModel(const std::string & Model, GWObjects::DefaultConfiguration & DefConfig );
 		uint64_t GetDefaultConfigurationsCount();
+		bool DefaultConfigurationAlreadyExists(std::string &Name);
 
 		bool AddCommand(std::string & SerialNumber, GWObjects::CommandDetails & Command,CommandExecutionType Type);
 		bool GetCommands(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate, uint64_t Offset, uint64_t HowMany, std::vector<GWObjects::CommandDetails> & Commands);

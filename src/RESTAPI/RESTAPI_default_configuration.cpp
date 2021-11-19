@@ -47,6 +47,10 @@ namespace OpenWifi {
 			return BadRequest(RESTAPI::Errors::MissingOrInvalidParameters);
 		}
 
+		if(StorageService()->DefaultConfigurationAlreadyExists(Name)) {
+			return BadRequest("Configuration name already exists.");
+		}
+
 		auto Obj = ParseStream();
 		GWObjects::DefaultConfiguration DefConfig;
 		if (!DefConfig.from_json(Obj)) {

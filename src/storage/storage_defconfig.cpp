@@ -182,6 +182,29 @@ namespace OpenWifi {
 		return false;
 	}
 
+	bool Storage::DefaultConfigurationAlreadyExists(std::string &Name) {
+		try {
+
+			Poco::Data::Session     Sess = Pool_->get();
+			Poco::Data::Statement   Select(Sess);
+
+			std::string St{"SELECT " + DB_DefConfig_SelectFields +
+			" FROM DefaultConfigs WHERE Name=?"};
+
+			DefConfigRecordTuple R;
+			Select << ConvertParams(St),
+				Poco::Data::Keywords::into(R),
+				Poco::Data::Keywords::use(Name);
+			Select.execute();
+
+			return Select.rowsExtracted()==1;
+		}
+		catch (const Poco::Exception &E) {
+			Logger_.warning(Poco::format("%s: Failed with: %s", std::string(__func__), E.displayText()));
+		}
+		return false;
+	}
+
 	bool Storage::GetDefaultConfigurations(uint64_t From, uint64_t HowMany,
 										   std::vector<GWObjects::DefaultConfiguration> &DefConfigs) {
 		try {
