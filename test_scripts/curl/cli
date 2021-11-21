@@ -34,8 +34,10 @@ fi
 
 token=""
 result_file=result.json
-username="script.runner@arilia.com"
-password="RunningScript100#"
+#username="script.runner@arilia.com"
+#password="RunningScript100#"
+username="tip@ucentral.com"
+password="Openwifi123#"
 browser_list=(firefox sensible-browser xdg-open w3m links links2 lynx youtube-dl)
 browser=""
 
