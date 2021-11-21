@@ -27,11 +27,9 @@ namespace OpenWifi {
 
 		[[nodiscard]] inline std::string ReformatAddress(const std::string & I )
 		{
-			if(I.substr(0,8) == "[::ffff:")
+			if(I.substr(0,7) == "::ffff:")
 			{
-				unsigned long PClosingBracket = I.find_first_of(']');
-
-				std::string ip = I.substr(8, PClosingBracket-8);
+				std::string ip = I.substr(7 );
 				return ip;
 			}
 			return I;
