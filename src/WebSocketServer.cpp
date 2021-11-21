@@ -82,11 +82,8 @@ namespace OpenWifi {
 			auto SS = dynamic_cast<Poco::Net::SecureStreamSocketImpl *>(Socket_.impl());
 
 			SS->completeHandshake();
-
+			PeerAddress_ = SS->peerAddress().host();
 			CId_ = Utils::FormatIPv6(SS->peerAddress().toString());
-
-			FindCountryFromIP::instance()->Get(SS->peerAddress().host());
-
 			if (!SS->secure()) {
 				Logger_.error(Poco::format("%s: Connection is NOT secure.", CId_));
 			} else {
@@ -366,7 +363,7 @@ namespace OpenWifi {
 						Conn_->Conn_.VerifiedCertificate = CertValidation_;
 
 						if (Daemon()->AutoProvisioning() && !StorageService()->DeviceExists(SerialNumber_)) {
-							StorageService()->CreateDefaultDevice(SerialNumber_, Capabilities, Firmware, Compatible_);
+							StorageService()->CreateDefaultDevice(SerialNumber_, Capabilities, Firmware, Compatible_, PeerAddress_);
 						} else if (StorageService()->DeviceExists(SerialNumber_)) {
 							StorageService()->UpdateDeviceCapabilities(SerialNumber_, Capabilities, Compatible_);
 							if(!Firmware.empty()) {

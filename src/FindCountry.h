@@ -19,6 +19,7 @@ namespace OpenWifi {
 
 		inline int Start() final {
 			Token_ = MicroService::instance().ConfigGetString("iptocountry.ipinfo.token","");
+			Default_ = MicroService::instance().ConfigGetString("iptocountry.ipinfo.default","US");
 			return 0;
 		}
 
@@ -37,7 +38,7 @@ namespace OpenWifi {
 
 		inline std::string Get(const Poco::Net::IPAddress & IP) {
 			if(Token_.empty())
-				return "";
+				return Default_;
 
 			try {
 				std::string URL = "https://ipinfo.io/" + ReformatAddress(IP.toString()) + "?token=" + Token_;
@@ -48,15 +49,16 @@ namespace OpenWifi {
 						return IPInfo["country"];
 					}
 				} else {
-					return "";
+					return Default_;
 				}
 			} catch(...) {
 			}
-			return "";
+			return Default_;
 		}
 
 	  private:
 		std::string Token_;
+		std::string Default_;
 
 		FindCountryFromIP() noexcept:
 			SubSystemServer("IpToCountry", "IPTOC-SVR", "iptocountry")

@@ -12,11 +12,13 @@
 #include "DeviceRegistry.h"
 #include "OUIServer.h"
 #include "Poco/Data/RecordSet.h"
+#include "Poco/Net/IPAddress.h"
 #include "SerialNumberCache.h"
 #include "StateProcessor.h"
 #include "StorageService.h"
 #include "framework/MicroService.h"
 #include "CapabilitiesCache.h"
+#include "FindCountry.h"
 
 namespace OpenWifi {
 
@@ -257,7 +259,25 @@ namespace OpenWifi {
 		return false;
 	}
 
-	bool Storage::CreateDefaultDevice(const std::string &SerialNumber, const std::string &Capabilities, std::string & Firmware, std::string &Compat) {
+	static void InsertRadiosCountyRegulation(std::string &Config, const Poco::Net::IPAddress & IPAddress) {
+		try {
+			auto C = nlohmann::json::parse(Config);
+			if(C.contains("radios") && C["radios"].is_array()) {
+				auto Radios = C["radios"];
+				auto Country = FindCountryFromIP()->Get(IPAddress);
+				for(auto &i:Radios) {
+					i["country"] = Country;
+				}
+				C["radios"] = Radios;
+				Config = to_string(C);
+			}
+		} catch (...) {
+
+		}
+	}
+
+
+	bool Storage::CreateDefaultDevice(const std::string &SerialNumber, const std::string &Capabilities, std::string & Firmware, std::string &Compat, const Poco::Net::IPAddress & IPAddress) {
 		GWObjects::Device D;
 
 		Logger_.information(Poco::format("AUTO-CREATION(%s)", SerialNumber));
@@ -278,6 +298,11 @@ namespace OpenWifi {
 			NewConfig.SetUUID(Now);
 			D.Configuration = NewConfig.get();
 		}
+
+		InsertRadiosCountyRegulation(D.Configuration, IPAddress);
+
+		//	We need to insert the country code according to the IP in the radios section...
+
 
 		D.SerialNumber = Poco::toLower(SerialNumber);
 		Compat = D.Compatible = Caps.Compatible();

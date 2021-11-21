@@ -11,6 +11,7 @@
 #include "framework/MicroService.h"
 #include "framework/StorageClass.h"
 #include "RESTObjects//RESTAPI_GWobjects.h"
+#include "Poco/Net/IPAddress.h"
 
 namespace OpenWifi {
 
@@ -50,7 +51,7 @@ namespace OpenWifi {
 		bool UpdateDeviceConfiguration(std::string &SerialNumber, std::string &Configuration, uint64_t & NewUUID );
 
 		bool CreateDevice(GWObjects::Device &);
-		bool CreateDefaultDevice(const std::string & SerialNumber, const std::string & Capabilities, std::string & Firmware, std::string &Compatible);
+		bool CreateDefaultDevice(const std::string & SerialNumber, const std::string & Capabilities, std::string & Firmware, std::string &Compatible,const Poco::Net::IPAddress & IPAddress);
 
 		bool GetDevice(std::string &SerialNumber, GWObjects::Device &);
 		bool GetDevices(uint64_t From, uint64_t HowMany, std::vector<GWObjects::Device> &Devices);
