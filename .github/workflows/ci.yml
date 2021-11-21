@@ -68,62 +68,15 @@ jobs:
       run: |
         docker images | grep ${{ env.DOCKER_REGISTRY_URL }}/owgw | awk -F ' ' '{print $1":"$2}' | xargs -I {} docker push {}
 
-  docker-compose:
-    if: startsWith(github.ref, 'refs/tags/') || startsWith(github.ref, 'refs/pull/') || github.ref == 'refs/heads/master'
-    runs-on: ubuntu-20.04
+  trigger-testing:
+    if: startsWith(github.ref, 'refs/tags/') || startsWith(github.ref, 'refs/pull/')
+    runs-on: ubuntu-latest
     needs: docker
     steps:
-    - name: Check out wlan-cloud-ucentral-deploy repository
-      uses: actions/checkout@v2
+    - name: Trigger testing of OpenWifi Docker Compose deployment
+      uses: peter-evans/repository-dispatch@v1
       with:
-        repository: Telecominfraproject/wlan-cloud-ucentral-deploy
-        path: wlan-cloud-ucentral-deploy
-
-    - name: Instantiate Docker Compose deployment
-      working-directory: ./wlan-cloud-ucentral-deploy/docker-compose
-      env:
-        OWGW_TAG: ${{ github.sha }}
-      run: |
-        docker-compose up -d
-
-    - name: Wait for OWSec to be alive and kicking
-      run: |
-        n=0
-        until [ "$n" -ge 3 ]
-        do
-          curl -s 127.0.0.1:16102 && break
-          n=$((n+1))
-          if [ "$n" -eq 3]; then
-            exit 1
-          else
-            sleep 3
-          fi
-        done
-
-    - name: Check out wlan-cloud-ucentralgw repository
-      uses: actions/checkout@v2
-      with:
-        path: wlan-cloud-ucentralgw
-
-    - name: Check functionality of microservices
-      env:
-        OWSEC: "openwifi.wlan.local:16001"
-        FLAGS: "-s --cacert ./wlan-cloud-ucentral-deploy/docker-compose/certs/restapi-ca.pem --resolve openwifi.wlan.local:16001:127.0.0.1"
-      run: |
-        ./wlan-cloud-ucentralgw/test_scripts/curl/cli listdevices
-
-    - name: Display information about running containers and log ucentralgw output
-      working-directory: ./wlan-cloud-ucentral-deploy/docker-compose
-      if: always()
-      run: |
-        docker-compose ps -a
-        docker-compose logs
-
-    # disable until repo is public
-    #- name: export Docker image
-    #  run: docker image save -o wlan-cloud-ucentralgw-${{ github.sha }}.tar wlan-cloud-ucentralgw:${{ github.sha }}
-
-    #- uses: actions/upload-artifact@v2
-    #  with:
-    #    name: docker-image
-    #    path: wlan-cloud-ucentralgw-${{ github.sha }}.tar
+        token: ${{ secrets.WLAN_TESTING_PAT }}
+        repository: Telecominfraproject/wlan-testing
+        event-type: openwifi-sdk-pr
+        client-payload: '{"owgw_tag": "${{ github.sha }}", "owgwui_tag": "main", "owsec_tag": "main", "owfms_tag": "main", "owprov_tag": "main", "owprovui_tag": "main"}'
