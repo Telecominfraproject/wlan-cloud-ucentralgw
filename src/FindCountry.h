@@ -31,6 +31,7 @@ namespace OpenWifi {
 
 			try {
 				std::string URL = "https://ipinfo.io/" + IP.toString() + "?token=" + Token_;
+				std::cout << "URL: " << URL << std::endl;
 				std::string Response;
 				if (Utils::wgets(URL, Response)) {
 					nlohmann::json 		IPInfo = nlohmann::json::parse(Response);
@@ -38,10 +39,13 @@ namespace OpenWifi {
 						std::cout << "Country is " << to_string(IPInfo["country"]) << std::endl;
 						return IPInfo["country"];
 					}
-				} else
+					std::cout << "1 - Could not wget" << std::endl;
+				} else {
+					std::cout << "2 - Could not wget" << std::endl;
 					return "";
+				}
 			} catch(...) {
-
+				std::cout << "3 - Could not wget" << std::endl;
 			}
 			return "";
 		}
