@@ -6,8 +6,7 @@
 //	Arilia Wireless Inc.
 //
 
-#ifndef UCENTRAL_RESTAPI_DEFAULT_CONFIGURATIONS_H
-#define UCENTRAL_RESTAPI_DEFAULT_CONFIGURATIONS_H
+#pragma once
 
 #include "framework/MicroService.h"
 
@@ -27,4 +26,3 @@ class RESTAPI_default_configurations : public RESTAPIHandler {
 	void DoPut() final {};
 	};
 }
-#endif //UCENTRAL_RESTAPI_DEFAULT_CONFIGURATIONS_H

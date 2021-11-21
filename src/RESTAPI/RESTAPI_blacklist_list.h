@@ -2,8 +2,7 @@
 // Created by stephane bourque on 2021-10-14.
 //
 
-#ifndef UCENTRALGW_RESTAPI_BLACKLIST_LIST_H
-#define UCENTRALGW_RESTAPI_BLACKLIST_LIST_H
+#pragma once
 
 #include "framework/MicroService.h"
 
@@ -23,5 +22,3 @@ namespace OpenWifi {
 		void DoPut() final {};
 	};
 }
-
-#endif // UCENTRALGW_RESTAPI_BLACKLIST_LIST_H

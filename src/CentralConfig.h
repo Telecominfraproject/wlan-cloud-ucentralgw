@@ -6,8 +6,7 @@
 //	Arilia Wireless Inc.
 //
 
-#ifndef UCENTRAL_UCENTRALCONFIG_H
-#define UCENTRAL_UCENTRALCONFIG_H
+#pragma once
 
 #include <string>
 #include "Poco/JSON/Object.h"
@@ -63,4 +62,3 @@ namespace OpenWifi::Config {
 
 } // namespace
 
-#endif //UCENTRAL_UCENTRALCONFIG_H

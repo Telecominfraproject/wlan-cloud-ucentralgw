@@ -2,8 +2,7 @@
 // Created by stephane bourque on 2021-09-21.
 //
 
-#ifndef OWGW_CONFIGURATIONCACHE_H
-#define OWGW_CONFIGURATIONCACHE_H
+#pragma once
 
 #include <map>
 #include <string>
@@ -39,4 +38,3 @@ namespace OpenWifi {
 	inline uint64_t GetCurrentConfigurationID(const std::string &S) { return ConfigurationCache::instance().CurrentConfig(S); }
 	inline void SetCurrentConfigurationID(const std::string &S, uint64_t ID) { ConfigurationCache::instance().Add(S,ID); }
 }
-#endif // OWGW_CONFIGURATIONCACHE_H

@@ -6,8 +6,7 @@
 //	Arilia Wireless Inc.
 //
 
-#ifndef UCENTRAL_UFILEUPLOADER_H
-#define UCENTRAL_UFILEUPLOADER_H
+#pragma once
 
 #include "Poco/Net/HTTPRequestHandler.h"
 #include "Poco/Net/HTTPRequestHandlerFactory.h"
@@ -63,4 +62,3 @@ namespace OpenWifi {
 	inline FileUploader * FileUploader() { return FileUploader::instance(); }
 } //   namespace
 
-#endif //UCENTRAL_UFILEUPLOADER_H

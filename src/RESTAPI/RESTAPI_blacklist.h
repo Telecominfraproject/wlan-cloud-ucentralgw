@@ -6,8 +6,7 @@
 //	Arilia Wireless Inc.
 //
 
-#ifndef UCENTRALGW_RESTAPI_BLACKLIST_H
-#define UCENTRALGW_RESTAPI_BLACKLIST_H
+#pragma once
 
 #include "framework/MicroService.h"
 
@@ -30,5 +29,3 @@ namespace OpenWifi {
 		void DoPut() final;
 	};
 }
-
-#endif // UCENTRALGW_RESTAPI_BLACKLIST_H

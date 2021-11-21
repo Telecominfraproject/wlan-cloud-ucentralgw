@@ -2,8 +2,7 @@
 // Created by stephane bourque on 2021-06-17.
 //
 
-#ifndef UCENTRALGW_RESTAPI_OUIS_H
-#define UCENTRALGW_RESTAPI_OUIS_H
+#pragma once
 
 #include "framework/MicroService.h"
 
@@ -22,5 +21,3 @@ namespace OpenWifi {
 		void DoPut() final {};
 	};
 }
-
-#endif // UCENTRALGW_RESTAPI_OUIS_H

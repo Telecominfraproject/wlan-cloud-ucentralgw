@@ -6,8 +6,7 @@
 //	Arilia Wireless Inc.
 //
 
-#ifndef UCENTRAL_UCENTRAL_H
-#define UCENTRAL_UCENTRAL_H
+#pragma once
 
 #include <array>
 #include <iostream>
@@ -63,4 +62,3 @@ namespace OpenWifi {
 	inline Daemon * Daemon() { return Daemon::instance(); }
 }
 
-#endif //UCENTRAL_UCENTRAL_H

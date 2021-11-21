@@ -6,8 +6,7 @@
 //	Arilia Wireless Inc.
 //
 
-#ifndef UCENTRAL_USTORAGESERVICE_H
-#define UCENTRAL_USTORAGESERVICE_H
+#pragma once
 
 #include "framework/MicroService.h"
 #include "framework/StorageClass.h"
@@ -157,4 +156,3 @@ namespace OpenWifi {
 
 }  // namespace
 
-#endif //UCENTRAL_USTORAGESERVICE_H

@@ -6,8 +6,7 @@
 //	Arilia Wireless Inc.
 //
 
-#ifndef UCENTRAL_RESTAPI_OBJECTS_H
-#define UCENTRAL_RESTAPI_OBJECTS_H
+#pragma once
 
 #include "Poco/JSON/Object.h"
 #include "RESTAPI_SecurityObjects.h"
@@ -191,5 +190,3 @@ namespace OpenWifi::GWObjects {
 		void to_json(Poco::JSON::Object &Obj) const;
 	};
 }
-
-#endif //UCENTRAL_RESTAPI_OBJECTS_H

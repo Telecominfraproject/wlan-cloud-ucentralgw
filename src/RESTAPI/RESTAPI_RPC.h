@@ -2,8 +2,7 @@
 // Created by stephane bourque on 2021-06-28.
 //
 
-#ifndef UCENTRALGW_RESTAPI_RPC_H
-#define UCENTRALGW_RESTAPI_RPC_H
+#pragma once
 
 #include "Poco/URI.h"
 #include "Poco/Net/HTTPRequestHandler.h"
@@ -38,4 +37,3 @@ namespace OpenWifi::RESTAPI_RPC {
 
 
 }
-#endif // UCENTRALGW_RESTAPI_RPC_H

@@ -179,7 +179,8 @@ namespace OpenWifi {
 	}
 
     WSConnection::~WSConnection() {
-        DeviceRegistry()->UnRegister(SerialNumber_,this);
+		if(ConnectionId)
+        	DeviceRegistry()->UnRegister(SerialNumber_, ConnectionId);
         if(Registered_ && WS_)
         {
         	Reactor_.removeEventHandler(*WS_,
@@ -339,7 +340,7 @@ namespace OpenWifi {
 						auto Firmware = ParamsObj->get(uCentralProtocol::FIRMWARE).toString();
 						auto Capabilities = ParamsObj->get(uCentralProtocol::CAPABILITIES).toString();
 
-						Conn_ = DeviceRegistry()->Register(Serial, this);
+						Conn_ = DeviceRegistry()->Register(Serial, this, ConnectionId);
 						SerialNumber_ = Serial;
 						Conn_->Conn_.SerialNumber = Serial;
 						Conn_->Conn_.UUID = UUID;

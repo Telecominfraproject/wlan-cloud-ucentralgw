@@ -2,8 +2,7 @@
 // Created by stephane bourque on 2021-09-07.
 //
 
-#ifndef OWGW_TELEMETRYSTREAM_H
-#define OWGW_TELEMETRYSTREAM_H
+#pragma once
 
 #include <iostream>
 
@@ -131,4 +130,3 @@ namespace OpenWifi {
 	inline TelemetryStream * TelemetryStream() { return TelemetryStream::instance(); }
 
 	}
-#endif // OWGW_TELEMETRYSTREAM_H

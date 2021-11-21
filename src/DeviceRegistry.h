@@ -6,8 +6,7 @@
 //	Arilia Wireless Inc.
 //
 
-#ifndef UCENTRAL_UDEVICEREGISTRY_H
-#define UCENTRAL_UDEVICEREGISTRY_H
+#pragma once
 
 #include "Poco/JSON/Object.h"
 
@@ -26,6 +25,7 @@ namespace OpenWifi {
 			GWObjects::ConnectionState 	Conn_;
 			std::string        			LastStats;
 			GWObjects::HealthCheck		LastHealthcheck;
+			uint64_t 					ConnectionId=0;
 		};
 
         static DeviceRegistry *instance() {
@@ -41,17 +41,17 @@ namespace OpenWifi {
 		void SetState(const std::string & SerialNumber, GWObjects::ConnectionState & State);
 		bool GetHealthcheck(const std::string &SerialNumber, GWObjects::HealthCheck & CheckData);
 		void SetHealthcheck(const std::string &SerialNumber, const GWObjects::HealthCheck &H);
-		std::shared_ptr<ConnectionEntry> Register(const std::string & SerialNumber, WSConnection *);
-		void UnRegister(const std::string & SerialNumber, WSConnection *);
+		std::shared_ptr<ConnectionEntry> Register(const std::string & SerialNumber, WSConnection *, uint64_t & ConnectionId);
+		void UnRegister(const std::string & SerialNumber, uint64_t ConnectionId);
 		bool SendCommand(GWObjects::CommandDetails & Command);
 		bool Connected(const std::string & SerialNumber);
 		bool SendFrame(const std::string & SerialNumber, const std::string & Payload);
 		void SetPendingUUID(const std::string & SerialNumber, uint64_t PendingUUID);
-
 		bool AnalyzeRegistry(GWObjects::Dashboard &D);
 
 	  private:
-		std::map<std::string,std::shared_ptr<ConnectionEntry>>   Devices_;
+		inline static std::atomic_uint64_t 						Id_=1;
+		std::map<std::string,std::shared_ptr<ConnectionEntry>>  Devices_;
 
 		DeviceRegistry() noexcept:
     		SubSystemServer("DeviceRegistry", "DevStatus", "devicestatus") {
@@ -62,4 +62,3 @@ namespace OpenWifi {
 
 }  // namespace
 
-#endif //UCENTRAL_UDEVICEREGISTRY_H

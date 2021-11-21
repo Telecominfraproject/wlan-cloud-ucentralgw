@@ -6,8 +6,7 @@
 //	Arilia Wireless Inc.
 //
 
-#ifndef UCENTRAL_RESTAPI_COMMAND_H
-#define UCENTRAL_RESTAPI_COMMAND_H
+#pragma once
 
 #include "framework/MicroService.h"
 
@@ -28,5 +27,3 @@ class RESTAPI_command : public RESTAPIHandler {
 		void DoPut() final {};
 	};
 }
-
-#endif //UCENTRAL_RESTAPI_COMMAND_H

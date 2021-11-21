@@ -2,8 +2,7 @@
 // Created by stephane bourque on 2021-06-17.
 //
 
-#ifndef UCENTRALGW_OUISERVER_H
-#define UCENTRALGW_OUISERVER_H
+#pragma once
 
 #include "framework/MicroService.h"
 
@@ -47,4 +46,3 @@ namespace OpenWifi {
 
 }
 
-#endif // UCENTRALGW_OUISERVER_H

@@ -6,8 +6,7 @@
 //	Arilia Wireless Inc.
 //
 
-#ifndef UCENTRAL_UCOMMANDMANAGER_H
-#define UCENTRAL_UCOMMANDMANAGER_H
+#pragma once
 
 #include <chrono>
 #include <future>
@@ -89,4 +88,3 @@ namespace OpenWifi {
 
 }  // namespace
 
-#endif //UCENTRAL_UCOMMANDMANAGER_H

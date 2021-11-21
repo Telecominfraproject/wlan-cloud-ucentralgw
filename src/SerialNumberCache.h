@@ -2,8 +2,7 @@
 // Created by stephane bourque on 2021-08-11.
 //
 
-#ifndef UCENTRALGW_SERIALNUMBERCACHE_H
-#define UCENTRALGW_SERIALNUMBERCACHE_H
+#pragma once
 
 #include "framework/MicroService.h"
 
@@ -37,5 +36,3 @@ namespace OpenWifi {
 	inline SerialNumberCache * SerialNumberCache() { return SerialNumberCache::instance(); }
 
 } // namespace OpenWiFi
-
-#endif // UCENTRALGW_SERIALNUMBERCACHE_H

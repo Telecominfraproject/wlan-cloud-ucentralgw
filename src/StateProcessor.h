@@ -2,8 +2,8 @@
 // Created by stephane bourque on 2021-05-23.
 //
 
-#ifndef UCENTRALGW_STATEPROCESSOR_H
-#define UCENTRALGW_STATEPROCESSOR_H
+#pragma once
+
 #include <map>
 
 #include "Poco/JSON/Object.h"
@@ -42,4 +42,3 @@ namespace OpenWifi {
 	};
 
 }
-#endif // UCENTRALGW_STATEPROCESSOR_H

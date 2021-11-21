@@ -2,8 +2,7 @@
 // Created by stephane bourque on 2021-10-17.
 //
 
-#ifndef UCENTRALGW_RESTAPI_CAPABILITIES_HANDLER_H
-#define UCENTRALGW_RESTAPI_CAPABILITIES_HANDLER_H
+#pragma once
 
 #include "framework/MicroService.h"
 
@@ -23,4 +22,4 @@ namespace OpenWifi {
 		void DoPut() final {};
 	};
 }
-#endif // UCENTRALGW_RESTAPI_CAPABILITIES_HANDLER_H
+

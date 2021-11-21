@@ -2,8 +2,7 @@
 // Created by stephane bourque on 2021-07-12.
 //
 
-#ifndef UCENTRALGW_STORAGEARCHIVER_H
-#define UCENTRALGW_STORAGEARCHIVER_H
+#pragma once
 
 #include <functional>
 
@@ -62,6 +61,3 @@ namespace OpenWifi {
     inline StorageArchiver * StorageArchiver() { return StorageArchiver::instance(); }
 
 }  // namespace
-
-
-#endif // UCENTRALGW_STORAGEARCHIVER_H

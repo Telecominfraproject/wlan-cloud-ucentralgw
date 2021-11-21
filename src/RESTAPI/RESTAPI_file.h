@@ -6,8 +6,7 @@
 //	Arilia Wireless Inc.
 //
 
-#ifndef UCENTRAL_RESTAPI_FILE_H
-#define UCENTRAL_RESTAPI_FILE_H
+#pragma once
 
 #include "framework/MicroService.h"
 
@@ -28,5 +27,3 @@ namespace OpenWifi {
 		void DoPut() final {};
 	};
 }
-
-#endif //UCENTRAL_RESTAPI_FILE_H

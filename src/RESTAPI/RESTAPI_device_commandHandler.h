@@ -6,66 +6,64 @@
 //	Arilia Wireless Inc.
 //
 
-#ifndef UCENTRAL_RESTAPI_DEVICECOMMANDHANDLER_H
-#define UCENTRAL_RESTAPI_DEVICECOMMANDHANDLER_H
+#pragma once
 
 #include "framework/MicroService.h"
 #include "framework/RESTAPI_protocol.h"
 
 namespace OpenWifi {
-class RESTAPI_device_commandHandler : public RESTAPIHandler {
-  public:
-	RESTAPI_device_commandHandler(const RESTAPIHandler::BindingMap &bindings, Poco::Logger &L, RESTAPI_GenericServer & Server, bool Internal)
-		: RESTAPIHandler(bindings, L,
-						 std::vector<std::string>{
-							 Poco::Net::HTTPRequest::HTTP_GET, Poco::Net::HTTPRequest::HTTP_POST,
-							 Poco::Net::HTTPRequest::HTTP_DELETE,
-							 Poco::Net::HTTPRequest::HTTP_OPTIONS},
-						 Server,
-						 Internal) {}
+	class RESTAPI_device_commandHandler : public RESTAPIHandler {
+	  public:
+		RESTAPI_device_commandHandler(const RESTAPIHandler::BindingMap &bindings, Poco::Logger &L, RESTAPI_GenericServer & Server, bool Internal)
+			: RESTAPIHandler(bindings, L,
+							 std::vector<std::string>{
+								 Poco::Net::HTTPRequest::HTTP_GET, Poco::Net::HTTPRequest::HTTP_POST,
+								 Poco::Net::HTTPRequest::HTTP_DELETE,
+								 Poco::Net::HTTPRequest::HTTP_OPTIONS},
+							 Server,
+							 Internal) {}
 
-	void GetCapabilities();
-	void DeleteCapabilities();
-	void GetLogs();
-	void DeleteLogs();
-	void GetStatistics();
-	void DeleteStatistics();
-	void GetStatus();
-	void ExecuteCommand();
-	void Configure();
-	void GetChecks();
-	void DeleteChecks();
-	void Upgrade();
-	void Reboot();
-	void Factory();
-	void LEDs();
-	void Trace();
-	void MakeRequest();
-	void WifiScan();
-	void EventQueue();
-	void Rtty();
-	void Telemetry();
+		void GetCapabilities();
+		void DeleteCapabilities();
+		void GetLogs();
+		void DeleteLogs();
+		void GetStatistics();
+		void DeleteStatistics();
+		void GetStatus();
+		void ExecuteCommand();
+		void Configure();
+		void GetChecks();
+		void DeleteChecks();
+		void Upgrade();
+		void Reboot();
+		void Factory();
+		void LEDs();
+		void Trace();
+		void MakeRequest();
+		void WifiScan();
+		void EventQueue();
+		void Rtty();
+		void Telemetry();
 
-	static const std::list<const char *> PathName() { return std::list<const char *>{"/api/v1/device/{serialNumber}/{command}"}; };
-	void DoGet() final;
-	void DoDelete() final;
-	void DoPost() final;
-	void DoPut() final {};
+		static const std::list<const char *> PathName() { return std::list<const char *>{"/api/v1/device/{serialNumber}/{command}"}; };
+		void DoGet() final;
+		void DoDelete() final;
+		void DoPost() final;
+		void DoPut() final {};
 
-	inline bool ValidateParameters() {
-		Command_ =  GetBinding(RESTAPI::Protocol::COMMAND, "");
-		if (Command_.empty()) {
-			return false;
+		inline bool ValidateParameters() {
+			Command_ =  GetBinding(RESTAPI::Protocol::COMMAND, "");
+			if (Command_.empty()) {
+				return false;
+			}
+			SerialNumber_ = GetBinding(RESTAPI::Protocol::SERIALNUMBER, "");
+			if (SerialNumber_.empty()) {
+				return false;
+			}
+			return true;
 		}
-		SerialNumber_ = GetBinding(RESTAPI::Protocol::SERIALNUMBER, "");
-		if (SerialNumber_.empty()) {
-			return false;
-		}
-		return true;
-	}
 
-  private:
-	std::string SerialNumber_, Command_;
-};
+	  private:
+		std::string SerialNumber_, Command_;
+	};
 }
-#endif //UCENTRAL_RESTAPI_DEVICECOMMANDHANDLER_H

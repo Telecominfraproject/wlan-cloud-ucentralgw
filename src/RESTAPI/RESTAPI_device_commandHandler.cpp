@@ -9,7 +9,6 @@
 #include <chrono>
 #include <algorithm>
 
-#include "Poco/UUIDGenerator.h"
 #include "Poco/JSON/Parser.h"
 
 #include "CentralConfig.h"
@@ -19,7 +18,6 @@
 #include "RESTAPI_device_commandHandler.h"
 #include "StorageService.h"
 #include "RESTAPI_RPC.h"
-#include "CommandManager.h"
 #include "TelemetryStream.h"
 #include "framework/RESTAPI_protocol.h"
 #include "framework/uCentral_Protocol.h"

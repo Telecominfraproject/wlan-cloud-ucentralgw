@@ -6,8 +6,7 @@
 //	Arilia Wireless Inc.
 //
 
-#ifndef UCENTRAL_UCENTRALWEBSOCKETSERVER_H
-#define UCENTRAL_UCENTRALWEBSOCKETSERVER_H
+#pragma once
 
 #include <mutex>
 #include <thread>
@@ -110,6 +109,7 @@ namespace OpenWifi {
 		uint64_t 							Errors_=0;
 		std::unique_ptr<StateProcessor>		StatsProcessor_;
 		bool 								Connected_=false;
+		uint64_t 							ConnectionId=0;
 
 		void CompleteStartup();
 	};
@@ -144,5 +144,3 @@ namespace OpenWifi {
 	inline WebSocketServer * WebSocketServer() { return WebSocketServer::instance(); }
 
 } //namespace
-
-#endif //UCENTRAL_UCENTRALWEBSOCKETSERVER_H
