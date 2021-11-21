@@ -104,7 +104,7 @@ add_executable( owgw
         src/TelemetryStream.cpp src/TelemetryStream.h
         src/framework/ConfigurationValidator.cpp src/framework/ConfigurationValidator.h
         src/ConfigurationCache.cpp src/ConfigurationCache.h
-        src/CapabilitiesCache.h)
+        src/CapabilitiesCache.h src/FindCountry.h)
 
 if(NOT SMALL_BUILD)
 

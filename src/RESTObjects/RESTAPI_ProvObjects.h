@@ -6,9 +6,7 @@
 //	Arilia Wireless Inc.
 //
 
-
-#ifndef OWPROV_RESTAPI_PROVOBJECTS_H
-#define OWPROV_RESTAPI_PROVOBJECTS_H
+#pragma once
 
 #include <string>
 #include "RESTAPI_SecurityObjects.h"
@@ -380,6 +378,3 @@ namespace OpenWifi::ProvObjects {
     bool UpdateObjectInfo(const Poco::JSON::Object::Ptr &O, const SecurityObjects::UserInfo &U, ObjectInfo &I);
     bool CreateObjectInfo(const Poco::JSON::Object::Ptr &O, const SecurityObjects::UserInfo &U, ObjectInfo &I);
 };
-
-
-#endif //OWPROV_RESTAPI_PROVOBJECTS_H

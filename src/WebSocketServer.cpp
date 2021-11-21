@@ -25,6 +25,7 @@
 #include "framework/uCentral_Protocol.h"
 #include "framework/MicroService.h"
 #include "Daemon.h"
+#include "FindCountry.h"
 
 namespace OpenWifi {
 
@@ -83,6 +84,8 @@ namespace OpenWifi {
 			SS->completeHandshake();
 
 			CId_ = Utils::FormatIPv6(SS->peerAddress().toString());
+
+			FindCountryFromIP::instance()->Get(SS->peerAddress().host());
 
 			if (!SS->secure()) {
 				Logger_.error(Poco::format("%s: Connection is NOT secure.", CId_));

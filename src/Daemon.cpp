@@ -24,6 +24,7 @@
 #include "WebSocketServer.h"
 #include "framework/ConfigurationValidator.h"
 #include "framework/MicroService.h"
+#include "FindCountry.h"
 
 namespace OpenWifi {
 	class Daemon *Daemon::instance() {
@@ -36,6 +37,7 @@ namespace OpenWifi {
 									   StorageService(),
 									   SerialNumberCache(),
 									   ConfigurationValidator(),
+								   		FindCountryFromIP(),
 									   DeviceRegistry(),
 									   WebSocketServer(),
 									   CommandManager(),
