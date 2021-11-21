@@ -25,12 +25,24 @@ namespace OpenWifi {
 		inline void Stop() final {
 		}
 
+		[[nodiscard]] inline std::string ReformatAddress(const std::string & I )
+		{
+			if(I.substr(0,8) == "[::ffff:")
+			{
+				unsigned long PClosingBracket = I.find_first_of(']');
+
+				std::string ip = I.substr(8, PClosingBracket-8);
+				return ip;
+			}
+			return I;
+		}
+
 		inline std::string Get(const Poco::Net::IPAddress & IP) {
 			if(Token_.empty())
 				return "";
 
 			try {
-				std::string URL = "https://ipinfo.io/" + IP.toString() + "?token=" + Token_;
+				std::string URL = "https://ipinfo.io/" + ReformatAddress(IP.toString()) + "?token=" + Token_;
 				std::cout << "URL: " << URL << std::endl;
 				std::string Response;
 				if (Utils::wgets(URL, Response)) {
