@@ -376,8 +376,6 @@ namespace OpenWifi {
 						StatsProcessor_->Initialize(Serial);
 						LookForUpgrade(UUID);
 
-
-
 						if(KafkaManager()->Enabled()) {
 							Poco::JSON::Stringifier		Stringify;
 							ParamsObj->set(uCentralProtocol::CONNECTIONIP,CId_);

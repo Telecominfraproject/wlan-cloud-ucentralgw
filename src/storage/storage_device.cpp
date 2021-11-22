@@ -462,6 +462,14 @@ namespace OpenWifi {
 			}
 
 			SerialNumberCache()->DeleteSerialNumber(SerialNumber);
+
+			if(KafkaManager()->Enabled()) {
+				nlohmann::json 	Message;
+				Message["command"] = "delete_device";
+				Message["payload"]["serialNumber"] = SerialNumber;
+				KafkaManager()->PostMessage(KafkaTopics::COMMAND, SerialNumber, to_string(Message));
+			}
+
 			return true;
 		}
 		catch (const Poco::Exception &E) {
