@@ -16,61 +16,26 @@
 namespace OpenWifi {
 
 	bool Storage::UpdateDeviceCapabilities(std::string &SerialNumber, std::string & Capabilities, std::string & Compat) {
-		// std::lock_guard<std::mutex> guard(Mutex_);
-
 		try {
-			std::string SS;
-
 			Poco::Data::Session     Sess = Pool_->get();
-			Poco::Data::Statement   Select(Sess);
+			Poco::Data::Statement   UpSert(Sess);
 
 			uint64_t Now = std::time(nullptr);
-
 			OpenWifi::Config::Capabilities	Caps(Capabilities);
-
 			Compat = Caps.Compatible();
 			if(!Caps.Compatible().empty() && !Caps.Platform().empty())
 				CapabilitiesCache::instance()->Add(Caps.Compatible(),Caps.Platform());
 
-			std::string St{"SELECT SerialNumber FROM Capabilities WHERE SerialNumber=?"};
-			Select << ConvertParams(St),
-				Poco::Data::Keywords::into(SS),
-				Poco::Data::Keywords::use(SerialNumber);
-			Select.execute();
-
-			{
-				std::lock_guard	G(Mutex_);
-				CapsCache_[Compat] = Capabilities;
-			}
-
-			if (SS.empty()) {
-				Logger_.information("Adding capabilities for " + SerialNumber);
-				Poco::Data::Statement   Insert(Sess);
-
-				std::string St2{"INSERT INTO Capabilities (SerialNumber, Capabilities, FirstUpdate, LastUpdate) "
-								"VALUES(?,?,?,?)"};
-
-				Insert  << ConvertParams(St2),
-					Poco::Data::Keywords::use(SerialNumber),
-					Poco::Data::Keywords::use(Capabilities),
-					Poco::Data::Keywords::use(Now),
-					Poco::Data::Keywords::use(Now);
-				Insert.execute();
-
-			} else {
-				Logger_.information("Updating capabilities for " + SerialNumber);
-				Poco::Data::Statement   Update(Sess);
-
-				std::string St2{"UPDATE Capabilities SET Capabilities=?, LastUpdate=? WHERE SerialNumber=?"};
-
-				Update  << 	ConvertParams(St2),
-					Poco::Data::Keywords::use(Capabilities),
-					Poco::Data::Keywords::use(Now),
-					Poco::Data::Keywords::use(SerialNumber);
-				Update.execute();
-			}
-
-			Storage::SetDeviceCompatibility(SerialNumber, Compat);
+			std::string St{"insert into Capabilities (SerialNumber, Capabilities, FirstUpdate, LastUpdate) values(?,?,?,?) on conflict (SerialNumber) do "
+						   " update set Capabilties=?, LastUpdate=?"};
+			UpSert << ConvertParams(St),
+				Poco::Data::Keywords::use(SerialNumber),
+				Poco::Data::Keywords::use(Capabilities),
+				Poco::Data::Keywords::use(Now),
+				Poco::Data::Keywords::use(Now),
+				Poco::Data::Keywords::use(Capabilities),
+				Poco::Data::Keywords::use(Now);
+			UpSert.execute();
 			return true;
 		}
 		catch (const Poco::Exception &E) {
@@ -80,8 +45,6 @@ namespace OpenWifi {
 	}
 
 	bool Storage::GetDeviceCapabilities(std::string &SerialNumber, GWObjects::Capabilities &Caps) {
-		// std::lock_guard<std::mutex> guard(Mutex_);
-
 		try {
 			Poco::Data::Session     Sess = Pool_->get();
 			Poco::Data::Statement   Select(Sess);
@@ -110,8 +73,6 @@ namespace OpenWifi {
 	}
 
 	bool Storage::DeleteDeviceCapabilities(std::string &SerialNumber) {
-		// std::lock_guard<std::mutex> guard(Mutex_);
-
 		try {
 			Poco::Data::Session     Sess = Pool_->get();
 			Poco::Data::Statement   Delete(Sess);
