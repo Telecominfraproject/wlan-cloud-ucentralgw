@@ -27,7 +27,7 @@ namespace OpenWifi {
 				CapabilitiesCache::instance()->Add(Caps.Compatible(),Caps.Platform());
 
 			std::string St{"insert into Capabilities (SerialNumber, Capabilities, FirstUpdate, LastUpdate) values(?,?,?,?) on conflict (SerialNumber) do "
-						   " update set Capabilties=?, LastUpdate=?"};
+						   " update set Capabilities=?, LastUpdate=?"};
 			UpSert << ConvertParams(St),
 				Poco::Data::Keywords::use(SerialNumber),
 				Poco::Data::Keywords::use(Capabilities),
