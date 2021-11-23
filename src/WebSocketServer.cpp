@@ -365,17 +365,18 @@ namespace OpenWifi {
 
 						if (Daemon()->AutoProvisioning() && !SerialNumberCache()->NumberExists(SerialNumber_)) {
 							StorageService()->CreateDefaultDevice(SerialNumber_, Capabilities, Firmware, Compatible_, PeerAddress_);
+							Conn_->Conn_.Compatible = Compatible_;
 						} else if (SerialNumberCache()->NumberExists(SerialNumber_)) {
 							StorageService()->UpdateDeviceCapabilities(SerialNumber_, Capabilities, Compatible_);
+							Conn_->Conn_.Compatible = Compatible_;
 							if(!Firmware.empty()) {
 								StorageService()->SetConnectInfo(SerialNumber_, Firmware );
 							}
+							LookForUpgrade(UUID);
 						}
 
-						Conn_->Conn_.Compatible = Compatible_;
 						StatsProcessor_ = std::make_unique<StateProcessor>(Conn_, Logger_);
 						StatsProcessor_->Initialize(Serial);
-						LookForUpgrade(UUID);
 
 						if(KafkaManager()->Enabled()) {
 							Poco::JSON::Stringifier		Stringify;
