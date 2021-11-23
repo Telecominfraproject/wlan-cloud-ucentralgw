@@ -15,6 +15,30 @@
 
 namespace OpenWifi {
 
+bool Storage::CreateDeviceCapabilities(std::string &SerialNumber, std::string &Capabilities) {
+	try {
+		Poco::Data::Session     Sess = Pool_->get();
+		Poco::Data::Statement   UpSert(Sess);
+
+		uint64_t Now = std::time(nullptr);
+		std::string St{	"insert into Capabilities (SerialNumber, Capabilities, FirstUpdate, LastUpdate) values(?,?,?,?) on conflict (SerialNumber) do "
+						   	" update set Capabilities=?, LastUpdate=?"};
+		UpSert << ConvertParams(St),
+			Poco::Data::Keywords::use(SerialNumber),
+			Poco::Data::Keywords::use(Capabilities),
+			Poco::Data::Keywords::use(Now),
+			Poco::Data::Keywords::use(Now),
+			Poco::Data::Keywords::use(Capabilities),
+			Poco::Data::Keywords::use(Now);
+		UpSert.execute();
+		return true;
+	}
+	catch (const Poco::Exception &E) {
+		Logger_.warning(Poco::format("%s: Failed with: %s", std::string(__func__), E.displayText()));
+	}
+	return false;
+}
+
 	bool Storage::UpdateDeviceCapabilities(std::string &SerialNumber, std::string & Capabilities, std::string & Compat) {
 		try {
 			Poco::Data::Session     Sess = Pool_->get();

@@ -277,7 +277,7 @@ namespace OpenWifi {
 	}
 
 
-	bool Storage::CreateDefaultDevice(const std::string &SerialNumber, const std::string &Capabilities, std::string & Firmware, std::string &Compat, const Poco::Net::IPAddress & IPAddress) {
+	bool Storage::CreateDefaultDevice(std::string &SerialNumber, std::string &Capabilities, std::string & Firmware, std::string &Compat, const Poco::Net::IPAddress & IPAddress) {
 		GWObjects::Device D;
 
 		Logger_.information(Poco::format("AUTO-CREATION(%s)", SerialNumber));
@@ -299,10 +299,8 @@ namespace OpenWifi {
 			D.Configuration = NewConfig.get();
 		}
 
-		InsertRadiosCountyRegulation(D.Configuration, IPAddress);
-
 		//	We need to insert the country code according to the IP in the radios section...
-
+		InsertRadiosCountyRegulation(D.Configuration, IPAddress);
 
 		D.SerialNumber = Poco::toLower(SerialNumber);
 		Compat = D.Compatible = Caps.Compatible();
@@ -311,6 +309,8 @@ namespace OpenWifi {
 		D.Manufacturer = Caps.Model();
 		D.Firmware = Firmware;
 		D.Notes = SecurityObjects::NoteInfoVec { SecurityObjects::NoteInfo{ (uint64_t)std::time(nullptr), "", "Auto-provisioned."}};
+
+		CreateDeviceCapabilities(SerialNumber, Capabilities);
 
 		return CreateDevice(D);
 	}

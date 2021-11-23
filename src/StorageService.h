@@ -51,7 +51,7 @@ namespace OpenWifi {
 		bool UpdateDeviceConfiguration(std::string &SerialNumber, std::string &Configuration, uint64_t & NewUUID );
 
 		bool CreateDevice(GWObjects::Device &);
-		bool CreateDefaultDevice(const std::string & SerialNumber, const std::string & Capabilities, std::string & Firmware, std::string &Compatible,const Poco::Net::IPAddress & IPAddress);
+		bool CreateDefaultDevice(std::string & SerialNumber, std::string & Capabilities, std::string & Firmware, std::string &Compatible,const Poco::Net::IPAddress & IPAddress);
 
 		bool GetDevice(std::string &SerialNumber, GWObjects::Device &);
 		bool GetDevices(uint64_t From, uint64_t HowMany, std::vector<GWObjects::Device> &Devices);
@@ -76,6 +76,7 @@ namespace OpenWifi {
 		bool UpdateDeviceCapabilities(std::string &SerialNumber, std::string &State, std::string & Compatible);
 		bool GetDeviceCapabilities(std::string &SerialNumber, GWObjects::Capabilities &);
 		bool DeleteDeviceCapabilities(std::string & SerialNumber);
+		bool CreateDeviceCapabilities(std::string & SerialNumber, std::string & Capabilities);
 		bool InitCapabilitiesCache();
 
 		bool GetLogData(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate, uint64_t Offset, uint64_t HowMany,
