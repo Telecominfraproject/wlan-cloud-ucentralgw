@@ -8,6 +8,7 @@
 
 #include "RESTObjects/RESTAPI_GWobjects.h"
 #include "StorageService.h"
+#include "Poco/Data/RecordSet.h"
 
 namespace OpenWifi {
 
@@ -54,6 +55,31 @@ namespace OpenWifi {
 		R.set<3>(D.author);
 	}
 
+	static std::set<std::string>	BlackListDevices;
+
+	bool Storage::InitializeBlackListCache() {
+		try {
+			Poco::Data::Session Sess = Pool_->get();
+			Poco::Data::Statement Select(Sess);
+
+			Select << "SELECT SerialNumber FROM BlackList";
+			Select.execute();
+
+			Poco::Data::RecordSet   RSet(Select);
+
+			bool More = RSet.moveFirst();
+			while(More) {
+				auto SerialNumber = RSet[0].convert<std::string>();
+				BlackListDevices.insert(SerialNumber);
+				More = RSet.moveNext();
+			}
+			return true;
+		} catch(const Poco::Exception &E) {
+			Logger_.warning(Poco::format("%s: Failed with: %s", std::string(__func__), E.displayText()));
+		}
+		return false;
+	}
+
 	bool Storage::AddBlackListDevice(GWObjects::BlackListedDevice &  Device) {
 		try {
 			Poco::Data::Session Sess = Pool_->get();
@@ -66,8 +92,11 @@ namespace OpenWifi {
 			Insert << ConvertParams(St),
 				Poco::Data::Keywords::use(T);
 			Insert.execute();
-			return true;
 
+			std::lock_guard	G(Mutex_);
+			BlackListDevices.insert(Device.serialNumber);
+
+			return true;
 		} catch (const Poco::Exception &E) {
 			Logger_.warning(Poco::format("%s: Failed with: %s", std::string(__func__), E.displayText()));
 		}
@@ -98,6 +127,8 @@ namespace OpenWifi {
 				Poco::Data::Keywords::use(SerialNumber);
 			Delete.execute();
 
+			std::lock_guard	G(Mutex_);
+			BlackListDevices.erase(SerialNumber);
 			return true;
 		} catch (const Poco::Exception &E) {
 			Logger_.warning(Poco::format("%s: Failed with: %s", std::string(__func__), E.displayText()));
@@ -176,43 +207,12 @@ namespace OpenWifi {
 	}
 
 	uint64_t Storage::GetBlackListDeviceCount() {
-		try {
-			Poco::Data::Session Sess = Pool_->get();
-			Poco::Data::Statement Select(Sess);
-
-			std::string St{"SELECT Count(*) FROM BlackList"};
-			uint64_t Count = 0 ;
-
-			Select << ConvertParams(St),
-			Poco::Data::Keywords::into(Count);
-
-			Select.execute();
-			return Count;
-		} catch (const Poco::Exception &E) {
-			Logger_.warning(Poco::format("%s: Failed with: %s", std::string(__func__), E.displayText()));
-		}
-		return 0;
+		std::lock_guard	G(Mutex_);
+		return BlackListDevices.size();
 	}
 
 	bool Storage::IsBlackListed(std::string &SerialNumber) {
-		try {
-			Poco::Data::Session Sess = Pool_->get();
-			Poco::Data::Statement Select(Sess);
-
-			std::string TmpSerialNumber;
-
-			std::string St{"SELECT SerialNumber FROM BlackList WHERE SerialNumber=?"};
-			Poco::toLowerInPlace(SerialNumber);
-			Select << ConvertParams(St),
-				Poco::Data::Keywords::into(TmpSerialNumber),
-				Poco::Data::Keywords::use(SerialNumber);
-			Select.execute();
-
-			return !(Select.rowsExtracted()!=1);
-
-		} catch (const Poco::Exception &E) {
-			Logger_.warning(Poco::format("%s: Failed with: %s", std::string(__func__), E.displayText()));
-		}
-		return false;
+		std::lock_guard	G(Mutex_);
+		return BlackListDevices.find(SerialNumber) != BlackListDevices.end();
 	}
 }

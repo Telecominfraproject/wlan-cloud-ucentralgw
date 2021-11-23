@@ -16,6 +16,7 @@ namespace OpenWifi {
 
 		Create_Tables();
         InitCapabilitiesCache();
+        InitializeBlackListCache();
 
 		return 0;
     }

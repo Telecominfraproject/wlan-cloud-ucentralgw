@@ -116,6 +116,7 @@ namespace OpenWifi {
 		bool GetBlackListDevice(std::string & SerialNumber, GWObjects::BlackListedDevice & Device);
 		bool DeleteBlackListDevice(std::string & SerialNumber);
 		bool IsBlackListed(std::string & SerialNumber);
+		bool InitializeBlackListCache();
 		bool GetBlackListDevices(uint64_t Offset, uint64_t HowMany, std::vector<GWObjects::BlackListedDevice> & Devices );
 		bool UpdateBlackListDevice(std::string & SerialNumber, GWObjects::BlackListedDevice & Device);
 		uint64_t GetBlackListDeviceCount();
