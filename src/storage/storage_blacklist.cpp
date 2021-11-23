@@ -56,6 +56,7 @@ namespace OpenWifi {
 	}
 
 	static std::set<std::string>	BlackListDevices;
+	static std::mutex				BlackListMutex;
 
 	bool Storage::InitializeBlackListCache() {
 		try {
@@ -93,7 +94,7 @@ namespace OpenWifi {
 				Poco::Data::Keywords::use(T);
 			Insert.execute();
 
-			std::lock_guard	G(Mutex_);
+			std::lock_guard	G(BlackListMutex);
 			BlackListDevices.insert(Device.serialNumber);
 
 			return true;
@@ -127,7 +128,7 @@ namespace OpenWifi {
 				Poco::Data::Keywords::use(SerialNumber);
 			Delete.execute();
 
-			std::lock_guard	G(Mutex_);
+			std::lock_guard	G(BlackListMutex);
 			BlackListDevices.erase(SerialNumber);
 			return true;
 		} catch (const Poco::Exception &E) {
@@ -207,12 +208,12 @@ namespace OpenWifi {
 	}
 
 	uint64_t Storage::GetBlackListDeviceCount() {
-		std::lock_guard	G(Mutex_);
+		std::lock_guard	G(BlackListMutex);
 		return BlackListDevices.size();
 	}
 
 	bool Storage::IsBlackListed(std::string &SerialNumber) {
-		std::lock_guard	G(Mutex_);
+		std::lock_guard	G(BlackListMutex);
 		return BlackListDevices.find(SerialNumber) != BlackListDevices.end();
 	}
 }
