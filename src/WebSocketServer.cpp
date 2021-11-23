@@ -26,6 +26,7 @@
 #include "framework/MicroService.h"
 #include "Daemon.h"
 #include "FindCountry.h"
+#include "SerialNumberCache.h"
 
 namespace OpenWifi {
 
@@ -362,9 +363,9 @@ namespace OpenWifi {
 						}
 						Conn_->Conn_.VerifiedCertificate = CertValidation_;
 
-						if (Daemon()->AutoProvisioning() && !StorageService()->DeviceExists(SerialNumber_)) {
+						if (Daemon()->AutoProvisioning() && !SerialNumberCache()->NumberExists(SerialNumber_)) {
 							StorageService()->CreateDefaultDevice(SerialNumber_, Capabilities, Firmware, Compatible_, PeerAddress_);
-						} else if (StorageService()->DeviceExists(SerialNumber_)) {
+						} else if (SerialNumberCache()->NumberExists(SerialNumber_)) {
 							StorageService()->UpdateDeviceCapabilities(SerialNumber_, Capabilities, Compatible_);
 							if(!Firmware.empty()) {
 								StorageService()->SetConnectInfo(SerialNumber_, Firmware );
