@@ -10,7 +10,7 @@ namespace OpenWifi {
 		int DSport = MicroService::instance().ConfigGetInt("srtty.device.port", 5912);
 		int CSport = MicroService::instance().ConfigGetInt("srtty.client.port",5913);
 		RTTY_UIAssets_ = MicroService::instance().ConfigPath("srtty.assets", "$OWGW_ROOT/rtty_ui");
-		RTTY_UIuri_ = MicroService::instance().ConfigPath("srtty.ui");
+		RTTY_UIuri_ = MicroService::instance().ConfigGetString("srtty.ui");
 
 		UI_ = RTTY_UIuri_ + ":" + std::to_string(CSport);
 
