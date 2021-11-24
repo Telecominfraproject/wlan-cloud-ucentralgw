@@ -69,6 +69,16 @@ namespace OpenWifi {
 			Path = RTTYS_server()->UIAssets() + Path;
 		}
 
+		Poco::File	F(Path);
+
+		std::cout << "Path:" << Path << std::endl;
+
+		if(!F.exists()) {
+			Path = RTTYS_server()->UIAssets() + "/index.html";
+			response.sendFile(Path,"text/html");
+			return;
+		}
+
 		std::cout << "Path:" << Path << std::endl;
 
 		Poco::Path P(Path);
