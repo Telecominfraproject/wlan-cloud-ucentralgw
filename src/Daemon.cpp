@@ -25,6 +25,7 @@
 #include "framework/ConfigurationValidator.h"
 #include "framework/MicroService.h"
 #include "FindCountry.h"
+#include "rttys/RTTYS_server.h"
 
 namespace OpenWifi {
 	class Daemon *Daemon::instance() {
@@ -44,7 +45,8 @@ namespace OpenWifi {
 									   FileUploader(),
 									   OUIServer(),
 									   StorageArchiver(),
-									   TelemetryStream()
+									   TelemetryStream(),
+									   RTTYS_server()
 								   });
         return &instance;
 	}
