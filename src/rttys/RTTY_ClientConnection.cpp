@@ -37,15 +37,37 @@ namespace OpenWifi {
 		int flags;
 		auto n = WS_.receiveFrame(Buffer, sizeof(Buffer), flags);
 
-		std::cout << "Web Socket Received " << n << std::endl;
-		if (n == 0)
-			delete this;
-		auto Device = RTTYS_server()->GetDevice(Id_);
-		if(Device==nullptr) {
-			std::cout << "Cannot send data to device: " << Id_ << std::endl;
-			return;
+		auto Op = flags & Poco::Net::WebSocket::FRAME_OP_BITMASK;
+
+		switch(Op) {
+			case Poco::Net::WebSocket::FRAME_OP_PING: {
+					WS_.sendFrame("", 0,(int)Poco::Net::WebSocket::FRAME_OP_PONG | (int)Poco::Net::WebSocket::FRAME_FLAG_FIN);
+				}
+				break;
+			case Poco::Net::WebSocket::FRAME_OP_PONG: {
+				}
+				break;
+			case Poco::Net::WebSocket::FRAME_OP_TEXT: {
+					std::cout << "Web Socket Received " << n << std::endl;
+					if (n == 0)
+						delete this;
+					auto Device = RTTYS_server()->GetDevice(Id_);
+					if(Device==nullptr) {
+						std::cout << "Cannot send data to device: " << Id_ << std::endl;
+						return;
+					}
+					Device->SendToDevice((u_char *)&Buffer[0],n);
+				}
+				break;
+			case Poco::Net::WebSocket::FRAME_OP_CLOSE: {
+				}
+				break;
+
+			default:
+			{
+
+			}
 		}
-		Device->SendToDevice((u_char *)&Buffer[0],n);
 	}
 
 	void RTTY_ClientConnection::SendData( const u_char *Buf, int len ) {
