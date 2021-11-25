@@ -26,8 +26,8 @@ namespace OpenWifi {
 		nlohmann::json doc;
 		doc["type"] = "login";
 		doc["err"] = 0;
-		std::ostream &answer = response.send();
-		answer << to_string(doc);
+		auto msg = to_string(doc);
+		ws.sendFrame(msg.c_str(),msg.length());
 		new RTTY_ClientConnection(ws, T[2], R_);
 	};
 
