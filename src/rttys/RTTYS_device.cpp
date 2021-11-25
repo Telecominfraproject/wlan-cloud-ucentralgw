@@ -127,7 +127,7 @@ namespace OpenWifi {
 
 				switch(msg) {
 					case msgTypeRegister: {
-						// PrintBuf(&inBuf_[1],len);
+						PrintBuf(&inBuf_[0],len);
 						proto_ = inBuf_[0];
 						int pos=3;
 						id_ = SafeCopy(&inBuf_[0],MsgLen,pos);
