@@ -28,10 +28,7 @@ namespace OpenWifi {
 
 	std::string RTTY_Device_ConnectionHandler::SafeCopy( const u_char * buf, int MaxSize, int & NewPos) {
 		std::string     S;
-		std::cout << __LINE__ << std::endl;
-
 		while(NewPos<MaxSize && buf[NewPos]!=0) {
-			// std::cout << __LINE__ << std::endl;
 			S += buf[NewPos++];
 		}
 
