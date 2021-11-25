@@ -30,8 +30,11 @@ namespace OpenWifi {
 		try {
 			std::ifstream 	F(FileName, std::ifstream::binary);
 			if(F) {
-				unsigned buf[4];
+				unsigned buf[4]{0};
 				F.read((char*)&buf[0],sizeof(buf));
+
+				std::cout << "[0]: " << (int) buf[0] << "  [1]: " << (int) buf[1] << std::endl;
+
 				return buf[0]==0x1f && buf[1]==0x8b;
 			}
 		} catch (...) {
