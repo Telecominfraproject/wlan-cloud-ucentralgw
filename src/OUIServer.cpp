@@ -20,7 +20,6 @@
 namespace OpenWifi {
 
 	int OUIServer::Start() {
-		Running_=true;
 		UpdaterThread_.start(*this);
 		return 0;
 	}
@@ -50,7 +49,6 @@ namespace OpenWifi {
 			Poco::StreamCopier::copyStream(*pStr, OS);
 			OS.close();
 			return true;
-
 		} catch (const Poco::Exception &E) {
 			Logger_.log(E);
 		}
@@ -63,6 +61,8 @@ namespace OpenWifi {
 			Input.open(FileName, std::ios::binary);
 
 			while (!Input.eof()) {
+				if(!Running_)
+					return false;
 				char buf[256];
 				Input.getline(buf, sizeof(buf));
 				std::string Line{buf};
@@ -106,6 +106,7 @@ namespace OpenWifi {
 	}
 
 	void OUIServer::UpdateImpl() {
+
 		if(Updating_)
 			return;
 		Updating_ = true;
