@@ -99,12 +99,12 @@ namespace OpenWifi {
 	}
 
 	bool RTTY_Device_ConnectionHandler::InitializeConnection( std::string & sid ) {
-		sid = MicroService::instance().CreateHash(id_);
+		sid = MicroService::instance().CreateHash(id_).substr(0,32);
 		std::cout << "SID Size: " << sid.length() << std::endl;
 		char buf[64];
 		buf[0] = msgTypeLogin;
 		buf[1] = 0;
-		buf[2] = sid.length();
+		buf[2] = 32;
 		strcpy(&buf[3],sid.c_str());
 		socket_.sendBytes(&buf[0],sid.length()+3);
 		return true;
