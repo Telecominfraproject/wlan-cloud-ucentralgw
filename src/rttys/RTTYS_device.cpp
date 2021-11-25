@@ -153,7 +153,7 @@ namespace OpenWifi {
 
 					case msgTypeTermData: {
 						if(MsgLen<32) {
-							std::cout << " device - bad data msg len" << std::endl;
+							std::cout << " device - bad data msg len: " << MsgLen << std::endl;
 							return;
 						}
 						std::cout << "msgTypeTermData" << std::endl;
