@@ -84,6 +84,7 @@ namespace OpenWifi {
 			std::strcpy((char*)&outBuf[3+sid_.size()],S.c_str());
 			total_len = 3 + sid_.size() + S.size() + 1;
 		}
+		PrintBuf(&outBuf[0],total_len);
 		return socket_.sendBytes(&outBuf[0],total_len) == total_len;
 	}
 
@@ -141,7 +142,7 @@ namespace OpenWifi {
 		buf[36] = 0 ;
 		std::cout << "Initialize device SID" << std::endl;
 		PrintBuf(&buf[0],37);
-		socket_.sendBytes(&buf[0],sid.length()+3+1);
+		socket_.sendBytes(&buf[0],3 + sid.length() + 1 );
 		return true;
 	}
 
