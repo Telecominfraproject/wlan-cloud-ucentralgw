@@ -64,7 +64,7 @@ namespace OpenWifi {
 					response.send();
 					return;
 				} else if (ParsedPath[1] == "authorized") {
-					std::cout << "authorized..." << std::endl;
+					std::cout << "authorized...prep" << std::endl;
 					nlohmann::json doc;
 					doc["authorized"] = true;
 					response.set("Access-Control-Allow-Origin", "*");
@@ -73,6 +73,7 @@ namespace OpenWifi {
 					response.setContentType("application/json");
 					std::ostream &answer = response.send();
 					answer << to_string(doc);
+					std::cout << "authorized...sent" << std::endl;
 					return;
 				} else if (ParsedPath[1] == "fontsize") {
 					std::cout << "fontsize..." << std::endl;
