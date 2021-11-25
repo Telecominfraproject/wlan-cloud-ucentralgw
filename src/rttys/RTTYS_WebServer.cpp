@@ -72,8 +72,6 @@ namespace OpenWifi {
 
 		Poco::File	F(Path);
 
-		std::cout << "Path:" << Path << std::endl;
-
 		if(!F.exists()) {
 			response.set("Access-Control-Allow-Origin", "*");
 			response.set("Access-Control-Allow-Headers", "*");
@@ -83,9 +81,7 @@ namespace OpenWifi {
 			response.sendFile(Path,"text/html");
 			return;
 		}
-
 		std::cout << "Path:" << Path << std::endl;
-
 		Poco::Path P(Path);
 		auto Ext = P.getExtension();
 
@@ -93,15 +89,15 @@ namespace OpenWifi {
 		if (Ext == "html")
 			Type = "text/html; charset=utf-8";
 		else if (Ext == "js")
-			Type = "application/javascript";
+			Type = "text/javascript; charset=utf-8";
 		else if (Ext == "css")
-			Type = "text/css";
+			Type = "text/css; charset=utf-8";
 		else if (Ext == "ico")
 			Type = "image/x-icon";
 		else if (Ext == "woff")
 			Type = "font/woff";
 		else if (Ext == "woff2")
-			Type = "font/woffs";
+			Type = "font/woff2";
 		else if (Ext == "ttf")
 			Type = "font/ttf";
 
