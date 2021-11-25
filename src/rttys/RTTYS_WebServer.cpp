@@ -50,6 +50,8 @@ namespace OpenWifi {
 					   Poco::Net::HTTPServerResponse &response) {
 		Poco::URI uri(request.getURI());
 
+		std::cout << "New request..." << std::endl;
+
 		auto Path = uri.getPath();
 
 		if (Path == "/") {
@@ -142,8 +144,10 @@ namespace OpenWifi {
 	RTTY_Client_RequestHandlerFactory::createRequestHandler(const Poco::Net::HTTPServerRequest &request) {
 		if (request.find("Upgrade") != request.end() &&
 		Poco::icompare(request["Upgrade"], "websocket") == 0) {
+			std::cout << "New WS request..." << std::endl;
 			return new RTTY_Client_WebSocketRequestHandler(Reactor_);
 		} else {
+			std::cout << "New HTTP request..." << std::endl;
 			return new PageRequestHandler;
 		}
 	}
