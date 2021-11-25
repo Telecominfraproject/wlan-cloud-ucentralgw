@@ -110,17 +110,24 @@ namespace OpenWifi {
 	}
 
 	void RTTY_Device_ConnectionHandler::SendToDevice(const u_char *buf, int len) {
-		u_char sendBuf[8192];
 		if(buf[0]==0) {
+			u_char sendBuf[8192];
+			auto total_len = 0 ;
 			sendBuf[0] = msgTypeTermData;
 			sendBuf[1] = len >> 8;
 			sendBuf[2] = len & 0x00ff;
-			std::memcpy(&sendBuf[3], sid_.c_str(), sid_.size());
-			memcpy(&sendBuf[3+sid_.size()], &buf[1], len-1);
-			int bsize = 3 + sid_.size() + len - 1 ;
-			socket_.sendBytes(&sendBuf[0], bsize );
-			std::cout << "Sending to device" << std::endl;
-			PrintBuf(&sendBuf[0], bsize);
+			if(sid_.empty()) {
+				sendBuf[3] = 0 ;
+				memcpy( &sendBuf[4] , &buf[1], len-1);
+				total_len = 3 + 1 + len - 1 ;
+			} else {
+				std::memcpy(&sendBuf[3], sid_.c_str(), sid_.size());
+				memcpy(&sendBuf[3 + sid_.size()], &buf[1], len - 1);
+				total_len = 3 + sid_.size() + len -1 ;
+			}
+			socket_.sendBytes(&sendBuf[0], total_len );
+			std::cout << "Sending to device: " << total_len << std::endl;
+			PrintBuf(&sendBuf[0], total_len);
 		}
 	}
 
