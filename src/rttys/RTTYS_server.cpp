@@ -30,7 +30,12 @@ namespace OpenWifi {
 		DeviceReactorThread_.start(DeviceReactor_);
 		ClientReactorThread_.start(ClientReactor_);
 
-		WebServer_ = std::make_unique<Poco::Net::HTTPServer>(new RTTY_Client_RequestHandlerFactory(ClientReactor_), ClientSocket, new Poco::Net::HTTPServerParams);
+		auto HttpParams = new Poco::Net::HTTPServerParams;
+		HttpParams->setMaxThreads(50);
+		HttpParams->setMaxQueued(200);
+		HttpParams->setKeepAlive(true);
+
+		WebServer_ = std::make_unique<Poco::Net::HTTPServer>(new RTTY_Client_RequestHandlerFactory(ClientReactor_), ClientSocket, HttpParams);
 		WebServer_->start();
 
 		return 0;
