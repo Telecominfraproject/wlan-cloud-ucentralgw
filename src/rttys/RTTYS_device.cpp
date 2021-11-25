@@ -137,7 +137,7 @@ namespace OpenWifi {
 					case msgTypeLogin: {
 						std::cout << "msgTypeLogin" << std::endl;
 						if(MsgLen<33) {
-							std::cout << "Illegal login..." << std::endl;
+							std::cout << "Illegal login...len: " << MsgLen << std::endl;
 						}
 						memcpy(&sid_[0],&inBuf_[1],32);
 						sid_[32] = 0 ;
