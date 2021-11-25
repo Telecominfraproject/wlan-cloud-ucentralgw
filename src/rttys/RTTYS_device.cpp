@@ -90,8 +90,8 @@ namespace OpenWifi {
 			sendBuf[1] = len >> 8;
 			sendBuf[2] = len & 0x00ff;
 			sendBuf[3] = 0; // no SID
-			memcpy(&sendBuf[4], &buf[0], len);
-			int bsize = 4 + len ;
+			memcpy(&sendBuf[4], &buf[1], len-1);
+			int bsize = 4 + len - 1 ;
 			socket_.sendBytes(&sendBuf[0], bsize );
 			std::cout << "Sending to device" << std::endl;
 			PrintBuf(&sendBuf[0], bsize);
