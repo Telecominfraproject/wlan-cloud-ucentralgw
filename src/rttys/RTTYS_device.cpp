@@ -50,20 +50,19 @@ namespace OpenWifi {
 	int RTTY_Device_ConnectionHandler::SendMessage(RTTY_MSG_TYPE Type, const u_char * Buf, int len) {
 		u_char outBuf[ 8192 ];
 		outBuf[0] = Type;
-		std::memcpy(&outBuf[3], Buf, len);
 		outBuf[1] = (len >> 8);
 		outBuf[2] = (len & 0x00ff);
+		std::memcpy(&outBuf[3], Buf, len);
 		return socket_.sendBytes(&outBuf[0],len+3) == len+3;
 	}
 
 	int RTTY_Device_ConnectionHandler::SendMessage(RTTY_MSG_TYPE Type, std::string &S ) {
 		u_char outBuf[ 8192 ];
+		auto len = S.size() + 1;
 		outBuf[0] = Type;
-		auto len = S.size();
-		std::memcpy(&outBuf[3], S.c_str(), len);
-		len++;
 		outBuf[1] = (len >> 8);
 		outBuf[2] = (len & 0x00ff);
+		std::memcpy(&outBuf[3], S.c_str(), len);
 		outBuf[len+3] = 0 ;
 		return socket_.sendBytes(&outBuf[0],len+3) == len+3;
 	}
@@ -106,99 +105,100 @@ namespace OpenWifi {
 				int MsgLen = (int) inBuf_[1] * 256 + (int) inBuf_[2];
 
 				switch(msg) {
-				case msgTypeRegister: {
-					PrintBuf(&inBuf_[1],len);
-					proto_ = inBuf_[0];
-					int pos=3;
-					id_ = SafeCopy(&inBuf_[0],MsgLen,pos);
-					desc_ = SafeCopy(&inBuf_[0],MsgLen,pos);
-					token_ = SafeCopy(&inBuf_[0],MsgLen,pos);
-					std::cout << "msgTypeRegister: id: " << id_ << "  desc: " << desc_ << "  token: " << token_ << std::endl;
-					u_char  outBuf[7];
-					outBuf[0] = 0;
-					outBuf[1] = 'O' ;
-					outBuf[2] = 'K' ;
-					outBuf[3] = 0;
-					SendMessage(msgTypeRegister, &outBuf[0], 4);
-					RTTYS_server()->Register(id_,this);
-				}
-				break;
-
-				case msgTypeLogin: {
-					std::cout << "msgTypeLogin" << std::endl;
-					if(MsgLen<33) {
-						std::cout << "Illegal login..." << std::endl;
+					case msgTypeRegister: {
+						PrintBuf(&inBuf_[1],len);
+						proto_ = inBuf_[0];
+						int pos=3;
+						id_ = SafeCopy(&inBuf_[0],MsgLen,pos);
+						desc_ = SafeCopy(&inBuf_[0],MsgLen,pos);
+						token_ = SafeCopy(&inBuf_[0],MsgLen,pos);
+						std::cout << "msgTypeRegister: id: " << id_ << "  desc: " << desc_ << "  token: " << token_ << std::endl;
+						u_char  outBuf[7];
+						outBuf[0] = 0;
+						outBuf[1] = 'O' ;
+						outBuf[2] = 'K' ;
+						outBuf[3] = 0;
+						SendMessage(msgTypeRegister, &outBuf[0], 4);
+						RTTYS_server()->Register(id_,this);
 					}
-					memcpy(&sid_[0],&inBuf_[1],32);
-					sid_[32] = 0 ;
-					sid_code_ = inBuf_[32];
-				}
-				break;
+					break;
 
-				case msgTypeLogout: {
-					std::cout << "msgTypeLogout" << std::endl;
-
-				}
-				break;
-
-				case msgTypeTermData: {
-					if(MsgLen<32) {
-						std::cout << " device - bad data msg len" << std::endl;
-						return;
+					case msgTypeLogin: {
+						std::cout << "msgTypeLogin" << std::endl;
+						if(MsgLen<33) {
+							std::cout << "Illegal login..." << std::endl;
+						}
+						memcpy(&sid_[0],&inBuf_[1],32);
+						sid_[32] = 0 ;
+						sid_code_ = inBuf_[32];
 					}
-					std::cout << "msgTypeTermData" << std::endl;
-					memcpy(&sid_[0],&inBuf_[1],32);
-					sid_[32] = 0 ;
-					SendToClient(&inBuf_[32+3],MsgLen-35);
+					break;
+
+					case msgTypeLogout: {
+						std::cout << "msgTypeLogout" << std::endl;
+
+					}
+					break;
+
+					case msgTypeTermData: {
+						if(MsgLen<32) {
+							std::cout << " device - bad data msg len" << std::endl;
+							return;
+						}
+						std::cout << "msgTypeTermData" << std::endl;
+						memcpy(&sid_[0],&inBuf_[1],32);
+						sid_[32] = 0 ;
+						SendToClient(&inBuf_[32+3],MsgLen-35);
+					}
+					break;
+
+					case msgTypeWinsize: {
+						std::cout << "msgTypeWinsize" << std::endl;
+
+					}
+					break;
+
+					case msgTypeCmd: {
+						std::cout << "msgTypeCmd" << std::endl;
+
+					}
+					break;
+
+					case msgTypeHeartbeat: {
+						std::cout << "msgTypeHeartbeat" << std::endl;
+						SendMessage(msgTypeHeartbeat);
+					}
+					break;
+
+					case msgTypeFile: {
+						std::cout << "msgTypeFile" << std::endl;
+
+					}
+					break;
+
+					case msgTypeHttp: {
+						std::cout << "msgTypeHttp" << std::endl;
+
+					}
+					break;
+
+					case msgTypeAck: {
+						std::cout << "msgTypeAck" << std::endl;
+
+					}
+					break;
+
+					case msgTypeMax: {
+						std::cout << "msgTypeMax" << std::endl;
+					}
+					break;
+					}
 				}
-				break;
-
-				case msgTypeWinsize: {
-					std::cout << "msgTypeWinsize" << std::endl;
-
+				else
+				{
+					std::cout << "Device " << id_ << " no data." << std::endl;
+	//				delete this;
 				}
-				break;
-
-				case msgTypeCmd: {
-					std::cout << "msgTypeCmd" << std::endl;
-
-				}
-				break;
-
-				case msgTypeHeartbeat: {
-					std::cout << "msgTypeHeartbeat" << std::endl;
-					SendMessage(msgTypeHeartbeat);
-				}
-				break;
-
-				case msgTypeFile: {
-					std::cout << "msgTypeFile" << std::endl;
-
-				}
-				break;
-
-				case msgTypeHttp: {
-					std::cout << "msgTypeHttp" << std::endl;
-
-				}
-				break;
-
-				case msgTypeAck: {
-					std::cout << "msgTypeAck" << std::endl;
-
-				}
-				break;
-
-				case msgTypeMax: {
-					std::cout << "msgTypeMax" << std::endl;
-				}
-				break;
-				}
-			}
-			else
-			{
-				delete this;
-			}
 		}
 		catch (Poco::Exception& exc)
 		{
@@ -219,6 +219,7 @@ namespace OpenWifi {
 
 	void RTTY_Device_ConnectionHandler::onSocketShutdown(const Poco::AutoPtr<Poco::Net::ShutdownNotification>& pNf)
 	{
+		std::cout << "Device " << id_ << " closing socket." << std::endl;
 		delete this;
 	}
 }
