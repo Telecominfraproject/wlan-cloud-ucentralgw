@@ -158,7 +158,7 @@ namespace OpenWifi {
 
 					case msgTypeTermData: {
 						std::cout << "msgTypeTermData: len" << MsgLen << std::endl;
-						PrintBuf(&inBuf_[0],MsgLen);
+						PrintBuf(&inBuf_[0],len);
 						SendToClient(&inBuf_[3],MsgLen);
 					}
 					break;
@@ -177,6 +177,7 @@ namespace OpenWifi {
 
 					case msgTypeHeartbeat: {
 						std::cout << "msgTypeHeartbeat" << std::endl;
+						PrintBuf(&inBuf_[0], len);
 						SendMessage(msgTypeHeartbeat);
 					}
 					break;
