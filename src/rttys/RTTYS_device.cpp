@@ -40,11 +40,13 @@ namespace OpenWifi {
 
 	void RTTY_Device_ConnectionHandler::PrintBuf(const u_char * buf, int size) {
 
+		std::cout << "======================================" << std::endl;
 		while(size) {
 			std::cout << std::hex << (int) *buf++ << " ";
 			size--;
 		}
 		std::cout << std::endl;
+		std::cout << "======================================" << std::endl;
 	}
 
 	int RTTY_Device_ConnectionHandler::SendMessage(RTTY_MSG_TYPE Type, const u_char * Buf, int len) {
@@ -117,7 +119,7 @@ namespace OpenWifi {
 
 				switch(msg) {
 					case msgTypeRegister: {
-						PrintBuf(&inBuf_[1],len);
+						// PrintBuf(&inBuf_[1],len);
 						proto_ = inBuf_[0];
 						int pos=3;
 						id_ = SafeCopy(&inBuf_[0],MsgLen,pos);
@@ -135,13 +137,8 @@ namespace OpenWifi {
 					break;
 
 					case msgTypeLogin: {
-						std::cout << "msgTypeLogin" << std::endl;
-						if(MsgLen<33) {
-							std::cout << "Illegal login...len: " << MsgLen << std::endl;
-						}
-						memcpy(&sid_[0],&inBuf_[1],32);
-						sid_[32] = 0 ;
-						sid_code_ = inBuf_[32];
+						std::cout << "msgTypeLogin: len" << MsgLen << std::endl;
+						sid_code_ = inBuf_[3];
 					}
 					break;
 
@@ -152,14 +149,9 @@ namespace OpenWifi {
 					break;
 
 					case msgTypeTermData: {
-						if(MsgLen<32) {
-							std::cout << " device - bad data msg len: " << MsgLen << std::endl;
-							return;
-						}
-						std::cout << "msgTypeTermData" << std::endl;
-						memcpy(&sid_[0],&inBuf_[1],32);
-						sid_[32] = 0 ;
-						SendToClient(&inBuf_[32+3],MsgLen-35);
+						std::cout << "msgTypeTermData: len" << MsgLen << std::endl;
+						PrintBuf(&inBuf_[3],MsgLen);
+						SendToClient(&inBuf_[3],MsgLen);
 					}
 					break;
 
