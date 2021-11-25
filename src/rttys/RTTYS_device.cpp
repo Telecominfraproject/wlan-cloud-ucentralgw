@@ -89,7 +89,7 @@ namespace OpenWifi {
 			sendBuf[0] = msgTypeTermData;
 			sendBuf[1] = len >> 8;
 			sendBuf[2] = len & 0x00ff;
-			sendBuf[3] = buf[1]; // no SID
+			sendBuf[3] = 0; // no SID
 			memcpy(&sendBuf[4], &buf[1], len-1);
 			int bsize = 4 + len - 1 ;
 			socket_.sendBytes(&sendBuf[0], bsize );
