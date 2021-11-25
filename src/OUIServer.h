@@ -8,7 +8,7 @@
 
 namespace OpenWifi {
 
-	class OUIServer : public SubSystemServer {
+	class OUIServer : public SubSystemServer, Poco::Runnable {
 	  public:
 
 		typedef std::map<uint64_t,std::string>	OUIMap;
@@ -20,6 +20,7 @@ namespace OpenWifi {
 
 		int Start() override;
 		void Stop() override;
+		void run() override;
 
 		void reinitialize(Poco::Util::Application &self) override;
 
@@ -33,6 +34,7 @@ namespace OpenWifi {
 		uint64_t 			LastUpdate_ = 0 ;
 		bool 				ValidFile_=false;
 		OUIMap 				OUIs_;
+		Poco::Thread		UpdaterThread_;
 		std::atomic_bool 	Updating_=false;
 		std::atomic_bool 	Running_=false;
 

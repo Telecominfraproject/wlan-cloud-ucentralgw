@@ -74,6 +74,10 @@ namespace OpenWifi {
 		std::cout << "Path:" << Path << std::endl;
 
 		if(!F.exists()) {
+			response.set("Access-Control-Allow-Origin", "*");
+			response.set("Access-Control-Allow-Headers", "*");
+			response.set("Access-Control-Max-Age", "86400");
+			response.setChunkedTransferEncoding(true);
 			Path = RTTYS_server()->UIAssets() + "/index.html";
 			response.sendFile(Path,"text/html");
 			return;

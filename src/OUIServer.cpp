@@ -21,20 +21,14 @@ namespace OpenWifi {
 
 	int OUIServer::Start() {
 		Running_=true;
-		std::thread Updater([this]() { this->UpdateImpl(); });
-		Updater.detach();
+		UpdaterThread_.start(*this);
 		return 0;
 	}
 
 	void OUIServer::Stop() {
 		Running_=false;
-	}
-
-	void OUIServer::Update() {
-		if(!Running_)
-			return;
-		std::thread Updater([this]() { this->UpdateImpl(); });
-		Updater.detach();
+		UpdaterThread_.wakeUp();
+		UpdaterThread_.join();
 	}
 
 	void OUIServer::reinitialize(Poco::Util::Application &self) {
@@ -95,6 +89,20 @@ namespace OpenWifi {
 			Logger_.log(E);
 		}
 		return false;
+	}
+
+	void OUIServer::run() {
+
+		Running_ = true;
+		while(Running_) {
+			Poco::Thread::trySleep(24 * 60 * 60 * 1000);
+
+			if(!Running_)
+				break;
+
+			UpdateImpl();
+
+		}
 	}
 
 	void OUIServer::UpdateImpl() {
