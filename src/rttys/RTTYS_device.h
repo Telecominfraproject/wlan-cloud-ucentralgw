@@ -57,7 +57,7 @@ class RTTY_Device_ConnectionHandler {
 	std::string                   id_;
 	std::string                   token_;
 	std::string                   desc_;
-	std::array<u_char,32>         sid_;
+	std::string			          sid_;
 	u_char                        sid_code_;
 	std::array<u_char,BUF_SIZE>   inBuf_;
 };

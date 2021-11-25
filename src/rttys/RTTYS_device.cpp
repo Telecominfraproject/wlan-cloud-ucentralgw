@@ -49,23 +49,25 @@ namespace OpenWifi {
 		std::cout << "======================================" << std::endl;
 	}
 
-	int RTTY_Device_ConnectionHandler::SendMessage(RTTY_MSG_TYPE Type, const u_char * Buf, int len) {
+	int RTTY_Device_ConnectionHandler::SendMessage(RTTY_MSG_TYPE Type, const u_char * Buf, int BufLen) {
+		auto len = BufLen + sid_.size();
 		u_char outBuf[ 8192 ];
 		outBuf[0] = Type;
 		outBuf[1] = (len >> 8);
 		outBuf[2] = (len & 0x00ff);
-		std::memcpy(&outBuf[3], Buf, len);
+		std::memcpy(&outBuf[3], sid_.c_str(), sid_.size());
+		std::memcpy(&outBuf[3+sid_.size()],Buf,BufLen);
 		return socket_.sendBytes(&outBuf[0],len+3) == len+3;
 	}
 
 	int RTTY_Device_ConnectionHandler::SendMessage(RTTY_MSG_TYPE Type, std::string &S ) {
 		u_char outBuf[ 8192 ];
-		auto len = S.size() + 1;
+		auto len = S.size() + sid_.size();
 		outBuf[0] = Type;
 		outBuf[1] = (len >> 8);
 		outBuf[2] = (len & 0x00ff);
-		std::memcpy(&outBuf[3], S.c_str(), len);
-		outBuf[len+3] = 0 ;
+		std::memcpy(&outBuf[3], sid_.c_str(), sid_.size());
+		std::memcpy(&outBuf[3+sid_.size()],S.c_str(),S.size());
 		return socket_.sendBytes(&outBuf[0],len+3) == len+3;
 	}
 
@@ -89,9 +91,9 @@ namespace OpenWifi {
 			sendBuf[0] = msgTypeTermData;
 			sendBuf[1] = len >> 8;
 			sendBuf[2] = len & 0x00ff;
-			sendBuf[3] = 0; // no SID
-			memcpy(&sendBuf[4], &buf[1], len-1);
-			int bsize = 4 + len - 1 ;
+			std::memcpy(&sendBuf[3], sid_.c_str(), sid_.size());
+			memcpy(&sendBuf[3+sid_.size()], &buf[1], len-1);
+			int bsize = 3 + sid_.size() + len - 1 ;
 			socket_.sendBytes(&sendBuf[0], bsize );
 			std::cout << "Sending to device" << std::endl;
 			PrintBuf(&sendBuf[0], bsize);
@@ -100,12 +102,13 @@ namespace OpenWifi {
 
 	bool RTTY_Device_ConnectionHandler::InitializeConnection( std::string & sid ) {
 		sid = MicroService::instance().CreateHash(id_).substr(0,32);
-		std::cout << "SID Size: " << sid.length() << std::endl;
-		char buf[64];
+		u_char buf[64];
 		buf[0] = msgTypeLogin;
 		buf[1] = 0;
 		buf[2] = 32;
-		strcpy(&buf[3],sid.c_str());
+		strncpy((char*)&buf[3],sid.c_str(),32);
+		std::cout << "Initialize device SID" << std::endl;
+		PrintBuf(&buf[0],35);
 		socket_.sendBytes(&buf[0],sid.length()+3);
 		return true;
 	}
@@ -133,12 +136,8 @@ namespace OpenWifi {
 						desc_ = SafeCopy(&inBuf_[0],MsgLen,pos);
 						token_ = SafeCopy(&inBuf_[0],MsgLen,pos);
 						std::cout << "msgTypeRegister: id: " << id_ << "  desc: " << desc_ << "  token: " << token_ << std::endl;
-						u_char  outBuf[7];
-						outBuf[0] = 0;
-						outBuf[1] = 'O' ;
-						outBuf[2] = 'K' ;
-						outBuf[3] = 0;
-						SendMessage(msgTypeRegister, &outBuf[0], 4);
+						std::string OK{"OK"};
+						SendMessage(msgTypeRegister, OK);
 						RTTYS_server()->Register(id_,this);
 					}
 					break;
