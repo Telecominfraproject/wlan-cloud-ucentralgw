@@ -80,4 +80,3 @@ jobs:
         repo: wlan-testing
         owner: Telecominfraproject
         inputs: '{"owgw_tag": "356e97b8565027cf63b3508b44f39f437dbde059", "owgwui_tag": "main", "owsec_tag": "main", "owfms_tag": "main", "owprov_tag": "main", "owprovui_tag": "main"}'
-        waiting_interval: 60 
