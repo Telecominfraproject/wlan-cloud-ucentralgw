@@ -18,7 +18,7 @@ namespace OpenWifi {
 							Poco::NObserver<RTTY_ClientConnection, Poco::Net::ShutdownNotification>(
 								*this, &RTTY_ClientConnection::onSocketShutdown));
 		std::cout << "We have a web socket...for " << Id_ << std::endl;
-		RTTYS_server()->instance()->Register(Id_,this);
+		RTTYS_server()->Register(Id_,this);
 	}
 
 	RTTY_ClientConnection::~RTTY_ClientConnection() {
@@ -29,7 +29,7 @@ namespace OpenWifi {
 			WS_, Poco::NObserver<RTTY_ClientConnection, Poco::Net::ShutdownNotification>(
 				*this, &RTTY_ClientConnection::onSocketShutdown));
 		std::cout << "Closing client connection" << std::endl;
-		RTTYS_server()->instance()->DeRegister(Id_,this);
+		RTTYS_server()->DeRegister(Id_,this);
 	}
 
 	void RTTY_ClientConnection::onSocketReadable(const Poco::AutoPtr<Poco::Net::ReadableNotification> &pNf) {
@@ -40,7 +40,7 @@ namespace OpenWifi {
 		std::cout << "Web Socket Received " << n << std::endl;
 		if (n == 0)
 			delete this;
-		auto Device = RTTYS_server()->instance()->GetDevice(Id_);
+		auto Device = RTTYS_server()->GetDevice(Id_);
 		if(Device==nullptr) {
 			std::cout << "Cannot send data to device..." << std::endl;
 			return;

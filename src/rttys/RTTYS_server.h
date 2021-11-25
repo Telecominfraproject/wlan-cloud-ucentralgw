@@ -28,11 +28,13 @@ namespace OpenWifi {
 		inline auto UIAssets() { return RTTY_UIAssets_; }
 		inline auto UI() { return UI_; }
 
-		void Register(const std::string &id, RTTY_ClientConnection *Conn) {
+		inline void Register(const std::string &id, RTTY_ClientConnection *Conn) {
+			std::cout << "Registering client:" << id << std::endl;
 			Clients_[id] = Conn;
 		}
 
-		void DeRegister(const std::string &id, RTTY_ClientConnection *Conn) {
+		inline void DeRegister(const std::string &id, RTTY_ClientConnection *Conn) {
+			std::cout << "DeRegistering client:" << id << std::endl;
 			auto It = Clients_.find(id);
 			if(It==Clients_.end())
 				return;
@@ -41,18 +43,20 @@ namespace OpenWifi {
 			Clients_.erase(It);
 		}
 
-		RTTY_ClientConnection * GetClient(const std::string &id) {
+		inline RTTY_ClientConnection * GetClient(const std::string &id) {
 			auto It = Clients_.find(id);
 			if(It==Clients_.end())
 				return nullptr;
 			return It->second;
 		}
 
-		void Register(const std::string &id, RTTY_Device_ConnectionHandler *Conn) {
+		inline void Register(const std::string &id, RTTY_Device_ConnectionHandler *Conn) {
+			std::cout << "Registering device:" << id << std::endl;
 			Devices_[id] = Conn;
 		}
 
-		void DeRegister(const std::string &id, RTTY_Device_ConnectionHandler *Conn) {
+		inline void DeRegister(const std::string &id, RTTY_Device_ConnectionHandler *Conn) {
+			std::cout << "DeRegistering device:" << id << std::endl;
 			auto It = Devices_.find(id);
 			if(It==Devices_.end())
 				return;
@@ -61,7 +65,7 @@ namespace OpenWifi {
 			Devices_.erase(It);
 		}
 
-		RTTY_Device_ConnectionHandler * GetDevice(const std::string &id) {
+		inline RTTY_Device_ConnectionHandler * GetDevice(const std::string &id) {
 			auto It = Devices_.find(id);
 			if(It==Devices_.end())
 				return nullptr;
@@ -69,8 +73,6 @@ namespace OpenWifi {
 		}
 
 	  private:
-		std::map<std::string,std::string>	Registrations_;
-
 		Poco::Net::SocketReactor	DeviceReactor_;
 		Poco::Net::SocketReactor	ClientReactor_;
 		Poco::Thread				DeviceReactorThread_;

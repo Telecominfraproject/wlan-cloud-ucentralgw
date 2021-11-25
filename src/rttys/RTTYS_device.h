@@ -43,7 +43,7 @@ class RTTY_Device_ConnectionHandler {
 	int SendMessage( Poco::Net::StreamSocket & Socket, int Type, std::string &S );
 	int SendMessage( Poco::Net::StreamSocket & Socket, int Type);
 
-	void SendToClient(const u_char *,int len);
+	void SendToClient(const u_char *buf, int len);
 	void SendToDevice(const u_char *buf, int len);
   private:
 	enum {
