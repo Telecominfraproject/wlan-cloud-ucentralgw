@@ -121,7 +121,7 @@ namespace OpenWifi {
 		u_char buf[64];
 		buf[0] = msgTypeLogin;
 		buf[1] = 0;
-		buf[2] = 32;
+		buf[2] = 33;
 		strncpy((char*)&buf[3],sid.c_str(),32);
 		buf[36] = 0 ;
 		std::cout << "Initialize device SID" << std::endl;
