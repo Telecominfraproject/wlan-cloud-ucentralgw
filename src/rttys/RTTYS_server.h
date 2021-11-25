@@ -10,7 +10,7 @@
 #include "Poco/Net/SocketAcceptor.h"
 
 #include "RTTYS_device.h"
-#include "rttys/RTTY_ClientConnection.h"
+#include "rttys/RTTYS_ClientConnection.h"
 
 namespace OpenWifi {
 
@@ -28,13 +28,13 @@ namespace OpenWifi {
 		inline auto UIAssets() { return RTTY_UIAssets_; }
 		inline auto UI() { return UI_; }
 
-		inline void Register(const std::string &id, RTTY_ClientConnection *Conn) {
+		inline void Register(const std::string &id, RTTYS_ClientConnection *Conn) {
 			std::lock_guard	G(Mutex_);
 			std::cout << "Registering client:" << id << std::endl;
 			Clients_[id] = Conn;
 		}
 
-		inline void DeRegister(const std::string &id, RTTY_ClientConnection *Conn) {
+		inline void DeRegister(const std::string &id, RTTYS_ClientConnection *Conn) {
 			std::lock_guard	G(Mutex_);
 			std::cout << "DeRegistering client: '" << id << "'" << std::endl;
 			auto It = Clients_.find(id);
@@ -45,7 +45,7 @@ namespace OpenWifi {
 			Clients_.erase(It);
 		}
 
-		inline RTTY_ClientConnection * GetClient(const std::string &id) {
+		inline RTTYS_ClientConnection * GetClient(const std::string &id) {
 			std::lock_guard	G(Mutex_);
 			auto It = Clients_.find(id);
 			if(It==Clients_.end()) {
@@ -93,7 +93,7 @@ namespace OpenWifi {
 		std::string 				RTTY_UIuri_;
 		std::string 				UI_;
 
-		std::map<std::string, RTTY_ClientConnection *>		Clients_;
+		std::map<std::string, RTTYS_ClientConnection *>		Clients_;
 		std::map<std::string, RTTY_Device_ConnectionHandler *> Devices_;
 
 		std::unique_ptr<Poco::Net::SocketAcceptor<RTTY_Device_ConnectionHandler>>	DeviceAcceptor_;

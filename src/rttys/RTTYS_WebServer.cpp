@@ -3,9 +3,9 @@
 //
 
 #include "RTTYS_WebServer.h"
-#include "RTTY_ClientConnection.h"
-#include "RTTYS_server.h"
 #include "Poco/Net/MediaType.h"
+#include "RTTYS_ClientConnection.h"
+#include "RTTYS_server.h"
 
 namespace OpenWifi {
 
@@ -28,7 +28,7 @@ namespace OpenWifi {
 		doc["err"] = 0;
 		auto msg = to_string(doc);
 		ws.sendFrame(msg.c_str(),msg.length());
-		new RTTY_ClientConnection(ws, T[2], R_);
+		new RTTYS_ClientConnection(ws, T[2], R_);
 	};
 
 	static bool IsFileGZipped(const std::string &FileName) {

@@ -11,11 +11,11 @@
 #include "Poco/Net/SocketNotification.h"
 
 namespace OpenWifi {
-	class RTTY_ClientConnection {
+	class RTTYS_ClientConnection {
 	  public:
-		RTTY_ClientConnection(Poco::Net::WebSocket &WS, std::string &Id,
+		RTTYS_ClientConnection(Poco::Net::WebSocket &WS, std::string &Id,
 							  Poco::Net::SocketReactor &Reactor);
-		~RTTY_ClientConnection();
+		~RTTYS_ClientConnection();
 		void onSocketReadable(const Poco::AutoPtr<Poco::Net::ReadableNotification> &pNf);
 		void onSocketShutdown(const Poco::AutoPtr<Poco::Net::ShutdownNotification> &pNf);
 
