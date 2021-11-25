@@ -106,7 +106,6 @@ namespace OpenWifi {
 	}
 
 	void OUIServer::UpdateImpl() {
-
 		if(Updating_)
 			return;
 		Updating_ = true;

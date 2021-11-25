@@ -5,6 +5,7 @@
 #include "RTTYS_WebServer.h"
 #include "RTTY_ClientConnection.h"
 #include "RTTYS_server.h"
+#include "Poco/Net/MediaType.h"
 
 namespace OpenWifi {
 
@@ -87,9 +88,10 @@ namespace OpenWifi {
 
 		Poco::Path P(Path);
 		auto Ext = P.getExtension();
+
 		std::string Type;
 		if (Ext == "html")
-			Type = "text/html";
+			Type = "text/html; charset=utf-8";
 		else if (Ext == "js")
 			Type = "application/javascript";
 		else if (Ext == "css")
@@ -106,7 +108,9 @@ namespace OpenWifi {
 		response.set("Access-Control-Allow-Origin", "*");
 		response.set("Access-Control-Allow-Headers", "*");
 		response.set("Access-Control-Max-Age", "86400");
+		response.set("Accept-Ranges","bytes");
 		response.setChunkedTransferEncoding(true);
+		response.setContentLength(F.getSize());
 		response.sendFile(Path, Type);
 	}
 

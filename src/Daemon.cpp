@@ -46,7 +46,7 @@ namespace OpenWifi {
 									   OUIServer(),
 									   StorageArchiver(),
 									   TelemetryStream()
-//									   ,RTTYS_server()
+									   ,RTTYS_server()
 								   });
         return &instance;
 	}
