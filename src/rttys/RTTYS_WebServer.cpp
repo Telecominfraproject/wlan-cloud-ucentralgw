@@ -26,6 +26,19 @@ namespace OpenWifi {
 		new RTTY_ClientConnection(ws, T[2], R_);
 	};
 
+	static bool IsFileGZipped(const std::string &FileName) {
+		try {
+			std::ifstream 	F(FileName, std::ifstream::binary);
+			if(F) {
+				unsigned buf[4];
+				F.read((char*)&buf[0],sizeof(buf));
+				return buf[0]==0x1f && buf[1]==0x8b;
+			}
+		} catch (...) {
+		}
+		return false;
+	}
+
 	void PageRequestHandler::handleRequest(Poco::Net::HTTPServerRequest &request,
 					   Poco::Net::HTTPServerResponse &response) {
 		Poco::URI uri(request.getURI());
@@ -88,11 +101,15 @@ namespace OpenWifi {
 		std::string Type;
 		if (Ext == "html")
 			Type = "text/html; charset=utf-8";
-		else if (Ext == "js")
+		else if (Ext == "js") {
 			Type = "text/javascript; charset=utf-8";
-		else if (Ext == "css")
+			if(IsFileGZipped(Path))
+				response.set("Content-Encoding", "gzip");
+		}  else if (Ext == "css") {
 			Type = "text/css; charset=utf-8";
-		else if (Ext == "ico")
+			if(IsFileGZipped(Path))
+				response.set("Content-Encoding", "gzip");
+		}  else if (Ext == "ico")
 			Type = "image/x-icon";
 		else if (Ext == "woff")
 			Type = "font/woff";
