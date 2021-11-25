@@ -79,4 +79,5 @@ jobs:
         github_token: ${{ secrets.WLAN_TESTING_PAT }}
         repo: wlan-testing
         owner: Telecominfraproject
+        workflow_file_name: ow_docker-compose.yml
         inputs: '{"owgw_tag": "356e97b8565027cf63b3508b44f39f437dbde059", "owgwui_tag": "main", "owsec_tag": "main", "owfms_tag": "main", "owprov_tag": "main", "owprovui_tag": "main"}'
