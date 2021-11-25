@@ -3,7 +3,7 @@
 //
 
 #include "RTTYS_device.h"
-
+#include "rttys/RTTYS_server.h"
 
 namespace OpenWifi {
 
@@ -21,6 +21,9 @@ namespace OpenWifi {
 		reactor_.removeEventHandler(socket_, Poco::NObserver<RTTY_Device_ConnectionHandler, Poco::Net::ReadableNotification>(*this, &RTTY_Device_ConnectionHandler::onSocketReadable));
 		reactor_.removeEventHandler(socket_, Poco::NObserver<RTTY_Device_ConnectionHandler, Poco::Net::WritableNotification>(*this, &RTTY_Device_ConnectionHandler::onSocketWritable));
 		reactor_.removeEventHandler(socket_, Poco::NObserver<RTTY_Device_ConnectionHandler, Poco::Net::ShutdownNotification>(*this, &RTTY_Device_ConnectionHandler::onSocketShutdown));
+
+		if(!id_.empty())
+			RTTYS_server()->instance()->DeRegister(id_,this);
 	}
 
 	std::string RTTY_Device_ConnectionHandler::SafeCopy( const u_char * buf, int MaxSize, int & NewPos) {
@@ -76,6 +79,16 @@ namespace OpenWifi {
 		return Socket.sendBytes(&outBuf[0],3) == 3;
 	}
 
+	void RTTY_Device_ConnectionHandler::SendToClient(const u_char *Buf, int len) {
+		auto Client = RTTYS_server()->instance()->GetClient(id_);
+		if(Client!= nullptr)
+			Client->SendData(Buf,len);
+	}
+
+	void RTTY_Device_ConnectionHandler::SendToDevice(const u_char *buf, int len) {
+		socket_.sendBytes(buf, len);
+	}
+
 	void RTTY_Device_ConnectionHandler::onSocketReadable(const Poco::AutoPtr<Poco::Net::ReadableNotification>& pNf)
 	{
 		try
@@ -105,6 +118,7 @@ namespace OpenWifi {
 					outBuf[2] = 'K' ;
 					outBuf[3] = 0;
 					SendMessage(socket_, msgTypeRegister, &outBuf[0], 4);
+					RTTYS_server()->instance()->Register(id_,this);
 				}
 				break;
 
@@ -126,8 +140,14 @@ namespace OpenWifi {
 				break;
 
 				case msgTypeTermData: {
+					if(MsgLen<32) {
+						std::cout << " device - bad data msg len" << std::endl;
+						return;
+					}
 					std::cout << "msgTypeTermData" << std::endl;
-
+					memcpy(&sid_[0],&inBuf_[1],32);
+					sid_[32] = 0 ;
+					SendToClient(&inBuf_[32+3],MsgLen-35);
 				}
 				break;
 

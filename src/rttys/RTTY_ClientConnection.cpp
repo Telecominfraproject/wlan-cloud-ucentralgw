@@ -3,7 +3,8 @@
 //
 
 #include "RTTY_ClientConnection.h"
-
+#include "rttys/RTTYS_device.h"
+#include "rttys/RTTYS_server.h"
 
 namespace OpenWifi {
 
@@ -16,7 +17,8 @@ namespace OpenWifi {
 		SR_.addEventHandler(WS_,
 							Poco::NObserver<RTTY_ClientConnection, Poco::Net::ShutdownNotification>(
 								*this, &RTTY_ClientConnection::onSocketShutdown));
-		std::cout << "We have a web socket..." << std::endl;
+		std::cout << "We have a web socket...for " << Id_ << std::endl;
+		RTTYS_server()->instance()->Register(Id_,this);
 	}
 
 	RTTY_ClientConnection::~RTTY_ClientConnection() {
@@ -27,6 +29,7 @@ namespace OpenWifi {
 			WS_, Poco::NObserver<RTTY_ClientConnection, Poco::Net::ShutdownNotification>(
 				*this, &RTTY_ClientConnection::onSocketShutdown));
 		std::cout << "Closing client connection" << std::endl;
+		RTTYS_server()->instance()->DeRegister(Id_,this);
 	}
 
 	void RTTY_ClientConnection::onSocketReadable(const Poco::AutoPtr<Poco::Net::ReadableNotification> &pNf) {
@@ -34,10 +37,17 @@ namespace OpenWifi {
 		int flags;
 		auto n = WS_.receiveFrame(Buffer, sizeof(Buffer), flags);
 
-		std::cout << "Received " << n << std::endl;
-
+		std::cout << "Web Socket Received " << n << std::endl;
 		if (n == 0)
 			delete this;
+		auto Device = RTTYS_server()->instance()->GetDevice(Id_);
+		if(Device==nullptr)
+			return;
+		Device->SendToDevice((u_char *)&Buffer[0],n);
+	}
+
+	void RTTY_ClientConnection::SendData( const u_char *Buf, int len ) {
+		WS_.sendFrame(Buf, len);
 	}
 
 	void RTTY_ClientConnection::onSocketShutdown(const Poco::AutoPtr<Poco::Net::ShutdownNotification> &pNf) {
