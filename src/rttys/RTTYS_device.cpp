@@ -86,7 +86,12 @@ namespace OpenWifi {
 	}
 
 	void RTTY_Device_ConnectionHandler::SendToDevice(const u_char *buf, int len) {
-		socket_.sendBytes(buf, len);
+		char sendBuf[8192];
+		sendBuf[0] = msgTypeTermData;
+		sendBuf[1] = len >> 8;
+		sendBuf[2] = len & 0x00ff;
+		memcpy(&sendBuf[3],buf,len);
+		socket_.sendBytes(&sendBuf[0], len+3);
 	}
 
 	void RTTY_Device_ConnectionHandler::onSocketReadable(const Poco::AutoPtr<Poco::Net::ReadableNotification>& pNf)
