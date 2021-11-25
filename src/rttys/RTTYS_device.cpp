@@ -84,14 +84,17 @@ namespace OpenWifi {
 	}
 
 	void RTTY_Device_ConnectionHandler::SendToDevice(const u_char *buf, int len) {
-		char sendBuf[8192];
+		u_char sendBuf[8192];
 		if(buf[0]==0) {
 			sendBuf[0] = msgTypeTermData;
 			sendBuf[1] = len >> 8;
 			sendBuf[2] = len & 0x00ff;
 			sendBuf[3] = 0; // no SID
 			memcpy(&sendBuf[4], &buf[1], len - 1);
-			socket_.sendBytes(&sendBuf[0], 4 + len - 1);
+			int bsize = 4 + len - 1;
+			socket_.sendBytes(&sendBuf[0], bsize );
+			std::cout << "Sending to device" << std::endl;
+			PrintBuf(&sendBuf[0], bsize);
 		}
 	}
 

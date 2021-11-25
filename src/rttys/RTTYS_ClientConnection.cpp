@@ -61,7 +61,7 @@ RTTYS_ClientConnection::RTTYS_ClientConnection(Poco::Net::WebSocket &WS, std::st
 				}
 				break;
 			case Poco::Net::WebSocket::FRAME_OP_BINARY: {
-					std::cout << "Web Socket Received BINARY: " << n << std::endl;
+					std::cout << "Web Socket Received BINARY: " << n << " type: " << (int) Buffer[0] << (int) Buffer[1] << std::endl;
 					if (n == 0)
 						delete this;
 					auto Device = RTTYS_server()->GetDevice(Id_);
