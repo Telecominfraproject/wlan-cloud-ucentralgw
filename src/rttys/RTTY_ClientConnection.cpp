@@ -42,7 +42,7 @@ namespace OpenWifi {
 			delete this;
 		auto Device = RTTYS_server()->GetDevice(Id_);
 		if(Device==nullptr) {
-			std::cout << "Cannot send data to device..." << std::endl;
+			std::cout << "Cannot send data to device: " << Id_ << std::endl;
 			return;
 		}
 		Device->SendToDevice((u_char *)&Buffer[0],n);

@@ -29,12 +29,14 @@ namespace OpenWifi {
 		inline auto UI() { return UI_; }
 
 		inline void Register(const std::string &id, RTTY_ClientConnection *Conn) {
+			std::lock_guard	G(Mutex_);
 			std::cout << "Registering client:" << id << std::endl;
 			Clients_[id] = Conn;
 		}
 
 		inline void DeRegister(const std::string &id, RTTY_ClientConnection *Conn) {
-			std::cout << "DeRegistering client:" << id << std::endl;
+			std::lock_guard	G(Mutex_);
+			std::cout << "DeRegistering client: '" << id << "'" << std::endl;
 			auto It = Clients_.find(id);
 			if(It==Clients_.end())
 				return;
@@ -44,18 +46,23 @@ namespace OpenWifi {
 		}
 
 		inline RTTY_ClientConnection * GetClient(const std::string &id) {
+			std::lock_guard	G(Mutex_);
 			auto It = Clients_.find(id);
-			if(It==Clients_.end())
+			if(It==Clients_.end()) {
+				std::cout << "Cannot find client '" << id << "' ... " << std::endl;
 				return nullptr;
+			}
 			return It->second;
 		}
 
 		inline void Register(const std::string &id, RTTY_Device_ConnectionHandler *Conn) {
+			std::lock_guard	G(Mutex_);
 			std::cout << "Registering device:" << id << std::endl;
 			Devices_[id] = Conn;
 		}
 
 		inline void DeRegister(const std::string &id, RTTY_Device_ConnectionHandler *Conn) {
+			std::lock_guard	G(Mutex_);
 			std::cout << "DeRegistering device:" << id << std::endl;
 			auto It = Devices_.find(id);
 			if(It==Devices_.end())
@@ -66,9 +73,12 @@ namespace OpenWifi {
 		}
 
 		inline RTTY_Device_ConnectionHandler * GetDevice(const std::string &id) {
+			std::lock_guard	G(Mutex_);
 			auto It = Devices_.find(id);
-			if(It==Devices_.end())
-				return nullptr;
+			if(It==Devices_.end()) {
+				std::cout << "Cannot find device '" << id << "' ... " << std::endl;
+ 				return nullptr;
+			}
 			return It->second;
 		}
 
