@@ -23,7 +23,7 @@ namespace OpenWifi {
 		reactor_.removeEventHandler(socket_, Poco::NObserver<RTTY_Device_ConnectionHandler, Poco::Net::ShutdownNotification>(*this, &RTTY_Device_ConnectionHandler::onSocketShutdown));
 
 		if(!id_.empty())
-			RTTYS_server()->instance()->DeRegister(id_,this);
+			RTTYS_server()->DeRegister(id_,this);
 	}
 
 	std::string RTTY_Device_ConnectionHandler::SafeCopy( const u_char * buf, int MaxSize, int & NewPos) {
@@ -47,16 +47,16 @@ namespace OpenWifi {
 		std::cout << std::endl;
 	}
 
-	int RTTY_Device_ConnectionHandler::SendMessage( Poco::Net::StreamSocket & Socket, int Type, const u_char * Buf, int len) {
+	int RTTY_Device_ConnectionHandler::SendMessage(RTTY_MSG_TYPE Type, const u_char * Buf, int len) {
 		u_char outBuf[ 8192 ];
 		outBuf[0] = Type;
 		std::memcpy(&outBuf[3], Buf, len);
 		outBuf[1] = (len >> 8);
 		outBuf[2] = (len & 0x00ff);
-		return Socket.sendBytes(&outBuf[0],len+3) == len+3;
+		return socket_.sendBytes(&outBuf[0],len+3) == len+3;
 	}
 
-	int RTTY_Device_ConnectionHandler::SendMessage( Poco::Net::StreamSocket & Socket, int Type, std::string &S ) {
+	int RTTY_Device_ConnectionHandler::SendMessage(RTTY_MSG_TYPE Type, std::string &S ) {
 		u_char outBuf[ 8192 ];
 		outBuf[0] = Type;
 		auto len = S.size();
@@ -65,19 +65,19 @@ namespace OpenWifi {
 		outBuf[1] = (len >> 8);
 		outBuf[2] = (len & 0x00ff);
 		outBuf[len+3] = 0 ;
-		return Socket.sendBytes(&outBuf[0],len+3) == len+3;
+		return socket_.sendBytes(&outBuf[0],len+3) == len+3;
 	}
 
-	int RTTY_Device_ConnectionHandler::SendMessage( Poco::Net::StreamSocket & Socket, int Type) {
+	int RTTY_Device_ConnectionHandler::SendMessage(RTTY_MSG_TYPE Type) {
 		u_char outBuf[ 8192 ];
 		outBuf[0] = Type;
 		outBuf[1] = 0;
 		outBuf[2] = 0;
-		return Socket.sendBytes(&outBuf[0],3) == 3;
+		return socket_.sendBytes(&outBuf[0],3) == 3;
 	}
 
 	void RTTY_Device_ConnectionHandler::SendToClient(const u_char *Buf, int len) {
-		auto Client = RTTYS_server()->instance()->GetClient(id_);
+		auto Client = RTTYS_server()->GetClient(id_);
 		if(Client!= nullptr)
 			Client->SendData(Buf,len);
 	}
@@ -119,8 +119,8 @@ namespace OpenWifi {
 					outBuf[1] = 'O' ;
 					outBuf[2] = 'K' ;
 					outBuf[3] = 0;
-					SendMessage(socket_, msgTypeRegister, &outBuf[0], 4);
-					RTTYS_server()->instance()->Register(id_,this);
+					SendMessage(msgTypeRegister, &outBuf[0], 4);
+					RTTYS_server()->Register(id_,this);
 				}
 				break;
 
@@ -167,7 +167,7 @@ namespace OpenWifi {
 
 				case msgTypeHeartbeat: {
 					std::cout << "msgTypeHeartbeat" << std::endl;
-					SendMessage(socket_,msgTypeHeartbeat);
+					SendMessage(msgTypeHeartbeat);
 				}
 				break;
 

@@ -39,9 +39,9 @@ class RTTY_Device_ConnectionHandler {
 
 	std::string SafeCopy( const u_char * buf, int MaxSize, int & NewPos);
 	void PrintBuf(const u_char * buf, int size);
-	int SendMessage( Poco::Net::StreamSocket & Socket, int Type, const u_char * Buf, int len);
-	int SendMessage( Poco::Net::StreamSocket & Socket, int Type, std::string &S );
-	int SendMessage( Poco::Net::StreamSocket & Socket, int Type);
+	int SendMessage( RTTY_MSG_TYPE Type, const u_char * Buf, int len);
+	int SendMessage( RTTY_MSG_TYPE Type, std::string &S );
+	int SendMessage( RTTY_MSG_TYPE Type);
 
 	void SendToClient(const u_char *buf, int len);
 	void SendToDevice(const u_char *buf, int len);
