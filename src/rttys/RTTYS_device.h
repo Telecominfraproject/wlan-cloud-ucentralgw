@@ -43,6 +43,8 @@ class RTTY_Device_ConnectionHandler {
 	int SendMessage( RTTY_MSG_TYPE Type, std::string &S );
 	int SendMessage( RTTY_MSG_TYPE Type);
 
+	bool InitializeConnection( std::string & sid );
+
 	void SendToClient(const u_char *buf, int len);
 	void SendToDevice(const u_char *buf, int len);
   private:

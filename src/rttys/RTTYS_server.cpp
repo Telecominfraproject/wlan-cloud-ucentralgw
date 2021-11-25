@@ -46,4 +46,18 @@ namespace OpenWifi {
 		DeviceReactorThread_.join();
 		ClientReactorThread_.join();
 	}
+
+	bool RTTYS_server::InitializeDevice(const std::string & Id, std::string & Sid) {
+		std::lock_guard	G(Mutex_);
+
+		auto It = Devices_.find(Id);
+		if(It == Devices_.end()) {
+			std::cout << "Cannot initialize this device: " << Id << std::endl;
+			return false;
+		}
+
+		It->second->InitializeConnection(Sid);
+		return true;
+	}
+
 }

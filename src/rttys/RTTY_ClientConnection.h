@@ -20,10 +20,12 @@ namespace OpenWifi {
 		void onSocketShutdown(const Poco::AutoPtr<Poco::Net::ShutdownNotification> &pNf);
 
 		void SendData( const u_char *Buf, int len );
+		void SendData( const std::string & S);
 
 	  private:
 		Poco::Net::WebSocket WS_;
 		std::string Id_;
+		std::string Sid_;
 		Poco::Net::SocketReactor &SR_;
 	};
 }

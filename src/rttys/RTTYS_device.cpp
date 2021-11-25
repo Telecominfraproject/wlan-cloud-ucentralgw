@@ -90,6 +90,17 @@ namespace OpenWifi {
 		socket_.sendBytes(&sendBuf[0], len+3);
 	}
 
+	bool RTTY_Device_ConnectionHandler::InitializeConnection( std::string & sid ) {
+		sid = MicroService::instance().CreateHash(id_);
+		char buf[64];
+		buf[0] = msgTypeLogin;
+		buf[1] = 0;
+		buf[2] = 33;
+		strcpy(&buf[3],sid.c_str());
+		socket_.sendBytes(&buf[0],36);
+		return true;
+	}
+
 	void RTTY_Device_ConnectionHandler::onSocketReadable(const Poco::AutoPtr<Poco::Net::ReadableNotification>& pNf)
 	{
 		try

@@ -82,6 +82,8 @@ namespace OpenWifi {
 			return It->second;
 		}
 
+		bool InitializeDevice(const std::string & Id_, std::string & Sid_);
+
 	  private:
 		Poco::Net::SocketReactor	DeviceReactor_;
 		Poco::Net::SocketReactor	ClientReactor_;
