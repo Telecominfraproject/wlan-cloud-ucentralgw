@@ -79,7 +79,7 @@ jobs:
         token: ${{ secrets.WLAN_TESTING_PAT }}
         repo: wlan-testing
         owner: Telecominfraproject
-        event-type: openwifi-sdk-pr
-        client-payload: '{"owgw_tag": "356e97b8565027cf63b3508b44f39f437dbde059", "owgwui_tag": "main", "owsec_tag": "main", "owfms_tag": "main", "owprov_tag": "main", "owprovui_tag": "main"}'
+        event_type: openwifi-sdk-pr
+        client_payload: '{"owgw_tag": "356e97b8565027cf63b3508b44f39f437dbde059", "owgwui_tag": "main", "owsec_tag": "main", "owfms_tag": "main", "owprov_tag": "main", "owprovui_tag": "main"}'
         wait_time: 60 
         max_time: 2700  
