@@ -16,13 +16,18 @@ namespace OpenWifi {
 	void RTTY_Client_WebSocketRequestHandler::handleRequest(Poco::Net::HTTPServerRequest &request,
 					   Poco::Net::HTTPServerResponse &response)  {
 		Poco::URI uri(request.getURI());
-		auto P = uri.getPath();
+		std::cout << "Websocket uri: " << request.getURI() << std::endl;
+		const auto P = uri.getPath();
 		auto T = Poco::StringTokenizer(P, "/");
+		std::cout << __LINE__ << std::endl;
 		if (T.count() != 3)
 			return;
+		std::cout << __LINE__ << std::endl;
 		if (T[1] != "connect")
 			return;
+		std::cout << __LINE__ << std::endl;
 		Poco::Net::WebSocket ws(request, response);
+		std::cout << __LINE__ << std::endl;
 		new RTTY_ClientConnection(ws, T[2], R_);
 	};
 
