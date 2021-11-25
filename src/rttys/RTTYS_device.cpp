@@ -103,9 +103,11 @@ namespace OpenWifi {
 		char buf[64];
 		buf[0] = msgTypeLogin;
 		buf[1] = 0;
-		buf[2] = 33;
-		strcpy(&buf[3],sid.c_str());
-		socket_.sendBytes(&buf[0],36);
+		buf[2] = 1;
+		buf[3] = 0;
+		// strcpy(&buf[3],sid.c_str());
+		// socket_.sendBytes(&buf[0],36);
+		socket_.sendBytes(&buf[0],4);
 		return true;
 	}
 
@@ -156,7 +158,7 @@ namespace OpenWifi {
 
 					case msgTypeTermData: {
 						std::cout << "msgTypeTermData: len" << MsgLen << std::endl;
-						PrintBuf(&inBuf_[3],MsgLen);
+						PrintBuf(&inBuf_[0],MsgLen);
 						SendToClient(&inBuf_[3],MsgLen);
 					}
 					break;
