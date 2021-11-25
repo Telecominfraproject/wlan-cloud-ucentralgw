@@ -57,7 +57,7 @@ RTTYS_ClientConnection::RTTYS_ClientConnection(Poco::Net::WebSocket &WS, std::st
 						std::cout << "Cannot send data to device: " << Id_ << std::endl;
 						return;
 					}
-					Device->SendToDevice((u_char *)&Buffer[0],n);
+					// Device->SendToDevice((u_char *)&Buffer[0],n);
 				}
 				break;
 			case Poco::Net::WebSocket::FRAME_OP_BINARY: {
