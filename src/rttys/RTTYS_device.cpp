@@ -77,12 +77,12 @@ namespace OpenWifi {
 		outBuf[2] = (len & 0x00ff);
 		if(sid_.empty()) {
 			outBuf[3] = 0 ;
-			std::memcpy(&outBuf[4],S.c_str(),S.size());
-			total_len = 3 + 1 + S.size();
+			std::strcpy((char*)&outBuf[4],S.c_str());
+			total_len = 3 + 1 + S.size() + 1;
 		} else {
 			std::memcpy(&outBuf[3], sid_.c_str(), sid_.size());
-			std::memcpy(&outBuf[3+sid_.size()],S.c_str(),S.size());
-			total_len = 3 + sid_.size() + S.size();
+			std::strcpy((char*)&outBuf[3+sid_.size()],S.c_str());
+			total_len = 3 + sid_.size() + S.size() + 1;
 		}
 		return socket_.sendBytes(&outBuf[0],total_len) == total_len;
 	}
