@@ -197,7 +197,7 @@ namespace OpenWifi {
 				else
 				{
 					std::cout << "Device " << id_ << " no data." << std::endl;
-	//				delete this;
+					delete this;
 				}
 		}
 		catch (Poco::Exception& exc)
