@@ -81,4 +81,4 @@ jobs:
         owner: Telecominfraproject
         workflow_file_name: ow_docker-compose.yml
         ref: master 
-        inputs: '{"owgw_tag": "356e97b8565027cf63b3508b44f39f437dbde059", "owgwui_tag": "main", "owsec_tag": "main", "owfms_tag": "main", "owprov_tag": "main", "owprovui_tag": "main"}'
+        inputs: '{"owgw_version": "356e97b8565027cf63b3508b44f39f437dbde059", "owgwui_version": "main", "owsec_version": "main", "owfms_version": "main", "owprov_version": "main", "owprovui_version": "main"}'
