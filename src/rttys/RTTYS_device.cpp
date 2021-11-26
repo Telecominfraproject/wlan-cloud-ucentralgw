@@ -251,7 +251,7 @@ namespace OpenWifi {
 						MsgBuf[4] = (T & 0x00ff0000) >> 16;
 						MsgBuf[5] = (T & 0x0000ff00) >> 8;
 						MsgBuf[6] = (T & 0x000000ff);
-						SendMessage(msgTypeHeartbeat, MsgBuf, 19);
+						socket_.sendBytes(MsgBuf,19);
 					}
 					break;
 
