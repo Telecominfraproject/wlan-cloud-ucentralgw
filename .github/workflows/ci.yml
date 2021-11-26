@@ -74,7 +74,7 @@ jobs:
 #    needs: docker
     steps:
     - name: Trigger testing of OpenWifi Docker Compose deployment and wait for result
-      uses: convictional/trigger-workflow-and-wait@v1.3.0
+      uses: convictional/trigger-workflow-and-wait@v1.5.0
       with:
         github_token: ${{ secrets.WLAN_TESTING_PAT }}
         repo: wlan-testing
