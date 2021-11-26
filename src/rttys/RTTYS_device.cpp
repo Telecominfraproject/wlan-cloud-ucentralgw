@@ -173,7 +173,14 @@ namespace OpenWifi {
 		auto total_len = 0 ;
 		auto msg_len = 0;
 		if(sid_.empty()) {
-
+			outBuf[1] = 0 ;
+			outBuf[2] = 4;
+			outBuf[3] = cols >> 8 ;
+			outBuf[4] = cols & 0x00ff;
+			outBuf[5] = rows >> 8;
+			outBuf[6] = rows & 0x00ff;
+			PrintBuf(outBuf,7);
+			socket_.sendBytes(outBuf,7);
 		} else {
 			outBuf[1] = 0 ;
 			outBuf[2] = 32 + 4;
