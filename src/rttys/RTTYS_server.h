@@ -82,6 +82,9 @@ namespace OpenWifi {
 			return It->second;
 		}
 
+		Poco::Logger & Logger() { return Logger_; }
+
+
 		bool Login(const std::string & Id_);
 		bool Logout(const std::string & Id_);
 		bool Close(const std::string & Id_);

@@ -58,7 +58,7 @@ namespace OpenWifi {
 		outBuf[2] = (msg_len & 0x00ff);
 		outBuf[3] = sid_;
 		std::memcpy(&outBuf[4], Buf, BufLen);
-		PrintBuf(outBuf,total_len);
+		// PrintBuf(outBuf,total_len);
 		return socket_.sendBytes(outBuf,total_len) == total_len;
 	}
 
@@ -71,7 +71,7 @@ namespace OpenWifi {
 		outBuf[2] = (msg_len & 0x00ff);
 		outBuf[3] = sid_;
 		std::strcpy((char*)&outBuf[4],S.c_str());
-		PrintBuf(outBuf,total_len);
+		// PrintBuf(outBuf,total_len);
 		return socket_.sendBytes(outBuf,total_len) == total_len;
 	}
 
@@ -107,8 +107,7 @@ namespace OpenWifi {
 		outBuf[3] = sid_;
 		memcpy( &outBuf[4], &buf[1], len-1);
 		socket_.sendBytes(outBuf, total_len);
-		std::cout << "Sending to keystrokes: " << total_len << std::endl;
-		PrintBuf(outBuf, total_len);
+		// PrintBuf(outBuf, total_len);
 	}
 
 	void RTTY_Device_ConnectionHandler::WindowSize(int cols, int rows) {
@@ -121,7 +120,7 @@ namespace OpenWifi {
 		outBuf[5] = cols & 0x00ff;
 		outBuf[6] = rows >> 8;
 		outBuf[7] = rows & 0x00ff;
-		PrintBuf(outBuf,8);
+		// PrintBuf(outBuf,8);
 		socket_.sendBytes(outBuf,8);
 	}
 
@@ -130,8 +129,7 @@ namespace OpenWifi {
 		outBuf[0] = msgTypeLogin;
 		outBuf[1] = 0;
 		outBuf[2] = 0;
-		std::cout << "Login device SID: " << sid_ << std::endl;
-		PrintBuf(outBuf,3);
+		// PrintBuf(outBuf,3);
 		socket_.sendBytes(outBuf,3 );
 		return true;
 	}
@@ -142,8 +140,8 @@ namespace OpenWifi {
 		outBuf[1] = 0;
 		outBuf[2] = 1;
 		outBuf[3] = sid_;
-		std::cout << "Logout device SID: " << sid_ << std::endl;
-		PrintBuf(outBuf,4);
+		RTTYS_server()->Logger().debug(Poco::format("Device %s logging out", id_));
+		// PrintBuf(outBuf,4);
 		socket_.sendBytes(outBuf,4 );
 		return true;
 	}
@@ -156,13 +154,14 @@ namespace OpenWifi {
 			int len = socket_.receiveBytes(&inBuf[0],BUF_SIZE);
 			if (len > 0)
 			{
-				std::cout << "DEVICE MSG RECEIVED: " << std::dec << len << " bytes" << std::endl;
-				PrintBuf(inBuf,len);
+				// std::cout << "DEVICE MSG RECEIVED: " << std::dec << len << " bytes" << std::endl;
+				// PrintBuf(inBuf,len);
 				RTTY_MSG_TYPE   msg;
 				if(inBuf[0]>=(u_char)msgTypeMax) {
-					std::cout << "  Bad message..." << std::endl;
+					RTTYS_server()->Logger().debug(Poco::format("Bad message for SerialNumber: %s, Descriotion: %s, Token: %s", id_));
 					return;
 				}
+
 				msg = (RTTY_MSG_TYPE) inBuf[0];
 				int MsgLen = (int) inBuf[1] * 256 + (int) inBuf[2];
 
@@ -172,8 +171,7 @@ namespace OpenWifi {
 						id_ = SafeCopy(&inBuf[0],MsgLen,pos);
 						desc_ = SafeCopy(&inBuf[0],MsgLen,pos);
 						token_ = SafeCopy(&inBuf[0],MsgLen,pos);
-						std::cout << "msgTypeRegister: id: " << id_ << "  desc: " << desc_ << "  token: " << token_ << std::endl;
-
+						RTTYS_server()->Logger().debug(Poco::format("Registration for SerialNumber: %s, Descriotion: %s, Token: %s", id_, desc_, token_));
 						u_char	OutBuf[12];
 						OutBuf[0] = msgTypeRegister;
 						OutBuf[1] = 0 ;
@@ -211,48 +209,35 @@ namespace OpenWifi {
 
 					case msgTypeWinsize: {
 						std::cout << "msgTypeWinsize" << std::endl;
-
 					}
 					break;
 
 					case msgTypeCmd: {
 						std::cout << "msgTypeCmd" << std::endl;
-
 					}
 					break;
 
 					case msgTypeHeartbeat: {
-						std::cout << "msgTypeHeartbeat: " << MsgLen << " bytes" << std::endl;
-						PrintBuf(&inBuf[0], len);
+						// std::cout << "msgTypeHeartbeat: " << MsgLen << " bytes" << std::endl;
+						// PrintBuf(&inBuf[0], len);
 						u_char MsgBuf[32]{0};
 						MsgBuf[0] = msgTypeHeartbeat;
-/*						MsgBuf[1] = 0 ;
-						MsgBuf[2] = 16;
-						auto T = std::time(nullptr);
-						MsgBuf[3] = T >> 24 ;
-						MsgBuf[4] = (T & 0x00ff0000) >> 16;
-						MsgBuf[5] = (T & 0x0000ff00) >> 8;
-						MsgBuf[6] = (T & 0x000000ff);
-*/
 						socket_.sendBytes(MsgBuf,3);
 					}
 					break;
 
 					case msgTypeFile: {
 						std::cout << "msgTypeFile" << std::endl;
-
 					}
 					break;
 
 					case msgTypeHttp: {
 						std::cout << "msgTypeHttp" << std::endl;
-
 					}
 					break;
 
 					case msgTypeAck: {
 						std::cout << "msgTypeAck" << std::endl;
-
 					}
 					break;
 
@@ -264,7 +249,7 @@ namespace OpenWifi {
 				}
 				else
 				{
-					std::cout << "Device " << id_ << " no data." << std::endl;
+					RTTYS_server()->Logger().debug(Poco::format("Device SerialNumber: %s shutting down rtty socket.", id_, desc_, token_));
 					RTTYS_server()->Close(id_);
 					return delete this;
 				}
