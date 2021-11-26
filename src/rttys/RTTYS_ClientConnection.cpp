@@ -34,7 +34,7 @@ RTTYS_ClientConnection::RTTYS_ClientConnection(Poco::Net::WebSocket &WS, std::st
 	}
 
 	void RTTYS_ClientConnection::onSocketReadable(const Poco::AutoPtr<Poco::Net::ReadableNotification> &pNf) {
-		char Buffer[8192];
+		char Buffer[8192]{0};
 		int flags;
 		auto n = WS_.receiveFrame(Buffer, sizeof(Buffer), flags);
 
@@ -51,7 +51,11 @@ RTTYS_ClientConnection::RTTYS_ClientConnection(Poco::Net::WebSocket &WS, std::st
 			case Poco::Net::WebSocket::FRAME_OP_TEXT: {
 					std::cout << "Web Socket Received TEXT: " << n << std::endl;
 					if (n == 0)
-						delete this;
+						return delete this;
+					std::string s{Buffer};
+					std::cout << "WS TEXT: " << s << std::endl;
+					// auto doc = nlohmann::json::parse(s);
+
 					auto Device = RTTYS_server()->GetDevice(Id_);
 					if(Device==nullptr) {
 						std::cout << "Cannot send data to device: " << Id_ << std::endl;
