@@ -82,7 +82,6 @@ namespace OpenWifi {
 			return It->second;
 		}
 
-		bool Login(const std::string & Id_, std::string & Sid_);
 		bool Login(const std::string & Id_);
 		bool Logout(const std::string & Id_);
 		bool Close(const std::string & Id_);

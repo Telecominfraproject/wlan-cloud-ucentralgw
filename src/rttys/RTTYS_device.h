@@ -44,13 +44,11 @@ class RTTY_Device_ConnectionHandler {
 	int SendMessage( RTTY_MSG_TYPE Type, std::string &S );
 	int SendMessage( RTTY_MSG_TYPE Type);
 
-	bool Login( std::string & sid );
 	bool Login();
 	bool Logout();
 
 	void SendToClient(const u_char *buf, int len);
 	void SendToClient(const std::string &S);
-	void SendToDevice(const u_char *buf, int len);
 	void WindowSize(int cols, int rows);
 	void KeyStrokes(const u_char *buf, int len);
   private:
@@ -63,7 +61,7 @@ class RTTY_Device_ConnectionHandler {
 	std::string                   id_;
 	std::string                   token_;
 	std::string                   desc_;
-	std::string			          sid_;
+	int 				          sid_=0;
 	u_char                        sid_code_;
 };
 

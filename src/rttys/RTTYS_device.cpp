@@ -50,67 +50,40 @@ namespace OpenWifi {
 	}
 
 	int RTTY_Device_ConnectionHandler::SendMessage(RTTY_MSG_TYPE Type, const u_char * Buf, int BufLen) {
-		auto total_len = 0 ;
-		auto msg_len = 0 ;
-		u_char outBuf[ 8192 ];
+		u_char outBuf[ 256 ]{0};
+		auto msg_len = BufLen + 1 ;
+		auto total_len = msg_len + 3 ;
 		outBuf[0] = Type;
-		if(sid_.empty()) {
-			outBuf[3] = 0;
-			std::memcpy(&outBuf[4], Buf, BufLen);
-			msg_len = 1 + BufLen ;
-			total_len = 4 + BufLen;
-		} else {
-			std::memcpy(&outBuf[3], sid_.c_str(), sid_.size());
-			std::memcpy(&outBuf[3 + sid_.size()], Buf, BufLen);
-			msg_len = sid_.size() + BufLen ;
-			total_len = 3 + sid_.size() + BufLen;
-		}
 		outBuf[1] = (msg_len >> 8);
 		outBuf[2] = (msg_len & 0x00ff);
+		outBuf[3] = sid_;
+		std::memcpy(&outBuf[4], Buf, BufLen);
 		PrintBuf(outBuf,total_len);
 		return socket_.sendBytes(outBuf,total_len) == total_len;
 	}
 
 	int RTTY_Device_ConnectionHandler::SendMessage(RTTY_MSG_TYPE Type, std::string &S ) {
 		u_char outBuf[ 256 ]{0};
-		auto len = S.size() + sid_.size();
-		auto msg_len = 0 ;
-		auto total_len=0;
+		auto msg_len = S.size()+1 ;
+		auto total_len= msg_len+3;
 		outBuf[0] = Type;
-		if(sid_.empty()) {
-			outBuf[3] = 0 ;
-			std::strcpy((char*)&outBuf[4],S.c_str());
-			msg_len = 1 + S.size() + 1;
-			total_len = 3 + 1 + S.size() + 1;
-		} else {
-			std::memcpy(&outBuf[3], sid_.c_str(), sid_.size());
-			std::strncpy((char*)&outBuf[3+sid_.size()],S.c_str(),S.size());
-			total_len = 3 + sid_.size() + S.size() + 1;
-			msg_len = sid_.size() + S.size() + 1;
-		}
 		outBuf[1] = (msg_len >> 8);
 		outBuf[2] = (msg_len & 0x00ff);
+		outBuf[3] = sid_;
+		std::strcpy((char*)&outBuf[4],S.c_str());
 		PrintBuf(outBuf,total_len);
 		return socket_.sendBytes(outBuf,total_len) == total_len;
 	}
 
 	int RTTY_Device_ConnectionHandler::SendMessage(RTTY_MSG_TYPE Type) {
-		u_char outBuf[ 8192 ];
-		auto total_len = 0 ;
-		auto msg_len = 0;
+		u_char outBuf[ 256 ]{0};
+		auto msg_len = 0 ;
+		auto total_len= msg_len+3+1;
 		outBuf[0] = Type;
-		if(sid_.empty()) {
-			outBuf[3] = 0 ;
-			total_len = 3 + 1 ;
-			msg_len = 1 ;
-		} else {
-			std::memcpy(&outBuf[3], sid_.c_str(), sid_.size());
-			total_len = 3 + sid_.size() ;
-			msg_len = sid_.size();
-		}
 		outBuf[1] = (msg_len >> 8);
 		outBuf[2] = (msg_len & 0x00ff);
-		return socket_.sendBytes(outBuf,total_len) == 3;
+		outBuf[3] = sid_;
+		return socket_.sendBytes(outBuf,total_len) == total_len;
 	}
 
 	void RTTY_Device_ConnectionHandler::SendToClient(const u_char *Buf, int len) {
@@ -125,109 +98,41 @@ namespace OpenWifi {
 			Client->SendData(S);
 	}
 
-	void RTTY_Device_ConnectionHandler::SendToDevice(const u_char *buf, int len) {
-		u_char outBuf[8192];
-		auto total_len = 0 ;
-		auto msg_len = 0;
+	void RTTY_Device_ConnectionHandler::KeyStrokes(const u_char *buf, int len) {
+		u_char outBuf[64]{0};
+		auto total_len = 3 + 1 + len;
 		outBuf[0] = msgTypeTermData;
-		if(sid_.empty()) {
-			outBuf[3] = 0 ;
-			memcpy( &outBuf[4] , &buf[1], len-1);
-			msg_len = 1 + len ;
-			total_len = 3 + 1 + len - 1 ;
-		} else {
-			std::memcpy(&outBuf[3], sid_.c_str(), sid_.size());
-			memcpy(&outBuf[3 + sid_.size()], buf, len );
-			total_len = 3 + sid_.size() + len ;
-			msg_len = sid_.size() + len  ;
-		}
-		outBuf[1] = (msg_len >> 8);
-		outBuf[2] = (msg_len & 0x00ff);
-		socket_.sendBytes(outBuf, total_len );
-		std::cout << "Sending to device: " << total_len << std::endl;
+		outBuf[1] = 0 ;
+		outBuf[2] = len +1;
+		outBuf[3] = sid_;
+		memcpy( &outBuf[4], buf, len);
+		socket_.sendBytes(outBuf, total_len);
+		std::cout << "Sending to keystrokes: " << total_len << std::endl;
 		PrintBuf(outBuf, total_len);
 	}
 
-	void RTTY_Device_ConnectionHandler::KeyStrokes(const u_char *buf, int len) {
-		u_char outBuf[8192];
-		auto total_len = 0 ;
-		auto msg_len = 0;
-		outBuf[0] = msgTypeTermData;
-		if(buf[0]==0) {
-			if (sid_.empty()) {
-				memcpy(&outBuf[3], &buf[1], len - 1);
-				msg_len = len - 1 ;
-				total_len = 3 + len - 1;
-
-				/*
- 				outBuf[3] = 0;
-				memcpy(&outBuf[4], &buf[1], len - 1);
-				msg_len = 1 + len - 1 ;
-				total_len = 3 + 1 + len - 1;
-*/
-			} else {
-				std::memcpy(&outBuf[3], sid_.c_str(), 32);
-				memcpy(&outBuf[3 + 32], &buf[1], len-1);
-				total_len = 3 + sid_.size() + len-1;
-				msg_len = sid_.size() + len - 1 ;
-			}
-			outBuf[1] = (msg_len >> 8);
-			outBuf[2] = (msg_len & 0x00ff);
-			socket_.sendBytes(outBuf, total_len);
-			std::cout << "Sending to keystrokes: " << total_len << std::endl;
-			PrintBuf(outBuf, total_len);
-		}
-	}
-
 	void RTTY_Device_ConnectionHandler::WindowSize(int cols, int rows) {
-		u_char	outBuf[64];
+		u_char	outBuf[32]{0};
 		outBuf[0] = msgTypeWinsize;
-		auto total_len = 0 ;
-		auto msg_len = 0;
-		if(sid_.empty()) {
-			outBuf[1] = 0 ;
-			outBuf[2] = 4;
-			outBuf[3] = cols >> 8 ;
-			outBuf[4] = cols & 0x00ff;
-			outBuf[5] = rows >> 8;
-			outBuf[6] = rows & 0x00ff;
-			PrintBuf(outBuf,7);
-			socket_.sendBytes(outBuf,7);
-		} else {
-			outBuf[1] = 0 ;
-			outBuf[2] = 32 + 4;
-			memcpy(&outBuf[3],sid_.c_str(),32);
-			outBuf[35] = cols >> 8 ;
-			outBuf[36] = cols & 0x00ff;
-			outBuf[37] = rows >> 8;
-			outBuf[38] = rows & 0x00ff;
-			PrintBuf(outBuf,39);
-			socket_.sendBytes(outBuf,39);
-		}
-	}
-
-	bool RTTY_Device_ConnectionHandler::Login( std::string & sid ) {
-		sid = sid_ =  MicroService::instance().CreateHash(id_).substr(0,32);
-		u_char outBuf[64];
-		outBuf[0] = msgTypeLogin;
-		outBuf[1] = 0;
-		outBuf[2] = 32;
-		strncpy((char*)&outBuf[3],sid_.c_str(),32);
-		std::cout << "Login device SID: " << sid_ << std::endl;
-		PrintBuf(outBuf,35);
-		socket_.sendBytes(outBuf,35 );
-		return true;
+		outBuf[1] = 0 ;
+		outBuf[2] = 4 + 1 ;
+		outBuf[3] = sid_;
+		outBuf[4] = cols >> 8 ;
+		outBuf[5] = cols & 0x00ff;
+		outBuf[6] = rows >> 8;
+		outBuf[7] = rows & 0x00ff;
+		PrintBuf(outBuf,8);
+		socket_.sendBytes(outBuf,8);
 	}
 
 	bool RTTY_Device_ConnectionHandler::Login() {
-		u_char outBuf[64]{0};
+		u_char outBuf[8]{0};
 		outBuf[0] = msgTypeLogin;
 		outBuf[1] = 0;
-		outBuf[2] = 1;
-		outBuf[3] = 0;
+		outBuf[2] = 0;
 		std::cout << "Login device SID: " << sid_ << std::endl;
-		PrintBuf(outBuf,4);
-		socket_.sendBytes(outBuf,4 );
+		PrintBuf(outBuf,3);
+		socket_.sendBytes(outBuf,3 );
 		return true;
 	}
 
@@ -235,11 +140,11 @@ namespace OpenWifi {
 		u_char outBuf[64];
 		outBuf[0] = msgTypeLogout;
 		outBuf[1] = 0;
-		outBuf[2] = 32;
-		std::memcpy((u_char*)&outBuf[3],sid_.c_str(),32);
+		outBuf[2] = 1;
+		outBuf[3] = sid_;
 		std::cout << "Logout device SID: " << sid_ << std::endl;
-		PrintBuf(outBuf,35);
-		socket_.sendBytes(outBuf,35 );
+		PrintBuf(outBuf,4);
+		socket_.sendBytes(outBuf,4 );
 		return true;
 	}
 
@@ -263,7 +168,6 @@ namespace OpenWifi {
 
 				switch(msg) {
 					case msgTypeRegister: {
-						proto_ = inBuf[0];
 						int pos=3;
 						id_ = SafeCopy(&inBuf[0],MsgLen,pos);
 						desc_ = SafeCopy(&inBuf[0],MsgLen,pos);
@@ -286,9 +190,10 @@ namespace OpenWifi {
 					case msgTypeLogin: {
 						std::cout << "msgTypeLogin: len" << MsgLen << std::endl;
 						nlohmann::json doc;
-						sid_code_ = inBuf[3];
+						auto error = inBuf[3];
+						sid_ = inBuf[4];
 						doc["type"] = "login";
-						doc["err"] = sid_code_;
+						doc["err"] = error;
 						const auto login_msg = to_string(doc);
 						SendToClient(login_msg);
 					}
