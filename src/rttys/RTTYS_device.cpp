@@ -187,15 +187,38 @@ namespace OpenWifi {
 		}
 	}
 
-	bool RTTY_Device_ConnectionHandler::InitializeConnection( std::string & sid ) {
-		sid_ = sid = MicroService::instance().CreateHash(id_).substr(0,32);
+	bool RTTY_Device_ConnectionHandler::Login( std::string & sid ) {
+		sid = sid_ =  MicroService::instance().CreateHash(id_).substr(0,32);
 		u_char outBuf[64];
 		outBuf[0] = msgTypeLogin;
 		outBuf[1] = 0;
-		outBuf[2] = 33;
+		outBuf[2] = 32;
 		strncpy((char*)&outBuf[3],sid.c_str(),32);
-		outBuf[35] = 0 ;
-		std::cout << "Initialize device SID" << std::endl;
+		std::cout << "Login device SID: " << sid_ << std::endl;
+		PrintBuf(outBuf,35);
+		socket_.sendBytes(outBuf,35 );
+		return true;
+	}
+
+	bool RTTY_Device_ConnectionHandler::Login() {
+		u_char outBuf[64]{0};
+		outBuf[0] = msgTypeLogin;
+		outBuf[1] = 0;
+		outBuf[2] = 1;
+		outBuf[3] = 0;
+		std::cout << "Login device SID: " << sid_ << std::endl;
+		PrintBuf(outBuf,4);
+		socket_.sendBytes(outBuf,4 );
+		return true;
+	}
+
+	bool RTTY_Device_ConnectionHandler::Logout() {
+		u_char outBuf[64];
+		outBuf[0] = msgTypeLogout;
+		outBuf[1] = 0;
+		outBuf[2] = 32;
+		std::memcpy((u_char*)&outBuf[3],sid_.c_str(),32);
+		std::cout << "Logout device SID: " << sid_ << std::endl;
 		PrintBuf(outBuf,35);
 		socket_.sendBytes(outBuf,35 );
 		return true;

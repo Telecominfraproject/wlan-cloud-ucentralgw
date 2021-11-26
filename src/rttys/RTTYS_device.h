@@ -18,7 +18,8 @@ namespace OpenWifi {
 class RTTY_Device_ConnectionHandler {
   public:
 
-	enum RTTY_MSG_TYPE { msgTypeRegister = 0,
+	enum RTTY_MSG_TYPE {
+		msgTypeRegister = 0,
 		msgTypeLogin,
 		msgTypeLogout,
 		msgTypeTermData,
@@ -43,7 +44,9 @@ class RTTY_Device_ConnectionHandler {
 	int SendMessage( RTTY_MSG_TYPE Type, std::string &S );
 	int SendMessage( RTTY_MSG_TYPE Type);
 
-	bool InitializeConnection( std::string & sid );
+	bool Login( std::string & sid );
+	bool Login();
+	bool Logout();
 
 	void SendToClient(const u_char *buf, int len);
 	void SendToDevice(const u_char *buf, int len);
