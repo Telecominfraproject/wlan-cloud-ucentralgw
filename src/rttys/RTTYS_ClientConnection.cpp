@@ -17,7 +17,6 @@ RTTYS_ClientConnection::RTTYS_ClientConnection(Poco::Net::WebSocket &WS, std::st
 		SR_.addEventHandler(WS_,
 							Poco::NObserver<RTTYS_ClientConnection, Poco::Net::ShutdownNotification>(
 								*this, &RTTYS_ClientConnection::onSocketShutdown));
-		std::cout << "We have a web socket...for " << Id_ << std::endl;
 		RTTYS_server()->Register(Id_,this);
 		RTTYS_server()->Login(Id_);
 	}
@@ -29,7 +28,6 @@ RTTYS_ClientConnection::RTTYS_ClientConnection(Poco::Net::WebSocket &WS, std::st
 		SR_.removeEventHandler(
 			WS_, Poco::NObserver<RTTYS_ClientConnection, Poco::Net::ShutdownNotification>(
 				*this, &RTTYS_ClientConnection::onSocketShutdown));
-		std::cout << "Closing client connection" << std::endl;
 		RTTYS_server()->Logout(Id_);
 		RTTYS_server()->DeRegister(Id_,this);
 	}
@@ -54,11 +52,9 @@ RTTYS_ClientConnection::RTTYS_ClientConnection(Poco::Net::WebSocket &WS, std::st
 				}
 				break;
 			case Poco::Net::WebSocket::FRAME_OP_TEXT: {
-					std::cout << "Web Socket Received TEXT: " << n << std::endl;
 					if (n == 0)
 						return delete this;
 					std::string s{(char*)Buffer};
-					std::cout << "WS TEXT: " << s << std::endl;
 					auto Doc = nlohmann::json::parse(s);
 					if(Doc.contains("type")) {
 						auto Type = Doc["type"];
@@ -67,7 +63,6 @@ RTTYS_ClientConnection::RTTYS_ClientConnection(Poco::Net::WebSocket &WS, std::st
 							auto rows = Doc["rows"];;
 							auto Device = RTTYS_server()->GetDevice(Id_);
 							if(Device==nullptr) {
-								std::cout << "Cannot send data to device: " << Id_ << std::endl;
 								return;
 							}
 							Device->WindowSize(cols,rows);
@@ -76,12 +71,10 @@ RTTYS_ClientConnection::RTTYS_ClientConnection(Poco::Net::WebSocket &WS, std::st
 				}
 				break;
 			case Poco::Net::WebSocket::FRAME_OP_BINARY: {
-					std::cout << "Web Socket Received BINARY: " << n << " type: " << (int) Buffer[0] << (int) Buffer[1] << std::endl;
 					if (n == 0)
 						return delete this;
 					auto Device = RTTYS_server()->GetDevice(Id_);
 					if(Device==nullptr) {
-						std::cout << "Cannot send data to device: " << Id_ << std::endl;
 						return;
 					}
 					Device->KeyStrokes(Buffer,n);

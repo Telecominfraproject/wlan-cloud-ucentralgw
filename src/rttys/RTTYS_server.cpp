@@ -52,7 +52,6 @@ namespace OpenWifi {
 
 		auto It = Devices_.find(Id);
 		if(It == Devices_.end()) {
-			std::cout << "Cannot initialize this device: " << Id << std::endl;
 			return false;
 		}
 		It->second->Login();
@@ -64,7 +63,6 @@ namespace OpenWifi {
 
 		auto It = Devices_.find(Id);
 		if(It == Devices_.end()) {
-			std::cout << "Cannot initialize this device: " << Id << std::endl;
 			return false;
 		}
 		It->second->Logout();
@@ -76,7 +74,6 @@ namespace OpenWifi {
 
 		auto It = Clients_.find(Id);
 		if(It == Clients_.end()) {
-			std::cout << "Cannot close this client: " << Id << std::endl;
 			return false;
 		}
 

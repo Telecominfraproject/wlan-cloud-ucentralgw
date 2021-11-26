@@ -44,9 +44,6 @@ namespace OpenWifi {
 	void PageRequestHandler::handleRequest(Poco::Net::HTTPServerRequest &request,
 					   Poco::Net::HTTPServerResponse &response) {
 		Poco::URI uri(request.getURI());
-
-		std::cout << "New request..." << std::endl;
-
 		auto Path = uri.getPath();
 
 		if (Path == "/") {
@@ -56,12 +53,10 @@ namespace OpenWifi {
 
 			if (ParsedPath.count() > 1) {
 				if (ParsedPath[1] == "connect") {
-					std::cout << "Redirecting..." << std::endl;
 					response.redirect(Poco::replace(Path,"/connect/","/rtty/"));
 					response.send();
 					return;
 				} else if (ParsedPath[1] == "authorized") {
-					std::cout << "authorized...prep" << std::endl;
 					nlohmann::json doc;
 					doc["authorized"] = true;
 					response.set("Access-Control-Allow-Origin", "*");
@@ -70,10 +65,8 @@ namespace OpenWifi {
 					response.setContentType("application/json");
 					std::ostream &answer = response.send();
 					answer << to_string(doc);
-					std::cout << "authorized...sent" << std::endl;
 					return;
 				} else if (ParsedPath[1] == "fontsize") {
-					std::cout << "fontsize..." << std::endl;
 					nlohmann::json doc;
 					doc["size"] = 16;
 					response.set("Access-Control-Allow-Origin", "*");
@@ -99,7 +92,6 @@ namespace OpenWifi {
 			response.sendFile(Path,"text/html");
 			return;
 		}
-		std::cout << "Path:" << Path << std::endl;
 		Poco::Path P(Path);
 		auto Ext = P.getExtension();
 
@@ -139,10 +131,8 @@ namespace OpenWifi {
 	RTTY_Client_RequestHandlerFactory::createRequestHandler(const Poco::Net::HTTPServerRequest &request) {
 		if (request.find("Upgrade") != request.end() &&
 		Poco::icompare(request["Upgrade"], "websocket") == 0) {
-			std::cout << "New WS request..." << std::endl;
 			return new RTTY_Client_WebSocketRequestHandler(Reactor_);
 		} else {
-			std::cout << "New HTTP request..." << std::endl;
 			return new PageRequestHandler;
 		}
 	}
