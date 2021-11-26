@@ -206,7 +206,7 @@ namespace OpenWifi {
 		outBuf[0] = msgTypeLogin;
 		outBuf[1] = 0;
 		outBuf[2] = 32;
-		strncpy((char*)&outBuf[3],sid.c_str(),32);
+		strncpy((char*)&outBuf[3],sid_.c_str(),32);
 		std::cout << "Login device SID: " << sid_ << std::endl;
 		PrintBuf(outBuf,35);
 		socket_.sendBytes(outBuf,35 );
@@ -263,9 +263,17 @@ namespace OpenWifi {
 						desc_ = SafeCopy(&inBuf[0],MsgLen,pos);
 						token_ = SafeCopy(&inBuf[0],MsgLen,pos);
 						std::cout << "msgTypeRegister: id: " << id_ << "  desc: " << desc_ << "  token: " << token_ << std::endl;
-						std::string OK{"OK"};
+
+						u_char	OutBuf[12];
+						OutBuf[0] = msgTypeRegister;
+						OutBuf[1] = 0 ;
+						OutBuf[2] = 4 ;
+						OutBuf[3] = 0 ;
+						OutBuf[4] = 'O';
+						OutBuf[5] = 'K';
+						OutBuf[6] = 0;
+						socket_.sendBytes(OutBuf,7);
 						RTTYS_server()->Register(id_,this);
-						SendMessage(msgTypeRegister, OK);
 					}
 					break;
 
@@ -281,8 +289,6 @@ namespace OpenWifi {
 					break;
 
 					case msgTypeTermData: {
-						std::cout << "msgTypeTermData: len" << MsgLen << std::endl;
-						PrintBuf(&inBuf[0],len);
 						SendToClient(&inBuf[3],MsgLen);
 					}
 					break;

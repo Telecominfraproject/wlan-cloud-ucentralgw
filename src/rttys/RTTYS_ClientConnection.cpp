@@ -19,8 +19,8 @@ RTTYS_ClientConnection::RTTYS_ClientConnection(Poco::Net::WebSocket &WS, std::st
 								*this, &RTTYS_ClientConnection::onSocketShutdown));
 		std::cout << "We have a web socket...for " << Id_ << std::endl;
 		RTTYS_server()->Register(Id_,this);
-		// RTTYS_server()->Login(Id_, Sid_);
-		RTTYS_server()->Login(Id_);
+		RTTYS_server()->Login(Id_, Sid_);
+		//RTTYS_server()->Login(Id_);
 	}
 
 	RTTYS_ClientConnection::~RTTYS_ClientConnection() {
