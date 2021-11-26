@@ -235,24 +235,27 @@ namespace OpenWifi {
 	{
 		try
 		{
-			int len = socket_.receiveBytes(&inBuf_[0],BUF_SIZE);
+			u_char	inBuf[2048]{0};
+			int len = socket_.receiveBytes(&inBuf[0],BUF_SIZE);
 			if (len > 0)
 			{
+				std::cout << "DEVICE MSG RECEIVED: " << len << " bytes" << std::endl;
+				PrintBuf(inBuf,len);
 				RTTY_MSG_TYPE   msg;
-				if(inBuf_[0]>=(u_char)msgTypeMax) {
+				if(inBuf[0]>=(u_char)msgTypeMax) {
 					delete this;
 				}
-				msg = (RTTY_MSG_TYPE) inBuf_[0];
-				int MsgLen = (int) inBuf_[1] * 256 + (int) inBuf_[2];
+				msg = (RTTY_MSG_TYPE) inBuf[0];
+				int MsgLen = (int) inBuf[1] * 256 + (int) inBuf[2];
 
 				switch(msg) {
 					case msgTypeRegister: {
-						PrintBuf(&inBuf_[0],len);
-						proto_ = inBuf_[0];
+						PrintBuf(&inBuf[0],len);
+						proto_ = inBuf[0];
 						int pos=3;
-						id_ = SafeCopy(&inBuf_[0],MsgLen,pos);
-						desc_ = SafeCopy(&inBuf_[0],MsgLen,pos);
-						token_ = SafeCopy(&inBuf_[0],MsgLen,pos);
+						id_ = SafeCopy(&inBuf[0],MsgLen,pos);
+						desc_ = SafeCopy(&inBuf[0],MsgLen,pos);
+						token_ = SafeCopy(&inBuf[0],MsgLen,pos);
 						std::cout << "msgTypeRegister: id: " << id_ << "  desc: " << desc_ << "  token: " << token_ << std::endl;
 						std::string OK{"OK"};
 						RTTYS_server()->Register(id_,this);
@@ -262,20 +265,19 @@ namespace OpenWifi {
 
 					case msgTypeLogin: {
 						std::cout << "msgTypeLogin: len" << MsgLen << std::endl;
-						sid_code_ = inBuf_[3];
+						sid_code_ = inBuf[3];
 					}
 					break;
 
 					case msgTypeLogout: {
 						std::cout << "msgTypeLogout" << std::endl;
-
 					}
 					break;
 
 					case msgTypeTermData: {
 						std::cout << "msgTypeTermData: len" << MsgLen << std::endl;
-						PrintBuf(&inBuf_[0],len);
-						SendToClient(&inBuf_[3],MsgLen);
+						PrintBuf(&inBuf[0],len);
+						SendToClient(&inBuf[3],MsgLen);
 					}
 					break;
 
@@ -293,7 +295,7 @@ namespace OpenWifi {
 
 					case msgTypeHeartbeat: {
 						std::cout << "msgTypeHeartbeat: " << MsgLen << " bytes" << std::endl;
-						PrintBuf(&inBuf_[0], len);
+						PrintBuf(&inBuf[0], len);
 						u_char MsgBuf[32]{0};
 						MsgBuf[0] = msgTypeHeartbeat;
 /*						MsgBuf[1] = 0 ;
