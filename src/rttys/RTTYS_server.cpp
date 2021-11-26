@@ -66,7 +66,8 @@ namespace OpenWifi {
 		if(It == EndPoints_.end()) {
 			return false;
 		}
-		It->second.Device->Login();
+		if(It->second.Device!= nullptr)
+			It->second.Device->Login();
 		return true;
 	}
 
@@ -77,7 +78,8 @@ namespace OpenWifi {
 		if(It == EndPoints_.end()) {
 			return false;
 		}
-		It->second.Device->Logout();
+		if(It->second.Device!= nullptr)
+			It->second.Device->Logout();
 		return true;
 	}
 
@@ -89,8 +91,9 @@ namespace OpenWifi {
 			return false;
 		}
 
-		delete It->second.Client;
-
+		if(It->second.Device!= nullptr)
+			delete It->second.Client;
+		It->second.Client = nullptr;
 		return true;
 	}
 
