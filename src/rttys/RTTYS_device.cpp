@@ -50,12 +50,9 @@ namespace OpenWifi {
 	}
 
 	int RTTY_Device_ConnectionHandler::SendMessage(RTTY_MSG_TYPE Type, const u_char * Buf, int BufLen) {
-		auto len = BufLen + sid_.size();
 		auto total_len = 0 ;
 		u_char outBuf[ 8192 ];
 		outBuf[0] = Type;
-		outBuf[1] = (len >> 8);
-		outBuf[2] = (len & 0x00ff);
 		if(sid_.empty()) {
 			outBuf[3] = 0;
 			std::memcpy(&outBuf[4], Buf, BufLen);
@@ -65,6 +62,8 @@ namespace OpenWifi {
 			std::memcpy(&outBuf[3 + sid_.size()], Buf, BufLen);
 			total_len = 3 + sid_.size() + BufLen;
 		}
+		outBuf[1] = (total_len >> 8);
+		outBuf[2] = (total_len & 0x00ff);
 		return socket_.sendBytes(&outBuf[0],total_len) == total_len;
 	}
 
@@ -73,8 +72,6 @@ namespace OpenWifi {
 		auto len = S.size() + sid_.size();
 		auto total_len=0;
 		outBuf[0] = Type;
-		outBuf[1] = (len >> 8);
-		outBuf[2] = (len & 0x00ff);
 		if(sid_.empty()) {
 			outBuf[3] = 0 ;
 			std::strcpy((char*)&outBuf[4],S.c_str());
@@ -84,6 +81,8 @@ namespace OpenWifi {
 			std::strcpy((char*)&outBuf[3+sid_.size()],S.c_str());
 			total_len = 3 + sid_.size() + S.size() + 1;
 		}
+		outBuf[1] = (total_len >> 8);
+		outBuf[2] = (total_len & 0x00ff);
 		PrintBuf(&outBuf[0],total_len);
 		return socket_.sendBytes(&outBuf[0],total_len) == total_len;
 	}
@@ -92,8 +91,6 @@ namespace OpenWifi {
 		u_char outBuf[ 8192 ];
 		auto total_len = 0 ;
 		outBuf[0] = Type;
-		outBuf[1] = 0;
-		outBuf[2] = 0;
 		if(sid_.empty()) {
 			outBuf[3] = 0 ;
 			total_len = 3 + 1 ;
@@ -101,6 +98,8 @@ namespace OpenWifi {
 			std::memcpy(&outBuf[3], sid_.c_str(), sid_.size());
 			total_len = 3 + sid_.size() ;
 		}
+		outBuf[1] = (total_len >> 8);
+		outBuf[2] = (total_len & 0x00ff);
 		return socket_.sendBytes(&outBuf[0],total_len) == 3;
 	}
 
@@ -115,8 +114,6 @@ namespace OpenWifi {
 			u_char sendBuf[8192];
 			auto total_len = 0 ;
 			sendBuf[0] = msgTypeTermData;
-			sendBuf[1] = len >> 8;
-			sendBuf[2] = len & 0x00ff;
 			if(sid_.empty()) {
 				sendBuf[3] = 0 ;
 				memcpy( &sendBuf[4] , &buf[1], len-1);
@@ -126,6 +123,8 @@ namespace OpenWifi {
 				memcpy(&sendBuf[3 + sid_.size()], &buf[1], len - 1);
 				total_len = 3 + sid_.size() + len -1 ;
 			}
+			sendBuf[1] = total_len >> 8;
+			sendBuf[2] = total_len & 0x00ff;
 			socket_.sendBytes(&sendBuf[0], total_len );
 			std::cout << "Sending to device: " << total_len << std::endl;
 			PrintBuf(&sendBuf[0], total_len);
