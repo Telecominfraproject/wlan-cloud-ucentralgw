@@ -100,12 +100,12 @@ namespace OpenWifi {
 
 	void RTTY_Device_ConnectionHandler::KeyStrokes(const u_char *buf, int len) {
 		u_char outBuf[64]{0};
-		auto total_len = 3 + 1 + len;
+		auto total_len = 3 + 1 + len-1;
 		outBuf[0] = msgTypeTermData;
 		outBuf[1] = 0 ;
-		outBuf[2] = len +1;
+		outBuf[2] = len +1-1;
 		outBuf[3] = sid_;
-		memcpy( &outBuf[4], buf, len);
+		memcpy( &outBuf[4], &buf[1], len-1);
 		socket_.sendBytes(outBuf, total_len);
 		std::cout << "Sending to keystrokes: " << total_len << std::endl;
 		PrintBuf(outBuf, total_len);
