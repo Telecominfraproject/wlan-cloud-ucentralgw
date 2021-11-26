@@ -51,38 +51,44 @@ namespace OpenWifi {
 
 	int RTTY_Device_ConnectionHandler::SendMessage(RTTY_MSG_TYPE Type, const u_char * Buf, int BufLen) {
 		auto total_len = 0 ;
+		auto msg_len = 0 ;
 		u_char outBuf[ 8192 ];
 		outBuf[0] = Type;
 		if(sid_.empty()) {
 			outBuf[3] = 0;
 			std::memcpy(&outBuf[4], Buf, BufLen);
+			msg_len = 1 + BufLen ;
 			total_len = 4 + BufLen;
 		} else {
 			std::memcpy(&outBuf[3], sid_.c_str(), sid_.size());
 			std::memcpy(&outBuf[3 + sid_.size()], Buf, BufLen);
+			msg_len = sid_.size() + BufLen ;
 			total_len = 3 + sid_.size() + BufLen;
 		}
-		outBuf[1] = (total_len >> 8);
-		outBuf[2] = (total_len & 0x00ff);
+		outBuf[1] = (msg_len >> 8);
+		outBuf[2] = (msg_len & 0x00ff);
 		return socket_.sendBytes(&outBuf[0],total_len) == total_len;
 	}
 
 	int RTTY_Device_ConnectionHandler::SendMessage(RTTY_MSG_TYPE Type, std::string &S ) {
 		u_char outBuf[ 8192 ];
 		auto len = S.size() + sid_.size();
+		auto msg_len = 0 ;
 		auto total_len=0;
 		outBuf[0] = Type;
 		if(sid_.empty()) {
 			outBuf[3] = 0 ;
 			std::strcpy((char*)&outBuf[4],S.c_str());
+			msg_len = 1 + S.size();
 			total_len = 3 + 1 + S.size() + 1;
 		} else {
 			std::memcpy(&outBuf[3], sid_.c_str(), sid_.size());
-			std::strcpy((char*)&outBuf[3+sid_.size()],S.c_str());
-			total_len = 3 + sid_.size() + S.size() + 1;
+			std::strncpy((char*)&outBuf[3+sid_.size()],S.c_str(),S.size());
+			total_len = 3 + sid_.size() + S.size();
+			msg_len = sid_.size() + S.size() ;
 		}
-		outBuf[1] = (total_len >> 8);
-		outBuf[2] = (total_len & 0x00ff);
+		outBuf[1] = (msg_len >> 8);
+		outBuf[2] = (msg_len & 0x00ff);
 		PrintBuf(&outBuf[0],total_len);
 		return socket_.sendBytes(&outBuf[0],total_len) == total_len;
 	}
@@ -90,16 +96,19 @@ namespace OpenWifi {
 	int RTTY_Device_ConnectionHandler::SendMessage(RTTY_MSG_TYPE Type) {
 		u_char outBuf[ 8192 ];
 		auto total_len = 0 ;
+		auto msg_len = 0;
 		outBuf[0] = Type;
 		if(sid_.empty()) {
 			outBuf[3] = 0 ;
 			total_len = 3 + 1 ;
+			msg_len = 1 ;
 		} else {
 			std::memcpy(&outBuf[3], sid_.c_str(), sid_.size());
 			total_len = 3 + sid_.size() ;
+			msg_len = sid_.size();
 		}
-		outBuf[1] = (total_len >> 8);
-		outBuf[2] = (total_len & 0x00ff);
+		outBuf[1] = (msg_len >> 8);
+		outBuf[2] = (msg_len & 0x00ff);
 		return socket_.sendBytes(&outBuf[0],total_len) == 3;
 	}
 
@@ -111,23 +120,26 @@ namespace OpenWifi {
 
 	void RTTY_Device_ConnectionHandler::SendToDevice(const u_char *buf, int len) {
 		if(buf[0]==0) {
-			u_char sendBuf[8192];
+			u_char outBuf[8192];
 			auto total_len = 0 ;
-			sendBuf[0] = msgTypeTermData;
+			auto msg_len = 0;
+			outBuf[0] = msgTypeTermData;
 			if(sid_.empty()) {
-				sendBuf[3] = 0 ;
-				memcpy( &sendBuf[4] , &buf[1], len-1);
+				outBuf[3] = 0 ;
+				memcpy( &outBuf[4] , &buf[1], len-1);
+				msg_len = 1 + len ;
 				total_len = 3 + 1 + len - 1 ;
 			} else {
-				std::memcpy(&sendBuf[3], sid_.c_str(), sid_.size());
-				memcpy(&sendBuf[3 + sid_.size()], &buf[1], len - 1);
+				std::memcpy(&outBuf[3], sid_.c_str(), sid_.size());
+				memcpy(&outBuf[3 + sid_.size()], &buf[1], len - 1);
 				total_len = 3 + sid_.size() + len -1 ;
+				msg_len = sid_.size() + len - 1 ;
 			}
-			sendBuf[1] = total_len >> 8;
-			sendBuf[2] = total_len & 0x00ff;
-			socket_.sendBytes(&sendBuf[0], total_len );
+			outBuf[1] = (msg_len >> 8);
+			outBuf[2] = (msg_len & 0x00ff);
+			socket_.sendBytes(&outBuf[0], total_len );
 			std::cout << "Sending to device: " << total_len << std::endl;
-			PrintBuf(&sendBuf[0], total_len);
+			PrintBuf(&outBuf[0], total_len);
 		}
 	}
 
