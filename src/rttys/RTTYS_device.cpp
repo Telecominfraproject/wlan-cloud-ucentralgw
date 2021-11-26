@@ -360,13 +360,14 @@ namespace OpenWifi {
 				else
 				{
 					std::cout << "Device " << id_ << " no data." << std::endl;
-
-					delete this;
+					RTTYS_server()->Close(id_);
+					return delete this;
 				}
 		}
 		catch (Poco::Exception& exc)
 		{
-			delete this;
+			RTTYS_server()->Close(id_);
+			return delete this;
 		}
 	}
 

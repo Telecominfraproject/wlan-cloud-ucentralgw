@@ -22,6 +22,8 @@ namespace OpenWifi {
 		void SendData( const u_char *Buf, int len );
 		void SendData( const std::string & S);
 
+		void Close();
+
 	  private:
 		Poco::Net::WebSocket WS_;
 		std::string Id_;

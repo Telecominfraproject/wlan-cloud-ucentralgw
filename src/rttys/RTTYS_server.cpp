@@ -83,5 +83,19 @@ namespace OpenWifi {
 		return true;
 	}
 
+	bool RTTYS_server::Close(const std::string & Id) {
+		std::lock_guard	G(Mutex_);
+
+		auto It = Clients_.find(Id);
+		if(It == Clients_.end()) {
+			std::cout << "Cannot close this client: " << Id << std::endl;
+			return false;
+		}
+
+		delete It->second;
+
+		return true;
+	}
+
 
 }
