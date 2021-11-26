@@ -171,17 +171,27 @@ namespace OpenWifi {
 						id_ = SafeCopy(&inBuf[0],MsgLen,pos);
 						desc_ = SafeCopy(&inBuf[0],MsgLen,pos);
 						token_ = SafeCopy(&inBuf[0],MsgLen,pos);
-						RTTYS_server()->Logger().debug(Poco::format("Registration for SerialNumber: %s, Descriotion: %s, Token: %s", id_, desc_, token_));
-						u_char	OutBuf[12];
-						OutBuf[0] = msgTypeRegister;
-						OutBuf[1] = 0 ;
-						OutBuf[2] = 4 ;
-						OutBuf[3] = 0 ;
-						OutBuf[4] = 'O';
-						OutBuf[5] = 'K';
-						OutBuf[6] = 0;
-						socket_.sendBytes(OutBuf,7);
-						RTTYS_server()->Register(id_,this);
+
+						if(RTTYS_server()->ValidEndPoint(id_,token_)) {
+							RTTYS_server()->Logger().debug(Poco::format(
+								"Registration for SerialNumber: %s, Description: %s, Token: %s",
+								id_, desc_, token_));
+							u_char OutBuf[12];
+							OutBuf[0] = msgTypeRegister;
+							OutBuf[1] = 0;
+							OutBuf[2] = 4;
+							OutBuf[3] = 0;
+							OutBuf[4] = 'O';
+							OutBuf[5] = 'K';
+							OutBuf[6] = 0;
+							socket_.sendBytes(OutBuf, 7);
+							RTTYS_server()->Register(id_, this);
+						} else {
+							RTTYS_server()->Logger().debug(Poco::format(
+								"Registration failed - invalid (id,token) pair. for SerialNumber: %s, Description: %s, Token: %s",
+								id_, desc_, token_));
+							return delete this;
+						}
 					}
 					break;
 

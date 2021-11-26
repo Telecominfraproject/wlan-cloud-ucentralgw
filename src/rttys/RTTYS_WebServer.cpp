@@ -53,6 +53,7 @@ namespace OpenWifi {
 
 			if (ParsedPath.count() > 1) {
 				if (ParsedPath[1] == "connect") {
+					RTTYS_server()->Logger().information(Poco::format("... rtty connect redirect: %s",Path));
 					response.redirect(Poco::replace(Path,"/connect/","/rtty/"));
 					response.send();
 					return;
