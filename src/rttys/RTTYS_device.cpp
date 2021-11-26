@@ -149,10 +149,16 @@ namespace OpenWifi {
 		outBuf[0] = msgTypeTermData;
 		if(buf[0]==0) {
 			if (sid_.empty()) {
-				outBuf[3] = 0;
+				memcpy(&outBuf[3], &buf[1], len - 1);
+				msg_len = len - 1 ;
+				total_len = 3 + len - 1;
+
+				/*
+ 				outBuf[3] = 0;
 				memcpy(&outBuf[4], &buf[1], len - 1);
 				msg_len = 1 + len - 1 ;
 				total_len = 3 + 1 + len - 1;
+*/
 			} else {
 				std::memcpy(&outBuf[3], sid_.c_str(), 32);
 				memcpy(&outBuf[3 + 32], &buf[1], len-1);
