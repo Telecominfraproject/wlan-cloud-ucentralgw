@@ -187,8 +187,6 @@ namespace OpenWifi {
 		}
 	}
 
-	void
-
 	bool RTTY_Device_ConnectionHandler::InitializeConnection( std::string & sid ) {
 		sid_ = sid = MicroService::instance().CreateHash(id_).substr(0,32);
 		u_char outBuf[64];
