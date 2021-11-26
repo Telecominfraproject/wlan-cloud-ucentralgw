@@ -174,8 +174,8 @@ namespace OpenWifi {
 		strncpy((char*)&outBuf[3],sid.c_str(),32);
 		outBuf[35] = 0 ;
 		std::cout << "Initialize device SID" << std::endl;
-		PrintBuf(outBuf,36);
-		socket_.sendBytes(outBuf,36 );
+		PrintBuf(outBuf,35);
+		socket_.sendBytes(outBuf,35 );
 		return true;
 	}
 
