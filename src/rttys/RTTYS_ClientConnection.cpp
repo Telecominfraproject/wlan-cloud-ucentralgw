@@ -54,14 +54,20 @@ RTTYS_ClientConnection::RTTYS_ClientConnection(Poco::Net::WebSocket &WS, std::st
 						return delete this;
 					std::string s{Buffer};
 					std::cout << "WS TEXT: " << s << std::endl;
-					// auto doc = nlohmann::json::parse(s);
-
-					auto Device = RTTYS_server()->GetDevice(Id_);
-					if(Device==nullptr) {
-						std::cout << "Cannot send data to device: " << Id_ << std::endl;
-						return;
+					auto Doc = nlohmann::json::parse(s);
+					if(Doc.contains("type")) {
+						auto Type = Doc["type"];
+						if(Type == "winsize") {
+							auto cols = Doc["cols"];
+							auto rows = Doc["rows"];;
+							auto Device = RTTYS_server()->GetDevice(Id_);
+							if(Device==nullptr) {
+								std::cout << "Cannot send data to device: " << Id_ << std::endl;
+								return;
+							}
+							Device->WindowSize(cols,rows);
+						}
 					}
-					// Device->SendToDevice((u_char *)&Buffer[0],n);
 				}
 				break;
 			case Poco::Net::WebSocket::FRAME_OP_BINARY: {

@@ -47,6 +47,7 @@ class RTTY_Device_ConnectionHandler {
 
 	void SendToClient(const u_char *buf, int len);
 	void SendToDevice(const u_char *buf, int len);
+	void WindowSize(int cols, int rows);
   private:
 	enum {
 		BUF_SIZE = 8192

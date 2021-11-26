@@ -67,7 +67,8 @@ namespace OpenWifi {
 		}
 		outBuf[1] = (msg_len >> 8);
 		outBuf[2] = (msg_len & 0x00ff);
-		return socket_.sendBytes(&outBuf[0],total_len) == total_len;
+		PrintBuf(outBuf,total_len);
+		return socket_.sendBytes(outBuf,total_len) == total_len;
 	}
 
 	int RTTY_Device_ConnectionHandler::SendMessage(RTTY_MSG_TYPE Type, std::string &S ) {
@@ -89,8 +90,8 @@ namespace OpenWifi {
 		}
 		outBuf[1] = (msg_len >> 8);
 		outBuf[2] = (msg_len & 0x00ff);
-		PrintBuf(&outBuf[0],total_len);
-		return socket_.sendBytes(&outBuf[0],total_len) == total_len;
+		PrintBuf(outBuf,total_len);
+		return socket_.sendBytes(outBuf,total_len) == total_len;
 	}
 
 	int RTTY_Device_ConnectionHandler::SendMessage(RTTY_MSG_TYPE Type) {
@@ -109,7 +110,7 @@ namespace OpenWifi {
 		}
 		outBuf[1] = (msg_len >> 8);
 		outBuf[2] = (msg_len & 0x00ff);
-		return socket_.sendBytes(&outBuf[0],total_len) == 3;
+		return socket_.sendBytes(outBuf,total_len) == 3;
 	}
 
 	void RTTY_Device_ConnectionHandler::SendToClient(const u_char *Buf, int len) {
@@ -137,23 +138,44 @@ namespace OpenWifi {
 			}
 			outBuf[1] = (msg_len >> 8);
 			outBuf[2] = (msg_len & 0x00ff);
-			socket_.sendBytes(&outBuf[0], total_len );
+			socket_.sendBytes(outBuf, total_len );
 			std::cout << "Sending to device: " << total_len << std::endl;
-			PrintBuf(&outBuf[0], total_len);
+			PrintBuf(outBuf, total_len);
 		}
+	}
+
+	void RTTY_Device_ConnectionHandler::WindowSize(int cols, int rows) {
+		u_char	outBuf[64];
+		outBuf[0] = msgTypeWinsize;
+		auto total_len = 0 ;
+		auto msg_len = 0;
+		if(sid_.empty()) {
+
+		} else {
+			outBuf[1] = 0 ;
+			outBuf[2] = 32 + 4;
+			memcpy(&outBuf[3],sid_.c_str(),32);
+			outBuf[35] = cols >> 8 ;
+			outBuf[36] = cols & 0x00ff;
+			outBuf[37] = rows >> 8;
+			outBuf[38] = rows & 0x00ff;
+			PrintBuf(outBuf,39);
+			socket_.sendBytes(outBuf,39);
+		}
+
 	}
 
 	bool RTTY_Device_ConnectionHandler::InitializeConnection( std::string & sid ) {
 		sid_ = sid = MicroService::instance().CreateHash(id_).substr(0,32);
-		u_char buf[64];
-		buf[0] = msgTypeLogin;
-		buf[1] = 0;
-		buf[2] = 33;
-		strncpy((char*)&buf[3],sid.c_str(),32);
-		buf[35] = 0 ;
+		u_char outBuf[64];
+		outBuf[0] = msgTypeLogin;
+		outBuf[1] = 0;
+		outBuf[2] = 33;
+		strncpy((char*)&outBuf[3],sid.c_str(),32);
+		outBuf[35] = 0 ;
 		std::cout << "Initialize device SID" << std::endl;
-		PrintBuf(&buf[0],36);
-		socket_.sendBytes(&buf[0],36 );
+		PrintBuf(outBuf,36);
+		socket_.sendBytes(outBuf,36 );
 		return true;
 	}
 
