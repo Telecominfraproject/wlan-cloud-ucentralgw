@@ -244,14 +244,15 @@ namespace OpenWifi {
 						PrintBuf(&inBuf_[0], len);
 						u_char MsgBuf[32]{0};
 						MsgBuf[0] = msgTypeHeartbeat;
-						MsgBuf[1] = 0 ;
+/*						MsgBuf[1] = 0 ;
 						MsgBuf[2] = 16;
 						auto T = std::time(nullptr);
 						MsgBuf[3] = T >> 24 ;
 						MsgBuf[4] = (T & 0x00ff0000) >> 16;
 						MsgBuf[5] = (T & 0x0000ff00) >> 8;
 						MsgBuf[6] = (T & 0x000000ff);
-						socket_.sendBytes(MsgBuf,19);
+*/
+						socket_.sendBytes(MsgBuf,3);
 					}
 					break;
 
