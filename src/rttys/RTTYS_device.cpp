@@ -72,7 +72,7 @@ namespace OpenWifi {
 	}
 
 	int RTTY_Device_ConnectionHandler::SendMessage(RTTY_MSG_TYPE Type, std::string &S ) {
-		u_char outBuf[ 8192 ];
+		u_char outBuf[ 256 ]{0};
 		auto len = S.size() + sid_.size();
 		auto msg_len = 0 ;
 		auto total_len=0;
@@ -80,13 +80,13 @@ namespace OpenWifi {
 		if(sid_.empty()) {
 			outBuf[3] = 0 ;
 			std::strcpy((char*)&outBuf[4],S.c_str());
-			msg_len = 1 + S.size();
+			msg_len = 1 + S.size() + 1;
 			total_len = 3 + 1 + S.size() + 1;
 		} else {
 			std::memcpy(&outBuf[3], sid_.c_str(), sid_.size());
 			std::strncpy((char*)&outBuf[3+sid_.size()],S.c_str(),S.size());
-			total_len = 3 + sid_.size() + S.size();
-			msg_len = sid_.size() + S.size() ;
+			total_len = 3 + sid_.size() + S.size() + 1;
+			msg_len = sid_.size() + S.size() + 1;
 		}
 		outBuf[1] = (msg_len >> 8);
 		outBuf[2] = (msg_len & 0x00ff);
@@ -239,18 +239,18 @@ namespace OpenWifi {
 			int len = socket_.receiveBytes(&inBuf[0],BUF_SIZE);
 			if (len > 0)
 			{
-				std::cout << "DEVICE MSG RECEIVED: " << len << " bytes" << std::endl;
+				std::cout << "DEVICE MSG RECEIVED: " << std::dec << len << " bytes" << std::endl;
 				PrintBuf(inBuf,len);
 				RTTY_MSG_TYPE   msg;
 				if(inBuf[0]>=(u_char)msgTypeMax) {
-					delete this;
+					std::cout << "  Bad message..." << std::endl;
+					return;
 				}
 				msg = (RTTY_MSG_TYPE) inBuf[0];
 				int MsgLen = (int) inBuf[1] * 256 + (int) inBuf[2];
 
 				switch(msg) {
 					case msgTypeRegister: {
-						PrintBuf(&inBuf[0],len);
 						proto_ = inBuf[0];
 						int pos=3;
 						id_ = SafeCopy(&inBuf[0],MsgLen,pos);
