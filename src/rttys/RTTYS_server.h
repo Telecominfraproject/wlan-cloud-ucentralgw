@@ -28,58 +28,111 @@ namespace OpenWifi {
 		inline auto UIAssets() { return RTTY_UIAssets_; }
 		inline auto UI() { return UI_; }
 
-		inline void Register(const std::string &id, RTTYS_ClientConnection *Conn) {
+		inline void Register(const std::string &Id, RTTYS_ClientConnection *Conn) {
 			std::lock_guard	G(Mutex_);
-			std::cout << "Registering client:" << id << std::endl;
-			Clients_[id] = Conn;
+			std::cout << "Registering client:" << Id << std::endl;
+			auto It = EndPoints_.find(Id);
+			if(It==EndPoints_.end()) {
+				EndPoints_[Id] = EndPoint{ .Client = Conn };
+			} else {
+				It->second.Client = Conn;
+			}
 		}
 
-		inline void DeRegister(const std::string &id, RTTYS_ClientConnection *Conn) {
+		inline void DeRegister(const std::string &Id, RTTYS_ClientConnection *Conn) {
 			std::lock_guard	G(Mutex_);
-			std::cout << "DeRegistering client: '" << id << "'" << std::endl;
-			auto It = Clients_.find(id);
-			if(It==Clients_.end())
+			std::cout << "DeRegistering client: '" << Id << "'" << std::endl;
+			auto It = EndPoints_.find(Id);
+			if(It==EndPoints_.end())
 				return;
-			if(It->second!=Conn)
+			if(It->second.Client!=Conn)
 				return;
-			Clients_.erase(It);
+			It->second.Client = nullptr;
+			It->second.Done = true;
 		}
 
-		inline RTTYS_ClientConnection * GetClient(const std::string &id) {
+		inline RTTYS_ClientConnection * GetClient(const std::string &Id) {
 			std::lock_guard	G(Mutex_);
-			auto It = Clients_.find(id);
-			if(It==Clients_.end()) {
-				std::cout << "Cannot find client '" << id << "' ... " << std::endl;
+			auto It = EndPoints_.find(Id);
+			if(It==EndPoints_.end()) {
+				std::cout << "Cannot find client '" << Id << "' ... " << std::endl;
 				return nullptr;
 			}
-			return It->second;
+			return It->second.Client;
 		}
 
-		inline void Register(const std::string &id, RTTY_Device_ConnectionHandler *Conn) {
+		inline void Register(const std::string &Id, RTTY_Device_ConnectionHandler *Conn) {
 			std::lock_guard	G(Mutex_);
-			std::cout << "Registering device:" << id << std::endl;
-			Devices_[id] = Conn;
+			std::cout << "Registering device:" << Id << std::endl;
+			auto It = EndPoints_.find(Id);
+			if(It==EndPoints_.end()) {
+				EndPoints_[Id] = EndPoint{.Device = Conn };
+			} else {
+				It->second.Device = Conn;
+			}
 		}
 
 		inline void DeRegister(const std::string &id, RTTY_Device_ConnectionHandler *Conn) {
 			std::lock_guard	G(Mutex_);
 			std::cout << "DeRegistering device:" << id << std::endl;
-			auto It = Devices_.find(id);
-			if(It==Devices_.end())
+			auto It = EndPoints_.find(id);
+			if(It==EndPoints_.end())
 				return;
-			if(It->second!=Conn)
+			if(It->second.Device!=Conn)
 				return;
-			Devices_.erase(It);
+			It->second.Device = nullptr;
+			It->second.Done = true;
 		}
 
 		inline RTTY_Device_ConnectionHandler * GetDevice(const std::string &id) {
 			std::lock_guard	G(Mutex_);
-			auto It = Devices_.find(id);
-			if(It==Devices_.end()) {
+			auto It = EndPoints_.find(id);
+			if(It==EndPoints_.end()) {
 				std::cout << "Cannot find device '" << id << "' ... " << std::endl;
  				return nullptr;
 			}
-			return It->second;
+			return It->second.Device;
+		}
+
+		inline bool CreateEndPoint(const std::string &Id, const std::string & Token) {
+			std::lock_guard	G(Mutex_);
+			EndPoint E;
+			E.Done = false;
+			E.Token = Token;
+			E.TimeStamp = std::time(nullptr);
+			EndPoints_[Id] = E;
+			return true;
+		}
+
+		inline bool ValidEndPoint(const std::string &Id, const std::string &Token) {
+			std::lock_guard	G(Mutex_);
+			auto It = EndPoints_.find(Id);
+			if(It==EndPoints_.end())
+				return false;
+			uint64_t Now = std::time(nullptr);
+			return ((It->second.Token == Token) && ((Now-It->second.TimeStamp)<30));
+		}
+
+		inline bool CanConnect( const std::string &Id, RTTY_Device_ConnectionHandler *Conn) {
+			std::lock_guard	G(Mutex_);
+
+			auto It = EndPoints_.find(Id);
+			if(It!=EndPoints_.end() && It->second.Device==Conn && It->second.DeviceConnected==0) {
+				It->second.DeviceConnected = std::time(nullptr);
+				return true;
+			}
+			return false;
+		}
+
+		inline bool CanConnect( const std::string &Id, RTTYS_ClientConnection *Conn) {
+			std::lock_guard	G(Mutex_);
+
+			auto It = EndPoints_.find(Id);
+			if(It!=EndPoints_.end() && It->second.Client==Conn && It->second.ClientConnected==0) {
+				It->second.ClientConnected = std::time(nullptr);
+				return true;
+			}
+			return false;
 		}
 
 		Poco::Logger & Logger() { return Logger_; }
@@ -89,6 +142,20 @@ namespace OpenWifi {
 		bool Logout(const std::string & Id_);
 		bool Close(const std::string & Id_);
 
+		struct EndPoint {
+			std::string 					Token;
+			RTTYS_ClientConnection *		Client = nullptr;
+			RTTY_Device_ConnectionHandler *	Device = nullptr;
+			uint64_t 						TimeStamp = std::time(nullptr);
+			uint64_t 						DeviceConnected = 0;
+			uint64_t 						ClientConnected = 0;
+			bool 							Done = false;
+		};
+
+		inline bool UseInternal() const {
+			return Internal_;
+		}
+
 	  private:
 		Poco::Net::SocketReactor	DeviceReactor_;
 		Poco::Net::SocketReactor	ClientReactor_;
@@ -97,12 +164,13 @@ namespace OpenWifi {
 		std::string 				RTTY_UIAssets_;
 		std::string 				RTTY_UIuri_;
 		std::string 				UI_;
+		std::atomic_bool 			Running_ = false;
+		std::atomic_bool 			Internal_ = false;
 
-		std::map<std::string, RTTYS_ClientConnection *>		Clients_;
-		std::map<std::string, RTTY_Device_ConnectionHandler *> Devices_;
+		std::map<std::string, EndPoint> 			EndPoints_;			//	id, endpoint
 
 		std::unique_ptr<Poco::Net::SocketAcceptor<RTTY_Device_ConnectionHandler>>	DeviceAcceptor_;
-		std::unique_ptr<Poco::Net::HTTPServer>		WebServer_;
+		std::unique_ptr<Poco::Net::HTTPServer>				WebServer_;
 
 		explicit RTTYS_server() noexcept:
 		SubSystemServer("RTTY_Server", "RTTY-SVR", "rtty.server")

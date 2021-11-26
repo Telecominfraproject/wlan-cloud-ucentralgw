@@ -24,6 +24,7 @@
 #include "framework/KafkaTopics.h"
 #include "framework/RESTAPI_errors.h"
 #include "framework/ConfigurationValidator.h"
+#include "rttys/RTTYS_server.h"
 
 namespace OpenWifi {
 
@@ -711,7 +712,7 @@ void RESTAPI_device_commandHandler::MakeRequest() {
 
 	void RESTAPI_device_commandHandler::Rtty() {
 		Logger_.information(Poco::format("RTTY: user=%s serial=%s", UserInfo_.userinfo.email,SerialNumber_));
-		if (MicroService::instance().ConfigGetString("rtty.enabled", "false") == "true") {
+		if (MicroService::instance().ConfigGetBool("rtty.enabled", false)) {
 			GWObjects::Device	Device;
 			if (StorageService()->GetDevice(SerialNumber_, Device)) {
 				auto CommandUUID = MicroService::CreateUUID();
@@ -726,8 +727,13 @@ void RESTAPI_device_commandHandler::MakeRequest() {
 					.Started = (uint64_t)time(nullptr),
 					.CommandUUID = CommandUUID,
 					.ViewPort = MicroService::instance().ConfigGetInt("rtty.viewport", 5913),
-
 				};
+
+				if(RTTYS_server()->UseInternal()) {
+					Rtty.ConnectionId = MicroService::instance().CreateHash(std::to_string(std::time(nullptr))+SerialNumber_);
+					Rtty.Token = MicroService::instance().CreateHash(UserInfo_.webtoken.refresh_token_ + std::to_string(std::time(nullptr)));
+					RTTYS_server()->CreateEndPoint(Rtty.ConnectionId,Rtty.Token);
+				}
 
 				Poco::JSON::Object ReturnedObject;
 				Rtty.to_json(ReturnedObject);
