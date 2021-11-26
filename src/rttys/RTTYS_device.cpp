@@ -153,7 +153,7 @@ namespace OpenWifi {
 		buf[35] = 0 ;
 		std::cout << "Initialize device SID" << std::endl;
 		PrintBuf(&buf[0],36);
-		socket_.sendBytes(&buf[0],3 + sid.length() + 1 );
+		socket_.sendBytes(&buf[0],36 );
 		return true;
 	}
 
@@ -218,9 +218,18 @@ namespace OpenWifi {
 					break;
 
 					case msgTypeHeartbeat: {
-						std::cout << "msgTypeHeartbeat" << std::endl;
+						std::cout << "msgTypeHeartbeat: " << MsgLen << " bytes" << std::endl;
 						PrintBuf(&inBuf_[0], len);
-						SendMessage(msgTypeHeartbeat);
+						u_char MsgBuf[32]{0};
+						MsgBuf[0] = msgTypeHeartbeat;
+						MsgBuf[1] = 0 ;
+						MsgBuf[2] = 16;
+						auto T = std::time(nullptr);
+						MsgBuf[3] = T >> 24 ;
+						MsgBuf[4] = (T & 0x00ff0000) >> 16;
+						MsgBuf[5] = (T & 0x0000ff00) >> 8;
+						MsgBuf[6] = (T & 0x000000ff);
+						SendMessage(msgTypeHeartbeat, MsgBuf, 19);
 					}
 					break;
 
