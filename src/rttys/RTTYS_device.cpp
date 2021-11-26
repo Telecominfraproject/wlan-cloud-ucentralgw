@@ -132,8 +132,8 @@ namespace OpenWifi {
 			} else {
 				std::memcpy(&outBuf[3], sid_.c_str(), sid_.size());
 				memcpy(&outBuf[3 + sid_.size()], buf, len );
-				total_len = 3 + sid_.size() + len -1 ;
-				msg_len = sid_.size() + len - 1 ;
+				total_len = 3 + sid_.size() + len ;
+				msg_len = sid_.size() + len  ;
 			}
 			outBuf[1] = (msg_len >> 8);
 			outBuf[2] = (msg_len & 0x00ff);
