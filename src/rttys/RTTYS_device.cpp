@@ -119,6 +119,12 @@ namespace OpenWifi {
 			Client->SendData(Buf,len);
 	}
 
+	void RTTY_Device_ConnectionHandler::SendToClient(const std::string &S) {
+		auto Client = RTTYS_server()->GetClient(id_);
+		if(Client!= nullptr)
+			Client->SendData(S);
+	}
+
 	void RTTY_Device_ConnectionHandler::SendToDevice(const u_char *buf, int len) {
 		u_char outBuf[8192];
 		auto total_len = 0 ;
@@ -279,7 +285,12 @@ namespace OpenWifi {
 
 					case msgTypeLogin: {
 						std::cout << "msgTypeLogin: len" << MsgLen << std::endl;
+						nlohmann::json doc;
 						sid_code_ = inBuf[3];
+						doc["type"] = "login";
+						doc["err"] = sid_code_;
+						const auto login_msg = to_string(doc);
+						SendToClient(login_msg);
 					}
 					break;
 
@@ -349,6 +360,7 @@ namespace OpenWifi {
 				else
 				{
 					std::cout << "Device " << id_ << " no data." << std::endl;
+
 					delete this;
 				}
 		}

@@ -49,6 +49,7 @@ class RTTY_Device_ConnectionHandler {
 	bool Logout();
 
 	void SendToClient(const u_char *buf, int len);
+	void SendToClient(const std::string &S);
 	void SendToDevice(const u_char *buf, int len);
 	void WindowSize(int cols, int rows);
 	void KeyStrokes(const u_char *buf, int len);

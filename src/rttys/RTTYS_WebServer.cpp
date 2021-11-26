@@ -23,11 +23,6 @@ namespace OpenWifi {
 		if (T[1] != "connect")
 			return;
 		Poco::Net::WebSocket ws(request, response);
-		nlohmann::json doc;
-		doc["type"] = "login";
-		doc["err"] = 0;
-		auto msg = to_string(doc);
-		ws.sendFrame(msg.c_str(),msg.length());
 		new RTTYS_ClientConnection(ws, T[2], R_);
 	};
 
