@@ -52,12 +52,18 @@ namespace OpenWifi {
 		}
 		Response.set("Access-Control-Allow-Headers", "*");
 		Response.set("Access-Control-Max-Age", "86400");
+		Response.set("Access-Control-Allow-Methods", "GET,OPTIONS");
 	}
 
 	void PageRequestHandler::handleRequest(Poco::Net::HTTPServerRequest &request,
 					   Poco::Net::HTTPServerResponse &response) {
 		Poco::URI uri(request.getURI());
 		auto Path = uri.getPath();
+
+		if(request.getMethod() == Poco::Net::HTTPRequest::HTTP_OPTIONS) {
+			AddCORS(request,response);
+			return;
+		}
 
 		if (Path == "/") {
 			Path = RTTYS_server()->UIAssets() + "/index.html";
