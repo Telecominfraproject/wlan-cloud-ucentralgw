@@ -18,13 +18,18 @@ namespace OpenWifi {
 			auto CertFileName = MicroService::instance().ConfigPath("openwifi.restapi.host.0.cert");
 			auto KeyFileName = MicroService::instance().ConfigPath("openwifi.restapi.host.0.key");
 
-			auto DSContext =
-				new Poco::Net::Context(Poco::Net::Context::SERVER_USE, KeyFileName, CertFileName,
+			auto DSContext = new Poco::Net::Context(Poco::Net::Context::SERVER_USE,
+									   KeyFileName, CertFileName,
 									   "", Poco::Net::Context::VERIFY_RELAXED);
+
+			std::cout << "DSPort " << DSport << std::endl;
+			std::cout << "CSPort " << CSport << std::endl;
+
 			Poco::Net::SecureServerSocket DeviceSocket(DSport, 64, DSContext);
 			DeviceSocket.setNoDelay(true);
 			DeviceSocket.setReusePort(true);
 			DeviceSocket.setReuseAddress(true);
+
 			DeviceAcceptor_ =
 				std::make_unique<Poco::Net::SocketAcceptor<RTTY_Device_ConnectionHandler>>(
 					DeviceSocket, DeviceReactor_);
@@ -53,8 +58,8 @@ namespace OpenWifi {
 		if(Internal_) {
 			WebServer_->stopAll();
 			DeviceReactor_.stop();
-			ClientReactor_.stop();
 			DeviceReactorThread_.join();
+			ClientReactor_.stop();
 			ClientReactorThread_.join();
 		}
 	}

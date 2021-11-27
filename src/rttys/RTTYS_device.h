@@ -52,17 +52,12 @@ class RTTY_Device_ConnectionHandler {
 	void WindowSize(int cols, int rows);
 	void KeyStrokes(const u_char *buf, int len);
   private:
-	enum {
-		BUF_SIZE = 8192
-	};
 	Poco::Net::StreamSocket       socket_;
 	Poco::Net::SocketReactor&     reactor_;
-	int                           proto_;
 	std::string                   id_;
 	std::string                   token_;
 	std::string                   desc_;
 	int 				          sid_=0;
-	u_char                        sid_code_;
 };
 
 
