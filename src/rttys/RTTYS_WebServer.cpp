@@ -56,6 +56,8 @@ namespace OpenWifi {
 		Response.set("Access-Control-Allow-Methods", "GET, OPTIONS");
 		Response.set("Connection", "Keep-Alive");
 		Response.set("Keep-Alive", "timeout=120");
+		Response.set("Accept-Ranges","bytes");
+		Response.setChunkedTransferEncoding(true);
 
 		for(const auto &i:Response) {
 			std::cout << "  " << i.first << " : " << i.second << std::endl;
@@ -136,8 +138,6 @@ namespace OpenWifi {
 		else if (Ext == "ttf")
 			Type = "font/ttf";
 
-		response.set("Accept-Ranges","bytes");
-		response.setChunkedTransferEncoding(true);
 		response.setContentLength(F.getSize());
 		response.sendFile(Path, Type);
 	}
