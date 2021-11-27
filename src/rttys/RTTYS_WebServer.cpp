@@ -59,9 +59,15 @@ namespace OpenWifi {
 		Response.set("Accept-Ranges","bytes");
 		Response.setChunkedTransferEncoding(true);
 
+		std::cout << "==REQUEST===================================================" << std::endl;
+		for(const auto &i:Request) {
+			std::cout << "  " << i.first << " : " << i.second << std::endl;
+		}
+		std::cout << "==RESPONSE===================================================" << std::endl;
 		for(const auto &i:Response) {
 			std::cout << "  " << i.first << " : " << i.second << std::endl;
 		}
+		std::cout << "==END===================================================" << std::endl;
 	}
 
 	void PageRequestHandler::handleRequest(Poco::Net::HTTPServerRequest &request,
