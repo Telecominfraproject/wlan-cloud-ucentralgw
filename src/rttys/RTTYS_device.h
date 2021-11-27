@@ -52,7 +52,7 @@ class RTTY_Device_ConnectionHandler {
 	void WindowSize(int cols, int rows);
 	void KeyStrokes(const u_char *buf, int len);
   private:
-	Poco::Net::StreamSocket       & socket_;
+	Poco::Net::StreamSocket       socket_;
 	Poco::Net::SocketReactor&     reactor_;
 	std::string                   id_;
 	std::string                   token_;
