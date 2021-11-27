@@ -723,14 +723,13 @@ void RESTAPI_device_commandHandler::MakeRequest() {
 					.Port = MicroService::instance().ConfigGetInt("rtty.port", 5912),
 					.Token = MicroService::instance().ConfigGetString("rtty.token", "nothing"),
 					.TimeOut = MicroService::instance().ConfigGetInt("rtty.timeout", 60),
-					.ConnectionId = CommandUUID,
+					.ConnectionId =  MicroService::instance().CreateHash(std::to_string(std::time(nullptr))+SerialNumber_),
 					.Started = (uint64_t)time(nullptr),
 					.CommandUUID = CommandUUID,
 					.ViewPort = MicroService::instance().ConfigGetInt("rtty.viewport", 5913),
 				};
 
 				if(RTTYS_server()->UseInternal()) {
-					Rtty.ConnectionId = MicroService::instance().CreateHash(std::to_string(std::time(nullptr))+SerialNumber_);
 					Rtty.Token = MicroService::instance().CreateHash(UserInfo_.webtoken.refresh_token_ + std::to_string(std::time(nullptr)));
 					RTTYS_server()->CreateEndPoint(Rtty.ConnectionId,Rtty.Token);
 				}
