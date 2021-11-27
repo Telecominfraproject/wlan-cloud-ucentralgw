@@ -50,14 +50,14 @@ namespace OpenWifi {
 		} else {
 			Response.set("Access-Control-Allow-Origin", "*");
 		}
-		Response.set("Vary", "Accept-Encoding, Origin, Sec-Fetch-Site");
+//		Response.set("Vary", "Accept-Encoding, Origin, Sec-Fetch-Site");
 		Response.set("Access-Control-Allow-Headers", "Content-Type,Authorization,X-Requested-With,Accept,Access-Control-Request-Method,Origin,Access-Control-Request-Headers,Upgrade");
 		Response.set("Access-Control-Max-Age", "86400");
 		Response.set("Access-Control-Allow-Methods", "GET, OPTIONS, HEAD");
 		Response.set("Connection", "Keep-Alive");
 		Response.set("Keep-Alive", "timeout=120");
 		Response.set("Accept-Ranges","bytes");
-		Response.set("Cross-Origin-Opener-Policy", "same-origin-allow-popups");
+//		Response.set("Cross-Origin-Opener-Policy", "same-origin-allow-popups");
 //		Response.set("Referrer-Policy","no-referrer");
 //		Response.set("Cross-Origin-Resource-Policy","cross-origin");
 		Response.setChunkedTransferEncoding(true);
@@ -78,15 +78,20 @@ namespace OpenWifi {
 		Poco::URI uri(request.getURI());
 		auto Path = uri.getPath();
 
+		std::cout << __LINE__ << std::endl;
 		if(request.getMethod() == Poco::Net::HTTPRequest::HTTP_OPTIONS) {
 			AddCORS(request,response);
 			return;
 		}
+		std::cout << __LINE__ << std::endl;
 
 		if (Path == "/") {
+			std::cout << __LINE__ << std::endl;
 			Path = RTTYS_server()->UIAssets() + "/index.html";
 		} else {
+			std::cout << __LINE__ << std::endl;
 			auto ParsedPath = Poco::StringTokenizer(Path, "/");
+			std::cout << __LINE__ << std::endl;
 			if (ParsedPath.count() > 1) {
 				if (ParsedPath[1] == "connect") {
 					response.redirect(Poco::replace(Path,"/connect/","/rtty/"));
@@ -113,9 +118,12 @@ namespace OpenWifi {
 			Path = RTTYS_server()->UIAssets() + Path;
 		}
 
+		std::cout << __LINE__ << std::endl;
 		Poco::File	F(Path);
 
+		std::cout << __LINE__ << std::endl;
 		AddCORS(request,response);
+		std::cout << __LINE__ << std::endl;
 		if(!F.exists()) {
 			response.setChunkedTransferEncoding(true);
 			Path = RTTYS_server()->UIAssets() + "/index.html";
@@ -124,6 +132,7 @@ namespace OpenWifi {
 		}
 		Poco::Path P(Path);
 		auto Ext = P.getExtension();
+		std::cout << __LINE__ << std::endl;
 
 		std::string Type;
 		if (Ext == "html")
@@ -147,6 +156,7 @@ namespace OpenWifi {
 
 		response.setContentLength(F.getSize());
 		response.sendFile(Path, Type);
+		std::cout << __LINE__ << std::endl;
 	}
 
 	RTTY_Client_RequestHandlerFactory::RTTY_Client_RequestHandlerFactory(Poco::Net::SocketReactor &R)
@@ -154,8 +164,7 @@ namespace OpenWifi {
 
 	Poco::Net::HTTPRequestHandler *
 	RTTY_Client_RequestHandlerFactory::createRequestHandler(const Poco::Net::HTTPServerRequest &request) {
-		if (request.find("Upgrade") != request.end() &&
-		Poco::icompare(request["Upgrade"], "websocket") == 0) {
+		if (request.find("Upgrade") != request.end() && Poco::icompare(request["Upgrade"], "websocket") == 0) {
 			return new RTTY_Client_WebSocketRequestHandler(Reactor_);
 		} else {
 			return new PageRequestHandler;
