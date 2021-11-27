@@ -50,6 +50,7 @@ namespace OpenWifi {
 		} else {
 			Response.set("Access-Control-Allow-Origin", "*");
 		}
+		Response.set("Vary", "Accept-Encoding, Origin");
 		Response.set("Access-Control-Allow-Headers", "*");
 		Response.set("Access-Control-Max-Age", "86400");
 		Response.set("Access-Control-Allow-Methods", "GET, OPTIONS");
