@@ -197,7 +197,7 @@ namespace OpenWifi {
 					break;
 
 					case msgTypeLogin: {
-						std::cout << "msgTypeLogin: len" << MsgLen << std::endl;
+					    RTTYS_server()->Logger().debug(Poco::format("Device created session for SerialNumber: %s", id_, desc_, token_));
 						nlohmann::json doc;
 						auto error = inBuf[3];
 						sid_ = inBuf[4];

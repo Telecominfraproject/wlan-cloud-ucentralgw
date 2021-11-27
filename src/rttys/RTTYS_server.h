@@ -108,11 +108,11 @@ namespace OpenWifi {
 			std::lock_guard	G(Mutex_);
 			auto It = EndPoints_.find(Id);
 			if(It==EndPoints_.end()) {
-			    std::cout << "Cannot find id" << std::endl;
+			    // std::cout << "Cannot find id" << std::endl;
 				return false;
             }
 			uint64_t Now = std::time(nullptr);
-			std::cout << "T: '" << Token << "' S:" << Token.size() << " " << (Token == It->second.Token) << std::endl;
+			// std::cout << "T: '" << Token << "' S:" << Token.size() << " " << (Token == It->second.Token) << std::endl;
 			return ((It->second.Token == Token) && ((Now-It->second.TimeStamp)<30));
 		}
 
