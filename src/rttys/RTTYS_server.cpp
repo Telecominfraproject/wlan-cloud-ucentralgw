@@ -24,8 +24,6 @@ namespace OpenWifi {
 
 			Poco::Net::SecureServerSocket DeviceSocket(DSport, 64, DSContext);
 			DeviceSocket.setNoDelay(true);
-			DeviceSocket.setReusePort(true);
-			DeviceSocket.setReuseAddress(true);
 
 			DeviceAcceptor_ =
 				std::make_unique<Poco::Net::SocketAcceptor<RTTY_Device_ConnectionHandler>>(
@@ -36,6 +34,7 @@ namespace OpenWifi {
 				new Poco::Net::Context(Poco::Net::Context::SERVER_USE, KeyFileName, CertFileName,
 									   "", Poco::Net::Context::VERIFY_RELAXED);
 			Poco::Net::SecureServerSocket ClientSocket(CSport, 64, CSContext);
+			ClientSocket.setNoDelay(true);
 
 			auto HttpParams = new Poco::Net::HTTPServerParams;
 			HttpParams->setMaxThreads(50);
