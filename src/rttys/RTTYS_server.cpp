@@ -25,10 +25,10 @@ namespace OpenWifi {
 			Poco::Net::SecureServerSocket DeviceSocket(DSport, 64, DSContext);
 			DeviceSocket.setNoDelay(true);
 
+			DeviceReactorThread_.start(DeviceReactor_);
 			DeviceAcceptor_ =
 				std::make_unique<Poco::Net::SocketAcceptor<RTTY_Device_ConnectionHandler>>(
 					DeviceSocket, DeviceReactor_);
-			DeviceReactorThread_.start(DeviceReactor_);
 
 			auto CSContext =
 				new Poco::Net::Context(Poco::Net::Context::SERVER_USE, KeyFileName, CertFileName,
