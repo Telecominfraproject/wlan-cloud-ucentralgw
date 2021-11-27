@@ -151,7 +151,7 @@ namespace OpenWifi {
 		try
 		{
 			u_char	inBuf[2048]{0};
-			int len = socket_.receiveBytes(&inBuf[0],BUF_SIZE);
+			int len = socket_.receiveBytes(&inBuf[0],sizeof(inBuf));
 			std::cout << "DEVICE MSG RECEIVED: " << std::dec << len << " bytes" << std::endl;
 			if (len > 0)
 			{
