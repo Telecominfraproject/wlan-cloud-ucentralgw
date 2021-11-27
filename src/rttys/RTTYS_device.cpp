@@ -152,11 +152,11 @@ namespace OpenWifi {
 		{
 			u_char	inBuf[2048]{0};
 			int len = socket_.receiveBytes(&inBuf[0],sizeof(inBuf));
-			std::cout << "DEVICE MSG RECEIVED: " << std::dec << len << " bytes" << std::endl;
+			// std::cout << "DEVICE MSG RECEIVED: " << std::dec << len << " bytes" << std::endl;
 			if (len > 0)
 			{
-				std::cout << "DEVICE MSG RECEIVED: " << std::dec << len << " bytes" << std::endl;
-				PrintBuf(inBuf,len);
+				// std::cout << "DEVICE MSG RECEIVED: " << std::dec << len << " bytes" << std::endl;
+				// PrintBuf(inBuf,len);
 				RTTY_MSG_TYPE   msg;
 				if(inBuf[0]>=(u_char)msgTypeMax) {
 					RTTYS_server()->Logger().debug(Poco::format("Bad message for SerialNumber: %s, Descriotion: %s, Token: %s", id_));

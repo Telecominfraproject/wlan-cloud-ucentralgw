@@ -22,9 +22,6 @@ namespace OpenWifi {
 									   	KeyFileName, CertFileName, "",
 										Poco::Net::Context::VERIFY_RELAXED);
 
-			std::cout << "DSPort " << DSport << std::endl;
-			std::cout << "CSPort " << CSport << std::endl;
-
 			Poco::Net::SecureServerSocket DeviceSocket(DSport, 64, DSContext);
 			DeviceSocket.setNoDelay(true);
 			DeviceSocket.setReusePort(true);
