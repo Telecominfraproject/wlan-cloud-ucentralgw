@@ -730,7 +730,7 @@ void RESTAPI_device_commandHandler::MakeRequest() {
 				};
 
 				if(RTTYS_server()->UseInternal()) {
-					Rtty.Token = MicroService::instance().CreateHash(UserInfo_.webtoken.refresh_token_ + std::to_string(std::time(nullptr))).substr(0,30);
+					Rtty.Token = MicroService::instance().CreateHash(UserInfo_.webtoken.refresh_token_ + std::to_string(std::time(nullptr))).substr(0,32);
 					RTTYS_server()->CreateEndPoint(Rtty.ConnectionId,Rtty.Token);
 				}
 
