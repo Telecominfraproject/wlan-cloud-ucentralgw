@@ -10,55 +10,40 @@ namespace OpenWifi {
 
 		Internal_ = MicroService::instance().ConfigGetBool("rtty.internal",false);
 		if(Internal_) {
-			std::cout << __LINE__ << std::endl;
 			int DSport = MicroService::instance().ConfigGetInt("rtty.port", 5912);
-			std::cout << __LINE__ << std::endl;
 			int CSport = MicroService::instance().ConfigGetInt("rtty.viewport", 5913);
-			std::cout << __LINE__ << std::endl;
 			RTTY_UIAssets_ =
 				MicroService::instance().ConfigPath("rtty.assets", "$OWGW_ROOT/rtty_ui");
-			std::cout << __LINE__ << std::endl;
 
-//			RTTY_UIuri_ = "https://" + MicroService::instance().ConfigGetString("rtty.server");
-//			UI_ = RTTY_UIuri_ + ":" + std::to_string(CSport);
-
-std::cout << __LINE__ << std::endl;
 			auto CertFileName = MicroService::instance().ConfigPath("openwifi.restapi.host.0.cert");
 			auto KeyFileName = MicroService::instance().ConfigPath("openwifi.restapi.host.0.key");
-			std::cout << __LINE__ << std::endl;
 
 			auto DSContext =
 				new Poco::Net::Context(Poco::Net::Context::SERVER_USE, KeyFileName, CertFileName,
 									   "", Poco::Net::Context::VERIFY_RELAXED);
-			std::cout << __LINE__ << std::endl;
 			Poco::Net::SecureServerSocket DeviceSocket(DSport, 64, DSContext);
+			DeviceSocket.setNoDelay(true);
+			DeviceSocket.setReusePort(true);
+			DeviceSocket.setReuseAddress(true);
 			DeviceAcceptor_ =
 				std::make_unique<Poco::Net::SocketAcceptor<RTTY_Device_ConnectionHandler>>(
 					DeviceSocket, DeviceReactor_);
-			std::cout << __LINE__ << std::endl;
 			DeviceReactorThread_.start(DeviceReactor_);
-			std::cout << __LINE__ << std::endl;
 
 			auto CSContext =
 				new Poco::Net::Context(Poco::Net::Context::SERVER_USE, KeyFileName, CertFileName,
 									   "", Poco::Net::Context::VERIFY_RELAXED);
-			std::cout << __LINE__ << std::endl;
 			Poco::Net::SecureServerSocket ClientSocket(CSport, 64, CSContext);
-			std::cout << __LINE__ << std::endl;
 
 			auto HttpParams = new Poco::Net::HTTPServerParams;
 			HttpParams->setMaxThreads(50);
 			HttpParams->setMaxQueued(200);
 			HttpParams->setKeepAlive(true);
 
-			std::cout << __LINE__ << std::endl;
 			WebServer_ = std::make_unique<Poco::Net::HTTPServer>(
 				new RTTY_Client_RequestHandlerFactory(ClientReactor_), ClientSocket, HttpParams);
-			std::cout << __LINE__ << std::endl;
 			ClientReactorThread_.start(ClientReactor_);
-			std::cout << __LINE__ << std::endl;
 			WebServer_->start();
-			std::cout << __LINE__ << std::endl;
 		}
 
 		return 0;
