@@ -12,6 +12,7 @@ RTTYS_ClientConnection::RTTYS_ClientConnection(Poco::Net::WebSocket &WS, std::st
 						  Poco::Net::SocketReactor &Reactor)
 						  : WS_(WS), Id_(std::move(Id)), SR_(Reactor) {
 		if(RTTYS_server()->CanConnect(Id_,this)) {
+		    std::cout << "WebSocket connecting..." << std::endl;
 			SR_.addEventHandler(WS_,
 								Poco::NObserver<RTTYS_ClientConnection, Poco::Net::ReadableNotification>(
 									*this, &RTTYS_ClientConnection::onSocketReadable));
@@ -22,11 +23,13 @@ RTTYS_ClientConnection::RTTYS_ClientConnection(Poco::Net::WebSocket &WS, std::st
 			RTTYS_server()->Login(Id_);
 			Connected_ = true ;
 		} else {
+		    std::cout << "Cannot connect..." << std::endl;
 			delete this;
 		}
 }
 
 	RTTYS_ClientConnection::~RTTYS_ClientConnection() {
+        std::cout << "WebSocket disconnecting..." << std::endl;
 		if(Connected_) {
 			SR_.removeEventHandler(
 				WS_, Poco::NObserver<RTTYS_ClientConnection, Poco::Net::ReadableNotification>(
