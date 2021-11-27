@@ -89,19 +89,17 @@ namespace OpenWifi {
 			auto ParsedPath = Poco::StringTokenizer(Path, "/");
 
 			if (ParsedPath.count() > 1) {
+				AddCORS(request,response);
 				if (ParsedPath[1] == "connect") {
-					RTTYS_server()->Logger().information(Poco::format("... rtty connect redirect: %s",Path));
 					response.redirect(Poco::replace(Path,"/connect/","/rtty/"));
 					response.send();
-					return;
+					RTTYS_server()->Logger().information(Poco::format("... rtty connect redirect: %s",Path));
 				} else if (ParsedPath[1] == "authorized") {
 					nlohmann::json doc;
 					doc["authorized"] = true;
-					AddCORS(request,response);
 					response.setContentType("application/json");
 					std::ostream &answer = response.send();
 					answer << to_string(doc);
-					return;
 				} else if (ParsedPath[1] == "fontsize") {
 					nlohmann::json doc;
 					doc["size"] = 16;
@@ -109,8 +107,8 @@ namespace OpenWifi {
 					response.setContentType("application/json");
 					std::ostream &answer = response.send();
 					answer << to_string(doc);
-					return;
 				}
+				return;
 			}
 			Path = RTTYS_server()->UIAssets() + Path;
 		}
