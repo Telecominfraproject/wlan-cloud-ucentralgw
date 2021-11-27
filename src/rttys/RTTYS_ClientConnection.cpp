@@ -11,25 +11,32 @@ namespace OpenWifi {
 RTTYS_ClientConnection::RTTYS_ClientConnection(Poco::Net::WebSocket &WS, std::string &Id,
 						  Poco::Net::SocketReactor &Reactor)
 						  : WS_(WS), Id_(std::move(Id)), SR_(Reactor) {
-		SR_.addEventHandler(WS_,
-							Poco::NObserver<RTTYS_ClientConnection, Poco::Net::ReadableNotification>(
-								*this, &RTTYS_ClientConnection::onSocketReadable));
-		SR_.addEventHandler(WS_,
-							Poco::NObserver<RTTYS_ClientConnection, Poco::Net::ShutdownNotification>(
-								*this, &RTTYS_ClientConnection::onSocketShutdown));
-		RTTYS_server()->Register(Id_,this);
-		RTTYS_server()->Login(Id_);
-	}
+		if(RTTYS_server()->CanConnect(Id_,this)) {
+			SR_.addEventHandler(WS_,
+								Poco::NObserver<RTTYS_ClientConnection, Poco::Net::ReadableNotification>(
+									*this, &RTTYS_ClientConnection::onSocketReadable));
+			SR_.addEventHandler(WS_,
+								Poco::NObserver<RTTYS_ClientConnection, Poco::Net::ShutdownNotification>(
+									*this, &RTTYS_ClientConnection::onSocketShutdown));
+			RTTYS_server()->Register(Id_, this);
+			RTTYS_server()->Login(Id_);
+			Connected_ = true ;
+		} else {
+			delete this;
+		}
+}
 
 	RTTYS_ClientConnection::~RTTYS_ClientConnection() {
-		SR_.removeEventHandler(
-			WS_, Poco::NObserver<RTTYS_ClientConnection, Poco::Net::ReadableNotification>(
-				*this, &RTTYS_ClientConnection::onSocketReadable));
-		SR_.removeEventHandler(
-			WS_, Poco::NObserver<RTTYS_ClientConnection, Poco::Net::ShutdownNotification>(
-				*this, &RTTYS_ClientConnection::onSocketShutdown));
-		RTTYS_server()->Logout(Id_);
-		RTTYS_server()->DeRegister(Id_,this);
+		if(Connected_) {
+			SR_.removeEventHandler(
+				WS_, Poco::NObserver<RTTYS_ClientConnection, Poco::Net::ReadableNotification>(
+						 *this, &RTTYS_ClientConnection::onSocketReadable));
+			SR_.removeEventHandler(
+				WS_, Poco::NObserver<RTTYS_ClientConnection, Poco::Net::ShutdownNotification>(
+						 *this, &RTTYS_ClientConnection::onSocketShutdown));
+			RTTYS_server()->Logout(Id_);
+			RTTYS_server()->DeRegister(Id_, this);
+		}
 	}
 
 	void RTTYS_ClientConnection::Close() {

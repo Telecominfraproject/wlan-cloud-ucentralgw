@@ -29,5 +29,6 @@ namespace OpenWifi {
 		std::string Id_;
 		std::string Sid_;
 		Poco::Net::SocketReactor &SR_;
+		std::atomic_bool Connected_=false;
 	};
 }

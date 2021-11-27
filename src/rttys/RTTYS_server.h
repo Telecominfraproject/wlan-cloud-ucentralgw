@@ -26,7 +26,7 @@ namespace OpenWifi {
 		void Stop() final;
 
 		inline auto UIAssets() { return RTTY_UIAssets_; }
-		inline auto UI() { return UI_; }
+		// inline auto UI() { return UI_; }
 
 		inline void Register(const std::string &Id, RTTYS_ClientConnection *Conn) {
 			std::lock_guard	G(Mutex_);
@@ -162,9 +162,9 @@ namespace OpenWifi {
 		Poco::Thread				DeviceReactorThread_;
 		Poco::Thread				ClientReactorThread_;
 		std::string 				RTTY_UIAssets_;
-		std::string 				RTTY_UIuri_;
-		std::string 				UI_;
-		std::atomic_bool 			Running_ = false;
+//		std::string 				RTTY_UIuri_;
+//		std::string 				UI_;
+//		std::atomic_bool 			Running_ = false;
 		std::atomic_bool 			Internal_ = false;
 
 		std::map<std::string, EndPoint> 			EndPoints_;			//	id, endpoint

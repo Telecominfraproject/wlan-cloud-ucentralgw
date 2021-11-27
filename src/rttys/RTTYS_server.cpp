@@ -14,9 +14,9 @@ namespace OpenWifi {
 			int CSport = MicroService::instance().ConfigGetInt("rtty.viewport", 5913);
 			RTTY_UIAssets_ =
 				MicroService::instance().ConfigPath("rtty.assets", "$OWGW_ROOT/rtty_ui");
-			RTTY_UIuri_ = "https://" + MicroService::instance().ConfigGetString("rtty.server");
 
-			UI_ = RTTY_UIuri_ + ":" + std::to_string(CSport);
+//			RTTY_UIuri_ = "https://" + MicroService::instance().ConfigGetString("rtty.server");
+//			UI_ = RTTY_UIuri_ + ":" + std::to_string(CSport);
 
 			auto CertFileName = MicroService::instance().ConfigPath("openwifi.restapi.host.0.cert");
 			auto KeyFileName = MicroService::instance().ConfigPath("openwifi.restapi.host.0.key");
