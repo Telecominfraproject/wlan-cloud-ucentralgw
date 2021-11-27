@@ -134,6 +134,25 @@ namespace OpenWifi {
 			return false;
 		}
 
+		inline bool AmIRegistered( const std::string &Id, const std::string &Token, RTTY_Device_ConnectionHandler *Conn) {
+			std::lock_guard	G(Mutex_);
+
+			auto It = EndPoints_.find(Id);
+			if(It == EndPoints_.end())
+				return false;
+
+			if(It->second.Token != Token)
+				return false;
+
+			std::cout << "Found ID and Token" << std::endl;
+			if(It->second.Device==Conn)
+				return true;
+
+			std::cout << "Different device connection" << std::endl;
+			return false;
+
+		}
+
 		Poco::Logger & Logger() { return Logger_; }
 
 

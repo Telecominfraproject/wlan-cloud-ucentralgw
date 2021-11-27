@@ -14,13 +14,13 @@ namespace OpenWifi {
 	{
 		reactor_.addEventHandler(socket_, Poco::NObserver<RTTY_Device_ConnectionHandler, Poco::Net::ReadableNotification>(*this, &RTTY_Device_ConnectionHandler::onSocketReadable));
 		reactor_.addEventHandler(socket_, Poco::NObserver<RTTY_Device_ConnectionHandler, Poco::Net::ShutdownNotification>(*this, &RTTY_Device_ConnectionHandler::onSocketShutdown));
-		reactor_.addEventHandler(socket_, Poco::NObserver<RTTY_Device_ConnectionHandler, Poco::Net::WritableNotification>(*this, &RTTY_Device_ConnectionHandler::onSocketWritable));
+		// reactor_.addEventHandler(socket_, Poco::NObserver<RTTY_Device_ConnectionHandler, Poco::Net::WritableNotification>(*this, &RTTY_Device_ConnectionHandler::onSocketWritable));
 	}
 
 	RTTY_Device_ConnectionHandler::~RTTY_Device_ConnectionHandler()
 	{
 		reactor_.removeEventHandler(socket_, Poco::NObserver<RTTY_Device_ConnectionHandler, Poco::Net::ReadableNotification>(*this, &RTTY_Device_ConnectionHandler::onSocketReadable));
-		reactor_.removeEventHandler(socket_, Poco::NObserver<RTTY_Device_ConnectionHandler, Poco::Net::WritableNotification>(*this, &RTTY_Device_ConnectionHandler::onSocketWritable));
+		// reactor_.removeEventHandler(socket_, Poco::NObserver<RTTY_Device_ConnectionHandler, Poco::Net::WritableNotification>(*this, &RTTY_Device_ConnectionHandler::onSocketWritable));
 		reactor_.removeEventHandler(socket_, Poco::NObserver<RTTY_Device_ConnectionHandler, Poco::Net::ShutdownNotification>(*this, &RTTY_Device_ConnectionHandler::onSocketShutdown));
 
 		if(!id_.empty()) {
@@ -172,25 +172,31 @@ namespace OpenWifi {
 
 				switch(msg) {
 					case msgTypeRegister: {
-						int pos=3;
 						id_ = std::string((char*)&inBuf[3]);
 						desc_ = std::string((char*)&inBuf[3 + id_.size() + 1]);
 						token_ = std::string((char*)&inBuf[3 + id_.size() + 1 + desc_.size() + 1]);
 
 						if(RTTYS_server()->ValidEndPoint(id_,token_)) {
-							RTTYS_server()->Logger().debug(Poco::format(
-								"Registration for SerialNumber: %s, Description: %s, Token: %s",
-								id_, desc_, token_));
-							u_char OutBuf[12];
-							OutBuf[0] = msgTypeRegister;
-							OutBuf[1] = 0;
-							OutBuf[2] = 4;
-							OutBuf[3] = 0;
-							OutBuf[4] = 'O';
-							OutBuf[5] = 'K';
-							OutBuf[6] = 0;
-							socket_.sendBytes(OutBuf, 7);
-							RTTYS_server()->Register(id_, this);
+
+							if(!RTTYS_server()->AmIRegistered(id_,token_,this)) {
+								RTTYS_server()->Logger().debug(Poco::format(
+									"Registration for SerialNumber: %s, Description: %s, Token: %s",
+									id_, desc_, token_));
+								u_char OutBuf[12];
+								OutBuf[0] = msgTypeRegister;
+								OutBuf[1] = 0;
+								OutBuf[2] = 4;
+								OutBuf[3] = 0;
+								OutBuf[4] = 'O';
+								OutBuf[5] = 'K';
+								OutBuf[6] = 0;
+								socket_.sendBytes(OutBuf, 7);
+								RTTYS_server()->Register(id_, this);
+							} else {
+								RTTYS_server()->Logger().debug(Poco::format(
+									"Registration for SerialNumber: %s, already done",
+									id_));
+							}
 						} else {
 							RTTYS_server()->Logger().debug(Poco::format(
 								"Registration failed - invalid (id,token) pair. for SerialNumber: %s, Description: %s, Token: %s",
