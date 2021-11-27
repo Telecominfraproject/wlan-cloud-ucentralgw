@@ -14,6 +14,7 @@ namespace OpenWifi {
 	{
 		reactor_.addEventHandler(socket_, Poco::NObserver<RTTY_Device_ConnectionHandler, Poco::Net::ReadableNotification>(*this, &RTTY_Device_ConnectionHandler::onSocketReadable));
 		reactor_.addEventHandler(socket_, Poco::NObserver<RTTY_Device_ConnectionHandler, Poco::Net::ShutdownNotification>(*this, &RTTY_Device_ConnectionHandler::onSocketShutdown));
+		reactor_.addEventHandler(socket_, Poco::NObserver<RTTY_Device_ConnectionHandler, Poco::Net::WritableNotification>(*this, &RTTY_Device_ConnectionHandler::onSocketWritable));
 	}
 
 	RTTY_Device_ConnectionHandler::~RTTY_Device_ConnectionHandler()
@@ -22,8 +23,11 @@ namespace OpenWifi {
 		reactor_.removeEventHandler(socket_, Poco::NObserver<RTTY_Device_ConnectionHandler, Poco::Net::WritableNotification>(*this, &RTTY_Device_ConnectionHandler::onSocketWritable));
 		reactor_.removeEventHandler(socket_, Poco::NObserver<RTTY_Device_ConnectionHandler, Poco::Net::ShutdownNotification>(*this, &RTTY_Device_ConnectionHandler::onSocketShutdown));
 
-		if(!id_.empty())
-			RTTYS_server()->DeRegister(id_,this);
+		if(!id_.empty()) {
+			RTTYS_server()->DeRegister(id_, this);
+		} else {
+			std::cout << "Device going down that never registered" << std::endl;
+		}
 	}
 
 	std::string RTTY_Device_ConnectionHandler::SafeCopy( const u_char * buf, int MaxSize, int & NewPos) {
@@ -260,7 +264,7 @@ namespace OpenWifi {
 				}
 				else
 				{
-					RTTYS_server()->Logger().debug(Poco::format("Device SerialNumber: %s shutting down rtty socket.", id_, desc_, token_));
+					RTTYS_server()->Logger().debug(Poco::format("DeRegistration: %s shutting down rtty socket.", id_, desc_, token_));
 					RTTYS_server()->Close(id_);
 					return delete this;
 				}
@@ -274,6 +278,7 @@ namespace OpenWifi {
 
 	void RTTY_Device_ConnectionHandler::onSocketWritable(const Poco::AutoPtr<Poco::Net::WritableNotification>& pNf)
 	{
+		std::cout << "Device %s : writable" << std::endl;
 		try
 		{
 		}
