@@ -45,9 +45,11 @@ namespace OpenWifi {
 						Poco::Net::HTTPServerResponse & Response) {
 		auto Origin = Request.find("Origin");
 		if (Origin != Request.end()) {
+			std::cout << "Origin: " << Origin->second << std::endl;
 			Response.set("Access-Control-Allow-Origin", Origin->second);
 			Response.set("Vary", "Origin");
 		} else {
+			std::cout << "Origin: -- empty --" << std::endl;
 			Response.set("Access-Control-Allow-Origin", "*");
 		}
 		Response.set("Access-Control-Allow-Headers", "*");
