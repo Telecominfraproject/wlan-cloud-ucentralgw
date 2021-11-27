@@ -58,6 +58,7 @@ namespace OpenWifi {
 		Response.set("Keep-Alive", "timeout=120");
 		Response.set("Accept-Ranges","bytes");
 		Response.set("Referrer-Policy","no-referrer");
+		Response.set("Cross-Origin-Resource-Policy","cross-origin");
 		Response.setChunkedTransferEncoding(true);
 
 		std::cout << "==REQUEST===================================================" << std::endl;
