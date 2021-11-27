@@ -45,11 +45,9 @@ namespace OpenWifi {
 						Poco::Net::HTTPServerResponse & Response) {
 		auto Origin = Request.find("Origin");
 		if (Origin != Request.end()) {
-			std::cout << "Origin: " << Origin->second << std::endl;
 			Response.set("Access-Control-Allow-Origin", Origin->second);
 			Response.set("Vary", "Origin");
 		} else {
-			std::cout << "Origin: -- empty --" << std::endl;
 			Response.set("Access-Control-Allow-Origin", "*");
 		}
 		Response.set("Access-Control-Allow-Headers", "*");
@@ -57,6 +55,10 @@ namespace OpenWifi {
 		Response.set("Access-Control-Allow-Methods", "GET, OPTIONS");
 		Response.set("Connection", "Keep-Alive");
 		Response.set("Keep-Alive", "timeout=120");
+
+		for(const auto &i:Response) {
+			std::cout << "  " << i.first << " : " << i.second << std::endl;
+		}
 	}
 
 	void PageRequestHandler::handleRequest(Poco::Net::HTTPServerRequest &request,
