@@ -41,6 +41,19 @@ namespace OpenWifi {
 		return false;
 	}
 
+	static void AddCORS(Poco::Net::HTTPServerRequest &Request,
+						Poco::Net::HTTPServerResponse & Response) {
+		auto Origin = Request.find("Origin");
+		if (Origin != Request.end()) {
+			Response.set("Access-Control-Allow-Origin", Origin->second);
+			Response.set("Vary", "Origin");
+		} else {
+			Response.set("Access-Control-Allow-Origin", "*");
+		}
+		Response.set("Access-Control-Allow-Headers", "*");
+		Response.set("Access-Control-Max-Age", "86400");
+	}
+
 	void PageRequestHandler::handleRequest(Poco::Net::HTTPServerRequest &request,
 					   Poco::Net::HTTPServerResponse &response) {
 		Poco::URI uri(request.getURI());
@@ -60,9 +73,7 @@ namespace OpenWifi {
 				} else if (ParsedPath[1] == "authorized") {
 					nlohmann::json doc;
 					doc["authorized"] = true;
-					response.set("Access-Control-Allow-Origin", "*");
-					response.set("Access-Control-Allow-Headers", "*");
-					response.set("Access-Control-Max-Age", "86400");
+					AddCORS(request,response);
 					response.setContentType("application/json");
 					std::ostream &answer = response.send();
 					answer << to_string(doc);
@@ -70,9 +81,7 @@ namespace OpenWifi {
 				} else if (ParsedPath[1] == "fontsize") {
 					nlohmann::json doc;
 					doc["size"] = 16;
-					response.set("Access-Control-Allow-Origin", "*");
-					response.set("Access-Control-Allow-Headers", "*");
-					response.set("Access-Control-Max-Age", "86400");
+					AddCORS(request,response);
 					response.setContentType("application/json");
 					std::ostream &answer = response.send();
 					answer << to_string(doc);
@@ -84,10 +93,8 @@ namespace OpenWifi {
 
 		Poco::File	F(Path);
 
+		AddCORS(request,response);
 		if(!F.exists()) {
-			response.set("Access-Control-Allow-Origin", "*");
-			response.set("Access-Control-Allow-Headers", "*");
-			response.set("Access-Control-Max-Age", "86400");
 			response.setChunkedTransferEncoding(true);
 			Path = RTTYS_server()->UIAssets() + "/index.html";
 			response.sendFile(Path,"text/html");
@@ -116,9 +123,6 @@ namespace OpenWifi {
 		else if (Ext == "ttf")
 			Type = "font/ttf";
 
-		response.set("Access-Control-Allow-Origin", "*");
-		response.set("Access-Control-Allow-Headers", "*");
-		response.set("Access-Control-Max-Age", "86400");
 		response.set("Accept-Ranges","bytes");
 		response.setChunkedTransferEncoding(true);
 		response.setContentLength(F.getSize());
