@@ -57,6 +57,7 @@ namespace OpenWifi {
 		Response.set("Connection", "Keep-Alive");
 		Response.set("Keep-Alive", "timeout=120");
 		Response.set("Accept-Ranges","bytes");
+		Response.set("Cross-Origin-Opener-Policy", "same-origin-allow-popups");
 //		Response.set("Referrer-Policy","no-referrer");
 //		Response.set("Cross-Origin-Resource-Policy","cross-origin");
 		Response.setChunkedTransferEncoding(true);
