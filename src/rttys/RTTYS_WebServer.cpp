@@ -54,7 +54,9 @@ namespace OpenWifi {
 		}
 		Response.set("Access-Control-Allow-Headers", "*");
 		Response.set("Access-Control-Max-Age", "86400");
-		Response.set("Access-Control-Allow-Methods", "GET,OPTIONS");
+		Response.set("Access-Control-Allow-Methods", "GET, OPTIONS");
+		Response.set("Connection", "Keep-Alive");
+		Response.set("Keep-Alive", "timeout=120");
 	}
 
 	void PageRequestHandler::handleRequest(Poco::Net::HTTPServerRequest &request,
