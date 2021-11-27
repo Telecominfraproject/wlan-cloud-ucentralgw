@@ -11,6 +11,7 @@ namespace OpenWifi {
 RTTYS_ClientConnection::RTTYS_ClientConnection(Poco::Net::WebSocket &WS, std::string &Id,
 						  Poco::Net::SocketReactor &Reactor)
 						  : WS_(WS), Id_(std::move(Id)), SR_(Reactor) {
+        RTTYS_server()->Register(Id_, this);
 		if(RTTYS_server()->CanConnect(Id_,this)) {
 		    std::cout << "WebSocket connecting..." << std::endl;
 			SR_.addEventHandler(WS_,
@@ -19,7 +20,6 @@ RTTYS_ClientConnection::RTTYS_ClientConnection(Poco::Net::WebSocket &WS, std::st
 			SR_.addEventHandler(WS_,
 								Poco::NObserver<RTTYS_ClientConnection, Poco::Net::ShutdownNotification>(
 									*this, &RTTYS_ClientConnection::onSocketShutdown));
-			RTTYS_server()->Register(Id_, this);
 			RTTYS_server()->Login(Id_);
 			Connected_ = true ;
 		} else {
