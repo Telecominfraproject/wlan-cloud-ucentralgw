@@ -30,7 +30,6 @@ namespace OpenWifi {
 
 		inline void Register(const std::string &Id, RTTYS_ClientConnection *Conn) {
 			std::lock_guard	G(Mutex_);
-			std::cout << "Registering client:" << Id << std::endl;
 			auto It = EndPoints_.find(Id);
 			if(It==EndPoints_.end()) {
 				EndPoints_[Id] = EndPoint{ .Client = Conn };
@@ -41,7 +40,6 @@ namespace OpenWifi {
 
 		inline void DeRegister(const std::string &Id, RTTYS_ClientConnection *Conn) {
 			std::lock_guard	G(Mutex_);
-			std::cout << "DeRegistering client: '" << Id << "'" << std::endl;
 			auto It = EndPoints_.find(Id);
 			if(It==EndPoints_.end())
 				return;
@@ -55,7 +53,6 @@ namespace OpenWifi {
 			std::lock_guard	G(Mutex_);
 			auto It = EndPoints_.find(Id);
 			if(It==EndPoints_.end()) {
-				std::cout << "Cannot find client '" << Id << "' ... " << std::endl;
 				return nullptr;
 			}
 			return It->second.Client;
@@ -63,7 +60,7 @@ namespace OpenWifi {
 
 		inline void Register(const std::string &Id, RTTY_Device_ConnectionHandler *Conn) {
 			std::lock_guard	G(Mutex_);
-			std::cout << "Registering device:" << Id << std::endl;
+			Logger_.information(Poco::format("Registering device: %s",Id));
 			auto It = EndPoints_.find(Id);
 			if(It==EndPoints_.end()) {
 				EndPoints_[Id] = EndPoint{.Device = Conn };
@@ -72,10 +69,10 @@ namespace OpenWifi {
 			}
 		}
 
-		inline void DeRegister(const std::string &id, RTTY_Device_ConnectionHandler *Conn) {
+		inline void DeRegister(const std::string &Id, RTTY_Device_ConnectionHandler *Conn) {
 			std::lock_guard	G(Mutex_);
-			std::cout << "DeRegistering device:" << id << std::endl;
-			auto It = EndPoints_.find(id);
+			Logger_.information(Poco::format("Registering device: %s",Id));
+			auto It = EndPoints_.find(Id);
 			if(It==EndPoints_.end())
 				return;
 			if(It->second.Device!=Conn)
@@ -88,7 +85,6 @@ namespace OpenWifi {
 			std::lock_guard	G(Mutex_);
 			auto It = EndPoints_.find(id);
 			if(It==EndPoints_.end()) {
-				std::cout << "Cannot find device '" << id << "' ... " << std::endl;
  				return nullptr;
 			}
 			return It->second.Device;
