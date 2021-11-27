@@ -169,9 +169,9 @@ namespace OpenWifi {
 				switch(msg) {
 					case msgTypeRegister: {
 						int pos=3;
-						id_ = SafeCopy(&inBuf[0],MsgLen,pos);
-						desc_ = SafeCopy(&inBuf[0],MsgLen,pos);
-						token_ = SafeCopy(&inBuf[0],MsgLen,pos);
+						id_ = std::dtring(&inBuf[3]);
+						desc_ = std::string(&inBuf[3 + id_.size() + 1]);
+						token_ = std::string(&nBuf[3 + id_.size() + 1 + desc_.size() + 1]);
 
 						if(RTTYS_server()->ValidEndPoint(id_,token_)) {
 							RTTYS_server()->Logger().debug(Poco::format(
