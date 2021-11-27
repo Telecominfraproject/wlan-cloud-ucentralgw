@@ -94,10 +94,12 @@ namespace OpenWifi {
 			std::cout << __LINE__ << std::endl;
 			if (ParsedPath.count() > 1) {
 				if (ParsedPath[1] == "connect") {
+					std::cout << __LINE__ << std::endl;
 					response.redirect(Poco::replace(Path,"/connect/","/rtty/"));
 					response.send();
 					RTTYS_server()->Logger().information(Poco::format("... rtty connect redirect: %s",Path));
 				} else if (ParsedPath[1] == "authorized") {
+					std::cout << __LINE__ << std::endl;
 					AddCORS(request,response);
 					nlohmann::json doc;
 					doc["authorized"] = true;
@@ -105,6 +107,7 @@ namespace OpenWifi {
 					std::ostream &answer = response.send();
 					answer << to_string(doc);
 				} else if (ParsedPath[1] == "fontsize") {
+					std::cout << __LINE__ << std::endl;
 					AddCORS(request,response);
 					nlohmann::json doc;
 					doc["size"] = 16;
