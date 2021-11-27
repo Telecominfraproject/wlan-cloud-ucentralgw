@@ -53,7 +53,7 @@ namespace OpenWifi {
 		Response.set("Vary", "Accept-Encoding, Origin");
 		Response.set("Access-Control-Allow-Headers", "*");
 		Response.set("Access-Control-Max-Age", "86400");
-		Response.set("Access-Control-Allow-Methods", "GET, OPTIONS");
+		Response.set("Access-Control-Allow-Methods", "GET, OPTIONS, HEAD");
 		Response.set("Connection", "Keep-Alive");
 		Response.set("Keep-Alive", "timeout=120");
 		Response.set("Accept-Ranges","bytes");
