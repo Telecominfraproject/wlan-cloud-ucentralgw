@@ -43,6 +43,7 @@ namespace OpenWifi {
 
 	static void AddCORS(Poco::Net::HTTPServerRequest &Request,
 						Poco::Net::HTTPServerResponse & Response) {
+
 		auto Origin = Request.find("Origin");
 		if (Origin != Request.end()) {
 			Response.set("Access-Control-Allow-Origin", Origin->second);
@@ -62,11 +63,9 @@ namespace OpenWifi {
 		Response.set("Connection", "Keep-Alive");
 		Response.set("Keep-Alive", "timeout=120");
 		Response.set("Accept-Ranges","bytes");
-//		Response.set("Cross-Origin-Opener-Policy", "same-origin-allow-popups");
-//		Response.set("Referrer-Policy","no-referrer");
-//		Response.set("Cross-Origin-Resource-Policy","cross-origin");
 		Response.setChunkedTransferEncoding(true);
 
+		/*
 		std::cout << "==REQUEST===================================================" << std::endl;
 		for(const auto &i:Request) {
 			std::cout << "  " << i.first << " : " << i.second << std::endl;
@@ -76,6 +75,7 @@ namespace OpenWifi {
 			std::cout << "  " << i.first << " : " << i.second << std::endl;
 		}
 		std::cout << "==END===================================================" << std::endl;
+		 */
 	}
 
 	void PageRequestHandler::handleRequest(Poco::Net::HTTPServerRequest &request,
