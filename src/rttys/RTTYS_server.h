@@ -47,6 +47,7 @@ namespace OpenWifi {
 				return;
 			It->second.Client = nullptr;
 			It->second.Done = true;
+			It->second.ClientConnected = 0 ;
 		}
 
 		inline RTTYS_ClientConnection * GetClient(const std::string &Id) {
@@ -79,6 +80,7 @@ namespace OpenWifi {
 				return;
 			It->second.Device = nullptr;
 			It->second.Done = true;
+			It->second.DeviceConnected = 0 ;
 		}
 
 		inline RTTY_Device_ConnectionHandler * GetDevice(const std::string &id) {

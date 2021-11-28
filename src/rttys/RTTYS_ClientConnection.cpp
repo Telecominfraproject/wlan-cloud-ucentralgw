@@ -24,6 +24,7 @@ namespace OpenWifi {
 			Connected_ = true ;
 		} else {
 		    // std::cout << "Cannot connect..." << std::endl;
+		    RTTYS_server()->DeRegister(Id_, this);
 			delete this;
 		}
 	}
