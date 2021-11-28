@@ -25,6 +25,12 @@ namespace OpenWifi {
 									   	KeyFileName, CertFileName, "",
 										Poco::Net::Context::VERIFY_RELAXED);
 
+			DSContext->addCertificateAuthority(Root);
+			DSContext->disableStatelessSessionResumption();
+			DSContext->enableSessionCache();
+			DSContext->setSessionCacheSize(0);
+			DSContext->enableExtendedCertificateVerification(true);
+
 			Poco::Net::SecureServerSocket DeviceSocket(DSport, 64, DSContext);
 			DeviceSocket.setNoDelay(true);
 
@@ -43,8 +49,6 @@ namespace OpenWifi {
 			CSContext->enableSessionCache();
 			CSContext->setSessionCacheSize(0);
 			CSContext->enableExtendedCertificateVerification(true);
-
-
 			Poco::Net::SecureServerSocket ClientSocket(CSport, 64, CSContext);
 			ClientSocket.setNoDelay(true);
 
