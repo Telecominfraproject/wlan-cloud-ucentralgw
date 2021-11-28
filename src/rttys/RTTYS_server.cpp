@@ -18,7 +18,6 @@ namespace OpenWifi {
 			auto CertFileName = MicroService::instance().ConfigPath("openwifi.restapi.host.0.cert");
 			auto KeyFileName = MicroService::instance().ConfigPath("openwifi.restapi.host.0.key");
 			auto RootCa = MicroService::instance().ConfigPath("openwifi.restapi.host.0.rootca");
-
 			Poco::Crypto::X509Certificate Root(RootCa);
 
 			auto DSContext = new Poco::Net::Context(Poco::Net::Context::SERVER_USE,
@@ -29,7 +28,10 @@ namespace OpenWifi {
 			DSContext->disableStatelessSessionResumption();
 			DSContext->enableSessionCache();
 			DSContext->setSessionCacheSize(0);
+			DSContext->setSessionTimeout(10);
 			DSContext->enableExtendedCertificateVerification(true);
+			SSL_CTX *SSLCtxD = DSContext->sslContext();
+			SSL_CTX_dane_enable(SSLCtxD);
 
 			Poco::Net::SecureServerSocket DeviceSocket(DSport, 64, DSContext);
 			DeviceSocket.setNoDelay(true);
@@ -42,13 +44,16 @@ namespace OpenWifi {
 
 			auto CSContext =
 				new Poco::Net::Context(Poco::Net::Context::SERVER_USE, KeyFileName, CertFileName,
-									   "", Poco::Net::Context::VERIFY_ONCE);
-
+									   "", Poco::Net::Context::VERIFY_RELAXED);
 			CSContext->addCertificateAuthority(Root);
 			CSContext->disableStatelessSessionResumption();
 			CSContext->enableSessionCache();
 			CSContext->setSessionCacheSize(0);
+			CSContext->setSessionTimeout(10);
 			CSContext->enableExtendedCertificateVerification(true);
+			SSL_CTX *SSLCtxC = DSContext->sslContext();
+			SSL_CTX_dane_enable(SSLCtxC);
+
 			Poco::Net::SecureServerSocket ClientSocket(CSport, 64, CSContext);
 			ClientSocket.setNoDelay(true);
 
