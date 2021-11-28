@@ -50,8 +50,13 @@ namespace OpenWifi {
 		} else {
 			Response.set("Access-Control-Allow-Origin", "*");
 		}
-//		Response.set("Vary", "Accept-Encoding, Origin, Sec-Fetch-Site");
-		Response.set("Access-Control-Allow-Headers", "Content-Type,Authorization,Accept,Access-Control-Request-Method,Origin,Access-Control-Request-Headers,Upgrade");
+		auto Referer = Request.find("Referer");
+		if(Referer!=Request.end()) {
+			Response.set("Access-Control-Allow-Origin", Referer->second);
+		} else {
+			Response.set("Access-Control-Allow-Origin", "*");
+		}
+		Response.set("Access-Control-Allow-Headers", "*");
 		Response.set("Access-Control-Max-Age", "86400");
 		Response.set("Access-Control-Allow-Methods", "GET, OPTIONS, HEAD");
 		Response.set("Connection", "Keep-Alive");
