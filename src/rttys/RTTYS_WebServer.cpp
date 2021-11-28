@@ -51,7 +51,7 @@ namespace OpenWifi {
 			Response.set("Access-Control-Allow-Origin", "*");
 		}
 //		Response.set("Vary", "Accept-Encoding, Origin, Sec-Fetch-Site");
-		Response.set("Access-Control-Allow-Headers", "Content-Type,Authorization,X-Requested-With,Accept,Access-Control-Request-Method,Origin,Access-Control-Request-Headers,Upgrade");
+		Response.set("Access-Control-Allow-Headers", "Content-Type,Authorization,Accept,Access-Control-Request-Method,Origin,Access-Control-Request-Headers,Upgrade");
 		Response.set("Access-Control-Max-Age", "86400");
 		Response.set("Access-Control-Allow-Methods", "GET, OPTIONS, HEAD");
 		Response.set("Connection", "Keep-Alive");
@@ -79,6 +79,11 @@ namespace OpenWifi {
 		auto Path = uri.getPath();
 
 		if(request.getMethod() == Poco::Net::HTTPRequest::HTTP_OPTIONS) {
+			std::cout << "options..." << std::endl;
+			AddCORS(request,response);
+			return;
+		} else if(request.getMethod() == Poco::Net::HTTPRequest::HTTP_HEAD){
+			std::cout << "head..." << std::endl;
 			AddCORS(request,response);
 			return;
 		}
