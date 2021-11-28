@@ -61,10 +61,10 @@ namespace OpenWifi {
 
 		inline void Register(const std::string &Id, RTTY_Device_ConnectionHandler *Conn) {
 			std::lock_guard	G(Mutex_);
-			Logger_.information(Poco::format("Registering device: %s",Id));
 			auto It = EndPoints_.find(Id);
 			if(It==EndPoints_.end()) {
 				EndPoints_[Id] = EndPoint{.Device = Conn };
+				Logger_.information(Poco::format("Registering session: %s, device:'%s'",Id,It->second.SerialNumber));
 			} else {
 				It->second.Device = Conn;
 			}
@@ -72,12 +72,12 @@ namespace OpenWifi {
 
 		inline void DeRegister(const std::string &Id, RTTY_Device_ConnectionHandler *Conn) {
 			std::lock_guard	G(Mutex_);
-			Logger_.information(Poco::format("Registering device: %s",Id));
 			auto It = EndPoints_.find(Id);
 			if(It==EndPoints_.end())
 				return;
 			if(It->second.Device!=Conn)
 				return;
+			Logger_.information(Poco::format("DeRegistering session: %s, device:'%s'",Id,It->second.SerialNumber));
 			It->second.Device = nullptr;
 			It->second.Done = true;
 			It->second.DeviceConnected = 0 ;
