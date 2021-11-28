@@ -35,7 +35,6 @@ class RTTY_Device_ConnectionHandler {
 	~RTTY_Device_ConnectionHandler();
 
 	void onSocketReadable(const Poco::AutoPtr<Poco::Net::ReadableNotification>& pNf);
-	void onSocketWritable(const Poco::AutoPtr<Poco::Net::WritableNotification>& pNf);
 	void onSocketShutdown(const Poco::AutoPtr<Poco::Net::ShutdownNotification>& pNf);
 
 	std::string SafeCopy( const u_char * buf, int MaxSize, int & NewPos);

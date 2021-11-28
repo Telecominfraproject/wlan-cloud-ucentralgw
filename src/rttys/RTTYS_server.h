@@ -126,11 +126,9 @@ namespace OpenWifi {
 			std::lock_guard	G(Mutex_);
 			auto It = EndPoints_.find(Id);
 			if(It==EndPoints_.end()) {
-			    // std::cout << "Cannot find id" << std::endl;
 				return false;
             }
 			uint64_t Now = std::time(nullptr);
-			// std::cout << "T: '" << Token << "' S:" << Token.size() << " " << (Token == It->second.Token) << std::endl;
 			return ((It->second.Token == Token) && ((Now-It->second.TimeStamp)<30));
 		}
 
@@ -166,11 +164,9 @@ namespace OpenWifi {
 			if(It->second.Token != Token)
 				return false;
 
-			std::cout << "Found ID and Token" << std::endl;
 			if(It->second.Device==Conn)
 				return true;
 
-			std::cout << "Different device connection" << std::endl;
 			return false;
 
 		}

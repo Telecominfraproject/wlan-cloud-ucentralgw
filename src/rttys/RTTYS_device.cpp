@@ -158,8 +158,7 @@ namespace OpenWifi {
 			u_char	inBuf[2048]{0};
 			int len = socket_.receiveBytes(&inBuf[0],sizeof(inBuf));
 			// std::cout << "DEVICE MSG RECEIVED: " << std::dec << len << " bytes" << std::endl;
-			if (len > 0)
-			{
+			if (len > 0) {
 				// std::cout << "DEVICE MSG RECEIVED: " << std::dec << len << " bytes" << std::endl;
 				// PrintBuf(inBuf,len);
 				RTTY_MSG_TYPE   msg;
@@ -267,31 +266,17 @@ namespace OpenWifi {
 						std::cout << "msgTypeMax" << std::endl;
 					}
 					break;
-					}
 				}
-				else
-				{
-					RTTYS_server()->Logger().debug(Poco::format("DeRegistration: %s shutting down session %s.", serial_, id_));
-					return delete this;
-				}
+			} else {
+				RTTYS_server()->Logger().debug(Poco::format("DeRegistration: %s shutting down session %s.", serial_, id_));
+				return delete this;
+			}
 		}
 		catch (const Poco::Exception & E)
 		{
 			RTTYS_server()->Logger().debug(Poco::format("DeRegistration: %s exception, session %s.", serial_, id_));
 			RTTYS_server()->Logger().log(E);
 			return delete this;
-		}
-	}
-
-	void RTTY_Device_ConnectionHandler::onSocketWritable(const Poco::AutoPtr<Poco::Net::WritableNotification>& pNf)
-	{
-		std::cout << "Device %s : writable" << std::endl;
-		try
-		{
-		}
-		catch (Poco::Exception& exc)
-		{
-			delete this;
 		}
 	}
 
