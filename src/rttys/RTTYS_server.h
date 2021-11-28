@@ -104,7 +104,7 @@ namespace OpenWifi {
 			return true;
 		}
 
-		inline std::string SerialNumber(const std::string & Id) const {
+		inline std::string SerialNumber(const std::string & Id) {
 			std::lock_guard	G(Mutex_);
 
 			auto It = EndPoints_.find(Id);
