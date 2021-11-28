@@ -17,6 +17,9 @@ namespace OpenWifi {
 
 			auto CertFileName = MicroService::instance().ConfigPath("openwifi.restapi.host.0.cert");
 			auto KeyFileName = MicroService::instance().ConfigPath("openwifi.restapi.host.0.key");
+			auto RootCa = MicroService::instance().ConfigPath("openwifi.restapi.host.0.rootca");
+
+			Poco::Crypto::X509Certificate Root(RootCa);
 
 			auto DSContext = new Poco::Net::Context(Poco::Net::Context::SERVER_USE,
 									   	KeyFileName, CertFileName, "",
@@ -34,6 +37,14 @@ namespace OpenWifi {
 			auto CSContext =
 				new Poco::Net::Context(Poco::Net::Context::SERVER_USE, KeyFileName, CertFileName,
 									   "", Poco::Net::Context::VERIFY_ONCE);
+
+			CSContext->addCertificateAuthority(Root);
+			CSContext->disableStatelessSessionResumption();
+			CSContext->enableSessionCache();
+			CSContext->setSessionCacheSize(0);
+			CSContext->enableExtendedCertificateVerification(true);
+
+
 			Poco::Net::SecureServerSocket ClientSocket(CSport, 64, CSContext);
 			ClientSocket.setNoDelay(true);
 
