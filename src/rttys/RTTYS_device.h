@@ -57,6 +57,7 @@ class RTTY_Device_ConnectionHandler {
 	std::string                   id_;
 	std::string                   token_;
 	std::string                   desc_;
+	std::string 				  serial_;
 	int 				          sid_=0;
 };
 
