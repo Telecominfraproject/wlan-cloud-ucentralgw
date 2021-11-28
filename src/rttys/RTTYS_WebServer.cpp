@@ -78,29 +78,22 @@ namespace OpenWifi {
 		Poco::URI uri(request.getURI());
 		auto Path = uri.getPath();
 
-		std::cout << __LINE__ << std::endl;
 		if(request.getMethod() == Poco::Net::HTTPRequest::HTTP_OPTIONS) {
 			AddCORS(request,response);
 			return;
 		}
-		std::cout << __LINE__ << std::endl;
 
 		if (Path == "/") {
-			std::cout << __LINE__ << std::endl;
 			Path = RTTYS_server()->UIAssets() + "/index.html";
 		} else {
-			std::cout << __LINE__ << std::endl;
 			auto ParsedPath = Poco::StringTokenizer(Path, "/");
-			std::cout << __LINE__ << std::endl;
 			if (ParsedPath.count() > 1) {
 				if (ParsedPath[1] == "connect") {
-					std::cout << __LINE__ << std::endl;
 					response.redirect(Poco::replace(Path,"/connect/","/rtty/"));
 					response.send();
 					RTTYS_server()->Logger().information(Poco::format("... rtty connect redirect: %s",Path));
 					return;
 				} else if (ParsedPath[1] == "authorized") {
-					std::cout << __LINE__ << std::endl;
 					AddCORS(request,response);
 					nlohmann::json doc;
 					doc["authorized"] = true;
@@ -109,7 +102,6 @@ namespace OpenWifi {
 					answer << to_string(doc);
 					return;
 				} else if (ParsedPath[1] == "fontsize") {
-					std::cout << __LINE__ << std::endl;
 					AddCORS(request,response);
 					nlohmann::json doc;
 					doc["size"] = 16;
@@ -123,12 +115,8 @@ namespace OpenWifi {
 			Path = RTTYS_server()->UIAssets() + Path;
 		}
 
-		std::cout << __LINE__ << std::endl;
 		Poco::File	F(Path);
-
-		std::cout << __LINE__ << std::endl;
 		AddCORS(request,response);
-		std::cout << __LINE__ << std::endl;
 		if(!F.exists()) {
 			response.setChunkedTransferEncoding(true);
 			Path = RTTYS_server()->UIAssets() + "/index.html";
@@ -137,7 +125,6 @@ namespace OpenWifi {
 		}
 		Poco::Path P(Path);
 		auto Ext = P.getExtension();
-		std::cout << __LINE__ << std::endl;
 
 		std::string Type;
 		if (Ext == "html")
@@ -161,7 +148,6 @@ namespace OpenWifi {
 
 		response.setContentLength(F.getSize());
 		response.sendFile(Path, Type);
-		std::cout << __LINE__ << std::endl;
 	}
 
 	RTTY_Client_RequestHandlerFactory::RTTY_Client_RequestHandlerFactory(Poco::Net::SocketReactor &R)
