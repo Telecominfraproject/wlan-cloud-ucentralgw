@@ -33,7 +33,7 @@ namespace OpenWifi {
 
 			auto CSContext =
 				new Poco::Net::Context(Poco::Net::Context::SERVER_USE, KeyFileName, CertFileName,
-									   "", Poco::Net::Context::VERIFY_RELAXED);
+									   "", Poco::Net::Context::VERIFY_ONCE);
 			Poco::Net::SecureServerSocket ClientSocket(CSport, 64, CSContext);
 			ClientSocket.setNoDelay(true);
 
