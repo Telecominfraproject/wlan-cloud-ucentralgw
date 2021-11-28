@@ -90,12 +90,14 @@ namespace OpenWifi {
 			return It->second.Device;
 		}
 
-		inline bool CreateEndPoint(const std::string &Id, const std::string & Token) {
+		inline bool CreateEndPoint(const std::string &Id, const std::string & Token, const std::string & UserName, const std::string & SerialNumber ) {
 			std::lock_guard	G(Mutex_);
 			EndPoint E;
 			E.Done = false;
 			E.Token = Token;
 			E.TimeStamp = std::time(nullptr);
+			E.SerialNumber = SerialNumber;
+			E.UserName = UserName;
 			EndPoints_[Id] = E;
 			return true;
 		}
@@ -166,6 +168,8 @@ namespace OpenWifi {
 			uint64_t 						TimeStamp = std::time(nullptr);
 			uint64_t 						DeviceConnected = 0;
 			uint64_t 						ClientConnected = 0;
+			std::string 					UserName;
+			std::string 					SerialNumber;
 			bool 							Done = false;
 		};
 
@@ -179,9 +183,6 @@ namespace OpenWifi {
 		Poco::Thread				DeviceReactorThread_;
 		Poco::Thread				ClientReactorThread_;
 		std::string 				RTTY_UIAssets_;
-//		std::string 				RTTY_UIuri_;
-//		std::string 				UI_;
-//		std::atomic_bool 			Running_ = false;
 		std::atomic_bool 			Internal_ = false;
 
 		std::map<std::string, EndPoint> 			EndPoints_;			//	id, endpoint

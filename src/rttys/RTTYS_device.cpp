@@ -22,9 +22,10 @@ namespace OpenWifi {
 		reactor_.removeEventHandler(socket_, Poco::NObserver<RTTY_Device_ConnectionHandler, Poco::Net::ReadableNotification>(*this, &RTTY_Device_ConnectionHandler::onSocketReadable));
 		// reactor_.removeEventHandler(socket_, Poco::NObserver<RTTY_Device_ConnectionHandler, Poco::Net::WritableNotification>(*this, &RTTY_Device_ConnectionHandler::onSocketWritable));
 		reactor_.removeEventHandler(socket_, Poco::NObserver<RTTY_Device_ConnectionHandler, Poco::Net::ShutdownNotification>(*this, &RTTY_Device_ConnectionHandler::onSocketShutdown));
-
+		socket_.close();
 		if(!id_.empty()) {
 			RTTYS_server()->DeRegister(id_, this);
+			RTTYS_server()->Close(id_);
 		} else {
 			std::cout << "Device going down that never registered" << std::endl;
 		}
@@ -271,13 +272,11 @@ namespace OpenWifi {
 				else
 				{
 					RTTYS_server()->Logger().debug(Poco::format("DeRegistration: %s shutting down rtty socket.", id_, desc_, token_));
-					RTTYS_server()->Close(id_);
 					return delete this;
 				}
 		}
 		catch (Poco::Exception& exc)
 		{
-			RTTYS_server()->Close(id_);
 			return delete this;
 		}
 	}

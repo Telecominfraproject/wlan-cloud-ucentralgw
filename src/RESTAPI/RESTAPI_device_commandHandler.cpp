@@ -731,7 +731,7 @@ void RESTAPI_device_commandHandler::MakeRequest() {
 
 				if(RTTYS_server()->UseInternal()) {
 					Rtty.Token = MicroService::instance().CreateHash(UserInfo_.webtoken.refresh_token_ + std::to_string(std::time(nullptr))).substr(0,32);
-					RTTYS_server()->CreateEndPoint(Rtty.ConnectionId,Rtty.Token);
+					RTTYS_server()->CreateEndPoint(Rtty.ConnectionId,Rtty.Token, UserInfo_.userinfo.email, SerialNumber_);
 				}
 
 				Poco::JSON::Object ReturnedObject;
