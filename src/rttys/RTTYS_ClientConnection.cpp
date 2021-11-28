@@ -108,7 +108,10 @@ namespace OpenWifi {
 		WS_.sendFrame(Buf, len, Poco::Net::WebSocket::FRAME_FLAG_FIN | Poco::Net::WebSocket::FRAME_OP_BINARY);
 	}
 
-	void RTTYS_ClientConnection::SendData( const std::string &s ) {
+	void RTTYS_ClientConnection::SendData( const std::string &s , bool login) {
+		if(login) {
+			RTTYS_server()->LoginDone(Id_);
+		}
 		WS_.sendFrame( s.c_str(), s.length());
 	}
 	void RTTYS_ClientConnection::onSocketShutdown(const Poco::AutoPtr<Poco::Net::ShutdownNotification> &pNf) {

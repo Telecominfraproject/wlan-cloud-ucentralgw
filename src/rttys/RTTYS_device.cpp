@@ -164,7 +164,7 @@ namespace OpenWifi {
 				// PrintBuf(inBuf,len);
 				RTTY_MSG_TYPE   msg;
 				if(inBuf[0]>=(u_char)msgTypeMax) {
-					RTTYS_server()->Logger().debug(Poco::format("Bad message for SerialNumber: %s, Descriotion: %s, Token: %s", id_));
+					RTTYS_server()->Logger().debug(Poco::format("Bad message for Session: %s, Description: %s, Token: %s", id_));
 					return;
 				}
 
@@ -178,11 +178,10 @@ namespace OpenWifi {
 						token_ = std::string((char*)&inBuf[3 + id_.size() + 1 + desc_.size() + 1]);
 
 						if(RTTYS_server()->ValidEndPoint(id_,token_)) {
-
 							if(!RTTYS_server()->AmIRegistered(id_,token_,this)) {
 								RTTYS_server()->Logger().debug(Poco::format(
-									"Registration for SerialNumber: %s, Description: %s, Token: %s",
-									id_, desc_, token_));
+									"Registration for SerialNumber: %s, Description: %s",
+									RTTYS_server()->SerialNumber(id_), desc_));
 								u_char OutBuf[12];
 								OutBuf[0] = msgTypeRegister;
 								OutBuf[1] = 0;
@@ -196,7 +195,7 @@ namespace OpenWifi {
 							} else {
 								RTTYS_server()->Logger().debug(Poco::format(
 									"Registration for SerialNumber: %s, already done",
-									id_));
+									RTTYS_server()->SerialNumber(id_)));
 							}
 						} else {
 							RTTYS_server()->Logger().debug(Poco::format(
@@ -271,12 +270,14 @@ namespace OpenWifi {
 				}
 				else
 				{
-					RTTYS_server()->Logger().debug(Poco::format("DeRegistration: %s shutting down rtty socket.", id_, desc_, token_));
+					RTTYS_server()->Logger().debug(Poco::format("DeRegistration: %s shutting down rtty socket.", RTTYS_server()->SerialNumber(id_)));
 					return delete this;
 				}
 		}
-		catch (Poco::Exception& exc)
+		catch (const Poco::Exception & E)
 		{
+			RTTYS_server()->Logger().debug(Poco::format("DeRegistration: %s shutting down rtty socket.", RTTYS_server()->SerialNumber(id_)));
+			RTTYS_server()->Logger().log(E);
 			return delete this;
 		}
 	}

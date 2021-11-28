@@ -104,6 +104,24 @@ namespace OpenWifi {
 			return true;
 		}
 
+		inline std::string SerialNumber(const std::string & Id) const {
+			std::lock_guard	G(Mutex_);
+
+			auto It = EndPoints_.find(Id);
+			if(It==EndPoints_.end())
+				return "";
+			return It->second.SerialNumber;
+		}
+
+		inline void LoginDone(const std::string & Id) {
+			std::lock_guard	G(Mutex_);
+
+			auto It = EndPoints_.find(Id);
+			if(It==EndPoints_.end())
+				return;
+			Logger_.information(Poco::format("User: %s, Serial: %s logged in.",It->second.UserName, It->second.SerialNumber ));
+		}
+
 		inline bool ValidEndPoint(const std::string &Id, const std::string &Token) {
 			std::lock_guard	G(Mutex_);
 			auto It = EndPoints_.find(Id);
