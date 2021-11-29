@@ -25,6 +25,7 @@
 #include "framework/uCentral_Protocol.h"
 #include "framework/MicroService.h"
 #include "Daemon.h"
+#include "SerialNumberCache.h"
 
 namespace OpenWifi {
 
@@ -179,7 +180,8 @@ namespace OpenWifi {
 	}
 
     WSConnection::~WSConnection() {
-        DeviceRegistry()->UnRegister(SerialNumber_,this);
+		if(ConnectionId_)
+			DeviceRegistry()->UnRegister(SerialNumber_, ConnectionId_);
         if(Registered_ && WS_)
         {
         	Reactor_.removeEventHandler(*WS_,
@@ -339,7 +341,7 @@ namespace OpenWifi {
 						auto Firmware = ParamsObj->get(uCentralProtocol::FIRMWARE).toString();
 						auto Capabilities = ParamsObj->get(uCentralProtocol::CAPABILITIES).toString();
 
-						Conn_ = DeviceRegistry()->Register(Serial, this);
+						Conn_ = DeviceRegistry()->Register(Serial, this, ConnectionId_);
 						SerialNumber_ = Serial;
 						Conn_->Conn_.SerialNumber = Serial;
 						Conn_->Conn_.UUID = UUID;
@@ -361,19 +363,21 @@ namespace OpenWifi {
 						}
 						Conn_->Conn_.VerifiedCertificate = CertValidation_;
 
-						if (Daemon()->AutoProvisioning() && !StorageService()->DeviceExists(SerialNumber_)) {
+						auto DeviceExists = SerialNumberCache()->NumberExists(SerialNumber_);
+						if (Daemon()->AutoProvisioning() && !DeviceExists) {
 							StorageService()->CreateDefaultDevice(SerialNumber_, Capabilities, Firmware, Compatible_);
-						} else if (StorageService()->DeviceExists(SerialNumber_)) {
+							Conn_->Conn_.Compatible = Compatible_;
+						} else if (DeviceExists) {
 							StorageService()->UpdateDeviceCapabilities(SerialNumber_, Capabilities, Compatible_);
+							Conn_->Conn_.Compatible = Compatible_;
 							if(!Firmware.empty()) {
 								StorageService()->SetConnectInfo(SerialNumber_, Firmware );
 							}
+							LookForUpgrade(UUID);
 						}
-						Conn_->Conn_.Compatible = Compatible_;
 
 						StatsProcessor_ = std::make_unique<StateProcessor>(Conn_, Logger_);
 						StatsProcessor_->Initialize(Serial);
-						LookForUpgrade(UUID);
 
 						if(KafkaManager()->Enabled()) {
 							Poco::JSON::Stringifier		Stringify;

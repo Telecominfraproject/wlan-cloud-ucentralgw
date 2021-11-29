@@ -11,7 +11,6 @@
 
 #include "DeviceRegistry.h"
 #include "WebSocketServer.h"
-#include "framework/MicroService.h"
 #include "OUIServer.h"
 
 namespace OpenWifi {
@@ -42,7 +41,6 @@ namespace OpenWifi {
 		std::lock_guard		Guard(Mutex_);
 
         auto Device = Devices_.find(SerialNumber);
-
         if(Device != Devices_.end())
         {
 			Device->second->Conn_.LastContact = time(nullptr);
@@ -85,58 +83,47 @@ namespace OpenWifi {
 		std::lock_guard		Guard(Mutex_);
 
 		auto Device = Devices_.find(SerialNumber);
-
 		if(Device != Devices_.end())
 		{
 			Device->second->LastHealthcheck = CheckData;
 		}
 	}
 
-	std::shared_ptr<DeviceRegistry::ConnectionEntry> DeviceRegistry::Register(const std::string & SerialNumber, WSConnection *Ptr)
+	std::shared_ptr<DeviceRegistry::ConnectionEntry> DeviceRegistry::Register(const std::string & SerialNumber, WSConnection *Ptr, uint64_t & ConnectionId )
     {
 		std::lock_guard		Guard(Mutex_);
 
-        auto Device = Devices_.find(SerialNumber);
-        if( Device == Devices_.end()) {
-        	auto E = Devices_[SerialNumber] = std::make_shared<ConnectionEntry>();
-
-            E->WSConn_ = Ptr;
-            E->Conn_.SerialNumber = SerialNumber;
-            E->Conn_.LastContact = std::time(nullptr);
-            E->Conn_.Connected = true ;
-            E->Conn_.UUID = 0 ;
-            E->Conn_.MessageCount = 0 ;
-            E->Conn_.Address = "";
-            E->Conn_.TX = 0 ;
-            E->Conn_.RX = 0;
-			E->Conn_.VerifiedCertificate = GWObjects::CertificateValidation::NO_CERTIFICATE;
-            return E;
-        }
-        else
-        {
-            Device->second->WSConn_ = Ptr;
-            Device->second->Conn_.Connected = true;
-            Device->second->Conn_.LastContact = std::time(nullptr);
-			Device->second->Conn_.VerifiedCertificate = GWObjects::CertificateValidation::NO_CERTIFICATE;
-            return Device->second;
-        }
+		const auto & E = Devices_[SerialNumber] = std::make_shared<ConnectionEntry>();
+		E->WSConn_ = Ptr;
+		E->Conn_.SerialNumber = SerialNumber;
+		E->Conn_.LastContact = std::time(nullptr);
+		E->Conn_.Connected = true ;
+		E->Conn_.UUID = 0 ;
+		E->Conn_.MessageCount = 0 ;
+		E->Conn_.Address = "";
+		E->Conn_.TX = 0 ;
+		E->Conn_.RX = 0;
+		E->Conn_.VerifiedCertificate = GWObjects::CertificateValidation::NO_CERTIFICATE;
+		ConnectionId = E->ConnectionId = ++Id_;
+		return E;
     }
 
     bool DeviceRegistry::Connected(const std::string & SerialNumber) {
 		std::lock_guard		Guard(Mutex_);
-
         auto Device = Devices_.find(SerialNumber);
-
         if(Device == Devices_.end())
             return false;
-
         return Device->second->Conn_.Connected;
     }
 
-    void DeviceRegistry::UnRegister(const std::string & SerialNumber, WSConnection *Ptr) {
+    void DeviceRegistry::UnRegister(const std::string & SerialNumber, uint64_t ConnectionId) {
 		std::lock_guard		Guard(Mutex_);
-		Devices_.erase(SerialNumber);
-    }
+		auto It = Devices_.find(SerialNumber);
+		if(It!=Devices_.end()) {
+			if(It->second->ConnectionId == ConnectionId)
+				Devices_.erase(SerialNumber);
+		}
+	}
 
 	bool DeviceRegistry::SendFrame(const std::string & SerialNumber, const std::string & Payload) {
 		std::lock_guard		Guard(Mutex_);
