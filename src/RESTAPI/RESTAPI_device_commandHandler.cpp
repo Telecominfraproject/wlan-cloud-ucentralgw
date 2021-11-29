@@ -197,8 +197,12 @@ void RESTAPI_device_commandHandler::GetStatus() {
 		Poco::JSON::Object RetObject;
 		State.to_json(RetObject);
 		return ReturnObject(RetObject);
+	} else {
+		Poco::JSON::Object RetObject;
+		RetObject.set("serialNumber", SerialNumber_);
+		RetObject.set("connected", false);
+		return ReturnObject(RetObject);
 	}
-	NotFound();
 }
 
 void RESTAPI_device_commandHandler::Configure() {

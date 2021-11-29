@@ -180,8 +180,8 @@ namespace OpenWifi {
 	}
 
     WSConnection::~WSConnection() {
-		if(ConnectionId)
-        	DeviceRegistry()->UnRegister(SerialNumber_, ConnectionId);
+		if(ConnectionId_)
+        	DeviceRegistry()->UnRegister(SerialNumber_, ConnectionId_);
         if(Registered_ && WS_)
         {
         	Reactor_.removeEventHandler(*WS_,
@@ -341,7 +341,7 @@ namespace OpenWifi {
 						auto Firmware = ParamsObj->get(uCentralProtocol::FIRMWARE).toString();
 						auto Capabilities = ParamsObj->get(uCentralProtocol::CAPABILITIES).toString();
 
-						Conn_ = DeviceRegistry()->Register(Serial, this, ConnectionId);
+						Conn_ = DeviceRegistry()->Register(Serial, this, ConnectionId_);
 						SerialNumber_ = Serial;
 						Conn_->Conn_.SerialNumber = Serial;
 						Conn_->Conn_.UUID = UUID;
@@ -363,10 +363,11 @@ namespace OpenWifi {
 						}
 						Conn_->Conn_.VerifiedCertificate = CertValidation_;
 
-						if (Daemon()->AutoProvisioning() && !SerialNumberCache()->NumberExists(SerialNumber_)) {
+						auto DeviceExists = SerialNumberCache()->NumberExists(SerialNumber_);
+						if (Daemon()->AutoProvisioning() && !DeviceExists) {
 							StorageService()->CreateDefaultDevice(SerialNumber_, Capabilities, Firmware, Compatible_, PeerAddress_);
 							Conn_->Conn_.Compatible = Compatible_;
-						} else if (SerialNumberCache()->NumberExists(SerialNumber_)) {
+						} else if (DeviceExists) {
 							StorageService()->UpdateDeviceCapabilities(SerialNumber_, Capabilities, Compatible_);
 							Conn_->Conn_.Compatible = Compatible_;
 							if(!Firmware.empty()) {

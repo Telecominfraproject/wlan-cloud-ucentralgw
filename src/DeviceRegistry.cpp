@@ -11,7 +11,6 @@
 
 #include "DeviceRegistry.h"
 #include "WebSocketServer.h"
-#include "framework/MicroService.h"
 #include "OUIServer.h"
 
 namespace OpenWifi {

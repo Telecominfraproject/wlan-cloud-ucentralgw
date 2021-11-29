@@ -109,7 +109,7 @@ namespace OpenWifi {
 		uint64_t 							Errors_=0;
 		std::unique_ptr<StateProcessor>		StatsProcessor_;
 		bool 								Connected_=false;
-		uint64_t 							ConnectionId=0;
+		uint64_t 							ConnectionId_=0;
 		Poco::Net::IPAddress				PeerAddress_;
 
 		void CompleteStartup();
