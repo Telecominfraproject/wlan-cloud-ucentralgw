@@ -33,6 +33,11 @@ namespace OpenWifi {
 			return BadRequest(RESTAPI::Errors::MissingOrInvalidParameters);
 		}
 
+		GWObjects::Device	TheDevice;
+		if(!StorageService()->GetDevice(SerialNumber_,TheDevice)) {
+			return NotFound();
+		}
+
 		if (Command_ == RESTAPI::Protocol::CAPABILITIES){
 			return GetCapabilities();
 		} else if (Command_ == RESTAPI::Protocol::LOGS) {
@@ -55,6 +60,12 @@ namespace OpenWifi {
 		if(!ValidateParameters()) {
 			return BadRequest(RESTAPI::Errors::MissingOrInvalidParameters);
 		}
+
+		GWObjects::Device	TheDevice;
+		if(!StorageService()->GetDevice(SerialNumber_,TheDevice)) {
+			return NotFound();
+		}
+
 		if (Command_ == RESTAPI::Protocol::CAPABILITIES) {
 			return DeleteCapabilities();
 		} else if (Command_ == RESTAPI::Protocol::LOGS){
@@ -72,6 +83,12 @@ namespace OpenWifi {
 		if(!ValidateParameters()) {
 			return BadRequest(RESTAPI::Errors::MissingOrInvalidParameters);
 		}
+
+		GWObjects::Device	TheDevice;
+		if(!StorageService()->GetDevice(SerialNumber_,TheDevice)) {
+			return NotFound();
+		}
+
 		if (Command_ == RESTAPI::Protocol::PERFORM) {
 			return ExecuteCommand();
 		} else if (Command_ == RESTAPI::Protocol::CONFIGURE) {
