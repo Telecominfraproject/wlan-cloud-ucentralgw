@@ -1522,7 +1522,8 @@ namespace OpenWifi {
                         bool Internal=false,
                         bool AlwaysAuthorize=true,
                         bool RateLimited=false,
-	                    const RateLimit & Profile = RateLimit{.Interval=1000,.MaxCalls=100})
+	                    const RateLimit & Profile = RateLimit{.Interval=1000,.MaxCalls=100},
+	                    bool SubscriberOnly=false)
 	    :   Bindings_(std::move(map)),
 	        Logger_(l),
 	        Methods_(std::move(Methods)),
@@ -1530,7 +1531,8 @@ namespace OpenWifi {
 	        Internal_(Internal),
 	        AlwaysAuthorize_(AlwaysAuthorize),
 	        RateLimited_(RateLimited),
-	        MyRates_(Profile){
+	        MyRates_(Profile),
+	        SubOnlyService_(SubscriberOnly){
 	    }
 
 	    inline bool RoleIsAuthorized(const std::string & Path, const std::string & Method, std::string & Reason) {
@@ -1551,7 +1553,7 @@ namespace OpenWifi {
 	                return;
 
 	            bool Expired=false;
-	            if (AlwaysAuthorize_ && !IsAuthorized(Expired)) {
+	            if (AlwaysAuthorize_ && !IsAuthorized(Expired, SubOnlyService_)) {
 	                if(Expired)
 	                    return UnAuthorized(RESTAPI::Errors::ExpiredToken, EXPIRED_TOKEN);
 	                return UnAuthorized(RESTAPI::Errors::InvalidCredentials, ACCESS_DENIED);
@@ -1897,7 +1899,7 @@ namespace OpenWifi {
 	        return true;
 	    }
 
-	    inline bool IsAuthorized(bool & Expired);
+	        inline bool IsAuthorized(bool & Expired, bool SubOnly = false );
 
 	        inline void ReturnObject(Poco::JSON::Object &Object) {
 	            PrepareResponse();
@@ -1980,6 +1982,7 @@ namespace OpenWifi {
 	        bool                        Internal_=false;
 	        bool                        RateLimited_=false;
 	        bool                        QueryBlockInitialized_=false;
+	        bool                        SubOnlyService_=false;
 	        Poco::Net::HTTPServerRequest    *Request= nullptr;
 	        Poco::Net::HTTPServerResponse   *Response= nullptr;
 	        bool                        AlwaysAuthorize_=true;
@@ -2281,12 +2284,12 @@ namespace OpenWifi {
 	        return ((T.expires_in_+T.created_)<std::time(nullptr));
 	    }
 
-	    inline bool RetrieveTokenInformation(const std::string & SessionToken, SecurityObjects::UserInfoAndPolicy & UInfo, bool & Expired) {
+	    inline bool RetrieveTokenInformation(const std::string & SessionToken, SecurityObjects::UserInfoAndPolicy & UInfo, bool & Expired, bool Sub=false) {
 	        try {
 	            Types::StringPairVec QueryData;
 	            QueryData.push_back(std::make_pair("token",SessionToken));
 	            OpenAPIRequestGet	Req(    uSERVICE_SECURITY,
-                                             "/api/v1/validateToken",
+                                             Sub ? "/api/v1/validateSubToken" : "/api/v1/validateToken",
                                              QueryData,
                                              5000);
 	            Poco::JSON::Object::Ptr Response;
@@ -2309,7 +2312,7 @@ namespace OpenWifi {
 	        return false;
 	    }
 
-        inline bool IsAuthorized(const std::string &SessionToken, SecurityObjects::UserInfoAndPolicy & UInfo, bool & Expired) {
+        inline bool IsAuthorized(const std::string &SessionToken, SecurityObjects::UserInfoAndPolicy & UInfo, bool & Expired, bool Sub = false) {
 	        auto User = Cache_.get(SessionToken);
 	        if(!User.isNull()) {
 	            if(IsTokenExpired(User->webtoken)) {
@@ -2320,7 +2323,7 @@ namespace OpenWifi {
                 UInfo = *User;
                 return true;
 	        }
-	        return RetrieveTokenInformation(SessionToken, UInfo, Expired);
+	        return RetrieveTokenInformation(SessionToken, UInfo, Expired, Sub);
 	    }
 
 	private:
@@ -3707,9 +3710,9 @@ namespace OpenWifi {
     }
 
 #ifdef    TIP_SECURITY_SERVICE
-    [[nodiscard]] bool AuthServiceIsAuthorized(Poco::Net::HTTPServerRequest & Request,std::string &SessionToken, SecurityObjects::UserInfoAndPolicy & UInfo, bool & Expired );
+    [[nodiscard]] bool AuthServiceIsAuthorized(Poco::Net::HTTPServerRequest & Request,std::string &SessionToken, SecurityObjects::UserInfoAndPolicy & UInfo, bool & Expired , bool Sub );
 #endif
-    inline bool RESTAPIHandler::IsAuthorized( bool & Expired ) {
+    inline bool RESTAPIHandler::IsAuthorized( bool & Expired , bool Sub ) {
         if(Internal_) {
             auto Allowed = MicroService::instance().IsValidAPIKEY(*Request);
             if(!Allowed) {
@@ -3739,9 +3742,9 @@ namespace OpenWifi {
                 }
             }
 #ifdef    TIP_SECURITY_SERVICE
-            if (AuthServiceIsAuthorized(*Request, SessionToken_, UserInfo_, Expired)) {
+            if (AuthServiceIsAuthorized(*Request, SessionToken_, UserInfo_, Expired, Sub)) {
 #else
-            if (AuthClient()->IsAuthorized( SessionToken_, UserInfo_, Expired)) {
+            if (AuthClient()->IsAuthorized( SessionToken_, UserInfo_, Expired, Sub)) {
 #endif
                 if(Server_.LogIt(Request->getMethod(),true)) {
                     Logger_.debug(Poco::format("X-REQ-ALLOWED(%s): User='%s@%s' Method='%s' Path='%s",
