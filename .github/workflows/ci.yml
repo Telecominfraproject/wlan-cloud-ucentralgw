@@ -73,10 +73,12 @@ jobs:
     runs-on: ubuntu-latest
     needs: docker
     steps:
-    - name: Trigger testing of OpenWifi Docker Compose deployment
-      uses: peter-evans/repository-dispatch@v1
+    - name: Trigger testing of OpenWifi Docker Compose deployment and wait for result
+      uses: convictional/trigger-workflow-and-wait@v1.5.0
       with:
-        token: ${{ secrets.WLAN_TESTING_PAT }}
-        repository: Telecominfraproject/wlan-testing
-        event-type: openwifi-sdk-pr
-        client-payload: '{"owgw_tag": "${{ github.sha }}", "owgwui_tag": "main", "owsec_tag": "main", "owfms_tag": "main", "owprov_tag": "main", "owprovui_tag": "main"}'
+        github_token: ${{ secrets.WLAN_TESTING_PAT }}
+        repo: wlan-testing
+        owner: Telecominfraproject
+        workflow_file_name: ow_docker-compose.yml
+        ref: master
+        inputs: '{"owgw_version": "${{ github.sha }}", "owgwui_version": "main", "owsec_version": "main", "owfms_version": "main", "owprov_version": "main", "owprovui_version": "main"}'
