@@ -477,6 +477,8 @@ components:
         when:
           type: integer
           format: int64
+        keepRedirector:
+          type: boolean
 
     RebootRequest:
       type: object
