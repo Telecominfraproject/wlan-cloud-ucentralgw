@@ -28,8 +28,9 @@ These instructions have proven to work on Ubuntu 20.4.
 ```
 sudo apt install git cmake g++ libssl-dev libmariadb-dev 
 sudo apt install libpq-dev libaprutil1-dev apache2-dev libboost-all-dev
-sudo apt install librdkafka-dev default-libmysqlclient-dev
+sudo apt install librdkafka-dev // default-libmysqlclient-dev
 
+cd ~
 git clone https://github.com/stephb9959/poco
 cd poco
 mkdir cmake-build
@@ -38,6 +39,7 @@ cmake ..
 cmake --build . --config Release
 sudo cmake --build . --target install
 
+cd ~
 git clone https://github.com/stephb9959/cppkafka
 cd cppkafka
 mkdir cmake-build
@@ -70,7 +72,7 @@ cd wlan-cloud-ucentralgw
 mkdir cmake-build
 cd cmake-build
 cmake ..
-make
+make -j 8
 
 
 ```
