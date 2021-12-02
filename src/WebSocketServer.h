@@ -129,12 +129,26 @@ namespace OpenWifi {
 		bool ValidateCertificate(const std::string & ConnectionId, const Poco::Crypto::X509Certificate & Certificate);
 		Poco::Net::SocketReactor & GetNextReactor() { return ReactorPool_.NextReactor(); }
 
+		inline bool IsSimSerialNumber(const std::string & SerialNumber) const {
+			return IsSim(SerialNumber) && SerialNumber == SimulatorId_;
+		}
+
+		inline static bool IsSim(const std::string & SerialNumber) {
+			return SerialNumber.substr(0,6) == "53494d";
+		}
+
+		inline bool IsSimEnabled() const {
+			return SimulatorEnabled_;
+		}
+
 	  private:
 		std::unique_ptr<Poco::Crypto::X509Certificate>	IssuerCert_;
 		std::vector<std::unique_ptr<Poco::Net::ParallelSocketAcceptor<WSConnection, Poco::Net::SocketReactor>>>	Acceptors_;
 		Poco::Net::SocketReactor		Reactor_;
 		Poco::Thread					ReactorThread_;
 		ReactorPool						ReactorPool_;
+		std::string 					SimulatorId_;
+		bool 							SimulatorEnabled_=false;
 
 		WebSocketServer() noexcept:
 		    SubSystemServer("WebSocketServer", "WS-SVR", "ucentral.websocket") {
