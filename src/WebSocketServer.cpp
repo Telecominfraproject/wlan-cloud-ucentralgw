@@ -61,6 +61,9 @@ namespace OpenWifi {
             Acceptors_.push_back(std::move(NewSocketAcceptor));
         }
 		ReactorThread_.start(Reactor_);
+
+        SimulatorId_ = MicroService::instance().ConfigGetString("simulatorid","");
+		SimulatorEnabled_ = !SimulatorId_.empty();
         return 0;
     }
 
@@ -109,6 +112,12 @@ namespace OpenWifi {
 				}
 			} else {
 				Logger_.error(Poco::format("%s: No certificates available..", CId_));
+			}
+
+			if(WebSocketServer::IsSim(CN_) && !WebSocketServer()->IsSimEnabled()) {
+				Logger_.debug(Poco::format("CONNECTION(%s): Sim Device %s is not allowed. Disconnecting.", CId_, CN_));
+				delete this;
+				return;
 			}
 
 			SerialNumber_ = CN_;
@@ -275,10 +284,6 @@ namespace OpenWifi {
 		CommandManager()->PostCommandResult(SerialNumber_, Doc);
     }
 
-    static bool IsSimSerialNumber(const std::string & SerialNumber) {
-		return SerialNumber.substr(0,6) == "53494d";
-	}
-
     void WSConnection::ProcessJSONRPCEvent(Poco::JSON::Object::Ptr & Doc) {
 
         auto Method = Doc->get(uCentralProtocol::METHOD).toString();
@@ -352,7 +357,7 @@ namespace OpenWifi {
 						CId_ = SerialNumber_ + "@" + CId_ ;
 
 						//	We need to verify the certificate if we have one
-						if(!CN_.empty() && (Utils::SerialNumberMatch(CN_,SerialNumber_) || IsSimSerialNumber(CN_))) {
+						if(!CN_.empty() && (Utils::SerialNumberMatch(CN_,SerialNumber_) || WebSocketServer()->IsSimSerialNumber(CN_))) {
 							CertValidation_ = GWObjects::VERIFIED;
 							Logger_.information(Poco::format("CONNECT(%s): Fully validated and authenticated device..", CId_));
 						} else {
