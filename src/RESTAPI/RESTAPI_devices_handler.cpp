@@ -14,6 +14,7 @@
 #include "framework/RESTAPI_protocol.h"
 #include "framework/MicroService.h"
 #include "RESTAPI/RESTAPI_device_helper.h"
+#include "Poco/StringTokenizer.h"
 
 namespace OpenWifi {
 	void RESTAPI_devices_handler::DoGet() {
@@ -25,10 +26,11 @@ namespace OpenWifi {
 		Poco::JSON::Object RetObj;
 		if (!QB_.Select.empty()) {
 			Poco::JSON::Array Objects;
-			std::vector<std::string> Numbers = Utils::Split(QB_.Select);
-			for (auto &i : Numbers) {
+			auto UUIDs = Poco::StringTokenizer(QB_.Select,",");
+			for (auto &i : UUIDs) {
+				auto SerialNumber = i;
 				GWObjects::Device D;
-				if (StorageService()->GetDevice(i, D)) {
+				if (StorageService()->GetDevice(SerialNumber, D)) {
 					if(completeInfo) {
 						Poco::JSON::Object	FullDeviceInfo;
 						CompleteDeviceInfo(D, FullDeviceInfo);
