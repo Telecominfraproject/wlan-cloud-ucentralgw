@@ -27,9 +27,14 @@ namespace OpenWifi {
 		Poco::JSON::Object	HCInfo;
 		HC.to_json(HCInfo);
 		Answer.set("healthCheckInfo",HCInfo);
-		Poco::JSON::Parser	P;
-		auto StatsInfo = P.parse(Stats).extract<Poco::JSON::Object::Ptr>();
-		Answer.set("statsInfo",StatsInfo);
+		try {
+			Poco::JSON::Parser P;
+			auto StatsInfo = P.parse(Stats).extract<Poco::JSON::Object::Ptr>();
+			Answer.set("statsInfo", StatsInfo);
+		} catch (...) {
+			Poco::JSON::Object	Empty;
+			Answer.set("statsInfo", Empty);
+		}
 	}
 
 }
