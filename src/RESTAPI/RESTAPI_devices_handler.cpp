@@ -29,28 +29,21 @@ namespace OpenWifi {
 			auto UUIDs = Poco::StringTokenizer(QB_.Select,",");
 			for (auto &i : UUIDs) {
 				auto SerialNumber = i;
-				std::cout << "Serial:" << SerialNumber << std::endl ;
 				GWObjects::Device D;
 				if (StorageService()->GetDevice(SerialNumber, D)) {
-					std::cout << "Serial1:" << SerialNumber << std::endl ;
 					if(completeInfo) {
-						std::cout << "Serial2:" << SerialNumber << std::endl ;
 						Poco::JSON::Object	FullDeviceInfo;
 						CompleteDeviceInfo(D, FullDeviceInfo);
 						Objects.add(FullDeviceInfo);
-						std::cout << "Serial3:" << SerialNumber << std::endl ;
 					} else {
-						std::cout << "Serial4:" << SerialNumber << std::endl ;
 						Poco::JSON::Object Obj;
 						if (deviceWithStatus)
 							D.to_json_with_status(Obj);
 						else
 							D.to_json(Obj);
 						Objects.add(Obj);
-						std::cout << "Serial5:" << SerialNumber << std::endl ;
 					}
 				} else {
-					std::cout << "Serial6:" << SerialNumber << std::endl ;
 					Logger_.error(
 						Poco::format("DEVICE(%s): device in select cannot be found.", i));
 				}
