@@ -10,7 +10,7 @@
 
 namespace OpenWifi {
 
-	inline void CompleteDeviceInfo(const GWObjects::Device & Device, Poco::JSON::Object & FullAnswer) {
+	inline void CompleteDeviceInfo(const GWObjects::Device & Device, Poco::JSON::Object & Answer) {
 		GWObjects::ConnectionState	CS;
 		DeviceRegistry()->GetState(Device.SerialNumber,CS);
 		GWObjects::HealthCheck		HC;
@@ -18,7 +18,6 @@ namespace OpenWifi {
 		std::string 	Stats;
 		DeviceRegistry()->GetStatistics(Device.SerialNumber, Stats);
 
-		Poco::JSON::Object	Answer;
 		Poco::JSON::Object	DeviceInfo;
 		Device.to_json(DeviceInfo);
 		Answer.set("deviceInfo", DeviceInfo);

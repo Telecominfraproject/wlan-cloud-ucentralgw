@@ -34,10 +34,10 @@ fi
 
 token=""
 result_file=result.json
-#username="script.runner@arilia.com"
-#password="RunningScript100#"
-username="tip@ucentral.com"
-password="Openwifi123#"
+username="script.runner@arilia.com"
+password="Snoopy99!!!"
+#username="tip@ucentral.com"
+#password="Openwifi123#"
 browser_list=(firefox sensible-browser xdg-open w3m links links2 lynx youtube-dl)
 browser=""
 
@@ -277,6 +277,13 @@ getdevicestatus() {
         -H  "accept: application/json" \
         -H "Authorization: Bearer ${token}"  > ${result_file}
   jq < ${result_file}
+}
+
+getdevicecomplete() {
+	curl  ${FLAGS} -X GET "https://${OWGW}/api/v1/device/$1?completeInfo=true" \
+			-H  "accept: application/json" \
+			-H "Authorization: Bearer ${token}"  > ${result_file}
+		jq < ${result_file}
 }
 
 upgrade() {
@@ -736,7 +743,8 @@ case "$1" in
   "selectdevices") login; selectdevices "$2"  ; logout ;;
   "deviceserialnumbers") login; deviceserialnumbers   ; logout ;;
   "devicecount") login; devicecount   ; logout ;;
-  "deviceswithstatus") login; deviceswithstatus   ; logout ;;
+  "deviceswithstatus") login; deviceswithstatus "$2"  ; logout ;;
+  "getdevicecomplete") login; getdevicecomplete "$2"  ; logout ;;
   "getfile") login; getfile "$2" "$3"  ; logout ;;
   "rtty") login; rtty "$2"  ; logout ;;
   "lifetimestats") login; lifetimestats "$2"; logout;;
@@ -764,4 +772,3 @@ case "$1" in
   "caplist") login; caplist; logout;;
   *) help ;;
 esac
-
