@@ -531,5 +531,26 @@ namespace OpenWifi::SecurityObjects {
 	    }
 	    return false;
 	}
+
+    void SubMfaConfig::to_json(Poco::JSON::Object &Obj) const {
+	    field_to_json(Obj,"id",id);
+	    field_to_json(Obj,"type",type);
+	    field_to_json(Obj,"sms",sms);
+	    field_to_json(Obj,"email",email);
+	}
+
+    bool SubMfaConfig::from_json(Poco::JSON::Object::Ptr &Obj) {
+	    try {
+	        field_from_json(Obj,"id",id);
+	        field_from_json(Obj,"type",type);
+	        field_from_json(Obj,"sms",sms);
+	        field_from_json(Obj,"email",email);
+	        return true;
+	    } catch(...) {
+
+	    }
+	    return false;
+	}
+
 }
 

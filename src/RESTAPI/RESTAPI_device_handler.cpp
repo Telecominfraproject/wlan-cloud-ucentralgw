@@ -15,6 +15,7 @@
 #include "framework/MicroService.h"
 #include "framework/RESTAPI_errors.h"
 #include "framework/RESTAPI_protocol.h"
+#include "DeviceRegistry.h"
 
 namespace OpenWifi {
 	void RESTAPI_device_handler::DoGet() {
@@ -25,11 +26,32 @@ namespace OpenWifi {
 		}
 
 		GWObjects::Device Device;
-
 		if (StorageService()->GetDevice(SerialNumber, Device)) {
-			Poco::JSON::Object Obj;
-			Device.to_json(Obj);
-			return ReturnObject(Obj);
+			if(GetBoolParameter("completeInfo",false)) {
+				GWObjects::ConnectionState	CS;
+				DeviceRegistry()->GetState(SerialNumber,CS);
+				GWObjects::HealthCheck		HC;
+				DeviceRegistry()->GetHealthcheck(SerialNumber, HC);
+				std::string 	Stats;
+				DeviceRegistry()->GetStatistics(SerialNumber, Stats);
+
+				Poco::JSON::Object	Answer;
+				Poco::JSON::Object	DeviceInfo;
+				Device.to_json(DeviceInfo);
+				Answer.set("deviceInfo", DeviceInfo);
+				Poco::JSON::Object	CSInfo;
+				CS.to_json(CSInfo);
+				Answer.set("connectionInfo",CSInfo);
+				Poco::JSON::Parser	P;
+				auto StatsInfo = P.parse(Stats).extract<Poco::JSON::Object::Ptr>();
+				Answer.set("statsInfo",StatsInfo);
+
+				return ReturnObject(Answer);
+			} else {
+				Poco::JSON::Object Obj;
+				Device.to_json(Obj);
+				return ReturnObject(Obj);
+			}
 		}
 		NotFound();
 	}
