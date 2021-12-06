@@ -46,7 +46,6 @@ checks:
       exec:
         command:
           - /readiness_check
-      failureThreshold: 1
 
 ingresses:
   restapi:
