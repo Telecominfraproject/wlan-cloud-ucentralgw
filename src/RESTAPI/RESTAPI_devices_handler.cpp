@@ -13,12 +13,14 @@
 #include "StorageService.h"
 #include "framework/RESTAPI_protocol.h"
 #include "framework/MicroService.h"
+#include "RESTAPI/RESTAPI_device_helper.h"
 
 namespace OpenWifi {
 	void RESTAPI_devices_handler::DoGet() {
 
 		auto serialOnly = GetBoolParameter(RESTAPI::Protocol::SERIALONLY, false);
 		auto deviceWithStatus = GetBoolParameter(RESTAPI::Protocol::DEVICEWITHSTATUS, false);
+		auto completeInfo = GetBoolParameter("completeInfo",false);
 
 		Poco::JSON::Object RetObj;
 		if (!QB_.Select.empty()) {
@@ -27,12 +29,18 @@ namespace OpenWifi {
 			for (auto &i : Numbers) {
 				GWObjects::Device D;
 				if (StorageService()->GetDevice(i, D)) {
-					Poco::JSON::Object Obj;
-					if (deviceWithStatus)
-						D.to_json_with_status(Obj);
-					else
-						D.to_json(Obj);
-					Objects.add(Obj);
+					if(completeInfo) {
+						Poco::JSON::Object	FullDeviceInfo;
+						CompleteDeviceInfo(D, FullDeviceInfo);
+						Objects.add(FullDeviceInfo);
+					} else {
+						Poco::JSON::Object Obj;
+						if (deviceWithStatus)
+							D.to_json_with_status(Obj);
+						else
+							D.to_json(Obj);
+						Objects.add(Obj);
+					}
 				} else {
 					Logger_.error(
 						Poco::format("DEVICE(%s): device in select cannot be found.", i));

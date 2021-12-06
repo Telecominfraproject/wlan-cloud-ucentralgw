@@ -104,7 +104,7 @@ add_executable( owgw
         src/TelemetryStream.cpp src/TelemetryStream.h
         src/framework/ConfigurationValidator.cpp src/framework/ConfigurationValidator.h
         src/ConfigurationCache.cpp src/ConfigurationCache.h
-        src/CapabilitiesCache.h src/FindCountry.h src/rttys/RTTYS_server.cpp src/rttys/RTTYS_server.h src/rttys/RTTYS_device.cpp src/rttys/RTTYS_device.h src/rttys/RTTYS_ClientConnection.cpp src/rttys/RTTYS_ClientConnection.h src/rttys/RTTYS_WebServer.cpp src/rttys/RTTYS_WebServer.h)
+        src/CapabilitiesCache.h src/FindCountry.h src/rttys/RTTYS_server.cpp src/rttys/RTTYS_server.h src/rttys/RTTYS_device.cpp src/rttys/RTTYS_device.h src/rttys/RTTYS_ClientConnection.cpp src/rttys/RTTYS_ClientConnection.h src/rttys/RTTYS_WebServer.cpp src/rttys/RTTYS_WebServer.h src/RESTAPI/RESTAPI_device_helper.h)
 
 if(NOT SMALL_BUILD)
 
