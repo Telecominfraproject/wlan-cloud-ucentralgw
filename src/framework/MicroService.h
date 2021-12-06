@@ -69,6 +69,8 @@ using namespace std::chrono_literals;
 #include "RESTObjects/RESTAPI_SecurityObjects.h"
 #include "nlohmann/json.hpp"
 
+#include "ow_version.h"
+
 namespace OpenWifi {
 
     enum UNAUTHORIZED_REASON {
@@ -2673,7 +2675,7 @@ namespace OpenWifi {
 		std::string 				MyPrivateEndPoint_;
 		std::string 				MyPublicEndPoint_;
 		std::string                 UIURI_;
-		std::string 				Version_{std::string(APP_VERSION) + "("+ BUILD_NUMBER + ")"};
+		std::string 				Version_{ OW_VERSION::VERSION + "("+ OW_VERSION::BUILD + ")" + " - " + OW_VERSION::HASH };
 		BusEventManager				BusEventManager_;
 		std::mutex 					InfraMutex_;
 		std::default_random_engine  RandomEngine_;

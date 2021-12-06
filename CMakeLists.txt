@@ -29,7 +29,20 @@ else()
     set(BUILD_NUM 1)
     file(WRITE build ${BUILD_NUM})
 endif()
-add_definitions(-DAPP_VERSION="${CMAKE_PROJECT_VERSION}" -DBUILD_NUMBER="${BUILD_NUM}")
+
+find_package(Git QUIET)
+if(GIT_FOUND AND EXISTS "${PROJECT_SOURCE_DIR}/.git")
+    execute_process(COMMAND ${GIT_EXECUTABLE} describe --always --tags
+            WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+            RESULT_VARIABLE GIT_RESULT
+            OUTPUT_VARIABLE GIT_HASH)
+    if(NOT GIT_RESULT EQUAL "0")
+        message(FATAL_ERROR "git describe --always --tags failed with ${GIT_RESULT}")
+    endif()
+    string(REGEX REPLACE "\n$" "" GIT_HASH "${GIT_HASH}")
+endif()
+add_definitions(-DAWS_CUSTOM_MEMORY_MANAGEMENT)
+
 add_definitions(-DTIP_GATEWAY_SERVICE="1")
 
 set(Boost_USE_STATIC_LIBS OFF)
@@ -52,8 +65,11 @@ endif()
 
 include_directories(/usr/local/include  /usr/local/opt/openssl/include src include/kafka /usr/local/opt/mysql-client/include)
 
+configure_file(src/ow_version.h.in ${PROJECT_SOURCE_DIR}/src/ow_version.h @ONLY)
+
 add_executable( owgw
         build
+        src/ow_version.h.in
         src/framework/CountryCodes.h
         src/framework/KafkaTopics.h
         src/framework/MicroService.h
