@@ -49,11 +49,11 @@ namespace OpenWifi::GWObjects {
 		std::string Firmware;
 		std::string Compatible;
 		std::string FWUpdatePolicy;
-		uint64_t UUID;
-		uint64_t CreationTimestamp;
-		uint64_t LastConfigurationChange;
-		uint64_t LastConfigurationDownload;
-		uint64_t LastFWUpdate;
+		uint64_t UUID = 0 ;
+		uint64_t CreationTimestamp = 0 ;
+		uint64_t LastConfigurationChange = 0 ;
+		uint64_t LastConfigurationDownload = 0 ;
+		uint64_t LastFWUpdate = 0 ;
 		std::string Venue;
 		std::string DevicePassword;
 		void to_json(Poco::JSON::Object &Obj) const;
@@ -64,25 +64,25 @@ namespace OpenWifi::GWObjects {
 
 	struct Statistics {
 		std::string SerialNumber;
-		uint64_t 	UUID;
+		uint64_t 	UUID = 0 ;
 		std::string Data;
-		uint64_t 	Recorded;
+		uint64_t 	Recorded = 0;
 		void to_json(Poco::JSON::Object &Obj) const;
 	};
 
 	struct HealthCheck {
 		std::string SerialNumber;
-		uint64_t 	UUID;
+		uint64_t 	UUID = 0 ;
 		std::string Data;
-		uint64_t 	Recorded;
-		uint64_t 	Sanity;
+		uint64_t 	Recorded = 0 ;
+		uint64_t 	Sanity = 0 ;
 		void to_json(Poco::JSON::Object &Obj) const;
 	};
 
 	struct Capabilities {
 		std::string Capabilities;
-		uint64_t 	FirstUpdate;
-		uint64_t 	LastUpdate;
+		uint64_t 	FirstUpdate = 0 ;
+		uint64_t 	LastUpdate = 0 ;
 		void 		to_json(Poco::JSON::Object &Obj) const;
 	};
 
@@ -100,10 +100,10 @@ namespace OpenWifi::GWObjects {
 		std::string SerialNumber;
 		std::string Log;
 		std::string Data;
-		uint64_t 	Severity;
-		uint64_t 	Recorded;
-		uint64_t 	LogType;
-		uint64_t 	UUID;
+		uint64_t 	Severity = 0 ;
+		uint64_t 	Recorded = 0 ;
+		uint64_t 	LogType = 0 ;
+		uint64_t 	UUID = 0 ;
 		void 		to_json(Poco::JSON::Object &Obj) const;
 	};
 
@@ -152,20 +152,20 @@ namespace OpenWifi::GWObjects {
 	struct RttySessionDetails {
 		std::string SerialNumber;
 		std::string Server;
-		uint64_t 	Port;
+		uint64_t 	Port = 0 ;
 		std::string Token;
-		uint64_t 	TimeOut;
+		uint64_t 	TimeOut = 0 ;
 		std::string ConnectionId;
-		uint64_t 	Started;
+		uint64_t 	Started = 0 ;
 		std::string CommandUUID;
-		uint64_t 	ViewPort;
+		uint64_t 	ViewPort = 0 ;
 		std::string DevicePassword;
 		void to_json(Poco::JSON::Object &Obj) const;
 	};
 
 	struct Dashboard {
-		uint64_t 		  snapshot;
-		uint64_t 		  numberOfDevices;
+		uint64_t 		  snapshot = 0 ;
+		uint64_t 		  numberOfDevices = 0 ;
 		Types::CountedMap commands;
 		Types::CountedMap upTimes;
 		Types::CountedMap memoryUsed;
