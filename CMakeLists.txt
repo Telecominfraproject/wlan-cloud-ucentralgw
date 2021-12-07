@@ -20,14 +20,14 @@ endif()
 
 # Auto build increment. You must define BUILD_INCREMENT with cmake -DBUILD_INCREMENT=1
 if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/build)
-    file(READ build BUILD_NUM)
+    file(READ ${CMAKE_CURRENT_SOURCE_DIR}/build BUILD_NUM)
     if(BUILD_INCREMENT)
         MATH(EXPR BUILD_NUM "${BUILD_NUM}+1")
-        file(WRITE build ${BUILD_NUM})
+        file(WRITE ${CMAKE_CURRENT_SOURCE_DIR}/build ${BUILD_NUM})
     endif()
 else()
     set(BUILD_NUM 1)
-    file(WRITE build ${BUILD_NUM})
+    file(WRITE ${CMAKE_CURRENT_SOURCE_DIR}/build ${BUILD_NUM})
 endif()
 
 find_package(Git QUIET)
