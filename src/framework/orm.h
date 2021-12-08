@@ -773,6 +773,9 @@ namespace ORM {
 
         Poco::Logger & Logger() { return Logger_; }
 
+    protected:
+        Poco::Data::SessionPool     &Pool_;
+        Poco::Logger                &Logger_;
     private:
         OpenWifi::DBType            Type_;
         std::string                 DBName_;
@@ -782,8 +785,7 @@ namespace ORM {
         std::string                 UpdateFields_;
         std::vector<std::string>    IndexCreation_;
         std::map<std::string,int>   FieldNames_;
-        Poco::Data::SessionPool     &Pool_;
-        Poco::Logger                &Logger_;
+        // Poco::Data::SessionPool     &Pool_;
         std::string                 Prefix_;
     };
 }

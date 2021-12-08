@@ -64,6 +64,7 @@ using namespace std::chrono_literals;
 
 #include "cppkafka/cppkafka.h"
 
+#include "framework/OpenWifiTypes.h"
 #include "framework/KafkaTopics.h"
 #include "framework/RESTAPI_protocol.h"
 #include "framework/RESTAPI_errors.h"

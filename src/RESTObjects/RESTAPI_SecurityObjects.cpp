@@ -552,5 +552,33 @@ namespace OpenWifi::SecurityObjects {
 	    return false;
 	}
 
+    void Token::to_json(Poco::JSON::Object &Obj) const {
+        field_to_json(Obj,"token",token);
+        field_to_json(Obj,"refreshToken",refreshToken);
+        field_to_json(Obj,"tokenType",tokenType);
+        field_to_json(Obj,"userName",userName);
+        field_to_json(Obj,"created",created);
+        field_to_json(Obj,"expires",expires);
+        field_to_json(Obj,"idleTimeout",idleTimeout);
+        field_to_json(Obj,"revocationDate",revocationDate);
+    }
+
+    bool Token::from_json(Poco::JSON::Object::Ptr &Obj) {
+        try {
+            field_from_json(Obj,"token",token);
+            field_from_json(Obj,"refreshToken",refreshToken);
+            field_from_json(Obj,"tokenType",tokenType);
+            field_from_json(Obj,"userName",userName);
+            field_from_json(Obj,"created",created);
+            field_from_json(Obj,"expires",expires);
+            field_from_json(Obj,"idleTimeout",idleTimeout);
+            field_from_json(Obj,"revocationDate",revocationDate);
+            return true;
+        } catch(...) {
+
+        }
+        return false;
+    }
+
 }
 
