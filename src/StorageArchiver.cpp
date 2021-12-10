@@ -51,7 +51,7 @@ namespace OpenWifi {
 
 	int StorageArchiver::Start() {
 
-		Enabled_ = MicroService::instance().ConfigGetBool("archiver.enabled",false);
+		Enabled_ = MicroService::instance().ConfigGetBool("archiver.enabled",true);
 		if(!Enabled_) {
 			Logger_.information("Archiver is disabled.");
 			return 0;

@@ -38,6 +38,7 @@ RUN make install
 ADD CMakeLists.txt build /owgw/
 ADD cmake /owgw/cmake
 ADD src /owgw/src
+ADD .git /owgw/.git
 
 WORKDIR /owgw
 RUN mkdir cmake-build

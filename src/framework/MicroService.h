@@ -2395,10 +2395,10 @@ namespace OpenWifi {
                                                             Poco::Logger & L, RESTAPI_GenericServer & S);
 
 
-	class RESTAPI_server : public SubSystemServer {
+	class RESTAPI_ExtServer : public SubSystemServer {
 	public:
-	    static RESTAPI_server *instance() {
-	        static RESTAPI_server *instance_ = new RESTAPI_server;
+	    static RESTAPI_ExtServer *instance() {
+	        static RESTAPI_ExtServer *instance_ = new RESTAPI_ExtServer;
 	        return instance_;
 	    }
 	    int Start() override;
@@ -2412,7 +2412,7 @@ namespace OpenWifi {
 
 	    inline void reinitialize(Poco::Util::Application &self) override;
 
-	    inline Poco::Net::HTTPRequestHandler *CallServer(const char *Path) {
+	    inline Poco::Net::HTTPRequestHandler *CallServer(const char *Path, uint64_t Id) {
 	        RESTAPIHandler::BindingMap Bindings;
 	        return RESTAPI_external_server(Path, Bindings, Logger_, Server_);
 	    }
@@ -2422,19 +2422,19 @@ namespace OpenWifi {
 	    Poco::ThreadPool	    Pool_;
 	    RESTAPI_GenericServer   Server_;
 
-	    RESTAPI_server() noexcept:
+	    RESTAPI_ExtServer() noexcept:
 	    SubSystemServer("RESTAPIServer", "RESTAPIServer", "openwifi.restapi")
             {
             }
 	};
 
-	inline RESTAPI_server * RESTAPI_server() { return RESTAPI_server::instance(); };
+	inline RESTAPI_ExtServer * RESTAPI_ExtServer() { return RESTAPI_ExtServer::instance(); };
 
-	class RequestHandlerFactory : public Poco::Net::HTTPRequestHandlerFactory {
+	class ExtRequestHandlerFactory : public Poco::Net::HTTPRequestHandlerFactory {
 	public:
-	    RequestHandlerFactory(RESTAPI_GenericServer & Server) :
-	    Logger_(RESTAPI_server::instance()->Logger()),
-	    Server_(Server)
+	  	explicit ExtRequestHandlerFactory(RESTAPI_GenericServer & Server) :
+			Logger_(RESTAPI_ExtServer::instance()->Logger()),
+			Server_(Server)
 	    {
 
 	    }
@@ -2442,15 +2442,16 @@ namespace OpenWifi {
 	    inline Poco::Net::HTTPRequestHandler *createRequestHandler(const Poco::Net::HTTPServerRequest &Request) override {
 	        Poco::URI uri(Request.getURI());
 	        auto *Path = uri.getPath().c_str();
-	        return RESTAPI_server()->CallServer(Path);
+	        return RESTAPI_ExtServer()->CallServer(Path, TransactionId_++);
 	    }
 
 	private:
-	    Poco::Logger            &Logger_;
-	    RESTAPI_GenericServer   &Server_;
+		static inline std::atomic_uint64_t  TransactionId_ = 1;
+	    Poco::Logger            			&Logger_;
+	    RESTAPI_GenericServer   			&Server_;
 	};
 
-	inline int RESTAPI_server::Start() {
+	inline int RESTAPI_ExtServer::Start() {
 	    Logger_.information("Starting.");
 	    Server_.InitLogging();
 
@@ -2469,7 +2470,7 @@ namespace OpenWifi {
 	        Params->setMaxQueued(200);
 	        Params->setKeepAlive(true);
 
-	        auto NewServer = std::make_unique<Poco::Net::HTTPServer>(new RequestHandlerFactory(Server_), Pool_, Sock, Params);
+	        auto NewServer = std::make_unique<Poco::Net::HTTPServer>(new ExtRequestHandlerFactory(Server_), Pool_, Sock, Params);
 	        NewServer->start();
 	        RESTServers_.push_back(std::move(NewServer));
 	    }
@@ -2477,11 +2478,11 @@ namespace OpenWifi {
 	    return 0;
 	}
 
-	class RESTAPI_InternalServer : public SubSystemServer {
+	class RESTAPI_IntServer : public SubSystemServer {
 
 	public:
-	    static RESTAPI_InternalServer *instance() {
-	        static RESTAPI_InternalServer *instance_ = new RESTAPI_InternalServer;
+	    static RESTAPI_IntServer *instance() {
+	        static RESTAPI_IntServer *instance_ = new RESTAPI_IntServer;
 	        return instance_;
 	    }
 
@@ -2490,12 +2491,13 @@ namespace OpenWifi {
 	        Logger_.information("Stopping ");
 	        for( const auto & svr : RESTServers_ )
 	            svr->stop();
-	        Pool_.stopAll();
+			Pool_.joinAll();
+			RESTServers_.clear();
 	    }
 
 	    inline void reinitialize(Poco::Util::Application &self) override;
 
-	    inline Poco::Net::HTTPRequestHandler *CallServer(const char *Path) {
+	    inline Poco::Net::HTTPRequestHandler *CallServer(const char *Path, uint64_t Id) {
 	        RESTAPIHandler::BindingMap Bindings;
 	        return RESTAPI_internal_server(Path, Bindings, Logger_, Server_);
 	    }
@@ -2504,30 +2506,31 @@ namespace OpenWifi {
 	    Poco::ThreadPool	    Pool_;
 	    RESTAPI_GenericServer   Server_;
 
-	    RESTAPI_InternalServer() noexcept: SubSystemServer("RESTAPIInternalServer", "REST-ISRV", "openwifi.internal.restapi")
+	    RESTAPI_IntServer() noexcept: SubSystemServer("RESTAPIInternalServer", "REST-ISRV", "openwifi.internal.restapi")
 	    {
 	    }
 	};
 
-	inline RESTAPI_InternalServer * RESTAPI_InternalServer() { return RESTAPI_InternalServer::instance(); };
+	inline RESTAPI_IntServer * RESTAPI_IntServer() { return RESTAPI_IntServer::instance(); };
 
-	class InternalRequestHandlerFactory : public Poco::Net::HTTPRequestHandlerFactory {
+	class IntRequestHandlerFactory : public Poco::Net::HTTPRequestHandlerFactory {
 	public:
-	    InternalRequestHandlerFactory(RESTAPI_GenericServer & Server) :
-	    Logger_(RESTAPI_InternalServer()->Logger()),
+	  	explicit IntRequestHandlerFactory(RESTAPI_GenericServer & Server) :
+	    Logger_(RESTAPI_IntServer()->Logger()),
 	    Server_(Server){}
 
 	    inline Poco::Net::HTTPRequestHandler *createRequestHandler(const Poco::Net::HTTPServerRequest &Request) override {
 	        Poco::URI uri(Request.getURI());
 	        auto *Path = uri.getPath().c_str();
-	        return RESTAPI_InternalServer()->CallServer(Path);
+	        return RESTAPI_IntServer()->CallServer(Path, TransactionId_++);
 	    }
 	private:
+		static inline std::atomic_uint64_t  TransactionId_ = 1;
 	    Poco::Logger    & Logger_;
 	    RESTAPI_GenericServer   & Server_;
 	};
 
-	inline int RESTAPI_InternalServer::Start() {
+	inline int RESTAPI_IntServer::Start() {
 	    Logger_.information("Starting.");
 	    Server_.InitLogging();
 
@@ -2545,7 +2548,7 @@ namespace OpenWifi {
 	        Params->setMaxQueued(200);
 	        Params->setKeepAlive(true);
 
-	        auto NewServer = std::make_unique<Poco::Net::HTTPServer>(new InternalRequestHandlerFactory(Server_), Pool_, Sock, Params);
+	        auto NewServer = std::make_unique<Poco::Net::HTTPServer>(new IntRequestHandlerFactory(Server_), Pool_, Sock, Params);
 	        NewServer->start();
 	        RESTServers_.push_back(std::move(NewServer));
 	    }
@@ -2826,8 +2829,8 @@ namespace OpenWifi {
 	    // add the default services
 	    SubSystems_.push_back(KafkaManager());
 	    SubSystems_.push_back(ALBHealthCheckServer());
-	    SubSystems_.push_back(RESTAPI_server());
-	    SubSystems_.push_back(RESTAPI_InternalServer());
+	    SubSystems_.push_back(RESTAPI_ExtServer());
+	    SubSystems_.push_back(RESTAPI_IntServer());
 
 	    Poco::Net::initializeSSL();
 	    Poco::Net::HTTPStreamFactory::registerFactory();
@@ -3397,14 +3400,14 @@ namespace OpenWifi {
 	    Consumer.unsubscribe();
 	}
 
-	inline void RESTAPI_server::reinitialize(Poco::Util::Application &self) {
+	inline void RESTAPI_ExtServer::reinitialize(Poco::Util::Application &self) {
 	    MicroService::instance().LoadConfigurationFile();
 	    Logger_.information("Reinitializing.");
 	    Stop();
 	    Start();
 	}
 
-	void RESTAPI_InternalServer::reinitialize(Poco::Util::Application &self) {
+	void RESTAPI_IntServer::reinitialize(Poco::Util::Application &self) {
 	    MicroService::instance().LoadConfigurationFile();
 	    Logger_.information("Reinitializing.");
 	    Stop();
@@ -3728,7 +3731,7 @@ namespace OpenWifi {
             if (AuthClient()->IsAuthorized( SessionToken_, UserInfo_, Expired)) {
 #endif
                 if(Server_.LogIt(Request->getMethod(),true)) {
-                    Logger_.debug(Poco::format("X-REQ-ALLOWED(%s): User='%s@%s' Method='%s' Path='%s",
+                    Logger_.debug(Poco::format("X-REQ-ALLOWED(%s): User='%s@%s' Method='%s' Path='%s'",
                                                UserInfo_.userinfo.email,
                                                Utils::FormatIPv6(Request->clientAddress().toString()),
                                                Request->clientAddress().toString(),
@@ -3738,7 +3741,7 @@ namespace OpenWifi {
                 return true;
             } else {
                 if(Server_.LogBadTokens(true)) {
-                    Logger_.debug(Poco::format("X-REQ-DENIED(%s): Method='%s' Path='%s",
+                    Logger_.debug(Poco::format("X-REQ-DENIED(%s): Method='%s' Path='%s'",
                                                Utils::FormatIPv6(Request->clientAddress().toString()),
                                                Request->getMethod(), Request->getURI()));
                 }
