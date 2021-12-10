@@ -13,11 +13,12 @@
 namespace OpenWifi {
 class RESTAPI_default_configurations : public RESTAPIHandler {
   public:
-	RESTAPI_default_configurations(const RESTAPIHandler::BindingMap &bindings, Poco::Logger &L, RESTAPI_GenericServer & Server, bool Internal)
+	RESTAPI_default_configurations(const RESTAPIHandler::BindingMap &bindings, Poco::Logger &L, RESTAPI_GenericServer & Server, uint64_t TransactionId, bool Internal)
 		: RESTAPIHandler(bindings, L,
 						 std::vector<std::string>{Poco::Net::HTTPRequest::HTTP_GET,
 												  Poco::Net::HTTPRequest::HTTP_OPTIONS},
 						 Server,
+						 TransactionId,
 						 Internal){};
 	static const std::list<const char *> PathName() { return std::list<const char *>{"/api/v1/default_configurations"};}
 	void DoGet() final;

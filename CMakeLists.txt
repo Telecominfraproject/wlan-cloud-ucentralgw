@@ -102,7 +102,7 @@ add_executable( owgw
         src/storage/storage_command.cpp src/storage/storage_healthcheck.cpp src/storage/storage_statistics.cpp
         src/storage/storage_device.cpp src/storage/storage_capabilities.cpp src/storage/storage_defconfig.cpp
         src/storage/storage_tables.cpp
-        src/APIServers.cpp
+        src/RESTAPI/RESTAPI_Routers.cpp
         src/Daemon.cpp src/Daemon.h
         src/StateProcessor.cpp src/StateProcessor.h
         src/storage/storage_lifetime_stats.cpp

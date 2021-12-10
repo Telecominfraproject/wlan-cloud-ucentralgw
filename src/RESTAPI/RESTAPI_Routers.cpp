@@ -23,8 +23,8 @@
 
 namespace OpenWifi {
 
-    Poco::Net::HTTPRequestHandler * RESTAPI_external_server(const char *Path, RESTAPIHandler::BindingMap &Bindings,
-                                                            Poco::Logger & L, RESTAPI_GenericServer & S) {
+    Poco::Net::HTTPRequestHandler * RESTAPI_ExtRouter(const char *Path, RESTAPIHandler::BindingMap &Bindings,
+                                                            Poco::Logger & L, RESTAPI_GenericServer & S, uint64_t TransactionId) {
     	return RESTAPI_Router<
 				RESTAPI_devices_handler,
 				RESTAPI_device_handler,
@@ -41,11 +41,11 @@ namespace OpenWifi {
 				RESTAPI_blacklist,
 				RESTAPI_blacklist_list,
 				RESTAPI_capabilities_handler,
-				RESTAPI_TelemetryWebSocket>(Path,Bindings,L, S);
+				RESTAPI_TelemetryWebSocket>(Path,Bindings,L, S, TransactionId);
     }
 
-    Poco::Net::HTTPRequestHandler * RESTAPI_internal_server(const char *Path, RESTAPIHandler::BindingMap &Bindings,
-                                                            Poco::Logger & L, RESTAPI_GenericServer & S) {
+    Poco::Net::HTTPRequestHandler * RESTAPI_IntRouter(const char *Path, RESTAPIHandler::BindingMap &Bindings,
+                                                            Poco::Logger & L, RESTAPI_GenericServer & S, uint64_t TransactionId) {
     	return RESTAPI_Router_I<
 				RESTAPI_devices_handler,
 				RESTAPI_device_handler,
@@ -56,6 +56,6 @@ namespace OpenWifi {
 				RESTAPI_commands,
 				RESTAPI_ouis,
 				RESTAPI_file, RESTAPI_blacklist,
-				RESTAPI_blacklist_list>(Path,Bindings,L, S);
+				RESTAPI_blacklist_list>(Path,Bindings,L, S, TransactionId);
 	}
 }
