@@ -142,7 +142,7 @@ typedef Poco::Tuple<
 			return true;
 
 		} catch (const Poco::Exception &E) {
-			Logger_.log(E);
+			Logger().log(E);
 		}
 		return false;
 	}
@@ -191,7 +191,7 @@ typedef Poco::Tuple<
 			}
 			return true;
 		} catch (const Poco::Exception &E) {
-			Logger_.log(E);
+			Logger().log(E);
 		}
 		return false;
 	}
@@ -224,7 +224,7 @@ typedef Poco::Tuple<
 
 			return true;
 		} catch (const Poco::Exception &E) {
-			Logger_.log(E);
+			Logger().log(E);
 		}
 		return false;
 	}
@@ -261,7 +261,7 @@ typedef Poco::Tuple<
 
 			return true;
 		} catch (const Poco::Exception &E) {
-			Logger_.log(E);
+			Logger().log(E);
 		}
 		return false;
 	}
@@ -286,7 +286,7 @@ typedef Poco::Tuple<
 			return true;
 
 		} catch (const Poco::Exception &E) {
-			Logger_.log(E);
+			Logger().log(E);
 		}
 		return false;
 	}
@@ -305,7 +305,7 @@ typedef Poco::Tuple<
 			Update.execute();
 			return true;
 		} catch (const Poco::Exception &E) {
-			Logger_.log(E);
+			Logger().log(E);
 		}
 		return false;
 	}
@@ -328,7 +328,7 @@ typedef Poco::Tuple<
 			Select.execute();
 			return true;
 		} catch (const Poco::Exception &E) {
-			Logger_.log(E);
+			Logger().log(E);
 		}
 		return false;
 	}
@@ -345,7 +345,7 @@ typedef Poco::Tuple<
 
 			return true;
 		} catch (const Poco::Exception &E) {
-			Logger_.log(E);
+			Logger().log(E);
 		}
 		return false;
 	}
@@ -372,7 +372,7 @@ typedef Poco::Tuple<
 			}
 			return true;
 		} catch (const Poco::Exception &E) {
-			Logger_.warning(Poco::format("%s: Failed with: %s", std::string(__func__), E.displayText()));
+			Logger().warning(Poco::format("%s: Failed with: %s", std::string(__func__), E.displayText()));
 		}
 		return false;
 	}
@@ -406,7 +406,7 @@ typedef Poco::Tuple<
 			}
 			return true;
 		} catch (const Poco::Exception &E) {
-			Logger_.warning(Poco::format("%s: Failed with: %s", std::string(__func__), E.displayText()));
+			Logger().warning(Poco::format("%s: Failed with: %s", std::string(__func__), E.displayText()));
 		}
 		return false;
 	}
@@ -427,7 +427,7 @@ typedef Poco::Tuple<
 
 			return true;
 		} catch (const Poco::Exception &E) {
-			Logger_.warning(Poco::format("%s: Failed with: %s", std::string(__func__), E.displayText()));
+			Logger().warning(Poco::format("%s: Failed with: %s", std::string(__func__), E.displayText()));
 		}
 
 		return false;
@@ -478,7 +478,7 @@ typedef Poco::Tuple<
 
 			return true;
 		} catch (const Poco::Exception &E) {
-			Logger_.warning(Poco::format("%s: Failed with: %s", std::string(__func__), E.displayText()));
+			Logger().warning(Poco::format("%s: Failed with: %s", std::string(__func__), E.displayText()));
 		}
 
 		return false;
@@ -505,7 +505,7 @@ typedef Poco::Tuple<
 			Update.execute();
 			return true;
 		} catch (const Poco::Exception &E) {
-			Logger_.log(E);
+			Logger().log(E);
 		}
 		return false;
 
@@ -561,10 +561,10 @@ typedef Poco::Tuple<
 
 				return true;
 			} else {
-				Logger_.warning(Poco::format("File %s is too large.", FileName.path()));
+				Logger().warning(Poco::format("File %s is too large.", FileName.path()));
 			}
 		} catch (const Poco::Exception &E) {
-			Logger_.warning(Poco::format("%s: Failed with: %s", std::string(__func__), E.displayText()));
+			Logger().warning(Poco::format("%s: Failed with: %s", std::string(__func__), E.displayText()));
 		}
 		return false;
 	}
@@ -607,7 +607,7 @@ typedef Poco::Tuple<
 
 			return true;
 		} catch (const Poco::Exception &E) {
-			Logger_.log(E);
+			Logger().log(E);
 		}
 		return false;
 	}
@@ -626,7 +626,7 @@ typedef Poco::Tuple<
 			return true;
 
 		} catch (const Poco::Exception &E) {
-			Logger_.warning(Poco::format("%s: Failed with: %s", std::string(__func__), E.displayText()));
+			Logger().warning(Poco::format("%s: Failed with: %s", std::string(__func__), E.displayText()));
 		}
 		return false;
 	}
@@ -644,7 +644,7 @@ typedef Poco::Tuple<
 			return true;
 
 		} catch (const Poco::Exception &E) {
-			Logger_.log(E);
+			Logger().log(E);
 		}
 
 		return false;
@@ -660,7 +660,7 @@ typedef Poco::Tuple<
 			Delete.execute();
 			return true;
 		} catch (const Poco::Exception &E) {
-			Logger_.log(E);
+			Logger().log(E);
 		}
 		return false;
 	}
@@ -684,7 +684,7 @@ typedef Poco::Tuple<
 			}
 			return true;
 		} catch(const Poco::Exception &E) {
-			Logger_.warning(Poco::format("%s: Failed with: %s", std::string(__func__), E.displayText()));
+			Logger().warning(Poco::format("%s: Failed with: %s", std::string(__func__), E.displayText()));
 		}
 		return false;
 	}

@@ -93,6 +93,7 @@ namespace OpenWifi {
 		static bool ExtractCompressedData(const std::string & CompressedData, std::string & UnCompressedData);
 		void LogException(const Poco::Exception &E);
 		[[nodiscard]] GWObjects::CertificateValidation CertificateValidation() const { return CertValidation_; };
+		inline Poco::Logger & Logger() { return Logger_; }
 	  private:
 		std::recursive_mutex                Mutex_;
 		Poco::Logger                    	&Logger_;

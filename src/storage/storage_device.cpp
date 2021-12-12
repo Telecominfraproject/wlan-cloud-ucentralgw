@@ -138,7 +138,7 @@ namespace OpenWifi {
 			Select.execute();
 			return true;
 		} catch(const Poco::Exception & E) {
-			Logger_.warning(Poco::format("%s: Failed with: %s", std::string(__func__), E.displayText()));
+			Logger().warning(Poco::format("%s: Failed with: %s", std::string(__func__), E.displayText()));
 		}
 		return false;
 	}
@@ -155,7 +155,7 @@ namespace OpenWifi {
 			Select.execute();
 			return true;
 		} catch (const Poco::Exception &E ) {
-			Logger_.warning(Poco::format("%s: Failed with: %s", std::string(__func__), E.displayText()));
+			Logger().warning(Poco::format("%s: Failed with: %s", std::string(__func__), E.displayText()));
 		}
 		return false;
 	}
@@ -165,7 +165,7 @@ namespace OpenWifi {
 
 			Config::Config Cfg(Configuration);
 			if (!Cfg.Valid()) {
-				Logger_.warning(Poco::format("CONFIG-UPDATE(%s): Configuration was not valid", SerialNumber));
+				Logger().warning(Poco::format("CONFIG-UPDATE(%s): Configuration was not valid", SerialNumber));
 				return false;
 			}
 
@@ -190,14 +190,14 @@ namespace OpenWifi {
 					Poco::Data::Keywords::use(R),
 					Poco::Data::Keywords::use(SerialNumber);
 				Update.execute();
-				Logger_.information(Poco::format("DEVICE-CONFIGURATION-UPDATED(%s): New UUID is %Lu", SerialNumber, NewUUID));
+				Logger().information(Poco::format("DEVICE-CONFIGURATION-UPDATED(%s): New UUID is %Lu", SerialNumber, NewUUID));
 				Configuration = D.Configuration;
 				return true;
 			}
 			return false;
 		}
 		catch (const Poco::Exception &E) {
-			Logger_.warning(Poco::format("%s: Failed with: %s", std::string(__func__), E.displayText()));
+			Logger().warning(Poco::format("%s: Failed with: %s", std::string(__func__), E.displayText()));
 		}
 		return false;
 	}
@@ -244,17 +244,17 @@ namespace OpenWifi {
 					SerialNumberCache()->AddSerialNumber(DeviceDetails.SerialNumber);
 					return true;
 				} else {
-					Logger_.warning("Cannot create device: invalid configuration.");
+					Logger().warning("Cannot create device: invalid configuration.");
 					return false;
 				}
 			} else {
-				Logger_.warning(Poco::format("Device %s already exists.", SerialNumber));
+				Logger().warning(Poco::format("Device %s already exists.", SerialNumber));
 				return false;
 			}
 
 		}
 		catch (const Poco::Exception &E) {
-			Logger_.warning(Poco::format("%s: Failed with: %s", std::string(__func__), E.displayText()));
+			Logger().warning(Poco::format("%s: Failed with: %s", std::string(__func__), E.displayText()));
 		}
 		return false;
 	}
@@ -280,7 +280,7 @@ namespace OpenWifi {
 	bool Storage::CreateDefaultDevice(std::string &SerialNumber, std::string &Capabilities, std::string & Firmware, std::string &Compat, const Poco::Net::IPAddress & IPAddress) {
 		GWObjects::Device D;
 
-		Logger_.information(Poco::format("AUTO-CREATION(%s)", SerialNumber));
+		Logger().information(Poco::format("AUTO-CREATION(%s)", SerialNumber));
 		uint64_t Now = time(nullptr);
 
 		Config::Capabilities 			Caps(Capabilities);
@@ -329,7 +329,7 @@ namespace OpenWifi {
 			return true;
 		}
 		catch (const Poco::Exception &E) {
-			Logger_.warning(Poco::format("%s: Failed with: %s", std::string(__func__), E.displayText()));
+			Logger().warning(Poco::format("%s: Failed with: %s", std::string(__func__), E.displayText()));
 		}
 		return false;
 	}
@@ -348,7 +348,7 @@ namespace OpenWifi {
 			return true;
 		}
 		catch (const Poco::Exception &E) {
-			Logger_.warning(Poco::format("%s: Failed with: %s", std::string(__func__), E.displayText()));
+			Logger().warning(Poco::format("%s: Failed with: %s", std::string(__func__), E.displayText()));
 		}
 		return false;
 	}
@@ -366,7 +366,7 @@ namespace OpenWifi {
 			return true;
 		}
 		catch (const Poco::Exception &E) {
-			Logger_.warning(Poco::format("%s: Failed with: %s", std::string(__func__), E.displayText()));
+			Logger().warning(Poco::format("%s: Failed with: %s", std::string(__func__), E.displayText()));
 		}
 		return false;
 	}
@@ -384,7 +384,7 @@ namespace OpenWifi {
 			return true;
 		}
 		catch (const Poco::Exception &E) {
-			Logger_.warning(Poco::format("%s: Failed with: %s", std::string(__func__), E.displayText()));
+			Logger().warning(Poco::format("%s: Failed with: %s", std::string(__func__), E.displayText()));
 		}
 		return false;
 	}
@@ -402,7 +402,7 @@ namespace OpenWifi {
 			return true;
 		}
 		catch (const Poco::Exception &E) {
-			Logger_.warning(Poco::format("%s: Failed with: %s", std::string(__func__), E.displayText()));
+			Logger().warning(Poco::format("%s: Failed with: %s", std::string(__func__), E.displayText()));
 		}
 		return false;
 	}
@@ -435,7 +435,7 @@ namespace OpenWifi {
 			return true;
 		}
 		catch (const Poco::Exception &E) {
-			Logger_.warning(Poco::format("%s: Failed with: %s", std::string(__func__), E.displayText()));
+			Logger().warning(Poco::format("%s: Failed with: %s", std::string(__func__), E.displayText()));
 		}
 		return false;
 	}
@@ -473,7 +473,7 @@ namespace OpenWifi {
 			return true;
 		}
 		catch (const Poco::Exception &E) {
-			Logger_.warning(Poco::format("%s: Failed with: %s", std::string(__func__), E.displayText()));
+			Logger().warning(Poco::format("%s: Failed with: %s", std::string(__func__), E.displayText()));
 		}
 		return false;
 	}
@@ -500,7 +500,7 @@ namespace OpenWifi {
 			return true;
 		}
 		catch (const Poco::Exception &E) {
-			Logger_.warning(Poco::format("%s: Failed with: %s", std::string(__func__), E.displayText()));
+			Logger().warning(Poco::format("%s: Failed with: %s", std::string(__func__), E.displayText()));
 		}
 		return false;
 	}
@@ -525,7 +525,7 @@ namespace OpenWifi {
 			return true;
 		}
 		catch (const Poco::Exception &E) {
-			Logger_.warning(Poco::format("%s: Failed with: %s", std::string(__func__), E.displayText()));
+			Logger().warning(Poco::format("%s: Failed with: %s", std::string(__func__), E.displayText()));
 		}
 		return false;
 	}
@@ -546,7 +546,7 @@ namespace OpenWifi {
 			return true;
 		}
 		catch (const Poco::Exception &E) {
-			Logger_.warning(Poco::format("%s: Failed with: %s", std::string(__func__), E.displayText()));
+			Logger().warning(Poco::format("%s: Failed with: %s", std::string(__func__), E.displayText()));
 		}
 		return false;
 	}
@@ -572,7 +572,7 @@ namespace OpenWifi {
 			return true;
 		}
 		catch (const Poco::Exception &E) {
-			Logger_.warning(Poco::format("%s: Failed with: %s", std::string(__func__), E.displayText()));
+			Logger().warning(Poco::format("%s: Failed with: %s", std::string(__func__), E.displayText()));
 		}
 		return false;
 	}
@@ -596,7 +596,7 @@ namespace OpenWifi {
 			return true;
 		}
 		catch (const Poco::Exception &E) {
-			Logger_.warning(Poco::format("%s: Failed with: %s", std::string(__func__), E.displayText()));
+			Logger().warning(Poco::format("%s: Failed with: %s", std::string(__func__), E.displayText()));
 		}
 		return false;
 	}
@@ -635,7 +635,7 @@ namespace OpenWifi {
 			return true;
 		}
 		catch (const Poco::Exception &E) {
-			Logger_.warning(Poco::format("%s: Failed with: %s", std::string(__func__), E.displayText()));
+			Logger().warning(Poco::format("%s: Failed with: %s", std::string(__func__), E.displayText()));
 		}
 		return false;
 	}
@@ -654,7 +654,7 @@ namespace OpenWifi {
 
 			return true;
 		} catch (const Poco::Exception &E) {
-			Logger_.warning(Poco::format("%s: Failed with: %s", std::string(__func__), E.displayText()));
+			Logger().warning(Poco::format("%s: Failed with: %s", std::string(__func__), E.displayText()));
 		}
 		return false;
 	}
@@ -677,7 +677,7 @@ namespace OpenWifi {
 			}
 			return true;
 		} catch(const Poco::Exception &E) {
-			Logger_.warning(Poco::format("%s: Failed with: %s", std::string(__func__), E.displayText()));
+			Logger().warning(Poco::format("%s: Failed with: %s", std::string(__func__), E.displayText()));
 		}
 		return false;
 	}
@@ -814,7 +814,7 @@ namespace OpenWifi {
 			}
 			return true;
 		} catch(const Poco::Exception &E) {
-			Logger_.warning(Poco::format("%s: Failed with: %s", std::string(__func__), E.displayText()));
+			Logger().warning(Poco::format("%s: Failed with: %s", std::string(__func__), E.displayText()));
 		}
 		return false;
 	}

@@ -32,7 +32,7 @@ namespace OpenWifi {
 
 	void OUIServer::reinitialize(Poco::Util::Application &self) {
 		MicroService::instance().LoadConfigurationFile();
-		Logger_.information("Reinitializing.");
+		Logger().information("Reinitializing.");
 		Stop();
 		Start();
 	}
@@ -50,7 +50,7 @@ namespace OpenWifi {
 			OS.close();
 			return true;
 		} catch (const Poco::Exception &E) {
-			Logger_.log(E);
+			Logger().log(E);
 		}
 		return false;
 	}
@@ -86,7 +86,7 @@ namespace OpenWifi {
 			}
 			return true;
 		} catch ( const Poco::Exception &E) {
-			Logger_.log(E);
+			Logger().log(E);
 		}
 		return false;
 	}
@@ -124,7 +124,7 @@ namespace OpenWifi {
 				F1.remove();
 			Poco::File F2(LatestOUIFileName);
 			F2.renameTo(CurrentOUIFileName);
-			Logger_.information(Poco::format("New OUI file %s downloaded.",LatestOUIFileName));
+			Logger().information(Poco::format("New OUI file %s downloaded.",LatestOUIFileName));
 		} else if(OUIs_.empty()) {
 			if(ProcessFile(CurrentOUIFileName, TmpOUIs)) {
 				LastUpdate_ = time(nullptr);

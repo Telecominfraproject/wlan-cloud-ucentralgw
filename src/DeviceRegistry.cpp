@@ -17,13 +17,13 @@ namespace OpenWifi {
 
 	int DeviceRegistry::Start() {
 		std::lock_guard		Guard(Mutex_);
-        Logger_.notice("Starting ");
+        Logger().notice("Starting ");
         return 0;
     }
 
     void DeviceRegistry::Stop() {
 		std::lock_guard		Guard(Mutex_);
-        Logger_.notice("Stopping ");
+        Logger().notice("Stopping ");
     }
 
     bool DeviceRegistry::GetStatistics(const std::string &SerialNumber, std::string & Statistics) {
@@ -132,7 +132,7 @@ namespace OpenWifi {
 			try {
 				return Device->second->WSConn_->Send(Payload);
 			} catch (...) {
-				Logger_.debug(Poco::format("Could not send data to device '%s'", SerialNumber));
+				Logger().debug(Poco::format("Could not send data to device '%s'", SerialNumber));
 				Device->second->Conn_.Address = "";
 				Device->second->WSConn_ = nullptr;
 				Device->second->Conn_.Connected = false;

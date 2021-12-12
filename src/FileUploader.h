@@ -55,6 +55,7 @@ namespace OpenWifi {
                 Logger_(L){}
 
         Poco::Net::HTTPRequestHandler *createRequestHandler(const Poco::Net::HTTPServerRequest &request) override;
+		inline Poco::Logger & Logger() { return Logger_; }
     private:
         Poco::Logger    & Logger_;
     };

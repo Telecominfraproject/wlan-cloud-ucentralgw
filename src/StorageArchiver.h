@@ -29,6 +29,7 @@ namespace OpenWifi {
     	inline void AddDb(const ArchiverDBEntry &E ) {
 			DBs_.push_back(E);
 		}
+		inline Poco::Logger & Logger() { return Logger_; }
       private:
 		Poco::Logger		&Logger_;
     	ArchiverDBEntryVec	DBs_;
@@ -49,7 +50,7 @@ namespace OpenWifi {
         private:
             std::atomic_bool 				Enabled_ = false;
             Poco::Timer                     Timer_;
-            Archiver                        Archiver_{Logger_};
+            Archiver                        Archiver_{Logger()};
             std::unique_ptr<Poco::TimerCallback<Archiver>>   ArchiverCallback_;
 
             StorageArchiver() noexcept:

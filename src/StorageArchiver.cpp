@@ -14,23 +14,23 @@ namespace OpenWifi {
 		auto Now = std::time(nullptr);
 		for(const auto &i:DBs_) {
 			if (!Poco::icompare(i.DBName, "healthchecks")) {
-				Logger_.information("Archiving HealthChecks...");
+				Logger().information("Archiving HealthChecks...");
 				StorageService()->RemoveHealthChecksRecordsOlderThan(
 					Now - (i.HowManyDays * 24 * 60 * 60));
 			} else if (!Poco::icompare(i.DBName, "statistics")) {
-				Logger_.information("Archiving Statistics...");
+				Logger().information("Archiving Statistics...");
 				StorageService()->RemoveStatisticsRecordsOlderThan(
 					Now - (i.HowManyDays * 24 * 60 * 60));
 			} else if (!Poco::icompare(i.DBName, "devicelogs")) {
-				Logger_.information("Archiving Device Logs...");
+				Logger().information("Archiving Device Logs...");
 				StorageService()->RemoveDeviceLogsRecordsOlderThan(
 					Now - (i.HowManyDays * 24 * 60 * 60));
 			} else if (!Poco::icompare(i.DBName, "commandlist")) {
-				Logger_.information("Archiving Command History...");
+				Logger().information("Archiving Command History...");
 				StorageService()->RemoveCommandListRecordsOlderThan(
 					Now - (i.HowManyDays * 24 * 60 * 60));
 			} else {
-				Logger_.information(Poco::format("Cannot archive DB '%s'", i.DBName));
+				Logger().information(Poco::format("Cannot archive DB '%s'", i.DBName));
 			}
 		}
 		AppServiceRegistry().Set("lastStorageArchiverRun", (uint64_t) Now);
@@ -53,7 +53,7 @@ namespace OpenWifi {
 
 		Enabled_ = MicroService::instance().ConfigGetBool("archiver.enabled",false);
 		if(!Enabled_) {
-			Logger_.information("Archiver is disabled.");
+			Logger().information("Archiver is disabled.");
 			return 0;
 		}
 
@@ -90,7 +90,7 @@ namespace OpenWifi {
 
 		int NextRun = CalculateDelta(RunAtHour_,RunAtMin_);
 
-		Logger_.information(Poco::format("Next run in %d seconds.",NextRun));
+		Logger().information(Poco::format("Next run in %d seconds.",NextRun));
 
 		Timer_.setStartInterval( NextRun * 1000);
 		Timer_.setPeriodicInterval(24 * 60 * 60 * 1000); // 1 hours

@@ -64,7 +64,7 @@ namespace OpenWifi {
 			auto It = EndPoints_.find(Id);
 			if(It==EndPoints_.end()) {
 				EndPoints_[Id] = EndPoint{.Device = Conn };
-				Logger_.information(Poco::format("Registering session: %s, device:'%s'",Id,It->second.SerialNumber));
+				Logger().information(Poco::format("Registering session: %s, device:'%s'",Id,It->second.SerialNumber));
 			} else {
 				It->second.Device = Conn;
 			}
@@ -77,7 +77,7 @@ namespace OpenWifi {
 				return;
 			if(It->second.Device!=Conn)
 				return;
-			Logger_.information(Poco::format("DeRegistering session: %s, device:'%s'",Id,It->second.SerialNumber));
+			Logger().information(Poco::format("DeRegistering session: %s, device:'%s'",Id,It->second.SerialNumber));
 			It->second.Device = nullptr;
 			It->second.Done = true;
 			It->second.DeviceConnected = 0 ;
@@ -119,7 +119,7 @@ namespace OpenWifi {
 			auto It = EndPoints_.find(Id);
 			if(It==EndPoints_.end())
 				return;
-			Logger_.information(Poco::format("User: %s, Serial: %s logged in.",It->second.UserName, It->second.SerialNumber ));
+			Logger().information(Poco::format("User: %s, Serial: %s logged in.",It->second.UserName, It->second.SerialNumber ));
 		}
 
 		inline bool ValidEndPoint(const std::string &Id, const std::string &Token) {
@@ -171,7 +171,7 @@ namespace OpenWifi {
 
 		}
 
-		Poco::Logger & Logger() { return Logger_; }
+		Poco::Logger & Logger() { return Logger(); }
 
 		bool Login(const std::string & Id_);
 		bool Logout(const std::string & Id_);

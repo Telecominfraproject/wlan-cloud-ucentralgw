@@ -33,8 +33,8 @@ namespace OpenWifi {
         int Start() override {
             std::lock_guard		Guard(Mutex_);
 
-            Logger_.setLevel(Poco::Message::PRIO_NOTICE);
-            Logger_.notice("Starting.");
+            Logger().setLevel(Poco::Message::PRIO_NOTICE);
+            Logger().notice("Starting.");
             std::string DBType = MicroService::instance().ConfigGetString("storage.type");
 
             if (DBType == "sqlite") {
@@ -101,7 +101,7 @@ namespace OpenWifi {
 #else
 
     inline int StorageClass::Setup_SQLite() {
-        Logger_.notice("SQLite StorageClass enabled.");
+        Logger().notice("SQLite StorageClass enabled.");
         dbType_ = sqlite;
         auto DBName = MicroService::instance().DataDir() + "/" + MicroService::instance().ConfigGetString("storage.type.sqlite.db");
         auto NumSessions = MicroService::instance().ConfigGetInt("storage.type.sqlite.maxsessions", 64);
@@ -112,7 +112,7 @@ namespace OpenWifi {
     }
 
     inline int StorageClass::Setup_MySQL() {
-        Logger_.notice("MySQL StorageClass enabled.");
+        Logger().notice("MySQL StorageClass enabled.");
         dbType_ = mysql;
         auto NumSessions = MicroService::instance().ConfigGetInt("storage.type.mysql.maxsessions", 64);
         auto IdleTime = MicroService::instance().ConfigGetInt("storage.type.mysql.idletime", 60);
@@ -137,7 +137,7 @@ namespace OpenWifi {
     }
 
     inline int StorageClass::Setup_PostgreSQL() {
-        Logger_.notice("PostgreSQL StorageClass enabled.");
+        Logger().notice("PostgreSQL StorageClass enabled.");
         dbType_ = pgsql;
         auto NumSessions = MicroService::instance().ConfigGetInt("storage.type.postgresql.maxsessions", 64);
         auto IdleTime = MicroService::instance().ConfigGetInt("storage.type.postgresql.idletime", 60);

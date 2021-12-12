@@ -46,10 +46,10 @@ namespace OpenWifi {
 					Save();
 				return true;
 			} else {
-				Logger_.information(Poco::format("DEVICE(%s): State is missing interfaces",SerialNumber_));
+				Logger().information(Poco::format("DEVICE(%s): State is missing interfaces",SerialNumber_));
 			}
 		} catch (const Poco::Exception &E ) {
-			Logger_.log(E);
+			Logger().log(E);
 		}
 		return false;
 	}
@@ -61,7 +61,7 @@ namespace OpenWifi {
 			const auto & Result = ParsedMessage.extract<Poco::JSON::Object::Ptr>();
 			return Add(Result);
 		} catch (const Poco::Exception &E) {
-			Logger_.log(E);
+			Logger().log(E);
 		}
 		return false;
 	}

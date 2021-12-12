@@ -30,7 +30,7 @@ namespace OpenWifi {
 		bool Initialize(std::string & SerialNumber);
 		bool Save();
 		static bool GetAssociations(const Poco::JSON::Object::Ptr &Ptr, uint64_t &Radios_2G, uint64_t &Radios_5G);
-
+		inline Poco::Logger & Logger() { return Logger_; }
 	  private:
 		std::string 					SerialNumber_;
 		Poco::JSON::Object 				State_;

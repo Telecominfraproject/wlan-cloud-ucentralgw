@@ -61,6 +61,13 @@ using namespace std::chrono_literals;
 #include "Poco/JSON/Object.h"
 #include "Poco/JSON/Parser.h"
 #include "Poco/StringTokenizer.h"
+#include "Poco/AsyncChannel.h"
+#include "Poco/ConsoleChannel.h"
+#include "Poco/AutoPtr.h"
+#include "Poco/FormattingChannel.h"
+#include "Poco/PatternFormatter.h"
+#include "Poco/FileChannel.h"
+#include "Poco/SimpleFileChannel.h"
 
 #include "cppkafka/cppkafka.h"
 
@@ -73,6 +80,8 @@ using namespace std::chrono_literals;
 #include "nlohmann/json.hpp"
 
 #include "ow_version.h"
+
+#define _OWDEBUG_ std::cout<< __FILE__ <<":" << __LINE__ << std::endl;
 
 namespace OpenWifi {
 
@@ -95,7 +104,7 @@ namespace OpenWifi {
 		inline AppServiceRegistry();
 
 		static AppServiceRegistry & instance() {
-		    static AppServiceRegistry *instance_= new AppServiceRegistry;
+		    static auto instance_= new AppServiceRegistry;
 			return *instance_;
 		}
 
@@ -1311,17 +1320,13 @@ namespace OpenWifi {
 	class SubSystemServer : public Poco::Util::Application::Subsystem {
 	public:
 	    SubSystemServer(std::string Name, const std::string &LoggingPrefix,
-                        std::string SubSystemConfigPrefix)
-                        : Name_(std::move(Name)), Logger_(Poco::Logger::get(LoggingPrefix)),
-                        SubSystemConfigPrefix_(std::move(SubSystemConfigPrefix)) {
-	        Logger_.setLevel(Poco::Message::PRIO_NOTICE);
-	    }
+                        std::string SubSystemConfigPrefix);
 
 	    inline void initialize(Poco::Util::Application &self) override;
 	    inline void uninitialize() override {
 	    }
 	    inline void reinitialize(Poco::Util::Application &self) override {
-	        Logger_.information("Reloading of this subsystem is not supported.");
+	        Logger().information("Reloading of this subsystem is not supported.");
 	    }
 	    inline void defineOptions(Poco::Util::OptionSet &options) override {
 	    }
@@ -1330,18 +1335,29 @@ namespace OpenWifi {
 
 	    inline const PropertiesFileServerEntry & Host(uint64_t index) { return ConfigServersList_[index]; };
 	    inline uint64_t HostSize() const { return ConfigServersList_.size(); }
-	    inline Poco::Logger &Logger() { return Logger_; };
-	    inline void SetLoggingLevel(Poco::Message::Priority NewPriority) { Logger_.setLevel(NewPriority); }
-	    inline int GetLoggingLevel() { return Logger_.getLevel(); }
+	    inline Poco::Logger &Logger() { if(Log_)
+                                            return Log_->L;
+                                        return Poco::Logger::get("tmp");
+                                        };
+	    inline void SetLoggingLevel(Poco::Message::Priority NewPriority) { Logger().setLevel(NewPriority); }
+	    inline int GetLoggingLevel() { return Logger().getLevel(); }
 
 	    virtual int Start() = 0;
 	    virtual void Stop() = 0;
 
+        struct LoggerWrapper {
+            Poco::Logger &L;
+            inline LoggerWrapper(Poco::Logger &Logger) : L(Logger) {}
+        };
+
 	protected:
 	    std::recursive_mutex Mutex_;
-	    Poco::Logger 		&Logger_;
+        std::vector<PropertiesFileServerEntry> ConfigServersList_;
+    private:
+        std::unique_ptr<LoggerWrapper>  Log_;
+	    // Poco::Logger 		&Logger_;
 	    std::string 		Name_;
-	    std::vector<PropertiesFileServerEntry> ConfigServersList_;
+        std::string         LoggerPrefix_;
 	    std::string 		SubSystemConfigPrefix_;
 	};
 
@@ -1456,7 +1472,7 @@ namespace OpenWifi {
 	    };
 
 	    static RESTAPI_RateLimiter *instance() {
-	        static RESTAPI_RateLimiter * instance_ = new RESTAPI_RateLimiter;
+	        static auto instance_ = new RESTAPI_RateLimiter;
 	        return instance_;
 	    }
 
@@ -1476,7 +1492,7 @@ namespace OpenWifi {
 	            E->Count++;
 	            Cache_.update(H,E);
 	            if(E->Count > MaxCalls) {
-	                Logger_.warning(Poco::format("RATE-LIMIT-EXCEEDED: from '%s'", R.clientAddress().toString()));
+	                Logger().warning(Poco::format("RATE-LIMIT-EXCEEDED: from '%s'", R.clientAddress().toString()));
 	                return true;
 	            }
 	            return false;
@@ -2167,7 +2183,7 @@ namespace OpenWifi {
 	    inline void initialize(Poco::Util::Application & self) override;
 
 	    static KafkaManager *instance() {
-	        static KafkaManager * instance_ = new KafkaManager;
+	        static auto instance_ = new KafkaManager;
 	        return instance_;
 	    }
 
@@ -2248,10 +2264,10 @@ namespace OpenWifi {
 	    KafkaConsumer                   ConsumerThr_;
 
 	    inline void PartitionAssignment(const cppkafka::TopicPartitionList& partitions) {
-	        Logger_.information(Poco::format("Partition assigned: %Lu...",(uint64_t )partitions.front().get_partition()));
+	        Logger().information(Poco::format("Partition assigned: %Lu...",(uint64_t )partitions.front().get_partition()));
 	    }
 	    inline void PartitionRevocation(const cppkafka::TopicPartitionList& partitions) {
-	        Logger_.information(Poco::format("Partition revocation: %Lu...",(uint64_t )partitions.front().get_partition()));
+	        Logger().information(Poco::format("Partition revocation: %Lu...",(uint64_t )partitions.front().get_partition()));
 	    }
 
 	    KafkaManager() noexcept:
@@ -2270,7 +2286,7 @@ namespace OpenWifi {
 	    }
 
 	    static AuthClient *instance() {
-	        static AuthClient * instance_ = new AuthClient;
+	        static auto instance_ = new AuthClient;
 	        return instance_;
 	    }
 
@@ -2424,12 +2440,12 @@ namespace OpenWifi {
 	class RESTAPI_ExtServer : public SubSystemServer {
 	public:
 	    static RESTAPI_ExtServer *instance() {
-	        static RESTAPI_ExtServer *instance_ = new RESTAPI_ExtServer;
+	        static auto instance_ = new RESTAPI_ExtServer;
 	        return instance_;
 	    }
 	    int Start() override;
 	    inline void Stop() override {
-	        Logger_.information("Stopping ");
+	        Logger().information("Stopping ");
 	        for( const auto & svr : RESTServers_ )
 	            svr->stop();
 	        Pool_.joinAll();
@@ -2440,7 +2456,7 @@ namespace OpenWifi {
 
 	    inline Poco::Net::HTTPRequestHandler *CallServer(const char *Path, uint64_t Id) {
 	        RESTAPIHandler::BindingMap Bindings;
-	        return RESTAPI_ExtRouter(Path, Bindings, Logger_, Server_, Id);
+	        return RESTAPI_ExtRouter(Path, Bindings, Logger(), Server_, Id);
 	    }
 
 	private:
@@ -2478,18 +2494,17 @@ namespace OpenWifi {
 	};
 
 	inline int RESTAPI_ExtServer::Start() {
-	    Logger_.information("Starting.");
 	    Server_.InitLogging();
 
 	    for(const auto & Svr: ConfigServersList_) {
-	        Logger_.information(Poco::format("Starting: %s:%s Keyfile:%s CertFile: %s", Svr.Address(), std::to_string(Svr.Port()),
+	        Logger().information(Poco::format("Starting: %s:%s Keyfile:%s CertFile: %s", Svr.Address(), std::to_string(Svr.Port()),
                                              Svr.KeyFile(),Svr.CertFile()));
 
-	        auto Sock{Svr.CreateSecureSocket(Logger_)};
+	        auto Sock{Svr.CreateSecureSocket(Logger())};
 
-	        Svr.LogCert(Logger_);
+	        Svr.LogCert(Logger());
 	        if(!Svr.RootCA().empty())
-	            Svr.LogCas(Logger_);
+	            Svr.LogCas(Logger());
 
 	        Poco::Net::HTTPServerParams::Ptr Params = new Poco::Net::HTTPServerParams;
 	        Params->setMaxThreads(50);
@@ -2508,13 +2523,13 @@ namespace OpenWifi {
 
 	public:
 	    static RESTAPI_IntServer *instance() {
-	        static RESTAPI_IntServer *instance_ = new RESTAPI_IntServer;
+	        static auto instance_ = new RESTAPI_IntServer;
 	        return instance_;
 	    }
 
 	    inline int Start() override;
 	    inline void Stop() override {
-	        Logger_.information("Stopping ");
+	        Logger().information("Stopping ");
 	        for( const auto & svr : RESTServers_ )
 	            svr->stop();
 	        Pool_.stopAll();
@@ -2524,7 +2539,7 @@ namespace OpenWifi {
 
 	    inline Poco::Net::HTTPRequestHandler *CallServer(const char *Path, uint64_t Id) {
 	        RESTAPIHandler::BindingMap Bindings;
-	        return RESTAPI_IntRouter(Path, Bindings, Logger_, Server_, Id);
+	        return RESTAPI_IntRouter(Path, Bindings, Logger(), Server_, Id);
 	    }
 	private:
 	    std::vector<std::unique_ptr<Poco::Net::HTTPServer>>   RESTServers_;
@@ -2556,18 +2571,18 @@ namespace OpenWifi {
 	};
 
 	inline int RESTAPI_IntServer::Start() {
-	    Logger_.information("Starting.");
+	    Logger().information("Starting.");
 	    Server_.InitLogging();
 
 	    for(const auto & Svr: ConfigServersList_) {
-	        Logger_.information(Poco::format("Starting: %s:%s Keyfile:%s CertFile: %s", Svr.Address(), std::to_string(Svr.Port()),
+	        Logger().information(Poco::format("Starting: %s:%s Keyfile:%s CertFile: %s", Svr.Address(), std::to_string(Svr.Port()),
                                              Svr.KeyFile(),Svr.CertFile()));
 
-	        auto Sock{Svr.CreateSecureSocket(Logger_)};
+	        auto Sock{Svr.CreateSecureSocket(Logger())};
 
-	        Svr.LogCert(Logger_);
+	        Svr.LogCert(Logger());
 	        if(!Svr.RootCA().empty())
-	            Svr.LogCas(Logger_);
+	            Svr.LogCas(Logger());
 	        auto Params = new Poco::Net::HTTPServerParams;
 	        Params->setMaxThreads(50);
 	        Params->setMaxQueued(200);
@@ -2640,6 +2655,16 @@ namespace OpenWifi {
 		    return ((RandomEngine_() % (max-min)) + min);
 		}
 
+        inline Poco::Logger & GetLogger(const std::string &Name) {
+            static auto initilized = false;
+
+            if(!initilized) {
+                initilized = true;
+                InitializeLoggingSystem();
+            }
+            return Poco::Logger::get(Name);
+        }
+
 		inline void Exit(int Reason);
 		inline void BusMessageReceived(const std::string &Key, const std::string & Message);
 		inline MicroServiceMetaVec GetServices(const std::string & Type);
@@ -2682,6 +2707,7 @@ namespace OpenWifi {
 		inline static void SavePID();
 		inline int main(const ArgVec &args) override;
 		static MicroService & instance() { return *instance_; }
+        inline void InitializeLoggingSystem();
 
 	  private:
 	    static MicroService         * instance_;
@@ -2850,8 +2876,58 @@ namespace OpenWifi {
 
 	void MicroServicePostInitialization();
 
+    inline void MicroService::InitializeLoggingSystem() {
+        static auto initialized = false;
+
+        if(!initialized) {
+            initialized = true;
+            LoadConfigurationFile();
+
+            auto LoggingDestination = MicroService::instance().ConfigGetString("logging.type", "file");
+            auto LoggingFormat = MicroService::instance().ConfigGetString("logging.format",
+                                                                          "%Y-%m-%d %H:%M:%S %s: [%p] %t");
+            if (LoggingDestination == "console") {
+                Poco::AutoPtr<Poco::ConsoleChannel> Console(new Poco::ConsoleChannel);
+                Poco::AutoPtr<Poco::PatternFormatter> Formatter(new Poco::PatternFormatter);
+                Formatter->setProperty("pattern", LoggingFormat);
+                Poco::AutoPtr<Poco::FormattingChannel> FormattingChannel(
+                        new Poco::FormattingChannel(Formatter, Console));
+                Poco::Logger::root().setChannel(FormattingChannel);
+            } else if (LoggingDestination == "colorconsole") {
+                Poco::AutoPtr<Poco::ColorConsoleChannel> Console(new Poco::ColorConsoleChannel);
+                Poco::AutoPtr<Poco::PatternFormatter> Formatter(new Poco::PatternFormatter);
+                Formatter->setProperty("pattern", LoggingFormat);
+                Poco::AutoPtr<Poco::FormattingChannel> FormattingChannel(
+                        new Poco::FormattingChannel(Formatter, Console));
+                Poco::Logger::root().setChannel(FormattingChannel);
+            } else if (LoggingDestination == "sql") {
+
+            } else if (LoggingDestination == "syslog") {
+                //"CREATE TABLE T_POCO_LOG (Source VARCHAR, Name VARCHAR, ProcessId INTEGER, Thread VARCHAR, ThreadId INTEGER, Priority INTEGER, Text VARCHAR, DateTime DATE)"
+            } else {
+                auto LoggingLocation =
+                        MicroService::instance().ConfigPath("logging.path", "$OWCERT_ROOT/logs") + "/log";
+
+                Poco::AutoPtr<Poco::FileChannel> FileChannel(new Poco::FileChannel);
+                FileChannel->setProperty("rotation", "10 M");
+                FileChannel->setProperty("archive", "timestamp");
+                FileChannel->setProperty("path", LoggingLocation);
+                Poco::AutoPtr<Poco::PatternFormatter> Formatter(new Poco::PatternFormatter);
+                Formatter->setProperty("pattern", LoggingFormat);
+                Poco::AutoPtr<Poco::FormattingChannel> FormattingChannel(
+                        new Poco::FormattingChannel(Formatter, FileChannel));
+                Poco::Logger::root().setChannel(FormattingChannel);
+            }
+            auto Level = Poco::Logger::parseLevel(MicroService::instance().ConfigGetString("logging.level", "debug"));
+            Poco::Logger::root().setLevel(Level);
+        }
+    }
+
 	inline void MicroService::initialize(Poco::Util::Application &self) {
 	    // add the default services
+        LoadConfigurationFile();
+        InitializeLoggingSystem();
+
 	    SubSystems_.push_back(KafkaManager());
 	    SubSystems_.push_back(ALBHealthCheckServer());
 	    SubSystems_.push_back(RESTAPI_ExtServer());
@@ -2862,17 +2938,6 @@ namespace OpenWifi {
 	    Poco::Net::HTTPSStreamFactory::registerFactory();
 	    Poco::Net::FTPStreamFactory::registerFactory();
 	    Poco::Net::FTPSStreamFactory::registerFactory();
-
-	    LoadConfigurationFile();
-
-	    static const char * LogFilePathKey = "logging.channels.c2.path";
-
-	    if(LogDir_.empty()) {
-	        std::string OriginalLogFileValue = ConfigPath(LogFilePathKey);
-	        config().setString(LogFilePathKey, OriginalLogFileValue);
-	    } else {
-	        config().setString(LogFilePathKey, LogDir_);
-	    }
 
 	    Poco::File	DataDir(ConfigPath("openwifi.system.data"));
 	    DataDir_ = DataDir.path();
@@ -3167,6 +3232,13 @@ namespace OpenWifi {
 	    }
 	}
 
+    inline SubSystemServer::SubSystemServer(std::string Name, const std::string &LoggingPrefix,
+            std::string SubSystemConfigPrefix):
+        Name_(std::move(Name)),
+        LoggerPrefix_(LoggingPrefix),
+        SubSystemConfigPrefix_(std::move(SubSystemConfigPrefix)) {
+    }
+
 	inline int MicroService::main(const ArgVec &args) {
 
 	    MyErrorHandler	ErrorHandler(*this);
@@ -3174,6 +3246,7 @@ namespace OpenWifi {
 
 	    if (!HelpRequested_) {
 	        SavePID();
+
 	        Poco::Logger &logger = Poco::Logger::get(DAEMON_APP_NAME);
 	        logger.notice(Poco::format("Starting %s version %s.",DAEMON_APP_NAME, Version()));
 
@@ -3185,6 +3258,7 @@ namespace OpenWifi {
 	        if (config().getBool("application.runAsDaemon", false)) {
 	            logger.information("Starting as a daemon.");
 	        }
+
 	        logger.information(Poco::format("System ID set to %Lu",ID_));
 	        StartSubSystemServers();
 	        waitForTerminationRequest();
@@ -3212,9 +3286,10 @@ namespace OpenWifi {
 	}
 
 	inline void SubSystemServer::initialize(Poco::Util::Application &self) {
-	    Logger_.notice("Initializing...");
 	    auto i = 0;
 	    bool good = true;
+
+        Log_ = std::make_unique<LoggerWrapper>(Poco::Logger::get(LoggerPrefix_));
 
 	    ConfigServersList_.clear();
 	    while (good) {
@@ -3272,7 +3347,7 @@ namespace OpenWifi {
 	        Port_ = (int)MicroService::instance().ConfigGetInt("alb.port",15015);
 	        Socket_ = std::make_unique<Poco::Net::ServerSocket>(Port_);
 	        auto Params = new Poco::Net::HTTPServerParams;
-	        Server_ = std::make_unique<Poco::Net::HTTPServer>(new ALBRequestHandlerFactory(Logger_), *Socket_, Params);
+	        Server_ = std::make_unique<Poco::Net::HTTPServer>(new ALBRequestHandlerFactory(Logger()), *Socket_, Params);
 	        Server_->start();
 	    }
 
@@ -3340,9 +3415,9 @@ namespace OpenWifi {
 	            if(Num)
 	                Producer.flush();
 	        } catch (const cppkafka::HandleException &E ) {
-	            KafkaManager()->Logger_.warning(Poco::format("Caught a Kafka exception (producer): %s",std::string{E.what()}));
+	            KafkaManager()->Logger().warning(Poco::format("Caught a Kafka exception (producer): %s",std::string{E.what()}));
 	        } catch (const Poco::Exception &E) {
-	            KafkaManager()->Logger_.log(E);
+	            KafkaManager()->Logger().log(E);
 	        }
 	    }
 	    Producer.flush();
@@ -3368,13 +3443,13 @@ namespace OpenWifi {
 	    cppkafka::Consumer Consumer(Config);
 	    Consumer.set_assignment_callback([this](cppkafka::TopicPartitionList& partitions) {
 	        if(!partitions.empty()) {
-	            KafkaManager()->Logger_.information(Poco::format("Partition assigned: %Lu...",
+	            KafkaManager()->Logger().information(Poco::format("Partition assigned: %Lu...",
                                                  (uint64_t)partitions.front().get_partition()));
 	        }
 	    });
 	    Consumer.set_revocation_callback([this](const cppkafka::TopicPartitionList& partitions) {
 	        if(!partitions.empty()) {
-	            KafkaManager()->Logger_.information(Poco::format("Partition revocation: %Lu...",
+	            KafkaManager()->Logger().information(Poco::format("Partition revocation: %Lu...",
                                                  (uint64_t)partitions.front().get_partition()));
 	        }
 	    });
@@ -3397,7 +3472,7 @@ namespace OpenWifi {
 	                    continue;
 	                if (Msg.get_error()) {
 	                    if (!Msg.is_eof()) {
-	                        KafkaManager()->Logger_.error(Poco::format("Error: %s", Msg.get_error().to_string()));
+	                        KafkaManager()->Logger().error(Poco::format("Error: %s", Msg.get_error().to_string()));
 	                    }if(!AutoCommit)
 	                        Consumer.async_commit(Msg);
 	                    continue;
@@ -3417,9 +3492,9 @@ namespace OpenWifi {
 	                    Consumer.async_commit(Msg);
 	            }
 	        } catch (const cppkafka::HandleException &E) {
-	            KafkaManager()->Logger_.warning(Poco::format("Caught a Kafka exception (consumer): %s",std::string{E.what()}));
+	            KafkaManager()->Logger().warning(Poco::format("Caught a Kafka exception (consumer): %s",std::string{E.what()}));
 	        } catch (const Poco::Exception &E) {
-	            KafkaManager()->Logger_.log(E);
+	            KafkaManager()->Logger().log(E);
 	        }
 	    }
 	    Consumer.unsubscribe();
@@ -3427,14 +3502,14 @@ namespace OpenWifi {
 
 	inline void RESTAPI_ExtServer::reinitialize(Poco::Util::Application &self) {
 	    MicroService::instance().LoadConfigurationFile();
-	    Logger_.information("Reinitializing.");
+	    Logger().information("Reinitializing.");
 	    Stop();
 	    Start();
 	}
 
 	void RESTAPI_IntServer::reinitialize(Poco::Util::Application &self) {
 	    MicroService::instance().LoadConfigurationFile();
-	    Logger_.information("Reinitializing.");
+	    Logger().information("Reinitializing.");
 	    Stop();
 	    Start();
 	}

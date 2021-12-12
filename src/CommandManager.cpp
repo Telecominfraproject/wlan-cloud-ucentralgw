@@ -46,9 +46,9 @@ namespace OpenWifi {
 									Cmd.UUID,
 									RPC_Id)) {
 						StorageService()->SetCommandExecuted(Cmd.UUID);
-						Logger_.information(Poco::format("Sent command '%s' to '%s'",Cmd.Command,Cmd.SerialNumber));
+						Logger().information(Poco::format("Sent command '%s' to '%s'",Cmd.Command,Cmd.SerialNumber));
 					} else {
-                        Logger_.information(Poco::format("Failed to send command '%s' to %s",Cmd.Command,Cmd.SerialNumber));
+                        Logger().information(Poco::format("Failed to send command '%s' to %s",Cmd.Command,Cmd.SerialNumber));
                     }
                 }
             }
@@ -57,34 +57,34 @@ namespace OpenWifi {
     }
 
     int CommandManager::Start() {
-        Logger_.notice("Starting...");
+        Logger().notice("Starting...");
         ManagerThread.start(*this);
         return 0;
     }
 
     void CommandManager::Stop() {
-        Logger_.notice("Stopping...");
+        Logger().notice("Stopping...");
 		Running_ = false;
 		ManagerThread.wakeUp();
         ManagerThread.join();
     }
 
     void CommandManager::WakeUp() {
-        Logger_.notice("Waking up..");
+        Logger().notice("Waking up..");
         ManagerThread.wakeUp();
     }
 
 	void CommandManager::Janitor() {
 		std::lock_guard G(Mutex_);
 		uint64_t Now = time(nullptr);
-		Logger_.information("Janitor starting.");
+		Logger().information("Janitor starting.");
 		for(auto i=OutStandingRequests_.begin();i!=OutStandingRequests_.end();) {
 			if((Now-i->second.Submitted)>120)
 				i = OutStandingRequests_.erase(i);
 			else
 				++i;
 		}
-		Logger_.information("Janitor finished.");
+		Logger().information("Janitor finished.");
 	}
 
 	bool CommandManager::GetCommand(uint64_t Id, const std::string &SerialNumber, CommandTag &T) {
@@ -117,7 +117,7 @@ namespace OpenWifi {
 		CompleteRPC.set(uCentralProtocol::METHOD, Method);
 		CompleteRPC.set(uCentralProtocol::PARAMS, Params);
 		Poco::JSON::Stringifier::stringify(CompleteRPC, ToSend);
-		Logger_.information(
+		Logger().information(
 			Poco::format("(%s): Sending command '%s', ID: %lu", SerialNumber, Method, Id));
 		CommandTagIndex Idx{.Id = Id, .SerialNumber = SerialNumber};
 		CommandTag Tag;
@@ -133,25 +133,25 @@ namespace OpenWifi {
 	void CommandManager::PostCommandResult(const std::string &SerialNumber, Poco::JSON::Object::Ptr Obj) {
 
 		if(!Obj->has(uCentralProtocol::ID)){
-			Logger_.error(Poco::format("(%s): Invalid RPC response.",SerialNumber));
+			Logger().error(Poco::format("(%s): Invalid RPC response.",SerialNumber));
 			return;
 		}
 
 		uint64_t ID = Obj->get(uCentralProtocol::ID);
 		if(ID<2) {
-			Logger_.error(Poco::format("(%s): Ignoring RPC response.",SerialNumber));
+			Logger().error(Poco::format("(%s): Ignoring RPC response.",SerialNumber));
 			return;
 		}
 		std::unique_lock G(Mutex_);
 		auto Idx = CommandTagIndex{.Id = ID, .SerialNumber = SerialNumber};
 		auto RPC = OutStandingRequests_.find(Idx);
 		if (RPC == OutStandingRequests_.end()) {
-			Logger_.warning(Poco::format("(%s): Outdated RPC %lu", SerialNumber, ID));
+			Logger().warning(Poco::format("(%s): Outdated RPC %lu", SerialNumber, ID));
 			return;
 		}
 		RPC->second.Completed = std::time(nullptr);
 		RPC->second.Result = Obj;
-		Logger_.information(Poco::format("(%s): Received RPC answer %lu", SerialNumber, ID));
+		Logger().information(Poco::format("(%s): Received RPC answer %lu", SerialNumber, ID));
 		G.unlock();
 		StorageService()->CommandCompleted(RPC->second.UUID, Obj, true);
 	}

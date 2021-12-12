@@ -78,6 +78,7 @@ namespace OpenWifi {
 		void OnSocketError(const Poco::AutoPtr<Poco::Net::ErrorNotification>& pNf);
 		bool Send(const std::string &Payload);
 		void ProcessIncomingFrame();
+		inline Poco::Logger & Logger() { return Logger_; }
 	  private:
 		std::recursive_mutex        			Mutex_;
 		std::string 							UUID_;

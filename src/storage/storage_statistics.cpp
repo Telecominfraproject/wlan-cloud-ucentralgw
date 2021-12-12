@@ -42,7 +42,7 @@ namespace OpenWifi {
 			Poco::Data::Statement   Insert(Sess);
 
 			uint64_t Now = time(nullptr);
-			Logger_.information("Device:" + Stats.SerialNumber + " Stats size:" + std::to_string(Stats.Data.size()));
+			Logger().information("Device:" + Stats.SerialNumber + " Stats size:" + std::to_string(Stats.Data.size()));
 			std::string St{"INSERT INTO Statistics ( " +
 								DB_StatsSelectFields +
 								" ) VALUES ( " +
@@ -55,7 +55,7 @@ namespace OpenWifi {
 			return true;
 		}
 		catch (const Poco::Exception &E) {
-			Logger_.warning(Poco::format("%s: Failed with: %s", std::string(__func__), E.displayText()));
+			Logger().warning(Poco::format("%s: Failed with: %s", std::string(__func__), E.displayText()));
 		}
 		return false;
 	}
@@ -98,7 +98,7 @@ namespace OpenWifi {
 			return true;
 		}
 		catch (const Poco::Exception &E) {
-			Logger_.warning(Poco::format("%s: Failed with: %s", std::string(__func__), E.displayText()));
+			Logger().warning(Poco::format("%s: Failed with: %s", std::string(__func__), E.displayText()));
 		}
 		return false;
 	}
@@ -125,7 +125,7 @@ namespace OpenWifi {
 			return true;
 		}
 		catch (const Poco::Exception &E) {
-			Logger_.warning(Poco::format("%s: Failed with: %s", std::string(__func__), E.displayText()));
+			Logger().warning(Poco::format("%s: Failed with: %s", std::string(__func__), E.displayText()));
 		}
 		return false;
 	}
@@ -158,7 +158,7 @@ bool Storage::DeleteStatisticsData(std::string &SerialNumber, uint64_t FromDate,
 			return true;
 		}
 		catch (const Poco::Exception &E) {
-			Logger_.warning(Poco::format("%s: Failed with: %s", std::string(__func__), E.displayText()));
+			Logger().warning(Poco::format("%s: Failed with: %s", std::string(__func__), E.displayText()));
 		}
 		return false;
 	}
@@ -173,7 +173,7 @@ bool Storage::DeleteStatisticsData(std::string &SerialNumber, uint64_t FromDate,
 			Delete.execute();
 			return true;
 		} catch (const Poco::Exception &E) {
-			Logger_.warning(Poco::format("%s: Failed with: %s", std::string(__func__), E.displayText()));
+			Logger().warning(Poco::format("%s: Failed with: %s", std::string(__func__), E.displayText()));
 		}
 		return false;
 	}

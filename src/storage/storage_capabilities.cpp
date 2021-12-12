@@ -34,7 +34,7 @@ bool Storage::CreateDeviceCapabilities(std::string &SerialNumber, std::string &C
 		return true;
 	}
 	catch (const Poco::Exception &E) {
-		Logger_.warning(Poco::format("%s: Failed with: %s", std::string(__func__), E.displayText()));
+		Logger().warning(Poco::format("%s: Failed with: %s", std::string(__func__), E.displayText()));
 	}
 	return false;
 }
@@ -63,7 +63,7 @@ bool Storage::CreateDeviceCapabilities(std::string &SerialNumber, std::string &C
 			return true;
 		}
 		catch (const Poco::Exception &E) {
-			Logger_.warning(Poco::format("%s: Failed with: %s", std::string(__func__), E.displayText()));
+			Logger().warning(Poco::format("%s: Failed with: %s", std::string(__func__), E.displayText()));
 		}
 		return false;
 	}
@@ -91,7 +91,7 @@ bool Storage::CreateDeviceCapabilities(std::string &SerialNumber, std::string &C
 			return true;
 		}
 		catch (const Poco::Exception &E) {
-			Logger_.log(E);
+			Logger().log(E);
 		}
 		return false;
 	}
@@ -110,7 +110,7 @@ bool Storage::CreateDeviceCapabilities(std::string &SerialNumber, std::string &C
 			return true;
 		}
 		catch (const Poco::Exception &E) {
-			Logger_.warning(Poco::format("%s: Failed with: %s", std::string(__func__), E.displayText()));
+			Logger().warning(Poco::format("%s: Failed with: %s", std::string(__func__), E.displayText()));
 		}
 		return false;
 	}
@@ -141,7 +141,7 @@ bool Storage::CreateDeviceCapabilities(std::string &SerialNumber, std::string &C
 			}
 			return true;
 		} catch (const Poco::Exception &E) {
-			Logger_.log(E);
+			Logger().log(E);
 		}
 		return false;
 	}
