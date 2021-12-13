@@ -171,8 +171,6 @@ namespace OpenWifi {
 
 		}
 
-		Poco::Logger & Logger() { return Logger(); }
-
 		bool Login(const std::string & Id_);
 		bool Logout(const std::string & Id_);
 		bool Close(const std::string & Id_);
