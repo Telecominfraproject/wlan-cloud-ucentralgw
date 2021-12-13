@@ -38,6 +38,7 @@ if [[ "$TEMPLATE_CONFIG" = 'true' && ! -f "$OWGW_CONFIG"/owgw.properties ]]; the
   SYSTEM_URI_PRIVATE=${SYSTEM_URI_PRIVATE:-"https://localhost:17002"} \
   SYSTEM_URI_PUBLIC=${SYSTEM_URI_PUBLIC:-"https://localhost:16002"} \
   SYSTEM_URI_UI=${SYSTEM_URI_UI:-"http://localhost"} \
+  SIMULATORID=${SIMULATORID:-""} \
   RTTY_ENABLED=${RTTY_ENABLED:-"false"} \
   RTTY_SERVER=${RTTY_SERVER:-"localhost"} \
   RTTY_PORT=${RTTY_PORT:-"5912"} \
