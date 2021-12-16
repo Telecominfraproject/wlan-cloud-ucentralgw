@@ -66,6 +66,7 @@ COPY --from=builder /poco/cmake-build/lib/* /lib/
 
 COPY owgw.properties.tmpl /
 COPY docker-entrypoint.sh /
+COPY wait-for-postgres.sh /
 RUN wget https://raw.githubusercontent.com/Telecominfraproject/wlan-cloud-ucentral-deploy/main/docker-compose/certs/restapi-ca.pem \
     -O /usr/local/share/ca-certificates/restapi-ca-selfsigned.pem
 
