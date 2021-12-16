@@ -58,7 +58,7 @@ RUN addgroup -S "$OWGW_USER" && \
 RUN mkdir /openwifi
 RUN mkdir -p "$OWGW_ROOT" "$OWGW_CONFIG" && \
     chown "$OWGW_USER": "$OWGW_ROOT" "$OWGW_CONFIG"
-RUN apk add --update --no-cache librdkafka mariadb-connector-c libpq unixodbc su-exec gettext ca-certificates bash jq curl
+RUN apk add --update --no-cache librdkafka mariadb-connector-c libpq unixodbc su-exec gettext ca-certificates bash jq curl postgresql-client
 
 COPY --from=builder /owgw/cmake-build/owgw /openwifi/owgw
 COPY --from=builder /cppkafka/cmake-build/src/lib/* /lib/
