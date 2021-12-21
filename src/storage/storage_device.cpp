@@ -292,25 +292,33 @@ namespace OpenWifi {
 
 		bool 			Found = false;
 		std::string 	FoundConfig;
+		_OWDEBUG_
 		if(WebSocketServer()->UseProvisioning()) {
+			_OWDEBUG_
 			if(SDKCalls::GetProvisioningConfiguration(SerialNumber, FoundConfig)) {
+				_OWDEBUG_
 				Found = true;
 				Config::Config NewConfig(FoundConfig);
 				NewConfig.SetUUID(Now);
 				D.Configuration = NewConfig.get();
 			}
+			_OWDEBUG_
 		}
 
+		_OWDEBUG_
 		if (!Found && FindDefaultConfigurationForModel(Compat, DefConfig)) {
+			_OWDEBUG_
 			Config::Config NewConfig(DefConfig.Configuration);
 			NewConfig.SetUUID(Now);
 			D.Configuration = NewConfig.get();
 		} else if(!Found) {
+			_OWDEBUG_
 			Config::Config NewConfig;
 			NewConfig.SetUUID(Now);
 			D.Configuration = NewConfig.get();
 		}
 
+		_OWDEBUG_
 		//	We need to insert the country code according to the IP in the radios section...
 		InsertRadiosCountyRegulation(D.Configuration, IPAddress);
 
