@@ -94,6 +94,7 @@ namespace OpenWifi {
 		void LogException(const Poco::Exception &E);
 		[[nodiscard]] GWObjects::CertificateValidation CertificateValidation() const { return CertValidation_; };
 		inline Poco::Logger & Logger() { return Logger_; }
+
 	  private:
 		std::recursive_mutex                Mutex_;
 		Poco::Logger                    	&Logger_;
@@ -142,6 +143,9 @@ namespace OpenWifi {
 			return SimulatorEnabled_;
 		}
 
+		inline bool UseProvisioning() const { return LookAtProvisioning_; }
+		inline bool UseDefaults() const { return UseDefaultConfig_; }
+
 	  private:
 		std::unique_ptr<Poco::Crypto::X509Certificate>	IssuerCert_;
 		std::vector<std::unique_ptr<Poco::Net::ParallelSocketAcceptor<WSConnection, Poco::Net::SocketReactor>>>	Acceptors_;
@@ -149,6 +153,8 @@ namespace OpenWifi {
 		Poco::Thread					ReactorThread_;
 		ReactorPool						ReactorPool_;
 		std::string 					SimulatorId_;
+		bool 							LookAtProvisioning_ = false;
+		bool 							UseDefaultConfig_ = true;
 		bool 							SimulatorEnabled_=false;
 
 		WebSocketServer() noexcept:

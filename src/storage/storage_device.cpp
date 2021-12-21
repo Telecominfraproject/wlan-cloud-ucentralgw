@@ -19,6 +19,8 @@
 #include "framework/MicroService.h"
 #include "CapabilitiesCache.h"
 #include "FindCountry.h"
+#include "WebSocketServer.h"
+#include "SDKcalls.h"
 
 namespace OpenWifi {
 
@@ -276,7 +278,6 @@ namespace OpenWifi {
 		}
 	}
 
-
 	bool Storage::CreateDefaultDevice(std::string &SerialNumber, std::string &Capabilities, std::string & Firmware, std::string &Compat, const Poco::Net::IPAddress & IPAddress) {
 		GWObjects::Device D;
 
@@ -289,11 +290,22 @@ namespace OpenWifi {
 		if(!Caps.Platform().empty() && !Caps.Compatible().empty())
 			CapabilitiesCache::instance()->Add(Caps.Compatible(),Caps.Platform());
 
-		if (FindDefaultConfigurationForModel(Compat, DefConfig)) {
+		bool 			Found = false;
+		std::string 	FoundConfig;
+		if(WebSocketServer()->UseProvisioning()) {
+			if(SDKCalls::GetProvisioningConfiguration(SerialNumber, FoundConfig)) {
+				Found = true;
+				Config::Config NewConfig(FoundConfig);
+				NewConfig.SetUUID(Now);
+				D.Configuration = NewConfig.get();
+			}
+		}
+
+		if (!Found && FindDefaultConfigurationForModel(Compat, DefConfig)) {
 			Config::Config NewConfig(DefConfig.Configuration);
 			NewConfig.SetUUID(Now);
 			D.Configuration = NewConfig.get();
-		} else {
+		} else if(!Found) {
 			Config::Config NewConfig;
 			NewConfig.SetUUID(Now);
 			D.Configuration = NewConfig.get();

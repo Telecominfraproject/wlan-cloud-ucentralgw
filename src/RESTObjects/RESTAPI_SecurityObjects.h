@@ -43,7 +43,7 @@ namespace OpenWifi {
         };
 
         enum USER_ROLE {
-            UNKNOWN, ROOT, ADMIN, SUBSCRIBER, CSR, SYSTEM, INSTALLER, NOC, ACCOUNTING
+            UNKNOWN, ROOT, ADMIN, SUBSCRIBER, CSR, SYSTEM, INSTALLER, NOC, ACCOUNTING, PARTNER
         };
 
         USER_ROLE UserTypeFromString(const std::string &U);

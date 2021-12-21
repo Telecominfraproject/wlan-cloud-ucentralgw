@@ -61,6 +61,17 @@ namespace OpenWifi {
 			auto NewSocketAcceptor = std::make_unique<Poco::Net::ParallelSocketAcceptor<WSConnection, Poco::Net::SocketReactor>>(Sock, Reactor_);
             Acceptors_.push_back(std::move(NewSocketAcceptor));
         }
+
+		auto ProvString = MicroService::instance().ConfigGetString("autoprovisioning.process","default");
+		auto Tokens = Poco::StringTokenizer(ProvString,",");
+
+		for(const auto &i:Tokens) {
+			if (i == "prov")
+				LookAtProvisioning_ = true;
+			else if (i == "default")
+				UseDefaultConfig_ = true;
+		}
+
         SimulatorId_ = MicroService::instance().ConfigGetString("simulatorid","");
         SimulatorEnabled_ = !SimulatorId_.empty();
 
