@@ -10,7 +10,7 @@ namespace OpenWifi {
 
 		Types::StringPairVec QD { {"config","true"}};
 		OpenAPIRequestGet	API(uSERVICE_PROVISIONING,
-							  	"/api/v1/inventory/" + SerialNumber + "?config=true",
+							  	"/api/v1/inventory/" + SerialNumber,
 							  	QD,20000);
 
 		Poco::JSON::Object::Ptr ResponseObject;
