@@ -14,18 +14,13 @@ namespace OpenWifi {
 							  	QD,20000);
 
 		Poco::JSON::Object::Ptr ResponseObject;
-		_OWDEBUG_
 
 		if(API.Do(ResponseObject)==Poco::Net::HTTPResponse::HTTP_OK) {
-			_OWDEBUG_
 			if(ResponseObject->has("config")) {
-				_OWDEBUG_
 				Config = ResponseObject->get("config").toString();
 				return true;
 			}
-			_OWDEBUG_
 		}
-		_OWDEBUG_
 		return false;
 	}
 }
