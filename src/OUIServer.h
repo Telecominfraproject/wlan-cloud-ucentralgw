@@ -13,8 +13,8 @@ namespace OpenWifi {
 
 		typedef std::map<uint64_t,std::string>	OUIMap;
 
-		static OUIServer *instance() {
-		    static OUIServer *instance_ = new OUIServer;
+		static auto instance() {
+		    static auto instance_ = new OUIServer;
 			return instance_;
 		}
 
@@ -44,7 +44,7 @@ namespace OpenWifi {
 		}
 	};
 
-	inline OUIServer * OUIServer() { return OUIServer::instance(); }
+	inline auto OUIServer() { return OUIServer::instance(); }
 
 }
 

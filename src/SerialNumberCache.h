@@ -10,8 +10,8 @@ namespace OpenWifi {
 	class SerialNumberCache : public SubSystemServer {
 		public:
 
-		static SerialNumberCache * instance() {
-		    static SerialNumberCache * instance_ = new SerialNumberCache;
+		static auto instance() {
+		    static auto instance_ = new SerialNumberCache;
 			return instance_;
 		}
 
@@ -34,6 +34,6 @@ namespace OpenWifi {
 			}
 	};
 
-	inline SerialNumberCache * SerialNumberCache() { return SerialNumberCache::instance(); }
+	inline auto SerialNumberCache() { return SerialNumberCache::instance(); }
 
 } // namespace OpenWiFi

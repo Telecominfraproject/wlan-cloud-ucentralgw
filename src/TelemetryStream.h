@@ -100,8 +100,8 @@ namespace OpenWifi {
 			std::string Payload;
 		};
 
-		static TelemetryStream *instance() {
-		    static TelemetryStream * instance_ = new TelemetryStream;
+		static auto instance() {
+		    static auto instance_ = new TelemetryStream;
 			return instance_;
 		}
 
@@ -128,6 +128,6 @@ namespace OpenWifi {
 		}
 	};
 
-	inline TelemetryStream * TelemetryStream() { return TelemetryStream::instance(); }
+	inline auto TelemetryStream() { return TelemetryStream::instance(); }
 
 	}

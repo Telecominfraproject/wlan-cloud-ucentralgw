@@ -28,8 +28,8 @@ namespace OpenWifi {
 		void RemoveRequest(const std::string &UUID);
 		const std::string & Path() { return Path_; };
 
-        static FileUploader *instance() {
-            static FileUploader * instance_ = new FileUploader;
+        static auto instance() {
+            static auto instance_ = new FileUploader;
 			return instance_;
         }
 
@@ -60,6 +60,6 @@ namespace OpenWifi {
         Poco::Logger    & Logger_;
     };
 
-	inline FileUploader * FileUploader() { return FileUploader::instance(); }
+	inline auto FileUploader() { return FileUploader::instance(); }
 } //   namespace
 

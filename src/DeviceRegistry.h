@@ -28,8 +28,8 @@ namespace OpenWifi {
 			uint64_t 					ConnectionId=0;
 		};
 
-        static DeviceRegistry *instance() {
-            static DeviceRegistry *instance_ = new DeviceRegistry;
+        static auto instance() {
+            static auto instance_ = new DeviceRegistry;
             return instance_;
         }
 
@@ -58,7 +58,7 @@ namespace OpenWifi {
 		}
 	};
 
-	inline DeviceRegistry * DeviceRegistry() { return DeviceRegistry::instance(); }
+	inline auto DeviceRegistry() { return DeviceRegistry::instance(); }
 
 }  // namespace
 

@@ -66,8 +66,8 @@ namespace OpenWifi {
 
 			bool GetCommand(uint64_t Id, const std::string & SerialNumber, CommandTag &T);
 
-			static CommandManager *instance() {
-			    static CommandManager *instance_ = new CommandManager;
+			static auto instance() {
+			    static auto instance_ = new CommandManager;
 				return instance_;
 			}
 			inline bool Running() const { return Running_; }
@@ -84,7 +84,7 @@ namespace OpenWifi {
 				}
 	};
 
-	inline CommandManager * CommandManager() { return CommandManager::instance(); }
+	inline auto CommandManager() { return CommandManager::instance(); }
 
 }  // namespace
 

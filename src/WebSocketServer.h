@@ -119,8 +119,8 @@ namespace OpenWifi {
 
 	class WebSocketServer : public SubSystemServer {
 	  public:
-		static WebSocketServer *instance() {
-		    static WebSocketServer *instance_ = new WebSocketServer;
+		static auto instance() {
+		    static auto instance_ = new WebSocketServer;
 			return instance_;
 		}
 
@@ -163,6 +163,6 @@ namespace OpenWifi {
 		}
 	};
 
-	inline WebSocketServer * WebSocketServer() { return WebSocketServer::instance(); }
+	inline auto WebSocketServer() { return WebSocketServer::instance(); }
 
 } //namespace

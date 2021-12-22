@@ -38,8 +38,8 @@ namespace OpenWifi {
     class StorageArchiver : public SubSystemServer {
 
         public:
-            static StorageArchiver *instance() {
-                static StorageArchiver * instance_ = new StorageArchiver;
+            static auto instance() {
+                static auto instance_ = new StorageArchiver;
                 return instance_;
             }
 
@@ -59,6 +59,6 @@ namespace OpenWifi {
             }
     };
 
-    inline StorageArchiver * StorageArchiver() { return StorageArchiver::instance(); }
+    inline auto StorageArchiver() { return StorageArchiver::instance(); }
 
 }  // namespace
