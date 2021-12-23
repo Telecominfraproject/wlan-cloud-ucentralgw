@@ -1,6 +1,7 @@
 # System
 replicaCount: 1
 strategyType: Recreate
+revisionHistoryLimit: 2
 
 nameOverride: ""
 fullnameOverride: ""
