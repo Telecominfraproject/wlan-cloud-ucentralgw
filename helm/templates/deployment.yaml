@@ -13,6 +13,7 @@ spec:
   replicas: {{ .Values.replicaCount }}
   strategy:
     type: {{ .Values.strategyType }}
+  revisionHistoryLimit: {{ .Values.revisionHistoryLimit }}
   selector:
     matchLabels:
       app.kubernetes.io/name: {{ include "owgw.name" . }}
