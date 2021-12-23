@@ -26,8 +26,7 @@ namespace OpenWifi {
 		Poco::JSON::Object RetObj;
 		if (!QB_.Select.empty()) {
 			Poco::JSON::Array Objects;
-			auto UUIDs = Poco::StringTokenizer(QB_.Select,",");
-			for (auto &i : UUIDs) {
+			for (auto &i : SelectedRecords()) {
 				auto SerialNumber = i;
 				GWObjects::Device D;
 				if (StorageService()->GetDevice(SerialNumber, D)) {

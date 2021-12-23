@@ -1526,7 +1526,8 @@ namespace OpenWifi {
 	public:
 	    struct QueryBlock {
 	        uint64_t StartDate = 0 , EndDate = 0 , Offset = 0 , Limit = 0, LogType = 0 ;
-	        std::string SerialNumber, Filter, Select;
+	        std::string SerialNumber, Filter;
+            std::vector<std::string>    Select;
 	        bool Lifetime=false, LastOnly=false, Newest=false, CountOnly=false, AdditionalInfo=false;
 	    };
 	    typedef std::map<std::string, std::string> BindingMap;
@@ -1607,7 +1608,7 @@ namespace OpenWifi {
 	    }
 
 	    inline bool NeedAdditionalInfo() const { return QB_.AdditionalInfo; }
-	    inline const std::string & SelectedRecords() const { return QB_.Select; }
+	    inline const std::vector<std::string> & SelectedRecords() const { return QB_.Select; }
 
 	    inline const Poco::JSON::Object::Ptr & ParseStream() {
 	        return IncomingParser_.parse(Request->stream()).extract<Poco::JSON::Object::Ptr>();
@@ -1845,6 +1846,22 @@ namespace OpenWifi {
 	        }
 	    }
 
+        inline void SendCompressedTarFile(const std::string & FileName, const std::string & Content) {
+            Response->set("Content-Type","application/gzip");
+            Response->set("Content-Disposition", "attachment; filename=" + FileName );
+            Response->set("Content-Transfer-Encoding","binary");
+            Response->set("Accept-Ranges", "bytes");
+            Response->set("Cache-Control", "private");
+            Response->set("Pragma", "private");
+            Response->set("Expires", "Mon, 26 Jul 2027 05:00:00 GMT");
+            Response->setStatus(Poco::Net::HTTPResponse::HTTP_OK);
+            AddCORS();
+            Response->setContentLength(Content.size());
+            Response->setChunkedTransferEncoding(true);
+            std::ostream& OutputStream = Response->send();
+            OutputStream << Content;
+        }
+
 	    inline void SendFile(Poco::File & File, const std::string & UUID) {
 	        Response->set("Content-Type","application/octet-stream");
 	        Response->set("Content-Disposition", "attachment; filename=" + UUID );
@@ -1947,7 +1964,6 @@ namespace OpenWifi {
 	            QB_.Offset = GetParameter(RESTAPI::Protocol::OFFSET, 0);
 	            QB_.Limit = GetParameter(RESTAPI::Protocol::LIMIT, 100);
 	            QB_.Filter = GetParameter(RESTAPI::Protocol::FILTER, "");
-	            QB_.Select = GetParameter(RESTAPI::Protocol::SELECT, "");
 	            QB_.Lifetime = GetBoolParameter(RESTAPI::Protocol::LIFETIME,false);
 	            QB_.LogType = GetParameter(RESTAPI::Protocol::LOGTYPE,0);
 	            QB_.LastOnly = GetBoolParameter(RESTAPI::Protocol::LASTONLY,false);
@@ -1955,6 +1971,11 @@ namespace OpenWifi {
 	            QB_.CountOnly = GetBoolParameter(RESTAPI::Protocol::COUNTONLY,false);
 	            QB_.AdditionalInfo = GetBoolParameter(RESTAPI::Protocol::WITHEXTENDEDINFO,false);
 
+                auto RawSelect = GetParameter(RESTAPI::Protocol::SELECT, "");
+
+                auto Entries = Poco::StringTokenizer(RawSelect,",");
+                for(const auto &i:Entries)
+                    QB_.Select.emplace_back(i);
 	            if(QB_.Offset<1)
 	                QB_.Offset=0;
 	            return true;
