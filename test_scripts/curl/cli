@@ -34,12 +34,19 @@ fi
 
 token=""
 result_file=result.json
-username="script.runner@arilia.com"
-password="Snoopy99!!!"
-#username="tip@ucentral.com"
-#password="Openwifi123#"
 browser_list=(firefox sensible-browser xdg-open w3m links links2 lynx youtube-dl)
 browser=""
+
+if [ -z ${OWSEC_USERNAME+x} ]; then
+  username="script.runner@arilia.com"
+else
+  username=${OWSEC_USERNAME}
+fi
+if [ -z ${OWSEC_PASSWORD+x} ]; then
+  password="Snoopy99!!!"
+else
+  password=${OWSEC_PASSWORD}
+fi
 
 login() {
   payload="{ \"userId\" : \"$username\" , \"password\" : \"$password\" }"
@@ -75,40 +82,29 @@ findbrowser() {
 }
 
 setgateway() {
+if [ -z ${OWGW_OVERRIDE+x} ]; then
 	curl  ${FLAGS} -X GET "https://${OWSEC}/api/v1/systemEndpoints" \
         -H "accept: application/json" \
         -H "Authorization: Bearer ${token}"  > ${result_file}
-#	jq < ${result_file}
-
-	for index in {0..10}
-	do
-	endpointlocation=".endpoints[${index}].uri"
-	endpointlocationtype=".endpoints[${index}].type"
-	rawurl="$(cat ${result_file} | jq -r ${endpointlocation})"
-	svctype="$(cat ${result_file} | jq -r ${endpointlocationtype})"
-	proto="$(echo $rawurl | grep :// | sed -e's,^\(.*://\).*,\1,g')"
-	url="$(echo ${rawurl/$proto/})"
-	user="$(echo $url | grep @ | cut -d@ -f1)"
-	hostport="$(echo ${url/$user@/} | cut -d/ -f1)"
-	host="$(echo $hostport | sed -e 's,:.*,,g')"
-	port="$(echo $hostport | sed -e 's,^.*:,:,g' -e 's,.*:\([0-9]*\).*,\1,g' -e 's,[^0-9],,g')"
-	path="$(echo $url | grep / | cut -d/ -f2-)"
-	if [[ ${url} != "null" ]]
-		then
-		if [[ ${svctype} == "owgw" ]]
-			then
-# echo "url: $url"
-# echo "  proto: $proto"
-#			echo "  user: $user"
-#			echo "  host: $host"
-#			echo "  port: $port"
-#			echo "  path: $path"
-			OWGW="${url}"
-			break
-		fi
+	rawurl="$(cat ${result_file} | jq -r '.endpoints[] | select( .type == "owgw" ) | .uri')"
+	if [[ ! -z "${rawurl}" ]]; then
+		proto="$(echo $rawurl | grep :// | sed -e's,^\(.*://\).*,\1,g')"
+		url="$(echo ${rawurl/$proto/})"
+		user="$(echo $url | grep @ | cut -d@ -f1)"
+		hostport="$(echo ${url/$user@/} | cut -d/ -f1)"
+		host="$(echo $hostport | sed -e 's,:.*,,g')"
+		port="$(echo $hostport | sed -e 's,^.*:,:,g' -e 's,.*:\([0-9]*\).*,\1,g' -e 's,[^0-9],,g')"
+		path="$(echo $url | grep / | cut -d/ -f2-)"
+		export OWGW=${url}
+		echo "Using ${OWGW}..."
+	else
+		echo "OWGW endpoint is not found:"
+		jq < ${result_file}
+		exit 1
 	fi
-	done
-# echo "Using ${OWGW}..."
+else
+	export OWGW=${OWGW_OVERRIDE}
+fi
 }
 
 logout() {
