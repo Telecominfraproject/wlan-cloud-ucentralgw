@@ -108,6 +108,7 @@ namespace OpenWifi {
 		int Start() override;
 		void Stop() override;
 
+		bool IsValidEndPoint(const std::string &SerialNumber, const std::string & UUID);
 		bool CreateEndpoint(const std::string &SerialNumber, std::string &EndPoint, std::string &UUID);
 		void UpdateEndPoint(const std::string &SerialNumber, const std::string &PayLoad);
 		bool RegisterClient(const std::string &UUID, TelemetryClient *Client);

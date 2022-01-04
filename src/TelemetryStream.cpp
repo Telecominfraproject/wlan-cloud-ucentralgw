@@ -19,7 +19,7 @@
 #include "Poco/zlib.h"
 
 #include "DeviceRegistry.h"
-#include "RESTAPI/RESTAPI_TelemetryWebSocket.h"
+#include "RESTAPI/RESTAPI_telemetryWebSocket.h"
 #include "TelemetryStream.h"
 #include "framework/MicroService.h"
 
@@ -41,6 +41,20 @@ namespace OpenWifi {
 		}
 	}
 
+	bool TelemetryStream::IsValidEndPoint(const std::string &SerialNumber, const std::string & UUID) {
+		std::lock_guard	G(Mutex_);
+
+		auto U = Clients_.find(UUID);
+		if(U == Clients_.end() )
+			return false;
+
+		auto N = SerialNumbers_.find(SerialNumber);
+		if(N == SerialNumbers_.end())
+			return false;
+
+		return (N->second.find(UUID) != N->second.end());
+	}
+
 	bool TelemetryStream::CreateEndpoint(const std::string &SerialNumber, std::string &EndPoint, std::string &UUID) {
 		std::lock_guard	G(Mutex_);
 
@@ -50,7 +64,7 @@ namespace OpenWifi {
 		U.setScheme("wss");
 		U.setHost(Public.getHost());
 		U.setPort(Public.getPort());
-		auto RESTAPI_Path = std::string(*(RESTAPI_TelemetryWebSocket::PathName().begin()));
+		auto RESTAPI_Path = std::string(*(RESTAPI_telemetryWebSocket::PathName().begin()));
 		U.setPath(RESTAPI_Path);
 		U.addQueryParameter("uuid", UUID);
 		U.addQueryParameter("serialNumber", SerialNumber);

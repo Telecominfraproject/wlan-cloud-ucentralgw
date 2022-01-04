@@ -18,7 +18,7 @@
 #include "RESTAPI/RESTAPI_ouis.h"
 
 #include "RESTAPI/RESTAPI_capabilities_handler.h"
-#include "RESTAPI/RESTAPI_TelemetryWebSocket.h"
+#include "RESTAPI/RESTAPI_telemetryWebSocket.h"
 #include "RESTAPI/RESTAPI_webSocketServer.h"
 
 namespace OpenWifi {
@@ -40,8 +40,7 @@ namespace OpenWifi {
 				RESTAPI_webSocketServer,
 				RESTAPI_blacklist,
 				RESTAPI_blacklist_list,
-				RESTAPI_capabilities_handler,
-				RESTAPI_TelemetryWebSocket>(Path,Bindings,L, S, TransactionId);
+				RESTAPI_capabilities_handler, RESTAPI_telemetryWebSocket>(Path,Bindings,L, S, TransactionId);
     }
 
     Poco::Net::HTTPRequestHandler * RESTAPI_IntRouter(const char *Path, RESTAPIHandler::BindingMap &Bindings,

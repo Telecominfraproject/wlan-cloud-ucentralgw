@@ -2,14 +2,14 @@
 // Created by stephane bourque on 2021-09-16.
 //
 
-#include "RESTAPI_TelemetryWebSocket.h"
+#include "RESTAPI_telemetryWebSocket.h"
 #include "Poco/Net/WebSocket.h"
 #include "Poco/Net/NetException.h"
 #include "TelemetryStream.h"
 
 namespace OpenWifi {
 
-void RESTAPI_TelemetryWebSocket::DoGet() {
+void RESTAPI_telemetryWebSocket::DoGet() {
 		//	try and upgrade this session to websocket...
 		if (Request->find("Upgrade") != Request->end() &&
 			Poco::icompare((*Request)["Upgrade"], "websocket") == 0) {
@@ -23,6 +23,10 @@ void RESTAPI_TelemetryWebSocket::DoGet() {
 					} else if(i.first=="uuid") {
 						UUID = i.second;
 					}
+				}
+				if(!TelemetryStream()->IsValidEndPoint(SerialNumber,UUID)) {
+					Logger_.warning(Poco::format("Illegal telemetry request for S: %s, UUID: %s", SerialNumber, UUID));
+					return;
 				}
 				auto WS = Poco::SharedPtr<Poco::Net::WebSocket>( new Poco::Net::WebSocket(*Request, *Response));
 				new TelemetryClient(UUID, SerialNumber, WS, TelemetryStream()->NextReactor(), Logger_);

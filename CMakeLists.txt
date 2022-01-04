@@ -96,13 +96,13 @@ add_executable( owgw
         src/RESTAPI/RESTAPI_capabilities_handler.cpp src/RESTAPI/RESTAPI_capabilities_handler.h
         src/RESTAPI/RESTAPI_RPC.cpp src/RESTAPI/RESTAPI_RPC.h
         src/RESTAPI/RESTAPI_deviceDashboardHandler.cpp src/RESTAPI/RESTAPI_deviceDashboardHandler.h
-        src/RESTAPI/RESTAPI_TelemetryWebSocket.cpp src/RESTAPI/RESTAPI_TelemetryWebSocket.h
+        src/RESTAPI/RESTAPI_telemetryWebSocket.cpp src/RESTAPI/RESTAPI_telemetryWebSocket.h
         src/RESTAPI/RESTAPI_webSocketServer.cpp src/RESTAPI/RESTAPI_webSocketServer.h
         src/storage/storage_blacklist.cpp src/storage/storage_tables.cpp src/storage/storage_logs.cpp
         src/storage/storage_command.cpp src/storage/storage_healthcheck.cpp src/storage/storage_statistics.cpp
         src/storage/storage_device.cpp src/storage/storage_capabilities.cpp src/storage/storage_defconfig.cpp
         src/storage/storage_tables.cpp
-        src/RESTAPI/RESTAPI_Routers.cpp
+        src/RESTAPI/RESTAPI_routers.cpp
         src/Daemon.cpp src/Daemon.h
         src/StateProcessor.cpp src/StateProcessor.h
         src/storage/storage_lifetime_stats.cpp
