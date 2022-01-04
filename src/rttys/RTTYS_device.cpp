@@ -170,6 +170,9 @@ namespace OpenWifi {
 				msg = (RTTY_MSG_TYPE) inBuf[0];
 				int MsgLen = (int) inBuf[1] * 256 + (int) inBuf[2];
 
+				if(MsgLen > sizeof(inBuf))
+					return;
+
 				switch(msg) {
 					case msgTypeRegister: {
 						id_ = std::string((char*)&inBuf[3]);
