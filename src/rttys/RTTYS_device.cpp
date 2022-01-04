@@ -104,7 +104,11 @@ namespace OpenWifi {
 	}
 
 	void RTTY_Device_ConnectionHandler::KeyStrokes(const u_char *buf, int len) {
-		u_char outBuf[64]{0};
+		u_char outBuf[16]{0};
+
+		if(len>(sizeof(outBuf)-5))
+			return;
+
 		auto total_len = 3 + 1 + len-1;
 		outBuf[0] = msgTypeTermData;
 		outBuf[1] = 0 ;
