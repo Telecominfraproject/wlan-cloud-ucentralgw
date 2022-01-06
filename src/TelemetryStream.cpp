@@ -26,6 +26,7 @@
 namespace OpenWifi {
 
 	int TelemetryStream::Start() {
+		FIFO_.readable += Poco::delegate( this, &TelemetryStream::onFIFOOutReadable);
 		ReactorPool_.Start();
 		Runner_.start(*this);
 		return 0;
@@ -34,8 +35,8 @@ namespace OpenWifi {
 	void TelemetryStream::Stop() {
 	    Logger().notice("Stopping reactors...");
 	    ReactorPool_.Stop();
-
 		if(Running_) {
+			FIFO_.readable -= Poco::delegate( this, &TelemetryStream::onFIFOOutReadable);
 			Running_ = false;
 			Runner_.join();
 		}
@@ -89,10 +90,6 @@ namespace OpenWifi {
 		}
 		auto Msg = QueueUpdate{.SerialNumber=SerialNumber,.Payload=PayLoad};
 		FIFO_.write(&Msg,1);
-/*		std::lock_guard	G(QueueMutex_);
-		Queue_.push(QueueUpdate{.SerialNumber=SerialNumber,.Payload=PayLoad});
-		Runner_.wakeUp();
-		*/
 	}
 
 	void TelemetryStream::onFIFOOutReadable(bool& b) {
@@ -124,59 +121,9 @@ namespace OpenWifi {
 
 	void TelemetryStream::run() {
 		Running_ = true;
-		// std::vector<QueueUpdate>	Entries;
-
 		while(Running_) {
-			Poco::Thread::trySleep(2000);
-			continue;
+			Poco::Thread::trySleep(500);
 		}
-/*
-			bool QueueEmpty = true;
-			{
-				std::lock_guard	G(QueueMutex_);
-				QueueEmpty = Queue_.empty();
-			}
-
-			if(QueueEmpty) {
-				Poco::Thread::trySleep(2000);
-				continue;
-			}
-
-			if(!Running_)
-				break;
-
-			{
-				std::lock_guard	G(QueueMutex_);
-				Entries.clear();
-				while(!Queue_.empty()) {
-					Entries.push_back(Queue_.front());
-					Queue_.pop();
-				}
-			}
-
-			{
-				std::lock_guard	G(Mutex_);
-				for(auto &E:Entries) {
-					auto H1 = SerialNumbers_.find(E.SerialNumber);
-					if (H1 != SerialNumbers_.end()) {
-						for (auto &i : H1->second) {
-							auto H2 = Clients_.find(i);
-							if (H2 != Clients_.end() && H2->second != nullptr) {
-								try {
-									H2->second->Send(E.Payload);
-								} catch (...) {
-								}
-							}
-							if(!Running_)
-								break;
-						}
-					}
-					if(!Running_)
-						break;
-				}
-			}
-		}
-		*/
 	}
 
 	bool TelemetryStream::RegisterClient(const std::string &UUID, TelemetryClient *Client) {

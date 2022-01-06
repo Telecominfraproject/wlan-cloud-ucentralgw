@@ -79,6 +79,7 @@ namespace OpenWifi {
 		bool Send(const std::string &Payload);
 		void ProcessIncomingFrame();
 		inline Poco::Logger & Logger() { return Logger_; }
+
 	  private:
 		std::recursive_mutex        			Mutex_;
 		std::string 							UUID_;
@@ -115,8 +116,8 @@ namespace OpenWifi {
 		bool RegisterClient(const std::string &UUID, TelemetryClient *Client);
 		void DeRegisterClient(const std::string &UUID);
 		Poco::Net::SocketReactor & NextReactor() { return ReactorPool_.NextReactor(); }
-		void run() override;
 
+		void run() override;
 		void onFIFOOutReadable(bool& b);
 
 	  private:
@@ -124,17 +125,12 @@ namespace OpenWifi {
 		std::map<std::string, TelemetryClient *>		Clients_;			// 	uuid -> client
 		std::map<std::string, std::set<std::string>>	SerialNumbers_;		//	serialNumber -> uuid
 		TelemetryReactorPool							ReactorPool_;
-		std::mutex										QueueMutex_;
+// 		std::mutex										QueueMutex_;
 		Poco::Thread									Runner_;
-		std::queue<QueueUpdate>							Queue_;
+// 		std::queue<QueueUpdate>							Queue_;
 		Poco::BasicFIFOBuffer<QueueUpdate>				FIFO_{200,true};
 		TelemetryStream() noexcept:
 			SubSystemServer("TelemetryServer", "TELEMETRY-SVR", "openwifi.telemetry") {
-			FIFO_.readable += Poco::delegate( this, &TelemetryStream::onFIFOOutReadable);
-		}
-
-		~TelemetryStream() {
-			FIFO_.readable -= Poco::delegate( this, &TelemetryStream::onFIFOOutReadable);
 		}
 	};
 
