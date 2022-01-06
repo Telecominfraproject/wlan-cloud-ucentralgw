@@ -224,7 +224,7 @@ namespace OpenWifi::SecurityObjects {
     }
 
     void UserInfo::to_json(Poco::JSON::Object &Obj) const {
-		field_to_json(Obj,"Id",Id);
+		field_to_json(Obj,"id",id);
 		field_to_json(Obj,"name",name);
 		field_to_json(Obj,"description", description);
 		field_to_json(Obj,"avatar", avatar);
@@ -258,7 +258,7 @@ namespace OpenWifi::SecurityObjects {
 
     bool UserInfo::from_json(const Poco::JSON::Object::Ptr &Obj) {
         try {
-			field_from_json(Obj,"Id",Id);
+			field_from_json(Obj,"id",id);
 			field_from_json(Obj,"name",name);
 			field_from_json(Obj,"description",description);
 			field_from_json(Obj,"avatar",avatar);
