@@ -81,16 +81,56 @@ namespace OpenWifi {
 	}
 
 	void TelemetryStream::UpdateEndPoint(const std::string &SerialNumber, const std::string &PayLoad) {
-		std::lock_guard	G(QueueMutex_);
+		{
+			std::lock_guard M(Mutex_);
+			if (SerialNumbers_.find(SerialNumber) == SerialNumbers_.end()) {
+				return;
+			}
+		}
+		auto Msg = QueueUpdate{.SerialNumber=SerialNumber,.Payload=PayLoad};
+		FIFO_.write(&Msg,1);
+/*		std::lock_guard	G(QueueMutex_);
 		Queue_.push(QueueUpdate{.SerialNumber=SerialNumber,.Payload=PayLoad});
 		Runner_.wakeUp();
+		*/
+	}
+
+	void TelemetryStream::onFIFOOutReadable(bool& b) {
+		if(b) {
+			QueueUpdate Message;
+			size_t S = 0;
+			{
+				std::lock_guard M(FIFO_.mutex());
+				S = FIFO_.read(&Message, 1);
+			}
+
+			if(S == 1) {
+				std::lock_guard	M(Mutex_);
+				auto H1 = SerialNumbers_.find(Message.SerialNumber);
+				if (H1 != SerialNumbers_.end()) {
+					for (auto &i : H1->second) {
+						auto H2 = Clients_.find(i);
+						if (H2 != Clients_.end() && H2->second != nullptr) {
+							try {
+								H2->second->Send(Message.Payload);
+							} catch (...) {
+							}
+						}
+					}
+				}
+			}
+		}
 	}
 
 	void TelemetryStream::run() {
 		Running_ = true;
-		std::vector<QueueUpdate>	Entries;
+		// std::vector<QueueUpdate>	Entries;
 
 		while(Running_) {
+			Poco::Thread::trySleep(2000);
+			continue;
+		}
+/*
 			bool QueueEmpty = true;
 			{
 				std::lock_guard	G(QueueMutex_);
@@ -136,6 +176,7 @@ namespace OpenWifi {
 				}
 			}
 		}
+		*/
 	}
 
 	bool TelemetryStream::RegisterClient(const std::string &UUID, TelemetryClient *Client) {
