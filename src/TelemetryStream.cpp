@@ -28,7 +28,7 @@ namespace OpenWifi {
 	int TelemetryStream::Start() {
 		FIFO_.readable += Poco::delegate( this, &TelemetryStream::onFIFOOutReadable);
 		ReactorPool_.Start();
-		Runner_.start(*this);
+		// Runner_.start(*this);
 		return 0;
 	}
 
@@ -38,7 +38,7 @@ namespace OpenWifi {
 		if(Running_) {
 			FIFO_.readable -= Poco::delegate( this, &TelemetryStream::onFIFOOutReadable);
 			Running_ = false;
-			Runner_.join();
+			// Runner_.join();
 		}
 	}
 

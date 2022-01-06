@@ -126,7 +126,7 @@ namespace OpenWifi {
 		std::map<std::string, std::set<std::string>>	SerialNumbers_;		//	serialNumber -> uuid
 		TelemetryReactorPool							ReactorPool_;
 // 		std::mutex										QueueMutex_;
-		Poco::Thread									Runner_;
+//		Poco::Thread									Runner_;
 // 		std::queue<QueueUpdate>							Queue_;
 		Poco::BasicFIFOBuffer<QueueUpdate>				FIFO_{200,true};
 		TelemetryStream() noexcept:
