@@ -180,7 +180,7 @@ namespace ORM {
             const char *Prefix,
             DBCache<RecordType> * Cache=nullptr):
                 Type_(dbtype),
-                DBName_(TableName),
+                TableName_(TableName),
                 Pool_(Pool),
                 Logger_(L),
                 Prefix_(Prefix),
@@ -216,7 +216,7 @@ namespace ORM {
                     for(const auto &j:Indexes) {
                         std::string IndexLine;
 
-                        IndexLine = std::string("CREATE INDEX IF NOT EXISTS ") + j.Name + std::string(" ON ") + DBName_+ " (";
+                        IndexLine = std::string("CREATE INDEX IF NOT EXISTS ") + j.Name + std::string(" ON ") + TableName_+ " (";
                         bool first_entry=true;
                         for(const auto &k:j.Entries) {
                             assert(FieldNames_.find(k.FieldName) != FieldNames_.end());
@@ -306,8 +306,8 @@ namespace ORM {
                 case OpenWifi::DBType::mysql: {
                     try {
                         Poco::Data::Session     Session = Pool_.get();
-                        std::string Statement = IndexCreation_.empty() ?    "create table if not exists " + DBName_ +" ( " + CreateFields_ + " )" :
-                                                                            "create table if not exists " + DBName_ +" ( " + CreateFields_ + " ), " + IndexCreation_[0] + " )";
+                        std::string Statement = IndexCreation_.empty() ?    "create table if not exists " + TableName_ +" ( " + CreateFields_ + " )" :
+                                                                            "create table if not exists " + TableName_ +" ( " + CreateFields_ + " ), " + IndexCreation_[0] + " )";
                         Session << Statement , Poco::Data::Keywords::now;
                         return true;
                     } catch (const Poco::Exception &E) {
@@ -321,7 +321,7 @@ namespace ORM {
                 case OpenWifi::DBType::sqlite: {
                     try {
                         Poco::Data::Session     Session = Pool_.get();
-                        std::string Statement = "create table if not exists " + DBName_ + " ( " + CreateFields_ + " )";
+                        std::string Statement = "create table if not exists " + TableName_ + " ( " + CreateFields_ + " )";
                         Session << Statement , Poco::Data::Keywords::now;
                         for(const auto &i:IndexCreation_) {
                             Session << i , Poco::Data::Keywords::now;
@@ -337,7 +337,7 @@ namespace ORM {
                 case OpenWifi::DBType::pgsql: {
                     try {
                         Poco::Data::Session     Session = Pool_.get();
-                        std::string Statement = "create table if not exists " + DBName_ + " ( " + CreateFields_ + " )";
+                        std::string Statement = "create table if not exists " + TableName_ + " ( " + CreateFields_ + " )";
                         Session << Statement , Poco::Data::Keywords::now;
                         for(const auto &i:IndexCreation_) {
                             Session << i , Poco::Data::Keywords::now;
@@ -373,19 +373,19 @@ namespace ORM {
             return R;
         }
 
-        void Convert( RecordTuple &in , RecordType &out);
-        void Convert( RecordType &in , RecordTuple &out);
+        void Convert( const RecordTuple &in , RecordType &out);
+        void Convert( const RecordType &in , RecordTuple &out);
 
         inline const std::string & Prefix() { return Prefix_; };
 
-        bool CreateRecord( RecordType & R) {
+        bool CreateRecord( const RecordType & R) {
             try {
                 Poco::Data::Session     Session = Pool_.get();
                 Poco::Data::Statement   Insert(Session);
 
                 RecordTuple RT;
                 Convert(R, RT);
-                std::string St = "insert into  " + DBName_ + " ( " + SelectFields_ + " ) values " + SelectList_;
+                std::string St = "insert into  " + TableName_ + " ( " + SelectFields_ + " ) values " + SelectList_;
                 Insert  << ConvertParams(St) ,
                     Poco::Data::Keywords::use(RT);
                 Insert.execute();
@@ -400,7 +400,7 @@ namespace ORM {
             return false;
         }
 
-        template<typename T> bool GetRecord( const char * FieldName, T Value,  RecordType & R) {
+        template<typename T> bool GetRecord( const char * FieldName, const T & Value,  RecordType & R) {
             try {
                 assert( FieldNames_.find(FieldName) != FieldNames_.end() );
 
@@ -413,12 +413,16 @@ namespace ORM {
                 Poco::Data::Statement   Select(Session);
                 RecordTuple             RT;
 
-                std::string St = "select " + SelectFields_ + " from " + DBName_ + " where " + FieldName + "=?" ;
+                std::string St = "select " + SelectFields_ + " from " + TableName_ + " where " + FieldName + "=?" ;
+
+                auto tValue{Value};
 
                 Select  << ConvertParams(St) ,
                     Poco::Data::Keywords::into(RT),
-                    Poco::Data::Keywords::use(Value);
-                if(Select.execute()==1) {
+                    Poco::Data::Keywords::use(tValue);
+                Select.execute();
+
+                if(Select.rowsExtracted()==1) {
                     Convert(RT,R);
                     if(Cache_)
                         Cache_->UpdateCache(R);
@@ -443,7 +447,7 @@ namespace ORM {
                 Poco::Data::Statement   Select(Session);
                 RecordTuple RT;
 
-                std::string St = "select " + SelectFields_ + " from " + DBName_
+                std::string St = "select " + SelectFields_ + " from " + TableName_
                                 + " where " + FieldName[0] + "=? and " + FieldName[1] + "=?"  ;
                 Select  << ConvertParams(St) ,
                     Poco::Data::Keywords::into(RT),
@@ -468,14 +472,15 @@ namespace ORM {
                 Poco::Data::Session     Session = Pool_.get();
                 Poco::Data::Statement   Select(Session);
                 RecordList RL;
-                std::string St = "select " + SelectFields_ + " from " + DBName_ +
+                std::string St = "select " + SelectFields_ + " from " + TableName_ +
                         (Where.empty() ? "" : " where " + Where) + OrderBy +
                         ComputeRange(Offset, HowMany) ;
 
                 Select  << St ,
                     Poco::Data::Keywords::into(RL);
+                Select.execute();
 
-                if(Select.execute()>0) {
+                if(Select.rowsExtracted()>0) {
                     for(auto &i:RL) {
                         RecordType  R;
                         Convert(i, R);
@@ -490,7 +495,7 @@ namespace ORM {
             return false;
         }
 
-        template <typename T> bool UpdateRecord( const char *FieldName, T & Value,  RecordType & R) {
+        template <typename T> bool UpdateRecord( const char *FieldName, const T & Value,  const RecordType & R) {
             try {
                 assert( FieldNames_.find(FieldName) != FieldNames_.end() );
 
@@ -501,10 +506,12 @@ namespace ORM {
 
                 Convert(R, RT);
 
-                std::string St = "update " + DBName_ + " set " + UpdateFields_ + " where " + FieldName + "=?" ;
+                auto tValue(Value);
+
+                std::string St = "update " + TableName_ + " set " + UpdateFields_ + " where " + FieldName + "=?" ;
                 Update  << ConvertParams(St) ,
                     Poco::Data::Keywords::use(RT),
-                    Poco::Data::Keywords::use(Value);
+                    Poco::Data::Keywords::use(tValue);
                 Update.execute();
                 if(Cache_)
                     Cache_->UpdateCache(R);
@@ -515,7 +522,7 @@ namespace ORM {
             return false;
         }
 
-        template <typename T> bool ReplaceRecord( const char *FieldName, T & Value,  RecordType & R) {
+        template <typename T> bool ReplaceRecord( const char *FieldName, const T & Value,  RecordType & R) {
             try {
                 if(Exists(FieldName, Value)) {
                     return UpdateRecord(FieldName,Value,R);
@@ -527,18 +534,20 @@ namespace ORM {
             return false;
         }
 
-        template <typename T> bool GetNameAndDescription(const char *FieldName, T & Value, std::string & Name, std::string & Description ) {
+        template <typename T> bool GetNameAndDescription(const char *FieldName, const T & Value, std::string & Name, std::string & Description ) {
             try {
                 assert( FieldNames_.find(FieldName) != FieldNames_.end() );
                 Poco::Data::Session     Session = Pool_.get();
                 Poco::Data::Statement   Select(Session);
                 RecordTuple             RT;
 
-                std::string St = "select " + SelectFields_ + " from " + DBName_ + " where " + FieldName + "=?" ;
+                std::string St = "select " + SelectFields_ + " from " + TableName_ + " where " + FieldName + "=?" ;
                 RecordType R;
+                auto tValue{Value};
                 Select  << ConvertParams(St) ,
-                Poco::Data::Keywords::into(RT),
-                Poco::Data::Keywords::use(Value);
+                    Poco::Data::Keywords::into(RT),
+                    Poco::Data::Keywords::use(tValue);
+
                 if(Select.execute()==1) {
                     Convert(RT,R);
                     Name = R.info.name;
@@ -552,16 +561,18 @@ namespace ORM {
             return false;
         }
 
-        template <typename T> bool DeleteRecord( const char *FieldName, T Value) {
+        template <typename T> bool DeleteRecord( const char *FieldName, const T & Value) {
             try {
                 assert( FieldNames_.find(FieldName) != FieldNames_.end() );
 
                 Poco::Data::Session     Session = Pool_.get();
                 Poco::Data::Statement   Delete(Session);
 
-                std::string St = "delete from " + DBName_ + " where " + FieldName + "=?" ;
+                std::string St = "delete from " + TableName_ + " where " + FieldName + "=?" ;
+                auto tValue{Value};
+
                 Delete  << ConvertParams(St) ,
-                    Poco::Data::Keywords::use(Value);
+                    Poco::Data::Keywords::use(tValue);
                 Delete.execute();
                 if(Cache_)
                     Cache_->Delete(FieldName, Value);
@@ -578,7 +589,7 @@ namespace ORM {
                 Poco::Data::Session     Session = Pool_.get();
                 Poco::Data::Statement   Delete(Session);
 
-                std::string St = "delete from " + DBName_ + " where " + WhereClause;
+                std::string St = "delete from " + TableName_ + " where " + WhereClause;
                 Delete  << St;
                 Delete.execute();
                 return true;
@@ -588,7 +599,7 @@ namespace ORM {
             return false;
         }
 
-        bool Exists(const char *FieldName, std::string & Value) {
+        bool Exists(const char *FieldName, const std::string & Value) {
             try {
                 assert( FieldNames_.find(FieldName) != FieldNames_.end() );
 
@@ -666,7 +677,7 @@ namespace ORM {
                 Poco::Data::Session     Session = Pool_.get();
                 Poco::Data::Statement   Select(Session);
 
-                std::string st{"SELECT COUNT(*) FROM " + DBName_ + " " + (Where.empty() ? "" : (" where " + Where)) };
+                std::string st{"SELECT COUNT(*) FROM " + TableName_ + " " + (Where.empty() ? "" : (" where " + Where)) };
 
                 Select << st ,
                     Poco::Data::Keywords::into(Cnt);
@@ -707,6 +718,39 @@ namespace ORM {
             return false;
         }
 
+        bool RunScript(const std::vector<std::string> & Statements, bool IgnoreExceptions=true) {
+            try {
+                Poco::Data::Session     Session = Pool_.get();
+                Poco::Data::Statement   Command(Session);
+
+                for(const auto &i:Statements) {
+                    try {
+                        Command << i, Poco::Data::Keywords::now;
+                    } catch (const Poco::Exception &E) {
+                        Logger_.log(E);
+                        Logger_.error(Poco::format("The following statement '%s' generated an exception during a table upgrade. This maya or may not be a problem.", i));
+                    }
+                    if(!IgnoreExceptions) {
+                        return false;
+                    }
+                    Command.reset(Session);
+                }
+                return true;
+            } catch (const Poco::Exception &E) {
+                Logger_.log(E);
+            }
+            return false;
+        }
+
+        virtual uint32_t Version() {
+            return 0;
+        }
+
+        virtual bool Upgrade(uint32_t from, uint32_t &to) {
+            to = from;
+            return true;
+        }
+        
         inline bool AddChild( const char *FieldName, std::string & ParentUUID, std::string & ChildUUID) {
             return ManipulateVectorMember(&RecordType::children, FieldName, ParentUUID, ChildUUID, true);
         }
@@ -823,7 +867,7 @@ namespace ORM {
     protected:
         Poco::Data::SessionPool     &Pool_;
         Poco::Logger                &Logger_;
-        std::string                 DBName_;
+        std::string                 TableName_;
         DBCache<RecordType>         *Cache_= nullptr;
     private:
         OpenWifi::DBType            Type_;
