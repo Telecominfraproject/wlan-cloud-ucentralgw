@@ -94,16 +94,16 @@ namespace OpenWifi {
 
 	void TelemetryStream::onFIFOOutReadable(bool& b) {
 		if(b) {
-			QueueUpdate Message;
+			QueueUpdate *Message=nullptr;
 			std::cout << "In notifier" << std::endl;
-			auto S = FIFO_.read(&Message, 1);
+			auto S = FIFO_.read(Message, 1);
 			std::cout << S << std::endl;
 
 			if(S == 1) {
 				_OWDEBUG_;
 				std::lock_guard	M(Mutex_);
 				_OWDEBUG_;
-				auto H1 = SerialNumbers_.find(Message.SerialNumber);
+				auto H1 = SerialNumbers_.find(Message->SerialNumber);
 				if (H1 != SerialNumbers_.end()) {
 					_OWDEBUG_;
 					for (auto &i : H1->second) {
@@ -113,7 +113,7 @@ namespace OpenWifi {
 							_OWDEBUG_;
 							try {
 								_OWDEBUG_;
-								H2->second->Send(Message.Payload);
+								H2->second->Send(Message->Payload);
 								_OWDEBUG_;
 							} catch (...) {
 								_OWDEBUG_;
