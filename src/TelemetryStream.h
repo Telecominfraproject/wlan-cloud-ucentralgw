@@ -25,8 +25,7 @@ namespace OpenWifi {
 
 	template <typename T> class FIFO {
 	  public:
-		explicit FIFO(uint32_t Size) :
-									   Size_(Size) {
+		explicit FIFO(uint32_t Size) : Size_(Size) {
 			Buffer_->reserve(Size_);
 		}
 
@@ -169,7 +168,6 @@ namespace OpenWifi {
 		void DeRegisterClient(const std::string &UUID);
 		Poco::Net::SocketReactor & NextReactor() { return ReactorPool_.NextReactor(); }
 
-	// 	void run() override;
 		void onMessage(bool& b);
 
 	  private:
