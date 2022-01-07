@@ -26,6 +26,7 @@
 namespace OpenWifi {
 
 	int TelemetryStream::Start() {
+		Running_ = true;
 		Messages_->Readable_ += Poco::delegate(this,&TelemetryStream::onMessage);
 		ReactorPool_.Start();
 		return 0;
@@ -111,14 +112,6 @@ namespace OpenWifi {
 			}
 		}
 	}
-
-/*	void TelemetryStream::run() {
-		Running_ = true;
-		while(Running_) {
-			Poco::Thread::trySleep(500);
-		}
-	}
-*/
 
 	bool TelemetryStream::RegisterClient(const std::string &UUID, TelemetryClient *Client) {
 		std::lock_guard	G(Mutex_);
