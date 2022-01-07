@@ -26,7 +26,7 @@
 namespace OpenWifi {
 
 	int TelemetryStream::Start() {
-		FIFO_.readable += Poco::delegate( this, &TelemetryStream::onFIFOOutReadable);
+		Messages_->Readable_ += Poco::delegate(this,&TelemetryStream::onMessage);
 		ReactorPool_.Start();
 		// Runner_.start(*this);
 		return 0;
@@ -36,8 +36,8 @@ namespace OpenWifi {
 	    Logger().notice("Stopping reactors...");
 	    ReactorPool_.Stop();
 		if(Running_) {
-			FIFO_.readable -= Poco::delegate( this, &TelemetryStream::onFIFOOutReadable);
 			Running_ = false;
+			Messages_->Readable_ -= Poco::delegate( this, &TelemetryStream::onMessage);
 			// Runner_.join();
 		}
 	}
@@ -88,22 +88,21 @@ namespace OpenWifi {
 				return;
 			}
 		}
-		auto Msg = QueueUpdate{.SerialNumber=SerialNumber,.Payload=PayLoad};
-		FIFO_.write(&Msg,1);
+		Messages_->Write(QueueUpdate{.SerialNumber=SerialNumber, .Payload = PayLoad});
 	}
 
-	void TelemetryStream::onFIFOOutReadable(bool& b) {
+	void TelemetryStream::onMessage(bool &b){
 		if(b) {
-			QueueUpdate *Message=nullptr;
+			QueueUpdate Msg;
 			std::cout << "In notifier" << std::endl;
-			auto S = FIFO_.read(Message, 1);
+			auto S = Messages_->Read(Msg);
 			std::cout << S << std::endl;
 
-			if(S == 1) {
+			if(S) {
 				_OWDEBUG_;
 				std::lock_guard	M(Mutex_);
 				_OWDEBUG_;
-				auto H1 = SerialNumbers_.find(Message->SerialNumber);
+				auto H1 = SerialNumbers_.find(Msg.SerialNumber);
 				if (H1 != SerialNumbers_.end()) {
 					_OWDEBUG_;
 					for (auto &i : H1->second) {
@@ -113,7 +112,7 @@ namespace OpenWifi {
 							_OWDEBUG_;
 							try {
 								_OWDEBUG_;
-								H2->second->Send(Message->Payload);
+								H2->second->Send(Msg.Payload);
 								_OWDEBUG_;
 							} catch (...) {
 								_OWDEBUG_;

@@ -23,6 +23,58 @@
 
 namespace OpenWifi {
 
+	template <typename T> class FIFO {
+	  public:
+		explicit FIFO(uint32_t Size) :
+									   Size_(Size) {
+			Buffer_->reserve(Size_);
+		}
+
+		mutable Poco::BasicEvent<bool> Writable_;
+		mutable Poco::BasicEvent<bool> Readable_;
+
+		inline bool Read(T &t) {
+			{
+				std::lock_guard M(Mutex_);
+				if (Write_ == Read_) {
+					return false;
+				}
+
+				t = (*Buffer_)[Read_++];
+				if (Read_ == Size_) {
+					Read_ = 0;
+				}
+			}
+			bool flag = true;
+			Writable_.notify(this, flag);
+			return true;
+		}
+
+		inline bool Write(const T &t) {
+			{
+				std::lock_guard M(Mutex_);
+
+				if (Write_ < Size_) {
+					(*Buffer_)[Write_++] = t;
+				}
+
+				if (Write_ == Size_) {
+					Write_ = 0;
+				}
+			}
+			bool flag = true;
+			Readable_.notify(this, flag);
+			return false;
+		}
+
+	  private:
+		std::mutex      Mutex_;
+		uint32_t        Size_;
+		uint32_t        Read_=0;
+		uint32_t                        Write_=0;
+		std::unique_ptr<std::vector<T>>  Buffer_=std::make_unique<std::vector<T>>();
+	};
+
 	class TelemetryReactorPool {
 	  public:
 		TelemetryReactorPool( unsigned int NumberOfThreads = Poco::Environment::processorCount() )
@@ -118,17 +170,19 @@ namespace OpenWifi {
 		Poco::Net::SocketReactor & NextReactor() { return ReactorPool_.NextReactor(); }
 
 		void run() override;
-		void onFIFOOutReadable(bool& b);
+		void onMessage(bool& b);
 
 	  private:
 		std::atomic_bool 								Running_=false;
 		std::map<std::string, TelemetryClient *>		Clients_;			// 	uuid -> client
 		std::map<std::string, std::set<std::string>>	SerialNumbers_;		//	serialNumber -> uuid
 		TelemetryReactorPool							ReactorPool_;
+		std::unique_ptr<FIFO<QueueUpdate>>				Messages_=std::make_unique<FIFO<QueueUpdate>>(100);
+
 // 		std::mutex										QueueMutex_;
 //		Poco::Thread									Runner_;
 // 		std::queue<QueueUpdate>							Queue_;
-		Poco::BasicFIFOBuffer<QueueUpdate>				FIFO_{200,true};
+//		Poco::BasicFIFOBuffer<QueueUpdate *>			FIFO_{200,true};
 		TelemetryStream() noexcept:
 			SubSystemServer("TelemetryServer", "TELEMETRY-SVR", "openwifi.telemetry") {
 		}
