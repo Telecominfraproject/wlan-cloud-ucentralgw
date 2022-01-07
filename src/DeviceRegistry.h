@@ -38,12 +38,11 @@ namespace OpenWifi {
 		bool GetStatistics(const std::string &SerialNumber, std::string & Statistics);
 		void SetStatistics(const std::string &SerialNumber, const std::string &stats);
 		bool GetState(const std::string & SerialNumber, GWObjects::ConnectionState & State);
-		void SetState(const std::string & SerialNumber, GWObjects::ConnectionState & State);
+		void SetState(const std::string & SerialNumber, const GWObjects::ConnectionState & State);
 		bool GetHealthcheck(const std::string &SerialNumber, GWObjects::HealthCheck & CheckData);
 		void SetHealthcheck(const std::string &SerialNumber, const GWObjects::HealthCheck &H);
 		std::shared_ptr<ConnectionEntry> Register(const std::string & SerialNumber, WSConnection *, uint64_t & ConnectionId);
 		void UnRegister(const std::string & SerialNumber, uint64_t ConnectionId);
-		bool SendCommand(GWObjects::CommandDetails & Command);
 		bool Connected(const std::string & SerialNumber);
 		bool SendFrame(const std::string & SerialNumber, const std::string & Payload);
 		void SetPendingUUID(const std::string & SerialNumber, uint64_t PendingUUID);

@@ -58,7 +58,7 @@ namespace OpenWifi {
 		return true;
     }
 
-    void DeviceRegistry::SetState(const std::string & SerialNumber, GWObjects::ConnectionState & State) {
+    void DeviceRegistry::SetState(const std::string & SerialNumber, const GWObjects::ConnectionState & State) {
 		std::lock_guard		Guard(Mutex_);
         auto Device = Devices_.find(SerialNumber);
         if(Device != Devices_.end())

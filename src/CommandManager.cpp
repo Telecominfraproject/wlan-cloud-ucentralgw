@@ -29,7 +29,7 @@ namespace OpenWifi {
 				break;
 
             std::vector<GWObjects::CommandDetails> Commands;
-            if(StorageService()->GetReadyToExecuteCommands(1,200,Commands))
+            if(StorageService()->GetReadyToExecuteCommands(0,200,Commands))
             {
                 for(auto & Cmd: Commands)
                 {
@@ -105,28 +105,33 @@ namespace OpenWifi {
 									 	uint64_t & Id,
 									 	bool oneway_rpc) {
 
+		if(!DeviceRegistry()->Connected(SerialNumber)) {
+			return false;
+		}
+
 		std::stringstream ToSend;
-		std::unique_lock G(Mutex_);
-		if(oneway_rpc)
-			Id = 1;
-		else
-			Id = ++Id_;
-		Poco::JSON::Object CompleteRPC;
-		CompleteRPC.set(uCentralProtocol::JSONRPC, uCentralProtocol::JSONRPC_VERSION);
-		CompleteRPC.set(uCentralProtocol::ID, Id);
-		CompleteRPC.set(uCentralProtocol::METHOD, Method);
-		CompleteRPC.set(uCentralProtocol::PARAMS, Params);
-		Poco::JSON::Stringifier::stringify(CompleteRPC, ToSend);
-		Logger().information(
-			Poco::format("(%s): Sending command '%s', ID: %lu", SerialNumber, Method, Id));
-		CommandTagIndex Idx{.Id = Id, .SerialNumber = SerialNumber};
-		CommandTag Tag;
-		Tag.UUID = UUID;
-		Tag.Submitted = std::time(nullptr);
-		Tag.Completed = 0;
-		Tag.Result = Poco::makeShared<Poco::JSON::Object>();
-		OutStandingRequests_[Idx] = Tag;
-		G.unlock();
+		{
+			std::lock_guard M(Mutex_);
+			if (oneway_rpc)
+				Id = 1;
+			else
+				Id = ++Id_;
+			Poco::JSON::Object CompleteRPC;
+			CompleteRPC.set(uCentralProtocol::JSONRPC, uCentralProtocol::JSONRPC_VERSION);
+			CompleteRPC.set(uCentralProtocol::ID, Id);
+			CompleteRPC.set(uCentralProtocol::METHOD, Method);
+			CompleteRPC.set(uCentralProtocol::PARAMS, Params);
+			Poco::JSON::Stringifier::stringify(CompleteRPC, ToSend);
+			Logger().information(
+				Poco::format("(%s): Sending command '%s', ID: %lu", SerialNumber, Method, Id));
+			CommandTagIndex Idx{.Id = Id, .SerialNumber = SerialNumber};
+			CommandTag Tag;
+			Tag.UUID = UUID;
+			Tag.Submitted = std::time(nullptr);
+			Tag.Completed = 0;
+			Tag.Result = Poco::makeShared<Poco::JSON::Object>();
+			OutStandingRequests_[Idx] = Tag;
+		}
 		return DeviceRegistry()->SendFrame(SerialNumber, ToSend.str());
 	}
 
