@@ -28,7 +28,6 @@ namespace OpenWifi {
 	int TelemetryStream::Start() {
 		Messages_->Readable_ += Poco::delegate(this,&TelemetryStream::onMessage);
 		ReactorPool_.Start();
-		// Runner_.start(*this);
 		return 0;
 	}
 
@@ -38,7 +37,6 @@ namespace OpenWifi {
 		if(Running_) {
 			Running_ = false;
 			Messages_->Readable_ -= Poco::delegate( this, &TelemetryStream::onMessage);
-			// Runner_.join();
 		}
 	}
 
@@ -94,46 +92,33 @@ namespace OpenWifi {
 	void TelemetryStream::onMessage(bool &b){
 		if(b) {
 			QueueUpdate Msg;
-			std::cout << "In notifier" << std::endl;
 			auto S = Messages_->Read(Msg);
-			std::cout << S << std::endl;
 
 			if(S) {
-				_OWDEBUG_;
 				std::lock_guard	M(Mutex_);
-				_OWDEBUG_;
 				auto H1 = SerialNumbers_.find(Msg.SerialNumber);
 				if (H1 != SerialNumbers_.end()) {
-					_OWDEBUG_;
 					for (auto &i : H1->second) {
-						_OWDEBUG_;
 						auto H2 = Clients_.find(i);
 						if (H2 != Clients_.end() && H2->second != nullptr) {
-							_OWDEBUG_;
 							try {
-								_OWDEBUG_;
 								H2->second->Send(Msg.Payload);
-								_OWDEBUG_;
 							} catch (...) {
-								_OWDEBUG_;
 							}
-							_OWDEBUG_;
 						}
-						_OWDEBUG_;
 					}
-					_OWDEBUG_;
 				}
-				_OWDEBUG_;
 			}
 		}
 	}
 
-	void TelemetryStream::run() {
+/*	void TelemetryStream::run() {
 		Running_ = true;
 		while(Running_) {
 			Poco::Thread::trySleep(500);
 		}
 	}
+*/
 
 	bool TelemetryStream::RegisterClient(const std::string &UUID, TelemetryClient *Client) {
 		std::lock_guard	G(Mutex_);

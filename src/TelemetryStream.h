@@ -146,7 +146,7 @@ namespace OpenWifi {
 		void CompleteStartup();
 	};
 
-	class TelemetryStream : public SubSystemServer, Poco::Runnable {
+	class TelemetryStream : public SubSystemServer {
 	  public:
 
 		struct QueueUpdate {
@@ -169,7 +169,7 @@ namespace OpenWifi {
 		void DeRegisterClient(const std::string &UUID);
 		Poco::Net::SocketReactor & NextReactor() { return ReactorPool_.NextReactor(); }
 
-		void run() override;
+	// 	void run() override;
 		void onMessage(bool& b);
 
 	  private:
@@ -179,10 +179,6 @@ namespace OpenWifi {
 		TelemetryReactorPool							ReactorPool_;
 		std::unique_ptr<FIFO<QueueUpdate>>				Messages_=std::make_unique<FIFO<QueueUpdate>>(100);
 
-// 		std::mutex										QueueMutex_;
-//		Poco::Thread									Runner_;
-// 		std::queue<QueueUpdate>							Queue_;
-//		Poco::BasicFIFOBuffer<QueueUpdate *>			FIFO_{200,true};
 		TelemetryStream() noexcept:
 			SubSystemServer("TelemetryServer", "TELEMETRY-SVR", "openwifi.telemetry") {
 		}
