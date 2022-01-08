@@ -609,6 +609,31 @@ The device should answer:
     "id" : <same number>
 }
 ```
+
+#### Controller wants to ping the device
+Controller sends this command when it tries to establish latency to the device.
+```
+{    "jsonrpc" : "2.0" , 
+     "method" : "ping" , 
+     "params" : {
+	        "serial" : <serial number>
+     },
+     "id" : <some number>
+}
+```
+
+The device should answer:
+```
+{     "jsonrpc" : "2.0" , 
+      "result" : {
+              "serial" : <serial number> ,
+              "uuid" : <uuid of the current active configuration>
+            },
+      "id" : <same number>
+}
+```
+
+
 #### `rtty server`
 More information about the [rtty server](https://github.com/zhaojh329/rtty) can be found here.
 

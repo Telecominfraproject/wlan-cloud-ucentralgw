@@ -1851,6 +1851,51 @@ paths:
         404:
           $ref: '#/components/responses/NotFound'
 
+  /device/{serialNumber}/ping:
+    post:
+      tags:
+        - Commands
+      summary: Configure a device.
+      operationId: updateConfigurationForADevice
+      parameters:
+        - in: path
+          name: serialNumber
+          schema:
+            type: string
+          required: true
+      requestBody:
+        description: Command details
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                serialNumber:
+                  type: string
+      responses:
+        200:
+          content:
+            application/json:
+              schema:
+                type:
+                serialNumber:
+                  type: string
+                currentUTCTime:
+                  type: integer
+                  format: int64
+                deviceUTCTime:
+                  type: integer
+                  format: int64
+                latency:
+                  type: number
+                configurationUUID:
+                  type: integer
+                  format: int64
+        403:
+          $ref: '#/components/responses/Unauthorized'
+        404:
+          $ref: '#/components/responses/NotFound'
+
   /device/{serialNumber}/upgrade:
     post:
       tags:

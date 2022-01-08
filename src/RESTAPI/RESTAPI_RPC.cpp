@@ -78,6 +78,7 @@ namespace OpenWifi::RESTAPI_RPC {
 							Cmd.Results = ResultText.str();
 							Cmd.Status = "completed";
 							Cmd.Completed = time(nullptr);
+							Cmd.executionTime = rpc_execution_time.count();
 
 							if (Cmd.ErrorCode && Cmd.Command == uCentralProtocol::TRACE) {
 								Cmd.WaitingForFile = 0;
@@ -86,8 +87,7 @@ namespace OpenWifi::RESTAPI_RPC {
 							}
 
 							//	Add the completed command to the database...
-							StorageService()->AddCommand(Cmd.SerialNumber, Cmd,
-														 Storage::COMMAND_COMPLETED);
+							StorageService()->AddCommand(Cmd.SerialNumber, Cmd, Storage::COMMAND_COMPLETED);
 
 							if (ObjectToReturn) {
 								Handler->ReturnObject(*ObjectToReturn);
@@ -96,7 +96,7 @@ namespace OpenWifi::RESTAPI_RPC {
 								Cmd.to_json(O);
 								Handler->ReturnObject(O);
 							}
-							Logger.information(Poco::format("Command(%s): completed in %8.3fms.", Cmd.UUID, rpc_execution_time.count()));
+							Logger.information(Poco::format("Command(%s): completed in %8.3fms.", Cmd.UUID, Cmd.executionTime));
 							return;
 						} else {
 							SetCommandStatus(Cmd, Request, Response, Handler,

@@ -181,7 +181,15 @@ namespace OpenWifi::RESTAPI_utils {
         Obj.set(Field,V);
     }
 
-    inline void field_to_json(Poco::JSON::Object &Obj, const char *Field, const std::string & S) {
+	inline void field_to_json(Poco::JSON::Object &Obj, const char *Field, double V) {
+		Obj.set(Field,V);
+	}
+
+	inline void field_to_json(Poco::JSON::Object &Obj, const char *Field, float V) {
+		Obj.set(Field,V);
+	}
+
+	inline void field_to_json(Poco::JSON::Object &Obj, const char *Field, const std::string & S) {
         Obj.set(Field,S);
     }
 

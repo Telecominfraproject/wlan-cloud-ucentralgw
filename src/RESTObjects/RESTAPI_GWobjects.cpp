@@ -146,6 +146,7 @@ namespace OpenWifi::GWObjects {
 		field_to_json(Obj,"custom", Custom);
 		field_to_json(Obj,"waitingForFile", WaitingForFile);
 		field_to_json(Obj,"attachFile", AttachDate);
+		field_to_json(Obj,"executionTime", executionTime);
 	}
 
 	bool DefaultConfiguration::from_json(Poco::JSON::Object::Ptr &Obj) {

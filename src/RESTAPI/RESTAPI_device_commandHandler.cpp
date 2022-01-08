@@ -111,6 +111,8 @@ namespace OpenWifi {
 			return EventQueue();
 		} else if (Command_ == RESTAPI::Protocol::TELEMETRY) {
 			return Telemetry();
+		} else if (Command_ == RESTAPI::Protocol::PING) {
+			return Ping();
 		} else {
 			return BadRequest(RESTAPI::Errors::InvalidCommand);
 		}
@@ -188,6 +190,56 @@ void RESTAPI_device_commandHandler::DeleteStatistics() {
 		}
 	}
 	NotFound();
+}
+
+void RESTAPI_device_commandHandler::Ping() {
+	Logger_.information(Poco::format("DELETE-STATISTICS: user=%s serial=%s", UserInfo_.userinfo.email,SerialNumber_));
+	auto Obj = ParseStream();
+	if (Obj->has(RESTAPI::Protocol::SERIALNUMBER)) {
+		auto SNum = Obj->get(RESTAPI::Protocol::SERIALNUMBER).toString();
+		if (SerialNumber_ != SNum) {
+			return BadRequest(RESTAPI::Errors::SerialNumberMismatch);
+		}
+
+		GWObjects::CommandDetails Cmd;
+		Cmd.SerialNumber = SerialNumber_;
+		Cmd.UUID = MicroService::CreateUUID();
+		Cmd.SubmittedBy = UserInfo_.webtoken.username_;
+		Cmd.Command = uCentralProtocol::PING;
+		Cmd.RunAt = 0;
+
+		Poco::JSON::Object Params;
+		Params.set(uCentralProtocol::SERIAL, SerialNumber_);
+		std::stringstream ParamStream;
+
+		Params.stringify(ParamStream);
+		Cmd.Details = ParamStream.str();
+
+		RESTAPI_RPC::WaitForCommand(Cmd, Params, *Request, *Response, 60000ms, nullptr, this, Logger_);
+
+		GWObjects::CommandDetails Cmd2;
+		if(StorageService()->GetCommand(Cmd.UUID,Cmd2)) {
+			Poco::JSON::Object	Answer;
+			Answer.set("latency", Cmd2.executionTime);
+			Answer.set("serialNumber", SerialNumber_);
+			Answer.set("currentUTCTime", std::chrono::duration_cast<std::chrono::milliseconds>(
+											 std::chrono::system_clock::now().time_since_epoch()).count());
+			try {
+				Poco::JSON::Parser	P;
+				auto ResponseObj = P.parse(Cmd2.Results).extract<Poco::JSON::Object::Ptr>();
+				if(ResponseObj->has("results")) {
+					auto Results = ResponseObj->get("results").extract<Poco::JSON::Object::Ptr>();
+					if(Results->has("deviceUTCTime"))
+						Answer.set("deviceUTCTime",Results->has("deviceUTCTime"));
+				}
+			} catch (...) {
+
+			}
+			return ReturnObject(Answer);
+		}
+		return BadRequest("Command could not be performed.");
+	}
+	return BadRequest(RESTAPI::Errors::MissingSerialNumber);
 }
 
 void RESTAPI_device_commandHandler::GetStatus() {

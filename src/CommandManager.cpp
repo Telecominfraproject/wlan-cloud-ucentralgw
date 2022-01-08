@@ -153,7 +153,8 @@ namespace OpenWifi {
 			Logger().warning(Poco::format("(%s): Outdated RPC %lu", SerialNumber, ID));
 			return;
 		}
-		StorageService()->CommandCompleted(RPC->second.uuid, Obj, true);
+		std::chrono::duration<double, std::milli> rpc_execution_time = std::chrono::high_resolution_clock::now() - RPC->second.submitted;
+		StorageService()->CommandCompleted(RPC->second.uuid, Obj, rpc_execution_time, true);
 		if(RPC->second.rpc_entry) {
 			RPC->second.rpc_entry->set_value(Obj);
 		}

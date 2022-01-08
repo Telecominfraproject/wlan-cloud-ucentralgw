@@ -45,6 +45,7 @@ namespace OpenWifi {
 		void EventQueue();
 		void Rtty();
 		void Telemetry();
+		void Ping();
 
 		static const std::list<const char *> PathName() { return std::list<const char *>{"/api/v1/device/{serialNumber}/{command}"}; };
 		void DoGet() final;

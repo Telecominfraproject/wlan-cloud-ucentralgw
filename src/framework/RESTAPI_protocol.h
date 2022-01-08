@@ -84,6 +84,7 @@ namespace OpenWifi::RESTAPI::Protocol {
 	static const char * GETSUBSYSTEMNAMES = "getsubsystemnames";
 	static const char * GETLOGLEVELNAMES = "getloglevelnames";
 	static const char * STATS = "stats";
+	static const char * PING = "ping";
 	static const char * PARAMETERS = "parameters";
 	static const char * VALUE = "value";
 	static const char * LASTONLY = "lastOnly";

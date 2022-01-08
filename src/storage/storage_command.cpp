@@ -37,9 +37,10 @@ const static std::string	DB_Command_SelectFields{
 				"WaitingForFile, "
 				"AttachDate, "
 				"AttachSize, "
-				"AttachType " };
+				"AttachType,"
+				"executionTime " };
 
-const static std::string 	DB_Command_InsertValues{"?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?"};
+const static std::string 	DB_Command_InsertValues{"?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?"};
 
 typedef Poco::Tuple<
 			std::string,
@@ -59,7 +60,8 @@ typedef Poco::Tuple<
 			uint64_t,
 			uint64_t,
 			uint64_t,
-			std::string
+			std::string,
+			double
 		> CommandDetailsRecordTuple;
 	typedef std::vector<CommandDetailsRecordTuple> CommandDetailsRecordList;
 
@@ -82,6 +84,7 @@ typedef Poco::Tuple<
 		Command.AttachDate = R.get<15>();
 		Command.AttachSize = R.get<16>();
 		Command.AttachType = R.get<17>();
+		Command.executionTime = R.get<18>();
 	}
 
 	void ConvertCommandRecord(const GWObjects::CommandDetails & Command, CommandDetailsRecordTuple &R) {
@@ -103,6 +106,7 @@ typedef Poco::Tuple<
 		R.set<15>(Command.AttachDate);
 		R.set<16>(Command.AttachSize);
 		R.set<17>(Command.AttachType);
+		R.set<18>(Command.executionTime);
 	}
 
 	bool Storage::AddCommand(std::string &SerialNumber, GWObjects::CommandDetails &Command, CommandExecutionType Type) {
@@ -434,6 +438,7 @@ typedef Poco::Tuple<
 	}
 
 	bool Storage::CommandCompleted(std::string &UUID, const Poco::JSON::Object::Ptr & ReturnVars,
+								   const std::chrono::duration<double, std::milli> & execution_time,
 								   bool FullCommand) {
 		try {
 
@@ -464,15 +469,15 @@ typedef Poco::Tuple<
 			Poco::Data::Statement Update(Sess);
 
 			std::string StatusText{"completed"};
-
-			std::string St{"UPDATE CommandList SET Completed=?, ErrorCode=?, ErrorText=?, Results=?, Status=? WHERE UUID=?"};
-
+			std::string St{"UPDATE CommandList SET Completed=?, ErrorCode=?, ErrorText=?, Results=?, Status=?, executionTime=? WHERE UUID=?"};
+			double tET{execution_time.count()};
 			Update << ConvertParams(St),
 				Poco::Data::Keywords::use(Now),
 				Poco::Data::Keywords::use(ErrorCode),
 				Poco::Data::Keywords::use(ErrorText),
 				Poco::Data::Keywords::use(ResultStr),
 				Poco::Data::Keywords::use(StatusText),
+				Poco::Data::Keywords::use(tET),
 				Poco::Data::Keywords::use(UUID);
 			Update.execute();
 
