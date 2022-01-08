@@ -96,7 +96,7 @@ namespace OpenWifi::RESTAPI_RPC {
 								Cmd.to_json(O);
 								Handler->ReturnObject(O);
 							}
-							Logger.information(Poco::format("Command(%s): completed in %8.3fms.", Cmd.UUID), rpc_execution_time);
+							Logger.information(Poco::format("Command(%s): completed in %8.3fms.", Cmd.UUID, rpc_execution_time));
 							return;
 						} else {
 							SetCommandStatus(Cmd, Request, Response, Handler,
