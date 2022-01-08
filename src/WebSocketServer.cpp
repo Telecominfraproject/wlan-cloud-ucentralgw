@@ -269,8 +269,7 @@ namespace OpenWifi {
 
 			std::string Log = Poco::format("CFG-UPGRADE(%s): Current ID: %Lu, newer configuration %Lu.", CId_, UUID, D.UUID);
 			Logger().debug(Log);
-			uint64_t RPC_Id;
-			CommandManager()->SendCommand(SerialNumber_ , Cmd.Command, Params, Cmd.UUID, RPC_Id);
+			CommandManager()->PostCommand(SerialNumber_ , Cmd.Command, Params, Cmd.UUID);
 			StorageService()->AddCommand(SerialNumber_, Cmd, Storage::COMMAND_EXECUTED);
 			return true;
 		}
@@ -640,8 +639,7 @@ namespace OpenWifi {
 							std::ostringstream O;
 							Poco::JSON::Stringifier::stringify(Params, O);
 							Cmd.Details = O.str();
-							uint64_t RPC_Id;
-							CommandManager()->SendCommand(SerialNumber_ , Cmd.Command, Params, Cmd.UUID, RPC_Id);
+							CommandManager()->PostCommand(SerialNumber_ , Cmd.Command, Params, Cmd.UUID);
 							StorageService()->AddCommand(SerialNumber_, Cmd, Storage::COMMAND_EXECUTED);
 							Logger().information(Poco::format("RECOVERY(%s): Recovery mode received, need for a reboot.",CId_));
 						} else {

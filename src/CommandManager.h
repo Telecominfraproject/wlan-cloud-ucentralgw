@@ -42,29 +42,72 @@ namespace OpenWifi {
 		return false;
 	}
 
-	struct CommandTag {
-		std::string 			UUID;
-		Poco::JSON::Object::Ptr Result;
-		uint64_t 				Submitted=0;
-		uint64_t 				Completed=0;
-	};
-
     class CommandManager : public SubSystemServer, Poco::Runnable {
 	    public:
+		  	typedef Poco::JSON::Object::Ptr objtype_t;
+		  	typedef std::promise<objtype_t> promise_type_t;
+			struct RpcObject {
+				std::string uuid;
+				std::chrono::time_point<std::chrono::high_resolution_clock> submitted = std::chrono::high_resolution_clock::now();
+				std::shared_ptr<promise_type_t> rpc_entry;
+			};
+
 			int Start() override;
 			void Stop() override;
 			void WakeUp();
 			void PostCommandResult(const std::string &SerialNumber, Poco::JSON::Object::Ptr Obj);
-			bool SendCommand(	const std::string &SerialNumber,
+
+			std::shared_ptr<promise_type_t> PostCommandOneWayDisk(	const std::string &SerialNumber,
 								const std::string &Method,
 								const Poco::JSON::Object &Params,
 								const std::string &UUID,
-							 	uint64_t & Id,
-							 	bool oneway_rpc=false);
+							 	uint64_t & Id) {
+				return 	PostCommand(SerialNumber,
+									Method,
+									Params,
+									UUID,
+								   	true, true );
+			}
+
+			std::shared_ptr<promise_type_t> PostCommandDisk(	const std::string &SerialNumber,
+															   const std::string &Method,
+															   const Poco::JSON::Object &Params,
+															   const std::string &UUID,
+															   uint64_t & Id) {
+				return 	PostCommand(SerialNumber,
+								   Method,
+								   Params,
+								   UUID,
+								   false, true );
+			}
+
+			std::shared_ptr<promise_type_t> PostCommand(	const std::string &SerialNumber,
+														 const std::string &Method,
+														 const Poco::JSON::Object &Params,
+														 const std::string &UUID) {
+				return 	PostCommand(SerialNumber,
+								   Method,
+								   Params,
+								   UUID,
+								   false,
+								   false);
+			}
+
+			std::shared_ptr<promise_type_t> PostCommandOneWay(	const std::string &SerialNumber,
+													 const std::string &Method,
+													 const Poco::JSON::Object &Params,
+													 const std::string &UUID) {
+				return 	PostCommand(SerialNumber,
+								   Method,
+								   Params,
+								   UUID,
+								   true,
+								   false );
+			}
+
+
 			void Janitor();
 			void run() override;
-
-			bool GetCommand(uint64_t Id, const std::string & SerialNumber, CommandTag &T);
 
 			static auto instance() {
 			    static auto instance_ = new CommandManager;
@@ -73,10 +116,17 @@ namespace OpenWifi {
 			inline bool Running() const { return Running_; }
 
 	    private:
-			std::atomic_bool 			Running_ = false;
-			Poco::Thread    			ManagerThread;
-			uint64_t 					Id_=2;	//	do not start @1. We ignore ID=1 & 0 is illegal..
-			std::map<CommandTagIndex,CommandTag>	OutStandingRequests_;
+			std::atomic_bool 						Running_ = false;
+			Poco::Thread    						ManagerThread;
+			uint64_t 								Id_=3;	//	do not start @1. We ignore ID=1 & 0 is illegal..
+			std::map<CommandTagIndex,RpcObject>		OutStandingRequests_;
+
+			std::shared_ptr<promise_type_t> PostCommand(	const std::string &SerialNumber,
+													 const std::string &Method,
+													 const Poco::JSON::Object &Params,
+													 const std::string &UUID,
+													 bool oneway_rpc,
+													 bool disk_only);
 
 			CommandManager() noexcept:
 				SubSystemServer("CommandManager", "CMD-MGR", "command.manager")

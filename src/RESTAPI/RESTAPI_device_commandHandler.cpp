@@ -248,7 +248,7 @@ void RESTAPI_device_commandHandler::Configure() {
 			Cmd.Details = ParamStream.str();
 
 			DeviceRegistry()->SetPendingUUID(SerialNumber_, NewUUID);
-			return RESTAPI_RPC::WaitForCommand(Cmd, Params, *Request, *Response, 60000, nullptr, this, Logger_);
+			return RESTAPI_RPC::WaitForCommand(Cmd, Params, *Request, *Response, 60000ms, nullptr, this, Logger_);
 		}
 		return BadRequest(RESTAPI::Errors::RecordNotUpdated);
 	}
@@ -291,7 +291,7 @@ void RESTAPI_device_commandHandler::Upgrade() {
 		Params.stringify(ParamStream);
 		Cmd.Details = ParamStream.str();
 
-		return RESTAPI_RPC::WaitForCommand(Cmd, Params, *Request, *Response, 60000, nullptr, this, Logger_);
+		return RESTAPI_RPC::WaitForCommand(Cmd, Params, *Request, *Response, 60000ms, nullptr, this, Logger_);
 	}
 	BadRequest(RESTAPI::Errors::MissingOrInvalidParameters);
 }
@@ -409,7 +409,7 @@ void RESTAPI_device_commandHandler::ExecuteCommand() {
 		Params.stringify(ParamStream);
 		Cmd.Details = ParamStream.str();
 
-		return RESTAPI_RPC::WaitForCommand(Cmd, Params, *Request, *Response, 60000, nullptr, this, Logger_);
+		return RESTAPI_RPC::WaitForCommand(Cmd, Params, *Request, *Response, 60000ms, nullptr, this, Logger_);
 	}
 	BadRequest(RESTAPI::Errors::MissingOrInvalidParameters);
 }
@@ -441,7 +441,7 @@ void RESTAPI_device_commandHandler::Reboot() {
 		Params.stringify(ParamStream);
 		Cmd.Details = ParamStream.str();
 
-		return RESTAPI_RPC::WaitForCommand(Cmd, Params, *Request, *Response, 60000, nullptr, this, Logger_);
+		return RESTAPI_RPC::WaitForCommand(Cmd, Params, *Request, *Response, 60000ms, nullptr, this, Logger_);
 	}
 	BadRequest(RESTAPI::Errors::MissingSerialNumber);
 }
@@ -479,7 +479,7 @@ void RESTAPI_device_commandHandler::Factory() {
 		Params.stringify(ParamStream);
 		Cmd.Details = ParamStream.str();
 
-		return RESTAPI_RPC::WaitForCommand(Cmd, Params, *Request, *Response, 60000, nullptr, this, Logger_);
+		return RESTAPI_RPC::WaitForCommand(Cmd, Params, *Request, *Response, 60000ms, nullptr, this, Logger_);
 	}
 	BadRequest(RESTAPI::Errors::MissingOrInvalidParameters);
 }
@@ -525,7 +525,7 @@ void RESTAPI_device_commandHandler::LEDs() {
 		Params.stringify(ParamStream);
 		Cmd.Details = ParamStream.str();
 
-		return RESTAPI_RPC::WaitForCommand(Cmd, Params, *Request, *Response, 60000, nullptr, this, Logger_);
+		return RESTAPI_RPC::WaitForCommand(Cmd, Params, *Request, *Response, 60000ms, nullptr, this, Logger_);
 	}
 	BadRequest(RESTAPI::Errors::MissingOrInvalidParameters);
 }
@@ -576,7 +576,7 @@ void RESTAPI_device_commandHandler::Trace() {
 		Cmd.Details = ParamStream.str();
 
 		FileUploader()->AddUUID(UUID);
-		return RESTAPI_RPC::WaitForCommand(Cmd, Params, *Request, *Response, 60000, nullptr, this, Logger_);
+		return RESTAPI_RPC::WaitForCommand(Cmd, Params, *Request, *Response, 60000ms, nullptr, this, Logger_);
 	}
 	BadRequest(RESTAPI::Errors::MissingOrInvalidParameters);
 }
@@ -626,7 +626,7 @@ void RESTAPI_device_commandHandler::WifiScan() {
 		std::stringstream ParamStream;
 		Params.stringify(ParamStream);
 		Cmd.Details = ParamStream.str();
-		RESTAPI_RPC::WaitForCommand(Cmd, Params, *Request, *Response, 60000, nullptr, this, Logger_);
+		RESTAPI_RPC::WaitForCommand(Cmd, Params, *Request, *Response, 60000ms, nullptr, this, Logger_);
 		if (Cmd.ErrorCode == 0) {
 			KafkaManager()->PostMessage(KafkaTopics::WIFISCAN, SerialNumber_, Cmd.Results);
 		}
@@ -664,7 +664,7 @@ void RESTAPI_device_commandHandler::EventQueue() {
 		Params.stringify(ParamStream);
 		Cmd.Details = ParamStream.str();
 
-		RESTAPI_RPC::WaitForCommand(Cmd, Params, *Request, *Response, 60000, nullptr, this, Logger_);
+		RESTAPI_RPC::WaitForCommand(Cmd, Params, *Request, *Response, 60000ms, nullptr, this, Logger_);
 		if(Cmd.ErrorCode==0) {
 			KafkaManager()->PostMessage(KafkaTopics::DEVICE_EVENT_QUEUE, SerialNumber_,
 										Cmd.Results);
@@ -709,7 +709,7 @@ void RESTAPI_device_commandHandler::MakeRequest() {
 		Params.stringify(ParamStream);
 		Cmd.Details = ParamStream.str();
 
-		return RESTAPI_RPC::WaitForCommand(Cmd, Params, *Request, *Response, 60000, nullptr, this, Logger_ );
+		return RESTAPI_RPC::WaitForCommand(Cmd, Params, *Request, *Response, 60000ms, nullptr, this, Logger_ );
 	}
 	BadRequest(RESTAPI::Errors::MissingOrInvalidParameters);
 }
@@ -763,7 +763,7 @@ void RESTAPI_device_commandHandler::MakeRequest() {
 				std::stringstream ParamStream;
 				Params.stringify(ParamStream);
 				Cmd.Details = ParamStream.str();
-				return RESTAPI_RPC::WaitForCommand(Cmd, Params, *Request, *Response, 60000, &ReturnedObject, this, Logger_);
+				return RESTAPI_RPC::WaitForCommand(Cmd, Params, *Request, *Response, 60000ms, &ReturnedObject, this, Logger_);
 			}
 			return NotFound();
 		}
@@ -826,7 +826,7 @@ void RESTAPI_device_commandHandler::MakeRequest() {
 			Cmd.Details = ParamStream.str();
 
 			return RESTAPI_RPC::WaitForCommand(Cmd, Params, *Request, *Response,
-										60000, &Answer, this, Logger_);
+										60000ms, &Answer, this, Logger_);
 		}
 		BadRequest(RESTAPI::Errors::MissingOrInvalidParameters);
 	}
