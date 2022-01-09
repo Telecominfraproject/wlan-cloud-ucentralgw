@@ -50,6 +50,7 @@ namespace OpenWifi {
 				auto NewReactor = std::make_unique<Poco::Net::SocketReactor>();
 				auto NewThread = std::make_unique<Poco::Thread>();
 				NewThread->start(*NewReactor);
+				NewThread->setName("DeviceWebSocketReactor_" + std::to_string(i));
 				Reactors_.emplace_back( std::move(NewReactor));
 				Threads_.emplace_back( std::move(NewThread));
 			}

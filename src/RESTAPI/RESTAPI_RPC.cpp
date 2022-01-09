@@ -25,12 +25,9 @@ namespace OpenWifi::RESTAPI_RPC {
 		if (StorageService()->AddCommand(Cmd.SerialNumber, Cmd, Status)) {
 			Poco::JSON::Object RetObj;
 			Cmd.to_json(RetObj);
-			Handler->ReturnObject(RetObj);
-			return;
-		} else {
-			Handler->ReturnStatus(Poco::Net::HTTPResponse::HTTP_INTERNAL_SERVER_ERROR);
-			return;
+			return Handler->ReturnObject(RetObj);
 		}
+		return Handler->ReturnStatus(Poco::Net::HTTPResponse::HTTP_INTERNAL_SERVER_ERROR);
 	}
 
 	void WaitForCommand(GWObjects::CommandDetails &Cmd,
