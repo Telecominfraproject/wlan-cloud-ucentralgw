@@ -627,7 +627,8 @@ The device should answer:
 {     "jsonrpc" : "2.0" , 
       "result" : {
               "serial" : <serial number> ,
-              "uuid" : <uuid of the current active configuration>
+              "uuid" : <uuid of the current active configuration>,
+              "deviceUTCTime" : <UTC Time on device in milliseconds>
             },
       "id" : <same number>
 }
