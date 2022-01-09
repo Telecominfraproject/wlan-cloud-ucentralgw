@@ -275,20 +275,13 @@ namespace OpenWifi {
 		//	do the upgrade
 		try {
 			Poco::Data::Session Sess = Pool_->get();
-			_OWDEBUG_
 			if(dbType_==mysql) {
-				_OWDEBUG_
 				Sess << "alter table CommandList add column executionTime float" , Poco::Data::Keywords::now;
-				_OWDEBUG_
 			} else if (dbType_==pgsql || dbType_==sqlite) {
-				_OWDEBUG_
 				Sess << "alter table CommandList add column executionTime real" , Poco::Data::Keywords::now;
-				_OWDEBUG_
 			}
 		} catch (const Poco::Exception &E) {
-			_OWDEBUG_
 			Logger().log(E);
-			_OWDEBUG_
 		}
 		return 0;
 	}
