@@ -2557,6 +2557,7 @@ namespace OpenWifi {
 	        Logger().information("Stopping ");
 	        for( const auto & svr : RESTServers_ )
 	            svr->stop();
+			Pool_.stopAll();
 	        Pool_.joinAll();
 	        RESTServers_.clear();
 	    }
@@ -2591,10 +2592,15 @@ namespace OpenWifi {
 	    }
 
 	    inline Poco::Net::HTTPRequestHandler *createRequestHandler(const Poco::Net::HTTPServerRequest &Request) override {
-	        Poco::URI uri(Request.getURI());
-	        auto *Path = uri.getPath().c_str();
-			Poco::Thread::current()->setName("ExtWebServer_"+std::to_string(TransactionId_));
-	        return RESTAPI_ExtServer()->CallServer(Path, TransactionId_++);
+			try {
+				Poco::URI uri(Request.getURI());
+				auto *Path = uri.getPath().c_str();
+				Poco::Thread::current()->setName("ExtWebServer_" + std::to_string(TransactionId_));
+				return RESTAPI_ExtServer()->CallServer(Path, TransactionId_++);
+			} catch (...) {
+
+			}
+			return nullptr;
 	    }
 
 	private:
@@ -2642,7 +2648,8 @@ namespace OpenWifi {
 	        Logger().information("Stopping ");
 	        for( const auto & svr : RESTServers_ )
 	            svr->stop();
-	        Pool_.stopAll();
+			Pool_.stopAll();
+			Pool_.joinAll();
 	    }
 
 	    inline void reinitialize(Poco::Util::Application &self) override;
