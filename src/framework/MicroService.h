@@ -20,6 +20,7 @@
 #include <random>
 #include <iomanip>
 #include <queue>
+#include <variant>
 
 using namespace std::chrono_literals;
 
