@@ -57,52 +57,58 @@ namespace OpenWifi {
 			void WakeUp();
 			void PostCommandResult(const std::string &SerialNumber, Poco::JSON::Object::Ptr Obj);
 
-			std::shared_ptr<promise_type_t> PostCommandOneWayDisk(	const std::string &SerialNumber,
-								const std::string &Method,
-								const Poco::JSON::Object &Params,
-								const std::string &UUID,
-							 	uint64_t & Id) {
-				return 	PostCommand(SerialNumber,
+			std::shared_ptr<promise_type_t> PostCommandOneWayDisk(
+				const std::string &SerialNumber,
+				const std::string &Method,
+				const Poco::JSON::Object &Params,
+				const std::string &UUID,
+				bool & Sent) {
+					return 	PostCommand(SerialNumber,
 									Method,
 									Params,
 									UUID,
-								   	true, true );
+								   	true, true, Sent );
 			}
 
-			std::shared_ptr<promise_type_t> PostCommandDisk(	const std::string &SerialNumber,
-															   const std::string &Method,
-															   const Poco::JSON::Object &Params,
-															   const std::string &UUID,
-															   uint64_t & Id) {
-				return 	PostCommand(SerialNumber,
+			std::shared_ptr<promise_type_t> PostCommandDisk(
+				const std::string &SerialNumber,
+				const std::string &Method,
+				const Poco::JSON::Object &Params,
+				const std::string &UUID,
+				bool & Sent) {
+					return 	PostCommand(SerialNumber,
 								   Method,
 								   Params,
 								   UUID,
-								   false, true );
+								   false, true, Sent  );
 			}
 
-			std::shared_ptr<promise_type_t> PostCommand(	const std::string &SerialNumber,
-														 const std::string &Method,
-														 const Poco::JSON::Object &Params,
-														 const std::string &UUID) {
-				return 	PostCommand(SerialNumber,
+			std::shared_ptr<promise_type_t> PostCommand(
+				const std::string &SerialNumber,
+				const std::string &Method,
+				const Poco::JSON::Object &Params,
+				const std::string &UUID,
+				bool & Sent) {
+					return 	PostCommand(SerialNumber,
 								   Method,
 								   Params,
 								   UUID,
 								   false,
-								   false);
+								   false, Sent );
 			}
 
-			std::shared_ptr<promise_type_t> PostCommandOneWay(	const std::string &SerialNumber,
-													 const std::string &Method,
-													 const Poco::JSON::Object &Params,
-													 const std::string &UUID) {
-				return 	PostCommand(SerialNumber,
+			std::shared_ptr<promise_type_t> PostCommandOneWay(
+				const std::string &SerialNumber,
+				const std::string &Method,
+				const Poco::JSON::Object &Params,
+				const std::string &UUID,
+				bool & Sent) {
+					return 	PostCommand(SerialNumber,
 								   Method,
 								   Params,
 								   UUID,
 								   true,
-								   false );
+								   false, Sent  );
 			}
 
 
@@ -121,12 +127,14 @@ namespace OpenWifi {
 			uint64_t 								Id_=3;	//	do not start @1. We ignore ID=1 & 0 is illegal..
 			std::map<CommandTagIndex,RpcObject>		OutStandingRequests_;
 
-			std::shared_ptr<promise_type_t> PostCommand(	const std::string &SerialNumber,
-													 const std::string &Method,
-													 const Poco::JSON::Object &Params,
-													 const std::string &UUID,
-													 bool oneway_rpc,
-													 bool disk_only);
+			std::shared_ptr<promise_type_t> PostCommand(
+				const std::string &SerialNumber,
+				const std::string &Method,
+				const Poco::JSON::Object &Params,
+				const std::string &UUID,
+				bool oneway_rpc,
+				bool disk_only,
+				bool & Sent);
 
 			CommandManager() noexcept:
 				SubSystemServer("CommandManager", "CMD-MGR", "command.manager")

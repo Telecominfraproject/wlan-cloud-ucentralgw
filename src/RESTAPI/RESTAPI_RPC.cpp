@@ -51,11 +51,12 @@ namespace OpenWifi::RESTAPI_RPC {
 
 		Cmd.Executed = std::time(nullptr);
 
+		bool Sent;
 		std::chrono::time_point<std::chrono::high_resolution_clock> rpc_submitted = std::chrono::high_resolution_clock::now();
 		std::shared_ptr<CommandManager::promise_type_t> rpc_endpoint =
-			CommandManager()->PostCommand(Cmd.SerialNumber, Cmd.Command, Params, Cmd.UUID);
+			CommandManager()->PostCommand(Cmd.SerialNumber, Cmd.Command, Params, Cmd.UUID, Sent);
 
-		if (rpc_endpoint) {
+		if (Sent && rpc_endpoint!= nullptr) {
 			std::future<CommandManager::objtype_t> rpc_future(rpc_endpoint->get_future());
 			auto rpc_result = rpc_future.wait_for(WaitTimeInMs);
 			if (rpc_result == std::future_status::ready && rpc_future.valid()) {

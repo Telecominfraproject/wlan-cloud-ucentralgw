@@ -36,16 +36,20 @@ namespace OpenWifi {
                 		break;
 
 					try {
-						uint64_t RPC_Id;
 						Poco::JSON::Parser	P;
-						auto Params = P.parse(Cmd.Details).extract<Poco::JSON::Object::Ptr>();
+						bool Sent;
+						auto Params = P.parse(Cmd.Details).extract<Poco::JSON::Object>();
 						auto Result = PostCommandDisk(	Cmd.SerialNumber,
-													  Cmd.Command,
-													  *Params,
-													  Cmd.UUID,
-													  RPC_Id);
-						StorageService()->SetCommandExecuted(Cmd.UUID);
-						Logger().information(Poco::format("Sent command '%s' to '%s'",Cmd.Command,Cmd.SerialNumber));
+													  	Cmd.Command,
+													  	Params,
+													  	Cmd.UUID,
+													  Sent);
+						if(Sent) {
+							StorageService()->SetCommandExecuted(Cmd.UUID);
+							Logger().information(Poco::format("Sent command '%s' to '%s'",Cmd.Command,Cmd.SerialNumber));
+						} else {
+							Logger().information(Poco::format("Could not sent command '%s' to '%s'",Cmd.Command,Cmd.SerialNumber));
+						}
 					} catch (...) {
 						Logger().information(Poco::format("Failed to send command '%s' to %s",Cmd.Command,Cmd.SerialNumber));
 					}
@@ -93,8 +97,10 @@ namespace OpenWifi {
 										const Poco::JSON::Object &Params,
 							  			const std::string &UUID,
 									 	bool oneway_rpc,
-									 	bool disk_only) {
+									 	bool disk_only,
+										bool & Sent) {
 
+		Sent=false;
 		if(!DeviceRegistry()->Connected(SerialNumber)) {
 			return nullptr;
 		}
@@ -129,8 +135,10 @@ namespace OpenWifi {
 			OutStandingRequests_[Idx] = Object;
 		}
 
-		if(DeviceRegistry()->SendFrame(SerialNumber, ToSend.str()))
+		if(DeviceRegistry()->SendFrame(SerialNumber, ToSend.str())) {
+			Sent=true;
 			return Object.rpc_entry;
+		}
 		return nullptr;
 	}
 
