@@ -1044,7 +1044,39 @@ namespace OpenWifi {
     static const std::string uSERVICE_SUBCRIBER{ "owsub"};
     static const std::string uSERVICE_INSTALLER{ "owinst"};
 
-    template <class Record, typename KeyType = std::string, int Size=256, int Expiry=60000> class RecordCache {
+	class ConfigurationEntry {
+	  public:
+		template <typename T> explicit ConfigurationEntry(T def) :
+											 Default_(def),
+											 Current_(def){
+		}
+
+		template <typename T> explicit ConfigurationEntry(T def, T cur, const std::string  &Hint="") :
+																				  Default_(def),
+																				  Current_(cur),
+																				  Hint_(Hint){
+		}
+
+		inline ConfigurationEntry()=default;
+		inline ~ConfigurationEntry()=default;
+
+		template <typename T> explicit operator T () const { return std::get<T>(Current_); }
+		inline ConfigurationEntry & operator=(const char *v) { Current_ = std::string(v); return *this;}
+		template <typename T> ConfigurationEntry &  operator=(T v) { Current_ = (T) v; return *this;}
+
+		void reset() {
+			Current_ = Default_;
+		}
+
+	  private:
+		std::variant<bool,uint64_t,std::string> Default_, Current_;
+		std::string Hint_;
+	};
+	inline std::string to_string(const ConfigurationEntry &v) { return (std::string) v; }
+
+	typedef std::map<std::string,ConfigurationEntry>    ConfigurationMap_t;
+
+	template <class Record, typename KeyType = std::string, int Size=256, int Expiry=60000> class RecordCache {
     public:
         explicit RecordCache( KeyType Record::* Q) :
                 MemberOffset(Q){
