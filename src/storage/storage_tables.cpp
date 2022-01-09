@@ -222,9 +222,7 @@ namespace OpenWifi {
 
 	int Storage::Create_CommandList() {
 		try {
-			_OWDEBUG_
 			Poco::Data::Session Sess = Pool_->get();
-			_OWDEBUG_
 			if(dbType_==mysql) {
 				Sess << "CREATE TABLE IF NOT EXISTS CommandList ("
 						"UUID           VARCHAR(64) PRIMARY KEY, "
@@ -270,14 +268,10 @@ namespace OpenWifi {
 						")", Poco::Data::Keywords::now;
 				Sess << "CREATE INDEX IF NOT EXISTS CommandListIndex ON CommandList (SerialNumber ASC, Submitted ASC)", Poco::Data::Keywords::now;
 			}
-			return 0;
 		} catch(const Poco::Exception &E) {
-			_OWDEBUG_
 			Logger().log(E);
-			_OWDEBUG_
 		}
 
-		_OWDEBUG_
 		//	do the upgrade
 		try {
 			Poco::Data::Session Sess = Pool_->get();
@@ -296,7 +290,7 @@ namespace OpenWifi {
 			Logger().log(E);
 			_OWDEBUG_
 		}
-		return -1;
+		return 0;
 	}
 
 	int Storage::Create_BlackList() {
