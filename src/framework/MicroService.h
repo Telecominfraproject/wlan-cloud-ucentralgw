@@ -1632,6 +1632,8 @@ namespace OpenWifi {
 	            Request = &RequestIn;
 	            Response = &ResponseIn;
 
+				Poco::Thread::current()->setName("WebServerThread_" + std::to_string(TransactionId_));
+
 	            if(RateLimited_ && RESTAPI_RateLimiter()->IsRateLimited(RequestIn,MyRates_.Interval, MyRates_.MaxCalls)) {
 	                return UnAuthorized("Rate limit exceeded.",RATE_LIMIT_EXCEEDED);
 	            }
