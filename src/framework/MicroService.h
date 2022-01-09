@@ -2593,6 +2593,7 @@ namespace OpenWifi {
 	    inline Poco::Net::HTTPRequestHandler *createRequestHandler(const Poco::Net::HTTPServerRequest &Request) override {
 	        Poco::URI uri(Request.getURI());
 	        auto *Path = uri.getPath().c_str();
+			Poco::Thread::current()->setName("ExtWebServer_"+std::to_string(TransactionId_));
 	        return RESTAPI_ExtServer()->CallServer(Path, TransactionId_++);
 	    }
 
