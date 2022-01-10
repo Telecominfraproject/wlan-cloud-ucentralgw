@@ -873,8 +873,8 @@ void RESTAPI_device_commandHandler::MakeRequest() {
 					Answer.set("action", "Kafka telemetry stopped.");
 				}
 			} else {
-				DeviceConnection->WSConn_->SetWebSocketTelemetryReporting(Interval, Lifetime);
 				if (Interval) {
+					DeviceConnection->WSConn_->SetWebSocketTelemetryReporting(Interval, Lifetime);
 					std::string EndPoint;
 					auto NewUUID = MicroService::instance().CreateUUID();
 					if (TelemetryStream()->CreateEndpoint(SerialNumber_, EndPoint, NewUUID)) {
@@ -885,9 +885,10 @@ void RESTAPI_device_commandHandler::MakeRequest() {
 					} else {
 						return BadRequest(RESTAPI::Errors::InternalError);
 					}
+				} else {
+					Answer.set("action", "WebSocket telemetry stopped.");
+					DeviceConnection->WSConn_->StopWebSocketTelemetry();
 				}
-				Answer.set("action", "WebSocket telemetry stopped.");
-				DeviceConnection->WSConn_->StopWebSocketTelemetry();
 			}
 
 			bool TelemetryRunning;

@@ -705,7 +705,7 @@ namespace OpenWifi {
     }
 
 	bool  WSConnection::StartTelemetry() {
-		Logger().information(Poco::format("TELEMETRY-START(%s): Closing.",CId_));
+		Logger().information(Poco::format("TELEMETRY(%s): Starting.",CId_));
 		Poco::JSON::Object	StartMessage;
 		StartMessage.set("jsonrpc","2.0");
 		StartMessage.set("method","telemetry");
@@ -728,7 +728,7 @@ namespace OpenWifi {
 	}
 
 	bool  WSConnection::StopTelemetry() {
-		Logger().information(Poco::format("TELEMETRY-SHUTDOWN(%s): Closing.",CId_));
+		Logger().information(Poco::format("TELEMETRY(%s): Stopping.",CId_));
 		Poco::JSON::Object	StopMessage;
 		StopMessage.set("jsonrpc","2.0");
 		StopMessage.set("method","telemetry");
