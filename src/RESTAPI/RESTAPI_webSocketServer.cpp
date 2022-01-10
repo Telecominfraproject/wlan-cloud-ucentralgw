@@ -113,6 +113,8 @@ namespace OpenWifi {
 			catch (...) {
 
 			}
+		} else {
+			return BadRequest("Client does not support a websocket connection.");
 		}
 	}
 
