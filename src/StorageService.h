@@ -27,8 +27,39 @@ namespace OpenWifi {
 			COMMAND_FAILED
 		};
 
-        static Storage *instance() {
-			static Storage * instance_ = new Storage;
+		[[nodiscard]] inline std::string ComputeRange(uint64_t From, uint64_t HowMany) {
+			if(dbType_==sqlite) {
+				return " LIMIT " + std::to_string(From) + ", " + std::to_string(HowMany) + " ";
+			} else if(dbType_==pgsql) {
+				return " LIMIT " + std::to_string(HowMany) + " OFFSET " + std::to_string(From) + " ";
+			} else if(dbType_==mysql) {
+				return " LIMIT " + std::to_string(HowMany) + " OFFSET " + std::to_string(From) + " ";
+			}
+			return " LIMIT " + std::to_string(HowMany) + " OFFSET " + std::to_string(From) + " ";
+		}
+
+		inline std::string ConvertParams(const std::string & S) const {
+			std::string R;
+			R.reserve(S.size()*2+1);
+			if(dbType_==pgsql) {
+				auto Idx=1;
+				for(auto const & i:S)
+				{
+					if(i=='?') {
+						R += '$';
+						R.append(std::to_string(Idx++));
+					} else {
+						R += i;
+					}
+				}
+			} else {
+				R = S;
+			}
+			return R;
+		}
+
+        static auto instance() {
+			static auto instance_ = new Storage;
 			return instance_;
         }
 
@@ -155,7 +186,7 @@ namespace OpenWifi {
 
    };
 
-   inline Storage * StorageService() { return Storage::instance(); }
+   inline auto StorageService() { return Storage::instance(); }
 
 }  // namespace
 

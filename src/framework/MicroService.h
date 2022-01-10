@@ -1044,6 +1044,7 @@ namespace OpenWifi {
     static const std::string uSERVICE_OWLS{ "owls"};
     static const std::string uSERVICE_SUBCRIBER{ "owsub"};
     static const std::string uSERVICE_INSTALLER{ "owinst"};
+    static const std::string uSERVICE_ANALYTICS{ "owanalytics"};
 
 	class ConfigurationEntry {
 	  public:
