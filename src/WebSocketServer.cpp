@@ -677,9 +677,20 @@ namespace OpenWifi {
 						Errors_++;
 						return;
 					}
-					if(ParamsObj->has("data")) {
-						auto Payload = ParamsObj->get("data").toString();
-						TelemetryStream()->UpdateEndPoint(SerialNumber_, Payload);
+					if(TelemetryReporting_) {
+						if (ParamsObj->has("data")) {
+							auto Payload =
+								ParamsObj->get("data").extract<Poco::JSON::Object::Ptr>();
+							Payload->set("timestamp", std::time(nullptr));
+							std::ostringstream SS;
+							Payload->stringify(SS);
+							if(TelemetryWebSocketRefCount_)
+								TelemetryStream()->UpdateEndPoint(SerialNumber_, SS.str());
+							if (TelemetryKafkaRefCount_ && KafkaManager()->Enabled()) {
+								KafkaManager()->PostMessage(KafkaTopics::DEVICE_TELEMETRY,
+															SerialNumber_, SS.str());
+							}
+						}
 					}
 				}
 				break;
@@ -693,7 +704,92 @@ namespace OpenWifi {
 		}
     }
 
-    void WSConnection::OnSocketShutdown(const Poco::AutoPtr<Poco::Net::ShutdownNotification>& pNf) {
+	bool  WSConnection::StartTelemetry() {
+		Logger().information(Poco::format("TELEMETRY-START(%s): Closing.",CId_));
+		Poco::JSON::Object	StopMessage;
+		StopMessage.set("jsonrpc","2.0");
+		StopMessage.set("method","telemetry");
+		Poco::JSON::Object	Params;
+		Params.set("serial", SerialNumber_);
+		Params.set("interval",TelemetryInterval_);
+		Poco::JSON::Array	Types;
+		Types.add("wifi-frames");
+		Types.add("dhcp-snooping");
+		Types.add("state");
+		Params.set(RESTAPI::Protocol::TYPES, Types);
+		StopMessage.set("id",1);
+		StopMessage.set("params",Params);
+		Poco::JSON::Stringifier		Stringify;
+		std::ostringstream OS;
+		Stringify.condense(StopMessage,OS);
+		Send(OS.str());
+		return true;
+	}
+
+	bool  WSConnection::StopTelemetry() {
+		Logger().information(Poco::format("TELEMETRY-SHUTDOWN(%s): Closing.",CId_));
+		Poco::JSON::Object	StopMessage;
+		StopMessage.set("jsonrpc","2.0");
+		StopMessage.set("method","telemetry");
+		Poco::JSON::Object	Params;
+		Params.set("serial", SerialNumber_);
+		Params.set("interval",0);
+		StopMessage.set("id",1);
+		StopMessage.set("params",Params);
+		Poco::JSON::Stringifier		Stringify;
+		std::ostringstream OS;
+		Stringify.condense(StopMessage,OS);
+		Send(OS.str());
+		return true;
+	}
+
+	bool WSConnection::SetWebSocketTelemetryReporting(uint64_t Interval, uint64_t TelemetryWebSocketTimer) {
+		TelemetryWebSocketRefCount_++;
+		if(Interval)
+			TelemetryInterval_ = std::min(Interval, TelemetryInterval_);
+		TelemetryWebSocketTimer_ = std::max(TelemetryWebSocketTimer,TelemetryWebSocketTimer_);
+		if(!TelemetryReporting_) {
+			TelemetryReporting_ = true;
+			return StartTelemetry();
+		}
+		return true;
+	}
+
+	bool WSConnection::SetKafkaTelemetryReporting(uint64_t Interval, uint64_t TelemetryKafkaTimer) {
+		TelemetryKafkaRefCount_++;
+		if(Interval)
+			TelemetryInterval_ = std::min(Interval, TelemetryInterval_);
+		TelemetryKafkaTimer_ = std::max(TelemetryKafkaTimer,TelemetryKafkaTimer_);
+		if(!TelemetryReporting_) {
+			TelemetryReporting_ = true;
+			return StartTelemetry();
+		}
+		return true;
+	}
+
+	bool WSConnection::StopWebSocketTelemetry() {
+		if(TelemetryWebSocketRefCount_)
+			TelemetryWebSocketRefCount_--;
+		if(TelemetryWebSocketRefCount_==0 && TelemetryKafkaRefCount_==0) {
+			TelemetryReporting_ = false;
+			StopTelemetry();
+			TelemetryInterval_ = TelemetryKafkaTimer_ = TelemetryWebSocketTimer_ = 0 ;
+		}
+		return true;
+	}
+
+	bool WSConnection::StopKafkaTelemetry() {
+		if(TelemetryKafkaRefCount_)
+			TelemetryKafkaRefCount_--;
+		if(TelemetryWebSocketRefCount_==0 && TelemetryKafkaRefCount_==0) {
+			TelemetryReporting_ = false;
+			StopTelemetry();
+			TelemetryInterval_ = TelemetryKafkaTimer_ = TelemetryWebSocketTimer_ = 0 ;
+		}
+		return true;
+	}
+
+	void WSConnection::OnSocketShutdown(const Poco::AutoPtr<Poco::Net::ShutdownNotification>& pNf) {
 		std::lock_guard Guard(Mutex_);
         Logger().information(Poco::format("SOCKET-SHUTDOWN(%s): Closing.",CId_));
         delete this;

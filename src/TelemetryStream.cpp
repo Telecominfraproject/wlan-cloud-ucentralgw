@@ -22,6 +22,7 @@
 #include "RESTAPI/RESTAPI_telemetryWebSocket.h"
 #include "TelemetryStream.h"
 #include "framework/MicroService.h"
+#include "WebSocketServer.h"
 
 namespace OpenWifi {
 
@@ -226,19 +227,11 @@ namespace OpenWifi {
 
 	void TelemetryClient::SendTelemetryShutdown() {
 		Logger().information(Poco::format("TELEMETRY-SHUTDOWN(%s): Closing.",CId_));
-		TelemetryStream()->DeRegisterClient(UUID_);
-		Poco::JSON::Object	StopMessage;
-		StopMessage.set("jsonrpc","2.0");
-		StopMessage.set("method","telemetry");
-		Poco::JSON::Object	Params;
-		Params.set("serial", SerialNumber_);
-		Params.set("interval",0);
-		StopMessage.set("id",1);
-		StopMessage.set("params",Params);
-		Poco::JSON::Stringifier		Stringify;
-		std::ostringstream OS;
-		Stringify.condense(StopMessage,OS);
-		DeviceRegistry()->SendFrame(SerialNumber_, OS.str());
+		auto Device = DeviceRegistry()->GetDeviceConnection(SerialNumber_);
+		if(Device) {
+			if(Device->WSConn_)
+				Device->WSConn_->StopWebSocketTelemetry();
+		}
 		TelemetryStream()->DeRegisterClient(UUID_);
 		delete this;
 	}

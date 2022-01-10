@@ -47,6 +47,14 @@ namespace OpenWifi {
 		bool SendFrame(const std::string & SerialNumber, const std::string & Payload);
 		void SetPendingUUID(const std::string & SerialNumber, uint64_t PendingUUID);
 		bool AnalyzeRegistry(GWObjects::Dashboard &D);
+		[[nodiscard]] inline std::shared_ptr<ConnectionEntry> GetDeviceConnection(const std::string & SerialNumber) {
+			std::lock_guard		Guard(Mutex_);
+			auto Device = Devices_.find(SerialNumber);
+			if(Device!=Devices_.end() && Device->second->WSConn_!= nullptr) {
+				return Device->second;
+			}
+			return nullptr;
+		}
 
 	  private:
 		inline static std::atomic_uint64_t 						Id_=1;

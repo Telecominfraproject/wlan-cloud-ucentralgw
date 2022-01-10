@@ -95,6 +95,19 @@ namespace OpenWifi {
 		void LogException(const Poco::Exception &E);
 		[[nodiscard]] GWObjects::CertificateValidation CertificateValidation() const { return CertValidation_; };
 		inline Poco::Logger & Logger() { return Logger_; }
+		bool SetWebSocketTelemetryReporting(uint64_t interval, uint64_t TelemetryWebSocketTimer);
+		bool SetKafkaTelemetryReporting(uint64_t interval, uint64_t TelemetryWebSocketTimer);
+		bool StopWebSocketTelemetry();
+		bool StopKafkaTelemetry();
+		inline bool GetTelemetryParameters(bool & Reporting, uint64_t & Interval, uint64_t & WebSocketTimer, uint64_t & KafkaTimer, uint64_t &WebSocketCount, uint64_t & KafkaCount) const {
+			Reporting = TelemetryReporting_;
+			WebSocketTimer = TelemetryWebSocketTimer_;
+			KafkaTimer = TelemetryKafkaTimer_;
+			WebSocketCount = TelemetryWebSocketRefCount_;
+			KafkaCount = TelemetryKafkaRefCount_;
+			Interval = TelemetryInterval_;
+			return true;
+		}
 
 	  private:
 		std::recursive_mutex                Mutex_;
@@ -114,8 +127,16 @@ namespace OpenWifi {
 		bool 								Connected_=false;
 		uint64_t 							ConnectionId_=0;
 		Poco::Net::IPAddress				PeerAddress_;
+		bool 								TelemetryReporting_ = false;
+		uint64_t 							TelemetryWebSocketRefCount_ = 0;
+		uint64_t 							TelemetryKafkaRefCount_ = 0;
+		uint64_t 							TelemetryWebSocketTimer_ = 0;
+		uint64_t 							TelemetryKafkaTimer_ = 0 ;
+		uint64_t 							TelemetryInterval_ = 0;
 
 		void CompleteStartup();
+		bool StartTelemetry();
+		bool StopTelemetry();
 	};
 
 	class WebSocketServer : public SubSystemServer {
