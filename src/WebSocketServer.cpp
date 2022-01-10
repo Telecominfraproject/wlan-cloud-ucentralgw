@@ -677,16 +677,26 @@ namespace OpenWifi {
 						Errors_++;
 						return;
 					}
+					std::cout << "Telemetry received" << std::endl;
 					if(TelemetryReporting_) {
+						_OWDEBUG_
 						if (ParamsObj->has("data")) {
+							_OWDEBUG_
 							auto Payload =
 								ParamsObj->get("data").extract<Poco::JSON::Object::Ptr>();
+							_OWDEBUG_
 							Payload->set("timestamp", std::time(nullptr));
+							_OWDEBUG_
 							std::ostringstream SS;
+							_OWDEBUG_
 							Payload->stringify(SS);
-							if(TelemetryWebSocketRefCount_)
+							_OWDEBUG_
+							if(TelemetryWebSocketRefCount_) {
+								_OWDEBUG_
 								TelemetryStream()->UpdateEndPoint(SerialNumber_, SS.str());
+							}
 							if (TelemetryKafkaRefCount_ && KafkaManager()->Enabled()) {
+								_OWDEBUG_
 								KafkaManager()->PostMessage(KafkaTopics::DEVICE_TELEMETRY,
 															SerialNumber_, SS.str());
 							}
