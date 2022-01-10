@@ -862,12 +862,15 @@ void RESTAPI_device_commandHandler::MakeRequest() {
 				return BadRequest(RESTAPI::Errors::DeviceNotConnected);
 			}
 
+			auto NewUUID = MicroService::instance().CreateUUID();
+
 			Poco::JSON::Object Answer;
 
 			if(KafkaOnly) {
 				if (Interval) {
 					DeviceConnection->WSConn_->SetKafkaTelemetryReporting(Interval, Lifetime);
 					Answer.set("action", "Kafka telemetry started.");
+					Answer.set("uuid", NewUUID);
 				} else {
 					DeviceConnection->WSConn_->StopKafkaTelemetry();
 					Answer.set("action", "Kafka telemetry stopped.");
@@ -876,7 +879,6 @@ void RESTAPI_device_commandHandler::MakeRequest() {
 				if (Interval) {
 					DeviceConnection->WSConn_->SetWebSocketTelemetryReporting(Interval, Lifetime);
 					std::string EndPoint;
-					auto NewUUID = MicroService::instance().CreateUUID();
 					if (TelemetryStream()->CreateEndpoint(SerialNumber_, EndPoint, NewUUID)) {
 						Answer.set("action", "WebSocket telemetry started.");
 						Answer.set("serialNumber", SerialNumber_);
