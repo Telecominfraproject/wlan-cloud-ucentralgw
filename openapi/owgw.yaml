@@ -61,6 +61,11 @@ components:
                   - 6     # INTERNAL_ERROR,
                   - 7     # ACCESS_DENIED,
                   - 8     # INVALID_TOKEN
+                  - 9     # EXPIRED_TOKEN
+                  - 10    # RATE_LIMIT_EXCEEDED
+                  - 11    # BAD_MFA_TRANSACTION
+                  - 12    # MFA_FAILURE
+                  - 13    # SECURITY_SERVICE_UNREACHABLE
               ErrorDetails:
                 type: string
               ErrorDescription:
