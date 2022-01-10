@@ -747,8 +747,7 @@ namespace OpenWifi {
 
 	bool WSConnection::SetWebSocketTelemetryReporting(uint64_t Interval, uint64_t TelemetryWebSocketTimer) {
 		TelemetryWebSocketRefCount_++;
-		if(Interval)
-			TelemetryInterval_ = std::min(Interval, TelemetryInterval_);
+		TelemetryInterval_ = TelemetryInterval_ ? std::min(Interval, TelemetryInterval_) : Interval;
 		TelemetryWebSocketTimer_ = std::max(TelemetryWebSocketTimer,TelemetryWebSocketTimer_);
 		if(!TelemetryReporting_) {
 			TelemetryReporting_ = true;
@@ -759,8 +758,7 @@ namespace OpenWifi {
 
 	bool WSConnection::SetKafkaTelemetryReporting(uint64_t Interval, uint64_t TelemetryKafkaTimer) {
 		TelemetryKafkaRefCount_++;
-		if(Interval)
-			TelemetryInterval_ = std::min(Interval, TelemetryInterval_);
+		TelemetryInterval_ = TelemetryInterval_ ? std::min(Interval, TelemetryInterval_) : Interval;
 		TelemetryKafkaTimer_ = std::max(TelemetryKafkaTimer,TelemetryKafkaTimer_);
 		if(!TelemetryReporting_) {
 			TelemetryReporting_ = true;
