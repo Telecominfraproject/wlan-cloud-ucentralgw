@@ -192,6 +192,10 @@ namespace OpenWifi::GWObjects {
 		field_to_json(Obj,"lastContact", LastContact);
 		field_to_json(Obj,"associations_2G", Associations_2G);
 		field_to_json(Obj,"associations_5G", Associations_5G);
+		field_to_json(Obj,"webSocketClients", webSocketClients);
+		field_to_json(Obj,"websocketPackets", websocketPackets);
+		field_to_json(Obj,"kafkaClients", kafkaClients);
+		field_to_json(Obj,"kafkaPackets", kafkaPackets);
 
 		switch(VerifiedCertificate) {
 			case NO_CERTIFICATE:

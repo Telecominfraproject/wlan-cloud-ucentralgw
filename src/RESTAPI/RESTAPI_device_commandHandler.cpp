@@ -901,13 +901,17 @@ void RESTAPI_device_commandHandler::MakeRequest() {
 			}
 
 			bool TelemetryRunning;
-			uint64_t TelemetryWebSocketCount, TelemetryKafkaCount, TelemetryInterval, TelemetryWebSocketTimer, TelemetryKafkaTimer;
+			uint64_t TelemetryWebSocketCount, TelemetryKafkaCount, TelemetryInterval,
+				TelemetryWebSocketTimer, TelemetryKafkaTimer, TelemetryWebSocketPackets,
+				TelemetryKafkaPackets;
 			DeviceConnection->WSConn_->GetTelemetryParameters(TelemetryRunning,
 															  TelemetryInterval,
 															  TelemetryWebSocketTimer,
 															  TelemetryKafkaTimer,
 															  TelemetryWebSocketCount,
-															  TelemetryKafkaCount);
+															  TelemetryKafkaCount,
+															  TelemetryWebSocketPackets,
+															  TelemetryKafkaPackets);
 			Poco::JSON::Object	TelemetryStatus;
 			TelemetryStatus.set("running", TelemetryRunning);
 			TelemetryStatus.set("interval", TelemetryInterval);
@@ -915,6 +919,8 @@ void RESTAPI_device_commandHandler::MakeRequest() {
 			TelemetryStatus.set("kafkaTimer", TelemetryKafkaTimer);
 			TelemetryStatus.set("websocketClients", TelemetryWebSocketCount);
 			TelemetryStatus.set("kafkaClients", TelemetryKafkaCount);
+			TelemetryStatus.set("kafkaPackets", TelemetryKafkaPackets);
+			TelemetryStatus.set("websocketPackets", TelemetryWebSocketPackets);
 			Answer.set("status", TelemetryStatus);
 
 //			std::ostringstream ooss;

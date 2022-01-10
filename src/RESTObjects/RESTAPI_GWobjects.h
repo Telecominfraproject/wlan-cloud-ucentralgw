@@ -34,6 +34,10 @@ namespace OpenWifi::GWObjects {
 		std::string Firmware;
 		CertificateValidation VerifiedCertificate = NO_CERTIFICATE;
 		std::string Compatible;
+		uint64_t 	kafkaClients=0;
+		uint64_t 	webSocketClients=0;
+		uint64_t 	kafkaPackets=0;
+		uint64_t 	websocketPackets=0;
 		void to_json(Poco::JSON::Object &Obj) const;
 	};
 

@@ -686,9 +686,13 @@ namespace OpenWifi {
 							std::ostringstream SS;
 							Payload->stringify(SS);
 							if(TelemetryWebSocketRefCount_) {
+								TelemetryWebSocketPackets_++;
+								Conn_->Conn_.websocketPackets = TelemetryWebSocketPackets_;
 								TelemetryStream()->UpdateEndPoint(SerialNumber_, SS.str());
 							}
 							if (TelemetryKafkaRefCount_ && KafkaManager()->Enabled()) {
+								TelemetryKafkaPackets_++;
+								Conn_->Conn_.kafkaPackets = TelemetryKafkaPackets_;
 								KafkaManager()->PostMessage(KafkaTopics::DEVICE_TELEMETRY,
 															SerialNumber_, SS.str());
 							}
@@ -743,8 +747,17 @@ namespace OpenWifi {
 		std::ostringstream OS;
 		Stringify.condense(StopMessage,OS);
 		Send(OS.str());
+		TelemetryKafkaPackets_ = TelemetryWebSocketPackets_ = TelemetryInterval_ =
+			TelemetryKafkaTimer_ = TelemetryWebSocketTimer_ = 0 ;
 		// std::cout << "Stopping: " << OS.str() << std::endl;
 		return true;
+	}
+
+	void WSConnection::UpdateCounts() {
+		if(Conn_) {
+			Conn_->Conn_.kafkaClients = TelemetryKafkaRefCount_;
+			Conn_->Conn_.webSocketClients = TelemetryWebSocketRefCount_;
+		}
 	}
 
 	bool WSConnection::SetWebSocketTelemetryReporting(uint64_t Interval, uint64_t TelemetryWebSocketTimer) {
@@ -755,6 +768,7 @@ namespace OpenWifi {
 			TelemetryReporting_ = true;
 			return StartTelemetry();
 		}
+		UpdateCounts();
 		return true;
 	}
 
@@ -766,6 +780,7 @@ namespace OpenWifi {
 			TelemetryReporting_ = true;
 			return StartTelemetry();
 		}
+		UpdateCounts();
 		return true;
 	}
 
@@ -775,8 +790,8 @@ namespace OpenWifi {
 		if(TelemetryWebSocketRefCount_==0 && TelemetryKafkaRefCount_==0) {
 			TelemetryReporting_ = false;
 			StopTelemetry();
-			TelemetryInterval_ = TelemetryKafkaTimer_ = TelemetryWebSocketTimer_ = 0 ;
 		}
+		UpdateCounts();
 		return true;
 	}
 
@@ -786,8 +801,8 @@ namespace OpenWifi {
 		if(TelemetryWebSocketRefCount_==0 && TelemetryKafkaRefCount_==0) {
 			TelemetryReporting_ = false;
 			StopTelemetry();
-			TelemetryInterval_ = TelemetryKafkaTimer_ = TelemetryWebSocketTimer_ = 0 ;
 		}
+		UpdateCounts();
 		return true;
 	}
 

@@ -99,13 +99,19 @@ namespace OpenWifi {
 		bool SetKafkaTelemetryReporting(uint64_t interval, uint64_t TelemetryKafkaTimer);
 		bool StopWebSocketTelemetry();
 		bool StopKafkaTelemetry();
-		inline bool GetTelemetryParameters(bool & Reporting, uint64_t & Interval, uint64_t & WebSocketTimer, uint64_t & KafkaTimer, uint64_t &WebSocketCount, uint64_t & KafkaCount) const {
+		inline bool GetTelemetryParameters(bool & Reporting, uint64_t & Interval,
+										   uint64_t & WebSocketTimer, uint64_t & KafkaTimer,
+										   uint64_t &WebSocketCount, uint64_t & KafkaCount,
+										   uint64_t &WebSocketPackets,
+										   uint64_t &KafkaPackets ) const {
 			Reporting = TelemetryReporting_;
 			WebSocketTimer = TelemetryWebSocketTimer_;
 			KafkaTimer = TelemetryKafkaTimer_;
 			WebSocketCount = TelemetryWebSocketRefCount_;
 			KafkaCount = TelemetryKafkaRefCount_;
 			Interval = TelemetryInterval_;
+			WebSocketPackets = TelemetryWebSocketPackets_;
+			KafkaPackets = TelemetryKafkaPackets_;
 			return true;
 		}
 
@@ -133,10 +139,13 @@ namespace OpenWifi {
 		uint64_t 							TelemetryWebSocketTimer_ = 0;
 		uint64_t 							TelemetryKafkaTimer_ = 0 ;
 		uint64_t 							TelemetryInterval_ = 0;
+		uint64_t 							TelemetryWebSocketPackets_=0;
+		uint64_t 							TelemetryKafkaPackets_=0;
 
 		void CompleteStartup();
 		bool StartTelemetry();
 		bool StopTelemetry();
+		void UpdateCounts();
 	};
 
 	class WebSocketServer : public SubSystemServer {
