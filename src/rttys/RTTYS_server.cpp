@@ -65,6 +65,7 @@ namespace OpenWifi {
 			WebServer_ = std::make_unique<Poco::Net::HTTPServer>(
 				new RTTY_Client_RequestHandlerFactory(ClientReactor_), ClientSocket, HttpParams);
 			ClientReactorThread_.start(ClientReactor_);
+			ClientReactorThread_.setName("RTTYWebServerClientThread");
 			WebServer_->start();
 		}
 
