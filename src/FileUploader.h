@@ -44,7 +44,8 @@ namespace OpenWifi {
 		uint64_t 						MaxSize_=10000000;
 
 		explicit FileUploader() noexcept:
-			SubSystemServer("FileUploader", "FILE-UPLOAD", "openwifi.fileuploader")
+			SubSystemServer("FileUploader", "FILE-UPLOAD", "openwifi.fileuploader"),
+		   	Pool_("FileUpLoaderPool")
 		{
 		}
     };

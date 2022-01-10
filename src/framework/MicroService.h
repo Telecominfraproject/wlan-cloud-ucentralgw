@@ -2585,7 +2585,8 @@ namespace OpenWifi {
 	    RESTAPI_GenericServer   Server_;
 
         RESTAPI_ExtServer() noexcept:
-	    SubSystemServer("RESTAPI_ExtServer", "RESTAPIServer", "openwifi.restapi")
+	    SubSystemServer("RESTAPI_ExtServer", "RESTAPIServer", "openwifi.restapi"),
+		Pool_("RESTAPI_ExternalPool")
             {
             }
 	};
@@ -2673,7 +2674,9 @@ namespace OpenWifi {
 	    Poco::ThreadPool	    Pool_;
 	    RESTAPI_GenericServer   Server_;
 
-        RESTAPI_IntServer() noexcept: SubSystemServer("RESTAPI_IntServer", "REST-ISRV", "openwifi.internal.restapi")
+        RESTAPI_IntServer() noexcept:
+		   SubSystemServer("RESTAPI_IntServer", "REST-ISRV", "openwifi.internal.restapi"),
+		   Pool_("RESTAPI_IntServerPool")
 	    {
 	    }
 	};
