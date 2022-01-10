@@ -706,9 +706,9 @@ namespace OpenWifi {
 
 	bool  WSConnection::StartTelemetry() {
 		Logger().information(Poco::format("TELEMETRY-START(%s): Closing.",CId_));
-		Poco::JSON::Object	StopMessage;
-		StopMessage.set("jsonrpc","2.0");
-		StopMessage.set("method","telemetry");
+		Poco::JSON::Object	StartMessage;
+		StartMessage.set("jsonrpc","2.0");
+		StartMessage.set("method","telemetry");
 		Poco::JSON::Object	Params;
 		Params.set("serial", SerialNumber_);
 		Params.set("interval",TelemetryInterval_);
@@ -717,12 +717,13 @@ namespace OpenWifi {
 		Types.add("dhcp-snooping");
 		Types.add("state");
 		Params.set(RESTAPI::Protocol::TYPES, Types);
-		StopMessage.set("id",1);
-		StopMessage.set("params",Params);
+		StartMessage.set("id",1);
+		StartMessage.set("params",Params);
 		Poco::JSON::Stringifier		Stringify;
 		std::ostringstream OS;
-		Stringify.condense(StopMessage,OS);
+		Stringify.condense(StartMessage,OS);
 		Send(OS.str());
+		std::cout << "Starting: " << OS.str() << std::endl;
 		return true;
 	}
 
@@ -740,6 +741,7 @@ namespace OpenWifi {
 		std::ostringstream OS;
 		Stringify.condense(StopMessage,OS);
 		Send(OS.str());
+		std::cout << "Stopping: " << OS.str() << std::endl;
 		return true;
 	}
 

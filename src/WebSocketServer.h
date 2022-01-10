@@ -96,7 +96,7 @@ namespace OpenWifi {
 		[[nodiscard]] GWObjects::CertificateValidation CertificateValidation() const { return CertValidation_; };
 		inline Poco::Logger & Logger() { return Logger_; }
 		bool SetWebSocketTelemetryReporting(uint64_t interval, uint64_t TelemetryWebSocketTimer);
-		bool SetKafkaTelemetryReporting(uint64_t interval, uint64_t TelemetryWebSocketTimer);
+		bool SetKafkaTelemetryReporting(uint64_t interval, uint64_t TelemetryKafkaTimer);
 		bool StopWebSocketTelemetry();
 		bool StopKafkaTelemetry();
 		inline bool GetTelemetryParameters(bool & Reporting, uint64_t & Interval, uint64_t & WebSocketTimer, uint64_t & KafkaTimer, uint64_t &WebSocketCount, uint64_t & KafkaCount) const {
