@@ -840,6 +840,10 @@ void RESTAPI_device_commandHandler::MakeRequest() {
 				return BadRequest(RESTAPI::Errors::DeviceNotConnected);
 			}
 
+			std::stringstream 	oooss;
+			Obj->stringify(oooss);
+			std::cout << "Payload:" << oooss.str() << std::endl;
+
 			uint64_t Lifetime = 60 * 60 ; // 1 hour
 			uint64_t Interval = 5;
 			bool KafkaOnly = false;
@@ -851,21 +855,15 @@ void RESTAPI_device_commandHandler::MakeRequest() {
 			AssignIfPresent(Obj, RESTAPI::Protocol::INTERVAL, Interval);
 			AssignIfPresent(Obj, RESTAPI::Protocol::LIFETIME, Lifetime);
 
+			std::cout << "I:" << Interval << "  L:" << Lifetime << std::endl;
+
 			auto DeviceConnection = DeviceRegistry()->GetDeviceConnection(SerialNumber_);
 			if(DeviceConnection->WSConn_== nullptr) {
 				return BadRequest(RESTAPI::Errors::DeviceNotConnected);
 			}
 
 			Poco::JSON::Object Answer;
-			bool TelemetryRunning;
-			uint64_t TelemetryWebSocketCount, TelemetryKafkaCount, TelemetryInterval, TelemetryWebSocketTimer, TelemetryKafkaTimer;
 
-			DeviceConnection->WSConn_->GetTelemetryParameters(TelemetryRunning,
-															  TelemetryInterval,
-															  TelemetryWebSocketTimer,
-															  TelemetryKafkaTimer,
-															  TelemetryWebSocketCount,
-															  TelemetryKafkaCount);
 			if(KafkaOnly) {
 				if (Interval) {
 					DeviceConnection->WSConn_->SetKafkaTelemetryReporting(Interval, Lifetime);
@@ -891,6 +889,9 @@ void RESTAPI_device_commandHandler::MakeRequest() {
 				Answer.set("action", "WebSocket telemetry stopped.");
 				DeviceConnection->WSConn_->StopWebSocketTelemetry();
 			}
+
+			bool TelemetryRunning;
+			uint64_t TelemetryWebSocketCount, TelemetryKafkaCount, TelemetryInterval, TelemetryWebSocketTimer, TelemetryKafkaTimer;
 			DeviceConnection->WSConn_->GetTelemetryParameters(TelemetryRunning,
 															  TelemetryInterval,
 															  TelemetryWebSocketTimer,
