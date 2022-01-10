@@ -842,7 +842,7 @@ void RESTAPI_device_commandHandler::MakeRequest() {
 
 			std::stringstream 	oooss;
 			Obj->stringify(oooss);
-			std::cout << "Payload:" << oooss.str() << std::endl;
+			// std::cout << "Payload:" << oooss.str() << std::endl;
 
 			uint64_t Lifetime = 60 * 60 ; // 1 hour
 			uint64_t Interval = 5;
@@ -855,7 +855,7 @@ void RESTAPI_device_commandHandler::MakeRequest() {
 			AssignIfPresent(Obj, RESTAPI::Protocol::INTERVAL, Interval);
 			AssignIfPresent(Obj, RESTAPI::Protocol::LIFETIME, Lifetime);
 
-			std::cout << "I:" << Interval << "  L:" << Lifetime << std::endl;
+			// std::cout << "I:" << Interval << "  L:" << Lifetime << std::endl;
 
 			auto DeviceConnection = DeviceRegistry()->GetDeviceConnection(SerialNumber_);
 			if(DeviceConnection->WSConn_== nullptr) {
@@ -908,10 +908,9 @@ void RESTAPI_device_commandHandler::MakeRequest() {
 			TelemetryStatus.set("kafkaClients", TelemetryKafkaCount);
 			Answer.set("status", TelemetryStatus);
 
-			std::ostringstream ooss;
-			Answer.stringify(ooss);
-
-			std::cout << "Telemetry status: " << ooss.str() << std::endl;
+//			std::ostringstream ooss;
+//			Answer.stringify(ooss);
+//			std::cout << "Telemetry status: " << ooss.str() << std::endl;
 
 			return ReturnObject(Answer);
 		}
