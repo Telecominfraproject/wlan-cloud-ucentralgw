@@ -20,6 +20,6 @@ namespace OpenWifi {
 		void DoPost() final {};
 		void DoPut() final {};
 	  private:
-		void Process(const Poco::JSON::Object::Ptr &O, std::string &Answer);
+		bool Process(const Poco::JSON::Object::Ptr &O, std::string &Answer);
 	};
 }

@@ -21,7 +21,6 @@ namespace OpenWifi {
 			try
 			{
 				Poco::Net::WebSocket WS(*Request, *Response);
-				Logger_.information("WebSocket connection established.");
 				int flags;
 				int n;
 				bool Authenticated=false;
@@ -63,11 +62,14 @@ namespace OpenWifi {
 										auto Obj = P.parse(IncomingFrame.begin())
 													   .extract<Poco::JSON::Object::Ptr>();
 										std::string Answer;
-										Process(Obj, Answer);
-										if (!Answer.empty())
-											WS.sendFrame(Answer.c_str(), Answer.size());
-										else {
-											WS.sendFrame("{}", 2);
+										if(Process(Obj, Answer)) {
+											if (!Answer.empty())
+												WS.sendFrame(Answer.c_str(), Answer.size());
+											else {
+												WS.sendFrame("{}", 2);
+											}
+										} else {
+											Done=true;
 										}
 									} catch (const Poco::JSON::JSONException & E) {
 										Logger_.log(E);
@@ -76,7 +78,6 @@ namespace OpenWifi {
 							}
 							break;
 						case Poco::Net::WebSocket::FRAME_OP_CLOSE: {
-								Logger_.warning(Poco::format("CLOSE(%s): Client is closing its WS connection.", UserInfo_.userinfo.email));
 								Done=true;
 							}
 						break;
@@ -88,7 +89,6 @@ namespace OpenWifi {
 					}
 				}
 				while (!Done && (n > 0 && (flags & Poco::Net::WebSocket::FRAME_OP_BITMASK) != Poco::Net::WebSocket::FRAME_OP_CLOSE));
-				Logger_.information("WebSocket connection closed.");
 			}
 			catch (const Poco::Net::WebSocketException & E)
 			{
@@ -110,22 +110,25 @@ namespace OpenWifi {
 			catch (const Poco::Exception &E) {
 				Logger_.log(E);
 			}
+			catch (...) {
+
+			}
 		}
 	}
 
-	void RESTAPI_webSocketServer::Process(const Poco::JSON::Object::Ptr &O, std::string &Answer ) {
+	bool RESTAPI_webSocketServer::Process(const Poco::JSON::Object::Ptr &O, std::string &Answer ) {
 		try {
 			if (O->has("command")) {
 				auto Command = O->get("command").toString();
 				if (Command == "serial_number_search" && O->has("serial_prefix")) {
 					auto Prefix = O->get("serial_prefix").toString();
-					uint64_t HowMany = 32;
+					uint64_t HowMany = 50;
 					if (O->has("howMany"))
 						HowMany = O->get("howMany");
 					Logger_.information(Poco::format("serial_number_search: %s", Prefix));
 					if (!Prefix.empty() && Prefix.length() < 13) {
 						std::vector<uint64_t> Numbers;
-						SerialNumberCache()->FindNumbers(Prefix, 50, Numbers);
+						SerialNumberCache()->FindNumbers(Prefix, HowMany, Numbers);
 						Poco::JSON::Array A;
 						for (const auto &i : Numbers)
 							A.add(Utils::int_to_hex(i));
@@ -138,8 +141,10 @@ namespace OpenWifi {
 					}
 				}
 			}
+			return true;
 		} catch (const Poco::Exception &E) {
 			Logger_.log(E);
 		}
+		return false;
 	}
 }
