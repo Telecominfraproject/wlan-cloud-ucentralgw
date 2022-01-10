@@ -655,8 +655,16 @@ components:
           type: string
         interval:
           type: integer
-          example:
+          description:
             0 - means to stop streaming, values 1-120 in seconds.
+        lifetime:
+          type: integer
+          format: int64
+          description: how long should the telemetry run
+        kafka:
+          type: boolean
+          default: false
+          description: set to true to start kafka telemetry, false to start websocket telemetry
         types:
           type: array
           items:
@@ -667,7 +675,8 @@ components:
               - state
         uuid:
           type: string
-          example:
+          format: uuid
+          description:
             only valid when terminating a stream
 
     TelemetryStreamResponse:
@@ -683,6 +692,24 @@ components:
           format: uri
           example:
             wss://host.domain:port/endpoint
+        action:
+          type: string
+          description: what action resulted from running the command
+        status:
+          type: object
+          properties:
+            running:
+              type: boolean
+            interval:
+              type: integer
+            websocketTimer:
+              type: integer
+            kafkaTimer:
+              type: integer
+            websocketClients:
+              type: integer
+            kafkaClients:
+              type: integer
 
     #########################################################################################
     ##
@@ -1856,7 +1883,7 @@ paths:
       tags:
         - Commands
       summary: Configure a device.
-      operationId: updateConfigurationForADevice
+      operationId: createConfigurationForADevice
       parameters:
         - in: path
           name: serialNumber
@@ -1874,23 +1901,26 @@ paths:
                   type: string
       responses:
         200:
+          description:
+            Successfull ping os a device
           content:
             application/json:
               schema:
-                type:
-                serialNumber:
-                  type: string
-                currentUTCTime:
-                  type: integer
-                  format: int64
-                deviceUTCTime:
-                  type: integer
-                  format: int64
-                latency:
-                  type: number
-                configurationUUID:
-                  type: integer
-                  format: int64
+                type: object
+                properties:
+                  serialNumber:
+                    type: string
+                  currentUTCTime:
+                    type: integer
+                    format: int64
+                  deviceUTCTime:
+                    type: integer
+                    format: int64
+                  latency:
+                    type: number
+                  configurationUUID:
+                    type: integer
+                    format: int64
         403:
           $ref: '#/components/responses/Unauthorized'
         404:

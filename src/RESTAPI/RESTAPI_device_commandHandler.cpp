@@ -848,8 +848,8 @@ void RESTAPI_device_commandHandler::MakeRequest() {
 			uint64_t Interval = 5;
 			bool KafkaOnly = false;
 
-			if(Obj->has("kafkaOnly")) {
-				KafkaOnly = Obj->get("kafkaOnly").toString()=="true";
+			if(Obj->has("kafka")) {
+				KafkaOnly = Obj->get("kafka").toString()=="true";
 			}
 
 			AssignIfPresent(Obj, RESTAPI::Protocol::INTERVAL, Interval);
