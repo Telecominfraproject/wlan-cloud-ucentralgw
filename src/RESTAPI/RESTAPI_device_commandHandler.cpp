@@ -852,6 +852,8 @@ void RESTAPI_device_commandHandler::MakeRequest() {
 				KafkaOnly = Obj->get("kafka").toString()=="true";
 			}
 
+			auto StatusOnly = GetBoolParameter("statusOnly",false);
+
 			AssignIfPresent(Obj, RESTAPI::Protocol::INTERVAL, Interval);
 			AssignIfPresent(Obj, RESTAPI::Protocol::LIFETIME, Lifetime);
 
@@ -866,31 +868,36 @@ void RESTAPI_device_commandHandler::MakeRequest() {
 
 			Poco::JSON::Object Answer;
 
-			if(KafkaOnly) {
-				if (Interval) {
-					DeviceConnection->WSConn_->SetKafkaTelemetryReporting(Interval, Lifetime);
-					Answer.set("action", "Kafka telemetry started.");
-					Answer.set("uuid", NewUUID);
-				} else {
-					DeviceConnection->WSConn_->StopKafkaTelemetry();
-					Answer.set("action", "Kafka telemetry stopped.");
-				}
-			} else {
-				if (Interval) {
-					DeviceConnection->WSConn_->SetWebSocketTelemetryReporting(Interval, Lifetime);
-					std::string EndPoint;
-					if (TelemetryStream()->CreateEndpoint(SerialNumber_, EndPoint, NewUUID)) {
-						Answer.set("action", "WebSocket telemetry started.");
-						Answer.set("serialNumber", SerialNumber_);
+			if(!StatusOnly) {
+				if (KafkaOnly) {
+					if (Interval) {
+						DeviceConnection->WSConn_->SetKafkaTelemetryReporting(Interval, Lifetime);
+						Answer.set("action", "Kafka telemetry started.");
 						Answer.set("uuid", NewUUID);
-						Answer.set("uri", EndPoint);
 					} else {
-						return BadRequest(RESTAPI::Errors::InternalError);
+						DeviceConnection->WSConn_->StopKafkaTelemetry();
+						Answer.set("action", "Kafka telemetry stopped.");
 					}
 				} else {
-					Answer.set("action", "WebSocket telemetry stopped.");
-					DeviceConnection->WSConn_->StopWebSocketTelemetry();
+					if (Interval) {
+						DeviceConnection->WSConn_->SetWebSocketTelemetryReporting(Interval,
+																				  Lifetime);
+						std::string EndPoint;
+						if (TelemetryStream()->CreateEndpoint(SerialNumber_, EndPoint, NewUUID)) {
+							Answer.set("action", "WebSocket telemetry started.");
+							Answer.set("serialNumber", SerialNumber_);
+							Answer.set("uuid", NewUUID);
+							Answer.set("uri", EndPoint);
+						} else {
+							return BadRequest(RESTAPI::Errors::InternalError);
+						}
+					} else {
+						Answer.set("action", "WebSocket telemetry stopped.");
+						DeviceConnection->WSConn_->StopWebSocketTelemetry();
+					}
 				}
+			} else {
+				Answer.set("action", "Telemetry status only.");
 			}
 
 			bool TelemetryRunning;
