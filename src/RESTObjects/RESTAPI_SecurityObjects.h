@@ -136,6 +136,7 @@ namespace OpenWifi {
             OpenWifi::Types::StringVec lastPasswords;
             std::string oauthType;
             std::string oauthUserInfo;
+            uint64_t    modified;
 
             void to_json(Poco::JSON::Object &Obj) const;
             bool from_json(const Poco::JSON::Object::Ptr &Obj);
@@ -292,5 +293,14 @@ namespace OpenWifi {
             Poco::Data::LOB<char>   avatar;
         };
 
+        struct LoginRecordInfo {
+            std::string sessionId;
+            std::string userId;
+            std::string email;
+            uint64_t    login=0;
+            uint64_t    logout=0;
+
+            void to_json(Poco::JSON::Object &Obj) const;
+        };
     }
 }

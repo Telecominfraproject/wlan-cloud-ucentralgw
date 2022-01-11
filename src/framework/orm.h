@@ -171,6 +171,9 @@ namespace ORM {
 
     template <typename RecordTuple, typename RecordType> class DB {
     public:
+
+        typedef const char * field_name_t;
+
         DB( OpenWifi::DBType dbtype,
             const char *TableName,
             const FieldVec & Fields,
@@ -258,27 +261,27 @@ namespace ORM {
         [[nodiscard]] const std::string & SelectList() const { return SelectList_; };
         [[nodiscard]] const std::string & UpdateFields() const { return UpdateFields_; };
 
-        inline std::string OP(const char *F, SqlComparison O , bool V) {
+        inline std::string OP(field_name_t F, SqlComparison O , bool V) {
             assert( FieldNames_.find(F) != FieldNames_.end() );
             return std::string{"("} + F + SQLCOMPS[O] + (V ? "true" : "false") + ")" ;
         }
 
-        inline std::string OP(const char *F, SqlComparison O , int V) {
+        inline std::string OP(field_name_t F, SqlComparison O , int V) {
             assert( FieldNames_.find(F) != FieldNames_.end() );
             return std::string{"("} + F + SQLCOMPS[O] + std::to_string(V) + ")" ;
         }
 
-        inline std::string OP(const char *F, SqlComparison O , uint64_t V) {
+        inline std::string OP(field_name_t F, SqlComparison O , uint64_t V) {
             assert( FieldNames_.find(F) != FieldNames_.end() );
             return std::string{"("} + F + SQLCOMPS[O] + std::to_string(V) + ")" ;
         }
 
-        std::string OP(const char *F, SqlComparison O , const std::string & V) {
+        std::string OP(field_name_t F, SqlComparison O , const std::string & V) {
             assert( FieldNames_.find(F) != FieldNames_.end() );
             return std::string{"("} + F + SQLCOMPS[O] + "'" + Escape(V) + "')" ;
         }
 
-        std::string OP(const char *F, SqlComparison O , const char * V) {
+        std::string OP(field_name_t F, SqlComparison O , const char * V) {
             assert( FieldNames_.find(F) != FieldNames_.end() );
             return std::string{"("} + F + SQLCOMPS[O] + "'" + Escape(V) + "')" ;
         }
@@ -299,9 +302,12 @@ namespace ORM {
             return std::string{"("} + P1 + BOPS[BOP] + OP(true, P2, More...);
         }
 
-        inline bool  Create() {
-            std::string S;
+        bool Upgrade() {
+            uint32_t    To;
+            return Upgrade(0, To);
+        }
 
+        inline bool  Create() {
             switch(Type_) {
                 case OpenWifi::DBType::mysql: {
                     try {
@@ -309,12 +315,10 @@ namespace ORM {
                         std::string Statement = IndexCreation_.empty() ?    "create table if not exists " + TableName_ +" ( " + CreateFields_ + " )" :
                                                                             "create table if not exists " + TableName_ +" ( " + CreateFields_ + " ), " + IndexCreation_[0] + " )";
                         Session << Statement , Poco::Data::Keywords::now;
-                        return true;
                     } catch (const Poco::Exception &E) {
                         Logger_.error("Failure to create MySQL DB resources.");
                         Logger_.log(E);
                     }
-                    return false;
                 }
                 break;
 
@@ -326,7 +330,6 @@ namespace ORM {
                         for(const auto &i:IndexCreation_) {
                             Session << i , Poco::Data::Keywords::now;
                         }
-                        return true;
                     } catch (const Poco::Exception &E) {
                         Logger_.error("Failure to create SQLITE DB resources.");
                         Logger_.log(E);
@@ -342,7 +345,6 @@ namespace ORM {
                         for(const auto &i:IndexCreation_) {
                             Session << i , Poco::Data::Keywords::now;
                         }
-                        return true;
                     } catch (const Poco::Exception &E) {
                         Logger_.error("Failure to create POSTGRESQL DB resources.");
                         Logger_.log(E);
@@ -350,7 +352,7 @@ namespace ORM {
                 }
                 break;
             }
-            return false;
+            return Upgrade();
         }
 
         [[nodiscard]] std::string ConvertParams(const std::string & S) const {
@@ -400,7 +402,7 @@ namespace ORM {
             return false;
         }
 
-        template<typename T> bool GetRecord( const char * FieldName, const T & Value,  RecordType & R) {
+        template<typename T> bool GetRecord(field_name_t FieldName, const T & Value,  RecordType & R) {
             try {
                 assert( FieldNames_.find(FieldName) != FieldNames_.end() );
 
@@ -438,7 +440,7 @@ namespace ORM {
         typedef std::vector<std::string> StringVec;
 
         template <  typename T,
-                typename T0, typename T1> bool GR(const char *FieldName, T & R,T0 &V0, T1 &V1) {
+                typename T0, typename T1> bool GR(field_name_t FieldName, T & R,T0 &V0, T1 &V1) {
             try {
 
                 assert( FieldNames_.find(FieldName) != FieldNames_.end() );
@@ -495,7 +497,7 @@ namespace ORM {
             return false;
         }
 
-        template <typename T> bool UpdateRecord( const char *FieldName, const T & Value,  const RecordType & R) {
+        template <typename T> bool UpdateRecord(field_name_t FieldName, const T & Value,  const RecordType & R) {
             try {
                 assert( FieldNames_.find(FieldName) != FieldNames_.end() );
 
@@ -522,7 +524,7 @@ namespace ORM {
             return false;
         }
 
-        template <typename T> bool ReplaceRecord( const char *FieldName, const T & Value,  RecordType & R) {
+        template <typename T> bool ReplaceRecord(field_name_t FieldName, const T & Value,  RecordType & R) {
             try {
                 if(Exists(FieldName, Value)) {
                     return UpdateRecord(FieldName,Value,R);
@@ -534,7 +536,7 @@ namespace ORM {
             return false;
         }
 
-        template <typename T> bool GetNameAndDescription(const char *FieldName, const T & Value, std::string & Name, std::string & Description ) {
+        template <typename T> bool GetNameAndDescription(field_name_t FieldName, const T & Value, std::string & Name, std::string & Description ) {
             try {
                 assert( FieldNames_.find(FieldName) != FieldNames_.end() );
                 Poco::Data::Session     Session = Pool_.get();
@@ -561,7 +563,7 @@ namespace ORM {
             return false;
         }
 
-        template <typename T> bool DeleteRecord( const char *FieldName, const T & Value) {
+        template <typename T> bool DeleteRecord(field_name_t FieldName, const T & Value) {
             try {
                 assert( FieldNames_.find(FieldName) != FieldNames_.end() );
 
@@ -599,7 +601,7 @@ namespace ORM {
             return false;
         }
 
-        bool Exists(const char *FieldName, const std::string & Value) {
+        bool Exists(field_name_t FieldName, const std::string & Value) {
             try {
                 assert( FieldNames_.find(FieldName) != FieldNames_.end() );
 
@@ -616,7 +618,7 @@ namespace ORM {
         bool Iterate( std::function<bool(const RecordType &R)> F) {
             try {
 
-                uint64_t    Offset=1;
+                uint64_t    Offset=0;
                 uint64_t    Batch=50;
                 bool Done=false;
                 while(!Done) {
@@ -691,7 +693,7 @@ namespace ORM {
             return 0;
         }
 
-        template <typename X> bool ManipulateVectorMember( X T, const char *FieldName, std::string & ParentUUID, std::string & ChildUUID, bool Add) {
+        template <typename X> bool ManipulateVectorMember( X T, field_name_t FieldName, const std::string & ParentUUID, const std::string & ChildUUID, bool Add) {
             try {
                 assert( FieldNames_.find(FieldName) != FieldNames_.end() );
 
@@ -751,89 +753,89 @@ namespace ORM {
             return true;
         }
         
-        inline bool AddChild( const char *FieldName, std::string & ParentUUID, std::string & ChildUUID) {
+        inline bool AddChild(field_name_t FieldName, const std::string & ParentUUID, const std::string & ChildUUID) {
             return ManipulateVectorMember(&RecordType::children, FieldName, ParentUUID, ChildUUID, true);
         }
 
-        inline bool DeleteChild( const char *FieldName, std::string & ParentUUID, std::string & ChildUUID) {
+        inline bool DeleteChild(field_name_t FieldName, const std::string & ParentUUID, const std::string & ChildUUID) {
             return ManipulateVectorMember(&RecordType::children, FieldName, ParentUUID, ChildUUID, false);
         }
 
-        inline bool AddLocation( const char *FieldName, std::string & ParentUUID, std::string & ChildUUID) {
+        inline bool AddLocation(field_name_t FieldName, const std::string & ParentUUID, const std::string & ChildUUID) {
             return ManipulateVectorMember(&RecordType::locations, FieldName, ParentUUID, ChildUUID, true);
         }
 
-        inline bool DeleteLocation( const char *FieldName, std::string & ParentUUID, std::string & ChildUUID) {
+        inline bool DeleteLocation(field_name_t FieldName, const std::string & ParentUUID, const std::string & ChildUUID) {
             return ManipulateVectorMember(&RecordType::locations, FieldName, ParentUUID, ChildUUID, false);
         }
 
-        inline bool AddContact( const char *FieldName, std::string & ParentUUID, std::string & ChildUUID) {
+        inline bool AddContact(field_name_t FieldName, const std::string & ParentUUID, const std::string & ChildUUID) {
             return ManipulateVectorMember(&RecordType::contacts, FieldName, ParentUUID, ChildUUID, true);
         }
 
-        inline bool DeleteContact( const char *FieldName, std::string & ParentUUID, std::string & ChildUUID) {
+        inline bool DeleteContact(field_name_t FieldName, const std::string & ParentUUID, const std::string & ChildUUID) {
             return ManipulateVectorMember(&RecordType::contacts, FieldName, ParentUUID, ChildUUID, false);
         }
 
-        inline bool AddVenue( const char *FieldName, std::string & ParentUUID, std::string & ChildUUID) {
+        inline bool AddVenue(field_name_t FieldName, const std::string & ParentUUID, const std::string & ChildUUID) {
             return ManipulateVectorMember(&RecordType::venues, FieldName, ParentUUID, ChildUUID, true);
         }
 
-        inline bool DeleteVenue( const char *FieldName, std::string & ParentUUID, std::string & ChildUUID) {
+        inline bool DeleteVenue(field_name_t FieldName, const std::string & ParentUUID, const std::string & ChildUUID) {
             return ManipulateVectorMember(&RecordType::venues, FieldName, ParentUUID, ChildUUID, false);
         }
 
-        inline bool AddDevice( const char *FieldName, std::string & ParentUUID, std::string & ChildUUID) {
+        inline bool AddDevice(field_name_t FieldName, const std::string & ParentUUID, const std::string & ChildUUID) {
             return ManipulateVectorMember(&RecordType::devices, FieldName, ParentUUID, ChildUUID, true);
         }
 
-        inline bool DeleteDevice( const char *FieldName, std::string & ParentUUID, std::string & ChildUUID) {
+        inline bool DeleteDevice(field_name_t FieldName, const std::string & ParentUUID, const std::string & ChildUUID) {
             return ManipulateVectorMember(&RecordType::devices, FieldName, ParentUUID, ChildUUID, false);
         }
 
-        inline bool AddEntity( const char *FieldName, std::string & ParentUUID, std::string & ChildUUID) {
+        inline bool AddEntity(field_name_t FieldName, const std::string & ParentUUID, const std::string & ChildUUID) {
             return ManipulateVectorMember(&RecordType::entities, FieldName, ParentUUID, ChildUUID, true);
         }
 
-        inline bool DeleteEntity( const char *FieldName, std::string & ParentUUID, std::string & ChildUUID) {
+        inline bool DeleteEntity(field_name_t FieldName, const std::string & ParentUUID, const std::string & ChildUUID) {
             return ManipulateVectorMember(&RecordType::entities, FieldName, ParentUUID, ChildUUID, false);
         }
 
-        inline bool AddUser( const char *FieldName, std::string & ParentUUID, std::string & ChildUUID) {
+        inline bool AddUser(field_name_t FieldName, const std::string & ParentUUID, const std::string & ChildUUID) {
             return ManipulateVectorMember(&RecordType::users, FieldName, ParentUUID, ChildUUID, true);
         }
 
-        inline bool DelUser( const char *FieldName, std::string & ParentUUID, std::string & ChildUUID) {
+        inline bool DelUser(field_name_t FieldName, const std::string & ParentUUID, const std::string & ChildUUID) {
             return ManipulateVectorMember(&RecordType::users, FieldName, ParentUUID, ChildUUID, false);
         }
 
-        inline bool AddInUse(const char *FieldName, std::string & ParentUUID, const std::string & Prefix, const std::string & ChildUUID) {
+        inline bool AddInUse(field_name_t FieldName, std::string & ParentUUID, const std::string & Prefix, const std::string & ChildUUID) {
             std::string FakeUUID{ Prefix + ":" + ChildUUID};
             return ManipulateVectorMember(&RecordType::inUse,FieldName, ParentUUID, FakeUUID, true);
         }
 
-        inline bool DeleteInUse(const char *FieldName, std::string & ParentUUID, const std::string & Prefix, const std::string & ChildUUID) {
+        inline bool DeleteInUse(field_name_t FieldName, std::string & ParentUUID, const std::string & Prefix, const std::string & ChildUUID) {
             std::string FakeUUID{ Prefix + ":" + ChildUUID};
             return ManipulateVectorMember(&RecordType::inUse,FieldName, ParentUUID, FakeUUID, false);
         }
 
-        inline bool DeleteContact(const char *FieldName, std::string & ParentUUID, const std::string & ChildUUID) {
+        inline bool DeleteContact(field_name_t FieldName, std::string & ParentUUID, const std::string & ChildUUID) {
             return ManipulateVectorMember(&RecordType::contacts,FieldName, ParentUUID, ChildUUID, false);
         }
 
-        inline bool AddContact(const char *FieldName, std::string & ParentUUID, const std::string & ChildUUID) {
+        inline bool AddContact(field_name_t FieldName, std::string & ParentUUID, const std::string & ChildUUID) {
             return ManipulateVectorMember(&RecordType::contacts,FieldName, ParentUUID, ChildUUID, true);
         }
 
-        inline bool DeleteLocation(const char *FieldName, std::string & ParentUUID, const std::string & ChildUUID) {
+        inline bool DeleteLocation(field_name_t FieldName, std::string & ParentUUID, const std::string & ChildUUID) {
             return ManipulateVectorMember(&RecordType::locations,FieldName, ParentUUID, ChildUUID, false);
         }
 
-        inline bool AddLocation(const char *FieldName, std::string & ParentUUID, const std::string & ChildUUID) {
+        inline bool AddLocation(field_name_t FieldName, std::string & ParentUUID, const std::string & ChildUUID) {
             return ManipulateVectorMember(&RecordType::locations,FieldName, ParentUUID, ChildUUID, true);
         }
 
-        inline bool GetInUse(const char *FieldName, std::string & UUID, std::vector<std::string> & UUIDs ) {
+        inline bool GetInUse(field_name_t FieldName, const std::string & UUID, std::vector<std::string> & UUIDs ) {
             RecordType  R;
             if(GetRecord(FieldName,UUID,R)) {
                 UUIDs = R.inUse;
