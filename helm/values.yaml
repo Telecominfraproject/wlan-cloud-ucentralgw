@@ -15,6 +15,10 @@ images:
 #      registry: tip-tip-wlan-cloud-ucentral.jfrog.io
 #      username: username
 #      password: password
+  dockerize:
+    repository: tip-tip-wlan-cloud-ucentral.jfrog.io/dockerize
+    tag: 0.16.0
+    pullPolicy: IfNotPresent
 
 services:
   owgw:

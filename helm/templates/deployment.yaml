@@ -39,6 +39,16 @@ spec:
         {{- end }}
     spec:
 
+      initContainers:
+        - name: wait-kafka
+          image: "{{ .Values.images.dockerize.repository }}:{{ .Values.images.dockerize.tag }}"
+          imagePullPolicy: {{ .Values.images.dockerize.pullPolicy }}
+          args:
+            - -wait
+            - tcp://{{ index .Values.configProperties "openwifi.kafka.brokerlist" }}
+            - -timeout
+            - 600s
+
       containers:
 
         - name: owgw
