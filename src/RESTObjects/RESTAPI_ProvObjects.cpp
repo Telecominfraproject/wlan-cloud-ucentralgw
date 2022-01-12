@@ -335,6 +335,20 @@ namespace OpenWifi::ProvObjects {
         return false;
     }
 
+    void InventoryTagList::to_json(Poco::JSON::Object &Obj) const {
+        field_to_json( Obj,"taglist",taglist);
+    }
+
+    bool InventoryTagList::from_json(const Poco::JSON::Object::Ptr &Obj) {
+        try {
+            field_from_json( Obj,"taglist",taglist);
+            return false;
+        } catch (...) {
+
+        }
+        return false;
+    };
+
     void DeviceConfigurationElement::to_json(Poco::JSON::Object &Obj) const {
         field_to_json( Obj,"name", name);
         field_to_json( Obj,"description", description);

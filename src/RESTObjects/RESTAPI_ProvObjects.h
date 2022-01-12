@@ -289,7 +289,16 @@ namespace OpenWifi::ProvObjects {
         void to_json(Poco::JSON::Object &Obj) const;
         bool from_json(const Poco::JSON::Object::Ptr &Obj);
     };
+
     typedef std::vector<InventoryTag>      InventoryTagVec;
+
+    struct InventoryTagList {
+        InventoryTagVec     taglist;
+
+        void to_json(Poco::JSON::Object &Obj) const;
+        bool from_json(const Poco::JSON::Object::Ptr &Obj);
+    };
+
 
     struct Report {
         uint64_t            snapShot=0;

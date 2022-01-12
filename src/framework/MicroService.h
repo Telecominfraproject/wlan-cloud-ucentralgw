@@ -2109,20 +2109,20 @@ namespace OpenWifi {
 	        virtual void DoPost() = 0 ;
 	        virtual void DoPut() = 0 ;
 
+            Poco::Net::HTTPServerRequest        *Request= nullptr;
+            Poco::Net::HTTPServerResponse       *Response= nullptr;
+            SecurityObjects::UserInfoAndPolicy 	UserInfo_;
 	    protected:
 	        BindingMap 					Bindings_;
 	        Poco::URI::QueryParameters 	Parameters_;
 	        Poco::Logger 				&Logger_;
 	        std::string 				SessionToken_;
-	        SecurityObjects::UserInfoAndPolicy 	UserInfo_;
 	        std::vector<std::string> 	Methods_;
 	        QueryBlock					QB_;
 	        bool                        Internal_=false;
 	        bool                        RateLimited_=false;
 	        bool                        QueryBlockInitialized_=false;
 	        bool                        SubOnlyService_=false;
-	        Poco::Net::HTTPServerRequest    *Request= nullptr;
-	        Poco::Net::HTTPServerResponse   *Response= nullptr;
 	        bool                        AlwaysAuthorize_=true;
 	        Poco::JSON::Parser          IncomingParser_;
 	        RESTAPI_GenericServer       & Server_;
@@ -2242,6 +2242,26 @@ namespace OpenWifi {
 	    uint64_t 				msTimeout_;
 	    Poco::JSON::Object      Body_;
 	};
+
+    class OpenAPIRequestDelete {
+    public:
+        explicit OpenAPIRequestDelete( const std::string & Type,
+                                     const std::string & EndPoint,
+                                     const Types::StringPairVec & QueryData,
+                                     uint64_t msTimeout):
+                Type_(Type),
+                EndPoint_(EndPoint),
+                QueryData_(QueryData),
+                msTimeout_(msTimeout){};
+        inline Poco::Net::HTTPServerResponse::HTTPStatus Do(const std::string & BearerToken = "");
+
+    private:
+        std::string 			Type_;
+        std::string 			EndPoint_;
+        Types::StringPairVec 	QueryData_;
+        uint64_t 				msTimeout_;
+        Poco::JSON::Object      Body_;
+    };
 
     class KafkaProducer : public Poco::Runnable {
     public:
@@ -3943,6 +3963,52 @@ namespace OpenWifi {
         return Poco::Net::HTTPServerResponse::HTTP_GATEWAY_TIMEOUT;
     }
 
+    inline Poco::Net::HTTPServerResponse::HTTPStatus OpenAPIRequestDelete::Do(const std::string & BearerToken) {
+        try {
+            auto Services = MicroService::instance().GetServices(Type_);
+
+            for(auto const &Svc:Services) {
+                Poco::URI	URI(Svc.PrivateEndPoint);
+                Poco::Net::HTTPSClientSession Session(URI.getHost(), URI.getPort());
+
+                URI.setPath(EndPoint_);
+                for (const auto &qp : QueryData_)
+                    URI.addQueryParameter(qp.first, qp.second);
+
+                std::string Path(URI.getPathAndQuery());
+                Session.setTimeout(Poco::Timespan(msTimeout_/1000, msTimeout_ % 1000));
+
+                Poco::Net::HTTPRequest Request(Poco::Net::HTTPRequest::HTTP_DELETE,
+                                               Path,
+                                               Poco::Net::HTTPMessage::HTTP_1_1);
+                std::ostringstream obody;
+                Poco::JSON::Stringifier::stringify(Body_,obody);
+
+                Request.setContentType("application/json");
+                Request.setContentLength(obody.str().size());
+
+                if(BearerToken.empty()) {
+                    Request.add("X-API-KEY", Svc.AccessKey);
+                    Request.add("X-INTERNAL-NAME", MicroService::instance().PublicEndPoint());
+                } else {
+                    // Authorization: Bearer ${token}
+                    Request.add("Authorization", "Bearer " + BearerToken);
+                }
+
+                std::ostream & os = Session.sendRequest(Request);
+                os << obody.str();
+
+                Poco::Net::HTTPResponse Response;
+                Session.receiveResponse(Response);
+                return Response.getStatus();
+            }
+        }
+        catch (const Poco::Exception &E)
+        {
+            std::cerr << E.displayText() << std::endl;
+        }
+        return Poco::Net::HTTPServerResponse::HTTP_GATEWAY_TIMEOUT;
+    }
 
     inline void RESTAPI_GenericServer::InitLogging() {
         std::string Public = MicroService::instance().ConfigGetString("apilogging.public.methods","PUT,POST,DELETE");
