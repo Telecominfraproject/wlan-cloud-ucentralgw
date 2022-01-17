@@ -17,7 +17,7 @@ namespace OpenWifi {
 				auto IFaces = O->getArray("interfaces");
 				for (auto const &i : *IFaces) {
 					auto Interface = i.extract<Poco::JSON::Object::Ptr>();
-					if (Interface->has("name") && Interface->has("counters")) {
+					if (Interface->has("name") && (Interface->has("counters") || Interface->has("deltas"))) {
 						auto InterfaceName = Interface->get("name").toString();
 						auto InterfaceMapEntry = Stats_.find(InterfaceName);
 						if(InterfaceMapEntry == Stats_.end()) {
@@ -25,7 +25,7 @@ namespace OpenWifi {
 							Stats_[InterfaceName] = NewStatEntry;
 							InterfaceMapEntry = Stats_.find(InterfaceName);
 						}
-						auto CountersObj = Interface->getObject("counters");
+						auto CountersObj = Interface->has("counters") ? Interface->getObject("counters") : Interface->getObject("deltas");
 						for (const auto &j : *CountersObj) {
 							auto Entry = InterfaceMapEntry->second.find(j.first);
 							if(Entry==InterfaceMapEntry->second.end()) {
