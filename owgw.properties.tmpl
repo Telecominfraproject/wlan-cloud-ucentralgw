@@ -153,38 +153,6 @@ archiver.db.3.keep = 7
 # Logging: please leave as is for now.
 #
 ########################################################################
-
-logging.formatters.f1.class = PatternFormatter
-logging.formatters.f1.pattern = %Y-%m-%d %H:%M:%S %s: [%p] %t
-logging.formatters.f1.times = UTC
-logging.channels.c1.class = ConsoleChannel
-logging.channels.c1.formatter = f1
-
-# This is where the logs will be written. This path MUST exist
-logging.channels.c2.class = FileChannel
-logging.channels.c2.path = $OWGW_ROOT/logs/log
-logging.channels.c2.formatter.class = PatternFormatter
-logging.channels.c2.formatter.pattern = %Y-%m-%d %H:%M:%S %s: [%p] %t
-logging.channels.c2.rotation = 20 M
-logging.channels.c2.archive = timestamp
-logging.channels.c2.purgeCount = 20
-logging.channels.c3.class = ConsoleChannel
-logging.channels.c3.pattern = %s: [%p] %t
-
-# External Channel
-logging.loggers.root.channel = c1
-logging.loggers.root.level = debug
-
-# Inline Channel with PatternFormatter
-# logging.loggers.l1.name = logger1
-# logging.loggers.l1.channel.class = ConsoleChannel
-# logging.loggers.l1.channel.pattern = %s: [%p] %t
-# logging.loggers.l1.level = information
-# SplitterChannel
-# logging.channels.splitter.class = SplitterChannel
-# logging.channels.splitter.channels = l1,l2
-# logging.loggers.l2.name = logger2
-# logging.loggers.l2.channel = splitter
-
-
-
+logging.type = console
+logging.path = $OWGW_ROOT/logs
+logging.level = debug
