@@ -20,10 +20,12 @@
 namespace OpenWifi {
 
 	int OUIServer::Start() {
+		Running_ = true;
 		UpdaterCallBack_ = std::make_unique<Poco::TimerCallback<OUIServer>>(*this, &OUIServer::onTimer);
 		Timer_.setStartInterval(30 * 1000);  // first run in 5 minutes
 		Timer_.setPeriodicInterval(7 * 24 * 60 * 60 * 1000);
 		Timer_.start(*UpdaterCallBack_);
+
 		return 0;
 	}
 
@@ -72,7 +74,9 @@ namespace OpenWifi {
 			std::ifstream Input;
 			Input.open(FileName, std::ios::binary);
 
+			_OWDEBUG_
 			while (!Input.eof()) {
+				_OWDEBUG_
 				if(!Running_)
 					return false;
 				char buf[1024];
