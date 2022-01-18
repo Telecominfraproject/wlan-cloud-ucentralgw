@@ -133,14 +133,14 @@ namespace OpenWifi {
 		bool 								Connected_=false;
 		uint64_t 							ConnectionId_=0;
 		Poco::Net::IPAddress				PeerAddress_;
-		std::atomic_bool 					TelemetryReporting_ = false;
-		uint64_t 							TelemetryWebSocketRefCount_ = 0;
-		uint64_t 							TelemetryKafkaRefCount_ = 0;
-		uint64_t 							TelemetryWebSocketTimer_ = 0;
-		uint64_t 							TelemetryKafkaTimer_ = 0 ;
-		uint64_t 							TelemetryInterval_ = 0;
-		uint64_t 							TelemetryWebSocketPackets_=0;
-		uint64_t 							TelemetryKafkaPackets_=0;
+		mutable std::atomic_bool 			TelemetryReporting_ = false;
+		mutable uint64_t 					TelemetryWebSocketRefCount_ = 0;
+		mutable uint64_t 					TelemetryKafkaRefCount_ = 0;
+		mutable uint64_t 					TelemetryWebSocketTimer_ = 0;
+		mutable uint64_t 					TelemetryKafkaTimer_ = 0 ;
+		mutable uint64_t 					TelemetryInterval_ = 0;
+		mutable uint64_t 					TelemetryWebSocketPackets_=0;
+		mutable uint64_t 					TelemetryKafkaPackets_=0;
 
 		void CompleteStartup();
 		bool StartTelemetry();
