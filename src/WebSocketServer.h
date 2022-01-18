@@ -133,7 +133,7 @@ namespace OpenWifi {
 		bool 								Connected_=false;
 		uint64_t 							ConnectionId_=0;
 		Poco::Net::IPAddress				PeerAddress_;
-		bool 								TelemetryReporting_ = false;
+		std::atomic_bool 					TelemetryReporting_ = false;
 		uint64_t 							TelemetryWebSocketRefCount_ = 0;
 		uint64_t 							TelemetryKafkaRefCount_ = 0;
 		uint64_t 							TelemetryWebSocketTimer_ = 0;
