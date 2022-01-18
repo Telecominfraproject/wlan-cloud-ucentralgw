@@ -14,13 +14,13 @@
 #include "Poco/Data/RecordSet.h"
 #include "Poco/Net/IPAddress.h"
 #include "SerialNumberCache.h"
-#include "StateProcessor.h"
 #include "StorageService.h"
 #include "framework/MicroService.h"
 #include "CapabilitiesCache.h"
 #include "FindCountry.h"
 #include "WebSocketServer.h"
 #include "SDKcalls.h"
+#include "StateUtils.h"
 
 namespace OpenWifi {
 
@@ -814,7 +814,7 @@ namespace OpenWifi {
 						}
 
 						uint64_t 	Associations_2G, Associations_5G;
-						StateProcessor::GetAssociations(RawObject, Associations_2G, Associations_5G);
+						StateUtils::ComputeAssociations(RawObject, Associations_2G, Associations_5G);
 						UpdateCountedMap(Dashboard.associations, "2G", Associations_2G);
 						UpdateCountedMap(Dashboard.associations, "5G", Associations_5G);
 					}

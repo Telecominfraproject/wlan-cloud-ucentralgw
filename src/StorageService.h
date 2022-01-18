@@ -152,10 +152,6 @@ namespace OpenWifi {
 		bool UpdateBlackListDevice(std::string & SerialNumber, GWObjects::BlackListedDevice & Device);
 		uint64_t GetBlackListDeviceCount();
 
-		bool SetLifetimeStats(std::string & SerialNumber, std::string & Stats);
-		bool GetLifetimeStats(std::string & SerialNumber, std::string & Stats);
-		bool ResetLifetimeStats(std::string & SerialNumber);
-
 		bool RemoveHealthChecksRecordsOlderThan(uint64_t Date);
 		bool RemoveDeviceLogsRecordsOlderThan(uint64_t Date);
 		bool RemoveStatisticsRecordsOlderThan(uint64_t Date);
@@ -171,7 +167,6 @@ namespace OpenWifi {
 		int Create_CommandList();
 		int Create_BlackList();
 		int Create_FileUploads();
-		int Create_LifetimeStats();
 
 		bool AnalyzeCommands(Types::CountedMap &R);
 		bool AnalyzeDevices(GWObjects::Dashboard &D);

@@ -15,7 +15,6 @@
 
 #include "DeviceRegistry.h"
 #include "RESTObjects//RESTAPI_GWobjects.h"
-#include "StateProcessor.h"
 #include "framework/MicroService.h"
 
 #include "Poco/AutoPtr.h"
@@ -129,7 +128,6 @@ namespace OpenWifi {
 		std::string							CN_;
 		GWObjects::CertificateValidation	CertValidation_ = GWObjects::CertificateValidation::NO_CERTIFICATE;
 		uint64_t 							Errors_=0;
-		std::unique_ptr<StateProcessor>		StatsProcessor_;
 		bool 								Connected_=false;
 		uint64_t 							ConnectionId_=0;
 		Poco::Net::IPAddress				PeerAddress_;

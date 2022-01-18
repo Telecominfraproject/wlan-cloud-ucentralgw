@@ -344,16 +344,6 @@ components:
           items:
             $ref: '#/components/schemas/NameValuePair'
 
-    LifetimeStatistics:
-      type: object
-      properties:
-        serialNumber:
-          type: string
-        interfaces:
-          type: array
-          items:
-            $ref: '#/components/schemas/InterfaceStatistics'
-
     CommandDetails:
       type: object
       properties:
@@ -1739,13 +1729,7 @@ paths:
             format: int64
           required: false
         - in: query
-          description: Selecting this option means the LifetimeStatistics will be returned. All other parameters will be ignored.
-          name: lifetime
-          schema:
-            type: boolean
-          required: false
-        - in: query
-          description: Selecting this option means the LifetimeStatistics will be returned. All other parameters will be ignored.
+          description: Selecting this option means the Last Statistics block
           name: lastOnly
           schema:
             type: boolean
@@ -1765,7 +1749,6 @@ paths:
               schema:
                 oneOf:
                   - $ref: '#/components/schemas/StatisticsRecords'
-                  - $ref: '#/components/schemas/LifetimeStatistics'
         403:
           $ref: '#/components/responses/Unauthorized'
         404:

@@ -139,15 +139,7 @@ void RESTAPI_device_commandHandler::DeleteCapabilities() {
 }
 
 void RESTAPI_device_commandHandler::GetStatistics() {
-	if (QB_.Lifetime) {
-		std::string Stats;
-		StorageService()->GetLifetimeStats(SerialNumber_, Stats);
-		Poco::JSON::Parser P;
-		if (Stats.empty())
-			Stats = uCentralProtocol::EMPTY_JSON_DOC;
-		auto Obj = P.parse(Stats).extract<Poco::JSON::Object::Ptr>();
-		return ReturnObject(*Obj);
-	} else if (QB_.LastOnly) {
+	if (QB_.LastOnly) {
 		std::string Stats;
 		if (DeviceRegistry()->GetStatistics(SerialNumber_, Stats)) {
 			Poco::JSON::Parser P;
@@ -181,14 +173,8 @@ void RESTAPI_device_commandHandler::GetStatistics() {
 
 void RESTAPI_device_commandHandler::DeleteStatistics() {
 	Logger_.information(Poco::format("DELETE-STATISTICS: user=%s serial=%s", UserInfo_.userinfo.email,SerialNumber_));
-	if (QB_.Lifetime) {
-		if (StorageService()->ResetLifetimeStats(SerialNumber_)) {
-			return OK();
-		}
-	} else {
-		if (StorageService()->DeleteStatisticsData(SerialNumber_, QB_.StartDate, QB_.EndDate)) {
-			return OK();
-		}
+	if (StorageService()->DeleteStatisticsData(SerialNumber_, QB_.StartDate, QB_.EndDate)) {
+		return OK();
 	}
 	NotFound();
 }

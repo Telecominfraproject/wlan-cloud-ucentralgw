@@ -104,8 +104,6 @@ add_executable( owgw
         src/storage/storage_tables.cpp
         src/RESTAPI/RESTAPI_routers.cpp
         src/Daemon.cpp src/Daemon.h
-        src/StateProcessor.cpp src/StateProcessor.h
-        src/storage/storage_lifetime_stats.cpp
         src/WebSocketServer.cpp src/WebSocketServer.h
         src/StorageService.cpp src/StorageService.h
         src/DeviceRegistry.cpp src/DeviceRegistry.h
@@ -119,7 +117,7 @@ add_executable( owgw
         src/TelemetryStream.cpp src/TelemetryStream.h
         src/framework/ConfigurationValidator.cpp src/framework/ConfigurationValidator.h
         src/ConfigurationCache.cpp src/ConfigurationCache.h
-        src/CapabilitiesCache.h src/FindCountry.h src/rttys/RTTYS_server.cpp src/rttys/RTTYS_server.h src/rttys/RTTYS_device.cpp src/rttys/RTTYS_device.h src/rttys/RTTYS_ClientConnection.cpp src/rttys/RTTYS_ClientConnection.h src/rttys/RTTYS_WebServer.cpp src/rttys/RTTYS_WebServer.h src/RESTAPI/RESTAPI_device_helper.h src/SDKcalls.cpp src/SDKcalls.h)
+        src/CapabilitiesCache.h src/FindCountry.h src/rttys/RTTYS_server.cpp src/rttys/RTTYS_server.h src/rttys/RTTYS_device.cpp src/rttys/RTTYS_device.h src/rttys/RTTYS_ClientConnection.cpp src/rttys/RTTYS_ClientConnection.h src/rttys/RTTYS_WebServer.cpp src/rttys/RTTYS_WebServer.h src/RESTAPI/RESTAPI_device_helper.h src/SDKcalls.cpp src/SDKcalls.h src/StateUtils.cpp src/StateUtils.h)
 
 if(NOT SMALL_BUILD)
 

@@ -27,6 +27,7 @@
 #include "Daemon.h"
 #include "FindCountry.h"
 #include "SerialNumberCache.h"
+#include "StateUtils.h"
 
 namespace OpenWifi {
 
@@ -393,9 +394,6 @@ namespace OpenWifi {
 							LookForUpgrade(UUID);
 						}
 
-						StatsProcessor_ = std::make_unique<StateProcessor>(Conn_, Logger());
-						StatsProcessor_->Initialize(Serial);
-
 						if(KafkaManager()->Enabled()) {
 							Poco::JSON::Stringifier		Stringify;
 							ParamsObj->set(uCentralProtocol::CONNECTIONIP,CId_);
@@ -420,7 +418,8 @@ namespace OpenWifi {
 					}
 					if (ParamsObj->has(uCentralProtocol::UUID) && ParamsObj->has(uCentralProtocol::STATE)) {
 						uint64_t UUID = ParamsObj->get(uCentralProtocol::UUID);
-						auto State = ParamsObj->get(uCentralProtocol::STATE).toString();
+						auto StateStr = ParamsObj->get(uCentralProtocol::STATE).toString();
+						auto StateObj = ParamsObj->getObject(uCentralProtocol::STATE);
 
 						std::string request_uuid;
 						if (ParamsObj->has(uCentralProtocol::REQUEST_UUID))
@@ -432,15 +431,17 @@ namespace OpenWifi {
 							Logger().debug(Poco::format("STATE(%s): UUID=%Lu Updating for CMD=%s.", CId_,
 													   UUID, request_uuid));
 						Conn_->Conn_.UUID = UUID;
+						Conn_->LastStats = StateStr;
+
 						LookForUpgrade(UUID);
-						GWObjects::Statistics	Stats{ .SerialNumber = SerialNumber_, .UUID = UUID, .Data = State};
+						GWObjects::Statistics	Stats{ .SerialNumber = SerialNumber_, .UUID = UUID, .Data = StateStr};
 						Stats.Recorded = std::time(nullptr);
 						StorageService()->AddStatisticsData(Stats);
 						if (!request_uuid.empty()) {
-							StorageService()->SetCommandResult(request_uuid, State);
+							StorageService()->SetCommandResult(request_uuid, StateStr);
 						}
 
-						StatsProcessor_->Add(State);
+						StateUtils::ComputeAssociations(StateObj, Conn_->Conn_.Associations_2G, Conn_->Conn_.Associations_5G);
 
 						if(KafkaManager()->Enabled()) {
 							Poco::JSON::Stringifier		Stringify;
