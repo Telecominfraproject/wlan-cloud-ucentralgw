@@ -21,7 +21,8 @@ namespace OpenWifi {
 				auto IFaces = O->getArray("interfaces");
 				for (auto const &i : *IFaces) {
 					auto Interface = i.extract<Poco::JSON::Object::Ptr>();
-					if (Interface->has("name") && (Interface->has("counters") || Interface->has("deltas"))) {
+
+					if (Interface->has("name")) {
 						_OWDEBUG_
 						auto InterfaceName = Interface->get("name").toString();
 						auto InterfaceMapEntry = Stats_.find(InterfaceName);
@@ -31,21 +32,55 @@ namespace OpenWifi {
 							InterfaceMapEntry = Stats_.find(InterfaceName);
 						}
 						_OWDEBUG_
-						auto CountersObj = Interface->has("counters") ? Interface->getObject("counters") : Interface->getObject("deltas");
-						for (const auto &j : *CountersObj) {
-							_OWDEBUG_
-							auto Entry = InterfaceMapEntry->second.find(j.first);
-							if(Entry==InterfaceMapEntry->second.end()) {
+						//	old stats version...
+						if(Interface->has("counters")) {
+							auto CountersObj = Interface->getObject("counters");
+							for (const auto &j : *CountersObj) {
 								_OWDEBUG_
-								InterfaceMapEntry->second[j.first] = j.second;
-							} else {
+								auto Entry = InterfaceMapEntry->second.find(j.first);
+								if (Entry == InterfaceMapEntry->second.end()) {
+									_OWDEBUG_
+									InterfaceMapEntry->second[j.first] = j.second;
+								} else {
+									_OWDEBUG_
+									InterfaceMapEntry->second[j.first] += j.second;
+								}
+							}
+						} else {
+							// 	must be the new version. So now we must get the ssids section, and iterate over each association
+							//	and update the global counter with the new values. We can ignore the deltas since we really want the 	absolute values.
+							try {
 								_OWDEBUG_
-								InterfaceMapEntry->second[j.first] += j.second;
+								auto SSIDs = Interface->getArray("ssids");
+								_OWDEBUG_
+								uint64_t rx_bytes = 0, rx_packets=0, tx_bytes=0,tx_packets=0,tx_retries=0,tx_failed=0;
+								for (const auto &SSID : *SSIDs) {
+									_OWDEBUG_
+									auto SSID_info = SSID.extract<Poco::JSON::Object::Ptr>();
+									auto Associations = SSID_info->getArray("associations");
+									for (const auto &k : *Associations) {
+										auto A = k.extract<Poco::JSON::Object::Ptr>();
+										_OWDEBUG_
+										rx_bytes += A->getValue<uint64_t>("rx_bytes");
+										rx_packets += A->getValue<uint64_t>("rx_packets");
+										tx_bytes += A->getValue<uint64_t>("tx_bytes");
+										tx_packets += A->getValue<uint64_t>("tx_packets");
+										tx_retries += A->getValue<uint64_t>("tx_retries");
+										tx_failed += A->getValue<uint64_t>("tx_failed");
+										_OWDEBUG_
+									}
+								}
+								InterfaceMapEntry->second["rx_bytes"] = rx_bytes;
+								InterfaceMapEntry->second["rx_packets"] = rx_packets;
+								InterfaceMapEntry->second["tx_bytes"] = tx_bytes;
+								InterfaceMapEntry->second["tx_packets"] = tx_packets;
+								InterfaceMapEntry->second["tx_retries"] = tx_retries;
+								InterfaceMapEntry->second["tx_failed"] = tx_failed;
+							} catch (const Poco::Exception &E) {
+								_OWDEBUG_
+								Logger().log(E);
 							}
 						}
-					} else {
-_OWDEBUG_
-						return false;
 					}
 				}
 
