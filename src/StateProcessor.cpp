@@ -11,7 +11,11 @@ namespace OpenWifi {
 
 	bool StateProcessor::Add(const Poco::JSON::Object::Ptr & O) {
 		try {
+
+			std::cout << SerialNumber_ << std::endl;
+
 			UpdatesSinceLastWrite_++;
+
 			//	get the interfaces section
 			if(O->has("interfaces") && O->isArray("interfaces")) {
 				auto IFaces = O->getArray("interfaces");
