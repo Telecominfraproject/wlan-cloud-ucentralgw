@@ -20,14 +20,16 @@
 namespace OpenWifi {
 
 	int OUIServer::Start() {
-		UpdaterThread_.start(*this);
+		UpdaterCallBack_ = std::make_unique<Poco::TimerCallback<OUIServer>>(*this, &OUIServer::onTimer);
+		Timer_.setStartInterval(5 * 60 * 1000);  // first run in 5 minutes
+		Timer_.setPeriodicInterval(7 * 24 * 60 * 60 * 1000);
+		Timer_.start(*UpdaterCallBack_);
 		return 0;
 	}
 
 	void OUIServer::Stop() {
 		Running_=false;
-		UpdaterThread_.wakeUp();
-		UpdaterThread_.join();
+		Timer_.stop();
 	}
 
 	void OUIServer::reinitialize(Poco::Util::Application &self) {
@@ -39,17 +41,26 @@ namespace OpenWifi {
 
 	bool OUIServer::GetFile(const std::string &FileName) {
 		try {
+			_OWDEBUG_
 			std::unique_ptr<std::istream> pStr(
 				Poco::URIStreamOpener::defaultOpener().open(MicroService::instance().ConfigGetString("oui.download.uri")));
+			_OWDEBUG_
 			std::ofstream OS;
+			_OWDEBUG_
 			Poco::File	F(FileName);
+			_OWDEBUG_
 			if(F.exists())
 				F.remove();
+			_OWDEBUG_
 			OS.open(FileName);
+			_OWDEBUG_
 			Poco::StreamCopier::copyStream(*pStr, OS);
+			_OWDEBUG_
 			OS.close();
+			_OWDEBUG_
 			return true;
 		} catch (const Poco::Exception &E) {
+			_OWDEBUG_
 			Logger().log(E);
 		}
 		return false;
@@ -63,7 +74,8 @@ namespace OpenWifi {
 			while (!Input.eof()) {
 				if(!Running_)
 					return false;
-				char buf[256];
+				char buf[1024];
+				_OWDEBUG_
 				Input.getline(buf, sizeof(buf));
 				std::string Line{buf};
 				auto Tokens = Poco::StringTokenizer(Line, " \t",
@@ -86,26 +98,13 @@ namespace OpenWifi {
 			}
 			return true;
 		} catch ( const Poco::Exception &E) {
+			_OWDEBUG_
 			Logger().log(E);
 		}
 		return false;
 	}
 
-	void OUIServer::run() {
-
-		Running_ = true;
-		while(Running_) {
-			Poco::Thread::trySleep(24 * 60 * 60 * 1000);
-
-			if(!Running_)
-				break;
-
-			UpdateImpl();
-
-		}
-	}
-
-	void OUIServer::UpdateImpl() {
+	void OUIServer::onTimer(Poco::Timer & timer) {
 		if(Updating_)
 			return;
 		Updating_ = true;
@@ -118,7 +117,7 @@ namespace OpenWifi {
 		if(GetFile(LatestOUIFileName) && ProcessFile(LatestOUIFileName, TmpOUIs)) {
 			std::lock_guard G(Mutex_);
 			OUIs_ = std::move(TmpOUIs);
-			LastUpdate_ = time(nullptr);
+			LastUpdate_ = std::time(nullptr);
 			Poco::File F1(CurrentOUIFileName);
 			if(F1.exists())
 				F1.remove();

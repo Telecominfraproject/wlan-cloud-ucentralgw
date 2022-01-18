@@ -5,10 +5,11 @@
 #pragma once
 
 #include "framework/MicroService.h"
+#include "Poco/Timer.h"
 
 namespace OpenWifi {
 
-	class OUIServer : public SubSystemServer, Poco::Runnable {
+	class OUIServer : public SubSystemServer {
 	  public:
 
 		typedef std::map<uint64_t,std::string>	OUIMap;
@@ -20,12 +21,10 @@ namespace OpenWifi {
 
 		int Start() override;
 		void Stop() override;
-		void run() override;
+
+		void onTimer(Poco::Timer & timer);
 
 		void reinitialize(Poco::Util::Application &self) override;
-
-		void Update();
-		void UpdateImpl();
 		[[nodiscard]] std::string GetManufacturer(const std::string &MAC);
 		[[nodiscard]] bool GetFile(const std::string &FileName);
 		[[nodiscard]] bool ProcessFile(const std::string &FileName, OUIMap &Map);
@@ -34,12 +33,13 @@ namespace OpenWifi {
 		uint64_t 			LastUpdate_ = 0 ;
 		bool 				ValidFile_=false;
 		OUIMap 				OUIs_;
-		Poco::Thread		UpdaterThread_;
 		std::atomic_bool 	Updating_=false;
 		std::atomic_bool 	Running_=false;
+		Poco::Timer         Timer_;
+		std::unique_ptr<Poco::TimerCallback<OUIServer>>   UpdaterCallBack_;
 
 		OUIServer() noexcept:
-			SubSystemServer("OUIServer", "OUI-SVR", "ouiservr")
+			SubSystemServer("OUIServer", "OUI-SVR", "ouiserver")
 		{
 		}
 	};
