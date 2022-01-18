@@ -698,6 +698,10 @@ namespace OpenWifi {
 								KafkaManager()->PostMessage(KafkaTopics::DEVICE_TELEMETRY,
 															SerialNumber_, SS.str());
 							}
+						} else {
+							std::ostringstream SS;
+							ParamsObj->stringify(SS);
+							std::cout << "Bad telemetry packet: " << SS.str() << std::endl;
 						}
 					}
 				}
