@@ -25,7 +25,6 @@ namespace OpenWifi {
 		Timer_.setStartInterval(30 * 1000);  // first run in 5 minutes
 		Timer_.setPeriodicInterval(7 * 24 * 60 * 60 * 1000);
 		Timer_.start(*UpdaterCallBack_);
-
 		return 0;
 	}
 
@@ -43,27 +42,19 @@ namespace OpenWifi {
 
 	bool OUIServer::GetFile(const std::string &FileName) {
 		try {
-			std::cout << "Getting OUI file..." << std::endl;
-			_OWDEBUG_
+			Logger().information(Poco::format("Start: Retrieving OUI file: %s",MicroService::instance().ConfigGetString("oui.download.uri")));
 			std::unique_ptr<std::istream> pStr(
 				Poco::URIStreamOpener::defaultOpener().open(MicroService::instance().ConfigGetString("oui.download.uri")));
-			_OWDEBUG_
 			std::ofstream OS;
-			_OWDEBUG_
 			Poco::File	F(FileName);
-			_OWDEBUG_
 			if(F.exists())
 				F.remove();
-			_OWDEBUG_
 			OS.open(FileName);
-			_OWDEBUG_
 			Poco::StreamCopier::copyStream(*pStr, OS);
-			_OWDEBUG_
 			OS.close();
-			_OWDEBUG_
+			Logger().information(Poco::format("Done: Retrieving OUI file: %s",MicroService::instance().ConfigGetString("oui.download.uri")));
 			return true;
 		} catch (const Poco::Exception &E) {
-			_OWDEBUG_
 			Logger().log(E);
 		}
 		return false;
@@ -74,13 +65,10 @@ namespace OpenWifi {
 			std::ifstream Input;
 			Input.open(FileName, std::ios::binary);
 
-			_OWDEBUG_
 			while (!Input.eof()) {
-				_OWDEBUG_
 				if(!Running_)
 					return false;
 				char buf[1024];
-				_OWDEBUG_
 				Input.getline(buf, sizeof(buf));
 				std::string Line{buf};
 				auto Tokens = Poco::StringTokenizer(Line, " \t",
@@ -88,12 +76,9 @@ namespace OpenWifi {
 														Poco::StringTokenizer::TOK_IGNORE_EMPTY);
 
 				if (Tokens.count() > 2) {
-					_OWDEBUG_
 					if (Tokens[1] == "(hex)") {
-						_OWDEBUG_
 						auto MAC = Utils::SerialNumberToOUI(Tokens[0]);
 						if (MAC > 0) {
-							_OWDEBUG_
 							std::string Manufacturer;
 							for (auto i = 2; i < Tokens.count(); i++)
 								Manufacturer += Tokens[i] + " ";
@@ -106,7 +91,6 @@ namespace OpenWifi {
 			}
 			return true;
 		} catch ( const Poco::Exception &E) {
-			_OWDEBUG_
 			Logger().log(E);
 		}
 		return false;
@@ -134,7 +118,7 @@ namespace OpenWifi {
 			Logger().information(Poco::format("New OUI file %s downloaded.",LatestOUIFileName));
 		} else if(OUIs_.empty()) {
 			if(ProcessFile(CurrentOUIFileName, TmpOUIs)) {
-				LastUpdate_ = time(nullptr);
+				LastUpdate_ = std::time(nullptr);
 				std::lock_guard G(Mutex_);
 				OUIs_ = std::move(TmpOUIs);
 			}
