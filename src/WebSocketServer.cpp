@@ -773,11 +773,11 @@ namespace OpenWifi {
 		TelemetryWebSocketRefCount_++;
 		TelemetryInterval_ = TelemetryInterval_ ? std::min(Interval, TelemetryInterval_) : Interval;
 		TelemetryWebSocketTimer_ = std::max(TelemetryWebSocketTimer,TelemetryWebSocketTimer_);
+		UpdateCounts();
 		if(!TelemetryReporting_) {
 			TelemetryReporting_ = true;
 			return StartTelemetry();
 		}
-		UpdateCounts();
 		return true;
 	}
 
@@ -786,11 +786,11 @@ namespace OpenWifi {
 		TelemetryKafkaRefCount_++;
 		TelemetryInterval_ = TelemetryInterval_ ? std::min(Interval, TelemetryInterval_) : Interval;
 		TelemetryKafkaTimer_ = std::max(TelemetryKafkaTimer,TelemetryKafkaTimer_);
+		UpdateCounts();
 		if(!TelemetryReporting_) {
 			TelemetryReporting_ = true;
 			return StartTelemetry();
 		}
-		UpdateCounts();
 		return true;
 	}
 
@@ -798,11 +798,11 @@ namespace OpenWifi {
 		std::lock_guard	G(Mutex_);
 		if(TelemetryWebSocketRefCount_)
 			TelemetryWebSocketRefCount_--;
+		UpdateCounts();
 		if(TelemetryWebSocketRefCount_==0 && TelemetryKafkaRefCount_==0) {
 			TelemetryReporting_ = false;
 			StopTelemetry();
 		}
-		UpdateCounts();
 		return true;
 	}
 
@@ -810,11 +810,11 @@ namespace OpenWifi {
 		std::lock_guard	G(Mutex_);
 		if(TelemetryKafkaRefCount_)
 			TelemetryKafkaRefCount_--;
+		UpdateCounts();
 		if(TelemetryWebSocketRefCount_==0 && TelemetryKafkaRefCount_==0) {
 			TelemetryReporting_ = false;
 			StopTelemetry();
 		}
-		UpdateCounts();
 		return true;
 	}
 
