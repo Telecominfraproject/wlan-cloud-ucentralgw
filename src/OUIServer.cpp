@@ -21,7 +21,7 @@ namespace OpenWifi {
 
 	int OUIServer::Start() {
 		UpdaterCallBack_ = std::make_unique<Poco::TimerCallback<OUIServer>>(*this, &OUIServer::onTimer);
-		Timer_.setStartInterval(5 * 60 * 1000);  // first run in 5 minutes
+		Timer_.setStartInterval(30 * 1000);  // first run in 5 minutes
 		Timer_.setPeriodicInterval(7 * 24 * 60 * 60 * 1000);
 		Timer_.start(*UpdaterCallBack_);
 		return 0;
@@ -41,6 +41,7 @@ namespace OpenWifi {
 
 	bool OUIServer::GetFile(const std::string &FileName) {
 		try {
+			std::cout << "Getting OUI file..." << std::endl;
 			_OWDEBUG_
 			std::unique_ptr<std::istream> pStr(
 				Poco::URIStreamOpener::defaultOpener().open(MicroService::instance().ConfigGetString("oui.download.uri")));
