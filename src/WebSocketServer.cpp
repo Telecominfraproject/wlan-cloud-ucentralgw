@@ -678,17 +678,17 @@ namespace OpenWifi {
 						Errors_++;
 						return;
 					}
-					std::cout << "Telemetry received" << std::endl;
+					// std::cout << "Telemetry received" << std::endl;
 					if(TelemetryReporting_) {
 						if (ParamsObj->has("data")) {
-							std::cout << "Telemetry received has data" << std::endl;
+							// std::cout << "Telemetry received has data" << std::endl;
 							auto Payload =
 								ParamsObj->get("data").extract<Poco::JSON::Object::Ptr>();
 							Payload->set("timestamp", std::time(nullptr));
 							std::ostringstream SS;
 							Payload->stringify(SS);
 							if(TelemetryWebSocketRefCount_) {
-								std::cout << "Updating websocket..." << std::endl;
+								// std::cout << "Updating websocket..." << std::endl;
 								TelemetryWebSocketPackets_++;
 								Conn_->Conn_.websocketPackets = TelemetryWebSocketPackets_;
 								TelemetryStream()->UpdateEndPoint(SerialNumber_, SS.str());
@@ -702,7 +702,7 @@ namespace OpenWifi {
 						} else {
 							std::ostringstream SS;
 							ParamsObj->stringify(SS);
-							std::cout << "Bad telemetry packet: " << SS.str() << std::endl;
+							// std::cout << "Bad telemetry packet: " << SS.str() << std::endl;
 						}
 					}
 				}
@@ -718,7 +718,7 @@ namespace OpenWifi {
     }
 
 	bool  WSConnection::StartTelemetry() {
-		std::cout << "Starting telemetry for " << SerialNumber_ << std::endl;
+		// std::cout << "Starting telemetry for " << SerialNumber_ << std::endl;
 		Logger().information(Poco::format("TELEMETRY(%s): Starting.",CId_));
 		Poco::JSON::Object	StartMessage;
 		StartMessage.set("jsonrpc","2.0");
@@ -742,7 +742,7 @@ namespace OpenWifi {
 	}
 
 	bool  WSConnection::StopTelemetry() {
-		std::cout << "Stopping telemetry for " << SerialNumber_ << std::endl;
+		// std::cout << "Stopping telemetry for " << SerialNumber_ << std::endl;
 		Logger().information(Poco::format("TELEMETRY(%s): Stopping.",CId_));
 		Poco::JSON::Object	StopMessage;
 		StopMessage.set("jsonrpc","2.0");
@@ -758,7 +758,6 @@ namespace OpenWifi {
 		Send(OS.str());
 		TelemetryKafkaPackets_ = TelemetryWebSocketPackets_ = TelemetryInterval_ =
 			TelemetryKafkaTimer_ = TelemetryWebSocketTimer_ = 0 ;
-		// std::cout << "Stopping: " << OS.str() << std::endl;
 		return true;
 	}
 
