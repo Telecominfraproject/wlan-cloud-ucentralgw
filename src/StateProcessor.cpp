@@ -11,11 +11,7 @@ namespace OpenWifi {
 
 	bool StateProcessor::Add(const Poco::JSON::Object::Ptr & O) {
 		try {
-
-			std::cout << SerialNumber_ << std::endl;
-
 			UpdatesSinceLastWrite_++;
-
 			//	get the interfaces section
 			if(O->has("interfaces") && O->isArray("interfaces")) {
 				auto IFaces = O->getArray("interfaces");
@@ -23,7 +19,6 @@ namespace OpenWifi {
 					auto Interface = i.extract<Poco::JSON::Object::Ptr>();
 
 					if (Interface->has("name")) {
-						_OWDEBUG_
 						auto InterfaceName = Interface->get("name").toString();
 						auto InterfaceMapEntry = Stats_.find(InterfaceName);
 						if(InterfaceMapEntry == Stats_.end()) {
@@ -31,18 +26,14 @@ namespace OpenWifi {
 							Stats_[InterfaceName] = NewStatEntry;
 							InterfaceMapEntry = Stats_.find(InterfaceName);
 						}
-						_OWDEBUG_
 						//	old stats version...
 						if(Interface->has("counters")) {
 							auto CountersObj = Interface->getObject("counters");
 							for (const auto &j : *CountersObj) {
-								_OWDEBUG_
 								auto Entry = InterfaceMapEntry->second.find(j.first);
 								if (Entry == InterfaceMapEntry->second.end()) {
-									_OWDEBUG_
 									InterfaceMapEntry->second[j.first] = j.second;
 								} else {
-									_OWDEBUG_
 									InterfaceMapEntry->second[j.first] += j.second;
 								}
 							}
@@ -50,24 +41,19 @@ namespace OpenWifi {
 							// 	must be the new version. So now we must get the ssids section, and iterate over each association
 							//	and update the global counter with the new values. We can ignore the deltas since we really want the 	absolute values.
 							try {
-								_OWDEBUG_
 								auto SSIDs = Interface->getArray("ssids");
-								_OWDEBUG_
 								uint64_t rx_bytes = 0, rx_packets=0, tx_bytes=0,tx_packets=0,tx_retries=0,tx_failed=0;
 								for (const auto &SSID : *SSIDs) {
-									_OWDEBUG_
 									auto SSID_info = SSID.extract<Poco::JSON::Object::Ptr>();
 									auto Associations = SSID_info->getArray("associations");
 									for (const auto &k : *Associations) {
 										auto A = k.extract<Poco::JSON::Object::Ptr>();
-										_OWDEBUG_
 										rx_bytes += A->getValue<uint64_t>("rx_bytes");
 										rx_packets += A->getValue<uint64_t>("rx_packets");
 										tx_bytes += A->getValue<uint64_t>("tx_bytes");
 										tx_packets += A->getValue<uint64_t>("tx_packets");
 										tx_retries += A->getValue<uint64_t>("tx_retries");
 										tx_failed += A->getValue<uint64_t>("tx_failed");
-										_OWDEBUG_
 									}
 								}
 								InterfaceMapEntry->second["rx_bytes"] = rx_bytes;
@@ -77,7 +63,6 @@ namespace OpenWifi {
 								InterfaceMapEntry->second["tx_retries"] = tx_retries;
 								InterfaceMapEntry->second["tx_failed"] = tx_failed;
 							} catch (const Poco::Exception &E) {
-								_OWDEBUG_
 								Logger().log(E);
 							}
 						}
@@ -185,16 +170,13 @@ namespace OpenWifi {
 				Poco::JSON::Parser p2;
 				auto RadioObj = i.extract<Poco::JSON::Object::Ptr>();
 				if(RadioObj->has("phy") && RadioObj->has("channel")) {
-					_OWDEBUG_
 					if(RadioObj->isArray("channel")) {
 						auto ChannelArray = RadioObj->getArray("channel");
 						if(ChannelArray->size()) {
-							_OWDEBUG_
 							RadioPHYs[RadioObj->get("phy").toString()] =
 								ChannelToBand( ChannelArray->getElement<uint64_t>(0) );
 						}
 					} else {
-						_OWDEBUG_
 						RadioPHYs[RadioObj->get("phy").toString()] =
 							ChannelToBand(RadioObj->get("channel"));
 					}
@@ -209,7 +191,6 @@ namespace OpenWifi {
 					for(const auto &s:*SSIDA) {
 						auto SSIDinfo = s.extract<Poco::JSON::Object::Ptr>();
 						if(SSIDinfo->isArray("associations") && SSIDinfo->has("phy")) {
-							_OWDEBUG_
 							auto PHY = SSIDinfo->get("phy").toString();
 							int Radio = 2;
 							auto Rit = RadioPHYs.find(PHY);
@@ -217,11 +198,9 @@ namespace OpenWifi {
 								Radio = Rit->second;
 							auto AssocA = SSIDinfo->getArray("associations");
 							if(Radio==2) {
-								_OWDEBUG_
 								Radios_2G += AssocA->size();
 							}
 							else {
-								_OWDEBUG_
 								Radios_5G += AssocA->size();
 							}
 						}
