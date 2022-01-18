@@ -18,6 +18,7 @@ namespace OpenWifi {
 				for (auto const &i : *IFaces) {
 					auto Interface = i.extract<Poco::JSON::Object::Ptr>();
 					if (Interface->has("name") && (Interface->has("counters") || Interface->has("deltas"))) {
+						_OWDEBUG_
 						auto InterfaceName = Interface->get("name").toString();
 						auto InterfaceMapEntry = Stats_.find(InterfaceName);
 						if(InterfaceMapEntry == Stats_.end()) {
@@ -25,16 +26,21 @@ namespace OpenWifi {
 							Stats_[InterfaceName] = NewStatEntry;
 							InterfaceMapEntry = Stats_.find(InterfaceName);
 						}
+						_OWDEBUG_
 						auto CountersObj = Interface->has("counters") ? Interface->getObject("counters") : Interface->getObject("deltas");
 						for (const auto &j : *CountersObj) {
+							_OWDEBUG_
 							auto Entry = InterfaceMapEntry->second.find(j.first);
 							if(Entry==InterfaceMapEntry->second.end()) {
+								_OWDEBUG_
 								InterfaceMapEntry->second[j.first] = j.second;
 							} else {
+								_OWDEBUG_
 								InterfaceMapEntry->second[j.first] += j.second;
 							}
 						}
 					} else {
+_OWDEBUG_
 						return false;
 					}
 				}
@@ -127,7 +133,8 @@ namespace OpenWifi {
 		return 5;
 	}
 
-	bool StateProcessor::GetAssociations(const Poco::JSON::Object::Ptr &RawObject, uint64_t &Radios_2G, uint64_t &Radios_5G) {
+	bool StateProcessor::GetAssociations(const Poco::JSON::Object::Ptr &RawObject, uint64_t &Radios_2G,
+										 uint64_t &Radios_5G) {
 		Radios_2G = 0 ;
 		Radios_5G = 0;
 		if(RawObject->isArray("radios") && RawObject->isArray("interfaces")) {
@@ -139,13 +146,16 @@ namespace OpenWifi {
 				Poco::JSON::Parser p2;
 				auto RadioObj = i.extract<Poco::JSON::Object::Ptr>();
 				if(RadioObj->has("phy") && RadioObj->has("channel")) {
+					_OWDEBUG_
 					if(RadioObj->isArray("channel")) {
 						auto ChannelArray = RadioObj->getArray("channel");
 						if(ChannelArray->size()) {
+							_OWDEBUG_
 							RadioPHYs[RadioObj->get("phy").toString()] =
 								ChannelToBand( ChannelArray->getElement<uint64_t>(0) );
 						}
 					} else {
+						_OWDEBUG_
 						RadioPHYs[RadioObj->get("phy").toString()] =
 							ChannelToBand(RadioObj->get("channel"));
 					}
@@ -160,16 +170,21 @@ namespace OpenWifi {
 					for(const auto &s:*SSIDA) {
 						auto SSIDinfo = s.extract<Poco::JSON::Object::Ptr>();
 						if(SSIDinfo->isArray("associations") && SSIDinfo->has("phy")) {
+							_OWDEBUG_
 							auto PHY = SSIDinfo->get("phy").toString();
 							int Radio = 2;
 							auto Rit = RadioPHYs.find(PHY);
 							if(Rit!=RadioPHYs.end())
 								Radio = Rit->second;
 							auto AssocA = SSIDinfo->getArray("associations");
-							if(Radio==2)
-								Radios_2G+=AssocA->size();
-							else
-								Radios_5G+=AssocA->size();
+							if(Radio==2) {
+								_OWDEBUG_
+								Radios_2G += AssocA->size();
+							}
+							else {
+								_OWDEBUG_
+								Radios_5G += AssocA->size();
+							}
 						}
 					}
 				}
