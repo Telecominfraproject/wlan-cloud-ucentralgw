@@ -677,7 +677,7 @@ namespace OpenWifi {
 						Errors_++;
 						return;
 					}
-					// std::cout << "Telemetry received" << std::endl;
+					std::cout << "Telemetry received" << std::endl;
 					if(TelemetryReporting_) {
 						if (ParamsObj->has("data")) {
 							auto Payload =
