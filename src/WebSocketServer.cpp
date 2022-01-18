@@ -680,12 +680,14 @@ namespace OpenWifi {
 					std::cout << "Telemetry received" << std::endl;
 					if(TelemetryReporting_) {
 						if (ParamsObj->has("data")) {
+							std::cout << "Telemetry received has data" << std::endl;
 							auto Payload =
 								ParamsObj->get("data").extract<Poco::JSON::Object::Ptr>();
 							Payload->set("timestamp", std::time(nullptr));
 							std::ostringstream SS;
 							Payload->stringify(SS);
 							if(TelemetryWebSocketRefCount_) {
+								std::cout << "Updating websocket..." << std::endl;
 								TelemetryWebSocketPackets_++;
 								Conn_->Conn_.websocketPackets = TelemetryWebSocketPackets_;
 								TelemetryStream()->UpdateEndPoint(SerialNumber_, SS.str());
