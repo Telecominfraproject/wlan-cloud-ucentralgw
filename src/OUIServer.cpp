@@ -88,9 +88,12 @@ namespace OpenWifi {
 														Poco::StringTokenizer::TOK_IGNORE_EMPTY);
 
 				if (Tokens.count() > 2) {
+					_OWDEBUG_
 					if (Tokens[1] == "(hex)") {
+						_OWDEBUG_
 						auto MAC = Utils::SerialNumberToOUI(Tokens[0]);
 						if (MAC > 0) {
+							_OWDEBUG_
 							std::string Manufacturer;
 							for (auto i = 2; i < Tokens.count(); i++)
 								Manufacturer += Tokens[i] + " ";
