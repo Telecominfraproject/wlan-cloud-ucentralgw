@@ -239,6 +239,23 @@ namespace OpenWifi::RESTAPI_utils {
         Obj.set(Field,A);
     }
 
+    inline void field_to_json(Poco::JSON::Object &Obj, const char *Field, const Types::Counted3DMapSII &M) {
+        Poco::JSON::Array	A;
+        for(const auto &[OrgName,MonthlyNumberMap]:M) {
+            Poco::JSON::Object  OrgObject;
+            OrgObject.set("tag",OrgName);
+            Poco::JSON::Array   MonthlyArray;
+            for(const auto &[Month,Counter]:MonthlyNumberMap) {
+                Poco::JSON::Object  Inner;
+                Inner.set("value", Month);
+                Inner.set("counter", Counter);
+                MonthlyArray.add(Inner);
+            }
+            OrgObject.set("index",MonthlyArray);
+            A.add(OrgObject);
+        }
+    }
+
     template<typename T> void field_to_json(Poco::JSON::Object &Obj,
             const char *Field,
             const T &V,
@@ -1078,6 +1095,53 @@ namespace OpenWifi {
 	inline std::string to_string(const ConfigurationEntry &v) { return (std::string) v; }
 
 	typedef std::map<std::string,ConfigurationEntry>    ConfigurationMap_t;
+
+	template <typename T> class FIFO {
+	  public:
+		explicit FIFO(uint32_t Size) : Size_(Size) {
+			Buffer_->reserve(Size_);
+		}
+
+		mutable Poco::BasicEvent<bool> Writable_;
+		mutable Poco::BasicEvent<bool> Readable_;
+
+		inline bool Read(T &t) {
+			{
+				std::lock_guard M(Mutex_);
+				if (Write_ == Read_) {
+					return false;
+				}
+
+				t = (*Buffer_)[Read_++];
+				if (Read_ == Size_) {
+					Read_ = 0;
+				}
+			}
+			bool flag = true;
+			Writable_.notify(this, flag);
+			return true;
+		}
+
+		inline bool Write(const T &t) {
+			{
+				std::lock_guard M(Mutex_);
+				(*Buffer_)[Write_++] = t;
+				if (Write_ == Size_) {
+					Write_ = 0;
+				}
+			}
+			bool flag = true;
+			Readable_.notify(this, flag);
+			return false;
+		}
+
+	  private:
+		std::mutex      Mutex_;
+		uint32_t        Size_;
+		uint32_t        Read_=0;
+		uint32_t                        Write_=0;
+		std::unique_ptr<std::vector<T>>  Buffer_=std::make_unique<std::vector<T>>();
+	};
 
 	template <class Record, typename KeyType = std::string, int Size=256, int Expiry=60000> class RecordCache {
     public:
@@ -3552,11 +3616,51 @@ namespace OpenWifi {
 	    KafkaEnabled_ = MicroService::instance().ConfigGetBool("openwifi.kafka.enable",false);
 	}
 
+	inline void KafkaLoggerFun(cppkafka::KafkaHandleBase & handle, int level, const std::string & facility, const std::string &messqge) {
+		switch ((cppkafka::LogLevel) level) {
+			case cppkafka::LogLevel::LogNotice: {
+					KafkaManager()->Logger().notice(Poco::format("kafka-log: facility: %s message: %s",facility, messqge));
+				}
+				break;
+			case cppkafka::LogLevel::LogDebug: {
+					KafkaManager()->Logger().debug(Poco::format("kafka-log: facility: %s message: %s",facility, messqge));
+				}
+				break;
+			case cppkafka::LogLevel::LogInfo: {
+					KafkaManager()->Logger().information(Poco::format("kafka-log: facility: %s message: %s",facility, messqge));
+				}
+				break;
+				case cppkafka::LogLevel::LogWarning: {
+					KafkaManager()->Logger().warning(Poco::format("kafka-log: facility: %s message: %s",facility, messqge));
+				}
+				break;
+			case cppkafka::LogLevel::LogAlert:
+			case cppkafka::LogLevel::LogCrit: {
+					KafkaManager()->Logger().critical(Poco::format("kafka-log: facility: %s message: %s",facility, messqge));
+				}
+				break;
+			case cppkafka::LogLevel::LogErr:
+			case cppkafka::LogLevel::LogEmerg:
+			default: {
+				KafkaManager()->Logger().error(Poco::format("kafka-log: facility: %s message: %s",facility, messqge));
+				}
+				break;
+		}
+	}
+
+	inline void KafkaErrorFun(cppkafka::KafkaHandleBase & handle, int error, const std::string &reason) {
+		KafkaManager()->Logger().error(Poco::format("kafka-error: %d, reason: %s", error, reason));
+	}
+
 	inline void KafkaProducer::run() {
 	    cppkafka::Configuration Config({
 	        { "client.id", MicroService::instance().ConfigGetString("openwifi.kafka.client.id") },
 	        { "metadata.broker.list", MicroService::instance().ConfigGetString("openwifi.kafka.brokerlist") }
 	    });
+
+		Config.set_log_callback(KafkaLoggerFun);
+		Config.set_error_callback(KafkaErrorFun);
+
 	    KafkaManager()->SystemInfoWrapper_ = 	R"lit({ "system" : { "id" : )lit" +
 	            std::to_string(MicroService::instance().ID()) +
 	            R"lit( , "host" : ")lit" + MicroService::instance().PrivateEndPoint() +
@@ -3596,6 +3700,9 @@ namespace OpenWifi {
 	        { "auto.offset.reset", "latest" } ,
 	        { "enable.partition.eof", false }
 	    });
+
+		Config.set_log_callback(KafkaLoggerFun);
+		Config.set_error_callback(KafkaErrorFun);
 
 	    cppkafka::TopicConfiguration topic_config = {
 	            { "auto.offset.reset", "smallest" }

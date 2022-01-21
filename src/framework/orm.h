@@ -615,7 +615,7 @@ namespace ORM {
             return false;
         }
 
-        bool Iterate( std::function<bool(const RecordType &R)> F) {
+        bool Iterate( std::function<bool(const RecordType &R)> F, const std::string & WhereClause = "" ) {
             try {
 
                 uint64_t    Offset=0;
@@ -623,7 +623,7 @@ namespace ORM {
                 bool Done=false;
                 while(!Done) {
                     std::vector<RecordType> Records;
-                    if(GetRecords(Offset,Batch,Records)) {
+                    if(GetRecords(Offset,Batch,Records, WhereClause)) {
                         for(const auto &i:Records) {
                             if(!F(i))
                                 return true;

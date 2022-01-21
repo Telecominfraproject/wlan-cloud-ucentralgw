@@ -23,6 +23,7 @@
 
 namespace OpenWifi {
 
+/*
 	template <typename T> class FIFO {
 	  public:
 		explicit FIFO(uint32_t Size) : Size_(Size) {
@@ -73,7 +74,7 @@ namespace OpenWifi {
 		uint32_t                        Write_=0;
 		std::unique_ptr<std::vector<T>>  Buffer_=std::make_unique<std::vector<T>>();
 	};
-
+*/
 	class TelemetryReactorPool {
 	  public:
 		TelemetryReactorPool( unsigned int NumberOfThreads = Poco::Environment::processorCount() )
