@@ -261,6 +261,17 @@ configProperties:
   logging.type: console
   logging.path: $OWGW_ROOT/logs
   logging.level: debug
+  # Archiving
+  archiver.enabled: "true"
+  archiver.schedule: 03:00
+  archiver.db.0.name: healthchecks
+  archiver.db.0.keep: 7
+  archiver.db.1.name: statistics
+  archiver.db.1.keep: 7
+  archiver.db.2.name: devicelogs
+  archiver.db.2.keep: 7
+  archiver.db.3.name: commandlist
+  archiver.db.3.keep: 7
 
   # -> Secret part
   # Websocket
