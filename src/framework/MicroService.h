@@ -3697,13 +3697,18 @@ namespace OpenWifi {
 		while(Note && Running_) {
 			KafkaMessage * Msg = dynamic_cast<KafkaMessage*>(Note.get());
 			if(Msg!= nullptr) {
-				std::cout << "Sending kafka message" << std::endl;
+				std::cout << "Sending kafka message 1" << std::endl;
 				Producer.produce(
 					cppkafka::MessageBuilder(Msg->Topic()).key(Msg->Key()).payload(Msg->Payload()));
 				Producer.flush();
+				std::cout << "Sending kafka message 2 " << std::endl;
 			}
+			std::cout << "Sending kafka message 3" << std::endl;
 			Note = Queue_.waitDequeueNotification();
+			std::cout << "Sending kafka message 4" << std::endl;
 		}
+		std::cout << "Sending kafka message 5" << std::endl;
+
 	}
 
 	inline void KafkaConsumer::run() {
