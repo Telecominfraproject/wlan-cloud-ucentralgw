@@ -3697,6 +3697,7 @@ namespace OpenWifi {
 		while(Note && Running_) {
 			KafkaMessage * Msg = dynamic_cast<KafkaMessage*>(Note.get());
 			if(Msg!= nullptr) {
+				std::cout << "Sending kafka message" << std::endl;
 				Producer.produce(
 					cppkafka::MessageBuilder(Msg->Topic()).key(Msg->Key()).payload(Msg->Payload()));
 				Producer.flush();
