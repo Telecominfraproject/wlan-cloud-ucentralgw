@@ -254,6 +254,7 @@ namespace OpenWifi::RESTAPI_utils {
             OrgObject.set("index",MonthlyArray);
             A.add(OrgObject);
         }
+        Obj.set(Field, A);
     }
 
     template<typename T> void field_to_json(Poco::JSON::Object &Obj,
@@ -2327,26 +2328,53 @@ namespace OpenWifi {
         Poco::JSON::Object      Body_;
     };
 
+	class KafkaMessage: public Poco::Notification {
+	  public:
+		KafkaMessage( const std::string &Topic, const std::string &Key, const std::string & Payload) :
+			Topic_(Topic), Key_(Key), Payload_(Payload)
+		{
+
+		}
+
+		inline const std::string & Topic() { return Topic_; }
+		inline const std::string & Key() { return Key_; }
+		inline const std::string & Payload() { return Payload_; }
+
+	  private:
+		std::string	Topic_;
+		std::string	Key_;
+		std::string	Payload_;
+
+	};
+
     class KafkaProducer : public Poco::Runnable {
     public:
-        inline void run();
-        void Start() {
+	  inline void run();
+
+	  	void Start() {
             if(!Running_) {
                 Running_=true;
                 Worker_.start(*this);
             }
         }
+
         void Stop() {
             if(Running_) {
                 Running_=false;
-                Worker_.wakeUp();
+				Queue_.wakeUpAll();
                 Worker_.join();
             }
         }
+
+		void Produce(const std::string &Topic, const std::string &Key, const std::string &Payload) {
+			Queue_.enqueueNotification( new KafkaMessage(Topic,Key,Payload));
+		}
+
     private:
-        std::mutex          Mutex_;
-        Poco::Thread        Worker_;
-        std::atomic_bool    Running_=false;
+        std::mutex          	Mutex_;
+        Poco::Thread        	Worker_;
+        std::atomic_bool    	Running_=false;
+		Poco::NotificationQueue	Queue_;
     };
 
     class KafkaConsumer : public Poco::Runnable {
@@ -2407,12 +2435,7 @@ namespace OpenWifi {
 
 	    inline void PostMessage(const std::string &topic, const std::string & key, const std::string &PayLoad, bool WrapMessage = true  ) {
 	        if(KafkaEnabled_) {
-	            std::lock_guard G(Mutex_);
-	            KMessage M{
-	                .Topic = topic,
-	                .Key = key,
-	                .PayLoad = WrapMessage ? WrapSystemId(PayLoad) : PayLoad };
-	            Queue_.push(M);
+				ProducerThr_.Produce(topic,key,WrapMessage ? WrapSystemId(PayLoad) : PayLoad);
 	        }
 	    }
 
@@ -3665,30 +3688,20 @@ namespace OpenWifi {
 	            std::to_string(MicroService::instance().ID()) +
 	            R"lit( , "host" : ")lit" + MicroService::instance().PrivateEndPoint() +
 	            R"lit(" } , "payload" : )lit" ;
-	    cppkafka::Producer	Producer(Config);
+
+		cppkafka::Producer	Producer(Config);
 	    Running_ = true;
-	    while(Running_) {
-	        std::this_thread::sleep_for(std::chrono::milliseconds(200));
-	        try
-	        {
-	            std::lock_guard G(Mutex_);
-	            auto Num=0;
-	            while (!KafkaManager()->Queue_.empty()) {
-	                const auto M = KafkaManager()->Queue_.front();
-	                Producer.produce(
-	                        cppkafka::MessageBuilder(M.Topic).key(M.Key).payload(M.PayLoad));
-	                KafkaManager()->Queue_.pop();
-	                Num++;
-	            }
-	            if(Num)
-	                Producer.flush();
-	        } catch (const cppkafka::HandleException &E ) {
-	            KafkaManager()->Logger().warning(Poco::format("Caught a Kafka exception (producer): %s",std::string{E.what()}));
-	        } catch (const Poco::Exception &E) {
-	            KafkaManager()->Logger().log(E);
-	        }
-	    }
-	    Producer.flush();
+
+		Poco::AutoPtr<Poco::Notification>	Note(Queue_.waitDequeueNotification());
+		while(Note && Running_) {
+			KafkaMessage * Msg = dynamic_cast<KafkaMessage*>(Note.get());
+			if(Msg!= nullptr) {
+				Producer.produce(
+					cppkafka::MessageBuilder(Msg->Topic()).key(Msg->Key()).payload(Msg->Payload()));
+				Producer.flush();
+			}
+			Note = Queue_.waitDequeueNotification();
+		}
 	}
 
 	inline void KafkaConsumer::run() {
