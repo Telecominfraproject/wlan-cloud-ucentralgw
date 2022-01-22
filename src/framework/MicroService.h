@@ -3701,7 +3701,7 @@ namespace OpenWifi {
 				Producer.produce(
 					cppkafka::MessageBuilder(Msg->Topic()).key(Msg->Key()).payload(Msg->Payload()));
 				std::cout << "Sending kafka message 1.5" << std::endl;
-				Producer.flush();
+				// Producer.flush();
 				std::cout << "Sending kafka message 2 " << std::endl;
 			}
 			std::cout << "Sending kafka message 3" << std::endl;
