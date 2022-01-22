@@ -2367,6 +2367,7 @@ namespace OpenWifi {
         }
 
 		void Produce(const std::string &Topic, const std::string &Key, const std::string &Payload) {
+			std::lock_guard	G(Mutex_);
 			Queue_.enqueueNotification( new KafkaMessage(Topic,Key,Payload));
 		}
 
