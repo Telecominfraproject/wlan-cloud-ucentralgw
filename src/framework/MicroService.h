@@ -2350,7 +2350,7 @@ namespace OpenWifi {
     class KafkaProducer : public Poco::Runnable {
     public:
 
-		inline void run();
+		inline void run () override;
 		inline void Start() {
 			if(!Running_) {
 				Running_=true;
@@ -2380,7 +2380,7 @@ namespace OpenWifi {
 
     class KafkaConsumer : public Poco::Runnable {
     public:
-        inline void run();
+        inline void run() override;
 
 		void Start() {
             if(!Running_) {
@@ -2455,16 +2455,16 @@ namespace OpenWifi {
 			}
 		}
 
-		inline void run() {
+		inline void run() override {
 			Poco::AutoPtr<Poco::Notification>	Note(Queue_.waitDequeueNotification());
 			while(Note && Running_) {
 				auto Msg = dynamic_cast<KafkaMessage*>(Note.get());
 				if(Msg!= nullptr) {
 					auto It = Notifiers_.find(Msg->Topic());
 					if (It != Notifiers_.end()) {
-						Types::TopicNotifyFunctionList &FL = It->second;
-						for (auto &F : FL) {
-							F.first(Msg->Key(), Msg->Payload());
+						const auto & FL = It->second;
+						for(const auto &[CallbackFunc,_]:FL) {
+							CallbackFunc(Msg->Key(), Msg->Payload());
 						}
 					}
 				}
@@ -2472,14 +2472,15 @@ namespace OpenWifi {
 			}
 		}
 
-		void Topics(std::vector<std::string> &T) {
-			for(const auto &N:Notifiers_)
-				T.push_back(N.first);
+		inline void Topics(std::vector<std::string> &T) {
+			T.clear();
+ 			for(const auto &[TopicName,_]:Notifiers_)
+				T.push_back(TopicName);
 		}
 
 	  private:
-		Types::NotifyTable      Notifiers_;
 		std::mutex          	Mutex_;
+		Types::NotifyTable      Notifiers_;
 		Poco::Thread        	Worker_;
 		std::atomic_bool    	Running_=false;
 		uint64_t          		FunctionId_=1;
@@ -2488,11 +2489,6 @@ namespace OpenWifi {
 
 	class KafkaManager : public SubSystemServer {
 	public:
-	    struct KMessage {
-	        std::string Topic,
-	        Key,
-	        PayLoad;
-	    };
 
 	    friend class KafkaConsumer;
 	    friend class KafkaProducer;
