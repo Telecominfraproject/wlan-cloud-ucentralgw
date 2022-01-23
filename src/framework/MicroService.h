@@ -2483,6 +2483,11 @@ namespace OpenWifi {
 			_OWDEBUG_
 		}
 
+		void Topics(std::vector<std::string> &T) {
+			for(const auto &N:Notifiers_)
+				T.push_back(N.first);
+		}
+
 	  private:
 		Types::NotifyTable      Notifiers_;
 		std::mutex          	Mutex_;
@@ -2558,10 +2563,13 @@ namespace OpenWifi {
 	        }
 	    }
 
+		inline void Topics(std::vector<std::string> &T) {
+			Dispatcher_.Topics(T);
+		}
+
 	private:
 	    bool 							KafkaEnabled_ = false;
 	    std::string 					SystemInfoWrapper_;
-	    Types::NotifyTable        		Notifiers_;
 	    KafkaProducer                   ProducerThr_;
 	    KafkaConsumer                   ConsumerThr_;
 		KafkaDispatcher					Dispatcher_;
@@ -3820,10 +3828,9 @@ namespace OpenWifi {
 	    auto BatchSize = MicroService::instance().ConfigGetInt("openwifi.kafka.consumer.batchsize",20);
 
 	    Types::StringVec    Topics;
-	    for(const auto &i:KafkaManager()->Notifiers_)
-	        Topics.push_back(i.first);
-
+		KafkaManager()->Topics(Topics);
 	    Consumer.subscribe(Topics);
+
 		_OWDEBUG_
 
 	    Running_ = true;
