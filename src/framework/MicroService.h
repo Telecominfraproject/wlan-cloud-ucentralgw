@@ -3814,6 +3814,7 @@ namespace OpenWifi {
                                                  (uint64_t)partitions.front().get_partition()));
 	        }
 	    });
+		_OWDEBUG_
 
 	    bool AutoCommit = MicroService::instance().ConfigGetBool("openwifi.kafka.auto.commit",false);
 	    auto BatchSize = MicroService::instance().ConfigGetInt("openwifi.kafka.consumer.batchsize",20);
@@ -3823,11 +3824,14 @@ namespace OpenWifi {
 	        Topics.push_back(i.first);
 
 	    Consumer.subscribe(Topics);
+		_OWDEBUG_
 
 	    Running_ = true;
 	    while(Running_) {
 	        try {
+				_OWDEBUG_
 	            std::vector<cppkafka::Message> MsgVec = Consumer.poll_batch(BatchSize, std::chrono::milliseconds(100));
+				_OWDEBUG_
 	            for(auto const &Msg:MsgVec) {
 	                if (!Msg)
 	                    continue;
@@ -3838,7 +3842,9 @@ namespace OpenWifi {
 	                        Consumer.async_commit(Msg);
 	                    continue;
 	                }
+					_OWDEBUG_
 					KafkaManager()->Dispatch(Msg.get_topic(), Msg.get_key(),Msg.get_payload() );
+					_OWDEBUG_
 	                if (!AutoCommit)
 	                    Consumer.async_commit(Msg);
 	            }
