@@ -2451,25 +2451,36 @@ namespace OpenWifi {
 			std::lock_guard	G(Mutex_);
 			auto It = Notifiers_.find(Topic);
 			if(It!=Notifiers_.end()) {
+				_OWDEBUG_
 				Queue_.enqueueNotification(new KafkaMessage(Topic, Key, Payload));
 			}
 		}
 
 		inline void run() {
 			Poco::AutoPtr<Poco::Notification>	Note(Queue_.waitDequeueNotification());
+			_OWDEBUG_
 			while(Note && Running_) {
+				_OWDEBUG_
 				auto Msg = dynamic_cast<KafkaMessage*>(Note.get());
+				_OWDEBUG_
 				if(Msg!= nullptr) {
+					_OWDEBUG_
 					auto It = Notifiers_.find(Msg->Topic());
+					_OWDEBUG_
 					if (It != Notifiers_.end()) {
+						_OWDEBUG_
 						Types::TopicNotifyFunctionList &FL = It->second;
 						for (auto &F : FL) {
+							_OWDEBUG_
 							F.first(Msg->Key(), Msg->Payload());
+							_OWDEBUG_
 						}
 					}
 				}
+				_OWDEBUG_
 				Note = Queue_.waitDequeueNotification();
 			}
+			_OWDEBUG_
 		}
 
 	  private:
