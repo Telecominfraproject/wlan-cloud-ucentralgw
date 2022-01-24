@@ -2986,7 +2986,7 @@ namespace OpenWifi {
         }
 
 		static inline void Exit(int Reason);
-		inline void BusMessageReceived(const std::string &Key, const std::string & Message);
+		inline void BusMessageReceived(const std::string &Key, const std::string & Payload);
 		inline MicroServiceMetaVec GetServices(const std::string & Type);
 		inline MicroServiceMetaVec GetServices();
 		inline void LoadConfigurationFile();
@@ -3066,11 +3066,11 @@ namespace OpenWifi {
 	    std::exit(Reason);
 	}
 
-	inline void MicroService::BusMessageReceived(const std::string &Key, const std::string & Message) {
+	inline void MicroService::BusMessageReceived(const std::string &Key, const std::string & Payload) {
 	    std::lock_guard G(InfraMutex_);
 	    try {
 	        Poco::JSON::Parser P;
-	        auto Object = P.parse(Message).extract<Poco::JSON::Object::Ptr>();
+	        auto Object = P.parse(Payload).extract<Poco::JSON::Object::Ptr>();
 	        if (Object->has(KafkaTopics::ServiceEvents::Fields::ID) &&
 	        Object->has(KafkaTopics::ServiceEvents::Fields::EVENT)) {
 	            uint64_t 	ID = Object->get(KafkaTopics::ServiceEvents::Fields::ID);
@@ -3142,7 +3142,7 @@ namespace OpenWifi {
 
 	    auto T = Poco::toLower(Type);
 	    MicroServiceMetaVec	Res;
-	    for(const auto &[Id,ServiceRec]:Services_) {
+	    for(const auto &[_,ServiceRec]:Services_) {
 	        if(ServiceRec.Type==T)
 	            Res.push_back(ServiceRec);
 	    }
@@ -3279,7 +3279,7 @@ namespace OpenWifi {
 	    InitializeSubSystemServers();
 	    ServerApplication::initialize(self);
 
-	    Types::TopicNotifyFunction F = [this](std::string s1,std::string s2) { this->BusMessageReceived(s1,s2); };
+	    Types::TopicNotifyFunction F = [this](const std::string &Key,const std::string &Payload) { this->BusMessageReceived(Key, Payload); };
 	    KafkaManager()->RegisterTopicWatcher(KafkaTopics::SERVICE_EVENTS, F);
 
 	    MicroServicePostInitialization();
