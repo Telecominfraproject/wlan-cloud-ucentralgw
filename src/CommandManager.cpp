@@ -73,7 +73,7 @@ namespace OpenWifi {
     }
 
     void CommandManager::WakeUp() {
-        Logger().notice("Waking up..");
+        Logger().notice("Waking up...");
         ManagerThread.wakeUp();
     }
 
@@ -82,7 +82,7 @@ namespace OpenWifi {
 		Logger().information("Janitor starting.");
 		auto Now = std::chrono::high_resolution_clock::now();
 		for(auto i=OutStandingRequests_.begin();i!=OutStandingRequests_.end();) {
-			std::chrono::duration<double, std::milli> delta = Now - i->second.submitted;
+			std::chrono::duration<double, std::milli> delta = Now - i->second->submitted;
 			if(delta > 120000ms) {
 				i = OutStandingRequests_.erase(i);
 			} else {
@@ -106,7 +106,8 @@ namespace OpenWifi {
 		}
 
 		std::stringstream 	ToSend;
-		RpcObject			Object;
+		auto Object = std::make_shared<RpcObject>();
+
 		CommandTagIndex 	Idx;
 		{
 			std::lock_guard M(Mutex_);
@@ -125,19 +126,19 @@ namespace OpenWifi {
 			Logger().information(
 				Poco::format("(%s): Sending command '%s', ID: %lu", SerialNumber, Method, Idx.Id));
 
-			Object.submitted = std::chrono::high_resolution_clock::now();
-			Object.uuid = UUID;
+			Object->submitted = std::chrono::high_resolution_clock::now();
+			Object->uuid = UUID;
 			if(disk_only) {
-				Object.rpc_entry = nullptr;
+				Object->rpc_entry = nullptr;
 			} else {
-				Object.rpc_entry = std::make_shared<CommandManager::promise_type_t>();
+				Object->rpc_entry = std::make_shared<CommandManager::promise_type_t>();
 			}
 			OutStandingRequests_[Idx] = Object;
 		}
 
 		if(DeviceRegistry()->SendFrame(SerialNumber, ToSend.str())) {
 			Sent=true;
-			return Object.rpc_entry;
+			return Object->rpc_entry;
 		}
 		return nullptr;
 	}
@@ -161,10 +162,10 @@ namespace OpenWifi {
 			Logger().warning(Poco::format("(%s): Outdated RPC %lu", SerialNumber, ID));
 			return;
 		}
-		std::chrono::duration<double, std::milli> rpc_execution_time = std::chrono::high_resolution_clock::now() - RPC->second.submitted;
-		StorageService()->CommandCompleted(RPC->second.uuid, Obj, rpc_execution_time, true);
-		if(RPC->second.rpc_entry) {
-			RPC->second.rpc_entry->set_value(Obj);
+		std::chrono::duration<double, std::milli> rpc_execution_time = std::chrono::high_resolution_clock::now() - RPC->second->submitted;
+		StorageService()->CommandCompleted(RPC->second->uuid, Obj, rpc_execution_time, true);
+		if(RPC->second->rpc_entry) {
+			RPC->second->rpc_entry->set_value(Obj);
 		}
 		Logger().information(Poco::format("(%s): Received RPC answer %lu", SerialNumber, ID));
 	}

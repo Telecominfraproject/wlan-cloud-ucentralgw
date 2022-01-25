@@ -39,7 +39,8 @@ namespace OpenWifi::RESTAPI_RPC {
 						RESTAPIHandler * Handler,
 						Poco::Logger &Logger) {
 
-		// 	if the command should be executed in the future, or if the device is not connected, then we should just add the command to
+		// 	if the command should be executed in the future, or if the device is not connected,
+		// 	then we should just add the command to
 		//	the DB and let it figure out when to deliver the command.
 		if (Cmd.RunAt || !DeviceRegistry()->Connected(Cmd.SerialNumber)) {
 			SetCommandStatus(Cmd, Request, Response, Handler, Storage::COMMAND_PENDING, Logger);
