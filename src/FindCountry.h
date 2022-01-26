@@ -12,7 +12,7 @@ namespace OpenWifi {
 
 	class FindCountryFromIP : public SubSystemServer {
 	  public:
-		static auto *instance() {
+		static auto instance() {
 			static auto instance_ = new FindCountryFromIP;
 			return instance_;
 		}
@@ -66,6 +66,6 @@ namespace OpenWifi {
 		}
 	};
 
-	inline FindCountryFromIP * FindCountryFromIP() { return FindCountryFromIP::instance(); }
+	inline auto FindCountryFromIP() { return FindCountryFromIP::instance(); }
 
 }

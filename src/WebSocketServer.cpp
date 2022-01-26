@@ -64,13 +64,16 @@ namespace OpenWifi {
         }
 
 		auto ProvString = MicroService::instance().ConfigGetString("autoprovisioning.process","default");
-		auto Tokens = Poco::StringTokenizer(ProvString,",");
-
-		for(const auto &i:Tokens) {
-			if (i == "prov")
-				LookAtProvisioning_ = true;
-			else if (i == "default")
-				UseDefaultConfig_ = true;
+		if(ProvString!="default") {
+			auto Tokens = Poco::StringTokenizer(ProvString, ",");
+			for (const auto &i : Tokens) {
+				if (i == "prov")
+					LookAtProvisioning_ = true;
+				else
+					UseDefaultConfig_ = true;
+			}
+		} else {
+			UseDefaultConfig_ = true;
 		}
 
         SimulatorId_ = MicroService::instance().ConfigGetString("simulatorid","");

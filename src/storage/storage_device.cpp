@@ -301,7 +301,7 @@ namespace OpenWifi {
 			}
 		}
 
-		if (!Found && FindDefaultConfigurationForModel(Compat, DefConfig)) {
+		if (!Found && WebSocketServer()->UseDefaults() && FindDefaultConfigurationForModel(Compat, DefConfig)) {
 			Config::Config NewConfig(DefConfig.Configuration);
 			NewConfig.SetUUID(Now);
 			D.Configuration = NewConfig.get();
