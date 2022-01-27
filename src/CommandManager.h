@@ -17,6 +17,7 @@
 #include "Poco/JSON/Object.h"
 #include "Poco/Net/HTTPServerRequest.h"
 #include "Poco/Net/HTTPServerResponse.h"
+#include "Poco/Timer.h"
 
 #include "RESTObjects//RESTAPI_GWobjects.h"
 #include "framework/MicroService.h"
@@ -111,21 +112,23 @@ namespace OpenWifi {
 								   false, Sent  );
 			}
 
-
-			void Janitor();
 			void run() override;
 
 			static auto instance() {
 			    static auto instance_ = new CommandManager;
 				return instance_;
 			}
+
 			inline bool Running() const { return Running_; }
+			void onTimer(Poco::Timer & timer);
 
 	    private:
 			std::atomic_bool 						Running_ = false;
 			Poco::Thread    						ManagerThread;
 			uint64_t 								Id_=3;	//	do not start @1. We ignore ID=1 & 0 is illegal..
 			std::map<CommandTagIndex,std::shared_ptr<RpcObject>>		OutStandingRequests_;
+			Poco::Timer                     		Timer_;
+			std::unique_ptr<Poco::TimerCallback<CommandManager>>   JanitorCallback_;
 
 			std::shared_ptr<promise_type_t> PostCommand(
 				const std::string &SerialNumber,
@@ -137,9 +140,8 @@ namespace OpenWifi {
 				bool & Sent);
 
 			CommandManager() noexcept:
-				SubSystemServer("CommandManager", "CMD-MGR", "command.manager")
-				{
-				}
+				SubSystemServer("CommandManager", "CMD-MGR", "command.manager") {
+			}
 	};
 
 	inline auto CommandManager() { return CommandManager::instance(); }

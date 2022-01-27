@@ -61,19 +61,23 @@ namespace OpenWifi {
 					}
                 }
             }
-			Janitor();
         }
     }
 
     int CommandManager::Start() {
         Logger().notice("Starting...");
         ManagerThread.start(*this);
+		JanitorCallback_ = std::make_unique<Poco::TimerCallback<CommandManager>>(*this,&CommandManager::onTimer);
+		Timer_.setStartInterval( 10000 );
+		Timer_.setPeriodicInterval(5 * 60 * 1000); // 1 hours
+		Timer_.start(*JanitorCallback_);
         return 0;
     }
 
     void CommandManager::Stop() {
         Logger().notice("Stopping...");
 		Running_ = false;
+		Timer_.stop();
 		ManagerThread.wakeUp();
         ManagerThread.join();
     }
@@ -83,9 +87,9 @@ namespace OpenWifi {
         ManagerThread.wakeUp();
     }
 
-	void CommandManager::Janitor() {
+	void CommandManager::onTimer(Poco::Timer & timer) {
 		std::lock_guard G(Mutex_);
-		Logger().information("Janitor starting.");
+		Logger().information("Removing expired commands: start");
 		auto Now = std::chrono::high_resolution_clock::now();
 		for(auto i=OutStandingRequests_.begin();i!=OutStandingRequests_.end();) {
 			std::chrono::duration<double, std::milli> delta = Now - i->second->submitted;
@@ -95,7 +99,7 @@ namespace OpenWifi {
 				++i;
 			}
 		}
-		Logger().information("Janitor finished.");
+		Logger().information("Removing expired commands: done");
 	}
 
 	std::shared_ptr<CommandManager::promise_type_t> CommandManager::PostCommand(	const std::string &SerialNumber,
