@@ -90,6 +90,7 @@ namespace OpenWifi::RESTAPI::Protocol {
 	static const char * LASTONLY = "lastOnly";
 	static const char * NEWEST = "newest";
 	static const char * ACTIVESCAN = "activeScan";
+	static const char * OVERRIDEDFS = "override_dfs";
 	static const char * LIST = "list";
 	static const char * TAG = "tag";
 	static const char * TAGLIST = "tagList";

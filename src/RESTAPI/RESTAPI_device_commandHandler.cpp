@@ -629,49 +629,30 @@ void RESTAPI_device_commandHandler::WifiScan() {
 		return BadRequest(RESTAPI::Errors::SerialNumberMismatch);
 	}
 
-	if ((Obj->has(RESTAPI::Protocol::BANDS) &&
-			 Obj->isArray(RESTAPI::Protocol::BANDS) ||
-		 (Obj->has(RESTAPI::Protocol::CHANNELS) &&
-		  Obj->isArray(RESTAPI::Protocol::CHANNELS)) ||
-		 (!Obj->has(RESTAPI::Protocol::BANDS) &&
-		  !Obj->has(RESTAPI::Protocol::CHANNELS)))) {
-		bool Verbose = GetB(RESTAPI::Protocol::VERBOSE, Obj);
-		auto UUID = MicroService::CreateUUID();
-		GWObjects::CommandDetails Cmd;
+	bool OverrideDFS = GetB(RESTAPI::Protocol::OVERRIDEDFS, Obj, true);
+	bool ActiveScan = GetB(RESTAPI::Protocol::ACTIVESCAN, Obj, false);
 
-		Cmd.SerialNumber = SerialNumber_;
-		Cmd.UUID = UUID;
-		Cmd.SubmittedBy = UserInfo_.webtoken.username_;
-		Cmd.Command = uCentralProtocol::WIFISCAN;
+	auto UUID = MicroService::CreateUUID();
+	GWObjects::CommandDetails Cmd;
 
-		Poco::JSON::Object Params;
+	Cmd.SerialNumber = SerialNumber_;
+	Cmd.UUID = UUID;
+	Cmd.SubmittedBy = UserInfo_.webtoken.username_;
+	Cmd.Command = uCentralProtocol::WIFISCAN;
 
-		Params.set(uCentralProtocol::SERIAL, SerialNumber_);
-		Params.set(uCentralProtocol::VERBOSE, Verbose);
+	Poco::JSON::Object Params;
 
-		if (Obj->has(uCentralProtocol::BANDS)) {
-			Params.set(uCentralProtocol::BANDS, Obj->get(RESTAPI::Protocol::BANDS));
-		} else if (Obj->has(uCentralProtocol::CHANNELS)) {
-			Params.set(uCentralProtocol::CHANNELS, Obj->get(RESTAPI::Protocol::CHANNELS));
-		}
+	Params.set(uCentralProtocol::SERIAL, SerialNumber_);
+	Params.set(uCentralProtocol::OVERRIDEDFS, OverrideDFS);
+	Params.set(uCentralProtocol::ACTIVE, ActiveScan);
 
-		if (Obj->has(RESTAPI::Protocol::ACTIVESCAN)) {
-			Params.set(uCentralProtocol::ACTIVE,
-					   (int)(Obj->get(RESTAPI::Protocol::ACTIVESCAN).toString() == "true") ? 1 : 0);
-		} else {
-			Params.set(uCentralProtocol::ACTIVE, 0);
-		}
-
-		std::stringstream ParamStream;
-		Params.stringify(ParamStream);
-		Cmd.Details = ParamStream.str();
-		RESTAPI_RPC::WaitForCommand(Cmd, Params, *Request, *Response, 60000ms, nullptr, this, Logger_);
-		if (Cmd.ErrorCode == 0) {
-			KafkaManager()->PostMessage(KafkaTopics::WIFISCAN, SerialNumber_, Cmd.Results);
-		}
-		return;
+	std::stringstream ParamStream;
+	Params.stringify(ParamStream);
+	Cmd.Details = ParamStream.str();
+	RESTAPI_RPC::WaitForCommand(Cmd, Params, *Request, *Response, 60000ms, nullptr, this, Logger_);
+	if (Cmd.ErrorCode == 0) {
+		KafkaManager()->PostMessage(KafkaTopics::WIFISCAN, SerialNumber_, Cmd.Results);
 	}
-	BadRequest(RESTAPI::Errors::MissingOrInvalidParameters);
 }
 
 void RESTAPI_device_commandHandler::EventQueue() {

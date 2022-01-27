@@ -38,6 +38,7 @@ namespace OpenWifi::uCentralProtocol {
 	static const char * LOGLINES = "loglines";
 	static const char * SEVERITY = "severity";
 	static const char * ACTIVE = "active";
+	static const char * OVERRIDEDFS = "override_dfs";
 	static const char * REBOOT = "reboot";
 	static const char * WHEN = "when";
 	static const char * CONFIG = "config";
