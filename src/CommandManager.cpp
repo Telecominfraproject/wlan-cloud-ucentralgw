@@ -37,7 +37,9 @@ namespace OpenWifi {
 					try {
 						Poco::JSON::Parser	P;
 						bool Sent;
+						Logger().information(Poco::format("Parsing: %s", Cmd.UUID));
 						auto Params = P.parse(Cmd.Details).extract<Poco::JSON::Object::Ptr>();
+						Logger().information(Poco::format("Parsed: %s", Cmd.UUID));
 						auto Result = PostCommandDisk(	Cmd.SerialNumber,
 													  	Cmd.Command,
 													  	*Params,
