@@ -3030,6 +3030,19 @@ namespace OpenWifi {
         inline void InitializeLoggingSystem();
         inline void SaveConfig() { PropConfigurationFile_->save(ConfigFileName_); }
         inline auto UpdateConfig() { return PropConfigurationFile_; }
+        inline void AddActivity(const std::string &Activity) {
+            if(!DataDir_.empty()) {
+                std::string ActivityFile{ DataDir_ + "/activity.log"};
+                try {
+                    std::ofstream of(ActivityFile,std::ios_base::app | std::ios_base::out );
+                    auto t = std::chrono::system_clock::now();
+                    std::time_t now = std::chrono::system_clock::to_time_t(t);
+                    of << Activity << " at " << std::ctime(&now) ;
+                } catch (...) {
+
+                }
+            }
+        }
 	  private:
 	    static MicroService         * instance_;
 		bool                        HelpRequested_ = false;
@@ -3274,6 +3287,8 @@ namespace OpenWifi {
 	    if(WWWAssetsDir_.empty())
 	        WWWAssetsDir_ = DataDir_;
 
+
+
 	    LoadMyConfig();
 
 	    InitializeSubSystemServers();
@@ -3371,6 +3386,7 @@ namespace OpenWifi {
 	}
 
 	inline void MicroService::StartSubSystemServers() {
+        AddActivity("Starting");
 	    for(auto i:SubSystems_) {
 	        i->Start();
 	    }
@@ -3378,6 +3394,7 @@ namespace OpenWifi {
 	}
 
 	inline void MicroService::StopSubSystemServers() {
+        AddActivity("Stopping");
 	    BusEventManager_.Stop();
 	    for(auto i=SubSystems_.rbegin(); i!=SubSystems_.rend(); ++i) {
 			(*i)->Stop();
