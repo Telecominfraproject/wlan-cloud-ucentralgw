@@ -34,7 +34,6 @@ namespace OpenWifi {
                 {
                 	if(!Running_)
                 		break;
-
 					try {
 						Poco::JSON::Parser	P;
 						bool Sent;
@@ -43,15 +42,20 @@ namespace OpenWifi {
 													  	Cmd.Command,
 													  	Params,
 													  	Cmd.UUID,
-													  Sent);
+	  												    Sent);
 						if(Sent) {
 							StorageService()->SetCommandExecuted(Cmd.UUID);
-							Logger().information(Poco::format("Sent command '%s' to '%s'",Cmd.Command,Cmd.SerialNumber));
+							Logger().information(Poco::format("%s: Sent command '%s-%s'", Cmd.SerialNumber, Cmd.Command, Cmd.UUID));
 						} else {
-							Logger().information(Poco::format("Could not sent command '%s' to '%s'",Cmd.Command,Cmd.SerialNumber));
+							Logger().information(Poco::format("%s: Could not send command '%s-%s'", Cmd.SerialNumber, Cmd.Command, Cmd.UUID));
 						}
+					} catch (const Poco::Exception &E) {
+						Logger().information(Poco::format("%s: Failed command '%s-%s'", Cmd.SerialNumber, Cmd.Command, Cmd.UUID));
+						Logger().log(E);
+						StorageService()->SetCommandExecuted(Cmd.UUID);
 					} catch (...) {
-						Logger().information(Poco::format("Failed to send command '%s' to %s",Cmd.Command,Cmd.SerialNumber));
+						Logger().information(Poco::format("%s: Exception - hard fail - Failed command '%s-%s'", Cmd.SerialNumber, Cmd.Command, Cmd.UUID));
+						StorageService()->SetCommandExecuted(Cmd.UUID);
 					}
                 }
             }
