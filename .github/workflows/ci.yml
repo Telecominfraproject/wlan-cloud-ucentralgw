@@ -27,33 +27,11 @@ jobs:
     steps:
     - uses: actions/checkout@v2
 
-    - name: Build Docker image
-      run: docker build -t wlan-cloud-owgw:${{ github.sha }} .
-
-    - name: Tag Docker image
-      run: |
-        TAGS="${{ github.sha }}"
-
-        if [[ ${GITHUB_REF} == "refs/heads/"* ]]
-        then
-          CURRENT_TAG=$(echo ${GITHUB_REF#refs/heads/} | tr '/' '-')
-          TAGS="$TAGS $CURRENT_TAG"
-        else
-          if [[ ${GITHUB_REF} == "refs/tags/"* ]]
-          then
-            CURRENT_TAG=$(echo ${GITHUB_REF#refs/tags/} | tr '/' '-')
-            TAGS="$TAGS $CURRENT_TAG"
-          else # PR build
-            CURRENT_TAG=$(echo ${GITHUB_HEAD_REF#refs/heads/} | tr '/' '-')
-            TAGS="$TAGS $CURRENT_TAG"
-          fi
-        fi
-
-        echo "Result tags: $TAGS"
-
-        for tag in $TAGS; do
-          docker tag wlan-cloud-owgw:${{ github.sha }} ${{ env.DOCKER_REGISTRY_URL }}/owgw:$tag
-        done
+    - name: Set up Docker Buildx
+      id: buildx
+      uses: docker/setup-buildx-action@v1
+      with:
+        install: true
 
     - name: Log into Docker registry
       if: startsWith(github.ref, 'refs/tags/') || startsWith(github.ref, 'refs/pull/') || github.ref == 'refs/heads/master'
@@ -63,35 +41,57 @@ jobs:
         username: ${{ env.DOCKER_REGISTRY_USERNAME }}
         password: ${{ secrets.DOCKER_REGISTRY_PASSWORD }}
 
-    - name: Push Docker images
+    - name: Set branch name output
+      id: set_branch_name
+      run: |
+        if [[ ${GITHUB_REF} == "refs/heads/"* ]]
+        then
+          echo ::set-output name=branch_name::$(echo ${GITHUB_REF#refs/heads/} | tr '/' '-')
+        else
+          if [[ ${GITHUB_REF} == "refs/tags/"* ]]
+          then
+            echo ::set-output name=branch_name::$(echo ${GITHUB_REF#refs/tags/} | tr '/' '-')
+          else # PR build
+            echo ::set-output name=branch_name::$(echo ${GITHUB_HEAD_REF#refs/heads/} | tr '/' '-')
+          fi
+        fi
+
+    - name: Build and push
       if: startsWith(github.ref, 'refs/tags/') || startsWith(github.ref, 'refs/pull/') || github.ref == 'refs/heads/master'
-      run: |
-        docker images | grep ${{ env.DOCKER_REGISTRY_URL }}/owgw | awk -F ' ' '{print $1":"$2}' | xargs -I {} docker push {}
-
-  trigger-testing:
-    if: startsWith(github.ref, 'refs/pull/')
-    runs-on: ubuntu-latest
-    needs: docker
-    steps:
-    - name: Get base branch name and set as output
-      id: get_base_branch
-      run: |
-        echo ::set-output name=branch::$(echo ${GITHUB_BASE_REF##*/} | sed 's/master/main/g')
-
-    - name: Checkout actions repo
-      uses: actions/checkout@v2
-      with:
-        repository: Telecominfraproject/.github
-        path: github
-
-    - name: Trigger testing of OpenWifi Docker Compose deployment and wait for result
-      uses: ./github/composite-actions/trigger-workflow-and-wait
+      uses: docker/build-push-action@v2
       env:
-        BASE_BRANCH: ${{ steps.get_base_branch.outputs.branch }}
+        BRANCH_NAME: ${{ steps.set_branch_name.outputs.branch_name }}
       with:
-        owner: Telecominfraproject
-        repo: wlan-testing
-        workflow: ow_docker-compose.yml
-        token: ${{ secrets.WLAN_TESTING_PAT }}
-        ref: master
-        inputs: '{"owgw_version": "${{ github.sha }}", "owgwui_version": "${{ env.BASE_BRANCH }}", "owsec_version": "${{ env.BASE_BRANCH }}", "owfms_version": "${{ env.BASE_BRANCH }}", "owprov_version": "main", "owprovui_version": "main"}'
+        context: .
+        push: false
+        tags: ${{ env.DOCKER_REGISTRY_URL }}/owgw:${{ github.sha }},${{ env.DOCKER_REGISTRY_URL }}/owgw:${{ env.BRANCH_NAME }}
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+
+#  trigger-testing:
+#    if: startsWith(github.ref, 'refs/pull/')
+#    runs-on: ubuntu-latest
+#    needs: docker
+#    steps:
+#    - name: Get base branch name and set as output
+#      id: get_base_branch
+#      run: |
+#        echo ::set-output name=branch::$(echo ${GITHUB_BASE_REF##*/} | sed 's/master/main/g')
+#
+#    - name: Checkout actions repo
+#      uses: actions/checkout@v2
+#      with:
+#        repository: Telecominfraproject/.github
+#        path: github
+#
+#    - name: Trigger testing of OpenWifi Docker Compose deployment and wait for result
+#      uses: ./github/composite-actions/trigger-workflow-and-wait
+#      env:
+#        BASE_BRANCH: ${{ steps.get_base_branch.outputs.branch }}
+#      with:
+#        owner: Telecominfraproject
+#        repo: wlan-testing
+#        workflow: ow_docker-compose.yml
+#        token: ${{ secrets.WLAN_TESTING_PAT }}
+#        ref: master
+#        inputs: '{"owgw_version": "${{ github.sha }}", "owgwui_version": "${{ env.BASE_BRANCH }}", "owsec_version": "${{ env.BASE_BRANCH }}", "owfms_version": "${{ env.BASE_BRANCH }}", "owprov_version": "main", "owprovui_version": "main"}'
