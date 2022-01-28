@@ -153,7 +153,7 @@ namespace OpenWifi {
 			Response.setKeepAlive(Params->getKeepAlive() && Request.getKeepAlive() && Session.canKeepAlive());
 			WS_ = std::make_unique<Poco::Net::WebSocket>(Request, Response);
 			WS_->setMaxPayloadSize(BufSize);
-			auto TS = Poco::Timespan(240,0);
+			auto TS = Poco::Timespan(360,0);
 
 			WS_->setReceiveTimeout(TS);
 			WS_->setNoDelay(true);
