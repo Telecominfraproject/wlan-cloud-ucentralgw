@@ -170,9 +170,6 @@ namespace OpenWifi {
 			Registered_ = true;
 			Logger().information(Poco::format("CONNECTION(%s): completed.",CId_));
 			return;
-		} catch (const Poco::Net::SSLException &E ) {
-			Logger().error(Poco::format("CONNECTION(%s): Poco::Exception SSL Exception during connection. Device will have to retry.", CId_));
-			Logger().log(E);
 		} catch (const Poco::Net::CertificateValidationException &E) {
 			Logger().error(Poco::format("CONNECTION(%s): Poco::Exception Certificate Validation failed during connection. Device will have to retry.", CId_));
 			Logger().log(E);
@@ -187,6 +184,9 @@ namespace OpenWifi {
 			Logger().log(E);
 		} catch (const Poco::Net::InvalidCertificateException & E) {
 			Logger().error(Poco::format("CONNECTION(%s): Poco::Exception Invalid certificate. Device will have to retry.", CId_));
+			Logger().log(E);
+		} catch (const Poco::Net::SSLException &E ) {
+			Logger().error(Poco::format("CONNECTION(%s): Poco::Exception SSL Exception during connection. Device will have to retry.", CId_));
 			Logger().log(E);
 		} catch (const Poco::Exception &E ) {
 			Logger().error(Poco::format("CONNECTION(%s): Poco::Exception caught during device connection. Device will have to retry.", CId_));
