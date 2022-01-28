@@ -35,19 +35,19 @@ namespace OpenWifi {
 								   vDAEMON_APP_NAME,
 								   vDAEMON_BUS_TIMER,
 								   SubSystemVec{
-									   StorageService(),
-									   SerialNumberCache(),
-									   ConfigurationValidator(),
-								   		FindCountryFromIP(),
-									   DeviceRegistry(),
-									   WebSocketServer(),
-									   CommandManager(),
-									   FileUploader(),
-									   OUIServer(),
-									   StorageArchiver(),
-									   TelemetryStream()
-									   ,RTTYS_server()
-								   });
+										StorageService(),
+										SerialNumberCache(),
+										ConfigurationValidator(),
+										OUIServer(),
+										FindCountryFromIP(),
+										DeviceRegistry(),
+										CommandManager(),
+										FileUploader(),
+										StorageArchiver(),
+										TelemetryStream(),
+										RTTYS_server(),
+										WebSocketServer()
+							   });
         return &instance;
 	}
 
