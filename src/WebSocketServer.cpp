@@ -60,7 +60,7 @@ namespace OpenWifi {
 				IssuerCert_ = std::make_unique<Poco::Crypto::X509Certificate>(Svr.IssuerCertFile());
 				Logger().information(Poco::format("Certificate Issuer Name:%s",IssuerCert_->issuerName()));
 			}
-			auto NewSocketAcceptor = std::make_unique<Poco::Net::ParallelSocketAcceptor<WSConnection, Poco::Net::SocketReactor>>(Sock, Reactor_);
+			auto NewSocketAcceptor = std::make_unique<Poco::Net::ParallelSocketAcceptor<WSConnection, Poco::Net::SocketReactor>>(Sock, Reactor_,  Poco::Environment::processorCount()*2);
             Acceptors_.push_back(std::move(NewSocketAcceptor));
         }
 
@@ -202,8 +202,9 @@ namespace OpenWifi {
             Reactor_(WebSocketServer()->GetNextReactor()),
 			Logger_(WebSocketServer()->Logger())
     {
-		std::thread	T([=](){ CompleteStartup();});
-		T.detach();
+//		std::thread	T([=](){ CompleteStartup();});
+//		T.detach();
+		CompleteStartup();
     }
 
 	static void NotifyKafkaDisconnect(std::string SerialNumber) {
