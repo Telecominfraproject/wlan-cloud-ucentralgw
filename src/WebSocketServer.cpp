@@ -140,8 +140,7 @@ namespace OpenWifi {
 			SerialNumber_ = CN_;
 			if(!CN_.empty() && StorageService()->IsBlackListed(SerialNumber_)) {
 				Logger().debug(Poco::format("CONNECTION(%s): Device %s is black listed. Disconnecting.", CId_, CN_));
-				delete this;
-				return;
+				return delete this;
 			}
 			auto Params = Poco::AutoPtr<Poco::Net::HTTPServerParams>(new Poco::Net::HTTPServerParams);
 			Poco::Net::HTTPServerSession Session(Socket_, Params);
@@ -171,13 +170,31 @@ namespace OpenWifi {
 			Registered_ = true;
 			Logger().information(Poco::format("CONNECTION(%s): completed.",CId_));
 			return;
+		} catch (const Poco::Net::SSLException &E ) {
+			Logger().error(Poco::format("CONNECTION(%s): Poco::Exception SSL Exception during connection. Device will have to retry.", CId_));
+			Logger().log(E);
+		} catch (const Poco::Net::CertificateValidationException &E) {
+			Logger().error(Poco::format("CONNECTION(%s): Poco::Exception Certificate Validation failed during connection. Device will have to retry.", CId_));
+			Logger().log(E);
+		} catch (const Poco::Net::WebSocketException & E) {
+			Logger().error(Poco::format("CONNECTION(%s): Poco::Exception WebSocket error during connection. Device will have to retry.", CId_));
+			Logger().log(E);
+		} catch (const Poco::Net::ConnectionAbortedException & E) {
+			Logger().error(Poco::format("CONNECTION(%s): Poco::Exception Connection was aborted during connection. Device will have to retry.", CId_));
+			Logger().log(E);
+		} catch (const Poco::Net::ConnectionResetException & E) {
+			Logger().error(Poco::format("CONNECTION(%s): Poco::Exception Connection was reset during connection. Device will have to retry.", CId_));
+			Logger().log(E);
+		} catch (const Poco::Net::InvalidCertificateException & E) {
+			Logger().error(Poco::format("CONNECTION(%s): Poco::Exception Invalid certificate. Device will have to retry.", CId_));
+			Logger().log(E);
 		} catch (const Poco::Exception &E ) {
-			Logger().error("Exception caught during device connection. Device will have to retry.");
+			Logger().error(Poco::format("CONNECTION(%s): Poco::Exception caught during device connection. Device will have to retry.", CId_));
 			Logger().log(E);
 		} catch (...) {
-			Logger().error("Exception caught during device connection. Device will have to retry. Unsecure connect denied.");
+			Logger().error(Poco::format("CONNECTION(%s): Exception caught during device connection. Device will have to retry. Unsecure connect denied.", CId_));
 		}
-		delete this;
+		return delete this;
 	}
 
 	WSConnection::WSConnection(Poco::Net::StreamSocket & socket, Poco::Net::SocketReactor & reactor):
@@ -185,7 +202,7 @@ namespace OpenWifi {
             Reactor_(WebSocketServer()->GetNextReactor()),
 			Logger_(WebSocketServer()->Logger())
     {
-		std::thread		T([this](){ this->CompleteStartup();});
+		std::thread	T([=](){ CompleteStartup();});
 		T.detach();
     }
 
