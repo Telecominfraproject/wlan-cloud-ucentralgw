@@ -22,7 +22,7 @@ images:
 
 services:
   owgw:
-    type: LoadBalancer
+    type: ClusterIP
     ports:
       websocket:
         servicePort: 15002
