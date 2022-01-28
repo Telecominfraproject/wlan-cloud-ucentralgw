@@ -15,6 +15,7 @@
 #include "Poco/Net/HTTPServerRequestImpl.h"
 #include "Poco/JSON/Array.h"
 #include "Poco/zlib.h"
+#include "Poco/Base64Decoder.h"
 
 #include "CommandManager.h"
 #include "ConfigurationCache.h"
@@ -281,20 +282,22 @@ namespace OpenWifi {
         return false;
     }
 
-	bool WSConnection::ExtractCompressedData(const std::string & CompressedData, std::string & UnCompressedData)
-    {
-        std::vector<uint8_t> OB = Utils::base64decode(CompressedData);
+	bool WSConnection::ExtractBase64CompressedData(const std::string & CompressedData, std::string & UnCompressedData) {
+		std::istringstream ifs(CompressedData);
+		Poco::Base64Decoder b64in(ifs);
+		std::ostringstream ofs;
+		Poco::StreamCopier::copyStream(b64in,ofs);
 
-        unsigned long MaxSize=OB.size()*10;
-        std::vector<char> UncompressedBuffer(MaxSize);
-        unsigned long FinalSize = MaxSize;
-        if(uncompress((Bytef *)&UncompressedBuffer[0], & FinalSize, (Bytef *)&OB[0],OB.size())==Z_OK) {
+		unsigned long MaxSize=ofs.str().size()*10;
+		std::vector<uint8_t> UncompressedBuffer(MaxSize);
+		unsigned long FinalSize = MaxSize;
+		if(uncompress((uint8_t *)&UncompressedBuffer[0], &FinalSize, (uint8_t *)ofs.str().c_str(),ofs.str().size())==Z_OK) {
 			UncompressedBuffer[FinalSize] = 0;
-			UnCompressedData = &UncompressedBuffer[0];
+			UnCompressedData = (char *)&UncompressedBuffer[0];
 			return true;
 		}
 		return false;
-    }
+	}
 
     void WSConnection::ProcessJSONRPCResult(Poco::JSON::Object::Ptr & Doc) {
 		CommandManager()->PostCommandResult(SerialNumber_, Doc);
@@ -322,13 +325,25 @@ namespace OpenWifi {
         if(ParamsObj->has(uCentralProtocol::COMPRESS_64))
         {
 			std::string UncompressedData;
-            if(ExtractCompressedData(ParamsObj->get(uCentralProtocol::COMPRESS_64).toString(),UncompressedData)) {
-				Logger().debug(Poco::format("EVENT(%s): Found compressed payload expanded to '%s'.",CId_, UncompressedData));
-				Poco::JSON::Parser	Parser;
-				ParamsObj = Parser.parse(UncompressedData).extract<Poco::JSON::Object::Ptr>();
-			} else {
-				Logger().warning(Poco::format("INVALID-COMPRESSED-DATA(%s): Compressed cannot be uncompressed - content must be corrupt..",CId_));
-				Errors_++;
+			try {
+				if (ExtractBase64CompressedData(
+						ParamsObj->get(uCentralProtocol::COMPRESS_64).toString(),
+						UncompressedData)) {
+					Logger().debug(
+						Poco::format("EVENT(%s): Found compressed payload expanded to '%s'.", CId_,
+									 UncompressedData));
+					Poco::JSON::Parser Parser;
+					ParamsObj = Parser.parse(UncompressedData).extract<Poco::JSON::Object::Ptr>();
+				} else {
+					Logger().warning(Poco::format("INVALID-COMPRESSED-DATA(%s): Compressed cannot be uncompressed - content must be corrupt..",
+												  CId_));
+					Errors_++;
+					return;
+				}
+			} catch (const Poco::Exception &E) {
+				Logger().warning(Poco::format("INVALID-COMPRESSED-JSON-DATA(%s): Compressed cannot be parsed - JSON must be corrupt..",
+											  CId_));
+				Logger().log(E);
 				return;
 			}
         }

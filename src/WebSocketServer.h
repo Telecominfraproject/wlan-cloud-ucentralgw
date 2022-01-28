@@ -90,7 +90,7 @@ namespace OpenWifi {
 		void OnSocketShutdown(const Poco::AutoPtr<Poco::Net::ShutdownNotification>& pNf);
 		void OnSocketError(const Poco::AutoPtr<Poco::Net::ErrorNotification>& pNf);
 		bool LookForUpgrade(uint64_t UUID);
-		static bool ExtractCompressedData(const std::string & CompressedData, std::string & UnCompressedData);
+		static bool ExtractBase64CompressedData(const std::string & CompressedData, std::string & UnCompressedData);
 		void LogException(const Poco::Exception &E);
 		[[nodiscard]] GWObjects::CertificateValidation CertificateValidation() const { return CertValidation_; };
 		inline Poco::Logger & Logger() { return Logger_; }
