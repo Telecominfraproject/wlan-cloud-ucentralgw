@@ -17,138 +17,136 @@
 
 namespace OpenWifi::Config {
 
-	static std::string DefaultConfiguration;
-
-	static std::string BasicConfig {
-	R"lit({
-	"uuid": 1,
-	"radios": [
-		{
-			"band": "5G",
-			"country": "CA",
-			"channel-mode": "HE",
-			"channel-width": 80,
-			"channel": 32
-		}
-	],
-
-	"interfaces": [
-		{
-			"name": "WAN",
-			"role": "upstream",
-			"services": [ "lldp" ],
-			"ethernet": [
+	const static std::string BasicConfig {
+			R"lit({
+			"uuid": 1,
+			"radios": [
 				{
-					"select-ports": [
-						"WAN*"
-					]
+					"band": "5G",
+					"country": "CA",
+					"channel-mode": "HE",
+					"channel-width": 80,
+					"channel": 32
 				}
 			],
-			"ipv4": {
-				"addressing": "dynamic"
-			},
-			"ssids": [
+
+			"interfaces": [
 				{
-					"name": "OpenWifi",
-					"wifi-bands": [
-						"5G"
+					"name": "WAN",
+					"role": "upstream",
+					"services": [ "lldp" ],
+					"ethernet": [
+						{
+							"select-ports": [
+								"WAN*"
+							]
+						}
 					],
-					"bss-mode": "ap",
-					"encryption": {
-						"proto": "psk2",
-						"key": "OpenWifi",
-						"ieee80211w": "optional"
-					}
-				}
-			]
-		},
-		{
-			"name": "LAN",
-			"role": "downstream",
-			"services": [ "ssh", "lldp" ],
-			"ethernet": [
-				{
-					"select-ports": [
-						"LAN*"
+					"ipv4": {
+						"addressing": "dynamic"
+					},
+					"ssids": [
+						{
+							"name": "OpenWifi",
+							"wifi-bands": [
+								"5G"
+							],
+							"bss-mode": "ap",
+							"encryption": {
+								"proto": "psk2",
+								"key": "OpenWifi",
+								"ieee80211w": "optional"
+							}
+						}
 					]
+				},
+				{
+					"name": "LAN",
+					"role": "downstream",
+					"services": [ "ssh", "lldp" ],
+					"ethernet": [
+						{
+							"select-ports": [
+								"LAN*"
+							]
+						}
+					],
+					"ipv4": {
+						"addressing": "static",
+						"subnet": "192.168.1.1/24",
+						"dhcp": {
+							"lease-first": 10,
+							"lease-count": 100,
+							"lease-time": "6h"
+						}
+					},
+					"ssids": [
+						{
+							"name": "OpenWifi",
+							"wifi-bands": [
+								"5G"
+							],
+							"bss-mode": "ap",
+							"encryption": {
+								"proto": "psk2",
+								"key": "OpenWifi",
+								"ieee80211w": "optional"
+							}
+						}
+					]
+
 				}
 			],
-			"ipv4": {
-				"addressing": "static",
-				"subnet": "192.168.1.1/24",
-				"dhcp": {
-					"lease-first": 10,
-					"lease-count": 100,
-					"lease-time": "6h"
+			"metrics": {
+				"statistics": {
+					"interval": 120,
+					"types": [ "ssids", "lldp", "clients" ]
+				},
+				"health": {
+					"interval": 120
 				}
 			},
-			"ssids": [
-				{
-					"name": "OpenWifi",
-					"wifi-bands": [
-						"5G"
-					],
-					"bss-mode": "ap",
-					"encryption": {
-						"proto": "psk2",
-						"key": "OpenWifi",
-						"ieee80211w": "optional"
-					}
+			"services": {
+				"lldp": {
+					"describe": "uCentral",
+					"location": "universe"
+				},
+				"ssh": {
+					"port": 22
 				}
-			]
+			}
+		})lit"};
 
+	void Config::SetBasicConfigFile() {
+		try {
+			Poco::File DefaultConfigFileName{MicroService::instance().DataDir() + "/default_config.json"};
+			DefaultConfiguration_ = BasicConfig;
+			std::ofstream OS(DefaultConfigFileName.path(), std::ios::binary | std::ios::trunc );
+			std::istringstream	IS(DefaultConfiguration_);
+			Poco::StreamCopier::copyStream(IS, OS);
+		} catch (...) {
+			DefaultConfiguration_ = BasicConfig;
 		}
-	],
-	"metrics": {
-		"statistics": {
-			"interval": 120,
-			"types": [ "ssids", "lldp", "clients" ]
-		},
-		"health": {
-			"interval": 120
-		}
-	},
-	"services": {
-		"lldp": {
-			"describe": "uCentral",
-			"location": "universe"
-		},
-		"ssh": {
-			"port": 22
-		}
-	}
-})lit"};
-
-	void SetBasicConfigFile() {
-		Poco::File DefaultConfigFileName{MicroService::instance().DataDir()+"/default_config.json"};
-		DefaultConfiguration = BasicConfig;
-		std::ofstream F;
-		F.open(DefaultConfigFileName.path(),std::ios::binary);
-		F << BasicConfig ;
-		F.close();
 	}
 
 	Config::Config() {
-		Config_ = DefaultConfiguration;
+		if(DefaultConfiguration_.empty())
+			Init();
+		Config_ = DefaultConfiguration_;
 	}
 
 	void Config::Init() {
-		if(DefaultConfiguration.empty()) {
+		if(DefaultConfiguration_.empty()) {
 			//	open the file
-			Poco::File DefaultConfigFileName{MicroService::instance().DataDir()+"/default_config.json"};
 			try {
+				Poco::File DefaultConfigFileName{MicroService::instance().DataDir()+"/default_config.json"};
 				if (!DefaultConfigFileName.exists()) {
 					SetBasicConfigFile();
 				} else {
-					std::ifstream F;
-					F.open(DefaultConfigFileName.path(),std::ios::binary);
-					while(!F.eof()) {
-						std::string Line;
-						F >> Line;
-						DefaultConfiguration += Line + "\n" ;
-					}
-					F.close();
-					// std::cout << "Default config: " << DefaultConfiguration << std::endl;
+					std::ifstream F(DefaultConfigFileName.path(),std::ios::binary | std::ios::in);
+					std::ostringstream C;
+					Poco::StreamCopier::copyStream(F,C);
+					DefaultConfiguration_ = C.str();
 				}
 			} catch (...) {
 				SetBasicConfigFile();
@@ -159,13 +157,17 @@ namespace OpenWifi::Config {
     bool Config::SetUUID(uint64_t UUID) {
         try {
             Poco::JSON::Parser Parser;
-            Poco::JSON::Object::Ptr Object = Parser.parse(Config_).extract<Poco::JSON::Object::Ptr>();
-			Object->set("uuid",UUID);
+            auto Object = Parser.parse(Config_).extract<Poco::JSON::Object::Ptr>();
+
+			Object->set("uuid", (uint32_t) UUID);
+
 			std::ostringstream NewConfig;
             Poco::JSON::Stringifier Stringifier;
 			Stringifier.condense(Object, NewConfig);
-            Config_ = NewConfig.str();
-            return true;
+
+			Config_ = NewConfig.str();
+
+			return true;
         }
         catch(const Poco::Exception &E)
         {
@@ -182,9 +184,9 @@ namespace OpenWifi::Config {
                 return true;
             return false;
         }
-        catch (const Poco::Exception &E)
+        catch (...)
         {
-            return false;
+			return false;
         }
     }
 
@@ -193,7 +195,11 @@ namespace OpenWifi::Config {
         return Parser.parse(Config_).extract<Poco::JSON::Object::Ptr>();
     }
 
-	std::string Config::Default() { return DefaultConfiguration; }
+	std::string Config::Default() {
+		if(DefaultConfiguration_.empty())
+			Init();
+		return DefaultConfiguration_;
+	}
 
     std::string Capabilities::Default() {
         return std::string(R"lit({"model":{"id":"linksys,ea8300","name":"Linksys EA8300 (Dallas)"},

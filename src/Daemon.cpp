@@ -85,7 +85,6 @@ namespace OpenWifi {
 	};
 	
 	void Daemon::initialize() {
-		Config::Config::Init();
         AutoProvisioning_ = config().getBool("openwifi.autoprovisioning",false);
         DeviceTypes_ = DefaultDeviceTypes;
     }

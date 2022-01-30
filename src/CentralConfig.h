@@ -16,19 +16,21 @@ namespace OpenWifi::Config {
 	class Config {
     public:
         explicit Config(const std::string &Config)
-        :Config_(Config) {}
+        	:Config_(Config) {
+		}
 
         Config();
-
-		static void Init();
         bool SetUUID(uint64_t UUID);
         [[nodiscard]] bool Valid();
 		[[nodiscard]] std::string get() { return Config_; };
-		[[nodiscard]] static std::string Default();
+		[[nodiscard]] std::string Default();
 		[[nodiscard]] Poco::JSON::Object::Ptr to_json();
 
     private:
-        std::string Config_;
+	  	void Init();
+	  	void SetBasicConfigFile();
+	  	inline static std::string DefaultConfiguration_ = "";
+	  	std::string Config_;
     };
 
     class Capabilities {
