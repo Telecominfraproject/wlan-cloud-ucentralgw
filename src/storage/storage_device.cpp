@@ -294,10 +294,12 @@ namespace OpenWifi {
 		std::string 	FoundConfig;
 		if(WebSocketServer()->UseProvisioning()) {
 			if(SDKCalls::GetProvisioningConfiguration(SerialNumber, FoundConfig)) {
-				Found = true;
-				Config::Config NewConfig(FoundConfig);
-				NewConfig.SetUUID(Now);
-				D.Configuration = NewConfig.get();
+				if(FoundConfig != "none") {
+					Found = true;
+					Config::Config NewConfig(FoundConfig);
+					NewConfig.SetUUID(Now);
+					D.Configuration = NewConfig.get();
+				}
 			}
 		}
 
