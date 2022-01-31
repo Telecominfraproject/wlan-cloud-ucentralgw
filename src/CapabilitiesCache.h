@@ -13,12 +13,15 @@ namespace OpenWifi {
 	class CapabilitiesCache {
 	  public:
 
-		static CapabilitiesCache * instance() {
-			static CapabilitiesCache * instance = new CapabilitiesCache;
+		static auto instance() {
+			static auto instance = new CapabilitiesCache;
 			return instance;
 		}
 
 		inline void Add(const std::string & DeviceType, const std::string & Platform) {
+			if(DeviceType.empty() || Platform.empty())
+				return;
+
 			std::lock_guard	G(Mutex_);
 			if(!Loaded_)
 				LoadIt();
@@ -27,8 +30,7 @@ namespace OpenWifi {
 			if(Hint==Caps_.end()) {
 				Caps_.insert(std::make_pair(DeviceType,P));
 				SaveIt();
-			}
-			if(Hint->second != P) {
+			} else if(Hint->second != P) {
 				Hint->second = P;
 				SaveIt();
 			}
@@ -51,10 +53,11 @@ namespace OpenWifi {
 		std::mutex			Mutex_;
 		std::atomic_bool 	Loaded_=false;
 		std::map<std::string,std::string>	Caps_;
+		std::string 		CacheFileName_{ MicroService::instance().DataDir()+CapabilitiesCacheFileName };
 
 		inline void LoadIt() {
 			try {
-				std::ifstream i(MicroService::instance().DataDir()+CapabilitiesCacheFileName);
+				std::ifstream i(CacheFileName_);
 				nlohmann::json cache;
 				i >> cache;
 
@@ -69,7 +72,7 @@ namespace OpenWifi {
 
 		inline void SaveIt() {
 			try {
-				std::ofstream i(MicroService::instance().DataDir() + CapabilitiesCacheFileName);
+				std::ofstream i(CacheFileName_);
 				nlohmann::json cache(Caps_);
 				i << cache;
 			} catch (...) {
