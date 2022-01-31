@@ -321,7 +321,7 @@ namespace OpenWifi {
 		CommandManager()->PostCommandResult(SerialNumber_, Doc);
     }
 
-#define 	__DBGLOG__ Logger().debug(Poco::format("-->%u", (uint32_t) __LINE__));
+// #define 	__DBGLOG__ Logger().debug(Poco::format("-->%u", (uint32_t) __LINE__));
     void WSConnection::ProcessJSONRPCEvent(Poco::JSON::Object::Ptr & Doc) {
 
         auto Method = Doc->get(uCentralProtocol::METHOD).toString();
@@ -405,11 +405,9 @@ namespace OpenWifi {
 						Conn_->Conn_.LastContact = std::time(nullptr);
 						Conn_->Conn_.Address = Utils::FormatIPv6(WS_->peerAddress().toString());
 						CId_ = SerialNumber_ + "@" + CId_ ;
-						__DBGLOG__
 						//	We need to verify the certificate if we have one
 						if((!CN_.empty() && Utils::SerialNumberMatch(CN_,SerialNumber_)) || WebSocketServer()->IsSimSerialNumber(CN_)) {
 							CertValidation_ = GWObjects::VERIFIED;
-							__DBGLOG__
 							Logger().information(Poco::format("CONNECT(%s): Fully validated and authenticated device..", CId_));
 						} else {
 							if(CN_.empty())
@@ -417,51 +415,29 @@ namespace OpenWifi {
 							else
 								Logger().information(Poco::format("CONNECT(%s): Authenticated but not validated. Serial='%s' CN='%s'", CId_, Serial, CN_));
 						}
-						__DBGLOG__
 						Conn_->Conn_.VerifiedCertificate = CertValidation_;
-						__DBGLOG__
 
 						auto DeviceExists = SerialNumberCache()->NumberExists(SerialNumber_);
-						__DBGLOG__
 						if (Daemon()->AutoProvisioning() && !DeviceExists) {
-							__DBGLOG__
 							StorageService()->CreateDefaultDevice(SerialNumber_, Capabilities, Firmware, Compatible_, PeerAddress_);
-							__DBGLOG__
 							Conn_->Conn_.Compatible = Compatible_;
-							__DBGLOG__
 						} else if (DeviceExists) {
-							__DBGLOG__
 							StorageService()->UpdateDeviceCapabilities(SerialNumber_, Capabilities, Compatible_);
-							__DBGLOG__
 							Conn_->Conn_.Compatible = Compatible_;
-							__DBGLOG__
 							if(!Firmware.empty()) {
-								__DBGLOG__
 								StorageService()->SetConnectInfo(SerialNumber_, Firmware );
-								__DBGLOG__
 							}
-							__DBGLOG__
 							LookForUpgrade(UUID);
-							__DBGLOG__
 						}
 
-						__DBGLOG__
 						if(KafkaManager()->Enabled()) {
-							__DBGLOG__
 							Poco::JSON::Stringifier		Stringify;
-							__DBGLOG__
 							ParamsObj->set(uCentralProtocol::CONNECTIONIP,CId_);
-							__DBGLOG__
 							std::ostringstream OS;
-							__DBGLOG__
 							Stringify.condense(ParamsObj,OS);
-							__DBGLOG__
 							KafkaManager()->PostMessage(KafkaTopics::CONNECTION, SerialNumber_, OS.str());
-							__DBGLOG__
 						}
-						__DBGLOG__
 						Connected_ = true;
-						__DBGLOG__
 					} else {
 						Logger().warning(Poco::format("CONNECT(%s): Missing one of uuid, firmware, or capabilities",CId_));
 						Errors_++;
