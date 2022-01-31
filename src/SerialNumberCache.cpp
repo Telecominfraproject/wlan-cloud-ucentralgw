@@ -21,7 +21,7 @@ namespace OpenWifi {
 	void SerialNumberCache::AddSerialNumber(const std::string &S) {
 		std::lock_guard		G(M_);
 
-		uint64_t SN = std::stoull(S,0,16);
+		uint64_t SN = std::stoull(S, nullptr, 16);
 		if(std::find(SNs_.begin(),SNs_.end(),SN) == SNs_.end()) {
 			if(SNs_.size()+1 == SNs_.capacity())
 				SNs_.resize(SNs_.capacity()+2000);
@@ -33,7 +33,7 @@ namespace OpenWifi {
 	void SerialNumberCache::DeleteSerialNumber(const std::string &S) {
 		std::lock_guard		G(M_);
 
-		uint64_t SN = std::stoull(S,0,16);
+		uint64_t SN = std::stoull(S,nullptr,16);
 		auto It = std::find(SNs_.begin(),SNs_.end(),SN);
 		if(It != SNs_.end()) {
 			SNs_.erase(It);
@@ -42,7 +42,7 @@ namespace OpenWifi {
 
 	bool SerialNumberCache::NumberExists(const std::string &S) {
 		std::lock_guard		G(M_);
-		uint64_t SN = std::stoull(S,0,16);
+		uint64_t SN = std::stoull(S,nullptr,16);
 		return std::find(SNs_.begin(),SNs_.end(),SN)!=SNs_.end();
 	}
 
@@ -50,7 +50,7 @@ namespace OpenWifi {
 		std::lock_guard		G(M_);
 
 		if(S.length()==12) {
-			uint64_t SN = std::stoull(S,0,16);
+			uint64_t SN = std::stoull(S,nullptr,16);
 			auto It = std::find(SNs_.begin(),SNs_.end(),SN);
 			if(It != SNs_.end()) {
 				A.push_back(*It);
@@ -58,7 +58,7 @@ namespace OpenWifi {
 		} else if (S.length()<12){
 			std::string SS{S};
 			SS.insert(SS.end(), 12 - SS.size(), '0');
-			uint64_t SN = std::stoull(SS,0,16);
+			uint64_t SN = std::stoull(SS,nullptr,16);
 
 			auto LB = std::lower_bound(SNs_.begin(),SNs_.end(),SN);
 			if(LB!=SNs_.end()) {

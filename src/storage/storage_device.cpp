@@ -278,21 +278,32 @@ namespace OpenWifi {
 		}
 	}
 
+#define 	__DBGLOG__ Logger().debug(Poco::format("-->%u", (uint32_t) __LINE__));
+
 	bool Storage::CreateDefaultDevice(std::string &SerialNumber, std::string &Capabilities, std::string & Firmware, std::string &Compat, const Poco::Net::IPAddress & IPAddress) {
+
+		__DBGLOG__
 		GWObjects::Device D;
-
+		__DBGLOG__
 		Logger().information(Poco::format("AUTO-CREATION(%s)", SerialNumber));
+		__DBGLOG__
 		uint64_t Now = time(nullptr);
-
+		__DBGLOG__
 		Config::Capabilities 			Caps(Capabilities);
+		__DBGLOG__
 		GWObjects::DefaultConfiguration DefConfig;
+		__DBGLOG__
 
-		if(!Caps.Platform().empty() && !Caps.Compatible().empty())
-			CapabilitiesCache::instance()->Add(Caps.Compatible(),Caps.Platform());
+		if(!Caps.Platform().empty() && !Caps.Compatible().empty()) {
+			__DBGLOG__
+			CapabilitiesCache::instance()->Add(Caps.Compatible(), Caps.Platform());
+			__DBGLOG__
+		}
 
 		bool 			Found = false;
 		std::string 	FoundConfig;
 		if(WebSocketServer()->UseProvisioning()) {
+			__DBGLOG__
 			if(SDKCalls::GetProvisioningConfiguration(SerialNumber, FoundConfig)) {
 				if(FoundConfig != "none") {
 					Found = true;
@@ -303,28 +314,44 @@ namespace OpenWifi {
 			}
 		}
 
+		__DBGLOG__
 		if (!Found && WebSocketServer()->UseDefaults() && FindDefaultConfigurationForModel(Compat, DefConfig)) {
+			__DBGLOG__
 			Config::Config NewConfig(DefConfig.Configuration);
+			__DBGLOG__
 			NewConfig.SetUUID(Now);
+			__DBGLOG__
 			D.Configuration = NewConfig.get();
 		} else if(!Found) {
+			__DBGLOG__
 			Config::Config NewConfig;
+			__DBGLOG__
 			NewConfig.SetUUID(Now);
+			__DBGLOG__
 			D.Configuration = NewConfig.get();
+			__DBGLOG__
 		}
 
+		__DBGLOG__
 		//	We need to insert the country code according to the IP in the radios section...
 		InsertRadiosCountyRegulation(D.Configuration, IPAddress);
+		__DBGLOG__
 
 		D.SerialNumber = Poco::toLower(SerialNumber);
 		Compat = D.Compatible = Caps.Compatible();
+		__DBGLOG__
 		D.DeviceType = Daemon()->IdentifyDevice(D.Compatible);
+		__DBGLOG__
 		D.MACAddress = Utils::SerialToMAC(SerialNumber);
+		__DBGLOG__
 		D.Manufacturer = Caps.Model();
 		D.Firmware = Firmware;
+		__DBGLOG__
 		D.Notes = SecurityObjects::NoteInfoVec { SecurityObjects::NoteInfo{ (uint64_t)std::time(nullptr), "", "Auto-provisioned."}};
 
+		__DBGLOG__
 		CreateDeviceCapabilities(SerialNumber, Capabilities);
+		__DBGLOG__
 
 		return CreateDevice(D);
 	}
