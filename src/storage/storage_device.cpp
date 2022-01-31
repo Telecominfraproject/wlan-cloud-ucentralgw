@@ -278,7 +278,7 @@ namespace OpenWifi {
 		}
 	}
 
-#define 	__DBGLOG__ Logger().debug(Poco::format("-->%u", (uint32_t) __LINE__));
+#define 	__DBGLOG__ Logger().information(Poco::format("-->%u", (uint32_t) __LINE__));
 
 	bool Storage::CreateDefaultDevice(std::string &SerialNumber, std::string &Capabilities, std::string & Firmware, std::string &Compat, const Poco::Net::IPAddress & IPAddress) {
 
