@@ -1929,6 +1929,16 @@ namespace OpenWifi {
 	        Poco::JSON::Stringifier::stringify(ErrorObject, Answer);
 	    }
 
+        inline void BadRequest(uint64_t ErrorCode, const std::string & ErrorText) {
+            PrepareResponse(Poco::Net::HTTPResponse::HTTP_BAD_REQUEST);
+            Poco::JSON::Object	ErrorObject;
+            ErrorObject.set("ErrorCode", ErrorCode);
+            ErrorObject.set("ErrorDetails",Request->getMethod());
+            ErrorObject.set("ErrorDescription", ErrorText) ;
+            std::ostream &Answer = Response->send();
+            Poco::JSON::Stringifier::stringify(ErrorObject, Answer);
+        }
+
 	    inline void InternalError(const std::string & Reason = "") {
 	        PrepareResponse(Poco::Net::HTTPResponse::HTTP_INTERNAL_SERVER_ERROR);
 	        Poco::JSON::Object	ErrorObject;
@@ -1986,8 +1996,7 @@ namespace OpenWifi {
             Response->set("Content-Disposition", "attachment; filename=" + FileName );
             Response->set("Content-Transfer-Encoding","binary");
             Response->set("Accept-Ranges", "bytes");
-            Response->set("Cache-Control", "private");
-            Response->set("Pragma", "private");
+            Response->set("Cache-Control", "no-store");
             Response->set("Expires", "Mon, 26 Jul 2027 05:00:00 GMT");
             Response->setStatus(Poco::Net::HTTPResponse::HTTP_OK);
             Response->setContentLength(Content.size());
@@ -2003,8 +2012,7 @@ namespace OpenWifi {
 	        Response->set("Content-Disposition", "attachment; filename=" + UUID );
 	        Response->set("Content-Transfer-Encoding","binary");
 	        Response->set("Accept-Ranges", "bytes");
-	        Response->set("Cache-Control", "private");
-	        Response->set("Pragma", "private");
+	        Response->set("Cache-Control", "no-store");
 	        Response->set("Expires", "Mon, 26 Jul 2027 05:00:00 GMT");
 	        Response->setContentLength(File.getSize());
 	        Response->sendFile(File.path(),"application/octet-stream");
@@ -2019,8 +2027,7 @@ namespace OpenWifi {
 	            Response->set("Content-Transfer-Encoding","binary");
 	            Response->set("Accept-Ranges", "bytes");
 	        }
-	        Response->set("Cache-Control", "private");
-	        Response->set("Pragma", "private");
+	        Response->set("Cache-Control", "no-store");
 	        Response->set("Expires", "Mon, 26 Jul 2027 05:00:00 GMT");
 	        Response->sendFile(File.path(),MT.ContentType);
 	    }
@@ -2035,8 +2042,7 @@ namespace OpenWifi {
 	        }
 	        Response->set("Content-Disposition", "attachment; filename=" + Name );
 	        Response->set("Accept-Ranges", "bytes");
-	        Response->set("Cache-Control", "private");
-	        Response->set("Pragma", "private");
+	        Response->set("Cache-Control", "no-store");
 	        Response->set("Expires", "Mon, 26 Jul 2027 05:00:00 GMT");
             Response->setContentLength(TempAvatar.getSize());
 	        Response->sendFile(TempAvatar.path(),MT.ContentType);
@@ -2052,8 +2058,7 @@ namespace OpenWifi {
             }
             Response->set("Content-Disposition", "attachment; filename=" + Name );
             Response->set("Accept-Ranges", "bytes");
-            Response->set("Cache-Control", "private");
-            Response->set("Pragma", "private");
+            Response->set("Cache-Control", "no-store");
             Response->set("Expires", "Mon, 26 Jul 2027 05:00:00 GMT");
             Response->setContentLength(Content.size());
             Response->setContentType(Type );
