@@ -55,6 +55,7 @@ jobs:
       with:
         repository: Telecominfraproject/.github
         path: github
+        ref: WIFI-6729-speed-up-image-build
 
     - name: Trigger testing of OpenWifi Docker Compose deployment and wait for result
       uses: ./github/composite-actions/trigger-workflow-and-wait
