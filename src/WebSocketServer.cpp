@@ -202,9 +202,9 @@ namespace OpenWifi {
             Reactor_(WebSocketServer()->GetNextReactor()),
 			Logger_(WebSocketServer()->Logger())
     {
-//		std::thread	T([=](){ CompleteStartup();});
-//		T.detach();
-		CompleteStartup();
+		std::thread	T([=](){ CompleteStartup();});
+		T.detach();
+//		CompleteStartup();
     }
 
 	static void NotifyKafkaDisconnect(std::string SerialNumber) {
