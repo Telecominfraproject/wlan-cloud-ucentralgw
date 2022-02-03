@@ -18,7 +18,7 @@
 #include "framework/MicroService.h"
 #include "CapabilitiesCache.h"
 #include "FindCountry.h"
-#include "WebSocketServer.h"
+#include "WS_Server.h"
 #include "SDKcalls.h"
 #include "StateUtils.h"
 

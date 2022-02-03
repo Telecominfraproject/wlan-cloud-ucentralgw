@@ -21,7 +21,7 @@
 #include "StorageArchiver.h"
 #include "StorageService.h"
 #include "TelemetryStream.h"
-#include "WebSocketServer.h"
+#include "WS_Server.h"
 #include "framework/ConfigurationValidator.h"
 #include "framework/MicroService.h"
 #include "FindCountry.h"

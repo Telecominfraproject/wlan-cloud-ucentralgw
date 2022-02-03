@@ -10,7 +10,7 @@
 #include "Poco/JSON/Parser.h"
 
 #include "DeviceRegistry.h"
-#include "WebSocketServer.h"
+#include "WS_Server.h"
 #include "OUIServer.h"
 
 namespace OpenWifi {

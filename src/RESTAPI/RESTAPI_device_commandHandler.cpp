@@ -25,7 +25,7 @@
 #include "framework/RESTAPI_errors.h"
 #include "framework/ConfigurationValidator.h"
 #include "rttys/RTTYS_server.h"
-#include "WebSocketServer.h"
+#include "WS_Server.h"
 
 namespace OpenWifi {
 
