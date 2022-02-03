@@ -99,8 +99,7 @@ namespace OpenWifi {
 	void WSConnection::CompleteStartup() {
 		std::lock_guard Guard(Mutex_);
 		try {
-			// auto SS = dynamic_cast<Poco::Net::SecureStreamSocketImpl *>(Socket_.impl());
-			auto SS = dynamic_cast<Poco::Net::SecureStreamSocket*>(Socket_.impl());
+			auto SS = dynamic_cast<Poco::Net::SecureStreamSocketImpl *>(Socket_.impl());
 			SS->completeHandshake();
 			PeerAddress_ = SS->peerAddress().host();
 			CId_ = Utils::FormatIPv6(SS->peerAddress().toString());
