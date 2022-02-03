@@ -99,9 +99,8 @@ namespace OpenWifi {
 	void WSConnection::CompleteStartup() {
 		std::lock_guard Guard(Mutex_);
 		try {
-
-			auto SS = dynamic_cast<Poco::Net::SecureStreamSocketImpl *>(Socket_.impl());
-
+			// auto SS = dynamic_cast<Poco::Net::SecureStreamSocketImpl *>(Socket_.impl());
+			auto SS = dynamic_cast<Poco::Net::SecureStreamSocket*>(Socket_.impl());
 			SS->completeHandshake();
 			PeerAddress_ = SS->peerAddress().host();
 			CId_ = Utils::FormatIPv6(SS->peerAddress().toString());
@@ -147,7 +146,7 @@ namespace OpenWifi {
 			Poco::Net::HTTPServerResponseImpl Response(Session);
 			Poco::Net::HTTPServerRequestImpl Request(Response, Session, Params);
 
-			auto Now = time(nullptr);
+			auto Now = std::time(nullptr);
 			Response.setDate(Now);
 			Response.setVersion(Request.getVersion());
 			Response.setKeepAlive(Params->getKeepAlive() && Request.getKeepAlive() && Session.canKeepAlive());
@@ -158,6 +157,7 @@ namespace OpenWifi {
 			WS_->setReceiveTimeout(TS);
 			WS_->setNoDelay(true);
 			WS_->setKeepAlive(true);
+
 			Reactor_.addEventHandler(*WS_,
 									 Poco::NObserver<WSConnection, Poco::Net::ReadableNotification>(
 										 *this, &WSConnection::OnSocketReadable));
