@@ -25,48 +25,19 @@ jobs:
       DOCKER_REGISTRY_URL: tip-tip-wlan-cloud-ucentral.jfrog.io
       DOCKER_REGISTRY_USERNAME: ucentral
     steps:
-    - uses: actions/checkout@v2
-
-    - name: Build Docker image
-      run: docker build -t wlan-cloud-owgw:${{ github.sha }} .
-
-    - name: Tag Docker image
-      run: |
-        TAGS="${{ github.sha }}"
-
-        if [[ ${GITHUB_REF} == "refs/heads/"* ]]
-        then
-          CURRENT_TAG=$(echo ${GITHUB_REF#refs/heads/} | tr '/' '-')
-          TAGS="$TAGS $CURRENT_TAG"
-        else
-          if [[ ${GITHUB_REF} == "refs/tags/"* ]]
-          then
-            CURRENT_TAG=$(echo ${GITHUB_REF#refs/tags/} | tr '/' '-')
-            TAGS="$TAGS $CURRENT_TAG"
-          else # PR build
-            CURRENT_TAG=$(echo ${GITHUB_HEAD_REF#refs/heads/} | tr '/' '-')
-            TAGS="$TAGS $CURRENT_TAG"
-          fi
-        fi
-
-        echo "Result tags: $TAGS"
-
-        for tag in $TAGS; do
-          docker tag wlan-cloud-owgw:${{ github.sha }} ${{ env.DOCKER_REGISTRY_URL }}/owgw:$tag
-        done
-
-    - name: Log into Docker registry
-      if: startsWith(github.ref, 'refs/tags/') || startsWith(github.ref, 'refs/pull/') || github.ref == 'refs/heads/master'
-      uses: docker/login-action@v1
+    - name: Checkout actions repo
+      uses: actions/checkout@v2
       with:
-        registry: ${{ env.DOCKER_REGISTRY_URL }}
-        username: ${{ env.DOCKER_REGISTRY_USERNAME }}
-        password: ${{ secrets.DOCKER_REGISTRY_PASSWORD }}
+        repository: Telecominfraproject/.github
+        path: github
 
-    - name: Push Docker images
-      if: startsWith(github.ref, 'refs/tags/') || startsWith(github.ref, 'refs/pull/') || github.ref == 'refs/heads/master'
-      run: |
-        docker images | grep ${{ env.DOCKER_REGISTRY_URL }}/owgw | awk -F ' ' '{print $1":"$2}' | xargs -I {} docker push {}
+    - name: Build and push Docker image
+      uses: ./github/composite-actions/docker-image-build
+      with:
+        image_name: owgw
+        registry: tip-tip-wlan-cloud-ucentral.jfrog.io
+        registry_user: ucentral
+        registry_password: ${{ secrets.DOCKER_REGISTRY_PASSWORD }}
 
   trigger-testing:
     if: startsWith(github.ref, 'refs/pull/')
@@ -83,6 +54,7 @@ jobs:
       with:
         repository: Telecominfraproject/.github
         path: github
+        ref: WIFI-6729-speed-up-image-build
 
     - name: Trigger testing of OpenWifi Docker Compose deployment and wait for result
       uses: ./github/composite-actions/trigger-workflow-and-wait
