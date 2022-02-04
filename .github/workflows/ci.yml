@@ -33,7 +33,7 @@ jobs:
         ref: WIFI-6729-speed-up-image-build
 
     - name: Build and push Docker image
-      uses: ./github/composite-actions/docker-image-build@WIFI-6729-speed-up-image-build
+      uses: ./github/composite-actions/docker-image-build
       with:
         image_name: owgw
         registry: tip-tip-wlan-cloud-ucentral.jfrog.io
