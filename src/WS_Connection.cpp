@@ -714,6 +714,7 @@ namespace OpenWifi {
 	}
 
 	bool WSConnection::StartTelemetry() {
+		std::cout << "Start telemetry for " << SerialNumber_ << std::endl;
 		Logger().information(Poco::format("TELEMETRY(%s): Starting.", CId_));
 		Poco::JSON::Object StartMessage;
 		StartMessage.set("jsonrpc", "2.0");
@@ -736,6 +737,7 @@ namespace OpenWifi {
 	}
 
 	bool WSConnection::StopTelemetry() {
+		std::cout << "Stop telemetry for " << SerialNumber_ << std::endl;
 		Logger().information(Poco::format("TELEMETRY(%s): Stopping.", CId_));
 		Poco::JSON::Object StopMessage;
 		StopMessage.set("jsonrpc", "2.0");
