@@ -32,6 +32,7 @@ namespace OpenWifi {
 	bool TelemetryStream::IsValidEndPoint(uint64_t SerialNumber, const std::string & UUID) {
 		std::lock_guard	G(Mutex_);
 
+		_OWDEBUG_
 		auto U = Clients_.find(UUID);
 		if(U == Clients_.end() )
 			return false;
@@ -46,6 +47,7 @@ namespace OpenWifi {
 	bool TelemetryStream::CreateEndpoint(uint64_t SerialNumber, std::string &EndPoint, std::string &UUID) {
 		std::lock_guard	G(Mutex_);
 
+		_OWDEBUG_
 		Poco::URI	Public(MicroService::instance().ConfigGetString("openwifi.system.uri.public"));
 		Poco::URI	U;
 		UUID = MicroService::CreateUUID();
@@ -58,13 +60,16 @@ namespace OpenWifi {
 		U.addQueryParameter("serialNumber", Utils::IntToSerialNumber(SerialNumber));
 		EndPoint = U.toString();
 		auto H = SerialNumbers_.find(SerialNumber);
+		_OWDEBUG_
 		if(H == SerialNumbers_.end()) {
 			std::set<std::string>	UUIDs{UUID};
 			SerialNumbers_[SerialNumber] = UUIDs;
 		} else {
 			H->second.insert(UUID);
 		}
+		_OWDEBUG_
 		Clients_[UUID] = nullptr;
+		_OWDEBUG_
 		return true;
 	}
 
@@ -96,6 +101,7 @@ namespace OpenWifi {
 						auto H2 = Clients_.find(i);
 						if (H2 != Clients_.end() && H2->second != nullptr) {
 							try {
+								_OWDEBUG_
 								H2->second->Send(Msg.Payload);
 							} catch (...) {
 							}
@@ -108,6 +114,7 @@ namespace OpenWifi {
 
 	bool TelemetryStream::RegisterClient(const std::string &UUID, TelemetryClient *Client) {
 		std::lock_guard	G(Mutex_);
+		_OWDEBUG_
 		Clients_[UUID] = Client;
 		return true;
 	}
