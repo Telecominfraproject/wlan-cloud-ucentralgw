@@ -1139,11 +1139,11 @@ namespace OpenWifi {
 		inline auto MaxEverUser() const { return MaxEverUsed_; }
 
 	  private:
-		std::mutex      Mutex_;
-		uint32_t        Read_=0;
-		uint32_t        Write_=0;
-		uint32_t 		Used_=0;
-		uint32_t 		MaxEverUsed_=0;
+		std::recursive_mutex    Mutex_;
+		uint32_t        		Read_=0;
+		uint32_t        		Write_=0;
+		uint32_t 				Used_=0;
+		uint32_t 				MaxEverUsed_=0;
 		std::unique_ptr<std::vector<T>>  Buffer_=std::make_unique<std::vector<T>>();
 	};
 
