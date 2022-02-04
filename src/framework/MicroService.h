@@ -1115,7 +1115,7 @@ namespace OpenWifi {
 			{
 				std::lock_guard M(Mutex_);
 
-				if(isFull()) {
+				if(Used_==Buffer_->capacity()) {
 					Buffer_->reserve( Buffer_->size()+100 );
 				}
 
@@ -1141,7 +1141,7 @@ namespace OpenWifi {
 	  private:
 		std::mutex      Mutex_;
 		uint32_t        Read_=0;
-		uint32_t                        Write_=0;
+		uint32_t        Write_=0;
 		uint32_t 		Used_=0;
 		uint32_t 		MaxEverUsed_=0;
 		std::unique_ptr<std::vector<T>>  Buffer_=std::make_unique<std::vector<T>>();
