@@ -56,7 +56,7 @@ namespace OpenWifi {
 	}
 
 	static std::set<std::string>	BlackListDevices;
-	static std::mutex				BlackListMutex;
+	static std::recursive_mutex		BlackListMutex;
 
 	bool Storage::InitializeBlackListCache() {
 		try {

@@ -19,7 +19,7 @@ namespace OpenWifi {
 	}
 
 	void SerialNumberCache::AddSerialNumber(const std::string &S) {
-		std::lock_guard		G(M_);
+		std::lock_guard		G(Mutex_);
 
 		uint64_t SN = std::stoull(S, nullptr, 16);
 		if(std::find(SNs_.begin(),SNs_.end(),SN) == SNs_.end()) {
@@ -31,7 +31,7 @@ namespace OpenWifi {
 	}
 
 	void SerialNumberCache::DeleteSerialNumber(const std::string &S) {
-		std::lock_guard		G(M_);
+		std::lock_guard		G(Mutex_);
 
 		uint64_t SN = std::stoull(S,nullptr,16);
 		auto It = std::find(SNs_.begin(),SNs_.end(),SN);
@@ -41,7 +41,7 @@ namespace OpenWifi {
 	}
 
 	void SerialNumberCache::FindNumbers(const std::string &S, uint HowMany, std::vector<uint64_t> &A) {
-		std::lock_guard		G(M_);
+		std::lock_guard		G(Mutex_);
 
 		if(S.length()==12) {
 			uint64_t SN = std::stoull(S,nullptr,16);

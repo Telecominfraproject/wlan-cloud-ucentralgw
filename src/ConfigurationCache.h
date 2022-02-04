@@ -32,7 +32,7 @@ namespace OpenWifi {
 		}
 
 	  private:
-		std::mutex					Mutex_;
+		std::recursive_mutex					Mutex_;
 		std::map<uint64_t,uint64_t>	Cache_;
 	};
 

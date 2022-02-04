@@ -2380,7 +2380,7 @@ namespace OpenWifi {
 		}
 
     private:
-        std::mutex          	Mutex_;
+        std::recursive_mutex  	Mutex_;
         Poco::Thread        	Worker_;
         std::atomic_bool    	Running_=false;
 		Poco::NotificationQueue	Queue_;
@@ -2406,7 +2406,7 @@ namespace OpenWifi {
         }
 
 	  private:
-        std::mutex          	Mutex_;
+		std::recursive_mutex  	Mutex_;
         Poco::Thread        	Worker_;
         std::atomic_bool    	Running_=false;
     };
@@ -2487,7 +2487,7 @@ namespace OpenWifi {
 		}
 
 	  private:
-		std::mutex          	Mutex_;
+		std::recursive_mutex  	Mutex_;
 		Types::NotifyTable      Notifiers_;
 		Poco::Thread        	Worker_;
 		std::atomic_bool    	Running_=false;
@@ -3073,7 +3073,7 @@ namespace OpenWifi {
 		std::string                 UIURI_;
 		std::string 				Version_{ OW_VERSION::VERSION + "("+ OW_VERSION::BUILD + ")" + " - " + OW_VERSION::HASH };
 		BusEventManager				BusEventManager_;
-		std::mutex 					InfraMutex_;
+		std::recursive_mutex		InfraMutex_;
 		std::default_random_engine  RandomEngine_;
         Poco::Util::PropertyFileConfiguration   * PropConfigurationFile_ = nullptr;
 		std::string DAEMON_PROPERTIES_FILENAME;

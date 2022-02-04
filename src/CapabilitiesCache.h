@@ -50,7 +50,7 @@ namespace OpenWifi {
 		}
 
 	  private:
-		std::mutex			Mutex_;
+		std::recursive_mutex			Mutex_;
 		std::atomic_bool 	Loaded_=false;
 		std::map<std::string,std::string>	Caps_;
 		std::string 		CacheFileName_{ MicroService::instance().DataDir()+CapabilitiesCacheFileName };

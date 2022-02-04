@@ -205,8 +205,6 @@ namespace OpenWifi {
 	}
 
 	bool Storage::CreateDevice(GWObjects::Device &DeviceDetails) {
-		// std::lock_guard<std::mutex> guard(Mutex_);
-
 		std::string SerialNumber;
 		try {
 
@@ -457,8 +455,6 @@ namespace OpenWifi {
 	}
 
 	bool Storage::DeleteDevice(std::string &SerialNumber) {
-		// std::lock_guard<std::mutex> guard(Mutex_);
-
 		try {
 			std::vector<std::string>	DBList{"Devices", "Statistics", "CommandList", "HealthChecks", "LifetimeStats", "Capabilities", "DeviceLogs"};
 
@@ -495,8 +491,6 @@ namespace OpenWifi {
 	}
 
 	bool Storage::GetDevice(std::string &SerialNumber, GWObjects::Device &DeviceDetails) {
-		// std::lock_guard<std::mutex> guard(Mutex_);
-
 		try {
 			Poco::Data::Session     Sess = Pool_->get();
 			Poco::Data::Statement   Select(Sess);
@@ -618,7 +612,6 @@ namespace OpenWifi {
 	}
 
 	bool Storage::ExistingConfiguration(std::string &SerialNumber, uint64_t CurrentConfig, std::string &NewConfig, uint64_t & NewUUID) {
-		// std::lock_guard<std::mutex> guard(Mutex_);
 		std::string SS;
 		try {
 			Poco::Data::Session     Sess = Pool_->get();

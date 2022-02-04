@@ -24,14 +24,13 @@ namespace OpenWifi {
 			return NumberExists(Utils::SerialNumberToInt(SerialNumber));
 		}
 		inline bool NumberExists(uint64_t SerialNumber) {
-			std::lock_guard		G(M_);
+			std::lock_guard		G(Mutex_);
 			return std::find(SNs_.begin(),SNs_.end(),SerialNumber)!=SNs_.end();
 		}
 
 	  private:
 		uint64_t 					LastUpdate_ = 0 ;
 		std::vector<uint64_t>		SNs_;
-		std::mutex					M_;
 
 		SerialNumberCache() noexcept:
 			SubSystemServer("SerialNumberCache", "SNCACHE-SVR", "serialcache")
