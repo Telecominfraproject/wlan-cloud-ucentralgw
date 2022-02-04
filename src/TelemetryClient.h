@@ -19,7 +19,7 @@ namespace OpenWifi {
 	  public:
 		TelemetryClient(
 			std::string UUID,
-			std::string SerialNumber,
+			uint64_t SerialNumber,
 			Poco::SharedPtr<Poco::Net::WebSocket> WSock,
 			Poco::Net::SocketReactor& Reactor,
 			Poco::Logger &Logger);
@@ -35,7 +35,7 @@ namespace OpenWifi {
 	  private:
 		std::recursive_mutex        			Mutex_;
 		std::string 							UUID_;
-		std::string 							SerialNumber_;
+		uint64_t 								SerialNumber_;
 		Poco::Net::SocketReactor				&Reactor_;
 		Poco::Logger               				&Logger_;
 		Poco::Net::StreamSocket     			Socket_;

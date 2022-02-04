@@ -61,6 +61,7 @@ namespace OpenWifi {
 		Poco::Net::SocketReactor			& Reactor_;
 		std::unique_ptr<Poco::Net::WebSocket> WS_;
 		std::string                         SerialNumber_;
+		uint64_t 							SerialNumberInt_=0;
 		std::string 						Compatible_;
 		std::shared_ptr<DeviceRegistry::ConnectionEntry> 	Conn_;
 		bool                                Registered_ = false ;

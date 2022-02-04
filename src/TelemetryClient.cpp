@@ -15,11 +15,11 @@ namespace OpenWifi {
 
 	TelemetryClient::TelemetryClient(
 		std::string UUID,
-		std::string SerialNumber,
+		uint64_t SerialNumber,
 		Poco::SharedPtr<Poco::Net::WebSocket> WSock,
 		Poco::Net::SocketReactor& Reactor,
 		Poco::Logger &Logger):
-								UUID_(std::move(UUID)), SerialNumber_(std::move(SerialNumber)), WS_(std::move(WSock)),Reactor_(Reactor), Logger_(Logger) {
+				UUID_(std::move(UUID)), SerialNumber_(SerialNumber), WS_(std::move(WSock)),Reactor_(Reactor), Logger_(Logger) {
 
 		try {
 			std::thread T([this]() { this->CompleteStartup(); });

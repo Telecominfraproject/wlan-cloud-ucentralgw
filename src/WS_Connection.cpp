@@ -73,6 +73,8 @@ namespace OpenWifi {
 			}
 
 			SerialNumber_ = CN_;
+			SerialNumberInt_ = Utils::SerialNumberToInt(SerialNumber_);
+
 			if (!CN_.empty() && StorageService()->IsBlackListed(SerialNumber_)) {
 				Logger().debug(Poco::format("CONNECTION(%s): Device %s is black listed. Disconnecting.",
 											CId_, CN_));
@@ -151,7 +153,7 @@ namespace OpenWifi {
 		//		CompleteStartup();
 	}
 
-	static void NotifyKafkaDisconnect(std::string SerialNumber) {
+	static void NotifyKafkaDisconnect(const std::string & SerialNumber) {
 		try {
 			Poco::JSON::Object Disconnect;
 			Poco::JSON::Object Details;
@@ -168,7 +170,7 @@ namespace OpenWifi {
 
 	WSConnection::~WSConnection() {
 		if (ConnectionId_)
-			DeviceRegistry()->UnRegister(SerialNumber_, ConnectionId_);
+			DeviceRegistry()->UnRegister(SerialNumberInt_, ConnectionId_);
 		if (Registered_ && WS_) {
 			Reactor_.removeEventHandler(*WS_,
 										Poco::NObserver<WSConnection, Poco::Net::ReadableNotification>(
@@ -199,7 +201,7 @@ namespace OpenWifi {
 		if (UUID == 0)
 			return false;
 
-		uint64_t GoodConfig = ConfigurationCache().CurrentConfig(SerialNumber_);
+		uint64_t GoodConfig = ConfigurationCache().CurrentConfig(SerialNumberInt_);
 		if (GoodConfig && (GoodConfig == UUID || GoodConfig == Conn_->Conn_.PendingUUID))
 			return false;
 
@@ -208,7 +210,7 @@ namespace OpenWifi {
 
 			//	This is the case where the cache is empty after a restart. So GoodConfig will 0. If the device already 	has the right UUID, we just return.
 			if (D.UUID == UUID) {
-				ConfigurationCache().Add(SerialNumber_, UUID);
+				ConfigurationCache().Add(SerialNumberInt_, UUID);
 				return false;
 			}
 
@@ -265,7 +267,6 @@ namespace OpenWifi {
 		CommandManager()->PostCommandResult(SerialNumber_, Doc);
 	}
 
-	// #define 	__DBGLOG__ Logger().debug(Poco::format("-->%u", (uint32_t) __LINE__));
 	void WSConnection::ProcessJSONRPCEvent(Poco::JSON::Object::Ptr &Doc) {
 
 		auto Method = Doc->get(uCentralProtocol::METHOD).toString();
@@ -342,9 +343,10 @@ namespace OpenWifi {
 				auto Firmware = ParamsObj->get(uCentralProtocol::FIRMWARE).toString();
 				auto Capabilities = ParamsObj->get(uCentralProtocol::CAPABILITIES).toString();
 
-				Conn_ = DeviceRegistry()->Register(Serial, this, ConnectionId_);
 				SerialNumber_ = Serial;
-				Conn_->Conn_.SerialNumber = Serial;
+				SerialNumberInt_ = Utils::SerialNumberToInt(SerialNumber_);
+				Conn_ = DeviceRegistry()->Register(SerialNumberInt_, this, ConnectionId_);
+				// Conn_->Conn_.SerialNumber = Serial;
 				Conn_->Conn_.UUID = UUID;
 				Conn_->Conn_.Firmware = Firmware;
 				Conn_->Conn_.PendingUUID = 0;
@@ -368,7 +370,7 @@ namespace OpenWifi {
 				}
 				Conn_->Conn_.VerifiedCertificate = CertValidation_;
 
-				auto DeviceExists = SerialNumberCache()->NumberExists(SerialNumber_);
+				auto DeviceExists = SerialNumberCache()->NumberExists(SerialNumberInt_);
 				if (Daemon()->AutoProvisioning() && !DeviceExists) {
 					StorageService()->CreateDefaultDevice(SerialNumber_, Capabilities, Firmware,
 														  Compatible_, PeerAddress_);
@@ -667,19 +669,16 @@ namespace OpenWifi {
 				Errors_++;
 				return;
 			}
-			// std::cout << "Telemetry received" << std::endl;
 			if (TelemetryReporting_) {
 				if (ParamsObj->has("data")) {
-					// std::cout << "Telemetry received has data" << std::endl;
 					auto Payload = ParamsObj->get("data").extract<Poco::JSON::Object::Ptr>();
 					Payload->set("timestamp", std::time(nullptr));
 					std::ostringstream SS;
 					Payload->stringify(SS);
 					if (TelemetryWebSocketRefCount_) {
-						// std::cout << "Updating websocket..." << std::endl;
 						TelemetryWebSocketPackets_++;
 						Conn_->Conn_.websocketPackets = TelemetryWebSocketPackets_;
-						TelemetryStream()->UpdateEndPoint(SerialNumber_, SS.str());
+						TelemetryStream()->UpdateEndPoint(SerialNumberInt_, SS.str());
 					}
 					if (TelemetryKafkaRefCount_ && KafkaManager()->Enabled()) {
 						TelemetryKafkaPackets_++;
@@ -690,7 +689,6 @@ namespace OpenWifi {
 				} else {
 					std::ostringstream SS;
 					ParamsObj->stringify(SS);
-					// std::cout << "Bad telemetry packet: " << SS.str() << std::endl;
 				}
 			}
 		} break;
@@ -706,7 +704,6 @@ namespace OpenWifi {
 	}
 
 	bool WSConnection::StartTelemetry() {
-		// std::cout << "Starting telemetry for " << SerialNumber_ << std::endl;
 		Logger().information(Poco::format("TELEMETRY(%s): Starting.", CId_));
 		Poco::JSON::Object StartMessage;
 		StartMessage.set("jsonrpc", "2.0");
@@ -725,12 +722,10 @@ namespace OpenWifi {
 		std::ostringstream OS;
 		Stringify.condense(StartMessage, OS);
 		Send(OS.str());
-		// std::cout << "Starting: " << OS.str() << std::endl;
 		return true;
 	}
 
 	bool WSConnection::StopTelemetry() {
-		// std::cout << "Stopping telemetry for " << SerialNumber_ << std::endl;
 		Logger().information(Poco::format("TELEMETRY(%s): Stopping.", CId_));
 		Poco::JSON::Object StopMessage;
 		StopMessage.set("jsonrpc", "2.0");

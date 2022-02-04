@@ -181,7 +181,6 @@ namespace OpenWifi::GWObjects {
 	}
 
 	void ConnectionState::to_json(Poco::JSON::Object &Obj) const {
-		field_to_json(Obj,"serialNumber", SerialNumber);
 		field_to_json(Obj,"ipAddress", Address);
 		field_to_json(Obj,"txBytes", TX);
 		field_to_json(Obj,"rxBytes", RX);

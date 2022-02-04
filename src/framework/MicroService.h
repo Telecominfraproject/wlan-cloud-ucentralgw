@@ -830,20 +830,7 @@ namespace OpenWifi::Utils {
     }
 
     [[nodiscard]] inline uint64_t SerialNumberToInt(const std::string & S) {
-        uint64_t R=0;
-
-        for(const auto &i:S)
-            if(i>='0' && i<='9') {
-                R <<= 4;
-                R += (i-'0');
-            } else if(i>='a' && i<='f') {
-                R <<= 4;
-                R += (i-'a') + 10 ;
-            } else if(i>='A' && i<='F') {
-                R <<= 4;
-                R += (i-'A') + 10 ;
-            }
-        return R;
+		return std::stoull(S,nullptr,16);
     }
 
     [[nodiscard]] inline std::string IntToSerialNumber(uint64_t S) {
@@ -1099,8 +1086,8 @@ namespace OpenWifi {
 
 	template <typename T> class FIFO {
 	  public:
-		explicit FIFO(uint32_t Size) : Size_(Size) {
-			Buffer_->reserve(Size_);
+		explicit FIFO(uint32_t Size) {
+			Buffer_->reserve(Size);
 		}
 
 		mutable Poco::BasicEvent<bool> Writable_;
@@ -1114,9 +1101,10 @@ namespace OpenWifi {
 				}
 
 				t = (*Buffer_)[Read_++];
-				if (Read_ == Size_) {
+				if (Read_ == Buffer_->capacity()) {
 					Read_ = 0;
 				}
+				Used_--;
 			}
 			bool flag = true;
 			Writable_.notify(this, flag);
@@ -1126,21 +1114,36 @@ namespace OpenWifi {
 		inline bool Write(const T &t) {
 			{
 				std::lock_guard M(Mutex_);
+
+				if(isFull()) {
+					Buffer_->reserve( Buffer_->size()+100 );
+				}
+
 				(*Buffer_)[Write_++] = t;
-				if (Write_ == Size_) {
+				if (Write_ == Buffer_->capacity()) {
 					Write_ = 0;
 				}
+				Used_++;
+				MaxEverUsed_ = std::max(Used_,MaxEverUsed_);
 			}
 			bool flag = true;
 			Readable_.notify(this, flag);
 			return false;
 		}
 
+		inline bool isFull() {
+			std::lock_guard M(Mutex_);
+			return Used_==Buffer_->capacity();
+		}
+
+		inline auto MaxEverUser() const { return MaxEverUsed_; }
+
 	  private:
 		std::mutex      Mutex_;
-		uint32_t        Size_;
 		uint32_t        Read_=0;
 		uint32_t                        Write_=0;
+		uint32_t 		Used_=0;
+		uint32_t 		MaxEverUsed_=0;
 		std::unique_ptr<std::vector<T>>  Buffer_=std::make_unique<std::vector<T>>();
 	};
 

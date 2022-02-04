@@ -17,10 +17,16 @@ namespace OpenWifi {
 
 		int Start() override;
 		void Stop() override;
-		void AddSerialNumber(const std::string &S);
-		void DeleteSerialNumber(const std::string &S);
-		void FindNumbers(const std::string &S, uint HowMany, std::vector<uint64_t> &A);
-		bool NumberExists(const std::string &S);
+		void AddSerialNumber(const std::string &SerialNumber);
+		void DeleteSerialNumber(const std::string &SerialNumber);
+		void FindNumbers(const std::string &SerialNumber, uint HowMany, std::vector<uint64_t> &A);
+		inline bool NumberExists(const std::string &SerialNumber) {
+			return NumberExists(Utils::SerialNumberToInt(SerialNumber));
+		}
+		inline bool NumberExists(uint64_t SerialNumber) {
+			std::lock_guard		G(M_);
+			return std::find(SNs_.begin(),SNs_.end(),SerialNumber)!=SNs_.end();
+		}
 
 	  private:
 		uint64_t 					LastUpdate_ = 0 ;

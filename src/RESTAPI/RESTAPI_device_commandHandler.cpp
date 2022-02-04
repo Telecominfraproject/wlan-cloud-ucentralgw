@@ -850,7 +850,7 @@ void RESTAPI_device_commandHandler::MakeRequest() {
 						DeviceConnection->WSConn_->SetWebSocketTelemetryReporting(Interval,
 																				  Lifetime);
 						std::string EndPoint;
-						if (TelemetryStream()->CreateEndpoint(SerialNumber_, EndPoint, NewUUID)) {
+						if (TelemetryStream()->CreateEndpoint(Utils::SerialNumberToInt(SerialNumber_), EndPoint, NewUUID)) {
 							Answer.set("action", "WebSocket telemetry started.");
 							Answer.set("serialNumber", SerialNumber_);
 							Answer.set("uuid", NewUUID);

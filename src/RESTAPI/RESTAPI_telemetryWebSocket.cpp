@@ -15,15 +15,18 @@ void RESTAPI_telemetryWebSocket::DoGet() {
 			Poco::icompare((*Request)["Upgrade"], "websocket") == 0) {
 			try {
 				Poco::URI U(Request->getURI());
-				std::string UUID, SerialNumber;
+				std::string UUID, SNum;
 				auto Parameters = U.getQueryParameters();
 				for (const auto &i : Parameters) {
 					if (i.first == "serialNumber") {
-						SerialNumber = i.second;
+						SNum = i.second;
 					} else if(i.first=="uuid") {
 						UUID = i.second;
 					}
 				}
+
+				auto SerialNumber = Utils::SerialNumberToInt(SNum);
+
 				if(!TelemetryStream()->IsValidEndPoint(SerialNumber,UUID)) {
 					Logger_.warning(Poco::format("Illegal telemetry request for S: %s, UUID: %s", SerialNumber, UUID));
 					return;

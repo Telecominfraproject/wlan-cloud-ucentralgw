@@ -7,6 +7,7 @@
 #include <map>
 #include <string>
 #include <mutex>
+#include "framework/MicroService.h"
 
 namespace OpenWifi {
 	class ConfigurationCache {
@@ -17,7 +18,7 @@ namespace OpenWifi {
 			return instance;
 		}
 
-		inline uint64_t CurrentConfig(const std::string &SerialNumber) {
+		inline uint64_t CurrentConfig(uint64_t SerialNumber) {
 			std::lock_guard G(Mutex_);
 			const auto Hint = Cache_.find(SerialNumber);
 			if(Hint==end(Cache_))
@@ -25,16 +26,25 @@ namespace OpenWifi {
 			return Hint->second;
 		}
 
-		inline void Add(const std::string &SerialNumber, uint64_t Id) {
+		inline void Add(uint64_t SerialNumber, uint64_t Id) {
 			std::lock_guard	G(Mutex_);
 			Cache_[SerialNumber]=Id;
 		}
 
 	  private:
-		std::mutex						Mutex_;
-		std::map<std::string,uint64_t>	Cache_;
+		std::mutex					Mutex_;
+		std::map<uint64_t,uint64_t>	Cache_;
 	};
 
-	inline uint64_t GetCurrentConfigurationID(const std::string &S) { return ConfigurationCache::instance().CurrentConfig(S); }
-	inline void SetCurrentConfigurationID(const std::string &S, uint64_t ID) { ConfigurationCache::instance().Add(S,ID); }
+	inline uint64_t GetCurrentConfigurationID(uint64_t SerialNumber) {
+		return ConfigurationCache::instance().CurrentConfig(SerialNumber);
+	}
+
+	inline void SetCurrentConfigurationID(const std::string & SerialNumber, uint64_t ID) {
+		return ConfigurationCache::instance().Add(Utils::SerialNumberToInt(SerialNumber), ID);
+	}
+
+	inline void SetCurrentConfigurationID(uint64_t SerialNumber, uint64_t ID) {
+		return ConfigurationCache::instance().Add(SerialNumber, ID);
+	}
 }

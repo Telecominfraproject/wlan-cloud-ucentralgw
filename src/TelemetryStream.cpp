@@ -29,7 +29,7 @@ namespace OpenWifi {
 		}
 	}
 
-	bool TelemetryStream::IsValidEndPoint(const std::string &SerialNumber, const std::string & UUID) {
+	bool TelemetryStream::IsValidEndPoint(uint64_t SerialNumber, const std::string & UUID) {
 		std::lock_guard	G(Mutex_);
 
 		auto U = Clients_.find(UUID);
@@ -43,7 +43,7 @@ namespace OpenWifi {
 		return (N->second.find(UUID) != N->second.end());
 	}
 
-	bool TelemetryStream::CreateEndpoint(const std::string &SerialNumber, std::string &EndPoint, std::string &UUID) {
+	bool TelemetryStream::CreateEndpoint(uint64_t SerialNumber, std::string &EndPoint, std::string &UUID) {
 		std::lock_guard	G(Mutex_);
 
 		Poco::URI	Public(MicroService::instance().ConfigGetString("openwifi.system.uri.public"));
@@ -55,7 +55,7 @@ namespace OpenWifi {
 		auto RESTAPI_Path = std::string(*(RESTAPI_telemetryWebSocket::PathName().begin()));
 		U.setPath(RESTAPI_Path);
 		U.addQueryParameter("uuid", UUID);
-		U.addQueryParameter("serialNumber", SerialNumber);
+		U.addQueryParameter("serialNumber", Utils::IntToSerialNumber(SerialNumber));
 		EndPoint = U.toString();
 		auto H = SerialNumbers_.find(SerialNumber);
 		if(H == SerialNumbers_.end()) {
@@ -68,7 +68,7 @@ namespace OpenWifi {
 		return true;
 	}
 
-	void TelemetryStream::UpdateEndPoint(const std::string &SerialNumber, const std::string &PayLoad) {
+	void TelemetryStream::UpdateEndPoint(uint64_t SerialNumber, const std::string &PayLoad) {
 		{
 			std::lock_guard M(Mutex_);
 			if (SerialNumbers_.find(SerialNumber) == SerialNumbers_.end()) {
