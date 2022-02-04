@@ -676,24 +676,23 @@ namespace OpenWifi {
 					std::ostringstream SS;
 					Payload->stringify(SS);
 					if (TelemetryWebSocketRefCount_) {
-						std::cout << "Updating websocket telemetry" << std::endl;
+						std::cout << SerialNumber_ << ": Updating WebSocket telemetry" << std::endl;
 						TelemetryWebSocketPackets_++;
 						Conn_->Conn_.websocketPackets = TelemetryWebSocketPackets_;
 						TelemetryStream()->UpdateEndPoint(SerialNumberInt_, SS.str());
 					}
 					if (TelemetryKafkaRefCount_ && KafkaManager()->Enabled()) {
-						std::cout << "Updating kafka telemetry" << std::endl;
+						std::cout << SerialNumber_ << ": Updating Kafka telemetry" << std::endl;
 						TelemetryKafkaPackets_++;
 						Conn_->Conn_.kafkaPackets = TelemetryKafkaPackets_;
 						KafkaManager()->PostMessage(KafkaTopics::DEVICE_TELEMETRY, SerialNumber_,
 													SS.str());
 					}
 				} else {
-					std::ostringstream SS;
-					ParamsObj->stringify(SS);
+					std::cout << SerialNumber_ << ": Invalid telemetry" << std::endl;
 				}
 			} else {
-				std::cout << "Ignoring telemetry" << std::endl;
+				std::cout << SerialNumber_ << ":Ignoring telemetry" << std::endl;
 			}
 		} break;
 
