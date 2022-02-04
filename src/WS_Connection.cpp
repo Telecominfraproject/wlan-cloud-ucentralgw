@@ -663,43 +663,37 @@ namespace OpenWifi {
 		} break;
 
 		case uCentralProtocol::ET_TELEMETRY: {
-			_OWDEBUG_
 			if (!Connected_) {
 				Logger().debug(Poco::format(
 					"INVALID-PROTOCOL(%s): Device '%s' is not following protocol", CId_, CN_));
 				Errors_++;
 				return;
 			}
-			_OWDEBUG_
 			if (TelemetryReporting_) {
-				_OWDEBUG_
 				if (ParamsObj->has("data")) {
-					_OWDEBUG_
 					auto Payload = ParamsObj->get("data").extract<Poco::JSON::Object::Ptr>();
 					Payload->set("timestamp", std::time(nullptr));
 					std::ostringstream SS;
 					Payload->stringify(SS);
-					_OWDEBUG_
 					if (TelemetryWebSocketRefCount_) {
-						_OWDEBUG_
+						std::cout << "Updating websocket telemetry" << std::endl;
 						TelemetryWebSocketPackets_++;
 						Conn_->Conn_.websocketPackets = TelemetryWebSocketPackets_;
 						TelemetryStream()->UpdateEndPoint(SerialNumberInt_, SS.str());
-						_OWDEBUG_
 					}
 					if (TelemetryKafkaRefCount_ && KafkaManager()->Enabled()) {
-						_OWDEBUG_
+						std::cout << "Updating kafka telemetry" << std::endl;
 						TelemetryKafkaPackets_++;
 						Conn_->Conn_.kafkaPackets = TelemetryKafkaPackets_;
 						KafkaManager()->PostMessage(KafkaTopics::DEVICE_TELEMETRY, SerialNumber_,
 													SS.str());
-						_OWDEBUG_
 					}
 				} else {
-					_OWDEBUG_
 					std::ostringstream SS;
 					ParamsObj->stringify(SS);
 				}
+			} else {
+				std::cout << "Ignoring telemetry" << std::endl;
 			}
 		} break;
 
