@@ -40,11 +40,6 @@ jobs:
         registry_user: ucentral
         registry_password: ${{ secrets.DOCKER_REGISTRY_PASSWORD }}
 
-    - name: Show directory contents
-      shell: bash
-      run: |
-        ls -l /home/runner/work/wlan-cloud-ucentralgw/wlan-cloud-ucentralgw/github/composite-actions/docker-image-build
-
   trigger-testing:
     if: startsWith(github.ref, 'refs/pull/')
     runs-on: ubuntu-latest
