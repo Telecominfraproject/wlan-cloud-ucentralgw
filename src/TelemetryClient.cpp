@@ -20,7 +20,7 @@ namespace OpenWifi {
 		Poco::Net::SocketReactor& Reactor,
 		Poco::Logger &Logger):
 				UUID_(std::move(UUID)), SerialNumber_(SerialNumber), WS_(std::move(WSock)),Reactor_(Reactor), Logger_(Logger) {
-
+		std::cout << "Telemetry client creation" << std::endl;
 		try {
 			std::thread T([this]() { this->CompleteStartup(); });
 			T.detach();

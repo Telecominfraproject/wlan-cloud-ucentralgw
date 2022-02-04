@@ -71,17 +71,22 @@ namespace OpenWifi {
 	void TelemetryStream::UpdateEndPoint(uint64_t SerialNumber, const std::string &PayLoad) {
 		{
 			std::lock_guard M(Mutex_);
+			_OWDEBUG_
 			if (SerialNumbers_.find(SerialNumber) == SerialNumbers_.end()) {
 				return;
 			}
 		}
+		_OWDEBUG_
 		Messages_->Write(QueueUpdate{.SerialNumber=SerialNumber, .Payload = PayLoad});
 	}
 
 	void TelemetryStream::onMessage(bool &b){
 		if(b) {
 			QueueUpdate Msg;
+
+			_OWDEBUG_
 			auto S = Messages_->Read(Msg);
+			_OWDEBUG_
 
 			if(S) {
 				std::lock_guard	M(Mutex_);
