@@ -352,7 +352,6 @@ namespace OpenWifi {
 				_OWDEBUG_
 				Conn_ = DeviceRegistry()->Register(SerialNumberInt_, this, ConnectionId_);
 				_OWDEBUG_
-				// Conn_->Conn_.SerialNumber = Serial;
 				Conn_->Conn_.UUID = UUID;
 				Conn_->Conn_.Firmware = Firmware;
 				Conn_->Conn_.PendingUUID = 0;
@@ -363,8 +362,8 @@ namespace OpenWifi {
 				_OWDEBUG_
 				std::cout << "SN:" << SerialNumber_ << " CN:" << CN_ << std::endl;
 				if ((!CN_.empty() && Utils::SerialNumberMatch(CN_, SerialNumber_)) ||
-					_OWDEBUG_
 					WebSocketServer()->IsSimSerialNumber(CN_)) {
+					std::cout << SerialNumber_ << std::endl;
 					CertValidation_ = GWObjects::VERIFIED;
 					Logger().information(
 						Poco::format("CONNECT(%s): Fully validated and authenticated device..", CId_));
