@@ -343,9 +343,15 @@ namespace OpenWifi {
 				auto Firmware = ParamsObj->get(uCentralProtocol::FIRMWARE).toString();
 				auto Capabilities = ParamsObj->get(uCentralProtocol::CAPABILITIES).toString();
 
+				std::cout << SerialNumber_ << std::endl;
 				SerialNumber_ = Serial;
+				std::cout << SerialNumber_ << std::endl;
+				_OWDEBUG_
 				SerialNumberInt_ = Utils::SerialNumberToInt(SerialNumber_);
+				std::cout << SerialNumber_ << std::endl;
+				_OWDEBUG_
 				Conn_ = DeviceRegistry()->Register(SerialNumberInt_, this, ConnectionId_);
+				_OWDEBUG_
 				// Conn_->Conn_.SerialNumber = Serial;
 				Conn_->Conn_.UUID = UUID;
 				Conn_->Conn_.Firmware = Firmware;
@@ -354,12 +360,16 @@ namespace OpenWifi {
 				Conn_->Conn_.Address = Utils::FormatIPv6(WS_->peerAddress().toString());
 				CId_ = SerialNumber_ + "@" + CId_;
 				//	We need to verify the certificate if we have one
+				_OWDEBUG_
+				std::cout << "SN:" << SerialNumber_ << " CN:" << CN_ << std::endl;
 				if ((!CN_.empty() && Utils::SerialNumberMatch(CN_, SerialNumber_)) ||
+					_OWDEBUG_
 					WebSocketServer()->IsSimSerialNumber(CN_)) {
 					CertValidation_ = GWObjects::VERIFIED;
 					Logger().information(
 						Poco::format("CONNECT(%s): Fully validated and authenticated device..", CId_));
 				} else {
+					_OWDEBUG_
 					if (CN_.empty())
 						Logger().information(
 							Poco::format("CONNECT(%s): Not authenticated or validated.", CId_));
@@ -368,12 +378,17 @@ namespace OpenWifi {
 							"CONNECT(%s): Authenticated but not validated. Serial='%s' CN='%s'", CId_,
 							Serial, CN_));
 				}
+				_OWDEBUG_
 				Conn_->Conn_.VerifiedCertificate = CertValidation_;
+				_OWDEBUG_
 
 				auto DeviceExists = SerialNumberCache()->NumberExists(SerialNumberInt_);
+				_OWDEBUG_
 				if (Daemon()->AutoProvisioning() && !DeviceExists) {
+					_OWDEBUG_
 					StorageService()->CreateDefaultDevice(SerialNumber_, Capabilities, Firmware,
 														  Compatible_, PeerAddress_);
+					_OWDEBUG_
 					Conn_->Conn_.Compatible = Compatible_;
 				} else if (DeviceExists) {
 					StorageService()->UpdateDeviceCapabilities(SerialNumber_, Capabilities,
