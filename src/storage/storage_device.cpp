@@ -234,7 +234,7 @@ namespace OpenWifi {
 										DB_DeviceSelectFields + " ) " +
 										DB_DeviceInsertValues };
 
-					SetCurrentConfigurationID(SerialNumber, DeviceDetails.UUID);
+					SetCurrentConfigurationID(DeviceDetails.SerialNumber, DeviceDetails.UUID);
 					DeviceRecordTuple R;
 					ConvertDeviceRecord(DeviceDetails, R);
 					Insert  << ConvertParams(St2),
