@@ -20,10 +20,6 @@ namespace OpenWifi {
 		void AddSerialNumber(const std::string &SerialNumber);
 		void DeleteSerialNumber(const std::string &SerialNumber);
 		void FindNumbers(const std::string &SerialNumber, uint HowMany, std::vector<uint64_t> &A);
-/*		inline bool NumberExists(const std::string &SerialNumber) {
-			return NumberExists(Utils::SerialNumberToInt(SerialNumber));
-		}
-*/
 		inline bool NumberExists(uint64_t SerialNumber) {
 			std::lock_guard		G(Mutex_);
 			return std::find(SNs_.begin(),SNs_.end(),SerialNumber)!=SNs_.end();
