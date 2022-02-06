@@ -605,7 +605,7 @@ caplist() {
 }
 
 iptocountry() {
-	curl    ${FLAGS} -X GET "https://${OWGW}/api/v1/iptocountry/$1" \
+	curl    ${FLAGS} -X GET "https://${OWGW}/api/v1/iptocountry?iplist=$1" \
 			-H "Content-Type: application/json" \
 			-H "Authorization: Bearer ${token}" \
 			-H "accept: application/json" > ${result_file}
