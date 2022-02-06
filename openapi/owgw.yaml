@@ -2421,6 +2421,39 @@ paths:
         404:
           $ref: '#/components/responses/NotFound'
 
+  /iptocountry:
+    get:
+      tags:
+        - Utility
+      summary: Get the country code for an IP address
+      operationId: getIpToCountry
+      parameters:
+        - in: query
+          name: iplist
+          schema:
+            type: string
+            example:
+              10.2.2.2,10.3.4.3
+          required: true
+      responses:
+        200:
+          description: List of country codes.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  enabled:
+                    type: boolean
+                  countryCodes:
+                    type: array
+                    items:
+                      type: string
+        403:
+          $ref: '#/components/responses/Unauthorized'
+        404:
+          $ref: '#/components/responses/NotFound'
+
   #########################################################################################
   ##
   ## These are endpoints that all services in the uCentral stack must provide

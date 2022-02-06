@@ -117,7 +117,7 @@ add_executable( owgw
         src/TelemetryStream.cpp src/TelemetryStream.h
         src/framework/ConfigurationValidator.cpp src/framework/ConfigurationValidator.h
         src/ConfigurationCache.h
-        src/CapabilitiesCache.h src/FindCountry.h src/rttys/RTTYS_server.cpp src/rttys/RTTYS_server.h src/rttys/RTTYS_device.cpp src/rttys/RTTYS_device.h src/rttys/RTTYS_ClientConnection.cpp src/rttys/RTTYS_ClientConnection.h src/rttys/RTTYS_WebServer.cpp src/rttys/RTTYS_WebServer.h src/RESTAPI/RESTAPI_device_helper.h src/SDKcalls.cpp src/SDKcalls.h src/StateUtils.cpp src/StateUtils.h src/WS_ReactorPool.h src/WS_Connection.h src/WS_Connection.cpp src/TelemetryClient.h src/TelemetryClient.cpp)
+        src/CapabilitiesCache.h src/FindCountry.h src/rttys/RTTYS_server.cpp src/rttys/RTTYS_server.h src/rttys/RTTYS_device.cpp src/rttys/RTTYS_device.h src/rttys/RTTYS_ClientConnection.cpp src/rttys/RTTYS_ClientConnection.h src/rttys/RTTYS_WebServer.cpp src/rttys/RTTYS_WebServer.h src/RESTAPI/RESTAPI_device_helper.h src/SDKcalls.cpp src/SDKcalls.h src/StateUtils.cpp src/StateUtils.h src/WS_ReactorPool.h src/WS_Connection.h src/WS_Connection.cpp src/TelemetryClient.h src/TelemetryClient.cpp src/RESTAPI/RESTAPI_iptocountry_handler.cpp src/RESTAPI/RESTAPI_iptocountry_handler.h)
 
 if(NOT SMALL_BUILD)
 

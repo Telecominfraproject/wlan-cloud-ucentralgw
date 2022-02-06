@@ -20,6 +20,7 @@
 #include "RESTAPI/RESTAPI_capabilities_handler.h"
 #include "RESTAPI/RESTAPI_telemetryWebSocket.h"
 #include "RESTAPI/RESTAPI_webSocketServer.h"
+#include "RESTAPI/RESTAPI_iptocountry_handler.h"
 
 namespace OpenWifi {
 
@@ -42,6 +43,7 @@ namespace OpenWifi {
 				RESTAPI_webSocketServer,
 				RESTAPI_blacklist,
 				RESTAPI_blacklist_list,
+				RESTAPI_iptocountry_handler,
 				RESTAPI_capabilities_handler, RESTAPI_telemetryWebSocket>(Path,Bindings,L, S, TransactionId);
     }
 
@@ -58,7 +60,9 @@ namespace OpenWifi {
 				RESTAPI_command,
 				RESTAPI_commands,
 				RESTAPI_ouis,
-				RESTAPI_file, RESTAPI_blacklist,
+				RESTAPI_file,
+				RESTAPI_blacklist,
+				RESTAPI_iptocountry_handler,
 				RESTAPI_blacklist_list>(Path,Bindings,L, S, TransactionId);
 	}
 }

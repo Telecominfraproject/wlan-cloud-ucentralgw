@@ -21,7 +21,7 @@ namespace OpenWifi {
 
 	class IPInfo : public IPToCountryProvider {
 	  public:
-		inline static std::string Name() { return "ipinfo"; }
+		static std::string Name() { return "ipinfo"; }
 		inline bool Init() override {
 			Key_ = MicroService::instance().ConfigGetString("iptocountry.ipinfo.token", "");
 			return !Key_.empty();
@@ -53,7 +53,7 @@ namespace OpenWifi {
 
 	class IPData : public IPToCountryProvider {
 	  public:
-		inline static std::string Name() { return "ipdata"; }
+		static std::string Name() { return "ipdata"; }
 		inline bool Init() override {
 			Key_ = MicroService::instance().ConfigGetString("iptocountry.ipdata.apikey", "");
 			return !Key_.empty();
@@ -81,6 +81,50 @@ namespace OpenWifi {
 		std::string Key_;
 	};
 
+	class IP2Location : public IPToCountryProvider {
+	  public:
+		static std::string Name() { return "ip2location"; }
+		inline bool Init() override {
+			Key_ = MicroService::instance().ConfigGetString("iptocountry.ip2location.apikey", "");
+			return !Key_.empty();
+		}
+
+		[[nodiscard]] inline Poco::URI URI(const std::string & IPAddress) override {
+			Poco::URI	U("https://api.ip2location.com/v2");
+			U.setPath("/");
+			U.addQueryParameter("ip", IPAddress);
+			U.addQueryParameter("package", "WS1");
+			U.addQueryParameter("key",Key_);
+			return U;
+		}
+
+		inline std::string Country( const std::string & Response ) override {
+			try {
+				nlohmann::json IPInfo = nlohmann::json::parse(Response);
+				if (IPInfo.contains("country_code") && IPInfo["country_code"].is_string()) {
+					return IPInfo["country_code"];
+				}
+			} catch (...) {
+
+			}
+			return "";
+		}
+	  private:
+		std::string Key_;
+	};
+
+	template<typename BaseClass, typename T, typename... Args>
+	std::unique_ptr<BaseClass> IPLocationProvider(const std::string & RequestProvider ) {
+		if(T::Name()==RequestProvider) {
+			return std::make_unique<T>();
+		}
+		if constexpr (sizeof...(Args) == 0) {
+			return nullptr;
+		} else {
+			return IPLocationProvider<BaseClass, Args...>(RequestProvider);
+		}
+	}
+
 	class FindCountryFromIP : public SubSystemServer {
 	  public:
 		static auto instance() {
@@ -91,11 +135,7 @@ namespace OpenWifi {
 		inline int Start() final {
 			ProviderName_ = MicroService::instance().ConfigGetString("iptocountry.provider","");
 			if(!ProviderName_.empty()) {
-				if(ProviderName_=="ipinfo") {
-					Provider_ = std::make_unique<IPInfo>();
-				} else if(ProviderName_=="ipdata") {
-					Provider_ = std::make_unique<IPData>();
-				}
+				Provider_ = IPLocationProvider<IPToCountryProvider, IPInfo, IPData, IP2Location>(ProviderName_);
 				if(Provider_!= nullptr) {
 					Enabled_ = Provider_->Init();
 				}
@@ -118,13 +158,16 @@ namespace OpenWifi {
 		}
 
 		inline std::string Get(const Poco::Net::IPAddress & IP) {
-			if(!Enabled_)
+			if (!Enabled_)
 				return Default_;
+			return Get(ReformatAddress(IP.toString()));
+		}
 
+		inline std::string Get(const std::string & IP) {
+			if (!Enabled_)
+				return Default_;
 			try {
-				std::string ReformattedIP{ReformatAddress(IP.toString())};
-
-				std::string URL = Provider_->URI(ReformattedIP).toString();
+				std::string URL = Provider_->URI(IP).toString();
 				std::string Response;
 				if (Utils::wgets(URL, Response)) {
 					auto Answer = Provider_->Country(Response);
@@ -135,6 +178,8 @@ namespace OpenWifi {
 			}
 			return Default_;
 		}
+
+		inline auto Enabled() const { return Enabled_; }
 
 	  private:
 		bool 									Enabled_=false;
