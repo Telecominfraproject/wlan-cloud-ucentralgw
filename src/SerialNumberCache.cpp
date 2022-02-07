@@ -20,13 +20,10 @@ namespace OpenWifi {
 
 	void SerialNumberCache::AddSerialNumber(const std::string &S) {
 		std::lock_guard		G(Mutex_);
-
 		uint64_t SN = std::stoull(S, nullptr, 16);
-		if(std::find(SNs_.begin(),SNs_.end(),SN) == SNs_.end()) {
-			if(SNs_.size()+1 == SNs_.capacity())
-				SNs_.resize(SNs_.capacity()+2000);
-			SNs_.push_back(SN);
-			std::sort(SNs_.begin(),SNs_.end());
+		if(std::find(std::begin(SNs_),std::end(SNs_),SN) == std::end(SNs_)) {
+			auto insert_point = std::lower_bound(SNs_.begin(), SNs_.end(), SN);
+			SNs_.insert(insert_point, SN);
 		}
 	}
 
