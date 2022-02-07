@@ -77,7 +77,13 @@ namespace OpenWifi {
 			return Hint->second;
 		}
 
-		inline const CapabilitiesCache_t & AllCapabilities() { return Capabilities_; }
+		inline const CapabilitiesCache_t & AllCapabilities() {
+			std::lock_guard	G(Mutex_);
+			if(!CapabilitiesLoaded_) {
+				LoadCapabilities();
+			}
+			return Capabilities_;
+		}
 
 	  private:
 		std::recursive_mutex					Mutex_;
