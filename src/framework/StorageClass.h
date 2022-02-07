@@ -33,7 +33,7 @@ namespace OpenWifi {
         int Start() override {
             std::lock_guard		Guard(Mutex_);
 
-            Logger().setLevel(Poco::Message::PRIO_NOTICE);
+            Logger().setLevel(Poco::Message::PRIO_INFORMATION);
             Logger().notice("Starting.");
             std::string DBType = MicroService::instance().ConfigGetString("storage.type");
 
