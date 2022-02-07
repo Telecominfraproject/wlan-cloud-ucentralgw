@@ -57,7 +57,7 @@ namespace OpenWifi {
 			auto LB = std::lower_bound(SNs_.begin(),SNs_.end(),SN);
 			if(LB!=SNs_.end()) {
 				for(;LB!=SNs_.end() && HowMany;++LB,--HowMany) {
-					std::string TSN = Utils::int_to_hex(*LB);
+					const auto TSN = Utils::IntToSerialNumber(*LB);
 					if(S == TSN.substr(0,S.size())) {
 						A.emplace_back(*LB);
 					} else {

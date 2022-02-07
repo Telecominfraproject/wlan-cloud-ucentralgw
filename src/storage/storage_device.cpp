@@ -240,7 +240,7 @@ namespace OpenWifi {
 					Insert  << ConvertParams(St2),
 						Poco::Data::Keywords::use(R);
 					Insert.execute();
-					SetCurrentConfigurationID(SerialNumber, DeviceDetails.UUID);
+					SetCurrentConfigurationID(DeviceDetails.SerialNumber, DeviceDetails.UUID);
 					SerialNumberCache()->AddSerialNumber(DeviceDetails.SerialNumber);
 					return true;
 				} else {
@@ -678,13 +678,18 @@ namespace OpenWifi {
 
 			Poco::Data::RecordSet   RSet(Select);
 
+			uint64_t NumberOfDevices = 0 ;
+
 			bool More = RSet.moveFirst();
 			while(More) {
 				auto SerialNumber = RSet[0].convert<std::string>();
 				SerialNumberCache()->AddSerialNumber(SerialNumber);
+				NumberOfDevices++;
 				More = RSet.moveNext();
 			}
+			Logger().information(Poco::format("Added %lu serial numbers to cache.", NumberOfDevices));
 			return true;
+
 		} catch(const Poco::Exception &E) {
 			Logger().warning(Poco::format("%s: Failed with: %s", std::string(__func__), E.displayText()));
 		}
