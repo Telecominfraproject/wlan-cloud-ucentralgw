@@ -121,7 +121,7 @@ namespace OpenWifi {
 
 		inline void LoadCapabilities() {
 			try {
-				std::ifstream i(CapabilitiesCacheFileName_);
+				std::ifstream i(CapabilitiesCacheFileName_, std::ios_base::binary|std::ios_base::in);
 				nlohmann::json cache;
 				i >> cache;
 
@@ -136,7 +136,7 @@ namespace OpenWifi {
 
 		inline void SaveCapabilities() {
 			try {
-				std::ofstream i(CapabilitiesCacheFileName_);
+				std::ofstream i(CapabilitiesCacheFileName_, std::ios_base::trunc | std::ios_base::out | std::ios_base::binary );
 				nlohmann::json cache(Capabilities_);
 				i << cache;
 			} catch (...) {
