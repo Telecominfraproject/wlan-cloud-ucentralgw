@@ -15,7 +15,6 @@ namespace OpenWifi {
 		StorageClass::Start();
 
 		Create_Tables();
-        InitCapabilitiesCache();
         InitializeBlackListCache();
 
 		return 0;

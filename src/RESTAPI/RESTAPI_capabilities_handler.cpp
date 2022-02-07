@@ -3,20 +3,19 @@
 //
 
 #include "RESTAPI_capabilities_handler.h"
-#include "StorageService.h"
+#include "CapabilitiesCache.h"
 
 namespace OpenWifi {
 
 	void RESTAPI_capabilities_handler::DoGet() {
-		Storage::DeviceCapabilitiesCache	DevCaps;
+		const CapabilitiesCache_t & Caps = CapabilitiesCache().AllCapabilities();
 
-		StorageService()->GetDeviceCapabilitiesCache(DevCaps);
 		Poco::JSON::Array	ObjArr;
-		for(const auto &[deviceType,capabilities]:DevCaps) {
+		for(const auto &[deviceType,capabilities]:Caps) {
 			Poco::JSON::Object	Inner;
 			Inner.set("deviceType",deviceType);
 			Poco::JSON::Parser	P;
-			auto R = P.parse(capabilities).extract<Poco::JSON::Object::Ptr>();
+			auto R = P.parse(to_string(capabilities)).extract<Poco::JSON::Object::Ptr>();
 			Inner.set("capabilities", R);
 			ObjArr.add(Inner);
 		}

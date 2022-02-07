@@ -63,7 +63,7 @@ namespace OpenWifi {
 			return instance_;
         }
 
-		typedef std::map<std::string,std::string>	DeviceCapabilitiesCache;
+		// typedef std::map<std::string,std::string>	DeviceCapabilitiesCache;
 
         bool AddLog(const GWObjects::DeviceLog & Log);
 		bool AddStatisticsData(const GWObjects::Statistics & Stats);
@@ -174,10 +174,7 @@ namespace OpenWifi {
 		int 	Start() override;
 		void 	Stop() override;
 
-		inline bool GetDeviceCapabilitiesCache(DeviceCapabilitiesCache & Caps) { std::lock_guard G(Mutex_); Caps = CapsCache_; return true; };
-
 	  private:
-		DeviceCapabilitiesCache								CapsCache_;
 
    };
 

@@ -27,7 +27,7 @@ namespace OpenWifi::GWObjects {
 	void Device::to_json(Poco::JSON::Object &Obj) const {
 		field_to_json(Obj,"serialNumber", SerialNumber);
 #ifdef TIP_GATEWAY_SERVICE
-		field_to_json(Obj,"deviceType", CapabilitiesCache::instance()->Get(Compatible));
+		field_to_json(Obj,"deviceType", CapabilitiesCache::instance()->GetPlatform(Compatible));
 #endif
 		field_to_json(Obj,"macAddress", MACAddress);
 		field_to_json(Obj,"manufacturer", Manufacturer);

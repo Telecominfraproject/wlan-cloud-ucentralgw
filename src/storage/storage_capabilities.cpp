@@ -48,7 +48,7 @@ bool Storage::CreateDeviceCapabilities(std::string &SerialNumber, std::string &C
 			OpenWifi::Config::Capabilities	Caps(Capabilities);
 			Compat = Caps.Compatible();
 			if(!Caps.Compatible().empty() && !Caps.Platform().empty())
-				CapabilitiesCache::instance()->Add(Caps.Compatible(),Caps.Platform());
+				CapabilitiesCache::instance()->Add(Caps.Compatible(), Caps.Platform(), Capabilities);
 
 			std::string St{"insert into Capabilities (SerialNumber, Capabilities, FirstUpdate, LastUpdate) values(?,?,?,?) on conflict (SerialNumber) do "
 						   " update set Capabilities=?, LastUpdate=?"};
@@ -115,34 +115,4 @@ bool Storage::CreateDeviceCapabilities(std::string &SerialNumber, std::string &C
 		return false;
 	}
 
-	bool Storage::InitCapabilitiesCache() {
-		try {
-
-			Poco::Data::Session     Sess = Pool_->get();
-			Poco::Data::Statement   Select(Sess);
-
-			std::string st{"select capabilities from Capabilities"};
-			Select << st;
-			Select.execute();
-
-			Poco::Data::RecordSet   RSet(Select);
-			bool More = RSet.moveFirst();
-			while(More) {
-				auto Caps = RSet[0].convert<std::string>();
-				try {
-					Poco::JSON::Parser	P;
-					auto RawObject = P.parse(Caps).extract<Poco::JSON::Object::Ptr>();
-					std::string Compatible = RawObject->get("compatible").toString();
-					CapsCache_[Compatible] = Caps;
-				} catch (...) {
-
-				}
-				More = RSet.moveNext();
-			}
-			return true;
-		} catch (const Poco::Exception &E) {
-			Logger().log(E);
-		}
-		return false;
-	}
 }

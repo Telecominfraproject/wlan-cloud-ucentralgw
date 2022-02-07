@@ -8,7 +8,10 @@
 #include "nlohmann/json.hpp"
 
 namespace OpenWifi {
-	static const std::string CapabilitiesCacheFileName{"/capabilities_cache.json"};
+	const std::string PlatformCacheFileName{"/plat_cache.json"};
+	const std::string CapabilitiesCacheFileName{"/caps_cache.json"};
+
+	typedef std::map<std::string,nlohmann::json>	CapabilitiesCache_t;
 
 	class CapabilitiesCache {
 	  public:
@@ -18,62 +21,117 @@ namespace OpenWifi {
 			return instance;
 		}
 
-		inline void Add(const std::string & DeviceType, const std::string & Platform) {
+		inline void Add(const std::string & DeviceType, const std::string & Platform, const std::string & FullCapabilities) {
 			if(DeviceType.empty() || Platform.empty())
 				return;
 
 			std::lock_guard	G(Mutex_);
-			if(!Loaded_)
-				LoadIt();
+			if(!PlatformsLoaded_)
+				LoadPlatforms();
 			auto P = Poco::toUpper(Platform);
-			auto Hint = Caps_.find(DeviceType);
-			if(Hint==Caps_.end()) {
-				Caps_.insert(std::make_pair(DeviceType,P));
-				SaveIt();
+			auto Hint = Platforms_.find(DeviceType);
+			if(Hint==Platforms_.end()) {
+				Platforms_.insert(std::make_pair(DeviceType,P));
+				SavePlatforms();
 			} else if(Hint->second != P) {
 				Hint->second = P;
-				SaveIt();
+				SavePlatforms();
+			}
+
+			if(!CapabilitiesLoaded_)
+				LoadCapabilities();
+
+			auto CapHint = Capabilities_.find(DeviceType);
+			if(CapHint==Capabilities_.end()) {
+				Capabilities_[DeviceType] = nlohmann::json::parse(FullCapabilities);
+				SaveCapabilities();
+			} else {
+				CapHint->second = nlohmann::json::parse(FullCapabilities);
+				SaveCapabilities();
 			}
 		}
 
-		inline std::string Get(const std::string & DeviceType) {
+		inline std::string GetPlatform(const std::string & DeviceType) {
 			std::lock_guard	G(Mutex_);
 
-			if(!Loaded_) {
-				LoadIt();
+			if(!PlatformsLoaded_) {
+				LoadPlatforms();
 			}
 
-			auto Hint = Caps_.find(DeviceType);
-			if(Hint==Caps_.end())
+			auto Hint = Platforms_.find(DeviceType);
+			if(Hint==Platforms_.end())
 				return "AP";
 			return Hint->second;
 		}
 
-	  private:
-		std::recursive_mutex			Mutex_;
-		std::atomic_bool 	Loaded_=false;
-		std::map<std::string,std::string>	Caps_;
-		std::string 		CacheFileName_{ MicroService::instance().DataDir()+CapabilitiesCacheFileName };
+		inline nlohmann::json GetCapabilities(const std::string & DeviceType) {
+			std::lock_guard	G(Mutex_);
 
-		inline void LoadIt() {
+			if(!CapabilitiesLoaded_) {
+				LoadCapabilities();
+			}
+
+			auto Hint = Capabilities_.find(DeviceType);
+			if(Hint==Capabilities_.end())
+				return nlohmann::json{};
+			return Hint->second;
+		}
+
+		inline const CapabilitiesCache_t & AllCapabilities() { return Capabilities_; }
+
+	  private:
+		std::recursive_mutex					Mutex_;
+		std::atomic_bool 						PlatformsLoaded_=false;
+		std::atomic_bool 						CapabilitiesLoaded_=false;
+		std::map<std::string,std::string>		Platforms_;
+		CapabilitiesCache_t						Capabilities_;
+		std::string 							PlatformCacheFileName_{ MicroService::instance().DataDir()+PlatformCacheFileName };
+		std::string 							CapabilitiesCacheFileName_{ MicroService::instance().DataDir()+CapabilitiesCacheFileName };
+
+		inline void LoadPlatforms() {
 			try {
-				std::ifstream i(CacheFileName_);
+				std::ifstream i(PlatformCacheFileName_);
 				nlohmann::json cache;
 				i >> cache;
 
 				for(const auto &[Type,Platform]:cache.items()) {
-					Caps_[Type] = Platform;
+					Platforms_[Type] = Platform;
 				}
 			} catch(...) {
 
 			}
-			Loaded_ = true;
+			PlatformsLoaded_ = true;
 		}
 
-		inline void SaveIt() {
+		inline void SavePlatforms() {
 			try {
-				std::ofstream i(CacheFileName_);
-				nlohmann::json cache(Caps_);
+				std::ofstream i(PlatformCacheFileName_);
+				nlohmann::json cache(Platforms_);
+				i << cache;
+			} catch (...) {
+
+			}
+		}
+
+		inline void LoadCapabilities() {
+			try {
+				std::ifstream i(CapabilitiesCacheFileName_);
+				nlohmann::json cache;
+				i >> cache;
+
+				for(const auto &[Type,Caps]:cache.items()) {
+					Capabilities_[Type] = Caps;
+				}
+			} catch(...) {
+
+			}
+			CapabilitiesLoaded_ = true;
+		}
+
+		inline void SaveCapabilities() {
+			try {
+				std::ofstream i(CapabilitiesCacheFileName_);
+				nlohmann::json cache(Capabilities_);
 				i << cache;
 			} catch (...) {
 

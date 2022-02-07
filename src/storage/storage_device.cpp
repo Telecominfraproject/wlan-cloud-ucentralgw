@@ -287,7 +287,7 @@ namespace OpenWifi {
 		GWObjects::DefaultConfiguration DefConfig;
 
 		if(!Caps.Platform().empty() && !Caps.Compatible().empty()) {
-			CapabilitiesCache::instance()->Add(Caps.Compatible(), Caps.Platform());
+			CapabilitiesCache::instance()->Add(Caps.Compatible(), Caps.Platform(), Capabilities);
 		}
 
 		bool 			Found = false;
