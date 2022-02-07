@@ -437,7 +437,7 @@ namespace OpenWifi {
 			if(TmpFirmware != Firmware) {
 				Poco::Data::Statement	Update(Sess);
 				std::string St2{"UPDATE Devices SET Firmware=?, LastFWUpdate=? WHERE SerialNumber=?"};
-				uint64_t 	Now = time(nullptr);
+				uint64_t 	Now = std::time(nullptr);
 
 				Update << 	ConvertParams(St2),
 							Poco::Data::Keywords::use(Firmware),
@@ -709,7 +709,7 @@ namespace OpenWifi {
 	static const uint64_t SECONDS_MONTH = 30*24*60*60;
 	static const uint64_t SECONDS_WEEK = 7*24*60*60;
 	static const uint64_t SECONDS_DAY = 1*24*60*60;
-	static const uint64_t SECONDS_HOUR = 1*24*60*60;
+	static const uint64_t SECONDS_HOUR = 60*60;
 
 	static std::string ComputeUpLastContactTag(uint64_t T1) {
 		uint64_t T = T1 - std::time(nullptr);
@@ -736,7 +736,7 @@ namespace OpenWifi {
 	}
 
 	static std::string ComputeLoadTag(uint64_t T) {
-		float V=100.0*((float)T/65536.0);
+		auto V=100.0*((float)T/65536.0);
 		if(V<5.0) return "< 5%";
 		if(V<25.0) return "< 25%";
 		if(V<50.0) return "< 50%";
@@ -745,7 +745,7 @@ namespace OpenWifi {
 	}
 
 	static std::string ComputeFreeMemoryTag(uint64_t Free, uint64_t Total) {
-		float V = 100.0 * ((float)Free/(float(Total)));
+		auto V = 100.0 * ((float)Free/(float(Total)));
 		if(V<5.0) return "< 5%";
 		if(V<25.0) return "< 25%";
 		if(V<50.0) return "< 50%";

@@ -90,8 +90,6 @@ namespace OpenWifi {
 		}
 		void SetPendingUUID(uint64_t SerialNumber, uint64_t PendingUUID);
 
-		bool AnalyzeRegistry(GWObjects::Dashboard &D);
-
 		[[nodiscard]] inline std::shared_ptr<ConnectionEntry> GetDeviceConnection(const std::string & SerialNumber) {
 			return GetDeviceConnection(Utils::SerialNumberToInt(SerialNumber));
 		}

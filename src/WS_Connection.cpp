@@ -169,8 +169,10 @@ namespace OpenWifi {
 	}
 
 	WSConnection::~WSConnection() {
+
 		if (ConnectionId_)
 			DeviceRegistry()->UnRegister(SerialNumberInt_, ConnectionId_);
+
 		if (Registered_ && WS_) {
 			Reactor_.removeEventHandler(*WS_,
 										Poco::NObserver<WSConnection, Poco::Net::ReadableNotification>(
@@ -337,7 +339,8 @@ namespace OpenWifi {
 
 		switch (EventType) {
 		case uCentralProtocol::ET_CONNECT: {
-			if (ParamsObj->has(uCentralProtocol::UUID) && ParamsObj->has(uCentralProtocol::FIRMWARE) &&
+			if (ParamsObj->has(uCentralProtocol::UUID) &&
+				ParamsObj->has(uCentralProtocol::FIRMWARE) &&
 				ParamsObj->has(uCentralProtocol::CAPABILITIES)) {
 				uint64_t UUID = ParamsObj->get(uCentralProtocol::UUID);
 				auto Firmware = ParamsObj->get(uCentralProtocol::FIRMWARE).toString();
