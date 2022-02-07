@@ -133,7 +133,7 @@ namespace OpenWifi {
 						SerialNumberCache()->FindNumbers(Prefix, HowMany, Numbers);
 						Poco::JSON::Array A;
 						for (const auto &i : Numbers)
-							A.add(Utils::int_to_hex(i));
+							A.add(Utils::IntToSerialNumber(i));
 						Poco::JSON::Object AO;
 						AO.set("serialNumbers", A);
 						AO.set("command","serial_number_search");
