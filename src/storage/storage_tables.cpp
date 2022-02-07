@@ -281,7 +281,7 @@ namespace OpenWifi {
 				Sess << "alter table CommandList add column executionTime real default 0.00",
 					Poco::Data::Keywords::now;
 			}
-		} catch (const Poco::DataException &) {
+		} catch (const Poco::Data::DataException &) {
 		} catch (const Poco::Exception &E) {
 			Logger().log(E);
 		}
