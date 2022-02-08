@@ -49,15 +49,12 @@ ADD cmake /owgw/cmake
 ADD src /owgw/src
 ADD .git /owgw/.git
 
-COPY --from=poco-build /usr/local/include/Poco /usr/local/include/Poco
-COPY --from=poco-build /usr/local/lib/cmake/Poco /usr/local/lib/cmake/Poco
-COPY --from=poco-build /poco/cmake-build/lib /usr/local/lib
-COPY --from=cppkafka-build /usr/local/include/cppkafka /usr/local/include/cppkafka
-COPY --from=cppkafka-build /usr/local/lib/cmake/CppKafka /usr/local/lib/cmake/CppKafka
-COPY --from=cppkafka-build /cppkafka/cmake-build/src/lib /usr/local/lib
-COPY --from=json-schema-validator-build /usr/local/include/nlohmann /usr/local/include/nlohmann
-COPY --from=json-schema-validator-build /usr/local/lib/cmake/nlohmann_json_schema_validator /usr/local/lib/cmake/nlohmann_json_schema_validator
-COPY --from=json-schema-validator-build /usr/local/lib/libnlohmann_json_schema_validator.a /usr/local/lib/
+COPY --from=poco-build /usr/local/include /usr/local/include
+COPY --from=poco-build /usr/local/lib /usr/local/lib
+COPY --from=cppkafka-build /usr/local/include /usr/local/include
+COPY --from=cppkafka-build /usr/local/lib /usr/local/lib
+COPY --from=json-schema-validator-build /usr/local/include /usr/local/include
+COPY --from=json-schema-validator-build /usr/local/lib /usr/local/lib
 
 WORKDIR /owgw
 RUN mkdir cmake-build
