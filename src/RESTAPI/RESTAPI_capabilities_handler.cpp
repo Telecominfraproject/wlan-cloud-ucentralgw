@@ -22,7 +22,7 @@ namespace OpenWifi {
 		}
 		Poco::JSON::Object	Answer;
 
-		Answer.set("devices",ObjArr);
+		Answer.set("device_types",ObjArr);
 		return ReturnObject(Answer);
 	}
 }

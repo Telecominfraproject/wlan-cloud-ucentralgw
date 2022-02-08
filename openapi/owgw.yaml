@@ -1016,7 +1016,7 @@ components:
     CapabilitiesModelList:
       type: object
       properties:
-        devices:
+        device_types:
           type: array
           items:
             $ref: '#/components/schemas/CapabilitiesModel'
