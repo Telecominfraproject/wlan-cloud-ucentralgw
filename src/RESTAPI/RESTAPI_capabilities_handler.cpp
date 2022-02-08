@@ -12,7 +12,7 @@ namespace OpenWifi {
 
 		Poco::JSON::Array	ObjArr;
 		for(const auto &[deviceType,capabilities]:Caps) {
-			std::cout << "C:" << to_string(capabilities) << std::endl;
+			// std::cout << "C:" << to_string(capabilities) << std::endl;
 			Poco::JSON::Object	Inner;
 			Inner.set("deviceType",deviceType);
 			Poco::JSON::Parser	P;
