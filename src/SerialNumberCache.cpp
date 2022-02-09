@@ -68,7 +68,7 @@ namespace OpenWifi {
 			uint64_t SN = std::stoull(S, nullptr, 16);
 			auto It = std::find(SNArr.begin(), SNArr.end(), SN);
 			if (It != SNArr.end()) {
-				A.push_back(*It);
+				A.push_back(ReverseResult ? Reverse(*It) : *It);
 			}
 		} else if (S.length() < 12) {
 			std::string SS{S};
