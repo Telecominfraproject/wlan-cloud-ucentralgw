@@ -25,9 +25,17 @@ namespace OpenWifi {
 			return std::find(SNs_.begin(),SNs_.end(),SerialNumber)!=SNs_.end();
 		}
 
+		static inline std::string ReverseSerialNumber(const std::string &S) {
+			std::string ReversedString;
+			std::copy(rbegin(S),rend(S),std::back_inserter(ReversedString));
+			return ReversedString;
+		}
+
 	  private:
-		uint64_t 					LastUpdate_ = 0 ;
 		std::vector<uint64_t>		SNs_;
+		std::vector<uint64_t>		Reverse_SNs_;
+
+		void ReturnNumbers(const std::string &S, uint HowMany, const std::vector<uint64_t> & SNArr, std::vector<uint64_t> &A, bool ReverseResult);
 
 		SerialNumberCache() noexcept:
 			SubSystemServer("SerialNumberCache", "SNCACHE-SVR", "serialcache")
