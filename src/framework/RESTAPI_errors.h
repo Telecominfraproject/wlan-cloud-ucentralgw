@@ -63,5 +63,6 @@ namespace OpenWifi::RESTAPI::Errors {
     static const std::string AuthenticatorVerificationIncomplete{"Authenticator validation is not complete."};
     static const std::string SMSCouldNotBeSentRetry{"SMS could not be sent to validate device, try later or change the phone number."};
     static const std::string SMSCouldNotValidate{"Code and number could not be validated"};
+    static const std::string InvalidDeviceClass{"Invalid device class. Must be: any, venue, entity, or subscriber"};
 }
 
