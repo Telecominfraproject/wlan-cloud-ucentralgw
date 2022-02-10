@@ -21,6 +21,7 @@
 #include "SerialNumberCache.h"
 #include "Daemon.h"
 #include "TelemetryStream.h"
+#include "CentralConfig.h"
 
 
 namespace OpenWifi {
@@ -214,6 +215,16 @@ namespace OpenWifi {
 			if (D.UUID == UUID) {
 				ConfigurationCache().Add(SerialNumberInt_, UUID);
 				return false;
+			}
+
+			if(UUID>D.UUID) {
+				//	so we have a problem, the device has a newer config than we have. So we need to make sure our config
+				//	is newer.
+				Config::Config	Cfg(D.Configuration);
+				D.UUID = UUID+2;
+				Cfg.SetUUID(D.UUID);
+				D.Configuration = Cfg.get();
+				StorageService()->UpdateDevice(D);
 			}
 
 			Conn_->Conn_.PendingUUID = D.UUID;
