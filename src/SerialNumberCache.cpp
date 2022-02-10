@@ -74,15 +74,18 @@ namespace OpenWifi {
 			std::string SS{S};
 			SS.insert(SS.end(), 12 - SS.size(), '0');
 			uint64_t SN = std::stoull(SS, nullptr, 16);
-
+			std::cout << __LINE__ << ":" << SS << std::endl;
 			auto LB = std::lower_bound(SNArr.begin(), SNArr.end(), SN);
 			if (LB != SNArr.end()) {
 				for (; LB != SNArr.end() && HowMany; ++LB, --HowMany) {
 					if(ReverseResult) {
 						const auto TSN = ReverseSerialNumber(Utils::IntToSerialNumber(Reverse(*LB)));
+						std::cout << __LINE__ << " looking at: " << TSN << std::endl;
 						if (S == TSN.substr(12-S.size())) {
+							std::cout << __LINE__ << " added: " << TSN << std::endl;
 							A.emplace_back(Reverse(*LB));
 						} else {
+							std::cout << __LINE__ << " skipped: " << TSN << std::endl;
 							break;
 						}
 					} else {
