@@ -2888,8 +2888,17 @@ namespace OpenWifi {
 
 				std::cout << log_msg << std::endl;
 				 */
-				for(auto &[_,CallBack]:CallBacks_)
-					CallBack(m);
+				std::lock_guard	G(Mutex_);
+				std::vector<uint64_t>	Remove;
+				for(const auto &[Id,CallBack]:CallBacks_) {
+					try {
+						CallBack(m);
+					} catch (...) {
+						Remove.push_back(Id);
+					}
+				}
+				for(const auto &i:Remove)
+					CallBacks_.erase(i);
 			}
 		}
 
@@ -2904,10 +2913,12 @@ namespace OpenWifi {
 		inline void Enable(bool enable) { Enabled_ = enable; }
 		typedef std::function<void(const Poco::Message &M)> logmuxer_callback_func_t;
 		inline void RegisterCallback(const logmuxer_callback_func_t & R, uint64_t &Id) {
+			std::lock_guard	G(Mutex_);
 			Id = CallBackId_++;
 			CallBacks_[Id] = R;
 		}
 	  private:
+		std::recursive_mutex	Mutex_;
 		std::map<uint64_t,logmuxer_callback_func_t>  CallBacks_;
 		inline static uint64_t CallBackId_=1;
 		bool Enabled_ = false;
