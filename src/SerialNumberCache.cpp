@@ -98,11 +98,15 @@ namespace OpenWifi {
 	}
 
 	void SerialNumberCache::FindNumbers(const std::string &S, uint HowMany, std::vector<uint64_t> &A) {
+		if(S.empty())
+			return;
+
 		if (S[0] == '*') {
-			std::string R;
-			std::copy(begin(S)+1,end(S),std::back_inserter(R));
-			std::string RR = ReverseSerialNumber(R);
-			return ReturnNumbers(RR, HowMany, Reverse_SNs_, A, true);
+			std::string Reversed;
+			std::copy(rbegin(S), rend(S)-1, std::back_inserter(Reversed));
+			if(Reversed.empty())
+				return;
+			return ReturnNumbers(Reversed, HowMany, Reverse_SNs_, A, true);
 		} else {
 			return ReturnNumbers(S, HowMany, SNs_, A, false);
 		}
