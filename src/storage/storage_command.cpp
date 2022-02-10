@@ -109,6 +109,23 @@ typedef Poco::Tuple<
 		R.set<18>(Command.executionTime);
 	}
 
+	bool Storage::RemoveOldCommands(std::string & SerialNumber, std::string & Command) {
+		try {
+			Poco::Data::Session 	Sess = Pool_->get();
+			Poco::Data::Statement 	Delete(Sess);
+
+			std::string St{"delete from CommandList where SerialNumber=? and command=? and completed=0"};
+			Delete << ConvertParams(St),
+				Poco::Data::Keywords::use(SerialNumber),
+				Poco::Data::Keywords::use(Command);
+			Delete.execute();
+			return true;
+		} catch(const Poco::Exception &E) {
+			Logger().log(E);
+		}
+		return false;
+	}
+
 	bool Storage::AddCommand(std::string &SerialNumber, GWObjects::CommandDetails &Command, CommandExecutionType Type) {
 		try {
 			uint64_t Now = time(nullptr);
@@ -128,6 +145,8 @@ typedef Poco::Tuple<
 				Command.Executed = Now;
 				Command.Status = "executing";
 			}
+
+			RemoveOldCommands(SerialNumber, Command.Command);
 
 			Poco::Data::Session Sess = Pool_->get();
 			Poco::Data::Statement Insert(Sess);
