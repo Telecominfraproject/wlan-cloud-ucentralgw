@@ -81,7 +81,7 @@ namespace OpenWifi {
 					if(ReverseResult) {
 						const auto TSN = ReverseSerialNumber(Utils::IntToSerialNumber(Reverse(*LB)));
 						std::cout << __LINE__ << " looking at: " << TSN << std::endl;
-						if (S == TSN.substr(12-S.size())) {
+						if (S == TSN.substr(0,S.size())) {
 							std::cout << __LINE__ << " added: " << TSN << std::endl;
 							A.emplace_back(Reverse(*LB));
 						} else {
