@@ -70,6 +70,7 @@ using namespace std::chrono_literals;
 #include "Poco/FileChannel.h"
 #include "Poco/SimpleFileChannel.h"
 #include "Poco/Util/PropertyFileConfiguration.h"
+#include "Poco/SplitterChannel.h"
 
 #include "cppkafka/cppkafka.h"
 
@@ -2846,8 +2847,75 @@ namespace OpenWifi {
 	    return 0;
 	}
 
-	class RESTAPI_IntServer : public SubSystemServer {
 
+	class LogMuxer : public Poco::Channel {
+	  public:
+
+		inline std::string getProperty( const std::string &p ) const final {
+			return "";
+		}
+
+		inline void close() final {
+		}
+
+		inline void open() final {
+		}
+
+		inline static std::string to_string(Poco::Message::Priority p) {
+			switch(p) {
+			case Poco::Message::PRIO_INFORMATION: return "information";
+			case Poco::Message::PRIO_CRITICAL: return "critical";
+			case Poco::Message::PRIO_DEBUG: return "debug";
+			case Poco::Message::PRIO_ERROR: return "error";
+			case Poco::Message::PRIO_FATAL: return "level";
+			case Poco::Message::PRIO_NOTICE: return "notice";
+			case Poco::Message::PRIO_TRACE: return "trace";
+			case Poco::Message::PRIO_WARNING: return "warning";
+			default: return "none";
+			}
+		}
+
+		inline void log(const Poco::Message &m) final {
+			if(Enabled_) {
+				/*
+				nlohmann::json log_msg;
+				log_msg["msg"] = m.getText();
+				log_msg["level"] = to_string(m.getPriority());
+				log_msg["timestamp"] = Poco::DateTimeFormatter::format(m.getTime(), Poco::DateTimeFormat::ISO8601_FORMAT);
+				log_msg["source"] = m.getSource();
+				log_msg["thread_name"] = m.getThread();
+				log_msg["thread_id"] = m.getTid();
+
+				std::cout << log_msg << std::endl;
+				 */
+				for(auto &[_,CallBack]:CallBacks_)
+					CallBack(m);
+			}
+		}
+
+		inline void setProperty(const std::string &name, const std::string &value) final {
+
+		}
+
+		inline static auto instance() {
+			static auto instance_ = new LogMuxer;
+			return instance_;
+		}
+		inline void Enable(bool enable) { Enabled_ = enable; }
+		typedef std::function<void(const Poco::Message &M)> logmuxer_callback_func_t;
+		inline void RegisterCallback(const logmuxer_callback_func_t & R, uint64_t &Id) {
+			Id = CallBackId_++;
+			CallBacks_[Id] = R;
+		}
+	  private:
+		std::map<uint64_t,logmuxer_callback_func_t>  CallBacks_;
+		inline static uint64_t CallBackId_=1;
+		bool Enabled_ = false;
+	};
+	inline auto LogMuxer() { return LogMuxer::instance(); }
+
+
+	class RESTAPI_IntServer : public SubSystemServer {
 	public:
 	    static auto instance() {
 	        static auto instance_ = new RESTAPI_IntServer;
@@ -3258,11 +3326,15 @@ namespace OpenWifi {
                 FileChannel->setProperty("rotation", "10 M");
                 FileChannel->setProperty("archive", "timestamp");
                 FileChannel->setProperty("path", LoggingLocation);
-                Poco::AutoPtr<Poco::AsyncChannel> Async(new Poco::AsyncChannel(FileChannel));
-                Poco::AutoPtr<Poco::PatternFormatter> Formatter(new Poco::PatternFormatter);
+                Poco::AutoPtr<Poco::AsyncChannel> Async_File(new Poco::AsyncChannel(FileChannel));
+				Poco::AutoPtr<Poco::AsyncChannel> Async_Muxer(new Poco::AsyncChannel(LogMuxer()));
+                Poco::AutoPtr<Poco::SplitterChannel> Splitter(new Poco::SplitterChannel);
+				Splitter->addChannel(Async_File);
+				Splitter->addChannel(Async_Muxer);
+				Poco::AutoPtr<Poco::PatternFormatter> Formatter(new Poco::PatternFormatter);
                 Formatter->setProperty("pattern", LoggingFormat);
                 Poco::AutoPtr<Poco::FormattingChannel> FormattingChannel(
-                        new Poco::FormattingChannel(Formatter, Async));
+                        new Poco::FormattingChannel(Formatter, Splitter));
                 Poco::Logger::root().setChannel(FormattingChannel);
             }
             auto Level = Poco::Logger::parseLevel(MicroService::instance().ConfigGetString("logging.level", "debug"));
