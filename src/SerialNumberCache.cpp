@@ -104,7 +104,7 @@ namespace OpenWifi {
 	void SerialNumberCache::FindNumbers(const std::string &S, uint HowMany, std::vector<uint64_t> &A) {
 		if (S[0] == '*') {
 			std::string R;
-			std::copy(cbegin(S)+1,cend(S),std::back_inserter(R));
+			std::copy(rbegin(S)+1,rend(S),std::back_inserter(R));
 			return ReturnNumbers(R, HowMany, Reverse_SNs_, A, true);
 		} else {
 			return ReturnNumbers(S, HowMany, SNs_, A, false);
