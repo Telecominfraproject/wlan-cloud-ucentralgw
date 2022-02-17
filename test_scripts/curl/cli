@@ -612,6 +612,88 @@ iptocountry() {
 		jq < ${result_file}
 }
 
+check_response() {
+
+    if [ -s "$1" ]; then
+        ERROR_CODE="$(jq -r '.ErrorCode' < $1)"
+
+        if [[ -n "$ERROR_CODE" && "$ERROR_CODE" != 'null' ]]; then
+            echo "Error: got HTTP error code $ERROR_CODE, exiting"
+            exit 1
+        fi
+
+    else
+        echo "Error: result file not found or empty"
+        exit 1
+    fi
+}
+
+test_service() {
+	echo
+	echo "----------------------"
+	echo "Get system information"
+	echo "----------------------"
+	systeminfo
+        check_response $result_file
+
+	echo
+	echo "-----------------"
+	echo "Get device status"
+	echo "-----------------"
+	getdevicestatus $1
+	check_response $result_file
+	DEVICE_STATUS="$(jq -r '.connected' < $result_file)"
+
+	if [ "$DEVICE_STATUS" != true ]; then
+	    echo "Error: AP is in disconnected state"
+	    exit 1
+	fi
+
+	echo
+	echo "--------------------------"
+	echo "Create network trace on AP"
+	echo "--------------------------"
+	trace $1 5 up
+	check_response $result_file
+	TRACE_STATUS="$(jq -r '.status' < $result_file)"
+
+	if [ "$TRACE_STATUS" != 'completed' ]; then
+	    echo "Error: failed to create network trace"
+	    exit 1
+	fi
+
+	TRACE_ID="$(jq -r '.UUID' < $result_file)"
+
+	echo
+	echo "-----------------"
+	echo "Get network trace"
+	echo "-----------------"
+	getfile $1 $TRACE_ID
+
+	TRACE_RESPONSE="$(jq < $TRACE_ID.pcap 2>/dev/null)"
+
+	if [ $? -eq 0 ]; then
+	    check_response $TRACE_ID.pcap
+	else
+	    echo "Successfully downloaded trace to file $TRACE_ID.pcap"
+	fi
+
+	echo
+	echo "-----------------------------"
+	echo "Create and start RTTY session"
+	echo "-----------------------------"
+	rtty $1
+	check_response $result_file
+	RTTY_STATUS="$(curl -s -I $url | awk 'NR==1 {print $2}')"
+
+	if [ "$RTTY_STATUS" != 200 ]; then
+	    echo "Error: failed to start RTTY session, HTTP status code $RTTY_STATUS"
+	    exit 1
+	else
+	    echo "RTTY session at $url was successfully started"
+	fi
+}
+
 help() {
   echo
   echo "getdevice <serial>                Get the device JSON document."
@@ -774,5 +856,6 @@ case "$1" in
   "wstest") login; wstest; logout;;
   "caplist") login; caplist; logout;;
   "iptocountry") login; iptocountry $2; logout;;
+  "test_service") login; test_service $2; logout;;
   *) help ;;
 esac
