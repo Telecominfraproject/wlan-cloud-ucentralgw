@@ -634,7 +634,7 @@ test_service() {
 	echo "Get system information"
 	echo "----------------------"
 	systeminfo
-        check_response $result_file
+	check_response $result_file
 
 	echo
 	echo "-----------------"
@@ -780,6 +780,8 @@ help() {
   echo "systeminfo						  Get information on the system running the service."
   echo
   echo "wstest  						  Testing the WebSocket interface."
+  echo
+  echo "test_service                                              Run a set of CLI commands for testing purposes"
   echo
   echo
   echo "To pass additional flags to the CURL command, create an environment variable called FLAGS and git ve the values you"
