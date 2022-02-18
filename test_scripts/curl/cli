@@ -762,26 +762,26 @@ help() {
   echo "setloglevel <sys> <level>         Set the logging system level for individual subsystems."
   echo "                                  sys:ufileuploader/websocket/storage/restapi/commandmanager/auth/deviceregistry/all"
   echo "                                  level:none/fatal/critical/error/warning/notice/information/debug/trace"
-  echo "getloglevels 					  Get the log levels of all the subsystems"
+  echo "getloglevels 		          Get the log levels of all the subsystems"
   echo "getloglevelnames                  Get the list of log level names possible"
   echo "getsubsystemnames                 Get the subsystems that can be used when setting log levels."
   echo "getfile <serial> <uuid> <name>	  Get the file associated with trace command <uuid> for device <serial>"
-  echo "								  The file will be saved with the name <name>"
+  echo "		                  The file will be saved with the name <name>"
   echo
-  echo "rtty <serial>					  Get the details for an rtty session."
+  echo "rtty <serial>			  Get the details for an rtty session."
   echo
-  echo "lifetimestats <serial>			  Get the lifetime stats counters for a device"
-  echo "laststats <serial>			      Get the last statistics for a device"
-  echo "neweststats <serial>			  Get the newest statistics for a device"
+  echo "lifetimestats <serial>	          Get the lifetime stats counters for a device"
+  echo "laststats <serial>	          Get the last statistics for a device"
+  echo "neweststats <serial>	          Get the newest statistics for a device"
   echo
-  echo "ouilookup <serial> 				  Lookup an OUI"
+  echo "ouilookup <serial> 		  Lookup an OUI"
   echo
-  echo "dashboard 				  		  Get the dashboard document"
-  echo "systeminfo						  Get information on the system running the service."
+  echo "dashboard 			  Get the dashboard document"
+  echo "systeminfo			  Get information on the system running the service."
   echo
-  echo "wstest  						  Testing the WebSocket interface."
+  echo "wstest  			  Testing the WebSocket interface."
   echo
-  echo "test_service                                              Run a set of CLI commands for testing purposes"
+  echo "test_service                      Run a set of CLI commands for testing purposes"
   echo
   echo
   echo "To pass additional flags to the CURL command, create an environment variable called FLAGS and git ve the values you"
