@@ -3856,11 +3856,29 @@ namespace OpenWifi {
 		KafkaManager()->Logger().error(Poco::format("kafka-error: %d, reason: %s", error, reason));
 	}
 
+	inline void AddKafkaSecurity(cppkafka::Configuration & Config) {
+		auto CA = MicroService::instance().ConfigGetString("openwifi.kafka.ssl.ca.location","");
+		auto Certificate = MicroService::instance().ConfigGetString("openwifi.kafka.ssl.certificate.location","");
+		auto Key = MicroService::instance().ConfigGetString("openwifi.kafka.ssl.key.location","");
+		auto Password = MicroService::instance().ConfigGetString("openwifi.kafka.ssl.key.password","");
+
+		if(CA.empty() || Certificate.empty() || Key.empty())
+			return;
+
+		Config.set("ssl.ca.location", CA);
+		Config.set("ssl.certificate.location", Certificate);
+		Config.set("ssl.key.location", Key);
+		if(!Password.empty())
+			Config.set("ssl.key.password", Password);
+	}
+
 	inline void KafkaProducer::run() {
 	    cppkafka::Configuration Config({
 	        { "client.id", MicroService::instance().ConfigGetString("openwifi.kafka.client.id") },
 	        { "metadata.broker.list", MicroService::instance().ConfigGetString("openwifi.kafka.brokerlist") }
 	    });
+
+		AddKafkaSecurity(Config);
 
 		Config.set_log_callback(KafkaLoggerFun);
 		Config.set_error_callback(KafkaErrorFun);
@@ -3875,7 +3893,7 @@ namespace OpenWifi {
 
 		Poco::AutoPtr<Poco::Notification>	Note(Queue_.waitDequeueNotification());
 		while(Note && Running_) {
-			KafkaMessage * Msg = dynamic_cast<KafkaMessage*>(Note.get());
+			auto Msg = dynamic_cast<KafkaMessage*>(Note.get());
 			if(Msg!= nullptr) {
 				Producer.produce(
 					cppkafka::MessageBuilder(Msg->Topic()).key(Msg->Key()).payload(Msg->Payload()));
@@ -3893,6 +3911,8 @@ namespace OpenWifi {
 	        { "auto.offset.reset", "latest" } ,
 	        { "enable.partition.eof", false }
 	    });
+
+		AddKafkaSecurity(Config);
 
 		Config.set_log_callback(KafkaLoggerFun);
 		Config.set_error_callback(KafkaErrorFun);
