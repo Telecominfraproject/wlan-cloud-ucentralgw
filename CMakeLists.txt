@@ -74,10 +74,7 @@ add_executable( owgw
         src/framework/MicroService.h
         src/framework/OpenWifiTypes.h
         src/framework/orm.h
-        src/framework/RESTAPI_errors.h
-        src/framework/RESTAPI_protocol.h
         src/framework/StorageClass.h
-        src/framework/uCentral_Protocol.h
         src/RESTObjects/RESTAPI_SecurityObjects.h src/RESTObjects/RESTAPI_SecurityObjects.cpp
         src/RESTObjects/RESTAPI_ProvObjects.cpp src/RESTObjects/RESTAPI_ProvObjects.h
         src/RESTObjects/RESTAPI_GWobjects.h src/RESTObjects/RESTAPI_GWobjects.cpp
@@ -117,7 +114,7 @@ add_executable( owgw
         src/TelemetryStream.cpp src/TelemetryStream.h
         src/framework/ConfigurationValidator.cpp src/framework/ConfigurationValidator.h
         src/ConfigurationCache.h
-        src/CapabilitiesCache.h src/FindCountry.h src/rttys/RTTYS_server.cpp src/rttys/RTTYS_server.h src/rttys/RTTYS_device.cpp src/rttys/RTTYS_device.h src/rttys/RTTYS_ClientConnection.cpp src/rttys/RTTYS_ClientConnection.h src/rttys/RTTYS_WebServer.cpp src/rttys/RTTYS_WebServer.h src/RESTAPI/RESTAPI_device_helper.h src/SDKcalls.cpp src/SDKcalls.h src/StateUtils.cpp src/StateUtils.h src/WS_ReactorPool.h src/WS_Connection.h src/WS_Connection.cpp src/TelemetryClient.h src/TelemetryClient.cpp src/RESTAPI/RESTAPI_iptocountry_handler.cpp src/RESTAPI/RESTAPI_iptocountry_handler.h)
+        src/CapabilitiesCache.h src/FindCountry.h src/rttys/RTTYS_server.cpp src/rttys/RTTYS_server.h src/rttys/RTTYS_device.cpp src/rttys/RTTYS_device.h src/rttys/RTTYS_ClientConnection.cpp src/rttys/RTTYS_ClientConnection.h src/rttys/RTTYS_WebServer.cpp src/rttys/RTTYS_WebServer.h src/RESTAPI/RESTAPI_device_helper.h src/SDKcalls.cpp src/SDKcalls.h src/StateUtils.cpp src/StateUtils.h src/WS_ReactorPool.h src/WS_Connection.h src/WS_Connection.cpp src/TelemetryClient.h src/TelemetryClient.cpp src/RESTAPI/RESTAPI_iptocountry_handler.cpp src/RESTAPI/RESTAPI_iptocountry_handler.h src/framework/ow_constants.h)
 
 if(NOT SMALL_BUILD)
 

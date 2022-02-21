@@ -9,7 +9,6 @@
 #pragma once
 
 #include "framework/MicroService.h"
-#include "framework/RESTAPI_protocol.h"
 
 namespace OpenWifi {
 	class RESTAPI_device_commandHandler : public RESTAPIHandler {

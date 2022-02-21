@@ -11,7 +11,7 @@
 
 #include "RESTAPI_default_configurations.h"
 #include "StorageService.h"
-#include "framework/RESTAPI_protocol.h"
+#include "framework/ow_constants.h"
 
 namespace OpenWifi {
 	void RESTAPI_default_configurations::DoGet() {

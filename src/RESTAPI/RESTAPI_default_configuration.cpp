@@ -12,8 +12,7 @@
 
 #include "RESTObjects/RESTAPI_GWobjects.h"
 #include "StorageService.h"
-#include "framework/RESTAPI_errors.h"
-#include "framework/RESTAPI_protocol.h"
+#include "framework/ow_constants.h"
 #include "framework/ConfigurationValidator.h"
 
 namespace OpenWifi {

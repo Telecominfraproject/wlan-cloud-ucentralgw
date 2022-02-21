@@ -12,8 +12,7 @@
 #include "Poco/File.h"
 #include "StorageService.h"
 
-#include "framework/RESTAPI_errors.h"
-#include "framework/RESTAPI_protocol.h"
+#include "framework/ow_constants.h"
 #include <fstream>
 
 namespace OpenWifi {

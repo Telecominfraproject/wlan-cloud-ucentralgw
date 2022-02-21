@@ -8,8 +8,7 @@
 
 #include "RESTAPI_commands.h"
 #include "StorageService.h"
-#include "framework/RESTAPI_errors.h"
-#include "framework/RESTAPI_protocol.h"
+#include "framework/ow_constants.h"
 
 namespace OpenWifi {
 	void RESTAPI_commands::DoGet() {

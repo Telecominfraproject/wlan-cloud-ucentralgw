@@ -76,9 +76,7 @@ using namespace std::chrono_literals;
 
 #include "framework/OpenWifiTypes.h"
 #include "framework/KafkaTopics.h"
-#include "framework/RESTAPI_protocol.h"
-#include "framework/RESTAPI_errors.h"
-#include "framework/uCentral_Protocol.h"
+#include "framework/ow_constants.h"
 #include "RESTObjects/RESTAPI_SecurityObjects.h"
 #include "nlohmann/json.hpp"
 

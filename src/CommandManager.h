@@ -19,7 +19,7 @@
 #include "Poco/Net/HTTPServerResponse.h"
 #include "Poco/Timer.h"
 
-#include "RESTObjects//RESTAPI_GWobjects.h"
+#include "RESTObjects/RESTAPI_GWobjects.h"
 #include "framework/MicroService.h"
 
 namespace OpenWifi {

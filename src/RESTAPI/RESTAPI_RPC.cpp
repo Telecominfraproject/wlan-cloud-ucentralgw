@@ -13,7 +13,7 @@
 #include "CommandManager.h"
 #include "DeviceRegistry.h"
 #include "StorageService.h"
-#include "framework/uCentral_Protocol.h"
+#include "framework/ow_constants.h"
 
 namespace OpenWifi::RESTAPI_RPC {
 	void SetCommandStatus(GWObjects::CommandDetails &Cmd,

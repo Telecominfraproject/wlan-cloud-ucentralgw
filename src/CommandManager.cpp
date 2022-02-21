@@ -15,7 +15,7 @@
 #include "RESTObjects//RESTAPI_GWobjects.h"
 #include "StorageService.h"
 #include "framework/MicroService.h"
-#include "framework/uCentral_Protocol.h"
+#include "framework/ow_constants.h"
 
 namespace OpenWifi {
 

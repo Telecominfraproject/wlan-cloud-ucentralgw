@@ -14,7 +14,7 @@
 #include "Poco/File.h"
 #include "Poco/JSON/Object.h"
 
-#include "RESTObjects//RESTAPI_GWobjects.h"
+#include "RESTObjects/RESTAPI_GWobjects.h"
 #include "StorageService.h"
 #include "framework/MicroService.h"
 
