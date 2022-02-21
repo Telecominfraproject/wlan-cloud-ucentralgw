@@ -631,6 +631,7 @@ void RESTAPI_device_commandHandler::WifiScan() {
 
 	bool OverrideDFS = GetB(RESTAPI::Protocol::OVERRIDEDFS, Obj, true);
 	bool ActiveScan = GetB(RESTAPI::Protocol::ACTIVESCAN, Obj, false);
+	uint64_t Bandwidth = Get(RESTAPI::Protocol::BANDWIDTH, Obj, (uint64_t) 0);
 
 	auto UUID = MicroService::CreateUUID();
 	GWObjects::CommandDetails Cmd;
@@ -645,6 +646,8 @@ void RESTAPI_device_commandHandler::WifiScan() {
 	Params.set(uCentralProtocol::SERIAL, SerialNumber_);
 	Params.set(uCentralProtocol::OVERRIDEDFS, OverrideDFS);
 	Params.set(uCentralProtocol::ACTIVE, ActiveScan);
+	if(Bandwidth!=0)
+		Params.set(uCentralProtocol::BANDWIDTH, Bandwidth);
 
 	std::stringstream ParamStream;
 	Params.stringify(ParamStream);

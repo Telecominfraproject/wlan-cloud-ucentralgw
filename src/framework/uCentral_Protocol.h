@@ -89,6 +89,7 @@ namespace OpenWifi::uCentralProtocol {
     static const char * HOST = "host";
     static const char * CONNECTIONIP = "connectionIp";
     static const char * TELEMETRY = "telemetry";
+	static const char * BANDWIDTH = "bandwidth";
 
 	enum EVENT_MSG {
 			ET_UNKNOWN,

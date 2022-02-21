@@ -138,6 +138,7 @@ namespace OpenWifi {
             std::string oauthType;
             std::string oauthUserInfo;
             uint64_t    modified;
+            std::string signingUp;
 
             void to_json(Poco::JSON::Object &Obj) const;
             bool from_json(const Poco::JSON::Object::Ptr &Obj);
@@ -233,7 +234,8 @@ namespace OpenWifi {
             FORGOT_PASSWORD=1,
             VERIFY_EMAIL,
             SUB_FORGOT_PASSWORD,
-            SUB_VERIFY_EMAIL
+            SUB_VERIFY_EMAIL,
+            SUB_SIGNUP
         };
 
         struct ActionLink {

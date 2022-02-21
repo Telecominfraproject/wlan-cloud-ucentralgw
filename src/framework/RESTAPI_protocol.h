@@ -135,5 +135,6 @@ namespace OpenWifi::RESTAPI::Protocol {
     static const char * TELEMETRY = "telemetry";
     static const char * INTERVAL = "interval";
     static const char * UI = "UI";
+	static const char * BANDWIDTH = "bandwidth";
 
 }
