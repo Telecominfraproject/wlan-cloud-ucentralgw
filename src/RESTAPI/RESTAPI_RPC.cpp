@@ -1,12 +1,9 @@
 //
 // Created by stephane bourque on 2021-06-28.
 //
-#include <cctype>
 #include <algorithm>
-#include <iostream>
 #include <iterator>
 #include <future>
-#include <numeric>
 #include <chrono>
 #include "RESTAPI_RPC.h"
 
@@ -61,22 +58,22 @@ namespace OpenWifi::RESTAPI_RPC {
 				std::chrono::duration<double, std::milli> rpc_execution_time = std::chrono::high_resolution_clock::now() - rpc_submitted;
 				auto rpc_answer = rpc_future.get();
 				if (rpc_answer) {
-					if (rpc_answer->has("result") && rpc_answer->isObject("result")) {
+					if (rpc_answer->has(uCentralProtocol::RESULT) && rpc_answer->isObject(uCentralProtocol::RESULT)) {
 						auto ResultFields =
-							rpc_answer->get("result").extract<Poco::JSON::Object::Ptr>();
-						if (ResultFields->has("status") && ResultFields->isObject("status")) {
+							rpc_answer->get(uCentralProtocol::RESULT).extract<Poco::JSON::Object::Ptr>();
+						if (ResultFields->has(uCentralProtocol::STATUS) && ResultFields->isObject(uCentralProtocol::STATUS)) {
 							auto StatusInnerObj =
-								ResultFields->get("status").extract<Poco::JSON::Object::Ptr>();
-							if (StatusInnerObj->has("error"))
-								Cmd.ErrorCode = StatusInnerObj->get("error");
-							if (StatusInnerObj->has("text"))
-								Cmd.ErrorText = StatusInnerObj->get("text").toString();
+								ResultFields->get(uCentralProtocol::STATUS).extract<Poco::JSON::Object::Ptr>();
+							if (StatusInnerObj->has(uCentralProtocol::ERROR))
+								Cmd.ErrorCode = StatusInnerObj->get(uCentralProtocol::ERROR);
+							if (StatusInnerObj->has(uCentralProtocol::TEXT))
+								Cmd.ErrorText = StatusInnerObj->get(uCentralProtocol::TEXT).toString();
 							std::stringstream ResultText;
-							Poco::JSON::Stringifier::stringify(rpc_answer->get("result"),
+							Poco::JSON::Stringifier::stringify(rpc_answer->get(uCentralProtocol::RESULT),
 															   ResultText);
 							Cmd.Results = ResultText.str();
 							Cmd.Status = "completed";
-							Cmd.Completed = time(nullptr);
+							Cmd.Completed = std::time(nullptr);
 							Cmd.executionTime = rpc_execution_time.count();
 
 							if (Cmd.ErrorCode && Cmd.Command == uCentralProtocol::TRACE) {
@@ -111,15 +108,30 @@ namespace OpenWifi::RESTAPI_RPC {
 							"Invalid response for command '%s'. Missing status.", Cmd.UUID));
 						return;
 					}
+				} else {
+					Logger.information(Poco::format(
+						"Timeout1 for command '%s'.", Cmd.UUID));
+					SetCommandStatus(Cmd, Request, Response, Handler, Storage::COMMAND_TIMEDOUT,
+									 Logger);
+					return;
 				}
 			} else if (rpc_result == std::future_status::timeout) {
+				Logger.information(Poco::format(
+					"Timeout2 for command '%s'.", Cmd.UUID));
 				SetCommandStatus(Cmd, Request, Response, Handler, Storage::COMMAND_TIMEDOUT,
 								 Logger);
+				return;
 			} else {
+				Logger.information(Poco::format(
+					"Pending completion for command '%s'.", Cmd.UUID));
 				SetCommandStatus(Cmd, Request, Response, Handler, Storage::COMMAND_PENDING, Logger);
+				return;
 			}
 		} else {
+			Logger.information(Poco::format(
+				"Pending completion for command '%s'.", Cmd.UUID));
 			SetCommandStatus(Cmd, Request, Response, Handler, Storage::COMMAND_PENDING, Logger);
+			return;
 		}
 	}
 }

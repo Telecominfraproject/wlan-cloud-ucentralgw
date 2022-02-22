@@ -210,6 +210,9 @@ namespace OpenWifi::uCentralProtocol {
 	static const char * JSONRPC_VERSION = "2.0";
 	static const char * METHOD = "method";
 	static const char * PARAMS = "params";
+	static const char * STATUS = "status";
+	static const char * ERROR = "error";
+	static const char * TEXT = "text";
 	static const char * SERIAL = "serial";
 	static const char * FIRMWARE = "firmware";
 	static const char * CONNECT = "connect";

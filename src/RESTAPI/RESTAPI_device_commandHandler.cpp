@@ -461,6 +461,10 @@ void RESTAPI_device_commandHandler::Reboot() {
 			return BadRequest(RESTAPI::Errors::SerialNumberMismatch);
 		}
 
+		if(!DeviceRegistry()->Connected(SerialNumber_)) {
+			return BadRequest(RESTAPI::Errors::DeviceNotConnected);
+		}
+
 		uint64_t When = GetWhen(Obj);
 		GWObjects::CommandDetails Cmd;
 		Cmd.SerialNumber = SerialNumber_;
@@ -580,6 +584,10 @@ void RESTAPI_device_commandHandler::Trace() {
 			return BadRequest(RESTAPI::Errors::SerialNumberMismatch);
 		}
 
+		if(!DeviceRegistry()->Connected(SerialNumber_)) {
+			return BadRequest(RESTAPI::Errors::DeviceNotConnected);
+		}
+
 		auto Duration = Get(RESTAPI::Protocol::DURATION, Obj, 30);
 		auto When = GetWhen(Obj);
 		auto NumberOfPackets = Get(RESTAPI::Protocol::NUMBEROFPACKETS, Obj, 100);
@@ -625,6 +633,10 @@ void RESTAPI_device_commandHandler::WifiScan() {
 	auto SNum = Obj->get(RESTAPI::Protocol::SERIALNUMBER).toString();
 	if (SerialNumber_ != SNum) {
 		return BadRequest(RESTAPI::Errors::SerialNumberMismatch);
+	}
+
+	if(!DeviceRegistry()->Connected(SerialNumber_)) {
+		return BadRequest(RESTAPI::Errors::DeviceNotConnected);
 	}
 
 	bool OverrideDFS = GetB(RESTAPI::Protocol::OVERRIDEDFS, Obj, true);
@@ -737,8 +749,14 @@ void RESTAPI_device_commandHandler::MakeRequest() {
 
 	void RESTAPI_device_commandHandler::Rtty() {
 		Logger_.information(Poco::format("RTTY: user=%s serial=%s", UserInfo_.userinfo.email,SerialNumber_));
+
+		if(!DeviceRegistry()->Connected(SerialNumber_)) {
+			return BadRequest(RESTAPI::Errors::DeviceNotConnected);
+		}
+
 		if (MicroService::instance().ConfigGetBool("rtty.enabled", false)) {
 			GWObjects::Device	Device;
+
 			if (StorageService()->GetDevice(SerialNumber_, Device)) {
 				auto CommandUUID = MicroService::CreateUUID();
 
