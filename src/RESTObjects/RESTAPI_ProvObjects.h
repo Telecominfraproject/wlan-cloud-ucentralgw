@@ -285,6 +285,7 @@ namespace OpenWifi::ProvObjects {
         std::string     rrm;
         Types::UUID_t   managementPolicy;
         std::string     state;
+        std::string     devClass;
 
         void to_json(Poco::JSON::Object &Obj) const;
         bool from_json(const Poco::JSON::Object::Ptr &Obj);
@@ -380,6 +381,18 @@ namespace OpenWifi::ProvObjects {
 
     struct MapList {
         std::vector<Map>    list;
+
+        void to_json(Poco::JSON::Object &Obj) const;
+        bool from_json(const Poco::JSON::Object::Ptr &Obj);
+    };
+
+    struct SignupEntry {
+        ObjectInfo          info;
+        std::string         email;
+        std::string         userId;
+        std::string         serialNumber;
+        uint64_t            created = 0 ;
+        uint64_t            completed = 0 ;
 
         void to_json(Poco::JSON::Object &Obj) const;
         bool from_json(const Poco::JSON::Object::Ptr &Obj);

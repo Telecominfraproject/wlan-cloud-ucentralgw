@@ -588,10 +588,6 @@ void RESTAPI_device_commandHandler::Trace() {
 			return BadRequest(RESTAPI::Errors::DeviceNotConnected);
 		}
 
-		auto Duration = Get(RESTAPI::Protocol::DURATION, Obj, 30);
-		auto When = GetWhen(Obj);
-		auto NumberOfPackets = Get(RESTAPI::Protocol::NUMBEROFPACKETS, Obj, 100);
-
 		auto Network = GetS(RESTAPI::Protocol::NETWORK, Obj);
 		auto Interface = GetS(RESTAPI::Protocol::INTERFACE, Obj);
 		auto UUID = MicroService::CreateUUID();
@@ -602,16 +598,21 @@ void RESTAPI_device_commandHandler::Trace() {
 		Cmd.UUID = UUID;
 		Cmd.SubmittedBy = UserInfo_.webtoken.username_;
 		Cmd.Command = uCentralProtocol::TRACE;
-		Cmd.RunAt = When;
+		Cmd.RunAt = 0;
 		Cmd.WaitingForFile = 1;
 		Cmd.AttachType = RESTAPI::Protocol::PCAP_FILE_TYPE;
 
 		Poco::JSON::Object Params;
 
+		if(Obj->has(RESTAPI::Protocol::DURATION))
+			Params.set(uCentralProtocol::DURATION, Get(RESTAPI::Protocol::DURATION, Obj, 30) );
+		else if(Obj->has(RESTAPI::Protocol::NUMBEROFPACKETS))
+			Params.set(uCentralProtocol::PACKETS,Get(RESTAPI::Protocol::NUMBEROFPACKETS, Obj, 100));
+		else
+			Params.set(uCentralProtocol::DURATION, 30);
+
 		Params.set(uCentralProtocol::SERIAL, SerialNumber_);
-		Params.set(uCentralProtocol::DURATION, Duration);
-		Params.set(uCentralProtocol::WHEN, When);
-		Params.set(uCentralProtocol::PACKETS, NumberOfPackets);
+		Params.set(uCentralProtocol::WHEN, 0);
 		Params.set(uCentralProtocol::NETWORK, Network);
 		Params.set(uCentralProtocol::INTERFACE, Interface);
 		Params.set(uCentralProtocol::URI, URI);
