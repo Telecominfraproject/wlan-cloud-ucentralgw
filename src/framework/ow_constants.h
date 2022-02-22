@@ -214,6 +214,9 @@ namespace OpenWifi::uCentralProtocol {
 	static const char * FIRMWARE = "firmware";
 	static const char * CONNECT = "connect";
 	static const char * STATE = "state";
+	static const char * STATUS = "status";
+	static const char * ERROR = "error";
+	static const char * TEXT = "text";
 	static const char * HEALTHCHECK = "healthcheck";
 	static const char * LOG = "log";
 	static const char * CRASHLOG = "crashlog";
