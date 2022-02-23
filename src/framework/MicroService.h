@@ -86,6 +86,8 @@ using namespace std::chrono_literals;
 
 namespace OpenWifi {
 
+    inline uint64_t Now() { return std::time(nullptr); };
+
     enum UNAUTHORIZED_REASON {
         SUCCESS=0,
         PASSWORD_CHANGE_REQUIRED,

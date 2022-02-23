@@ -2414,7 +2414,7 @@ namespace OpenWifi {
         } else if(format == "uc-mac") {
             if(std::regex_match(value,mac_regex))
                 return;
-            throw std::invalid_argument(value + " is not a valid MAC: should be something like 2e60:3500::/64.");
+            throw std::invalid_argument(value + " is not a valid MAC: should be something like 11:22:33:44:55:66");
         } else if(format == "uc-timeout") {
             if(std::regex_match(value,uc_timeout_regex))
                 return;

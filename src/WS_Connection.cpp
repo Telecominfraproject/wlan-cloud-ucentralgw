@@ -283,8 +283,8 @@ namespace OpenWifi {
 	void WSConnection::ProcessJSONRPCEvent(Poco::JSON::Object::Ptr &Doc) {
 
 		auto Method = Doc->get(uCentralProtocol::METHOD).toString();
-		auto EventType = uCentralProtocol::EventFromString(Method);
-		if (EventType == uCentralProtocol::ET_UNKNOWN) {
+		auto EventType = uCentralProtocol::Events::EventFromString(Method);
+		if (EventType == uCentralProtocol::Events::ET_UNKNOWN) {
 			poco_warning(Logger(),Poco::format("ILLEGAL-PROTOCOL(%s): Unknown message type '%s'", CId_, Method));
 			Errors_++;
 			return;
@@ -348,7 +348,7 @@ namespace OpenWifi {
 			Conn_->Conn_.LastContact = std::time(nullptr);
 
 		switch (EventType) {
-		case uCentralProtocol::ET_CONNECT: {
+		case uCentralProtocol::Events::ET_CONNECT: {
 			if (ParamsObj->has(uCentralProtocol::UUID) &&
 				ParamsObj->has(uCentralProtocol::FIRMWARE) &&
 				ParamsObj->has(uCentralProtocol::CAPABILITIES)) {
@@ -410,7 +410,7 @@ namespace OpenWifi {
 			}
 		} break;
 
-		case uCentralProtocol::ET_STATE: {
+		case uCentralProtocol::Events::ET_STATE: {
 			if (!Connected_) {
 				poco_warning(Logger(),Poco::format(
 										   "INVALID-PROTOCOL(%s): Device '%s' is not following protocol", CId_, CN_));
@@ -457,7 +457,7 @@ namespace OpenWifi {
 			}
 		} break;
 
-		case uCentralProtocol::ET_HEALTHCHECK: {
+		case uCentralProtocol::Events::ET_HEALTHCHECK: {
 			if (!Connected_) {
 				poco_warning(Logger(),Poco::format(
 										   "INVALID-PROTOCOL(%s): Device '%s' is not following protocol", CId_, CN_));
@@ -513,7 +513,7 @@ namespace OpenWifi {
 			}
 		} break;
 
-		case uCentralProtocol::ET_LOG: {
+		case uCentralProtocol::Events::ET_LOG: {
 			if (!Connected_) {
 				poco_warning(Logger(),Poco::format(
 										   "INVALID-PROTOCOL(%s): Device '%s' is not following protocol", CId_, CN_));
@@ -545,7 +545,7 @@ namespace OpenWifi {
 			}
 		} break;
 
-		case uCentralProtocol::ET_CRASHLOG: {
+		case uCentralProtocol::Events::ET_CRASHLOG: {
 			if (ParamsObj->has(uCentralProtocol::UUID) && ParamsObj->has(uCentralProtocol::LOGLINES)) {
 				poco_trace(Logger(),Poco::format("CRASH-LOG(%s): new entry.", CId_));
 				auto LogLines = ParamsObj->get(uCentralProtocol::LOGLINES);
@@ -571,7 +571,7 @@ namespace OpenWifi {
 			}
 		} break;
 
-		case uCentralProtocol::ET_PING: {
+		case uCentralProtocol::Events::ET_PING: {
 			if (ParamsObj->has(uCentralProtocol::UUID)) {
 				uint64_t UUID = ParamsObj->get(uCentralProtocol::UUID);
 				poco_trace(Logger(),Poco::format("PING(%s): Current config is %Lu", CId_, UUID));
@@ -580,7 +580,7 @@ namespace OpenWifi {
 			}
 		} break;
 
-		case uCentralProtocol::ET_CFGPENDING: {
+		case uCentralProtocol::Events::ET_CFGPENDING: {
 			if (!Connected_) {
 				poco_warning(Logger(),Poco::format(
 										   "INVALID-PROTOCOL(%s): Device '%s' is not following protocol", CId_, CN_));
@@ -597,7 +597,7 @@ namespace OpenWifi {
 			}
 		} break;
 
-		case uCentralProtocol::ET_RECOVERY: {
+		case uCentralProtocol::Events::ET_RECOVERY: {
 			if (ParamsObj->has(uCentralProtocol::SERIAL) &&
 				ParamsObj->has(uCentralProtocol::FIRMWARE) && ParamsObj->has(uCentralProtocol::UUID) &&
 				ParamsObj->has(uCentralProtocol::REBOOT) &&
@@ -650,7 +650,7 @@ namespace OpenWifi {
 			}
 		} break;
 
-		case uCentralProtocol::ET_DEVICEUPDATE: {
+		case uCentralProtocol::Events::ET_DEVICEUPDATE: {
 			if (!Connected_) {
 				poco_warning(Logger(),Poco::format(
 										   "INVALID-PROTOCOL(%s): Device '%s' is not following protocol", CId_, CN_));
@@ -665,7 +665,7 @@ namespace OpenWifi {
 			}
 		} break;
 
-		case uCentralProtocol::ET_TELEMETRY: {
+		case uCentralProtocol::Events::ET_TELEMETRY: {
 			if (!Connected_) {
 				poco_warning(Logger(),Poco::format(
 										   "INVALID-PROTOCOL(%s): Device '%s' is not following protocol", CId_, CN_));
@@ -701,7 +701,7 @@ namespace OpenWifi {
 
 		// 	this will never be called but some compilers will complain if we do not have a case for
 		//	every single values of an enum
-		case uCentralProtocol::ET_UNKNOWN: {
+		case uCentralProtocol::Events::ET_UNKNOWN: {
 			poco_warning(Logger(),Poco::format("ILLEGAL-EVENT(%s): Event '%s' unknown. CN=%s", CId_, Method, CN_));
 			Errors_++;
 		}
