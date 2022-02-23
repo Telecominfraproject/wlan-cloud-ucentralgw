@@ -650,9 +650,9 @@ test_service() {
 	fi
 
 	echo
-	echo "--------------------------"
-	echo "Create network trace on AP"
-	echo "--------------------------"
+	echo "--------------------"
+	echo "Create network trace"
+	echo "--------------------"
 	trace $1 5 up
 	check_response $result_file
 	TRACE_STATUS="$(jq -r '.status' < $result_file)"
@@ -781,7 +781,7 @@ help() {
   echo
   echo "wstest  			  Testing the WebSocket interface."
   echo
-  echo "test_service                      Run a set of CLI commands for testing purposes"
+  echo "test_service <serial>             Run a set of CLI commands for testing purposes"
   echo
   echo
   echo "To pass additional flags to the CURL command, create an environment variable called FLAGS and git ve the values you"
