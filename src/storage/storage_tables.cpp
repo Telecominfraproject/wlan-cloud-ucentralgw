@@ -77,7 +77,10 @@ namespace OpenWifi {
 						"CreationTimestamp BIGINT,   "
 						"LastConfigurationChange BIGINT, "
 						"LastConfigurationDownload BIGINT, "
-						"LastFWUpdate	BIGINT		"
+						"LastFWUpdate	BIGINT,		"
+						"subscriber 	VARCHAR(64), "
+						"entity     	VARCHAR(64), "
+						"modified		BIGINT "
 						",INDEX DeviceOwner (Owner ASC),"
 						"INDEX LocationIndex (Location ASC))", Poco::Data::Keywords::now;
 			} else if(dbType_==sqlite || dbType_==pgsql) {
@@ -99,10 +102,26 @@ namespace OpenWifi {
 						"CreationTimestamp BIGINT,   "
 						"LastConfigurationChange BIGINT, "
 						"LastConfigurationDownload BIGINT, "
-						"LastFWUpdate	BIGINT		"
+						"LastFWUpdate	BIGINT		,"
+						"subscriber 	VARCHAR(64) , "
+						"entity     	VARCHAR(64) , "
+						"modified		BIGINT "
 						")", Poco::Data::Keywords::now;
 				Sess << "CREATE INDEX IF NOT EXISTS DeviceOwner ON Devices (Owner ASC)", Poco::Data::Keywords::now;
 				Sess << "CREATE INDEX IF NOT EXISTS DeviceLocation ON Devices (Location ASC)", Poco::Data::Keywords::now;
+			}
+			// we must upgrade old DBs
+			std::vector<std::string> Script{
+				"alter table devices add column subscriber varchar(64)",
+				"alter table devices add column entity varchar(64)",
+				"alter table devices add column modified bigint"
+			};
+
+			for(const auto &i:Script) {
+				try {
+					Sess << i, Poco::Data::Keywords::now;
+				} catch (...) {
+				}
 			}
 			return 0;
 		} catch(const Poco::Exception &E) {

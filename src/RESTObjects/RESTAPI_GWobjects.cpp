@@ -45,6 +45,9 @@ namespace OpenWifi::GWObjects {
 		field_to_json(Obj,"compatible", Compatible);
 		field_to_json(Obj,"fwUpdatePolicy", FWUpdatePolicy);
 		field_to_json(Obj,"devicePassword", DevicePassword);
+		field_to_json(Obj,"subscriber", subscriber);
+		field_to_json(Obj,"entity", entity);
+		field_to_json(Obj,"modified", modified);
 	}
 
 	void Device::to_json_with_status(Poco::JSON::Object &Obj) const {
@@ -81,6 +84,8 @@ namespace OpenWifi::GWObjects {
 			field_from_json(Obj,"location",Location);
 			field_from_json(Obj,"venue",Venue);
 			field_from_json(Obj,"compatible",Compatible);
+			field_from_json(Obj,"subscriber", subscriber);
+			field_from_json(Obj,"entity", entity);
 			return true;
 		} catch (const Poco::Exception &E) {
 		}

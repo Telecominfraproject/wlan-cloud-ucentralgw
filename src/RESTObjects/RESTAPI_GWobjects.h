@@ -59,6 +59,10 @@ namespace OpenWifi::GWObjects {
 		uint64_t LastFWUpdate = 0 ;
 		std::string Venue;
 		std::string DevicePassword;
+		std::string subscriber;
+		std::string entity;
+		uint64_t 	modified=0;
+
 		void to_json(Poco::JSON::Object &Obj) const;
 		void to_json_with_status(Poco::JSON::Object &Obj) const;
 		bool from_json(Poco::JSON::Object::Ptr &Obj);

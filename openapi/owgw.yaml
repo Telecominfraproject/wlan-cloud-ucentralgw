@@ -139,6 +139,15 @@ components:
           type: string
         devicePassword:
           type: string
+        subscriber:
+          type: string
+          format: uuid
+        entity:
+          type: string
+          format: uuid
+        modified:
+          type: integer
+          format: int64
 
     DeviceWithStatus:
       type: object
@@ -207,6 +216,15 @@ components:
         devicePassword:
           type: string
         lastContact:
+          type: integer
+          format: int64
+        subscriber:
+          type: string
+          format: uuid
+        entity:
+          type: string
+          format: uuid
+        modified:
           type: integer
           format: int64
 

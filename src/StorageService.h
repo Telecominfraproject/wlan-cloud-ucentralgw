@@ -90,14 +90,9 @@ namespace OpenWifi {
 		bool DeleteDevice(std::string &SerialNumber);
 		bool UpdateDevice(GWObjects::Device &);
 		bool DeviceExists(std::string & SerialNumber);
-		bool SetOwner(std::string & SerialNumber, std::string & OwnerUUID);
-		bool SetLocation(std::string & SerialNumber, std::string & LocationUUID);
-		bool SetVenue(std::string & SerialNumber, std::string & OwnerUUID);
 		bool SetConnectInfo(std::string &SerialNumber, std::string &Firmware);
 		bool GetDeviceCount(uint64_t & Count);
 		bool GetDeviceSerialNumbers(uint64_t From, uint64_t HowMany, std::vector<std::string> & SerialNumbers);
-		bool SetDeviceCompatibility(std::string & SerialNumber, std::string & Compatible);
-		bool GetDevicesWithoutFirmware(std::string &DeviceType, std::string &Version, std::vector<std::string> & SerialNumbers);
 		bool GetDeviceFWUpdatePolicy(std::string & SerialNumber, std::string & Policy);
 		bool SetDevicePassword(std::string & SerialNumber, std::string & Password);
 		bool UpdateSerialNumberCache();

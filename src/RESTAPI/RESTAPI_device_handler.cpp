@@ -178,6 +178,8 @@ namespace OpenWifi {
 		AssignIfPresent(Obj, "venue", Existing.Venue);
 		AssignIfPresent(Obj, "owner", Existing.Owner);
 		AssignIfPresent(Obj, "location", Existing.Location);
+		AssignIfPresent(Obj, "subscriber", Existing.subscriber);
+		AssignIfPresent(Obj, "entity", Existing.entity);
 
 		for(auto &i:NewDevice.Notes) {
 			i.createdBy = UserInfo_.userinfo.email;
