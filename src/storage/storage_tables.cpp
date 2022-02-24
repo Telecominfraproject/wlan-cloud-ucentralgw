@@ -80,7 +80,8 @@ namespace OpenWifi {
 						"LastFWUpdate	BIGINT,		"
 						"subscriber 	VARCHAR(64), "
 						"entity     	VARCHAR(64), "
-						"modified		BIGINT "
+						"modified		BIGINT,"
+						"locale 		varchar(32) "
 						",INDEX DeviceOwner (Owner ASC),"
 						"INDEX LocationIndex (Location ASC))", Poco::Data::Keywords::now;
 			} else if(dbType_==sqlite || dbType_==pgsql) {
@@ -105,7 +106,8 @@ namespace OpenWifi {
 						"LastFWUpdate	BIGINT		,"
 						"subscriber 	VARCHAR(64) , "
 						"entity     	VARCHAR(64) , "
-						"modified		BIGINT "
+						"modified		BIGINT,"
+						"locale 		varchar(32) "
 						")", Poco::Data::Keywords::now;
 				Sess << "CREATE INDEX IF NOT EXISTS DeviceOwner ON Devices (Owner ASC)", Poco::Data::Keywords::now;
 				Sess << "CREATE INDEX IF NOT EXISTS DeviceLocation ON Devices (Location ASC)", Poco::Data::Keywords::now;
@@ -116,7 +118,7 @@ namespace OpenWifi {
 				"alter table devices add column subscriber varchar(64)",
 				"alter table devices add column entity varchar(64)",
 				"alter table devices add column modified bigint",
-				"alter table devices add column local varchar(32)"
+				"alter table devices add column locale varchar(32)"
 			};
 
 			for(const auto &i:Script) {
