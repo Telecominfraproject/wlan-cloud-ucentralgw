@@ -416,6 +416,7 @@ namespace OpenWifi {
 				if (KafkaManager()->Enabled()) {
 					Poco::JSON::Stringifier Stringify;
 					ParamsObj->set(uCentralProtocol::CONNECTIONIP, CId_);
+					ParamsObj->set("locale", Conn_->Conn_.locale );
 					std::ostringstream OS;
 					Stringify.condense(ParamsObj, OS);
 					KafkaManager()->PostMessage(KafkaTopics::CONNECTION, SerialNumber_, OS.str());
