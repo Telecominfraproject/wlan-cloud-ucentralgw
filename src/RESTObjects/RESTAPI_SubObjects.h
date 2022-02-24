@@ -238,6 +238,8 @@ namespace OpenWifi::SubObjects {
         uint64_t                maximumClients = 64;
         RadioRates              rates;
         RadioHE                 he;
+        bool                    allowDFS=false;
+        std::string             mimo;
         std::vector<std::string>    rawInfo;
 
         void to_json(Poco::JSON::Object &Obj) const;

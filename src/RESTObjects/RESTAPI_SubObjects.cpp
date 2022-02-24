@@ -433,6 +433,8 @@ namespace OpenWifi::SubObjects {
         field_to_json(Obj, "rates", rates);
         field_to_json(Obj, "he", he);
         field_to_json(Obj, "rawInfo", rawInfo);
+        field_to_json(Obj, "allowDFS", allowDFS);
+        field_to_json(Obj, "mimo", mimo);
     }
 
     bool RadioInformation::from_json(const Poco::JSON::Object::Ptr &Obj) {
@@ -452,6 +454,8 @@ namespace OpenWifi::SubObjects {
             field_from_json(Obj, "rates", rates);
             field_from_json(Obj, "he", he);
             field_from_json(Obj, "rawInfo", rawInfo);
+            field_from_json(Obj, "allowDFS", allowDFS);
+            field_from_json(Obj, "mimo", mimo);
             return true;
         } catch (...) {
         }

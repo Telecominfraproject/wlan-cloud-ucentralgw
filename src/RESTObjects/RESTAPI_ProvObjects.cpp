@@ -311,6 +311,7 @@ namespace OpenWifi::ProvObjects {
         field_to_json( Obj,"managementPolicy",managementPolicy);
         field_to_json( Obj,"state",state);
         field_to_json( Obj,"devClass",devClass);
+        field_to_json( Obj,"locale",locale);
     }
 
     bool InventoryTag::from_json(const Poco::JSON::Object::Ptr &Obj) {
@@ -330,6 +331,8 @@ namespace OpenWifi::ProvObjects {
             field_from_json( Obj,"managementPolicy",managementPolicy);
             field_from_json( Obj,"state",state);
             field_from_json( Obj,"devClass",devClass);
+            field_from_json( Obj,"locale",locale);
+
             return true;
         } catch(...) {
 
