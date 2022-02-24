@@ -380,7 +380,7 @@ namespace OpenWifi {
 				}
 				Conn_->Conn_.VerifiedCertificate = CertValidation_;
 
-				std::cout << "Device: " << SerialNumber_ << "    IP: " << Utils::FormatIPv6(PeerAddress_.toString()) << std::endl;
+				std::cout << "Device: " << SerialNumber_ << "    IP: " << PeerAddress_.toString() << std::endl;
 				Conn_->Conn_.locale = FindCountryFromIP()->Get(Utils::FormatIPv6(PeerAddress_.toString()));
 				GWObjects::Device	DeviceInfo;
 				auto DeviceExists = StorageService()->GetDevice(SerialNumber_,DeviceInfo);
