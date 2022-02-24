@@ -148,6 +148,10 @@ components:
         modified:
           type: integer
           format: int64
+        locale:
+          type: string
+          minLength: 2
+          maxLength: 2
 
     DeviceWithStatus:
       type: object
@@ -227,6 +231,10 @@ components:
         modified:
           type: integer
           format: int64
+        locale:
+          type: string
+          minLength: 2
+          maxLength: 2
 
     DeviceList:
       type: object

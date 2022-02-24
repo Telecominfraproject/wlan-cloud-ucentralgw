@@ -22,7 +22,7 @@
 #include "Daemon.h"
 #include "TelemetryStream.h"
 #include "CentralConfig.h"
-
+#include "FindCountry.h"
 
 namespace OpenWifi {
 	void WSConnection::LogException(const Poco::Exception &E) {
@@ -379,21 +379,35 @@ namespace OpenWifi {
 													   Serial, CN_));
 				}
 				Conn_->Conn_.VerifiedCertificate = CertValidation_;
-
-				auto DeviceExists = SerialNumberCache()->NumberExists(SerialNumberInt_);
+				Conn_->Conn_.locale = FindCountryFromIP()->Get(Utils::FormatIPv6(PeerAddress_.toString()));
+				GWObjects::Device	DeviceInfo;
+				auto DeviceExists = StorageService()->GetDevice(SerialNumber_,DeviceInfo);
 				if (Daemon()->AutoProvisioning() && !DeviceExists) {
 					StorageService()->CreateDefaultDevice(SerialNumber_, Capabilities, Firmware,
 														  Compatible_, PeerAddress_);
-					Conn_->Conn_.Compatible = Compatible_;
 				} else if (DeviceExists) {
 					StorageService()->UpdateDeviceCapabilities(SerialNumber_, Capabilities,
 															   Compatible_);
-					Conn_->Conn_.Compatible = Compatible_;
-					if (!Firmware.empty()) {
-						StorageService()->SetConnectInfo(SerialNumber_, Firmware);
+					bool Updated = false;
+					if(!Firmware.empty() && Firmware!=DeviceInfo.Firmware) {
+						DeviceInfo.Firmware = Firmware;
+						Updated = true;
+					}
+					if(DeviceInfo.locale != Conn_->Conn_.locale) {
+						DeviceInfo.locale = Conn_->Conn_.locale;
+						Updated = true;
+					}
+					if(Compatible_ != DeviceInfo.DeviceType) {
+						DeviceInfo.DeviceType = Compatible_;
+						Updated = true;
+					}
+					if(Updated) {
+						StorageService()->UpdateDevice(DeviceInfo);
 					}
 					LookForUpgrade(UUID);
 				}
+
+				Conn_->Conn_.Compatible = Compatible_;
 
 				if (KafkaManager()->Enabled()) {
 					Poco::JSON::Stringifier Stringify;

@@ -45,7 +45,8 @@ namespace OpenWifi {
 		"DevicePassword, "
 		"subscriber, "
 		"entity, "
-		"modified "
+		"modified, "
+		"locale "
 	};
 
 	const static std::string DB_DeviceUpdateFields{
@@ -69,35 +70,37 @@ namespace OpenWifi {
 		"DevicePassword=?, "
 		"subscriber=?, "
 		"entity=?, "
-		"modified=? "
+		"modified=?, "
+		"locale=? "
 	};
 
-	const static std::string DB_DeviceInsertValues{" VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?) "};
+	const static std::string DB_DeviceInsertValues{" VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?) "};
 
-		typedef Poco::Tuple<
-			std::string,
-			std::string,
-			std::string,
-			std::string,
-			std::string,
-			std::string,
-			std::string,
-			std::string,
-			std::string,
-			std::string,
-			std::string,
-			uint64_t,
-			uint64_t,
-			uint64_t,
-			uint64_t,
-			uint64_t,
-			std::string,
-			std::string,
-			std::string,
-			std::string,
-			uint64_t
-		> DeviceRecordTuple;
-		typedef std::vector<DeviceRecordTuple> DeviceRecordList;
+	typedef Poco::Tuple<
+		std::string,
+		std::string,
+		std::string,
+		std::string,
+		std::string,
+		std::string,
+		std::string,
+		std::string,
+		std::string,
+		std::string,
+		std::string,
+		uint64_t,
+		uint64_t,
+		uint64_t,
+		uint64_t,
+		uint64_t,
+		std::string,
+		std::string,
+		std::string,
+		std::string,
+		uint64_t,
+		std::string
+	> DeviceRecordTuple;
+	typedef std::vector<DeviceRecordTuple> DeviceRecordList;
 
 	void ConvertDeviceRecord(const DeviceRecordTuple & R, GWObjects::Device &D) {
 		D.SerialNumber = R.get<0>();
@@ -121,6 +124,7 @@ namespace OpenWifi {
 		D.subscriber = R.get<18>();
 		D.entity = R.get<19>();
 		D.modified = R.get<20>();
+		D.locale = R.get<21>();
 	}
 
 	void ConvertDeviceRecord(const GWObjects::Device &D, DeviceRecordTuple & R) {
@@ -145,6 +149,7 @@ namespace OpenWifi {
 		R.set<18>(D.subscriber);
 		R.set<19>(D.entity);
 		R.set<20>(D.modified);
+		R.set<21>(D.locale);
 	}
 
 	bool Storage::GetDeviceCount(uint64_t &Count) {
@@ -279,12 +284,12 @@ namespace OpenWifi {
 		return false;
 	}
 
-	static void InsertRadiosCountyRegulation(std::string &Config, const Poco::Net::IPAddress & IPAddress) {
+	static std::string InsertRadiosCountyRegulation(std::string &Config, const Poco::Net::IPAddress & IPAddress) {
+		std::string FoundCountry;
 		try {
 			auto C = nlohmann::json::parse(Config);
 			if(C.contains("radios") && C["radios"].is_array()) {
 				auto Radios = C["radios"];
-				std::string FoundCountry;
 				for(auto &i:Radios) {
 					if(i.contains("country") && !i["country"].empty() && i["country"]!="**")
 						continue;
@@ -298,6 +303,7 @@ namespace OpenWifi {
 		} catch (...) {
 
 		}
+		return FoundCountry;
 	}
 
 // #define 	__DBGLOG__ Logger().information(Poco::format("-->%u", (uint32_t) __LINE__));
@@ -338,8 +344,7 @@ namespace OpenWifi {
 		}
 
 		//	We need to insert the country code according to the IP in the radios section...
-		InsertRadiosCountyRegulation(D.Configuration, IPAddress);
-
+		D.locale = InsertRadiosCountyRegulation(D.Configuration, IPAddress);
 		D.SerialNumber = Poco::toLower(SerialNumber);
 		Compat = D.Compatible = Caps.Compatible();
 		D.DeviceType = Daemon()->IdentifyDevice(D.Compatible);
@@ -517,8 +522,7 @@ namespace OpenWifi {
 
 			NewDeviceDetails.modified = OpenWifi::Now();
 			ConvertDeviceRecord(NewDeviceDetails,R);
-
-			NewDeviceDetails.LastConfigurationChange = std::time(nullptr);
+			// NewDeviceDetails.LastConfigurationChange = std::time(nullptr);
 			std::string St2{"UPDATE Devices SET " +
 									DB_DeviceUpdateFields +
 							" WHERE SerialNumber=?"};
@@ -526,7 +530,7 @@ namespace OpenWifi {
 				Poco::Data::Keywords::use(R),
 				Poco::Data::Keywords::use(NewDeviceDetails.SerialNumber);
 			Update.execute();
-			GetDevice(NewDeviceDetails.SerialNumber,NewDeviceDetails);
+			// GetDevice(NewDeviceDetails.SerialNumber,NewDeviceDetails);
 			return true;
 		}
 		catch (const Poco::Exception &E) {

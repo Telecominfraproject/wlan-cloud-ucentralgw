@@ -608,8 +608,10 @@ namespace OpenWifi::ProvObjects {
         RESTAPI_utils::field_to_json( Obj,"email", email);
         RESTAPI_utils::field_to_json( Obj,"userId", userId);
         RESTAPI_utils::field_to_json( Obj,"serialNumber", serialNumber);
-        RESTAPI_utils::field_to_json( Obj,"created", created);
+        RESTAPI_utils::field_to_json( Obj,"submitted", submitted);
         RESTAPI_utils::field_to_json( Obj,"completed", completed);
+        RESTAPI_utils::field_to_json( Obj,"status", status);
+        RESTAPI_utils::field_to_json( Obj,"error", error);
     }
 
     bool SignupEntry::from_json(const Poco::JSON::Object::Ptr &Obj) {
@@ -618,14 +620,90 @@ namespace OpenWifi::ProvObjects {
             RESTAPI_utils::field_from_json( Obj,"email", email);
             RESTAPI_utils::field_from_json( Obj,"userId", userId);
             RESTAPI_utils::field_from_json( Obj,"serialNumber", serialNumber);
-            RESTAPI_utils::field_from_json( Obj,"created", created);
+            RESTAPI_utils::field_from_json( Obj,"submitted", submitted);
             RESTAPI_utils::field_from_json( Obj,"completed", completed);
+            RESTAPI_utils::field_from_json( Obj,"status", status);
+            RESTAPI_utils::field_from_json( Obj,"error", error);
             return true;
         } catch(...) {
 
         }
         return false;
     }
+
+    void Variable::to_json(Poco::JSON::Object &Obj) const {
+        RESTAPI_utils::field_to_json( Obj,"type", type);
+        RESTAPI_utils::field_to_json( Obj,"weight", weight);
+        RESTAPI_utils::field_to_json( Obj,"prefix", prefix);
+        RESTAPI_utils::field_to_json( Obj,"value", value);
+    }
+
+    bool Variable::from_json(const Poco::JSON::Object::Ptr &Obj) {
+        try {
+            RESTAPI_utils::field_from_json( Obj,"type", type);
+            RESTAPI_utils::field_from_json( Obj,"weight", weight);
+            RESTAPI_utils::field_from_json( Obj,"prefix", prefix);
+            RESTAPI_utils::field_from_json( Obj,"value", value);
+            return true;
+        } catch(...) {
+
+        }
+        return false;
+    }
+
+    void VariableList::to_json(Poco::JSON::Object &Obj) const {
+        RESTAPI_utils::field_to_json( Obj,"variables", variables);
+    }
+
+    bool VariableList::from_json(const Poco::JSON::Object::Ptr &Obj) {
+        try {
+            RESTAPI_utils::field_from_json( Obj,"variables", variables);
+            return true;
+        } catch(...) {
+
+        }
+        return false;
+    }
+
+    void VariableBlock::to_json(Poco::JSON::Object &Obj) const {
+        info.to_json(Obj);
+        RESTAPI_utils::field_to_json( Obj,"variables", variables);
+        RESTAPI_utils::field_to_json( Obj,"entity", entity);
+        RESTAPI_utils::field_to_json( Obj,"venue", venue);
+        RESTAPI_utils::field_to_json( Obj,"subscriber", subscriber);
+        RESTAPI_utils::field_to_json( Obj,"inventory", inventory);
+        RESTAPI_utils::field_to_json( Obj,"inUse", inUse);
+    }
+
+    bool VariableBlock::from_json(const Poco::JSON::Object::Ptr &Obj) {
+        try {
+            info.from_json(Obj);
+            RESTAPI_utils::field_from_json( Obj,"variables", variables);
+            RESTAPI_utils::field_from_json( Obj,"entity", entity);
+            RESTAPI_utils::field_from_json( Obj,"venue", venue);
+            RESTAPI_utils::field_from_json( Obj,"subscriber", subscriber);
+            RESTAPI_utils::field_from_json( Obj,"inventory", inventory);
+            RESTAPI_utils::field_from_json( Obj,"inUse", inUse);
+            return true;
+        } catch(...) {
+        }
+        return false;
+    }
+
+    void VariableBlockList::to_json(Poco::JSON::Object &Obj) const {
+        RESTAPI_utils::field_to_json( Obj,"variableBlocks", variableBlocks);
+    }
+
+    bool VariableBlockList::from_json(const Poco::JSON::Object::Ptr &Obj) {
+        try {
+            RESTAPI_utils::field_from_json( Obj,"variableBlocks", variableBlocks);
+            return true;
+        } catch(...) {
+
+        }
+        return false;
+    }
+
 
     bool UpdateObjectInfo(const Poco::JSON::Object::Ptr &O, const SecurityObjects::UserInfo &U, ObjectInfo &I) {
         uint64_t Now = std::time(nullptr);

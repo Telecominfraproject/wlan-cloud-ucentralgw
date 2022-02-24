@@ -110,11 +110,13 @@ namespace OpenWifi {
 				Sess << "CREATE INDEX IF NOT EXISTS DeviceOwner ON Devices (Owner ASC)", Poco::Data::Keywords::now;
 				Sess << "CREATE INDEX IF NOT EXISTS DeviceLocation ON Devices (Location ASC)", Poco::Data::Keywords::now;
 			}
+
 			// we must upgrade old DBs
 			std::vector<std::string> Script{
 				"alter table devices add column subscriber varchar(64)",
 				"alter table devices add column entity varchar(64)",
-				"alter table devices add column modified bigint"
+				"alter table devices add column modified bigint",
+				"alter table devices add column local varchar(32)"
 			};
 
 			for(const auto &i:Script) {
@@ -124,6 +126,7 @@ namespace OpenWifi {
 				}
 			}
 			return 0;
+
 		} catch(const Poco::Exception &E) {
 			Logger().log(E);
 		}

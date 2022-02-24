@@ -168,6 +168,9 @@ namespace OpenWifi {
 		std::string         FileName;
 		nlohmann::json      Registry_;
 	};
+
+    inline auto AppServiceRegistry() { return AppServiceRegistry::instance(); }
+
 }
 
 namespace OpenWifi::RESTAPI_utils {
