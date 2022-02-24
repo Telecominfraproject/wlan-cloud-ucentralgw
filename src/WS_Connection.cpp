@@ -383,7 +383,6 @@ namespace OpenWifi {
 				if(IP.substr(0,7)=="::ffff:") {
 					IP = IP.substr(7);
 				}
-				std::cout << "Device: " << SerialNumber_ << "    IP: " << IP << std::endl;
 				Conn_->Conn_.locale = FindCountryFromIP()->Get(IP);
 				GWObjects::Device	DeviceInfo;
 				auto DeviceExists = StorageService()->GetDevice(SerialNumber_,DeviceInfo);
