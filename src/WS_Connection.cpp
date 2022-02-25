@@ -386,9 +386,12 @@ namespace OpenWifi {
 				Conn_->Conn_.locale = FindCountryFromIP()->Get(IP);
 				GWObjects::Device	DeviceInfo;
 				auto DeviceExists = StorageService()->GetDevice(SerialNumber_,DeviceInfo);
+				std::cout << "Connecting: " << SerialNumber_ << std::endl;
 				if (Daemon()->AutoProvisioning() && !DeviceExists) {
+					std::cout << "Creating: " << SerialNumber_ << std::endl;
 					StorageService()->CreateDefaultDevice(SerialNumber_, Capabilities, Firmware,
 														  Compatible_, PeerAddress_);
+					std::cout << "Done Creating: " << SerialNumber_ << std::endl;
 				} else if (DeviceExists) {
 					StorageService()->UpdateDeviceCapabilities(SerialNumber_, Capabilities,
 															   Compatible_);

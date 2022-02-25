@@ -347,7 +347,7 @@ namespace OpenWifi::ProvObjects {
     bool InventoryTagList::from_json(const Poco::JSON::Object::Ptr &Obj) {
         try {
             field_from_json( Obj,"taglist",taglist);
-            return false;
+            return true;
         } catch (...) {
 
         }
