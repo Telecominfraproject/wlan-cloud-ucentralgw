@@ -322,13 +322,9 @@ namespace OpenWifi {
 
 		bool 			Found = false;
 		std::string 	FoundConfig;
-		__DBGLOG__
 		if(WebSocketServer()->UseProvisioning()) {
-			__DBGLOG__
 			if(SDKCalls::GetProvisioningConfiguration(SerialNumber, FoundConfig)) {
-				__DBGLOG__
 				if(FoundConfig != "none") {
-					__DBGLOG__
 					Found = true;
 					Config::Config NewConfig(FoundConfig);
 					NewConfig.SetUUID(Now);
@@ -338,18 +334,15 @@ namespace OpenWifi {
 		}
 
 		if (!Found && WebSocketServer()->UseDefaults() && FindDefaultConfigurationForModel(Compat, DefConfig)) {
-			__DBGLOG__
 			Config::Config NewConfig(DefConfig.Configuration);
 			NewConfig.SetUUID(Now);
 			D.Configuration = NewConfig.get();
 		} else if(!Found) {
-			__DBGLOG__
 			Config::Config NewConfig;
 			NewConfig.SetUUID(Now);
 			D.Configuration = NewConfig.get();
 		}
 
-		__DBGLOG__
 		//	We need to insert the country code according to the IP in the radios section...
 		D.locale = InsertRadiosCountyRegulation(D.Configuration, IPAddress);
 		D.SerialNumber = Poco::toLower(SerialNumber);
@@ -359,10 +352,8 @@ namespace OpenWifi {
 		D.Manufacturer = Caps.Model();
 		D.Firmware = Firmware;
 		D.Notes = SecurityObjects::NoteInfoVec { SecurityObjects::NoteInfo{ (uint64_t)std::time(nullptr), "", "Auto-provisioned."}};
-		__DBGLOG__
 
 		CreateDeviceCapabilities(SerialNumber, Capabilities);
-		__DBGLOG__
 
 		return CreateDevice(D);
 	}
