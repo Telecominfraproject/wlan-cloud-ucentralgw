@@ -2189,13 +2189,13 @@ namespace OpenWifi {
             Poco::Net::HTTPServerRequest        *Request= nullptr;
             Poco::Net::HTTPServerResponse       *Response= nullptr;
             SecurityObjects::UserInfoAndPolicy 	UserInfo_;
+            QueryBlock					QB_;
 	    protected:
 	        BindingMap 					Bindings_;
 	        Poco::URI::QueryParameters 	Parameters_;
 	        Poco::Logger 				&Logger_;
 	        std::string 				SessionToken_;
 	        std::vector<std::string> 	Methods_;
-	        QueryBlock					QB_;
 	        bool                        Internal_=false;
 	        bool                        RateLimited_=false;
 	        bool                        QueryBlockInitialized_=false;

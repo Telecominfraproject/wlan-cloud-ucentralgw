@@ -301,6 +301,15 @@ namespace OpenWifi::ProvObjects {
         bool from_json(const Poco::JSON::Object::Ptr &Obj);
     };
 
+    struct InventoryConfigApplyResult {
+        std::string         appliedConfiguration;
+        Types::StringVec    errors;
+        Types::StringVec    warnings;
+        uint64_t            errorCode;
+
+        void to_json(Poco::JSON::Object &Obj) const;
+        bool from_json(const Poco::JSON::Object::Ptr &Obj);
+    };
 
     struct Report {
         uint64_t            snapShot=0;

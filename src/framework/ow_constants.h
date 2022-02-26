@@ -346,7 +346,7 @@ namespace OpenWifi::Provisioning::DeviceClass {
     static const char * ENTITY = "entity";
 
     inline bool Validate(const char *s) {
-        static std::vector<const char *> Values{ ANY, ENTITY, SUBSCRIBER, VENUE };
+        static std::vector<std::string> Values{ ANY, ENTITY, SUBSCRIBER, VENUE };
         return std::find(cbegin(Values), cend(Values), s) != cend(Values);
     }
 

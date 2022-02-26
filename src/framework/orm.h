@@ -468,6 +468,7 @@ namespace ORM {
 
         typedef std::vector<RecordTuple>    RecordList;
         typedef std::vector<RecordType>     RecordVec;
+        typedef RecordType                  RecordName;
 
         bool GetRecords( uint64_t Offset, uint64_t HowMany, RecordVec & Records, const std::string & Where = "", const std::string & OrderBy = "") {
             try {

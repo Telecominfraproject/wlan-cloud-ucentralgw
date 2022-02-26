@@ -340,6 +340,26 @@ namespace OpenWifi::ProvObjects {
         return false;
     }
 
+    void InventoryConfigApplyResult::to_json(Poco::JSON::Object &Obj) const {
+        field_to_json( Obj, "appliedConfiguration", appliedConfiguration);
+        field_to_json( Obj, "warnings", warnings);
+        field_to_json( Obj, "errors", errors);
+        field_to_json( Obj, "errorCode", errorCode);
+    }
+
+    bool InventoryConfigApplyResult::from_json(const Poco::JSON::Object::Ptr &Obj) {
+        try {
+            field_from_json( Obj, "appliedConfiguration", appliedConfiguration);
+            field_from_json( Obj, "warnings", warnings);
+            field_from_json( Obj, "errors", errors);
+            field_from_json( Obj, "errorCode", errorCode);
+            return true;
+        } catch (...) {
+
+        }
+        return false;
+    }
+
     void InventoryTagList::to_json(Poco::JSON::Object &Obj) const {
         field_to_json( Obj,"taglist",taglist);
     }
