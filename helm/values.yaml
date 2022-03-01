@@ -58,6 +58,7 @@ ingresses:
     - restapi.chart-example.local
     paths:
     - path: /
+      pathType: ImplementationSpecific
       serviceName: owgw
       servicePort: restapi
   fileuploader:
@@ -69,6 +70,7 @@ ingresses:
     - fileuploader.chart-example.local
     paths:
     - path: /
+      pathType: ImplementationSpecific
       serviceName: owgw
       servicePort: fileuploader
 
