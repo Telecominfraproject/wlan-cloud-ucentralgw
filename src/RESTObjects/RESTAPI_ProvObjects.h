@@ -48,6 +48,7 @@ namespace OpenWifi::ProvObjects {
         std::vector<ManagementPolicyEntry>  entries;
         Types::StringVec    inUse;
         Types::UUID_t       entity;
+        Types::UUID_t       venue;
 
         void to_json(Poco::JSON::Object &Obj) const;
         bool from_json(const Poco::JSON::Object::Ptr &Obj);
@@ -66,6 +67,11 @@ namespace OpenWifi::ProvObjects {
         Types::UUIDvec_t        devices;
         std::string             rrm;
         Types::StringVec        sourceIP;
+        Types::UUIDvec_t        variables;
+        Types::UUIDvec_t        managementPolicies;
+        Types::UUIDvec_t        managementRoles;
+        Types::UUIDvec_t        maps;
+        Types::UUIDvec_t        configurations;
 
         void to_json(Poco::JSON::Object &Obj) const;
         bool from_json(const Poco::JSON::Object::Ptr &Obj);
@@ -96,6 +102,11 @@ namespace OpenWifi::ProvObjects {
         std::string         location;
         std::string         rrm;
         Types::StringVec    sourceIP;
+        Types::UUIDvec_t    variables;
+        Types::UUIDvec_t    configurations;
+        Types::UUIDvec_t    maps;
+        Types::UUIDvec_t    managementPolicies;
+        Types::UUIDvec_t    managementRoles;
 
         void to_json(Poco::JSON::Object &Obj) const;
         bool from_json(const Poco::JSON::Object::Ptr &Obj);
@@ -117,6 +128,7 @@ namespace OpenWifi::ProvObjects {
         Types::UUIDvec_t    users;
         Types::StringVec    inUse;
         Types::UUID_t       entity;
+        Types::UUID_t       venue;
 
         void to_json(Poco::JSON::Object &Obj) const;
         bool from_json(const Poco::JSON::Object::Ptr &Obj);
@@ -260,10 +272,14 @@ namespace OpenWifi::ProvObjects {
         Types::StringVec                deviceTypes;
         DeviceConfigurationElementVec   configuration;
         Types::StringVec                inUse;
-        Types::StringPairVec            variables;
+        Types::UUIDvec_t                variables;
         std::string                     rrm;
         std::string                     firmwareUpgrade;
         bool                            firmwareRCOnly=false;
+        bool                            subscriberOnly=false;
+        std::string                     venue;
+        std::string                     entity;
+        std::string                     subscriber;
 
         void to_json(Poco::JSON::Object &Obj) const;
         bool from_json(const Poco::JSON::Object::Ptr &Obj);
@@ -287,6 +303,7 @@ namespace OpenWifi::ProvObjects {
         std::string     state;
         std::string     devClass;
         std::string     locale;
+        std::string     realMacAddress;
 
         void to_json(Poco::JSON::Object &Obj) const;
         bool from_json(const Poco::JSON::Object::Ptr &Obj);
@@ -384,6 +401,8 @@ namespace OpenWifi::ProvObjects {
         std::string         creator;
         VISIBILITY          visibility = PRIVATE;
         ObjectACLList       access;
+        Types::UUID_t       managementPolicy;
+        std::string         venue;
 
         void to_json(Poco::JSON::Object &Obj) const;
         bool from_json(const Poco::JSON::Object::Ptr &Obj);
@@ -396,15 +415,28 @@ namespace OpenWifi::ProvObjects {
         bool from_json(const Poco::JSON::Object::Ptr &Obj);
     };
 
+    enum SignupStatusCodes {
+        SignupCreated = 0 ,
+        SignupWaitingForEmail,
+        SignupWaitingForDevice,
+        SignupSuccess,
+        SignupFailure,
+        SignupCanceled,
+        SignupTimedOut
+    };
+
     struct SignupEntry {
         ObjectInfo          info;
         std::string         email;
         std::string         userId;
+        std::string         macAddress;
         std::string         serialNumber;
         uint64_t            submitted = 0 ;
         uint64_t            completed = 0 ;
         std::string         status;
         uint64_t            error=0;
+        uint64_t            statusCode=0;
+        std::string         deviceID;
 
         void to_json(Poco::JSON::Object &Obj) const;
         bool from_json(const Poco::JSON::Object::Ptr &Obj);
@@ -434,7 +466,8 @@ namespace OpenWifi::ProvObjects {
         std::string                 venue;
         std::string                 subscriber;
         std::string                 inventory;
-        std::vector<std::string>    inUse;
+        Types::UUIDvec_t            configurations;
+        Types::UUID_t               managementPolicy;
 
         void to_json(Poco::JSON::Object &Obj) const;
         bool from_json(const Poco::JSON::Object::Ptr &Obj);

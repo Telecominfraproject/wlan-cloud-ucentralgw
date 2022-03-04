@@ -71,6 +71,7 @@ namespace OpenWifi::RESTAPI::Errors {
     static const std::string SerialNumberNotTheProperClass{"Device is not available to subscribers. It ahs been assigned to another class of devices."};
     static const std::string UserAlreadyExists{"Username already exists."};
     static const std::string NotImplemented{"Function not implemented."};
+    static const std::string VariableMustExist{"Specified variable does not exist."};
 }
 
 namespace OpenWifi::RESTAPI::Protocol {

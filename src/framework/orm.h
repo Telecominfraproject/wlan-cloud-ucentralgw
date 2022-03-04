@@ -730,11 +730,11 @@ namespace ORM {
                     try {
                         Command << i, Poco::Data::Keywords::now;
                     } catch (const Poco::Exception &E) {
-                        Logger_.log(E);
-                        Logger_.error(Poco::format("The following statement '%s' generated an exception during a table upgrade. This maya or may not be a problem.", i));
-                    }
-                    if(!IgnoreExceptions) {
-                        return false;
+                        // Logger_.log(E);
+                        // Logger_.error(Poco::format("The following statement '%s' generated an exception during a table upgrade. This may or may not be a problem.", i));
+                        if(!IgnoreExceptions) {
+                            return false;
+                        }
                     }
                     Command.reset(Session);
                 }
@@ -810,30 +810,30 @@ namespace ORM {
             return ManipulateVectorMember(&RecordType::users, FieldName, ParentUUID, ChildUUID, false);
         }
 
-        inline bool AddInUse(field_name_t FieldName, std::string & ParentUUID, const std::string & Prefix, const std::string & ChildUUID) {
+        inline bool AddConfiguration(field_name_t FieldName, const std::string & ParentUUID, const std::string & ChildUUID) {
+            return ManipulateVectorMember(&RecordType::deviceConfiguration, FieldName, ParentUUID, ChildUUID, true);
+        }
+
+        inline bool DelConfiguration(field_name_t FieldName, const std::string & ParentUUID, const std::string & ChildUUID) {
+            return ManipulateVectorMember(&RecordType::deviceConfiguration, FieldName, ParentUUID, ChildUUID, false);
+        }
+
+        inline bool AddVariable(field_name_t FieldName, const std::string & ParentUUID, const std::string & ChildUUID) {
+            return ManipulateVectorMember(&RecordType::variables, FieldName, ParentUUID, ChildUUID, true);
+        }
+
+        inline bool DelVariable(field_name_t FieldName, const std::string & ParentUUID, const std::string & ChildUUID) {
+            return ManipulateVectorMember(&RecordType::variables, FieldName, ParentUUID, ChildUUID, false);
+        }
+
+        inline bool AddInUse(field_name_t FieldName, const std::string & ParentUUID, const std::string & Prefix, const std::string & ChildUUID) {
             std::string FakeUUID{ Prefix + ":" + ChildUUID};
             return ManipulateVectorMember(&RecordType::inUse,FieldName, ParentUUID, FakeUUID, true);
         }
 
-        inline bool DeleteInUse(field_name_t FieldName, std::string & ParentUUID, const std::string & Prefix, const std::string & ChildUUID) {
+        inline bool DeleteInUse(field_name_t FieldName, const std::string & ParentUUID, const std::string & Prefix, const std::string & ChildUUID) {
             std::string FakeUUID{ Prefix + ":" + ChildUUID};
             return ManipulateVectorMember(&RecordType::inUse,FieldName, ParentUUID, FakeUUID, false);
-        }
-
-        inline bool DeleteContact(field_name_t FieldName, std::string & ParentUUID, const std::string & ChildUUID) {
-            return ManipulateVectorMember(&RecordType::contacts,FieldName, ParentUUID, ChildUUID, false);
-        }
-
-        inline bool AddContact(field_name_t FieldName, std::string & ParentUUID, const std::string & ChildUUID) {
-            return ManipulateVectorMember(&RecordType::contacts,FieldName, ParentUUID, ChildUUID, true);
-        }
-
-        inline bool DeleteLocation(field_name_t FieldName, std::string & ParentUUID, const std::string & ChildUUID) {
-            return ManipulateVectorMember(&RecordType::locations,FieldName, ParentUUID, ChildUUID, false);
-        }
-
-        inline bool AddLocation(field_name_t FieldName, std::string & ParentUUID, const std::string & ChildUUID) {
-            return ManipulateVectorMember(&RecordType::locations,FieldName, ParentUUID, ChildUUID, true);
         }
 
         inline bool GetInUse(field_name_t FieldName, const std::string & UUID, std::vector<std::string> & UUIDs ) {
