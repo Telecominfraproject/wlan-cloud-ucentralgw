@@ -612,6 +612,88 @@ iptocountry() {
 		jq < ${result_file}
 }
 
+check_response() {
+
+    if [ -s "$1" ]; then
+        ERROR_CODE="$(jq -r '.ErrorCode' < $1)"
+
+        if [[ -n "$ERROR_CODE" && "$ERROR_CODE" != 'null' ]]; then
+            echo "Error: got HTTP error code $ERROR_CODE, exiting"
+            exit 1
+        fi
+
+    else
+        echo "Error: result file not found or empty"
+        exit 1
+    fi
+}
+
+test_service() {
+	echo
+	echo "----------------------"
+	echo "Get system information"
+	echo "----------------------"
+	systeminfo
+	check_response $result_file
+
+	echo
+	echo "-----------------"
+	echo "Get device status"
+	echo "-----------------"
+	getdevicestatus $1
+	check_response $result_file
+	DEVICE_STATUS="$(jq -r '.connected' < $result_file)"
+
+	if [ "$DEVICE_STATUS" != true ]; then
+	    echo "Error: AP is in disconnected state"
+	    exit 1
+	fi
+
+	echo
+	echo "--------------------"
+	echo "Create network trace"
+	echo "--------------------"
+	trace $1 5 up
+	check_response $result_file
+	TRACE_STATUS="$(jq -r '.status' < $result_file)"
+
+	if [ "$TRACE_STATUS" != 'completed' ]; then
+	    echo "Error: failed to create network trace"
+	    exit 1
+	fi
+
+	TRACE_ID="$(jq -r '.UUID' < $result_file)"
+
+	echo
+	echo "-----------------"
+	echo "Get network trace"
+	echo "-----------------"
+	getfile $1 $TRACE_ID
+
+	TRACE_RESPONSE="$(jq < $TRACE_ID.pcap 2>/dev/null)"
+
+	if [ $? -eq 0 ]; then
+	    check_response $TRACE_ID.pcap
+	else
+	    echo "Successfully downloaded trace to file $TRACE_ID.pcap"
+	fi
+
+	echo
+	echo "-----------------------------"
+	echo "Create and start RTTY session"
+	echo "-----------------------------"
+	rtty $1
+	check_response $result_file
+	RTTY_STATUS="$(curl -s -I $url | awk 'NR==1 {print $2}')"
+
+	if [ "$RTTY_STATUS" != 200 ]; then
+	    echo "Error: failed to start RTTY session, HTTP status code $RTTY_STATUS"
+	    exit 1
+	else
+	    echo "RTTY session at $url was successfully started"
+	fi
+}
+
 help() {
   echo
   echo "getdevice <serial>                Get the device JSON document."
@@ -680,24 +762,26 @@ help() {
   echo "setloglevel <sys> <level>         Set the logging system level for individual subsystems."
   echo "                                  sys:ufileuploader/websocket/storage/restapi/commandmanager/auth/deviceregistry/all"
   echo "                                  level:none/fatal/critical/error/warning/notice/information/debug/trace"
-  echo "getloglevels 					  Get the log levels of all the subsystems"
+  echo "getloglevels 		          Get the log levels of all the subsystems"
   echo "getloglevelnames                  Get the list of log level names possible"
   echo "getsubsystemnames                 Get the subsystems that can be used when setting log levels."
   echo "getfile <serial> <uuid> <name>	  Get the file associated with trace command <uuid> for device <serial>"
-  echo "								  The file will be saved with the name <name>"
+  echo "		                  The file will be saved with the name <name>"
   echo
-  echo "rtty <serial>					  Get the details for an rtty session."
+  echo "rtty <serial>			  Get the details for an rtty session."
   echo
-  echo "lifetimestats <serial>			  Get the lifetime stats counters for a device"
-  echo "laststats <serial>			      Get the last statistics for a device"
-  echo "neweststats <serial>			  Get the newest statistics for a device"
+  echo "lifetimestats <serial>	          Get the lifetime stats counters for a device"
+  echo "laststats <serial>	          Get the last statistics for a device"
+  echo "neweststats <serial>	          Get the newest statistics for a device"
   echo
-  echo "ouilookup <serial> 				  Lookup an OUI"
+  echo "ouilookup <serial> 		  Lookup an OUI"
   echo
-  echo "dashboard 				  		  Get the dashboard document"
-  echo "systeminfo						  Get information on the system running the service."
+  echo "dashboard 			  Get the dashboard document"
+  echo "systeminfo			  Get information on the system running the service."
   echo
-  echo "wstest  						  Testing the WebSocket interface."
+  echo "wstest  			  Testing the WebSocket interface."
+  echo
+  echo "test_service <serial>             Run a set of CLI commands for testing purposes"
   echo
   echo
   echo "To pass additional flags to the CURL command, create an environment variable called FLAGS and git ve the values you"
@@ -774,5 +858,6 @@ case "$1" in
   "wstest") login; wstest; logout;;
   "caplist") login; caplist; logout;;
   "iptocountry") login; iptocountry $2; logout;;
+  "test_service") login; test_service $2; logout;;
   *) help ;;
 esac
