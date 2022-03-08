@@ -4310,6 +4310,7 @@ namespace OpenWifi {
                     Request.add("Authorization", "Bearer " + BearerToken);
                 }
 
+                Session.sendRequest(Request);
                 Poco::Net::HTTPResponse Response;
                 Session.receiveResponse(Response);
                 return Response.getStatus();
