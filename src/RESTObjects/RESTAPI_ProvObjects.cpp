@@ -152,7 +152,7 @@ namespace OpenWifi::ProvObjects {
         field_to_json( Obj,"design",design);
         field_to_json( Obj,"managementPolicy",managementPolicy);
         field_to_json( Obj,"deviceConfiguration",deviceConfiguration);
-        field_to_json( Obj,"contact",contact);
+        field_to_json( Obj,"contacts",contacts);
         field_to_json( Obj,"location",location);
         field_to_json( Obj,"rrm",rrm);
         field_to_json( Obj,"sourceIP",sourceIP);
@@ -175,7 +175,7 @@ namespace OpenWifi::ProvObjects {
             field_from_json( Obj,"design",design);
             field_from_json( Obj,"managementPolicy",managementPolicy);
             field_from_json( Obj,"deviceConfiguration",deviceConfiguration);
-            field_from_json( Obj,"contact",contact);
+            field_from_json( Obj,"contacts",contacts);
             field_from_json( Obj,"location",location);
             field_from_json( Obj,"rrm",rrm);
             field_from_json( Obj,"sourceIP",sourceIP);
@@ -816,5 +816,12 @@ namespace OpenWifi::ProvObjects {
 
         return true;
     }
+
+    bool CreateObjectInfo(const SecurityObjects::UserInfo &U, ObjectInfo &I) {
+        I.modified = I.created = OpenWifi::Now();
+        I.id = MicroService::CreateUUID();
+        return true;
+    }
+
 }
 

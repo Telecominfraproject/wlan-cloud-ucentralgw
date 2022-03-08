@@ -24,6 +24,7 @@ namespace OpenWifi::SubObjects {
         int             subnetMaskV6=0;
         std::string     startIPV6;
         std::string     endIPV6;
+        std::string     leaseTime;
 
         void to_json(Poco::JSON::Object &Obj) const;
         bool from_json(const Poco::JSON::Object::Ptr &Obj);
@@ -249,6 +250,7 @@ namespace OpenWifi::SubObjects {
     struct AccessPoint {
         std::string                 id;
         std::string                 macAddress;
+        std::string                 serialNumber;
         std::string                 name;
         std::string                 deviceType;
         SubscriberDeviceList        subscriberDevices;
@@ -261,6 +263,12 @@ namespace OpenWifi::SubObjects {
         std::vector<RadioInformation>   radios;
         bool                        automaticUpgrade = true;
         std::string                 configurationUUID;
+        std::string                 currentFirmware;
+        uint64_t                    currentFirmwareDate;
+        std::string                 latestFirmware;
+        uint64_t                    latestFirmwareDate;
+        bool                        newFirmwareAvailable;
+        std::string                 latestFirmwareURI;
 
         void to_json(Poco::JSON::Object &Obj) const;
         bool from_json(const Poco::JSON::Object::Ptr &Obj);

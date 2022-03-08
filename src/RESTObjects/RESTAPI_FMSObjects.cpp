@@ -245,4 +245,32 @@ namespace OpenWifi::FMSObjects {
         }
         return false;
     }
+
+    void DeviceInformation::to_json(Poco::JSON::Object &Obj) const {
+        field_to_json(Obj, "serialNumber",serialNumber);
+        field_to_json(Obj, "history", history);
+        field_to_json(Obj, "currentFirmware", currentFirmware);
+        field_to_json(Obj, "currentFirmwareDate", currentFirmwareDate);
+        field_to_json(Obj, "latestFirmware", latestFirmware);
+        field_to_json(Obj, "latestFirmwareDate", latestFirmwareDate);
+        field_to_json(Obj, "latestFirmwareAvailable",latestFirmwareAvailable);
+        field_to_json(Obj, "latestFirmwareURI",latestFirmwareURI);
+    }
+
+    bool DeviceInformation::from_json(const Poco::JSON::Object::Ptr &Obj) {
+        try {
+            field_from_json(Obj, "serialNumber",serialNumber);
+            field_from_json(Obj, "history", history);
+            field_from_json(Obj, "currentFirmware", currentFirmware);
+            field_from_json(Obj, "currentFirmwareDate", currentFirmwareDate);
+            field_from_json(Obj, "latestFirmware", latestFirmware);
+            field_from_json(Obj, "latestFirmwareDate", latestFirmwareDate);
+            field_from_json(Obj, "latestFirmwareAvailable",latestFirmwareAvailable);
+            field_from_json(Obj, "latestFirmwareURI",latestFirmwareURI);
+            return true;
+        } catch(...) {
+
+        }
+        return false;
+    }
 }

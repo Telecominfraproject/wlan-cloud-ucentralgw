@@ -127,6 +127,20 @@ namespace OpenWifi::FMSObjects {
         void reset();
         bool from_json(const Poco::JSON::Object::Ptr &Obj);
     };
+
+    struct DeviceInformation {
+        std::string                 serialNumber;
+        RevisionHistoryEntryList    history;
+        std::string                 currentFirmware;
+        uint64_t                    currentFirmwareDate=0;
+        std::string                 latestFirmware;
+        uint64_t                    latestFirmwareDate=0;
+        bool                        latestFirmwareAvailable;
+        std::string                 latestFirmwareURI;
+
+        void to_json(Poco::JSON::Object &Obj) const;
+        bool from_json(const Poco::JSON::Object::Ptr &Obj);
+    };
 }
 
 

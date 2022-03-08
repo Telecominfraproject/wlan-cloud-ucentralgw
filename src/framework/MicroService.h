@@ -83,7 +83,7 @@ using namespace std::chrono_literals;
 #include "ow_version.h"
 
 #define _OWDEBUG_ std::cout<< __FILE__ <<":" << __LINE__ << std::endl;
-
+// #define _OWDEBUG_ Logger().debug(Poco::format("%s: %lu",__FILE__,__LINE__));
 namespace OpenWifi {
 
     inline uint64_t Now() { return std::time(nullptr); };
@@ -1679,7 +1679,7 @@ namespace OpenWifi {
                         std::vector<std::string> Methods,
                         RESTAPI_GenericServer & Server,
                         uint64_t TransactionId,
-                        bool Internal=false,
+                        bool Internal,
                         bool AlwaysAuthorize=true,
                         bool RateLimited=false,
 	                    const RateLimit & Profile = RateLimit{.Interval=1000,.MaxCalls=100},
@@ -1858,7 +1858,17 @@ namespace OpenWifi {
 	            return Return;
 	    }
 
-	    static inline bool AssignIfPresent(const Poco::JSON::Object::Ptr &O, const std::string &Field, std::string &Value) {
+        static inline bool AssignIfPresent(const Poco::JSON::Object::Ptr &O, const std::string &Field, Types::UUIDvec_t & Value) {
+            if(O->has(Field) && O->isArray(Field)) {
+                auto Arr = O->getArray(Field);
+                for(const auto &i:*Arr)
+                    Value.emplace_back(i.toString());
+                return true;
+            }
+            return false;
+        }
+
+        static inline bool AssignIfPresent(const Poco::JSON::Object::Ptr &O, const std::string &Field, std::string &Value) {
 	        if(O->has(Field)) {
 	            Value = O->get(Field).toString();
 	            return true;
@@ -2209,8 +2219,8 @@ namespace OpenWifi {
 
 	    class RESTAPI_UnknownRequestHandler : public RESTAPIHandler {
 	    public:
-	        RESTAPI_UnknownRequestHandler(const RESTAPIHandler::BindingMap &bindings, Poco::Logger &L, RESTAPI_GenericServer & Server, uint64_t TransactionId)
-	        : RESTAPIHandler(bindings, L, std::vector<std::string>{}, Server, TransactionId) {}
+	        RESTAPI_UnknownRequestHandler(const RESTAPIHandler::BindingMap &bindings, Poco::Logger &L, RESTAPI_GenericServer & Server, uint64_t TransactionId, bool Internal)
+	        : RESTAPIHandler(bindings, L, std::vector<std::string>{}, Server, TransactionId, Internal) {}
 	        inline void DoGet() override {};
 	        inline void DoPost() override {};
 	        inline void DoPut() override {};
@@ -2233,11 +2243,11 @@ namespace OpenWifi {
 											   Poco::Logger & Logger, RESTAPI_GenericServer & Server, uint64_t TransactionId) {
 	                static_assert(test_has_PathName_method((T*)nullptr), "Class must have a static PathName() method.");
 	                if(RESTAPIHandler::ParseBindings(RequestedPath,T::PathName(),Bindings)) {
-	                    return new T(Bindings, Logger, Server, false, TransactionId);
+	                    return new T(Bindings, Logger, Server, TransactionId, false);
 	                }
 
 	                if constexpr (sizeof...(Args) == 0) {
-	                    return new RESTAPI_UnknownRequestHandler(Bindings,Logger, Server, TransactionId);
+	                    return new RESTAPI_UnknownRequestHandler(Bindings,Logger, Server, TransactionId, false);
 	                } else {
 	                    return RESTAPI_Router<Args...>(RequestedPath, Bindings, Logger, Server, TransactionId);
 	                }
@@ -2248,11 +2258,11 @@ namespace OpenWifi {
 												 Poco::Logger & Logger, RESTAPI_GenericServer & Server, uint64_t TransactionId) {
 	                static_assert(test_has_PathName_method((T*)nullptr), "Class must have a static PathName() method.");
 	                if(RESTAPIHandler::ParseBindings(RequestedPath,T::PathName(),Bindings)) {
-	                    return new T(Bindings, Logger, Server, true, TransactionId);
+	                    return new T(Bindings, Logger, Server, TransactionId, true );
 	                }
 
 	                if constexpr (sizeof...(Args) == 0) {
-	                    return new RESTAPI_UnknownRequestHandler(Bindings,Logger, Server, TransactionId);
+	                    return new RESTAPI_UnknownRequestHandler(Bindings,Logger, Server, TransactionId, true);
 	                } else {
 	                    return RESTAPI_Router_I<Args...>(RequestedPath, Bindings, Logger, Server, TransactionId);
 	                }
@@ -4292,12 +4302,6 @@ namespace OpenWifi {
                 Poco::Net::HTTPRequest Request(Poco::Net::HTTPRequest::HTTP_DELETE,
                                                Path,
                                                Poco::Net::HTTPMessage::HTTP_1_1);
-                std::ostringstream obody;
-                Poco::JSON::Stringifier::stringify(Body_,obody);
-
-                Request.setContentType("application/json");
-                Request.setContentLength(obody.str().size());
-
                 if(BearerToken.empty()) {
                     Request.add("X-API-KEY", Svc.AccessKey);
                     Request.add("X-INTERNAL-NAME", MicroService::instance().PublicEndPoint());
@@ -4305,9 +4309,6 @@ namespace OpenWifi {
                     // Authorization: Bearer ${token}
                     Request.add("Authorization", "Bearer " + BearerToken);
                 }
-
-                std::ostream & os = Session.sendRequest(Request);
-                os << obody.str();
 
                 Poco::Net::HTTPResponse Response;
                 Session.receiveResponse(Response);

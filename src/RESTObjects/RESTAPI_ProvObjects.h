@@ -98,7 +98,7 @@ namespace OpenWifi::ProvObjects {
         DiGraph             topology;
         std::string         design;
         Types::UUIDvec_t    deviceConfiguration;
-        std::string         contact;
+        Types::UUIDvec_t    contacts;
         std::string         location;
         std::string         rrm;
         Types::StringVec    sourceIP;
@@ -482,4 +482,5 @@ namespace OpenWifi::ProvObjects {
 
     bool UpdateObjectInfo(const Poco::JSON::Object::Ptr &O, const SecurityObjects::UserInfo &U, ObjectInfo &I);
     bool CreateObjectInfo(const Poco::JSON::Object::Ptr &O, const SecurityObjects::UserInfo &U, ObjectInfo &I);
+    bool CreateObjectInfo(const SecurityObjects::UserInfo &U, ObjectInfo &I);
 };
