@@ -480,6 +480,17 @@ namespace OpenWifi::ProvObjects {
         bool from_json(const Poco::JSON::Object::Ptr &Obj);
     };
 
+    struct VenueDeviceList {
+        std::string         id;
+        std::string         name;
+        std::string         description;
+        Types::UUIDvec_t    devices;
+
+        void to_json(Poco::JSON::Object &Obj) const;
+        bool from_json(const Poco::JSON::Object::Ptr &Obj);
+    };
+
+
     bool UpdateObjectInfo(const Poco::JSON::Object::Ptr &O, const SecurityObjects::UserInfo &U, ObjectInfo &I);
     bool CreateObjectInfo(const Poco::JSON::Object::Ptr &O, const SecurityObjects::UserInfo &U, ObjectInfo &I);
     bool CreateObjectInfo(const SecurityObjects::UserInfo &U, ObjectInfo &I);

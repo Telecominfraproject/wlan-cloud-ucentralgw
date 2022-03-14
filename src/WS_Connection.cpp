@@ -420,6 +420,7 @@ namespace OpenWifi {
 					Poco::JSON::Stringifier Stringify;
 					ParamsObj->set(uCentralProtocol::CONNECTIONIP, CId_);
 					ParamsObj->set("locale", Conn_->Conn_.locale );
+					ParamsObj->set(uCentralProtocol::TIMESTAMP, std::time(nullptr));
 					std::ostringstream OS;
 					Stringify.condense(ParamsObj, OS);
 					KafkaManager()->PostMessage(KafkaTopics::CONNECTION, SerialNumber_, OS.str());
@@ -906,6 +907,8 @@ namespace OpenWifi {
 						PingDetails.set(uCentralProtocol::SERIALNUMBER, SerialNumber_);
 						PingDetails.set(uCentralProtocol::COMPATIBLE, Compatible_);
 						PingDetails.set(uCentralProtocol::CONNECTIONIP, CId_);
+						PingDetails.set(uCentralProtocol::TIMESTAMP, std::time(nullptr));
+						PingDetails.set("locale", Conn_->Conn_.locale );
 						PingObject.set(uCentralProtocol::PING, PingDetails);
 						Poco::JSON::Stringifier Stringify;
 						std::ostringstream OS;

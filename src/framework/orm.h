@@ -667,9 +667,6 @@ namespace ORM {
             if(!ItemList.empty()) {
                 OrderByString = " ORDER BY " + ItemList;
             }
-
-            std::cout << OrderByString << std::endl;
-
             return true;
         }
 
