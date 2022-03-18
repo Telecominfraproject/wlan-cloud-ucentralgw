@@ -18,7 +18,7 @@
 namespace OpenWifi {
 
 	class WSConnection {
-		static constexpr int BufSize = 64000;
+		static constexpr int BufSize = 128000;
 	  public:
 		WSConnection(Poco::Net::StreamSocket& Socket, Poco::Net::SocketReactor& Reactor);
 		~WSConnection();

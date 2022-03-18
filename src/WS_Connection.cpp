@@ -86,8 +86,8 @@ namespace OpenWifi {
 			Poco::Net::HTTPServerResponseImpl Response(Session);
 			Poco::Net::HTTPServerRequestImpl Request(Response, Session, Params);
 
-			auto Now = std::time(nullptr);
-			Response.setDate(Now);
+			auto now = OpenWifi::Now();
+			Response.setDate(now);
 			Response.setVersion(Request.getVersion());
 			Response.setKeepAlive(Params->getKeepAlive() && Request.getKeepAlive() &&
 								  Session.canKeepAlive());
