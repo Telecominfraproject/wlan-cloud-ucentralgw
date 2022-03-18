@@ -264,7 +264,7 @@ namespace OpenWifi {
 		std::ostringstream ofs;
 		Poco::StreamCopier::copyStream(b64in, ofs);
 
-		unsigned long MaxSize = ofs.str().size() * 10;
+		unsigned long MaxSize = ofs.str().size() * 30;
 		std::vector<uint8_t> UncompressedBuffer(MaxSize);
 		unsigned long FinalSize = MaxSize;
 		if (uncompress((uint8_t *)&UncompressedBuffer[0], &FinalSize, (uint8_t *)ofs.str().c_str(),
