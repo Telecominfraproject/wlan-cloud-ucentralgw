@@ -890,7 +890,8 @@ namespace OpenWifi {
 
 				auto flag_fin = (flags & Poco::Net::WebSocket::FRAME_FLAG_FIN) == Poco::Net::WebSocket::FRAME_FLAG_FIN;
 				auto flag_cont = (Op == Poco::Net::WebSocket::FRAME_OP_CONT) ;
-				std::cout << "SerialNumber: " << SerialNumber_ << "Size: " << std::dec << IncomingMessageStr.size() << "  fin=" << flag_fin << "  cont=" << flag_cont << std::endl;
+				std::cout << "SerialNumber: " << SerialNumber_ << "  Size: " << std::dec
+						  << IncomingMessageStr.size() << "  fin=" << flag_fin << "  cont=" << flag_cont << std::endl;
 
 				if (Conn_ != nullptr) {
 					Conn_->Conn_.RX += IncomingSize;
