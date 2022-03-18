@@ -886,9 +886,11 @@ namespace OpenWifi {
 				return delete this;
 			} else {
 
+				std::string IncomingMessageStr = asString(IncomingFrame);
+
 				auto flag_fin = (flags & Poco::Net::WebSocket::FRAME_FLAG_FIN) == Poco::Net::WebSocket::FRAME_FLAG_FIN;
 				auto flag_cont = (Op == Poco::Net::WebSocket::FRAME_OP_CONT) ;
-				std::cout << "Size: " << IncomingSize << "  fin=" << flag_fin << "  cont=" << flag_cont << std::endl;
+				std::cout << "Size: " << IncomingMessageStr.size() << "  fin=" << flag_fin << "  cont=" << flag_cont << std::endl;
 
 				if (Conn_ != nullptr) {
 					Conn_->Conn_.RX += IncomingSize;
@@ -929,7 +931,6 @@ namespace OpenWifi {
 				} break;
 
 				case Poco::Net::WebSocket::FRAME_OP_TEXT: {
-					std::string IncomingMessageStr = asString(IncomingFrame);
 					poco_trace(Logger(),
 						Poco::format("FRAME(%s): Frame received (length=%d, flags=0x%x). Msg=%s", CId_,
 									 IncomingSize, unsigned(flags), IncomingMessageStr));
