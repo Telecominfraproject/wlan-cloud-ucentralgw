@@ -878,12 +878,17 @@ namespace OpenWifi {
 			int Op, flags;
 			int IncomingSize;
 			IncomingSize = WS_->receiveFrame(IncomingFrame, flags);
+
 			Op = flags & Poco::Net::WebSocket::FRAME_OP_BITMASK;
 
 			if (IncomingSize == 0 && flags == 0 && Op == 0) {
 				poco_information(Logger(),Poco::format("DISCONNECT(%s): device has disconnected.", CId_));
 				return delete this;
 			} else {
+
+				auto flag_fin = (flags & Poco::Net::WebSocket::FRAME_FLAG_FIN) == Poco::Net::WebSocket::FRAME_FLAG_FIN;
+				auto flag_cont = (Op == Poco::Net::WebSocket::FRAME_OP_CONT) ;
+				std::cout << "Size: " << IncomingSize << "  fin=" << flag_fin << "  cont=" << flag_cont << std::endl;
 
 				if (Conn_ != nullptr) {
 					Conn_->Conn_.RX += IncomingSize;
