@@ -301,15 +301,15 @@ namespace OpenWifi {
 		if (ParamsObj->has(uCentralProtocol::COMPRESS_64)) {
 			std::string UncompressedData;
 			try {
-				if (ExtractBase64CompressedData(
-						ParamsObj->get(uCentralProtocol::COMPRESS_64).toString(), UncompressedData)) {
+				auto CompressedData = ParamsObj->get(uCentralProtocol::COMPRESS_64).toString();
+				if (ExtractBase64CompressedData(CompressedData, UncompressedData)) {
 					poco_trace(Logger(),Poco::format("EVENT(%s): Found compressed payload expanded to '%s'.",
 													  CId_, UncompressedData));
 					Poco::JSON::Parser Parser;
 					ParamsObj = Parser.parse(UncompressedData).extract<Poco::JSON::Object::Ptr>();
 				} else {
-					poco_warning(Logger(),Poco::format("INVALID-COMPRESSED-DATA(%s): Compressed cannot be uncompressed - content must be corrupt..",
-														CId_));
+					poco_warning(Logger(),Poco::format("INVALID-COMPRESSED-DATA(%s): Compressed cannot be uncompressed - content must be corrupt..: size=%Lu",
+														CId_, (size_t) CompressedData.size()));
 					Errors_++;
 					return;
 				}
