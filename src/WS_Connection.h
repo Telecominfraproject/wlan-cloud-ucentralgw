@@ -31,7 +31,7 @@ namespace OpenWifi {
 		void OnSocketShutdown(const Poco::AutoPtr<Poco::Net::ShutdownNotification>& pNf);
 		void OnSocketError(const Poco::AutoPtr<Poco::Net::ErrorNotification>& pNf);
 		bool LookForUpgrade(uint64_t UUID);
-		static bool ExtractBase64CompressedData(const std::string & CompressedData, std::string & UnCompressedData);
+		static bool ExtractBase64CompressedData(const std::string & CompressedData, std::string & UnCompressedData, uint64_t compress_sz);
 		void LogException(const Poco::Exception &E);
 		inline Poco::Logger & Logger() { return Logger_; }
 		bool SetWebSocketTelemetryReporting(uint64_t interval, uint64_t TelemetryWebSocketTimer);

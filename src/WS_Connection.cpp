@@ -258,15 +258,15 @@ namespace OpenWifi {
 	}
 
 	bool WSConnection::ExtractBase64CompressedData(const std::string &CompressedData,
-												   std::string &UnCompressedData) {
+												   std::string &UnCompressedData, uint64_t compress_sz ) {
 		std::istringstream ifs(CompressedData);
 		Poco::Base64Decoder b64in(ifs);
 		std::ostringstream ofs;
 		Poco::StreamCopier::copyStream(b64in, ofs);
 
 		int factor = 20;
+		unsigned long MaxSize = compress_sz ? (unsigned long) (compress_sz + 5000) : (unsigned long) (ofs.str().size() * factor);
 		while(true) {
-			unsigned long MaxSize = ofs.str().size() * factor;
 			std::vector<uint8_t> UncompressedBuffer(MaxSize);
 			unsigned long FinalSize = MaxSize;
 			auto status = uncompress((uint8_t *)&UncompressedBuffer[0], &FinalSize,
@@ -279,6 +279,7 @@ namespace OpenWifi {
 			if(status==Z_BUF_ERROR) {
 				if(factor<300) {
 					factor+=10;
+					MaxSize = ofs.str().size() * factor;
 					continue;
 				} else {
 					return false;
@@ -315,7 +316,12 @@ namespace OpenWifi {
 			std::string UncompressedData;
 			try {
 				auto CompressedData = ParamsObj->get(uCentralProtocol::COMPRESS_64).toString();
-				if (ExtractBase64CompressedData(CompressedData, UncompressedData)) {
+				uint64_t compress_sz = 0 ;
+				if(ParamsObj->has("compress_sz")) {
+					compress_sz = ParamsObj->get("compress_sz");
+				}
+
+				if (ExtractBase64CompressedData(CompressedData, UncompressedData, compress_sz)) {
 					poco_trace(Logger(),Poco::format("EVENT(%s): Found compressed payload expanded to '%s'.",
 													  CId_, UncompressedData));
 					Poco::JSON::Parser Parser;
