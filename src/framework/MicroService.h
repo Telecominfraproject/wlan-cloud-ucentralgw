@@ -619,6 +619,12 @@ namespace OpenWifi::Utils {
         std::all_of(Serial.begin(),Serial.end(),[](auto i){return std::isxdigit(i);}));
     }
 
+	[[nodiscard]] inline bool ValidUUID(const std::string &UUID) {
+		if(UUID.size()>36)
+			return false;
+		return (std::all_of(UUID.begin(),UUID.end(),[](auto i){return std::isxdigit(i) || i=='-';}));
+	}
+
     [[nodiscard]] inline std::vector<std::string> Split(const std::string &List, char Delimiter=',' ) {
         std::vector<std::string> ReturnList;
 
@@ -1855,28 +1861,28 @@ namespace OpenWifi {
 	    }
 
 		[[nodiscard]] inline uint64_t GetParameter(const std::string &Name, const uint64_t Default) {
-	        auto Hint = std::find_if(Parameters_.begin(),Parameters_.end(),[Name](const std::pair<std::string,std::string> &S){ return S.first==Name; });
+	        auto Hint = std::find_if(Parameters_.begin(),Parameters_.end(),[&](const std::pair<std::string,std::string> &S){ return S.first==Name; });
 	        if(Hint==Parameters_.end() || !is_number(Hint->second))
 	            return Default;
 	        return std::stoull(Hint->second);
 	    }
 
 		[[nodiscard]] inline bool GetBoolParameter(const std::string &Name, bool Default=false) {
-	        auto Hint = std::find_if(begin(Parameters_),end(Parameters_),[Name](const std::pair<std::string,std::string> &S){ return S.first==Name; });
+            auto Hint = std::find_if(begin(Parameters_),end(Parameters_),[&](const std::pair<std::string,std::string> &S){ return S.first==Name; });
 	        if(Hint==end(Parameters_) || !is_bool(Hint->second))
 	            return Default;
 	        return Hint->second=="true";
 	    }
 
 	    [[nodiscard]] inline std::string GetParameter(const std::string &Name, const std::string &Default="") {
-	        auto Hint = std::find_if(begin(Parameters_),end(Parameters_),[Name](const std::pair<std::string,std::string> &S){ return S.first==Name; });
+	        auto Hint = std::find_if(begin(Parameters_),end(Parameters_),[&](const std::pair<std::string,std::string> &S){ return S.first==Name; });
 	        if(Hint==end(Parameters_))
 	            return Default;
 	        return Hint->second;
 	    }
 
 	    [[nodiscard]] inline bool HasParameter(const std::string &Name, std::string &Value) {
-	        auto Hint = std::find_if(begin(Parameters_),end(Parameters_),[Name](const std::pair<std::string,std::string> &S){ return S.first==Name; });
+	        auto Hint = std::find_if(begin(Parameters_),end(Parameters_),[&](const std::pair<std::string,std::string> &S){ return S.first==Name; });
 	        if(Hint==end(Parameters_))
 	            return false;
 	        Value = Hint->second;
@@ -1884,7 +1890,7 @@ namespace OpenWifi {
 	    }
 
 	    [[nodiscard]] inline bool HasParameter(const std::string &Name, uint64_t & Value) {
-	        auto Hint = std::find_if(begin(Parameters_),end(Parameters_),[Name](const std::pair<std::string,std::string> &S){ return S.first==Name; });
+	        auto Hint = std::find_if(begin(Parameters_),end(Parameters_),[&](const std::pair<std::string,std::string> &S){ return S.first==Name; });
 	        if(Hint==end(Parameters_))
 	            return false;
 	        Value = std::stoull(Hint->second);
@@ -2852,7 +2858,7 @@ namespace OpenWifi {
 
         RESTAPI_ExtServer() noexcept:
 	    SubSystemServer("RESTAPI_ExtServer", "RESTAPIServer", "openwifi.restapi"),
-		Pool_("RESTAPI_ExternalPool")
+        Pool_("RESTAPI_ExtServer",4,50,120)
             {
             }
 	};
@@ -2993,9 +2999,9 @@ namespace OpenWifi {
 
         RESTAPI_IntServer() noexcept:
 		   SubSystemServer("RESTAPI_IntServer", "REST-ISRV", "openwifi.internal.restapi"),
-		   Pool_("RESTAPI_IntServerPool")
-	    {
-	    }
+            Pool_("RESTAPI_IntServer",4,50,120)
+        {
+        }
 	};
 
 	inline auto RESTAPI_IntServer() { return RESTAPI_IntServer::instance(); };

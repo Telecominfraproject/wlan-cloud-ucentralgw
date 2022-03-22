@@ -57,7 +57,7 @@ namespace OpenWifi {
         inline int Setup_PostgreSQL();
 
     protected:
-    	Poco::SharedPtr<Poco::Data::SessionPool>    Pool_;
+    	std::unique_ptr<Poco::Data::SessionPool>    Pool_;
         Poco::Data::SQLite::Connector  	            SQLiteConn_;
         Poco::Data::PostgreSQL::Connector           PostgresConn_;
         Poco::Data::MySQL::Connector                MySQLConn_;
@@ -73,18 +73,22 @@ namespace OpenWifi {
         Logger().notice("SQLite StorageClass enabled.");
         dbType_ = sqlite;
         auto DBName = MicroService::instance().DataDir() + "/" + MicroService::instance().ConfigGetString("storage.type.sqlite.db");
-        auto NumSessions = MicroService::instance().ConfigGetInt("storage.type.sqlite.maxsessions", 64);
-        auto IdleTime = MicroService::instance().ConfigGetInt("storage.type.sqlite.idletime", 60);
-        SQLiteConn_.registerConnector();
-        Pool_ = Poco::SharedPtr<Poco::Data::SessionPool>(new Poco::Data::SessionPool(SQLiteConn_.name(), DBName, 4, NumSessions, IdleTime));
+        int NumSessions = (int) MicroService::instance().ConfigGetInt("storage.type.sqlite.maxsessions", 64);
+        int IdleTime = (int) MicroService::instance().ConfigGetInt("storage.type.sqlite.idletime", 60);
+
+        Poco::Data::SQLite::Connector::registerConnector();
+//        Pool_ = std::make_unique<Poco::Data::SessionPool>(new Poco::Data::SessionPool(SQLiteConn_.name(), DBName, 8,
+//                                                                                     (int)NumSessions, (int)IdleTime));
+        Pool_ = std::make_unique<Poco::Data::SessionPool>(SQLiteConn_.name(), DBName, 8,
+                                                                                     (int)NumSessions, (int)IdleTime);
         return 0;
     }
 
     inline int StorageClass::Setup_MySQL() {
         Logger().notice("MySQL StorageClass enabled.");
         dbType_ = mysql;
-        auto NumSessions = MicroService::instance().ConfigGetInt("storage.type.mysql.maxsessions", 64);
-        auto IdleTime = MicroService::instance().ConfigGetInt("storage.type.mysql.idletime", 60);
+        int NumSessions = (int) MicroService::instance().ConfigGetInt("storage.type.mysql.maxsessions", 64);
+        int IdleTime = (int) MicroService::instance().ConfigGetInt("storage.type.mysql.idletime", 60);
         auto Host = MicroService::instance().ConfigGetString("storage.type.mysql.host");
         auto Username = MicroService::instance().ConfigGetString("storage.type.mysql.username");
         auto Password = MicroService::instance().ConfigGetString("storage.type.mysql.password");
@@ -99,8 +103,8 @@ namespace OpenWifi {
                 ";port=" + Port +
                 ";compress=true;auto-reconnect=true";
 
-        MySQLConn_.registerConnector();
-        Pool_ = Poco::SharedPtr<Poco::Data::SessionPool>(new Poco::Data::SessionPool(MySQLConn_.name(), ConnectionStr, 4, NumSessions, IdleTime));
+        Poco::Data::MySQL::Connector::registerConnector();
+        Pool_ = std::make_unique<Poco::Data::SessionPool>(MySQLConn_.name(), ConnectionStr, 8, NumSessions, IdleTime);
 
         return 0;
     }
@@ -108,8 +112,8 @@ namespace OpenWifi {
     inline int StorageClass::Setup_PostgreSQL() {
         Logger().notice("PostgreSQL StorageClass enabled.");
         dbType_ = pgsql;
-        auto NumSessions = MicroService::instance().ConfigGetInt("storage.type.postgresql.maxsessions", 64);
-        auto IdleTime = MicroService::instance().ConfigGetInt("storage.type.postgresql.idletime", 60);
+        int NumSessions = (int) MicroService::instance().ConfigGetInt("storage.type.postgresql.maxsessions", 64);
+        int IdleTime = (int) MicroService::instance().ConfigGetInt("storage.type.postgresql.idletime", 60);
         auto Host = MicroService::instance().ConfigGetString("storage.type.postgresql.host");
         auto Username = MicroService::instance().ConfigGetString("storage.type.postgresql.username");
         auto Password = MicroService::instance().ConfigGetString("storage.type.postgresql.password");
@@ -125,8 +129,8 @@ namespace OpenWifi {
                 " port=" + Port +
                 " connect_timeout=" + ConnectionTimeout;
 
-        PostgresConn_.registerConnector();
-        Pool_ = Poco::SharedPtr<Poco::Data::SessionPool>(new Poco::Data::SessionPool(PostgresConn_.name(), ConnectionStr, 4, NumSessions, IdleTime));
+        Poco::Data::PostgreSQL::Connector::registerConnector();
+        Pool_ = std::make_unique<Poco::Data::SessionPool>(PostgresConn_.name(), ConnectionStr, 8, NumSessions, IdleTime);
 
         return 0;
     }
