@@ -125,6 +125,15 @@ namespace OpenWifi {
 			Path = RTTYS_server()->UIAssets() + Path;
 		}
 
+		//	simple test to block .. or ~ in path names.
+		if(Path.find("../")!=std::string::npos) {
+			return;
+		}
+
+		if(Path.find("~/")!=std::string::npos) {
+			return;
+		}
+
 		Poco::File	F(Path);
 		AddCORS(request,response);
 		if(!F.exists()) {
