@@ -71,6 +71,7 @@ using namespace std::chrono_literals;
 #include "Poco/SimpleFileChannel.h"
 #include "Poco/Util/PropertyFileConfiguration.h"
 #include "Poco/SplitterChannel.h"
+#include "Poco/JWT/Signer.h"
 
 #include "cppkafka/cppkafka.h"
 
@@ -374,6 +375,12 @@ namespace OpenWifi::RESTAPI_utils {
     }
 
     inline void field_from_json(const Poco::JSON::Object::Ptr &Obj, const char *Field, int &Value) {
+        if(Obj->isObject(Field)) {
+            Value = Obj->get(Field);
+        }
+    }
+
+    inline void field_from_json(const Poco::JSON::Object::Ptr &Obj, const char *Field, int64_t &Value) {
         if(Obj->isObject(Field)) {
             Value = Obj->get(Field);
         }
@@ -1349,6 +1356,22 @@ namespace OpenWifi {
 	            return Poco::Net::SecureServerSocket(SockAddr, backlog_, Context);
 	        }
 	    }
+
+        [[nodiscard]] inline Poco::Net::ServerSocket CreateSocket(Poco::Logger &L) const {
+            Poco::Net::Context::Params P;
+
+            if (address_ == "*") {
+                Poco::Net::IPAddress Addr(Poco::Net::IPAddress::wildcard(
+                        Poco::Net::Socket::supportsIPv6() ? Poco::Net::AddressFamily::IPv6
+                                                          : Poco::Net::AddressFamily::IPv4));
+                Poco::Net::SocketAddress SockAddr(Addr, port_);
+                return Poco::Net::ServerSocket(SockAddr, backlog_);
+            } else {
+                Poco::Net::IPAddress Addr(address_);
+                Poco::Net::SocketAddress SockAddr(Addr, port_);
+                return Poco::Net::ServerSocket(SockAddr, backlog_);
+            }
+        }
 
 	    inline void LogCertInfo(Poco::Logger &L, const Poco::Crypto::X509Certificate &C) const {
 	        L.information("=============================================================================================");
@@ -2863,33 +2886,6 @@ namespace OpenWifi {
 	    RESTAPI_GenericServer               &Server_;
 	};
 
-	inline int RESTAPI_ExtServer::Start() {
-	    Server_.InitLogging();
-
-	    for(const auto & Svr: ConfigServersList_) {
-	        Logger().information(Poco::format("Starting: %s:%s Keyfile:%s CertFile: %s", Svr.Address(), std::to_string(Svr.Port()),
-                                             Svr.KeyFile(),Svr.CertFile()));
-
-	        auto Sock{Svr.CreateSecureSocket(Logger())};
-
-	        Svr.LogCert(Logger());
-	        if(!Svr.RootCA().empty())
-	            Svr.LogCas(Logger());
-
-	        Poco::Net::HTTPServerParams::Ptr Params = new Poco::Net::HTTPServerParams;
-	        Params->setMaxThreads(50);
-	        Params->setMaxQueued(200);
-	        Params->setKeepAlive(true);
-
-	        auto NewServer = std::make_unique<Poco::Net::HTTPServer>(new ExtRequestHandlerFactory(Server_), Pool_, Sock, Params);
-	        NewServer->start();
-	        RESTServers_.push_back(std::move(NewServer));
-	    }
-
-	    return 0;
-	}
-
-
 	class LogMuxer : public Poco::Channel {
 	  public:
 
@@ -3021,32 +3017,6 @@ namespace OpenWifi {
 	    RESTAPI_GenericServer               &Server_;
 	};
 
-	inline int RESTAPI_IntServer::Start() {
-	    Logger().information("Starting.");
-	    Server_.InitLogging();
-
-	    for(const auto & Svr: ConfigServersList_) {
-	        Logger().information(Poco::format("Starting: %s:%s Keyfile:%s CertFile: %s", Svr.Address(), std::to_string(Svr.Port()),
-                                             Svr.KeyFile(),Svr.CertFile()));
-
-	        auto Sock{Svr.CreateSecureSocket(Logger())};
-
-	        Svr.LogCert(Logger());
-	        if(!Svr.RootCA().empty())
-	            Svr.LogCas(Logger());
-	        auto Params = new Poco::Net::HTTPServerParams;
-	        Params->setMaxThreads(50);
-	        Params->setMaxQueued(200);
-	        Params->setKeepAlive(true);
-
-	        auto NewServer = std::make_unique<Poco::Net::HTTPServer>(new IntRequestHandlerFactory(Server_), Pool_, Sock, Params);
-	        NewServer->start();
-	        RESTServers_.push_back(std::move(NewServer));
-	    }
-
-	    return 0;
-	}
-
 	struct MicroServiceMeta {
 		uint64_t 		Id=0;
 		std::string 	Type;
@@ -3081,7 +3051,7 @@ namespace OpenWifi {
 		}
 
 		[[nodiscard]] std::string Version() { return Version_; }
-		[[nodiscard]] const Poco::SharedPtr<Poco::Crypto::RSAKey> & Key() { return AppKey_; }
+		// [[nodiscard]] const Poco::SharedPtr<Poco::Crypto::RSAKey> & Key() { return AppKey_; }
 		[[nodiscard]] inline const std::string & DataDir() { return DataDir_; }
 		[[nodiscard]] inline const std::string & WWWAssetsDir() { return WWWAssetsDir_; }
 		[[nodiscard]] bool Debug() const { return DebugMode_; }
@@ -3172,6 +3142,14 @@ namespace OpenWifi {
                 }
             }
         }
+        inline bool NoAPISecurity() const { return NoAPISecurity_; }
+        [[nodiscard]] inline std::string Sign(Poco::JWT::Token &T, const std::string &Algo) {
+            if(NoBuiltInCrypto_) {
+                return T.toString();
+            } else {
+                return Signer_.sign(T,Algo);
+            }
+        }
 	  private:
 	    static MicroService         * instance_;
 		bool                        HelpRequested_ = false;
@@ -3197,12 +3175,15 @@ namespace OpenWifi {
 		std::recursive_mutex		InfraMutex_;
 		std::default_random_engine  RandomEngine_;
         Poco::Util::PropertyFileConfiguration   * PropConfigurationFile_ = nullptr;
-		std::string DAEMON_PROPERTIES_FILENAME;
-		std::string DAEMON_ROOT_ENV_VAR;
-		std::string DAEMON_CONFIG_ENV_VAR;
-		std::string DAEMON_APP_NAME;
-		uint64_t 	DAEMON_BUS_TIMER;
-	};
+		std::string                 DAEMON_PROPERTIES_FILENAME;
+		std::string                 DAEMON_ROOT_ENV_VAR;
+		std::string                 DAEMON_CONFIG_ENV_VAR;
+		std::string                 DAEMON_APP_NAME;
+		uint64_t 	                DAEMON_BUS_TIMER;
+        bool                        NoAPISecurity_=false;
+        bool                        NoBuiltInCrypto_=false;
+        Poco::JWT::Signer	        Signer_;
+    };
 
 	inline void MicroService::Exit(int Reason) {
 	    std::exit(Reason);
@@ -3325,10 +3306,19 @@ namespace OpenWifi {
 	}
 
 	inline void MicroService::LoadMyConfig() {
-	    std::string KeyFile = ConfigPath("openwifi.service.key");
-	    std::string KeyFilePassword = ConfigPath("openwifi.service.key.password" , "" );
-	    AppKey_ = Poco::SharedPtr<Poco::Crypto::RSAKey>(new Poco::Crypto::RSAKey("", KeyFile, KeyFilePassword));
-	    Cipher_ = CipherFactory_.createCipher(*AppKey_);
+        NoAPISecurity_ = ConfigGetBool("openwifi.security.restapi.disable",false);
+        std::string KeyFile = ConfigPath("openwifi.service.key","");
+        if(!KeyFile.empty()) {
+            std::string KeyFilePassword = ConfigPath("openwifi.service.key.password", "");
+            AppKey_ = Poco::SharedPtr<Poco::Crypto::RSAKey>(new Poco::Crypto::RSAKey("", KeyFile, KeyFilePassword));
+            Cipher_ = CipherFactory_.createCipher(*AppKey_);
+            Signer_.setRSAKey(AppKey_);
+            Signer_.addAllAlgorithms();
+            NoBuiltInCrypto_ = false;
+        } else {
+            NoBuiltInCrypto_ = true;
+        }
+
 	    ID_ = Utils::GetSystemId();
 	    if(!DebugMode_)
 	        DebugMode_ = ConfigGetBool("openwifi.system.debug",false);
@@ -3658,10 +3648,14 @@ namespace OpenWifi {
 	}
 
 	inline std::string MicroService::Encrypt(const std::string &S) {
+        if(NoBuiltInCrypto_)
+            return S;
 	    return Cipher_->encryptString(S, Poco::Crypto::Cipher::Cipher::ENC_BASE64);;
 	}
 
 	inline std::string MicroService::Decrypt(const std::string &S) {
+        if(NoBuiltInCrypto_)
+            return S;
 	    return Cipher_->decryptString(S, Poco::Crypto::Cipher::Cipher::ENC_BASE64);;
 	}
 
@@ -3713,7 +3707,68 @@ namespace OpenWifi {
         SubSystemConfigPrefix_(std::move(SubSystemConfigPrefix)) {
     }
 
-	inline int MicroService::main(const ArgVec &args) {
+    inline int RESTAPI_ExtServer::Start() {
+        Server_.InitLogging();
+
+        for(const auto & Svr: ConfigServersList_) {
+            Logger().information(Poco::format("Starting: %s:%s Keyfile:%s CertFile: %s", Svr.Address(), std::to_string(Svr.Port()),
+                                              Svr.KeyFile(),Svr.CertFile()));
+
+            auto Sock{ MicroService::instance().NoAPISecurity() ? Svr.CreateSocket(Logger()) : Svr.CreateSecureSocket(Logger())};
+
+            if(MicroService::instance().NoAPISecurity()) {
+                Logger().information("Security has been disabled for APIs.");
+            } else {
+                Svr.LogCert(Logger());
+                if (!Svr.RootCA().empty())
+                    Svr.LogCas(Logger());
+            }
+
+            Poco::Net::HTTPServerParams::Ptr Params = new Poco::Net::HTTPServerParams;
+            Params->setMaxThreads(50);
+            Params->setMaxQueued(200);
+            Params->setKeepAlive(true);
+
+            auto NewServer = std::make_unique<Poco::Net::HTTPServer>(new ExtRequestHandlerFactory(Server_), Pool_, Sock, Params);
+            NewServer->start();
+            RESTServers_.push_back(std::move(NewServer));
+        }
+
+        return 0;
+    }
+
+    inline int RESTAPI_IntServer::Start() {
+        Logger().information("Starting.");
+        Server_.InitLogging();
+
+        for(const auto & Svr: ConfigServersList_) {
+            Logger().information(Poco::format("Starting: %s:%s Keyfile:%s CertFile: %s", Svr.Address(), std::to_string(Svr.Port()),
+                                              Svr.KeyFile(),Svr.CertFile()));
+
+            auto Sock{ MicroService::instance().NoAPISecurity() ? Svr.CreateSocket(Logger()) : Svr.CreateSecureSocket(Logger())};
+
+            if(MicroService::instance().NoAPISecurity()) {
+                Logger().information("Security has been disabled for APIs.");
+            } else {
+                Svr.LogCert(Logger());
+                if (!Svr.RootCA().empty())
+                    Svr.LogCas(Logger());
+            }
+
+            auto Params = new Poco::Net::HTTPServerParams;
+            Params->setMaxThreads(50);
+            Params->setMaxQueued(200);
+            Params->setKeepAlive(true);
+
+            auto NewServer = std::make_unique<Poco::Net::HTTPServer>(new IntRequestHandlerFactory(Server_), Pool_, Sock, Params);
+            NewServer->start();
+            RESTServers_.push_back(std::move(NewServer));
+        }
+
+        return 0;
+    }
+
+    inline int MicroService::main(const ArgVec &args) {
 
 	    MyErrorHandler	ErrorHandler(*this);
 	    Poco::ErrorHandler::set(&ErrorHandler);
