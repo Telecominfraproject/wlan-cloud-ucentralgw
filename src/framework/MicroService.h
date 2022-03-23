@@ -619,12 +619,6 @@ namespace OpenWifi::Utils {
         std::all_of(Serial.begin(),Serial.end(),[](auto i){return std::isxdigit(i);}));
     }
 
-	[[nodiscard]] inline bool ValidUUID(const std::string &UUID) {
-		if(UUID.size()>36)
-			return false;
-		return (std::all_of(UUID.begin(),UUID.end(),[](auto i){return std::isxdigit(i) || i=='-';}));
-	}
-
     [[nodiscard]] inline std::vector<std::string> Split(const std::string &List, char Delimiter=',' ) {
         std::vector<std::string> ReturnList;
 
@@ -1808,7 +1802,7 @@ namespace OpenWifi {
 	    [[nodiscard]] inline bool NeedAdditionalInfo() const { return QB_.AdditionalInfo; }
 	    [[nodiscard]] inline const std::vector<std::string> & SelectedRecords() const { return QB_.Select; }
 
-	    [[nodiscard]] inline const Poco::JSON::Object::Ptr & ParseStream() {
+	    [[nodiscard]] inline const Poco::JSON::Object::Ptr ParseStream() {
 	        return IncomingParser_.parse(Request->stream()).extract<Poco::JSON::Object::Ptr>();
 	    }
 
@@ -3717,14 +3711,12 @@ namespace OpenWifi {
         Server_.InitLogging();
 
         for(const auto & Svr: ConfigServersList_) {
-            Logger().information(Poco::format("Starting: %s:%s Keyfile:%s CertFile: %s", Svr.Address(), std::to_string(Svr.Port()),
-                                              Svr.KeyFile(),Svr.CertFile()));
-
-            auto Sock{ MicroService::instance().NoAPISecurity() ? Svr.CreateSocket(Logger()) : Svr.CreateSecureSocket(Logger())};
 
             if(MicroService::instance().NoAPISecurity()) {
-                Logger().information("Security has been disabled for APIs.");
+                Logger().information(Poco::format("Starting:  %s:%s. Security has been disabled for APIs.", Svr.Address(), std::to_string(Svr.Port())));
             } else {
+                Logger().information(Poco::format("Starting: %s:%s Keyfile:%s CertFile: %s", Svr.Address(), std::to_string(Svr.Port()),
+                                                  Svr.KeyFile(),Svr.CertFile()));
                 Svr.LogCert(Logger());
                 if (!Svr.RootCA().empty())
                     Svr.LogCas(Logger());
@@ -3735,7 +3727,14 @@ namespace OpenWifi {
             Params->setMaxQueued(200);
             Params->setKeepAlive(true);
 
-            auto NewServer = std::make_unique<Poco::Net::HTTPServer>(new ExtRequestHandlerFactory(Server_), Pool_, Sock, Params);
+            std::unique_ptr<Poco::Net::HTTPServer>  NewServer;
+            if(MicroService::instance().NoAPISecurity()) {
+                auto Sock{Svr.CreateSocket(Logger())};
+                NewServer = std::make_unique<Poco::Net::HTTPServer>(new ExtRequestHandlerFactory(Server_), Pool_, Sock, Params);
+            } else {
+                auto Sock{Svr.CreateSecureSocket(Logger())};
+                NewServer = std::make_unique<Poco::Net::HTTPServer>(new ExtRequestHandlerFactory(Server_), Pool_, Sock, Params);
+            };
             NewServer->start();
             RESTServers_.push_back(std::move(NewServer));
         }
@@ -3748,14 +3747,12 @@ namespace OpenWifi {
         Server_.InitLogging();
 
         for(const auto & Svr: ConfigServersList_) {
-            Logger().information(Poco::format("Starting: %s:%s Keyfile:%s CertFile: %s", Svr.Address(), std::to_string(Svr.Port()),
-                                              Svr.KeyFile(),Svr.CertFile()));
-
-            auto Sock{ MicroService::instance().NoAPISecurity() ? Svr.CreateSocket(Logger()) : Svr.CreateSecureSocket(Logger())};
 
             if(MicroService::instance().NoAPISecurity()) {
-                Logger().information("Security has been disabled for APIs.");
+                Logger().information(Poco::format("Starting:  %s:%s. Security has been disabled for APIs.", Svr.Address(), std::to_string(Svr.Port())));
             } else {
+                Logger().information(Poco::format("Starting: %s:%s Keyfile:%s CertFile: %s", Svr.Address(), std::to_string(Svr.Port()),
+                                                  Svr.KeyFile(),Svr.CertFile()));
                 Svr.LogCert(Logger());
                 if (!Svr.RootCA().empty())
                     Svr.LogCas(Logger());
@@ -3766,7 +3763,14 @@ namespace OpenWifi {
             Params->setMaxQueued(200);
             Params->setKeepAlive(true);
 
-            auto NewServer = std::make_unique<Poco::Net::HTTPServer>(new IntRequestHandlerFactory(Server_), Pool_, Sock, Params);
+            std::unique_ptr<Poco::Net::HTTPServer>  NewServer;
+            if(MicroService::instance().NoAPISecurity()) {
+                auto Sock{Svr.CreateSocket(Logger())};
+                NewServer = std::make_unique<Poco::Net::HTTPServer>(new ExtRequestHandlerFactory(Server_), Pool_, Sock, Params);
+            } else {
+                auto Sock{Svr.CreateSecureSocket(Logger())};
+                NewServer = std::make_unique<Poco::Net::HTTPServer>(new ExtRequestHandlerFactory(Server_), Pool_, Sock, Params);
+            };
             NewServer->start();
             RESTServers_.push_back(std::move(NewServer));
         }
