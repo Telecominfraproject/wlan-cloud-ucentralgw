@@ -619,6 +619,12 @@ namespace OpenWifi::Utils {
         std::all_of(Serial.begin(),Serial.end(),[](auto i){return std::isxdigit(i);}));
     }
 
+    [[nodiscard]] inline bool ValidUUID(const std::string &UUID) {
+        if(UUID.size()>36)
+            return false;
+        return (std::all_of(UUID.begin(),UUID.end(),[](auto i){return i=='-' || std::isxdigit(i);}));
+    }
+
     [[nodiscard]] inline std::vector<std::string> Split(const std::string &List, char Delimiter=',' ) {
         std::vector<std::string> ReturnList;
 
