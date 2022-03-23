@@ -65,4 +65,4 @@ jobs:
         workflow: ow_docker-compose.yml
         token: ${{ secrets.WLAN_TESTING_PAT }}
         ref: master
-        inputs: '{"microservice": "owgw", "owgw_version": "${{ github.sha }}", "owgwui_version": "${{ env.BASE_BRANCH }}", "owsec_version": "${{ env.BASE_BRANCH }}", "owfms_version": "${{ env.BASE_BRANCH }}", "owprov_version": "${{ env.BASE_BRANCH }}", "owprovui_version": "${{ env.BASE_BRANCH }}"}'
+        inputs: '{"microservice": "owgw", "deployment_version": "${{ env.BASE_BRANCH }}", "owgw_version": "${{ github.sha }}", "owgwui_version": "${{ env.BASE_BRANCH }}", "owsec_version": "${{ env.BASE_BRANCH }}", "owfms_version": "${{ env.BASE_BRANCH }}", "owprov_version": "${{ env.BASE_BRANCH }}", "owprovui_version": "${{ env.BASE_BRANCH }}"}'
