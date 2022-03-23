@@ -3755,9 +3755,9 @@ namespace OpenWifi {
         for(const auto & Svr: ConfigServersList_) {
 
             if(MicroService::instance().NoAPISecurity()) {
-                Logger().information(Poco::format("Starting:  %s:%s. Security has been disabled for APIs.", Svr.Address(), std::to_string(Svr.Port())));
+                Logger().information(Poco::format("Starting: %s:%s. Security has been disabled for APIs.", Svr.Address(), std::to_string(Svr.Port())));
             } else {
-                Logger().information(Poco::format("Starting: %s:%s Keyfile:%s CertFile: %s", Svr.Address(), std::to_string(Svr.Port()),
+                Logger().information(Poco::format("Starting: %s:%s. Keyfile:%s CertFile: %s", Svr.Address(), std::to_string(Svr.Port()),
                                                   Svr.KeyFile(),Svr.CertFile()));
                 Svr.LogCert(Logger());
                 if (!Svr.RootCA().empty())
@@ -3772,10 +3772,10 @@ namespace OpenWifi {
             std::unique_ptr<Poco::Net::HTTPServer>  NewServer;
             if(MicroService::instance().NoAPISecurity()) {
                 auto Sock{Svr.CreateSocket(Logger())};
-                NewServer = std::make_unique<Poco::Net::HTTPServer>(new ExtRequestHandlerFactory(Server_), Pool_, Sock, Params);
+                NewServer = std::make_unique<Poco::Net::HTTPServer>(new IntRequestHandlerFactory(Server_), Pool_, Sock, Params);
             } else {
                 auto Sock{Svr.CreateSecureSocket(Logger())};
-                NewServer = std::make_unique<Poco::Net::HTTPServer>(new ExtRequestHandlerFactory(Server_), Pool_, Sock, Params);
+                NewServer = std::make_unique<Poco::Net::HTTPServer>(new IntRequestHandlerFactory(Server_), Pool_, Sock, Params);
             };
             NewServer->start();
             RESTServers_.push_back(std::move(NewServer));
@@ -4132,15 +4132,18 @@ namespace OpenWifi {
 	                for(uint64_t j=0;j<Hosts;++j) {
 	                    auto CertFileName = i->Host(j).CertFile();
 	                    if(!CertFileName.empty()) {
-	                        auto InsertResult = CertNames.insert(CertFileName);
-	                        if(InsertResult.second) {
-	                            Poco::JSON::Object  Inner;
-	                            Poco::Path  F(CertFileName);
-	                            Inner.set("filename", F.getFileName());
-	                            Poco::Crypto::X509Certificate   C(CertFileName);
-	                            auto ExpiresOn = C.expiresOn();
-	                            Inner.set("expiresOn",ExpiresOn.timestamp().epochTime());
-	                            Certificates.add(Inner);
+                            Poco::File  F1(CertFileName);
+                            if(F1.exists()) {
+                                auto InsertResult = CertNames.insert(CertFileName);
+                                if(InsertResult.second) {
+                                    Poco::JSON::Object Inner;
+                                    Poco::Path F(CertFileName);
+                                    Inner.set("filename", F.getFileName());
+                                    Poco::Crypto::X509Certificate C(CertFileName);
+                                    auto ExpiresOn = C.expiresOn();
+                                    Inner.set("expiresOn", ExpiresOn.timestamp().epochTime());
+                                    Certificates.add(Inner);
+                                }
 	                        }
 	                    }
 	                }
