@@ -55,7 +55,7 @@ namespace OpenWifi {
 			return true;
 		}
 		catch (const Poco::Exception &E) {
-			Logger().warning(Poco::format("%s: Failed with: %s", std::string(__func__), E.displayText()));
+			Logger().warning(fmt::format("{}: Failed with: {}", std::string(__func__), E.displayText()));
 		}
 		return false;
 	}
@@ -98,7 +98,7 @@ namespace OpenWifi {
 			return true;
 		}
 		catch (const Poco::Exception &E) {
-			Logger().warning(Poco::format("%s: Failed with: %s", std::string(__func__), E.displayText()));
+			Logger().warning(fmt::format("{}: Failed with: {}", std::string(__func__), E.displayText()));
 		}
 		return false;
 	}
@@ -125,7 +125,7 @@ namespace OpenWifi {
 			return true;
 		}
 		catch (const Poco::Exception &E) {
-			Logger().warning(Poco::format("%s: Failed with: %s", std::string(__func__), E.displayText()));
+			Logger().warning(fmt::format("{}: Failed with: {}", std::string(__func__), E.displayText()));
 		}
 		return false;
 	}
@@ -158,7 +158,7 @@ bool Storage::DeleteStatisticsData(std::string &SerialNumber, uint64_t FromDate,
 			return true;
 		}
 		catch (const Poco::Exception &E) {
-			Logger().warning(Poco::format("%s: Failed with: %s", std::string(__func__), E.displayText()));
+			Logger().warning(fmt::format("{}: Failed with: {}", std::string(__func__), E.displayText()));
 		}
 		return false;
 	}
@@ -173,7 +173,7 @@ bool Storage::DeleteStatisticsData(std::string &SerialNumber, uint64_t FromDate,
 			Delete.execute();
 			return true;
 		} catch (const Poco::Exception &E) {
-			Logger().warning(Poco::format("%s: Failed with: %s", std::string(__func__), E.displayText()));
+			Logger().warning(fmt::format("{}: Failed with: {}", std::string(__func__), E.displayText()));
 		}
 		return false;
 	}

@@ -101,7 +101,7 @@ namespace OpenWifi {
 				if (ParsedPath[1] == "connect") {
 					response.redirect(Poco::replace(Path,"/connect/","/rtty/"));
 					response.send();
-					RTTYS_server()->Logger().information(Poco::format("... rtty connect redirect: %s",Path));
+					RTTYS_server()->Logger().information(fmt::format("... rtty connect redirect: {}",Path));
 					return;
 				} else if (ParsedPath[1] == "authorized") {
 					AddCORS(request,response);

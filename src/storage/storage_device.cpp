@@ -191,7 +191,7 @@ namespace OpenWifi {
 
 			Config::Config Cfg(Configuration);
 			if (!Cfg.Valid()) {
-				poco_warning(Logger(),Poco::format("CONFIG-UPDATE(%s): Configuration was not valid", SerialNumber));
+				poco_warning(Logger(),fmt::format("CONFIG-UPDATE({}): Configuration was not valid", SerialNumber));
 				return false;
 			}
 
@@ -216,7 +216,7 @@ namespace OpenWifi {
 					Poco::Data::Keywords::use(R),
 					Poco::Data::Keywords::use(SerialNumber);
 				Update.execute();
-				poco_information(Logger(),Poco::format("DEVICE-CONFIGURATION-UPDATED(%s): New UUID is %Lu", SerialNumber, NewUUID));
+				poco_information(Logger(),fmt::format("DEVICE-CONFIGURATION-UPDATED({}): New UUID is {}", SerialNumber, NewUUID));
 				Configuration = D.Configuration;
 				return true;
 			}
@@ -273,7 +273,7 @@ namespace OpenWifi {
 					return false;
 				}
 			} else {
-				poco_warning(Logger(),Poco::format("Device %s already exists.", SerialNumber));
+				poco_warning(Logger(),fmt::format("Device {} already exists.", SerialNumber));
 				return false;
 			}
 
@@ -311,7 +311,7 @@ namespace OpenWifi {
 	bool Storage::CreateDefaultDevice(std::string &SerialNumber, std::string &Capabilities, std::string & Firmware, std::string &Compat, const Poco::Net::IPAddress & IPAddress) {
 
 		GWObjects::Device D;
-		poco_information(Logger(),Poco::format("AUTO-CREATION(%s)", SerialNumber));
+		poco_information(Logger(),fmt::format("AUTO-CREATION({})", SerialNumber));
 		uint64_t Now = time(nullptr);
 		Config::Capabilities 			Caps(Capabilities);
 		GWObjects::DefaultConfiguration DefConfig;
@@ -620,7 +620,7 @@ namespace OpenWifi {
 				NumberOfDevices++;
 				More = RSet.moveNext();
 			}
-			Logger().information(Poco::format("Added %lu serial numbers to cache.", NumberOfDevices));
+			Logger().information(fmt::format("Added {} serial numbers to cache.", NumberOfDevices));
 			return true;
 
 		} catch(const Poco::Exception &E) {

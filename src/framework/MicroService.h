@@ -83,6 +83,8 @@ using namespace std::chrono_literals;
 
 #include "ow_version.h"
 
+#include "fmt/core.h"
+
 #define _OWDEBUG_ std::cout<< __FILE__ <<":" << __LINE__ << std::endl;
 // #define _OWDEBUG_ Logger().debug(Poco::format("%s: %lu",__FILE__,__LINE__));
 namespace OpenWifi {
@@ -1221,17 +1223,17 @@ namespace OpenWifi {
 		inline void exception(const Poco::Exception & E) {
 		    Poco::Thread * CurrentThread = Poco::Thread::current();
 		    App_.logger().log(E);
-		    App_.logger().error(Poco::format("Exception occurred in %s",CurrentThread->getName()));
+		    App_.logger().error(fmt::format("Exception occurred in {}",CurrentThread->getName()));
 		}
 
 		inline void exception(const std::exception & E) {
 		    Poco::Thread * CurrentThread = Poco::Thread::current();
-		    App_.logger().warning(Poco::format("std::exception on %s",CurrentThread->getName()));
+		    App_.logger().warning(fmt::format("std::exception in {}}",CurrentThread->getName()));
 		}
 
 		inline void exception() {
 		    Poco::Thread * CurrentThread = Poco::Thread::current();
-		    App_.logger().warning(Poco::format("exception on %s",CurrentThread->getName()));
+		    App_.logger().warning(fmt::format("exception in {}",CurrentThread->getName()));
 		}
 	  private:
 		Poco::Util::Application	&App_;
@@ -1330,7 +1332,7 @@ namespace OpenWifi {
 
 	            SSL_CTX *SSLCtx = Context->sslContext();
 	            if (!SSL_CTX_check_private_key(SSLCtx)) {
-	                L.fatal(Poco::format("Wrong Certificate(%s) for Key(%s)", cert_file_, key_file_));
+	                L.fatal(fmt::format("Wrong Certificate({}) for Key({})", cert_file_, key_file_));
 	            }
 
 	            SSL_CTX_set_verify(SSLCtx, SSL_VERIFY_PEER, nullptr);
@@ -1381,58 +1383,58 @@ namespace OpenWifi {
 
 	    inline void LogCertInfo(Poco::Logger &L, const Poco::Crypto::X509Certificate &C) const {
 	        L.information("=============================================================================================");
-	        L.information(Poco::format(">          Issuer: %s", C.issuerName()));
+	        L.information(fmt::format(">          Issuer: {}", C.issuerName()));
 	        L.information("---------------------------------------------------------------------------------------------");
-	        L.information(Poco::format(">     Common Name: %s",
+	        L.information(fmt::format(">     Common Name: {}",
                                        C.issuerName(Poco::Crypto::X509Certificate::NID_COMMON_NAME)));
-	        L.information(Poco::format(">         Country: %s",
+	        L.information(fmt::format(">         Country: {}",
                                        C.issuerName(Poco::Crypto::X509Certificate::NID_COUNTRY)));
-	        L.information(Poco::format(">        Locality: %s",
+	        L.information(fmt::format(">        Locality: {}",
                                        C.issuerName(Poco::Crypto::X509Certificate::NID_LOCALITY_NAME)));
-	        L.information(Poco::format(">      State/Prov: %s",
+	        L.information(fmt::format(">      State/Prov: {}",
                                        C.issuerName(Poco::Crypto::X509Certificate::NID_STATE_OR_PROVINCE)));
-	        L.information(Poco::format(">        Org name: %s",
+	        L.information(fmt::format(">        Org name: {}",
                                        C.issuerName(Poco::Crypto::X509Certificate::NID_ORGANIZATION_NAME)));
 	        L.information(
-	                Poco::format(">        Org unit: %s",
+	                fmt::format(">        Org unit: {}",
                                  C.issuerName(Poco::Crypto::X509Certificate::NID_ORGANIZATION_UNIT_NAME)));
 	        L.information(
-	                Poco::format(">           Email: %s",
+	                fmt::format(">           Email: {}",
                                  C.issuerName(Poco::Crypto::X509Certificate::NID_PKCS9_EMAIL_ADDRESS)));
-	        L.information(Poco::format(">         Serial#: %s",
+	        L.information(fmt::format(">         Serial#: {}",
                                        C.issuerName(Poco::Crypto::X509Certificate::NID_SERIAL_NUMBER)));
 	        L.information("---------------------------------------------------------------------------------------------");
-	        L.information(Poco::format(">         Subject: %s", C.subjectName()));
+	        L.information(fmt::format(">         Subject: {}", C.subjectName()));
 	        L.information("---------------------------------------------------------------------------------------------");
-	        L.information(Poco::format(">     Common Name: %s",
+	        L.information(fmt::format(">     Common Name: {}",
                                        C.subjectName(Poco::Crypto::X509Certificate::NID_COMMON_NAME)));
-	        L.information(Poco::format(">         Country: %s",
+	        L.information(fmt::format(">         Country: {}",
                                        C.subjectName(Poco::Crypto::X509Certificate::NID_COUNTRY)));
-	        L.information(Poco::format(">        Locality: %s",
+	        L.information(fmt::format(">        Locality: {}",
                                        C.subjectName(Poco::Crypto::X509Certificate::NID_LOCALITY_NAME)));
 	        L.information(
-	                Poco::format(">      State/Prov: %s",
+	                fmt::format(">      State/Prov: {}",
                                  C.subjectName(Poco::Crypto::X509Certificate::NID_STATE_OR_PROVINCE)));
 	        L.information(
-	                Poco::format(">        Org name: %s",
+	                fmt::format(">        Org name: {}",
                                  C.subjectName(Poco::Crypto::X509Certificate::NID_ORGANIZATION_NAME)));
 	        L.information(
-	                Poco::format(">        Org unit: %s",
+	                fmt::format(">        Org unit: {}",
                                  C.subjectName(Poco::Crypto::X509Certificate::NID_ORGANIZATION_UNIT_NAME)));
 	        L.information(
-	                Poco::format(">           Email: %s",
+	                fmt::format(">           Email: {}",
                                  C.subjectName(Poco::Crypto::X509Certificate::NID_PKCS9_EMAIL_ADDRESS)));
-	        L.information(Poco::format(">         Serial#: %s",
+	        L.information(fmt::format(">         Serial#: {}",
                                        C.subjectName(Poco::Crypto::X509Certificate::NID_SERIAL_NUMBER)));
 	        L.information("---------------------------------------------------------------------------------------------");
-	        L.information(Poco::format(">  Signature Algo: %s", C.signatureAlgorithm()));
+	        L.information(fmt::format(">  Signature Algo: {}", C.signatureAlgorithm()));
 	        auto From = Poco::DateTimeFormatter::format(C.validFrom(), Poco::DateTimeFormat::HTTP_FORMAT);
-	        L.information(Poco::format(">      Valid from: %s", From));
+	        L.information(fmt::format(">      Valid from: {}", From));
 	        auto Expires =
 	                Poco::DateTimeFormatter::format(C.expiresOn(), Poco::DateTimeFormat::HTTP_FORMAT);
-	        L.information(Poco::format(">      Expires on: %s", Expires));
-	        L.information(Poco::format(">         Version: %d", (int)C.version()));
-	        L.information(Poco::format(">        Serial #: %s", C.serialNumber()));
+	        L.information(fmt::format(">      Expires on: {}", Expires));
+	        L.information(fmt::format(">         Version: {}", (int)C.version()));
+	        L.information(fmt::format(">        Serial #: {}", C.serialNumber()));
 	        L.information("=============================================================================================");
 	    }
 
@@ -1441,7 +1443,7 @@ namespace OpenWifi {
 	            Poco::Crypto::X509Certificate C(cert_file_);
 	            L.information("=============================================================================================");
 	            L.information("=============================================================================================");
-	            L.information(Poco::format("Certificate Filename: %s", cert_file_));
+	            L.information(fmt::format("Certificate Filename: {}", cert_file_));
 	            LogCertInfo(L, C);
 	            L.information("=============================================================================================");
 
@@ -1449,7 +1451,7 @@ namespace OpenWifi {
 	                Poco::Crypto::X509Certificate C1(issuer_cert_file_);
 	                L.information("=============================================================================================");
 	                L.information("=============================================================================================");
-	                L.information(Poco::format("Issues Certificate Filename: %s", issuer_cert_file_));
+	                L.information(fmt::format("Issues Certificate Filename: {}", issuer_cert_file_));
 	                LogCertInfo(L, C1);
 	                L.information("=============================================================================================");
 	            }
@@ -1460,11 +1462,11 @@ namespace OpenWifi {
 
 	                L.information("=============================================================================================");
 	                L.information("=============================================================================================");
-	                L.information(Poco::format("Client CAs Filename: %s", client_cas_));
+	                L.information(fmt::format("Client CAs Filename: {}", client_cas_));
 	                L.information("=============================================================================================");
 	                auto i = 1;
 	                for (const auto &C3 : Certs) {
-	                    L.information(Poco::format(" Index: %d", i));
+	                    L.information(fmt::format(" Index: {}", i));
 	                    L.information("=============================================================================================");
 	                    LogCertInfo(L, C3);
 	                    i++;
@@ -1484,11 +1486,11 @@ namespace OpenWifi {
 
 	            L.information("=============================================================================================");
 	            L.information("=============================================================================================");
-	            L.information(Poco::format("CA Filename: %s", root_ca_));
+	            L.information(fmt::format("CA Filename: {}", root_ca_));
 	            L.information("=============================================================================================");
 	            auto i = 1;
 	            for (const auto &C : Certs) {
-	                L.information(Poco::format(" Index: %d", i));
+	                L.information(fmt::format(" Index: {}", i));
 	                L.information("=============================================================================================");
 	                LogCertInfo(L, C);
 	                i++;
@@ -1689,7 +1691,7 @@ namespace OpenWifi {
 	            E->Count++;
 	            Cache_.update(H,E);
 	            if(E->Count > MaxCalls) {
-	                Logger().warning(Poco::format("RATE-LIMIT-EXCEEDED: from '%s'", R.clientAddress().toString()));
+	                Logger().warning(fmt::format("RATE-LIMIT-EXCEEDED: from '{}'", R.clientAddress().toString()));
 	                return true;
 	            }
 	            return false;
@@ -2042,7 +2044,7 @@ namespace OpenWifi {
 	        ErrorObject.set("ErrorDescription","This resource does not exist.");
 	        std::ostream &Answer = Response->send();
 	        Poco::JSON::Stringifier::stringify(ErrorObject, Answer);
-	        Logger_.debug(Poco::format("RES-NOTFOUND: User='%s@%s' Method='%s' Path='%s",
+	        Logger_.debug(fmt::format("RES-NOTFOUND: User='{}@{}}' Method='{}}' Path='{}}",
                                        UserInfo_.userinfo.email,
                                        Utils::FormatIPv6(Request->clientAddress().toString()),
                                        Request->getMethod(),
@@ -2640,10 +2642,10 @@ namespace OpenWifi {
 		KafkaDispatcher					Dispatcher_;
 
 	    inline void PartitionAssignment(const cppkafka::TopicPartitionList& partitions) {
-	        Logger().information(Poco::format("Partition assigned: %Lu...",(uint64_t )partitions.front().get_partition()));
+	        Logger().information(fmt::format("Partition assigned: {}...", partitions.front().get_partition()));
 	    }
 	    inline void PartitionRevocation(const cppkafka::TopicPartitionList& partitions) {
-	        Logger().information(Poco::format("Partition revocation: %Lu...",(uint64_t )partitions.front().get_partition()));
+	        Logger().information(fmt::format("Partition revocation: {}...",partitions.front().get_partition()));
 	    }
 
 	    KafkaManager() noexcept:
@@ -2757,7 +2759,7 @@ namespace OpenWifi {
 
 	            void handleRequest(Poco::Net::HTTPServerRequest& Request, Poco::Net::HTTPServerResponse& Response) override
 	            {
-	                Logger_.information(Poco::format("ALB-REQUEST(%s): New ALB request.",Request.clientAddress().toString()));
+	                Logger_.information(fmt::format("ALB-REQUEST({}): New ALB request.",Request.clientAddress().toString()));
 	                Response.setChunkedTransferEncoding(true);
 	                Response.setContentType("text/html");
 	                Response.setDate(Poco::Timestamp());
@@ -3200,6 +3202,10 @@ namespace OpenWifi {
 	    try {
 	        Poco::JSON::Parser P;
 	        auto Object = P.parse(Payload).extract<Poco::JSON::Object::Ptr>();
+/*          std::ostringstream OOO;
+            Object->stringify(OOO) ;
+            std::cout << "BUS MESSAGE:" << OOO.str() << std::endl;
+*/
 	        if (Object->has(KafkaTopics::ServiceEvents::Fields::ID) &&
 	        Object->has(KafkaTopics::ServiceEvents::Fields::EVENT)) {
 	            uint64_t 	ID = Object->get(KafkaTopics::ServiceEvents::Fields::ID);
@@ -3213,14 +3219,13 @@ namespace OpenWifi {
 	                    Object->has(KafkaTopics::ServiceEvents::Fields::PRIVATE) &&
 	                    Object->has(KafkaTopics::ServiceEvents::Fields::VRSN) &&
 	                    Object->has(KafkaTopics::ServiceEvents::Fields::KEY)) {
-
 	                        if (Event == KafkaTopics::ServiceEvents::EVENT_KEEP_ALIVE && Services_.find(ID) != Services_.end()) {
 	                            Services_[ID].LastUpdate = std::time(nullptr);
 	                        } else if (Event == KafkaTopics::ServiceEvents::EVENT_LEAVE) {
 	                            Services_.erase(ID);
-	                            logger().information(Poco::format("Service %s ID=%Lu leaving system.",Object->get(KafkaTopics::ServiceEvents::Fields::PRIVATE).toString(),ID));
+	                            logger().information(fmt::format("Service {} ID={} leaving system.",Object->get(KafkaTopics::ServiceEvents::Fields::PRIVATE).toString(),ID));
 	                        } else if (Event == KafkaTopics::ServiceEvents::EVENT_JOIN || Event == KafkaTopics::ServiceEvents::EVENT_KEEP_ALIVE) {
-	                            logger().information(Poco::format("Service %s ID=%Lu joining system.",Object->get(KafkaTopics::ServiceEvents::Fields::PRIVATE).toString(),ID));
+	                            logger().information(fmt::format("Service {} ID={} joining system.",Object->get(KafkaTopics::ServiceEvents::Fields::PRIVATE).toString(),ID));
 	                            Services_[ID] = MicroServiceMeta{
 	                                .Id = ID,
 	                                .Type = Poco::toLower(Object->get(KafkaTopics::ServiceEvents::Fields::TYPE).toString()),
@@ -3230,11 +3235,11 @@ namespace OpenWifi {
 	                                .Version = Object->get(KafkaTopics::ServiceEvents::Fields::VRSN).toString(),
 	                                .LastUpdate = (uint64_t)std::time(nullptr)};
 	                            for (const auto &[Id, Svc] : Services_) {
-	                                logger().information(Poco::format("ID: %Lu Type: %s EndPoint: %s",Id,Svc.Type,Svc.PrivateEndPoint));
+	                                logger().information(fmt::format("ID: {} Type: {} EndPoint: {}",Id,Svc.Type,Svc.PrivateEndPoint));
 	                            }
 	                        }
 	                    } else {
-	                        logger().error(Poco::format("KAFKA-MSG: invalid event '%s', missing a field.",Event));
+	                        logger().error(fmt::format("KAFKA-MSG: invalid event '{}', missing a field.",Event));
 	                    }
 	                } else if (Event==KafkaTopics::ServiceEvents::EVENT_REMOVE_TOKEN) {
 	                    if(Object->has(KafkaTopics::ServiceEvents::Fields::TOKEN)) {
@@ -3242,10 +3247,10 @@ namespace OpenWifi {
 	                        AuthClient()->RemovedCachedToken(Object->get(KafkaTopics::ServiceEvents::Fields::TOKEN).toString());
 #endif
 	                    } else {
-	                        logger().error(Poco::format("KAFKA-MSG: invalid event '%s', missing token",Event));
+	                        logger().error(fmt::format("KAFKA-MSG: invalid event '{}', missing token",Event));
 	                    }
 	                } else {
-	                    logger().error(Poco::format("Unknown Event: %s Source: %Lu", Event, ID));
+	                    logger().error(fmt::format("Unknown Event: {} Source: {}", Event, ID));
 	                }
 	            }
 	        } else {
@@ -3719,9 +3724,9 @@ namespace OpenWifi {
         for(const auto & Svr: ConfigServersList_) {
 
             if(MicroService::instance().NoAPISecurity()) {
-                Logger().information(Poco::format("Starting:  %s:%s. Security has been disabled for APIs.", Svr.Address(), std::to_string(Svr.Port())));
+                Logger().information(fmt::format("Starting: {}:{}. Security has been disabled for APIs.", Svr.Address(), Svr.Port()));
             } else {
-                Logger().information(Poco::format("Starting: %s:%s Keyfile:%s CertFile: %s", Svr.Address(), std::to_string(Svr.Port()),
+                Logger().information(fmt::format("Starting: {}:{} Keyfile:{} CertFile: {}", Svr.Address(), Svr.Port(),
                                                   Svr.KeyFile(),Svr.CertFile()));
                 Svr.LogCert(Logger());
                 if (!Svr.RootCA().empty())
@@ -3755,9 +3760,9 @@ namespace OpenWifi {
         for(const auto & Svr: ConfigServersList_) {
 
             if(MicroService::instance().NoAPISecurity()) {
-                Logger().information(Poco::format("Starting: %s:%s. Security has been disabled for APIs.", Svr.Address(), std::to_string(Svr.Port())));
+                Logger().information(fmt::format("Starting: {}:{}. Security has been disabled for APIs.", Svr.Address(), Svr.Port()));
             } else {
-                Logger().information(Poco::format("Starting: %s:%s. Keyfile:%s CertFile: %s", Svr.Address(), std::to_string(Svr.Port()),
+                Logger().information(fmt::format("Starting: {}:{}. Keyfile:{} CertFile: {}", Svr.Address(), Svr.Port(),
                                                   Svr.KeyFile(),Svr.CertFile()));
                 Svr.LogCert(Logger());
                 if (!Svr.RootCA().empty())
@@ -3793,7 +3798,7 @@ namespace OpenWifi {
 	        SavePID();
 
 	        Poco::Logger &logger = Poco::Logger::get(DAEMON_APP_NAME);
-	        logger.notice(Poco::format("Starting %s version %s.",DAEMON_APP_NAME, Version()));
+	        logger.notice(fmt::format("Starting {} version {}.",DAEMON_APP_NAME, Version()));
 
 	        if(Poco::Net::Socket::supportsIPv6())
 	            logger.information("System supports IPv6.");
@@ -3804,11 +3809,11 @@ namespace OpenWifi {
 	            logger.information("Starting as a daemon.");
 	        }
 
-	        logger.information(Poco::format("System ID set to %Lu",ID_));
+	        logger.information(fmt::format("System ID set to {}",ID_));
 	        StartSubSystemServers();
 	        waitForTerminationRequest();
 	        StopSubSystemServers();
-	        logger.notice(Poco::format("Stopped %s...",DAEMON_APP_NAME));
+	        logger.notice(fmt::format("Stopped {}...",DAEMON_APP_NAME));
 	    }
 
 	    return Application::EXIT_OK;
@@ -3936,37 +3941,37 @@ namespace OpenWifi {
 	inline void KafkaLoggerFun(cppkafka::KafkaHandleBase & handle, int level, const std::string & facility, const std::string &messqge) {
 		switch ((cppkafka::LogLevel) level) {
 			case cppkafka::LogLevel::LogNotice: {
-					KafkaManager()->Logger().notice(Poco::format("kafka-log: facility: %s message: %s",facility, messqge));
+					KafkaManager()->Logger().notice(fmt::format("kafka-log: facility: {} message: {}",facility, messqge));
 				}
 				break;
 			case cppkafka::LogLevel::LogDebug: {
-					KafkaManager()->Logger().debug(Poco::format("kafka-log: facility: %s message: %s",facility, messqge));
+					KafkaManager()->Logger().debug(fmt::format("kafka-log: facility: {} message: {}",facility, messqge));
 				}
 				break;
 			case cppkafka::LogLevel::LogInfo: {
-					KafkaManager()->Logger().information(Poco::format("kafka-log: facility: %s message: %s",facility, messqge));
+					KafkaManager()->Logger().information(fmt::format("kafka-log: facility: {} message: {}",facility, messqge));
 				}
 				break;
 				case cppkafka::LogLevel::LogWarning: {
-					KafkaManager()->Logger().warning(Poco::format("kafka-log: facility: %s message: %s",facility, messqge));
+					KafkaManager()->Logger().warning(fmt::format("kafka-log: facility: {} message: {}",facility, messqge));
 				}
 				break;
 			case cppkafka::LogLevel::LogAlert:
 			case cppkafka::LogLevel::LogCrit: {
-					KafkaManager()->Logger().critical(Poco::format("kafka-log: facility: %s message: %s",facility, messqge));
+					KafkaManager()->Logger().critical(fmt::format("kafka-log: facility: {} message: {}",facility, messqge));
 				}
 				break;
 			case cppkafka::LogLevel::LogErr:
 			case cppkafka::LogLevel::LogEmerg:
 			default: {
-				KafkaManager()->Logger().error(Poco::format("kafka-log: facility: %s message: %s",facility, messqge));
+				KafkaManager()->Logger().error(fmt::format("kafka-log: facility: {} message: {}",facility, messqge));
 				}
 				break;
 		}
 	}
 
 	inline void KafkaErrorFun(cppkafka::KafkaHandleBase & handle, int error, const std::string &reason) {
-		KafkaManager()->Logger().error(Poco::format("kafka-error: %d, reason: %s", error, reason));
+		KafkaManager()->Logger().error(fmt::format("kafka-error: {}, reason: {}", error, reason));
 	}
 
 	inline void AddKafkaSecurity(cppkafka::Configuration & Config) {
@@ -4040,14 +4045,14 @@ namespace OpenWifi {
 	    cppkafka::Consumer Consumer(Config);
 	    Consumer.set_assignment_callback([this](cppkafka::TopicPartitionList& partitions) {
 	        if(!partitions.empty()) {
-	            KafkaManager()->Logger().information(Poco::format("Partition assigned: %Lu...",
-                                                 (uint64_t)partitions.front().get_partition()));
+	            KafkaManager()->Logger().information(fmt::format("Partition assigned: {}...",
+                                                 partitions.front().get_partition()));
 	        }
 	    });
 	    Consumer.set_revocation_callback([this](const cppkafka::TopicPartitionList& partitions) {
 	        if(!partitions.empty()) {
-	            KafkaManager()->Logger().information(Poco::format("Partition revocation: %Lu...",
-                                                 (uint64_t)partitions.front().get_partition()));
+	            KafkaManager()->Logger().information(fmt::format("Partition revocation: {}...",
+                                                 partitions.front().get_partition()));
 	        }
 	    });
 
@@ -4067,7 +4072,7 @@ namespace OpenWifi {
 	                    continue;
 	                if (Msg.get_error()) {
 	                    if (!Msg.is_eof()) {
-	                        KafkaManager()->Logger().error(Poco::format("Error: %s", Msg.get_error().to_string()));
+	                        KafkaManager()->Logger().error(fmt::format("Error: {}", Msg.get_error().to_string()));
 	                    }if(!AutoCommit)
 	                        Consumer.async_commit(Msg);
 	                    continue;
@@ -4077,7 +4082,7 @@ namespace OpenWifi {
 	                    Consumer.async_commit(Msg);
 	            }
 	        } catch (const cppkafka::HandleException &E) {
-	            KafkaManager()->Logger().warning(Poco::format("Caught a Kafka exception (consumer): %s",std::string{E.what()}));
+	            KafkaManager()->Logger().warning(fmt::format("Caught a Kafka exception (consumer): {}", E.what()));
 	        } catch (const Poco::Exception &E) {
 	            KafkaManager()->Logger().log(E);
 	        }
@@ -4171,7 +4176,7 @@ namespace OpenWifi {
 	                            auto Value = GetS(RESTAPI::Protocol::VALUE, InnerObj);
 	                            MicroService::instance().SetSubsystemLogLevel(Name, Value);
 	                            Logger_.information(
-	                                    Poco::format("Setting log level for %s at %s", Name, Value));
+	                                    fmt::format("Setting log level for {} at {}", Name, Value));
 	                        }
 	                    }
 	                    return OK();
@@ -4446,14 +4451,14 @@ namespace OpenWifi {
             auto Allowed = MicroService::instance().IsValidAPIKEY(*Request);
             if(!Allowed) {
                 if(Server_.LogBadTokens(false)) {
-                    Logger_.debug(Poco::format("I-REQ-DENIED(%s): Method='%s' Path='%s",
+                    Logger_.debug(fmt::format("I-REQ-DENIED({}): Method={} Path={}",
                                                Utils::FormatIPv6(Request->clientAddress().toString()),
                                                Request->getMethod(), Request->getURI()));
                 }
             } else {
                 auto Id = Request->get("X-INTERNAL-NAME", "unknown");
                 if(Server_.LogIt(Request->getMethod(),true)) {
-                    Logger_.debug(Poco::format("I-REQ-ALLOWED(%s): User='%s' Method='%s' Path='%s",
+                    Logger_.debug(fmt::format("I-REQ-ALLOWED({}): User='{}' Method={} Path={}",
                                                Utils::FormatIPv6(Request->clientAddress().toString()), Id,
                                                Request->getMethod(), Request->getURI()));
                 }
@@ -4476,7 +4481,7 @@ namespace OpenWifi {
             if (AuthClient()->IsAuthorized( SessionToken_, UserInfo_, Expired, Contacted, Sub)) {
 #endif
                 if(Server_.LogIt(Request->getMethod(),true)) {
-                    Logger_.debug(Poco::format("X-REQ-ALLOWED(%s): User='%s@%s' Method='%s' Path='%s'",
+                    Logger_.debug(fmt::format("X-REQ-ALLOWED({}): User='{}@{}' Method={} Path={}",
                                                UserInfo_.userinfo.email,
                                                Utils::FormatIPv6(Request->clientAddress().toString()),
                                                Request->clientAddress().toString(),
@@ -4486,7 +4491,7 @@ namespace OpenWifi {
                 return true;
             } else {
                 if(Server_.LogBadTokens(true)) {
-                    Logger_.debug(Poco::format("X-REQ-DENIED(%s): Method='%s' Path='%s'",
+                    Logger_.debug(fmt::format("X-REQ-DENIED({}): Method={} Path={}",
                                                Utils::FormatIPv6(Request->clientAddress().toString()),
                                                Request->getMethod(), Request->getURI()));
                 }

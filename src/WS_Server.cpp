@@ -17,9 +17,9 @@ namespace OpenWifi {
 
 	bool WebSocketServer::ValidateCertificate(const std::string & ConnectionId, const Poco::Crypto::X509Certificate & Certificate) {
 		if(IsCertOk()) {
-			Logger().debug(Poco::format("CERTIFICATE(%s): issuer='%s' cn='%s'", ConnectionId, Certificate.issuerName(),Certificate.commonName()));
+			Logger().debug(fmt::format("CERTIFICATE({}): issuer='{}' cn='{}'", ConnectionId, Certificate.issuerName(),Certificate.commonName()));
 			if(!Certificate.issuedBy(*IssuerCert_)) {
-				Logger().debug(Poco::format("CERTIFICATE(%s): issuer mismatch. Local='%s' Incoming='%s'", ConnectionId, IssuerCert_->issuerName(), Certificate.issuerName()));
+				Logger().debug(fmt::format("CERTIFICATE({}): issuer mismatch. Local='{}' Incoming='{}'", ConnectionId, IssuerCert_->issuerName(), Certificate.issuerName()));
 				return false;
 			}
 			return true;
@@ -30,8 +30,10 @@ namespace OpenWifi {
 	int WebSocketServer::Start() {
 		ReactorPool_.Start("DeviceReactorPool_");
         for(const auto & Svr : ConfigServersList_ ) {
-            Logger().notice(Poco::format("Starting: %s:%s Keyfile:%s CertFile: %s", Svr.Address(), std::to_string(Svr.Port()),
-											 Svr.KeyFile(),Svr.CertFile()));
+            Logger().notice( fmt::format("Starting: {}:{} Keyfile:{} CertFile: {}",
+										Svr.Address(),
+										Svr.Port(),
+										Svr.KeyFile(),Svr.CertFile()));
 
 			Svr.LogCert(Logger());
 			if(!Svr.RootCA().empty())
@@ -41,7 +43,7 @@ namespace OpenWifi {
 
 			if(!IsCertOk()) {
 				IssuerCert_ = std::make_unique<Poco::Crypto::X509Certificate>(Svr.IssuerCertFile());
-				Logger().information(Poco::format("Certificate Issuer Name:%s",IssuerCert_->issuerName()));
+				Logger().information( fmt::format("Certificate Issuer Name:{}",IssuerCert_->issuerName()));
 			}
 			auto NewSocketAcceptor = std::make_unique<Poco::Net::ParallelSocketAcceptor<WSConnection, Poco::Net::SocketReactor>>(Sock, Reactor_,  Poco::Environment::processorCount()*2);
             Acceptors_.push_back(std::move(NewSocketAcceptor));

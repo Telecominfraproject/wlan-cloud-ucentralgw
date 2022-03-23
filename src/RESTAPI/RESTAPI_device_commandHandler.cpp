@@ -129,7 +129,7 @@ void RESTAPI_device_commandHandler::GetCapabilities() {
 }
 
 void RESTAPI_device_commandHandler::DeleteCapabilities() {
-	Logger_.information(Poco::format("DELETE-CAPABILITIES: user=%s serial=%s", UserInfo_.userinfo.email,SerialNumber_));
+	Logger_.information(fmt::format("DELETE-CAPABILITIES: user={} serial={}", UserInfo_.userinfo.email,SerialNumber_));
 	if (StorageService()->DeleteDeviceCapabilities(SerialNumber_)) {
 		return OK();
 	}
@@ -170,7 +170,7 @@ void RESTAPI_device_commandHandler::GetStatistics() {
 }
 
 void RESTAPI_device_commandHandler::DeleteStatistics() {
-	Logger_.information(Poco::format("DELETE-STATISTICS: user=%s serial=%s", UserInfo_.userinfo.email,SerialNumber_));
+	Logger_.information(fmt::format("DELETE-STATISTICS: user={} serial={}", UserInfo_.userinfo.email,SerialNumber_));
 	if (StorageService()->DeleteStatisticsData(SerialNumber_, QB_.StartDate, QB_.EndDate)) {
 		return OK();
 	}
@@ -178,7 +178,7 @@ void RESTAPI_device_commandHandler::DeleteStatistics() {
 }
 
 void RESTAPI_device_commandHandler::Ping() {
-	Logger_.information(Poco::format("DELETE-STATISTICS: user=%s serial=%s", UserInfo_.userinfo.email,SerialNumber_));
+	Logger_.information(fmt::format("DELETE-STATISTICS: user={} serial={}", UserInfo_.userinfo.email,SerialNumber_));
 	auto Obj = ParseStream();
 	if (Obj->has(RESTAPI::Protocol::SERIALNUMBER)) {
 		auto SNum = Obj->get(RESTAPI::Protocol::SERIALNUMBER).toString();
@@ -244,7 +244,7 @@ void RESTAPI_device_commandHandler::GetStatus() {
 
 void RESTAPI_device_commandHandler::Configure() {
 	//  get the configuration from the body of the message
-	Logger_.information(Poco::format("CONFIGURE: user=%s serial=%s", UserInfo_.userinfo.email,SerialNumber_));
+	Logger_.information(fmt::format("CONFIGURE: user={} serial={}", UserInfo_.userinfo.email,SerialNumber_));
 	auto Obj = ParseStream();
 	if (Obj->has(RESTAPI::Protocol::SERIALNUMBER) &&
 		Obj->has(RESTAPI::Protocol::UUID) &&
@@ -293,7 +293,7 @@ void RESTAPI_device_commandHandler::Configure() {
 }
 
 void RESTAPI_device_commandHandler::Upgrade() {
-	Logger_.information(Poco::format("UPGRADE: user=%s serial=%s", UserInfo_.userinfo.email,SerialNumber_));
+	Logger_.information(fmt::format("UPGRADE: user={} serial={}", UserInfo_.userinfo.email,SerialNumber_));
 	auto Obj = ParseStream();
 
 	if (Obj->has(RESTAPI::Protocol::URI) &&
@@ -355,7 +355,7 @@ void RESTAPI_device_commandHandler::GetLogs() {
 }
 
 void RESTAPI_device_commandHandler::DeleteLogs() {
-	Logger_.information(Poco::format("DELETE-LOGS: user=%s serial=%s", UserInfo_.userinfo.email,SerialNumber_));
+	Logger_.information(fmt::format("DELETE-LOGS: user={} serial={}", UserInfo_.userinfo.email,SerialNumber_));
 	if (StorageService()->DeleteLogData(SerialNumber_, QB_.StartDate, QB_.EndDate,
 										 QB_.LogType)) {
 		return OK();
@@ -398,7 +398,7 @@ void RESTAPI_device_commandHandler::GetChecks() {
 }
 
 void RESTAPI_device_commandHandler::DeleteChecks() {
-	Logger_.information(Poco::format("DELETE-HEALTHCHECKS: user=%s serial=%s", UserInfo_.userinfo.email,SerialNumber_));
+	Logger_.information(fmt::format("DELETE-HEALTHCHECKS: user={} serial={}", UserInfo_.userinfo.email,SerialNumber_));
 	if (StorageService()->DeleteHealthCheckData(SerialNumber_, QB_.StartDate, QB_.EndDate)) {
 		return OK();
 	}
@@ -406,7 +406,7 @@ void RESTAPI_device_commandHandler::DeleteChecks() {
 }
 
 void RESTAPI_device_commandHandler::ExecuteCommand() {
-	Logger_.information(Poco::format("EXECUTE: user=%s serial=%s", UserInfo_.userinfo.email,SerialNumber_));
+	Logger_.information(fmt::format("EXECUTE: user={} serial={}", UserInfo_.userinfo.email,SerialNumber_));
 	auto Obj = ParseStream();
 	if (Obj->has(RESTAPI::Protocol::COMMAND) &&
 		Obj->has(RESTAPI::Protocol::SERIALNUMBER) &&
@@ -452,7 +452,7 @@ void RESTAPI_device_commandHandler::ExecuteCommand() {
 }
 
 void RESTAPI_device_commandHandler::Reboot() {
-	Logger_.information(Poco::format("REBOOT: user=%s serial=%s", UserInfo_.userinfo.email,SerialNumber_));
+	Logger_.information(fmt::format("REBOOT: user={} serial={}", UserInfo_.userinfo.email,SerialNumber_));
 	auto Obj = ParseStream();
 
 	if (Obj->has(RESTAPI::Protocol::SERIALNUMBER)) {
@@ -488,7 +488,7 @@ void RESTAPI_device_commandHandler::Reboot() {
 }
 
 void RESTAPI_device_commandHandler::Factory() {
-	Logger_.information(Poco::format("FACTORY-RESET: user=%s serial=%s", UserInfo_.userinfo.email,SerialNumber_));
+	Logger_.information(fmt::format("FACTORY-RESET: user={} serial={}", UserInfo_.userinfo.email,SerialNumber_));
 	Poco::JSON::Object::Ptr Obj = ParseStream();
 	if (Obj->has(RESTAPI::Protocol::KEEPREDIRECTOR) &&
 		Obj->has(RESTAPI::Protocol::SERIALNUMBER)) {
@@ -526,7 +526,7 @@ void RESTAPI_device_commandHandler::Factory() {
 }
 
 void RESTAPI_device_commandHandler::LEDs() {
-	Logger_.information(Poco::format("LEDS: user=%s serial=%s", UserInfo_.userinfo.email,SerialNumber_));
+	Logger_.information(fmt::format("LEDS: user={} serial={}", UserInfo_.userinfo.email,SerialNumber_));
 	auto Obj = ParseStream();
 
 	if (Obj->has(uCentralProtocol::PATTERN) &&
@@ -572,7 +572,7 @@ void RESTAPI_device_commandHandler::LEDs() {
 }
 
 void RESTAPI_device_commandHandler::Trace() {
-	Logger_.information(Poco::format("TRACE: user=%s serial=%s", UserInfo_.userinfo.email,SerialNumber_));
+	Logger_.information(fmt::format("TRACE: user={} serial={}", UserInfo_.userinfo.email,SerialNumber_));
 	auto Obj = ParseStream();
 
 	if 	(Obj->has(RESTAPI::Protocol::SERIALNUMBER) &&
@@ -628,7 +628,7 @@ void RESTAPI_device_commandHandler::Trace() {
 }
 
 void RESTAPI_device_commandHandler::WifiScan() {
-	Logger_.information(Poco::format("WIFISCAN: user=%s serial=%s", UserInfo_.userinfo.email,SerialNumber_));
+	Logger_.information(fmt::format("WIFISCAN: user={} serial={}", UserInfo_.userinfo.email,SerialNumber_));
 	auto Obj = ParseStream();
 
 	auto SNum = Obj->get(RESTAPI::Protocol::SERIALNUMBER).toString();
@@ -670,7 +670,7 @@ void RESTAPI_device_commandHandler::WifiScan() {
 }
 
 void RESTAPI_device_commandHandler::EventQueue() {
-	Logger_.information(Poco::format("EVENT-QUEUE: user=%s serial=%s", UserInfo_.userinfo.email,SerialNumber_));
+	Logger_.information(fmt::format("EVENT-QUEUE: user={} serial={}", UserInfo_.userinfo.email,SerialNumber_));
 	auto Obj = ParseStream();
 	if (Obj->has(RESTAPI::Protocol::SERIALNUMBER) &&
 		Obj->isArray(RESTAPI::Protocol::TYPES)) {
@@ -709,7 +709,7 @@ void RESTAPI_device_commandHandler::EventQueue() {
 }
 
 void RESTAPI_device_commandHandler::MakeRequest() {
-	Logger_.information(Poco::format("FORCE-REQUEST: user=%s serial=%s", UserInfo_.userinfo.email,SerialNumber_));
+	Logger_.information(fmt::format("FORCE-REQUEST: user={} serial={}", UserInfo_.userinfo.email,SerialNumber_));
 	auto Obj = ParseStream();
 	if (Obj->has(RESTAPI::Protocol::SERIALNUMBER) &&
 		Obj->has(uCentralProtocol::MESSAGE)) {
@@ -749,7 +749,7 @@ void RESTAPI_device_commandHandler::MakeRequest() {
 }
 
 	void RESTAPI_device_commandHandler::Rtty() {
-		Logger_.information(Poco::format("RTTY: user=%s serial=%s", UserInfo_.userinfo.email,SerialNumber_));
+		Logger_.information(fmt::format("RTTY: user={} serial={}", UserInfo_.userinfo.email,SerialNumber_));
 
 		if(!DeviceRegistry()->Connected(SerialNumber_)) {
 			return BadRequest(RESTAPI::Errors::DeviceNotConnected);
@@ -811,7 +811,7 @@ void RESTAPI_device_commandHandler::MakeRequest() {
 	}
 
 	void RESTAPI_device_commandHandler::Telemetry(){
-		Logger_.information(Poco::format("TELEMETRY: user=%s serial=%s", UserInfo_.userinfo.email,SerialNumber_));
+		Logger_.information(fmt::format("TELEMETRY: user={} serial={}", UserInfo_.userinfo.email,SerialNumber_));
 
 		auto Obj = ParseStream();
 		if (Obj->has(RESTAPI::Protocol::SERIALNUMBER) &&

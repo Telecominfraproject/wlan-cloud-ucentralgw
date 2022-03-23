@@ -30,7 +30,7 @@ namespace OpenWifi {
 				StorageService()->RemoveCommandListRecordsOlderThan(
 					Now - (i.HowManyDays * 24 * 60 * 60));
 			} else {
-				Logger().information(Poco::format("Cannot archive DB '%s'", i.DBName));
+				Logger().information(fmt::format("Cannot archive DB '{}'", i.DBName));
 			}
 		}
 		AppServiceRegistry().Set("lastStorageArchiverRun", (uint64_t) Now);
@@ -90,7 +90,7 @@ namespace OpenWifi {
 
 		int NextRun = CalculateDelta(RunAtHour_,RunAtMin_);
 
-		Logger().information(Poco::format("Next run in %d seconds.",NextRun));
+		Logger().information(fmt::format("Next run in {} seconds.",NextRun));
 
 		Timer_.setStartInterval( NextRun * 1000);
 		Timer_.setPeriodicInterval(24 * 60 * 60 * 1000); // 1 hours

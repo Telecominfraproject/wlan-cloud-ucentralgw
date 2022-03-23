@@ -107,7 +107,7 @@ namespace OpenWifi {
 		}
 
 		if (!Utils::ValidSerialNumber(SerialNumber)) {
-			Logger_.warning(Poco::format("CREATE-DEVICE(%s): Illegal serial number.", SerialNumber));
+			Logger_.warning(fmt::format("CREATE-DEVICE({}): Illegal serial number.", SerialNumber));
 			return BadRequest( RESTAPI::Errors::InvalidSerialNumber);
 		}
 

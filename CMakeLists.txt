@@ -50,6 +50,7 @@ set(Boost_USE_STATIC_RUNTIME OFF)
 find_package(Boost REQUIRED system)
 find_package(OpenSSL REQUIRED)
 find_package(ZLIB REQUIRED)
+find_package(fmt  REQUIRED)
 find_package(nlohmann_json  REQUIRED)
 find_package(nlohmann_json_schema_validator REQUIRED)
 
@@ -131,6 +132,7 @@ if(NOT SMALL_BUILD)
             ${MySQL_LIBRARIES} ${ZLIB_LIBRARIES}
                 CppKafka::cppkafka
                 nlohmann_json_schema_validator
+                fmt::fmt
              )
     if(UNIX AND NOT APPLE)
         target_link_libraries(owgw PUBLIC PocoJSON)

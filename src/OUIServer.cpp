@@ -42,7 +42,7 @@ namespace OpenWifi {
 
 	bool OUIServer::GetFile(const std::string &FileName) {
 		try {
-			Logger().information(Poco::format("Start: Retrieving OUI file: %s",MicroService::instance().ConfigGetString("oui.download.uri")));
+			Logger().information(fmt::format("Start: Retrieving OUI file: {}",MicroService::instance().ConfigGetString("oui.download.uri")));
 			std::unique_ptr<std::istream> pStr(
 				Poco::URIStreamOpener::defaultOpener().open(MicroService::instance().ConfigGetString("oui.download.uri")));
 			std::ofstream OS;
@@ -52,7 +52,7 @@ namespace OpenWifi {
 			OS.open(FileName);
 			Poco::StreamCopier::copyStream(*pStr, OS);
 			OS.close();
-			Logger().information(Poco::format("Done: Retrieving OUI file: %s",MicroService::instance().ConfigGetString("oui.download.uri")));
+			Logger().information(fmt::format("Done: Retrieving OUI file: {}",MicroService::instance().ConfigGetString("oui.download.uri")));
 			return true;
 		} catch (const Poco::Exception &E) {
 			Logger().log(E);
@@ -115,7 +115,7 @@ namespace OpenWifi {
 				F1.remove();
 			Poco::File F2(LatestOUIFileName);
 			F2.renameTo(CurrentOUIFileName);
-			Logger().information(Poco::format("New OUI file %s downloaded.",LatestOUIFileName));
+			Logger().information(fmt::format("New OUI file {} downloaded.",LatestOUIFileName));
 		} else if(OUIs_.empty()) {
 			if(ProcessFile(CurrentOUIFileName, TmpOUIs)) {
 				LastUpdate_ = std::time(nullptr);

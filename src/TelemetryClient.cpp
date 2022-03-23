@@ -56,7 +56,7 @@ namespace OpenWifi {
 					*WS_, Poco::NObserver<TelemetryClient, Poco::Net::ErrorNotification>(
 							  *this, &TelemetryClient::OnSocketError));
 				Registered_ = true;
-				Logger().information(Poco::format("CONNECTION(%s): completed.", CId_));
+				Logger().information(fmt::format("CONNECTION({}): completed.", CId_));
 				return;
 			}
 		} catch (const Poco::Net::SSLException &E) {
@@ -97,7 +97,7 @@ namespace OpenWifi {
 	}
 
 	void TelemetryClient::SendTelemetryShutdown() {
-		Logger().information(Poco::format("TELEMETRY-SHUTDOWN(%s): Closing.",CId_));
+		Logger().information(fmt::format("TELEMETRY-SHUTDOWN({}): Closing.",CId_));
 		auto Device = DeviceRegistry()->GetDeviceConnection(SerialNumber_);
 		if(Device) {
 			if(Device->WSConn_)
@@ -109,13 +109,13 @@ namespace OpenWifi {
 
 	void TelemetryClient::OnSocketShutdown(const Poco::AutoPtr<Poco::Net::ShutdownNotification>& pNf) {
 		std::lock_guard Guard(Mutex_);
-		Logger().information(Poco::format("SOCKET-SHUTDOWN(%s): Orderly shutdown.", CId_));
+		Logger().information(fmt::format("SOCKET-SHUTDOWN({}): Orderly shutdown.", CId_));
 		SendTelemetryShutdown();
 	}
 
 	void TelemetryClient::OnSocketError(const Poco::AutoPtr<Poco::Net::ErrorNotification>& pNf) {
 		std::lock_guard Guard(Mutex_);
-		Logger().information(Poco::format("SOCKET-ERROR(%s): Closing.",CId_));
+		Logger().information(fmt::format("SOCKET-ERROR({}): Closing.",CId_));
 		SendTelemetryShutdown();
 	}
 
@@ -132,11 +132,11 @@ namespace OpenWifi {
 		}
 		catch (const std::exception & E) {
 			std::string W = E.what();
-			Logger().information(Poco::format("std::exception caught: %s. Connection terminated with %s",W,CId_));
+			Logger().information(fmt::format("std::exception caught: {}. Connection terminated with {}",W,CId_));
 			SendTelemetryShutdown();
 		}
 		catch ( ... ) {
-			Logger().information(Poco::format("Unknown exception for %s. Connection terminated.",CId_));
+			Logger().information(fmt::format("Unknown exception for {}. Connection terminated.",CId_));
 			SendTelemetryShutdown();
 		}
 	}
@@ -153,16 +153,16 @@ namespace OpenWifi {
 			Op = flags & Poco::Net::WebSocket::FRAME_OP_BITMASK;
 
 			if (IncomingSize == 0 && flags == 0 && Op == 0) {
-				Logger().information(Poco::format("DISCONNECT(%s): device has disconnected.", CId_));
+				Logger().information(fmt::format("DISCONNECT({}): device has disconnected.", CId_));
 				MustDisconnect = true;
 			} else {
 				if (Op == Poco::Net::WebSocket::FRAME_OP_PING) {
-					Logger().debug(Poco::format("WS-PING(%s): received. PONG sent back.", CId_));
+					Logger().debug(fmt::format("WS-PING({}): received. PONG sent back.", CId_));
 					WS_->sendFrame("", 0,
 								   (int)Poco::Net::WebSocket::FRAME_OP_PONG |
 									   (int)Poco::Net::WebSocket::FRAME_FLAG_FIN);
 				} else if (Op == Poco::Net::WebSocket::FRAME_OP_CLOSE) {
-					Logger().information(Poco::format("DISCONNECT(%s): device wants to disconnect.", CId_));
+					Logger().information(fmt::format("DISCONNECT({}): device wants to disconnect.", CId_));
 					MustDisconnect = true ;
 				}
 			}

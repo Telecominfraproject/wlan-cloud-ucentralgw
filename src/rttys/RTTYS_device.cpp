@@ -149,7 +149,7 @@ namespace OpenWifi {
 		outBuf[1] = 0;
 		outBuf[2] = 1;
 		outBuf[3] = sid_;
-		RTTYS_server()->Logger().debug(Poco::format("Device %s logging out", id_));
+		RTTYS_server()->Logger().debug(fmt::format("Device {} logging out", id_));
 		// PrintBuf(outBuf,4);
 		socket_.sendBytes(outBuf,4 );
 		return true;
@@ -167,7 +167,7 @@ namespace OpenWifi {
 				// PrintBuf(inBuf,len);
 				RTTY_MSG_TYPE   msg;
 				if(inBuf[0]>=(u_char)msgTypeMax) {
-					RTTYS_server()->Logger().debug(Poco::format("Bad message for Session: %s", id_));
+					RTTYS_server()->Logger().debug(fmt::format("Bad message for Session: {}", id_));
 					return delete this;
 				}
 
@@ -196,17 +196,17 @@ namespace OpenWifi {
 								socket_.sendBytes(OutBuf, 7);
 								RTTYS_server()->Register(id_, this);
 								serial_ = RTTYS_server()->SerialNumber(id_);
-								RTTYS_server()->Logger().debug(Poco::format(
-										"Registration for SerialNumber: %s, Description: %s",
+								RTTYS_server()->Logger().debug(fmt::format(
+										"Registration for SerialNumber: {}, Description: {}",
 										serial_, desc_));
 							} else {
-								RTTYS_server()->Logger().debug(Poco::format(
-									"Registration for SerialNumber: %s, already done",
+								RTTYS_server()->Logger().debug(fmt::format(
+									"Registration for SerialNumber: {}, already done",
 									serial_));
 							}
 						} else {
-							RTTYS_server()->Logger().debug(Poco::format(
-								"Registration failed - invalid (id,token) pair. for Session: %s, Description: %s",
+							RTTYS_server()->Logger().debug(fmt::format(
+								"Registration failed - invalid (id,token) pair. for Session: {}, Description: {}",
 								id_, desc_));
 							return delete this;
 						}
@@ -214,7 +214,7 @@ namespace OpenWifi {
 					break;
 
 					case msgTypeLogin: {
-					    RTTYS_server()->Logger().debug(Poco::format("Device created session for SerialNumber: %s, session: %s", serial_, id_));
+					    RTTYS_server()->Logger().debug(fmt::format("Device created session for SerialNumber: {}, session: {}", serial_, id_));
 						nlohmann::json doc;
 						auto error = inBuf[3];
 						sid_ = inBuf[4];
@@ -275,13 +275,13 @@ namespace OpenWifi {
 					break;
 				}
 			} else {
-				RTTYS_server()->Logger().debug(Poco::format("DeRegistration: %s shutting down session %s.", serial_, id_));
+				RTTYS_server()->Logger().debug(fmt::format("DeRegistration: {} shutting down session {}.", serial_, id_));
 				return delete this;
 			}
 		}
 		catch (const Poco::Exception & E)
 		{
-			RTTYS_server()->Logger().debug(Poco::format("DeRegistration: %s exception, session %s.", serial_, id_));
+			RTTYS_server()->Logger().debug(fmt::format("DeRegistration: {} exception, session {}.", serial_, id_));
 			RTTYS_server()->Logger().log(E);
 			return delete this;
 		}

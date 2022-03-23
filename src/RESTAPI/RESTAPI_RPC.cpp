@@ -92,44 +92,44 @@ namespace OpenWifi::RESTAPI_RPC {
 								Cmd.to_json(O);
 								Handler->ReturnObject(O);
 							}
-							Logger.information(Poco::format("Command(%s): completed in %8.3fms.", Cmd.UUID, Cmd.executionTime));
+							Logger.information( fmt::format("Command({}): completed in {:.3f}ms.", Cmd.UUID, Cmd.executionTime));
 							return;
 						} else {
 							SetCommandStatus(Cmd, Request, Response, Handler,
 											 Storage::COMMAND_FAILED, Logger);
-							Logger.information(Poco::format(
-								"Invalid response for command '%s'. Missing status.", Cmd.UUID));
+							Logger.information(fmt::format(
+								"Invalid response for command '{}'. Missing status.", Cmd.UUID));
 							return;
 						}
 					} else {
 						SetCommandStatus(Cmd, Request, Response, Handler, Storage::COMMAND_FAILED,
 										 Logger);
-						Logger.information(Poco::format(
-							"Invalid response for command '%s'. Missing status.", Cmd.UUID));
+						Logger.information(fmt::format(
+							"Invalid response for command '{}'. Missing status.", Cmd.UUID));
 						return;
 					}
 				} else {
-					Logger.information(Poco::format(
-						"Timeout1 for command '%s'.", Cmd.UUID));
+					Logger.information(fmt::format(
+						"Timeout1 for command '{}'.", Cmd.UUID));
 					SetCommandStatus(Cmd, Request, Response, Handler, Storage::COMMAND_TIMEDOUT,
 									 Logger);
 					return;
 				}
 			} else if (rpc_result == std::future_status::timeout) {
-				Logger.information(Poco::format(
-					"Timeout2 for command '%s'.", Cmd.UUID));
+				Logger.information(fmt::format(
+					"Timeout2 for command '{}'.", Cmd.UUID));
 				SetCommandStatus(Cmd, Request, Response, Handler, Storage::COMMAND_TIMEDOUT,
 								 Logger);
 				return;
 			} else {
-				Logger.information(Poco::format(
-					"Pending completion for command '%s'.", Cmd.UUID));
+				Logger.information(fmt::format(
+					"Pending completion for command '{}'.", Cmd.UUID));
 				SetCommandStatus(Cmd, Request, Response, Handler, Storage::COMMAND_PENDING, Logger);
 				return;
 			}
 		} else {
-			Logger.information(Poco::format(
-				"Pending completion for command '%s'.", Cmd.UUID));
+			Logger.information(fmt::format(
+				"Pending completion for command '{}'.", Cmd.UUID));
 			SetCommandStatus(Cmd, Request, Response, Handler, Storage::COMMAND_PENDING, Logger);
 			return;
 		}

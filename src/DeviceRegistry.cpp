@@ -129,7 +129,7 @@ namespace OpenWifi {
 			try {
 				return Device->second->WSConn_->Send(Payload);
 			} catch (...) {
-				Logger().debug(Poco::format("Could not send data to device '%s'", SerialNumber));
+				Logger().debug(fmt::format("Could not send data to device '{}'", SerialNumber));
 				Device->second->Conn_.Address = "";
 				Device->second->WSConn_ = nullptr;
 				Device->second->Conn_.Connected = false;

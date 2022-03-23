@@ -44,7 +44,7 @@ namespace OpenWifi {
 					}
 				} else {
 					Logger_.error(
-						Poco::format("DEVICE(%s): device in select cannot be found.", i));
+						fmt::format("DEVICE({}): device in select cannot be found.", i));
 				}
 			}
 			if (deviceWithStatus)
