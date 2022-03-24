@@ -39,6 +39,14 @@ jobs:
         registry_user: ucentral
         registry_password: ${{ secrets.DOCKER_REGISTRY_PASSWORD }}
 
+    - name: Notify on failure via Slack
+      if: failure() && github.ref == 'refs/heads/master'
+      uses: rtCamp/action-slack-notify@v2
+      env:
+        SLACK_USERNAME: GitHub Actions failure notifier
+        SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+        SLACK_COLOR: "${{ job.status }}"
+
   trigger-testing:
     if: startsWith(github.ref, 'refs/pull/')
     runs-on: ubuntu-latest
@@ -66,3 +74,11 @@ jobs:
         token: ${{ secrets.WLAN_TESTING_PAT }}
         ref: master
         inputs: '{"microservice": "owgw", "owgw_version": "${{ github.sha }}", "owgwui_version": "${{ env.BASE_BRANCH }}", "owsec_version": "${{ env.BASE_BRANCH }}", "owfms_version": "${{ env.BASE_BRANCH }}", "owprov_version": "${{ env.BASE_BRANCH }}", "owprovui_version": "${{ env.BASE_BRANCH }}"}'
+
+    - name: Notify on failure via Slack
+      if: failure() && github.ref == 'refs/heads/master'
+      uses: rtCamp/action-slack-notify@v2
+      env:
+        SLACK_USERNAME: GitHub Actions failure notifier
+        SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+        SLACK_COLOR: "${{ job.status }}"
