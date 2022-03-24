@@ -40,6 +40,12 @@ services:
         servicePort: 16003
         targetPort: 16003
         protocol: TCP
+      rttys:
+        servicePort: 5912
+        targetPort: 5912
+      rttys-view:
+        servicePort: 5913
+        targetPort: 5913
 
 checks:
   owgw:
@@ -217,11 +223,13 @@ configProperties:
   openwifi.callback.0.remote: localhost:15055
   openwifi.callback.0.topics: owfws
   # rtty
+  rtty.internal: "true"
   rtty.enabled: "true"
   rtty.server: localhost
   rtty.port: 5912
   rtty.timeout: 60
   rtty.viewport: 5913
+  rtty.assets: $OWGW_ROOT/rtty_ui
   # ALB
   alb.enable: "true"
   alb.port: 16102
