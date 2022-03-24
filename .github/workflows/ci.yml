@@ -46,6 +46,7 @@ jobs:
         SLACK_USERNAME: GitHub Actions failure notifier
         SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
         SLACK_COLOR: "${{ job.status }}"
+        SLACK_ICON: https://raw.githubusercontent.com/quintessence/slack-icons/master/images/github-logo-slack-icon.png
 
   trigger-testing:
     if: startsWith(github.ref, 'refs/pull/')
@@ -82,3 +83,4 @@ jobs:
         SLACK_USERNAME: GitHub Actions failure notifier
         SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
         SLACK_COLOR: "${{ job.status }}"
+        SLACK_ICON: https://raw.githubusercontent.com/quintessence/slack-icons/master/images/github-logo-slack-icon.png
