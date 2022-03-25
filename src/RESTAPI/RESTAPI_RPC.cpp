@@ -14,11 +14,11 @@
 
 namespace OpenWifi::RESTAPI_RPC {
 	void SetCommandStatus(GWObjects::CommandDetails &Cmd,
-							 Poco::Net::HTTPServerRequest &Request,
-							 Poco::Net::HTTPServerResponse &Response,
-					  		 RESTAPIHandler *Handler,
-					  		 OpenWifi::Storage::CommandExecutionType Status,
-							 Poco::Logger &Logger) {
+							 	[[maybe_unused]] Poco::Net::HTTPServerRequest &Request,
+					  			[[maybe_unused]] Poco::Net::HTTPServerResponse &Response,
+					  		 	RESTAPIHandler *Handler,
+					  		 	OpenWifi::Storage::CommandExecutionType Status,
+					  			[[maybe_unused]] Poco::Logger &Logger) {
 		if (StorageService()->AddCommand(Cmd.SerialNumber, Cmd, Status)) {
 			Poco::JSON::Object RetObj;
 			Cmd.to_json(RetObj);

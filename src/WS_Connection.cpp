@@ -146,9 +146,11 @@ namespace OpenWifi {
 		return delete this;
 	}
 
-	WSConnection::WSConnection(Poco::Net::StreamSocket &socket, Poco::Net::SocketReactor &reactor)
-		: Socket_(socket), Reactor_(WebSocketServer()->GetNextReactor()),
-		  Logger_(WebSocketServer()->Logger()) {
+	WSConnection::WSConnection(Poco::Net::StreamSocket &socket, [[maybe_unused]] Poco::Net::SocketReactor &reactor)
+		: Logger_(WebSocketServer()->Logger()) ,
+		  Socket_(socket),
+		  Reactor_(WebSocketServer()->GetNextReactor())
+		  {
 		std::thread T([=]() { CompleteStartup(); });
 		T.detach();
 		//		CompleteStartup();
@@ -849,19 +851,19 @@ namespace OpenWifi {
 		return true;
 	}
 
-	void WSConnection::OnSocketShutdown(const Poco::AutoPtr<Poco::Net::ShutdownNotification> &pNf) {
+	void WSConnection::OnSocketShutdown([[maybe_unused]] const Poco::AutoPtr<Poco::Net::ShutdownNotification> &pNf) {
 		std::lock_guard Guard(Mutex_);
 		poco_trace(Logger(), fmt::format("SOCKET-SHUTDOWN({}): Closing.", CId_));
 		delete this;
 	}
 
-	void WSConnection::OnSocketError(const Poco::AutoPtr<Poco::Net::ErrorNotification> &pNf) {
+	void WSConnection::OnSocketError([[maybe_unused]] const Poco::AutoPtr<Poco::Net::ErrorNotification> &pNf) {
 		std::lock_guard Guard(Mutex_);
 		poco_trace(Logger(), fmt::format("SOCKET-ERROR({}): Closing.", CId_));
 		delete this;
 	}
 
-	void WSConnection::OnSocketReadable(const Poco::AutoPtr<Poco::Net::ReadableNotification> &pNf) {
+	void WSConnection::OnSocketReadable([[maybe_unused]] const Poco::AutoPtr<Poco::Net::ReadableNotification> &pNf) {
 		std::lock_guard Guard(Mutex_);
 		try {
 			ProcessIncomingFrame();
@@ -905,8 +907,8 @@ namespace OpenWifi {
 
 				std::string IncomingMessageStr = asString(IncomingFrame);
 
-				auto flag_fin = (flags & Poco::Net::WebSocket::FRAME_FLAG_FIN) == Poco::Net::WebSocket::FRAME_FLAG_FIN;
-				auto flag_cont = (Op == Poco::Net::WebSocket::FRAME_OP_CONT) ;
+				// auto flag_fin = (flags & Poco::Net::WebSocket::FRAME_FLAG_FIN) == Poco::Net::WebSocket::FRAME_FLAG_FIN;
+				// auto flag_cont = (Op == Poco::Net::WebSocket::FRAME_OP_CONT) ;
 				//std::cout << "SerialNumber: " << SerialNumber_ << "  Size: " << std::dec
 				//		  << IncomingMessageStr.size() << "  fin=" << flag_fin << "  cont=" << flag_cont << std::endl;
 
@@ -1050,7 +1052,7 @@ namespace OpenWifi {
 	bool WSConnection::Send(const std::string &Payload) {
 		std::lock_guard Guard(Mutex_);
 
-		auto BytesSent = WS_->sendFrame(Payload.c_str(), (int)Payload.size());
+		size_t BytesSent = WS_->sendFrame(Payload.c_str(), (int)Payload.size());
 		if (Conn_)
 			Conn_->Conn_.TX += BytesSent;
 		return BytesSent == Payload.size();

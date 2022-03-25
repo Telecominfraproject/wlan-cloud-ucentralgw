@@ -33,7 +33,7 @@ namespace OpenWifi {
 		Timer_.stop();
 	}
 
-	void OUIServer::reinitialize(Poco::Util::Application &self) {
+	void OUIServer::reinitialize([[maybe_unused]] Poco::Util::Application &self) {
 		MicroService::instance().LoadConfigurationFile();
 		Logger().information("Reinitializing.");
 		Stop();
@@ -80,7 +80,7 @@ namespace OpenWifi {
 						auto MAC = Utils::SerialNumberToOUI(Tokens[0]);
 						if (MAC > 0) {
 							std::string Manufacturer;
-							for (auto i = 2; i < Tokens.count(); i++)
+							for (size_t i = 2; i < Tokens.count(); i++)
 								Manufacturer += Tokens[i] + " ";
 							auto M = Poco::trim(Manufacturer);
 							if (!M.empty())
@@ -96,7 +96,7 @@ namespace OpenWifi {
 		return false;
 	}
 
-	void OUIServer::onTimer(Poco::Timer & timer) {
+	void OUIServer::onTimer([[maybe_unused]] Poco::Timer & timer) {
 		if(Updating_)
 			return;
 		Updating_ = true;

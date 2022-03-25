@@ -69,8 +69,8 @@ namespace OpenWifi {
 
 	int RTTY_Device_ConnectionHandler::SendMessage(RTTY_MSG_TYPE Type, std::string &S ) {
 		u_char outBuf[ 256 ]{0};
-		auto msg_len = S.size()+1 ;
-		auto total_len= msg_len+3;
+		int msg_len = S.size()+1 ;
+		int total_len= msg_len+3;
 		outBuf[0] = Type;
 		outBuf[1] = (msg_len >> 8);
 		outBuf[2] = (msg_len & 0x00ff);
@@ -103,7 +103,7 @@ namespace OpenWifi {
 			Client->SendData(S);
 	}
 
-	void RTTY_Device_ConnectionHandler::KeyStrokes(const u_char *buf, int len) {
+	void RTTY_Device_ConnectionHandler::KeyStrokes(const u_char *buf, size_t len) {
 		u_char outBuf[16]{0};
 
 		if(len>(sizeof(outBuf)-5))
@@ -155,7 +155,7 @@ namespace OpenWifi {
 		return true;
 	}
 
-	void RTTY_Device_ConnectionHandler::onSocketReadable(const Poco::AutoPtr<Poco::Net::ReadableNotification>& pNf)
+	void RTTY_Device_ConnectionHandler::onSocketReadable([[maybe_unused]] const Poco::AutoPtr<Poco::Net::ReadableNotification>& pNf)
 	{
 		try
 		{
@@ -172,7 +172,7 @@ namespace OpenWifi {
 				}
 
 				msg = (RTTY_MSG_TYPE) inBuf[0];
-				int MsgLen = (int) inBuf[1] * 256 + (int) inBuf[2];
+				size_t MsgLen = (size_t) inBuf[1] * 256 + (size_t) inBuf[2];
 
 				if(MsgLen > sizeof(inBuf))
 					return;
@@ -287,7 +287,7 @@ namespace OpenWifi {
 		}
 	}
 
-	void RTTY_Device_ConnectionHandler::onSocketShutdown(const Poco::AutoPtr<Poco::Net::ShutdownNotification>& pNf)
+	void RTTY_Device_ConnectionHandler::onSocketShutdown([[maybe_unused]] const Poco::AutoPtr<Poco::Net::ShutdownNotification>& pNf)
 	{
 		std::cout << "Device " << id_ << " closing socket." << std::endl;
 		delete this;

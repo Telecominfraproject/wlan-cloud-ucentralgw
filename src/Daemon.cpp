@@ -84,14 +84,10 @@ namespace OpenWifi {
 		{"wallys_dr40x9","AP"}
 	};
 	
-	void Daemon::initialize() {
+	void Daemon::PostInitialization([[maybe_unused]] Poco::Util::Application &self) {
         AutoProvisioning_ = config().getBool("openwifi.autoprovisioning",false);
         DeviceTypes_ = DefaultDeviceTypes;
     }
-
-    void MicroServicePostInitialization() {
-		Daemon()->initialize();
-	}
 
     [[nodiscard]] std::string Daemon::IdentifyDevice(const std::string & Id ) const {
 	    for(const auto &[DeviceType,Type]:DeviceTypes_)

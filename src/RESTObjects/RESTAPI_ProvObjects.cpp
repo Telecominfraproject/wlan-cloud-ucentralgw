@@ -626,7 +626,7 @@ namespace OpenWifi::ProvObjects {
         RESTAPI_utils::field_to_json( Obj,"data",data);
         RESTAPI_utils::field_to_json( Obj,"entity",entity);
         RESTAPI_utils::field_to_json( Obj,"creator",creator);
-        field_to_json( Obj,"visibility",visibility);
+        RESTAPI_utils::field_to_json( Obj,"visibility",visibility);
         RESTAPI_utils::field_to_json( Obj,"access",access);
         RESTAPI_utils::field_to_json( Obj,"managementPolicy", managementPolicy);
         RESTAPI_utils::field_to_json( Obj,"venue", venue);
@@ -638,7 +638,7 @@ namespace OpenWifi::ProvObjects {
             RESTAPI_utils::field_from_json( Obj,"data",data);
             RESTAPI_utils::field_from_json( Obj,"entity",entity);
             RESTAPI_utils::field_from_json( Obj,"creator",creator);
-            field_from_json( Obj,"visibility",visibility);
+            RESTAPI_utils::field_from_json( Obj,"visibility",visibility);
             RESTAPI_utils::field_from_json( Obj,"access",access);
             RESTAPI_utils::field_from_json( Obj,"managementPolicy", managementPolicy);
             RESTAPI_utils::field_from_json( Obj,"venue", venue);
@@ -837,7 +837,7 @@ namespace OpenWifi::ProvObjects {
         return true;
     }
 
-    bool CreateObjectInfo(const SecurityObjects::UserInfo &U, ObjectInfo &I) {
+    bool CreateObjectInfo([[maybe_unused]] const SecurityObjects::UserInfo &U, ObjectInfo &I) {
         I.modified = I.created = OpenWifi::Now();
         I.id = MicroService::CreateUUID();
         return true;

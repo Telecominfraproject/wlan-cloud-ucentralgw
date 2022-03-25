@@ -78,7 +78,6 @@ namespace OpenWifi {
 			Config::Config Cfg(DefConfig.Configuration);
 
 			if (Cfg.Valid()) {
-				uint64_t Now = std::time(nullptr);
 				Poco::Data::Statement   Insert(Sess);
 
 				std::string St{"INSERT INTO DefaultConfigs ( " + DB_DefConfig_SelectFields + " ) "

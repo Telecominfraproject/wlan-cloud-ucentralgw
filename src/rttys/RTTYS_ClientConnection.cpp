@@ -47,7 +47,7 @@ namespace OpenWifi {
 
 	}
 
-	void RTTYS_ClientConnection::onSocketReadable(const Poco::AutoPtr<Poco::Net::ReadableNotification> &pNf) {
+	void RTTYS_ClientConnection::onSocketReadable([[maybe_unused]] const Poco::AutoPtr<Poco::Net::ReadableNotification> &pNf) {
 		u_char Buffer[8192]{0};
 		int flags;
 		auto n = WS_.receiveFrame(Buffer, sizeof(Buffer), flags);
@@ -104,7 +104,7 @@ namespace OpenWifi {
 		}
 	}
 
-	void RTTYS_ClientConnection::SendData( const u_char *Buf, int len ) {
+	void RTTYS_ClientConnection::SendData( const u_char *Buf, size_t len ) {
 		WS_.sendFrame(Buf, len, Poco::Net::WebSocket::FRAME_FLAG_FIN | Poco::Net::WebSocket::FRAME_OP_BINARY);
 	}
 
@@ -114,7 +114,7 @@ namespace OpenWifi {
 		}
 		WS_.sendFrame( s.c_str(), s.length());
 	}
-	void RTTYS_ClientConnection::onSocketShutdown(const Poco::AutoPtr<Poco::Net::ShutdownNotification> &pNf) {
+	void RTTYS_ClientConnection::onSocketShutdown([[maybe_unused]] const Poco::AutoPtr<Poco::Net::ShutdownNotification> &pNf) {
 		delete this;
 	}
 

@@ -153,8 +153,6 @@ namespace OpenWifi {
 	}
 
 	bool Storage::GetNewestLogData(std::string &SerialNumber, uint64_t HowMany, std::vector<GWObjects::DeviceLog> &Stats, uint64_t Type) {
-		typedef std::vector<DeviceLogsRecordTuple> RecordList;
-
 		try {
 			DeviceLogsRecordList 	Records;
 			Poco::Data::Session 	Sess = Pool_->get();

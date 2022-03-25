@@ -236,7 +236,7 @@ namespace OpenWifi::FMSObjects {
         snapshot = std::time(nullptr);
     }
 
-    bool DeviceReport::from_json(const Poco::JSON::Object::Ptr &Obj) {
+    bool DeviceReport::from_json([[maybe_unused]] const Poco::JSON::Object::Ptr &Obj) {
         try {
 
             return true;

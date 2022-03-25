@@ -87,7 +87,7 @@ namespace OpenWifi {
         ManagerThread.wakeUp();
     }
 
-	void CommandManager::onTimer(Poco::Timer & timer) {
+	void CommandManager::onTimer([[maybe_unused]] Poco::Timer & timer) {
 		std::lock_guard G(Mutex_);
 		Logger().information("Removing expired commands: start");
 		auto Now = std::chrono::high_resolution_clock::now();

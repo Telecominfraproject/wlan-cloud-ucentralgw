@@ -563,7 +563,7 @@ namespace OpenWifi {
 		return false;
 	}
 
-	bool Storage::ExistingConfiguration(std::string &SerialNumber, uint64_t CurrentConfig, std::string &NewConfig, uint64_t & NewUUID) {
+	bool Storage::ExistingConfiguration(std::string &SerialNumber, [[maybe_unused]] uint64_t CurrentConfig, std::string &NewConfig, uint64_t & NewUUID) {
 		std::string SS;
 		try {
 			Poco::Data::Session     Sess = Pool_->get();

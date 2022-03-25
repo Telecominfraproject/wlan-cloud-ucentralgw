@@ -19,7 +19,11 @@ namespace OpenWifi {
 		Poco::SharedPtr<Poco::Net::WebSocket> WSock,
 		Poco::Net::SocketReactor& Reactor,
 		Poco::Logger &Logger):
-				UUID_(std::move(UUID)), SerialNumber_(SerialNumber), WS_(std::move(WSock)),Reactor_(Reactor), Logger_(Logger) {
+				UUID_(std::move(UUID)),
+				SerialNumber_(SerialNumber),
+				Reactor_(Reactor),
+				Logger_(Logger),
+				WS_(std::move(WSock)) {
 		std::cout << "Telemetry client creation" << std::endl;
 		try {
 			std::thread T([this]() { this->CompleteStartup(); });
@@ -92,7 +96,7 @@ namespace OpenWifi {
 
 	bool TelemetryClient::Send(const std::string &Payload) {
 		std::lock_guard Guard(Mutex_);
-		auto BytesSent = WS_->sendFrame(Payload.c_str(),(int)Payload.size());
+		size_t BytesSent = WS_->sendFrame(Payload.c_str(),(int)Payload.size());
 		return  BytesSent == Payload.size();
 	}
 
@@ -107,19 +111,19 @@ namespace OpenWifi {
 		delete this;
 	}
 
-	void TelemetryClient::OnSocketShutdown(const Poco::AutoPtr<Poco::Net::ShutdownNotification>& pNf) {
+	void TelemetryClient::OnSocketShutdown([[maybe_unused]] const Poco::AutoPtr<Poco::Net::ShutdownNotification>& pNf) {
 		std::lock_guard Guard(Mutex_);
 		Logger().information(fmt::format("SOCKET-SHUTDOWN({}): Orderly shutdown.", CId_));
 		SendTelemetryShutdown();
 	}
 
-	void TelemetryClient::OnSocketError(const Poco::AutoPtr<Poco::Net::ErrorNotification>& pNf) {
+	void TelemetryClient::OnSocketError([[maybe_unused]] const Poco::AutoPtr<Poco::Net::ErrorNotification>& pNf) {
 		std::lock_guard Guard(Mutex_);
 		Logger().information(fmt::format("SOCKET-ERROR({}): Closing.",CId_));
 		SendTelemetryShutdown();
 	}
 
-	void TelemetryClient::OnSocketReadable(const Poco::AutoPtr<Poco::Net::ReadableNotification>& pNf) {
+	void TelemetryClient::OnSocketReadable([[maybe_unused]] const Poco::AutoPtr<Poco::Net::ReadableNotification>& pNf) {
 		std::lock_guard Guard(Mutex_);
 		try
 		{

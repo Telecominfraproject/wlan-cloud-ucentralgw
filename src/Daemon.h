@@ -48,10 +48,10 @@ namespace OpenWifi {
 
 			bool AutoProvisioning() const { return AutoProvisioning_ ; }
 			[[nodiscard]] std::string IdentifyDevice(const std::string & Compatible) const;
-			void initialize();
 			static Daemon *instance();
 			inline DeviceDashboard	& GetDashboard() { return DB_; }
 			Poco::Logger & Log() { return Poco::Logger::get(AppName()); }
+			void PostInitialization(Poco::Util::Application &self);
 	  	private:
 			bool                        AutoProvisioning_ = false;
 			std::vector<std::pair<std::string,std::string>> DeviceTypes_;
@@ -60,5 +60,8 @@ namespace OpenWifi {
     };
 
 	inline Daemon * Daemon() { return Daemon::instance(); }
+	inline void DaemonPostInitialization(Poco::Util::Application &self) {
+		Daemon()->PostInitialization(self);
+	}
 }
 

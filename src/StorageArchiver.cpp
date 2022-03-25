@@ -10,25 +10,25 @@
 
 namespace OpenWifi {
 
-	void Archiver::onTimer(Poco::Timer &timer){
-		auto Now = std::time(nullptr);
+	void Archiver::onTimer([[maybe_unused]] Poco::Timer &timer){
+		auto now = OpenWifi::Now();
 		for(const auto &i:DBs_) {
 			if (!Poco::icompare(i.DBName, "healthchecks")) {
 				Logger().information("Archiving HealthChecks...");
 				StorageService()->RemoveHealthChecksRecordsOlderThan(
-					Now - (i.HowManyDays * 24 * 60 * 60));
+					now - (i.HowManyDays * 24 * 60 * 60));
 			} else if (!Poco::icompare(i.DBName, "statistics")) {
 				Logger().information("Archiving Statistics...");
 				StorageService()->RemoveStatisticsRecordsOlderThan(
-					Now - (i.HowManyDays * 24 * 60 * 60));
+					now - (i.HowManyDays * 24 * 60 * 60));
 			} else if (!Poco::icompare(i.DBName, "devicelogs")) {
 				Logger().information("Archiving Device Logs...");
 				StorageService()->RemoveDeviceLogsRecordsOlderThan(
-					Now - (i.HowManyDays * 24 * 60 * 60));
+					now - (i.HowManyDays * 24 * 60 * 60));
 			} else if (!Poco::icompare(i.DBName, "commandlist")) {
 				Logger().information("Archiving Command History...");
 				StorageService()->RemoveCommandListRecordsOlderThan(
-					Now - (i.HowManyDays * 24 * 60 * 60));
+					now - (i.HowManyDays * 24 * 60 * 60));
 			} else {
 				Logger().information(fmt::format("Cannot archive DB '{}'", i.DBName));
 			}

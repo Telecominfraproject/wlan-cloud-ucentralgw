@@ -15,7 +15,7 @@ namespace OpenWifi {
 			: NumberOfThreads_(NumberOfThreads) {}
 
 		void Start(const std::string & ThreadNamePrefix) {
-			for (auto i = 0; i < NumberOfThreads_; ++i) {
+			for (uint64_t i = 0; i < NumberOfThreads_; ++i) {
 				auto NewReactor = std::make_unique<Poco::Net::SocketReactor>();
 				auto NewThread = std::make_unique<Poco::Thread>();
 				NewThread->start(*NewReactor);
@@ -40,8 +40,8 @@ namespace OpenWifi {
 		}
 
 	  private:
-		unsigned int NumberOfThreads_;
-		unsigned int NextReactor_ = 0;
+		uint64_t NumberOfThreads_;
+		uint64_t NextReactor_ = 0;
 		std::vector<std::unique_ptr<Poco::Net::SocketReactor>> Reactors_;
 		std::vector<std::unique_ptr<Poco::Thread>> Threads_;
 	};

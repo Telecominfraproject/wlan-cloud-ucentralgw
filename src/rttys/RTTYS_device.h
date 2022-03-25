@@ -49,7 +49,7 @@ class RTTY_Device_ConnectionHandler {
 	void SendToClient(const u_char *buf, int len);
 	void SendToClient(const std::string &S);
 	void WindowSize(int cols, int rows);
-	void KeyStrokes(const u_char *buf, int len);
+	void KeyStrokes(const u_char *buf, size_t len);
   private:
 	Poco::Net::StreamSocket       socket_;
 	Poco::Net::SocketReactor&     reactor_;

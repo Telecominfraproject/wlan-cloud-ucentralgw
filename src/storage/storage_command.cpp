@@ -348,6 +348,7 @@ typedef Poco::Tuple<
 			Select << ConvertParams(St),
 				Poco::Data::Keywords::into(R),
 				Poco::Data::Keywords::use(UUID);
+			ConvertCommandRecord(R,Command);
 			Select.execute();
 			return true;
 		} catch (const Poco::Exception &E) {

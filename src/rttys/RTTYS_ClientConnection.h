@@ -19,7 +19,7 @@ namespace OpenWifi {
 		void onSocketReadable(const Poco::AutoPtr<Poco::Net::ReadableNotification> &pNf);
 		void onSocketShutdown(const Poco::AutoPtr<Poco::Net::ShutdownNotification> &pNf);
 
-		void SendData( const u_char *Buf, int len );
+		void SendData( const u_char *Buf, size_t len );
 		void SendData( const std::string & S, bool login=false);
 
 		void Close();

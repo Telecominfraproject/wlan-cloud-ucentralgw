@@ -400,7 +400,7 @@ namespace OpenWifi::ProvObjects {
         std::string         data;
         std::string         entity;
         std::string         creator;
-        VISIBILITY          visibility = PRIVATE;
+        std::string         visibility{"private"};
         ObjectACLList       access;
         Types::UUID_t       managementPolicy;
         std::string         venue;

@@ -79,7 +79,7 @@ namespace OpenWifi {
         return 0;
     }
 
-	void FileUploader::reinitialize(Poco::Util::Application &self) {
+	void FileUploader::reinitialize([[maybe_unused]] Poco::Util::Application &self) {
 		MicroService::instance().LoadConfigurationFile();
     	Logger().information("Reinitializing.");
 		Stop();
