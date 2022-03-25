@@ -324,19 +324,19 @@ namespace OpenWifi::RESTAPI_utils {
             S = Obj->get(Field).toString();
     }
 
-    inline void field_from_json(const Poco::JSON::Object::Ptr &Obj, const char *Field, double & V) {
+    inline void field_from_json(const Poco::JSON::Object::Ptr &Obj, const char *Field, double & Value) {
         if(Obj->has(Field) && !Obj->isNull(Field))
-            V = Obj->get(Field).extract<double>();
+            Value = Obj->get(Field).extract<double>();
     }
 
-    inline void field_from_json(const Poco::JSON::Object::Ptr &Obj, const char *Field, float & V) {
+    inline void field_from_json(const Poco::JSON::Object::Ptr &Obj, const char *Field, float & Value) {
         if(Obj->has(Field) && !Obj->isNull(Field))
-            V = Obj->get(Field).extract<float>();
+            Value = (float) Obj->get(Field).extract<double>();
     }
 
-    inline void field_from_json(const Poco::JSON::Object::Ptr &Obj, const char *Field, bool &V) {
+    inline void field_from_json(const Poco::JSON::Object::Ptr &Obj, const char *Field, bool &Value) {
         if(Obj->has(Field) && !Obj->isNull(Field))
-            V = (Obj->get(Field).toString() == "true");
+            Value = (Obj->get(Field).toString() == "true");
     }
 
     inline void field_from_json(const Poco::JSON::Object::Ptr &Obj, const char *Field, int16_t &Value) {
@@ -385,22 +385,22 @@ namespace OpenWifi::RESTAPI_utils {
         }
     }
 
-    inline void field_from_json(const Poco::JSON::Object::Ptr &Obj, const char *Field, Types::StringVec &V) {
+    inline void field_from_json(const Poco::JSON::Object::Ptr &Obj, const char *Field, Types::StringVec &Value) {
         if(Obj->isArray(Field) && !Obj->isNull(Field)) {
-            V.clear();
+            Value.clear();
             Poco::JSON::Array::Ptr A = Obj->getArray(Field);
             for(const auto &i:*A) {
-                V.push_back(i.toString());
+                Value.push_back(i.toString());
             }
         }
     }
 
-    inline void field_from_json(const Poco::JSON::Object::Ptr &Obj, const char *Field, Types::TagList &V) {
+    inline void field_from_json(const Poco::JSON::Object::Ptr &Obj, const char *Field, Types::TagList &Value) {
         if(Obj->isArray(Field) && !Obj->isNull(Field)) {
-            V.clear();
+            Value.clear();
             Poco::JSON::Array::Ptr A = Obj->getArray(Field);
             for(const auto &i:*A) {
-                V.push_back(i);
+                Value.push_back(i);
             }
         }
     }
