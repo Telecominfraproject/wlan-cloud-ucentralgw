@@ -161,6 +161,7 @@ namespace OpenWifi::ProvObjects {
         field_to_json( Obj,"managementRoles", managementRoles);
         field_to_json( Obj,"maps", maps);
         field_to_json( Obj,"configurations", configurations);
+        field_to_json( Obj,"boards", boards);
     }
 
     bool Venue::from_json(const Poco::JSON::Object::Ptr &Obj) {
@@ -184,6 +185,7 @@ namespace OpenWifi::ProvObjects {
             field_from_json( Obj,"managementRoles", managementRoles);
             field_from_json( Obj,"maps", maps);
             field_from_json( Obj,"configurations", configurations);
+            field_from_json( Obj,"boards", boards);
             return true;
         } catch (...) {
 

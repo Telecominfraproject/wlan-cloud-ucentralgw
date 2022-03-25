@@ -107,6 +107,7 @@ namespace OpenWifi::ProvObjects {
         Types::UUIDvec_t    maps;
         Types::UUIDvec_t    managementPolicies;
         Types::UUIDvec_t    managementRoles;
+        Types::UUIDvec_t    boards;
 
         void to_json(Poco::JSON::Object &Obj) const;
         bool from_json(const Poco::JSON::Object::Ptr &Obj);
