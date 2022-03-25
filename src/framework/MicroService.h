@@ -1257,7 +1257,7 @@ namespace OpenWifi {
 
 		inline void exception(const std::exception & E) {
 		    Poco::Thread * CurrentThread = Poco::Thread::current();
-		    App_.logger().warning(fmt::format("std::exception in {}}",CurrentThread->getName()));
+		    App_.logger().warning(fmt::format("std::exception in ",CurrentThread->getName()));
 		}
 
 		inline void exception() {
@@ -2073,7 +2073,7 @@ namespace OpenWifi {
 	        ErrorObject.set("ErrorDescription","This resource does not exist.");
 	        std::ostream &Answer = Response->send();
 	        Poco::JSON::Stringifier::stringify(ErrorObject, Answer);
-	        Logger_.debug(fmt::format("RES-NOTFOUND: User='{}@{}}' Method='{}}' Path='{}}",
+	        Logger_.debug(fmt::format("RES-NOTFOUND: User='{}@{}' Method='{}' Path='{}",
                                        UserInfo_.userinfo.email,
                                        Utils::FormatIPv6(Request->clientAddress().toString()),
                                        Request->getMethod(),
