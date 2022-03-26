@@ -771,6 +771,7 @@ void RESTAPI_device_commandHandler::MakeRequest() {
 					.Started = (uint64_t)time(nullptr),
 					.CommandUUID = CommandUUID,
 					.ViewPort = MicroService::instance().ConfigGetInt("rtty.viewport", 5913),
+					.DevicePassword = ""
 				};
 
 				if(RTTYS_server()->UseInternal()) {
