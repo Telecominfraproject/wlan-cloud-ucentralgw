@@ -9,27 +9,24 @@ over TCP. The controller can operate over IPv4 in this initial version. An IPv6 
 is able to support thousands of devices.
 
 ## The devices
-A device will be given a way to find the IP address of its controller as well s the port to communicate over. Devices always initiate 
+A device will be given a way to find the IP address of its controller as well as the port to communicate over. Devices always initiate 
 the connection to the controller.
 
-
 ## The connection
-The connection uses the WebSocket protocol to maintain and frame messages. The communication protocol used is modeled after JSON-RPC for sending JSON structured messages.
+The connection uses the WebSocket protocol to frame and exchange messages. The communication protocol used is modeled after JSON-RPC for sending JSON structured messages.
 
 ## The messages
-The controller can send commands to the devices. These commands must be acknowledged by the devices. Any errors should be reported byu the devices. The devices may send unsolicited 
-messages to the devices. These messages are not acknowledged by the controller and should be expected to be received and processed. The next section explains the different messages.  
+The controller can send commands to the devices. These commands must be acknowledged by the devices. Any errors should be reported by the devices. The devices may send unsolicited messages to the controller. These messages are not acknowledged by the controller and are be expected to be received and processed. The next section explains the different messages.  
 
 ### Event Messages
-In this RPC, here are some common interpretations:
+Here are some common interpretations of parameters for this RPC protocol:
 - `when` : In a command, this is a suggestion as to when to perform something. 0 means right now, or otherwise the UTC time in seconds.
-- `serial` : This is the text representation of the serial number the device is using. Usually will be the MAC address of the device without an separator.
+- `serial` : This is the text representation of the serial number the device is using. Usually will be the MAC address of the device without separators.
 - `uuid` : Is an int64 representing the current configuration ID.
-- `JSON documents` : when a field requires an JSON document, this is free form JSON and the controller and the AP agree on its content.
+- `JSON documents` : when a field requires an JSON document, this is free form JSON and the controller and the AP have an already established agreement on its schema.
 -
 #### Connection event
-Device Sends connection notification to the controller after establishing a connection. The controller
-my decide to send the AP a newer configuration. The controller will record the device capabilities provided.
+After establishing a connection to the controller, the devices send a connection notification message to the controller so it can record the devices' capabilities. The controller may use that opportunity to push a newer configuration to the AP. 
 ```
 {     "jsonrpc" : "2.0" , 
       "method" : "connect" , 
@@ -45,8 +42,7 @@ my decide to send the AP a newer configuration. The controller will record the d
 ```
 
 #### State event
-The device sends device state information periodically. If the controller detects that it has a newer configuration, it
-may decide to send this new configuration to the AP.
+The devices send their state information periodically. The controller may use this as a trigger to evaluate whether a newer configuration shall be applied to the devices.
 ```
 {   "jsonrpc" : "2.0" , 
     "method" : "state" , 
@@ -60,8 +56,7 @@ may decide to send this new configuration to the AP.
 ```
 
 #### Healthcheck event
-Device sends a `healthcheck` periodically. This message contains information about how vital subsystems are operating and 
-if they need attention.
+Devices send a `healthcheck` report periodically with the status of vital subsystems and to indicate whether they need attention.
 ```
 {   "jsonrpc" : "2.0" , 
     "method" : "healthcheck" , 
@@ -76,7 +71,7 @@ if they need attention.
 ```
 
 #### Log event
-Device sends a log message whenever necessary. The controller will log this message to the log system for the device.
+Devices send log messages as needed to the controller which in turn aggregates them for the sytem.
 ```
 {   "jsonrpc" : "2.0" , 
     "method" : "log" , 
@@ -89,8 +84,8 @@ Device sends a log message whenever necessary. The controller will log this mess
 }
 ```
 
-##### `severity`
-The `severity` matches the `syslog` levels. Here are the details:
+##### Log event `severity`
+The `severity` field of log events matches the traditional definition for `syslog` levels:
 - 0 : LOG_EMERG       0       /* system is unusable */
 - 1 : LOG_ALERT       1       /* action must be taken immediately */
 - 2 : LOG_CRIT        2       /* critical conditions */
@@ -101,7 +96,7 @@ The `severity` matches the `syslog` levels. Here are the details:
 - 7 : LOG_DEBUG       7       /* debug-level messages */
 
 #### Crash Log event
-Device may send a crash log event after rebooting after a crash. The event cannot be sent until a connection event has been sent.
+Devices have the ability to report crashes, and the related debugging information, once they have recovered (e.g. rebooted) and after having successfully established a connection with the controller.
 ```
 {   "jsonrpc" : "2.0" , 
     "method" : "crashlog" , 
@@ -114,7 +109,7 @@ Device may send a crash log event after rebooting after a crash. The event canno
 ```
 
 #### Config change pending event
-Device sends this message to tell the controller that the device 
+Devices send this message to tell the controller that they device 
 has received a configuration but is still running an older configuration. The controller will not
 reply to this message.
 ```
@@ -156,7 +151,7 @@ which version it is running. The Controller may decide to send the device a newe
 ```
 
 #### Recovery Event
-Device may decide it has to do into recovery mode. This event should be used.
+Devices may enter recovery mode when facing some challenge and they shall notify the controller. This event should be used.
 ```
 {   "jsonrpc" : "2.0" , 
     "method" : "recovery" , 
@@ -169,7 +164,6 @@ Device may decide it has to do into recovery mode. This event should be used.
       }
 }
 ```
-
 
 ### Controller commands
 Most controller commands include a `when` member. This is a UTC clock time asking the AP
@@ -232,7 +226,7 @@ The rejected section is an array containing the following:
 - `substution` : the JSON code that `parameter` was replaced with. This could be absent meaning that the `parameter` code was simply removed from the configuration.
 
 #### Controller wants the device to reboot
-Controller sends this command when it believes the device should reboot.
+Controller sends this command to reboot a device.
 ```
 {    "jsonrpc" : "2.0" , 
      "method" : "reboot" , 
@@ -258,12 +252,12 @@ The device should answer:
 }
 ```
 ###### Error codes
-- 0 : is rebooting at `when` seconds.
+- 0 : is rebooting at `when` time.
 - 1 : the device is busy but will reboot soon. `text` may indicate why.
 - 2 : the device will not reboot. `text` contains information as to why.
 
 #### Controller wants the device to upgrade its firmware
-Controller sends this command when it believes the device should upgrade its firmware.
+Controller sends this command when it believes a device should upgrade its firmware.
 ```
 {    "jsonrpc" : "2.0" , 
      "method" : "upgrade" , 
@@ -388,23 +382,23 @@ The device should answer:
 }
 ```
 ##### The device answer
-The device should answer with teh above message. The `error` value should be interpreted the following way:
-- 0 : the command was performed as requested and the reults of the command is available in the `resultCode` and `resultText` parameters.
-- 1 : the command will be performed in the future and `when` shows that time. The `resultCode` and `resultText` dod not contain anything relevant.
+The device should answer with response above. The `error` value should be interpreted the following way:
+- 0 : the command was performed as requested and the result of the command is available in the `resultCode` and `resultText` parameters.
+- 1 : the command will be performed in the future and `when` shows that time. The `resultCode` and `resultText` do not contain anything relevant.
 - 2 : the command cannot be performed as indicated. `resultCode` and `resultText` may contain some indication as to why.
 
-#### Controller wants the device to perform a trace
-Controller sends this command when it needs the device to perform a trace (i.e. tcpdump).
+#### Controller wants the device to enable packet tracing
+Controller sends this command when it needs a device to collect a packet trace (i.e. tcpdump).
 ```
 {    "jsonrpc" : "2.0" , 
      "method" : "trace" , 
      "params" : {
 	        "serial" : <serial number> ,
 	        "when" : Optional - <UTC time when to reboot, 0 mean immediately, this is a suggestion>,
-	        "duration" : <integer representing the number of seconds to run the trace>
+	        "duration" : <integer representing the number of seconds to run the trace for>
 	        "packets" : <integer for the number of packets to capture>
 	        "network" : <string identifying the network to trace>
-	        "interface" : <string identifying the interface to capture on>
+	        "interface" : <string identifying the interface where the packets are to be captured>
 	        "uri" : <complete URI where to upload the trace. This URI will be available for 30 minutes following a trace request start>
         },
      "id" : <some number>
@@ -428,23 +422,21 @@ The device should answer:
 
 ##### About tracing
 ###### 'packets' and 'duration'
-The device can interpret the parameters `packets` and `duration` anyway it wants. Both are optional. The AP could decide to
-interpret this as a maximum of `duration` or until `packets` have been received. Or perform an `and` between the two. This
-is left to the implementer.
+Both values are optional. When both `packets` and `duration` values are provided, the semantics are left to the implementation. Indeed, the AP could apply an OR or an AND logic to the values (eg. maximum of `duration` for the trace OR until N `packets` have been received, or they could wait for the 2 criteria to be met).
 
 ###### 'uri'
 The `uri` for file upload is available for 30 minutes following the start of the capture. Once the file has been
-uploaded or the timeout occurs, the upload will be rejected.
+uploaded or the timeout occurs, the upload will be rejected. This effectively limit the duration of traces to less than 30 minutes.
 
 #### Controller wants the device to perform a WiFi Scan
-Controller sends this command when it needs the device to perform a WiFi Scan.
+The controller sends this command when it needs a device to perform a WiFi Scan.
 ```
 {    "jsonrpc" : "2.0" , 
      "method" : "wifiscan" , 
      "params" : {
 	        "serial" : <serial number> ,
 	        "bands" : [ "2","5","5l","5u",6" ], <optional this is a list of bands to scan: on or more bands >
-	        "channels" : [ 1,2,3...] , <optional list of discreet channels to scan >
+	        "channels" : [ 1,2,3...] , <optional list of discrete channels to scan >
 	        "verbose" : <optional boolean: true or false> (by default false),
 	        "bandwidth" : <optional int: 20,40,80 in MHz>
 	        "active" : 0 or 1 (to select passive or active scan)
@@ -453,7 +445,7 @@ Controller sends this command when it needs the device to perform a WiFi Scan.
 }
 ```
 
-The device should answer:
+The devices should answer with:
 ```
 {   "jsonrpc" : "2.0" , 
     "result" : {
@@ -470,19 +462,19 @@ The device should answer:
 ```
 
 ##### Scanning: bands or channels
-In the command, bands and channels are mutually exclusive. If both parameters are omitted, then the scan will be performed for all bands and all channels.
+In the command, `bands` and `channels` values are mutually exclusive. If both parameters are omitted, the scan shall be performed on all supported bands and channels.
 
 #### Controller requesting a specific message
-Controller sends this command when it needs the device to provide a message back ASAP. The currently 
-supported messages are "state" and "healthcheck". More messages maybe added later. The messages will
-be returned the usual way. The RPC response to this message just says that the request has been accepted and the
+The controller sends this command to elicit a message back from a device. The controller can currently
+send a request for "state" and "healthcheck" messages, with the possibility to add more in the future. The messages will
+be returned the usual way, independently of this transaction as the response to this message just says that the request has been accepted and the
 message will be returned "soon".
 ```
 {    "jsonrpc" : "2.0" , 
      "method" : "request" , 
      "params" : {
 	        "serial" : <serial number> ,
-	        "when" : Optional - <UTC time when to reboot, 0 mean immediately, this is a suggestion>,
+	        "when" : Optional - <UTC time when the requested message should be sent, 0 mean immediately, this is a suggestion>,
 	        "message" : "state" or "healthcheck",
 		    "request_uuid" : <optional UUID string. If present during the request, the next message will also contains this field>
         },
@@ -506,7 +498,7 @@ The device should answer:
 ```
 
 #### Controller requesting eventqueue buffers
-Controller sends this command when it needs the device to provide the content of ist ring buffers.
+Controller sends this command when it needs the device to provide the content of its ring buffers.
 ```
 {    "jsonrpc" : "2.0" , 
      "method" : "event" , 
@@ -529,14 +521,14 @@ The device should answer:
             "error" : 0 or an error number,
             "text" : <description of the error or success>
   	        },
-          "events" : <JSON document describing the events> 
+          "events" : <JSON document describing the content of the ring buffers> 
         },
     "id" : <same number>
 }
 ```
 
 #### Controller requesting telemetry stream information
-Controller sends this command when it needs the device to telemetry streaming.
+Controller sends this command to enable telemetry streaming on a device.
 ```
 {    "jsonrpc" : "2.0" , 
      "method" : "telemetry" , 
@@ -563,22 +555,22 @@ The device should answer:
 }
 ```
 
-When the interval is greater than 0, the gateway will start to receive messages
+When the interval is greater than 0, the gateway will start to receive the telemetry messages periodically:
 ```
 {   "jsonrpc" : "2.0" , 
     "method" : "telemetry" , 
     "params" : {
         "serial" : <serial number> ,
-        "data" : <A JSON document describing the information coming from the device>
+        "data" : <A JSON document describing the telemtry data coming from the device>
       }
 }
 ```
 
-The device will stop sending data after 30 minutes or if it receives a `telemetry` command with an interval of 0.
+The device will stop sending data after 30 minutes or after receiving another `telemetry` command with an interval of 0.
 
 
 #### Controller requesting an `rtty` session
-Controller sends this command an administrator requests to start an `rtty` session with the AP. 
+Controller sends this command to start an `rtty` session with the AP, at the administrator's request. 
 ```
 {    "jsonrpc" : "2.0" , 
      "method" : "remote_access" , 
@@ -612,7 +604,7 @@ The device should answer:
 ```
 
 #### Controller wants to ping the device
-Controller sends this command when it tries to establish latency to the device.
+Controller sends this command to measure the one-way latency of the control plane to a device.
 ```
 {    "jsonrpc" : "2.0" , 
      "method" : "ping" , 
@@ -637,21 +629,20 @@ The device should answer:
 
 
 #### `rtty server`
-More information about the [rtty server](https://github.com/zhaojh329/rtty) can be found here.
+More information about the [rtty server can be found here](https://github.com/zhaojh329/rtty) .
 
 ### Message compression
 Some messages may be several KB in size. If these messages repeat often, they may cause added data charges over time. 
-As a result, the device may decide to compress and base64 outgoing messages. 
+As a result, the device may decide to compress and base64 encode outgoing messages. 
 Only messages over 3K in size should be compressed. This should apply to the `state` event and possibly the `healtcheck` event. 
-Should other messages get larger, the client may decide to compress the. Only messages from the device to the controller may use compression.
+Should other messages get larger, the client may decide to compress them. Only messages sent by the devices to the controller may use compression.
 
 #### Identifying a compressed message
-A compressed message has a single member to the `params` field. It's only parameter must be called `compress_64`. Any other elements under
+A compressed message has a single member called `compress_64` in the `params` field. Any other elements under
 params will be dropped. Additional compression schemes may be developed later.
 
 #### How to compress
-The original `params` element should be run through `zlib:compress` and then encoded using base64, and passed as a string. Here is an example
-of the completed message. The following should how the `state` event could be compressed:
+The original `params` element should be run through `zlib:compress` and then encoded using base64. The encoded string becomes the content of the `compress_64` member. Here is an example of a compressed message where the `params` element of a `state` message has been compressed:
 
 ```
 {   "jsonrpc" : "2.0" , 
@@ -661,8 +652,3 @@ of the completed message. The following should how the `state` event could be co
   }
 }
 ```
-
-
-
-
-
