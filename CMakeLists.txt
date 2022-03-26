@@ -44,10 +44,6 @@ endif()
 
 add_definitions(-DTIP_GATEWAY_SERVICE="1")
 
-set(Boost_USE_STATIC_LIBS OFF)
-set(Boost_USE_MULTITHREADED ON)
-set(Boost_USE_STATIC_RUNTIME OFF)
-find_package(Boost REQUIRED system)
 find_package(OpenSSL REQUIRED)
 find_package(ZLIB REQUIRED)
 find_package(fmt  REQUIRED)
@@ -130,7 +126,9 @@ INSTALL(TARGETS owgw
 )
 
 target_link_libraries(owgw PUBLIC
-                        ${Poco_LIBRARIES} ${Boost_LIBRARIES} ${ZLIB_LIBRARIES})
+        ${Poco_LIBRARIES}
+        ${ZLIB_LIBRARIES})
+
 if(NOT SMALL_BUILD)
     target_link_libraries(owgw PUBLIC
             ${MySQL_LIBRARIES} ${ZLIB_LIBRARIES}

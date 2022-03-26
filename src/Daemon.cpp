@@ -6,12 +6,10 @@
 //	Arilia Wireless Inc.
 //
 
-#include <boost/algorithm/string.hpp>
 #include "Poco/Util/Application.h"
 #include "Poco/Util/Option.h"
 #include "Poco/Environment.h"
 
-#include "CentralConfig.h"
 #include "CommandManager.h"
 #include "Daemon.h"
 #include "DeviceRegistry.h"
