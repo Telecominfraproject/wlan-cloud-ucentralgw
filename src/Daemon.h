@@ -30,11 +30,11 @@
 
 namespace OpenWifi {
 
-	static const char * vDAEMON_PROPERTIES_FILENAME = "owgw.properties";
-	static const char * vDAEMON_ROOT_ENV_VAR = "OWGW_ROOT";
-	static const char * vDAEMON_CONFIG_ENV_VAR = "OWGW_CONFIG";
-	static const char * vDAEMON_APP_NAME = uSERVICE_GATEWAY.c_str();
-	static const uint64_t vDAEMON_BUS_TIMER = 10000;
+	[[maybe_unused]] static const char * vDAEMON_PROPERTIES_FILENAME = "owgw.properties";
+	[[maybe_unused]] static const char * vDAEMON_ROOT_ENV_VAR = "OWGW_ROOT";
+	[[maybe_unused]] static const char * vDAEMON_CONFIG_ENV_VAR = "OWGW_CONFIG";
+	[[maybe_unused]] static const char * vDAEMON_APP_NAME = uSERVICE_GATEWAY.c_str();
+	[[maybe_unused]] static const uint64_t vDAEMON_BUS_TIMER = 10000;
 
     class Daemon : public MicroService {
 		public:
