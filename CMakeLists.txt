@@ -64,8 +64,10 @@ include_directories(/usr/local/include  /usr/local/opt/openssl/include src inclu
 configure_file(src/ow_version.h.in ${PROJECT_SOURCE_DIR}/src/ow_version.h @ONLY)
 
 add_compile_options(-Wall -Wextra)
-#add_compile_options(-fsanitize=address)
-#add_link_options(-fsanitize=address)
+if(ASAN)
+    add_compile_options(-fsanitize=address)
+    add_link_options(-fsanitize=address)
+endif()
 
 add_executable( owgw
         build
