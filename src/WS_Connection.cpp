@@ -468,11 +468,13 @@ namespace OpenWifi {
 				if (ParamsObj->has(uCentralProtocol::REQUEST_UUID))
 					request_uuid = ParamsObj->get(uCentralProtocol::REQUEST_UUID).toString();
 
-				if (request_uuid.empty())
+				if (request_uuid.empty()) {
 					poco_trace(Logger(), fmt::format("STATE({}): UUID={} Updating.", CId_, UUID));
-				else
-					poco_trace(Logger(), fmt::format("STATE({}): UUID={} Updating for CMD={}.", CId_, UUID,
-													  request_uuid));
+				} else {
+					poco_trace(Logger(), fmt::format("STATE({}): UUID={} Updating for CMD={}.",
+													 CId_, UUID, request_uuid));
+				}
+
 				Conn_->Conn_.UUID = UUID;
 				Conn_->LastStats = StateStr;
 
@@ -518,11 +520,14 @@ namespace OpenWifi {
 				if (ParamsObj->has(uCentralProtocol::REQUEST_UUID))
 					request_uuid = ParamsObj->get(uCentralProtocol::REQUEST_UUID).toString();
 
-				if (request_uuid.empty())
-					poco_trace(Logger(), fmt::format("HEALTHCHECK({}): UUID={} Updating.", CId_, UUID));
-				else
-					poco_trace(Logger(), fmt::format("HEALTHCHECK({}): UUID={} Updating for CMD={}.", CId_,
-												UUID, request_uuid));
+				if (request_uuid.empty()) {
+					poco_trace(Logger(),
+							   fmt::format("HEALTHCHECK({}): UUID={} Updating.", CId_, UUID));
+				} else {
+					poco_trace(Logger(),
+							   fmt::format("HEALTHCHECK({}): UUID={} Updating for CMD={}.", CId_,
+										   UUID, request_uuid));
+				}
 
 				Conn_->Conn_.UUID = UUID;
 				LookForUpgrade(UUID);
