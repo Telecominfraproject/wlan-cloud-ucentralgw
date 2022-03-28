@@ -636,8 +636,8 @@ namespace OpenWifi {
 			}
 			if (ParamsObj->has(uCentralProtocol::UUID) && ParamsObj->has(uCentralProtocol::ACTIVE)) {
 
-				uint64_t UUID = ParamsObj->get(uCentralProtocol::UUID);
-				uint64_t Active = ParamsObj->get(uCentralProtocol::ACTIVE);
+				[[maybe_unused]] uint64_t UUID = ParamsObj->get(uCentralProtocol::UUID);
+				[[maybe_unused]] uint64_t Active = ParamsObj->get(uCentralProtocol::ACTIVE);
 				poco_trace(Logger(), fmt::format("CFG-PENDING({}): Active: {} Target: {}", CId_, Active, UUID));
 			} else {
 				poco_warning(Logger(), fmt::format("CFG-PENDING({}): Missing some parameters", CId_));
