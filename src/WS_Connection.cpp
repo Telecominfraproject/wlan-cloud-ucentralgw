@@ -620,7 +620,7 @@ namespace OpenWifi {
 
 		case uCentralProtocol::Events::ET_PING: {
 			if (ParamsObj->has(uCentralProtocol::UUID)) {
-				uint64_t UUID = ParamsObj->get(uCentralProtocol::UUID);
+				[[maybe_unused]] uint64_t UUID = ParamsObj->get(uCentralProtocol::UUID);
 				poco_trace(Logger(), fmt::format("PING({}): Current config is {}", CId_, UUID));
 			} else {
 				poco_warning(Logger(), fmt::format("PING({}): Missing parameter.", CId_));
