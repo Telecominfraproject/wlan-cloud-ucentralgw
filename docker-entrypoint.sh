@@ -39,12 +39,14 @@ if [[ "$TEMPLATE_CONFIG" = 'true' && ! -f "$OWGW_CONFIG"/owgw.properties ]]; the
   SYSTEM_URI_PUBLIC=${SYSTEM_URI_PUBLIC:-"https://localhost:16002"} \
   SYSTEM_URI_UI=${SYSTEM_URI_UI:-"http://localhost"} \
   SIMULATORID=${SIMULATORID:-""} \
-  RTTY_ENABLED=${RTTY_ENABLED:-"false"} \
+  RTTY_INTERNAL=${RTTY_INTERNAL:-"true"} \
+  RTTY_ENABLED=${RTTY_ENABLED:-"true"} \
   RTTY_SERVER=${RTTY_SERVER:-"localhost"} \
   RTTY_PORT=${RTTY_PORT:-"5912"} \
-  RTTY_TOKEN=${RTTY_TOKEN:-"96181c567b4d0d98c50f127230068fa8"} \
+  RTTY_TOKEN=${RTTY_TOKEN:-""} \
   RTTY_TIMEOUT=${RTTY_TIMEOUT:-"60"} \
   RTTY_VIEWPORT=${RTTY_VIEWPORT:-"5913"} \
+  RTTY_ASSETS=${RTTY_ASSETS:-"\$OWGW_ROOT/rtty_ui"} \
   KAFKA_ENABLE=${KAFKA_ENABLE:-"true"} \
   KAFKA_BROKERLIST=${KAFKA_BROKERLIST:-"localhost:9092"} \
   KAFKA_SSL_CA_LOCATION=${KAFKA_SSL_CA_LOCATION:-""} \
@@ -63,6 +65,15 @@ if [[ "$TEMPLATE_CONFIG" = 'true' && ! -f "$OWGW_CONFIG"/owgw.properties ]]; the
   STORAGE_TYPE_MYSQL_DATABASE=${STORAGE_TYPE_MYSQL_DATABASE:-"owgw"} \
   STORAGE_TYPE_MYSQL_PORT=${STORAGE_TYPE_MYSQL_PORT:-"3306"} \
   envsubst < /owgw.properties.tmpl > $OWGW_CONFIG/owgw.properties
+fi
+
+# Check if rtty_ui directory exists
+export RTTY_ASSETS=$(grep 'rtty.assets' $OWGW_CONFIG/owgw.properties | awk -F '=' '{print $2}' | xargs | envsubst)
+if [[ ! -d "$(dirname $RTTY_ASSETS)" ]]; then
+  mkdir -p $(dirname $RTTY_ASSETS)
+fi
+if [[ ! -d "$RTTY_ASSETS" ]]; then
+  cp -r /dist/rtty_ui $RTTY_ASSETS
 fi
 
 if [ "$1" = '/openwifi/owgw' -a "$(id -u)" = '0' ]; then
