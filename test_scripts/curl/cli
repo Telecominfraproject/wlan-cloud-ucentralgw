@@ -38,9 +38,9 @@ browser_list=(firefox sensible-browser xdg-open w3m links links2 lynx youtube-dl
 browser=""
 
 if [ -z ${OWSEC_USERNAME+x} ]; then
-  username="script.runner@arilia.com"
+ 	username="script.runner@arilia.com"
 else
-  username=${OWSEC_USERNAME}
+  	username=${OWSEC_USERNAME}
 fi
 if [ -z ${OWSEC_PASSWORD+x} ]; then
   password="Snoopy99!!!"

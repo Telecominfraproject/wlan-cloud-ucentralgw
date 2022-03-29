@@ -57,7 +57,7 @@ namespace OpenWifi {
 			return true;
 		}
 		catch (const Poco::Exception &E) {
-			Logger().warning(fmt::format("{}: Failed with: {}}", std::string(__func__), E.displayText()));
+			Logger().warning(fmt::format("{}: Failed with: {}", std::string(__func__), E.displayText()));
 		}
 		return false;
 	}
@@ -100,7 +100,7 @@ namespace OpenWifi {
 			return true;
 		}
 		catch (const Poco::Exception &E) {
-			Logger().warning(fmt::format("{}: Failed with: {}}", std::string(__func__), E.displayText()));
+			Logger().warning(fmt::format("{}: Failed with: {}", std::string(__func__), E.displayText()));
 		}
 		return false;
 	}
@@ -127,7 +127,7 @@ namespace OpenWifi {
 			return true;
 		}
 		catch (const Poco::Exception &E) {
-			Logger().warning(fmt::format("{}: Failed with: {}}", std::string(__func__), E.displayText()));
+			Logger().warning(fmt::format("{}: Failed with: {}", std::string(__func__), E.displayText()));
 		}
 		return false;
 	}

@@ -28,7 +28,7 @@ void RESTAPI_telemetryWebSocket::DoGet() {
 				auto SerialNumber = Utils::SerialNumberToInt(SNum);
 
 				if(!TelemetryStream()->IsValidEndPoint(SerialNumber,UUID)) {
-					Logger_.warning(fmt::format("Illegal telemetry request for S: {}, UUID: {}}", SerialNumber, UUID));
+					Logger_.warning(fmt::format("Illegal telemetry request for S: {}, UUID: {}", SerialNumber, UUID));
 					return;
 				}
 				auto WS = Poco::SharedPtr<Poco::Net::WebSocket>( new Poco::Net::WebSocket(*Request, *Response));
