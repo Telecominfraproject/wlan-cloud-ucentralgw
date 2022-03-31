@@ -40,6 +40,9 @@ namespace OpenWifi {
 				std::make_unique<Poco::Net::SocketAcceptor<RTTY_Device_ConnectionHandler>>(
 					DeviceSocket, DeviceReactor_);
 
+			// Testing this...
+			DeviceAcceptor_->registerAcceptor(DeviceReactor_);
+
 			DeviceReactorThread_.start(DeviceReactor_);
 
 			auto CSContext =
