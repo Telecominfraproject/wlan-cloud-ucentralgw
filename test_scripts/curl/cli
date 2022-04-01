@@ -684,7 +684,7 @@ test_service() {
 	echo "-----------------------------"
 	rtty $1
 	check_response $result_file
-	RTTY_STATUS="$(curl -s -w '%{http_code}' $url"
+	RTTY_STATUS="$(curl -s -w '%{http_code}' $url)"
 
 	if [[ "$RTTY_STATUS" != 200 && "$RTTY_STATUS" != 302 ]]; then
 	    echo "Error: failed to start RTTY session, HTTP status code $RTTY_STATUS"
