@@ -75,13 +75,4 @@ jobs:
         workflow: ow_docker-compose.yml
         token: ${{ secrets.WLAN_TESTING_PAT }}
         ref: master
-        inputs: '{"microservice": "owgw", "owgw_version": "${{ github.sha }}", "owgwui_version": "${{ env.BASE_BRANCH }}", "owsec_version": "${{ env.BASE_BRANCH }}", "owfms_version": "${{ env.BASE_BRANCH }}", "owprov_version": "${{ env.BASE_BRANCH }}", "owprovui_version": "${{ env.BASE_BRANCH }}"}'
-
-    - name: Notify on failure via Slack
-      if: failure() && github.ref == 'refs/heads/master'
-      uses: rtCamp/action-slack-notify@v2
-      env:
-        SLACK_USERNAME: GitHub Actions failure notifier
-        SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
-        SLACK_COLOR: "${{ job.status }}"
-        SLACK_ICON: https://raw.githubusercontent.com/quintessence/slack-icons/master/images/github-logo-slack-icon.png
+        inputs: '{"deployment_version": "${{ env.BASE_BRANCH }}", "owgw_version": "${{ github.sha }}", "owsec_version": "${{ env.BASE_BRANCH }}", "owfms_version": "${{ env.BASE_BRANCH }}", "owprov_version": "${{ env.BASE_BRANCH }}", "owanalytics_version": "${{ env.BASE_BRANCH }}", "owsub_version": "${{ env.BASE_BRANCH }}", "microservice": "owgw"}'
