@@ -324,12 +324,12 @@ namespace OpenWifi::RESTAPI_utils {
 
     inline void field_from_json(const Poco::JSON::Object::Ptr &Obj, const char *Field, double & Value) {
         if(Obj->has(Field) && !Obj->isNull(Field))
-            Value = Obj->get(Field).extract<double>();
+            Value = (double) Obj->get(Field);
     }
 
     inline void field_from_json(const Poco::JSON::Object::Ptr &Obj, const char *Field, float & Value) {
         if(Obj->has(Field) && !Obj->isNull(Field))
-            Value = (float) Obj->get(Field).extract<double>();
+            Value = (float) Obj->get(Field);
     }
 
     inline void field_from_json(const Poco::JSON::Object::Ptr &Obj, const char *Field, bool &Value) {
