@@ -418,7 +418,7 @@ namespace OpenWifi {
 				},
 				"allow-dfs": {
 					"type": "boolean",
-					"default": false
+					"default": true
 				},
 				"channel-mode": {
 					"type": "string",
@@ -518,7 +518,7 @@ namespace OpenWifi {
 					"maximum": 4050
 				},
 				"proto": {
-					"decription": "The L2 vlan tag that shall be added (1q,1ad)  ",
+					"decription": "The L2 vlan tag that shall be added (1q,1ad) ",
 					"type": "string",
 					"enum": [
 						"802.1ad",
@@ -2444,6 +2444,7 @@ namespace OpenWifi {
 		}
 	}
 }
+
     )"_json;
 
     class custom_error_handler : public nlohmann::json_schema::basic_error_handler

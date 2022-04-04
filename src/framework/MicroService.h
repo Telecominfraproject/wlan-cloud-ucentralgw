@@ -3056,7 +3056,7 @@ namespace OpenWifi {
 	};
 
 	class SubSystemServer;
-	typedef std::map<uint64_t, MicroServiceMeta>	MicroServiceMetaMap;
+	typedef std::map<std::string, MicroServiceMeta>	MicroServiceMetaMap;
 	typedef std::vector<MicroServiceMeta>			MicroServiceMetaVec;
 	typedef std::vector<SubSystemServer *>          SubSystemVec;
 
@@ -3227,26 +3227,27 @@ namespace OpenWifi {
             std::cout << "BUS MESSAGE:" << OOO.str() << std::endl;
 */
 	        if (Object->has(KafkaTopics::ServiceEvents::Fields::ID) &&
-	        Object->has(KafkaTopics::ServiceEvents::Fields::EVENT)) {
+	            Object->has(KafkaTopics::ServiceEvents::Fields::EVENT)) {
 	            uint64_t 	ID = Object->get(KafkaTopics::ServiceEvents::Fields::ID);
 	            auto 		Event = Object->get(KafkaTopics::ServiceEvents::Fields::EVENT).toString();
 	            if (ID != ID_) {
 	                if(	Event==KafkaTopics::ServiceEvents::EVENT_JOIN ||
-	                Event==KafkaTopics::ServiceEvents::EVENT_KEEP_ALIVE ||
-	                Event==KafkaTopics::ServiceEvents::EVENT_LEAVE ) {
+	                    Event==KafkaTopics::ServiceEvents::EVENT_KEEP_ALIVE ||
+	                    Event==KafkaTopics::ServiceEvents::EVENT_LEAVE ) {
 	                    if(	Object->has(KafkaTopics::ServiceEvents::Fields::TYPE) &&
-	                    Object->has(KafkaTopics::ServiceEvents::Fields::PUBLIC) &&
-	                    Object->has(KafkaTopics::ServiceEvents::Fields::PRIVATE) &&
-	                    Object->has(KafkaTopics::ServiceEvents::Fields::VRSN) &&
-	                    Object->has(KafkaTopics::ServiceEvents::Fields::KEY)) {
-	                        if (Event == KafkaTopics::ServiceEvents::EVENT_KEEP_ALIVE && Services_.find(ID) != Services_.end()) {
-	                            Services_[ID].LastUpdate = std::time(nullptr);
+                            Object->has(KafkaTopics::ServiceEvents::Fields::PUBLIC) &&
+                            Object->has(KafkaTopics::ServiceEvents::Fields::PRIVATE) &&
+                            Object->has(KafkaTopics::ServiceEvents::Fields::VRSN) &&
+                            Object->has(KafkaTopics::ServiceEvents::Fields::KEY)) {
+                            auto PrivateEndPoint = Object->get(KafkaTopics::ServiceEvents::Fields::PRIVATE).toString();
+	                        if (Event == KafkaTopics::ServiceEvents::EVENT_KEEP_ALIVE && Services_.find(PrivateEndPoint) != Services_.end()) {
+	                            Services_[PrivateEndPoint].LastUpdate = std::time(nullptr);
 	                        } else if (Event == KafkaTopics::ServiceEvents::EVENT_LEAVE) {
-	                            Services_.erase(ID);
+	                            Services_.erase(PrivateEndPoint);
 	                            logger().information(fmt::format("Service {} ID={} leaving system.",Object->get(KafkaTopics::ServiceEvents::Fields::PRIVATE).toString(),ID));
 	                        } else if (Event == KafkaTopics::ServiceEvents::EVENT_JOIN || Event == KafkaTopics::ServiceEvents::EVENT_KEEP_ALIVE) {
 	                            logger().information(fmt::format("Service {} ID={} joining system.",Object->get(KafkaTopics::ServiceEvents::Fields::PRIVATE).toString(),ID));
-	                            Services_[ID] = MicroServiceMeta{
+	                            Services_[PrivateEndPoint] = MicroServiceMeta{
 	                                .Id = ID,
 	                                .Type = Poco::toLower(Object->get(KafkaTopics::ServiceEvents::Fields::TYPE).toString()),
 	                                .PrivateEndPoint = Object->get(KafkaTopics::ServiceEvents::Fields::PRIVATE).toString(),
@@ -3254,8 +3255,8 @@ namespace OpenWifi {
 	                                .AccessKey = Object->get(KafkaTopics::ServiceEvents::Fields::KEY).toString(),
 	                                .Version = Object->get(KafkaTopics::ServiceEvents::Fields::VRSN).toString(),
 	                                .LastUpdate = (uint64_t)std::time(nullptr)};
-	                            for (const auto &[Id, Svc] : Services_) {
-	                                logger().information(fmt::format("ID: {} Type: {} EndPoint: {}",Id,Svc.Type,Svc.PrivateEndPoint));
+	                            for (const auto &[PrivateEndPoint, Svc] : Services_) {
+	                                logger().information(fmt::format("ID: {} Type: {} EndPoint: {}",Svc.Id,Svc.Type,PrivateEndPoint));
 	                            }
 	                        }
 	                    } else {
@@ -3307,7 +3308,7 @@ namespace OpenWifi {
 	    std::lock_guard G(InfraMutex_);
 
 	    MicroServiceMetaVec	Res;
-	    for(const auto &[Id,ServiceRec]:Services_) {
+	    for(const auto &[_,ServiceRec]:Services_) {
 	        Res.push_back(ServiceRec);
 	    }
 	    return Res;
