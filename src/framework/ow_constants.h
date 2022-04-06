@@ -82,6 +82,8 @@ namespace OpenWifi::RESTAPI::Errors {
     static const std::string UserAlreadyExists{"Username already exists."};
     static const std::string NotImplemented{"Function not implemented."};
     static const std::string VariableMustExist{"Specified variable does not exist."};
+    static const std::string InvalidEntityType{"Invalid entity type."};
+    static const std::string CannotDeleteSubEntity{"Cannot delete the default subscriber entity."};
 }
 
 namespace OpenWifi::RESTAPI::Protocol {

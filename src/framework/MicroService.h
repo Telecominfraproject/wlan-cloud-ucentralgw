@@ -72,6 +72,7 @@ using namespace std::chrono_literals;
 #include "Poco/Util/PropertyFileConfiguration.h"
 #include "Poco/SplitterChannel.h"
 #include "Poco/JWT/Signer.h"
+#include "Poco/DeflatingStream.h"
 
 #include "cppkafka/cppkafka.h"
 
@@ -2217,6 +2218,21 @@ namespace OpenWifi {
 
 	        inline void ReturnObject(Poco::JSON::Object &Object) {
 	            PrepareResponse();
+                if(Request!= nullptr) {
+                    //   can we compress ???
+                    auto AcceptedEncoding = Request->find("Accept-Encoding");
+                    if(AcceptedEncoding!=Request->end()) {
+                        if( AcceptedEncoding->second.find("gzip")!=std::string::npos ||
+                            AcceptedEncoding->second.find("compress")!=std::string::npos) {
+                            Response->set("Content-Encoding", "gzip");
+                            std::ostream &Answer = Response->send();
+                            Poco::DeflatingOutputStream deflater(Answer, Poco::DeflatingStreamBuf::STREAM_GZIP);
+                            Poco::JSON::Stringifier::stringify(Object, deflater);
+                            deflater.close();
+                            return;
+                        }
+                    }
+                }
 	            std::ostream &Answer = Response->send();
 	            Poco::JSON::Stringifier::stringify(Object, Answer);
 	        }

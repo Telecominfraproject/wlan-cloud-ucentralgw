@@ -81,14 +81,14 @@ namespace ORM {
     typedef std::vector<Field>  FieldVec;
 
     struct IndexEntry {
-        std::string     FieldName;
-        Indextype   Type;
+        std::string         FieldName;
+        Indextype           Type;
     };
     typedef std::vector<IndexEntry>     IndexEntryVec;
 
     struct Index {
         std::string         Name;
-        IndexEntryVec   Entries;
+        IndexEntryVec       Entries;
     };
     typedef std::vector<Index>      IndexVec;
 
@@ -419,7 +419,7 @@ namespace ORM {
                 Poco::Data::Statement   Select(Session);
                 RecordTuple             RT;
 
-                std::string St = "select " + SelectFields_ + " from " + TableName_ + " where " + FieldName + "=?" ;
+                std::string St = "select " + SelectFields_ + " from " + TableName_ + " where " + FieldName + "=?" + " limit 1";
 
                 auto tValue{Value};
 
@@ -428,7 +428,7 @@ namespace ORM {
                     Poco::Data::Keywords::use(tValue);
                 Select.execute();
 
-                if(Select.rowsExtracted()==1) {
+                if(Select.execute()==1) {
                     Convert(RT,R);
                     if(Cache_)
                         Cache_->UpdateCache(R);
@@ -522,6 +522,21 @@ namespace ORM {
                 Update.execute();
                 if(Cache_)
                     Cache_->UpdateCache(R);
+                return true;
+            } catch (const Poco::Exception &E) {
+                Logger_.log(E);
+            }
+            return false;
+        }
+
+        bool RunStatement(const std::string &St) {
+            try {
+                Poco::Data::Session     Session = Pool_.get();
+                Poco::Data::Statement   Command(Session);
+
+                Command  << St ;
+                Command.execute();
+
                 return true;
             } catch (const Poco::Exception &E) {
                 Logger_.log(E);
