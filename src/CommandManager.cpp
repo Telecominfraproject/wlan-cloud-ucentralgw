@@ -90,9 +90,9 @@ namespace OpenWifi {
 	void CommandManager::onTimer([[maybe_unused]] Poco::Timer & timer) {
 		std::lock_guard G(Mutex_);
 		Logger().information("Removing expired commands: start");
-		auto Now = std::chrono::high_resolution_clock::now();
+		auto now = std::chrono::high_resolution_clock::now();
 		for(auto i=OutStandingRequests_.begin();i!=OutStandingRequests_.end();) {
-			std::chrono::duration<double, std::milli> delta = Now - i->second->submitted;
+			std::chrono::duration<double, std::milli> delta = now - i->second->submitted;
 			if(delta > 120000ms) {
 				i = OutStandingRequests_.erase(i);
 			} else {
