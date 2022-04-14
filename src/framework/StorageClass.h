@@ -51,6 +51,7 @@ namespace OpenWifi {
             Pool_->shutdown();
         }
 
+        DBType Type() const { return dbType_; };
     private:
         inline int Setup_SQLite();
         inline int Setup_MySQL();

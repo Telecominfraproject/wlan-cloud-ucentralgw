@@ -33,7 +33,8 @@ namespace ORM {
         FT_TEXT,
         FT_VARCHAR,
         FT_BLOB,
-        FT_BOOLEAN
+        FT_BOOLEAN,
+        FT_REAL
     };
 
     enum Indextype {
@@ -110,6 +111,8 @@ namespace ORM {
                     return "BYTEA";
                 else
                     return "BLOB";
+            case FT_REAL:
+                return "REAL";
             default:
                 assert(false);
 
@@ -150,6 +153,16 @@ namespace ORM {
 
     inline std::string to_string(const std::string &S) {
         return S;
+    }
+
+    inline std::string to_string(const Poco::Data::BLOB &blob) {
+        auto Content = blob.content();
+        std::string result;
+        result.reserve(Content.size());
+        for(const auto &c:Content) {
+            result += (char) c;
+        }
+        return result;
     }
 
     inline std::string to_string(const char * S) {
