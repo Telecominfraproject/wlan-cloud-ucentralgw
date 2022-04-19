@@ -176,20 +176,22 @@ namespace OpenWifi {
 		{
 			// memset(&inBuf[0],0,sizeof inBuf);
 			std::size_t needed = socket_.available();
-			std::cout << __LINE__ << std::endl;
-			if((inBuf_.size()-inBuf_.used())<needed) return;
-			std::cout << __LINE__ << std::endl;
+			if((inBuf_.size()-inBuf_.used())<needed) {
+				std::cout << "Not enough room..." << std::endl;
+				return;
+			}
 
 			auto received = socket_.receiveBytes(inBuf_);
-			std::cout << __LINE__ << std::endl;
 
-			if(inBuf_.available()==0 || received<0) return;
-			std::cout << __LINE__ << std::endl;
+			if(inBuf_.available()==0 || received<0) {
+				std::cout << "Not data received..." << std::endl;
+				return;
+			}
 
 			int loops = 1;
 			bool done=false;
 			while(!done && inBuf_.available()>0) {
-				std::cout << "Loop:" << loops++ << std::endl;
+				std::cout << "Loop:" << loops++ << "  --> " << waiting_for_bytes_ << "   " << (int) last_command_ << std::endl;
 				size_t MsgLen;
 				if(waiting_for_bytes_==0) {
 					u_char msg[3];
