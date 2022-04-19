@@ -198,7 +198,7 @@ namespace OpenWifi {
 					if (inBuf_.read((char *)&msg[0], 3) != 3)
 						break;
 					MsgLen = (size_t)msg[1] * 256 + (size_t)msg[2];
-					std::cout << "Loop:" << loops++ << "CMD: " << (int)last_command_ << "BUF:" << inBuf_.used() << " MSGLEN:" << MsgLen << std::endl;
+					std::cout << "Loop:" << loops++ << "  CMD: " << (int)last_command_ << "BUF: " << inBuf_.used() << " MSGLEN: " << MsgLen << std::endl;
 
 					if (msg[0] > msgTypeMax) {
 						std::cout << "Bad message type:" << (int)msg[0] << std::endl;
@@ -215,8 +215,8 @@ namespace OpenWifi {
 					}
 					last_command_ = msg[0];
 				} else {
-					std::cout << "Loop:" << loops++ << "CMD: " << (int)last_command_ << " BUF:" << inBuf_.used() << "  --> " << waiting_for_bytes_ << "   " << (int) last_command_ << std::endl;
 					last_command_ = msgTypeTermData;
+					std::cout << "Loop:" << loops++ << "  CMD: " << (int)last_command_ << " BUF: " << inBuf_.used() << "  WAITING: " << waiting_for_bytes_ << std::endl;
 				}
 
 
