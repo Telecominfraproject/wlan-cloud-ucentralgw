@@ -210,7 +210,7 @@ namespace OpenWifi {
 					id_ = ReadString();
 					desc_ = ReadString();
 					token_ = ReadString();
-
+					std::cout << "ID:" << id_ << " DESC:" << desc_ << " TOK:" << token_ << std::endl;
 					if (RTTYS_server()->ValidEndPoint(id_, token_)) {
 						if (!RTTYS_server()->AmIRegistered(id_, token_, this)) {
 							u_char OutBuf[12];
