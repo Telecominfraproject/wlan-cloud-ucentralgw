@@ -175,26 +175,33 @@ namespace OpenWifi {
 		{
 			// memset(&inBuf[0],0,sizeof inBuf);
 			std::size_t needed = socket_.available();
+			std::cout << __LINE__ << std::endl;
 			if((inBuf_.size()-inBuf_.used())<needed) return;
+			std::cout << __LINE__ << std::endl;
 
 			auto received = socket_.receiveBytes(inBuf_);
+			std::cout << __LINE__ << std::endl;
 
 			if(inBuf_.available()==0 || received<0) return;
+			std::cout << __LINE__ << std::endl;
 
 			char 	msg[3];
 			inBuf_.read(&msg[0],2);
 			size_t MsgLen = (size_t) msg[1] * 256 + (size_t) msg[2];
+			std::cout << __LINE__ << std::endl;
 
 			if(msg[0]>msgTypeMax) {
 				std::cout << "Bad message type:" << (int) msg[0] << std::endl;
 				Logger().debug(fmt::format("Bad message for Session: {}", id_));
 				return delete this;
 			}
+			std::cout << __LINE__ << std::endl;
 
 			if(MsgLen > inBuf_.available()) {
 				std::cout << "Not enough data for the message length:" << MsgLen << std::endl;
 				return;
 			}
+			std::cout << __LINE__ << std::endl;
 
 			switch(msg[0]) {
 				case msgTypeRegister: {
