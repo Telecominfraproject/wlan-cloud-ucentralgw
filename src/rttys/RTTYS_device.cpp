@@ -159,7 +159,7 @@ namespace OpenWifi {
 	{
 		try
 		{
-			memset(&inBuf[0],0,sizeof inBuf);
+			// memset(&inBuf[0],0,sizeof inBuf);
 			int len = socket_.receiveBytes(&inBuf[0],sizeof(inBuf));
 			if (len > 0) {
 				RTTY_MSG_TYPE   msg;
