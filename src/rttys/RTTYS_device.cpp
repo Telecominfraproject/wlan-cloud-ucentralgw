@@ -184,7 +184,7 @@ namespace OpenWifi {
 			auto received = socket_.receiveBytes(inBuf_);
 
 			if(inBuf_.used()==0 || received<0) {
-				std::cout << "." << std::endl;
+				std::cout << "." ;
 				return;
 			}
 
