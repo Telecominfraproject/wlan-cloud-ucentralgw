@@ -206,10 +206,10 @@ namespace OpenWifi {
 						return delete this;
 					}
 
-					if (MsgLen > inBuf_.available()) {
+					if (MsgLen > inBuf_.used()) {
 						std::cout << "Not enough data for the message length:" << MsgLen
 								  << std::endl;
-						waiting_for_bytes_ = MsgLen - inBuf_.available();
+						waiting_for_bytes_ = MsgLen - inBuf_.used();
 					} else {
 						waiting_for_bytes_ = 0;
 					}
@@ -273,8 +273,8 @@ namespace OpenWifi {
 
 				case msgTypeTermData: {
 					if(waiting_for_bytes_) {
-						inBuf_.read(&scratch_[0], inBuf_.available());
-						SendToClient((u_char *)&scratch_[0], (int) inBuf_.available());
+						inBuf_.read(&scratch_[0], inBuf_.used());
+						SendToClient((u_char *)&scratch_[0], (int) inBuf_.used());
 						done=true;
 					} else {
 						inBuf_.read(&scratch_[0], MsgLen);
