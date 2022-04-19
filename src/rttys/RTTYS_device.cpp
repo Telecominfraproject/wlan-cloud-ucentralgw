@@ -185,33 +185,34 @@ namespace OpenWifi {
 			if(inBuf_.available()==0 || received<0) return;
 			std::cout << __LINE__ << std::endl;
 
-			char 	msg[3];
-			inBuf_.read(&msg[0],3);
-			size_t MsgLen = (size_t) msg[1] * 256 + (size_t) msg[2];
-			std::cout << __LINE__ << std::endl;
+			while(inBuf_.available()) {
+				char msg[3];
+				inBuf_.read(&msg[0], 3);
+				size_t MsgLen = (size_t)msg[1] * 256 + (size_t)msg[2];
+				std::cout << __LINE__ << std::endl;
 
-			if(msg[0]>msgTypeMax) {
-				std::cout << "Bad message type:" << (int) msg[0] << std::endl;
-				Logger().debug(fmt::format("Bad message for Session: {}", id_));
-				return delete this;
-			}
-			std::cout << __LINE__ << std::endl;
+				if (msg[0] > msgTypeMax) {
+					std::cout << "Bad message type:" << (int)msg[0] << std::endl;
+					Logger().debug(fmt::format("Bad message for Session: {}", id_));
+					return delete this;
+				}
+				std::cout << __LINE__ << std::endl;
 
-			if(MsgLen > inBuf_.available()) {
-				std::cout << "Not enough data for the message length:" << MsgLen << std::endl;
-				return;
-			}
-			std::cout << __LINE__ << std::endl;
-			std::cout << "Command: " << (int) msg[0] << "  " << __LINE__ << std::endl;
+				if (MsgLen > inBuf_.available()) {
+					std::cout << "Not enough data for the message length:" << MsgLen << std::endl;
+					return;
+				}
+				std::cout << __LINE__ << std::endl;
+				std::cout << "Command: " << (int)msg[0] << "  " << __LINE__ << std::endl;
 
-			switch(msg[0]) {
+				switch (msg[0]) {
 				case msgTypeRegister: {
 					id_ = ReadString();
 					desc_ = ReadString();
 					token_ = ReadString();
 
-					if(RTTYS_server()->ValidEndPoint(id_,token_)) {
-						if(!RTTYS_server()->AmIRegistered(id_,token_,this)) {
+					if (RTTYS_server()->ValidEndPoint(id_, token_)) {
+						if (!RTTYS_server()->AmIRegistered(id_, token_, this)) {
 							u_char OutBuf[12];
 							OutBuf[0] = msgTypeRegister;
 							OutBuf[1] = 0;
@@ -223,85 +224,74 @@ namespace OpenWifi {
 							socket_.sendBytes(OutBuf, 7);
 							RTTYS_server()->Register(id_, this);
 							serial_ = RTTYS_server()->SerialNumber(id_);
-							Logger().debug(fmt::format(
-									"Registration for SerialNumber: {}, Description: {}",
-									serial_, desc_));
+							Logger().debug(
+								fmt::format("Registration for SerialNumber: {}, Description: {}",
+											serial_, desc_));
 						} else {
 							Logger().debug(fmt::format(
-								"Registration for SerialNumber: {}, already done",
-								serial_));
+								"Registration for SerialNumber: {}, already done", serial_));
 						}
 					} else {
-						Logger().debug(fmt::format(
-							"Registration failed - invalid (id,token) pair. for Session: {}, Description: {}",
-							id_, desc_));
+						Logger().debug(fmt::format("Registration failed - invalid (id,token) pair. for Session: {}, Description: {}",
+												   id_, desc_));
 						return delete this;
 					}
-				}
-				break;
+				} break;
 
 				case msgTypeLogin: {
-					Logger().debug(fmt::format("Device created session for SerialNumber: {}, session: {}", serial_, id_));
+					Logger().debug(fmt::format(
+						"Device created session for SerialNumber: {}, session: {}", serial_, id_));
 					nlohmann::json doc;
 					char Error;
-					inBuf_.read(&Error,1);
-					inBuf_.read(&sid_,1);
+					inBuf_.read(&Error, 1);
+					inBuf_.read(&sid_, 1);
 					doc["type"] = "login";
 					doc["err"] = Error;
 					const auto login_msg = to_string(doc);
 					SendToClient(login_msg);
-				}
-				break;
+				} break;
 
 				case msgTypeLogout: {
 					// std::cout << "msgTypeLogout" << std::endl;
-				}
-				break;
+				} break;
 
 				case msgTypeTermData: {
-					inBuf_.read(&scratch_[0],MsgLen);
-					SendToClient((u_char *)&scratch_[0],MsgLen);
-				}
-				break;
+					inBuf_.read(&scratch_[0], MsgLen);
+					SendToClient((u_char *)&scratch_[0], MsgLen);
+				} break;
 
 				case msgTypeWinsize: {
 					// std::cout << "msgTypeWinsize" << std::endl;
-				}
-				break;
+				} break;
 
 				case msgTypeCmd: {
 					// std::cout << "msgTypeCmd" << std::endl;
-				}
-				break;
+				} break;
 
 				case msgTypeHeartbeat: {
 					// std::cout << "msgTypeHeartbeat: " << MsgLen << " bytes" << std::endl;
 					// PrintBuf(&inBuf[0], len);
 					u_char MsgBuf[32]{0};
 					MsgBuf[0] = msgTypeHeartbeat;
-					socket_.sendBytes(MsgBuf,3);
-				}
-				break;
+					socket_.sendBytes(MsgBuf, 3);
+				} break;
 
 				case msgTypeFile: {
 					// std::cout << "msgTypeFile" << std::endl;
-				}
-				break;
+				} break;
 
 				case msgTypeHttp: {
 					// std::cout << "msgTypeHttp" << std::endl;
-				}
-				break;
+				} break;
 
 				case msgTypeAck: {
 					// std::cout << "msgTypeAck" << std::endl;
-				}
-				break;
+				} break;
 
 				case msgTypeMax: {
 					// std::cout << "msgTypeMax" << std::endl;
+				} break;
 				}
-				break;
 			}
 /*
 			} else {
