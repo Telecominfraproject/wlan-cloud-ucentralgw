@@ -15,7 +15,10 @@
 
 namespace OpenWifi {
 
+#define RTTY_DEVICE_BUFSIZE	64000
+
 class RTTY_Device_ConnectionHandler {
+
   public:
 
 	enum RTTY_MSG_TYPE {
@@ -51,6 +54,7 @@ class RTTY_Device_ConnectionHandler {
 	void WindowSize(int cols, int rows);
 	void KeyStrokes(const u_char *buf, size_t len);
   private:
+	Poco::Logger & Logger() { return Logger_; }
 	Poco::Net::StreamSocket       socket_;
 	Poco::Net::SocketReactor&     reactor_;
 	std::string                   id_;
@@ -58,6 +62,8 @@ class RTTY_Device_ConnectionHandler {
 	std::string                   desc_;
 	std::string 				  serial_;
 	int 				          sid_=0;
+	Poco::Logger					&Logger_;
+	std::array<unsigned char,RTTY_DEVICE_BUFSIZE>	inBuf{0};
 };
 
 

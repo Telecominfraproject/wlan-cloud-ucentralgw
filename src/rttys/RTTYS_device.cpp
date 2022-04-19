@@ -10,7 +10,8 @@ namespace OpenWifi {
 	RTTY_Device_ConnectionHandler::RTTY_Device_ConnectionHandler(Poco::Net::StreamSocket& socket,
 															 Poco::Net::SocketReactor & reactor):
 		socket_(socket),
-		reactor_(reactor)
+		reactor_(reactor),
+		Logger_(RTTYS_server()->Logger())
 	{
 		reactor_.addEventHandler(socket_, Poco::NObserver<RTTY_Device_ConnectionHandler, Poco::Net::ReadableNotification>(*this, &RTTY_Device_ConnectionHandler::onSocketReadable));
 		reactor_.addEventHandler(socket_, Poco::NObserver<RTTY_Device_ConnectionHandler, Poco::Net::ShutdownNotification>(*this, &RTTY_Device_ConnectionHandler::onSocketShutdown));
@@ -27,7 +28,6 @@ namespace OpenWifi {
 			RTTYS_server()->DeRegister(id_, this);
 			RTTYS_server()->Close(id_);
 		} else {
-			std::cout << "Device going down that never registered" << std::endl;
 		}
 	}
 
@@ -149,7 +149,7 @@ namespace OpenWifi {
 		outBuf[1] = 0;
 		outBuf[2] = 1;
 		outBuf[3] = sid_;
-		RTTYS_server()->Logger().debug(fmt::format("Device {} logging out", id_));
+		Logger().debug(fmt::format("Device {} logging out", id_));
 		// PrintBuf(outBuf,4);
 		socket_.sendBytes(outBuf,4 );
 		return true;
@@ -159,15 +159,12 @@ namespace OpenWifi {
 	{
 		try
 		{
-			u_char	inBuf[16000]{0};
+			memset(&inBuf[0],0,sizeof inBuf);
 			int len = socket_.receiveBytes(&inBuf[0],sizeof(inBuf));
-			// std::cout << "DEVICE MSG RECEIVED: " << std::dec << len << " bytes" << std::endl;
 			if (len > 0) {
-				// std::cout << "DEVICE MSG RECEIVED: " << std::dec << len << " bytes" << std::endl;
-				// PrintBuf(inBuf,len);
 				RTTY_MSG_TYPE   msg;
 				if(inBuf[0]>=(u_char)msgTypeMax) {
-					RTTYS_server()->Logger().debug(fmt::format("Bad message for Session: {}", id_));
+					Logger().debug(fmt::format("Bad message for Session: {}", id_));
 					return delete this;
 				}
 
@@ -196,16 +193,16 @@ namespace OpenWifi {
 								socket_.sendBytes(OutBuf, 7);
 								RTTYS_server()->Register(id_, this);
 								serial_ = RTTYS_server()->SerialNumber(id_);
-								RTTYS_server()->Logger().debug(fmt::format(
+								Logger().debug(fmt::format(
 										"Registration for SerialNumber: {}, Description: {}",
 										serial_, desc_));
 							} else {
-								RTTYS_server()->Logger().debug(fmt::format(
+								Logger().debug(fmt::format(
 									"Registration for SerialNumber: {}, already done",
 									serial_));
 							}
 						} else {
-							RTTYS_server()->Logger().debug(fmt::format(
+							Logger().debug(fmt::format(
 								"Registration failed - invalid (id,token) pair. for Session: {}, Description: {}",
 								id_, desc_));
 							return delete this;
@@ -214,7 +211,7 @@ namespace OpenWifi {
 					break;
 
 					case msgTypeLogin: {
-					    RTTYS_server()->Logger().debug(fmt::format("Device created session for SerialNumber: {}, session: {}", serial_, id_));
+					    Logger().debug(fmt::format("Device created session for SerialNumber: {}, session: {}", serial_, id_));
 						nlohmann::json doc;
 						auto error = inBuf[3];
 						sid_ = inBuf[4];
@@ -226,7 +223,7 @@ namespace OpenWifi {
 					break;
 
 					case msgTypeLogout: {
-						std::cout << "msgTypeLogout" << std::endl;
+						// std::cout << "msgTypeLogout" << std::endl;
 					}
 					break;
 
@@ -236,12 +233,12 @@ namespace OpenWifi {
 					break;
 
 					case msgTypeWinsize: {
-						std::cout << "msgTypeWinsize" << std::endl;
+						// std::cout << "msgTypeWinsize" << std::endl;
 					}
 					break;
 
 					case msgTypeCmd: {
-						std::cout << "msgTypeCmd" << std::endl;
+						// std::cout << "msgTypeCmd" << std::endl;
 					}
 					break;
 
@@ -255,34 +252,34 @@ namespace OpenWifi {
 					break;
 
 					case msgTypeFile: {
-						std::cout << "msgTypeFile" << std::endl;
+						// std::cout << "msgTypeFile" << std::endl;
 					}
 					break;
 
 					case msgTypeHttp: {
-						std::cout << "msgTypeHttp" << std::endl;
+						// std::cout << "msgTypeHttp" << std::endl;
 					}
 					break;
 
 					case msgTypeAck: {
-						std::cout << "msgTypeAck" << std::endl;
+						// std::cout << "msgTypeAck" << std::endl;
 					}
 					break;
 
 					case msgTypeMax: {
-						std::cout << "msgTypeMax" << std::endl;
+						// std::cout << "msgTypeMax" << std::endl;
 					}
 					break;
 				}
 			} else {
-				RTTYS_server()->Logger().debug(fmt::format("DeRegistration: {} shutting down session {}.", serial_, id_));
+				Logger().debug(fmt::format("DeRegistration: {} shutting down session {}.", serial_, id_));
 				return delete this;
 			}
 		}
 		catch (const Poco::Exception & E)
 		{
-			RTTYS_server()->Logger().debug(fmt::format("DeRegistration: {} exception, session {}.", serial_, id_));
-			RTTYS_server()->Logger().log(E);
+			Logger().debug(fmt::format("DeRegistration: {} exception, session {}.", serial_, id_));
+			Logger().log(E);
 			return delete this;
 		}
 	}
