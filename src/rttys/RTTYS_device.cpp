@@ -188,7 +188,7 @@ namespace OpenWifi {
 
 			int loops = 1;
 			bool done=false;
-			while(!done && inBuf_.available()>3) {
+			while(!done && inBuf_.available()>0) {
 				std::cout << "Loop:" << loops++ << std::endl;
 				size_t MsgLen;
 				if(waiting_for_bytes_==0) {
