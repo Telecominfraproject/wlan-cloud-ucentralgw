@@ -201,10 +201,12 @@ namespace OpenWifi {
 				}
 
 				if(needed>0) {
+					std::cout << "Received..." << std::endl;
 					socket_.receiveBytes(inBuf_);
 				}
 
 				if(inBuf_.used()==0) {
+					std::cout << "Not used..." << std::endl;
 					done = true;
 					break;
 				}
