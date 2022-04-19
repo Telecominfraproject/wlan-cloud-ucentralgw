@@ -185,7 +185,9 @@ namespace OpenWifi {
 			if(inBuf_.available()==0 || received<0) return;
 			std::cout << __LINE__ << std::endl;
 
+			int loops = 1;
 			while(inBuf_.available()) {
+				std::cout << "Loop:" << loops++ << std::endl;
 				char msg[3];
 				inBuf_.read(&msg[0], 3);
 				size_t MsgLen = (size_t)msg[1] * 256 + (size_t)msg[2];
