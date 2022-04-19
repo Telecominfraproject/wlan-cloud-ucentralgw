@@ -206,6 +206,7 @@ namespace OpenWifi {
 				}
 				std::cout << __LINE__ << std::endl;
 				std::cout << "Command: " << (int)msg[0] << "  " << __LINE__ << std::endl;
+				inBuf_.advance(3);
 
 				switch (msg[0]) {
 				case msgTypeRegister: {
