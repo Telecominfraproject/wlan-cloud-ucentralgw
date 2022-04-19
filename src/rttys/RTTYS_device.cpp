@@ -192,7 +192,7 @@ namespace OpenWifi {
 				char msg[3];
 				if(inBuf_.read(&msg[0], 3)!=3) break;
 				size_t MsgLen = (size_t)msg[1] * 256 + (size_t)msg[2];
-				std::cout << __LINE__ << " LEN:" << MsgLen << std::endl;
+				std::cout << __LINE__ << " LEN:" << MsgLen << "B1:" << (uint8_t )msg[1] << "  B2:" << (uint8_t )msg[2] << std::endl;
 
 				if (msg[0] > msgTypeMax) {
 					std::cout << "Bad message type:" << (int)msg[0] << std::endl;
