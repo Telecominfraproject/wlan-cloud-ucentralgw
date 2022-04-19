@@ -191,7 +191,7 @@ namespace OpenWifi {
 			int loops = 1;
 			bool done=false;
 			while(!done && inBuf_.used()>0) {
-				std::cout << "Loop:" << loops++ << "BUF:" << inBuf_.used() << "  --> " << waiting_for_bytes_ << "   " << (int) last_command_ << std::endl;
+				// std::cout << "Loop:" << loops++ << "BUF:" << inBuf_.used() << "  --> " << waiting_for_bytes_ << "   " << (int) last_command_ << std::endl;
 				size_t MsgLen;
 				if(waiting_for_bytes_==0) {
 					u_char msg[3];
