@@ -186,7 +186,7 @@ namespace OpenWifi {
 			std::cout << __LINE__ << std::endl;
 
 			char 	msg[3];
-			inBuf_.read(&msg[0],2);
+			inBuf_.read(&msg[0],3);
 			size_t MsgLen = (size_t) msg[1] * 256 + (size_t) msg[2];
 			std::cout << __LINE__ << std::endl;
 
@@ -202,6 +202,7 @@ namespace OpenWifi {
 				return;
 			}
 			std::cout << __LINE__ << std::endl;
+			std::cout << "Command: " << (int) msg[0] << "  " << __LINE__ << std::endl;
 
 			switch(msg[0]) {
 				case msgTypeRegister: {
