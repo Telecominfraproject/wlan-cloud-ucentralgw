@@ -15,11 +15,12 @@
 
 namespace OpenWifi {
 
-#define RTTY_DEVICE_BUFSIZE	64000
 
 class RTTY_Device_ConnectionHandler {
 
   public:
+
+	inline static const std::size_t RTTY_DEVICE_BUFSIZE=64000;
 
 	enum RTTY_MSG_TYPE {
 		msgTypeRegister = 0,

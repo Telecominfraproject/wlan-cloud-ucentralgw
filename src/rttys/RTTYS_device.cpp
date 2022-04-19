@@ -161,6 +161,7 @@ namespace OpenWifi {
 		{
 			// memset(&inBuf[0],0,sizeof inBuf);
 			int len = socket_.receiveBytes(&inBuf[0],sizeof(inBuf));
+			std::cout << "rtty recv: " << len << " bytes." << std::endl;
 			if (len > 0) {
 				RTTY_MSG_TYPE   msg;
 				if(inBuf[0]>=(u_char)msgTypeMax) {
@@ -170,7 +171,7 @@ namespace OpenWifi {
 
 				msg = (RTTY_MSG_TYPE) inBuf[0];
 				size_t MsgLen = (size_t) inBuf[1] * 256 + (size_t) inBuf[2];
-
+				std::cout << "MsgLen recv: " << MsgLen << " bytes." << std::endl;
 				if(MsgLen > sizeof(inBuf))
 					return;
 
