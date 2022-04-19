@@ -272,11 +272,13 @@ namespace OpenWifi {
 
 				case msgTypeTermData: {
 					if(waiting_for_bytes_) {
+						std::cout << "SW:" << inBuf_.used() << std::endl;
 						inBuf_.read(&scratch_[0], inBuf_.used());
 						SendToClient((u_char *)&scratch_[0], (int) inBuf_.used());
 						waiting_for_bytes_ -= inBuf_.used();
 						done=true;
 					} else {
+						std::cout << "S:" << MsgLen << std::endl;
 						inBuf_.read(&scratch_[0], MsgLen);
 						SendToClient((u_char *)&scratch_[0], (int) MsgLen);
 					}
