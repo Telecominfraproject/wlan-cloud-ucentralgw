@@ -188,6 +188,8 @@ namespace OpenWifi {
 				return;
 			}
 
+			std::cout << "RECV: " << received << std::endl;
+
 			int loops = 1;
 			bool done=false;
 			while(!done && inBuf_.used()>0) {
