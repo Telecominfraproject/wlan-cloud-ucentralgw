@@ -1,0 +1,46 @@
+name: Release chart package
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  helm-package:
+    runs-on: ubuntu-20.04
+    env:
+      HELM_REPO_URL: https://tip.jfrog.io/artifactory/tip-wlan-cloud-ucentral-helm/
+      HELM_REPO_USERNAME: ucentral
+    steps:
+      - name: Checkout uCentral assembly chart repo
+        uses: actions/checkout@v2
+        with:
+          path: wlan-cloud-ucentralgw
+
+      - name: Build package
+        working-directory: wlan-cloud-ucentralgw/chart
+        run: |
+          helm plugin install https://github.com/aslafy-z/helm-git --version 0.10.0
+          helm repo add bitnami https://charts.bitnami.com/bitnami
+          helm repo update
+          helm dependency update
+          mkdir dist
+          helm package . -d dist
+
+      - name: Generate GitHub release body
+        working-directory: wlan-cloud-ucentralgw/chart
+        run: |
+          pip3 install yq -q
+          echo "Docker image - tip-tip-wlan-cloud-ucentral.jfrog.io/owgw:$GITHUB_REF_NAME" > release.txt
+          echo "Helm charted may be attached to this release" >> release.txt
+          echo "Deployment artifacts may be found in https://github.com/Telecominfraproject/wlan-cloud-ucentral-deploy/tree/$GITHUB_REF_NAME" >> release.txt
+
+      - name: Create GitHub release
+        uses: softprops/action-gh-release@v1
+        with:
+          body_path: wlan-cloud-ucentralgw/chart/release.txt
+          files: wlan-cloud-ucentralgw/chart/dist/*
