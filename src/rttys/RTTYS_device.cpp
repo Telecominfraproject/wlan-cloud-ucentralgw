@@ -161,8 +161,9 @@ namespace OpenWifi {
 		while(inBuf_.available()) {
 			char C;
 			inBuf_.read(&C,1);
-			if(C==0)
+			if(C==0) {
 				break;
+			}
 			Res += C;
 		}
 
@@ -186,10 +187,10 @@ namespace OpenWifi {
 			std::cout << __LINE__ << std::endl;
 
 			int loops = 1;
-			while(inBuf_.available()) {
+			while(inBuf_.available()>3) {
 				std::cout << "Loop:" << loops++ << std::endl;
 				char msg[3];
-				inBuf_.read(&msg[0], 3);
+				if(inBuf_.read(&msg[0], 3)!=3) break;
 				size_t MsgLen = (size_t)msg[1] * 256 + (size_t)msg[2];
 				std::cout << __LINE__ << std::endl;
 
@@ -206,7 +207,6 @@ namespace OpenWifi {
 				}
 				std::cout << __LINE__ << std::endl;
 				std::cout << "Command: " << (int)msg[0] << "  " << __LINE__ << std::endl;
-				inBuf_.advance(3);
 
 				switch (msg[0]) {
 				case msgTypeRegister: {
