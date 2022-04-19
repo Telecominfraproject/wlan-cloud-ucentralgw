@@ -176,7 +176,7 @@ namespace OpenWifi {
 		{
 			// memset(&inBuf[0],0,sizeof inBuf);
 			std::size_t needed = socket_.available();
-			if((inBuf_.size()-inBuf_.used())<needed) {
+			if(needed>0 && (inBuf_.size()-inBuf_.used())<needed) {
 				std::cout << "Not enough room..." << std::endl;
 				return;
 			}
