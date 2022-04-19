@@ -158,7 +158,7 @@ namespace OpenWifi {
 	std::string RTTY_Device_ConnectionHandler::ReadString() {
 		std::string Res;
 
-		while(inBuf_.available()) {
+		while(inBuf_.used()) {
 			char C;
 			inBuf_.read(&C,1);
 			if(C==0) {
@@ -183,14 +183,14 @@ namespace OpenWifi {
 
 			auto received = socket_.receiveBytes(inBuf_);
 
-			if(inBuf_.available()==0 || received<0) {
+			if(inBuf_.used()==0 || received<0) {
 				std::cout << "Not data received..." << std::endl;
 				return;
 			}
 
 			int loops = 1;
 			bool done=false;
-			while(!done && inBuf_.available()>0) {
+			while(!done && inBuf_.used()>0) {
 				std::cout << "Loop:" << loops++ << "  --> " << waiting_for_bytes_ << "   " << (int) last_command_ << std::endl;
 				size_t MsgLen;
 				if(waiting_for_bytes_==0) {
@@ -198,7 +198,7 @@ namespace OpenWifi {
 					if (inBuf_.read((char *)&msg[0], 3) != 3)
 						break;
 					MsgLen = (size_t)msg[1] * 256 + (size_t)msg[2];
-					std::cout << "AV:" << inBuf_.available() << " LEN:" << MsgLen << " B1:" << (uint32_t) msg[1] << "  B2:" << (uint32_t)msg[2] << std::endl;
+					std::cout << "AV:" << inBuf_.used() << " LEN:" << MsgLen << " B1:" << (uint32_t) msg[1] << "  B2:" << (uint32_t)msg[2] << std::endl;
 
 					if (msg[0] > msgTypeMax) {
 						std::cout << "Bad message type:" << (int)msg[0] << std::endl;
