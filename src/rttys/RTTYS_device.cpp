@@ -196,14 +196,13 @@ namespace OpenWifi {
 					if (inBuf_.read((char *)&msg[0], 3) != 3)
 						break;
 					MsgLen = (size_t)msg[1] * 256 + (size_t)msg[2];
-					std::cout << __LINE__ << " LEN:" << MsgLen << " B1:" << (uint32_t) msg[1] << "  B2:" << (uint32_t)msg[2] << std::endl;
+					std::cout << "AV:" << inBuf_.available() << " LEN:" << MsgLen << " B1:" << (uint32_t) msg[1] << "  B2:" << (uint32_t)msg[2] << std::endl;
 
 					if (msg[0] > msgTypeMax) {
 						std::cout << "Bad message type:" << (int)msg[0] << std::endl;
 						Logger().debug(fmt::format("Bad message for Session: {}", id_));
 						return delete this;
 					}
-					std::cout << __LINE__ << std::endl;
 
 					if (MsgLen > inBuf_.available()) {
 						std::cout << "Not enough data for the message length:" << MsgLen
@@ -213,7 +212,7 @@ namespace OpenWifi {
 						waiting_for_bytes_ = 0;
 					}
 
-					std::cout << "Command: " << (int)msg[0] << "  " << __LINE__ << std::endl;
+					std::cout << "Command: " << (int)msg[0] << std::endl;
 					last_command_ = msg[0];
 				} else {
 					last_command_ = msgTypeTermData;
