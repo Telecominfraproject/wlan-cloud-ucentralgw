@@ -151,6 +151,9 @@ class RTTY_Device_ConnectionHandler {
 	Poco::Logger				  &Logger_;
 	Poco::FIFOBuffer  			  inBuf_{32000};
 	std::array<char,16384>		  scratch_{0};
+	std::size_t      			  waiting_for_bytes_{0};
+	u_char 						  last_command_=0;
+
 
 	// Ringer<unsigned char,RTTY_DEVICE_BUFSIZE>	inBuf;
 };
