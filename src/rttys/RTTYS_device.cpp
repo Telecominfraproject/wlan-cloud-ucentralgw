@@ -175,7 +175,7 @@ namespace OpenWifi {
 		try
 		{
 			// memset(&inBuf[0],0,sizeof inBuf);
-			std::size_t needed = socket_.available();
+/*			std::size_t needed = socket_.available();
 			if(needed>0 && (inBuf_.size()-inBuf_.used())<needed) {
 				std::cout << "Not enough room..." << std::endl;
 				return;
@@ -189,10 +189,26 @@ namespace OpenWifi {
 			}
 
 			std::cout << "RECV: " << received << std::endl;
-
+*/
 			int loops = 1;
 			bool done=false;
-			while(!done && inBuf_.used()>0) {
+			while(!done) {
+
+				std::size_t needed = socket_.available();
+				if(needed>0 && (inBuf_.size()-inBuf_.used())<needed) {
+					std::cout << "Not enough room..." << std::endl;
+					return;
+				}
+
+				if(needed>0) {
+					socket_.receiveBytes(inBuf_);
+				}
+
+				if(inBuf_.used()==0) {
+					done = true;
+					break;
+				}
+
 				// std::cout << "Loop:" << loops++ << "BUF:" << inBuf_.used() << "  --> " << waiting_for_bytes_ << "   " << (int) last_command_ << std::endl;
 				size_t MsgLen;
 				if(waiting_for_bytes_==0) {
@@ -200,7 +216,7 @@ namespace OpenWifi {
 					if (inBuf_.read((char *)&msg[0], 3) != 3)
 						break;
 					MsgLen = (size_t)msg[1] * 256 + (size_t)msg[2];
-					std::cout << "Loop:" << loops++ << "  CMD: " << (int)last_command_ << "BUF: " << inBuf_.used() << " MSGLEN: " << MsgLen << std::endl;
+					std::cout << "Loop:" << loops++ << "  CMD: " << (int)last_command_ << " BUF: " << inBuf_.used() << " MSGLEN: " << MsgLen << std::endl;
 
 					if (msg[0] > msgTypeMax) {
 						std::cout << "Bad message type:" << (int)msg[0] << std::endl;
