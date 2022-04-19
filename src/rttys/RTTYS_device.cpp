@@ -184,7 +184,7 @@ namespace OpenWifi {
 			auto received = socket_.receiveBytes(inBuf_);
 
 			if(inBuf_.used()==0 || received<0) {
-				std::cout << "Not data received..." << std::endl;
+				std::cout << "." << std::endl;
 				return;
 			}
 
@@ -209,7 +209,7 @@ namespace OpenWifi {
 					if (MsgLen > inBuf_.used()) {
 						std::cout << "Not enough data for the message length:" << MsgLen
 								  << std::endl;
-						waiting_for_bytes_ = MsgLen - inBuf_.used();
+						waiting_for_bytes_ = MsgLen ;
 					} else {
 						waiting_for_bytes_ = 0;
 					}
@@ -275,6 +275,7 @@ namespace OpenWifi {
 					if(waiting_for_bytes_) {
 						inBuf_.read(&scratch_[0], inBuf_.used());
 						SendToClient((u_char *)&scratch_[0], (int) inBuf_.used());
+						waiting_for_bytes_ -= inBuf_.used();
 						done=true;
 					} else {
 						inBuf_.read(&scratch_[0], MsgLen);
