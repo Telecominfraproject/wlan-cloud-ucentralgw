@@ -172,6 +172,7 @@ namespace OpenWifi {
 				msg = (RTTY_MSG_TYPE) inBuf[0];
 				size_t MsgLen = (size_t) inBuf[1] * 256 + (size_t) inBuf[2];
 				std::cout << "MsgLen recv: " << MsgLen << " bytes." << std::endl;
+				std::cout << "b[1]:" << (int) inBuf[1] << " b[2]: " << (int) inBuf[2] << std::endl;
 				if(MsgLen > sizeof(inBuf))
 					return;
 
