@@ -114,6 +114,7 @@ namespace OpenWifi {
 		}
 		WS_.sendFrame( s.c_str(), s.length());
 	}
+
 	void RTTYS_ClientConnection::onSocketShutdown([[maybe_unused]] const Poco::AutoPtr<Poco::Net::ShutdownNotification> &pNf) {
 		delete this;
 	}

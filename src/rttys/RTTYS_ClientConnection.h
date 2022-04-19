@@ -9,6 +9,7 @@
 #include "Poco/Net/SocketReactor.h"
 #include "Poco/NObserver.h"
 #include "Poco/Net/SocketNotification.h"
+#include "Poco/FIFOBuffer.h"
 
 namespace OpenWifi {
 	class RTTYS_ClientConnection {

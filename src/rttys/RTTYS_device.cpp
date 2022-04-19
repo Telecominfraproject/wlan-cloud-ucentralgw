@@ -155,128 +155,152 @@ namespace OpenWifi {
 		return true;
 	}
 
+	std::string RTTY_Device_ConnectionHandler::ReadString() {
+		std::string Res;
+
+		while(inBuf_.available()) {
+			char C;
+			inBuf_.read(&C,1);
+			if(C==0)
+				break;
+			Res += C;
+		}
+
+		return Res;
+	}
+
 	void RTTY_Device_ConnectionHandler::onSocketReadable([[maybe_unused]] const Poco::AutoPtr<Poco::Net::ReadableNotification>& pNf)
 	{
 		try
 		{
 			// memset(&inBuf[0],0,sizeof inBuf);
-			int len = socket_.receiveBytes(&inBuf[0],sizeof(inBuf));
-			std::cout << "rtty recv: " << len << " bytes." << std::endl;
-			if (len > 0) {
-				RTTY_MSG_TYPE   msg;
-				if(inBuf[0]>=(u_char)msgTypeMax) {
-					Logger().debug(fmt::format("Bad message for Session: {}", id_));
-					return delete this;
-				}
+			std::size_t needed = socket_.available();
+			if((inBuf_.size()-inBuf_.used())<needed) return;
 
-				msg = (RTTY_MSG_TYPE) inBuf[0];
-				size_t MsgLen = (size_t) inBuf[1] * 256 + (size_t) inBuf[2];
-				std::cout << "MsgLen recv: " << MsgLen << " bytes." << std::endl;
-				std::cout << "b[1]:" << (int) inBuf[1] << " b[2]: " << (int) inBuf[2] << std::endl;
-				if(MsgLen > sizeof(inBuf))
-					return;
+			auto received = socket_.receiveBytes(inBuf_);
 
-				switch(msg) {
-					case msgTypeRegister: {
-						id_ = std::string((char*)&inBuf[3]);
-						desc_ = std::string((char*)&inBuf[3 + id_.size() + 1]);
-						token_ = std::string((char*)&inBuf[3 + id_.size() + 1 + desc_.size() + 1]);
+			if(inBuf_.available()==0 || received<0) return;
 
-						if(RTTYS_server()->ValidEndPoint(id_,token_)) {
-							if(!RTTYS_server()->AmIRegistered(id_,token_,this)) {
-								u_char OutBuf[12];
-								OutBuf[0] = msgTypeRegister;
-								OutBuf[1] = 0;
-								OutBuf[2] = 4;
-								OutBuf[3] = 0;
-								OutBuf[4] = 'O';
-								OutBuf[5] = 'K';
-								OutBuf[6] = 0;
-								socket_.sendBytes(OutBuf, 7);
-								RTTYS_server()->Register(id_, this);
-								serial_ = RTTYS_server()->SerialNumber(id_);
-								Logger().debug(fmt::format(
-										"Registration for SerialNumber: {}, Description: {}",
-										serial_, desc_));
-							} else {
-								Logger().debug(fmt::format(
-									"Registration for SerialNumber: {}, already done",
-									serial_));
-							}
+			char 	msg[3];
+			inBuf_.read(&msg[0],2);
+			size_t MsgLen = (size_t) msg[1] * 256 + (size_t) msg[2];
+
+			if(msg[0]>msgTypeMax) {
+				std::cout << "Bad message type:" << (int) msg[0] << std::endl;
+				Logger().debug(fmt::format("Bad message for Session: {}", id_));
+				return delete this;
+			}
+
+			if(MsgLen > inBuf_.available()) {
+				std::cout << "Not enough data for the message length:" << MsgLen << std::endl;
+				return;
+			}
+
+			switch(msg[0]) {
+				case msgTypeRegister: {
+					id_ = ReadString();
+					desc_ = ReadString();
+					token_ = ReadString();
+
+					if(RTTYS_server()->ValidEndPoint(id_,token_)) {
+						if(!RTTYS_server()->AmIRegistered(id_,token_,this)) {
+							u_char OutBuf[12];
+							OutBuf[0] = msgTypeRegister;
+							OutBuf[1] = 0;
+							OutBuf[2] = 4;
+							OutBuf[3] = 0;
+							OutBuf[4] = 'O';
+							OutBuf[5] = 'K';
+							OutBuf[6] = 0;
+							socket_.sendBytes(OutBuf, 7);
+							RTTYS_server()->Register(id_, this);
+							serial_ = RTTYS_server()->SerialNumber(id_);
+							Logger().debug(fmt::format(
+									"Registration for SerialNumber: {}, Description: {}",
+									serial_, desc_));
 						} else {
 							Logger().debug(fmt::format(
-								"Registration failed - invalid (id,token) pair. for Session: {}, Description: {}",
-								id_, desc_));
-							return delete this;
+								"Registration for SerialNumber: {}, already done",
+								serial_));
 						}
+					} else {
+						Logger().debug(fmt::format(
+							"Registration failed - invalid (id,token) pair. for Session: {}, Description: {}",
+							id_, desc_));
+						return delete this;
 					}
-					break;
-
-					case msgTypeLogin: {
-					    Logger().debug(fmt::format("Device created session for SerialNumber: {}, session: {}", serial_, id_));
-						nlohmann::json doc;
-						auto error = inBuf[3];
-						sid_ = inBuf[4];
-						doc["type"] = "login";
-						doc["err"] = error;
-						const auto login_msg = to_string(doc);
-						SendToClient(login_msg);
-					}
-					break;
-
-					case msgTypeLogout: {
-						// std::cout << "msgTypeLogout" << std::endl;
-					}
-					break;
-
-					case msgTypeTermData: {
-						SendToClient(&inBuf[3],MsgLen);
-					}
-					break;
-
-					case msgTypeWinsize: {
-						// std::cout << "msgTypeWinsize" << std::endl;
-					}
-					break;
-
-					case msgTypeCmd: {
-						// std::cout << "msgTypeCmd" << std::endl;
-					}
-					break;
-
-					case msgTypeHeartbeat: {
-						// std::cout << "msgTypeHeartbeat: " << MsgLen << " bytes" << std::endl;
-						// PrintBuf(&inBuf[0], len);
-						u_char MsgBuf[32]{0};
-						MsgBuf[0] = msgTypeHeartbeat;
-						socket_.sendBytes(MsgBuf,3);
-					}
-					break;
-
-					case msgTypeFile: {
-						// std::cout << "msgTypeFile" << std::endl;
-					}
-					break;
-
-					case msgTypeHttp: {
-						// std::cout << "msgTypeHttp" << std::endl;
-					}
-					break;
-
-					case msgTypeAck: {
-						// std::cout << "msgTypeAck" << std::endl;
-					}
-					break;
-
-					case msgTypeMax: {
-						// std::cout << "msgTypeMax" << std::endl;
-					}
-					break;
 				}
+				break;
+
+				case msgTypeLogin: {
+					Logger().debug(fmt::format("Device created session for SerialNumber: {}, session: {}", serial_, id_));
+					nlohmann::json doc;
+					char Error;
+					inBuf_.read(&Error,1);
+					inBuf_.read(&sid_,1);
+					doc["type"] = "login";
+					doc["err"] = Error;
+					const auto login_msg = to_string(doc);
+					SendToClient(login_msg);
+				}
+				break;
+
+				case msgTypeLogout: {
+					// std::cout << "msgTypeLogout" << std::endl;
+				}
+				break;
+
+				case msgTypeTermData: {
+					inBuf_.read(&scratch_[0],MsgLen);
+					SendToClient((u_char *)&scratch_[0],MsgLen);
+				}
+				break;
+
+				case msgTypeWinsize: {
+					// std::cout << "msgTypeWinsize" << std::endl;
+				}
+				break;
+
+				case msgTypeCmd: {
+					// std::cout << "msgTypeCmd" << std::endl;
+				}
+				break;
+
+				case msgTypeHeartbeat: {
+					// std::cout << "msgTypeHeartbeat: " << MsgLen << " bytes" << std::endl;
+					// PrintBuf(&inBuf[0], len);
+					u_char MsgBuf[32]{0};
+					MsgBuf[0] = msgTypeHeartbeat;
+					socket_.sendBytes(MsgBuf,3);
+				}
+				break;
+
+				case msgTypeFile: {
+					// std::cout << "msgTypeFile" << std::endl;
+				}
+				break;
+
+				case msgTypeHttp: {
+					// std::cout << "msgTypeHttp" << std::endl;
+				}
+				break;
+
+				case msgTypeAck: {
+					// std::cout << "msgTypeAck" << std::endl;
+				}
+				break;
+
+				case msgTypeMax: {
+					// std::cout << "msgTypeMax" << std::endl;
+				}
+				break;
+			}
+/*
 			} else {
 				Logger().debug(fmt::format("DeRegistration: {} shutting down session {}.", serial_, id_));
 				return delete this;
 			}
+*/
 		}
 		catch (const Poco::Exception & E)
 		{
