@@ -347,6 +347,7 @@ namespace OpenWifi {
 		}
 		catch (const Poco::Exception & E)
 		{
+			std::cout << "EXC: " << E.what() << std::endl;
 			Logger().debug(fmt::format("DeRegistration: {} exception, session {}.", serial_, id_));
 			Logger().log(E);
 			return delete this;

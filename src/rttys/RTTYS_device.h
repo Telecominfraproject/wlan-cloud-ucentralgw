@@ -150,7 +150,7 @@ class RTTY_Device_ConnectionHandler {
 	char 				          sid_=0;
 	Poco::Logger				  &Logger_;
 	Poco::FIFOBuffer  			  inBuf_{64000};
-	std::array<char,16384>		  scratch_{0};
+	std::array<char,32000>		  scratch_{0};
 	std::size_t      			  waiting_for_bytes_{0};
 	u_char 						  last_command_=0;
 
