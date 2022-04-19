@@ -149,7 +149,7 @@ class RTTY_Device_ConnectionHandler {
 	std::string 				  serial_;
 	char 				          sid_=0;
 	Poco::Logger				  &Logger_;
-	Poco::FIFOBuffer  			  inBuf_{32000};
+	Poco::FIFOBuffer  			  inBuf_{64000};
 	std::array<char,16384>		  scratch_{0};
 	std::size_t      			  waiting_for_bytes_{0};
 	u_char 						  last_command_=0;
