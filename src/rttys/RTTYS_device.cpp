@@ -206,7 +206,7 @@ namespace OpenWifi {
 				}
 
 				if(inBuf_.used()==0) {
-					std::cout << "Not used..." << std::endl;
+					// std::cout << "Not used..." << std::endl;
 					done = true;
 					break;
 				}
