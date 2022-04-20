@@ -90,7 +90,7 @@ namespace OpenWifi {
 
 		auto It = EndPoints_.find(Id);
 		if(It == EndPoints_.end()) {
-			std::cout << "cannot login " << Id << std::endl;
+			std::cout << "cannot find login " << Id << std::endl;
 			return false;
 		}
 
@@ -100,7 +100,7 @@ namespace OpenWifi {
 			return true;
 		}
 
-		std::cout << "cannot login " << Id << std::endl;
+		std::cout << "no device so cannot login " << Id << std::endl;
 		return false;
 	}
 

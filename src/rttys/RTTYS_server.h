@@ -70,15 +70,17 @@ namespace OpenWifi {
 			std::lock_guard	G(Mutex_);
 			auto It = EndPoints_.find(Id);
 			if(It==EndPoints_.end()) {
-				EndPoints_[Id] = EndPoint{ 	.Token = Token ,
-										  .Client = nullptr,
-										  .Device = Conn,
-										  .TimeStamp = OpenWifi::Now(),
-										  .DeviceConnected = 0 ,
-										  .ClientConnected = 0 ,
-										  .UserName = "" ,
-										  .SerialNumber = "" ,
-										  .Done = false };
+				EndPoints_[Id] = EndPoint{
+					.Token = Token ,
+					.Client = nullptr,
+					.Device = Conn,
+					.TimeStamp = OpenWifi::Now(),
+					.DeviceConnected = 0 ,
+					.ClientConnected = 0 ,
+					.UserName = "" ,
+					.SerialNumber = "" ,
+					.Done = false
+				};
 				Logger().information(fmt::format("Registering session: {}, device:'{}'",Id,It->second.SerialNumber));
 				return true;
 			} else {
