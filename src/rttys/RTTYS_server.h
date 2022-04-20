@@ -187,20 +187,14 @@ namespace OpenWifi {
 			return false;
 		}
 
-		inline bool AmIRegistered( const std::string &Id, const std::string &Token, RTTY_Device_ConnectionHandler *Conn) {
+		inline bool AmIRegistered( const std::string &Id, const std::string &Token, [[maybe_unused]] RTTY_Device_ConnectionHandler *Conn) {
 			std::lock_guard	G(Mutex_);
 
 			auto It = EndPoints_.find(Id);
-			if(It == EndPoints_.end())
+			if(It == EndPoints_.end() || It->second.Token != Token )
 				return false;
 
-			if(It->second.Token != Token)
-				return false;
-
-			if(It->second.Device==Conn)
-				return true;
-
-			return false;
+			return true;
 
 		}
 
