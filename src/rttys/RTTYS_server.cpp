@@ -90,11 +90,18 @@ namespace OpenWifi {
 
 		auto It = EndPoints_.find(Id);
 		if(It == EndPoints_.end()) {
+			std::cout << "cannot login " << Id << std::endl;
 			return false;
 		}
-		if(It->second.Device!= nullptr)
+
+		if(It->second.Device!= nullptr) {
+			std::cout << "login " << Id << std::endl;
 			It->second.Device->Login();
-		return true;
+			return true;
+		}
+
+		std::cout << "cannot login " << Id << std::endl;
+		return false;
 	}
 
 	bool RTTYS_server::Logout(const std::string & Id) {
