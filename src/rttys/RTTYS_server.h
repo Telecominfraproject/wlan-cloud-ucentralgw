@@ -66,11 +66,11 @@ namespace OpenWifi {
 			return It->second.Client;
 		}
 
-		inline void Register(const std::string &Id, RTTY_Device_ConnectionHandler *Conn) {
+		inline bool Register(const std::string &Id, const std::string &Token, RTTY_Device_ConnectionHandler *Conn) {
 			std::lock_guard	G(Mutex_);
 			auto It = EndPoints_.find(Id);
 			if(It==EndPoints_.end()) {
-				EndPoints_[Id] = EndPoint{ 	.Token = "" ,
+				EndPoints_[Id] = EndPoint{ 	.Token = Token ,
 										  .Client = nullptr,
 										  .Device = Conn,
 										  .TimeStamp = OpenWifi::Now(),
@@ -80,9 +80,11 @@ namespace OpenWifi {
 										  .SerialNumber = "" ,
 										  .Done = false };
 				Logger().information(fmt::format("Registering session: {}, device:'{}'",Id,It->second.SerialNumber));
+				return true;
 			} else {
-				It->second.Device = Conn;
+				// It->second.Device = Conn;
 			}
+			return false;
 		}
 
 		inline void DeRegister(const std::string &Id, RTTY_Device_ConnectionHandler *Conn) {
@@ -145,17 +147,6 @@ namespace OpenWifi {
             }
 			uint64_t Now = std::time(nullptr);
 			return ((It->second.Token == Token) && ((Now-It->second.TimeStamp)<30));
-		}
-
-		inline bool CanConnect( const std::string &Id, RTTY_Device_ConnectionHandler *Conn) {
-			std::lock_guard	G(Mutex_);
-
-			auto It = EndPoints_.find(Id);
-			if(It!=EndPoints_.end() && It->second.Device==Conn && It->second.DeviceConnected==0) {
-				It->second.DeviceConnected = std::time(nullptr);
-				return true;
-			}
-			return false;
 		}
 
 		inline bool CanConnect( const std::string &Id, RTTYS_ClientConnection *Conn) {
