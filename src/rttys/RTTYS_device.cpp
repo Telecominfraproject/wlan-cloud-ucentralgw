@@ -24,6 +24,10 @@ namespace OpenWifi {
 					break;
 			}
 			std::cout << "Completed SS" << std::endl;
+			socket_.setKeepAlive(true);
+			socket_.setNoDelay(true);
+			socket_.setReceiveBufferSize(64000);
+
 		} catch (...) {
 			std::cout << "Exception during connection" << std::endl;
 		}
