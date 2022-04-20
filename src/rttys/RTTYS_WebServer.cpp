@@ -64,8 +64,6 @@ namespace OpenWifi {
 		Response.set("Connection", "Keep-Alive");
 		Response.set("Keep-Alive", "timeout=120");
 		Response.set("Accept-Ranges","bytes");
-		Response.setChunkedTransferEncoding(true);
-
 		/*
 		std::cout << "==REQUEST===================================================" << std::endl;
 		for(const auto &i:Request) {
@@ -96,6 +94,7 @@ namespace OpenWifi {
 
 		std::cout << "page handler " << __LINE__ << std::endl;
 		if (Path == "/") {
+			std::cout << "page handler " << __LINE__ << std::endl;
 			Path = RTTYS_server()->UIAssets() + "/index.html";
 		} else {
 			auto ParsedPath = Poco::StringTokenizer(Path, "/");
@@ -103,6 +102,7 @@ namespace OpenWifi {
 				if (ParsedPath[1] == "connect") {
 					response.redirect(Poco::replace(Path,"/connect/","/rtty/"));
 					response.send();
+					std::cout << "page handler " << __LINE__ << std::endl;
 					RTTYS_server()->Logger().information(fmt::format("... rtty connect redirect: {}",Path));
 					return;
 				} else if (ParsedPath[1] == "authorized") {
@@ -112,6 +112,7 @@ namespace OpenWifi {
 					response.setContentType("application/json");
 					std::ostream &answer = response.send();
 					answer << to_string(doc);
+					std::cout << "page handler " << __LINE__ << std::endl;
 					return;
 				} else if (ParsedPath[1] == "fontsize") {
 					AddCORS(request,response);
@@ -121,6 +122,7 @@ namespace OpenWifi {
 					response.setContentType("application/json");
 					std::ostream &answer = response.send();
 					answer << to_string(doc);
+					std::cout << "page handler " << __LINE__ << std::endl;
 					return;
 				}
 			}
@@ -131,6 +133,7 @@ namespace OpenWifi {
 
 		//	simple test to block .. or ~ in path names.
 		if(Path.find("../")!=std::string::npos) {
+			std::cout << "page handler " << __LINE__ << std::endl;
 			return;
 		}
 
@@ -144,8 +147,8 @@ namespace OpenWifi {
 		Poco::File	F(Path);
 		AddCORS(request,response);
 		if(!F.exists()) {
-			response.setChunkedTransferEncoding(true);
 			Path = RTTYS_server()->UIAssets() + "/index.html";
+			std::cout << "page handler " << __LINE__ << std::endl;
 			response.sendFile(Path,"text/html");
 			return;
 		}
