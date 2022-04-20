@@ -16,12 +16,14 @@ namespace OpenWifi {
 	{
 
 		try {
+			std::cout << "Completing SS" << std::endl;
 			auto SS = dynamic_cast<Poco::Net::SecureStreamSocketImpl *>(socket_.impl());
 			while (true) {
 				auto V = SS->completeHandshake();
 				if (V == 1)
 					break;
 			}
+			std::cout << "Completed SS" << std::endl;
 		} catch (...) {
 			std::cout << "Exception during connection" << std::endl;
 		}

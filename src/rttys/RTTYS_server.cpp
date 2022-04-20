@@ -20,20 +20,20 @@ namespace OpenWifi {
 			auto RootCa = MicroService::instance().ConfigPath("openwifi.restapi.host.0.rootca");
 			Poco::Crypto::X509Certificate Root(RootCa);
 
-			auto DSContext = new Poco::Net::Context(Poco::Net::Context::SERVER_USE,
+			auto DeviceSecureContext = new Poco::Net::Context(Poco::Net::Context::SERVER_USE,
 									   	KeyFileName, CertFileName, "",
 										Poco::Net::Context::VERIFY_RELAXED);
 
-			DSContext->addCertificateAuthority(Root);
-			DSContext->disableStatelessSessionResumption();
-			DSContext->enableSessionCache();
-			DSContext->setSessionCacheSize(0);
-			DSContext->setSessionTimeout(10);
-			DSContext->enableExtendedCertificateVerification(true);
-			SSL_CTX *SSLCtxD = DSContext->sslContext();
+			DeviceSecureContext->addCertificateAuthority(Root);
+			DeviceSecureContext->disableStatelessSessionResumption();
+			DeviceSecureContext->enableSessionCache();
+			DeviceSecureContext->setSessionCacheSize(0);
+			DeviceSecureContext->setSessionTimeout(10);
+			DeviceSecureContext->enableExtendedCertificateVerification(true);
+			SSL_CTX *SSLCtxD = DeviceSecureContext->sslContext();
 			SSL_CTX_dane_enable(SSLCtxD);
 
-			Poco::Net::SecureServerSocket DeviceSocket(DSport, 64, DSContext);
+			Poco::Net::SecureServerSocket DeviceSocket(DSport, 64, DeviceSecureContext);
 			DeviceSocket.setNoDelay(true);
 
 			DeviceAcceptor_ =
@@ -53,7 +53,7 @@ namespace OpenWifi {
 			CSContext->setSessionCacheSize(0);
 			CSContext->setSessionTimeout(10);
 			CSContext->enableExtendedCertificateVerification(true);
-			SSL_CTX *SSLCtxC = DSContext->sslContext();
+			SSL_CTX *SSLCtxC = CSContext->sslContext();
 			SSL_CTX_dane_enable(SSLCtxC);
 
 			Poco::Net::SecureServerSocket ClientSocket(CSport, 64, CSContext);
