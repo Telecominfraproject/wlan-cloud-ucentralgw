@@ -40,8 +40,8 @@ namespace OpenWifi {
 		socket_.close();
 		if(!id_.empty()) {
 			std::cout << conn_id_ << ": Device de-registering during connection" << std::endl;
-			RTTYS_server()->DeRegister(id_, this);
-			RTTYS_server()->Close(id_);
+			// RTTYS_server()->DeRegister(id_, this);
+			// RTTYS_server()->Close(id_);
 		} else {
 			std::cout << conn_id_ << ": Device could not de-register" << std::endl;
 		}
