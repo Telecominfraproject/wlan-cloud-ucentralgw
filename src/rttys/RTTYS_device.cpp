@@ -193,23 +193,20 @@ namespace OpenWifi {
 		std::cout << "Device Registration ID:" << id_ << " DESC:" << desc_ << " TOK:" << token_ << std::endl;
 		if (RTTYS_server()->ValidEndPoint(id_, token_)) {
 			if (!RTTYS_server()->AmIRegistered(id_, token_, this)) {
-				u_char OutBuf[12];
-				OutBuf[0] = msgTypeRegister;
-				OutBuf[1] = 0;
-				OutBuf[2] = 4;
-				OutBuf[3] = 0;
-				OutBuf[4] = 'O';
-				OutBuf[5] = 'K';
-				OutBuf[6] = 0;
-				socket_.sendBytes(OutBuf, 7);
 				RTTYS_server()->Register(id_, this);
 				serial_ = RTTYS_server()->SerialNumber(id_);
 				Logger().debug(fmt::format("Registration for SerialNumber: {}, Description: {}",
 										   serial_, desc_));
-			} else {
-				Logger().debug(
-					fmt::format("Registration for SerialNumber: {}, already done", serial_));
 			}
+			u_char OutBuf[12];
+			OutBuf[0] = msgTypeRegister;
+			OutBuf[1] = 0;
+			OutBuf[2] = 4;
+			OutBuf[3] = 0;
+			OutBuf[4] = 'O';
+			OutBuf[5] = 'K';
+			OutBuf[6] = 0;
+			socket_.sendBytes(OutBuf, 7);
 		}
 	}
 
@@ -293,7 +290,6 @@ namespace OpenWifi {
 		try
 		{
 			int received = socket_.receiveBytes(inBuf_);
-
 			while(!inBuf_.isEmpty()) {
 				std::size_t msg_len;
 				if (waiting_for_bytes_ == 0) {
@@ -323,11 +319,11 @@ namespace OpenWifi {
 				case msgTypeFile:
 					return do_msgTypeFile(msg_len);
 				case msgTypeHttp:
-					return do_msgTypeFile(msg_len);
+					return do_msgTypeHttp(msg_len);
 				case msgTypeAck:
-					return do_msgTypeFile(msg_len);
+					return do_msgTypeAck(msg_len);
 				case msgTypeMax:
-					return do_msgTypeFile(msg_len);
+					return do_msgTypeMax(msg_len);
 				default:
 					std::cout << "Unknown command: " << (int)last_command_ << std::endl;
 				}
@@ -338,6 +334,10 @@ namespace OpenWifi {
 			std::cout << "EXC: " << E.what() << std::endl;
 			Logger().debug(fmt::format("DeRegistration: {} exception, session {}.", serial_, id_));
 			Logger().log(E);
+			return delete this;
+		}
+		catch (...) {
+			std::cout << "Fatal exception" << std::endl;
 			return delete this;
 		}
 	}
