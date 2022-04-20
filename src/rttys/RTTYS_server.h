@@ -28,7 +28,7 @@ namespace OpenWifi {
 		inline auto UIAssets() { return RTTY_UIAssets_; }
 
 		inline void Register(const std::string &Id, RTTYS_ClientConnection *Conn) {
-			std::lock_guard	G(Mutex_);
+			std::lock_guard	G(M_);
 			auto It = EndPoints_.find(Id);
 			if(It==EndPoints_.end()) {
 				EndPoints_[Id] = EndPoint{ 	.Token = "" ,
@@ -46,7 +46,7 @@ namespace OpenWifi {
 		}
 
 		inline void DeRegister(const std::string &Id, RTTYS_ClientConnection *Conn) {
-			std::lock_guard	G(Mutex_);
+			std::lock_guard	G(M_);
 			auto It = EndPoints_.find(Id);
 			if(It==EndPoints_.end())
 				return;
@@ -58,7 +58,7 @@ namespace OpenWifi {
 		}
 
 		inline RTTYS_ClientConnection * GetClient(const std::string &Id) {
-			std::lock_guard	G(Mutex_);
+			std::lock_guard	G(M_);
 			auto It = EndPoints_.find(Id);
 			if(It==EndPoints_.end()) {
 				return nullptr;
@@ -67,7 +67,7 @@ namespace OpenWifi {
 		}
 
 		inline bool Register(const std::string &Id, const std::string &Token, RTTY_Device_ConnectionHandler *Device) {
-			std::lock_guard	G(Mutex_);
+			std::lock_guard	G(M_);
 			auto It = EndPoints_.find(Id);
 			if(It==EndPoints_.end()) {
 				std::cout << "Creating connection" << std::endl;
@@ -104,7 +104,7 @@ namespace OpenWifi {
 		}
 
 		inline void DeRegister(const std::string &Id, RTTY_Device_ConnectionHandler *Conn) {
-			std::lock_guard	G(Mutex_);
+			std::lock_guard	G(M_);
 			auto It = EndPoints_.find(Id);
 			if(It==EndPoints_.end())
 				return;
@@ -117,7 +117,7 @@ namespace OpenWifi {
 		}
 
 		inline RTTY_Device_ConnectionHandler * GetDevice(const std::string &id) {
-			std::lock_guard	G(Mutex_);
+			std::lock_guard	G(M_);
 			auto It = EndPoints_.find(id);
 			if(It==EndPoints_.end()) {
  				return nullptr;
@@ -126,7 +126,8 @@ namespace OpenWifi {
 		}
 
 		inline bool CreateEndPoint(const std::string &Id, const std::string & Token, const std::string & UserName, const std::string & SerialNumber ) {
-			std::lock_guard	G(Mutex_);
+			std::lock_guard	G(M_);
+
 			EndPoint E;
 			E.Done = false;
 			E.Token = Token;
@@ -138,7 +139,7 @@ namespace OpenWifi {
 		}
 
 		inline std::string SerialNumber(const std::string & Id) {
-			std::lock_guard	G(Mutex_);
+			std::lock_guard	G(M_);
 
 			auto It = EndPoints_.find(Id);
 			if(It==EndPoints_.end())
@@ -147,7 +148,7 @@ namespace OpenWifi {
 		}
 
 		inline void LoginDone(const std::string & Id) {
-			std::lock_guard	G(Mutex_);
+			std::lock_guard	G(M_);
 
 			auto It = EndPoints_.find(Id);
 			if(It==EndPoints_.end())
@@ -156,7 +157,7 @@ namespace OpenWifi {
 		}
 
 		inline bool ValidEndPoint(const std::string &Id, const std::string &Token) {
-			std::lock_guard	G(Mutex_);
+			std::lock_guard	G(M_);
 			auto It = EndPoints_.find(Id);
 			if(It==EndPoints_.end()) {
 				return false;
@@ -166,7 +167,7 @@ namespace OpenWifi {
 		}
 
 		inline bool CanConnect( const std::string &Id, RTTYS_ClientConnection *Conn) {
-			std::lock_guard	G(Mutex_);
+			std::lock_guard	G(M_);
 
 			auto It = EndPoints_.find(Id);
 			if(It!=EndPoints_.end() && It->second.Client==Conn && It->second.ClientConnected==0) {
@@ -177,7 +178,7 @@ namespace OpenWifi {
 		}
 
 		inline bool IsDeviceRegistered( const std::string &Id, const std::string &Token, [[maybe_unused]] RTTY_Device_ConnectionHandler *Conn) {
-			std::lock_guard	G(Mutex_);
+			std::lock_guard	G(M_);
 
 			auto It = EndPoints_.find(Id);
 			if(It == EndPoints_.end() || It->second.Token != Token )
@@ -221,6 +222,7 @@ namespace OpenWifi {
 		}
 
 	  private:
+		std::recursive_mutex		M_;
 		Poco::Net::SocketReactor	DeviceReactor_;
 		Poco::Net::SocketReactor	ClientReactor_;
 		Poco::Thread				DeviceReactorThread_;

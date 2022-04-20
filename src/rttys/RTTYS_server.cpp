@@ -86,7 +86,7 @@ namespace OpenWifi {
 	}
 
 	bool RTTYS_server::Login(const std::string & Id) {
-		std::lock_guard	G(Mutex_);
+		std::lock_guard	G(M_);
 
 		auto It = EndPoints_.find(Id);
 		if(It == EndPoints_.end()) {
@@ -106,7 +106,7 @@ namespace OpenWifi {
 	}
 
 	bool RTTYS_server::Logout(const std::string & Id) {
-		std::lock_guard	G(Mutex_);
+		std::lock_guard	G(M_);
 
 		auto It = EndPoints_.find(Id);
 		if(It == EndPoints_.end()) {
@@ -118,7 +118,7 @@ namespace OpenWifi {
 	}
 
 	bool RTTYS_server::Close(const std::string & Id) {
-		std::lock_guard	G(Mutex_);
+		std::lock_guard	G(M_);
 
 		auto It = EndPoints_.find(Id);
 		if(It == EndPoints_.end()) {
