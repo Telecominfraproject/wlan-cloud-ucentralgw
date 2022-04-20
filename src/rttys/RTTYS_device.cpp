@@ -201,6 +201,8 @@ namespace OpenWifi {
 				serial_ = RTTYS_server()->SerialNumber(id_);
 				Logger().debug(fmt::format("Registration for SerialNumber: {}, Description: {}",
 										   serial_, desc_));
+			} else {
+				return delete this;
 			}
 			u_char OutBuf[12];
 			OutBuf[0] = msgTypeRegister;
@@ -267,10 +269,9 @@ namespace OpenWifi {
 
 	void RTTY_Device_ConnectionHandler::do_msgTypeHeartbeat([[maybe_unused]] std::size_t msg_len) {
 		std::cout << "Device msgTypeHeartbeat: " << std::endl;
-		u_char MsgBuf[32]{0};
+		u_char MsgBuf[3]{0};
 		MsgBuf[0] = msgTypeHeartbeat;
 		socket_.sendBytes(MsgBuf, 3);
-
 	}
 
 	void RTTY_Device_ConnectionHandler::do_msgTypeFile([[maybe_unused]] std::size_t msg_len) {

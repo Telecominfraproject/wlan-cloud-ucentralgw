@@ -30,8 +30,8 @@ namespace OpenWifi {
 			DeviceSecureContext->setSessionCacheSize(0);
 			DeviceSecureContext->setSessionTimeout(10);
 			DeviceSecureContext->enableExtendedCertificateVerification(true);
-			SSL_CTX *SSLCtxD = DeviceSecureContext->sslContext();
-			SSL_CTX_dane_enable(SSLCtxD);
+			SSL_CTX *SSLCtxDevice = DeviceSecureContext->sslContext();
+			SSL_CTX_dane_enable(SSLCtxDevice);
 
 			Poco::Net::SecureServerSocket DeviceSocket(DSport, 64, DeviceSecureContext);
 			DeviceSocket.setNoDelay(true);
@@ -45,19 +45,19 @@ namespace OpenWifi {
 			DeviceReactorThread_.setName("RTTYDeviceConnectionThread");
 			DeviceReactorThread_.start(DeviceReactor_);
 
-			auto CSContext =
+			auto ClientSecureContext =
 				new Poco::Net::Context(Poco::Net::Context::SERVER_USE, KeyFileName, CertFileName,
 									   "", Poco::Net::Context::VERIFY_RELAXED);
-			CSContext->addCertificateAuthority(Root);
-			CSContext->disableStatelessSessionResumption();
-			CSContext->enableSessionCache();
-			CSContext->setSessionCacheSize(0);
-			CSContext->setSessionTimeout(10);
-			CSContext->enableExtendedCertificateVerification(true);
-			SSL_CTX *SSLCtxC = CSContext->sslContext();
-			SSL_CTX_dane_enable(SSLCtxC);
+			ClientSecureContext->addCertificateAuthority(Root);
+			ClientSecureContext->disableStatelessSessionResumption();
+			ClientSecureContext->enableSessionCache();
+			ClientSecureContext->setSessionCacheSize(0);
+			ClientSecureContext->setSessionTimeout(10);
+			ClientSecureContext->enableExtendedCertificateVerification(true);
+			SSL_CTX *SSLCtxClient = ClientSecureContext->sslContext();
+			SSL_CTX_dane_enable(SSLCtxClient);
 
-			Poco::Net::SecureServerSocket ClientSocket(CSport, 64, CSContext);
+			Poco::Net::SecureServerSocket ClientSocket(CSport, 64, ClientSecureContext);
 			ClientSocket.setNoDelay(true);
 
 			auto HttpParams = new Poco::Net::HTTPServerParams;
