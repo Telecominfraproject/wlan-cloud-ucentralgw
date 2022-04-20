@@ -87,16 +87,21 @@ namespace OpenWifi {
 		Poco::Logger & Logger_ = RTTYS_server()->Logger();
 		uint64_t id = rtty_ws_id++;
 
+		Logger_.information(fmt::format("{}: Starting request.",id));
 		Poco::URI uri(request.getURI());
 		auto Path = uri.getPath();
 
 		if(request.getMethod() == Poco::Net::HTTPRequest::HTTP_OPTIONS) {
 			std::cout << "options..." << std::endl;
 			AddCORS(request,response, Logger_, id);
+			response.send();
+			Logger_.information(fmt::format("{}: Finishing request.",id));
 			return;
 		} else if(request.getMethod() == Poco::Net::HTTPRequest::HTTP_HEAD){
 			std::cout << "head..." << std::endl;
 			AddCORS(request,response, Logger_, id);
+			response.send();
+			Logger_.information(fmt::format("{}: Finishing request.",id));
 			return;
 		}
 
@@ -116,6 +121,7 @@ namespace OpenWifi {
 					response.setContentType("application/json");
 					std::ostream &answer = response.send();
 					answer << to_string(doc);
+					Logger_.information(fmt::format("{}: Finishing request.",id));
 					return;
 				} else if (ParsedPath[1] == "fontsize") {
 					AddCORS(request,response, Logger_, id);
@@ -124,6 +130,7 @@ namespace OpenWifi {
 					response.setContentType("application/json");
 					std::ostream &answer = response.send();
 					answer << to_string(doc);
+					Logger_.information(fmt::format("{}: Finishing request.",id));
 					return;
 				}
 			}
@@ -134,10 +141,12 @@ namespace OpenWifi {
 
 		//	simple test to block .. or ~ in path names.
 		if(Path.find("../")!=std::string::npos) {
+			Logger_.information(fmt::format("{}: Finishing request.",id));
 			return;
 		}
 
 		if(Path.find("~/")!=std::string::npos) {
+			Logger_.information(fmt::format("{}: Finishing request.",id));
 			return;
 		}
 
@@ -147,6 +156,7 @@ namespace OpenWifi {
 			std::cout << id << ": Path " << Path << " does not exist" << std::endl;
 			Path = RTTYS_server()->UIAssets() + "/index.html";
 			response.sendFile(Path,"text/html");
+			Logger_.information(fmt::format("{}: Finishing request.",id));
 			return;
 		}
 		Poco::Path P(Path);
@@ -177,6 +187,7 @@ namespace OpenWifi {
 
 		response.setContentLength(F.getSize());
 		response.sendFile(Path, Type);
+		Logger_.information(fmt::format("{}: Finishing request.",id));
 	}
 
 	RTTY_Client_RequestHandlerFactory::RTTY_Client_RequestHandlerFactory(Poco::Net::SocketReactor &R)
