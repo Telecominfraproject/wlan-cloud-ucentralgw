@@ -27,30 +27,21 @@ namespace OpenWifi {
 
 		inline auto UIAssets() { return RTTY_UIAssets_; }
 
-		inline void Register(const std::string &Id, RTTYS_ClientConnection *Conn) {
+		inline void Register(const std::string &Id, RTTYS_ClientConnection *Client) {
 			std::lock_guard	G(M_);
 			auto It = EndPoints_.find(Id);
-			if(It==EndPoints_.end()) {
-				EndPoints_[Id] = EndPoint{ 	.Token = "" ,
-										  	.Client = Conn,
-											.Device = nullptr,
-											.TimeStamp = OpenWifi::Now(),
-											.DeviceConnected = 0 ,
-											.ClientConnected = 0 ,
-											.UserName = "" ,
-											.SerialNumber = "" ,
-											.Done = false };
-			} else {
-				It->second.Client = Conn;
+			if(It!=EndPoints_.end()) {
+				It->second.Client = Client;
+				It->second.ClientConnected = OpenWifi::Now();
 			}
 		}
 
-		inline void DeRegister(const std::string &Id, RTTYS_ClientConnection *Conn) {
+		inline void DeRegister(const std::string &Id, RTTYS_ClientConnection *Client) {
 			std::lock_guard	G(M_);
 			auto It = EndPoints_.find(Id);
 			if(It==EndPoints_.end())
 				return;
-			if(It->second.Client!=Conn)
+			if(It->second.Client!=Client)
 				return;
 			It->second.Client = nullptr;
 			It->second.Done = true;
@@ -69,38 +60,19 @@ namespace OpenWifi {
 		inline bool Register(const std::string &Id, const std::string &Token, RTTY_Device_ConnectionHandler *Device) {
 			std::lock_guard	G(M_);
 			auto It = EndPoints_.find(Id);
-			if(It==EndPoints_.end()) {
-				std::cout << "Creating connection" << std::endl;
-				EndPoints_[Id] = EndPoint{
-					.Token = Token ,
-					.Client = nullptr,
-					.Device = Device,
-					.TimeStamp = OpenWifi::Now(),
-					.DeviceConnected = 0 ,
-					.ClientConnected = 0 ,
-					.UserName = "" ,
-					.SerialNumber = "" ,
-					.Done = false
-				};
-				Logger().information(fmt::format("Creating session: {}, device:'{}'",Id,It->second.SerialNumber));
-				return true;
-			} else {
+			if(It!=EndPoints_.end()) {
 				std::cout << "Updating connection" << std::endl;
-				if(It->second.Device!= nullptr && It->second.Client!=nullptr) {
-					std::cout << "Already connected to session: " << It->second.Device->SessionID() << std::endl;
-					return false;
-				}
 				if(It->second.Device!= nullptr) {
+					std::cout << "Removing old device connection" << std::endl;
 					delete It->second.Device;
 				}
-				std::cout << "Session for new device: " << Device->SessionID() << std::endl;
-				It->second.Token = Token;
 				It->second.Device = Device;
-				It->second.DeviceConnected = 0 ;
-				It->second.TimeStamp = OpenWifi::Now();
-				Logger().information(fmt::format("Updating session: {}, device:'{}'",Id,It->second.SerialNumber));
+				It->second.Token = Token;
+				It->second.DeviceConnected = OpenWifi::Now();
+				Logger().information(fmt::format("Creating session: {}, device:'{}'",Id,It->second.SerialNumber));
+				return true;
 			}
-			return true;
+			return false;
 		}
 
 		inline void DeRegister(const std::string &Id, RTTY_Device_ConnectionHandler *Conn) {

@@ -178,25 +178,21 @@ namespace OpenWifi {
 		token_ = ReadString();
 		std::cout << conn_id_ << ": Device Registration ID:" << id_ << " DESC:" << desc_ << " TOK:"
 				  << token_ << std::endl;
-		if (RTTYS_server()->ValidEndPoint(id_, token_)) {
-			if (RTTYS_server()->Register(id_, token_, this)) {
-				serial_ = RTTYS_server()->SerialNumber(id_);
-				Logger().debug(fmt::format("{}: Registration for SerialNumber: {}, Description: {}",
-										   conn_id_, serial_, desc_));
-				u_char OutBuf[8];
-				OutBuf[0] = msgTypeRegister;
-				OutBuf[1] = 0;
-				OutBuf[2] = 4;
-				OutBuf[3] = 0;
-				OutBuf[4] = 'O';
-				OutBuf[5] = 'K';
-				OutBuf[6] = 0;
-				socket_.sendBytes(OutBuf, 7);
-			} else {
-				std::cout << conn_id_ << ": not allowed to register" << std::endl;
-				return delete this;
-			}
+		if (RTTYS_server()->Register(id_, token_, this)) {
+			serial_ = RTTYS_server()->SerialNumber(id_);
+			Logger().debug(fmt::format("{}: Registration for SerialNumber: {}, Description: {}",
+									   conn_id_, serial_, desc_));
+			u_char OutBuf[8];
+			OutBuf[0] = msgTypeRegister;
+			OutBuf[1] = 0;
+			OutBuf[2] = 4;
+			OutBuf[3] = 0;
+			OutBuf[4] = 'O';
+			OutBuf[5] = 'K';
+			OutBuf[6] = 0;
+			socket_.sendBytes(OutBuf, 7);
 		} else {
+			std::cout << conn_id_ << ": not allowed to register" << std::endl;
 			return delete this;
 		}
 	}
