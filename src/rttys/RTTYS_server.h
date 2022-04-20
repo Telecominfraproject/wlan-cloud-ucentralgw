@@ -87,7 +87,7 @@ namespace OpenWifi {
 			} else {
 				std::cout << "Updating connection" << std::endl;
 				if(It->second.Device!= nullptr) {
-					if(It->second.Client== nullptr) {
+					if(It->second.Client==nullptr) {
 						std::cout << "Removing other stale connection..." << std::endl;
 						delete It->second.Device;
 					} else {
