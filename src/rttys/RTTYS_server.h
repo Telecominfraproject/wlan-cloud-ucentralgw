@@ -86,14 +86,14 @@ namespace OpenWifi {
 				return true;
 			} else {
 				std::cout << "Updating connection" << std::endl;
-				if(It->second.Device!= nullptr) {
-					if(It->second.Client==nullptr) {
-						std::cout << "Removing other stale connection..." << std::endl;
-						delete It->second.Device;
-					} else {
-						return false;
-					}
+				if(It->second.Device!= nullptr && It->second.Client!=nullptr) {
+					std::cout << "Already connected to session: " << It->second.Device->SessionID() << std::endl;
+					return false;
 				}
+				if(It->second.Device!= nullptr) {
+					delete It->second.Device;
+				}
+				std::cout << "Session for new device: " << Device->SessionID() << std::endl;
 				It->second.Token = Token;
 				It->second.Device = Device;
 				It->second.DeviceConnected = 0 ;
