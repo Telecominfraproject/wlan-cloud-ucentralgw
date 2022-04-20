@@ -70,6 +70,7 @@ namespace OpenWifi {
 			std::lock_guard	G(Mutex_);
 			auto It = EndPoints_.find(Id);
 			if(It==EndPoints_.end()) {
+				std::cout << "Creating connection" << std::endl;
 				EndPoints_[Id] = EndPoint{
 					.Token = Token ,
 					.Client = nullptr,
@@ -83,6 +84,11 @@ namespace OpenWifi {
 				};
 				Logger().information(fmt::format("Creating session: {}, device:'{}'",Id,It->second.SerialNumber));
 			} else {
+				std::cout << "Updating connection" << std::endl;
+				if(It->second.Device!= nullptr) {
+					std::cout << "Removing other stale connection..." << std::endl;
+					delete It->second.Device;
+				}
 				EndPoints_[Id] = EndPoint{
 					.Token = Token ,
 					.Client = nullptr,
