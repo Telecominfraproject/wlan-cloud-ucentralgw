@@ -23,7 +23,7 @@ namespace OpenWifi {
 			RTTYS_server()->Login(Id_);
 			Connected_ = true ;
 		} else {
-		    // std::cout << "Cannot connect..." << std::endl;
+		    std::cout << "Cannot connect..." << std::endl;
 		    RTTYS_server()->DeRegister(Id_, this);
 			delete this;
 		}
@@ -38,6 +38,9 @@ namespace OpenWifi {
 			SR_.removeEventHandler(
 				WS_, Poco::NObserver<RTTYS_ClientConnection, Poco::Net::ShutdownNotification>(
 						 *this, &RTTYS_ClientConnection::onSocketShutdown));
+		}
+		WS_.close();
+		if(Connected_) {
 			RTTYS_server()->Logout(Id_);
 			RTTYS_server()->DeRegister(Id_, this);
 		}
