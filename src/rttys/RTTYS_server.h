@@ -142,7 +142,7 @@ namespace OpenWifi {
 			std::lock_guard	G(M_);
 
 			auto It = EndPoints_.find(Id);
-			if(It!=EndPoints_.end() && It->second.Client==Conn && It->second.ClientConnected==0) {
+			if(It!=EndPoints_.end() && It->second.Client==Conn) {
 				It->second.ClientConnected = std::time(nullptr);
 				return true;
 			}
