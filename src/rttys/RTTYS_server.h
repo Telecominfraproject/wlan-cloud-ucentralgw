@@ -83,11 +83,16 @@ namespace OpenWifi {
 					.Done = false
 				};
 				Logger().information(fmt::format("Creating session: {}, device:'{}'",Id,It->second.SerialNumber));
+				return true;
 			} else {
 				std::cout << "Updating connection" << std::endl;
 				if(It->second.Device!= nullptr) {
-					std::cout << "Removing other stale connection..." << std::endl;
-					// delete It->second.Device;
+					if(It->second.Client== nullptr) {
+						std::cout << "Removing other stale connection..." << std::endl;
+						delete It->second.Device;
+					} else {
+						return false;
+					}
 				}
 				It->second.Token = Token;
 				It->second.Device = Device;
