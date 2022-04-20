@@ -35,9 +35,9 @@ namespace OpenWifi {
 
 	RTTY_Device_ConnectionHandler::~RTTY_Device_ConnectionHandler()
 	{
-		socket_.close();
 		reactor_.removeEventHandler(socket_, Poco::NObserver<RTTY_Device_ConnectionHandler, Poco::Net::ReadableNotification>(*this, &RTTY_Device_ConnectionHandler::onSocketReadable));
 		reactor_.removeEventHandler(socket_, Poco::NObserver<RTTY_Device_ConnectionHandler, Poco::Net::ShutdownNotification>(*this, &RTTY_Device_ConnectionHandler::onSocketShutdown));
+		socket_.close();
 		if(!id_.empty()) {
 			std::cout << conn_id_ << ": Device de-registering during connection" << std::endl;
 			RTTYS_server()->DeRegister(id_, this);
