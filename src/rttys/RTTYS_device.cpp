@@ -34,6 +34,8 @@ namespace OpenWifi {
 
 		reactor_.addEventHandler(socket_, Poco::NObserver<RTTY_Device_ConnectionHandler, Poco::Net::ReadableNotification>(*this, &RTTY_Device_ConnectionHandler::onSocketReadable));
 		reactor_.addEventHandler(socket_, Poco::NObserver<RTTY_Device_ConnectionHandler, Poco::Net::ShutdownNotification>(*this, &RTTY_Device_ConnectionHandler::onSocketShutdown));
+
+		conn_id_ = global_device_connection_id++;
 		// reactor_.addEventHandler(socket_, Poco::NObserver<RTTY_Device_ConnectionHandler, Poco::Net::WritableNotification>(*this, &RTTY_Device_ConnectionHandler::onSocketWritable));
 	}
 
@@ -194,13 +196,13 @@ namespace OpenWifi {
 		id_ = ReadString();
 		desc_ = ReadString();
 		token_ = ReadString();
-		std::cout << "Device Registration ID:" << id_ << " DESC:" << desc_ << " TOK:" << token_ << std::endl;
+		std::cout << conn_id_ << ": Device Registration ID:" << id_ << " DESC:" << desc_ << " TOK:" << token_ << std::endl;
 		if (RTTYS_server()->ValidEndPoint(id_, token_)) {
-			if (!RTTYS_server()->AmIRegistered(id_, token_, this)) {
+			if (!RTTYS_server()->IsDeviceRegistered(id_, token_, this)) {
 				RTTYS_server()->Register(id_, this);
 				serial_ = RTTYS_server()->SerialNumber(id_);
-				Logger().debug(fmt::format("Registration for SerialNumber: {}, Description: {}",
-										   serial_, desc_));
+				Logger().debug(fmt::format("{}: Registration for SerialNumber: {}, Description: {}",
+										   conn_id_, serial_, desc_));
 			} else {
 				return delete this;
 			}
@@ -217,9 +219,9 @@ namespace OpenWifi {
 	}
 
 	void RTTY_Device_ConnectionHandler::do_msgTypeLogin([[maybe_unused]] std::size_t msg_len) {
-		std::cout << "Device Login..." << std::endl;
+		std::cout << conn_id_ << ": Device Login..." << std::endl;
 		Logger().debug(fmt::format(
-			"Device created session for SerialNumber: {}, session: {}", serial_, id_));
+			"{}: Device created session for SerialNumber: {}, session: {}", conn_id_, serial_, id_));
 		nlohmann::json doc;
 		char Error;
 		inBuf_.read(&Error, 1);
@@ -231,12 +233,12 @@ namespace OpenWifi {
 	}
 
 	void RTTY_Device_ConnectionHandler::do_msgTypeLogout([[maybe_unused]] std::size_t msg_len) {
-		std::cout << "Device msgTypeLogout" << std::endl;
+		std::cout << conn_id_ << ": Device msgTypeLogout" << std::endl;
 	}
 
 	void RTTY_Device_ConnectionHandler::do_msgTypeTermData(std::size_t msg_len) {
 		if(waiting_for_bytes_!=0) {
-			std::cout << "S2:" << inBuf_.used() << std::endl;
+			std::cout << conn_id_ << ": S2:" << inBuf_.used() << std::endl;
 			auto to_read = std::min(inBuf_.used(),waiting_for_bytes_);
 			inBuf_.read(&scratch_[0], to_read);
 			SendToClient((u_char *)&scratch_[0], (int) to_read);
@@ -246,12 +248,12 @@ namespace OpenWifi {
 				waiting_for_bytes_ = 0 ;
 		} else {
 			if(inBuf_.used()<msg_len) {
-				std::cout << "S1:" << msg_len << std::endl;
+				std::cout << conn_id_ << ": S1:" << msg_len << std::endl;
 				auto read_count = inBuf_.read(&scratch_[0], inBuf_.used());
 				SendToClient((u_char *)&scratch_[0], read_count);
 				waiting_for_bytes_ = msg_len - read_count;
 			} else {
-				std::cout << "S0:" << msg_len << std::endl;
+				std::cout << conn_id_ << ": S0:" << msg_len << std::endl;
 				inBuf_.read(&scratch_[0], msg_len);
 				SendToClient((u_char *)&scratch_[0], (int)msg_len);
 				waiting_for_bytes_=0;
@@ -260,34 +262,34 @@ namespace OpenWifi {
 	}
 
 	void RTTY_Device_ConnectionHandler::do_msgTypeWinsize([[maybe_unused]] std::size_t msg_len) {
-		std::cout << "Device msgTypeWinsize" << std::endl;
+		std::cout << conn_id_ << ": Device msgTypeWinsize" << std::endl;
 	}
 
 	void RTTY_Device_ConnectionHandler::do_msgTypeCmd([[maybe_unused]] std::size_t msg_len) {
-		std::cout << "Device msgTypeCmd" << std::endl;
+		std::cout << conn_id_ << ": Device msgTypeCmd" << std::endl;
 	}
 
 	void RTTY_Device_ConnectionHandler::do_msgTypeHeartbeat([[maybe_unused]] std::size_t msg_len) {
-		std::cout << "Device msgTypeHeartbeat: " << std::endl;
+		std::cout << conn_id_ << ": Device msgTypeHeartbeat: " << std::endl;
 		u_char MsgBuf[3]{0};
 		MsgBuf[0] = msgTypeHeartbeat;
 		socket_.sendBytes(MsgBuf, 3);
 	}
 
 	void RTTY_Device_ConnectionHandler::do_msgTypeFile([[maybe_unused]] std::size_t msg_len) {
-		std::cout << "Device msgTypeFile" << std::endl;
+		std::cout << conn_id_ << ": Device msgTypeFile" << std::endl;
 	}
 
 	void RTTY_Device_ConnectionHandler::do_msgTypeHttp([[maybe_unused]] std::size_t msg_len) {
-		std::cout << "Device msgTypeHttp" << std::endl;
+		std::cout << conn_id_ << ": Device msgTypeHttp" << std::endl;
 	}
 
 	void RTTY_Device_ConnectionHandler::do_msgTypeAck([[maybe_unused]] std::size_t msg_len) {
-		std::cout << "Device msgTypeAck" << std::endl;
+		std::cout << conn_id_ << ": Device msgTypeAck" << std::endl;
 	}
 
 	void RTTY_Device_ConnectionHandler::do_msgTypeMax([[maybe_unused]] std::size_t msg_len) {
-		std::cout << "Device msgTypeMax" << std::endl;
+		std::cout << conn_id_ << ": Device msgTypeMax" << std::endl;
 	}
 
 	void RTTY_Device_ConnectionHandler::onSocketReadable([[maybe_unused]] const Poco::AutoPtr<Poco::Net::ReadableNotification>& pNf)
@@ -330,26 +332,27 @@ namespace OpenWifi {
 				case msgTypeMax:
 					return do_msgTypeMax(msg_len);
 				default:
-					std::cout << "Unknown command: " << (int)last_command_ << std::endl;
+					std::cout << conn_id_ << ": Unknown command: " << (int)last_command_ << std::endl;
 				}
 			}
 		}
 		catch (const Poco::Exception & E)
 		{
-			std::cout << "EXC: " << E.what() << std::endl;
-			Logger().debug(fmt::format("DeRegistration: {} exception, session {}.", serial_, id_));
+			std::cout << conn_id_ << ": EXC: " << E.what() << std::endl;
+			Logger().debug(fmt::format("{} :DeRegistration: {} exception, session {}.", conn_id_, serial_, id_));
 			Logger().log(E);
 			return delete this;
 		}
 		catch (...) {
-			std::cout << "Fatal exception" << std::endl;
+			std::cout << conn_id_ << ": Fatal exception" << std::endl;
 			return delete this;
 		}
 	}
 
 	void RTTY_Device_ConnectionHandler::onSocketShutdown([[maybe_unused]] const Poco::AutoPtr<Poco::Net::ShutdownNotification>& pNf)
 	{
-		std::cout << "Device " << id_ << " closing socket." << std::endl;
+		std::cout << conn_id_ << ": Device " << id_ << " closing socket." << std::endl;
+		Logger().debug(fmt::format("{}: Socket closed by device {}.", conn_id_, serial_));
 		delete this;
 	}
 }
