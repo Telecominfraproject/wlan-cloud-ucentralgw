@@ -82,11 +82,11 @@ namespace OpenWifi {
 					.Done = false
 				};
 				Logger().information(fmt::format("Registering session: {}, device:'{}'",Id,It->second.SerialNumber));
-				return true;
 			} else {
-				// It->second.Device = Conn;
+				// delete It->second.Device;
+				It->second.Device = Conn;
 			}
-			return false;
+			return true;
 		}
 
 		inline void DeRegister(const std::string &Id, RTTY_Device_ConnectionHandler *Conn) {

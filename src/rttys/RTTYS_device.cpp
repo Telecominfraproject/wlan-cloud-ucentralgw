@@ -183,18 +183,18 @@ namespace OpenWifi {
 				serial_ = RTTYS_server()->SerialNumber(id_);
 				Logger().debug(fmt::format("{}: Registration for SerialNumber: {}, Description: {}",
 										   conn_id_, serial_, desc_));
-			} else {
-				return;
+				u_char OutBuf[8];
+				OutBuf[0] = msgTypeRegister;
+				OutBuf[1] = 0;
+				OutBuf[2] = 4;
+				OutBuf[3] = 0;
+				OutBuf[4] = 'O';
+				OutBuf[5] = 'K';
+				OutBuf[6] = 0;
+				socket_.sendBytes(OutBuf, 7);
 			}
-			u_char OutBuf[12];
-			OutBuf[0] = msgTypeRegister;
-			OutBuf[1] = 0;
-			OutBuf[2] = 4;
-			OutBuf[3] = 0;
-			OutBuf[4] = 'O';
-			OutBuf[5] = 'K';
-			OutBuf[6] = 0;
-			socket_.sendBytes(OutBuf, 7);
+		} else {
+			return delete this;
 		}
 	}
 
