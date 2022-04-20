@@ -141,6 +141,7 @@ namespace OpenWifi {
 		outBuf[1] = 0;
 		outBuf[2] = 0;
 		socket_.sendBytes(outBuf,3 );
+		Logger().debug(fmt::format("Device {} login", id_));
 		return true;
 	}
 
@@ -150,7 +151,7 @@ namespace OpenWifi {
 		outBuf[1] = 0;
 		outBuf[2] = 1;
 		outBuf[3] = sid_;
-		Logger().debug(fmt::format("Device {} logging out", id_));
+		Logger().debug(fmt::format("Device {} logout", id_));
 		socket_.sendBytes(outBuf,4 );
 		return true;
 	}
