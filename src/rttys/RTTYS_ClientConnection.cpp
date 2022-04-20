@@ -13,7 +13,7 @@ namespace OpenWifi {
 							  : WS_(WS), Id_(std::move(Id)), SR_(Reactor) {
         RTTYS_server()->Register(Id_, this);
 		if(RTTYS_server()->CanConnect(Id_,this)) {
-		    // std::cout << "WebSocket connecting..." << std::endl;
+		    std::cout << "WebSocket connecting..." << std::endl;
 			SR_.addEventHandler(WS_,
 								Poco::NObserver<RTTYS_ClientConnection, Poco::Net::ReadableNotification>(
 									*this, &RTTYS_ClientConnection::onSocketReadable));
