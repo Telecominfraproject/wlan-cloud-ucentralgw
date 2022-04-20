@@ -4,6 +4,7 @@
 
 #include "RTTYS_device.h"
 #include "rttys/RTTYS_server.h"
+#include "Poco/Net/SecureStreamSocketImpl.h"
 
 namespace OpenWifi {
 
@@ -13,6 +14,18 @@ namespace OpenWifi {
 		reactor_(reactor),
 		Logger_(RTTYS_server()->Logger())
 	{
+
+		try {
+			auto SS = dynamic_cast<Poco::Net::SecureStreamSocketImpl *>(socket_.impl());
+			while (true) {
+				auto V = SS->completeHandshake();
+				if (V == 1)
+					break;
+			}
+		} catch (...) {
+			std::cout << "Exception during connection" << std::endl;
+		}
+
 		reactor_.addEventHandler(socket_, Poco::NObserver<RTTY_Device_ConnectionHandler, Poco::Net::ReadableNotification>(*this, &RTTY_Device_ConnectionHandler::onSocketReadable));
 		reactor_.addEventHandler(socket_, Poco::NObserver<RTTY_Device_ConnectionHandler, Poco::Net::ShutdownNotification>(*this, &RTTY_Device_ConnectionHandler::onSocketShutdown));
 		// reactor_.addEventHandler(socket_, Poco::NObserver<RTTY_Device_ConnectionHandler, Poco::Net::WritableNotification>(*this, &RTTY_Device_ConnectionHandler::onSocketWritable));
@@ -21,8 +34,8 @@ namespace OpenWifi {
 	RTTY_Device_ConnectionHandler::~RTTY_Device_ConnectionHandler()
 	{
 		reactor_.removeEventHandler(socket_, Poco::NObserver<RTTY_Device_ConnectionHandler, Poco::Net::ReadableNotification>(*this, &RTTY_Device_ConnectionHandler::onSocketReadable));
-		// reactor_.removeEventHandler(socket_, Poco::NObserver<RTTY_Device_ConnectionHandler, Poco::Net::WritableNotification>(*this, &RTTY_Device_ConnectionHandler::onSocketWritable));
 		reactor_.removeEventHandler(socket_, Poco::NObserver<RTTY_Device_ConnectionHandler, Poco::Net::ShutdownNotification>(*this, &RTTY_Device_ConnectionHandler::onSocketShutdown));
+		// reactor_.removeEventHandler(socket_, Poco::NObserver<RTTY_Device_ConnectionHandler, Poco::Net::WritableNotification>(*this, &RTTY_Device_ConnectionHandler::onSocketWritable));
 		socket_.close();
 		if(!id_.empty()) {
 			RTTYS_server()->DeRegister(id_, this);

@@ -42,7 +42,6 @@ namespace OpenWifi {
 
 			// Testing this...
 			DeviceAcceptor_->registerAcceptor(DeviceReactor_);
-
 			DeviceReactorThread_.start(DeviceReactor_);
 
 			auto CSContext =
