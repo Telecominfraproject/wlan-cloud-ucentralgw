@@ -70,8 +70,17 @@ class RTTY_Device_ConnectionHandler {
 	std::size_t      			  waiting_for_bytes_{0};
 	u_char 						  last_command_=0;
 
-
-	// Ringer<unsigned char,RTTY_DEVICE_BUFSIZE>	inBuf;
+	void do_msgTypeRegister(std::size_t msg_len);
+	void do_msgTypeLogin(std::size_t msg_len);
+	void do_msgTypeLogout(std::size_t msg_len);
+	void do_msgTypeTermData(std::size_t msg_len);
+	void do_msgTypeWinsize(std::size_t msg_len);
+	void do_msgTypeCmd(std::size_t msg_len);
+	void do_msgTypeHeartbeat(std::size_t msg_len);
+	void do_msgTypeFile(std::size_t msg_len);
+	void do_msgTypeHttp(std::size_t msg_len);
+	void do_msgTypeAck(std::size_t msg_len);
+	void do_msgTypeMax(std::size_t msg_len);
 };
 
 
