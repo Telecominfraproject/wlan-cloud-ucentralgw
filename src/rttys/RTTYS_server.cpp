@@ -95,7 +95,7 @@ namespace OpenWifi {
 		}
 
 		if(It->second.Device!= nullptr) {
-			std::cout << "login " << Id << std::endl;
+			std::cout << "login " << Id << " session " << It->second.Device->SessionID() << std::endl;
 			It->second.Device->Login();
 			std::cout << "login done" << Id << std::endl;
 			return true;
