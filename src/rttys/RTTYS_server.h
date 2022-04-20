@@ -81,10 +81,20 @@ namespace OpenWifi {
 					.SerialNumber = "" ,
 					.Done = false
 				};
-				Logger().information(fmt::format("Registering session: {}, device:'{}'",Id,It->second.SerialNumber));
+				Logger().information(fmt::format("Creating session: {}, device:'{}'",Id,It->second.SerialNumber));
 			} else {
-				// delete It->second.Device;
-				// It->second.Device = Conn;
+				EndPoints_[Id] = EndPoint{
+					.Token = Token ,
+					.Client = nullptr,
+					.Device = Conn,
+					.TimeStamp = OpenWifi::Now(),
+					.DeviceConnected = 0 ,
+					.ClientConnected = 0 ,
+					.UserName = "" ,
+					.SerialNumber = "" ,
+					.Done = false
+				};
+				Logger().information(fmt::format("Registering session: {}, device:'{}'",Id,It->second.SerialNumber));
 			}
 			return true;
 		}
