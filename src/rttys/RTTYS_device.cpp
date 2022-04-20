@@ -175,15 +175,15 @@ namespace OpenWifi {
 		id_ = ReadString();
 		desc_ = ReadString();
 		token_ = ReadString();
-		std::cout << conn_id_ << ": Device Registration ID:" << id_ << " DESC:" << desc_ << " TOK:" << token_ << std::endl;
+		std::cout << conn_id_ << ": Device Registration ID:" << id_ << " DESC:" << desc_ << " TOK:"
+				  << token_ << std::endl;
 		if (RTTYS_server()->ValidEndPoint(id_, token_)) {
 			if (RTTYS_server()->Register(id_, token_, this)) {
 				serial_ = RTTYS_server()->SerialNumber(id_);
 				Logger().debug(fmt::format("{}: Registration for SerialNumber: {}, Description: {}",
 										   conn_id_, serial_, desc_));
 			} else {
-				Logout();
-				return delete this;
+				return;
 			}
 			u_char OutBuf[12];
 			OutBuf[0] = msgTypeRegister;
