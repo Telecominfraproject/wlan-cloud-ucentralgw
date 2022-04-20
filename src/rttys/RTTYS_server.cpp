@@ -42,6 +42,7 @@ namespace OpenWifi {
 
 			// Testing this...
 			DeviceAcceptor_->registerAcceptor(DeviceReactor_);
+			DeviceReactorThread_.setName("RTTYDeviceConnectionThread");
 			DeviceReactorThread_.start(DeviceReactor_);
 
 			auto CSContext =
@@ -66,8 +67,8 @@ namespace OpenWifi {
 
 			WebServer_ = std::make_unique<Poco::Net::HTTPServer>(
 				new RTTY_Client_RequestHandlerFactory(ClientReactor_), ClientSocket, HttpParams);
-			ClientReactorThread_.start(ClientReactor_);
 			ClientReactorThread_.setName("RTTYWebServerClientThread");
+			ClientReactorThread_.start(ClientReactor_);
 			WebServer_->start();
 		}
 

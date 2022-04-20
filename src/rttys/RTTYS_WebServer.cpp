@@ -174,12 +174,13 @@ namespace OpenWifi {
 
 	Poco::Net::HTTPRequestHandler *
 	RTTY_Client_RequestHandlerFactory::createRequestHandler(const Poco::Net::HTTPServerRequest &request) {
-		Poco::Thread::current()->setName("WebRTTYRequest");
 		try {
 			if (request.find("Upgrade") != request.end() &&
 				Poco::icompare(request["Upgrade"], "websocket") == 0) {
+				Poco::Thread::current()->setName("WebRTTYRequest_WSHandler");
 				return new RTTY_Client_WebSocketRequestHandler(Reactor_);
 			} else {
+				Poco::Thread::current()->setName("WebRTTYRequest_PageHandler");
 				return new PageRequestHandler;
 			}
 		} catch (...) {
