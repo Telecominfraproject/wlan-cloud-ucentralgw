@@ -14,43 +14,36 @@ namespace OpenWifi {
 		reactor_(reactor),
 		Logger_(RTTYS_server()->Logger())
 	{
-
+		conn_id_ = global_device_connection_id++;
 		try {
-			std::cout << "Completing SS" << std::endl;
+			std::cout << conn_id_ << ": Completing connection setup" << std::endl;
 			auto SS = dynamic_cast<Poco::Net::SecureStreamSocketImpl *>(socket_.impl());
 			while (true) {
 				auto V = SS->completeHandshake();
 				if (V == 1)
 					break;
 			}
-			std::cout << "Completed SS" << std::endl;
 			socket_.setKeepAlive(true);
 			socket_.setNoDelay(true);
 			socket_.setReceiveBufferSize(64000);
-
+			reactor_.addEventHandler(socket_, Poco::NObserver<RTTY_Device_ConnectionHandler, Poco::Net::ReadableNotification>(*this, &RTTY_Device_ConnectionHandler::onSocketReadable));
+			reactor_.addEventHandler(socket_, Poco::NObserver<RTTY_Device_ConnectionHandler, Poco::Net::ShutdownNotification>(*this, &RTTY_Device_ConnectionHandler::onSocketShutdown));
 		} catch (...) {
-			std::cout << "Exception during connection" << std::endl;
+			std::cout << conn_id_ << ": Exception during connection setup" << std::endl;
 		}
-
-		reactor_.addEventHandler(socket_, Poco::NObserver<RTTY_Device_ConnectionHandler, Poco::Net::ReadableNotification>(*this, &RTTY_Device_ConnectionHandler::onSocketReadable));
-		reactor_.addEventHandler(socket_, Poco::NObserver<RTTY_Device_ConnectionHandler, Poco::Net::ShutdownNotification>(*this, &RTTY_Device_ConnectionHandler::onSocketShutdown));
-
-		conn_id_ = global_device_connection_id++;
-		// reactor_.addEventHandler(socket_, Poco::NObserver<RTTY_Device_ConnectionHandler, Poco::Net::WritableNotification>(*this, &RTTY_Device_ConnectionHandler::onSocketWritable));
 	}
 
 	RTTY_Device_ConnectionHandler::~RTTY_Device_ConnectionHandler()
 	{
 		reactor_.removeEventHandler(socket_, Poco::NObserver<RTTY_Device_ConnectionHandler, Poco::Net::ReadableNotification>(*this, &RTTY_Device_ConnectionHandler::onSocketReadable));
 		reactor_.removeEventHandler(socket_, Poco::NObserver<RTTY_Device_ConnectionHandler, Poco::Net::ShutdownNotification>(*this, &RTTY_Device_ConnectionHandler::onSocketShutdown));
-		// reactor_.removeEventHandler(socket_, Poco::NObserver<RTTY_Device_ConnectionHandler, Poco::Net::WritableNotification>(*this, &RTTY_Device_ConnectionHandler::onSocketWritable));
 		socket_.close();
 		if(!id_.empty()) {
-			std::cout << "Device deregistring during connection" << std::endl;
+			std::cout << conn_id_ << ": Device de-registering during connection" << std::endl;
 			RTTYS_server()->DeRegister(id_, this);
 			RTTYS_server()->Close(id_);
 		} else {
-			std::cout << "Device could not de-register" << std::endl;
+			std::cout << conn_id_ << ": Device could not de-register" << std::endl;
 		}
 	}
 
