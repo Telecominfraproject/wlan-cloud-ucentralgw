@@ -192,6 +192,9 @@ namespace OpenWifi {
 				OutBuf[5] = 'K';
 				OutBuf[6] = 0;
 				socket_.sendBytes(OutBuf, 7);
+			} else {
+				std::cout << conn_id_ << ": not allowed to register" << std::endl;
+				return delete this;
 			}
 		} else {
 			return delete this;
