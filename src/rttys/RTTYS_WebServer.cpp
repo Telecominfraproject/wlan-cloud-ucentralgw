@@ -148,7 +148,7 @@ namespace OpenWifi {
 			return;
 		}
 
-		std::cout << "page handler " << __LINE__ << std::endl;
+		std::cout << "page handler: " << Path << "  " << __LINE__ << std::endl;
 		Poco::File	F(Path);
 		AddCORS(request,response);
 		if(!F.exists()) {
