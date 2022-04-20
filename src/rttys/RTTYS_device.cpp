@@ -35,9 +35,9 @@ namespace OpenWifi {
 
 	RTTY_Device_ConnectionHandler::~RTTY_Device_ConnectionHandler()
 	{
+		socket_.close();
 		reactor_.removeEventHandler(socket_, Poco::NObserver<RTTY_Device_ConnectionHandler, Poco::Net::ReadableNotification>(*this, &RTTY_Device_ConnectionHandler::onSocketReadable));
 		reactor_.removeEventHandler(socket_, Poco::NObserver<RTTY_Device_ConnectionHandler, Poco::Net::ShutdownNotification>(*this, &RTTY_Device_ConnectionHandler::onSocketShutdown));
-		socket_.close();
 		if(!id_.empty()) {
 			std::cout << conn_id_ << ": Device de-registering during connection" << std::endl;
 			RTTYS_server()->DeRegister(id_, this);
@@ -45,18 +45,6 @@ namespace OpenWifi {
 		} else {
 			std::cout << conn_id_ << ": Device could not de-register" << std::endl;
 		}
-	}
-
-	std::string RTTY_Device_ConnectionHandler::SafeCopy( const u_char * buf, int MaxSize, int & NewPos) {
-		std::string     S;
-		while(NewPos<MaxSize && buf[NewPos]!=0) {
-			S += buf[NewPos++];
-		}
-
-		if(buf[NewPos]==0)
-			NewPos++;
-
-		return S;
 	}
 
 	void RTTY_Device_ConnectionHandler::PrintBuf(const u_char * buf, int size) {
