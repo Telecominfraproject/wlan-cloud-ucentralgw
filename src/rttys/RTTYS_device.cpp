@@ -40,9 +40,11 @@ namespace OpenWifi {
 		// reactor_.removeEventHandler(socket_, Poco::NObserver<RTTY_Device_ConnectionHandler, Poco::Net::WritableNotification>(*this, &RTTY_Device_ConnectionHandler::onSocketWritable));
 		socket_.close();
 		if(!id_.empty()) {
+			std::cout << "Device deregistring during connection" << std::endl;
 			RTTYS_server()->DeRegister(id_, this);
 			RTTYS_server()->Close(id_);
 		} else {
+			std::cout << "Device could not de-register" << std::endl;
 		}
 	}
 
