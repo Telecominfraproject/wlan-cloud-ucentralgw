@@ -23,8 +23,8 @@ namespace OpenWifi {
 			return;
 		if (T[1] != "connect")
 			return;
-		Poco::Net::WebSocket ws(request, response);
-		new RTTYS_ClientConnection(ws, T[2], R_);
+		auto ws_ptr = std::make_unique<Poco::Net::WebSocket>(request, response);
+		new RTTYS_ClientConnection(std::move(ws_ptr), T[2], R_);
 	};
 
 	static bool IsFileGZipped(const std::string &FileName) {

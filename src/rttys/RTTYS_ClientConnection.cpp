@@ -8,16 +8,16 @@
 
 namespace OpenWifi {
 
-	RTTYS_ClientConnection::RTTYS_ClientConnection(Poco::Net::WebSocket &WS, std::string &Id,
+	RTTYS_ClientConnection::RTTYS_ClientConnection(std::unique_ptr<Poco::Net::WebSocket> WS, std::string &Id,
 							  Poco::Net::SocketReactor &Reactor)
-							  : WS_(WS), Id_(std::move(Id)), SR_(Reactor) {
+							  : WS_(std::move(WS)), Id_(std::move(Id)), SR_(Reactor) {
         RTTYS_server()->Register(Id_, this);
 		if(RTTYS_server()->CanConnect(Id_,this)) {
 		    std::cout << "WebSocket connecting: " << Id_ << std::endl;
-			SR_.addEventHandler(WS_,
+			SR_.addEventHandler(*WS_,
 								Poco::NObserver<RTTYS_ClientConnection, Poco::Net::ReadableNotification>(
 									*this, &RTTYS_ClientConnection::onSocketReadable));
-			SR_.addEventHandler(WS_,
+			SR_.addEventHandler(*WS_,
 								Poco::NObserver<RTTYS_ClientConnection, Poco::Net::ShutdownNotification>(
 									*this, &RTTYS_ClientConnection::onSocketShutdown));
 			RTTYS_server()->Login(Id_);
@@ -33,13 +33,13 @@ namespace OpenWifi {
         // std::cout << "WebSocket disconnecting..." << std::endl;
 		if(Connected_) {
 			SR_.removeEventHandler(
-				WS_, Poco::NObserver<RTTYS_ClientConnection, Poco::Net::ReadableNotification>(
+				*WS_, Poco::NObserver<RTTYS_ClientConnection, Poco::Net::ReadableNotification>(
 						 *this, &RTTYS_ClientConnection::onSocketReadable));
 			SR_.removeEventHandler(
-				WS_, Poco::NObserver<RTTYS_ClientConnection, Poco::Net::ShutdownNotification>(
+				*WS_, Poco::NObserver<RTTYS_ClientConnection, Poco::Net::ShutdownNotification>(
 						 *this, &RTTYS_ClientConnection::onSocketShutdown));
 		}
-		WS_.close();
+		WS_->close();
 		if(Connected_) {
 			RTTYS_server()->Logout(Id_);
 			RTTYS_server()->DeRegister(Id_, this);
@@ -53,13 +53,13 @@ namespace OpenWifi {
 	void RTTYS_ClientConnection::onSocketReadable([[maybe_unused]] const Poco::AutoPtr<Poco::Net::ReadableNotification> &pNf) {
 		u_char Buffer[8192]{0};
 		int flags;
-		auto n = WS_.receiveFrame(Buffer, sizeof(Buffer), flags);
+		auto n = WS_->receiveFrame(Buffer, sizeof(Buffer), flags);
 
 		auto Op = flags & Poco::Net::WebSocket::FRAME_OP_BITMASK;
 
 		switch(Op) {
 			case Poco::Net::WebSocket::FRAME_OP_PING: {
-					WS_.sendFrame("", 0,(int)Poco::Net::WebSocket::FRAME_OP_PONG | (int)Poco::Net::WebSocket::FRAME_FLAG_FIN);
+					WS_->sendFrame("", 0,(int)Poco::Net::WebSocket::FRAME_OP_PONG | (int)Poco::Net::WebSocket::FRAME_FLAG_FIN);
 				}
 				break;
 			case Poco::Net::WebSocket::FRAME_OP_PONG: {
@@ -95,7 +95,7 @@ namespace OpenWifi {
 				}
 				break;
 			case Poco::Net::WebSocket::FRAME_OP_CLOSE: {
-					WS_.shutdown();
+					WS_->shutdown();
 					return delete this;
 				}
 				break;
@@ -108,14 +108,14 @@ namespace OpenWifi {
 	}
 
 	void RTTYS_ClientConnection::SendData( const u_char *Buf, size_t len ) {
-		WS_.sendFrame(Buf, len, Poco::Net::WebSocket::FRAME_FLAG_FIN | Poco::Net::WebSocket::FRAME_OP_BINARY);
+		WS_->sendFrame(Buf, len, Poco::Net::WebSocket::FRAME_FLAG_FIN | Poco::Net::WebSocket::FRAME_OP_BINARY);
 	}
 
 	void RTTYS_ClientConnection::SendData( const std::string &s , bool login) {
 		if(login) {
 			RTTYS_server()->LoginDone(Id_);
 		}
-		WS_.sendFrame( s.c_str(), s.length());
+		WS_->sendFrame( s.c_str(), s.length());
 	}
 
 	void RTTYS_ClientConnection::onSocketShutdown([[maybe_unused]] const Poco::AutoPtr<Poco::Net::ShutdownNotification> &pNf) {
