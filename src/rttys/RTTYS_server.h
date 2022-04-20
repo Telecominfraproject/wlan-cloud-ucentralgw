@@ -84,7 +84,7 @@ namespace OpenWifi {
 				Logger().information(fmt::format("Registering session: {}, device:'{}'",Id,It->second.SerialNumber));
 			} else {
 				// delete It->second.Device;
-				It->second.Device = Conn;
+				// It->second.Device = Conn;
 			}
 			return true;
 		}
