@@ -130,6 +130,8 @@ namespace OpenWifi {
 			Path = RTTYS_server()->UIAssets() + Path;
 		}
 
+		std::cout << id << ": service path '" << Path << "'" << std::endl;
+
 		//	simple test to block .. or ~ in path names.
 		if(Path.find("../")!=std::string::npos) {
 			return;
