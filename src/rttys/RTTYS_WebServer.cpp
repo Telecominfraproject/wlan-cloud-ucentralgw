@@ -97,9 +97,11 @@ namespace OpenWifi {
 			std::cout << "page handler " << __LINE__ << std::endl;
 			Path = RTTYS_server()->UIAssets() + "/index.html";
 		} else {
+			std::cout << "page handler " << __LINE__ << std::endl;
 			auto ParsedPath = Poco::StringTokenizer(Path, "/");
 			if (ParsedPath.count() > 1) {
 				if (ParsedPath[1] == "connect") {
+					std::cout << "page handler " << __LINE__ << std::endl;
 					response.redirect(Poco::replace(Path,"/connect/","/rtty/"));
 					response.send();
 					std::cout << "page handler " << __LINE__ << std::endl;
@@ -110,16 +112,19 @@ namespace OpenWifi {
 					nlohmann::json doc;
 					doc["authorized"] = true;
 					response.setContentType("application/json");
+					std::cout << "page handler " << __LINE__ << std::endl;
 					std::ostream &answer = response.send();
 					answer << to_string(doc);
 					std::cout << "page handler " << __LINE__ << std::endl;
 					return;
 				} else if (ParsedPath[1] == "fontsize") {
+					std::cout << "page handler " << __LINE__ << std::endl;
 					AddCORS(request,response);
 					nlohmann::json doc;
 					doc["size"] = 16;
 					AddCORS(request,response);
 					response.setContentType("application/json");
+					std::cout << "page handler " << __LINE__ << std::endl;
 					std::ostream &answer = response.send();
 					answer << to_string(doc);
 					std::cout << "page handler " << __LINE__ << std::endl;
