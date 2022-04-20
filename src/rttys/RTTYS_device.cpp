@@ -184,7 +184,7 @@ namespace OpenWifi {
 										   conn_id_, serial_, desc_));
 			} else {
 				Logout();
-				return delete this;
+				return;
 			}
 			u_char OutBuf[12];
 			OutBuf[0] = msgTypeRegister;
