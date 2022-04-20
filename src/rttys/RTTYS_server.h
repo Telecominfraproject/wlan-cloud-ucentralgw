@@ -26,24 +26,6 @@ namespace OpenWifi {
 		void Stop() final;
 
 		inline auto UIAssets() { return RTTY_UIAssets_; }
-		// inline auto UI() { return UI_; }
-
-/*
-
-		std::string 					Token;
-		RTTYS_ClientConnection *		Client = nullptr;
-		RTTY_Device_ConnectionHandler *	Device = nullptr;
-		uint64_t 						TimeStamp = std::time(nullptr);
-		uint64_t 						DeviceConnected = 0;
-		uint64_t 						ClientConnected = 0;
-		std::string 					UserName;
-		std::string 					SerialNumber;
-		bool 							Done = false;
-
-
- */
-
-
 
 		inline void Register(const std::string &Id, RTTYS_ClientConnection *Conn) {
 			std::lock_guard	G(Mutex_);

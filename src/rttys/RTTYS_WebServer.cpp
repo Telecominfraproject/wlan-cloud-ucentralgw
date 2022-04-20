@@ -43,8 +43,9 @@ namespace OpenWifi {
 	}
 
 	static void AddCORS(Poco::Net::HTTPServerRequest &Request,
-						Poco::Net::HTTPServerResponse & Response) {
+						Poco::Net::HTTPServerResponse & Response, Poco::Logger & Logger_, uint64_t id) {
 
+		Logger_.information(fmt::format("{}: Adding CORS", id));
 		Response.setChunkedTransferEncoding(true);
 		auto Origin = Request.find("Origin");
 		if (Origin != Request.end()) {
@@ -78,102 +79,90 @@ namespace OpenWifi {
 		 */
 	}
 
+	static inline std::atomic_uint64_t rtty_ws_id = 1;
+
 	void PageRequestHandler::handleRequest(Poco::Net::HTTPServerRequest &request,
 					   Poco::Net::HTTPServerResponse &response) {
+
+		Poco::Logger & Logger_ = RTTYS_server()->Logger();
+		uint64_t id = rtty_ws_id++;
+
 		Poco::URI uri(request.getURI());
 		auto Path = uri.getPath();
 
 		if(request.getMethod() == Poco::Net::HTTPRequest::HTTP_OPTIONS) {
 			std::cout << "options..." << std::endl;
-			AddCORS(request,response);
+			AddCORS(request,response, Logger_, id);
 			return;
 		} else if(request.getMethod() == Poco::Net::HTTPRequest::HTTP_HEAD){
 			std::cout << "head..." << std::endl;
-			AddCORS(request,response);
+			AddCORS(request,response, Logger_, id);
 			return;
 		}
 
-		std::cout << "page handler " << __LINE__ << std::endl;
 		if (Path == "/") {
-			std::cout << "page handler " << __LINE__ << std::endl;
 			Path = RTTYS_server()->UIAssets() + "/index.html";
 		} else {
-			std::cout << "page handler " << __LINE__ << std::endl;
 			auto ParsedPath = Poco::StringTokenizer(Path, "/");
 			if (ParsedPath.count() > 1) {
 				if (ParsedPath[1] == "connect") {
-					std::cout << "page handler " << __LINE__ << std::endl;
 					response.redirect(Poco::replace(Path,"/connect/","/rtty/"));
-					// response.send();
-					std::cout << "page handler " << __LINE__ << std::endl;
-					RTTYS_server()->Logger().information(fmt::format("... rtty connect redirect: {}",Path));
+					RTTYS_server()->Logger().information(fmt::format("redirect: {}",Path));
 					return;
 				} else if (ParsedPath[1] == "authorized") {
-					AddCORS(request,response);
+					AddCORS(request,response, Logger_, id);
 					nlohmann::json doc;
 					doc["authorized"] = true;
 					response.setContentType("application/json");
-					std::cout << "page handler " << __LINE__ << std::endl;
 					std::ostream &answer = response.send();
 					answer << to_string(doc);
-					std::cout << "page handler " << __LINE__ << std::endl;
 					return;
 				} else if (ParsedPath[1] == "fontsize") {
-					std::cout << "page handler " << __LINE__ << std::endl;
-					AddCORS(request,response);
+					AddCORS(request,response, Logger_, id);
 					nlohmann::json doc;
 					doc["size"] = 16;
-					AddCORS(request,response);
 					response.setContentType("application/json");
-					std::cout << "page handler " << __LINE__ << std::endl;
 					std::ostream &answer = response.send();
 					answer << to_string(doc);
-					std::cout << "page handler " << __LINE__ << std::endl;
 					return;
 				}
 			}
 			Path = RTTYS_server()->UIAssets() + Path;
 		}
 
-		std::cout << "page handler " << __LINE__ << std::endl;
-
 		//	simple test to block .. or ~ in path names.
 		if(Path.find("../")!=std::string::npos) {
-			std::cout << "page handler " << __LINE__ << std::endl;
 			return;
 		}
-
-		std::cout << "page handler " << __LINE__ << std::endl;
 
 		if(Path.find("~/")!=std::string::npos) {
 			return;
 		}
 
-		std::cout << "page handler: " << Path << "  " << __LINE__ << std::endl;
 		Poco::File	F(Path);
-		AddCORS(request,response);
+		AddCORS(request,response, Logger_, id);
 		if(!F.exists()) {
 			Path = RTTYS_server()->UIAssets() + "/index.html";
-			std::cout << "page handler " << __LINE__ << std::endl;
 			response.sendFile(Path,"text/html");
 			return;
 		}
 		Poco::Path P(Path);
 		auto Ext = P.getExtension();
 
-		std::cout << "page handler " << __LINE__ << std::endl;
-
 		std::string Type;
 		if (Ext == "html")
 			Type = "text/html; charset=utf-8";
 		else if (Ext == "js") {
 			Type = "text/javascript; charset=utf-8";
-			if(IsFileGZipped(Path))
+			if(IsFileGZipped(Path)) {
 				response.set("Content-Encoding", "gzip");
+			}
 		}  else if (Ext == "css") {
 			Type = "text/css; charset=utf-8";
-			if(IsFileGZipped(Path))
+			if(IsFileGZipped(Path)) {
+				Logger_.information(fmt::format("{}: Downloading UI Assets."));
 				response.set("Content-Encoding", "gzip");
+			}
 		}  else if (Ext == "ico")
 			Type = "image/x-icon";
 		else if (Ext == "woff")
@@ -183,12 +172,8 @@ namespace OpenWifi {
 		else if (Ext == "ttf")
 			Type = "font/ttf";
 
-		std::cout << "page handler " << __LINE__ << std::endl;
-
 		response.setContentLength(F.getSize());
 		response.sendFile(Path, Type);
-
-		std::cout << "page handler " << __LINE__ << std::endl;
 	}
 
 	RTTY_Client_RequestHandlerFactory::RTTY_Client_RequestHandlerFactory(Poco::Net::SocketReactor &R)
