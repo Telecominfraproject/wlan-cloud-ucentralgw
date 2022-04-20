@@ -32,7 +32,7 @@ namespace OpenWifi {
 			new RTTYS_ClientConnection(std::move(ws_ptr), T[2], R_);
 			std::cout << __LINE__ << std::endl;
 		} catch (...) {
-
+			std::cout << "Exception during WS creation" << std::endl;
 		}
 	};
 
