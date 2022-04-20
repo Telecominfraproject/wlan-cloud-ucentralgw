@@ -66,7 +66,7 @@ namespace OpenWifi {
 			return It->second.Client;
 		}
 
-		inline bool Register(const std::string &Id, const std::string &Token, RTTY_Device_ConnectionHandler *Conn) {
+		inline bool Register(const std::string &Id, const std::string &Token, RTTY_Device_ConnectionHandler *Device) {
 			std::lock_guard	G(Mutex_);
 			auto It = EndPoints_.find(Id);
 			if(It==EndPoints_.end()) {
@@ -74,7 +74,7 @@ namespace OpenWifi {
 				EndPoints_[Id] = EndPoint{
 					.Token = Token ,
 					.Client = nullptr,
-					.Device = Conn,
+					.Device = Device,
 					.TimeStamp = OpenWifi::Now(),
 					.DeviceConnected = 0 ,
 					.ClientConnected = 0 ,
@@ -89,18 +89,11 @@ namespace OpenWifi {
 					std::cout << "Removing other stale connection..." << std::endl;
 					delete It->second.Device;
 				}
-				EndPoints_[Id] = EndPoint{
-					.Token = Token ,
-					.Client = nullptr,
-					.Device = Conn,
-					.TimeStamp = OpenWifi::Now(),
-					.DeviceConnected = 0 ,
-					.ClientConnected = 0 ,
-					.UserName = "" ,
-					.SerialNumber = "" ,
-					.Done = false
-				};
-				Logger().information(fmt::format("Registering session: {}, device:'{}'",Id,It->second.SerialNumber));
+				It->second.Token = Token;
+				It->second.Device = Device;
+				It->second.DeviceConnected = 0 ;
+				It->second.TimeStamp = OpenWifi::Now();
+				Logger().information(fmt::format("Updating session: {}, device:'{}'",Id,It->second.SerialNumber));
 			}
 			return true;
 		}
