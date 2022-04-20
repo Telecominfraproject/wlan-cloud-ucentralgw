@@ -66,17 +66,6 @@ namespace OpenWifi {
 		Response.set("Connection", "Keep-Alive");
 		Response.set("Keep-Alive", "timeout=120");
 		Response.set("Accept-Ranges","bytes");
-		/*
-		std::cout << "==REQUEST===================================================" << std::endl;
-		for(const auto &i:Request) {
-			std::cout << "  " << i.first << " : " << i.second << std::endl;
-		}
-		std::cout << "==RESPONSE===================================================" << std::endl;
-		for(const auto &i:Response) {
-			std::cout << "  " << i.first << " : " << i.second << std::endl;
-		}
-		std::cout << "==END===================================================" << std::endl;
-		 */
 	}
 
 	static inline std::atomic_uint64_t rtty_ws_id = 1;
@@ -173,7 +162,7 @@ namespace OpenWifi {
 		}  else if (Ext == "css") {
 			Type = "text/css; charset=utf-8";
 			if(IsFileGZipped(Path)) {
-				Logger_.information(fmt::format("{}: Downloading UI Assets."));
+				Logger_.information(fmt::format("{}: Downloading UI Assets.",id));
 				response.set("Content-Encoding", "gzip");
 			}
 		}  else if (Ext == "ico")
