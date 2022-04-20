@@ -132,7 +132,6 @@ namespace OpenWifi {
 		outBuf[3] = sid_;
 		memcpy( &outBuf[4], &buf[1], len-1);
 		socket_.sendBytes(outBuf, total_len);
-		// PrintBuf(outBuf, total_len);
 	}
 
 	void RTTY_Device_ConnectionHandler::WindowSize(int cols, int rows) {
@@ -145,7 +144,6 @@ namespace OpenWifi {
 		outBuf[5] = cols & 0x00ff;
 		outBuf[6] = rows >> 8;
 		outBuf[7] = rows & 0x00ff;
-		// PrintBuf(outBuf,8);
 		socket_.sendBytes(outBuf,8);
 	}
 

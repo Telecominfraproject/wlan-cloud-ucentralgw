@@ -142,6 +142,7 @@ namespace OpenWifi {
 		Poco::File	F(Path);
 		AddCORS(request,response, Logger_, id);
 		if(!F.exists()) {
+			std::cout << id << ": Path " << Path << " does not exist" << std::endl;
 			Path = RTTYS_server()->UIAssets() + "/index.html";
 			response.sendFile(Path,"text/html");
 			return;
