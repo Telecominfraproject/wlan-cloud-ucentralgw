@@ -57,6 +57,7 @@ class RTTY_Device_ConnectionHandler {
 	void WindowSize(int cols, int rows);
 	void KeyStrokes(const u_char *buf, size_t len);
 	std::string ReadString();
+	inline auto SessionID() const { return conn_id_; }
 
   private:
 	Poco::Logger & Logger() { return Logger_; }

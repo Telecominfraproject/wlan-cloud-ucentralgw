@@ -24,6 +24,7 @@ namespace OpenWifi {
 								Poco::NObserver<RTTYS_ClientConnection, Poco::Net::ShutdownNotification>(
 									*this, &RTTYS_ClientConnection::onSocketShutdown));
 			std::cout << __LINE__ << std::endl;
+			std::cout << "Session: " << RTTYS_server()->DeviceSessionID(Id_) << std::endl;
 			RTTYS_server()->Login(Id_);
 			std::cout << __LINE__ << std::endl;
 			Connected_ = true ;

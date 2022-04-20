@@ -189,6 +189,21 @@ namespace OpenWifi {
 		bool Logout(const std::string & Id_);
 		bool Close(const std::string & Id_);
 
+		inline uint64_t DeviceSessionID(const std::string & Id) {
+			auto it = EndPoints_.find(Id);
+			if(it==EndPoints_.end()) {
+				std::cout << "No ID found" << std::endl;
+				return 0;
+			} else {
+				if(it->second.Device== nullptr) {
+					std::cout << "No device for ID found" << std::endl;
+					return 0;
+				} else {
+					return it->second.Device->SessionID();
+				}
+			}
+		}
+
 		struct EndPoint {
 			std::string 					Token;
 			RTTYS_ClientConnection *		Client = nullptr;
