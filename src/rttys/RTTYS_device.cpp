@@ -210,7 +210,7 @@ namespace OpenWifi {
 			while(!done) {
 
 				std::size_t needed = socket_.available();
-				std::cout << "Needed: " << needed << std::endl;
+				// std::cout << "Needed: " << needed << std::endl;
 				if(needed>0 && (inBuf_.size()-inBuf_.used())<needed) {
 					std::cout << "Not enough room..." << std::endl;
 					return;

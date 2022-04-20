@@ -44,6 +44,7 @@ namespace OpenWifi {
 	static void AddCORS(Poco::Net::HTTPServerRequest &Request,
 						Poco::Net::HTTPServerResponse & Response) {
 
+		Response.setChunkedTransferEncoding(true);
 		auto Origin = Request.find("Origin");
 		if (Origin != Request.end()) {
 			Response.set("Access-Control-Allow-Origin", Origin->second);
@@ -93,6 +94,7 @@ namespace OpenWifi {
 			return;
 		}
 
+		std::cout << "page handler " << __LINE__ << std::endl;
 		if (Path == "/") {
 			Path = RTTYS_server()->UIAssets() + "/index.html";
 		} else {
@@ -125,15 +127,20 @@ namespace OpenWifi {
 			Path = RTTYS_server()->UIAssets() + Path;
 		}
 
+		std::cout << "page handler " << __LINE__ << std::endl;
+
 		//	simple test to block .. or ~ in path names.
 		if(Path.find("../")!=std::string::npos) {
 			return;
 		}
 
+		std::cout << "page handler " << __LINE__ << std::endl;
+
 		if(Path.find("~/")!=std::string::npos) {
 			return;
 		}
 
+		std::cout << "page handler " << __LINE__ << std::endl;
 		Poco::File	F(Path);
 		AddCORS(request,response);
 		if(!F.exists()) {
@@ -144,6 +151,8 @@ namespace OpenWifi {
 		}
 		Poco::Path P(Path);
 		auto Ext = P.getExtension();
+
+		std::cout << "page handler " << __LINE__ << std::endl;
 
 		std::string Type;
 		if (Ext == "html")
@@ -165,8 +174,12 @@ namespace OpenWifi {
 		else if (Ext == "ttf")
 			Type = "font/ttf";
 
+		std::cout << "page handler " << __LINE__ << std::endl;
+
 		response.setContentLength(F.getSize());
 		response.sendFile(Path, Type);
+
+		std::cout << "page handler " << __LINE__ << std::endl;
 	}
 
 	RTTY_Client_RequestHandlerFactory::RTTY_Client_RequestHandlerFactory(Poco::Net::SocketReactor &R)
