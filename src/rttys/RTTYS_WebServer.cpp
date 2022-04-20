@@ -103,7 +103,7 @@ namespace OpenWifi {
 				if (ParsedPath[1] == "connect") {
 					std::cout << "page handler " << __LINE__ << std::endl;
 					response.redirect(Poco::replace(Path,"/connect/","/rtty/"));
-					response.send();
+					// response.send();
 					std::cout << "page handler " << __LINE__ << std::endl;
 					RTTYS_server()->Logger().information(fmt::format("... rtty connect redirect: {}",Path));
 					return;
