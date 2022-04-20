@@ -204,6 +204,7 @@ namespace OpenWifi {
 				Logger().debug(fmt::format("{}: Registration for SerialNumber: {}, Description: {}",
 										   conn_id_, serial_, desc_));
 			} else {
+				Logout();
 				return delete this;
 			}
 			u_char OutBuf[12];
