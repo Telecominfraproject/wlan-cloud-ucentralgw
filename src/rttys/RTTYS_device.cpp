@@ -68,7 +68,13 @@ namespace OpenWifi {
 			} else {
 				std::lock_guard		G(M_);
 
+				std::cout << "Getting bytes..." << std::endl;
 				int received = socket().receiveBytes(inBuf_);
+
+				if(received<0) {
+
+				}
+
 				std::cout << "Received " << received << " bytes." << std::endl;
 				while (!inBuf_.isEmpty() && running_) {
 					std::size_t msg_len;
