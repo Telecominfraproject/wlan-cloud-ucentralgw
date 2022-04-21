@@ -28,45 +28,53 @@ namespace OpenWifi {
 		socket().setNoDelay(true);
 		socket().setReceiveBufferSize(64000);
 
+		Poco::Timespan timeOut(10,0);
+
 		while(running_) {
 
-			int received = socket().receiveBytes(inBuf_);
-			while(!inBuf_.isEmpty()) {
-				std::size_t msg_len;
-				if (waiting_for_bytes_ == 0) {
-					u_char header[3]{0};
-					inBuf_.read((char *)&header[0], 3);
-					last_command_ = header[0];
-					msg_len = header[1] * 256 + header[2];
-				} else {
-					msg_len = received;
-				}
+			if(socket().poll(timeOut,Poco::Net::Socket::SELECT_READ) == false) {
 
-				switch (last_command_) {
-				case msgTypeRegister:
-					return do_msgTypeRegister(msg_len);
-				case msgTypeLogin:
-					return do_msgTypeLogin(msg_len);
-				case msgTypeLogout:
-					return do_msgTypeLogout(msg_len);
-				case msgTypeTermData:
-					return do_msgTypeTermData(msg_len);
-				case msgTypeWinsize:
-					return do_msgTypeWinsize(msg_len);
-				case msgTypeCmd:
-					return do_msgTypeCmd(msg_len);
-				case msgTypeHeartbeat:
-					return do_msgTypeHeartbeat(msg_len);
-				case msgTypeFile:
-					return do_msgTypeFile(msg_len);
-				case msgTypeHttp:
-					return do_msgTypeHttp(msg_len);
-				case msgTypeAck:
-					return do_msgTypeAck(msg_len);
-				case msgTypeMax:
-					return do_msgTypeMax(msg_len);
-				default:
-					std::cout << conn_id_ << ": Unknown command: " << (int)last_command_ << std::endl;
+			} else {
+				int received = socket().receiveBytes(inBuf_);
+				std::cout << "Received " << received << " bytes." << std::endl;
+				while (!inBuf_.isEmpty()) {
+					std::size_t msg_len;
+					if (waiting_for_bytes_ == 0) {
+						u_char header[3]{0};
+						inBuf_.read((char *)&header[0], 3);
+						last_command_ = header[0];
+						msg_len = header[1] * 256 + header[2];
+					} else {
+						msg_len = received;
+					}
+
+					switch (last_command_) {
+					case msgTypeRegister:
+						return do_msgTypeRegister(msg_len);
+					case msgTypeLogin:
+						return do_msgTypeLogin(msg_len);
+					case msgTypeLogout:
+						return do_msgTypeLogout(msg_len);
+					case msgTypeTermData:
+						return do_msgTypeTermData(msg_len);
+					case msgTypeWinsize:
+						return do_msgTypeWinsize(msg_len);
+					case msgTypeCmd:
+						return do_msgTypeCmd(msg_len);
+					case msgTypeHeartbeat:
+						return do_msgTypeHeartbeat(msg_len);
+					case msgTypeFile:
+						return do_msgTypeFile(msg_len);
+					case msgTypeHttp:
+						return do_msgTypeHttp(msg_len);
+					case msgTypeAck:
+						return do_msgTypeAck(msg_len);
+					case msgTypeMax:
+						return do_msgTypeMax(msg_len);
+					default:
+						std::cout << conn_id_ << ": Unknown command: " << (int)last_command_
+								  << std::endl;
+					}
 				}
 			}
 		}
