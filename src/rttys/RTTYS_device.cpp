@@ -53,9 +53,11 @@ namespace OpenWifi {
 					for(const auto &i:commands_) {
 						std::cout << "Command: " << (int)i << std::endl;
 						if(i==msgTypeLogin) {
+							std::cout << "Doing login..." << std::endl;
 							Login();
 						}
 						else if(i==msgTypeLogout) {
+							std::cout << "Doing logout..." << std::endl;
 							Logout();
 						}
 					}
@@ -184,13 +186,10 @@ namespace OpenWifi {
 
 	bool RTTY_Device_ConnectionHandler::Login() {
 		std::lock_guard		G(M_);
-		std::cout << __LINE__ << std::endl;
 		u_char outBuf[8]{0};
-		std::cout << __LINE__ << std::endl;
 		outBuf[0] = msgTypeLogin;
 		outBuf[1] = 0;
 		outBuf[2] = 0;
-		std::cout << __LINE__ << std::endl;
 		try {
 			socket().sendBytes(outBuf, 3);
 		} catch (const Poco::IOException &E) {
@@ -198,9 +197,7 @@ namespace OpenWifi {
 		} catch (const Poco::Exception &E) {
 			std::cout << "2  " << E.what() << " " << E.name() << std::endl;
 		}
-		std::cout << __LINE__ << std::endl;
 		Logger().debug(fmt::format("{}: Device {} login", conn_id_, id_));
-		std::cout << __LINE__ << std::endl;
 		return true;
 	}
 
