@@ -132,17 +132,14 @@ namespace OpenWifi {
 		return false;
 	}
 
-	void RTTYS_server::DeRegister(const std::string &Id, RTTY_Device_ConnectionHandler *Conn) {
+	void RTTYS_server::DeRegister(const std::string &Id, RTTY_Device_ConnectionHandler *Device) {
 		std::lock_guard	G(M_);
 		auto It = EndPoints_.find(Id);
-		if(It==EndPoints_.end())
+		if(It!=EndPoints_.end() && It->second.Device==Device) {
+			It->second.Device = nullptr;
+			It->second.DeviceConnected = 0 ;
 			return;
-		if(It->second.Device!=Conn)
-			return;
-		Logger().information(fmt::format("DeRegistering session: {}, device:'{}'",Id,It->second.SerialNumber));
-		It->second.Device = nullptr;
-		It->second.Done = true;
-		It->second.DeviceConnected = 0 ;
+		}
 	}
 
 	RTTY_Device_ConnectionHandler * RTTYS_server::GetDevice(const std::string &id) {
