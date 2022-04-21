@@ -43,6 +43,7 @@ class RTTY_Device_ConnectionHandler : public Poco::Net::TCPServerConnection {
 	void KeyStrokes(const u_char *buf, size_t len);
 	std::string ReadString();
 	inline auto SessionID() const { return conn_id_; }
+	void AddCommand(u_char C);
 
   private:
 	std::atomic_bool 			  running_=false;
@@ -59,6 +60,7 @@ class RTTY_Device_ConnectionHandler : public Poco::Net::TCPServerConnection {
 	std::size_t      			  waiting_for_bytes_{0};
 	u_char 						  last_command_=0;
 	uint64_t 					  conn_id_=0;
+	std::vector<u_char>			  commands_;
 
 	inline Poco::Logger & Logger() { return Logger_; }
 

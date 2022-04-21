@@ -24,6 +24,12 @@ namespace OpenWifi {
 		RTTYS_server()->DeRegister(id_, this);
 	}
 
+	void RTTY_Device_ConnectionHandler::AddCommand(u_char C) {
+		std::lock_guard		G(M_);
+		commands_.push_back(C);
+	}
+
+
 	void RTTY_Device_ConnectionHandler::run() {
 		running_ = true ;
 		auto SS = dynamic_cast<Poco::Net::SecureStreamSocketImpl *>(socket().impl());
@@ -43,6 +49,17 @@ namespace OpenWifi {
 
 			} else {
 				std::lock_guard		G(M_);
+
+				if(!commands_.empty()) {
+					for(const auto &i:commands_) {
+						if(i==msgTypeLogin)
+							Login();
+						else if(i==msgTypeLogout)
+							Logout();
+					}
+					commands_.clear();
+				}
+
 				int received = socket().receiveBytes(inBuf_);
 				std::cout << "Received " << received << " bytes." << std::endl;
 				while (!inBuf_.isEmpty() && running_) {
