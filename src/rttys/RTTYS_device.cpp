@@ -138,12 +138,17 @@ namespace OpenWifi {
 
 	bool RTTY_Device_ConnectionHandler::Login() {
 		std::lock_guard		G(M_);
+		std::cout << __LINE__ << std::endl;
 		u_char outBuf[3]{0};
+		std::cout << __LINE__ << std::endl;
 		outBuf[0] = msgTypeLogin;
 		outBuf[1] = 0;
 		outBuf[2] = 0;
+		std::cout << __LINE__ << std::endl;
 		socket().sendBytes(outBuf,3 );
+		std::cout << __LINE__ << std::endl;
 		Logger().debug(fmt::format("{}: Device {} login", conn_id_, id_));
+		std::cout << __LINE__ << std::endl;
 		return true;
 	}
 
