@@ -78,6 +78,7 @@ namespace OpenWifi {
 
 				std::cout << "Received " << received << " bytes." << std::endl;
 				while (!inBuf_.isEmpty() && running_) {
+					std::cout << conn_id_ << ": processing buffer" << std::endl;
 					std::size_t msg_len;
 					if (waiting_for_bytes_ == 0) {
 						u_char header[3]{0};
