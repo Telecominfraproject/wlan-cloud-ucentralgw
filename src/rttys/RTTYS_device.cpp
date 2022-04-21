@@ -145,7 +145,11 @@ namespace OpenWifi {
 		outBuf[1] = 0;
 		outBuf[2] = 0;
 		std::cout << __LINE__ << std::endl;
-		socket().sendBytes(outBuf, 3 );
+		try {
+			socket().sendBytes(outBuf, 3);
+		} catch (const Poco::Exception &E) {
+			std::cout << E.what() << " " << E.name() << std::endl;
+		}
 		std::cout << __LINE__ << std::endl;
 		Logger().debug(fmt::format("{}: Device {} login", conn_id_, id_));
 		std::cout << __LINE__ << std::endl;
