@@ -45,11 +45,8 @@ namespace OpenWifi {
 		Poco::Timespan timeOut(10,0);
 
 		while(running_) {
-			if(socket().poll(timeOut,Poco::Net::Socket::SELECT_READ) == false) {
-
-			} else {
+			{
 				std::lock_guard		G(M_);
-
 				if(!commands_.empty()) {
 					for(const auto &i:commands_) {
 						if(i==msgTypeLogin)
@@ -59,6 +56,12 @@ namespace OpenWifi {
 					}
 					commands_.clear();
 				}
+			}
+
+			if(socket().poll(timeOut,Poco::Net::Socket::SELECT_READ) == false) {
+
+			} else {
+				std::lock_guard		G(M_);
 
 				int received = socket().receiveBytes(inBuf_);
 				std::cout << "Received " << received << " bytes." << std::endl;
