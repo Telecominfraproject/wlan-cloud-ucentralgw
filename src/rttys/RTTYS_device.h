@@ -7,6 +7,8 @@
 #include <array>
 
 #include "framework/MicroService.h"
+// #include "rttys/RTTYS_server.h"
+
 #include "Poco/Net/SocketReactor.h"
 #include "Poco/Net/SocketNotifier.h"
 #include "Poco/Net/SocketNotification.h"
@@ -20,9 +22,7 @@ inline static const std::size_t RTTY_DEVICE_BUFSIZE=64000;
 
 inline static std::atomic_uint64_t global_device_connection_id = 1;
 
-
-class RTTY_Device_ConnectionHandler {
-
+class RTTY_Device_ConnectionHandler : public Poco::Net::TCPServerConnection {
   public:
 	enum RTTY_MSG_TYPE {
 		msgTypeRegister = 0,
@@ -37,17 +37,10 @@ class RTTY_Device_ConnectionHandler {
 		msgTypeAck,
 		msgTypeMax };
 
-	RTTY_Device_ConnectionHandler(Poco::Net::StreamSocket& socket, Poco::Net::SocketReactor & reactor);
+	explicit RTTY_Device_ConnectionHandler(const Poco::Net::StreamSocket & socket) ;
 	~RTTY_Device_ConnectionHandler();
 
-	void onSocketReadable(const Poco::AutoPtr<Poco::Net::ReadableNotification>& pNf);
-	void onSocketShutdown(const Poco::AutoPtr<Poco::Net::ShutdownNotification>& pNf);
-
-	std::string SafeCopy( const u_char * buf, int MaxSize, int & NewPos);
-	void PrintBuf(const u_char * buf, int size);
-	int SendMessage( RTTY_MSG_TYPE Type, const u_char * Buf, int len);
-	int SendMessage( RTTY_MSG_TYPE Type, std::string &S );
-	int SendMessage( RTTY_MSG_TYPE Type);
+	void run() final;
 
 	bool Login();
 	bool Logout();
@@ -60,20 +53,20 @@ class RTTY_Device_ConnectionHandler {
 	inline auto SessionID() const { return conn_id_; }
 
   private:
-	Poco::Logger & Logger() { return Logger_; }
-	Poco::Net::StreamSocket       socket_;
-	Poco::Net::SocketReactor&     reactor_;
+	std::atomic_bool 			  running_=false;
+	Poco::Logger				  &Logger_;
 	std::string                   id_;
 	std::string                   token_;
 	std::string                   desc_;
 	std::string 				  serial_;
 	char 				          sid_=0;
-	Poco::Logger				  &Logger_;
 	Poco::FIFOBuffer  			  inBuf_{64000};
 	std::array<char,32000>		  scratch_{0};
 	std::size_t      			  waiting_for_bytes_{0};
 	u_char 						  last_command_=0;
 	uint64_t 					  conn_id_=0;
+
+	inline Poco::Logger & Logger() { return Logger_; }
 
 	void do_msgTypeRegister(std::size_t msg_len);
 	void do_msgTypeLogin(std::size_t msg_len);

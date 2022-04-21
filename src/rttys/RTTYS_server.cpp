@@ -2,8 +2,10 @@
 // Created by stephane bourque on 2021-11-23.
 //
 
-#include "RTTYS_server.h"
-#include "RTTYS_WebServer.h"
+#include "rttys/RTTYS_server.h"
+#include "rttys/RTTYS_WebServer.h"
+#include "rttys/RTTYS_device.h"
+
 namespace OpenWifi {
 
 	int RTTYS_server::Start() {
@@ -34,16 +36,13 @@ namespace OpenWifi {
 			SSL_CTX_dane_enable(SSLCtxDevice);
 
 			Poco::Net::SecureServerSocket DeviceSocket(DSport, 64, DeviceSecureContext);
-			DeviceSocket.setNoDelay(true);
+			Poco::Net::TCPServerParams* pParams = new Poco::Net::TCPServerParams();
+			pParams->setMaxThreads(50);
+			pParams->setMaxQueued(100);
+			pParams->setThreadIdleTime(100);
 
-			DeviceAcceptor_ =
-				std::make_unique<Poco::Net::SocketAcceptor<RTTY_Device_ConnectionHandler>>(
-					DeviceSocket, DeviceReactor_);
-
-			// Testing this...
-			DeviceAcceptor_->registerAcceptor(DeviceReactor_);
-			DeviceReactorThread_.setName("RTTYDeviceConnectionThread");
-			DeviceReactorThread_.start(DeviceReactor_);
+			DeviceAcceptor_ = std::make_unique<Poco::Net::TCPServer>(new Poco::Net::TCPServerConnectionFactoryImpl<RTTY_Device_ConnectionHandler>(), DeviceSocket, pParams);
+			DeviceAcceptor_->start();
 
 			auto ClientSecureContext =
 				new Poco::Net::Context(Poco::Net::Context::SERVER_USE, KeyFileName, CertFileName,
@@ -78,12 +77,158 @@ namespace OpenWifi {
 	void RTTYS_server::Stop() {
 		if(Internal_) {
 			WebServer_->stopAll();
-			DeviceReactor_.stop();
-			DeviceReactorThread_.join();
+			DeviceAcceptor_->stop();
 			ClientReactor_.stop();
 			ClientReactorThread_.join();
 		}
 	}
+
+	void RTTYS_server::Register(const std::string &Id, RTTYS_ClientConnection *Client) {
+		std::lock_guard	G(M_);
+		auto It = EndPoints_.find(Id);
+		if(It!=EndPoints_.end()) {
+			It->second.Client = Client;
+			It->second.ClientConnected = OpenWifi::Now();
+		}
+	}
+
+	void RTTYS_server::DeRegister(const std::string &Id, RTTYS_ClientConnection *Client) {
+		std::lock_guard	G(M_);
+		auto It = EndPoints_.find(Id);
+		if(It==EndPoints_.end())
+			return;
+		if(It->second.Client!=Client)
+			return;
+		It->second.Client = nullptr;
+		It->second.Done = true;
+		It->second.ClientConnected = 0 ;
+	}
+
+	RTTYS_ClientConnection * RTTYS_server::GetClient(const std::string &Id) {
+		std::lock_guard	G(M_);
+		auto It = EndPoints_.find(Id);
+		if(It==EndPoints_.end()) {
+			return nullptr;
+		}
+		return It->second.Client;
+	}
+
+	bool RTTYS_server::Register(const std::string &Id, const std::string &Token, RTTY_Device_ConnectionHandler *Device) {
+		std::lock_guard	G(M_);
+		auto It = EndPoints_.find(Id);
+		if(It!=EndPoints_.end()) {
+			std::cout << "Updating connection" << std::endl;
+			if(It->second.Device!= nullptr) {
+				std::cout << "Removing old device connection" << std::endl;
+				delete It->second.Device;
+			}
+			It->second.Device = Device;
+			It->second.Token = Token;
+			It->second.DeviceConnected = OpenWifi::Now();
+			Logger().information(fmt::format("Creating session: {}, device:'{}'",Id,It->second.SerialNumber));
+			return true;
+		}
+		return false;
+	}
+
+	void RTTYS_server::DeRegister(const std::string &Id, RTTY_Device_ConnectionHandler *Conn) {
+		std::lock_guard	G(M_);
+		auto It = EndPoints_.find(Id);
+		if(It==EndPoints_.end())
+			return;
+		if(It->second.Device!=Conn)
+			return;
+		Logger().information(fmt::format("DeRegistering session: {}, device:'{}'",Id,It->second.SerialNumber));
+		It->second.Device = nullptr;
+		It->second.Done = true;
+		It->second.DeviceConnected = 0 ;
+	}
+
+	RTTY_Device_ConnectionHandler * RTTYS_server::GetDevice(const std::string &id) {
+		std::lock_guard	G(M_);
+		auto It = EndPoints_.find(id);
+		if(It==EndPoints_.end()) {
+			return nullptr;
+		}
+		return It->second.Device;
+	}
+
+	bool RTTYS_server::CreateEndPoint(const std::string &Id, const std::string & Token, const std::string & UserName, const std::string & SerialNumber ) {
+		std::lock_guard	G(M_);
+
+		EndPoint E;
+		E.Done = false;
+		E.Token = Token;
+		E.TimeStamp = std::time(nullptr);
+		E.SerialNumber = SerialNumber;
+		E.UserName = UserName;
+		EndPoints_[Id] = E;
+		return true;
+	}
+
+	std::string RTTYS_server::SerialNumber(const std::string & Id) {
+		std::lock_guard	G(M_);
+
+		auto It = EndPoints_.find(Id);
+		if(It==EndPoints_.end())
+			return "";
+		return It->second.SerialNumber;
+	}
+
+	void RTTYS_server::LoginDone(const std::string & Id) {
+		std::lock_guard	G(M_);
+
+		auto It = EndPoints_.find(Id);
+		if(It==EndPoints_.end())
+			return;
+		Logger().information(fmt::format("User: {}, Serial: {} logged in.",It->second.UserName, It->second.SerialNumber ));
+	}
+
+	bool RTTYS_server::ValidEndPoint(const std::string &Id, const std::string &Token) {
+		std::lock_guard	G(M_);
+		auto It = EndPoints_.find(Id);
+		if(It==EndPoints_.end()) {
+			return false;
+		}
+		uint64_t Now = std::time(nullptr);
+		return ((It->second.Token == Token) && ((Now-It->second.TimeStamp)<30));
+	}
+
+	bool RTTYS_server::CanConnect( const std::string &Id, RTTYS_ClientConnection *Conn) {
+		std::lock_guard	G(M_);
+
+		auto It = EndPoints_.find(Id);
+		if(It!=EndPoints_.end() && It->second.Client==Conn) {
+			It->second.ClientConnected = std::time(nullptr);
+			return true;
+		}
+		return false;
+	}
+
+	bool RTTYS_server::IsDeviceRegistered( const std::string &Id, const std::string &Token, [[maybe_unused]] RTTY_Device_ConnectionHandler *Conn) {
+		std::lock_guard	G(M_);
+
+		auto It = EndPoints_.find(Id);
+		if(It == EndPoints_.end() || It->second.Token != Token )
+			return false;
+		return true;
+	}
+
+	uint64_t RTTYS_server::DeviceSessionID(const std::string & Id) {
+		auto it = EndPoints_.find(Id);
+		if(it==EndPoints_.end()) {
+			std::cout << "No ID found" << std::endl;
+			return 0;
+		} else {
+			if(it->second.Device== nullptr) {
+				std::cout << "No device for ID found" << std::endl;
+				return 0;
+			} else {
+				return it->second.Device->SessionID();
+			}
+		}
+	}
+
 
 	bool RTTYS_server::Login(const std::string & Id) {
 		std::lock_guard	G(M_);
