@@ -47,7 +47,7 @@ class RTTY_Device_ConnectionHandler : public Poco::Net::TCPServerConnection {
   private:
 	std::atomic_bool 			  running_=false;
 	std::atomic_bool 			  loop_done_=false;
-	std::mutex					  M_;
+	std::recursive_mutex		  M_;
 	Poco::Logger				  &Logger_;
 	std::string                   id_;
 	std::string                   token_;
