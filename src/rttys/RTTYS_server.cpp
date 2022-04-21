@@ -119,11 +119,10 @@ namespace OpenWifi {
 		auto It = EndPoints_.find(Id);
 		if(It!=EndPoints_.end()) {
 			std::cout << "Updating connection" << std::endl;
-			/* if(It->second.Device!= nullptr) {
-				std::cout << "Removing old device connection" << std::endl;
-				delete It->second.Device;
+			if(It->second.Device!= nullptr) {
+				std::cout << "Switching from " << It->second.Device->SessionID() << " to " << Device->SessionID() << std::endl;
+//				delete It->second.Device;
 			}
-			 */
 			It->second.Device = Device;
 			It->second.Token = Token;
 			It->second.DeviceConnected = OpenWifi::Now();
