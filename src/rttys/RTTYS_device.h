@@ -41,9 +41,9 @@ class RTTY_Device_ConnectionHandler : public Poco::Net::TCPServerConnection {
 	~RTTY_Device_ConnectionHandler();
 
 	void run() final;
-
 	bool Login();
 	bool Logout();
+	void Stop();
 
 	void SendToClient(const u_char *buf, int len);
 	void SendToClient(const std::string &S);

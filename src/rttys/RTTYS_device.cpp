@@ -37,7 +37,7 @@ namespace OpenWifi {
 			} else {
 				int received = socket().receiveBytes(inBuf_);
 				std::cout << "Received " << received << " bytes." << std::endl;
-				while (!inBuf_.isEmpty()) {
+				while (!inBuf_.isEmpty() && running_) {
 					std::size_t msg_len;
 					if (waiting_for_bytes_ == 0) {
 						u_char header[3]{0};
@@ -89,6 +89,10 @@ namespace OpenWifi {
 		} else {
 			std::cout << conn_id_ << ": Device could not de-register" << std::endl;
 		}
+	}
+
+	void RTTY_Device_ConnectionHandler::Stop() {
+		running_ = true;
 	}
 
 	void RTTY_Device_ConnectionHandler::SendToClient(const u_char *Buf, int len) {
