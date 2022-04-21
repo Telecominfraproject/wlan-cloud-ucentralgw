@@ -42,6 +42,7 @@ namespace OpenWifi {
 			if(socket().poll(timeOut,Poco::Net::Socket::SELECT_READ) == false) {
 
 			} else {
+				std::lock_guard		G(M_);
 				int received = socket().receiveBytes(inBuf_);
 				std::cout << "Received " << received << " bytes." << std::endl;
 				while (!inBuf_.isEmpty() && running_) {
@@ -106,6 +107,7 @@ namespace OpenWifi {
 	}
 
 	void RTTY_Device_ConnectionHandler::KeyStrokes(const u_char *buf, size_t len) {
+		std::lock_guard		G(M_);
 		u_char outBuf[16]{0};
 
 		if(len>(sizeof(outBuf)-5))
@@ -121,6 +123,7 @@ namespace OpenWifi {
 	}
 
 	void RTTY_Device_ConnectionHandler::WindowSize(int cols, int rows) {
+		std::lock_guard		G(M_);
 		u_char	outBuf[32]{0};
 		outBuf[0] = msgTypeWinsize;
 		outBuf[1] = 0 ;
@@ -134,6 +137,7 @@ namespace OpenWifi {
 	}
 
 	bool RTTY_Device_ConnectionHandler::Login() {
+		std::lock_guard		G(M_);
 		u_char outBuf[3]{0};
 		outBuf[0] = msgTypeLogin;
 		outBuf[1] = 0;
@@ -144,6 +148,7 @@ namespace OpenWifi {
 	}
 
 	bool RTTY_Device_ConnectionHandler::Logout() {
+		std::lock_guard		G(M_);
 		u_char outBuf[4]{0};
 		outBuf[0] = msgTypeLogout;
 		outBuf[1] = 0;
