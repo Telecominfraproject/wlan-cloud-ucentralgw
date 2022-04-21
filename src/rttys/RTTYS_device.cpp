@@ -16,6 +16,14 @@ namespace OpenWifi {
 		conn_id_ = global_device_connection_id++;
 	}
 
+	RTTY_Device_ConnectionHandler::~RTTY_Device_ConnectionHandler() {
+		running_ = false;
+		while(!loop_done_) {
+			Poco::Thread::sleep(10);
+		}
+		RTTYS_server()->DeRegister(id_, this);
+	}
+
 	void RTTY_Device_ConnectionHandler::run() {
 		running_ = true ;
 		auto SS = dynamic_cast<Poco::Net::SecureStreamSocketImpl *>(socket().impl());
@@ -31,7 +39,6 @@ namespace OpenWifi {
 		Poco::Timespan timeOut(10,0);
 
 		while(running_) {
-
 			if(socket().poll(timeOut,Poco::Net::Socket::SELECT_READ) == false) {
 
 			} else {
@@ -78,16 +85,8 @@ namespace OpenWifi {
 				}
 			}
 		}
-	}
-
-	RTTY_Device_ConnectionHandler::~RTTY_Device_ConnectionHandler() {
-		running_ = false;
-		if(!id_.empty()) {
-			std::cout << conn_id_ << ": Device de-registering during connection" << std::endl;
-			RTTYS_server()->DeRegister(id_, this);
-		} else {
-			std::cout << conn_id_ << ": Device could not de-register" << std::endl;
-		}
+		std::cout << conn_id_ << ": Loop done" << std::endl;
+		loop_done_=true;
 	}
 
 	void RTTY_Device_ConnectionHandler::Stop() {
