@@ -148,7 +148,7 @@ namespace OpenWifi {
 		try {
 			socket().sendBytes(outBuf, 3);
 		} catch (const Poco::IOException &E) {
-			std::cout << "1  " << E.what() << " " << E.name() << std::endl;
+			std::cout << "1  " << E.what() << " " << E.name() << " "<< E.className() << " "<< E.message() << std::endl;
 		} catch (const Poco::Exception &E) {
 			std::cout << "2  " << E.what() << " " << E.name() << std::endl;
 		}
