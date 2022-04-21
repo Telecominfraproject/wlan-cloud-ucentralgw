@@ -40,7 +40,7 @@ namespace OpenWifi {
 			Poco::Net::TCPServerParams* pParams = new Poco::Net::TCPServerParams();
 			pParams->setMaxThreads(50);
 			pParams->setMaxQueued(100);
-			pParams->setThreadIdleTime(100);
+			// pParams->setThreadIdleTime(100);
 
 			DeviceAcceptor_ = std::make_unique<Poco::Net::TCPServer>(new Poco::Net::TCPServerConnectionFactoryImpl<RTTY_Device_ConnectionHandler>(), DeviceSocket, pParams);
 			DeviceAcceptor_->start();
