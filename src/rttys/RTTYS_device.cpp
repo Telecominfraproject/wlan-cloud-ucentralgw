@@ -49,10 +49,13 @@ namespace OpenWifi {
 				std::lock_guard		G(M_);
 				if(!commands_.empty()) {
 					for(const auto &i:commands_) {
-						if(i==msgTypeLogin)
+						std::cout << "Command: " << (int)i << std::endl;
+						if(i==msgTypeLogin) {
 							Login();
-						else if(i==msgTypeLogout)
+						}
+						else if(i==msgTypeLogout) {
 							Logout();
+						}
 					}
 					commands_.clear();
 				}
