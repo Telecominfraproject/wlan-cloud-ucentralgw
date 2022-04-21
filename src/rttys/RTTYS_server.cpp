@@ -5,6 +5,7 @@
 #include "rttys/RTTYS_server.h"
 #include "rttys/RTTYS_WebServer.h"
 #include "rttys/RTTYS_device.h"
+#include "rttys/RTTYS_ClientConnection.h"
 
 namespace OpenWifi {
 
