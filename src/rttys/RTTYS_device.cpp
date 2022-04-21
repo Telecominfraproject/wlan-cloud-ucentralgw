@@ -26,6 +26,7 @@ namespace OpenWifi {
 
 	void RTTY_Device_ConnectionHandler::AddCommand(u_char C) {
 		std::lock_guard		G(M_);
+		std::cout << conn_id_ << ": Adding command " << (int)C << std::endl;
 		commands_.push_back(C);
 	}
 
@@ -48,6 +49,7 @@ namespace OpenWifi {
 			{
 				std::lock_guard		G(M_);
 				if(!commands_.empty()) {
+					std::cout << "Commands: " << commands_.size() << std::endl;
 					for(const auto &i:commands_) {
 						std::cout << "Command: " << (int)i << std::endl;
 						if(i==msgTypeLogin) {
