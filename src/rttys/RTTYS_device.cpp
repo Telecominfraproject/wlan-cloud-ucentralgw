@@ -48,7 +48,6 @@ namespace OpenWifi {
 		while(running_) {
 			{
 				std::lock_guard		G(M_);
-				std::cout << conn_id_ << ": Looking for commands" << std::endl;
 				if(!commands_.empty()) {
 					std::cout << conn_id_ << ": Commands: " << commands_.size() << std::endl;
 					for(const auto &i:commands_) {
@@ -69,27 +68,29 @@ namespace OpenWifi {
 			} else {
 				std::lock_guard		G(M_);
 
-				std::cout << "Getting bytes..." << std::endl;
+				// std::cout << "Getting bytes..." << std::endl;
 				int received = socket().receiveBytes(inBuf_);
 
 				if(received<0) {
-
+					running_ = false;
+					break;
 				}
 
-				std::cout << "Received " << received << " bytes." << std::endl;
-				while (!inBuf_.isEmpty() && running_) {
-					std::cout << conn_id_ << ": processing buffer" << std::endl;
-					std::size_t msg_len;
-					if (waiting_for_bytes_ == 0) {
-						u_char header[3]{0};
-						inBuf_.read((char *)&header[0], 3);
-						last_command_ = header[0];
-						msg_len = header[1] * 256 + header[2];
-					} else {
-						msg_len = received;
-					}
+				if(received>0) {
+					std::cout << "Received " << received << " bytes." << std::endl;
+					while (!inBuf_.isEmpty() && running_) {
+						std::cout << conn_id_ << ": processing buffer" << std::endl;
+						std::size_t msg_len;
+						if (waiting_for_bytes_ == 0) {
+							u_char header[3]{0};
+							inBuf_.read((char *)&header[0], 3);
+							last_command_ = header[0];
+							msg_len = header[1] * 256 + header[2];
+						} else {
+							msg_len = received;
+						}
 
-					switch (last_command_) {
+						switch (last_command_) {
 						case msgTypeRegister: {
 							do_msgTypeRegister(msg_len);
 						} break;
@@ -126,6 +127,7 @@ namespace OpenWifi {
 						default:
 							std::cout << conn_id_ << ": Unknown command: " << (int)last_command_
 									  << std::endl;
+						}
 					}
 				}
 			}
