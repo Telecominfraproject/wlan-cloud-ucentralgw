@@ -48,8 +48,9 @@ namespace OpenWifi {
 		while(running_) {
 			{
 				std::lock_guard		G(M_);
+				std::cout << conn_id_ << ": Looking for commands" << std::endl;
 				if(!commands_.empty()) {
-					std::cout << "Commands: " << commands_.size() << std::endl;
+					std::cout << conn_id_ << ": Commands: " << commands_.size() << std::endl;
 					for(const auto &i:commands_) {
 						std::cout << "Command: " << (int)i << std::endl;
 						if(i==msgTypeLogin) {
