@@ -90,28 +90,39 @@ namespace OpenWifi {
 					}
 
 					switch (last_command_) {
-						case msgTypeRegister:
-							return do_msgTypeRegister(msg_len);
-						case msgTypeLogin:
-							return do_msgTypeLogin(msg_len);
-						case msgTypeLogout:
-							return do_msgTypeLogout(msg_len);
-						case msgTypeTermData:
-							return do_msgTypeTermData(msg_len);
-						case msgTypeWinsize:
-							return do_msgTypeWinsize(msg_len);
-						case msgTypeCmd:
-							return do_msgTypeCmd(msg_len);
-						case msgTypeHeartbeat:
-							return do_msgTypeHeartbeat(msg_len);
-						case msgTypeFile:
-							return do_msgTypeFile(msg_len);
-						case msgTypeHttp:
-							return do_msgTypeHttp(msg_len);
-						case msgTypeAck:
-							return do_msgTypeAck(msg_len);
-						case msgTypeMax:
-							return do_msgTypeMax(msg_len);
+						case msgTypeRegister: {
+							do_msgTypeRegister(msg_len);
+						} break;
+						case msgTypeLogin: {
+							do_msgTypeLogin(msg_len);
+						} break;
+						case msgTypeLogout: {
+							do_msgTypeLogout(msg_len);
+						} break;
+						case msgTypeTermData: {
+							do_msgTypeTermData(msg_len);
+						} break;
+						case msgTypeWinsize: {
+							do_msgTypeWinsize(msg_len);
+						} break;
+						case msgTypeCmd: {
+							do_msgTypeCmd(msg_len);
+						} break;
+						case msgTypeHeartbeat: {
+							do_msgTypeHeartbeat(msg_len);
+						} break;
+						case msgTypeFile: {
+							do_msgTypeFile(msg_len);
+						} break;
+						case msgTypeHttp: {
+							do_msgTypeHttp(msg_len);
+						} break;
+						case msgTypeAck: {
+							do_msgTypeAck(msg_len);
+						} break;
+						case msgTypeMax: {
+							do_msgTypeMax(msg_len);
+						} break;
 						default:
 							std::cout << conn_id_ << ": Unknown command: " << (int)last_command_
 									  << std::endl;
