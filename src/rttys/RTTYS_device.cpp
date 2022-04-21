@@ -247,7 +247,9 @@ namespace OpenWifi {
 			OutBuf[4] = 'O';
 			OutBuf[5] = 'K';
 			OutBuf[6] = 0;
-			socket().sendBytes(OutBuf, 7);
+			if(socket().sendBytes(OutBuf, 7) !=7) {
+				std::cout << conn_id_ << ": Problem sending 7 bytes" << std::endl;
+			}
 		} else {
 			std::cout << conn_id_ << ": not allowed to register" << std::endl;
 			running_ = false;
