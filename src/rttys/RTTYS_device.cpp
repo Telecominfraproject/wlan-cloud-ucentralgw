@@ -223,8 +223,13 @@ namespace OpenWifi {
 		outBuf[2] = 1;
 		outBuf[3] = sid_;
 		Logger().debug(fmt::format("{}: ID:{} Logout", conn_id_, id_));
-		socket().sendBytes(outBuf,4 );
-		return true;
+		try {
+			socket().sendBytes(outBuf, 4);
+			return true;
+		} catch (...) {
+
+		}
+		return false;
 	}
 
 	std::string RTTY_Device_ConnectionHandler::ReadString() {
