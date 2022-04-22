@@ -55,6 +55,7 @@ namespace OpenWifi {
 		running_ = true ;
 
 		Poco::Timespan pollTimeOut(0,100);
+		Poco::Timespan pollError(0,1);
 		Poco::Timespan recvTimeOut(120,0);
 
 		socket().setKeepAlive(true);
@@ -72,6 +73,11 @@ namespace OpenWifi {
 			}
 
 			std::lock_guard		G(M_);
+			if (socket().poll(pollError, Poco::Net::Socket::SELECT_ERROR) == true) {
+				running_=false;
+				continue;
+			}
+
 			if (socket().poll(pollTimeOut, Poco::Net::Socket::SELECT_READ) == false) {
 				continue;
 			}
