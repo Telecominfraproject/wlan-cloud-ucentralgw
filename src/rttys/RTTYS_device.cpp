@@ -142,6 +142,7 @@ namespace OpenWifi {
 		Logger().information(fmt::format("{}: ID:{} Exiting", conn_id_, id_));
 		loop_done_=true;
 		RTTYS_server()->DeRegister(id_, this);
+		std::cout << conn_id_ << ": loop exiting" << std::endl;
 	}
 
 	void RTTY_Device_ConnectionHandler::Stop() {
