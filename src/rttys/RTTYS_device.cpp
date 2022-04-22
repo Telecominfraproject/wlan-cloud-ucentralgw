@@ -26,22 +26,22 @@ namespace OpenWifi {
 
 	void RTTY_Device_ConnectionHandler::AddCommand(u_char C) {
 		std::lock_guard		G(M_);
-		std::cout << conn_id_ << ": Adding command " << (int)C << std::endl;
+		// std::cout << conn_id_ << ": Adding command " << (int)C << std::endl;
 		commands_.push_back(C);
 	}
 
 	bool RTTY_Device_ConnectionHandler::ProcessCommands() {
 		std::lock_guard		G(M_);
 		if(!commands_.empty()) {
-			std::cout << conn_id_ << ": Commands: " << commands_.size() << std::endl;
+			// std::cout << conn_id_ << ": Commands: " << commands_.size() << std::endl;
 			for(const auto &i:commands_) {
-				std::cout << "Command: " << (int)i << std::endl;
+//				std::cout << "Command: " << (int)i << std::endl;
 				if(i==msgTypeLogin) {
-					std::cout << "Doing login..." << std::endl;
+// 					std::cout << "Doing login..." << std::endl;
 					Login();
 				}
 				else if(i==msgTypeLogout) {
-					std::cout << "Doing logout..." << std::endl;
+// 					std::cout << "Doing logout..." << std::endl;
 					Logout();
 				}
 			}
@@ -76,7 +76,6 @@ namespace OpenWifi {
 				continue;
 			}
 
-			// std::cout << "Getting bytes..." << std::endl;
 			int received = socket().receiveBytes(inBuf_);
 			if(received<0) {
 				running_ = false;
@@ -87,9 +86,8 @@ namespace OpenWifi {
 				continue;
 			}
 
-			std::cout << "Received " << received << " bytes." << std::endl;
 			while (!inBuf_.isEmpty() && running_) {
-				std::cout << conn_id_ << ": processing buffer" << std::endl;
+				// std::cout << conn_id_ << ": processing buffer" << std::endl;
 				std::size_t msg_len;
 				if (waiting_for_bytes_ == 0) {
 					u_char header[3]{0};
@@ -135,13 +133,13 @@ namespace OpenWifi {
 						do_msgTypeMax(msg_len);
 					} break;
 					default:
-						std::cout << conn_id_ << ": Unknown command: " << (int)last_command_ << std::endl;
+						Logger().warning(fmt::format("{}: ID:{} Unknown command {}", conn_id_, id_, (int)last_command_));
 						running_ = false;
 						continue;
 					}
 			}
 		}
-		std::cout << conn_id_ << ": Loop done" << std::endl;
+		Logger().information(fmt::format("{}: ID:{} Exiting", conn_id_, id_));
 		loop_done_=true;
 		RTTYS_server()->DeRegister(id_, this);
 	}
@@ -201,10 +199,10 @@ namespace OpenWifi {
 		try {
 			socket().sendBytes(outBuf, 3);
 		} catch (const Poco::IOException &E) {
-			std::cout << "1  " << E.what() << " " << E.name() << " "<< E.className() << " "<< E.message() << std::endl;
+			// std::cout << "1  " << E.what() << " " << E.name() << " "<< E.className() << " "<< E.message() << std::endl;
 			return false;
 		} catch (const Poco::Exception &E) {
-			std::cout << "2  " << E.what() << " " << E.name() << std::endl;
+			// std::cout << "2  " << E.what() << " " << E.name() << std::endl;
 			return false;
 		}
 		Logger().debug(fmt::format("{}: Device {} login", conn_id_, id_));
@@ -218,7 +216,7 @@ namespace OpenWifi {
 		outBuf[1] = 0;
 		outBuf[2] = 1;
 		outBuf[3] = sid_;
-		Logger().debug(fmt::format("{}: Device {} logout", conn_id_, id_));
+		Logger().debug(fmt::format("{}: ID:{} Logout", conn_id_, id_));
 		socket().sendBytes(outBuf,4 );
 		return true;
 	}
@@ -243,12 +241,10 @@ namespace OpenWifi {
 		id_ = ReadString();
 		desc_ = ReadString();
 		token_ = ReadString();
-		std::cout << conn_id_ << ": Device Registration ID:" << id_ << " DESC:" << desc_ << " TOK:"
-				  << token_ << std::endl;
+		serial_ = RTTYS_server()->SerialNumber(id_);
+
+		Logger().debug(fmt::format("{}: ID:{} Serial:{} Description:{} Device registration", conn_id_, id_, serial_, desc_));
 		if (RTTYS_server()->Register(id_, token_, this)) {
-			serial_ = RTTYS_server()->SerialNumber(id_);
-			Logger().debug(fmt::format("{}: Registration for SerialNumber: {}, Description: {}",
-									   conn_id_, serial_, desc_));
 			u_char OutBuf[8];
 			OutBuf[0] = msgTypeRegister;
 			OutBuf[1] = 0;
@@ -258,18 +254,17 @@ namespace OpenWifi {
 			OutBuf[5] = 'K';
 			OutBuf[6] = 0;
 			if(socket().sendBytes(OutBuf, 7) !=7) {
-				std::cout << conn_id_ << ": Problem sending 7 bytes" << std::endl;
+				Logger().debug(fmt::format("{}: ID:{} Serial:{} Description:{} Could not complete registration", conn_id_, id_, serial_, desc_));
+				running_ = false;
 			}
 		} else {
-			std::cout << conn_id_ << ": not allowed to register" << std::endl;
+			Logger().debug(fmt::format("{}: ID:{} Serial:{} Description:{} Could not complete registration", conn_id_, id_, serial_, desc_));
 			running_ = false;
 		}
 	}
 
 	void RTTY_Device_ConnectionHandler::do_msgTypeLogin([[maybe_unused]] std::size_t msg_len) {
-		std::cout << conn_id_ << ": Device Login..." << std::endl;
-		Logger().debug(fmt::format(
-			"{}: Device created session for SerialNumber: {}, session: {}", conn_id_, serial_, id_));
+		Logger().debug(fmt::format("{}: ID:{} Serial:{} Asking for login", conn_id_, id_, serial_));
 		nlohmann::json doc;
 		char Error;
 		inBuf_.read(&Error, 1);
@@ -281,12 +276,12 @@ namespace OpenWifi {
 	}
 
 	void RTTY_Device_ConnectionHandler::do_msgTypeLogout([[maybe_unused]] std::size_t msg_len) {
-		std::cout << conn_id_ << ": Device msgTypeLogout" << std::endl;
+		Logger().debug(fmt::format("{}: ID:{} Serial:{} Asking for logout", conn_id_, id_, serial_));
 	}
 
 	void RTTY_Device_ConnectionHandler::do_msgTypeTermData(std::size_t msg_len) {
 		if(waiting_for_bytes_!=0) {
-			std::cout << conn_id_ << ": S2:" << inBuf_.used() << std::endl;
+			// std::cout << conn_id_ << ": S2:" << inBuf_.used() << std::endl;
 			auto to_read = std::min(inBuf_.used(),waiting_for_bytes_);
 			inBuf_.read(&scratch_[0], to_read);
 			SendToClient((u_char *)&scratch_[0], (int) to_read);
@@ -296,12 +291,12 @@ namespace OpenWifi {
 				waiting_for_bytes_ = 0 ;
 		} else {
 			if(inBuf_.used()<msg_len) {
-				std::cout << conn_id_ << ": S1:" << msg_len << std::endl;
+				// std::cout << conn_id_ << ": S1:" << msg_len << std::endl;
 				auto read_count = inBuf_.read(&scratch_[0], inBuf_.used());
 				SendToClient((u_char *)&scratch_[0], read_count);
 				waiting_for_bytes_ = msg_len - read_count;
 			} else {
-				std::cout << conn_id_ << ": S0:" << msg_len << std::endl;
+				// std::cout << conn_id_ << ": S0:" << msg_len << std::endl;
 				inBuf_.read(&scratch_[0], msg_len);
 				SendToClient((u_char *)&scratch_[0], (int)msg_len);
 				waiting_for_bytes_=0;
@@ -310,33 +305,33 @@ namespace OpenWifi {
 	}
 
 	void RTTY_Device_ConnectionHandler::do_msgTypeWinsize([[maybe_unused]] std::size_t msg_len) {
-		std::cout << conn_id_ << ": Device msgTypeWinsize" << std::endl;
+		Logger().debug(fmt::format("{}: ID:{} Serial:{} Asking for msgTypeWinsize", conn_id_, id_, serial_));
 	}
 
 	void RTTY_Device_ConnectionHandler::do_msgTypeCmd([[maybe_unused]] std::size_t msg_len) {
-		std::cout << conn_id_ << ": Device msgTypeCmd" << std::endl;
+		Logger().debug(fmt::format("{}: ID:{} Serial:{} Asking for msgTypeCmd", conn_id_, id_, serial_));
 	}
 
 	void RTTY_Device_ConnectionHandler::do_msgTypeHeartbeat([[maybe_unused]] std::size_t msg_len) {
-		std::cout << conn_id_ << ": Device msgTypeHeartbeat: " << std::endl;
+		// std::cout << conn_id_ << ": Device msgTypeHeartbeat: " << std::endl;
 		u_char MsgBuf[3]{0};
 		MsgBuf[0] = msgTypeHeartbeat;
 		socket().sendBytes(MsgBuf, 3);
 	}
 
 	void RTTY_Device_ConnectionHandler::do_msgTypeFile([[maybe_unused]] std::size_t msg_len) {
-		std::cout << conn_id_ << ": Device msgTypeFile" << std::endl;
+		Logger().debug(fmt::format("{}: ID:{} Serial:{} Asking for msgTypeFile", conn_id_, id_, serial_));
 	}
 
 	void RTTY_Device_ConnectionHandler::do_msgTypeHttp([[maybe_unused]] std::size_t msg_len) {
-		std::cout << conn_id_ << ": Device msgTypeHttp" << std::endl;
+		Logger().debug(fmt::format("{}: ID:{} Serial:{} Asking for msgTypeHttp", conn_id_, id_, serial_));
 	}
 
 	void RTTY_Device_ConnectionHandler::do_msgTypeAck([[maybe_unused]] std::size_t msg_len) {
-		std::cout << conn_id_ << ": Device msgTypeAck" << std::endl;
+		Logger().debug(fmt::format("{}: ID:{} Serial:{} Asking for msgTypeAck", conn_id_, id_, serial_));
 	}
 
 	void RTTY_Device_ConnectionHandler::do_msgTypeMax([[maybe_unused]] std::size_t msg_len) {
-		std::cout << conn_id_ << ": Device msgTypeMax" << std::endl;
+		Logger().debug(fmt::format("{}: ID:{} Serial:{} Asking for msgTypeMax", conn_id_, id_, serial_));
 	}
 }
