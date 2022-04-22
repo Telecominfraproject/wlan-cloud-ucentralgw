@@ -93,36 +93,42 @@ namespace OpenWifi {
 		}
 	}
 
+	bool RTTYS_server::SendToClient(const std::string &Id, const u_char *Buf, std::size_t Len) {
+		std::lock_guard	G(M_);
+		auto It = EndPoints_.find(Id);
+		if(It!=EndPoints_.end() && It->second.Client!= nullptr) {
+			It->second.Client->SendData(Buf,Len);
+			return true;
+		}
+		return false;
+	}
+
+	bool RTTYS_server::SendToClient(const std::string &Id, const std::string &s) {
+		std::lock_guard	G(M_);
+		auto It = EndPoints_.find(Id);
+		if(It!=EndPoints_.end() && It->second.Client!= nullptr) {
+			It->second.Client->SendData((u_char*)s.c_str(),s.size());
+			return true;
+		}
+		return false;
+
+	}
+
+
 	void RTTYS_server::DeRegister(const std::string &Id, RTTYS_ClientConnection *Client) {
 		std::lock_guard	G(M_);
 		auto It = EndPoints_.find(Id);
-		if(It==EndPoints_.end())
-			return;
-		if(It->second.Client!=Client)
-			return;
-		It->second.Client = nullptr;
-		It->second.Done = true;
-		It->second.ClientConnected = 0 ;
-	}
-
-	RTTYS_ClientConnection * RTTYS_server::GetClient(const std::string &Id) {
-		std::lock_guard	G(M_);
-		auto It = EndPoints_.find(Id);
-		if(It==EndPoints_.end()) {
-			return nullptr;
+		if(It==EndPoints_.end() && It->second.Client==Client) {
+			if(It->second.Device!= nullptr)
+				It->second.Device->Stop();
+			EndPoints_.erase(Id);
 		}
-		return It->second.Client;
 	}
 
 	bool RTTYS_server::Register(const std::string &Id, const std::string &Token, RTTY_Device_ConnectionHandler *Device) {
 		std::lock_guard	G(M_);
 		auto It = EndPoints_.find(Id);
 		if(It!=EndPoints_.end()) {
-//			std::cout << "Updating connection" << std::endl;
-//			if(It->second.Device!= nullptr) {
-//				std::cout << "Switching from " << It->second.Device->SessionID() << " to " << Device->SessionID() << std::endl;
-//				delete It->second.Device;
-//			}
 			It->second.Device = Device;
 			It->second.Token = Token;
 			It->second.DeviceConnected = OpenWifi::Now();

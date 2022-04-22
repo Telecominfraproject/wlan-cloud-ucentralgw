@@ -149,16 +149,12 @@ namespace OpenWifi {
 		running_ = true;
 	}
 
-	void RTTY_Device_ConnectionHandler::SendToClient(const u_char *Buf, int len) {
-		auto Client = RTTYS_server()->GetClient(id_);
-		if(Client!= nullptr)
-			Client->SendData(Buf,len);
+	void RTTY_Device_ConnectionHandler::SendToClient(const u_char *Buf, int Len) {
+		RTTYS_server()->SendToClient(id_, Buf, Len);
 	}
 
 	void RTTY_Device_ConnectionHandler::SendToClient(const std::string &S) {
-		auto Client = RTTYS_server()->GetClient(id_);
-		if(Client!= nullptr)
-			Client->SendData(S);
+		RTTYS_server()->SendToClient(id_, S);
 	}
 
 	bool RTTY_Device_ConnectionHandler::KeyStrokes(const u_char *buf, size_t len) {
