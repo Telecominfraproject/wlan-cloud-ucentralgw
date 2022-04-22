@@ -154,8 +154,6 @@ namespace OpenWifi {
 		return false;
 	}
 
-	bool WindowSize(const std::string &Id, int rows, int cols);
-
 	bool RTTYS_server::WindowSize(const std::string &Id, int cols, int rows) {
 		std::lock_guard	G(M_);
 		auto It=EndPoints_.find(Id);
