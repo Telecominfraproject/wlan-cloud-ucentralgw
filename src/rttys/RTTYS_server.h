@@ -45,6 +45,7 @@ namespace OpenWifi {
 		bool Logout(const std::string & Id_);
 		bool Close(const std::string & Id_);
 		uint64_t DeviceSessionID(const std::string & Id);
+		bool SendKeyStrokes(const std::string &Id, const u_char *buffer, std::size_t s);
 
 		struct EndPoint {
 			std::string 					Token;

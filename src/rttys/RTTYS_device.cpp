@@ -161,12 +161,12 @@ namespace OpenWifi {
 			Client->SendData(S);
 	}
 
-	void RTTY_Device_ConnectionHandler::KeyStrokes(const u_char *buf, size_t len) {
+	bool RTTY_Device_ConnectionHandler::KeyStrokes(const u_char *buf, size_t len) {
 		std::lock_guard		G(M_);
 		u_char outBuf[16]{0};
 
 		if(len>(sizeof(outBuf)-5))
-			return;
+			return false;
 
 		auto total_len = 3 + 1 + len-1;
 		outBuf[0] = msgTypeTermData;
@@ -174,7 +174,12 @@ namespace OpenWifi {
 		outBuf[2] = len +1-1;
 		outBuf[3] = sid_;
 		memcpy( &outBuf[4], &buf[1], len-1);
-		socket().sendBytes(outBuf, total_len);
+		try {
+			socket().sendBytes(outBuf, total_len);
+			return true;
+		} catch (...) {
+			return false;
+		}
 	}
 
 	void RTTY_Device_ConnectionHandler::WindowSize(int cols, int rows) {

@@ -32,7 +32,7 @@ namespace OpenWifi {
 		Poco::Net::SocketReactor &SR_;
 		std::atomic_bool 	Connected_=false;
 		Poco::Logger & 		Logger_;
-		u_char 				Buffer[16000]{0};
+		u_char 				Buffer_[16000]{0};
 
 		inline Poco::Logger & Logger() { return Logger_; }
 	};

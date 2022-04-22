@@ -40,7 +40,7 @@ class RTTY_Device_ConnectionHandler : public Poco::Net::TCPServerConnection {
 	void SendToClient(const u_char *buf, int len);
 	void SendToClient(const std::string &S);
 	void WindowSize(int cols, int rows);
-	void KeyStrokes(const u_char *buf, size_t len);
+	bool KeyStrokes(const u_char *buf, size_t len);
 	std::string ReadString();
 	inline auto SessionID() const { return conn_id_; }
 	void AddCommand(u_char C);

@@ -151,6 +151,20 @@ namespace OpenWifi {
 		return It->second.Device;
 	}
 
+	bool RTTYS_server::SendKeyStrokes(const std::string &Id, const u_char *buffer, std::size_t s) {
+		std::lock_guard	G(M_);
+		auto It=EndPoints_.find(Id);
+		if(It==EndPoints_.end()) {
+			return false;
+		}
+
+		if(It->second.Device!= nullptr)
+			return It->second.Device->KeyStrokes(buffer,s);
+
+		return false;
+	}
+
+
 	bool RTTYS_server::CreateEndPoint(const std::string &Id, const std::string & Token, const std::string & UserName, const std::string & SerialNumber ) {
 		std::lock_guard	G(M_);
 

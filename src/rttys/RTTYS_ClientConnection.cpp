@@ -72,7 +72,7 @@ namespace OpenWifi {
 	void RTTYS_ClientConnection::onSocketReadable([[maybe_unused]] const Poco::AutoPtr<Poco::Net::ReadableNotification> &pNf) {
 
 		int flags;
-		auto n = WS_->receiveFrame(Buffer, sizeof(Buffer), flags);
+		auto n = WS_->receiveFrame(Buffer_, sizeof(Buffer_), flags);
 		auto Op = flags & Poco::Net::WebSocket::FRAME_OP_BITMASK;
 		switch(Op) {
 			case Poco::Net::WebSocket::FRAME_OP_PING: {
@@ -85,8 +85,8 @@ namespace OpenWifi {
 			case Poco::Net::WebSocket::FRAME_OP_TEXT: {
 					if (n == 0)
 						return delete this;
-					std::string s((char*)Buffer, n);
-					std::cout << "TEXT:" << s << std::endl;
+					std::string s((char*)Buffer_, n);
+					// std::cout << "TEXT:" << s << std::endl;
 					try {
 						auto Doc = nlohmann::json::parse(s);
 						if (Doc.contains("type")) {
@@ -110,11 +110,10 @@ namespace OpenWifi {
 			case Poco::Net::WebSocket::FRAME_OP_BINARY: {
 					if (n == 0)
 						return delete this;
-					auto Device = RTTYS_server()->GetDevice(Id_);
-					if(Device==nullptr) {
-						return;
+					if(!RTTYS_server()->SendKeyStrokes(Id_,Buffer_,n)) {
+						WS_->shutdown();
+						return delete this;
 					}
-					Device->KeyStrokes(Buffer,n);
 				}
 				break;
 			case Poco::Net::WebSocket::FRAME_OP_CLOSE: {
