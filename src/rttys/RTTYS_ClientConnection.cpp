@@ -85,7 +85,7 @@ namespace OpenWifi {
 			case Poco::Net::WebSocket::FRAME_OP_TEXT: {
 					if (n == 0)
 						return delete this;
-					std::string s{(char*)Buffer};
+					std::string s((char*)Buffer, n);
 					std::cout << "TEXT: " << s << std::endl;
 					auto Doc = nlohmann::json::parse(s);
 					if(Doc.contains("type")) {
