@@ -30,112 +30,120 @@ namespace OpenWifi {
 		commands_.push_back(C);
 	}
 
+	bool RTTY_Device_ConnectionHandler::ProcessCommands() {
+		std::lock_guard		G(M_);
+		if(!commands_.empty()) {
+			std::cout << conn_id_ << ": Commands: " << commands_.size() << std::endl;
+			for(const auto &i:commands_) {
+				std::cout << "Command: " << (int)i << std::endl;
+				if(i==msgTypeLogin) {
+					std::cout << "Doing login..." << std::endl;
+					Login();
+				}
+				else if(i==msgTypeLogout) {
+					std::cout << "Doing logout..." << std::endl;
+					Logout();
+				}
+			}
+			commands_.clear();
+		}
+		return true;
+	}
+
 
 	void RTTY_Device_ConnectionHandler::run() {
 		running_ = true ;
-		auto SS = dynamic_cast<Poco::Net::SecureStreamSocketImpl *>(socket().impl());
-		while (true) {
-			auto V = SS->completeHandshake();
-			if (V == 1)
-				break;
-		}
+
+		Poco::Timespan pollTimeOut(0,100);
+		Poco::Timespan recvTimeOut(120,0);
+
 		socket().setKeepAlive(true);
 		socket().setNoDelay(true);
 		socket().setReceiveBufferSize(64000);
-
-		Poco::Timespan timeOut(10,0);
+		socket().setLinger(false,0);
+		socket().setSendBufferSize(64000);
+		socket().setReceiveTimeout(recvTimeOut);
 
 		while(running_) {
-			{
-				std::lock_guard		G(M_);
-				if(!commands_.empty()) {
-					std::cout << conn_id_ << ": Commands: " << commands_.size() << std::endl;
-					for(const auto &i:commands_) {
-						std::cout << "Command: " << (int)i << std::endl;
-						if(i==msgTypeLogin) {
-							std::cout << "Doing login..." << std::endl;
-							Login();
-						}
-						else if(i==msgTypeLogout) {
-							std::cout << "Doing logout..." << std::endl;
-							Logout();
-						}
-					}
-					commands_.clear();
-				}
+
+			if(!ProcessCommands()) {
+				running_=false;
+				break;
 			}
 
-			if(socket().poll(timeOut,Poco::Net::Socket::SELECT_READ) == false) {
+			std::lock_guard		G(M_);
+			if (socket().poll(pollTimeOut, Poco::Net::Socket::SELECT_READ) == false) {
+				continue;
+			}
 
-			} else {
-				std::lock_guard		G(M_);
+			// std::cout << "Getting bytes..." << std::endl;
+			int received = socket().receiveBytes(inBuf_);
+			if(received<0) {
+				running_ = false;
+				continue;
+			}
 
-				// std::cout << "Getting bytes..." << std::endl;
-				int received = socket().receiveBytes(inBuf_);
+			if(received==0) {
+				continue;
+			}
 
-				if(received<0) {
-					running_ = false;
-					break;
+			std::cout << "Received " << received << " bytes." << std::endl;
+			while (!inBuf_.isEmpty() && running_) {
+				std::cout << conn_id_ << ": processing buffer" << std::endl;
+				std::size_t msg_len;
+				if (waiting_for_bytes_ == 0) {
+					u_char header[3]{0};
+					inBuf_.read((char *)&header[0], 3);
+					last_command_ = header[0];
+					msg_len = header[1] * 256 + header[2];
+				} else {
+					msg_len = received;
 				}
 
-				if(received>0) {
-					std::cout << "Received " << received << " bytes." << std::endl;
-					while (!inBuf_.isEmpty() && running_) {
-						std::cout << conn_id_ << ": processing buffer" << std::endl;
-						std::size_t msg_len;
-						if (waiting_for_bytes_ == 0) {
-							u_char header[3]{0};
-							inBuf_.read((char *)&header[0], 3);
-							last_command_ = header[0];
-							msg_len = header[1] * 256 + header[2];
-						} else {
-							msg_len = received;
-						}
-
-						switch (last_command_) {
-						case msgTypeRegister: {
-							do_msgTypeRegister(msg_len);
-						} break;
-						case msgTypeLogin: {
-							do_msgTypeLogin(msg_len);
-						} break;
-						case msgTypeLogout: {
-							do_msgTypeLogout(msg_len);
-						} break;
-						case msgTypeTermData: {
-							do_msgTypeTermData(msg_len);
-						} break;
-						case msgTypeWinsize: {
-							do_msgTypeWinsize(msg_len);
-						} break;
-						case msgTypeCmd: {
-							do_msgTypeCmd(msg_len);
-						} break;
-						case msgTypeHeartbeat: {
-							do_msgTypeHeartbeat(msg_len);
-						} break;
-						case msgTypeFile: {
-							do_msgTypeFile(msg_len);
-						} break;
-						case msgTypeHttp: {
-							do_msgTypeHttp(msg_len);
-						} break;
-						case msgTypeAck: {
-							do_msgTypeAck(msg_len);
-						} break;
-						case msgTypeMax: {
-							do_msgTypeMax(msg_len);
-						} break;
-						default:
-							std::cout << conn_id_ << ": Unknown command: " << (int)last_command_
-									  << std::endl;
-						}
-					}
+				switch (last_command_) {
+				case msgTypeRegister: {
+					do_msgTypeRegister(msg_len);
+				} break;
+				case msgTypeLogin: {
+					do_msgTypeLogin(msg_len);
+				} break;
+				case msgTypeLogout: {
+					do_msgTypeLogout(msg_len);
+				} break;
+				case msgTypeTermData: {
+					do_msgTypeTermData(msg_len);
+				} break;
+				case msgTypeWinsize: {
+					do_msgTypeWinsize(msg_len);
+				} break;
+				case msgTypeCmd: {
+					do_msgTypeCmd(msg_len);
+				} break;
+				case msgTypeHeartbeat: {
+					do_msgTypeHeartbeat(msg_len);
+				} break;
+				case msgTypeFile: {
+					do_msgTypeFile(msg_len);
+				} break;
+				case msgTypeHttp: {
+					do_msgTypeHttp(msg_len);
+				} break;
+				case msgTypeAck: {
+					do_msgTypeAck(msg_len);
+				} break;
+				case msgTypeMax: {
+					do_msgTypeMax(msg_len);
+				} break;
+				default:
+					std::cout << conn_id_ << ": Unknown command: " << (int)last_command_ << std::endl;
+					running_ = false;
+					continue;
 				}
 			}
 		}
 		std::cout << conn_id_ << ": Loop done" << std::endl;
 		loop_done_=true;
+		RTTYS_server()->DeRegister(id_, this);
 	}
 
 	void RTTY_Device_ConnectionHandler::Stop() {

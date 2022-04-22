@@ -75,6 +75,8 @@ class RTTY_Device_ConnectionHandler : public Poco::Net::TCPServerConnection {
 	void do_msgTypeHttp(std::size_t msg_len);
 	void do_msgTypeAck(std::size_t msg_len);
 	void do_msgTypeMax(std::size_t msg_len);
+
+	bool ProcessCommands();
 };
 
 
