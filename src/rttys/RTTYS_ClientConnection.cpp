@@ -95,7 +95,6 @@ namespace OpenWifi {
 								auto cols = Doc["cols"];
 								auto rows = Doc["rows"];
 								if(!RTTYS_server()->WindowSize(Id_,cols, rows)) {
-									WS_->shutdown();
 									return delete this;
 								}
 							}
@@ -109,13 +108,11 @@ namespace OpenWifi {
 					if (n == 0)
 						return delete this;
 					if(!RTTYS_server()->SendKeyStrokes(Id_,Buffer_,n)) {
-						WS_->shutdown();
 						return delete this;
 					}
 				}
 				break;
 			case Poco::Net::WebSocket::FRAME_OP_CLOSE: {
-					WS_->shutdown();
 					return delete this;
 				}
 				break;
