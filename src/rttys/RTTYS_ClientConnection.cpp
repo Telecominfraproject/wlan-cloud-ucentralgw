@@ -94,12 +94,10 @@ namespace OpenWifi {
 							if (Type == "winsize") {
 								auto cols = Doc["cols"];
 								auto rows = Doc["rows"];
-								;
-								auto Device = RTTYS_server()->GetDevice(Id_);
-								if (Device == nullptr) {
-									return;
+								if(!RTTYS_server()->WindowSize(Id_,cols, rows)) {
+									WS_->shutdown();
+									return delete this;
 								}
-								Device->WindowSize(cols, rows);
 							}
 						}
 					} catch (...) {

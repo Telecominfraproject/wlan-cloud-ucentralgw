@@ -34,7 +34,6 @@ namespace OpenWifi {
 		RTTYS_ClientConnection * GetClient(const std::string &Id);
 		bool Register(const std::string &Id, const std::string &Token, RTTY_Device_ConnectionHandler *Device);
 		void DeRegister(const std::string &Id, RTTY_Device_ConnectionHandler *Device);
-		RTTY_Device_ConnectionHandler * GetDevice(const std::string &id);
 		bool CreateEndPoint(const std::string &Id, const std::string & Token, const std::string & UserName, const std::string & SerialNumber );
 		std::string SerialNumber(const std::string & Id);
 		void LoginDone(const std::string & Id);
@@ -46,6 +45,7 @@ namespace OpenWifi {
 		bool Close(const std::string & Id_);
 		uint64_t DeviceSessionID(const std::string & Id);
 		bool SendKeyStrokes(const std::string &Id, const u_char *buffer, std::size_t s);
+		bool WindowSize(const std::string &Id, int cols, int rows);
 
 		struct EndPoint {
 			std::string 					Token;

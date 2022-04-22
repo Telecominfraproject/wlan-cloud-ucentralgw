@@ -182,9 +182,9 @@ namespace OpenWifi {
 		}
 	}
 
-	void RTTY_Device_ConnectionHandler::WindowSize(int cols, int rows) {
+	bool RTTY_Device_ConnectionHandler::WindowSize(int cols, int rows) {
 		std::lock_guard		G(M_);
-		u_char	outBuf[32]{0};
+		u_char	outBuf[8]{0};
 		outBuf[0] = msgTypeWinsize;
 		outBuf[1] = 0 ;
 		outBuf[2] = 4 + 1 ;
@@ -193,12 +193,18 @@ namespace OpenWifi {
 		outBuf[5] = cols & 0x00ff;
 		outBuf[6] = rows >> 8;
 		outBuf[7] = rows & 0x00ff;
-		socket().sendBytes(outBuf,8);
+		try {
+			socket().sendBytes(outBuf, 8);
+			return true;
+		} catch (...) {
+
+		}
+		return false;
 	}
 
 	bool RTTY_Device_ConnectionHandler::Login() {
 		std::lock_guard		G(M_);
-		u_char outBuf[8]{0};
+		u_char outBuf[3]{0};
 		outBuf[0] = msgTypeLogin;
 		outBuf[1] = 0;
 		outBuf[2] = 0;

@@ -142,15 +142,6 @@ namespace OpenWifi {
 		}
 	}
 
-	RTTY_Device_ConnectionHandler * RTTYS_server::GetDevice(const std::string &id) {
-		std::lock_guard	G(M_);
-		auto It = EndPoints_.find(id);
-		if(It==EndPoints_.end()) {
-			return nullptr;
-		}
-		return It->second.Device;
-	}
-
 	bool RTTYS_server::SendKeyStrokes(const std::string &Id, const u_char *buffer, std::size_t s) {
 		std::lock_guard	G(M_);
 		auto It=EndPoints_.find(Id);
@@ -160,7 +151,20 @@ namespace OpenWifi {
 
 		if(It->second.Device!= nullptr)
 			return It->second.Device->KeyStrokes(buffer,s);
+		return false;
+	}
 
+	bool WindowSize(const std::string &Id, int rows, int cols);
+
+	bool RTTYS_server::WindowSize(const std::string &Id, int cols, int rows) {
+		std::lock_guard	G(M_);
+		auto It=EndPoints_.find(Id);
+		if(It==EndPoints_.end()) {
+			return false;
+		}
+
+		if(It->second.Device!= nullptr)
+			return It->second.Device->WindowSize(cols,rows);
 		return false;
 	}
 
