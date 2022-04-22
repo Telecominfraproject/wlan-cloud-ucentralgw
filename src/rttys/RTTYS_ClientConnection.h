@@ -27,9 +27,13 @@ namespace OpenWifi {
 
 	  private:
 		std::unique_ptr<Poco::Net::WebSocket> WS_;
-		std::string Id_;
-		std::string Sid_;
+		std::string 		Id_;
+		std::string 		Sid_;
 		Poco::Net::SocketReactor &SR_;
-		std::atomic_bool Connected_=false;
+		std::atomic_bool 	Connected_=false;
+		Poco::Logger & 		Logger_;
+		u_char 				Buffer[16000]{0};
+
+		inline Poco::Logger & Logger() { return Logger_; }
 	};
 }

@@ -17,22 +17,18 @@ namespace OpenWifi {
 					   Poco::Net::HTTPServerResponse &response)  {
 		Poco::URI uri(request.getURI());
 		const auto P = uri.getPath();
-		std::cout << "WS: " << P << std::endl;
+//		std::cout << "WS: " << P << std::endl;
 		auto T = Poco::StringTokenizer(P, "/");
 		if (T.count() != 3)
 			return;
 		if (T[1] != "connect")
 			return;
 		try {
-			std::cout << __LINE__ << std::endl;
 			Poco::Thread::current()->setName(fmt::format("WebRTTYRequest_WSHandler_{}", T[2]));
-			std::cout << __LINE__ << std::endl;
 			auto ws_ptr = std::make_unique<Poco::Net::WebSocket>(request, response);
-			std::cout << __LINE__ << std::endl;
 			new RTTYS_ClientConnection(std::move(ws_ptr), T[2], R_);
-			std::cout << __LINE__ << std::endl;
 		} catch (...) {
-			std::cout << "Exception during WS creation" << std::endl;
+			RTTYS_server()->Logger().warning("Exception during WS creation");
 		}
 	};
 
@@ -90,16 +86,14 @@ namespace OpenWifi {
 		auto Path = uri.getPath();
 
 		if(request.getMethod() == Poco::Net::HTTPRequest::HTTP_OPTIONS) {
-			std::cout << "options..." << std::endl;
 			AddCORS(request,response, Logger_, id);
 			response.send();
-			Logger_.information(fmt::format("{}: Finishing request.",id));
+			Logger_.information(fmt::format("{}: Finishing OPTIONS request.",id));
 			return;
 		} else if(request.getMethod() == Poco::Net::HTTPRequest::HTTP_HEAD){
-			std::cout << "head..." << std::endl;
 			AddCORS(request,response, Logger_, id);
 			response.send();
-			Logger_.information(fmt::format("{}: Finishing request.",id));
+			Logger_.information(fmt::format("{}: Finishing HEAD request.",id));
 			return;
 		}
 
@@ -119,7 +113,7 @@ namespace OpenWifi {
 					response.setContentType("application/json");
 					std::ostream &answer = response.send();
 					answer << to_string(doc);
-					Logger_.information(fmt::format("{}: Finishing request.",id));
+					Logger_.information(fmt::format("{}: Finishing authorization request.",id));
 					return;
 				} else if (ParsedPath[1] == "fontsize") {
 					AddCORS(request,response, Logger_, id);
@@ -128,14 +122,14 @@ namespace OpenWifi {
 					response.setContentType("application/json");
 					std::ostream &answer = response.send();
 					answer << to_string(doc);
-					Logger_.information(fmt::format("{}: Finishing request.",id));
+					Logger_.information(fmt::format("{}: Finishing fonstize request.",id));
 					return;
 				}
 			}
 			Path = RTTYS_server()->UIAssets() + Path;
 		}
 
-		std::cout << id << ": Serving path '" << Path << "'" << std::endl;
+		// std::cout << id << ": Serving path '" << Path << "'" << std::endl;
 
 		//	simple test to block .. or ~ in path names.
 		if(Path.find("../")!=std::string::npos) {
@@ -151,7 +145,7 @@ namespace OpenWifi {
 		Poco::File	F(Path);
 		AddCORS(request,response, Logger_, id);
 		if(!F.exists()) {
-			std::cout << id << ": Path " << Path << " does not exist" << std::endl;
+			// std::cout << id << ": Path " << Path << " does not exist" << std::endl;
 			Path = RTTYS_server()->UIAssets() + "/index.html";
 			response.sendFile(Path,"text/html");
 			Logger_.information(fmt::format("{}: Finishing request.",id));

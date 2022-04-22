@@ -10,47 +10,46 @@ namespace OpenWifi {
 
 	RTTYS_ClientConnection::RTTYS_ClientConnection(std::unique_ptr<Poco::Net::WebSocket> WS, std::string &Id,
 							  Poco::Net::SocketReactor &Reactor)
-							  : WS_(std::move(WS)), Id_(std::move(Id)), SR_(Reactor) {
+			: 	WS_(std::move(WS)),
+	  			Id_(std::move(Id)),
+	  			SR_(Reactor),
+				Logger_(RTTYS_server()->Logger()) {
         RTTYS_server()->Register(Id_, this);
 		if(RTTYS_server()->CanConnect(Id_,this)) {
-		    std::cout << "WebSocket connecting: " << Id_ << std::endl;
+			Logger().information(fmt::format("{}: Starting WS connection, session: {}.", Id_, RTTYS_server()->DeviceSessionID(Id_)));
 			SR_.addEventHandler(*WS_,
 								Poco::NObserver<RTTYS_ClientConnection, Poco::Net::ReadableNotification>(
 									*this, &RTTYS_ClientConnection::onSocketReadable));
 			SR_.addEventHandler(*WS_,
 								Poco::NObserver<RTTYS_ClientConnection, Poco::Net::ShutdownNotification>(
 									*this, &RTTYS_ClientConnection::onSocketShutdown));
-			std::cout << "Session: " << RTTYS_server()->DeviceSessionID(Id_) << std::endl;
 
 			auto DoLogin = [this]() -> void {
 				int tries = 0 ;
-
-				while(tries < 5) {
+				while(tries < 10) {
 					if(RTTYS_server()->Login(this->Id_)) {
-						std::cout << "We connected the WS to the client" << std::endl;
+						Logger().information(fmt::format("{}: WS client connected to device, session: {}.", Id_, RTTYS_server()->DeviceSessionID(Id_)));
 						this->Connected_=true;
 						return;
 					}
 					std::this_thread::sleep_for(2000ms);
 					tries++;
 				}
-				std::cout << "We could not connect..." << std::endl;
+				Logger().information(fmt::format("{}: WS client could not connect to device, session: {}.", Id_, RTTYS_server()->DeviceSessionID(Id_)));
+				delete this;
 			};
 
 			std::thread CompleteConnection(DoLogin);
 			CompleteConnection.detach();
-
-//			RTTYS_server()->Login(Id_);
-//			Connected_ = true ;
 		} else {
-		    std::cout << "Cannot connect..." << std::endl;
+			Logger().information(fmt::format("{}: WS client cannot be connected.", Id_));
 		    RTTYS_server()->DeRegister(Id_, this);
 			delete this;
 		}
 	}
 
 	RTTYS_ClientConnection::~RTTYS_ClientConnection() {
-        // std::cout << "WebSocket disconnecting..." << std::endl;
+		Logger().information(fmt::format("{}: WS client disconnecting.", Id_));
 		if(Connected_) {
 			SR_.removeEventHandler(
 				*WS_, Poco::NObserver<RTTYS_ClientConnection, Poco::Net::ReadableNotification>(
@@ -71,12 +70,10 @@ namespace OpenWifi {
 	}
 
 	void RTTYS_ClientConnection::onSocketReadable([[maybe_unused]] const Poco::AutoPtr<Poco::Net::ReadableNotification> &pNf) {
-		u_char Buffer[8192]{0};
+
 		int flags;
 		auto n = WS_->receiveFrame(Buffer, sizeof(Buffer), flags);
-
 		auto Op = flags & Poco::Net::WebSocket::FRAME_OP_BITMASK;
-
 		switch(Op) {
 			case Poco::Net::WebSocket::FRAME_OP_PING: {
 					WS_->sendFrame("", 0,(int)Poco::Net::WebSocket::FRAME_OP_PONG | (int)Poco::Net::WebSocket::FRAME_FLAG_FIN);
