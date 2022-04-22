@@ -114,14 +114,15 @@ namespace OpenWifi {
 
 	}
 
-
 	void RTTYS_server::DeRegister(const std::string &Id, RTTYS_ClientConnection *Client) {
 		std::lock_guard	G(M_);
 		auto It = EndPoints_.find(Id);
 		if(It==EndPoints_.end() && It->second.Client==Client) {
-			if(It->second.Device!= nullptr)
+			if(It->second.Device!= nullptr) {
 				It->second.Device->Stop();
-			EndPoints_.erase(Id);
+			}
+			It->second.ClientConnected=0;
+			It->second.Client= nullptr;
 		}
 	}
 
@@ -216,7 +217,6 @@ namespace OpenWifi {
 
 	bool RTTYS_server::CanConnect( const std::string &Id, RTTYS_ClientConnection *Conn) {
 		std::lock_guard	G(M_);
-
 		auto It = EndPoints_.find(Id);
 		if(It!=EndPoints_.end() && It->second.Client==Conn) {
 			It->second.ClientConnected = std::time(nullptr);
