@@ -254,6 +254,7 @@ namespace OpenWifi {
 		token_ = ReadString();
 		serial_ = RTTYS_server()->SerialNumber(id_);
 
+		Poco::Thread::current()->setName(fmt::format("RTTY-device-thread-{}:{}:{}", conn_id_, id_, serial_));
 		Logger().debug(fmt::format("{}: ID:{} Serial:{} Description:{} Device registration", conn_id_, id_, serial_, desc_));
 		if (RTTYS_server()->Register(id_, token_, this)) {
 			u_char OutBuf[8];
