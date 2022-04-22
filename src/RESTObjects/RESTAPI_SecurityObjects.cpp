@@ -301,6 +301,20 @@ namespace OpenWifi::SecurityObjects {
         return false;
     };
 
+    void UserInfoList::to_json(Poco::JSON::Object &Obj) const {
+        field_to_json(Obj,"users",users);
+    }
+
+    bool UserInfoList::from_json(const Poco::JSON::Object::Ptr &Obj) {
+        try {
+            field_from_json(Obj,"users",users);
+            return true;
+        } catch (...) {
+            std::cout << "Cannot parse: InternalServiceInfo" << std::endl;
+        }
+        return false;
+    }
+
 	void InternalServiceInfo::to_json(Poco::JSON::Object &Obj) const {
 		field_to_json(Obj,"privateURI",privateURI);
 		field_to_json(Obj,"publicURI",publicURI);

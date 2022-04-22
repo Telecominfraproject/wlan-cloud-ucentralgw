@@ -1994,6 +1994,14 @@ namespace OpenWifi {
             return false;
         }
 
+        template <typename T> bool AssignIfPresent(const Poco::JSON::Object::Ptr &O, const std::string &Field, const T &value, T & assignee) {
+            if(O->has(Field)) {
+                assignee = value;
+                return true;
+            }
+            return false;
+        }
+
 	    inline void AddCORS() {
 	        auto Origin = Request->find("Origin");
 	        if (Origin != Request->end()) {
