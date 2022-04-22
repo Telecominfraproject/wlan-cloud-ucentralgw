@@ -29,9 +29,9 @@ namespace OpenWifi {
 					if(RTTYS_server()->Login(this->Id_)) {
 						std::cout << "We connected the WS to the client" << std::endl;
 						this->Connected_=true;
-						break;
+						return;
 					}
-					std::this_thread::sleep_for(2000000ns);
+					std::this_thread::sleep_for(2000ms);
 					tries++;
 				}
 				std::cout << "We could not connect..." << std::endl;
