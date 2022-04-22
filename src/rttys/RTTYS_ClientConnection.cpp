@@ -86,19 +86,23 @@ namespace OpenWifi {
 					if (n == 0)
 						return delete this;
 					std::string s((char*)Buffer, n);
-					std::cout << "TEXT: " << s << std::endl;
-					auto Doc = nlohmann::json::parse(s);
-					if(Doc.contains("type")) {
-						auto Type = Doc["type"];
-						if(Type == "winsize") {
-							auto cols = Doc["cols"];
-							auto rows = Doc["rows"];;
-							auto Device = RTTYS_server()->GetDevice(Id_);
-							if(Device==nullptr) {
-								return;
+					try {
+						auto Doc = nlohmann::json::parse(s);
+						if (Doc.contains("type")) {
+							auto Type = Doc["type"];
+							if (Type == "winsize") {
+								auto cols = Doc["cols"];
+								auto rows = Doc["rows"];
+								;
+								auto Device = RTTYS_server()->GetDevice(Id_);
+								if (Device == nullptr) {
+									return;
+								}
+								Device->WindowSize(cols, rows);
 							}
-							Device->WindowSize(cols,rows);
 						}
+					} catch (...) {
+						// just ignore parse errors
 					}
 				}
 				break;
@@ -137,6 +141,7 @@ namespace OpenWifi {
 	}
 
 	void RTTYS_ClientConnection::onSocketShutdown([[maybe_unused]] const Poco::AutoPtr<Poco::Net::ShutdownNotification> &pNf) {
+		RTTYS_server()->Close(Id_);
 		delete this;
 	}
 

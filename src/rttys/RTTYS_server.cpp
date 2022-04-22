@@ -118,11 +118,11 @@ namespace OpenWifi {
 		std::lock_guard	G(M_);
 		auto It = EndPoints_.find(Id);
 		if(It!=EndPoints_.end()) {
-			std::cout << "Updating connection" << std::endl;
-			if(It->second.Device!= nullptr) {
-				std::cout << "Switching from " << It->second.Device->SessionID() << " to " << Device->SessionID() << std::endl;
+//			std::cout << "Updating connection" << std::endl;
+//			if(It->second.Device!= nullptr) {
+//				std::cout << "Switching from " << It->second.Device->SessionID() << " to " << Device->SessionID() << std::endl;
 //				delete It->second.Device;
-			}
+//			}
 			It->second.Device = Device;
 			It->second.Token = Token;
 			It->second.DeviceConnected = OpenWifi::Now();
@@ -239,7 +239,7 @@ namespace OpenWifi {
 		}
 
 		if(It->second.Device!= nullptr) {
-			std::cout << "login " << Id << " session " << It->second.Device->SessionID() << std::endl;
+//			std::cout << "login " << Id << " session " << It->second.Device->SessionID() << std::endl;
 //			It->second.Device->AddCommand(RTTY_Device_ConnectionHandler::msgTypeLogin);
 //			std::cout << "login done" << Id << std::endl;
 			return It->second.Device->Login();
@@ -270,10 +270,7 @@ namespace OpenWifi {
 		}
 
 		if(It->second.Device!= nullptr)
-			delete It->second.Client;
-		It->second.Client = nullptr;
+			It->second.Device->Stop();
 		return true;
 	}
-
-
 }
