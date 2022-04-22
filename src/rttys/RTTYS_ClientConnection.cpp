@@ -86,6 +86,7 @@ namespace OpenWifi {
 					if (n == 0)
 						return delete this;
 					std::string s((char*)Buffer, n);
+					std::cout << "TEXT:" << s << std::endl;
 					try {
 						auto Doc = nlohmann::json::parse(s);
 						if (Doc.contains("type")) {

@@ -154,8 +154,6 @@ namespace OpenWifi {
 	bool RTTYS_server::CreateEndPoint(const std::string &Id, const std::string & Token, const std::string & UserName, const std::string & SerialNumber ) {
 		std::lock_guard	G(M_);
 
-		std::cout << "Creating endpoint: " << Id << "   " << Token << std::endl;
-
 		EndPoint E;
 		E.Done = false;
 		E.Token = Token;
