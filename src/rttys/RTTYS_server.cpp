@@ -107,7 +107,7 @@ namespace OpenWifi {
 		std::lock_guard	G(M_);
 		auto It = EndPoints_.find(Id);
 		if(It!=EndPoints_.end() && It->second.Client!= nullptr) {
-			It->second.Client->SendData((u_char*)s.c_str(),s.size());
+			It->second.Client->SendData(s);
 			return true;
 		}
 		return false;
