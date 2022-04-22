@@ -101,44 +101,44 @@ namespace OpenWifi {
 				}
 
 				switch (last_command_) {
-				case msgTypeRegister: {
-					do_msgTypeRegister(msg_len);
-				} break;
-				case msgTypeLogin: {
-					do_msgTypeLogin(msg_len);
-				} break;
-				case msgTypeLogout: {
-					do_msgTypeLogout(msg_len);
-				} break;
-				case msgTypeTermData: {
-					do_msgTypeTermData(msg_len);
-				} break;
-				case msgTypeWinsize: {
-					do_msgTypeWinsize(msg_len);
-				} break;
-				case msgTypeCmd: {
-					do_msgTypeCmd(msg_len);
-				} break;
-				case msgTypeHeartbeat: {
-					do_msgTypeHeartbeat(msg_len);
-				} break;
-				case msgTypeFile: {
-					do_msgTypeFile(msg_len);
-				} break;
-				case msgTypeHttp: {
-					do_msgTypeHttp(msg_len);
-				} break;
-				case msgTypeAck: {
-					do_msgTypeAck(msg_len);
-				} break;
-				case msgTypeMax: {
-					do_msgTypeMax(msg_len);
-				} break;
-				default:
-					std::cout << conn_id_ << ": Unknown command: " << (int)last_command_ << std::endl;
-					running_ = false;
-					continue;
-				}
+					case msgTypeRegister: {
+						do_msgTypeRegister(msg_len);
+					} break;
+					case msgTypeLogin: {
+						do_msgTypeLogin(msg_len);
+					} break;
+					case msgTypeLogout: {
+						do_msgTypeLogout(msg_len);
+					} break;
+					case msgTypeTermData: {
+						do_msgTypeTermData(msg_len);
+					} break;
+					case msgTypeWinsize: {
+						do_msgTypeWinsize(msg_len);
+					} break;
+					case msgTypeCmd: {
+						do_msgTypeCmd(msg_len);
+					} break;
+					case msgTypeHeartbeat: {
+						do_msgTypeHeartbeat(msg_len);
+					} break;
+					case msgTypeFile: {
+						do_msgTypeFile(msg_len);
+					} break;
+					case msgTypeHttp: {
+						do_msgTypeHttp(msg_len);
+					} break;
+					case msgTypeAck: {
+						do_msgTypeAck(msg_len);
+					} break;
+					case msgTypeMax: {
+						do_msgTypeMax(msg_len);
+					} break;
+					default:
+						std::cout << conn_id_ << ": Unknown command: " << (int)last_command_ << std::endl;
+						running_ = false;
+						continue;
+					}
 			}
 		}
 		std::cout << conn_id_ << ": Loop done" << std::endl;
@@ -202,8 +202,10 @@ namespace OpenWifi {
 			socket().sendBytes(outBuf, 3);
 		} catch (const Poco::IOException &E) {
 			std::cout << "1  " << E.what() << " " << E.name() << " "<< E.className() << " "<< E.message() << std::endl;
+			return false;
 		} catch (const Poco::Exception &E) {
 			std::cout << "2  " << E.what() << " " << E.name() << std::endl;
+			return false;
 		}
 		Logger().debug(fmt::format("{}: Device {} login", conn_id_, id_));
 		return true;

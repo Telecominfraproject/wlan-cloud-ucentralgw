@@ -21,8 +21,27 @@ namespace OpenWifi {
 								Poco::NObserver<RTTYS_ClientConnection, Poco::Net::ShutdownNotification>(
 									*this, &RTTYS_ClientConnection::onSocketShutdown));
 			std::cout << "Session: " << RTTYS_server()->DeviceSessionID(Id_) << std::endl;
-			RTTYS_server()->Login(Id_);
-			Connected_ = true ;
+
+			auto DoLogin = [this]() -> void {
+				int tries = 0 ;
+
+				while(tries < 5) {
+					if(RTTYS_server()->Login(this->Id_)) {
+						std::cout << "We connected the WS to the client" << std::endl;
+						this->Connected_=true;
+						break;
+					}
+					std::this_thread::sleep_for(2000000ns);
+					tries++;
+				}
+				std::cout << "We could not connect..." << std::endl;
+			};
+
+			std::thread CompleteConnection(DoLogin);
+			CompleteConnection.detach();
+
+//			RTTYS_server()->Login(Id_);
+//			Connected_ = true ;
 		} else {
 		    std::cout << "Cannot connect..." << std::endl;
 		    RTTYS_server()->DeRegister(Id_, this);
