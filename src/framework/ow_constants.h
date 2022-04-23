@@ -91,14 +91,17 @@ namespace OpenWifi::RESTAPI::Errors {
     static const std::string InvalidIPAddresses{"Invalid IP addresses."};
     static const std::string InvalidBillingCode{"Empty of invalid billing code."};
     static const std::string InvalidBillingPeriod{"Invalid billing period."};
-    static const std::string InvalidSubscriberId{"Invalid subscriber ID"};
-    static const std::string InvalidContactId{"Invalid contact ID"};
-    static const std::string InvalidLocationId{"Invalid location ID"};
-    static const std::string InvalidContactType{"Invalid contact type"};
-    static const std::string InvalidLocationType{"Invalid location type"};
-    static const std::string InvalidOperatorId{"Invalid operator ID"};
-    static const std::string InvalidServiceClassId{"Invalid service class ID"};
-    static const std::string InvalidSubscriberDeviceId{"Invalid subscriber device ID"};
+    static const std::string InvalidSubscriberId{"Invalid subscriber ID."};
+    static const std::string InvalidContactId{"Invalid contact ID."};
+    static const std::string InvalidLocationId{"Invalid location ID."};
+    static const std::string InvalidContactType{"Invalid contact type."};
+    static const std::string InvalidLocationType{"Invalid location type."};
+    static const std::string InvalidOperatorId{"Invalid operator ID."};
+    static const std::string InvalidServiceClassId{"Invalid service class ID."};
+    static const std::string InvalidSubscriberDeviceId{"Invalid subscriber device ID."};
+    static const std::string InvalidRegistrationOperatorId{"Invalid registration operator ID."};
+    static const std::string InvalidRegistrationOperatorName{"Invalid registration operator name."};
+    static const std::string RegistrationNameDuplicate{"Registration name must be unique."};
 }
 
 namespace OpenWifi::RESTAPI::Protocol {

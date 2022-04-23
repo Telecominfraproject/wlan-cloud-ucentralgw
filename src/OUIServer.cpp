@@ -47,8 +47,13 @@ namespace OpenWifi {
 				Poco::URIStreamOpener::defaultOpener().open(MicroService::instance().ConfigGetString("oui.download.uri")));
 			std::ofstream OS;
 			Poco::File	F(FileName);
-			if(F.exists())
+			if(F.exists()) {
+				auto LastModified = F.getLastModified();
+				auto Delta = OpenWifi::Now() - LastModified.epochTime();
+				if((Delta / (24*60*60)) < 1)
+					return true;
 				F.remove();
+			}
 			OS.open(FileName);
 			Poco::StreamCopier::copyStream(*pStr, OS);
 			OS.close();

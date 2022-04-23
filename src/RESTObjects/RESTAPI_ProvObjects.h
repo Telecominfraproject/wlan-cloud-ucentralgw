@@ -533,6 +533,7 @@ namespace OpenWifi::ProvObjects {
         uint64_t            error=0;
         uint64_t            statusCode=0;
         std::string         deviceID;
+        std::string         registrationId;
 
         void to_json(Poco::JSON::Object &Obj) const;
         bool from_json(const Poco::JSON::Object::Ptr &Obj);
@@ -586,6 +587,7 @@ namespace OpenWifi::ProvObjects {
         std::vector<Variable>           variables;
         bool                            defaultOperator=false;
         Types::StringVec                sourceIP;
+        std::string                     registrationId;
 
         void to_json(Poco::JSON::Object &Obj) const;
         bool from_json(const Poco::JSON::Object::Ptr &Obj);

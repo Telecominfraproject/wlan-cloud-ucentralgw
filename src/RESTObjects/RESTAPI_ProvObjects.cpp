@@ -203,6 +203,7 @@ namespace OpenWifi::ProvObjects {
         field_to_json( Obj,"variables",variables);
         field_to_json( Obj,"defaultOperator",defaultOperator);
         field_to_json( Obj,"sourceIP",sourceIP);
+        field_to_json( Obj,"registrationId",registrationId);
     }
 
     bool Operator::from_json(const Poco::JSON::Object::Ptr &Obj) {
@@ -216,6 +217,7 @@ namespace OpenWifi::ProvObjects {
             field_from_json( Obj,"variables",variables);
             field_from_json( Obj,"defaultOperator",defaultOperator);
             field_from_json( Obj,"sourceIP",sourceIP);
+            field_from_json( Obj,"registrationId",registrationId);
             return true;
         } catch(...) {
         }
@@ -893,6 +895,7 @@ namespace OpenWifi::ProvObjects {
         field_to_json( Obj,"error", error);
         field_to_json( Obj,"statusCode", statusCode);
         field_to_json( Obj,"deviceID", deviceID);
+        field_to_json( Obj,"registrationId",registrationId);
     }
 
     bool SignupEntry::from_json(const Poco::JSON::Object::Ptr &Obj) {
@@ -908,6 +911,7 @@ namespace OpenWifi::ProvObjects {
             field_from_json( Obj,"error", error);
             field_from_json( Obj,"statusCode", statusCode);
             field_from_json( Obj,"deviceID", deviceID);
+            field_from_json( Obj,"registrationId",registrationId);
             return true;
         } catch(...) {
 
