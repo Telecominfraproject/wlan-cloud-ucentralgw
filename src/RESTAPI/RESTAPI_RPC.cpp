@@ -44,75 +44,69 @@ namespace OpenWifi::RESTAPI_RPC {
 			return;
 		}
 
-		Cmd.Executed = std::time(nullptr);
+		Cmd.Executed = OpenWifi::Now();
 
 		bool Sent;
 		std::chrono::time_point<std::chrono::high_resolution_clock> rpc_submitted = std::chrono::high_resolution_clock::now();
 		std::shared_ptr<CommandManager::promise_type_t> rpc_endpoint =
 			CommandManager()->PostCommand(Cmd.SerialNumber, Cmd.Command, Params, Cmd.UUID, Sent);
 
+		Poco::JSON::Object	L;
+
 		if (Sent && rpc_endpoint!= nullptr) {
 			std::future<CommandManager::objtype_t> rpc_future(rpc_endpoint->get_future());
 			auto rpc_result = rpc_future.wait_for(WaitTimeInMs);
-			if (rpc_result == std::future_status::ready && rpc_future.valid()) {
+			if (rpc_result == std::future_status::ready) {
 				std::chrono::duration<double, std::milli> rpc_execution_time = std::chrono::high_resolution_clock::now() - rpc_submitted;
 				auto rpc_answer = rpc_future.get();
-				if (rpc_answer) {
-					if (rpc_answer->has(uCentralProtocol::RESULT) && rpc_answer->isObject(uCentralProtocol::RESULT)) {
-						auto ResultFields =
-							rpc_answer->get(uCentralProtocol::RESULT).extract<Poco::JSON::Object::Ptr>();
-						if (ResultFields->has(uCentralProtocol::STATUS) && ResultFields->isObject(uCentralProtocol::STATUS)) {
-							auto StatusInnerObj =
-								ResultFields->get(uCentralProtocol::STATUS).extract<Poco::JSON::Object::Ptr>();
-							if (StatusInnerObj->has(uCentralProtocol::ERROR))
-								Cmd.ErrorCode = StatusInnerObj->get(uCentralProtocol::ERROR);
-							if (StatusInnerObj->has(uCentralProtocol::TEXT))
-								Cmd.ErrorText = StatusInnerObj->get(uCentralProtocol::TEXT).toString();
-							std::stringstream ResultText;
-							Poco::JSON::Stringifier::stringify(rpc_answer->get(uCentralProtocol::RESULT),
-															   ResultText);
-							Cmd.Results = ResultText.str();
-							Cmd.Status = "completed";
-							Cmd.Completed = std::time(nullptr);
-							Cmd.executionTime = rpc_execution_time.count();
+				if (rpc_answer.has(uCentralProtocol::RESULT) && rpc_answer.isObject(uCentralProtocol::RESULT)) {
+					auto ResultFields =
+						rpc_answer.get(uCentralProtocol::RESULT).extract<Poco::JSON::Object::Ptr>();
+					if (ResultFields->has(uCentralProtocol::STATUS) && ResultFields->isObject(uCentralProtocol::STATUS)) {
+						auto StatusInnerObj =
+							ResultFields->get(uCentralProtocol::STATUS).extract<Poco::JSON::Object::Ptr>();
+						if (StatusInnerObj->has(uCentralProtocol::ERROR))
+							Cmd.ErrorCode = StatusInnerObj->get(uCentralProtocol::ERROR);
+						if (StatusInnerObj->has(uCentralProtocol::TEXT))
+							Cmd.ErrorText = StatusInnerObj->get(uCentralProtocol::TEXT).toString();
+						std::stringstream ResultText;
+						Poco::JSON::Stringifier::stringify(rpc_answer.get(uCentralProtocol::RESULT),
+														   ResultText);
+						Cmd.Results = ResultText.str();
+						Cmd.Status = "completed";
+						Cmd.Completed = std::time(nullptr);
+						Cmd.executionTime = rpc_execution_time.count();
 
-							if (Cmd.ErrorCode && Cmd.Command == uCentralProtocol::TRACE) {
-								Cmd.WaitingForFile = 0;
-								Cmd.AttachDate = Cmd.AttachSize = 0;
-								Cmd.AttachType = "";
-							}
-
-							//	Add the completed command to the database...
-							StorageService()->AddCommand(Cmd.SerialNumber, Cmd, Storage::COMMAND_COMPLETED);
-
-							if (ObjectToReturn) {
-								Handler->ReturnObject(*ObjectToReturn);
-							} else {
-								Poco::JSON::Object O;
-								Cmd.to_json(O);
-								Handler->ReturnObject(O);
-							}
-							Logger.information( fmt::format("Command({}): completed in {:.3f}ms.", Cmd.UUID, Cmd.executionTime));
-							return;
-						} else {
-							SetCommandStatus(Cmd, Request, Response, Handler,
-											 Storage::COMMAND_FAILED, Logger);
-							Logger.information(fmt::format(
-								"Invalid response for command '{}'. Missing status.", Cmd.UUID));
-							return;
+						if (Cmd.ErrorCode && Cmd.Command == uCentralProtocol::TRACE) {
+							Cmd.WaitingForFile = 0;
+							Cmd.AttachDate = Cmd.AttachSize = 0;
+							Cmd.AttachType = "";
 						}
+
+						//	Add the completed command to the database...
+						StorageService()->AddCommand(Cmd.SerialNumber, Cmd, Storage::COMMAND_COMPLETED);
+
+						if (ObjectToReturn) {
+							Handler->ReturnObject(*ObjectToReturn);
+						} else {
+							Poco::JSON::Object O;
+							Cmd.to_json(O);
+							Handler->ReturnObject(O);
+						}
+						Logger.information( fmt::format("Command({}): completed in {:.3f}ms.", Cmd.UUID, Cmd.executionTime));
+						return;
 					} else {
-						SetCommandStatus(Cmd, Request, Response, Handler, Storage::COMMAND_FAILED,
-										 Logger);
+						SetCommandStatus(Cmd, Request, Response, Handler,
+										 Storage::COMMAND_FAILED, Logger);
 						Logger.information(fmt::format(
 							"Invalid response for command '{}'. Missing status.", Cmd.UUID));
 						return;
 					}
 				} else {
-					Logger.information(fmt::format(
-						"Timeout1 for command '{}'.", Cmd.UUID));
-					SetCommandStatus(Cmd, Request, Response, Handler, Storage::COMMAND_TIMEDOUT,
+					SetCommandStatus(Cmd, Request, Response, Handler, Storage::COMMAND_FAILED,
 									 Logger);
+					Logger.information(fmt::format(
+						"Invalid response for command '{}'. Missing status.", Cmd.UUID));
 					return;
 				}
 			} else if (rpc_result == std::future_status::timeout) {

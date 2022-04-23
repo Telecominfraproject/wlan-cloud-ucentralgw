@@ -45,7 +45,7 @@ namespace OpenWifi {
 
     class CommandManager : public SubSystemServer, Poco::Runnable {
 	    public:
-		  	typedef Poco::JSON::Object::Ptr objtype_t;
+		  	typedef Poco::JSON::Object 		objtype_t;
 		  	typedef std::promise<objtype_t> promise_type_t;
 			struct RpcObject {
 				std::string uuid;

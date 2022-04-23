@@ -175,7 +175,7 @@ namespace OpenWifi {
 		std::chrono::duration<double, std::milli> rpc_execution_time = std::chrono::high_resolution_clock::now() - RPC->second->submitted;
 		StorageService()->CommandCompleted(RPC->second->uuid, Obj, rpc_execution_time, true);
 		if(RPC->second->rpc_entry) {
-			RPC->second->rpc_entry->set_value(Obj);
+			RPC->second->rpc_entry->set_value(*Obj);
 		}
 		Logger().information(fmt::format("({}): Received RPC answer {}", SerialNumber, ID));
 	}
