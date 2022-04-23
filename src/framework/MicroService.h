@@ -1849,7 +1849,7 @@ namespace OpenWifi {
 	    }
 
 
-	    inline static bool ParseBindings(const std::string & Request, const std::list<const char *> & EndPoints, BindingMap &bindings) {
+	    inline static bool ParseBindings(const std::string & Request, const std::list<std::string> & EndPoints, BindingMap &bindings) {
 	        bindings.clear();
 	        std::vector<std::string> PathItems = Utils::Split(Request, '/');
 
@@ -2889,10 +2889,10 @@ namespace OpenWifi {
 
 	inline auto ALBHealthCheckServer() { return ALBHealthCheckServer::instance(); }
 
-	Poco::Net::HTTPRequestHandler * RESTAPI_ExtRouter(const char *Path, RESTAPIHandler::BindingMap &Bindings,
+	Poco::Net::HTTPRequestHandler * RESTAPI_ExtRouter(const std::string &Path, RESTAPIHandler::BindingMap &Bindings,
                                            Poco::Logger & L, RESTAPI_GenericServer & S, uint64_t Id);
 
-	Poco::Net::HTTPRequestHandler * RESTAPI_IntRouter(const char *Path, RESTAPIHandler::BindingMap &Bindings,
+	Poco::Net::HTTPRequestHandler * RESTAPI_IntRouter(const std::string &Path, RESTAPIHandler::BindingMap &Bindings,
                                                             Poco::Logger & L, RESTAPI_GenericServer & S, uint64_t Id);
 
 
@@ -2914,8 +2914,9 @@ namespace OpenWifi {
 
 	    inline void reinitialize(Poco::Util::Application &self) override;
 
-	    inline Poco::Net::HTTPRequestHandler *CallServer(const char *Path, uint64_t Id) {
+	    inline Poco::Net::HTTPRequestHandler *CallServer(const std::string &Path, uint64_t Id) {
 	        RESTAPIHandler::BindingMap Bindings;
+			Poco::Thread::current()->setName(fmt::format("RESTAPI_ExtServer_{}",Id));
 	        return RESTAPI_ExtRouter(Path, Bindings, Logger(), Server_, Id);
 	    }
 
@@ -2939,9 +2940,8 @@ namespace OpenWifi {
 	    inline Poco::Net::HTTPRequestHandler *createRequestHandler(const Poco::Net::HTTPServerRequest &Request) override {
 			try {
 				Poco::URI uri(Request.getURI());
-				auto *Path = uri.getPath().c_str();
-				Poco::Thread::current()->setName("ExtWebServer_" + std::to_string(TransactionId_));
-				return RESTAPI_ExtServer()->CallServer(Path, TransactionId_++);
+				Poco::Thread::current()->setName(fmt::format("ExtWebServer_{}",TransactionId_));
+				return RESTAPI_ExtServer()->CallServer(uri.getPath(), TransactionId_++);
 			} catch (...) {
 
 			}
@@ -3047,8 +3047,9 @@ namespace OpenWifi {
 
 	    inline void reinitialize(Poco::Util::Application &self) override;
 
-	    inline Poco::Net::HTTPRequestHandler *CallServer(const char *Path, uint64_t Id) {
+	    inline Poco::Net::HTTPRequestHandler *CallServer(const std::string &Path, uint64_t Id) {
 	        RESTAPIHandler::BindingMap Bindings;
+			Poco::Thread::current()->setName(fmt::format("RESTAPI_IntServer_{}",Id));
 	        return RESTAPI_IntRouter(Path, Bindings, Logger(), Server_, Id);
 	    }
 	private:
@@ -3070,8 +3071,7 @@ namespace OpenWifi {
         inline IntRequestHandlerFactory() = default;
 	    inline Poco::Net::HTTPRequestHandler *createRequestHandler(const Poco::Net::HTTPServerRequest &Request) override {
 	        Poco::URI uri(Request.getURI());
-	        auto *Path = uri.getPath().c_str();
-	        return RESTAPI_IntServer()->CallServer(Path, TransactionId_);
+	        return RESTAPI_IntServer()->CallServer(uri.getPath(), TransactionId_);
 	    }
 	private:
         static inline std::atomic_uint64_t  TransactionId_ = 1;
@@ -4170,7 +4170,7 @@ namespace OpenWifi {
                                                   Server,
                                                   TransactionId,
                                                   Internal) {}
-                                                  static const std::list<const char *> PathName() { return std::list<const char *>{"/api/v1/system"};}
+                                                  static auto PathName() { return std::list<std::string>{"/api/v1/system"};}
 
         inline void DoGet() {
 	        std::string Arg;

@@ -20,7 +20,7 @@ class RESTAPI_default_configurations : public RESTAPIHandler {
 						 Server,
 						 TransactionId,
 						 Internal){};
-	static const std::list<const char *> PathName() { return std::list<const char *>{"/api/v1/default_configurations"};}
+	static auto PathName() { return std::list<std::string>{"/api/v1/default_configurations"};}
 	void DoGet() final;
 	void DoDelete() final {};
 	void DoPost() final {};
