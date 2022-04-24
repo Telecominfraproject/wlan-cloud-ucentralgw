@@ -61,9 +61,9 @@ namespace OpenWifi {
 			int Start() override;
 			void Stop() override;
 			void WakeUp();
-			inline void PostCommandResult(const std::string &SerialNumber, Poco::JSON::Object::Ptr Obj) {
+			inline void PostCommandResult(const std::string &SerialNumber, const Poco::JSON::Object &Obj) {
 				std::cout << "PostCommandResult " << SerialNumber << std::endl;
-				RPCResponseQueue_->Write(RPCResponse{.serialNumber=SerialNumber, .payload = *Obj});
+				RPCResponseQueue_->Write(RPCResponse{.serialNumber=SerialNumber, .payload = Obj});
 			}
 
 			std::shared_ptr<promise_type_t> PostCommandOneWayDisk(
