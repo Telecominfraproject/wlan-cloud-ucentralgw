@@ -72,14 +72,14 @@ namespace OpenWifi {
 		Timer_.setPeriodicInterval(5 * 60 * 1000); // 1 hours
 		Timer_.start(*JanitorCallback_);
 		RPCResponseQueue_->Readable_ += Poco::delegate(this,&CommandManager::onRPCAnswer);
-		RPCResponseQueue_->Writable_ += Poco::delegate(this,&CommandManager::onRPCAnswer);
+		// RPCResponseQueue_->Writable_ += Poco::delegate(this,&CommandManager::onRPCAnswer);
         return 0;
     }
 
     void CommandManager::Stop() {
         Logger().notice("Stopping...");
 		RPCResponseQueue_->Readable_ -= Poco::delegate(this,&CommandManager::onRPCAnswer);
-		RPCResponseQueue_->Writable_ -= Poco::delegate(this,&CommandManager::onRPCAnswer);
+		// RPCResponseQueue_->Writable_ -= Poco::delegate(this,&CommandManager::onRPCAnswer);
 		Running_ = false;
 		Timer_.stop();
 		ManagerThread.wakeUp();
