@@ -189,12 +189,12 @@ namespace OpenWifi {
 		if(b) {
 			std::cout << __LINE__ << std::endl;
 			RPCResponse Resp;
+			std::lock_guard	M(Mutex_);
 			auto S = RPCResponseQueue_->Read(Resp);
 			const std::string & SerialNumber = Resp.serialNumber;
 			std::cout << __LINE__ << std::endl;
 			if(S) {
 				std::cout << __LINE__ << std::endl;
-				std::lock_guard	M(Mutex_);
 				if(!Resp.payload.has(uCentralProtocol::ID)){
 					std::cout << __LINE__ << std::endl;
 					Logger().error(fmt::format("({}): Invalid RPC response.", SerialNumber));
