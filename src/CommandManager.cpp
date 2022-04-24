@@ -71,11 +71,13 @@ namespace OpenWifi {
 		Timer_.setStartInterval( 10000 );
 		Timer_.setPeriodicInterval(5 * 60 * 1000); // 1 hours
 		Timer_.start(*JanitorCallback_);
+		RPCResponseQueue_->Readable_ += Poco::delegate(this,&CommandManager::onRPCAnswer);
         return 0;
     }
 
     void CommandManager::Stop() {
         Logger().notice("Stopping...");
+		RPCResponseQueue_->Readable_ -= Poco::delegate(this,&CommandManager::onRPCAnswer);
 		Running_ = false;
 		Timer_.stop();
 		ManagerThread.wakeUp();
@@ -153,6 +155,7 @@ namespace OpenWifi {
 		return nullptr;
 	}
 
+/*
 	void CommandManager::PostCommandResult(const std::string &SerialNumber, Poco::JSON::Object::Ptr Obj) {
 
 		if(!Obj->has(uCentralProtocol::ID)){
@@ -178,6 +181,41 @@ namespace OpenWifi {
 			RPC->second->rpc_entry->set_value(*Obj);
 		}
 		Logger().information(fmt::format("({}): Received RPC answer {}", SerialNumber, ID));
+	}
+*/
+
+	void CommandManager::onRPCAnswer(bool &b) {
+		if(b) {
+			RPCResponse Resp;
+			auto S = RPCResponseQueue_->Read(Resp);
+			const std::string & SerialNumber = Resp.serialNumber;
+			if(S) {
+				std::lock_guard	M(Mutex_);
+				if(!Resp.payload.has(uCentralProtocol::ID)){
+					Logger().error(fmt::format("({}): Invalid RPC response.", SerialNumber));
+					return;
+				}
+
+				uint64_t ID = Resp.payload.get(uCentralProtocol::ID);
+				if(ID<2) {
+					Logger().error(fmt::format("({}): Ignoring RPC response.", SerialNumber));
+					return;
+				}
+				std::lock_guard G(Mutex_);
+				auto Idx = CommandTagIndex{.Id = ID, .SerialNumber = SerialNumber};
+				auto RPC = OutStandingRequests_.find(Idx);
+				if (RPC == OutStandingRequests_.end()) {
+					Logger().warning(fmt::format("({}): Outdated RPC {}", SerialNumber, ID));
+					return;
+				}
+				std::chrono::duration<double, std::milli> rpc_execution_time = std::chrono::high_resolution_clock::now() - RPC->second->submitted;
+				StorageService()->CommandCompleted(RPC->second->uuid, Resp.payload, rpc_execution_time, true);
+				if(RPC->second->rpc_entry) {
+					RPC->second->rpc_entry->set_value(Resp.payload);
+				}
+				Logger().information(fmt::format("({}): Received RPC answer {}", SerialNumber, ID));
+			}
+		}
 	}
 
 }  // namespace

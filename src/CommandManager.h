@@ -53,10 +53,17 @@ namespace OpenWifi {
 				std::shared_ptr<promise_type_t> rpc_entry;
 			};
 
+			struct RPCResponse {
+				std::string 			serialNumber;
+				Poco::JSON::Object		payload;
+			};
+
 			int Start() override;
 			void Stop() override;
 			void WakeUp();
-			void PostCommandResult(const std::string &SerialNumber, Poco::JSON::Object::Ptr Obj);
+			inline void PostCommandResult(const std::string &SerialNumber, Poco::JSON::Object::Ptr Obj) {
+				RPCResponseQueue_->Write(RPCResponse{.serialNumber=SerialNumber, .payload = *Obj});
+			}
 
 			std::shared_ptr<promise_type_t> PostCommandOneWayDisk(
 				const std::string &SerialNumber,
@@ -121,6 +128,7 @@ namespace OpenWifi {
 
 			inline bool Running() const { return Running_; }
 			void onTimer(Poco::Timer & timer);
+			void onRPCAnswer(bool& b);
 
 	    private:
 			std::atomic_bool 						Running_ = false;
@@ -129,6 +137,7 @@ namespace OpenWifi {
 			std::map<CommandTagIndex,std::shared_ptr<RpcObject>>		OutStandingRequests_;
 			Poco::Timer                     		Timer_;
 			std::unique_ptr<Poco::TimerCallback<CommandManager>>   JanitorCallback_;
+			std::unique_ptr<FIFO<RPCResponse>>		RPCResponseQueue_=std::make_unique<FIFO<RPCResponse>>(100);
 
 			std::shared_ptr<promise_type_t> PostCommand(
 				const std::string &SerialNumber,
