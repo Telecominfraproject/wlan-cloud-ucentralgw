@@ -185,35 +185,47 @@ namespace OpenWifi {
 */
 
 	void CommandManager::onRPCAnswer(bool &b) {
+		std::cout << __LINE__ << std::endl;
 		if(b) {
+			std::cout << __LINE__ << std::endl;
 			RPCResponse Resp;
 			auto S = RPCResponseQueue_->Read(Resp);
 			const std::string & SerialNumber = Resp.serialNumber;
+			std::cout << __LINE__ << std::endl;
 			if(S) {
+				std::cout << __LINE__ << std::endl;
 				std::lock_guard	M(Mutex_);
 				if(!Resp.payload.has(uCentralProtocol::ID)){
+					std::cout << __LINE__ << std::endl;
 					Logger().error(fmt::format("({}): Invalid RPC response.", SerialNumber));
 					return;
 				}
+				std::cout << __LINE__ << std::endl;
 
 				uint64_t ID = Resp.payload.get(uCentralProtocol::ID);
 				if(ID<2) {
+					std::cout << __LINE__ << std::endl;
 					Logger().error(fmt::format("({}): Ignoring RPC response.", SerialNumber));
 					return;
 				}
-				std::lock_guard G(Mutex_);
+				std::cout << __LINE__ << std::endl;
 				auto Idx = CommandTagIndex{.Id = ID, .SerialNumber = SerialNumber};
 				auto RPC = OutStandingRequests_.find(Idx);
+				std::cout << __LINE__ << std::endl;
 				if (RPC == OutStandingRequests_.end()) {
+					std::cout << __LINE__ << std::endl;
 					Logger().warning(fmt::format("({}): Outdated RPC {}", SerialNumber, ID));
 					return;
 				}
+				std::cout << __LINE__ << std::endl;
 				std::chrono::duration<double, std::milli> rpc_execution_time = std::chrono::high_resolution_clock::now() - RPC->second->submitted;
 				StorageService()->CommandCompleted(RPC->second->uuid, Resp.payload, rpc_execution_time, true);
 				if(RPC->second->rpc_entry) {
+					std::cout << __LINE__ << std::endl;
 					RPC->second->rpc_entry->set_value(Resp.payload);
 				}
 				Logger().information(fmt::format("({}): Received RPC answer {}", SerialNumber, ID));
+				std::cout << __LINE__ << std::endl;
 			}
 		}
 	}

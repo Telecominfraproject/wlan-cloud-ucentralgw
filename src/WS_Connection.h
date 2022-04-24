@@ -24,7 +24,7 @@ namespace OpenWifi {
 		~WSConnection();
 
 		void ProcessJSONRPCEvent(Poco::JSON::Object::Ptr & Doc);
-		void ProcessJSONRPCResult(Poco::JSON::Object::Ptr &	Doc);
+		void ProcessJSONRPCResult(Poco::JSON::Object::Ptr Doc);
 		void ProcessIncomingFrame();
 		bool Send(const std::string &Payload);
 		void OnSocketReadable(const Poco::AutoPtr<Poco::Net::ReadableNotification>& pNf);

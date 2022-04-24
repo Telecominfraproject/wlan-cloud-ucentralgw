@@ -292,8 +292,9 @@ namespace OpenWifi {
 		return false;
 	}
 
-	void WSConnection::ProcessJSONRPCResult(Poco::JSON::Object::Ptr &Doc) {
-		CommandManager()->PostCommandResult(SerialNumber_, Doc);
+	void WSConnection::ProcessJSONRPCResult(Poco::JSON::Object::Ptr Doc) {
+		std::cout << "ProcessJSONRPCResult" << std::endl;
+		CommandManager()->PostCommandResult(SerialNumber_, std::move(Doc));
 	}
 
 	void WSConnection::ProcessJSONRPCEvent(Poco::JSON::Object::Ptr &Doc) {
