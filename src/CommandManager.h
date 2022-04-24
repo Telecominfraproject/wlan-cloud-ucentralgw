@@ -62,6 +62,7 @@ namespace OpenWifi {
 			void Stop() override;
 			void WakeUp();
 			inline void PostCommandResult(const std::string &SerialNumber, const Poco::JSON::Object &Obj) {
+				std::lock_guard		G(Mutex_);
 				std::cout << "PostCommandResult " << SerialNumber << std::endl;
 				RPCResponseQueue_->Write(RPCResponse{.serialNumber=SerialNumber, .payload = Obj});
 			}
