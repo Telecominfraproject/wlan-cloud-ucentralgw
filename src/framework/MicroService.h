@@ -1173,27 +1173,19 @@ namespace OpenWifi {
 
 		inline bool Read(T &t) {
 			{
-				std::cout << __LINE__ << std::endl;
 				std::lock_guard M(Mutex_);
-				std::cout << __LINE__ << std::endl;
 				if (Write_ == Read_) {
 					return false;
 				}
-				std::cout << __LINE__ << std::endl;
 
 				t = Buffer_[Read_++];
-				std::cout << __LINE__ << std::endl;
 				if (Read_ == Size_) {
 					Read_ = 0;
 				}
-				std::cout << __LINE__ << std::endl;
 				Used_--;
 			}
-			std::cout << __LINE__ << std::endl;
 			bool flag = true;
-			std::cout << __LINE__ << std::endl;
 			Writable_.notify(this, flag);
-			std::cout << __LINE__ << std::endl;
 			return true;
 		}
 
@@ -1227,7 +1219,7 @@ namespace OpenWifi {
 		uint32_t        		Write_=0;
 		uint32_t 				Used_=0;
 		uint32_t 				MaxEverUsed_=0;
-		T	  					* Buffer_;
+		T	  					* Buffer_ = nullptr;
 	};
 
 	template <class Record, typename KeyType = std::string, int Size=256, int Expiry=60000> class RecordCache {
