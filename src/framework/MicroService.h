@@ -1159,8 +1159,13 @@ namespace OpenWifi {
 
 	template <typename T> class FIFO {
 	  public:
-		explicit FIFO(uint32_t Size) {
-			Buffer_->reserve(Size);
+		explicit FIFO(uint32_t Size) :
+			Size_(Size) {
+			Buffer_ = new T [Size_];
+		}
+
+		~FIFO() {
+			delete [] Buffer_;
 		}
 
 		mutable Poco::BasicEvent<bool> Writable_;
@@ -1176,9 +1181,9 @@ namespace OpenWifi {
 				}
 				std::cout << __LINE__ << std::endl;
 
-				t = (*Buffer_)[Read_++];
+				t = Buffer_[Read_++];
 				std::cout << __LINE__ << std::endl;
-				if (Read_ == Buffer_->capacity()) {
+				if (Read_ == Size_) {
 					Read_ = 0;
 				}
 				std::cout << __LINE__ << std::endl;
@@ -1196,12 +1201,8 @@ namespace OpenWifi {
 			{
 				std::lock_guard M(Mutex_);
 
-				if(Used_==Buffer_->capacity()) {
-					Buffer_->reserve( Buffer_->size()+100 );
-				}
-
-				(*Buffer_)[Write_++] = t;
-				if (Write_ == Buffer_->capacity()) {
+				Buffer_[Write_++] = t;
+				if (Write_ == Size_) {
 					Write_ = 0;
 				}
 				Used_++;
@@ -1221,11 +1222,12 @@ namespace OpenWifi {
 
 	  private:
 		std::recursive_mutex    Mutex_;
+		uint32_t 				Size_=0;
 		uint32_t        		Read_=0;
 		uint32_t        		Write_=0;
 		uint32_t 				Used_=0;
 		uint32_t 				MaxEverUsed_=0;
-		std::unique_ptr<std::vector<T>>  Buffer_=std::make_unique<std::vector<T>>();
+		T	  					* Buffer_;
 	};
 
 	template <class Record, typename KeyType = std::string, int Size=256, int Expiry=60000> class RecordCache {
