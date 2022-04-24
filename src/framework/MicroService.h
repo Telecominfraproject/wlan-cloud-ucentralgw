@@ -1168,19 +1168,27 @@ namespace OpenWifi {
 
 		inline bool Read(T &t) {
 			{
+				std::cout << __LINE__ << std::endl;
 				std::lock_guard M(Mutex_);
+				std::cout << __LINE__ << std::endl;
 				if (Write_ == Read_) {
 					return false;
 				}
+				std::cout << __LINE__ << std::endl;
 
 				t = (*Buffer_)[Read_++];
+				std::cout << __LINE__ << std::endl;
 				if (Read_ == Buffer_->capacity()) {
 					Read_ = 0;
 				}
+				std::cout << __LINE__ << std::endl;
 				Used_--;
 			}
+			std::cout << __LINE__ << std::endl;
 			bool flag = true;
+			std::cout << __LINE__ << std::endl;
 			Writable_.notify(this, flag);
+			std::cout << __LINE__ << std::endl;
 			return true;
 		}
 
