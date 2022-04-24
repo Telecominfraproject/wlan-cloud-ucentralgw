@@ -191,12 +191,12 @@ namespace OpenWifi {
 		if(b) {
 			std::cout << __LINE__ << std::endl;
 			RPCResponse Resp;
-			std::lock_guard	M(Mutex_);
 			std::cout << __LINE__ << std::endl;
 			auto S = RPCResponseQueue_->Read(Resp);
 			std::cout << __LINE__ << std::endl;
 			const std::string & SerialNumber = Resp.serialNumber;
 			std::cout << __LINE__ << std::endl;
+			std::lock_guard	M(Mutex_);
 			if(S) {
 				std::cout << __LINE__ << std::endl;
 				if(!Resp.payload.has(uCentralProtocol::ID)){
