@@ -94,11 +94,14 @@ namespace OpenWifi {
 
 	void CommandManager::onJanitorTimer([[maybe_unused]] Poco::Timer & timer) {
 		std::lock_guard G(Mutex_);
-		Logger().information("Removing expired commands: start");
+		Logger().information(
+			fmt::format("Removing expired commands: start. {} outstanding-requests {} outstanding-uuids commands.",
+						OutStandingRequests_.size(), OutstandingUUIDs_.size() ));
 		auto now = std::chrono::high_resolution_clock::now();
 		for(auto i=OutStandingRequests_.begin();i!=OutStandingRequests_.end();) {
 			std::chrono::duration<double, std::milli> delta = now - i->second->submitted;
 			if(delta > 120000ms) {
+				Logger().debug(fmt::format("Timing out {}", i->second->uuid));
 				OutstandingUUIDs_.erase(i->second->uuid);
 				i = OutStandingRequests_.erase(i);
 			} else {
