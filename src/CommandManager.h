@@ -43,7 +43,21 @@ namespace OpenWifi {
 		return false;
 	}
 
-    class CommandManager : public SubSystemServer, Poco::Runnable {
+	class RPCResponseNotification: public Poco::Notification {
+	  public:
+		RPCResponseNotification(const std::string &ser,
+								const Poco::JSON::Object &pl) :
+ 			SerialNumber_(ser),
+			Payload_(pl)
+		{
+
+		}
+		std::string			SerialNumber_;
+		Poco::JSON::Object	Payload_;
+	};
+
+
+	class CommandManager : public SubSystemServer, Poco::Runnable {
 	    public:
 		  	typedef Poco::JSON::Object 		objtype_t;
 		  	typedef std::promise<objtype_t> promise_type_t;
@@ -56,6 +70,12 @@ namespace OpenWifi {
 			struct RPCResponse {
 				std::string 			serialNumber;
 				Poco::JSON::Object		payload;
+
+				explicit RPCResponse(const std::string &ser, const Poco::JSON::Object &pl)
+					:
+						serialNumber(ser),
+						payload(pl) {
+				}
 			};
 
 			int Start() override;
@@ -63,7 +83,8 @@ namespace OpenWifi {
 			void WakeUp();
 			inline void PostCommandResult(const std::string &SerialNumber, const Poco::JSON::Object &Obj) {
 				std::lock_guard		G(Mutex_);
-				RPCResponseQueue_->Write(RPCResponse{.serialNumber=SerialNumber, .payload = Obj});
+				// RPCResponseQueue_->Write(RPCResponse{.serialNumber=SerialNumber, .payload = Obj});
+				ResponseQueue_.enqueueNotification(new RPCResponseNotification(SerialNumber,Obj));
 			}
 
 			std::shared_ptr<promise_type_t> PostCommandOneWayDisk(
@@ -128,7 +149,8 @@ namespace OpenWifi {
 			}
 
 			inline bool Running() const { return Running_; }
-			void onTimer(Poco::Timer & timer);
+			void onJanitorTimer(Poco::Timer & timer);
+			void onCommandRunnerTimer(Poco::Timer & timer);
 			void onRPCAnswer(bool& b);
 
 	    private:
@@ -136,9 +158,13 @@ namespace OpenWifi {
 			Poco::Thread    						ManagerThread;
 			uint64_t 								Id_=3;	//	do not start @1. We ignore ID=1 & 0 is illegal..
 			std::map<CommandTagIndex,std::shared_ptr<RpcObject>>		OutStandingRequests_;
-			Poco::Timer                     		Timer_;
+			std::set<std::string>					OutstandingUUIDs_;
+			Poco::Timer                     		JanitorTimer_;
 			std::unique_ptr<Poco::TimerCallback<CommandManager>>   JanitorCallback_;
-			std::unique_ptr<FIFO<RPCResponse>>		RPCResponseQueue_=std::make_unique<FIFO<RPCResponse>>(100);
+			Poco::Timer                     		CommandRunnerTimer_;
+			std::unique_ptr<Poco::TimerCallback<CommandManager>>   CommandRunnerCallback_;
+			// std::unique_ptr<FIFO<RPCResponse>>		RPCResponseQueue_=std::make_unique<FIFO<RPCResponse>>(100);
+			Poco::NotificationQueue					ResponseQueue_;
 
 			std::shared_ptr<promise_type_t> PostCommand(
 				const std::string &SerialNumber,
