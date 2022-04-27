@@ -633,6 +633,16 @@ namespace OpenWifi::ProvObjects {
         bool from_json(const Poco::JSON::Object::Ptr &Obj);
     };
 
+    struct CompleteDeviceConfiguration {
+        DeviceConfigurationElementVec   configuration;
+        std::string                     rrm{"inherit"};
+        std::string                     firmwareUpgrade{"inherit"};
+        std::string                     firmwareRCOnly{"inherit"};
+
+        void to_json(Poco::JSON::Object &Obj) const;
+        bool from_json(const Poco::JSON::Object::Ptr &Obj);
+    };
+
     struct SubscriberDevice {
         ObjectInfo                      info;
         std::string                     serialNumber;
@@ -645,15 +655,15 @@ namespace OpenWifi::ProvObjects {
         Types::UUID_t                   serviceClass;
         std::string                     qrCode;
         std::string                     geoCode;
-        std::string                     rrm;
+        std::string                     rrm{"inherit"};
         std::string                     state;
         std::string                     locale;
         std::string                     billingCode;
         DeviceConfigurationElementVec   configuration;
         bool                            suspended=false;
         std::string                     realMacAddress;
-        std::string                     firmwareUpgrade;
-        bool                            firmwareRCOnly=true;
+        std::string                     firmwareUpgrade{"yes"};
+        std::string                     firmwareRCOnly{"inherit"};
 
         void to_json(Poco::JSON::Object &Obj) const;
         bool from_json(const Poco::JSON::Object::Ptr &Obj);
@@ -671,8 +681,8 @@ namespace OpenWifi::ProvObjects {
                                     type,
                                     details;
         std::vector<std::string>    success,
-                errors,
-                warnings;
+                                    error,
+                                    warning;
         uint64_t                    timeStamp=std::time(nullptr);
 
         void to_json(Poco::JSON::Object &Obj) const;
