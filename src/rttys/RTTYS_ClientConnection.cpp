@@ -16,7 +16,7 @@ namespace OpenWifi {
 				Logger_(RTTYS_server()->Logger()) {
         RTTYS_server()->Register(Id_, this);
 		if(RTTYS_server()->CanConnect(Id_,this)) {
-			Logger().information(fmt::format("{}: Starting WS connection, session: {}.", Id_, RTTYS_server()->DeviceSessionID(Id_)));
+			Logger().information(fmt::format("{}: Client starting connection, session: {}.", Id_, RTTYS_server()->DeviceSessionID(Id_)));
 			SR_.addEventHandler(*WS_,
 								Poco::NObserver<RTTYS_ClientConnection, Poco::Net::ReadableNotification>(
 									*this, &RTTYS_ClientConnection::onSocketReadable));
@@ -28,28 +28,28 @@ namespace OpenWifi {
 				int tries = 0 ;
 				while(tries < 10) {
 					if(RTTYS_server()->Login(this->Id_)) {
-						Logger().information(fmt::format("{}: WS client connected to device, session: {}.", Id_, RTTYS_server()->DeviceSessionID(Id_)));
+						Logger().information(fmt::format("{}: Client connected to device, session: {}.", Id_, RTTYS_server()->DeviceSessionID(Id_)));
 						this->Connected_=true;
 						return;
 					}
 					std::this_thread::sleep_for(2000ms);
 					tries++;
 				}
-				Logger().information(fmt::format("{}: WS client could not connect to device, session: {}.", Id_, RTTYS_server()->DeviceSessionID(Id_)));
+				Logger().information(fmt::format("{}: Client could not connect to device, session: {}.", Id_, RTTYS_server()->DeviceSessionID(Id_)));
 				delete this;
 			};
 
 			std::thread CompleteConnection(DoLogin);
 			CompleteConnection.detach();
 		} else {
-			Logger().information(fmt::format("{}: WS client cannot be connected.", Id_));
+			Logger().information(fmt::format("{}: Client cannot be connected.", Id_));
 		    RTTYS_server()->DeRegister(Id_, this);
 			delete this;
 		}
 	}
 
 	RTTYS_ClientConnection::~RTTYS_ClientConnection() {
-		Logger().information(fmt::format("{}: WS client disconnecting.", Id_));
+		Logger().information(fmt::format("{}: Client disconnecting.", Id_));
 		if(Connected_) {
 			SR_.removeEventHandler(
 				*WS_, Poco::NObserver<RTTYS_ClientConnection, Poco::Net::ReadableNotification>(
@@ -86,7 +86,6 @@ namespace OpenWifi {
 					if (n == 0)
 						return delete this;
 					std::string s((char*)Buffer_, n);
-					// std::cout << "TEXT:" << s << std::endl;
 					try {
 						auto Doc = nlohmann::json::parse(s);
 						if (Doc.contains("type")) {

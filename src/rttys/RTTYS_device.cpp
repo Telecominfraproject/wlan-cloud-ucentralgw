@@ -148,7 +148,6 @@ namespace OpenWifi {
 		Logger().information(fmt::format("{}: ID:{} Exiting", conn_id_, id_));
 		loop_done_=true;
 		RTTYS_server()->DeRegister(id_, this);
-		std::cout << conn_id_ << ": loop exiting" << std::endl;
 	}
 
 	void RTTY_Device_ConnectionHandler::Stop() {
@@ -301,7 +300,6 @@ namespace OpenWifi {
 
 	void RTTY_Device_ConnectionHandler::do_msgTypeTermData(std::size_t msg_len) {
 		if(waiting_for_bytes_!=0) {
-			// std::cout << conn_id_ << ": S2:" << inBuf_.used() << std::endl;
 			auto to_read = std::min(inBuf_.used(),waiting_for_bytes_);
 			inBuf_.read(&scratch_[0], to_read);
 			SendToClient((u_char *)&scratch_[0], (int) to_read);
@@ -311,12 +309,10 @@ namespace OpenWifi {
 				waiting_for_bytes_ = 0 ;
 		} else {
 			if(inBuf_.used()<msg_len) {
-				// std::cout << conn_id_ << ": S1:" << msg_len << std::endl;
 				auto read_count = inBuf_.read(&scratch_[0], inBuf_.used());
 				SendToClient((u_char *)&scratch_[0], read_count);
 				waiting_for_bytes_ = msg_len - read_count;
 			} else {
-				// std::cout << conn_id_ << ": S0:" << msg_len << std::endl;
 				inBuf_.read(&scratch_[0], msg_len);
 				SendToClient((u_char *)&scratch_[0], (int)msg_len);
 				waiting_for_bytes_=0;
@@ -333,7 +329,6 @@ namespace OpenWifi {
 	}
 
 	void RTTY_Device_ConnectionHandler::do_msgTypeHeartbeat([[maybe_unused]] std::size_t msg_len) {
-		// std::cout << conn_id_ << ": Device msgTypeHeartbeat: " << std::endl;
 		u_char MsgBuf[3]{0};
 		MsgBuf[0] = msgTypeHeartbeat;
 		socket().sendBytes(MsgBuf, 3);

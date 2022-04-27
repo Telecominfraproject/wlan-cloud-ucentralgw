@@ -237,11 +237,9 @@ namespace OpenWifi {
 	uint64_t RTTYS_server::DeviceSessionID(const std::string & Id) {
 		auto it = EndPoints_.find(Id);
 		if(it==EndPoints_.end()) {
-			std::cout << "No ID found" << std::endl;
 			return 0;
 		} else {
 			if(it->second.Device== nullptr) {
-				std::cout << "No device for ID found" << std::endl;
 				return 0;
 			} else {
 				return it->second.Device->SessionID();
@@ -254,7 +252,6 @@ namespace OpenWifi {
 
 		auto It = EndPoints_.find(Id);
 		if(It == EndPoints_.end()) {
-			std::cout << "cannot find login " << Id << std::endl;
 			return false;
 		}
 
@@ -265,7 +262,6 @@ namespace OpenWifi {
 			return It->second.Device->Login();
 		}
 
-		std::cout << "no device so cannot login " << Id << std::endl;
 		return false;
 	}
 
