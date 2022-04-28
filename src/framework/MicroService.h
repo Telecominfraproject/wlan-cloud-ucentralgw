@@ -2930,7 +2930,7 @@ namespace OpenWifi {
 
         RESTAPI_ExtServer() noexcept:
 	    SubSystemServer("RESTAPI_ExtServer", "RESTAPIServer", "openwifi.restapi"),
-        Pool_("RESTAPI_ExtServer",4,50,120)
+        Pool_("RESTAPI_ExtServer_thread_pool",2,50,120)
             {
             }
 	};
@@ -3062,7 +3062,7 @@ namespace OpenWifi {
 
         RESTAPI_IntServer() noexcept:
 		   SubSystemServer("RESTAPI_IntServer", "REST-ISRV", "openwifi.internal.restapi"),
-            Pool_("RESTAPI_IntServer",4,50,120)
+            Pool_("RESTAPI_IntServer_thread_pool",2,50,120)
         {
         }
 	};
@@ -3781,9 +3781,9 @@ namespace OpenWifi {
         Server_.InitLogging();
 
         for(const auto & Svr: ConfigServersList_) {
-
             if(MicroService::instance().NoAPISecurity()) {
-                Logger().information(fmt::format("Starting: {}:{}. Security has been disabled for APIs.", Svr.Address(), Svr.Port()));
+                Logger().information(fmt::format("Starting: {}:{}. Security has been disabled for APIs.", Svr.Address(),
+												 Svr.Port()));
             } else {
                 Logger().information(fmt::format("Starting: {}:{} Keyfile:{} CertFile: {}", Svr.Address(), Svr.Port(),
                                                   Svr.KeyFile(),Svr.CertFile()));
@@ -3794,8 +3794,9 @@ namespace OpenWifi {
 
             Poco::Net::HTTPServerParams::Ptr Params = new Poco::Net::HTTPServerParams;
             Params->setMaxThreads(50);
-            Params->setMaxQueued(200);
+            Params->setMaxQueued(100);
             Params->setKeepAlive(true);
+			Params->setKeepAliveTimeout(Poco::Timespan(120,0));
 
             std::unique_ptr<Poco::Net::HTTPServer>  NewServer;
             if(MicroService::instance().NoAPISecurity()) {
@@ -3830,8 +3831,9 @@ namespace OpenWifi {
 
             auto Params = new Poco::Net::HTTPServerParams;
             Params->setMaxThreads(50);
-            Params->setMaxQueued(200);
+            Params->setMaxQueued(100);
             Params->setKeepAlive(true);
+			Params->setKeepAliveTimeout(Poco::Timespan(120,0));
 
             std::unique_ptr<Poco::Net::HTTPServer>  NewServer;
             if(MicroService::instance().NoAPISecurity()) {
