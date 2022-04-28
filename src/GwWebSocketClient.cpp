@@ -49,7 +49,7 @@ namespace OpenWifi {
 			Poco::JSON::Object A0;
 			A0.set("serialNumbers", A);
 			std::ostringstream SS;
-			Poco::JSON::Stringifier::stringify(A, SS);
+			Poco::JSON::Stringifier::stringify(A0, SS);
 			Answer = SS.str();
 			std::cout << "Answer..." << Answer << std::endl;
 		}
