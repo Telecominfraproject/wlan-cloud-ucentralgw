@@ -85,6 +85,8 @@ namespace OpenWifi {
 	void Daemon::PostInitialization([[maybe_unused]] Poco::Util::Application &self) {
         AutoProvisioning_ = config().getBool("openwifi.autoprovisioning",false);
         DeviceTypes_ = DefaultDeviceTypes;
+
+		WebSocketProcessor_ = std::make_unique<GwWebSocketClient>(logger());
     }
 
     [[nodiscard]] std::string Daemon::IdentifyDevice(const std::string & Id ) const {

@@ -97,7 +97,6 @@ add_executable( owgw
         src/RESTAPI/RESTAPI_RPC.cpp src/RESTAPI/RESTAPI_RPC.h
         src/RESTAPI/RESTAPI_deviceDashboardHandler.cpp src/RESTAPI/RESTAPI_deviceDashboardHandler.h
         src/RESTAPI/RESTAPI_telemetryWebSocket.cpp src/RESTAPI/RESTAPI_telemetryWebSocket.h
-        src/RESTAPI/RESTAPI_webSocketServer.cpp src/RESTAPI/RESTAPI_webSocketServer.h
         src/storage/storage_blacklist.cpp src/storage/storage_tables.cpp src/storage/storage_logs.cpp
         src/storage/storage_command.cpp src/storage/storage_healthcheck.cpp src/storage/storage_statistics.cpp
         src/storage/storage_device.cpp src/storage/storage_capabilities.cpp src/storage/storage_defconfig.cpp
@@ -117,7 +116,7 @@ add_executable( owgw
         src/TelemetryStream.cpp src/TelemetryStream.h
         src/framework/ConfigurationValidator.cpp src/framework/ConfigurationValidator.h
         src/ConfigurationCache.h
-        src/CapabilitiesCache.h src/FindCountry.h src/rttys/RTTYS_server.cpp src/rttys/RTTYS_server.h src/rttys/RTTYS_device.cpp src/rttys/RTTYS_device.h src/rttys/RTTYS_ClientConnection.cpp src/rttys/RTTYS_ClientConnection.h src/rttys/RTTYS_WebServer.cpp src/rttys/RTTYS_WebServer.h src/RESTAPI/RESTAPI_device_helper.h src/SDKcalls.cpp src/SDKcalls.h src/StateUtils.cpp src/StateUtils.h src/WS_ReactorPool.h src/WS_Connection.h src/WS_Connection.cpp src/TelemetryClient.h src/TelemetryClient.cpp src/RESTAPI/RESTAPI_iptocountry_handler.cpp src/RESTAPI/RESTAPI_iptocountry_handler.h src/framework/ow_constants.h)
+        src/CapabilitiesCache.h src/FindCountry.h src/rttys/RTTYS_server.cpp src/rttys/RTTYS_server.h src/rttys/RTTYS_device.cpp src/rttys/RTTYS_device.h src/rttys/RTTYS_ClientConnection.cpp src/rttys/RTTYS_ClientConnection.h src/rttys/RTTYS_WebServer.cpp src/rttys/RTTYS_WebServer.h src/RESTAPI/RESTAPI_device_helper.h src/SDKcalls.cpp src/SDKcalls.h src/StateUtils.cpp src/StateUtils.h src/WS_ReactorPool.h src/WS_Connection.h src/WS_Connection.cpp src/TelemetryClient.h src/TelemetryClient.cpp src/RESTAPI/RESTAPI_iptocountry_handler.cpp src/RESTAPI/RESTAPI_iptocountry_handler.h src/framework/ow_constants.h src/GwWebSocketClient.cpp src/GwWebSocketClient.h)
 
 if(NOT SMALL_BUILD)
 

@@ -27,6 +27,7 @@
 #include "Dashboard.h"
 #include "framework/MicroService.h"
 #include "framework/OpenWifiTypes.h"
+#include "GwWebSocketClient.h"
 
 namespace OpenWifi {
 
@@ -56,7 +57,7 @@ namespace OpenWifi {
 			bool                        AutoProvisioning_ = false;
 			std::vector<std::pair<std::string,std::string>> DeviceTypes_;
 			DeviceDashboard				DB_;
-
+			std::unique_ptr<GwWebSocketClient>    WebSocketProcessor_;
     };
 
 	inline Daemon * Daemon() { return Daemon::instance(); }

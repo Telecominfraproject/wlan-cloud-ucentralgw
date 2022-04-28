@@ -16,10 +16,8 @@
 #include "RESTAPI/RESTAPI_devices_handler.h"
 #include "RESTAPI/RESTAPI_file.h"
 #include "RESTAPI/RESTAPI_ouis.h"
-
 #include "RESTAPI/RESTAPI_capabilities_handler.h"
 #include "RESTAPI/RESTAPI_telemetryWebSocket.h"
-#include "RESTAPI/RESTAPI_webSocketServer.h"
 #include "RESTAPI/RESTAPI_iptocountry_handler.h"
 
 namespace OpenWifi {
