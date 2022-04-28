@@ -36,6 +36,7 @@ namespace OpenWifi {
 										StorageService(),
 										SerialNumberCache(),
 										ConfigurationValidator(),
+								   		WebSocketClientServer(),
 										OUIServer(),
 										FindCountryFromIP(),
 										DeviceRegistry(),
