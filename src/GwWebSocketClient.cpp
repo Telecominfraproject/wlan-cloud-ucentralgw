@@ -20,6 +20,7 @@ namespace OpenWifi {
 		try {
 			if (O->has("command")) {
 				auto Command = O->get("command").toString();
+				std::cout << "Command..." << Command << std::endl;
 				if (Command == "serial_number_search" && O->has("serial_prefix")) {
 					ws_command_serial_number_search(O,Done,Answer);
 				} else if (Command=="exit") {
