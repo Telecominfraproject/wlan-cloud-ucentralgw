@@ -258,20 +258,34 @@ namespace OpenWifi {
 	}
 
 	bool WSConnection::ExtractBase64CompressedData(const std::string &CompressedData,
-												   std::string &UnCompressedData) {
+												   std::string &UnCompressedData, uint64_t compress_sz) {
 		std::istringstream ifs(CompressedData);
 		Poco::Base64Decoder b64in(ifs);
 		std::ostringstream ofs;
 		Poco::StreamCopier::copyStream(b64in, ofs);
 
-		unsigned long MaxSize = ofs.str().size() * 10;
-		std::vector<uint8_t> UncompressedBuffer(MaxSize);
-		unsigned long FinalSize = MaxSize;
-		if (uncompress((uint8_t *)&UncompressedBuffer[0], &FinalSize, (uint8_t *)ofs.str().c_str(),
-					   ofs.str().size()) == Z_OK) {
-			UncompressedBuffer[FinalSize] = 0;
-			UnCompressedData = (char *)&UncompressedBuffer[0];
-			return true;
+		int factor = 20;
+		unsigned long MaxSize = compress_sz ? (unsigned long) (compress_sz + 5000) : (unsigned long) (ofs.str().size() * factor);
+		while(true) {
+			std::vector<uint8_t> UncompressedBuffer(MaxSize);
+			unsigned long FinalSize = MaxSize;
+			auto status = uncompress((uint8_t *)&UncompressedBuffer[0], &FinalSize,
+									 (uint8_t *)ofs.str().c_str(), ofs.str().size());
+			if(status==Z_OK) {
+				UncompressedBuffer[FinalSize] = 0;
+				UnCompressedData = (char *)&UncompressedBuffer[0];
+				return true;
+			}
+			if(status==Z_BUF_ERROR) {
+				if(factor<300) {
+					factor+=10;
+					MaxSize = ofs.str().size() * factor;
+					continue;
+				} else {
+					return false;
+				}
+			}
+			return false;
 		}
 		return false;
 	}
@@ -300,9 +314,13 @@ namespace OpenWifi {
 		auto ParamsObj = Doc->get(uCentralProtocol::PARAMS).extract<Poco::JSON::Object::Ptr>();
 		if (ParamsObj->has(uCentralProtocol::COMPRESS_64)) {
 			std::string UncompressedData;
+			uint64_t compress_sz = 0 ;
+			if(ParamsObj->has("compress_sz")) {
+				compress_sz = ParamsObj->get("compress_sz");
+			}
 			try {
 				if (ExtractBase64CompressedData(
-						ParamsObj->get(uCentralProtocol::COMPRESS_64).toString(), UncompressedData)) {
+						ParamsObj->get(uCentralProtocol::COMPRESS_64).toString(), UncompressedData, compress_sz)) {
 					poco_trace(Logger(),Poco::format("EVENT(%s): Found compressed payload expanded to '%s'.",
 													  CId_, UncompressedData));
 					Poco::JSON::Parser Parser;
