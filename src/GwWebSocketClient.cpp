@@ -47,7 +47,7 @@ namespace OpenWifi {
 			for (const auto &i : Numbers)
 				A.add(Utils::int_to_hex(i));
 			Poco::JSON::Object A0;
-			A0.set("serialNumbers", A0);
+			A0.set("serialNumbers", A);
 			std::ostringstream SS;
 			Poco::JSON::Stringifier::stringify(A, SS);
 			Answer = SS.str();
