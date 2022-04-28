@@ -198,6 +198,14 @@ namespace OpenWifi {
 			std::thread t([s]() { NotifyKafkaDisconnect(s); });
 			t.detach();
 		}
+
+		WebSocketNotification	N;
+		N.content.title = "Device Disconnection";
+		N.content.type = "device_disconnection";
+		N.content.success.push_back(SerialNumber_);
+		N.content.timeStamp = OpenWifi::Now();
+		WebSocketClientServer()->SendNotification(N);
+
 	}
 
 	bool WSConnection::LookForUpgrade(uint64_t UUID) {
@@ -435,6 +443,13 @@ namespace OpenWifi {
 
 				Conn_->Conn_.Compatible = Compatible_;
 
+				WebSocketNotification	N;
+				N.content.title = "Device Connection";
+				N.content.type = "device_connection";
+				N.content.success.push_back(SerialNumber_);
+				N.content.timeStamp = OpenWifi::Now();
+				WebSocketClientServer()->SendNotification(N);
+
 				if (KafkaManager()->Enabled()) {
 					Poco::JSON::Stringifier Stringify;
 					ParamsObj->set(uCentralProtocol::CONNECTIONIP, CId_);
@@ -496,6 +511,14 @@ namespace OpenWifi {
 					Stringify.condense(ParamsObj, OS);
 					KafkaManager()->PostMessage(KafkaTopics::STATE, SerialNumber_, OS.str());
 				}
+
+				WebSocketNotification	N;
+				N.content.title = "Device Statistics";
+				N.content.type = "device_statistics";
+				N.content.success.push_back(SerialNumber_);
+				N.content.timeStamp = OpenWifi::Now();
+				WebSocketClientServer()->SendNotification(N);
+
 			} else {
 				poco_warning(Logger(), fmt::format("STATE({}): Invalid request. Missing serial, uuid, or state", CId_));
 			}

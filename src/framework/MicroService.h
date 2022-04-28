@@ -4669,9 +4669,10 @@ namespace OpenWifi {
         [[nodiscard]] inline std::string GoogleApiKey() const { return GoogleApiKey_; }
         [[nodiscard]] bool Send(const std::string &Id, const std::string &Payload);
         [[nodiscard]] bool
-        SendUserNotification(const std::string &userName, const WebSocketNotification &Notification);
+        	SendUserNotification(const std::string &userName, const WebSocketNotification &Notification);
+		void SendNotification(const WebSocketNotification &Notification);
         [[nodiscard]] bool SendToUser(const std::string &userName, const std::string &Payload);
-
+		void SendToAll(const std::string &Payload);
     private:
         std::atomic_bool Running_ = false;
         Poco::Thread Thr_;
@@ -4692,7 +4693,7 @@ namespace OpenWifi {
         virtual ~WebSocketClient();
         [[nodiscard]] inline const std::string &Id();
         [[nodiscard]] Poco::Logger &Logger();
-        [[nodiscard]] inline bool Send(const std::string &Payload);
+        inline bool Send(const std::string &Payload);
     private:
         std::unique_ptr<Poco::Net::WebSocket> WS_;
         Poco::Net::SocketReactor &Reactor_;
@@ -4802,10 +4803,19 @@ namespace OpenWifi {
         std::ostringstream OO;
         Msg.stringify(OO);
 
-//        std::cout << std::endl << OO.str() << std::endl;
-
         return SendToUser(userName,OO.str());
     }
+
+	inline void
+	WebSocketClientServer::SendNotification(const WebSocketNotification &Notification) {
+		Poco::JSON::Object  Payload;
+		Notification.to_json(Payload);
+		Poco::JSON::Object  Msg;
+		Msg.set("notification",Payload);
+		std::ostringstream OO;
+		Msg.stringify(OO);
+		SendToAll(OO.str());
+	}
 
     inline void WebSocketClient::OnSocketError([[maybe_unused]] const Poco::AutoPtr<Poco::Net::ErrorNotification> &pNf) {
         delete this;
@@ -4833,7 +4843,19 @@ namespace OpenWifi {
         return Sent>0;
     }
 
-    inline void WebSocketClient::OnSocketReadable([[maybe_unused]] const Poco::AutoPtr<Poco::Net::ReadableNotification> &pNf) {
+	inline void WebSocketClientServer::SendToAll(const std::string &Payload) {
+		std::lock_guard G(Mutex_);
+
+		for(const auto &client:Clients_) {
+			try {
+				client.second.first->Send(Payload);
+			} catch (...) {
+
+			}
+		}
+	}
+
+	inline void WebSocketClient::OnSocketReadable([[maybe_unused]] const Poco::AutoPtr<Poco::Net::ReadableNotification> &pNf) {
         int flags;
         int n;
         bool Done=false;
