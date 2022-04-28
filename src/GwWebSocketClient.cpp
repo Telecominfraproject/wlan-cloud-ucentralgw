@@ -51,6 +51,7 @@ namespace OpenWifi {
 			std::ostringstream SS;
 			Poco::JSON::Stringifier::stringify(A, SS);
 			Answer = SS.str();
+			std::cout << "Answer..." << Answer << std::endl;
 		}
 	}
 
