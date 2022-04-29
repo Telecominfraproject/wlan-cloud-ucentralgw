@@ -109,7 +109,8 @@ namespace OpenWifi {
         RATE_LIMIT_EXCEEDED,
         BAD_MFA_TRANSACTION,
         MFA_FAILURE,
-        SECURITY_SERVICE_UNREACHABLE
+        SECURITY_SERVICE_UNREACHABLE,
+        CANNOT_REFRESH_TOKEN
     };
 
 	class AppServiceRegistry {
@@ -4566,63 +4567,64 @@ namespace OpenWifi {
 
 	inline MicroService * MicroService::instance_ = nullptr;
 
-    struct WebSocketNotificationContent {
+    struct WebSocketNotificationJobContent {
         std::string                 title,
-                type,
-                details;
+									details;
         std::vector<std::string>    success,
-                error,
-                warning;
-        uint64_t                    timeStamp=std::time(nullptr);
+									error,
+									warning;
+        uint64_t                    timeStamp=OpenWifi::Now();
 
         void to_json(Poco::JSON::Object &Obj) const;
         bool from_json(const Poco::JSON::Object::Ptr &Obj);
     };
 
-    struct WebSocketNotification {
+	inline void WebSocketNotificationJobContent::to_json(Poco::JSON::Object &Obj) const {
+		RESTAPI_utils::field_to_json(Obj,"title",title);
+		RESTAPI_utils::field_to_json(Obj,"success",success);
+		RESTAPI_utils::field_to_json(Obj,"error",error);
+		RESTAPI_utils::field_to_json(Obj,"warning",warning);
+		RESTAPI_utils::field_to_json(Obj,"timeStamp",timeStamp);
+		RESTAPI_utils::field_to_json(Obj,"details",details);
+	}
+
+	inline bool WebSocketNotificationJobContent::from_json(const Poco::JSON::Object::Ptr &Obj) {
+		try {
+			RESTAPI_utils::field_from_json(Obj,"title",title);
+			RESTAPI_utils::field_from_json(Obj,"success",success);
+			RESTAPI_utils::field_from_json(Obj,"error",error);
+			RESTAPI_utils::field_from_json(Obj,"warning",warning);
+			RESTAPI_utils::field_from_json(Obj,"timeStamp",timeStamp);
+			RESTAPI_utils::field_from_json(Obj,"details",details);
+			return true;
+		} catch(...) {
+
+		}
+		return false;
+	}
+
+    template <typename ContentStruct> struct WebSocketNotification {
         inline static uint64_t          xid=1;
         uint64_t                        notification_id=++xid;
-        WebSocketNotificationContent    content;
+		std::string						type;
+		ContentStruct    				content;
 
         void to_json(Poco::JSON::Object &Obj) const;
         bool from_json(const Poco::JSON::Object::Ptr &Obj);
     };
 
-    inline void WebSocketNotificationContent::to_json(Poco::JSON::Object &Obj) const {
-        RESTAPI_utils::field_to_json(Obj,"title",title);
-        RESTAPI_utils::field_to_json(Obj,"type",type);
-        RESTAPI_utils::field_to_json(Obj,"success",success);
-        RESTAPI_utils::field_to_json(Obj,"error",error);
-        RESTAPI_utils::field_to_json(Obj,"warning",warning);
-        RESTAPI_utils::field_to_json(Obj,"timeStamp",timeStamp);
-        RESTAPI_utils::field_to_json(Obj,"details",details);
-    }
 
-    inline bool WebSocketNotificationContent::from_json(const Poco::JSON::Object::Ptr &Obj) {
-        try {
-            RESTAPI_utils::field_from_json(Obj,"title",title);
-            RESTAPI_utils::field_from_json(Obj,"type",type);
-            RESTAPI_utils::field_from_json(Obj,"success",success);
-            RESTAPI_utils::field_from_json(Obj,"error",error);
-            RESTAPI_utils::field_from_json(Obj,"warning",warning);
-            RESTAPI_utils::field_from_json(Obj,"timeStamp",timeStamp);
-            RESTAPI_utils::field_from_json(Obj,"details",details);
-            return true;
-        } catch(...) {
-
-        }
-        return false;
-    }
-
-    inline void WebSocketNotification::to_json(Poco::JSON::Object &Obj) const {
+    template <typename ContentStruct> void WebSocketNotification<ContentStruct>::to_json(Poco::JSON::Object &Obj) const {
         RESTAPI_utils::field_to_json(Obj,"notification_id",notification_id);
-        RESTAPI_utils::field_to_json(Obj,"content",content);
+		RESTAPI_utils::field_to_json(Obj,"type",type);
+		RESTAPI_utils::field_to_json(Obj,"content",content);
     }
 
-    inline bool WebSocketNotification::from_json(const Poco::JSON::Object::Ptr &Obj) {
+	template <typename ContentStruct> bool WebSocketNotification<ContentStruct>::from_json(const Poco::JSON::Object::Ptr &Obj) {
         try {
             RESTAPI_utils::field_from_json(Obj,"notification_id",notification_id);
             RESTAPI_utils::field_from_json(Obj,"content",content);
+			RESTAPI_utils::field_from_json(Obj,"type",type);
             return true;
         } catch(...) {
 
@@ -4668,10 +4670,31 @@ namespace OpenWifi {
         [[nodiscard]] inline bool GeoCodeEnabled() const { return GeoCodeEnabled_; }
         [[nodiscard]] inline std::string GoogleApiKey() const { return GoogleApiKey_; }
         [[nodiscard]] bool Send(const std::string &Id, const std::string &Payload);
-        [[nodiscard]] bool
-        	SendUserNotification(const std::string &userName, const WebSocketNotification &Notification);
-		void SendNotification(const WebSocketNotification &Notification);
-        [[nodiscard]] bool SendToUser(const std::string &userName, const std::string &Payload);
+
+		template <typename T> bool
+        	SendUserNotification(const std::string &userName, const WebSocketNotification<T> &Notification) {
+
+			Poco::JSON::Object  Payload;
+			Notification.to_json(Payload);
+			Poco::JSON::Object  Msg;
+			Msg.set("notification",Payload);
+			std::ostringstream OO;
+			Msg.stringify(OO);
+
+			return SendToUser(userName,OO.str());
+		}
+
+		template <typename T> void SendNotification(const WebSocketNotification<T> &Notification) {
+			Poco::JSON::Object  Payload;
+			Notification.to_json(Payload);
+			Poco::JSON::Object  Msg;
+			Msg.set("notification",Payload);
+			std::ostringstream OO;
+			Msg.stringify(OO);
+			SendToAll(OO.str());
+		}
+
+		[[nodiscard]] bool SendToUser(const std::string &userName, const std::string &Payload);
 		void SendToAll(const std::string &Payload);
     private:
         std::atomic_bool Running_ = false;
@@ -4793,29 +4816,6 @@ namespace OpenWifi {
         }
     };
 
-    inline bool WebSocketClientServer::SendUserNotification(const std::string &userName,
-                                                     const WebSocketNotification &Notification) {
-
-        Poco::JSON::Object  Payload;
-        Notification.to_json(Payload);
-        Poco::JSON::Object  Msg;
-        Msg.set("notification",Payload);
-        std::ostringstream OO;
-        Msg.stringify(OO);
-
-        return SendToUser(userName,OO.str());
-    }
-
-	inline void
-	WebSocketClientServer::SendNotification(const WebSocketNotification &Notification) {
-		Poco::JSON::Object  Payload;
-		Notification.to_json(Payload);
-		Poco::JSON::Object  Msg;
-		Msg.set("notification",Payload);
-		std::ostringstream OO;
-		Msg.stringify(OO);
-		SendToAll(OO.str());
-	}
 
     inline void WebSocketClient::OnSocketError([[maybe_unused]] const Poco::AutoPtr<Poco::Net::ErrorNotification> &pNf) {
         delete this;

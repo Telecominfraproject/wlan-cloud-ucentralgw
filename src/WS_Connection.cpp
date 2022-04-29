@@ -25,6 +25,24 @@
 #include "FindCountry.h"
 
 namespace OpenWifi {
+
+	struct WebNotificationSingleDevice {
+		std::string		serialNumber;
+		void to_json(Poco::JSON::Object &Obj) const {
+			RESTAPI_utils::field_to_json(Obj,"serialNumber", serialNumber);
+		}
+
+		bool from_json(const Poco::JSON::Object::Ptr &Obj) {
+			try {
+				RESTAPI_utils::field_from_json(Obj,"serialNumber", serialNumber);
+				return true;
+			} catch (...) {
+
+			}
+			return false;
+		}
+	};
+
 	void WSConnection::LogException(const Poco::Exception &E) {
 		Logger().information(fmt::format("EXCEPTION({}): {}", CId_, E.displayText()));
 	}
@@ -199,13 +217,10 @@ namespace OpenWifi {
 			t.detach();
 		}
 
-		WebSocketNotification	N;
-		N.content.title = "Device Disconnection";
-		N.content.type = "device_disconnection";
-		N.content.success.push_back(SerialNumber_);
-		N.content.timeStamp = OpenWifi::Now();
+		WebSocketNotification<WebNotificationSingleDevice>	N;
+		N.content.serialNumber = SerialNumber_;
+		N.type = "device_disconnection";
 		WebSocketClientServer()->SendNotification(N);
-
 	}
 
 	bool WSConnection::LookForUpgrade(uint64_t UUID) {
@@ -443,11 +458,9 @@ namespace OpenWifi {
 
 				Conn_->Conn_.Compatible = Compatible_;
 
-				WebSocketNotification	N;
-				N.content.title = "Device Connection";
-				N.content.type = "device_connection";
-				N.content.success.push_back(SerialNumber_);
-				N.content.timeStamp = OpenWifi::Now();
+				WebSocketNotification<WebNotificationSingleDevice>	N;
+				N.content.serialNumber = SerialNumber_;
+				N.type = "device_connection";
 				WebSocketClientServer()->SendNotification(N);
 
 				if (KafkaManager()->Enabled()) {
@@ -512,11 +525,9 @@ namespace OpenWifi {
 					KafkaManager()->PostMessage(KafkaTopics::STATE, SerialNumber_, OS.str());
 				}
 
-				WebSocketNotification	N;
-				N.content.title = "Device Statistics";
-				N.content.type = "device_statistics";
-				N.content.success.push_back(SerialNumber_);
-				N.content.timeStamp = OpenWifi::Now();
+				WebSocketNotification<WebNotificationSingleDevice>	N;
+				N.content.serialNumber = SerialNumber_;
+				N.type = "device_statistics";
 				WebSocketClientServer()->SendNotification(N);
 
 			} else {
