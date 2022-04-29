@@ -4567,42 +4567,6 @@ namespace OpenWifi {
 
 	inline MicroService * MicroService::instance_ = nullptr;
 
-    struct WebSocketNotificationJobContent {
-        std::string                 title,
-									details;
-        std::vector<std::string>    success,
-									error,
-									warning;
-        uint64_t                    timeStamp=OpenWifi::Now();
-
-        void to_json(Poco::JSON::Object &Obj) const;
-        bool from_json(const Poco::JSON::Object::Ptr &Obj);
-    };
-
-	inline void WebSocketNotificationJobContent::to_json(Poco::JSON::Object &Obj) const {
-		RESTAPI_utils::field_to_json(Obj,"title",title);
-		RESTAPI_utils::field_to_json(Obj,"success",success);
-		RESTAPI_utils::field_to_json(Obj,"error",error);
-		RESTAPI_utils::field_to_json(Obj,"warning",warning);
-		RESTAPI_utils::field_to_json(Obj,"timeStamp",timeStamp);
-		RESTAPI_utils::field_to_json(Obj,"details",details);
-	}
-
-	inline bool WebSocketNotificationJobContent::from_json(const Poco::JSON::Object::Ptr &Obj) {
-		try {
-			RESTAPI_utils::field_from_json(Obj,"title",title);
-			RESTAPI_utils::field_from_json(Obj,"success",success);
-			RESTAPI_utils::field_from_json(Obj,"error",error);
-			RESTAPI_utils::field_from_json(Obj,"warning",warning);
-			RESTAPI_utils::field_from_json(Obj,"timeStamp",timeStamp);
-			RESTAPI_utils::field_from_json(Obj,"details",details);
-			return true;
-		} catch(...) {
-
-		}
-		return false;
-	}
-
     template <typename ContentStruct> struct WebSocketNotification {
         inline static uint64_t          xid=1;
         uint64_t                        notification_id=++xid;
@@ -4612,7 +4576,6 @@ namespace OpenWifi {
         void to_json(Poco::JSON::Object &Obj) const;
         bool from_json(const Poco::JSON::Object::Ptr &Obj);
     };
-
 
     template <typename ContentStruct> void WebSocketNotification<ContentStruct>::to_json(Poco::JSON::Object &Obj) const {
         RESTAPI_utils::field_to_json(Obj,"notification_id",notification_id);
