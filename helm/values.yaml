@@ -9,7 +9,7 @@ fullnameOverride: ""
 images:
   owgw:
     repository: tip-tip-wlan-cloud-ucentral.jfrog.io/owgw
-    tag: v2.5.1-RC1
+    tag: v2.5.1
     pullPolicy: Always
 #    regcred:
 #      registry: tip-tip-wlan-cloud-ucentral.jfrog.io
