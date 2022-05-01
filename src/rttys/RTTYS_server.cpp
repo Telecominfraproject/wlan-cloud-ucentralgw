@@ -13,68 +13,75 @@ namespace OpenWifi {
 
 		Internal_ = MicroService::instance().ConfigGetBool("rtty.internal",false);
 		if(Internal_) {
-			int DSport = MicroService::instance().ConfigGetInt("rtty.port", 5912);
-			int CSport = MicroService::instance().ConfigGetInt("rtty.viewport", 5913);
-			RTTY_UIAssets_ =
-				MicroService::instance().ConfigPath("rtty.assets", "$OWGW_ROOT/rtty_ui");
+			int DSport = (int) MicroService::instance().ConfigGetInt("rtty.port", 5912);
+			int CSport = (int) MicroService::instance().ConfigGetInt("rtty.viewport", 5913);
+			RTTY_UIAssets_ = MicroService::instance().ConfigPath("rtty.assets", "$OWGW_ROOT/rtty_ui");
 
 			std::string CertFileName, KeyFileName, RootCa;
 
-				CertFileName =
-					MicroService::instance().ConfigPath("openwifi.restapi.host.0.cert");
-				KeyFileName =
-					MicroService::instance().ConfigPath("openwifi.restapi.host.0.key");
-				RootCa = MicroService::instance().ConfigPath("openwifi.restapi.host.0.rootca");
+			CertFileName =
+				MicroService::instance().ConfigPath("openwifi.restapi.host.0.cert");
+			KeyFileName =
+				MicroService::instance().ConfigPath("openwifi.restapi.host.0.key");
+			RootCa = MicroService::instance().ConfigPath("openwifi.restapi.host.0.rootca");
 
 			Poco::Crypto::X509Certificate Root(RootCa);
 
-			auto DeviceSecureContext = new Poco::Net::Context(Poco::Net::Context::SERVER_USE,
-									   	KeyFileName, CertFileName, "",
-										Poco::Net::Context::VERIFY_RELAXED);
-
-			DeviceSecureContext->addCertificateAuthority(Root);
-			DeviceSecureContext->disableStatelessSessionResumption();
-			DeviceSecureContext->enableSessionCache();
-			DeviceSecureContext->setSessionCacheSize(0);
-			DeviceSecureContext->setSessionTimeout(10);
-			DeviceSecureContext->enableExtendedCertificateVerification(true);
-			SSL_CTX *SSLCtxDevice = DeviceSecureContext->sslContext();
-			SSL_CTX_dane_enable(SSLCtxDevice);
-
-			Poco::Net::SecureServerSocket DeviceSocket(DSport, 64, DeviceSecureContext);
-			Poco::Net::TCPServerParams* pParams = new Poco::Net::TCPServerParams();
+			auto pParams = new Poco::Net::TCPServerParams();
 			pParams->setMaxThreads(50);
 			pParams->setMaxQueued(100);
-			// pParams->setThreadIdleTime(100);
 
-			DeviceAcceptor_ = std::make_unique<Poco::Net::TCPServer>(new Poco::Net::TCPServerConnectionFactoryImpl<RTTY_Device_ConnectionHandler>(), DeviceSocket, pParams);
+			if(MicroService::instance().NoAPISecurity()) {
+				Poco::Net::ServerSocket DeviceSocket(DSport, 64);
+				DeviceAcceptor_ = std::make_unique<Poco::Net::TCPServer>(new Poco::Net::TCPServerConnectionFactoryImpl<RTTY_Device_ConnectionHandler>(), DeviceSocket, pParams);
+			} else {
+				auto DeviceSecureContext = new Poco::Net::Context(Poco::Net::Context::SERVER_USE,
+																  KeyFileName, CertFileName, "",
+																  Poco::Net::Context::VERIFY_RELAXED);
+
+				DeviceSecureContext->addCertificateAuthority(Root);
+				DeviceSecureContext->disableStatelessSessionResumption();
+				DeviceSecureContext->enableSessionCache();
+				DeviceSecureContext->setSessionCacheSize(0);
+				DeviceSecureContext->setSessionTimeout(10);
+				DeviceSecureContext->enableExtendedCertificateVerification(true);
+				SSL_CTX *SSLCtxDevice = DeviceSecureContext->sslContext();
+				SSL_CTX_dane_enable(SSLCtxDevice);
+
+				Poco::Net::SecureServerSocket DeviceSocket(DSport, 64, DeviceSecureContext);
+				DeviceAcceptor_ = std::make_unique<Poco::Net::TCPServer>(new Poco::Net::TCPServerConnectionFactoryImpl<RTTY_Device_ConnectionHandler>(), DeviceSocket, pParams);
+			}
 			DeviceAcceptor_->start();
 
-			auto ClientSecureContext =
-				new Poco::Net::Context(Poco::Net::Context::SERVER_USE, KeyFileName, CertFileName,
-									   "", Poco::Net::Context::VERIFY_RELAXED);
-			ClientSecureContext->addCertificateAuthority(Root);
-			ClientSecureContext->disableStatelessSessionResumption();
-			ClientSecureContext->enableSessionCache();
-			ClientSecureContext->setSessionCacheSize(0);
-			ClientSecureContext->setSessionTimeout(10);
-			ClientSecureContext->enableExtendedCertificateVerification(true);
-			SSL_CTX *SSLCtxClient = ClientSecureContext->sslContext();
-			SSL_CTX_dane_enable(SSLCtxClient);
+			auto WebServerHttpParams = new Poco::Net::HTTPServerParams;
+			WebServerHttpParams->setMaxThreads(50);
+			WebServerHttpParams->setMaxQueued(200);
+			WebServerHttpParams->setKeepAlive(true);
 
-			Poco::Net::SecureServerSocket ClientSocket(CSport, 64, ClientSecureContext);
-			ClientSocket.setNoDelay(true);
+			if(MicroService::instance().NoAPISecurity()) {
+				Poco::Net::ServerSocket ClientSocket(CSport, 64);
+				ClientSocket.setNoDelay(true);
+				WebServer_ = std::make_unique<Poco::Net::HTTPServer>(new RTTY_Client_RequestHandlerFactory(ClientReactor_), ClientSocket, WebServerHttpParams);
+			} else {
+				auto ClientSecureContext = new Poco::Net::Context(Poco::Net::Context::SERVER_USE, KeyFileName, CertFileName,
+										   "", Poco::Net::Context::VERIFY_RELAXED);
+				ClientSecureContext->addCertificateAuthority(Root);
+				ClientSecureContext->disableStatelessSessionResumption();
+				ClientSecureContext->enableSessionCache();
+				ClientSecureContext->setSessionCacheSize(0);
+				ClientSecureContext->setSessionTimeout(10);
+				ClientSecureContext->enableExtendedCertificateVerification(true);
+				SSL_CTX *SSLCtxClient = ClientSecureContext->sslContext();
+				SSL_CTX_dane_enable(SSLCtxClient);
 
-			auto HttpParams = new Poco::Net::HTTPServerParams;
-			HttpParams->setMaxThreads(50);
-			HttpParams->setMaxQueued(200);
-			HttpParams->setKeepAlive(true);
+				Poco::Net::SecureServerSocket ClientSocket(CSport, 64, ClientSecureContext);
+				ClientSocket.setNoDelay(true);
+				WebServer_ = std::make_unique<Poco::Net::HTTPServer>(new RTTY_Client_RequestHandlerFactory(ClientReactor_), ClientSocket, WebServerHttpParams);
+			};
+			WebServer_->start();
 
-			WebServer_ = std::make_unique<Poco::Net::HTTPServer>(
-				new RTTY_Client_RequestHandlerFactory(ClientReactor_), ClientSocket, HttpParams);
 			ClientReactorThread_.setName("RTTYWebServerClientThread");
 			ClientReactorThread_.start(ClientReactor_);
-			WebServer_->start();
 		}
 
 		return 0;

@@ -72,7 +72,7 @@ namespace OpenWifi {
 		std::atomic_bool 			Internal_ = false;
 
 		std::map<std::string, EndPoint> 			EndPoints_;			//	id, endpoint
-		std::unique_ptr<Poco::Net::HTTPServer>				WebServer_;
+		std::unique_ptr<Poco::Net::HTTPServer>		WebServer_;
 		std::unique_ptr<Poco::Net::TCPServer>		DeviceAcceptor_;
 
 		explicit RTTYS_server() noexcept:
