@@ -19,20 +19,13 @@ namespace OpenWifi {
 				MicroService::instance().ConfigPath("rtty.assets", "$OWGW_ROOT/rtty_ui");
 
 			std::string CertFileName, KeyFileName, RootCa;
-			if(MicroService::instance().NoAPISecurity()) {
-				CertFileName =
-					MicroService::instance().ConfigPath("openwifi.websocket.host.0.cert");
-				KeyFileName =
-					MicroService::instance().ConfigPath("openwifi.websocket.host.0.key");
-				RootCa = MicroService::instance().ConfigPath("openwifi.websocket.host.0.rootca");
 
-			} else {
 				CertFileName =
 					MicroService::instance().ConfigPath("openwifi.restapi.host.0.cert");
 				KeyFileName =
 					MicroService::instance().ConfigPath("openwifi.restapi.host.0.key");
 				RootCa = MicroService::instance().ConfigPath("openwifi.restapi.host.0.rootca");
-			}
+
 			Poco::Crypto::X509Certificate Root(RootCa);
 
 			auto DeviceSecureContext = new Poco::Net::Context(Poco::Net::Context::SERVER_USE,
