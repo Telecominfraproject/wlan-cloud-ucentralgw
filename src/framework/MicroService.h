@@ -4311,15 +4311,14 @@ namespace OpenWifi {
             auto Services = MicroService::instance().GetServices(Type_);
             for(auto const &Svc:Services) {
                 Poco::URI	URI(Svc.PrivateEndPoint);
-                Poco::Net::HTTPSClientSession Session(URI.getHost(), URI.getPort());
+
+                auto Secure = (URI.getScheme() == "https");
 
                 URI.setPath(EndPoint_);
                 for (const auto &qp : QueryData_)
                     URI.addQueryParameter(qp.first, qp.second);
 
                 std::string Path(URI.getPathAndQuery());
-                Session.setTimeout(Poco::Timespan(msTimeout_/1000, msTimeout_ % 1000));
-
                 Poco::Net::HTTPRequest Request(Poco::Net::HTTPRequest::HTTP_GET,
                                                Path,
                                                Poco::Net::HTTPMessage::HTTP_1_1);
@@ -4332,15 +4331,33 @@ namespace OpenWifi {
                     Request.add("Authorization", "Bearer " + BearerToken);
                 }
 
-                Session.sendRequest(Request);
+                if(Secure) {
+                    Poco::Net::HTTPSClientSession Session(URI.getHost(), URI.getPort());
+                    Session.setTimeout(Poco::Timespan(msTimeout_ / 1000, msTimeout_ % 1000));
 
-                Poco::Net::HTTPResponse Response;
-                std::istream &is = Session.receiveResponse(Response);
-                if(Response.getStatus()==Poco::Net::HTTPResponse::HTTP_OK) {
-                    Poco::JSON::Parser	P;
-                    ResponseObject = P.parse(is).extract<Poco::JSON::Object::Ptr>();
+                    Session.sendRequest(Request);
+
+                    Poco::Net::HTTPResponse Response;
+                    std::istream &is = Session.receiveResponse(Response);
+                    if (Response.getStatus() == Poco::Net::HTTPResponse::HTTP_OK) {
+                        Poco::JSON::Parser P;
+                        ResponseObject = P.parse(is).extract<Poco::JSON::Object::Ptr>();
+                    }
+                    return Response.getStatus();
+                } else {
+                    Poco::Net::HTTPClientSession Session(URI.getHost(), URI.getPort());
+                    Session.setTimeout(Poco::Timespan(msTimeout_ / 1000, msTimeout_ % 1000));
+
+                    Session.sendRequest(Request);
+
+                    Poco::Net::HTTPResponse Response;
+                    std::istream &is = Session.receiveResponse(Response);
+                    if (Response.getStatus() == Poco::Net::HTTPResponse::HTTP_OK) {
+                        Poco::JSON::Parser P;
+                        ResponseObject = P.parse(is).extract<Poco::JSON::Object::Ptr>();
+                    }
+                    return Response.getStatus();
                 }
-                return Response.getStatus();
             }
         }
         catch (const Poco::Exception &E)
@@ -4355,14 +4372,14 @@ namespace OpenWifi {
             auto Services = MicroService::instance().GetServices(Type_);
             for(auto const &Svc:Services) {
                 Poco::URI	URI(Svc.PrivateEndPoint);
-                Poco::Net::HTTPSClientSession Session(URI.getHost(), URI.getPort());
+
+                auto Secure = (URI.getScheme() == "https");
 
                 URI.setPath(EndPoint_);
                 for (const auto &qp : QueryData_)
                     URI.addQueryParameter(qp.first, qp.second);
 
                 std::string Path(URI.getPathAndQuery());
-                Session.setTimeout(Poco::Timespan(msTimeout_/1000, msTimeout_ % 1000));
 
                 Poco::Net::HTTPRequest Request(Poco::Net::HTTPRequest::HTTP_PUT,
                                                Path,
@@ -4381,19 +4398,41 @@ namespace OpenWifi {
                     Request.add("Authorization", "Bearer " + BearerToken);
                 }
 
-                std::ostream & os = Session.sendRequest(Request);
-                os << obody.str();
+                if(Secure) {
+                    Poco::Net::HTTPSClientSession Session(URI.getHost(), URI.getPort());
+                    Session.setTimeout(Poco::Timespan(msTimeout_ / 1000, msTimeout_ % 1000));
 
-                Poco::Net::HTTPResponse Response;
-                std::istream &is = Session.receiveResponse(Response);
-                if(Response.getStatus()==Poco::Net::HTTPResponse::HTTP_OK) {
-                    Poco::JSON::Parser	P;
-                    ResponseObject = P.parse(is).extract<Poco::JSON::Object::Ptr>();
+                    std::ostream &os = Session.sendRequest(Request);
+                    os << obody.str();
+
+                    Poco::Net::HTTPResponse Response;
+                    std::istream &is = Session.receiveResponse(Response);
+                    if (Response.getStatus() == Poco::Net::HTTPResponse::HTTP_OK) {
+                        Poco::JSON::Parser P;
+                        ResponseObject = P.parse(is).extract<Poco::JSON::Object::Ptr>();
+                    } else {
+                        Poco::JSON::Parser P;
+                        ResponseObject = P.parse(is).extract<Poco::JSON::Object::Ptr>();
+                    }
+                    return Response.getStatus();
                 } else {
-                    Poco::JSON::Parser	P;
-                    ResponseObject = P.parse(is).extract<Poco::JSON::Object::Ptr>();
+                    Poco::Net::HTTPClientSession Session(URI.getHost(), URI.getPort());
+                    Session.setTimeout(Poco::Timespan(msTimeout_ / 1000, msTimeout_ % 1000));
+
+                    std::ostream &os = Session.sendRequest(Request);
+                    os << obody.str();
+
+                    Poco::Net::HTTPResponse Response;
+                    std::istream &is = Session.receiveResponse(Response);
+                    if (Response.getStatus() == Poco::Net::HTTPResponse::HTTP_OK) {
+                        Poco::JSON::Parser P;
+                        ResponseObject = P.parse(is).extract<Poco::JSON::Object::Ptr>();
+                    } else {
+                        Poco::JSON::Parser P;
+                        ResponseObject = P.parse(is).extract<Poco::JSON::Object::Ptr>();
+                    }
+                    return Response.getStatus();
                 }
-                return Response.getStatus();
             }
         }
         catch (const Poco::Exception &E)
@@ -4409,14 +4448,14 @@ namespace OpenWifi {
 
             for(auto const &Svc:Services) {
                 Poco::URI	URI(Svc.PrivateEndPoint);
-                Poco::Net::HTTPSClientSession Session(URI.getHost(), URI.getPort());
+
+                auto Secure = (URI.getScheme() == "https");
 
                 URI.setPath(EndPoint_);
                 for (const auto &qp : QueryData_)
                     URI.addQueryParameter(qp.first, qp.second);
 
                 std::string Path(URI.getPathAndQuery());
-                Session.setTimeout(Poco::Timespan(msTimeout_/1000, msTimeout_ % 1000));
 
                 Poco::Net::HTTPRequest Request(Poco::Net::HTTPRequest::HTTP_POST,
                                                Path,
@@ -4435,19 +4474,39 @@ namespace OpenWifi {
                     Request.add("Authorization", "Bearer " + BearerToken);
                 }
 
-                std::ostream & os = Session.sendRequest(Request);
-                os << obody.str();
+                if(Secure) {
+                    Poco::Net::HTTPSClientSession Session(URI.getHost(), URI.getPort());
+                    Session.setTimeout(Poco::Timespan(msTimeout_ / 1000, msTimeout_ % 1000));
+                    std::ostream &os = Session.sendRequest(Request);
+                    os << obody.str();
 
-                Poco::Net::HTTPResponse Response;
-                std::istream &is = Session.receiveResponse(Response);
-                if(Response.getStatus()==Poco::Net::HTTPResponse::HTTP_OK) {
-                    Poco::JSON::Parser	P;
-                    ResponseObject = P.parse(is).extract<Poco::JSON::Object::Ptr>();
+                    Poco::Net::HTTPResponse Response;
+                    std::istream &is = Session.receiveResponse(Response);
+                    if (Response.getStatus() == Poco::Net::HTTPResponse::HTTP_OK) {
+                        Poco::JSON::Parser P;
+                        ResponseObject = P.parse(is).extract<Poco::JSON::Object::Ptr>();
+                    } else {
+                        Poco::JSON::Parser P;
+                        ResponseObject = P.parse(is).extract<Poco::JSON::Object::Ptr>();
+                    }
+                    return Response.getStatus();
                 } else {
-                    Poco::JSON::Parser	P;
-                    ResponseObject = P.parse(is).extract<Poco::JSON::Object::Ptr>();
+                    Poco::Net::HTTPClientSession Session(URI.getHost(), URI.getPort());
+                    Session.setTimeout(Poco::Timespan(msTimeout_ / 1000, msTimeout_ % 1000));
+                    std::ostream &os = Session.sendRequest(Request);
+                    os << obody.str();
+
+                    Poco::Net::HTTPResponse Response;
+                    std::istream &is = Session.receiveResponse(Response);
+                    if (Response.getStatus() == Poco::Net::HTTPResponse::HTTP_OK) {
+                        Poco::JSON::Parser P;
+                        ResponseObject = P.parse(is).extract<Poco::JSON::Object::Ptr>();
+                    } else {
+                        Poco::JSON::Parser P;
+                        ResponseObject = P.parse(is).extract<Poco::JSON::Object::Ptr>();
+                    }
+                    return Response.getStatus();
                 }
-                return Response.getStatus();
             }
         }
         catch (const Poco::Exception &E)
@@ -4463,14 +4522,14 @@ namespace OpenWifi {
 
             for(auto const &Svc:Services) {
                 Poco::URI	URI(Svc.PrivateEndPoint);
-                Poco::Net::HTTPSClientSession Session(URI.getHost(), URI.getPort());
+
+                auto Secure = (URI.getScheme() == "https");
 
                 URI.setPath(EndPoint_);
                 for (const auto &qp : QueryData_)
                     URI.addQueryParameter(qp.first, qp.second);
 
                 std::string Path(URI.getPathAndQuery());
-                Session.setTimeout(Poco::Timespan(msTimeout_/1000, msTimeout_ % 1000));
 
                 Poco::Net::HTTPRequest Request(Poco::Net::HTTPRequest::HTTP_DELETE,
                                                Path,
@@ -4483,10 +4542,21 @@ namespace OpenWifi {
                     Request.add("Authorization", "Bearer " + BearerToken);
                 }
 
-                Session.sendRequest(Request);
-                Poco::Net::HTTPResponse Response;
-                Session.receiveResponse(Response);
-                return Response.getStatus();
+                if(Secure) {
+                    Poco::Net::HTTPSClientSession Session(URI.getHost(), URI.getPort());
+                    Session.setTimeout(Poco::Timespan(msTimeout_ / 1000, msTimeout_ % 1000));
+                    Session.sendRequest(Request);
+                    Poco::Net::HTTPResponse Response;
+                    Session.receiveResponse(Response);
+                    return Response.getStatus();
+                } else {
+                    Poco::Net::HTTPClientSession Session(URI.getHost(), URI.getPort());
+                    Session.setTimeout(Poco::Timespan(msTimeout_ / 1000, msTimeout_ % 1000));
+                    Session.sendRequest(Request);
+                    Poco::Net::HTTPResponse Response;
+                    Session.receiveResponse(Response);
+                    return Response.getStatus();
+                }
             }
         }
         catch (const Poco::Exception &E)
