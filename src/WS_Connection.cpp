@@ -43,6 +43,26 @@ namespace OpenWifi {
 		}
 	};
 
+	struct WebNotificationSingleDeviceFirmwareChange {
+		std::string		serialNumber;
+		std::string		newFirmware;
+		void to_json(Poco::JSON::Object &Obj) const {
+			RESTAPI_utils::field_to_json(Obj,"serialNumber", serialNumber);
+			RESTAPI_utils::field_to_json(Obj,"newFirmware", newFirmware);
+		}
+
+		bool from_json(const Poco::JSON::Object::Ptr &Obj) {
+			try {
+				RESTAPI_utils::field_from_json(Obj,"serialNumber", serialNumber);
+				RESTAPI_utils::field_from_json(Obj,"newFirmware", newFirmware);
+				return true;
+			} catch (...) {
+
+			}
+			return false;
+		}
+	};
+
 	void WSConnection::LogException(const Poco::Exception &E) {
 		Logger().information(fmt::format("EXCEPTION({}): {}", CId_, E.displayText()));
 	}
@@ -441,15 +461,24 @@ namespace OpenWifi {
 					if(!Firmware.empty() && Firmware!=DeviceInfo.Firmware) {
 						DeviceInfo.Firmware = Firmware;
 						Updated = true;
+
+						WebSocketNotification<WebNotificationSingleDeviceFirmwareChange>	N;
+						N.content.serialNumber = SerialNumber_;
+						N.content.newFirmware = Firmware;
+						N.type = "device_firmware_upgrade";
+						WebSocketClientServer()->SendNotification(N);
 					}
+
 					if(DeviceInfo.locale != Conn_->Conn_.locale) {
 						DeviceInfo.locale = Conn_->Conn_.locale;
 						Updated = true;
 					}
+
 					if(Compatible_ != DeviceInfo.DeviceType) {
 						DeviceInfo.DeviceType = Compatible_;
 						Updated = true;
 					}
+
 					if(Updated) {
 						StorageService()->UpdateDevice(DeviceInfo);
 					}
