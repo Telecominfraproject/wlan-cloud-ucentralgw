@@ -2041,9 +2041,8 @@ namespace OpenWifi {
 	    inline void ProcessOptions() {
 	        AddCORS();
 	        SetCommonHeaders();
-	        Response->setContentLength(0);
 	        Response->set("Access-Control-Allow-Credentials", "true");
-	        Response->setStatus(Poco::Net::HTTPResponse::HTTP_OK);
+	        Response->setStatus(Poco::Net::HTTPResponse::HTTP_NO_CONTENT);
 	        Response->set("Vary", "Origin, Access-Control-Request-Headers, Access-Control-Request-Method");
 	        Response->send();
 	    }
