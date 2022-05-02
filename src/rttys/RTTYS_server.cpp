@@ -17,30 +17,24 @@ namespace OpenWifi {
 			int CSport = (int) MicroService::instance().ConfigGetInt("rtty.viewport", 5913);
 			RTTY_UIAssets_ = MicroService::instance().ConfigPath("rtty.assets", "$OWGW_ROOT/rtty_ui");
 
-			std::string CertFileName, KeyFileName, RootCa;
+			const auto & CertFileName = MicroService::instance().ConfigPath("openwifi.restapi.host.0.cert");
+			const auto & KeyFileName = MicroService::instance().ConfigPath("openwifi.restapi.host.0.key");
+			const auto & RootCa = MicroService::instance().ConfigPath("openwifi.restapi.host.0.rootca");
 
-			CertFileName =
-				MicroService::instance().ConfigPath("openwifi.restapi.host.0.cert");
-			KeyFileName =
-				MicroService::instance().ConfigPath("openwifi.restapi.host.0.key");
-			RootCa = MicroService::instance().ConfigPath("openwifi.restapi.host.0.rootca");
-
-			Poco::Crypto::X509Certificate Root(RootCa);
-
-			auto pParams = new Poco::Net::TCPServerParams();
-			pParams->setMaxThreads(50);
-			pParams->setMaxQueued(100);
+			auto TcpServerParams = new Poco::Net::TCPServerParams();
+			TcpServerParams->setMaxThreads(50);
+			TcpServerParams->setMaxQueued(100);
 
 			if(MicroService::instance().NoAPISecurity()) {
 				Poco::Net::ServerSocket DeviceSocket(DSport, 64);
 				DeviceSocket.setNoDelay(true);
-				DeviceAcceptor_ = std::make_unique<Poco::Net::TCPServer>(new Poco::Net::TCPServerConnectionFactoryImpl<RTTY_Device_ConnectionHandler>(), DeviceSocket, pParams);
+				DeviceAcceptor_ = std::make_unique<Poco::Net::TCPServer>(new Poco::Net::TCPServerConnectionFactoryImpl<RTTY_Device_ConnectionHandler>(), DeviceSocket, TcpServerParams);
 			} else {
 				auto DeviceSecureContext = new Poco::Net::Context(Poco::Net::Context::SERVER_USE,
 																  KeyFileName, CertFileName, "",
 																  Poco::Net::Context::VERIFY_RELAXED);
-
-				DeviceSecureContext->addCertificateAuthority(Root);
+				Poco::Crypto::X509Certificate DeviceRoot(RootCa);
+				DeviceSecureContext->addCertificateAuthority(DeviceRoot);
 				DeviceSecureContext->disableStatelessSessionResumption();
 				DeviceSecureContext->enableSessionCache();
 				DeviceSecureContext->setSessionCacheSize(0);
@@ -51,7 +45,7 @@ namespace OpenWifi {
 
 				Poco::Net::SecureServerSocket DeviceSocket(DSport, 64, DeviceSecureContext);
 				DeviceSocket.setNoDelay(true);
-				DeviceAcceptor_ = std::make_unique<Poco::Net::TCPServer>(new Poco::Net::TCPServerConnectionFactoryImpl<RTTY_Device_ConnectionHandler>(), DeviceSocket, pParams);
+				DeviceAcceptor_ = std::make_unique<Poco::Net::TCPServer>(new Poco::Net::TCPServerConnectionFactoryImpl<RTTY_Device_ConnectionHandler>(), DeviceSocket, TcpServerParams);
 			}
 			DeviceAcceptor_->start();
 
@@ -65,18 +59,19 @@ namespace OpenWifi {
 				ClientSocket.setNoDelay(true);
 				WebServer_ = std::make_unique<Poco::Net::HTTPServer>(new RTTY_Client_RequestHandlerFactory(ClientReactor_), ClientSocket, WebServerHttpParams);
 			} else {
-				auto ClientSecureContext = new Poco::Net::Context(Poco::Net::Context::SERVER_USE, KeyFileName, CertFileName,
+				auto WebClientSecureContext = new Poco::Net::Context(Poco::Net::Context::SERVER_USE, KeyFileName, CertFileName,
 										   "", Poco::Net::Context::VERIFY_RELAXED);
-				ClientSecureContext->addCertificateAuthority(Root);
-				ClientSecureContext->disableStatelessSessionResumption();
-				ClientSecureContext->enableSessionCache();
-				ClientSecureContext->setSessionCacheSize(0);
-				ClientSecureContext->setSessionTimeout(10);
-				ClientSecureContext->enableExtendedCertificateVerification(true);
-				SSL_CTX *SSLCtxClient = ClientSecureContext->sslContext();
+				Poco::Crypto::X509Certificate WebRoot(RootCa);
+				WebClientSecureContext->addCertificateAuthority(WebRoot);
+				WebClientSecureContext->disableStatelessSessionResumption();
+				WebClientSecureContext->enableSessionCache();
+				WebClientSecureContext->setSessionCacheSize(0);
+				WebClientSecureContext->setSessionTimeout(10);
+				WebClientSecureContext->enableExtendedCertificateVerification(true);
+				SSL_CTX *SSLCtxClient = WebClientSecureContext->sslContext();
 				SSL_CTX_dane_enable(SSLCtxClient);
 
-				Poco::Net::SecureServerSocket ClientSocket(CSport, 64, ClientSecureContext);
+				Poco::Net::SecureServerSocket ClientSocket(CSport, 64, WebClientSecureContext);
 				ClientSocket.setNoDelay(true);
 				WebServer_ = std::make_unique<Poco::Net::HTTPServer>(new RTTY_Client_RequestHandlerFactory(ClientReactor_), ClientSocket, WebServerHttpParams);
 			};

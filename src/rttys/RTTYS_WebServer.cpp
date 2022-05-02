@@ -16,7 +16,7 @@ namespace OpenWifi {
 	void RTTY_Client_WebSocketRequestHandler::handleRequest(Poco::Net::HTTPServerRequest &request,
 					   Poco::Net::HTTPServerResponse &response)  {
 		Poco::URI uri(request.getURI());
-		const auto P = uri.getPath();
+		const auto & P = uri.getPath();
 		auto T = Poco::StringTokenizer(P, "/");
 		if (T.count() != 3)
 			return;
