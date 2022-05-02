@@ -2041,13 +2041,19 @@ namespace OpenWifi {
 	    }
 
 	    inline void ProcessOptions() {
-	        AddCORS(true);
+			// try to figure out if we are doing a CORS options or plain OPTIONS
+			bool CORS = Request->has("Access-Control-Request-Method");
+			if(CORS) {
+				AddCORS(false);
+			} else {
+				AddCORS(true);
+				Response->set("Allow", MakeList(Methods_));
+				Response->set("Cache-Control", "max-age=604800");
+				Response->set("Vary", "Origin, Access-Control-Request-Headers, Access-Control-Request-Method");
+			}
 	        SetCommonHeaders();
-			Response->set("Allow", MakeList(Methods_));
-			Response->set("Cache-Control", "max-age=604800");
 	        Response->set("Access-Control-Allow-Credentials", "true");
 	        Response->setStatus(Poco::Net::HTTPResponse::HTTP_NO_CONTENT);
-	        Response->set("Vary", "Origin, Access-Control-Request-Headers, Access-Control-Request-Method");
 	        Response->send();
 	    }
 
