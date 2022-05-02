@@ -2011,7 +2011,7 @@ namespace OpenWifi {
             return false;
         }
 
-	    inline void AddCORS(bool AddMethods=true) {
+	    inline void AddCORS(bool OptionsProcessing=false) {
 	        auto Origin = Request->find("Origin");
 	        if (Origin != Request->end()) {
 	            Response->set("Access-Control-Allow-Origin", Origin->second);
@@ -2020,9 +2020,10 @@ namespace OpenWifi {
 	            Response->set("Access-Control-Allow-Origin", "*");
 	        }
 	        Response->set("Access-Control-Allow-Headers", "*");
-			if(AddMethods)
-	        	Response->set("Access-Control-Allow-Methods", MakeList(Methods_));
-	        Response->set("Access-Control-Max-Age", "86400");
+			if(!OptionsProcessing) {
+				Response->set("Access-Control-Allow-Methods", MakeList(Methods_));
+				Response->set("Access-Control-Max-Age", "86400");
+			}
 	    }
 
 	    inline void SetCommonHeaders(bool CloseConnection=false) {
@@ -2040,9 +2041,10 @@ namespace OpenWifi {
 	    }
 
 	    inline void ProcessOptions() {
-	        AddCORS(false);
+	        AddCORS(true);
 	        SetCommonHeaders();
 			Response->set("Allow", MakeList(Methods_));
+			Response->set("Cache-Control", "max-age=604800");
 	        Response->set("Access-Control-Allow-Credentials", "true");
 	        Response->setStatus(Poco::Net::HTTPResponse::HTTP_NO_CONTENT);
 	        Response->set("Vary", "Origin, Access-Control-Request-Headers, Access-Control-Request-Method");
