@@ -41,37 +41,65 @@ namespace OpenWifi {
         		Path_ = "/tmp";
         	}
         }
+
         for(const auto & Svr: ConfigServersList_) {
-            std::string l{"Starting: " +
-                          Svr.Address() + ":" + std::to_string(Svr.Port()) +
-                          " key:" + Svr.KeyFile() +
-                          " cert:" + Svr.CertFile()};
-            Logger().information(l);
+			if(MicroService::instance().NoAPISecurity()) {
+				Logger().information(fmt::format("Starting: {}:{}",Svr.Address(),Svr.Port()));
 
-            auto Sock{Svr.CreateSecureSocket(Logger())};
+				auto Sock{Svr.CreateSocket(Logger())};
 
-			Svr.LogCert(Logger());
-			if(!Svr.RootCA().empty())
-				Svr.LogCas(Logger());
+				auto Params = new Poco::Net::HTTPServerParams;
+				Params->setMaxThreads(16);
+				Params->setMaxQueued(100);
 
-            auto Params = new Poco::Net::HTTPServerParams;
-            Params->setMaxThreads(16);
-            Params->setMaxQueued(100);
+				if (FullName_.empty()) {
+					std::string TmpName =
+						MicroService::instance().ConfigGetString("openwifi.fileuploader.uri", "");
+					if (TmpName.empty()) {
+						FullName_ =
+							"https://" + Svr.Name() + ":" + std::to_string(Svr.Port()) + URI_BASE;
+					} else {
+						FullName_ = TmpName + URI_BASE;
+					}
+					Logger().information(fmt::format("Uploader URI base is '{}'", FullName_));
+				}
 
-            if(FullName_.empty()) {
-            	std::string TmpName = MicroService::instance().ConfigGetString("openwifi.fileuploader.uri","");
-            	if(TmpName.empty()) {
-            		FullName_ =
-            			"https://" + Svr.Name() + ":" + std::to_string(Svr.Port()) + URI_BASE;
-            	} else {
-            		FullName_ = TmpName + URI_BASE ;
-            	}
-            	Logger().information(fmt::format("Uploader URI base is '{}'", FullName_));
-            }
+				auto NewServer = std::make_unique<Poco::Net::HTTPServer>(
+					new FileUpLoaderRequestHandlerFactory(Logger()), Pool_, Sock, Params);
+				NewServer->start();
+				Servers_.push_back(std::move(NewServer));
+			} else {
+				std::string l{"Starting: " + Svr.Address() + ":" + std::to_string(Svr.Port()) +
+							  " key:" + Svr.KeyFile() + " cert:" + Svr.CertFile()};
+				Logger().information(l);
 
-            auto NewServer = std::make_unique<Poco::Net::HTTPServer>(new FileUpLoaderRequestHandlerFactory(Logger()), Pool_, Sock, Params);
-            NewServer->start();
-            Servers_.push_back(std::move(NewServer));
+				auto Sock{Svr.CreateSecureSocket(Logger())};
+
+				Svr.LogCert(Logger());
+				if (!Svr.RootCA().empty())
+					Svr.LogCas(Logger());
+
+				auto Params = new Poco::Net::HTTPServerParams;
+				Params->setMaxThreads(16);
+				Params->setMaxQueued(100);
+
+				if (FullName_.empty()) {
+					std::string TmpName =
+						MicroService::instance().ConfigGetString("openwifi.fileuploader.uri", "");
+					if (TmpName.empty()) {
+						FullName_ =
+							"https://" + Svr.Name() + ":" + std::to_string(Svr.Port()) + URI_BASE;
+					} else {
+						FullName_ = TmpName + URI_BASE;
+					}
+					Logger().information(fmt::format("Uploader URI base is '{}'", FullName_));
+				}
+
+				auto NewServer = std::make_unique<Poco::Net::HTTPServer>(
+					new FileUpLoaderRequestHandlerFactory(Logger()), Pool_, Sock, Params);
+				NewServer->start();
+				Servers_.push_back(std::move(NewServer));
+			}
         }
 
         MaxSize_ = 1000 * MicroService::instance().ConfigGetInt("openwifi.fileuploader.maxsize", 10000);

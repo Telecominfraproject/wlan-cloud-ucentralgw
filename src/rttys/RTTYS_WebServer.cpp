@@ -121,7 +121,7 @@ namespace OpenWifi {
 					response.setContentType("application/json");
 					std::ostream &answer = response.send();
 					answer << to_string(doc);
-					Logger_.debug(fmt::format("{}: Finishing fonstize request.",id));
+					Logger_.debug(fmt::format("{}: Finishing font size request.",id));
 					return;
 				}
 			}
