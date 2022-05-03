@@ -23,6 +23,9 @@ namespace OpenWifi {
 			SR_.addEventHandler(*WS_,
 								Poco::NObserver<RTTYS_ClientConnection, Poco::Net::ShutdownNotification>(
 									*this, &RTTYS_ClientConnection::onSocketShutdown));
+			SR_.addEventHandler(*WS_,
+								Poco::NObserver<RTTYS_ClientConnection, Poco::Net::ErrorNotification>(
+									*this, &RTTYS_ClientConnection::onSocketError));
 
 			auto DoLogin = [this]() -> void {
 				int tries = 0 ;
@@ -57,6 +60,9 @@ namespace OpenWifi {
 			SR_.removeEventHandler(
 				*WS_, Poco::NObserver<RTTYS_ClientConnection, Poco::Net::ShutdownNotification>(
 						 *this, &RTTYS_ClientConnection::onSocketShutdown));
+			SR_.removeEventHandler(
+				*WS_, Poco::NObserver<RTTYS_ClientConnection, Poco::Net::ErrorNotification>(
+						  *this, &RTTYS_ClientConnection::onSocketError));
 		}
 		WS_->close();
 		if(Connected_) {
@@ -138,5 +144,11 @@ namespace OpenWifi {
 		RTTYS_server()->Close(Id_);
 		delete this;
 	}
+
+	void RTTYS_ClientConnection::onSocketError([[maybe_unused]] const Poco::AutoPtr<Poco::Net::ErrorNotification> &pNf) {
+		RTTYS_server()->Close(Id_);
+		delete this;
+	}
+
 
 }
