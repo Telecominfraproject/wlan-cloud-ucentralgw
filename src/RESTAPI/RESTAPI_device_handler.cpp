@@ -126,8 +126,10 @@ namespace OpenWifi {
 			return BadRequest(RESTAPI::Errors::ConfigBlockInvalid);
 		}
 
-		for(auto &i:Device.Notes)
+		for(auto &i:Device.Notes) {
 			i.createdBy = UserInfo_.userinfo.email;
+			i.created = OpenWifi::Now();
+		}
 
 		Config::Config NewConfig(Device.Configuration);
 		Device.UUID = std::time(nullptr);
@@ -183,6 +185,7 @@ namespace OpenWifi {
 
 		for(auto &i:NewDevice.Notes) {
 			i.createdBy = UserInfo_.userinfo.email;
+			i.created = OpenWifi::Now();
 			Existing.Notes.push_back(i);
 		}
 
