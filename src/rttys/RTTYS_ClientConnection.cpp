@@ -29,7 +29,7 @@ namespace OpenWifi {
 
 			auto DoLogin = [this]() -> void {
 				int tries = 0 ;
-				while(tries < 10) {
+				while(tries < 20) {
 					if(RTTYS_server()->Login(this->Id_)) {
 						Logger().information(fmt::format("{}: Client connected to device, session: {}.", Id_, RTTYS_server()->DeviceSessionID(Id_)));
 						this->Connected_=true;
@@ -37,6 +37,7 @@ namespace OpenWifi {
 					}
 					std::this_thread::sleep_for(2000ms);
 					tries++;
+					Logger().information(fmt::format("{}: Waiting for device to connect to start session. (try={})", Id_, tries ));
 				}
 				Logger().information(fmt::format("{}: Client could not connect to device, session: {}.", Id_, RTTYS_server()->DeviceSessionID(Id_)));
 				delete this;
