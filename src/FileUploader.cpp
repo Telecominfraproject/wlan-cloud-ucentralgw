@@ -313,6 +313,9 @@ namespace OpenWifi {
 				std::cout << __LINE__ << std::endl;
 				return;
             }
+			catch (const Poco::IOException &E) {
+				std::cout << __LINE__ << E.displayText() << "   "  << E.what() << " " << E.name() << " " << E.code() << std::endl;
+			}
 			catch (const Poco::Net::MultipartException &E ) {
 				std::cout << __LINE__ << E.displayText() << "   "  << E.what() << std::endl;
 				Logger().warning(fmt::format("Form Error occurred while performing upload. Error='{}' What='{}'",E.displayText(),E.what()));
