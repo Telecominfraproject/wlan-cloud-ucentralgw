@@ -709,7 +709,9 @@ typedef Poco::Tuple<
 			// Poco::Data::BLOBInputStream IL(L);
 			std::ofstream f(FileName, std::ios::binary | std::ios::trunc );
 			auto Content = L.content();
-			f << L.content();
+			std::string SS(L.content().begin(),L.content().end());
+
+			f << SS;
 
 			std::cout << "Get Attach Size: " << L.content().size() << std::endl;
 
