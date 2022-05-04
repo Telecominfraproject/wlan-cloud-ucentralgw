@@ -195,12 +195,32 @@ namespace OpenWifi {
         }
 
         void handleRequest(Poco::Net::HTTPServerRequest& Request, Poco::Net::HTTPServerResponse& Response) final {
-			Poco::Net::HTMLForm form;
-
-			bool Done = false;
 
 			for (const auto &i : Request) {
 				std::cout << "F: " << i.first << " ..... S: " << i.second << std::endl;
+			}
+
+			const auto & ContentType = Request.getContentType();
+			const auto & Tokens = Poco::StringTokenizer(ContentType,";");
+
+			if(	Poco::icompare(Tokens[0],"multipart/form-data")==0 ||
+				Poco::icompare(Tokens[0],"multipart/mixed")==0) {
+
+				const auto & BoundaryTokens = Poco::StringTokenizer(Tokens[1],"=");
+				if(BoundaryTokens[0]=="boundary") {
+					const std::string & Boundary = BoundaryTokens[1];
+
+					Poco::Net::MultipartReader	Reader(Request.stream(),Boundary);
+
+					while(Reader.hasNextPart()) {
+						Poco::Net::MessageHeader	Hdr;
+						Reader.nextPart(Hdr);
+
+						for(const auto &i:Hdr) {
+							std::cout << "F: " << i.first << "   S:" << i.second << std::endl;
+						}
+					}
+				}
 			}
 
 			Poco::JSON::Object Answer;
