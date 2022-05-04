@@ -212,13 +212,15 @@ namespace OpenWifi {
 
 					Poco::Net::MultipartReader	Reader(Request.stream(),Boundary);
 
-					while(Reader.hasNextPart()) {
-						Poco::Net::MessageHeader	Hdr;
-						Reader.nextPart(Hdr);
+					std::cout << "Reading message..." << std::endl;
+					Poco::Net::MessageHeader	Hdr;
+					Reader.nextPart(Hdr);
 
+					while(Reader.hasNextPart()) {
 						for(const auto &i:Hdr) {
 							std::cout << "F: " << i.first << "   S:" << i.second << std::endl;
 						}
+						Reader.nextPart(Hdr);
 					}
 				}
 			}
