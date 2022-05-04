@@ -2828,27 +2828,35 @@ namespace OpenWifi {
 	        /// Return a HTML document with the current date and time.
 	        {
 	        public:
-	            explicit ALBRequestHandler(Poco::Logger & L)
-	            : Logger_(L)
+	            explicit ALBRequestHandler(Poco::Logger & L, uint64_t id)
+	            : Logger_(L), id_(id)
 	            {
 	            }
 
 	            void handleRequest(Poco::Net::HTTPServerRequest& Request, Poco::Net::HTTPServerResponse& Response) override
 	            {
-	                Logger_.information(fmt::format("ALB-REQUEST({}): New ALB request.",Request.clientAddress().toString()));
-	                Response.setChunkedTransferEncoding(true);
-	                Response.setContentType("text/html");
-	                Response.setDate(Poco::Timestamp());
-	                Response.setStatus(Poco::Net::HTTPResponse::HTTP_OK);
-	                Response.setKeepAlive(true);
-	                Response.set("Connection","keep-alive");
-	                Response.setVersion(Poco::Net::HTTPMessage::HTTP_1_1);
-	                std::ostream &Answer = Response.send();
-	                Answer << "uCentralGW Alive and kicking!" ;
+					try {
+						if((id_ % 100) == 0) {
+							Logger_.debug(fmt::format("ALB-REQUEST({}): ALB Request {}.",
+															Request.clientAddress().toString(), id_));
+						}
+						Response.setChunkedTransferEncoding(true);
+						Response.setContentType("text/html");
+						Response.setDate(Poco::Timestamp());
+						Response.setStatus(Poco::Net::HTTPResponse::HTTP_OK);
+						Response.setKeepAlive(true);
+						Response.set("Connection", "keep-alive");
+						Response.setVersion(Poco::Net::HTTPMessage::HTTP_1_1);
+						std::ostream &Answer = Response.send();
+						Answer << "process Alive and kicking!";
+					} catch (...) {
+
+					}
 	            }
 
 	        private:
 	            Poco::Logger 	& Logger_;
+				uint64_t 		id_;
 	        };
 
 	class ALBRequestHandlerFactory: public Poco::Net::HTTPRequestHandlerFactory
@@ -2862,13 +2870,14 @@ namespace OpenWifi {
 	            ALBRequestHandler* createRequestHandler(const Poco::Net::HTTPServerRequest& request) override
 	            {
 	                if (request.getURI() == "/")
-	                    return new ALBRequestHandler(Logger_);
+	                    return new ALBRequestHandler(Logger_, req_id_++);
 	                else
 	                    return nullptr;
 	            }
 
 	        private:
 	            Poco::Logger	&Logger_;
+				inline static std::atomic_uint64_t 			req_id_=1;
 	        };
 
 	class ALBHealthCheckServer : public SubSystemServer {
