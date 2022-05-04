@@ -122,18 +122,18 @@ namespace OpenWifi {
     bool FileUploader::AddUUID( const std::string & UUID) {
 		std::lock_guard		Guard(Mutex_);
 
-        uint64_t Now = time(nullptr) ;
+        uint64_t now = OpenWifi::Now();
 
         // remove old stuff...
-        for(auto i=OutStandingUploads_.cbegin();i!=OutStandingUploads_.end();) {
-            if ((Now-i->second) > (60 * 30))
-                OutStandingUploads_.erase(i++);
+        for(auto i=OutStandingUploads_.begin();i!=OutStandingUploads_.end();) {
+            if ((now-i->second) > (60 * 30))
+                i = OutStandingUploads_.erase(i);
             else
                 ++i;
         }
 
         if(!UUID.empty())
-            OutStandingUploads_[UUID] = Now;
+            OutStandingUploads_[UUID] = now;
 
         return true;
     }

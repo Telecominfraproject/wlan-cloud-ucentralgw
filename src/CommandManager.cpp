@@ -118,7 +118,7 @@ namespace OpenWifi {
 		auto now = std::chrono::high_resolution_clock::now();
 		for(auto i=OutStandingRequests_.begin();i!=OutStandingRequests_.end();) {
 			std::chrono::duration<double, std::milli> delta = now - i->second->submitted;
-			if(delta > 120000ms) {
+			if(delta > 6000000ms) {
 				Logger().debug(fmt::format("{}: Timed out.", i->second->uuid));
 				OutstandingUUIDs_.erase(i->second->uuid);
 				i = OutStandingRequests_.erase(i);
