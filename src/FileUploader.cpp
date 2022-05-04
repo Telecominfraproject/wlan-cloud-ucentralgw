@@ -326,7 +326,7 @@ namespace OpenWifi {
 			}
             catch( const Poco::Exception & E )
             {
-				std::cout << __LINE__ << E.displayText() << "   "  << E.what() << std::endl;
+				std::cout << __LINE__ << " " << E.displayText() << " W "  << E.what() << " N " << E.name() << " C " << E.code() << " M " << E.message() << std::endl;
                 Logger().warning(fmt::format("Error occurred while performing upload. Error='{}'",E.displayText()));
             }
             catch( ... )
