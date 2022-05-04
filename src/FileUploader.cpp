@@ -242,7 +242,11 @@ namespace OpenWifi {
 
 				std::cout << __LINE__ << std::endl;
 
-				form.load(Request, Request.stream(), partHandler);
+				// form.load(Request, Request.stream(), partHandler);
+
+				std::ofstream f("trace.bin", std::ios::trunc | std::ios::binary );
+				Poco::StreamCopier::copyStream(Request.stream(),f);
+				f.close();
 
 				std::cout << __LINE__ << std::endl;
 
