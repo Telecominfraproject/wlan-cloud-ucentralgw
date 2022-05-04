@@ -184,82 +184,6 @@ namespace OpenWifi {
 		inline Poco::Logger & Logger() { return Logger_; };
 	};
 
-    class FileUploaderPartHandler: public Poco::Net::PartHandler
-    {
-    public:
-		FileUploaderPartHandler(std::string UUID, Poco::Logger & Logger):
-            UUID_(std::move(UUID)),
-            Logger_(Logger)
-        {
-        }
-
-        void handlePart(const Poco::Net::MessageHeader& Header, std::istream& Stream)
-        {
-			try {
-				std::cout << __LINE__ << std::endl;
-				Name_ = "(unnamed)";
-				std::cout << __LINE__ << std::endl;
-				if (Header.has("Content-Disposition")) {
-					std::cout << __LINE__ << std::endl;
-					std::string Disposition;
-					Poco::Net::NameValueCollection Parameters;
-					Poco::Net::MessageHeader::splitParameters(Header["Content-Disposition"],
-															  Disposition, Parameters);
-					FileName_ = Parameters.get("filename", "(unnamed)");
-					Name_ = Parameters.get("name", "(unnamed)");
-					std::cout << __LINE__ << std::endl;
-
-					std::string FinalFileName = FileUploader()->Path() + "/" + UUID_;
-					std::cout << __LINE__ << std::endl;
-
-					Logger().information(
-						fmt::format("FILE-UPLOADER: uploading trace for {}", FinalFileName));
-					Poco::CountingInputStream InputStream(Stream);
-					std::ofstream OutputStream(FinalFileName, std::ofstream::out |
-																  std::ofstream::trunc |
-																  std::ofstream::binary);
-					Poco::StreamCopier::copyStream(InputStream, OutputStream);
-					std::cout << __LINE__ << std::endl;
-
-					Length_ = InputStream.chars();
-					std::cout << __LINE__ << std::endl;
-					if (Length_ < FileUploader()->MaxSize()) {
-						Good_ = true;
-						std::cout << __LINE__ << std::endl;
-					} else {
-						std::cout << __LINE__ << std::endl;
-						Poco::File TmpFile(FinalFileName);
-						TmpFile.remove();
-						Error_ = "File is too large.";
-					}
-					std::cout << __LINE__ << std::endl;
-					return;
-				}
-			}
-			catch (const Poco::Exception &E) {
-				std::cout << __LINE__ << std::endl;
-				Logger().log(E);
-				Error_ = std::string("Upload caused an internal error: ") + E.what();
-			}
-			std::cout << __LINE__ << std::endl;
-		}
-
-        [[nodiscard]] uint64_t Length() const { return Length_; }
-        [[nodiscard]] const std::string& Name() const { return Name_; }
-		[[nodiscard]] bool Good() const { return Good_; }
-		std::string & Error() { return Error_; }
-		inline Poco::Logger & Logger() { return Logger_; }
-
-    private:
-        uint64_t        Length_=0;
-		bool 			Good_=false;
-        std::string     Name_, FileName_;
-        std::string     UUID_;
-		std::string 	Error_;
-        Poco::Logger    & Logger_;
-    };
-
-
     class FormRequestHandler: public Poco::Net::HTTPRequestHandler
     {
     public:
@@ -269,70 +193,68 @@ namespace OpenWifi {
         {
         }
 
-        void handleRequest(Poco::Net::HTTPServerRequest& Request, Poco::Net::HTTPServerResponse& Response) final
-        {
-            try {
-				std::cout << __LINE__ << std::endl;
-				std::stringstream	FileContent;
-				FileUploaderPartHandler2 partHandler(UUID_, Logger(), FileContent);
-				std::cout << __LINE__ << std::endl;
+        void handleRequest(Poco::Net::HTTPServerRequest& Request, Poco::Net::HTTPServerResponse& Response) final {
+			Poco::Net::HTMLForm form;
 
-                Poco::Net::HTMLForm form;
+			bool Done = false;
+			Poco::JSON::Object Answer;
+			while (!Done) {
+				try {
+					std::cout << "Starting looking at part..." << std::endl;
+					std::stringstream FileContent;
+					FileUploaderPartHandler2 partHandler(UUID_, Logger(), FileContent);
 
-				std::cout << __LINE__ << std::endl;
-				form.load(Request, Request.stream(), partHandler);
-				std::cout << __LINE__ << std::endl;
+					form.load(Request, Request.stream(), partHandler);
+					if(form.empty())
+						Done=true;
 
-				Response.setChunkedTransferEncoding(true);
-				std::cout << __LINE__ << std::endl;
-                Response.setContentType("application/json");
-				std::cout << __LINE__ << std::endl;
+					Response.setChunkedTransferEncoding(true);
+					Response.setContentType("application/json");
 
-				Poco::JSON::Object	Answer;
-                if (partHandler.Length()<FileUploader()->MaxSize()) {
-					std::cout << __LINE__ << std::endl;
-					Answer.set("filename", UUID_);
-					Answer.set("error", 0);
-					std::cout << __LINE__ << std::endl;
-					// StorageService()->AttachFileToCommand(UUID_);
-					StorageService()->AttachFileDataToCommand(UUID_, FileContent);
-					std::cout << __LINE__ << std::endl;
-				} else {
-					std::cout << __LINE__ << std::endl;
-					Answer.set("filename", UUID_);
-					Answer.set("error", 13);
-					Answer.set("errorText", "Attached file is too large" );
-					std::string	Error{"Attached file is too large"};
-					StorageService()->CancelWaitFile(UUID_, Error );
+					if (partHandler.Length() < FileUploader()->MaxSize()) {
+						Answer.set("filename", UUID_);
+						Answer.set("error", 0);
+						StorageService()->AttachFileDataToCommand(UUID_, FileContent);
+					} else {
+						Answer.set("filename", UUID_);
+						Answer.set("error", 13);
+						Answer.set("errorText", "Attached file is too large");
+						std::string Error{"Attached file is too large"};
+						StorageService()->CancelWaitFile(UUID_, Error);
+					}
+					std::ostream &ResponseStream = Response.send();
+					Poco::JSON::Stringifier::stringify(Answer, ResponseStream);
+					return ;
+				} catch (const Poco::Net::MultipartException &E) {
+					std::cout << __LINE__ << E.displayText() << "   " << E.what() << std::endl;
+					Logger().warning(fmt::format(
+						"Form Error occurred while performing upload. Error='{}' What='{}'",
+						E.displayText(), E.what()));
+				} catch (const Poco::Net::HTMLFormException &E) {
+					std::cout << __LINE__ << E.displayText() << "   " << E.what() << std::endl;
+					Logger().warning(fmt::format(
+						"Form Error occurred while performing upload. Error='{}' What='{}'",
+						E.displayText(), E.what()));
+				} catch (const Poco::IOException &E) {
+					std::cout << __LINE__ << E.displayText() << "   " << E.what() << " " << E.name()
+							  << " " << E.code() << std::endl;
+				} catch (const Poco::Exception &E) {
+					std::cout << __LINE__ << " " << E.displayText() << " W " << E.what() << " N "
+							  << E.name() << " C " << E.code() << " M " << E.message() << std::endl;
+					Logger().warning(fmt::format(
+						"Error occurred while performing upload. Error='{}'", E.displayText()));
+				} catch (...) {
 					std::cout << __LINE__ << std::endl;
 				}
-				std::cout << __LINE__ << std::endl;
-				std::ostream &ResponseStream = Response.send();
-				std::cout << __LINE__ << std::endl;
-				Poco::JSON::Stringifier::stringify(Answer, ResponseStream);
-				std::cout << __LINE__ << std::endl;
-				return;
-            }
-			catch (const Poco::Net::MultipartException &E ) {
-				std::cout << __LINE__ << E.displayText() << "   "  << E.what() << std::endl;
-				Logger().warning(fmt::format("Form Error occurred while performing upload. Error='{}' What='{}'",E.displayText(),E.what()));
 			}
-			catch ( const Poco::Net::HTMLFormException & E) {
-				std::cout << __LINE__ << E.displayText() << "   "  << E.what() << std::endl;
-				Logger().warning(fmt::format("Form Error occurred while performing upload. Error='{}' What='{}'",E.displayText(),E.what()));
-			}
-			catch (const Poco::IOException &E) {
-				std::cout << __LINE__ << E.displayText() << "   "  << E.what() << " " << E.name() << " " << E.code() << std::endl;
-			}
-            catch( const Poco::Exception & E )
-            {
-				std::cout << __LINE__ << " " << E.displayText() << " W "  << E.what() << " N " << E.name() << " C " << E.code() << " M " << E.message() << std::endl;
-                Logger().warning(fmt::format("Error occurred while performing upload. Error='{}'",E.displayText()));
-            }
-            catch( ... )
-            {
-				std::cout << __LINE__ << std::endl;
-            }
+			Answer.set("filename", UUID_);
+			Answer.set("error", 13);
+			Answer.set("errorText", "Attached file is too large");
+			std::string Error{"Attached file is too large"};
+			StorageService()->CancelWaitFile(UUID_, Error);
+			std::ostream &ResponseStream = Response.send();
+			Poco::JSON::Stringifier::stringify(Answer, ResponseStream);
+			return ;
         }
 		inline Poco::Logger & Logger() { return Logger_; }
     private:
