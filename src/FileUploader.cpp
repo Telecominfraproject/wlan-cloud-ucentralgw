@@ -13,10 +13,8 @@
 #include "Poco/Net/HTTPServerParams.h"
 #include "Poco/Net/HTTPServerResponse.h"
 #include "Poco/DynamicAny.h"
-#include "Poco/Net/HTMLForm.h"
 #include "Poco/Net/PartHandler.h"
 #include "Poco/Net/MessageHeader.h"
-#include "Poco/Net/NetException.h"
 #include "Poco/Net/MultipartReader.h"
 #include "Poco/CountingStream.h"
 #include "Poco/StreamCopier.h"
@@ -199,6 +197,7 @@ namespace OpenWifi {
 			const auto & ContentType = Request.getContentType();
 			const auto & Tokens = Poco::StringTokenizer(ContentType,";",Poco::StringTokenizer::TOK_TRIM);
 
+			Logger().debug(fmt::format("{}: Preparing to upload trace file.",UUID_));
 			Poco::JSON::Object Answer;
 
 			if(	Poco::icompare(Tokens[0],"multipart/form-data")==0 ||
@@ -223,6 +222,7 @@ namespace OpenWifi {
 							Poco::StreamCopier::copyStream(Reader.stream(),FileContent);
 							Answer.set("filename", UUID_);
 							Answer.set("error", 0);
+							Logger().debug(fmt::format("{}: Upload trace file.",UUID_));
 							StorageService()->AttachFileDataToCommand(UUID_, FileContent);
 							std::ostream &ResponseStream = Response.send();
 							Poco::JSON::Stringifier::stringify(Answer, ResponseStream);
@@ -238,6 +238,7 @@ namespace OpenWifi {
 				}
 			}
 
+			Logger().debug(fmt::format("{}: Failed to upload trace file.",UUID_));
 			std::string Error{"Trace file rejected"};
 			StorageService()->CancelWaitFile(UUID_, Error);
 			Answer.set("filename", UUID_);
