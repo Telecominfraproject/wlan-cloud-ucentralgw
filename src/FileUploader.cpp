@@ -201,7 +201,7 @@ namespace OpenWifi {
 			}
 
 			const auto & ContentType = Request.getContentType();
-			const auto & Tokens = Poco::StringTokenizer(ContentType,";");
+			const auto & Tokens = Poco::StringTokenizer(ContentType,";",Poco::StringTokenizer::TOK_TRIM);
 
 			std::cout << "CT: '" << ContentType << "'  tokens:" << Tokens.count() << std::endl;
 
@@ -209,11 +209,12 @@ namespace OpenWifi {
 				Poco::icompare(Tokens[0],"multipart/mixed")==0) {
 
 				std::cout << __LINE__ << "  " << Tokens[1] << std::endl;
-				const auto & BoundaryTokens = Poco::StringTokenizer(Tokens[1],"=");
+				const auto & BoundaryTokens = Poco::StringTokenizer(Tokens[1],"=",Poco::StringTokenizer::TOK_TRIM);
 
-				std::cout << __LINE__ << "  " << Tokens[1] << "    " << BoundaryTokens[0] << std::endl;
+				std::cout << __LINE__ << "  " << Tokens[1] << "    '" << BoundaryTokens[0] << "'" << std::endl;
 
 				if(BoundaryTokens[0]=="boundary") {
+
 					std::cout << __LINE__ << std::endl;
 					const std::string & Boundary = BoundaryTokens[1];
 
