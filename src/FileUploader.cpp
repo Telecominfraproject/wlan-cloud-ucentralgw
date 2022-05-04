@@ -17,6 +17,7 @@
 #include "Poco/Net/PartHandler.h"
 #include "Poco/Net/MessageHeader.h"
 #include "Poco/Net/NetException.h"
+#include "Poco/Net/MultipartReader.h"
 #include "Poco/CountingStream.h"
 #include "Poco/StreamCopier.h"
 #include "Poco/Exception.h"
@@ -197,8 +198,29 @@ namespace OpenWifi {
 			Poco::Net::HTMLForm form;
 
 			bool Done = false;
+
+			for (const auto &i : Request) {
+				std::cout << "F: " << i.first << " ..... S: " << i.second << std::endl;
+			}
+
 			Poco::JSON::Object Answer;
+			Answer.set("filename", UUID_);
+			Answer.set("error", 13);
+			Answer.set("errorText", "Attached file is too large");
+			std::string Error{"Attached file is too large"};
+			StorageService()->CancelWaitFile(UUID_, Error);
+			std::ostream &ResponseStream = Response.send();
+			Poco::JSON::Stringifier::stringify(Answer, ResponseStream);
+			return;
+		}
+/*
+
+			Poco::Net::MessageHeader	Hdr;
+			Hdr.read(Request.stream());
+
 			while (!Done) {
+
+				Poco::Net::MultipartReader	MR(Request.stream(),)
 				try {
 					std::cout << "Starting looking at part..." << std::endl;
 					std::stringstream FileContent;
@@ -256,7 +278,8 @@ namespace OpenWifi {
 			Poco::JSON::Stringifier::stringify(Answer, ResponseStream);
 			return ;
         }
-		inline Poco::Logger & Logger() { return Logger_; }
+*/
+			inline Poco::Logger & Logger() { return Logger_; }
     private:
         std::string     UUID_;
         Poco::Logger    & Logger_;
