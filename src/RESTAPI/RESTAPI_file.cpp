@@ -20,19 +20,12 @@ namespace OpenWifi {
 		auto UUID = GetBinding(RESTAPI::Protocol::FILEUUID, "");
 		auto SerialNumber = GetParameter(RESTAPI::Protocol::SERIALNUMBER, "");
 
-		// does the file exist
-		Poco::File DownloadFile(FileUploader()->Path() + "/" + UUID);
-
 		std::string FileType;
 		std::string FileContent;
 		if (!StorageService()->GetAttachedFileContent(UUID, SerialNumber, FileContent, FileType)) {
 			return NotFound();
 		}
-
-		std::cout << "Get Filesize: " << FileContent.size() << std::endl;
 		SendFileContent(FileContent,"pcap",UUID+".pcap");
-
-		//		DownloadFile.remove();
 	}
 
 	void RESTAPI_file::DoDelete() {
