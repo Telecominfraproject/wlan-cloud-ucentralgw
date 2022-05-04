@@ -2011,23 +2011,17 @@ namespace OpenWifi {
             return false;
         }
 
-	    inline void AddCORS() {
-	        auto Origin = Request->find("Origin");
-	        if (Origin != Request->end()) {
-	            Response->set("Access-Control-Allow-Origin", Origin->second);
-	            Response->set("Vary", "Origin");
-	        } else {
-	            Response->set("Access-Control-Allow-Origin", "*");
-	        }
-	        Response->set("Access-Control-Allow-Headers", "*");
-            Response->set("Access-Control-Allow-Methods", MakeList(Methods_));
-            Response->set("Access-Control-Max-Age", "86400");
-	    }
-
 	    inline void SetCommonHeaders(bool CloseConnection=false) {
 	        Response->setVersion(Poco::Net::HTTPMessage::HTTP_1_1);
 	        Response->setChunkedTransferEncoding(true);
 	        Response->setContentType("application/json");
+			auto Origin = Request->find("Origin");
+			if (Origin != Request->end()) {
+				Response->set("Access-Control-Allow-Origin", Origin->second);
+			} else {
+				Response->set("Access-Control-Allow-Origin", "*");
+			}
+			Response->set("Vary", "Origin, Accept-Encoding");
 	        if(CloseConnection) {
 	            Response->set("Connection", "close");
 	            Response->setKeepAlive(false);
@@ -2038,12 +2032,42 @@ namespace OpenWifi {
 	        }
 	    }
 
+		inline void AddCORS() {
+			SetCommonHeaders();
+/*			auto Origin = Request->find("Origin");
+			if (Origin != Request->end()) {
+				Response->set("Access-Control-Allow-Origin", Origin->second);
+				Response->set("Vary", "Origin");
+			} else {
+				Response->set("Access-Control-Allow-Origin", "*");
+			}
+			Response->set("Access-Control-Allow-Headers", "*");
+			Response->set("Access-Control-Allow-Methods", MakeList(Methods_));
+			Response->set("Access-Control-Max-Age", "86400");
+*/
+		}
+
 	    inline void ProcessOptions() {
-			// try to figure out if we are doing a CORS options or plain OPTIONS
-            AddCORS();
-            Response->set("Vary", "Origin, Access-Control-Request-Headers, Access-Control-Request-Method");
-	        SetCommonHeaders();
-	        Response->set("Access-Control-Allow-Credentials", "true");
+			Response->setVersion(Poco::Net::HTTPMessage::HTTP_1_1);
+			Response->setChunkedTransferEncoding(true);
+			auto Origin = Request->find("Origin");
+			if (Origin != Request->end()) {
+				Response->set("Access-Control-Allow-Origin", Origin->second);
+			} else {
+				Response->set("Access-Control-Allow-Origin", "*");
+			}
+			Response->set("Access-Control-Allow-Methods", MakeList(Methods_));
+			auto RequestHeaders = Request->find("Access-Control-Request-Headers");
+			if(RequestHeaders!=Request->end())
+				Response->set("Access-Control-Allow-Headers", RequestHeaders->second);
+//            AddCORS();
+            Response->set("Vary", "Origin, Accept-Encoding");
+			Response->set("Access-Control-Allow-Credentials", "true");
+			Response->set("Access-Control-Max-Age", "86400");
+			Response->set("Connection", "Keep-Alive");
+			Response->set("Keep-Alive", "timeout=30, max=1000");
+
+//	        SetCommonHeaders();
             Response->setContentLength(0);
             Response->setStatus(Poco::Net::HTTPResponse::HTTP_OK);
 	        Response->send();
@@ -2052,7 +2076,7 @@ namespace OpenWifi {
 	    inline void PrepareResponse(Poco::Net::HTTPResponse::HTTPStatus Status = Poco::Net::HTTPResponse::HTTP_OK,
                                     bool CloseConnection = false) {
 	        Response->setStatus(Status);
-	        AddCORS();
+//	        AddCORS();
 	        SetCommonHeaders(CloseConnection);
 	    }
 
