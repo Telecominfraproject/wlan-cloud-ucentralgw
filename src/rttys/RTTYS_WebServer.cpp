@@ -136,7 +136,10 @@ namespace OpenWifi {
 		}
 
 		if(request.getMethod() != Poco::Net::HTTPRequest::HTTP_GET) {
-
+			SetCommonHeaders(request,response,false);
+			response.setStatus(Poco::Net::HTTPResponse::HTTP_METHOD_NOT_ALLOWED);
+			response.send();
+			return;
 		}
 
 		if (Path == "/") {
