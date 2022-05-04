@@ -27,6 +27,9 @@ namespace OpenWifi {
 		if (!StorageService()->GetAttachedFile(UUID, SerialNumber, DownloadFile.path(), FileType)) {
 			return NotFound();
 		}
+
+		std::cout << "Get Filesize: " << DownloadFile.getSize() << std::endl;
+
 		SendFile(DownloadFile, UUID);
 		DownloadFile.remove();
 	}

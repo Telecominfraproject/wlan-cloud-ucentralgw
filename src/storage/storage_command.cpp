@@ -562,15 +562,17 @@ typedef Poco::Tuple<
 			Update.execute();
 			std::cout << __LINE__ << std::endl;
 
-			Poco::Data::LOB<char> L;
-			Poco::Data::LOBOutputStream OL(L);
-			std::cout << __LINE__ << std::endl;
-
 			if (FileName.getSize() < FileUploader()->MaxSize()) {
+
+				Poco::Data::BLOB 		TheBlob;
+
 				std::cout << __LINE__ << std::endl;
 
 				std::ifstream f(FileName.path(), std::ios::binary);
-				Poco::StreamCopier::copyStream(f, OL);
+				std::ostringstream SS;
+				Poco::StreamCopier::copyStream(f, SS);
+				TheBlob.appendRaw((const unsigned char *)SS.str().c_str(),SS.str().size());
+
 				/*
 							"UUID			VARCHAR(64) PRIMARY KEY, "
 							"Type			VARCHAR(32), "
@@ -589,7 +591,7 @@ typedef Poco::Tuple<
 				Insert << ConvertParams(St2), Poco::Data::Keywords::use(UUID),
 					Poco::Data::Keywords::use(FileType),
 					Poco::Data::Keywords::use(Now),
-					Poco::Data::Keywords::use(L);
+					Poco::Data::Keywords::use(TheBlob);
 				Insert.execute();
 				std::cout << __LINE__ << std::endl;
 
@@ -642,7 +644,7 @@ typedef Poco::Tuple<
 			Select2.execute();
 
 			Poco::Data::LOBInputStream IL(L);
-			std::ofstream f(FileName, std::ios::binary);
+			std::ofstream f(FileName, std::ios::binary | std::ios::trunc );
 			Poco::StreamCopier::copyStream(IL, f);
 
 			return true;
