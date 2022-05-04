@@ -24,14 +24,15 @@ namespace OpenWifi {
 		Poco::File DownloadFile(FileUploader()->Path() + "/" + UUID);
 
 		std::string FileType;
-		if (!StorageService()->GetAttachedFile(UUID, SerialNumber, DownloadFile.path(), FileType)) {
+		std::string FileContent;
+		if (!StorageService()->GetAttachedFileContent(UUID, SerialNumber, FileContent, FileType)) {
 			return NotFound();
 		}
 
 		std::cout << "Get Filesize: " << DownloadFile.getSize() << std::endl;
 
-		SendFile(DownloadFile, UUID);
-		DownloadFile.remove();
+		SendFileContent(FileContent,"pcap",UUID+".pcap");
+//		DownloadFile.remove();
 	}
 
 	void RESTAPI_file::DoDelete() {

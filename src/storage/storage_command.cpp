@@ -722,6 +722,47 @@ typedef Poco::Tuple<
 		return false;
 	}
 
+	bool Storage::GetAttachedFileContent(std::string &UUID, const std::string & SerialNumber, std::string &FileContent, std::string &Type) {
+		try {
+			Poco::Data::BLOB L;
+			/*
+						"UUID			VARCHAR(64) PRIMARY KEY, "
+						"Type			VARCHAR(32), "
+						"Created 		BIGINT, "
+						"FileContent	BYTEA"
+			*/
+			Poco::Data::Session Sess = Pool_->get();
+			Poco::Data::Statement Select1(Sess);
+
+			std::string TmpSerialNumber;
+			std::string st1{"SELECT SerialNumber FROM CommandList WHERE UUID=?"};
+			Select1	<< 	ConvertParams(st1),
+				Poco::Data::Keywords::into(TmpSerialNumber),
+				Poco::Data::Keywords::use(UUID);
+			Select1.execute();
+
+			if(TmpSerialNumber!=SerialNumber) {
+				return false;
+			}
+
+			std::string St2{"SELECT FileContent, Type FROM FileUploads WHERE UUID=?"};
+
+			Poco::Data::Statement Select2(Sess);
+			Select2 << ConvertParams(St2),
+				Poco::Data::Keywords::into(L),
+				Poco::Data::Keywords::into(Type),
+				Poco::Data::Keywords::use(UUID);
+			Select2.execute();
+
+			FileContent.assign(L.content().begin(),L.content().end());
+			std::cout << "Get Attach Size: " << L.content().size() << std::endl;
+			return true;
+		} catch (const Poco::Exception &E) {
+			Logger().log(E);
+		}
+		return false;
+	}
+
 	bool Storage::SetCommandResult(std::string &UUID, std::string &Result) {
 		try {
 			Poco::Data::Session Sess = Pool_->get();
