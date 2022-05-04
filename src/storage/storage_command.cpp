@@ -573,6 +573,8 @@ typedef Poco::Tuple<
 				Poco::StreamCopier::copyStream(f, SS);
 				TheBlob.appendRaw((const unsigned char *)SS.str().c_str(),SS.str().size());
 
+				std::cout << "Attach file size: " <<  std::endl;
+
 				/*
 							"UUID			VARCHAR(64) PRIMARY KEY, "
 							"Type			VARCHAR(32), "
