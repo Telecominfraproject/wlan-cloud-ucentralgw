@@ -229,11 +229,10 @@ namespace OpenWifi {
 						std::stringstream OO;
 						Poco::StreamCopier::copyStream(Reader.stream(),OO);
 
-						std::cout << "Content: " << OO.str() << std::endl;
-
 						for(const auto &i:Hdr) {
 							std::cout << "F: " << i.first << "   S:" << i.second << std::endl;
 						}
+						std::cout << "Content: " << OO.str().size() << std::endl;
 
 						if(!Reader.hasNextPart())
 							Done= true;
