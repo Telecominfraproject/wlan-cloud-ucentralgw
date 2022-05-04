@@ -161,35 +161,47 @@ namespace OpenWifi {
         void handlePart(const Poco::Net::MessageHeader& Header, std::istream& Stream) override
         {
 			try {
+				std::cout << __LINE__ << std::endl;
 				Name_ = "(unnamed)";
+				std::cout << __LINE__ << std::endl;
 				if (Header.has("Content-Disposition")) {
+					std::cout << __LINE__ << std::endl;
 					std::string Disposition;
 					Poco::Net::NameValueCollection Parameters;
 					Poco::Net::MessageHeader::splitParameters(Header["Content-Disposition"],
 															  Disposition, Parameters);
 					Name_ = Parameters.get("filename", "(unnamed)");
+					std::cout << __LINE__ << std::endl;
 				}
 
 				std::string FinalFileName = FileUploader()->Path() + "/" + UUID_;
+				std::cout << __LINE__ << std::endl;
 
 				Logger().information(fmt::format("FILE-UPLOADER: uploading trace for {}", FinalFileName));
 				Poco::CountingInputStream InputStream(Stream);
 				std::ofstream OutputStream(FinalFileName, std::ofstream::out | std::ofstream::trunc | std::ofstream::binary );
 				Poco::StreamCopier::copyStream(InputStream, OutputStream);
+				std::cout << __LINE__ << std::endl;
 
 				Poco::File TmpFile(FinalFileName);
 				Length_ = TmpFile.getSize();
+				std::cout << __LINE__ << std::endl;
 				if (Length_ < FileUploader()->MaxSize()) {
 					Good_=true;
+					std::cout << __LINE__ << std::endl;
 				} else {
+					std::cout << __LINE__ << std::endl;
 					TmpFile.remove();
 					Error_ = "File is too large.";
 				}
+				std::cout << __LINE__ << std::endl;
 				return;
 			} catch (const Poco::Exception &E ) {
+				std::cout << __LINE__ << std::endl;
 				Logger().log(E);
 				Error_ = std::string("Upload caused an internal error: ") + E.what() ;
 			}
+			std::cout << __LINE__ << std::endl;
 		}
 
         [[nodiscard]] uint64_t Length() const { return Length_; }
