@@ -178,21 +178,20 @@ namespace OpenWifi {
 				std::cout << __LINE__ << std::endl;
 
 				Logger().information(fmt::format("FILE-UPLOADER: uploading trace for {}", FinalFileName));
-				// Poco::CountingInputStream InputStream(Stream);
+				Poco::CountingInputStream InputStream(Stream);
 				std::ofstream OutputStream(FinalFileName, std::ofstream::out | std::ofstream::trunc | std::ofstream::binary );
-				Poco::StreamCopier::copyStream(Stream, OutputStream);
-				OutputStream.close();
+				Poco::StreamCopier::copyStream(InputStream, OutputStream);
 				std::cout << __LINE__ << std::endl;
 
-				Poco::File TmpFile(FinalFileName);
-				Length_ = TmpFile.getSize();
+				Length_ = InputStream.chars();
 				std::cout << __LINE__ << std::endl;
 				if (Length_ < FileUploader()->MaxSize()) {
 					Good_=true;
 					std::cout << __LINE__ << std::endl;
 				} else {
 					std::cout << __LINE__ << std::endl;
-					TmpFile.remove();
+					Poco::File	TmpFile(FinalFileName);
+					TmpFile	.remove();
 					Error_ = "File is too large.";
 				}
 				std::cout << __LINE__ << std::endl;
@@ -230,7 +229,7 @@ namespace OpenWifi {
         {
         }
 
-        void handleRequest(Poco::Net::HTTPServerRequest& Request, Poco::Net::HTTPServerResponse& Response) override
+        void handleRequest(Poco::Net::HTTPServerRequest& Request, Poco::Net::HTTPServerResponse& Response)
         {
             try {
 				std::cout << __LINE__ << std::endl;
