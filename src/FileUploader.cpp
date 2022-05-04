@@ -174,34 +174,38 @@ namespace OpenWifi {
 					FileName_ = Parameters.get("filename", "(unnamed)");
 					Name_ = Parameters.get("name", "(unnamed)");
 					std::cout << __LINE__ << std::endl;
-				}
 
-				std::string FinalFileName = FileUploader()->Path() + "/" + UUID_;
-				std::cout << __LINE__ << std::endl;
-
-				Logger().information(fmt::format("FILE-UPLOADER: uploading trace for {}", FinalFileName));
-				Poco::CountingInputStream InputStream(Stream);
-				std::ofstream OutputStream(FinalFileName, std::ofstream::out | std::ofstream::trunc | std::ofstream::binary );
-				Poco::StreamCopier::copyStream(InputStream, OutputStream);
-				std::cout << __LINE__ << std::endl;
-
-				Length_ = InputStream.chars();
-				std::cout << __LINE__ << std::endl;
-				if (Length_ < FileUploader()->MaxSize()) {
-					Good_=true;
+					std::string FinalFileName = FileUploader()->Path() + "/" + UUID_;
 					std::cout << __LINE__ << std::endl;
-				} else {
+
+					Logger().information(
+						fmt::format("FILE-UPLOADER: uploading trace for {}", FinalFileName));
+					Poco::CountingInputStream InputStream(Stream);
+					std::ofstream OutputStream(FinalFileName, std::ofstream::out |
+																  std::ofstream::trunc |
+																  std::ofstream::binary);
+					Poco::StreamCopier::copyStream(InputStream, OutputStream);
 					std::cout << __LINE__ << std::endl;
-					Poco::File	TmpFile(FinalFileName);
-					TmpFile	.remove();
-					Error_ = "File is too large.";
+
+					Length_ = InputStream.chars();
+					std::cout << __LINE__ << std::endl;
+					if (Length_ < FileUploader()->MaxSize()) {
+						Good_ = true;
+						std::cout << __LINE__ << std::endl;
+					} else {
+						std::cout << __LINE__ << std::endl;
+						Poco::File TmpFile(FinalFileName);
+						TmpFile.remove();
+						Error_ = "File is too large.";
+					}
+					std::cout << __LINE__ << std::endl;
+					return;
 				}
-				std::cout << __LINE__ << std::endl;
-				return;
-			} catch (const Poco::Exception &E ) {
+			}
+			catch (const Poco::Exception &E) {
 				std::cout << __LINE__ << std::endl;
 				Logger().log(E);
-				Error_ = std::string("Upload caused an internal error: ") + E.what() ;
+				Error_ = std::string("Upload caused an internal error: ") + E.what();
 			}
 			std::cout << __LINE__ << std::endl;
 		}
@@ -242,12 +246,12 @@ namespace OpenWifi {
 
 				std::cout << __LINE__ << std::endl;
 
-				// form.load(Request, Request.stream(), partHandler);
+				form.load(Request, Request.stream(), partHandler);
 
-				std::ofstream f("trace.bin", std::ios::trunc | std::ios::binary );
+/*				std::ofstream f("trace.bin", std::ios::trunc | std::ios::binary );
 				Poco::StreamCopier::copyStream(Request.stream(),f);
 				f.close();
-
+*/
 				std::cout << __LINE__ << std::endl;
 
 				Response.setChunkedTransferEncoding(true);
@@ -278,13 +282,17 @@ namespace OpenWifi {
 				std::cout << __LINE__ << std::endl;
 				return;
             }
+			catch (const Poco::Net::MultipartException &E ) {
+				std::cout << __LINE__ << E.displayText() << "   "  << E.what() << std::endl;
+				Logger().warning(fmt::format("Form Error occurred while performing upload. Error='{}' What='{}'",E.displayText(),E.what()));
+			}
 			catch ( const Poco::Net::HTMLFormException & E) {
-				std::cout << __LINE__ << std::endl;
+				std::cout << __LINE__ << E.displayText() << "   "  << E.what() << std::endl;
 				Logger().warning(fmt::format("Form Error occurred while performing upload. Error='{}' What='{}'",E.displayText(),E.what()));
 			}
             catch( const Poco::Exception & E )
             {
-				std::cout << __LINE__ << std::endl;
+				std::cout << __LINE__ << E.displayText() << "   "  << E.what() << std::endl;
                 Logger().warning(fmt::format("Error occurred while performing upload. Error='{}'",E.displayText()));
             }
             catch( ... )
