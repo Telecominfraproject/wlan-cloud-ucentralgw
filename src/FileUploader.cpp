@@ -150,6 +150,40 @@ namespace OpenWifi {
         OutStandingUploads_.erase(UUID);
     }
 
+	class FileUploaderPartHandler2 : public Poco::Net::PartHandler {
+	  public:
+		FileUploaderPartHandler2(std::string Id, Poco::Logger &Logger, std::stringstream & ofs) :
+																						  Id_(std::move(Id)),
+																						  Logger_(Logger),
+																						  OutputStream_(ofs){
+		}
+		void handlePart(const Poco::Net::MessageHeader &Header, std::istream &Stream) {
+			FileType_ = Header.get(RESTAPI::Protocol::CONTENTTYPE, RESTAPI::Protocol::UNSPECIFIED);
+			if (Header.has(RESTAPI::Protocol::CONTENTDISPOSITION)) {
+				std::string Disposition;
+				Poco::Net::NameValueCollection Parameters;
+				Poco::Net::MessageHeader::splitParameters(Header[RESTAPI::Protocol::CONTENTDISPOSITION], Disposition, Parameters);
+				Name_ = Parameters.get(RESTAPI::Protocol::NAME, RESTAPI::Protocol::UNNAMED);
+			}
+			Poco::CountingInputStream InputStream(Stream);
+			Poco::StreamCopier::copyStream(InputStream, OutputStream_);
+			Length_ = OutputStream_.str().size();
+		}
+		[[nodiscard]] uint64_t Length() const { return Length_; }
+		[[nodiscard]] std::string &Name() { return Name_; }
+		[[nodiscard]] std::string &ContentType() { return FileType_; }
+
+	  private:
+		uint64_t        Length_ = 0;
+		std::string     FileType_;
+		std::string     Name_;
+		std::string     Id_;
+		Poco::Logger    &Logger_;
+		std::stringstream &OutputStream_;
+
+		inline Poco::Logger & Logger() { return Logger_; };
+	};
+
     class FileUploaderPartHandler: public Poco::Net::PartHandler
     {
     public:
@@ -239,19 +273,14 @@ namespace OpenWifi {
         {
             try {
 				std::cout << __LINE__ << std::endl;
-				FileUploaderPartHandler partHandler(UUID_, Logger());
+				std::stringstream	FileContent;
+				FileUploaderPartHandler2 partHandler(UUID_, Logger(), FileContent);
 				std::cout << __LINE__ << std::endl;
 
                 Poco::Net::HTMLForm form;
 
 				std::cout << __LINE__ << std::endl;
-
 				form.load(Request, Request.stream(), partHandler);
-
-/*				std::ofstream f("trace.bin", std::ios::trunc | std::ios::binary );
-				Poco::StreamCopier::copyStream(Request.stream(),f);
-				f.close();
-*/
 				std::cout << __LINE__ << std::endl;
 
 				Response.setChunkedTransferEncoding(true);
@@ -260,19 +289,21 @@ namespace OpenWifi {
 				std::cout << __LINE__ << std::endl;
 
 				Poco::JSON::Object	Answer;
-                if (partHandler.Good()) {
+                if (partHandler.Length()<FileUploader()->MaxSize()) {
 					std::cout << __LINE__ << std::endl;
 					Answer.set("filename", UUID_);
 					Answer.set("error", 0);
 					std::cout << __LINE__ << std::endl;
-					StorageService()->AttachFileToCommand(UUID_);
+					// StorageService()->AttachFileToCommand(UUID_);
+					StorageService()->AttachFileDataToCommand(UUID_, FileContent);
 					std::cout << __LINE__ << std::endl;
 				} else {
 					std::cout << __LINE__ << std::endl;
 					Answer.set("filename", UUID_);
 					Answer.set("error", 13);
-					Answer.set("errorText", partHandler.Error() );
-					StorageService()->CancelWaitFile(UUID_, partHandler.Error() );
+					Answer.set("errorText", "Attached file is too large" );
+					std::string	Error{"Attached file is too large"};
+					StorageService()->CancelWaitFile(UUID_, Error );
 					std::cout << __LINE__ << std::endl;
 				}
 				std::cout << __LINE__ << std::endl;

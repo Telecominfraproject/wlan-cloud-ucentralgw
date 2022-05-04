@@ -613,6 +613,67 @@ typedef Poco::Tuple<
 		return false;
 	}
 
+	bool Storage::AttachFileDataToCommand(std::string & UUID, const std::stringstream & FileContent) {
+		try {
+			Poco::Data::Session Sess = Pool_->get();
+			uint64_t Now = OpenWifi::Now();
+			uint64_t WaitForFile = 0;
+
+			Poco::Data::Statement Update(Sess);
+			std::cout << __LINE__ << std::endl;
+
+			uint64_t Size = FileContent.str().size();
+
+			std::string St{
+				"UPDATE CommandList SET WaitingForFile=?, AttachDate=?, AttachSize=? WHERE UUID=?"};
+			std::cout << __LINE__ << std::endl;
+
+			Update << ConvertParams(St),
+				Poco::Data::Keywords::use(WaitForFile),
+				Poco::Data::Keywords::use(Now),
+				Poco::Data::Keywords::use(Size),
+				Poco::Data::Keywords::use(UUID);
+			Update.execute();
+			std::cout << __LINE__ << std::endl;
+
+			if (Size < FileUploader()->MaxSize()) {
+
+				Poco::Data::BLOB 		TheBlob;
+
+				std::cout << __LINE__ << std::endl;
+
+				TheBlob.appendRaw((const unsigned char *)FileContent.str().c_str(),FileContent.str().size());
+
+				std::cout << "Attach file size: " <<  FileContent.str().size() << std::endl;
+
+				std::cout << __LINE__ << std::endl;
+				Poco::Data::Statement Insert(Sess);
+				std::string FileType{"trace"};
+				std::cout << __LINE__ << std::endl;
+
+				std::string St2{
+					"INSERT INTO FileUploads (UUID,Type,Created,FileContent) VALUES(?,?,?,?)"};
+
+				std::cout << __LINE__ << std::endl;
+				Insert << ConvertParams(St2), Poco::Data::Keywords::use(UUID),
+					Poco::Data::Keywords::use(FileType),
+					Poco::Data::Keywords::use(Now),
+					Poco::Data::Keywords::use(TheBlob);
+				Insert.execute();
+				std::cout << __LINE__ << std::endl;
+				return true;
+			} else {
+				std::cout << __LINE__ << std::endl;
+				Logger().warning(fmt::format("File {} is too large.", UUID));
+			}
+		} catch (const Poco::Exception &E) {
+			std::cout << __LINE__ << std::endl;
+			Logger().warning(fmt::format("{}: Failed with: {}", std::string(__func__), E.displayText()));
+			std::cout << __LINE__ << std::endl;
+		}
+		return false;
+	}
+
 	bool Storage::GetAttachedFile(std::string &UUID, const std::string & SerialNumber, const std::string &FileName, std::string &Type) {
 		try {
 			Poco::Data::BLOB L;
