@@ -158,7 +158,7 @@ namespace OpenWifi {
         {
         }
 
-        void handlePart(const Poco::Net::MessageHeader& Header, std::istream& Stream) override
+        void handlePart(const Poco::Net::MessageHeader& Header, std::istream& Stream)
         {
 			try {
 				std::cout << __LINE__ << std::endl;
