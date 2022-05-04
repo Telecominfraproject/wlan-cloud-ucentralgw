@@ -205,6 +205,8 @@ namespace OpenWifi {
 
 			std::cout << "CT: '" << ContentType << "'  tokens:" << Tokens.count() << std::endl;
 
+			Poco::JSON::Object Answer;
+
 			if(	Poco::icompare(Tokens[0],"multipart/form-data")==0 ||
 				Poco::icompare(Tokens[0],"multipart/mixed")==0) {
 
@@ -226,13 +228,24 @@ namespace OpenWifi {
 						Poco::Net::MessageHeader	Hdr;
 						Reader.nextPart(Hdr);
 
-						std::stringstream OO;
-						Poco::StreamCopier::copyStream(Reader.stream(),OO);
-
-						for(const auto &i:Hdr) {
-							std::cout << "F: " << i.first << "   S:" << i.second << std::endl;
+						const auto &PartContentType = Hdr.get("Content-Type","");
+						if(PartContentType=="application/octet-stream") {
+							std::stringstream FileContent;
+							Poco::StreamCopier::copyStream(Reader.stream(),FileContent);
+							Answer.set("filename", UUID_);
+							Answer.set("error", 0);
+							StorageService()->AttachFileDataToCommand(UUID_, FileContent);
+							std::ostream &ResponseStream = Response.send();
+							Poco::JSON::Stringifier::stringify(Answer, ResponseStream);
+							return;
+						} else {
+							std::stringstream OO;
+							Poco::StreamCopier::copyStream(Reader.stream(),OO);
+							for(const auto &i:Hdr) {
+								std::cout << "F: " << i.first << "   S:" << i.second << std::endl;
+							}
+							std::cout << "Content: " << OO.str().size() << std::endl;
 						}
-						std::cout << "Content: " << OO.str().size() << std::endl;
 
 						if(!Reader.hasNextPart())
 							Done= true;
@@ -240,15 +253,14 @@ namespace OpenWifi {
 				}
 			}
 
-			Poco::JSON::Object Answer;
+			std::string Error{"Trace file rejected"};
+			StorageService()->CancelWaitFile(UUID_, Error);
 			Answer.set("filename", UUID_);
 			Answer.set("error", 13);
 			Answer.set("errorText", "Attached file is too large");
-			std::string Error{"Attached file is too large"};
 			StorageService()->CancelWaitFile(UUID_, Error);
 			std::ostream &ResponseStream = Response.send();
 			Poco::JSON::Stringifier::stringify(Answer, ResponseStream);
-			return;
 		}
 /*
 
