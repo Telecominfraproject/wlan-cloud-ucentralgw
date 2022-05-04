@@ -174,7 +174,7 @@ namespace OpenWifi {
 
 				Logger().information(fmt::format("FILE-UPLOADER: uploading trace for {}", FinalFileName));
 				Poco::CountingInputStream InputStream(Stream);
-				std::ofstream OutputStream(FinalFileName, std::ofstream::out);
+				std::ofstream OutputStream(FinalFileName, std::ofstream::out | std::ofstream::trunc | std::ofstream::binary );
 				Poco::StreamCopier::copyStream(InputStream, OutputStream);
 
 				Poco::File TmpFile(FinalFileName);
@@ -220,34 +220,50 @@ namespace OpenWifi {
         void handleRequest(Poco::Net::HTTPServerRequest& Request, Poco::Net::HTTPServerResponse& Response) override
         {
             try {
+				std::cout << __LINE__ << std::endl;
 				FileUploaderPartHandler partHandler(UUID_,Logger());
+				std::cout << __LINE__ << std::endl;
+
 
                 Poco::Net::HTMLForm form(Request, Request.stream(), partHandler);
+				std::cout << __LINE__ << std::endl;
 
 				Response.setChunkedTransferEncoding(true);
+				std::cout << __LINE__ << std::endl;
                 Response.setContentType("application/json");
+				std::cout << __LINE__ << std::endl;
 
 				Poco::JSON::Object	Answer;
                 if (partHandler.Good()) {
+					std::cout << __LINE__ << std::endl;
 					Answer.set("filename", UUID_);
 					Answer.set("error", 0);
+					std::cout << __LINE__ << std::endl;
 					StorageService()->AttachFileToCommand(UUID_);
+					std::cout << __LINE__ << std::endl;
 				} else {
+					std::cout << __LINE__ << std::endl;
 					Answer.set("filename", UUID_);
 					Answer.set("error", 13);
 					Answer.set("errorText", partHandler.Error() );
 					StorageService()->CancelWaitFile(UUID_, partHandler.Error() );
+					std::cout << __LINE__ << std::endl;
 				}
+				std::cout << __LINE__ << std::endl;
 				std::ostream &ResponseStream = Response.send();
+				std::cout << __LINE__ << std::endl;
 				Poco::JSON::Stringifier::stringify(Answer, ResponseStream);
+				std::cout << __LINE__ << std::endl;
 				return;
             }
             catch( const Poco::Exception & E )
             {
+				std::cout << __LINE__ << std::endl;
                 Logger().warning(fmt::format("Error occurred while performing upload. Error='{}'",E.displayText()));
             }
             catch( ... )
             {
+				std::cout << __LINE__ << std::endl;
             }
         }
 		inline Poco::Logger & Logger() { return Logger_; }

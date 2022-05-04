@@ -539,16 +539,20 @@ typedef Poco::Tuple<
 	bool Storage::AttachFileToCommand(std::string &UUID) {
 		try {
 			Poco::Data::Session Sess = Pool_->get();
-			uint64_t Now = time(nullptr);
+			uint64_t Now = OpenWifi::Now();
 			uint64_t WaitForFile = 0;
 
 			Poco::Data::Statement Update(Sess);
+			std::cout << __LINE__ << std::endl;
 
 			Poco::File FileName = FileUploader()->Path() + "/" + UUID;
+			std::cout << __LINE__ << std::endl;
 			uint64_t Size = FileName.getSize();
+			std::cout << __LINE__ << std::endl;
 
 			std::string St{
 				"UPDATE CommandList SET WaitingForFile=?, AttachDate=?, AttachSize=? WHERE UUID=?"};
+			std::cout << __LINE__ << std::endl;
 
 			Update << ConvertParams(St),
 				Poco::Data::Keywords::use(WaitForFile),
@@ -556,11 +560,14 @@ typedef Poco::Tuple<
 				Poco::Data::Keywords::use(Size),
 				Poco::Data::Keywords::use(UUID);
 			Update.execute();
+			std::cout << __LINE__ << std::endl;
 
 			Poco::Data::LOB<char> L;
 			Poco::Data::LOBOutputStream OL(L);
+			std::cout << __LINE__ << std::endl;
 
 			if (FileName.getSize() < FileUploader()->MaxSize()) {
+				std::cout << __LINE__ << std::endl;
 
 				std::ifstream f(FileName.path(), std::ios::binary);
 				Poco::StreamCopier::copyStream(f, OL);
@@ -570,26 +577,34 @@ typedef Poco::Tuple<
 							"Created 		BIGINT, "
 							"FileContent	BYTEA"
 				*/
+				std::cout << __LINE__ << std::endl;
 				Poco::Data::Statement Insert(Sess);
 				std::string FileType{"trace"};
+				std::cout << __LINE__ << std::endl;
 
 				std::string St2{
 					"INSERT INTO FileUploads (UUID,Type,Created,FileContent) VALUES(?,?,?,?)"};
 
+				std::cout << __LINE__ << std::endl;
 				Insert << ConvertParams(St2), Poco::Data::Keywords::use(UUID),
 					Poco::Data::Keywords::use(FileType),
 					Poco::Data::Keywords::use(Now),
 					Poco::Data::Keywords::use(L);
 				Insert.execute();
+				std::cout << __LINE__ << std::endl;
 
 				FileName.remove();
+				std::cout << __LINE__ << std::endl;
 
 				return true;
 			} else {
+				std::cout << __LINE__ << std::endl;
 				Logger().warning(fmt::format("File {} is too large.", FileName.path()));
 			}
 		} catch (const Poco::Exception &E) {
+			std::cout << __LINE__ << std::endl;
 			Logger().warning(fmt::format("{}: Failed with: {}", std::string(__func__), E.displayText()));
+			std::cout << __LINE__ << std::endl;
 		}
 		return false;
 	}
