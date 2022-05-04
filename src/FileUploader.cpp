@@ -203,11 +203,15 @@ namespace OpenWifi {
 			const auto & ContentType = Request.getContentType();
 			const auto & Tokens = Poco::StringTokenizer(ContentType,";");
 
+			std::cout << "CT: '" << ContentType << "'  tokens:" << Tokens.count() << std::endl;
+
 			if(	Poco::icompare(Tokens[0],"multipart/form-data")==0 ||
 				Poco::icompare(Tokens[0],"multipart/mixed")==0) {
 
+				std::cout << __LINE__ << std::endl;
 				const auto & BoundaryTokens = Poco::StringTokenizer(Tokens[1],"=");
 				if(BoundaryTokens[0]=="boundary") {
+					std::cout << __LINE__ << std::endl;
 					const std::string & Boundary = BoundaryTokens[1];
 
 					Poco::Net::MultipartReader	Reader(Request.stream(),Boundary);
