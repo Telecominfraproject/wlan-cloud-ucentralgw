@@ -622,7 +622,7 @@ void RESTAPI_device_commandHandler::Trace() {
 		Cmd.Details = ParamStream.str();
 
 		FileUploader()->AddUUID(UUID);
-		return RESTAPI_RPC::WaitForCommand(Cmd, Params, *Request, *Response, 60000ms, nullptr, this, Logger_);
+		return RESTAPI_RPC::WaitForCommand(Cmd, Params, *Request, *Response, 160000ms, nullptr, this, Logger_);
 	}
 	BadRequest(RESTAPI::Errors::MissingOrInvalidParameters);
 }
