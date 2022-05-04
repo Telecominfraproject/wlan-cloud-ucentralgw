@@ -178,9 +178,10 @@ namespace OpenWifi {
 				std::cout << __LINE__ << std::endl;
 
 				Logger().information(fmt::format("FILE-UPLOADER: uploading trace for {}", FinalFileName));
-				Poco::CountingInputStream InputStream(Stream);
+				// Poco::CountingInputStream InputStream(Stream);
 				std::ofstream OutputStream(FinalFileName, std::ofstream::out | std::ofstream::trunc | std::ofstream::binary );
-				Poco::StreamCopier::copyStream(InputStream, OutputStream);
+				Poco::StreamCopier::copyStream(Stream, OutputStream);
+				OutputStream.close();
 				std::cout << __LINE__ << std::endl;
 
 				Poco::File TmpFile(FinalFileName);
