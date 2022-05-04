@@ -208,8 +208,11 @@ namespace OpenWifi {
 			if(	Poco::icompare(Tokens[0],"multipart/form-data")==0 ||
 				Poco::icompare(Tokens[0],"multipart/mixed")==0) {
 
-				std::cout << __LINE__ << std::endl;
+				std::cout << __LINE__ << "  " << Tokens[1] << std::endl;
 				const auto & BoundaryTokens = Poco::StringTokenizer(Tokens[1],"=");
+
+				std::cout << __LINE__ << "  " << Tokens[1] << "    " << BoundaryTokens[0] << std::endl;
+
 				if(BoundaryTokens[0]=="boundary") {
 					std::cout << __LINE__ << std::endl;
 					const std::string & Boundary = BoundaryTokens[1];
