@@ -2032,9 +2032,9 @@ namespace OpenWifi {
 	        }
 	    }
 
-		inline void AddCORS() {
+/*		inline void AddCORS() {
 			SetCommonHeaders();
-/*			auto Origin = Request->find("Origin");
+			auto Origin = Request->find("Origin");
 			if (Origin != Request->end()) {
 				Response->set("Access-Control-Allow-Origin", Origin->second);
 				Response->set("Vary", "Origin");
@@ -2044,9 +2044,9 @@ namespace OpenWifi {
 			Response->set("Access-Control-Allow-Headers", "*");
 			Response->set("Access-Control-Allow-Methods", MakeList(Methods_));
 			Response->set("Access-Control-Max-Age", "86400");
-*/
-		}
 
+		}
+*/
 	    inline void ProcessOptions() {
 			Response->setVersion(Poco::Net::HTTPMessage::HTTP_1_1);
 			Response->setChunkedTransferEncoding(true);
@@ -2060,14 +2060,12 @@ namespace OpenWifi {
 			auto RequestHeaders = Request->find("Access-Control-Request-Headers");
 			if(RequestHeaders!=Request->end())
 				Response->set("Access-Control-Allow-Headers", RequestHeaders->second);
-//            AddCORS();
             Response->set("Vary", "Origin, Accept-Encoding");
 			Response->set("Access-Control-Allow-Credentials", "true");
 			Response->set("Access-Control-Max-Age", "86400");
 			Response->set("Connection", "Keep-Alive");
 			Response->set("Keep-Alive", "timeout=30, max=1000");
 
-//	        SetCommonHeaders();
             Response->setContentLength(0);
             Response->setStatus(Poco::Net::HTTPResponse::HTTP_OK);
 	        Response->send();
@@ -2076,7 +2074,6 @@ namespace OpenWifi {
 	    inline void PrepareResponse(Poco::Net::HTTPResponse::HTTPStatus Status = Poco::Net::HTTPResponse::HTTP_OK,
                                     bool CloseConnection = false) {
 	        Response->setStatus(Status);
-//	        AddCORS();
 	        SetCommonHeaders(CloseConnection);
 	    }
 
@@ -2152,7 +2149,7 @@ namespace OpenWifi {
 
         inline void SendCompressedTarFile(const std::string & FileName, const std::string & Content) {
 			Response->setStatus(Poco::Net::HTTPResponse::HTTPStatus::HTTP_OK);
-			AddCORS();
+			SetCommonHeaders();
             Response->set("Content-Type","application/gzip");
             Response->set("Content-Disposition", "attachment; filename=" + FileName );
             Response->set("Content-Transfer-Encoding","binary");
@@ -2168,7 +2165,7 @@ namespace OpenWifi {
 
 	    inline void SendFile(Poco::File & File, const std::string & UUID) {
 			Response->setStatus(Poco::Net::HTTPResponse::HTTPStatus::HTTP_OK);
-			AddCORS();
+			SetCommonHeaders();
 	        Response->set("Content-Type","application/octet-stream");
 	        Response->set("Content-Disposition", "attachment; filename=" + UUID );
 	        Response->set("Content-Transfer-Encoding","binary");
@@ -2181,7 +2178,7 @@ namespace OpenWifi {
 
 	    inline void SendFile(Poco::File & File) {
 			Response->setStatus(Poco::Net::HTTPResponse::HTTPStatus::HTTP_OK);
-			AddCORS();
+			SetCommonHeaders();
 	        Poco::Path  P(File.path());
 	        auto MT = Utils::FindMediaType(File);
 	        if(MT.Encoding==Utils::BINARY) {
@@ -2195,7 +2192,7 @@ namespace OpenWifi {
 
 	    inline void SendFile(Poco::TemporaryFile &TempAvatar, [[maybe_unused]] const std::string &Type, const std::string & Name) {
 			Response->setStatus(Poco::Net::HTTPResponse::HTTPStatus::HTTP_OK);
-			AddCORS();
+			SetCommonHeaders();
 	        auto MT = Utils::FindMediaType(Name);
 	        if(MT.Encoding==Utils::BINARY) {
 	            Response->set("Content-Transfer-Encoding","binary");
@@ -2211,7 +2208,7 @@ namespace OpenWifi {
 
         inline void SendFileContent(const std::string &Content, const std::string &Type, const std::string & Name) {
 			Response->setStatus(Poco::Net::HTTPResponse::HTTPStatus::HTTP_OK);
-			AddCORS();
+			SetCommonHeaders();
             auto MT = Utils::FindMediaType(Name);
             if(MT.Encoding==Utils::BINARY) {
                 Response->set("Content-Transfer-Encoding","binary");
@@ -2230,7 +2227,7 @@ namespace OpenWifi {
         inline void SendHTMLFileBack(Poco::File & File,
                                      const Types::StringPairVec & FormVars) {
 			Response->setStatus(Poco::Net::HTTPResponse::HTTPStatus::HTTP_OK);
-			AddCORS();
+			SetCommonHeaders();
 	        Response->set("Pragma", "private");
 	        Response->set("Expires", "Mon, 26 Jul 2027 05:00:00 GMT");
 	        std::string FormContent = Utils::LoadFile(File.path());
