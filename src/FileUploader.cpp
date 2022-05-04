@@ -229,15 +229,20 @@ namespace OpenWifi {
         {
         }
 
-        void handleRequest(Poco::Net::HTTPServerRequest& Request, Poco::Net::HTTPServerResponse& Response)
+        void handleRequest(Poco::Net::HTTPServerRequest& Request, Poco::Net::HTTPServerResponse& Response) final
         {
             try {
 				std::cout << __LINE__ << std::endl;
-				FileUploaderPartHandler partHandler(UUID_,Logger());
+				FileUploaderPartHandler partHandler(UUID_, Logger());
 				std::cout << __LINE__ << std::endl;
 
 
-                Poco::Net::HTMLForm form(Request, Request.stream(), partHandler);
+                Poco::Net::HTMLForm form;
+
+				std::cout << __LINE__ << std::endl;
+
+				form.load(Request, Request.stream(), partHandler);
+
 				std::cout << __LINE__ << std::endl;
 
 				Response.setChunkedTransferEncoding(true);
