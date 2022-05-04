@@ -16,6 +16,7 @@
 #include "Poco/Net/HTMLForm.h"
 #include "Poco/Net/PartHandler.h"
 #include "Poco/Net/MessageHeader.h"
+#include "Poco/Net/NetException.h"
 #include "Poco/CountingStream.h"
 #include "Poco/StreamCopier.h"
 #include "Poco/Exception.h"
@@ -274,6 +275,10 @@ namespace OpenWifi {
 				std::cout << __LINE__ << std::endl;
 				return;
             }
+			catch ( const Poco::Net::HTMLFormException & E) {
+				std::cout << __LINE__ << std::endl;
+				Logger().warning(fmt::format("Form Error occurred while performing upload. Error='{}' What='{}'",E.displayText(),E.what()));
+			}
             catch( const Poco::Exception & E )
             {
 				std::cout << __LINE__ << std::endl;
