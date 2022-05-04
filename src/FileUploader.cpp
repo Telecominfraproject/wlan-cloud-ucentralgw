@@ -238,13 +238,9 @@ namespace OpenWifi {
 				FileUploaderPartHandler partHandler(UUID_, Logger());
 				std::cout << __LINE__ << std::endl;
 
-
-
                 Poco::Net::HTMLForm form;
 
 				std::cout << __LINE__ << std::endl;
-
-				Poco::StreamCopier::copyStream(Request.stream(),std::cout);
 
 				form.load(Request, Request.stream(), partHandler);
 
