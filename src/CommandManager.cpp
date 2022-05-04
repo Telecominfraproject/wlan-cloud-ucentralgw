@@ -24,6 +24,7 @@ namespace OpenWifi {
 		Poco::AutoPtr<Poco::Notification>	NextMsg(ResponseQueue_.waitDequeueNotification());
 		while(NextMsg && Running_) {
 			auto Resp = dynamic_cast<RPCResponseNotification*>(NextMsg.get());
+
 			if(Resp!= nullptr) {
 				const Poco::JSON::Object & Payload = Resp->Payload_;
 				const std::string & SerialNumber = Resp->SerialNumber_;
@@ -36,35 +37,39 @@ namespace OpenWifi {
 				if(!Payload.has(uCentralProtocol::ID)){
 					std::cout << SerialNumber << ": " << __LINE__ << std::endl;
 					Logger().error(fmt::format("({}): Invalid RPC response.", SerialNumber));
-					return;
+				} else {
+					uint64_t ID = Payload.get(uCentralProtocol::ID);
+					if (ID < 2) {
+						std::cout << SerialNumber << ": " << __LINE__ << std::endl;
+						Logger().debug(fmt::format("({}): Ignoring RPC response.", SerialNumber));
+					} else {
+						auto Idx = CommandTagIndex{.Id = ID, .SerialNumber = SerialNumber};
+						std::lock_guard G(Mutex_);
+						auto RPC = OutStandingRequests_.find(Idx);
+						if (RPC == OutStandingRequests_.end()) {
+							std::cout << SerialNumber << ": " << __LINE__ << std::endl;
+							Logger().warning(
+								fmt::format("({}): Outdated RPC {}", SerialNumber, ID));
+						} else {
+							std::cout << SerialNumber << ": " << __LINE__ << std::endl;
+							std::chrono::duration<double, std::milli> rpc_execution_time =
+								std::chrono::high_resolution_clock::now() - RPC->second->submitted;
+							StorageService()->CommandCompleted(RPC->second->uuid, Payload,
+															   rpc_execution_time, true);
+							std::cout << SerialNumber << ": " << __LINE__ << std::endl;
+							if (RPC->second->rpc_entry) {
+								std::cout << SerialNumber << ": " << __LINE__ << std::endl;
+								RPC->second->rpc_entry->set_value(Payload);
+							}
+							std::cout << SerialNumber << ": " << __LINE__ << std::endl;
+							OutstandingUUIDs_.erase(RPC->second->uuid);
+							OutStandingRequests_.erase(Idx);
+							Logger().information(
+								fmt::format("({}): Received RPC answer {}", SerialNumber, ID));
+							std::cout << SerialNumber << ": " << __LINE__ << std::endl;
+						}
+					}
 				}
-
-				uint64_t ID = Payload.get(uCentralProtocol::ID);
-				if(ID<2) {
-					std::cout << SerialNumber << ": " << __LINE__ << std::endl;
-					Logger().debug(fmt::format("({}): Ignoring RPC response.", SerialNumber));
-					return;
-				}
-				auto Idx = CommandTagIndex{.Id = ID, .SerialNumber = SerialNumber};
-				auto RPC = OutStandingRequests_.find(Idx);
-				if (RPC == OutStandingRequests_.end()) {
-					std::cout << SerialNumber << ": " << __LINE__ << std::endl;
-					Logger().warning(fmt::format("({}): Outdated RPC {}", SerialNumber, ID));
-					return;
-				}
-				std::cout << SerialNumber << ": " << __LINE__ << std::endl;
-				std::chrono::duration<double, std::milli> rpc_execution_time = std::chrono::high_resolution_clock::now() - RPC->second->submitted;
-				StorageService()->CommandCompleted(RPC->second->uuid, Payload, rpc_execution_time, true);
-				std::cout << SerialNumber << ": " << __LINE__ << std::endl;
-				if(RPC->second->rpc_entry) {
-					std::cout << SerialNumber << ": " << __LINE__ << std::endl;
-					RPC->second->rpc_entry->set_value(Payload);
-				}
-				std::cout << SerialNumber << ": " << __LINE__ << std::endl;
-				OutstandingUUIDs_.erase(RPC->second->uuid);
-				OutStandingRequests_.erase(Idx);
-				Logger().information(fmt::format("({}): Received RPC answer {}", SerialNumber, ID));
-				std::cout << SerialNumber << ": " << __LINE__ << std::endl;
 			}
 			NextMsg = ResponseQueue_.waitDequeueNotification();
 		}
