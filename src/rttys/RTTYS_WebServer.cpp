@@ -9,8 +9,8 @@
 
 namespace OpenWifi {
 
-	RTTY_Client_WebSocketRequestHandler::RTTY_Client_WebSocketRequestHandler(Poco::Net::SocketReactor &R)
-		:R_(R) {
+	RTTY_Client_WebSocketRequestHandler::RTTY_Client_WebSocketRequestHandler(Poco::Net::SocketReactor &R, Poco::Logger & L)
+		:R_(R), Logger_(L) {
 	}
 
 	void RTTY_Client_WebSocketRequestHandler::handleRequest(Poco::Net::HTTPServerRequest &request,
@@ -25,9 +25,9 @@ namespace OpenWifi {
 		try {
 			Poco::Thread::current()->setName(fmt::format("WebRTTYRequest_WSHandler_{}", T[2]));
 			auto ws_ptr = std::make_unique<Poco::Net::WebSocket>(request, response);
-			new RTTYS_ClientConnection(std::move(ws_ptr), T[2], R_);
+			new RTTYS_ClientConnection(std::move(ws_ptr), T[2], R_, Logger_);
 		} catch (...) {
-			RTTYS_server()->Logger().warning("Exception during WS creation");
+			Logger_.warning("Exception during WS creation");
 		}
 	};
 
@@ -46,32 +46,6 @@ namespace OpenWifi {
 		return false;
 	}
 
-/*	static void AddCORS(Poco::Net::HTTPServerRequest &Request,
-						Poco::Net::HTTPServerResponse & Response, Poco::Logger & Logger_, uint64_t id) {
-
-		Logger_.information(fmt::format("{}: Adding CORS", id));
-		Response.setChunkedTransferEncoding(true);
-		auto Origin = Request.find("Origin");
-		if (Origin != Request.end()) {
-			Response.set("Access-Control-Allow-Origin", Origin->second);
-			Response.set("Vary", "Origin");
-		} else {
-			Response.set("Access-Control-Allow-Origin", "*");
-		}
-		auto Referer = Request.find("Referer");
-		if(Referer!=Request.end()) {
-			Response.set("Access-Control-Allow-Origin", Referer->second);
-		} else {
-			Response.set("Access-Control-Allow-Origin", "*");
-		}
-		Response.set("Access-Control-Allow-Headers", "*");
-		Response.set("Access-Control-Max-Age", "86400");
-		Response.set("Access-Control-Allow-Methods", "GET, OPTIONS, HEAD");
-		Response.set("Connection", "Keep-Alive");
-		Response.set("Keep-Alive", "timeout=120");
-		Response.set("Accept-Ranges","bytes");
-	}
-*/
 	inline void ProcessOptions(Poco::Net::HTTPServerRequest &Request,
 							   Poco::Net::HTTPServerResponse &Response) {
 		Response.setVersion(Poco::Net::HTTPMessage::HTTP_1_1);
@@ -124,7 +98,6 @@ namespace OpenWifi {
 	void PageRequestHandler::handleRequest(Poco::Net::HTTPServerRequest &request,
 					   Poco::Net::HTTPServerResponse &response) {
 
-		Poco::Logger & Logger_ = RTTYS_server()->Logger();
 		uint64_t id = rtty_ws_id++;
 
 		Logger_.information(fmt::format("{}: Starting request.",id));
@@ -174,9 +147,6 @@ namespace OpenWifi {
 			Path = RTTYS_server()->UIAssets() + Path;
 		}
 
-		// std::cout << id << ": Serving path '" << Path << "'" << std::endl;
-
-		//	simple test to block .. or ~ in path names.
 		if(Path.find("../")!=std::string::npos) {
 			Logger_.information(fmt::format("{}: Finishing request.",id));
 			return;
@@ -227,8 +197,8 @@ namespace OpenWifi {
 		Logger_.information(fmt::format("{}: Finishing request.",id));
 	}
 
-	RTTY_Client_RequestHandlerFactory::RTTY_Client_RequestHandlerFactory(Poco::Net::SocketReactor &R)
-		: Reactor_(R) {}
+	RTTY_Client_RequestHandlerFactory::RTTY_Client_RequestHandlerFactory(Poco::Net::SocketReactor &R, Poco::Logger & L)
+		: Reactor_(R), Logger_(L) {}
 
 	Poco::Net::HTTPRequestHandler *
 	RTTY_Client_RequestHandlerFactory::createRequestHandler(const Poco::Net::HTTPServerRequest &request) {
@@ -236,10 +206,10 @@ namespace OpenWifi {
 			if (request.find("Upgrade") != request.end() &&
 				Poco::icompare(request["Upgrade"], "websocket") == 0) {
 				Poco::Thread::current()->setName("WebRTTYRequest_WSHandler");
-				return new RTTY_Client_WebSocketRequestHandler(Reactor_);
+				return new RTTY_Client_WebSocketRequestHandler(Reactor_, Logger_);
 			} else {
 				Poco::Thread::current()->setName("WebRTTYRequest_PageHandler");
-				return new PageRequestHandler;
+				return new PageRequestHandler(Logger_);
 			}
 		} catch (...) {
 

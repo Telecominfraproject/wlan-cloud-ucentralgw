@@ -57,7 +57,7 @@ namespace OpenWifi {
 			if(MicroService::instance().NoAPISecurity()) {
 				Poco::Net::ServerSocket ClientSocket(CSport, 64);
 				ClientSocket.setNoDelay(true);
-				WebServer_ = std::make_unique<Poco::Net::HTTPServer>(new RTTY_Client_RequestHandlerFactory(ClientReactor_), ClientSocket, WebServerHttpParams);
+				WebServer_ = std::make_unique<Poco::Net::HTTPServer>(new RTTY_Client_RequestHandlerFactory(ClientReactor_, Logger()), ClientSocket, WebServerHttpParams);
 			} else {
 				auto WebClientSecureContext = new Poco::Net::Context(Poco::Net::Context::SERVER_USE, KeyFileName, CertFileName,
 										   "", Poco::Net::Context::VERIFY_RELAXED);
@@ -73,7 +73,7 @@ namespace OpenWifi {
 
 				Poco::Net::SecureServerSocket ClientSocket(CSport, 64, WebClientSecureContext);
 				ClientSocket.setNoDelay(true);
-				WebServer_ = std::make_unique<Poco::Net::HTTPServer>(new RTTY_Client_RequestHandlerFactory(ClientReactor_), ClientSocket, WebServerHttpParams);
+				WebServer_ = std::make_unique<Poco::Net::HTTPServer>(new RTTY_Client_RequestHandlerFactory(ClientReactor_, Logger()), ClientSocket, WebServerHttpParams);
 			};
 			WebServer_->start();
 

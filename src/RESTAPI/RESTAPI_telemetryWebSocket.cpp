@@ -29,10 +29,15 @@ void RESTAPI_telemetryWebSocket::DoGet() {
 
 				if(!TelemetryStream()->IsValidEndPoint(SerialNumber,UUID)) {
 					Logger_.warning(fmt::format("Illegal telemetry request for S: {}, UUID: {}", SerialNumber, UUID));
+					Response->setStatusAndReason(Poco::Net::HTTPResponse::HTTP_BAD_REQUEST);
+					Response->setContentLength(0);
+					Response->send();
 					return;
 				}
-				auto WS = Poco::SharedPtr<Poco::Net::WebSocket>( new Poco::Net::WebSocket(*Request, *Response));
-				new TelemetryClient(UUID, SerialNumber, WS, TelemetryStream()->NextReactor(), Logger_);
+
+				auto WS = std::make_unique<Poco::Net::WebSocket>(*Request, *Response);
+				new TelemetryClient(UUID, SerialNumber, std::move(WS), TelemetryStream()->NextReactor(), Logger_);
+
 			} catch (const Poco::Net::WebSocketException &E) {
 				Logger_.log(E);
 				switch (E.code()) {
@@ -49,7 +54,21 @@ void RESTAPI_telemetryWebSocket::DoGet() {
 				}
 			} catch (const Poco::Exception &E) {
 				Logger_.log(E);
+				Response->setStatusAndReason(Poco::Net::HTTPResponse::HTTP_BAD_REQUEST);
+				Response->setContentLength(0);
+				Response->send();
+				return;
+			} catch (...) {
+				Response->setStatusAndReason(Poco::Net::HTTPResponse::HTTP_BAD_REQUEST);
+				Response->setContentLength(0);
+				Response->send();
+				return;
 			}
+		} else {
+			SetCommonHeaders(true);
+			Response->setStatus(Poco::Net::HTTPResponse::HTTP_METHOD_NOT_ALLOWED);
+			Response->send();
+			return;
 		}
 	}
 }

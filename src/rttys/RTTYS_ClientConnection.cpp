@@ -9,11 +9,11 @@
 namespace OpenWifi {
 
 	RTTYS_ClientConnection::RTTYS_ClientConnection(std::unique_ptr<Poco::Net::WebSocket> WS, std::string &Id,
-							  Poco::Net::SocketReactor &Reactor)
+							  Poco::Net::SocketReactor &Reactor, Poco::Logger &L)
 			: 	WS_(std::move(WS)),
 	  			Id_(std::move(Id)),
 	  			SR_(Reactor),
-				Logger_(RTTYS_server()->Logger()) {
+				Logger_(L) {
         RTTYS_server()->Register(Id_, this);
 		if(RTTYS_server()->CanConnect(Id_,this)) {
 			Logger().information(fmt::format("{}: Client starting connection, session: {}.", Id_, RTTYS_server()->DeviceSessionID(Id_)));
