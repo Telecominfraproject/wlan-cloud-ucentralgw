@@ -29,10 +29,10 @@ namespace OpenWifi {
 			return NotFound();
 		}
 
-		std::cout << "Get Filesize: " << DownloadFile.getSize() << std::endl;
-
+		std::cout << "Get Filesize: " << FileContent.size() << std::endl;
 		SendFileContent(FileContent,"pcap",UUID+".pcap");
-//		DownloadFile.remove();
+
+		//		DownloadFile.remove();
 	}
 
 	void RESTAPI_file::DoDelete() {
