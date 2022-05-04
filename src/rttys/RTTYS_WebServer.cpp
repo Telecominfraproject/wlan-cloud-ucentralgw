@@ -46,7 +46,7 @@ namespace OpenWifi {
 		return false;
 	}
 
-	static void AddCORS(Poco::Net::HTTPServerRequest &Request,
+/*	static void AddCORS(Poco::Net::HTTPServerRequest &Request,
 						Poco::Net::HTTPServerResponse & Response, Poco::Logger & Logger_, uint64_t id) {
 
 		Logger_.information(fmt::format("{}: Adding CORS", id));
@@ -71,6 +71,53 @@ namespace OpenWifi {
 		Response.set("Keep-Alive", "timeout=120");
 		Response.set("Accept-Ranges","bytes");
 	}
+*/
+	inline void ProcessOptions(Poco::Net::HTTPServerRequest &Request,
+							   Poco::Net::HTTPServerResponse &Response) {
+		Response.setVersion(Poco::Net::HTTPMessage::HTTP_1_1);
+		Response.setChunkedTransferEncoding(true);
+		auto Origin = Request.find("Origin");
+		if (Origin != Request.end()) {
+			Response.set("Access-Control-Allow-Origin", Origin->second);
+		} else {
+			Response.set("Access-Control-Allow-Origin", "*");
+		}
+		Response.set("Access-Control-Allow-Methods", "GET, OPTIONS");
+		auto RequestHeaders = Request.find("Access-Control-Request-Headers");
+		if(RequestHeaders!=Request.end())
+			Response.set("Access-Control-Allow-Headers", RequestHeaders->second);
+		Response.set("Vary", "Origin, Accept-Encoding");
+		Response.set("Access-Control-Allow-Credentials", "true");
+		Response.set("Access-Control-Max-Age", "86400");
+		Response.set("Connection", "Keep-Alive");
+		Response.set("Keep-Alive", "timeout=30, max=1000");
+
+		Response.setContentLength(0);
+		Response.setStatus(Poco::Net::HTTPResponse::HTTP_OK);
+		Response.send();
+	}
+
+	inline void SetCommonHeaders(Poco::Net::HTTPServerRequest &Request,
+								 Poco::Net::HTTPServerResponse &Response, bool CloseConnection) {
+		Response.setVersion(Poco::Net::HTTPMessage::HTTP_1_1);
+		Response.setChunkedTransferEncoding(true);
+		Response.setContentType("application/json");
+		auto Origin = Request.find("Origin");
+		if (Origin != Request.end()) {
+			Response.set("Access-Control-Allow-Origin", Origin->second);
+		} else {
+			Response.set("Access-Control-Allow-Origin", "*");
+		}
+		Response.set("Vary", "Origin, Accept-Encoding");
+		if(CloseConnection) {
+			Response.set("Connection", "close");
+			Response.setKeepAlive(false);
+		} else {
+			Response.setKeepAlive(true);
+			Response.set("Connection", "Keep-Alive");
+			Response.set("Keep-Alive", "timeout=30, max=1000");
+		}
+	}
 
 	static inline std::atomic_uint64_t rtty_ws_id = 1;
 
@@ -85,15 +132,11 @@ namespace OpenWifi {
 		auto Path = uri.getPath();
 
 		if(request.getMethod() == Poco::Net::HTTPRequest::HTTP_OPTIONS) {
-			AddCORS(request,response, Logger_, id);
-			response.send();
-			Logger_.information(fmt::format("{}: Finishing OPTIONS request.",id));
-			return;
-		} else if(request.getMethod() == Poco::Net::HTTPRequest::HTTP_HEAD){
-			AddCORS(request,response, Logger_, id);
-			response.send();
-			Logger_.information(fmt::format("{}: Finishing HEAD request.",id));
-			return;
+			return ProcessOptions(request, response);
+		}
+
+		if(request.getMethod() != Poco::Net::HTTPRequest::HTTP_GET) {
+
 		}
 
 		if (Path == "/") {
@@ -106,7 +149,7 @@ namespace OpenWifi {
 					RTTYS_server()->Logger().information(fmt::format("redirect: {}",Path));
 					return;
 				} else if (ParsedPath[1] == "authorized") {
-					AddCORS(request,response, Logger_, id);
+					SetCommonHeaders(request,response, false);
 					nlohmann::json doc;
 					doc["authorized"] = true;
 					response.setContentType("application/json");
@@ -115,7 +158,7 @@ namespace OpenWifi {
 					Logger_.information(fmt::format("{}: Finishing authorization request.",id));
 					return;
 				} else if (ParsedPath[1] == "fontsize") {
-					AddCORS(request,response, Logger_, id);
+					SetCommonHeaders(request,response, false);
 					nlohmann::json doc;
 					doc["size"] = 16;
 					response.setContentType("application/json");
@@ -142,7 +185,7 @@ namespace OpenWifi {
 		}
 
 		Poco::File	F(Path);
-		AddCORS(request,response, Logger_, id);
+		SetCommonHeaders(request,response, false);
 		if(!F.exists()) {
 			// std::cout << id << ": Path " << Path << " does not exist" << std::endl;
 			Path = RTTYS_server()->UIAssets() + "/index.html";
