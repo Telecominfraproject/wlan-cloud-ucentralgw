@@ -615,7 +615,7 @@ typedef Poco::Tuple<
 
 	bool Storage::GetAttachedFile(std::string &UUID, const std::string & SerialNumber, const std::string &FileName, std::string &Type) {
 		try {
-			Poco::Data::LOB<char> L;
+			Poco::Data::BLOB L;
 			/*
 						"UUID			VARCHAR(64) PRIMARY KEY, "
 						"Type			VARCHAR(32), "
@@ -645,9 +645,12 @@ typedef Poco::Tuple<
 				Poco::Data::Keywords::use(UUID);
 			Select2.execute();
 
-			Poco::Data::LOBInputStream IL(L);
+			// Poco::Data::BLOBInputStream IL(L);
 			std::ofstream f(FileName, std::ios::binary | std::ios::trunc );
-			Poco::StreamCopier::copyStream(IL, f);
+			auto Content = L.content();
+			f << L.content();
+
+			std::cout << "Get Attach Size: " << L.content().size() << std::endl;
 
 			return true;
 		} catch (const Poco::Exception &E) {
