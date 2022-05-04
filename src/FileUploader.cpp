@@ -170,7 +170,8 @@ namespace OpenWifi {
 					Poco::Net::NameValueCollection Parameters;
 					Poco::Net::MessageHeader::splitParameters(Header["Content-Disposition"],
 															  Disposition, Parameters);
-					Name_ = Parameters.get("filename", "(unnamed)");
+					FileName_ = Parameters.get("filename", "(unnamed)");
+					Name_ = Parameters.get("name", "(unnamed)");
 					std::cout << __LINE__ << std::endl;
 				}
 
@@ -213,7 +214,7 @@ namespace OpenWifi {
     private:
         uint64_t        Length_=0;
 		bool 			Good_=false;
-        std::string     Name_;
+        std::string     Name_, FileName_;
         std::string     UUID_;
 		std::string 	Error_;
         Poco::Logger    & Logger_;
