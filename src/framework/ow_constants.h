@@ -102,6 +102,8 @@ namespace OpenWifi::RESTAPI::Errors {
     static const std::string InvalidRegistrationOperatorId{"Invalid registration operator ID."};
     static const std::string InvalidRegistrationOperatorName{"Invalid registration operator name."};
     static const std::string RegistrationNameDuplicate{"Registration name must be unique."};
+    static const std::string SMSMFANotEnabled{"SMS is not enabled in the security service."};
+    static const std::string EMailMFANotEnabled{"email is not enabled in the security service."};
 }
 
 namespace OpenWifi::RESTAPI::Protocol {
