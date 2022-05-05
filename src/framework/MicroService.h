@@ -4725,7 +4725,8 @@ namespace OpenWifi {
         int Start() override;
         void Stop() override;
         void run() override;
-        MyParallelSocketReactor &ReactorPool();
+        // MyParallelSocketReactor &ReactorPool();
+		Poco::Net::SocketReactor & Reactor() { return Reactor_; }
         void NewClient(Poco::Net::WebSocket &WS, const std::string &Id);
         bool Register(WebSocketClient *Client, const std::string &Id);
         void SetProcessor(WebSocketClientProcessor *F);
@@ -4763,7 +4764,9 @@ namespace OpenWifi {
     private:
         std::atomic_bool Running_ = false;
         Poco::Thread Thr_;
-        std::unique_ptr<MyParallelSocketReactor> ReactorPool_;
+        // std::unique_ptr<MyParallelSocketReactor> ReactorPool_;
+		Poco::Net::SocketReactor					Reactor_;
+		Poco::Thread								ReactorThread_;
         bool GeoCodeEnabled_ = false;
         std::string GoogleApiKey_;
         std::map<std::string, std::pair<WebSocketClient *, std::string>> Clients_;
@@ -4816,7 +4819,7 @@ namespace OpenWifi {
         return Reactors_[ rand() % NumReactors_ ];
     }
 
-    inline MyParallelSocketReactor & WebSocketClientServer::ReactorPool() { return *ReactorPool_; }
+    // inline MyParallelSocketReactor & WebSocketClientServer::ReactorPool() { return *ReactorPool_; }
 
     inline void WebSocketClientServer::NewClient(Poco::Net::WebSocket & WS, const std::string &Id) {
         std::lock_guard G(Mutex_);
@@ -4867,13 +4870,16 @@ namespace OpenWifi {
     inline int WebSocketClientServer::Start() {
         GoogleApiKey_ = MicroService::instance().ConfigGetString("google.apikey","");
         GeoCodeEnabled_ = !GoogleApiKey_.empty();
-        ReactorPool_ = std::make_unique<MyParallelSocketReactor>();
+        // ReactorPool_ = std::make_unique<MyParallelSocketReactor>();
+		ReactorThread_.start(Reactor_);
         Thr_.start(*this);
         return 0;
     };
 
     inline void WebSocketClientServer::Stop() {
         if(Running_) {
+			Reactor_.stop();
+			ReactorThread_.join();
             Running_ = false;
             Thr_.wakeUp();
             Thr_.join();
@@ -4999,7 +5005,7 @@ namespace OpenWifi {
 
 
     inline WebSocketClient::WebSocketClient( Poco::Net::WebSocket & WS , const std::string &Id, Poco::Logger & L, WebSocketClientProcessor * Processor) :
-            Reactor_(WebSocketClientServer()->ReactorPool().Reactor()),
+            Reactor_(WebSocketClientServer()->Reactor()),
             Id_(Id),
             Logger_(L),
             Processor_(Processor) {
