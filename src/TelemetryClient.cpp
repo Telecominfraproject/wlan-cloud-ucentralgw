@@ -24,7 +24,6 @@ namespace OpenWifi {
 				Reactor_(Reactor),
 				Logger_(Logger),
 				WS_(std::move(WSock)) {
-		std::cout << "Telemetry client creation" << std::endl;
 		try {
 			std::thread T([this]() { this->CompleteStartup(); });
 			T.detach();
@@ -39,9 +38,6 @@ namespace OpenWifi {
 		try {
 			Socket_ = *WS_;
 			CId_ = Utils::FormatIPv6(Socket_.peerAddress().toString());
-
-			// auto SS = static_cast<Poco::Net::SecureStreamSocketImpl*>((WS_->impl()));
-			// SS->havePeerCertificate();
 
 			if (TelemetryStream()->RegisterClient(UUID_, this)) {
 				auto TS = Poco::Timespan(240, 0);
@@ -60,7 +56,7 @@ namespace OpenWifi {
 					*WS_, Poco::NObserver<TelemetryClient, Poco::Net::ErrorNotification>(
 							  *this, &TelemetryClient::OnSocketError));
 				Registered_ = true;
-				Logger().information(fmt::format("CONNECTION({}): completed.", CId_));
+				Logger().information(fmt::format("CONNECTION({}): Connection completed.", CId_));
 				return;
 			}
 		} catch (const Poco::Net::SSLException &E) {
@@ -73,7 +69,7 @@ namespace OpenWifi {
 	}
 
 	TelemetryClient::~TelemetryClient() {
-		Logger().information("Closing telemetry session.");
+		Logger().information(fmt::format("CONNECTION({}): Closing connection.", CId_));
 		if(Registered_ && WS_)
 		{
 			Reactor_.removeEventHandler(*WS_,
