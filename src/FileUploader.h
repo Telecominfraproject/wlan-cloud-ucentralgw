@@ -37,15 +37,13 @@ namespace OpenWifi {
 
     private:
         std::vector<std::unique_ptr<Poco::Net::HTTPServer>>   Servers_;
-		Poco::ThreadPool				Pool_;
         std::string                     FullName_;
         std::map<std::string,uint64_t>  OutStandingUploads_;
         std::string                     Path_;
 		uint64_t 						MaxSize_=10000000;
 
 		explicit FileUploader() noexcept:
-			SubSystemServer("FileUploader", "FILE-UPLOAD", "openwifi.fileuploader"),
-		   	Pool_("FileUpLoaderPool")
+			SubSystemServer("FileUploader", "FILE-UPLOAD", "openwifi.fileuploader")
 		{
 		}
     };

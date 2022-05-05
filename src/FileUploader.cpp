@@ -65,7 +65,7 @@ namespace OpenWifi {
 				}
 
 				auto NewServer = std::make_unique<Poco::Net::HTTPServer>(
-					new FileUpLoaderRequestHandlerFactory(Logger()), Pool_, Sock, Params);
+					new FileUpLoaderRequestHandlerFactory(Logger()), Sock, Params);
 				NewServer->start();
 				Servers_.push_back(std::move(NewServer));
 			} else {
@@ -96,7 +96,7 @@ namespace OpenWifi {
 				}
 
 				auto NewServer = std::make_unique<Poco::Net::HTTPServer>(
-					new FileUpLoaderRequestHandlerFactory(Logger()), Pool_, Sock, Params);
+					new FileUpLoaderRequestHandlerFactory(Logger()), Sock, Params);
 				NewServer->start();
 				Servers_.push_back(std::move(NewServer));
 			}
