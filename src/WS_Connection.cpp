@@ -789,13 +789,13 @@ namespace OpenWifi {
 					std::ostringstream SS;
 					Payload->stringify(SS);
 					if (TelemetryWebSocketRefCount_) {
-						std::cout << SerialNumber_ << ": Updating WebSocket telemetry" << std::endl;
+						// std::cout << SerialNumber_ << ": Updating WebSocket telemetry" << std::endl;
 						TelemetryWebSocketPackets_++;
 						Conn_->Conn_.websocketPackets = TelemetryWebSocketPackets_;
 						TelemetryStream()->UpdateEndPoint(SerialNumberInt_, SS.str());
 					}
 					if (TelemetryKafkaRefCount_ && KafkaManager()->Enabled()) {
-						std::cout << SerialNumber_ << ": Updating Kafka telemetry" << std::endl;
+						// std::cout << SerialNumber_ << ": Updating Kafka telemetry" << std::endl;
 						TelemetryKafkaPackets_++;
 						Conn_->Conn_.kafkaPackets = TelemetryKafkaPackets_;
 						KafkaManager()->PostMessage(KafkaTopics::DEVICE_TELEMETRY, SerialNumber_,
@@ -819,7 +819,7 @@ namespace OpenWifi {
 	}
 
 	bool WSConnection::StartTelemetry() {
-		std::cout << "Start telemetry for " << SerialNumber_ << std::endl;
+		// std::cout << "Start telemetry for " << SerialNumber_ << std::endl;
 		poco_information(Logger(), fmt::format("TELEMETRY({}): Starting.", CId_));
 		Poco::JSON::Object StartMessage;
 		StartMessage.set("jsonrpc", "2.0");
@@ -842,7 +842,7 @@ namespace OpenWifi {
 	}
 
 	bool WSConnection::StopTelemetry() {
-		std::cout << "Stop telemetry for " << SerialNumber_ << std::endl;
+		// std::cout << "Stop telemetry for " << SerialNumber_ << std::endl;
 		poco_information(Logger(), fmt::format("TELEMETRY({}): Stopping.", CId_));
 		Poco::JSON::Object StopMessage;
 		StopMessage.set("jsonrpc", "2.0");
