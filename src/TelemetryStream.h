@@ -47,7 +47,8 @@ namespace OpenWifi {
 		void UpdateEndPoint(uint64_t SerialNumber, const std::string &PayLoad);
 		bool RegisterClient(const std::string &UUID, TelemetryClient *Client);
 		void DeRegisterClient(const std::string &UUID);
-		Poco::Net::SocketReactor & NextReactor() { return ReactorPool_.NextReactor(); }
+		// Poco::Net::SocketReactor & NextReactor() { return ReactorPool_.NextReactor(); }
+		Poco::Net::SocketReactor & NextReactor() { return Reactor_; }
 
 		void onMessage(bool& b);
 
@@ -55,7 +56,8 @@ namespace OpenWifi {
 		std::atomic_bool 								Running_=false;
 		std::map<std::string, TelemetryClient *>		Clients_;			// 	uuid -> client
 		std::map<uint64_t, std::set<std::string>>		SerialNumbers_;		//	serialNumber -> uuid
-		ReactorPool										ReactorPool_;
+		// ReactorPool										ReactorPool_;
+		Poco::Net::SocketReactor						Reactor_;
 		std::unique_ptr<FIFO<QueueUpdate>>				Messages_=std::make_unique<FIFO<QueueUpdate>>(100);
 
 		TelemetryStream() noexcept:

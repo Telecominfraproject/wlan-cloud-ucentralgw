@@ -16,13 +16,15 @@ namespace OpenWifi {
 	int TelemetryStream::Start() {
 		Running_ = true;
 		Messages_->Readable_ += Poco::delegate(this,&TelemetryStream::onMessage);
-		ReactorPool_.Start("TelemetryWebSocketPool_");
+		// ReactorPool_.Start("TelemetryWebSocketPool_");
+		Reactor_.run();
 		return 0;
 	}
 
 	void TelemetryStream::Stop() {
 	    Logger().notice("Stopping reactors...");
-	    ReactorPool_.Stop();
+	    // ReactorPool_.Stop();
+		Reactor_.stop();
 		if(Running_) {
 			Running_ = false;
 			Messages_->Readable_ -= Poco::delegate( this, &TelemetryStream::onMessage);
@@ -129,7 +131,4 @@ namespace OpenWifi {
 			}
 		}
 	}
-
-
-
 }
