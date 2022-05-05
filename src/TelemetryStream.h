@@ -59,6 +59,7 @@ namespace OpenWifi {
 		// ReactorPool										ReactorPool_;
 		Poco::Net::SocketReactor						Reactor_;
 		std::unique_ptr<FIFO<QueueUpdate>>				Messages_=std::make_unique<FIFO<QueueUpdate>>(100);
+		Poco::Thread									Thr_;
 
 		TelemetryStream() noexcept:
 			SubSystemServer("TelemetryServer", "TELEMETRY-SVR", "openwifi.telemetry") {

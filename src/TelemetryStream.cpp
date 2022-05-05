@@ -18,7 +18,7 @@ namespace OpenWifi {
 		Messages_->Readable_ += Poco::delegate(this,&TelemetryStream::onMessage);
 		// ReactorPool_.Start("TelemetryWebSocketPool_");
 		std::cout << __LINE__ << std::endl;
-		Reactor_.run();
+		Thr_.start(Reactor_);
 		std::cout << __LINE__ << std::endl;
 		return 0;
 	}
@@ -27,6 +27,7 @@ namespace OpenWifi {
 	    Logger().notice("Stopping reactors...");
 	    // ReactorPool_.Stop();
 		Reactor_.stop();
+		Thr_.join();
 		if(Running_) {
 			Running_ = false;
 			Messages_->Readable_ -= Poco::delegate( this, &TelemetryStream::onMessage);
