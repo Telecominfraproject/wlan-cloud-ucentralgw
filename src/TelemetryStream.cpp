@@ -17,7 +17,9 @@ namespace OpenWifi {
 		Running_ = true;
 		Messages_->Readable_ += Poco::delegate(this,&TelemetryStream::onMessage);
 		// ReactorPool_.Start("TelemetryWebSocketPool_");
+		std::cout << __LINE__ << std::endl;
 		Reactor_.run();
+		std::cout << __LINE__ << std::endl;
 		return 0;
 	}
 
