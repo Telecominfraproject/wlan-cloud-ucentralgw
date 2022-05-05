@@ -28,7 +28,7 @@ namespace OpenWifi {
 	}
 
 	int WebSocketServer::Start() {
-		ReactorPool_.Start("DeviceReactorPool_");
+		// ReactorPool_.Start("DeviceReactorPool_");
         for(const auto & Svr : ConfigServersList_ ) {
             Logger().notice( fmt::format("Starting: {}:{} Keyfile:{} CertFile: {}",
 										Svr.Address(),
@@ -72,7 +72,7 @@ namespace OpenWifi {
 
     void WebSocketServer::Stop() {
         Logger().notice("Stopping reactors...");
-		ReactorPool_.Stop();
+		// ReactorPool_.Stop();
 		Reactor_.stop();
 		ReactorThread_.join();
     }

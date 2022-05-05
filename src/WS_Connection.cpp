@@ -187,11 +187,10 @@ namespace OpenWifi {
 	WSConnection::WSConnection(Poco::Net::StreamSocket &socket, [[maybe_unused]] Poco::Net::SocketReactor &reactor)
 		: Logger_(WebSocketServer()->Logger()) ,
 		  Socket_(socket),
-		  Reactor_(WebSocketServer()->GetNextReactor())
+		  Reactor_(ReactorThreadPool()->NextReactor())
 		  {
 		std::thread T([=]() { CompleteStartup(); });
 		T.detach();
-		//		CompleteStartup();
 	}
 
 	static void NotifyKafkaDisconnect(const std::string & SerialNumber) {

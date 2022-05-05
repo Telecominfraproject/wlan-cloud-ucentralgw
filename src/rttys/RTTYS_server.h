@@ -8,9 +8,6 @@
 #include "Poco/Net/SocketReactor.h"
 #include "Poco/Net/SocketAcceptor.h"
 
-// #include "rttys/RTTYS_ClientConnection.h"
-
-
 namespace OpenWifi {
 
 	class RTTY_Device_ConnectionHandler;

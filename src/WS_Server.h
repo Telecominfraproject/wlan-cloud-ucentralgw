@@ -35,7 +35,7 @@ namespace OpenWifi {
 		void Stop() override;
 		bool IsCertOk() { return IssuerCert_!= nullptr; }
 		bool ValidateCertificate(const std::string & ConnectionId, const Poco::Crypto::X509Certificate & Certificate);
-		Poco::Net::SocketReactor & GetNextReactor() { return ReactorPool_.NextReactor(); }
+		// Poco::Net::SocketReactor & GetNextReactor() { return ReactorPool_.NextReactor(); }
 
 		inline bool IsSimSerialNumber(const std::string & SerialNumber) const {
 			return IsSim(SerialNumber) && SerialNumber == SimulatorId_;
@@ -57,7 +57,7 @@ namespace OpenWifi {
 		std::vector<std::unique_ptr<Poco::Net::ParallelSocketAcceptor<WSConnection, Poco::Net::SocketReactor>>>	Acceptors_;
 		Poco::Net::SocketReactor		Reactor_;
 		Poco::Thread					ReactorThread_;
-		ReactorPool						ReactorPool_;
+		// ReactorPool						ReactorPool_;
 		std::string 					SimulatorId_;
 		bool 							LookAtProvisioning_ = false;
 		bool 							UseDefaultConfig_ = true;
