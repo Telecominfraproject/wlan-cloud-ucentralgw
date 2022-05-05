@@ -3140,14 +3140,16 @@ namespace OpenWifi {
 					 	std::string AppName,
 					  	uint64_t BusTimer,
 					  	SubSystemVec Subsystems) :
-			DAEMON_PROPERTIES_FILENAME(std::move(PropFile)),
-			DAEMON_ROOT_ENV_VAR(std::move(RootEnv)),
-			DAEMON_CONFIG_ENV_VAR(std::move(ConfigVar)),
-			DAEMON_APP_NAME(std::move(AppName)),
-			DAEMON_BUS_TIMER(BusTimer),
-			SubSystems_(std::move(Subsystems)) {
+				DAEMON_PROPERTIES_FILENAME(std::move(PropFile)),
+				DAEMON_ROOT_ENV_VAR(std::move(RootEnv)),
+				DAEMON_CONFIG_ENV_VAR(std::move(ConfigVar)),
+				DAEMON_APP_NAME(std::move(AppName)),
+				DAEMON_BUS_TIMER(BusTimer),
+				SubSystems_(std::move(Subsystems)),
+				Logger_(Poco::Logger::root().get("FRAMEWORK")) {
 		    instance_ = this;
 		    RandomEngine_.seed(std::chrono::steady_clock::now().time_since_epoch().count());
+			// Logger_ = Poco::Logger::root().get("BASE-SVC");
 		}
 
 		[[nodiscard]] std::string Version() { return Version_; }
@@ -3283,6 +3285,7 @@ namespace OpenWifi {
         bool                        NoAPISecurity_=false;
         bool                        NoBuiltInCrypto_=false;
         Poco::JWT::Signer	        Signer_;
+		Poco::Logger				&Logger_;
     };
 
 	inline void MicroService::Exit(int Reason) {
@@ -3294,10 +3297,7 @@ namespace OpenWifi {
 	    try {
 	        Poco::JSON::Parser P;
 	        auto Object = P.parse(Payload).extract<Poco::JSON::Object::Ptr>();
-/*          std::ostringstream OOO;
-            Object->stringify(OOO) ;
-            std::cout << "BUS MESSAGE:" << OOO.str() << std::endl;
-*/
+
 	        if (Object->has(KafkaTopics::ServiceEvents::Fields::ID) &&
 	            Object->has(KafkaTopics::ServiceEvents::Fields::EVENT)) {
 	            uint64_t 	ID = Object->get(KafkaTopics::ServiceEvents::Fields::ID);
@@ -3316,9 +3316,9 @@ namespace OpenWifi {
 	                            Services_[PrivateEndPoint].LastUpdate = std::time(nullptr);
 	                        } else if (Event == KafkaTopics::ServiceEvents::EVENT_LEAVE) {
 	                            Services_.erase(PrivateEndPoint);
-	                            logger().information(fmt::format("Service {} ID={} leaving system.",Object->get(KafkaTopics::ServiceEvents::Fields::PRIVATE).toString(),ID));
+	                            poco_debug(Logger_,fmt::format("Service {} ID={} leaving system.",Object->get(KafkaTopics::ServiceEvents::Fields::PRIVATE).toString(),ID));
 	                        } else if (Event == KafkaTopics::ServiceEvents::EVENT_JOIN || Event == KafkaTopics::ServiceEvents::EVENT_KEEP_ALIVE) {
-	                            logger().information(fmt::format("Service {} ID={} joining system.",Object->get(KafkaTopics::ServiceEvents::Fields::PRIVATE).toString(),ID));
+								poco_debug(Logger_,fmt::format("Service {} ID={} joining system.",Object->get(KafkaTopics::ServiceEvents::Fields::PRIVATE).toString(),ID));
 	                            Services_[PrivateEndPoint] = MicroServiceMeta{
 	                                .Id = ID,
 	                                .Type = Poco::toLower(Object->get(KafkaTopics::ServiceEvents::Fields::TYPE).toString()),
@@ -3328,11 +3328,11 @@ namespace OpenWifi {
 	                                .Version = Object->get(KafkaTopics::ServiceEvents::Fields::VRSN).toString(),
 	                                .LastUpdate = (uint64_t)std::time(nullptr)};
 	                            for (const auto &[PrivateEndPoint, Svc] : Services_) {
-	                                logger().information(fmt::format("ID: {} Type: {} EndPoint: {}",Svc.Id,Svc.Type,PrivateEndPoint));
+									poco_debug(Logger_,fmt::format("ID: {} Type: {} EndPoint: {}",Svc.Id,Svc.Type,PrivateEndPoint));
 	                            }
 	                        }
 	                    } else {
-	                        logger().error(fmt::format("KAFKA-MSG: invalid event '{}', missing a field.",Event));
+							poco_error(Logger_,fmt::format("KAFKA-MSG: invalid event '{}', missing a field.",Event));
 	                    }
 	                } else if (Event==KafkaTopics::ServiceEvents::EVENT_REMOVE_TOKEN) {
 	                    if(Object->has(KafkaTopics::ServiceEvents::Fields::TOKEN)) {
@@ -3340,14 +3340,14 @@ namespace OpenWifi {
 	                        AuthClient()->RemovedCachedToken(Object->get(KafkaTopics::ServiceEvents::Fields::TOKEN).toString());
 #endif
 	                    } else {
-	                        logger().error(fmt::format("KAFKA-MSG: invalid event '{}', missing token",Event));
+							poco_error(Logger_,fmt::format("KAFKA-MSG: invalid event '{}', missing token",Event));
 	                    }
 	                } else {
-	                    logger().error(fmt::format("Unknown Event: {} Source: {}", Event, ID));
+						poco_error(Logger_,fmt::format("Unknown Event: {} Source: {}", Event, ID));
 	                }
 	            }
 	        } else {
-	            logger().error("Bad bus message.");
+				poco_error(Logger_,"Bad bus message.");
 	        }
 
 	        auto i=Services_.begin();
@@ -3360,7 +3360,7 @@ namespace OpenWifi {
 	        }
 
 	    } catch (const Poco::Exception &E) {
-	        logger().log(E);
+	        Logger_.log(E);
 	    }
 	}
 
@@ -3682,7 +3682,7 @@ namespace OpenWifi {
 	            }
 	        }
 	    } catch (const Poco::Exception & E) {
-	        std::cout << "Exception" << std::endl;
+	        std::cerr << "Exception" << std::endl;
 	    }
 	    return false;
 	}
