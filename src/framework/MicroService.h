@@ -3328,7 +3328,7 @@ namespace OpenWifi {
 	                                .Version = Object->get(KafkaTopics::ServiceEvents::Fields::VRSN).toString(),
 	                                .LastUpdate = (uint64_t)std::time(nullptr)};
 	                            for (const auto &[PrvEndPoint, Svc] : Services_) {
-									poco_debug(logger(),fmt::format("ID: {} Type: {} EndPoint: {}",Svc.Id,Svc.Type,PrvEndPoint));
+									logger().debug(fmt::format("ID: {} Type: {} EndPoint: {}",Svc.Id,Svc.Type,PrvEndPoint));
 	                            }
 	                        }
 	                    } else {
