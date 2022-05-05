@@ -11,6 +11,7 @@ namespace OpenWifi {
 
 void RESTAPI_telemetryWebSocket::DoGet() {
 		//	try and upgrade this session to websocket...
+		Poco::Thread::current()->setName(fmt::format("TELEMETRY-WS({})",UserInfo_.userinfo.email));
 		if (Request->find("Upgrade") != Request->end() &&
 			Poco::icompare((*Request)["Upgrade"], "websocket") == 0) {
 			try {

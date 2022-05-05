@@ -85,13 +85,8 @@ namespace OpenWifi {
 			Reactor_.removeEventHandler(*WS_,
 										Poco::NObserver<TelemetryClient,
 														Poco::Net::ErrorNotification>(*this,&TelemetryClient::OnSocketError));
-			(*WS_).close();
-			Socket_.shutdown();
-		} else {
-			if(WS_)
-				(*WS_).close();
-			Socket_.shutdown();
 		}
+		WS_->close();
 	}
 
 	bool TelemetryClient::Send(const std::string &Payload) {
