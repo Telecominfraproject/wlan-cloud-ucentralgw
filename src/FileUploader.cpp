@@ -200,42 +200,47 @@ namespace OpenWifi {
 			Logger().debug(fmt::format("{}: Preparing to upload trace file.",UUID_));
 			Poco::JSON::Object Answer;
 
-			if(	Poco::icompare(Tokens[0],"multipart/form-data")==0 ||
-				Poco::icompare(Tokens[0],"multipart/mixed")==0) {
+			try {
+				if (Poco::icompare(Tokens[0], "multipart/form-data") == 0 ||
+					Poco::icompare(Tokens[0], "multipart/mixed") == 0) {
 
-				const auto & BoundaryTokens = Poco::StringTokenizer(Tokens[1],"=",Poco::StringTokenizer::TOK_TRIM);
+					const auto &BoundaryTokens =
+						Poco::StringTokenizer(Tokens[1], "=", Poco::StringTokenizer::TOK_TRIM);
 
-				if(BoundaryTokens[0]=="boundary") {
+					if (BoundaryTokens[0] == "boundary") {
+						const std::string &Boundary = BoundaryTokens[1];
+						Poco::Net::MultipartReader Reader(Request.stream(), Boundary);
+						bool Done = false;
 
-					const std::string & Boundary = BoundaryTokens[1];
+						while (!Done) {
+							Poco::Net::MessageHeader Hdr;
+							Reader.nextPart(Hdr);
 
-					Poco::Net::MultipartReader	Reader(Request.stream(),Boundary);
+							const auto &PartContentType = Hdr.get("Content-Type", "");
+							if (PartContentType == "application/octet-stream") {
+								std::stringstream FileContent;
+								Poco::StreamCopier::copyStream(Reader.stream(), FileContent);
+								Answer.set("filename", UUID_);
+								Answer.set("error", 0);
+								Logger().debug(fmt::format("{}: Upload trace file.", UUID_));
+								StorageService()->AttachFileDataToCommand(UUID_, FileContent);
+								std::ostream &ResponseStream = Response.send();
+								Poco::JSON::Stringifier::stringify(Answer, ResponseStream);
+								return;
+							} else {
+								std::stringstream OO;
+								Poco::StreamCopier::copyStream(Reader.stream(), OO);
+							}
 
-					bool Done=false;
-					while(!Done) {
-						Poco::Net::MessageHeader	Hdr;
-						Reader.nextPart(Hdr);
-
-						const auto &PartContentType = Hdr.get("Content-Type","");
-						if(PartContentType=="application/octet-stream") {
-							std::stringstream FileContent;
-							Poco::StreamCopier::copyStream(Reader.stream(),FileContent);
-							Answer.set("filename", UUID_);
-							Answer.set("error", 0);
-							Logger().debug(fmt::format("{}: Upload trace file.",UUID_));
-							StorageService()->AttachFileDataToCommand(UUID_, FileContent);
-							std::ostream &ResponseStream = Response.send();
-							Poco::JSON::Stringifier::stringify(Answer, ResponseStream);
-							return;
-						} else {
-							std::stringstream OO;
-							Poco::StreamCopier::copyStream(Reader.stream(),OO);
+							if (!Reader.hasNextPart())
+								Done = true;
 						}
-
-						if(!Reader.hasNextPart())
-							Done= true;
 					}
 				}
+			} catch (const Poco::Exception &E) {
+				Logger().log(E);
+			} catch (...) {
+				Logger().debug("Exception while receiving trace file.");
 			}
 
 			Logger().debug(fmt::format("{}: Failed to upload trace file.",UUID_));
