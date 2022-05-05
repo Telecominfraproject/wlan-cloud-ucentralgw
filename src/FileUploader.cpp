@@ -222,7 +222,7 @@ namespace OpenWifi {
 								Poco::StreamCopier::copyStream(Reader.stream(), FileContent);
 								Answer.set("filename", UUID_);
 								Answer.set("error", 0);
-								Logger().debug(fmt::format("{}: Upload trace file.", UUID_));
+								Logger().debug(fmt::format("{}: Trace file uploaded.", UUID_));
 								StorageService()->AttachFileDataToCommand(UUID_, FileContent);
 								std::ostream &ResponseStream = Response.send();
 								Poco::JSON::Stringifier::stringify(Answer, ResponseStream);
