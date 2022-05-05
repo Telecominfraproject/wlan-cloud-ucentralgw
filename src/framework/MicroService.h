@@ -4702,7 +4702,7 @@ namespace OpenWifi {
     private:
     };
 
-    class MyParallelSocketReactor {
+/*    class MyParallelSocketReactor {
     public:
         explicit MyParallelSocketReactor(uint32_t NumReactors = 8);
         ~MyParallelSocketReactor();
@@ -4712,6 +4712,7 @@ namespace OpenWifi {
         Poco::Net::SocketReactor *Reactors_;
         Poco::ThreadPool ReactorPool_;
     };
+*/
 
     class WebSocketClient;
 
@@ -4797,7 +4798,7 @@ namespace OpenWifi {
         void OnSocketError(const Poco::AutoPtr<Poco::Net::ErrorNotification> &pNf);
     };
 
-    inline MyParallelSocketReactor::MyParallelSocketReactor(uint32_t NumReactors) :
+/*    inline MyParallelSocketReactor::MyParallelSocketReactor(uint32_t NumReactors) :
             NumReactors_(NumReactors)
     {
         Reactors_ = new Poco::Net::SocketReactor[NumReactors_];
@@ -4820,7 +4821,7 @@ namespace OpenWifi {
     }
 
     // inline MyParallelSocketReactor & WebSocketClientServer::ReactorPool() { return *ReactorPool_; }
-
+*/
     inline void WebSocketClientServer::NewClient(Poco::Net::WebSocket & WS, const std::string &Id) {
         std::lock_guard G(Mutex_);
         auto Client = new WebSocketClient(WS,Id,Logger(), Processor_);

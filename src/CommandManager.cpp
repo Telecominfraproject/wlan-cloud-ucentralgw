@@ -77,6 +77,8 @@ namespace OpenWifi {
 
     int CommandManager::Start() {
         Logger().notice("Starting...");
+		ManagerThread.setStackSize(2000000);
+		ManagerThread.setName("CMD-MGR");
         ManagerThread.start(*this);
 		JanitorCallback_ = std::make_unique<Poco::TimerCallback<CommandManager>>(*this,&CommandManager::onJanitorTimer);
 		JanitorTimer_.setStartInterval( 10000 );
