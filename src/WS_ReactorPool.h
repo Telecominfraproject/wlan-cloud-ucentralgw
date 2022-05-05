@@ -27,6 +27,7 @@ namespace OpenWifi {
 			for (uint64_t i = 0; i < NumberOfThreads_; ++i) {
 				auto NewReactor = std::make_unique<Poco::Net::SocketReactor>();
 				auto NewThread = std::make_unique<Poco::Thread>();
+				NewThread->setStackSize(2000000);
 				NewThread->start(*NewReactor);
 				NewThread->setName(ThreadNamePrefix + "#" + std::to_string(i));
 				Reactors_.emplace_back(std::move(NewReactor));
