@@ -31,7 +31,6 @@ namespace OpenWifi {
 
 	  private:
 		uint64_t 			LastUpdate_ = 0 ;
-		// bool 				ValidFile_=false;
 		OUIMap 				OUIs_;
 		std::atomic_bool 	Updating_=false;
 		std::atomic_bool 	Running_=false;

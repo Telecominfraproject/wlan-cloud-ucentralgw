@@ -44,15 +44,20 @@ namespace OpenWifi {
 		try {
 			Poco::File	F(FileName);
 			if(F.exists()) {
-				auto LastModified = F.getLastModified();
-				auto Delta = OpenWifi::Now() - LastModified.epochTime();
-				if((Delta / (24*60*60)) < 1) {
-					Logger().information(fmt::format("Using cached OUI file: {}. Update in 7 days",MicroService::instance().ConfigGetString("oui.download.uri")));
-					return true;
+				if(LastUpdate_==0) {
+					auto LastModified = F.getLastModified();
+					auto Delta = OpenWifi::Now() - LastModified.epochTime();
+					if (Delta < (24 * 60 * 60)) {
+						Logger().information(fmt::format(
+							"Using cached OUI file: {}. Update in 7 days",
+							MicroService::instance().ConfigGetString("oui.download.uri")));
+						return true;
+					}
 				}
 				F.remove();
 			}
 
+			LastUpdate_=OpenWifi::Now();
 			Logger().information(fmt::format("Start: Retrieving OUI file: {}",MicroService::instance().ConfigGetString("oui.download.uri")));
 			std::unique_ptr<std::istream> pStr(
 				Poco::URIStreamOpener::defaultOpener().open(MicroService::instance().ConfigGetString("oui.download.uri")));
@@ -117,7 +122,7 @@ namespace OpenWifi {
 		if(GetFile(LatestOUIFileName) && ProcessFile(LatestOUIFileName, TmpOUIs)) {
 			std::lock_guard G(Mutex_);
 			OUIs_ = std::move(TmpOUIs);
-			LastUpdate_ = std::time(nullptr);
+			LastUpdate_ = OpenWifi::Now();
 			Poco::File F1(CurrentOUIFileName);
 			if(F1.exists())
 				F1.remove();
@@ -126,7 +131,7 @@ namespace OpenWifi {
 			Logger().information(fmt::format("New OUI file {} downloaded.",LatestOUIFileName));
 		} else if(OUIs_.empty()) {
 			if(ProcessFile(CurrentOUIFileName, TmpOUIs)) {
-				LastUpdate_ = std::time(nullptr);
+				LastUpdate_ = OpenWifi::Now();
 				std::lock_guard G(Mutex_);
 				OUIs_ = std::move(TmpOUIs);
 			}
