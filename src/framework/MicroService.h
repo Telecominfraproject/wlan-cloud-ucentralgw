@@ -3146,7 +3146,7 @@ namespace OpenWifi {
 				DAEMON_APP_NAME(std::move(AppName)),
 				DAEMON_BUS_TIMER(BusTimer),
 				SubSystems_(std::move(Subsystems)),
-				Logger_(Poco::Logger::root().get("FRAMEWORK")) {
+				Logger_(Poco::Logger::get("FRAMEWORK")) {
 		    instance_ = this;
 		    RandomEngine_.seed(std::chrono::steady_clock::now().time_since_epoch().count());
 			// Logger_ = Poco::Logger::root().get("BASE-SVC");
