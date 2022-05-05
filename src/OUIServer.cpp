@@ -21,6 +21,9 @@ namespace OpenWifi {
 
 	int OUIServer::Start() {
 		Running_ = true;
+		LatestOUIFileName_ =  MicroService::instance().DataDir() + "/newOUIFile.txt";
+		CurrentOUIFileName_ = MicroService::instance().DataDir() + "/current_oui.txt";
+
 		UpdaterCallBack_ = std::make_unique<Poco::TimerCallback<OUIServer>>(*this, &OUIServer::onTimer);
 		Timer_.setStartInterval(30 * 1000);  // first run in 5 minutes
 		Timer_.setPeriodicInterval(7 * 24 * 60 * 60 * 1000);
@@ -100,27 +103,42 @@ namespace OpenWifi {
 		Updating_ = true;
 
 		//	fetch data from server, if not available, just use the file we already have.
-		std::string LatestOUIFileName{ MicroService::instance().DataDir() + "/newOUIFile.txt"};
-		std::string CurrentOUIFileName{ MicroService::instance().DataDir() + "/current_oui.txt"};
+		Poco::File	Current(CurrentOUIFileName_);
+		if(Current.exists()) {
+			if((OpenWifi::Now()-Current.getLastModified().epochTime()) < (7*24*60*60)) {
+				if(!Initialized_) {
+					if(ProcessFile(CurrentOUIFileName_, OUIs_)) {
+						Initialized_ = true;
+						Updating_=false;
+						Logger().information("Using cached file.");
+						return;
+					}
+				} else {
+					Updating_=false;
+					return;
+				}
+			}
+		}
 
 		OUIMap TmpOUIs;
-		if(GetFile(LatestOUIFileName) && ProcessFile(LatestOUIFileName, TmpOUIs)) {
+		if(GetFile(LatestOUIFileName_) && ProcessFile(LatestOUIFileName_, TmpOUIs)) {
 			std::lock_guard G(Mutex_);
 			OUIs_ = std::move(TmpOUIs);
 			LastUpdate_ = OpenWifi::Now();
-			Poco::File F1(CurrentOUIFileName);
+			Poco::File F1(CurrentOUIFileName_);
 			if(F1.exists())
 				F1.remove();
-			Poco::File F2(LatestOUIFileName);
-			F2.renameTo(CurrentOUIFileName);
-			Logger().information(fmt::format("New OUI file {} downloaded.",LatestOUIFileName));
+			Poco::File F2(LatestOUIFileName_);
+			F2.renameTo(CurrentOUIFileName_);
+			Logger().information(fmt::format("New OUI file {} downloaded.",LatestOUIFileName_));
 		} else if(OUIs_.empty()) {
-			if(ProcessFile(CurrentOUIFileName, TmpOUIs)) {
+			if(ProcessFile(CurrentOUIFileName_, TmpOUIs)) {
 				LastUpdate_ = OpenWifi::Now();
 				std::lock_guard G(Mutex_);
 				OUIs_ = std::move(TmpOUIs);
 			}
 		}
+		Initialized_=true;
 		Updating_ = false;
 	}
 

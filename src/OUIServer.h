@@ -31,11 +31,13 @@ namespace OpenWifi {
 
 	  private:
 		uint64_t 			LastUpdate_ = 0 ;
+		bool 				Initialized_ = false;
 		OUIMap 				OUIs_;
 		std::atomic_bool 	Updating_=false;
 		std::atomic_bool 	Running_=false;
 		Poco::Timer         Timer_;
 		std::unique_ptr<Poco::TimerCallback<OUIServer>>   UpdaterCallBack_;
+		std::string 		LatestOUIFileName_,CurrentOUIFileName_;
 
 		OUIServer() noexcept:
 			SubSystemServer("OUIServer", "OUI-SVR", "ouiserver")
