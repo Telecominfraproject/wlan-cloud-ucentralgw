@@ -42,22 +42,7 @@ namespace OpenWifi {
 
 	bool OUIServer::GetFile(const std::string &FileName) {
 		try {
-			Poco::File	F(FileName);
-			if(F.exists()) {
-				if(LastUpdate_==0) {
-					auto LastModified = F.getLastModified();
-					auto Delta = OpenWifi::Now() - LastModified.epochTime();
-					if (Delta < (24 * 60 * 60)) {
-						Logger().information(fmt::format(
-							"Using cached OUI file: {}. Update in 7 days",
-							MicroService::instance().ConfigGetString("oui.download.uri")));
-						return true;
-					}
-				}
-				F.remove();
-			}
-
-			LastUpdate_=OpenWifi::Now();
+			LastUpdate_ = OpenWifi::Now();
 			Logger().information(fmt::format("Start: Retrieving OUI file: {}",MicroService::instance().ConfigGetString("oui.download.uri")));
 			std::unique_ptr<std::istream> pStr(
 				Poco::URIStreamOpener::defaultOpener().open(MicroService::instance().ConfigGetString("oui.download.uri")));
