@@ -194,8 +194,8 @@ namespace OpenWifi {
 
         void handleRequest(Poco::Net::HTTPServerRequest& Request, Poco::Net::HTTPServerResponse& Response) final {
 
-			const auto & ContentType = Request.getContentType();
-			const auto & Tokens = Poco::StringTokenizer(ContentType,";",Poco::StringTokenizer::TOK_TRIM);
+			const auto ContentType = Request.getContentType();
+			const auto Tokens = Poco::StringTokenizer(ContentType,";",Poco::StringTokenizer::TOK_TRIM);
 
 			Logger().debug(fmt::format("{}: Preparing to upload trace file.",UUID_));
 			Poco::JSON::Object Answer;
@@ -216,7 +216,7 @@ namespace OpenWifi {
 							Poco::Net::MessageHeader Hdr;
 							Reader.nextPart(Hdr);
 
-							const auto &PartContentType = Hdr.get("Content-Type", "");
+							const auto PartContentType = Hdr.get("Content-Type", "");
 							if (PartContentType == "application/octet-stream") {
 								std::stringstream FileContent;
 								Poco::StreamCopier::copyStream(Reader.stream(), FileContent);
