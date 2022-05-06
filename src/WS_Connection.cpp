@@ -23,45 +23,9 @@
 #include "TelemetryStream.h"
 #include "CentralConfig.h"
 #include "FindCountry.h"
+#include "framework/WebSocketClientNotifications.h"
 
 namespace OpenWifi {
-
-	struct WebNotificationSingleDevice {
-		std::string		serialNumber;
-		void to_json(Poco::JSON::Object &Obj) const {
-			RESTAPI_utils::field_to_json(Obj,"serialNumber", serialNumber);
-		}
-
-		bool from_json(const Poco::JSON::Object::Ptr &Obj) {
-			try {
-				RESTAPI_utils::field_from_json(Obj,"serialNumber", serialNumber);
-				return true;
-			} catch (...) {
-
-			}
-			return false;
-		}
-	};
-
-	struct WebNotificationSingleDeviceFirmwareChange {
-		std::string		serialNumber;
-		std::string		newFirmware;
-		void to_json(Poco::JSON::Object &Obj) const {
-			RESTAPI_utils::field_to_json(Obj,"serialNumber", serialNumber);
-			RESTAPI_utils::field_to_json(Obj,"newFirmware", newFirmware);
-		}
-
-		bool from_json(const Poco::JSON::Object::Ptr &Obj) {
-			try {
-				RESTAPI_utils::field_from_json(Obj,"serialNumber", serialNumber);
-				RESTAPI_utils::field_from_json(Obj,"newFirmware", newFirmware);
-				return true;
-			} catch (...) {
-
-			}
-			return false;
-		}
-	};
 
 	void WSConnection::LogException(const Poco::Exception &E) {
 		Logger().information(fmt::format("EXCEPTION({}): {}", CId_, E.displayText()));
@@ -198,7 +162,7 @@ namespace OpenWifi {
 			Poco::JSON::Object Disconnect;
 			Poco::JSON::Object Details;
 			Details.set(uCentralProtocol::SERIALNUMBER, SerialNumber);
-			Details.set(uCentralProtocol::TIMESTAMP, std::time(nullptr));
+			Details.set(uCentralProtocol::TIMESTAMP, OpenWifi::Now());
 			Disconnect.set(uCentralProtocol::DISCONNECTION, Details);
 			Poco::JSON::Stringifier Stringify;
 			std::ostringstream OS;
@@ -236,10 +200,7 @@ namespace OpenWifi {
 			t.detach();
 		}
 
-		WebSocketNotification<WebNotificationSingleDevice>	N;
-		N.content.serialNumber = SerialNumber_;
-		N.type = "device_disconnection";
-		WebSocketClientServer()->SendNotification(N);
+		WebSocketClientNotificationDeviceDisconnected(SerialNumber_);
 	}
 
 	bool WSConnection::LookForUpgrade(uint64_t UUID) {
@@ -408,7 +369,7 @@ namespace OpenWifi {
 		}
 
 		if (Conn_ != nullptr)
-			Conn_->Conn_.LastContact = std::time(nullptr);
+			Conn_->Conn_.LastContact = OpenWifi::Now();
 
 		switch (EventType) {
 		case uCentralProtocol::Events::ET_CONNECT: {
@@ -425,7 +386,7 @@ namespace OpenWifi {
 				Conn_->Conn_.UUID = UUID;
 				Conn_->Conn_.Firmware = Firmware;
 				Conn_->Conn_.PendingUUID = 0;
-				Conn_->Conn_.LastContact = std::time(nullptr);
+				Conn_->Conn_.LastContact = OpenWifi::Now();
 				Conn_->Conn_.Address = Utils::FormatIPv6(WS_->peerAddress().toString());
 				CId_ = SerialNumber_ + "@" + CId_;
 				//	We need to verify the certificate if we have one
@@ -460,12 +421,7 @@ namespace OpenWifi {
 					if(!Firmware.empty() && Firmware!=DeviceInfo.Firmware) {
 						DeviceInfo.Firmware = Firmware;
 						Updated = true;
-
-						WebSocketNotification<WebNotificationSingleDeviceFirmwareChange>	N;
-						N.content.serialNumber = SerialNumber_;
-						N.content.newFirmware = Firmware;
-						N.type = "device_firmware_upgrade";
-						WebSocketClientServer()->SendNotification(N);
+						WebSocketClientNotificationDeviceFirmwareUpdated(SerialNumber_, Firmware);
 					}
 
 					if(DeviceInfo.locale != Conn_->Conn_.locale) {
@@ -486,16 +442,13 @@ namespace OpenWifi {
 
 				Conn_->Conn_.Compatible = Compatible_;
 
-				WebSocketNotification<WebNotificationSingleDevice>	N;
-				N.content.serialNumber = SerialNumber_;
-				N.type = "device_connection";
-				WebSocketClientServer()->SendNotification(N);
+				WebSocketClientNotificationDeviceConnected(SerialNumber_);
 
 				if (KafkaManager()->Enabled()) {
 					Poco::JSON::Stringifier Stringify;
 					ParamsObj->set(uCentralProtocol::CONNECTIONIP, CId_);
 					ParamsObj->set("locale", Conn_->Conn_.locale );
-					ParamsObj->set(uCentralProtocol::TIMESTAMP, std::time(nullptr));
+					ParamsObj->set(uCentralProtocol::TIMESTAMP, OpenWifi::Now());
 					std::ostringstream OS;
 					Stringify.condense(ParamsObj, OS);
 					KafkaManager()->PostMessage(KafkaTopics::CONNECTION, SerialNumber_, OS.str());
@@ -537,7 +490,7 @@ namespace OpenWifi {
 				LookForUpgrade(UUID);
 				GWObjects::Statistics Stats{
 					.SerialNumber = SerialNumber_, .UUID = UUID, .Data = StateStr};
-				Stats.Recorded = std::time(nullptr);
+				Stats.Recorded = OpenWifi::Now();
 				StorageService()->AddStatisticsData(Stats);
 				if (!request_uuid.empty()) {
 					StorageService()->SetCommandResult(request_uuid, StateStr);
@@ -597,7 +550,7 @@ namespace OpenWifi {
 				GWObjects::HealthCheck Check;
 
 				Check.SerialNumber = SerialNumber_;
-				Check.Recorded = std::time(nullptr);
+				Check.Recorded = OpenWifi::Now();
 				Check.UUID = UUID;
 				Check.Data = CheckData;
 				Check.Sanity = Sanity;
@@ -612,7 +565,7 @@ namespace OpenWifi {
 				if (KafkaManager()->Enabled()) {
 					Poco::JSON::Stringifier Stringify;
 					std::ostringstream OS;
-					ParamsObj->set("timestamp", std::time(nullptr));
+					ParamsObj->set("timestamp", OpenWifi::Now());
 					Stringify.condense(ParamsObj, OS);
 					KafkaManager()->PostMessage(KafkaTopics::HEALTHCHECK, SerialNumber_, OS.str());
 				}
@@ -784,7 +737,7 @@ namespace OpenWifi {
 			if (TelemetryReporting_) {
 				if (ParamsObj->has("data")) {
 					auto Payload = ParamsObj->get("data").extract<Poco::JSON::Object::Ptr>();
-					Payload->set("timestamp", std::time(nullptr));
+					Payload->set("timestamp", OpenWifi::Now());
 					std::ostringstream SS;
 					Payload->stringify(SS);
 					if (TelemetryWebSocketRefCount_) {
@@ -1001,7 +954,7 @@ namespace OpenWifi {
 						PingDetails.set(uCentralProtocol::SERIALNUMBER, SerialNumber_);
 						PingDetails.set(uCentralProtocol::COMPATIBLE, Compatible_);
 						PingDetails.set(uCentralProtocol::CONNECTIONIP, CId_);
-						PingDetails.set(uCentralProtocol::TIMESTAMP, std::time(nullptr));
+						PingDetails.set(uCentralProtocol::TIMESTAMP, OpenWifi::Now());
 						PingDetails.set("locale", Conn_->Conn_.locale );
 						PingObject.set(uCentralProtocol::PING, PingDetails);
 						Poco::JSON::Stringifier Stringify;
