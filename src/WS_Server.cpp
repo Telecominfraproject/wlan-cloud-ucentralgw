@@ -45,7 +45,7 @@ namespace OpenWifi {
 				IssuerCert_ = std::make_unique<Poco::Crypto::X509Certificate>(Svr.IssuerCertFile());
 				Logger().information( fmt::format("Certificate Issuer Name:{}",IssuerCert_->issuerName()));
 			}
-			auto NewSocketAcceptor = std::make_unique<Poco::Net::ParallelSocketAcceptor<WSConnection, Poco::Net::SocketReactor>>(Sock, Reactor_,   2 /*Poco::Environment::processorCount()*2) */ );
+			auto NewSocketAcceptor = std::make_unique<ws_server_reactor_type_t>(Sock, Reactor_); // ,   2 /*Poco::Environment::processorCount()*2) */ );
             Acceptors_.push_back(std::move(NewSocketAcceptor));
         }
 

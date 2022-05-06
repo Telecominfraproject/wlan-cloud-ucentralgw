@@ -18,6 +18,7 @@
 #include "Poco/AutoPtr.h"
 #include "Poco/Net/SocketReactor.h"
 #include "Poco/Net/ParallelSocketAcceptor.h"
+#include "Poco/Net/SocketAcceptor.h"
 
 #include "WS_Connection.h"
 #include "WS_ReactorPool.h"
@@ -54,7 +55,9 @@ namespace OpenWifi {
 
 	  private:
 		std::unique_ptr<Poco::Crypto::X509Certificate>	IssuerCert_;
-		std::vector<std::unique_ptr<Poco::Net::ParallelSocketAcceptor<WSConnection, Poco::Net::SocketReactor>>>	Acceptors_;
+		// typedef std::unique_ptr<Poco::Net::ParallelSocketAcceptor<WSConnection, Poco::Net::SocketReactor>> ws_server_reactor_type_t;
+		typedef Poco::Net::SocketAcceptor<WSConnection> ws_server_reactor_type_t;
+		std::vector<std::unique_ptr<ws_server_reactor_type_t>>	Acceptors_;
 		Poco::Net::SocketReactor		Reactor_;
 		Poco::Thread					ReactorThread_;
 		// ReactorPool						ReactorPool_;
