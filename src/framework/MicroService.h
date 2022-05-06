@@ -3327,9 +3327,15 @@ namespace OpenWifi {
 	                                .AccessKey = Object->get(KafkaTopics::ServiceEvents::Fields::KEY).toString(),
 	                                .Version = Object->get(KafkaTopics::ServiceEvents::Fields::VRSN).toString(),
 	                                .LastUpdate = (uint64_t)std::time(nullptr)};
-	                            for (const auto &[PrvEndPoint, Svc] : Services_) {
-									logger().debug(fmt::format("ID: {} Type: {} EndPoint: {}",Svc.Id,Svc.Type,PrvEndPoint));
+
+								std::string SvcList;
+	                            for (const auto &Svc: Services_) {
+									if(SvcList.empty())
+										SvcList = Svc.second.Type;
+									else
+										SvcList += ", " + Svc.second.Type;
 	                            }
+								logger().information(fmt::format("Current list of microservices: {}", SvcList));
 	                        }
 	                    } else {
 							poco_error(logger(),fmt::format("KAFKA-MSG: invalid event '{}', missing a field.",Event));
