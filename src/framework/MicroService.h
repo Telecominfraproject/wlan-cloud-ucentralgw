@@ -3313,7 +3313,7 @@ namespace OpenWifi {
                             Object->has(KafkaTopics::ServiceEvents::Fields::KEY)) {
                             auto PrivateEndPoint = Object->get(KafkaTopics::ServiceEvents::Fields::PRIVATE).toString();
 	                        if (Event == KafkaTopics::ServiceEvents::EVENT_KEEP_ALIVE && Services_.find(PrivateEndPoint) != Services_.end()) {
-	                            Services_[PrivateEndPoint].LastUpdate = std::time(nullptr);
+	                            Services_[PrivateEndPoint].LastUpdate = OpenWifi::Now();
 	                        } else if (Event == KafkaTopics::ServiceEvents::EVENT_LEAVE) {
 	                            Services_.erase(PrivateEndPoint);
 	                            poco_debug(logger(),fmt::format("Service {} ID={} leaving system.",Object->get(KafkaTopics::ServiceEvents::Fields::PRIVATE).toString(),ID));
@@ -3326,7 +3326,7 @@ namespace OpenWifi {
 	                                .PublicEndPoint = Object->get(KafkaTopics::ServiceEvents::Fields::PUBLIC).toString(),
 	                                .AccessKey = Object->get(KafkaTopics::ServiceEvents::Fields::KEY).toString(),
 	                                .Version = Object->get(KafkaTopics::ServiceEvents::Fields::VRSN).toString(),
-	                                .LastUpdate = (uint64_t)std::time(nullptr)};
+	                                .LastUpdate = OpenWifi::Now() };
 
 								std::string SvcList;
 	                            for (const auto &Svc: Services_) {
