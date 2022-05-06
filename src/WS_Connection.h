@@ -30,7 +30,7 @@ namespace OpenWifi {
 		void OnSocketReadable(const Poco::AutoPtr<Poco::Net::ReadableNotification>& pNf);
 		void OnSocketShutdown(const Poco::AutoPtr<Poco::Net::ShutdownNotification>& pNf);
 		void OnSocketError(const Poco::AutoPtr<Poco::Net::ErrorNotification>& pNf);
-		bool LookForUpgrade(uint64_t UUID);
+		bool LookForUpgrade(const uint64_t UUID, uint64_t & UpgradedUUID);
 		static bool ExtractBase64CompressedData(const std::string & CompressedData, std::string & UnCompressedData, uint64_t compress_sz);
 		void LogException(const Poco::Exception &E);
 		inline Poco::Logger & Logger() { return Logger_; }

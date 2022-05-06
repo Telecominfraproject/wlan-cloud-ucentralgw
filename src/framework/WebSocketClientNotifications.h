@@ -25,6 +25,30 @@ namespace OpenWifi {
 		}
 	};
 
+	struct WebNotificationSingleDeviceConfigurationChange {
+		std::string		serialNumber;
+		uint64_t 		oldUUID;
+		uint64_t 		newUUID;
+
+		inline void to_json(Poco::JSON::Object &Obj) const {
+			RESTAPI_utils::field_to_json(Obj,"serialNumber", serialNumber);
+			RESTAPI_utils::field_to_json(Obj,"oldUUID", oldUUID);
+			RESTAPI_utils::field_to_json(Obj,"newUUID", newUUID);
+		}
+
+		inline bool from_json(const Poco::JSON::Object::Ptr &Obj) {
+			try {
+				RESTAPI_utils::field_from_json(Obj,"serialNumber", serialNumber);
+				RESTAPI_utils::field_from_json(Obj,"oldUUID", oldUUID);
+				RESTAPI_utils::field_from_json(Obj,"newUUID", newUUID);
+				return true;
+			} catch (...) {
+
+			}
+			return false;
+		}
+	};
+
 	struct WebNotificationSingleDeviceFirmwareChange {
 		std::string		serialNumber;
 		std::string		newFirmware;
@@ -44,6 +68,15 @@ namespace OpenWifi {
 			return false;
 		}
 	};
+
+	inline void WebSocketClientNotificationDeviceConfigurationChange(const std::string &SerialNumber, uint64_t oldUUID, uint64_t newUUID) {
+		WebSocketNotification<WebNotificationSingleDeviceConfigurationChange>	N;
+		N.content.serialNumber = SerialNumber;
+		N.content.oldUUID = oldUUID;
+		N.content.newUUID = newUUID;
+		N.type = "device_configuration_upgrade";
+		WebSocketClientServer()->SendNotification(N);
+	}
 
 	inline void WebSocketClientNotificationDeviceFirmwareUpdated(const std::string &SerialNumber, const std::string &Firmware) {
 		WebSocketNotification<WebNotificationSingleDeviceFirmwareChange>	N;

@@ -203,21 +203,24 @@ namespace OpenWifi {
 		WebSocketClientNotificationDeviceDisconnected(SerialNumber_);
 	}
 
-	bool WSConnection::LookForUpgrade(uint64_t UUID) {
+	bool WSConnection::LookForUpgrade(const uint64_t UUID, uint64_t & UpgradedUUID) {
 
 		//	A UUID of zero means ignore updates for that connection.
 		if (UUID == 0)
 			return false;
 
 		uint64_t GoodConfig = ConfigurationCache().CurrentConfig(SerialNumberInt_);
-		if (GoodConfig && (GoodConfig == UUID || GoodConfig == Conn_->Conn_.PendingUUID))
+		if (GoodConfig && (GoodConfig == UUID || GoodConfig == Conn_->Conn_.PendingUUID)) {
+			UpgradedUUID = UUID;
 			return false;
+		}
 
 		GWObjects::Device D;
 		if (StorageService()->GetDevice(SerialNumber_, D)) {
 
 			//	This is the case where the cache is empty after a restart. So GoodConfig will 0. If the device already 	has the right UUID, we just return.
 			if (D.UUID == UUID) {
+				UpgradedUUID = UUID;
 				ConfigurationCache().Add(SerialNumberInt_, UUID);
 				return false;
 			}
@@ -227,11 +230,13 @@ namespace OpenWifi {
 				//	is newer.
 				Config::Config	Cfg(D.Configuration);
 				D.UUID = UUID+2;
+				UpgradedUUID = D.UUID;
 				Cfg.SetUUID(D.UUID);
 				D.Configuration = Cfg.get();
 				StorageService()->UpdateDevice(D);
 			}
 
+			UpgradedUUID = D.UUID;
 			Conn_->Conn_.PendingUUID = D.UUID;
 			GWObjects::CommandDetails Cmd;
 			Cmd.SerialNumber = SerialNumber_;
@@ -256,6 +261,8 @@ namespace OpenWifi {
 
 			StorageService()->AddCommand(SerialNumber_, Cmd, Storage::COMMAND_EXECUTED);
 			CommandManager()->PostCommand(SerialNumber_, Cmd.Command, Params, Cmd.UUID, Sent);
+
+			WebSocketClientNotificationDeviceConfigurationChange(D.SerialNumber, UUID, UpgradedUUID);
 
 			return true;
 		}
@@ -437,9 +444,10 @@ namespace OpenWifi {
 					if(Updated) {
 						StorageService()->UpdateDevice(DeviceInfo);
 					}
-					LookForUpgrade(UUID);
+					uint64_t UpgradedUUID=0;
+					LookForUpgrade(UUID,UpgradedUUID);
+					Conn_->Conn_.UUID = UpgradedUUID;
 				}
-
 				Conn_->Conn_.Compatible = Compatible_;
 
 				WebSocketClientNotificationDeviceConnected(SerialNumber_);
@@ -484,10 +492,11 @@ namespace OpenWifi {
 													 CId_, UUID, request_uuid));
 				}
 
-				Conn_->Conn_.UUID = UUID;
+				uint64_t UpgradedUUID;
+				LookForUpgrade(UUID,UpgradedUUID);
+				Conn_->Conn_.UUID = UpgradedUUID;
 				Conn_->LastStats = StateStr;
 
-				LookForUpgrade(UUID);
 				GWObjects::Statistics Stats{
 					.SerialNumber = SerialNumber_, .UUID = UUID, .Data = StateStr};
 				Stats.Recorded = OpenWifi::Now();
@@ -544,8 +553,9 @@ namespace OpenWifi {
 										   UUID, request_uuid));
 				}
 
-				Conn_->Conn_.UUID = UUID;
-				LookForUpgrade(UUID);
+				uint64_t UpgradedUUID;
+				LookForUpgrade(UUID,UpgradedUUID);
+				Conn_->Conn_.UUID = UpgradedUUID;
 
 				GWObjects::HealthCheck Check;
 
