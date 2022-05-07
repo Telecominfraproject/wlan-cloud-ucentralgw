@@ -47,17 +47,17 @@ namespace OpenWifi {
 		}
 
 		if(StorageService()->DefaultConfigurationAlreadyExists(Name)) {
-			return BadRequest("Configuration name already exists.");
+			return BadRequest(RESTAPI::Errors::DefConfigNameExists);
 		}
 
-		auto Obj = ParseStream();
+		const auto &Obj = ParsedBody_;
 		GWObjects::DefaultConfiguration DefConfig;
 		if (!DefConfig.from_json(Obj)) {
 			return BadRequest(RESTAPI::Errors::InvalidJSONDocument);
 		}
 
 		if(DefConfig.Models.empty()) {
-			return BadRequest("modelIds cannot be empty");
+			return BadRequest(RESTAPI::Errors::ModelIDListCannotBeEmpty);
 		}
 
 		std::string Error;
@@ -76,7 +76,7 @@ namespace OpenWifi {
 	void RESTAPI_default_configuration::DoPut() {
 		std::string Name = GetBinding(RESTAPI::Protocol::NAME, "");
 
-		auto  Obj = ParseStream();
+		const auto &Obj = ParsedBody_;
 		GWObjects::DefaultConfiguration 		NewConfig;
 		if (!NewConfig.from_json(Obj)) {
 			return BadRequest(RESTAPI::Errors::InvalidJSONDocument);

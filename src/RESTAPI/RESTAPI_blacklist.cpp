@@ -51,8 +51,7 @@ namespace OpenWifi {
 	}
 
 	void RESTAPI_blacklist::DoPost() {
-		auto Obj = ParseStream();
-
+		const auto &Obj = ParsedBody_;
 		GWObjects::BlackListedDevice	D;
 		if(!D.from_json(Obj)) {
 			return BadRequest(RESTAPI::Errors::InvalidJSONDocument);
@@ -88,8 +87,7 @@ namespace OpenWifi {
 			return BadRequest(RESTAPI::Errors::MissingSerialNumber);
 		}
 
-		auto Obj = ParseStream();
-
+		const auto &Obj = ParsedBody_;
 		GWObjects::BlackListedDevice	Existing;
 		if(!StorageService()->GetBlackListDevice(SerialNumber, Existing)) {
 			return BadRequest(RESTAPI::Errors::InvalidJSONDocument);

@@ -1812,8 +1812,14 @@ namespace OpenWifi {
 
 				Poco::Thread::current()->setName("WebServerThread_" + std::to_string(TransactionId_));
 
+                if(Request->getContentLength()>0) {
+                    if(Request->getContentType().find("application/json")!=std::string::npos) {
+                        ParsedBody_ = IncomingParser_.parse(Request->stream()).extract<Poco::JSON::Object::Ptr>();
+                    }
+                }
+
 	            if(RateLimited_ && RESTAPI_RateLimiter()->IsRateLimited(RequestIn,MyRates_.Interval, MyRates_.MaxCalls)) {
-	                return UnAuthorized("Rate limit exceeded.",RATE_LIMIT_EXCEEDED);
+	                return UnAuthorized(RESTAPI::Errors::RATE_LIMIT_EXCEEDED);
 	            }
 
 	            if (!ContinueProcessing())
@@ -1822,16 +1828,16 @@ namespace OpenWifi {
 	            bool Expired=false, Contacted=false;
 	            if (AlwaysAuthorize_ && !IsAuthorized(Expired, Contacted, SubOnlyService_)) {
 	                if(Expired)
-	                    return UnAuthorized(RESTAPI::Errors::ExpiredToken, EXPIRED_TOKEN);
+	                    return UnAuthorized(RESTAPI::Errors::EXPIRED_TOKEN);
                     if(Contacted)
-	                    return UnAuthorized(RESTAPI::Errors::InvalidCredentials, INVALID_TOKEN);
+	                    return UnAuthorized(RESTAPI::Errors::INVALID_TOKEN);
                     else
-                        return UnAuthorized(RESTAPI::Errors::InvalidCredentials, SECURITY_SERVICE_UNREACHABLE);
+                        return UnAuthorized(RESTAPI::Errors::SECURITY_SERVICE_UNREACHABLE);
 	            }
 
 	            std::string Reason;
 	            if(!RoleIsAuthorized(RequestIn.getURI(), Request->getMethod(), Reason)) {
-                    return UnAuthorized(Reason, ACCESS_DENIED);
+                    return UnAuthorized(RESTAPI::Errors::ACCESS_DENIED);
 	            }
 
 	            ParseParameters();
@@ -1853,10 +1859,10 @@ namespace OpenWifi {
 	    [[nodiscard]] inline bool NeedAdditionalInfo() const { return QB_.AdditionalInfo; }
 	    [[nodiscard]] inline const std::vector<std::string> & SelectedRecords() const { return QB_.Select; }
 
-	    [[nodiscard]] inline const Poco::JSON::Object::Ptr ParseStream() {
+/*	    [[nodiscard]] inline const Poco::JSON::Object::Ptr ParseStream() {
 	        return IncomingParser_.parse(Request->stream()).extract<Poco::JSON::Object::Ptr>();
 	    }
-
+*/
 
 	    inline static bool ParseBindings(const std::string & Request, const std::list<std::string> & EndPoints, BindingMap &bindings) {
 	        bindings.clear();
@@ -2011,7 +2017,7 @@ namespace OpenWifi {
             return false;
         }
 
-	    inline void SetCommonHeaders(bool CloseConnection=false) {
+        inline void SetCommonHeaders(bool CloseConnection=false) {
 	        Response->setVersion(Poco::Net::HTTPMessage::HTTP_1_1);
 	        Response->setChunkedTransferEncoding(true);
 	        Response->setContentType("application/json");
@@ -2032,21 +2038,6 @@ namespace OpenWifi {
 	        }
 	    }
 
-/*		inline void AddCORS() {
-			SetCommonHeaders();
-			auto Origin = Request->find("Origin");
-			if (Origin != Request->end()) {
-				Response->set("Access-Control-Allow-Origin", Origin->second);
-				Response->set("Vary", "Origin");
-			} else {
-				Response->set("Access-Control-Allow-Origin", "*");
-			}
-			Response->set("Access-Control-Allow-Headers", "*");
-			Response->set("Access-Control-Allow-Methods", MakeList(Methods_));
-			Response->set("Access-Control-Max-Age", "86400");
-
-		}
-*/
 	    inline void ProcessOptions() {
 			Response->setVersion(Poco::Net::HTTPMessage::HTTP_1_1);
 			Response->setChunkedTransferEncoding(true);
@@ -2077,17 +2068,17 @@ namespace OpenWifi {
 	        SetCommonHeaders(CloseConnection);
 	    }
 
-	    inline void BadRequest(const std::string & Reason) {
+	    inline void BadRequest(const OpenWifi::RESTAPI::Errors::msg &E) {
 	        PrepareResponse(Poco::Net::HTTPResponse::HTTP_BAD_REQUEST);
 	        Poco::JSON::Object	ErrorObject;
 	        ErrorObject.set("ErrorCode",400);
 	        ErrorObject.set("ErrorDetails",Request->getMethod());
-	        ErrorObject.set("ErrorDescription",Reason.empty() ? "Command is missing parameters or wrong values." : Reason) ;
+	        ErrorObject.set("ErrorDescription",fmt::format("{}: {}",E.err_num,E.err_txt)) ;
 	        std::ostream &Answer = Response->send();
 	        Poco::JSON::Stringifier::stringify(ErrorObject, Answer);
 	    }
 
-        inline void BadRequest(uint64_t ErrorCode, const std::string & ErrorText) {
+/*        inline void BadRequest(uint64_t ErrorCode, const std::string & ErrorText) {
             PrepareResponse(Poco::Net::HTTPResponse::HTTP_BAD_REQUEST);
             Poco::JSON::Object	ErrorObject;
             ErrorObject.set("ErrorCode", ErrorCode);
@@ -2096,23 +2087,23 @@ namespace OpenWifi {
             std::ostream &Answer = Response->send();
             Poco::JSON::Stringifier::stringify(ErrorObject, Answer);
         }
-
-	    inline void InternalError(const std::string & Reason = "") {
+*/
+	    inline void InternalError(const OpenWifi::RESTAPI::Errors::msg &E) {
 	        PrepareResponse(Poco::Net::HTTPResponse::HTTP_INTERNAL_SERVER_ERROR);
 	        Poco::JSON::Object	ErrorObject;
 	        ErrorObject.set("ErrorCode",500);
 	        ErrorObject.set("ErrorDetails",Request->getMethod());
-	        ErrorObject.set("ErrorDescription",Reason.empty() ? "Please try later or review the data submitted." : Reason) ;
+            ErrorObject.set("ErrorDescription",fmt::format("{}: {}",E.err_num,E.err_txt)) ;
 	        std::ostream &Answer = Response->send();
 	        Poco::JSON::Stringifier::stringify(ErrorObject, Answer);
 	    }
 
-	    inline void UnAuthorized(const std::string & Reason = "", int Code = INVALID_CREDENTIALS ) {
+	    inline void UnAuthorized(const OpenWifi::RESTAPI::Errors::msg &E) {
 	        PrepareResponse(Poco::Net::HTTPResponse::HTTP_FORBIDDEN);
 	        Poco::JSON::Object	ErrorObject;
-	        ErrorObject.set("ErrorCode",Code);
+	        ErrorObject.set("ErrorCode",E.err_num);
 	        ErrorObject.set("ErrorDetails",Request->getMethod());
-	        ErrorObject.set("ErrorDescription",Reason.empty() ? "No access allowed." : Reason) ;
+            ErrorObject.set("ErrorDescription",fmt::format("{}: {}",E.err_num,E.err_txt)) ;
 	        std::ostream &Answer = Response->send();
 	        Poco::JSON::Stringifier::stringify(ErrorObject, Answer);
 	    }
@@ -2122,7 +2113,8 @@ namespace OpenWifi {
 	        Poco::JSON::Object	ErrorObject;
 	        ErrorObject.set("ErrorCode",404);
 	        ErrorObject.set("ErrorDetails",Request->getMethod());
-	        ErrorObject.set("ErrorDescription","This resource does not exist.");
+            const auto & E = OpenWifi::RESTAPI::Errors::Error404;
+            ErrorObject.set("ErrorDescription",fmt::format("{}: {}",E.err_num,E.err_txt)) ;
 	        std::ostream &Answer = Response->send();
 	        Poco::JSON::Stringifier::stringify(ErrorObject, Answer);
 	        Logger_.debug(fmt::format("RES-NOTFOUND: User='{}@{}' Method='{}' Path='{}",
@@ -2261,28 +2253,28 @@ namespace OpenWifi {
 	        return true;
 	    }
 
-	        inline bool IsAuthorized(bool & Expired, bool & Contacted, bool SubOnly = false );
+        inline bool IsAuthorized(bool & Expired, bool & Contacted, bool SubOnly = false );
 
-	        inline void ReturnObject(Poco::JSON::Object &Object) {
-	            PrepareResponse();
-                if(Request!= nullptr) {
-                    //   can we compress ???
-                    auto AcceptedEncoding = Request->find("Accept-Encoding");
-                    if(AcceptedEncoding!=Request->end()) {
-                        if( AcceptedEncoding->second.find("gzip")!=std::string::npos ||
-                            AcceptedEncoding->second.find("compress")!=std::string::npos) {
-                            Response->set("Content-Encoding", "gzip");
-                            std::ostream &Answer = Response->send();
-                            Poco::DeflatingOutputStream deflater(Answer, Poco::DeflatingStreamBuf::STREAM_GZIP);
-                            Poco::JSON::Stringifier::stringify(Object, deflater);
-                            deflater.close();
-                            return;
-                        }
+        inline void ReturnObject(Poco::JSON::Object &Object) {
+            PrepareResponse();
+            if(Request!= nullptr) {
+                //   can we compress ???
+                auto AcceptedEncoding = Request->find("Accept-Encoding");
+                if(AcceptedEncoding!=Request->end()) {
+                    if( AcceptedEncoding->second.find("gzip")!=std::string::npos ||
+                        AcceptedEncoding->second.find("compress")!=std::string::npos) {
+                        Response->set("Content-Encoding", "gzip");
+                        std::ostream &Answer = Response->send();
+                        Poco::DeflatingOutputStream deflater(Answer, Poco::DeflatingStreamBuf::STREAM_GZIP);
+                        Poco::JSON::Stringifier::stringify(Object, deflater);
+                        deflater.close();
+                        return;
                     }
                 }
-	            std::ostream &Answer = Response->send();
-	            Poco::JSON::Stringifier::stringify(Object, Answer);
-	        }
+            }
+            std::ostream &Answer = Response->send();
+            Poco::JSON::Stringifier::stringify(Object, Answer);
+        }
 
 	        inline void ReturnCountOnly(uint64_t Count) {
 	            Poco::JSON::Object  Answer;
@@ -2372,6 +2364,7 @@ namespace OpenWifi {
 	        RESTAPI_GenericServer       & Server_;
 	        RateLimit                   MyRates_;
             uint64_t                    TransactionId_;
+            Poco::JSON::Object::Ptr     ParsedBody_;
 	    };
 
 	    class RESTAPI_UnknownRequestHandler : public RESTAPIHandler {
@@ -4262,7 +4255,7 @@ namespace OpenWifi {
 	    }
 
 	    inline void DoPost() final {
-	        auto Obj = ParseStream();
+	        const auto & Obj = ParsedBody_;
 	        if (Obj->has(RESTAPI::Protocol::COMMAND)) {
 	            auto Command = Poco::toLower(Obj->get(RESTAPI::Protocol::COMMAND).toString());
 	            if (Command == RESTAPI::Protocol::SETLOGLEVEL) {

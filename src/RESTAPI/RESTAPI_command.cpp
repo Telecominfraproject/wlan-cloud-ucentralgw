@@ -45,6 +45,6 @@ namespace OpenWifi {
 		if (StorageService()->DeleteCommand(CommandUUID)) {
 			return OK();
 		}
-		return InternalError();
+		return InternalError(RESTAPI::Errors::NoRecordsDeleted);
 	}
 }

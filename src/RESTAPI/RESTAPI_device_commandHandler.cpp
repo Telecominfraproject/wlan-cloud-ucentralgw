@@ -179,7 +179,7 @@ void RESTAPI_device_commandHandler::DeleteStatistics() {
 
 void RESTAPI_device_commandHandler::Ping() {
 	Logger_.information(fmt::format("DELETE-STATISTICS: user={} serial={}", UserInfo_.userinfo.email,SerialNumber_));
-	auto Obj = ParseStream();
+	const auto &Obj = ParsedBody_;
 	if (Obj->has(RESTAPI::Protocol::SERIALNUMBER)) {
 		auto SNum = Obj->get(RESTAPI::Protocol::SERIALNUMBER).toString();
 		if (SerialNumber_ != SNum) {
@@ -222,7 +222,7 @@ void RESTAPI_device_commandHandler::Ping() {
 			}
 			return ReturnObject(Answer);
 		}
-		return BadRequest("Command could not be performed.");
+		return NotFound();
 	}
 	return BadRequest(RESTAPI::Errors::MissingSerialNumber);
 }
@@ -245,7 +245,7 @@ void RESTAPI_device_commandHandler::GetStatus() {
 void RESTAPI_device_commandHandler::Configure() {
 	//  get the configuration from the body of the message
 	Logger_.information(fmt::format("CONFIGURE: user={} serial={}", UserInfo_.userinfo.email,SerialNumber_));
-	auto Obj = ParseStream();
+	const auto &Obj = ParsedBody_;
 	if (Obj->has(RESTAPI::Protocol::SERIALNUMBER) &&
 		Obj->has(RESTAPI::Protocol::UUID) &&
 		Obj->has(RESTAPI::Protocol::CONFIGURATION)) {
@@ -294,7 +294,7 @@ void RESTAPI_device_commandHandler::Configure() {
 
 void RESTAPI_device_commandHandler::Upgrade() {
 	Logger_.information(fmt::format("UPGRADE: user={} serial={}", UserInfo_.userinfo.email,SerialNumber_));
-	auto Obj = ParseStream();
+	const auto &Obj = ParsedBody_;
 
 	if (Obj->has(RESTAPI::Protocol::URI) &&
 		Obj->has(RESTAPI::Protocol::SERIALNUMBER)) {
@@ -407,14 +407,14 @@ void RESTAPI_device_commandHandler::DeleteChecks() {
 
 void RESTAPI_device_commandHandler::ExecuteCommand() {
 	Logger_.information(fmt::format("EXECUTE: user={} serial={}", UserInfo_.userinfo.email,SerialNumber_));
-	auto Obj = ParseStream();
+	const auto &Obj = ParsedBody_;
 	if (Obj->has(RESTAPI::Protocol::COMMAND) &&
 		Obj->has(RESTAPI::Protocol::SERIALNUMBER) &&
 		Obj->has(RESTAPI::Protocol::PAYLOAD)) {
 
 		auto SNum = Obj->get(RESTAPI::Protocol::SERIALNUMBER).toString();
 		if (SerialNumber_ != SNum) {
-			return BadRequest("Missing serial number.");
+			return BadRequest(RESTAPI::Errors::SerialNumberMismatch);
 		}
 
 		auto Command = GetS(RESTAPI::Protocol::COMMAND, Obj);
@@ -453,7 +453,7 @@ void RESTAPI_device_commandHandler::ExecuteCommand() {
 
 void RESTAPI_device_commandHandler::Reboot() {
 	Logger_.information(fmt::format("REBOOT: user={} serial={}", UserInfo_.userinfo.email,SerialNumber_));
-	auto Obj = ParseStream();
+	const auto &Obj = ParsedBody_;
 
 	if (Obj->has(RESTAPI::Protocol::SERIALNUMBER)) {
 		auto SNum = Obj->get(RESTAPI::Protocol::SERIALNUMBER).toString();
@@ -489,7 +489,7 @@ void RESTAPI_device_commandHandler::Reboot() {
 
 void RESTAPI_device_commandHandler::Factory() {
 	Logger_.information(fmt::format("FACTORY-RESET: user={} serial={}", UserInfo_.userinfo.email,SerialNumber_));
-	Poco::JSON::Object::Ptr Obj = ParseStream();
+	const auto &Obj = ParsedBody_;
 	if (Obj->has(RESTAPI::Protocol::KEEPREDIRECTOR) &&
 		Obj->has(RESTAPI::Protocol::SERIALNUMBER)) {
 
@@ -527,7 +527,7 @@ void RESTAPI_device_commandHandler::Factory() {
 
 void RESTAPI_device_commandHandler::LEDs() {
 	Logger_.information(fmt::format("LEDS: user={} serial={}", UserInfo_.userinfo.email,SerialNumber_));
-	auto Obj = ParseStream();
+	const auto &Obj = ParsedBody_;
 
 	if (Obj->has(uCentralProtocol::PATTERN) &&
 		Obj->has(RESTAPI::Protocol::SERIALNUMBER)) {
@@ -573,7 +573,7 @@ void RESTAPI_device_commandHandler::LEDs() {
 
 void RESTAPI_device_commandHandler::Trace() {
 	Logger_.information(fmt::format("TRACE: user={} serial={}", UserInfo_.userinfo.email,SerialNumber_));
-	auto Obj = ParseStream();
+	const auto &Obj = ParsedBody_;
 
 	if 	(Obj->has(RESTAPI::Protocol::SERIALNUMBER) &&
 		(Obj->has(RESTAPI::Protocol::NETWORK) ||
@@ -629,7 +629,7 @@ void RESTAPI_device_commandHandler::Trace() {
 
 void RESTAPI_device_commandHandler::WifiScan() {
 	Logger_.information(fmt::format("WIFISCAN: user={} serial={}", UserInfo_.userinfo.email,SerialNumber_));
-	auto Obj = ParseStream();
+	const auto &Obj = ParsedBody_;
 
 	auto SNum = Obj->get(RESTAPI::Protocol::SERIALNUMBER).toString();
 	if (SerialNumber_ != SNum) {
@@ -671,7 +671,7 @@ void RESTAPI_device_commandHandler::WifiScan() {
 
 void RESTAPI_device_commandHandler::EventQueue() {
 	Logger_.information(fmt::format("EVENT-QUEUE: user={} serial={}", UserInfo_.userinfo.email,SerialNumber_));
-	auto Obj = ParseStream();
+	const auto &Obj = ParsedBody_;
 	if (Obj->has(RESTAPI::Protocol::SERIALNUMBER) &&
 		Obj->isArray(RESTAPI::Protocol::TYPES)) {
 
@@ -710,7 +710,7 @@ void RESTAPI_device_commandHandler::EventQueue() {
 
 void RESTAPI_device_commandHandler::MakeRequest() {
 	Logger_.information(fmt::format("FORCE-REQUEST: user={} serial={}", UserInfo_.userinfo.email,SerialNumber_));
-	auto Obj = ParseStream();
+	const auto &Obj = ParsedBody_;
 	if (Obj->has(RESTAPI::Protocol::SERIALNUMBER) &&
 		Obj->has(uCentralProtocol::MESSAGE)) {
 
@@ -814,7 +814,7 @@ void RESTAPI_device_commandHandler::MakeRequest() {
 	void RESTAPI_device_commandHandler::Telemetry(){
 		Logger_.information(fmt::format("TELEMETRY: user={} serial={}", UserInfo_.userinfo.email,SerialNumber_));
 
-		auto Obj = ParseStream();
+		const auto &Obj = ParsedBody_;
 		if (Obj->has(RESTAPI::Protocol::SERIALNUMBER) &&
 			Obj->has(RESTAPI::Protocol::INTERVAL) &&
 			Obj->has(RESTAPI::Protocol::TYPES)) {

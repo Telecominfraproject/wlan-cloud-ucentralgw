@@ -40,6 +40,6 @@ namespace OpenWifi {
 		if (StorageService()->DeleteCommands(SerialNumber, QB_.StartDate, QB_.EndDate)) {
 			return OK();
 		}
-		InternalError();
+		InternalError(RESTAPI::Errors::NoRecordsDeleted);
 	}
 }

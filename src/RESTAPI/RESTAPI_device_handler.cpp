@@ -90,13 +90,13 @@ namespace OpenWifi {
 			return BadRequest(RESTAPI::Errors::MissingSerialNumber);
 		}
 
+		const auto &Obj = ParsedBody_;
 		std::string Arg;
 		if(HasParameter("validateOnly",Arg) && Arg=="true") {
-			auto Body = ParseStream();
-			if(!Body->has("configuration")) {
-				return BadRequest("Must have 'configuration' element.");
+			if(!Obj->has("configuration")) {
+				return BadRequest(RESTAPI::Errors::MustHaveConfigElement);
 			}
-			auto Config=Body->get("configuration").toString();
+			auto Config=Obj->get("configuration").toString();
 			Poco::JSON::Object  Answer;
 			std::string 		Error;
 			auto Res = ValidateUCentralConfiguration(Config, Error);
@@ -111,7 +111,6 @@ namespace OpenWifi {
 			return BadRequest( RESTAPI::Errors::InvalidSerialNumber);
 		}
 
-		auto Obj = ParseStream();
 		GWObjects::Device Device;
 		if (!Device.from_json(Obj)) {
 			return BadRequest(RESTAPI::Errors::InvalidJSONDocument);
@@ -132,7 +131,7 @@ namespace OpenWifi {
 		}
 
 		Config::Config NewConfig(Device.Configuration);
-		Device.UUID = std::time(nullptr);
+		Device.UUID = OpenWifi::Now();
 		NewConfig.SetUUID(Device.UUID);
 		Device.Configuration = NewConfig.get();
 
@@ -154,7 +153,7 @@ namespace OpenWifi {
 			return BadRequest(RESTAPI::Errors::MissingSerialNumber);
 		}
 
-		auto Obj = ParseStream();
+		const auto &Obj = ParsedBody_;
 		GWObjects::Device NewDevice;
 		if (!NewDevice.from_json(Obj)) {
 			return BadRequest(RESTAPI::Errors::InvalidJSONDocument);
@@ -171,7 +170,7 @@ namespace OpenWifi {
 				return BadRequest(RESTAPI::Errors::ConfigBlockInvalid);
 			}
 			Config::Config NewConfig(NewDevice.Configuration);
-			uint64_t NewConfigUUID = std::time(nullptr);
+			uint64_t NewConfigUUID = OpenWifi::Now();
 			NewConfig.SetUUID(NewConfigUUID);
 			Existing.Configuration = NewConfig.get();
 			Existing.UUID = NewConfigUUID;
@@ -189,7 +188,7 @@ namespace OpenWifi {
 			Existing.Notes.push_back(i);
 		}
 
-		Existing.LastConfigurationChange = std::time(nullptr);
+		Existing.LastConfigurationChange = OpenWifi::Now();
 		if (StorageService()->UpdateDevice(Existing)) {
 			SetCurrentConfigurationID(SerialNumber, Existing.UUID);
 			Poco::JSON::Object DevObj;
