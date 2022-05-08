@@ -21,6 +21,7 @@ namespace OpenWifi::RESTAPI::Errors {
     struct msg { uint64_t err_num; std::string err_txt; };
     static const struct msg Error404{404,"Resource does not exist."};
 
+    static const struct msg SUCCESS{0,"No error."};
     static const struct msg PASSWORD_CHANGE_REQUIRED{1,"Password change required"};
     static const struct msg INVALID_CREDENTIALS{2,"Invalid credentials."};
     static const struct msg PASSWORD_ALREADY_USED{3,"Password already used."};
@@ -141,8 +142,55 @@ namespace OpenWifi::RESTAPI::Errors {
 	static const struct msg ModelIDListCannotBeEmpty{1098,"Model ID list cannot be empty."};
 	static const struct msg DefConfigNameExists{1099,"Configuration name already exists."};
 
+    static const struct msg SubNoDeviceActivated{1100,"No devices activated yet."};
+    static const struct msg SubConfigNotRefreshed{1101,"Configuration could not be refreshed."};
+
+    static const struct msg ProvServiceNotAvailable{1102,"Provisioning service not available yet."};
+    static const struct msg SSIDInvalidPassword{1103,"Invalid password length. Must be 8 characters or greater, and a maximum of 32 characters."};
+    static const struct msg InvalidStartingIPAddress{1104,"Invalid starting/ending IP address."};
+    static const struct msg SubnetFormatError{1105,"Subnet must be in format like 192.168.1.1/24."};
+    static const struct msg DeviceModeError{1106,"Device mode subnet must be of the form 192.168.1.1/24."};
+
+    static const struct msg BadDeviceMode{1107,"Mode must be bridge, nat, or manual."};
+    static const struct msg DefaultGatewayFormat{1108,"Default gateway must be in format like 192.168.1.1."};
+    static const struct msg PrimaryDNSFormat{1109,"Primary DNS must be an IP address i.e. 192.168.1.1."};
+
+    static const struct msg SecondaryDNSFormat{1110,"Secondary DNS must be an IP address i.e. 192.168.1.1."};
+    static const struct msg BadConnectionType{1111,"Internet Connection must be automatic, bridge, pppoe, or manual."};
+    static const struct msg InvalidDeviceID{1112,"Invalid deviceID."};
+    static const struct msg InvalidVisibilityAttribute{1113,"Invalid visibility attribute."};
+    static const struct msg UnknownConfigurationSection{1114,"Unknown section."};
+
+    static const struct msg CannotValidatePhoneNumber{1115,"Phone number could not be validated."};
+    static const struct msg RootUsersNoOwners{1116,"ROOT users may not have owners."};
+    static const struct msg PartnerMustHaveEntity{1118,"Partner user must belong to an entity."};
+    static const struct msg RootCannotModifyUsers{1119,"ROOT may not modify user roles."};
+
+    static const struct msg CertificateNotIssued{1120,"Certificate was not issued."};
+    static const struct msg IncompleteCertificate{1121,"Incomplete certificate information. Cannot be downloaded. You must delete and recreate."};
+    static const struct msg InvalidCertificateType{1122,"Invalid certificate type."};
+    static const struct msg InvalidDeviceName{1123,"Invalid device name."};
+
+    static const struct msg InvalidRedirectorName{1124,"Invalid redirector name"};
+    static const struct msg CommonNameAlreadyExists{1125,"A device/server of this name already exists"};
+    static const struct msg CertificateAlreadyExists{1126,"A certificate for this device already exists."};
+    static const struct msg CannotCreateCertTryAgain{1127,"Device certificate could not be created. Please try later."};
+    static const struct msg CouldNotRevoke{1128,"Certificate could not be revoked."};
+
+    static const struct msg CouldNotModifyCert{1129,"Certificate could not me modified. Please verify the information you supplied."};
+    static const struct msg BatchCertNoCreated{1130,"Certificates have not been created for this batch."};
+    static const struct msg BatchTooBig{1131,"Illegal number of MAC Addresses: must be between 1 and 1000."};
+
+    static const struct msg OutstandingJobs{1132,"Batch has running outstanding jobs. Please wait until job is finished."};
+    static const struct msg InvalidSMSNotificationList{1133,"Invalid SMS Notification list."};
+    static const struct msg InvalidEMailNotificationList{1134,"Invalid email Notification list."};
+    static const struct msg CannotChangeCommanNames{1135,"You cannot provide new/modified common names after jobs have been run for a batch."};
+    static const struct msg FailedToVerifyDigicert{1136,"Failed to verify the DigiCert information provided."};
+    static const struct msg CouldNotPerformCommand{1137,"Could not perform command."};
 
 }
+
+
 
 namespace OpenWifi::RESTAPI::Protocol {
 	static const char * CAPABILITIES = "capabilities";
