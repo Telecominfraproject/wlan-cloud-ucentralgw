@@ -295,6 +295,7 @@ namespace OpenWifi::RESTAPI::Protocol {
 	static const char * TIMES = "times";
 	static const char * UPTIME = "uptime";
 	static const char * START = "start";
+	static const char * DEBUG = "debug";
 
 	static const char * NEWPASSWORD = "newPassword";
 	static const char * USERS = "users";
@@ -372,6 +373,7 @@ namespace OpenWifi::uCentralProtocol {
     static const char *DURATION = "duration";
     static const char *PATTERN = "pattern";
     static const char *LEDS = "leds";
+	static const char *DEBUG = "debug";
     static const char *ON = "on";
     static const char *OFF = "off";
     static const char *BLINK = "blink";

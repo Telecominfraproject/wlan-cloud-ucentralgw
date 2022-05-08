@@ -510,6 +510,17 @@ components:
           type: integer
           format: int64
 
+    DebugRequest:
+      type: object
+      properties:
+        serialNumber:
+          type: string
+        duration:
+          type: integer
+          format: int64
+          default: 0
+          description: Number of seconds to wait. Default is 0 seconds.
+
     FactoryRequest:
       type: object
       properties:
@@ -1984,6 +1995,32 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/RebootRequest'
+      responses:
+        200:
+          $ref: '#/components/schemas/CommandInfo'
+        403:
+          $ref: '#/components/responses/Unauthorized'
+        404:
+          $ref: '#/components/responses/NotFound'
+
+  /device/{serialNumber}/debug:
+    post:
+      tags:
+        - Commands
+      summary: Debug a device.
+      operationId: debugDevice
+      parameters:
+        - in: path
+          name: serialNumber
+          schema:
+            type: string
+          required: true
+      requestBody:
+        description: Command details
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DebugRequest'
       responses:
         200:
           $ref: '#/components/schemas/CommandInfo'

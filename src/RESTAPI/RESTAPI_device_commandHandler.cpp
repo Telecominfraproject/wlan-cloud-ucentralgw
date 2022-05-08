@@ -112,6 +112,8 @@ namespace OpenWifi {
 			return Telemetry();
 		} else if (Command_ == RESTAPI::Protocol::PING) {
 			return Ping();
+		} else if (Command_ == RESTAPI::Protocol::DEBUG) {
+			return Debug();
 		} else {
 			return BadRequest(RESTAPI::Errors::InvalidCommand);
 		}
@@ -178,7 +180,7 @@ void RESTAPI_device_commandHandler::DeleteStatistics() {
 }
 
 void RESTAPI_device_commandHandler::Ping() {
-	Logger_.information(fmt::format("DELETE-STATISTICS: user={} serial={}", UserInfo_.userinfo.email,SerialNumber_));
+	Logger_.information(fmt::format("PING: user={} serial={}", UserInfo_.userinfo.email,SerialNumber_));
 	const auto &Obj = ParsedBody_;
 	if (Obj->has(RESTAPI::Protocol::SERIALNUMBER)) {
 		auto SNum = Obj->get(RESTAPI::Protocol::SERIALNUMBER).toString();
@@ -223,6 +225,40 @@ void RESTAPI_device_commandHandler::Ping() {
 			return ReturnObject(Answer);
 		}
 		return NotFound();
+	}
+	return BadRequest(RESTAPI::Errors::MissingSerialNumber);
+}
+
+void RESTAPI_device_commandHandler::Debug() {
+	Logger_.information(fmt::format("DEBUG: user={} serial={}", UserInfo_.userinfo.email,SerialNumber_));
+	const auto &Obj = ParsedBody_;
+	if (Obj->has(RESTAPI::Protocol::SERIALNUMBER)) {
+
+		auto SNum = Obj->get(RESTAPI::Protocol::SERIALNUMBER).toString();
+		if (SerialNumber_ != SNum) {
+			return BadRequest(RESTAPI::Errors::SerialNumberMismatch);
+		}
+
+		uint64_t Duration=0;
+		if(Obj->has(RESTAPI::Protocol::DURATION))
+			Duration = Obj->get(RESTAPI::Protocol::DURATION);
+
+		GWObjects::CommandDetails Cmd;
+		Cmd.SerialNumber = SerialNumber_;
+		Cmd.UUID = MicroService::CreateUUID();
+		Cmd.SubmittedBy = UserInfo_.webtoken.username_;
+		Cmd.Command = uCentralProtocol::DEBUG;
+		Cmd.RunAt = 0;
+
+		Poco::JSON::Object Params;
+		Params.set(uCentralProtocol::SERIAL, SerialNumber_);
+		Params.set(uCentralProtocol::DURATION, Duration);
+
+		std::stringstream ParamStream;
+		Params.stringify(ParamStream);
+		Cmd.Details = ParamStream.str();
+
+		return RESTAPI_RPC::WaitForCommand(Cmd, Params, *Request, *Response, 60000ms, nullptr, this, Logger_);
 	}
 	return BadRequest(RESTAPI::Errors::MissingSerialNumber);
 }

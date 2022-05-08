@@ -635,6 +635,32 @@ The device should answer:
 }
 ```
 
+#### Controller wants the device to send a debug frame
+Controller sends this command upon request from the administrator who is trying to troubleshoot issues in the AP.
+```
+{    "jsonrpc" : "2.0" , 
+     "method" : "debug" , 
+     "params" : {
+        "serial" : <serial number>
+     },
+     "id" : <some number>
+}
+```
+
+The device should answer:
+```
+{     "jsonrpc" : "2.0" , 
+      "result" : {
+          "serial" : <serial number> ,
+          "status" : {
+            "error" : 0 or an error number,
+            "debug_frame" : <a JSON document detailing the debug information> 
+          }
+      },
+  "id" : <same number>
+}
+```
+
 
 #### `rtty server`
 More information about the [rtty server](https://github.com/zhaojh329/rtty) can be found here.
