@@ -993,7 +993,7 @@ namespace OpenWifi::Utils {
     [[nodiscard]] inline bool ValidEMailAddress(const std::string &email) {
         // define a regular expression
         static const std::regex pattern
-                (("(\\w+)(\\.|_|\\++)?(\\w*)@(\\w+)(\\.(\\w+))+"));
+                ("[_a-z0-9-]+(\\.[_a-z0-9-]+)*(\\+[a-z0-9-]+)?@[a-z0-9-]+(\\.[a-z0-9-]+)*");
         // try to match the string with the regular expression
         return std::regex_match(email, pattern);
     }
