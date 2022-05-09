@@ -15,8 +15,9 @@
 #include "Poco/Data/LOBStream.h"
 
 namespace OpenWifi {
+    uint64_t Now();
     namespace SecurityObjects {
-
+        
         typedef std::string USER_ID_TYPE;
 
         struct AclTemplate {

@@ -8,6 +8,7 @@
 
 #pragma once
 
+
 #include <array>
 #include <iostream>
 #include <cstdlib>
@@ -21,6 +22,10 @@
 #include <iomanip>
 #include <queue>
 #include <variant>
+
+namespace OpenWifi {
+    inline uint64_t Now() { return std::time(nullptr); };
+}
 
 using namespace std::chrono_literals;
 
@@ -92,8 +97,6 @@ using namespace std::chrono_literals;
 #define _OWDEBUG_ std::cout<< __FILE__ <<":" << __LINE__ << std::endl;
 // #define _OWDEBUG_ Logger().debug(Poco::format("%s: %lu",__FILE__,__LINE__));
 namespace OpenWifi {
-
-    inline uint64_t Now() { return std::time(nullptr); };
 
     enum UNAUTHORIZED_REASON {
         SUCCESS=0,
