@@ -196,7 +196,7 @@ namespace OpenWifi {
 		EndPoint E;
 		E.Done = false;
 		E.Token = Token;
-		E.TimeStamp = std::time(nullptr);
+		E.TimeStamp = OpenWifi::Now();
 		E.SerialNumber = SerialNumber;
 		E.UserName = UserName;
 		EndPoints_[Id] = E;
@@ -227,7 +227,7 @@ namespace OpenWifi {
 		if(It==EndPoints_.end()) {
 			return false;
 		}
-		uint64_t Now = std::time(nullptr);
+		uint64_t Now = OpenWifi::Now();
 		return ((It->second.Token == Token) && ((Now-It->second.TimeStamp)<30));
 	}
 
@@ -235,7 +235,7 @@ namespace OpenWifi {
 		std::lock_guard	G(M_);
 		auto It = EndPoints_.find(Id);
 		if(It!=EndPoints_.end() && It->second.Client==Conn) {
-			It->second.ClientConnected = std::time(nullptr);
+			It->second.ClientConnected = OpenWifi::Now();
 			return true;
 		}
 		return false;

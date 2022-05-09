@@ -244,7 +244,7 @@ namespace OpenWifi {
 
 			if (Select.rowsExtracted()==0) {
 				Config::Config Cfg(DeviceDetails.Configuration);
-				uint64_t Now = std::time(nullptr);
+				uint64_t Now = OpenWifi::Now();
 
 				DeviceDetails.modified = OpenWifi::Now();
 				DeviceDetails.CreationTimestamp = DeviceDetails.LastConfigurationDownload =
@@ -351,7 +351,7 @@ namespace OpenWifi {
 		D.MACAddress = Utils::SerialToMAC(SerialNumber);
 		D.Manufacturer = Caps.Model();
 		D.Firmware = Firmware;
-		D.Notes = SecurityObjects::NoteInfoVec { SecurityObjects::NoteInfo{ (uint64_t)std::time(nullptr), "", "Auto-provisioned."}};
+		D.Notes = SecurityObjects::NoteInfoVec { SecurityObjects::NoteInfo{ (uint64_t)OpenWifi::Now(), "", "Auto-provisioned."}};
 
 		CreateDeviceCapabilities(SerialNumber, Capabilities);
 
@@ -410,7 +410,7 @@ namespace OpenWifi {
 			if(TmpFirmware != Firmware) {
 				Poco::Data::Statement	Update(Sess);
 				std::string St2{"UPDATE Devices SET Firmware=?, LastFWUpdate=? WHERE SerialNumber=?"};
-				uint64_t 	Now = std::time(nullptr);
+				uint64_t 	Now = OpenWifi::Now();
 
 				Update << 	ConvertParams(St2),
 							Poco::Data::Keywords::use(Firmware),
@@ -522,7 +522,7 @@ namespace OpenWifi {
 
 			NewDeviceDetails.modified = OpenWifi::Now();
 			ConvertDeviceRecord(NewDeviceDetails,R);
-			// NewDeviceDetails.LastConfigurationChange = std::time(nullptr);
+			// NewDeviceDetails.LastConfigurationChange = OpenWifi::Now();
 			std::string St2{"UPDATE Devices SET " +
 									DB_DeviceUpdateFields +
 							" WHERE SerialNumber=?"};
@@ -645,7 +645,7 @@ namespace OpenWifi {
 	static const uint64_t SECONDS_HOUR = 60*60;
 
 	static std::string ComputeUpLastContactTag(uint64_t T1) {
-		uint64_t T = T1 - std::time(nullptr);
+		uint64_t T = T1 - OpenWifi::Now();
 		if( T>SECONDS_MONTH) return ">month";
 		if( T>SECONDS_WEEK) return ">week";
 		if( T>SECONDS_DAY) return ">day";

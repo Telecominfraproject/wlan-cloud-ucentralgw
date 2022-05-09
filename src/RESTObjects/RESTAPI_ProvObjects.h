@@ -633,7 +633,7 @@ namespace OpenWifi::ProvObjects {
         bool from_json(const Poco::JSON::Object::Ptr &Obj);
     };
 
-    struct CompleteDeviceConfiguration {
+    struct ConfigurationDetails {
         DeviceConfigurationElementVec   configuration;
         std::string                     rrm{"inherit"};
         std::string                     firmwareUpgrade{"inherit"};
@@ -671,28 +671,6 @@ namespace OpenWifi::ProvObjects {
 
     struct SubscriberDeviceList {
         std::vector<SubscriberDevice>       subscriberDevices;
-
-        void to_json(Poco::JSON::Object &Obj) const;
-        bool from_json(const Poco::JSON::Object::Ptr &Obj);
-    };
-
-    struct WebSocketNotificationContent {
-        std::string                 title,
-                                    type,
-                                    details;
-        std::vector<std::string>    success,
-                                    error,
-                                    warning;
-        uint64_t                    timeStamp=std::time(nullptr);
-
-        void to_json(Poco::JSON::Object &Obj) const;
-        bool from_json(const Poco::JSON::Object::Ptr &Obj);
-    };
-
-    struct WebSocketNotification {
-        inline static uint64_t          xid=1;
-        uint64_t                        notification_id=++xid;
-        WebSocketNotificationContent    content;
 
         void to_json(Poco::JSON::Object &Obj) const;
         bool from_json(const Poco::JSON::Object::Ptr &Obj);

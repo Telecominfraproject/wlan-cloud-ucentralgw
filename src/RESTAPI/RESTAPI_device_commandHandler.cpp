@@ -803,7 +803,7 @@ void RESTAPI_device_commandHandler::MakeRequest() {
 					.Port = MicroService::instance().ConfigGetInt("rtty.port", 5912),
 					.Token = MicroService::instance().ConfigGetString("rtty.token", "nothing"),
 					.TimeOut = MicroService::instance().ConfigGetInt("rtty.timeout", 60),
-					.ConnectionId =  MicroService::instance().CreateHash(std::to_string(std::time(nullptr))+SerialNumber_).substr(0,32),
+					.ConnectionId =  MicroService::instance().CreateHash(std::to_string(OpenWifi::Now())+SerialNumber_).substr(0,32),
 					.Started = (uint64_t)time(nullptr),
 					.CommandUUID = CommandUUID,
 					.ViewPort = MicroService::instance().ConfigGetInt("rtty.viewport", 5913),
@@ -811,7 +811,7 @@ void RESTAPI_device_commandHandler::MakeRequest() {
 				};
 
 				if(RTTYS_server()->UseInternal()) {
-					Rtty.Token = MicroService::instance().CreateHash(UserInfo_.webtoken.refresh_token_ + std::to_string(std::time(nullptr))).substr(0,32);
+					Rtty.Token = MicroService::instance().CreateHash(UserInfo_.webtoken.refresh_token_ + std::to_string(OpenWifi::Now())).substr(0,32);
 					RTTYS_server()->CreateEndPoint(Rtty.ConnectionId,Rtty.Token, UserInfo_.userinfo.email, SerialNumber_);
 				}
 

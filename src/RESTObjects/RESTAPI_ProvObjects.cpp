@@ -996,14 +996,14 @@ namespace OpenWifi::ProvObjects {
         return false;
     }
 
-    void CompleteDeviceConfiguration::to_json(Poco::JSON::Object &Obj) const {
+    void ConfigurationDetails::to_json(Poco::JSON::Object &Obj) const {
         field_to_json( Obj,"configuration", configuration);
         field_to_json( Obj,"rrm", rrm);
         field_to_json( Obj,"firmwareRCOnly", firmwareRCOnly);
         field_to_json( Obj,"firmwareUpgrade", firmwareUpgrade);
     }
 
-    bool CompleteDeviceConfiguration::from_json(const Poco::JSON::Object::Ptr &Obj) {
+    bool ConfigurationDetails::from_json(const Poco::JSON::Object::Ptr &Obj) {
         try {
             field_from_json( Obj,"configuration", configuration);
             field_from_json( Obj,"rrm", rrm);
@@ -1103,7 +1103,7 @@ namespace OpenWifi::ProvObjects {
     }
 
     bool UpdateObjectInfo(const Poco::JSON::Object::Ptr &O, const SecurityObjects::UserInfo &U, ObjectInfo &I) {
-        uint64_t Now = std::time(nullptr);
+        uint64_t Now = OpenWifi::Now();
         if(O->has("name"))
             I.name = O->get("name").toString();
 
@@ -1151,48 +1151,6 @@ namespace OpenWifi::ProvObjects {
         I.modified = I.created = OpenWifi::Now();
         I.id = MicroService::CreateUUID();
         return true;
-    }
-
-    void WebSocketNotificationContent::to_json(Poco::JSON::Object &Obj) const {
-        field_to_json(Obj,"title",title);
-        field_to_json(Obj,"type",type);
-        field_to_json(Obj,"success",success);
-        field_to_json(Obj,"error",error);
-        field_to_json(Obj,"warning",warning);
-        field_to_json(Obj,"timeStamp",timeStamp);
-        field_to_json(Obj,"details",details);
-    }
-
-    bool WebSocketNotificationContent::from_json(const Poco::JSON::Object::Ptr &Obj) {
-        try {
-            field_from_json(Obj,"title",title);
-            field_from_json(Obj,"type",type);
-            field_from_json(Obj,"success",success);
-            field_from_json(Obj,"error",error);
-            field_from_json(Obj,"warning",warning);
-            field_from_json(Obj,"timeStamp",timeStamp);
-            field_from_json(Obj,"details",details);
-            return true;
-        } catch(...) {
-
-        }
-        return false;
-    }
-
-    void WebSocketNotification::to_json(Poco::JSON::Object &Obj) const {
-        field_to_json(Obj,"notification_id",notification_id);
-        field_to_json(Obj,"content",content);
-    }
-
-    bool WebSocketNotification::from_json(const Poco::JSON::Object::Ptr &Obj) {
-        try {
-            field_from_json(Obj,"notification_id",notification_id);
-            field_from_json(Obj,"content",content);
-            return true;
-        } catch(...) {
-
-        }
-        return false;
     }
 
 }

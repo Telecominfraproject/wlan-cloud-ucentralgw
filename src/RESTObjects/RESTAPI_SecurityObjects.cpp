@@ -113,6 +113,8 @@ namespace OpenWifi::SecurityObjects {
         field_to_json(Obj,"userMustChangePassword",userMustChangePassword);
         field_to_json(Obj,"errorCode", errorCode);
 		Obj.set("aclTemplate",AclTemplateObj);
+        field_to_json(Obj,"errorCode", errorCode);
+        field_to_json(Obj,"lastRefresh", lastRefresh_);
 	}
 
 	bool WebToken::from_json(const Poco::JSON::Object::Ptr &Obj) {
@@ -129,6 +131,7 @@ namespace OpenWifi::SecurityObjects {
 			field_from_json(Obj, "created", created_);
 			field_from_json(Obj, "username", username_);
             field_from_json(Obj, "userMustChangePassword",userMustChangePassword);
+            field_from_json(Obj,"lastRefresh", lastRefresh_);
 			return true;
 		} catch (...) {
             std::cout << "Cannot parse: WebToken" << std::endl;
@@ -430,7 +433,7 @@ namespace OpenWifi::SecurityObjects {
 	            SecurityObjects::NoteInfoVec NIV;
 	            NIV = RESTAPI_utils::to_object_array<SecurityObjects::NoteInfo>(Obj->get("notes").toString());
 	            for(auto const &i:NIV) {
-	                SecurityObjects::NoteInfo   ii{.created=(uint64_t)std::time(nullptr), .createdBy=UInfo.email, .note=i.note};
+	                SecurityObjects::NoteInfo   ii{.created=(uint64_t)OpenWifi::Now(), .createdBy=UInfo.email, .note=i.note};
 	                Notes.push_back(ii);
 	            }
 	        }
@@ -443,7 +446,7 @@ namespace OpenWifi::SecurityObjects {
 
 	bool MergeNotes(const NoteInfoVec & NewNotes, const UserInfo &UInfo, NoteInfoVec & ExistingNotes) {
 	    for(auto const &i:NewNotes) {
-	        SecurityObjects::NoteInfo   ii{.created=(uint64_t)std::time(nullptr), .createdBy=UInfo.email, .note=i.note};
+	        SecurityObjects::NoteInfo   ii{.created=(uint64_t)OpenWifi::Now(), .createdBy=UInfo.email, .note=i.note};
 	        ExistingNotes.push_back(ii);
 	    }
         return true;
@@ -588,6 +591,7 @@ namespace OpenWifi::SecurityObjects {
         field_to_json(Obj,"expires",expires);
         field_to_json(Obj,"idleTimeout",idleTimeout);
         field_to_json(Obj,"revocationDate",revocationDate);
+        field_to_json(Obj,"lastRefresh", lastRefresh);
     }
 
     bool Token::from_json(const Poco::JSON::Object::Ptr &Obj) {
@@ -600,6 +604,7 @@ namespace OpenWifi::SecurityObjects {
             field_from_json(Obj,"expires",expires);
             field_from_json(Obj,"idleTimeout",idleTimeout);
             field_from_json(Obj,"revocationDate",revocationDate);
+            field_from_json(Obj,"lastRefresh", lastRefresh);
             return true;
         } catch(...) {
             std::cout << "Cannot parse: Token" << std::endl;

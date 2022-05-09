@@ -67,7 +67,7 @@ namespace OpenWifi {
 		}
 
 		D.author = UserInfo_.userinfo.email;
-		D.created = std::time(nullptr);
+		D.created = OpenWifi::Now();
 
 		if(StorageService()->AddBlackListDevice(D)) {
 			GWObjects::BlackListedDevice	CreatedDevice;

@@ -49,7 +49,7 @@ namespace OpenWifi {
 			std::string 					Token;
 			RTTYS_ClientConnection *		Client = nullptr;
 			RTTY_Device_ConnectionHandler *	Device = nullptr;
-			uint64_t 						TimeStamp = std::time(nullptr);
+			uint64_t 						TimeStamp = OpenWifi::Now();
 			uint64_t 						DeviceConnected = 0;
 			uint64_t 						ClientConnected = 0;
 			std::string 					UserName;

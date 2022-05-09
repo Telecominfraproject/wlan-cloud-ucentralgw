@@ -65,7 +65,7 @@ namespace OpenWifi {
 			return BadRequest(RESTAPI::Errors::ConfigBlockInvalid);
 		}
 
-		DefConfig.Created = DefConfig.LastModified = std::time(nullptr);
+		DefConfig.Created = DefConfig.LastModified = OpenWifi::Now();
 		if (StorageService()->CreateDefaultConfiguration(Name, DefConfig)) {
 			return OK();
 		}
@@ -95,7 +95,7 @@ namespace OpenWifi {
 			Existing.Configuration = NewConfig.Configuration;
 		}
 
-		Existing.LastModified = std::time(nullptr);
+		Existing.LastModified = OpenWifi::Now();
 		AssignIfPresent(Obj,"description",Existing.Description);
 		if(Obj->has("modelIds"))
 			Existing.Models = NewConfig.Models;

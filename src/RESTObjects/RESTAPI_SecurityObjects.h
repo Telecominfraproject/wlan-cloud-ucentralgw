@@ -41,6 +41,7 @@ namespace OpenWifi {
             uint64_t idle_timeout_=0;
             AclTemplate acl_template_;
             uint64_t created_=0;
+            uint64_t lastRefresh_=0;
 
             void to_json(Poco::JSON::Object &Obj) const;
             bool from_json(const Poco::JSON::Object::Ptr &Obj);
@@ -54,7 +55,7 @@ namespace OpenWifi {
         std::string UserTypeToString(USER_ROLE U);
 
         struct NoteInfo {
-            uint64_t    created=0; // = std::time(nullptr);
+            uint64_t    created=0; // = OpenWifi::Now();
             std::string createdBy;
             std::string note;
 
@@ -93,7 +94,7 @@ namespace OpenWifi {
             std::string uuid;
             std::string question;
             std::string method;
-            uint64_t    created = std::time(nullptr);
+            uint64_t    created = OpenWifi::Now();
 
             void to_json(Poco::JSON::Object &Obj) const;
             bool from_json(const Poco::JSON::Object::Ptr &Obj);
@@ -255,7 +256,7 @@ namespace OpenWifi {
             std::string         locale;
             std::string         message;
             uint64_t            sent=0;
-            uint64_t            created=std::time(nullptr);
+            uint64_t            created=OpenWifi::Now();
             uint64_t            expires=0;
             uint64_t            completed=0;
             uint64_t            canceled=0;
@@ -292,6 +293,7 @@ namespace OpenWifi {
             uint64_t            expires=0;
             uint64_t            idleTimeout=0;
             uint64_t            revocationDate=0;
+            uint64_t            lastRefresh=0;
 
             void to_json(Poco::JSON::Object &Obj) const;
             bool from_json(const Poco::JSON::Object::Ptr &Obj);
@@ -302,7 +304,6 @@ namespace OpenWifi {
             std::string             type;
             uint64_t                created=0;
             std::string             name;
-            // Poco::Data::LOB<char>   avatar;
             Poco::Data::BLOB        avatar;
         };
 

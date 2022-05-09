@@ -74,7 +74,7 @@ namespace OpenWifi::RESTAPI_RPC {
 														   ResultText);
 						Cmd.Results = ResultText.str();
 						Cmd.Status = "completed";
-						Cmd.Completed = std::time(nullptr);
+						Cmd.Completed = OpenWifi::Now();
 						Cmd.executionTime = rpc_execution_time.count();
 
 						if (Cmd.ErrorCode && Cmd.Command == uCentralProtocol::TRACE) {

@@ -264,7 +264,7 @@ namespace OpenWifi::GWObjects {
 		lastContact.clear();
 		associations.clear();
 		numberOfDevices = 0 ;
-		snapshot = std::time(nullptr);
+		snapshot = OpenWifi::Now();
 	}
 
 	void CapabilitiesModel::to_json(Poco::JSON::Object &Obj) const{

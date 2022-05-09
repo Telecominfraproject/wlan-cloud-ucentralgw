@@ -93,7 +93,7 @@ namespace OpenWifi {
 
 		const auto & E = Devices_[SerialNumber] = std::make_shared<ConnectionEntry>();
 		E->WSConn_ = Ptr;
-		E->Conn_.LastContact = std::time(nullptr);
+		E->Conn_.LastContact = OpenWifi::Now();
 		E->Conn_.Connected = true ;
 		E->Conn_.UUID = 0 ;
 		E->Conn_.MessageCount = 0 ;
