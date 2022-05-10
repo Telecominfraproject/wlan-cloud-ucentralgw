@@ -791,6 +791,7 @@ void RESTAPI_device_commandHandler::MakeRequest() {
 			return BadRequest(RESTAPI::Errors::DeviceNotConnected);
 		}
 
+		Logger_.information(fmt::format("RTTY: user={} serial={}. Getting configuration.", UserInfo_.userinfo.email,SerialNumber_));
 		if (MicroService::instance().ConfigGetBool("rtty.enabled", false)) {
 			GWObjects::Device	Device;
 
@@ -804,13 +805,14 @@ void RESTAPI_device_commandHandler::MakeRequest() {
 					.Token = MicroService::instance().ConfigGetString("rtty.token", "nothing"),
 					.TimeOut = MicroService::instance().ConfigGetInt("rtty.timeout", 60),
 					.ConnectionId =  MicroService::instance().CreateHash(std::to_string(OpenWifi::Now())+SerialNumber_).substr(0,32),
-					.Started = (uint64_t)time(nullptr),
+					.Started = OpenWifi::Now(),
 					.CommandUUID = CommandUUID,
 					.ViewPort = MicroService::instance().ConfigGetInt("rtty.viewport", 5913),
 					.DevicePassword = ""
 				};
 
 				if(RTTYS_server()->UseInternal()) {
+					Logger_.information(fmt::format("RTTY: user={} serial={}. Creating endpoint.", UserInfo_.userinfo.email,SerialNumber_));
 					Rtty.Token = MicroService::instance().CreateHash(UserInfo_.webtoken.refresh_token_ + std::to_string(OpenWifi::Now())).substr(0,32);
 					RTTYS_server()->CreateEndPoint(Rtty.ConnectionId,Rtty.Token, UserInfo_.userinfo.email, SerialNumber_);
 				}
@@ -840,11 +842,16 @@ void RESTAPI_device_commandHandler::MakeRequest() {
 				std::stringstream ParamStream;
 				Params.stringify(ParamStream);
 				Cmd.Details = ParamStream.str();
+
+				Logger_.information(fmt::format("RTTY: user={} serial={}. Sending RPC request.", UserInfo_.userinfo.email,SerialNumber_));
+
 				return RESTAPI_RPC::WaitForCommand(Cmd, Params, *Request, *Response, 60000ms, &ReturnedObject, this, Logger_);
 			}
+			Logger_.information(fmt::format("RTTY: user={} serial={}. Device does not exist.", UserInfo_.userinfo.email,SerialNumber_));
 			return NotFound();
 		}
-		ReturnStatus(Poco::Net::HTTPResponse::HTTP_SERVICE_UNAVAILABLE);
+		Logger_.information(fmt::format("RTTY: user={} serial={}. Internal error.", UserInfo_.userinfo.email,SerialNumber_));
+		return ReturnStatus(Poco::Net::HTTPResponse::HTTP_SERVICE_UNAVAILABLE);
 	}
 
 	void RESTAPI_device_commandHandler::Telemetry(){
