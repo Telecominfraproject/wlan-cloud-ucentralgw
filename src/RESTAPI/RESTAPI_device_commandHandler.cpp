@@ -817,9 +817,11 @@ namespace OpenWifi {
 				};
 
 				if(RTTYS_server()->UseInternal()) {
-					Logger_.information(fmt::format("RTTY: user={} serial={}. Creating endpoint.", UserInfo_.userinfo.email,SerialNumber_));
+					Logger_.information(fmt::format("RTTY: user={} serial={}. Creating hash.", UserInfo_.userinfo.email,SerialNumber_));
 					Rtty.Token = MicroService::instance().CreateHash(UserInfo_.webtoken.refresh_token_ + std::to_string(OpenWifi::Now())).substr(0,32);
+					Logger_.information(fmt::format("RTTY: user={} serial={}. Creating endpoint.", UserInfo_.userinfo.email,SerialNumber_));
 					RTTYS_server()->CreateEndPoint(Rtty.ConnectionId,Rtty.Token, UserInfo_.userinfo.email, SerialNumber_);
+					Logger_.information(fmt::format("RTTY: user={} serial={}. Created endpoint.", UserInfo_.userinfo.email,SerialNumber_));
 				}
 
 				Poco::JSON::Object ReturnedObject;
