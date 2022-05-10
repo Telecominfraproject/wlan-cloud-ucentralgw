@@ -236,6 +236,7 @@ namespace OpenWifi {
 		outBuf[3] = sid_;
 		Logger().debug(fmt::format("{}: ID:{} Logout", conn_id_, id_));
 		try {
+			loop_done_ = true;
 			socket().sendBytes(outBuf, 4);
 			return true;
 		} catch (...) {

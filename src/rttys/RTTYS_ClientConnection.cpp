@@ -73,7 +73,7 @@ namespace OpenWifi {
 	}
 
 	void RTTYS_ClientConnection::Close() {
-
+		return delete this;
 	}
 
 	void RTTYS_ClientConnection::onSocketReadable([[maybe_unused]] const Poco::AutoPtr<Poco::Net::ReadableNotification> &pNf) {

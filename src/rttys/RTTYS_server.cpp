@@ -154,6 +154,7 @@ namespace OpenWifi {
 		if(It!=EndPoints_.end() && It->second.Device==Device) {
 			It->second.Device = nullptr;
 			It->second.DeviceConnected = 0 ;
+			It->second.Client->Close();
 			return;
 		} else {
 			for(auto i=EndPoints_.begin();i!=EndPoints_.end();i++) {
