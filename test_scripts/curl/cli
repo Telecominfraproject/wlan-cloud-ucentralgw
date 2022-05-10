@@ -49,16 +49,16 @@ else
 fi
 
 login() {
-  payload="{ \"userId\" : \"$username\" , \"password\" : \"$password\" }"
-  	token=$(curl ${FLAGS} -X POST -H "Content-Type: application/json" -d "$payload" "https://${OWSEC}/api/v1/oauth2" | jq -r '.access_token')
+	payload="{ \"userId\" : \"$username\" , \"password\" : \"$password\" }"
+	token=$(curl ${FLAGS} -X POST -H "Content-Type: application/json" -d "$payload" "https://${OWSEC}/api/v1/oauth2" | jq -r '.access_token')
 
-  if [[ "${token}" == "" ]]
-  then
-  	echo "Could not login. Please verify the host and username/password."
-    exit 13
-  fi
-  echo "${token}" > token.json
-  setgateway
+	if [[ "${token}" == "" ]]
+	then
+		echo "Could not login. Please verify the host and username/password."
+		exit 13
+	fi
+	echo "${token}" > token.json
+	setgateway
 }
 
 findbrowser() {
@@ -109,9 +109,9 @@ fi
 }
 
 logout() {
-	curl  ${FLAGS} -X DELETE -H "Content-Type: application/json" \
-		-H "Authorization: Bearer ${token}" \
-		"https://${OWSEC}/api/v1/oauth2/${token}"
+	curl  ${FLAGS} -X DELETE "https://${OWSEC}/api/v1/oauth2/${token}" \
+		-H "Content-Type: application/json" \
+		-H "Authorization: Bearer ${token}"
 	rm -rf token.json
 }
 
