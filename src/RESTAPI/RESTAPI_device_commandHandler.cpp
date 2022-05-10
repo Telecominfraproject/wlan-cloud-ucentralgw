@@ -37,6 +37,7 @@ namespace OpenWifi {
 			return NotFound();
 		}
 
+		Poco::Thread::current()->setName(fmt::format("{}: {}",SerialNumber_,Command_));
 		if (Command_ == RESTAPI::Protocol::CAPABILITIES){
 			return GetCapabilities();
 		} else if (Command_ == RESTAPI::Protocol::LOGS) {
