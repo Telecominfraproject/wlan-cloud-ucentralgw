@@ -74,7 +74,7 @@ namespace OpenWifi {
 				break;
 			}
 
-			std::lock_guard		G(M_);
+//			std::lock_guard		G(M_);
 			if (socket().poll(pollError, Poco::Net::Socket::SELECT_ERROR) == true) {
 				reason=2;
 				running_=false;
