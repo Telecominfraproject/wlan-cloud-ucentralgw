@@ -94,7 +94,7 @@ namespace OpenWifi {
 	}
 
 	void RTTYS_server::Register(const std::string &Id, RTTYS_ClientConnection *Client) {
-		std::lock_guard	G(M_);
+		std::lock_guard	G(Mutex_);
 		auto It = EndPoints_.find(Id);
 		if(It!=EndPoints_.end()) {
 			It->second.Client = Client;
@@ -103,7 +103,7 @@ namespace OpenWifi {
 	}
 
 	bool RTTYS_server::SendToClient(const std::string &Id, const u_char *Buf, std::size_t Len) {
-		std::lock_guard	G(M_);
+		std::lock_guard	G(Mutex_);
 		auto It = EndPoints_.find(Id);
 		if(It!=EndPoints_.end() && It->second.Client!= nullptr) {
 			It->second.Client->SendData(Buf,Len);
@@ -113,7 +113,7 @@ namespace OpenWifi {
 	}
 
 	bool RTTYS_server::SendToClient(const std::string &Id, const std::string &s) {
-		std::lock_guard	G(M_);
+		std::lock_guard	G(Mutex_);
 		auto It = EndPoints_.find(Id);
 		if(It!=EndPoints_.end() && It->second.Client!= nullptr) {
 			It->second.Client->SendData(s);
@@ -124,7 +124,7 @@ namespace OpenWifi {
 	}
 
 	void RTTYS_server::DeRegister(const std::string &Id, RTTYS_ClientConnection *Client) {
-		std::lock_guard	G(M_);
+		std::lock_guard	G(Mutex_);
 		auto It = EndPoints_.find(Id);
 		if(It==EndPoints_.end() && It->second.Client==Client) {
 			if(It->second.Device!= nullptr) {
@@ -136,7 +136,7 @@ namespace OpenWifi {
 	}
 
 	bool RTTYS_server::Register(const std::string &Id, const std::string &Token, RTTY_Device_ConnectionHandler *Device) {
-		std::lock_guard	G(M_);
+		std::lock_guard	G(Mutex_);
 		auto It = EndPoints_.find(Id);
 		if(It!=EndPoints_.end()) {
 			It->second.Device = Device;
@@ -149,7 +149,7 @@ namespace OpenWifi {
 	}
 
 	void RTTYS_server::DeRegister(const std::string &Id, RTTY_Device_ConnectionHandler *Device) {
-		std::lock_guard	G(M_);
+		std::lock_guard	G(Mutex_);
 		auto It = EndPoints_.find(Id);
 		if(It!=EndPoints_.end() && It->second.Device==Device) {
 			It->second.Device = nullptr;
@@ -166,7 +166,7 @@ namespace OpenWifi {
 	}
 
 	bool RTTYS_server::SendKeyStrokes(const std::string &Id, const u_char *buffer, std::size_t s) {
-		std::lock_guard	G(M_);
+		std::lock_guard	G(Mutex_);
 		auto It=EndPoints_.find(Id);
 		if(It==EndPoints_.end()) {
 			return false;
@@ -178,7 +178,7 @@ namespace OpenWifi {
 	}
 
 	bool RTTYS_server::WindowSize(const std::string &Id, int cols, int rows) {
-		std::lock_guard	G(M_);
+		std::lock_guard	G(Mutex_);
 		auto It=EndPoints_.find(Id);
 		if(It==EndPoints_.end()) {
 			return false;
@@ -191,7 +191,7 @@ namespace OpenWifi {
 
 
 	bool RTTYS_server::CreateEndPoint(const std::string &Id, const std::string & Token, const std::string & UserName, const std::string & SerialNumber ) {
-		std::lock_guard	G(M_);
+		std::lock_guard	G(Mutex_);
 
 		EndPoint E;
 		E.Done = false;
@@ -204,7 +204,7 @@ namespace OpenWifi {
 	}
 
 	std::string RTTYS_server::SerialNumber(const std::string & Id) {
-		std::lock_guard	G(M_);
+		std::lock_guard	G(Mutex_);
 
 		auto It = EndPoints_.find(Id);
 		if(It==EndPoints_.end())
@@ -213,7 +213,7 @@ namespace OpenWifi {
 	}
 
 	void RTTYS_server::LoginDone(const std::string & Id) {
-		std::lock_guard	G(M_);
+		std::lock_guard	G(Mutex_);
 
 		auto It = EndPoints_.find(Id);
 		if(It==EndPoints_.end())
@@ -222,7 +222,7 @@ namespace OpenWifi {
 	}
 
 	bool RTTYS_server::ValidEndPoint(const std::string &Id, const std::string &Token) {
-		std::lock_guard	G(M_);
+		std::lock_guard	G(Mutex_);
 		auto It = EndPoints_.find(Id);
 		if(It==EndPoints_.end()) {
 			return false;
@@ -232,7 +232,7 @@ namespace OpenWifi {
 	}
 
 	bool RTTYS_server::CanConnect( const std::string &Id, RTTYS_ClientConnection *Conn) {
-		std::lock_guard	G(M_);
+		std::lock_guard	G(Mutex_);
 		auto It = EndPoints_.find(Id);
 		if(It!=EndPoints_.end() && It->second.Client==Conn) {
 			It->second.ClientConnected = OpenWifi::Now();
@@ -242,7 +242,7 @@ namespace OpenWifi {
 	}
 
 	bool RTTYS_server::IsDeviceRegistered( const std::string &Id, const std::string &Token, [[maybe_unused]] RTTY_Device_ConnectionHandler *Conn) {
-		std::lock_guard	G(M_);
+		std::lock_guard	G(Mutex_);
 
 		auto It = EndPoints_.find(Id);
 		if(It == EndPoints_.end() || It->second.Token != Token )
@@ -264,7 +264,7 @@ namespace OpenWifi {
 	}
 
 	bool RTTYS_server::Login(const std::string & Id) {
-		std::lock_guard	G(M_);
+		std::lock_guard	G(Mutex_);
 
 		auto It = EndPoints_.find(Id);
 		if(It == EndPoints_.end()) {
@@ -282,7 +282,7 @@ namespace OpenWifi {
 	}
 
 	bool RTTYS_server::Logout(const std::string & Id) {
-		std::lock_guard	G(M_);
+		std::lock_guard	G(Mutex_);
 
 		auto It = EndPoints_.find(Id);
 		if(It == EndPoints_.end()) {
@@ -294,7 +294,7 @@ namespace OpenWifi {
 	}
 
 	bool RTTYS_server::Close(const std::string & Id) {
-		std::lock_guard	G(M_);
+		std::lock_guard	G(Mutex_);
 
 		auto It = EndPoints_.find(Id);
 		if(It == EndPoints_.end()) {

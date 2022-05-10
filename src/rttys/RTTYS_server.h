@@ -62,7 +62,7 @@ namespace OpenWifi {
 		}
 
 	  private:
-		std::recursive_mutex		M_;
+		// std::recursive_mutex		M_;
 		Poco::Net::SocketReactor	ClientReactor_;
 		Poco::Thread				ClientReactorThread_;
 		std::string 				RTTY_UIAssets_;
