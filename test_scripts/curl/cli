@@ -683,12 +683,26 @@ test_service() {
 	echo "-----------------"
 	echo "Get device status"
 	echo "-----------------"
-	getdevicestatus $1
-	check_response $result_file
-	DEVICE_STATUS="$(jq -r '.connected' < $result_file)"
+	SECONDS=0
+	TIMEOUT_SECONDS=900
 
-	if [ "$DEVICE_STATUS" != true ]; then
-	    echo "Error: AP is in disconnected state"
+	while (( $SECONDS < $TIMEOUT_SECONDS )); do
+	    getdevicestatus $1
+	    check_response $result_file
+	    DEVICE_STATUS="$(jq -r '.connected' < $result_file)"
+
+	    if [ "$DEVICE_STATUS" != true ]; then
+	        echo "Waiting for AP to connect, $SECONDS elapsed"
+		sleep 10
+	    else
+	        jq < $result_file
+		break
+	    fi
+
+        done
+
+	if (( $SECONDS >= $TIMEOUT_SECONDS )); then
+	    echo "Error: timed out waiting for AP to connect"
 	    exit 1
 	fi
 
