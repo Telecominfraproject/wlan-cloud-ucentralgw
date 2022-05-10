@@ -65,15 +65,18 @@ namespace OpenWifi {
 		socket().setSendBufferSize(64000);
 		socket().setReceiveTimeout(recvTimeOut);
 
+		int reason=0;
 		while(running_) {
 
 			if(!ProcessCommands()) {
+				reason=1;
 				running_=false;
 				break;
 			}
 
 			std::lock_guard		G(M_);
 			if (socket().poll(pollError, Poco::Net::Socket::SELECT_ERROR) == true) {
+				reason=2;
 				running_=false;
 				continue;
 			}
@@ -85,6 +88,7 @@ namespace OpenWifi {
 			int received = socket().receiveBytes(inBuf_);
 			if(received<0) {
 				running_ = false;
+				reason=3;
 				continue;
 			}
 
@@ -145,9 +149,10 @@ namespace OpenWifi {
 					}
 			}
 		}
-		Logger().information(fmt::format("{}: ID:{} Exiting", conn_id_, id_));
+		Logger().information(fmt::format("{}: ID:{} Exiting. Reason:{}", conn_id_, id_, reason));
 		loop_done_=true;
 		RTTYS_server()->DeRegister(id_, this);
+		Logger().information(fmt::format("{}: ID:{} Exiting. Deregistered.", conn_id_, id_, reason));
 	}
 
 	void RTTY_Device_ConnectionHandler::Stop() {
