@@ -280,6 +280,7 @@ namespace OpenWifi::SubObjects {
         field_to_json(Obj, "ipv6", ipv6);
         field_to_json(Obj, "tx", tx);
         field_to_json(Obj, "rx", rx);
+        field_to_json(Obj, "manufacturer", manufacturer);
     }
 
     bool Association::from_json(const Poco::JSON::Object::Ptr &Obj) {
@@ -293,6 +294,7 @@ namespace OpenWifi::SubObjects {
             field_from_json(Obj, "ipv6", ipv6);
             field_from_json(Obj, "tx", tx);
             field_from_json(Obj, "rx", rx);
+            field_from_json(Obj, "manufacturer", manufacturer);
             return true;
         } catch (...) {
         }
@@ -324,6 +326,7 @@ namespace OpenWifi::SubObjects {
         field_to_json(Obj, "ipv6", ipv6);
         field_to_json(Obj, "tx", tx);
         field_to_json(Obj, "rx", rx);
+        field_to_json(Obj, "manufacturer", manufacturer);
     }
 
     bool Client::from_json(const Poco::JSON::Object::Ptr &Obj) {
@@ -335,6 +338,7 @@ namespace OpenWifi::SubObjects {
             field_from_json(Obj, "ipv6", ipv6);
             field_from_json(Obj, "tx", tx);
             field_from_json(Obj, "rx", rx);
+            field_from_json(Obj, "manufacturer", manufacturer);
             return true;
         } catch (...) {
         }
@@ -557,6 +561,40 @@ namespace OpenWifi::SubObjects {
             field_from_json(Obj, "billingAddress", billingAddress);
             field_from_json(Obj, "created", created);
             field_from_json(Obj, "modified", modified);
+            return true;
+        } catch (...) {
+        }
+        return false;
+    }
+
+    void StatsEntry::to_json(Poco::JSON::Object &Obj) const {
+        field_to_json(Obj, "timestamp", timestamp);
+        field_to_json(Obj, "tx", tx);
+        field_to_json(Obj, "rx", rx);
+    }
+
+    bool StatsEntry::from_json(const Poco::JSON::Object::Ptr &Obj) {
+        try {
+            field_from_json(Obj, "timestamp", timestamp);
+            field_from_json(Obj, "tx", tx);
+            field_from_json(Obj, "rx", rx);
+            return true;
+        } catch (...) {
+        }
+        return false;
+    }
+
+    void StatsBlock::to_json(Poco::JSON::Object &Obj) const {
+        field_to_json(Obj, "modified", modified);
+        field_to_json(Obj, "external", external);
+        field_to_json(Obj, "internal", internal);
+    }
+
+    bool StatsBlock::from_json(const Poco::JSON::Object::Ptr &Obj) {
+        try {
+            field_from_json(Obj, "modified", modified);
+            field_from_json(Obj, "external", external);
+            field_from_json(Obj, "internal", internal);
             return true;
         } catch (...) {
         }
