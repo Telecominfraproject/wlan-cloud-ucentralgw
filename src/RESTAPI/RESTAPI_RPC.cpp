@@ -51,6 +51,8 @@ namespace OpenWifi::RESTAPI_RPC {
 		std::shared_ptr<CommandManager::promise_type_t> rpc_endpoint =
 			CommandManager()->PostCommand(Cmd.SerialNumber, Cmd.Command, Params, Cmd.UUID, Sent);
 
+		Logger.information(fmt::format("{}: user={} serial={}. Sent RPC request.", Cmd.Command, Cmd.SubmittedBy, Cmd.SerialNumber));
+
 		Poco::JSON::Object	L;
 
 		if (Sent && rpc_endpoint!= nullptr) {
