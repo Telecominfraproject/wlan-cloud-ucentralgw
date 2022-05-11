@@ -14,8 +14,9 @@
 namespace OpenWifi {
 	class RTTYS_ClientConnection {
 	  public:
-		RTTYS_ClientConnection(std::unique_ptr<Poco::Net::WebSocket> WS, std::string &Id,
-							  Poco::Net::SocketReactor &Reactor, Poco::Logger &L);
+//		RTTYS_ClientConnection(std::unique_ptr<Poco::Net::WebSocket> WS, std::string &Id,
+		RTTYS_ClientConnection(Poco::Net::WebSocket & WS, std::string &Id,
+							   Poco::Net::SocketReactor &Reactor, Poco::Logger &L);
 		~RTTYS_ClientConnection();
 		void onSocketReadable(const Poco::AutoPtr<Poco::Net::ReadableNotification> &pNf);
 		void onSocketShutdown(const Poco::AutoPtr<Poco::Net::ShutdownNotification> &pNf);
@@ -27,13 +28,14 @@ namespace OpenWifi {
 		void Close();
 
 	  private:
-		std::unique_ptr<Poco::Net::WebSocket> WS_;
-		std::string 		Id_;
-		std::string 		Sid_;
+		// std::unique_ptr<Poco::Net::WebSocket> WS_;
+		Poco::Net::WebSocket 	WS_;
+		std::string 			Id_;
+		std::string 			Sid_;
 		Poco::Net::SocketReactor &SR_;
-		std::atomic_bool 	Connected_=false;
-		Poco::Logger & 		Logger_;
-		u_char 				Buffer_[16000]{0};
+		std::atomic_bool 		Connected_=false;
+		Poco::Logger & 			Logger_;
+		u_char 					Buffer_[16000]{0};
 
 		inline Poco::Logger & Logger() { return Logger_; }
 	};
