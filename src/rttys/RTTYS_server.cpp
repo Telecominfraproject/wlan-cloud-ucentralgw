@@ -95,21 +95,25 @@ namespace OpenWifi {
 
 	void RTTYS_server::Register(const std::string &Id, RTTYS_ClientConnection *Client) {
 		std::lock_guard	G(Mutex_);
+		dump("C--> ", std::cout);
 		auto It = EndPoints_.find(Id);
 		if(It!=EndPoints_.end()) {
 			It->second.Client = Client;
 			It->second.ClientConnected = OpenWifi::Now();
+			dump("C--> ", std::cout);
 		}
 	}
 
 	bool RTTYS_server::Register(const std::string &Id, const std::string &Token, RTTY_Device_ConnectionHandler *Device) {
 		std::lock_guard	G(Mutex_);
+		dump("D--> ", std::cout);
 		auto It = EndPoints_.find(Id);
 		if(It!=EndPoints_.end()) {
 			It->second.Device = Device;
 			It->second.Token = Token;
 			It->second.DeviceConnected = OpenWifi::Now();
 			Logger().information(fmt::format("Creating session: {}, device:'{}'",Id,It->second.SerialNumber));
+			dump("D--> ", std::cout);
 			return true;
 		}
 		return false;
@@ -138,6 +142,7 @@ namespace OpenWifi {
 
 	void RTTYS_server::DeRegister(const std::string &Id, RTTYS_ClientConnection *Client) {
 		std::lock_guard	G(Mutex_);
+		dump("C--> ", std::cout);
 		auto It = EndPoints_.find(Id);
 		if(It==EndPoints_.end() && It->second.Client==Client) {
 			if(!It->second.ShuttingDown && It->second.Device!= nullptr) {
@@ -147,10 +152,12 @@ namespace OpenWifi {
 			It->second.ClientConnected=0;
 			It->second.Client= nullptr;
 		}
+		dump("C--> ", std::cout);
 	}
 
 	void RTTYS_server::DeRegisterDevice(const std::string &Id, RTTY_Device_ConnectionHandler *Device) {
 		std::lock_guard	G(Mutex_);
+		dump("D--> ", std::cout);
 		auto It = EndPoints_.find(Id);
 		if(It!=EndPoints_.end() && It->second.Device==Device) {
 			It->second.Device = nullptr;
@@ -161,6 +168,7 @@ namespace OpenWifi {
 			}
 			return;
 		}
+		dump("D--> ", std::cout);
 
 		for(auto i=EndPoints_.begin();i!=EndPoints_.end();i++) {
 			if(i->second.Device == Device) {
@@ -168,6 +176,7 @@ namespace OpenWifi {
 				break;
 			}
 		}
+		dump("D--> ", std::cout);
 	}
 
 	bool RTTYS_server::SendKeyStrokes(const std::string &Id, const u_char *buffer, std::size_t s) {

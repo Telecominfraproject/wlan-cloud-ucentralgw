@@ -63,6 +63,12 @@ namespace OpenWifi {
 			return Internal_;
 		}
 
+		inline void dump(const char *ID, std::ostream &s) {
+			for(const auto &[id,point]:EndPoints_) {
+				s << ID << "  ID: " << id << "  C:" << (point.Client == nullptr) << "  D:" << (point.Device== nullptr) << std::endl;
+			}
+		}
+
 	  private:
 		// std::recursive_mutex		M_;
 		Poco::Net::SocketReactor	ClientReactor_;
