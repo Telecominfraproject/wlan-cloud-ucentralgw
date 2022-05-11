@@ -22,7 +22,7 @@ namespace OpenWifi {
 		Logger().information(fmt::format("{}: Completing.", device_address_));
 		running_ = false;
 		RTTYS_server()->DeRegister(id_, this);
-		socket().close();
+		// socket().close();
 		Logger().information(fmt::format("{}: Completed.", device_address_));
 	}
 

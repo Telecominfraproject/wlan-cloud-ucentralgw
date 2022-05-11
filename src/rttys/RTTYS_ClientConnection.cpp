@@ -66,7 +66,6 @@ namespace OpenWifi {
 				*WS_, Poco::NObserver<RTTYS_ClientConnection, Poco::Net::ErrorNotification>(
 						  *this, &RTTYS_ClientConnection::onSocketError));
 		}
-		WS_->close();
 		Logger().information(fmt::format("{}: Client disconnected.", Id_));
 	}
 
