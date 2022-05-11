@@ -14,8 +14,8 @@ namespace OpenWifi {
 	  			Id_(std::move(Id)),
 	  			SR_(Reactor),
 				Logger_(L) {
-        RTTYS_server()->Register(Id_, this);
 		if(RTTYS_server()->CanConnect(Id_,this)) {
+			RTTYS_server()->Register(Id_, this);
 			Logger().information(fmt::format("{}: Client starting connection, session: {}.", Id_, RTTYS_server()->DeviceSessionID(Id_)));
 			SR_.addEventHandler(*WS_,
 								Poco::NObserver<RTTYS_ClientConnection, Poco::Net::ReadableNotification>(

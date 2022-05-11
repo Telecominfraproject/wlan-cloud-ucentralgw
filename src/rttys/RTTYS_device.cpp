@@ -19,10 +19,10 @@ namespace OpenWifi {
 	RTTY_Device_ConnectionHandler::~RTTY_Device_ConnectionHandler() {
 		running_ = false;
 		while(!loop_done_) {
-			Poco::Thread::sleep(10);
+			Poco::Thread::sleep(100);
 		}
-		if(registered_)
-			RTTYS_server()->DeRegister(id_, this);
+		RTTYS_server()->DeRegister(id_, this);
+		socket().close();
 	}
 
 	void RTTY_Device_ConnectionHandler::AddCommand(u_char C) {
@@ -151,12 +151,10 @@ namespace OpenWifi {
 			}
 		}
 		Logger().information(fmt::format("{}: ID:{} Exiting. Reason:{}", conn_id_, id_, reason));
+//		RTTYS_server()->DeRegister(id_, this);
+//		Logger().information(fmt::format("{}: ID:{} Exiting. Deregistered.", conn_id_, id_, reason));
 		loop_done_=true;
-		if(registered_) {
-			RTTYS_server()->DeRegister(id_, this);
-			registered_ = false;
-		}
-		Logger().information(fmt::format("{}: ID:{} Exiting. Deregistered.", conn_id_, id_, reason));
+		delete this;
 	}
 
 	void RTTY_Device_ConnectionHandler::Stop() {
@@ -240,9 +238,7 @@ namespace OpenWifi {
 		outBuf[3] = sid_;
 		Logger().debug(fmt::format("{}: ID:{} Logout", conn_id_, id_));
 		try {
-			loop_done_ = true;
 			socket().sendBytes(outBuf, 4);
-			running_ = false;
 			return true;
 		} catch (...) {
 
