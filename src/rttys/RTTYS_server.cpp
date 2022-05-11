@@ -81,16 +81,38 @@ namespace OpenWifi {
 			ClientReactorThread_.start(ClientReactor_);
 		}
 
+		GCCallBack_ = std::make_unique<Poco::TimerCallback<RTTYS_server>>(*this,&RTTYS_server::onTimer);
+		Timer_.setStartInterval(10 * 1000);
+		Timer_.setPeriodicInterval(5 * 60 * 1000); // 5 minutes
+		Timer_.start(*GCCallBack_);
+
 		return 0;
 	}
 
 	void RTTYS_server::Stop() {
 		if(Internal_) {
+			Timer_.stop();
 			WebServer_->stopAll();
 			DeviceAcceptor_->stop();
 			ClientReactor_.stop();
 			ClientReactorThread_.join();
 		}
+	}
+
+	void RTTYS_server::onTimer([[maybe_unused]] Poco::Timer & timer) {
+		std::lock_guard	G(Mutex_);
+
+		auto now = OpenWifi::Now();
+		dump("GC  ", std::cout);
+		for(auto element=EndPoints_.begin();element!=EndPoints_.end();) {
+			if( element->second.ShutdownComplete ||
+				(element->second.ShuttingDown && (now-element->second.TimeStamp>60))) {
+				element = EndPoints_.erase(element);
+			} else {
+				++element;
+			}
+		}
+		dump("GC  ", std::cout);
 	}
 
 	void RTTYS_server::Register(const std::string &Id, RTTYS_ClientConnection *Client) {

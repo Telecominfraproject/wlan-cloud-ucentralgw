@@ -7,6 +7,7 @@
 #include "framework/MicroService.h"
 #include "Poco/Net/SocketReactor.h"
 #include "Poco/Net/SocketAcceptor.h"
+#include "Poco/Timer.h"
 
 namespace OpenWifi {
 
@@ -59,6 +60,7 @@ namespace OpenWifi {
 			bool 							ShutdownComplete = false;
 		};
 
+		void onTimer(Poco::Timer & timer);
 
 		inline bool UseInternal() const {
 			return Internal_;
@@ -82,6 +84,9 @@ namespace OpenWifi {
 		std::map<std::string, EndPoint> 			EndPoints_;			//	id, endpoint
 		std::unique_ptr<Poco::Net::HTTPServer>		WebServer_;
 		std::unique_ptr<Poco::Net::TCPServer>		DeviceAcceptor_;
+
+		Poco::Timer                     					Timer_;
+		std::unique_ptr<Poco::TimerCallback<RTTYS_server>>  GCCallBack_;
 
 		explicit RTTYS_server() noexcept:
 		SubSystemServer("RTTY_Server", "RTTY-SVR", "rtty.server")
