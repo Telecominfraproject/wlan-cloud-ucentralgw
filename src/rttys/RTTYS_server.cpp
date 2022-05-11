@@ -149,7 +149,7 @@ namespace OpenWifi {
 		}
 	}
 
-	void RTTYS_server::DeRegister(const std::string &Id, RTTY_Device_ConnectionHandler *Device) {
+	void RTTYS_server::DeRegisterDevice(const std::string &Id, RTTY_Device_ConnectionHandler *Device) {
 		std::lock_guard	G(Mutex_);
 		auto It = EndPoints_.find(Id);
 		if(It!=EndPoints_.end() && It->second.Device==Device) {
