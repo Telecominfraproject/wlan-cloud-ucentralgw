@@ -13,6 +13,8 @@ namespace OpenWifi {
 	RTTY_Device_ConnectionHandler::RTTY_Device_ConnectionHandler(const Poco::Net::StreamSocket & socket) :
 		Poco::Net::TCPServerConnection(socket),
 		Logger_(RTTYS_server()->Logger()) {
+		device_address_ = socket.address().toString();
+		Logger().information(fmt::format("{}: Started.", device_address_));
 		conn_id_ = global_device_connection_id++;
 	}
 
@@ -20,7 +22,7 @@ namespace OpenWifi {
 		running_ = false;
 		RTTYS_server()->DeRegister(id_, this);
 		socket().close();
-		Logger().information(fmt::format("{}: completed."));
+		Logger().information(fmt::format("{}: Completed.", device_address_));
 	}
 
 	void RTTY_Device_ConnectionHandler::AddCommand(u_char C) {
