@@ -151,16 +151,17 @@ namespace OpenWifi {
 	}
 
 	void RTTYS_ClientConnection::onSocketShutdown([[maybe_unused]] const Poco::AutoPtr<Poco::Net::ShutdownNotification> &pNf) {
-		RTTYS_server()->Close(Id_);
+//		RTTYS_server()->Close(Id_);
 		delete this;
 	}
 
 	void RTTYS_ClientConnection::onSocketError([[maybe_unused]] const Poco::AutoPtr<Poco::Net::ErrorNotification> &pNf) {
-		RTTYS_server()->Close(Id_);
+//		RTTYS_server()->Close(Id_);
 		delete this;
 	}
 
 	void RTTYS_ClientConnection::onIdle([[maybe_unused]] const Poco::AutoPtr<Poco::Net::IdleNotification> &pNf) {
+		std::cout << "onIdle..." << std::endl;
 		if(CloseConnection_)
 			delete this;
 	}
