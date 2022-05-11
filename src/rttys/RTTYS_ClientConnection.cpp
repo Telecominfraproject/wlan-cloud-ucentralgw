@@ -53,8 +53,8 @@ namespace OpenWifi {
 	}
 
 	RTTYS_ClientConnection::~RTTYS_ClientConnection() {
-		RTTYS_server()->DeRegister(Id_, this);
 		Logger().information(fmt::format("{}: Client disconnecting.", Id_));
+		RTTYS_server()->DeRegister(Id_, this);
 		if(Connected_) {
 			SR_.removeEventHandler(
 				*WS_, Poco::NObserver<RTTYS_ClientConnection, Poco::Net::ReadableNotification>(
@@ -67,6 +67,7 @@ namespace OpenWifi {
 						  *this, &RTTYS_ClientConnection::onSocketError));
 		}
 		WS_->close();
+		Logger().information(fmt::format("{}: Client disconnected.", Id_));
 	}
 
 	void RTTYS_ClientConnection::Close() {
