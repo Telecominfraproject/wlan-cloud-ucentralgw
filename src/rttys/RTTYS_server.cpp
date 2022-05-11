@@ -154,6 +154,12 @@ namespace OpenWifi {
 				} else {
 					It->second.ShutdownComplete = true;
 				}
+			} else {
+				if(!It->second.ShuttingDown) {
+					It->second.ShuttingDown = true;
+				} else {
+					It->second.ShutdownComplete = true;
+				}
 			}
 			It->second.ClientConnected=0;
 			It->second.Client= nullptr;
@@ -173,7 +179,13 @@ namespace OpenWifi {
 					It->second.ShuttingDown = true;
 					It->second.Client->Close();
 				} else {
-					It->second.ShutdownComplete;
+					It->second.ShutdownComplete = true;
+				}
+			} else {
+				if(!It->second.ShuttingDown) {
+					It->second.ShuttingDown = true;
+				} else {
+					It->second.ShutdownComplete = true;
 				}
 			}
 			return;
