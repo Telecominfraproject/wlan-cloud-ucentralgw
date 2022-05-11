@@ -66,7 +66,7 @@ namespace OpenWifi {
 			return Internal_;
 		}
 
-		inline void dump(const char *ID, std::ostream &s) {
+		inline void dump([[maybe_unused]] const char *ID, [[maybe_unused]] std::ostream &s) {
 /*			for(const auto &[id,point]:EndPoints_) {
 				s << ID << "  ID: " << id << "  C:" << (point.Client == nullptr) << "  D:" << (point.Device== nullptr)
 				  << " Shutting down: " << point.ShuttingDown
