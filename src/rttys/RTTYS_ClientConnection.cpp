@@ -64,6 +64,7 @@ namespace OpenWifi {
 		Logger().information(fmt::format("{}: Client disconnecting.", Id_));
 		RTTYS_server()->DeRegister(Id_, this);
 		if(Connected_) {
+			std::cout << "Removing handlers for WS-RTTY" << std::endl;
 			SR_.removeEventHandler(
 				*WS_, Poco::NObserver<RTTYS_ClientConnection, Poco::Net::ReadableNotification>(
 						 *this, &RTTYS_ClientConnection::onSocketReadable));
