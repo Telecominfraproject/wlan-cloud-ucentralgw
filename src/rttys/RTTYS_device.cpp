@@ -158,7 +158,7 @@ namespace OpenWifi {
 	}
 
 	void RTTY_Device_ConnectionHandler::Stop() {
-		running_ = true;
+		running_ = false;
 	}
 
 	void RTTY_Device_ConnectionHandler::SendToClient(const u_char *Buf, int Len) {
