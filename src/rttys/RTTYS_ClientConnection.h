@@ -28,7 +28,7 @@ namespace OpenWifi {
 		void Close();
 
 	  private:
-		std::unique_ptr<Poco::Net::WebSocket> WS_;
+		Poco::Net::WebSocket	*WS_= nullptr;
 		std::string 			Id_;
 		std::string 			Sid_;
 		Poco::Net::SocketReactor &SR_;
