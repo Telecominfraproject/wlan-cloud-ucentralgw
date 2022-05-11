@@ -188,17 +188,18 @@ namespace OpenWifi {
 					It->second.ShutdownComplete = true;
 				}
 			}
-			return;
 		}
-		dump("D DEREG--> ", std::cout);
 
-		for(auto i=EndPoints_.begin();i!=EndPoints_.end();i++) {
-			if(i->second.Device == Device) {
-				EndPoints_.erase(i);
-				break;
-			}
-		}
 		dump("D DEREG--> ", std::cout);
+		if(Device!= nullptr) {
+			for (auto i = EndPoints_.begin(); i != EndPoints_.end(); i++) {
+				if (i->second.Device == Device) {
+					EndPoints_.erase(i);
+					break;
+				}
+			}
+			dump("D DEREG--> ", std::cout);
+		}
 	}
 
 	bool RTTYS_server::SendKeyStrokes(const std::string &Id, const u_char *buffer, std::size_t s) {
