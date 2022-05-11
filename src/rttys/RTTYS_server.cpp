@@ -146,7 +146,7 @@ namespace OpenWifi {
 		std::lock_guard	G(Mutex_);
 		dump("C DEREG--> ", std::cout);
 		auto It = EndPoints_.find(Id);
-		if(It==EndPoints_.end() && It->second.Client==Client) {
+		if(It!=EndPoints_.end() && It->second.Client==Client) {
 			if(!It->second.ShuttingDown && It->second.Device!= nullptr) {
 				It->second.ShuttingDown = true;
 				It->second.Device->Stop();
