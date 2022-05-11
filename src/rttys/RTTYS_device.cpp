@@ -18,9 +18,6 @@ namespace OpenWifi {
 
 	RTTY_Device_ConnectionHandler::~RTTY_Device_ConnectionHandler() {
 		running_ = false;
-		while(!loop_done_) {
-			Poco::Thread::sleep(100);
-		}
 		RTTYS_server()->DeRegister(id_, this);
 		socket().close();
 	}
@@ -154,7 +151,6 @@ namespace OpenWifi {
 //		RTTYS_server()->DeRegister(id_, this);
 //		Logger().information(fmt::format("{}: ID:{} Exiting. Deregistered.", conn_id_, id_, reason));
 		loop_done_=true;
-		delete this;
 	}
 
 	void RTTY_Device_ConnectionHandler::Stop() {
