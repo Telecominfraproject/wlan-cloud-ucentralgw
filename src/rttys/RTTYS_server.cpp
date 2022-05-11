@@ -147,9 +147,13 @@ namespace OpenWifi {
 		dump("C DEREG--> ", std::cout);
 		auto It = EndPoints_.find(Id);
 		if(It!=EndPoints_.end() && It->second.Client==Client) {
-			if(!It->second.ShuttingDown && It->second.Device!= nullptr) {
-				It->second.ShuttingDown = true;
-				It->second.Device->Stop();
+			if(It->second.Device!= nullptr) {
+				if(!It->second.ShuttingDown) {
+					It->second.ShuttingDown = true;
+					It->second.Device->Stop();
+				} else {
+					It->second.ShutdownComplete = true;
+				}
 			}
 			It->second.ClientConnected=0;
 			It->second.Client= nullptr;
@@ -164,9 +168,13 @@ namespace OpenWifi {
 		if(It!=EndPoints_.end() && It->second.Device==Device) {
 			It->second.Device = nullptr;
 			It->second.DeviceConnected = 0 ;
-			if(!It->second.ShuttingDown && It->second.Client!=nullptr) {
-				It->second.ShuttingDown = true;
-				It->second.Client->Close();
+			if(It->second.Client!=nullptr) {
+				if(!It->second.ShuttingDown) {
+					It->second.ShuttingDown = true;
+					It->second.Client->Close();
+				} else {
+					It->second.ShutdownComplete;
+				}
 			}
 			return;
 		}

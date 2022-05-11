@@ -56,6 +56,7 @@ namespace OpenWifi {
 			std::string 					UserName;
 			std::string 					SerialNumber;
 			bool 							ShuttingDown = false;
+			bool 							ShutdownComplete = false;
 		};
 
 
@@ -65,7 +66,9 @@ namespace OpenWifi {
 
 		inline void dump(const char *ID, std::ostream &s) {
 			for(const auto &[id,point]:EndPoints_) {
-				s << ID << "  ID: " << id << "  C:" << (point.Client == nullptr) << "  D:" << (point.Device== nullptr) << std::endl;
+				s << ID << "  ID: " << id << "  C:" << (point.Client == nullptr) << "  D:" << (point.Device== nullptr)
+				  << " Shutting down: " << point.ShuttingDown
+				  << " Shutdown: " << point.ShutdownComplete << std::endl;
 			}
 		}
 
