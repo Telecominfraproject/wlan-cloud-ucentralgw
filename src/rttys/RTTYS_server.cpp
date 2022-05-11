@@ -102,6 +102,19 @@ namespace OpenWifi {
 		}
 	}
 
+	bool RTTYS_server::Register(const std::string &Id, const std::string &Token, RTTY_Device_ConnectionHandler *Device) {
+		std::lock_guard	G(Mutex_);
+		auto It = EndPoints_.find(Id);
+		if(It!=EndPoints_.end()) {
+			It->second.Device = Device;
+			It->second.Token = Token;
+			It->second.DeviceConnected = OpenWifi::Now();
+			Logger().information(fmt::format("Creating session: {}, device:'{}'",Id,It->second.SerialNumber));
+			return true;
+		}
+		return false;
+	}
+
 	bool RTTYS_server::SendToClient(const std::string &Id, const u_char *Buf, std::size_t Len) {
 		std::lock_guard	G(Mutex_);
 		auto It = EndPoints_.find(Id);
@@ -127,25 +140,13 @@ namespace OpenWifi {
 		std::lock_guard	G(Mutex_);
 		auto It = EndPoints_.find(Id);
 		if(It==EndPoints_.end() && It->second.Client==Client) {
-			if(It->second.Device!= nullptr) {
+			if(!It->second.ShuttingDown && It->second.Device!= nullptr) {
+				It->second.ShuttingDown = true;
 				It->second.Device->Stop();
 			}
 			It->second.ClientConnected=0;
 			It->second.Client= nullptr;
 		}
-	}
-
-	bool RTTYS_server::Register(const std::string &Id, const std::string &Token, RTTY_Device_ConnectionHandler *Device) {
-		std::lock_guard	G(Mutex_);
-		auto It = EndPoints_.find(Id);
-		if(It!=EndPoints_.end()) {
-			It->second.Device = Device;
-			It->second.Token = Token;
-			It->second.DeviceConnected = OpenWifi::Now();
-			Logger().information(fmt::format("Creating session: {}, device:'{}'",Id,It->second.SerialNumber));
-			return true;
-		}
-		return false;
 	}
 
 	void RTTYS_server::DeRegister(const std::string &Id, RTTY_Device_ConnectionHandler *Device) {
@@ -154,15 +155,17 @@ namespace OpenWifi {
 		if(It!=EndPoints_.end() && It->second.Device==Device) {
 			It->second.Device = nullptr;
 			It->second.DeviceConnected = 0 ;
-			if(It->second.Client)
+			if(!It->second.ShuttingDown && It->second.Client!=nullptr) {
+				It->second.ShuttingDown = true;
 				It->second.Client->Close();
+			}
 			return;
-		} else {
-			for(auto i=EndPoints_.begin();i!=EndPoints_.end();i++) {
-				if(i->second.Device == Device) {
-					EndPoints_.erase(i);
-					break;
-				}
+		}
+
+		for(auto i=EndPoints_.begin();i!=EndPoints_.end();i++) {
+			if(i->second.Device == Device) {
+				EndPoints_.erase(i);
+				break;
 			}
 		}
 	}
@@ -196,7 +199,7 @@ namespace OpenWifi {
 		std::lock_guard	G(Mutex_);
 
 		EndPoint E;
-		E.Done = false;
+		E.ShuttingDown = false;
 		E.Token = Token;
 		E.TimeStamp = OpenWifi::Now();
 		E.SerialNumber = SerialNumber;
@@ -212,6 +215,11 @@ namespace OpenWifi {
 		if(It==EndPoints_.end())
 			return "";
 		return It->second.SerialNumber;
+	}
+
+	bool RTTYS_server::ValidId(const std::string &Token) {
+		std::lock_guard	G(Mutex_);
+		return EndPoints_.find(Token) != EndPoints_.end();
 	}
 
 	void RTTYS_server::LoginDone(const std::string & Id) {

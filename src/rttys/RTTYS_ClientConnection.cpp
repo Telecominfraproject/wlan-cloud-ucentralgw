@@ -19,51 +19,45 @@ namespace OpenWifi {
 
 		WS_ = new Poco::Net::WebSocket(Request, Response);
 		RTTYS_server()->Register(Id_, this);
-		if (RTTYS_server()->CanConnect(Id_, this)) {
-			Logger().information(fmt::format("{}: Client starting connection, session: {}.",
-											 Id_, RTTYS_server()->DeviceSessionID(Id_)));
-			SR_.addEventHandler(
-				*WS_, Poco::NObserver<RTTYS_ClientConnection, Poco::Net::ReadableNotification>(
-						  *this, &RTTYS_ClientConnection::onSocketReadable));
-			SR_.addEventHandler(
-				*WS_, Poco::NObserver<RTTYS_ClientConnection, Poco::Net::ShutdownNotification>(
-						  *this, &RTTYS_ClientConnection::onSocketShutdown));
-			SR_.addEventHandler(
-				*WS_, Poco::NObserver<RTTYS_ClientConnection, Poco::Net::ErrorNotification>(
-						  *this, &RTTYS_ClientConnection::onSocketError));
-			SR_.addEventHandler(
-				*WS_, Poco::NObserver<RTTYS_ClientConnection, Poco::Net::IdleNotification>(
-						  *this, &RTTYS_ClientConnection::onIdle));
+		Logger().information(fmt::format("{}: Client starting connection, session: {}.",
+										 Id_, RTTYS_server()->DeviceSessionID(Id_)));
+		SR_.addEventHandler(
+			*WS_, Poco::NObserver<RTTYS_ClientConnection, Poco::Net::ReadableNotification>(
+					  *this, &RTTYS_ClientConnection::onSocketReadable));
+		SR_.addEventHandler(
+			*WS_, Poco::NObserver<RTTYS_ClientConnection, Poco::Net::ShutdownNotification>(
+					  *this, &RTTYS_ClientConnection::onSocketShutdown));
+		SR_.addEventHandler(
+			*WS_, Poco::NObserver<RTTYS_ClientConnection, Poco::Net::ErrorNotification>(
+					  *this, &RTTYS_ClientConnection::onSocketError));
+		SR_.addEventHandler(
+			*WS_, Poco::NObserver<RTTYS_ClientConnection, Poco::Net::IdleNotification>(
+					  *this, &RTTYS_ClientConnection::onIdle));
 
-			auto DoLogin = [this]() -> void {
-				int tries = 0;
-				while (tries < 20) {
-					if (RTTYS_server()->Login(this->Id_)) {
-						Logger().information(
-							fmt::format("{}: Client connected to device, session: {}.", Id_,
-										RTTYS_server()->DeviceSessionID(Id_)));
-						this->Connected_ = true;
-						return;
-					}
-					std::this_thread::sleep_for(2000ms);
-					tries++;
-					Logger().information(fmt::format(
-						"{}: Waiting for device to connect to start session. (try={})", Id_,
-						tries));
+		auto DoLogin = [this]() -> void {
+			int tries = 0;
+			while (tries < 20) {
+				if (RTTYS_server()->Login(this->Id_)) {
+					Logger().information(
+						fmt::format("{}: Client connected to device, session: {}.", Id_,
+									RTTYS_server()->DeviceSessionID(Id_)));
+					this->Connected_ = true;
+					return;
 				}
-				Logger().information(
-					fmt::format("{}: Client could not connect to device, session: {}.", Id_,
-								RTTYS_server()->DeviceSessionID(Id_)));
-				delete this;
-			};
-
-			std::thread CompleteConnection(DoLogin);
-			CompleteConnection.detach();
-		} else {
-			Logger().information(fmt::format("{}: Client cannot be connected.", Id_));
-			RTTYS_server()->DeRegister(Id_, this);
+				std::this_thread::sleep_for(2000ms);
+				tries++;
+				Logger().information(fmt::format(
+					"{}: Waiting for device to connect to start session. (try={})", Id_,
+					tries));
+			}
+			Logger().information(
+				fmt::format("{}: Client could not connect to device, session: {}.", Id_,
+							RTTYS_server()->DeviceSessionID(Id_)));
 			delete this;
-		}
+		};
+
+		std::thread CompleteConnection(DoLogin);
+		CompleteConnection.detach();
 	}
 
 	RTTYS_ClientConnection::~RTTYS_ClientConnection() {

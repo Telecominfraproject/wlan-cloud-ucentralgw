@@ -22,6 +22,13 @@ namespace OpenWifi {
 			return;
 		if (T[1] != "connect")
 			return;
+
+		if(!RTTYS_server()->ValidId(T[2])) {
+			response.setStatus(Poco::Net::HTTPResponse::HTTP_NOT_FOUND);
+			response.send();
+			return;
+		}
+
 		try {
 			Poco::Thread::current()->setName(fmt::format("WebRTTYRequest_WSHandler_{}", T[2]));
 			new RTTYS_ClientConnection(request, response, T[2], R_, Logger_);
