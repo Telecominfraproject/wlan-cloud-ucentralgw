@@ -281,8 +281,6 @@ namespace OpenWifi {
 			if(socket().sendBytes(OutBuf, 7) !=7) {
 				Logger().debug(fmt::format("{}: ID:{} Serial:{} Description:{} Could not complete registration", conn_id_, id_, serial_, desc_));
 				running_ = false;
-			} else {
-				registered_ = true;
 			}
 		} else {
 			Logger().debug(fmt::format("{}: ID:{} Serial:{} Description:{} Could not complete registration", conn_id_, id_, serial_, desc_));
