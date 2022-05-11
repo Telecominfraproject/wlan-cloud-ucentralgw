@@ -20,6 +20,7 @@ namespace OpenWifi {
 		running_ = false;
 		RTTYS_server()->DeRegister(id_, this);
 		socket().close();
+		Logger().information(fmt::format("{}: completed."));
 	}
 
 	void RTTY_Device_ConnectionHandler::AddCommand(u_char C) {
