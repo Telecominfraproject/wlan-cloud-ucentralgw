@@ -67,11 +67,12 @@ namespace OpenWifi {
 		}
 
 		inline void dump(const char *ID, std::ostream &s) {
-			for(const auto &[id,point]:EndPoints_) {
+/*			for(const auto &[id,point]:EndPoints_) {
 				s << ID << "  ID: " << id << "  C:" << (point.Client == nullptr) << "  D:" << (point.Device== nullptr)
 				  << " Shutting down: " << point.ShuttingDown
 				  << " Shutdown: " << point.ShutdownComplete << std::endl;
 			}
+*/
 		}
 
 	  private:

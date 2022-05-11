@@ -100,9 +100,8 @@ namespace OpenWifi {
 	}
 
 	void RTTYS_server::onTimer([[maybe_unused]] Poco::Timer & timer) {
-		std::cout << "Timer" << std::endl;
+		Logger().debug("Removing stale RTTY connection information.");
 		std::lock_guard	G(Mutex_);
-
 		auto now = OpenWifi::Now();
 		dump("GC  ", std::cout);
 		for(auto element=EndPoints_.begin();element!=EndPoints_.end();) {
