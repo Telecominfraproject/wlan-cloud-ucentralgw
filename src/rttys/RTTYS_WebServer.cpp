@@ -25,6 +25,7 @@ namespace OpenWifi {
 		try {
 			Poco::Thread::current()->setName(fmt::format("WebRTTYRequest_WSHandler_{}", T[2]));
 			new RTTYS_ClientConnection(request, response, T[2], R_, Logger_);
+			Logger_.information("Websocket has finished");
 		} catch (...) {
 			Logger_.warning("Exception during WS creation");
 		}
