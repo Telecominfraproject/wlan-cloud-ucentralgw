@@ -635,13 +635,16 @@ The device should answer:
 }
 ```
 
-#### Controller wants the device to send a debug frame
-Controller sends this command upon request from the administrator who is trying to troubleshoot issues in the AP.
+#### Controller wants the device to perform a script
+Controller sends this command to run a predefined script. Extreme care must be taken.
 ```
 {    "jsonrpc" : "2.0" , 
-     "method" : "debug" , 
+     "method" : "script" , 
      "params" : {
-        "serial" : <serial number>
+        "serial" : <serial number>,
+	"type" : <one of "uci", "shell", "ucode">,
+	"content" : <text blob containing the script>,
+	"timeout" : <max timeout in seconds, default is 30>
      },
      "id" : <some number>
 }
@@ -653,8 +656,12 @@ The device should answer:
       "result" : {
           "serial" : <serial number> ,
           "status" : {
-            "error" : 0 or an error number,
-            "debug_frame" : <a JSON document detailing the debug information> 
+            "error" : <0 or the value of $? from the shell running the command>,
+	    one of either
+	    	"result_64" : <gzipped base64 result of running the command>,
+	    	"result_sz" : <size of unzipped content>
+	    or 
+	    	"result" : <a single text blob of the result>
           }
       },
   "id" : <same number>
