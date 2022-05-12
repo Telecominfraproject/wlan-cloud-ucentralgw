@@ -639,6 +639,16 @@ telemetry() {
 	fi
 }
 
+telemetry_to_kafka() {
+	payload="$(printf '{ "serialNumber": "%s", "interval": 2, "kafka": true, "lifetime": %d, "types": [ "dhcp-snooping", "state", "wifi-frames" ] }' "$1" "$2")"
+	curl  ${FLAGS} -X POST "https://${OWGW}/api/v1/device/$1/telemetry" \
+		-H "Content-Type: application/json" \
+		-H "Accept: application/json" \
+		-H "Authorization: Bearer ${token}" \
+		-d "$payload"  > ${result_file}
+	jq < ${result_file}
+}
+
 caplist() {
 	curl    ${FLAGS} -X GET "https://${OWGW}/api/v1/capabilities" \
 		-H "Content-Type: application/json" \
@@ -906,6 +916,7 @@ case "$1" in
   "systeminfo") login; systeminfo ; logout;;
   "ouilookup") login; ouilookup "$2"; logout;;
   "telemetry") login; telemetry "$2"; logout;;
+  "telemetry_to_kafka") login; telemetry_to_kafka "$2" "$3"; logout;;
   "dashboard") login; dashboard ; logout;;
   "addnote") login; addnote "$2" "$3"; logout;;
   "ldevs") login; ldevs  "$2" "$3"; logout ;;
