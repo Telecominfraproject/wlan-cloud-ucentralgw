@@ -236,8 +236,12 @@ namespace OpenWifi {
 
 	void RESTAPI_device_commandHandler::Script() {
 		Logger_.information(fmt::format("SCRIPT: user={} serial={}", UserInfo_.userinfo.email,SerialNumber_));
-		const auto &Obj = ParsedBody_;
 
+		if(!Internal_ && UserInfo_.userinfo.userRole!=SecurityObjects::ROOT) {
+			return UnAuthorized(RESTAPI::Errors::ACCESS_DENIED);
+		}
+
+		const auto &Obj = ParsedBody_;
 		GWObjects::ScriptRequest	SCR;
 		if(!SCR.from_json(Obj)) {
 			return BadRequest(RESTAPI::Errors::InvalidJSONDocument);
