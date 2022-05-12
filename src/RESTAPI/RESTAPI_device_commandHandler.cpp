@@ -107,6 +107,8 @@ namespace OpenWifi {
 			return LEDs();
 		} else if (Command_ == RESTAPI::Protocol::TRACE) {
 			return Trace();
+		} else if (Command_ == RESTAPI::Protocol::LOGDUMP) {
+			return LogDump();
 		} else if (Command_ == RESTAPI::Protocol::REQUEST) {
 			return MakeRequest();
 		} else if (Command_ == RESTAPI::Protocol::WIFISCAN) {
@@ -681,6 +683,49 @@ namespace OpenWifi {
 		}
 		BadRequest(RESTAPI::Errors::MissingOrInvalidParameters);
 	}
+
+void RESTAPI_device_commandHandler::LogDump() {
+	Logger_.information(fmt::format("LOGDUMP: user={} serial={}", UserInfo_.userinfo.email,SerialNumber_));
+	const auto &Obj = ParsedBody_;
+
+	if      (Obj->has(RESTAPI::Protocol::SERIALNUMBER)) {
+
+		auto SNum = Obj->get(RESTAPI::Protocol::SERIALNUMBER).toString();
+		if (SerialNumber_ != SNum) {
+			return BadRequest(RESTAPI::Errors::SerialNumberMismatch);
+		}
+
+		if(!DeviceRegistry()->Connected(SerialNumber_)) {
+			return BadRequest(RESTAPI::Errors::DeviceNotConnected);
+		}
+
+		auto UUID = MicroService::CreateUUID();
+		auto URI = FileUploader()->FullName() + UUID;
+
+		GWObjects::CommandDetails Cmd;
+		Cmd.SerialNumber = SerialNumber_;
+		Cmd.UUID = UUID;
+		Cmd.SubmittedBy = UserInfo_.webtoken.username_;
+		Cmd.Command = uCentralProtocol::LOGDUMP;
+		Cmd.RunAt = 0;
+		Cmd.WaitingForFile = 1;
+		Cmd.AttachType = RESTAPI::Protocol::TAR_GZ_FILE_TYPE;
+
+		Poco::JSON::Object Params;
+
+		Params.set(uCentralProtocol::SERIAL, SerialNumber_);
+		Params.set(uCentralProtocol::WHEN, 0);
+		Params.set(uCentralProtocol::URI, URI);
+
+		std::stringstream ParamStream;
+		Params.stringify(ParamStream);
+		Cmd.Details = ParamStream.str();
+
+		FileUploader()->AddUUID(UUID);
+		return RESTAPI_RPC::WaitForCommand(Cmd, Params, *Request, *Response, 60000ms, nullptr, this, Logger_);
+	}
+	BadRequest(RESTAPI::Errors::MissingOrInvalidParameters);
+}
 
 	void RESTAPI_device_commandHandler::WifiScan() {
 		Logger_.information(fmt::format("WIFISCAN: user={} serial={}", UserInfo_.userinfo.email,SerialNumber_));

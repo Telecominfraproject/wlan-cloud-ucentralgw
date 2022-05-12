@@ -39,6 +39,7 @@ namespace OpenWifi {
 		void Factory();
 		void LEDs();
 		void Trace();
+		void LogDump();
 		void MakeRequest();
 		void WifiScan();
 		void EventQueue();

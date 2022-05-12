@@ -206,6 +206,7 @@ namespace OpenWifi::RESTAPI::Protocol {
 	static const char * FACTORY = "factory";
 	static const char * LEDS = "leds";
 	static const char * TRACE = "trace";
+	static const char * LOGDUMP = "logdump";
 	static const char * REQUEST = "request";
 	static const char * WIFISCAN = "wifiscan";
 	static const char * EVENTQUEUE = "eventqueue";
@@ -235,6 +236,7 @@ namespace OpenWifi::RESTAPI::Protocol {
 	static const char * STATE = "state";
 	static const char * HEALTHCHECK = "healthcheck";
 	static const char * PCAP_FILE_TYPE = "pcap";
+	static const char * TAR_GZ_FILE_TYPE = "tar.gz";
 	static const char * DURATION = "duration";
 	static const char * NUMBEROFPACKETS = "numberOfPackets";
 	static const char * FILTER = "filter";
@@ -385,6 +387,7 @@ namespace OpenWifi::uCentralProtocol {
     static const char *NETWORK = "network";
     static const char *INTERFACE = "interface";
     static const char *TRACE = "trace";
+    static const char *LOGDUMP = "logdump";
     static const char *WIFISCAN = "wifiscan";
     static const char *TYPES = "types";
     static const char *EVENT = "event";
