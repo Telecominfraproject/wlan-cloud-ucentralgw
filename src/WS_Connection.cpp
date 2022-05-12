@@ -717,24 +717,35 @@ namespace OpenWifi {
 					Payload->set("timestamp", OpenWifi::Now());
 					std::ostringstream SS;
 					Payload->stringify(SS);
+					auto now=OpenWifi::Now();
 					if (TelemetryWebSocketRefCount_) {
-						// std::cout << SerialNumber_ << ": Updating WebSocket telemetry" << std::endl;
-						TelemetryWebSocketPackets_++;
-						Conn_->Conn_.websocketPackets = TelemetryWebSocketPackets_;
-						TelemetryStream()->UpdateEndPoint(SerialNumberInt_, SS.str());
+						if(now<TelemetryWebSocketTimer_) {
+							// std::cout << SerialNumber_ << ": Updating WebSocket telemetry" << std::endl;
+							TelemetryWebSocketPackets_++;
+							Conn_->Conn_.websocketPackets = TelemetryWebSocketPackets_;
+							TelemetryStream()->UpdateEndPoint(SerialNumberInt_, SS.str());
+						} else {
+							StopWebSocketTelemetry();
+						}
 					}
-					if (TelemetryKafkaRefCount_ && KafkaManager()->Enabled()) {
-						// std::cout << SerialNumber_ << ": Updating Kafka telemetry" << std::endl;
-						TelemetryKafkaPackets_++;
-						Conn_->Conn_.kafkaPackets = TelemetryKafkaPackets_;
-						KafkaManager()->PostMessage(KafkaTopics::DEVICE_TELEMETRY, SerialNumber_,
-													SS.str());
+					if (TelemetryKafkaRefCount_) {
+						if(KafkaManager()->Enabled() && now<TelemetryKafkaTimer_) {
+							// std::cout << SerialNumber_ << ": Updating Kafka telemetry" << std::endl;
+							TelemetryKafkaPackets_++;
+							Conn_->Conn_.kafkaPackets = TelemetryKafkaPackets_;
+							KafkaManager()->PostMessage(KafkaTopics::DEVICE_TELEMETRY, SerialNumber_,
+														SS.str());
+						} else {
+							StopKafkaTelemetry();
+						}
 					}
 				} else {
 					std::cout << SerialNumber_ << ": Invalid telemetry" << std::endl;
 				}
 			} else {
-				std::cout << SerialNumber_ << ":Ignoring telemetry" << std::endl;
+				// if we are ignoting telemetry, then close it down on the device.
+				std::cout << SerialNumber_ << ": Ignoring telemetry" << std::endl;
+				StopTelemetry();
 			}
 		} break;
 
@@ -798,10 +809,11 @@ namespace OpenWifi {
 	}
 
 	bool WSConnection::SetWebSocketTelemetryReporting(uint64_t Interval,
-													  uint64_t TelemetryWebSocketTimer) {
+													  uint64_t LifeTime) {
 		std::lock_guard G(Mutex_);
 		TelemetryWebSocketRefCount_++;
 		TelemetryInterval_ = TelemetryInterval_ ? std::min(Interval, TelemetryInterval_) : Interval;
+		auto TelemetryWebSocketTimer = LifeTime + OpenWifi::Now();
 		TelemetryWebSocketTimer_ = std::max(TelemetryWebSocketTimer, TelemetryWebSocketTimer_);
 		UpdateCounts();
 		if (!TelemetryReporting_) {
@@ -811,10 +823,11 @@ namespace OpenWifi {
 		return true;
 	}
 
-	bool WSConnection::SetKafkaTelemetryReporting(uint64_t Interval, uint64_t TelemetryKafkaTimer) {
+	bool WSConnection::SetKafkaTelemetryReporting(uint64_t Interval, uint64_t LifeTime) {
 		std::lock_guard G(Mutex_);
 		TelemetryKafkaRefCount_++;
 		TelemetryInterval_ = TelemetryInterval_ ? std::min(Interval, TelemetryInterval_) : Interval;
+		auto TelemetryKafkaTimer = LifeTime + OpenWifi::Now();
 		TelemetryKafkaTimer_ = std::max(TelemetryKafkaTimer, TelemetryKafkaTimer_);
 		UpdateCounts();
 		if (!TelemetryReporting_) {
