@@ -720,7 +720,7 @@ namespace OpenWifi {
 					auto now=OpenWifi::Now();
 					if (TelemetryWebSocketRefCount_) {
 						if(now<TelemetryWebSocketTimer_) {
-							// std::cout << SerialNumber_ << ": Updating WebSocket telemetry" << std::endl;
+							std::cout << SerialNumber_ << ": Updating WebSocket telemetry" << std::endl;
 							TelemetryWebSocketPackets_++;
 							Conn_->Conn_.websocketPackets = TelemetryWebSocketPackets_;
 							TelemetryStream()->UpdateEndPoint(SerialNumberInt_, SS.str());
@@ -730,7 +730,7 @@ namespace OpenWifi {
 					}
 					if (TelemetryKafkaRefCount_) {
 						if(KafkaManager()->Enabled() && now<TelemetryKafkaTimer_) {
-							// std::cout << SerialNumber_ << ": Updating Kafka telemetry" << std::endl;
+							std::cout << SerialNumber_ << ": Updating Kafka telemetry" << std::endl;
 							TelemetryKafkaPackets_++;
 							Conn_->Conn_.kafkaPackets = TelemetryKafkaPackets_;
 							KafkaManager()->PostMessage(KafkaTopics::DEVICE_TELEMETRY, SerialNumber_,
@@ -743,7 +743,7 @@ namespace OpenWifi {
 					std::cout << SerialNumber_ << ": Invalid telemetry" << std::endl;
 				}
 			} else {
-				// if we are ignoting telemetry, then close it down on the device.
+				// if we are ignoring telemetry, then close it down on the device.
 				std::cout << SerialNumber_ << ": Ignoring telemetry" << std::endl;
 				StopTelemetry();
 			}
