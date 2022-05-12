@@ -199,4 +199,15 @@ namespace OpenWifi::GWObjects {
 
 		void to_json(Poco::JSON::Object &Obj) const;
 	};
+
+	struct ScriptRequest {
+		uint64_t 	timeout=30;
+		std::string serialNumber;
+		std::string type;
+		std::string script;
+		std::string scriptId;
+		uint64_t 	when=0;
+		void to_json(Poco::JSON::Object &Obj) const;
+		bool from_json(const Poco::JSON::Object::Ptr &Obj);
+	};
 }

@@ -296,6 +296,8 @@ namespace OpenWifi::RESTAPI::Protocol {
 	static const char * UPTIME = "uptime";
 	static const char * START = "start";
 	static const char * DEBUG = "debug";
+	static const char * SCRIPT = "script";
+	static const char * TIMEOUT = "timeout";
 
 	static const char * NEWPASSWORD = "newPassword";
 	static const char * USERS = "users";
@@ -361,6 +363,8 @@ namespace OpenWifi::uCentralProtocol {
     static const char *CONFIG = "config";
     static const char *EMPTY_JSON_DOC = "{}";
     static const char *RESULT = "result";
+	static const char *RESULT_64 = "result_64";
+	static const char *RESULT_SZ = "result_sz";
     static const char *REQUEST = "request";
     static const char *PERFORM = "perform";
     static const char *CONFIGURE = "configure";
@@ -408,6 +412,9 @@ namespace OpenWifi::uCentralProtocol {
     static const char *CONNECTIONIP = "connectionIp";
     static const char *TELEMETRY = "telemetry";
     static const char *BANDWIDTH = "bandwidth";
+
+	static const char *SCRIPT = "script";
+	static const char *TYPE = "type";
 }
 
 namespace OpenWifi::uCentralProtocol::Events {

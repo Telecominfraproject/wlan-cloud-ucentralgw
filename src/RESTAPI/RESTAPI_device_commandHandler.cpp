@@ -117,8 +117,8 @@ namespace OpenWifi {
 			return Telemetry();
 		} else if (Command_ == RESTAPI::Protocol::PING) {
 			return Ping();
-		} else if (Command_ == RESTAPI::Protocol::DEBUG) {
-			return Debug();
+		} else if (Command_ == RESTAPI::Protocol::SCRIPT) {
+			return Script();
 		} else {
 			return BadRequest(RESTAPI::Errors::InvalidCommand);
 		}
@@ -234,38 +234,48 @@ namespace OpenWifi {
 		return BadRequest(RESTAPI::Errors::MissingSerialNumber);
 	}
 
-	void RESTAPI_device_commandHandler::Debug() {
-		Logger_.information(fmt::format("DEBUG: user={} serial={}", UserInfo_.userinfo.email,SerialNumber_));
+	void RESTAPI_device_commandHandler::Script() {
+		Logger_.information(fmt::format("SCRIPT: user={} serial={}", UserInfo_.userinfo.email,SerialNumber_));
 		const auto &Obj = ParsedBody_;
-		if (Obj->has(RESTAPI::Protocol::SERIALNUMBER)) {
 
-			auto SNum = Obj->get(RESTAPI::Protocol::SERIALNUMBER).toString();
-			if (SerialNumber_ != SNum) {
-				return BadRequest(RESTAPI::Errors::SerialNumberMismatch);
-			}
-
-			uint64_t Duration=0;
-			if(Obj->has(RESTAPI::Protocol::DURATION))
-				Duration = Obj->get(RESTAPI::Protocol::DURATION);
-
-			GWObjects::CommandDetails Cmd;
-			Cmd.SerialNumber = SerialNumber_;
-			Cmd.UUID = MicroService::CreateUUID();
-			Cmd.SubmittedBy = UserInfo_.webtoken.username_;
-			Cmd.Command = uCentralProtocol::DEBUG;
-			Cmd.RunAt = 0;
-
-			Poco::JSON::Object Params;
-			Params.set(uCentralProtocol::SERIAL, SerialNumber_);
-			Params.set(uCentralProtocol::DURATION, Duration);
-
-			std::stringstream ParamStream;
-			Params.stringify(ParamStream);
-			Cmd.Details = ParamStream.str();
-
-			return RESTAPI_RPC::WaitForCommand(Cmd, Params, *Request, *Response, 60000ms, nullptr, this, Logger_);
+		GWObjects::ScriptRequest	SCR;
+		if(!SCR.from_json(Obj)) {
+			return BadRequest(RESTAPI::Errors::InvalidJSONDocument);
 		}
-		return BadRequest(RESTAPI::Errors::MissingSerialNumber);
+
+		if (SCR.serialNumber.empty() ||
+			SCR.script.empty() ||
+			SCR.type.empty() ||
+			SCR.scriptId.empty() ||
+			(SCR.type!="uci" && SCR.type!="shell" && SCR.type!="ucode")) {
+			return BadRequest(RESTAPI::Errors::MissingOrInvalidParameters);
+		}
+
+		if (SerialNumber_ != SCR.serialNumber) {
+			return BadRequest(RESTAPI::Errors::SerialNumberMismatch);
+		}
+
+		uint64_t timeout = SCR.timeout==0 ? 30 : SCR.timeout;
+
+		GWObjects::CommandDetails Cmd;
+		Cmd.SerialNumber = SerialNumber_;
+		Cmd.UUID = MicroService::CreateUUID();
+		Cmd.SubmittedBy = UserInfo_.webtoken.username_;
+		Cmd.Command = uCentralProtocol::SCRIPT;
+		Cmd.RunAt = 0;
+
+		Poco::JSON::Object Params;
+		Params.set(uCentralProtocol::SERIAL, SerialNumber_);
+		Params.set(uCentralProtocol::TIMEOUT, timeout);
+		Params.set(uCentralProtocol::TYPE, SCR.type);
+		Params.set(uCentralProtocol::SCRIPT, SCR.script);
+		Params.set(uCentralProtocol::WHEN, SCR.when);
+
+		std::stringstream ParamStream;
+		Params.stringify(ParamStream);
+		Cmd.Details = ParamStream.str();
+
+		return RESTAPI_RPC::WaitForCommand(Cmd, Params, *Request, *Response, 120000ms, nullptr, this, Logger_);
 	}
 
 	void RESTAPI_device_commandHandler::GetStatus() {

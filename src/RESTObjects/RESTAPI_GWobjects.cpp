@@ -272,5 +272,28 @@ namespace OpenWifi::GWObjects {
 		field_to_json(Obj,"capabilities", capabilities);
 	};
 
+	void ScriptRequest::to_json(Poco::JSON::Object &Obj) const {
+		field_to_json(Obj,"serialNumber",serialNumber);
+		field_to_json(Obj,"timeout",timeout);
+		field_to_json(Obj,"type",type);
+		field_to_json(Obj,"script",script);
+		field_to_json(Obj,"scriptId",scriptId);
+		field_to_json(Obj,"when",when);
+	}
+
+	bool ScriptRequest::from_json(const Poco::JSON::Object::Ptr &Obj) {
+		try {
+			field_from_json(Obj,"serialNumber",serialNumber);
+			field_from_json(Obj,"timeout",timeout);
+			field_from_json(Obj,"type",type);
+			field_from_json(Obj,"script",script);
+			field_from_json(Obj,"scriptId",scriptId);
+			field_from_json(Obj,"when",when);
+			return true;
+		} catch (const Poco::Exception &E) {
+		}
+		return false;
+
+	}
 }
 

@@ -72,8 +72,18 @@ namespace OpenWifi::RESTAPI_RPC {
 						if (StatusInnerObj->has(uCentralProtocol::TEXT))
 							Cmd.ErrorText = StatusInnerObj->get(uCentralProtocol::TEXT).toString();
 						std::stringstream ResultText;
-						Poco::JSON::Stringifier::stringify(rpc_answer.get(uCentralProtocol::RESULT),
-														   ResultText);
+						if(rpc_answer.has(uCentralProtocol::RESULT)) {
+							Poco::JSON::Stringifier::stringify(
+								rpc_answer.get(uCentralProtocol::RESULT), ResultText);
+						} if (rpc_answer.has(uCentralProtocol::RESULT_64)) {
+							uint64_t sz=0;
+							if(rpc_answer.has(uCentralProtocol::RESULT_SZ))
+								sz=rpc_answer.get(uCentralProtocol::RESULT_SZ);
+							std::string UnCompressedData;
+							Utils::ExtractBase64CompressedData(rpc_answer.get(uCentralProtocol::RESULT_64).toString(),
+															   UnCompressedData,sz);
+							Poco::JSON::Stringifier::stringify(UnCompressedData, ResultText);
+						}
 						Cmd.Results = ResultText.str();
 						Cmd.Status = "completed";
 						Cmd.Completed = OpenWifi::Now();

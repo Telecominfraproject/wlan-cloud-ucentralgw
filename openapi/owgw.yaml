@@ -510,16 +510,30 @@ components:
           type: integer
           format: int64
 
-    DebugRequest:
+    ScriptRequest:
       type: object
       properties:
         serialNumber:
           type: string
-        duration:
+        timeout:
+          type: integer
+          format: int64
+          default: 30
+        type:
+          type: string
+          enum:
+            - uci
+            - ucode
+            - shell
+        script:
+          type: string
+        scriptId:
+          type: string
+          format: uuid
+        when:
           type: integer
           format: int64
           default: 0
-          description: Number of seconds to wait. Default is 0 seconds.
 
     FactoryRequest:
       type: object
@@ -2003,7 +2017,7 @@ paths:
         404:
           $ref: '#/components/responses/NotFound'
 
-  /device/{serialNumber}/debug:
+  /device/{serialNumber}/script:
     post:
       tags:
         - Commands
@@ -2020,7 +2034,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/DebugRequest'
+              $ref: '#/components/schemas/ScriptRequest'
       responses:
         200:
           $ref: '#/components/schemas/CommandInfo'

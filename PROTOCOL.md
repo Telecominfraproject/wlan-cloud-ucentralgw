@@ -642,9 +642,10 @@ Controller sends this command to run a predefined script. Extreme care must be t
      "method" : "script" , 
      "params" : {
         "serial" : <serial number>,
-	"type" : <one of "uci", "shell", "ucode">,
-	"content" : <text blob containing the script>,
-	"timeout" : <max timeout in seconds, default is 30>
+        "type" : <one of "uci", "shell", "ucode">,
+        "script" : <text blob containing the script>,
+        "timeout" : <max timeout in seconds, default is 30>,
+        "when" : <time when this will be performed as UTC seconds>
      },
      "id" : <some number>
 }
