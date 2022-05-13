@@ -667,8 +667,6 @@ namespace OpenWifi::ProvObjects {
         DeviceConfigurationElementVec   configuration;
         bool                            suspended=false;
         std::string                     realMacAddress;
-        std::string                     firmwareUpgrade{"yes"};
-        std::string                     firmwareRCOnly{"inherit"};
 
         void to_json(Poco::JSON::Object &Obj) const;
         bool from_json(const Poco::JSON::Object::Ptr &Obj);
