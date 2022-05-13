@@ -91,7 +91,7 @@ namespace OpenWifi::ProvObjects {
         field_to_json( Obj,"managementPolicy",managementPolicy);
         field_to_json( Obj,"deviceConfiguration",deviceConfiguration);
         field_to_json( Obj,"devices",devices);
-        field_to_json( Obj,"rrm",rrm);
+        field_to_json( Obj,"deviceRules",deviceRules);
         field_to_json( Obj,"sourceIP",sourceIP);
         field_to_json( Obj,"variables", variables);
         field_to_json( Obj,"managementPolicies", managementPolicies);
@@ -111,7 +111,7 @@ namespace OpenWifi::ProvObjects {
             field_from_json( Obj,"managementPolicy",managementPolicy);
             field_from_json( Obj,"deviceConfiguration",deviceConfiguration);
             field_from_json( Obj,"devices",devices);
-            field_from_json( Obj,"rrm",rrm);
+            field_from_json( Obj,"deviceRules",deviceRules);
             field_from_json( Obj,"sourceIP",sourceIP);
             field_from_json( Obj,"variables", variables);
             field_from_json( Obj,"managementPolicies", managementPolicies);
@@ -154,7 +154,7 @@ namespace OpenWifi::ProvObjects {
         field_to_json( Obj,"deviceConfiguration",deviceConfiguration);
         field_to_json( Obj,"contacts",contacts);
         field_to_json( Obj,"location",location);
-        field_to_json( Obj,"rrm",rrm);
+        field_to_json( Obj,"deviceRules",deviceRules);
         field_to_json( Obj,"sourceIP",sourceIP);
         field_to_json( Obj,"variables", variables);
         field_to_json( Obj,"managementPolicies", managementPolicies);
@@ -178,7 +178,7 @@ namespace OpenWifi::ProvObjects {
             field_from_json( Obj,"deviceConfiguration",deviceConfiguration);
             field_from_json( Obj,"contacts",contacts);
             field_from_json( Obj,"location",location);
-            field_from_json( Obj,"rrm",rrm);
+            field_from_json( Obj,"deviceRules",deviceRules);
             field_from_json( Obj,"sourceIP",sourceIP);
             field_from_json( Obj,"variables", variables);
             field_from_json( Obj,"managementPolicies", managementPolicies);
@@ -197,9 +197,7 @@ namespace OpenWifi::ProvObjects {
         info.to_json(Obj);
         field_to_json( Obj,"managementPolicy",managementPolicy);
         field_to_json( Obj,"managementRoles",managementRoles);
-        field_to_json( Obj,"rrm",rrm);
-        field_to_json( Obj,"firmwareUpgrade",firmwareUpgrade);
-        field_to_json( Obj,"firmwareRCOnly",firmwareRCOnly);
+        field_to_json( Obj,"deviceRules",deviceRules);
         field_to_json( Obj,"variables",variables);
         field_to_json( Obj,"defaultOperator",defaultOperator);
         field_to_json( Obj,"sourceIP",sourceIP);
@@ -211,9 +209,7 @@ namespace OpenWifi::ProvObjects {
             info.from_json(Obj);
             field_from_json( Obj,"managementPolicy",managementPolicy);
             field_from_json( Obj,"managementRoles",managementRoles);
-            field_from_json( Obj,"rrm",rrm);
-            field_from_json( Obj,"firmwareUpgrade",firmwareUpgrade);
-            field_from_json( Obj,"firmwareRCOnly",firmwareRCOnly);
+            field_from_json( Obj,"deviceRules",deviceRules);
             field_from_json( Obj,"variables",variables);
             field_from_json( Obj,"defaultOperator",defaultOperator);
             field_from_json( Obj,"sourceIP",sourceIP);
@@ -598,7 +594,7 @@ namespace OpenWifi::ProvObjects {
         field_to_json( Obj, "location", location);
         field_to_json( Obj, "contact", contact);
         field_to_json( Obj, "deviceConfiguration",deviceConfiguration);
-        field_to_json( Obj, "rrm",rrm);
+        field_to_json( Obj,"deviceRules",deviceRules);
         field_to_json( Obj, "managementPolicy",managementPolicy);
         field_to_json( Obj, "state",state);
         field_to_json( Obj, "devClass",devClass);
@@ -619,7 +615,7 @@ namespace OpenWifi::ProvObjects {
             field_from_json( Obj,"location",location);
             field_from_json( Obj,"contact",contact);
             field_from_json( Obj,"deviceConfiguration",deviceConfiguration);
-            field_from_json( Obj,"rrm",rrm);
+            field_from_json( Obj,"deviceRules",deviceRules);
             field_from_json( Obj,"managementPolicy",managementPolicy);
             field_from_json( Obj,"state",state);
             field_from_json( Obj,"devClass",devClass);
@@ -690,8 +686,6 @@ namespace OpenWifi::ProvObjects {
         info.to_json(Obj);
         field_to_json( Obj,"managementPolicy",managementPolicy);
         field_to_json( Obj,"deviceTypes",deviceTypes);
-        field_to_json( Obj,"firmwareUpgrade",firmwareUpgrade);
-        field_to_json( Obj,"firmwareRCOnly",firmwareRCOnly);
         field_to_json( Obj,"subscriberOnly",subscriberOnly);
         field_to_json( Obj,"entity", entity);
         field_to_json( Obj,"venue", venue);
@@ -699,7 +693,7 @@ namespace OpenWifi::ProvObjects {
         field_to_json( Obj,"configuration",configuration);
         field_to_json( Obj,"inUse",inUse);
         field_to_json( Obj,"variables",variables);
-        field_to_json( Obj,"rrm",rrm);
+        field_to_json( Obj,"deviceRules",deviceRules);
     }
 
     bool DeviceConfiguration::from_json(const Poco::JSON::Object::Ptr &Obj) {
@@ -714,9 +708,7 @@ namespace OpenWifi::ProvObjects {
             field_from_json( Obj,"venue", venue);
             field_from_json( Obj,"subscriber", subscriber);
             field_from_json( Obj,"configuration",configuration);
-            field_from_json( Obj,"rrm",rrm);
-            field_from_json( Obj,"firmwareUpgrade",firmwareUpgrade);
-            field_from_json( Obj,"firmwareRCOnly",firmwareRCOnly);
+            field_from_json( Obj,"deviceRules",deviceRules);
             return true;
         } catch(...) {
 
@@ -1028,7 +1020,7 @@ namespace OpenWifi::ProvObjects {
         field_to_json( Obj,"serviceClass", serviceClass);
         field_to_json( Obj,"qrCode", qrCode);
         field_to_json( Obj,"geoCode", geoCode);
-        field_to_json( Obj,"rrm", rrm);
+        field_to_json( Obj,"deviceRules",deviceRules);
         field_to_json( Obj,"state", state);
         field_to_json( Obj,"locale", locale);
         field_to_json( Obj,"billingCode", billingCode);
@@ -1052,7 +1044,7 @@ namespace OpenWifi::ProvObjects {
             field_from_json( Obj,"serviceClass", serviceClass);
             field_from_json( Obj,"qrCode", qrCode);
             field_from_json( Obj,"geoCode", geoCode);
-            field_from_json( Obj,"rrm", rrm);
+            field_from_json( Obj,"deviceRules",deviceRules);
             field_from_json( Obj,"state", state);
             field_from_json( Obj,"locale", locale);
             field_from_json( Obj,"billingCode", billingCode);
@@ -1151,6 +1143,24 @@ namespace OpenWifi::ProvObjects {
         I.modified = I.created = OpenWifi::Now();
         I.id = MicroService::CreateUUID();
         return true;
+    }
+
+    void DeviceRules::to_json(Poco::JSON::Object &Obj) const {
+        field_to_json(Obj,"rcOnly",rcOnly);
+        field_to_json(Obj,"rrm",rrm);
+        field_to_json(Obj,"firmwareUpgrade",firmwareUpgrade);
+    }
+
+    bool DeviceRules::from_json(const Poco::JSON::Object::Ptr &Obj) {
+        try {
+            field_from_json(Obj,"rcOnly",rcOnly);
+            field_from_json(Obj,"rrm",rrm);
+            field_from_json(Obj,"firmwareUpgrade",firmwareUpgrade);
+            return true;
+        } catch(...) {
+
+        }
+        return false;
     }
 
 }

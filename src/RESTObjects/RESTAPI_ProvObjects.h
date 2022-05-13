@@ -62,6 +62,15 @@ namespace OpenWifi::ProvObjects {
     };
     typedef std::vector<ManagementPolicy>      ManagementPolicyVec;
 
+    struct DeviceRules {
+        std::string     rcOnly{"inherit"};
+        std::string     rrm{"inherit"};
+        std::string     firmwareUpgrade{"inherit"};
+
+        void to_json(Poco::JSON::Object &Obj) const;
+        bool from_json(const Poco::JSON::Object::Ptr &Obj);
+    };
+
     struct Entity {
         ObjectInfo              info;
         Types::UUID_t           parent;
@@ -72,7 +81,7 @@ namespace OpenWifi::ProvObjects {
         Types::UUID_t           managementPolicy;
         Types::UUIDvec_t        deviceConfiguration;
         Types::UUIDvec_t        devices;
-        std::string             rrm;
+        DeviceRules             deviceRules;
         Types::StringVec        sourceIP;
         Types::UUIDvec_t        variables;
         Types::UUIDvec_t        managementPolicies;
@@ -107,7 +116,7 @@ namespace OpenWifi::ProvObjects {
         Types::UUIDvec_t    deviceConfiguration;
         Types::UUIDvec_t    contacts;
         std::string         location;
-        std::string         rrm;
+        DeviceRules         deviceRules;
         Types::StringVec    sourceIP;
         Types::UUIDvec_t    variables;
         Types::UUIDvec_t    configurations;
@@ -375,9 +384,7 @@ namespace OpenWifi::ProvObjects {
         DeviceConfigurationElementVec   configuration;
         Types::StringVec                inUse;
         Types::UUIDvec_t                variables;
-        std::string                     rrm;
-        std::string                     firmwareUpgrade;
-        bool                            firmwareRCOnly=false;
+        DeviceRules                     deviceRules;
         bool                            subscriberOnly=false;
         std::string                     venue;
         std::string                     entity;
@@ -401,7 +408,7 @@ namespace OpenWifi::ProvObjects {
         std::string     location;
         std::string     contact;
         std::string     deviceConfiguration;
-        std::string     rrm;
+        DeviceRules     deviceRules;
         Types::UUID_t   managementPolicy;
         std::string     state;
         std::string     devClass;
@@ -582,9 +589,7 @@ namespace OpenWifi::ProvObjects {
         ObjectInfo                      info;
         Types::UUID_t                   managementPolicy;
         Types::UUIDvec_t                managementRoles;
-        std::string                     rrm;
-        std::string                     firmwareUpgrade;
-        bool                            firmwareRCOnly=true;
+        DeviceRules                     deviceRules;
         std::vector<Variable>           variables;
         bool                            defaultOperator=false;
         Types::StringVec                sourceIP;
@@ -655,7 +660,7 @@ namespace OpenWifi::ProvObjects {
         Types::UUID_t                   serviceClass;
         std::string                     qrCode;
         std::string                     geoCode;
-        std::string                     rrm{"inherit"};
+        DeviceRules                     deviceRules;
         std::string                     state;
         std::string                     locale;
         std::string                     billingCode;
