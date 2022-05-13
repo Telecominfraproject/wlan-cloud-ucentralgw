@@ -649,6 +649,16 @@ telemetry_to_kafka() {
 	jq < ${result_file}
 }
 
+runscript() {
+	payload="$(printf '{ "serialNumber": "%s", "type": "%s" , "kafka": true, "timeout": 30, "scriptId": "cli-manual", "script" : "%s" }' "$1" "$2" "$3" )"
+				  curl  ${FLAGS} -X POST "https://${OWGW}/api/v1/device/$1/telemetry" \
+				  -H "Content-Type: application/json" \
+				  -H "Accept: application/json" \
+				  -H "Authorization: Bearer ${token}" \
+				  -d "$payload"  > ${result_file}
+			  jq < ${result_file}
+}
+
 caplist() {
 	curl    ${FLAGS} -X GET "https://${OWGW}/api/v1/capabilities" \
 		-H "Content-Type: application/json" \
@@ -848,6 +858,7 @@ help() {
   echo "wstest  			  Testing the WebSocket interface."
   echo
   echo "test_service <serial>             Run a set of CLI commands for testing purposes"
+  echo "runscript <serial> <type> <script>	Run a script. type must be uci, ucode, shell."
   echo
   echo
   echo "To pass additional flags to the CURL command, create an environment variable called FLAGS and git ve the values you"
@@ -925,5 +936,6 @@ case "$1" in
   "caplist") login; caplist; logout;;
   "iptocountry") login; iptocountry $2; logout;;
   "test_service") login; test_service $2; logout;;
+  "runscript") login; runscript $2 $3 $4; logout;;
   *) help ;;
 esac
