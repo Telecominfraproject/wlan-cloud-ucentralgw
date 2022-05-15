@@ -109,6 +109,14 @@ namespace OpenWifi {
             bool from_json(const Poco::JSON::Object::Ptr &Obj);
         };
 
+        struct AveragePoint {
+            double      min = 0.0,
+                        max = 0.0,
+                        avg = 0.0;
+            void to_json(Poco::JSON::Object &Obj) const;
+            bool from_json(const Poco::JSON::Object::Ptr &Obj);
+        };
+
         struct UETimePoint {
             std::string station;
             int64_t rssi = 0;
@@ -121,9 +129,26 @@ namespace OpenWifi {
                     tx_failed = 0,
                     connected = 0,
                     inactive = 0;
+
+            double  tx_bytes_bw = 0.0 ,
+                    rx_bytes_bw = 0.0 ,
+                    tx_packets_bw = 0.0 ,
+                    rx_packets_bw = 0.0 ,
+                    tx_failed_pct = 0.0 ,
+                    tx_retries_pct = 0.0 ,
+                    tx_duration_pct = 0.0;
+
+            uint64_t    tx_bytes_delta = 0,
+                        rx_bytes_delta = 0,
+                        tx_duration_delta = 0,
+                        rx_packets_delta = 0,
+                        tx_packets_delta = 0,
+                        tx_retries_delta = 0,
+                        tx_failed_delta = 0;
+
             UE_rate tx_rate,
                     rx_rate;
-            std::vector<TIDstat_entry> tidstat;
+            std::vector<TIDstat_entry> tidstats;
 
             void to_json(Poco::JSON::Object &Obj) const;
             bool from_json(const Poco::JSON::Object::Ptr &Obj);
@@ -159,8 +184,17 @@ namespace OpenWifi {
             std::string bssid,
                         mode,
                         ssid;
-            uint64_t    band=0;
+            uint64_t    band=0,
+                        channel=0;
             std::vector<UETimePoint> associations;
+
+            AveragePoint    tx_bytes_bw,
+                            rx_bytes_bw,
+                            tx_packets_bw,
+                            rx_packets_bw,
+                            tx_failed_pct,
+                            tx_retries_pct,
+                            tx_duration_pct;
 
             void to_json(Poco::JSON::Object &Obj) const;
             bool from_json(const Poco::JSON::Object::Ptr &Obj);
@@ -184,7 +218,18 @@ namespace OpenWifi {
                         rx_dropped_pct = 0.0,
                         tx_dropped_pct = 0.0,
                         rx_packets_bw = 0.0,
-                        tx_packets_bw = 0.0;
+                        tx_packets_bw = 0.0,
+                        rx_errors_pct = 0.0 ,
+                        tx_errors_pct = 0.0;
+
+            uint64_t    tx_bytes_delta = 0,
+                        rx_bytes_delta = 0 ,
+                        rx_dropped_delta = 0,
+                        tx_dropped_delta = 0,
+                        rx_packets_delta = 0,
+                        tx_packets_delta = 0,
+                        rx_errors_delta = 0,
+                        tx_errors_delta = 0;
 
             void to_json(Poco::JSON::Object &Obj) const;
             bool from_json(const Poco::JSON::Object::Ptr &Obj);
@@ -192,15 +237,20 @@ namespace OpenWifi {
 
         struct RadioTimePoint {
             uint64_t    band = 0,
-                        radio_channel = 0;
-            uint64_t active_ms = 0,
-                    busy_ms = 0,
-                    receive_ms = 0,
-                    transmit_ms = 0,
-                    tx_power = 0,
-                    channel = 0;
-            int64_t temperature = 0,
-                    noise = 0;
+                        channel_width = 0;
+            uint64_t    active_ms = 0,
+                        busy_ms = 0,
+                        receive_ms = 0,
+                        transmit_ms = 0,
+                        tx_power = 0,
+                        channel = 0;
+            int64_t     temperature = 0,
+                        noise = 0;
+
+            double      active_pct = 0.0 ,
+                        busy_pct = 0.0,
+                        receive_pct = 0.0,
+                        transmit_pct = 0.0;
 
             void to_json(Poco::JSON::Object &Obj) const;
             bool from_json(const Poco::JSON::Object::Ptr &Obj);
@@ -208,13 +258,14 @@ namespace OpenWifi {
 
 
         struct DeviceTimePoint {
-            std::string                 id;
-            std::string                 boardId;
-            uint64_t                    timestamp = 0;
-            APTimePoint                 ap_data;
-            std::vector<SSIDTimePoint>  ssid_data;
-            std::vector<RadioTimePoint> radio_data;
-            AnalyticsObjects::DeviceInfo device_info;
+            std::string                     id;
+            std::string                     boardId;
+            uint64_t                        timestamp = 0;
+            APTimePoint                     ap_data;
+            std::vector<SSIDTimePoint>      ssid_data;
+            std::vector<RadioTimePoint>     radio_data;
+            AnalyticsObjects::DeviceInfo    device_info;
+            std::string                     serialNumber;
 
             void to_json(Poco::JSON::Object &Obj) const;
             bool from_json(const Poco::JSON::Object::Ptr &Obj);
@@ -245,9 +296,34 @@ namespace OpenWifi {
 
         };
 
-        struct DeviceTimePointList {
-            std::vector<DeviceTimePoint>    points;
+        struct DeviceTimePointAnalysis {
+            uint64_t        timestamp;
 
+            AveragePoint    noise;
+            AveragePoint    temperature;
+            AveragePoint    active_pct;
+            AveragePoint    busy_pct;
+            AveragePoint    receive_pct;
+            AveragePoint    transmit_pct;
+            AveragePoint    tx_power;
+
+            AveragePoint    tx_bytes_bw;
+            AveragePoint    rx_bytes_bw;
+            AveragePoint    rx_dropped_pct;
+            AveragePoint    tx_dropped_pct;
+            AveragePoint    rx_packets_bw;
+            AveragePoint    tx_packets_bw;
+            AveragePoint    rx_errors_pct;
+            AveragePoint    tx_errors_pct;
+
+            void to_json(Poco::JSON::Object &Obj) const;
+            bool from_json(const Poco::JSON::Object::Ptr &Obj);
+
+        };
+
+        struct DeviceTimePointList {
+            std::vector<DeviceTimePoint>            points;
+            std::vector<DeviceTimePointAnalysis>    stats;
             void to_json(Poco::JSON::Object &Obj) const;
             bool from_json(const Poco::JSON::Object::Ptr &Obj);
         };
@@ -286,5 +362,60 @@ namespace OpenWifi {
             void to_json(Poco::JSON::Object &Obj) const;
             bool from_json(const Poco::JSON::Object::Ptr &Obj);
         };
+
+        struct WifiClientRate {
+            uint32_t    bitrate=0;
+            uint32_t    chwidth=0;
+            uint16_t    mcs=0;
+            uint16_t    nss=0;
+            bool        vht=false;
+
+            void to_json(Poco::JSON::Object &Obj) const;
+            bool from_json(const Poco::JSON::Object::Ptr &Obj);
+        };
+
+        struct WifiClientHistory {
+            uint64_t        timestamp=OpenWifi::Now();
+            std::string     stationId;
+            std::string     bssId;
+            std::string     ssid;
+            int64_t         rssi=0;
+            uint32_t        rx_bitrate=0;
+            uint32_t        rx_chwidth=0;
+            uint16_t        rx_mcs=0;
+            uint16_t        rx_nss=0;
+            bool            rx_vht=false;
+            uint32_t        tx_bitrate=0;
+            uint32_t        tx_chwidth=0;
+            uint16_t        tx_mcs=0;
+            uint16_t        tx_nss=0;
+            bool            tx_vht=false;
+            uint64_t        rx_bytes=0;
+            uint64_t        tx_bytes=0;
+            uint64_t        rx_duration=0;
+            uint64_t        tx_duration=0;
+            uint64_t        rx_packets=0;
+            uint64_t        tx_packets=0;
+            std::string     ipv4;
+            std::string     ipv6;
+            uint64_t        channel_width=0;
+            int64_t         noise=0;
+            uint64_t        tx_power=0;
+            uint64_t        channel=0;
+            uint64_t        active_ms=0;
+            uint64_t        busy_ms=0;
+            uint64_t        receive_ms=0;
+            std::string     mode;
+            int64_t         ack_signal=0;
+            int64_t         ack_signal_avg=0;
+            uint64_t        connected=0;
+            uint64_t        inactive=0;
+            uint64_t        tx_retries=0;
+
+            void to_json(Poco::JSON::Object &Obj) const;
+            bool from_json(const Poco::JSON::Object::Ptr &Obj);
+        };
+
     }
+
 }
