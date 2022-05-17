@@ -4124,9 +4124,7 @@ namespace OpenWifi {
 	inline void KafkaProducer::run() {
 	    cppkafka::Configuration Config({
             { "client.id", MicroService::instance().ConfigGetString("openwifi.kafka.client.id") },
-            { "metadata.broker.list", MicroService::instance().ConfigGetString("openwifi.kafka.brokerlist") },
-            { "reconnect.backoff.max.ms", 5000 },
-            { "reconnect.backoff.ms", 100 }
+            { "metadata.broker.list", MicroService::instance().ConfigGetString("openwifi.kafka.brokerlist") }
 	    });
 
 		AddKafkaSecurity(Config);
@@ -4166,9 +4164,7 @@ namespace OpenWifi {
 	        { "group.id", MicroService::instance().ConfigGetString("openwifi.kafka.group.id") },
 	        { "enable.auto.commit", MicroService::instance().ConfigGetBool("openwifi.kafka.auto.commit",false) },
 	        { "auto.offset.reset", "latest" } ,
-	        { "enable.partition.eof", false },
-            { "reconnect.backoff.max.ms", 5000 },
-            { "reconnect.backoff.ms", 100 }
+	        { "enable.partition.eof", false }
 	    });
 
 		AddKafkaSecurity(Config);
