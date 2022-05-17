@@ -669,8 +669,7 @@ The device should answer:
 }
 ```
 
-
-#### `rtty server`
+### `rtty server`
 More information about the [rtty server](https://github.com/zhaojh329/rtty) can be found here.
 
 ### Message compression
@@ -696,6 +695,33 @@ of the completed message. The following should how the `state` event could be co
 }
 ```
 
+### 'Radius Proxying'
+The gateway can receive RADIUS messages from the device and forward them. It can also receive messages
+on its behalf and send them to the device.
+
+```
+{
+    "radius" : <type, can be auth, acct, das> ,
+    "data" : <base 64 encoded raw RADIUS payload>
+    "dst" : <ip:port> as a string - optional. If this is supplied, the GW will send the data to that destination,
+            if not provided, the GW will use one of the radius servers it has in its configuration. This is only
+            valid for messages coming from the device.
+}
+```
+
+The GW will include a TLV to mark the sender MAC. The RADIUS server must use the same TLV to
+identify the destination for its messages.
+
+#### Incoming RADIUS messages configuration
+The GW must be configured with the following:
+
+```asm
+radius.incoming.proxy.enable = true
+radius.incoming.proxy.accounting.port = 1813
+radius.incoming.proxy.auth.port = 1812
+radius.incoming.proxy.das.port = 1814
+radius.incoming.serialnumbertlv = 127
+```
 
 
 
