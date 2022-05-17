@@ -2121,6 +2121,32 @@ paths:
         404:
           $ref: '#/components/responses/NotFound'
 
+  /device/{serialNumber}/logdump:
+    post:
+      tags:
+        - Commands
+      summary: Launch a tech support dump for a device.
+      operationId: logDumpRequest
+      parameters:
+        - in: path
+          name: serialNumber
+          schema:
+            type: string
+          required: true
+      requestBody:
+        description: Command details
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LogDumpRequest'
+      responses:
+        200:
+          $ref: '#/components/schemas/CommandInfo'
+        403:
+          $ref: '#/components/responses/Unauthorized'
+        404:
+          $ref: '#/components/responses/NotFound'
+
   /device/{serialNumber}/wifiscan:
     post:
       tags:
