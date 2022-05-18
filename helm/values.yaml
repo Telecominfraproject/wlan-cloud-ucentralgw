@@ -217,6 +217,7 @@ configProperties:
   openwifi.devicetypes.2: IOT:esp32
   oui.download.uri: https://linuxnet.ca/ieee/oui.txt
   firmware.autoupdate.policy.default: auto
+  iptocountry.provider: ipinfo
   # Callback
   openwifi.callback.enable: "false"
   openwifi.callback.0.local: localhost:16001
