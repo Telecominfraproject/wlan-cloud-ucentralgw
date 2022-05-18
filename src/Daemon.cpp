@@ -24,6 +24,7 @@
 #include "framework/MicroService.h"
 #include "FindCountry.h"
 #include "rttys/RTTYS_server.h"
+#include "RADIUS_proxy_server.h"
 
 namespace OpenWifi {
 	class Daemon *Daemon::instance() {
@@ -45,7 +46,8 @@ namespace OpenWifi {
 										StorageArchiver(),
 										TelemetryStream(),
 										RTTYS_server(),
-										WebSocketServer()
+										WebSocketServer(),
+								   		RADIUS_proxy_server()
 							   });
         return &instance;
 	}
