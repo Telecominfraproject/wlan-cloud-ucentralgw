@@ -10,13 +10,13 @@ namespace OpenWifi {
 
 		std::cout << __LINE__ << std::endl;
 		Poco::Net::SocketAddress	AuthSockAddr(Poco::Net::AddressFamily::IPv4,
-									   MicroService::instance().ConfigGetInt("radius.proxy.authentication.port",21812));
+									   MicroService::instance().ConfigGetInt("radius.proxy.authentication.port",1812));
 		std::cout << __LINE__ << std::endl;
 		AuthenticationSocket_ = std::make_unique<Poco::Net::DatagramSocket>(AuthSockAddr,true);
 
 		std::cout << __LINE__ << std::endl;
 		Poco::Net::SocketAddress	AcctSockAddr(Poco::Net::AddressFamily::IPv4,
-									   MicroService::instance().ConfigGetInt("radius.proxy.accounting.port",21813));
+									   MicroService::instance().ConfigGetInt("radius.proxy.accounting.port",1813));
 		std::cout << __LINE__ << std::endl;
 		AccountingSocket_ = std::make_unique<Poco::Net::DatagramSocket>(AcctSockAddr,true);
 
