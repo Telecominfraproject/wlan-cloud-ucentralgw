@@ -139,6 +139,40 @@ namespace OpenWifi {
 		return false;
 	}
 
+	bool DeviceRegistry::SendRadiusAccountingData(const std::string & SerialNumber, const unsigned char * buffer, std::size_t size) {
+		std::lock_guard		Guard(Mutex_);
+		auto Device = 		Devices_.find(Utils::SerialNumberToInt(SerialNumber));
+		if(Device!=Devices_.end() && Device->second->WSConn_!= nullptr) {
+			try {
+				return Device->second->WSConn_->SendRadiusAccountingData(buffer,size);
+			} catch (...) {
+				Logger().debug(fmt::format("Could not send data to device '{}'", SerialNumber));
+				Device->second->Conn_.Address = "";
+				Device->second->WSConn_ = nullptr;
+				Device->second->Conn_.Connected = false;
+				Device->second->Conn_.VerifiedCertificate = GWObjects::NO_CERTIFICATE;
+			}
+		}
+		return false;
+	}
+
+	bool DeviceRegistry::SendRadiusAuthenticationData(const std::string & SerialNumber, const unsigned char * buffer, std::size_t size) {
+		std::lock_guard		Guard(Mutex_);
+		auto Device = 		Devices_.find(Utils::SerialNumberToInt(SerialNumber));
+		if(Device!=Devices_.end() && Device->second->WSConn_!= nullptr) {
+			try {
+				return Device->second->WSConn_->SendRadiusAuthenticationData(buffer,size);
+			} catch (...) {
+				Logger().debug(fmt::format("Could not send data to device '{}'", SerialNumber));
+				Device->second->Conn_.Address = "";
+				Device->second->WSConn_ = nullptr;
+				Device->second->Conn_.Connected = false;
+				Device->second->Conn_.VerifiedCertificate = GWObjects::NO_CERTIFICATE;
+			}
+		}
+		return false;
+	}
+
 	void DeviceRegistry::SetPendingUUID(uint64_t SerialNumber, uint64_t PendingUUID) {
 		std::lock_guard		Guard(Mutex_);
 		auto Device = Devices_.find(SerialNumber);

@@ -11,6 +11,8 @@
 #include "Poco/Net/NetException.h"
 #include "Poco/Net/SSLException.h"
 #include "Poco/Base64Decoder.h"
+#include "Poco/Base64Encoder.h"
+
 #include "Poco/zlib.h"
 
 #include "WS_Server.h"
@@ -18,12 +20,13 @@
 #include "CommandManager.h"
 #include "StateUtils.h"
 #include "ConfigurationCache.h"
-#include "SerialNumberCache.h"
 #include "Daemon.h"
 #include "TelemetryStream.h"
 #include "CentralConfig.h"
 #include "FindCountry.h"
 #include "framework/WebSocketClientNotifications.h"
+
+#include "RADIUS_proxy_server.h"
 
 namespace OpenWifi {
 
@@ -981,10 +984,12 @@ namespace OpenWifi {
 								fmt::format("INVALID-PAYLOAD({}): Payload is not JSON-RPC 2.0: {}",
 											 CId_, IncomingMessageStr));
 						}
+					} if (IncomingJSON->has(uCentralProtocol::RADIUS)) {
+						ProcessIncomingRadiusData(IncomingJSON);
 					} else {
-						poco_warning(Logger(), fmt::format(
-							"FRAME({}): illegal transaction header, missing 'jsonrpc'", CId_));
-						Errors_++;
+							poco_warning(Logger(), fmt::format(
+													   "FRAME({}): illegal transaction header, missing 'jsonrpc'", CId_));
+							Errors_++;
 					}
 					return;
 				} break;
@@ -1068,4 +1073,57 @@ namespace OpenWifi {
 		return BytesSent == Payload.size();
 	}
 
+	std::string Base64Encode(const unsigned char *buffer, std::size_t size) {
+		std::istringstream s(std::string{(const char *)buffer,size});
+		std::ostringstream o;
+		Poco::Base64Encoder	E(o);
+		Poco::StreamCopier::copyStream(s,E);
+		E.close();
+		return o.str();
+	}
+
+	std::string Base64Decode(const std::string &F) {
+		std::istringstream ifs(F);
+		Poco::Base64Decoder b64in(ifs);
+		std::ostringstream ofs;
+		Poco::StreamCopier::copyStream(b64in, ofs);
+		return ofs.str();
+	}
+
+	bool WSConnection::SendRadiusAuthenticationData(const unsigned char * buffer, std::size_t size) {
+		Poco::JSON::Object	Answer;
+		Answer.set(uCentralProtocol::RADIUS,uCentralProtocol::RADIUSAUTH);
+		Answer.set(uCentralProtocol::RADIUSDATA, Base64Encode(buffer,size));
+
+		std::ostringstream Payload;
+		Answer.stringify(Payload);
+		return Send(Payload.str());
+	}
+
+	bool WSConnection::SendRadiusAccountingData(const unsigned char * buffer, std::size_t size) {
+		Poco::JSON::Object	Answer;
+		Answer.set(uCentralProtocol::RADIUS,uCentralProtocol::RADIUSACCT);
+		Answer.set(uCentralProtocol::RADIUSDATA, Base64Encode(buffer,size));
+
+		std::ostringstream Payload;
+		Answer.stringify(Payload);
+		return Send(Payload.str());
+	}
+
+	void WSConnection::ProcessIncomingRadiusData(const Poco::JSON::Object::Ptr &Doc) {
+		if( Doc->has(uCentralProtocol::RADIUSDATA)) {
+			auto Type = Doc->get(uCentralProtocol::RADIUS).toString();
+			if(Type==uCentralProtocol::RADIUSACCT) {
+				auto Data = Doc->get(uCentralProtocol::RADIUSDATA).toString();
+				auto DecodedData = Base64Decode(Data);
+				auto Destination = Doc->has(uCentralProtocol::RADIUSDST) ? Doc->get(uCentralProtocol::RADIUSDST).toString() : "";
+				RADIUS_proxy_server()->SendAccountingData(Destination,DecodedData.c_str(),DecodedData.size());
+			} else if(Type==uCentralProtocol::RADIUSAUTH) {
+				auto Data = Doc->get(uCentralProtocol::RADIUSDATA).toString();
+				auto DecodedData = Base64Decode(Data);
+				auto Destination = Doc->has(uCentralProtocol::RADIUSDST) ? Doc->get(uCentralProtocol::RADIUSDST).toString() : "";
+				RADIUS_proxy_server()->SendAuthenticationData(Destination,DecodedData.c_str(),DecodedData.size());
+			}
+		}
+	}
 }

@@ -26,7 +26,12 @@ namespace OpenWifi {
 		void ProcessJSONRPCEvent(Poco::JSON::Object::Ptr & Doc);
 		void ProcessJSONRPCResult(Poco::JSON::Object::Ptr Doc);
 		void ProcessIncomingFrame();
+		void ProcessIncomingRadiusData(const Poco::JSON::Object::Ptr &Doc);
+
 		bool Send(const std::string &Payload);
+		bool SendRadiusAuthenticationData(const unsigned char * buffer, std::size_t size);
+		bool SendRadiusAccountingData(const unsigned char * buffer, std::size_t size);
+
 		void OnSocketReadable(const Poco::AutoPtr<Poco::Net::ReadableNotification>& pNf);
 		void OnSocketShutdown(const Poco::AutoPtr<Poco::Net::ShutdownNotification>& pNf);
 		void OnSocketError(const Poco::AutoPtr<Poco::Net::ErrorNotification>& pNf);

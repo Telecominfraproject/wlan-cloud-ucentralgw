@@ -208,7 +208,8 @@ namespace ORM {
             int  Place=0;
 
             for(const auto &i:Fields) {
-                FieldNames_[i.Name] = Place;
+                std::string FieldName = Poco::toLower(i.Name);
+                FieldNames_[FieldName] = Place;
                 if(!first) {
                     CreateFields_ += ", ";
                     SelectFields_ += ", ";
@@ -218,9 +219,9 @@ namespace ORM {
                     SelectList_ += "(";
                 }
 
-                CreateFields_ += i.Name + " " + FieldTypeToChar(Type_, i.Type,i.Size) + (i.Index ? " unique primary key" : "");
-                SelectFields_ += i.Name ;
-                UpdateFields_ += i.Name + "=?";
+                CreateFields_ += FieldName + " " + FieldTypeToChar(Type_, i.Type,i.Size) + (i.Index ? " unique primary key" : "");
+                SelectFields_ += FieldName ;
+                UpdateFields_ += FieldName + "=?";
                 SelectList_ += "?";
                 first = false;
                 Place++;
@@ -235,12 +236,13 @@ namespace ORM {
                         IndexLine = std::string("CREATE INDEX IF NOT EXISTS ") + j.Name + std::string(" ON ") + TableName_+ " (";
                         bool first_entry=true;
                         for(const auto &k:j.Entries) {
-                            assert(FieldNames_.find(k.FieldName) != FieldNames_.end());
+                            auto IndexFieldName = Poco::toLower(k.FieldName);
+                            assert(ValidFieldName(IndexFieldName));
                             if(!first_entry) {
                                 IndexLine += " , ";
                             }
                             first_entry = false;
-                            IndexLine += k.FieldName + std::string(" ") + std::string(k.Type == Indextype::ASC ? "ASC" : "DESC") ;
+                            IndexLine += IndexFieldName + std::string(" ") + std::string(k.Type == Indextype::ASC ? "ASC" : "DESC") ;
                         }
                         IndexLine += " )";
                         IndexCreation_.template emplace_back(IndexLine);
@@ -255,12 +257,13 @@ namespace ORM {
                         IndexLine += " INDEX " + j.Name + " ( " ;
                         bool first_entry=true;
                         for(const auto &k:j.Entries) {
-                            assert(FieldNames_.find(k.FieldName) != FieldNames_.end());
+                            auto IndexFieldName = Poco::toLower(k.FieldName);
+                            assert(FieldNames_.find(IndexFieldName) != FieldNames_.end());
                             if(!first_entry) {
                                 IndexLine += " ,";
                             }
                             first_entry = false;
-                            IndexLine += k.FieldName + std::string(k.Type == Indextype::ASC ? " ASC" : " DESC");
+                            IndexLine += IndexFieldName + std::string(k.Type == Indextype::ASC ? " ASC" : " DESC");
                         }
                         IndexLine += " ) ";
                     }
@@ -275,27 +278,27 @@ namespace ORM {
         [[nodiscard]] const std::string & UpdateFields() const { return UpdateFields_; };
 
         inline std::string OP(field_name_t F, SqlComparison O , bool V) {
-            assert( FieldNames_.find(F) != FieldNames_.end() );
+            assert(ValidFieldName(F));
             return std::string{"("} + F + SQLCOMPS[O] + (V ? "true" : "false") + ")" ;
         }
 
         inline std::string OP(field_name_t F, SqlComparison O , int V) {
-            assert( FieldNames_.find(F) != FieldNames_.end() );
+            assert(ValidFieldName(F));
             return std::string{"("} + F + SQLCOMPS[O] + std::to_string(V) + ")" ;
         }
 
         inline std::string OP(field_name_t F, SqlComparison O , uint64_t V) {
-            assert( FieldNames_.find(F) != FieldNames_.end() );
+            assert(ValidFieldName(F));
             return std::string{"("} + F + SQLCOMPS[O] + std::to_string(V) + ")" ;
         }
 
         std::string OP(field_name_t F, SqlComparison O , const std::string & V) {
-            assert( FieldNames_.find(F) != FieldNames_.end() );
+            assert(ValidFieldName(F));
             return std::string{"("} + F + SQLCOMPS[O] + "'" + Escape(V) + "')" ;
         }
 
         std::string OP(field_name_t F, SqlComparison O , const char * V) {
-            assert( FieldNames_.find(F) != FieldNames_.end() );
+            assert(ValidFieldName(F));
             return std::string{"("} + F + SQLCOMPS[O] + "'" + Escape(V) + "')" ;
         }
 
@@ -417,7 +420,7 @@ namespace ORM {
 
         template<typename T> bool GetRecord(field_name_t FieldName, const T & Value,  RecordType & R) {
             try {
-                assert( FieldNames_.find(FieldName) != FieldNames_.end() );
+                assert(ValidFieldName(FieldName));
 
                 if(Cache_) {
                     if(Cache_->GetFromCache(FieldName, Value, R))
@@ -455,7 +458,7 @@ namespace ORM {
                 typename T0, typename T1> bool GR(field_name_t FieldName, T & R,T0 &V0, T1 &V1) {
             try {
 
-                assert( FieldNames_.find(FieldName) != FieldNames_.end() );
+                assert( ValidFieldName(FieldName) );
 
                 Poco::Data::Session     Session = Pool_.get();
                 Poco::Data::Statement   Select(Session);
@@ -513,7 +516,7 @@ namespace ORM {
 
         template <typename T> bool UpdateRecord(field_name_t FieldName, const T & Value,  const RecordType & R) {
             try {
-                assert( FieldNames_.find(FieldName) != FieldNames_.end() );
+                assert( ValidFieldName(FieldName) );
 
                 Poco::Data::Session     Session = Pool_.get();
                 Poco::Data::Statement   Update(Session);
@@ -567,7 +570,7 @@ namespace ORM {
 
         template <typename T> bool GetNameAndDescription(field_name_t FieldName, const T & Value, std::string & Name, std::string & Description ) {
             try {
-                assert( FieldNames_.find(FieldName) != FieldNames_.end() );
+                assert( ValidFieldName(FieldName) );
                 Poco::Data::Session     Session = Pool_.get();
                 Poco::Data::Statement   Select(Session);
                 RecordTuple             RT;
@@ -594,7 +597,7 @@ namespace ORM {
 
         template <typename T> bool DeleteRecord(field_name_t FieldName, const T & Value) {
             try {
-                assert( FieldNames_.find(FieldName) != FieldNames_.end() );
+                assert( ValidFieldName(FieldName) );
 
                 Poco::Data::Session     Session = Pool_.get();
                 Poco::Data::Statement   Delete(Session);
@@ -632,7 +635,7 @@ namespace ORM {
 
         bool Exists(field_name_t FieldName, const std::string & Value) {
             try {
-                assert( FieldNames_.find(FieldName) != FieldNames_.end() );
+                assert( ValidFieldName(FieldName) );
 
                 RecordType  R;
                 if(GetRecord(FieldName,Value,R))
@@ -721,7 +724,7 @@ namespace ORM {
 
         template <typename X> bool ManipulateVectorMember( X T, field_name_t FieldName, const std::string & ParentUUID, const std::string & ChildUUID, bool Add) {
             try {
-                assert( FieldNames_.find(FieldName) != FieldNames_.end() );
+                assert( ValidFieldName(FieldName) );
 
                 RecordType R;
                 if(GetRecord(FieldName, ParentUUID, R)) {
@@ -868,6 +871,15 @@ namespace ORM {
                 return true;
             }
             return false;
+        }
+
+        inline bool ValidFieldName(const std::string &FieldName) {
+            return FieldNames_.find(Poco::toLower(FieldName)) != FieldNames_.end();
+        }
+
+        inline bool ValidFieldName(const char *FieldName) {
+            std::string Field{FieldName};
+            return ValidFieldName(Field);
         }
 
         [[nodiscard]] inline std::string ComputeRange(uint64_t From, uint64_t HowMany) {

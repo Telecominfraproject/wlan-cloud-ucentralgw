@@ -415,7 +415,13 @@ namespace OpenWifi::uCentralProtocol {
 
 	static const char *SCRIPT = "script";
 	static const char *TYPE = "type";
-}
+
+	static const char *RADIUS = "radius";
+	static const char *RADIUSDATA = "data";
+	static const char *RADIUSACCT = "acct";
+	static const char *RADIUSAUTH = "auth";
+	static const char *RADIUSDST = "dst";
+	}
 
 namespace OpenWifi::uCentralProtocol::Events {
 
