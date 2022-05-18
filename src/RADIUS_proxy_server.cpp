@@ -9,10 +9,10 @@ namespace OpenWifi {
 	int RADIUS_proxy_server::Start() {
 
 		Poco::Net::SocketAddress	AuthSockAddr(Poco::Net::AddressFamily::IPv4,
-									   MicroService::instance().ConfigGetInt("radius.proxy.authentication.port",1812));
+									   MicroService::instance().ConfigGetInt("radius.proxy.authentication.port",21812));
 		AuthenticationSocket_.bind(AuthSockAddr,true);
 		Poco::Net::SocketAddress	AcctSockAddr(Poco::Net::AddressFamily::IPv4,
-									   MicroService::instance().ConfigGetInt("radius.proxy.accounting.port",1813));
+									   MicroService::instance().ConfigGetInt("radius.proxy.accounting.port",21813));
 		AccountingSocket_.bind(AcctSockAddr,true);
 
 		AuthenticationReactor_.addEventHandler(AuthenticationSocket_,Poco::NObserver<RADIUS_proxy_server, Poco::Net::ReadableNotification>(
