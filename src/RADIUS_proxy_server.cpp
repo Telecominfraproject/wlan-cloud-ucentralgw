@@ -12,17 +12,18 @@ namespace OpenWifi {
 		Poco::Net::SocketAddress	AuthSockAddr(Poco::Net::AddressFamily::IPv4,
 									   MicroService::instance().ConfigGetInt("radius.proxy.authentication.port",21812));
 		std::cout << __LINE__ << std::endl;
-		AuthenticationSocket_.bind(AuthSockAddr,true);
+		AuthenticationSocket_ = std::make_unique<Poco::Net::DatagramSocket>(AuthSockAddr,true);
+
 		std::cout << __LINE__ << std::endl;
 		Poco::Net::SocketAddress	AcctSockAddr(Poco::Net::AddressFamily::IPv4,
 									   MicroService::instance().ConfigGetInt("radius.proxy.accounting.port",21813));
 		std::cout << __LINE__ << std::endl;
-		AccountingSocket_.bind(AcctSockAddr,true);
+		AccountingSocket_ = std::make_unique<Poco::Net::DatagramSocket>(AcctSockAddr,true);
 
 		std::cout << __LINE__ << std::endl;
-		AuthenticationReactor_.addEventHandler(AuthenticationSocket_,Poco::NObserver<RADIUS_proxy_server, Poco::Net::ReadableNotification>(
+		AuthenticationReactor_.addEventHandler(*AuthenticationSocket_,Poco::NObserver<RADIUS_proxy_server, Poco::Net::ReadableNotification>(
 														   *this, &RADIUS_proxy_server::OnAuthenticationSocketReadable));
-		AccountingReactor_.addEventHandler(AccountingSocket_,Poco::NObserver<RADIUS_proxy_server, Poco::Net::ReadableNotification>(
+		AccountingReactor_.addEventHandler(*AccountingSocket_,Poco::NObserver<RADIUS_proxy_server, Poco::Net::ReadableNotification>(
 																		  *this, &RADIUS_proxy_server::OnAccountingSocketReadable));
 		std::cout << __LINE__ << std::endl;
 
@@ -35,9 +36,9 @@ namespace OpenWifi {
 	}
 
 	void RADIUS_proxy_server::Stop() {
-		AuthenticationReactor_.removeEventHandler(AuthenticationSocket_,Poco::NObserver<RADIUS_proxy_server, Poco::Net::ReadableNotification>(
+		AuthenticationReactor_.removeEventHandler(*AuthenticationSocket_,Poco::NObserver<RADIUS_proxy_server, Poco::Net::ReadableNotification>(
 																		  *this, &RADIUS_proxy_server::OnAuthenticationSocketReadable));
-		AccountingReactor_.removeEventHandler(AccountingSocket_,Poco::NObserver<RADIUS_proxy_server, Poco::Net::ReadableNotification>(
+		AccountingReactor_.removeEventHandler(*AccountingSocket_,Poco::NObserver<RADIUS_proxy_server, Poco::Net::ReadableNotification>(
 																  *this, &RADIUS_proxy_server::OnAccountingSocketReadable));
 		AuthenticationReactor_.stop();
 		AuthenticationReactorThread_.join();
@@ -50,7 +51,7 @@ namespace OpenWifi {
 		Poco::Net::SocketAddress	Sender;
 		unsigned char Buffer[4096];
 
-		auto ReceiveSize = AccountingSocket_.receiveBytes(Buffer,sizeof(Buffer));
+		auto ReceiveSize = AccountingSocket_->receiveBytes(Buffer,sizeof(Buffer));
 		std::cout << "Received an Accounting packet:" << ReceiveSize << " bytes." << std::endl;
 	}
 
@@ -58,7 +59,7 @@ namespace OpenWifi {
 		Poco::Net::SocketAddress	Sender;
 		unsigned char Buffer[4096];
 
-		auto ReceiveSize = AuthenticationSocket_.receiveBytes(Buffer,sizeof(Buffer));
+		auto ReceiveSize = AuthenticationSocket_->receiveBytes(Buffer,sizeof(Buffer));
 		std::cout << "Received an Authentication packet:" << ReceiveSize << " bytes." << std::endl;
 	}
 

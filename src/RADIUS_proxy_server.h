@@ -23,8 +23,8 @@ namespace OpenWifi {
 		void OnAuthenticationSocketReadable(const Poco::AutoPtr<Poco::Net::ReadableNotification>& pNf);
 
 	  private:
-		Poco::Net::DatagramSocket	AccountingSocket_;
-		Poco::Net::DatagramSocket	AuthenticationSocket_;
+		std::unique_ptr<Poco::Net::DatagramSocket>	AccountingSocket_;
+		std::unique_ptr<Poco::Net::DatagramSocket>	AuthenticationSocket_;
 		Poco::Net::SocketReactor	AccountingReactor_;
 		Poco::Net::SocketReactor	AuthenticationReactor_;
 		Poco::Thread				AuthenticationReactorThread_;
