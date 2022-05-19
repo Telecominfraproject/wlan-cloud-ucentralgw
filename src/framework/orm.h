@@ -688,7 +688,7 @@ namespace ORM {
                 }
                 if(!ItemList.empty())
                     ItemList += " , ";
-                auto hint = FieldNames_.find(T[0]);
+                auto hint = FieldNames_.find(Poco::toLower(T[0]));
                 if(hint==FieldNames_.end()) {
                     return false;
                 }
@@ -898,10 +898,15 @@ namespace ORM {
 
         Poco::Logger & Logger() { return Logger_; }
 
-        bool DeleteRecordsFromCache(const char *FieldName, const std::string &Value ) {
+        inline bool DeleteRecordsFromCache(const char *FieldName, const std::string &Value ) {
             if(Cache_)
                 Cache_->Delete(FieldName, Value);
             return true;
+        }
+
+        inline void GetFieldNames( OpenWifi::Types::StringVec & F) {
+            for(const auto &[field,_]:FieldNames_)
+                F.push_back(field);
         }
 
     protected:
