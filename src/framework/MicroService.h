@@ -4148,10 +4148,10 @@ namespace OpenWifi {
                     Producer.produce(
                             cppkafka::MessageBuilder(Msg->Topic()).key(Msg->Key()).payload(Msg->Payload()));
                 }
+            } catch (const cppkafka::HandleException &E) {
+                KafkaManager()->Logger().warning(fmt::format("Caught a Kafka exception (producer): {}", E.what()));
             } catch( const Poco::Exception &E) {
                 KafkaManager()->Logger().log(E);
-            } catch (const cppkafka::HandleException &E) {
-                KafkaManager()->Logger().error(fmt::format("{}: Exception --> {}", E.get_error().to_string(), E.what()));
             } catch (...) {
                 KafkaManager()->Logger().error("std::exception");
             }
@@ -4212,7 +4212,8 @@ namespace OpenWifi {
 	                if (Msg.get_error()) {
 	                    if (!Msg.is_eof()) {
 	                        KafkaManager()->Logger().error(fmt::format("Error: {}", Msg.get_error().to_string()));
-	                    }if(!AutoCommit)
+	                    }
+                        if(!AutoCommit)
 	                        Consumer.async_commit(Msg);
 	                    continue;
 	                }
