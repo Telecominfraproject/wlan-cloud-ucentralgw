@@ -984,7 +984,7 @@ namespace OpenWifi {
 								fmt::format("INVALID-PAYLOAD({}): Payload is not JSON-RPC 2.0: {}",
 											 CId_, IncomingMessageStr));
 						}
-					} if (IncomingJSON->has(uCentralProtocol::RADIUS)) {
+					} else if (IncomingJSON->has(uCentralProtocol::RADIUS)) {
 						ProcessIncomingRadiusData(IncomingJSON);
 					} else {
 							std::ostringstream iS;
