@@ -987,6 +987,9 @@ namespace OpenWifi {
 					} if (IncomingJSON->has(uCentralProtocol::RADIUS)) {
 						ProcessIncomingRadiusData(IncomingJSON);
 					} else {
+							std::ostringstream iS;
+							IncomingJSON->stringify(iS);
+							std::cout << iS.str() << std::endl;
 							poco_warning(Logger(), fmt::format(
 													   "FRAME({}): illegal transaction header, missing 'jsonrpc'", CId_));
 							Errors_++;
