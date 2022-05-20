@@ -126,15 +126,17 @@ namespace OpenWifi {
 		DeviceRegistry()->SendRadiusAuthenticationData(SerialNumber,Buffer,ReceiveSize);
 	}
 
-	void RADIUS_proxy_server::SendAccountingData(std::string &Destination,const char *buffer, std::size_t size) {
+	void RADIUS_proxy_server::SendAccountingData(const std::string &serialNumber, const std::string &Destination,const char *buffer, std::size_t size) {
 		Poco::Net::SocketAddress	Dst(Destination);
 		AccountingSocket_->sendTo(buffer,(int)size,Dst);
-		std::cout << "Sending Accounting data to {}" << Destination << std::endl;
+		Logger().information(fmt::format("{}: Sending Accounting Packet to {}", serialNumber, Destination));
+		std::cout << "Sending Accounting data to " << Destination << std::endl;
 	}
 
-	void RADIUS_proxy_server::SendAuthenticationData(std::string &Destination,const char *buffer, std::size_t size) {
+	void RADIUS_proxy_server::SendAuthenticationData(const std::string &serialNumber, const std::string &Destination,const char *buffer, std::size_t size) {
 		Poco::Net::SocketAddress	Dst(Destination);
 		AuthenticationSocket_->sendTo(buffer,(int)size,Dst);
-		std::cout << "Sending Authentication data to {}" << Destination << std::endl;
+		Logger().information(fmt::format("{}: Sending Authentication Packet to {}", serialNumber, Destination));
+		std::cout << "Sending Authentication data to " << Destination << std::endl;
 	}
 }

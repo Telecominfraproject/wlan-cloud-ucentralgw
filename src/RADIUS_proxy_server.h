@@ -21,8 +21,8 @@ namespace OpenWifi {
 
 		void OnAccountingSocketReadable(const Poco::AutoPtr<Poco::Net::ReadableNotification>& pNf);
 		void OnAuthenticationSocketReadable(const Poco::AutoPtr<Poco::Net::ReadableNotification>& pNf);
-		void SendAccountingData(std::string &Destination,const char *buffer, std::size_t size);
-		void SendAuthenticationData(std::string &Destination,const char *buffer, std::size_t size);
+		void SendAccountingData(const std::string &serialNumber, const std::string &Destination,const char *buffer, std::size_t size);
+		void SendAuthenticationData(const std::string &serialNumber, const std::string &Destination,const char *buffer, std::size_t size);
 
 	  private:
 		std::unique_ptr<Poco::Net::DatagramSocket>	AccountingSocket_;
