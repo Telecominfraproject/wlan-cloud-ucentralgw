@@ -687,8 +687,10 @@ namespace OpenWifi {
 		return ">75%";
 	}
 
-	static std::string ComputeFreeMemoryTag(uint64_t Free, uint64_t Total) {
-		auto V = 100.0 * ((float)Free/(float(Total)));
+	static std::string ComputeUsedMemoryTag(uint64_t Free, uint64_t Total) {
+		if(Total==0)
+			return "< 5%";
+		auto V = 100.0 * ((float)(Total-Free)/(float(Total)));
 		if(V<5.0) return "< 5%";
 		if(V<25.0) return "< 25%";
 		if(V<50.0) return "< 50%";
@@ -745,7 +747,7 @@ namespace OpenWifi {
 								auto Memory = Unit->getObject("memory");
 								uint64_t Free = Memory->get("free");
 								uint64_t Total = Memory->get("total");
-								UpdateCountedMap(Dashboard.memoryUsed, ComputeFreeMemoryTag(Free, Total));
+								UpdateCountedMap(Dashboard.memoryUsed, ComputeUsedMemoryTag(Free, Total));
 							}
 							if (Unit->has("load")) {
 								auto Load = Unit->getArray("load");
