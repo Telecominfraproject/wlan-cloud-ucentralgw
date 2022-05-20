@@ -1121,6 +1121,20 @@ paths:
           name: deviceWithStatus
           schema:
             type: boolean
+        - in: query
+          description: return extended information
+          name: orderBy
+          schema:
+            type: string
+            example: serialNumber:a,created:d
+          required: false
+        - in: query
+          description: return extended information
+          name: orderSpec
+          schema:
+            type: boolean
+            default: false
+          required: false
       responses:
         200:
           description: List devices

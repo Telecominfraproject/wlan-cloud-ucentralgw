@@ -85,17 +85,18 @@ namespace OpenWifi {
 		bool CreateDefaultDevice(std::string & SerialNumber, std::string & Capabilities, std::string & Firmware, std::string &Compatible,const Poco::Net::IPAddress & IPAddress);
 
 		bool GetDevice(std::string &SerialNumber, GWObjects::Device &);
-		bool GetDevices(uint64_t From, uint64_t HowMany, std::vector<GWObjects::Device> &Devices);
-		bool GetDevices(uint64_t From, uint64_t HowMany, const std::string & Select, std::vector<GWObjects::Device> &Devices);
+		bool GetDevices(uint64_t From, uint64_t HowMany, std::vector<GWObjects::Device> &Devices, const std::string & orderBy="");
+//		bool GetDevices(uint64_t From, uint64_t HowMany, const std::string & Select, std::vector<GWObjects::Device> &Devices, const std::string & orderBy="");
 		bool DeleteDevice(std::string &SerialNumber);
 		bool UpdateDevice(GWObjects::Device &);
 		bool DeviceExists(std::string & SerialNumber);
 		bool SetConnectInfo(std::string &SerialNumber, std::string &Firmware);
 		bool GetDeviceCount(uint64_t & Count);
-		bool GetDeviceSerialNumbers(uint64_t From, uint64_t HowMany, std::vector<std::string> & SerialNumbers);
+		bool GetDeviceSerialNumbers(uint64_t From, uint64_t HowMany, std::vector<std::string> & SerialNumbers, const std::string & orderBy="");
 		bool GetDeviceFWUpdatePolicy(std::string & SerialNumber, std::string & Policy);
 		bool SetDevicePassword(std::string & SerialNumber, std::string & Password);
 		bool UpdateSerialNumberCache();
+		void GetDeviceDbFieldList( Types::StringVec & Fields);
 
 		bool ExistingConfiguration(std::string &SerialNumber, uint64_t CurrentConfig, std::string &NewConfig, uint64_t &);
 

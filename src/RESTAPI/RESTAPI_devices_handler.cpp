@@ -17,7 +17,59 @@
 #include "Poco/StringTokenizer.h"
 
 namespace OpenWifi {
+
+
+	bool PrepareOrderBy(const std::string &OrderByList, std::string &OrderByString) {
+		auto items = Poco::StringTokenizer(OrderByList,",");
+		std::string ItemList;
+
+		Types::StringVec Fields;
+		StorageService()->GetDeviceDbFieldList(Fields);
+
+		std::set<std::string> FieldNames;
+		for(const auto &field:Fields)
+			FieldNames.insert(Poco::toLower(field));
+
+		for(const auto &i:items) {
+			auto T = Poco::StringTokenizer(i,":");
+			if(T.count()!=2) {
+				return false;
+			}
+			if(T[1]!="a" && T[1]!="d") {
+				return false;
+			}
+			if(!ItemList.empty())
+				ItemList += " , ";
+			auto hint = FieldNames.find(Poco::toLower(T[0]));
+			if(hint==FieldNames.end()) {
+				return false;
+			}
+			ItemList += T[0] + (T[1]=="a" ? " ASC" : " DESC");
+		}
+
+		if(!ItemList.empty()) {
+			OrderByString = " ORDER BY " + ItemList;
+		}
+		return true;
+	}
+
 	void RESTAPI_devices_handler::DoGet() {
+
+		if(GetBoolParameter("orderSpec")) {
+			Types::StringVec Fields;
+			StorageService()->GetDeviceDbFieldList(Fields);
+			std::sort(Fields.begin(),Fields.end());
+			Poco::JSON::Object	Answer;
+			RESTAPI_utils::field_to_json(Answer,"list",Fields);
+			return ReturnObject(Answer);
+		}
+
+		std::string OrderBy{" ORDER BY serialNumber ASC "}, Arg;
+		if(HasParameter("orderBy",Arg)) {
+			if(!PrepareOrderBy(Arg,OrderBy)) {
+				return BadRequest(RESTAPI::Errors::InvalidLOrderBy);
+			}
+		}
 
 		auto serialOnly = GetBoolParameter(RESTAPI::Protocol::SERIALONLY, false);
 		auto deviceWithStatus = GetBoolParameter(RESTAPI::Protocol::DEVICEWITHSTATUS, false);
@@ -59,7 +111,7 @@ namespace OpenWifi {
 			}
 		} else if (serialOnly) {
 			std::vector<std::string> SerialNumbers;
-			StorageService()->GetDeviceSerialNumbers(QB_.Offset, QB_.Limit, SerialNumbers);
+			StorageService()->GetDeviceSerialNumbers(QB_.Offset, QB_.Limit, SerialNumbers, OrderBy);
 			Poco::JSON::Array Objects;
 			for (const auto &i : SerialNumbers) {
 				Objects.add(i);
@@ -67,7 +119,7 @@ namespace OpenWifi {
 			RetObj.set(RESTAPI::Protocol::SERIALNUMBERS, Objects);
 		} else {
 			std::vector<GWObjects::Device> Devices;
-			StorageService()->GetDevices(QB_.Offset, QB_.Limit, Devices);
+			StorageService()->GetDevices(QB_.Offset, QB_.Limit, Devices, OrderBy);
 			Poco::JSON::Array Objects;
 			for (const auto &i : Devices) {
 				Poco::JSON::Object Obj;

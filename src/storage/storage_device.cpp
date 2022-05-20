@@ -46,7 +46,7 @@ namespace OpenWifi {
 		"subscriber, "
 		"entity, "
 		"modified, "
-		"locale "
+		"locale"
 	};
 
 	const static std::string DB_DeviceUpdateFields{
@@ -169,12 +169,16 @@ namespace OpenWifi {
 		return false;
 	}
 
-	bool Storage::GetDeviceSerialNumbers(uint64_t From, uint64_t HowMany, std::vector<std::string> &SerialNumbers) {
+	bool Storage::GetDeviceSerialNumbers(uint64_t From, uint64_t HowMany, std::vector<std::string> &SerialNumbers, const std::string & orderBy) {
 		try {
 			Poco::Data::Session Sess = Pool_->get();
 			Poco::Data::Statement   Select(Sess);
 
-			std::string st{"SELECT SerialNumber From Devices ORDER BY SerialNumber ASC " };
+			std::string st;
+			if(orderBy.empty())
+				st = "SELECT SerialNumber From Devices ORDER BY SerialNumber ASC ";
+			else
+				st = "SELECT SerialNumber From Devices " + orderBy;
 
 			Select << 	st + ComputeRange(From, HowMany),
 				Poco::Data::Keywords::into(SerialNumbers);
@@ -539,13 +543,19 @@ namespace OpenWifi {
 		return false;
 	}
 
-	bool Storage::GetDevices(uint64_t From, uint64_t HowMany, std::vector<GWObjects::Device> &Devices) {
+	bool Storage::GetDevices(uint64_t From, uint64_t HowMany, std::vector<GWObjects::Device> &Devices, const std::string & orderBy) {
 		DeviceRecordList Records;
 		try {
 			Poco::Data::Session     Sess = Pool_->get();
 			Poco::Data::Statement   Select(Sess);
 
-			std::string st{"SELECT " + DB_DeviceSelectFields + " FROM Devices ORDER BY SerialNumber ASC " + ComputeRange(From, HowMany)};
+
+			// std::string st{"SELECT " + DB_DeviceSelectFields + " FROM Devices " + orderBy.empty() ? " ORDER BY SerialNumber ASC " + ComputeRange(From, HowMany)};
+			std::string st = fmt::format("SELECT {} FROM Devices {} {}",
+				DB_DeviceSelectFields,
+				orderBy.empty() ? " ORDER BY SerialNumber ASC " : orderBy ,
+				ComputeRange(From, HowMany));
+
 			Select << 	ConvertParams(st),
 						Poco::Data::Keywords::into(Records);
 			Select.execute();
@@ -765,5 +775,12 @@ namespace OpenWifi {
 		}
 		return false;
 	}
+
+	void Storage::GetDeviceDbFieldList( Types::StringVec & FieldList) {
+		const auto fields = Poco::StringTokenizer(DB_DeviceSelectFields,",",Poco::StringTokenizer::TOK_TRIM);
+		for(const auto &field:fields)
+			FieldList.push_back(field);
+	}
+
 }
 
