@@ -188,6 +188,13 @@ namespace OpenWifi::RESTAPI::Errors {
     static const struct msg FailedToVerifyDigicert{1136,"Failed to verify the DigiCert information provided."};
     static const struct msg CouldNotPerformCommand{1137,"Could not perform command."};
 
+	static const struct msg PoolNameInvalid{1138,"Pool name is invalid."};
+	static const struct msg InvalidRadiusProxyStrategy{1139,"Strategy name must be: random, round_robin, weighted."};
+	static const struct msg InvalidRadiusProxyMonitorMethod{1140,"monitorMethod must be: none, https, radius."};
+	static const struct msg MustHaveAtLeastOneRadiusServer{1141,"Must have at least one RADIUS server."};
+	static const struct msg InvalidRadiusServerEntry{1142,"RADIUS Server IP address invalid or port missing."};
+	static const struct msg InvalidRadiusServerWeigth{1143,"RADIUS Server IP weight cannot be 0."};
+
 }
 
 

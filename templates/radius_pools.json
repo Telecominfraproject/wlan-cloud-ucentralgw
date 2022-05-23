@@ -1,0 +1,89 @@
+{
+    "pools" :
+    [
+    {
+        "name" : "pool1_name",
+        "description" : "This is the big pool 1",
+        "authPolicy" : "weighted",
+        "acctPolicy" : "round-robin",
+        "authMonitor" : true ,
+        "authMonitorMethod" : {
+        },
+        "acctMonitor" : false,
+        "authServers" : [{
+                "name" : "server 1 in pool 1",
+                "ip" : "1.2.3.4",
+                "port" : 1812,
+                "weight" : 50
+            },
+            {
+                "name" : "server 2 in pool 1",
+                "ip" : "1.2.3.5",
+                "port" : 1812,
+             "weight" : 25
+            },
+            {
+                "name" : "server 3 in pool 1",
+                "ip" : "1.2.3.6",
+                "port" : 1812,
+                 "weight" : 25
+            }
+        ],
+        "acctServers" : [{
+                "name" : "server 1 in pool 1",
+                "ip" : "1.2.3.4",
+                "port" : 1813
+            },
+            {
+                "name" : "server 2 in pool 1",
+                "ip" : "1.2.3.5",
+                "port" : 1813
+            },
+            {
+                "name" : "server 3 in pool 1",
+                "ip" : "1.2.3.6",
+                "port" : 1813
+            }
+        ]
+        },
+    {
+        "name" : "pool2_name",
+        "description" : "This is the big pool 2",
+        "authServers" : [{
+                "name" : "server 1 in pool 2",
+                "ip" : "1.2.4.4",
+                "port" : 1812
+            },
+            {
+                "name" : "server 2 in pool 2",
+                "ip" : "1.2.4.5",
+                "port" : 1812
+            },
+            {
+                "name" : "server 3 in pool 2",
+                "ip" : "1.2.4.6",
+                "port" : 1812
+            }
+        ],
+        "acctServers" : [{
+                "name" : "server 1 in pool 2",
+                "ip" : "1.2.4.4",
+                "port" : 1813,
+                 "weight" : 25
+            },
+            {
+                "name" : "server 2 in pool 2",
+                "ip" : "1.2.4.5",
+                "port" : 1813,
+                 "weight" : 25
+            },
+            {
+                "name" : "server 3 in pool 2",
+                "ip" : "1.2.4.6",
+                "port" : 1813,
+                 "weight" : 25
+            }
+        ]
+        }
+    ]
+}

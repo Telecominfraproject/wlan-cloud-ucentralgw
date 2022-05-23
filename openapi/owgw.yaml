@@ -1072,6 +1072,66 @@ components:
           items:
             $ref: '#/components/schemas/CapabilitiesModel'
 
+    RadiusProxyServerEntry:
+      type: object
+      properties:
+        name:
+          type: string
+        ip:
+          type: string
+          format: ip-addr
+        port:
+          type: integer
+        weight:
+          type: integer
+
+    RadiusProxyServerConfig:
+      type: object
+      properties:
+        strategy:
+          type: string
+          enum:
+            - random
+            - round_robin
+            - weighted
+        monitor:
+          type: boolean
+          default: false
+        monitorMethod:
+          type: string
+          enum:
+            - none
+            - https
+            - radius
+        methodParameters:
+          type: array
+          items:
+            type: string
+        servers:
+          type: array
+          items:
+            $ref: '#/components/schemas/RadiusProxyServerEntry'
+
+    RadiusProxyPool:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        authConfig:
+          $ref: '#/components/schemas/RadiusProxyServerConfig'
+        acctConfig:
+          $ref: '#/components/schemas/RadiusProxyServerConfig'
+
+    RadiusProxyPoolList:
+      type: object
+      properties:
+        pools:
+          type: array
+          items:
+            $ref: '#/components/schemas/RadiusProxyPool'
+
 paths:
   /devices:
     get:
@@ -2497,6 +2557,35 @@ paths:
           $ref: '#/components/responses/Unauthorized'
         404:
           $ref: '#/components/responses/NotFound'
+
+  /radiusProxyConfig:
+    get:
+      tags:
+        - RADIUSProxy
+      summary: Retrieve RADIUS Proxy configuration.
+      operationId: getRadiusProxyConfig
+      responses:
+        200:
+          $ref: '#/components/schemas/RadiusProxyPoolList'
+        403:
+          $ref: '#/components/responses/Unauthorized'
+    put:
+      tags:
+        - RADIUSProxy
+      summary: Modify RADIUS Proxy configuration.
+      operationId: modifyRadiusProxyConfig
+      requestBody:
+        description: Change RADIUS configuration pool config
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RadiusProxyPoolList'
+      responses:
+        200:
+          $ref: '#/components/schemas/RadiusProxyPoolList'
+        403:
+          $ref: '#/components/responses/Unauthorized'
+
 
   /deviceDashboard:
     get:
