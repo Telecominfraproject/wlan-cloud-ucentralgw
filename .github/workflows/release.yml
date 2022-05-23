@@ -22,7 +22,7 @@ jobs:
           path: wlan-cloud-ucentralgw
 
       - name: Build package
-        working-directory: wlan-cloud-ucentralgw/chart
+        working-directory: wlan-cloud-ucentralgw/helm
         run: |
           helm plugin install https://github.com/aslafy-z/helm-git --version 0.10.0
           helm repo add bitnami https://charts.bitnami.com/bitnami
@@ -32,7 +32,7 @@ jobs:
           helm package . -d dist
 
       - name: Generate GitHub release body
-        working-directory: wlan-cloud-ucentralgw/chart
+        working-directory: wlan-cloud-ucentralgw/helm
         run: |
           pip3 install yq -q
           echo "Docker image - tip-tip-wlan-cloud-ucentral.jfrog.io/owgw:$GITHUB_REF_NAME" > release.txt
@@ -42,5 +42,5 @@ jobs:
       - name: Create GitHub release
         uses: softprops/action-gh-release@v1
         with:
-          body_path: wlan-cloud-ucentralgw/chart/release.txt
-          files: wlan-cloud-ucentralgw/chart/dist/*
+          body_path: wlan-cloud-ucentralgw/helm/release.txt
+          files: wlan-cloud-ucentralgw/helm/dist/*
