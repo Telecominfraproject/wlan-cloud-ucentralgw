@@ -1001,6 +1001,12 @@ components:
           oneOf:
             - $ref: '#/components/schemas/WifiBands'
             - $ref: '#/components/schemas/WifiChannels'
+        ies:
+          type: array
+          items:
+            type: integer
+            minimum: 0
+            maximum: 255
       required:
         - serialNumber
 
