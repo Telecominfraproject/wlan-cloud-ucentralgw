@@ -699,6 +699,11 @@ namespace OpenWifi {
 		bool ActiveScan = GetB(RESTAPI::Protocol::ACTIVESCAN, Obj, false);
 		uint64_t Bandwidth = Get(RESTAPI::Protocol::BANDWIDTH, Obj, (uint64_t) 0);
 
+		Poco::JSON::Array::Ptr ies;
+		if(Obj->has("ies") && Obj->isArray("ies")) {
+			ies = Obj->getArray("ies");
+		}
+
 		auto UUID = MicroService::CreateUUID();
 		GWObjects::CommandDetails Cmd;
 
@@ -712,6 +717,8 @@ namespace OpenWifi {
 		Params.set(uCentralProtocol::SERIAL, SerialNumber_);
 		Params.set(uCentralProtocol::OVERRIDEDFS, OverrideDFS);
 		Params.set(uCentralProtocol::ACTIVE, ActiveScan);
+		if(ies)
+			Params.set(uCentralProtocol::IES, ies);
 		if(Bandwidth!=0)
 			Params.set(uCentralProtocol::BANDWIDTH, Bandwidth);
 

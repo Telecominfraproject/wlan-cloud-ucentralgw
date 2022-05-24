@@ -428,6 +428,7 @@ namespace OpenWifi::uCentralProtocol {
 	static const char *RADIUSACCT = "acct";
 	static const char *RADIUSAUTH = "auth";
 	static const char *RADIUSDST = "dst";
+	static const char *IES = "ies";
 	}
 
 namespace OpenWifi::uCentralProtocol::Events {
