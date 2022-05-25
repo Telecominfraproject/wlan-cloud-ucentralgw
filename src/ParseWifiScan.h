@@ -30,7 +30,7 @@ namespace OpenWifi {
 		return r;
 	}
 
-	inline bool ParseWifiScan(Poco::JSON::Object::Ptr &Obj, std::stringstream & Result) {
+	inline bool ParseWifiScan(Poco::JSON::Object::Ptr Obj, std::stringstream & Result) {
 		if(Obj->has("status")) {
 			auto Status = Obj->get("status").extract<Poco::JSON::Object::Ptr>();
 			if(Status->has("scan") && Status->isArray("scan")) {
