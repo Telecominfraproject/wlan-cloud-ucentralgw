@@ -33,16 +33,23 @@ namespace OpenWifi {
 						Poco::JSON::Array	new_ies;
 						for(auto &ie:*ies) {
 							auto ie_obj = ie.extract<Poco::JSON::Object::Ptr>();
-							auto ie_type = (uint64_t) ie_obj->get("type");
-							auto ie_data = ie_obj->get("data").toString();
-							auto data = Base64Decode(ie_data);
-							if(ie_type==7) {
-								Poco::JSON::Object	new_ie;
-								std::string CountryName;
-								CountryName += data[0];
-								CountryName += data[1];
-								new_ie.set("country", CountryName);
-								new_ies.add(new_ie);
+							if(ie_obj->has("type") && ie_obj->has("data")) {
+								auto ie_type = (uint64_t)ie_obj->get("type");
+								auto ie_data = ie_obj->get("data").toString();
+								std::cout << "TYPE:" << ie_type << "  DATA:" << ie_data
+										  << std::endl;
+
+								auto data = Base64Decode(ie_data);
+								if (ie_type == 7) {
+									Poco::JSON::Object new_ie;
+									std::string CountryName;
+									CountryName += data[0];
+									CountryName += data[1];
+									new_ie.set("country", CountryName);
+									new_ies.add(new_ie);
+								} else {
+									new_ies.add(ie_obj);
+								}
 							} else {
 								new_ies.add(ie_obj);
 							}
