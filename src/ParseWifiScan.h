@@ -14,7 +14,8 @@ namespace OpenWifi {
 		std::ostringstream ofs;
 		Poco::StreamCopier::copyStream(b64in, ofs);
 		std::vector<unsigned char> r;
-		for(const auto &c:ofs.str()) {
+		auto s = ofs.str();
+		for(const auto &c:s) {
 			r.push_back((unsigned char)c);
 		}
 		return r;
