@@ -11,6 +11,7 @@
 #include "DeviceRegistry.h"
 #include "StorageService.h"
 #include "framework/ow_constants.h"
+#include "ParseWifiScan.h"
 
 namespace OpenWifi::RESTAPI_RPC {
 	void SetCommandStatus(GWObjects::CommandDetails &Cmd,
@@ -73,8 +74,13 @@ namespace OpenWifi::RESTAPI_RPC {
 							Cmd.ErrorText = StatusInnerObj->get(uCentralProtocol::TEXT).toString();
 						std::stringstream ResultText;
 						if(rpc_answer.has(uCentralProtocol::RESULT)) {
-							Poco::JSON::Stringifier::stringify(
-								rpc_answer.get(uCentralProtocol::RESULT), ResultText);
+							if(Cmd.Command==uCentralProtocol::WIFISCAN) {
+								auto ScanObj = rpc_answer.get(uCentralProtocol::RESULT).extract<Poco::JSON::Object::Ptr>();
+								ParseWifiScan(ScanObj, ResultText);
+							} else {
+								Poco::JSON::Stringifier::stringify(
+									rpc_answer.get(uCentralProtocol::RESULT), ResultText);
+							}
 						} if (rpc_answer.has(uCentralProtocol::RESULT_64)) {
 							uint64_t sz=0;
 							if(rpc_answer.has(uCentralProtocol::RESULT_SZ))
