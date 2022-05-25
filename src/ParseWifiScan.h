@@ -48,7 +48,7 @@ namespace OpenWifi {
 									Data.set("country", CountryName);
 									new_ie.set("type", "country");
 									Poco::JSON::Array	constraints;
-									for(int i=3;i<data.size();i+=3) {
+									for(std::size_t  i=3;i<data.size();i+=3) {
 										Poco::JSON::Object	Inner;
 										Inner.set("first_channel", (uint64_t) data[i]);
 										Inner.set("number_of_channel", (uint64_t) data[i+1]);
