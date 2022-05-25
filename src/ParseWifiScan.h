@@ -9,15 +9,24 @@
 namespace OpenWifi {
 
 	inline std::vector<unsigned char> Base64Decode(const std::string &F) {
+		std::cout << __LINE__ << std::endl;
 		std::istringstream ifs(F);
+		std::cout << __LINE__ << std::endl;
 		Poco::Base64Decoder b64in(ifs);
+		std::cout << __LINE__ << std::endl;
 		std::ostringstream ofs;
+		std::cout << __LINE__ << std::endl;
 		Poco::StreamCopier::copyStream(b64in, ofs);
+		std::cout << __LINE__ << std::endl;
 		std::vector<unsigned char> r;
+		std::cout << __LINE__ << std::endl;
 		auto s = ofs.str();
+		std::cout << __LINE__ << std::endl;
 		for(const auto &c:s) {
+			std::cout << __LINE__ << std::endl;
 			r.push_back((unsigned char)c);
 		}
+		std::cout << __LINE__ << std::endl;
 		return r;
 	}
 
@@ -39,7 +48,6 @@ namespace OpenWifi {
 								auto ie_data = ie_obj->get("data").toString();
 								std::cout << "TYPE:" << ie_type << "  DATA:" << ie_data
 										  << std::endl;
-
 								auto data = Base64Decode(ie_data);
 								if (ie_type == 7) {
 									Poco::JSON::Object new_ie;
