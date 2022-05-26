@@ -368,7 +368,7 @@ namespace OpenWifi {
 		if(data.size()>1)
 			content["version"] =(uint64_t )(data[0]*256 + data[1]);
 		else
-			content["version"] =(uint64_t )(data[0];
+			content["version"] =(uint64_t )(data[0]);
 		new_ie["name"]="QBSS Load";
 		new_ie["content"]=content;
 		new_ie["type"]=WLAN_EID_QBSS_LOAD;
