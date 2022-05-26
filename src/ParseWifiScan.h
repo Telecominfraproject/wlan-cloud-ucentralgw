@@ -417,7 +417,9 @@ namespace OpenWifi {
 						ParsedScan.add(scan_entry);
 					}
 				}
+				Status->remove("scan");
 				Status->set("scan", ParsedScan);
+				Obj->remove("status");
 				Obj->set("status", Status);
 			}
 		}
