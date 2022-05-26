@@ -359,6 +359,7 @@ namespace OpenWifi {
 	}
 
 	inline bool ParseWifiScan(Poco::JSON::Object::Ptr Obj, std::stringstream &Result) {
+		std::cout << "Start of parsing wifi" << std::endl;
 		if (Obj->has("status")) {
 			auto Status = Obj->get("status").extract<Poco::JSON::Object::Ptr>();
 			if (Status->has("scan") && Status->isArray("scan")) {
@@ -420,6 +421,7 @@ namespace OpenWifi {
 				Obj->set("status", Status);
 			}
 		}
+		std::cout << "End of parsing wifi" << std::endl;
 		Obj->stringify(Result);
 		return false;
 	}
