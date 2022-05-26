@@ -318,7 +318,7 @@ namespace OpenWifi {
 			Rates.add(Rate);
 		}
 		new_ie.set("name", "supported_rates");
-		new_ie.set("data",Rates);
+		new_ie.set("data", Rates);
 		new_ie.set("type", WLAN_EID_SUPP_RATES);
 	}
 
@@ -383,7 +383,7 @@ namespace OpenWifi {
 											  << std::endl;
 									auto data = Base64Decode2Vec(ie_data);
 									Poco::JSON::Object new_ie;
-									if (ie_type == ieee80211_eid::WLAN_EID_COUNTRY) {
+/*									if (ie_type == ieee80211_eid::WLAN_EID_COUNTRY) {
 										WFS_WLAN_EID_COUNTRY(data, new_ie);
 										new_ies.add(new_ie);
 									} else if (ie_type == ieee80211_eid::WLAN_EID_EXT_SUPP_RATES) {
@@ -402,8 +402,8 @@ namespace OpenWifi {
 										WFS_WLAN_EID_QBSS_LOAD(data, new_ie);
 										new_ies.add(new_ie);
 									} else {
-										new_ies.add(ie_obj);
-									}
+*/										new_ies.add(ie_obj);
+//									}
 								} else {
 									new_ies.add(ie_obj);
 								}
@@ -423,8 +423,9 @@ namespace OpenWifi {
 				Obj->set("status", Status);
 			}
 		}
+		std::cout << "End of parsing wifi - 1 " << std::endl;
 		Obj->stringify(Result);
-		std::cout << "End of parsing wifi" << std::endl;
+		std::cout << "End of parsing wifi - 2 " << std::endl;
 		return false;
 	}
 
