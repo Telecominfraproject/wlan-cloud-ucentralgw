@@ -358,7 +358,7 @@ namespace OpenWifi {
 		new_ie.set("type", WLAN_EID_QBSS_LOAD);
 	}
 
-	inline bool ParseWifiScan(Poco::JSON::Object::Ptr Obj, std::stringstream &Result) {
+	inline bool ParseWifiScan(Poco::JSON::Object::Ptr &Obj, std::stringstream &Result) {
 		std::cout << "Start of parsing wifi" << std::endl;
 		if (Obj->has("status")) {
 			auto Status = Obj->get("status").extract<Poco::JSON::Object::Ptr>();
