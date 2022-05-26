@@ -365,13 +365,12 @@ namespace OpenWifi {
 		nlohmann::json 	new_ie;
 		nlohmann::json 	content;
 		std::cout << "QBSS: " << data.size() << std::endl;
-		if(data.size()>1)
-			content["QBSS_Version"] =(uint64_t )(data[0]*256 + data[1]);
-		else
-			content["version"] =(uint64_t )(data[0]);
-		content["Station_Count"] = 0;
-		content["Channel_Utilization"] = 0 ;
-		content["Available_Admission_Capabilities"] = 0;
+		if(data.size()==5) {
+			content["QBSS_Version"] = (uint64_t)(data[0]);
+			content["Station_Count"] = (uint)( data[1] + data[2]*256);
+			content["Channel_Utilization"] = (uint) data[3];
+			content["Available_Admission_Capabilities"] = (uint) data[4];
+		}
 
 		new_ie["name"]="QBSS Load";
 		new_ie["content"]=content;
