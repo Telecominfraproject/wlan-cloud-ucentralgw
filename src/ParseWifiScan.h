@@ -367,7 +367,7 @@ namespace OpenWifi {
 		std::cout << "QBSS: " << data.size() << std::endl;
 		if(data.size()==5) {
 			content["QBSS_Version"] = (uint64_t)(data[0]);
-			content["Station_Count"] = (uint)( data[1] + data[2]*256);
+			content["Station_Count"] = (uint)( data[2] + data[1]*256);
 			content["Channel_Utilization"] = (uint) data[3];
 			content["Available_Admission_Capabilities"] = (uint) data[4];
 		}
