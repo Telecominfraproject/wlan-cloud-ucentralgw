@@ -280,48 +280,50 @@ namespace OpenWifi {
 		return new_ie;
 	}
 
-	inline void WFS_WLAN_EID_EXT_SUPP_RATES(const std::vector<unsigned char> &data, Poco::JSON::Object &new_ie) {
-		Poco::JSON::Array	Rates;
+	inline nlohmann::json WFS_WLAN_EID_EXT_SUPP_RATES(const std::vector<unsigned char> &data) {
+		nlohmann::json 	Rates;
+		nlohmann::json 	new_ie;
 		for(const auto &c:data) {
-			Poco::JSON::Object	Rate;
+			nlohmann::json 	Rate;
 			bool Mandatory = c & 0x01;
-			Rate.set("mandatory", Mandatory);
+			Rate["mandatory"] = Mandatory;
 			uint  BitRate = c >> 1;
 			if(BitRate==2)
-				Rate.set("rate","1 Mbps");
+				Rate["rate"]="1 Mbps";
 			else if (BitRate==4)
-				Rate.set("rate","2 Mbps");
+				Rate["rate"]="2 Mbps";
 			else if (BitRate==11)
-				Rate.set("rate","5.5 Mbps");
+				Rate["rate"]="5.5 Mbps";
 			else if (BitRate==12)
-				Rate.set("rate","6 Mbps");
+				Rate["rate"]= "6 Mbps";
 			else if (BitRate==18)
-				Rate.set("rate","9 Mbps");
+				Rate["rate"] = "9 Mbps";
 			else if (BitRate==22)
-				Rate.set("rate","11 Mbps");
+				Rate["rate"] = "11 Mbps";
 			else if (BitRate==24)
-				Rate.set("rate","12 Mbps");
+				Rate["rate"] = "12 Mbps";
 			else if (BitRate==36)
-				Rate.set("rate","18 Mbps");
+				Rate["rate"] = "18 Mbps";
 			else if (BitRate==44)
-				Rate.set("rate","22 Mbps");
+				Rate["rate"] = "22 Mbps";
 			else if (BitRate==48)
-				Rate.set("rate","24 Mbps");
+				Rate["rate"] = "24 Mbps";
 			else if (BitRate==66)
-				Rate.set("rate","33 Mbps");
+				Rate["rate"] = "33 Mbps";
 			else if (BitRate==72)
-				Rate.set("rate","36 Mbps");
+				Rate["rate"] = "36 Mbps";
 			else if (BitRate==96)
-				Rate.set("rate","48 Mbps");
+				Rate["rate"] = "48 Mbps";
 			else if (BitRate==108)
-				Rate.set("rate","54 Mbps");
+				Rate["rate"] = "54 Mbps";
 			else
-				Rate.set("rate","> 108 Mbps");
-			Rates.add(Rate);
+				Rate["rate"] = "> 108 Mbps";
+			Rates.push_back(Rate);
 		}
-		new_ie.set("name", "supported_rates");
-		new_ie.set("data", Rates);
-		new_ie.set("type", WLAN_EID_SUPP_RATES);
+		new_ie["name"]="supported_rates";
+		new_ie["data"]=Rates;
+		new_ie["type"]=WLAN_EID_SUPP_RATES;
+		return new_ie;
 	}
 
 	inline void WFS_WLAN_EID_FH_PARAMS(const std::vector<unsigned char> &data, Poco::JSON::Object &new_ie) {
@@ -386,10 +388,9 @@ namespace OpenWifi {
 									if (ie_type == ieee80211_eid::WLAN_EID_COUNTRY) {
 										// WFS_WLAN_EID_COUNTRY(data, new_ie);
 										new_ies.push_back(WFS_WLAN_EID_COUNTRY(data));
-/*									} else if (ie_type == ieee80211_eid::WLAN_EID_EXT_SUPP_RATES) {
-										WFS_WLAN_EID_EXT_SUPP_RATES(data, new_ie);
-										new_ies.add(new_ie);
-									} else if (ie_type == ieee80211_eid::WLAN_EID_FH_PARAMS) {
+									} else if (ie_type == ieee80211_eid::WLAN_EID_EXT_SUPP_RATES) {
+										new_ies.push_back(WFS_WLAN_EID_EXT_SUPP_RATES(data));
+/*									} else if (ie_type == ieee80211_eid::WLAN_EID_FH_PARAMS) {
 										WFS_WLAN_EID_FH_PARAMS(data, new_ie);
 										new_ies.add(new_ie);
 									} else if (ie_type == ieee80211_eid::WLAN_EID_DS_PARAMS) {
