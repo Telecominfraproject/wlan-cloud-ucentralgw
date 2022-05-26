@@ -371,34 +371,42 @@ namespace OpenWifi {
 						Poco::JSON::Array new_ies;
 						for (auto &ie : *ies) {
 							auto ie_obj = ie.extract<Poco::JSON::Object::Ptr>();
-							if (ie_obj->has("type") && ie_obj->has("data")) {
-								auto ie_type = (uint64_t)ie_obj->get("type");
-								auto ie_data = ie_obj->get("data").toString();
-								std::cout << "TYPE:" << ie_type << "  DATA:" << ie_data << std::endl;
-								auto data = Base64Decode2Vec(ie_data);
-								Poco::JSON::Object new_ie;
-								if (ie_type == ieee80211_eid::WLAN_EID_COUNTRY) {
-									WFS_WLAN_EID_COUNTRY(data, new_ie);
-									new_ies.add(new_ie);
-								} else if (ie_type == ieee80211_eid::WLAN_EID_EXT_SUPP_RATES ) {
-									WFS_WLAN_EID_EXT_SUPP_RATES(data, new_ie);
-									new_ies.add(new_ie);
-								} else if (ie_type == ieee80211_eid::WLAN_EID_FH_PARAMS ) {
-									WFS_WLAN_EID_FH_PARAMS(data, new_ie);
-									new_ies.add(new_ie);
-								} else if (ie_type == ieee80211_eid::WLAN_EID_DS_PARAMS ) {
-									WFS_WLAN_EID_DS_PARAMS(data, new_ie);
-									new_ies.add(new_ie);
-								} else if (ie_type == ieee80211_eid::WLAN_EID_TIM ) {
-									WFS_WLAN_EID_TIM(data, new_ie);
-									new_ies.add(new_ie);
-								} else if (ie_type == ieee80211_eid::WLAN_EID_QBSS_LOAD ) {
-									WFS_WLAN_EID_QBSS_LOAD(data, new_ie);
-									new_ies.add(new_ie);
+							try {
+								if (ie_obj->has("type") && ie_obj->has("data")) {
+									std::ostringstream ofs;
+									ie_obj->stringify(ofs);
+
+									auto ie_type = (uint64_t)ie_obj->get("type");
+									auto ie_data = ie_obj->get("data").toString();
+									std::cout << "TYPE:" << ie_type << "  DATA:" << ie_data
+											  << std::endl;
+									auto data = Base64Decode2Vec(ie_data);
+									Poco::JSON::Object new_ie;
+									if (ie_type == ieee80211_eid::WLAN_EID_COUNTRY) {
+										WFS_WLAN_EID_COUNTRY(data, new_ie);
+										new_ies.add(new_ie);
+									} else if (ie_type == ieee80211_eid::WLAN_EID_EXT_SUPP_RATES) {
+										WFS_WLAN_EID_EXT_SUPP_RATES(data, new_ie);
+										new_ies.add(new_ie);
+									} else if (ie_type == ieee80211_eid::WLAN_EID_FH_PARAMS) {
+										WFS_WLAN_EID_FH_PARAMS(data, new_ie);
+										new_ies.add(new_ie);
+									} else if (ie_type == ieee80211_eid::WLAN_EID_DS_PARAMS) {
+										WFS_WLAN_EID_DS_PARAMS(data, new_ie);
+										new_ies.add(new_ie);
+									} else if (ie_type == ieee80211_eid::WLAN_EID_TIM) {
+										WFS_WLAN_EID_TIM(data, new_ie);
+										new_ies.add(new_ie);
+									} else if (ie_type == ieee80211_eid::WLAN_EID_QBSS_LOAD) {
+										WFS_WLAN_EID_QBSS_LOAD(data, new_ie);
+										new_ies.add(new_ie);
+									} else {
+										new_ies.add(ie_obj);
+									}
 								} else {
 									new_ies.add(ie_obj);
 								}
-							} else {
+							} catch (...) {
 								new_ies.add(ie_obj);
 							}
 						}
