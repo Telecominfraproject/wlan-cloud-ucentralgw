@@ -41,7 +41,7 @@ namespace OpenWifi {
 			Poco::Data::Session Sess = Pool_->get();
 			Poco::Data::Statement   Insert(Sess);
 
-			Logger().information("Device:" + Stats.SerialNumber + " Stats size:" + std::to_string(Stats.Data.size()));
+			poco_debug(Logger(),"Device:" + Stats.SerialNumber + " Stats size:" + std::to_string(Stats.Data.size()));
 			std::string St{"INSERT INTO Statistics ( " +
 								DB_StatsSelectFields +
 								" ) VALUES ( " +
