@@ -260,23 +260,22 @@ namespace OpenWifi {
 
 	inline nlohmann::json WFS_WLAN_EID_COUNTRY(const std::vector<unsigned char> &data) {
 		nlohmann::json new_ie;
-/*		std::string CountryName;
+		std::string CountryName;
 		CountryName += (char)data[0];
 		CountryName += (char)data[1];
-		Poco::JSON::Object ie_data;
-		Poco::JSON::Array constraints;
+		nlohmann::json ie_data;
+		nlohmann::json constraints;
 		for (std::size_t i = 3; i < data.size(); i += 3) {
-			Poco::JSON::Object Inner;
-			Inner.set("first_channel", (uint64_t)data[i]);
-			Inner.set("number_of_channel", (uint64_t)data[i + 1]);
-			Inner.set("max_tx_power", (uint64_t)data[i + 2]);
-			constraints.add(Inner);
+			nlohmann::json Inner;
+			Inner["first_channel"] = (uint64_t)data[i];
+			Inner["number_of_channel"] = (uint64_t)data[i + 1];
+			Inner["max_tx_power"] = (uint64_t)data[i + 2];
+			constraints.push_back(Inner);
 		}
-		ie_data.set("country", CountryName);
-		ie_data.set("constraints", constraints);
-		new_ie.set("data", ie_data);
-		new_ie.set("name", "country");
-*/
+		ie_data["country"] = CountryName;
+		ie_data["constraints"] = constraints;
+		new_ie["data"] = ie_data;
+		new_ie["name"] = "country";
 		new_ie["type"] = WLAN_EID_COUNTRY;
 		return new_ie;
 	}
@@ -384,7 +383,6 @@ namespace OpenWifi {
 									std::cout << "TYPE:" << ie_type << "  DATA:" << ie_data
 											  << std::endl;
 									auto data = Base64Decode2Vec(ie_data);
-									Poco::JSON::Object new_ie;
 									if (ie_type == ieee80211_eid::WLAN_EID_COUNTRY) {
 										// WFS_WLAN_EID_COUNTRY(data, new_ie);
 										new_ies.push_back(WFS_WLAN_EID_COUNTRY(data));
@@ -430,7 +428,7 @@ namespace OpenWifi {
 		return false;
 	}
 
-	inline bool ParseWifiScanOld(Poco::JSON::Object::Ptr &Obj, std::stringstream &Result) {
+/*	inline bool ParseWifiScanOld(Poco::JSON::Object::Ptr &Obj, std::stringstream &Result) {
 		std::cout << "Start of parsing wifi" << std::endl;
 		if (Obj->has("status")) {
 			auto Status = Obj->get("status").extract<Poco::JSON::Object::Ptr>();
@@ -458,7 +456,7 @@ namespace OpenWifi {
 									if (ie_type == ieee80211_eid::WLAN_EID_COUNTRY) {
 										// WFS_WLAN_EID_COUNTRY(data, new_ie);
 										new_ies.add(WFS_WLAN_EID_COUNTRY(data));
-/*									} else if (ie_type == ieee80211_eid::WLAN_EID_EXT_SUPP_RATES) {
+									} else if (ie_type == ieee80211_eid::WLAN_EID_EXT_SUPP_RATES) {
 										WFS_WLAN_EID_EXT_SUPP_RATES(data, new_ie);
 										new_ies.add(new_ie);
 									} else if (ie_type == ieee80211_eid::WLAN_EID_FH_PARAMS) {
@@ -473,7 +471,7 @@ namespace OpenWifi {
 									} else if (ie_type == ieee80211_eid::WLAN_EID_QBSS_LOAD) {
 										WFS_WLAN_EID_QBSS_LOAD(data, new_ie);
 										new_ies.add(new_ie);
-									*/ } else
+									} else
 									{
 	new_ies.add(ie_obj);
 }
@@ -501,6 +499,7 @@ namespace OpenWifi {
 		std::cout << "End of parsing wifi - 2 " << std::endl;
 		return false;
 	}
+*/
 
 } // namespace OpenWifi
 
