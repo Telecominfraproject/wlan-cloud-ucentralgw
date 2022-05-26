@@ -421,8 +421,8 @@ namespace OpenWifi {
 				Obj->set("status", Status);
 			}
 		}
-		std::cout << "End of parsing wifi" << std::endl;
 		Obj->stringify(Result);
+		std::cout << "End of parsing wifi" << std::endl;
 		return false;
 	}
 
