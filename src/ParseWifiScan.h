@@ -258,7 +258,8 @@ namespace OpenWifi {
 		return r;
 	}
 
-	inline void WFS_WLAN_EID_COUNTRY(const std::vector<unsigned char> &data, Poco::JSON::Object &new_ie) {
+	inline Poco::JSON::Object WFS_WLAN_EID_COUNTRY(const std::vector<unsigned char> &data) {
+		Poco::JSON::Object new_ie;
 /*		std::string CountryName;
 		CountryName += (char)data[0];
 		CountryName += (char)data[1];
@@ -277,6 +278,7 @@ namespace OpenWifi {
 		new_ie.set("name", "country");
 */
 		new_ie.set("type", WLAN_EID_COUNTRY);
+		return new_ie;
 	}
 
 	inline void WFS_WLAN_EID_EXT_SUPP_RATES(const std::vector<unsigned char> &data, Poco::JSON::Object &new_ie) {
@@ -385,8 +387,8 @@ namespace OpenWifi {
 									auto data = Base64Decode2Vec(ie_data);
 									Poco::JSON::Object new_ie;
 									if (ie_type == ieee80211_eid::WLAN_EID_COUNTRY) {
-										WFS_WLAN_EID_COUNTRY(data, new_ie);
-										new_ies.add(new_ie);
+										// WFS_WLAN_EID_COUNTRY(data, new_ie);
+										new_ies.add(WFS_WLAN_EID_COUNTRY(data));
 /*									} else if (ie_type == ieee80211_eid::WLAN_EID_EXT_SUPP_RATES) {
 										WFS_WLAN_EID_EXT_SUPP_RATES(data, new_ie);
 										new_ies.add(new_ie);
