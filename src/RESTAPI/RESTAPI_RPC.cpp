@@ -76,7 +76,7 @@ namespace OpenWifi::RESTAPI_RPC {
 						if(rpc_answer.has(uCentralProtocol::RESULT)) {
 							if(Cmd.Command==uCentralProtocol::WIFISCAN) {
 								auto ScanObj = rpc_answer.get(uCentralProtocol::RESULT).extract<Poco::JSON::Object::Ptr>();
-								ParseWifiScan(ScanObj, ResultText);
+								ParseWifiScan(ScanObj, ResultText, Logger);
 							} else {
 								Poco::JSON::Stringifier::stringify(
 									rpc_answer.get(uCentralProtocol::RESULT), ResultText);

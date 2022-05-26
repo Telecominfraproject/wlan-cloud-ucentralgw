@@ -362,7 +362,7 @@ namespace OpenWifi {
 		new_ie.set("type", WLAN_EID_QBSS_LOAD);
 	}
 
-	inline bool ParseWifiScan(Poco::JSON::Object::Ptr &Obj, std::stringstream &Result) {
+	inline bool ParseWifiScan(Poco::JSON::Object::Ptr &Obj, std::stringstream &Result, Poco::Logger &Logger) {
 		std::ostringstream	ofs;
 		Obj->stringify(ofs);
 
@@ -410,6 +410,7 @@ namespace OpenWifi {
 									new_ies.push_back(ie);
 								}
 							} catch (...) {
+								Logger.information(fmt::format("Error parsing IEs"));
 								new_ies.push_back(ie);
 							}
 						}
