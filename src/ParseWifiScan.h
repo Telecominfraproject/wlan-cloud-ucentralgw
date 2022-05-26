@@ -364,11 +364,15 @@ namespace OpenWifi {
 	inline nlohmann::json WFS_WLAN_EID_QBSS_LOAD(const std::vector<unsigned char> &data) {
 		nlohmann::json 	new_ie;
 		nlohmann::json 	content;
-		Poco::JSON::Object ie_data;
+		std::cout << "QBSS: " << data.size() << std::endl;
 		if(data.size()>1)
-			content["version"] =(uint64_t )(data[0]*256 + data[1]);
+			content["QBSS_Version"] =(uint64_t )(data[0]*256 + data[1]);
 		else
 			content["version"] =(uint64_t )(data[0]);
+		content["Station_Count"] = 0;
+		content["Channel_Utilization"] = 0 ;
+		content["Available_Admission_Capabilities"] = 0;
+
 		new_ie["name"]="QBSS Load";
 		new_ie["content"]=content;
 		new_ie["type"]=WLAN_EID_QBSS_LOAD;
