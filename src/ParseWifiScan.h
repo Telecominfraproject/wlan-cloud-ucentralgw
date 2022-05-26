@@ -375,7 +375,7 @@ namespace OpenWifi {
 								if (ie_obj->has("type") && ie_obj->has("data")) {
 									std::ostringstream ofs;
 									ie_obj->stringify(ofs);
-
+									std::cout << ">>>" << ofs.str() << std::endl;
 									auto ie_type = (uint64_t)ie_obj->get("type");
 									auto ie_data = ie_obj->get("data").toString();
 									std::cout << "TYPE:" << ie_type << "  DATA:" << ie_data
