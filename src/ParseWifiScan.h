@@ -271,7 +271,7 @@ namespace OpenWifi {
 			Inner.set("max_tx_power", (uint64_t)data[i + 2]);
 			constraints.add(Inner);
 		}
-		ie_data.set("country", CountryName);
+		// ie_data.set("country", CountryName);
 		// ie_data.set("constraints", constraints);
 		// new_ie.set("data", ie_data);
 		new_ie.set("name", "country");
