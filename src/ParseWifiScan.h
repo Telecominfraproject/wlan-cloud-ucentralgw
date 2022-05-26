@@ -274,7 +274,7 @@ namespace OpenWifi {
 		}
 		ie_data["country"] = CountryName;
 		ie_data["constraints"] = constraints;
-		new_ie["data"] = ie_data;
+		new_ie["content"] = ie_data;
 		new_ie["name"] = "country";
 		new_ie["type"] = WLAN_EID_COUNTRY;
 		return new_ie;
@@ -321,7 +321,7 @@ namespace OpenWifi {
 			Rates.push_back(Rate);
 		}
 		new_ie["name"]="supported_rates";
-		new_ie["data"]=Rates;
+		new_ie["content"]=Rates;
 		new_ie["type"]=WLAN_EID_SUPP_RATES;
 		return new_ie;
 	}
