@@ -364,17 +364,25 @@ namespace OpenWifi {
 	inline nlohmann::json WFS_WLAN_EID_QBSS_LOAD(const std::vector<unsigned char> &data) {
 		nlohmann::json 	new_ie;
 		nlohmann::json 	content;
-		std::cout << "QBSS: " << data.size() << std::endl;
 		if(data.size()==5) {
 			content["QBSS_Version"] = (uint64_t)(data[0]);
 			content["Station_Count"] = (uint)( data[2] + data[1]*256);
 			content["Channel_Utilization"] = (uint) data[3];
 			content["Available_Admission_Capabilities"] = (uint) data[4];
 		}
-
 		new_ie["name"]="QBSS Load";
 		new_ie["content"]=content;
 		new_ie["type"]=WLAN_EID_QBSS_LOAD;
+		return new_ie;
+	}
+
+	inline nlohmann::json WFS_WLAN_EID_PWR_CONSTRAINT(const std::vector<unsigned char> &data) {
+		nlohmann::json 	new_ie;
+		nlohmann::json 	content;
+		content["Local_Power_Constraint"] = (uint) data[0];
+		new_ie["name"]="Local Power Constraint";
+		new_ie["content"]=content;
+		new_ie["type"]=WLAN_EID_PWR_CONSTRAINT;
 		return new_ie;
 	}
 
@@ -412,6 +420,8 @@ namespace OpenWifi {
 										new_ies.push_back(WFS_WLAN_EID_TIM(data));
 									} else if (ie_type == ieee80211_eid::WLAN_EID_QBSS_LOAD) {
 										new_ies.push_back(WFS_WLAN_EID_QBSS_LOAD(data));
+									} else if (ie_type == ieee80211_eid::WLAN_EID_PWR_CONSTRAINT) {
+										new_ies.push_back(WFS_WLAN_EID_PWR_CONSTRAINT(data));
 									} else {
 										std::cout << "Skipping IE: no parsing available: " << ie_type << std::endl;
 										new_ies.push_back(ie);
