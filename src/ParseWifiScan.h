@@ -259,7 +259,7 @@ namespace OpenWifi {
 	}
 
 	inline void WFS_WLAN_EID_COUNTRY(const std::vector<unsigned char> &data, Poco::JSON::Object &new_ie) {
-		std::string CountryName;
+/*		std::string CountryName;
 		CountryName += (char)data[0];
 		CountryName += (char)data[1];
 		Poco::JSON::Object ie_data;
@@ -271,10 +271,10 @@ namespace OpenWifi {
 			Inner.set("max_tx_power", (uint64_t)data[i + 2]);
 			constraints.add(Inner);
 		}
-		// ie_data.set("country", CountryName);
-		// ie_data.set("constraints", constraints);
-		// new_ie.set("data", ie_data);
-		new_ie.set("name", "country");
+		ie_data.set("country", CountryName);
+		ie_data.set("constraints", constraints);
+		new_ie.set("data", ie_data);
+*/		new_ie.set("name", "country");
 		new_ie.set("type", WLAN_EID_COUNTRY);
 	}
 
