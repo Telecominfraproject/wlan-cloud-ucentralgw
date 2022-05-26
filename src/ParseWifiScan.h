@@ -280,7 +280,7 @@ namespace OpenWifi {
 		return new_ie;
 	}
 
-	inline nlohmann::json WFS_WLAN_EID_EXT_SUPP_RATES(const std::vector<unsigned char> &data) {
+	inline nlohmann::json WFS_WLAN_EID_SUPP_RATES(const std::vector<unsigned char> &data) {
 		nlohmann::json 	Rates;
 		nlohmann::json 	new_ie;
 		for(const auto &c:data) {
@@ -399,8 +399,8 @@ namespace OpenWifi {
 									auto data = Base64Decode2Vec(ie_data);
 									if (ie_type == ieee80211_eid::WLAN_EID_COUNTRY) {
 										new_ies.push_back(WFS_WLAN_EID_COUNTRY(data));
-									} else if (ie_type == ieee80211_eid::WLAN_EID_EXT_SUPP_RATES) {
-										new_ies.push_back(WFS_WLAN_EID_EXT_SUPP_RATES(data));
+									} else if (ie_type == ieee80211_eid::WLAN_EID_SUPP_RATES) {
+										new_ies.push_back(WFS_WLAN_EID_SUPP_RATES(data));
 									} else if (ie_type == ieee80211_eid::WLAN_EID_FH_PARAMS) {
 										new_ies.push_back(WFS_WLAN_EID_FH_PARAMS(data));
 									} else if (ie_type == ieee80211_eid::WLAN_EID_DS_PARAMS) {
