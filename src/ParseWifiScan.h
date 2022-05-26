@@ -324,7 +324,7 @@ namespace OpenWifi {
 
 	inline void WFS_WLAN_EID_FH_PARAMS(const std::vector<unsigned char> &data, Poco::JSON::Object &new_ie) {
 		Poco::JSON::Object ie_data;
-		ie_data.set("dwell_time", data[0] * 256 + data[1] );
+		ie_data.set("dwell_time", (uint64_t) (data[0] * 256 + data[1]) );
 		ie_data.set("hop_set",(uint)data[2]);
 		ie_data.set("hop_pattern",(uint)data[3]);
 		ie_data.set("hop_index",(uint)data[4]);
@@ -335,7 +335,7 @@ namespace OpenWifi {
 
 	inline void WFS_WLAN_EID_DS_PARAMS(const std::vector<unsigned char> &data, Poco::JSON::Object &new_ie) {
 		Poco::JSON::Object ie_data;
-		ie_data.set("current_channel", data[0] );
+		ie_data.set("current_channel", (uint64_t) data[0] );
 		new_ie.set("data", ie_data);
 		new_ie.set("name", "DS_Parameter_Set");
 		new_ie.set("type", WLAN_EID_DS_PARAMS);
@@ -343,8 +343,8 @@ namespace OpenWifi {
 
 	inline void WFS_WLAN_EID_TIM(const std::vector<unsigned char> &data, Poco::JSON::Object &new_ie) {
 		Poco::JSON::Object ie_data;
-		ie_data.set("DTIM_count", data[0] );
-		ie_data.set("DTIM_period", data[1] );
+		ie_data.set("DTIM_count", (uint64_t) data[0] );
+		ie_data.set("DTIM_period", (uint64_t) data[1] );
 		new_ie.set("data", ie_data);
 		new_ie.set("name", "Traffic_Indication_Map");
 		new_ie.set("type", WLAN_EID_TIM);
@@ -352,7 +352,7 @@ namespace OpenWifi {
 
 	inline void WFS_WLAN_EID_QBSS_LOAD(const std::vector<unsigned char> &data, Poco::JSON::Object &new_ie) {
 		Poco::JSON::Object ie_data;
-		ie_data.set("version", data[0]*256 + data[1] );
+		ie_data.set("version", (uint64_t )(data[0]*256 + data[1]) );
 		new_ie.set("data", ie_data);
 		new_ie.set("name", "QBSS_Load");
 		new_ie.set("type", WLAN_EID_QBSS_LOAD);
