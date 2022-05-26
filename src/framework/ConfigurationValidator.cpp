@@ -13,9 +13,10 @@
 
 namespace OpenWifi {
 
-    static const std::string GitUCentralJSONSchemaFile{"https://raw.githubusercontent.com/blogic/ucentral-schema/main/ucentral.schema.json"};
+static const std::string GitUCentralJSONSchemaFile{
+	"https://raw.githubusercontent.com/blogic/ucentral-schema/main/ucentral.schema.json"};
 
-    static json DefaultUCentralSchema = R"(
+static json DefaultUCentralSchema = R"(
 
 {
 	"$id": "https://openwrt.org/ucentral.schema.json",
@@ -518,7 +519,7 @@ namespace OpenWifi {
 					"maximum": 4050
 				},
 				"proto": {
-					"decription": "The L2 vlan tag that shall be added (1q,1ad) ",
+					"decription": "The L2 vlan tag that shall be added (1q,1ad ) ",
 					"type": "string",
 					"enum": [
 						"802.1ad",
@@ -669,6 +670,47 @@ namespace OpenWifi {
 				}
 			}
 		},
+		"interface.ipv4.port-forward": {
+			"type": "object",
+			"properties": {
+				"protocol": {
+					"type": "string",
+					"enum": [
+						"tcp",
+						"udp",
+						"any"
+					],
+					"default": "any"
+				},
+				"external-port": {
+					"type": [
+						"integer",
+						"string"
+					],
+					"minimum": 0,
+					"maximum": 65535,
+					"format": "uc-portrange"
+				},
+				"internal-address": {
+					"type": "string",
+					"format": "ipv4",
+					"example": "0.0.0.120"
+				},
+				"internal-port": {
+					"type": [
+						"integer",
+						"string"
+					],
+					"minimum": 0,
+					"maximum": 65535,
+					"format": "uc-portrange"
+				}
+			},
+			"required": [
+				"external-port",
+				"internal-address"
+			]
+		},
 		"interface.ipv4": {
 			"type": "object",
 			"properties": {
@@ -722,6 +764,12 @@ namespace OpenWifi {
 					"items": {
 						"$ref": "#/$defs/interface.ipv4.dhcp-lease"
 					}
+				},
+				"port-forward": {
+					"type": "array",
+					"items": {
+						"$ref": "#/$defs/interface.ipv4.port-forward"
+					}
 				}
 			}
 		},
@@ -750,6 +798,96 @@ namespace OpenWifi {
 					"default": "::/0"
 				}
 			}
+		},
+		"interface.ipv6.port-forward": {
+			"type": "object",
+			"properties": {
+				"protocol": {
+					"type": "string",
+					"enum": [
+						"tcp",
+						"udp",
+						"any"
+					],
+					"default": "any"
+				},
+				"external-port": {
+					"type": [
+						"integer",
+						"string"
+					],
+					"minimum": 0,
+					"maximum": 65535,
+					"format": "uc-portrange"
+				},
+				"internal-address": {
+					"type": "string",
+					"format": "ipv6",
+					"example": "::1234:abcd"
+				},
+				"internal-port": {
+					"type": [
+						"integer",
+						"string"
+					],
+					"minimum": 0,
+					"maximum": 65535,
+					"format": "uc-portrange"
+				}
+			},
+			"required": [
+				"external-port",
+				"internal-address"
+			]
+		},
+		"interface.ipv6.traffic-allow": {
+			"type": "object",
+			"properties": {
+				"protocol": {
+					"type": "string",
+					"default": "any"
+				},
+				"source-address": {
+					"type": "string",
+					"format": "uc-cidr6",
+					"example": "2001:db8:1234:abcd::/64",
+					"default": "::/0"
+				},
+				"source-ports": {
+					"type": "array",
+					"minItems": 1,
+					"items": {
+						"type": [
+							"integer",
+							"string"
+						],
+						"minimum": 0,
+						"maximum": 65535,
+						"format": "uc-portrange"
+					}
+				},
+				"destination-address": {
+					"type": "string",
+					"format": "ipv6",
+					"example": "::1000"
+				},
+				"destination-ports": {
+					"type": "array",
+					"minItems": 1,
+					"items": {
+						"type": [
+							"integer",
+							"string"
+						],
+						"minimum": 0,
+						"maximum": 65535,
+						"format": "uc-portrange"
+					}
+				}
+			},
+			"required": [
+				"destination-address"
+			]
 		},
 		"interface.ipv6": {
 			"type": "object",
@@ -782,6 +920,18 @@ namespace OpenWifi {
 				},
 				"dhcpv6": {
 					"$ref": "#/$defs/interface.ipv6.dhcpv6"
+				},
+				"port-forward": {
+					"type": "array",
+					"items": {
+						"$ref": "#/$defs/interface.ipv6.port-forward"
+					}
+				},
+				"traffic-allow": {
+					"type": "array",
+					"items": {
+						"$ref": "#/$defs/interface.ipv6.traffic-allow"
+					}
 				}
 			}
 		},
@@ -866,7 +1016,7 @@ namespace OpenWifi {
 				},
 				"gateway-fqdn": {
 					"type": "string",
-					"format": "fqdn",
+					"format": "uc-fqdn",
 					"default": "ucentral.splash"
 				},
 				"max-clients": {
@@ -901,6 +1051,7 @@ namespace OpenWifi {
 						"psk",
 						"psk2",
 						"psk-mixed",
+						"psk2-radius",
 						"wpa",
 						"wpa2",
 						"wpa-mixed",
@@ -958,6 +1109,10 @@ namespace OpenWifi {
 			"type": "object",
 			"properties": {
 				"neighbor-reporting": {
+					"type": "boolean",
+					"default": false
+				},
+				"reduced-neighbor-reporting": {
 					"type": "boolean",
 					"default": false
 				},
@@ -1527,6 +1682,11 @@ namespace OpenWifi {
 					"decription": "This option allows embedding custom vendor specific IEs inside the beacons of a BSS in AP mode.",
 					"type": "string"
 				},
+				"fils-discovery-interval": {
+					"type": "integer",
+					"default": 20,
+					"maximum": 10000
+				},
 				"encryption": {
 					"$ref": "#/$defs/interface.ssid.encryption"
 				},
@@ -1905,48 +2065,146 @@ namespace OpenWifi {
 				"realms": {
 					"type": "array",
 					"items": {
-						"type": "object",
-						"properties": {
-							"realm": {
-								"type": "string",
-								"default": "*"
+						"anyOf": [{
+								"type": "object",
+								"properties": {
+									"protocol": {
+										"type": "string",
+										"enum": [
+											"radsec"
+										],
+										"default": "radsec"
+									},
+									"realm": {
+										"type": "array",
+										"items": {
+											"type": "string",
+											"default": "*"
+										}
+									},
+									"auto-discover": {
+										"type": "boolean",
+										"default": false
+									},
+									"host": {
+										"type": "string",
+										"format": "uc-host",
+										"examples": [
+											"192.168.1.10"
+										]
+									},
+									"port": {
+										"type": "integer",
+										"maximum": 65535,
+										"default": 2083
+									},
+									"secret": {
+										"type": "string"
+									},
+									"use-local-certificates": {
+										"type": "boolean",
+										"default": false
+									},
+									"ca-certificate": {
+										"type": "string"
+									},
+									"certificate": {
+										"type": "string"
+									},
+									"private-key": {
+										"type": "string"
+									},
+									"private-key-password": {
+										"type": "string"
+									}
+								}
 							},
-							"auto-discover": {
-								"type": "boolean",
-								"default": false
+							{
+								"type": "object",
+								"properties": {
+									"protocol": {
+										"type": "string",
+										"enum": [
+											"radius"
+										]
+									},
+									"realm": {
+										"type": "array",
+										"items": {
+											"type": "string",
+											"default": "*"
+										}
+									},
+									"auth-server": {
+										"type": "string",
+										"format": "uc-host",
+										"examples": [
+											"192.168.1.10"
+										]
+									},
+									"auth-port": {
+										"type": "integer",
+										"maximum": 65535,
+										"minimum": 1024,
+										"examples": [
+											1812
+										]
+									},
+									"auth-secret": {
+										"type": "string",
+										"examples": [
+											"secret"
+										]
+									},
+									"acct-server": {
+										"type": "string",
+										"format": "uc-host",
+										"examples": [
+											"192.168.1.10"
+										]
+									},
+									"acct-port": {
+										"type": "integer",
+										"maximum": 65535,
+										"minimum": 1024,
+										"examples": [
+											1812
+										]
+									},
+									"acct-secret": {
+										"type": "string",
+										"examples": [
+											"secret"
+										]
+									}
+								}
 							},
-							"host": {
-								"type": "string",
-								"format": "uc-host",
-								"examples": [
-									"192.168.1.10"
-								]
-							},
-							"port": {
-								"type": "integer",
-								"maximum": 65535,
-								"default": 2083
-							},
-							"secret": {
-								"type": "string"
-							},
-							"use-local-certificates": {
-								"type": "boolean",
-								"default": false
-							},
-							"ca-certificate": {
-								"type": "string"
-							},
-							"certificate": {
-								"type": "string"
-							},
-							"private-key": {
-								"type": "string"
-							},
-							"private-key-password": {
-								"type": "string"
+							{
+								"type": "object",
+								"properties": {
+									"protocol": {
+										"type": "string",
+										"enum": [
+											"block"
+										]
+									},
+									"realm": {
+										"type": "array",
+										"items": {
+											"type": "string",
+											"default": "*"
+										}
+									},
+									"message": {
+										"type": "string",
+										"items": {
+											"type": "string",
+											"default": "blocked"
+										}
+									}
+								}
 							}
-						}
+						]
 					}
 				}
 			}
@@ -2087,6 +2345,10 @@ namespace OpenWifi {
 				"auto-channel": {
 					"type": "boolean",
 					"default": false
+				},
+				"ipv6": {
+					"type": "boolean",
+					"default": false
 				}
 			}
 		},
@@ -2193,7 +2455,7 @@ namespace OpenWifi {
 									"properties": {
 										"fqdn": {
 											"type": "string",
-											"format": "fqdn"
+											"format": "uc-fqdn"
 										},
 										"suffix-matching": {
 											"type": "boolean",
@@ -2445,7 +2707,7 @@ namespace OpenWifi {
 	}
 }
 
-    )"_json;
+)"_json;
 
     class custom_error_handler : public nlohmann::json_schema::basic_error_handler
     {
