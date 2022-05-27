@@ -2065,146 +2065,48 @@ static json DefaultUCentralSchema = R"(
 				"realms": {
 					"type": "array",
 					"items": {
-						"anyOf": [{
-								"type": "object",
-								"properties": {
-									"protocol": {
-										"type": "string",
-										"enum": [
-											"radsec"
-										],
-										"default": "radsec"
-									},
-									"realm": {
-										"type": "array",
-										"items": {
-											"type": "string",
-											"default": "*"
-										}
-									},
-									"auto-discover": {
-										"type": "boolean",
-										"default": false
-									},
-									"host": {
-										"type": "string",
-										"format": "uc-host",
-										"examples": [
-											"192.168.1.10"
-										]
-									},
-									"port": {
-										"type": "integer",
-										"maximum": 65535,
-										"default": 2083
-									},
-									"secret": {
-										"type": "string"
-									},
-									"use-local-certificates": {
-										"type": "boolean",
-										"default": false
-									},
-									"ca-certificate": {
-										"type": "string"
-									},
-									"certificate": {
-										"type": "string"
-									},
-									"private-key": {
-										"type": "string"
-									},
-									"private-key-password": {
-										"type": "string"
-									}
-								}
+						"type": "object",
+						"properties": {
+							"realm": {
+								"type": "string",
+								"default": "*"
 							},
-							{
-								"type": "object",
-								"properties": {
-									"protocol": {
-										"type": "string",
-										"enum": [
-											"radius"
-										]
-									},
-									"realm": {
-										"type": "array",
-										"items": {
-											"type": "string",
-											"default": "*"
-										}
-									},
-									"auth-server": {
-										"type": "string",
-										"format": "uc-host",
-										"examples": [
-											"192.168.1.10"
-										]
-									},
-									"auth-port": {
-										"type": "integer",
-										"maximum": 65535,
-										"minimum": 1024,
-										"examples": [
-											1812
-										]
-									},
-									"auth-secret": {
-										"type": "string",
-										"examples": [
-											"secret"
-										]
-									},
-									"acct-server": {
-										"type": "string",
-										"format": "uc-host",
-										"examples": [
-											"192.168.1.10"
-										]
-									},
-									"acct-port": {
-										"type": "integer",
-										"maximum": 65535,
-										"minimum": 1024,
-										"examples": [
-											1812
-										]
-									},
-									"acct-secret": {
-										"type": "string",
-										"examples": [
-											"secret"
-										]
-									}
-								}
+							"auto-discover": {
+								"type": "boolean",
+								"default": false
 							},
-							{
-								"type": "object",
-								"properties": {
-									"protocol": {
-										"type": "string",
-										"enum": [
-											"block"
-										]
-									},
-									"realm": {
-										"type": "array",
-										"items": {
-											"type": "string",
-											"default": "*"
-										}
-									},
-									"message": {
-										"type": "string",
-										"items": {
-											"type": "string",
-											"default": "blocked"
-										}
-									}
-								}
+							"host": {
+								"type": "string",
+								"format": "uc-host",
+								"examples": [
+									"192.168.1.10"
+								]
+							},
+							"port": {
+								"type": "integer",
+								"maximum": 65535,
+								"default": 2083
+							},
+							"secret": {
+								"type": "string"
+							},
+							"use-local-certificates": {
+								"type": "boolean",
+								"default": false
+							},
+							"ca-certificate": {
+								"type": "string"
+							},
+							"certificate": {
+								"type": "string"
+							},
+							"private-key": {
+								"type": "string"
+							},
+							"private-key-password": {
+								"type": "string"
 							}
-						]
+						}
 					}
 				}
 			}
@@ -2706,7 +2608,6 @@ static json DefaultUCentralSchema = R"(
 		}
 	}
 }
-
 )"_json;
 
     class custom_error_handler : public nlohmann::json_schema::basic_error_handler
@@ -2723,6 +2624,13 @@ static json DefaultUCentralSchema = R"(
         if(Initialized_)
             return;
         std::string GitSchema;
+
+		if(MicroService::instance().ConfigGetBool("ucentral.datamodel.internal",false)) {
+			RootSchema_ = DefaultUCentralSchema;
+			Logger().information("Using uCentral validation from built-in default.");
+			return;
+		}
+
         try {
             if(Utils::wgets(GitUCentralJSONSchemaFile, GitSchema)) {
                 RootSchema_ = json::parse(GitSchema);
