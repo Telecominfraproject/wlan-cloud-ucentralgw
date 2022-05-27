@@ -4400,7 +4400,7 @@ namespace OpenWifi {
                                                Path,
                                                Poco::Net::HTTPMessage::HTTP_1_1);
 
-                Poco::Logger::get("REST-CALLER-GET").debug(fmt::format(" {}", URI.toString()));
+                poco_debug(Poco::Logger::get("REST-CALLER-GET"),fmt::format(" {}", URI.toString()));
 
                 if(BearerToken.empty()) {
                     Request.add("X-API-KEY", Svc.AccessKey);
@@ -4458,7 +4458,7 @@ namespace OpenWifi {
                 for (const auto &qp : QueryData_)
                     URI.addQueryParameter(qp.first, qp.second);
 
-                Poco::Logger::get("REST-CALLER-PUT").debug(fmt::format("{}", URI.toString()));
+                poco_debug(Poco::Logger::get("REST-CALLER-PUT"),fmt::format("{}", URI.toString()));
 
                 std::string Path(URI.getPathAndQuery());
 
@@ -4537,7 +4537,7 @@ namespace OpenWifi {
                 for (const auto &qp : QueryData_)
                     URI.addQueryParameter(qp.first, qp.second);
 
-                Poco::Logger::get("REST-CALLER-POST").debug(fmt::format(" {}", URI.toString()));
+                poco_debug(Poco::Logger::get("REST-CALLER-POST"),fmt::format(" {}", URI.toString()));
 
                 std::string Path(URI.getPathAndQuery());
 
@@ -4613,7 +4613,7 @@ namespace OpenWifi {
                 for (const auto &qp : QueryData_)
                     URI.addQueryParameter(qp.first, qp.second);
 
-                Poco::Logger::get("REST-CALLER-DELETE").debug(fmt::format(" {}", URI.toString()));
+                poco_debug(Poco::Logger::get("REST-CALLER-DELETE"),fmt::format(" {}", URI.toString()));
 
                 std::string Path(URI.getPathAndQuery());
 
