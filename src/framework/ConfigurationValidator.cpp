@@ -2632,7 +2632,8 @@ static json DefaultUCentralSchema = R"(
 		}
 
         try {
-            if(Utils::wgets(GitUCentralJSONSchemaFile, GitSchema)) {
+			auto GitURI = MicroService::instance().ConfigGetString("ucentral.datamodel.uri",GitUCentralJSONSchemaFile);
+            if(Utils::wgets(GitURI, GitSchema)) {
                 RootSchema_ = json::parse(GitSchema);
                 Logger().information("Using uCentral validation schema from GIT.");
             } else {
