@@ -2628,6 +2628,7 @@ static json DefaultUCentralSchema = R"(
 		if(MicroService::instance().ConfigGetBool("ucentral.datamodel.internal",true)) {
 			RootSchema_ = DefaultUCentralSchema;
 			Logger().information("Using uCentral validation from built-in default.");
+			Initialized_ = Working_ = true;
 			return;
 		}
 
