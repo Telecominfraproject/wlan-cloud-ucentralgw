@@ -2625,7 +2625,7 @@ static json DefaultUCentralSchema = R"(
             return;
         std::string GitSchema;
 
-		if(MicroService::instance().ConfigGetBool("ucentral.datamodel.internal",false)) {
+		if(MicroService::instance().ConfigGetBool("ucentral.datamodel.internal",true)) {
 			RootSchema_ = DefaultUCentralSchema;
 			Logger().information("Using uCentral validation from built-in default.");
 			return;
