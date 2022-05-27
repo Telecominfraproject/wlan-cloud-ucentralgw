@@ -13,8 +13,6 @@
 
 namespace OpenWifi {
 
-// default repo: should be TIP in running system
-//	users must remember to retrieve the latest version manually
 static const std::string GitUCentralJSONSchemaFile{
 	"https://raw.githubusercontent.com/blogic/ucentral-schema/main/ucentral.schema.json"};
 
