@@ -453,7 +453,7 @@ namespace OpenWifi {
 				R += '1';
 			else
 				R += '0';
-			c << 1;
+			c <<= 1;
 		}
 		return R;
 	}
