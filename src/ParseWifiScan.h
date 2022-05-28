@@ -422,6 +422,50 @@ namespace OpenWifi {
 		}
 	}
 
+	const static std::vector<std::pair<uint8_t, std::string>> ieee80211_supported_rates_vals = {
+		{ 0x02, "1" },
+		{ 0x03, "1.5" },
+		{ 0x04, "2" },
+		{ 0x05, "2.5" },
+		{ 0x06, "3" },
+		{ 0x09, "4.5" },
+		{ 0x0B, "5.5" },
+		{ 0x0C, "6" },
+		{ 0x12, "9" },
+		{ 0x16, "11" },
+		{ 0x18, "12" },
+		{ 0x1B, "13.5" },
+		{ 0x24, "18" },
+		{ 0x2C, "22" },
+		{ 0x30, "24" },
+		{ 0x36, "27" },
+		{ 0x42, "33" },
+		{ 0x48, "36" },
+		{ 0x60, "48" },
+		{ 0x6C, "54" },
+		{ 0x82, "1(B)" },
+		{ 0x83, "1.5(B)" },
+		{ 0x84, "2(B)" },
+		{ 0x85, "2.5(B)" },
+		{ 0x86, "3(B)" },
+		{ 0x89, "4.5(B)" },
+		{ 0x8B, "5.5(B)" },
+		{ 0x8C, "6(B)" },
+		{ 0x92, "9(B)" },
+		{ 0x96, "11(B)" },
+		{ 0x98, "12(B)" },
+		{ 0x9B, "13.5(B)" },
+		{ 0xA4, "18(B)" },
+		{ 0xAC, "22(B)" },
+		{ 0xB0, "24(B)" },
+		{ 0xB6, "27(B)" },
+		{ 0xC2, "33(B)" },
+		{ 0xC8, "36(B)" },
+		{ 0xE0, "48(B)" },
+		{ 0xEC, "54(B)" },
+		{ 0xFF, "BSS requires support for mandatory features of HT PHY (IEEE 802.11 - Clause 20)" }
+	};
+
 	inline nlohmann::json WFS_WLAN_EID_ERP_INFO(const std::vector<unsigned char> &data) {
 		nlohmann::json 	new_ie;
 		nlohmann::json 	content;
@@ -492,7 +536,7 @@ namespace OpenWifi {
 			content["A-MPDU Parameters"]["MPDU Density"] = (ampduparam & 0x1c) >> 2;
 
 			content["MCS Set"]["Rx Bitmask Bits 0-7"] = bitString(data[3]);
-			content["MCS Set"]["Rx Bitmask Bits 0-7"] = bitString(data[4]);
+			content["MCS Set"]["Rx Bitmask Bits 8-15"] = bitString(data[4]);
 			content["MCS Set"]["Rx Bitmask Bits 16-23"] = bitString(data[5]);
 			content["MCS Set"]["Rx Bitmask Bits 24-31"] = bitString(data[6]);
 
@@ -501,6 +545,30 @@ namespace OpenWifi {
 		new_ie["name"]="HT Capabilities";
 		new_ie["content"]=content;
 		new_ie["type"]=WLAN_EID_HT_CAPABILITY;
+		return new_ie;
+	}
+
+	std::string GetRate(unsigned char R) {
+		for(const auto &[rate,rate_name]:ieee80211_supported_rates_vals) {
+			if(rate==R)
+				return rate_name;
+		}
+		return "unknown";
+	}
+
+	inline nlohmann::json WFS_WLAN_EID_EXT_SUPP_RATES(const std::vector<unsigned char> &data) {
+		nlohmann::json 	new_ie;
+		nlohmann::json 	content;
+		std::string Rates;
+
+		for(const auto &rate:data) {
+			Rates += GetRate(rate) + ",";
+		}
+
+		content["Supported Rates"] = Rates;
+		new_ie["name"]="Supported Rates";
+		new_ie["content"]=content;
+		new_ie["type"]=WLAN_EID_EXT_SUPP_RATES;
 		return new_ie;
 	}
 
@@ -546,6 +614,8 @@ namespace OpenWifi {
 										new_ies.push_back(WFS_WLAN_EID_SUPPORTED_REGULATORY_CLASSES(data));
 									} else if (ie_type == ieee80211_eid::WLAN_EID_HT_CAPABILITY) {
 										new_ies.push_back(WFS_WLAN_EID_HT_CAPABILITY(data));
+									} else if (ie_type == ieee80211_eid::WLAN_EID_EXT_SUPP_RATES) {
+										new_ies.push_back(WFS_WLAN_EID_EXT_SUPP_RATES(data));
 									} else {
 											std::cout << "Skipping IE: no parsing available: " << ie_type << std::endl;
 											new_ies.push_back(ie);
