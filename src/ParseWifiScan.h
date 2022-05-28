@@ -386,7 +386,7 @@ namespace OpenWifi {
 		return new_ie;
 	}
 
-	bool bitSet( const unsigned char c, uint bit) {
+	bool bitSet(unsigned char c, uint bit) {
 		switch (bit) {
 		case 0: return (c & 0x01);
 		case 1: return (c & 0x02);
@@ -396,6 +396,28 @@ namespace OpenWifi {
 		case 5: return (c & 0x20);
 		case 6: return (c & 0x40);
 		case 7: return (c & 0x90);
+		default: return false;
+		}
+	}
+
+	bool bitSet(uint16_t c, uint bit) {
+		switch (bit) {
+		case 0: return  (c & 0x0001);
+		case 1: return  (c & 0x0002);
+		case 2: return  (c & 0x0004);
+		case 3: return  (c & 0x0008);
+		case 4: return  (c & 0x0010);
+		case 5: return  (c & 0x0020);
+		case 6: return  (c & 0x0040);
+		case 7: return  (c & 0x0080);
+		case 8: return  (c & 0x0100);
+		case 9: return  (c & 0x0200);
+		case 10: return (c & 0x0400);
+		case 11: return (c & 0x0800);
+		case 12: return (c & 0x1000);
+		case 13: return (c & 0x2000);
+		case 14: return (c & 0x4000);
+		case 15: return (c & 0x8000);
 		default: return false;
 		}
 	}
@@ -431,6 +453,34 @@ namespace OpenWifi {
 		new_ie["name"]="Supported Regulatory Classes";
 		new_ie["content"]=content;
 		new_ie["type"]=WLAN_EID_SUPPORTED_REGULATORY_CLASSES;
+		return new_ie;
+	}
+
+	inline nlohmann::json WFS_WLAN_EID_HT_CAPABILITY(const std::vector<unsigned char> &data) {
+		nlohmann::json 	new_ie;
+		nlohmann::json 	content;
+
+		if(data.size()==24) {
+			uint16_t ht_caps = data[1] * 256 + data[0];
+
+			content["HT Capabilities Info"]["HT LDPC coding capability"] = bitSet(ht_caps,0);
+			content["HT Capabilities Info"]["HT Support channel width"]  = bitSet(ht_caps,1);
+			content["HT Capabilities Info"]["HT Green Field"]  = (ht_caps & 0x00c0) >> 2;
+			content["HT Capabilities Info"]["HT Short GI for 20MHz"]  = bitSet(ht_caps,5);
+			content["HT Capabilities Info"]["HT Short GI for 40MHz"]  = bitSet(ht_caps,6);
+			content["HT Capabilities Info"]["HT Tx STBC"]  = bitSet(ht_caps,7);
+			content["HT Capabilities Info"]["HT Rx STBC"]  = (ht_caps & 0x0300) >> 8;
+			content["HT Capabilities Info"]["HT Delayed Block ACK"]  = bitSet(ht_caps,11);
+			content["HT Capabilities Info"]["HT Max A-MSDU length"]  = bitSet(ht_caps,12);
+			content["HT Capabilities Info"]["HT PSMP Support"]  = bitSet(ht_caps,13);
+			content["HT Capabilities Info"]["HT Forty MHz Intolerant"]  = bitSet(ht_caps,14);
+			content["HT Capabilities Info"]["HT L-SIG TXOP Protection support"]  = bitSet(ht_caps,15);
+
+		}
+
+		new_ie["name"]="HT Capabilities";
+		new_ie["content"]=content;
+		new_ie["type"]=WLAN_EID_HT_CAPABILITY;
 		return new_ie;
 	}
 
@@ -474,6 +524,8 @@ namespace OpenWifi {
 										new_ies.push_back(WFS_WLAN_EID_ERP_INFO(data));
 									} else if (ie_type == ieee80211_eid::WLAN_EID_SUPPORTED_REGULATORY_CLASSES) {
 										new_ies.push_back(WFS_WLAN_EID_SUPPORTED_REGULATORY_CLASSES(data));
+									} else if (ie_type == ieee80211_eid::WLAN_EID_HT_CAPABILITY) {
+										new_ies.push_back(WFS_WLAN_EID_HT_CAPABILITY(data));
 									} else {
 											std::cout << "Skipping IE: no parsing available: " << ie_type << std::endl;
 											new_ies.push_back(ie);
