@@ -265,7 +265,6 @@ namespace OpenWifi {
 		CountryName += (char)data[1];
 		nlohmann::json ie_data;
 		nlohmann::json constraints = nlohmann::json::array();
-		std::cout << "Country: " << data.size() << std::endl;
 		for (std::size_t i = 3; (i+3)<= data.size(); i += 3) {
 			nlohmann::json constraint;
 			constraint["first_channel"] = (uint64_t)data[i];
@@ -273,7 +272,6 @@ namespace OpenWifi {
 			constraint["max_tx_power"] = (uint64_t)data[i + 2];
 			constraints.push_back(constraint);
 		}
-		std::cout << "many: " << constraints.size() << std::endl;
 		ie_data["country"] = CountryName;
 		ie_data["constraints"] = constraints;
 		new_ie["content"] = ie_data;
@@ -388,6 +386,18 @@ namespace OpenWifi {
 		return new_ie;
 	}
 
+	inline nlohmann::json WFS_WLAN_EID_ERP_INFO(const std::vector<unsigned char> &data) {
+		nlohmann::json 	new_ie;
+		nlohmann::json 	content;
+		content["Non_ERP_Present"] = (bool) ((data[0] & 0x01) == 0x01);
+		content["Use_Protection"] = (bool) ((data[0] & 0x02) == 0x02);
+		content["Barker_Preamble_Mode"] = (bool) ((data[0] & 0x04) == 0x04);
+		new_ie["name"]="ERP Information";
+		new_ie["content"]=content;
+		new_ie["type"]=WLAN_EID_ERP_INFO;
+		return new_ie;
+	}
+
 	inline bool ParseWifiScan(Poco::JSON::Object::Ptr &Obj, std::stringstream &Result, Poco::Logger &Logger) {
 		std::ostringstream	ofs;
 		Obj->stringify(ofs);
@@ -424,9 +434,11 @@ namespace OpenWifi {
 										new_ies.push_back(WFS_WLAN_EID_QBSS_LOAD(data));
 									} else if (ie_type == ieee80211_eid::WLAN_EID_PWR_CONSTRAINT) {
 										new_ies.push_back(WFS_WLAN_EID_PWR_CONSTRAINT(data));
+									} else if (ie_type == ieee80211_eid::WLAN_EID_ERP_INFO) {
+										new_ies.push_back(WFS_WLAN_EID_ERP_INFO(data));
 									} else {
-										std::cout << "Skipping IE: no parsing available: " << ie_type << std::endl;
-										new_ies.push_back(ie);
+											std::cout << "Skipping IE: no parsing available: " << ie_type << std::endl;
+											new_ies.push_back(ie);
 									}
 								} else {
 									std::cout << "Skipping IE: no data and type" << std::endl;
@@ -449,84 +461,9 @@ namespace OpenWifi {
 				D["status"] = Status;
 			}
 		}
-		std::cout << "End of parsing wifi - 1 " << std::endl;
 		Result << to_string(D);
-		std::cout << "End of parsing wifi - 2 " << std::endl;
 		return false;
 	}
-
-/*	inline bool ParseWifiScanOld(Poco::JSON::Object::Ptr &Obj, std::stringstream &Result) {
-		std::cout << "Start of parsing wifi" << std::endl;
-		if (Obj->has("status")) {
-			auto Status = Obj->get("status").extract<Poco::JSON::Object::Ptr>();
-			if (Status->has("scan") && Status->isArray("scan")) {
-				auto ScanArray = Status->getArray("scan");
-				Poco::JSON::Array ParsedScan;
-				for (auto &scan_entry : *ScanArray) {
-					auto Entry = scan_entry.extract<Poco::JSON::Object::Ptr>();
-					if (Entry->has("ies") && Entry->isArray("ies")) {
-						auto ies = Entry->getArray("ies");
-						Poco::JSON::Array new_ies;
-						for (auto &ie : *ies) {
-							auto ie_obj = ie.extract<Poco::JSON::Object::Ptr>();
-							try {
-								if (ie_obj->has("type") && ie_obj->has("data")) {
-									std::ostringstream ofs;
-									ie_obj->stringify(ofs);
-									std::cout << ">>>" << ofs.str() << std::endl;
-									auto ie_type = (uint64_t)ie_obj->get("type");
-									auto ie_data = ie_obj->get("data").toString();
-									std::cout << "TYPE:" << ie_type << "  DATA:" << ie_data
-											  << std::endl;
-									auto data = Base64Decode2Vec(ie_data);
-									Poco::JSON::Object new_ie;
-									if (ie_type == ieee80211_eid::WLAN_EID_COUNTRY) {
-										// WFS_WLAN_EID_COUNTRY(data, new_ie);
-										new_ies.add(WFS_WLAN_EID_COUNTRY(data));
-									} else if (ie_type == ieee80211_eid::WLAN_EID_EXT_SUPP_RATES) {
-										WFS_WLAN_EID_EXT_SUPP_RATES(data, new_ie);
-										new_ies.add(new_ie);
-									} else if (ie_type == ieee80211_eid::WLAN_EID_FH_PARAMS) {
-										WFS_WLAN_EID_FH_PARAMS(data, new_ie);
-										new_ies.add(new_ie);
-									} else if (ie_type == ieee80211_eid::WLAN_EID_DS_PARAMS) {
-										WFS_WLAN_EID_DS_PARAMS(data, new_ie);
-										new_ies.add(new_ie);
-									} else if (ie_type == ieee80211_eid::WLAN_EID_TIM) {
-										WFS_WLAN_EID_TIM(data, new_ie);
-										new_ies.add(new_ie);
-									} else if (ie_type == ieee80211_eid::WLAN_EID_QBSS_LOAD) {
-										WFS_WLAN_EID_QBSS_LOAD(data, new_ie);
-										new_ies.add(new_ie);
-									} else
-									{
-	new_ies.add(ie_obj);
-}
-								} else {
-									new_ies.add(ie_obj);
-								}
-							} catch (...) {
-								new_ies.add(ie_obj);
-							}
-						}
-						Entry->set("ies", new_ies);
-						ParsedScan.add(Entry);
-					} else {
-						ParsedScan.add(scan_entry);
-					}
-				}
-				Status->remove("scan");
-				Status->set("scan", ParsedScan);
-				Obj->remove("status");
-				Obj->set("status", Status);
-			}
-		}
-		std::cout << "End of parsing wifi - 1 " << std::endl;
-		Obj->stringify(Result);
-		std::cout << "End of parsing wifi - 2 " << std::endl;
-		return false;
-	}
-*/
 
 } // namespace OpenWifi
 
