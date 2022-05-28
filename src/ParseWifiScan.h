@@ -386,12 +386,27 @@ namespace OpenWifi {
 		return new_ie;
 	}
 
+	bool bitSet( const unsigned char c, uint bit) {
+		switch (bit) {
+		case 0: return (c & 0x01);
+		case 1: return (c & 0x02);
+		case 2: return (c & 0x04);
+		case 3: return (c & 0x08);
+		case 4: return (c & 0x10);
+		case 5: return (c & 0x20);
+		case 6: return (c & 0x40);
+		case 7: return (c & 0x90);
+		default: return false;
+		}
+	}
+
 	inline nlohmann::json WFS_WLAN_EID_ERP_INFO(const std::vector<unsigned char> &data) {
 		nlohmann::json 	new_ie;
 		nlohmann::json 	content;
-		content["Non_ERP_Present"] = (bool) ((data[0] & 0x01) == 0x01);
-		content["Use_Protection"] = (bool) ((data[0] & 0x02) == 0x02);
-		content["Barker_Preamble_Mode"] = (bool) ((data[0] & 0x04) == 0x04);
+		std::cout << "ERP: " << (uint) data[0] << std::endl;
+		content["Non_ERP_Present"] = bitSet(data[0],0);
+		content["Use_Protection"] = bitSet(data[0],1);
+		content["Barker_Preamble_Mode"] = bitSet(data[0],2);
 		new_ie["name"]="ERP Information";
 		new_ie["content"]=content;
 		new_ie["type"]=WLAN_EID_ERP_INFO;
