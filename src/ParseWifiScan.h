@@ -460,14 +460,11 @@ namespace OpenWifi {
 		nlohmann::json 	new_ie;
 		nlohmann::json 	content;
 
-		std::cout << "HT Caps: " << data.size() << std::endl;
-
 		if(data.size()==26) {
 			uint16_t ht_caps = data[1] * 256 + data[0];
-
 			content["HT Capabilities Info"]["HT LDPC coding capability"] = bitSet(ht_caps,0);
 			content["HT Capabilities Info"]["HT Support channel width"]  = bitSet(ht_caps,1);
-			content["HT Capabilities Info"]["HT Green Field"]  = (ht_caps & 0x00c0) >> 2;
+			content["HT Capabilities Info"]["HT Green Field"]  = (ht_caps & 0x00c0) >> 4;
 			content["HT Capabilities Info"]["HT Short GI for 20MHz"]  = bitSet(ht_caps,5);
 			content["HT Capabilities Info"]["HT Short GI for 40MHz"]  = bitSet(ht_caps,6);
 			content["HT Capabilities Info"]["HT Tx STBC"]  = bitSet(ht_caps,7);
@@ -477,6 +474,10 @@ namespace OpenWifi {
 			content["HT Capabilities Info"]["HT PSMP Support"]  = bitSet(ht_caps,13);
 			content["HT Capabilities Info"]["HT Forty MHz Intolerant"]  = bitSet(ht_caps,14);
 			content["HT Capabilities Info"]["HT L-SIG TXOP Protection support"]  = bitSet(ht_caps,15);
+
+			auto ampduparam = data[2];
+			content["A-MPDU Parameters"]["Maximum Rx A-MPDU Length"] = ampduparam & 0x03;
+			content["A-MPDU Parameters"]["MPDU Density"]  =  (ampduparam & 0x1c) >> 2;
 
 		}
 
