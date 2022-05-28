@@ -403,13 +403,24 @@ namespace OpenWifi {
 	inline nlohmann::json WFS_WLAN_EID_ERP_INFO(const std::vector<unsigned char> &data) {
 		nlohmann::json 	new_ie;
 		nlohmann::json 	content;
-		std::cout << "ERP: " << (uint) data[0] << std::endl;
 		content["Non_ERP_Present"] = bitSet(data[0],0);
 		content["Use_Protection"] = bitSet(data[0],1);
 		content["Barker_Preamble_Mode"] = bitSet(data[0],2);
 		new_ie["name"]="ERP Information";
 		new_ie["content"]=content;
 		new_ie["type"]=WLAN_EID_ERP_INFO;
+		return new_ie;
+	}
+
+	inline nlohmann::json WFS_WLAN_EID_SUPPORTED_REGULATORY_CLASSES(const std::vector<unsigned char> &data) {
+		nlohmann::json 	new_ie;
+		nlohmann::json 	content;
+		std::cout << "Supported Regulatory Classes: " << data.size() << std::endl;
+		std::string Classes{data.begin(),data.end()};
+		content["Supported_Regulatory_Classes"] = Classes;
+		new_ie["name"]="Supported Regulatory Classes";
+		new_ie["content"]=content;
+		new_ie["type"]=WLAN_EID_SUPPORTED_REGULATORY_CLASSES;
 		return new_ie;
 	}
 
@@ -451,6 +462,8 @@ namespace OpenWifi {
 										new_ies.push_back(WFS_WLAN_EID_PWR_CONSTRAINT(data));
 									} else if (ie_type == ieee80211_eid::WLAN_EID_ERP_INFO) {
 										new_ies.push_back(WFS_WLAN_EID_ERP_INFO(data));
+									} else if (ie_type == ieee80211_eid::WLAN_EID_SUPPORTED_REGULATORY_CLASSES) {
+										new_ies.push_back(WFS_WLAN_EID_SUPPORTED_REGULATORY_CLASSES(data));
 									} else {
 											std::cout << "Skipping IE: no parsing available: " << ie_type << std::endl;
 											new_ies.push_back(ie);
