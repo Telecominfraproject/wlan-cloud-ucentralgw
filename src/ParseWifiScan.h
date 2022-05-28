@@ -412,20 +412,22 @@ namespace OpenWifi {
 		return new_ie;
 	}
 
+	std::string BufferToHex(const std::vector<unsigned char> &b) {
+		static const char hex[] = "0123456789abcdef";
+		std::string result;
+		for(const auto &c:b) {
+			if(!result.empty())
+				result += ' ';
+			result += (hex[ (c & 0xf0) >> 4]);
+			result += (hex[ (c & 0x0f) ]);
+		}
+		return result;
+	}
+
 	inline nlohmann::json WFS_WLAN_EID_SUPPORTED_REGULATORY_CLASSES(const std::vector<unsigned char> &data) {
 		nlohmann::json 	new_ie;
 		nlohmann::json 	content;
-
-		std::cout << "Supported Regulatory Classes: " << data.size() << std::endl;
-		for(const auto &c:data) {
-			std::cout << (uint) c << " ";
-		}
-		std::cout << std::endl;
-
-		std::string Classes{data.begin(),data.end()};
-		std::cout << "Supported Regulatory Classes: " << data.size() << std::endl;
-		std::cout << "Classes: " << Classes << std::endl;
-		content["Supported_Regulatory_Classes"] = Classes;
+		content["Supported_Regulatory_Classes"] = BufferToHex(data);
 		new_ie["name"]="Supported Regulatory Classes";
 		new_ie["content"]=content;
 		new_ie["type"]=WLAN_EID_SUPPORTED_REGULATORY_CLASSES;
