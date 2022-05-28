@@ -415,8 +415,9 @@ namespace OpenWifi {
 	inline nlohmann::json WFS_WLAN_EID_SUPPORTED_REGULATORY_CLASSES(const std::vector<unsigned char> &data) {
 		nlohmann::json 	new_ie;
 		nlohmann::json 	content;
-		std::cout << "Supported Regulatory Classes: " << data.size() << std::endl;
 		std::string Classes{data.begin(),data.end()};
+		std::cout << "Supported Regulatory Classes: " << data.size() << std::endl;
+		std::cout << "Classes: " << Classes << std::endl;
 		content["Supported_Regulatory_Classes"] = Classes;
 		new_ie["name"]="Supported Regulatory Classes";
 		new_ie["content"]=content;
