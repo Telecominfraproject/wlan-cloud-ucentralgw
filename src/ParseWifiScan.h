@@ -462,7 +462,7 @@ namespace OpenWifi {
 
 		std::cout << "HT Caps: " << data.size() << std::endl;
 
-		if(data.size()==24) {
+		if(data.size()==26) {
 			uint16_t ht_caps = data[1] * 256 + data[0];
 
 			content["HT Capabilities Info"]["HT LDPC coding capability"] = bitSet(ht_caps,0);
