@@ -562,9 +562,11 @@ namespace OpenWifi {
 		std::string Rates;
 
 		for(const auto &rate:data) {
-			Rates += GetRate(rate) + ",";
+			if(!Rates.empty())
+				Rates += ", ";
+			Rates += GetRate(rate);
 		}
-
+		Rates +=  " [Mbit/sec]";
 		content["Supported Rates"] = Rates;
 		new_ie["name"]="Supported Rates";
 		new_ie["content"]=content;
