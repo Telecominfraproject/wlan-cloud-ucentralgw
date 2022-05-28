@@ -446,6 +446,18 @@ namespace OpenWifi {
 		return result;
 	}
 
+	std::string bitString(unsigned char c) {
+		std::string R;
+		for(std::size_t i=0;i<8;i++) {
+			if(c & 0x80)
+				R += '1';
+			else
+				R += '0';
+			c << 1;
+		}
+		return R;
+	}
+
 	inline nlohmann::json WFS_WLAN_EID_SUPPORTED_REGULATORY_CLASSES(const std::vector<unsigned char> &data) {
 		nlohmann::json 	new_ie;
 		nlohmann::json 	content;
@@ -478,6 +490,12 @@ namespace OpenWifi {
 			auto ampduparam = data[2];
 			content["A-MPDU Parameters"]["Maximum Rx A-MPDU Length"] = ampduparam & 0x03;
 			content["A-MPDU Parameters"]["MPDU Density"] = (ampduparam & 0x1c) >> 2;
+
+			content["MCS Set"]["Rx Bitmask Bits 0-7"] = bitString(data[3]);
+			content["MCS Set"]["Rx Bitmask Bits 0-7"] = bitString(data[4]);
+			content["MCS Set"]["Rx Bitmask Bits 16-23"] = bitString(data[5]);
+			content["MCS Set"]["Rx Bitmask Bits 24-31"] = bitString(data[6]);
+
 		}
 
 		new_ie["name"]="HT Capabilities";
