@@ -264,15 +264,16 @@ namespace OpenWifi {
 		CountryName += (char)data[0];
 		CountryName += (char)data[1];
 		nlohmann::json ie_data;
-		nlohmann::json constraints;
+		nlohmann::json constraints = nlohmann::json::array();
 		std::cout << "Country: " << data.size() << std::endl;
 		for (std::size_t i = 3; (i+3)<= data.size(); i += 3) {
-			nlohmann::json Inner;
-			Inner["first_channel"] = (uint64_t)data[i];
-			Inner["number_of_channel"] = (uint64_t)data[i + 1];
-			Inner["max_tx_power"] = (uint64_t)data[i + 2];
-			constraints.push_back(Inner);
+			nlohmann::json constraint;
+			constraint["first_channel"] = (uint64_t)data[i];
+			constraint["number_of_channel"] = (uint64_t)data[i + 1];
+			constraint["max_tx_power"] = (uint64_t)data[i + 2];
+			constraints.push_back(constraint);
 		}
+		std::cout << "many: " << constraints.size() << std::endl;
 		ie_data["country"] = CountryName;
 		ie_data["constraints"] = constraints;
 		new_ie["content"] = ie_data;
