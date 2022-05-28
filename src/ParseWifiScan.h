@@ -460,6 +460,8 @@ namespace OpenWifi {
 		nlohmann::json 	new_ie;
 		nlohmann::json 	content;
 
+		std::cout << "HT Caps: " << data.size() << std::endl;
+
 		if(data.size()==24) {
 			uint16_t ht_caps = data[1] * 256 + data[0];
 
