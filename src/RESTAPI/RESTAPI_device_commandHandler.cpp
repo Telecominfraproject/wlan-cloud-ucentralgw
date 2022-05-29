@@ -251,7 +251,7 @@ namespace OpenWifi {
 			SCR.script.empty() ||
 			SCR.type.empty() ||
 			SCR.scriptId.empty() ||
-			(SCR.type!="uci" && SCR.type!="shell" && SCR.type!="ucode")) {
+			(SCR.type!="shell" && SCR.type!="ucode")) {
 			return BadRequest(RESTAPI::Errors::MissingOrInvalidParameters);
 		}
 

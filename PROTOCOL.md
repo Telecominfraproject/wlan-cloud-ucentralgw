@@ -643,7 +643,7 @@ Controller sends this command to run a predefined script. Extreme care must be t
      "method" : "script" , 
      "params" : {
         "serial" : <serial number>,
-        "type" : <one of "uci", "shell", "ucode">,
+        "type" : <one of "shell", "ucode">,
         "script" : <text blob containing the script>,
         "timeout" : <max timeout in seconds, default is 30>,
         "when" : <time when this will be performed as UTC seconds>
@@ -658,7 +658,7 @@ The device should answer:
       "result" : {
           "serial" : <serial number> ,
           "status" : {
-            "error" : <0 or the value of $? from the shell running the command>,
+            "error" : <0 or the value of $? from the shell running the command, 255 signifies a timeout>,
 	    one of either
 	    	"result_64" : <gzipped base64 result of running the command>,
 	    	"result_sz" : <size of unzipped content>
