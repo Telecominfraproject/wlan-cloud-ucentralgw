@@ -5,6 +5,7 @@
 #pragma once
 
 #include <string>
+#include <cstring>
 #include "Poco/String.h"
 
 #if defined(__GNUC__)
@@ -459,7 +460,7 @@ namespace OpenWifi::uCentralProtocol::Events {
 	};
 
 	inline static EVENT_MSG EventFromString(const std::string & Method) {
-        static std::vector<std::pair<const char *,EVENT_MSG>>   Values{
+        static std::vector<std::pair<const char *,EVENT_MSG>>   EventValues{
                 { CFGPENDING , ET_CFGPENDING },
                 { CONNECT, ET_CONNECT },
                 { CRASHLOG, ET_CRASHLOG },
@@ -472,11 +473,12 @@ namespace OpenWifi::uCentralProtocol::Events {
                 { TELEMETRY, ET_TELEMETRY }
         };
 
-        std::string L = Poco::toLower(Method);
-        auto hint = std::find_if(cbegin(Values),cend(Values),[&](const std::pair<const char *,EVENT_MSG> &v) ->bool { return strcmp(v.first,L.c_str())==0; });
-        if(hint == cend(Values))
-            return ET_UNKNOWN;
-        return hint->second;
+		const auto l_method = Poco::toLower(Method);
+		for(const auto &[event_name,event_type]:EventValues) {
+			if(std::strcmp(event_name,Method.c_str())==0)
+				return event_type;
+		}
+		return ET_UNKNOWN;
 	};
 }
 
