@@ -680,6 +680,38 @@ namespace OpenWifi {
 		return new_ie;
 	}
 
+	inline nlohmann::json WFS_WLAN_EID_TX_POWER_ENVELOPE(const std::vector<unsigned char> &data) {
+		nlohmann::json 	new_ie;
+		nlohmann::json 	content;
+
+		if(data.size()>=2 && data.size()<=5) {
+			auto len = data[0];
+			for(uint i=0;i<=len;i++) {
+				switch(i) {
+				case 0:
+					content["Tx Pwr Info"]["Local Max Tx Pwr Constraint 20MHz"] = (uint16_t) data[i+1];
+					break;
+				case 1:
+					content["Tx Pwr Info"]["Local Max Tx Pwr Constraint 40MHz"] = (uint16_t) data[i+1];
+					break;
+				case 2:
+					content["Tx Pwr Info"]["Local Max Tx Pwr Constraint 80MHz"] = (uint16_t) data[i+1];
+					break;
+				case 3:
+					content["Tx Pwr Info"]["Local Max Tx Pwr Constraint 160MHz/80+80 MHz"] = (uint16_t) data[i+1];
+					break;
+				default:
+					content["Tx Pwr Info"]["Local Max Tx Pwr Constraint 160MHz/80+80 MHz"] = (uint16_t) 0xff;
+				}
+			}
+		}
+		new_ie["name"]="Tx Pwr Info";
+		new_ie["content"]=content;
+		new_ie["type"]=WLAN_EID_TX_POWER_ENVELOPE;
+		return new_ie;
+	}
+
+
 	inline bool ParseWifiScan(Poco::JSON::Object::Ptr &Obj, std::stringstream &Result, Poco::Logger &Logger) {
 		std::ostringstream	ofs;
 		Obj->stringify(ofs);
@@ -724,6 +756,8 @@ namespace OpenWifi {
 										new_ies.push_back(WFS_WLAN_EID_HT_CAPABILITY(data));
 									} else if (ie_type == ieee80211_eid::WLAN_EID_EXT_SUPP_RATES) {
 										new_ies.push_back(WFS_WLAN_EID_EXT_SUPP_RATES(data));
+									} else if (ie_type == ieee80211_eid::WLAN_EID_TX_POWER_ENVELOPE) {
+										new_ies.push_back(WFS_WLAN_EID_TX_POWER_ENVELOPE(data));
 									} else {
 											std::cout << "Skipping IE: no parsing available: " << ie_type << std::endl;
 											new_ies.push_back(ie);
