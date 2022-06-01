@@ -813,6 +813,59 @@ namespace OpenWifi {
 		return new_ie;
 	}
 
+	inline nlohmann::json WFS_WLAN_EID_RRM_ENABLED_CAPABILITIES(const std::vector<unsigned char> &data) {
+		nlohmann::json 	new_ie;
+		nlohmann::json 	content;
+
+		if(data.size()==5) {
+			uint offset=0;
+			uint caps = data[offset++];
+			content["RM Capabilities"]["Link Measurement"] = (caps & 0x00000001) >> 0;
+			content["RM Capabilities"]["Neighbor Report"] = (caps & 0x00000002) >> 1;
+			content["RM Capabilities"]["Parallel Measurements"] = (caps & 0x00000004) >> 2;
+			content["RM Capabilities"]["Repeated Measurements"] = (caps & 0x00000008) >> 3;
+			content["RM Capabilities"]["Beacon Passive Measurement"] = (caps & 0x00000010) >> 4;
+			content["RM Capabilities"]["Beacon Active Measurement"] = (caps & 0x00000020) >> 5;
+			content["RM Capabilities"]["Beacon Table Measurement"] = (caps & 0x00000040) >> 6;
+			content["RM Capabilities"]["Beacon Measurement Reporting Conditions"] = (caps & 0x00000080) >> 7;
+
+			caps = data[offset++];
+			content["RM Capabilities"]["Frame Measurement"] = (caps & 0x00000001) >> 0;
+			content["RM Capabilities"]["Channel Load Measurement"] = (caps & 0x00000002) >> 1;
+			content["RM Capabilities"]["Noise Histogram Measurement"] = (caps & 0x00000004) >> 2;
+			content["RM Capabilities"]["Statistics Measurement"] = (caps & 0x00000008) >> 3;
+			content["RM Capabilities"]["LCI Measurement"] = (caps & 0x00000010) >> 4;
+			content["RM Capabilities"]["LCI Azimuth capability"] = (caps & 0x00000020) >> 5;
+			content["RM Capabilities"]["Transmit Stream/Category Measurement"] = (caps & 0x00000040) >> 6;
+			content["RM Capabilities"]["Triggered Transmit Stream/Category Measurement"] = (caps & 0x00000080) >> 7;
+
+			caps = data[offset++];
+			content["RM Capabilities"]["AP Channel Report capability"] = (caps & 0x00000007) >> 0;
+			content["RM Capabilities"]["RM MIB capability"] = (caps & 0x00000002) >> 1;
+			content["RM Capabilities"]["Operating Channel Max Measurement Duration"] = (caps & 0x0000001c) >> 2;
+			content["RM Capabilities"]["Nonoperating Channel Max Measurement Duration"] = (caps & 0x000000e0) >> 5;
+
+			caps = data[offset++];
+			content["RM Capabilities"]["Measurement Pilotcapability"] = (caps & 0x00000007) >> 0;
+			content["RM Capabilities"]["RM MIB capability"] = (caps & 0x00000008) >> 3;
+			content["RM Capabilities"]["Neighbor Report TSF Offset"] = (caps & 0x00000010) >> 4;
+			content["RM Capabilities"]["RCPI Measurement capability"] = (caps & 0x00000020) >> 5;
+			content["RM Capabilities"]["RSNI Measurement capability"] = (caps & 0x00000040) >> 6;
+			content["RM Capabilities"]["BSS Average Access Delay capability"] = (caps & 0x00000080) >> 7;
+
+			caps = data[offset];
+			content["RM Capabilities"]["BSS Available Admission Capacity capability"] = (caps & 0x00000001) >> 0;
+			content["RM Capabilities"]["Antenna capability"] = (caps & 0x00000002) >> 1;
+		}
+
+		new_ie["name"]="RM Capabilities";
+		new_ie["content"]=content;
+		new_ie["type"]=WLAN_EID_RRM_ENABLED_CAPABILITIES;
+		return new_ie;
+	}
+
+
+
 	inline bool ParseWifiScan(Poco::JSON::Object::Ptr &Obj, std::stringstream &Result, Poco::Logger &Logger) {
 		std::ostringstream	ofs;
 		Obj->stringify(ofs);
@@ -861,6 +914,8 @@ namespace OpenWifi {
 										new_ies.push_back(WFS_WLAN_EID_TX_POWER_ENVELOPE(data));
 									} else if (ie_type == ieee80211_eid::WLAN_EID_VHT_CAPABILITY) {
 										new_ies.push_back(WFS_WLAN_EID_VHT_CAPABILITY(data));
+									} else if (ie_type == ieee80211_eid::WLAN_EID_RRM_ENABLED_CAPABILITIES) {
+										new_ies.push_back(WFS_WLAN_EID_RRM_ENABLED_CAPABILITIES(data));
 									} else {
 											std::cout << "Skipping IE: no parsing available: " << ie_type << std::endl;
 											new_ies.push_back(ie);
