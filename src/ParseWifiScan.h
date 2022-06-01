@@ -569,6 +569,67 @@ namespace OpenWifi {
 		{0x00, NULL}
 	};
 
+	static const value_string vht_max_mpdu_length_flag = {
+		{0x00, "3 895"},
+		{0x01, "7 991"},
+		{0x02, "11 454"},
+		{0x03, "Reserved"},
+		{0x00, NULL}
+	};
+
+	static const value_string vht_supported_chan_width_set_flag = {
+		{0x00, "Neither 160MHz nor 80+80 supported"},
+		{0x01, "160MHz supported"},
+		{0x02, "160MHz and 80+80 Supported"},
+		{0x03, "Reserved"},
+		{0x00, NULL}
+	};
+
+	static const value_string vht_rx_stbc_flag = {
+		{0x00, "None"},
+		{0x01, "1 Spatial Stream Supported"},
+		{0x02, "1 to 2 Spatial Stream Supported"},
+		{0x03, "1 to 3 Spatial Stream Supported"},
+		{0x04, "1 to 4 Spatial Stream Supported"},
+		{0x02, "160MHz and 80+80 Supported"},
+		{0x05, "Reserved"},
+		{0x06, "Reserved"},
+		{0x07, "Reserved"},
+		{0x00, NULL}
+	};
+
+	static const value_string num_plus_one_3bit_flag = {
+		{0x00, "1"},
+		{0x01, "2"},
+		{0x02, "3"},
+		{0x03, "4"},
+		{0x04, "5"},
+		{0x05, "6"},
+		{0x06, "7"},
+		{0x07, "8"},
+		{0x00, NULL}
+	};
+
+	static const value_string vht_max_ampdu_flag = {
+		{0x00, "8 191"},
+		{0x01, "16 383"},
+		{0x02, "32 767"},
+		{0x03, "65,535"},
+		{0x04, "131 071"},
+		{0x05, "262 143"},
+		{0x06, "524 287"},
+		{0x07, "1 048 575"},
+		{0x00, NULL}
+	};
+
+	static const value_string vht_link_adapt_flag = {
+		{0x00, "No Feedback"},
+		{0x01, "Reserved (logically only solicited feedback)"},
+		{0x02, "Unsolicited feedback only"},
+		{0x03, "Both (can provide unsolicited feedback and respond to VHT MRQ)"},
+		{0x00, NULL}
+	};
+
 	const char * VALS(const value_string &vals, uint v) {
 		for(const auto &e:vals) {
 			if(e.first==v && e.second!=NULL)
@@ -711,6 +772,46 @@ namespace OpenWifi {
 		return new_ie;
 	}
 
+	inline nlohmann::json WFS_WLAN_EID_VHT_CAPABILITY(const std::vector<unsigned char> &data) {
+		nlohmann::json 	new_ie;
+		nlohmann::json 	content;
+
+		if(data.size()==12) {
+			uint offset=0;
+			uint caps = data[offset] + data[offset+1]* 256 + data[offset+2]*256*256 + data[offset+3]*256*256*256;
+
+			content["VHT Capabilities Info"]["Maximum MPDU Length"] = VALS(vht_max_mpdu_length_flag, (caps & 0x00000003) >> 0 );
+			content["VHT Capabilities Info"]["Supported Channel Width Set"] = VALS(vht_supported_chan_width_set_flag, (caps & 0x0000000c) >> 2 );
+			content["VHT Capabilities Info"]["Rx LDPC"] = (caps & 0x00000010) >> 4 ;
+			content["VHT Capabilities Info"]["Short GI for 80MHz"] = (caps & 0x00000020) >> 5 ;
+			content["VHT Capabilities Info"]["Short GI for 160MHz and 80+80MHz"] = (caps & 0x00000040) >> 6 ;
+			content["VHT Capabilities Info"]["Tx STBC"] = (caps & 0x00000080) >> 7 ;
+
+			content["VHT Capabilities Info"]["Rx STBC"] = VALS(vht_rx_stbc_flag,(caps & 0x00000700) >> 8) ;
+			content["VHT Capabilities Info"]["SU Beam-former Capable"] = (caps & 0x00000800) >> 11 ;
+			content["VHT Capabilities Info"]["SU Beam-formee Capable"] = (caps & 0x00001000) >> 12 ;
+			content["VHT Capabilities Info"]["Compressed Steering Number of Beamformer Antennas Supported"] = VALS(num_plus_one_3bit_flag,(caps & 0x0000e000) >> 13) ;
+
+			content["VHT Capabilities Info"]["Number of Sounding Dimensions"] = VALS(num_plus_one_3bit_flag,(caps & 0x00070000) >> 16);
+			content["VHT Capabilities Info"]["MU Beam-former Capable"] = VALS(num_plus_one_3bit_flag,(caps & 0x00080000) >> 17);
+			content["VHT Capabilities Info"]["MU Beam-formee Capable"] = (caps & 0x00200000) >> 18;
+			content["VHT Capabilities Info"]["VHT TXOP PS"] = (caps & 0x00400000) >> 19;
+			content["VHT Capabilities Info"]["HTC-VHT Capable VHT variant HT Control field"] = (caps & 0x00400000) >> 20;
+
+			content["VHT Capabilities Info"]["Max A-MPDU Length"] = VALS(vht_max_ampdu_flag,(caps & 0x03800000) >> 21);
+			content["VHT Capabilities Info"]["VHT Link Adaptation"] = VALS(vht_link_adapt_flag,(caps & 0x0c000000) >> 24);
+
+			content["VHT Capabilities Info"]["Rx Antenna Pattern Consistency"] = (caps & 0x10000000) >> 28;
+			content["VHT Capabilities Info"]["Tx Antenna Pattern Consistency"] = (caps & 0x20000000) >> 29;
+			offset += 4;
+			ParseMCSset(&data[offset],content);
+		}
+
+		new_ie["name"]="VHT Capabilities Info";
+		new_ie["content"]=content;
+		new_ie["type"]=WLAN_EID_VHT_CAPABILITY;
+		return new_ie;
+	}
 
 	inline bool ParseWifiScan(Poco::JSON::Object::Ptr &Obj, std::stringstream &Result, Poco::Logger &Logger) {
 		std::ostringstream	ofs;
@@ -758,6 +859,8 @@ namespace OpenWifi {
 										new_ies.push_back(WFS_WLAN_EID_EXT_SUPP_RATES(data));
 									} else if (ie_type == ieee80211_eid::WLAN_EID_TX_POWER_ENVELOPE) {
 										new_ies.push_back(WFS_WLAN_EID_TX_POWER_ENVELOPE(data));
+									} else if (ie_type == ieee80211_eid::WLAN_EID_VHT_CAPABILITY) {
+										new_ies.push_back(WFS_WLAN_EID_VHT_CAPABILITY(data));
 									} else {
 											std::cout << "Skipping IE: no parsing available: " << ie_type << std::endl;
 											new_ies.push_back(ie);
