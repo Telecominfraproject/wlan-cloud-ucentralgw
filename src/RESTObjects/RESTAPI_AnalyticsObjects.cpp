@@ -538,8 +538,8 @@ namespace OpenWifi::AnalyticsObjects {
 
     void WifiClientHistory::to_json(Poco::JSON::Object &Obj) const {
         field_to_json(Obj,"timestamp",timestamp);
-        field_to_json(Obj,"stationId",stationId);
-        field_to_json(Obj,"bssId",bssId);
+        field_to_json(Obj,"station_id",station_id);
+        field_to_json(Obj,"bssid",bssid);
         field_to_json(Obj,"ssid",ssid);
         field_to_json(Obj,"rssi",rssi);
         field_to_json(Obj,"rx_bitrate",rx_bitrate);
@@ -573,13 +573,14 @@ namespace OpenWifi::AnalyticsObjects {
         field_to_json(Obj,"connected",connected);
         field_to_json(Obj,"inactive",inactive);
         field_to_json(Obj,"tx_retries",tx_retries);
+        field_to_json(Obj,"venue_id",venue_id);
     }
 
     bool WifiClientHistory::from_json(const Poco::JSON::Object::Ptr &Obj) {
         try {
             field_from_json(Obj,"timestamp",timestamp);
-            field_from_json(Obj,"stationId",stationId);
-            field_from_json(Obj,"bssId",bssId);
+            field_from_json(Obj,"station_id",station_id);
+            field_from_json(Obj,"bssid",bssid);
             field_from_json(Obj,"ssid",ssid);
             field_from_json(Obj,"rssi",rssi);
             field_from_json(Obj,"rx_bitrate",rx_bitrate);
@@ -613,6 +614,7 @@ namespace OpenWifi::AnalyticsObjects {
             field_from_json(Obj,"connected",connected);
             field_from_json(Obj,"inactive",inactive);
             field_from_json(Obj,"tx_retries",tx_retries);
+            field_from_json(Obj,"venue_id",venue_id);
             return true;
         } catch(...) {
 
