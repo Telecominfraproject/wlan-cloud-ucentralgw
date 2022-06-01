@@ -512,12 +512,78 @@ namespace OpenWifi {
 		return new_ie;
 	}
 
+	inline void ParseMCSset(const unsigned char * data, nlohmann::json & content) {
+		content["MCS Set"]["Rx Bitmask Bits 0-7"] = bitString(data[0]);
+		content["MCS Set"]["Rx Bitmask Bits 8-15"] = bitString(data[1]);
+		content["MCS Set"]["Rx Bitmask Bits 16-23"] = bitString(data[2]);
+		content["MCS Set"]["Rx Bitmask Bits 24-31"] = bitString(data[3]);
+	}
+
+	using value_string = std::vector<std::pair<uint,const char *>>;
+
+	static const value_string txbf_antenna_flags = {
+		{0x00, "1 TX antenna sounding"},
+		{0x01, "2 TX antenna sounding"},
+		{0x02, "3 TX antenna sounding"},
+		{0x03, "4 TX antenna sounding"},
+		{0x00, NULL}
+	};
+
+	static const value_string txbf_feedback_flags = {
+		{0x00, "not supported"},
+		{0x01, "delayed feedback capable"},
+		{0x02, "immediate feedback capable"},
+		{0x03, "delayed and immediate feedback capable"},
+		{0x00, NULL}
+	};
+
+	static const value_string txbf_calib_flag = {
+		{0x00, "incapable"},
+		{0x01, "Limited involvement, cannot initiate"},
+		{0x02, "Limited involvement, can initiate"},
+		{0x03, "Fully capable"},
+		{0x00, NULL}
+	};
+
+	static const value_string txbf_csi_max_rows_bf_flags = {
+		{0x00, "1 row of CSI"},
+		{0x01, "2 rows of CSI"},
+		{0x02, "3 rows of CSI"},
+		{0x03, "4 rows of CSI"},
+		{0x00, NULL}
+	};
+
+	static const value_string txbf_chan_est_flags = {
+		{0x00, "1 space time stream"},
+		{0x01, "2 space time streams"},
+		{0x02, "3 space time streams"},
+		{0x03, "4 space time streams"},
+		{0x00, NULL}
+	};
+
+	static const value_string txbf_min_group_flags = {
+		{0x00, "No grouping supported"},
+		{0x01, "Groups of 1,2 supported"},
+		{0x02, "Groups of 1,4 supported"},
+		{0x03, "Groups of 1,2,4 supported"},
+		{0x00, NULL}
+	};
+
+	const char * VALS(const value_string &vals, uint v) {
+		for(const auto &e:vals) {
+			if(e.first==v && e.second!=NULL)
+				return e.second;
+		}
+		return "unknown";
+	}
+
 	inline nlohmann::json WFS_WLAN_EID_HT_CAPABILITY(const std::vector<unsigned char> &data) {
 		nlohmann::json 	new_ie;
 		nlohmann::json 	content;
 
 		if(data.size()==26) {
-			uint16_t ht_caps = data[1] * 256 + data[0];
+			uint offset = 0 ;
+			uint16_t ht_caps = data[offset+1] * 256 + data[offset];
 			content["HT Capabilities Info"]["HT LDPC coding capability"] = bitSet(ht_caps,0);
 			content["HT Capabilities Info"]["HT Support channel width"] = bitSet(ht_caps,1);
 			content["HT Capabilities Info"]["HT Green Field"] = (ht_caps & 0x00c0) >> 4;
@@ -530,15 +596,55 @@ namespace OpenWifi {
 			content["HT Capabilities Info"]["HT PSMP Support"] = bitSet(ht_caps,13);
 			content["HT Capabilities Info"]["HT Forty MHz Intolerant"] = bitSet(ht_caps,14);
 			content["HT Capabilities Info"]["HT L-SIG TXOP Protection support"] = bitSet(ht_caps,15);
+			offset += 2;
 
-			auto ampduparam = data[2];
+			auto ampduparam = data[offset];
 			content["A-MPDU Parameters"]["Maximum Rx A-MPDU Length"] = ampduparam & 0x03;
 			content["A-MPDU Parameters"]["MPDU Density"] = (ampduparam & 0x1c) >> 2;
+			offset += 1;
 
-			content["MCS Set"]["Rx Bitmask Bits 0-7"] = bitString(data[3]);
-			content["MCS Set"]["Rx Bitmask Bits 8-15"] = bitString(data[4]);
-			content["MCS Set"]["Rx Bitmask Bits 16-23"] = bitString(data[5]);
-			content["MCS Set"]["Rx Bitmask Bits 24-31"] = bitString(data[6]);
+			ParseMCSset(&data[offset], content);
+			offset += 16;
+
+			content["HT Extended Capabilities"]["Transmitter supports PCO"] = data[offset] & 0x01;
+			content["HT Extended Capabilities"]["Time needed to transition between 20MHz and 40MHz"] = (data[offset] & 0x06) >> 1;
+			offset++;
+			content["HT Extended Capabilities"]["MCS Feedback capability"] = data[offset] & 0x03;
+			content["HT Extended Capabilities"]["High Throughput"] = (data[offset] & 0x04) >> 2;
+			content["HT Extended Capabilities"]["Reverse Direction Responder"] = (data[offset] & 0x08) >> 3;
+			offset++;
+
+			uint32_t caps = data[offset] + data[offset+1]*256 + data[offset+2] * 256 * 256 + data[offset+3] * 256 * 256 * 256 ;
+
+			content["Transmit Beam Forming (TxBF) Capabilities"]["Transmit Beamforming"] = (caps & 0x00000001) >> 0;
+			content["Transmit Beam Forming (TxBF) Capabilities"]["Receive Staggered Sounding"] = (caps & 0x00000002) >> 1;
+			content["Transmit Beam Forming (TxBF) Capabilities"]["Transmit Staggered Sounding"] = (caps & 0x00000004) >> 2;
+			content["Transmit Beam Forming (TxBF) Capabilities"]["Receive Null Data packet (NDP)"] = (caps & 0x00000008) >> 3;
+			content["Transmit Beam Forming (TxBF) Capabilities"]["Transmit Null Data packet (NDP)"] = (caps & 0x00000010) >> 4;
+			content["Transmit Beam Forming (TxBF) Capabilities"]["Implicit TxBF capable"] = (caps & 0x00000020) >> 5;
+			content["Transmit Beam Forming (TxBF) Capabilities"]["Calibration"] = VALS(txbf_calib_flag,(caps & 0x000000c0) >> 6);
+			content["Transmit Beam Forming (TxBF) Capabilities"]["STA can apply TxBF using CSI explicit feedback"] = (caps & 0x00000100) >> 8;
+			content["Transmit Beam Forming (TxBF) Capabilities"]["STA can apply TxBF using uncompressed beamforming feedback matrix"] = (caps & 0x00000200) >> 9;
+			content["Transmit Beam Forming (TxBF) Capabilities"]["STA can apply TxBF using compressed beamforming feedback matrix"] = (caps & 0x00000400) >> 10;
+			content["Transmit Beam Forming (TxBF) Capabilities"]["Receiver can return explicit CSI feedback"] = VALS(txbf_feedback_flags,(caps & 0x00001800) >> 11);
+			content["Transmit Beam Forming (TxBF) Capabilities"]["Receiver can return explicit uncompressed Beamforming Feedback Matrix"] = VALS(txbf_feedback_flags,(caps & 0x00006000) >>13);
+			content["Transmit Beam Forming (TxBF) Capabilities"]["STA can compress and use compressed Beamforming Feedback Matrix"] = VALS(txbf_feedback_flags,(caps & 0x00018000) >> 15);
+			content["Transmit Beam Forming (TxBF) Capabilities"]["Minimal grouping used for explicit feedback reports"] = VALS(txbf_min_group_flags,(caps & 0x00060000) >> 17);
+			content["Transmit Beam Forming (TxBF) Capabilities"]["Max antennae STA can support when CSI feedback required"] = VALS(txbf_antenna_flags,(caps & 0x00180000) >> 19);
+			content["Transmit Beam Forming (TxBF) Capabilities"]["Max antennae STA can support when uncompressed Beamforming feedback required"] = VALS(txbf_antenna_flags,(caps & 0x00600000) >> 21);
+			content["Transmit Beam Forming (TxBF) Capabilities"]["Max antennae STA can support when compressed Beamforming feedback required"] = VALS(txbf_antenna_flags,(caps & 0x01800000) >> 23);
+			content["Transmit Beam Forming (TxBF) Capabilities"]["Maximum number of rows of CSI explicit feedback"] = VALS(txbf_antenna_flags,(caps & 0x06000000) >> 25);
+			content["Transmit Beam Forming (TxBF) Capabilities"]["Maximum number of space time streams for which channel dimensions can be simultaneously estimated"] = VALS(txbf_chan_est_flags,(caps & 0x18000000) >> 27);
+			offset+=4;
+
+			caps = data[offset];
+			content["Antenna Selection (ASEL) Capabilities"]["Antenna Selection Capable"] = (caps & 0x00000001) >> 0;
+			content["Antenna Selection (ASEL) Capabilities"]["Antenna Selection Capable TXCSI"] = (caps & 0x00000002) >> 1;
+			content["Antenna Selection (ASEL) Capabilities"]["Antenna Indices Feedback Based Tx ASEL"] = (caps & 0x00000004) >> 2;
+			content["Antenna Selection (ASEL) Capabilities"]["Explicit CSI Feedback"] = (caps & 0x00000008) >> 3;
+			content["Antenna Selection (ASEL) Capabilities"]["Antenna Indices Feedback"] = (caps & 0x00000010) >> 4;
+			content["Antenna Selection (ASEL) Capabilities"]["Rx ASEL"] = (caps & 0x00000020) >> 5;
+			content["Antenna Selection (ASEL) Capabilities"]["Tx Sounding PPDUs"] = (caps & 0x00000040) >> 6;
 
 		}
 
