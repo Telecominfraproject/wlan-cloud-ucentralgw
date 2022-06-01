@@ -459,7 +459,7 @@ namespace OpenWifi::uCentralProtocol::Events {
 		ET_TELEMETRY
 	};
 
-	inline static EVENT_MSG EventFromString(const std::string & Method) {
+	inline EVENT_MSG EventFromString(const std::string & Method) {
 		if(strcmp(STATE,Method.c_str())==0)
 			return ET_STATE;
 		else if(strcmp(HEALTHCHECK,Method.c_str())==0)
