@@ -460,24 +460,26 @@ namespace OpenWifi::uCentralProtocol::Events {
 	};
 
 	inline static EVENT_MSG EventFromString(const std::string & Method) {
-        static std::vector<std::pair<const char *,EVENT_MSG>>   EventValues{
-                { CFGPENDING , ET_CFGPENDING },
-                { CONNECT, ET_CONNECT },
-                { CRASHLOG, ET_CRASHLOG },
-                { DEVICEUPDATE, ET_DEVICEUPDATE },
-                { HEALTHCHECK, ET_HEALTHCHECK },
-                { LOG, ET_LOG },
-                { PING, ET_PING },
-                { RECOVERY, ET_RECOVERY },
-                { STATE, ET_STATE },
-                { TELEMETRY, ET_TELEMETRY }
-        };
-
-		const auto l_method = Poco::toLower(Method);
-		for(const auto &[event_name,event_type]:EventValues) {
-			if(std::strcmp(event_name,Method.c_str())==0)
-				return event_type;
-		}
+		if(strcmp(STATE,Method.c_str())==0)
+			return ET_STATE;
+		else if(strcmp(HEALTHCHECK,Method.c_str())==0)
+			return ET_HEALTHCHECK;
+		else if(strcmp(CONNECT,Method.c_str())==0)
+			return ET_CONNECT;
+		else if(strcmp(CFGPENDING,Method.c_str())==0)
+			return ET_CFGPENDING;
+		else if(strcmp(CRASHLOG,Method.c_str())==0)
+			return ET_CRASHLOG;
+		else if(strcmp(DEVICEUPDATE,Method.c_str())==0)
+			return ET_DEVICEUPDATE;
+		else if(strcmp(LOG,Method.c_str())==0)
+			return ET_LOG;
+		else if(strcmp(PING,Method.c_str())==0)
+			return ET_PING;
+		else if(strcmp(RECOVERY,Method.c_str())==0)
+			return ET_RECOVERY;
+		else if(strcmp(TELEMETRY,Method.c_str())==0)
+			return ET_TELEMETRY;
 		return ET_UNKNOWN;
 	};
 }
