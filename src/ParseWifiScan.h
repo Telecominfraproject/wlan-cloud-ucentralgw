@@ -498,6 +498,7 @@ namespace OpenWifi {
 			result += (hex[(*b & 0xf0) >> 4]);
 			result += (hex[(*b & 0x0f)]);
 			b++;
+			size--;
 		}
 		return result;
 	}
