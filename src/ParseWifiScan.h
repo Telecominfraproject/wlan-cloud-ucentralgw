@@ -1035,7 +1035,7 @@ namespace OpenWifi {
 
 		uint offset = 0 ;
 		content["RSN Version"] = GetUInt16(&data[0],offset);
-		content["Group Cipher Suite"] = GetUInt32Big(&data[0],offset);
+		// content["Group Cipher Suite"] = GetUInt32Big(&data[0],offset);
 		auto RSNOUI = GetUInt24Big(&data[0],offset);
 		content["Group Cipher Suite OUI"] = BufferToHex(&data[offset-3],3,':');
 		if(RSNOUI==0x00000fac) {
