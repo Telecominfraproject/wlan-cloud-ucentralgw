@@ -537,6 +537,37 @@ namespace OpenWifi {
 		{0, NULL}
 	};
 
+	static const value_string ieee802111_wfa_ie_type_vals = {
+		{ 1, "WPA Information Element" },
+		{ 2, "WMM/WME" },
+		{ 4, "WPS" },
+		{ 0, NULL }
+	};
+
+	static const value_string ieee80211_wfa_ie_wpa_cipher_vals = {
+		{ 0, "NONE" },
+		{ 1, "WEP (40-bit)" },
+		{ 2, "TKIP" },
+		{ 3, "AES (OCB)" },
+		{ 4, "AES (CCM)" },
+		{ 5, "WEP (104-bit)" },
+		{ 6, "BIP" },
+		{ 7, "Group addressed traffic not allowed" },
+		{ 0, NULL }
+	};
+
+	static const value_string ieee80211_wfa_ie_wpa_keymgmt_vals = {
+		{ 0, "NONE" },
+		{ 1, "WPA" },
+		{ 2, "PSK" },
+		{ 3, "FT over IEEE 802.1X" },
+		{ 4, "FT using PSK" },
+		{ 5, "WPA (SHA256)" },
+		{ 6, "PSK (SHA256)" },
+		{ 7, "TDLS / TPK Handshake" },
+		{ 0, NULL }
+	};
+
 	const char * VALS(const value_string &vals, uint v) {
 		for(const auto &e:vals) {
 			if(e.first==v && e.second!=NULL)
@@ -1230,8 +1261,67 @@ namespace OpenWifi {
 
 	inline nlohmann::json dissect_vendor_ie_wpawme(const unsigned char *b, uint l) {
 		nlohmann::json ie;
+		uint offset=0;
 		ie["vendor"] = "Wi-Fi : WPA / WME";
-		b++;l++;
+		auto type = b[0];
+		ie["type"] = VALS(ieee802111_wfa_ie_type_vals,type);
+		offset++;
+
+		if(offset<l) {
+			switch (type) {
+			case 1: {
+				ie["WPA Version"] = GetUInt16(b, offset);
+				auto OUI = GetUInt24Big(b, offset);
+				if (OUI == OUI_WPAWME)
+					ie["Multicast Cipher Suite type"] =
+						VALS(ieee80211_wfa_ie_wpa_cipher_vals, b[offset++]);
+				else
+					ie["Multicast Cipher Suite type"] = BufferToHex(&b[offset++], 1);
+				auto ucs_count = GetUInt16(b, offset);
+				ie["Unicast Cipher Suite Count"] = ucs_count;
+				nlohmann::json list = nlohmann::json::array();
+				while (ucs_count) {
+					OUI = GetUInt24Big(b, offset);
+					nlohmann::json entry;
+					entry["Unicast Cipher Suite OUI"] = BufferToHex(&b[offset - 3], 3);
+					if (OUI == OUI_WPAWME)
+						entry["Unicast Cipher Suite type"] =
+							VALS(ieee80211_wfa_ie_wpa_cipher_vals, b[offset++]);
+					else
+						entry["Unicast Cipher Suite type"] = BufferToHex(&b[offset++], 1);
+					list.push_back(entry);
+					ucs_count--;
+				}
+				ie["Unicast Cipher Suite List"] = list;
+
+				auto akms_count = GetUInt16(b, offset);
+				ie["Auth Key Management (AKM) Suite Count"] = akms_count;
+				nlohmann::json list2 = nlohmann::json::array();
+				while (akms_count) {
+					OUI = GetUInt24Big(b, offset);
+					nlohmann::json entry;
+					entry["Auth Key Management (AKM) OUI"] = BufferToHex(&b[offset - 3], 3);
+					if (OUI == OUI_WPAWME)
+						entry["Auth Key Management (AKM) type"] =
+							VALS(ieee80211_wfa_ie_wpa_keymgmt_vals, b[offset++]);
+					else
+						entry["Auth Key Management (AKM) type"] = BufferToHex(&b[offset++], 1);
+					list2.push_back(entry);
+					akms_count--;
+				}
+				ie["Unicast Cipher Suite List"] = list2;
+			} break;
+			case 2: {
+
+			} break;
+			case 4: {
+
+			} break;
+			default:
+				break;
+			}
+		}
+
 		return ie;
 	}
 
