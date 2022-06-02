@@ -1043,7 +1043,12 @@ namespace OpenWifi {
 		} else {
 			content["Group Cipher Suite type"] = BufferToHex(&data[offset++],1);
 		}
-		content["Pairwise Cipher Suite Count"] = GetUInt16(&data[0],offset);
+		auto pcsc = GetUInt16(&data[0],offset);
+		content["Pairwise Cipher Suite Count"] = pcsc;
+
+		if(offset + pcsc*4 > data.size()) {
+			std::cout << "RSN Invalid" << std::endl;
+		}
 
 		new_ie["name"]="RSN";
 		new_ie["content"]=content;
