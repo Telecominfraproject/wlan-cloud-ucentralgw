@@ -79,6 +79,25 @@ namespace OpenWifi {
 #define OUI_3GPP2           0xCF0002    /* 3GPP2 */
 #define OUI_AVAYA_EXTREME2  0xD88466    /* Avaya Extreme Fabric */
 
+/*
+* COMPOSE_FRAME_TYPE() values for management frames.
+ */
+#define MGT_ASSOC_REQ          0x00  /* association request        */
+#define MGT_ASSOC_RESP         0x01  /* association response       */
+#define MGT_REASSOC_REQ        0x02  /* reassociation request      */
+#define MGT_REASSOC_RESP       0x03  /* reassociation response     */
+#define MGT_PROBE_REQ          0x04  /* Probe request              */
+#define MGT_PROBE_RESP         0x05  /* Probe response             */
+#define MGT_MEASUREMENT_PILOT  0x06  /* Measurement Pilot          */
+#define MGT_BEACON             0x08  /* Beacon frame               */
+#define MGT_ATIM               0x09  /* ATIM                       */
+#define MGT_DISASS             0x0A  /* Disassociation             */
+#define MGT_AUTHENTICATION     0x0B  /* Authentication             */
+#define MGT_DEAUTHENTICATION   0x0C  /* Deauthentication           */
+#define MGT_ACTION             0x0D  /* Action                     */
+#define MGT_ACTION_NO_ACK      0x0E  /* Action No Ack              */
+#define MGT_ARUBA_WLAN         0x0F  /* Aruba WLAN Specific        */
+
 	enum ieee80211_eid {
 		WLAN_EID_SSID = 0,
 		WLAN_EID_SUPP_RATES = 1,
@@ -566,6 +585,21 @@ namespace OpenWifi {
 		{ 6, "PSK (SHA256)" },
 		{ 7, "TDLS / TPK Handshake" },
 		{ 0, NULL }
+	};
+
+	static const value_string ieee802111_wfa_ie_wme_type = {
+		{ 0, "Information Element" },
+		{ 1, "Parameter Element" },
+		{ 2, "TSPEC Element" },
+		{ 0, NULL}
+	};
+
+	static const value_string ieee802111_wfa_ie_wme_qos_info_sta_max_sp_length_vals = {
+		{ 0, "WMM AP may deliver all buffered frames (MSDUs and MMPDUs)" },
+		{ 1, "WMM AP may deliver a maximum of 2 buffered frames (MSDUs and MMPDUs) per USP" },
+		{ 2, "WMM AP may deliver a maximum of 4 buffered frames (MSDUs and MMPDUs) per USP" },
+		{ 3, "WMM AP may deliver a maximum of 6 buffered frames (MSDUs and MMPDUs) per USP" },
+		{ 0, NULL}
 	};
 
 	const char * VALS(const value_string &vals, uint v) {
@@ -1258,6 +1292,46 @@ namespace OpenWifi {
 		return new_ie;
 	}
 
+	inline nlohmann::json
+	dissect_qos_info(const unsigned char *b,uint l)
+	{
+		nlohmann::json content;
+
+		if(l<1)
+			return content;
+
+		auto ftype = MGT_PROBE_REQ;
+
+		switch (ftype) {
+			case MGT_ASSOC_REQ:
+			case MGT_PROBE_REQ:
+			case MGT_REASSOC_REQ:
+			{
+				/* To AP so decode as per WMM standard Figure 7 QoS Info field when sent from WMM STA*/
+				content["WME QoS Info"]["Max SP Length"] = VALS(ieee802111_wfa_ie_wme_qos_info_sta_max_sp_length_vals,(*b & 0x60) >> 5);
+				content["WME QoS Info"]["AC_BE"] = (*b & 0x08) >> 3;
+				content["WME QoS Info"]["AC_BK"] = (*b & 0x04) >> 2;
+				content["WME QoS Info"]["AC_VI"] = (*b & 0x02) >> 1;
+				content["WME QoS Info"]["AC_VO"] = (*b & 0x01) >> 0;
+				break;
+			}
+			case MGT_BEACON:
+			case MGT_PROBE_RESP:
+			case MGT_ASSOC_RESP:
+			case MGT_REASSOC_RESP:
+			{
+				/* From AP so decode as per WMM standard Figure 6 QoS Info field when sent from WMM AP */
+				content["WME QoS Info"]["U-APSD"] = (*b & 0x80) >> 4;
+				content["WME QoS Info"]["Parameter Set Count"] = (*b & 0x0f) >> 0;
+				break;
+			}
+			default:
+				content["WME QoS Info"]["invalid"] = true;
+				break;
+		}
+		return content;
+	}
+
 	inline nlohmann::json dissect_vendor_ie_wpawme(const unsigned char *b, uint l) {
 		nlohmann::json ie;
 		uint offset=0;
@@ -1314,6 +1388,26 @@ namespace OpenWifi {
 				ie["Unicast Cipher Suite List"] = list2;
 			} break;
 			case 2: {
+				auto sub_type = b[offset++];
+				ie["WME Subtype"] = VALS(ieee802111_wfa_ie_wme_type,sub_type);
+				ie["WME Version"] = (uint) b[offset++];
+
+				switch(sub_type) {
+					case 0: {
+							ie["WME QoS Info"] = dissect_qos_info(&b[offset],l-offset);
+						}
+						break;
+					case 1: {
+
+						}
+						break;
+					case 2: {
+
+						}
+						break;
+					default:
+						break;
+				}
 
 			} break;
 			case 4: {
