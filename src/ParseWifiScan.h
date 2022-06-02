@@ -650,6 +650,19 @@ namespace OpenWifi {
 		return new_ie;
 	}
 
+	inline nlohmann::json WFS_WLAN_EID_TPC_REPORT(const std::vector<unsigned char> &data) {
+		nlohmann::json 	new_ie;
+		nlohmann::json 	content;
+		if(data.size()==2) {
+			content["Transmit Power"] = (uint) data[0];
+			content["Link Margin"] = (uint) data[1];
+		}
+		new_ie["name"]="TPC Report";
+		new_ie["content"]=content;
+		new_ie["type"]=WLAN_EID_TPC_REPORT;
+		return new_ie;
+	}
+
 	inline nlohmann::json WFS_WLAN_EID_SUPPORTED_REGULATORY_CLASSES(const std::vector<unsigned char> &data) {
 		nlohmann::json 	new_ie;
 		nlohmann::json 	content;
@@ -675,6 +688,7 @@ namespace OpenWifi {
 		content["MCS Set"]["Rx Bitmask Bits 16-23"] = bitString(data[2]);
 		content["MCS Set"]["Rx Bitmask Bits 24-31"] = bitString(data[3]);
 	}
+
 
 	inline nlohmann::json WFS_WLAN_EID_HT_CAPABILITY(const std::vector<unsigned char> &data) {
 		nlohmann::json 	new_ie;
@@ -1032,10 +1046,11 @@ namespace OpenWifi {
 										new_ies.push_back(WFS_WLAN_EID_RRM_ENABLED_CAPABILITIES(data));
 									} else if (ie_type == ieee80211_eid::WLAN_EID_EXT_CAPABILITY) {
 										new_ies.push_back(WFS_WLAN_EID_EXT_CAPABILITY(data));
+									} else if (ie_type == ieee80211_eid::WLAN_EID_TPC_REPORT) {
+										new_ies.push_back(WFS_WLAN_EID_TPC_REPORT(data));
 									} else {
 											std::cout << "Skipping IE: no parsing available: " << ie_type << std::endl;
 											new_ies.push_back(ie);
-									}
 								} else {
 									std::cout << "Skipping IE: no data and type" << std::endl;
 									new_ies.push_back(ie);
