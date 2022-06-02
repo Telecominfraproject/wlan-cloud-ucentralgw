@@ -528,7 +528,7 @@ namespace OpenWifi {
 	}
 
 	uint16_t GetUInt16(const unsigned char *d,uint & offset) {
-		uint16_t value = d[offset] + d[offset]*256;
+		uint16_t value = d[offset] + d[offset+1]*256;
 		offset +=2;
 		return value;
 	}
@@ -1032,6 +1032,8 @@ namespace OpenWifi {
 	inline nlohmann::json WFS_WLAN_EID_RSN(const std::vector<unsigned char> &data) {
 		nlohmann::json 	new_ie;
 		nlohmann::json 	content;
+
+		// 01 00 00 0f ac 04 01 00 00 0f ac 04 02 00 00 0f ac 02 00 0f ac 06 8c 00
 
 		uint offset = 0 ;
 		content["RSN Version"] = GetUInt16(&data[0],offset);
