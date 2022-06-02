@@ -1049,8 +1049,11 @@ namespace OpenWifi {
 									} else if (ie_type == ieee80211_eid::WLAN_EID_TPC_REPORT) {
 										new_ies.push_back(WFS_WLAN_EID_TPC_REPORT(data));
 									} else {
-											std::cout << "Skipping IE: no parsing available: " << ie_type << std::endl;
-											new_ies.push_back(ie);
+										std::cout
+											<< "Skipping IE: no parsing available: " << ie_type
+											<< std::endl;
+										new_ies.push_back(ie);
+									}
 								} else {
 									std::cout << "Skipping IE: no data and type" << std::endl;
 									new_ies.push_back(ie);
