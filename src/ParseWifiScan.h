@@ -1517,6 +1517,7 @@ namespace OpenWifi {
 			}
 		}
 		Result << to_string(D);
+		std::cout << "End of parsing wifi" << std::endl;
 		return false;
 	}
 
