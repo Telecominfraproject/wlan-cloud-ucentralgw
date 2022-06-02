@@ -1047,7 +1047,7 @@ namespace OpenWifi {
 		content["Pairwise Cipher Suite Count"] = pcsc;
 
 		if(offset + pcsc*4 > data.size()) {
-			std::cout << "RSN Invalid" << std::endl;
+			std::cout << "RSN Invalid: " << offset << ", " << data.size() << ", " << pcsc*4 << std::endl;
 		}
 
 		new_ie["name"]="RSN";
