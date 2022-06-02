@@ -1160,7 +1160,6 @@ namespace OpenWifi {
 
 		uint offset = 0 ;
 		content["RSN Version"] = GetUInt16(&data[0],offset);
-		content["dump"] = BufferToHex(&data[0],data.size());
 		auto RSNOUI = GetUInt24Big(&data[0],offset);
 		content["Group Cipher Suite OUI"] = BufferToHex(&data[offset-3],3,':');
 		if(RSNOUI==OUI_RSN) {
@@ -1262,6 +1261,9 @@ namespace OpenWifi {
 	inline nlohmann::json dissect_vendor_ie_wpawme(const unsigned char *b, uint l) {
 		nlohmann::json ie;
 		uint offset=0;
+
+		ie["dump"] = BufferToHex(b,l);
+
 		ie["vendor"] = "Wi-Fi : WPA / WME";
 		auto type = b[0];
 		ie["type"] = VALS(ieee802111_wfa_ie_type_vals,type);
