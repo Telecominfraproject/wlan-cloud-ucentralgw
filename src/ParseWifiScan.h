@@ -898,7 +898,7 @@ namespace OpenWifi {
 		nlohmann::json 	new_ie;
 		nlohmann::json 	content;
 
-		if(data.size()>=1 {
+		if(data.size()>=1) {
 			uint offset=0;
 			content["Extended Capabilities"]["20/40 BSS Coexistence Management Support"] = (data[offset] & 0x01) >> 0;
 			content["Extended Capabilities"]["On-demand beacon"] = (data[offset] & 0x02) >> 1;
