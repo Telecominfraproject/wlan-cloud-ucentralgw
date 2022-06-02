@@ -70,3 +70,113 @@ This is the `key` you included in your `system-messages`.
 This is the `publicEndPoint` you included in your `system-messages`.
 
 This method can _only_ be used to any another `privateEndPoint` in the system. You can use the exact same EndPoints provided in the OpenAPI files for any of the services.
+
+## OpenAPI Integration
+To appear in the UI consoles, a micro-service should ne able to handle a get to the `/api/v1/system` endpoint on its `publicEndPoint` interface.
+
+Here is a brief description of what the micro-service should answer:
+```yaml
+  /system:
+    get:
+      tags:
+        - System Commands
+      summary: Retrieve different values from the running service.
+      operationId: getSystemCommand
+      parameters:
+        - in: query
+          description: Get a value
+          name: command
+          schema:
+            type: string
+            enum:
+              - info
+          required: true
+
+      responses:
+        200:
+          description: Successful command execution
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: '#/components/schemas/SystemInfoResults'
+        403:
+          $ref: '#/components/responses/Unauthorized'
+        404:
+          $ref: '#/components/responses/NotFound'
+```
+The relevant data structures are:
+```yaml
+    SystemInfoResults:
+      type: object
+      properties:
+        version:
+          type: string
+        uptime:
+          type: integer
+          format: integer64
+        start:
+          type: integer
+          format: integer64
+        os:
+          type: string
+        processors:
+          type: integer
+        hostname:
+          type: string
+        certificates:
+          type: array
+          items:
+            type: object
+            properties:
+              filename:
+                type: string
+              expires:
+                type: integer
+                format: int64
+
+```
+and 
+```yaml
+  responses:
+    NotFound:
+      description: The specified resource was not found.
+      content:
+        application/json:
+          schema:
+            properties:
+              ErrorCode:
+                type: integer
+              ErrorDetails:
+                type: string
+              ErrorDescription:
+                type: string
+
+    Unauthorized:
+      description: The requested does not have sufficient rights to perform the operation.
+      content:
+        application/json:
+          schema:
+            properties:
+              ErrorCode:
+                type: integer
+                enum:
+                  - 0     # Success
+                  - 1     # PASSWORD_CHANGE_REQUIRED,
+                  - 2     # INVALID_CREDENTIALS,
+                  - 3     # PASSWORD_ALREADY_USED,
+                  - 4     # USERNAME_PENDING_VERIFICATION,
+                  - 5     # PASSWORD_INVALID,
+                  - 6     # INTERNAL_ERROR,
+                  - 7     # ACCESS_DENIED,
+                  - 8     # INVALID_TOKEN
+                  - 9     # EXPIRED_TOKEN
+                  - 10    # RATE_LIMIT_EXCEEDED
+                  - 11    # BAD_MFA_TRANSACTION
+                  - 12    # MFA_FAILURE
+                  - 13    # SECURITY_SERVICE_UNREACHABLE
+              ErrorDetails:
+                type: string
+              ErrorDescription:
+                type: string
+```
