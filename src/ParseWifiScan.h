@@ -258,267 +258,6 @@ namespace OpenWifi {
 		return r;
 	}
 
-	inline nlohmann::json WFS_WLAN_EID_COUNTRY(const std::vector<unsigned char> &data) {
-		nlohmann::json new_ie;
-		std::string CountryName;
-		CountryName += (char)data[0];
-		CountryName += (char)data[1];
-		nlohmann::json ie_data;
-		nlohmann::json constraints = nlohmann::json::array();
-		for (std::size_t i = 3; (i+3)<= data.size(); i += 3) {
-			nlohmann::json constraint;
-			constraint["first_channel"] = (uint64_t)data[i];
-			constraint["number_of_channel"] = (uint64_t)data[i + 1];
-			constraint["max_tx_power"] = (uint64_t)data[i + 2];
-			constraints.push_back(constraint);
-		}
-		ie_data["country"] = CountryName;
-		ie_data["constraints"] = constraints;
-		new_ie["content"] = ie_data;
-		new_ie["name"] = "country";
-		new_ie["type"] = WLAN_EID_COUNTRY;
-		return new_ie;
-	}
-
-	inline nlohmann::json WFS_WLAN_EID_SUPP_RATES(const std::vector<unsigned char> &data) {
-		nlohmann::json 	Rates;
-		nlohmann::json 	new_ie;
-		for(const auto &c:data) {
-			nlohmann::json 	Rate;
-			bool Mandatory = c & 0x01;
-			Rate["mandatory"] = Mandatory;
-			uint  BitRate = c >> 1;
-			if(BitRate==2)
-				Rate["rate"]="1 Mbps";
-			else if (BitRate==4)
-				Rate["rate"]="2 Mbps";
-			else if (BitRate==11)
-				Rate["rate"]="5.5 Mbps";
-			else if (BitRate==12)
-				Rate["rate"]= "6 Mbps";
-			else if (BitRate==18)
-				Rate["rate"] = "9 Mbps";
-			else if (BitRate==22)
-				Rate["rate"] = "11 Mbps";
-			else if (BitRate==24)
-				Rate["rate"] = "12 Mbps";
-			else if (BitRate==36)
-				Rate["rate"] = "18 Mbps";
-			else if (BitRate==44)
-				Rate["rate"] = "22 Mbps";
-			else if (BitRate==48)
-				Rate["rate"] = "24 Mbps";
-			else if (BitRate==66)
-				Rate["rate"] = "33 Mbps";
-			else if (BitRate==72)
-				Rate["rate"] = "36 Mbps";
-			else if (BitRate==96)
-				Rate["rate"] = "48 Mbps";
-			else if (BitRate==108)
-				Rate["rate"] = "54 Mbps";
-			else
-				Rate["rate"] = "> 108 Mbps";
-			Rates.push_back(Rate);
-		}
-		new_ie["name"]="supported_rates";
-		new_ie["content"]=Rates;
-		new_ie["type"]=WLAN_EID_SUPP_RATES;
-		return new_ie;
-	}
-
-	inline nlohmann::json WFS_WLAN_EID_FH_PARAMS(const std::vector<unsigned char> &data) {
-		nlohmann::json 	new_ie;
-		nlohmann::json 	content;
-		content["dwell_time"] = (uint64_t) (data[0] * 256 + data[1]);
-		content["hop_set"] = (uint)data[2];
-		content["hop_pattern"] = (uint)data[3];
-		content["hop_index"] = (uint)data[4];
-		new_ie["name"]="FH Params";
-		new_ie["content"]=content;
-		new_ie["type"]=WLAN_EID_FH_PARAMS;
-		return new_ie;
-	}
-
-	inline nlohmann::json WFS_WLAN_EID_DS_PARAMS(const std::vector<unsigned char> &data) {
-		nlohmann::json 	new_ie;
-		nlohmann::json 	content;
-		content["current_channel"] = (uint64_t) data[0];
-		new_ie["name"]="DS Params";
-		new_ie["content"]=content;
-		new_ie["type"]=WLAN_EID_DS_PARAMS;
-		return new_ie;
-	}
-
-	inline nlohmann::json WFS_WLAN_EID_TIM(const std::vector<unsigned char> &data) {
-		nlohmann::json 	new_ie;
-		nlohmann::json 	content;
-		Poco::JSON::Object ie_data;
-		content["DTIM_count"] = (uint64_t) data[0];
-		content["DTIM_period"] = (uint64_t) data[1];
-		new_ie["name"]="Traffic Indication Map";
-		new_ie["content"]=content;
-		new_ie["type"]=WLAN_EID_TIM;
-		return new_ie;
-	}
-
-	inline nlohmann::json WFS_WLAN_EID_QBSS_LOAD(const std::vector<unsigned char> &data) {
-		nlohmann::json 	new_ie;
-		nlohmann::json 	content;
-		if(data.size()==5) {
-			content["QBSS_Version"] = (uint64_t)(data[0]);
-			content["Station_Count"] = (uint)( data[2] + data[1]*256);
-			content["Channel_Utilization"] = (uint) data[3];
-			content["Available_Admission_Capabilities"] = (uint) data[4];
-		}
-		new_ie["name"]="QBSS Load";
-		new_ie["content"]=content;
-		new_ie["type"]=WLAN_EID_QBSS_LOAD;
-		return new_ie;
-	}
-
-	inline nlohmann::json WFS_WLAN_EID_PWR_CONSTRAINT(const std::vector<unsigned char> &data) {
-		nlohmann::json 	new_ie;
-		nlohmann::json 	content;
-		content["Local_Power_Constraint"] = (uint) data[0];
-		new_ie["name"]="Local Power Constraint";
-		new_ie["content"]=content;
-		new_ie["type"]=WLAN_EID_PWR_CONSTRAINT;
-		return new_ie;
-	}
-
-	bool bitSet(unsigned char c, uint bit) {
-		switch (bit) {
-		case 0: return (c & 0x01);
-		case 1: return (c & 0x02);
-		case 2: return (c & 0x04);
-		case 3: return (c & 0x08);
-		case 4: return (c & 0x10);
-		case 5: return (c & 0x20);
-		case 6: return (c & 0x40);
-		case 7: return (c & 0x90);
-		default: return false;
-		}
-	}
-
-	bool bitSet(uint16_t c, uint bit) {
-		switch (bit) {
-		case 0: return  (c & 0x0001);
-		case 1: return  (c & 0x0002);
-		case 2: return  (c & 0x0004);
-		case 3: return  (c & 0x0008);
-		case 4: return  (c & 0x0010);
-		case 5: return  (c & 0x0020);
-		case 6: return  (c & 0x0040);
-		case 7: return  (c & 0x0080);
-		case 8: return  (c & 0x0100);
-		case 9: return  (c & 0x0200);
-		case 10: return (c & 0x0400);
-		case 11: return (c & 0x0800);
-		case 12: return (c & 0x1000);
-		case 13: return (c & 0x2000);
-		case 14: return (c & 0x4000);
-		case 15: return (c & 0x8000);
-		default: return false;
-		}
-	}
-
-	const static std::vector<std::pair<uint8_t, std::string>> ieee80211_supported_rates_vals = {
-		{ 0x02, "1" },
-		{ 0x03, "1.5" },
-		{ 0x04, "2" },
-		{ 0x05, "2.5" },
-		{ 0x06, "3" },
-		{ 0x09, "4.5" },
-		{ 0x0B, "5.5" },
-		{ 0x0C, "6" },
-		{ 0x12, "9" },
-		{ 0x16, "11" },
-		{ 0x18, "12" },
-		{ 0x1B, "13.5" },
-		{ 0x24, "18" },
-		{ 0x2C, "22" },
-		{ 0x30, "24" },
-		{ 0x36, "27" },
-		{ 0x42, "33" },
-		{ 0x48, "36" },
-		{ 0x60, "48" },
-		{ 0x6C, "54" },
-		{ 0x82, "1(B)" },
-		{ 0x83, "1.5(B)" },
-		{ 0x84, "2(B)" },
-		{ 0x85, "2.5(B)" },
-		{ 0x86, "3(B)" },
-		{ 0x89, "4.5(B)" },
-		{ 0x8B, "5.5(B)" },
-		{ 0x8C, "6(B)" },
-		{ 0x92, "9(B)" },
-		{ 0x96, "11(B)" },
-		{ 0x98, "12(B)" },
-		{ 0x9B, "13.5(B)" },
-		{ 0xA4, "18(B)" },
-		{ 0xAC, "22(B)" },
-		{ 0xB0, "24(B)" },
-		{ 0xB6, "27(B)" },
-		{ 0xC2, "33(B)" },
-		{ 0xC8, "36(B)" },
-		{ 0xE0, "48(B)" },
-		{ 0xEC, "54(B)" },
-		{ 0xFF, "BSS requires support for mandatory features of HT PHY (IEEE 802.11 - Clause 20)" }
-	};
-
-	inline nlohmann::json WFS_WLAN_EID_ERP_INFO(const std::vector<unsigned char> &data) {
-		nlohmann::json 	new_ie;
-		nlohmann::json 	content;
-		content["Non_ERP_Present"] = bitSet(data[0],0);
-		content["Use_Protection"] = bitSet(data[0],1);
-		content["Barker_Preamble_Mode"] = bitSet(data[0],2);
-		new_ie["name"]="ERP Information";
-		new_ie["content"]=content;
-		new_ie["type"]=WLAN_EID_ERP_INFO;
-		return new_ie;
-	}
-
-	std::string BufferToHex(const std::vector<unsigned char> &b) {
-		static const char hex[] = "0123456789abcdef";
-		std::string result;
-		for(const auto &c:b) {
-			if(!result.empty())
-				result += ' ';
-			result += (hex[ (c & 0xf0) >> 4]);
-			result += (hex[ (c & 0x0f) ]);
-		}
-		return result;
-	}
-
-	std::string bitString(unsigned char c) {
-		std::string R;
-		for(std::size_t i=0;i<8;i++) {
-			if(c & 0x80)
-				R += '1';
-			else
-				R += '0';
-			c <<= 1;
-		}
-		return R;
-	}
-
-	inline nlohmann::json WFS_WLAN_EID_SUPPORTED_REGULATORY_CLASSES(const std::vector<unsigned char> &data) {
-		nlohmann::json 	new_ie;
-		nlohmann::json 	content;
-		content["Supported_Regulatory_Classes"] = BufferToHex(data);
-		new_ie["name"]="Supported Regulatory Classes";
-		new_ie["content"]=content;
-		new_ie["type"]=WLAN_EID_SUPPORTED_REGULATORY_CLASSES;
-		return new_ie;
-	}
-
-	inline void ParseMCSset(const unsigned char * data, nlohmann::json & content) {
-		content["MCS Set"]["Rx Bitmask Bits 0-7"] = bitString(data[0]);
-		content["MCS Set"]["Rx Bitmask Bits 8-15"] = bitString(data[1]);
-		content["MCS Set"]["Rx Bitmask Bits 16-23"] = bitString(data[2]);
-		content["MCS Set"]["Rx Bitmask Bits 24-31"] = bitString(data[3]);
-	}
-
 	using value_string = std::vector<std::pair<uint,const char *>>;
 
 	static const value_string txbf_antenna_flags = {
@@ -630,12 +369,298 @@ namespace OpenWifi {
 		{0x00, NULL}
 	};
 
+	static const value_string ieee80211_supported_rates_vals = {
+		{ 0x02, "1" },
+		{ 0x03, "1.5" },
+		{ 0x04, "2" },
+		{ 0x05, "2.5" },
+		{ 0x06, "3" },
+		{ 0x09, "4.5" },
+		{ 0x0B, "5.5" },
+		{ 0x0C, "6" },
+		{ 0x12, "9" },
+		{ 0x16, "11" },
+		{ 0x18, "12" },
+		{ 0x1B, "13.5" },
+		{ 0x24, "18" },
+		{ 0x2C, "22" },
+		{ 0x30, "24" },
+		{ 0x36, "27" },
+		{ 0x42, "33" },
+		{ 0x48, "36" },
+		{ 0x60, "48" },
+		{ 0x6C, "54" },
+		{ 0x82, "1(B)" },
+		{ 0x83, "1.5(B)" },
+		{ 0x84, "2(B)" },
+		{ 0x85, "2.5(B)" },
+		{ 0x86, "3(B)" },
+		{ 0x89, "4.5(B)" },
+		{ 0x8B, "5.5(B)" },
+		{ 0x8C, "6(B)" },
+		{ 0x92, "9(B)" },
+		{ 0x96, "11(B)" },
+		{ 0x98, "12(B)" },
+		{ 0x9B, "13.5(B)" },
+		{ 0xA4, "18(B)" },
+		{ 0xAC, "22(B)" },
+		{ 0xB0, "24(B)" },
+		{ 0xB6, "27(B)" },
+		{ 0xC2, "33(B)" },
+		{ 0xC8, "36(B)" },
+		{ 0xE0, "48(B)" },
+		{ 0xEC, "54(B)" },
+		{ 0xFF, "BSS requires support for mandatory features of HT PHY (IEEE 802.11 - Clause 20)" },
+		{ 0,    NULL}
+	};
+
+	static const value_string environment_vals = {
+		{ 0x20, "Any" },
+		{ 0x4f, "Outdoor" },
+		{ 0x49, "Indoor" },
+		{ 0,    NULL }
+	};
+
 	const char * VALS(const value_string &vals, uint v) {
 		for(const auto &e:vals) {
 			if(e.first==v && e.second!=NULL)
 				return e.second;
 		}
 		return "unknown";
+	}
+
+	bool bitSet(unsigned char c, uint bit) {
+		switch (bit) {
+		case 0: return (c & 0x01);
+		case 1: return (c & 0x02);
+		case 2: return (c & 0x04);
+		case 3: return (c & 0x08);
+		case 4: return (c & 0x10);
+		case 5: return (c & 0x20);
+		case 6: return (c & 0x40);
+		case 7: return (c & 0x90);
+		default: return false;
+		}
+	}
+
+	bool bitSet(uint16_t c, uint bit) {
+		switch (bit) {
+		case 0: return  (c & 0x0001);
+		case 1: return  (c & 0x0002);
+		case 2: return  (c & 0x0004);
+		case 3: return  (c & 0x0008);
+		case 4: return  (c & 0x0010);
+		case 5: return  (c & 0x0020);
+		case 6: return  (c & 0x0040);
+		case 7: return  (c & 0x0080);
+		case 8: return  (c & 0x0100);
+		case 9: return  (c & 0x0200);
+		case 10: return (c & 0x0400);
+		case 11: return (c & 0x0800);
+		case 12: return (c & 0x1000);
+		case 13: return (c & 0x2000);
+		case 14: return (c & 0x4000);
+		case 15: return (c & 0x8000);
+		default: return false;
+		}
+	}
+
+	std::string BufferToHex(const std::vector<unsigned char> &b) {
+		static const char hex[] = "0123456789abcdef";
+		std::string result;
+		for(const auto &c:b) {
+			if(!result.empty())
+				result += ' ';
+			result += (hex[ (c & 0xf0) >> 4]);
+			result += (hex[ (c & 0x0f) ]);
+		}
+		return result;
+	}
+
+	std::string BufferToHex(const unsigned char *b,uint size) {
+		static const char hex[] = "0123456789abcdef";
+		std::string result;
+		while(size) {
+			if (!result.empty())
+				result += ' ';
+			result += (hex[(*b & 0xf0) >> 4]);
+			result += (hex[(*b & 0x0f)]);
+			b++;
+		}
+		return result;
+	}
+
+	std::string bitString(unsigned char c) {
+		std::string R;
+		for(std::size_t i=0;i<8;i++) {
+			if(c & 0x80)
+				R += '1';
+			else
+				R += '0';
+			c <<= 1;
+		}
+		return R;
+	}
+
+	// 0x01
+	inline nlohmann::json WFS_WLAN_EID_SUPP_RATES(const std::vector<unsigned char> &data) {
+		nlohmann::json 	Rates = nlohmann::json::array();
+		nlohmann::json 	new_ie;
+		for(const auto &c:data) {
+			nlohmann::json 	Rate;
+			Rates.push_back(VALS(ieee80211_supported_rates_vals,c));
+		}
+		new_ie["name"]="Supported Rates (Mbps)";
+		new_ie["content"]=Rates;
+		new_ie["type"]=WLAN_EID_SUPP_RATES;
+		return new_ie;
+	}
+
+	// 0x02
+	inline nlohmann::json WFS_WLAN_EID_FH_PARAMS(const std::vector<unsigned char> &data) {
+		nlohmann::json 	new_ie;
+		nlohmann::json 	content;
+		content["Dwell Time"] = (uint64_t) (data[0] * 256 + data[1]);
+		content["Hop Set"] = (uint)data[2];
+		content["Hop Pattern"] = (uint)data[3];
+		content["Hop Index"] = (uint)data[4];
+		new_ie["name"]="FH Params";
+		new_ie["content"]=content;
+		new_ie["type"]=WLAN_EID_FH_PARAMS;
+		return new_ie;
+	}
+
+	// 0x03
+	inline nlohmann::json WFS_WLAN_EID_DS_PARAMS(const std::vector<unsigned char> &data) {
+		nlohmann::json 	new_ie;
+		nlohmann::json 	content;
+		content["current_channel"] = (uint64_t) data[0];
+		new_ie["name"]="DS Params";
+		new_ie["content"]=content;
+		new_ie["type"]=WLAN_EID_DS_PARAMS;
+		return new_ie;
+	}
+
+	// 0x05
+	inline nlohmann::json WFS_WLAN_EID_TIM(const std::vector<unsigned char> &data) {
+		nlohmann::json 	new_ie;
+		nlohmann::json 	content;
+		if(data.size()>=4) {
+			uint offset=0;
+			content["DTIM count"] = (uint64_t)data[offset++];
+			content["DTIM period"] = (uint64_t)data[offset++];
+			content["Bitmap control"]["Multicast"] = (uint)data[offset] & 0x01;
+			content["Bitmap control"]["Bitmap Offset"] = (uint)(data[offset] & 0xFe) >> 1;
+			offset++;
+			if(offset<data.size()) {
+				content["Bitmap control"]["Partial Virtual Bitmap"] = BufferToHex( &data[offset], data.size()-offset);
+			}
+		}
+		new_ie["name"]="Traffic Indication Map (TIM)";
+		new_ie["content"]=content;
+		new_ie["type"]=WLAN_EID_TIM;
+		return new_ie;
+	}
+
+	// 0x07
+	inline nlohmann::json WFS_WLAN_EID_COUNTRY(const std::vector<unsigned char> &data) {
+		nlohmann::json new_ie;
+		std::string CountryName;
+		CountryName += (char)data[0];
+		CountryName += (char)data[1];
+		nlohmann::json content;
+
+		content["Code"] = CountryName;
+		content["Environment"] = VALS(environment_vals,data[2]);
+		nlohmann::json ie_data;
+		nlohmann::json constraints = nlohmann::json::array();
+		for (std::size_t i = 3; (i+3)<= data.size(); i += 3) {
+			nlohmann::json constraint;
+			if(data[i]<=200) {
+				constraint["Country Info"]["First Channel Number"] = (uint64_t)data[i+0];
+				constraint["Country Info"]["Number of Channels"] = (uint64_t)data[i+1];
+				constraint["Country Info"]["Maximum Transmit Power Level (in dBm)"] = (uint64_t)data[i+2];
+			} else {
+				constraint["Country Info"]["Regulatory Extension Identifier"] = (uint64_t)data[i+0];
+				constraint["Country Info"]["Regulatory Class"] = (uint64_t)data[i+1];
+				constraint["Country Info"]["Coverage Class"] = (uint64_t)data[i+2];
+			}
+			constraints.push_back(constraint);
+		}
+		content["constraints"] = constraints;
+		new_ie["content"] = content;
+		new_ie["name"] = "country";
+		new_ie["type"] = WLAN_EID_COUNTRY;
+		return new_ie;
+	}
+
+	//	11
+	inline nlohmann::json WFS_WLAN_EID_QBSS_LOAD(const std::vector<unsigned char> &data) {
+		nlohmann::json 	new_ie;
+		nlohmann::json 	content;
+		if(data.size()==4) {
+			content["Cisco QBSS Version 1 - non CCA"]["QBSS Version"] = 1;
+			content["Cisco QBSS Version 1 - non CCA"]["Station Count"] = (uint)( data[2] + data[1]*256);
+			content["Cisco QBSS Version 1 - non CCA"]["Channel Utilization"] = (uint) data[3];
+			content["Cisco QBSS Version 1 - non CCA"]["Available Admission Capabilities"] = (uint) data[4];
+		} else if(data.size()==5) {
+			content["802.11e CCA Version"]["QBSS Version"] = 2;
+			content["802.11e CCA Version"]["Station Count"] = (uint)( data[2] + data[1]*256);
+			content["802.11e CCA Version"]["Channel Utilization"] = (uint) data[3];
+			content["802.11e CCA Version"]["Available Admission Capabilities"] = (uint) data[4] + data[5]*256;
+		}
+		new_ie["name"]="QBSS Load";
+		new_ie["content"]=content;
+		new_ie["type"]=WLAN_EID_QBSS_LOAD;
+		return new_ie;
+	}
+
+	inline nlohmann::json WFS_WLAN_EID_PWR_CONSTRAINT(const std::vector<unsigned char> &data) {
+		nlohmann::json 	new_ie;
+		nlohmann::json 	content;
+		content["Local Power Constraint"] = (uint) data[0];
+		new_ie["name"]="Local Power Constraint";
+		new_ie["content"]=content;
+		new_ie["type"]=WLAN_EID_PWR_CONSTRAINT;
+		return new_ie;
+	}
+
+	inline nlohmann::json WFS_WLAN_EID_ERP_INFO(const std::vector<unsigned char> &data) {
+		nlohmann::json 	new_ie;
+		nlohmann::json 	content;
+		content["Non ERP Present"] = bitSet(data[0],0);
+		content["Use Protection"] = bitSet(data[0],1);
+		content["Barker Preamble Mode"] = bitSet(data[0],2);
+		new_ie["name"]="ERP Information";
+		new_ie["content"]=content;
+		new_ie["type"]=WLAN_EID_ERP_INFO;
+		return new_ie;
+	}
+
+	inline nlohmann::json WFS_WLAN_EID_SUPPORTED_REGULATORY_CLASSES(const std::vector<unsigned char> &data) {
+		nlohmann::json 	new_ie;
+		nlohmann::json 	content;
+		if(data.size()>=2) {
+			content["Current Regulatory Class"]= (uint) data[0];
+			std::string alternates;
+			for(uint i=1;i<data.size();++i) {
+				if(!alternates.empty())
+					alternates += ", ";
+				alternates += std::to_string((uint)data[i]);
+			}
+			content["Alternate Regulatory Classes"] = alternates;
+		}
+		new_ie["name"]="Supported Regulatory Classes";
+		new_ie["content"]=content;
+		new_ie["type"]=WLAN_EID_SUPPORTED_REGULATORY_CLASSES;
+		return new_ie;
+	}
+
+	inline void ParseMCSset(const unsigned char * data, nlohmann::json & content) {
+		content["MCS Set"]["Rx Bitmask Bits 0-7"] = bitString(data[0]);
+		content["MCS Set"]["Rx Bitmask Bits 8-15"] = bitString(data[1]);
+		content["MCS Set"]["Rx Bitmask Bits 16-23"] = bitString(data[2]);
+		content["MCS Set"]["Rx Bitmask Bits 24-31"] = bitString(data[3]);
 	}
 
 	inline nlohmann::json WFS_WLAN_EID_HT_CAPABILITY(const std::vector<unsigned char> &data) {
@@ -715,14 +740,6 @@ namespace OpenWifi {
 		return new_ie;
 	}
 
-	std::string GetRate(unsigned char R) {
-		for(const auto &[rate,rate_name]:ieee80211_supported_rates_vals) {
-			if(rate==R)
-				return rate_name;
-		}
-		return "unknown";
-	}
-
 	inline nlohmann::json WFS_WLAN_EID_EXT_SUPP_RATES(const std::vector<unsigned char> &data) {
 		nlohmann::json 	new_ie;
 		nlohmann::json 	content;
@@ -731,7 +748,7 @@ namespace OpenWifi {
 		for(const auto &rate:data) {
 			if(!Rates.empty())
 				Rates += ", ";
-			Rates += GetRate(rate);
+			Rates += VALS(ieee80211_supported_rates_vals,rate);
 		}
 		Rates +=  " [Mbit/sec]";
 		content["Supported Rates"] = Rates;
