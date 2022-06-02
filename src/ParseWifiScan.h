@@ -1035,7 +1035,7 @@ namespace OpenWifi {
 
 		uint offset = 0 ;
 		content["RSN Version"] = GetUInt16(&data[0],offset);
-		// content["Group Cipher Suite"] = GetUInt32Big(&data[0],offset);
+		content["dump"] = BufferToHex(&data[0],data.size());
 		auto RSNOUI = GetUInt24Big(&data[0],offset);
 		content["Group Cipher Suite OUI"] = BufferToHex(&data[offset-3],3,':');
 		if(RSNOUI==0x00000fac) {
@@ -1065,6 +1065,7 @@ namespace OpenWifi {
 		std::cout << "Start of parsing wifi" << std::endl;
 		if (D.contains("status")) {
 			auto Status = D["status"];
+
 			if (Status.contains("scan") && Status["scan"].is_array()) {
 				nlohmann::json ScanArray = Status["scan"];
 				nlohmann::json ParsedScan = nlohmann::json::array();
