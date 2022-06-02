@@ -1125,7 +1125,7 @@ namespace OpenWifi {
 			content["RSN Capabilities"]["PeerKey Enabled"] = (rsn_cap & 0x0200) >> 9;
 		}
 
-		if(offset+2<data.size()) {
+		if(offset+2<=data.size()) {
 			auto pmkid_count = GetUInt16(&data[0],offset);
 			content["PMKID Count"] = pmkid_count;
 			if(offset+pmkid_count*16<=data.size()) {
