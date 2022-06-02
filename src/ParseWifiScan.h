@@ -433,6 +433,18 @@ namespace OpenWifi {
 		{ 0x00, NULL }
 	};
 
+	static const value_string ieee80211_rsn_cipher_vals = {
+		{0, "NONE"},
+		{1, "WEP (40-bit)"},
+		{2, "TKIP"},
+		{3, "AES (OCB)"},
+		{4, "AES (CCM)"},
+		{5, "WEP (104-bit)"},
+		{6, "BIP"},
+		{7, "Group addressed traffic not allowed"},
+		{0, NULL}
+	};
+
 	const char * VALS(const value_string &vals, uint v) {
 		for(const auto &e:vals) {
 			if(e.first==v && e.second!=NULL)
@@ -489,12 +501,12 @@ namespace OpenWifi {
 		return result;
 	}
 
-	std::string BufferToHex(const unsigned char *b,uint size) {
+	std::string BufferToHex(const unsigned char *b,uint size, char separator=' ') {
 		static const char hex[] = "0123456789abcdef";
 		std::string result;
 		while(size) {
 			if (!result.empty())
-				result += ' ';
+				result += separator;
 			result += (hex[(*b & 0xf0) >> 4]);
 			result += (hex[(*b & 0x0f)]);
 			b++;
@@ -513,6 +525,30 @@ namespace OpenWifi {
 			c <<= 1;
 		}
 		return R;
+	}
+
+	uint16_t GetUInt16(const unsigned char *d,uint & offset) {
+		uint16_t value = d[offset] + d[offset]*256;
+		offset +=2;
+		return value;
+	}
+
+	uint32_t GetUInt32(const unsigned char *d,uint & offset) {
+		uint32_t value = d[offset+0]+d[offset+1]*256 + d[offset+2]*256*256 + d[offset+3]*256*256*256;
+		offset +=4;
+		return value;
+	}
+
+	uint32_t GetUInt32Big(const unsigned char *d,uint & offset) {
+		uint32_t value = d[offset+3]+d[offset+2]*256 + d[offset+1]*256*256 + d[offset+0]*256*256*256;
+		offset +=4;
+		return value;
+	}
+
+	uint32_t GetUInt24Big(const unsigned char *d,uint & offset) {
+		uint32_t value = d[offset+2] + d[offset+1]*256 + d[offset+0]*256*256;
+		offset +=3;
+		return value;
 	}
 
 	// 0x01
@@ -993,6 +1029,28 @@ namespace OpenWifi {
 		return new_ie;
 	}
 
+	inline nlohmann::json WFS_WLAN_EID_RSN(const std::vector<unsigned char> &data) {
+		nlohmann::json 	new_ie;
+		nlohmann::json 	content;
+
+		uint offset = 0 ;
+		content["RSN Version"] = GetUInt16(&data[0],offset);
+		content["Group Cipher Suite"] = GetUInt32Big(&data[0],offset);
+		auto RSNOUI = GetUInt24Big(&data[0],offset);
+		content["Group Cipher Suite OUI"] = BufferToHex(&data[offset-3],3,':');
+		if(RSNOUI==0x00000fac) {
+			content["Group Cipher Suite type"] = VALS(ieee80211_rsn_cipher_vals,data[offset++]);
+		} else {
+			content["Group Cipher Suite type"] = BufferToHex(&data[offset++],1);
+		}
+		content["Pairwise Cipher Suite Count"] = GetUInt16(&data[0],offset);
+
+		new_ie["name"]="RSN";
+		new_ie["content"]=content;
+		new_ie["type"]=WLAN_EID_RSN;
+		return new_ie;
+	}
+
 
 	inline bool ParseWifiScan(Poco::JSON::Object::Ptr &Obj, std::stringstream &Result, Poco::Logger &Logger) {
 		std::ostringstream	ofs;
@@ -1048,6 +1106,8 @@ namespace OpenWifi {
 										new_ies.push_back(WFS_WLAN_EID_EXT_CAPABILITY(data));
 									} else if (ie_type == ieee80211_eid::WLAN_EID_TPC_REPORT) {
 										new_ies.push_back(WFS_WLAN_EID_TPC_REPORT(data));
+									} else if (ie_type == ieee80211_eid::WLAN_EID_RSN) {
+										new_ies.push_back(WFS_WLAN_EID_RSN(data));
 									} else {
 										std::cout
 											<< "Skipping IE: no parsing available: " << ie_type
