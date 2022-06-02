@@ -421,6 +421,18 @@ namespace OpenWifi {
 		{ 0,    NULL }
 	};
 
+	static const value_string service_interval_granularity_vals = {
+		{ 0, "5 ms" },
+		{ 1, "10 ms" },
+		{ 2, "15 ms" },
+		{ 3, "20 ms" },
+		{ 4, "25 ms" },
+		{ 5, "30 ms" },
+		{ 6, "35 ms" },
+		{ 7, "40 ms" },
+		{ 0x00, NULL }
+	};
+
 	const char * VALS(const value_string &vals, uint v) {
 		for(const auto &e:vals) {
 			if(e.first==v && e.second!=NULL)
@@ -881,6 +893,90 @@ namespace OpenWifi {
 		return new_ie;
 	}
 
+	inline nlohmann::json WFS_WLAN_EID_EXT_CAPABILITY(const std::vector<unsigned char> &data) {
+		nlohmann::json 	new_ie;
+		nlohmann::json 	content;
+
+		if(data.size()==12) {
+			uint offset=0;
+			content["Extended Capabilities"]["20/40 BSS Coexistence Management Support"] = (data[offset] & 0x01) >> 0;
+			content["Extended Capabilities"]["On-demand beacon"] = (data[offset] & 0x02) >> 1;
+			content["Extended Capabilities"]["Extended Channel Switching"] = (data[offset] & 0x04) >> 2;
+			content["Extended Capabilities"]["WAVE indication"] = (data[offset] & 0x08) >> 3;
+			content["Extended Capabilities"]["PSMP Capability"] = (data[offset] & 0x10) >> 4;
+			content["Extended Capabilities"]["Reserved"] = (data[offset] & 0x20) >> 5;
+			content["Extended Capabilities"]["S-PSMP Support"] = (data[offset] & 0x40) >> 6;
+			content["Extended Capabilities"]["Event"] = (data[offset] & 0x80) >> 7;
+
+			offset++;
+			if(offset<data.size()) {
+				content["Extended Capabilities"]["Diagnostics"] = (data[offset] & 0x01) >> 0;
+				content["Extended Capabilities"]["Multicast Diagnostics"] = (data[offset] & 0x02) >> 1;
+				content["Extended Capabilities"]["Location Tracking"] = (data[offset] & 0x04) >> 2;
+				content["Extended Capabilities"]["FMS"] = (data[offset] & 0x08) >> 3;
+				content["Extended Capabilities"]["Proxy ARP Service"] = (data[offset] & 0x10) >> 4;
+				content["Extended Capabilities"]["Collocated Interference Reporting"] = (data[offset] & 0x20) >> 5;
+				content["Extended Capabilities"]["Civic Location"] = (data[offset] & 0x40) >> 6;
+				content["Extended Capabilities"]["Geospatial Location"] = (data[offset] & 0x80) >> 7;
+			}
+
+			offset++;
+			if(offset<data.size()) {
+				content["Extended Capabilities"]["TFS"] = (data[offset] & 0x01) >> 0;
+				content["Extended Capabilities"]["WNM-Sleep Mode"] = (data[offset] & 0x02) >> 1;
+				content["Extended Capabilities"]["TIM Broadcast"] = (data[offset] & 0x04) >> 2;
+				content["Extended Capabilities"]["BSS Transition"] = (data[offset] & 0x08) >> 3;
+				content["Extended Capabilities"]["QoS Traffic Capability"] = (data[offset] & 0x10) >> 4;
+				content["Extended Capabilities"]["AC Station Count"] = (data[offset] & 0x20) >> 5;
+				content["Extended Capabilities"]["Multiple BSSID"] = (data[offset] & 0x40) >> 6;
+				content["Extended Capabilities"]["Timing Measurement"] = (data[offset] & 0x80) >> 7;
+			}
+
+			offset++;
+			if(offset<data.size()) {
+				content["Extended Capabilities"]["Channel Usage"] = (data[offset] & 0x01) >> 0;
+				content["Extended Capabilities"]["SSID List"] = (data[offset] & 0x02) >> 1;
+				content["Extended Capabilities"]["DMS"] = (data[offset] & 0x04) >> 2;
+				content["Extended Capabilities"]["UTC TSF Offset"] = (data[offset] & 0x08) >> 3;
+				content["Extended Capabilities"]["Peer U-APSD Buffer STA Support"] = (data[offset] & 0x10) >> 4;
+				content["Extended Capabilities"]["TDLS Peer PSM Support"] = (data[offset] & 0x20) >> 5;
+				content["Extended Capabilities"]["TDLS channel switching"] = (data[offset] & 0x40) >> 6;
+				content["Extended Capabilities"]["Interworking"] = (data[offset] & 0x80) >> 7;
+			}
+
+			offset++;
+			if(offset<data.size()) {
+				content["Extended Capabilities"]["QoS Map"] = (data[offset] & 0x01) >> 0;
+				content["Extended Capabilities"]["EBR"] = (data[offset] & 0x02) >> 1;
+				content["Extended Capabilities"]["SSPN Interface"] = (data[offset] & 0x04) >> 2;
+				content["Extended Capabilities"]["Reserved"] = (data[offset] & 0x08) >> 3;
+				content["Extended Capabilities"]["MSGCF Capability"] = (data[offset] & 0x10) >> 4;
+				content["Extended Capabilities"]["TDLS support"] = (data[offset] & 0x20) >> 5;
+				content["Extended Capabilities"]["TDLS Prohibited"] = (data[offset] & 0x40) >> 6;
+				content["Extended Capabilities"]["TDLS Channel Switching Prohibited"] = (data[offset] & 0x80) >> 7;
+			}
+
+			offset++;
+			if(offset<data.size()) {
+				content["Extended Capabilities"]["Reject Unadmitted Frame"] = (data[offset] & 0x01) >> 0;
+				content["Extended Capabilities"]["Service Interval Granularity"] = VALS(service_interval_granularity_vals,(data[offset] & 0x0e) >> 1);
+				content["Extended Capabilities"]["Identifier Location"] = (data[offset] & 0x10) >> 4;
+				content["Extended Capabilities"]["U-APSD Coexistence"] = (data[offset] & 0x20) >> 5;
+				content["Extended Capabilities"]["WNM-Notification"] = (data[offset] & 0x40) >> 6;
+				content["Extended Capabilities"]["Reserved"] = (data[offset] & 0x80) >> 7;
+			}
+
+			offset++;
+			if(offset<data.size()) {
+				content["Extended Capabilities"]["UTF-8 SSID"] = (data[offset] & 0x01) >> 0;
+			}
+		}
+
+		new_ie["name"]="Extended Capabilities";
+		new_ie["content"]=content;
+		new_ie["type"]=WLAN_EID_EXT_CAPABILITY;
+		return new_ie;
+	}
 
 
 	inline bool ParseWifiScan(Poco::JSON::Object::Ptr &Obj, std::stringstream &Result, Poco::Logger &Logger) {
@@ -933,6 +1029,8 @@ namespace OpenWifi {
 										new_ies.push_back(WFS_WLAN_EID_VHT_CAPABILITY(data));
 									} else if (ie_type == ieee80211_eid::WLAN_EID_RRM_ENABLED_CAPABILITIES) {
 										new_ies.push_back(WFS_WLAN_EID_RRM_ENABLED_CAPABILITIES(data));
+									} else if (ie_type == ieee80211_eid::WLAN_EID_EXT_CAPABILITY) {
+										new_ies.push_back(WFS_WLAN_EID_EXT_CAPABILITY(data));
 									} else {
 											std::cout << "Skipping IE: no parsing available: " << ie_type << std::endl;
 											new_ies.push_back(ie);
