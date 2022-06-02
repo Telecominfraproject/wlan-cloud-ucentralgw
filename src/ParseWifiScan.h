@@ -445,6 +445,27 @@ namespace OpenWifi {
 		{0, NULL}
 	};
 
+	static const value_string ieee80211_rsn_keymgmt_vals = {
+		{0, "NONE"},
+		{1, "WPA"},
+		{2, "PSK"},
+		{3, "FT over IEEE 802.1X"},
+
+		{4, "FT using PSK"},
+		{5, "WPA (SHA256)"},
+		{6, "PSK (SHA256)"},
+		{7, "TDLS / TPK Handshake"},
+		{0, NULL}
+	};
+
+	static const value_string rsn_cap_replay_counter = {
+		{0x00, "1 replay counter per PTKSA/GTKSA/STAKeySA"},
+		{0x01, "2 replay counters per PTKSA/GTKSA/STAKeySA"},
+		{0x02, "4 replay counters per PTKSA/GTKSA/STAKeySA"},
+		{0x03, "16 replay counters per PTKSA/GTKSA/STAKeySA"},
+		{0, NULL}
+	};
+
 	const char * VALS(const value_string &vals, uint v) {
 		for(const auto &e:vals) {
 			if(e.first==v && e.second!=NULL)
@@ -1045,11 +1066,89 @@ namespace OpenWifi {
 		} else {
 			content["Group Cipher Suite type"] = BufferToHex(&data[offset++],1);
 		}
-		auto pcsc = GetUInt16(&data[0],offset);
-		content["Pairwise Cipher Suite Count"] = pcsc;
+		if(offset<data.size()) {
+			auto pcsc = GetUInt16(&data[0], offset);
+			content["Pairwise Cipher Suite Count"] = pcsc;
+			if (offset + pcsc * 4 <= data.size()) {
+				nlohmann::json suites = nlohmann::json::array();
+				while (pcsc) {
+					nlohmann::json entry;
+					RSNOUI = GetUInt24Big(&data[0], offset);
+					entry["Group Cipher Suite OUI"] = BufferToHex(&data[offset - 3], 3, ':');
+					if (RSNOUI == 0x00000fac) {
+						entry["Group Cipher Suite type"] =
+							VALS(ieee80211_rsn_cipher_vals, data[offset++]);
+					} else {
+						entry["Group Cipher Suite type"] = BufferToHex(&data[offset++], 1);
+					}
+					suites.push_back(entry);
+					pcsc--;
+				}
+				content["Pairwise Cipher Suite List"] = suites;
+			}
+		}
 
-		if(offset + pcsc*4 > data.size()) {
-			std::cout << "RSN Invalid: " << offset << ", " << data.size() << ", " << pcsc*4 << std::endl;
+		if(offset<data.size()) {
+			auto akms_count = GetUInt16(&data[0],offset);
+			content["Auth Key Management (AKM) Suite Count"] = akms_count;
+			if(offset+akms_count*4<=data.size()) {
+				nlohmann::json suites=nlohmann::json::array();
+				while(akms_count) {
+					nlohmann::json entry;
+					RSNOUI = GetUInt24Big(&data[0],offset);
+					entry["Auth Key Management (AKM) OUI"] = BufferToHex(&data[offset-3],3,':');
+					if(RSNOUI==0x00000fac) {
+						entry["Auth Key Management (AKM) type"] = VALS(ieee80211_rsn_keymgmt_vals,data[offset++]);
+					} else {
+						entry["Auth Key Management (AKM) type"] = BufferToHex(&data[offset++],1);
+					}
+					suites.push_back(entry);
+					akms_count--;
+				}
+				content["Auth Key Management (AKM) List"]=suites;
+			}
+		}
+
+		if(offset+2<=data.size()) {
+			auto rsn_cap = GetUInt16(&data[0], offset);
+			content["RSN Capabilities"]["RSN Pre-Auth capabilities"] = (rsn_cap & 0x0001) >> 0;
+			content["RSN Capabilities"]["RSN No Pairwise capabilities"] = (rsn_cap & 0x0002) >> 1;
+
+			content["RSN Capabilities"]["RSN PTKSA Replay Counter capabilities"] =
+				VALS(rsn_cap_replay_counter, (rsn_cap & 0x000c) >> 2);
+			content["RSN Capabilities"]["RSN GTKSA Replay Counter capabilities"] =
+				VALS(rsn_cap_replay_counter, (rsn_cap & 0x0030) >> 4);
+			content["RSN Capabilities"]["Management Frame Protection Required"] =
+				(rsn_cap & 0x0040) >> 6;
+			content["RSN Capabilities"]["Management Frame Protection Capable"] =
+				(rsn_cap & 0x0080) >> 7;
+			content["RSN Capabilities"]["PeerKey Enabled"] = (rsn_cap & 0x0200) >> 9;
+		}
+
+		if(offset+2<data.size()) {
+			auto pmkid_count = GetUInt16(&data[0],offset);
+			content["PMKID Count"] = pmkid_count;
+			if(offset+pmkid_count*16<=data.size()) {
+				nlohmann::json list=nlohmann::json::array();
+				while(pmkid_count) {
+					nlohmann::json entry;
+					entry["PMKID"] = BufferToHex(&data[offset],16);
+					list.push_back(entry);
+					pmkid_count--;
+					offset+=16;
+				}
+				content["PMKID List"]=list;
+			}
+		}
+
+		if(offset+4<=data.size()) {
+			RSNOUI = GetUInt24Big(&data[0],offset);
+			content["Group Management Cipher Suite"]["Group Management Cipher Suite OUI"] = BufferToHex(&data[offset-3],3,':');
+			if(RSNOUI==0x00000fac) {
+				content["Group Management Cipher Suite"]["Group Management Cipher Suite type"] = VALS(ieee80211_rsn_cipher_vals,data[offset++]);
+			} else {
+				content["Group Management Cipher Suite"]["Group Management Cipher Suite type"] = BufferToHex(&data[offset++],1);
+			}
 		}
 
 		new_ie["name"]="RSN";
