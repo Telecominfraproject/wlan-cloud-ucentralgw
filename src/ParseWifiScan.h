@@ -1376,7 +1376,7 @@ namespace OpenWifi {
 		nlohmann::json ie;
 		uint offset=0;
 
-		ie["dump"] = BufferToHex(b,l);
+		// ie["dump"] = BufferToHex(b,l);
 
 		ie["vendor"] = "Wi-Fi : WPA / WME";
 		auto type = b[0];
@@ -1602,6 +1602,18 @@ namespace OpenWifi {
 		return new_ie;
 	}
 
+	inline nlohmann::json WFS_WLAN_EID_EXTENSION(const std::vector<unsigned char> &data) {
+		nlohmann::json 	new_ie;
+		nlohmann::json 	content;
+
+		std::cout << BufferToHex(&data[0],data.size()) << std::endl;
+
+		new_ie["name"]="EI Extensions";
+		new_ie["content"]=content;
+		new_ie["type"]=WLAN_EID_EXTENSION;
+		return new_ie;
+	}
+
 	inline bool ParseWifiScan(Poco::JSON::Object::Ptr &Obj, std::stringstream &Result, Poco::Logger &Logger) {
 		std::ostringstream	ofs;
 		Obj->stringify(ofs);
@@ -1661,6 +1673,8 @@ namespace OpenWifi {
 										new_ies.push_back(WFS_WLAN_EID_RSN(data));
 									} else if (ie_type == ieee80211_eid::WLAN_EID_VENDOR_SPECIFIC) {
 										new_ies.push_back(WFS_WLAN_EID_VENDOR_SPECIFIC(data));
+									} else if (ie_type == ieee80211_eid::WLAN_EID_EXTENSION) {
+										new_ies.push_back(WFS_WLAN_EID_EXTENSION(data));
 									} else {
 										std::cout
 											<< "Skipping IE: no parsing available: " << ie_type
