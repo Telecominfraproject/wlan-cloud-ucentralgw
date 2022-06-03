@@ -1,12 +1,12 @@
 dependencies:
 - name: postgresql
-  repository: https://charts.bitnami.com/bitnami
+  repository: https://tip.jfrog.io/artifactory/tip-wlan-cloud-ucentral-helm/
   version: 10.9.2
 - name: mysql
-  repository: https://charts.bitnami.com/bitnami
+  repository: https://tip.jfrog.io/artifactory/tip-wlan-cloud-ucentral-helm/
   version: 8.8.3
 - name: mariadb
-  repository: https://charts.bitnami.com/bitnami
+  repository: https://tip.jfrog.io/artifactory/tip-wlan-cloud-ucentral-helm/
   version: 9.4.2
-digest: sha256:1fdae7cbea906e41dccd8618ff9e2c68d0c684724ae27c79a12bb6089968df5c
-generated: "2021-08-17T12:18:40.341427893+03:00"
+digest: sha256:e9df5a5d8a0a193bfda33ea06060203aace01f0f7df9eda662a84185322c7ab5
+generated: "2022-06-03T15:38:31.063022252+03:00"
