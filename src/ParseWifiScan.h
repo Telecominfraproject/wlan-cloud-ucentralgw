@@ -610,6 +610,32 @@ namespace OpenWifi {
 		{ 0, NULL }
 	};
 
+	static const value_string ieee80211_wfa_ie_wme_tspec_tsinfo_direction_vals = {
+		{ 0, "Uplink" },
+		{ 1, "Downlink" },
+		{ 2, "Direct link" },
+		{ 3, "Bidirectional link" },
+		{ 0, NULL }
+	};
+
+	static const value_string ieee80211_wfa_ie_wme_tspec_tsinfo_psb_vals = {
+		{ 0, "Legacy" },
+		{ 1, "U-APSD" },
+		{ 0, NULL }
+	};
+
+	static const value_string ieee80211_wfa_ie_wme_tspec_tsinfo_up_vals = {
+		{ 0, "Best Effort" },
+		{ 1, "Background" },
+		{ 2, "Spare" },
+		{ 3, "Excellent Effort" },
+		{ 4, "Controlled Load" },
+		{ 5, "Video" },
+		{ 6, "Voice" },
+		{ 7, "Network Control" },
+		{ 0, NULL }
+	};
+
 	const char * VALS(const value_string &vals, uint v) {
 		for(const auto &e:vals) {
 			if(e.first==v && e.second!=NULL)
@@ -712,6 +738,12 @@ namespace OpenWifi {
 
 	uint32_t GetUInt24Big(const unsigned char *d,uint & offset) {
 		uint32_t value = d[offset+2] + d[offset+1]*256 + d[offset+0]*256*256;
+		offset +=3;
+		return value;
+	}
+
+	uint32_t GetUInt24(const unsigned char *d,uint & offset) {
+		uint32_t value = d[offset+0] + d[offset+1]*256 + d[offset+2]*256*256;
 		offset +=3;
 		return value;
 	}
@@ -1427,7 +1459,26 @@ namespace OpenWifi {
 						}
 						break;
 					case 2: {
-
+						auto tid = GetUInt24(b,offset);
+							ie["TS Info"]["TID"] =  (tid & 0x00001E) >> 1;
+							ie["TS Info"]["Direction"] = VALS(ieee80211_wfa_ie_wme_tspec_tsinfo_direction_vals,(tid & 0x000060) >> 5);
+							ie["TS Info"]["PSB"] =  VALS(ieee80211_wfa_ie_wme_tspec_tsinfo_psb_vals, (tid & 0x000400) >> 10);
+							ie["TS Info"]["UP"] =  VALS(ieee80211_wfa_ie_wme_tspec_tsinfo_up_vals,(tid & 0x003800) >> 11);
+							ie["TS Info"]["Normal MSDU Size"] = GetUInt16(b,offset);
+							ie["TS Info"]["Maximum MSDU Size"] = GetUInt16(b,offset);
+							ie["TS Info"]["Minimum Service Interval"] = GetUInt32(b,offset);
+							ie["TS Info"]["Maximum Service Interval"] = GetUInt32(b,offset);
+							ie["TS Info"]["Inactivity Interval"] = GetUInt32(b,offset);
+							ie["TS Info"]["Suspension Interval"] = GetUInt32(b,offset);
+							ie["TS Info"]["Service Start Time"] = GetUInt32(b,offset);
+							ie["TS Info"]["Minimum Data Rate"] = GetUInt32(b,offset);
+							ie["TS Info"]["Mean Data Rate"] = GetUInt32(b,offset);
+							ie["TS Info"]["Peak Data Rate"] = GetUInt32(b,offset);
+							ie["TS Info"]["Burst Size"] = GetUInt32(b,offset);
+							ie["TS Info"]["Delay Bound"] = GetUInt32(b,offset);
+							ie["TS Info"]["Minimum PHY Rate"] = GetUInt32(b,offset);
+							ie["TS Info"]["Surplus Bandwidth Allowance"] = GetUInt16(b,offset);
+							ie["TS Info"]["Medium Time"] = GetUInt16(b,offset);
 						}
 						break;
 					default:
@@ -1436,7 +1487,7 @@ namespace OpenWifi {
 
 			} break;
 			case 4: {
-
+				ie["TLV Block"] = BufferToHex(&b[offset],l-offset);
 			} break;
 			default:
 				break;
