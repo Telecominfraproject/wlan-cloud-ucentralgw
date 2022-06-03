@@ -602,6 +602,14 @@ namespace OpenWifi {
 		{ 0, NULL}
 	};
 
+	static const value_string ieee80211_wfa_ie_wme_acs_vals = {
+		{ 0, "Best Effort" },
+		{ 1, "Background" },
+		{ 2, "Video" },
+		{ 3, "Voice" },
+		{ 0, NULL }
+	};
+
 	const char * VALS(const value_string &vals, uint v) {
 		for(const auto &e:vals) {
 			if(e.first==v && e.second!=NULL)
@@ -1398,7 +1406,24 @@ namespace OpenWifi {
 						}
 						break;
 					case 1: {
-
+						ie["WME QoS Info"] = dissect_qos_info(&b[offset],l-offset);
+						offset++;
+						offset++;		// skip reserved...
+						nlohmann::json list=nlohmann::json::array();
+						for(uint i=0;i<4;i++) {
+							nlohmann::json entry;
+							entry["ACI"] = VALS(ieee80211_wfa_ie_wme_acs_vals, (b[offset] & 0x60)>>5);
+							entry["Admission Control Mandatory"] = (b[offset] & 0x10) >> 4;
+							entry["AIFSN"] = (b[offset] & 0x0f)>>5;
+							offset++;
+							entry["ECW Max"] = (b[offset] & 0xf0)>>4;
+							entry["ECW Min"] = (b[offset] & 0x0f)>>0;
+							offset++;
+							entry["TXOP Limit"] = b[offset] + b[offset+1]*256;
+							offset+=2;
+							list.push_back(entry);
+						}
+						ie["Ac Parameters"]["ACI / AIFSN Field"] = list;
 						}
 						break;
 					case 2: {

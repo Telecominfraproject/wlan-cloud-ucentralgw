@@ -1167,6 +1167,7 @@ namespace OpenWifi {
     static const std::string uSERVICE_SUBCRIBER{ "owsub"};
     static const std::string uSERVICE_INSTALLER{ "owinst"};
     static const std::string uSERVICE_ANALYTICS{ "owanalytics"};
+	static const std::string uSERVICE_OWRRM{ "owrrm"};
 
 	class ConfigurationEntry {
 	  public:
