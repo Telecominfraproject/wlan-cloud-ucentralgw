@@ -636,6 +636,34 @@ namespace OpenWifi {
 		{ 0, NULL }
 	};
 
+	static const value_string hta_ext_chan_offset_flag = {
+		{0x00, "No Extension Channel"},
+		{0x01, "Extension Channel above control channel"},
+		{0x02, "Undefined"},
+		{0x03, "Extension Channel below control channel"},
+		{0x00, NULL}
+	};
+
+	static const value_string hta_service_interval_flag = {
+		{0x00, "5ms"},
+		{0x01, "10ms"},
+		{0x02, "15ms"},
+		{0x03, "20ms"},
+		{0x04, "25ms"},
+		{0x05, "30ms"},
+		{0x06, "35ms"},
+		{0x07, "40ms"},
+		{0x00, NULL}
+	};
+
+	static const value_string hta_operating_mode_flag = {
+		{0x00, "Pure HT, no protection"},
+		{0x01, "There may be non-HT devices (control & ext channel)"},
+		{0x02, "No non-HT is associated, but at least 1 20MHz is. protect on"},
+		{0x03, "Mixed: no non-HT is associated, protect on"},
+		{0x00, NULL}
+	};
+
 	const char * VALS(const value_string &vals, uint v) {
 		for(const auto &e:vals) {
 			if(e.first==v && e.second!=NULL)
@@ -922,12 +950,8 @@ namespace OpenWifi {
 		content["MCS Set"]["Rx Bitmask Bits 24-31"] = bitString(data[3]);
 	}
 
-
-	inline nlohmann::json WFS_WLAN_EID_HT_CAPABILITY(const std::vector<unsigned char> &data) {
-		nlohmann::json 	new_ie;
-		nlohmann::json 	content;
-
-		if(data.size()==26) {
+	void dissect_ht_capability_ie(const unsigned char *data,uint size, nlohmann::json & content) {
+		if(size==26) {
 			uint offset = 0 ;
 			uint16_t ht_caps = data[offset+1] * 256 + data[offset];
 			content["HT Capabilities Info"]["HT LDPC coding capability"] = bitSet(ht_caps,0);
@@ -991,7 +1015,45 @@ namespace OpenWifi {
 			content["Antenna Selection (ASEL) Capabilities"]["Antenna Indices Feedback"] = (caps & 0x00000010) >> 4;
 			content["Antenna Selection (ASEL) Capabilities"]["Rx ASEL"] = (caps & 0x00000020) >> 5;
 			content["Antenna Selection (ASEL) Capabilities"]["Tx Sounding PPDUs"] = (caps & 0x00000040) >> 6;
+		}
 
+	}
+
+	void dissect_ht_info_ie_1_0(const unsigned char *data, uint size, nlohmann::json & content)
+	{
+		if (size != 22) {
+			return;
+		}
+		uint offset=0;
+
+		content["HT Control Channel"] = data[offset++];
+		auto htcaps = data[offset++];
+		content["HT Additional Capabilities"]["Extension Channel Offset"] = VALS(hta_ext_chan_offset_flag, htcaps & 0x0003);
+		content["HT Additional Capabilities"]["Recommended Tx Channel Width"] = (htcaps & 0x0003) >> 2;
+		content["HT Additional Capabilities"]["Reduced Interframe Spacing (RIFS) Mode"] = (htcaps & 0x0008) >> 3;
+		content["HT Additional Capabilities"]["Controlled Access Only"] = (htcaps & 0x0010) >> 4;
+		content["HT Additional Capabilities"]["Service Interval Granularity"] = VALS(hta_service_interval_flag, (htcaps & 0x00e0) >> 5);
+
+		htcaps = GetUInt16(data,offset);
+		content["HT Additional Capabilities"]["Operating Mode"] = VALS(hta_operating_mode_flag, (htcaps & 0x0003) >> 0);
+		content["HT Additional Capabilities"]["Non Greenfield (GF) devices Present"] = (htcaps & 0x0004) >> 2;
+
+		htcaps = GetUInt16(data,offset);
+		content["HT Additional Capabilities"]["Basic STB Modulation and Coding Scheme (MCS)"] = (htcaps & 0x007f) >> 0;
+		content["HT Additional Capabilities"]["Dual Clear To Send (CTS) Protection"] = (htcaps & 0x0080) >> 7;
+		content["HT Additional Capabilities"]["Secondary Beacon"] = (htcaps & 0x0100) >> 8;
+		content["HT Additional Capabilities"]["L-SIG TXOP Protection Support"] = (htcaps & 0x0200) >> 9;
+		content["HT Additional Capabilities"]["Phased Coexistence Operation (PCO) Active"] = (htcaps & 0x0400) >> 10;
+		content["HT Additional Capabilities"]["Phased Coexistence Operation (PCO) Phase"] = (htcaps & 0x0800) >> 11;
+		ParseMCSset(&data[offset],content);
+	}
+
+	inline nlohmann::json WFS_WLAN_EID_HT_CAPABILITY(const std::vector<unsigned char> &data) {
+		nlohmann::json 	new_ie;
+		nlohmann::json 	content;
+
+		if(data.size()==26) {
+			dissect_ht_capability_ie(&data[0],data.size(),content);
 		}
 
 		new_ie["name"]="HT Capabilities";
@@ -1500,14 +1562,37 @@ namespace OpenWifi {
 	inline nlohmann::json dissect_vendor_ie_rsn(const unsigned char *b, uint l) {
 		nlohmann::json ie;
 		ie["vendor"] = "Wi-Fi : RSN";
-		b++;l++;
+
+		switch(b[0]) {
+		case 4: {
+			ie["RSN PMKID"] = BufferToHex(&b[1],16);
+		}
+			break;
+		default:
+			ie["RSN Unknown"] = BufferToHex(&b[1],l-1);
+			break;
+		}
 		return ie;
 	}
 
 	inline nlohmann::json dissect_vendor_ie_ht(const unsigned char *b, uint l) {
 		nlohmann::json ie;
 		ie["vendor"] = "Wi-Fi : 802.11 Pre-N";
-		b++;l++;
+		--l;
+		auto type = b[0];
+		switch(type) {
+		case 51: {
+			dissect_ht_capability_ie(&b[1],l-1,ie);
+		}
+			break;
+		case 52: {
+			dissect_ht_info_ie_1_0(&b[1],l-1,ie);
+		}
+			break;
+		default:
+			ie["802.11n (Pre) Unknown Data"] = BufferToHex(&b[1],l-1);
+			break;
+		}
 		return ie;
 	}
 
@@ -1607,6 +1692,23 @@ namespace OpenWifi {
 		nlohmann::json 	content;
 
 		std::cout << BufferToHex(&data[0],data.size()) << std::endl;
+		uint offset=0;
+		auto sub_ie = data[offset++];
+		switch (sub_ie) {
+		case WLAN_EID_EXT_HE_CAPABILITY: {
+
+		} break;
+		case WLAN_EID_EXT_HE_OPERATION: {
+
+		} break;
+		case WLAN_EID_EXT_HE_MU_EDCA: {
+
+		} break;
+		default:
+			content["Extension EID"] = BufferToHex(&data[0],1);
+			content["Block"] = BufferToHex(&data[1],data.size()-1);
+			break;
+		}
 
 		new_ie["name"]="EI Extensions";
 		new_ie["content"]=content;
