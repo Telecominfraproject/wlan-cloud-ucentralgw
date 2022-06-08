@@ -98,6 +98,12 @@ namespace OpenWifi {
 #define MGT_ACTION_NO_ACK      0x0E  /* Action No Ack              */
 #define MGT_ARUBA_WLAN         0x0F  /* Aruba WLAN Specific        */
 
+/* WFA vendor specific subtypes */
+#define WFA_SUBTYPE_P2P 9
+#define WFA_SUBTYPE_WIFI_DISPLAY 10
+#define WFA_SUBTYPE_HS20_INDICATION 16
+#define WFA_SUBTYPE_HS20_ANQP 17
+
 	enum ieee80211_eid {
 		WLAN_EID_SSID = 0,
 		WLAN_EID_SUPP_RATES = 1,
@@ -662,6 +668,13 @@ namespace OpenWifi {
 		{0x02, "No non-HT is associated, but at least 1 20MHz is. protect on"},
 		{0x03, "Mixed: no non-HT is associated, protect on"},
 		{0x00, NULL}
+	};
+
+	static const value_string wfa_subtype_vals = {
+		{ WFA_SUBTYPE_P2P, "P2P" },
+		{ WFA_SUBTYPE_HS20_INDICATION, "Hotspot 2.0 Indication" },
+		{ WFA_SUBTYPE_HS20_ANQP, "Hotspot 2.0 ANQP" },
+		{ 0, NULL }
 	};
 
 	const char * VALS(const value_string &vals, uint v) {
@@ -1599,6 +1612,7 @@ namespace OpenWifi {
 	inline nlohmann::json dissect_vendor_ie_wfa(const unsigned char *b, uint l) {
 		nlohmann::json ie;
 		ie["vendor"] = "Wi-Fi Alliance";
+
 		b++;l++;
 		return ie;
 	}
