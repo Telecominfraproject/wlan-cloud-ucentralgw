@@ -393,6 +393,39 @@ The device should answer with teh above message. The `error` value should be int
 - 1 : the command will be performed in the future and `when` shows that time. The `resultCode` and `resultText` dod not contain anything relevant.
 - 2 : the command cannot be performed as indicated. `resultCode` and `resultText` may contain some indication as to why.
 
+#### Controller wants the device to perform a tech support dump
+Controller sends this command when it needs the device to perform a tech support dump (logdump).
+```
+{    "jsonrpc" : "2.0" ,
+     "method" : "trace" ,
+     "params" : {
+        "serial" : <serial number> ,
+        "when" : Optional - <UTC time when to start, 0 meaning immediately, this is a suggestion>,
+        "uri" : <complete URI where to upload the trace. This URI will be available for 30 minutes following a trace request start>
+     },
+     "id" : <some number>
+}
+```
+
+The device should answer:
+```
+{   "jsonrpc" : "2.0" , 
+    "result" : {
+       "serial" : <serial number> ,
+       "status" : {
+          "error" : 0 or an error number,
+          "text" : <description of the error or success>,
+          "when" : <time when this will be performed as UTC seconds>
+       }
+    },
+    "id" : <same number>
+}
+```
+
+###### 'uri'
+The `uri` for file upload is available for 30 minutes following the start of the capture. Once the file has been
+uploaded or the timeout occurs, the upload will be rejected.
+
 #### Controller wants the device to perform a trace
 Controller sends this command when it needs the device to perform a trace (i.e. tcpdump).
 ```
