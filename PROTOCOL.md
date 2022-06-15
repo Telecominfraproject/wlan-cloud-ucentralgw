@@ -702,7 +702,7 @@ on its behalf and send them to the device.
 
 ```
 {
-    "radius" : <type, can be auth, acct, das> ,
+    "radius" : <type, can be auth, acct, coa> ,
     "data" : <base 64 encoded raw RADIUS payload>
     "dst" : <ip:port> as a string - optional. If this is supplied, the GW will send the data to that destination,
             if not provided, the GW will use one of the radius servers it has in its configuration. This is only
