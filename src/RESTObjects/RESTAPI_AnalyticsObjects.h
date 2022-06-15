@@ -376,8 +376,8 @@ namespace OpenWifi {
 
         struct WifiClientHistory {
             uint64_t        timestamp=OpenWifi::Now();
-            std::string     stationId;
-            std::string     bssId;
+            std::string     station_id;
+            std::string     bssid;
             std::string     ssid;
             int64_t         rssi=0;
             uint32_t        rx_bitrate=0;
@@ -411,6 +411,7 @@ namespace OpenWifi {
             uint64_t        connected=0;
             uint64_t        inactive=0;
             uint64_t        tx_retries=0;
+            std::string     venue_id;
 
             void to_json(Poco::JSON::Object &Obj) const;
             bool from_json(const Poco::JSON::Object::Ptr &Obj);

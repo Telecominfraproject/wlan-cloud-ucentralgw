@@ -2610,186 +2610,206 @@ static json DefaultUCentralSchema = R"(
 }
 )"_json;
 
-class custom_error_handler : public nlohmann::json_schema::basic_error_handler
-{
-	void error(const nlohmann::json_pointer<nlohmann::basic_json<>> &pointer, const json &instance,
-			   const std::string &message) override
-	{
-		nlohmann::json_schema::basic_error_handler::error(pointer, instance, message);
-		std::cout << "ERROR: '" << pointer << "' - '" << instance << "': " << message << "\n";
-	}
-};
+    class custom_error_handler : public nlohmann::json_schema::basic_error_handler
+    {
+        void error(const nlohmann::json_pointer<nlohmann::basic_json<>> &pointer, const json &instance,
+                   const std::string &message) override
+        {
+            nlohmann::json_schema::basic_error_handler::error(pointer, instance, message);
+            std::cout << "ERROR: '" << pointer << "' - '" << instance << "': " << message << "\n";
+        }
+    };
 
-void ConfigurationValidator::Init() {
-	if(Initialized_)
-		return;
-	std::string GitSchema;
+    void ConfigurationValidator::Init() {
+        if(Initialized_)
+            return;
 
-	if(MicroService::instance().ConfigGetBool("ucentral.datamodel.internal",true)) {
-		RootSchema_ = DefaultUCentralSchema;
-		Logger().information("Using uCentral validation from built-in default.");
-		return;
-	}
-
-	try {
-		auto GitURI = MicroService::instance().ConfigGetString("ucentral.datamodel.uri",GitUCentralJSONSchemaFile);
-		if(Utils::wgets(GitURI, GitSchema)) {
-			RootSchema_ = json::parse(GitSchema);
-			Logger().information("Using uCentral validation schema from GIT.");
-		} else {
-			std::string FileName{ MicroService::instance().DataDir() + "/ucentral.schema.json" };
-			std::ifstream       input(FileName);
-			std::stringstream   schema_file;
-			schema_file << input.rdbuf();
-			input.close();
-			RootSchema_ = json::parse(schema_file.str());
-			Logger().information("Using uCentral validation schema from local file.");
+        std::string GitSchema;
+		if(MicroService::instance().ConfigGetBool("ucentral.datamodel.internal",true)) {
+			RootSchema_ = DefaultUCentralSchema;
+			Logger().information("Using uCentral validation from built-in default.");
+			Initialized_ = Working_ = true;
+			return;
 		}
-	} catch (const Poco::Exception &E) {
-		RootSchema_ = DefaultUCentralSchema;
-		Logger().information("Using uCentral validation from built-in default.");
-	}
-	Initialized_ = Working_ = true;
-}
 
-int ConfigurationValidator::Start() {
-	Init();
-	return 0;
-}
+        try {
+			auto GitURI = MicroService::instance().ConfigGetString("ucentral.datamodel.uri",GitUCentralJSONSchemaFile);
+            if(Utils::wgets(GitURI, GitSchema)) {
+                RootSchema_ = json::parse(GitSchema);
+                Logger().information("Using uCentral validation schema from GIT.");
+            } else {
+                std::string FileName{ MicroService::instance().DataDir() + "/ucentral.schema.json" };
+                std::ifstream       input(FileName);
+                std::stringstream   schema_file;
+                schema_file << input.rdbuf();
+                input.close();
+                RootSchema_ = json::parse(schema_file.str());
+                Logger().information("Using uCentral validation schema from local file.");
+            }
+        } catch (const Poco::Exception &E) {
+            RootSchema_ = DefaultUCentralSchema;
+            Logger().information("Using uCentral validation from built-in default.");
+        }
+        Initialized_ = Working_ = true;
+    }
 
-void ConfigurationValidator::Stop() {
+    int ConfigurationValidator::Start() {
+        Init();
+        return 0;
+    }
 
-}
+    void ConfigurationValidator::Stop() {
 
-static inline bool IsIPv4(const std::string &value) {
-	Poco::Net::IPAddress    A;
-	return ((Poco::Net::IPAddress::tryParse(value,A) && A.family()==Poco::Net::IPAddress::IPv4));
-}
+    }
 
-static inline bool IsIPv6(const std::string &value) {
-	Poco::Net::IPAddress    A;
-	return ((Poco::Net::IPAddress::tryParse(value,A) && A.family()==Poco::Net::IPAddress::IPv6));
-}
+    static inline bool IsIPv4(const std::string &value) {
+        Poco::Net::IPAddress    A;
+        return ((Poco::Net::IPAddress::tryParse(value,A) && A.family()==Poco::Net::IPAddress::IPv4));
+    }
 
-static inline bool IsIP(const std::string &value) {
-	return IsIPv4(value) || IsIPv6(value);
-}
+    static inline bool IsIPv6(const std::string &value) {
+        Poco::Net::IPAddress    A;
+        return ((Poco::Net::IPAddress::tryParse(value,A) && A.family()==Poco::Net::IPAddress::IPv6));
+    }
 
-static inline bool IsCIDRv6(const std::string &value) {
-	auto Tokens = Poco::StringTokenizer(value,"/");
-	if(Tokens.count()==2 && IsIPv6(Tokens[0])) {
-		auto Mask = std::atoi(Tokens[1].c_str());
-		if(Mask>=48 && Mask<=128)
-			return true;
-	}
-	return false;
-}
+    static inline bool IsIP(const std::string &value) {
+        return IsIPv4(value) || IsIPv6(value);
+    }
 
-static inline bool IsCIDRv4(const std::string &value) {
-	auto Tokens = Poco::StringTokenizer(value,"/");
-	if(Tokens.count()==2 && IsIPv4(Tokens[0])) {
-		auto Mask = std::atoi(Tokens[1].c_str());
-		if(Mask>=0 && Mask<=32)
-			return true;
-	}
-	return false;
-}
+    static inline bool IsCIDRv6(const std::string &value) {
+        auto Tokens = Poco::StringTokenizer(value,"/");
+        if(Tokens.count()==2 && IsIPv6(Tokens[0])) {
+            auto Mask = std::atoi(Tokens[1].c_str());
+            if(Mask>=48 && Mask<=128)
+                return true;
+        }
+        return false;
+    }
 
-static inline bool IsCIDR(const std::string &value) {
-	return IsCIDRv4(value) || IsCIDRv6(value);
-}
+    static inline bool IsCIDRv4(const std::string &value) {
+        auto Tokens = Poco::StringTokenizer(value,"/");
+        if(Tokens.count()==2 && IsIPv4(Tokens[0])) {
+            auto Mask = std::atoi(Tokens[1].c_str());
+            if(Mask>=0 && Mask<=32)
+                return true;
+        }
+        return false;
+    }
 
-void ConfigurationValidator::my_format_checker(const std::string &format, const std::string &value)
-{
-	static const std::regex host_regex{"^(?=.{1,254}$)((?=[a-z0-9-]{1,63}\\.)(xn--+)?[a-z0-9]+(-[a-z0-9]+)*\\.)+[a-z]{2,63}$"};
-	static const std::regex mac_regex{"^([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})$"};
-	static const std::regex uc_timeout_regex{"^[0-9]+[dmshw]$"};
-	static const std::regex b64_regex("^[a-zA-Z0-9\\+/]*={0,3}$");
+    static inline bool IsCIDR(const std::string &value) {
+        return IsCIDRv4(value) || IsCIDRv6(value);
+    }
 
-	if(format == "uc-cidr4") {
-		if(IsCIDRv4(value))
-			return;
-		throw std::invalid_argument(value + " is not a valid CIDR IPv4: should be something like 192.168.0.0/16.");
-	} else if(format == "uc-cidr6") {
-		if(IsCIDRv6(value))
-			return;
-		throw std::invalid_argument(value + " is not a valid CIDR IPv6: should be something like 2e60:3500::/64.");
-	} else if(format=="uc-cidr") {
-		if(IsCIDR(value))
-			return;
-		throw std::invalid_argument(value + " is not a valid CIDR IPv6/IPv4: should be something like 2e60:3500::/64.");
-	} else if(format == "uc-mac") {
-		if(std::regex_match(value,mac_regex))
-			return;
-		throw std::invalid_argument(value + " is not a valid MAC: should be something like 11:22:33:44:55:66");
-	} else if(format == "uc-timeout") {
-		if(std::regex_match(value,uc_timeout_regex))
-			return;
-		throw std::invalid_argument(value + " is not a proper timeout value: 6d, 300m, 24h, 84000s, infinite");
-	} else if(format == "uc-host") {
-		if(IsIP(value))
-			return;
-		if(std::regex_match(value,host_regex))
-			return;
-		throw std::invalid_argument(value + " is not a proper FQDN.");
-	} else if(format == "fqdn") {
-		if(std::regex_match(value,host_regex))
-			return;
-		throw std::invalid_argument(value + " is not a proper FQDN.");
-	} else if(format == "uc-base64") {
-		std::string s{value};
-		Poco::trimInPlace(s);
-		if( (s.size() %4 ==0) && std::regex_match(s,b64_regex))
-			return;
-		throw std::invalid_argument(value + " is not a base64 encoded value.");
-	} else if(format == "uri") {
-		try {
-			Poco::URI   uri(value);
-			return;
-		} catch (...) {
-		}
-		throw std::invalid_argument(value + " is not a valid URI: should be something like https://hello.world.com.");
-	} else if(format == "ip") {
-		if (IsIP(value))
-			return;
-		throw std::invalid_argument(value + " is not a valid IP address.");
-	} else {
-		nlohmann::json_schema::default_string_format_check(format,value);
-	}
-}
+    static inline bool IsPortRangeIsValid(const std::string &r) {
+        const auto ports = Poco::StringTokenizer("-",r,Poco::StringTokenizer::TOK_TRIM);
 
-bool ConfigurationValidator::Validate(const std::string &C, std::string &Error) {
-	if(Working_) {
-		try {
-			auto Doc = json::parse(C);
-			custom_error_handler CE;
-			json_validator  Validator(nullptr, my_format_checker);
-			Validator.set_root_schema(RootSchema_);
-			Validator.validate(Doc,CE);
-			return true;
-		} catch (const std::invalid_argument &E) {
-			std::cout << "1 Validation failed, here is why: " << E.what() << "\n";
-			Error = E.what();
-			return false;
-		} catch (const std::logic_error &E) {
-			std::cout << "2 Validation failed, here is why: " << E.what() << "\n";
-			Error = E.what();
-			return false;
-		} catch(const std::exception &E) {
-			Error = E.what();
-			std::cout << "3 Validation failed, here is why: " << E.what() << "\n";
-			return false;
-		} catch(...) {
-			std::cout << "4 Some kind of bullshit exception..." << std::endl;
-		}
-	}
-	return true;
-}
+        for(const auto &port:ports) {
+            uint32_t port_num = std::stoul(port);
+            if(port_num==0 || port_num>65535)
+                return false;
+        }
+        return true;
+    }
 
-void ConfigurationValidator::reinitialize([[maybe_unused]] Poco::Util::Application &self) {
-	Logger().information("Reinitializing.");
-	Working_ = Initialized_ = false;
-	Init();
-}
+    void ConfigurationValidator::my_format_checker(const std::string &format, const std::string &value)
+    {
+        static const std::regex host_regex{"^(?=.{1,254}$)((?=[a-z0-9-]{1,63}\\.)(xn--+)?[a-z0-9]+(-[a-z0-9]+)*\\.)+[a-z]{2,63}$"};
+        static const std::regex mac_regex{"^([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})$"};
+        static const std::regex uc_timeout_regex{"^[0-9]+[dmshw]$"};
+        static const std::regex b64_regex("^[a-zA-Z0-9\\+/]*={0,3}$");
+
+        if(format == "uc-cidr4") {
+            if(IsCIDRv4(value))
+                return;
+            throw std::invalid_argument(value + " is not a valid CIDR IPv4: should be something like 192.168.0.0/16.");
+        } else if(format == "uc-cidr6") {
+            if(IsCIDRv6(value))
+                return;
+            throw std::invalid_argument(value + " is not a valid CIDR IPv6: should be something like 2e60:3500::/64.");
+        } else if(format=="uc-cidr") {
+            if(IsCIDR(value))
+                return;
+            throw std::invalid_argument(value + " is not a valid CIDR IPv6/IPv4: should be something like 2e60:3500::/64.");
+        } else if(format == "uc-mac") {
+            if(std::regex_match(value,mac_regex))
+                return;
+            throw std::invalid_argument(value + " is not a valid MAC: should be something like 11:22:33:44:55:66");
+        } else if(format == "uc-timeout") {
+            if(std::regex_match(value,uc_timeout_regex))
+                return;
+            throw std::invalid_argument(value + " is not a proper timeout value: 6d, 300m, 24h, 84000s, infinite");
+        } else if(format == "uc-host") {
+            if(IsIP(value))
+                return;
+            if(std::regex_match(value,host_regex))
+                return;
+            throw std::invalid_argument(value + " is not a proper FQDN.");
+        } else if(format == "fqdn") {
+            if(std::regex_match(value,host_regex))
+                return;
+            throw std::invalid_argument(value + " is not a proper FQDN.");
+        } else if(format == "uc-base64") {
+            std::string s{value};
+            Poco::trimInPlace(s);
+            if( (s.size() %4 ==0) && std::regex_match(s,b64_regex))
+                return;
+            throw std::invalid_argument(value + " is not a base64 encoded value.");
+        } else if(format == "uri") {
+            try {
+                Poco::URI   uri(value);
+                return;
+            } catch (...) {
+            }
+            throw std::invalid_argument(value + " is not a valid URI: should be something like https://hello.world.com.");
+        } else if(format == "uc-portrange") {
+            try {
+                if(IsPortRangeIsValid(value))
+                    return;
+                throw std::invalid_argument(value + " is not a valid port range: should an integer between 1-65535 or a port range like post-port.");
+            } catch (...) {
+            }
+            throw std::invalid_argument(value + " is not a valid port range: should an integer between 1-65535 or a port range like post-port.");
+        } else if(format == "ip") {
+            if (IsIP(value))
+                return;
+            throw std::invalid_argument(value + " is not a valid IP address.");
+        } else {
+            nlohmann::json_schema::default_string_format_check(format,value);
+        }
+    }
+
+    bool ConfigurationValidator::Validate(const std::string &C, std::string &Error) {
+        if(Working_) {
+            try {
+                auto Doc = json::parse(C);
+                custom_error_handler CE;
+                json_validator  Validator(nullptr, my_format_checker);
+                Validator.set_root_schema(RootSchema_);
+                Validator.validate(Doc,CE);
+                return true;
+            } catch (const std::invalid_argument &E) {
+                std::cout << "1 Validation failed, here is why: " << E.what() << "\n";
+                Error = E.what();
+                return false;
+            } catch (const std::logic_error &E) {
+                std::cout << "2 Validation failed, here is why: " << E.what() << "\n";
+                Error = E.what();
+                return false;
+            } catch(const std::exception &E) {
+                Error = E.what();
+                std::cout << "3 Validation failed, here is why: " << E.what() << "\n";
+                return false;
+            } catch(...) {
+                std::cout << "4 Some kind of bullshit exception..." << std::endl;
+            }
+        }
+        return true;
+    }
+
+    void ConfigurationValidator::reinitialize([[maybe_unused]] Poco::Util::Application &self) {
+        Logger().information("Reinitializing.");
+        Working_ = Initialized_ = false;
+        Init();
+    }
 
 }

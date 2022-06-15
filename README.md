@@ -51,6 +51,7 @@ sudo cmake --build . --target install
 cd ~
 git clone https://github.com/nlohmann/json.git
 cd json
+git checkout tags/v3.10.2
 mkdir cmake-build
 cd cmake-build
 cmake ..
