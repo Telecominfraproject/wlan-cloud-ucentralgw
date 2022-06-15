@@ -1,0 +1,47 @@
+{
+    "pools" : [
+        {
+            "name" : "master" ,
+            "description" : "master pool",
+            "authConfig" : {
+                "strategy" : "weighted",
+                "monitor" : false,
+                "monitorMethod" : "none",
+                "methodParameters" : [],
+                "servers" : [ {
+                        "name" : "svr1",
+                        "ip" : "69.157.193.71",
+                        "port" : 1812,
+                        "weight" : 10
+                    }
+                ]
+            },
+            "acctConfig" : {
+                "strategy" : "random",
+                "monitor" : false,
+                "monitorMethod" : "none",
+                "methodParameters" : [],
+                "servers" : [ {
+                        "name" : "svr1",
+                        "ip" : "69.157.193.71",
+                        "port" : 1813,
+                        "weight" : 10
+                    }
+                ]
+            },
+            "coaConfig" : {
+                "strategy" : "round_robin",
+                "monitor" : false,
+                "monitorMethod" : "none",
+                "methodParameters" : [],
+                "servers" : [ {
+                        "name" : "svr1",
+                        "ip" : "69.157.193.71",
+                        "port" : 3799,
+                        "weight" : 10
+                    }
+                ]
+            }
+        }
+    ]
+}
