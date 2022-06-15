@@ -331,7 +331,7 @@ namespace OpenWifi::GWObjects {
 	}
 
 	void RadiusProxyServerConfig::to_json(Poco::JSON::Object &Obj) const {
-		field_to_json(Obj,"policy",strategy);
+		field_to_json(Obj,"strategy",strategy);
 		field_to_json(Obj,"monitor",monitor);
 		field_to_json(Obj,"monitorMethod",monitorMethod);
 		field_to_json(Obj,"methodParameters",methodParameters);
@@ -340,7 +340,7 @@ namespace OpenWifi::GWObjects {
 
 	bool RadiusProxyServerConfig::from_json(const Poco::JSON::Object::Ptr &Obj) {
 		try {
-			field_from_json(Obj,"policy",strategy);
+			field_from_json(Obj,"strategy",strategy);
 			field_from_json(Obj,"monitor",monitor);
 			field_from_json(Obj,"monitorMethod",monitorMethod);
 			field_from_json(Obj,"methodParameters",methodParameters);
