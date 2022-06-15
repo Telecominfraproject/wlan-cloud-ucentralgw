@@ -1113,6 +1113,16 @@ namespace OpenWifi {
 		return Send(Payload.str());
 	}
 
+	bool WSConnection::SendRadiusCoAData(const unsigned char * buffer, std::size_t size) {
+		Poco::JSON::Object	Answer;
+		Answer.set(uCentralProtocol::RADIUS,uCentralProtocol::RADIUSCOA);
+		Answer.set(uCentralProtocol::RADIUSDATA, Base64Encode(buffer,size));
+
+		std::ostringstream Payload;
+		Answer.stringify(Payload);
+		return Send(Payload.str());
+	}
+
 	void WSConnection::ProcessIncomingRadiusData(const Poco::JSON::Object::Ptr &Doc) {
 		if( Doc->has(uCentralProtocol::RADIUSDATA)) {
 			auto Type = Doc->get(uCentralProtocol::RADIUS).toString();

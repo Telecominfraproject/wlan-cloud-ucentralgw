@@ -22,8 +22,11 @@ namespace OpenWifi {
 
 		void OnAccountingSocketReadable(const Poco::AutoPtr<Poco::Net::ReadableNotification>& pNf);
 		void OnAuthenticationSocketReadable(const Poco::AutoPtr<Poco::Net::ReadableNotification>& pNf);
+		void OnCoASocketReadable(const Poco::AutoPtr<Poco::Net::ReadableNotification>& pNf);
+
 		void SendAccountingData(const std::string &serialNumber, const std::string &Destination,const char *buffer, std::size_t size);
 		void SendAuthenticationData(const std::string &serialNumber, const std::string &Destination,const char *buffer, std::size_t size);
+		void SendCoAData(const std::string &serialNumber, const std::string &Destination,const char *buffer, std::size_t size);
 
 		void SetConfig(const GWObjects::RadiusProxyPoolList &C);
 		void DeleteConfig();
@@ -46,24 +49,37 @@ namespace OpenWifi {
 		std::unique_ptr<Poco::Net::DatagramSocket>	AccountingSocketV6_;
 		std::unique_ptr<Poco::Net::DatagramSocket>	AuthenticationSocketV4_;
 		std::unique_ptr<Poco::Net::DatagramSocket>	AuthenticationSocketV6_;
+		std::unique_ptr<Poco::Net::DatagramSocket>	CoASocketV4_;
+		std::unique_ptr<Poco::Net::DatagramSocket>	CoASocketV6_;
 		Poco::Net::SocketReactor		AccountingReactor_;
 		Poco::Net::SocketReactor		AuthenticationReactor_;
+		Poco::Net::SocketReactor		CoAReactor_;
 		Poco::Thread					AuthenticationReactorThread_;
 		Poco::Thread					AccountingReactorThread_;
+		Poco::Thread					CoAReactorThread_;
+
 		GWObjects::RadiusProxyPoolList	PoolList_;
 		std::string 					ConfigFilename_;
 
 		typedef std::map<Poco::Net::SocketAddress,uint> PoolIndexMap_t;
 		PoolIndexMap_t	AuthPoolsIndexV4_;
-		PoolIndexMap_t 	AcctPoolsIndexV4_;
 		PoolIndexMap_t	AuthPoolsIndexV6_;
+
+		PoolIndexMap_t 	AcctPoolsIndexV4_;
 		PoolIndexMap_t 	AcctPoolsIndexV6_;
+
+		PoolIndexMap_t 	CoAPoolsIndexV4_;
+		PoolIndexMap_t 	CoAPoolsIndexV6_;
 
 		typedef std::vector<std::vector<Destination>> PoolIndexVec_t;
 		PoolIndexVec_t	AuthPoolsV4_;
 		PoolIndexVec_t	AuthPoolsV6_;
+
 		PoolIndexVec_t	AcctPoolsV4_;
 		PoolIndexVec_t	AcctPoolsV6_;
+
+		PoolIndexVec_t	CoAPoolsV4_;
+		PoolIndexVec_t	CoAPoolsV6_;
 
 		RADIUS_proxy_server() noexcept:
 		   SubSystemServer("RADIUS-PROXY", "RADIUS-PROXY", "radius.proxy")

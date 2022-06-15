@@ -314,6 +314,7 @@ namespace OpenWifi::GWObjects {
 		field_to_json(Obj,"description",description);
 		field_to_json(Obj,"authConfig",authConfig);
 		field_to_json(Obj,"acctConfig",acctConfig);
+		field_to_json(Obj,"coaConfig",coaConfig);
 	}
 
 	bool RadiusProxyPool::from_json(const Poco::JSON::Object::Ptr &Obj) {
@@ -322,6 +323,7 @@ namespace OpenWifi::GWObjects {
 			field_from_json(Obj,"description",description);
 			field_from_json(Obj,"authConfig",authConfig);
 			field_from_json(Obj,"acctConfig",acctConfig);
+			field_from_json(Obj,"coaConfig",coaConfig);
 			return true;
 		} catch (const Poco::Exception &E) {
 		}
