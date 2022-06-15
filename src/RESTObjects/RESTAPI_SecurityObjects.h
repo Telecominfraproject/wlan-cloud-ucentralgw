@@ -9,6 +9,7 @@
 #pragma once
 
 #include <string>
+#include <type_traits>
 #include "framework/OpenWifiTypes.h"
 #include "Poco/JSON/Object.h"
 #include "Poco/Data/LOB.h"
@@ -27,8 +28,13 @@ namespace OpenWifi {
             bool Delete_ = true;
             bool PortalLogin_ = true;
 
+            AclTemplate()  noexcept = default;
+
             void to_json(Poco::JSON::Object &Obj) const;
-            bool from_json(const Poco::JSON::Object::Ptr &Obj);	};
+            bool from_json(const Poco::JSON::Object::Ptr &Obj);
+        };
+
+        static_assert( std::is_nothrow_move_constructible_v<AclTemplate> );
 
         struct WebToken {
             std::string access_token_;

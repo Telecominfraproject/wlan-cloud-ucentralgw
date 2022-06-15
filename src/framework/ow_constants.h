@@ -5,6 +5,7 @@
 #pragma once
 
 #include <string>
+#include <cstring>
 #include "Poco/String.h"
 
 #if defined(__GNUC__)
@@ -428,6 +429,7 @@ namespace OpenWifi::uCentralProtocol {
 	static const char *RADIUSACCT = "acct";
 	static const char *RADIUSAUTH = "auth";
 	static const char *RADIUSDST = "dst";
+	static const char *IES = "ies";
 	}
 
 namespace OpenWifi::uCentralProtocol::Events {
@@ -457,25 +459,28 @@ namespace OpenWifi::uCentralProtocol::Events {
 		ET_TELEMETRY
 	};
 
-	inline static EVENT_MSG EventFromString(const std::string & Method) {
-        static std::vector<std::pair<const char *,EVENT_MSG>>   Values{
-                { CFGPENDING , ET_CFGPENDING },
-                { CONNECT, ET_CONNECT },
-                { CRASHLOG, ET_CRASHLOG },
-                { DEVICEUPDATE, ET_DEVICEUPDATE },
-                { HEALTHCHECK, ET_HEALTHCHECK },
-                { LOG, ET_LOG },
-                { PING, ET_PING },
-                { RECOVERY, ET_RECOVERY },
-                { STATE, ET_STATE },
-                { TELEMETRY, ET_TELEMETRY }
-        };
-
-        std::string L = Poco::toLower(Method);
-        auto hint = std::find_if(cbegin(Values),cend(Values),[&](const std::pair<const char *,EVENT_MSG> &v) ->bool { return strcmp(v.first,L.c_str())==0; });
-        if(hint == cend(Values))
-            return ET_UNKNOWN;
-        return hint->second;
+	inline EVENT_MSG EventFromString(const std::string & Method) {
+		if(strcmp(STATE,Method.c_str())==0)
+			return ET_STATE;
+		else if(strcmp(HEALTHCHECK,Method.c_str())==0)
+			return ET_HEALTHCHECK;
+		else if(strcmp(CONNECT,Method.c_str())==0)
+			return ET_CONNECT;
+		else if(strcmp(CFGPENDING,Method.c_str())==0)
+			return ET_CFGPENDING;
+		else if(strcmp(CRASHLOG,Method.c_str())==0)
+			return ET_CRASHLOG;
+		else if(strcmp(DEVICEUPDATE,Method.c_str())==0)
+			return ET_DEVICEUPDATE;
+		else if(strcmp(LOG,Method.c_str())==0)
+			return ET_LOG;
+		else if(strcmp(PING,Method.c_str())==0)
+			return ET_PING;
+		else if(strcmp(RECOVERY,Method.c_str())==0)
+			return ET_RECOVERY;
+		else if(strcmp(TELEMETRY,Method.c_str())==0)
+			return ET_TELEMETRY;
+		return ET_UNKNOWN;
 	};
 }
 

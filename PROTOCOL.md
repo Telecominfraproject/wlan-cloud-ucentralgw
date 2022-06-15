@@ -446,8 +446,9 @@ Controller sends this command when it needs the device to perform a WiFi Scan.
 	        "bands" : [ "2","5","5l","5u",6" ], <optional this is a list of bands to scan: on or more bands >
 	        "channels" : [ 1,2,3...] , <optional list of discreet channels to scan >
 	        "verbose" : <optional boolean: true or false> (by default false),
-	        "bandwidth" : <optional int: 20,40,80 in MHz>
-	        "active" : 0 or 1 (to select passive or active scan)
+	        "bandwidth" : <optional int: 20,40,80 in MHz>,
+	        "active" : 0 or 1 (to select passive or active scan),
+	        "ies": <optional: array of unsigned int 8 bits: i.e. [1,4,34,58,91]> 
         },
      "id" : <some number>
 }
@@ -642,7 +643,7 @@ Controller sends this command to run a predefined script. Extreme care must be t
      "method" : "script" , 
      "params" : {
         "serial" : <serial number>,
-        "type" : <one of "uci", "shell", "ucode">,
+        "type" : <one of "shell", "ucode">,
         "script" : <text blob containing the script>,
         "timeout" : <max timeout in seconds, default is 30>,
         "when" : <time when this will be performed as UTC seconds>
@@ -657,7 +658,7 @@ The device should answer:
       "result" : {
           "serial" : <serial number> ,
           "status" : {
-            "error" : <0 or the value of $? from the shell running the command>,
+            "error" : <0 or the value of $? from the shell running the command, 255 signifies a timeout>,
 	    one of either
 	    	"result_64" : <gzipped base64 result of running the command>,
 	    	"result_sz" : <size of unzipped content>
