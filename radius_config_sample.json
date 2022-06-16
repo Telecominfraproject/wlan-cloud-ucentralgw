@@ -12,13 +12,15 @@
                         "name" : "svr1",
                         "ip" : "10.100.0.1",
                         "port" : 1812,
-                        "weight" : 10
+                        "weight" : 10,
+                        "secret" : "my_secret!"
                     },
                     {
                         "name" : "svr2",
                         "ip" : "10.100.10.1",
                         "port" : 1812,
-                        "weight" : 20
+                        "weight" : 20,
+                        "secret" : "my_secret!"
                     }
                 ]
             },
@@ -31,13 +33,16 @@
                         "name" : "svr1",
                         "ip" : "10.100.0.1",
                         "port" : 1813,
-                        "weight" : 10
+                        "weight" : 10,
+                        "secret" : "my_secret!"
                     },
                     {
                         "name" : "svr2",
                         "ip" : "10.100.10.1",
                         "port" : 1813,
-                        "weight" : 20                    }
+                        "weight" : 20,
+                        "secret" : "my_secret!"
+                    }
                 ]
             },
             "coaConfig" : {
@@ -49,13 +54,15 @@
                         "name" : "svr1",
                         "ip" : "10.100.0.1",
                         "port" : 3799,
-                        "weight" : 10
+                        "weight" : 10,
+                        "secret" : "my_secret!"
                     },
                     {
                         "name" : "svr2",
                         "ip" : "10.100.10.1",
                         "port" : 3799,
-                        "weight" : 20
+                        "weight" : 20,
+                        "secret" : "my_secret!"
                     }
                 ]
             }

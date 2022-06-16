@@ -356,6 +356,8 @@ namespace OpenWifi::GWObjects {
 		field_to_json(Obj,"ip",ip);
 		field_to_json(Obj,"port",port);
 		field_to_json(Obj,"weight",weight);
+		field_to_json(Obj,"secret",secret);
+		field_to_json(Obj,"certificate",certificate);
 	}
 
 	bool RadiusProxyServerEntry::from_json(const Poco::JSON::Object::Ptr &Obj) {
@@ -364,6 +366,8 @@ namespace OpenWifi::GWObjects {
 			field_from_json(Obj,"ip",ip);
 			field_from_json(Obj,"port",port);
 			field_from_json(Obj,"weight",weight);
+			field_from_json(Obj,"secret",secret);
+			field_from_json(Obj,"certificate",certificate);
 			return true;
 		} catch (const Poco::Exception &E) {
 		}

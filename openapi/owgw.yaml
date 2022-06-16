@@ -1090,6 +1090,10 @@ components:
           type: integer
         weight:
           type: integer
+        secret:
+          type: string
+        certificate:
+          type: string
 
     RadiusProxyServerConfig:
       type: object
