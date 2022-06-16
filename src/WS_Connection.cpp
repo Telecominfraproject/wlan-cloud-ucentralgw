@@ -1136,6 +1136,11 @@ namespace OpenWifi {
 				auto DecodedData = Base64Decode(Data);
 				auto Destination = Doc->has(uCentralProtocol::RADIUSDST) ? Doc->get(uCentralProtocol::RADIUSDST).toString() : "";
 				RADIUS_proxy_server()->SendAuthenticationData(SerialNumber_,Destination,DecodedData.c_str(),DecodedData.size());
+			} else if(Type==uCentralProtocol::RADIUSCOA) {
+				auto Data = Doc->get(uCentralProtocol::RADIUSDATA).toString();
+				auto DecodedData = Base64Decode(Data);
+				auto Destination = Doc->has(uCentralProtocol::RADIUSDST) ? Doc->get(uCentralProtocol::RADIUSDST).toString() : "";
+				RADIUS_proxy_server()->SendCoAData(SerialNumber_,Destination,DecodedData.c_str(),DecodedData.size());
 			}
 		}
 	}
