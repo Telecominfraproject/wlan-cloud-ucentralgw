@@ -154,6 +154,11 @@ namespace OpenWifi {
 			return;
 		}
 		auto SerialNumber = ExtractSerialNumber(&Buffer[20],ReceiveSize);
+		if(SerialNumber.empty()) {
+			std::cout << "Invalid or missing serial number" << std::endl;
+			return;
+		}
+
 		Logger().information(fmt::format("Accounting Packet received for {}",SerialNumber));
 		std::cout << "Received an Accounting packet for :" << SerialNumber << std::endl;
 		DeviceRegistry()->SendRadiusAccountingData(SerialNumber,Buffer,ReceiveSize);
@@ -171,6 +176,10 @@ namespace OpenWifi {
 			return;
 		}
 		auto SerialNumber = ExtractSerialNumber(&Buffer[20],ReceiveSize);
+		if(SerialNumber.empty()) {
+			std::cout << "Invalid or missing serial number" << std::endl;
+			return;
+		}
 		Logger().information(fmt::format("Authentication Packet received for {}",SerialNumber));
 		std::cout << "Received an Authentication packet for :" << SerialNumber << std::endl;
 		DeviceRegistry()->SendRadiusAuthenticationData(SerialNumber,Buffer,ReceiveSize);
@@ -188,6 +197,10 @@ namespace OpenWifi {
 			return;
 		}
 		auto SerialNumber = ExtractSerialNumber(&Buffer[20],ReceiveSize);
+		if(SerialNumber.empty()) {
+			std::cout << "Invalid or missing serial number" << std::endl;
+			return;
+		}
 		Logger().information(fmt::format("CoA Packet received for {}",SerialNumber));
 		std::cout << "Received an CoA packet for :" << SerialNumber << std::endl;
 		DeviceRegistry()->SendRadiusCoAData(SerialNumber,Buffer,ReceiveSize);
