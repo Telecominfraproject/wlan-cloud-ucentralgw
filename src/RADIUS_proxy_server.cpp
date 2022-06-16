@@ -89,6 +89,8 @@ namespace OpenWifi {
 	std::string ExtractSerialNumber(const unsigned char *b, uint32_t s) {
 		std::string result;
 
+		return "34efb6af4926";
+
 		try {
 			uint32_t pos=0;
 			while(pos<s) {
