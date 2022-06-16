@@ -33,10 +33,10 @@ namespace OpenWifi {
 
 		Poco::Net::SocketAddress	CoASockAddrV4(Poco::Net::AddressFamily::IPv4,
 												MicroService::instance().ConfigGetInt("radius.proxy.coa.port",DEFAULT_RADIUS_CoA_PORT));
-		CoASocketV4_ = std::make_unique<Poco::Net::DatagramSocket>(AcctSockAddrV4,true);
+		CoASocketV4_ = std::make_unique<Poco::Net::DatagramSocket>(CoASockAddrV4,true);
 		Poco::Net::SocketAddress	CoASockAddrV6(Poco::Net::AddressFamily::IPv6,
 												MicroService::instance().ConfigGetInt("radius.proxy.coa.port",DEFAULT_RADIUS_CoA_PORT));
-		CoASocketV6_ = std::make_unique<Poco::Net::DatagramSocket>(AcctSockAddrV6,true);
+		CoASocketV6_ = std::make_unique<Poco::Net::DatagramSocket>(CoASockAddrV6,true);
 
 		AuthenticationReactor_.addEventHandler(*AuthenticationSocketV4_,Poco::NObserver<RADIUS_proxy_server, Poco::Net::ReadableNotification>(
 														   *this, &RADIUS_proxy_server::OnAuthenticationSocketReadable));
@@ -146,6 +146,8 @@ namespace OpenWifi {
 		Poco::Net::SocketAddress	Sender;
 		unsigned char Buffer[RADIUS_BUFFER_SIZE];
 
+		std::cout << "Accounting bytes received" << std::endl;
+
 		auto ReceiveSize = pNf.get()->socket().impl()->receiveBytes(Buffer,sizeof(Buffer));
 		if(ReceiveSize<SMALLEST_RADIUS_PACKET)
 			return;
@@ -159,6 +161,8 @@ namespace OpenWifi {
 		Poco::Net::SocketAddress	Sender;
 		unsigned char Buffer[RADIUS_BUFFER_SIZE];
 
+		std::cout << "Authentication bytes received" << std::endl;
+
 		auto ReceiveSize = pNf.get()->socket().impl()->receiveBytes(Buffer,sizeof(Buffer));
 		if(ReceiveSize<SMALLEST_RADIUS_PACKET)
 			return;
@@ -171,6 +175,8 @@ namespace OpenWifi {
 	void RADIUS_proxy_server::OnCoASocketReadable(const Poco::AutoPtr<Poco::Net::ReadableNotification>& pNf) {
 		Poco::Net::SocketAddress	Sender;
 		unsigned char Buffer[RADIUS_BUFFER_SIZE];
+
+		std::cout << "CoA bytes received" << std::endl;
 
 		auto ReceiveSize = pNf.get()->socket().impl()->receiveBytes(Buffer,sizeof(Buffer));
 		if(ReceiveSize<SMALLEST_RADIUS_PACKET)
