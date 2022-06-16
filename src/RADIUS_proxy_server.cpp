@@ -149,8 +149,10 @@ namespace OpenWifi {
 		std::cout << "Accounting bytes received" << std::endl;
 
 		auto ReceiveSize = pNf.get()->socket().impl()->receiveBytes(Buffer,sizeof(Buffer));
-		if(ReceiveSize<SMALLEST_RADIUS_PACKET)
+		if(ReceiveSize<SMALLEST_RADIUS_PACKET) {
+			std::cout << "Runt packet" << std::endl;
 			return;
+		}
 		auto SerialNumber = ExtractSerialNumber(&Buffer[20],ReceiveSize);
 		Logger().information(fmt::format("Accounting Packet received for {}",SerialNumber));
 		std::cout << "Received an Accounting packet for :" << SerialNumber << std::endl;
@@ -164,8 +166,10 @@ namespace OpenWifi {
 		std::cout << "Authentication bytes received" << std::endl;
 
 		auto ReceiveSize = pNf.get()->socket().impl()->receiveBytes(Buffer,sizeof(Buffer));
-		if(ReceiveSize<SMALLEST_RADIUS_PACKET)
+		if(ReceiveSize<SMALLEST_RADIUS_PACKET) {
+			std::cout << "Runt packet" << std::endl;
 			return;
+		}
 		auto SerialNumber = ExtractSerialNumber(&Buffer[20],ReceiveSize);
 		Logger().information(fmt::format("Authentication Packet received for {}",SerialNumber));
 		std::cout << "Received an Authentication packet for :" << SerialNumber << std::endl;
@@ -179,8 +183,10 @@ namespace OpenWifi {
 		std::cout << "CoA bytes received" << std::endl;
 
 		auto ReceiveSize = pNf.get()->socket().impl()->receiveBytes(Buffer,sizeof(Buffer));
-		if(ReceiveSize<SMALLEST_RADIUS_PACKET)
+		if(ReceiveSize<SMALLEST_RADIUS_PACKET) {
+			std::cout << "Runt packet" << std::endl;
 			return;
+		}
 		auto SerialNumber = ExtractSerialNumber(&Buffer[20],ReceiveSize);
 		Logger().information(fmt::format("CoA Packet received for {}",SerialNumber));
 		std::cout << "Received an CoA packet for :" << SerialNumber << std::endl;
