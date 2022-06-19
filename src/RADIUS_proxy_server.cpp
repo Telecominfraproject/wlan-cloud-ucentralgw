@@ -159,7 +159,7 @@ namespace OpenWifi {
 			std::cout << "Runt packet" << std::endl;
 			return;
 		}
-		auto SerialNumber = ExtractSerialNumber(&Buffer[20],ReceiveSize);
+		auto SerialNumber = ExtractSerialNumber(&Buffer[20],ReceiveSize-20);
 		if(SerialNumber.empty()) {
 			std::cout << "Invalid or missing serial number" << std::endl;
 			return;
@@ -181,7 +181,7 @@ namespace OpenWifi {
 			std::cout << "Runt packet" << std::endl;
 			return;
 		}
-		auto SerialNumber = ExtractSerialNumber(&Buffer[20],ReceiveSize);
+		auto SerialNumber = ExtractSerialNumber(&Buffer[20],ReceiveSize-20);
 		if(SerialNumber.empty()) {
 			std::cout << "Invalid or missing serial number" << std::endl;
 			return;
@@ -202,7 +202,7 @@ namespace OpenWifi {
 			std::cout << "Runt packet" << std::endl;
 			return;
 		}
-		auto SerialNumber = ExtractSerialNumber(&Buffer[20],ReceiveSize);
+		auto SerialNumber = ExtractSerialNumber(&Buffer[20],ReceiveSize-20);
 		if(SerialNumber.empty()) {
 			std::cout << "Invalid or missing serial number" << std::endl;
 			return;

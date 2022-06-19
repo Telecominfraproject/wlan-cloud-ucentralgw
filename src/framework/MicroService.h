@@ -1896,36 +1896,32 @@ namespace OpenWifi {
 	    [[nodiscard]] inline bool NeedAdditionalInfo() const { return QB_.AdditionalInfo; }
 	    [[nodiscard]] inline const std::vector<std::string> & SelectedRecords() const { return QB_.Select; }
 
-/*	    [[nodiscard]] inline const Poco::JSON::Object::Ptr ParseStream() {
-	        return IncomingParser_.parse(Request->stream()).extract<Poco::JSON::Object::Ptr>();
-	    }
-*/
+		inline static bool ParseBindings(const std::string & Request, const std::list<std::string> & EndPoints, BindingMap &bindings) {
+			bindings.clear();
+			auto PathItems = Poco::StringTokenizer(Request, "/");
 
-	    inline static bool ParseBindings(const std::string & Request, const std::list<std::string> & EndPoints, BindingMap &bindings) {
-	        bindings.clear();
-	        std::vector<std::string> PathItems = Utils::Split(Request, '/');
+			for(const auto &EndPoint:EndPoints) {
+				auto ParamItems = Poco::StringTokenizer(EndPoint, "/");
+				if (PathItems.count() != ParamItems.count())
+					continue;
 
-	        for(const auto &EndPoint:EndPoints) {
-	            std::vector<std::string> ParamItems = Utils::Split(EndPoint, '/');
-	            if (PathItems.size() != ParamItems.size())
-	                continue;
-
-	            bool Matched = true;
-	            for (size_t i = 0; i != PathItems.size() && Matched; i++) {
-	                if (PathItems[i] != ParamItems[i]) {
-	                    if (ParamItems[i][0] == '{') {
-	                        auto ParamName = ParamItems[i].substr(1, ParamItems[i].size() - 2);
-	                        bindings[Poco::toLower(ParamName)] = PathItems[i];
-	                    } else {
-	                        Matched = false;
-	                    }
-	                }
-	            }
-	            if(Matched)
-	                return true;
-	        }
-	        return false;
-	    }
+				bool Matched = true;
+				for (size_t i = 0; i < PathItems.count(); i++) {
+					if (PathItems[i] != ParamItems[i]) {
+						if (ParamItems[i][0] == '{') {
+							auto ParamName = ParamItems[i].substr(1, ParamItems[i].size() - 2);
+							bindings[Poco::toLower(ParamName)] = PathItems[i];
+						} else {
+							Matched = false;
+							break;
+						}
+					}
+				}
+				if(Matched)
+					return true;
+			}
+			return false;
+		}
 
 	    inline void PrintBindings() {
 	        for (const auto &[key, value] : Bindings_)
