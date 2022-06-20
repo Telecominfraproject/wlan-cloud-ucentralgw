@@ -4,11 +4,11 @@
 
 #include "RADIUS_proxy_server.h"
 #include "DeviceRegistry.h"
+#include "RADIUS_helpers.h"
 
 namespace OpenWifi {
 
 	const int SMALLEST_RADIUS_PACKET = 20+19+4;
-	const int RADIUS_BUFFER_SIZE = 2048;
 	const int DEFAULT_RADIUS_AUTHENTICATION_PORT = 1812;
 	const int DEFAULT_RADIUS_ACCOUNTING_PORT = 1813;
 	const int DEFAULT_RADIUS_CoA_PORT = 3799;
@@ -86,80 +86,19 @@ namespace OpenWifi {
 		CoAReactorThread_.join();
 	}
 
-	std::string ExtractSerialNumber(const unsigned char *b, uint32_t s) {
-		std::string result;
-
-		return "34efb6af4926";
-
-		/*
-		 "ASoA/Z+UA6loWb6NjTtdzl/6V/4BCXRlc3RpbmceHDkwLTNDLUIzLUJCLTFDLTFFOk9wZW5XaWZpPQYAAAATBgYAAAACBQYAAAABHxM3Ni0yNy1GQi1ENy05QS1DMk0YQ09OTkVDVCA1NE1icHMgODAyLjExYSwSNDBENThGRDcwMkU2Qjc3RLoGAA+sBLsGAA+sBLwGAA+sBb0GAA+sBhobAADmCEcVARM5MC0zYy1iMy1iYi0xYy0xYRocAADmCEcWAhQ2OS4xNTcuMTkzLjcxOjE4MTIMBgAABXhPDgLfAAwBdGVzdGluZ1ASGtkukw3w5/74FO9gvQ9r3A=="
-		 */
-
-		try {
-			uint32_t pos=0;
-			while(pos<s) {
-				auto len = b[pos+1];
-				if(b[pos] != 26) {
-					pos += len;
-					continue;
-				}
-
-				uint32_t vendor_id = b[pos+2] * 256 * 256 * 256  + b[pos+3] * 256 * 256 + b[pos+4] * 256+ b[pos+5];
-				if(vendor_id!=58888) {
-					pos += len;
-					continue;
-				}
-
-				auto tpos0 = pos + 6;
-				auto tend0 = tpos0 + b[tpos0+1];
-				while (tpos0<tend0) {
-					if (b[tpos0] == 71) {
-						auto tpos1 = tpos0+2;
-						auto tlen1 = b[tpos0+1];
-						auto tend1 = tpos1 + tlen1;
-						while (tpos1 < tend1) {
-							if (b[tpos1] == 0x01) {
-								uint32_t tlen = b[tpos1 + 1] - 2;
-								tpos1 += 2;
-								while (tlen) {
-									if (b[tpos1] != '-') {
-										result += (char) b[tpos1];
-									}
-									tlen--;
-									tpos1++;
-								}
-								if (result.size() == 12)
-									return result;
-								return "";
-							} else {
-								tpos1 += b[tpos1+1];
-							}
-						}
-					} else {
-						tpos0 += b[tpos0 + 1];
-					}
-				}
-				pos += len;
-			}
-		} catch (...) {
-
-		}
-
-		return result;
-	}
-
 	void RADIUS_proxy_server::OnAccountingSocketReadable(const Poco::AutoPtr<Poco::Net::ReadableNotification>& pNf) {
 		Poco::Net::SocketAddress	Sender;
-		unsigned char Buffer[RADIUS_BUFFER_SIZE];
+		RADIUS::RadiusPacket		P;
 
 		std::cout << "Accounting bytes received" << std::endl;
 
-		auto ReceiveSize = pNf.get()->socket().impl()->receiveBytes(Buffer,sizeof(Buffer));
+		auto ReceiveSize = pNf.get()->socket().impl()->receiveBytes(P.Buffer(),P.BufferLen());
 		if(ReceiveSize<SMALLEST_RADIUS_PACKET) {
 			std::cout << "Runt packet" << std::endl;
 			return;
 		}
-		auto SerialNumber = ExtractSerialNumber(&Buffer[20],ReceiveSize-20);
+		P.Evaluate(ReceiveSize);
+		auto SerialNumber = P.ExtractSerialNumber();
 		if(SerialNumber.empty()) {
 			std::cout << "Invalid or missing serial number" << std::endl;
 			return;
@@ -167,49 +106,51 @@ namespace OpenWifi {
 
 		Logger().information(fmt::format("Accounting Packet received for {}",SerialNumber));
 		std::cout << "Received an Accounting packet for :" << SerialNumber << std::endl;
-		DeviceRegistry()->SendRadiusAccountingData(SerialNumber,Buffer,ReceiveSize);
+		DeviceRegistry()->SendRadiusAccountingData(SerialNumber,P.Buffer(),P.Size());
 	}
 
 	void RADIUS_proxy_server::OnAuthenticationSocketReadable(const Poco::AutoPtr<Poco::Net::ReadableNotification>& pNf) {
 		Poco::Net::SocketAddress	Sender;
-		unsigned char Buffer[RADIUS_BUFFER_SIZE];
+		RADIUS::RadiusPacket		P;
 
 		std::cout << "Authentication bytes received" << std::endl;
 
-		auto ReceiveSize = pNf.get()->socket().impl()->receiveBytes(Buffer,sizeof(Buffer));
+		auto ReceiveSize = pNf.get()->socket().impl()->receiveBytes(P.Buffer(),P.BufferLen());
 		if(ReceiveSize<SMALLEST_RADIUS_PACKET) {
 			std::cout << "Runt packet" << std::endl;
 			return;
 		}
-		auto SerialNumber = ExtractSerialNumber(&Buffer[20],ReceiveSize-20);
+		P.Evaluate(ReceiveSize);
+		auto SerialNumber = P.ExtractSerialNumber();
 		if(SerialNumber.empty()) {
 			std::cout << "Invalid or missing serial number" << std::endl;
 			return;
 		}
 		Logger().information(fmt::format("Authentication Packet received for {}",SerialNumber));
 		std::cout << "Received an Authentication packet for :" << SerialNumber << std::endl;
-		DeviceRegistry()->SendRadiusAuthenticationData(SerialNumber,Buffer,ReceiveSize);
+		DeviceRegistry()->SendRadiusAuthenticationData(SerialNumber,P.Buffer(),P.Size());
 	}
 
 	void RADIUS_proxy_server::OnCoASocketReadable(const Poco::AutoPtr<Poco::Net::ReadableNotification>& pNf) {
 		Poco::Net::SocketAddress	Sender;
-		unsigned char Buffer[RADIUS_BUFFER_SIZE];
+		RADIUS::RadiusPacket		P;
 
 		std::cout << "CoA bytes received" << std::endl;
 
-		auto ReceiveSize = pNf.get()->socket().impl()->receiveBytes(Buffer,sizeof(Buffer));
+		auto ReceiveSize = pNf.get()->socket().impl()->receiveBytes(P.Buffer(),P.BufferLen());
 		if(ReceiveSize<SMALLEST_RADIUS_PACKET) {
 			std::cout << "Runt packet" << std::endl;
 			return;
 		}
-		auto SerialNumber = ExtractSerialNumber(&Buffer[20],ReceiveSize-20);
+		P.Evaluate(ReceiveSize);
+		auto SerialNumber = P.ExtractSerialNumber();
 		if(SerialNumber.empty()) {
 			std::cout << "Invalid or missing serial number" << std::endl;
 			return;
 		}
 		Logger().information(fmt::format("CoA Packet received for {}",SerialNumber));
 		std::cout << "Received an CoA packet for :" << SerialNumber << std::endl;
-		DeviceRegistry()->SendRadiusCoAData(SerialNumber,Buffer,ReceiveSize);
+		DeviceRegistry()->SendRadiusCoAData(SerialNumber,P.Buffer(),P.Size());
 	}
 
 	void RADIUS_proxy_server::SendAccountingData(const std::string &serialNumber, const std::string &Destination,const char *buffer, std::size_t size) {
