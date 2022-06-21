@@ -160,6 +160,19 @@ namespace OpenWifi::RADIUS {
 			return Result;
 		}
 
+		std::string ExtractProxyStateDestination() {
+			std::string Result;
+			for(const auto &attribute:Attrs_) {
+				if(attribute.type==33) {
+					std::string Attr33;
+					Attr33.assign((const char *)(const char *)&P_.attributes[attribute.pos],attribute.len);
+					auto Parts = Poco::StringTokenizer(Attr33,":");
+					return Parts[2];
+				}
+			}
+			return Result;
+		}
+
 	  private:
 		RawRadiusPacket     P_;
 		uint16_t            Size_{0};

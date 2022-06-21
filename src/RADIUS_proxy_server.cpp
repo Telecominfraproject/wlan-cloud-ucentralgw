@@ -153,7 +153,9 @@ namespace OpenWifi {
 		DeviceRegistry()->SendRadiusCoAData(SerialNumber,P.Buffer(),P.Size());
 	}
 
-	void RADIUS_proxy_server::SendAccountingData(const std::string &serialNumber, const std::string &Destination,const char *buffer, std::size_t size) {
+	void RADIUS_proxy_server::SendAccountingData(const std::string &serialNumber, const char *buffer, std::size_t size) {
+		RADIUS::RadiusPacket	P((unsigned char *)buffer,size);
+		auto Destination = P.ExtractProxyStateDestination();
 		Poco::Net::SocketAddress	Dst(Destination);
 
 		std::lock_guard	G(Mutex_);
@@ -165,7 +167,9 @@ namespace OpenWifi {
 		std::cout << "Sending Accounting data to " << Destination << std::endl;
 	}
 
-	void RADIUS_proxy_server::SendAuthenticationData(const std::string &serialNumber, const std::string &Destination,const char *buffer, std::size_t size) {
+	void RADIUS_proxy_server::SendAuthenticationData(const std::string &serialNumber, const char *buffer, std::size_t size) {
+		RADIUS::RadiusPacket	P((unsigned char *)buffer,size);
+		auto Destination = P.ExtractProxyStateDestination();
 		Poco::Net::SocketAddress	Dst(Destination);
 
 		std::lock_guard	G(Mutex_);
@@ -177,7 +181,9 @@ namespace OpenWifi {
 		std::cout << "Sending Authentication data to " << Destination << std::endl;
 	}
 
-	void RADIUS_proxy_server::SendCoAData(const std::string &serialNumber, const std::string &Destination,const char *buffer, std::size_t size) {
+	void RADIUS_proxy_server::SendCoAData(const std::string &serialNumber, const char *buffer, std::size_t size) {
+		RADIUS::RadiusPacket	P((unsigned char *)buffer,size);
+		auto Destination = P.ExtractProxyStateDestination();
 		Poco::Net::SocketAddress	Dst(Destination);
 
 		std::lock_guard	G(Mutex_);
