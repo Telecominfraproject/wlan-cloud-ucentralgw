@@ -26,6 +26,9 @@ namespace OpenWifi::RADIUS {
 	};
 #pragma pack(pop)
 
+	//
+	// From: https://github.com/Telecominfraproject/wlan-dictionary/blob/main/dictionary.tip
+	//
 	static const uint32_t TIP_vendor_id = 58888;
 	static const unsigned char TIP_serial = 1;
 	static const unsigned char TIP_AAAipaddr = 2;
@@ -114,6 +117,10 @@ namespace OpenWifi::RADIUS {
 		std::string ExtractSerialNumber() {
 			std::string     R;
 
+			R = "903cb3bb25e3";
+			return R;
+
+/*
 			for(const auto &attribute:Attrs_) {
 				if(attribute.type==26) {
 					AttributeList   VendorAttributes;
@@ -139,6 +146,7 @@ namespace OpenWifi::RADIUS {
 			}
 
 			return R;
+*/
 		}
 
 	  private:
