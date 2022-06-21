@@ -1077,7 +1077,8 @@ namespace OpenWifi {
 	}
 
 	std::string Base64Encode(const unsigned char *buffer, std::size_t size) {
-		std::istringstream s(std::string{(const char *)buffer,size});
+		const std::string Packet{(const char *)buffer,size};
+		std::istringstream s(Packet);
 		std::ostringstream o;
 		Poco::Base64Encoder	E(o,Poco::Base64EncodingOptions::BASE64_URL_ENCODING);
 		Poco::StreamCopier::copyStream(s,E);
@@ -1096,7 +1097,13 @@ namespace OpenWifi {
 	bool WSConnection::SendRadiusAuthenticationData(const unsigned char * buffer, std::size_t size) {
 		Poco::JSON::Object	Answer;
 		Answer.set(uCentralProtocol::RADIUS,uCentralProtocol::RADIUSAUTH);
-		Answer.set(uCentralProtocol::RADIUSDATA, Base64Encode(buffer,size));
+		auto F = Base64Encode(buffer,size);
+
+		std::cout << ">>>" << std::endl;
+		std::cout << F << std::endl;
+		std::cout << ">>>" << std::endl;
+
+		Answer.set(uCentralProtocol::RADIUSDATA, F);
 
 		std::ostringstream Payload;
 		Answer.stringify(Payload);
