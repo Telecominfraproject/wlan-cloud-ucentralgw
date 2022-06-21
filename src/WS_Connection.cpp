@@ -1079,7 +1079,7 @@ namespace OpenWifi {
 	std::string Base64Encode(const unsigned char *buffer, std::size_t size) {
 		std::istringstream s(std::string{(const char *)buffer,size});
 		std::ostringstream o;
-		Poco::Base64Encoder	E(o);
+		Poco::Base64Encoder	E(o,Poco::Base64EncodingOptions::BASE64_URL_ENCODING);
 		Poco::StreamCopier::copyStream(s,E);
 		E.close();
 		return o.str();

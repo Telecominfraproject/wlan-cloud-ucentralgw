@@ -114,13 +114,9 @@ namespace OpenWifi::RADIUS {
 			os << std::dec << std::endl;
 		}
 
-		std::string ExtractSerialNumber() {
+		std::string ExtractSerialNumberTIP() {
 			std::string     R;
 
-			R = "903cb3bb25e3";
-			return R;
-
-/*
 			for(const auto &attribute:Attrs_) {
 				if(attribute.type==26) {
 					AttributeList   VendorAttributes;
@@ -146,7 +142,22 @@ namespace OpenWifi::RADIUS {
 			}
 
 			return R;
-*/
+		}
+
+		std::string ExtractSerialNumberFromProxyState() {
+			std::string Result;
+			for(const auto &attribute:Attrs_) {
+				if(attribute.type==33) {
+					const char * SN = (const char *)&P_.attributes[attribute.pos];
+					auto i=0;
+					while(*SN!=':' && i<12) {
+						Result+=*SN++;
+						i++;
+					}
+					return Result;
+				}
+			}
+			return Result;
 		}
 
 	  private:

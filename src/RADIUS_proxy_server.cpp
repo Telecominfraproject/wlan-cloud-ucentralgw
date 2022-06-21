@@ -98,7 +98,7 @@ namespace OpenWifi {
 			return;
 		}
 		P.Evaluate(ReceiveSize);
-		auto SerialNumber = P.ExtractSerialNumber();
+		auto SerialNumber = P.ExtractSerialNumberFromProxyState();
 		if(SerialNumber.empty()) {
 			std::cout << "Invalid or missing serial number" << std::endl;
 			return;
@@ -121,7 +121,7 @@ namespace OpenWifi {
 			return;
 		}
 		P.Evaluate(ReceiveSize);
-		auto SerialNumber = P.ExtractSerialNumber();
+		auto SerialNumber = P.ExtractSerialNumberFromProxyState();
 		if(SerialNumber.empty()) {
 			std::cout << "Invalid or missing serial number" << std::endl;
 			return;
@@ -143,7 +143,7 @@ namespace OpenWifi {
 			return;
 		}
 		P.Evaluate(ReceiveSize);
-		auto SerialNumber = P.ExtractSerialNumber();
+		auto SerialNumber = P.ExtractSerialNumberFromProxyState();
 		if(SerialNumber.empty()) {
 			std::cout << "Invalid or missing serial number" << std::endl;
 			return;
