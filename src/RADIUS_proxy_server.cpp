@@ -273,7 +273,7 @@ namespace OpenWifi {
 		}
 	}
 
-	Poco::Net::SocketAddress RADIUS_proxy_server::Route(radius_type rtype, const Poco::Net::SocketAddress &OriginalAddress, PoolIndexVec_t & P, PoolIndexMap_t &M) {
+	Poco::Net::SocketAddress RADIUS_proxy_server::Route([[maybe_unused]] radius_type rtype, const Poco::Net::SocketAddress &OriginalAddress, PoolIndexVec_t & P, PoolIndexMap_t &M) {
 		std::lock_guard	G(Mutex_);
 
 		if(PoolList_.pools.empty())
