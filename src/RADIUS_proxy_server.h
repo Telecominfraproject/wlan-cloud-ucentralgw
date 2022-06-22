@@ -97,7 +97,7 @@ namespace OpenWifi {
 		void ParseConfig();
 		void ResetConfig();
 		Poco::Net::SocketAddress Route(radius_type rtype, const Poco::Net::SocketAddress &A, PoolIndexVec_t & P, PoolIndexMap_t &M);
-		void ParseServerList(const GWObjects::RadiusProxyServerConfig & Config,  PoolIndexMap_t &MapV4, PoolIndexMap_t &MapV6, PoolIndexVec_t &VecV4, PoolIndexVec_t &VecV6, bool setAsDefault);
+		static void ParseServerList(const GWObjects::RadiusProxyServerConfig & Config,  PoolIndexMap_t &MapV4, PoolIndexMap_t &MapV6, PoolIndexVec_t &VecV4, PoolIndexVec_t &VecV6, bool setAsDefault);
 		static Poco::Net::SocketAddress ChooseAddress(std::vector<Destination> &Pool, const Poco::Net::SocketAddress & OriginalAddress);
 	};
 

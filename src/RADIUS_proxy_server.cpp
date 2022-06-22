@@ -301,7 +301,10 @@ namespace OpenWifi {
 	}
 
 	Poco::Net::SocketAddress RADIUS_proxy_server::ChooseAddress(std::vector<Destination> &Pool, const Poco::Net::SocketAddress & OriginalAddress) {
-		//	is there anything of the same af ?
+
+		if(Pool.size()==1)
+			return Pool[0].Addr;
+
 		if (Pool[0].strategy == "weighted") {
 			bool found = false;
 			uint64_t cur_state = std::numeric_limits<uint64_t>::max();
