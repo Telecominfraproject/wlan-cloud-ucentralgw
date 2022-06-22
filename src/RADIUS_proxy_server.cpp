@@ -143,7 +143,7 @@ namespace OpenWifi {
 			return;
 		}
 		P.Evaluate(ReceiveSize);
-		auto SerialNumber = P.ExtractSerialNumberFromProxyState();
+		auto SerialNumber = P.ExtractSerialNumberTIP();
 		if(SerialNumber.empty()) {
 			std::cout << "Invalid or missing serial number" << std::endl;
 			return;
@@ -160,9 +160,9 @@ namespace OpenWifi {
 
 		std::lock_guard	G(Mutex_);
 		if(Dst.af()==Poco::Net::AddressFamily::IPv4)
-			AccountingSocketV4_->sendTo(buffer,(int)size,Route(Dst,AcctPoolsV4_,AcctPoolsIndexV4_));
+			AccountingSocketV4_->sendTo(buffer,(int)size,Route(radius_type::acct, Dst,AcctPoolsV4_,AcctPoolsIndexV4_));
 		else
-			AccountingSocketV6_->sendTo(buffer,(int)size,Route(Dst,AcctPoolsV6_,AcctPoolsIndexV6_));
+			AccountingSocketV6_->sendTo(buffer,(int)size,Route(radius_type::acct, Dst,AcctPoolsV6_,AcctPoolsIndexV6_));
 		Logger().information(fmt::format("{}: Sending Accounting Packet to {}", serialNumber, Destination));
 		std::cout << "Sending Accounting data to " << Destination << std::endl;
 	}
@@ -174,9 +174,9 @@ namespace OpenWifi {
 
 		std::lock_guard	G(Mutex_);
 		if(Dst.af()==Poco::Net::AddressFamily::IPv4)
-			AuthenticationSocketV4_->sendTo(buffer,(int)size,Route(Dst,AuthPoolsV4_,AuthPoolsIndexV4_));
+			AuthenticationSocketV4_->sendTo(buffer,(int)size,Route(radius_type::auth, Dst,AuthPoolsV4_,AuthPoolsIndexV4_));
 		else
-			AuthenticationSocketV6_->sendTo(buffer,(int)size,Route(Dst,AuthPoolsV6_,AuthPoolsIndexV6_));
+			AuthenticationSocketV6_->sendTo(buffer,(int)size,Route(radius_type::auth, Dst,AuthPoolsV6_,AuthPoolsIndexV6_));
 		Logger().information(fmt::format("{}: Sending Authentication Packet to {}", serialNumber, Destination));
 		std::cout << "Sending Authentication data to " << Destination << std::endl;
 	}
@@ -188,14 +188,14 @@ namespace OpenWifi {
 
 		std::lock_guard	G(Mutex_);
 		if(Dst.af()==Poco::Net::AddressFamily::IPv4)
-			CoASocketV4_->sendTo(buffer,(int)size,Route(Dst,CoAPoolsV4_,CoAPoolsIndexV4_));
+			CoASocketV4_->sendTo(buffer,(int)size,Route(radius_type::coa, Dst,CoAPoolsV4_,CoAPoolsIndexV4_));
 		else
-			CoASocketV6_->sendTo(buffer,(int)size,Route(Dst,CoAPoolsV6_,CoAPoolsIndexV6_));
+			CoASocketV6_->sendTo(buffer,(int)size,Route(radius_type::coa, Dst,CoAPoolsV6_,CoAPoolsIndexV6_));
 		Logger().information(fmt::format("{}: Sending CoA Packet to {}", serialNumber, Destination));
 		std::cout << "Sending CoA data to " << Destination << std::endl;
 	}
 
-	void RADIUS_proxy_server::ParseServerList(const GWObjects::RadiusProxyServerConfig & Config, PoolIndexMap_t &MapV4, PoolIndexMap_t &MapV6, PoolIndexVec_t &VecV4, PoolIndexVec_t &VecV6) {
+	void RADIUS_proxy_server::ParseServerList(const GWObjects::RadiusProxyServerConfig & Config, PoolIndexMap_t &MapV4, PoolIndexMap_t &MapV6, PoolIndexVec_t &VecV4, PoolIndexVec_t &VecV6, bool setAsDefault) {
 
 		std::vector<Destination>	DestsV4,DestsV6;
 		uint64_t TotalV4=0, TotalV6=0;
@@ -211,7 +211,8 @@ namespace OpenWifi {
 				.strategy = Config.strategy,
 				.monitor = Config. monitor,
 				.monitorMethod = Config.monitorMethod,
-				.methodParameters = Config.methodParameters
+				.methodParameters = Config.methodParameters,
+				.useAsDefault = setAsDefault
 			};
 
 			if(S.af()==Poco::Net::AddressFamily::IPv4) {
@@ -255,9 +256,9 @@ namespace OpenWifi {
 					ResetConfig();
 					PoolList_ = RPC;
 					for(const auto &pool:RPC.pools) {
-						ParseServerList(pool.authConfig, AuthPoolsIndexV4_, AuthPoolsIndexV6_, AuthPoolsV4_, AuthPoolsV6_);
-						ParseServerList(pool.acctConfig, AcctPoolsIndexV4_, AcctPoolsIndexV6_, AcctPoolsV4_, AcctPoolsV6_);
-						ParseServerList(pool.coaConfig, CoAPoolsIndexV4_, CoAPoolsIndexV6_, CoAPoolsV4_, CoAPoolsV6_);
+						ParseServerList(pool.authConfig, AuthPoolsIndexV4_, AuthPoolsIndexV6_, AuthPoolsV4_, AuthPoolsV6_, pool.useByDefault);
+						ParseServerList(pool.acctConfig, AcctPoolsIndexV4_, AcctPoolsIndexV6_, AcctPoolsV4_, AcctPoolsV6_, pool.useByDefault);
+						ParseServerList(pool.coaConfig, CoAPoolsIndexV4_, CoAPoolsIndexV6_, CoAPoolsV4_, CoAPoolsV6_, pool.useByDefault);
 					}
 				} else {
 					Logger().warning(fmt::format("Configuration file '{}' is bad.",ConfigFilename_));
@@ -272,20 +273,36 @@ namespace OpenWifi {
 		}
 	}
 
-	Poco::Net::SocketAddress RADIUS_proxy_server::Route(const Poco::Net::SocketAddress &A, PoolIndexVec_t & P, PoolIndexMap_t &M) {
+	Poco::Net::SocketAddress RADIUS_proxy_server::Route(radius_type rtype, const Poco::Net::SocketAddress &OriginalAddress, PoolIndexVec_t & P, PoolIndexMap_t &M) {
 		std::lock_guard	G(Mutex_);
 
 		if(PoolList_.pools.empty())
-			return A;
+			return OriginalAddress;
 
-		auto It = M.find(A);
-		if(It==M.end())
-			return A;
-		auto Index = It->second;
-		auto Pool = P[Index];
+		bool useDefault = false;
+		if(OriginalAddress.host() == Poco::Net::SocketAddress("0.0.0.0:0").host()) {
+			useDefault = true;
+		}
 
+		auto It = M.find(OriginalAddress);
+		if(!useDefault && It==M.end())
+			return OriginalAddress;
+
+		if(useDefault || It==M.end()) {
+			for(auto &svr:P) {
+				if(svr[0].useAsDefault)
+					return ChooseAddress(svr,OriginalAddress);
+			}
+			return ChooseAddress(P[0],OriginalAddress);
+		} else {
+			auto Pool = P[It->second];
+			return ChooseAddress(Pool, OriginalAddress);
+		}
+	}
+
+	Poco::Net::SocketAddress RADIUS_proxy_server::ChooseAddress(std::vector<Destination> &Pool, const Poco::Net::SocketAddress & OriginalAddress) {
 		//	is there anything of the same af ?
-		if(Pool[0].strategy=="weighted") {
+		if (Pool[0].strategy == "weighted") {
 			bool found = false;
 			uint64_t cur_state = std::numeric_limits<uint64_t>::max();
 			std::size_t pos = 0, index = 0;
@@ -303,11 +320,11 @@ namespace OpenWifi {
 			}
 
 			if (!found)
-				return A;
+				return OriginalAddress;
 
 			Pool[index].state += Pool[index].step;
 			return Pool[index].Addr;
-		} else if (Pool[0].strategy=="round_robin") {
+		} else if (Pool[0].strategy == "round_robin") {
 			bool found = false;
 			uint64_t cur_state = std::numeric_limits<uint64_t>::max();
 			std::size_t pos = 0, index = 0;
@@ -325,19 +342,20 @@ namespace OpenWifi {
 			}
 
 			if (!found)
-				return A;
+				return OriginalAddress;
 
 			Pool[index].state += 1;
 			return Pool[index].Addr;
-		} else if (Pool[0].strategy=="random") {
-			if(Pool.size()>1) {
-				return Pool[ std::rand() % Pool.size() ].Addr;
+		} else if (Pool[0].strategy == "random") {
+			if (Pool.size() > 1) {
+				return Pool[std::rand() % Pool.size()].Addr;
 			} else {
-				return A;
+				return OriginalAddress;
 			}
 		}
-		return A;
+		return OriginalAddress;
 	}
+
 
 	void RADIUS_proxy_server::SetConfig(const GWObjects::RadiusProxyPoolList &C) {
 		std::lock_guard	G(Mutex_);
@@ -367,6 +385,7 @@ namespace OpenWifi {
 		AcctPoolsV6_.clear();
 		CoAPoolsV4_.clear();
 		CoAPoolsV6_.clear();
+		defaultPoolIndex=0;
 	}
 
 	void RADIUS_proxy_server::DeleteConfig() {

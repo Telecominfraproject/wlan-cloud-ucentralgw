@@ -30,7 +30,7 @@ In this RPC, here are some common interpretations:
 #### Connection event
 Device Sends connection notification to the controller after establishing a connection. The controller
 my decide to send the AP a newer configuration. The controller will record the device capabilities provided.
-```
+```json
 {     "jsonrpc" : "2.0" , 
       "method" : "connect" , 
       "params" : {
@@ -47,7 +47,7 @@ my decide to send the AP a newer configuration. The controller will record the d
 #### State event
 The device sends device state information periodically. If the controller detects that it has a newer configuration, it
 may decide to send this new configuration to the AP.
-```
+```json
 {   "jsonrpc" : "2.0" , 
     "method" : "state" , 
     "params" : {
@@ -62,7 +62,7 @@ may decide to send this new configuration to the AP.
 #### Healthcheck event
 Device sends a `healthcheck` periodically. This message contains information about how vital subsystems are operating and 
 if they need attention.
-```
+```json
 {   "jsonrpc" : "2.0" , 
     "method" : "healthcheck" , 
     "params" : {
@@ -77,7 +77,7 @@ if they need attention.
 
 #### Log event
 Device sends a log message whenever necessary. The controller will log this message to the log system for the device.
-```
+```json
 {   "jsonrpc" : "2.0" , 
     "method" : "log" , 
     "params" : {
@@ -102,7 +102,7 @@ The `severity` matches the `syslog` levels. Here are the details:
 
 #### Crash Log event
 Device may send a crash log event after rebooting after a crash. The event cannot be sent until a connection event has been sent.
-```
+```json
 {   "jsonrpc" : "2.0" , 
     "method" : "crashlog" , 
     "params" : {
@@ -117,7 +117,7 @@ Device may send a crash log event after rebooting after a crash. The event canno
 Device sends this message to tell the controller that the device 
 has received a configuration but is still running an older configuration. The controller will not
 reply to this message.
-```
+```json
 {   "jsonrpc" : "2.0" , 
     "method" : "cfgpending" , 
     "params" : {
@@ -131,7 +131,7 @@ reply to this message.
 #### DeviceUpdate event
 Device sends this message to tell the controller it is changing something is its configuration because
 of some requirement or some changes.
-```
+```json
 {   "jsonrpc" : "2.0" , 
     "method" : "deviceupdate" , 
     "params" : {
@@ -145,7 +145,7 @@ of some requirement or some changes.
 #### Send a keepalive to the controller event
 Device sends a keepalive whenever necessary. The device will send this message to tell the controller
 which version it is running. The Controller may decide to send the device a newer configuration.
-```
+```json
 {   "jsonrpc" : "2.0" , 
     "method" : "ping" , 
     "params" : {
@@ -157,7 +157,7 @@ which version it is running. The Controller may decide to send the device a newe
 
 #### Recovery Event
 Device may decide it has to do into recovery mode. This event should be used.
-```
+```json
 {   "jsonrpc" : "2.0" , 
     "method" : "recovery" , 
     "params" : {
@@ -170,6 +170,18 @@ Device may decide it has to do into recovery mode. This event should be used.
 }
 ```
 
+The device should answer:
+```json
+{    "jsonrpc" : "2.0" ,
+    "result" : {
+        "serial" : <serial number> ,
+        "status" : {
+          "error" : 0 or an error number,
+          "text" : <description of the error or success>
+        }
+  },
+  "id" : <same number>
+}
 
 ### Controller commands
 Most controller commands include a `when` member. This is a UTC clock time asking the AP
@@ -180,7 +192,7 @@ always a numeric parameter.
 #### Controller wants the device to apply a given configuration
 Controller sends this command when it believes the device should load a new configuration. The device
 should send message with `pending change` events until this version has been applied and running.
-```
+```json
 {   "jsonrpc" : "2.0" , 
     "method" : "configure" , 
     "params" : {
@@ -194,7 +206,7 @@ should send message with `pending change` events until this version has been app
 ```
 
 The device should answer:
-```
+```json
 {    "jsonrpc" : "2.0" , 
      "result" : {
          "serial" : <serial number> ,
@@ -233,7 +245,7 @@ The rejected section is an array containing the following:
 
 #### Controller wants the device to reboot
 Controller sends this command when it believes the device should reboot.
-```
+```json
 {    "jsonrpc" : "2.0" , 
      "method" : "reboot" , 
      "params" : {
@@ -245,7 +257,7 @@ Controller sends this command when it believes the device should reboot.
 ```
 
 The device should answer:
-```
+```json
 {     "jsonrpc" : "2.0" , 
       "result" : {
       "serial" : <serial number> ,
@@ -264,7 +276,7 @@ The device should answer:
 
 #### Controller wants the device to upgrade its firmware
 Controller sends this command when it believes the device should upgrade its firmware.
-```
+```json
 {    "jsonrpc" : "2.0" , 
      "method" : "upgrade" , 
      "params" : {
@@ -277,7 +289,7 @@ Controller sends this command when it believes the device should upgrade its fir
 ```
 
 The device should answer:
-```
+```json
 {     "jsonrpc" : "2.0" , 
       "result" : {
           "serial" : <serial number> ,
@@ -293,7 +305,7 @@ The device should answer:
 
 #### Controller wants the device to perform a factory reset
 Controller sends this command when it believes the device should upgrade its firmware.
-```
+```json
 {    "jsonrpc" : "2.0" , 
      "method" : "factory" , 
      "params" : {
@@ -306,7 +318,7 @@ Controller sends this command when it believes the device should upgrade its fir
 ```
 
 The device should answer:
-```
+```json
 {     "jsonrpc" : "2.0" , 
       "result" : {
           "serial" : <serial number> ,
@@ -320,9 +332,50 @@ The device should answer:
 }
 ```
 
+#### Controller issuing RRM commands to the AP 
+Controller sends this command to perform several RRM commands.
+```json
+{    "jsonrpc" : "2.0" ,
+     "method" : "rrm" ,
+     "params" : {
+                "serial" : <serial number> ,
+                "actions": [
+                        {
+                                "type": "roam",
+                                "bss": [ "00:11:22:33:44:55", ... ],
+                                "params" : { action specific data }
+                        }, {
+                                "type": "tx-power",
+                                "bss": [ "00:11:22:33:44:55", ... ],
+                                “params”: { action specific data }
+                        }, {
+                                "type": "beacon-request",
+                                "bss": [ "00:11:22:33:44:55", ... ],
+                                "params": { action specific data }
+                        }
+                ]
+        },
+     "id" : <some number>
+}
+```
+
+The device should answer:
+```json
+{     "jsonrpc" : "2.0" , 
+      "result" : {
+          "serial" : <serial number> ,
+          "status" : {
+            "error" : 0 or an error number,
+            "text" : <description of the error or success>,
+          }
+      },
+  "id" : <same number>
+}
+```
+
 #### Controller wants the device to flash its LEDs
 Controller sends this command when it wants the device to flash its LEDs.
-```
+```json
 {    "jsonrpc" : "2.0" , 
      "method" : "leds" , 
      "params" : {
@@ -336,14 +389,13 @@ Controller sends this command when it wants the device to flash its LEDs.
 ```
 
 The device should answer:
-```
+```json
 {     "jsonrpc" : "2.0" , 
       "result" : {
           "serial" : <serial number> ,
           "status" : {
             "error" : 0 or an error number,
             "text" : <description of the error or success>,
-            "when" : <time when this will be performed as UTC seconds>,
           }
   	},
   "id" : <same number>
@@ -358,7 +410,7 @@ The device should answer:
 #### Controller sends a device specific command
 Controller sends this command specific to this device. The command is proprietary and must be agreed upon by the device 
 and the controller.
-```
+```json
 {     "jsonrpc" : "2.0" , 
       "method" : "perform" , 
       "params" : {
@@ -372,7 +424,7 @@ and the controller.
 ```
 
 The device should answer:
-```
+```json
 {     "jsonrpc" : "2.0" , 
       "result" : {
           "serial" : <serial number> ,
@@ -395,7 +447,7 @@ The device should answer with teh above message. The `error` value should be int
 
 #### Controller wants the device to perform a trace
 Controller sends this command when it needs the device to perform a trace (i.e. tcpdump).
-```
+```json
 {    "jsonrpc" : "2.0" , 
      "method" : "trace" , 
      "params" : {
@@ -412,7 +464,7 @@ Controller sends this command when it needs the device to perform a trace (i.e. 
 ```
 
 The device should answer:
-```
+```json
 {   "jsonrpc" : "2.0" , 
     "result" : {
           "serial" : <serial number> ,
@@ -438,7 +490,7 @@ uploaded or the timeout occurs, the upload will be rejected.
 
 #### Controller wants the device to perform a WiFi Scan
 Controller sends this command when it needs the device to perform a WiFi Scan.
-```
+```json
 {    "jsonrpc" : "2.0" , 
      "method" : "wifiscan" , 
      "params" : {
@@ -455,7 +507,7 @@ Controller sends this command when it needs the device to perform a WiFi Scan.
 ```
 
 The device should answer:
-```
+```json
 {   "jsonrpc" : "2.0" , 
     "result" : {
           "serial" : <serial number> ,
@@ -478,7 +530,7 @@ Controller sends this command when it needs the device to provide a message back
 supported messages are "state" and "healthcheck". More messages maybe added later. The messages will
 be returned the usual way. The RPC response to this message just says that the request has been accepted and the
 message will be returned "soon".
-```
+```json
 {    "jsonrpc" : "2.0" , 
      "method" : "request" , 
      "params" : {
@@ -492,7 +544,7 @@ message will be returned "soon".
 ```
 
 The device should answer:
-```
+```json
 {   "jsonrpc" : "2.0" , 
     "result" : {
           "serial" : <serial number> ,
@@ -508,7 +560,7 @@ The device should answer:
 
 #### Controller requesting eventqueue buffers
 Controller sends this command when it needs the device to provide the content of ist ring buffers.
-```
+```json
 {    "jsonrpc" : "2.0" , 
      "method" : "event" , 
      "params" : {
@@ -522,7 +574,7 @@ Controller sends this command when it needs the device to provide the content of
 ```
 
 The device should answer:
-```
+```json
 {   "jsonrpc" : "2.0" , 
     "result" : {
           "serial" : <serial number> ,
@@ -538,7 +590,7 @@ The device should answer:
 
 #### Controller requesting telemetry stream information
 Controller sends this command when it needs the device to telemetry streaming.
-```
+```json
 {    "jsonrpc" : "2.0" , 
      "method" : "telemetry" , 
      "params" : {
@@ -551,7 +603,7 @@ Controller sends this command when it needs the device to telemetry streaming.
 ```
 
 The device should answer:
-```
+```json
 {   "jsonrpc" : "2.0" , 
     "result" : {
           "serial" : <serial number> ,
@@ -565,7 +617,7 @@ The device should answer:
 ```
 
 When the interval is greater than 0, the gateway will start to receive messages
-```
+```json
 {   "jsonrpc" : "2.0" , 
     "method" : "telemetry" , 
     "params" : {
@@ -580,7 +632,7 @@ The device will stop sending data after 30 minutes or if it receives a `telemetr
 
 #### Controller requesting an `rtty` session
 Controller sends this command an administrator requests to start an `rtty` session with the AP. 
-```
+```json
 {    "jsonrpc" : "2.0" , 
      "method" : "remote_access" , 
      "params" : {
@@ -598,7 +650,7 @@ Controller sends this command an administrator requests to start an `rtty` sessi
 ```
 
 The device should answer:
-```
+```json
 {   "jsonrpc" : "2.0" , 
     "result" : {
           "serial" : <serial number> ,
@@ -614,7 +666,7 @@ The device should answer:
 
 #### Controller wants to ping the device
 Controller sends this command when it tries to establish latency to the device.
-```
+```json
 {    "jsonrpc" : "2.0" , 
      "method" : "ping" , 
      "params" : {
@@ -625,7 +677,7 @@ Controller sends this command when it tries to establish latency to the device.
 ```
 
 The device should answer:
-```
+```json
 {     "jsonrpc" : "2.0" , 
       "result" : {
               "serial" : <serial number> ,
@@ -638,7 +690,7 @@ The device should answer:
 
 #### Controller wants the device to perform a script
 Controller sends this command to run a predefined script. Extreme care must be taken.
-```
+```json
 {    "jsonrpc" : "2.0" , 
      "method" : "script" , 
      "params" : {
@@ -653,7 +705,7 @@ Controller sends this command to run a predefined script. Extreme care must be t
 ```
 
 The device should answer:
-```
+```json
 {     "jsonrpc" : "2.0" , 
       "result" : {
           "serial" : <serial number> ,
@@ -687,7 +739,7 @@ params will be dropped. Additional compression schemes may be developed later.
 The original `params` element should be run through `zlib:compress` and then encoded using base64, and passed as a string. Here is an example
 of the completed message. The following should how the `state` event could be compressed:
 
-```
+```json
 {   "jsonrpc" : "2.0" , 
     "method" : "state" , 
     "params" : {
@@ -700,13 +752,10 @@ of the completed message. The following should how the `state` event could be co
 The gateway can receive RADIUS messages from the device and forward them. It can also receive messages
 on its behalf and send them to the device.
 
-```
+```json
 {
     "radius" : <type, can be auth, acct, coa> ,
     "data" : <base 64 encoded raw RADIUS payload>
-    "dst" : <ip:port> as a string - optional. If this is supplied, the GW will send the data to that destination,
-            if not provided, the GW will use one of the radius servers it has in its configuration. This is only
-            valid for messages coming from the device.
 }
 ```
 

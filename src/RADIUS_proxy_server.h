@@ -10,6 +10,11 @@
 #include "RESTObjects/RESTAPI_GWobjects.h"
 
 namespace OpenWifi {
+
+	enum class radius_type {
+		auth, acct, coa
+	};
+
 	class RADIUS_proxy_server : public SubSystemServer {
 	  public:
 		inline static auto instance() {
@@ -42,6 +47,7 @@ namespace OpenWifi {
 			bool 						monitor=false;
 			std::string 				monitorMethod;
 			std::vector<std::string>	methodParameters;
+			bool 						useAsDefault=false;
 		};
 
 	  private:
@@ -81,6 +87,8 @@ namespace OpenWifi {
 		PoolIndexVec_t	CoAPoolsV4_;
 		PoolIndexVec_t	CoAPoolsV6_;
 
+		uint 			defaultPoolIndex=0;
+
 		RADIUS_proxy_server() noexcept:
 		   SubSystemServer("RADIUS-PROXY", "RADIUS-PROXY", "radius.proxy")
 		{
@@ -88,8 +96,9 @@ namespace OpenWifi {
 
 		void ParseConfig();
 		void ResetConfig();
-		Poco::Net::SocketAddress Route(const Poco::Net::SocketAddress &A, PoolIndexVec_t & P, PoolIndexMap_t &M);
-		void ParseServerList(const GWObjects::RadiusProxyServerConfig & Config,  PoolIndexMap_t &MapV4, PoolIndexMap_t &MapV6, PoolIndexVec_t &VecV4, PoolIndexVec_t &VecV6);
+		Poco::Net::SocketAddress Route(radius_type rtype, const Poco::Net::SocketAddress &A, PoolIndexVec_t & P, PoolIndexMap_t &M);
+		void ParseServerList(const GWObjects::RadiusProxyServerConfig & Config,  PoolIndexMap_t &MapV4, PoolIndexMap_t &MapV6, PoolIndexVec_t &VecV4, PoolIndexVec_t &VecV6, bool setAsDefault);
+		static Poco::Net::SocketAddress ChooseAddress(std::vector<Destination> &Pool, const Poco::Net::SocketAddress & OriginalAddress);
 	};
 
 	inline auto RADIUS_proxy_server() { return RADIUS_proxy_server::instance(); }
