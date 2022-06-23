@@ -659,6 +659,16 @@ runscript() {
 			  jq < ${result_file}
 }
 
+deviceping() {
+	payload="$(printf '{ "serialNumber": "%s" }' "$1" )"
+  	curl  ${FLAGS} -X POST "https://${OWGW}/api/v1/device/$1/ping" \
+				  -H "Content-Type: application/json" \
+				  -H "Accept: application/json" \
+				  -H "Authorization: Bearer ${token}" \
+				  -d "$payload"  > ${result_file}
+			  jq < ${result_file}
+}
+
 caplist() {
 	curl    ${FLAGS} -X GET "https://${OWGW}/api/v1/capabilities" \
 		-H "Content-Type: application/json" \
@@ -956,5 +966,6 @@ case "$1" in
 	"runscript") login; runscript $2 $3 $4; logout;;
 	"getradiusconfig") login; getradiusconfig ; logout;;
 	"setradiusconfig") login; setradiusconfig $2; logout;;
+	"deviceping") login; deviceping $2; logout;;
   *) help ;;
 esac

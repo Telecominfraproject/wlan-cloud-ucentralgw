@@ -3,6 +3,7 @@
         {
             "name" : "master" ,
             "description" : "master pool",
+            "useByDefault" : true,
             "authConfig" : {
                 "strategy" : "weighted",
                 "monitor" : false,

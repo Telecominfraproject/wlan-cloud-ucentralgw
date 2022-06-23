@@ -240,7 +240,7 @@ namespace OpenWifi::GWObjects {
 		RadiusProxyServerConfig	authConfig;
 		RadiusProxyServerConfig	acctConfig;
 		RadiusProxyServerConfig	coaConfig;
-		bool 		useByDefault=true;
+		bool 		useByDefault=false;
 
 		void to_json(Poco::JSON::Object &Obj) const;
 		bool from_json(const Poco::JSON::Object::Ptr &Obj);
