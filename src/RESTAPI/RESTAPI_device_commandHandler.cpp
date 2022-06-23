@@ -213,7 +213,7 @@ namespace OpenWifi {
 			if(StorageService()->GetCommand(Cmd.UUID,Cmd2)) {
 				Poco::JSON::Object	Answer;
 				// Answer.set("latency", Cmd2.executionTime);
-				Answer.set("latency", fmt::format("{:.3f}ms.", Cmd.UUID, Cmd.executionTime));
+				Answer.set("latency", fmt::format("{:.3f}ms.",Cmd.executionTime));
 				Answer.set("serialNumber", SerialNumber_);
 				Answer.set("currentUTCTime", std::chrono::duration_cast<std::chrono::milliseconds>(
 												 std::chrono::system_clock::now().time_since_epoch()).count());
