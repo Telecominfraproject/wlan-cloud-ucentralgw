@@ -1090,6 +1090,10 @@ components:
           type: integer
         weight:
           type: integer
+        secret:
+          type: string
+        certificate:
+          type: string
 
     RadiusProxyServerConfig:
       type: object
@@ -1128,6 +1132,8 @@ components:
         authConfig:
           $ref: '#/components/schemas/RadiusProxyServerConfig'
         acctConfig:
+          $ref: '#/components/schemas/RadiusProxyServerConfig'
+        coaConfig:
           $ref: '#/components/schemas/RadiusProxyServerConfig'
 
     RadiusProxyPoolList:
@@ -2592,6 +2598,16 @@ paths:
         403:
           $ref: '#/components/responses/Unauthorized'
 
+    delete:
+      tags:
+        - RADIUSProxy
+      summary: Delete RADIUS Proxy configuration.
+      operationId: deleteRadiusProxyConfig
+      responses:
+        204:
+          $ref: '#/components/responses/Success'
+        403:
+          $ref: '#/components/responses/Unauthorized'
 
   /deviceDashboard:
     get:

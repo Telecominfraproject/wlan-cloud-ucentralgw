@@ -1,0 +1,72 @@
+{
+    "pools" : [
+        {
+            "name" : "master" ,
+            "description" : "master pool",
+            "useByDefault" : true,
+            "authConfig" : {
+                "strategy" : "weighted",
+                "monitor" : false,
+                "monitorMethod" : "none",
+                "methodParameters" : [],
+                "servers" : [ {
+                        "name" : "svr1",
+                        "ip" : "10.100.0.1",
+                        "port" : 1812,
+                        "weight" : 10,
+                        "secret" : "my_secret!"
+                    },
+                    {
+                        "name" : "svr2",
+                        "ip" : "10.100.10.1",
+                        "port" : 1812,
+                        "weight" : 20,
+                        "secret" : "my_secret!"
+                    }
+                ]
+            },
+            "acctConfig" : {
+                "strategy" : "random",
+                "monitor" : false,
+                "monitorMethod" : "none",
+                "methodParameters" : [],
+                "servers" : [ {
+                        "name" : "svr1",
+                        "ip" : "10.100.0.1",
+                        "port" : 1813,
+                        "weight" : 10,
+                        "secret" : "my_secret!"
+                    },
+                    {
+                        "name" : "svr2",
+                        "ip" : "10.100.10.1",
+                        "port" : 1813,
+                        "weight" : 20,
+                        "secret" : "my_secret!"
+                    }
+                ]
+            },
+            "coaConfig" : {
+                "strategy" : "round_robin",
+                "monitor" : false,
+                "monitorMethod" : "none",
+                "methodParameters" : [],
+                "servers" : [ {
+                        "name" : "svr1",
+                        "ip" : "10.100.0.1",
+                        "port" : 3799,
+                        "weight" : 10,
+                        "secret" : "my_secret!"
+                    },
+                    {
+                        "name" : "svr2",
+                        "ip" : "10.100.10.1",
+                        "port" : 3799,
+                        "weight" : 20,
+                        "secret" : "my_secret!"
+                    }
+                ]
+            }
+        }
+    ]
+}

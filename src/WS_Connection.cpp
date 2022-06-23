@@ -1077,12 +1077,7 @@ namespace OpenWifi {
 	}
 
 	std::string Base64Encode(const unsigned char *buffer, std::size_t size) {
-		std::istringstream s(std::string{(const char *)buffer,size});
-		std::ostringstream o;
-		Poco::Base64Encoder	E(o);
-		Poco::StreamCopier::copyStream(s,E);
-		E.close();
-		return o.str();
+		return Utils::base64encode(buffer,size);
 	}
 
 	std::string Base64Decode(const std::string &F) {
@@ -1113,19 +1108,31 @@ namespace OpenWifi {
 		return Send(Payload.str());
 	}
 
+	bool WSConnection::SendRadiusCoAData(const unsigned char * buffer, std::size_t size) {
+		Poco::JSON::Object	Answer;
+		Answer.set(uCentralProtocol::RADIUS,uCentralProtocol::RADIUSCOA);
+		Answer.set(uCentralProtocol::RADIUSDATA, Base64Encode(buffer,size));
+
+		std::ostringstream Payload;
+		Answer.stringify(Payload);
+		return Send(Payload.str());
+	}
+
 	void WSConnection::ProcessIncomingRadiusData(const Poco::JSON::Object::Ptr &Doc) {
 		if( Doc->has(uCentralProtocol::RADIUSDATA)) {
 			auto Type = Doc->get(uCentralProtocol::RADIUS).toString();
 			if(Type==uCentralProtocol::RADIUSACCT) {
 				auto Data = Doc->get(uCentralProtocol::RADIUSDATA).toString();
 				auto DecodedData = Base64Decode(Data);
-				auto Destination = Doc->has(uCentralProtocol::RADIUSDST) ? Doc->get(uCentralProtocol::RADIUSDST).toString() : "";
-				RADIUS_proxy_server()->SendAccountingData(SerialNumber_,Destination,DecodedData.c_str(),DecodedData.size());
+				RADIUS_proxy_server()->SendAccountingData(SerialNumber_,DecodedData.c_str(),DecodedData.size());
 			} else if(Type==uCentralProtocol::RADIUSAUTH) {
 				auto Data = Doc->get(uCentralProtocol::RADIUSDATA).toString();
 				auto DecodedData = Base64Decode(Data);
-				auto Destination = Doc->has(uCentralProtocol::RADIUSDST) ? Doc->get(uCentralProtocol::RADIUSDST).toString() : "";
-				RADIUS_proxy_server()->SendAuthenticationData(SerialNumber_,Destination,DecodedData.c_str(),DecodedData.size());
+				RADIUS_proxy_server()->SendAuthenticationData(SerialNumber_,DecodedData.c_str(),DecodedData.size());
+			} else if(Type==uCentralProtocol::RADIUSCOA) {
+				auto Data = Doc->get(uCentralProtocol::RADIUSDATA).toString();
+				auto DecodedData = Base64Decode(Data);
+				RADIUS_proxy_server()->SendCoAData(SerialNumber_,DecodedData.c_str(),DecodedData.size());
 			}
 		}
 	}

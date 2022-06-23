@@ -105,6 +105,7 @@ namespace OpenWifi {
 
 		bool SendRadiusAuthenticationData(const std::string & SerialNumber, const unsigned char * buffer, std::size_t size);
 		bool SendRadiusAccountingData(const std::string & SerialNumber, const unsigned char * buffer, std::size_t size);
+		bool SendRadiusCoAData(const std::string & SerialNumber, const unsigned char * buffer, std::size_t size);
 
 	  private:
 		inline static std::atomic_uint64_t 						Id_=1;
