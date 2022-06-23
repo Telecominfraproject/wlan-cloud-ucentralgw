@@ -40,7 +40,7 @@ namespace OpenWifi {
 			if(pool.name.empty()) {
 				return BadRequest(RESTAPI::Errors::PoolNameInvalid);
 			}
-			for(const auto &config:{pool.acctConfig,pool.authConfig}) {
+			for(const auto &config:{pool.acctConfig,pool.authConfig,pool.coaConfig}) {
 				if(config.strategy!="random" && config.strategy!="round_robin" && config.strategy!="weighted") {
 					return BadRequest(RESTAPI::Errors::InvalidRadiusProxyStrategy);
 				}

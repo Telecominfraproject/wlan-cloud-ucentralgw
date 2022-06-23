@@ -207,12 +207,13 @@ namespace OpenWifi {
 			Params.stringify(ParamStream);
 			Cmd.Details = ParamStream.str();
 
-			RESTAPI_RPC::WaitForCommand(Cmd, Params, *Request, *Response, 60000ms, nullptr, this, Logger_);
+			RESTAPI_RPC::WaitForCommand(Cmd, Params, *Request, *Response, 60000ms, nullptr, nullptr, Logger_);
 
 			GWObjects::CommandDetails Cmd2;
 			if(StorageService()->GetCommand(Cmd.UUID,Cmd2)) {
 				Poco::JSON::Object	Answer;
-				Answer.set("latency", Cmd2.executionTime);
+				// Answer.set("latency", Cmd2.executionTime);
+				Answer.set("latency", fmt::format("{:.3f}ms.",Cmd.executionTime));
 				Answer.set("serialNumber", SerialNumber_);
 				Answer.set("currentUTCTime", std::chrono::duration_cast<std::chrono::milliseconds>(
 												 std::chrono::system_clock::now().time_since_epoch()).count());

@@ -4,13 +4,14 @@
 
 #include "RADIUS_proxy_server.h"
 #include "DeviceRegistry.h"
+#include "RADIUS_helpers.h"
 
 namespace OpenWifi {
 
 	const int SMALLEST_RADIUS_PACKET = 20+19+4;
-	const int RADIUS_BUFFER_SIZE = 2048;
 	const int DEFAULT_RADIUS_AUTHENTICATION_PORT = 1812;
 	const int DEFAULT_RADIUS_ACCOUNTING_PORT = 1813;
+	const int DEFAULT_RADIUS_CoA_PORT = 3799;
 
 	int RADIUS_proxy_server::Start() {
 
@@ -30,151 +31,178 @@ namespace OpenWifi {
 											  MicroService::instance().ConfigGetInt("radius.proxy.accounting.port",DEFAULT_RADIUS_ACCOUNTING_PORT));
 		AccountingSocketV6_ = std::make_unique<Poco::Net::DatagramSocket>(AcctSockAddrV6,true);
 
+		Poco::Net::SocketAddress	CoASockAddrV4(Poco::Net::AddressFamily::IPv4,
+												MicroService::instance().ConfigGetInt("radius.proxy.coa.port",DEFAULT_RADIUS_CoA_PORT));
+		CoASocketV4_ = std::make_unique<Poco::Net::DatagramSocket>(CoASockAddrV4,true);
+		Poco::Net::SocketAddress	CoASockAddrV6(Poco::Net::AddressFamily::IPv6,
+												MicroService::instance().ConfigGetInt("radius.proxy.coa.port",DEFAULT_RADIUS_CoA_PORT));
+		CoASocketV6_ = std::make_unique<Poco::Net::DatagramSocket>(CoASockAddrV6,true);
+
 		AuthenticationReactor_.addEventHandler(*AuthenticationSocketV4_,Poco::NObserver<RADIUS_proxy_server, Poco::Net::ReadableNotification>(
 														   *this, &RADIUS_proxy_server::OnAuthenticationSocketReadable));
+		AuthenticationReactor_.addEventHandler(*AuthenticationSocketV6_,Poco::NObserver<RADIUS_proxy_server, Poco::Net::ReadableNotification>(
+																			 *this, &RADIUS_proxy_server::OnAuthenticationSocketReadable));
+
 		AccountingReactor_.addEventHandler(*AccountingSocketV4_,Poco::NObserver<RADIUS_proxy_server, Poco::Net::ReadableNotification>(
 																		  *this, &RADIUS_proxy_server::OnAccountingSocketReadable));
-		AuthenticationReactor_.addEventHandler(*AuthenticationSocketV6_,Poco::NObserver<RADIUS_proxy_server, Poco::Net::ReadableNotification>(
-																		   *this, &RADIUS_proxy_server::OnAuthenticationSocketReadable));
 		AccountingReactor_.addEventHandler(*AccountingSocketV6_,Poco::NObserver<RADIUS_proxy_server, Poco::Net::ReadableNotification>(
 																   *this, &RADIUS_proxy_server::OnAccountingSocketReadable));
 
+
+		CoAReactor_.addEventHandler(*CoASocketV4_,Poco::NObserver<RADIUS_proxy_server, Poco::Net::ReadableNotification>(
+																			 *this, &RADIUS_proxy_server::OnCoASocketReadable));
+		CoAReactor_.addEventHandler(*CoASocketV6_,Poco::NObserver<RADIUS_proxy_server, Poco::Net::ReadableNotification>(
+																	 *this, &RADIUS_proxy_server::OnCoASocketReadable));
+
 		AuthenticationReactorThread_.start(AuthenticationReactor_);
 		AccountingReactorThread_.start(AccountingReactor_);
+		CoAReactorThread_.start(CoAReactor_);
 		return 0;
 	}
 
 	void RADIUS_proxy_server::Stop() {
 		AuthenticationReactor_.removeEventHandler(*AuthenticationSocketV4_,Poco::NObserver<RADIUS_proxy_server, Poco::Net::ReadableNotification>(
 																		  *this, &RADIUS_proxy_server::OnAuthenticationSocketReadable));
+		AuthenticationReactor_.removeEventHandler(*AuthenticationSocketV6_,Poco::NObserver<RADIUS_proxy_server, Poco::Net::ReadableNotification>(
+																				*this, &RADIUS_proxy_server::OnAuthenticationSocketReadable));
+
 		AccountingReactor_.removeEventHandler(*AccountingSocketV4_,Poco::NObserver<RADIUS_proxy_server, Poco::Net::ReadableNotification>(
 																  *this, &RADIUS_proxy_server::OnAccountingSocketReadable));
-		AuthenticationReactor_.removeEventHandler(*AuthenticationSocketV6_,Poco::NObserver<RADIUS_proxy_server, Poco::Net::ReadableNotification>(
-																			  *this, &RADIUS_proxy_server::OnAuthenticationSocketReadable));
 		AccountingReactor_.removeEventHandler(*AccountingSocketV6_,Poco::NObserver<RADIUS_proxy_server, Poco::Net::ReadableNotification>(
 																	  *this, &RADIUS_proxy_server::OnAccountingSocketReadable));
+
+		CoAReactor_.removeEventHandler(*CoASocketV4_,Poco::NObserver<RADIUS_proxy_server, Poco::Net::ReadableNotification>(
+																		*this, &RADIUS_proxy_server::OnAccountingSocketReadable));
+		CoAReactor_.removeEventHandler(*CoASocketV6_,Poco::NObserver<RADIUS_proxy_server, Poco::Net::ReadableNotification>(
+																		*this, &RADIUS_proxy_server::OnAccountingSocketReadable));
 
 		AuthenticationReactor_.stop();
 		AuthenticationReactorThread_.join();
 
 		AccountingReactor_.stop();
 		AccountingReactorThread_.join();
+
+		CoAReactor_.stop();
+		CoAReactorThread_.join();
 	}
-
-	std::string ExtractSerialNumber(const unsigned char *b, uint32_t s) {
-		std::string result;
-
-		try {
-			uint32_t pos=0;
-			while(pos<s) {
-				auto len = b[pos+1];
-				if(b[pos] != 26) {
-					pos += len;
-					continue;
-				}
-
-				uint32_t vendor_id = b[pos+2] * 256 * 256 * 256  + b[pos+3] * 256 * 256 + b[pos+4] * 256+ b[pos+5];
-				if(vendor_id!=58888) {
-					pos += len;
-					continue;
-				}
-
-				auto tpos0 = pos + 6;
-				auto tend0 = tpos0 + b[tpos0+1];
-				while (tpos0<tend0) {
-					if (b[tpos0] == 71) {
-						auto tpos1 = tpos0+2;
-						auto tlen1 = b[tpos0+1];
-						auto tend1 = tpos1 + tlen1;
-						while (tpos1 < tend1) {
-							if (b[tpos1] == 0x01) {
-								uint32_t tlen = b[tpos1 + 1] - 2;
-								tpos1 += 2;
-								while (tlen) {
-									if (b[tpos1] != '-') {
-										result += (char) b[tpos1];
-									}
-									tlen--;
-									tpos1++;
-								}
-								if (result.size() == 12)
-									return result;
-								return "";
-							} else {
-								tpos1 += b[tpos1+1];
-							}
-						}
-					} else {
-						tpos0 += b[tpos0 + 1];
-					}
-				}
-				pos += len;
-			}
-		} catch (...) {
-
-		}
-
-		return result;
-	}
-
 
 	void RADIUS_proxy_server::OnAccountingSocketReadable(const Poco::AutoPtr<Poco::Net::ReadableNotification>& pNf) {
 		Poco::Net::SocketAddress	Sender;
-		unsigned char Buffer[RADIUS_BUFFER_SIZE];
+		RADIUS::RadiusPacket		P;
 
-		auto ReceiveSize = pNf.get()->socket().impl()->receiveBytes(Buffer,sizeof(Buffer));
-		if(ReceiveSize<SMALLEST_RADIUS_PACKET)
+		// std::cout << "Accounting bytes received" << std::endl;
+		auto ReceiveSize = pNf.get()->socket().impl()->receiveBytes(P.Buffer(),P.BufferLen());
+		if(ReceiveSize<SMALLEST_RADIUS_PACKET) {
+			Logger().warning("Accounting: bad packet received.");
 			return;
-		auto SerialNumber = ExtractSerialNumber(&Buffer[20],ReceiveSize);
+		}
+		P.Evaluate(ReceiveSize);
+		auto SerialNumber = P.ExtractSerialNumberFromProxyState();
+		if(SerialNumber.empty()) {
+			Logger().warning("Accounting: missing serial number.");
+			return;
+		}
+
 		Logger().information(fmt::format("Accounting Packet received for {}",SerialNumber));
-		std::cout << "Received an Accounting packet for :" << SerialNumber << std::endl;
-		DeviceRegistry()->SendRadiusAccountingData(SerialNumber,Buffer,ReceiveSize);
+		// std::cout << "Received an Accounting packet for :" << SerialNumber << std::endl;
+		DeviceRegistry()->SendRadiusAccountingData(SerialNumber,P.Buffer(),P.Size());
 	}
 
 	void RADIUS_proxy_server::OnAuthenticationSocketReadable(const Poco::AutoPtr<Poco::Net::ReadableNotification>& pNf) {
 		Poco::Net::SocketAddress	Sender;
-		unsigned char Buffer[RADIUS_BUFFER_SIZE];
+		RADIUS::RadiusPacket		P;
 
-		auto ReceiveSize = pNf.get()->socket().impl()->receiveBytes(Buffer,sizeof(Buffer));
-		if(ReceiveSize<SMALLEST_RADIUS_PACKET)
+		// std::cout << "Authentication bytes received" << std::endl;
+
+		auto ReceiveSize = pNf.get()->socket().impl()->receiveBytes(P.Buffer(),P.BufferLen());
+		if(ReceiveSize<SMALLEST_RADIUS_PACKET) {
+			Logger().warning("Authentication: bad packet received.");
 			return;
-		auto SerialNumber = ExtractSerialNumber(&Buffer[20],ReceiveSize);
+		}
+		P.Evaluate(ReceiveSize);
+		auto SerialNumber = P.ExtractSerialNumberFromProxyState();
+		if(SerialNumber.empty()) {
+			Logger().warning("Authentication: missing serial number.");
+			return;
+		}
 		Logger().information(fmt::format("Authentication Packet received for {}",SerialNumber));
 		std::cout << "Received an Authentication packet for :" << SerialNumber << std::endl;
-		DeviceRegistry()->SendRadiusAuthenticationData(SerialNumber,Buffer,ReceiveSize);
+		DeviceRegistry()->SendRadiusAuthenticationData(SerialNumber,P.Buffer(),P.Size());
 	}
 
-	void RADIUS_proxy_server::SendAccountingData(const std::string &serialNumber, const std::string &Destination,const char *buffer, std::size_t size) {
+	void RADIUS_proxy_server::OnCoASocketReadable(const Poco::AutoPtr<Poco::Net::ReadableNotification>& pNf) {
+		Poco::Net::SocketAddress	Sender;
+		RADIUS::RadiusPacket		P;
+
+		// std::cout << "CoA bytes received" << std::endl;
+		auto ReceiveSize = pNf.get()->socket().impl()->receiveBytes(P.Buffer(),P.BufferLen());
+		if(ReceiveSize<SMALLEST_RADIUS_PACKET) {
+			Logger().warning("CoA/DM: bad packet received.");
+			return;
+		}
+		P.Evaluate(ReceiveSize);
+		auto SerialNumber = P.ExtractSerialNumberTIP();
+		if(SerialNumber.empty()) {
+			Logger().warning("CoA/DM: missing serial number.");
+			return;
+		}
+		Logger().information(fmt::format("CoA Packet received for {}",SerialNumber));
+		// std::cout << "Received an CoA packet for :" << SerialNumber << std::endl;
+		DeviceRegistry()->SendRadiusCoAData(SerialNumber,P.Buffer(),P.Size());
+	}
+
+	void RADIUS_proxy_server::SendAccountingData(const std::string &serialNumber, const char *buffer, std::size_t size) {
+		RADIUS::RadiusPacket	P((unsigned char *)buffer,size);
+		auto Destination = P.ExtractProxyStateDestination();
 		Poco::Net::SocketAddress	Dst(Destination);
 
 		std::lock_guard	G(Mutex_);
 		if(Dst.af()==Poco::Net::AddressFamily::IPv4)
-			AccountingSocketV4_->sendTo(buffer,(int)size,Route(Dst,AcctPoolsV4_,AcctPoolsIndexV4_));
+			AccountingSocketV4_->sendTo(buffer,(int)size,Route(radius_type::acct, Dst));
 		else
-			AccountingSocketV6_->sendTo(buffer,(int)size,Route(Dst,AcctPoolsV6_,AcctPoolsIndexV6_));
+			AccountingSocketV6_->sendTo(buffer,(int)size,Route(radius_type::acct, Dst));
 		Logger().information(fmt::format("{}: Sending Accounting Packet to {}", serialNumber, Destination));
-		std::cout << "Sending Accounting data to " << Destination << std::endl;
+		// std::cout << "Sending Accounting data to " << Destination << std::endl;
 	}
 
-	void RADIUS_proxy_server::SendAuthenticationData(const std::string &serialNumber, const std::string &Destination,const char *buffer, std::size_t size) {
+	void RADIUS_proxy_server::SendAuthenticationData(const std::string &serialNumber, const char *buffer, std::size_t size) {
+		RADIUS::RadiusPacket	P((unsigned char *)buffer,size);
+		auto Destination = P.ExtractProxyStateDestination();
 		Poco::Net::SocketAddress	Dst(Destination);
 
 		std::lock_guard	G(Mutex_);
 		if(Dst.af()==Poco::Net::AddressFamily::IPv4)
-			AuthenticationSocketV4_->sendTo(buffer,(int)size,Route(Dst,AuthPoolsV4_,AuthPoolsIndexV4_));
+			AuthenticationSocketV4_->sendTo(buffer,(int)size,Route(radius_type::auth, Dst));
 		else
-			AuthenticationSocketV6_->sendTo(buffer,(int)size,Route(Dst,AuthPoolsV6_,AuthPoolsIndexV6_));
+			AuthenticationSocketV6_->sendTo(buffer,(int)size,Route(radius_type::auth, Dst));
 		Logger().information(fmt::format("{}: Sending Authentication Packet to {}", serialNumber, Destination));
-		std::cout << "Sending Authentication data to " << Destination << std::endl;
+		// std::cout << "Sending Authentication data to " << Destination << std::endl;
 	}
 
-	void RADIUS_proxy_server::ParseServerList(const GWObjects::RadiusProxyServerConfig & Config, PoolIndexMap_t &MapV4, PoolIndexMap_t &MapV6, PoolIndexVec_t &VecV4, PoolIndexVec_t &VecV6) {
+	void RADIUS_proxy_server::SendCoAData(const std::string &serialNumber, const char *buffer, std::size_t size) {
+		RADIUS::RadiusPacket	P((unsigned char *)buffer,size);
+		auto Destination = P.ExtractProxyStateDestination();
+		Poco::Net::SocketAddress	Dst(Destination);
 
-		std::vector<Destination>	DestsV4,DestsV6;
+		std::lock_guard	G(Mutex_);
+		if(Dst.af()==Poco::Net::AddressFamily::IPv4)
+			CoASocketV4_->sendTo(buffer,(int)size,Route(radius_type::coa, Dst));
+		else
+			CoASocketV6_->sendTo(buffer,(int)size,Route(radius_type::coa, Dst));
+		Logger().information(fmt::format("{}: Sending CoA Packet to {}", serialNumber, Destination));
+		// std::cout << "Sending CoA data to " << Destination << std::endl;
+	}
+
+	void RADIUS_proxy_server::ParseServerList(const GWObjects::RadiusProxyServerConfig & Config, std::vector<Destination> &V4, std::vector<Destination> &V6, bool setAsDefault) {
 		uint64_t TotalV4=0, TotalV6=0;
 
 		for(const auto &server:Config.servers) {
-			auto S = Poco::Net::SocketAddress(fmt::format("{}:{}",server.name,server.port));
+			Poco::Net::IPAddress a;
+			if(!Poco::Net::IPAddress::tryParse(server.ip,a)) {
+				Logger().error(fmt::format("RADIUS-PARSE Config: server address {} is nto a valid address in v4 or v6. Entry skipped.",server.ip));
+				continue;
+			}
+			auto S = Poco::Net::SocketAddress(fmt::format("{}:{}",server.ip,server.port));
 			Destination	D{
 				.Addr = S,
 				.state = 0,
@@ -184,32 +212,34 @@ namespace OpenWifi {
 				.strategy = Config.strategy,
 				.monitor = Config. monitor,
 				.monitorMethod = Config.monitorMethod,
-				.methodParameters = Config.methodParameters
+				.methodParameters = Config.methodParameters,
+				.useAsDefault = setAsDefault
 			};
 
 			if(S.af()==Poco::Net::AddressFamily::IPv4) {
 				TotalV4 += server.weight;
-				DestsV4.push_back(D);
-				MapV4[S] = VecV4.size();
+				V4.push_back(D);
 			} else {
 				TotalV6 += server.weight;
-				DestsV6.push_back(D);
-				MapV6[S] = VecV6.size();
+				V6.push_back(D);
 			}
 		}
 
-		for(auto &i:DestsV4) {
-			i.step = 1000 - ((1000*i.weight)/TotalV4);
+		for(auto &i:V4) {
+			if(TotalV4==0) {
+				i.step = 1000;
+			} else {
+				i.step = 1000 - ((1000 * i.weight) / TotalV4);
+			}
 		}
 
-		for(auto &i:DestsV6) {
-			i.step = 1000 - ((1000*i.weight)/TotalV6);
+		for(auto &i:V6) {
+			if(TotalV6==0) {
+				i.step = 1000;
+			} else {
+				i.step = 1000 - ((1000 * i.weight) / TotalV6);
+			}
 		}
-
-		if(!DestsV4.empty())
-			VecV4.push_back(DestsV4);
-		if(!DestsV6.empty())
-			VecV6.push_back((DestsV6));
 	}
 
 	void RADIUS_proxy_server::ParseConfig() {
@@ -228,8 +258,11 @@ namespace OpenWifi {
 					ResetConfig();
 					PoolList_ = RPC;
 					for(const auto &pool:RPC.pools) {
-						ParseServerList(pool.authConfig,AuthPoolsIndexV4_, AuthPoolsIndexV6_, AuthPoolsV4_, AuthPoolsV6_);
-						ParseServerList(pool.acctConfig,AcctPoolsIndexV4_, AcctPoolsIndexV6_, AcctPoolsV4_, AcctPoolsV6_);
+						RadiusPool	NewPool;
+						ParseServerList(pool.authConfig, NewPool.AuthV4, NewPool.AuthV6, pool.useByDefault);
+						ParseServerList(pool.acctConfig, NewPool.AcctV4, NewPool.AcctV6, pool.useByDefault);
+						ParseServerList(pool.coaConfig, NewPool.CoaV4, NewPool.CoaV6, pool.useByDefault);
+						Pools_.push_back(NewPool);
 					}
 				} else {
 					Logger().warning(fmt::format("Configuration file '{}' is bad.",ConfigFilename_));
@@ -244,20 +277,66 @@ namespace OpenWifi {
 		}
 	}
 
-	Poco::Net::SocketAddress RADIUS_proxy_server::Route(const Poco::Net::SocketAddress &A, PoolIndexVec_t & P, PoolIndexMap_t &M) {
+	Poco::Net::SocketAddress RADIUS_proxy_server::DefaultRoute([[maybe_unused]] radius_type rtype, const Poco::Net::SocketAddress &RequestedAddress) {
+		bool IsV4 = RequestedAddress.af()==Poco::Net::IPAddress::IPv4;
+		switch(rtype) {
+		case radius_type::coa:
+			return ChooseAddress(IsV4 ? Pools_[defaultPoolIndex_].CoaV4 : Pools_[defaultPoolIndex_].CoaV6, RequestedAddress);
+		case radius_type::auth:
+			return ChooseAddress(IsV4 ? Pools_[defaultPoolIndex_].AuthV4 : Pools_[defaultPoolIndex_].AuthV6, RequestedAddress);
+		case radius_type::acct:
+		default:
+			return ChooseAddress(IsV4 ? Pools_[defaultPoolIndex_].AcctV4 : Pools_[defaultPoolIndex_].AcctV6, RequestedAddress);
+		}
+	}
+
+	Poco::Net::SocketAddress RADIUS_proxy_server::Route([[maybe_unused]] radius_type rtype, const Poco::Net::SocketAddress &RequestedAddress) {
 		std::lock_guard	G(Mutex_);
 
-		if(PoolList_.pools.empty())
-			return A;
+		if(Pools_.empty())
+			return RequestedAddress;
 
-		auto It = M.find(A);
-		if(It==M.end())
-			return A;
-		auto Index = It->second;
-		auto Pool = P[Index];
+		bool IsV4 = RequestedAddress.af()==Poco::Net::IPAddress::IPv4;
+		bool useDefault = false;
+		useDefault = IsV4 ? RequestedAddress.host() == Poco::Net::IPAddress::wildcard(Poco::Net::IPAddress::IPv4) : RequestedAddress.host() == Poco::Net::IPAddress::wildcard(Poco::Net::IPAddress::IPv6) ;
 
-		//	is there anything of the same af ?
-		if(Pool[0].strategy=="weighted") {
+		if(useDefault) {
+			return DefaultRoute(rtype, RequestedAddress);
+		}
+
+		auto isAddressInPool = [&](const std::vector<Destination> & D) -> bool {
+			for(const auto &entry:D)
+				if(entry.Addr.host()==RequestedAddress.host())
+					return true;
+			return false;
+		};
+
+		for(auto &i:Pools_) {
+			switch(rtype) {
+			case radius_type::coa: {
+				if (isAddressInPool((IsV4 ? i.CoaV4 : i.CoaV6)))
+					return ChooseAddress(IsV4 ? i.CoaV4 : i.CoaV6, RequestedAddress);
+			} break;
+			case radius_type::auth: {
+				if (isAddressInPool((IsV4 ? i.AuthV4 : i.AuthV6)))
+					return ChooseAddress(IsV4 ? i.AuthV4 : i.AuthV6, RequestedAddress);
+			} break;
+			case radius_type::acct: {
+				if (isAddressInPool((IsV4 ? i.AcctV4 : i.AcctV6)))
+					return ChooseAddress(IsV4 ? i.AcctV4 : i.AcctV6, RequestedAddress);
+			} break;
+			}
+		}
+		return DefaultRoute(rtype, RequestedAddress);
+	}
+
+	Poco::Net::SocketAddress RADIUS_proxy_server::ChooseAddress(std::vector<Destination> &Pool, const Poco::Net::SocketAddress & OriginalAddress) {
+
+		if(Pool.size()==1) {
+			return Pool[0].Addr;
+		}
+
+		if (Pool[0].strategy == "weighted") {
 			bool found = false;
 			uint64_t cur_state = std::numeric_limits<uint64_t>::max();
 			std::size_t pos = 0, index = 0;
@@ -274,12 +353,13 @@ namespace OpenWifi {
 				pos++;
 			}
 
-			if (!found)
-				return A;
+			if (!found) {
+				return OriginalAddress;
+			}
 
 			Pool[index].state += Pool[index].step;
 			return Pool[index].Addr;
-		} else if (Pool[0].strategy=="round_robin") {
+		} else if (Pool[0].strategy == "round_robin") {
 			bool found = false;
 			uint64_t cur_state = std::numeric_limits<uint64_t>::max();
 			std::size_t pos = 0, index = 0;
@@ -296,19 +376,20 @@ namespace OpenWifi {
 				pos++;
 			}
 
-			if (!found)
-				return A;
+			if (!found) {
+				return OriginalAddress;
+			}
 
 			Pool[index].state += 1;
 			return Pool[index].Addr;
-		} else if (Pool[0].strategy=="random") {
-			if(Pool.size()>1) {
-				return Pool[ std::rand() % Pool.size() ].Addr;
+		} else if (Pool[0].strategy == "random") {
+			if (Pool.size() > 1) {
+				return Pool[std::rand() % Pool.size()].Addr;
 			} else {
-				return A;
+				return OriginalAddress;
 			}
 		}
-		return A;
+		return OriginalAddress;
 	}
 
 	void RADIUS_proxy_server::SetConfig(const GWObjects::RadiusProxyPoolList &C) {
@@ -327,14 +408,8 @@ namespace OpenWifi {
 
 	void RADIUS_proxy_server::ResetConfig() {
 		PoolList_.pools.clear();
-		AuthPoolsIndexV4_.clear();
-		AuthPoolsIndexV6_.clear();
-		AcctPoolsIndexV4_.clear();
-		AcctPoolsIndexV6_.clear();
-		AuthPoolsV4_.clear();
-		AuthPoolsV6_.clear();
-		AcctPoolsV4_.clear();
-		AcctPoolsV6_.clear();
+		Pools_.clear();
+		defaultPoolIndex_=0;
 	}
 
 	void RADIUS_proxy_server::DeleteConfig() {

@@ -1,0 +1,64 @@
+{
+    "pools" : [
+        {
+            "name" : "master" ,
+            "description" : "master pool",
+            "authConfig" : {
+                "strategy" : "weighted",
+                "monitor" : false,
+                "monitorMethod" : "none",
+                "methodParameters" : [],
+                "servers" : [ {
+                        "name" : "svr1",
+                        "ip" : "10.100.0.1",
+                        "port" : 1812,
+                        "weight" : 10
+                    },
+                    {
+                        "name" : "svr2",
+                        "ip" : "10.100.10.1",
+                        "port" : 1812,
+                        "weight" : 20
+                    }
+                ]
+            },
+            "acctConfig" : {
+                "strategy" : "random",
+                "monitor" : false,
+                "monitorMethod" : "none",
+                "methodParameters" : [],
+                "servers" : [ {
+                        "name" : "svr1",
+                        "ip" : "10.100.0.1",
+                        "port" : 1813,
+                        "weight" : 10
+                    },
+                    {
+                        "name" : "svr2",
+                        "ip" : "10.100.10.1",
+                        "port" : 1813,
+                        "weight" : 20                    }
+                ]
+            },
+            "coaConfig" : {
+                "strategy" : "round_robin",
+                "monitor" : false,
+                "monitorMethod" : "none",
+                "methodParameters" : [],
+                "servers" : [ {
+                        "name" : "svr1",
+                        "ip" : "10.100.0.1",
+                        "port" : 3799,
+                        "weight" : 10
+                    },
+                    {
+                        "name" : "svr2",
+                        "ip" : "10.100.10.1",
+                        "port" : 3799,
+                        "weight" : 20
+                    }
+                ]
+            }
+        }
+    ]
+}

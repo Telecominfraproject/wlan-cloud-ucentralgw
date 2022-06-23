@@ -23,9 +23,12 @@ namespace OpenWifi::RESTAPI_RPC {
 		if (StorageService()->AddCommand(Cmd.SerialNumber, Cmd, Status)) {
 			Poco::JSON::Object RetObj;
 			Cmd.to_json(RetObj);
-			return Handler->ReturnObject(RetObj);
+			if(Handler!= nullptr)
+				return Handler->ReturnObject(RetObj);
+			return;
 		}
-		return Handler->ReturnStatus(Poco::Net::HTTPResponse::HTTP_INTERNAL_SERVER_ERROR);
+		if(Handler!= nullptr)
+			return Handler->ReturnStatus(Poco::Net::HTTPResponse::HTTP_INTERNAL_SERVER_ERROR);
 	}
 
 	void WaitForCommand(GWObjects::CommandDetails &Cmd,
@@ -104,27 +107,34 @@ namespace OpenWifi::RESTAPI_RPC {
 						//	Add the completed command to the database...
 						StorageService()->AddCommand(Cmd.SerialNumber, Cmd, Storage::COMMAND_COMPLETED);
 
-						if (ObjectToReturn) {
+						if (ObjectToReturn && Handler) {
 							Handler->ReturnObject(*ObjectToReturn);
 						} else {
 							Poco::JSON::Object O;
 							Cmd.to_json(O);
-							Handler->ReturnObject(O);
+							if(Handler)
+								Handler->ReturnObject(O);
 						}
 						Logger.information( fmt::format("Command({}): completed in {:.3f}ms.", Cmd.UUID, Cmd.executionTime));
 						return;
 					} else {
-						SetCommandStatus(Cmd, Request, Response, Handler,
-										 Storage::COMMAND_FAILED, Logger);
-						Logger.information(fmt::format(
-							"Invalid response for command '{}'. Missing status.", Cmd.UUID));
+						Cmd.executionTime = rpc_execution_time.count();
+						if(Cmd.Command=="ping") {
+							SetCommandStatus(Cmd, Request, Response, Handler, Storage::COMMAND_COMPLETED, Logger);
+							Logger.information(fmt::format(
+								"Invalid response for command '{}'. Missing status.", Cmd.UUID));
+						} else {
+							SetCommandStatus(Cmd, Request, Response, Handler, Storage::COMMAND_FAILED, Logger);
+							Logger.information(fmt::format(
+								"Invalid response for command '{}'. Missing status.", Cmd.UUID));
+						}
 						return;
 					}
 				} else {
 					SetCommandStatus(Cmd, Request, Response, Handler, Storage::COMMAND_FAILED,
 									 Logger);
 					Logger.information(fmt::format(
-						"Invalid response for command '{}'. Missing status.", Cmd.UUID));
+						"Invalid response for command '{}'. Missing result.", Cmd.UUID));
 					return;
 				}
 			} else if (rpc_result == std::future_status::timeout) {

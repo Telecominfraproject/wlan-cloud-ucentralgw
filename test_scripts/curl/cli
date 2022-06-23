@@ -659,6 +659,16 @@ runscript() {
 			  jq < ${result_file}
 }
 
+deviceping() {
+	payload="$(printf '{ "serialNumber": "%s" }' "$1" )"
+  	curl  ${FLAGS} -X POST "https://${OWGW}/api/v1/device/$1/ping" \
+				  -H "Content-Type: application/json" \
+				  -H "Accept: application/json" \
+				  -H "Authorization: Bearer ${token}" \
+				  -d "$payload"  > ${result_file}
+			  jq < ${result_file}
+}
+
 caplist() {
 	curl    ${FLAGS} -X GET "https://${OWGW}/api/v1/capabilities" \
 		-H "Content-Type: application/json" \
@@ -672,6 +682,23 @@ iptocountry() {
 		-H "Content-Type: application/json" \
 		-H "Accept: application/json" \
 		-H "Authorization: Bearer ${token}" > ${result_file}
+	jq < ${result_file}
+}
+
+setradiusconfig() {
+	curl    ${FLAGS} -X PUT "https://${OWGW}/api/v1/radiusProxyConfig" \
+			-H "Content-Type: application/json" \
+			-H "Accept: application/json" \
+			-d "@${1}" \
+			-H "Authorization: Bearer ${token}" > ${result_file}
+	jq < ${result_file}
+}
+
+getradiusconfig() {
+	curl    ${FLAGS} -X GET "https://${OWGW}/api/v1/radiusProxyConfig" \
+			-H "Content-Type: application/json" \
+			-H "Accept: application/json" \
+			-H "Authorization: Bearer ${token}" > ${result_file}
 	jq < ${result_file}
 }
 
@@ -869,73 +896,76 @@ help() {
 
 shopt -s nocasematch
 case "$1" in
-  "getdevice") login; getdevice "$2"; logout ;;
-  "help") login; help  ; logout ;;
-  "getcommand") login;  getcommand "$2"  ; logout ;;
-  "deletecommand") login; deletecommand "$2"  ; logout ;;
-  "getcapabilities") login; getcapabilities "$2"  ; logout ;;
-  "deletecapabilities") login; deletecapabilities "$2"  ; logout ;;
-  "listdevices") login; listdevices  ; logout ;;
-  "deletedevice") login; deletedevice "$2"  ; logout ;;
-  "deleteoui") login; deleteoui "$2"  ; logout ;;
-  "createdevice") login; createdevice "$2" "$3" "$4" ; logout ;;
-  "reboot") login; reboot "$2"  ; logout ;;
-  "getdevicestatus") login; getdevicestatus "$2"  ; logout ;;
-  "upgrade") login; upgrade "$2" "$3"  ; logout ;;
-  "factory") login; factory "$2" "$3"  ; logout ;;
-  "leds") login; leds "$2" "$3" "$4"  ; logout ;;
-  "listcommands") login; listcommands "$2"  ; logout ;;
-  "deletecommands") login; deletecommands "$2"  ; logout ;;
-  "configure") login; configure "$2" "$3"  ; logout ;;
-  "request") login; request "$2" "$3"  ; logout ;;
-  "wifiscan") login; wifiscan "$2" "$3"  ; logout ;;
-  "activescan") login; activescan "$2" "$3"  ; logout ;;
-  "trace") login; trace "$2" "$3" "$4"  ; logout ;;
-  "getstats") login; getstats "$2"  ; logout ;;
-  "getlogs") login; getlogs "$2"  ; logout ;;
-  "deletelogs") login; deletelogs "$2"  ; logout ;;
-  "gethealthchecks") login; gethealthchecks "$2"  ; logout ;;
-  "createdefaultconfig") login; createdefaultconfig "$2" "$3" "$4"  ; logout ;;
-  "getdefaultconfig") login; getdefaultconfig "$2" ; logout ;;
-  "deletedefaultconfig") login; deletedefaultconfig "$2" ; logout ;;
-  "listdefaultconfigs") login; listdefaultconfigs "$2"  ; logout ;;
-  "addblacklistdevice") login; addblacklistdevice "$2" "$3"  ; logout ;;
-  "deleteblacklistdevice") login; deleteblacklistdevice "$2"  ; logout ;;
-  "getblacklist") login; getblacklist  ; logout ;;
-  "modblacklistdevice") login; modblacklistdevice "$2" "$3" ; logout;;
-  "eventqueue") login; eventqueue "$2"  ; logout ;;
-  "selectdevices") login; selectdevices "$2"  ; logout ;;
-  "deviceserialnumbers") login; deviceserialnumbers   ; logout ;;
-  "devicecount") login; devicecount   ; logout ;;
-  "deviceswithstatus") login; deviceswithstatus "$2"  ; logout ;;
-  "getdevicecomplete") login; getdevicecomplete "$2"  ; logout ;;
-  "getfile") login; getfile "$2" "$3"  ; logout ;;
-  "rtty") login; rtty "$2"  ; logout ;;
-  "laststats") login; laststats "$2"; logout;;
-  "newestcommands") login; newestcommands "$2"; logout;;
-  "neweststats") login; neweststats "$2"; logout;;
-  "newestlogs") login; newestlogs "$2"; logout;;
-  "newesthealthchecks") login; newesthealthchecks "$2"; logout;;
-  "lasthealthcheck") login; lasthealthcheck "$2"; logout;;
-  "login") login ;;
-  "findbrowser") findbrowser; echo "Browser: ${browser}" ;;
-  "setloglevel") login; setloglevel "$2" "$3"  ; logout ;;
-  "getloglevels") login; getloglevels; logout ;;
-  "getloglevelnames") login; getloglevelnames; logout ;;
-  "getsubsystemnames") login; getsubsystemnames; logout ;;
-  "reloadsubsystem") login; reloadsubsystem; logout ;;
-  "systeminfo") login; systeminfo ; logout;;
-  "ouilookup") login; ouilookup "$2"; logout;;
-  "telemetry") login; telemetry "$2"; logout;;
-  "telemetry_to_kafka") login; telemetry_to_kafka "$2" "$3"; logout;;
-  "dashboard") login; dashboard ; logout;;
-  "addnote") login; addnote "$2" "$3"; logout;;
-  "ldevs") login; ldevs  "$2" "$3"; logout ;;
-  "validateconfig") login; validateconfig  "$2" ; logout ;;
-  "wstest") login; wstest; logout;;
-  "caplist") login; caplist; logout;;
-  "iptocountry") login; iptocountry $2; logout;;
-  "test_service") login; test_service $2; logout;;
-  "runscript") login; runscript $2 $3 $4; logout;;
+	"getdevice") login; getdevice "$2"; logout ;;
+	"help") login; help  ; logout ;;
+	"getcommand") login;  getcommand "$2"  ; logout ;;
+	"deletecommand") login; deletecommand "$2"  ; logout ;;
+	"getcapabilities") login; getcapabilities "$2"  ; logout ;;
+	"deletecapabilities") login; deletecapabilities "$2"  ; logout ;;
+	"listdevices") login; listdevices  ; logout ;;
+	"deletedevice") login; deletedevice "$2"  ; logout ;;
+	"deleteoui") login; deleteoui "$2"  ; logout ;;
+	"createdevice") login; createdevice "$2" "$3" "$4" ; logout ;;
+	"reboot") login; reboot "$2"  ; logout ;;
+	"getdevicestatus") login; getdevicestatus "$2"  ; logout ;;
+	"upgrade") login; upgrade "$2" "$3"  ; logout ;;
+	"factory") login; factory "$2" "$3"  ; logout ;;
+	"leds") login; leds "$2" "$3" "$4"  ; logout ;;
+	"listcommands") login; listcommands "$2"  ; logout ;;
+	"deletecommands") login; deletecommands "$2"  ; logout ;;
+	"configure") login; configure "$2" "$3"  ; logout ;;
+	"request") login; request "$2" "$3"  ; logout ;;
+	"wifiscan") login; wifiscan "$2" "$3"  ; logout ;;
+	"activescan") login; activescan "$2" "$3"  ; logout ;;
+	"trace") login; trace "$2" "$3" "$4"  ; logout ;;
+	"getstats") login; getstats "$2"  ; logout ;;
+	"getlogs") login; getlogs "$2"  ; logout ;;
+	"deletelogs") login; deletelogs "$2"  ; logout ;;
+	"gethealthchecks") login; gethealthchecks "$2"  ; logout ;;
+	"createdefaultconfig") login; createdefaultconfig "$2" "$3" "$4"  ; logout ;;
+	"getdefaultconfig") login; getdefaultconfig "$2" ; logout ;;
+	"deletedefaultconfig") login; deletedefaultconfig "$2" ; logout ;;
+	"listdefaultconfigs") login; listdefaultconfigs "$2"  ; logout ;;
+	"addblacklistdevice") login; addblacklistdevice "$2" "$3"  ; logout ;;
+	"deleteblacklistdevice") login; deleteblacklistdevice "$2"  ; logout ;;
+	"getblacklist") login; getblacklist  ; logout ;;
+	"modblacklistdevice") login; modblacklistdevice "$2" "$3" ; logout;;
+	"eventqueue") login; eventqueue "$2"  ; logout ;;
+	"selectdevices") login; selectdevices "$2"  ; logout ;;
+	"deviceserialnumbers") login; deviceserialnumbers   ; logout ;;
+	"devicecount") login; devicecount   ; logout ;;
+	"deviceswithstatus") login; deviceswithstatus "$2"  ; logout ;;
+	"getdevicecomplete") login; getdevicecomplete "$2"  ; logout ;;
+	"getfile") login; getfile "$2" "$3"  ; logout ;;
+	"rtty") login; rtty "$2"  ; logout ;;
+	"laststats") login; laststats "$2"; logout;;
+	"newestcommands") login; newestcommands "$2"; logout;;
+	"neweststats") login; neweststats "$2"; logout;;
+	"newestlogs") login; newestlogs "$2"; logout;;
+	"newesthealthchecks") login; newesthealthchecks "$2"; logout;;
+	"lasthealthcheck") login; lasthealthcheck "$2"; logout;;
+	"login") login ;;
+	"findbrowser") findbrowser; echo "Browser: ${browser}" ;;
+	"setloglevel") login; setloglevel "$2" "$3"  ; logout ;;
+	"getloglevels") login; getloglevels; logout ;;
+	"getloglevelnames") login; getloglevelnames; logout ;;
+	"getsubsystemnames") login; getsubsystemnames; logout ;;
+	"reloadsubsystem") login; reloadsubsystem; logout ;;
+	"systeminfo") login; systeminfo ; logout;;
+	"ouilookup") login; ouilookup "$2"; logout;;
+	"telemetry") login; telemetry "$2"; logout;;
+	"telemetry_to_kafka") login; telemetry_to_kafka "$2" "$3"; logout;;
+	"dashboard") login; dashboard ; logout;;
+	"addnote") login; addnote "$2" "$3"; logout;;
+	"ldevs") login; ldevs  "$2" "$3"; logout ;;
+	"validateconfig") login; validateconfig  "$2" ; logout ;;
+	"wstest") login; wstest; logout;;
+	"caplist") login; caplist; logout;;
+	"iptocountry") login; iptocountry $2; logout;;
+	"test_service") login; test_service $2; logout;;
+	"runscript") login; runscript $2 $3 $4; logout;;
+	"getradiusconfig") login; getradiusconfig ; logout;;
+	"setradiusconfig") login; setradiusconfig $2; logout;;
+	"deviceping") login; deviceping $2; logout;;
   *) help ;;
 esac

@@ -314,6 +314,8 @@ namespace OpenWifi::GWObjects {
 		field_to_json(Obj,"description",description);
 		field_to_json(Obj,"authConfig",authConfig);
 		field_to_json(Obj,"acctConfig",acctConfig);
+		field_to_json(Obj,"coaConfig",coaConfig);
+		field_to_json(Obj,"useByDefault",useByDefault);
 	}
 
 	bool RadiusProxyPool::from_json(const Poco::JSON::Object::Ptr &Obj) {
@@ -322,6 +324,8 @@ namespace OpenWifi::GWObjects {
 			field_from_json(Obj,"description",description);
 			field_from_json(Obj,"authConfig",authConfig);
 			field_from_json(Obj,"acctConfig",acctConfig);
+			field_from_json(Obj,"coaConfig",coaConfig);
+			field_from_json(Obj,"useByDefault",useByDefault);
 			return true;
 		} catch (const Poco::Exception &E) {
 		}
@@ -329,7 +333,7 @@ namespace OpenWifi::GWObjects {
 	}
 
 	void RadiusProxyServerConfig::to_json(Poco::JSON::Object &Obj) const {
-		field_to_json(Obj,"policy",strategy);
+		field_to_json(Obj,"strategy",strategy);
 		field_to_json(Obj,"monitor",monitor);
 		field_to_json(Obj,"monitorMethod",monitorMethod);
 		field_to_json(Obj,"methodParameters",methodParameters);
@@ -338,7 +342,7 @@ namespace OpenWifi::GWObjects {
 
 	bool RadiusProxyServerConfig::from_json(const Poco::JSON::Object::Ptr &Obj) {
 		try {
-			field_from_json(Obj,"policy",strategy);
+			field_from_json(Obj,"strategy",strategy);
 			field_from_json(Obj,"monitor",monitor);
 			field_from_json(Obj,"monitorMethod",monitorMethod);
 			field_from_json(Obj,"methodParameters",methodParameters);
@@ -354,6 +358,8 @@ namespace OpenWifi::GWObjects {
 		field_to_json(Obj,"ip",ip);
 		field_to_json(Obj,"port",port);
 		field_to_json(Obj,"weight",weight);
+		field_to_json(Obj,"secret",secret);
+		field_to_json(Obj,"certificate",certificate);
 	}
 
 	bool RadiusProxyServerEntry::from_json(const Poco::JSON::Object::Ptr &Obj) {
@@ -362,6 +368,8 @@ namespace OpenWifi::GWObjects {
 			field_from_json(Obj,"ip",ip);
 			field_from_json(Obj,"port",port);
 			field_from_json(Obj,"weight",weight);
+			field_from_json(Obj,"secret",secret);
+			field_from_json(Obj,"certificate",certificate);
 			return true;
 		} catch (const Poco::Exception &E) {
 		}

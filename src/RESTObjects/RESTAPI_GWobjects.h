@@ -216,6 +216,8 @@ namespace OpenWifi::GWObjects {
 		std::string ip;
 		uint16_t 	port=0;
 		uint64_t 	weight=0;
+		std::string secret;
+		std::string certificate;
 
 		void to_json(Poco::JSON::Object &Obj) const;
 		bool from_json(const Poco::JSON::Object::Ptr &Obj);
@@ -237,6 +239,8 @@ namespace OpenWifi::GWObjects {
 		std::string description;
 		RadiusProxyServerConfig	authConfig;
 		RadiusProxyServerConfig	acctConfig;
+		RadiusProxyServerConfig	coaConfig;
+		bool 		useByDefault=false;
 
 		void to_json(Poco::JSON::Object &Obj) const;
 		bool from_json(const Poco::JSON::Object::Ptr &Obj);
