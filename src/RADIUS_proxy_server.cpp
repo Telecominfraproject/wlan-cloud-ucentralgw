@@ -315,15 +315,18 @@ namespace OpenWifi {
 
 		for(auto &i:Pools_) {
 			switch(rtype) {
-			case radius_type::coa:
-				if(isAddressInPool((IsV4 ? i.CoaV4 : i.CoaV6)))
+			case radius_type::coa: {
+				if (isAddressInPool((IsV4 ? i.CoaV4 : i.CoaV6)))
 					return ChooseAddress(IsV4 ? i.CoaV4 : i.CoaV6, RequestedAddress);
-			case radius_type::auth:
-				if(isAddressInPool((IsV4 ? i.AuthV4 : i.AuthV6)))
+			} break;
+			case radius_type::auth: {
+				if (isAddressInPool((IsV4 ? i.AuthV4 : i.AuthV6)))
 					return ChooseAddress(IsV4 ? i.AuthV4 : i.AuthV6, RequestedAddress);
-			case radius_type::acct:
-				if(isAddressInPool((IsV4 ? i.AcctV4 : i.AcctV6)))
+			} break;
+			case radius_type::acct: {
+				if (isAddressInPool((IsV4 ? i.AcctV4 : i.AcctV6)))
 					return ChooseAddress(IsV4 ? i.AcctV4 : i.AcctV6, RequestedAddress);
+			} break;
 			}
 		}
 		return DefaultRoute(rtype, RequestedAddress);
