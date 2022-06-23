@@ -67,27 +67,17 @@ namespace OpenWifi {
 		GWObjects::RadiusProxyPoolList	PoolList_;
 		std::string 					ConfigFilename_;
 
-		typedef std::map<Poco::Net::SocketAddress,uint> PoolIndexMap_t;
-		PoolIndexMap_t	AuthPoolsIndexV4_;
-		PoolIndexMap_t	AuthPoolsIndexV6_;
+		struct RadiusPool {
+			std::vector<Destination>	AuthV4;
+			std::vector<Destination>	AuthV6;
+			std::vector<Destination>	AcctV4;
+			std::vector<Destination>	AcctV6;
+			std::vector<Destination>	CoaV4;
+			std::vector<Destination>	CoaV6;
+		};
 
-		PoolIndexMap_t 	AcctPoolsIndexV4_;
-		PoolIndexMap_t 	AcctPoolsIndexV6_;
-
-		PoolIndexMap_t 	CoAPoolsIndexV4_;
-		PoolIndexMap_t 	CoAPoolsIndexV6_;
-
-		typedef std::vector<std::vector<Destination>> PoolIndexVec_t;
-		PoolIndexVec_t	AuthPoolsV4_;
-		PoolIndexVec_t	AuthPoolsV6_;
-
-		PoolIndexVec_t	AcctPoolsV4_;
-		PoolIndexVec_t	AcctPoolsV6_;
-
-		PoolIndexVec_t	CoAPoolsV4_;
-		PoolIndexVec_t	CoAPoolsV6_;
-
-		uint 			defaultPoolIndex=0;
+		std::vector<RadiusPool>			Pools_;
+		uint 							defaultPoolIndex_=0;
 
 		RADIUS_proxy_server() noexcept:
 		   SubSystemServer("RADIUS-PROXY", "RADIUS-PROXY", "radius.proxy")
@@ -96,9 +86,10 @@ namespace OpenWifi {
 
 		void ParseConfig();
 		void ResetConfig();
-		Poco::Net::SocketAddress Route(radius_type rtype, const Poco::Net::SocketAddress &A, PoolIndexVec_t & P, PoolIndexMap_t &M);
-		void ParseServerList(const GWObjects::RadiusProxyServerConfig & Config,  PoolIndexMap_t &MapV4, PoolIndexMap_t &MapV6, PoolIndexVec_t &VecV4, PoolIndexVec_t &VecV6, bool setAsDefault);
+		Poco::Net::SocketAddress Route(radius_type rtype, const Poco::Net::SocketAddress &A);
+		void ParseServerList(const GWObjects::RadiusProxyServerConfig & Config, std::vector<Destination> &V4, std::vector<Destination> &V6, bool setAsDefault);
 		static Poco::Net::SocketAddress ChooseAddress(std::vector<Destination> &Pool, const Poco::Net::SocketAddress & OriginalAddress);
+		Poco::Net::SocketAddress DefaultRoute([[maybe_unused]] radius_type rtype, const Poco::Net::SocketAddress &RequestedAddress);
 	};
 
 	inline auto RADIUS_proxy_server() { return RADIUS_proxy_server::instance(); }

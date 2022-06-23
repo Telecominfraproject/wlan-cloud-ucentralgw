@@ -160,9 +160,9 @@ namespace OpenWifi {
 
 		std::lock_guard	G(Mutex_);
 		if(Dst.af()==Poco::Net::AddressFamily::IPv4)
-			AccountingSocketV4_->sendTo(buffer,(int)size,Route(radius_type::acct, Dst,AcctPoolsV4_,AcctPoolsIndexV4_));
+			AccountingSocketV4_->sendTo(buffer,(int)size,Route(radius_type::acct, Dst));
 		else
-			AccountingSocketV6_->sendTo(buffer,(int)size,Route(radius_type::acct, Dst,AcctPoolsV6_,AcctPoolsIndexV6_));
+			AccountingSocketV6_->sendTo(buffer,(int)size,Route(radius_type::acct, Dst));
 		Logger().information(fmt::format("{}: Sending Accounting Packet to {}", serialNumber, Destination));
 		std::cout << "Sending Accounting data to " << Destination << std::endl;
 	}
@@ -174,9 +174,9 @@ namespace OpenWifi {
 
 		std::lock_guard	G(Mutex_);
 		if(Dst.af()==Poco::Net::AddressFamily::IPv4)
-			AuthenticationSocketV4_->sendTo(buffer,(int)size,Route(radius_type::auth, Dst,AuthPoolsV4_,AuthPoolsIndexV4_));
+			AuthenticationSocketV4_->sendTo(buffer,(int)size,Route(radius_type::auth, Dst));
 		else
-			AuthenticationSocketV6_->sendTo(buffer,(int)size,Route(radius_type::auth, Dst,AuthPoolsV6_,AuthPoolsIndexV6_));
+			AuthenticationSocketV6_->sendTo(buffer,(int)size,Route(radius_type::auth, Dst));
 		Logger().information(fmt::format("{}: Sending Authentication Packet to {}", serialNumber, Destination));
 		std::cout << "Sending Authentication data to " << Destination << std::endl;
 	}
@@ -188,23 +188,21 @@ namespace OpenWifi {
 
 		std::lock_guard	G(Mutex_);
 		if(Dst.af()==Poco::Net::AddressFamily::IPv4)
-			CoASocketV4_->sendTo(buffer,(int)size,Route(radius_type::coa, Dst,CoAPoolsV4_,CoAPoolsIndexV4_));
+			CoASocketV4_->sendTo(buffer,(int)size,Route(radius_type::coa, Dst));
 		else
-			CoASocketV6_->sendTo(buffer,(int)size,Route(radius_type::coa, Dst,CoAPoolsV6_,CoAPoolsIndexV6_));
+			CoASocketV6_->sendTo(buffer,(int)size,Route(radius_type::coa, Dst));
 		Logger().information(fmt::format("{}: Sending CoA Packet to {}", serialNumber, Destination));
 		std::cout << "Sending CoA data to " << Destination << std::endl;
 	}
 
-	void RADIUS_proxy_server::ParseServerList(const GWObjects::RadiusProxyServerConfig & Config, PoolIndexMap_t &MapV4, PoolIndexMap_t &MapV6, PoolIndexVec_t &VecV4, PoolIndexVec_t &VecV6, bool setAsDefault) {
-
-		std::vector<Destination>	DestsV4,DestsV6;
+	void RADIUS_proxy_server::ParseServerList(const GWObjects::RadiusProxyServerConfig & Config, std::vector<Destination> &V4, std::vector<Destination> &V6, bool setAsDefault) {
 		uint64_t TotalV4=0, TotalV6=0;
 
 		for(const auto &server:Config.servers) {
 			Poco::Net::IPAddress a;
 			if(!Poco::Net::IPAddress::tryParse(server.ip,a)) {
 				Logger().error(fmt::format("RADIUS-PARSE Config: server address {} is nto a valid address in v4 or v6. Entry skipped.",server.ip));
-				return;
+				continue;
 			}
 			auto S = Poco::Net::SocketAddress(fmt::format("{}:{}",server.ip,server.port));
 			Destination	D{
@@ -222,16 +220,14 @@ namespace OpenWifi {
 
 			if(S.af()==Poco::Net::AddressFamily::IPv4) {
 				TotalV4 += server.weight;
-				DestsV4.push_back(D);
-				MapV4[S] = VecV4.size();
+				V4.push_back(D);
 			} else {
 				TotalV6 += server.weight;
-				DestsV6.push_back(D);
-				MapV6[S] = VecV6.size();
+				V6.push_back(D);
 			}
 		}
 
-		for(auto &i:DestsV4) {
+		for(auto &i:V4) {
 			if(TotalV4==0) {
 				i.step = 1000;
 			} else {
@@ -239,18 +235,13 @@ namespace OpenWifi {
 			}
 		}
 
-		for(auto &i:DestsV6) {
+		for(auto &i:V6) {
 			if(TotalV6==0) {
 				i.step = 1000;
 			} else {
 				i.step = 1000 - ((1000 * i.weight) / TotalV6);
 			}
 		}
-
-		if(!DestsV4.empty())
-			VecV4.push_back(DestsV4);
-		if(!DestsV6.empty())
-			VecV6.push_back((DestsV6));
 	}
 
 	void RADIUS_proxy_server::ParseConfig() {
@@ -269,9 +260,11 @@ namespace OpenWifi {
 					ResetConfig();
 					PoolList_ = RPC;
 					for(const auto &pool:RPC.pools) {
-						ParseServerList(pool.authConfig, AuthPoolsIndexV4_, AuthPoolsIndexV6_, AuthPoolsV4_, AuthPoolsV6_, pool.useByDefault);
-						ParseServerList(pool.acctConfig, AcctPoolsIndexV4_, AcctPoolsIndexV6_, AcctPoolsV4_, AcctPoolsV6_, pool.useByDefault);
-						ParseServerList(pool.coaConfig, CoAPoolsIndexV4_, CoAPoolsIndexV6_, CoAPoolsV4_, CoAPoolsV6_, pool.useByDefault);
+						RadiusPool	NewPool;
+						ParseServerList(pool.authConfig, NewPool.AuthV4, NewPool.AuthV6, pool.useByDefault);
+						ParseServerList(pool.acctConfig, NewPool.AcctV4, NewPool.AcctV6, pool.useByDefault);
+						ParseServerList(pool.coaConfig, NewPool.CoaV4, NewPool.CoaV6, pool.useByDefault);
+						Pools_.push_back(NewPool);
 					}
 				} else {
 					Logger().warning(fmt::format("Configuration file '{}' is bad.",ConfigFilename_));
@@ -286,44 +279,54 @@ namespace OpenWifi {
 		}
 	}
 
-	Poco::Net::SocketAddress RADIUS_proxy_server::Route([[maybe_unused]] radius_type rtype, const Poco::Net::SocketAddress &OriginalAddress, PoolIndexVec_t & P, PoolIndexMap_t &M) {
+	Poco::Net::SocketAddress RADIUS_proxy_server::DefaultRoute([[maybe_unused]] radius_type rtype, const Poco::Net::SocketAddress &RequestedAddress) {
+		bool IsV4 = RequestedAddress.af()==Poco::Net::IPAddress::IPv4;
+		switch(rtype) {
+		case radius_type::coa:
+			return ChooseAddress(IsV4 ? Pools_[defaultPoolIndex_].CoaV4 : Pools_[defaultPoolIndex_].CoaV6, RequestedAddress);
+		case radius_type::auth:
+			return ChooseAddress(IsV4 ? Pools_[defaultPoolIndex_].AuthV4 : Pools_[defaultPoolIndex_].AuthV6, RequestedAddress);
+		case radius_type::acct:
+			return ChooseAddress(IsV4 ? Pools_[defaultPoolIndex_].AcctV4 : Pools_[defaultPoolIndex_].AcctV6, RequestedAddress);
+		}
+	}
+
+	Poco::Net::SocketAddress RADIUS_proxy_server::Route([[maybe_unused]] radius_type rtype, const Poco::Net::SocketAddress &RequestedAddress) {
 		std::lock_guard	G(Mutex_);
 
 		std::cout << __LINE__ << std::endl;
-		if(PoolList_.pools.empty())
-			return OriginalAddress;
+		if(Pools_.empty())
+			return RequestedAddress;
 
-		std::cout << __LINE__ << std::endl;
+		bool IsV4 = RequestedAddress.af()==Poco::Net::IPAddress::IPv4;
 		bool useDefault = false;
-		std::cout << __LINE__ << std::endl;
-		if(OriginalAddress.host() == Poco::Net::SocketAddress("0.0.0.0:0").host()) {
-			useDefault = true;
-			std::cout << __LINE__ << std::endl;
+		useDefault = IsV4 ? RequestedAddress.host() == Poco::Net::IPAddress::wildcard(Poco::Net::IPAddress::IPv4) : RequestedAddress.host() == Poco::Net::IPAddress::wildcard(Poco::Net::IPAddress::IPv6) ;
+
+		if(useDefault) {
+			return DefaultRoute(rtype, RequestedAddress);
 		}
 
-		std::cout << __LINE__ << std::endl;
-		auto It = M.find(OriginalAddress);
-		std::cout << __LINE__ << std::endl;
-		if(!useDefault && It==M.end()) {
-			std::cout << __LINE__ << std::endl;
-			return OriginalAddress;
-		}
+		auto isAddressInPool = [&](const std::vector<Destination> & D) -> bool {
+			for(const auto &entry:D)
+				if(entry.Addr.host()==RequestedAddress.host())
+					return true;
+			return false;
+		};
 
-		if(useDefault || It==M.end()) {
-			for(auto &svr:P) {
-				if(svr[0].useAsDefault) {
-					std::cout << __LINE__ << std::endl;
-					return ChooseAddress(svr, OriginalAddress);
-				}
+		for(auto &i:Pools_) {
+			switch(rtype) {
+			case radius_type::coa:
+				if(isAddressInPool((IsV4 ? i.CoaV4 : i.CoaV6)))
+					return ChooseAddress(IsV4 ? i.CoaV4 : i.CoaV6, RequestedAddress);
+			case radius_type::auth:
+				if(isAddressInPool((IsV4 ? i.AuthV4 : i.AuthV6)))
+					return ChooseAddress(IsV4 ? i.AuthV4 : i.AuthV6, RequestedAddress);
+			case radius_type::acct:
+				if(isAddressInPool((IsV4 ? i.AcctV4 : i.AcctV6)))
+					return ChooseAddress(IsV4 ? i.AcctV4 : i.AcctV6, RequestedAddress);
 			}
-			std::cout << __LINE__ << std::endl;
-			return ChooseAddress(P[0],OriginalAddress);
-		} else {
-			std::cout << __LINE__ << std::endl;
-			auto Pool = P[It->second];
-			std::cout << __LINE__ << std::endl;
-			return ChooseAddress(Pool, OriginalAddress);
 		}
+		return DefaultRoute(rtype, RequestedAddress);
 	}
 
 	Poco::Net::SocketAddress RADIUS_proxy_server::ChooseAddress(std::vector<Destination> &Pool, const Poco::Net::SocketAddress & OriginalAddress) {
@@ -419,19 +422,8 @@ namespace OpenWifi {
 
 	void RADIUS_proxy_server::ResetConfig() {
 		PoolList_.pools.clear();
-		AuthPoolsIndexV4_.clear();
-		AuthPoolsIndexV6_.clear();
-		AcctPoolsIndexV4_.clear();
-		AcctPoolsIndexV6_.clear();
-		CoAPoolsIndexV4_.clear();
-		CoAPoolsIndexV6_.clear();
-		AuthPoolsV4_.clear();
-		AuthPoolsV6_.clear();
-		AcctPoolsV4_.clear();
-		AcctPoolsV6_.clear();
-		CoAPoolsV4_.clear();
-		CoAPoolsV6_.clear();
-		defaultPoolIndex=0;
+		Pools_.clear();
+		defaultPoolIndex_=0;
 	}
 
 	void RADIUS_proxy_server::DeleteConfig() {
