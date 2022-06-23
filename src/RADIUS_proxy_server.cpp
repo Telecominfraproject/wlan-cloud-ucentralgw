@@ -90,22 +90,21 @@ namespace OpenWifi {
 		Poco::Net::SocketAddress	Sender;
 		RADIUS::RadiusPacket		P;
 
-		std::cout << "Accounting bytes received" << std::endl;
-
+		// std::cout << "Accounting bytes received" << std::endl;
 		auto ReceiveSize = pNf.get()->socket().impl()->receiveBytes(P.Buffer(),P.BufferLen());
 		if(ReceiveSize<SMALLEST_RADIUS_PACKET) {
-			std::cout << "Runt packet" << std::endl;
+			Logger().warning("Accounting: bad packet received.");
 			return;
 		}
 		P.Evaluate(ReceiveSize);
 		auto SerialNumber = P.ExtractSerialNumberFromProxyState();
 		if(SerialNumber.empty()) {
-			std::cout << "Invalid or missing serial number" << std::endl;
+			Logger().warning("Accounting: missing serial number.");
 			return;
 		}
 
 		Logger().information(fmt::format("Accounting Packet received for {}",SerialNumber));
-		std::cout << "Received an Accounting packet for :" << SerialNumber << std::endl;
+		// std::cout << "Received an Accounting packet for :" << SerialNumber << std::endl;
 		DeviceRegistry()->SendRadiusAccountingData(SerialNumber,P.Buffer(),P.Size());
 	}
 
@@ -113,17 +112,17 @@ namespace OpenWifi {
 		Poco::Net::SocketAddress	Sender;
 		RADIUS::RadiusPacket		P;
 
-		std::cout << "Authentication bytes received" << std::endl;
+		// std::cout << "Authentication bytes received" << std::endl;
 
 		auto ReceiveSize = pNf.get()->socket().impl()->receiveBytes(P.Buffer(),P.BufferLen());
 		if(ReceiveSize<SMALLEST_RADIUS_PACKET) {
-			std::cout << "Runt packet" << std::endl;
+			Logger().warning("Authentication: bad packet received.");
 			return;
 		}
 		P.Evaluate(ReceiveSize);
 		auto SerialNumber = P.ExtractSerialNumberFromProxyState();
 		if(SerialNumber.empty()) {
-			std::cout << "Invalid or missing serial number" << std::endl;
+			Logger().warning("Authentication: missing serial number.");
 			return;
 		}
 		Logger().information(fmt::format("Authentication Packet received for {}",SerialNumber));
@@ -135,21 +134,20 @@ namespace OpenWifi {
 		Poco::Net::SocketAddress	Sender;
 		RADIUS::RadiusPacket		P;
 
-		std::cout << "CoA bytes received" << std::endl;
-
+		// std::cout << "CoA bytes received" << std::endl;
 		auto ReceiveSize = pNf.get()->socket().impl()->receiveBytes(P.Buffer(),P.BufferLen());
 		if(ReceiveSize<SMALLEST_RADIUS_PACKET) {
-			std::cout << "Runt packet" << std::endl;
+			Logger().warning("CoA/DM: bad packet received.");
 			return;
 		}
 		P.Evaluate(ReceiveSize);
 		auto SerialNumber = P.ExtractSerialNumberTIP();
 		if(SerialNumber.empty()) {
-			std::cout << "Invalid or missing serial number" << std::endl;
+			Logger().warning("CoA/DM: missing serial number.");
 			return;
 		}
 		Logger().information(fmt::format("CoA Packet received for {}",SerialNumber));
-		std::cout << "Received an CoA packet for :" << SerialNumber << std::endl;
+		// std::cout << "Received an CoA packet for :" << SerialNumber << std::endl;
 		DeviceRegistry()->SendRadiusCoAData(SerialNumber,P.Buffer(),P.Size());
 	}
 
@@ -164,7 +162,7 @@ namespace OpenWifi {
 		else
 			AccountingSocketV6_->sendTo(buffer,(int)size,Route(radius_type::acct, Dst));
 		Logger().information(fmt::format("{}: Sending Accounting Packet to {}", serialNumber, Destination));
-		std::cout << "Sending Accounting data to " << Destination << std::endl;
+		// std::cout << "Sending Accounting data to " << Destination << std::endl;
 	}
 
 	void RADIUS_proxy_server::SendAuthenticationData(const std::string &serialNumber, const char *buffer, std::size_t size) {
@@ -178,7 +176,7 @@ namespace OpenWifi {
 		else
 			AuthenticationSocketV6_->sendTo(buffer,(int)size,Route(radius_type::auth, Dst));
 		Logger().information(fmt::format("{}: Sending Authentication Packet to {}", serialNumber, Destination));
-		std::cout << "Sending Authentication data to " << Destination << std::endl;
+		// std::cout << "Sending Authentication data to " << Destination << std::endl;
 	}
 
 	void RADIUS_proxy_server::SendCoAData(const std::string &serialNumber, const char *buffer, std::size_t size) {
@@ -192,7 +190,7 @@ namespace OpenWifi {
 		else
 			CoASocketV6_->sendTo(buffer,(int)size,Route(radius_type::coa, Dst));
 		Logger().information(fmt::format("{}: Sending CoA Packet to {}", serialNumber, Destination));
-		std::cout << "Sending CoA data to " << Destination << std::endl;
+		// std::cout << "Sending CoA data to " << Destination << std::endl;
 	}
 
 	void RADIUS_proxy_server::ParseServerList(const GWObjects::RadiusProxyServerConfig & Config, std::vector<Destination> &V4, std::vector<Destination> &V6, bool setAsDefault) {
@@ -295,7 +293,6 @@ namespace OpenWifi {
 	Poco::Net::SocketAddress RADIUS_proxy_server::Route([[maybe_unused]] radius_type rtype, const Poco::Net::SocketAddress &RequestedAddress) {
 		std::lock_guard	G(Mutex_);
 
-		std::cout << __LINE__ << std::endl;
 		if(Pools_.empty())
 			return RequestedAddress;
 
@@ -335,9 +332,7 @@ namespace OpenWifi {
 
 	Poco::Net::SocketAddress RADIUS_proxy_server::ChooseAddress(std::vector<Destination> &Pool, const Poco::Net::SocketAddress & OriginalAddress) {
 
-		std::cout << __LINE__ << std::endl;
 		if(Pool.size()==1) {
-			std::cout << __LINE__ << std::endl;
 			return Pool[0].Addr;
 		}
 
@@ -359,23 +354,17 @@ namespace OpenWifi {
 			}
 
 			if (!found) {
-				std::cout << __LINE__ << std::endl;
 				return OriginalAddress;
 			}
 
 			Pool[index].state += Pool[index].step;
-			std::cout << __LINE__ << std::endl;
 			return Pool[index].Addr;
 		} else if (Pool[0].strategy == "round_robin") {
 			bool found = false;
-			std::cout << __LINE__ << std::endl;
 			uint64_t cur_state = std::numeric_limits<uint64_t>::max();
-			std::cout << __LINE__ << std::endl;
 			std::size_t pos = 0, index = 0;
-			std::cout << __LINE__ << std::endl;
 			for (auto &i : Pool) {
 				if (!i.available) {
-					std::cout << __LINE__ << std::endl;
 					i.state += 1;
 					continue;
 				}
@@ -383,30 +372,23 @@ namespace OpenWifi {
 					index = pos;
 					cur_state = i.state;
 					found = true;
-					std::cout << __LINE__ << std::endl;
 				}
 				pos++;
-				std::cout << __LINE__ << std::endl;
 			}
 
 			if (!found) {
-				std::cout << __LINE__ << std::endl;
 				return OriginalAddress;
 			}
 
 			Pool[index].state += 1;
-			std::cout << __LINE__ << std::endl;
 			return Pool[index].Addr;
 		} else if (Pool[0].strategy == "random") {
 			if (Pool.size() > 1) {
-				std::cout << __LINE__ << std::endl;
 				return Pool[std::rand() % Pool.size()].Addr;
 			} else {
-				std::cout << __LINE__ << std::endl;
 				return OriginalAddress;
 			}
 		}
-		std::cout << __LINE__ << std::endl;
 		return OriginalAddress;
 	}
 

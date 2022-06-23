@@ -50,7 +50,7 @@ namespace OpenWifi::RADIUS {
 		auto x=25;
 		while(pos<Size && x) {
 			RadiusAttribute Attr{ .type=Buffer[pos], .pos=(uint16_t )(pos+2+offset), .len=Buffer[pos+1]};
-			std::cout << "POS: " << pos << "  P:" << (uint32_t) Attr.pos << "  T:" << (uint32_t) Attr.type << "  L:" << (uint32_t) Attr.len << "  S:" << (uint32_t) Size << std::endl;
+			// std::cout << "POS: " << pos << "  P:" << (uint32_t) Attr.pos << "  T:" << (uint32_t) Attr.type << "  L:" << (uint32_t) Attr.len << "  S:" << (uint32_t) Size << std::endl;
 			if(pos+Attr.len<=Size) {
 				Attrs.emplace_back(Attr);
 			} else {
@@ -64,7 +64,7 @@ namespace OpenWifi::RADIUS {
 			pos+=Buffer[pos+1];
 			x--;
 		}
-		std::cout << "Good parse" << std::endl;
+		// std::cout << "Good parse" << std::endl;
 		return true;
 	}
 
@@ -82,11 +82,10 @@ namespace OpenWifi::RADIUS {
 			Valid_ = ParseRadius(0,(unsigned char *)&P_.attributes[0],Size_-20,Attrs_);
 		}
 
-		RadiusPacket() {
-		}
+		RadiusPacket() = default;
 
 		unsigned char * Buffer() { return (unsigned char *)&P_; }
-		uint16_t BufferLen() const { return sizeof(P_);}
+		[[nodiscard]] uint16_t BufferLen() const { return sizeof(P_);}
 
 		void Evaluate(uint16_t size) {
 			Size_ = size;
@@ -121,11 +120,11 @@ namespace OpenWifi::RADIUS {
 				if(attribute.type==26) {
 					AttributeList   VendorAttributes;
 					uint32_t VendorId = htonl( *(const uint32_t *)&(P_.attributes[attribute.pos]));
-					std::cout << VendorId << std::endl;
+					// std::cout << VendorId << std::endl;
 					if(VendorId==TIP_vendor_id) {
 						if (ParseRadius(attribute.pos + 4, &P_.attributes[attribute.pos + 4], attribute.len - 4 - 2,
 										VendorAttributes)) {
-							std::cout << VendorAttributes << std::endl;
+							// std::cout << VendorAttributes << std::endl;
 							for (const auto &vendorAttr: VendorAttributes) {
 								if (vendorAttr.type == TIP_serial) {
 									for (uint16_t i = 0; i < vendorAttr.len; i++) {
