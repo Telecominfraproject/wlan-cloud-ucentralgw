@@ -207,7 +207,7 @@ namespace OpenWifi {
 			Params.stringify(ParamStream);
 			Cmd.Details = ParamStream.str();
 
-			RESTAPI_RPC::WaitForCommand(Cmd, Params, *Request, *Response, 60000ms, nullptr, this, Logger_);
+			RESTAPI_RPC::WaitForCommand(Cmd, Params, *Request, *Response, 60000ms, nullptr, nullptr, Logger_);
 
 			GWObjects::CommandDetails Cmd2;
 			if(StorageService()->GetCommand(Cmd.UUID,Cmd2)) {

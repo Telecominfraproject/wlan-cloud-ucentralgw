@@ -27,7 +27,8 @@ namespace OpenWifi::RESTAPI_RPC {
 				return Handler->ReturnObject(RetObj);
 			return;
 		}
-		return Handler->ReturnStatus(Poco::Net::HTTPResponse::HTTP_INTERNAL_SERVER_ERROR);
+		if(Handler!= nullptr)
+			return Handler->ReturnStatus(Poco::Net::HTTPResponse::HTTP_INTERNAL_SERVER_ERROR);
 	}
 
 	void WaitForCommand(GWObjects::CommandDetails &Cmd,
@@ -106,12 +107,13 @@ namespace OpenWifi::RESTAPI_RPC {
 						//	Add the completed command to the database...
 						StorageService()->AddCommand(Cmd.SerialNumber, Cmd, Storage::COMMAND_COMPLETED);
 
-						if (ObjectToReturn) {
+						if (ObjectToReturn && Handler) {
 							Handler->ReturnObject(*ObjectToReturn);
 						} else {
 							Poco::JSON::Object O;
 							Cmd.to_json(O);
-							Handler->ReturnObject(O);
+							if(Handler)
+								Handler->ReturnObject(O);
 						}
 						Logger.information( fmt::format("Command({}): completed in {:.3f}ms.", Cmd.UUID, Cmd.executionTime));
 						return;
