@@ -287,6 +287,7 @@ namespace OpenWifi {
 		case radius_type::auth:
 			return ChooseAddress(IsV4 ? Pools_[defaultPoolIndex_].AuthV4 : Pools_[defaultPoolIndex_].AuthV6, RequestedAddress);
 		case radius_type::acct:
+		default:
 			return ChooseAddress(IsV4 ? Pools_[defaultPoolIndex_].AcctV4 : Pools_[defaultPoolIndex_].AcctV6, RequestedAddress);
 		}
 	}
