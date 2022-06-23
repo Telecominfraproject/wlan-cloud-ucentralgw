@@ -201,7 +201,12 @@ namespace OpenWifi {
 		uint64_t TotalV4=0, TotalV6=0;
 
 		for(const auto &server:Config.servers) {
-			auto S = Poco::Net::SocketAddress(fmt::format("{}:{}",server.name,server.port));
+			Poco::Net::IPAddress a;
+			if(!Poco::Net::IPAddress::tryParse(server.ip,a)) {
+				Logger().error(fmt::format("RADIUS-PARSE Config: server address {} is nto a valid address in v4 or v6. Entry skipped.",server.ip));
+				return;
+			}
+			auto S = Poco::Net::SocketAddress(fmt::format("{}:{}",server.ip,server.port));
 			Destination	D{
 				.Addr = S,
 				.state = 0,
@@ -227,11 +232,19 @@ namespace OpenWifi {
 		}
 
 		for(auto &i:DestsV4) {
-			i.step = 1000 - ((1000*i.weight)/TotalV4);
+			if(TotalV4==0) {
+				i.step = 1000;
+			} else {
+				i.step = 1000 - ((1000 * i.weight) / TotalV4);
+			}
 		}
 
 		for(auto &i:DestsV6) {
-			i.step = 1000 - ((1000*i.weight)/TotalV6);
+			if(TotalV6==0) {
+				i.step = 1000;
+			} else {
+				i.step = 1000 - ((1000 * i.weight) / TotalV6);
+			}
 		}
 
 		if(!DestsV4.empty())
