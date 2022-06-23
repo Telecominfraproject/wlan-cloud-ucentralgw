@@ -276,34 +276,50 @@ namespace OpenWifi {
 	Poco::Net::SocketAddress RADIUS_proxy_server::Route([[maybe_unused]] radius_type rtype, const Poco::Net::SocketAddress &OriginalAddress, PoolIndexVec_t & P, PoolIndexMap_t &M) {
 		std::lock_guard	G(Mutex_);
 
+		std::cout << __LINE__ << std::endl;
 		if(PoolList_.pools.empty())
 			return OriginalAddress;
 
+		std::cout << __LINE__ << std::endl;
 		bool useDefault = false;
+		std::cout << __LINE__ << std::endl;
 		if(OriginalAddress.host() == Poco::Net::SocketAddress("0.0.0.0:0").host()) {
 			useDefault = true;
+			std::cout << __LINE__ << std::endl;
 		}
 
+		std::cout << __LINE__ << std::endl;
 		auto It = M.find(OriginalAddress);
-		if(!useDefault && It==M.end())
+		std::cout << __LINE__ << std::endl;
+		if(!useDefault && It==M.end()) {
+			std::cout << __LINE__ << std::endl;
 			return OriginalAddress;
+		}
 
 		if(useDefault || It==M.end()) {
 			for(auto &svr:P) {
-				if(svr[0].useAsDefault)
-					return ChooseAddress(svr,OriginalAddress);
+				if(svr[0].useAsDefault) {
+					std::cout << __LINE__ << std::endl;
+					return ChooseAddress(svr, OriginalAddress);
+				}
 			}
+			std::cout << __LINE__ << std::endl;
 			return ChooseAddress(P[0],OriginalAddress);
 		} else {
+			std::cout << __LINE__ << std::endl;
 			auto Pool = P[It->second];
+			std::cout << __LINE__ << std::endl;
 			return ChooseAddress(Pool, OriginalAddress);
 		}
 	}
 
 	Poco::Net::SocketAddress RADIUS_proxy_server::ChooseAddress(std::vector<Destination> &Pool, const Poco::Net::SocketAddress & OriginalAddress) {
 
-		if(Pool.size()==1)
+		std::cout << __LINE__ << std::endl;
+		if(Pool.size()==1) {
+			std::cout << __LINE__ << std::endl;
 			return Pool[0].Addr;
+		}
 
 		if (Pool[0].strategy == "weighted") {
 			bool found = false;
@@ -322,17 +338,24 @@ namespace OpenWifi {
 				pos++;
 			}
 
-			if (!found)
+			if (!found) {
+				std::cout << __LINE__ << std::endl;
 				return OriginalAddress;
+			}
 
 			Pool[index].state += Pool[index].step;
+			std::cout << __LINE__ << std::endl;
 			return Pool[index].Addr;
 		} else if (Pool[0].strategy == "round_robin") {
 			bool found = false;
+			std::cout << __LINE__ << std::endl;
 			uint64_t cur_state = std::numeric_limits<uint64_t>::max();
+			std::cout << __LINE__ << std::endl;
 			std::size_t pos = 0, index = 0;
+			std::cout << __LINE__ << std::endl;
 			for (auto &i : Pool) {
 				if (!i.available) {
+					std::cout << __LINE__ << std::endl;
 					i.state += 1;
 					continue;
 				}
@@ -340,25 +363,32 @@ namespace OpenWifi {
 					index = pos;
 					cur_state = i.state;
 					found = true;
+					std::cout << __LINE__ << std::endl;
 				}
 				pos++;
+				std::cout << __LINE__ << std::endl;
 			}
 
-			if (!found)
+			if (!found) {
+				std::cout << __LINE__ << std::endl;
 				return OriginalAddress;
+			}
 
 			Pool[index].state += 1;
+			std::cout << __LINE__ << std::endl;
 			return Pool[index].Addr;
 		} else if (Pool[0].strategy == "random") {
 			if (Pool.size() > 1) {
+				std::cout << __LINE__ << std::endl;
 				return Pool[std::rand() % Pool.size()].Addr;
 			} else {
+				std::cout << __LINE__ << std::endl;
 				return OriginalAddress;
 			}
 		}
+		std::cout << __LINE__ << std::endl;
 		return OriginalAddress;
 	}
-
 
 	void RADIUS_proxy_server::SetConfig(const GWObjects::RadiusProxyPoolList &C) {
 		std::lock_guard	G(Mutex_);
