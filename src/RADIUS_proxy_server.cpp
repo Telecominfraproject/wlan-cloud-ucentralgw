@@ -15,6 +15,10 @@ namespace OpenWifi {
 
 	int RADIUS_proxy_server::Start() {
 
+		enabled_ = MicroService::instance().ConfigGetBool("radius.proxy.enable",false);
+		if(!enabled_)
+			return 0;
+
 		ConfigFilename_ = MicroService::instance().DataDir()+"/radius_pool_config.json";
 
 		Poco::Net::SocketAddress	AuthSockAddrV4(Poco::Net::AddressFamily::IPv4,
@@ -61,29 +65,43 @@ namespace OpenWifi {
 	}
 
 	void RADIUS_proxy_server::Stop() {
-		AuthenticationReactor_.removeEventHandler(*AuthenticationSocketV4_,Poco::NObserver<RADIUS_proxy_server, Poco::Net::ReadableNotification>(
-																		  *this, &RADIUS_proxy_server::OnAuthenticationSocketReadable));
-		AuthenticationReactor_.removeEventHandler(*AuthenticationSocketV6_,Poco::NObserver<RADIUS_proxy_server, Poco::Net::ReadableNotification>(
-																				*this, &RADIUS_proxy_server::OnAuthenticationSocketReadable));
+		if(enabled_) {
+			AuthenticationReactor_.removeEventHandler(
+				*AuthenticationSocketV4_,
+				Poco::NObserver<RADIUS_proxy_server, Poco::Net::ReadableNotification>(
+					*this, &RADIUS_proxy_server::OnAuthenticationSocketReadable));
+			AuthenticationReactor_.removeEventHandler(
+				*AuthenticationSocketV6_,
+				Poco::NObserver<RADIUS_proxy_server, Poco::Net::ReadableNotification>(
+					*this, &RADIUS_proxy_server::OnAuthenticationSocketReadable));
 
-		AccountingReactor_.removeEventHandler(*AccountingSocketV4_,Poco::NObserver<RADIUS_proxy_server, Poco::Net::ReadableNotification>(
-																  *this, &RADIUS_proxy_server::OnAccountingSocketReadable));
-		AccountingReactor_.removeEventHandler(*AccountingSocketV6_,Poco::NObserver<RADIUS_proxy_server, Poco::Net::ReadableNotification>(
-																	  *this, &RADIUS_proxy_server::OnAccountingSocketReadable));
+			AccountingReactor_.removeEventHandler(
+				*AccountingSocketV4_,
+				Poco::NObserver<RADIUS_proxy_server, Poco::Net::ReadableNotification>(
+					*this, &RADIUS_proxy_server::OnAccountingSocketReadable));
+			AccountingReactor_.removeEventHandler(
+				*AccountingSocketV6_,
+				Poco::NObserver<RADIUS_proxy_server, Poco::Net::ReadableNotification>(
+					*this, &RADIUS_proxy_server::OnAccountingSocketReadable));
 
-		CoAReactor_.removeEventHandler(*CoASocketV4_,Poco::NObserver<RADIUS_proxy_server, Poco::Net::ReadableNotification>(
-																		*this, &RADIUS_proxy_server::OnAccountingSocketReadable));
-		CoAReactor_.removeEventHandler(*CoASocketV6_,Poco::NObserver<RADIUS_proxy_server, Poco::Net::ReadableNotification>(
-																		*this, &RADIUS_proxy_server::OnAccountingSocketReadable));
+			CoAReactor_.removeEventHandler(
+				*CoASocketV4_,
+				Poco::NObserver<RADIUS_proxy_server, Poco::Net::ReadableNotification>(
+					*this, &RADIUS_proxy_server::OnAccountingSocketReadable));
+			CoAReactor_.removeEventHandler(
+				*CoASocketV6_,
+				Poco::NObserver<RADIUS_proxy_server, Poco::Net::ReadableNotification>(
+					*this, &RADIUS_proxy_server::OnAccountingSocketReadable));
 
-		AuthenticationReactor_.stop();
-		AuthenticationReactorThread_.join();
+			AuthenticationReactor_.stop();
+			AuthenticationReactorThread_.join();
 
-		AccountingReactor_.stop();
-		AccountingReactorThread_.join();
+			AccountingReactor_.stop();
+			AccountingReactorThread_.join();
 
-		CoAReactor_.stop();
-		CoAReactorThread_.join();
+			CoAReactor_.stop();
+			CoAReactorThread_.join();
+		}
 	}
 
 	void RADIUS_proxy_server::OnAccountingSocketReadable(const Poco::AutoPtr<Poco::Net::ReadableNotification>& pNf) {
