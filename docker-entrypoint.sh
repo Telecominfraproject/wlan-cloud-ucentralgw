@@ -5,7 +5,7 @@ if [ "$SELFSIGNED_CERTS" = 'true' ]; then
     update-ca-certificates
 fi
 
-if [[ "$TEMPLATE_CONFIG" = 'true' && ! -f "$OWGW_CONFIG"/owgw.properties ]]; then
+if [[ "$TEMPLATE_CONFIG" = 'true' ]]; then
     WEBSOCKET_HOST_ROOTCA=${WEBSOCKET_HOST_ROOTCA:-"\$OWGW_ROOT/certs/root.pem"} \
     WEBSOCKET_HOST_ISSUER=${WEBSOCKET_HOST_ISSUER:-"\$OWGW_ROOT/certs/issuer.pem"} \
     WEBSOCKET_HOST_CERT=${WEBSOCKET_HOST_CERT:-"\$OWGW_ROOT/certs/websocket-cert.pem"} \
