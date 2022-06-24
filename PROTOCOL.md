@@ -182,6 +182,7 @@ The device should answer:
   },
   "id" : <same number>
 }
+```
 
 ### Controller commands
 Most controller commands include a `when` member. This is a UTC clock time asking the AP
