@@ -767,11 +767,10 @@ identify the destination for its messages.
 The GW must be configured with the following:
 
 ```asm
-radius.incoming.proxy.enable = true
-radius.incoming.proxy.accounting.port = 1813
-radius.incoming.proxy.auth.port = 1812
-radius.incoming.proxy.das.port = 1814
-radius.incoming.serialnumbertlv = 127
+radius.proxy.enable = true
+radius.proxy.accounting.port = 1813
+radius.proxy.authentication.port = 1812
+radius.proxy.coa.port = 3799
 ```
 
 
