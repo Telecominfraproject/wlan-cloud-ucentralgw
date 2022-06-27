@@ -165,6 +165,7 @@ namespace OpenWifi::RADIUS {
 				if(attribute.type==33 && attribute.len>1) {
 					std::string Attr33;
 					Attr33.assign((const char *)(const char *)&P_.attributes[attribute.pos],attribute.len-2);
+					std::cout << "ATTR33: " << Attr33 << std::endl;
 					auto Parts = Poco::StringTokenizer(Attr33,":");
 					if(Parts.count()==2)
 						return Parts[0]+":"+Parts[1];
