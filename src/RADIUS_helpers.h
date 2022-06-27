@@ -172,6 +172,28 @@ namespace OpenWifi::RADIUS {
 			return Result;
 		}
 
+		std::string ExtractCallingStationID() {
+			std::string Result;
+			for(const auto &attribute:Attrs_) {
+				if(attribute.type==31) {
+					Result.assign((const char *)(const char *)&P_.attributes[attribute.pos],attribute.len);
+					return Result;
+				}
+			}
+			return Result;
+		}
+
+		std::string ExtractCalledStationID() {
+			std::string Result;
+			for(const auto &attribute:Attrs_) {
+				if(attribute.type==30) {
+					Result.assign((const char *)(const char *)&P_.attributes[attribute.pos],attribute.len);
+					return Result;
+				}
+			}
+			return Result;
+		}
+
 	  private:
 		RawRadiusPacket     P_;
 		uint16_t            Size_{0};

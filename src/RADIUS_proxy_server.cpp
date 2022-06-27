@@ -173,6 +173,8 @@ namespace OpenWifi {
 	void RADIUS_proxy_server::SendAccountingData(const std::string &serialNumber, const char *buffer, std::size_t size) {
 		RADIUS::RadiusPacket	P((unsigned char *)buffer,size);
 		auto Destination = P.ExtractProxyStateDestination();
+		auto CallingStationID = P.ExtractCallingStationID();
+		auto CalledStationID = P.ExtractCalledStationID();
 		Poco::Net::SocketAddress	Dst(Destination);
 
 		std::lock_guard	G(Mutex_);
@@ -180,13 +182,15 @@ namespace OpenWifi {
 			AccountingSocketV4_->sendTo(buffer,(int)size,Route(radius_type::acct, Dst));
 		else
 			AccountingSocketV6_->sendTo(buffer,(int)size,Route(radius_type::acct, Dst));
-		Logger().information(fmt::format("{}: Sending Accounting Packet to {}", serialNumber, Destination));
+		Logger().information(fmt::format("{}: Sending Accounting Packet to {}, CalledStationID: {}, CallingStationID:{}", serialNumber, Destination, CalledStationID, CallingStationID));
 		// std::cout << "Sending Accounting data to " << Destination << std::endl;
 	}
 
 	void RADIUS_proxy_server::SendAuthenticationData(const std::string &serialNumber, const char *buffer, std::size_t size) {
 		RADIUS::RadiusPacket	P((unsigned char *)buffer,size);
 		auto Destination = P.ExtractProxyStateDestination();
+		auto CallingStationID = P.ExtractCallingStationID();
+		auto CalledStationID = P.ExtractCalledStationID();
 		Poco::Net::SocketAddress	Dst(Destination);
 
 		std::lock_guard	G(Mutex_);
@@ -194,13 +198,15 @@ namespace OpenWifi {
 			AuthenticationSocketV4_->sendTo(buffer,(int)size,Route(radius_type::auth, Dst));
 		else
 			AuthenticationSocketV6_->sendTo(buffer,(int)size,Route(radius_type::auth, Dst));
-		Logger().information(fmt::format("{}: Sending Authentication Packet to {}", serialNumber, Destination));
+		Logger().information(fmt::format("{}: Sending Authentication Packet to {}, CalledStationID: {}, CallingStationID:{}", serialNumber, Destination, CalledStationID, CallingStationID));
 		// std::cout << "Sending Authentication data to " << Destination << std::endl;
 	}
 
 	void RADIUS_proxy_server::SendCoAData(const std::string &serialNumber, const char *buffer, std::size_t size) {
 		RADIUS::RadiusPacket	P((unsigned char *)buffer,size);
 		auto Destination = P.ExtractProxyStateDestination();
+		auto CallingStationID = P.ExtractCallingStationID();
+		auto CalledStationID = P.ExtractCalledStationID();
 		Poco::Net::SocketAddress	Dst(Destination);
 
 		std::lock_guard	G(Mutex_);
@@ -208,7 +214,7 @@ namespace OpenWifi {
 			CoASocketV4_->sendTo(buffer,(int)size,Route(radius_type::coa, Dst));
 		else
 			CoASocketV6_->sendTo(buffer,(int)size,Route(radius_type::coa, Dst));
-		Logger().information(fmt::format("{}: Sending CoA Packet to {}", serialNumber, Destination));
+		Logger().information(fmt::format("{}: Sending CoA Packet to {}, CalledStationID: {}, CallingStationID:{}", serialNumber, Destination, CalledStationID, CallingStationID));
 		// std::cout << "Sending CoA data to " << Destination << std::endl;
 	}
 
