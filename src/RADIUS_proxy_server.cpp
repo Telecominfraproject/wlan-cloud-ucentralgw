@@ -121,8 +121,10 @@ namespace OpenWifi {
 			Logger().warning("Accounting: missing serial number.");
 			return;
 		}
+		auto CallingStationID = P.ExtractCallingStationID();
+		auto CalledStationID = P.ExtractCalledStationID();
 
-		Logger().information(fmt::format("Accounting Packet received for {}",SerialNumber));
+		Logger().information(fmt::format("Accounting Packet received for {}, CalledStationID: {}, CallingStationID:{}",SerialNumber, CalledStationID, CallingStationID));
 		// std::cout << "Received an Accounting packet for :" << SerialNumber << std::endl;
 		DeviceRegistry()->SendRadiusAccountingData(SerialNumber,P.Buffer(),P.Size());
 	}
@@ -144,7 +146,10 @@ namespace OpenWifi {
 			Logger().warning("Authentication: missing serial number.");
 			return;
 		}
-		Logger().information(fmt::format("Authentication Packet received for {}",SerialNumber));
+		auto CallingStationID = P.ExtractCallingStationID();
+		auto CalledStationID = P.ExtractCalledStationID();
+
+		Logger().information(fmt::format("Authentication Packet received for {}, CalledStationID: {}, CallingStationID:{}",SerialNumber, CalledStationID, CallingStationID));
 		std::cout << "Received an Authentication packet for :" << SerialNumber << std::endl;
 		DeviceRegistry()->SendRadiusAuthenticationData(SerialNumber,P.Buffer(),P.Size());
 	}
@@ -165,7 +170,10 @@ namespace OpenWifi {
 			Logger().warning("CoA/DM: missing serial number.");
 			return;
 		}
-		Logger().information(fmt::format("CoA Packet received for {}",SerialNumber));
+		auto CallingStationID = P.ExtractCallingStationID();
+		auto CalledStationID = P.ExtractCalledStationID();
+
+		Logger().information(fmt::format("CoA Packet received for {}, CalledStationID: {}, CallingStationID:{}",SerialNumber, CalledStationID, CallingStationID));
 		// std::cout << "Received an CoA packet for :" << SerialNumber << std::endl;
 		DeviceRegistry()->SendRadiusCoAData(SerialNumber,P.Buffer(),P.Size());
 	}
