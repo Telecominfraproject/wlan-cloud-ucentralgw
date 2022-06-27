@@ -101,6 +101,7 @@ namespace OpenWifi {
 
 			CoAReactor_.stop();
 			CoAReactorThread_.join();
+			enabled_=false;
 		}
 	}
 

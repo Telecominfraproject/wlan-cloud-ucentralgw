@@ -24,6 +24,7 @@ namespace OpenWifi {
 
 		int Start() final;
 		void Stop() final;
+		inline bool Enabled() const { return enabled_; }
 
 		void OnAccountingSocketReadable(const Poco::AutoPtr<Poco::Net::ReadableNotification>& pNf);
 		void OnAuthenticationSocketReadable(const Poco::AutoPtr<Poco::Net::ReadableNotification>& pNf);
