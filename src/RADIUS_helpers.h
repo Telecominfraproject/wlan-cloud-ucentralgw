@@ -164,11 +164,11 @@ namespace OpenWifi::RADIUS {
 			for(const auto &attribute:Attrs_) {
 				if(attribute.type==33 && attribute.len>1) {
 					std::string Attr33;
+					// format is serial:IP:port:interface
 					Attr33.assign((const char *)(const char *)&P_.attributes[attribute.pos],attribute.len-2);
-					std::cout << "ATTR33: " << Attr33 << std::endl;
 					auto Parts = Poco::StringTokenizer(Attr33,":");
 					if(Parts.count()==2)
-						return Parts[0]+":"+Parts[1];
+						return Parts[1]+":"+Parts[2];
 					return Result;
 				}
 			}
