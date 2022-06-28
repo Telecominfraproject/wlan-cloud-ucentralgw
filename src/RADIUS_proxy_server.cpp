@@ -186,7 +186,7 @@ namespace OpenWifi {
 		Poco::Net::SocketAddress	Dst(Destination);
 
 		std::lock_guard	G(Mutex_);
-		if(Dst.af()==AF_INET)
+		if(Dst.family()==Poco::Net::SocketAddress::IPv4)
 			AccountingSocketV4_->sendTo(buffer,(int)size,Route(radius_type::acct, Dst));
 		else
 			AccountingSocketV6_->sendTo(buffer,(int)size,Route(radius_type::acct, Dst));
@@ -202,7 +202,7 @@ namespace OpenWifi {
 		Poco::Net::SocketAddress	Dst(Destination);
 
 		std::lock_guard	G(Mutex_);
-		if(Dst.af()==AF_INET)
+		if(Dst.family()==Poco::Net::SocketAddress::IPv4)
 			AuthenticationSocketV4_->sendTo(buffer,(int)size,Route(radius_type::auth, Dst));
 		else
 			AuthenticationSocketV6_->sendTo(buffer,(int)size,Route(radius_type::auth, Dst));
@@ -222,7 +222,8 @@ namespace OpenWifi {
 
 		Poco::Net::SocketAddress	Dst(Destination);
 		std::lock_guard	G(Mutex_);
-		if(Dst.af()==AF_INET) {
+
+		if(Dst.family()==Poco::Net::SocketAddress::IPv4) {
 			auto S = Route(radius_type::coa, Dst);
 			std::cout << S.toString() << std::endl;
 			if(S.toString()==Destination)
@@ -260,7 +261,7 @@ namespace OpenWifi {
 				.useAsDefault = setAsDefault
 			};
 
-			if(S.af()==AF_INET) {
+			if(S.family()==Poco::Net::IPAddress::IPv4) {
 				TotalV4 += server.weight;
 				V4.push_back(D);
 			} else {
@@ -322,7 +323,7 @@ namespace OpenWifi {
 	}
 
 	Poco::Net::SocketAddress RADIUS_proxy_server::DefaultRoute([[maybe_unused]] radius_type rtype, const Poco::Net::SocketAddress &RequestedAddress) {
-		bool IsV4 = RequestedAddress.af()==AF_INET;
+		bool IsV4 = RequestedAddress.family()==Poco::Net::SocketAddress::IPv4;
 		switch(rtype) {
 		case radius_type::coa:
 			return ChooseAddress(IsV4 ? Pools_[defaultPoolIndex_].CoaV4 : Pools_[defaultPoolIndex_].CoaV6, RequestedAddress);
@@ -340,7 +341,7 @@ namespace OpenWifi {
 		if(Pools_.empty())
 			return RequestedAddress;
 
-		bool IsV4 = RequestedAddress.af()==AF_INET;
+		bool IsV4 = RequestedAddress.family()==Poco::Net::SocketAddress::IPv4;
 		bool useDefault = false;
 		useDefault = IsV4 ? RequestedAddress.host() == Poco::Net::IPAddress::wildcard(Poco::Net::IPAddress::IPv4) : RequestedAddress.host() == Poco::Net::IPAddress::wildcard(Poco::Net::IPAddress::IPv6) ;
 
