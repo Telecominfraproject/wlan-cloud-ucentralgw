@@ -215,6 +215,11 @@ namespace OpenWifi {
 		auto Destination = P.ExtractProxyStateDestination();
 		auto CallingStationID = P.ExtractCallingStationID();
 		auto CalledStationID = P.ExtractCalledStationID();
+
+		if(Destination.empty()) {
+			Destination = Poco::Net::IPAddress::wildcard(Poco::Net::IPAddress::IPv4).toString();
+		}
+
 		Poco::Net::SocketAddress	Dst(Destination);
 
 		std::lock_guard	G(Mutex_);
