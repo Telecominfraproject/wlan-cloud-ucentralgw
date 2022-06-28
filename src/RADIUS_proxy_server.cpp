@@ -21,6 +21,8 @@ namespace OpenWifi {
 
 		ConfigFilename_ = MicroService::instance().DataDir()+"/radius_pool_config.json";
 
+
+
 		Poco::Net::SocketAddress	AuthSockAddrV4(Poco::Net::AddressFamily::IPv4,
 									   MicroService::instance().ConfigGetInt("radius.proxy.authentication.port",DEFAULT_RADIUS_AUTHENTICATION_PORT));
 		AuthenticationSocketV4_ = std::make_unique<Poco::Net::DatagramSocket>(AuthSockAddrV4,true);
@@ -57,6 +59,8 @@ namespace OpenWifi {
 																			 *this, &RADIUS_proxy_server::OnCoASocketReadable));
 		CoAReactor_.addEventHandler(*CoASocketV6_,Poco::NObserver<RADIUS_proxy_server, Poco::Net::ReadableNotification>(
 																	 *this, &RADIUS_proxy_server::OnCoASocketReadable));
+
+		ParseConfig();
 
 		AuthenticationReactorThread_.start(AuthenticationReactor_);
 		AccountingReactorThread_.start(AccountingReactor_);
