@@ -235,7 +235,7 @@ namespace OpenWifi {
 
 		std::lock_guard	G(Mutex_);
 		std::cout << __LINE__ << std::endl;
-		if(Dst.af()==Poco::Net::AddressFamily::IPv4) {
+		if(Dst.af()==AF_INET) {
 			std::cout << __LINE__ << std::endl;
 			auto S = Route(radius_type::coa, Dst);
 			std::cout << S.toString() << std::endl;
