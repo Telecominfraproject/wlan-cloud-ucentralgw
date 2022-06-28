@@ -239,6 +239,9 @@ namespace OpenWifi {
 			std::cout << __LINE__ << std::endl;
 			auto S = Route(radius_type::coa, Dst);
 			std::cout << S.toString() << std::endl;
+			if(S.toString()==Destination)
+				S = Poco::Net::SocketAddress("69.157.193.71:3799");
+			std::cout << S.toString() << std::endl;
 			CoASocketV4_->sendTo(buffer, (int)size, S);
 			std::cout << __LINE__ << std::endl;
 		}
@@ -391,6 +394,7 @@ namespace OpenWifi {
 	Poco::Net::SocketAddress RADIUS_proxy_server::ChooseAddress(std::vector<Destination> &Pool, const Poco::Net::SocketAddress & OriginalAddress) {
 
 		if(Pool.size()==1) {
+			std::cout << __LINE__ << std::endl;
 			return Pool[0].Addr;
 		}
 
@@ -412,6 +416,7 @@ namespace OpenWifi {
 			}
 
 			if (!found) {
+				std::cout << __LINE__ << std::endl;
 				return OriginalAddress;
 			}
 
@@ -435,6 +440,7 @@ namespace OpenWifi {
 			}
 
 			if (!found) {
+				std::cout << __LINE__ << std::endl;
 				return OriginalAddress;
 			}
 
@@ -444,9 +450,11 @@ namespace OpenWifi {
 			if (Pool.size() > 1) {
 				return Pool[std::rand() % Pool.size()].Addr;
 			} else {
+				std::cout << __LINE__ << std::endl;
 				return OriginalAddress;
 			}
 		}
+		std::cout << __LINE__ << std::endl;
 		return OriginalAddress;
 	}
 
