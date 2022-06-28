@@ -212,23 +212,41 @@ namespace OpenWifi {
 
 	void RADIUS_proxy_server::SendCoAData(const std::string &serialNumber, const char *buffer, std::size_t size) {
 		RADIUS::RadiusPacket	P((unsigned char *)buffer,size);
+		std::cout << __LINE__ << std::endl;
 		auto Destination = P.ExtractProxyStateDestination();
+		std::cout << __LINE__ << std::endl;
 		auto CallingStationID = P.ExtractCallingStationID();
+		std::cout << __LINE__ << std::endl;
 		auto CalledStationID = P.ExtractCalledStationID();
+		std::cout << __LINE__ << std::endl;
+
+		std::cout << __LINE__ << std::endl;
 
 /*		if(Destination.empty()) {
 			Destination = Poco::Net::IPAddress::wildcard(Poco::Net::IPAddress::IPv4).toString();
 		}
 */
+		std::cout << __LINE__ << std::endl;
 		Destination = "0.0.0.0:0";
+		std::cout << __LINE__ << std::endl;
 
 		Poco::Net::SocketAddress	Dst(Destination);
+		std::cout << __LINE__ << std::endl;
 
 		std::lock_guard	G(Mutex_);
-		if(Dst.af()==Poco::Net::AddressFamily::IPv4)
-			CoASocketV4_->sendTo(buffer,(int)size,Route(radius_type::coa, Dst));
-		else
-			CoASocketV6_->sendTo(buffer,(int)size,Route(radius_type::coa, Dst));
+		std::cout << __LINE__ << std::endl;
+		if(Dst.af()==Poco::Net::AddressFamily::IPv4) {
+			std::cout << __LINE__ << std::endl;
+			auto S = Route(radius_type::coa, Dst);
+			std::cout << S.toString() << std::endl;
+			CoASocketV4_->sendTo(buffer, (int)size, S);
+			std::cout << __LINE__ << std::endl;
+		}
+		else {
+			std::cout << __LINE__ << std::endl;
+			CoASocketV6_->sendTo(buffer, (int)size, Route(radius_type::coa, Dst));
+			std::cout << __LINE__ << std::endl;
+		}
 		Logger().information(fmt::format("{}: Sending CoA Packet to {}, CalledStationID: {}, CallingStationID:{}", serialNumber, Destination, CalledStationID, CallingStationID));
 		// std::cout << "Sending CoA data to " << Destination << std::endl;
 	}
