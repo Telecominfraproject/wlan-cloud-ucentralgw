@@ -1057,6 +1057,7 @@ namespace OpenWifi {
 												CId_, std::string{E.what()}, IncomingMessageStr));
 			return delete this;
 		} catch (...) {
+			std::cout << "Device " << CId_ << " must be disconnected due to exception..." << std::endl;
 			return delete this;
 		}
 
