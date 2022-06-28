@@ -167,7 +167,7 @@ namespace OpenWifi::RADIUS {
 					// format is serial:IP:port:interface
 					Attr33.assign((const char *)(const char *)&P_.attributes[attribute.pos],attribute.len-2);
 					auto Parts = Poco::StringTokenizer(Attr33,":");
-					if(Parts.count()==2)
+					if(Parts.count()==4)
 						return Parts[1]+":"+Parts[2];
 					return Result;
 				}
