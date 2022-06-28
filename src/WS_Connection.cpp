@@ -46,9 +46,9 @@ namespace OpenWifi {
 			PeerAddress_ = SS->peerAddress().host();
 			CId_ = Utils::FormatIPv6(SS->peerAddress().toString());
 			if (!SS->secure()) {
-				Logger().error(fmt::format("{}: Connection is NOT secure.", CId_));
+				poco_error(Logger(),fmt::format("{}: Connection is NOT secure.", CId_));
 			} else {
-				Logger().debug(fmt::format("{}: Connection is secure.", CId_));
+				poco_trace(Logger(),fmt::format("{}: Connection is secure.", CId_));
 			}
 
 			if (SS->havePeerCertificate()) {
@@ -60,15 +60,15 @@ namespace OpenWifi {
 					if (WebSocketServer()->ValidateCertificate(CId_, PeerCert)) {
 						CN_ = Poco::trim(Poco::toLower(PeerCert.commonName()));
 						CertValidation_ = GWObjects::MISMATCH_SERIAL;
-						Logger().debug(fmt::format("{}: Valid certificate: CN={}", CId_, CN_));
+						poco_trace(Logger(),fmt::format("{}: Valid certificate: CN={}", CId_, CN_));
 					} else {
-						Logger().debug(fmt::format("{}: Certificate is not valid", CId_));
+						poco_error(Logger(),fmt::format("{}: Certificate is not valid", CId_));
 					}
 				} catch (const Poco::Exception &E) {
 					LogException(E);
 				}
 			} else {
-				Logger().error(fmt::format("{}: No certificates available..", CId_));
+				poco_error(Logger(),fmt::format("{}: No certificates available..", CId_));
 			}
 
 			if (WebSocketServer::IsSim(CN_) && !WebSocketServer()->IsSimEnabled()) {
@@ -113,7 +113,7 @@ namespace OpenWifi {
 			Reactor_.addEventHandler(*WS_, Poco::NObserver<WSConnection, Poco::Net::ErrorNotification>(
 											   *this, &WSConnection::OnSocketError));
 			Registered_ = true;
-			Logger().information(fmt::format("CONNECTION({}): completed.", CId_));
+			poco_debug(Logger(),fmt::format("CONNECTION({}): completed.", CId_));
 			return;
 		} catch (const Poco::Net::CertificateValidationException &E) {
 			Logger().error(fmt::format("CONNECTION({}): Poco::Exception Certificate Validation failed during connection. Device will have to retry.",
@@ -177,6 +177,8 @@ namespace OpenWifi {
 
 	WSConnection::~WSConnection() {
 
+		poco_debug(Logger(),fmt::format("{}: Removing connection for {}.", CId_, SerialNumber_));
+		std::cout << "Deleting connection for " << CId_ << std::endl;
 		if (ConnectionId_)
 			DeviceRegistry()->UnRegister(SerialNumberInt_, ConnectionId_);
 
@@ -1057,6 +1059,7 @@ namespace OpenWifi {
 												CId_, std::string{E.what()}, IncomingMessageStr));
 			return delete this;
 		} catch (...) {
+			poco_error(Logger(),fmt::format("Device {} must be disconnected. Unknown exception.", CId_));
 			std::cout << "Device " << CId_ << " must be disconnected due to exception..." << std::endl;
 			return delete this;
 		}
