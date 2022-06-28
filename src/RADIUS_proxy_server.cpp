@@ -220,7 +220,7 @@ namespace OpenWifi {
 			Destination = Poco::Net::IPAddress::wildcard(Poco::Net::IPAddress::IPv4).toString();
 		}
 */
-		Destination = "0.0.0.0";
+		Destination = "0.0.0.0:0";
 
 		Poco::Net::SocketAddress	Dst(Destination);
 
