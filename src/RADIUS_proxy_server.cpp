@@ -216,9 +216,11 @@ namespace OpenWifi {
 		auto CallingStationID = P.ExtractCallingStationID();
 		auto CalledStationID = P.ExtractCalledStationID();
 
-		if(Destination.empty()) {
+/*		if(Destination.empty()) {
 			Destination = Poco::Net::IPAddress::wildcard(Poco::Net::IPAddress::IPv4).toString();
 		}
+*/
+		Destination = "0.0.0.0:0";
 
 		Poco::Net::SocketAddress	Dst(Destination);
 
