@@ -186,7 +186,7 @@ namespace OpenWifi {
 		Poco::Net::SocketAddress	Dst(Destination);
 
 		std::lock_guard	G(Mutex_);
-		if(Dst.af()==Poco::Net::AddressFamily::IPv4)
+		if(Dst.af()==AF_INET)
 			AccountingSocketV4_->sendTo(buffer,(int)size,Route(radius_type::acct, Dst));
 		else
 			AccountingSocketV6_->sendTo(buffer,(int)size,Route(radius_type::acct, Dst));
@@ -202,7 +202,7 @@ namespace OpenWifi {
 		Poco::Net::SocketAddress	Dst(Destination);
 
 		std::lock_guard	G(Mutex_);
-		if(Dst.af()==Poco::Net::AddressFamily::IPv4)
+		if(Dst.af()==AF_INET)
 			AuthenticationSocketV4_->sendTo(buffer,(int)size,Route(radius_type::auth, Dst));
 		else
 			AuthenticationSocketV6_->sendTo(buffer,(int)size,Route(radius_type::auth, Dst));
@@ -212,43 +212,26 @@ namespace OpenWifi {
 
 	void RADIUS_proxy_server::SendCoAData(const std::string &serialNumber, const char *buffer, std::size_t size) {
 		RADIUS::RadiusPacket	P((unsigned char *)buffer,size);
-		std::cout << __LINE__ << std::endl;
 		auto Destination = P.ExtractProxyStateDestination();
-		std::cout << __LINE__ << std::endl;
 		auto CallingStationID = P.ExtractCallingStationID();
-		std::cout << __LINE__ << std::endl;
 		auto CalledStationID = P.ExtractCalledStationID();
-		std::cout << __LINE__ << std::endl;
 
-		std::cout << __LINE__ << std::endl;
-
-/*		if(Destination.empty()) {
-			Destination = Poco::Net::IPAddress::wildcard(Poco::Net::IPAddress::IPv4).toString();
+		if(Destination.empty()) {
+			Destination = "0.0.0.0:0";
 		}
-*/
-		std::cout << __LINE__ << std::endl;
-		Destination = "0.0.0.0:0";
-		std::cout << __LINE__ << std::endl;
 
 		Poco::Net::SocketAddress	Dst(Destination);
-		std::cout << __LINE__ << std::endl;
-
 		std::lock_guard	G(Mutex_);
-		std::cout << __LINE__ << std::endl;
 		if(Dst.af()==AF_INET) {
-			std::cout << __LINE__ << std::endl;
 			auto S = Route(radius_type::coa, Dst);
 			std::cout << S.toString() << std::endl;
 			if(S.toString()==Destination)
 				S = Poco::Net::SocketAddress("69.157.193.71:3799");
 			std::cout << S.toString() << std::endl;
 			CoASocketV4_->sendTo(buffer, (int)size, S);
-			std::cout << __LINE__ << std::endl;
 		}
 		else {
-			std::cout << __LINE__ << std::endl;
 			CoASocketV6_->sendTo(buffer, (int)size, Route(radius_type::coa, Dst));
-			std::cout << __LINE__ << std::endl;
 		}
 		Logger().information(fmt::format("{}: Sending CoA Packet to {}, CalledStationID: {}, CallingStationID:{}", serialNumber, Destination, CalledStationID, CallingStationID));
 		// std::cout << "Sending CoA data to " << Destination << std::endl;
@@ -277,7 +260,7 @@ namespace OpenWifi {
 				.useAsDefault = setAsDefault
 			};
 
-			if(S.af()==Poco::Net::AddressFamily::IPv4) {
+			if(S.af()==AF_INET) {
 				TotalV4 += server.weight;
 				V4.push_back(D);
 			} else {
@@ -339,7 +322,7 @@ namespace OpenWifi {
 	}
 
 	Poco::Net::SocketAddress RADIUS_proxy_server::DefaultRoute([[maybe_unused]] radius_type rtype, const Poco::Net::SocketAddress &RequestedAddress) {
-		bool IsV4 = RequestedAddress.af()==Poco::Net::IPAddress::IPv4;
+		bool IsV4 = RequestedAddress.af()==AF_INET;
 		switch(rtype) {
 		case radius_type::coa:
 			return ChooseAddress(IsV4 ? Pools_[defaultPoolIndex_].CoaV4 : Pools_[defaultPoolIndex_].CoaV6, RequestedAddress);
@@ -357,7 +340,7 @@ namespace OpenWifi {
 		if(Pools_.empty())
 			return RequestedAddress;
 
-		bool IsV4 = RequestedAddress.af()==Poco::Net::IPAddress::IPv4;
+		bool IsV4 = RequestedAddress.af()==AF_INET;
 		bool useDefault = false;
 		useDefault = IsV4 ? RequestedAddress.host() == Poco::Net::IPAddress::wildcard(Poco::Net::IPAddress::IPv4) : RequestedAddress.host() == Poco::Net::IPAddress::wildcard(Poco::Net::IPAddress::IPv6) ;
 
