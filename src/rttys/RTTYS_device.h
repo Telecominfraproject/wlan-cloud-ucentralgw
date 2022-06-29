@@ -30,7 +30,7 @@ class RTTY_Device_ConnectionHandler : public Poco::Net::TCPServerConnection {
 		msgTypeMax };
 
 	explicit RTTY_Device_ConnectionHandler(const Poco::Net::StreamSocket & socket) ;
-	~RTTY_Device_ConnectionHandler();
+	virtual ~RTTY_Device_ConnectionHandler();
 
 	void run() final;
 	bool Login();

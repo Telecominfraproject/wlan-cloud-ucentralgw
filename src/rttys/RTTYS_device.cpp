@@ -70,12 +70,12 @@ namespace OpenWifi {
 		int reason=0;
 		while(running_) {
 
-			if(!ProcessCommands()) {
+/*			if(!ProcessCommands()) {
 				reason=1;
 				running_=false;
 				break;
 			}
-
+*/
 //			std::lock_guard		G(M_);
 /*			if (socket().poll(pollError, Poco::Net::Socket::SELECT_ERROR) == true) {
 				reason=2;
