@@ -24,6 +24,7 @@ namespace OpenWifi {
 
 		int Start() final;
 		void Stop() final;
+		inline bool Enabled() const { return enabled_; }
 
 		void OnAccountingSocketReadable(const Poco::AutoPtr<Poco::Net::ReadableNotification>& pNf);
 		void OnAuthenticationSocketReadable(const Poco::AutoPtr<Poco::Net::ReadableNotification>& pNf);
@@ -78,11 +79,14 @@ namespace OpenWifi {
 
 		std::vector<RadiusPool>			Pools_;
 		uint 							defaultPoolIndex_=0;
+		bool 							enabled_=false;
 
 		RADIUS_proxy_server() noexcept:
 		   SubSystemServer("RADIUS-PROXY", "RADIUS-PROXY", "radius.proxy")
 		{
 		}
+
+		static bool SendData( Poco::Net::DatagramSocket & Sock, const unsigned char *buf , std::size_t size, const Poco::Net::SocketAddress &S);
 
 		void ParseConfig();
 		void ResetConfig();

@@ -66,7 +66,7 @@ namespace OpenWifi {
 			Poco::Data::Session     Sess = Pool_->get();
 			Poco::Data::Statement   Select(Sess);
 
-			std::string St{"SELECT FROM DefaultConfigs WHERE Name=?"};
+			std::string St{"SELECT name FROM DefaultConfigs WHERE Name=?"};
 			Select <<   ConvertParams(St) ,
 						Poco::Data::Keywords::into(TmpName) ,
 						Name;

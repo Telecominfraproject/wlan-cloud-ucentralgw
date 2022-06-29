@@ -148,7 +148,7 @@ namespace OpenWifi {
 
 					Poco::JSON::Parser	P;
 					bool Sent;
-					Logger().information(fmt::format("{}-{}: Processing.", Cmd.SerialNumber, Cmd.UUID));
+					Logger().information(fmt::format("{}: Preparing execution of {} for {}.", Cmd.UUID, Cmd.Command, Cmd.SerialNumber));
 					auto Params = P.parse(Cmd.Details).extract<Poco::JSON::Object::Ptr>();
 					auto Result = PostCommandDisk(	Cmd.SerialNumber,
 												  Cmd.Command,
@@ -157,17 +157,18 @@ namespace OpenWifi {
 												  Sent);
 					if(Sent) {
 						StorageService()->SetCommandExecuted(Cmd.UUID);
+						std::lock_guard M(Mutex_);
 						OutstandingUUIDs_.insert(Cmd.UUID);
-						Logger().information(fmt::format("{}-{}: Sent command {}.", Cmd.SerialNumber, Cmd.UUID, Cmd.Command));
+						Logger().information(fmt::format("{}: Queued command.", Cmd.UUID));
 					} else {
-						Logger().information(fmt::format("{}-{}: Could not Send command {}.", Cmd.SerialNumber, Cmd.UUID, Cmd.Command));
+						Logger().information(fmt::format("{}: Could queue command.", Cmd.UUID));
 					}
 				} catch (const Poco::Exception &E) {
-					Logger().information(fmt::format("{}-{}: Failed command {}.", Cmd.SerialNumber, Cmd.UUID, Cmd.Command));
+					Logger().information(fmt::format("{}: Failed. Command marked as completed.", Cmd.UUID));
 					Logger().log(E);
 					StorageService()->SetCommandExecuted(Cmd.UUID);
 				} catch (...) {
-					Logger().information(fmt::format("{}-{}: Hard failed command {}.", Cmd.SerialNumber, Cmd.UUID, Cmd.Command));
+					Logger().information(fmt::format("{}: Hard failure.", Cmd.UUID));
 					StorageService()->SetCommandExecuted(Cmd.UUID);
 				}
 			}
@@ -205,9 +206,6 @@ namespace OpenWifi {
 			CompleteRPC.set(uCentralProtocol::METHOD, Method);
 			CompleteRPC.set(uCentralProtocol::PARAMS, Params);
 			Poco::JSON::Stringifier::stringify(CompleteRPC, ToSend);
-			Logger().information(
-				fmt::format("{}-{}: Sending command {}, ID: {}", SerialNumber, UUID, Method, Idx.Id));
-
 			Object->submitted = std::chrono::high_resolution_clock::now();
 			Object->uuid = UUID;
 			if(disk_only) {
@@ -222,6 +220,7 @@ namespace OpenWifi {
 		}
 
 		if(DeviceRegistry()->SendFrame(SerialNumber, ToSend.str())) {
+			Logger().information(fmt::format("{}: Sent command. ID: {}", UUID, Idx.Id));
 			Sent=true;
 			return Object->rpc_entry;
 		}
