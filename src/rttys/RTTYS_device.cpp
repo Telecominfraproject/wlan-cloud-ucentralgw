@@ -65,9 +65,11 @@ namespace OpenWifi {
 
 	void RTTY_Device_ConnectionHandler::run() {
 		running_ = true ;
+		char threadname[32];
 
 		auto tid = pthread_self();
-		pthread_setname_np(tid, "Boogie 1");
+		strcpy(threadname,"RTTY-Device");
+		pthread_setname_np(tid, threadname);
 
 		device_address_ = socket().address().toString();
 		Logger().information(fmt::format("{}: Started.", device_address_));
@@ -100,7 +102,7 @@ namespace OpenWifi {
 				continue;
 			}
 */
-			if (socket().poll(pollTimeOut, Poco::Net::Socket::SELECT_READ | Poco::Net::Socket::SELECT_ERROR) == false) {
+			if (!socket().poll(pollTimeOut, Poco::Net::Socket::SELECT_READ | Poco::Net::Socket::SELECT_ERROR)) {
 				continue;
 			}
 
@@ -175,7 +177,7 @@ namespace OpenWifi {
 		Logger().information(fmt::format("{}: Completing.", device_address_));
 		running_ = false;
 		RTTYS_server()->DeRegisterDevice(id_, this);
-//		socket().close();
+		socket().close();
 		Logger().information(fmt::format("{}: Completed.", device_address_));
 	}
 
@@ -289,6 +291,9 @@ namespace OpenWifi {
 		desc_ = ReadString();
 		token_ = ReadString();
 		serial_ = RTTYS_server()->SerialNumber(id_);
+
+		auto tid = pthread_self();
+		pthread_setname_np(tid, serial_.c_str());
 
 		Poco::Thread::current()->setName(fmt::format("RTTY-device-thread-{}:{}:{}", conn_id_, id_, serial_));
 		Logger().debug(fmt::format("{}: ID:{} Serial:{} Description:{} Device registration", conn_id_, id_, serial_, desc_));
