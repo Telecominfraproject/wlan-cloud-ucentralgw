@@ -30,7 +30,7 @@ class RTTY_Device_ConnectionHandler : public Poco::Net::TCPServerConnection {
 		msgTypeMax };
 
 	explicit RTTY_Device_ConnectionHandler(const Poco::Net::StreamSocket & socket) ;
-	virtual ~RTTY_Device_ConnectionHandler();
+	// virtual ~RTTY_Device_ConnectionHandler();
 
 	void run() final;
 	bool Login();
@@ -50,7 +50,6 @@ class RTTY_Device_ConnectionHandler : public Poco::Net::TCPServerConnection {
 	volatile std::atomic_bool 	  	loop_done_=false;
 	std::string 					device_address_;
 	std::recursive_mutex		  	M_;
-	Poco::Logger				  &Logger_;
 	std::string                   id_;
 	std::string                   token_;
 	std::string                   desc_;
@@ -63,7 +62,7 @@ class RTTY_Device_ConnectionHandler : public Poco::Net::TCPServerConnection {
 	uint64_t 					  conn_id_=0;
 	std::vector<u_char>			  commands_;
 
-	inline Poco::Logger & Logger() { return Logger_; }
+	Poco::Logger & Logger();
 
 	void do_msgTypeRegister(std::size_t msg_len);
 	void do_msgTypeLogin(std::size_t msg_len);

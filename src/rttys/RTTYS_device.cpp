@@ -10,22 +10,29 @@
 
 namespace OpenWifi {
 
-	RTTY_Device_ConnectionHandler::RTTY_Device_ConnectionHandler(const Poco::Net::StreamSocket & socket) :
+/*	RTTY_Device_ConnectionHandler::RTTY_Device_ConnectionHandler(const Poco::Net::StreamSocket & socket) :
 		Poco::Net::TCPServerConnection(socket),
 		Logger_(RTTYS_server()->Logger()) {
 		device_address_ = socket.address().toString();
 		Logger().information(fmt::format("{}: Started.", device_address_));
 		conn_id_ = global_device_connection_id++;
 	}
+*/
+	RTTY_Device_ConnectionHandler::RTTY_Device_ConnectionHandler(const Poco::Net::StreamSocket & socket) :
+		Poco::Net::TCPServerConnection(socket) {
+	}
 
-	RTTY_Device_ConnectionHandler::~RTTY_Device_ConnectionHandler() {
+	inline Poco::Logger & RTTY_Device_ConnectionHandler::Logger() { return RTTYS_server()->Logger(); }
+
+/*	RTTY_Device_ConnectionHandler::~RTTY_Device_ConnectionHandler() {
 		Logger().information(fmt::format("{}: Completing.", device_address_));
 		running_ = false;
 		RTTYS_server()->DeRegisterDevice(id_, this);
 		socket().close();
 		Logger().information(fmt::format("{}: Completed.", device_address_));
+		~Poco::Net::TCPServerConnection();
 	}
-
+*/
 	void RTTY_Device_ConnectionHandler::AddCommand(u_char C) {
 		std::lock_guard		G(M_);
 		// std::cout << conn_id_ << ": Adding command " << (int)C << std::endl;
@@ -55,6 +62,10 @@ namespace OpenWifi {
 
 	void RTTY_Device_ConnectionHandler::run() {
 		running_ = true ;
+
+		device_address_ = socket().address().toString();
+		Logger().information(fmt::format("{}: Started.", device_address_));
+		conn_id_ = global_device_connection_id++;
 
 		Poco::Timespan pollTimeOut(1,0);
 		Poco::Timespan pollError(0,1);
@@ -155,6 +166,11 @@ namespace OpenWifi {
 //		RTTYS_server()->DeRegister(id_, this);
 //		Logger().information(fmt::format("{}: ID:{} Exiting. Deregistered.", conn_id_, id_, reason));
 		loop_done_=true;
+		Logger().information(fmt::format("{}: Completing.", device_address_));
+		running_ = false;
+		RTTYS_server()->DeRegisterDevice(id_, this);
+//		socket().close();
+		Logger().information(fmt::format("{}: Completed.", device_address_));
 	}
 
 	void RTTY_Device_ConnectionHandler::Stop() {
