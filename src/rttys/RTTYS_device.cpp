@@ -66,7 +66,8 @@ namespace OpenWifi {
 	void RTTY_Device_ConnectionHandler::run() {
 		running_ = true ;
 
-		pthread_setname_np(pthread_self(), serial_.c_str());
+		auto tid = pthread_self();
+		pthread_setname_np(tid, "Boogie 1");
 
 		device_address_ = socket().address().toString();
 		Logger().information(fmt::format("{}: Started.", device_address_));
