@@ -31,30 +31,30 @@ namespace OpenWifi {
 			*WS_, Poco::NObserver<RTTYS_ClientConnection, Poco::Net::ErrorNotification>(
 					  *this, &RTTYS_ClientConnection::onSocketError));
 
-		auto DoLogin = [this]() -> void {
-			int tries = 0;
-			while (tries < 20) {
-				if (RTTYS_server()->Login(this->Id_)) {
-					Logger().information(
-						fmt::format("{}: Client connected to device, session: {}.", Id_,
-									RTTYS_server()->DeviceSessionID(Id_)));
-					this->Connected_ = true;
-					return;
-				}
-				std::this_thread::sleep_for(2000ms);
-				tries++;
-				Logger().information(fmt::format(
-					"{}: Waiting for device to connect to start session. (try={})", Id_,
-					tries));
-			}
-			Logger().information(
-				fmt::format("{}: Client could not connect to device, session: {}.", Id_,
-							RTTYS_server()->DeviceSessionID(Id_)));
-			delete this;
-		};
+		std::thread T([=]() { CompleteLogin(); });
+		T.detach();
+	}
 
-		std::thread CompleteConnection(DoLogin);
-		CompleteConnection.detach();
+	void RTTYS_ClientConnection::CompleteLogin() {
+		int tries = 0;
+		while (tries < 20) {
+			if (RTTYS_server()->Login(this->Id_)) {
+				Logger().information(
+					fmt::format("{}: Client connected to device, session: {}.", Id_,
+								RTTYS_server()->DeviceSessionID(Id_)));
+				this->Connected_ = true;
+				return;
+			}
+			std::this_thread::sleep_for(2000ms);
+			tries++;
+			Logger().information(fmt::format(
+				"{}: Waiting for device to connect to start session. (try={})", Id_,
+				tries));
+		}
+		Logger().information(
+			fmt::format("{}: Client could not connect to device, session: {}.", Id_,
+						RTTYS_server()->DeviceSessionID(Id_)));
+		delete this;
 	}
 
 	RTTYS_ClientConnection::~RTTYS_ClientConnection() {
