@@ -23,7 +23,7 @@ namespace OpenWifi {
 
 			auto TcpServerParams = new Poco::Net::TCPServerParams();
 			TcpServerParams->setMaxThreads(50);
-			TcpServerParams->setMaxQueued(100);
+			// TcpServerParams->setMaxQueued(100);
 			TcpServerParams->setThreadIdleTime(Poco::Timespan(10,0));
 
 			if(MicroService::instance().NoAPISecurity()) {
