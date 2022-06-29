@@ -28,7 +28,7 @@ namespace OpenWifi {
 
 			if(MicroService::instance().NoAPISecurity()) {
 				Poco::Net::ServerSocket DeviceSocket(DSport, 64);
-				DeviceSocket.setNoDelay(true);
+				//DeviceSocket.setNoDelay(true);
 				auto Factory = Poco::makeShared<Poco::Net::TCPServerConnectionFactoryImpl<RTTY_Device_ConnectionHandler>>();
 				DeviceAcceptor_ = std::make_unique<Poco::Net::TCPServer>(Factory, DeviceSocket, TcpServerParams);
 			} else {
@@ -46,7 +46,7 @@ namespace OpenWifi {
 				SSL_CTX_dane_enable(SSLCtxDevice);
 
 				Poco::Net::SecureServerSocket DeviceSocket(DSport, 64, DeviceSecureContext);
-				DeviceSocket.setNoDelay(true);
+				//DeviceSocket.setNoDelay(true);
 				auto Factory = Poco::makeShared<Poco::Net::TCPServerConnectionFactoryImpl<RTTY_Device_ConnectionHandler>>();
 				DeviceAcceptor_ = std::make_unique<Poco::Net::TCPServer>(Factory, DeviceSocket, TcpServerParams);
 //				DeviceAcceptor_ = std::make_unique<Poco::Net::TCPServer>(new Poco::Net::TCPServerConnectionFactoryImpl<RTTY_Device_ConnectionHandler>(), DeviceSocket, TcpServerParams);
