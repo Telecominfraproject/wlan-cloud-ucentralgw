@@ -8,6 +8,8 @@
 #include "Poco/Net/SecureStreamSocketImpl.h"
 #include "Poco/Net/StreamSocket.h"
 
+#include <pthread.h>
+
 namespace OpenWifi {
 
 /*	RTTY_Device_ConnectionHandler::RTTY_Device_ConnectionHandler(const Poco::Net::StreamSocket & socket) :
@@ -59,9 +61,12 @@ namespace OpenWifi {
 		return true;
 	}
 
+#define _GNU_SOURCE
 
 	void RTTY_Device_ConnectionHandler::run() {
 		running_ = true ;
+
+		pthread_setname_np(pthread_self(), serial_.c_str());
 
 		device_address_ = socket().address().toString();
 		Logger().information(fmt::format("{}: Started.", device_address_));
