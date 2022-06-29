@@ -86,6 +86,8 @@ namespace OpenWifi {
 		{
 		}
 
+		static bool SendData( Poco::Net::DatagramSocket & Sock, const unsigned char *buf , std::size_t size, const Poco::Net::SocketAddress &S);
+
 		void ParseConfig();
 		void ResetConfig();
 		Poco::Net::SocketAddress Route(radius_type rtype, const Poco::Net::SocketAddress &A);

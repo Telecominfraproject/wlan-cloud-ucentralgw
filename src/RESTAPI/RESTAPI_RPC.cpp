@@ -40,10 +40,13 @@ namespace OpenWifi::RESTAPI_RPC {
 						RESTAPIHandler * Handler,
 						Poco::Logger &Logger) {
 
+		Logger.information(fmt::format("{}: New {} command. User={} Serial={}. ", Cmd.UUID, Cmd.Command, Cmd.SubmittedBy, Cmd.SerialNumber));
+
 		// 	if the command should be executed in the future, or if the device is not connected,
 		// 	then we should just add the command to
 		//	the DB and let it figure out when to deliver the command.
 		if (Cmd.RunAt || !DeviceRegistry()->Connected(Cmd.SerialNumber)) {
+			Logger.information(fmt::format("{}: Command will be run in the future or when device is connected again.", Cmd.UUID));
 			SetCommandStatus(Cmd, Request, Response, Handler, Storage::COMMAND_PENDING, Logger);
 			return;
 		}
@@ -55,105 +58,88 @@ namespace OpenWifi::RESTAPI_RPC {
 		std::shared_ptr<CommandManager::promise_type_t> rpc_endpoint =
 			CommandManager()->PostCommand(Cmd.SerialNumber, Cmd.Command, Params, Cmd.UUID, Sent);
 
-		Logger.information(fmt::format("{}: user={} serial={}. Sent RPC request.", Cmd.Command, Cmd.SubmittedBy, Cmd.SerialNumber));
+		if(!Sent || rpc_endpoint== nullptr) {
+			Logger.information(fmt::format("{}: Pending completion. Device is not connected.", Cmd.UUID));
+			return SetCommandStatus(Cmd, Request, Response, Handler, Storage::COMMAND_PENDING, Logger);
+		}
+
+		Logger.information(fmt::format("{}: Command sent.", Cmd.UUID));
 
 		Poco::JSON::Object	L;
 
-		if (Sent && rpc_endpoint!= nullptr) {
-			std::future<CommandManager::objtype_t> rpc_future(rpc_endpoint->get_future());
-			auto rpc_result = rpc_future.wait_for(WaitTimeInMs);
-			if (rpc_result == std::future_status::ready) {
-				std::chrono::duration<double, std::milli> rpc_execution_time = std::chrono::high_resolution_clock::now() - rpc_submitted;
-				auto rpc_answer = rpc_future.get();
-				if (rpc_answer.has(uCentralProtocol::RESULT) && rpc_answer.isObject(uCentralProtocol::RESULT)) {
-					auto ResultFields =
-						rpc_answer.get(uCentralProtocol::RESULT).extract<Poco::JSON::Object::Ptr>();
-					if (ResultFields->has(uCentralProtocol::STATUS) && ResultFields->isObject(uCentralProtocol::STATUS)) {
-						auto StatusInnerObj =
-							ResultFields->get(uCentralProtocol::STATUS).extract<Poco::JSON::Object::Ptr>();
-						if (StatusInnerObj->has(uCentralProtocol::ERROR))
-							Cmd.ErrorCode = StatusInnerObj->get(uCentralProtocol::ERROR);
-						if (StatusInnerObj->has(uCentralProtocol::TEXT))
-							Cmd.ErrorText = StatusInnerObj->get(uCentralProtocol::TEXT).toString();
-						std::stringstream ResultText;
-						if(rpc_answer.has(uCentralProtocol::RESULT)) {
-							if(Cmd.Command==uCentralProtocol::WIFISCAN) {
-								auto ScanObj = rpc_answer.get(uCentralProtocol::RESULT).extract<Poco::JSON::Object::Ptr>();
-								ParseWifiScan(ScanObj, ResultText, Logger);
-							} else {
-								Poco::JSON::Stringifier::stringify(
-									rpc_answer.get(uCentralProtocol::RESULT), ResultText);
-							}
-						} if (rpc_answer.has(uCentralProtocol::RESULT_64)) {
-							uint64_t sz=0;
-							if(rpc_answer.has(uCentralProtocol::RESULT_SZ))
-								sz=rpc_answer.get(uCentralProtocol::RESULT_SZ);
-							std::string UnCompressedData;
-							Utils::ExtractBase64CompressedData(rpc_answer.get(uCentralProtocol::RESULT_64).toString(),
-															   UnCompressedData,sz);
-							Poco::JSON::Stringifier::stringify(UnCompressedData, ResultText);
-						}
-						Cmd.Results = ResultText.str();
-						Cmd.Status = "completed";
-						Cmd.Completed = OpenWifi::Now();
-						Cmd.executionTime = rpc_execution_time.count();
-
-						if (Cmd.ErrorCode && Cmd.Command == uCentralProtocol::TRACE) {
-							Cmd.WaitingForFile = 0;
-							Cmd.AttachDate = Cmd.AttachSize = 0;
-							Cmd.AttachType = "";
-						}
-
-						//	Add the completed command to the database...
-						StorageService()->AddCommand(Cmd.SerialNumber, Cmd, Storage::COMMAND_COMPLETED);
-
-						if (ObjectToReturn && Handler) {
-							Handler->ReturnObject(*ObjectToReturn);
-						} else {
-							Poco::JSON::Object O;
-							Cmd.to_json(O);
-							if(Handler)
-								Handler->ReturnObject(O);
-						}
-						Logger.information( fmt::format("Command({}): completed in {:.3f}ms.", Cmd.UUID, Cmd.executionTime));
-						return;
-					} else {
-						Cmd.executionTime = rpc_execution_time.count();
-						if(Cmd.Command=="ping") {
-							SetCommandStatus(Cmd, Request, Response, Handler, Storage::COMMAND_COMPLETED, Logger);
-							Logger.information(fmt::format(
-								"Invalid response for command '{}'. Missing status.", Cmd.UUID));
-						} else {
-							SetCommandStatus(Cmd, Request, Response, Handler, Storage::COMMAND_FAILED, Logger);
-							Logger.information(fmt::format(
-								"Invalid response for command '{}'. Missing status.", Cmd.UUID));
-						}
-						return;
-					}
-				} else {
-					SetCommandStatus(Cmd, Request, Response, Handler, Storage::COMMAND_FAILED,
-									 Logger);
-					Logger.information(fmt::format(
-						"Invalid response for command '{}'. Missing result.", Cmd.UUID));
-					return;
-				}
-			} else if (rpc_result == std::future_status::timeout) {
-				Logger.information(fmt::format(
-					"Timeout2 for command '{}'.", Cmd.UUID));
-				SetCommandStatus(Cmd, Request, Response, Handler, Storage::COMMAND_TIMEDOUT,
-								 Logger);
-				return;
-			} else {
-				Logger.information(fmt::format(
-					"Pending completion for command '{}'.", Cmd.UUID));
-				SetCommandStatus(Cmd, Request, Response, Handler, Storage::COMMAND_PENDING, Logger);
+		std::future<CommandManager::objtype_t> rpc_future(rpc_endpoint->get_future());
+		auto rpc_result = rpc_future.wait_for(WaitTimeInMs);
+		if (rpc_result == std::future_status::ready) {
+			std::chrono::duration<double, std::milli> rpc_execution_time = std::chrono::high_resolution_clock::now() - rpc_submitted;
+			auto rpc_answer = rpc_future.get();
+			if (!rpc_answer.has(uCentralProtocol::RESULT) || !rpc_answer.isObject(uCentralProtocol::RESULT)) {
+				SetCommandStatus(Cmd, Request, Response, Handler, Storage::COMMAND_FAILED, Logger);
+				Logger.information(fmt::format("{}: Invalid response. Missing result.", Cmd.UUID));
 				return;
 			}
-		} else {
-			Logger.information(fmt::format(
-				"Pending completion for command '{}'.", Cmd.UUID));
-			SetCommandStatus(Cmd, Request, Response, Handler, Storage::COMMAND_PENDING, Logger);
+
+			auto ResultFields = rpc_answer.get(uCentralProtocol::RESULT).extract<Poco::JSON::Object::Ptr>();
+			if (!ResultFields->has(uCentralProtocol::STATUS) || !ResultFields->isObject(uCentralProtocol::STATUS)) {
+				Cmd.executionTime = rpc_execution_time.count();
+				if(Cmd.Command=="ping") {
+					SetCommandStatus(Cmd, Request, Response, Handler, Storage::COMMAND_COMPLETED, Logger);
+					Logger.information(fmt::format("{}: Invalid response from device (ping: fix override). Missing status.", Cmd.UUID));
+				} else {
+					SetCommandStatus(Cmd, Request, Response, Handler, Storage::COMMAND_FAILED, Logger);
+					Logger.information(fmt::format("{}: Invalid response from device. Missing status.", Cmd.UUID));
+				}
+				return;
+			}
+
+			auto StatusInnerObj = ResultFields->get(uCentralProtocol::STATUS).extract<Poco::JSON::Object::Ptr>();
+			if (StatusInnerObj->has(uCentralProtocol::ERROR))
+				Cmd.ErrorCode = StatusInnerObj->get(uCentralProtocol::ERROR);
+			if (StatusInnerObj->has(uCentralProtocol::TEXT))
+				Cmd.ErrorText = StatusInnerObj->get(uCentralProtocol::TEXT).toString();
+			std::stringstream ResultText;
+			if(rpc_answer.has(uCentralProtocol::RESULT)) {
+				if(Cmd.Command==uCentralProtocol::WIFISCAN) {
+					auto ScanObj = rpc_answer.get(uCentralProtocol::RESULT).extract<Poco::JSON::Object::Ptr>();
+					ParseWifiScan(ScanObj, ResultText, Logger);
+				} else {
+					Poco::JSON::Stringifier::stringify(
+						rpc_answer.get(uCentralProtocol::RESULT), ResultText);
+				}
+			} if (rpc_answer.has(uCentralProtocol::RESULT_64)) {
+				uint64_t sz=0;
+				if(rpc_answer.has(uCentralProtocol::RESULT_SZ))
+					sz=rpc_answer.get(uCentralProtocol::RESULT_SZ);
+				std::string UnCompressedData;
+				Utils::ExtractBase64CompressedData(rpc_answer.get(uCentralProtocol::RESULT_64).toString(),
+												   UnCompressedData,sz);
+				Poco::JSON::Stringifier::stringify(UnCompressedData, ResultText);
+			}
+			Cmd.Results = ResultText.str();
+			Cmd.Status = "completed";
+			Cmd.Completed = OpenWifi::Now();
+			Cmd.executionTime = rpc_execution_time.count();
+
+			if (Cmd.ErrorCode && Cmd.Command == uCentralProtocol::TRACE) {
+				Cmd.WaitingForFile = 0;
+				Cmd.AttachDate = Cmd.AttachSize = 0;
+				Cmd.AttachType = "";
+			}
+
+			//	Add the completed command to the database...
+			StorageService()->AddCommand(Cmd.SerialNumber, Cmd, Storage::COMMAND_COMPLETED);
+
+			if (ObjectToReturn && Handler) {
+				Handler->ReturnObject(*ObjectToReturn);
+			} else {
+				Poco::JSON::Object O;
+				Cmd.to_json(O);
+				if(Handler)
+					Handler->ReturnObject(O);
+			}
+			Logger.information( fmt::format("{}: Completed in {:.3f}ms.", Cmd.UUID, Cmd.executionTime));
 			return;
 		}
+		Logger.information(fmt::format( "{}: Pending completion.", Cmd.UUID));
+		SetCommandStatus(Cmd, Request, Response, Handler, Storage::COMMAND_PENDING, Logger);
 	}
 }
