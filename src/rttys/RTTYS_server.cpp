@@ -29,7 +29,8 @@ namespace OpenWifi {
 			if(MicroService::instance().NoAPISecurity()) {
 				Poco::Net::ServerSocket DeviceSocket(DSport, 64);
 				DeviceSocket.setNoDelay(true);
-				DeviceAcceptor_ = std::make_unique<Poco::Net::TCPServer>(new Poco::Net::TCPServerConnectionFactoryImpl<RTTY_Device_ConnectionHandler>(), DeviceSocket, TcpServerParams);
+				auto Factory = Poco::makeShared<Poco::Net::TCPServerConnectionFactoryImpl<RTTY_Device_ConnectionHandler>>();
+				DeviceAcceptor_ = std::make_unique<Poco::Net::TCPServer>(Factory, DeviceSocket, TcpServerParams);
 			} else {
 				auto DeviceSecureContext = new Poco::Net::Context(Poco::Net::Context::SERVER_USE,
 																  KeyFileName, CertFileName, "",
@@ -46,7 +47,9 @@ namespace OpenWifi {
 
 				Poco::Net::SecureServerSocket DeviceSocket(DSport, 64, DeviceSecureContext);
 				DeviceSocket.setNoDelay(true);
-				DeviceAcceptor_ = std::make_unique<Poco::Net::TCPServer>(new Poco::Net::TCPServerConnectionFactoryImpl<RTTY_Device_ConnectionHandler>(), DeviceSocket, TcpServerParams);
+				auto Factory = Poco::makeShared<Poco::Net::TCPServerConnectionFactoryImpl<RTTY_Device_ConnectionHandler>>();
+				DeviceAcceptor_ = std::make_unique<Poco::Net::TCPServer>(Factory, DeviceSocket, TcpServerParams);
+//				DeviceAcceptor_ = std::make_unique<Poco::Net::TCPServer>(new Poco::Net::TCPServerConnectionFactoryImpl<RTTY_Device_ConnectionHandler>(), DeviceSocket, TcpServerParams);
 			}
 			DeviceAcceptor_->start();
 
