@@ -80,7 +80,7 @@ namespace OpenWifi {
 			};
 			WebServer_->start();
 			ClientReactorThread_.start(ClientReactor_);
-			Utils::SetThreadName(ClientReactorThread_,"rtty-clientreactor");
+			Utils::SetThreadName(ClientReactorThread_,"rt:clntreactor");
 		}
 
 		GCCallBack_ = std::make_unique<Poco::TimerCallback<RTTYS_server>>(*this, &RTTYS_server::onTimer);

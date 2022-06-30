@@ -3006,7 +3006,7 @@ namespace OpenWifi {
 
 	    inline Poco::Net::HTTPRequestHandler *CallServer(const std::string &Path, uint64_t Id) {
 	        RESTAPIHandler::BindingMap Bindings;
-			Utils::SetThreadName(fmt::format("RESTAPI_ExtServer_{}",Id).c_str());
+			Utils::SetThreadName(fmt::format("rest_ext_{}",Id).c_str());
 	        return RESTAPI_ExtRouter(Path, Bindings, Logger(), Server_, Id);
 	    }
 
@@ -3030,7 +3030,7 @@ namespace OpenWifi {
 	    inline Poco::Net::HTTPRequestHandler *createRequestHandler(const Poco::Net::HTTPServerRequest &Request) override {
 			try {
 				Poco::URI uri(Request.getURI());
-				Utils::SetThreadName(fmt::format("ExtWebServer_{}",TransactionId_).c_str());
+				Utils::SetThreadName(fmt::format("rest_ext_{}",TransactionId_).c_str());
 				return RESTAPI_ExtServer()->CallServer(uri.getPath(), TransactionId_++);
 			} catch (...) {
 
@@ -3139,7 +3139,7 @@ namespace OpenWifi {
 
 	    inline Poco::Net::HTTPRequestHandler *CallServer(const std::string &Path, uint64_t Id) {
 	        RESTAPIHandler::BindingMap Bindings;
-			Utils::SetThreadName(fmt::format("RESTAPI_IntServer_{}",Id).c_str());
+			Utils::SetThreadName(fmt::format("rest_int_{}",Id).c_str());
 	        return RESTAPI_IntRouter(Path, Bindings, Logger(), Server_, Id);
 	    }
 	private:
@@ -4944,7 +4944,7 @@ namespace OpenWifi {
 
     inline void WebSocketClientServer::run() {
         Running_ = true ;
-		Utils::SetThreadName("WebSocketClientServer");
+		Utils::SetThreadName("ws:clnt-svr");
         while(Running_) {
             Poco::Thread::trySleep(2000);
 
