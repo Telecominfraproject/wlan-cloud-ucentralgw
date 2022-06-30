@@ -98,6 +98,7 @@ namespace OpenWifi {
 	}
 
 	void OUIServer::onTimer([[maybe_unused]] Poco::Timer & timer) {
+		Utils::SetThreadName("ouisvr-timer");
 		if(Updating_)
 			return;
 		Updating_ = true;

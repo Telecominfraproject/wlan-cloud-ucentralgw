@@ -53,10 +53,9 @@ namespace OpenWifi {
 		void onMessage(bool& b);
 
 	  private:
-		std::atomic_bool 								Running_=false;
+		mutable std::atomic_bool 						Running_=false;
 		std::map<std::string, TelemetryClient *>		Clients_;			// 	uuid -> client
 		std::map<uint64_t, std::set<std::string>>		SerialNumbers_;		//	serialNumber -> uuid
-		// ReactorPool										ReactorPool_;
 		Poco::Net::SocketReactor						Reactor_;
 		std::unique_ptr<FIFO<QueueUpdate>>				Messages_=std::make_unique<FIFO<QueueUpdate>>(100);
 		Poco::Thread									Thr_;

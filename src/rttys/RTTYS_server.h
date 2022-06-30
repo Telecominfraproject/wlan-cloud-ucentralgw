@@ -48,16 +48,16 @@ namespace OpenWifi {
 		bool ValidId(const std::string &Id);
 
 		struct EndPoint {
-			std::string 					Token;
-			RTTYS_ClientConnection *		Client = nullptr;
-			RTTY_Device_ConnectionHandler *	Device = nullptr;
-			uint64_t 						TimeStamp = OpenWifi::Now();
-			uint64_t 						DeviceConnected = 0;
-			uint64_t 						ClientConnected = 0;
-			std::string 					UserName;
-			std::string 					SerialNumber;
-			bool 							ShuttingDown = false;
-			bool 							ShutdownComplete = false;
+			std::string 							Token;
+			mutable RTTYS_ClientConnection *		Client = nullptr;
+			mutable RTTY_Device_ConnectionHandler *	Device = nullptr;
+			uint64_t 								TimeStamp = OpenWifi::Now();
+			mutable uint64_t 								DeviceConnected = 0;
+			mutable uint64_t 								ClientConnected = 0;
+			std::string 							UserName;
+			std::string 							SerialNumber;
+			mutable bool 									ShuttingDown = false;
+			mutable bool 									ShutdownComplete = false;
 		};
 
 		void onTimer(Poco::Timer & timer);

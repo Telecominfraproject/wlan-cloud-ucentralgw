@@ -60,7 +60,6 @@ namespace OpenWifi {
 		std::vector<std::unique_ptr<ws_server_reactor_type_t>>	Acceptors_;
 		Poco::Net::SocketReactor		Reactor_;
 		Poco::Thread					ReactorThread_;
-		// ReactorPool						ReactorPool_;
 		std::string 					SimulatorId_;
 		bool 							LookAtProvisioning_ = false;
 		bool 							UseDefaultConfig_ = true;
