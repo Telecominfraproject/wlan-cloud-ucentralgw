@@ -79,9 +79,8 @@ namespace OpenWifi {
 				WebServer_ = std::make_unique<Poco::Net::HTTPServer>(new RTTY_Client_RequestHandlerFactory(ClientReactor_, Logger()), ClientSocket, WebServerHttpParams);
 			};
 			WebServer_->start();
-
-			ClientReactorThread_.setName("RTTYWebServerClientThread");
 			ClientReactorThread_.start(ClientReactor_);
+			Utils::SetThreadName(ClientReactorThread_,"rtty-clientreactor");
 		}
 
 		GCCallBack_ = std::make_unique<Poco::TimerCallback<RTTYS_server>>(*this, &RTTYS_server::onTimer);
