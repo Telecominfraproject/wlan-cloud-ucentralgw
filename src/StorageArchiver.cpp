@@ -11,6 +11,7 @@
 namespace OpenWifi {
 
 	void Archiver::onTimer([[maybe_unused]] Poco::Timer &timer){
+		Utils::SetThreadName("storage-archiver");
 		auto now = OpenWifi::Now();
 		for(const auto &i:DBs_) {
 			if (!Poco::icompare(i.DBName, "healthchecks")) {

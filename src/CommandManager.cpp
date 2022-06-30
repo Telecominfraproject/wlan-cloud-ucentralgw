@@ -79,7 +79,6 @@ namespace OpenWifi {
     int CommandManager::Start() {
         Logger().notice("Starting...");
 		ManagerThread.setStackSize(2000000);
-		ManagerThread.setName("CMD-MGR");
         ManagerThread.start(*this);
 		JanitorCallback_ = std::make_unique<Poco::TimerCallback<CommandManager>>(*this,&CommandManager::onJanitorTimer);
 		JanitorTimer_.setStartInterval( 10000 );
@@ -115,6 +114,7 @@ namespace OpenWifi {
 
 	void CommandManager::onJanitorTimer([[maybe_unused]] Poco::Timer & timer) {
 		std::lock_guard G(Mutex_);
+		Utils::SetThreadName("command-janitor");
 		Logger().information(
 			fmt::format("Removing expired commands: start. {} outstanding-requests {} outstanding-uuids commands.",
 						OutStandingRequests_.size(), OutstandingUUIDs_.size() ));
@@ -133,6 +133,7 @@ namespace OpenWifi {
 	}
 
 	void CommandManager::onCommandRunnerTimer([[maybe_unused]] Poco::Timer &timer) {
+		Utils::SetThreadName("command-runner");
 		std::vector<GWObjects::CommandDetails> Commands;
 		if(StorageService()->GetReadyToExecuteCommands(0,200,Commands))
 		{
