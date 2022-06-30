@@ -47,21 +47,20 @@ namespace OpenWifi {
 		void AddCommand(u_char C);
 
 	  private:
-		std::atomic_bool 			  	running_=false;
-		volatile std::atomic_bool 	  	loop_done_=false;
+		mutable std::atomic_bool 		running_=false;
 		std::string 					device_address_;
 		std::recursive_mutex		  	M_;
-		std::string                   id_;
-		std::string                   token_;
-		std::string                   desc_;
-		std::string 				  serial_;
-		char 				          sid_=0;
-		Poco::FIFOBuffer  			  inBuf_{64000};
-		std::array<char,32000>		  scratch_{0};
-		std::size_t      			  waiting_for_bytes_{0};
-		u_char 						  last_command_=0;
-		uint64_t 					  conn_id_=0;
-		std::vector<u_char>			  commands_;
+		std::string                   	id_;
+		std::string                   	token_;
+		std::string                   	desc_;
+		std::string 				  	serial_;
+		char 				          	sid_=0;
+		Poco::FIFOBuffer  			  	inBuf_{64000};
+		std::array<char,32000>		  	scratch_{0};
+		std::size_t      			  	waiting_for_bytes_{0};
+		u_char 						  	last_command_=0;
+		uint64_t 					  	conn_id_=0;
+		std::vector<u_char>			  	commands_;
 
 		Poco::Logger & Logger();
 
