@@ -61,6 +61,7 @@ namespace OpenWifi {
 		u_char 						  	last_command_=0;
 		uint64_t 					  	conn_id_=0;
 		std::vector<u_char>			  	commands_;
+		mutable std::atomic_bool		received_login_from_websocket_=false;
 
 		Poco::Logger & Logger();
 

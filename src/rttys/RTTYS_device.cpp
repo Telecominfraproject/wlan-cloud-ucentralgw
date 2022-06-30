@@ -82,7 +82,15 @@ namespace OpenWifi {
 		socket().setReceiveTimeout(recvTimeOut);
 
 		int reason=0;
+		auto Started = OpenWifi::Now();
+
 		while(running_) {
+
+			if(!received_login_from_websocket_ && (OpenWifi::Now()-Started)>30) {
+				running_=false;
+				Logger().warning(fmt::format("{}: ID:{} Unknown command {}", conn_id_, id_, (int)last_command_));
+				continue;
+			}
 
 			if (!socket().poll(pollTimeOut, Poco::Net::Socket::SELECT_READ | Poco::Net::Socket::SELECT_ERROR)) {
 				continue;
@@ -228,6 +236,7 @@ namespace OpenWifi {
 			// std::cout << "2  " << E.what() << " " << E.name() << std::endl;
 			return false;
 		}
+		received_login_from_websocket_ = true;
 		Logger().debug(fmt::format("{}: Device {} login", conn_id_, id_));
 		return true;
 	}
