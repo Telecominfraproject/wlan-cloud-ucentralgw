@@ -27,7 +27,8 @@ namespace OpenWifi {
 	void RTTY_Device_ConnectionHandler::onSocketReadable([[maybe_unused]] const Poco::AutoPtr<Poco::Net::ReadableNotification> &pNf) {
 		try {
 
-			received_buf_ = _socket.receiveBytes(&inBuf_[0],inBuf_.size());
+
+			received_buf_ = _socket.receiveBytes(&inBuf_[0],RTTY_DEVICE_BUFSIZE);
 
 			if(received_buf_==0) {
 				std::cout << __LINE__ << std::endl;

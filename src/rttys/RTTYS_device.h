@@ -33,10 +33,10 @@ namespace OpenWifi {
 		explicit RTTY_Device_ConnectionHandler(Poco::Net::StreamSocket& socket, Poco::Net::SocketReactor& reactor):
 			 _socket(socket),
 			 _reactor(reactor) {
-
 			_reactor.addEventHandler(_socket, Poco::NObserver<RTTY_Device_ConnectionHandler, Poco::Net::ReadableNotification>(*this, &RTTY_Device_ConnectionHandler::onSocketReadable));
 			_reactor.addEventHandler(_socket, Poco::NObserver<RTTY_Device_ConnectionHandler, Poco::Net::ShutdownNotification>(*this, &RTTY_Device_ConnectionHandler::onSocketShutdown));
 
+			std::cout << "Peer: " << _socket.peerAddress().toString() << std::endl;
 		}
 
 		~RTTY_Device_ConnectionHandler();
@@ -70,7 +70,8 @@ namespace OpenWifi {
 		std::string                   	desc_;
 		std::string 				  	serial_;
 		char 				          	sid_=0;
-		std::array<char,RTTY_DEVICE_BUFSIZE>	inBuf_;
+
+		std::array<char,RTTY_DEVICE_BUFSIZE>	inBuf_{0};
 		std::array<char,RTTY_DEVICE_BUFSIZE>	scratch_{0};
 		std::size_t      			  	waiting_for_bytes_{0};
 		u_char 						  	last_command_=0;
