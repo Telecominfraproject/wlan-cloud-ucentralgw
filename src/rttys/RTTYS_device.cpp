@@ -90,8 +90,7 @@ namespace OpenWifi {
 
 				if (!received_login_from_websocket_ && (OpenWifi::Now() - Started) > 30) {
 					running_ = false;
-					Logger().warning(fmt::format("{}: ID:{} Unknown command {}", conn_id_, id_,
-												 (int)last_command_));
+					Logger().warning(fmt::format("{}: ID:{} WebSocket never connected to device. Closing connection.", conn_id_, id_));
 					continue;
 				}
 
