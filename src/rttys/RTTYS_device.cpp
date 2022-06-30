@@ -89,6 +89,7 @@ namespace OpenWifi {
 		int reason=0;
 		while(running_) {
 
+			std::cout << __LINE__ << std::endl;
 /*			if(!ProcessCommands()) {
 				reason=1;
 				running_=false;
