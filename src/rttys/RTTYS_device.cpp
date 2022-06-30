@@ -33,7 +33,7 @@ namespace OpenWifi {
 			}
 
 			buf_pos_=0;
-			while (!buf_pos_!=received_buf_ && running_) {
+			while ((buf_pos_!=received_buf_) && running_) {
 				std::cout << __LINE__ << std::endl;
 				std::size_t msg_len;
 				if (waiting_for_bytes_ == 0) {
@@ -275,7 +275,7 @@ namespace OpenWifi {
 			else
 				waiting_for_bytes_ = 0 ;
 		} else {
-			if(buf_pos_<msg_len) {
+			if(buf_pos_< (int)msg_len) {
 				auto read_count = received_buf_ - buf_pos_;
 				memcpy(&scratch_[0],&inBuf_[buf_pos_], read_count);
 				SendToClient((u_char *)&scratch_[0], read_count);
