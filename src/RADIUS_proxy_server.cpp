@@ -319,20 +319,17 @@ namespace OpenWifi {
 		bool IsV4 = RequestedAddress.family()==Poco::Net::SocketAddress::IPv4;
 		switch(rtype) {
 		case radius_type::coa: {
-			std::cout << __LINE__ << std::endl;
 			return ChooseAddress(IsV4 ? Pools_[defaultPoolIndex_].CoaV4
 									  : Pools_[defaultPoolIndex_].CoaV6,
 								 RequestedAddress);
 		}
 		case radius_type::auth: {
-			std::cout << __LINE__ << std::endl;
 			return ChooseAddress(IsV4 ? Pools_[defaultPoolIndex_].AuthV4
 									  : Pools_[defaultPoolIndex_].AuthV6,
 								 RequestedAddress);
 		}
 		case radius_type::acct:
 		default: {
-			std::cout << __LINE__ << std::endl;
 			return ChooseAddress(IsV4 ? Pools_[defaultPoolIndex_].AcctV4
 									  : Pools_[defaultPoolIndex_].AcctV6,
 								 RequestedAddress);
@@ -344,7 +341,6 @@ namespace OpenWifi {
 		std::lock_guard	G(Mutex_);
 
 		if(Pools_.empty()) {
-			std::cout << __LINE__ << std::endl;
 			return RequestedAddress;
 		}
 
@@ -353,7 +349,6 @@ namespace OpenWifi {
 		useDefault = IsV4 ? RequestedAddress.host() == Poco::Net::IPAddress::wildcard(Poco::Net::IPAddress::IPv4) : RequestedAddress.host() == Poco::Net::IPAddress::wildcard(Poco::Net::IPAddress::IPv6) ;
 
 		if(useDefault) {
-			std::cout << __LINE__ << std::endl;
 			return DefaultRoute(rtype, RequestedAddress);
 		}
 
@@ -368,32 +363,27 @@ namespace OpenWifi {
 			switch(rtype) {
 			case radius_type::coa: {
 				if (isAddressInPool((IsV4 ? i.CoaV4 : i.CoaV6))) {
-					std::cout << __LINE__ << std::endl;
 					return ChooseAddress(IsV4 ? i.CoaV4 : i.CoaV6, RequestedAddress);
 				}
 			} break;
 			case radius_type::auth: {
 				if (isAddressInPool((IsV4 ? i.AuthV4 : i.AuthV6))) {
-					std::cout << __LINE__ << std::endl;
 					return ChooseAddress(IsV4 ? i.AuthV4 : i.AuthV6, RequestedAddress);
 				}
 			} break;
 			case radius_type::acct: {
 				if (isAddressInPool((IsV4 ? i.AcctV4 : i.AcctV6))) {
-					std::cout << __LINE__ << std::endl;
 					return ChooseAddress(IsV4 ? i.AcctV4 : i.AcctV6, RequestedAddress);
 				}
 			} break;
 			}
 		}
-		std::cout << __LINE__ << std::endl;
 		return DefaultRoute(rtype, RequestedAddress);
 	}
 
 	Poco::Net::SocketAddress RADIUS_proxy_server::ChooseAddress(std::vector<Destination> &Pool, const Poco::Net::SocketAddress & OriginalAddress) {
 
 		if(Pool.size()==1) {
-			std::cout << __LINE__ << std::endl;
 			return Pool[0].Addr;
 		}
 
@@ -415,11 +405,9 @@ namespace OpenWifi {
 			}
 
 			if (!found) {
-				std::cout << __LINE__ << std::endl;
 				return OriginalAddress;
 			}
 
-			std::cout << __LINE__ << std::endl;
 			Pool[index].state += Pool[index].step;
 			return Pool[index].Addr;
 		} else if (Pool[0].strategy == "round_robin") {
@@ -440,23 +428,18 @@ namespace OpenWifi {
 			}
 
 			if (!found) {
-				std::cout << __LINE__ << std::endl;
 				return OriginalAddress;
 			}
 
-			std::cout << __LINE__ << std::endl;
 			Pool[index].state += 1;
 			return Pool[index].Addr;
 		} else if (Pool[0].strategy == "random") {
 			if (Pool.size() > 1) {
-				std::cout << __LINE__ << std::endl;
 				return Pool[std::rand() % Pool.size()].Addr;
 			} else {
-				std::cout << __LINE__ << std::endl;
 				return OriginalAddress;
 			}
 		}
-		std::cout << __LINE__ << std::endl;
 		return OriginalAddress;
 	}
 

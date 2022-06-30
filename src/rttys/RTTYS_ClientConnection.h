@@ -27,8 +27,10 @@ namespace OpenWifi {
 
 		void Close();
 
+		void CompleteLogin();
+
 	  private:
-		Poco::Net::WebSocket	*WS_= nullptr;
+		Poco::Net::WebSocket	WS_;
 		std::string 			Id_;
 		std::string 			Sid_;
 		Poco::Net::SocketReactor &SR_;

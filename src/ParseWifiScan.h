@@ -1710,13 +1710,16 @@ namespace OpenWifi {
 		auto sub_ie = data[offset++];
 		switch (sub_ie) {
 		case WLAN_EID_EXT_HE_CAPABILITY: {
-
+			content["Extension EID"] = BufferToHex(&data[0],1);
+			content["Block"] = BufferToHex(&data[1],data.size()-1);
 		} break;
 		case WLAN_EID_EXT_HE_OPERATION: {
-
+			content["Extension EID"] = BufferToHex(&data[0],1);
+			content["Block"] = BufferToHex(&data[1],data.size()-1);
 		} break;
 		case WLAN_EID_EXT_HE_MU_EDCA: {
-
+			content["Extension EID"] = BufferToHex(&data[0],1);
+			content["Block"] = BufferToHex(&data[1],data.size()-1);
 		} break;
 		default:
 			content["Extension EID"] = BufferToHex(&data[0],1);
