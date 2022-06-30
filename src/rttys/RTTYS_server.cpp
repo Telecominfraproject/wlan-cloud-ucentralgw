@@ -28,8 +28,7 @@ namespace OpenWifi {
 
 			if(MicroService::instance().NoAPISecurity()) {
 				Poco::Net::ServerSocket DeviceSocket(DSport, 64);
-				//DeviceSocket.setNoDelay(true);
-				DeviceAcceptor_ = std::make_unique<Poco::Net::TCPServer>(new RTTY_Device_Connection_Factory, DeviceSocket, TcpServerParams);
+				DeviceAcceptor_ = std::make_unique<Poco::Net::SocketAcceptor<RTTY_Device_ConnectionHandler>>(DeviceSocket,DeviceReactor_);
 			} else {
 				auto DeviceSecureContext = new Poco::Net::Context(Poco::Net::Context::SERVER_USE,
 																  KeyFileName, CertFileName, "",
@@ -45,10 +44,10 @@ namespace OpenWifi {
 				SSL_CTX_dane_enable(SSLCtxDevice);
 
 				Poco::Net::SecureServerSocket DeviceSocket(DSport, 64, DeviceSecureContext);
-				//DeviceSocket.setNoDelay(true);
-				DeviceAcceptor_ = std::make_unique<Poco::Net::TCPServer>(new RTTY_Device_Connection_Factory, DeviceSocket, TcpServerParams);
+				DeviceAcceptor_ = std::make_unique<Poco::Net::SocketAcceptor<RTTY_Device_ConnectionHandler>>(DeviceSocket,DeviceReactor_);
 			}
-			DeviceAcceptor_->start();
+			DeviceReactorThread_.start(DeviceReactor_);
+			Utils::SetThreadName(DeviceReactorThread_,"rt:devreactor");
 
 			auto WebServerHttpParams = new Poco::Net::HTTPServerParams;
 			WebServerHttpParams->setMaxThreads(50);
@@ -93,7 +92,8 @@ namespace OpenWifi {
 		if(Internal_) {
 			Timer_.stop();
 			WebServer_->stopAll();
-			DeviceAcceptor_->stop();
+			DeviceReactor_.stop();
+			DeviceReactorThread_.join();
 			ClientReactor_.stop();
 			ClientReactorThread_.join();
 		}
@@ -103,7 +103,7 @@ namespace OpenWifi {
 		Logger().debug("Removing stale connections.");
 		std::lock_guard	G(Mutex_);
 		Utils::SetThreadName("rt:janitor");
-		Logger().debug(fmt::format("Current: connections:{} threads:{}.", DeviceAcceptor_->currentConnections(), DeviceAcceptor_->currentThreads()));
+		// Logger().debug(fmt::format("Current: connections:{} threads:{}.", DeviceAcceptor_->currentConnections(), DeviceAcceptor_->currentThreads()));
 		auto now = OpenWifi::Now();
 		dump("GC  ", std::cout);
 		for(auto element=EndPoints_.begin();element!=EndPoints_.end();) {

@@ -15,7 +15,7 @@ namespace OpenWifi {
 
 	inline static std::atomic_uint64_t global_device_connection_id = 1;
 
-	class RTTY_Device_ConnectionHandler : public Poco::Net::TCPServerConnection {
+	class RTTY_Device_ConnectionHandler{
 	  public:
 		enum RTTY_MSG_TYPE {
 			msgTypeRegister = 0,
@@ -30,10 +30,17 @@ namespace OpenWifi {
 			msgTypeAck,
 			msgTypeMax };
 
-		explicit RTTY_Device_ConnectionHandler(const Poco::Net::StreamSocket & socket) ;
-		// virtual ~RTTY_Device_ConnectionHandler();
+		explicit RTTY_Device_ConnectionHandler(Poco::Net::StreamSocket& socket, Poco::Net::SocketReactor& reactor):
+			 _socket(socket),
+			 _reactor(reactor) {
 
-		void run() final;
+			_reactor.addEventHandler(_socket, Poco::NObserver<RTTY_Device_ConnectionHandler, Poco::Net::ReadableNotification>(*this, &RTTY_Device_ConnectionHandler::onSocketReadable));
+			_reactor.addEventHandler(_socket, Poco::NObserver<RTTY_Device_ConnectionHandler, Poco::Net::ShutdownNotification>(*this, &RTTY_Device_ConnectionHandler::onSocketShutdown));
+
+		}
+
+		~RTTY_Device_ConnectionHandler();
+
 		bool Login();
 		bool Logout();
 		void Stop();
@@ -44,9 +51,15 @@ namespace OpenWifi {
 		bool KeyStrokes(const u_char *buf, size_t len);
 		std::string ReadString();
 		inline auto SessionID() const { return conn_id_; }
-		void AddCommand(u_char C);
+
+		void onSocketReadable(const Poco::AutoPtr<Poco::Net::ReadableNotification>& pNf);
+		void onSocketWritable(const Poco::AutoPtr<Poco::Net::WritableNotification>& pNf);
+		void onSocketShutdown(const Poco::AutoPtr<Poco::Net::ShutdownNotification>& pNf);
 
 	  private:
+		Poco::Net::StreamSocket   		_socket;
+		Poco::Net::SocketReactor		&_reactor;
+
 		mutable std::atomic_bool 		running_=false;
 		std::string 					device_address_;
 		std::recursive_mutex		  	M_;
@@ -76,20 +89,5 @@ namespace OpenWifi {
 		void do_msgTypeHttp(std::size_t msg_len);
 		void do_msgTypeAck(std::size_t msg_len);
 		void do_msgTypeMax(std::size_t msg_len);
-
-		bool ProcessCommands();
 	};
-
-	class RTTY_Device_Connection_Factory : public Poco::Net::TCPServerConnectionFactory {
-		public:
-			RTTY_Device_Connection_Factory() = default;
-
-		Poco::Net::TCPServerConnection * createConnection(const Poco::Net::StreamSocket& socket)
-			{
-				return new RTTY_Device_ConnectionHandler(socket);
-			}
-
-		private:
-	};
-
 }
