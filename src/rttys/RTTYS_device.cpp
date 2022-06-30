@@ -64,7 +64,8 @@ namespace OpenWifi {
 	void RTTY_Device_ConnectionHandler::run() {
 		running_ = true ;
 
-		OpenWifi::Utils::SetThreadName("RTTY-Device");
+		std::string ThreadName{"rtty:waiting"};
+		OpenWifi::Utils::SetThreadName(ThreadName.c_str());
 
 		device_address_ = socket().address().toString();
 		Logger().information(fmt::format("{}: Started.", device_address_));
@@ -166,6 +167,7 @@ namespace OpenWifi {
 		RTTYS_server()->DeRegisterDevice(id_, this);
 		socket().close();
 		Logger().information(fmt::format("{}: Completed.", device_address_));
+		OpenWifi::Utils::SetThreadName("rtty:done");
 	}
 
 	void RTTY_Device_ConnectionHandler::Stop() {
@@ -280,7 +282,8 @@ namespace OpenWifi {
 		token_ = ReadString();
 		serial_ = RTTYS_server()->SerialNumber(id_);
 
-		OpenWifi::Utils::SetThreadName(serial_.c_str());
+		std::string ThreadName{"rtty:"+serial_};
+		OpenWifi::Utils::SetThreadName(ThreadName.c_str());
 
 		Poco::Thread::current()->setName(fmt::format("RTTY-device-thread-{}:{}:{}", conn_id_, id_, serial_));
 		Logger().debug(fmt::format("{}: ID:{} Serial:{} Description:{} Device registration", conn_id_, id_, serial_, desc_));
