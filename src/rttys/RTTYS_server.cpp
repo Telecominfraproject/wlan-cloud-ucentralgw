@@ -23,12 +23,13 @@ namespace OpenWifi {
 
 			auto TcpServerParams = new Poco::Net::TCPServerParams();
 			TcpServerParams->setMaxThreads(50);
-			TcpServerParams->setMaxQueued(100);
+			// TcpServerParams->setMaxQueued(100);
+			TcpServerParams->setThreadIdleTime(Poco::Timespan(10,0));
 
 			if(MicroService::instance().NoAPISecurity()) {
 				Poco::Net::ServerSocket DeviceSocket(DSport, 64);
-				DeviceSocket.setNoDelay(true);
-				DeviceAcceptor_ = std::make_unique<Poco::Net::TCPServer>(new Poco::Net::TCPServerConnectionFactoryImpl<RTTY_Device_ConnectionHandler>(), DeviceSocket, TcpServerParams);
+				//DeviceSocket.setNoDelay(true);
+				DeviceAcceptor_ = std::make_unique<Poco::Net::TCPServer>(new RTTY_Device_Connection_Factory, DeviceSocket, TcpServerParams);
 			} else {
 				auto DeviceSecureContext = new Poco::Net::Context(Poco::Net::Context::SERVER_USE,
 																  KeyFileName, CertFileName, "",
@@ -44,8 +45,10 @@ namespace OpenWifi {
 				SSL_CTX_dane_enable(SSLCtxDevice);
 
 				Poco::Net::SecureServerSocket DeviceSocket(DSport, 64, DeviceSecureContext);
-				DeviceSocket.setNoDelay(true);
-				DeviceAcceptor_ = std::make_unique<Poco::Net::TCPServer>(new Poco::Net::TCPServerConnectionFactoryImpl<RTTY_Device_ConnectionHandler>(), DeviceSocket, TcpServerParams);
+				//DeviceSocket.setNoDelay(true);
+				auto Factory = Poco::makeShared<Poco::Net::TCPServerConnectionFactoryImpl<RTTY_Device_ConnectionHandler>>();
+				DeviceAcceptor_ = std::make_unique<Poco::Net::TCPServer>(new RTTY_Device_Connection_Factory, DeviceSocket, TcpServerParams);
+//				DeviceAcceptor_ = std::make_unique<Poco::Net::TCPServer>(new Poco::Net::TCPServerConnectionFactoryImpl<RTTY_Device_ConnectionHandler>(), DeviceSocket, TcpServerParams);
 			}
 			DeviceAcceptor_->start();
 
@@ -100,8 +103,9 @@ namespace OpenWifi {
 	}
 
 	void RTTYS_server::onTimer([[maybe_unused]] Poco::Timer & timer) {
-		Logger().debug("Removing stale RTTY connection information.");
+		Logger().debug("Removing stale connections.");
 		std::lock_guard	G(Mutex_);
+		Logger().debug(fmt::format("Current: connections:{} threads:{}.", DeviceAcceptor_->currentConnections(), DeviceAcceptor_->currentThreads()));
 		auto now = OpenWifi::Now();
 		dump("GC  ", std::cout);
 		for(auto element=EndPoints_.begin();element!=EndPoints_.end();) {

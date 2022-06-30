@@ -162,11 +162,36 @@ namespace OpenWifi::RADIUS {
 		std::string ExtractProxyStateDestination() {
 			std::string Result;
 			for(const auto &attribute:Attrs_) {
-				if(attribute.type==33) {
+				if(attribute.type==33 && attribute.len>2) {
 					std::string Attr33;
-					Attr33.assign((const char *)(const char *)&P_.attributes[attribute.pos],attribute.len);
+					// format is serial:IP:port:interface
+					Attr33.assign((const char *)(const char *)&P_.attributes[attribute.pos],attribute.len-2);
 					auto Parts = Poco::StringTokenizer(Attr33,":");
-					return Parts[1]+":"+Parts[2];
+					if(Parts.count()==4)
+						return Parts[1]+":"+Parts[2];
+					return Result;
+				}
+			}
+			return Result;
+		}
+
+		std::string ExtractCallingStationID() {
+			std::string Result;
+			for(const auto &attribute:Attrs_) {
+				if(attribute.type==31 && attribute.len>2) {
+					Result.assign((const char *)(const char *)&P_.attributes[attribute.pos],attribute.len-2);
+					return Result;
+				}
+			}
+			return Result;
+		}
+
+		std::string ExtractCalledStationID() {
+			std::string Result;
+			for(const auto &attribute:Attrs_) {
+				if(attribute.type==30 && attribute.len>2) {
+					Result.assign((const char *)(const char *)&P_.attributes[attribute.pos],attribute.len-2);
+					return Result;
 				}
 			}
 			return Result;
