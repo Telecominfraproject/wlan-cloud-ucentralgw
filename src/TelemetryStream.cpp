@@ -18,6 +18,7 @@ namespace OpenWifi {
 		Messages_->Readable_ += Poco::delegate(this,&TelemetryStream::onMessage);
 		// ReactorPool_.Start("TelemetryWebSocketPool_");
 		Thr_.start(Reactor_);
+		Utils::SetThreadName(Thr_,"telemetry-svr");
 		return 0;
 	}
 

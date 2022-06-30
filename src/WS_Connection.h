@@ -71,12 +71,12 @@ namespace OpenWifi {
 		uint64_t 							SerialNumberInt_=0;
 		std::string 						Compatible_;
 		std::shared_ptr<DeviceRegistry::ConnectionEntry> 	Conn_;
-		bool                                Registered_ = false ;
+		mutable bool                        Registered_ = false ;
 		std::string 						CId_;
 		std::string							CN_;
 		GWObjects::CertificateValidation	CertValidation_ = GWObjects::CertificateValidation::NO_CERTIFICATE;
 		uint64_t 							Errors_=0;
-		bool 								Connected_=false;
+		mutable bool 						Connected_=false;
 		uint64_t 							ConnectionId_=0;
 		Poco::Net::IPAddress				PeerAddress_;
 		mutable std::atomic_bool 			TelemetryReporting_ = false;
