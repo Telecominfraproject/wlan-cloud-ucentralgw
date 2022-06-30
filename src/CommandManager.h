@@ -154,9 +154,9 @@ namespace OpenWifi {
 			void onRPCAnswer(bool& b);
 
 	    private:
-			std::atomic_bool 						Running_ = false;
+			mutable std::atomic_bool 						Running_ = false;
 			Poco::Thread    						ManagerThread;
-			uint64_t 								Id_=3;	//	do not start @1. We ignore ID=1 & 0 is illegal..
+			mutable uint64_t 								Id_=3;	//	do not start @1. We ignore ID=1 & 0 is illegal..
 			std::map<CommandTagIndex,std::shared_ptr<RpcObject>>		OutStandingRequests_;
 			std::set<std::string>					OutstandingUUIDs_;
 			Poco::Timer                     		JanitorTimer_;

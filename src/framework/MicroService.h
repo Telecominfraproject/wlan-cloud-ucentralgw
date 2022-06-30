@@ -645,10 +645,22 @@ namespace OpenWifi::Utils {
 
 	inline void SetThreadName(const char *name) {
 #ifdef __linux__
+		Poco::Thread::current()->setName(name);
 		pthread_setname_np(pthread_self(), name);
 #endif
 #ifdef __APPLE__
+	Poco::Thread::current()->setName(name);
 	pthread_setname_np(name);
+#endif
+	}
+
+	inline void SetThreadName(Poco::Thread &thr, const char *name) {
+#ifdef __linux__
+		thr.setName(name);
+		pthread_setname_np(thr.tid(), name);
+#endif
+#ifdef __APPLE__
+		thr.setName(name);
 #endif
 	}
 
@@ -1325,7 +1337,7 @@ namespace OpenWifi {
 		inline void Start();
 		inline void Stop();
 	  private:
-		std::atomic_bool 	Running_ = false;
+		mutable std::atomic_bool 	Running_ = false;
 		Poco::Thread		Thread_;
 	};
 
@@ -2588,7 +2600,7 @@ namespace OpenWifi {
     private:
         std::recursive_mutex  	Mutex_;
         Poco::Thread        	Worker_;
-        std::atomic_bool    	Running_=false;
+        mutable std::atomic_bool    	Running_=false;
 		Poco::NotificationQueue	Queue_;
     };
 
@@ -2614,7 +2626,7 @@ namespace OpenWifi {
 	  private:
 		std::recursive_mutex  	Mutex_;
         Poco::Thread        	Worker_;
-        std::atomic_bool    	Running_=false;
+        mutable std::atomic_bool    	Running_=false;
     };
 
 	class KafkaDispatcher : public Poco::Runnable {
@@ -2696,7 +2708,7 @@ namespace OpenWifi {
 		std::recursive_mutex  	Mutex_;
 		Types::NotifyTable      Notifiers_;
 		Poco::Thread        	Worker_;
-		std::atomic_bool    	Running_=false;
+		mutable std::atomic_bool    	Running_=false;
 		uint64_t          		FunctionId_=1;
 		Poco::NotificationQueue	Queue_;
 	};
@@ -2959,7 +2971,7 @@ namespace OpenWifi {
 	    std::unique_ptr<Poco::Net::HTTPServer>   	Server_;
 	    std::unique_ptr<Poco::Net::ServerSocket> 	Socket_;
 	    int                                     	Port_ = 0;
-	    std::atomic_bool                            Running_=false;
+	    mutable std::atomic_bool                            Running_=false;
 	};
 
 	inline auto ALBHealthCheckServer() { return ALBHealthCheckServer::instance(); }
@@ -4824,7 +4836,7 @@ namespace OpenWifi {
 		[[nodiscard]] bool SendToUser(const std::string &userName, const std::string &Payload);
 		void SendToAll(const std::string &Payload);
     private:
-        std::atomic_bool Running_ = false;
+        mutable std::atomic_bool Running_ = false;
         Poco::Thread Thr_;
         // std::unique_ptr<MyParallelSocketReactor> ReactorPool_;
 		Poco::Net::SocketReactor					Reactor_;

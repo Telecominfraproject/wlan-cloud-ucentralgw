@@ -19,6 +19,7 @@
 namespace OpenWifi {
 
 	void CommandManager::run() {
+		Utils::SetThreadName("CommandManager");
 		Running_ = true;
 		Poco::AutoPtr<Poco::Notification>	NextMsg(ResponseQueue_.waitDequeueNotification());
 		while(NextMsg && Running_) {

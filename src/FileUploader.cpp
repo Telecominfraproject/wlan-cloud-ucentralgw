@@ -194,6 +194,7 @@ namespace OpenWifi {
 
         void handleRequest(Poco::Net::HTTPServerRequest& Request, Poco::Net::HTTPServerResponse& Response) final {
 
+			Utils::SetThreadName("FileUploader");
 			const auto ContentType = Request.getContentType();
 			const auto Tokens = Poco::StringTokenizer(ContentType,";",Poco::StringTokenizer::TOK_TRIM);
 

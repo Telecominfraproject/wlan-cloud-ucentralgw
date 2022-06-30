@@ -34,7 +34,7 @@ namespace OpenWifi {
 		std::string 			Id_;
 		std::string 			Sid_;
 		Poco::Net::SocketReactor &SR_;
-		std::atomic_bool 		Connected_=false;
+		mutable std::atomic_bool 		Connected_=false;
 		Poco::Logger & 			Logger_;
 		u_char 					Buffer_[16000]{0};
 		volatile bool 			CloseConnection_=false;
