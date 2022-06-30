@@ -85,42 +85,45 @@ namespace OpenWifi {
 		int reason=0;
 		auto Started = OpenWifi::Now();
 
-		while(running_) {
+		try {
+			while (running_) {
 
-			if(!received_login_from_websocket_ && (OpenWifi::Now()-Started)>30) {
-				running_=false;
-				Logger().warning(fmt::format("{}: ID:{} Unknown command {}", conn_id_, id_, (int)last_command_));
-				continue;
-			}
-
-			if (!socket().poll(pollTimeOut, Poco::Net::Socket::SELECT_READ | Poco::Net::Socket::SELECT_ERROR)) {
-				continue;
-			}
-
-			int received = socket().receiveBytes(inBuf_);
-			if(received<0) {
-				running_ = false;
-				reason=3;
-				continue;
-			}
-
-			if(received==0) {
-				continue;
-			}
-
-			while (!inBuf_.isEmpty() && running_) {
-				// std::cout << conn_id_ << ": processing buffer" << std::endl;
-				std::size_t msg_len;
-				if (waiting_for_bytes_ == 0) {
-					u_char header[3]{0};
-					inBuf_.read((char *)&header[0], 3);
-					last_command_ = header[0];
-					msg_len = header[1] * 256 + header[2];
-				} else {
-					msg_len = received;
+				if (!received_login_from_websocket_ && (OpenWifi::Now() - Started) > 30) {
+					running_ = false;
+					Logger().warning(fmt::format("{}: ID:{} Unknown command {}", conn_id_, id_,
+												 (int)last_command_));
+					continue;
 				}
 
-				switch (last_command_) {
+				if (!socket().poll(pollTimeOut, Poco::Net::Socket::SELECT_READ |
+													Poco::Net::Socket::SELECT_ERROR)) {
+					continue;
+				}
+
+				int received = socket().receiveBytes(inBuf_);
+				if (received < 0) {
+					running_ = false;
+					reason = 3;
+					continue;
+				}
+
+				if (received == 0) {
+					continue;
+				}
+
+				while (!inBuf_.isEmpty() && running_) {
+					// std::cout << conn_id_ << ": processing buffer" << std::endl;
+					std::size_t msg_len;
+					if (waiting_for_bytes_ == 0) {
+						u_char header[3]{0};
+						inBuf_.read((char *)&header[0], 3);
+						last_command_ = header[0];
+						msg_len = header[1] * 256 + header[2];
+					} else {
+						msg_len = received;
+					}
+
+					switch (last_command_) {
 					case msgTypeRegister: {
 						do_msgTypeRegister(msg_len);
 					} break;
@@ -155,11 +158,15 @@ namespace OpenWifi {
 						do_msgTypeMax(msg_len);
 					} break;
 					default:
-						Logger().warning(fmt::format("{}: ID:{} Unknown command {}", conn_id_, id_, (int)last_command_));
+						Logger().warning(fmt::format("{}: ID:{} Unknown command {}", conn_id_, id_,
+													 (int)last_command_));
 						running_ = false;
 						continue;
 					}
+				}
 			}
+		} catch (...) {
+			Logger().information("Exception during processing.");
 		}
 		Logger().information(fmt::format("{}: ID:{} Exiting. Reason:{}", conn_id_, id_, reason));
 		Logger().information(fmt::format("{}: Completing.", device_address_));

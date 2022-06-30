@@ -104,7 +104,7 @@ namespace OpenWifi {
 	void RTTYS_server::onTimer([[maybe_unused]] Poco::Timer & timer) {
 		Logger().debug("Removing stale connections.");
 		std::lock_guard	G(Mutex_);
-		Utils::SetThreadName("rtty-janitor");
+		Utils::SetThreadName("rt:janitor");
 		Logger().debug(fmt::format("Current: connections:{} threads:{}.", DeviceAcceptor_->currentConnections(), DeviceAcceptor_->currentThreads()));
 		auto now = OpenWifi::Now();
 		dump("GC  ", std::cout);
