@@ -371,7 +371,7 @@ namespace OpenWifi {
 				if ((!CN_.empty() && Utils::SerialNumberMatch(CN_, SerialNumber_)) ||
 					WebSocketServer()->IsSimSerialNumber(CN_)) {
 					CertValidation_ = GWObjects::VERIFIED;
-					poco_information(Logger(), fmt::format("CONNECT({}): Fully validated and authenticated device..", CId_));
+					poco_information(Logger(), fmt::format("CONNECT({}): Fully validated and authenticated device.", CId_));
 				} else {
 					if (CN_.empty())
 						poco_information(Logger(), fmt::format("CONNECT({}): Not authenticated or validated.", CId_));

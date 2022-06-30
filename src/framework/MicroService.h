@@ -1868,7 +1868,8 @@ namespace OpenWifi {
 	            Request = &RequestIn;
 	            Response = &ResponseIn;
 
-				Poco::Thread::current()->setName("WebServerThread_" + std::to_string(TransactionId_));
+				std::string th_name = "restsvr_" + std::to_string(TransactionId_);
+				Utils::SetThreadName(th_name.c_str());
 
                 if(Request->getContentLength()>0) {
                     if(Request->getContentType().find("application/json")!=std::string::npos) {
@@ -2683,6 +2684,7 @@ namespace OpenWifi {
 
 		inline void run() override {
 			Poco::AutoPtr<Poco::Notification>	Note(Queue_.waitDequeueNotification());
+			Utils::SetThreadName("kafka-dispatch");
 			while(Note && Running_) {
 				auto Msg = dynamic_cast<KafkaMessage*>(Note.get());
 				if(Msg!= nullptr) {
@@ -2903,6 +2905,7 @@ namespace OpenWifi {
 
 	            void handleRequest(Poco::Net::HTTPServerRequest& Request, Poco::Net::HTTPServerResponse& Response) override
 	            {
+					Utils::SetThreadName("alb-request");
 					try {
 						if((id_ % 100) == 0) {
 							Logger_.debug(fmt::format("ALB-REQUEST({}): ALB Request {}.",
@@ -3003,7 +3006,7 @@ namespace OpenWifi {
 
 	    inline Poco::Net::HTTPRequestHandler *CallServer(const std::string &Path, uint64_t Id) {
 	        RESTAPIHandler::BindingMap Bindings;
-			Poco::Thread::current()->setName(fmt::format("RESTAPI_ExtServer_{}",Id));
+			Utils::SetThreadName(fmt::format("RESTAPI_ExtServer_{}",Id).c_str());
 	        return RESTAPI_ExtRouter(Path, Bindings, Logger(), Server_, Id);
 	    }
 
@@ -3027,7 +3030,7 @@ namespace OpenWifi {
 	    inline Poco::Net::HTTPRequestHandler *createRequestHandler(const Poco::Net::HTTPServerRequest &Request) override {
 			try {
 				Poco::URI uri(Request.getURI());
-				Poco::Thread::current()->setName(fmt::format("ExtWebServer_{}",TransactionId_));
+				Utils::SetThreadName(fmt::format("ExtWebServer_{}",TransactionId_).c_str());
 				return RESTAPI_ExtServer()->CallServer(uri.getPath(), TransactionId_++);
 			} catch (...) {
 
@@ -3136,7 +3139,7 @@ namespace OpenWifi {
 
 	    inline Poco::Net::HTTPRequestHandler *CallServer(const std::string &Path, uint64_t Id) {
 	        RESTAPIHandler::BindingMap Bindings;
-			Poco::Thread::current()->setName(fmt::format("RESTAPI_IntServer_{}",Id));
+			Utils::SetThreadName(fmt::format("RESTAPI_IntServer_{}",Id).c_str());
 	        return RESTAPI_IntRouter(Path, Bindings, Logger(), Server_, Id);
 	    }
 	private:
@@ -3545,7 +3548,9 @@ namespace OpenWifi {
     void DaemonPostInitialization(Poco::Util::Application &self);
 
 	inline void MicroService::initialize(Poco::Util::Application &self) {
-	    // add the default services
+		Utils::SetThreadName("microservice");
+
+		// add the default services
         LoadConfigurationFile();
         InitializeLoggingSystem();
 
@@ -3940,6 +3945,7 @@ namespace OpenWifi {
 
     inline int MicroService::main([[maybe_unused]] const ArgVec &args) {
 
+		Utils::SetThreadName("main");
 	    MyErrorHandler	ErrorHandler(*this);
 	    Poco::ErrorHandler::set(&ErrorHandler);
 
@@ -4055,6 +4061,7 @@ namespace OpenWifi {
 
     inline void BusEventManager::run() {
         Running_ = true;
+		Utils::SetThreadName("BusEventManager");
         auto Msg = MicroService::instance().MakeSystemEventMessage(KafkaTopics::ServiceEvents::EVENT_JOIN);
         KafkaManager()->PostMessage(KafkaTopics::SERVICE_EVENTS,MicroService::instance().PrivateEndPoint(),Msg, false);
         while(Running_) {
@@ -4140,6 +4147,8 @@ namespace OpenWifi {
 	}
 
 	inline void KafkaProducer::run() {
+
+		Utils::SetThreadName("KafkaProducer");
 	    cppkafka::Configuration Config({
             { "client.id", MicroService::instance().ConfigGetString("openwifi.kafka.client.id") },
             { "metadata.broker.list", MicroService::instance().ConfigGetString("openwifi.kafka.brokerlist") }
@@ -4178,6 +4187,8 @@ namespace OpenWifi {
 	}
 
 	inline void KafkaConsumer::run() {
+		Utils::SetThreadName("KafkaConsumer");
+
 	    cppkafka::Configuration Config({
 	        { "client.id", MicroService::instance().ConfigGetString("openwifi.kafka.client.id") },
 	        { "metadata.broker.list", MicroService::instance().ConfigGetString("openwifi.kafka.brokerlist") },
@@ -4933,6 +4944,7 @@ namespace OpenWifi {
 
     inline void WebSocketClientServer::run() {
         Running_ = true ;
+		Utils::SetThreadName("WebSocketClientServer");
         while(Running_) {
             Poco::Thread::trySleep(2000);
 
