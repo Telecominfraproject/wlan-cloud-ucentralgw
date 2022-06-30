@@ -174,7 +174,6 @@ namespace OpenWifi {
 		Logger().information(fmt::format("{}: ID:{} Exiting. Reason:{}", conn_id_, id_, reason));
 //		RTTYS_server()->DeRegister(id_, this);
 //		Logger().information(fmt::format("{}: ID:{} Exiting. Deregistered.", conn_id_, id_, reason));
-		loop_done_=true;
 		Logger().information(fmt::format("{}: Completing.", device_address_));
 		running_ = false;
 		RTTYS_server()->DeRegisterDevice(id_, this);
