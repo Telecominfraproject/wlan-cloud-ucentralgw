@@ -26,22 +26,24 @@ namespace OpenWifi {
 
 	void RTTY_Device_ConnectionHandler::onSocketReadable([[maybe_unused]] const Poco::AutoPtr<Poco::Net::ReadableNotification> &pNf) {
 		try {
-			auto received = _socket.receiveBytes(inBuf_);
-			if(inBuf_.used()==0) {
+			received_buf_ = _socket.receiveBytes(&inBuf_[0],inBuf_.size());
+			if(received_buf_==0) {
 				std::cout << __LINE__ << std::endl;
 				delete this;
 			}
 
-			while (!inBuf_.isEmpty() && running_) {
+			buf_pos_=0;
+			while (!buf_pos_!=received_buf_ && running_) {
 				std::cout << __LINE__ << std::endl;
 				std::size_t msg_len;
 				if (waiting_for_bytes_ == 0) {
 					u_char header[3]{0};
-					inBuf_.read((char *)&header[0], 3);
+					memcpy(&header[0],&inBuf_[buf_pos_],3);
+					buf_pos_ +=3;
 					last_command_ = header[0];
 					msg_len = header[1] * 256 + header[2];
 				} else {
-					msg_len = received;
+					msg_len = received_buf_;
 				}
 
 				std::cout << __LINE__ << std::endl;
@@ -206,15 +208,14 @@ namespace OpenWifi {
 	std::string RTTY_Device_ConnectionHandler::ReadString() {
 		std::string Res;
 
-		while(inBuf_.used()) {
+		while(buf_pos_!=received_buf_) {
 			char C;
-			inBuf_.read(&C,1);
+			C = inBuf_[buf_pos_++];
 			if(C==0) {
 				break;
 			}
 			Res += C;
 		}
-
 		return Res;
 	}
 
@@ -252,9 +253,8 @@ namespace OpenWifi {
 	void RTTY_Device_ConnectionHandler::do_msgTypeLogin([[maybe_unused]] std::size_t msg_len) {
 		Logger().debug(fmt::format("{}: ID:{} Serial:{} Asking for login", conn_id_, id_, serial_));
 		nlohmann::json doc;
-		char Error;
-		inBuf_.read(&Error, 1);
-		inBuf_.read(&sid_, 1);
+		char Error = inBuf_[buf_pos_++];
+		sid_ = inBuf_[buf_pos_++];
 		doc["type"] = "login";
 		doc["err"] = Error;
 		const auto login_msg = to_string(doc);
@@ -267,20 +267,21 @@ namespace OpenWifi {
 
 	void RTTY_Device_ConnectionHandler::do_msgTypeTermData(std::size_t msg_len) {
 		if(waiting_for_bytes_!=0) {
-			auto to_read = std::min(inBuf_.used(),waiting_for_bytes_);
-			inBuf_.read(&scratch_[0], to_read);
+			auto to_read = std::min((std::size_t )buf_pos_,waiting_for_bytes_);
+			memcpy(&scratch_[0],&inBuf_[buf_pos_],to_read);
 			SendToClient((u_char *)&scratch_[0], (int) to_read);
 			if(to_read<waiting_for_bytes_)
 				waiting_for_bytes_ -= to_read;
 			else
 				waiting_for_bytes_ = 0 ;
 		} else {
-			if(inBuf_.used()<msg_len) {
-				auto read_count = inBuf_.read(&scratch_[0], inBuf_.used());
+			if(buf_pos_<msg_len) {
+				auto read_count = received_buf_ - buf_pos_;
+				memcpy(&scratch_[0],&inBuf_[buf_pos_], read_count);
 				SendToClient((u_char *)&scratch_[0], read_count);
 				waiting_for_bytes_ = msg_len - read_count;
 			} else {
-				inBuf_.read(&scratch_[0], msg_len);
+				memcpy(&scratch_[0],&inBuf_[buf_pos_],msg_len);
 				SendToClient((u_char *)&scratch_[0], (int)msg_len);
 				waiting_for_bytes_=0;
 			}
