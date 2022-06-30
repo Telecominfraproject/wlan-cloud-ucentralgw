@@ -65,11 +65,8 @@ namespace OpenWifi {
 
 	void RTTY_Device_ConnectionHandler::run() {
 		running_ = true ;
-		char threadname[32];
 
-		auto tid = pthread_self();
-		strcpy(threadname,"RTTY-Device");
-		pthread_setname_np(tid, threadname);
+		OpenWifi::Utils::SetThreadName("RTTY-Device");
 
 		device_address_ = socket().address().toString();
 		Logger().information(fmt::format("{}: Started.", device_address_));
@@ -89,20 +86,6 @@ namespace OpenWifi {
 		int reason=0;
 		while(running_) {
 
-//			std::cout << __LINE__ << std::endl;
-/*			if(!ProcessCommands()) {
-				reason=1;
-				running_=false;
-				break;
-			}
-*/
-//			std::lock_guard		G(M_);
-/*			if (socket().poll(pollError, Poco::Net::Socket::SELECT_ERROR) == true) {
-				reason=2;
-				running_=false;
-				continue;
-			}
-*/
 			if (!socket().poll(pollTimeOut, Poco::Net::Socket::SELECT_READ | Poco::Net::Socket::SELECT_ERROR)) {
 				continue;
 			}
@@ -172,8 +155,6 @@ namespace OpenWifi {
 			}
 		}
 		Logger().information(fmt::format("{}: ID:{} Exiting. Reason:{}", conn_id_, id_, reason));
-//		RTTYS_server()->DeRegister(id_, this);
-//		Logger().information(fmt::format("{}: ID:{} Exiting. Deregistered.", conn_id_, id_, reason));
 		Logger().information(fmt::format("{}: Completing.", device_address_));
 		running_ = false;
 		RTTYS_server()->DeRegisterDevice(id_, this);
@@ -292,8 +273,7 @@ namespace OpenWifi {
 		token_ = ReadString();
 		serial_ = RTTYS_server()->SerialNumber(id_);
 
-		auto tid = pthread_self();
-		pthread_setname_np(tid, serial_.c_str());
+		OpenWifi::Utils::SetThreadName(serial_.c_str());
 
 		Poco::Thread::current()->setName(fmt::format("RTTY-device-thread-{}:{}:{}", conn_id_, id_, serial_));
 		Logger().debug(fmt::format("{}: ID:{} Serial:{} Description:{} Device registration", conn_id_, id_, serial_, desc_));

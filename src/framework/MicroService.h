@@ -643,6 +643,14 @@ namespace OpenWifi::RESTAPI_utils {
 
 namespace OpenWifi::Utils {
 
+	inline void SetThreadName(const char *name) {
+#ifdef __linux__
+		pthread_setname_np(pthread_self(), name);
+#elifdef __APPLE__
+	pthread_setname_np(name);
+#endif
+	}
+
     enum MediaTypeEncodings {
         PLAIN,
         BINARY,
