@@ -23,7 +23,7 @@ namespace OpenWifi {
 
 			auto TcpServerParams = new Poco::Net::TCPServerParams();
 			TcpServerParams->setMaxThreads(50);
-			// TcpServerParams->setMaxQueued(100);
+			TcpServerParams->setMaxQueued(100);
 			TcpServerParams->setThreadIdleTime(Poco::Timespan(10,0));
 
 			if(MicroService::instance().NoAPISecurity()) {
@@ -46,9 +46,7 @@ namespace OpenWifi {
 
 				Poco::Net::SecureServerSocket DeviceSocket(DSport, 64, DeviceSecureContext);
 				//DeviceSocket.setNoDelay(true);
-				auto Factory = Poco::makeShared<Poco::Net::TCPServerConnectionFactoryImpl<RTTY_Device_ConnectionHandler>>();
 				DeviceAcceptor_ = std::make_unique<Poco::Net::TCPServer>(new RTTY_Device_Connection_Factory, DeviceSocket, TcpServerParams);
-//				DeviceAcceptor_ = std::make_unique<Poco::Net::TCPServer>(new Poco::Net::TCPServerConnectionFactoryImpl<RTTY_Device_ConnectionHandler>(), DeviceSocket, TcpServerParams);
 			}
 			DeviceAcceptor_->start();
 
