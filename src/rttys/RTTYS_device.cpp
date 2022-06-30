@@ -196,8 +196,8 @@ namespace OpenWifi {
 
 		auto total_len = 3 + 1 + len-1;
 		scratch_[0] = msgTypeTermData;
-		scratch_[1] = 0 ;
-		scratch_[2] = len +1-1;
+		scratch_[1] = (len & 0xff00) >> 8 ;
+		scratch_[2] = (len & 0x00ff) ;
 		scratch_[3] = sid_;
 		memcpy( &scratch_[4], &buf[1], len-1);
 		try {
