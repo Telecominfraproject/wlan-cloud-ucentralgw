@@ -28,11 +28,12 @@ namespace OpenWifi {
 		try {
 			auto received = _socket.receiveBytes(inBuf_);
 			if(received==0) {
+				std::cout << __LINE__ << std::endl;
 				delete this;
 			}
 
 			while (!inBuf_.isEmpty() && running_) {
-				// std::cout << conn_id_ << ": processing buffer" << std::endl;
+				std::cout << __LINE__ << std::endl;
 				std::size_t msg_len;
 				if (waiting_for_bytes_ == 0) {
 					u_char header[3]{0};
@@ -43,38 +44,50 @@ namespace OpenWifi {
 					msg_len = received;
 				}
 
+				std::cout << __LINE__ << std::endl;
 				switch (last_command_) {
 				case msgTypeRegister: {
+					std::cout << __LINE__ << std::endl;
 					do_msgTypeRegister(msg_len);
 				} break;
 				case msgTypeLogin: {
+					std::cout << __LINE__ << std::endl;
 					do_msgTypeLogin(msg_len);
 				} break;
 				case msgTypeLogout: {
+					std::cout << __LINE__ << std::endl;
 					do_msgTypeLogout(msg_len);
 				} break;
 				case msgTypeTermData: {
+					std::cout << __LINE__ << std::endl;
 					do_msgTypeTermData(msg_len);
 				} break;
 				case msgTypeWinsize: {
+					std::cout << __LINE__ << std::endl;
 					do_msgTypeWinsize(msg_len);
 				} break;
 				case msgTypeCmd: {
+					std::cout << __LINE__ << std::endl;
 					do_msgTypeCmd(msg_len);
 				} break;
 				case msgTypeHeartbeat: {
+					std::cout << __LINE__ << std::endl;
 					do_msgTypeHeartbeat(msg_len);
 				} break;
 				case msgTypeFile: {
+					std::cout << __LINE__ << std::endl;
 					do_msgTypeFile(msg_len);
 				} break;
 				case msgTypeHttp: {
+					std::cout << __LINE__ << std::endl;
 					do_msgTypeHttp(msg_len);
 				} break;
 				case msgTypeAck: {
+					std::cout << __LINE__ << std::endl;
 					do_msgTypeAck(msg_len);
 				} break;
 				case msgTypeMax: {
+					std::cout << __LINE__ << std::endl;
 					do_msgTypeMax(msg_len);
 				} break;
 				default:
@@ -94,6 +107,7 @@ namespace OpenWifi {
 	}
 
 	void RTTY_Device_ConnectionHandler::onSocketShutdown([[maybe_unused]] const Poco::AutoPtr<Poco::Net::ShutdownNotification>& pNf) {
+		std::cout << __LINE__ << std::endl;
 		delete this;
 	}
 
@@ -151,12 +165,15 @@ namespace OpenWifi {
 
 	bool RTTY_Device_ConnectionHandler::Login() {
 		std::lock_guard		G(M_);
+		std::cout << __LINE__ << std::endl;
 		u_char outBuf[3]{0};
 		outBuf[0] = msgTypeLogin;
 		outBuf[1] = 0;
 		outBuf[2] = 0;
 		try {
+			std::cout << __LINE__ << std::endl;
 			_socket.sendBytes(outBuf, 3);
+			std::cout << __LINE__ << std::endl;
 		} catch (const Poco::IOException &E) {
 			// std::cout << "1  " << E.what() << " " << E.name() << " "<< E.className() << " "<< E.message() << std::endl;
 			return false;
@@ -202,15 +219,16 @@ namespace OpenWifi {
 	}
 
 	void RTTY_Device_ConnectionHandler::do_msgTypeRegister([[maybe_unused]] std::size_t msg_len) {
+		std::cout << __LINE__ << std::endl;
 		id_ = ReadString();
+		std::cout << __LINE__ << std::endl;
 		desc_ = ReadString();
+		std::cout << __LINE__ << std::endl;
 		token_ = ReadString();
+		std::cout << __LINE__ << std::endl;
 		serial_ = RTTYS_server()->SerialNumber(id_);
+		std::cout << __LINE__ << std::endl;
 
-		std::string ThreadName{"rt:"+serial_};
-		OpenWifi::Utils::SetThreadName(ThreadName.c_str());
-
-		Poco::Thread::current()->setName(fmt::format("RTTY-device-thread-{}:{}:{}", conn_id_, id_, serial_));
 		Logger().debug(fmt::format("{}: ID:{} Serial:{} Description:{} Device registration", conn_id_, id_, serial_, desc_));
 		if (RTTYS_server()->Register(id_, token_, this)) {
 			u_char OutBuf[8];

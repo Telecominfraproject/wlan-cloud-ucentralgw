@@ -56,6 +56,8 @@ namespace OpenWifi {
 		void onSocketWritable(const Poco::AutoPtr<Poco::Net::WritableNotification>& pNf);
 		void onSocketShutdown(const Poco::AutoPtr<Poco::Net::ShutdownNotification>& pNf);
 
+		bool Connected() const { return received_login_from_websocket_; }
+
 	  private:
 		Poco::Net::StreamSocket   		_socket;
 		Poco::Net::SocketReactor		&_reactor;
