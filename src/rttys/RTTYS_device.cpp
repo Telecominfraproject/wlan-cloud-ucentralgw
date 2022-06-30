@@ -61,8 +61,6 @@ namespace OpenWifi {
 		return true;
 	}
 
-#define _GNU_SOURCE
-
 	void RTTY_Device_ConnectionHandler::run() {
 		running_ = true ;
 
