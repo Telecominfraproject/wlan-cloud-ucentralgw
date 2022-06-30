@@ -190,19 +190,18 @@ namespace OpenWifi {
 
 	bool RTTY_Device_ConnectionHandler::KeyStrokes(const u_char *buf, size_t len) {
 		std::lock_guard		G(M_);
-		u_char outBuf[16]{0};
 
-		if(len>(sizeof(outBuf)-5))
+		if(len>(RTTY_DEVICE_BUFSIZE-5))
 			return false;
 
 		auto total_len = 3 + 1 + len-1;
-		outBuf[0] = msgTypeTermData;
-		outBuf[1] = 0 ;
-		outBuf[2] = len +1-1;
-		outBuf[3] = sid_;
-		memcpy( &outBuf[4], &buf[1], len-1);
+		scratch_[0] = msgTypeTermData;
+		scratch_[1] = 0 ;
+		scratch_[2] = len +1-1;
+		scratch_[3] = sid_;
+		memcpy( &scratch_[4], &buf[1], len-1);
 		try {
-			socket().sendBytes(outBuf, total_len);
+			socket().sendBytes((const void *)&scratch_[0], total_len);
 			return true;
 		} catch (...) {
 			return false;

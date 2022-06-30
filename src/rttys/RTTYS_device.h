@@ -55,8 +55,8 @@ namespace OpenWifi {
 		std::string                   	desc_;
 		std::string 				  	serial_;
 		char 				          	sid_=0;
-		Poco::FIFOBuffer  			  	inBuf_{64000};
-		std::array<char,32000>		  	scratch_{0};
+		Poco::FIFOBuffer  			  	inBuf_{RTTY_DEVICE_BUFSIZE};
+		std::array<char,RTTY_DEVICE_BUFSIZE>	scratch_{0};
 		std::size_t      			  	waiting_for_bytes_{0};
 		u_char 						  	last_command_=0;
 		uint64_t 					  	conn_id_=0;
