@@ -3548,7 +3548,7 @@ namespace OpenWifi {
     void DaemonPostInitialization(Poco::Util::Application &self);
 
 	inline void MicroService::initialize(Poco::Util::Application &self) {
-		Utils::SetThreadName("microservice");
+		// Utils::SetThreadName("microservice");
 
 		// add the default services
         LoadConfigurationFile();
@@ -3945,7 +3945,7 @@ namespace OpenWifi {
 
     inline int MicroService::main([[maybe_unused]] const ArgVec &args) {
 
-		Utils::SetThreadName("main");
+		// Utils::SetThreadName("main");
 	    MyErrorHandler	ErrorHandler(*this);
 	    Poco::ErrorHandler::set(&ErrorHandler);
 
