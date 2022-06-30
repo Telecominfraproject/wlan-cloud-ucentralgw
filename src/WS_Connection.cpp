@@ -178,7 +178,6 @@ namespace OpenWifi {
 	WSConnection::~WSConnection() {
 
 		poco_debug(Logger(),fmt::format("{}: Removing connection for {}.", CId_, SerialNumber_));
-		std::cout << "Deleting connection for " << CId_ << std::endl;
 		if (ConnectionId_)
 			DeviceRegistry()->UnRegister(SerialNumberInt_, ConnectionId_);
 
