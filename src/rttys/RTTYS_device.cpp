@@ -14,7 +14,8 @@ namespace OpenWifi {
 
 	RTTY_Device_ConnectionHandler::RTTY_Device_ConnectionHandler(Poco::Net::StreamSocket& socket, Poco::Net::SocketReactor & reactor):
 			 _socket(socket),
-			 _reactor(reactor) {
+			 _reactor(reactor),
+			inBuf_(RTTY_DEVICE_BUFSIZE){
 		std::thread T([=]() { CompleteConnection(); });
 		T.detach();
 	}
@@ -53,29 +54,24 @@ namespace OpenWifi {
 
 	void RTTY_Device_ConnectionHandler::onSocketReadable([[maybe_unused]] const Poco::AutoPtr<Poco::Net::ReadableNotification> &pNf) {
 		try {
-
-
-			received_buf_ = _socket.receiveBytes(&inBuf_[0],RTTY_DEVICE_BUFSIZE);
-			if(received_buf_==0) {
+			auto received_bytes = _socket.receiveBytes(inBuf_);
+			if(received_bytes==0) {
 				// std::cout << __LINE__ << std::endl;
 				return;
 				// delete this;
 			}
 
-			std::cout << "Received " << received_buf_ << std::endl;
-
-			buf_pos_=0;
-			while ((buf_pos_!=received_buf_)) {
+			std::cout << "Received " << received_bytes << std::endl;
+			while (!inBuf_.isEmpty()) {
 				std::cout << __LINE__ << std::endl;
 				std::size_t msg_len;
 				if (waiting_for_bytes_ == 0) {
 					u_char header[3]{0};
-					memcpy(&header[0],&inBuf_[buf_pos_],3);
-					buf_pos_ +=3;
+					inBuf_.read((char *)&header[0], 3);
 					last_command_ = header[0];
 					msg_len = header[1] * 256 + header[2];
 				} else {
-					msg_len = received_buf_;
+					msg_len = received_bytes;
 				}
 
 				std::cout << __LINE__ << std::endl;
@@ -239,14 +235,15 @@ namespace OpenWifi {
 	std::string RTTY_Device_ConnectionHandler::ReadString() {
 		std::string Res;
 
-		while(buf_pos_!=received_buf_) {
+		while(inBuf_.used()) {
 			char C;
-			C = inBuf_[buf_pos_++];
+			inBuf_.read(&C,1);
 			if(C==0) {
 				break;
 			}
 			Res += C;
 		}
+
 		return Res;
 	}
 
@@ -283,8 +280,9 @@ namespace OpenWifi {
 	void RTTY_Device_ConnectionHandler::do_msgTypeLogin([[maybe_unused]] std::size_t msg_len) {
 		Logger().debug(fmt::format("{}: ID:{} Serial:{} Asking for login", conn_id_, id_, serial_));
 		nlohmann::json doc;
-		char Error = inBuf_[buf_pos_++];
-		sid_ = inBuf_[buf_pos_++];
+		char Error;
+		inBuf_.read(&Error, 1);
+		inBuf_.read(&sid_, 1);
 		doc["type"] = "login";
 		doc["err"] = Error;
 		const auto login_msg = to_string(doc);
@@ -297,21 +295,20 @@ namespace OpenWifi {
 
 	void RTTY_Device_ConnectionHandler::do_msgTypeTermData(std::size_t msg_len) {
 		if(waiting_for_bytes_!=0) {
-			auto to_read = std::min((std::size_t )buf_pos_,waiting_for_bytes_);
-			memcpy(&scratch_[0],&inBuf_[buf_pos_],to_read);
+			auto to_read = std::min(inBuf_.used(),waiting_for_bytes_);
+			inBuf_.read(&scratch_[0], to_read);
 			SendToClient((u_char *)&scratch_[0], (int) to_read);
 			if(to_read<waiting_for_bytes_)
 				waiting_for_bytes_ -= to_read;
 			else
 				waiting_for_bytes_ = 0 ;
 		} else {
-			if(buf_pos_< (int)msg_len) {
-				auto read_count = received_buf_ - buf_pos_;
-				memcpy(&scratch_[0],&inBuf_[buf_pos_], read_count);
+			if(inBuf_.used()<msg_len) {
+				auto read_count = inBuf_.read(&scratch_[0], inBuf_.used());
 				SendToClient((u_char *)&scratch_[0], read_count);
 				waiting_for_bytes_ = msg_len - read_count;
 			} else {
-				memcpy(&scratch_[0],&inBuf_[buf_pos_],msg_len);
+				inBuf_.read(&scratch_[0], msg_len);
 				SendToClient((u_char *)&scratch_[0], (int)msg_len);
 				waiting_for_bytes_=0;
 			}
