@@ -63,7 +63,7 @@ namespace OpenWifi {
 
 			std::cout << "Received: " << received_bytes << std::endl;
 
-			while (!inBuf_.isReadable()) {
+			while (inBuf_.isReadable()) {
 				std::size_t msg_len;
 				u_char header[3]{0};
 				inBuf_.read((char *)&header[0], 3);
