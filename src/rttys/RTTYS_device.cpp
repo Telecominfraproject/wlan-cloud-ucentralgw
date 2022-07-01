@@ -57,8 +57,11 @@ namespace OpenWifi {
 		try {
 			auto received_bytes = _socket.receiveBytes(inBuf_);
 			if(received_bytes==0) {
+				std::cout << "No data received" << std::endl;
 				delete this;
 			}
+
+			std::cout << "Received: " << received_bytes << std::endl;
 
 			while (!inBuf_.isReadable()) {
 				std::size_t msg_len;
@@ -68,43 +71,42 @@ namespace OpenWifi {
 				msg_len = header[1] * 256 + header[2];
 
 				switch (last_command_) {
-				case msgTypeRegister: {
-					do_msgTypeRegister(msg_len);
-				} break;
-				case msgTypeLogin: {
-					do_msgTypeLogin(msg_len);
-				} break;
-				case msgTypeLogout: {
-					do_msgTypeLogout(msg_len);
-				} break;
-				case msgTypeTermData: {
-					do_msgTypeTermData(msg_len);
-				} break;
-				case msgTypeWinsize: {
-					do_msgTypeWinsize(msg_len);
-				} break;
-				case msgTypeCmd: {
-					do_msgTypeCmd(msg_len);
-				} break;
-				case msgTypeHeartbeat: {
-					do_msgTypeHeartbeat(msg_len);
-				} break;
-				case msgTypeFile: {
-					do_msgTypeFile(msg_len);
-				} break;
-				case msgTypeHttp: {
-					do_msgTypeHttp(msg_len);
-				} break;
-				case msgTypeAck: {
-					do_msgTypeAck(msg_len);
-				} break;
-				case msgTypeMax: {
-					do_msgTypeMax(msg_len);
-				} break;
-				default:
-					Logger().warning(fmt::format("{}: ID:{} Unknown command {}", conn_id_, id_,
-												 (int)last_command_));
-					continue;
+					case msgTypeRegister: {
+						do_msgTypeRegister(msg_len);
+					} break;
+					case msgTypeLogin: {
+						do_msgTypeLogin(msg_len);
+					} break;
+					case msgTypeLogout: {
+						do_msgTypeLogout(msg_len);
+					} break;
+					case msgTypeTermData: {
+						do_msgTypeTermData(msg_len);
+					} break;
+					case msgTypeWinsize: {
+						do_msgTypeWinsize(msg_len);
+					} break;
+					case msgTypeCmd: {
+						do_msgTypeCmd(msg_len);
+					} break;
+					case msgTypeHeartbeat: {
+						do_msgTypeHeartbeat(msg_len);
+					} break;
+					case msgTypeFile: {
+						do_msgTypeFile(msg_len);
+					} break;
+					case msgTypeHttp: {
+						do_msgTypeHttp(msg_len);
+					} break;
+					case msgTypeAck: {
+						do_msgTypeAck(msg_len);
+					} break;
+					case msgTypeMax: {
+						do_msgTypeMax(msg_len);
+					} break;
+					default:
+						Logger().warning(fmt::format("{}: ID:{} Unknown command {}", conn_id_, id_,
+													 (int)last_command_));
 				}
 			}
 		} catch (...) {
