@@ -119,7 +119,7 @@ namespace OpenWifi {
 			case Poco::Net::WebSocket::FRAME_OP_BINARY: {
 					if (n == 0)
 						return delete this;
-					Logger().information(fmt::format("Sending {} key strokes to device.",n));
+					poco_trace(Logger(),fmt::format("Sending {} key strokes to device.",n));
 					if(!RTTYS_server()->SendKeyStrokes(Id_,Buffer_,n)) {
 						return delete this;
 					}
