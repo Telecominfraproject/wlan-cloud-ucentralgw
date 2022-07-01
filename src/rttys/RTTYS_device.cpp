@@ -60,16 +60,12 @@ namespace OpenWifi {
 				delete this;
 			}
 
-			while (!inBuf_.isEmpty()) {
+			while (!inBuf_.isReadable()) {
 				std::size_t msg_len;
-				if (waiting_for_bytes_ == 0) {
-					u_char header[3]{0};
-					inBuf_.read((char *)&header[0], 3);
-					last_command_ = header[0];
-					msg_len = header[1] * 256 + header[2];
-				} else {
-					msg_len = received_bytes;
-				}
+				u_char header[3]{0};
+				inBuf_.read((char *)&header[0], 3);
+				last_command_ = header[0];
+				msg_len = header[1] * 256 + header[2];
 
 				switch (last_command_) {
 				case msgTypeRegister: {
