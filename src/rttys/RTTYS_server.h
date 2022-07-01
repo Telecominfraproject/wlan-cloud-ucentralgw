@@ -8,6 +8,7 @@
 #include "Poco/Net/SocketReactor.h"
 #include "Poco/Net/SocketAcceptor.h"
 #include "Poco/Timer.h"
+#include "rttys/RTTYS_device.h"
 
 namespace OpenWifi {
 
@@ -30,7 +31,7 @@ namespace OpenWifi {
 		void Register(const std::string &Id, RTTYS_ClientConnection *Client);
 		void DeRegister(const std::string &Id, RTTYS_ClientConnection *Client);
 		bool Register(const std::string &Id, const std::string &Token, RTTY_Device_ConnectionHandler *Device);
-		void DeRegisterDevice(const std::string &Id, RTTY_Device_ConnectionHandler *Device);
+		void DeRegisterDevice(const std::string &Id, RTTY_Device_ConnectionHandler *Device, bool remove_websocket);
 		bool CreateEndPoint(const std::string &Id, const std::string & Token, const std::string & UserName, const std::string & SerialNumber );
 		std::string SerialNumber(const std::string & Id);
 		void LoginDone(const std::string & Id);
@@ -52,12 +53,12 @@ namespace OpenWifi {
 			mutable RTTYS_ClientConnection *		Client = nullptr;
 			mutable RTTY_Device_ConnectionHandler *	Device = nullptr;
 			uint64_t 								TimeStamp = OpenWifi::Now();
-			mutable uint64_t 								DeviceConnected = 0;
-			mutable uint64_t 								ClientConnected = 0;
+			mutable uint64_t 						DeviceConnected = 0;
+			mutable uint64_t 						ClientConnected = 0;
 			std::string 							UserName;
 			std::string 							SerialNumber;
-			mutable bool 									ShuttingDown = false;
-			mutable bool 									ShutdownComplete = false;
+			mutable bool 							ShuttingDown = false;
+			mutable bool 							ShutdownComplete = false;
 		};
 
 		void onTimer(Poco::Timer & timer);
@@ -78,13 +79,15 @@ namespace OpenWifi {
 	  private:
 		// std::recursive_mutex		M_;
 		Poco::Net::SocketReactor	ClientReactor_;
+		Poco::Net::SocketReactor	DeviceReactor_;
 		Poco::Thread				ClientReactorThread_;
 		std::string 				RTTY_UIAssets_;
 		std::atomic_bool 			Internal_ = false;
 
 		std::map<std::string, EndPoint> 			EndPoints_;			//	id, endpoint
 		std::unique_ptr<Poco::Net::HTTPServer>		WebServer_;
-		std::unique_ptr<Poco::Net::TCPServer>		DeviceAcceptor_;
+		std::unique_ptr<Poco::Net::SocketAcceptor<RTTY_Device_ConnectionHandler>>	DeviceAcceptor_;
+		Poco::Thread				DeviceReactorThread_;
 
 		Poco::Timer                     					Timer_;
 		std::unique_ptr<Poco::TimerCallback<RTTYS_server>>  GCCallBack_;
