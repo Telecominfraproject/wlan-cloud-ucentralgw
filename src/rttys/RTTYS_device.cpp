@@ -31,7 +31,7 @@ namespace OpenWifi {
 			received_buf_ = _socket.receiveBytes(&inBuf_[0],RTTY_DEVICE_BUFSIZE);
 
 			if(received_buf_==0) {
-				std::cout << __LINE__ << std::endl;
+				// std::cout << __LINE__ << std::endl;
 				return;
 				// delete this;
 			}
