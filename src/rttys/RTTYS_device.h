@@ -56,7 +56,7 @@ namespace OpenWifi {
 		Poco::Net::SocketReactor		&_reactor;
 
 		mutable std::atomic_bool 		running_=false;
-		std::string 					device_address_;
+		Poco::Net::SocketAddress		device_address_;
 		std::recursive_mutex		  	M_;
 		std::string                   	id_;
 		std::string                   	token_;

@@ -27,10 +27,14 @@ namespace OpenWifi {
 				if (V == 1)
 					break;
 			}
+			if((SS->secure()))
+				std::cout << "Secure..." << std::endl;
 		} else {
 
 		}
-		std::cout << "Peer: " << _socket.peerAddress().toString() << std::endl;
+		device_address_ = _socket.peerAddress();
+		Logger().information(fmt::format("{}: Starting.", device_address_.toString()));
+		std::cout << "Peer: " << device_address_.toString() << std::endl;
 		_reactor.addEventHandler(_socket, Poco::NObserver<RTTY_Device_ConnectionHandler, Poco::Net::ReadableNotification>(*this, &RTTY_Device_ConnectionHandler::onSocketReadable));
 		_reactor.addEventHandler(_socket, Poco::NObserver<RTTY_Device_ConnectionHandler, Poco::Net::ShutdownNotification>(*this, &RTTY_Device_ConnectionHandler::onSocketShutdown));
 	}
@@ -41,11 +45,10 @@ namespace OpenWifi {
 		_reactor.removeEventHandler(_socket, Poco::NObserver<RTTY_Device_ConnectionHandler, Poco::Net::WritableNotification>(*this, &RTTY_Device_ConnectionHandler::onSocketWritable));
 		_reactor.removeEventHandler(_socket, Poco::NObserver<RTTY_Device_ConnectionHandler, Poco::Net::ShutdownNotification>(*this, &RTTY_Device_ConnectionHandler::onSocketShutdown));
 
-		Logger().information(fmt::format("{}: Completing.", device_address_));
+		Logger().information(fmt::format("{}: Deregistering.", device_address_.toString()));
 		running_ = false;
 		RTTYS_server()->DeRegisterDevice(id_, this);
-		_socket.close();
-		Logger().information(fmt::format("{}: Completed.", device_address_));
+		Logger().information(fmt::format("{}: Deregistered.", device_address_.toString()));
 	}
 
 	void RTTY_Device_ConnectionHandler::onSocketReadable([[maybe_unused]] const Poco::AutoPtr<Poco::Net::ReadableNotification> &pNf) {
