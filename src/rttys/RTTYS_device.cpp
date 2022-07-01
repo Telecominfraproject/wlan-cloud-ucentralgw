@@ -45,7 +45,6 @@ namespace OpenWifi {
 		_reactor.removeEventHandler(_socket, Poco::NObserver<RTTY_Device_ConnectionHandler, Poco::Net::WritableNotification>(*this, &RTTY_Device_ConnectionHandler::onSocketWritable));
 		_reactor.removeEventHandler(_socket, Poco::NObserver<RTTY_Device_ConnectionHandler, Poco::Net::ShutdownNotification>(*this, &RTTY_Device_ConnectionHandler::onSocketShutdown));
 
-		Logger().information(fmt::format("{}: Deregistering.", device_address_.toString()));
 		if(registered_) {
 			Logger().information(fmt::format("{}: Deregistering.", device_address_.toString()));
 			RTTYS_server()->DeRegisterDevice(id_, this);
@@ -247,8 +246,9 @@ namespace OpenWifi {
 			OutBuf[6] = 0;
 			if(_socket.sendBytes(OutBuf, 7) !=7) {
 				Logger().debug(fmt::format("{}: ID:{} Serial:{} Description:{} Could not complete registration", conn_id_, id_, serial_, desc_));
+			} else {
+				registered_ = true;
 			}
-			registered_ = true;
 		} else {
 			Logger().debug(fmt::format("{}: ID:{} Serial:{} Description:{} Could not complete registration", conn_id_, id_, serial_, desc_));
 		}
