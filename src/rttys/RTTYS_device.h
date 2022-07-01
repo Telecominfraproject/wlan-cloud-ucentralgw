@@ -52,8 +52,8 @@ namespace OpenWifi {
 		bool Connected() const { return received_login_from_websocket_; }
 
 	  private:
-		Poco::Net::StreamSocket   		_socket;
-		Poco::Net::SocketReactor		&_reactor;
+		Poco::Net::StreamSocket   		socket_;
+		Poco::Net::SocketReactor		&reactor_;
 
 		mutable std::atomic_bool 		running_=false;
 		Poco::Net::SocketAddress		device_address_;
