@@ -57,11 +57,11 @@ namespace OpenWifi {
 		try {
 			auto received_bytes = socket_.receiveBytes(inBuf_);
 			if(received_bytes==0) {
-				std::cout << "No data received" << std::endl;
+				// std::cout << "No data received" << std::endl;
 				return delete this;
 			}
 
-			std::cout << "Received: " << received_bytes << std::endl;
+			// std::cout << "Received: " << received_bytes << std::endl;
 
 			while (inBuf_.isReadable()) {
 				std::size_t msg_len;
