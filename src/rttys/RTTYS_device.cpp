@@ -34,7 +34,6 @@ namespace OpenWifi {
 			if((SS->secure()))
 				Logger().information(fmt::format("{}: Secure connection.", device_address_.toString()));
 		}
-		std::cout << "Peer: " << device_address_.toString() << std::endl;
 		reactor_.addEventHandler(socket_, Poco::NObserver<RTTY_Device_ConnectionHandler, Poco::Net::ReadableNotification>(*this, &RTTY_Device_ConnectionHandler::onSocketReadable));
 		reactor_.addEventHandler(socket_, Poco::NObserver<RTTY_Device_ConnectionHandler, Poco::Net::ShutdownNotification>(*this, &RTTY_Device_ConnectionHandler::onSocketShutdown));
 	}
