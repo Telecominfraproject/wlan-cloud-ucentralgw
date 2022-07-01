@@ -21,6 +21,8 @@ namespace OpenWifi {
 
 	void RTTY_Device_ConnectionHandler::CompleteConnection() {
 		if(MicroService::instance().NoAPISecurity()) {
+
+		} else {
 			auto SS = dynamic_cast<Poco::Net::SecureStreamSocketImpl *>(_socket.impl());
 			while (true) {
 				auto V = SS->completeHandshake();
@@ -29,8 +31,6 @@ namespace OpenWifi {
 			}
 			if((SS->secure()))
 				std::cout << "Secure..." << std::endl;
-		} else {
-
 		}
 		device_address_ = _socket.peerAddress();
 		Logger().information(fmt::format("{}: Starting.", device_address_.toString()));
