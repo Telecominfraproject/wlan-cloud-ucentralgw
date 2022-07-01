@@ -30,14 +30,7 @@ namespace OpenWifi {
 			msgTypeAck,
 			msgTypeMax };
 
-		explicit RTTY_Device_ConnectionHandler(Poco::Net::StreamSocket& socket, Poco::Net::SocketReactor& reactor):
-			 _socket(socket),
-			 _reactor(reactor) {
-			_reactor.addEventHandler(_socket, Poco::NObserver<RTTY_Device_ConnectionHandler, Poco::Net::ReadableNotification>(*this, &RTTY_Device_ConnectionHandler::onSocketReadable));
-			_reactor.addEventHandler(_socket, Poco::NObserver<RTTY_Device_ConnectionHandler, Poco::Net::ShutdownNotification>(*this, &RTTY_Device_ConnectionHandler::onSocketShutdown));
-
-			std::cout << "Peer: " << _socket.peerAddress().toString() << std::endl;
-		}
+		explicit RTTY_Device_ConnectionHandler(Poco::Net::StreamSocket& socket, Poco::Net::SocketReactor& reactor);
 
 		~RTTY_Device_ConnectionHandler();
 
@@ -79,6 +72,8 @@ namespace OpenWifi {
 		mutable std::atomic_bool		received_login_from_websocket_=false;
 		int 							buf_pos_=0;
 		int 							received_buf_=0;
+
+		void CompleteConnection();
 
 		Poco::Logger & Logger();
 

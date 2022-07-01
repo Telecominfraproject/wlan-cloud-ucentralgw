@@ -12,6 +12,30 @@ namespace OpenWifi {
 
 	inline Poco::Logger & RTTY_Device_ConnectionHandler::Logger() { return RTTYS_server()->Logger(); }
 
+	RTTY_Device_ConnectionHandler::RTTY_Device_ConnectionHandler(Poco::Net::StreamSocket& socket, Poco::Net::SocketReactor & reactor):
+			 _socket(socket),
+			 _reactor(reactor) {
+		std::thread T([=]() { CompleteConnection(); });
+		T.detach();
+	}
+
+	void RTTY_Device_ConnectionHandler::CompleteConnection() {
+		if(MicroService::instance().NoAPISecurity()) {
+			auto SS = dynamic_cast<Poco::Net::SecureStreamSocketImpl *>(_socket.impl());
+			while (true) {
+				auto V = SS->completeHandshake();
+				if (V == 1)
+					break;
+			}
+		} else {
+
+		}
+		std::cout << "Peer: " << _socket.peerAddress().toString() << std::endl;
+		_reactor.addEventHandler(_socket, Poco::NObserver<RTTY_Device_ConnectionHandler, Poco::Net::ReadableNotification>(*this, &RTTY_Device_ConnectionHandler::onSocketReadable));
+		_reactor.addEventHandler(_socket, Poco::NObserver<RTTY_Device_ConnectionHandler, Poco::Net::ShutdownNotification>(*this, &RTTY_Device_ConnectionHandler::onSocketShutdown));
+	}
+
+
 	RTTY_Device_ConnectionHandler::~RTTY_Device_ConnectionHandler() {
 		_reactor.removeEventHandler(_socket, Poco::NObserver<RTTY_Device_ConnectionHandler, Poco::Net::ReadableNotification>(*this, &RTTY_Device_ConnectionHandler::onSocketReadable));
 		_reactor.removeEventHandler(_socket, Poco::NObserver<RTTY_Device_ConnectionHandler, Poco::Net::WritableNotification>(*this, &RTTY_Device_ConnectionHandler::onSocketWritable));
