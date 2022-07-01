@@ -63,6 +63,7 @@ namespace OpenWifi {
 		std::string                   	desc_;
 		std::string 				  	serial_;
 		char 				          	sid_=0;
+		mutable std::atomic_bool 		registered_=false;
 
 		std::array<char,RTTY_DEVICE_BUFSIZE>	inBuf_{0};
 		std::array<char,RTTY_DEVICE_BUFSIZE>	scratch_{0};

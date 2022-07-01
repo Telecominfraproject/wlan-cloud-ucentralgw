@@ -46,8 +46,8 @@ namespace OpenWifi {
 		_reactor.removeEventHandler(_socket, Poco::NObserver<RTTY_Device_ConnectionHandler, Poco::Net::ShutdownNotification>(*this, &RTTY_Device_ConnectionHandler::onSocketShutdown));
 
 		Logger().information(fmt::format("{}: Deregistering.", device_address_.toString()));
-		running_ = false;
-		RTTYS_server()->DeRegisterDevice(id_, this);
+		if(registered_)
+			RTTYS_server()->DeRegisterDevice(id_, this);
 		Logger().information(fmt::format("{}: Deregistered.", device_address_.toString()));
 	}
 
@@ -56,15 +56,16 @@ namespace OpenWifi {
 
 
 			received_buf_ = _socket.receiveBytes(&inBuf_[0],RTTY_DEVICE_BUFSIZE);
-
 			if(received_buf_==0) {
 				// std::cout << __LINE__ << std::endl;
 				return;
 				// delete this;
 			}
 
+			std::cout << "Received " << received_buf_ << std::endl;
+
 			buf_pos_=0;
-			while ((buf_pos_!=received_buf_) && running_) {
+			while ((buf_pos_!=received_buf_)) {
 				std::cout << __LINE__ << std::endl;
 				std::size_t msg_len;
 				if (waiting_for_bytes_ == 0) {
@@ -126,7 +127,6 @@ namespace OpenWifi {
 				default:
 					Logger().warning(fmt::format("{}: ID:{} Unknown command {}", conn_id_, id_,
 												 (int)last_command_));
-					running_ = false;
 					continue;
 				}
 			}
@@ -273,11 +273,10 @@ namespace OpenWifi {
 			OutBuf[6] = 0;
 			if(_socket.sendBytes(OutBuf, 7) !=7) {
 				Logger().debug(fmt::format("{}: ID:{} Serial:{} Description:{} Could not complete registration", conn_id_, id_, serial_, desc_));
-				running_ = false;
 			}
+			registered_ = true;
 		} else {
 			Logger().debug(fmt::format("{}: ID:{} Serial:{} Description:{} Could not complete registration", conn_id_, id_, serial_, desc_));
-			running_ = false;
 		}
 	}
 
