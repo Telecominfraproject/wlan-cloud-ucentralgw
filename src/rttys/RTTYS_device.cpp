@@ -72,18 +72,23 @@ namespace OpenWifi {
 
 				switch (last_command_) {
 					case msgTypeRegister: {
+						std::cout << __LINE__ << std::endl;
 						do_msgTypeRegister(msg_len);
 					} break;
 					case msgTypeLogin: {
+						std::cout << __LINE__ << std::endl;
 						do_msgTypeLogin(msg_len);
 					} break;
 					case msgTypeLogout: {
+						std::cout << __LINE__ << std::endl;
 						do_msgTypeLogout(msg_len);
 					} break;
 					case msgTypeTermData: {
+						std::cout << __LINE__ << std::endl;
 						do_msgTypeTermData(msg_len);
 					} break;
 					case msgTypeWinsize: {
+						std::cout << __LINE__ << std::endl;
 						do_msgTypeWinsize(msg_len);
 					} break;
 					case msgTypeCmd: {
@@ -227,9 +232,13 @@ namespace OpenWifi {
 	}
 
 	void RTTY_Device_ConnectionHandler::do_msgTypeRegister([[maybe_unused]] std::size_t msg_len) {
+		std::cout << __LINE__ << std::endl;
 		id_ = ReadString();
+		std::cout << __LINE__ << std::endl;
 		desc_ = ReadString();
+		std::cout << __LINE__ << std::endl;
 		token_ = ReadString();
+		std::cout << __LINE__ << std::endl;
 		serial_ = RTTYS_server()->SerialNumber(id_);
 
 		Logger().debug(fmt::format("{}: ID:{} Serial:{} Description:{} Device registration", conn_id_, id_, serial_, desc_));
