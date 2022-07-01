@@ -79,11 +79,13 @@ namespace OpenWifi {
 	}
 
 	void RTTYS_ClientConnection::Close() {
+		std::lock_guard	G(Mutex_);
 		CloseConnection_ = true;
+		delete this;
 	}
 
 	void RTTYS_ClientConnection::onSocketReadable([[maybe_unused]] const Poco::AutoPtr<Poco::Net::ReadableNotification> &pNf) {
-
+		std::lock_guard		G(Mutex_);
 		int flags;
 		auto n = WS_.receiveFrame(Buffer_, sizeof(Buffer_), flags);
 		auto Op = flags & Poco::Net::WebSocket::FRAME_OP_BITMASK;
@@ -138,10 +140,12 @@ namespace OpenWifi {
 	}
 
 	void RTTYS_ClientConnection::SendData( const u_char *Buf, size_t len ) {
+		std::lock_guard		G(Mutex_);
 		WS_.sendFrame(Buf, len, Poco::Net::WebSocket::FRAME_FLAG_FIN | Poco::Net::WebSocket::FRAME_OP_BINARY);
 	}
 
 	void RTTYS_ClientConnection::SendData( const std::string &s , bool login) {
+		std::lock_guard		G(Mutex_);
 		if(login) {
 			RTTYS_server()->LoginDone(Id_);
 		}

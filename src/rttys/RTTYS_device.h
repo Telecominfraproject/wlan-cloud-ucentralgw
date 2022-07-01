@@ -64,6 +64,7 @@ namespace OpenWifi {
 		std::string 				  	serial_;
 		char 				          	sid_=0;
 		mutable std::atomic_bool 		registered_=false;
+		mutable std::atomic_bool		web_socket_active_=false;
 
 		Poco::FIFOBuffer 				inBuf_;
 		std::array<char,RTTY_DEVICE_BUFSIZE>	scratch_{0};

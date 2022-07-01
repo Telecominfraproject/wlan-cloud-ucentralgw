@@ -47,7 +47,7 @@ namespace OpenWifi {
 
 		if(registered_) {
 			Logger().information(fmt::format("{}: Deregistering.", device_address_.toString()));
-			RTTYS_server()->DeRegisterDevice(id_, this);
+			RTTYS_server()->DeRegisterDevice(id_, this, web_socket_active_);
 			Logger().information(fmt::format("{}: Deregistered.", device_address_.toString()));
 		}
 		Logger().information(fmt::format("{}: Done.", device_address_.toString()));
@@ -262,6 +262,7 @@ namespace OpenWifi {
 		doc["err"] = Error;
 		const auto login_msg = to_string(doc);
 		SendToClient(login_msg);
+		web_socket_active_ = true ;
 	}
 
 	void RTTY_Device_ConnectionHandler::do_msgTypeLogout([[maybe_unused]] std::size_t msg_len) {

@@ -31,7 +31,7 @@ namespace OpenWifi {
 		void Register(const std::string &Id, RTTYS_ClientConnection *Client);
 		void DeRegister(const std::string &Id, RTTYS_ClientConnection *Client);
 		bool Register(const std::string &Id, const std::string &Token, RTTY_Device_ConnectionHandler *Device);
-		void DeRegisterDevice(const std::string &Id, RTTY_Device_ConnectionHandler *Device);
+		void DeRegisterDevice(const std::string &Id, RTTY_Device_ConnectionHandler *Device, bool remove_websocket);
 		bool CreateEndPoint(const std::string &Id, const std::string & Token, const std::string & UserName, const std::string & SerialNumber );
 		std::string SerialNumber(const std::string & Id);
 		void LoginDone(const std::string & Id);

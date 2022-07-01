@@ -191,7 +191,7 @@ namespace OpenWifi {
 		dump("C DEREG--> ", std::cout);
 	}
 
-	void RTTYS_server::DeRegisterDevice(const std::string &Id, RTTY_Device_ConnectionHandler *Device) {
+	void RTTYS_server::DeRegisterDevice(const std::string &Id, RTTY_Device_ConnectionHandler *Device, bool remove_websocket) {
 		std::lock_guard	G(Mutex_);
 		dump("D DEREG--> ", std::cout);
 		auto It = EndPoints_.find(Id);
@@ -199,12 +199,17 @@ namespace OpenWifi {
 			It->second.Device = nullptr;
 			It->second.DeviceConnected = 0 ;
 			if(It->second.Client!=nullptr) {
-				if(!It->second.ShuttingDown) {
+				if(remove_websocket) {
+					It->second.ShuttingDown = true;
+					It->second.Client->Close();
+				}
+/*				if(!It->second.ShuttingDown) {
 					It->second.ShuttingDown = true;
 					It->second.Client->Close();
 				} else {
 					It->second.ShutdownComplete = true;
 				}
+*/
 			} else {
 				if(!It->second.ShuttingDown) {
 					It->second.ShuttingDown = true;
