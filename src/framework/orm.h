@@ -133,6 +133,37 @@ namespace ORM {
         return R;
     }
 
+    inline std::string WHERE_AND_(std::string Result) {
+        return Result;
+    }
+
+    template <typename T, typename... Args> std::string WHERE_AND_(std::string Result, const char *fieldName, const T &Value, Args... args) {
+        if constexpr(std::is_same_v<T,std::string>)
+        {
+            if(!Value.empty()) {
+                if(!Result.empty())
+                    Result += " and ";
+                Result += fieldName;
+                Result += '=';
+                Result += "'";
+                Result += Escape(Value);
+                Result += "'";
+            }
+        } else {
+            if(!Result.empty())
+                Result += " and ";
+            Result += fieldName ;
+            Result += '=';
+            Result += std::to_string(Value);
+        }
+        return WHERE_AND_(Result,args...);
+    }
+
+    template <typename... Args> std::string WHERE_AND(Args... args) {
+        std::string Result;
+        return WHERE_AND_(Result, args...);
+    }
+
     enum SqlComparison { EQ = 0, NEQ, LT, LTE, GT, GTE };
     enum SqlBinaryOp { AND = 0 , OR };
 

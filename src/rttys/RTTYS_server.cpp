@@ -109,7 +109,7 @@ namespace OpenWifi {
 		dump("GC  ", std::cout);
 		for(auto element=EndPoints_.begin();element!=EndPoints_.end();) {
 			if( element->second.ShutdownComplete ||
-				(element->second.ShuttingDown && (now-element->second.TimeStamp>60))) {
+				(element->second.ShuttingDown && (now-element->second.TimeStamp>600))) {
 				element = EndPoints_.erase(element);
 			} else {
 				++element;
