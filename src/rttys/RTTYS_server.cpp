@@ -23,13 +23,12 @@ namespace OpenWifi {
 
 			auto TcpServerParams = new Poco::Net::TCPServerParams();
 			TcpServerParams->setMaxThreads(50);
-			// TcpServerParams->setMaxQueued(100);
+			TcpServerParams->setMaxQueued(100);
 			TcpServerParams->setThreadIdleTime(Poco::Timespan(10,0));
 
 			if(MicroService::instance().NoAPISecurity()) {
 				Poco::Net::ServerSocket DeviceSocket(DSport, 64);
-				//DeviceSocket.setNoDelay(true);
-				DeviceAcceptor_ = std::make_unique<Poco::Net::TCPServer>(new RTTY_Device_Connection_Factory, DeviceSocket, TcpServerParams);
+				DeviceAcceptor_ = std::make_unique<Poco::Net::SocketAcceptor<RTTY_Device_ConnectionHandler>>(DeviceSocket,DeviceReactor_);
 			} else {
 				auto DeviceSecureContext = new Poco::Net::Context(Poco::Net::Context::SERVER_USE,
 																  KeyFileName, CertFileName, "",
@@ -45,12 +44,10 @@ namespace OpenWifi {
 				SSL_CTX_dane_enable(SSLCtxDevice);
 
 				Poco::Net::SecureServerSocket DeviceSocket(DSport, 64, DeviceSecureContext);
-				//DeviceSocket.setNoDelay(true);
-				auto Factory = Poco::makeShared<Poco::Net::TCPServerConnectionFactoryImpl<RTTY_Device_ConnectionHandler>>();
-				DeviceAcceptor_ = std::make_unique<Poco::Net::TCPServer>(new RTTY_Device_Connection_Factory, DeviceSocket, TcpServerParams);
-//				DeviceAcceptor_ = std::make_unique<Poco::Net::TCPServer>(new Poco::Net::TCPServerConnectionFactoryImpl<RTTY_Device_ConnectionHandler>(), DeviceSocket, TcpServerParams);
+				DeviceAcceptor_ = std::make_unique<Poco::Net::SocketAcceptor<RTTY_Device_ConnectionHandler>>(DeviceSocket,DeviceReactor_);
 			}
-			DeviceAcceptor_->start();
+			DeviceReactorThread_.start(DeviceReactor_);
+			Utils::SetThreadName(DeviceReactorThread_,"rt:devreactor");
 
 			auto WebServerHttpParams = new Poco::Net::HTTPServerParams;
 			WebServerHttpParams->setMaxThreads(50);
@@ -80,7 +77,7 @@ namespace OpenWifi {
 			};
 			WebServer_->start();
 			ClientReactorThread_.start(ClientReactor_);
-			Utils::SetThreadName(ClientReactorThread_,"rtty-clientreactor");
+			Utils::SetThreadName(ClientReactorThread_,"rt:clntreactor");
 		}
 
 		GCCallBack_ = std::make_unique<Poco::TimerCallback<RTTYS_server>>(*this, &RTTYS_server::onTimer);
@@ -95,7 +92,9 @@ namespace OpenWifi {
 		if(Internal_) {
 			Timer_.stop();
 			WebServer_->stopAll();
-			DeviceAcceptor_->stop();
+			DeviceAcceptor_->unregisterAcceptor();
+			DeviceReactor_.stop();
+			DeviceReactorThread_.join();
 			ClientReactor_.stop();
 			ClientReactorThread_.join();
 		}
@@ -104,13 +103,13 @@ namespace OpenWifi {
 	void RTTYS_server::onTimer([[maybe_unused]] Poco::Timer & timer) {
 		Logger().debug("Removing stale connections.");
 		std::lock_guard	G(Mutex_);
-		Utils::SetThreadName("rtty-janitor");
-		Logger().debug(fmt::format("Current: connections:{} threads:{}.", DeviceAcceptor_->currentConnections(), DeviceAcceptor_->currentThreads()));
+		Utils::SetThreadName("rt:janitor");
+		// Logger().debug(fmt::format("Current: connections:{} threads:{}.", DeviceAcceptor_->currentConnections(), DeviceAcceptor_->currentThreads()));
 		auto now = OpenWifi::Now();
 		dump("GC  ", std::cout);
 		for(auto element=EndPoints_.begin();element!=EndPoints_.end();) {
 			if( element->second.ShutdownComplete ||
-				(element->second.ShuttingDown && (now-element->second.TimeStamp>60))) {
+				(element->second.ShuttingDown && (now-element->second.TimeStamp>600))) {
 				element = EndPoints_.erase(element);
 			} else {
 				++element;
@@ -193,7 +192,7 @@ namespace OpenWifi {
 		dump("C DEREG--> ", std::cout);
 	}
 
-	void RTTYS_server::DeRegisterDevice(const std::string &Id, RTTY_Device_ConnectionHandler *Device) {
+	void RTTYS_server::DeRegisterDevice(const std::string &Id, RTTY_Device_ConnectionHandler *Device, bool remove_websocket) {
 		std::lock_guard	G(Mutex_);
 		dump("D DEREG--> ", std::cout);
 		auto It = EndPoints_.find(Id);
@@ -201,12 +200,17 @@ namespace OpenWifi {
 			It->second.Device = nullptr;
 			It->second.DeviceConnected = 0 ;
 			if(It->second.Client!=nullptr) {
-				if(!It->second.ShuttingDown) {
+				if(remove_websocket) {
+					It->second.ShuttingDown = true;
+					It->second.Client->Close();
+				}
+/*				if(!It->second.ShuttingDown) {
 					It->second.ShuttingDown = true;
 					It->second.Client->Close();
 				} else {
 					It->second.ShutdownComplete = true;
 				}
+*/
 			} else {
 				if(!It->second.ShuttingDown) {
 					It->second.ShuttingDown = true;

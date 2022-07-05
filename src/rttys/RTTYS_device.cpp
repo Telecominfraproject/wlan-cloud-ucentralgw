@@ -8,108 +8,91 @@
 #include "Poco/Net/SecureStreamSocketImpl.h"
 #include "Poco/Net/StreamSocket.h"
 
-#include <pthread.h>
-
 namespace OpenWifi {
-
-/*	RTTY_Device_ConnectionHandler::RTTY_Device_ConnectionHandler(const Poco::Net::StreamSocket & socket) :
-		Poco::Net::TCPServerConnection(socket),
-		Logger_(RTTYS_server()->Logger()) {
-		device_address_ = socket.address().toString();
-		Logger().information(fmt::format("{}: Started.", device_address_));
-		conn_id_ = global_device_connection_id++;
-	}
-*/
-	RTTY_Device_ConnectionHandler::RTTY_Device_ConnectionHandler(const Poco::Net::StreamSocket & socket) :
-		Poco::Net::TCPServerConnection(socket) {
-	}
 
 	inline Poco::Logger & RTTY_Device_ConnectionHandler::Logger() { return RTTYS_server()->Logger(); }
 
-/*	RTTY_Device_ConnectionHandler::~RTTY_Device_ConnectionHandler() {
-		Logger().information(fmt::format("{}: Completing.", device_address_));
-		running_ = false;
-		RTTYS_server()->DeRegisterDevice(id_, this);
-		socket().close();
-		Logger().information(fmt::format("{}: Completed.", device_address_));
-		~Poco::Net::TCPServerConnection();
-	}
-*/
-	void RTTY_Device_ConnectionHandler::AddCommand(u_char C) {
-		std::lock_guard		G(M_);
-		// std::cout << conn_id_ << ": Adding command " << (int)C << std::endl;
-		commands_.push_back(C);
+	RTTY_Device_ConnectionHandler::RTTY_Device_ConnectionHandler(Poco::Net::StreamSocket& socket, Poco::Net::SocketReactor & reactor):
+			 	socket_(socket),
+			 	reactor_(reactor),
+				inBuf_(RTTY_DEVICE_BUFSIZE){
+		std::thread T([=]() { CompleteConnection(); });
+		T.detach();
 	}
 
-	bool RTTY_Device_ConnectionHandler::ProcessCommands() {
-		std::lock_guard		G(M_);
-		if(!commands_.empty()) {
-			// std::cout << conn_id_ << ": Commands: " << commands_.size() << std::endl;
-			for(const auto &i:commands_) {
-//				std::cout << "Command: " << (int)i << std::endl;
-				if(i==msgTypeLogin) {
-// 					std::cout << "Doing login..." << std::endl;
-					Login();
+	void RTTY_Device_ConnectionHandler::CompleteConnection() {
+		try {
+			device_address_ = socket_.peerAddress();
+			if (MicroService::instance().NoAPISecurity()) {
+				Logger().information(
+					fmt::format("{}: Unsecured connection.", device_address_.toString()));
+			} else {
+				auto SS = dynamic_cast<Poco::Net::SecureStreamSocketImpl *>(socket_.impl());
+				while (true) {
+					auto V = SS->completeHandshake();
+					if (V == 1)
+						break;
 				}
-				else if(i==msgTypeLogout) {
-// 					std::cout << "Doing logout..." << std::endl;
-					Logout();
-				}
+				if ((SS->secure()))
+					Logger().information(
+						fmt::format("{}: Secure connection.", device_address_.toString()));
 			}
-			commands_.clear();
+			reactor_.addEventHandler(
+				socket_,
+				Poco::NObserver<RTTY_Device_ConnectionHandler, Poco::Net::ReadableNotification>(
+					*this, &RTTY_Device_ConnectionHandler::onSocketReadable));
+			reactor_.addEventHandler(
+				socket_,
+				Poco::NObserver<RTTY_Device_ConnectionHandler, Poco::Net::ShutdownNotification>(
+					*this, &RTTY_Device_ConnectionHandler::onSocketShutdown));
+		} catch (...) {
+			delete this;
 		}
-		return true;
 	}
 
-	void RTTY_Device_ConnectionHandler::run() {
-		running_ = true ;
 
-		OpenWifi::Utils::SetThreadName("RTTY-Device");
+	RTTY_Device_ConnectionHandler::~RTTY_Device_ConnectionHandler() {
+		try {
+			reactor_.removeEventHandler(
+				socket_,
+				Poco::NObserver<RTTY_Device_ConnectionHandler, Poco::Net::ReadableNotification>(
+					*this, &RTTY_Device_ConnectionHandler::onSocketReadable));
+			reactor_.removeEventHandler(
+				socket_,
+				Poco::NObserver<RTTY_Device_ConnectionHandler, Poco::Net::WritableNotification>(
+					*this, &RTTY_Device_ConnectionHandler::onSocketWritable));
+			reactor_.removeEventHandler(
+				socket_,
+				Poco::NObserver<RTTY_Device_ConnectionHandler, Poco::Net::ShutdownNotification>(
+					*this, &RTTY_Device_ConnectionHandler::onSocketShutdown));
 
-		device_address_ = socket().address().toString();
-		Logger().information(fmt::format("{}: Started.", device_address_));
-		conn_id_ = global_device_connection_id++;
+			if (registered_) {
+				Logger().information(fmt::format("{}: Deregistering.", device_address_.toString()));
+				RTTYS_server()->DeRegisterDevice(id_, this, web_socket_active_);
+				Logger().information(fmt::format("{}: Deregistered.", device_address_.toString()));
+			}
+			Logger().information(fmt::format("{}: Done.", device_address_.toString()));
+		} catch (...) {
 
-		Poco::Timespan pollTimeOut(1,0);
-		Poco::Timespan pollError(0,1);
-		Poco::Timespan recvTimeOut(120,0);
+		}
+	}
 
-		socket().setKeepAlive(true);
-		socket().setNoDelay(true);
-		socket().setReceiveBufferSize(64000);
-		socket().setLinger(false,0);
-		socket().setSendBufferSize(64000);
-		socket().setReceiveTimeout(recvTimeOut);
-
-		int reason=0;
-		while(running_) {
-
-			if (!socket().poll(pollTimeOut, Poco::Net::Socket::SELECT_READ | Poco::Net::Socket::SELECT_ERROR)) {
-				continue;
+	void RTTY_Device_ConnectionHandler::onSocketReadable([[maybe_unused]] const Poco::AutoPtr<Poco::Net::ReadableNotification> &pNf) {
+		try {
+			auto received_bytes = socket_.receiveBytes(inBuf_);
+			if(received_bytes==0) {
+				// std::cout << "No data received" << std::endl;
+				return delete this;
 			}
 
-			int received = socket().receiveBytes(inBuf_);
-			if(received<0) {
-				running_ = false;
-				reason=3;
-				continue;
-			}
+			// std::cout << "Received: " << received_bytes << std::endl;
 
-			if(received==0) {
-				continue;
-			}
-
-			while (!inBuf_.isEmpty() && running_) {
-				// std::cout << conn_id_ << ": processing buffer" << std::endl;
+			while (inBuf_.isReadable()) {
 				std::size_t msg_len;
-				if (waiting_for_bytes_ == 0) {
-					u_char header[3]{0};
-					inBuf_.read((char *)&header[0], 3);
-					last_command_ = header[0];
-					msg_len = header[1] * 256 + header[2];
-				} else {
-					msg_len = received;
-				}
+				u_char header[3]{0};
+				inBuf_.read((char *)&header[0], 3);
+				last_command_ = header[0];
+				msg_len = header[1] * 256 + header[2];
 
 				switch (last_command_) {
 					case msgTypeRegister: {
@@ -146,18 +129,21 @@ namespace OpenWifi {
 						do_msgTypeMax(msg_len);
 					} break;
 					default:
-						Logger().warning(fmt::format("{}: ID:{} Unknown command {}", conn_id_, id_, (int)last_command_));
-						running_ = false;
-						continue;
-					}
+						Logger().warning(fmt::format("{}: ID:{} Unknown command {}", conn_id_, id_,
+													 (int)last_command_));
+				}
 			}
+		} catch (...) {
+			return delete this;
 		}
-		Logger().information(fmt::format("{}: ID:{} Exiting. Reason:{}", conn_id_, id_, reason));
-		Logger().information(fmt::format("{}: Completing.", device_address_));
-		running_ = false;
-		RTTYS_server()->DeRegisterDevice(id_, this);
-		socket().close();
-		Logger().information(fmt::format("{}: Completed.", device_address_));
+	}
+
+	void RTTY_Device_ConnectionHandler::onSocketWritable([[maybe_unused]] const Poco::AutoPtr<Poco::Net::WritableNotification>& pNf) {
+
+	}
+
+	void RTTY_Device_ConnectionHandler::onSocketShutdown([[maybe_unused]] const Poco::AutoPtr<Poco::Net::ShutdownNotification>& pNf) {
+		delete this;
 	}
 
 	void RTTY_Device_ConnectionHandler::Stop() {
@@ -165,28 +151,35 @@ namespace OpenWifi {
 	}
 
 	void RTTY_Device_ConnectionHandler::SendToClient(const u_char *Buf, int Len) {
-		RTTYS_server()->SendToClient(id_, Buf, Len);
+		try {
+			RTTYS_server()->SendToClient(id_, Buf, Len);
+		} catch(...) {
+			return delete this;
+		}
 	}
 
 	void RTTY_Device_ConnectionHandler::SendToClient(const std::string &S) {
-		RTTYS_server()->SendToClient(id_, S);
+		try {
+			RTTYS_server()->SendToClient(id_, S);
+		} catch(...) {
+			return delete this;
+		}
 	}
 
 	bool RTTY_Device_ConnectionHandler::KeyStrokes(const u_char *buf, size_t len) {
 		std::lock_guard		G(M_);
-		u_char outBuf[16]{0};
 
-		if(len>(sizeof(outBuf)-5))
+		if(len>(RTTY_DEVICE_BUFSIZE-5))
 			return false;
 
 		auto total_len = 3 + 1 + len-1;
-		outBuf[0] = msgTypeTermData;
-		outBuf[1] = 0 ;
-		outBuf[2] = len +1-1;
-		outBuf[3] = sid_;
-		memcpy( &outBuf[4], &buf[1], len-1);
+		scratch_[0] = msgTypeTermData;
+		scratch_[1] = (len & 0xff00) >> 8 ;
+		scratch_[2] = (len & 0x00ff) ;
+		scratch_[3] = sid_;
+		memcpy( &scratch_[4], &buf[1], len-1);
 		try {
-			socket().sendBytes(outBuf, total_len);
+			socket_.sendBytes((const void *)&scratch_[0], total_len);
 			return true;
 		} catch (...) {
 			return false;
@@ -205,7 +198,7 @@ namespace OpenWifi {
 		outBuf[6] = rows >> 8;
 		outBuf[7] = rows & 0x00ff;
 		try {
-			socket().sendBytes(outBuf, 8);
+			socket_.sendBytes(outBuf, 8);
 			return true;
 		} catch (...) {
 
@@ -220,7 +213,7 @@ namespace OpenWifi {
 		outBuf[1] = 0;
 		outBuf[2] = 0;
 		try {
-			socket().sendBytes(outBuf, 3);
+			socket_.sendBytes(outBuf, 3);
 		} catch (const Poco::IOException &E) {
 			// std::cout << "1  " << E.what() << " " << E.name() << " "<< E.className() << " "<< E.message() << std::endl;
 			return false;
@@ -228,6 +221,7 @@ namespace OpenWifi {
 			// std::cout << "2  " << E.what() << " " << E.name() << std::endl;
 			return false;
 		}
+		received_login_from_websocket_ = true;
 		Logger().debug(fmt::format("{}: Device {} login", conn_id_, id_));
 		return true;
 	}
@@ -241,7 +235,7 @@ namespace OpenWifi {
 		outBuf[3] = sid_;
 		Logger().debug(fmt::format("{}: ID:{} Logout", conn_id_, id_));
 		try {
-			socket().sendBytes(outBuf, 4);
+			socket_.sendBytes(outBuf, 4);
 			return true;
 		} catch (...) {
 
@@ -265,32 +259,37 @@ namespace OpenWifi {
 	}
 
 	void RTTY_Device_ConnectionHandler::do_msgTypeRegister([[maybe_unused]] std::size_t msg_len) {
-		socket().receiveBytes(inBuf_);
-		id_ = ReadString();
-		desc_ = ReadString();
-		token_ = ReadString();
-		serial_ = RTTYS_server()->SerialNumber(id_);
+		try {
+			id_ = ReadString();
+			desc_ = ReadString();
+			token_ = ReadString();
+			serial_ = RTTYS_server()->SerialNumber(id_);
 
-		OpenWifi::Utils::SetThreadName(serial_.c_str());
-
-		Poco::Thread::current()->setName(fmt::format("RTTY-device-thread-{}:{}:{}", conn_id_, id_, serial_));
-		Logger().debug(fmt::format("{}: ID:{} Serial:{} Description:{} Device registration", conn_id_, id_, serial_, desc_));
-		if (RTTYS_server()->Register(id_, token_, this)) {
-			u_char OutBuf[8];
-			OutBuf[0] = msgTypeRegister;
-			OutBuf[1] = 0;
-			OutBuf[2] = 4;
-			OutBuf[3] = 0;
-			OutBuf[4] = 'O';
-			OutBuf[5] = 'K';
-			OutBuf[6] = 0;
-			if(socket().sendBytes(OutBuf, 7) !=7) {
-				Logger().debug(fmt::format("{}: ID:{} Serial:{} Description:{} Could not complete registration", conn_id_, id_, serial_, desc_));
-				running_ = false;
+			Logger().debug(fmt::format("{}: ID:{} Serial:{} Description:{} Device registration",
+									   conn_id_, id_, serial_, desc_));
+			if (RTTYS_server()->Register(id_, token_, this)) {
+				u_char OutBuf[8];
+				OutBuf[0] = msgTypeRegister;
+				OutBuf[1] = 0;
+				OutBuf[2] = 4;
+				OutBuf[3] = 0;
+				OutBuf[4] = 'O';
+				OutBuf[5] = 'K';
+				OutBuf[6] = 0;
+				if (socket_.sendBytes(OutBuf, 7) != 7) {
+					Logger().debug(fmt::format(
+						"{}: ID:{} Serial:{} Description:{} Could not complete registration",
+						conn_id_, id_, serial_, desc_));
+				} else {
+					registered_ = true;
+				}
+			} else {
+				Logger().debug(fmt::format(
+					"{}: ID:{} Serial:{} Description:{} Could not complete registration", conn_id_,
+					id_, serial_, desc_));
 			}
-		} else {
-			Logger().debug(fmt::format("{}: ID:{} Serial:{} Description:{} Could not complete registration", conn_id_, id_, serial_, desc_));
-			running_ = false;
+		} catch (...) {
+			return delete this;
 		}
 	}
 
@@ -304,6 +303,7 @@ namespace OpenWifi {
 		doc["err"] = Error;
 		const auto login_msg = to_string(doc);
 		SendToClient(login_msg);
+		web_socket_active_ = true ;
 	}
 
 	void RTTY_Device_ConnectionHandler::do_msgTypeLogout([[maybe_unused]] std::size_t msg_len) {
@@ -343,7 +343,7 @@ namespace OpenWifi {
 	void RTTY_Device_ConnectionHandler::do_msgTypeHeartbeat([[maybe_unused]] std::size_t msg_len) {
 		u_char MsgBuf[3]{0};
 		MsgBuf[0] = msgTypeHeartbeat;
-		socket().sendBytes(MsgBuf, 3);
+		socket_.sendBytes(MsgBuf, 3);
 	}
 
 	void RTTY_Device_ConnectionHandler::do_msgTypeFile([[maybe_unused]] std::size_t msg_len) {

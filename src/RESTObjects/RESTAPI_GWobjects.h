@@ -218,6 +218,12 @@ namespace OpenWifi::GWObjects {
 		uint64_t 	weight=0;
 		std::string secret;
 		std::string certificate;
+		bool 		radsec=false;
+		uint16_t 	radsec_port=2084;
+		std::string radsec_secret;
+		std::string radsec_key;
+		std::string radsec_cert;
+		std::string radsec_cacerts;
 
 		void to_json(Poco::JSON::Object &Obj) const;
 		bool from_json(const Poco::JSON::Object::Ptr &Obj);

@@ -105,7 +105,7 @@ namespace OpenWifi {
 	void PageRequestHandler::handleRequest(Poco::Net::HTTPServerRequest &request,
 					   Poco::Net::HTTPServerResponse &response) {
 
-		Utils::SetThreadName("RTTY-WebServer");
+		Utils::SetThreadName("rt:webserver");
 		uint64_t id = rtty_ws_id++;
 
 		Logger_.information(fmt::format("{}: Starting request.",id));

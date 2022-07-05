@@ -536,15 +536,18 @@ rtty() {
 		-H "Authorization: Bearer ${token}" > ${result_file}
 	jq < ${result_file}
 
-	cid=$(cat ${result_file} | jq -r '.connectionId')
-	vport=$(cat ${result_file} | jq -r '.viewport')
-	server=$(cat ${result_file} | jq -r '.server')
-	url=https://${server}:${vport}/connect/${cid}
-
-	findbrowser
-	if [[ "${browser}" != "" ]]
+	if [[ "$2" != "noconnect" ]]
 	then
-		${browser} ${url}
+		cid=$(cat ${result_file} | jq -r '.connectionId')
+		vport=$(cat ${result_file} | jq -r '.viewport')
+		server=$(cat ${result_file} | jq -r '.server')
+		url=https://${server}:${vport}/connect/${cid}
+
+		findbrowser
+		if [[ "${browser}" != "" ]]
+		then
+			${browser} ${url}
+		fi
 	fi
 }
 
@@ -866,15 +869,15 @@ help() {
   echo "setloglevel <sys> <level>         Set the logging system level for individual subsystems."
   echo "                                  sys:ufileuploader/websocket/storage/restapi/commandmanager/auth/deviceregistry/all"
   echo "                                  level:none/fatal/critical/error/warning/notice/information/debug/trace"
-  echo "getloglevels 		          Get the log levels of all the subsystems"
+  echo "getloglevels 		              Get the log levels of all the subsystems"
   echo "getloglevelnames                  Get the list of log level names possible"
   echo "getsubsystemnames                 Get the subsystems that can be used when setting log levels."
   echo "getfile <serial> <uuid> <name>	  Get the file associated with trace command <uuid> for device <serial>"
-  echo "		                  The file will be saved with the name <name>"
+  echo "		                          The file will be saved with the name <name>"
   echo
-  echo "rtty <serial>			  Get the details for an rtty session."
+  echo "rtty <serial> <noconnect>		  Get the details for an rtty session."
   echo
-  echo "laststats <serial>	          Get the last statistics for a device"
+  echo "laststats <serial>	              Get the last statistics for a device"
   echo "neweststats <serial>	          Get the newest statistics for a device"
   echo
   echo "ouilookup <serial> 		  Lookup an OUI"
@@ -937,7 +940,7 @@ case "$1" in
 	"deviceswithstatus") login; deviceswithstatus "$2"  ; logout ;;
 	"getdevicecomplete") login; getdevicecomplete "$2"  ; logout ;;
 	"getfile") login; getfile "$2" "$3"  ; logout ;;
-	"rtty") login; rtty "$2"  ; logout ;;
+	"rtty") login; rtty "$2" "$3" ; logout ;;
 	"laststats") login; laststats "$2"; logout;;
 	"newestcommands") login; newestcommands "$2"; logout;;
 	"neweststats") login; neweststats "$2"; logout;;

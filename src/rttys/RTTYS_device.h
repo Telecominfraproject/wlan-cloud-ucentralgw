@@ -15,7 +15,7 @@ namespace OpenWifi {
 
 	inline static std::atomic_uint64_t global_device_connection_id = 1;
 
-	class RTTY_Device_ConnectionHandler : public Poco::Net::TCPServerConnection {
+	class RTTY_Device_ConnectionHandler{
 	  public:
 		enum RTTY_MSG_TYPE {
 			msgTypeRegister = 0,
@@ -30,10 +30,10 @@ namespace OpenWifi {
 			msgTypeAck,
 			msgTypeMax };
 
-		explicit RTTY_Device_ConnectionHandler(const Poco::Net::StreamSocket & socket) ;
-		// virtual ~RTTY_Device_ConnectionHandler();
+		explicit RTTY_Device_ConnectionHandler(Poco::Net::StreamSocket& socket, Poco::Net::SocketReactor& reactor);
 
-		void run() final;
+		~RTTY_Device_ConnectionHandler();
+
 		bool Login();
 		bool Logout();
 		void Stop();
@@ -44,23 +44,36 @@ namespace OpenWifi {
 		bool KeyStrokes(const u_char *buf, size_t len);
 		std::string ReadString();
 		inline auto SessionID() const { return conn_id_; }
-		void AddCommand(u_char C);
+
+		void onSocketReadable(const Poco::AutoPtr<Poco::Net::ReadableNotification>& pNf);
+		void onSocketWritable(const Poco::AutoPtr<Poco::Net::WritableNotification>& pNf);
+		void onSocketShutdown(const Poco::AutoPtr<Poco::Net::ShutdownNotification>& pNf);
+
+		bool Connected() const { return received_login_from_websocket_; }
 
 	  private:
+		Poco::Net::StreamSocket   		socket_;
+		Poco::Net::SocketReactor		&reactor_;
+
 		mutable std::atomic_bool 		running_=false;
-		std::string 					device_address_;
+		Poco::Net::SocketAddress		device_address_;
 		std::recursive_mutex		  	M_;
 		std::string                   	id_;
 		std::string                   	token_;
 		std::string                   	desc_;
 		std::string 				  	serial_;
 		char 				          	sid_=0;
-		Poco::FIFOBuffer  			  	inBuf_{64000};
-		std::array<char,32000>		  	scratch_{0};
+		mutable std::atomic_bool 		registered_=false;
+		mutable std::atomic_bool		web_socket_active_=false;
+
+		Poco::FIFOBuffer 				inBuf_;
+		std::array<char,RTTY_DEVICE_BUFSIZE>	scratch_{0};
 		std::size_t      			  	waiting_for_bytes_{0};
 		u_char 						  	last_command_=0;
 		uint64_t 					  	conn_id_=0;
-		std::vector<u_char>			  	commands_;
+		mutable std::atomic_bool		received_login_from_websocket_=false;
+
+		void CompleteConnection();
 
 		Poco::Logger & Logger();
 
@@ -75,20 +88,5 @@ namespace OpenWifi {
 		void do_msgTypeHttp(std::size_t msg_len);
 		void do_msgTypeAck(std::size_t msg_len);
 		void do_msgTypeMax(std::size_t msg_len);
-
-		bool ProcessCommands();
 	};
-
-	class RTTY_Device_Connection_Factory : public Poco::Net::TCPServerConnectionFactory {
-		public:
-			RTTY_Device_Connection_Factory() = default;
-
-		Poco::Net::TCPServerConnection * createConnection(const Poco::Net::StreamSocket& socket)
-			{
-				return new RTTY_Device_ConnectionHandler(socket);
-			}
-
-		private:
-	};
-
 }
