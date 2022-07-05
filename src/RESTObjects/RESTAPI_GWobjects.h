@@ -219,6 +219,7 @@ namespace OpenWifi::GWObjects {
 		std::string secret;
 		std::string certificate;
 		bool 		radsec=false;
+		uint16_t 	radsec_port;
 		std::string radsec_key;
 		std::string radsec_cert;
 		std::string radsec_cacerts;
