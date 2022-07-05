@@ -21,35 +21,60 @@ namespace OpenWifi {
 	}
 
 	void RTTY_Device_ConnectionHandler::CompleteConnection() {
-		device_address_ = socket_.peerAddress();
-		if(MicroService::instance().NoAPISecurity()) {
-			Logger().information(fmt::format("{}: Unsecured connection.", device_address_.toString()));
-		} else {
-			auto SS = dynamic_cast<Poco::Net::SecureStreamSocketImpl *>(socket_.impl());
-			while (true) {
-				auto V = SS->completeHandshake();
-				if (V == 1)
-					break;
+		try {
+			device_address_ = socket_.peerAddress();
+			if (MicroService::instance().NoAPISecurity()) {
+				Logger().information(
+					fmt::format("{}: Unsecured connection.", device_address_.toString()));
+			} else {
+				auto SS = dynamic_cast<Poco::Net::SecureStreamSocketImpl *>(socket_.impl());
+				while (true) {
+					auto V = SS->completeHandshake();
+					if (V == 1)
+						break;
+				}
+				if ((SS->secure()))
+					Logger().information(
+						fmt::format("{}: Secure connection.", device_address_.toString()));
 			}
-			if((SS->secure()))
-				Logger().information(fmt::format("{}: Secure connection.", device_address_.toString()));
+			reactor_.addEventHandler(
+				socket_,
+				Poco::NObserver<RTTY_Device_ConnectionHandler, Poco::Net::ReadableNotification>(
+					*this, &RTTY_Device_ConnectionHandler::onSocketReadable));
+			reactor_.addEventHandler(
+				socket_,
+				Poco::NObserver<RTTY_Device_ConnectionHandler, Poco::Net::ShutdownNotification>(
+					*this, &RTTY_Device_ConnectionHandler::onSocketShutdown));
+		} catch (...) {
+			delete this;
 		}
-		reactor_.addEventHandler(socket_, Poco::NObserver<RTTY_Device_ConnectionHandler, Poco::Net::ReadableNotification>(*this, &RTTY_Device_ConnectionHandler::onSocketReadable));
-		reactor_.addEventHandler(socket_, Poco::NObserver<RTTY_Device_ConnectionHandler, Poco::Net::ShutdownNotification>(*this, &RTTY_Device_ConnectionHandler::onSocketShutdown));
 	}
 
 
 	RTTY_Device_ConnectionHandler::~RTTY_Device_ConnectionHandler() {
-		reactor_.removeEventHandler(socket_, Poco::NObserver<RTTY_Device_ConnectionHandler, Poco::Net::ReadableNotification>(*this, &RTTY_Device_ConnectionHandler::onSocketReadable));
-		reactor_.removeEventHandler(socket_, Poco::NObserver<RTTY_Device_ConnectionHandler, Poco::Net::WritableNotification>(*this, &RTTY_Device_ConnectionHandler::onSocketWritable));
-		reactor_.removeEventHandler(socket_, Poco::NObserver<RTTY_Device_ConnectionHandler, Poco::Net::ShutdownNotification>(*this, &RTTY_Device_ConnectionHandler::onSocketShutdown));
+		try {
+			reactor_.removeEventHandler(
+				socket_,
+				Poco::NObserver<RTTY_Device_ConnectionHandler, Poco::Net::ReadableNotification>(
+					*this, &RTTY_Device_ConnectionHandler::onSocketReadable));
+			reactor_.removeEventHandler(
+				socket_,
+				Poco::NObserver<RTTY_Device_ConnectionHandler, Poco::Net::WritableNotification>(
+					*this, &RTTY_Device_ConnectionHandler::onSocketWritable));
+			reactor_.removeEventHandler(
+				socket_,
+				Poco::NObserver<RTTY_Device_ConnectionHandler, Poco::Net::ShutdownNotification>(
+					*this, &RTTY_Device_ConnectionHandler::onSocketShutdown));
 
-		if(registered_) {
-			Logger().information(fmt::format("{}: Deregistering.", device_address_.toString()));
-			RTTYS_server()->DeRegisterDevice(id_, this, web_socket_active_);
-			Logger().information(fmt::format("{}: Deregistered.", device_address_.toString()));
+			if (registered_) {
+				Logger().information(fmt::format("{}: Deregistering.", device_address_.toString()));
+				RTTYS_server()->DeRegisterDevice(id_, this, web_socket_active_);
+				Logger().information(fmt::format("{}: Deregistered.", device_address_.toString()));
+			}
+			Logger().information(fmt::format("{}: Done.", device_address_.toString()));
+		} catch (...) {
+
 		}
-		Logger().information(fmt::format("{}: Done.", device_address_.toString()));
 	}
 
 	void RTTY_Device_ConnectionHandler::onSocketReadable([[maybe_unused]] const Poco::AutoPtr<Poco::Net::ReadableNotification> &pNf) {
@@ -109,7 +134,7 @@ namespace OpenWifi {
 				}
 			}
 		} catch (...) {
-
+			return delete this;
 		}
 	}
 
@@ -126,11 +151,19 @@ namespace OpenWifi {
 	}
 
 	void RTTY_Device_ConnectionHandler::SendToClient(const u_char *Buf, int Len) {
-		RTTYS_server()->SendToClient(id_, Buf, Len);
+		try {
+			RTTYS_server()->SendToClient(id_, Buf, Len);
+		} catch(...) {
+			return delete this;
+		}
 	}
 
 	void RTTY_Device_ConnectionHandler::SendToClient(const std::string &S) {
-		RTTYS_server()->SendToClient(id_, S);
+		try {
+			RTTYS_server()->SendToClient(id_, S);
+		} catch(...) {
+			return delete this;
+		}
 	}
 
 	bool RTTY_Device_ConnectionHandler::KeyStrokes(const u_char *buf, size_t len) {
@@ -226,28 +259,37 @@ namespace OpenWifi {
 	}
 
 	void RTTY_Device_ConnectionHandler::do_msgTypeRegister([[maybe_unused]] std::size_t msg_len) {
-		id_ = ReadString();
-		desc_ = ReadString();
-		token_ = ReadString();
-		serial_ = RTTYS_server()->SerialNumber(id_);
+		try {
+			id_ = ReadString();
+			desc_ = ReadString();
+			token_ = ReadString();
+			serial_ = RTTYS_server()->SerialNumber(id_);
 
-		Logger().debug(fmt::format("{}: ID:{} Serial:{} Description:{} Device registration", conn_id_, id_, serial_, desc_));
-		if (RTTYS_server()->Register(id_, token_, this)) {
-			u_char OutBuf[8];
-			OutBuf[0] = msgTypeRegister;
-			OutBuf[1] = 0;
-			OutBuf[2] = 4;
-			OutBuf[3] = 0;
-			OutBuf[4] = 'O';
-			OutBuf[5] = 'K';
-			OutBuf[6] = 0;
-			if(socket_.sendBytes(OutBuf, 7) !=7) {
-				Logger().debug(fmt::format("{}: ID:{} Serial:{} Description:{} Could not complete registration", conn_id_, id_, serial_, desc_));
+			Logger().debug(fmt::format("{}: ID:{} Serial:{} Description:{} Device registration",
+									   conn_id_, id_, serial_, desc_));
+			if (RTTYS_server()->Register(id_, token_, this)) {
+				u_char OutBuf[8];
+				OutBuf[0] = msgTypeRegister;
+				OutBuf[1] = 0;
+				OutBuf[2] = 4;
+				OutBuf[3] = 0;
+				OutBuf[4] = 'O';
+				OutBuf[5] = 'K';
+				OutBuf[6] = 0;
+				if (socket_.sendBytes(OutBuf, 7) != 7) {
+					Logger().debug(fmt::format(
+						"{}: ID:{} Serial:{} Description:{} Could not complete registration",
+						conn_id_, id_, serial_, desc_));
+				} else {
+					registered_ = true;
+				}
 			} else {
-				registered_ = true;
+				Logger().debug(fmt::format(
+					"{}: ID:{} Serial:{} Description:{} Could not complete registration", conn_id_,
+					id_, serial_, desc_));
 			}
-		} else {
-			Logger().debug(fmt::format("{}: ID:{} Serial:{} Description:{} Could not complete registration", conn_id_, id_, serial_, desc_));
+		} catch (...) {
+			return delete this;
 		}
 	}
 
