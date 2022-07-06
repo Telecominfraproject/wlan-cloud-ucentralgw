@@ -112,8 +112,10 @@ namespace OpenWifi {
 			case Poco::Net::WebSocket::FRAME_OP_PONG: {
 			} break;
 			case Poco::Net::WebSocket::FRAME_OP_TEXT: {
-				if (n == 0)
+				if (n == 0) {
+					Logger().information(fmt::format("{}: Socket readable shutdown.", Id_));
 					return delete this;
+				}
 				std::string s((char *)Buffer_, n);
 				try {
 					auto Doc = nlohmann::json::parse(s);
@@ -123,24 +125,30 @@ namespace OpenWifi {
 							auto cols = Doc["cols"];
 							auto rows = Doc["rows"];
 							if (!RTTYS_server()->WindowSize(Id_, cols, rows)) {
+								Logger().information(fmt::format("{}: Winsize shutdown.", Id_));
 								return delete this;
 							}
 						}
 					}
 				} catch (...) {
 					// just ignore parse errors
+					Logger().information(fmt::format("{}: Frame text exception shutdown.", Id_));
 					return delete this;
 				}
 			} break;
 			case Poco::Net::WebSocket::FRAME_OP_BINARY: {
-				if (n == 0)
+				if (n == 0) {
+					Logger().information(fmt::format("{}: Frame binary size shutdown.", Id_));
 					return delete this;
+				}
 				poco_trace(Logger(), fmt::format("Sending {} key strokes to device.", n));
 				if (!RTTYS_server()->SendKeyStrokes(Id_, Buffer_, n)) {
+					Logger().information(fmt::format("{}: Sendkeystrokes shutdown.", Id_));
 					return delete this;
 				}
 			} break;
 			case Poco::Net::WebSocket::FRAME_OP_CLOSE: {
+				Logger().information(fmt::format("{}: Frame frame close shutdown.", Id_));
 				return delete this;
 			} break;
 
@@ -148,6 +156,7 @@ namespace OpenWifi {
 			}
 			}
 		} catch (...) {
+			Logger().information(fmt::format("{}: Frame readable shutdown.", Id_));
 			return delete this;
 		}
 	}
@@ -159,6 +168,7 @@ namespace OpenWifi {
 						  Poco::Net::WebSocket::FRAME_FLAG_FIN |
 							  Poco::Net::WebSocket::FRAME_OP_BINARY);
 		} catch (...) {
+			Logger().information(fmt::format("{}: Senddata shutdown.", Id_));
 			return delete this;
 		}
 	}
@@ -171,12 +181,14 @@ namespace OpenWifi {
 			}
 			WS_->sendFrame(s.c_str(), s.length());
 		} catch (...) {
+			Logger().information(fmt::format("{}: Senddata shutdown.", Id_));
 			return delete this;
 		}
 	}
 
 	void RTTYS_ClientConnection::onSocketShutdown([[maybe_unused]] const Poco::AutoPtr<Poco::Net::ShutdownNotification> &pNf) {
 //		RTTYS_server()->Close(Id_);
+		Logger().information(fmt::format("{}: Socket shutdown.", Id_));
 		delete this;
 	}
 
