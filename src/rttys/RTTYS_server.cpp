@@ -148,23 +148,30 @@ namespace OpenWifi {
 
 	bool RTTYS_server::SendToClient(const std::string &Id, const u_char *Buf, std::size_t Len) {
 		std::lock_guard	G(Mutex_);
-		auto It = EndPoints_.find(Id);
-		if(It!=EndPoints_.end() && It->second.Client!= nullptr) {
-			It->second.Client->SendData(Buf,Len);
-			return true;
+		try {
+			auto It = EndPoints_.find(Id);
+			if (It != EndPoints_.end() && It->second.Client != nullptr) {
+				It->second.Client->SendData(Buf, Len);
+				return true;
+			}
+		} catch(...) {
+
 		}
 		return false;
 	}
 
 	bool RTTYS_server::SendToClient(const std::string &Id, const std::string &s) {
 		std::lock_guard	G(Mutex_);
+		try {
 		auto It = EndPoints_.find(Id);
 		if(It!=EndPoints_.end() && It->second.Client!= nullptr) {
 			It->second.Client->SendData(s);
 			return true;
 		}
-		return false;
+		} catch(...) {
 
+		}
+		return false;
 	}
 
 	void RTTYS_server::DeRegister(const std::string &Id, RTTYS_ClientConnection *Client) {
@@ -239,8 +246,12 @@ namespace OpenWifi {
 			return false;
 		}
 
-		if(It->second.Device!= nullptr)
-			return It->second.Device->KeyStrokes(buffer,s);
+		try {
+			if (It->second.Device != nullptr)
+				return It->second.Device->KeyStrokes(buffer, s);
+		} catch (...) {
+
+		}
 		return false;
 	}
 
