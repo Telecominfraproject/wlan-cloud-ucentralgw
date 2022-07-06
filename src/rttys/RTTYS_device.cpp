@@ -78,6 +78,7 @@ namespace OpenWifi {
 	}
 
 	void RTTY_Device_ConnectionHandler::onSocketReadable([[maybe_unused]] const Poco::AutoPtr<Poco::Net::ReadableNotification> &pNf) {
+		bool good = true;
 		try {
 			auto received_bytes = socket_.receiveBytes(inBuf_);
 			if(received_bytes==0) {
@@ -86,8 +87,7 @@ namespace OpenWifi {
 			}
 
 			// std::cout << "Received: " << received_bytes << std::endl;
-
-			while (inBuf_.isReadable()) {
+			while (inBuf_.isReadable() && good) {
 				std::size_t msg_len;
 				u_char header[3]{0};
 				inBuf_.read((char *)&header[0], 3);
@@ -96,37 +96,37 @@ namespace OpenWifi {
 
 				switch (last_command_) {
 					case msgTypeRegister: {
-						do_msgTypeRegister(msg_len);
+						good = do_msgTypeRegister(msg_len);
 					} break;
 					case msgTypeLogin: {
-						do_msgTypeLogin(msg_len);
+						good = do_msgTypeLogin(msg_len);
 					} break;
 					case msgTypeLogout: {
-						do_msgTypeLogout(msg_len);
+						good = do_msgTypeLogout(msg_len);
 					} break;
 					case msgTypeTermData: {
-						do_msgTypeTermData(msg_len);
+						good = do_msgTypeTermData(msg_len);
 					} break;
 					case msgTypeWinsize: {
-						do_msgTypeWinsize(msg_len);
+						good = do_msgTypeWinsize(msg_len);
 					} break;
 					case msgTypeCmd: {
-						do_msgTypeCmd(msg_len);
+						good = do_msgTypeCmd(msg_len);
 					} break;
 					case msgTypeHeartbeat: {
-						do_msgTypeHeartbeat(msg_len);
+						good = do_msgTypeHeartbeat(msg_len);
 					} break;
 					case msgTypeFile: {
-						do_msgTypeFile(msg_len);
+						good = do_msgTypeFile(msg_len);
 					} break;
 					case msgTypeHttp: {
-						do_msgTypeHttp(msg_len);
+						good = do_msgTypeHttp(msg_len);
 					} break;
 					case msgTypeAck: {
-						do_msgTypeAck(msg_len);
+						good = do_msgTypeAck(msg_len);
 					} break;
 					case msgTypeMax: {
-						do_msgTypeMax(msg_len);
+						good = do_msgTypeMax(msg_len);
 					} break;
 					default:
 						Logger().warning(fmt::format("{}: ID:{} Unknown command {}", conn_id_, id_,
@@ -134,8 +134,11 @@ namespace OpenWifi {
 				}
 			}
 		} catch (...) {
-			return delete this;
+
 		}
+
+		if(!good)
+			return delete this;
 	}
 
 	void RTTY_Device_ConnectionHandler::onSocketWritable([[maybe_unused]] const Poco::AutoPtr<Poco::Net::WritableNotification>& pNf) {
@@ -150,20 +153,12 @@ namespace OpenWifi {
 		running_ = false;
 	}
 
-	void RTTY_Device_ConnectionHandler::SendToClient(const u_char *Buf, int Len) {
-		try {
-			RTTYS_server()->SendToClient(id_, Buf, Len);
-		} catch(...) {
-			return delete this;
-		}
+	bool RTTY_Device_ConnectionHandler::SendToClient(const u_char *Buf, int Len) {
+		return RTTYS_server()->SendToClient(id_, Buf, Len);
 	}
 
-	void RTTY_Device_ConnectionHandler::SendToClient(const std::string &S) {
-		try {
-			RTTYS_server()->SendToClient(id_, S);
-		} catch(...) {
-			return delete this;
-		}
+	bool RTTY_Device_ConnectionHandler::SendToClient(const std::string &S) {
+		return RTTYS_server()->SendToClient(id_, S);
 	}
 
 	bool RTTY_Device_ConnectionHandler::KeyStrokes(const u_char *buf, size_t len) {
@@ -258,7 +253,8 @@ namespace OpenWifi {
 		return Res;
 	}
 
-	void RTTY_Device_ConnectionHandler::do_msgTypeRegister([[maybe_unused]] std::size_t msg_len) {
+	bool RTTY_Device_ConnectionHandler::do_msgTypeRegister([[maybe_unused]] std::size_t msg_len) {
+		bool good = true;
 		try {
 			id_ = ReadString();
 			desc_ = ReadString();
@@ -277,6 +273,7 @@ namespace OpenWifi {
 				OutBuf[5] = 'K';
 				OutBuf[6] = 0;
 				if (socket_.sendBytes(OutBuf, 7) != 7) {
+					good = false;
 					Logger().debug(fmt::format(
 						"{}: ID:{} Serial:{} Description:{} Could not complete registration",
 						conn_id_, id_, serial_, desc_));
@@ -289,11 +286,12 @@ namespace OpenWifi {
 					id_, serial_, desc_));
 			}
 		} catch (...) {
-			return delete this;
+			good = false;
 		}
+		return good;
 	}
 
-	void RTTY_Device_ConnectionHandler::do_msgTypeLogin([[maybe_unused]] std::size_t msg_len) {
+	bool RTTY_Device_ConnectionHandler::do_msgTypeLogin([[maybe_unused]] std::size_t msg_len) {
 		Logger().debug(fmt::format("{}: ID:{} Serial:{} Asking for login", conn_id_, id_, serial_));
 		nlohmann::json doc;
 		char Error;
@@ -302,19 +300,21 @@ namespace OpenWifi {
 		doc["type"] = "login";
 		doc["err"] = Error;
 		const auto login_msg = to_string(doc);
-		SendToClient(login_msg);
 		web_socket_active_ = true ;
+		return SendToClient(login_msg);
 	}
 
-	void RTTY_Device_ConnectionHandler::do_msgTypeLogout([[maybe_unused]] std::size_t msg_len) {
+	bool RTTY_Device_ConnectionHandler::do_msgTypeLogout([[maybe_unused]] std::size_t msg_len) {
 		Logger().debug(fmt::format("{}: ID:{} Serial:{} Asking for logout", conn_id_, id_, serial_));
+		return true;
 	}
 
-	void RTTY_Device_ConnectionHandler::do_msgTypeTermData(std::size_t msg_len) {
+	bool RTTY_Device_ConnectionHandler::do_msgTypeTermData(std::size_t msg_len) {
+		bool good = false;
 		if(waiting_for_bytes_!=0) {
 			auto to_read = std::min(inBuf_.used(),waiting_for_bytes_);
 			inBuf_.read(&scratch_[0], to_read);
-			SendToClient((u_char *)&scratch_[0], (int) to_read);
+			good = SendToClient((u_char *)&scratch_[0], (int) to_read);
 			if(to_read<waiting_for_bytes_)
 				waiting_for_bytes_ -= to_read;
 			else
@@ -322,43 +322,50 @@ namespace OpenWifi {
 		} else {
 			if(inBuf_.used()<msg_len) {
 				auto read_count = inBuf_.read(&scratch_[0], inBuf_.used());
-				SendToClient((u_char *)&scratch_[0], read_count);
+				good = SendToClient((u_char *)&scratch_[0], read_count);
 				waiting_for_bytes_ = msg_len - read_count;
 			} else {
 				inBuf_.read(&scratch_[0], msg_len);
-				SendToClient((u_char *)&scratch_[0], (int)msg_len);
+				good = SendToClient((u_char *)&scratch_[0], (int)msg_len);
 				waiting_for_bytes_=0;
 			}
 		}
+		return good;
 	}
 
-	void RTTY_Device_ConnectionHandler::do_msgTypeWinsize([[maybe_unused]] std::size_t msg_len) {
+	bool RTTY_Device_ConnectionHandler::do_msgTypeWinsize([[maybe_unused]] std::size_t msg_len) {
 		Logger().debug(fmt::format("{}: ID:{} Serial:{} Asking for msgTypeWinsize", conn_id_, id_, serial_));
+		return true;
 	}
 
-	void RTTY_Device_ConnectionHandler::do_msgTypeCmd([[maybe_unused]] std::size_t msg_len) {
+	bool RTTY_Device_ConnectionHandler::do_msgTypeCmd([[maybe_unused]] std::size_t msg_len) {
 		Logger().debug(fmt::format("{}: ID:{} Serial:{} Asking for msgTypeCmd", conn_id_, id_, serial_));
+		return true;
 	}
 
-	void RTTY_Device_ConnectionHandler::do_msgTypeHeartbeat([[maybe_unused]] std::size_t msg_len) {
+	bool RTTY_Device_ConnectionHandler::do_msgTypeHeartbeat([[maybe_unused]] std::size_t msg_len) {
 		u_char MsgBuf[3]{0};
 		MsgBuf[0] = msgTypeHeartbeat;
-		socket_.sendBytes(MsgBuf, 3);
+		return socket_.sendBytes(MsgBuf, 3)==3;
 	}
 
-	void RTTY_Device_ConnectionHandler::do_msgTypeFile([[maybe_unused]] std::size_t msg_len) {
+	bool RTTY_Device_ConnectionHandler::do_msgTypeFile([[maybe_unused]] std::size_t msg_len) {
 		Logger().debug(fmt::format("{}: ID:{} Serial:{} Asking for msgTypeFile", conn_id_, id_, serial_));
+		return true;
 	}
 
-	void RTTY_Device_ConnectionHandler::do_msgTypeHttp([[maybe_unused]] std::size_t msg_len) {
+	bool RTTY_Device_ConnectionHandler::do_msgTypeHttp([[maybe_unused]] std::size_t msg_len) {
 		Logger().debug(fmt::format("{}: ID:{} Serial:{} Asking for msgTypeHttp", conn_id_, id_, serial_));
+		return true;
 	}
 
-	void RTTY_Device_ConnectionHandler::do_msgTypeAck([[maybe_unused]] std::size_t msg_len) {
+	bool RTTY_Device_ConnectionHandler::do_msgTypeAck([[maybe_unused]] std::size_t msg_len) {
 		Logger().debug(fmt::format("{}: ID:{} Serial:{} Asking for msgTypeAck", conn_id_, id_, serial_));
+		return true;
 	}
 
-	void RTTY_Device_ConnectionHandler::do_msgTypeMax([[maybe_unused]] std::size_t msg_len) {
+	bool RTTY_Device_ConnectionHandler::do_msgTypeMax([[maybe_unused]] std::size_t msg_len) {
 		Logger().debug(fmt::format("{}: ID:{} Serial:{} Asking for msgTypeMax", conn_id_, id_, serial_));
+		return true;
 	}
 }

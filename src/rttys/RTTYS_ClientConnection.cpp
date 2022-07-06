@@ -32,18 +32,21 @@ namespace OpenWifi {
 			*WS_, Poco::NObserver<RTTYS_ClientConnection, Poco::Net::ErrorNotification>(
 					  *this, &RTTYS_ClientConnection::onSocketError));
 
+
 		std::thread T([=]() { CompleteLogin(); });
 		T.detach();
 	}
 
 	void RTTYS_ClientConnection::CompleteLogin() {
 		int tries = 0;
+		completing_connection_ = true;
 		try {
-			while (tries < 20) {
+			while (!aborting_connection_ && tries < 20) {
 				if (RTTYS_server()->Login(this->Id_)) {
 					Logger().information(fmt::format("{}: Client connected to device, session: {}.",
 													 Id_, RTTYS_server()->DeviceSessionID(Id_)));
 					this->Connected_ = true;
+					completing_connection_ = false;
 					return;
 				}
 				std::this_thread::sleep_for(2000ms);
@@ -53,14 +56,21 @@ namespace OpenWifi {
 			}
 			Logger().information(fmt::format("{}: Client could not connect to device, session: {}.",
 											 Id_, RTTYS_server()->DeviceSessionID(Id_)));
+			delete this;
 		} catch (...) {
-
+			completing_connection_ = false;
+			delete this;
 		}
-		delete this;
 	}
 
 	RTTYS_ClientConnection::~RTTYS_ClientConnection() {
 		try {
+			aborting_connection_ = true;
+			if(completing_connection_) {
+				aborting_connection_ = true;
+				while(completing_connection_)
+					continue;
+			}
 			Logger().information(fmt::format("{}: Client disconnecting.", Id_));
 			RTTYS_server()->DeRegister(Id_, this);
 			if (Connected_) {
