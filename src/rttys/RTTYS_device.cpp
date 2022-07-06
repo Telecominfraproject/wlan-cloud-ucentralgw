@@ -136,7 +136,7 @@ namespace OpenWifi {
 				}
 			}
 		} catch (...) {
-
+			good = false;
 		}
 
 		if(!good)
