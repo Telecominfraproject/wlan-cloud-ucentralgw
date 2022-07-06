@@ -46,6 +46,8 @@ namespace OpenWifi {
 				Poco::NObserver<RTTY_Device_ConnectionHandler, Poco::Net::ShutdownNotification>(
 					*this, &RTTY_Device_ConnectionHandler::onSocketShutdown));
 		} catch (...) {
+			Logger().information(
+				fmt::format("{}: Device cause exception while completing connection.", device_address_.toString()));
 			delete this;
 		}
 	}
