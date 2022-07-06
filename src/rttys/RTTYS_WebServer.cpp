@@ -31,8 +31,10 @@ namespace OpenWifi {
 
 		try {
 			Poco::Thread::current()->setName(fmt::format("WebRTTYRequest_WSHandler_{}", T[2]));
-			new RTTYS_ClientConnection(request, response, T[2], R_, Logger_);
-			Logger_.information("Websocket has finished");
+			std::cout << "Creating websocket end point for a RTTY client" << std::endl;
+			auto WS = std::make_unique<Poco::Net::WebSocket>(request, response);
+			new RTTYS_ClientConnection(std::move(WS), T[2], R_, Logger_);
+			std::cout << "Ending web server websocket creation end point for RTTY" << std::endl;
 		} catch (...) {
 			Logger_.warning("Exception during WS creation");
 		}
