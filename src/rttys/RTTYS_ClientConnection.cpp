@@ -28,10 +28,10 @@ namespace OpenWifi {
 		SR_.addEventHandler(
 			*WS_, Poco::NObserver<RTTYS_ClientConnection, Poco::Net::ShutdownNotification>(
 					  *this, &RTTYS_ClientConnection::onSocketShutdown));
-		SR_.addEventHandler(
+/*		SR_.addEventHandler(
 			*WS_, Poco::NObserver<RTTYS_ClientConnection, Poco::Net::ErrorNotification>(
 					  *this, &RTTYS_ClientConnection::onSocketError));
-
+*/
 
 		std::thread T([=]() { CompleteLogin(); });
 		T.detach();
@@ -80,10 +80,10 @@ namespace OpenWifi {
 				SR_.removeEventHandler(
 					*WS_, Poco::NObserver<RTTYS_ClientConnection, Poco::Net::ShutdownNotification>(
 							 *this, &RTTYS_ClientConnection::onSocketShutdown));
-				SR_.removeEventHandler(
+/*				SR_.removeEventHandler(
 					*WS_, Poco::NObserver<RTTYS_ClientConnection, Poco::Net::ErrorNotification>(
 							 *this, &RTTYS_ClientConnection::onSocketError));
-			}
+*/			}
 			// delete WS_;
 			Logger().information(fmt::format("{}: Client disconnected.", Id_));
 		} catch (...) {
@@ -129,6 +129,7 @@ namespace OpenWifi {
 					}
 				} catch (...) {
 					// just ignore parse errors
+					return delete this;
 				}
 			} break;
 			case Poco::Net::WebSocket::FRAME_OP_BINARY: {
