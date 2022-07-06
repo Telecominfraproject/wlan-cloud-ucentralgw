@@ -38,10 +38,10 @@ namespace OpenWifi {
 		bool Logout();
 		void Stop();
 
-		void SendToClient(const u_char *buf, int len);
-		void SendToClient(const std::string &S);
-		bool WindowSize(int cols, int rows);
-		bool KeyStrokes(const u_char *buf, size_t len);
+		[[nodiscard]] bool SendToClient(const u_char *buf, int len);
+		[[nodiscard]] bool SendToClient(const std::string &S);
+		[[nodiscard]] bool WindowSize(int cols, int rows);
+		[[nodiscard]] bool KeyStrokes(const u_char *buf, size_t len);
 		std::string ReadString();
 		inline auto SessionID() const { return conn_id_; }
 
@@ -77,16 +77,16 @@ namespace OpenWifi {
 
 		Poco::Logger & Logger();
 
-		void do_msgTypeRegister(std::size_t msg_len);
-		void do_msgTypeLogin(std::size_t msg_len);
-		void do_msgTypeLogout(std::size_t msg_len);
-		void do_msgTypeTermData(std::size_t msg_len);
-		void do_msgTypeWinsize(std::size_t msg_len);
-		void do_msgTypeCmd(std::size_t msg_len);
-		void do_msgTypeHeartbeat(std::size_t msg_len);
-		void do_msgTypeFile(std::size_t msg_len);
-		void do_msgTypeHttp(std::size_t msg_len);
-		void do_msgTypeAck(std::size_t msg_len);
-		void do_msgTypeMax(std::size_t msg_len);
+		[[nodiscard]] bool do_msgTypeRegister(std::size_t msg_len);
+		[[nodiscard]] bool do_msgTypeLogin(std::size_t msg_len);
+		[[nodiscard]] bool do_msgTypeLogout(std::size_t msg_len);
+		[[nodiscard]] bool do_msgTypeTermData(std::size_t msg_len);
+		[[nodiscard]] bool do_msgTypeWinsize(std::size_t msg_len);
+		[[nodiscard]] bool do_msgTypeCmd(std::size_t msg_len);
+		[[nodiscard]] bool do_msgTypeHeartbeat(std::size_t msg_len);
+		[[nodiscard]] bool do_msgTypeFile(std::size_t msg_len);
+		[[nodiscard]] bool do_msgTypeHttp(std::size_t msg_len);
+		[[nodiscard]] bool do_msgTypeAck(std::size_t msg_len);
+		[[nodiscard]] bool do_msgTypeMax(std::size_t msg_len);
 	};
 }
