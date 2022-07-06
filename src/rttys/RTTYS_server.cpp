@@ -176,13 +176,14 @@ namespace OpenWifi {
 
 	void RTTYS_server::DeRegister(const std::string &Id, RTTYS_ClientConnection *Client) {
 		std::lock_guard	G(Mutex_);
-		dump("C DEREG--> ", std::cout);
+		Logger().information("{}: Deregistering.", Client->ID());
 		auto It = EndPoints_.find(Id);
 		if(It!=EndPoints_.end() && It->second.Client==Client) {
 			if(It->second.Device!= nullptr) {
 				if(!It->second.ShuttingDown) {
 					It->second.ShuttingDown = true;
-					It->second.Device->Stop();
+					if(It->second.Device!= nullptr)
+						It->second.Device->Stop();
 				} else {
 					It->second.ShutdownComplete = true;
 				}
@@ -196,7 +197,7 @@ namespace OpenWifi {
 			It->second.ClientConnected=0;
 			It->second.Client= nullptr;
 		}
-		dump("C DEREG--> ", std::cout);
+		Logger().information("{}: Deregistered.", Client->ID());
 	}
 
 	void RTTYS_server::DeRegisterDevice(const std::string &Id, RTTY_Device_ConnectionHandler *Device, bool remove_websocket) {
@@ -209,7 +210,8 @@ namespace OpenWifi {
 			if(It->second.Client!=nullptr) {
 				if(remove_websocket) {
 					It->second.ShuttingDown = true;
-					It->second.Client->Close();
+					if(It->second.Client!= nullptr)
+						It->second.Client->Close();
 				}
 /*				if(!It->second.ShuttingDown) {
 					It->second.ShuttingDown = true;
@@ -227,7 +229,7 @@ namespace OpenWifi {
 			}
 		}
 
-		dump("D DEREG--> ", std::cout);
+		Logger().information(fmt::format("{}: Deregistering device.", Device->SessionID()));
 		if(Device!= nullptr) {
 			for (auto i = EndPoints_.begin(); i != EndPoints_.end(); i++) {
 				if (i->second.Device == Device) {
@@ -237,6 +239,7 @@ namespace OpenWifi {
 			}
 			dump("D DEREG--> ", std::cout);
 		}
+		Logger().information(fmt::format("{}: Deregistered device.", Device->SessionID()));
 	}
 
 	bool RTTYS_server::SendKeyStrokes(const std::string &Id, const u_char *buffer, std::size_t s) {

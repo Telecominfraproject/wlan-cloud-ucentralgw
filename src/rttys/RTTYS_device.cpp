@@ -61,10 +61,6 @@ namespace OpenWifi {
 					*this, &RTTY_Device_ConnectionHandler::onSocketReadable));
 			reactor_.removeEventHandler(
 				socket_,
-				Poco::NObserver<RTTY_Device_ConnectionHandler, Poco::Net::WritableNotification>(
-					*this, &RTTY_Device_ConnectionHandler::onSocketWritable));
-			reactor_.removeEventHandler(
-				socket_,
 				Poco::NObserver<RTTY_Device_ConnectionHandler, Poco::Net::ShutdownNotification>(
 					*this, &RTTY_Device_ConnectionHandler::onSocketShutdown));
 
