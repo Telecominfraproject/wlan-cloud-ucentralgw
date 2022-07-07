@@ -150,7 +150,7 @@ namespace OpenWifi {
 			} break;
 			case Poco::Net::WebSocket::FRAME_OP_CLOSE: {
 				Logger().information(fmt::format("{}: Frame frame close shutdown.", Id_));
-				return delete this;
+				//return delete this;
 			} break;
 
 			default: {
@@ -190,11 +190,6 @@ namespace OpenWifi {
 	void RTTYS_ClientConnection::onSocketShutdown([[maybe_unused]] const Poco::AutoPtr<Poco::Net::ShutdownNotification> &pNf) {
 //		RTTYS_server()->Close(Id_);
 		Logger().information(fmt::format("{}: Socket shutdown.", Id_));
-		delete this;
-	}
-
-	void RTTYS_ClientConnection::onSocketError([[maybe_unused]] const Poco::AutoPtr<Poco::Net::ErrorNotification> &pNf) {
-//		RTTYS_server()->Close(Id_);
 		delete this;
 	}
 

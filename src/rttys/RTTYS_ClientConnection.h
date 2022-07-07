@@ -20,7 +20,6 @@ namespace OpenWifi {
 		~RTTYS_ClientConnection();
 		void onSocketReadable(const Poco::AutoPtr<Poco::Net::ReadableNotification> &pNf);
 		void onSocketShutdown(const Poco::AutoPtr<Poco::Net::ShutdownNotification> &pNf);
-		void onSocketError(const Poco::AutoPtr<Poco::Net::ErrorNotification> &pNf);
 
 		void SendData( const u_char *Buf, size_t len );
 		void SendData( const std::string & S, bool login=false);
@@ -31,7 +30,7 @@ namespace OpenWifi {
 		[[nodiscard]] inline std::string ID() { return Id_; }
 
 	  private:
-		Poco::Net::WebSocket		*WS_;
+		Poco::Net::WebSocket		*WS_= nullptr;
 		std::string 				Id_;
 		std::string 				Sid_;
 		Poco::Net::SocketReactor 	&SR_;
