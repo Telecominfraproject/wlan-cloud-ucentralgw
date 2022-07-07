@@ -181,6 +181,7 @@ namespace OpenWifi {
 
 	bool RTTY_Device_ConnectionHandler::WindowSize(int cols, int rows) {
 		std::lock_guard		G(M_);
+
 		u_char	outBuf[8]{0};
 		outBuf[0] = msgTypeWinsize;
 		outBuf[1] = 0 ;
