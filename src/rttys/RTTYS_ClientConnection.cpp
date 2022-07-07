@@ -86,76 +86,81 @@ namespace OpenWifi {
 	}
 
 	void RTTYS_ClientConnection::Close() {
-		std::lock_guard	G(Mutex_);
-		CloseConnection_ = true;
+		{
+			std::lock_guard G(Mutex_);
+			CloseConnection_ = true;
+		}
 		delete this;
 	}
 
 	void RTTYS_ClientConnection::onSocketReadable([[maybe_unused]] const Poco::AutoPtr<Poco::Net::ReadableNotification> &pNf) {
-		std::lock_guard	G(Mutex_);
 		bool MustDisconnect = false;
-		try {
-			int flags;
-			auto n = WS_->receiveFrame(Buffer_, sizeof(Buffer_), flags);
-			auto Op = flags & Poco::Net::WebSocket::FRAME_OP_BITMASK;
-			switch (Op) {
-			case Poco::Net::WebSocket::FRAME_OP_PING: {
-				WS_->sendFrame("", 0,
-							  (int)Poco::Net::WebSocket::FRAME_OP_PONG |
-								  (int)Poco::Net::WebSocket::FRAME_FLAG_FIN);
-			} break;
-			case Poco::Net::WebSocket::FRAME_OP_PONG: {
-			} break;
-			case Poco::Net::WebSocket::FRAME_OP_TEXT: {
-				if (n == 0) {
-					Logger().information(fmt::format("{}: Socket readable shutdown.", Id_));
-					MustDisconnect = true;
-				} else {
-					std::string s((char *)Buffer_, n);
-					try {
-						auto Doc = nlohmann::json::parse(s);
-						if (Doc.contains("type")) {
-							auto Type = Doc["type"];
-							if (Type == "winsize") {
-								auto cols = Doc["cols"];
-								auto rows = Doc["rows"];
-								if (!RTTYS_server()->WindowSize(Id_, cols, rows)) {
-									Logger().information(fmt::format("{}: Winsize shutdown.", Id_));
-									MustDisconnect = true;
+		{
+			std::lock_guard	G(Mutex_);
+			try {
+				int flags;
+				auto n = WS_->receiveFrame(Buffer_, sizeof(Buffer_), flags);
+				auto Op = flags & Poco::Net::WebSocket::FRAME_OP_BITMASK;
+				switch (Op) {
+				case Poco::Net::WebSocket::FRAME_OP_PING: {
+					WS_->sendFrame("", 0,
+								   (int)Poco::Net::WebSocket::FRAME_OP_PONG |
+									   (int)Poco::Net::WebSocket::FRAME_FLAG_FIN);
+				} break;
+				case Poco::Net::WebSocket::FRAME_OP_PONG: {
+				} break;
+				case Poco::Net::WebSocket::FRAME_OP_TEXT: {
+					if (n == 0) {
+						Logger().information(fmt::format("{}: Socket readable shutdown.", Id_));
+						MustDisconnect = true;
+					} else {
+						std::string s((char *)Buffer_, n);
+						try {
+							auto Doc = nlohmann::json::parse(s);
+							if (Doc.contains("type")) {
+								auto Type = Doc["type"];
+								if (Type == "winsize") {
+									auto cols = Doc["cols"];
+									auto rows = Doc["rows"];
+									if (!RTTYS_server()->WindowSize(Id_, cols, rows)) {
+										Logger().information(
+											fmt::format("{}: Winsize shutdown.", Id_));
+										MustDisconnect = true;
+									}
 								}
 							}
+						} catch (...) {
+							// just ignore parse errors
+							Logger().information(
+								fmt::format("{}: Frame text exception shutdown.", Id_));
+							MustDisconnect = true;
 						}
-					} catch (...) {
-						// just ignore parse errors
-						Logger().information(
-							fmt::format("{}: Frame text exception shutdown.", Id_));
-						MustDisconnect = true;
 					}
-				}
-			} break;
-			case Poco::Net::WebSocket::FRAME_OP_BINARY: {
-				if (n == 0) {
-					Logger().information(fmt::format("{}: Frame binary size shutdown.", Id_));
+				} break;
+				case Poco::Net::WebSocket::FRAME_OP_BINARY: {
+					if (n == 0) {
+						Logger().information(fmt::format("{}: Frame binary size shutdown.", Id_));
+						MustDisconnect = true;
+					} else {
+						poco_trace(Logger(), fmt::format("Sending {} key strokes to device.", n));
+						if (!RTTYS_server()->SendKeyStrokes(Id_, Buffer_, n)) {
+							Logger().information(fmt::format("{}: Sendkeystrokes shutdown.", Id_));
+							MustDisconnect = true;
+						}
+					}
+				} break;
+				case Poco::Net::WebSocket::FRAME_OP_CLOSE: {
+					Logger().information(fmt::format("{}: Frame frame close shutdown.", Id_));
 					MustDisconnect = true;
-				} else {
-					poco_trace(Logger(), fmt::format("Sending {} key strokes to device.", n));
-					if (!RTTYS_server()->SendKeyStrokes(Id_, Buffer_, n)) {
-						Logger().information(fmt::format("{}: Sendkeystrokes shutdown.", Id_));
-						MustDisconnect = true;
-					}
-				}
-			} break;
-			case Poco::Net::WebSocket::FRAME_OP_CLOSE: {
-				Logger().information(fmt::format("{}: Frame frame close shutdown.", Id_));
-				MustDisconnect = true;
-			} break;
+				} break;
 
-			default: {
+				default: {
+				}
+				}
+			} catch (...) {
+				Logger().information(fmt::format("{}: Frame readable shutdown.", Id_));
+				MustDisconnect = true;
 			}
-			}
-		} catch (...) {
-			Logger().information(fmt::format("{}: Frame readable shutdown.", Id_));
-			MustDisconnect = true;
 		}
 
 		if(MustDisconnect)
@@ -163,33 +168,43 @@ namespace OpenWifi {
 	}
 
 	void RTTYS_ClientConnection::SendData( const u_char *Buf, size_t len ) {
-		std::lock_guard		G(Mutex_);
-		try {
-			WS_->sendFrame(Buf, len,
-						  Poco::Net::WebSocket::FRAME_FLAG_FIN |
-							  Poco::Net::WebSocket::FRAME_OP_BINARY);
-		} catch (...) {
-			Logger().information(fmt::format("{}: Senddata shutdown.", Id_));
-			return delete this;
+		bool done = false;
+		{
+			std::lock_guard G(Mutex_);
+
+			try {
+				WS_->sendFrame(Buf, len,
+							   Poco::Net::WebSocket::FRAME_FLAG_FIN |
+								   Poco::Net::WebSocket::FRAME_OP_BINARY);
+			} catch (...) {
+				done = true;
+				Logger().information(fmt::format("{}: SendData shutdown.", Id_));
+			}
 		}
+		if(done)
+			return delete this;
 	}
 
 	void RTTYS_ClientConnection::SendData( const std::string &s , bool login) {
-		std::lock_guard		G(Mutex_);
-		try {
-			if (login) {
-				RTTYS_server()->LoginDone(Id_);
+		bool done = false;
+		{
+			try {
+				std::lock_guard G(Mutex_);
+				if (login) {
+					RTTYS_server()->LoginDone(Id_);
+				}
+				WS_->sendFrame(s.c_str(), s.length());
+			} catch (...) {
+				Logger().information(fmt::format("{}: Senddata shutdown.", Id_));
+				return delete this;
 			}
-			WS_->sendFrame(s.c_str(), s.length());
-		} catch (...) {
-			Logger().information(fmt::format("{}: Senddata shutdown.", Id_));
-			return delete this;
 		}
+		if(done)
+			return delete this;
 	}
 
 	void RTTYS_ClientConnection::onSocketShutdown([[maybe_unused]] const Poco::AutoPtr<Poco::Net::ShutdownNotification> &pNf) {
 //		RTTYS_server()->Close(Id_);
-		std::lock_guard	G(Mutex_);
 		Logger().information(fmt::format("{}: Socket shutdown.", Id_));
 		delete this;
 	}
