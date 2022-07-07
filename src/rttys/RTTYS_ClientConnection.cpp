@@ -86,7 +86,7 @@ namespace OpenWifi {
 							 *this, &RTTYS_ClientConnection::onSocketError));
 */			}
 			// delete WS_;
-			delete WS_;
+			// delete WS_;
 			Logger().information(fmt::format("{}: Client disconnected.", Id_));
 		} catch (...) {
 			std::cout << "Exception when closing RTTY WebSocket" << std::endl;
