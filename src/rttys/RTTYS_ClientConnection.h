@@ -38,7 +38,7 @@ namespace OpenWifi {
 		Poco::Logger & 				Logger_;
 		u_char 						Buffer_[16000]{0};
 		mutable bool 				CloseConnection_=false;
-		std::recursive_mutex		Mutex_;
+		std::mutex					Mutex_;
 		mutable std::atomic_bool 	aborting_connection_ = false;
 		mutable std::atomic_bool	completing_connection_ = false;
 
