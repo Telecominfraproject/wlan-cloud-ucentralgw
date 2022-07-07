@@ -67,6 +67,8 @@ add_compile_options(-Wall -Wextra)
 if(ASAN)
     add_compile_options(-fsanitize=address)
     add_link_options(-fsanitize=address)
+    add_compile_options(-fsanitize=undefined)
+    add_link_options(-fsanitize=undefined)
 endif()
 
 add_executable( owgw
