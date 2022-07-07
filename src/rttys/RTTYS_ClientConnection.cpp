@@ -8,11 +8,11 @@
 
 namespace OpenWifi {
 
-	RTTYS_ClientConnection::RTTYS_ClientConnection(std::unique_ptr<Poco::Net::WebSocket> WS,
+	RTTYS_ClientConnection::RTTYS_ClientConnection(Poco::Net::WebSocket *WS,
 		std::string &Id,
 		Poco::Net::SocketReactor &Reactor, Poco::Logger &L)
 		:
-	  		WS_(std::move(WS)),
+	  		WS_(WS),
 	  		Id_(std::move(Id)),
 			SR_(Reactor),
 			Logger_(L)
@@ -85,6 +85,7 @@ namespace OpenWifi {
 							 *this, &RTTYS_ClientConnection::onSocketError));
 */			}
 			// delete WS_;
+			delete WS_;
 			Logger().information(fmt::format("{}: Client disconnected.", Id_));
 		} catch (...) {
 
