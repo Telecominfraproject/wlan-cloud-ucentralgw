@@ -81,13 +81,9 @@ namespace OpenWifi {
 				SR_.removeEventHandler(
 					*WS_, Poco::NObserver<RTTYS_ClientConnection, Poco::Net::ShutdownNotification>(
 							 *this, &RTTYS_ClientConnection::onSocketShutdown));
-/*				SR_.removeEventHandler(
-					*WS_, Poco::NObserver<RTTYS_ClientConnection, Poco::Net::ErrorNotification>(
-							 *this, &RTTYS_ClientConnection::onSocketError));
-*/			}
-			// delete WS_;
-			// delete WS_;
+			}
 			Logger().information(fmt::format("{}: Client disconnected.", Id_));
+			delete WS_;
 		} catch (...) {
 			std::cout << "Exception when closing RTTY WebSocket" << std::endl;
 			Logger().information(fmt::format("{}: Client disconnected.", Id_));
