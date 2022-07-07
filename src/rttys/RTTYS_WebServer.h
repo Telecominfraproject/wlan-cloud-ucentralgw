@@ -12,13 +12,12 @@
 namespace OpenWifi {
 	class RTTY_Client_WebSocketRequestHandler : public Poco::Net::HTTPRequestHandler {
 	  public:
-		explicit RTTY_Client_WebSocketRequestHandler(Poco::Net::SocketReactor &R, Poco::Logger &L );
+		explicit RTTY_Client_WebSocketRequestHandler(Poco::Logger &L);
 
 		void handleRequest(Poco::Net::HTTPServerRequest &request,
 						   Poco::Net::HTTPServerResponse &response) override;
 
 	  private:
-		Poco::Net::SocketReactor 	&R_;
 		Poco::Logger 				&Logger_;
 	};
 
@@ -37,13 +36,12 @@ namespace OpenWifi {
 
 	class RTTY_Client_RequestHandlerFactory : public Poco::Net::HTTPRequestHandlerFactory {
 	  public:
-		explicit RTTY_Client_RequestHandlerFactory(Poco::Net::SocketReactor &R, Poco::Logger &L);
+		explicit RTTY_Client_RequestHandlerFactory(Poco::Logger &L);
 
 		Poco::Net::HTTPRequestHandler *
 		createRequestHandler(const Poco::Net::HTTPServerRequest &request) override;
 
 	  private:
-		Poco::Net::SocketReactor 	&Reactor_;
 		Poco::Logger 				&Logger_;
 	};
 }

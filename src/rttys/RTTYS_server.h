@@ -76,6 +76,8 @@ namespace OpenWifi {
 */
 		}
 
+		inline Poco::Net::SocketReactor & ClientReactor() { return ClientReactor_; }
+
 	  private:
 		// std::recursive_mutex		M_;
 		Poco::Net::SocketReactor	ClientReactor_;
