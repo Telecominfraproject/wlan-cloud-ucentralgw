@@ -100,7 +100,6 @@ namespace OpenWifi {
 		std::lock_guard	G(Mutex_);
 		bool MustDisconnect = false;
 		try {
-			std::lock_guard G(Mutex_);
 			int flags;
 			auto n = WS_->receiveFrame(Buffer_, sizeof(Buffer_), flags);
 			auto Op = flags & Poco::Net::WebSocket::FRAME_OP_BITMASK;
