@@ -64,7 +64,7 @@ namespace OpenWifi {
 	}
 
 	RTTYS_ClientConnection::~RTTYS_ClientConnection() {
-		std::lock_guard	G(Mutex_);
+		// std::lock_guard	G(Mutex_);
 		try {
 			aborting_connection_ = true;
 			if(completing_connection_) {
