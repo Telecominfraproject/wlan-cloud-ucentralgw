@@ -34,8 +34,8 @@ namespace OpenWifi {
 	}
 
 	void TelemetryClient::CompleteStartup() {
-		std::lock_guard Guard(Mutex_);
 		try {
+			std::lock_guard Guard(Mutex_);
 			Socket_ = *WS_;
 			CId_ = Utils::FormatIPv6(Socket_.peerAddress().toString());
 
@@ -103,21 +103,19 @@ namespace OpenWifi {
 	}
 
 	void TelemetryClient::OnSocketShutdown([[maybe_unused]] const Poco::AutoPtr<Poco::Net::ShutdownNotification>& pNf) {
-		std::lock_guard Guard(Mutex_);
 		Logger().information(fmt::format("SOCKET-SHUTDOWN({}): Orderly shutdown.", CId_));
 		SendTelemetryShutdown();
 	}
 
 	void TelemetryClient::OnSocketError([[maybe_unused]] const Poco::AutoPtr<Poco::Net::ErrorNotification>& pNf) {
-		std::lock_guard Guard(Mutex_);
 		Logger().information(fmt::format("SOCKET-ERROR({}): Closing.",CId_));
 		SendTelemetryShutdown();
 	}
 
 	void TelemetryClient::OnSocketReadable([[maybe_unused]] const Poco::AutoPtr<Poco::Net::ReadableNotification>& pNf) {
-		std::lock_guard Guard(Mutex_);
 		try
 		{
+			std::lock_guard Guard(Mutex_);
 			ProcessIncomingFrame();
 		}
 		catch (const Poco::Exception & E)
