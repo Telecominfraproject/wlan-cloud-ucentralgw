@@ -46,7 +46,6 @@ namespace OpenWifi {
 		inline auto SessionID() const { return conn_id_; }
 
 		void onSocketReadable(const Poco::AutoPtr<Poco::Net::ReadableNotification>& pNf);
-		void onSocketWritable(const Poco::AutoPtr<Poco::Net::WritableNotification>& pNf);
 		void onSocketShutdown(const Poco::AutoPtr<Poco::Net::ShutdownNotification>& pNf);
 
 		bool Connected() const { return received_login_from_websocket_; }

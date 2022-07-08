@@ -80,8 +80,7 @@ namespace OpenWifi {
 			Logger().information(fmt::format("{}: Client disconnected.", Id_));
 			delete WS_;
 		} catch (...) {
-			std::cout << "Exception when closing RTTY WebSocket" << std::endl;
-			Logger().information(fmt::format("{}: Client disconnected.", Id_));
+			Logger().information(fmt::format("{}: Client disconnected (exception).", Id_));
 		}
 	}
 
@@ -195,6 +194,7 @@ namespace OpenWifi {
 				}
 				WS_->sendFrame(s.c_str(), s.length());
 			} catch (...) {
+				done = true;
 				Logger().information(fmt::format("{}: Senddata shutdown.", Id_));
 				return delete this;
 			}
@@ -204,7 +204,6 @@ namespace OpenWifi {
 	}
 
 	void RTTYS_ClientConnection::onSocketShutdown([[maybe_unused]] const Poco::AutoPtr<Poco::Net::ShutdownNotification> &pNf) {
-//		RTTYS_server()->Close(Id_);
 		Logger().information(fmt::format("{}: Socket shutdown.", Id_));
 		delete this;
 	}

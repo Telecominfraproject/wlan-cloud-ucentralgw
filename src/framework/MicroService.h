@@ -4992,8 +4992,12 @@ namespace OpenWifi {
 
         for(const auto &client:Clients_) {
             if(client.second.second == UserName) {
-                if(client.second.first->Send(Payload))
-                    Sent++;
+				try {
+					if (client.second.first->Send(Payload))
+						Sent++;
+				} catch (...) {
+					return false;
+				}
             }
         }
         return Sent>0;
@@ -5015,70 +5019,70 @@ namespace OpenWifi {
         int flags;
         int n;
         bool Done=false;
-        Poco::Buffer<char>			IncomingFrame(0);
-        n = WS_->receiveFrame(IncomingFrame, flags);
-        auto Op = flags & Poco::Net::WebSocket::FRAME_OP_BITMASK;
+		try {
+			Poco::Buffer<char> IncomingFrame(0);
+			n = WS_->receiveFrame(IncomingFrame, flags);
+			auto Op = flags & Poco::Net::WebSocket::FRAME_OP_BITMASK;
 
-        if(n==0) {
-            return delete this;
-        }
+			if (n == 0) {
+				return delete this;
+			}
 
-        switch(Op) {
-            case Poco::Net::WebSocket::FRAME_OP_PING: {
-                WS_->sendFrame("", 0,
-                               (int)Poco::Net::WebSocket::FRAME_OP_PONG |
-                               (int)Poco::Net::WebSocket::FRAME_FLAG_FIN);
-            }
-                break;
-            case Poco::Net::WebSocket::FRAME_OP_PONG: {
-            }
-                break;
-            case Poco::Net::WebSocket::FRAME_OP_CLOSE: {
-                Logger().warning(Poco::format("CLOSE(%s): Client is closing its connection.",Id_));
-                Done=true;
-            }
-                break;
-            case Poco::Net::WebSocket::FRAME_OP_TEXT: {
-                IncomingFrame.append(0);
-                if(!Authenticated_) {
-                    std::string Frame{IncomingFrame.begin()};
-                    auto Tokens = Utils::Split(Frame,':');
-                    bool Expired = false, Contacted = false;
-                    if(Tokens.size()==2 && AuthClient()->IsAuthorized(Tokens[1], UserInfo_, Expired, Contacted)) {
-                        Authenticated_=true;
-                        std::string S{"Welcome! Bienvenue! Bienvenidos!"};
-                        WS_->sendFrame(S.c_str(),S.size());
-                        WebSocketClientServer()->SetUser(Id_,UserInfo_.userinfo.email);
-                    } else {
-                        std::string S{"Invalid token. Closing connection."};
-                        WS_->sendFrame(S.c_str(),S.size());
-                        Done=true;
-                    }
+			switch (Op) {
+			case Poco::Net::WebSocket::FRAME_OP_PING: {
+				WS_->sendFrame("", 0,
+							   (int)Poco::Net::WebSocket::FRAME_OP_PONG |
+								   (int)Poco::Net::WebSocket::FRAME_FLAG_FIN);
+			} break;
+			case Poco::Net::WebSocket::FRAME_OP_PONG: {
+			} break;
+			case Poco::Net::WebSocket::FRAME_OP_CLOSE: {
+				Logger().warning(Poco::format("CLOSE(%s): Client is closing its connection.", Id_));
+				Done = true;
+			} break;
+			case Poco::Net::WebSocket::FRAME_OP_TEXT: {
+				IncomingFrame.append(0);
+				if (!Authenticated_) {
+					std::string Frame{IncomingFrame.begin()};
+					auto Tokens = Utils::Split(Frame, ':');
+					bool Expired = false, Contacted = false;
+					if (Tokens.size() == 2 &&
+						AuthClient()->IsAuthorized(Tokens[1], UserInfo_, Expired, Contacted)) {
+						Authenticated_ = true;
+						std::string S{"Welcome! Bienvenue! Bienvenidos!"};
+						WS_->sendFrame(S.c_str(), S.size());
+						WebSocketClientServer()->SetUser(Id_, UserInfo_.userinfo.email);
+					} else {
+						std::string S{"Invalid token. Closing connection."};
+						WS_->sendFrame(S.c_str(), S.size());
+						Done = true;
+					}
 
-                } else {
-                    try {
-                        Poco::JSON::Parser P;
-                        auto Obj = P.parse(IncomingFrame.begin())
-                                .extract<Poco::JSON::Object::Ptr>();
-                        std::string Answer;
-                        if(Processor_!= nullptr)
-                            Processor_->Processor(Obj, Answer, Done);
-                        if (!Answer.empty())
-                            WS_->sendFrame(Answer.c_str(), (int) Answer.size());
-                        else {
-                            WS_->sendFrame("{}", 2);
-                        }
-                    } catch (const Poco::JSON::JSONException & E) {
-                        Logger().log(E);
-                    }
-                }
-            }
-                break;
-            default:
-            {
-
-            }
-        }
+				} else {
+					try {
+						Poco::JSON::Parser P;
+						auto Obj =
+							P.parse(IncomingFrame.begin()).extract<Poco::JSON::Object::Ptr>();
+						std::string Answer;
+						if (Processor_ != nullptr)
+							Processor_->Processor(Obj, Answer, Done);
+						if (!Answer.empty())
+							WS_->sendFrame(Answer.c_str(), (int)Answer.size());
+						else {
+							WS_->sendFrame("{}", 2);
+						}
+					} catch (const Poco::JSON::JSONException &E) {
+						Logger().log(E);
+						Done=true;
+					}
+				}
+			} break;
+			default: {
+			}
+			}
+		} catch (...) {
+			Done=true;
+		}
 
         if(Done) {
             delete this;

@@ -139,10 +139,6 @@ namespace OpenWifi {
 			return delete this;
 	}
 
-	void RTTY_Device_ConnectionHandler::onSocketWritable([[maybe_unused]] const Poco::AutoPtr<Poco::Net::WritableNotification>& pNf) {
-
-	}
-
 	void RTTY_Device_ConnectionHandler::onSocketShutdown([[maybe_unused]] const Poco::AutoPtr<Poco::Net::ShutdownNotification>& pNf) {
 		delete this;
 	}
