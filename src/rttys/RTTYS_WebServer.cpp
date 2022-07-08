@@ -9,8 +9,8 @@
 
 namespace OpenWifi {
 
-	RTTY_Client_WebSocketRequestHandler::RTTY_Client_WebSocketRequestHandler(Poco::Net::SocketReactor &R, Poco::Logger & L)
-		:R_(R), Logger_(L) {
+	RTTY_Client_WebSocketRequestHandler::RTTY_Client_WebSocketRequestHandler(Poco::Logger & L)
+		:Logger_(L) {
 	}
 
 	void RTTY_Client_WebSocketRequestHandler::handleRequest(Poco::Net::HTTPServerRequest &request,
@@ -31,8 +31,10 @@ namespace OpenWifi {
 
 		try {
 			Poco::Thread::current()->setName(fmt::format("WebRTTYRequest_WSHandler_{}", T[2]));
-			new RTTYS_ClientConnection(request, response, T[2], R_, Logger_);
-			Logger_.information("Websocket has finished");
+			std::cout << "Creating websocket end point for a RTTY client" << std::endl;
+			auto WS = new Poco::Net::WebSocket(request, response);
+			new RTTYS_ClientConnection(WS, Logger_, T[2]);
+			std::cout << "Ending web server websocket creation end point for RTTY" << std::endl;
 		} catch (...) {
 			Logger_.warning("Exception during WS creation");
 		}
@@ -205,8 +207,8 @@ namespace OpenWifi {
 		Logger_.information(fmt::format("{}: Finishing request.",id));
 	}
 
-	RTTY_Client_RequestHandlerFactory::RTTY_Client_RequestHandlerFactory(Poco::Net::SocketReactor &R, Poco::Logger & L)
-		: Reactor_(R), Logger_(L) {}
+	RTTY_Client_RequestHandlerFactory::RTTY_Client_RequestHandlerFactory(Poco::Logger & L)
+		: Logger_(L) {}
 
 	Poco::Net::HTTPRequestHandler *
 	RTTY_Client_RequestHandlerFactory::createRequestHandler(const Poco::Net::HTTPServerRequest &request) {
@@ -214,7 +216,7 @@ namespace OpenWifi {
 			if (request.find("Upgrade") != request.end() &&
 				Poco::icompare(request["Upgrade"], "websocket") == 0) {
 				Poco::Thread::current()->setName("WebRTTYRequest_WSHandler");
-				return new RTTY_Client_WebSocketRequestHandler(Reactor_, Logger_);
+				return new RTTY_Client_WebSocketRequestHandler(Logger_);
 			} else {
 				Poco::Thread::current()->setName("WebRTTYRequest_PageHandler");
 				return new PageRequestHandler(Logger_);
