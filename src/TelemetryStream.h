@@ -47,7 +47,6 @@ namespace OpenWifi {
 		void UpdateEndPoint(uint64_t SerialNumber, const std::string &PayLoad);
 		bool RegisterClient(const std::string &UUID, TelemetryClient *Client);
 		void DeRegisterClient(const std::string &UUID);
-		// Poco::Net::SocketReactor & NextReactor() { return ReactorPool_.NextReactor(); }
 		Poco::Net::SocketReactor & NextReactor() { return Reactor_; }
 
 		void onMessage(bool& b);
