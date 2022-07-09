@@ -27,6 +27,11 @@ namespace OpenWifi {
     inline uint64_t Now() { return std::time(nullptr); };
 }
 
+namespace OpenWifi::Utils {
+    std::vector<unsigned char> base64decode(const std::string& input);
+    std::string base64encode(const unsigned char *input, uint32_t size);
+}
+
 using namespace std::chrono_literals;
 
 #include "Poco/Util/Application.h"
@@ -238,6 +243,11 @@ namespace OpenWifi::RESTAPI_utils {
         Obj.set(Field,Value);
     }
 
+    inline void field_to_json(Poco::JSON::Object &Obj, const char *Field, const Poco::Data::BLOB &Value) {
+        auto Result = Utils::base64encode((const unsigned char *)Value.rawContent(),Value.size());
+        Obj.set(Field,Result);
+    }
+
     inline void field_to_json(Poco::JSON::Object &Obj, const char *Field, const Types::StringPairVec & S) {
         Poco::JSON::Array   Array;
         for(const auto &i:S) {
@@ -334,12 +344,12 @@ namespace OpenWifi::RESTAPI_utils {
 
     inline void field_from_json(const Poco::JSON::Object::Ptr &Obj, const char *Field, double & Value) {
         if(Obj->has(Field) && !Obj->isNull(Field))
-            Value = (double) Obj->get(Field);
+            Value = (double)Obj->get(Field);
     }
 
     inline void field_from_json(const Poco::JSON::Object::Ptr &Obj, const char *Field, float & Value) {
         if(Obj->has(Field) && !Obj->isNull(Field))
-            Value = (float) Obj->get(Field);
+            Value = (float)Obj->get(Field);
     }
 
     inline void field_from_json(const Poco::JSON::Object::Ptr &Obj, const char *Field, bool &Value) {
@@ -374,7 +384,14 @@ namespace OpenWifi::RESTAPI_utils {
 
     inline void field_from_json(const Poco::JSON::Object::Ptr &Obj, const char *Field, uint64_t &Value) {
         if(Obj->has(Field) && !Obj->isNull(Field))
-            Value = (uint64_t ) Obj->get(Field);
+            Value = (uint64_t)Obj->get(Field);
+    }
+
+    inline void field_from_json(const Poco::JSON::Object::Ptr &Obj, const char *Field, Poco::Data::BLOB &Value) {
+        if(Obj->has(Field) && !Obj->isNull(Field)) {
+            auto Result = Utils::base64decode(Obj->get(Field).toString());
+            Value.assignRaw((const unsigned char *)&Result[0],Result.size());
+        }
     }
 
     inline void field_from_json(const Poco::JSON::Object::Ptr &Obj, const char *Field, Types::StringPairVec &Vec) {
@@ -2063,6 +2080,17 @@ namespace OpenWifi {
             }
             return false;
         }
+
+        static inline bool AssignIfPresent(const Poco::JSON::Object::Ptr &O, const std::string &Field, Poco::Data::BLOB &Value) {
+            if(O->has(Field)) {
+                std::string Content = O->get(Field).toString();
+                auto DecodedBlob = Utils::base64decode(Content);
+                Value.assignRaw((const unsigned char *)&DecodedBlob[0],DecodedBlob.size());
+                return true;
+            }
+            return false;
+        }
+
 
         template <typename T> bool AssignIfPresent(const Poco::JSON::Object::Ptr &O, const std::string &Field, const T &value, T & assignee) {
             if(O->has(Field)) {
@@ -4992,8 +5020,12 @@ namespace OpenWifi {
 
         for(const auto &client:Clients_) {
             if(client.second.second == UserName) {
-                if(client.second.first->Send(Payload))
-                    Sent++;
+				try {
+					if (client.second.first->Send(Payload))
+						Sent++;
+				} catch (...) {
+					return false;
+				}
             }
         }
         return Sent>0;
@@ -5015,70 +5047,70 @@ namespace OpenWifi {
         int flags;
         int n;
         bool Done=false;
-        Poco::Buffer<char>			IncomingFrame(0);
-        n = WS_->receiveFrame(IncomingFrame, flags);
-        auto Op = flags & Poco::Net::WebSocket::FRAME_OP_BITMASK;
+		try {
+			Poco::Buffer<char> IncomingFrame(0);
+			n = WS_->receiveFrame(IncomingFrame, flags);
+			auto Op = flags & Poco::Net::WebSocket::FRAME_OP_BITMASK;
 
-        if(n==0) {
-            return delete this;
-        }
+			if (n == 0) {
+				return delete this;
+			}
 
-        switch(Op) {
-            case Poco::Net::WebSocket::FRAME_OP_PING: {
-                WS_->sendFrame("", 0,
-                               (int)Poco::Net::WebSocket::FRAME_OP_PONG |
-                               (int)Poco::Net::WebSocket::FRAME_FLAG_FIN);
-            }
-                break;
-            case Poco::Net::WebSocket::FRAME_OP_PONG: {
-            }
-                break;
-            case Poco::Net::WebSocket::FRAME_OP_CLOSE: {
-                Logger().warning(Poco::format("CLOSE(%s): Client is closing its connection.",Id_));
-                Done=true;
-            }
-                break;
-            case Poco::Net::WebSocket::FRAME_OP_TEXT: {
-                IncomingFrame.append(0);
-                if(!Authenticated_) {
-                    std::string Frame{IncomingFrame.begin()};
-                    auto Tokens = Utils::Split(Frame,':');
-                    bool Expired = false, Contacted = false;
-                    if(Tokens.size()==2 && AuthClient()->IsAuthorized(Tokens[1], UserInfo_, Expired, Contacted)) {
-                        Authenticated_=true;
-                        std::string S{"Welcome! Bienvenue! Bienvenidos!"};
-                        WS_->sendFrame(S.c_str(),S.size());
-                        WebSocketClientServer()->SetUser(Id_,UserInfo_.userinfo.email);
-                    } else {
-                        std::string S{"Invalid token. Closing connection."};
-                        WS_->sendFrame(S.c_str(),S.size());
-                        Done=true;
-                    }
+			switch (Op) {
+			case Poco::Net::WebSocket::FRAME_OP_PING: {
+				WS_->sendFrame("", 0,
+							   (int)Poco::Net::WebSocket::FRAME_OP_PONG |
+								   (int)Poco::Net::WebSocket::FRAME_FLAG_FIN);
+			} break;
+			case Poco::Net::WebSocket::FRAME_OP_PONG: {
+			} break;
+			case Poco::Net::WebSocket::FRAME_OP_CLOSE: {
+				Logger().warning(Poco::format("CLOSE(%s): Client is closing its connection.", Id_));
+				Done = true;
+			} break;
+			case Poco::Net::WebSocket::FRAME_OP_TEXT: {
+				IncomingFrame.append(0);
+				if (!Authenticated_) {
+					std::string Frame{IncomingFrame.begin()};
+					auto Tokens = Utils::Split(Frame, ':');
+					bool Expired = false, Contacted = false;
+					if (Tokens.size() == 2 &&
+						AuthClient()->IsAuthorized(Tokens[1], UserInfo_, Expired, Contacted)) {
+						Authenticated_ = true;
+						std::string S{"Welcome! Bienvenue! Bienvenidos!"};
+						WS_->sendFrame(S.c_str(), S.size());
+						WebSocketClientServer()->SetUser(Id_, UserInfo_.userinfo.email);
+					} else {
+						std::string S{"Invalid token. Closing connection."};
+						WS_->sendFrame(S.c_str(), S.size());
+						Done = true;
+					}
 
-                } else {
-                    try {
-                        Poco::JSON::Parser P;
-                        auto Obj = P.parse(IncomingFrame.begin())
-                                .extract<Poco::JSON::Object::Ptr>();
-                        std::string Answer;
-                        if(Processor_!= nullptr)
-                            Processor_->Processor(Obj, Answer, Done);
-                        if (!Answer.empty())
-                            WS_->sendFrame(Answer.c_str(), (int) Answer.size());
-                        else {
-                            WS_->sendFrame("{}", 2);
-                        }
-                    } catch (const Poco::JSON::JSONException & E) {
-                        Logger().log(E);
-                    }
-                }
-            }
-                break;
-            default:
-            {
-
-            }
-        }
+				} else {
+					try {
+						Poco::JSON::Parser P;
+						auto Obj =
+							P.parse(IncomingFrame.begin()).extract<Poco::JSON::Object::Ptr>();
+						std::string Answer;
+						if (Processor_ != nullptr)
+							Processor_->Processor(Obj, Answer, Done);
+						if (!Answer.empty())
+							WS_->sendFrame(Answer.c_str(), (int)Answer.size());
+						else {
+							WS_->sendFrame("{}", 2);
+						}
+					} catch (const Poco::JSON::JSONException &E) {
+						Logger().log(E);
+						Done=true;
+					}
+				}
+			} break;
+			default: {
+			}
+			}
+		} catch (...) {
+			Done=true;
+		}
 
         if(Done) {
             delete this;
