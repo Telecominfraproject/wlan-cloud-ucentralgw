@@ -200,7 +200,9 @@ namespace OpenWifi {
 		auto It = EndPoints_.find(Id);
 		if(It!=EndPoints_.end() && It->second.Client==Client) {
 			if(It->second.Device!=nullptr && It->second.Device->Valid()) {
+				std::cout << __LINE__ << std::endl;
 				It->second.Device->EndConnection();
+				std::cout << __LINE__ << std::endl;
 			}
 			It->second.ClientConnected=0;
 		}
@@ -212,8 +214,11 @@ namespace OpenWifi {
 		auto It = EndPoints_.find(Id);
 		if(It!=EndPoints_.end() && It->second.Device==Device) {
 			It->second.DeviceConnected = 0 ;
-			if(It->second.Client!=nullptr && It->second.Client->Valid())
+			if(It->second.Client!=nullptr && It->second.Client->Valid()) {
+				std::cout << __LINE__ << std::endl;
 				It->second.Client->Close();
+				std::cout << __LINE__ << std::endl;
+			}
 		}
 		Logger().information(fmt::format("{}: Deregistered device.", Device->SessionID()));
 	}
@@ -313,6 +318,7 @@ namespace OpenWifi {
 	}
 
 	uint64_t RTTYS_server::DeviceSessionID(const std::string & Id) {
+		std::lock_guard	G(Mutex_);
 		auto it = EndPoints_.find(Id);
 		if(it==EndPoints_.end()) {
 			return 0;
@@ -327,16 +333,12 @@ namespace OpenWifi {
 
 	bool RTTYS_server::Login(const std::string & Id) {
 		std::lock_guard	G(Mutex_);
-
 		auto It = EndPoints_.find(Id);
 		if(It == EndPoints_.end()) {
 			return false;
 		}
 
 		if(It->second.Device!= nullptr) {
-//			std::cout << "login " << Id << " session " << It->second.Device->SessionID() << std::endl;
-//			It->second.Device->AddCommand(RTTY_Device_ConnectionHandler::msgTypeLogin);
-//			std::cout << "login done" << Id << std::endl;
 			return It->second.Device->Login();
 		}
 
@@ -363,8 +365,11 @@ namespace OpenWifi {
 			return false;
 		}
 
-		if(It->second.Device!= nullptr)
+		if(It->second.Device!= nullptr) {
+			std::cout << __LINE__ << std::endl;
 			It->second.Device->EndConnection();
+			std::cout << __LINE__ << std::endl;
+		}
 		return true;
 	}
 }
