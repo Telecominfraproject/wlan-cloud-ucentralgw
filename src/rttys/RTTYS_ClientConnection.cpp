@@ -80,6 +80,7 @@ namespace OpenWifi {
 					*WS_, Poco::NObserver<RTTYS_ClientConnection, Poco::Net::ShutdownNotification>(
 							  *this, &RTTYS_ClientConnection::onSocketShutdown));
 			}
+			WS_->shutdown();
 			Logger().information(fmt::format("{}: Client disconnected.", Id_));
 		}
 		Connected_=Valid_=false;
