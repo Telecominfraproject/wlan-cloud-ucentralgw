@@ -112,7 +112,7 @@ namespace OpenWifi {
 		Utils::SetThreadName("rt:webserver");
 		uint64_t id = rtty_ws_id++;
 
-		Logger_.information(fmt::format("{}: Starting request.",id));
+		poco_debug(Logger(),fmt::format("{}: Starting request.",id));
 		Poco::URI uri(request.getURI());
 		auto Path = uri.getPath();
 
@@ -134,7 +134,7 @@ namespace OpenWifi {
 			if (ParsedPath.count() > 1) {
 				if (ParsedPath[1] == "connect") {
 					response.redirect(Poco::replace(Path,"/connect/","/rtty/"));
-					RTTYS_server()->Logger().information(fmt::format("redirect: {}",Path));
+					poco_debug(Logger(),fmt::format("redirect: {}",Path));
 					return;
 				} else if (ParsedPath[1] == "authorized") {
 					SetCommonHeaders(request,response, false);
@@ -143,7 +143,7 @@ namespace OpenWifi {
 					response.setContentType("application/json");
 					std::ostream &answer = response.send();
 					answer << to_string(doc);
-					Logger_.information(fmt::format("{}: Finishing authorization request.",id));
+					poco_debug(Logger(),fmt::format("{}: Finishing authorization request.",id));
 					return;
 				} else if (ParsedPath[1] == "fontsize") {
 					SetCommonHeaders(request,response, false);
@@ -152,7 +152,7 @@ namespace OpenWifi {
 					response.setContentType("application/json");
 					std::ostream &answer = response.send();
 					answer << to_string(doc);
-					Logger_.information(fmt::format("{}: Finishing font size request.",id));
+					poco_debug(Logger(),fmt::format("{}: Finishing font size request.",id));
 					return;
 				}
 			}
@@ -160,12 +160,12 @@ namespace OpenWifi {
 		}
 
 		if(Path.find("../")!=std::string::npos) {
-			Logger_.information(fmt::format("{}: Finishing request.",id));
+			poco_debug(Logger(),fmt::format("{}: Finishing request.",id));
 			return;
 		}
 
 		if(Path.find("~/")!=std::string::npos) {
-			Logger_.information(fmt::format("{}: Finishing request.",id));
+			poco_debug(Logger(),fmt::format("{}: Finishing request.",id));
 			return;
 		}
 
@@ -175,7 +175,7 @@ namespace OpenWifi {
 			// std::cout << id << ": Path " << Path << " does not exist" << std::endl;
 			Path = RTTYS_server()->UIAssets() + "/index.html";
 			response.sendFile(Path,"text/html");
-			Logger_.information(fmt::format("{}: Finishing request.",id));
+			poco_debug(Logger(),fmt::format("{}: Finishing request.",id));
 			return;
 		}
 		Poco::Path P(Path);
@@ -192,7 +192,7 @@ namespace OpenWifi {
 		}  else if (Ext == "css") {
 			Type = "text/css; charset=utf-8";
 			if(IsFileGZipped(Path)) {
-				Logger_.information(fmt::format("{}: Downloading UI Assets.",id));
+				poco_debug(Logger(),fmt::format("{}: Downloading UI Assets.",id));
 				response.set("Content-Encoding", "gzip");
 			}
 		}  else if (Ext == "ico")
@@ -206,7 +206,7 @@ namespace OpenWifi {
 
 		response.setContentLength(F.getSize());
 		response.sendFile(Path, Type);
-		Logger_.information(fmt::format("{}: Finishing request.",id));
+		poco_debug(Logger(),fmt::format("{}: Finishing request.",id));
 	}
 
 	RTTY_Client_RequestHandlerFactory::RTTY_Client_RequestHandlerFactory(Poco::Logger & L)

@@ -92,6 +92,7 @@ namespace OpenWifi {
 		if(Internal_) {
 			Timer_.stop();
 			WebServer_->stopAll();
+			WebServer_->stop();
 			DeviceAcceptor_->unregisterAcceptor();
 			DeviceReactor_.stop();
 			DeviceReactorThread_.join();
