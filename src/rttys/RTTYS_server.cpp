@@ -120,29 +120,23 @@ namespace OpenWifi {
 
 	void RTTYS_server::Register(const std::string &Id, RTTYS_ClientConnection *Client) {
 		std::lock_guard	G(Mutex_);
-		dump("C REG--> ", std::cout);
 		auto It = EndPoints_.find(Id);
 		if(It!=EndPoints_.end()) {
 			It->second.Client = Client;
 			It->second.ClientConnected = OpenWifi::Now();
-			dump("C REG--> ", std::cout);
 		}
-		dump("C Already REG--> ", std::cout);
 	}
 
 	bool RTTYS_server::Register(const std::string &Id, const std::string &Token, RTTY_Device_ConnectionHandler *Device) {
 		std::lock_guard	G(Mutex_);
-		dump("D REG--> ", std::cout);
 		auto It = EndPoints_.find(Id);
 		if(It!=EndPoints_.end()) {
 			It->second.Device = Device;
 			It->second.Token = Token;
 			It->second.DeviceConnected = OpenWifi::Now();
 			Logger().information(fmt::format("Creating session: {}, device:'{}'",Id,It->second.SerialNumber));
-			dump("D REG--> ", std::cout);
 			return true;
 		}
-		dump("D Already REG--> ", std::cout);
 		return false;
 	}
 
@@ -164,7 +158,7 @@ namespace OpenWifi {
 		std::lock_guard	G(Mutex_);
 		try {
 		auto It = EndPoints_.find(Id);
-		if(It!=EndPoints_.end() && It->second.Client!= nullptr) {
+		if(It!=EndPoints_.end() && It->second.Client!= nullptr && It->second.Client->Valid()) {
 			It->second.Client->SendData(s);
 			return true;
 		}

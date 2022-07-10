@@ -28,17 +28,27 @@ namespace OpenWifi {
 		void Close();
 
 		void CompleteLogin();
+
 		[[nodiscard]] inline std::string ID() { return Id_; }
+		[[nodiscard]] inline auto Valid() {
+			std::lock_guard	G(Mutex_);
+			return Valid_;
+		}
+		using MyMutexType = std::mutex;
+		using Guard = std::lock_guard<MyMutexType>;
+
+		void EndConnection(Guard &G);
 
 	  private:
 		Poco::Net::WebSocket		*WS_= nullptr;
 		Poco::Logger & 				Logger_;
 		std::string 				Id_;
 		std::string 				Sid_;
-		mutable std::atomic_bool 	Connected_=false;
+		mutable bool 				Connected_=false;
+		mutable bool 				Valid_=false;
 		u_char 						Buffer_[16000]{0};
-		mutable bool 				CloseConnection_=false;
-		std::mutex					Mutex_;
+		MyMutexType					Mutex_;
+
 		mutable std::atomic_bool 	aborting_connection_ = false;
 		mutable std::atomic_bool	completing_connection_ = false;
 
