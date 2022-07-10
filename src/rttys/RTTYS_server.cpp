@@ -85,11 +85,16 @@ namespace OpenWifi {
 		Timer_.setPeriodicInterval(1 * 60 * 1000);
 		Timer_.start(*GCCallBack_);
 
+		NotificationManager_.start(*this);
 		return 0;
 	}
 
 	void RTTYS_server::Stop() {
 		if(Internal_) {
+			NotificationManagerRunning_=false;
+			ResponseQueue_.wakeUpAll();
+			NotificationManager_.wakeUp();
+			NotificationManager_.join();
 			Timer_.stop();
 			WebServer_->stopAll();
 			WebServer_->stop();
@@ -133,6 +138,27 @@ namespace OpenWifi {
 		for(auto &element:FailedDevices) {
 			std::cout << __LINE__ << std::endl;
 			delete element;
+		}
+	}
+
+	void RTTYS_server::run() {
+		Utils::SetThreadName("rtty-mgr");
+		NotificationManagerRunning_ = true;
+		Poco::AutoPtr<Poco::Notification> NextMsg(ResponseQueue_.waitDequeueNotification());
+		while (NextMsg && NotificationManagerRunning_) {
+			auto Resp = dynamic_cast<RTTY_DisconnectNotification *>(NextMsg.get());
+			if (Resp != nullptr) {
+				std::lock_guard G(M_);
+				auto It = EndPoints_.find(Resp->id_);
+				if (It != EndPoints_.end()) {
+					if (Resp->device_ && It->second.Client->Valid()) {
+						It->second.Client->EndConnection();
+					} else if (!Resp->device_ && It->second.Device->Valid()) {
+						It->second.Device->EndConnection();
+					}
+				}
+				NextMsg = ResponseQueue_.waitDequeueNotification();
+			}
 		}
 	}
 

@@ -23,9 +23,6 @@ namespace OpenWifi {
 
 		void SendData( const u_char *Buf, size_t len );
 		void SendData( const std::string & S, bool login=false);
-
-		void Close();
-
 		void CompleteLogin();
 
 		[[nodiscard]] inline std::string ID() { return Id_; }
@@ -37,6 +34,10 @@ namespace OpenWifi {
 		using Guard = std::lock_guard<MyMutexType>;
 
 		void EndConnection(Guard &G);
+		inline void EndConnection() {
+			Guard G(Mutex_);
+			EndConnection(G);
+		}
 
 	  private:
 		Poco::Net::WebSocket		*WS_= nullptr;

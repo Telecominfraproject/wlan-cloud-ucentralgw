@@ -15,7 +15,18 @@ namespace OpenWifi {
 	class RTTY_Device_ConnectionHandler;
 	class RTTYS_ClientConnection;
 
-	class RTTYS_server : public SubSystemServer
+	class RTTY_DisconnectNotification: public Poco::Notification {
+	  public:
+		RTTY_DisconnectNotification(const std::string &id, bool device) :
+				id_(id),
+				device_(device) {
+
+		}
+		std::string			id_;
+		bool				device_=false;
+	};
+
+	class RTTYS_server : public SubSystemServer, Poco::Runnable
 	{
 	  public:
 		static auto instance() {
@@ -51,6 +62,13 @@ namespace OpenWifi {
 		inline void AddFailedDevice(RTTY_Device_ConnectionHandler *Device) {
 			std::lock_guard	G(M_);
 			FailedDevices.push_back(Device);
+		}
+
+		void run() final;
+
+		inline void DisconnectNotice(const std::string &id, bool device) {
+			std::lock_guard		G(M_);
+			ResponseQueue_.enqueueNotification(new RTTY_DisconnectNotification(id,device));
 		}
 
 		struct EndPoint {
@@ -95,6 +113,9 @@ namespace OpenWifi {
 		std::unique_ptr<Poco::Net::HTTPServer>		WebServer_;
 		std::unique_ptr<Poco::Net::SocketAcceptor<RTTY_Device_ConnectionHandler>>	DeviceAcceptor_;
 		Poco::Thread								DeviceReactorThread_;
+		Poco::NotificationQueue						ResponseQueue_;
+		mutable bool 								NotificationManagerRunning_=false;
+		Poco::Thread								NotificationManager_;
 
 		Poco::Timer                     					Timer_;
 		std::unique_ptr<Poco::TimerCallback<RTTYS_server>>  GCCallBack_;

@@ -92,11 +92,6 @@ namespace OpenWifi {
 		}
 	}
 
-	void RTTYS_ClientConnection::Close() {
-		Guard G(Mutex_);
-		EndConnection(G);
-	}
-
 	void RTTYS_ClientConnection::onSocketReadable([[maybe_unused]] const Poco::AutoPtr<Poco::Net::ReadableNotification> &pNf) {
 		std::lock_guard	G(Mutex_);
 		bool MustDisconnect = false;
