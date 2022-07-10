@@ -57,9 +57,7 @@ namespace OpenWifi {
 			EndConnection(G);
 		}
 
-		inline bool Valid() {
-			std::lock_guard	G(M_);
-			return valid_;
+		inline bool Valid() {return valid_;
 		}
 
 	  private:

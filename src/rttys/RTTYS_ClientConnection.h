@@ -26,10 +26,7 @@ namespace OpenWifi {
 		void CompleteLogin();
 
 		[[nodiscard]] inline std::string ID() { return Id_; }
-		[[nodiscard]] inline auto Valid() {
-			std::lock_guard	G(Mutex_);
-			return Valid_;
-		}
+		[[nodiscard]] inline auto Valid() {	return Valid_;	}
 		using MyMutexType = std::mutex;
 		using Guard = std::lock_guard<MyMutexType>;
 
