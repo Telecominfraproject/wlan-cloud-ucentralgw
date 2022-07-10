@@ -78,7 +78,6 @@ namespace OpenWifi {
 
     int CommandManager::Start() {
         Logger().notice("Starting...");
-		ManagerThread.setStackSize(2000000);
         ManagerThread.start(*this);
 		JanitorCallback_ = std::make_unique<Poco::TimerCallback<CommandManager>>(*this,&CommandManager::onJanitorTimer);
 		JanitorTimer_.setStartInterval( 10000 );
@@ -90,15 +89,11 @@ namespace OpenWifi {
 		CommandRunnerTimer_.setPeriodicInterval(30 * 1000); // 1 hours
 		CommandRunnerTimer_.start(*CommandRunnerCallback_);
 
-		// RPCResponseQueue_->Readable_ += Poco::delegate(this,&CommandManager::onRPCAnswer);
-		// RPCResponseQueue_->Writable_ += Poco::delegate(this,&CommandManager::onRPCAnswer);
         return 0;
     }
 
     void CommandManager::Stop() {
         Logger().notice("Stopping...");
-		// RPCResponseQueue_->Readable_ -= Poco::delegate(this,&CommandManager::onRPCAnswer);
-		// RPCResponseQueue_->Writable_ -= Poco::delegate(this,&CommandManager::onRPCAnswer);
 		Running_ = false;
 		JanitorTimer_.stop();
 		CommandRunnerTimer_.stop();
@@ -221,11 +216,13 @@ namespace OpenWifi {
 			}
 		}
 
+		Logger().information(fmt::format("{}: Sending command. ID: {}", UUID, Idx.Id));
 		if(DeviceRegistry()->SendFrame(SerialNumber, ToSend.str())) {
 			Logger().information(fmt::format("{}: Sent command. ID: {}", UUID, Idx.Id));
 			Sent=true;
 			return Object->rpc_entry;
 		}
+		Logger().information(fmt::format("{}: Failed to send command. ID: {}", UUID, Idx.Id));
 		return nullptr;
 	}
 }  // namespace
