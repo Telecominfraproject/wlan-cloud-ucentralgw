@@ -339,6 +339,8 @@ namespace OpenWifi {
 	}
 
 	bool RTTY_Device_ConnectionHandler::do_msgTypeHeartbeat([[maybe_unused]] std::size_t msg_len) {
+		if(!RTTYS_server()->ValidClient(id_))
+			return false;
 		u_char MsgBuf[3]{0};
 		MsgBuf[0] = msgTypeHeartbeat;
 		return socket_.sendBytes(MsgBuf, 3)==3;

@@ -155,6 +155,12 @@ namespace OpenWifi {
 		return false;
 	}
 
+	bool RTTYS_server::ValidClient(const std::string &Id) {
+		std::lock_guard	G(Mutex_);
+		auto It = EndPoints_.find(Id);
+		return It!=EndPoints_.end() && It->second.Client!= nullptr && It->second.Client->Valid();
+	}
+
 	bool RTTYS_server::SendToClient(const std::string &Id, const std::string &s) {
 		std::lock_guard	G(Mutex_);
 		try {

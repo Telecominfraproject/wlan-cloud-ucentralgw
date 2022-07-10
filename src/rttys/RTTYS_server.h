@@ -46,6 +46,7 @@ namespace OpenWifi {
 		bool WindowSize(const std::string &Id, int cols, int rows);
 		bool SendToClient(const std::string &id, const u_char *Buf, std::size_t Len);
 		bool SendToClient(const std::string &id, const std::string &s);
+		bool ValidClient(const std::string &id);
 		bool ValidId(const std::string &Id);
 
 		struct EndPoint {

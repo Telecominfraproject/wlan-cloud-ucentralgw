@@ -818,7 +818,6 @@ namespace OpenWifi {
 			return BadRequest(RESTAPI::Errors::DeviceNotConnected);
 		}
 
-		Logger_.information(fmt::format("RTTY: user={} serial={}. Getting configuration.", UserInfo_.userinfo.email,SerialNumber_));
 		if (MicroService::instance().ConfigGetBool("rtty.enabled", false)) {
 			GWObjects::Device	Device;
 
