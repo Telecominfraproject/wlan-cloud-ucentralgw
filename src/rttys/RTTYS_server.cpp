@@ -104,18 +104,17 @@ namespace OpenWifi {
 		Logger().debug("Removing stale connections.");
 		std::lock_guard	G(Mutex_);
 		Utils::SetThreadName("rt:janitor");
-		// Logger().debug(fmt::format("Current: connections:{} threads:{}.", DeviceAcceptor_->currentConnections(), DeviceAcceptor_->currentThreads()));
-		auto now = OpenWifi::Now();
 		dump("GC  ", std::cout);
 		for(auto element=EndPoints_.begin();element!=EndPoints_.end();) {
-			if( element->second.ShutdownComplete ||
-				(element->second.ShuttingDown && (now-element->second.TimeStamp>600))) {
+			if(element->second.Client!=nullptr && !element->second.Client->Valid()) {
+				delete element->second.Client;
+				element->second.Client = nullptr;
+				poco_debug(Logger(), fmt::format("Removing {}.",element->first));
 				element = EndPoints_.erase(element);
 			} else {
 				++element;
 			}
 		}
-		dump("GC  ", std::cout);
 	}
 
 	void RTTYS_server::Register(const std::string &Id, RTTYS_ClientConnection *Client) {
@@ -144,7 +143,7 @@ namespace OpenWifi {
 		std::lock_guard	G(Mutex_);
 		try {
 			auto It = EndPoints_.find(Id);
-			if (It != EndPoints_.end() && It->second.Client != nullptr) {
+			if (It != EndPoints_.end() && It->second.Client != nullptr && It->second.Client->Valid()) {
 				It->second.Client->SendData(Buf, Len);
 				return true;
 			}
@@ -189,7 +188,6 @@ namespace OpenWifi {
 				}
 			}
 			It->second.ClientConnected=0;
-			It->second.Client= nullptr;
 		}
 		Logger().information("{}: Deregistered.", Client->ID());
 	}

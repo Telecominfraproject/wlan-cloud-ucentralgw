@@ -16,21 +16,18 @@ namespace OpenWifi {
 			Logger_(L),
 		  	Id_(std::move(Id))
 		{
+			Logger().information(fmt::format("{}: Client starting connection, session: {}.",
+											 Id_, RTTYS_server()->DeviceSessionID(Id_)));
+			RTTYS_server()->ClientReactor().addEventHandler(
+				*WS_, Poco::NObserver<RTTYS_ClientConnection, Poco::Net::ReadableNotification>(
+						  *this, &RTTYS_ClientConnection::onSocketReadable));
+			RTTYS_server()->ClientReactor().addEventHandler(
+				*WS_, Poco::NObserver<RTTYS_ClientConnection, Poco::Net::ShutdownNotification>(
+						  *this, &RTTYS_ClientConnection::onSocketShutdown));
 
-		//WS_ = new Poco::Net::WebSocket(Request, Response);
-		RTTYS_server()->Register(Id_, this);
-		Logger().information(fmt::format("{}: Client starting connection, session: {}.",
-										 Id_, RTTYS_server()->DeviceSessionID(Id_)));
-		RTTYS_server()->ClientReactor().addEventHandler(
-			*WS_, Poco::NObserver<RTTYS_ClientConnection, Poco::Net::ReadableNotification>(
-					  *this, &RTTYS_ClientConnection::onSocketReadable));
-		RTTYS_server()->ClientReactor().addEventHandler(
-			*WS_, Poco::NObserver<RTTYS_ClientConnection, Poco::Net::ShutdownNotification>(
-					  *this, &RTTYS_ClientConnection::onSocketShutdown));
-
-		std::thread T([=]() { CompleteLogin(); });
-		T.detach();
-	}
+			std::thread T([=]() { CompleteLogin(); });
+			T.detach();
+		}
 
 	void RTTYS_ClientConnection::CompleteLogin() {
 		int tries = 0;
