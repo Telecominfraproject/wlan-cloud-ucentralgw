@@ -110,7 +110,7 @@ namespace OpenWifi {
 					   Poco::Net::HTTPServerResponse &response) {
 
 		Utils::SetThreadName("rt:webserver");
-		uint64_t id = rtty_ws_id++;
+		[[maybe_unused]] uint64_t id = rtty_ws_id++;
 
 		poco_debug(Logger(),fmt::format("{}: Starting request.",id));
 		Poco::URI uri(request.getURI());
@@ -134,7 +134,7 @@ namespace OpenWifi {
 			if (ParsedPath.count() > 1) {
 				if (ParsedPath[1] == "connect") {
 					response.redirect(Poco::replace(Path,"/connect/","/rtty/"));
-					poco_debug(Logger(),fmt::format("redirect: {}",Path));
+					poco_debug(Logger(),fmt::format("{}: Redirect: {}",id,Path));
 					return;
 				} else if (ParsedPath[1] == "authorized") {
 					SetCommonHeaders(request,response, false);
