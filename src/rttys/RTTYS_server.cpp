@@ -152,13 +152,14 @@ namespace OpenWifi {
 				auto It = EndPoints_.find(Resp->id_);
 				if (It != EndPoints_.end()) {
 					if (Resp->device_ && It->second.Client->Valid()) {
-						It->second.Client->EndConnection();
-					} else if (!Resp->device_ && It->second.Device->Valid()) {
-						It->second.Device->EndConnection();
+						Logger().information(fmt::format("{}: Device disconnecting.", Resp->id_));
+						It->second.Client->EndConnection(true);
+					} else if(!Resp->device_ && It->second.Device->Valid()) {
+						Logger().information(fmt::format("{}: Client disconnecting.", Resp->id_));
+						It->second.Device->EndConnection(true);
 					}
 				}
 			}
-			std::cout << "Disconnection notification..." << std::endl;
 			NextMsg = ResponseQueue_.waitDequeueNotification();
 		}
 	}
@@ -394,7 +395,7 @@ namespace OpenWifi {
 
 		if(It->second.Device!= nullptr) {
 			std::cout << __LINE__ << std::endl;
-			It->second.Device->EndConnection();
+			It->second.Device->EndConnection(true);
 			std::cout << __LINE__ << std::endl;
 		}
 		return true;

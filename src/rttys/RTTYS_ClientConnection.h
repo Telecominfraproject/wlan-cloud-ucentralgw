@@ -30,10 +30,10 @@ namespace OpenWifi {
 		using MyMutexType = std::mutex;
 		using Guard = std::lock_guard<MyMutexType>;
 
-		void EndConnection(Guard &G);
-		inline void EndConnection() {
+		void EndConnection(bool external, Guard &G);
+		inline void EndConnection(bool external) {
 			Guard G(Mutex_);
-			EndConnection(G);
+			EndConnection(external, G);
 		}
 
 	  private:

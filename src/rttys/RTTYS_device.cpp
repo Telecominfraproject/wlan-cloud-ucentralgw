@@ -51,17 +51,17 @@ namespace OpenWifi {
 			poco_warning(Logger(),
 				fmt::format("{}: Device caused exception while completing connection.", device_address_.toString()));
 			Guard G(M_);
-			EndConnection(G);
+			EndConnection(false,G);
 		}
 	}
 
 	RTTY_Device_ConnectionHandler::~RTTY_Device_ConnectionHandler() {
 		Guard G(M_);
 		if(valid_)
-			EndConnection(G);
+			EndConnection(false,G);
 	}
 
-	void RTTY_Device_ConnectionHandler::EndConnection([[maybe_unused]] Guard & G) {
+	void RTTY_Device_ConnectionHandler::EndConnection(bool external, [[maybe_unused]] Guard & G) {
 		try {
 			if(valid_) {
 				valid_=false;
@@ -77,10 +77,11 @@ namespace OpenWifi {
 				if (registered_) {
 					poco_debug(Logger(),
 							   fmt::format("{}: Deregistering.", device_address_.toString()));
-					RTTYS_server()->DeRegisterDevice(Id_, this, web_socket_active_);
+						RTTYS_server()->DeRegisterDevice(Id_, this, web_socket_active_);
 					poco_debug(Logger(),
 							   fmt::format("{}: Deregistered.", device_address_.toString()));
-					RTTYS_server()->DisconnectNotice(Id_,true);
+					if(!external)
+						RTTYS_server()->DisconnectNotice(Id_,true);
 				} else {
 					RTTYS_server()->AddFailedDevice(this);
 				}
@@ -99,7 +100,7 @@ namespace OpenWifi {
 			auto received_bytes = socket_.receiveBytes(inBuf_);
 			if(received_bytes==0) {
 				// std::cout << "No data received" << std::endl;
-				return EndConnection(G);
+				return EndConnection(false,G);
 			}
 
 			// std::cout << "Received: " << received_bytes << std::endl;
@@ -154,12 +155,12 @@ namespace OpenWifi {
 		}
 
 		if(!good)
-			return EndConnection(G);
+			return EndConnection(false,G);
 	}
 
 	void RTTY_Device_ConnectionHandler::onSocketShutdown([[maybe_unused]] const Poco::AutoPtr<Poco::Net::ShutdownNotification>& pNf) {
 		Guard G(M_);
-		EndConnection(G);
+		EndConnection(false,G);
 	}
 
 	bool RTTY_Device_ConnectionHandler::SendToClient(const u_char *Buf, int Len) {
