@@ -106,18 +106,21 @@ namespace OpenWifi {
 		std::lock_guard	G(Mutex_);
 		Utils::SetThreadName("rt:janitor");
 		for(auto element=EndPoints_.begin();element!=EndPoints_.end();) {
+			std::cout << __LINE__ << std::endl;
 			if(element->second.Client!=nullptr && !element->second.Client->Valid()) {
 				std::cout << "Removing client:" << element->first << std::endl;
 				delete element->second.Client;
 				element->second.Client = nullptr;
 			}
 
+			std::cout << __LINE__ << std::endl;
 			if(element->second.Device!= nullptr && !element->second.Device->Valid()) {
 				std::cout << "Removing device:" << element->first << std::endl;
 				delete element->second.Device;
 				element->second.Device = nullptr;
 			}
 
+			std::cout << __LINE__ << std::endl;
 			if(element->second.Client==nullptr && element->second.Device==nullptr) {
 				poco_debug(Logger(), fmt::format("Removing {}.",element->first));
 				element = EndPoints_.erase(element);
@@ -126,7 +129,9 @@ namespace OpenWifi {
 			}
 		}
 
+		std::cout << __LINE__ << std::endl;
 		for(auto &element:FailedDevices) {
+			std::cout << __LINE__ << std::endl;
 			delete element;
 		}
 	}

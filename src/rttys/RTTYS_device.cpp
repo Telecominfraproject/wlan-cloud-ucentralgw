@@ -57,7 +57,8 @@ namespace OpenWifi {
 
 	RTTY_Device_ConnectionHandler::~RTTY_Device_ConnectionHandler() {
 		Guard G(M_);
-		EndConnection(G);
+		if(valid_)
+			EndConnection(G);
 	}
 
 	void RTTY_Device_ConnectionHandler::EndConnection([[maybe_unused]] Guard & G) {
