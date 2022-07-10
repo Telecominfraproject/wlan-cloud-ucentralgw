@@ -157,8 +157,9 @@ namespace OpenWifi {
 						It->second.Device->EndConnection();
 					}
 				}
-				NextMsg = ResponseQueue_.waitDequeueNotification();
 			}
+			std::cout << "Disconnection notification..." << std::endl;
+			NextMsg = ResponseQueue_.waitDequeueNotification();
 		}
 	}
 
