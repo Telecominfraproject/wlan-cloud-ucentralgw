@@ -36,7 +36,6 @@ namespace OpenWifi {
 
 		bool Login();
 		bool Logout();
-		void Stop();
 
 		[[nodiscard]] bool SendToClient(const u_char *buf, int len);
 		[[nodiscard]] bool SendToClient(const std::string &S);
@@ -49,21 +48,34 @@ namespace OpenWifi {
 		void onSocketShutdown(const Poco::AutoPtr<Poco::Net::ShutdownNotification>& pNf);
 
 		bool Connected() const { return received_login_from_websocket_; }
+		using My_mutex_type = std::mutex;
+		using Guard = std::lock_guard<My_mutex_type>;
+
+		void EndConnection(Guard &);
+		inline void EndConnection() {
+			Guard G(M_);
+			EndConnection(G);
+		}
+
+		inline bool Valid() {
+			std::lock_guard	G(M_);
+			return valid_;
+		}
 
 	  private:
 		Poco::Net::StreamSocket   		socket_;
 		Poco::Net::SocketReactor		&reactor_;
 
-		mutable std::atomic_bool 		running_=false;
+		mutable bool 					valid_=false;
 		Poco::Net::SocketAddress		device_address_;
-		std::recursive_mutex		  	M_;
+		My_mutex_type 		  			M_;
 		std::string                   	id_;
 		std::string                   	token_;
 		std::string                   	desc_;
 		std::string 				  	serial_;
 		char 				          	sid_=0;
-		mutable std::atomic_bool 		registered_=false;
-		mutable std::atomic_bool		web_socket_active_=false;
+		mutable bool 					registered_=false;
+		mutable bool					web_socket_active_=false;
 
 		Poco::FIFOBuffer 				inBuf_;
 		std::array<char,RTTY_DEVICE_BUFSIZE>	scratch_{0};

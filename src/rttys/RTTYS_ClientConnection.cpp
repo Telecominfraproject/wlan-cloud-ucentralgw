@@ -71,7 +71,7 @@ namespace OpenWifi {
 				while(completing_connection_)
 					continue;
 			}
-			RTTYS_server()->DeRegister(Id_, this);
+			RTTYS_server()->DeRegisterClient(Id_, this);
 			if (Connected_) {
 				RTTYS_server()->ClientReactor().removeEventHandler(
 					*WS_, Poco::NObserver<RTTYS_ClientConnection, Poco::Net::ReadableNotification>(

@@ -28,9 +28,9 @@ namespace OpenWifi {
 
 		inline auto UIAssets() { return RTTY_UIAssets_; }
 
-		void Register(const std::string &Id, RTTYS_ClientConnection *Client);
-		void DeRegister(const std::string &Id, RTTYS_ClientConnection *Client);
-		bool Register(const std::string &Id, const std::string &Token, RTTY_Device_ConnectionHandler *Device);
+		void RegisterClient(const std::string &Id, RTTYS_ClientConnection *Client);
+		void DeRegisterClient(const std::string &Id, RTTYS_ClientConnection *Client);
+		bool RegisterDevice(const std::string &Id, const std::string &Token, RTTY_Device_ConnectionHandler *Device);
 		void DeRegisterDevice(const std::string &Id, RTTY_Device_ConnectionHandler *Device, bool remove_websocket);
 		bool CreateEndPoint(const std::string &Id, const std::string & Token, const std::string & UserName, const std::string & SerialNumber );
 		std::string SerialNumber(const std::string & Id);
@@ -48,6 +48,10 @@ namespace OpenWifi {
 		bool SendToClient(const std::string &id, const std::string &s);
 		bool ValidClient(const std::string &id);
 		bool ValidId(const std::string &Id);
+		inline void AddFailedDevice(RTTY_Device_ConnectionHandler *Device) {
+			std::lock_guard	G(Mutex_);
+			FailedDevices.push_back(Device);
+		}
 
 		struct EndPoint {
 			std::string 							Token;
@@ -85,7 +89,7 @@ namespace OpenWifi {
 		Poco::Net::SocketReactor	DeviceReactor_;
 		Poco::Thread				ClientReactorThread_;
 		std::string 				RTTY_UIAssets_;
-		std::atomic_bool 			Internal_ = false;
+		bool			 			Internal_ = false;
 
 		std::map<std::string, EndPoint> 			EndPoints_;			//	id, endpoint
 		std::unique_ptr<Poco::Net::HTTPServer>		WebServer_;
@@ -94,6 +98,8 @@ namespace OpenWifi {
 
 		Poco::Timer                     					Timer_;
 		std::unique_ptr<Poco::TimerCallback<RTTYS_server>>  GCCallBack_;
+
+		std::list<RTTY_Device_ConnectionHandler *>	FailedDevices;
 
 		explicit RTTYS_server() noexcept:
 		SubSystemServer("RTTY_Server", "RTTY-SVR", "rtty.server")
