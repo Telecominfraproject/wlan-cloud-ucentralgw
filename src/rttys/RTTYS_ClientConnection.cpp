@@ -14,7 +14,7 @@ namespace OpenWifi {
 		:
 	  		WS_(WS),
 			Logger_(L),
-		  	Id_(std::move(Id))
+		  	Id_(Id)
 		{
 			Logger().information(fmt::format("{}: Client starting connection, session: {}.",
 											 Id_, RTTYS_server()->DeviceSessionID(Id_)));
