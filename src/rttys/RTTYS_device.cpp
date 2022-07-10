@@ -33,9 +33,10 @@ namespace OpenWifi {
 					if (V == 1)
 						break;
 				}
-				if ((SS->secure()))
+				if ((SS->secure())) {
 					poco_debug(Logger(),
-						fmt::format("{}: Secure connection.", device_address_.toString()));
+							   fmt::format("{}: Secure connection.", device_address_.toString()));
+				}
 			}
 			reactor_.addEventHandler(
 				socket_,
@@ -46,8 +47,8 @@ namespace OpenWifi {
 				Poco::NObserver<RTTY_Device_ConnectionHandler, Poco::Net::ShutdownNotification>(
 					*this, &RTTY_Device_ConnectionHandler::onSocketShutdown));
 		} catch (...) {
-			Logger().information(
-				fmt::format("{}: Device cause exception while completing connection.", device_address_.toString()));
+			poco_warning(Logger(),
+				fmt::format("{}: Device caused exception while completing connection.", device_address_.toString()));
 			delete this;
 		}
 	}
