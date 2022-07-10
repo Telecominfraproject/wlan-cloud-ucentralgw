@@ -86,6 +86,7 @@ namespace OpenWifi {
 		Timer_.start(*GCCallBack_);
 
 		NotificationManager_.start(*this);
+
 		return 0;
 	}
 
@@ -110,7 +111,8 @@ namespace OpenWifi {
 		poco_debug(Logger(),"Removing stale connections.");
 		std::lock_guard	G(M_);
 		Utils::SetThreadName("rt:janitor");
-		for(auto element=EndPoints_.begin();element!=EndPoints_.end();) {
+		std::cout << "Running janitor" << std::endl;
+ 		for(auto element=EndPoints_.begin();element!=EndPoints_.end();) {
 			std::cout << __LINE__ << std::endl;
 			if(element->second.Client!=nullptr && !element->second.Client->Valid()) {
 				std::cout << "Removing client:" << element->first << std::endl;
