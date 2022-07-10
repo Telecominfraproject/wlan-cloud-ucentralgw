@@ -114,7 +114,7 @@ namespace OpenWifi {
 			}
 
 			std::cout << __LINE__ << std::endl;
-			if(element->second.Device!= nullptr && !element->second.Device->Valid()) {
+			if(element->second.Device!=nullptr && !element->second.Device->Valid()) {
 				std::cout << "Removing device:" << element->first << std::endl;
 				delete element->second.Device;
 				element->second.Device = nullptr;
@@ -199,20 +199,8 @@ namespace OpenWifi {
 		Logger().information(fmt::format("{}: Deregistering.", Client->ID()));
 		auto It = EndPoints_.find(Id);
 		if(It!=EndPoints_.end() && It->second.Client==Client) {
-			if(It->second.Device!= nullptr) {
-				if(!It->second.ShuttingDown) {
-					It->second.ShuttingDown = true;
-					if(It->second.Device!= nullptr)
-						It->second.Device->EndConnection();
-				} else {
-					It->second.ShutdownComplete = true;
-				}
-			} else {
-				if(!It->second.ShuttingDown) {
-					It->second.ShuttingDown = true;
-				} else {
-					It->second.ShutdownComplete = true;
-				}
+			if(It->second.Device!=nullptr && It->second.Device->Valid()) {
+				It->second.Device->EndConnection();
 			}
 			It->second.ClientConnected=0;
 		}
@@ -224,30 +212,8 @@ namespace OpenWifi {
 		auto It = EndPoints_.find(Id);
 		if(It!=EndPoints_.end() && It->second.Device==Device) {
 			It->second.DeviceConnected = 0 ;
-			if(It->second.Client!=nullptr) {
-				if(remove_websocket) {
-					It->second.ShuttingDown = true;
-					if(It->second.Client!= nullptr)
-						It->second.Client->Close();
-				}
-			} else {
-				if(!It->second.ShuttingDown) {
-					It->second.ShuttingDown = true;
-				} else {
-					It->second.ShutdownComplete = true;
-				}
-			}
-		}
-
-		Logger().information(fmt::format("{}: Deregistering device.", Device->SessionID()));
-		if(Device!= nullptr) {
-			for (auto i = EndPoints_.begin(); i != EndPoints_.end(); i++) {
-				if (i->second.Device == Device) {
-					EndPoints_.erase(i);
-					break;
-				}
-			}
-			dump("D DEREG--> ", std::cout);
+			if(It->second.Client!=nullptr && It->second.Client->Valid())
+				It->second.Client->Close();
 		}
 		Logger().information(fmt::format("{}: Deregistered device.", Device->SessionID()));
 	}

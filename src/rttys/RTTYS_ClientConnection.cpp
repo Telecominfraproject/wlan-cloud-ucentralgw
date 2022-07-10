@@ -87,8 +87,8 @@ namespace OpenWifi {
 				WS_->shutdown();
 				Logger().information(fmt::format("{}: Client disconnected.", Id_));
 			}
+			Connected_=Valid_=false;
 		}
-		Connected_=Valid_=false;
 	}
 
 	void RTTYS_ClientConnection::Close() {
