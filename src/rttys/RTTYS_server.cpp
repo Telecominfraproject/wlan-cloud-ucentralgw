@@ -194,10 +194,10 @@ namespace OpenWifi {
 		return false;
 	}
 
-	void RTTYS_server::DeRegisterClient(const std::string &Id, RTTYS_ClientConnection *Client) {
+	void RTTYS_server::DeRegisterClient([[maybe_unused]] const std::string &Id, RTTYS_ClientConnection *Client) {
 		std::lock_guard	G(M_);
 		Logger().information(fmt::format("{}: Deregistering.", Client->ID()));
-		auto It = EndPoints_.find(Id);
+/*		auto It = EndPoints_.find(Id);
 		if(It!=EndPoints_.end() && It->second.Client==Client) {
 			if(It->second.Device!=nullptr && It->second.Device->Valid()) {
 				std::cout << __LINE__ << std::endl;
@@ -206,12 +206,12 @@ namespace OpenWifi {
 			}
 			It->second.ClientConnected=0;
 		}
-		Logger().information(fmt::format("{}: Deregistered.", Client->ID()));
+*/		Logger().information(fmt::format("{}: Deregistered.", Client->ID()));
 	}
 
-	void RTTYS_server::DeRegisterDevice(const std::string &Id, RTTY_Device_ConnectionHandler *Device, [[maybe_unused]] bool remove_websocket) {
+	void RTTYS_server::DeRegisterDevice([[maybe_unused]] const std::string &Id, RTTY_Device_ConnectionHandler *Device, [[maybe_unused]] bool remove_websocket) {
 		std::lock_guard	G(M_);
-		auto It = EndPoints_.find(Id);
+/*		auto It = EndPoints_.find(Id);
 		if(It!=EndPoints_.end() && It->second.Device==Device) {
 			It->second.DeviceConnected = 0 ;
 			if(It->second.Client!=nullptr && It->second.Client->Valid()) {
@@ -220,7 +220,7 @@ namespace OpenWifi {
 				std::cout << __LINE__ << std::endl;
 			}
 		}
-		Logger().information(fmt::format("{}: Deregistered device.", Device->SessionID()));
+*/		Logger().information(fmt::format("{}: Deregistered device.", Device->SessionID()));
 	}
 
 	bool RTTYS_server::SendKeyStrokes(const std::string &Id, const u_char *buffer, std::size_t s) {

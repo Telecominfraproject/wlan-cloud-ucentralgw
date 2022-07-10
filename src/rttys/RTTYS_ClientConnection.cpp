@@ -65,6 +65,7 @@ namespace OpenWifi {
 
 	void RTTYS_ClientConnection::EndConnection([[maybe_unused]] Guard &G ) {
 		if(Valid_) {
+			Valid_=false;
 			if (Connected_) {
 				Logger().information(fmt::format("{}: Client disconnecting.", Id_));
 				aborting_connection_ = true;
@@ -87,7 +88,7 @@ namespace OpenWifi {
 				WS_->shutdown();
 				Logger().information(fmt::format("{}: Client disconnected.", Id_));
 			}
-			Connected_=Valid_=false;
+			Connected_=false;
 		}
 	}
 

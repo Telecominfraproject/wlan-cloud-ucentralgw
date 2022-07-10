@@ -64,6 +64,7 @@ namespace OpenWifi {
 	void RTTY_Device_ConnectionHandler::EndConnection([[maybe_unused]] Guard & G) {
 		try {
 			if(valid_) {
+				valid_=false;
 				reactor_.removeEventHandler(
 					socket_,
 					Poco::NObserver<RTTY_Device_ConnectionHandler, Poco::Net::ReadableNotification>(
@@ -88,7 +89,6 @@ namespace OpenWifi {
 		} catch (...) {
 
 		}
-		valid_=false;
 	}
 
 	void RTTY_Device_ConnectionHandler::onSocketReadable([[maybe_unused]] const Poco::AutoPtr<Poco::Net::ReadableNotification> &pNf) {
