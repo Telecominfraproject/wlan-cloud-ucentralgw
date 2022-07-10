@@ -69,7 +69,7 @@ namespace OpenWifi {
 		mutable bool 					valid_=false;
 		Poco::Net::SocketAddress		device_address_;
 		My_mutex_type 		  			M_;
-		std::string                   	id_;
+		std::string                   	Id_;
 		std::string                   	token_;
 		std::string                   	desc_;
 		std::string 				  	serial_;

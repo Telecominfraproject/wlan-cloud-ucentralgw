@@ -86,6 +86,7 @@ namespace OpenWifi {
 							*this, &RTTYS_ClientConnection::onSocketShutdown));
 				}
 				WS_->shutdown();
+				RTTYS_server()->DisconnectNotice(Id_,false);
 				Logger().information(fmt::format("{}: Client disconnected.", Id_));
 			}
 			Connected_=false;

@@ -77,9 +77,10 @@ namespace OpenWifi {
 				if (registered_) {
 					poco_debug(Logger(),
 							   fmt::format("{}: Deregistering.", device_address_.toString()));
-					RTTYS_server()->DeRegisterDevice(id_, this, web_socket_active_);
+					RTTYS_server()->DeRegisterDevice(Id_, this, web_socket_active_);
 					poco_debug(Logger(),
 							   fmt::format("{}: Deregistered.", device_address_.toString()));
+					RTTYS_server()->DisconnectNotice(Id_,true);
 				} else {
 					RTTYS_server()->AddFailedDevice(this);
 				}
@@ -144,7 +145,7 @@ namespace OpenWifi {
 						good = do_msgTypeMax(msg_len);
 					} break;
 					default:
-						poco_warning(Logger(),fmt::format("{}: ID:{} Unknown command {}", conn_id_, id_,
+						poco_warning(Logger(),fmt::format("{}: ID:{} Unknown command {}", conn_id_, Id_,
 													 (int)last_command_));
 				}
 			}
@@ -162,11 +163,11 @@ namespace OpenWifi {
 	}
 
 	bool RTTY_Device_ConnectionHandler::SendToClient(const u_char *Buf, int Len) {
-		return RTTYS_server()->SendToClient(id_, Buf, Len);
+		return RTTYS_server()->SendToClient(Id_, Buf, Len);
 	}
 
 	bool RTTY_Device_ConnectionHandler::SendToClient(const std::string &S) {
-		return RTTYS_server()->SendToClient(id_, S);
+		return RTTYS_server()->SendToClient(Id_, S);
 	}
 
 	bool RTTY_Device_ConnectionHandler::KeyStrokes(const u_char *buf, size_t len) {
@@ -233,7 +234,7 @@ namespace OpenWifi {
 			return false;
 		}
 		received_login_from_websocket_ = true;
-		poco_debug(Logger(),fmt::format("{}: Device {} login", conn_id_, id_));
+		poco_debug(Logger(),fmt::format("{}: Device {} login", conn_id_, Id_));
 		return true;
 	}
 
@@ -248,7 +249,7 @@ namespace OpenWifi {
 		outBuf[1] = 0;
 		outBuf[2] = 1;
 		outBuf[3] = sid_;
-		poco_debug(Logger(),fmt::format("{}: ID:{} Logout", conn_id_, id_));
+		poco_debug(Logger(),fmt::format("{}: ID:{} Logout", conn_id_, Id_));
 		try {
 			socket_.sendBytes(outBuf, 4);
 			return true;
@@ -276,14 +277,14 @@ namespace OpenWifi {
 	bool RTTY_Device_ConnectionHandler::do_msgTypeRegister([[maybe_unused]] std::size_t msg_len) {
 		bool good = true;
 		try {
-			id_ = ReadString();
+			Id_ = ReadString();
 			desc_ = ReadString();
 			token_ = ReadString();
-			serial_ = RTTYS_server()->SerialNumber(id_);
+			serial_ = RTTYS_server()->SerialNumber(Id_);
 
 			poco_debug(Logger(),fmt::format("{}: ID:{} Serial:{} Description:{} Device registration",
-									   conn_id_, id_, serial_, desc_));
-			if (RTTYS_server()->RegisterDevice(id_, token_, this)) {
+									   conn_id_, Id_, serial_, desc_));
+			if (RTTYS_server()->RegisterDevice(Id_, token_, this)) {
 				u_char OutBuf[8];
 				OutBuf[0] = msgTypeRegister;
 				OutBuf[1] = 0;
@@ -296,7 +297,7 @@ namespace OpenWifi {
 					good = false;
 					poco_debug(Logger(),fmt::format(
 						"{}: ID:{} Serial:{} Description:{} Could not complete registration",
-						conn_id_, id_, serial_, desc_));
+						conn_id_, Id_, serial_, desc_));
 					RTTYS_server()->AddFailedDevice(this);
 				} else {
 					registered_ = true;
@@ -304,7 +305,7 @@ namespace OpenWifi {
 			} else {
 				poco_debug(Logger(),fmt::format(
 					"{}: ID:{} Serial:{} Description:{} Could not complete registration", conn_id_,
-					id_, serial_, desc_));
+					Id_, serial_, desc_));
 			}
 		} catch (...) {
 			good = false;
@@ -313,7 +314,7 @@ namespace OpenWifi {
 	}
 
 	bool RTTY_Device_ConnectionHandler::do_msgTypeLogin([[maybe_unused]] std::size_t msg_len) {
-		poco_debug(Logger(),fmt::format("{}: ID:{} Serial:{} Asking for login", conn_id_, id_, serial_));
+		poco_debug(Logger(),fmt::format("{}: ID:{} Serial:{} Asking for login", conn_id_, Id_, serial_));
 		nlohmann::json doc;
 		char Error;
 		inBuf_.read(&Error, 1);
@@ -326,7 +327,7 @@ namespace OpenWifi {
 	}
 
 	bool RTTY_Device_ConnectionHandler::do_msgTypeLogout([[maybe_unused]] std::size_t msg_len) {
-		poco_debug(Logger(),fmt::format("{}: ID:{} Serial:{} Asking for logout", conn_id_, id_, serial_));
+		poco_debug(Logger(),fmt::format("{}: ID:{} Serial:{} Asking for logout", conn_id_, Id_, serial_));
 		return true;
 	}
 
@@ -355,17 +356,17 @@ namespace OpenWifi {
 	}
 
 	bool RTTY_Device_ConnectionHandler::do_msgTypeWinsize([[maybe_unused]] std::size_t msg_len) {
-		poco_debug(Logger(),fmt::format("{}: ID:{} Serial:{} Asking for msgTypeWinsize", conn_id_, id_, serial_));
+		poco_debug(Logger(),fmt::format("{}: ID:{} Serial:{} Asking for msgTypeWinsize", conn_id_, Id_, serial_));
 		return true;
 	}
 
 	bool RTTY_Device_ConnectionHandler::do_msgTypeCmd([[maybe_unused]] std::size_t msg_len) {
-		poco_debug(Logger(),fmt::format("{}: ID:{} Serial:{} Asking for msgTypeCmd", conn_id_, id_, serial_));
+		poco_debug(Logger(),fmt::format("{}: ID:{} Serial:{} Asking for msgTypeCmd", conn_id_, Id_, serial_));
 		return true;
 	}
 
 	bool RTTY_Device_ConnectionHandler::do_msgTypeHeartbeat([[maybe_unused]] std::size_t msg_len) {
-		if(!RTTYS_server()->ValidClient(id_))
+		if(!RTTYS_server()->ValidClient(Id_))
 			return false;
 		u_char MsgBuf[3]{0};
 		MsgBuf[0] = msgTypeHeartbeat;
@@ -373,22 +374,22 @@ namespace OpenWifi {
 	}
 
 	bool RTTY_Device_ConnectionHandler::do_msgTypeFile([[maybe_unused]] std::size_t msg_len) {
-		poco_debug(Logger(),fmt::format("{}: ID:{} Serial:{} Asking for msgTypeFile", conn_id_, id_, serial_));
+		poco_debug(Logger(),fmt::format("{}: ID:{} Serial:{} Asking for msgTypeFile", conn_id_, Id_, serial_));
 		return true;
 	}
 
 	bool RTTY_Device_ConnectionHandler::do_msgTypeHttp([[maybe_unused]] std::size_t msg_len) {
-		poco_debug(Logger(),fmt::format("{}: ID:{} Serial:{} Asking for msgTypeHttp", conn_id_, id_, serial_));
+		poco_debug(Logger(),fmt::format("{}: ID:{} Serial:{} Asking for msgTypeHttp", conn_id_, Id_, serial_));
 		return true;
 	}
 
 	bool RTTY_Device_ConnectionHandler::do_msgTypeAck([[maybe_unused]] std::size_t msg_len) {
-		poco_debug(Logger(),fmt::format("{}: ID:{} Serial:{} Asking for msgTypeAck", conn_id_, id_, serial_));
+		poco_debug(Logger(),fmt::format("{}: ID:{} Serial:{} Asking for msgTypeAck", conn_id_, Id_, serial_));
 		return true;
 	}
 
 	bool RTTY_Device_ConnectionHandler::do_msgTypeMax([[maybe_unused]] std::size_t msg_len) {
-		poco_debug(Logger(),fmt::format("{}: ID:{} Serial:{} Asking for msgTypeMax", conn_id_, id_, serial_));
+		poco_debug(Logger(),fmt::format("{}: ID:{} Serial:{} Asking for msgTypeMax", conn_id_, Id_, serial_));
 		return true;
 	}
 }
