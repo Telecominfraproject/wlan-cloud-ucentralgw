@@ -49,7 +49,7 @@ namespace OpenWifi {
 		bool ValidClient(const std::string &id);
 		bool ValidId(const std::string &Id);
 		inline void AddFailedDevice(RTTY_Device_ConnectionHandler *Device) {
-			std::lock_guard	G(Mutex_);
+			std::lock_guard	G(M_);
 			FailedDevices.push_back(Device);
 		}
 
@@ -84,17 +84,17 @@ namespace OpenWifi {
 		inline Poco::Net::SocketReactor & ClientReactor() { return ClientReactor_; }
 
 	  private:
-		// std::recursive_mutex		M_;
-		Poco::Net::SocketReactor	ClientReactor_;
-		Poco::Net::SocketReactor	DeviceReactor_;
-		Poco::Thread				ClientReactorThread_;
-		std::string 				RTTY_UIAssets_;
-		bool			 			Internal_ = false;
+		std::recursive_mutex						M_;
+		Poco::Net::SocketReactor					ClientReactor_;
+		Poco::Net::SocketReactor					DeviceReactor_;
+		Poco::Thread								ClientReactorThread_;
+		std::string 								RTTY_UIAssets_;
+		bool			 							Internal_ = false;
 
 		std::map<std::string, EndPoint> 			EndPoints_;			//	id, endpoint
 		std::unique_ptr<Poco::Net::HTTPServer>		WebServer_;
 		std::unique_ptr<Poco::Net::SocketAcceptor<RTTY_Device_ConnectionHandler>>	DeviceAcceptor_;
-		Poco::Thread				DeviceReactorThread_;
+		Poco::Thread								DeviceReactorThread_;
 
 		Poco::Timer                     					Timer_;
 		std::unique_ptr<Poco::TimerCallback<RTTYS_server>>  GCCallBack_;
