@@ -818,7 +818,6 @@ namespace OpenWifi {
 			return BadRequest(RESTAPI::Errors::DeviceNotConnected);
 		}
 
-		Logger_.information(fmt::format("RTTY: user={} serial={}. Getting configuration.", UserInfo_.userinfo.email,SerialNumber_));
 		if (MicroService::instance().ConfigGetBool("rtty.enabled", false)) {
 			GWObjects::Device	Device;
 
@@ -839,11 +838,8 @@ namespace OpenWifi {
 				};
 
 				if(RTTYS_server()->UseInternal()) {
-					Logger_.information(fmt::format("RTTY: user={} serial={}. Creating hash.", UserInfo_.userinfo.email,SerialNumber_));
 					Rtty.Token = MicroService::instance().CreateHash(UserInfo_.webtoken.refresh_token_ + std::to_string(OpenWifi::Now())).substr(0,32);
-					Logger_.information(fmt::format("RTTY: user={} serial={}. Creating endpoint.", UserInfo_.userinfo.email,SerialNumber_));
 					RTTYS_server()->CreateEndPoint(Rtty.ConnectionId,Rtty.Token, UserInfo_.userinfo.email, SerialNumber_);
-					Logger_.information(fmt::format("RTTY: user={} serial={}. Created endpoint.", UserInfo_.userinfo.email,SerialNumber_));
 				}
 
 				Poco::JSON::Object ReturnedObject;
@@ -871,8 +867,6 @@ namespace OpenWifi {
 				std::stringstream ParamStream;
 				Params.stringify(ParamStream);
 				Cmd.Details = ParamStream.str();
-
-				Logger_.information(fmt::format("RTTY: user={} serial={}. Sending RPC request.", UserInfo_.userinfo.email,SerialNumber_));
 
 				return RESTAPI_RPC::WaitForCommand(Cmd, Params, *Request, *Response, 60000ms, &ReturnedObject, this, Logger_);
 			}

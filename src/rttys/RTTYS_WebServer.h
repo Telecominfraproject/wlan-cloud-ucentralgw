@@ -32,6 +32,7 @@ namespace OpenWifi {
 
 	  private:
 		Poco::Logger & Logger_;
+		inline Poco::Logger &Logger() { return Logger_; }
 	};
 
 	class RTTY_Client_RequestHandlerFactory : public Poco::Net::HTTPRequestHandlerFactory {

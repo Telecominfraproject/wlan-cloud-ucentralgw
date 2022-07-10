@@ -27,6 +27,11 @@ namespace OpenWifi {
     inline uint64_t Now() { return std::time(nullptr); };
 }
 
+namespace OpenWifi::Utils {
+    std::vector<unsigned char> base64decode(const std::string& input);
+    std::string base64encode(const unsigned char *input, uint32_t size);
+}
+
 using namespace std::chrono_literals;
 
 #include "Poco/Util/Application.h"
@@ -238,6 +243,11 @@ namespace OpenWifi::RESTAPI_utils {
         Obj.set(Field,Value);
     }
 
+    inline void field_to_json(Poco::JSON::Object &Obj, const char *Field, const Poco::Data::BLOB &Value) {
+        auto Result = Utils::base64encode((const unsigned char *)Value.rawContent(),Value.size());
+        Obj.set(Field,Result);
+    }
+
     inline void field_to_json(Poco::JSON::Object &Obj, const char *Field, const Types::StringPairVec & S) {
         Poco::JSON::Array   Array;
         for(const auto &i:S) {
@@ -334,12 +344,12 @@ namespace OpenWifi::RESTAPI_utils {
 
     inline void field_from_json(const Poco::JSON::Object::Ptr &Obj, const char *Field, double & Value) {
         if(Obj->has(Field) && !Obj->isNull(Field))
-            Value = (double) Obj->get(Field);
+            Value = (double)Obj->get(Field);
     }
 
     inline void field_from_json(const Poco::JSON::Object::Ptr &Obj, const char *Field, float & Value) {
         if(Obj->has(Field) && !Obj->isNull(Field))
-            Value = (float) Obj->get(Field);
+            Value = (float)Obj->get(Field);
     }
 
     inline void field_from_json(const Poco::JSON::Object::Ptr &Obj, const char *Field, bool &Value) {
@@ -374,7 +384,14 @@ namespace OpenWifi::RESTAPI_utils {
 
     inline void field_from_json(const Poco::JSON::Object::Ptr &Obj, const char *Field, uint64_t &Value) {
         if(Obj->has(Field) && !Obj->isNull(Field))
-            Value = (uint64_t ) Obj->get(Field);
+            Value = (uint64_t)Obj->get(Field);
+    }
+
+    inline void field_from_json(const Poco::JSON::Object::Ptr &Obj, const char *Field, Poco::Data::BLOB &Value) {
+        if(Obj->has(Field) && !Obj->isNull(Field)) {
+            auto Result = Utils::base64decode(Obj->get(Field).toString());
+            Value.assignRaw((const unsigned char *)&Result[0],Result.size());
+        }
     }
 
     inline void field_from_json(const Poco::JSON::Object::Ptr &Obj, const char *Field, Types::StringPairVec &Vec) {
@@ -2063,6 +2080,17 @@ namespace OpenWifi {
             }
             return false;
         }
+
+        static inline bool AssignIfPresent(const Poco::JSON::Object::Ptr &O, const std::string &Field, Poco::Data::BLOB &Value) {
+            if(O->has(Field)) {
+                std::string Content = O->get(Field).toString();
+                auto DecodedBlob = Utils::base64decode(Content);
+                Value.assignRaw((const unsigned char *)&DecodedBlob[0],DecodedBlob.size());
+                return true;
+            }
+            return false;
+        }
+
 
         template <typename T> bool AssignIfPresent(const Poco::JSON::Object::Ptr &O, const std::string &Field, const T &value, T & assignee) {
             if(O->has(Field)) {
