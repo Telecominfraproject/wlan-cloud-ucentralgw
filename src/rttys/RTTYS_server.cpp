@@ -234,7 +234,7 @@ namespace OpenWifi {
 */		Logger().information(fmt::format("{}: Deregistered.", Client->ID()));
 	}
 
-	void RTTYS_server::DeRegisterDevice([[maybe_unused]] const std::string &Id, RTTY_Device_ConnectionHandler *Device, [[maybe_unused]] bool remove_websocket) {
+	void RTTYS_server::DeRegisterDevice([[maybe_unused]] const std::string &Id, [[maybe_unused]] RTTY_Device_ConnectionHandler *Device, [[maybe_unused]] bool remove_websocket) {
 		std::lock_guard	G(M_);
 /*		auto It = EndPoints_.find(Id);
 		if(It!=EndPoints_.end() && It->second.Device==Device) {
@@ -245,7 +245,7 @@ namespace OpenWifi {
 				std::cout << __LINE__ << std::endl;
 			}
 		}
-*/		Logger().information(fmt::format("{}: Deregistered device.", Device->SessionID()));
+*/		Logger().information(fmt::format("{}: Deregistered device.", Id));
 	}
 
 	bool RTTYS_server::SendKeyStrokes(const std::string &Id, const u_char *buffer, std::size_t s) {
