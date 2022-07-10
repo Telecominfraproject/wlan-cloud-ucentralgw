@@ -101,12 +101,12 @@ namespace OpenWifi {
 	}
 
 	void RTTYS_server::onTimer([[maybe_unused]] Poco::Timer & timer) {
-		Logger().debug("Removing stale connections.");
+		poco_debug(Logger(),"Removing stale connections.");
 		std::lock_guard	G(Mutex_);
 		Utils::SetThreadName("rt:janitor");
-		dump("GC  ", std::cout);
 		for(auto element=EndPoints_.begin();element!=EndPoints_.end();) {
 			if(element->second.Client!=nullptr && !element->second.Client->Valid()) {
+				std::cout << "Remove client:" << element->first << std::endl;
 				delete element->second.Client;
 				element->second.Client = nullptr;
 				poco_debug(Logger(), fmt::format("Removing {}.",element->first));
@@ -171,7 +171,7 @@ namespace OpenWifi {
 
 	void RTTYS_server::DeRegister(const std::string &Id, RTTYS_ClientConnection *Client) {
 		std::lock_guard	G(Mutex_);
-		Logger().information("{}: Deregistering.", Client->ID());
+		Logger().information(fmt::format("{}: Deregistering.", Client->ID()));
 		auto It = EndPoints_.find(Id);
 		if(It!=EndPoints_.end() && It->second.Client==Client) {
 			if(It->second.Device!= nullptr) {
@@ -191,7 +191,7 @@ namespace OpenWifi {
 			}
 			It->second.ClientConnected=0;
 		}
-		Logger().information("{}: Deregistered.", Client->ID());
+		Logger().information(fmt::format("{}: Deregistered.", Client->ID()));
 	}
 
 	void RTTYS_server::DeRegisterDevice(const std::string &Id, RTTY_Device_ConnectionHandler *Device, bool remove_websocket) {
