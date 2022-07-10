@@ -25,8 +25,8 @@ namespace OpenWifi {
 				*WS_, Poco::NObserver<RTTYS_ClientConnection, Poco::Net::ShutdownNotification>(
 						  *this, &RTTYS_ClientConnection::onSocketShutdown));
 
-			std::thread T([=]() { CompleteLogin(); });
-			T.detach();
+//			std::thread T([=]() { CompleteLogin(); });
+//			T.detach();
 		}
 
 	void RTTYS_ClientConnection::CompleteLogin() {
@@ -42,7 +42,7 @@ namespace OpenWifi {
 					completing_connection_ = false;
 					return;
 				}
-				std::this_thread::sleep_for(2000ms);
+				std::this_thread::sleep_for(1000ms);
 				tries++;
 				Logger().information(fmt::format(
 					"{}: Waiting for device to connect to start session. (try={})", Id_, tries));
@@ -163,12 +163,12 @@ namespace OpenWifi {
 	}
 
 	void RTTYS_ClientConnection::SendData( const u_char *Buf, size_t len ) {
-		bool done = false;
 		std::lock_guard G(Mutex_);
 
 		if(!Valid_)
 			return;
 
+		bool done = false;
 		try {
 			WS_->sendFrame(Buf, len,
 						   Poco::Net::WebSocket::FRAME_FLAG_FIN |
@@ -183,10 +183,10 @@ namespace OpenWifi {
 	}
 
 	void RTTYS_ClientConnection::SendData( const std::string &s , bool login) {
-		bool done = false;
 		std::lock_guard G(Mutex_);
 		if(!Valid_)
 			return;
+		bool done = false;
 		try {
 			if (login) {
 				RTTYS_server()->LoginDone(Id_);

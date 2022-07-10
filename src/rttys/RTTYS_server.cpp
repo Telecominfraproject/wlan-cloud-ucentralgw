@@ -147,8 +147,9 @@ namespace OpenWifi {
 				It->second.Client->SendData(Buf, Len);
 				return true;
 			}
+			std::cout << "Invalid client - cannot send data" << std::endl;
 		} catch(...) {
-
+			std::cout << "Exception during sendclient" << std::endl;
 		}
 		return false;
 	}
@@ -161,8 +162,9 @@ namespace OpenWifi {
 				It->second.Client->SendData(s);
 				return true;
 			}
+			std::cout << "Invalid client - cannot send data" << std::endl;
 		} catch(...) {
-
+			std::cout << "Exception during sendclient" << std::endl;
 		}
 		return false;
 	}

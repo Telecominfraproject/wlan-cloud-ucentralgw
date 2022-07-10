@@ -14,7 +14,6 @@
 namespace OpenWifi {
 	class RTTYS_ClientConnection {
 	  public:
-//		RTTYS_ClientConnection(std::unique_ptr<Poco::Net::WebSocket> WS, std::string &Id,
 		RTTYS_ClientConnection(Poco::Net::WebSocket *WS,
 							   Poco::Logger &L,
 							   std::string &Id);
