@@ -33,7 +33,7 @@ namespace OpenWifi {
 		int tries = 0;
 		completing_connection_ = true;
 		try {
-			Valie_ = true;
+			Valid_ = true;
 			while (!aborting_connection_ && tries < 20) {
 				if (RTTYS_server()->Login(this->Id_)) {
 					Logger().information(fmt::format("{}: Client connected to device, session: {}.",
