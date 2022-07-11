@@ -10,12 +10,12 @@
 
 namespace OpenWifi {
 
-	inline Poco::Logger & RTTY_Device_ConnectionHandler::Logger() { return RTTYS_server()->Logger(); }
-
 	RTTY_Device_ConnectionHandler::RTTY_Device_ConnectionHandler(Poco::Net::StreamSocket& socket, Poco::Net::SocketReactor & reactor):
 			 	socket_(socket),
 			 	reactor_(reactor),
-				inBuf_(RTTY_DEVICE_BUFSIZE){
+				inBuf_(RTTY_DEVICE_BUFSIZE),
+				Logger_(Poco::Logger::get(fmt::format("RTTY-device({})",socket_.peerAddress().toString())))
+	{
 		std::thread T([=]() { CompleteConnection(); });
 		T.detach();
 	}

@@ -57,12 +57,15 @@ namespace OpenWifi {
 			EndConnection(external, G);
 		}
 
+		inline Poco::Logger	&Logger() { return Logger_; }
+
 		inline bool Valid() {return valid_;
 		}
 
 	  private:
 		Poco::Net::StreamSocket   		socket_;
 		Poco::Net::SocketReactor		&reactor_;
+		Poco::Logger					&Logger_;
 
 		mutable bool 					valid_=false;
 		Poco::Net::SocketAddress		device_address_;
@@ -83,8 +86,6 @@ namespace OpenWifi {
 		mutable std::atomic_bool		received_login_from_websocket_=false;
 
 		void CompleteConnection();
-
-		Poco::Logger & Logger();
 
 		[[nodiscard]] bool do_msgTypeRegister(std::size_t msg_len);
 		[[nodiscard]] bool do_msgTypeLogin(std::size_t msg_len);

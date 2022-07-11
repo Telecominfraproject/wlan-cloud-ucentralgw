@@ -52,12 +52,15 @@ namespace OpenWifi {
 		}
 		Valid_ = false;
 		logging_in_ = false;
-		RTTYS_server()->ClientReactor().addEventHandler(
-			*WS_, Poco::NObserver<RTTYS_ClientConnection, Poco::Net::ReadableNotification>(
-					  *this, &RTTYS_ClientConnection::onSocketReadable));
-		RTTYS_server()->ClientReactor().addEventHandler(
-			*WS_, Poco::NObserver<RTTYS_ClientConnection, Poco::Net::ShutdownNotification>(
-					  *this, &RTTYS_ClientConnection::onSocketShutdown));
+		RTTYS_server()->ClientReactor().removeEventHandler(
+			*WS_,
+			Poco::NObserver<RTTYS_ClientConnection, Poco::Net::ReadableNotification>(
+				*this, &RTTYS_ClientConnection::onSocketReadable));
+		RTTYS_server()->ClientReactor().removeEventHandler(
+			*WS_,
+			Poco::NObserver<RTTYS_ClientConnection, Poco::Net::ShutdownNotification>(
+				*this, &RTTYS_ClientConnection::onSocketShutdown));
+		RTTYS_server()->DisconnectNotice(Id_,false);
 		return false;
 	}
 
@@ -82,6 +85,7 @@ namespace OpenWifi {
 				*WS_,
 				Poco::NObserver<RTTYS_ClientConnection, Poco::Net::ShutdownNotification>(
 					*this, &RTTYS_ClientConnection::onSocketShutdown));
+			RTTYS_server()->DisconnectNotice(Id_,false);
 			WS_->shutdown();
 			if (Connected_) {
 				Connected_=false;
