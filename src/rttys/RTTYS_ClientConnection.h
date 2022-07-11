@@ -44,8 +44,6 @@ namespace OpenWifi {
 		mutable bool 				Valid_=false;
 		u_char 						Buffer_[16000]{0};
 		MyMutexType					Mutex_;
-
-		mutable std::atomic_bool 	aborting_connection_ = false;
-		mutable std::atomic_bool	completing_connection_ = false;
+		mutable bool 				logging_in_ = false;
 	};
 }

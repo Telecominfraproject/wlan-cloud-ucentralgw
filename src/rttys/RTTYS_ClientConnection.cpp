@@ -23,6 +23,7 @@ namespace OpenWifi {
 				*WS_, Poco::NObserver<RTTYS_ClientConnection, Poco::Net::ShutdownNotification>(
 						  *this, &RTTYS_ClientConnection::onSocketShutdown));
 			RTTYS_server()->RegisterClient(Id_,this);
+			logging_in_ = true;
 			std::thread T([=]() { CompleteStartup(); });
 			T.detach();
 		}
@@ -35,6 +36,7 @@ namespace OpenWifi {
 				if (RTTYS_server()->Login(this->Id_)) {
 					Logger_.information("Connected to device");
 					Connected_ = true;
+					logging_in_ = false;
 					return;
 				}
 				std::this_thread::sleep_for(1000ms);
@@ -45,11 +47,14 @@ namespace OpenWifi {
 			Logger_.information("Could not connect to device");
 		} catch (...) {
 		}
+		logging_in_ = false;
 		Guard G(Mutex_);
 		EndConnection(false,G);
 	}
 
 	RTTYS_ClientConnection::~RTTYS_ClientConnection() {
+		while(logging_in_)
+			std::this_thread::sleep_for(100ms);
 		std::lock_guard	G(Mutex_);
 		if(Valid_)
 			EndConnection(false,G);
