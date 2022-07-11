@@ -43,7 +43,9 @@ namespace OpenWifi {
 		mutable bool 				Connected_=false;
 		mutable bool 				Valid_=false;
 		mutable bool 				logging_in_ = false;
+		mutable bool 				abort_connection_=false;
 		u_char 						Buffer_[16000]{0};
 		MyMutexType					Mutex_;
+
 	};
 }

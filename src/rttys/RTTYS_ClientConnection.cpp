@@ -33,7 +33,8 @@ namespace OpenWifi {
 	bool RTTYS_ClientConnection::CompleteStartup() {
 		int tries = 0;
 		try {
-			while (tries < 30) {
+			std::lock_guard	G(Mutex_);
+			while (!abort_connection_ && tries < 30) {
 				if (RTTYS_server()->Login(this->Id_)) {
 					Logger_.information("Connected to device");
 					Connected_ = true;
@@ -203,6 +204,7 @@ namespace OpenWifi {
 	}
 
 	void RTTYS_ClientConnection::onSocketShutdown([[maybe_unused]] const Poco::AutoPtr<Poco::Net::ShutdownNotification> &pNf) {
+		abort_connection_ = true;
 		Guard G(Mutex_);
 		Logger_.information("Socket shutdown.");
 		EndConnection(false,G);
