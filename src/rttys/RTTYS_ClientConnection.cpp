@@ -67,30 +67,22 @@ namespace OpenWifi {
 		if(Valid_) {
 			Valid_=false;
 			if (Connected_) {
+				Connected_=false;
 				Logger().information(fmt::format("{}: Client disconnecting.", Id_));
-				aborting_connection_ = true;
-				if (completing_connection_) {
-					aborting_connection_ = true;
-					while (completing_connection_)
-						continue;
-				}
 				RTTYS_server()->DeRegisterClient(Id_, this);
-				if (Connected_) {
-					RTTYS_server()->ClientReactor().removeEventHandler(
-						*WS_,
-						Poco::NObserver<RTTYS_ClientConnection, Poco::Net::ReadableNotification>(
-							*this, &RTTYS_ClientConnection::onSocketReadable));
-					RTTYS_server()->ClientReactor().removeEventHandler(
-						*WS_,
-						Poco::NObserver<RTTYS_ClientConnection, Poco::Net::ShutdownNotification>(
-							*this, &RTTYS_ClientConnection::onSocketShutdown));
-				}
-				WS_->shutdown();
-				if(!external)
-					RTTYS_server()->DisconnectNotice(Id_,false);
-				Logger().information(fmt::format("{}: Client disconnected.", Id_));
 			}
-			Connected_=false;
+			RTTYS_server()->ClientReactor().removeEventHandler(
+				*WS_,
+				Poco::NObserver<RTTYS_ClientConnection, Poco::Net::ReadableNotification>(
+					*this, &RTTYS_ClientConnection::onSocketReadable));
+			RTTYS_server()->ClientReactor().removeEventHandler(
+				*WS_,
+				Poco::NObserver<RTTYS_ClientConnection, Poco::Net::ShutdownNotification>(
+					*this, &RTTYS_ClientConnection::onSocketShutdown));
+			WS_->shutdown();
+			if(!external)
+				RTTYS_server()->DisconnectNotice(Id_,false);
+			Logger().information(fmt::format("{}: Client disconnected.", Id_));
 		}
 	}
 
