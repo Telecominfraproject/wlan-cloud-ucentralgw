@@ -15,42 +15,35 @@ namespace OpenWifi {
 		  	Id_(Id),
 	  		Logger_(Poco::Logger::get(fmt::format("RTTY-client({})",Id_)))
 		{
-
-			Logger_.information(fmt::format("{}: Client starting connection, session: {}.",
-											 Id_, RTTYS_server()->DeviceSessionID(Id_)));
+			Logger_.information("Starting connection");
 			RTTYS_server()->ClientReactor().addEventHandler(
 				*WS_, Poco::NObserver<RTTYS_ClientConnection, Poco::Net::ReadableNotification>(
 						  *this, &RTTYS_ClientConnection::onSocketReadable));
 			RTTYS_server()->ClientReactor().addEventHandler(
 				*WS_, Poco::NObserver<RTTYS_ClientConnection, Poco::Net::ShutdownNotification>(
 						  *this, &RTTYS_ClientConnection::onSocketShutdown));
-
-//			std::thread T([=]() { CompleteLogin(); });
-//			T.detach();
+			RTTYS_server()->RegisterClient(Id_,this);
+			std::thread T([=]() { CompleteStartup(); });
+			T.detach();
 		}
 
-	void RTTYS_ClientConnection::CompleteLogin() {
+	void RTTYS_ClientConnection::CompleteStartup() {
 		int tries = 0;
-		completing_connection_ = true;
 		try {
 			Valid_ = true;
-			while (!aborting_connection_ && tries < 30) {
+			while (tries < 30) {
 				if (RTTYS_server()->Login(this->Id_)) {
-					Logger_.information(fmt::format("{}: Client connected to device, session: {}.",
-													 Id_, RTTYS_server()->DeviceSessionID(Id_)));
+					Logger_.information("Connected to device");
 					Connected_ = true;
-					completing_connection_ = false;
 					return;
 				}
 				std::this_thread::sleep_for(1000ms);
 				tries++;
 				Logger_.information(fmt::format(
-					"{}: Waiting for device to connect to start session. (try={})", Id_, tries));
+					"Waiting for device to connect to start session. (try={})", tries));
 			}
-			Logger_.information(fmt::format("{}: Client could not connect to device, session: {}.",
-											 Id_, RTTYS_server()->DeviceSessionID(Id_)));
+			Logger_.information("Could not connect to device");
 		} catch (...) {
-			completing_connection_ = false;
 		}
 		Guard G(Mutex_);
 		EndConnection(false,G);
@@ -66,11 +59,6 @@ namespace OpenWifi {
 	void RTTYS_ClientConnection::EndConnection(bool external, [[maybe_unused]] Guard &G ) {
 		if(Valid_) {
 			Valid_=false;
-			if (Connected_) {
-				Connected_=false;
-				Logger_.information(fmt::format("{}: Client disconnecting.", Id_));
-				RTTYS_server()->DeRegisterClient(Id_, this);
-			}
 			RTTYS_server()->ClientReactor().removeEventHandler(
 				*WS_,
 				Poco::NObserver<RTTYS_ClientConnection, Poco::Net::ReadableNotification>(
@@ -80,9 +68,14 @@ namespace OpenWifi {
 				Poco::NObserver<RTTYS_ClientConnection, Poco::Net::ShutdownNotification>(
 					*this, &RTTYS_ClientConnection::onSocketShutdown));
 			WS_->shutdown();
+			if (Connected_) {
+				Connected_=false;
+				Logger_.information("Disconnecting.");
+				RTTYS_server()->DeRegisterClient(Id_, this);
+			}
 			if(!external)
 				RTTYS_server()->DisconnectNotice(Id_,false);
-			Logger_.information(fmt::format("{}: Client disconnected.", Id_));
+			Logger_.information("Disconnected.");
 		}
 	}
 
@@ -103,7 +96,7 @@ namespace OpenWifi {
 			} break;
 			case Poco::Net::WebSocket::FRAME_OP_TEXT: {
 				if (n == 0) {
-					Logger_.information(fmt::format("{}: Socket readable shutdown.", Id_));
+					Logger_.information("Socket readable shutdown.");
 					MustDisconnect = true;
 				} else {
 					std::string s((char *)Buffer_, n);
@@ -115,34 +108,32 @@ namespace OpenWifi {
 								auto cols = Doc["cols"];
 								auto rows = Doc["rows"];
 								if (!RTTYS_server()->WindowSize(Id_, cols, rows)) {
-									Logger_.information(
-										fmt::format("{}: Winsize shutdown.", Id_));
+									Logger_.information("Winsize shutdown.");
 									MustDisconnect = true;
 								}
 							}
 						}
 					} catch (...) {
 						// just ignore parse errors
-						Logger_.information(
-							fmt::format("{}: Frame text exception shutdown.", Id_));
+						Logger_.information("Frame text exception shutdown.");
 						MustDisconnect = true;
 					}
 				}
 			} break;
 			case Poco::Net::WebSocket::FRAME_OP_BINARY: {
 				if (n == 0) {
-					Logger_.information(fmt::format("{}: Frame binary size shutdown.", Id_));
+					Logger_.information("Frame binary size shutdown.");
 					MustDisconnect = true;
 				} else {
 					poco_trace(Logger_, fmt::format("Sending {} key strokes to device.", n));
 					if (!RTTYS_server()->SendKeyStrokes(Id_, Buffer_, n)) {
-						Logger_.information(fmt::format("{}: Sendkeystrokes shutdown.", Id_));
+						Logger_.information("Sendkeystrokes shutdown.");
 						MustDisconnect = true;
 					}
 				}
 			} break;
 			case Poco::Net::WebSocket::FRAME_OP_CLOSE: {
-				Logger_.information(fmt::format("{}: Frame frame close shutdown.", Id_));
+				Logger_.information("Frame frame close shutdown.");
 				MustDisconnect = true;
 			} break;
 
@@ -150,7 +141,7 @@ namespace OpenWifi {
 			}
 			}
 		} catch (...) {
-			Logger_.information(fmt::format("{}: Frame readable shutdown.", Id_));
+			Logger_.information("Frame readable shutdown.");
 			MustDisconnect = true;
 		}
 
@@ -171,7 +162,7 @@ namespace OpenWifi {
 							   Poco::Net::WebSocket::FRAME_OP_BINARY);
 		} catch (...) {
 			done = true;
-			Logger_.information(fmt::format("{}: SendData shutdown.", Id_));
+			Logger_.information("SendData shutdown.");
 		}
 
 		if(done)
@@ -190,7 +181,7 @@ namespace OpenWifi {
 			WS_->sendFrame(s.c_str(), s.length());
 		} catch (...) {
 			done = true;
-			Logger_.information(fmt::format("{}: Senddata shutdown.", Id_));
+			Logger_.information("Senddata shutdown.");
 		}
 
 		if(done)
@@ -199,7 +190,7 @@ namespace OpenWifi {
 
 	void RTTYS_ClientConnection::onSocketShutdown([[maybe_unused]] const Poco::AutoPtr<Poco::Net::ShutdownNotification> &pNf) {
 		Guard G(Mutex_);
-		Logger_.information(fmt::format("{}: Socket shutdown.", Id_));
+		Logger_.information("Socket shutdown.");
 		EndConnection(false,G);
 	}
 

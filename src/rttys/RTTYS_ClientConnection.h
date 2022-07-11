@@ -22,7 +22,7 @@ namespace OpenWifi {
 
 		void SendData( const u_char *Buf, size_t len );
 		void SendData( const std::string & S, bool login=false);
-		void CompleteLogin();
+		void CompleteStartup();
 
 		[[nodiscard]] inline std::string ID() { return Id_; }
 		[[nodiscard]] inline auto Valid() {	return Valid_;	}

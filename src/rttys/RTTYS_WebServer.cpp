@@ -32,9 +32,9 @@ namespace OpenWifi {
 		try {
 			Poco::Thread::current()->setName(fmt::format("WebRTTYRequest_WSHandler_{}", T[2]));
 			auto WS = new Poco::Net::WebSocket(request, response);
-			auto NewRTTYClient = new RTTYS_ClientConnection(WS, T[2]);
-			RTTYS_server()->RegisterClient(T[2],NewRTTYClient);
-			NewRTTYClient->CompleteLogin();
+			new RTTYS_ClientConnection(WS, T[2]);
+			// RTTYS_server()->RegisterClient(T[2],NewRTTYClient);
+			// NewRTTYClient->CompleteLogin();
 		} catch (...) {
 			Logger_.warning("Exception during WS creation");
 		}
