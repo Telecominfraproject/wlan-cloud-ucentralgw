@@ -46,7 +46,7 @@ namespace OpenWifi {
 				Poco::NObserver<RTTYS_Device_ConnectionHandler, Poco::Net::ShutdownNotification>(
 					*this, &RTTYS_Device_ConnectionHandler::onSocketShutdown));
 		} catch (...) {
-			poco_warning(Logger(), "Device caused exception while completing connection."));
+			poco_warning(Logger(), "Device caused exception while completing connection.");
 			Guard G(M_);
 			EndConnection(false,G);
 		}
