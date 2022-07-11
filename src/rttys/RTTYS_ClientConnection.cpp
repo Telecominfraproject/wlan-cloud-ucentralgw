@@ -23,7 +23,6 @@ namespace OpenWifi {
 			RTTYS_server()->ClientReactor().addEventHandler(
 				*WS_, Poco::NObserver<RTTYS_ClientConnection, Poco::Net::ShutdownNotification>(
 						  *this, &RTTYS_ClientConnection::onSocketShutdown));
-			RTTYS_server()->RegisterClient(Id_,this);
 			logging_in_ = true;
 			std::thread T([=]() { CompleteStartup(); });
 			T.detach();
@@ -32,6 +31,7 @@ namespace OpenWifi {
 	void RTTYS_ClientConnection::CompleteStartup() {
 		int tries = 0;
 		try {
+			RTTYS_server()->RegisterClient(Id_,this);
 			while (tries < 30) {
 				if (RTTYS_server()->Login(this->Id_)) {
 					Logger_.information("Connected to device");

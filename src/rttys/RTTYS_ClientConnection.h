@@ -26,7 +26,7 @@ namespace OpenWifi {
 
 		[[nodiscard]] inline std::string ID() { return Id_; }
 		[[nodiscard]] inline auto Valid() {	return Valid_;	}
-		using MyMutexType = std::mutex;
+		using MyMutexType = std::recursive_mutex;
 		using Guard = std::lock_guard<MyMutexType>;
 
 		void EndConnection(bool external, Guard &G);
@@ -42,8 +42,8 @@ namespace OpenWifi {
 		std::string 				Sid_;
 		mutable bool 				Connected_=false;
 		mutable bool 				Valid_=false;
+		mutable bool 				logging_in_ = false;
 		u_char 						Buffer_[16000]{0};
 		MyMutexType					Mutex_;
-		mutable bool 				logging_in_ = false;
 	};
 }
