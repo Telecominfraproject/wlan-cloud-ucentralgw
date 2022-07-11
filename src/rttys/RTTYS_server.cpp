@@ -81,8 +81,8 @@ namespace OpenWifi {
 		}
 
 		GCCallBack_ = std::make_unique<Poco::TimerCallback<RTTYS_server>>(*this, &RTTYS_server::onTimer);
-		Timer_.setStartInterval(10 * 1000);  // first run in 30 seconds
-		Timer_.setPeriodicInterval(1 * 60 * 1000);
+		Timer_.setStartInterval(30 * 1000);  // first run in 30 seconds
+		Timer_.setPeriodicInterval(20 * 1000);
 		Timer_.start(*GCCallBack_);
 
 		NotificationManager_.start(*this);
@@ -129,16 +129,17 @@ namespace OpenWifi {
 				auto c = fmt::format("Removing {}. Device connection time: {}. Client connection time: {}",
 									 element->first, element->second.DeviceDisconnected - element->second.DeviceConnected,
 									 element->second.ClientDisconnected - element->second.ClientConnected);
-				std::cout << c << std::endl;
 				Logger().information(c);
+				std::cout << c << std::endl;
 				element = EndPoints_.erase(element);
+				std::cout << __LINE__ << std::endl;
 			} else {
 				++element;
 			}
 		}
 
 		for(auto &element:FailedDevices) {
-//			std::cout << __LINE__ << std::endl;
+			std::cout << __LINE__ << std::endl;
 			delete element;
 		}
 	}
