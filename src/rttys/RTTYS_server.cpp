@@ -148,24 +148,32 @@ namespace OpenWifi {
 	void RTTYS_server::CreateNewClient(Poco::Net::HTTPServerRequest &request,
 								Poco::Net::HTTPServerResponse &response, const std::string &id) {
 
-		std::lock_guard	G(M_);
-
 		auto WS = new Poco::Net::WebSocket(request, response);
-		auto conn = EndPoints_.find(id);
-		if(conn==EndPoints_.end()) {
-			EndPoint	NewEP;
-			NewEP.WS_ = WS;
-			NewEP.Client = 	new RTTYS_ClientConnection(WS, id);
-			NewEP.TimeStamp = OpenWifi::Now();
-			EndPoints_[id] = NewEP;
-			if(!NewEP.Client->CompleteStartup()) {
+		auto NewClient = new RTTYS_ClientConnection(WS, id);
+
+		{
+			std::lock_guard G(M_);
+			auto conn = EndPoints_.find(id);
+			if (conn == EndPoints_.end()) {
+				EndPoint NewEP;
+				NewEP.WS_ = WS;
+				NewEP.Client = NewClient;
+				NewEP.TimeStamp = OpenWifi::Now();
+				EndPoints_[id] = NewEP;
+				if (!NewEP.Client->CompleteStartup()) {
+				}
+			} else {
+				conn->second.WS_ = WS;
+				conn->second.Client = NewClient;
+				conn->second.TimeStamp = OpenWifi::Now();
+				if (!conn->second.Client->CompleteStartup()) {
+				}
 			}
+		}
+		if(NewClient->CompleteStartup()) {
+
 		} else {
-			conn->second.WS_ = WS;
-			conn->second.Client = 	new RTTYS_ClientConnection(WS, id);
-			conn->second.TimeStamp = OpenWifi::Now();
-			if(!conn->second.Client->CompleteStartup()) {
-			}
+			Logger().information(fmt::format("Could not start Client {}.",id));
 		}
 	}
 
