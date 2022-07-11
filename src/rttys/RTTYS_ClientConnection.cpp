@@ -13,7 +13,7 @@ namespace OpenWifi {
 		:
 	  		WS_(WS),
 		  	Id_(Id),
-	  		Logger_(Poco::Logger::get(fmt::format("RTTY: {}",Id_)))
+	  		Logger_(Poco::Logger::get(fmt::format("RTTY-client({})",Id_)))
 		{
 
 			Logger_.information(fmt::format("{}: Client starting connection, session: {}.",
