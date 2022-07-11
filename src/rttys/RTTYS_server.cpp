@@ -114,13 +114,13 @@ namespace OpenWifi {
 		auto now = OpenWifi::Now();
  		for(auto element=EndPoints_.begin();element!=EndPoints_.end();) {
 			if(element->second.Client!=nullptr && !element->second.Client->Valid() && (now-element->second.ClientDisconnected)>15) {
-				std::cout << "Removing client:" << element->first << std::endl;
+				// std::cout << "Removing client:" << element->first << std::endl;
 				delete element->second.Client;
 				element->second.Client = nullptr;
 			}
 
 			if(element->second.Device!=nullptr && !element->second.Device->Valid() && (now-element->second.DeviceDisconnected)>15) {
-				std::cout << "Removing device:" << element->first << std::endl;
+				// std::cout << "Removing device:" << element->first << std::endl;
 				delete element->second.Device;
 				element->second.Device = nullptr;
 			}
@@ -130,16 +130,14 @@ namespace OpenWifi {
 									 element->first, element->second.DeviceDisconnected - element->second.DeviceConnected,
 									 element->second.ClientDisconnected - element->second.ClientConnected);
 				Logger().information(c);
-				std::cout << c << std::endl;
+				// std::cout << c << std::endl;
 				element = EndPoints_.erase(element);
-				std::cout << __LINE__ << std::endl;
 			} else {
 				++element;
 			}
 		}
 
 		for(auto &element:FailedDevices) {
-			std::cout << __LINE__ << std::endl;
 			delete element;
 		}
 		FailedDevices.clear();
