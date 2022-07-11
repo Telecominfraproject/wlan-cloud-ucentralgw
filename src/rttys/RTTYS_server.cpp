@@ -126,7 +126,7 @@ namespace OpenWifi {
 			}
 
 			if(element->second.Client==nullptr && element->second.Device==nullptr) {
-				poco_debug(Logger(), fmt::format("Removing {}. Device connection time: {}. Client connection time: {}",
+				Logger().information(fmt::format("Removing {}. Device connection time: {}. Client connection time: {}",
 												 element->first, element->second.DeviceDisconnected - element->second.DeviceConnected,
 												 element->second.ClientDisconnected - element->second.ClientConnected));
 				element = EndPoints_.erase(element);
