@@ -40,6 +40,7 @@ namespace OpenWifi {
 					return;
 				}
 				std::this_thread::sleep_for(1000ms);
+				std::this_thread::yield();
 				tries++;
 				Logger_.information(fmt::format(
 					"Waiting for device to connect to start session. (try={})", tries));
