@@ -9,7 +9,7 @@
 namespace OpenWifi {
 
 	RTTYS_ClientConnection::RTTYS_ClientConnection(Poco::Net::WebSocket *WS,
-			   	std::string &Id)
+			   	const std::string &Id)
 		:
 	  		WS_(WS),
 		  	Id_(Id),
@@ -24,20 +24,21 @@ namespace OpenWifi {
 				*WS_, Poco::NObserver<RTTYS_ClientConnection, Poco::Net::ShutdownNotification>(
 						  *this, &RTTYS_ClientConnection::onSocketShutdown));
 			logging_in_ = true;
+			/*
 			std::thread T([=]() { CompleteStartup(); });
 			T.detach();
+	*/
 		}
 
-	void RTTYS_ClientConnection::CompleteStartup() {
+	bool RTTYS_ClientConnection::CompleteStartup() {
 		int tries = 0;
 		try {
-			RTTYS_server()->RegisterClient(Id_,this);
 			while (tries < 30) {
 				if (RTTYS_server()->Login(this->Id_)) {
 					Logger_.information("Connected to device");
 					Connected_ = true;
 					logging_in_ = false;
-					return;
+					return true;
 				}
 				std::this_thread::sleep_for(1000ms);
 				std::this_thread::yield();
@@ -56,7 +57,7 @@ namespace OpenWifi {
 		RTTYS_server()->ClientReactor().addEventHandler(
 			*WS_, Poco::NObserver<RTTYS_ClientConnection, Poco::Net::ShutdownNotification>(
 					  *this, &RTTYS_ClientConnection::onSocketShutdown));
-		RTTYS_server()->DeRegisterClient(Id_, this);
+		return false;
 	}
 
 	RTTYS_ClientConnection::~RTTYS_ClientConnection() {
@@ -67,7 +68,6 @@ namespace OpenWifi {
 		std::lock_guard	G(Mutex_);
 		if(Valid_)
 			EndConnection(false,G);
-		delete WS_;
 	}
 
 	void RTTYS_ClientConnection::EndConnection(bool external, [[maybe_unused]] Guard &G ) {

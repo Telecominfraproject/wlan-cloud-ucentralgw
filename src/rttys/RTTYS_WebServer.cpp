@@ -30,9 +30,7 @@ namespace OpenWifi {
 		}
 
 		try {
-			Poco::Thread::current()->setName(fmt::format("WebRTTYRequest_WSHandler_{}", T[2]));
-			auto WS = new Poco::Net::WebSocket(request, response);
-			new RTTYS_ClientConnection(WS, T[2]);
+			RTTYS_server()->CreateNewClient(request,response,T[2]);
 			// RTTYS_server()->RegisterClient(T[2],NewRTTYClient);
 			// NewRTTYClient->CompleteLogin();
 		} catch (...) {

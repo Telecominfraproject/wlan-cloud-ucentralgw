@@ -73,6 +73,7 @@ namespace OpenWifi {
 			std::string 							Token;
 			mutable RTTYS_ClientConnection *		Client = nullptr;
 			mutable RTTY_Device_ConnectionHandler *	Device = nullptr;
+			Poco::Net::WebSocket					* WS_ = nullptr;
 			uint64_t 								TimeStamp = OpenWifi::Now();
 			std::string 							UserName;
 			std::string 							SerialNumber;
@@ -82,6 +83,9 @@ namespace OpenWifi {
 			mutable uint64_t 						ClientConnected = 0;
 
 		};
+
+		void CreateNewClient(Poco::Net::HTTPServerRequest &request,
+							 Poco::Net::HTTPServerResponse &response, const std::string &id);
 
 		void onTimer(Poco::Timer & timer);
 
