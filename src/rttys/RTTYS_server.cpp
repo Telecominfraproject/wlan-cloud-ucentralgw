@@ -158,12 +158,12 @@ namespace OpenWifi {
 				EndPoint NewEP;
 				NewEP.WS_ = WS;
 				NewEP.Client = NewClient;
-				NewEP.TimeStamp = OpenWifi::Now();
+				NewEP.ClientConnected = NewEP.TimeStamp = OpenWifi::Now();
 				EndPoints_[id] = NewEP;
 			} else {
 				conn->second.WS_ = WS;
 				conn->second.Client = NewClient;
-				conn->second.TimeStamp = OpenWifi::Now();
+				conn->second.ClientConnected = conn->second.TimeStamp = OpenWifi::Now();
 			}
 		}
 		if(NewClient->CompleteStartup()) {
