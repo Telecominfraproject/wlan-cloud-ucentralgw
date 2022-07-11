@@ -53,8 +53,10 @@ namespace OpenWifi {
 	}
 
 	RTTYS_ClientConnection::~RTTYS_ClientConnection() {
-		while(logging_in_)
+		while(logging_in_) {
 			std::this_thread::sleep_for(100ms);
+			std::this_thread::yield();
+		}
 		std::lock_guard	G(Mutex_);
 		if(Valid_)
 			EndConnection(false,G);
