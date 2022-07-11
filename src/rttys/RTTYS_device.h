@@ -15,7 +15,7 @@ namespace OpenWifi {
 
 	inline static std::atomic_uint64_t global_device_connection_id = 1;
 
-	class RTTY_Device_ConnectionHandler{
+	class RTTYS_Device_ConnectionHandler{
 	  public:
 		enum RTTY_MSG_TYPE {
 			msgTypeRegister = 0,
@@ -30,9 +30,8 @@ namespace OpenWifi {
 			msgTypeAck,
 			msgTypeMax };
 
-		explicit RTTY_Device_ConnectionHandler(Poco::Net::StreamSocket& socket, Poco::Net::SocketReactor& reactor);
-
-		~RTTY_Device_ConnectionHandler();
+		explicit RTTYS_Device_ConnectionHandler(Poco::Net::StreamSocket& socket, Poco::Net::SocketReactor& reactor);
+		~RTTYS_Device_ConnectionHandler();
 
 		bool Login();
 		bool Logout();
@@ -42,7 +41,7 @@ namespace OpenWifi {
 		[[nodiscard]] bool WindowSize(int cols, int rows);
 		[[nodiscard]] bool KeyStrokes(const u_char *buf, size_t len);
 		std::string ReadString();
-		inline auto SessionID() const { return conn_id_; }
+		// inline auto SessionID() const { return conn_id_; }
 
 		void onSocketReadable(const Poco::AutoPtr<Poco::Net::ReadableNotification>& pNf);
 		void onSocketShutdown(const Poco::AutoPtr<Poco::Net::ShutdownNotification>& pNf);
@@ -82,7 +81,6 @@ namespace OpenWifi {
 		std::array<char,RTTY_DEVICE_BUFSIZE>	scratch_{0};
 		std::size_t      			  	waiting_for_bytes_{0};
 		u_char 						  	last_command_=0;
-		uint64_t 					  	conn_id_=0;
 		mutable std::atomic_bool		received_login_from_websocket_=false;
 
 		void CompleteConnection();
