@@ -25,8 +25,7 @@ namespace OpenWifi {
 			valid_=true;
 			device_address_ = socket_.peerAddress();
 			if (MicroService::instance().NoAPISecurity()) {
-				poco_information(Logger(),
-					fmt::format("{}: Unsecured connection.", device_address_.toString()));
+				poco_information(Logger(),"Unsecured connection.");
 			} else {
 				auto SS = dynamic_cast<Poco::Net::SecureStreamSocketImpl *>(socket_.impl());
 				while (true) {
@@ -35,8 +34,7 @@ namespace OpenWifi {
 						break;
 				}
 				if ((SS->secure())) {
-					poco_information(Logger(),
-							   fmt::format("{}: Secure connection.", device_address_.toString()));
+					poco_information(Logger(), "Secure connection.");
 				}
 			}
 			reactor_.addEventHandler(
@@ -48,8 +46,7 @@ namespace OpenWifi {
 				Poco::NObserver<RTTYS_Device_ConnectionHandler, Poco::Net::ShutdownNotification>(
 					*this, &RTTYS_Device_ConnectionHandler::onSocketShutdown));
 		} catch (...) {
-			poco_warning(Logger(),
-				fmt::format("{}: Device caused exception while completing connection.", device_address_.toString()));
+			poco_warning(Logger(), "Device caused exception while completing connection."));
 			Guard G(M_);
 			EndConnection(false,G);
 		}
