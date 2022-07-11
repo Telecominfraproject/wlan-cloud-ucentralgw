@@ -15,7 +15,6 @@ namespace OpenWifi {
 	class RTTYS_ClientConnection {
 	  public:
 		RTTYS_ClientConnection(Poco::Net::WebSocket *WS,
-							   Poco::Logger &L,
 							   std::string &Id);
 		~RTTYS_ClientConnection();
 		void onSocketReadable(const Poco::AutoPtr<Poco::Net::ReadableNotification> &pNf);
@@ -38,8 +37,8 @@ namespace OpenWifi {
 
 	  private:
 		Poco::Net::WebSocket		*WS_= nullptr;
-		Poco::Logger & 				Logger_;
 		std::string 				Id_;
+		Poco::Logger 				&Logger_;
 		std::string 				Sid_;
 		mutable bool 				Connected_=false;
 		mutable bool 				Valid_=false;
