@@ -47,11 +47,9 @@ namespace OpenWifi {
 		std::string SerialNumber(const std::string & Id);
 		void LoginDone(const std::string & Id);
 		bool ValidEndPoint(const std::string &Id, const std::string &Token);
-		bool CanConnect( const std::string &Id, RTTYS_ClientConnection *Conn);
 		bool IsDeviceRegistered( const std::string &Id, const std::string &Token, [[maybe_unused]] RTTY_Device_ConnectionHandler *Conn);
 		bool Login(const std::string & Id_);
 		bool Logout(const std::string & Id_);
-		bool Close(const std::string & Id_);
 		uint64_t DeviceSessionID(const std::string & Id);
 		bool SendKeyStrokes(const std::string &Id, const u_char *buffer, std::size_t s);
 		bool WindowSize(const std::string &Id, int cols, int rows);
@@ -76,27 +74,19 @@ namespace OpenWifi {
 			mutable RTTYS_ClientConnection *		Client = nullptr;
 			mutable RTTY_Device_ConnectionHandler *	Device = nullptr;
 			uint64_t 								TimeStamp = OpenWifi::Now();
-			mutable uint64_t 						DeviceConnected = 0;
-			mutable uint64_t 						ClientConnected = 0;
 			std::string 							UserName;
 			std::string 							SerialNumber;
-			mutable bool 							ShuttingDown = false;
-			mutable bool 							ShutdownComplete = false;
+			mutable uint64_t 						DeviceDisconnected = 0;
+			mutable uint64_t 						ClientDisconnected = 0;
+			mutable uint64_t 						DeviceConnected = 0;
+			mutable uint64_t 						ClientConnected = 0;
+
 		};
 
 		void onTimer(Poco::Timer & timer);
 
 		inline bool UseInternal() const {
 			return Internal_;
-		}
-
-		inline void dump([[maybe_unused]] const char *ID, [[maybe_unused]] std::ostream &s) {
-/*			for(const auto &[id,point]:EndPoints_) {
-				s << ID << "  ID: " << id << "  C:" << (point.Client == nullptr) << "  D:" << (point.Device== nullptr)
-				  << " Shutting down: " << point.ShuttingDown
-				  << " Shutdown: " << point.ShutdownComplete << std::endl;
-			}
-*/
 		}
 
 		inline Poco::Net::SocketReactor & ClientReactor() { return ClientReactor_; }
