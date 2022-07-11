@@ -48,7 +48,5 @@ namespace OpenWifi {
 
 		mutable std::atomic_bool 	aborting_connection_ = false;
 		mutable std::atomic_bool	completing_connection_ = false;
-
-		inline Poco::Logger & Logger() { return Logger_; }
 	};
 }
