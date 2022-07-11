@@ -57,14 +57,15 @@ namespace OpenWifi {
 
 	RTTY_Device_ConnectionHandler::~RTTY_Device_ConnectionHandler() {
 		Guard G(M_);
-		if(valid_)
-			EndConnection(false,G);
+		if(valid_) {
+			EndConnection(false, G);
+		}
 	}
 
 	void RTTY_Device_ConnectionHandler::EndConnection(bool external, [[maybe_unused]] Guard & G) {
 		try {
 			if(valid_) {
-				valid_=false;
+				valid_ = false;
 				reactor_.removeEventHandler(
 					socket_,
 					Poco::NObserver<RTTY_Device_ConnectionHandler, Poco::Net::ReadableNotification>(
