@@ -73,17 +73,15 @@ namespace OpenWifi {
 						*this, &RTTYS_Device_ConnectionHandler::onSocketShutdown));
 
 				if (registered_) {
-					poco_information(Logger(),
-							   fmt::format("{}: Deregistering.", device_address_.toString()));
+					poco_information(Logger(),"Deregistering.");
 						RTTYS_server()->DeRegisterDevice(Id_, this, web_socket_active_);
-					poco_information(Logger(),
-							   fmt::format("{}: Deregistered.", device_address_.toString()));
+					poco_information(Logger(),"Deregistered.");
 					if(!external)
 						RTTYS_server()->DisconnectNotice(Id_,true);
 				} else {
 					RTTYS_server()->AddFailedDevice(this);
 				}
-				poco_information(Logger(), fmt::format("{}: Done.", device_address_.toString()));
+				poco_information(Logger(), "Connection done.");
 				socket_.close();
 			}
 		} catch (...) {
