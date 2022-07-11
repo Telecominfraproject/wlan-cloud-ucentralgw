@@ -142,6 +142,7 @@ namespace OpenWifi {
 			std::cout << __LINE__ << std::endl;
 			delete element;
 		}
+		FailedDevices.clear();
 	}
 
 	void RTTYS_server::run() {
