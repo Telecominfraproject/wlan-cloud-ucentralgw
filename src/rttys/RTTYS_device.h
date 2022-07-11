@@ -65,6 +65,7 @@ namespace OpenWifi {
 	  private:
 		Poco::Net::StreamSocket   		socket_;
 		Poco::Net::SocketReactor		&reactor_;
+		Poco::FIFOBuffer 				inBuf_;
 		Poco::Logger					&Logger_;
 
 		mutable bool 					valid_=false;
@@ -78,7 +79,6 @@ namespace OpenWifi {
 		mutable bool 					registered_=false;
 		mutable bool					web_socket_active_=false;
 
-		Poco::FIFOBuffer 				inBuf_;
 		std::array<char,RTTY_DEVICE_BUFSIZE>	scratch_{0};
 		std::size_t      			  	waiting_for_bytes_{0};
 		u_char 						  	last_command_=0;
