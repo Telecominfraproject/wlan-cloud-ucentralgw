@@ -16,6 +16,7 @@ namespace OpenWifi {
 	  		Logger_(Poco::Logger::get(fmt::format("RTTY-client({})",Id_)))
 		{
 			Logger_.information("Starting connection");
+			Valid_ = true;
 			RTTYS_server()->ClientReactor().addEventHandler(
 				*WS_, Poco::NObserver<RTTYS_ClientConnection, Poco::Net::ReadableNotification>(
 						  *this, &RTTYS_ClientConnection::onSocketReadable));
@@ -31,7 +32,6 @@ namespace OpenWifi {
 	void RTTYS_ClientConnection::CompleteStartup() {
 		int tries = 0;
 		try {
-			Valid_ = true;
 			while (tries < 30) {
 				if (RTTYS_server()->Login(this->Id_)) {
 					Logger_.information("Connected to device");
@@ -48,9 +48,15 @@ namespace OpenWifi {
 			Logger_.information("Could not connect to device");
 		} catch (...) {
 		}
+		Valid_ = false;
 		logging_in_ = false;
-		Guard G(Mutex_);
-		EndConnection(false,G);
+		RTTYS_server()->ClientReactor().addEventHandler(
+			*WS_, Poco::NObserver<RTTYS_ClientConnection, Poco::Net::ReadableNotification>(
+					  *this, &RTTYS_ClientConnection::onSocketReadable));
+		RTTYS_server()->ClientReactor().addEventHandler(
+			*WS_, Poco::NObserver<RTTYS_ClientConnection, Poco::Net::ShutdownNotification>(
+					  *this, &RTTYS_ClientConnection::onSocketShutdown));
+		RTTYS_server()->DeRegisterClient(Id_, this);
 	}
 
 	RTTYS_ClientConnection::~RTTYS_ClientConnection() {
