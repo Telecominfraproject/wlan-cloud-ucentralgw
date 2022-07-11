@@ -114,21 +114,23 @@ namespace OpenWifi {
 		auto now = OpenWifi::Now();
  		for(auto element=EndPoints_.begin();element!=EndPoints_.end();) {
 			if(element->second.Client!=nullptr && !element->second.Client->Valid() && (now-element->second.ClientDisconnected)>15) {
-//				std::cout << "Removing client:" << element->first << std::endl;
+				std::cout << "Removing client:" << element->first << std::endl;
 				delete element->second.Client;
 				element->second.Client = nullptr;
 			}
 
 			if(element->second.Device!=nullptr && !element->second.Device->Valid() && (now-element->second.DeviceDisconnected)>15) {
-//				std::cout << "Removing device:" << element->first << std::endl;
+				std::cout << "Removing device:" << element->first << std::endl;
 				delete element->second.Device;
 				element->second.Device = nullptr;
 			}
 
 			if(element->second.Client==nullptr && element->second.Device==nullptr) {
-				Logger().information(fmt::format("Removing {}. Device connection time: {}. Client connection time: {}",
-												 element->first, element->second.DeviceDisconnected - element->second.DeviceConnected,
-												 element->second.ClientDisconnected - element->second.ClientConnected));
+				auto c = fmt::format("Removing {}. Device connection time: {}. Client connection time: {}",
+									 element->first, element->second.DeviceDisconnected - element->second.DeviceConnected,
+									 element->second.ClientDisconnected - element->second.ClientConnected);
+				std::cout << c << std::endl;
+				Logger().information(c);
 				element = EndPoints_.erase(element);
 			} else {
 				++element;
