@@ -148,10 +148,10 @@ namespace OpenWifi {
 				std::lock_guard G(M_);
 				auto It = EndPoints_.find(Resp->id_);
 				if (It != EndPoints_.end()) {
-					if (Resp->device_ && It->second.Client->Valid()) {
+					if (Resp->device_ && It->second.Client!= nullptr && It->second.Client->Valid()) {
 						Logger().information(fmt::format("{}: Device disconnecting.", Resp->id_));
 						It->second.Client->EndConnection(true);
-					} else if(!Resp->device_ && It->second.Device->Valid()) {
+					} else if(!Resp->device_ && It->second.Device!= nullptr && It->second.Device->Valid()) {
 						Logger().information(fmt::format("{}: Client disconnecting.", Resp->id_));
 						It->second.Device->EndConnection(true);
 					}
