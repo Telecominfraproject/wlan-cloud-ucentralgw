@@ -15,40 +15,35 @@ namespace OpenWifi {
 	class RTTYS_ClientConnection {
 	  public:
 		RTTYS_ClientConnection(Poco::Net::WebSocket *WS,
-							   Poco::Logger &L,
-							   std::string &Id);
+							   Poco::Net::SocketReactor & reactor,
+							   const std::string &Id);
 		~RTTYS_ClientConnection();
 		void onSocketReadable(const Poco::AutoPtr<Poco::Net::ReadableNotification> &pNf);
 		void onSocketShutdown(const Poco::AutoPtr<Poco::Net::ShutdownNotification> &pNf);
 
 		void SendData( const u_char *Buf, size_t len );
 		void SendData( const std::string & S, bool login=false);
-		void CompleteLogin();
+		bool CompleteStartup();
 
 		[[nodiscard]] inline std::string ID() { return Id_; }
 		[[nodiscard]] inline auto Valid() {	return Valid_;	}
-		using MyMutexType = std::mutex;
-		using Guard = std::lock_guard<MyMutexType>;
+		using MyMutexType = std::recursive_mutex;
+		using MyGuard = std::lock_guard<MyMutexType>;
 
-		void EndConnection(bool external, Guard &G);
-		inline void EndConnection(bool external) {
-			Guard G(Mutex_);
-			EndConnection(external, G);
-		}
+		void EndConnection(bool external);
 
 	  private:
 		Poco::Net::WebSocket		*WS_= nullptr;
-		Poco::Logger & 				Logger_;
+		Poco::Net::SocketReactor 	&Reactor_;
 		std::string 				Id_;
+		Poco::Logger 				&Logger_;
 		std::string 				Sid_;
 		mutable bool 				Connected_=false;
 		mutable bool 				Valid_=false;
+		mutable bool 				logging_in_ = false;
+		mutable bool 				abort_connection_=false;
 		u_char 						Buffer_[16000]{0};
 		MyMutexType					Mutex_;
 
-		mutable std::atomic_bool 	aborting_connection_ = false;
-		mutable std::atomic_bool	completing_connection_ = false;
-
-		inline Poco::Logger & Logger() { return Logger_; }
 	};
 }

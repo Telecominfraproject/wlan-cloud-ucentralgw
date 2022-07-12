@@ -15,7 +15,7 @@ namespace OpenWifi {
 
 	inline static std::atomic_uint64_t global_device_connection_id = 1;
 
-	class RTTY_Device_ConnectionHandler{
+	class RTTYS_Device_ConnectionHandler{
 	  public:
 		enum RTTY_MSG_TYPE {
 			msgTypeRegister = 0,
@@ -30,9 +30,8 @@ namespace OpenWifi {
 			msgTypeAck,
 			msgTypeMax };
 
-		explicit RTTY_Device_ConnectionHandler(Poco::Net::StreamSocket& socket, Poco::Net::SocketReactor& reactor);
-
-		~RTTY_Device_ConnectionHandler();
+		explicit RTTYS_Device_ConnectionHandler(Poco::Net::StreamSocket& socket, Poco::Net::SocketReactor& reactor);
+		~RTTYS_Device_ConnectionHandler();
 
 		bool Login();
 		bool Logout();
@@ -42,7 +41,7 @@ namespace OpenWifi {
 		[[nodiscard]] bool WindowSize(int cols, int rows);
 		[[nodiscard]] bool KeyStrokes(const u_char *buf, size_t len);
 		std::string ReadString();
-		inline auto SessionID() const { return conn_id_; }
+		// inline auto SessionID() const { return conn_id_; }
 
 		void onSocketReadable(const Poco::AutoPtr<Poco::Net::ReadableNotification>& pNf);
 		void onSocketShutdown(const Poco::AutoPtr<Poco::Net::ShutdownNotification>& pNf);
@@ -51,11 +50,8 @@ namespace OpenWifi {
 		using My_mutex_type = std::mutex;
 		using Guard = std::lock_guard<My_mutex_type>;
 
-		void EndConnection(bool external, Guard &);
-		inline void EndConnection(bool external) {
-			Guard G(M_);
-			EndConnection(external, G);
-		}
+		void EndConnection(bool external);
+		inline Poco::Logger	&Logger() { return Logger_; }
 
 		inline bool Valid() {return valid_;
 		}
@@ -63,6 +59,8 @@ namespace OpenWifi {
 	  private:
 		Poco::Net::StreamSocket   		socket_;
 		Poco::Net::SocketReactor		&reactor_;
+		Poco::FIFOBuffer 				inBuf_;
+		Poco::Logger					&Logger_;
 
 		mutable bool 					valid_=false;
 		Poco::Net::SocketAddress		device_address_;
@@ -75,16 +73,12 @@ namespace OpenWifi {
 		mutable bool 					registered_=false;
 		mutable bool					web_socket_active_=false;
 
-		Poco::FIFOBuffer 				inBuf_;
 		std::array<char,RTTY_DEVICE_BUFSIZE>	scratch_{0};
 		std::size_t      			  	waiting_for_bytes_{0};
 		u_char 						  	last_command_=0;
-		uint64_t 					  	conn_id_=0;
 		mutable std::atomic_bool		received_login_from_websocket_=false;
 
 		void CompleteConnection();
-
-		Poco::Logger & Logger();
 
 		[[nodiscard]] bool do_msgTypeRegister(std::size_t msg_len);
 		[[nodiscard]] bool do_msgTypeLogin(std::size_t msg_len);

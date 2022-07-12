@@ -9,11 +9,11 @@
 
 namespace OpenWifi {
 
-	RTTY_Client_WebSocketRequestHandler::RTTY_Client_WebSocketRequestHandler(Poco::Logger & L)
+	RTTYS_Client_WebSocketRequestHandler::RTTYS_Client_WebSocketRequestHandler(Poco::Logger & L)
 		:Logger_(L) {
 	}
 
-	void RTTY_Client_WebSocketRequestHandler::handleRequest(Poco::Net::HTTPServerRequest &request,
+	void RTTYS_Client_WebSocketRequestHandler::handleRequest(Poco::Net::HTTPServerRequest &request,
 					   Poco::Net::HTTPServerResponse &response)  {
 		Poco::URI uri(request.getURI());
 		const auto & P = uri.getPath();
@@ -30,11 +30,7 @@ namespace OpenWifi {
 		}
 
 		try {
-			Poco::Thread::current()->setName(fmt::format("WebRTTYRequest_WSHandler_{}", T[2]));
-			auto WS = new Poco::Net::WebSocket(request, response);
-			auto NewRTTYClient = new RTTYS_ClientConnection(WS, Logger_, T[2]);
-			RTTYS_server()->RegisterClient(T[2],NewRTTYClient);
-			NewRTTYClient->CompleteLogin();
+			RTTYS_server()->CreateNewClient(request,response,T[2]);
 		} catch (...) {
 			Logger_.warning("Exception during WS creation");
 		}
@@ -207,16 +203,16 @@ namespace OpenWifi {
 		poco_debug(Logger(),fmt::format("{}: Finishing request.",id));
 	}
 
-	RTTY_Client_RequestHandlerFactory::RTTY_Client_RequestHandlerFactory(Poco::Logger & L)
+	RTTYS_Client_RequestHandlerFactory::RTTYS_Client_RequestHandlerFactory(Poco::Logger & L)
 		: Logger_(L) {}
 
 	Poco::Net::HTTPRequestHandler *
-	RTTY_Client_RequestHandlerFactory::createRequestHandler(const Poco::Net::HTTPServerRequest &request) {
+	RTTYS_Client_RequestHandlerFactory::createRequestHandler(const Poco::Net::HTTPServerRequest &request) {
 		try {
 			if (request.find("Upgrade") != request.end() &&
 				Poco::icompare(request["Upgrade"], "websocket") == 0) {
 				Poco::Thread::current()->setName("WebRTTYRequest_WSHandler");
-				return new RTTY_Client_WebSocketRequestHandler(Logger_);
+				return new RTTYS_Client_WebSocketRequestHandler(Logger_);
 			} else {
 				Poco::Thread::current()->setName("WebRTTYRequest_PageHandler");
 				return new PageRequestHandler(Logger_);

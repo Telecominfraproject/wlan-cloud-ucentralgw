@@ -10,9 +10,9 @@
 #include "Poco/Net/WebSocket.h"
 
 namespace OpenWifi {
-	class RTTY_Client_WebSocketRequestHandler : public Poco::Net::HTTPRequestHandler {
+	class RTTYS_Client_WebSocketRequestHandler : public Poco::Net::HTTPRequestHandler {
 	  public:
-		explicit RTTY_Client_WebSocketRequestHandler(Poco::Logger &L);
+		explicit RTTYS_Client_WebSocketRequestHandler(Poco::Logger &L);
 
 		void handleRequest(Poco::Net::HTTPServerRequest &request,
 						   Poco::Net::HTTPServerResponse &response) override;
@@ -35,9 +35,9 @@ namespace OpenWifi {
 		inline Poco::Logger &Logger() { return Logger_; }
 	};
 
-	class RTTY_Client_RequestHandlerFactory : public Poco::Net::HTTPRequestHandlerFactory {
+	class RTTYS_Client_RequestHandlerFactory : public Poco::Net::HTTPRequestHandlerFactory {
 	  public:
-		explicit RTTY_Client_RequestHandlerFactory(Poco::Logger &L);
+		explicit RTTYS_Client_RequestHandlerFactory(Poco::Logger &L);
 
 		Poco::Net::HTTPRequestHandler *
 		createRequestHandler(const Poco::Net::HTTPServerRequest &request) override;
