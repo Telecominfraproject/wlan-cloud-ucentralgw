@@ -192,6 +192,7 @@ namespace OpenWifi {
 							Logger().information(
 								fmt::format("{}: Device disconnecting.", Resp->id_));
 							G.unlock();
+							It->second.ClientDisconnected = OpenWifi::Now();
 							It->second.Client->EndConnection(true);
 						}
 					} else {
@@ -199,6 +200,7 @@ namespace OpenWifi {
 						if(It->second.Device!= nullptr && It->second.Device->Valid()) {
 							Logger().information(fmt::format("{}: Client disconnecting.", Resp->id_));
 							G.unlock();
+							It->second.DeviceDisconnected = OpenWifi::Now();
 							It->second.Device->EndConnection(true);
 						}
 					}
