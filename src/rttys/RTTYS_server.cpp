@@ -128,9 +128,8 @@ namespace OpenWifi {
 			}
 
 			if(element->second.Client==nullptr && element->second.Device==nullptr) {
-				std::cout << element->second.DeviceDisconnected << " " << element->second.DeviceConnected << " "
-					<< element->second.ClientDisconnected << " " << element->second.ClientConnected << std::endl;
-
+				// std::cout << element->second.DeviceDisconnected << " " << element->second.DeviceConnected << " "
+				//	<< element->second.ClientDisconnected << " " << element->second.ClientConnected << std::endl;
 				auto c = fmt::format("Removing {}. Device connection time: {}. Client connection time: {}",
 									 element->first, element->second.DeviceDisconnected - element->second.DeviceConnected,
 									 element->second.ClientDisconnected - element->second.ClientConnected);
