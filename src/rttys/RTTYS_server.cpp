@@ -111,10 +111,10 @@ namespace OpenWifi {
 		poco_debug(Logger(),"Removing stale connections.");
 		Utils::SetThreadName("rt:janitor");
 		auto now = OpenWifi::Now();
-		MyGuard 	G(M_);
+		MutexLockerDbg	L(__func__ ,M_);
  		for(auto element=EndPoints_.begin();element!=EndPoints_.end();) {
 			if(element->second.Client!=nullptr && !element->second.Client->Valid() && (now-element->second.ClientDisconnected)>15) {
-				// std::cout << "Removing client:" << element->first << std::endl;
+				std::cout << "Removing client:" << element->first << std::endl;
 				delete element->second.Client;
 				delete element->second.WS_;
 				element->second.Client = nullptr;
@@ -122,14 +122,14 @@ namespace OpenWifi {
 			}
 
 			if(element->second.Device!=nullptr && !element->second.Device->Valid() && (now-element->second.DeviceDisconnected)>15) {
-				// std::cout << "Removing device:" << element->first << std::endl;
+				std::cout << "Removing device:" << element->first << std::endl;
 				delete element->second.Device;
 				element->second.Device = nullptr;
 			}
 
 			if(element->second.Client==nullptr && element->second.Device==nullptr) {
-				// std::cout << element->second.DeviceDisconnected << " " << element->second.DeviceConnected << " "
-				//	<< element->second.ClientDisconnected << " " << element->second.ClientConnected << std::endl;
+				std::cout << element->second.DeviceDisconnected << " " << element->second.DeviceConnected << " "
+					<< element->second.ClientDisconnected << " " << element->second.ClientConnected << std::endl;
 				auto c = fmt::format("Removing {}. Device connection time: {}. Client connection time: {}",
 									 element->first, element->second.DeviceDisconnected - element->second.DeviceConnected,
 									 element->second.ClientDisconnected - element->second.ClientConnected);
@@ -142,6 +142,7 @@ namespace OpenWifi {
 		}
 
 		for(auto &element:FailedDevices) {
+			std::cout << "Delete element in failed" << std::endl;
 			delete element;
 		}
 		FailedDevices.clear();
