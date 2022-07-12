@@ -44,6 +44,7 @@ namespace OpenWifi {
 				Logger_.information(fmt::format(
 					"Waiting for device to connect to start session. (try={})", tries));
 			}
+			logging_in_ = false;
 			Logger_.information("Could not connect to device");
 		} catch (...) {
 		}
