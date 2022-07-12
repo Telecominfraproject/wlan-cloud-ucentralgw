@@ -53,8 +53,7 @@ namespace OpenWifi {
 		void EndConnection(bool external);
 		inline Poco::Logger	&Logger() { return Logger_; }
 
-		inline bool Valid() {return valid_;
-		}
+		inline bool Valid() {return valid_;}
 
 	  private:
 		Poco::Net::StreamSocket   		socket_;
