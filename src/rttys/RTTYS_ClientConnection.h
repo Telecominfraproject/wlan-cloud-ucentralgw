@@ -30,11 +30,7 @@ namespace OpenWifi {
 		using MyMutexType = std::recursive_mutex;
 		using MyGuard = std::lock_guard<MyMutexType>;
 
-		void EndConnection(bool external, MyGuard &G);
-		inline void EndConnection(bool external) {
-			MyGuard G(Mutex_);
-			EndConnection(external, G);
-		}
+		void EndConnection(bool external);
 
 	  private:
 		Poco::Net::WebSocket		*WS_= nullptr;
