@@ -58,7 +58,7 @@ namespace OpenWifi {
 		bool ValidClient(const std::string &id);
 		bool ValidId(const std::string &Id);
 
-		using MyMutexType = std::mutex;
+		using MyMutexType = std::recursive_mutex;
 		using MyGuard = std::lock_guard<MyMutexType>;
 		using MyUniqueLock = std::unique_lock<MyMutexType>;
 
