@@ -44,34 +44,20 @@ namespace OpenWifi {
 				Logger_.information(fmt::format(
 					"Waiting for device to connect to start session. (try={})", tries));
 			}
-			logging_in_ = false;
 			Logger_.information("Could not connect to device");
 		} catch (...) {
 		}
-		MyGuard G(Mutex_);
-		if(!Valid_)
-			return false;
-		Valid_ = false;
 		logging_in_ = false;
-		Reactor_.removeEventHandler(
-			*WS_,
-			Poco::NObserver<RTTYS_ClientConnection, Poco::Net::ReadableNotification>(
-				*this, &RTTYS_ClientConnection::onSocketReadable));
-		Reactor_.removeEventHandler(
-			*WS_,
-			Poco::NObserver<RTTYS_ClientConnection, Poco::Net::ShutdownNotification>(
-				*this, &RTTYS_ClientConnection::onSocketShutdown));
-		RTTYS_server()->DisconnectNotice(Id_,false);
 		return false;
 	}
 
 	RTTYS_ClientConnection::~RTTYS_ClientConnection() {
 		if(logging_in_) {
 			abort_connection_ = true;
-		}
-		while(logging_in_) {
-			std::this_thread::sleep_for(100ms);
-			std::this_thread::yield();
+			while (logging_in_) {
+				std::this_thread::sleep_for(100ms);
+				std::this_thread::yield();
+			}
 		}
 		if(Valid_) {
 			MyGuard 	G(Mutex_);
