@@ -50,10 +50,9 @@ namespace OpenWifi {
 		using My_mutex_type = std::mutex;
 		using Guard = std::lock_guard<My_mutex_type>;
 
-		void EndConnection(bool external);
+		void EndConnection(bool external) ;
 		inline Poco::Logger	&Logger() { return Logger_; }
-
-		inline bool Valid() {return valid_;}
+		inline bool Valid() volatile const { return valid_; }
 
 	  private:
 		Poco::Net::StreamSocket   		socket_;
@@ -61,7 +60,7 @@ namespace OpenWifi {
 		Poco::FIFOBuffer 				inBuf_;
 		Poco::Logger					&Logger_;
 
-		mutable bool 					valid_=false;
+		volatile bool 					valid_=false;
 		Poco::Net::SocketAddress		device_address_;
 		My_mutex_type 		  			M_;
 		std::string                   	Id_;
@@ -69,13 +68,13 @@ namespace OpenWifi {
 		std::string                   	desc_;
 		std::string 				  	serial_;
 		char 				          	sid_=0;
-		mutable bool 					registered_=false;
-		mutable bool					web_socket_active_=false;
+		volatile bool 					registered_=false;
+		volatile bool					web_socket_active_=false;
 
 		std::array<char,RTTY_DEVICE_BUFSIZE>	scratch_{0};
 		std::size_t      			  	waiting_for_bytes_{0};
 		u_char 						  	last_command_=0;
-		mutable std::atomic_bool		received_login_from_websocket_=false;
+		volatile std::atomic_bool		received_login_from_websocket_=false;
 
 		void CompleteConnection();
 

@@ -96,17 +96,16 @@ namespace OpenWifi {
 
 		struct EndPoint {
 			std::string 							Token;
-			mutable RTTYS_ClientConnection 		   *Client = nullptr;
-			mutable RTTYS_Device_ConnectionHandler *Device = nullptr;
-			Poco::Net::WebSocket				   *WS_ = nullptr;
+			RTTYS_ClientConnection 					*Client=nullptr;
+			RTTYS_Device_ConnectionHandler 			*Device=nullptr;
+			Poco::Net::WebSocket				    *WS_=nullptr;
 			uint64_t 								TimeStamp = OpenWifi::Now();
 			std::string 							UserName;
 			std::string 							SerialNumber;
-			mutable uint64_t 						DeviceDisconnected = 0;
-			mutable uint64_t 						ClientDisconnected = 0;
-			mutable uint64_t 						DeviceConnected = 0;
-			mutable uint64_t 						ClientConnected = 0;
-
+			uint64_t 								DeviceDisconnected = 0;
+			uint64_t 								ClientDisconnected = 0;
+			uint64_t 								DeviceConnected = 0;
+			uint64_t 								ClientConnected = 0;
 		};
 
 		void CreateNewClient(Poco::Net::HTTPServerRequest &request,
