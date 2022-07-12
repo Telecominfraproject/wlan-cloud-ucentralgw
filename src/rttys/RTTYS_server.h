@@ -21,15 +21,15 @@ namespace OpenWifi {
  			name_(name),
  			L_(L)
 		{
-			std::cout << name_ << ":L:0:" << Poco::Thread::current()->name() << std::endl;
+			std::cout << name_ << ":L:0:" << Poco::Thread::current()->name() << ":" << Poco::Thread::currentTid() << std::endl;
 			L_.lock();
-			std::cout << name_ << ":L:1:" << Poco::Thread::current()->name() << std::endl;
+			std::cout << name_ << ":L:1:" << Poco::Thread::current()->name() << ":" << Poco::Thread::currentTid() << std::endl;
 		}
 
 		~MutexLockerDbg() {
-			std::cout << name_ << ":U:0:" << Poco::Thread::current()->name() << std::endl;
+			std::cout << name_ << ":U:0:" << Poco::Thread::current()->name() << ":" << Poco::Thread::currentTid() << std::endl;
 			L_.unlock();
-			std::cout << name_ << ":U:1:" << Poco::Thread::current()->name() << std::endl;
+			std::cout << name_ << ":U:1:" << Poco::Thread::current()->name() << ":" << Poco::Thread::currentTid() << std::endl;
 		}
 
 	  private:
