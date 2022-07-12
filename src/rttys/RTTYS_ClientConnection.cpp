@@ -31,11 +31,11 @@ namespace OpenWifi {
 	bool RTTYS_ClientConnection::CompleteStartup() {
 		int tries = 0;
 		try {
-			while (!abort_connection_ && tries < 30) {
+			state_ = connection_state::waiting_for_login;
+			while (state_==connection_state::waiting_for_login && tries < 30) {
 				if (RTTYS_server()->Login(this->Id_)) {
+					state_ = connection_state::connected;
 					Logger_.information("Connected to device");
-					Connected_ = true;
-					logging_in_ = false;
 					return true;
 				}
 				std::this_thread::sleep_for(1000ms);
@@ -47,20 +47,13 @@ namespace OpenWifi {
 			Logger_.information("Could not connect to device");
 		} catch (...) {
 		}
-		logging_in_ = false;
+		state_ = connection_state::shutting_down;
 		return false;
 	}
 
 	RTTYS_ClientConnection::~RTTYS_ClientConnection() {
-		if(logging_in_) {
-			abort_connection_ = true;
-			while (logging_in_) {
-				std::this_thread::sleep_for(100ms);
-				std::this_thread::yield();
-			}
-		}
 		if(Valid_) {
-			MyGuard 	G(Mutex_);
+			MyGuard G(Mutex_);
 			EndConnection(false);
 		}
 	}
@@ -68,6 +61,13 @@ namespace OpenWifi {
 	void RTTYS_ClientConnection::EndConnection(bool external) {
 		if(Valid_) {
 			Valid_=false;
+			if (state_ == connection_state::waiting_for_login) {
+				state_ = connection_state::aborting;
+				while (state_ != connection_state::shutting_down) {
+					std::this_thread::sleep_for(100ms);
+					std::this_thread::yield();
+				}
+			}
 			Reactor_.removeEventHandler(
 				*WS_,
 				Poco::NObserver<RTTYS_ClientConnection, Poco::Net::ReadableNotification>(
@@ -77,6 +77,7 @@ namespace OpenWifi {
 				Poco::NObserver<RTTYS_ClientConnection, Poco::Net::ShutdownNotification>(
 					*this, &RTTYS_ClientConnection::onSocketShutdown));
 			WS_->shutdown();
+			state_ = connection_state::done;
 			if(!external)
 				RTTYS_server()->DisconnectNotice(Id_,false);
 			Logger_.information("Disconnected.");
@@ -185,7 +186,6 @@ namespace OpenWifi {
 	}
 
 	void RTTYS_ClientConnection::onSocketShutdown([[maybe_unused]] const Poco::AutoPtr<Poco::Net::ShutdownNotification> &pNf) {
-		abort_connection_ = true;
 		MyGuard G(Mutex_);
 		Logger_.information("Socket shutdown.");
 		EndConnection(false);
