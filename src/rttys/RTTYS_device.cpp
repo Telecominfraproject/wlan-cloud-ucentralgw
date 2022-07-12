@@ -277,11 +277,10 @@ namespace OpenWifi {
 			Id_ = ReadString();
 			desc_ = ReadString();
 			token_ = ReadString();
-			serial_ = RTTYS_server()->SerialNumber(Id_);
 
 			poco_information(Logger(),fmt::format("{}: Serial:{} Description:{} Device registration",
 									   Id_, serial_, desc_));
-			if (RTTYS_server()->RegisterDevice(Id_, token_, this)) {
+			if (RTTYS_server()->RegisterDevice(Id_, token_, serial_, this)) {
 				u_char OutBuf[8];
 				OutBuf[0] = msgTypeRegister;
 				OutBuf[1] = 0;

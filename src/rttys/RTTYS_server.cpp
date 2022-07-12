@@ -57,7 +57,7 @@ namespace OpenWifi {
 			if(MicroService::instance().NoAPISecurity()) {
 				Poco::Net::ServerSocket ClientSocket(CSport, 64);
 				ClientSocket.setNoDelay(true);
-				WebServer_ = std::make_unique<Poco::Net::HTTPServer>(new RTTY_Client_RequestHandlerFactory(Logger()), ClientSocket, WebServerHttpParams);
+				WebServer_ = std::make_unique<Poco::Net::HTTPServer>(new RTTYS_Client_RequestHandlerFactory(Logger()), ClientSocket, WebServerHttpParams);
 			} else {
 				auto WebClientSecureContext = new Poco::Net::Context(Poco::Net::Context::SERVER_USE, KeyFileName, CertFileName,
 										   "", Poco::Net::Context::VERIFY_RELAXED);
@@ -73,7 +73,7 @@ namespace OpenWifi {
 
 				Poco::Net::SecureServerSocket ClientSocket(CSport, 64, WebClientSecureContext);
 				ClientSocket.setNoDelay(true);
-				WebServer_ = std::make_unique<Poco::Net::HTTPServer>(new RTTY_Client_RequestHandlerFactory(Logger()), ClientSocket, WebServerHttpParams);
+				WebServer_ = std::make_unique<Poco::Net::HTTPServer>(new RTTYS_Client_RequestHandlerFactory(Logger()), ClientSocket, WebServerHttpParams);
 			};
 			WebServer_->start();
 			ClientReactorThread_.start(ClientReactor_);
@@ -109,9 +109,9 @@ namespace OpenWifi {
 
 	void RTTYS_server::onTimer([[maybe_unused]] Poco::Timer & timer) {
 		poco_debug(Logger(),"Removing stale connections.");
-		std::lock_guard	G(M_);
 		Utils::SetThreadName("rt:janitor");
 		auto now = OpenWifi::Now();
+		MyGuard 	G(M_);
  		for(auto element=EndPoints_.begin();element!=EndPoints_.end();) {
 			if(element->second.Client!=nullptr && !element->second.Client->Valid() && (now-element->second.ClientDisconnected)>15) {
 				// std::cout << "Removing client:" << element->first << std::endl;
@@ -152,7 +152,7 @@ namespace OpenWifi {
 		auto NewClient = new RTTYS_ClientConnection(WS, id);
 
 		{
-			std::lock_guard G(M_);
+			MyGuard G(M_);
 			auto conn = EndPoints_.find(id);
 			if (conn == EndPoints_.end()) {
 				EndPoint NewEP;
@@ -197,7 +197,7 @@ namespace OpenWifi {
 	}
 
 	void RTTYS_server::RegisterClient(const std::string &Id, RTTYS_ClientConnection *Client) {
-		std::lock_guard	G(M_);
+		MyGuard 	G(M_);
 		auto It = EndPoints_.find(Id);
 		if(It!=EndPoints_.end()) {
 			It->second.Client = Client;
@@ -205,13 +205,14 @@ namespace OpenWifi {
 		}
 	}
 
-	bool RTTYS_server::RegisterDevice(const std::string &Id, const std::string &Token, RTTYS_Device_ConnectionHandler *Device) {
-		std::lock_guard	G(M_);
+	bool RTTYS_server::RegisterDevice(const std::string &Id, const std::string &Token, std::string & serial, RTTYS_Device_ConnectionHandler *Device) {
+		MyGuard 	G(M_);
 		auto It = EndPoints_.find(Id);
 		if(It!=EndPoints_.end()) {
 			It->second.Device = Device;
 			It->second.Token = Token;
 			It->second.DeviceConnected = OpenWifi::Now();
+			serial = It->second.SerialNumber;
 			Logger().information(fmt::format("Creating session: {}, device:'{}'",Id,It->second.SerialNumber));
 			return true;
 		}
@@ -219,7 +220,7 @@ namespace OpenWifi {
 	}
 
 	bool RTTYS_server::SendToClient(const std::string &Id, const u_char *Buf, std::size_t Len) {
-		std::lock_guard	G(M_);
+		MyGuard 	G(M_);
 		try {
 			auto It = EndPoints_.find(Id);
 			if (It != EndPoints_.end() && It->second.Client != nullptr && It->second.Client->Valid()) {
@@ -234,13 +235,13 @@ namespace OpenWifi {
 	}
 
 	bool RTTYS_server::ValidClient(const std::string &Id) {
-		std::lock_guard	G(M_);
+		MyGuard 	G(M_);
 		auto It = EndPoints_.find(Id);
 		return It!=EndPoints_.end() && It->second.Client!= nullptr && It->second.Client->Valid();
 	}
 
 	bool RTTYS_server::SendToClient(const std::string &Id, const std::string &s) {
-		std::lock_guard	G(M_);
+		MyGuard 	G(M_);
 		try {
 			auto It = EndPoints_.find(Id);
 			if(It!=EndPoints_.end() && It->second.Client!= nullptr && It->second.Client->Valid()) {
@@ -255,7 +256,7 @@ namespace OpenWifi {
 	}
 
 	void RTTYS_server::DeRegisterClient([[maybe_unused]] const std::string &Id, RTTYS_ClientConnection *Client) {
-		std::lock_guard	G(M_);
+		MyGuard 	G(M_);
 		Logger().information(fmt::format("{}: Deregistering.", Client->ID()));
 		auto It = EndPoints_.find(Id);
 		if(It!=EndPoints_.end() && It->second.Client==Client) {
@@ -265,7 +266,7 @@ namespace OpenWifi {
 	}
 
 	void RTTYS_server::DeRegisterDevice([[maybe_unused]] const std::string &Id, [[maybe_unused]] RTTYS_Device_ConnectionHandler *Device, [[maybe_unused]] bool remove_websocket) {
-		std::lock_guard	G(M_);
+		MyGuard 	G(M_);
 		auto It = EndPoints_.find(Id);
 		if(It!=EndPoints_.end() && It->second.Device==Device) {
 			It->second.DeviceDisconnected = OpenWifi::Now();
@@ -274,7 +275,7 @@ namespace OpenWifi {
 	}
 
 	bool RTTYS_server::SendKeyStrokes(const std::string &Id, const u_char *buffer, std::size_t s) {
-		std::lock_guard	G(M_);
+		MyGuard 	G(M_);
 		auto It=EndPoints_.find(Id);
 		if(It==EndPoints_.end()) {
 			return false;
@@ -290,7 +291,7 @@ namespace OpenWifi {
 	}
 
 	bool RTTYS_server::WindowSize(const std::string &Id, int cols, int rows) {
-		std::lock_guard	G(M_);
+		MyGuard 	G(M_);
 		auto It=EndPoints_.find(Id);
 		if(It==EndPoints_.end()) {
 			return false;
@@ -303,7 +304,7 @@ namespace OpenWifi {
 
 
 	bool RTTYS_server::CreateEndPoint(const std::string &Id, const std::string & Token, const std::string & UserName, const std::string & SerialNumber ) {
-		std::lock_guard	G(M_);
+		MyGuard 	G(M_);
 
 		EndPoint E;
 		E.Token = Token;
@@ -314,22 +315,13 @@ namespace OpenWifi {
 		return true;
 	}
 
-	std::string RTTYS_server::SerialNumber(const std::string & Id) {
-		std::lock_guard	G(M_);
-
-		auto It = EndPoints_.find(Id);
-		if(It==EndPoints_.end())
-			return "";
-		return It->second.SerialNumber;
-	}
-
 	bool RTTYS_server::ValidId(const std::string &Token) {
-		std::lock_guard	G(M_);
+		MyGuard 	G(M_);
 		return EndPoints_.find(Token) != EndPoints_.end();
 	}
 
 	void RTTYS_server::LoginDone(const std::string & Id) {
-		std::lock_guard	G(M_);
+		MyGuard 	G(M_);
 
 		auto It = EndPoints_.find(Id);
 		if(It==EndPoints_.end())
@@ -338,7 +330,7 @@ namespace OpenWifi {
 	}
 
 	bool RTTYS_server::ValidEndPoint(const std::string &Id, const std::string &Token) {
-		std::lock_guard	G(M_);
+		MyGuard 	G(M_);
 		auto It = EndPoints_.find(Id);
 		if(It==EndPoints_.end()) {
 			return false;
@@ -348,7 +340,7 @@ namespace OpenWifi {
 	}
 
 	bool RTTYS_server::IsDeviceRegistered( const std::string &Id, const std::string &Token, [[maybe_unused]] RTTYS_Device_ConnectionHandler *Conn) {
-		std::lock_guard	G(M_);
+		MyGuard 	G(M_);
 
 		auto It = EndPoints_.find(Id);
 		if(It == EndPoints_.end() || It->second.Token != Token )
@@ -357,7 +349,7 @@ namespace OpenWifi {
 	}
 
 	bool RTTYS_server::Login(const std::string & Id) {
-		std::lock_guard	G(M_);
+		MyGuard 	G(M_);
 		auto It = EndPoints_.find(Id);
 		if(It == EndPoints_.end()) {
 			return false;
@@ -371,7 +363,7 @@ namespace OpenWifi {
 	}
 
 	bool RTTYS_server::Logout(const std::string & Id) {
-		std::lock_guard	G(M_);
+		MyGuard 	G(M_);
 
 		auto It = EndPoints_.find(Id);
 		if(It == EndPoints_.end()) {
