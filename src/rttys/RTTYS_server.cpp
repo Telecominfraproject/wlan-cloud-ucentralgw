@@ -180,17 +180,25 @@ namespace OpenWifi {
 		while (NextMsg && NotificationManagerRunning_) {
 			auto Resp = dynamic_cast<RTTYS_DisconnectNotification *>(NextMsg.get());
 			if (Resp != nullptr) {
-				MyGuard G(M_);
+				MyUniqueLock G(M_);
+				G.lock();
 				auto It = EndPoints_.find(Resp->id_);
 				if (It != EndPoints_.end()) {
-					if (Resp->device_ && It->second.Client!= nullptr && It->second.Client->Valid()) {
+					if (Resp->device_) {
 						It->second.DeviceDisconnected = OpenWifi::Now();
-						Logger().information(fmt::format("{}: Device disconnecting.", Resp->id_));
-						It->second.Client->EndConnection(true);
-					} else if(!Resp->device_ && It->second.Device!= nullptr && It->second.Device->Valid()) {
-						Logger().information(fmt::format("{}: Client disconnecting.", Resp->id_));
+						if(It->second.Client!= nullptr && It->second.Client->Valid()) {
+							Logger().information(
+								fmt::format("{}: Device disconnecting.", Resp->id_));
+							G.unlock();
+							It->second.Client->EndConnection(true);
+						}
+					} else {
 						It->second.ClientDisconnected = OpenWifi::Now();
-						It->second.Device->EndConnection(true);
+						if(It->second.Device!= nullptr && It->second.Device->Valid()) {
+							Logger().information(fmt::format("{}: Client disconnecting.", Resp->id_));
+							G.unlock();
+							It->second.Device->EndConnection(true);
+						}
 					}
 				}
 			}

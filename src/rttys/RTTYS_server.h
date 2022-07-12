@@ -60,6 +60,7 @@ namespace OpenWifi {
 
 		using MyMutexType = std::mutex;
 		using MyGuard = std::lock_guard<MyMutexType>;
+		using MyUniqueLock = std::unique_lock<MyMutexType>;
 
 		inline void AddFailedDevice(RTTYS_Device_ConnectionHandler *Device) {
 			MyGuard G(M_);
