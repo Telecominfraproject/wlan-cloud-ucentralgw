@@ -30,7 +30,9 @@ namespace OpenWifi {
 		}
 
 		try {
+			std::cout << "Client creating" << std::endl;
 			RTTYS_server()->CreateNewClient(request,response,T[2]);
+			std::cout << "Client created" << std::endl;
 			// RTTYS_server()->RegisterClient(T[2],NewRTTYClient);
 			// NewRTTYClient->CompleteLogin();
 		} catch (...) {
