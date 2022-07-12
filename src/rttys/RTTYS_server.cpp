@@ -193,6 +193,8 @@ namespace OpenWifi {
 							M_.unlock();
 							It->second.ClientDisconnected = OpenWifi::Now();
 							It->second.Client->EndConnection(true);
+						} else {
+							M_.unlock();
 						}
 					} else {
 						It->second.ClientDisconnected = OpenWifi::Now();
@@ -202,7 +204,12 @@ namespace OpenWifi {
 							It->second.DeviceDisconnected = OpenWifi::Now();
 							It->second.Device->EndConnection(true);
 						}
+						else {
+							M_.unlock();
+						}
 					}
+				} else {
+					M_.unlock();
 				}
 			}
 			NextMsg = ResponseQueue_.waitDequeueNotification();
