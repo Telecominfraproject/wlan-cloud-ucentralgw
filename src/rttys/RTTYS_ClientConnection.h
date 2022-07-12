@@ -31,7 +31,7 @@ namespace OpenWifi {
 		bool CompleteStartup();
 
 		[[nodiscard]] inline std::string ID() { return Id_; }
-		[[nodiscard]] inline bool Valid() {return Valid_;	}
+		[[nodiscard]] inline bool Valid() volatile const { return Valid_; }
 		using MyMutexType = std::recursive_mutex;
 		using MyGuard = std::lock_guard<MyMutexType>;
 
