@@ -837,11 +837,16 @@ namespace OpenWifi {
 					.DevicePassword = ""
 				};
 
+				std::cout << __LINE__ << std::endl;
 				if(RTTYS_server()->UseInternal()) {
+					std::cout << __LINE__ << std::endl;
 					Rtty.Token = MicroService::instance().CreateHash(UserInfo_.webtoken.refresh_token_ + std::to_string(OpenWifi::Now())).substr(0,32);
+					std::cout << __LINE__ << std::endl;
 					RTTYS_server()->CreateEndPoint(Rtty.ConnectionId,Rtty.Token, UserInfo_.userinfo.email, SerialNumber_);
+					std::cout << __LINE__ << std::endl;
 				}
 
+				std::cout << __LINE__ << std::endl;
 				Poco::JSON::Object ReturnedObject;
 				Rtty.to_json(ReturnedObject);
 
@@ -863,10 +868,12 @@ namespace OpenWifi {
 				Params.set(uCentralProtocol::USER, UserInfo_.webtoken.username_);
 				Params.set(uCentralProtocol::TIMEOUT, Rtty.TimeOut);
 				Params.set(uCentralProtocol::PASSWORD, Device.DevicePassword);
+				std::cout << __LINE__ << std::endl;
 
 				std::stringstream ParamStream;
 				Params.stringify(ParamStream);
 				Cmd.Details = ParamStream.str();
+				std::cout << __LINE__ << std::endl;
 
 				return RESTAPI_RPC::WaitForCommand(Cmd, Params, *Request, *Response, 60000ms, &ReturnedObject, this, Logger_);
 			}
