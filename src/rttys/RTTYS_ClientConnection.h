@@ -26,7 +26,7 @@ namespace OpenWifi {
 		bool CompleteStartup();
 
 		[[nodiscard]] inline std::string ID() { return Id_; }
-		[[nodiscard]] inline auto Valid() {	return Valid_;	}
+		[[nodiscard]] inline bool Valid() {	return Valid_;	}
 		using MyMutexType = std::recursive_mutex;
 		using MyGuard = std::lock_guard<MyMutexType>;
 
@@ -38,10 +38,10 @@ namespace OpenWifi {
 		std::string 				Id_;
 		Poco::Logger 				&Logger_;
 		std::string 				Sid_;
-		mutable bool 				Connected_=false;
-		mutable bool 				Valid_=false;
-		mutable bool 				logging_in_ = false;
-		mutable bool 				abort_connection_=false;
+		mutable std::atomic_bool 	Connected_=false;
+		mutable std::atomic_bool 	Valid_=false;
+		mutable std::atomic_bool 	logging_in_ = false;
+		mutable std::atomic_bool 	abort_connection_=false;
 		u_char 						Buffer_[16000]{0};
 		MyMutexType					Mutex_;
 

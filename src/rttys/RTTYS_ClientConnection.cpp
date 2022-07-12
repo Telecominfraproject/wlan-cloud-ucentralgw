@@ -76,7 +76,6 @@ namespace OpenWifi {
 				*WS_,
 				Poco::NObserver<RTTYS_ClientConnection, Poco::Net::ShutdownNotification>(
 					*this, &RTTYS_ClientConnection::onSocketShutdown));
-			RTTYS_server()->DisconnectNotice(Id_,false);
 			WS_->shutdown();
 			if(!external)
 				RTTYS_server()->DisconnectNotice(Id_,false);
@@ -155,42 +154,34 @@ namespace OpenWifi {
 	}
 
 	void RTTYS_ClientConnection::SendData( const u_char *Buf, size_t len ) {
-		MyGuard G(Mutex_);
-
 		if(!Valid_)
 			return;
-
-		bool done = false;
+		MyGuard G(Mutex_);
 		try {
 			WS_->sendFrame(Buf, len,
 						   Poco::Net::WebSocket::FRAME_FLAG_FIN |
 							   Poco::Net::WebSocket::FRAME_OP_BINARY);
+			return;
 		} catch (...) {
-			done = true;
 			Logger_.information("SendData shutdown.");
 		}
-
-		if(done)
-			EndConnection(false);
+		EndConnection(false);
 	}
 
 	void RTTYS_ClientConnection::SendData( const std::string &s , bool login) {
 		if(!Valid_)
 			return;
 		MyGuard G(Mutex_);
-		bool done = false;
 		try {
 			if (login) {
 				RTTYS_server()->LoginDone(Id_);
 			}
 			WS_->sendFrame(s.c_str(), s.length());
+			return;
 		} catch (...) {
-			done = true;
 			Logger_.information("Senddata shutdown.");
 		}
-
-		if(done)
-			EndConnection(false);
+		EndConnection(false);
 	}
 
 	void RTTYS_ClientConnection::onSocketShutdown([[maybe_unused]] const Poco::AutoPtr<Poco::Net::ShutdownNotification> &pNf) {
