@@ -50,12 +50,7 @@ namespace OpenWifi {
 		using My_mutex_type = std::mutex;
 		using Guard = std::lock_guard<My_mutex_type>;
 
-		void EndConnection(bool external, Guard &);
-		inline void EndConnection(bool external) {
-			Guard G(M_);
-			EndConnection(external, G);
-		}
-
+		void EndConnection(bool external);
 		inline Poco::Logger	&Logger() { return Logger_; }
 
 		inline bool Valid() {return valid_;

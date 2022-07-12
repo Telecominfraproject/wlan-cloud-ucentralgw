@@ -48,18 +48,18 @@ namespace OpenWifi {
 		} catch (...) {
 			poco_warning(Logger(), "Device caused exception while completing connection.");
 			Guard G(M_);
-			EndConnection(false,G);
+			EndConnection(false);
 		}
 	}
 
 	RTTYS_Device_ConnectionHandler::~RTTYS_Device_ConnectionHandler() {
-		Guard G(M_);
 		if(valid_) {
-			EndConnection(false, G);
+			Guard G(M_);
+			EndConnection(false);
 		}
 	}
 
-	void RTTYS_Device_ConnectionHandler::EndConnection(bool external, [[maybe_unused]] Guard & G) {
+	void RTTYS_Device_ConnectionHandler::EndConnection(bool external) {
 		try {
 			if(valid_) {
 				valid_ = false;
@@ -96,7 +96,7 @@ namespace OpenWifi {
 			auto received_bytes = socket_.receiveBytes(inBuf_);
 			if(received_bytes==0) {
 				// std::cout << "No data received" << std::endl;
-				return EndConnection(false,G);
+				return EndConnection(false);
 			}
 
 			// std::cout << "Received: " << received_bytes << std::endl;
@@ -151,12 +151,12 @@ namespace OpenWifi {
 		}
 
 		if(!good)
-			return EndConnection(false,G);
+			return EndConnection(false);
 	}
 
 	void RTTYS_Device_ConnectionHandler::onSocketShutdown([[maybe_unused]] const Poco::AutoPtr<Poco::Net::ShutdownNotification>& pNf) {
 		Guard G(M_);
-		EndConnection(false,G);
+		EndConnection(false);
 	}
 
 	bool RTTYS_Device_ConnectionHandler::SendToClient(const u_char *Buf, int Len) {
@@ -168,7 +168,7 @@ namespace OpenWifi {
 	}
 
 	bool RTTYS_Device_ConnectionHandler::KeyStrokes(const u_char *buf, size_t len) {
-		std::lock_guard		G(M_);
+		Guard G(M_);
 
 		if(!valid_)
 			return false;
@@ -191,7 +191,7 @@ namespace OpenWifi {
 	}
 
 	bool RTTYS_Device_ConnectionHandler::WindowSize(int cols, int rows) {
-		std::lock_guard		G(M_);
+		Guard G(M_);
 
 		u_char	outBuf[8]{0};
 		outBuf[0] = msgTypeWinsize;
@@ -212,11 +212,10 @@ namespace OpenWifi {
 	}
 
 	bool RTTYS_Device_ConnectionHandler::Login() {
-		std::lock_guard		G(M_);
-
 		if(!valid_)
 			return false;
 
+		Guard G(M_);
 		u_char outBuf[3]{0};
 		outBuf[0] = msgTypeLogin;
 		outBuf[1] = 0;
@@ -236,10 +235,10 @@ namespace OpenWifi {
 	}
 
 	bool RTTYS_Device_ConnectionHandler::Logout() {
-		std::lock_guard		G(M_);
-
 		if(!valid_)
 			return false;
+
+		Guard G(M_);
 
 		u_char outBuf[4]{0};
 		outBuf[0] = msgTypeLogout;
