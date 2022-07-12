@@ -184,7 +184,6 @@ namespace OpenWifi {
 			auto Resp = dynamic_cast<RTTYS_DisconnectNotification *>(NextMsg.get());
 			if (Resp != nullptr) {
 				MyUniqueLock G(M_);
-				G.lock();
 				auto It = EndPoints_.find(Resp->id_);
 				if (It != EndPoints_.end()) {
 					if (Resp->device_) {
