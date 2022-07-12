@@ -48,6 +48,8 @@ namespace OpenWifi {
 		} catch (...) {
 		}
 		MyGuard G(Mutex_);
+		if(!Valid_)
+			return false;
 		Valid_ = false;
 		logging_in_ = false;
 		Reactor_.removeEventHandler(
@@ -63,6 +65,9 @@ namespace OpenWifi {
 	}
 
 	RTTYS_ClientConnection::~RTTYS_ClientConnection() {
+		if(logging_in_) {
+			abort_connection_ = true;
+		}
 		while(logging_in_) {
 			std::this_thread::sleep_for(100ms);
 			std::this_thread::yield();
