@@ -15,6 +15,28 @@ namespace OpenWifi {
 	class RTTYS_Device_ConnectionHandler;
 	class RTTYS_ClientConnection;
 
+	template <typename T> class MutexLockerDbg {
+	  public:
+		MutexLockerDbg(const std::string &name, T &L) :
+ 			name_(name),
+ 			L_(L)
+		{
+			std::cout << name_ << ":L:0:" << Poco::Thread::current()->name() << std::endl;
+			L_.lock();
+			std::cout << name_ << ":L:1:" << Poco::Thread::current()->name() << std::endl;
+		}
+
+		~MutexLockerDbg() {
+			std::cout << name_ << ":U:0:" << Poco::Thread::current()->name() << std::endl;
+			L_.unlock();
+			std::cout << name_ << ":U:1:" << Poco::Thread::current()->name() << std::endl;
+		}
+
+	  private:
+		std::string name_;
+		T & L_;
+	};
+
 	class RTTYS_DisconnectNotification: public Poco::Notification {
 	  public:
 		RTTYS_DisconnectNotification(const std::string &id, bool device) :

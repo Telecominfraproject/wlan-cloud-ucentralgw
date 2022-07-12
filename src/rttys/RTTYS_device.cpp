@@ -212,9 +212,7 @@ namespace OpenWifi {
 		if(!valid_)
 			return false;
 
-		std::cout << "D: " << __LINE__ << std::endl;
 		Guard G(M_);
-		std::cout << "D: " << __LINE__ << std::endl;
 		u_char outBuf[3]{0};
 		outBuf[0] = msgTypeLogin;
 		outBuf[1] = 0;
@@ -278,9 +276,7 @@ namespace OpenWifi {
 
 			poco_information(Logger(),fmt::format("{}: Serial:{} Description:{} Device registration",
 									   Id_, serial_, desc_));
-			std::cout << "R: " << __LINE__ << std::endl;
 			if (RTTYS_server()->RegisterDevice(Id_, token_, serial_, this)) {
-				std::cout << "R " << __LINE__ << std::endl;
 				u_char OutBuf[8];
 				OutBuf[0] = msgTypeRegister;
 				OutBuf[1] = 0;
