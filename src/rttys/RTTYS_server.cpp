@@ -182,45 +182,28 @@ namespace OpenWifi {
 		while (NextMsg && NotificationManagerRunning_) {
 			auto Resp = dynamic_cast<RTTYS_DisconnectNotification *>(NextMsg.get());
 			if (Resp != nullptr) {
-				std::cout << __LINE__ << std::endl;
 				MyUniqueLock G(M_);
-				std::cout << __LINE__ << std::endl;
 				auto It = EndPoints_.find(Resp->id_);
-				std::cout << __LINE__ << std::endl;
 				if (It != EndPoints_.end()) {
-					std::cout << __LINE__ << std::endl;
 					if (Resp->device_) {
-						std::cout << __LINE__ << std::endl;
 						It->second.DeviceDisconnected = OpenWifi::Now();
 						if(It->second.Client!= nullptr && It->second.Client->Valid()) {
-							std::cout << __LINE__ << std::endl;
 							Logger().information(
 								fmt::format("{}: Device disconnecting.", Resp->id_));
-							std::cout << __LINE__ << std::endl;
 							G.unlock();
-							std::cout << __LINE__ << std::endl;
 							It->second.ClientDisconnected = OpenWifi::Now();
-							std::cout << __LINE__ << std::endl;
 							It->second.Client->EndConnection(true);
-							std::cout << __LINE__ << std::endl;
 						}
 					} else {
-						std::cout << __LINE__ << std::endl;
 						It->second.ClientDisconnected = OpenWifi::Now();
-						std::cout << __LINE__ << std::endl;
 						if(It->second.Device!= nullptr && It->second.Device->Valid()) {
-							std::cout << __LINE__ << std::endl;
 							Logger().information(fmt::format("{}: Client disconnecting.", Resp->id_));
-							std::cout << __LINE__ << std::endl;
 							G.unlock();
-							std::cout << __LINE__ << std::endl;
 							It->second.DeviceDisconnected = OpenWifi::Now();
 							It->second.Device->EndConnection(true);
-							std::cout << __LINE__ << std::endl;
 						}
 					}
 				}
-				std::cout << __LINE__ << std::endl;
 			}
 			NextMsg = ResponseQueue_.waitDequeueNotification();
 		}
@@ -379,14 +362,19 @@ namespace OpenWifi {
 	}
 
 	bool RTTYS_server::Login(const std::string & Id) {
+		std::cout << __LINE__ << std::endl;
 		MyGuard 	G(M_);
+		std::cout << __LINE__ << std::endl;
 		auto It = EndPoints_.find(Id);
 		if(It == EndPoints_.end()) {
 			return false;
 		}
 
 		if(It->second.Device!= nullptr) {
-			return It->second.Device->Login();
+			std::cout << __LINE__ << std::endl;
+			auto v = It->second.Device->Login();
+			std::cout << __LINE__ << std::endl;
+			return v;
 		}
 
 		return false;
