@@ -72,13 +72,10 @@ namespace OpenWifi {
 					Poco::NObserver<RTTYS_Device_ConnectionHandler, Poco::Net::ShutdownNotification>(
 						*this, &RTTYS_Device_ConnectionHandler::onSocketShutdown));
 
-				if (registered_) {
-					poco_information(Logger(),"Deregistering.");
-						RTTYS_server()->DeRegisterDevice(Id_, this, web_socket_active_);
-					poco_information(Logger(),"Deregistered.");
-					if(!external)
-						RTTYS_server()->DisconnectNotice(Id_,true);
-				} else {
+				if(!external)
+					RTTYS_server()->DisconnectNotice(Id_,true);
+
+				if (!registered_) {
 					RTTYS_server()->AddFailedDevice(this);
 				}
 				poco_information(Logger(), "Connection done.");
