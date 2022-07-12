@@ -15,6 +15,7 @@ namespace OpenWifi {
 	class RTTYS_ClientConnection {
 	  public:
 		RTTYS_ClientConnection(Poco::Net::WebSocket *WS,
+							   Poco::Net::SocketReactor & reactor,
 							   const std::string &Id);
 		~RTTYS_ClientConnection();
 		void onSocketReadable(const Poco::AutoPtr<Poco::Net::ReadableNotification> &pNf);
@@ -27,16 +28,17 @@ namespace OpenWifi {
 		[[nodiscard]] inline std::string ID() { return Id_; }
 		[[nodiscard]] inline auto Valid() {	return Valid_;	}
 		using MyMutexType = std::recursive_mutex;
-		using Guard = std::lock_guard<MyMutexType>;
+		using MyGuard = std::lock_guard<MyMutexType>;
 
-		void EndConnection(bool external, Guard &G);
+		void EndConnection(bool external, MyGuard &G);
 		inline void EndConnection(bool external) {
-			Guard G(Mutex_);
+			MyGuard G(Mutex_);
 			EndConnection(external, G);
 		}
 
 	  private:
 		Poco::Net::WebSocket		*WS_= nullptr;
+		Poco::Net::SocketReactor 	&Reactor_;
 		std::string 				Id_;
 		Poco::Logger 				&Logger_;
 		std::string 				Sid_;

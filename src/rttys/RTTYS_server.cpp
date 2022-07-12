@@ -149,7 +149,7 @@ namespace OpenWifi {
 								Poco::Net::HTTPServerResponse &response, const std::string &id) {
 
 		auto WS = new Poco::Net::WebSocket(request, response);
-		auto NewClient = new RTTYS_ClientConnection(WS, id);
+		auto NewClient = new RTTYS_ClientConnection(WS, ClientReactor_, id);
 
 		{
 			MyGuard G(M_);
@@ -180,7 +180,7 @@ namespace OpenWifi {
 		while (NextMsg && NotificationManagerRunning_) {
 			auto Resp = dynamic_cast<RTTYS_DisconnectNotification *>(NextMsg.get());
 			if (Resp != nullptr) {
-				std::lock_guard G(M_);
+				MyGuard G(M_);
 				auto It = EndPoints_.find(Resp->id_);
 				if (It != EndPoints_.end()) {
 					if (Resp->device_ && It->second.Client!= nullptr && It->second.Client->Valid()) {
