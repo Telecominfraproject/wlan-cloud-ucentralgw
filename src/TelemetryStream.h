@@ -52,7 +52,7 @@ namespace OpenWifi {
 		void onMessage(bool& b);
 
 	  private:
-		mutable std::atomic_bool 						Running_=false;
+		volatile std::atomic_bool 						Running_=false;
 		std::map<std::string, TelemetryClient *>		Clients_;			// 	uuid -> client
 		std::map<uint64_t, std::set<std::string>>		SerialNumbers_;		//	serialNumber -> uuid
 		Poco::Net::SocketReactor						Reactor_;
