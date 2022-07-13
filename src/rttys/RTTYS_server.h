@@ -74,16 +74,16 @@ namespace OpenWifi {
 			SerialNumber_(SerialNumber),
 			UserName_(UserName)
 		{
-			Created_ = OpenWifi::Now();
+			Created_ = std::chrono::high_resolution_clock::now();
 		}
 
 		inline void SetClient(std::unique_ptr<RTTYS_ClientConnection> Client) {
-			ClientConnected_ = OpenWifi::Now();
+			ClientConnected_ = std::chrono::high_resolution_clock::now();
 			Client_ = std::move(Client);
 		}
 
 		inline void SetDevice(const std::string &Token, std::string &serial, std::unique_ptr<RTTYS_Device_ConnectionHandler> Device) {
-			DeviceConnected_ = OpenWifi::Now();
+			DeviceConnected_ = std::chrono::high_resolution_clock::now();
 			Device_ = std::move(Device);
 			serial = SerialNumber_;
 			Token_ = Token;
@@ -103,39 +103,35 @@ namespace OpenWifi {
 		}
 
 		inline void DisconnectClient() {
-			ClientDisconnected_ = OpenWifi::Now();
+			ClientDisconnected_ = std::chrono::high_resolution_clock::now();
 		}
 
 		inline void DisconnectDevice() {
-			DeviceDisconnected_ = OpenWifi::Now();
+			DeviceDisconnected_ = std::chrono::high_resolution_clock::now();
 		}
 
-		inline void SendClientDisconnection() {
-			if(Client_!= nullptr)
-				Client_->EndConnection(true);
-			if(ClientDisconnected_==0)
-				ClientDisconnected_ = OpenWifi::Now();
-		}
-
-		inline void SendDeviceDisconnection() {
-			if(Device_!= nullptr)
-				Device_->EndConnection(true);
-			if(DeviceDisconnected_==0)
-				DeviceDisconnected_ = OpenWifi::Now();
-		}
-
-		inline bool TooOld() const {
-			auto now = OpenWifi::Now();
-			if(ClientDisconnected_ && (ClientDisconnected_-now)>15)
+		[[nodiscard]] inline bool TooOld()  {
+			std::chrono::time_point<std::chrono::high_resolution_clock> now = std::chrono::high_resolution_clock::now();
+			if(ClientDisconnected_!=std::chrono::time_point<std::chrono::high_resolution_clock>{0s} && (now-ClientDisconnected_)>15s) {
+				if(DeviceDisconnected_==std::chrono::time_point<std::chrono::high_resolution_clock>{0s}) {
+					DeviceDisconnected_ = std::chrono::high_resolution_clock::now();
+				}
 				return true;
-			if(DeviceDisconnected_ && (DeviceDisconnected_-now)>15)
+			}
+			if(DeviceDisconnected_!=std::chrono::time_point<std::chrono::high_resolution_clock>{0s} && (now-DeviceDisconnected_)>15s) {
+				if(ClientDisconnected_==std::chrono::time_point<std::chrono::high_resolution_clock>{0s}) {
+					ClientDisconnected_ = std::chrono::high_resolution_clock::now();
+				}
 				return true;
+			}
 //			std::cout << ClientDisconnected_ << " " << ClientConnected_ << " " << DeviceDisconnected_ << " " << DeviceConnected_ << std::endl;
 			return false;
 		}
 
 		bool CompleteStartup() {
-			return Client_->CompleteStartup();
+			if(Client_!= nullptr  && Client_->Valid())
+				return Client_->CompleteStartup();
+			return false;
 		}
 
 		bool SendToClient(const u_char *Buf, std::size_t Len) {
@@ -147,18 +143,18 @@ namespace OpenWifi {
 		}
 
 		inline bool KeyStrokes(const u_char *buffer, std::size_t len) {
-			if( Device_!= nullptr )
+			if( Device_!= nullptr && Device_->Valid() )
 				return Device_->KeyStrokes(buffer,len);
 			return false;
 		}
 
 		inline bool WindowSize( int cols, int rows) {
-			if(Device_!= nullptr)
+			if(Device_!= nullptr && Device_->Valid())
 				return Device_->WindowSize(cols,rows);
 			return false;
 		}
 
-		inline bool ValidClient() const {
+		[[nodiscard]] inline bool ValidClient() const {
 			return Client_!= nullptr && Client_->Valid();
 		}
 
@@ -173,8 +169,8 @@ namespace OpenWifi {
 		[[nodiscard]] inline const std::string & UserName() const { return UserName_; }
 		[[nodiscard]] inline const std::string & SerialNumber() const { return SerialNumber_; }
 
-		inline auto TimeDeviceConnected() const { return DeviceDisconnected_ - DeviceConnected_; }
-		inline auto TimeClientConnected() const { return ClientDisconnected_ - ClientConnected_; }
+		[[nodiscard]] inline auto TimeDeviceConnected() const { return std::chrono::duration<double>{DeviceDisconnected_ - DeviceConnected_}.count(); }
+		[[nodiscard]] inline auto TimeClientConnected() const { return std::chrono::duration<double>{ClientDisconnected_ - ClientConnected_}.count(); }
 
 	  private:
 		std::string 							Token_;
@@ -183,11 +179,9 @@ namespace OpenWifi {
 		std::unique_ptr<RTTYS_ClientConnection> 		Client_;
 		std::unique_ptr<RTTYS_Device_ConnectionHandler> Device_;
 		std::string 							Id_;
-		uint64_t 								Created_=0;
-		uint64_t 								DeviceDisconnected_ = 0;
-		uint64_t 								ClientDisconnected_ = 0;
-		uint64_t 								DeviceConnected_ = 0;
-		uint64_t 								ClientConnected_ = 0;
+		std::chrono::time_point<std::chrono::high_resolution_clock>
+			Created_{0s},DeviceDisconnected_{0s},
+			ClientDisconnected_{0s},DeviceConnected_{0s} ,ClientConnected_{0s};
 	};
 
 	class RTTYS_server : public SubSystemServer, Poco::Runnable

@@ -36,8 +36,6 @@ namespace OpenWifi {
 		using MyMutexType = std::recursive_mutex;
 		using MyGuard = std::lock_guard<MyMutexType>;
 
-		void EndConnection(bool external);
-
 	  private:
 		Poco::Net::SocketReactor 				&Reactor_;
 		std::string 							Id_;
@@ -48,6 +46,8 @@ namespace OpenWifi {
 		u_char 						Buffer_[16000]{0};
 		MyMutexType					Mutex_;
 		volatile  connection_state	state_ = connection_state::initialized;
+
+		void EndConnection();
 
 	};
 }

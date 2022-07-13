@@ -117,7 +117,7 @@ namespace OpenWifi {
 			if(element->second->TooOld()) {
 				// std::cout << element->second.DeviceDisconnected << " " << element->second.DeviceConnected << " "
 				//	<< element->second.ClientDisconnected << " " << element->second.ClientConnected << std::endl;
-				auto c = fmt::format("Removing {}. Device connection time: {}. Client connection time: {}",
+				auto c = fmt::format("Removing {}. Device connection time: {}s. Client connection time: {}s",
 									 element->first, element->second->TimeDeviceConnected(),
 									 element->second->TimeClientConnected());
 				Logger().information(c);
@@ -162,12 +162,10 @@ namespace OpenWifi {
 						case RTTYS_Notification_type::device_disconnection: {
 							It->second->DisconnectDevice();
 							M_.unlock();
-							It->second->SendClientDisconnection();
 						} break;
 						case RTTYS_Notification_type::client_disconnection: {
 							It->second->DisconnectClient();
 							M_.unlock();
-							It->second->SendDeviceDisconnection();
 						} break;
 						case RTTYS_Notification_type::device_failure: {
 							auto ptr = std::unique_ptr<RTTYS_Device_ConnectionHandler>{Notification->device_};
