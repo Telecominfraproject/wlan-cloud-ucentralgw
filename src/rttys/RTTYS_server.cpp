@@ -127,12 +127,6 @@ namespace OpenWifi {
 				++element;
 			}
 		}
-
-		for(auto &element:FailedDevices) {
-			// std::cout << "Delete element in failed" << std::endl;
-			delete element;
-		}
-
 		FailedDevices.clear();
 	}
 
@@ -158,7 +152,8 @@ namespace OpenWifi {
 			if (Notification != nullptr) {
 				M_.lock();
 				if(Notification->type_==RTTYS_Notification_type::device_failure) {
-					FailedDevices.push_back(Notification->device_);
+					auto ptr = std::unique_ptr<RTTYS_Device_ConnectionHandler>{Notification->device_};
+					FailedDevices.push_back(std::move(ptr));
 					M_.unlock();
 				} else {
 					auto It = EndPoints_.find(Notification->id_);
@@ -175,7 +170,8 @@ namespace OpenWifi {
 							It->second->SendDeviceDisconnection();
 						} break;
 						case RTTYS_Notification_type::device_failure: {
-							FailedDevices.push_back(Notification->device_);
+							auto ptr = std::unique_ptr<RTTYS_Device_ConnectionHandler>{Notification->device_};
+							FailedDevices.push_back(std::move(ptr));
 							M_.unlock();
 						} break;
 						case RTTYS_Notification_type::unknown: {

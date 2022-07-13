@@ -121,6 +121,8 @@ namespace OpenWifi {
 		}
 
 		inline bool TooOld() const {
+			if(ClientDisconnected_ && (ClientDisconnected_-ClientConnected_)>15)
+				return true;
 			if(DeviceDisconnected_ && (DeviceDisconnected_-DeviceConnected_)>15)
 				return true;
 			return false;
@@ -252,7 +254,7 @@ namespace OpenWifi {
 
 		Poco::Timer                     					Timer_;
 		std::unique_ptr<Poco::TimerCallback<RTTYS_server>>  GCCallBack_;
-		std::list<RTTYS_Device_ConnectionHandler *>	FailedDevices;
+		std::list<std::unique_ptr<RTTYS_Device_ConnectionHandler>>	FailedDevices;
 		MyMutexType 								M_;
 
 		explicit RTTYS_server() noexcept:
