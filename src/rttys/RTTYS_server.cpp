@@ -111,7 +111,8 @@ namespace OpenWifi {
 		poco_debug(Logger(),"Removing stale connections.");
 		Utils::SetThreadName("rt:janitor");
 		auto now = OpenWifi::Now();
-		MutexLockerDbg	L(__func__ ,M_);
+//		MutexLockerDbg	L(__func__ ,M_);
+		MyGuard G(M_);
  		for(auto element=EndPoints_.begin();element!=EndPoints_.end();) {
 			if(element->second.Client!=nullptr && !element->second.Client->Valid() && (now-element->second.ClientDisconnected)>15) {
 				std::cout << "Removing client:" << element->first << std::endl;
@@ -155,7 +156,8 @@ namespace OpenWifi {
 		auto NewClient = new RTTYS_ClientConnection(WS, ClientReactor_, id);
 
 		{
-			MutexLockerDbg MM(__func__ ,M_);
+//			MutexLockerDbg MM(__func__ ,M_);
+			MyGuard G(M_);
 			auto conn = EndPoints_.find(id);
 			if (conn == EndPoints_.end()) {
 				EndPoint NewEP;
@@ -242,8 +244,8 @@ namespace OpenWifi {
 	}
 
 	bool RTTYS_server::RegisterDevice(const std::string &Id, const std::string &Token, std::string & serial, RTTYS_Device_ConnectionHandler *Device) {
-		MutexLockerDbg MM(__func__ ,M_);
-		//MyGuard 	G(M_);
+		// MutexLockerDbg MM(__func__ ,M_);
+		MyGuard 	G(M_);
 		auto It = EndPoints_.find(Id);
 		if(It!=EndPoints_.end()) {
 			It->second.Device = Device;
@@ -257,16 +259,18 @@ namespace OpenWifi {
 	}
 
 	bool RTTYS_server::SendToClient(const std::string &Id, const u_char *Buf, std::size_t Len) {
-		MutexLockerDbg MM(__func__ ,M_);
+		// MutexLockerDbg MM(__func__ ,M_);
+		MyGuard 	G(M_);
 		try {
 			auto It = EndPoints_.find(Id);
 			if (It != EndPoints_.end() && It->second.Client != nullptr && It->second.Client->Valid()) {
 				It->second.Client->SendData(Buf, Len);
 				return true;
 			}
-			std::cout << "Invalid client - cannot send data" << std::endl;
-		} catch(...) {
-			std::cout << "Exception during sendclient" << std::endl;
+		} catch(const Poco::Exception &E) {
+			Logger().log(E);
+		} catch (...) {
+
 		}
 		return false;
 	}
@@ -278,16 +282,18 @@ namespace OpenWifi {
 	}
 
 	bool RTTYS_server::SendToClient(const std::string &Id, const std::string &s) {
-		MutexLockerDbg MM(__func__ ,M_);
+		// MutexLockerDbg MM(__func__ ,M_);
+		MyGuard 	G(M_);
 		try {
 			auto It = EndPoints_.find(Id);
 			if(It!=EndPoints_.end() && It->second.Client!= nullptr && It->second.Client->Valid()) {
 				It->second.Client->SendData(s);
 				return true;
 			}
-			std::cout << "Invalid client - cannot send data: " << std::endl;
-		} catch(...) {
-			std::cout << "Exception during sendclient" << std::endl;
+		} catch(const Poco::Exception &E) {
+			Logger().log(E);
+		} catch (...) {
+
 		}
 		return false;
 	}
@@ -303,7 +309,8 @@ namespace OpenWifi {
 	}
 
 	void RTTYS_server::DeRegisterDevice([[maybe_unused]] const std::string &Id, [[maybe_unused]] RTTYS_Device_ConnectionHandler *Device, [[maybe_unused]] bool remove_websocket) {
-		MutexLockerDbg MM(__func__ ,M_);
+//		MutexLockerDbg MM(__func__ ,M_);
+		MyGuard 	G(M_);
 		auto It = EndPoints_.find(Id);
 		if(It!=EndPoints_.end() && It->second.Device==Device) {
 			It->second.DeviceDisconnected = OpenWifi::Now();
@@ -312,7 +319,9 @@ namespace OpenWifi {
 	}
 
 	bool RTTYS_server::SendKeyStrokes(const std::string &Id, const u_char *buffer, std::size_t s) {
-		MutexLockerDbg MM(__func__ ,M_);
+//		MutexLockerDbg MM(__func__ ,M_);
+		MyGuard 	G(M_);
+
 		auto It=EndPoints_.find(Id);
 		if(It==EndPoints_.end()) {
 			return false;
@@ -321,21 +330,27 @@ namespace OpenWifi {
 		try {
 			if (It->second.Device != nullptr)
 				return It->second.Device->KeyStrokes(buffer, s);
+		} catch(const Poco::Exception &E) {
+			Logger().log(E);
 		} catch (...) {
-
 		}
 		return false;
 	}
 
 	bool RTTYS_server::WindowSize(const std::string &Id, int cols, int rows) {
-		MutexLockerDbg MM(__func__ ,M_);
+//		MutexLockerDbg MM(__func__ ,M_);
+		MyGuard 	G(M_);
 		auto It=EndPoints_.find(Id);
 		if(It==EndPoints_.end()) {
 			return false;
 		}
-
-		if(It->second.Device!= nullptr)
-			return It->second.Device->WindowSize(cols,rows);
+		try {
+			if(It->second.Device!= nullptr)
+				return It->second.Device->WindowSize(cols,rows);
+		} catch(const Poco::Exception &E) {
+			Logger().log(E);
+		} catch (...) {
+		}
 		return false;
 	}
 
@@ -386,17 +401,22 @@ namespace OpenWifi {
 	}
 
 	bool RTTYS_server::Login(const std::string & Id) {
-		MutexLockerDbg MM(__func__ ,M_);
+//		MutexLockerDbg MM(__func__ ,M_);
+		MyGuard 	G(M_);
 		auto It = EndPoints_.find(Id);
 		if(It == EndPoints_.end()) {
 			return false;
 		}
 
-		if(It->second.Device!= nullptr) {
-			auto v = It->second.Device->Login();
-			return v;
+		try {
+			if(It->second.Device!= nullptr) {
+				auto v = It->second.Device->Login();
+				return v;
+			}
+		} catch(const Poco::Exception &E) {
+			Logger().log(E);
+		} catch (...) {
 		}
-
 		return false;
 	}
 
