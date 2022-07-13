@@ -118,7 +118,6 @@ namespace OpenWifi {
 			std::string 							Token;
 			RTTYS_ClientConnection 					*Client=nullptr;
 			RTTYS_Device_ConnectionHandler 			*Device=nullptr;
-			Poco::Net::WebSocket				    *WS_=nullptr;
 			uint64_t 								TimeStamp = OpenWifi::Now();
 			std::string 							UserName;
 			std::string 							SerialNumber;

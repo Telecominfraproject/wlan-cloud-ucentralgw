@@ -117,9 +117,7 @@ namespace OpenWifi {
 			if(element->second.Client!=nullptr && !element->second.Client->Valid() && (now-element->second.ClientDisconnected)>15) {
 				// std::cout << "Removing client:" << element->first << std::endl;
 				delete element->second.Client;
-				delete element->second.WS_;
 				element->second.Client = nullptr;
-				element->second.WS_ = nullptr;
 			}
 
 			if(element->second.Device!=nullptr && !element->second.Device->Valid() && (now-element->second.DeviceDisconnected)>15) {
@@ -153,8 +151,7 @@ namespace OpenWifi {
 	void RTTYS_server::CreateNewClient(Poco::Net::HTTPServerRequest &request,
 								Poco::Net::HTTPServerResponse &response, const std::string &id) {
 
-		auto WS = new Poco::Net::WebSocket(request, response);
-		auto NewClient = new RTTYS_ClientConnection(WS, ClientReactor_, id);
+		auto NewClient = new RTTYS_ClientConnection(request, response, ClientReactor_, id);
 
 		{
 //			MutexLockerDbg MM(__func__ ,M_);
@@ -162,12 +159,10 @@ namespace OpenWifi {
 			auto conn = EndPoints_.find(id);
 			if (conn == EndPoints_.end()) {
 				EndPoint NewEP;
-				NewEP.WS_ = WS;
 				NewEP.Client = NewClient;
 				NewEP.ClientConnected = NewEP.TimeStamp = OpenWifi::Now();
 				EndPoints_[id] = NewEP;
 			} else {
-				conn->second.WS_ = WS;
 				conn->second.Client = NewClient;
 				conn->second.ClientConnected = conn->second.TimeStamp = OpenWifi::Now();
 			}
