@@ -196,7 +196,7 @@ namespace OpenWifi {
 
 		auto d = std::unique_ptr<RTTYS_Device_ConnectionHandler>{Device};
 		ep->second->SetDevice( Token, serial, std::move(d));
-		return false;
+		return true;
 	}
 
 	bool RTTYS_server::SendToClient(const std::string &Id, const u_char *Buf, std::size_t Len) {
