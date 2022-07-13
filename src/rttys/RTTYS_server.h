@@ -111,14 +111,14 @@ namespace OpenWifi {
 		}
 
 		inline void SendClientDisconnection() {
-			if(Client_!= nullptr)
+			if(Client_!= nullptr && Client_->Valid())
 				Client_->EndConnection(true);
 			if(ClientDisconnected_==0)
 				ClientDisconnected_ = OpenWifi::Now();
 		}
 
 		inline void SendDeviceDisconnection() {
-			if(Device_!= nullptr)
+			if(Device_!= nullptr && Device_->Valid())
 				Device_->EndConnection(true);
 			if(DeviceDisconnected_==0)
 				DeviceDisconnected_ = OpenWifi::Now();
@@ -135,7 +135,9 @@ namespace OpenWifi {
 		}
 
 		bool CompleteStartup() {
-			return Client_->CompleteStartup();
+			if(Client_!= nullptr  && Client_->Valid())
+				return Client_->CompleteStartup();
+			return false;
 		}
 
 		bool SendToClient(const u_char *Buf, std::size_t Len) {
@@ -147,13 +149,13 @@ namespace OpenWifi {
 		}
 
 		inline bool KeyStrokes(const u_char *buffer, std::size_t len) {
-			if( Device_!= nullptr )
+			if( Device_!= nullptr && Device_->Valid() )
 				return Device_->KeyStrokes(buffer,len);
 			return false;
 		}
 
 		inline bool WindowSize( int cols, int rows) {
-			if(Device_!= nullptr)
+			if(Device_!= nullptr && Device_->Valid())
 				return Device_->WindowSize(cols,rows);
 			return false;
 		}
