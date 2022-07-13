@@ -33,8 +33,8 @@ namespace OpenWifi {
 		uint64_t 			LastUpdate_ = 0 ;
 		bool 				Initialized_ = false;
 		OUIMap 				OUIs_;
-		mutable std::atomic_bool 	Updating_=false;
-		mutable std::atomic_bool 	Running_=false;
+		volatile std::atomic_bool 	Updating_=false;
+		volatile std::atomic_bool 	Running_=false;
 		Poco::Timer         Timer_;
 		std::unique_ptr<Poco::TimerCallback<OUIServer>>   UpdaterCallBack_;
 		std::string 		LatestOUIFileName_,CurrentOUIFileName_;

@@ -12,18 +12,58 @@
 
 namespace OpenWifi {
 
-	class RTTY_Device_ConnectionHandler;
+	class RTTYS_Device_ConnectionHandler;
 	class RTTYS_ClientConnection;
 
-	class RTTY_DisconnectNotification: public Poco::Notification {
+	template <typename T> class MutexLockerDbg {
 	  public:
-		RTTY_DisconnectNotification(const std::string &id, bool device) :
-				id_(id),
-				device_(device) {
-
+		MutexLockerDbg(const std::string &name, T &L) :
+ 			name_(name),
+ 			L_(L)
+		{
+			std::cout << name_ << ":L:0:" << Poco::Thread::current()->name() << ":" << Poco::Thread::currentTid() << std::endl;
+			L_.lock();
+			std::cout << name_ << ":L:1:" << Poco::Thread::current()->name() << ":" << Poco::Thread::currentTid() << std::endl;
 		}
-		std::string			id_;
-		bool				device_=false;
+
+		~MutexLockerDbg() {
+			std::cout << name_ << ":U:0:" << Poco::Thread::current()->name() << ":" << Poco::Thread::currentTid() << std::endl;
+			L_.unlock();
+			std::cout << name_ << ":U:1:" << Poco::Thread::current()->name() << ":" << Poco::Thread::currentTid() << std::endl;
+		}
+
+	  private:
+		std::string name_;
+		T & L_;
+	};
+
+	enum class RTTYS_Notification_type {
+		unknown,
+		device_disconnection,
+		client_disconnection,
+		device_failure
+	};
+
+	class RTTYS_Notification: public Poco::Notification {
+	  public:
+		RTTYS_Notification(const RTTYS_Notification_type &type, const std::string &id,
+						   RTTYS_Device_ConnectionHandler * device) :
+		   	type_(type),
+	   		id_(id),
+			device_(device) {
+		}
+
+		RTTYS_Notification(const RTTYS_Notification_type &type, const std::string &id,
+						   RTTYS_ClientConnection * client) :
+			type_(type),
+			id_(id),
+		 	client_(client) {
+		}
+
+		RTTYS_Notification_type			type_=RTTYS_Notification_type::unknown;
+		std::string						id_;
+		RTTYS_Device_ConnectionHandler	*device_= nullptr;
+		RTTYS_ClientConnection 			*client_ = nullptr;
 	};
 
 	class RTTYS_server : public SubSystemServer, Poco::Runnable
@@ -41,48 +81,55 @@ namespace OpenWifi {
 
 		void RegisterClient(const std::string &Id, RTTYS_ClientConnection *Client);
 		void DeRegisterClient(const std::string &Id, RTTYS_ClientConnection *Client);
-		bool RegisterDevice(const std::string &Id, const std::string &Token, RTTY_Device_ConnectionHandler *Device);
-		void DeRegisterDevice(const std::string &Id, RTTY_Device_ConnectionHandler *Device, bool remove_websocket);
+		bool RegisterDevice(const std::string &Id, const std::string &Token, std::string & serial, RTTYS_Device_ConnectionHandler *Device);
+		void DeRegisterDevice(const std::string &Id, RTTYS_Device_ConnectionHandler *Device, bool remove_websocket);
 		bool CreateEndPoint(const std::string &Id, const std::string & Token, const std::string & UserName, const std::string & SerialNumber );
-		std::string SerialNumber(const std::string & Id);
 		void LoginDone(const std::string & Id);
 		bool ValidEndPoint(const std::string &Id, const std::string &Token);
-		bool CanConnect( const std::string &Id, RTTYS_ClientConnection *Conn);
-		bool IsDeviceRegistered( const std::string &Id, const std::string &Token, [[maybe_unused]] RTTY_Device_ConnectionHandler *Conn);
+		bool IsDeviceRegistered( const std::string &Id, const std::string &Token, [[maybe_unused]] RTTYS_Device_ConnectionHandler *Conn);
 		bool Login(const std::string & Id_);
 		bool Logout(const std::string & Id_);
-		bool Close(const std::string & Id_);
-		uint64_t DeviceSessionID(const std::string & Id);
 		bool SendKeyStrokes(const std::string &Id, const u_char *buffer, std::size_t s);
 		bool WindowSize(const std::string &Id, int cols, int rows);
 		bool SendToClient(const std::string &id, const u_char *Buf, std::size_t Len);
 		bool SendToClient(const std::string &id, const std::string &s);
 		bool ValidClient(const std::string &id);
 		bool ValidId(const std::string &Id);
-		inline void AddFailedDevice(RTTY_Device_ConnectionHandler *Device) {
-			std::lock_guard	G(M_);
-			FailedDevices.push_back(Device);
-		}
+
+		using MyMutexType = std::recursive_mutex;
+		using MyGuard = std::lock_guard<MyMutexType>;
+		using MyUniqueLock = std::unique_lock<MyMutexType>;
 
 		void run() final;
 
-		inline void DisconnectNotice(const std::string &id, bool device) {
-			std::lock_guard		G(M_);
-			ResponseQueue_.enqueueNotification(new RTTY_DisconnectNotification(id,device));
+		inline void NotifyDeviceDisconnect(const std::string &id, RTTYS_Device_ConnectionHandler *device) {
+			ResponseQueue_.enqueueNotification(new RTTYS_Notification(RTTYS_Notification_type::device_disconnection,id,device));
+		}
+
+		inline void NotifyDeviceFailure(const std::string &id, RTTYS_Device_ConnectionHandler *device) {
+			ResponseQueue_.enqueueNotification(new RTTYS_Notification(RTTYS_Notification_type::device_failure,id,device));
+		}
+
+		inline void NotifyClientDisconnect(const std::string &id, RTTYS_ClientConnection *client) {
+			ResponseQueue_.enqueueNotification(new RTTYS_Notification(RTTYS_Notification_type::client_disconnection,id,client));
 		}
 
 		struct EndPoint {
 			std::string 							Token;
-			mutable RTTYS_ClientConnection *		Client = nullptr;
-			mutable RTTY_Device_ConnectionHandler *	Device = nullptr;
+			RTTYS_ClientConnection 					*Client=nullptr;
+			RTTYS_Device_ConnectionHandler 			*Device=nullptr;
+			Poco::Net::WebSocket				    *WS_=nullptr;
 			uint64_t 								TimeStamp = OpenWifi::Now();
-			mutable uint64_t 						DeviceConnected = 0;
-			mutable uint64_t 						ClientConnected = 0;
 			std::string 							UserName;
 			std::string 							SerialNumber;
-			mutable bool 							ShuttingDown = false;
-			mutable bool 							ShutdownComplete = false;
+			uint64_t 								DeviceDisconnected = 0;
+			uint64_t 								ClientDisconnected = 0;
+			uint64_t 								DeviceConnected = 0;
+			uint64_t 								ClientConnected = 0;
 		};
+
+		void CreateNewClient(Poco::Net::HTTPServerRequest &request,
+							 Poco::Net::HTTPServerResponse &response, const std::string &id);
 
 		void onTimer(Poco::Timer & timer);
 
@@ -90,19 +137,9 @@ namespace OpenWifi {
 			return Internal_;
 		}
 
-		inline void dump([[maybe_unused]] const char *ID, [[maybe_unused]] std::ostream &s) {
-/*			for(const auto &[id,point]:EndPoints_) {
-				s << ID << "  ID: " << id << "  C:" << (point.Client == nullptr) << "  D:" << (point.Device== nullptr)
-				  << " Shutting down: " << point.ShuttingDown
-				  << " Shutdown: " << point.ShutdownComplete << std::endl;
-			}
-*/
-		}
-
 		inline Poco::Net::SocketReactor & ClientReactor() { return ClientReactor_; }
 
 	  private:
-		std::recursive_mutex						M_;
 		Poco::Net::SocketReactor					ClientReactor_;
 		Poco::Net::SocketReactor					DeviceReactor_;
 		Poco::Thread								ClientReactorThread_;
@@ -111,7 +148,7 @@ namespace OpenWifi {
 
 		std::map<std::string, EndPoint> 			EndPoints_;			//	id, endpoint
 		std::unique_ptr<Poco::Net::HTTPServer>		WebServer_;
-		std::unique_ptr<Poco::Net::SocketAcceptor<RTTY_Device_ConnectionHandler>>	DeviceAcceptor_;
+		std::unique_ptr<Poco::Net::SocketAcceptor<RTTYS_Device_ConnectionHandler>>	DeviceAcceptor_;
 		Poco::Thread								DeviceReactorThread_;
 		Poco::NotificationQueue						ResponseQueue_;
 		mutable bool 								NotificationManagerRunning_=false;
@@ -119,8 +156,8 @@ namespace OpenWifi {
 
 		Poco::Timer                     					Timer_;
 		std::unique_ptr<Poco::TimerCallback<RTTYS_server>>  GCCallBack_;
-
-		std::list<RTTY_Device_ConnectionHandler *>	FailedDevices;
+		std::list<RTTYS_Device_ConnectionHandler *>	FailedDevices;
+		MyMutexType 								M_;
 
 		explicit RTTYS_server() noexcept:
 		SubSystemServer("RTTY_Server", "RTTY-SVR", "rtty.server")

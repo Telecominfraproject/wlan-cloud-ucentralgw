@@ -839,7 +839,7 @@ namespace OpenWifi {
 
 				if(RTTYS_server()->UseInternal()) {
 					Rtty.Token = MicroService::instance().CreateHash(UserInfo_.webtoken.refresh_token_ + std::to_string(OpenWifi::Now())).substr(0,32);
-					RTTYS_server()->CreateEndPoint(Rtty.ConnectionId,Rtty.Token, UserInfo_.userinfo.email, SerialNumber_);
+					RTTYS_server()->CreateEndPoint(Rtty.ConnectionId, Rtty.Token, UserInfo_.userinfo.email, SerialNumber_);
 				}
 
 				Poco::JSON::Object ReturnedObject;
@@ -868,9 +868,9 @@ namespace OpenWifi {
 				Params.stringify(ParamStream);
 				Cmd.Details = ParamStream.str();
 
+				Logger_.information(fmt::format("RTTY: user={} serial={} id={}.", UserInfo_.userinfo.email,SerialNumber_,Rtty.ConnectionId));
 				return RESTAPI_RPC::WaitForCommand(Cmd, Params, *Request, *Response, 60000ms, &ReturnedObject, this, Logger_);
 			}
-			Logger_.information(fmt::format("RTTY: user={} serial={}. Device does not exist.", UserInfo_.userinfo.email,SerialNumber_));
 			return NotFound();
 		}
 		Logger_.information(fmt::format("RTTY: user={} serial={}. Internal error.", UserInfo_.userinfo.email,SerialNumber_));
