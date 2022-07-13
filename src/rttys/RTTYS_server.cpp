@@ -162,12 +162,10 @@ namespace OpenWifi {
 						case RTTYS_Notification_type::device_disconnection: {
 							It->second->DisconnectDevice();
 							M_.unlock();
-							It->second->SendClientDisconnection();
 						} break;
 						case RTTYS_Notification_type::client_disconnection: {
 							It->second->DisconnectClient();
 							M_.unlock();
-							It->second->SendDeviceDisconnection();
 						} break;
 						case RTTYS_Notification_type::device_failure: {
 							auto ptr = std::unique_ptr<RTTYS_Device_ConnectionHandler>{Notification->device_};

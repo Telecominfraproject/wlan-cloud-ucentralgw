@@ -110,20 +110,6 @@ namespace OpenWifi {
 			DeviceDisconnected_ = OpenWifi::Now();
 		}
 
-		inline void SendClientDisconnection() {
-			if(Client_!= nullptr && Client_->Valid())
-				Client_->EndConnection(true);
-			if(ClientDisconnected_==0)
-				ClientDisconnected_ = OpenWifi::Now();
-		}
-
-		inline void SendDeviceDisconnection() {
-			if(Device_!= nullptr && Device_->Valid())
-				Device_->EndConnection(true);
-			if(DeviceDisconnected_==0)
-				DeviceDisconnected_ = OpenWifi::Now();
-		}
-
 		inline bool TooOld() const {
 			auto now = OpenWifi::Now();
 			if(ClientDisconnected_ && (ClientDisconnected_-now)>15)

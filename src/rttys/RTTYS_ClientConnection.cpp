@@ -54,11 +54,11 @@ namespace OpenWifi {
 	RTTYS_ClientConnection::~RTTYS_ClientConnection() {
 		if(Valid_) {
 			MyGuard G(Mutex_);
-			EndConnection(false);
+			EndConnection();
 		}
 	}
 
-	void RTTYS_ClientConnection::EndConnection(bool external) {
+	void RTTYS_ClientConnection::EndConnection() {
 		if(Valid_) {
 			Valid_=false;
 			if (state_ == connection_state::waiting_for_login) {
@@ -78,8 +78,7 @@ namespace OpenWifi {
 					*this, &RTTYS_ClientConnection::onSocketShutdown));
 			WS_->shutdown();
 			state_ = connection_state::done;
-			if(!external)
-				RTTYS_server()->NotifyClientDisconnect(Id_,this);
+			RTTYS_server()->NotifyClientDisconnect(Id_,this);
 			Logger_.information("Disconnected.");
 		}
 	}
@@ -151,7 +150,7 @@ namespace OpenWifi {
 		}
 
 		if(MustDisconnect)
-			EndConnection(false);
+			EndConnection();
 	}
 
 	void RTTYS_ClientConnection::SendData( const u_char *Buf, size_t len ) {
@@ -166,7 +165,7 @@ namespace OpenWifi {
 		} catch (...) {
 			Logger_.information("SendData shutdown.");
 		}
-		EndConnection(false);
+		EndConnection();
 	}
 
 	void RTTYS_ClientConnection::SendData( const std::string &s , bool login) {
@@ -182,13 +181,13 @@ namespace OpenWifi {
 		} catch (...) {
 			Logger_.information("Senddata shutdown.");
 		}
-		EndConnection(false);
+		EndConnection();
 	}
 
 	void RTTYS_ClientConnection::onSocketShutdown([[maybe_unused]] const Poco::AutoPtr<Poco::Net::ShutdownNotification> &pNf) {
 		MyGuard G(Mutex_);
 		Logger_.information("Socket shutdown.");
-		EndConnection(false);
+		EndConnection();
 	}
 
 }
