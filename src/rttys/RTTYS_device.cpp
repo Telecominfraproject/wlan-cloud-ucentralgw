@@ -13,7 +13,6 @@ namespace OpenWifi {
 	RTTYS_Device_ConnectionHandler::RTTYS_Device_ConnectionHandler(Poco::Net::StreamSocket& socket, Poco::Net::SocketReactor & reactor):
 			 	socket_(socket),
 			 	reactor_(reactor),
-				inBuf_(RTTY_DEVICE_BUFSIZE),
 				Logger_(Poco::Logger::get(fmt::format("RTTY-device({})",socket_.peerAddress().toString())))
 	{
 		std::thread T([=]() { CompleteConnection(); });
@@ -88,7 +87,9 @@ namespace OpenWifi {
 
 	void RTTYS_Device_ConnectionHandler::onSocketReadable([[maybe_unused]] const Poco::AutoPtr<Poco::Net::ReadableNotification> &pNf) {
 		bool good = true;
+
 		Guard G(M_);
+
 		try {
 			auto received_bytes = socket_.receiveBytes(inBuf_);
 			if(received_bytes==0) {
@@ -288,16 +289,16 @@ namespace OpenWifi {
 				if (socket_.sendBytes(OutBuf, 7) != 7) {
 					good = false;
 					poco_information(Logger(),fmt::format(
-						"{}: Serial:{} Description:{} Could not complete registration",
+						"{}: Serial:{} Description:{} Could not send data to complete registration",
 						 Id_, serial_, desc_));
-					RTTYS_server()->NotifyDeviceFailure(Id_,this);
 				} else {
 					registered_ = true;
 				}
 			} else {
 				poco_information(Logger(),fmt::format(
-					"{}: Serial:{} Description:{} Could not complete registration",
+					"{}: Serial:{} Description:{} Could not register device.",
 					Id_, serial_, desc_));
+				good = false;
 			}
 		} catch (...) {
 			good = false;

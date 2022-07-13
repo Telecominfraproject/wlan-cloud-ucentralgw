@@ -57,7 +57,7 @@ namespace OpenWifi {
 	  private:
 		Poco::Net::StreamSocket   		socket_;
 		Poco::Net::SocketReactor		&reactor_;
-		Poco::FIFOBuffer 				inBuf_;
+		Poco::FIFOBuffer 				inBuf_{RTTY_DEVICE_BUFSIZE};
 		Poco::Logger					&Logger_;
 
 		volatile bool 					valid_=false;

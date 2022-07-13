@@ -8,18 +8,18 @@
 
 namespace OpenWifi {
 
-	RTTYS_ClientConnection::RTTYS_ClientConnection(Poco::Net::WebSocket *WS,
+	RTTYS_ClientConnection::RTTYS_ClientConnection(Poco::Net::HTTPServerRequest &request,
+			   Poco::Net::HTTPServerResponse &response,
 			   	Poco::Net::SocketReactor &reactor,
 				const std::string &Id)
 		:
-	  		WS_(WS),
 	  		Reactor_(reactor),
 		  	Id_(Id),
 	  		Logger_(Poco::Logger::get(fmt::format("RTTY-client({})",Id_)))
 		{
 			Logger_.information("Starting connection");
 			Valid_ = true;
-			logging_in_ = true;
+			WS_ = std::make_unique<Poco::Net::WebSocket>(request,response);
 			Reactor_.addEventHandler(
 				*WS_, Poco::NObserver<RTTYS_ClientConnection, Poco::Net::ReadableNotification>(
 						  *this, &RTTYS_ClientConnection::onSocketReadable));
