@@ -87,7 +87,9 @@ namespace OpenWifi {
 
 	void RTTYS_Device_ConnectionHandler::onSocketReadable([[maybe_unused]] const Poco::AutoPtr<Poco::Net::ReadableNotification> &pNf) {
 		bool good = true;
+
 		Guard G(M_);
+
 		try {
 			auto received_bytes = socket_.receiveBytes(inBuf_);
 			if(received_bytes==0) {
@@ -289,7 +291,6 @@ namespace OpenWifi {
 					poco_information(Logger(),fmt::format(
 						"{}: Serial:{} Description:{} Could not complete registration",
 						 Id_, serial_, desc_));
-					RTTYS_server()->NotifyDeviceFailure(Id_,this);
 				} else {
 					registered_ = true;
 				}
