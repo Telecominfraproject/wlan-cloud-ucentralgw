@@ -169,8 +169,8 @@ namespace OpenWifi {
 		[[nodiscard]] inline const std::string & UserName() const { return UserName_; }
 		[[nodiscard]] inline const std::string & SerialNumber() const { return SerialNumber_; }
 
-		[[nodiscard]] inline auto TimeDeviceConnected() const { return std::chrono::duration<double, std::milli>{DeviceDisconnected_ - DeviceConnected_}.count(); }
-		[[nodiscard]] inline auto TimeClientConnected() const { return std::chrono::duration<double, std::milli>{ClientDisconnected_ - ClientConnected_}.count(); }
+		[[nodiscard]] inline auto TimeDeviceConnected() const { return std::chrono::duration<double>{DeviceDisconnected_ - DeviceConnected_}.count(); }
+		[[nodiscard]] inline auto TimeClientConnected() const { return std::chrono::duration<double>{ClientDisconnected_ - ClientConnected_}.count(); }
 
 	  private:
 		std::string 							Token_;
