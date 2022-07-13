@@ -73,10 +73,10 @@ namespace OpenWifi {
 						*this, &RTTYS_Device_ConnectionHandler::onSocketShutdown));
 
 				if(!external)
-					RTTYS_server()->DisconnectNotice(Id_,true);
+					RTTYS_server()->NotifyDeviceDisconnect(Id_,this);
 
 				if (!registered_) {
-					RTTYS_server()->AddFailedDevice(this);
+					RTTYS_server()->NotifyDeviceFailure(Id_,this);
 				}
 				poco_information(Logger(), "Connection done.");
 				socket_.close();
@@ -290,7 +290,7 @@ namespace OpenWifi {
 					poco_information(Logger(),fmt::format(
 						"{}: Serial:{} Description:{} Could not complete registration",
 						 Id_, serial_, desc_));
-					RTTYS_server()->AddFailedDevice(this);
+					RTTYS_server()->NotifyDeviceFailure(Id_,this);
 				} else {
 					registered_ = true;
 				}

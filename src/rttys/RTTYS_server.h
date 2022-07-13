@@ -37,17 +37,33 @@ namespace OpenWifi {
 		T & L_;
 	};
 
-	class RTTYS_DisconnectNotification: public Poco::Notification {
-	  public:
-		RTTYS_DisconnectNotification(const std::string &id, bool device) :
-				id_(id),
-				device_(device) {
+	enum class RTTYS_Notification_type {
+		unknown,
+		device_disconnection,
+		client_disconnection,
+		device_failure
+	};
 
+	class RTTYS_Notification: public Poco::Notification {
+	  public:
+		RTTYS_Notification(const RTTYS_Notification_type &type, const std::string &id,
+						   RTTYS_Device_ConnectionHandler * device) :
+		   	type_(type),
+	   		id_(id),
+			device_(device) {
 		}
-		std::string			id_;
-		bool				device_=false;
-		RTTYS_Device_ConnectionHandler	*DeviceHandler_= nullptr;
-		RTTYS_ClientConnection 			*ClientHandler = nullptr;
+
+		RTTYS_Notification(const RTTYS_Notification_type &type, const std::string &id,
+						   RTTYS_ClientConnection * client) :
+			type_(type),
+			id_(id),
+		 	client_(client) {
+		}
+
+		RTTYS_Notification_type			type_=RTTYS_Notification_type::unknown;
+		std::string						id_;
+		RTTYS_Device_ConnectionHandler	*device_= nullptr;
+		RTTYS_ClientConnection 			*client_ = nullptr;
 	};
 
 	class RTTYS_server : public SubSystemServer, Poco::Runnable
@@ -84,14 +100,18 @@ namespace OpenWifi {
 		using MyGuard = std::lock_guard<MyMutexType>;
 		using MyUniqueLock = std::unique_lock<MyMutexType>;
 
-		inline void AddFailedDevice(RTTYS_Device_ConnectionHandler *Device) {
-			MyGuard G(M_);
-			FailedDevices.push_back(Device);
+		void run() final;
+
+		inline void NotifyDeviceDisconnect(const std::string &id, RTTYS_Device_ConnectionHandler *device) {
+			ResponseQueue_.enqueueNotification(new RTTYS_Notification(RTTYS_Notification_type::device_disconnection,id,device));
 		}
 
-		void run() final;
-		inline void DisconnectNotice(const std::string &id, bool device) {
-			ResponseQueue_.enqueueNotification(new RTTYS_DisconnectNotification(id,device));
+		inline void NotifyDeviceFailure(const std::string &id, RTTYS_Device_ConnectionHandler *device) {
+			ResponseQueue_.enqueueNotification(new RTTYS_Notification(RTTYS_Notification_type::device_failure,id,device));
+		}
+
+		inline void NotifyClientDisconnect(const std::string &id, RTTYS_ClientConnection *client) {
+			ResponseQueue_.enqueueNotification(new RTTYS_Notification(RTTYS_Notification_type::client_disconnection,id,client));
 		}
 
 		struct EndPoint {

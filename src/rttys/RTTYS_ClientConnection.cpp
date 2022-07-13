@@ -79,7 +79,7 @@ namespace OpenWifi {
 			WS_->shutdown();
 			state_ = connection_state::done;
 			if(!external)
-				RTTYS_server()->DisconnectNotice(Id_,false);
+				RTTYS_server()->NotifyClientDisconnect(Id_,this);
 			Logger_.information("Disconnected.");
 		}
 	}

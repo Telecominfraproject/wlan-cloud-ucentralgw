@@ -179,41 +179,50 @@ namespace OpenWifi {
 	void RTTYS_server::run() {
 		Utils::SetThreadName("rtty-mgr");
 		NotificationManagerRunning_ = true;
-		Poco::AutoPtr<Poco::Notification> NextMsg(ResponseQueue_.waitDequeueNotification());
-		while (NextMsg && NotificationManagerRunning_) {
-			auto Resp = dynamic_cast<RTTYS_DisconnectNotification *>(NextMsg.get());
-			if (Resp != nullptr) {
+		Poco::AutoPtr<Poco::Notification> NextNotification(ResponseQueue_.waitDequeueNotification());
+		while (NextNotification && NotificationManagerRunning_) {
+			auto Notification = dynamic_cast<RTTYS_Notification *>(NextNotification.get());
+			if (Notification != nullptr) {
 				M_.lock();
-				auto It = EndPoints_.find(Resp->id_);
+				auto It = EndPoints_.find(Notification->id_);
 				if (It != EndPoints_.end()) {
-					if (Resp->device_) {
+
+					switch (Notification->type_) {
+					case RTTYS_Notification_type::device_disconnection: {
 						It->second.DeviceDisconnected = OpenWifi::Now();
-						if(It->second.Client!= nullptr && It->second.Client->Valid()) {
+						if (It->second.Client != nullptr && It->second.Client->Valid()) {
 							Logger().information(
-								fmt::format("{}: Device disconnecting.", Resp->id_));
+								fmt::format("{}: Device disconnecting.", Notification->id_));
 							M_.unlock();
 							It->second.ClientDisconnected = OpenWifi::Now();
 							It->second.Client->EndConnection(true);
 						} else {
 							M_.unlock();
 						}
-					} else {
+					} break;
+					case RTTYS_Notification_type::client_disconnection: {
 						It->second.ClientDisconnected = OpenWifi::Now();
-						if(It->second.Device!= nullptr && It->second.Device->Valid()) {
-							Logger().information(fmt::format("{}: Client disconnecting.", Resp->id_));
+						if (It->second.Device != nullptr && It->second.Device->Valid()) {
+							Logger().information(
+								fmt::format("{}: Client disconnecting.", Notification->id_));
 							M_.unlock();
 							It->second.DeviceDisconnected = OpenWifi::Now();
 							It->second.Device->EndConnection(true);
-						}
-						else {
+						} else {
 							M_.unlock();
 						}
-					}
-				} else {
-					M_.unlock();
+					} break;
+					case RTTYS_Notification_type::device_failure: {
+						FailedDevices.push_back(Notification->device_);
+						M_.unlock();
+					} break;
+					case RTTYS_Notification_type::unknown: {
+						M_.unlock();
+					} break;
+					};
 				}
 			}
-			NextMsg = ResponseQueue_.waitDequeueNotification();
+			NextNotification = ResponseQueue_.waitDequeueNotification();
 		}
 	}
 
