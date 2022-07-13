@@ -121,11 +121,12 @@ namespace OpenWifi {
 		}
 
 		inline bool TooOld() const {
-			if(ClientDisconnected_ && (ClientDisconnected_-ClientConnected_)>15)
+			auto now = OpenWifi::Now();
+			if(ClientDisconnected_ && (ClientDisconnected_-now)>15)
 				return true;
-			if(DeviceDisconnected_ && (DeviceDisconnected_-DeviceConnected_)>15)
+			if(DeviceDisconnected_ && (DeviceDisconnected_-now)>15)
 				return true;
-			std::cout << ClientDisconnected_ << " " << ClientConnected_ << " " << DeviceDisconnected_ << " " << DeviceConnected_ << std::endl;
+//			std::cout << ClientDisconnected_ << " " << ClientConnected_ << " " << DeviceDisconnected_ << " " << DeviceConnected_ << std::endl;
 			return false;
 		}
 
