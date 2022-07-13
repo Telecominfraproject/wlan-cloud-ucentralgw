@@ -9,6 +9,7 @@
 #include "Poco/Net/SocketAcceptor.h"
 #include "Poco/Timer.h"
 #include "rttys/RTTYS_device.h"
+#include "rttys/RTTYS_ClientConnection.h"
 
 namespace OpenWifi {
 
@@ -66,6 +67,121 @@ namespace OpenWifi {
 		RTTYS_ClientConnection 			*client_ = nullptr;
 	};
 
+	class RTTYS_EndPoint {
+	  public:
+		RTTYS_EndPoint(const std::string &Token, const std::string &SerialNumber, const std::string &UserName ):
+ 			Token_(Token),
+			SerialNumber_(SerialNumber),
+			UserName_(UserName)
+		{
+			Created_ = OpenWifi::Now();
+		}
+
+		inline void SetClient(std::unique_ptr<RTTYS_ClientConnection> Client) {
+			ClientConnected_ = OpenWifi::Now();
+			Client_ = std::move(Client);
+		}
+
+		inline void SetDevice(const std::string &Token, std::string &serial, std::unique_ptr<RTTYS_Device_ConnectionHandler> Device) {
+			DeviceConnected_ = OpenWifi::Now();
+			Device_ = std::move(Device);
+			serial = SerialNumber_;
+			Token_ = Token;
+		}
+
+		inline bool Login() {
+			if(Device_!= nullptr) {
+				return Device_->Login();
+			}
+			return false;
+		}
+
+		RTTYS_EndPoint & operator=(RTTYS_EndPoint Other) {
+			Other.Client_ = std::move(Client_);
+			Other.Device_ = std::move(Device_);
+			return *this;
+		}
+
+		inline void DisconnectClient() {
+			ClientDisconnected_ = OpenWifi::Now();
+		}
+
+		inline void DisconnectDevice() {
+			DeviceDisconnected_ = OpenWifi::Now();
+		}
+
+		inline void SendClientDisconnection() {
+			if(Client_!= nullptr)
+				Client_->EndConnection(true);
+		}
+
+		inline void SendDeviceDisconnection() {
+			if(Device_!= nullptr)
+				Device_->EndConnection(true);
+		}
+
+		inline bool TooOld() const {
+			if(DeviceDisconnected_ && (DeviceDisconnected_-DeviceConnected_)>15)
+				return true;
+			return false;
+		}
+
+		bool CompleteStartup() {
+			return Client_->CompleteStartup();
+		}
+
+		bool SendToClient(const u_char *Buf, std::size_t Len) {
+			if(Client_!= nullptr && Client_->Valid()) {
+				Client_->SendData(Buf,Len);
+				return true;
+			}
+			return false;
+		}
+
+		inline bool KeyStrokes(const u_char *buffer, std::size_t len) {
+			if( Device_!= nullptr )
+				return Device_->KeyStrokes(buffer,len);
+			return false;
+		}
+
+		inline bool WindowSize( int cols, int rows) {
+			if(Device_!= nullptr)
+				return Device_->WindowSize(cols,rows);
+			return false;
+		}
+
+		inline bool ValidClient() const {
+			return Client_!= nullptr && Client_->Valid();
+		}
+
+		inline bool SendToClient(const std::string &S) {
+			if(Client_!= nullptr && Client_->Valid()) {
+				Client_->SendData(S);
+				return true;
+			}
+			return false;
+		}
+
+		[[nodiscard]] inline const std::string & UserName() const { return UserName_; }
+		[[nodiscard]] inline const std::string & SerialNumber() const { return SerialNumber_; }
+
+		inline auto TimeDeviceConnected() const { return DeviceDisconnected_ - DeviceConnected_; }
+		inline auto TimeClientConnected() const { return ClientDisconnected_ - ClientConnected_; }
+
+	  private:
+		std::string 							Token_;
+		std::string 							SerialNumber_;
+		std::string 							UserName_;
+		std::unique_ptr<RTTYS_ClientConnection> 		Client_;
+		std::unique_ptr<RTTYS_Device_ConnectionHandler> Device_;
+		std::string 							Id_;
+		uint64_t 								Created_=0;
+		uint64_t 								DeviceDisconnected_ = 0;
+		uint64_t 								ClientDisconnected_ = 0;
+		uint64_t 								DeviceConnected_ = 0;
+		uint64_t 								ClientConnected_ = 0;
+	};
+
 	class RTTYS_server : public SubSystemServer, Poco::Runnable
 	{
 	  public:
@@ -79,16 +195,10 @@ namespace OpenWifi {
 
 		inline auto UIAssets() { return RTTY_UIAssets_; }
 
-		void RegisterClient(const std::string &Id, RTTYS_ClientConnection *Client);
-		void DeRegisterClient(const std::string &Id, RTTYS_ClientConnection *Client);
 		bool RegisterDevice(const std::string &Id, const std::string &Token, std::string & serial, RTTYS_Device_ConnectionHandler *Device);
-		void DeRegisterDevice(const std::string &Id, RTTYS_Device_ConnectionHandler *Device, bool remove_websocket);
 		bool CreateEndPoint(const std::string &Id, const std::string & Token, const std::string & UserName, const std::string & SerialNumber );
 		void LoginDone(const std::string & Id);
-		bool ValidEndPoint(const std::string &Id, const std::string &Token);
-		bool IsDeviceRegistered( const std::string &Id, const std::string &Token, [[maybe_unused]] RTTYS_Device_ConnectionHandler *Conn);
 		bool Login(const std::string & Id_);
-		bool Logout(const std::string & Id_);
 		bool SendKeyStrokes(const std::string &Id, const u_char *buffer, std::size_t s);
 		bool WindowSize(const std::string &Id, int cols, int rows);
 		bool SendToClient(const std::string &id, const u_char *Buf, std::size_t Len);
@@ -114,19 +224,6 @@ namespace OpenWifi {
 			ResponseQueue_.enqueueNotification(new RTTYS_Notification(RTTYS_Notification_type::client_disconnection,id,client));
 		}
 
-		struct EndPoint {
-			std::string 							Token;
-			RTTYS_ClientConnection 					*Client=nullptr;
-			RTTYS_Device_ConnectionHandler 			*Device=nullptr;
-			uint64_t 								TimeStamp = OpenWifi::Now();
-			std::string 							UserName;
-			std::string 							SerialNumber;
-			uint64_t 								DeviceDisconnected = 0;
-			uint64_t 								ClientDisconnected = 0;
-			uint64_t 								DeviceConnected = 0;
-			uint64_t 								ClientConnected = 0;
-		};
-
 		void CreateNewClient(Poco::Net::HTTPServerRequest &request,
 							 Poco::Net::HTTPServerResponse &response, const std::string &id);
 
@@ -145,7 +242,7 @@ namespace OpenWifi {
 		std::string 								RTTY_UIAssets_;
 		bool			 							Internal_ = false;
 
-		std::map<std::string, EndPoint> 			EndPoints_;			//	id, endpoint
+		std::map<std::string,std::unique_ptr<RTTYS_EndPoint>> 		EndPoints_;			//	id, endpoint
 		std::unique_ptr<Poco::Net::HTTPServer>		WebServer_;
 		std::unique_ptr<Poco::Net::SocketAcceptor<RTTYS_Device_ConnectionHandler>>	DeviceAcceptor_;
 		Poco::Thread								DeviceReactorThread_;
