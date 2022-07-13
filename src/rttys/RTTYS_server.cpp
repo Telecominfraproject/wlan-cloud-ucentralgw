@@ -184,42 +184,48 @@ namespace OpenWifi {
 			auto Notification = dynamic_cast<RTTYS_Notification *>(NextNotification.get());
 			if (Notification != nullptr) {
 				M_.lock();
-				auto It = EndPoints_.find(Notification->id_);
-				if (It != EndPoints_.end()) {
-
-					switch (Notification->type_) {
-					case RTTYS_Notification_type::device_disconnection: {
-						It->second.DeviceDisconnected = OpenWifi::Now();
-						if (It->second.Client != nullptr && It->second.Client->Valid()) {
-							Logger().information(
-								fmt::format("{}: Device disconnecting.", Notification->id_));
-							M_.unlock();
-							It->second.ClientDisconnected = OpenWifi::Now();
-							It->second.Client->EndConnection(true);
-						} else {
-							M_.unlock();
-						}
-					} break;
-					case RTTYS_Notification_type::client_disconnection: {
-						It->second.ClientDisconnected = OpenWifi::Now();
-						if (It->second.Device != nullptr && It->second.Device->Valid()) {
-							Logger().information(
-								fmt::format("{}: Client disconnecting.", Notification->id_));
-							M_.unlock();
+				if(Notification->type_==RTTYS_Notification_type::device_failure) {
+					FailedDevices.push_back(Notification->device_);
+					M_.unlock();
+				} else {
+					auto It = EndPoints_.find(Notification->id_);
+					if (It != EndPoints_.end()) {
+						switch (Notification->type_) {
+						case RTTYS_Notification_type::device_disconnection: {
 							It->second.DeviceDisconnected = OpenWifi::Now();
-							It->second.Device->EndConnection(true);
-						} else {
+							if (It->second.Client != nullptr && It->second.Client->Valid()) {
+								Logger().information(
+									fmt::format("{}: Device disconnecting.", Notification->id_));
+								M_.unlock();
+								It->second.ClientDisconnected = OpenWifi::Now();
+								It->second.Client->EndConnection(true);
+							} else {
+								M_.unlock();
+							}
+						} break;
+						case RTTYS_Notification_type::client_disconnection: {
+							It->second.ClientDisconnected = OpenWifi::Now();
+							if (It->second.Device != nullptr && It->second.Device->Valid()) {
+								Logger().information(
+									fmt::format("{}: Client disconnecting.", Notification->id_));
+								M_.unlock();
+								It->second.DeviceDisconnected = OpenWifi::Now();
+								It->second.Device->EndConnection(true);
+							} else {
+								M_.unlock();
+							}
+						} break;
+						case RTTYS_Notification_type::device_failure: {
+							FailedDevices.push_back(Notification->device_);
 							M_.unlock();
-						}
-					} break;
-					case RTTYS_Notification_type::device_failure: {
-						FailedDevices.push_back(Notification->device_);
+						} break;
+						case RTTYS_Notification_type::unknown: {
+							M_.unlock();
+						} break;
+						};
+					} else {
 						M_.unlock();
-					} break;
-					case RTTYS_Notification_type::unknown: {
-						M_.unlock();
-					} break;
-					};
+					}
 				}
 			}
 			NextNotification = ResponseQueue_.waitDequeueNotification();
