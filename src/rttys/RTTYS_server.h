@@ -113,11 +113,13 @@ namespace OpenWifi {
 		inline void SendClientDisconnection() {
 			if(Client_!= nullptr)
 				Client_->EndConnection(true);
+			ClientDisconnected_ = OpenWifi::Now();
 		}
 
 		inline void SendDeviceDisconnection() {
 			if(Device_!= nullptr)
 				Device_->EndConnection(true);
+			DeviceDisconnected_ = OpenWifi::Now();
 		}
 
 		inline bool TooOld() const {
