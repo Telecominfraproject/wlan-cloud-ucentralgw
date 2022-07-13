@@ -15,17 +15,55 @@ namespace OpenWifi {
 	class RTTYS_Device_ConnectionHandler;
 	class RTTYS_ClientConnection;
 
-	class RTTYS_DisconnectNotification: public Poco::Notification {
+	template <typename T> class MutexLockerDbg {
 	  public:
-		RTTYS_DisconnectNotification(const std::string &id, bool device) :
-				id_(id),
-				device_(device) {
-
+		MutexLockerDbg(const std::string &name, T &L) :
+ 			name_(name),
+ 			L_(L)
+		{
+			std::cout << name_ << ":L:0:" << Poco::Thread::current()->name() << ":" << Poco::Thread::currentTid() << std::endl;
+			L_.lock();
+			std::cout << name_ << ":L:1:" << Poco::Thread::current()->name() << ":" << Poco::Thread::currentTid() << std::endl;
 		}
-		std::string			id_;
-		bool				device_=false;
-		RTTYS_Device_ConnectionHandler	*DeviceHandler_= nullptr;
-		RTTYS_ClientConnection 			*ClientHandler = nullptr;
+
+		~MutexLockerDbg() {
+			std::cout << name_ << ":U:0:" << Poco::Thread::current()->name() << ":" << Poco::Thread::currentTid() << std::endl;
+			L_.unlock();
+			std::cout << name_ << ":U:1:" << Poco::Thread::current()->name() << ":" << Poco::Thread::currentTid() << std::endl;
+		}
+
+	  private:
+		std::string name_;
+		T & L_;
+	};
+
+	enum class RTTYS_Notification_type {
+		unknown,
+		device_disconnection,
+		client_disconnection,
+		device_failure
+	};
+
+	class RTTYS_Notification: public Poco::Notification {
+	  public:
+		RTTYS_Notification(const RTTYS_Notification_type &type, const std::string &id,
+						   RTTYS_Device_ConnectionHandler * device) :
+		   	type_(type),
+	   		id_(id),
+			device_(device) {
+		}
+
+		RTTYS_Notification(const RTTYS_Notification_type &type, const std::string &id,
+						   RTTYS_ClientConnection * client) :
+			type_(type),
+			id_(id),
+		 	client_(client) {
+		}
+
+		RTTYS_Notification_type			type_=RTTYS_Notification_type::unknown;
+		std::string						id_;
+		RTTYS_Device_ConnectionHandler	*device_= nullptr;
+		RTTYS_ClientConnection 			*client_ = nullptr;
 	};
 
 	class RTTYS_server : public SubSystemServer, Poco::Runnable
@@ -58,33 +96,36 @@ namespace OpenWifi {
 		bool ValidClient(const std::string &id);
 		bool ValidId(const std::string &Id);
 
-		using MyMutexType = std::mutex;
+		using MyMutexType = std::recursive_mutex;
 		using MyGuard = std::lock_guard<MyMutexType>;
 		using MyUniqueLock = std::unique_lock<MyMutexType>;
 
-		inline void AddFailedDevice(RTTYS_Device_ConnectionHandler *Device) {
-			MyGuard G(M_);
-			FailedDevices.push_back(Device);
+		void run() final;
+
+		inline void NotifyDeviceDisconnect(const std::string &id, RTTYS_Device_ConnectionHandler *device) {
+			ResponseQueue_.enqueueNotification(new RTTYS_Notification(RTTYS_Notification_type::device_disconnection,id,device));
 		}
 
-		void run() final;
-		inline void DisconnectNotice(const std::string &id, bool device) {
-			ResponseQueue_.enqueueNotification(new RTTYS_DisconnectNotification(id,device));
+		inline void NotifyDeviceFailure(const std::string &id, RTTYS_Device_ConnectionHandler *device) {
+			ResponseQueue_.enqueueNotification(new RTTYS_Notification(RTTYS_Notification_type::device_failure,id,device));
+		}
+
+		inline void NotifyClientDisconnect(const std::string &id, RTTYS_ClientConnection *client) {
+			ResponseQueue_.enqueueNotification(new RTTYS_Notification(RTTYS_Notification_type::client_disconnection,id,client));
 		}
 
 		struct EndPoint {
 			std::string 							Token;
-			mutable RTTYS_ClientConnection 		   *Client = nullptr;
-			mutable RTTYS_Device_ConnectionHandler *Device = nullptr;
-			Poco::Net::WebSocket				   *WS_ = nullptr;
+			RTTYS_ClientConnection 					*Client=nullptr;
+			RTTYS_Device_ConnectionHandler 			*Device=nullptr;
+			Poco::Net::WebSocket				    *WS_=nullptr;
 			uint64_t 								TimeStamp = OpenWifi::Now();
 			std::string 							UserName;
 			std::string 							SerialNumber;
-			mutable uint64_t 						DeviceDisconnected = 0;
-			mutable uint64_t 						ClientDisconnected = 0;
-			mutable uint64_t 						DeviceConnected = 0;
-			mutable uint64_t 						ClientConnected = 0;
-
+			uint64_t 								DeviceDisconnected = 0;
+			uint64_t 								ClientDisconnected = 0;
+			uint64_t 								DeviceConnected = 0;
+			uint64_t 								ClientConnected = 0;
 		};
 
 		void CreateNewClient(Poco::Net::HTTPServerRequest &request,
