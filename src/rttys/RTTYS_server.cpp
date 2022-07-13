@@ -115,7 +115,7 @@ namespace OpenWifi {
 		MyGuard G(M_);
  		for(auto element=EndPoints_.begin();element!=EndPoints_.end();) {
 			if(element->second.Client!=nullptr && !element->second.Client->Valid() && (now-element->second.ClientDisconnected)>15) {
-				std::cout << "Removing client:" << element->first << std::endl;
+				// std::cout << "Removing client:" << element->first << std::endl;
 				delete element->second.Client;
 				delete element->second.WS_;
 				element->second.Client = nullptr;
@@ -123,14 +123,14 @@ namespace OpenWifi {
 			}
 
 			if(element->second.Device!=nullptr && !element->second.Device->Valid() && (now-element->second.DeviceDisconnected)>15) {
-				std::cout << "Removing device:" << element->first << std::endl;
+				// std::cout << "Removing device:" << element->first << std::endl;
 				delete element->second.Device;
 				element->second.Device = nullptr;
 			}
 
 			if(element->second.Client==nullptr && element->second.Device==nullptr) {
-				std::cout << element->second.DeviceDisconnected << " " << element->second.DeviceConnected << " "
-					<< element->second.ClientDisconnected << " " << element->second.ClientConnected << std::endl;
+				// std::cout << element->second.DeviceDisconnected << " " << element->second.DeviceConnected << " "
+				//	<< element->second.ClientDisconnected << " " << element->second.ClientConnected << std::endl;
 				auto c = fmt::format("Removing {}. Device connection time: {}. Client connection time: {}",
 									 element->first, element->second.DeviceDisconnected - element->second.DeviceConnected,
 									 element->second.ClientDisconnected - element->second.ClientConnected);
@@ -143,9 +143,10 @@ namespace OpenWifi {
 		}
 
 		for(auto &element:FailedDevices) {
-			std::cout << "Delete element in failed" << std::endl;
+			// std::cout << "Delete element in failed" << std::endl;
 			delete element;
 		}
+
 		FailedDevices.clear();
 	}
 
@@ -276,7 +277,8 @@ namespace OpenWifi {
 	}
 
 	bool RTTYS_server::ValidClient(const std::string &Id) {
-		MutexLockerDbg MM(__func__ ,M_);
+//		MutexLockerDbg MM(__func__ ,M_);
+		MyGuard 	G(M_);
 		auto It = EndPoints_.find(Id);
 		return It!=EndPoints_.end() && It->second.Client!= nullptr && It->second.Client->Valid();
 	}
@@ -356,7 +358,8 @@ namespace OpenWifi {
 
 
 	bool RTTYS_server::CreateEndPoint(const std::string &Id, const std::string & Token, const std::string & UserName, const std::string & SerialNumber ) {
-		MutexLockerDbg MM(__func__ ,M_);
+//		MutexLockerDbg MM(__func__ ,M_);
+		MyGuard 	G(M_);
 
 		EndPoint E;
 		E.Token = Token;
