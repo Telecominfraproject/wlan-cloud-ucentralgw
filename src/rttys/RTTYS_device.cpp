@@ -289,15 +289,16 @@ namespace OpenWifi {
 				if (socket_.sendBytes(OutBuf, 7) != 7) {
 					good = false;
 					poco_information(Logger(),fmt::format(
-						"{}: Serial:{} Description:{} Could not complete registration",
+						"{}: Serial:{} Description:{} Could not send data to complete registration",
 						 Id_, serial_, desc_));
 				} else {
 					registered_ = true;
 				}
 			} else {
 				poco_information(Logger(),fmt::format(
-					"{}: Serial:{} Description:{} Could not complete registration",
+					"{}: Serial:{} Description:{} Could not register device.",
 					Id_, serial_, desc_));
+				good = false;
 			}
 		} catch (...) {
 			good = false;
