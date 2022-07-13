@@ -125,6 +125,7 @@ namespace OpenWifi {
 				return true;
 			if(DeviceDisconnected_ && (DeviceDisconnected_-DeviceConnected_)>15)
 				return true;
+			std::cout << ClientDisconnected_ << " " << ClientConnected_ << " " << DeviceDisconnected_ << " " << DeviceConnected_ << std::endl;
 			return false;
 		}
 
