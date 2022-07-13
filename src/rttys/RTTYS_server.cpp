@@ -117,7 +117,7 @@ namespace OpenWifi {
 			if(element->second->TooOld()) {
 				// std::cout << element->second.DeviceDisconnected << " " << element->second.DeviceConnected << " "
 				//	<< element->second.ClientDisconnected << " " << element->second.ClientConnected << std::endl;
-				auto c = fmt::format("Removing {}. Device connection time: {}ms. Client connection time: {}ms",
+				auto c = fmt::format("Removing {}. Device connection time: {}s. Client connection time: {}s",
 									 element->first, element->second->TimeDeviceConnected(),
 									 element->second->TimeClientConnected());
 				Logger().information(c);
