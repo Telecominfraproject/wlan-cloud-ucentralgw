@@ -48,6 +48,7 @@ namespace OpenWifi {
 		} catch (...) {
 		}
 		state_ = connection_state::shutting_down;
+		EndConnection();
 		return false;
 	}
 
