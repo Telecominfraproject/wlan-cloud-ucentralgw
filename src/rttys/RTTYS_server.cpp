@@ -134,8 +134,9 @@ namespace OpenWifi {
 								Poco::Net::HTTPServerResponse &response, const std::string &id) {
 
 		auto NewClient = new RTTYS_ClientConnection(request, response, ClientReactor_, id);
+		std::cout << __LINE__ <<std::endl;
 		RTTYS_server().NotifyClientRegistration(id,NewClient);
-
+		std::cout << __LINE__ <<std::endl;
 	}
 
 	void RTTYS_server::run() {
@@ -168,20 +169,32 @@ namespace OpenWifi {
 							M_.unlock();
 						} break;
 						case RTTYS_Notification_type::device_registration: {
+							std::cout << __LINE__ <<std::endl;
 							auto ptr = std::unique_ptr<RTTYS_Device_ConnectionHandler>{Notification->device_};
+							std::cout << __LINE__ <<std::endl;
 							It->second->SetDevice(std::move(ptr));
+							std::cout << __LINE__ <<std::endl;
 							if(!It->second->Joined() && It->second->ValidClient()) {
+								std::cout << __LINE__ <<std::endl;
 								It->second->Join();
+								std::cout << __LINE__ <<std::endl;
 								It->second->Login();
+								std::cout << __LINE__ <<std::endl;
 							}
 							M_.unlock();
 						} break;
 						case RTTYS_Notification_type::client_registration: {
+							std::cout << __LINE__ <<std::endl;
 							auto ptr = std::unique_ptr<RTTYS_ClientConnection>{Notification->client_};
+							std::cout << __LINE__ <<std::endl;
 							It->second->SetClient(std::move(ptr));
+							std::cout << __LINE__ <<std::endl;
 							if(!It->second->Joined() && It->second->ValidDevice()) {
+								std::cout << __LINE__ <<std::endl;
 								It->second->Join();
+								std::cout << __LINE__ <<std::endl;
 								It->second->Login();
+								std::cout << __LINE__ <<std::endl;
 							}
 							M_.unlock();
 						} break;
