@@ -43,7 +43,6 @@ namespace OpenWifi {
 		device_disconnection,
 		client_disconnection,
 		client_registration,
-		device_failure,
 		device_registration
 	};
 
@@ -241,10 +240,6 @@ namespace OpenWifi {
 			ResponseQueue_.enqueueNotification(new RTTYS_Notification(RTTYS_Notification_type::device_disconnection,id,device));
 		}
 
-		inline void NotifyDeviceFailure(const std::string &id, RTTYS_Device_ConnectionHandler *device) {
-			ResponseQueue_.enqueueNotification(new RTTYS_Notification(RTTYS_Notification_type::device_failure,id,device));
-		}
-
 		inline void NotifyClientDisconnect(const std::string &id, RTTYS_ClientConnection *client) {
 			ResponseQueue_.enqueueNotification(new RTTYS_Notification(RTTYS_Notification_type::client_disconnection,id,client));
 		}
@@ -254,9 +249,7 @@ namespace OpenWifi {
 		}
 
 		inline void NotifyClientRegistration(const std::string &id, RTTYS_ClientConnection *client) {
-			std::cout << __LINE__ << std::endl;
 			ResponseQueue_.enqueueNotification(new RTTYS_Notification(RTTYS_Notification_type::client_registration,id,client));
-			std::cout << __LINE__ << std::endl;
 		}
 
 		void CreateNewClient(Poco::Net::HTTPServerRequest &request,
@@ -288,7 +281,10 @@ namespace OpenWifi {
 		Poco::Timer                     					Timer_;
 		std::unique_ptr<Poco::TimerCallback<RTTYS_server>>  GCCallBack_;
 		std::list<std::unique_ptr<RTTYS_Device_ConnectionHandler>>	FailedDevices;
+		std::list<std::unique_ptr<RTTYS_ClientConnection>>			FailedClients;
 		MyMutexType 								M_;
+
+		uint64_t 									TotalEndPoints_=0;
 
 		explicit RTTYS_server() noexcept:
 		SubSystemServer("RTTY_Server", "RTTY-SVR", "rtty.server")

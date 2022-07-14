@@ -70,12 +70,7 @@ namespace OpenWifi {
 					socket_,
 					Poco::NObserver<RTTYS_Device_ConnectionHandler, Poco::Net::ShutdownNotification>(
 						*this, &RTTYS_Device_ConnectionHandler::onSocketShutdown));
-
-				if (registered_) {
-					RTTYS_server()->NotifyDeviceDisconnect(Id_,this);
-				} else {
-					RTTYS_server()->NotifyDeviceFailure(Id_,this);
-				}
+				RTTYS_server()->NotifyDeviceDisconnect(Id_,this);
 				poco_information(Logger(), "Connection done.");
 				socket_.close();
 			}
