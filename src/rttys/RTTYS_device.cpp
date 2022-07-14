@@ -274,31 +274,36 @@ namespace OpenWifi {
 			desc_ = ReadString();
 			token_ = ReadString();
 
-			poco_information(Logger(),fmt::format("{}: Serial:{} Description:{} Device registration",
-									   Id_, serial_, desc_));
-			if (RTTYS_server()->RegisterDevice(Id_, token_, serial_, this)) {
-				u_char OutBuf[8];
-				OutBuf[0] = msgTypeRegister;
-				OutBuf[1] = 0;
-				OutBuf[2] = 4;
-				OutBuf[3] = 0;
-				OutBuf[4] = 'O';
-				OutBuf[5] = 'K';
-				OutBuf[6] = 0;
-				if (socket_.sendBytes(OutBuf, 7) != 7) {
-					good = false;
-					poco_information(Logger(),fmt::format(
-						"{}: Serial:{} Description:{} Could not send data to complete registration",
-						 Id_, serial_, desc_));
+			auto Finish = [=]() {
+				poco_information(Logger(),
+								 fmt::format("{}: Description:{} Device registration", Id_, desc_));
+				if (RTTYS_server()->RegisterDevice(Id_, token_, serial_, this)) {
+					u_char OutBuf[8];
+					OutBuf[0] = msgTypeRegister;
+					OutBuf[1] = 0;
+					OutBuf[2] = 4;
+					OutBuf[3] = 0;
+					OutBuf[4] = 'O';
+					OutBuf[5] = 'K';
+					OutBuf[6] = 0;
+					if (socket_.sendBytes(OutBuf, 7) != 7) {
+						poco_information(Logger(),
+										 fmt::format("{}: Serial:{} Description:{} Could not send data to complete registration",
+													 Id_, serial_, desc_));
+					} else {
+						registered_ = true;
+					}
 				} else {
-					registered_ = true;
+					poco_information(
+						Logger(),
+						fmt::format("{}: Serial:{} Description:{} Could not register device.", Id_,
+									serial_, desc_));
 				}
-			} else {
-				poco_information(Logger(),fmt::format(
-					"{}: Serial:{} Description:{} Could not register device.",
-					Id_, serial_, desc_));
-				good = false;
-			}
+			};
+
+			std::thread T([=]() { Finish(); });
+			T.detach();
+
 		} catch (...) {
 			good = false;
 		}

@@ -140,7 +140,9 @@ namespace OpenWifi {
 
 		auto NewClient = std::make_unique<RTTYS_ClientConnection>(request, response, ClientReactor_, id);
 		ep->second->SetClient(std::move(NewClient));
-		ep->second->CompleteStartup();
+
+		std::thread T([=]() { ep->second->CompleteStartup(); });
+		T.detach();
 	}
 
 	void RTTYS_server::run() {
@@ -189,8 +191,10 @@ namespace OpenWifi {
 		// MutexLockerDbg MM(__func__ ,M_);
 		MyGuard 	G(M_);
 		auto ep = EndPoints_.find(Id);
-		if(ep==EndPoints_.end())
+		if(ep==EndPoints_.end()) {
+			NotifyDeviceFailure(Id,Device);
 			return false;
+		}
 
 		auto d = std::unique_ptr<RTTYS_Device_ConnectionHandler>{Device};
 		ep->second->SetDevice( Token, serial, std::move(d));
