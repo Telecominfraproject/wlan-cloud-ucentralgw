@@ -135,7 +135,7 @@ namespace OpenWifi {
 
 		auto NewClient = new RTTYS_ClientConnection(request, response, ClientReactor_, id);
 		std::cout << __LINE__ <<std::endl;
-		RTTYS_server().NotifyClientRegistration(id,NewClient);
+		NotifyClientRegistration(id,NewClient);
 		std::cout << __LINE__ <<std::endl;
 	}
 

@@ -254,7 +254,9 @@ namespace OpenWifi {
 		}
 
 		inline void NotifyClientRegistration(const std::string &id, RTTYS_ClientConnection *client) {
+			std::cout << __LINE__ << std::endl;
 			ResponseQueue_.enqueueNotification(new RTTYS_Notification(RTTYS_Notification_type::client_registration,id,client));
+			std::cout << __LINE__ << std::endl;
 		}
 
 		void CreateNewClient(Poco::Net::HTTPServerRequest &request,
