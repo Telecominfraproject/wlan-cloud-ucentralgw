@@ -133,18 +133,9 @@ namespace OpenWifi {
 	void RTTYS_server::CreateNewClient(Poco::Net::HTTPServerRequest &request,
 								Poco::Net::HTTPServerResponse &response, const std::string &id) {
 
-		MyGuard G(M_);
-		auto ep = EndPoints_.find(id);
-		if(ep == EndPoints_.end())
-			return;
+		auto NewClient = new RTTYS_ClientConnection(request, response, ClientReactor_, id);
+		RTTYS_server().NotifyClientRegistration(id,NewClient);
 
-		auto NewClient = std::make_unique<RTTYS_ClientConnection>(request, response, ClientReactor_, id);
-		ep->second->SetClient(std::move(NewClient));
-
-		if(ep->second->ValidDevice() && !ep->second->Joined()) {
-			ep->second->Join();
-			ep->second->Login();
-		}
 	}
 
 	void RTTYS_server::run() {

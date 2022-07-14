@@ -123,18 +123,23 @@ namespace OpenWifi {
 
 		[[nodiscard]] inline bool TooOld()  {
 			std::chrono::time_point<std::chrono::high_resolution_clock> now = std::chrono::high_resolution_clock::now();
-			if(ClientDisconnected_!=std::chrono::time_point<std::chrono::high_resolution_clock>{0s} && (now-ClientDisconnected_)>15s) {
+			if(Joined_ && ClientDisconnected_!=std::chrono::time_point<std::chrono::high_resolution_clock>{0s} && (now-ClientDisconnected_)>15s) {
 				if(DeviceDisconnected_==std::chrono::time_point<std::chrono::high_resolution_clock>{0s}) {
 					DeviceDisconnected_ = std::chrono::high_resolution_clock::now();
 				}
 				return true;
 			}
-			if(DeviceDisconnected_!=std::chrono::time_point<std::chrono::high_resolution_clock>{0s} && (now-DeviceDisconnected_)>15s) {
+			if(Joined_ && DeviceDisconnected_!=std::chrono::time_point<std::chrono::high_resolution_clock>{0s} && (now-DeviceDisconnected_)>15s) {
 				if(ClientDisconnected_==std::chrono::time_point<std::chrono::high_resolution_clock>{0s}) {
 					ClientDisconnected_ = std::chrono::high_resolution_clock::now();
 				}
 				return true;
 			}
+
+			if(!Joined_ && (now-Created_)>30s) {
+				return true;
+			}
+
 //			std::cout << ClientDisconnected_ << " " << ClientConnected_ << " " << DeviceDisconnected_ << " " << DeviceConnected_ << std::endl;
 			return false;
 		}
