@@ -174,6 +174,11 @@ namespace OpenWifi {
 							FailedDevices.push_back(std::move(ptr));
 							M_.unlock();
 						} break;
+						case RTTYS_Notification_type::device_registration: {
+							auto ptr = std::unique_ptr<RTTYS_Device_ConnectionHandler>{Notification->device_};
+							It->second->SetDevice(std::move(ptr));
+							M_.unlock();
+						} break;
 						case RTTYS_Notification_type::unknown: {
 							M_.unlock();
 						} break;
@@ -185,20 +190,6 @@ namespace OpenWifi {
 			}
 			NextNotification = ResponseQueue_.waitDequeueNotification();
 		}
-	}
-
-	bool RTTYS_server::RegisterDevice(const std::string &Id, const std::string &Token, std::string & serial, RTTYS_Device_ConnectionHandler *Device) {
-		// MutexLockerDbg MM(__func__ ,M_);
-		MyGuard 	G(M_);
-		auto ep = EndPoints_.find(Id);
-		if(ep==EndPoints_.end()) {
-			NotifyDeviceFailure(Id,Device);
-			return false;
-		}
-
-		auto d = std::unique_ptr<RTTYS_Device_ConnectionHandler>{Device};
-		ep->second->SetDevice( Token, serial, std::move(d));
-		return true;
 	}
 
 	bool RTTYS_server::SendToClient(const std::string &Id, const u_char *Buf, std::size_t Len) {
