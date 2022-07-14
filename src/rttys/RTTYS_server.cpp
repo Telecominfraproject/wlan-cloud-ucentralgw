@@ -141,8 +141,10 @@ namespace OpenWifi {
 		auto NewClient = std::make_unique<RTTYS_ClientConnection>(request, response, ClientReactor_, id);
 		ep->second->SetClient(std::move(NewClient));
 
-		std::thread T([=]() { ep->second->CompleteStartup(); });
-		T.detach();
+		if(ep->second->ValidDevice() && !ep->second->Joined()) {
+			ep->second->Join();
+			ep->second->Login();
+		}
 	}
 
 	void RTTYS_server::run() {
@@ -177,6 +179,19 @@ namespace OpenWifi {
 						case RTTYS_Notification_type::device_registration: {
 							auto ptr = std::unique_ptr<RTTYS_Device_ConnectionHandler>{Notification->device_};
 							It->second->SetDevice(std::move(ptr));
+							if(!It->second->Joined() && It->second->ValidClient()) {
+								It->second->Join();
+								It->second->Login();
+							}
+							M_.unlock();
+						} break;
+						case RTTYS_Notification_type::client_registration: {
+							auto ptr = std::unique_ptr<RTTYS_ClientConnection>{Notification->client_};
+							It->second->SetClient(std::move(ptr));
+							if(!It->second->Joined() && It->second->ValidDevice()) {
+								It->second->Join();
+								It->second->Login();
+							}
 							M_.unlock();
 						} break;
 						case RTTYS_Notification_type::unknown: {

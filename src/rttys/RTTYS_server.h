@@ -42,6 +42,7 @@ namespace OpenWifi {
 		unknown,
 		device_disconnection,
 		client_disconnection,
+		client_registration,
 		device_failure,
 		device_registration
 	};
@@ -168,6 +169,13 @@ namespace OpenWifi {
 			return Client_!= nullptr && Client_->Valid();
 		}
 
+		[[nodiscard]] inline bool ValidDevice() const {
+			return Device_!= nullptr && Device_->Valid();
+		}
+
+		[[nodiscard]] inline bool Joined() const { return Joined_; }
+		void Join() { Joined_=true; }
+
 		inline bool SendToClient(const std::string &S) {
 			if(Client_!= nullptr && Client_->Valid()) {
 				Client_->SendData(S);
@@ -183,15 +191,16 @@ namespace OpenWifi {
 		[[nodiscard]] inline auto TimeClientConnected() const { return std::chrono::duration<double>{ClientDisconnected_ - ClientConnected_}.count(); }
 
 	  private:
-		std::string 							Token_;
-		std::string 							SerialNumber_;
-		std::string 							UserName_;
+		std::string 									Token_;
+		std::string 									SerialNumber_;
+		std::string 									UserName_;
 		std::unique_ptr<RTTYS_ClientConnection> 		Client_;
 		std::unique_ptr<RTTYS_Device_ConnectionHandler> Device_;
 		std::string 							Id_;
 		std::chrono::time_point<std::chrono::high_resolution_clock>
 			Created_{0s},DeviceDisconnected_{0s},
 			ClientDisconnected_{0s},DeviceConnected_{0s} ,ClientConnected_{0s};
+		volatile bool									Joined_=false;
 	};
 
 	class RTTYS_server : public SubSystemServer, Poco::Runnable
@@ -207,7 +216,6 @@ namespace OpenWifi {
 
 		inline auto UIAssets() { return RTTY_UIAssets_; }
 
-		bool RegisterDevice(const std::string &Id, const std::string &Token, std::string & serial, RTTYS_Device_ConnectionHandler *Device);
 		bool CreateEndPoint(const std::string &Id, const std::string & Token, const std::string & UserName, const std::string & SerialNumber );
 		void LoginDone(const std::string & Id);
 		bool Login(const std::string & Id_);
@@ -238,6 +246,10 @@ namespace OpenWifi {
 
 		inline void NotifyDeviceRegistration(const std::string &id, const std::string &token, RTTYS_Device_ConnectionHandler *device) {
 			ResponseQueue_.enqueueNotification(new RTTYS_Notification(RTTYS_Notification_type::device_registration,id,token,device));
+		}
+
+		inline void NotifyClientRegistration(const std::string &id, RTTYS_ClientConnection *client) {
+			ResponseQueue_.enqueueNotification(new RTTYS_Notification(RTTYS_Notification_type::client_registration,id,client));
 		}
 
 		void CreateNewClient(Poco::Net::HTTPServerRequest &request,
