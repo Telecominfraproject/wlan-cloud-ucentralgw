@@ -190,9 +190,9 @@ namespace OpenWifi {
 		Header[3] = sid_;
 
 		Poco::Net::SocketBufVec bufs{Poco::Net::SocketBuf{ 	.iov_base=&Header[0],
-														  	.iov_len=4},
-									 Poco::Net::SocketBuf{	.iov_base=(void*)&buf[1],
-														  	.iov_len=len-1}};
+														  	.iov_len=3},
+									 Poco::Net::SocketBuf{	.iov_base=(void*)buf,
+														  	.iov_len=len}};
 		try {
 			socket_.sendBytes(bufs);
 			return true;
