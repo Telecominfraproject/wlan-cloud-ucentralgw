@@ -75,7 +75,7 @@ namespace OpenWifi {
 		u_char 						  	last_command_=0;
 		volatile std::atomic_bool		received_login_from_websocket_=false;
 
-		void EndConnection() ;
+		void EndConnection(bool SendNotification=true) ;
 		void CompleteConnection();
 
 		[[nodiscard]] bool do_msgTypeRegister(std::size_t msg_len);
