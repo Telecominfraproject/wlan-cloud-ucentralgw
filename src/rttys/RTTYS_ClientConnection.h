@@ -45,9 +45,9 @@ namespace OpenWifi {
 		volatile bool 							Valid_=false;
 		u_char 						Buffer_[16000]{0};
 		MyMutexType					Mutex_;
-		volatile  connection_state	state_ = connection_state::initialized;
+		// volatile  connection_state	state_ = connection_state::initialized;
 
-		void EndConnection();
+		void EndConnection(bool SendNotification=true);
 
 	};
 }

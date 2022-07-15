@@ -157,17 +157,15 @@ namespace OpenWifi {
 		while (NextNotification && NotificationManagerRunning_) {
 			auto Notification = dynamic_cast<RTTYS_Notification *>(NextNotification.get());
 			if (Notification != nullptr) {
-				M_.lock();
+				MyGuard G(M_);
 				auto It = EndPoints_.find(Notification->id_);
 				if (It != EndPoints_.end()) {
 					switch (Notification->type_) {
 					case RTTYS_Notification_type::device_disconnection: {
 						It->second->DisconnectDevice();
-						M_.unlock();
 					} break;
 					case RTTYS_Notification_type::client_disconnection: {
 						It->second->DisconnectClient();
-						M_.unlock();
 					} break;
 					case RTTYS_Notification_type::device_registration: {
 						auto ptr = std::unique_ptr<RTTYS_Device_ConnectionHandler>{Notification->device_};
@@ -176,7 +174,6 @@ namespace OpenWifi {
 							It->second->Join();
 							It->second->Login();
 						}
-						M_.unlock();
 					} break;
 					case RTTYS_Notification_type::client_registration: {
 						auto ptr = std::unique_ptr<RTTYS_ClientConnection>{Notification->client_};
@@ -185,10 +182,8 @@ namespace OpenWifi {
 							It->second->Join();
 							It->second->Login();
 						}
-						M_.unlock();
 					} break;
 					case RTTYS_Notification_type::unknown: {
-						M_.unlock();
 					} break;
 					};
 				} else {
@@ -201,7 +196,6 @@ namespace OpenWifi {
 						auto ptr = std::unique_ptr<RTTYS_ClientConnection>{Notification->client_};
 						FailedClients.push_back(std::move(ptr));
 					}
-					M_.unlock();
 				}
 			}
 			NextNotification = ResponseQueue_.waitDequeueNotification();
