@@ -182,21 +182,19 @@ namespace OpenWifi {
 	bool RTTYS_Device_ConnectionHandler::KeyStrokes(const u_char *buf, size_t len) {
 		if(!valid_)
 			return false;
-/*
-		if(len<=60) {
-			unsigned char Msg[64];
-			Msg[0] = msgTypeTermData;
-			Msg[1] = (len & 0xff00) >> 8;
-			Msg[2] =  (len & 0x00ff);
-			memcpy(&Msg[3],buf,len);
+
+		if(len<=(sizeof(small_buf_)-3)) {
+			small_buf_[0] = msgTypeTermData;
+			small_buf_[1] = (len & 0xff00) >> 8;
+			small_buf_[2] =  (len & 0x00ff);
+			memcpy(&small_buf_[3],buf,len);
 			try {
-				socket_.sendBytes(Msg,len+3);
+				socket_.sendBytes(small_buf_,len+3);
 				return true;
 			} catch (...) {
 				return false;
 			}
 		} else {
-			// Guard G(M_);
 			auto Msg = std::make_unique<unsigned char []>(len + 3);
 			Msg.get()[0] = msgTypeTermData;
 			Msg.get()[1] = (len & 0xff00) >> 8;
@@ -209,8 +207,7 @@ namespace OpenWifi {
 				return false;
 			}
 		}
-*/
-
+/*
 		unsigned char Msg[64];
 		Msg[0] = msgTypeTermData;
 		Msg[1] = (len & 0xff00) >> 8;
@@ -225,6 +222,7 @@ namespace OpenWifi {
 
 		}
 		return false;
+*/
 	}
 
 	bool RTTYS_Device_ConnectionHandler::WindowSize(int cols, int rows) {
