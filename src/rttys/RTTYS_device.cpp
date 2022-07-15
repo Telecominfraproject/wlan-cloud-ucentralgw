@@ -196,7 +196,7 @@ namespace OpenWifi {
 		try {
 			std::cout << __LINE__ << std::endl;
 			auto sent = socket_.sendBytes(bufs);
-			std::cout << __LINE__ << " : " << sent << std::endl;
+			std::cout << __LINE__ << " : " << sent << " " << len << " " << bufs.size() << std::endl;
 			return true;
 		} catch (...) {
 			return false;
