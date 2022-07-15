@@ -283,8 +283,8 @@ namespace OpenWifi {
 		uint64_t 									TotalEndPoints_=0;
 		uint64_t 									FaildedNumDevices_=0;
 		uint64_t 									FailedNumClients_=0;
-		double 										TotalConnectedDeviceTime_;
-		double 										TotalConnectedClientTime_;
+		double 										TotalConnectedDeviceTime_=0.0;
+		double 										TotalConnectedClientTime_=0.0;
 
 
 		explicit RTTYS_server() noexcept:
