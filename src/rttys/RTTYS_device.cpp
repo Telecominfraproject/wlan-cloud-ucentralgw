@@ -175,12 +175,15 @@ namespace OpenWifi {
 	}
 
 	bool RTTYS_Device_ConnectionHandler::KeyStrokes(const u_char *buf, size_t len) {
+		std::cout << __LINE__ << std::endl;
 
 		if(!valid_)
 			return false;
+		std::cout << __LINE__ << std::endl;
 
 		if(len>(RTTY_DEVICE_BUFSIZE-5))
 			return false;
+		std::cout << __LINE__ << std::endl;
 
 		// Guard G(M_);
 		unsigned char Header[4];
