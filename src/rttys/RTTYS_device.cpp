@@ -283,11 +283,9 @@ namespace OpenWifi {
 			OutBuf[6] = 0;
 			if (socket_.sendBytes(OutBuf, 7) != 7) {
 					poco_information(Logger(),
-									 fmt::format("{}: Serial:{} Description:{} Could not send data to complete registration",
-												 Id_, serial_, desc_));
+									 fmt::format("{}: Description:{} Could not send data to complete registration",
+												 Id_, desc_));
 					good = false;
-			} else {
-				registered_ = true;
 			}
 		} catch (...) {
 			good = false;
@@ -296,7 +294,7 @@ namespace OpenWifi {
 	}
 
 	bool RTTYS_Device_ConnectionHandler::do_msgTypeLogin([[maybe_unused]] std::size_t msg_len) {
-		poco_information(Logger(),fmt::format("{}: Serial:{} Asking for login", Id_, serial_));
+		poco_information(Logger(),fmt::format("{}: Asking for login", Id_));
 		nlohmann::json doc;
 		char Error;
 		inBuf_.read(&Error, 1);
@@ -304,12 +302,11 @@ namespace OpenWifi {
 		doc["type"] = "login";
 		doc["err"] = Error;
 		const auto login_msg = to_string(doc);
-		web_socket_active_ = true ;
 		return SendToClient(login_msg);
 	}
 
 	bool RTTYS_Device_ConnectionHandler::do_msgTypeLogout([[maybe_unused]] std::size_t msg_len) {
-		poco_information(Logger(),fmt::format("{}: Serial:{} Asking for logout", Id_, serial_));
+		poco_information(Logger(),fmt::format("{}: Asking for logout", Id_));
 		return true;
 	}
 
@@ -338,12 +335,12 @@ namespace OpenWifi {
 	}
 
 	bool RTTYS_Device_ConnectionHandler::do_msgTypeWinsize([[maybe_unused]] std::size_t msg_len) {
-		poco_information(Logger(),fmt::format("{}: Serial:{} Asking for msgTypeWinsize", Id_, serial_));
+		poco_information(Logger(),fmt::format("{}: Asking for msgTypeWinsize", Id_));
 		return true;
 	}
 
 	bool RTTYS_Device_ConnectionHandler::do_msgTypeCmd([[maybe_unused]] std::size_t msg_len) {
-		poco_information(Logger(),fmt::format("{}: Serial:{} Asking for msgTypeCmd", Id_, serial_));
+		poco_information(Logger(),fmt::format("{}: Asking for msgTypeCmd", Id_));
 		return true;
 	}
 
@@ -356,22 +353,22 @@ namespace OpenWifi {
 	}
 
 	bool RTTYS_Device_ConnectionHandler::do_msgTypeFile([[maybe_unused]] std::size_t msg_len) {
-		poco_information(Logger(),fmt::format("{}: Serial:{} Asking for msgTypeFile", Id_, serial_));
+		poco_information(Logger(),fmt::format("{}: Asking for msgTypeFile", Id_));
 		return true;
 	}
 
 	bool RTTYS_Device_ConnectionHandler::do_msgTypeHttp([[maybe_unused]] std::size_t msg_len) {
-		poco_information(Logger(),fmt::format("{}: Serial:{} Asking for msgTypeHttp", Id_, serial_));
+		poco_information(Logger(),fmt::format("{}: Asking for msgTypeHttp", Id_));
 		return true;
 	}
 
 	bool RTTYS_Device_ConnectionHandler::do_msgTypeAck([[maybe_unused]] std::size_t msg_len) {
-		poco_information(Logger(),fmt::format("{}: Serial:{} Asking for msgTypeAck", Id_, serial_));
+		poco_information(Logger(),fmt::format("{}: Asking for msgTypeAck", Id_));
 		return true;
 	}
 
 	bool RTTYS_Device_ConnectionHandler::do_msgTypeMax([[maybe_unused]] std::size_t msg_len) {
-		poco_information(Logger(),fmt::format("{}: Serial:{} Asking for msgTypeMax", Id_, serial_));
+		poco_information(Logger(),fmt::format("{}: Asking for msgTypeMax", Id_));
 		return true;
 	}
 }
