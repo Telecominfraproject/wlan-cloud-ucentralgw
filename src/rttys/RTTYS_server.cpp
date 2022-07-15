@@ -291,15 +291,6 @@ namespace OpenWifi {
 		return EndPoints_.find(Token) != EndPoints_.end();
 	}
 
-	void RTTYS_server::LoginDone(const std::string & Id) {
-		MyGuard 	G(M_);
-
-		auto It = EndPoints_.find(Id);
-		if(It==EndPoints_.end())
-			return;
-		Logger().information(fmt::format("User: {}, Serial: {} logged in.",It->second->UserName(), It->second->SerialNumber() ));
-	}
-
 	bool RTTYS_server::Login(const std::string & Id) {
 //		MutexLockerDbg MM(__func__ ,M_);
 		MyGuard 	G(M_);

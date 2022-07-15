@@ -28,8 +28,7 @@ namespace OpenWifi {
 		void onSocketShutdown(const Poco::AutoPtr<Poco::Net::ShutdownNotification> &pNf);
 
 		void SendData( const u_char *Buf, size_t len );
-		void SendData( const std::string & S, bool login=false);
-		bool CompleteStartup();
+		void SendData( const std::string & S );
 
 		[[nodiscard]] inline std::string ID() { return Id_; }
 		[[nodiscard]] inline bool Valid() volatile const { return Valid_; }
@@ -43,8 +42,8 @@ namespace OpenWifi {
 		Poco::Logger 							&Logger_;
 		std::string 							Sid_;
 		volatile bool 							Valid_=false;
-		u_char 						Buffer_[16000]{0};
-		MyMutexType					Mutex_;
+		u_char 									Buffer_[64000]{0};
+		MyMutexType								Mutex_;
 		// volatile  connection_state	state_ = connection_state::initialized;
 
 		void EndConnection(bool SendNotification=true);
