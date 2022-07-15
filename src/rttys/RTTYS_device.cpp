@@ -80,6 +80,15 @@ namespace OpenWifi {
 		}
 	}
 
+	static void dump(unsigned char *p,uint l) {
+		for(int i=0;i<l) {
+			std::cout << std::hex << (uint) p[i] << " ";
+			if(i % 16)
+				std::cout << std::endl;
+		}
+		std::cout << std::dec << std::endl ;
+	}
+
 	void RTTYS_Device_ConnectionHandler::onSocketReadable([[maybe_unused]] const Poco::AutoPtr<Poco::Net::ReadableNotification> &pNf) {
 		bool good = true;
 
@@ -97,15 +106,16 @@ namespace OpenWifi {
 			while (inBuf_.isReadable() && good) {
 				std::cout << "Spin: " << ++spin << std::endl;
 				std::size_t msg_len;
+				dump((unsigned char *)inBuf_.begin(),inBuf_.used());
 				if(waiting_for_bytes_!=0) {
 
 				} else {
 					if(inBuf_.used()>=3) {
 						last_command_ = inBuf_.begin()[0];
 						msg_len = inBuf_.begin()[1] * 256 + inBuf_.begin()[2];
-						std::cout << "u: " << inBuf_.used() << "lc: " << (uint) last_command_ << " l:" << msg_len << std::endl;
+						std::cout << "u: " << inBuf_.used() << "  lc: " << (uint) last_command_ << " l:" << msg_len << std::endl;
 						inBuf_.drain(3);
-						std::cout << "u: " << inBuf_.used() << "lc: " << (uint) last_command_ << " l:" << msg_len << std::endl;
+						std::cout << "u: " << inBuf_.used() << "  lc: " << (uint) last_command_ << " l:" << msg_len << std::endl;
 					} else {
 						good = false;
 						continue;
