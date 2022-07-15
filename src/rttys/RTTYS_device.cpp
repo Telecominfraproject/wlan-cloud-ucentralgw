@@ -80,7 +80,7 @@ namespace OpenWifi {
 		}
 	}
 
-	static void dump(unsigned char *p,uint l) {
+	[[maybe_unused]] static void dump(unsigned char *p,uint l) {
 		for(uint i=0;i<l;i++) {
 			std::cout << std::hex << (uint) p[i] << " ";
 			if(i % 16 == 0)
@@ -102,7 +102,7 @@ namespace OpenWifi {
 			}
 
 			// std::cout << "Received: " << received_bytes << std::endl;
-			int spin =0;
+//			int spin =0;
 			while (inBuf_.isReadable() && good) {
 //				std::cout << "Spin: " << ++spin << std::endl;
 				uint32_t msg_len=0;
