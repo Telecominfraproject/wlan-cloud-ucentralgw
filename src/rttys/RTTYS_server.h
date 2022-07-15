@@ -173,8 +173,8 @@ namespace OpenWifi {
 
 		[[nodiscard]] inline bool Joined() volatile const { return Joined_; }
 		void Join() {
-			std::cout << __LINE__ << std::endl;
-			Joined_=true; }
+			Joined_=true;
+		}
 
 		inline bool SendToClient(const std::string &S) {
 			if(Client_!= nullptr && Client_->Valid()) {
