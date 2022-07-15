@@ -102,7 +102,7 @@ namespace OpenWifi {
 						last_command_ = inBuf_[0];
 						msg_len = inBuf_[1] * 256 + inBuf_[2];
 						std::cout << "u: " << inBuf_.used() << "lc: " << (uint) last_command_ << " l:" << msg_len << std::endl;
-						inBuf_.advance(3);
+						inBuf_.drain(3);
 						std::cout << "u: " << inBuf_.used() << "lc: " << (uint) last_command_ << " l:" << msg_len << std::endl;
 					} else {
 						good = false;
@@ -337,21 +337,21 @@ namespace OpenWifi {
 			if(inBuf_.used()<waiting_for_bytes_) {
 				waiting_for_bytes_ = waiting_for_bytes_ - inBuf_.used();
 				good = SendToClient((u_char *)&inBuf_[0], (int) inBuf_.used());
-				inBuf_.advance(inBuf_.used());
+				inBuf_.drain(inBuf_.used());
 			} else {
 				good = SendToClient((u_char *)&inBuf_[0], waiting_for_bytes_);
-				inBuf_.advance(waiting_for_bytes_);
+				inBuf_.drain(waiting_for_bytes_);
 				waiting_for_bytes_ = 0 ;
 			}
 		} else {
 			if(inBuf_.used()<msg_len) {
 				waiting_for_bytes_ = msg_len - inBuf_.used();
 				good = SendToClient((u_char *)&inBuf_[0], inBuf_.used());
-				inBuf_.advance(inBuf_.used());
+				inBuf_.drain(inBuf_.used());
 			} else {
 				waiting_for_bytes_=0;
 				good = SendToClient((u_char *)&inBuf_[0], (int)msg_len);
-				inBuf_.advance(msg_len);
+				inBuf_.drain(msg_len);
 			}
 		}
 		return good;
