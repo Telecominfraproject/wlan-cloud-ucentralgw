@@ -112,8 +112,8 @@ namespace OpenWifi {
 				} else {
 					if(inBuf_.used()>=3) {
 						last_command_ = inBuf_.begin()[0];
-						msg_len = (uint) inBuf_.begin()[1] * 256 + (uint)inBuf_.begin()[2];
-						std::cout << "u: " << inBuf_.used() << "  lc: " << (uint) last_command_ << " l:" << msg_len << std::endl;
+						msg_len = (uint)(inBuf_.begin()[1]) * 256 + (uint)(inBuf_.begin()[2]);
+						std::cout << "u: " << inBuf_.used() << "1: " << (uint)inBuf_.begin()[1] << " : " << (uint)inBuf_.begin()[2] <<  "  lc: " << (uint) last_command_ << " l:" << msg_len << std::endl;
 						inBuf_.drain(3);
 						std::cout << "u: " << inBuf_.used() << "  lc: " << (uint) last_command_ << " l:" << msg_len << std::endl;
 					} else {
