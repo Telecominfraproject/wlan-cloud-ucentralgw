@@ -143,12 +143,6 @@ namespace OpenWifi {
 			return false;
 		}
 
-		bool CompleteStartup() {
-			if(Client_!= nullptr  && Client_->Valid())
-				return Client_->CompleteStartup();
-			return false;
-		}
-
 		bool SendToClient(const u_char *Buf, std::size_t Len) {
 			if(Client_!= nullptr && Client_->Valid()) {
 				Client_->SendData(Buf,Len);
@@ -177,8 +171,10 @@ namespace OpenWifi {
 			return Device_!= nullptr && Device_->Valid();
 		}
 
-		[[nodiscard]] inline bool Joined() const { return Joined_; }
-		void Join() { Joined_=true; }
+		[[nodiscard]] inline bool Joined() volatile const { return Joined_; }
+		void Join() {
+			Joined_=true;
+		}
 
 		inline bool SendToClient(const std::string &S) {
 			if(Client_!= nullptr && Client_->Valid()) {
@@ -200,7 +196,7 @@ namespace OpenWifi {
 		std::string 									UserName_;
 		std::unique_ptr<RTTYS_ClientConnection> 		Client_;
 		std::unique_ptr<RTTYS_Device_ConnectionHandler> Device_;
-		std::string 							Id_;
+		std::string 									Id_;
 		std::chrono::time_point<std::chrono::high_resolution_clock>
 			Created_{0s},DeviceDisconnected_{0s},
 			ClientDisconnected_{0s},DeviceConnected_{0s} ,ClientConnected_{0s};
@@ -285,6 +281,11 @@ namespace OpenWifi {
 		MyMutexType 								M_;
 
 		uint64_t 									TotalEndPoints_=0;
+		uint64_t 									FaildedNumDevices_=0;
+		uint64_t 									FailedNumClients_=0;
+		double 										TotalConnectedDeviceTime_;
+		double 										TotalConnectedClientTime_;
+
 
 		explicit RTTYS_server() noexcept:
 		SubSystemServer("RTTY_Server", "RTTY-SVR", "rtty.server")

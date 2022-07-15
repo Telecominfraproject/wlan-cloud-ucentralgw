@@ -110,18 +110,20 @@ namespace OpenWifi {
 	void RTTYS_server::onTimer([[maybe_unused]] Poco::Timer & timer) {
 		poco_debug(Logger(),"Removing stale connections.");
 		Utils::SetThreadName("rt:janitor");
+		static int count = 0;
 //		MutexLockerDbg	L(__func__ ,M_);
 
 		MyGuard G(M_);
  		for(auto element=EndPoints_.begin();element!=EndPoints_.end();) {
 			if(element->second->TooOld()) {
-				// std::cout << element->second.DeviceDisconnected << " " << element->second.DeviceConnected << " "
-				//	<< element->second.ClientDisconnected << " " << element->second.ClientConnected << std::endl;
-				auto c = fmt::format("Removing {}. Device connection time: {}s. Client connection time: {}s",
-									 element->first, element->second->TimeDeviceConnected(),
+				auto c = fmt::format("Removing {}. Serial: {} Device connection time: {}s. Client connection time: {}s",
+									 element->first,
+									 element->second->SerialNumber(),
+									 element->second->TimeDeviceConnected(),
 									 element->second->TimeClientConnected());
 				Logger().information(c);
-				// std::cout << c << std::endl;
+				TotalConnectedClientTime_ += element->second->TimeClientConnected();
+				TotalConnectedDeviceTime_ += element->second->TimeDeviceConnected();
 				element = EndPoints_.erase(element);
 			} else {
 				++element;
@@ -129,6 +131,16 @@ namespace OpenWifi {
 		}
 		FailedDevices.clear();
 		FailedClients.clear();
+		count++;
+		if(count==10) {
+			count=0;
+			Logger().information(fmt::format("Total connections:{}  Total Device Connection Time: {}s  Total Client Connection Time: {}s Device failures: {} Client failures: {}",
+				TotalEndPoints_,
+				 TotalConnectedDeviceTime_,
+				TotalConnectedClientTime_,
+				FaildedNumDevices_,
+				FailedNumClients_));
+		}
 	}
 
 	void RTTYS_server::CreateNewClient(Poco::Net::HTTPServerRequest &request,
@@ -181,9 +193,11 @@ namespace OpenWifi {
 					};
 				} else {
 					if(Notification->type_==RTTYS_Notification_type::device_registration) {
+						FaildedNumDevices_++;
 						auto ptr = std::unique_ptr<RTTYS_Device_ConnectionHandler>{Notification->device_};
 						FailedDevices.push_back(std::move(ptr));
 					} else if(Notification->type_==RTTYS_Notification_type::client_registration) {
+						FailedNumClients_++;
 						auto ptr = std::unique_ptr<RTTYS_ClientConnection>{Notification->client_};
 						FailedClients.push_back(std::move(ptr));
 					}
