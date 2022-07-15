@@ -54,11 +54,11 @@ namespace OpenWifi {
 	RTTYS_Device_ConnectionHandler::~RTTYS_Device_ConnectionHandler() {
 		if(valid_) {
 			Guard G(M_);
-			EndConnection();
+			EndConnection(false);
 		}
 	}
 
-	void RTTYS_Device_ConnectionHandler::EndConnection() {
+	void RTTYS_Device_ConnectionHandler::EndConnection(bool SendNotification) {
 		try {
 			if(valid_) {
 				valid_ = false;
@@ -70,7 +70,8 @@ namespace OpenWifi {
 					socket_,
 					Poco::NObserver<RTTYS_Device_ConnectionHandler, Poco::Net::ShutdownNotification>(
 						*this, &RTTYS_Device_ConnectionHandler::onSocketShutdown));
-				RTTYS_server()->NotifyDeviceDisconnect(Id_,this);
+				if(SendNotification)
+					RTTYS_server()->NotifyDeviceDisconnect(Id_,this);
 				poco_information(Logger(), "Connection done.");
 				socket_.close();
 			}
