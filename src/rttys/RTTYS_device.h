@@ -11,9 +11,7 @@
 
 namespace OpenWifi {
 
-	inline static const std::size_t RTTY_DEVICE_BUFSIZE=64000;
-
-	inline static std::atomic_uint64_t global_device_connection_id = 1;
+	constexpr std::size_t RTTY_DEVICE_BUFSIZE=64000;
 
 	class RTTYS_Device_ConnectionHandler{
 	  public:
