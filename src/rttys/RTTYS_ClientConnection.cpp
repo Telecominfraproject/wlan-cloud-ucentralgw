@@ -126,7 +126,7 @@ namespace OpenWifi {
 	void RTTYS_ClientConnection::SendData( const u_char *Buf, size_t len ) {
 		if(!Valid_)
 			return;
-		MyGuard G(Mutex_);
+		// MyGuard G(Mutex_);
 		try {
 			WS_->sendFrame(Buf, len,
 						   Poco::Net::WebSocket::FRAME_FLAG_FIN |
@@ -135,19 +135,21 @@ namespace OpenWifi {
 		} catch (...) {
 			Logger_.information("SendData shutdown.");
 		}
+		MyGuard G(Mutex_);
 		EndConnection();
 	}
 
 	void RTTYS_ClientConnection::SendData( const std::string &s) {
 		if(!Valid_)
 			return;
-		MyGuard G(Mutex_);
+		// MyGuard G(Mutex_);
 		try {
 			WS_->sendFrame(s.c_str(), s.length());
 			return;
 		} catch (...) {
 			Logger_.information("Senddata shutdown.");
 		}
+		MyGuard G(Mutex_);
 		EndConnection();
 	}
 

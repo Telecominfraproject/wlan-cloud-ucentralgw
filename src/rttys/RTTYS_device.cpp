@@ -161,13 +161,14 @@ namespace OpenWifi {
 	}
 
 	bool RTTYS_Device_ConnectionHandler::KeyStrokes(const u_char *buf, size_t len) {
-		Guard G(M_);
 
 		if(!valid_)
 			return false;
 
 		if(len>(RTTY_DEVICE_BUFSIZE-5))
 			return false;
+
+		// Guard G(M_);
 
 		auto total_len = 3 + 1 + len-1;
 		scratch_[0] = msgTypeTermData;
@@ -184,7 +185,10 @@ namespace OpenWifi {
 	}
 
 	bool RTTYS_Device_ConnectionHandler::WindowSize(int cols, int rows) {
-		Guard G(M_);
+		if(!valid_)
+			return false;
+
+		// Guard G(M_);
 
 		u_char	outBuf[8]{0};
 		outBuf[0] = msgTypeWinsize;
@@ -208,7 +212,7 @@ namespace OpenWifi {
 		if(!valid_)
 			return false;
 
-		Guard G(M_);
+		// Guard G(M_);
 		u_char outBuf[3]{0};
 		outBuf[0] = msgTypeLogin;
 		outBuf[1] = 0;
