@@ -105,14 +105,15 @@ namespace OpenWifi {
 			int spin =0;
 			while (inBuf_.isReadable() && good) {
 				std::cout << "Spin: " << ++spin << std::endl;
-				std::size_t msg_len;
+				uint32_t msg_len=0;
 				dump((unsigned char *)inBuf_.begin(),inBuf_.used());
 				if(waiting_for_bytes_!=0) {
 
 				} else {
 					if(inBuf_.used()>=3) {
-						last_command_ = inBuf_.begin()[0];
-						msg_len = (uint)(inBuf_.begin()[1]) * 256 + (uint)(inBuf_.begin()[2]);
+						auto *head = (unsigned char *)inBuf_.begin();
+						last_command_ = head[0];
+						msg_len = head[1]*256 + head[2];
 						std::cout << "u: " << inBuf_.used() << "1: " << (uint)inBuf_.begin()[1] << " : " << (uint)inBuf_.begin()[2] <<  "  lc: " << (uint) last_command_ << " l:" << msg_len << std::endl;
 						inBuf_.drain(3);
 						std::cout << "u: " << inBuf_.used() << "  lc: " << (uint) last_command_ << " l:" << msg_len << std::endl;
