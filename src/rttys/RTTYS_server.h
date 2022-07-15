@@ -121,21 +121,27 @@ namespace OpenWifi {
 		}
 
 		[[nodiscard]] inline bool TooOld()  {
+			std::cout << __LINE__ << std::endl;
 			std::chrono::time_point<std::chrono::high_resolution_clock> now = std::chrono::high_resolution_clock::now();
 			if(ClientDisconnected_!=std::chrono::time_point<std::chrono::high_resolution_clock>{0s} && (now-ClientDisconnected_)>15s) {
+				std::cout << __LINE__ << std::endl;
 				if(DeviceDisconnected_==std::chrono::time_point<std::chrono::high_resolution_clock>{0s}) {
 					DeviceDisconnected_ = std::chrono::high_resolution_clock::now();
 				}
+				std::cout << __LINE__ << std::endl;
 				return true;
 			}
 			if(DeviceDisconnected_!=std::chrono::time_point<std::chrono::high_resolution_clock>{0s} && (now-DeviceDisconnected_)>15s) {
+				std::cout << __LINE__ << std::endl;
 				if(ClientDisconnected_==std::chrono::time_point<std::chrono::high_resolution_clock>{0s}) {
 					ClientDisconnected_ = std::chrono::high_resolution_clock::now();
 				}
+				std::cout << __LINE__ << std::endl;
 				return true;
 			}
 
 			if(!Joined_ && (now-Created_)>30s) {
+				std::cout << __LINE__ << std::endl;
 				return true;
 			}
 
@@ -177,8 +183,10 @@ namespace OpenWifi {
 			return Device_!= nullptr && Device_->Valid();
 		}
 
-		[[nodiscard]] inline bool Joined() const { return Joined_; }
-		void Join() { Joined_=true; }
+		[[nodiscard]] inline bool Joined() volatile const { return Joined_; }
+		void Join() {
+			std::cout << __LINE__ << std::endl;
+			Joined_=true; }
 
 		inline bool SendToClient(const std::string &S) {
 			if(Client_!= nullptr && Client_->Valid()) {
@@ -200,7 +208,7 @@ namespace OpenWifi {
 		std::string 									UserName_;
 		std::unique_ptr<RTTYS_ClientConnection> 		Client_;
 		std::unique_ptr<RTTYS_Device_ConnectionHandler> Device_;
-		std::string 							Id_;
+		std::string 									Id_;
 		std::chrono::time_point<std::chrono::high_resolution_clock>
 			Created_{0s},DeviceDisconnected_{0s},
 			ClientDisconnected_{0s},DeviceConnected_{0s} ,ClientConnected_{0s};
