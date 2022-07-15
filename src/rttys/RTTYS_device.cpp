@@ -104,9 +104,9 @@ namespace OpenWifi {
 			// std::cout << "Received: " << received_bytes << std::endl;
 			int spin =0;
 			while (inBuf_.isReadable() && good) {
-				std::cout << "Spin: " << ++spin << std::endl;
+//				std::cout << "Spin: " << ++spin << std::endl;
 				uint32_t msg_len=0;
-				dump((unsigned char *)inBuf_.begin(),inBuf_.used());
+//				dump((unsigned char *)inBuf_.begin(),inBuf_.used());
 				if(waiting_for_bytes_!=0) {
 
 				} else {
@@ -114,9 +114,8 @@ namespace OpenWifi {
 						auto *head = (unsigned char *)inBuf_.begin();
 						last_command_ = head[0];
 						msg_len = head[1]*256 + head[2];
-						std::cout << "u: " << inBuf_.used() << "1: " << (uint)inBuf_.begin()[1] << " : " << (uint)inBuf_.begin()[2] <<  "  lc: " << (uint) last_command_ << " l:" << msg_len << std::endl;
 						inBuf_.drain(3);
-						std::cout << "u: " << inBuf_.used() << "  lc: " << (uint) last_command_ << " l:" << msg_len << std::endl;
+//						std::cout << "u: " << inBuf_.used() << "  lc: " << (uint) last_command_ << " l:" << msg_len << std::endl;
 					} else {
 						good = false;
 						continue;
@@ -187,12 +186,8 @@ namespace OpenWifi {
 	}
 
 	bool RTTYS_Device_ConnectionHandler::KeyStrokes(const u_char *buf, size_t len) {
-		std::cout << __LINE__ << std::endl;
-
 		if(!valid_)
 			return false;
-
-		std::cout << __LINE__ << std::endl;
 
 		if(len<=60) {
 			unsigned char Msg[64];
@@ -354,7 +349,7 @@ namespace OpenWifi {
 
 	bool RTTYS_Device_ConnectionHandler::do_msgTypeTermData(std::size_t msg_len) {
 		bool good = false;
-		std::cout << "U:" << inBuf_.used() << " : W: " << waiting_for_bytes_ << " : M: " << msg_len << std::endl;
+//		std::cout << "U:" << inBuf_.used() << " : W: " << waiting_for_bytes_ << " : M: " << msg_len << std::endl;
 		if(waiting_for_bytes_>0) {
 			if(inBuf_.used()<waiting_for_bytes_) {
 				waiting_for_bytes_ = waiting_for_bytes_ - inBuf_.used();
@@ -376,7 +371,7 @@ namespace OpenWifi {
 				inBuf_.drain(msg_len);
 			}
 		}
-		std::cout << "U:" << inBuf_.used() << " : W: " << waiting_for_bytes_ << " : M: " << msg_len << std::endl;
+//		std::cout << "U:" << inBuf_.used() << " : W: " << waiting_for_bytes_ << " : M: " << msg_len << std::endl;
 		return good;
 	}
 
