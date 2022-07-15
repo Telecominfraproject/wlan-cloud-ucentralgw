@@ -135,9 +135,8 @@ namespace OpenWifi {
 						good = do_msgTypeMax(msg_len);
 					} break;
 					default: {
-						poco_warning(Logger(), fmt::format("{}: Unknown command {}", Id_,
+						poco_warning(Logger(), fmt::format("{}: Unknown command {}. Closing connection.", Id_,
 														   (int)last_command_));
-						poco_warning(Logger(), "Closing connection.");
 						good = false;
 					}
 				}
