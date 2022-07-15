@@ -70,12 +70,7 @@ namespace OpenWifi {
 					socket_,
 					Poco::NObserver<RTTYS_Device_ConnectionHandler, Poco::Net::ShutdownNotification>(
 						*this, &RTTYS_Device_ConnectionHandler::onSocketShutdown));
-
-				if (registered_) {
-					RTTYS_server()->NotifyDeviceDisconnect(Id_,this);
-				} else {
-					RTTYS_server()->NotifyDeviceFailure(Id_,this);
-				}
+				RTTYS_server()->NotifyDeviceDisconnect(Id_,this);
 				poco_information(Logger(), "Connection done.");
 				socket_.close();
 			}
@@ -274,36 +269,25 @@ namespace OpenWifi {
 			desc_ = ReadString();
 			token_ = ReadString();
 
-			auto Finish = [=]() {
-				poco_information(Logger(),
-								 fmt::format("{}: Description:{} Device registration", Id_, desc_));
-				if (RTTYS_server()->RegisterDevice(Id_, token_, serial_, this)) {
-					u_char OutBuf[8];
-					OutBuf[0] = msgTypeRegister;
-					OutBuf[1] = 0;
-					OutBuf[2] = 4;
-					OutBuf[3] = 0;
-					OutBuf[4] = 'O';
-					OutBuf[5] = 'K';
-					OutBuf[6] = 0;
-					if (socket_.sendBytes(OutBuf, 7) != 7) {
-						poco_information(Logger(),
-										 fmt::format("{}: Serial:{} Description:{} Could not send data to complete registration",
-													 Id_, serial_, desc_));
-					} else {
-						registered_ = true;
-					}
-				} else {
-					poco_information(
-						Logger(),
-						fmt::format("{}: Serial:{} Description:{} Could not register device.", Id_,
-									serial_, desc_));
-				}
-			};
-
-			std::thread T([=]() { Finish(); });
-			T.detach();
-
+			poco_information(Logger(),
+							 fmt::format("{}: Description:{} Device registration", Id_, desc_));
+			RTTYS_server()->NotifyDeviceRegistration(Id_,token_,this);
+			u_char OutBuf[8];
+			OutBuf[0] = msgTypeRegister;
+			OutBuf[1] = 0;
+			OutBuf[2] = 4;
+			OutBuf[3] = 0;
+			OutBuf[4] = 'O';
+			OutBuf[5] = 'K';
+			OutBuf[6] = 0;
+			if (socket_.sendBytes(OutBuf, 7) != 7) {
+					poco_information(Logger(),
+									 fmt::format("{}: Serial:{} Description:{} Could not send data to complete registration",
+												 Id_, serial_, desc_));
+					good = false;
+			} else {
+				registered_ = true;
+			}
 		} catch (...) {
 			good = false;
 		}

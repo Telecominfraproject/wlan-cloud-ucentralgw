@@ -110,39 +110,44 @@ namespace OpenWifi {
 	void RTTYS_server::onTimer([[maybe_unused]] Poco::Timer & timer) {
 		poco_debug(Logger(),"Removing stale connections.");
 		Utils::SetThreadName("rt:janitor");
+		static int count = 0;
 //		MutexLockerDbg	L(__func__ ,M_);
 
 		MyGuard G(M_);
  		for(auto element=EndPoints_.begin();element!=EndPoints_.end();) {
 			if(element->second->TooOld()) {
-				// std::cout << element->second.DeviceDisconnected << " " << element->second.DeviceConnected << " "
-				//	<< element->second.ClientDisconnected << " " << element->second.ClientConnected << std::endl;
-				auto c = fmt::format("Removing {}. Device connection time: {}s. Client connection time: {}s",
-									 element->first, element->second->TimeDeviceConnected(),
+				auto c = fmt::format("Removing {}. Serial: {} Device connection time: {}s. Client connection time: {}s",
+									 element->first,
+									 element->second->SerialNumber(),
+									 element->second->TimeDeviceConnected(),
 									 element->second->TimeClientConnected());
 				Logger().information(c);
-				// std::cout << c << std::endl;
+				TotalConnectedClientTime_ += element->second->TimeClientConnected();
+				TotalConnectedDeviceTime_ += element->second->TimeDeviceConnected();
 				element = EndPoints_.erase(element);
 			} else {
 				++element;
 			}
 		}
 		FailedDevices.clear();
+		FailedClients.clear();
+		count++;
+		if(count==10) {
+			count=0;
+			Logger().information(fmt::format("Total connections:{}  Total Device Connection Time: {}s  Total Client Connection Time: {}s Device failures: {} Client failures: {}",
+				TotalEndPoints_,
+				 TotalConnectedDeviceTime_,
+				TotalConnectedClientTime_,
+				FaildedNumDevices_,
+				FailedNumClients_));
+		}
 	}
 
 	void RTTYS_server::CreateNewClient(Poco::Net::HTTPServerRequest &request,
 								Poco::Net::HTTPServerResponse &response, const std::string &id) {
 
-		MyGuard G(M_);
-		auto ep = EndPoints_.find(id);
-		if(ep == EndPoints_.end())
-			return;
-
-		auto NewClient = std::make_unique<RTTYS_ClientConnection>(request, response, ClientReactor_, id);
-		ep->second->SetClient(std::move(NewClient));
-
-		std::thread T([=]() { ep->second->CompleteStartup(); });
-		T.detach();
+		auto NewClient = new RTTYS_ClientConnection(request, response, ClientReactor_, id);
+		NotifyClientRegistration(id,NewClient);
 	}
 
 	void RTTYS_server::run() {
@@ -153,52 +158,54 @@ namespace OpenWifi {
 			auto Notification = dynamic_cast<RTTYS_Notification *>(NextNotification.get());
 			if (Notification != nullptr) {
 				M_.lock();
-				if(Notification->type_==RTTYS_Notification_type::device_failure) {
-					auto ptr = std::unique_ptr<RTTYS_Device_ConnectionHandler>{Notification->device_};
-					FailedDevices.push_back(std::move(ptr));
-					M_.unlock();
-				} else {
-					auto It = EndPoints_.find(Notification->id_);
-					if (It != EndPoints_.end()) {
-						switch (Notification->type_) {
-						case RTTYS_Notification_type::device_disconnection: {
-							It->second->DisconnectDevice();
-							M_.unlock();
-						} break;
-						case RTTYS_Notification_type::client_disconnection: {
-							It->second->DisconnectClient();
-							M_.unlock();
-						} break;
-						case RTTYS_Notification_type::device_failure: {
-							auto ptr = std::unique_ptr<RTTYS_Device_ConnectionHandler>{Notification->device_};
-							FailedDevices.push_back(std::move(ptr));
-							M_.unlock();
-						} break;
-						case RTTYS_Notification_type::unknown: {
-							M_.unlock();
-						} break;
-						};
-					} else {
+				auto It = EndPoints_.find(Notification->id_);
+				if (It != EndPoints_.end()) {
+					switch (Notification->type_) {
+					case RTTYS_Notification_type::device_disconnection: {
+						It->second->DisconnectDevice();
 						M_.unlock();
+					} break;
+					case RTTYS_Notification_type::client_disconnection: {
+						It->second->DisconnectClient();
+						M_.unlock();
+					} break;
+					case RTTYS_Notification_type::device_registration: {
+						auto ptr = std::unique_ptr<RTTYS_Device_ConnectionHandler>{Notification->device_};
+						It->second->SetDevice(std::move(ptr));
+						if(!It->second->Joined() && It->second->ValidClient()) {
+							It->second->Join();
+							It->second->Login();
+						}
+						M_.unlock();
+					} break;
+					case RTTYS_Notification_type::client_registration: {
+						auto ptr = std::unique_ptr<RTTYS_ClientConnection>{Notification->client_};
+						It->second->SetClient(std::move(ptr));
+						if(!It->second->Joined() && It->second->ValidDevice()) {
+							It->second->Join();
+							It->second->Login();
+						}
+						M_.unlock();
+					} break;
+					case RTTYS_Notification_type::unknown: {
+						M_.unlock();
+					} break;
+					};
+				} else {
+					if(Notification->type_==RTTYS_Notification_type::device_registration) {
+						FaildedNumDevices_++;
+						auto ptr = std::unique_ptr<RTTYS_Device_ConnectionHandler>{Notification->device_};
+						FailedDevices.push_back(std::move(ptr));
+					} else if(Notification->type_==RTTYS_Notification_type::client_registration) {
+						FailedNumClients_++;
+						auto ptr = std::unique_ptr<RTTYS_ClientConnection>{Notification->client_};
+						FailedClients.push_back(std::move(ptr));
 					}
+					M_.unlock();
 				}
 			}
 			NextNotification = ResponseQueue_.waitDequeueNotification();
 		}
-	}
-
-	bool RTTYS_server::RegisterDevice(const std::string &Id, const std::string &Token, std::string & serial, RTTYS_Device_ConnectionHandler *Device) {
-		// MutexLockerDbg MM(__func__ ,M_);
-		MyGuard 	G(M_);
-		auto ep = EndPoints_.find(Id);
-		if(ep==EndPoints_.end()) {
-			NotifyDeviceFailure(Id,Device);
-			return false;
-		}
-
-		auto d = std::unique_ptr<RTTYS_Device_ConnectionHandler>{Device};
-		ep->second->SetDevice( Token, serial, std::move(d));
-		return true;
 	}
 
 	bool RTTYS_server::SendToClient(const std::string &Id, const u_char *Buf, std::size_t Len) {
@@ -281,6 +288,7 @@ namespace OpenWifi {
 
 		auto NewEP = std::make_unique<RTTYS_EndPoint>(Token, SerialNumber, UserName );
 		EndPoints_[Id] = std::move(NewEP);
+		++TotalEndPoints_;
 		return true;
 	}
 
