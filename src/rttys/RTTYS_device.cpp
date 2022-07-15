@@ -93,7 +93,9 @@ namespace OpenWifi {
 			}
 
 			// std::cout << "Received: " << received_bytes << std::endl;
+			int spin =0;
 			while (inBuf_.isReadable() && good) {
+				std::cout << "Spin: " << ++spin << std::endl;
 				std::size_t msg_len;
 				if(waiting_for_bytes_!=0) {
 
