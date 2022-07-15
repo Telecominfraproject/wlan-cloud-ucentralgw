@@ -189,7 +189,7 @@ namespace OpenWifi {
 		Header[2] = (len & 0x00ff) ;
 		Header[3] = sid_;
 
-		Poco::Net::SocketBufVec bufs{Poco::Net::SocketBuf{ 	.iov_base=&Header[0],
+		Poco::Net::SocketBufVec bufs{Poco::Net::SocketBuf{ 	.iov_base=(void*)Header,
 														  	.iov_len=3},
 									 Poco::Net::SocketBuf{	.iov_base=(void*)buf,
 														  	.iov_len=len}};
