@@ -47,7 +47,7 @@ namespace OpenWifi {
 		void onSocketShutdown(const Poco::AutoPtr<Poco::Net::ShutdownNotification>& pNf);
 
 		bool Connected() const { return received_login_from_websocket_; }
-		using My_mutex_type = std::mutex;
+		using My_mutex_type = std::recursive_mutex;
 		using Guard = std::lock_guard<My_mutex_type>;
 
 		inline Poco::Logger	&Logger() { return Logger_; }
@@ -65,10 +65,7 @@ namespace OpenWifi {
 		std::string                   	Id_;
 		std::string                   	token_;
 		std::string                   	desc_;
-		std::string 				  	serial_;
 		char 				          	sid_=0;
-		volatile bool 					registered_=false;
-		volatile bool					web_socket_active_=false;
 
 		std::array<char,RTTY_DEVICE_BUFSIZE>	scratch_{0};
 		std::size_t      			  	waiting_for_bytes_{0};
