@@ -179,25 +179,39 @@ namespace OpenWifi {
 
 		if(!valid_)
 			return false;
+
 		std::cout << __LINE__ << std::endl;
 
-		if(len>(RTTY_DEVICE_BUFSIZE-5))
-			return false;
-		std::cout << __LINE__ << std::endl;
-
-		// Guard G(M_);
-		auto Msg = std::make_unique<unsigned char>(len+3);
-		Msg.get()[0] = msgTypeTermData;
-		Msg.get()[1] = (len & 0xff00) >> 8;
-		Msg.get()[2] = (len & 0x00ff);
-		memcpy((void*) (Msg.get()+3), buf,len);
-		try {
+		if(len<60) {
+			unsigned char Msg[64];
+			Msg[0] = msgTypeTermData;
+			Msg[1] = (len & 0xff00) >> 8;
+			Msg[2] =  (len & 0x00ff);
+			memcpy(&Msg[3],buf,len);
+			try {
+				auto sent = socket_.sendBytes(Msg,len+3);
+				std::cout << __LINE__ << " : " << sent << " " << len << std::endl;
+				return true;
+			} catch (...) {
+				return false;
+			}
+		} else {
 			std::cout << __LINE__ << std::endl;
-			auto sent = socket_.sendBytes(Msg.get(),len+3);
-			std::cout << __LINE__ << " : " << sent << " " << len << std::endl;
-			return true;
-		} catch (...) {
-			return false;
+
+			// Guard G(M_);
+			auto Msg = std::make_unique<unsigned char []>(len + 3);
+			Msg.get()[0] = msgTypeTermData;
+			Msg.get()[1] = (len & 0xff00) >> 8;
+			Msg.get()[2] = (len & 0x00ff);
+			memcpy((void *)(Msg.get() + 3), buf, len);
+			try {
+				std::cout << __LINE__ << std::endl;
+				auto sent = socket_.sendBytes(Msg.get(), len + 3);
+				std::cout << __LINE__ << " : " << sent << " " << len << std::endl;
+				return true;
+			} catch (...) {
+				return false;
+			}
 		}
 	}
 
