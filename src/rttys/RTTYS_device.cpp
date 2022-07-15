@@ -97,16 +97,11 @@ namespace OpenWifi {
 		try {
 			auto received_bytes = socket_.receiveBytes(inBuf_);
 			if(received_bytes==0) {
-				// std::cout << "No data received" << std::endl;
 				return EndConnection();
 			}
 
-			// std::cout << "Received: " << received_bytes << std::endl;
-//			int spin =0;
 			while (inBuf_.isReadable() && good) {
-//				std::cout << "Spin: " << ++spin << std::endl;
 				uint32_t msg_len=0;
-//				dump((unsigned char *)inBuf_.begin(),inBuf_.used());
 				if(waiting_for_bytes_!=0) {
 
 				} else {
@@ -115,7 +110,6 @@ namespace OpenWifi {
 						last_command_ = head[0];
 						msg_len = head[1]*256 + head[2];
 						inBuf_.drain(3);
-//						std::cout << "u: " << inBuf_.used() << "  lc: " << (uint) last_command_ << " l:" << msg_len << std::endl;
 					} else {
 						good = false;
 						continue;
@@ -188,7 +182,7 @@ namespace OpenWifi {
 	bool RTTYS_Device_ConnectionHandler::KeyStrokes(const u_char *buf, size_t len) {
 		if(!valid_)
 			return false;
-
+/*
 		if(len<=60) {
 			unsigned char Msg[64];
 			Msg[0] = msgTypeTermData;
@@ -215,6 +209,22 @@ namespace OpenWifi {
 				return false;
 			}
 		}
+*/
+
+		unsigned char Msg[64];
+		Msg[0] = msgTypeTermData;
+		Msg[1] = (len & 0xff00) >> 8;
+		Msg[2] =  (len & 0x00ff);
+
+		Poco::Net::SocketBufVec MsgParts{ 	Poco::Net::SocketBuf{ .iov_base=Msg, .iov_len=3},
+											Poco::Net::SocketBuf{ .iov_base=(unsigned char *)buf, .iov_len=len}};
+		try {
+			socket_.sendBytes(MsgParts);
+			return true;
+		} catch (...) {
+
+		}
+		return false;
 	}
 
 	bool RTTYS_Device_ConnectionHandler::WindowSize(int cols, int rows) {
@@ -253,10 +263,8 @@ namespace OpenWifi {
 		try {
 			socket_.sendBytes(outBuf, 3);
 		} catch (const Poco::IOException &E) {
-			// std::cout << "1  " << E.what() << " " << E.name() << " "<< E.className() << " "<< E.message() << std::endl;
 			return false;
 		} catch (const Poco::Exception &E) {
-			// std::cout << "2  " << E.what() << " " << E.name() << std::endl;
 			return false;
 		}
 		received_login_from_websocket_ = true;
@@ -349,7 +357,6 @@ namespace OpenWifi {
 
 	bool RTTYS_Device_ConnectionHandler::do_msgTypeTermData(std::size_t msg_len) {
 		bool good = false;
-//		std::cout << "U:" << inBuf_.used() << " : W: " << waiting_for_bytes_ << " : M: " << msg_len << std::endl;
 		if(waiting_for_bytes_>0) {
 			if(inBuf_.used()<waiting_for_bytes_) {
 				waiting_for_bytes_ = waiting_for_bytes_ - inBuf_.used();
@@ -371,7 +378,6 @@ namespace OpenWifi {
 				inBuf_.drain(msg_len);
 			}
 		}
-//		std::cout << "U:" << inBuf_.used() << " : W: " << waiting_for_bytes_ << " : M: " << msg_len << std::endl;
 		return good;
 	}
 
