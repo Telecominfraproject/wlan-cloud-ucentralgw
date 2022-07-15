@@ -83,7 +83,7 @@ namespace OpenWifi {
 	static void dump(unsigned char *p,uint l) {
 		for(uint i=0;i<l;i++) {
 			std::cout << std::hex << (uint) p[i] << " ";
-			if(i % 16)
+			if(i % 16 == 0)
 				std::cout << std::endl;
 		}
 		std::cout << std::dec << std::endl ;
