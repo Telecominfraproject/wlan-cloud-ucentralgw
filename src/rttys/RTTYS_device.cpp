@@ -186,22 +186,15 @@ namespace OpenWifi {
 		std::cout << __LINE__ << std::endl;
 
 		// Guard G(M_);
-		unsigned char Header[4];
-		Header[0] = msgTypeTermData;
-		Header[1] = (len & 0xff00) >> 8 ;
-		Header[2] = (len & 0x00ff) ;
-		Header[3] = sid_;
-
-		std::cout << "sid:" << (uint)sid_ << " : " << (uint) buf[0] << std::endl;
-
-		Poco::Net::SocketBufVec bufs{Poco::Net::SocketBuf{ 	.iov_base=(void*)Header,
-														  	.iov_len=3},
-									 Poco::Net::SocketBuf{	.iov_base=(void*)buf,
-														  	.iov_len=len}};
+		auto Msg = std::make_unique<unsigned char>(len+3);
+		Msg.get()[0] = msgTypeTermData;
+		Msg.get()[1] = (len & 0xff00) >> 8;
+		Msg.get()[2] = (len & 0x00ff);
+		memcpy((void*) (Msg.get()+3), buf,len);
 		try {
 			std::cout << __LINE__ << std::endl;
-			auto sent = socket_.sendBytes(bufs);
-			std::cout << __LINE__ << " : " << sent << " " << len << " " << bufs.size() << std::endl;
+			auto sent = socket_.sendBytes(Msg.get(),len+3);
+			std::cout << __LINE__ << " : " << sent << " " << len << std::endl;
 			return true;
 		} catch (...) {
 			return false;
