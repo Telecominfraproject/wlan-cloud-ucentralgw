@@ -121,37 +121,25 @@ namespace OpenWifi {
 		}
 
 		[[nodiscard]] inline bool TooOld()  {
-			std::cout << __LINE__ << std::endl;
 			std::chrono::time_point<std::chrono::high_resolution_clock> now = std::chrono::high_resolution_clock::now();
 			if(ClientDisconnected_!=std::chrono::time_point<std::chrono::high_resolution_clock>{0s} && (now-ClientDisconnected_)>15s) {
-				std::cout << __LINE__ << std::endl;
 				if(DeviceDisconnected_==std::chrono::time_point<std::chrono::high_resolution_clock>{0s}) {
 					DeviceDisconnected_ = std::chrono::high_resolution_clock::now();
 				}
-				std::cout << __LINE__ << std::endl;
 				return true;
 			}
 			if(DeviceDisconnected_!=std::chrono::time_point<std::chrono::high_resolution_clock>{0s} && (now-DeviceDisconnected_)>15s) {
-				std::cout << __LINE__ << std::endl;
 				if(ClientDisconnected_==std::chrono::time_point<std::chrono::high_resolution_clock>{0s}) {
 					ClientDisconnected_ = std::chrono::high_resolution_clock::now();
 				}
-				std::cout << __LINE__ << std::endl;
 				return true;
 			}
 
 			if(!Joined_ && (now-Created_)>30s) {
-				std::cout << __LINE__ << std::endl;
 				return true;
 			}
 
 //			std::cout << ClientDisconnected_ << " " << ClientConnected_ << " " << DeviceDisconnected_ << " " << DeviceConnected_ << std::endl;
-			return false;
-		}
-
-		bool CompleteStartup() {
-			if(Client_!= nullptr  && Client_->Valid())
-				return Client_->CompleteStartup();
 			return false;
 		}
 
@@ -293,6 +281,11 @@ namespace OpenWifi {
 		MyMutexType 								M_;
 
 		uint64_t 									TotalEndPoints_=0;
+		uint64_t 									FaildedNumDevices_=0;
+		uint64_t 									FailedNumClients_=0;
+		double 										TotalConnectedDeviceTime_;
+		double 										TotalConnectedClientTime_;
+
 
 		explicit RTTYS_server() noexcept:
 		SubSystemServer("RTTY_Server", "RTTY-SVR", "rtty.server")
