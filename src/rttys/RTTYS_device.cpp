@@ -95,12 +95,20 @@ namespace OpenWifi {
 			// std::cout << "Received: " << received_bytes << std::endl;
 			while (inBuf_.isReadable() && good) {
 				std::size_t msg_len;
-				u_char header[3]{0};
-				inBuf_.read((char *)&header[0], 3);
-				last_command_ = header[0];
-				msg_len = header[1] * 256 + header[2];
+				if(waiting_for_bytes_!=0) {
 
-				switch (last_command_) {
+				} else {
+					if(inBuf_.used()>=3) {
+						last_command_ = inBuf_[0];
+						msg_len = inBuf_[1] * 256 + inBuf_[2];
+						inBuf_.advance(3);
+					} else {
+						good = false;
+					}
+				}
+
+				if(good) {
+					switch (last_command_) {
 					case msgTypeRegister: {
 						good = do_msgTypeRegister(msg_len);
 					} break;
@@ -135,9 +143,11 @@ namespace OpenWifi {
 						good = do_msgTypeMax(msg_len);
 					} break;
 					default: {
-						poco_warning(Logger(), fmt::format("{}: Unknown command {}. Closing connection.", Id_,
-														   (int)last_command_));
+						poco_warning(Logger(),
+									 fmt::format("{}: Unknown command {}. Closing connection.", Id_,
+												 (int)last_command_));
 						good = false;
+					}
 					}
 				}
 			}
@@ -171,15 +181,18 @@ namespace OpenWifi {
 			return false;
 
 		// Guard G(M_);
+		unsigned char Header[4];
+		Header[0] = msgTypeTermData;
+		Header[1] = (len & 0xff00) >> 8 ;
+		Header[2] = (len & 0x00ff) ;
+		Header[3] = sid_;
 
-		auto total_len = 3 + 1 + len-1;
-		scratch_[0] = msgTypeTermData;
-		scratch_[1] = (len & 0xff00) >> 8 ;
-		scratch_[2] = (len & 0x00ff) ;
-		scratch_[3] = sid_;
-		memcpy( &scratch_[4], &buf[1], len-1);
+		Poco::Net::SocketBufVec bufs{Poco::Net::SocketBuf{ .iov_base=&Header[0],
+														  	.iov_len=4},
+									 Poco::Net::SocketBuf{	.iov_base=(void*)buf,
+														  	.iov_len=len}};
 		try {
-			socket_.sendBytes((const void *)&scratch_[0], total_len);
+			socket_.sendBytes(bufs);
 			return true;
 		} catch (...) {
 			return false;
@@ -319,22 +332,24 @@ namespace OpenWifi {
 	bool RTTYS_Device_ConnectionHandler::do_msgTypeTermData(std::size_t msg_len) {
 		bool good = false;
 		if(waiting_for_bytes_!=0) {
-			auto to_read = std::min(inBuf_.used(),waiting_for_bytes_);
-			inBuf_.read(&scratch_[0], to_read);
-			good = SendToClient((u_char *)&scratch_[0], (int) to_read);
-			if(to_read<waiting_for_bytes_)
-				waiting_for_bytes_ -= to_read;
-			else
+			if(inBuf_.used()<waiting_for_bytes_) {
+				waiting_for_bytes_ = waiting_for_bytes_ - inBuf_.used();
+				good = SendToClient((u_char *)&inBuf_[0], (int) inBuf_.used());
+				inBuf_.advance(inBuf_.used());
+			} else {
+				good = SendToClient((u_char *)&inBuf_[0], waiting_for_bytes_);
+				inBuf_.advance(waiting_for_bytes_);
 				waiting_for_bytes_ = 0 ;
+			}
 		} else {
 			if(inBuf_.used()<msg_len) {
-				auto read_count = inBuf_.read(&scratch_[0], inBuf_.used());
-				good = SendToClient((u_char *)&scratch_[0], read_count);
-				waiting_for_bytes_ = msg_len - read_count;
+				waiting_for_bytes_ = msg_len - inBuf_.used();
+				good = SendToClient((u_char *)&inBuf_[0], inBuf_.used());
+				inBuf_.advance(inBuf_.used());
 			} else {
-				inBuf_.read(&scratch_[0], msg_len);
-				good = SendToClient((u_char *)&scratch_[0], (int)msg_len);
 				waiting_for_bytes_=0;
+				good = SendToClient((u_char *)&inBuf_[0], (int)msg_len);
+				inBuf_.advance(msg_len);
 			}
 		}
 		return good;
