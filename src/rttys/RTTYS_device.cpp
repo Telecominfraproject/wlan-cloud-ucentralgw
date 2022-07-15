@@ -106,51 +106,50 @@ namespace OpenWifi {
 						std::cout << "u: " << inBuf_.used() << "lc: " << (uint) last_command_ << " l:" << msg_len << std::endl;
 					} else {
 						good = false;
+						continue;
 					}
 				}
 
-				if(good) {
-					switch (last_command_) {
-					case msgTypeRegister: {
-						good = do_msgTypeRegister(msg_len);
-					} break;
-					case msgTypeLogin: {
-						good = do_msgTypeLogin(msg_len);
-					} break;
-					case msgTypeLogout: {
-						good = do_msgTypeLogout(msg_len);
-					} break;
-					case msgTypeTermData: {
-						good = do_msgTypeTermData(msg_len);
-					} break;
-					case msgTypeWinsize: {
-						good = do_msgTypeWinsize(msg_len);
-					} break;
-					case msgTypeCmd: {
-						good = do_msgTypeCmd(msg_len);
-					} break;
-					case msgTypeHeartbeat: {
-						good = do_msgTypeHeartbeat(msg_len);
-					} break;
-					case msgTypeFile: {
-						good = do_msgTypeFile(msg_len);
-					} break;
-					case msgTypeHttp: {
-						good = do_msgTypeHttp(msg_len);
-					} break;
-					case msgTypeAck: {
-						good = do_msgTypeAck(msg_len);
-					} break;
-					case msgTypeMax: {
-						good = do_msgTypeMax(msg_len);
-					} break;
-					default: {
-						poco_warning(Logger(),
-									 fmt::format("{}: Unknown command {}. Closing connection.", Id_,
-												 (int)last_command_));
-						good = false;
-					}
-					}
+				switch (last_command_) {
+				case msgTypeRegister: {
+					good = do_msgTypeRegister(msg_len);
+				} break;
+				case msgTypeLogin: {
+					good = do_msgTypeLogin(msg_len);
+				} break;
+				case msgTypeLogout: {
+					good = do_msgTypeLogout(msg_len);
+				} break;
+				case msgTypeTermData: {
+					good = do_msgTypeTermData(msg_len);
+				} break;
+				case msgTypeWinsize: {
+					good = do_msgTypeWinsize(msg_len);
+				} break;
+				case msgTypeCmd: {
+					good = do_msgTypeCmd(msg_len);
+				} break;
+				case msgTypeHeartbeat: {
+					good = do_msgTypeHeartbeat(msg_len);
+				} break;
+				case msgTypeFile: {
+					good = do_msgTypeFile(msg_len);
+				} break;
+				case msgTypeHttp: {
+					good = do_msgTypeHttp(msg_len);
+				} break;
+				case msgTypeAck: {
+					good = do_msgTypeAck(msg_len);
+				} break;
+				case msgTypeMax: {
+					good = do_msgTypeMax(msg_len);
+				} break;
+				default: {
+					poco_warning(Logger(),
+								 fmt::format("{}: Unknown command {}. Closing connection.", Id_,
+											 (int)last_command_));
+					good = false;
+				}
 				}
 			}
 		} catch (...) {
@@ -342,7 +341,8 @@ namespace OpenWifi {
 
 	bool RTTYS_Device_ConnectionHandler::do_msgTypeTermData(std::size_t msg_len) {
 		bool good = false;
-		if(waiting_for_bytes_!=0) {
+		std::cout << "U:" << inBuf_.used() << " : W: " << waiting_for_bytes_ << " : M: " << msg_len << std::endl;
+		if(waiting_for_bytes_>0) {
 			if(inBuf_.used()<waiting_for_bytes_) {
 				waiting_for_bytes_ = waiting_for_bytes_ - inBuf_.used();
 				good = SendToClient((u_char *)&inBuf_[0], (int) inBuf_.used());
