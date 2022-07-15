@@ -27,31 +27,7 @@ namespace OpenWifi {
 				*WS_, Poco::NObserver<RTTYS_ClientConnection, Poco::Net::ShutdownNotification>(
 						  *this, &RTTYS_ClientConnection::onSocketShutdown));
 		}
-/*
-	bool RTTYS_ClientConnection::CompleteStartup() {
-		int tries = 0;
-		try {
-			state_ = connection_state::waiting_for_login;
-			while (state_==connection_state::waiting_for_login && tries < 30) {
-				if (RTTYS_server()->Login(this->Id_)) {
-					state_ = connection_state::connected;
-					Logger_.information("Connected to device");
-					return true;
-				}
-				std::this_thread::sleep_for(1000ms);
-				std::this_thread::yield();
-				tries++;
-				Logger_.information(fmt::format(
-					"Waiting for device to connect to start session. (try={})", tries));
-			}
-			Logger_.information("Could not connect to device");
-		} catch (...) {
-		}
-		state_ = connection_state::shutting_down;
-		EndConnection();
-		return false;
-	}
-*/
+
 	RTTYS_ClientConnection::~RTTYS_ClientConnection() {
 		if(Valid_) {
 			MyGuard G(Mutex_);
@@ -162,14 +138,11 @@ namespace OpenWifi {
 		EndConnection();
 	}
 
-	void RTTYS_ClientConnection::SendData( const std::string &s , bool login) {
+	void RTTYS_ClientConnection::SendData( const std::string &s) {
 		if(!Valid_)
 			return;
 		MyGuard G(Mutex_);
 		try {
-			if (login) {
-				RTTYS_server()->LoginDone(Id_);
-			}
 			WS_->sendFrame(s.c_str(), s.length());
 			return;
 		} catch (...) {

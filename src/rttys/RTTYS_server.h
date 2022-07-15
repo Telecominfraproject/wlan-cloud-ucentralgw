@@ -217,7 +217,6 @@ namespace OpenWifi {
 		inline auto UIAssets() { return RTTY_UIAssets_; }
 
 		bool CreateEndPoint(const std::string &Id, const std::string & Token, const std::string & UserName, const std::string & SerialNumber );
-		void LoginDone(const std::string & Id);
 		bool Login(const std::string & Id_);
 		bool SendKeyStrokes(const std::string &Id, const u_char *buffer, std::size_t s);
 		bool WindowSize(const std::string &Id, int cols, int rows);
