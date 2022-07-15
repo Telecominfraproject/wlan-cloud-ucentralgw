@@ -182,22 +182,19 @@ namespace OpenWifi {
 
 		std::cout << __LINE__ << std::endl;
 
-		if(len<60) {
+		if(len<=60) {
 			unsigned char Msg[64];
 			Msg[0] = msgTypeTermData;
 			Msg[1] = (len & 0xff00) >> 8;
 			Msg[2] =  (len & 0x00ff);
 			memcpy(&Msg[3],buf,len);
 			try {
-				auto sent = socket_.sendBytes(Msg,len+3);
-				std::cout << __LINE__ << " : " << sent << " " << len << std::endl;
+				socket_.sendBytes(Msg,len+3);
 				return true;
 			} catch (...) {
 				return false;
 			}
 		} else {
-			std::cout << __LINE__ << std::endl;
-
 			// Guard G(M_);
 			auto Msg = std::make_unique<unsigned char []>(len + 3);
 			Msg.get()[0] = msgTypeTermData;
@@ -205,9 +202,7 @@ namespace OpenWifi {
 			Msg.get()[2] = (len & 0x00ff);
 			memcpy((void *)(Msg.get() + 3), buf, len);
 			try {
-				std::cout << __LINE__ << std::endl;
-				auto sent = socket_.sendBytes(Msg.get(), len + 3);
-				std::cout << __LINE__ << " : " << sent << " " << len << std::endl;
+				socket_.sendBytes(Msg.get(), len + 3);
 				return true;
 			} catch (...) {
 				return false;
@@ -358,15 +353,8 @@ namespace OpenWifi {
 				waiting_for_bytes_ = 0 ;
 			}
 		} else {
-			if(inBuf_.used()<msg_len) {
-				waiting_for_bytes_ = msg_len - inBuf_.used();
-				good = SendToClient((u_char *)&inBuf_[0], inBuf_.used());
-				inBuf_.drain(inBuf_.used());
-			} else {
-				waiting_for_bytes_=0;
-				good = SendToClient((u_char *)&inBuf_[0], (int)msg_len);
-				inBuf_.drain(msg_len);
-			}
+			good = SendToClient((u_char *)&inBuf_[0],msg_len);
+			inBuf_.drain(msg_len);
 		}
 		return good;
 	}
