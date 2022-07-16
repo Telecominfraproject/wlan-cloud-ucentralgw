@@ -122,56 +122,53 @@ namespace OpenWifi {
 				}
 
 				switch (last_command_) {
-				case msgTypeRegister: {
-					good = do_msgTypeRegister(msg_len);
-				} break;
-				case msgTypeLogin: {
-					good = do_msgTypeLogin(msg_len);
-				} break;
-				case msgTypeLogout: {
-					good = do_msgTypeLogout(msg_len);
-				} break;
-				case msgTypeTermData: {
-					good = do_msgTypeTermData(msg_len);
-				} break;
-				case msgTypeWinsize: {
-					good = do_msgTypeWinsize(msg_len);
-				} break;
-				case msgTypeCmd: {
-					good = do_msgTypeCmd(msg_len);
-				} break;
-				case msgTypeHeartbeat: {
-					good = do_msgTypeHeartbeat(msg_len);
-				} break;
-				case msgTypeFile: {
-					good = do_msgTypeFile(msg_len);
-				} break;
-				case msgTypeHttp: {
-					good = do_msgTypeHttp(msg_len);
-				} break;
-				case msgTypeAck: {
-					good = do_msgTypeAck(msg_len);
-				} break;
-				case msgTypeMax: {
-					good = do_msgTypeMax(msg_len);
-				} break;
-				default: {
-					poco_warning(Logger(),
-								 fmt::format("{}: Unknown command {}. Closing connection.", Id_,
-											 (int)last_command_));
-					good = false;
-				}
+					case msgTypeRegister: {
+						good = do_msgTypeRegister(msg_len);
+					} break;
+					case msgTypeLogin: {
+						good = do_msgTypeLogin(msg_len);
+					} break;
+					case msgTypeLogout: {
+						good = do_msgTypeLogout(msg_len);
+					} break;
+					case msgTypeTermData: {
+						good = do_msgTypeTermData(msg_len);
+					} break;
+					case msgTypeWinsize: {
+						good = do_msgTypeWinsize(msg_len);
+					} break;
+					case msgTypeCmd: {
+						good = do_msgTypeCmd(msg_len);
+					} break;
+					case msgTypeHeartbeat: {
+						good = do_msgTypeHeartbeat(msg_len);
+					} break;
+					case msgTypeFile: {
+						good = do_msgTypeFile(msg_len);
+					} break;
+					case msgTypeHttp: {
+						good = do_msgTypeHttp(msg_len);
+					} break;
+					case msgTypeAck: {
+						good = do_msgTypeAck(msg_len);
+					} break;
+					case msgTypeMax: {
+						good = do_msgTypeMax(msg_len);
+					} break;
+					default: {
+						poco_warning(Logger(),
+									 fmt::format("{}: Unknown command {}. Closing connection.", Id_,
+												 (int)last_command_));
+						good = false;
+					}
 				}
 			}
 		} catch (const Poco::Exception &E) {
 			good = false;
 			std::cout << "poco::exception in device: " << E.what() << " " << E.message() << std::endl;
-		} catch (const std::invalid_argument &E) {
-			good = false;
-			std::cout << "std::invalid_argument in device: " << E.what() << " -> " << inBuf_.used() << " " << inBuf_.available() << std::endl;
 		} catch (const std::exception &E) {
-			good = false;
 			std::cout << "std::exception in device: " << E.what() << " -> " << inBuf_.used() << " " << inBuf_.available() << std::endl;
+			inBuf_.drain();
 		}
 
 		if(!good) {
