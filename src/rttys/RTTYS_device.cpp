@@ -169,7 +169,6 @@ namespace OpenWifi {
 		} catch (const std::invalid_argument &E) {
 			good = false;
 			std::cout << "std::invalid_argument in device: " << E.what() << " -> " << inBuf_.used() << " " << inBuf_.available() << std::endl;
-		}
 		} catch (const std::exception &E) {
 			good = false;
 			std::cout << "std::exception in device: " << E.what() << " -> " << inBuf_.used() << " " << inBuf_.available() << std::endl;
