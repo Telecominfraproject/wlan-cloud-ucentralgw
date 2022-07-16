@@ -10,6 +10,7 @@
 #include "Poco/Timer.h"
 #include "rttys/RTTYS_device.h"
 #include "rttys/RTTYS_ClientConnection.h"
+#include <shared_mutex>
 
 namespace OpenWifi {
 
@@ -225,10 +226,6 @@ namespace OpenWifi {
 		bool ValidClient(const std::string &id);
 		bool ValidId(const std::string &Id);
 
-		using MyMutexType = std::recursive_mutex;
-		using MyGuard = std::lock_guard<MyMutexType>;
-		using MyUniqueLock = std::unique_lock<MyMutexType>;
-
 		void run() final;
 
 		inline void NotifyDeviceDisconnect(const std::string &id, RTTYS_Device_ConnectionHandler *device) {
@@ -277,7 +274,7 @@ namespace OpenWifi {
 		std::unique_ptr<Poco::TimerCallback<RTTYS_server>>  GCCallBack_;
 		std::list<std::unique_ptr<RTTYS_Device_ConnectionHandler>>	FailedDevices;
 		std::list<std::unique_ptr<RTTYS_ClientConnection>>			FailedClients;
-		MyMutexType 								M_;
+		mutable std::shared_mutex 					M_;
 
 		uint64_t 									TotalEndPoints_=0;
 		uint64_t 									FaildedNumDevices_=0;
