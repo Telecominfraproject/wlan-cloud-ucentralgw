@@ -38,18 +38,21 @@ namespace OpenWifi {
 	void RTTYS_ClientConnection::EndConnection(bool SendNotification) {
 		if(Valid_) {
 			Valid_=false;
-			Reactor_.removeEventHandler(
-				*WS_,
-				Poco::NObserver<RTTYS_ClientConnection, Poco::Net::ReadableNotification>(
-					*this, &RTTYS_ClientConnection::onSocketReadable));
-			Reactor_.removeEventHandler(
-				*WS_,
-				Poco::NObserver<RTTYS_ClientConnection, Poco::Net::ShutdownNotification>(
-					*this, &RTTYS_ClientConnection::onSocketShutdown));
-			// WS_->shutdown();
-			if(SendNotification)
-				RTTYS_server()->NotifyClientDisconnect(Id_,this);
+			try {
+				Reactor_.removeEventHandler(
+					*WS_, Poco::NObserver<RTTYS_ClientConnection, Poco::Net::ReadableNotification>(
+							  *this, &RTTYS_ClientConnection::onSocketReadable));
+				Reactor_.removeEventHandler(
+					*WS_, Poco::NObserver<RTTYS_ClientConnection, Poco::Net::ShutdownNotification>(
+							  *this, &RTTYS_ClientConnection::onSocketShutdown));
+				// WS_->shutdown();
+				if (SendNotification)
+					RTTYS_server()->NotifyClientDisconnect(Id_, this);
+			} catch(...) {
+
+			}
 			Logger_.information("Disconnected.");
+
 		}
 	}
 
@@ -147,7 +150,7 @@ namespace OpenWifi {
 			WS_->sendFrame(s.c_str(), s.length());
 			return;
 		} catch (...) {
-			Logger_.information("Senddata shutdown.");
+			Logger_.information("SendData shutdown.");
 		}
 		MyGuard G(Mutex_);
 		EndConnection();
