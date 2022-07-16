@@ -149,6 +149,7 @@ namespace OpenWifi {
 				Client_->SendData(Buf,Len);
 				return true;
 			}
+			std::cout << "SendToClientFailure: " << (Client_!= nullptr) << " " << Client_->Valid() << std::endl;
 			return false;
 		}
 

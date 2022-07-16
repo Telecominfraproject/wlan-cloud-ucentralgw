@@ -360,7 +360,7 @@ namespace OpenWifi {
 	}
 
 	bool RTTYS_Device_ConnectionHandler::do_msgTypeTermData(std::size_t msg_len) {
-		bool good = false;
+		bool good;
 		if(waiting_for_bytes_>0) {
 			if(inBuf_.used()<waiting_for_bytes_) {
 				waiting_for_bytes_ = waiting_for_bytes_ - inBuf_.used();
