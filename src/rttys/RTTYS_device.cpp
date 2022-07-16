@@ -169,6 +169,7 @@ namespace OpenWifi {
 		} catch (const std::exception &E) {
 			std::cout << "std::exception in device: " << E.what() << " -> " << inBuf_.used() << " " << inBuf_.available() << std::endl;
 			inBuf_.drain();
+			good = false;
 		}
 
 		if(!good) {
