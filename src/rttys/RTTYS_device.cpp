@@ -114,6 +114,7 @@ namespace OpenWifi {
 						inBuf_.drain(3);
 					} else {
 						good = false;
+						if(!good) std::cout << "do_msgTypeTermData:5" << std::endl;
 						continue;
 					}
 				}
@@ -365,20 +366,24 @@ namespace OpenWifi {
 			if(inBuf_.used()<waiting_for_bytes_) {
 				waiting_for_bytes_ = waiting_for_bytes_ - inBuf_.used();
 				good = SendToClient((unsigned char *)inBuf_.begin(), (int) inBuf_.used());
+				if(!good) std::cout << "do_msgTypeTermData:1" << std::endl;
 				inBuf_.drain();
 			} else {
 				good = SendToClient((unsigned char *)inBuf_.begin(), waiting_for_bytes_);
+				if(!good) std::cout << "do_msgTypeTermData:2" << std::endl;
 				inBuf_.drain(waiting_for_bytes_);
 				waiting_for_bytes_ = 0 ;
 			}
 		} else {
 			if(inBuf_.used()<msg_len) {
 				good = SendToClient((unsigned char *)inBuf_.begin(), inBuf_.used());
+				if(!good) std::cout << "do_msgTypeTermData:3" << std::endl;
 				waiting_for_bytes_ = msg_len - inBuf_.used();
 				inBuf_.drain();
 			} else {
 				waiting_for_bytes_ = 0 ;
 				good = SendToClient((unsigned char *)inBuf_.begin(), msg_len);
+				if(!good) std::cout << "do_msgTypeTermData:4" << std::endl;
 				inBuf_.drain(msg_len);
 			}
 		}
