@@ -113,7 +113,7 @@ namespace OpenWifi {
 		static int count = 0;
 //		MutexLockerDbg	L(__func__ ,M_);
 
-		MyGuard G(M_);
+		std::unique_lock G(M_);
  		for(auto element=EndPoints_.begin();element!=EndPoints_.end();) {
 			if(element->second->TooOld()) {
 				auto c = fmt::format("Removing {}. Serial: {} Device connection time: {}s. Client connection time: {}s",
@@ -157,7 +157,7 @@ namespace OpenWifi {
 		while (NextNotification && NotificationManagerRunning_) {
 			auto Notification = dynamic_cast<RTTYS_Notification *>(NextNotification.get());
 			if (Notification != nullptr) {
-				MyGuard G(M_);
+				std::unique_lock G(M_);
 				auto It = EndPoints_.find(Notification->id_);
 				if (It != EndPoints_.end()) {
 					switch (Notification->type_) {
@@ -203,8 +203,7 @@ namespace OpenWifi {
 	}
 
 	bool RTTYS_server::SendToClient(const std::string &Id, const u_char *Buf, std::size_t Len) {
-		// MutexLockerDbg MM(__func__ ,M_);
-		MyGuard 	G(M_);
+		std::shared_lock 	Guard(M_);
 		try {
 			auto It = EndPoints_.find(Id);
 			if (It != EndPoints_.end()) {
@@ -213,14 +212,13 @@ namespace OpenWifi {
 		} catch(const Poco::Exception &E) {
 			Logger().log(E);
 		} catch (...) {
-
+			std::cout << "Exception in SendToClient 1" << std::endl;
 		}
 		return false;
 	}
 
 	bool RTTYS_server::SendToClient(const std::string &Id, const std::string &s) {
-		// MutexLockerDbg MM(__func__ ,M_);
-		MyGuard 	G(M_);
+		std::shared_lock 	Guard(M_);
 		try {
 			auto It = EndPoints_.find(Id);
 			if (It != EndPoints_.end()) {
@@ -229,21 +227,19 @@ namespace OpenWifi {
 		} catch(const Poco::Exception &E) {
 			Logger().log(E);
 		} catch (...) {
-
+			std::cout << "Exception in SendToClient 2" << std::endl;
 		}
 		return false;
 	}
 
 	bool RTTYS_server::ValidClient(const std::string &Id) {
-//		MutexLockerDbg MM(__func__ ,M_);
-		MyGuard 	G(M_);
+		std::shared_lock 	Guard(M_);
 		auto It = EndPoints_.find(Id);
 		return It!=EndPoints_.end() && It->second->ValidClient();
 	}
 
 	bool RTTYS_server::SendKeyStrokes(const std::string &Id, const u_char *buffer, std::size_t len) {
-//		MutexLockerDbg MM(__func__ ,M_);
-		MyGuard 	G(M_);
+		std::shared_lock 	Guard(M_);
 
 		auto It=EndPoints_.find(Id);
 		if(It==EndPoints_.end()) {
@@ -260,8 +256,7 @@ namespace OpenWifi {
 	}
 
 	bool RTTYS_server::WindowSize(const std::string &Id, int cols, int rows) {
-//		MutexLockerDbg MM(__func__ ,M_);
-		MyGuard 	G(M_);
+		std::shared_lock 	Guard(M_);
 		auto It=EndPoints_.find(Id);
 		if(It==EndPoints_.end()) {
 			return false;
@@ -277,8 +272,7 @@ namespace OpenWifi {
 
 
 	bool RTTYS_server::CreateEndPoint(const std::string &Id, const std::string & Token, const std::string & UserName, const std::string & SerialNumber ) {
-//		MutexLockerDbg MM(__func__ ,M_);
-		MyGuard 	G(M_);
+		std::unique_lock 	Guard(M_);
 
 		auto NewEP = std::make_unique<RTTYS_EndPoint>(Token, SerialNumber, UserName );
 		EndPoints_[Id] = std::move(NewEP);
@@ -287,13 +281,13 @@ namespace OpenWifi {
 	}
 
 	bool RTTYS_server::ValidId(const std::string &Token) {
-		MyGuard 	G(M_);
+		std::shared_lock 	Guard(M_);
 		return EndPoints_.find(Token) != EndPoints_.end();
 	}
 
 	bool RTTYS_server::Login(const std::string & Id) {
-//		MutexLockerDbg MM(__func__ ,M_);
-		MyGuard 	G(M_);
+		std::shared_lock 	Guard(M_);
+
 		auto ep = EndPoints_.find(Id);
 		if(ep == EndPoints_.end()) {
 			return false;
