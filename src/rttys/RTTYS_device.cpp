@@ -114,7 +114,7 @@ namespace OpenWifi {
 						inBuf_.drain(3);
 					} else {
 						good = false;
-						if(!good) std::cout << "do_msgTypeTermData:5" << std::endl;
+						if(!good) std::cout << "do_msgTypeTermData:5     " << inBuf_.used() << std::endl;
 						continue;
 					}
 				}
