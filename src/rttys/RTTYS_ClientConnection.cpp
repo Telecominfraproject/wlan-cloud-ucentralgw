@@ -28,59 +28,31 @@ namespace OpenWifi {
 						  *this, &RTTYS_ClientConnection::onSocketShutdown));
 		}
 
-	bool RTTYS_ClientConnection::CompleteStartup() {
-		int tries = 0;
-		try {
-			state_ = connection_state::waiting_for_login;
-			while (state_==connection_state::waiting_for_login && tries < 30) {
-				if (RTTYS_server()->Login(this->Id_)) {
-					state_ = connection_state::connected;
-					Logger_.information("Connected to device");
-					return true;
-				}
-				std::this_thread::sleep_for(1000ms);
-				std::this_thread::yield();
-				tries++;
-				Logger_.information(fmt::format(
-					"Waiting for device to connect to start session. (try={})", tries));
-			}
-			Logger_.information("Could not connect to device");
-		} catch (...) {
-		}
-		state_ = connection_state::shutting_down;
-		EndConnection();
-		return false;
-	}
-
 	RTTYS_ClientConnection::~RTTYS_ClientConnection() {
 		if(Valid_) {
 			MyGuard G(Mutex_);
-			EndConnection();
+			EndConnection(false);
 		}
 	}
 
-	void RTTYS_ClientConnection::EndConnection() {
+	void RTTYS_ClientConnection::EndConnection(bool SendNotification) {
 		if(Valid_) {
 			Valid_=false;
-			if (state_ == connection_state::waiting_for_login) {
-				state_ = connection_state::aborting;
-				while (state_ != connection_state::shutting_down) {
-					std::this_thread::sleep_for(100ms);
-					std::this_thread::yield();
-				}
+			try {
+				Reactor_.removeEventHandler(
+					*WS_, Poco::NObserver<RTTYS_ClientConnection, Poco::Net::ReadableNotification>(
+							  *this, &RTTYS_ClientConnection::onSocketReadable));
+				Reactor_.removeEventHandler(
+					*WS_, Poco::NObserver<RTTYS_ClientConnection, Poco::Net::ShutdownNotification>(
+							  *this, &RTTYS_ClientConnection::onSocketShutdown));
+				// WS_->shutdown();
+				if (SendNotification)
+					RTTYS_server()->NotifyClientDisconnect(Id_, this);
+			} catch(...) {
+
 			}
-			Reactor_.removeEventHandler(
-				*WS_,
-				Poco::NObserver<RTTYS_ClientConnection, Poco::Net::ReadableNotification>(
-					*this, &RTTYS_ClientConnection::onSocketReadable));
-			Reactor_.removeEventHandler(
-				*WS_,
-				Poco::NObserver<RTTYS_ClientConnection, Poco::Net::ShutdownNotification>(
-					*this, &RTTYS_ClientConnection::onSocketShutdown));
-			WS_->shutdown();
-			state_ = connection_state::done;
-			RTTYS_server()->NotifyClientDisconnect(Id_,this);
 			Logger_.information("Disconnected.");
+
 		}
 	}
 
@@ -157,7 +129,7 @@ namespace OpenWifi {
 	void RTTYS_ClientConnection::SendData( const u_char *Buf, size_t len ) {
 		if(!Valid_)
 			return;
-		MyGuard G(Mutex_);
+		// MyGuard G(Mutex_);
 		try {
 			WS_->sendFrame(Buf, len,
 						   Poco::Net::WebSocket::FRAME_FLAG_FIN |
@@ -166,22 +138,21 @@ namespace OpenWifi {
 		} catch (...) {
 			Logger_.information("SendData shutdown.");
 		}
+		MyGuard G(Mutex_);
 		EndConnection();
 	}
 
-	void RTTYS_ClientConnection::SendData( const std::string &s , bool login) {
+	void RTTYS_ClientConnection::SendData( const std::string &s) {
 		if(!Valid_)
 			return;
-		MyGuard G(Mutex_);
+		// MyGuard G(Mutex_);
 		try {
-			if (login) {
-				RTTYS_server()->LoginDone(Id_);
-			}
 			WS_->sendFrame(s.c_str(), s.length());
 			return;
 		} catch (...) {
-			Logger_.information("Senddata shutdown.");
+			Logger_.information("SendData shutdown.");
 		}
+		MyGuard G(Mutex_);
 		EndConnection();
 	}
 

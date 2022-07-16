@@ -28,11 +28,10 @@ namespace OpenWifi {
 		void onSocketShutdown(const Poco::AutoPtr<Poco::Net::ShutdownNotification> &pNf);
 
 		void SendData( const u_char *Buf, size_t len );
-		void SendData( const std::string & S, bool login=false);
-		bool CompleteStartup();
+		void SendData( const std::string & S );
 
 		[[nodiscard]] inline std::string ID() { return Id_; }
-		[[nodiscard]] inline bool Valid() volatile const { return Valid_; }
+		[[nodiscard]] inline bool Valid()  { return Valid_; }
 		using MyMutexType = std::recursive_mutex;
 		using MyGuard = std::lock_guard<MyMutexType>;
 
@@ -42,12 +41,12 @@ namespace OpenWifi {
 		std::unique_ptr<Poco::Net::WebSocket>	WS_;
 		Poco::Logger 							&Logger_;
 		std::string 							Sid_;
-		volatile bool 							Valid_=false;
-		u_char 						Buffer_[16000]{0};
-		MyMutexType					Mutex_;
-		volatile  connection_state	state_ = connection_state::initialized;
+		std::atomic_bool						Valid_=false;
+		u_char 									Buffer_[64000]{0};
+		MyMutexType								Mutex_;
+		// volatile  connection_state	state_ = connection_state::initialized;
 
-		void EndConnection();
+		void EndConnection(bool SendNotification=true);
 
 	};
 }

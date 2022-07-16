@@ -10,6 +10,7 @@
 #include "Poco/Timer.h"
 #include "rttys/RTTYS_device.h"
 #include "rttys/RTTYS_ClientConnection.h"
+#include <shared_mutex>
 
 namespace OpenWifi {
 
@@ -148,6 +149,7 @@ namespace OpenWifi {
 				Client_->SendData(Buf,Len);
 				return true;
 			}
+			std::cout << "SendToClientFailure: " << (Client_!= nullptr) << " " << Client_->Valid() << std::endl;
 			return false;
 		}
 
@@ -217,7 +219,6 @@ namespace OpenWifi {
 		inline auto UIAssets() { return RTTY_UIAssets_; }
 
 		bool CreateEndPoint(const std::string &Id, const std::string & Token, const std::string & UserName, const std::string & SerialNumber );
-		void LoginDone(const std::string & Id);
 		bool Login(const std::string & Id_);
 		bool SendKeyStrokes(const std::string &Id, const u_char *buffer, std::size_t s);
 		bool WindowSize(const std::string &Id, int cols, int rows);
@@ -225,10 +226,6 @@ namespace OpenWifi {
 		bool SendToClient(const std::string &id, const std::string &s);
 		bool ValidClient(const std::string &id);
 		bool ValidId(const std::string &Id);
-
-		using MyMutexType = std::recursive_mutex;
-		using MyGuard = std::lock_guard<MyMutexType>;
-		using MyUniqueLock = std::unique_lock<MyMutexType>;
 
 		void run() final;
 
@@ -278,13 +275,13 @@ namespace OpenWifi {
 		std::unique_ptr<Poco::TimerCallback<RTTYS_server>>  GCCallBack_;
 		std::list<std::unique_ptr<RTTYS_Device_ConnectionHandler>>	FailedDevices;
 		std::list<std::unique_ptr<RTTYS_ClientConnection>>			FailedClients;
-		MyMutexType 								M_;
+		mutable std::shared_mutex 					M_;
 
 		uint64_t 									TotalEndPoints_=0;
 		uint64_t 									FaildedNumDevices_=0;
 		uint64_t 									FailedNumClients_=0;
-		double 										TotalConnectedDeviceTime_;
-		double 										TotalConnectedClientTime_;
+		double 										TotalConnectedDeviceTime_=0.0;
+		double 										TotalConnectedClientTime_=0.0;
 
 
 		explicit RTTYS_server() noexcept:
