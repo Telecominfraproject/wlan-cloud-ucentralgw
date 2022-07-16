@@ -15,8 +15,9 @@ namespace OpenWifi {
 			 	reactor_(reactor),
 				Logger_(Poco::Logger::get(fmt::format("RTTY-device({})",socket_.peerAddress().toString())))
 	{
-		std::thread T([=]() { CompleteConnection(); });
-		T.detach();
+//		std::thread T([=]() { CompleteConnection(); });
+//		T.detach();
+		CompleteConnection();
 	}
 
 	void RTTYS_Device_ConnectionHandler::CompleteConnection() {
@@ -97,6 +98,7 @@ namespace OpenWifi {
 		try {
 			auto received_bytes = socket_.receiveBytes(inBuf_);
 			if(received_bytes==0) {
+				poco_information(Logger(),fmt::format("{}: Connection being closed - 0 bytes received."));
 				return EndConnection();
 			}
 
@@ -168,6 +170,7 @@ namespace OpenWifi {
 
 	void RTTYS_Device_ConnectionHandler::onSocketShutdown([[maybe_unused]] const Poco::AutoPtr<Poco::Net::ShutdownNotification>& pNf) {
 		Guard G(M_);
+		poco_information(Logger(),fmt::format("{}: Connection being closed - socket shutdown."));
 		EndConnection();
 	}
 
