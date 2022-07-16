@@ -136,7 +136,7 @@ namespace OpenWifi {
 			count=0;
 			Logger().information(fmt::format("Total connections:{}  Total Device Connection Time: {}s  Total Client Connection Time: {}s Device failures: {} Client failures: {}",
 				TotalEndPoints_,
-				 TotalConnectedDeviceTime_,
+				TotalConnectedDeviceTime_,
 				TotalConnectedClientTime_,
 				FaildedNumDevices_,
 				FailedNumClients_));

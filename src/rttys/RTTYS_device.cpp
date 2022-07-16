@@ -98,8 +98,7 @@ namespace OpenWifi {
 		try {
 			auto received_bytes = socket_.receiveBytes(inBuf_);
 			if (received_bytes == 0) {
-				poco_information(Logger(),
-								 fmt::format("{}: Connection being closed - 0 bytes received."));
+				poco_information(Logger(), fmt::format("{}: Device Closing connection - 0 bytes received.",Id_));
 				return EndConnection();
 			}
 
@@ -157,7 +156,7 @@ namespace OpenWifi {
 					} break;
 					default: {
 						poco_warning(Logger(),
-									 fmt::format("{}: Unknown command {}. Closing connection.", Id_,
+									 fmt::format("{}: Unknown command {} from device. GW closing connection.", Id_,
 												 (int)last_command_));
 						good = false;
 					}
@@ -165,24 +164,21 @@ namespace OpenWifi {
 			}
 		} catch (const Poco::Exception &E) {
 			good = false;
-			std::cout << "poco::exception in device: " << E.what() << " " << E.message() << std::endl;
+			Logger().log(E,__FILE__,__LINE__);
+			poco_warning(Logger(),fmt::format("{}: Exception. GW closing connection.", Id_));
 		} catch (const std::exception &E) {
-			std::cout << "std::exception in device: " << E.what() << " -> " << inBuf_.used() << " " << inBuf_.available() << std::endl;
-			inBuf_.drain();
+			poco_warning(Logger(),fmt::format("{}: Exception. GW closing connection.", Id_));
 			good = false;
 		}
 
 		if(!good) {
-			poco_warning(Logger(),
-						 fmt::format("{}: Closing connection. Some message did not succeed. CMD={}", Id_,
-									 (int)last_command_));
 			return EndConnection();
 		}
 	}
 
 	void RTTYS_Device_ConnectionHandler::onSocketShutdown([[maybe_unused]] const Poco::AutoPtr<Poco::Net::ShutdownNotification>& pNf) {
 		Guard G(M_);
-		poco_information(Logger(),fmt::format("{}: Connection being closed - socket shutdown."));
+		poco_information(Logger(),fmt::format("{}: Connection being closed - socket shutdown.",Id_));
 		EndConnection();
 	}
 
