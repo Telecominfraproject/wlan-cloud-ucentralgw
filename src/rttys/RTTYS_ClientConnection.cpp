@@ -46,7 +46,7 @@ namespace OpenWifi {
 				*WS_,
 				Poco::NObserver<RTTYS_ClientConnection, Poco::Net::ShutdownNotification>(
 					*this, &RTTYS_ClientConnection::onSocketShutdown));
-			WS_->shutdown();
+			// WS_->shutdown();
 			if(SendNotification)
 				RTTYS_server()->NotifyClientDisconnect(Id_,this);
 			Logger_.information("Disconnected.");
