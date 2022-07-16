@@ -97,24 +97,26 @@ namespace OpenWifi {
 
 		try {
 			auto received_bytes = socket_.receiveBytes(inBuf_);
-			if(received_bytes==0) {
-				poco_information(Logger(),fmt::format("{}: Connection being closed - 0 bytes received."));
+			if (received_bytes == 0) {
+				poco_information(Logger(),
+								 fmt::format("{}: Connection being closed - 0 bytes received."));
 				return EndConnection();
 			}
 
 			while (inBuf_.isReadable() && good) {
-				uint32_t msg_len=0;
-				if(waiting_for_bytes_!=0) {
+				uint32_t msg_len = 0;
+				if (waiting_for_bytes_ != 0) {
 
 				} else {
-					if(inBuf_.used()>=3) {
+					if (inBuf_.used() >= 3) {
 						auto *head = (unsigned char *)inBuf_.begin();
 						last_command_ = head[0];
-						msg_len = head[1]*256 + head[2];
+						msg_len = head[1] * 256 + head[2];
 						inBuf_.drain(3);
 					} else {
 						good = false;
-						if(!good) std::cout << "do_msgTypeTermData:5     " << inBuf_.used() << std::endl;
+						if (!good)
+							std::cout << "do_msgTypeTermData:5     " << inBuf_.used() << std::endl;
 						continue;
 					}
 				}
@@ -161,8 +163,12 @@ namespace OpenWifi {
 				}
 				}
 			}
+		} catch (const Poco::Exception &E) {
+			good = false;
+			std::cout << "poco::exception in device" << E.what() << " " << E.message() << std::endl;
 		} catch (...) {
 			good = false;
+			std::cout << "std::exception in device" << std::endl;
 		}
 
 		if(!good) {
