@@ -166,9 +166,9 @@ namespace OpenWifi {
 		} catch (const Poco::Exception &E) {
 			good = false;
 			std::cout << "poco::exception in device" << E.what() << " " << E.message() << std::endl;
-		} catch (...) {
+		} catch (const std::exception &E) {
 			good = false;
-			std::cout << "std::exception in device" << std::endl;
+			std::cout << "std::exception in device" << E.what() << std::endl;
 		}
 
 		if(!good) {
