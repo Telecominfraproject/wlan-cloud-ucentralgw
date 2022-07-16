@@ -212,7 +212,7 @@ namespace OpenWifi {
 		} catch(const Poco::Exception &E) {
 			Logger().log(E);
 		} catch (...) {
-
+			std::cout << "Exception in SendToClient 1" << std::endl;
 		}
 		return false;
 	}
@@ -227,7 +227,7 @@ namespace OpenWifi {
 		} catch(const Poco::Exception &E) {
 			Logger().log(E);
 		} catch (...) {
-
+			std::cout << "Exception in SendToClient 2" << std::endl;
 		}
 		return false;
 	}

@@ -4,7 +4,6 @@
 
 #include "RTTYS_device.h"
 #include "rttys/RTTYS_server.h"
-#include "rttys/RTTYS_ClientConnection.h"
 #include "Poco/Net/SecureStreamSocketImpl.h"
 #include "Poco/Net/StreamSocket.h"
 
@@ -167,7 +166,7 @@ namespace OpenWifi {
 
 		if(!good) {
 			poco_warning(Logger(),
-						 fmt::format("{}: Closing connection. Some message did n ot succeed. CMD={}", Id_,
+						 fmt::format("{}: Closing connection. Some message did not succeed. CMD={}", Id_,
 									 (int)last_command_));
 			return EndConnection();
 		}
@@ -273,7 +272,6 @@ namespace OpenWifi {
 		} catch (const Poco::Exception &E) {
 			return false;
 		}
-		received_login_from_websocket_ = true;
 		poco_information(Logger(),fmt::format("{}: Device login", Id_));
 		return true;
 	}
