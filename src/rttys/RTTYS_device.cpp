@@ -55,6 +55,7 @@ namespace OpenWifi {
 	RTTYS_Device_ConnectionHandler::~RTTYS_Device_ConnectionHandler() {
 		if(valid_) {
 			Guard G(M_);
+			poco_warning(Logger(), "Device connection being deleted.");
 			EndConnection(false);
 		}
 	}
@@ -164,8 +165,12 @@ namespace OpenWifi {
 			good = false;
 		}
 
-		if(!good)
+		if(!good) {
+			poco_warning(Logger(),
+						 fmt::format("{}: Closing connection. Some message did n ot succeed. CMD={}", Id_,
+									 (int)last_command_));
 			return EndConnection();
+		}
 	}
 
 	void RTTYS_Device_ConnectionHandler::onSocketShutdown([[maybe_unused]] const Poco::AutoPtr<Poco::Net::ShutdownNotification>& pNf) {
