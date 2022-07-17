@@ -156,6 +156,12 @@ namespace OpenWifi {
 	WSConnection::WSConnection(Poco::Net::HTTPServerRequest &request, Poco::Net::HTTPServerResponse &response, Poco::Logger & L , Poco::Net::SocketReactor &R)
 	: WS_(request,response), Logger_(L), Reactor_(R){
 		try {
+			auto SS = dynamic_cast<Poco::Net::SecureStreamSocketImpl *>(WS_.impl());
+			while (true) {
+				auto V = SS->completeHandshake();
+				if (V == 1)
+					break;
+			}
 			PeerAddress_ = WS_.peerAddress().host();
 			CId_ = Utils::FormatIPv6(PeerAddress_.toString());
 			if (!WS_.secure()) {
@@ -163,7 +169,6 @@ namespace OpenWifi {
 			} else {
 				poco_trace(Logger(),fmt::format("{}: Connection is secure.", CId_));
 			}
-			auto SS = dynamic_cast<Poco::Net::SecureStreamSocketImpl *>(Socket_.impl());
 			if (SS->havePeerCertificate()) {
 				CertValidation_ = GWObjects::VALID_CERTIFICATE;
 				try {
