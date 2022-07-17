@@ -330,10 +330,8 @@ namespace OpenWifi {
 										Poco::NObserver<WSConnection, Poco::Net::ErrorNotification>(
 											*this, &WSConnection::OnSocketError));
 			WS_.close();
-			Socket_.shutdown();
 		} else {
 			WS_.close();
-			Socket_.shutdown();
 		}
 
 		if (KafkaManager()->Enabled() && !SerialNumber_.empty()) {
