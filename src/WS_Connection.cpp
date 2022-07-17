@@ -24,6 +24,7 @@
 #include "TelemetryStream.h"
 #include "CentralConfig.h"
 #include "FindCountry.h"
+#include "VenueBroadcaster.h"
 #include "framework/WebSocketClientNotifications.h"
 
 #include "RADIUS_proxy_server.h"
@@ -753,6 +754,14 @@ namespace OpenWifi {
 			}
 		} break;
 
+		case uCentralProtocol::Events::ET_VENUEBROADCAST: {
+			if(ParamsObj->has("data") && ParamsObj->has("serial") && ParamsObj->has("timestamp")) {
+				VenueBroadcaster()->Broadcast(
+					ParamsObj->get("serial").toString(),
+					ParamsObj->get("data").toString(),
+					ParamsObj->get("timestamp"));
+			}
+		} break;
 		// 	this will never be called but some compilers will complain if we do not have a case for
 		//	every single values of an enum
 		case uCentralProtocol::Events::ET_UNKNOWN: {

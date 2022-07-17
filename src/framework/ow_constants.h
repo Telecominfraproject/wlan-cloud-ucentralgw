@@ -445,6 +445,7 @@ namespace OpenWifi::uCentralProtocol::Events {
     static const char *RECOVERY = "recovery";
     static const char *TELEMETRY = "telemetry";
     static const char *DEVICEUPDATE = "deviceupdate";
+	static const char *VENUE_BROADCAST = "venue_broadcast";
 
     enum EVENT_MSG {
 		ET_UNKNOWN,
@@ -457,7 +458,8 @@ namespace OpenWifi::uCentralProtocol::Events {
 		ET_CFGPENDING,
 		ET_RECOVERY,
 		ET_DEVICEUPDATE,
-		ET_TELEMETRY
+		ET_TELEMETRY,
+		ET_VENUEBROADCAST
 	};
 
 	inline EVENT_MSG EventFromString(const std::string & Method) {
@@ -481,6 +483,8 @@ namespace OpenWifi::uCentralProtocol::Events {
 			return ET_RECOVERY;
 		else if(strcmp(TELEMETRY,Method.c_str())==0)
 			return ET_TELEMETRY;
+		else if(strcmp(VENUE_BROADCAST,Method.c_str())==0)
+			return ET_VENUEBROADCAST;
 		return ET_UNKNOWN;
 	};
 }

@@ -15,6 +15,7 @@
 #include "framework/MicroService.h"
 #include "framework/ow_constants.h"
 #include "RESTAPI_device_helper.h"
+#include "sdks/sdk_prov.h"
 
 namespace OpenWifi {
 	void RESTAPI_device_handler::DoGet() {
@@ -23,6 +24,17 @@ namespace OpenWifi {
 		if(SerialNumber.empty()) {
 			return BadRequest(RESTAPI::Errors::MissingSerialNumber);
 		}
+
+		std::string Venue;
+		Types::StringVec SerialNumbers;
+		if(OpenWifi::SDK::Prov::GetSerialNumbersForVenueOfSerialNumber(SerialNumber,Venue,SerialNumbers,Logger())) {
+			std::cout << "Venue: " << Venue << std::endl;
+			for(const auto &n:SerialNumbers)
+				std::cout << " ---> " << n << std::endl;
+		} else {
+			std::cout << "Cannot get serial numbers" << std::endl;
+		}
+
 
 		GWObjects::Device Device;
 		if (StorageService()->GetDevice(SerialNumber, Device)) {

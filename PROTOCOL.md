@@ -184,6 +184,21 @@ The device should answer:
 }
 ```
 
+#### Device requests a venue broadcast message
+Device send this message when it wants to reach out to all other APs in the same venue. The GW will find the 
+venue where this device belongs and resend the same message to all other devices in the venue.
+```json
+{   "jsonrpc" : "2.0" , 
+    "method" : "venue_broadcast" , 
+    "params" : {
+        "serial" : <serial number> ,
+        "timestamp" : <the UTC timestamp when the message was sent>,
+        "data" : <an opaque string from the AP. This could be Zipped and so on and most likely base64 encoded>
+    }
+}
+```
+Upon receiving a `venue_broadcast` message, the GW will simply resent the message to all the APs in the venue.
+
 ### Controller commands
 Most controller commands include a `when` member. This is a UTC clock time asking the AP
 to perform the command at that time. This is a suggestion only. The AP may ignore this
