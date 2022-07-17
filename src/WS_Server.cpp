@@ -76,6 +76,7 @@ namespace OpenWifi {
 
 			auto ctx = Sock.context();
 			auto sslCtx = ctx->sslContext();
+			SSL_CTX_dane_set_flags(sslCtx,0);
 			// SSL_CTX_set_cert_verify_callback
 			SSL_CTX_set_verify(sslCtx, SSL_VERIFY_PEER | SSL_VERIFY_CLIENT_ONCE,
 							   verify_callback);
