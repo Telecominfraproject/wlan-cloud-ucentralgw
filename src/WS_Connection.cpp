@@ -157,7 +157,7 @@ namespace OpenWifi {
 	: WS_(request,response), Logger_(L), Reactor_(R) {
 		try {
 			std::cout << __LINE__ << std::endl;
-			auto SS = dynamic_cast<Poco::Net::SecureStreamSocketImpl *>(WS_.impl());
+			auto SS = dynamic_cast<Poco::Net::SecureSocketImpl *>(WS_.impl());
 			std::cout << __LINE__ << std::endl;
 			while (true) {
 				std::cout << __LINE__ << std::endl;
@@ -179,24 +179,19 @@ namespace OpenWifi {
 				poco_trace(Logger(),fmt::format("{}: Connection is secure.", CId_));
 			}
 			std::cout << __LINE__ << std::endl;
-			if (SS->havePeerCertificate()) {
-				std::cout << __LINE__ << std::endl;
-				CertValidation_ = GWObjects::VALID_CERTIFICATE;
-				try {
-					Poco::Crypto::X509Certificate PeerCert(SS->peerCertificate());
-						if (WebSocketServer()->ValidateCertificate(CId_, PeerCert)) {
-						CN_ = Poco::trim(Poco::toLower(PeerCert.commonName()));
-						CertValidation_ = GWObjects::MISMATCH_SERIAL;
-						poco_trace(Logger(),fmt::format("{}: Valid certificate: CN={}", CId_, CN_));
-					} else {
-						poco_error(Logger(),fmt::format("{}: Certificate is not valid", CId_));
-					}
-				} catch (const Poco::Exception &E) {
-					LogException(E);
+			std::cout << __LINE__ << std::endl;
+			CertValidation_ = GWObjects::VALID_CERTIFICATE;
+			try {
+				Poco::Crypto::X509Certificate PeerCert(SS->peerCertificate());
+					if (WebSocketServer()->ValidateCertificate(CId_, PeerCert)) {
+					CN_ = Poco::trim(Poco::toLower(PeerCert.commonName()));
+					CertValidation_ = GWObjects::MISMATCH_SERIAL;
+					poco_trace(Logger(),fmt::format("{}: Valid certificate: CN={}", CId_, CN_));
+				} else {
+					poco_error(Logger(),fmt::format("{}: Certificate is not valid", CId_));
 				}
-			} else {
-				std::cout << __LINE__ << std::endl;
-				poco_error(Logger(),fmt::format("{}: No certificates available..", CId_));
+			} catch (const Poco::Exception &E) {
+				LogException(E);
 			}
 			std::cout << __LINE__ << std::endl;
 
