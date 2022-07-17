@@ -154,11 +154,15 @@ namespace OpenWifi {
 */
 
 	WSConnection::WSConnection(Poco::Net::HTTPServerRequest &request, Poco::Net::HTTPServerResponse &response, Poco::Logger & L , Poco::Net::SocketReactor &R)
-	: WS_(request,response),Logger_(L), Reactor_(R) {
+	: Logger_(L), Reactor_(R) {
 		try {
 
 			std::cout << __LINE__ << std::endl;
-			auto SS = dynamic_cast<Poco::Net::SecureSocketImpl *>(WS_.impl());
+
+			WS_ = std::make_unique<Poco::Net::WebSocket>(request,response);
+
+			std::cout << __LINE__ << std::endl;
+			auto SS = dynamic_cast<Poco::Net::SecureSocketImpl *>(WS_->impl());
 			std::cout << __LINE__ << std::endl;
 			while (true) {
 				std::cout << __LINE__ << std::endl;
@@ -168,11 +172,11 @@ namespace OpenWifi {
 					break;
 			}
 			std::cout << __LINE__ << std::endl;
-			PeerAddress_ = WS_.peerAddress().host();
+			PeerAddress_ = WS_->peerAddress().host();
 			std::cout << __LINE__ << std::endl;
 			CId_ = Utils::FormatIPv6(PeerAddress_.toString());
 			std::cout << __LINE__ << std::endl;
-			if (!WS_.secure()) {
+			if (!WS_->secure()) {
 				std::cout << __LINE__ << std::endl;
 				poco_error(Logger(),fmt::format("{}: Connection is NOT secure.", CId_));
 			} else {
@@ -214,20 +218,20 @@ namespace OpenWifi {
 			}
 			std::cout << __LINE__ << std::endl;
 
-			WS_.setMaxPayloadSize(BufSize);
+			WS_->setMaxPayloadSize(BufSize);
 			auto TS = Poco::Timespan(360, 0);
 
-			WS_.setReceiveTimeout(TS);
-			WS_.setNoDelay(true);
-			WS_.setKeepAlive(true);
+			WS_->setReceiveTimeout(TS);
+			WS_->setNoDelay(true);
+			WS_->setKeepAlive(true);
 
-			Reactor_.addEventHandler(WS_,
+			Reactor_.addEventHandler(*WS_,
 									 Poco::NObserver<WSConnection, Poco::Net::ReadableNotification>(
 										 *this, &WSConnection::OnSocketReadable));
-			Reactor_.addEventHandler(WS_,
+			Reactor_.addEventHandler(*WS_,
 									 Poco::NObserver<WSConnection, Poco::Net::ShutdownNotification>(
 										 *this, &WSConnection::OnSocketShutdown));
-			Reactor_.addEventHandler(WS_, Poco::NObserver<WSConnection, Poco::Net::ErrorNotification>(
+			Reactor_.addEventHandler(*WS_, Poco::NObserver<WSConnection, Poco::Net::ErrorNotification>(
 											   *this, &WSConnection::OnSocketError));
 			Registered_ = true;
 			poco_debug(Logger(),fmt::format("CONNECTION({}): completed.", CId_));
@@ -333,18 +337,18 @@ namespace OpenWifi {
 			DeviceRegistry()->UnRegister(SerialNumberInt_, ConnectionId_);
 
 		if (Registered_) {
-			Reactor_.removeEventHandler(WS_,
+			Reactor_.removeEventHandler(*WS_,
 										Poco::NObserver<WSConnection, Poco::Net::ReadableNotification>(
 											*this, &WSConnection::OnSocketReadable));
-			Reactor_.removeEventHandler(WS_,
+			Reactor_.removeEventHandler(*WS_,
 										Poco::NObserver<WSConnection, Poco::Net::ShutdownNotification>(
 											*this, &WSConnection::OnSocketShutdown));
-			Reactor_.removeEventHandler(WS_,
+			Reactor_.removeEventHandler(*WS_,
 										Poco::NObserver<WSConnection, Poco::Net::ErrorNotification>(
 											*this, &WSConnection::OnSocketError));
-			WS_.close();
+			WS_->close();
 		} else {
-			WS_.close();
+			WS_->close();
 		}
 
 		if (KafkaManager()->Enabled() && !SerialNumber_.empty()) {
@@ -513,7 +517,7 @@ namespace OpenWifi {
 				Conn_->Conn_.Firmware = Firmware;
 				Conn_->Conn_.PendingUUID = 0;
 				Conn_->Conn_.LastContact = OpenWifi::Now();
-				Conn_->Conn_.Address = Utils::FormatIPv6(WS_.peerAddress().toString());
+				Conn_->Conn_.Address = Utils::FormatIPv6(WS_->peerAddress().toString());
 				CId_ = SerialNumber_ + "@" + CId_;
 				//	We need to verify the certificate if we have one
 				if ((!CN_.empty() && Utils::SerialNumberMatch(CN_, SerialNumber_)) ||
@@ -1066,7 +1070,7 @@ namespace OpenWifi {
 		try {
 			int Op, flags;
 			int IncomingSize;
-			IncomingSize = WS_.receiveFrame(IncomingFrame, flags);
+			IncomingSize = WS_->receiveFrame(IncomingFrame, flags);
 
 			Op = flags & Poco::Net::WebSocket::FRAME_OP_BITMASK;
 
@@ -1090,7 +1094,7 @@ namespace OpenWifi {
 				switch (Op) {
 				case Poco::Net::WebSocket::FRAME_OP_PING: {
 					poco_trace(Logger(), fmt::format("WS-PING({}): received. PONG sent back.", CId_));
-					WS_.sendFrame("", 0,
+					WS_->sendFrame("", 0,
 								   (int)Poco::Net::WebSocket::FRAME_OP_PONG |
 									   (int)Poco::Net::WebSocket::FRAME_FLAG_FIN);
 					if (Conn_ != nullptr) {
@@ -1229,7 +1233,7 @@ namespace OpenWifi {
 	bool WSConnection::Send(const std::string &Payload) {
 		std::lock_guard Guard(Mutex_);
 
-		size_t BytesSent = WS_.sendFrame(Payload.c_str(), (int)Payload.size());
+		size_t BytesSent = WS_->sendFrame(Payload.c_str(), (int)Payload.size());
 		if (Conn_)
 			Conn_->Conn_.TX += BytesSent;
 		return BytesSent == Payload.size();

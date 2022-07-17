@@ -72,6 +72,8 @@ namespace OpenWifi {
 				Logger().information( fmt::format("Certificate Issuer Name:{}",IssuerCert_->issuerName()));
 			}
 
+
+
 			auto ctx = Sock.context();
 			auto sslCtx = ctx->sslContext();
 			SSL_CTX_set_verify(sslCtx, SSL_VERIFY_PEER | SSL_VERIFY_CLIENT_ONCE,

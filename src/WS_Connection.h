@@ -64,11 +64,11 @@ namespace OpenWifi {
 
 	  private:
 		std::recursive_mutex                Mutex_;
-		Poco::Net::WebSocket				WS_;
+//		Poco::Net::WebSocket				WS_;
 		Poco::Logger                    	&Logger_;
 //		Poco::Net::StreamSocket       		Socket_;
 		Poco::Net::SocketReactor			& Reactor_;
-//		std::unique_ptr<Poco::Net::WebSocket> WS_;
+		std::unique_ptr<Poco::Net::WebSocket> WS_;
 		std::string                         SerialNumber_;
 		uint64_t 							SerialNumberInt_=0;
 		std::string 						Compatible_;
