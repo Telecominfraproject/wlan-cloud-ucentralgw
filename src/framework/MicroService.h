@@ -1418,6 +1418,7 @@ namespace OpenWifi {
 	        P.caLocation = cas_;
 
 	        auto Context = Poco::AutoPtr<Poco::Net::Context>(new Poco::Net::Context(Poco::Net::Context::TLS_SERVER_USE, P));
+			Context->enableExtendedCertificateVerification()
 
 	        if(!key_file_password_.empty()) {
 	            auto PassphraseHandler = Poco::SharedPtr<MyPrivateKeyPassphraseHandler>( new MyPrivateKeyPassphraseHandler(key_file_password_,L));
@@ -1464,7 +1465,8 @@ namespace OpenWifi {
 	            Context->enableSessionCache();
 	            Context->setSessionCacheSize(0);
 	            Context->setSessionTimeout(60);
-	            Context->enableExtendedCertificateVerification(true);
+	            // Context->enableExtendedCertificateVerification(true);
+				Context->enableExtendedCertificateVerification(false);
 	            Context->disableStatelessSessionResumption();
 	        }
 
