@@ -9,7 +9,7 @@
 
 namespace OpenWifi::SDK::Prov {
 
-	bool GetSerialNumbersForVenueOfSerialNumber( const std::string & SerialNumber, Types::UUID_t &Venue, Types::StringVec & AdjacentSerialNumbers , Poco::Logger &Logger ) {
+	inline bool GetSerialNumbersForVenueOfSerialNumber( const std::string & SerialNumber, Types::UUID_t &Venue, Types::StringVec & AdjacentSerialNumbers , Poco::Logger &Logger ) {
 		OpenAPIRequestGet	GetInventoryForSerialNumber( uSERVICE_PROVISIONING, "/api/v1/inventory/" + SerialNumber , {} , 30000);
 
 		auto CallResponse1 = Poco::makeShared<Poco::JSON::Object>();

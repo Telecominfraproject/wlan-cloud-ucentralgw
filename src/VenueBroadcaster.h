@@ -5,6 +5,8 @@
 #pragma once
 
 #include "framework/MicroService.h"
+#include "sdks/sdk_prov.h"
+#include "DeviceRegistry.h"
 
 namespace OpenWifi {
 
@@ -28,7 +30,7 @@ namespace OpenWifi {
 			return instance_;
 		}
 
-		int Start() override {
+		inline int Start() override {
 			Enabled_ = MicroService::instance().ConfigGetBool("venue_broadcast.enabled",true);
 			if(Enabled_) {
 				BroadcastManager_.start(*this);
@@ -36,7 +38,7 @@ namespace OpenWifi {
 			return 0;
 		}
 
-		void Stop() override {
+		inline void Stop() override {
 			if(Enabled_ && Running_) {
 				BroadcastQueue_.wakeUpAll();
 				BroadcastManager_.wakeUp();
@@ -44,29 +46,83 @@ namespace OpenWifi {
 			}
 		}
 
-		void reinitialize([[maybe_unused]] Poco::Util::Application &self) override {
+		inline void reinitialize([[maybe_unused]] Poco::Util::Application &self) override {
 			Logger().information("Reinitializing.");
 		}
 
 
-		void run() final {
+		struct VenueInfo {
+			uint64_t 			timestamp=OpenWifi::Now();
+			Types::StringVec 	serialNumbers;
+		};
+
+		inline bool FindSerialNumberList(const std::string &Source, OpenWifi::Types::StringVec & SerialNumbers) {
+			//	Can we find our serial number in any of the lists so far...
+			for(const auto &venue:Venues_) {
+				auto entry = std::find(venue.second.serialNumbers.begin(),venue.second.serialNumbers.end(),Source);
+				if(entry!=venue.second.serialNumbers.end() && (OpenWifi::Now()-venue.second.timestamp)<600) {
+					SerialNumbers = venue.second.serialNumbers;
+					auto entry2 = std::find(SerialNumbers.begin(),SerialNumbers.end(),Source);
+					SerialNumbers.erase(entry2);
+					return true;
+				}
+			}
+
+			//	get the venue from Prov and the serial numbers.
+			Types::UUID_t 		Venue;
+			Types::StringVec 	TmpSerialNumbers;
+			if(OpenWifi::SDK::Prov::GetSerialNumbersForVenueOfSerialNumber(Source,Venue,TmpSerialNumbers,Logger())) {
+				std::sort(TmpSerialNumbers.begin(),TmpSerialNumbers.end());
+				VenueInfo	V{.timestamp=OpenWifi::Now(), .serialNumbers=TmpSerialNumbers};
+				Venues_[Venue] = V;
+				auto p = std::find(TmpSerialNumbers.begin(),TmpSerialNumbers.end(),Source);
+				if(p!=TmpSerialNumbers.end()) {
+					TmpSerialNumbers.erase(p);
+					SerialNumbers = TmpSerialNumbers;
+					return true;
+				}
+			}
+
+			return false;
+		}
+
+		inline void SendToDevice(const std::string &SerialNumber,const std::string &Payload) {
+			DeviceRegistry()->SendFrame(SerialNumber,Payload);
+		}
+
+		inline void run() final {
 			Running_ = true;
 			Utils::SetThreadName("venue-bcast");
 			Poco::AutoPtr<Poco::Notification> NextNotification(BroadcastQueue_.waitDequeueNotification());
 			while (NextNotification && Running_) {
 				auto Notification = dynamic_cast<VenueBroadcastNotification *>(NextNotification.get());
 				if (Notification != nullptr) {
-					// find the source in our venues, if not present, we must find the source's venue
-					// then get all the serial number in the venue. then send the same message to all the venues.
+					Types::StringVec SerialNumbers;
+					if(FindSerialNumberList(Notification->SourceSerialNumber_,SerialNumbers)) {
+						Poco::JSON::Object	Payload;
+						Payload.set("jsonrpc","2.0");
+						Payload.set("method","venue_broadcast");
+						Poco::JSON::Object	ParamBlock;
+						ParamBlock.set("serial",Notification->SourceSerialNumber_);
+						ParamBlock.set("timestamp",Notification->TimeStamp_);
+						ParamBlock.set("data",Notification->Data_);
+						Payload.set("params", ParamBlock);
+						std::ostringstream o;
+						Payload.stringify(o);
+						for(const auto &Device:SerialNumbers) {
+							SendToDevice(Device,o.str());
+						}
+					}
 				}
 				NextNotification = BroadcastQueue_.waitDequeueNotification();
 			}
 			Running_=false;
 		}
 
-		void Broadcast(const std::string &SourceSerial, const std::string &Data, uint64_t TimeStamp) {
+		inline void Broadcast(const std::string &SourceSerial, const std::string &Data, uint64_t TimeStamp) {
 			BroadcastQueue_.enqueueNotification(new VenueBroadcastNotification(SourceSerial,Data,TimeStamp));
 		}
+
 
 	  private:
 		std::atomic_bool 				Running_=false;
@@ -74,7 +130,7 @@ namespace OpenWifi {
 		Poco::NotificationQueue			BroadcastQueue_;
 		Poco::Thread					BroadcastManager_;
 
-		std::map<OpenWifi::Types::UUID_t,OpenWifi::Types::UUIDvec_t>	Venues_;
+		std::map<OpenWifi::Types::UUID_t,VenueInfo>	Venues_;
 
 		VenueBroadcaster() noexcept:
 							   SubSystemServer("VenueBroadcaster", "VENUE-BCAST", "venue.broacast")
