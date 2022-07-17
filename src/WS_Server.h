@@ -37,6 +37,7 @@ namespace OpenWifi {
 		inline void handleRequest(Poco::Net::HTTPServerRequest &request,
 					  Poco::Net::HTTPServerResponse &response)  override {
 			try {
+				std::cout << "Creating websocket" << std::endl;
 				new WSConnection(request, response, Logger_, Reactor_);
 			} catch (...) {
 				Logger_.warning("Exception during WS creation");
@@ -55,6 +56,7 @@ namespace OpenWifi {
 		}
 
 		Poco::Net::HTTPRequestHandler * createRequestHandler([[maybe_unused]] const Poco::Net::HTTPServerRequest &request) override {
+			std::cout << "Creating handler" << std::endl;
 			return new APWebSocketRequestHandler(Logger_,Reactor_);
 		}
 
