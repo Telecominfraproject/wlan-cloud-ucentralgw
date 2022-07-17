@@ -28,6 +28,29 @@ namespace OpenWifi {
 	}
 
 	int WebSocketServer::Start() {
+
+		for(const auto & Svr: ConfigServersList_) {
+			Logger().information(fmt::format("Starting: {}:{} Keyfile:{} CertFile: {}", Svr.Address(), Svr.Port(),
+											 Svr.KeyFile(),Svr.CertFile()));
+			Svr.LogCert(Logger());
+			if (!Svr.RootCA().empty())
+				Svr.LogCas(Logger());
+
+			Poco::Net::HTTPServerParams::Ptr Params = new Poco::Net::HTTPServerParams;
+			Params->setMaxThreads(50);
+			Params->setMaxQueued(200);
+			Params->setKeepAlive(true);
+
+			std::unique_ptr<Poco::Net::HTTPServer>  NewServer;
+			auto Sock{Svr.CreateSecureSocket(Logger())};
+			ConnectionServer_ = std::make_unique<Poco::Net::HTTPServer>(new APWebSocketRequestHandlerFactory(Logger(),Reactor_), Sock, Params);
+			ConnectionServer_->start();
+		}
+		ReactorThread_.start(Reactor_);
+		return 0;
+	}
+
+/*	int WebSocketServer::Start() {
 		// ReactorPool_.Start("DeviceReactorPool_");
         for(const auto & Svr : ConfigServersList_ ) {
             Logger().notice( fmt::format("Starting: {}:{} Keyfile:{} CertFile: {}",
@@ -45,7 +68,7 @@ namespace OpenWifi {
 				IssuerCert_ = std::make_unique<Poco::Crypto::X509Certificate>(Svr.IssuerCertFile());
 				Logger().information( fmt::format("Certificate Issuer Name:{}",IssuerCert_->issuerName()));
 			}
-			auto NewSocketAcceptor = std::make_unique<ws_server_reactor_type_t>(Sock, Reactor_); // ,   2 /*Poco::Environment::processorCount()*2) */ );
+			auto NewSocketAcceptor = std::make_unique<ws_server_reactor_type_t>(Sock, Reactor_); // ,   2  );
             Acceptors_.push_back(std::move(NewSocketAcceptor));
         }
 
@@ -71,9 +94,11 @@ namespace OpenWifi {
 
         return 0;
     }
+*/
 
     void WebSocketServer::Stop() {
         Logger().notice("Stopping reactors...");
+		ConnectionServer_->stopAll();
 		// ReactorPool_.Stop();
 		Reactor_.stop();
 		ReactorThread_.join();

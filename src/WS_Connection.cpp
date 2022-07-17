@@ -35,7 +35,7 @@ namespace OpenWifi {
 		Logger().information(fmt::format("EXCEPTION({}): {}", CId_, E.displayText()));
 	}
 
-	void WSConnection::CompleteStartup() {
+/*	void WSConnection::CompleteStartup() {
 		std::lock_guard Guard(Mutex_);
 		try {
 			auto SS = dynamic_cast<Poco::Net::SecureStreamSocketImpl *>(Socket_.impl());
@@ -151,8 +151,107 @@ namespace OpenWifi {
 		}
 		return delete this;
 	}
+*/
 
-	WSConnection::WSConnection(Poco::Net::StreamSocket &socket, [[maybe_unused]] Poco::Net::SocketReactor &reactor)
+	WSConnection::WSConnection(Poco::Net::HTTPServerRequest &request, Poco::Net::HTTPServerResponse &response, Poco::Logger & L , Poco::Net::SocketReactor &R)
+	: WS_(request,response), Logger_(L), Reactor_(R){
+		try {
+			PeerAddress_ = WS_.peerAddress().host();
+			CId_ = Utils::FormatIPv6(PeerAddress_.toString());
+			if (!WS_.secure()) {
+				poco_error(Logger(),fmt::format("{}: Connection is NOT secure.", CId_));
+			} else {
+				poco_trace(Logger(),fmt::format("{}: Connection is secure.", CId_));
+			}
+			auto SS = dynamic_cast<Poco::Net::SecureStreamSocketImpl *>(Socket_.impl());
+			if (SS->havePeerCertificate()) {
+				CertValidation_ = GWObjects::VALID_CERTIFICATE;
+				try {
+					Poco::Crypto::X509Certificate PeerCert(SS->peerCertificate());
+						if (WebSocketServer()->ValidateCertificate(CId_, PeerCert)) {
+						CN_ = Poco::trim(Poco::toLower(PeerCert.commonName()));
+						CertValidation_ = GWObjects::MISMATCH_SERIAL;
+						poco_trace(Logger(),fmt::format("{}: Valid certificate: CN={}", CId_, CN_));
+					} else {
+						poco_error(Logger(),fmt::format("{}: Certificate is not valid", CId_));
+					}
+				} catch (const Poco::Exception &E) {
+					LogException(E);
+				}
+			} else {
+				poco_error(Logger(),fmt::format("{}: No certificates available..", CId_));
+			}
+
+			if (WebSocketServer::IsSim(CN_) && !WebSocketServer()->IsSimEnabled()) {
+				Logger().debug(fmt::format(
+					"CONNECTION({}): Sim Device {} is not allowed. Disconnecting.", CId_, CN_));
+				delete this;
+				return;
+			}
+
+			SerialNumber_ = CN_;
+			SerialNumberInt_ = Utils::SerialNumberToInt(SerialNumber_);
+			if (!CN_.empty() && StorageService()->IsBlackListed(SerialNumber_)) {
+				Logger().debug(fmt::format("CONNECTION({}): Device {} is black listed. Disconnecting.",
+										   CId_, CN_));
+				delete this;
+				return;
+			}
+			WS_.setMaxPayloadSize(BufSize);
+			auto TS = Poco::Timespan(360, 0);
+
+			WS_.setReceiveTimeout(TS);
+			WS_.setNoDelay(true);
+			WS_.setKeepAlive(true);
+
+			Reactor_.addEventHandler(WS_,
+									 Poco::NObserver<WSConnection, Poco::Net::ReadableNotification>(
+										 *this, &WSConnection::OnSocketReadable));
+			Reactor_.addEventHandler(WS_,
+									 Poco::NObserver<WSConnection, Poco::Net::ShutdownNotification>(
+										 *this, &WSConnection::OnSocketShutdown));
+			Reactor_.addEventHandler(WS_, Poco::NObserver<WSConnection, Poco::Net::ErrorNotification>(
+											   *this, &WSConnection::OnSocketError));
+			Registered_ = true;
+			poco_debug(Logger(),fmt::format("CONNECTION({}): completed.", CId_));
+			return;
+		} catch (const Poco::Net::CertificateValidationException &E) {
+			Logger().error(fmt::format("CONNECTION({}): Poco::Exception Certificate Validation failed during connection. Device will have to retry.",
+									   CId_));
+			Logger().log(E);
+		} catch (const Poco::Net::WebSocketException &E) {
+			Logger().error(fmt::format("CONNECTION({}): Poco::Exception WebSocket error during connection. Device will have to retry.",
+									   CId_));
+			Logger().log(E);
+		} catch (const Poco::Net::ConnectionAbortedException &E) {
+			Logger().error(fmt::format("CONNECTION({}): Poco::Exception Connection was aborted during connection. Device will have to retry.",
+									   CId_));
+			Logger().log(E);
+		} catch (const Poco::Net::ConnectionResetException &E) {
+			Logger().error(fmt::format("CONNECTION({}): Poco::Exception Connection was reset during connection. Device will have to retry.",
+									   CId_));
+			Logger().log(E);
+		} catch (const Poco::Net::InvalidCertificateException &E) {
+			Logger().error(fmt::format(
+				"CONNECTION({}): Poco::Exception Invalid certificate. Device will have to retry.",
+				CId_));
+			Logger().log(E);
+		} catch (const Poco::Net::SSLException &E) {
+			Logger().error(fmt::format("CONNECTION({}): Poco::Exception SSL Exception during connection. Device will have to retry.",
+									   CId_));
+			Logger().log(E);
+		} catch (const Poco::Exception &E) {
+			Logger().error(fmt::format("CONNECTION({}): Poco::Exception caught during device connection. Device will have to retry.",
+									   CId_));
+			Logger().log(E);
+		} catch (...) {
+			Logger().error(fmt::format("CONNECTION({}): Exception caught during device connection. Device will have to retry. Unsecure connect denied.",
+									   CId_));
+		}
+		delete this;
+	}
+
+/*	WSConnection::WSConnection(Poco::Net::StreamSocket &socket, [[maybe_unused]] Poco::Net::SocketReactor &reactor)
 		: Logger_(WebSocketServer()->Logger()) ,
 		  Socket_(socket),
 		  Reactor_(ReactorThreadPool()->NextReactor())
@@ -160,6 +259,7 @@ namespace OpenWifi {
 		std::thread T([=]() { CompleteStartup(); });
 		T.detach();
 	}
+*/
 
 	static void NotifyKafkaDisconnect(const std::string & SerialNumber) {
 		try {
@@ -176,7 +276,7 @@ namespace OpenWifi {
 		}
 	}
 
-	WSConnection::~WSConnection() {
+/*	WSConnection::~WSConnection() {
 
 		poco_debug(Logger(),fmt::format("{}: Removing connection for {}.", CId_, SerialNumber_));
 		if (ConnectionId_)
@@ -205,6 +305,37 @@ namespace OpenWifi {
 			t.detach();
 		}
 
+		WebSocketClientNotificationDeviceDisconnected(SerialNumber_);
+	}
+*/
+
+	WSConnection::~WSConnection() {
+		poco_debug(Logger(),fmt::format("{}: Removing connection for {}.", CId_, SerialNumber_));
+		if (ConnectionId_)
+			DeviceRegistry()->UnRegister(SerialNumberInt_, ConnectionId_);
+
+		if (Registered_) {
+			Reactor_.removeEventHandler(WS_,
+										Poco::NObserver<WSConnection, Poco::Net::ReadableNotification>(
+											*this, &WSConnection::OnSocketReadable));
+			Reactor_.removeEventHandler(WS_,
+										Poco::NObserver<WSConnection, Poco::Net::ShutdownNotification>(
+											*this, &WSConnection::OnSocketShutdown));
+			Reactor_.removeEventHandler(WS_,
+										Poco::NObserver<WSConnection, Poco::Net::ErrorNotification>(
+											*this, &WSConnection::OnSocketError));
+			WS_.close();
+			Socket_.shutdown();
+		} else {
+			WS_.close();
+			Socket_.shutdown();
+		}
+
+		if (KafkaManager()->Enabled() && !SerialNumber_.empty()) {
+			std::string s(SerialNumber_);
+			std::thread t([s]() { NotifyKafkaDisconnect(s); });
+			t.detach();
+		}
 		WebSocketClientNotificationDeviceDisconnected(SerialNumber_);
 	}
 
@@ -366,7 +497,7 @@ namespace OpenWifi {
 				Conn_->Conn_.Firmware = Firmware;
 				Conn_->Conn_.PendingUUID = 0;
 				Conn_->Conn_.LastContact = OpenWifi::Now();
-				Conn_->Conn_.Address = Utils::FormatIPv6(WS_->peerAddress().toString());
+				Conn_->Conn_.Address = Utils::FormatIPv6(WS_.peerAddress().toString());
 				CId_ = SerialNumber_ + "@" + CId_;
 				//	We need to verify the certificate if we have one
 				if ((!CN_.empty() && Utils::SerialNumberMatch(CN_, SerialNumber_)) ||
@@ -919,7 +1050,7 @@ namespace OpenWifi {
 		try {
 			int Op, flags;
 			int IncomingSize;
-			IncomingSize = WS_->receiveFrame(IncomingFrame, flags);
+			IncomingSize = WS_.receiveFrame(IncomingFrame, flags);
 
 			Op = flags & Poco::Net::WebSocket::FRAME_OP_BITMASK;
 
@@ -943,7 +1074,7 @@ namespace OpenWifi {
 				switch (Op) {
 				case Poco::Net::WebSocket::FRAME_OP_PING: {
 					poco_trace(Logger(), fmt::format("WS-PING({}): received. PONG sent back.", CId_));
-					WS_->sendFrame("", 0,
+					WS_.sendFrame("", 0,
 								   (int)Poco::Net::WebSocket::FRAME_OP_PONG |
 									   (int)Poco::Net::WebSocket::FRAME_FLAG_FIN);
 					if (Conn_ != nullptr) {
@@ -1082,7 +1213,7 @@ namespace OpenWifi {
 	bool WSConnection::Send(const std::string &Payload) {
 		std::lock_guard Guard(Mutex_);
 
-		size_t BytesSent = WS_->sendFrame(Payload.c_str(), (int)Payload.size());
+		size_t BytesSent = WS_.sendFrame(Payload.c_str(), (int)Payload.size());
 		if (Conn_)
 			Conn_->Conn_.TX += BytesSent;
 		return BytesSent == Payload.size();
