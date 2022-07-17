@@ -27,6 +27,13 @@ namespace OpenWifi {
 		return false;
 	}
 
+
+	typedef int (*SSL_verify_cb)(int preverify_ok, X509_STORE_CTX *x509_ctx);
+	static int verify_callback(int preverify_ok, X509_STORE_CTX *ctx) {
+		std::cout << "verify callback" << std::endl;
+		return 1;
+	}
+
 	int WebSocketServer::Start() {
 
 		auto ProvString = MicroService::instance().ConfigGetString("autoprovisioning.process","default");
@@ -65,6 +72,10 @@ namespace OpenWifi {
 				Logger().information( fmt::format("Certificate Issuer Name:{}",IssuerCert_->issuerName()));
 			}
 
+			auto ctx = Sock.context();
+			auto sslCtx = ctx->sslContext();
+			SSL_CTX_set_verify(sslCtx, SSL_VERIFY_PEER | SSL_VERIFY_CLIENT_ONCE,
+							   verify_callback);
 			ConnectionServer_ = std::make_unique<Poco::Net::HTTPServer>(new APWebSocketRequestHandlerFactory(Logger(),Reactor_), Sock, Params);
 			ConnectionServer_->start();
 		}
