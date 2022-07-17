@@ -1464,8 +1464,7 @@ namespace OpenWifi {
 	            Context->enableSessionCache();
 	            Context->setSessionCacheSize(0);
 	            Context->setSessionTimeout(60);
-	            // Context->enableExtendedCertificateVerification(true);
-				Context->enableExtendedCertificateVerification(false);
+	            Context->enableExtendedCertificateVerification(true);
 	            Context->disableStatelessSessionResumption();
 	        }
 
