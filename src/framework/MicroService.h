@@ -1418,7 +1418,6 @@ namespace OpenWifi {
 	        P.caLocation = cas_;
 
 	        auto Context = Poco::AutoPtr<Poco::Net::Context>(new Poco::Net::Context(Poco::Net::Context::TLS_SERVER_USE, P));
-			Context->enableExtendedCertificateVerification()
 
 	        if(!key_file_password_.empty()) {
 	            auto PassphraseHandler = Poco::SharedPtr<MyPrivateKeyPassphraseHandler>( new MyPrivateKeyPassphraseHandler(key_file_password_,L));
