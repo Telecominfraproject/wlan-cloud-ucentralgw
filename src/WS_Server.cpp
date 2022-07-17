@@ -29,6 +29,22 @@ namespace OpenWifi {
 
 	int WebSocketServer::Start() {
 
+		auto ProvString = MicroService::instance().ConfigGetString("autoprovisioning.process","default");
+		if(ProvString!="default") {
+			auto Tokens = Poco::StringTokenizer(ProvString, ",");
+			for (const auto &i : Tokens) {
+				if (i == "prov")
+					LookAtProvisioning_ = true;
+				else
+					UseDefaultConfig_ = true;
+			}
+		} else {
+			UseDefaultConfig_ = true;
+		}
+
+		SimulatorId_ = MicroService::instance().ConfigGetString("simulatorid","");
+		SimulatorEnabled_ = !SimulatorId_.empty();
+
 		for(const auto & Svr: ConfigServersList_) {
 			Logger().information(fmt::format("Starting: {}:{} Keyfile:{} CertFile: {}", Svr.Address(), Svr.Port(),
 											 Svr.KeyFile(),Svr.CertFile()));
@@ -43,10 +59,18 @@ namespace OpenWifi {
 
 			std::unique_ptr<Poco::Net::HTTPServer>  NewServer;
 			auto Sock{Svr.CreateSecureSocket(Logger())};
+
+			if(!IsCertOk()) {
+				IssuerCert_ = std::make_unique<Poco::Crypto::X509Certificate>(Svr.IssuerCertFile());
+				Logger().information( fmt::format("Certificate Issuer Name:{}",IssuerCert_->issuerName()));
+			}
+
 			ConnectionServer_ = std::make_unique<Poco::Net::HTTPServer>(new APWebSocketRequestHandlerFactory(Logger(),Reactor_), Sock, Params);
 			ConnectionServer_->start();
 		}
+
 		ReactorThread_.start(Reactor_);
+		Utils::SetThreadName(ReactorThread_,"device-reactor");
 		return 0;
 	}
 
