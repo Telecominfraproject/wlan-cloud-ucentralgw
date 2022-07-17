@@ -1458,8 +1458,8 @@ namespace OpenWifi {
 	            if (level_ == Poco::Net::Context::VERIFY_STRICT) {
 	                SSL_CTX_set_client_CA_list(SSLCtx, SSL_load_client_CA_file(client_cas_.c_str()));
 	            }
-	            SSL_CTX_enable_ct(SSLCtx, SSL_CT_VALIDATION_STRICT);
-	            SSL_CTX_dane_enable(SSLCtx);
+	            SSL_CTX_enable_ct(SSLCtx, SSL_CT_VALIDATION_PERMISSIVE);
+	            // SSL_CTX_dane_enable(SSLCtx);
 
 	            Context->enableSessionCache();
 	            Context->setSessionCacheSize(0);
