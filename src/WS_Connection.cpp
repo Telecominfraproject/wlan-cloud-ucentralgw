@@ -154,22 +154,33 @@ namespace OpenWifi {
 */
 
 	WSConnection::WSConnection(Poco::Net::HTTPServerRequest &request, Poco::Net::HTTPServerResponse &response, Poco::Logger & L , Poco::Net::SocketReactor &R)
-	: WS_(request,response), Logger_(L), Reactor_(R){
+	: WS_(request,response), Logger_(L), Reactor_(R) {
 		try {
+			std::cout << __LINE__ << std::endl;
 			auto SS = dynamic_cast<Poco::Net::SecureStreamSocketImpl *>(WS_.impl());
+			std::cout << __LINE__ << std::endl;
 			while (true) {
+				std::cout << __LINE__ << std::endl;
 				auto V = SS->completeHandshake();
+				std::cout << __LINE__ << std::endl;
 				if (V == 1)
 					break;
 			}
+			std::cout << __LINE__ << std::endl;
 			PeerAddress_ = WS_.peerAddress().host();
+			std::cout << __LINE__ << std::endl;
 			CId_ = Utils::FormatIPv6(PeerAddress_.toString());
+			std::cout << __LINE__ << std::endl;
 			if (!WS_.secure()) {
+				std::cout << __LINE__ << std::endl;
 				poco_error(Logger(),fmt::format("{}: Connection is NOT secure.", CId_));
 			} else {
+				std::cout << __LINE__ << std::endl;
 				poco_trace(Logger(),fmt::format("{}: Connection is secure.", CId_));
 			}
+			std::cout << __LINE__ << std::endl;
 			if (SS->havePeerCertificate()) {
+				std::cout << __LINE__ << std::endl;
 				CertValidation_ = GWObjects::VALID_CERTIFICATE;
 				try {
 					Poco::Crypto::X509Certificate PeerCert(SS->peerCertificate());
@@ -184,8 +195,10 @@ namespace OpenWifi {
 					LogException(E);
 				}
 			} else {
+				std::cout << __LINE__ << std::endl;
 				poco_error(Logger(),fmt::format("{}: No certificates available..", CId_));
 			}
+			std::cout << __LINE__ << std::endl;
 
 			if (WebSocketServer::IsSim(CN_) && !WebSocketServer()->IsSimEnabled()) {
 				Logger().debug(fmt::format(
@@ -193,6 +206,7 @@ namespace OpenWifi {
 				delete this;
 				return;
 			}
+			std::cout << __LINE__ << std::endl;
 
 			SerialNumber_ = CN_;
 			SerialNumberInt_ = Utils::SerialNumberToInt(SerialNumber_);
@@ -202,6 +216,8 @@ namespace OpenWifi {
 				delete this;
 				return;
 			}
+			std::cout << __LINE__ << std::endl;
+
 			WS_.setMaxPayloadSize(BufSize);
 			auto TS = Poco::Timespan(360, 0);
 
@@ -253,6 +269,7 @@ namespace OpenWifi {
 			Logger().error(fmt::format("CONNECTION({}): Exception caught during device connection. Device will have to retry. Unsecure connect denied.",
 									   CId_));
 		}
+		std::cout << __LINE__ << std::endl;
 		delete this;
 	}
 
