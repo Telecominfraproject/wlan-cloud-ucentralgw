@@ -154,8 +154,9 @@ namespace OpenWifi {
 */
 
 	WSConnection::WSConnection(Poco::Net::HTTPServerRequest &request, Poco::Net::HTTPServerResponse &response, Poco::Logger & L , Poco::Net::SocketReactor &R)
-	: WS_(request,response), Logger_(L), Reactor_(R) {
+	: WS_(request,response),Logger_(L), Reactor_(R) {
 		try {
+
 			std::cout << __LINE__ << std::endl;
 			auto SS = dynamic_cast<Poco::Net::SecureSocketImpl *>(WS_.impl());
 			std::cout << __LINE__ << std::endl;
