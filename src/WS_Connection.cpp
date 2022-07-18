@@ -257,23 +257,29 @@ namespace OpenWifi {
 				poco_trace(Logger(),fmt::format("{}: Connection is secure.", CId_));
 			}
 			std::cout << __LINE__ << std::endl;
-			std::cout << __LINE__ << std::endl;
 			CertValidation_ = GWObjects::VALID_CERTIFICATE;
 			try {
+				std::cout << __LINE__ << std::endl;
 				Poco::Crypto::X509Certificate PeerCert(SS.peerCertificate());
+				std::cout << __LINE__ << std::endl;
 					if (WebSocketServer()->ValidateCertificate(CId_, PeerCert)) {
+						std::cout << __LINE__ << std::endl;
 					CN_ = Poco::trim(Poco::toLower(PeerCert.commonName()));
 					CertValidation_ = GWObjects::MISMATCH_SERIAL;
+					std::cout << __LINE__ << std::endl;
 					poco_trace(Logger(),fmt::format("{}: Valid certificate: CN={}", CId_, CN_));
 				} else {
+					std::cout << __LINE__ << std::endl;
 					poco_error(Logger(),fmt::format("{}: Certificate is not valid", CId_));
 				}
 			} catch (const Poco::Exception &E) {
+				std::cout << __LINE__ << std::endl;
 				LogException(E);
 			}
 			std::cout << __LINE__ << std::endl;
 
 			if (WebSocketServer::IsSim(CN_) && !WebSocketServer()->IsSimEnabled()) {
+				std::cout << __LINE__ << std::endl;
 				Logger().debug(fmt::format(
 					"CONNECTION({}): Sim Device {} is not allowed. Disconnecting.", CId_, CN_));
 				delete this;
@@ -284,6 +290,7 @@ namespace OpenWifi {
 			SerialNumber_ = CN_;
 			SerialNumberInt_ = Utils::SerialNumberToInt(SerialNumber_);
 			if (!CN_.empty() && StorageService()->IsBlackListed(SerialNumber_)) {
+				std::cout << __LINE__ << std::endl;
 				Logger().debug(fmt::format("CONNECTION({}): Device {} is black listed. Disconnecting.",
 										   CId_, CN_));
 				delete this;
@@ -339,6 +346,7 @@ namespace OpenWifi {
 									   CId_));
 			Logger().log(E);
 		} catch (...) {
+			std::cout << __LINE__ << std::endl;
 			Logger().error(fmt::format("CONNECTION({}): Exception caught during device connection. Device will have to retry. Unsecure connect denied.",
 									   CId_));
 		}
