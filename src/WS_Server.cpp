@@ -72,14 +72,13 @@ namespace OpenWifi {
 				Logger().information( fmt::format("Certificate Issuer Name:{}",IssuerCert_->issuerName()));
 			}
 
-
-
 			auto ctx = Sock.context();
-			auto sslCtx = ctx->sslContext();
-			SSL_CTX_dane_set_flags(sslCtx,0);
+			ctx->enableExtendedCertificateVerification(false);
+//			auto sslCtx = ctx->sslContext();
+//			SSL_CTX_dane_set_flags(sslCtx,0);
 			// SSL_CTX_set_cert_verify_callback
-			SSL_CTX_set_verify(sslCtx, SSL_VERIFY_PEER | SSL_VERIFY_CLIENT_ONCE,
-							   verify_callback);
+//			SSL_CTX_set_verify(sslCtx, SSL_VERIFY_PEER | SSL_VERIFY_CLIENT_ONCE,
+//							   verify_callback);
 			ConnectionServer_ = std::make_unique<Poco::Net::HTTPServer>(new APWebSocketRequestHandlerFactory(Logger(),Reactor_), Sock, Params);
 			ConnectionServer_->start();
 		}
