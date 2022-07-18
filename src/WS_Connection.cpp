@@ -162,7 +162,7 @@ namespace OpenWifi {
 			WS_ = std::make_unique<Poco::Net::WebSocket>(request,response);
 
 			std::cout << __LINE__ << std::endl;
-			auto SS = reinterpret_cast<Poco::Net::SecureSocketImpl *>(WS_->impl());
+			auto SS = dynamic_cast<Poco::Net::SecureStreamSocket *>(WS_.get());
 			std::cout << __LINE__ << std::endl;
 			while (true) {
 				std::cout << __LINE__ << std::endl;
