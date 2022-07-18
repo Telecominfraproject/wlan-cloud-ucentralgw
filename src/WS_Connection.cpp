@@ -242,6 +242,8 @@ namespace OpenWifi {
 
 			auto SS = Poco::Net::SecureSocketImpl(WS_->impl(),Context);
 
+			SS.completeHandshake();
+
 			std::cout << __LINE__ << " " << WS_->impl()->peerAddress().toString() << " " << WS_->secure() << std::endl;
 
 			std::cout << __LINE__ << std::endl;
