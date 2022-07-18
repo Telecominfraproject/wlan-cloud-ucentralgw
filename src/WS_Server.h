@@ -27,8 +27,9 @@ namespace OpenWifi {
 
 	class APWebSocketRequestHandler : public Poco::Net::HTTPRequestHandler {
 	  public:
-		explicit APWebSocketRequestHandler(Poco::Logger &L, Poco::Net::SocketReactor &R)
+		explicit APWebSocketRequestHandler(Poco::Net::Context::Ptr context, Poco::Logger &L, Poco::Net::SocketReactor &R)
 			:
+			  Context_(context),
 			  Logger_(L),
 			  Reactor_(R) {
 
@@ -38,29 +39,33 @@ namespace OpenWifi {
 					  Poco::Net::HTTPServerResponse &response)  override {
 			try {
 				std::cout << "Creating websocket" << std::endl;
-				new WSConnection(request, response, Logger_, Reactor_);
+				new WSConnection(request, response, Context_, Logger_, Reactor_);
 			} catch (...) {
 				Logger_.warning("Exception during WS creation");
 			}
 		}
 	  private:
+		Poco::Net::Context::Ptr		Context_;
 		Poco::Logger 				&Logger_;
 		Poco::Net::SocketReactor	&Reactor_;
 	};
 
 	class APWebSocketRequestHandlerFactory : public Poco::Net::HTTPRequestHandlerFactory {
 	  public:
-		explicit APWebSocketRequestHandlerFactory(Poco::Logger &L, Poco::Net::SocketReactor &R)
-			: Logger_(L),
+		explicit APWebSocketRequestHandlerFactory(Poco::Net::Context::Ptr context,Poco::Logger &L, Poco::Net::SocketReactor &R)
+			:
+			  Context_(context),
+			  Logger_(L),
 			  Reactor_(R) {
 		}
 
 		Poco::Net::HTTPRequestHandler * createRequestHandler([[maybe_unused]] const Poco::Net::HTTPServerRequest &request) override {
 			std::cout << "Creating handler" << std::endl;
-			return new APWebSocketRequestHandler(Logger_,Reactor_);
+			return new APWebSocketRequestHandler(Context_,Logger_,Reactor_);
 		}
 
 	  private:
+		Poco::Net::Context::Ptr		Context_;
 		Poco::Logger 				&Logger_;
 		Poco::Net::SocketReactor	&Reactor_;
 	};

@@ -21,7 +21,11 @@ namespace OpenWifi {
 		static constexpr int BufSize = 128000;
 	  public:
 		// WSConnection(Poco::Net::StreamSocket& Socket, Poco::Net::SocketReactor& Reactor);
-		WSConnection(Poco::Net::HTTPServerRequest &request, Poco::Net::HTTPServerResponse &response, Poco::Logger & L , Poco::Net::SocketReactor &R);
+		WSConnection(Poco::Net::HTTPServerRequest &request,
+					 Poco::Net::HTTPServerResponse &response,
+					 Poco::Net::Context::Ptr pContext,
+					 Poco::Logger & L ,
+					 Poco::Net::SocketReactor &R);
 		~WSConnection();
 
 		void ProcessJSONRPCEvent(Poco::JSON::Object::Ptr & Doc);
@@ -65,6 +69,7 @@ namespace OpenWifi {
 	  private:
 		std::recursive_mutex                Mutex_;
 //		Poco::Net::WebSocket				WS_;
+		Poco::Net::Context::Ptr				Context_;
 		Poco::Logger                    	&Logger_;
 //		Poco::Net::StreamSocket       		Socket_;
 		Poco::Net::SocketReactor			& Reactor_;

@@ -10,6 +10,7 @@
 #include "Poco/Net/HTTPServerRequestImpl.h"
 #include "Poco/Net/NetException.h"
 #include "Poco/Net/SSLException.h"
+#include "Poco/Net/Context.h"
 #include "Poco/Base64Decoder.h"
 #include "Poco/Base64Encoder.h"
 
@@ -152,23 +153,97 @@ namespace OpenWifi {
 		return delete this;
 	}
 */
+/*
+	[[maybe_unused]] static X509* GetCert( int fd, Poco::Net::Context *Context ) {
+		BIO *outbio = NULL;
+		X509 *cert;
+		X509_NAME *certname = NULL;
 
-	WSConnection::WSConnection(Poco::Net::HTTPServerRequest &request, Poco::Net::HTTPServerResponse &response, Poco::Logger & L , Poco::Net::SocketReactor &R)
-	: Logger_(L), Reactor_(R) {
+		SSL_CTX *ctx;
+		SSL *ssl;
+		int server = 0;
+		int ret, i;
+
+		outbio  = BIO_new_fp(stdout, BIO_NOCLOSE);
+
+		if (openSSL_create_client_ctx(&ctx)) {
+			std :: cerr << "Unable to create a new SSL context structure." << std :: endl;
+			return -1;
+		}
+
+
+		std :: cout << "Adding Certifcate" << std :: endl;
+		if (SSL_CTX_load_verify_locations(ctx, "ca-cert.pem", NULL) <= 0) {
+			std :: cerr << "Unable to Load certificate" << std :: endl;
+			return -1;
+		}
+
+
+		ssl = SSL_new(ctx);
+		server = create_socket(argv[1], atoi(argv[2]));
+
+		if (server < 0) {
+			std :: cerr << "Error: Can't create TCP session" << std :: endl;
+			return -1;
+		}
+		std :: cout << "Successfully made the TCP connection to: " << argv[1] << " port: " << atoi(argv[2]) << std :: endl;
+
+		SSL_set_fd(ssl, server);
+
+		if (SSL_connect(ssl) != 1) {
+			std :: cerr << "Error: Could not build a SSL session to: " << argv[1] << std :: endl;
+			return -1;
+		}
+
+		std :: cout << "Successfully enabled SSL/TLS session to: " << argv[1] << std :: endl;
+		//SSL_SESSION *ss = SSL_get_session(ssl);
+
+		cert = SSL_get_peer_certificate(ssl);
+		if (cert == NULL) {
+			std :: cerr << "Error: Could not get a certificate from: " <<  argv[1] << std :: endl;
+			return -1;
+		}
+
+		certname = X509_NAME_new();
+		certname = X509_get_subject_name(cert);
+
+		std :: cout << "Displaying the certificate subject data:" << std :: endl;
+		X509_NAME_print_ex(outbio, certname, 0, 0);
+		std :: cout << std :: endl;
+
+
+		char msg[100000] = "GET / HTTP/1.1\r\nHOST: www.siliconbolt.com\r\n\r\n";
+		SSL_write(ssl, msg, strlen(msg));
+		SSL_read(ssl, msg, 100000);
+		std :: cout << "Message is " << msg << std :: endl;
+
+
+		SSL_free(ssl);
+		close(server);
+		X509_free(cert);
+		SSL_CTX_free(ctx);
+		std :: cout << "Finished SSL/TLS connection with server" << std :: endl;
+
+		return nullptr;
+	}
+*/
+	WSConnection::WSConnection(Poco::Net::HTTPServerRequest &request,
+							   Poco::Net::HTTPServerResponse &response,
+							   Poco::Net::Context::Ptr Context,
+							   Poco::Logger & L ,
+							   Poco::Net::SocketReactor &R)
+	: 	Context_(Context),
+	  	Logger_(L),
+	  	Reactor_(R) {
 		try {
 
 			std::cout << __LINE__ << std::endl;
 			WS_ = std::make_unique<Poco::Net::WebSocket>(request,response);
+
+			auto SS = Poco::Net::SecureSocketImpl(WS_->impl(),Context);
+
 			std::cout << __LINE__ << " " << WS_->impl()->peerAddress().toString() << " " << WS_->secure() << std::endl;
-			auto SS = dynamic_cast<Poco::Net::SecureSocketImpl*>((*WS_).impl());
-			std::cout << __LINE__ << std::endl;
-			while (true) {
-				std::cout << __LINE__ << std::endl;
-				auto V = SS->completeHandshake();
-				std::cout << __LINE__ << std::endl;
-				if (V == 1)
-					break;
-			}
+
 			std::cout << __LINE__ << std::endl;
 			PeerAddress_ = WS_->peerAddress().host();
 			std::cout << __LINE__ << std::endl;
@@ -185,7 +260,7 @@ namespace OpenWifi {
 			std::cout << __LINE__ << std::endl;
 			CertValidation_ = GWObjects::VALID_CERTIFICATE;
 			try {
-				Poco::Crypto::X509Certificate PeerCert(SS->peerCertificate());
+				Poco::Crypto::X509Certificate PeerCert(SS.peerCertificate());
 					if (WebSocketServer()->ValidateCertificate(CId_, PeerCert)) {
 					CN_ = Poco::trim(Poco::toLower(PeerCert.commonName()));
 					CertValidation_ = GWObjects::MISMATCH_SERIAL;
