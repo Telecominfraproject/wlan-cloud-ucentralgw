@@ -51,7 +51,7 @@ namespace OpenWifi {
 			std::cout << __LINE__ << std::endl;
 			X509_NAME_oneline(X509_get_issuer_name(X509_STORE_CTX_get0_current_issuer(ctx)), buf, 256);
 			printf("issuer= %s\n", buf);
-			X509_NAME_oneline(X509_get_subject_name(X509_STORE_CTX_get0_current_issuer(ctx)), buf, 256);
+			X509_NAME_oneline(X509_get_subject_name(X509_STORE_CTX_get_current_cert(ctx)), buf, 256);
 			printf("subject= %s\n", buf);
 //		}
 
@@ -101,6 +101,7 @@ namespace OpenWifi {
 			ctx->enableExtendedCertificateVerification(false);
 			auto SSL_CTX = ctx->sslContext();
 			SSL_CTX_set_verify(SSL_CTX,SSL_VERIFY_PEER|SSL_VERIFY_CLIENT_ONCE,verify_callback);
+			SSL_CTX->
 			ConnectionServer_ = std::make_unique<Poco::Net::HTTPServer>(new APWebSocketRequestHandlerFactory(ctx,Logger(),Reactor_), Sock, Params);
 			ConnectionServer_->start();
 		}
