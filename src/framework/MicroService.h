@@ -1458,8 +1458,9 @@ namespace OpenWifi {
 	            if (level_ == Poco::Net::Context::VERIFY_STRICT) {
 	                SSL_CTX_set_client_CA_list(SSLCtx, SSL_load_client_CA_file(client_cas_.c_str()));
 	            }
-	            SSL_CTX_enable_ct(SSLCtx, SSL_CT_VALIDATION_PERMISSIVE);
+	            SSL_CTX_enable_ct(SSLCtx, SSL_CT_VALIDATION_STRICT);
 	            SSL_CTX_dane_enable(SSLCtx);
+
 	            Context->enableSessionCache();
 	            Context->setSessionCacheSize(0);
 	            Context->setSessionTimeout(60);
@@ -3263,7 +3264,12 @@ namespace OpenWifi {
             return Poco::Logger::get(Name);
         }
 
-		static inline void Exit(int Reason);
+        virtual void GetExtraConfiguration(Poco::JSON::Object & Cfg) {
+            Cfg.set("additionalConfiguration",false);
+        }
+
+
+        static inline void Exit(int Reason);
 		inline void BusMessageReceived(const std::string &Key, const std::string & Payload);
 		inline MicroServiceMetaVec GetServices(const std::string & Type);
 		inline MicroServiceMetaVec GetServices();
@@ -4354,6 +4360,11 @@ namespace OpenWifi {
 	            Answer.set("certificates", Certificates);
 	            return ReturnObject(Answer);
 	        }
+            if(GetBoolParameter("extraConfiguration")) {
+                Poco::JSON::Object  Answer;
+                MicroService::instance().GetExtraConfiguration(Answer);
+                return ReturnObject(Answer);
+            }
 	        BadRequest(RESTAPI::Errors::InvalidCommand);
 	    }
 

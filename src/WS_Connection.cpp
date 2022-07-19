@@ -235,17 +235,20 @@ namespace OpenWifi {
 	: 	Context_(Context),
 	  	Logger_(L),
 	  	Reactor_(R) {
+		SSL * ssl= nullptr;
 		try {
-
 			std::cout << __LINE__ << std::endl;
 			WS_ = std::make_unique<Poco::Net::WebSocket>(request,response);
-
-			auto SS = Poco::Net::SecureSocketImpl(WS_->impl(),Context);
-
-			SS.completeHandshake();
-
-			std::cout << __LINE__ << " " << WS_->impl()->peerAddress().toString() << " " << WS_->secure() << std::endl;
-
+			std::cout << __LINE__ << std::endl;
+			auto SSL_ctx = Context_->sslContext();
+			std::cout << __LINE__ << std::endl;
+			ssl = SSL_new(SSL_ctx);
+			std::cout << __LINE__ << std::endl;
+			SSL_set_fd(ssl,WS_->impl()->sockfd());
+			std::cout << __LINE__ << std::endl;
+			auto Cert = SSL_get_peer_certificate(ssl);
+			std::cout << __LINE__ << std::endl;
+			Poco::Crypto::X509Certificate	PeerCert(Cert);
 			std::cout << __LINE__ << std::endl;
 			PeerAddress_ = WS_->peerAddress().host();
 			std::cout << __LINE__ << std::endl;
@@ -262,10 +265,8 @@ namespace OpenWifi {
 			CertValidation_ = GWObjects::VALID_CERTIFICATE;
 			try {
 				std::cout << __LINE__ << std::endl;
-				Poco::Crypto::X509Certificate PeerCert(SS.peerCertificate());
-				std::cout << __LINE__ << std::endl;
-					if (WebSocketServer()->ValidateCertificate(CId_, PeerCert)) {
-						std::cout << __LINE__ << std::endl;
+				if (WebSocketServer()->ValidateCertificate(CId_, PeerCert)) {
+					std::cout << __LINE__ << std::endl;
 					CN_ = Poco::trim(Poco::toLower(PeerCert.commonName()));
 					CertValidation_ = GWObjects::MISMATCH_SERIAL;
 					std::cout << __LINE__ << std::endl;
@@ -284,28 +285,35 @@ namespace OpenWifi {
 				std::cout << __LINE__ << std::endl;
 				Logger().debug(fmt::format(
 					"CONNECTION({}): Sim Device {} is not allowed. Disconnecting.", CId_, CN_));
+				SSL_free(ssl);
 				delete this;
 				return;
 			}
 			std::cout << __LINE__ << std::endl;
-
 			SerialNumber_ = CN_;
+			std::cout << CN_ << std::endl;
 			SerialNumberInt_ = Utils::SerialNumberToInt(SerialNumber_);
+			std::cout << __LINE__ << std::endl;
 			if (!CN_.empty() && StorageService()->IsBlackListed(SerialNumber_)) {
 				std::cout << __LINE__ << std::endl;
 				Logger().debug(fmt::format("CONNECTION({}): Device {} is black listed. Disconnecting.",
 										   CId_, CN_));
+				SSL_free(ssl);
 				delete this;
 				return;
 			}
 			std::cout << __LINE__ << std::endl;
-
 			WS_->setMaxPayloadSize(BufSize);
+			std::cout << __LINE__ << std::endl;
 			auto TS = Poco::Timespan(360, 0);
+			std::cout << __LINE__ << std::endl;
 
 			WS_->setReceiveTimeout(TS);
+			std::cout << __LINE__ << std::endl;
 			WS_->setNoDelay(true);
+			std::cout << __LINE__ << std::endl;
 			WS_->setKeepAlive(true);
+			std::cout << __LINE__ << std::endl;
 
 			Reactor_.addEventHandler(*WS_,
 									 Poco::NObserver<WSConnection, Poco::Net::ReadableNotification>(
@@ -315,39 +323,51 @@ namespace OpenWifi {
 										 *this, &WSConnection::OnSocketShutdown));
 			Reactor_.addEventHandler(*WS_, Poco::NObserver<WSConnection, Poco::Net::ErrorNotification>(
 											   *this, &WSConnection::OnSocketError));
+			std::cout << __LINE__ << std::endl;
 			Registered_ = true;
 			poco_debug(Logger(),fmt::format("CONNECTION({}): completed.", CId_));
+			std::cout << __LINE__ << std::endl;
+			SSL_free(ssl);
+			std::cout << __LINE__ << std::endl;
 			return;
 		} catch (const Poco::Net::CertificateValidationException &E) {
+			SSL_free(ssl);
 			Logger().error(fmt::format("CONNECTION({}): Poco::Exception Certificate Validation failed during connection. Device will have to retry.",
 									   CId_));
 			Logger().log(E);
 		} catch (const Poco::Net::WebSocketException &E) {
+			SSL_free(ssl);
 			Logger().error(fmt::format("CONNECTION({}): Poco::Exception WebSocket error during connection. Device will have to retry.",
 									   CId_));
 			Logger().log(E);
 		} catch (const Poco::Net::ConnectionAbortedException &E) {
+			SSL_free(ssl);
 			Logger().error(fmt::format("CONNECTION({}): Poco::Exception Connection was aborted during connection. Device will have to retry.",
 									   CId_));
 			Logger().log(E);
 		} catch (const Poco::Net::ConnectionResetException &E) {
+			SSL_free(ssl);
 			Logger().error(fmt::format("CONNECTION({}): Poco::Exception Connection was reset during connection. Device will have to retry.",
 									   CId_));
 			Logger().log(E);
 		} catch (const Poco::Net::InvalidCertificateException &E) {
+			SSL_free(ssl);
 			Logger().error(fmt::format(
 				"CONNECTION({}): Poco::Exception Invalid certificate. Device will have to retry.",
 				CId_));
 			Logger().log(E);
 		} catch (const Poco::Net::SSLException &E) {
+			SSL_free(ssl);
 			Logger().error(fmt::format("CONNECTION({}): Poco::Exception SSL Exception during connection. Device will have to retry.",
 									   CId_));
 			Logger().log(E);
 		} catch (const Poco::Exception &E) {
+			SSL_free(ssl);
 			Logger().error(fmt::format("CONNECTION({}): Poco::Exception caught during device connection. Device will have to retry.",
 									   CId_));
 			Logger().log(E);
 		} catch (...) {
+			SSL_free(ssl);
 			std::cout << __LINE__ << std::endl;
 			Logger().error(fmt::format("CONNECTION({}): Exception caught during device connection. Device will have to retry. Unsecure connect denied.",
 									   CId_));
