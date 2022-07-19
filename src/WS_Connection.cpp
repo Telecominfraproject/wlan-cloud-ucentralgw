@@ -247,7 +247,10 @@ namespace OpenWifi {
 			SSL_set_fd(ssl,WS_->impl()->sockfd());
 			std::cout << __LINE__ << std::endl;
 			auto Cert = SSL_get_peer_certificate(ssl);
-			std::cout << __LINE__ << std::endl;
+			if(Cert!= nullptr)
+				std::cout << "We have a cert" << std::endl;
+			else
+				std::cout << "NO cert" << std::endl;
 			Poco::Crypto::X509Certificate	PeerCert(Cert);
 			std::cout << __LINE__ << std::endl;
 			PeerAddress_ = WS_->peerAddress().host();
