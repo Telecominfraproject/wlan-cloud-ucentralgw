@@ -98,7 +98,7 @@ namespace OpenWifi {
 			auto ctx = Sock.context();
 			ctx->enableExtendedCertificateVerification(false);
 			auto SSL_CTX = ctx->sslContext();
-			SSL_CTX_set_verify(SSL_CTX,SSL_VERIFY_CLIENT_ONCE,verify_callback);
+			SSL_CTX_set_verify(SSL_CTX,SSL_VERIFY_PEER|SSL_VERIFY_CLIENT_ONCE,verify_callback);
 			ConnectionServer_ = std::make_unique<Poco::Net::HTTPServer>(new APWebSocketRequestHandlerFactory(ctx,Logger(),Reactor_), Sock, Params);
 			ConnectionServer_->start();
 		}
