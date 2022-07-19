@@ -39,17 +39,21 @@ namespace OpenWifi {
 		err = X509_STORE_CTX_get_error(ctx);
 		depth = X509_STORE_CTX_get_error_depth(ctx);
 
+		std::cout << __LINE__ << "  " << preverify_ok << std::endl;
 		if (!preverify_ok) {
 			printf("verify error:num=%d:%s:depth=%d:%s\n", err,
 				   X509_verify_cert_error_string(err), depth, buf);
 		}
 
+		std::cout << __LINE__ << std::endl;
 		if (!preverify_ok && (err == X509_V_ERR_UNABLE_TO_GET_ISSUER_CERT))
 		{
+			std::cout << __LINE__ << std::endl;
 			X509_NAME_oneline(X509_get_issuer_name(X509_STORE_CTX_get0_current_issuer(ctx)), buf, 256);
 			printf("issuer= %s\n", buf);
 		}
 
+		std::cout << __LINE__ << std::endl;
 		return 1;
 	}
 
