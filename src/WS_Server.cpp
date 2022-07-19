@@ -51,6 +51,8 @@ namespace OpenWifi {
 			std::cout << __LINE__ << std::endl;
 			X509_NAME_oneline(X509_get_issuer_name(X509_STORE_CTX_get0_current_issuer(ctx)), buf, 256);
 			printf("issuer= %s\n", buf);
+			X509_NAME_oneline(X509_get_subject_name(X509_STORE_CTX_get0_current_issuer(ctx)), buf, 256);
+			printf("subject= %s\n", buf);
 //		}
 
 		std::cout << __LINE__ << std::endl;
