@@ -246,6 +246,10 @@ namespace OpenWifi {
 			std::cout << __LINE__ << "  " << (ssl==nullptr) << std::endl;
 			auto err = SSL_set_fd(ssl,WS_->impl()->sockfd());
 			std::cout << __LINE__ << " err " << err << std::endl;
+
+
+
+
 			auto Cert = SSL_get_peer_certificate(ssl);
 			if(Cert!= nullptr)
 				std::cout << "We have a cert" << std::endl;

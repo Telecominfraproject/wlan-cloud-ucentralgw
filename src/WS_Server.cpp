@@ -12,6 +12,7 @@
 #include "ConfigurationCache.h"
 #include "TelemetryStream.h"
 #include "WS_Server.h"
+#include <openssl/ssl.h>
 
 namespace OpenWifi {
 
@@ -25,6 +26,31 @@ namespace OpenWifi {
 			return true;
 		}
 		return false;
+	}
+
+	static int verify_callback(int preverify_ok, X509_STORE_CTX *ctx)
+	{
+		char    buf[256];
+		X509   *err_cert;
+		int     err, depth;
+		SSL    *ssl;
+
+		err_cert = X509_STORE_CTX_get_current_cert(ctx);
+		err = X509_STORE_CTX_get_error(ctx);
+		depth = X509_STORE_CTX_get_error_depth(ctx);
+
+		if (!preverify_ok) {
+			printf("verify error:num=%d:%s:depth=%d:%s\n", err,
+				   X509_verify_cert_error_string(err), depth, buf);
+		}
+
+		if (!preverify_ok && (err == X509_V_ERR_UNABLE_TO_GET_ISSUER_CERT))
+		{
+			X509_NAME_oneline(X509_get_issuer_name(X509_STORE_CTX_get0_current_issuer(ctx)), buf, 256);
+			printf("issuer= %s\n", buf);
+		}
+
+		return 1;
 	}
 
 	int WebSocketServer::Start() {
@@ -67,6 +93,8 @@ namespace OpenWifi {
 
 			auto ctx = Sock.context();
 			ctx->enableExtendedCertificateVerification(false);
+			auto SSL_CTX = ctx->sslContext();
+			SSL_CTX_set_verify(SSL_CTX,SSL_VERIFY_CLIENT_ONCE,verify_callback);
 			ConnectionServer_ = std::make_unique<Poco::Net::HTTPServer>(new APWebSocketRequestHandlerFactory(ctx,Logger(),Reactor_), Sock, Params);
 			ConnectionServer_->start();
 		}
