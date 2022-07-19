@@ -46,12 +46,12 @@ namespace OpenWifi {
 		}
 
 		std::cout << __LINE__ << std::endl;
-		if (!preverify_ok && (err == X509_V_ERR_UNABLE_TO_GET_ISSUER_CERT))
-		{
+//		if (!preverify_ok && (err == X509_V_ERR_UNABLE_TO_GET_ISSUER_CERT))
+//		{
 			std::cout << __LINE__ << std::endl;
 			X509_NAME_oneline(X509_get_issuer_name(X509_STORE_CTX_get0_current_issuer(ctx)), buf, 256);
 			printf("issuer= %s\n", buf);
-		}
+//		}
 
 		std::cout << __LINE__ << std::endl;
 		return 1;
