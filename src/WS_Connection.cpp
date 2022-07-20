@@ -5,6 +5,7 @@
 #include "WS_Connection.h"
 
 #include "Poco/Net/SecureStreamSocketImpl.h"
+#include "Poco/Net/SecureServerSocketImpl.h"
 #include "Poco/Net/HTTPServerResponseImpl.h"
 #include "Poco/Net/HTTPServerSession.h"
 #include "Poco/Net/HTTPServerRequestImpl.h"
@@ -239,14 +240,16 @@ namespace OpenWifi {
 		try {
 			std::cout << __LINE__ << std::endl;
 			WS_ = std::make_unique<Poco::Net::WebSocket>(request,response);
-			std::cout << __LINE__ << std::endl;
-			auto SSL_ctx = Context_->sslContext();
-			std::cout << __LINE__ << std::endl;
-			ssl = SSL_new(SSL_ctx);
-			std::cout << __LINE__ << "  " << (ssl==nullptr) << std::endl;
-			auto err = SSL_set_fd(ssl,WS_->impl()->sockfd());
-			std::cout << __LINE__ << " err " << err << std::endl;
 
+			BIO* sslsock = BIO_new_socket(WS_->impl()->sockfd(), BIO_NOCLOSE);
+			SSL * ssl = SSL_new(Context_->sslContext());
+			SSL_set_bio(ssl,sslsock,sslsock);
+
+			std::cout << "Verify result: " << SSL_get_verify_result(ssl) << std::endl;
+/*
+			auto SS = dynamic_cast<Poco::Net::SecureServerSocketImpl*>(WS_->impl());
+			auto SSS = dynamic_cast<Poco::Net::SecureSocketImpl>(SS->soc)
+			*/
 			auto Cert = SSL_get_peer_certificate(ssl);
 			if(Cert!= nullptr)
 				std::cout << "We have a cert" << std::endl;
@@ -258,6 +261,7 @@ namespace OpenWifi {
 			std::cout << __LINE__ << std::endl;
 			CId_ = Utils::FormatIPv6(PeerAddress_.toString());
 			std::cout << __LINE__ << std::endl;
+
 			if (!WS_->secure()) {
 				std::cout << __LINE__ << std::endl;
 				poco_error(Logger(),fmt::format("{}: Connection is NOT secure.", CId_));
@@ -268,7 +272,18 @@ namespace OpenWifi {
 			std::cout << __LINE__ << std::endl;
 			CertValidation_ = GWObjects::VALID_CERTIFICATE;
 			try {
-				std::cout << __LINE__ << std::endl;
+				if (WebSocketServer()->ValidateCertificate(CId_, PeerCert)) {
+					CN_ = Poco::trim(Poco::toLower(PeerCert.commonName()));
+					CertValidation_ = GWObjects::MISMATCH_SERIAL;
+					poco_trace(Logger(),fmt::format("{}: Valid certificate: CN={}", CId_, CN_));
+				} else {
+					poco_error(Logger(),fmt::format("{}: Certificate is not valid", CId_));
+				}
+			} catch (const Poco::Exception &E) {
+				LogException(E);
+			}
+			/*			try {
+			std::cout << __LINE__ << std::endl;
 				if (WebSocketServer()->ValidateCertificate(CId_, PeerCert)) {
 					std::cout << __LINE__ << std::endl;
 					CN_ = Poco::trim(Poco::toLower(PeerCert.commonName()));
@@ -283,6 +298,7 @@ namespace OpenWifi {
 				std::cout << __LINE__ << std::endl;
 				LogException(E);
 			}
+*/
 			std::cout << __LINE__ << std::endl;
 
 			if (WebSocketServer::IsSim(CN_) && !WebSocketServer()->IsSimEnabled()) {
