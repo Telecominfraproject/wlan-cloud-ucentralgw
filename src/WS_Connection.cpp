@@ -241,9 +241,9 @@ namespace OpenWifi {
 			std::cout << __LINE__ << std::endl;
 			WS_ = std::make_unique<Poco::Net::WebSocket>(request,response);
 
-			BIO* sslsock = BIO_new_socket(WS_->impl()->sockfd(), BIO_NOCLOSE);
+			// BIO* sslsock = BIO_new_socket(WS_->impl()->sockfd(), BIO_NOCLOSE);
 			SSL * ssl = SSL_new(Context_->sslContext());
-			SSL_set_bio(ssl,sslsock,sslsock);
+			SSL_set_fd(ssl,WS_->impl()->sockfd());
 			auto res = SSL_do_handshake(ssl);
 			std::cout << "SSL_do_handshake: " << res << std::endl;
 			std::cout << "Error: " << SSL_get_error(ssl,res) << std::endl;
