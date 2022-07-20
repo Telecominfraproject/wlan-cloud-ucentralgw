@@ -241,6 +241,7 @@ namespace OpenWifi {
 			std::cout << __LINE__ << std::endl;
 			WS_ = std::make_unique<Poco::Net::WebSocket>(request,response);
 
+/*
 			// BIO* sslsock = BIO_new_socket(WS_->impl()->sockfd(), BIO_NOCLOSE);
 			SSL * ssl = SSL_new(Context_->sslContext());
 			SSL_set_fd(ssl,WS_->impl()->sockfd());
@@ -254,10 +255,9 @@ namespace OpenWifi {
 			res = SSL_get_verify_result(ssl);
 			std::cout << "SSL_get_verify_result: " << res << " --> " << (res==X509_V_OK) << std::endl;
 
-		/*
 			auto SS = dynamic_cast<Poco::Net::SecureServerSocketImpl*>(WS_->impl());
 			auto SSS = dynamic_cast<Poco::Net::SecureSocketImpl>(SS->soc)
-		*/
+
 			auto Cert = SSL_get_peer_certificate(ssl);
 			if(Cert!= nullptr)
 				std::cout << "We have a cert" << std::endl;
@@ -269,7 +269,7 @@ namespace OpenWifi {
 			std::cout << __LINE__ << std::endl;
 			CId_ = Utils::FormatIPv6(PeerAddress_.toString());
 			std::cout << __LINE__ << std::endl;
-
+*/
 			if (!WS_->secure()) {
 				std::cout << __LINE__ << std::endl;
 				poco_error(Logger(),fmt::format("{}: Connection is NOT secure.", CId_));
@@ -279,7 +279,7 @@ namespace OpenWifi {
 			}
 			std::cout << __LINE__ << std::endl;
 			CertValidation_ = GWObjects::VALID_CERTIFICATE;
-			try {
+/*			try {
 				if (WebSocketServer()->ValidateCertificate(CId_, PeerCert)) {
 					CN_ = Poco::trim(Poco::toLower(PeerCert.commonName()));
 					CertValidation_ = GWObjects::MISMATCH_SERIAL;
@@ -290,6 +290,7 @@ namespace OpenWifi {
 			} catch (const Poco::Exception &E) {
 				LogException(E);
 			}
+			*/
 			/*			try {
 			std::cout << __LINE__ << std::endl;
 				if (WebSocketServer()->ValidateCertificate(CId_, PeerCert)) {
@@ -308,7 +309,7 @@ namespace OpenWifi {
 			}
 */
 			std::cout << __LINE__ << std::endl;
-
+/*
 			if (WebSocketServer::IsSim(CN_) && !WebSocketServer()->IsSimEnabled()) {
 				std::cout << __LINE__ << std::endl;
 				Logger().debug(fmt::format(
@@ -330,7 +331,7 @@ namespace OpenWifi {
 				delete this;
 				return;
 			}
-			std::cout << __LINE__ << std::endl;
+*/			std::cout << __LINE__ << std::endl;
 			WS_->setMaxPayloadSize(BufSize);
 			std::cout << __LINE__ << std::endl;
 			auto TS = Poco::Timespan(360, 0);
@@ -355,47 +356,37 @@ namespace OpenWifi {
 			Registered_ = true;
 			poco_debug(Logger(),fmt::format("CONNECTION({}): completed.", CId_));
 			std::cout << __LINE__ << std::endl;
-			SSL_free(ssl);
-			std::cout << __LINE__ << std::endl;
 			return;
 		} catch (const Poco::Net::CertificateValidationException &E) {
-			SSL_free(ssl);
 			Logger().error(fmt::format("CONNECTION({}): Poco::Exception Certificate Validation failed during connection. Device will have to retry.",
 									   CId_));
 			Logger().log(E);
 		} catch (const Poco::Net::WebSocketException &E) {
-			SSL_free(ssl);
 			Logger().error(fmt::format("CONNECTION({}): Poco::Exception WebSocket error during connection. Device will have to retry.",
 									   CId_));
 			Logger().log(E);
 		} catch (const Poco::Net::ConnectionAbortedException &E) {
-			SSL_free(ssl);
 			Logger().error(fmt::format("CONNECTION({}): Poco::Exception Connection was aborted during connection. Device will have to retry.",
 									   CId_));
 			Logger().log(E);
 		} catch (const Poco::Net::ConnectionResetException &E) {
-			SSL_free(ssl);
 			Logger().error(fmt::format("CONNECTION({}): Poco::Exception Connection was reset during connection. Device will have to retry.",
 									   CId_));
 			Logger().log(E);
 		} catch (const Poco::Net::InvalidCertificateException &E) {
-			SSL_free(ssl);
 			Logger().error(fmt::format(
 				"CONNECTION({}): Poco::Exception Invalid certificate. Device will have to retry.",
 				CId_));
 			Logger().log(E);
 		} catch (const Poco::Net::SSLException &E) {
-			SSL_free(ssl);
 			Logger().error(fmt::format("CONNECTION({}): Poco::Exception SSL Exception during connection. Device will have to retry.",
 									   CId_));
 			Logger().log(E);
 		} catch (const Poco::Exception &E) {
-			SSL_free(ssl);
 			Logger().error(fmt::format("CONNECTION({}): Poco::Exception caught during device connection. Device will have to retry.",
 									   CId_));
 			Logger().log(E);
 		} catch (...) {
-			SSL_free(ssl);
 			std::cout << __LINE__ << std::endl;
 			Logger().error(fmt::format("CONNECTION({}): Exception caught during device connection. Device will have to retry. Unsecure connect denied.",
 									   CId_));
@@ -641,7 +632,8 @@ namespace OpenWifi {
 				auto Firmware = ParamsObj->get(uCentralProtocol::FIRMWARE).toString();
 				auto Capabilities = ParamsObj->get(uCentralProtocol::CAPABILITIES).toString();
 
-				SerialNumber_ = Serial;
+				//// change this
+				CN_ = SerialNumber_ = Serial;
 				SerialNumberInt_ = Utils::SerialNumberToInt(SerialNumber_);
 				Conn_ = DeviceRegistry()->Register(SerialNumberInt_, this, ConnectionId_);
 				Conn_->Conn_.UUID = UUID;
