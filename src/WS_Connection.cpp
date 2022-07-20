@@ -244,12 +244,16 @@ namespace OpenWifi {
 			BIO* sslsock = BIO_new_socket(WS_->impl()->sockfd(), BIO_NOCLOSE);
 			SSL * ssl = SSL_new(Context_->sslContext());
 			SSL_set_bio(ssl,sslsock,sslsock);
+			auto res = SSL_get_verify_result(ssl);
+			std::cout << "Verify result: " << res << " --> " << (res==X509_V_OK) << std::endl;
+			SSL_verify_client_post_handshake(ssl);
+			res = SSL_get_verify_result(ssl);
+			std::cout << "Verify result: " << res << " --> " << (res==X509_V_OK) << std::endl;
 
-			std::cout << "Verify result: " << SSL_get_verify_result(ssl) << std::endl;
-/*
+		/*
 			auto SS = dynamic_cast<Poco::Net::SecureServerSocketImpl*>(WS_->impl());
 			auto SSS = dynamic_cast<Poco::Net::SecureSocketImpl>(SS->soc)
-			*/
+		*/
 			auto Cert = SSL_get_peer_certificate(ssl);
 			if(Cert!= nullptr)
 				std::cout << "We have a cert" << std::endl;

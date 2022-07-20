@@ -8,6 +8,7 @@
 
 #include "Poco/Net/HTTPHeaderStream.h"
 #include "Poco/JSON/Array.h"
+#include "Poco/Net/Context.h"
 
 #include "ConfigurationCache.h"
 #include "TelemetryStream.h"
@@ -28,6 +29,7 @@ namespace OpenWifi {
 		return false;
 	}
 
+/*
 	static int verify_callback(int preverify_ok, X509_STORE_CTX *ctx)
 	{
 		char    buf[256];
@@ -58,7 +60,7 @@ namespace OpenWifi {
 		std::cout << __LINE__ << std::endl;
 		return 1;
 	}
-
+*/
 	int WebSocketServer::Start() {
 
 		auto ProvString = MicroService::instance().ConfigGetString("autoprovisioning.process","default");
@@ -100,7 +102,7 @@ namespace OpenWifi {
 			auto ctx = Sock.context();
 			ctx->enableExtendedCertificateVerification(false);
 			auto SSL_CTX = ctx->sslContext();
-			SSL_CTX_set_verify(SSL_CTX,SSL_VERIFY_PEER|SSL_VERIFY_CLIENT_ONCE,verify_callback);
+			// SSL_CTX_set_verify(SSL_CTX,SSL_VERIFY_PEER|SSL_VERIFY_CLIENT_ONCE,verify_callback);
 			ConnectionServer_ = std::make_unique<Poco::Net::HTTPServer>(new APWebSocketRequestHandlerFactory(ctx,Logger(),Reactor_), Sock, Params);
 			ConnectionServer_->start();
 		}
