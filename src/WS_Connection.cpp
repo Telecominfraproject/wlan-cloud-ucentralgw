@@ -246,6 +246,7 @@ namespace OpenWifi {
 			SSL_set_bio(ssl,sslsock,sslsock);
 			auto res = SSL_do_handshake(ssl);
 			std::cout << "SSL_do_handshake: " << res << std::endl;
+			std::cout << "Error: " << SSL_get_error(ssl,res) << std::endl;
 			res = SSL_get_verify_result(ssl);
 			std::cout << "SSL_get_verify_result: " << res << " --> " << (res==X509_V_OK) << std::endl;
 			res = SSL_verify_client_post_handshake(ssl);
