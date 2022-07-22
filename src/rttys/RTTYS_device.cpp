@@ -23,19 +23,18 @@ namespace OpenWifi {
 		try {
 			valid_=true;
 			device_address_ = socket_.peerAddress();
-			if (MicroService::instance().NoAPISecurity()) {
-				poco_information(Logger(),"Unsecured connection.");
-			} else {
-				auto SS = dynamic_cast<Poco::Net::SecureStreamSocketImpl *>(socket_.impl());
-				while (true) {
-					auto V = SS->completeHandshake();
-					if (V == 1)
-						break;
-				}
-				if ((SS->secure())) {
-					poco_information(Logger(), "Secure connection.");
-				}
+
+			auto SS = dynamic_cast<Poco::Net::SecureStreamSocketImpl *>(socket_.impl());
+			while (true) {
+				auto V = SS->completeHandshake();
+				if (V == 1)
+					break;
 			}
+
+			if ((SS->secure())) {
+				poco_information(Logger(), "Secure connection.");
+			}
+
 			reactor_.addEventHandler(
 				socket_,
 				Poco::NObserver<RTTYS_Device_ConnectionHandler, Poco::Net::ReadableNotification>(
@@ -404,8 +403,8 @@ namespace OpenWifi {
 	}
 
 	bool RTTYS_Device_ConnectionHandler::do_msgTypeHeartbeat([[maybe_unused]] std::size_t msg_len) {
-		if(!RTTYS_server()->ValidClient(Id_))
-			return false;
+		// if(!RTTYS_server()->ValidClient(Id_))
+		// 	return false;
 		u_char MsgBuf[3]{0};
 		MsgBuf[0] = msgTypeHeartbeat;
 		return socket_.sendBytes(MsgBuf, 3)==3;
