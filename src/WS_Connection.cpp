@@ -5,11 +5,13 @@
 #include "WS_Connection.h"
 
 #include "Poco/Net/SecureStreamSocketImpl.h"
+#include "Poco/Net/SecureServerSocketImpl.h"
 #include "Poco/Net/HTTPServerResponseImpl.h"
 #include "Poco/Net/HTTPServerSession.h"
 #include "Poco/Net/HTTPServerRequestImpl.h"
 #include "Poco/Net/NetException.h"
 #include "Poco/Net/SSLException.h"
+#include "Poco/Net/Context.h"
 #include "Poco/Base64Decoder.h"
 #include "Poco/Base64Encoder.h"
 
@@ -24,6 +26,7 @@
 #include "TelemetryStream.h"
 #include "CentralConfig.h"
 #include "FindCountry.h"
+#include "VenueBroadcaster.h"
 #include "framework/WebSocketClientNotifications.h"
 
 #include "RADIUS_proxy_server.h"
@@ -358,7 +361,8 @@ namespace OpenWifi {
 				auto Firmware = ParamsObj->get(uCentralProtocol::FIRMWARE).toString();
 				auto Capabilities = ParamsObj->get(uCentralProtocol::CAPABILITIES).toString();
 
-				SerialNumber_ = Serial;
+				//// change this
+				CN_ = SerialNumber_ = Serial;
 				SerialNumberInt_ = Utils::SerialNumberToInt(SerialNumber_);
 				Conn_ = DeviceRegistry()->Register(SerialNumberInt_, this, ConnectionId_);
 				Conn_->Conn_.UUID = UUID;
@@ -753,6 +757,14 @@ namespace OpenWifi {
 			}
 		} break;
 
+		case uCentralProtocol::Events::ET_VENUEBROADCAST: {
+			if(ParamsObj->has("data") && ParamsObj->has("serial") && ParamsObj->has("timestamp")) {
+				VenueBroadcaster()->Broadcast(
+					ParamsObj->get("serial").toString(),
+					ParamsObj->get("data").toString(),
+					ParamsObj->get("timestamp"));
+			}
+		} break;
 		// 	this will never be called but some compilers will complain if we do not have a case for
 		//	every single values of an enum
 		case uCentralProtocol::Events::ET_UNKNOWN: {

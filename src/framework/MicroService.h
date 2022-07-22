@@ -3264,7 +3264,12 @@ namespace OpenWifi {
             return Poco::Logger::get(Name);
         }
 
-		static inline void Exit(int Reason);
+        virtual void GetExtraConfiguration(Poco::JSON::Object & Cfg) {
+            Cfg.set("additionalConfiguration",false);
+        }
+
+
+        static inline void Exit(int Reason);
 		inline void BusMessageReceived(const std::string &Key, const std::string & Payload);
 		inline MicroServiceMetaVec GetServices(const std::string & Type);
 		inline MicroServiceMetaVec GetServices();
@@ -4355,6 +4360,11 @@ namespace OpenWifi {
 	            Answer.set("certificates", Certificates);
 	            return ReturnObject(Answer);
 	        }
+            if(GetBoolParameter("extraConfiguration")) {
+                Poco::JSON::Object  Answer;
+                MicroService::instance().GetExtraConfiguration(Answer);
+                return ReturnObject(Answer);
+            }
 	        BadRequest(RESTAPI::Errors::InvalidCommand);
 	    }
 
