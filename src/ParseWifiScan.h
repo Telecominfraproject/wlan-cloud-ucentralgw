@@ -1741,7 +1741,6 @@ namespace OpenWifi {
 		std::cout << "Start of parsing wifi" << std::endl;
 		if (D.contains("status")) {
 			auto Status = D["status"];
-
 			if (Status.contains("scan") && Status["scan"].is_array()) {
 				nlohmann::json ScanArray = Status["scan"];
 				nlohmann::json ParsedScan = nlohmann::json::array();

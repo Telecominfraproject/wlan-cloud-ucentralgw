@@ -8,75 +8,77 @@
 
 #include "Poco/Net/HTTPHeaderStream.h"
 #include "Poco/JSON/Array.h"
+#include "Poco/Net/Context.h"
 
 #include "ConfigurationCache.h"
 #include "TelemetryStream.h"
 #include "WS_Server.h"
+#include <openssl/ssl.h>
 
 namespace OpenWifi {
 
-	bool WebSocketServer::ValidateCertificate(const std::string & ConnectionId, const Poco::Crypto::X509Certificate & Certificate) {
-		if(IsCertOk()) {
-			Logger().debug(fmt::format("CERTIFICATE({}): issuer='{}' cn='{}'", ConnectionId, Certificate.issuerName(),Certificate.commonName()));
-			if(!Certificate.issuedBy(*IssuerCert_)) {
-				Logger().debug(fmt::format("CERTIFICATE({}): issuer mismatch. Local='{}' Incoming='{}'", ConnectionId, IssuerCert_->issuerName(), Certificate.issuerName()));
-				return false;
-			}
-			return true;
+bool WebSocketServer::ValidateCertificate(const std::string & ConnectionId, const Poco::Crypto::X509Certificate & Certificate) {
+	if(IsCertOk()) {
+		Logger().debug(fmt::format("CERTIFICATE({}): issuer='{}' cn='{}'", ConnectionId, Certificate.issuerName(),Certificate.commonName()));
+		if(!Certificate.issuedBy(*IssuerCert_)) {
+			Logger().debug(fmt::format("CERTIFICATE({}): issuer mismatch. Local='{}' Incoming='{}'", ConnectionId, IssuerCert_->issuerName(), Certificate.issuerName()));
+			return false;
 		}
-		return false;
+		return true;
+	}
+	return false;
+}
+
+int WebSocketServer::Start() {
+	// ReactorPool_.Start("DeviceReactorPool_");
+	for(const auto & Svr : ConfigServersList_ ) {
+		Logger().notice( fmt::format("Starting: {}:{} Keyfile:{} CertFile: {}",
+									Svr.Address(),
+									Svr.Port(),
+									Svr.KeyFile(),Svr.CertFile()));
+
+		Svr.LogCert(Logger());
+		if(!Svr.RootCA().empty())
+			Svr.LogCas(Logger());
+
+		auto Sock{Svr.CreateSecureSocket(Logger())};
+
+		if(!IsCertOk()) {
+			IssuerCert_ = std::make_unique<Poco::Crypto::X509Certificate>(Svr.IssuerCertFile());
+			Logger().information( fmt::format("Certificate Issuer Name:{}",IssuerCert_->issuerName()));
+		}
+		auto NewSocketAcceptor = std::make_unique<ws_server_reactor_type_t>(Sock, Reactor_); // ,   2 /*Poco::Environment::processorCount()*2) */ );
+		Acceptors_.push_back(std::move(NewSocketAcceptor));
 	}
 
-	int WebSocketServer::Start() {
-		// ReactorPool_.Start("DeviceReactorPool_");
-        for(const auto & Svr : ConfigServersList_ ) {
-            Logger().notice( fmt::format("Starting: {}:{} Keyfile:{} CertFile: {}",
-										Svr.Address(),
-										Svr.Port(),
-										Svr.KeyFile(),Svr.CertFile()));
-
-			Svr.LogCert(Logger());
-			if(!Svr.RootCA().empty())
-				Svr.LogCas(Logger());
-
-            auto Sock{Svr.CreateSecureSocket(Logger())};
-
-			if(!IsCertOk()) {
-				IssuerCert_ = std::make_unique<Poco::Crypto::X509Certificate>(Svr.IssuerCertFile());
-				Logger().information( fmt::format("Certificate Issuer Name:{}",IssuerCert_->issuerName()));
-			}
-			auto NewSocketAcceptor = std::make_unique<ws_server_reactor_type_t>(Sock, Reactor_); // ,   2 /*Poco::Environment::processorCount()*2) */ );
-            Acceptors_.push_back(std::move(NewSocketAcceptor));
-        }
-
-		auto ProvString = MicroService::instance().ConfigGetString("autoprovisioning.process","default");
-		if(ProvString!="default") {
-			auto Tokens = Poco::StringTokenizer(ProvString, ",");
-			for (const auto &i : Tokens) {
-				if (i == "prov")
-					LookAtProvisioning_ = true;
-				else
-					UseDefaultConfig_ = true;
-			}
-		} else {
-			UseDefaultConfig_ = true;
+	auto ProvString = MicroService::instance().ConfigGetString("autoprovisioning.process","default");
+	if(ProvString!="default") {
+		auto Tokens = Poco::StringTokenizer(ProvString, ",");
+		for (const auto &i : Tokens) {
+			if (i == "prov")
+				LookAtProvisioning_ = true;
+			else
+				UseDefaultConfig_ = true;
 		}
+	} else {
+		UseDefaultConfig_ = true;
+	}
 
-        SimulatorId_ = MicroService::instance().ConfigGetString("simulatorid","");
-        SimulatorEnabled_ = !SimulatorId_.empty();
+	SimulatorId_ = MicroService::instance().ConfigGetString("simulatorid","");
+	SimulatorEnabled_ = !SimulatorId_.empty();
 
-		ReactorThread_.setStackSize(3000000);
-		ReactorThread_.start(Reactor_);
-		Utils::SetThreadName(ReactorThread_,"device-reactor");
+	ReactorThread_.setStackSize(3000000);
+	ReactorThread_.start(Reactor_);
+	Utils::SetThreadName(ReactorThread_,"device-reactor");
 
-        return 0;
-    }
+	return 0;
+}
 
-    void WebSocketServer::Stop() {
-        Logger().notice("Stopping reactors...");
-		// ReactorPool_.Stop();
-		Reactor_.stop();
-		ReactorThread_.join();
-    }
+void WebSocketServer::Stop() {
+	Logger().notice("Stopping reactors...");
+	// ReactorPool_.Stop();
+	Reactor_.stop();
+	ReactorThread_.join();
+}
 
 }      //namespace

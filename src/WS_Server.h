@@ -25,52 +25,52 @@
 
 namespace OpenWifi {
 
-	class WebSocketServer : public SubSystemServer {
-	  public:
-		static auto instance() {
-		    static auto instance_ = new WebSocketServer;
-			return instance_;
-		}
+class WebSocketServer : public SubSystemServer {
+  public:
+	static auto instance() {
+		static auto instance_ = new WebSocketServer;
+		return instance_;
+	}
 
-		int Start() override;
-		void Stop() override;
-		bool IsCertOk() { return IssuerCert_!= nullptr; }
-		bool ValidateCertificate(const std::string & ConnectionId, const Poco::Crypto::X509Certificate & Certificate);
-		// Poco::Net::SocketReactor & GetNextReactor() { return ReactorPool_.NextReactor(); }
+	int Start() override;
+	void Stop() override;
+	bool IsCertOk() { return IssuerCert_!= nullptr; }
+	bool ValidateCertificate(const std::string & ConnectionId, const Poco::Crypto::X509Certificate & Certificate);
+	// Poco::Net::SocketReactor & GetNextReactor() { return ReactorPool_.NextReactor(); }
 
-		inline bool IsSimSerialNumber(const std::string & SerialNumber) const {
-			return IsSim(SerialNumber) && SerialNumber == SimulatorId_;
-		}
+	inline bool IsSimSerialNumber(const std::string & SerialNumber) const {
+		return IsSim(SerialNumber) && SerialNumber == SimulatorId_;
+	}
 
-		inline static bool IsSim(const std::string & SerialNumber) {
-			return SerialNumber.substr(0,6) == "53494d";
-		}
+	inline static bool IsSim(const std::string & SerialNumber) {
+		return SerialNumber.substr(0,6) == "53494d";
+	}
 
-		inline bool IsSimEnabled() const {
-			return SimulatorEnabled_;
-		}
+	inline bool IsSimEnabled() const {
+		return SimulatorEnabled_;
+	}
 
-		inline bool UseProvisioning() const { return LookAtProvisioning_; }
-		inline bool UseDefaults() const { return UseDefaultConfig_; }
+	inline bool UseProvisioning() const { return LookAtProvisioning_; }
+	inline bool UseDefaults() const { return UseDefaultConfig_; }
 
-	  private:
-		std::unique_ptr<Poco::Crypto::X509Certificate>	IssuerCert_;
-		// typedef std::unique_ptr<Poco::Net::ParallelSocketAcceptor<WSConnection, Poco::Net::SocketReactor>> ws_server_reactor_type_t;
-		typedef Poco::Net::SocketAcceptor<WSConnection> ws_server_reactor_type_t;
-		std::vector<std::unique_ptr<ws_server_reactor_type_t>>	Acceptors_;
-		Poco::Net::SocketReactor		Reactor_;
-		Poco::Thread					ReactorThread_;
-		std::string 					SimulatorId_;
-		bool 							LookAtProvisioning_ = false;
-		bool 							UseDefaultConfig_ = true;
-		bool 							SimulatorEnabled_=false;
+  private:
+	std::unique_ptr<Poco::Crypto::X509Certificate>	IssuerCert_;
+	// typedef std::unique_ptr<Poco::Net::ParallelSocketAcceptor<WSConnection, Poco::Net::SocketReactor>> ws_server_reactor_type_t;
+	typedef Poco::Net::SocketAcceptor<WSConnection> ws_server_reactor_type_t;
+	std::vector<std::unique_ptr<ws_server_reactor_type_t>>	Acceptors_;
+	Poco::Net::SocketReactor		Reactor_;
+	Poco::Thread					ReactorThread_;
+	std::string 					SimulatorId_;
+	bool 							LookAtProvisioning_ = false;
+	bool 							UseDefaultConfig_ = true;
+	bool 							SimulatorEnabled_=false;
 
-		WebSocketServer() noexcept:
-		    SubSystemServer("WebSocketServer", "WS-SVR", "ucentral.websocket") {
+	WebSocketServer() noexcept:
+								 SubSystemServer("WebSocketServer", "WS-SVR", "ucentral.websocket") {
 
-		}
-	};
+	}
+};
 
-	inline auto WebSocketServer() { return WebSocketServer::instance(); }
+inline auto WebSocketServer() { return WebSocketServer::instance(); }
 
 } //namespace

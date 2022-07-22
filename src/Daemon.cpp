@@ -25,6 +25,7 @@
 #include "FindCountry.h"
 #include "rttys/RTTYS_server.h"
 #include "RADIUS_proxy_server.h"
+#include "VenueBroadcaster.h"
 
 namespace OpenWifi {
 	class Daemon *Daemon::instance() {
@@ -47,7 +48,8 @@ namespace OpenWifi {
 										TelemetryStream(),
 										RTTYS_server(),
 										WebSocketServer(),
-								   		RADIUS_proxy_server()
+								   		RADIUS_proxy_server(),
+								   		VenueBroadcaster()
 							   });
         return &instance;
 	}
