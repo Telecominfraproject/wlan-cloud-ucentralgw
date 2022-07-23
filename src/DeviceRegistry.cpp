@@ -9,8 +9,8 @@
 #include "Poco/JSON/Object.h"
 #include "Poco/JSON/Parser.h"
 
+#include "AP_WS_Server.h"
 #include "DeviceRegistry.h"
-#include "WS_Server.h"
 #include "OUIServer.h"
 
 namespace OpenWifi {
@@ -87,7 +87,7 @@ namespace OpenWifi {
 		}
 	}
 
-	std::shared_ptr<DeviceRegistry::ConnectionEntry> DeviceRegistry::Register(uint64_t SerialNumber, WSConnection *Ptr, uint64_t & ConnectionId )
+	std::shared_ptr<DeviceRegistry::ConnectionEntry> DeviceRegistry::Register(uint64_t SerialNumber, AP_WS_Connection *Ptr, uint64_t & ConnectionId )
     {
 		std::lock_guard		Guard(Mutex_);
 

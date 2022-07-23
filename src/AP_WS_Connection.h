@@ -17,11 +17,12 @@
 
 namespace OpenWifi {
 
-class WSConnection {
+class AP_WS_Connection {
 	static constexpr int BufSize = 128000;
   public:
-	WSConnection(Poco::Net::StreamSocket& Socket, Poco::Net::SocketReactor& Reactor);
-	~WSConnection();
+	AP_WS_Connection(Poco::Net::HTTPServerRequest &request,
+		Poco::Net::HTTPServerResponse &response);
+	~AP_WS_Connection();
 
 	void ProcessJSONRPCEvent(Poco::JSON::Object::Ptr & Doc);
 	void ProcessJSONRPCResult(Poco::JSON::Object::Ptr Doc);
@@ -64,7 +65,6 @@ class WSConnection {
   private:
 	std::recursive_mutex                Mutex_;
 	Poco::Logger                    	&Logger_;
-	Poco::Net::StreamSocket       		Socket_;
 	Poco::Net::SocketReactor			& Reactor_;
 	std::unique_ptr<Poco::Net::WebSocket> WS_;
 	std::string                         SerialNumber_;

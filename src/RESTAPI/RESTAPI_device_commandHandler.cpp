@@ -11,19 +11,19 @@
 
 #include "Poco/JSON/Parser.h"
 
+#include "AP_WS_Server.h"
 #include "CentralConfig.h"
 #include "DeviceRegistry.h"
 #include "FileUploader.h"
-#include "RESTObjects/RESTAPI_GWobjects.h"
-#include "RESTAPI_device_commandHandler.h"
-#include "StorageService.h"
 #include "RESTAPI_RPC.h"
+#include "RESTAPI_device_commandHandler.h"
+#include "RESTObjects/RESTAPI_GWobjects.h"
+#include "StorageService.h"
 #include "TelemetryStream.h"
-#include "framework/ow_constants.h"
-#include "framework/KafkaTopics.h"
 #include "framework/ConfigurationValidator.h"
+#include "framework/KafkaTopics.h"
+#include "framework/ow_constants.h"
 #include "rttys/RTTYS_server.h"
-#include "WS_Server.h"
 
 namespace OpenWifi {
 

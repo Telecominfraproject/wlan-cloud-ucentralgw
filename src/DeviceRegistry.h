@@ -17,11 +17,11 @@
 
 namespace OpenWifi {
 
-	class WSConnection;
+	class AP_WS_Connection;
     class DeviceRegistry : public SubSystemServer {
     public:
 		struct ConnectionEntry {
-			WSConnection 				* WSConn_ = nullptr;
+			AP_WS_Connection 				* WSConn_ = nullptr;
 			GWObjects::ConnectionState 	Conn_;
 			std::string        			LastStats;
 			GWObjects::HealthCheck		LastHealthcheck;
@@ -66,7 +66,7 @@ namespace OpenWifi {
 		}
 		void SetHealthcheck(uint64_t SerialNumber, const GWObjects::HealthCheck &H);
 
-		std::shared_ptr<ConnectionEntry> Register(uint64_t SerialNumber, WSConnection *Conn, uint64_t & ConnectionId);
+		std::shared_ptr<ConnectionEntry> Register(uint64_t SerialNumber, AP_WS_Connection *Conn, uint64_t & ConnectionId);
 
 		inline void UnRegister(const std::string & SerialNumber, uint64_t ConnectionId) {
 			return UnRegister(Utils::SerialNumberToInt(SerialNumber),ConnectionId);
