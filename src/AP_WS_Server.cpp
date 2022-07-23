@@ -119,7 +119,6 @@ namespace OpenWifi {
 		}
 
 		ReactorThread_.start(Reactor_);
-
 		Reactor_pool_ = std::make_unique<AP_WS_ReactorThreadPool>();
 		Reactor_pool_->Start();
 

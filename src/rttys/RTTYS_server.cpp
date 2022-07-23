@@ -25,6 +25,7 @@ namespace OpenWifi {
 			TcpServerParams->setMaxThreads(50);
 			TcpServerParams->setMaxQueued(100);
 			TcpServerParams->setThreadIdleTime(Poco::Timespan(10,0));
+			TcpServerParams->setName("rt:listener");
 
 			if(MicroService::instance().NoAPISecurity()) {
 				Poco::Net::ServerSocket DeviceSocket(DSport, 64);
