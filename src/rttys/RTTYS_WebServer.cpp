@@ -211,10 +211,11 @@ namespace OpenWifi {
 		try {
 			if (request.find("Upgrade") != request.end() &&
 				Poco::icompare(request["Upgrade"], "websocket") == 0) {
+				Utils::SetThreadName("rtty-websvr-ws");
 				Poco::Thread::current()->setName("WebRTTYRequest_WSHandler");
 				return new RTTYS_Client_WebSocketRequestHandler(Logger_);
 			} else {
-				Poco::Thread::current()->setName("WebRTTYRequest_PageHandler");
+				Utils::SetThreadName("rtty-websvr-pg");
 				return new PageRequestHandler(Logger_);
 			}
 		} catch (...) {
