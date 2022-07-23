@@ -4094,7 +4094,7 @@ namespace OpenWifi {
 
     inline void BusEventManager::run() {
         Running_ = true;
-		Utils::SetThreadName("BusEventManager");
+		Utils::SetThreadName("fmwk:EventMgr");
         auto Msg = MicroService::instance().MakeSystemEventMessage(KafkaTopics::ServiceEvents::EVENT_JOIN);
         KafkaManager()->PostMessage(KafkaTopics::SERVICE_EVENTS,MicroService::instance().PrivateEndPoint(),Msg, false);
         while(Running_) {
@@ -4181,7 +4181,7 @@ namespace OpenWifi {
 
 	inline void KafkaProducer::run() {
 
-		Utils::SetThreadName("KafkaProducer");
+		Utils::SetThreadName("Kafka:Prod");
 	    cppkafka::Configuration Config({
             { "client.id", MicroService::instance().ConfigGetString("openwifi.kafka.client.id") },
             { "metadata.broker.list", MicroService::instance().ConfigGetString("openwifi.kafka.brokerlist") }
@@ -4220,7 +4220,7 @@ namespace OpenWifi {
 	}
 
 	inline void KafkaConsumer::run() {
-		Utils::SetThreadName("KafkaConsumer");
+		Utils::SetThreadName("Kafka:Cons");
 
 	    cppkafka::Configuration Config({
 	        { "client.id", MicroService::instance().ConfigGetString("openwifi.kafka.client.id") },

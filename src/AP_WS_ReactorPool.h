@@ -27,7 +27,7 @@ namespace OpenWifi {
 				auto NewReactor = std::make_unique<Poco::Net::SocketReactor>();
 				auto NewThread = std::make_unique<Poco::Thread>();
 				NewThread->start(*NewReactor);
-				std::string ThreadName{"dev-react#" + std::to_string(i)};
+				std::string ThreadName{"ap:react:" + std::to_string(i)};
 				Utils::SetThreadName(*NewThread,ThreadName.c_str());
 				Reactors_.emplace_back(std::move(NewReactor));
 				Threads_.emplace_back(std::move(NewThread));

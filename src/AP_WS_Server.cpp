@@ -138,7 +138,7 @@ namespace OpenWifi {
 
 		SimulatorId_ = MicroService::instance().ConfigGetString("simulatorid","");
 		SimulatorEnabled_ = !SimulatorId_.empty();
-		Utils::SetThreadName(ReactorThread_,"device-reactor");
+		Utils::SetThreadName(ReactorThread_,"dev:react:head");
 
 		return 0;
 	}
