@@ -3041,7 +3041,7 @@ namespace OpenWifi {
 
 	private:
 	    std::vector<std::unique_ptr<Poco::Net::HTTPServer>>   RESTServers_;
-	    Poco::ThreadPool	    Pool_;
+	    Poco::ThreadPool	    Pool_{"x-rest",2,32};
 	    RESTAPI_GenericServer   Server_;
 
         RESTAPI_ExtServer() noexcept:
@@ -3173,7 +3173,7 @@ namespace OpenWifi {
 	    }
 	private:
 	    std::vector<std::unique_ptr<Poco::Net::HTTPServer>>   RESTServers_;
-	    Poco::ThreadPool	    Pool_;
+	    Poco::ThreadPool	    Pool_{"i-rest",2,16};
 	    RESTAPI_GenericServer   Server_;
 
         RESTAPI_IntServer() noexcept:
@@ -3582,8 +3582,6 @@ namespace OpenWifi {
     void DaemonPostInitialization(Poco::Util::Application &self);
 
 	inline void MicroService::initialize(Poco::Util::Application &self) {
-		Utils::SetThreadName("microservice");
-
 		// add the default services
         LoadConfigurationFile();
         InitializeLoggingSystem();
