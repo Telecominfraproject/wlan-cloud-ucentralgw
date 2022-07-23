@@ -83,7 +83,7 @@ namespace OpenWifi {
 				auto Params = new Poco::Net::HTTPServerParams;
 				Params->setMaxThreads(16);
 				Params->setMaxQueued(100);
-				Params->setName("file-upldr");
+				Params->setName("ws:upldr");
 
 				if (FullName_.empty()) {
 					std::string TmpName =

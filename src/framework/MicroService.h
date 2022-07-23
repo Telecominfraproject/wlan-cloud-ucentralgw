@@ -3923,7 +3923,7 @@ namespace OpenWifi {
             Params->setMaxThreads(50);
             Params->setMaxQueued(200);
             Params->setKeepAlive(true);
-			Params->setName("x-ws-rest");
+			Params->setName("ws:xrest");
 
             std::unique_ptr<Poco::Net::HTTPServer>  NewServer;
             if(MicroService::instance().NoAPISecurity()) {
@@ -3960,7 +3960,7 @@ namespace OpenWifi {
             Params->setMaxThreads(50);
             Params->setMaxQueued(200);
             Params->setKeepAlive(true);
-			Params->setName("i-ws-rest");
+			Params->setName("ws:irest");
 
             std::unique_ptr<Poco::Net::HTTPServer>  NewServer;
             if(MicroService::instance().NoAPISecurity()) {
@@ -4084,7 +4084,7 @@ namespace OpenWifi {
 	        Port_ = (int)MicroService::instance().ConfigGetInt("alb.port",15015);
 	        Socket_ = std::make_unique<Poco::Net::ServerSocket>(Port_);
 	        auto Params = new Poco::Net::HTTPServerParams;
-			Params->setName("ws-alb");
+			Params->setName("ws:alb");
 	        Server_ = std::make_unique<Poco::Net::HTTPServer>(new ALBRequestHandlerFactory(Logger()), *Socket_, Params);
 	        Server_->start();
 	    }

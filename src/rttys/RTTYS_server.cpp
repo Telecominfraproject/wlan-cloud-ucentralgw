@@ -151,7 +151,7 @@ namespace OpenWifi {
 	}
 
 	void RTTYS_server::run() {
-		Utils::SetThreadName("rtty-mgr");
+		Utils::SetThreadName("rt:manager");
 		NotificationManagerRunning_ = true;
 		Poco::AutoPtr<Poco::Notification> NextNotification(ResponseQueue_.waitDequeueNotification());
 		while (NextNotification && NotificationManagerRunning_) {

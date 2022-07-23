@@ -19,7 +19,7 @@
 namespace OpenWifi {
 
 	void CommandManager::run() {
-		Utils::SetThreadName("cmd-mgr");
+		Utils::SetThreadName("cmd:mgr");
 		Running_ = true;
 		Poco::AutoPtr<Poco::Notification>	NextMsg(ResponseQueue_.waitDequeueNotification());
 		while(NextMsg && Running_) {
@@ -99,7 +99,7 @@ namespace OpenWifi {
 
 	void CommandManager::onJanitorTimer([[maybe_unused]] Poco::Timer & timer) {
 		std::lock_guard G(Mutex_);
-		Utils::SetThreadName("cmd-janitor");
+		Utils::SetThreadName("cmd:janitor");
 		Poco::Logger	& MyLogger = Poco::Logger::get("CMD-MGR-JANITOR");
 		MyLogger.information(
 			fmt::format("Removing expired commands: start. {} outstanding-requests {} outstanding-uuids commands.",
@@ -119,7 +119,7 @@ namespace OpenWifi {
 	}
 
 	void CommandManager::onCommandRunnerTimer([[maybe_unused]] Poco::Timer &timer) {
-		Utils::SetThreadName("cmd-schdlr");
+		Utils::SetThreadName("cmd:schdlr");
 		Poco::Logger	& MyLogger = Poco::Logger::get("CMD-MGR-SCHEDULER");
 
 		std::vector<GWObjects::CommandDetails> Commands;
