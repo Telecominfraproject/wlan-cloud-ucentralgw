@@ -71,7 +71,6 @@ namespace OpenWifi {
 				Poco::Net::SSLManager::instance().initializeServer(PassphraseHandler, nullptr,Context);
 			}
 
-
 			Poco::Crypto::X509Certificate Cert(Svr.CertFile());
 			Poco::Crypto::X509Certificate Root(Svr.RootCA());
 
@@ -86,25 +85,11 @@ namespace OpenWifi {
 			Poco::Crypto::RSAKey Key("", Svr.KeyFile(), Svr.KeyFilePassword());
 			Context->usePrivateKey(Key);
 
-/*				SSL_CTX *SSLCtx = Context->sslContext();
-			if (!SSL_CTX_check_private_key(SSLCtx)) {
-				L.fatal(fmt::format("Wrong Certificate({}) for Key({})", cert_file_, key_file_));
-			}
-
-			SSL_CTX_set_verify(SSLCtx, SSL_VERIFY_PEER, nullptr);
-
-			if (level_ == Poco::Net::Context::VERIFY_STRICT) {
-				SSL_CTX_set_client_CA_list(SSLCtx, SSL_load_client_CA_file(client_cas_.c_str()));
-			}
-			SSL_CTX_enable_ct(SSLCtx, SSL_CT_VALIDATION_STRICT);
-			SSL_CTX_dane_enable(SSLCtx);
-*/
 			Context->enableSessionCache();
 			Context->setSessionCacheSize(0);
 			Context->setSessionTimeout(60);
 			Context->enableExtendedCertificateVerification(false);
 			Context->disableStatelessSessionResumption();
-
 
 			auto WebServerHttpParams = new Poco::Net::HTTPServerParams;
 			WebServerHttpParams->setMaxThreads(50);
@@ -117,13 +102,13 @@ namespace OpenWifi {
 													  : Poco::Net::AddressFamily::IPv4));
 				Poco::Net::SocketAddress SockAddr(Addr, Svr.Port());
 				auto NewWebServer = std::make_unique<Poco::Net::HTTPServer>(
-					new AP_WS_RequestHandlerFactory(Logger()), Poco::Net::SecureServerSocket(SockAddr, Svr.Backlog(), Context), WebServerHttpParams);
+					new AP_WS_RequestHandlerFactory(Logger()), DeviceConnectionPool_, Poco::Net::SecureServerSocket(SockAddr, Svr.Backlog(), Context), WebServerHttpParams);
 				WebServers_.push_back(std::move(NewWebServer));
 			} else {
 				Poco::Net::IPAddress Addr(Svr.Address());
 				Poco::Net::SocketAddress SockAddr(Addr, Svr.Port());
 				auto NewWebServer = std::make_unique<Poco::Net::HTTPServer>(
-					new AP_WS_RequestHandlerFactory(Logger()), Poco::Net::SecureServerSocket(SockAddr, Svr.Backlog(), Context), WebServerHttpParams);
+					new AP_WS_RequestHandlerFactory(Logger()), DeviceConnectionPool_, Poco::Net::SecureServerSocket(SockAddr, Svr.Backlog(), Context), WebServerHttpParams);
 				WebServers_.push_back(std::move(NewWebServer));
 			}
 		}

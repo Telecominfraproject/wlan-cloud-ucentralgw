@@ -90,12 +90,13 @@ namespace OpenWifi {
 	  private:
 		std::unique_ptr<Poco::Crypto::X509Certificate>		IssuerCert_;
 		std::list<std::unique_ptr<Poco::Net::HTTPServer>>	WebServers_;
-		Poco::Net::SocketReactor						Reactor_;
-		Poco::Thread									ReactorThread_;
-		std::string 									SimulatorId_;
-		bool 											LookAtProvisioning_ = false;
-		bool 											UseDefaultConfig_ = true;
-		bool 											SimulatorEnabled_=false;
+		Poco::Net::SocketReactor							Reactor_;
+		Poco::Thread										ReactorThread_;
+		std::string 										SimulatorId_;
+		Poco::ThreadPool									DeviceConnectionPool_{"device-conn-pool", 2, 32};
+		bool 												LookAtProvisioning_ = false;
+		bool 												UseDefaultConfig_ = true;
+		bool 												SimulatorEnabled_=false;
 
 		AP_WS_Server() noexcept:
 			SubSystemServer("WebSocketServer", "WS-SVR", "ucentral.websocket") {

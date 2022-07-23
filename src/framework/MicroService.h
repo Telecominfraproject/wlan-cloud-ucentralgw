@@ -4977,13 +4977,13 @@ namespace OpenWifi {
 
     [[nodiscard]] inline bool SendToUser(const std::string &userName, const std::string &Payload);
     inline WebSocketClientServer::WebSocketClientServer() noexcept:
-            SubSystemServer("WebSocketClientServer", "WSCLNT-SVR", "websocketclients")
+            SubSystemServer("WebSocketClientServer", "UI-WSCLNT-SVR", "websocketclients")
     {
     }
 
     inline void WebSocketClientServer::run() {
         Running_ = true ;
-		Utils::SetThreadName("ws:clnt-svr");
+		Utils::SetThreadName("ws:uiclnt-svr");
         while(Running_) {
             Poco::Thread::trySleep(2000);
 
@@ -5076,7 +5076,7 @@ namespace OpenWifi {
 			case Poco::Net::WebSocket::FRAME_OP_PONG: {
 			} break;
 			case Poco::Net::WebSocket::FRAME_OP_CLOSE: {
-				Logger().warning(Poco::format("CLOSE(%s): Client is closing its connection.", Id_));
+				Logger().warning(Poco::format("CLOSE(%s): UI Client is closing its connection.", Id_));
 				Done = true;
 			} break;
 			case Poco::Net::WebSocket::FRAME_OP_TEXT: {
@@ -5215,7 +5215,7 @@ namespace OpenWifi {
                 try
                 {
                     Poco::Net::WebSocket WS(*Request, *Response);
-                    Logger().information("WebSocket connection established.");
+                    Logger().information("UI-WebSocket connection established.");
                     auto Id = MicroService::CreateUUID();
                     WebSocketClientServer()->NewClient(WS,Id);
                 }
