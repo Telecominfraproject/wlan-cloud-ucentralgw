@@ -2713,7 +2713,7 @@ namespace OpenWifi {
 
 		inline void run() override {
 			Poco::AutoPtr<Poco::Notification>	Note(Queue_.waitDequeueNotification());
-			Utils::SetThreadName("kafka-dispatch");
+			Utils::SetThreadName("kafka:dispatch");
 			while(Note && Running_) {
 				auto Msg = dynamic_cast<KafkaMessage*>(Note.get());
 				if(Msg!= nullptr) {
