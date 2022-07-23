@@ -101,9 +101,6 @@ namespace OpenWifi {
 		std::lock_guard G(Mutex_);
 		Utils::SetThreadName("cmd:janitor");
 		Poco::Logger	& MyLogger = Poco::Logger::get("CMD-MGR-JANITOR");
-		MyLogger.information(
-			fmt::format("Removing expired commands: start. {} outstanding-requests {} outstanding-uuids commands.",
-						OutStandingRequests_.size(), OutstandingUUIDs_.size() ));
 		auto now = std::chrono::high_resolution_clock::now();
 		for(auto i=OutStandingRequests_.begin();i!=OutStandingRequests_.end();) {
 			std::chrono::duration<double, std::milli> delta = now - i->second->submitted;
@@ -115,7 +112,9 @@ namespace OpenWifi {
 				++i;
 			}
 		}
-		MyLogger.information("Removing expired commands: done.");
+		MyLogger.information(
+			fmt::format("Removing expired commands: start. {} outstanding-requests {} outstanding-uuids commands.",
+						OutStandingRequests_.size(), OutstandingUUIDs_.size() ));
 	}
 
 	void CommandManager::onCommandRunnerTimer([[maybe_unused]] Poco::Timer &timer) {
