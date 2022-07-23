@@ -60,6 +60,8 @@ namespace OpenWifi {
 			WebServerHttpParams->setMaxThreads(50);
 			WebServerHttpParams->setMaxQueued(200);
 			WebServerHttpParams->setKeepAlive(true);
+			auto Ctx = Sock.context();
+			Ctx->enableExtendedCertificateVerification(false);
 
 			auto NewWebServer = std::make_unique<Poco::Net::HTTPServer>(
 				new AP_WS_RequestHandlerFactory(Logger()), Sock, WebServerHttpParams);
