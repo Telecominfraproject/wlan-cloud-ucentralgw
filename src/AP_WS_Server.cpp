@@ -113,8 +113,9 @@ namespace OpenWifi {
 			}
 		}
 
-		for(auto &server:WebServers_)
+		for(auto &server:WebServers_) {
 			server->start();
+		}
 
 		ReactorThread_.start(Reactor_);
 
@@ -133,7 +134,6 @@ namespace OpenWifi {
 
 		SimulatorId_ = MicroService::instance().ConfigGetString("simulatorid","");
 		SimulatorEnabled_ = !SimulatorId_.empty();
-
 		Utils::SetThreadName(ReactorThread_,"device-reactor");
 
 		return 0;
@@ -141,7 +141,9 @@ namespace OpenWifi {
 
 	void AP_WS_Server::Stop() {
 		Logger().notice("Stopping reactors...");
-		// ReactorPool_.Stop();
+		for(auto &server:WebServers_) {
+			server->stopAll(true);
+		}
 		Reactor_.stop();
 		ReactorThread_.join();
 	}

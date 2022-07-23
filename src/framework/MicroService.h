@@ -3035,7 +3035,7 @@ namespace OpenWifi {
 
 	    inline Poco::Net::HTTPRequestHandler *CallServer(const std::string &Path, uint64_t Id) {
 	        RESTAPIHandler::BindingMap Bindings;
-			Utils::SetThreadName(fmt::format("rest_ext_{}",Id).c_str());
+			Utils::SetThreadName(fmt::format("x-rest:{}",Id).c_str());
 	        return RESTAPI_ExtRouter(Path, Bindings, Logger(), Server_, Id);
 	    }
 
@@ -3059,7 +3059,7 @@ namespace OpenWifi {
 	    inline Poco::Net::HTTPRequestHandler *createRequestHandler(const Poco::Net::HTTPServerRequest &Request) override {
 			try {
 				Poco::URI uri(Request.getURI());
-				Utils::SetThreadName(fmt::format("rest_ext_{}",TransactionId_).c_str());
+				Utils::SetThreadName(fmt::format("x-rest:{}",TransactionId_).c_str());
 				return RESTAPI_ExtServer()->CallServer(uri.getPath(), TransactionId_++);
 			} catch (...) {
 
@@ -3168,7 +3168,7 @@ namespace OpenWifi {
 
 	    inline Poco::Net::HTTPRequestHandler *CallServer(const std::string &Path, uint64_t Id) {
 	        RESTAPIHandler::BindingMap Bindings;
-			Utils::SetThreadName(fmt::format("rest_int_{}",Id).c_str());
+			Utils::SetThreadName(fmt::format("i-rest:{}",Id).c_str());
 	        return RESTAPI_IntRouter(Path, Bindings, Logger(), Server_, Id);
 	    }
 	private:
@@ -3189,6 +3189,7 @@ namespace OpenWifi {
 	public:
         inline IntRequestHandlerFactory() = default;
 	    inline Poco::Net::HTTPRequestHandler *createRequestHandler(const Poco::Net::HTTPServerRequest &Request) override {
+			Utils::SetThreadName(fmt::format("i-rest:{}",TransactionId_).c_str());
 	        Poco::URI uri(Request.getURI());
 	        return RESTAPI_IntServer()->CallServer(uri.getPath(), TransactionId_);
 	    }
@@ -3232,7 +3233,6 @@ namespace OpenWifi {
 		}
 
 		[[nodiscard]] std::string Version() { return Version_; }
-		// [[nodiscard]] const Poco::SharedPtr<Poco::Crypto::RSAKey> & Key() { return AppKey_; }
 		[[nodiscard]] inline const std::string & DataDir() { return DataDir_; }
 		[[nodiscard]] inline const std::string & WWWAssetsDir() { return WWWAssetsDir_; }
 		[[nodiscard]] bool Debug() const { return DebugMode_; }
@@ -3582,7 +3582,7 @@ namespace OpenWifi {
     void DaemonPostInitialization(Poco::Util::Application &self);
 
 	inline void MicroService::initialize(Poco::Util::Application &self) {
-		// Utils::SetThreadName("microservice");
+		Utils::SetThreadName("microservice");
 
 		// add the default services
         LoadConfigurationFile();

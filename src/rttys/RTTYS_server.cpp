@@ -84,7 +84,6 @@ namespace OpenWifi {
 		Timer_.setStartInterval(30 * 1000);  // first run in 30 seconds
 		Timer_.setPeriodicInterval(20 * 1000);
 		Timer_.start(*GCCallBack_);
-
 		NotificationManager_.start(*this);
 
 		return 0;

@@ -140,7 +140,6 @@ namespace OpenWifi {
 				return true;
 			}
 
-//			std::cout << ClientDisconnected_ << " " << ClientConnected_ << " " << DeviceDisconnected_ << " " << DeviceConnected_ << std::endl;
 			return false;
 		}
 
@@ -149,7 +148,6 @@ namespace OpenWifi {
 				Client_->SendData(Buf,Len);
 				return true;
 			}
-			std::cout << "SendToClientFailure: " << (Client_!= nullptr) << " " << Client_->Valid() << std::endl;
 			return false;
 		}
 
