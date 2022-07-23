@@ -1399,13 +1399,14 @@ namespace OpenWifi {
 
 	    [[nodiscard]] inline const std::string &Address() const { return address_; };
 	    [[nodiscard]] inline uint32_t Port() const { return port_; };
-	    [[nodiscard]] inline const std::string &KeyFile() const { return key_file_; };
-	    [[nodiscard]] inline const std::string &CertFile() const { return cert_file_; };
-	    [[nodiscard]] inline const std::string &RootCA() const { return root_ca_; };
-	    [[nodiscard]] inline const std::string &KeyFilePassword() const { return key_file_password_; };
-	    [[nodiscard]] inline const std::string &IssuerCertFile() const { return issuer_cert_file_; };
-	    [[nodiscard]] inline const std::string &Name() const { return name_; };
+	    [[nodiscard]] inline auto KeyFile() const { return key_file_; };
+	    [[nodiscard]] inline auto CertFile() const { return cert_file_; };
+	    [[nodiscard]] inline auto RootCA() const { return root_ca_; };
+	    [[nodiscard]] inline auto KeyFilePassword() const { return key_file_password_; };
+	    [[nodiscard]] inline auto IssuerCertFile() const { return issuer_cert_file_; };
+	    [[nodiscard]] inline auto Name() const { return name_; };
 	    [[nodiscard]] inline int Backlog() const { return backlog_; }
+		[[nodiscard]] inline auto Cas() const { return cas_; }
 
 	    [[nodiscard]] inline Poco::Net::SecureServerSocket CreateSecureSocket(Poco::Logger &L) const {
 	        Poco::Net::Context::Params P;
