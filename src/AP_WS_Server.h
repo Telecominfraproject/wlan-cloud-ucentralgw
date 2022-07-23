@@ -47,7 +47,7 @@ namespace OpenWifi {
 		createRequestHandler(const Poco::Net::HTTPServerRequest &request) override {
 			if (request.find("Upgrade") != request.end() &&
 				Poco::icompare(request["Upgrade"], "websocket") == 0) {
-				Utils::SetThreadName("ap-conn-init");
+				Utils::SetThreadName("ws:conn-init");
 				return new AP_WS_RequestHandler(Logger_);
 			} else {
 				return nullptr;
@@ -93,7 +93,7 @@ namespace OpenWifi {
 		Poco::Net::SocketReactor							Reactor_;
 		Poco::Thread										ReactorThread_;
 		std::string 										SimulatorId_;
-		Poco::ThreadPool									DeviceConnectionPool_{"dev-pool", 2, 32};
+		Poco::ThreadPool									DeviceConnectionPool_{"ws:dev-pool", 2, 32};
 		bool 												LookAtProvisioning_ = false;
 		bool 												UseDefaultConfig_ = true;
 		bool 												SimulatorEnabled_=false;
