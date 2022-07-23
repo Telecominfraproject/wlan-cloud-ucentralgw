@@ -119,6 +119,9 @@ namespace OpenWifi {
 
 		ReactorThread_.start(Reactor_);
 
+		Reactor_pool_ = std::make_unique<AP_WS_ReactorThreadPool>();
+		Reactor_pool_->Start();
+
 		auto ProvString = MicroService::instance().ConfigGetString("autoprovisioning.process","default");
 		if(ProvString!="default") {
 			auto Tokens = Poco::StringTokenizer(ProvString, ",");
@@ -141,6 +144,9 @@ namespace OpenWifi {
 
 	void AP_WS_Server::Stop() {
 		Logger().notice("Stopping reactors...");
+
+		Reactor_pool_->Stop();
+
 		for(auto &server:WebServers_) {
 			server->stopAll();
 		}

@@ -16,7 +16,6 @@ namespace OpenWifi {
 				NumberOfThreads_ = Poco::Environment::processorCount()/2;
 			else
 				NumberOfThreads_ = 2;
-			Start();
 		}
 
 		~ AP_WS_ReactorThreadPool() {
@@ -33,11 +32,6 @@ namespace OpenWifi {
 				Reactors_.emplace_back(std::move(NewReactor));
 				Threads_.emplace_back(std::move(NewThread));
 			}
-		}
-
-		inline static auto instance() {
-			static auto instance_ = new AP_WS_ReactorThreadPool;
-			return instance_;
 		}
 
 		void Stop() {
@@ -62,5 +56,4 @@ namespace OpenWifi {
 		std::vector<std::unique_ptr<Poco::Net::SocketReactor>> Reactors_;
 		std::vector<std::unique_ptr<Poco::Thread>> Threads_;
 	};
-	inline auto AP_WS_ReactorThreadPool() { return AP_WS_ReactorThreadPool::instance(); }
 }
