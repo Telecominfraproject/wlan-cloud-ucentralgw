@@ -3923,6 +3923,7 @@ namespace OpenWifi {
             Params->setMaxThreads(50);
             Params->setMaxQueued(200);
             Params->setKeepAlive(true);
+			Params->setName("x-ws-rest");
 
             std::unique_ptr<Poco::Net::HTTPServer>  NewServer;
             if(MicroService::instance().NoAPISecurity()) {
@@ -3959,6 +3960,7 @@ namespace OpenWifi {
             Params->setMaxThreads(50);
             Params->setMaxQueued(200);
             Params->setKeepAlive(true);
+			Params->setName("i-ws-rest");
 
             std::unique_ptr<Poco::Net::HTTPServer>  NewServer;
             if(MicroService::instance().NoAPISecurity()) {
