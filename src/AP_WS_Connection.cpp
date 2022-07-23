@@ -149,7 +149,7 @@ namespace OpenWifi {
 	AP_WS_Connection::AP_WS_Connection(Poco::Net::HTTPServerRequest &request,
 									   Poco::Net::HTTPServerResponse &response)
 		: Logger_(AP_WS_Server()->Logger()) ,
-		  Reactor_(AP_WS_Server()->NextReactor())
+		  Reactor_(AP_WS_ReactorThreadPool()->NextReactor())
   	{
 		WS_ = std::make_unique<Poco::Net::WebSocket>(request,response);
 		CompleteStartup();

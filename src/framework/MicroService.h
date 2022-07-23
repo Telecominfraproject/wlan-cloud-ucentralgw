@@ -1886,8 +1886,8 @@ namespace OpenWifi {
 	            Request = &RequestIn;
 	            Response = &ResponseIn;
 
-				std::string th_name = "restsvr_" + std::to_string(TransactionId_);
-				Utils::SetThreadName(th_name.c_str());
+//				std::string th_name = "restsvr_" + std::to_string(TransactionId_);
+//				Utils::SetThreadName(th_name.c_str());
 
                 if(Request->getContentLength()>0) {
                     if(Request->getContentType().find("application/json")!=std::string::npos) {
@@ -3976,8 +3976,6 @@ namespace OpenWifi {
     }
 
     inline int MicroService::main([[maybe_unused]] const ArgVec &args) {
-
-		// Utils::SetThreadName("main");
 	    MyErrorHandler	ErrorHandler(*this);
 	    Poco::ErrorHandler::set(&ErrorHandler);
 

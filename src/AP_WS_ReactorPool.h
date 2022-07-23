@@ -9,27 +9,26 @@
 #include "Poco/Environment.h"
 
 namespace OpenWifi {
-	class ReactorThreadPool {
+	class AP_WS_ReactorThreadPool {
 	  public:
-		explicit ReactorThreadPool() {
+		explicit AP_WS_ReactorThreadPool() {
 			if(Poco::Environment::processorCount()>8)
 				NumberOfThreads_ = Poco::Environment::processorCount()/2;
 			else
 				NumberOfThreads_ = 2;
-			Start("ReactorThreadPool");
+			Start();
 		}
 
-		~ ReactorThreadPool() {
+		~ AP_WS_ReactorThreadPool() {
 			Stop();
 		}
 
-		void Start(const std::string & ThreadNamePrefix) {
+		void Start() {
 			for (uint64_t i = 0; i < NumberOfThreads_; ++i) {
 				auto NewReactor = std::make_unique<Poco::Net::SocketReactor>();
 				auto NewThread = std::make_unique<Poco::Thread>();
-				NewThread->setStackSize(2000000);
 				NewThread->start(*NewReactor);
-				std::string ThreadName{ThreadNamePrefix + "#" + std::to_string(i)};
+				std::string ThreadName{"dev-react#" + std::to_string(i)};
 				Utils::SetThreadName(*NewThread,ThreadName.c_str());
 				Reactors_.emplace_back(std::move(NewReactor));
 				Threads_.emplace_back(std::move(NewThread));
@@ -37,7 +36,7 @@ namespace OpenWifi {
 		}
 
 		inline static auto instance() {
-			static auto instance_ = new ReactorThreadPool;
+			static auto instance_ = new AP_WS_ReactorThreadPool;
 			return instance_;
 		}
 
@@ -63,5 +62,5 @@ namespace OpenWifi {
 		std::vector<std::unique_ptr<Poco::Net::SocketReactor>> Reactors_;
 		std::vector<std::unique_ptr<Poco::Thread>> Threads_;
 	};
-	inline auto ReactorThreadPool() { return ReactorThreadPool::instance(); }
+	inline auto AP_WS_ReactorThreadPool() { return AP_WS_ReactorThreadPool::instance(); }
 }

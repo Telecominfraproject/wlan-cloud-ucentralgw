@@ -21,7 +21,7 @@
 #include "Poco/Net/SocketAcceptor.h"
 
 #include "AP_WS_Connection.h"
-#include "WS_ReactorPool.h"
+#include "AP_WS_ReactorPool.h"
 
 namespace OpenWifi {
 
@@ -47,7 +47,7 @@ namespace OpenWifi {
 		createRequestHandler(const Poco::Net::HTTPServerRequest &request) override {
 			if (request.find("Upgrade") != request.end() &&
 				Poco::icompare(request["Upgrade"], "websocket") == 0) {
-				Poco::Thread::current()->setName("AP_CONN_INIT");
+				Utils::SetThreadName("ap-conn-init");
 				return new AP_WS_RequestHandler(Logger_);
 			} else {
 				return nullptr;
