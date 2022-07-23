@@ -4883,7 +4883,7 @@ namespace OpenWifi {
 		void SendToAll(const std::string &Payload);
     private:
         mutable std::atomic_bool Running_ = false;
-        Poco::Thread Thr_;
+        Poco::Thread 								Thr_;
         // std::unique_ptr<MyParallelSocketReactor> ReactorPool_;
 		Poco::Net::SocketReactor					Reactor_;
 		Poco::Thread								ReactorThread_;

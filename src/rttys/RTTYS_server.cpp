@@ -53,6 +53,7 @@ namespace OpenWifi {
 			WebServerHttpParams->setMaxThreads(50);
 			WebServerHttpParams->setMaxQueued(200);
 			WebServerHttpParams->setKeepAlive(true);
+			WebServerHttpParams->setName("rt:dispatch");
 
 			if(MicroService::instance().NoAPISecurity()) {
 				Poco::Net::ServerSocket ClientSocket(CSport, 64);

@@ -95,6 +95,7 @@ namespace OpenWifi {
 			WebServerHttpParams->setMaxThreads(50);
 			WebServerHttpParams->setMaxQueued(200);
 			WebServerHttpParams->setKeepAlive(true);
+			WebServerHttpParams->setName("ap_ws_dispatch");
 
 			if (Svr.Address() == "*") {
 				Poco::Net::IPAddress Addr(Poco::Net::IPAddress::wildcard(
