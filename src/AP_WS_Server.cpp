@@ -145,11 +145,10 @@ namespace OpenWifi {
 	void AP_WS_Server::Stop() {
 		Logger().notice("Stopping reactors...");
 
-		Reactor_pool_->Stop();
-
 		for(auto &server:WebServers_) {
 			server->stopAll();
 		}
+		Reactor_pool_->Stop();
 		Reactor_.stop();
 		ReactorThread_.join();
 	}
