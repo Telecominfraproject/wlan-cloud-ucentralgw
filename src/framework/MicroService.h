@@ -3334,6 +3334,9 @@ namespace OpenWifi {
                 return Signer_.sign(T,Algo);
             }
         }
+
+		inline Poco::ThreadPool & TimerPool() { return TimerPool_; }
+
 	  private:
 	    static MicroService         * instance_;
 		bool                        HelpRequested_ = false;
@@ -3368,6 +3371,7 @@ namespace OpenWifi {
         bool                        NoBuiltInCrypto_=false;
         Poco::JWT::Signer	        Signer_;
 		Poco::Logger				&Logger_;
+		Poco::ThreadPool			TimerPool_{"timer:pool",2,16};
     };
 
 	inline void MicroService::Exit(int Reason) {

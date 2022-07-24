@@ -95,7 +95,7 @@ namespace OpenWifi {
 
 		Timer_.setStartInterval( NextRun * 1000);
 		Timer_.setPeriodicInterval(24 * 60 * 60 * 1000); // 1 hours
-		Timer_.start(*ArchiverCallback_);
+		Timer_.start(*ArchiverCallback_, MicroService::instance().TimerPool());
 
 		return 0;
 	}

@@ -27,7 +27,7 @@ namespace OpenWifi {
 		UpdaterCallBack_ = std::make_unique<Poco::TimerCallback<OUIServer>>(*this, &OUIServer::onTimer);
 		Timer_.setStartInterval(30 * 1000);  // first run in 5 minutes
 		Timer_.setPeriodicInterval(7 * 24 * 60 * 60 * 1000);
-		Timer_.start(*UpdaterCallBack_);
+		Timer_.start(*UpdaterCallBack_, MicroService::instance().TimerPool());
 		return 0;
 	}
 

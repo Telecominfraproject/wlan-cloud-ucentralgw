@@ -72,12 +72,12 @@ namespace OpenWifi {
 		JanitorCallback_ = std::make_unique<Poco::TimerCallback<CommandManager>>(*this,&CommandManager::onJanitorTimer);
 		JanitorTimer_.setStartInterval( 10000 );
 		JanitorTimer_.setPeriodicInterval(10 * 60 * 1000); // 1 hours
-		JanitorTimer_.start(*JanitorCallback_);
+		JanitorTimer_.start(*JanitorCallback_, MicroService::instance().TimerPool());
 
 		CommandRunnerCallback_ = std::make_unique<Poco::TimerCallback<CommandManager>>(*this,&CommandManager::onCommandRunnerTimer);
 		CommandRunnerTimer_.setStartInterval( 10000 );
 		CommandRunnerTimer_.setPeriodicInterval(30 * 1000); // 1 hours
-		CommandRunnerTimer_.start(*CommandRunnerCallback_);
+		CommandRunnerTimer_.start(*CommandRunnerCallback_, MicroService::instance().TimerPool());
 
         return 0;
     }
