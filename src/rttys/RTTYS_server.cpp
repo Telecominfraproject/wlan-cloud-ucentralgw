@@ -85,7 +85,7 @@ namespace OpenWifi {
 		GCCallBack_ = std::make_unique<Poco::TimerCallback<RTTYS_server>>(*this, &RTTYS_server::onTimer);
 		Timer_.setStartInterval(30 * 1000);  // first run in 30 seconds
 		Timer_.setPeriodicInterval(20 * 1000);
-		Timer_.start(*GCCallBack_);
+		Timer_.start(*GCCallBack_, MicroService::instance().TimerPool() );
 		NotificationManager_.start(*this);
 
 		return 0;
