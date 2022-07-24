@@ -3045,8 +3045,7 @@ namespace OpenWifi {
 	    RESTAPI_GenericServer   Server_;
 
         RESTAPI_ExtServer() noexcept:
-	    SubSystemServer("RESTAPI_ExtServer", "RESTAPIServer", "openwifi.restapi"),
-        Pool_("RESTAPI_ExtServer",4,50,120)
+	    SubSystemServer("RESTAPI_ExtServer", "RESTAPIServer", "openwifi.restapi")
             {
             }
 	};
@@ -3177,8 +3176,7 @@ namespace OpenWifi {
 	    RESTAPI_GenericServer   Server_;
 
         RESTAPI_IntServer() noexcept:
-		   SubSystemServer("RESTAPI_IntServer", "REST-ISRV", "openwifi.internal.restapi"),
-            Pool_("RESTAPI_IntServer",4,50,120)
+		   SubSystemServer("RESTAPI_IntServer", "REST-ISRV", "openwifi.internal.restapi")
         {
         }
 	};
