@@ -40,6 +40,8 @@ namespace OpenWifi {
 			for (auto &i : Threads_) {
 				i->join();
 			}
+			Reactors_.clear();
+			Threads_.clear();
 		}
 
 		Poco::Net::SocketReactor &NextReactor() {
