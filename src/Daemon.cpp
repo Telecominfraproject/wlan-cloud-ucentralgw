@@ -10,22 +10,22 @@
 #include "Poco/Util/Option.h"
 #include "Poco/Environment.h"
 
+#include "AP_WS_Server.h"
 #include "CommandManager.h"
 #include "Daemon.h"
 #include "DeviceRegistry.h"
 #include "FileUploader.h"
+#include "FindCountry.h"
 #include "OUIServer.h"
+#include "RADIUS_proxy_server.h"
 #include "SerialNumberCache.h"
 #include "StorageArchiver.h"
 #include "StorageService.h"
 #include "TelemetryStream.h"
-#include "WS_Server.h"
+#include "VenueBroadcaster.h"
 #include "framework/ConfigurationValidator.h"
 #include "framework/MicroService.h"
-#include "FindCountry.h"
 #include "rttys/RTTYS_server.h"
-#include "RADIUS_proxy_server.h"
-#include "VenueBroadcaster.h"
 
 namespace OpenWifi {
 	class Daemon *Daemon::instance() {
@@ -47,7 +47,7 @@ namespace OpenWifi {
 										StorageArchiver(),
 										TelemetryStream(),
 										RTTYS_server(),
-										WebSocketServer(),
+								   		AP_WS_Server(),
 								   		RADIUS_proxy_server(),
 								   		VenueBroadcaster()
 							   });

@@ -25,6 +25,7 @@ namespace OpenWifi {
 			TcpServerParams->setMaxThreads(50);
 			TcpServerParams->setMaxQueued(100);
 			TcpServerParams->setThreadIdleTime(Poco::Timespan(10,0));
+			TcpServerParams->setName("rt:listener");
 
 			if(MicroService::instance().NoAPISecurity()) {
 				Poco::Net::ServerSocket DeviceSocket(DSport, 64);
@@ -53,6 +54,7 @@ namespace OpenWifi {
 			WebServerHttpParams->setMaxThreads(50);
 			WebServerHttpParams->setMaxQueued(200);
 			WebServerHttpParams->setKeepAlive(true);
+			WebServerHttpParams->setName("rt:dispatch");
 
 			if(MicroService::instance().NoAPISecurity()) {
 				Poco::Net::ServerSocket ClientSocket(CSport, 64);
@@ -83,8 +85,7 @@ namespace OpenWifi {
 		GCCallBack_ = std::make_unique<Poco::TimerCallback<RTTYS_server>>(*this, &RTTYS_server::onTimer);
 		Timer_.setStartInterval(30 * 1000);  // first run in 30 seconds
 		Timer_.setPeriodicInterval(20 * 1000);
-		Timer_.start(*GCCallBack_);
-
+		Timer_.start(*GCCallBack_, MicroService::instance().TimerPool() );
 		NotificationManager_.start(*this);
 
 		return 0;
@@ -151,7 +152,7 @@ namespace OpenWifi {
 	}
 
 	void RTTYS_server::run() {
-		Utils::SetThreadName("rtty-mgr");
+		Utils::SetThreadName("rt:manager");
 		NotificationManagerRunning_ = true;
 		Poco::AutoPtr<Poco::Notification> NextNotification(ResponseQueue_.waitDequeueNotification());
 		while (NextNotification && NotificationManagerRunning_) {

@@ -21,8 +21,8 @@
 #include "Poco/URI.h"
 #include "Poco/Net/HTTPServer.h"
 
+#include "AP_WS_ReactorPool.h"
 #include "TelemetryClient.h"
-#include "WS_ReactorPool.h"
 
 namespace OpenWifi {
 

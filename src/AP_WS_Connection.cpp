@@ -2,7 +2,7 @@
 // Created by stephane bourque on 2022-02-03.
 //
 
-#include "WS_Connection.h"
+#include "AP_WS_Connection.h"
 
 #include "Poco/Net/SecureStreamSocketImpl.h"
 #include "Poco/Net/SecureServerSocketImpl.h"
@@ -17,30 +17,34 @@
 
 #include "Poco/zlib.h"
 
-#include "WS_Server.h"
-#include "StorageService.h"
+#include "AP_WS_Server.h"
+#include "CentralConfig.h"
 #include "CommandManager.h"
-#include "StateUtils.h"
 #include "ConfigurationCache.h"
 #include "Daemon.h"
-#include "TelemetryStream.h"
-#include "CentralConfig.h"
 #include "FindCountry.h"
+#include "StateUtils.h"
+#include "StorageService.h"
+#include "TelemetryStream.h"
 #include "VenueBroadcaster.h"
 #include "framework/WebSocketClientNotifications.h"
+#include "Poco/Net/WebSocketImpl.h"
 
 #include "RADIUS_proxy_server.h"
 
 namespace OpenWifi {
 
-	void WSConnection::LogException(const Poco::Exception &E) {
+	void AP_WS_Connection::LogException(const Poco::Exception &E) {
 		Logger().information(fmt::format("EXCEPTION({}): {}", CId_, E.displayText()));
 	}
 
-	void WSConnection::CompleteStartup() {
+	void AP_WS_Connection::CompleteStartup() {
+
 		std::lock_guard Guard(Mutex_);
 		try {
-			auto SS = dynamic_cast<Poco::Net::SecureStreamSocketImpl *>(Socket_.impl());
+			auto SockImpl = dynamic_cast<Poco::Net::WebSocketImpl *>(WS_->impl());
+			auto SS = dynamic_cast<Poco::Net::SecureStreamSocketImpl*>(SockImpl->streamSocketImpl());
+
 			while (true) {
 				auto V = SS->completeHandshake();
 				if (V == 1)
@@ -60,7 +64,7 @@ namespace OpenWifi {
 				try {
 					Poco::Crypto::X509Certificate PeerCert(SS->peerCertificate());
 
-					if (WebSocketServer()->ValidateCertificate(CId_, PeerCert)) {
+					if (AP_WS_Server()->ValidateCertificate(CId_, PeerCert)) {
 						CN_ = Poco::trim(Poco::toLower(PeerCert.commonName()));
 						CertValidation_ = GWObjects::MISMATCH_SERIAL;
 						poco_trace(Logger(),fmt::format("{}: Valid certificate: CN={}", CId_, CN_));
@@ -74,7 +78,7 @@ namespace OpenWifi {
 				poco_error(Logger(),fmt::format("{}: No certificates available..", CId_));
 			}
 
-			if (WebSocketServer::IsSim(CN_) && !WebSocketServer()->IsSimEnabled()) {
+			if (AP_WS_Server::IsSim(CN_) && !AP_WS_Server()->IsSimEnabled()) {
 				Logger().debug(fmt::format(
 					"CONNECTION({}): Sim Device {} is not allowed. Disconnecting.", CId_, CN_));
 				delete this;
@@ -89,32 +93,20 @@ namespace OpenWifi {
 											CId_, CN_));
 				return delete this;
 			}
-			auto Params = Poco::AutoPtr<Poco::Net::HTTPServerParams>(new Poco::Net::HTTPServerParams);
-			Poco::Net::HTTPServerSession Session(Socket_, Params);
-			Poco::Net::HTTPServerResponseImpl Response(Session);
-			Poco::Net::HTTPServerRequestImpl Request(Response, Session, Params);
-
-			auto now = OpenWifi::Now();
-			Response.setDate(now);
-			Response.setVersion(Request.getVersion());
-			Response.setKeepAlive(Params->getKeepAlive() && Request.getKeepAlive() &&
-								  Session.canKeepAlive());
-			WS_ = std::make_unique<Poco::Net::WebSocket>(Request, Response);
 			WS_->setMaxPayloadSize(BufSize);
 			auto TS = Poco::Timespan(360, 0);
-
 			WS_->setReceiveTimeout(TS);
 			WS_->setNoDelay(true);
 			WS_->setKeepAlive(true);
 
 			Reactor_.addEventHandler(*WS_,
-									 Poco::NObserver<WSConnection, Poco::Net::ReadableNotification>(
-										 *this, &WSConnection::OnSocketReadable));
+									 Poco::NObserver<AP_WS_Connection, Poco::Net::ReadableNotification>(
+										 *this, &AP_WS_Connection::OnSocketReadable));
 			Reactor_.addEventHandler(*WS_,
-									 Poco::NObserver<WSConnection, Poco::Net::ShutdownNotification>(
-										 *this, &WSConnection::OnSocketShutdown));
-			Reactor_.addEventHandler(*WS_, Poco::NObserver<WSConnection, Poco::Net::ErrorNotification>(
-											   *this, &WSConnection::OnSocketError));
+									 Poco::NObserver<AP_WS_Connection, Poco::Net::ShutdownNotification>(
+										 *this, &AP_WS_Connection::OnSocketShutdown));
+			Reactor_.addEventHandler(*WS_, Poco::NObserver<AP_WS_Connection, Poco::Net::ErrorNotification>(
+											   *this, &AP_WS_Connection::OnSocketError));
 			Registered_ = true;
 			poco_debug(Logger(),fmt::format("CONNECTION({}): completed.", CId_));
 			return;
@@ -154,13 +146,13 @@ namespace OpenWifi {
 		return delete this;
 	}
 
-	WSConnection::WSConnection(Poco::Net::StreamSocket &socket, [[maybe_unused]] Poco::Net::SocketReactor &reactor)
-		: Logger_(WebSocketServer()->Logger()) ,
-		  Socket_(socket),
-		  Reactor_(ReactorThreadPool()->NextReactor())
-		  {
-		std::thread T([=]() { CompleteStartup(); });
-		T.detach();
+	AP_WS_Connection::AP_WS_Connection(Poco::Net::HTTPServerRequest &request,
+									   Poco::Net::HTTPServerResponse &response)
+		: Logger_(AP_WS_Server()->Logger()) ,
+		  Reactor_(AP_WS_Server()->NextReactor())
+  	{
+		WS_ = std::make_unique<Poco::Net::WebSocket>(request,response);
+		CompleteStartup();
 	}
 
 	static void NotifyKafkaDisconnect(const std::string & SerialNumber) {
@@ -178,7 +170,7 @@ namespace OpenWifi {
 		}
 	}
 
-	WSConnection::~WSConnection() {
+	AP_WS_Connection::~AP_WS_Connection() {
 
 		poco_debug(Logger(),fmt::format("{}: Removing connection for {}.", CId_, SerialNumber_));
 		if (ConnectionId_)
@@ -186,19 +178,17 @@ namespace OpenWifi {
 
 		if (Registered_ && WS_) {
 			Reactor_.removeEventHandler(*WS_,
-										Poco::NObserver<WSConnection, Poco::Net::ReadableNotification>(
-											*this, &WSConnection::OnSocketReadable));
+										Poco::NObserver<AP_WS_Connection, Poco::Net::ReadableNotification>(
+											*this, &AP_WS_Connection::OnSocketReadable));
 			Reactor_.removeEventHandler(*WS_,
-										Poco::NObserver<WSConnection, Poco::Net::ShutdownNotification>(
-											*this, &WSConnection::OnSocketShutdown));
+										Poco::NObserver<AP_WS_Connection, Poco::Net::ShutdownNotification>(
+											*this, &AP_WS_Connection::OnSocketShutdown));
 			Reactor_.removeEventHandler(*WS_,
-										Poco::NObserver<WSConnection, Poco::Net::ErrorNotification>(
-											*this, &WSConnection::OnSocketError));
+										Poco::NObserver<AP_WS_Connection, Poco::Net::ErrorNotification>(
+											*this, &AP_WS_Connection::OnSocketError));
 			(*WS_).close();
-			Socket_.shutdown();
 		} else if (WS_) {
 			(*WS_).close();
-			Socket_.shutdown();
 		}
 
 		if (KafkaManager()->Enabled() && !SerialNumber_.empty()) {
@@ -210,7 +200,7 @@ namespace OpenWifi {
 		WebSocketClientNotificationDeviceDisconnected(SerialNumber_);
 	}
 
-	bool WSConnection::LookForUpgrade(const uint64_t UUID, uint64_t & UpgradedUUID) {
+	bool AP_WS_Connection::LookForUpgrade(const uint64_t UUID, uint64_t & UpgradedUUID) {
 
 		//	A UUID of zero means ignore updates for that connection.
 		if (UUID == 0)
@@ -276,11 +266,11 @@ namespace OpenWifi {
 		return false;
 	}
 
-	void WSConnection::ProcessJSONRPCResult(Poco::JSON::Object::Ptr Doc) {
+	void AP_WS_Connection::ProcessJSONRPCResult(Poco::JSON::Object::Ptr Doc) {
 		CommandManager()->PostCommandResult(SerialNumber_, *Doc);
 	}
 
-	void WSConnection::ProcessJSONRPCEvent(Poco::JSON::Object::Ptr &Doc) {
+	void AP_WS_Connection::ProcessJSONRPCEvent(Poco::JSON::Object::Ptr &Doc) {
 
 		auto Method = Doc->get(uCentralProtocol::METHOD).toString();
 		auto EventType = uCentralProtocol::Events::EventFromString(Method);
@@ -373,7 +363,7 @@ namespace OpenWifi {
 				CId_ = SerialNumber_ + "@" + CId_;
 				//	We need to verify the certificate if we have one
 				if ((!CN_.empty() && Utils::SerialNumberMatch(CN_, SerialNumber_)) ||
-					WebSocketServer()->IsSimSerialNumber(CN_)) {
+					AP_WS_Server()->IsSimSerialNumber(CN_)) {
 					CertValidation_ = GWObjects::VERIFIED;
 					poco_information(Logger(), fmt::format("CONNECT({}): Fully validated and authenticated device.", CId_));
 				} else {
@@ -774,7 +764,7 @@ namespace OpenWifi {
 		}
 	}
 
-	bool WSConnection::StartTelemetry() {
+	bool AP_WS_Connection::StartTelemetry() {
 		// std::cout << "Start telemetry for " << SerialNumber_ << std::endl;
 		poco_information(Logger(), fmt::format("TELEMETRY({}): Starting.", CId_));
 		Poco::JSON::Object StartMessage;
@@ -797,7 +787,7 @@ namespace OpenWifi {
 		return true;
 	}
 
-	bool WSConnection::StopTelemetry() {
+	bool AP_WS_Connection::StopTelemetry() {
 		// std::cout << "Stop telemetry for " << SerialNumber_ << std::endl;
 		poco_information(Logger(), fmt::format("TELEMETRY({}): Stopping.", CId_));
 		Poco::JSON::Object StopMessage;
@@ -817,14 +807,14 @@ namespace OpenWifi {
 		return true;
 	}
 
-	void WSConnection::UpdateCounts() {
+	void AP_WS_Connection::UpdateCounts() {
 		if (Conn_) {
 			Conn_->Conn_.kafkaClients = TelemetryKafkaRefCount_;
 			Conn_->Conn_.webSocketClients = TelemetryWebSocketRefCount_;
 		}
 	}
 
-	bool WSConnection::SetWebSocketTelemetryReporting(uint64_t Interval,
+	bool AP_WS_Connection::SetWebSocketTelemetryReporting(uint64_t Interval,
 													  uint64_t LifeTime) {
 		std::lock_guard G(Mutex_);
 		TelemetryWebSocketRefCount_++;
@@ -839,7 +829,7 @@ namespace OpenWifi {
 		return true;
 	}
 
-	bool WSConnection::SetKafkaTelemetryReporting(uint64_t Interval, uint64_t LifeTime) {
+	bool AP_WS_Connection::SetKafkaTelemetryReporting(uint64_t Interval, uint64_t LifeTime) {
 		std::lock_guard G(Mutex_);
 		TelemetryKafkaRefCount_++;
 		TelemetryInterval_ = TelemetryInterval_ ? std::min(Interval, TelemetryInterval_) : Interval;
@@ -853,7 +843,7 @@ namespace OpenWifi {
 		return true;
 	}
 
-	bool WSConnection::StopWebSocketTelemetry() {
+	bool AP_WS_Connection::StopWebSocketTelemetry() {
 		std::lock_guard G(Mutex_);
 		if (TelemetryWebSocketRefCount_)
 			TelemetryWebSocketRefCount_--;
@@ -865,7 +855,7 @@ namespace OpenWifi {
 		return true;
 	}
 
-	bool WSConnection::StopKafkaTelemetry() {
+	bool AP_WS_Connection::StopKafkaTelemetry() {
 		std::lock_guard G(Mutex_);
 		if (TelemetryKafkaRefCount_)
 			TelemetryKafkaRefCount_--;
@@ -877,19 +867,19 @@ namespace OpenWifi {
 		return true;
 	}
 
-	void WSConnection::OnSocketShutdown([[maybe_unused]] const Poco::AutoPtr<Poco::Net::ShutdownNotification> &pNf) {
+	void AP_WS_Connection::OnSocketShutdown([[maybe_unused]] const Poco::AutoPtr<Poco::Net::ShutdownNotification> &pNf) {
 		std::lock_guard Guard(Mutex_);
 		poco_trace(Logger(), fmt::format("SOCKET-SHUTDOWN({}): Closing.", CId_));
 		delete this;
 	}
 
-	void WSConnection::OnSocketError([[maybe_unused]] const Poco::AutoPtr<Poco::Net::ErrorNotification> &pNf) {
+	void AP_WS_Connection::OnSocketError([[maybe_unused]] const Poco::AutoPtr<Poco::Net::ErrorNotification> &pNf) {
 		std::lock_guard Guard(Mutex_);
 		poco_trace(Logger(), fmt::format("SOCKET-ERROR({}): Closing.", CId_));
 		delete this;
 	}
 
-	void WSConnection::OnSocketReadable([[maybe_unused]] const Poco::AutoPtr<Poco::Net::ReadableNotification> &pNf) {
+	void AP_WS_Connection::OnSocketReadable([[maybe_unused]] const Poco::AutoPtr<Poco::Net::ReadableNotification> &pNf) {
 		std::lock_guard Guard(Mutex_);
 		try {
 			ProcessIncomingFrame();
@@ -914,7 +904,7 @@ namespace OpenWifi {
 		return "";
 	}
 
-	void WSConnection::ProcessIncomingFrame() {
+	void AP_WS_Connection::ProcessIncomingFrame() {
 
 		// bool MustDisconnect=false;
 		Poco::Buffer<char> IncomingFrame(0);
@@ -1082,7 +1072,7 @@ namespace OpenWifi {
 		delete this;
 	}
 
-	bool WSConnection::Send(const std::string &Payload) {
+	bool AP_WS_Connection::Send(const std::string &Payload) {
 		std::lock_guard Guard(Mutex_);
 
 		size_t BytesSent = WS_->sendFrame(Payload.c_str(), (int)Payload.size());
@@ -1103,7 +1093,7 @@ namespace OpenWifi {
 		return ofs.str();
 	}
 
-	bool WSConnection::SendRadiusAuthenticationData(const unsigned char * buffer, std::size_t size) {
+	bool AP_WS_Connection::SendRadiusAuthenticationData(const unsigned char * buffer, std::size_t size) {
 		Poco::JSON::Object	Answer;
 		Answer.set(uCentralProtocol::RADIUS,uCentralProtocol::RADIUSAUTH);
 		Answer.set(uCentralProtocol::RADIUSDATA, Base64Encode(buffer,size));
@@ -1113,7 +1103,7 @@ namespace OpenWifi {
 		return Send(Payload.str());
 	}
 
-	bool WSConnection::SendRadiusAccountingData(const unsigned char * buffer, std::size_t size) {
+	bool AP_WS_Connection::SendRadiusAccountingData(const unsigned char * buffer, std::size_t size) {
 		Poco::JSON::Object	Answer;
 		Answer.set(uCentralProtocol::RADIUS,uCentralProtocol::RADIUSACCT);
 		Answer.set(uCentralProtocol::RADIUSDATA, Base64Encode(buffer,size));
@@ -1123,7 +1113,7 @@ namespace OpenWifi {
 		return Send(Payload.str());
 	}
 
-	bool WSConnection::SendRadiusCoAData(const unsigned char * buffer, std::size_t size) {
+	bool AP_WS_Connection::SendRadiusCoAData(const unsigned char * buffer, std::size_t size) {
 		Poco::JSON::Object	Answer;
 		Answer.set(uCentralProtocol::RADIUS,uCentralProtocol::RADIUSCOA);
 		Answer.set(uCentralProtocol::RADIUSDATA, Base64Encode(buffer,size));
@@ -1133,7 +1123,7 @@ namespace OpenWifi {
 		return Send(Payload.str());
 	}
 
-	void WSConnection::ProcessIncomingRadiusData(const Poco::JSON::Object::Ptr &Doc) {
+	void AP_WS_Connection::ProcessIncomingRadiusData(const Poco::JSON::Object::Ptr &Doc) {
 		if( Doc->has(uCentralProtocol::RADIUSDATA)) {
 			auto Type = Doc->get(uCentralProtocol::RADIUS).toString();
 			if(Type==uCentralProtocol::RADIUSACCT) {

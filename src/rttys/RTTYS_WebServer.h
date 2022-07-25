@@ -23,7 +23,7 @@ namespace OpenWifi {
 
 	class PageRequestHandler : public Poco::Net::HTTPRequestHandler {
 	  public:
-		PageRequestHandler(Poco::Logger &L)
+		explicit PageRequestHandler(Poco::Logger &L)
 			: Logger_(L) {
 		}
 

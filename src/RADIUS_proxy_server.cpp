@@ -66,9 +66,9 @@ namespace OpenWifi {
 		AccountingReactorThread_.start(AccountingReactor_);
 		CoAReactorThread_.start(CoAReactor_);
 
-		Utils::SetThreadName(AuthenticationReactorThread_,"radproxy-auth");
-		Utils::SetThreadName(AccountingReactorThread_,"radproxy-acct");
-		Utils::SetThreadName(CoAReactorThread_,"radproxy-coa");
+		Utils::SetThreadName(AuthenticationReactorThread_,"radproxy:auth");
+		Utils::SetThreadName(AccountingReactorThread_,"radproxy:acct");
+		Utils::SetThreadName(CoAReactorThread_,"radproxy:coa");
 
 		return 0;
 	}

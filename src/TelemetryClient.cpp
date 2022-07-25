@@ -6,10 +6,10 @@
 
 #include "Poco/Net/SSLException.h"
 
+#include "AP_WS_Connection.h"
+#include "DeviceRegistry.h"
 #include "TelemetryClient.h"
 #include "TelemetryStream.h"
-#include "DeviceRegistry.h"
-#include "WS_Connection.h"
 
 namespace OpenWifi {
 

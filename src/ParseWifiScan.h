@@ -1737,91 +1737,112 @@ namespace OpenWifi {
 		std::ostringstream	ofs;
 		Obj->stringify(ofs);
 
-		nlohmann::json D = nlohmann::json::parse(ofs.str());
-		std::cout << "Start of parsing wifi" << std::endl;
-		if (D.contains("status")) {
-			auto Status = D["status"];
-			if (Status.contains("scan") && Status["scan"].is_array()) {
-				nlohmann::json ScanArray = Status["scan"];
-				nlohmann::json ParsedScan = nlohmann::json::array();
-				for (auto &scan_entry : ScanArray) {
-					if (scan_entry.contains("ies") && scan_entry["ies"].is_array()) {
-						auto ies = scan_entry["ies"];
-						nlohmann::json 	new_ies=nlohmann::json::array();
-						for (auto &ie : ies) {
-							try {
-								if (ie.contains("type") && ie.contains("data")) {
-									uint64_t ie_type = ie["type"];
-									std::string ie_data = ie["data"];
-									// std::cout << "TYPE:" << ie_type << "  DATA:" << ie_data << std::endl;
-									auto data = Base64Decode2Vec(ie_data);
-									if (ie_type == ieee80211_eid::WLAN_EID_COUNTRY) {
-										new_ies.push_back(WFS_WLAN_EID_COUNTRY(data));
-									} else if (ie_type == ieee80211_eid::WLAN_EID_SUPP_RATES) {
-										new_ies.push_back(WFS_WLAN_EID_SUPP_RATES(data));
-									} else if (ie_type == ieee80211_eid::WLAN_EID_FH_PARAMS) {
-										new_ies.push_back(WFS_WLAN_EID_FH_PARAMS(data));
-									} else if (ie_type == ieee80211_eid::WLAN_EID_DS_PARAMS) {
-										new_ies.push_back(WFS_WLAN_EID_DS_PARAMS(data));
-									} else if (ie_type == ieee80211_eid::WLAN_EID_TIM) {
-										new_ies.push_back(WFS_WLAN_EID_TIM(data));
-									} else if (ie_type == ieee80211_eid::WLAN_EID_QBSS_LOAD) {
-										new_ies.push_back(WFS_WLAN_EID_QBSS_LOAD(data));
-									} else if (ie_type == ieee80211_eid::WLAN_EID_PWR_CONSTRAINT) {
-										new_ies.push_back(WFS_WLAN_EID_PWR_CONSTRAINT(data));
-									} else if (ie_type == ieee80211_eid::WLAN_EID_ERP_INFO) {
-										new_ies.push_back(WFS_WLAN_EID_ERP_INFO(data));
-									} else if (ie_type == ieee80211_eid::WLAN_EID_SUPPORTED_REGULATORY_CLASSES) {
-										new_ies.push_back(WFS_WLAN_EID_SUPPORTED_REGULATORY_CLASSES(data));
-									} else if (ie_type == ieee80211_eid::WLAN_EID_HT_CAPABILITY) {
-										new_ies.push_back(WFS_WLAN_EID_HT_CAPABILITY(data));
-									} else if (ie_type == ieee80211_eid::WLAN_EID_EXT_SUPP_RATES) {
-										new_ies.push_back(WFS_WLAN_EID_EXT_SUPP_RATES(data));
-									} else if (ie_type == ieee80211_eid::WLAN_EID_TX_POWER_ENVELOPE) {
-										new_ies.push_back(WFS_WLAN_EID_TX_POWER_ENVELOPE(data));
-									} else if (ie_type == ieee80211_eid::WLAN_EID_VHT_CAPABILITY) {
-										new_ies.push_back(WFS_WLAN_EID_VHT_CAPABILITY(data));
-									} else if (ie_type == ieee80211_eid::WLAN_EID_RRM_ENABLED_CAPABILITIES) {
-										new_ies.push_back(WFS_WLAN_EID_RRM_ENABLED_CAPABILITIES(data));
-									} else if (ie_type == ieee80211_eid::WLAN_EID_EXT_CAPABILITY) {
-										new_ies.push_back(WFS_WLAN_EID_EXT_CAPABILITY(data));
-									} else if (ie_type == ieee80211_eid::WLAN_EID_TPC_REPORT) {
-										new_ies.push_back(WFS_WLAN_EID_TPC_REPORT(data));
-									} else if (ie_type == ieee80211_eid::WLAN_EID_RSN) {
-										new_ies.push_back(WFS_WLAN_EID_RSN(data));
-									} else if (ie_type == ieee80211_eid::WLAN_EID_VENDOR_SPECIFIC) {
-										new_ies.push_back(WFS_WLAN_EID_VENDOR_SPECIFIC(data));
-									} else if (ie_type == ieee80211_eid::WLAN_EID_EXTENSION) {
-										new_ies.push_back(WFS_WLAN_EID_EXTENSION(data));
+		try {
+			nlohmann::json D = nlohmann::json::parse(ofs.str());
+			std::cout << "Start of parsing wifi" << std::endl;
+			if (D.contains("status")) {
+				auto Status = D["status"];
+				if (Status.contains("scan") && Status["scan"].is_array()) {
+					nlohmann::json ScanArray = Status["scan"];
+					nlohmann::json ParsedScan = nlohmann::json::array();
+					for (auto &scan_entry : ScanArray) {
+						if (scan_entry.contains("ies") && scan_entry["ies"].is_array()) {
+							auto ies = scan_entry["ies"];
+							nlohmann::json new_ies = nlohmann::json::array();
+							for (auto &ie : ies) {
+								try {
+									if (ie.contains("type") && ie.contains("data")) {
+										uint64_t ie_type = ie["type"];
+										std::string ie_data = ie["data"];
+										// std::cout << "TYPE:" << ie_type << "  DATA:" << ie_data << std::endl;
+										auto data = Base64Decode2Vec(ie_data);
+										if (ie_type == ieee80211_eid::WLAN_EID_COUNTRY) {
+											new_ies.push_back(WFS_WLAN_EID_COUNTRY(data));
+										} else if (ie_type == ieee80211_eid::WLAN_EID_SUPP_RATES) {
+											new_ies.push_back(WFS_WLAN_EID_SUPP_RATES(data));
+										} else if (ie_type == ieee80211_eid::WLAN_EID_FH_PARAMS) {
+											new_ies.push_back(WFS_WLAN_EID_FH_PARAMS(data));
+										} else if (ie_type == ieee80211_eid::WLAN_EID_DS_PARAMS) {
+											new_ies.push_back(WFS_WLAN_EID_DS_PARAMS(data));
+										} else if (ie_type == ieee80211_eid::WLAN_EID_TIM) {
+											new_ies.push_back(WFS_WLAN_EID_TIM(data));
+										} else if (ie_type == ieee80211_eid::WLAN_EID_QBSS_LOAD) {
+											new_ies.push_back(WFS_WLAN_EID_QBSS_LOAD(data));
+										} else if (ie_type ==
+												   ieee80211_eid::WLAN_EID_PWR_CONSTRAINT) {
+											new_ies.push_back(WFS_WLAN_EID_PWR_CONSTRAINT(data));
+										} else if (ie_type == ieee80211_eid::WLAN_EID_ERP_INFO) {
+											new_ies.push_back(WFS_WLAN_EID_ERP_INFO(data));
+										} else if (ie_type ==
+												   ieee80211_eid::
+													   WLAN_EID_SUPPORTED_REGULATORY_CLASSES) {
+											new_ies.push_back(
+												WFS_WLAN_EID_SUPPORTED_REGULATORY_CLASSES(data));
+										} else if (ie_type ==
+												   ieee80211_eid::WLAN_EID_HT_CAPABILITY) {
+											new_ies.push_back(WFS_WLAN_EID_HT_CAPABILITY(data));
+										} else if (ie_type ==
+												   ieee80211_eid::WLAN_EID_EXT_SUPP_RATES) {
+											new_ies.push_back(WFS_WLAN_EID_EXT_SUPP_RATES(data));
+										} else if (ie_type ==
+												   ieee80211_eid::WLAN_EID_TX_POWER_ENVELOPE) {
+											new_ies.push_back(WFS_WLAN_EID_TX_POWER_ENVELOPE(data));
+										} else if (ie_type ==
+												   ieee80211_eid::WLAN_EID_VHT_CAPABILITY) {
+											new_ies.push_back(WFS_WLAN_EID_VHT_CAPABILITY(data));
+										} else if (ie_type ==
+												   ieee80211_eid::
+													   WLAN_EID_RRM_ENABLED_CAPABILITIES) {
+											new_ies.push_back(
+												WFS_WLAN_EID_RRM_ENABLED_CAPABILITIES(data));
+										} else if (ie_type ==
+												   ieee80211_eid::WLAN_EID_EXT_CAPABILITY) {
+											new_ies.push_back(WFS_WLAN_EID_EXT_CAPABILITY(data));
+										} else if (ie_type == ieee80211_eid::WLAN_EID_TPC_REPORT) {
+											new_ies.push_back(WFS_WLAN_EID_TPC_REPORT(data));
+										} else if (ie_type == ieee80211_eid::WLAN_EID_RSN) {
+											new_ies.push_back(WFS_WLAN_EID_RSN(data));
+										} else if (ie_type ==
+												   ieee80211_eid::WLAN_EID_VENDOR_SPECIFIC) {
+											new_ies.push_back(WFS_WLAN_EID_VENDOR_SPECIFIC(data));
+										} else if (ie_type == ieee80211_eid::WLAN_EID_EXTENSION) {
+											new_ies.push_back(WFS_WLAN_EID_EXTENSION(data));
+										} else {
+											std::cout
+												<< "Skipping IE: no parsing available: " << ie_type
+												<< std::endl;
+											new_ies.push_back(ie);
+										}
 									} else {
-										std::cout
-											<< "Skipping IE: no parsing available: " << ie_type
-											<< std::endl;
+										std::cout << "Skipping IE: no data and type" << std::endl;
 										new_ies.push_back(ie);
 									}
-								} else {
-									std::cout << "Skipping IE: no data and type" << std::endl;
+								} catch (...) {
+									std::cout << "Skipping IE: exception" << std::endl;
+									Logger.information(fmt::format("Error parsing IEs"));
 									new_ies.push_back(ie);
 								}
-							} catch (...) {
-								std::cout << "Skipping IE: exception" << std::endl;
-								Logger.information(fmt::format("Error parsing IEs"));
-								new_ies.push_back(ie);
 							}
+							scan_entry["ies"] = new_ies;
+							ParsedScan.push_back(scan_entry);
+						} else {
+							std::cout << "Skipping scan" << std::endl;
+							ParsedScan.push_back(scan_entry);
 						}
-						scan_entry["ies"] = new_ies;
-						ParsedScan.push_back(scan_entry);
-					} else {
-						std::cout << "Skipping scan" << std::endl;
-						ParsedScan.push_back(scan_entry);
 					}
+					Status["scan"] = ParsedScan;
+					D["status"] = Status;
 				}
-				Status["scan"] = ParsedScan;
-				D["status"] = Status;
 			}
+			Result << to_string(D);
+			std::cout << "End of parsing wifi" << std::endl;
+			return true;
+		} catch (const Poco::Exception &E) {
+			Logger.log(E);
+			Logger.error(fmt::format("Failure to parse WifiScan."));
+		} catch (...) {
+			Logger.error(fmt::format("Failure to parse WifiScan."));
 		}
-		Result << to_string(D);
-		std::cout << "End of parsing wifi" << std::endl;
 		return false;
 	}
 

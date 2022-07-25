@@ -6,21 +6,21 @@
 //	Arilia Wireless Inc.
 //
 
+#include "AP_WS_Server.h"
+#include "CapabilitiesCache.h"
 #include "CentralConfig.h"
 #include "ConfigurationCache.h"
 #include "Daemon.h"
 #include "DeviceRegistry.h"
+#include "FindCountry.h"
 #include "OUIServer.h"
 #include "Poco/Data/RecordSet.h"
 #include "Poco/Net/IPAddress.h"
+#include "SDKcalls.h"
 #include "SerialNumberCache.h"
+#include "StateUtils.h"
 #include "StorageService.h"
 #include "framework/MicroService.h"
-#include "CapabilitiesCache.h"
-#include "FindCountry.h"
-#include "WS_Server.h"
-#include "SDKcalls.h"
-#include "StateUtils.h"
 
 namespace OpenWifi {
 
@@ -326,7 +326,7 @@ namespace OpenWifi {
 
 		bool 			Found = false;
 		std::string 	FoundConfig;
-		if(WebSocketServer()->UseProvisioning()) {
+		if(AP_WS_Server()->UseProvisioning()) {
 			if(SDKCalls::GetProvisioningConfiguration(SerialNumber, FoundConfig)) {
 				if(FoundConfig != "none") {
 					Found = true;
@@ -337,7 +337,7 @@ namespace OpenWifi {
 			}
 		}
 
-		if (!Found && WebSocketServer()->UseDefaults() && FindDefaultConfigurationForModel(Compat, DefConfig)) {
+		if (!Found && AP_WS_Server()->UseDefaults() && FindDefaultConfigurationForModel(Compat, DefConfig)) {
 			Config::Config NewConfig(DefConfig.Configuration);
 			NewConfig.SetUUID(Now);
 			D.Configuration = NewConfig.get();

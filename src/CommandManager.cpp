@@ -19,7 +19,7 @@
 namespace OpenWifi {
 
 	void CommandManager::run() {
-		Utils::SetThreadName("cmd-mgr");
+		Utils::SetThreadName("cmd:mgr");
 		Running_ = true;
 		Poco::AutoPtr<Poco::Notification>	NextMsg(ResponseQueue_.waitDequeueNotification());
 		while(NextMsg && Running_) {
@@ -72,12 +72,12 @@ namespace OpenWifi {
 		JanitorCallback_ = std::make_unique<Poco::TimerCallback<CommandManager>>(*this,&CommandManager::onJanitorTimer);
 		JanitorTimer_.setStartInterval( 10000 );
 		JanitorTimer_.setPeriodicInterval(10 * 60 * 1000); // 1 hours
-		JanitorTimer_.start(*JanitorCallback_);
+		JanitorTimer_.start(*JanitorCallback_, MicroService::instance().TimerPool());
 
 		CommandRunnerCallback_ = std::make_unique<Poco::TimerCallback<CommandManager>>(*this,&CommandManager::onCommandRunnerTimer);
 		CommandRunnerTimer_.setStartInterval( 10000 );
 		CommandRunnerTimer_.setPeriodicInterval(30 * 1000); // 1 hours
-		CommandRunnerTimer_.start(*CommandRunnerCallback_);
+		CommandRunnerTimer_.start(*CommandRunnerCallback_, MicroService::instance().TimerPool());
 
         return 0;
     }
@@ -99,11 +99,8 @@ namespace OpenWifi {
 
 	void CommandManager::onJanitorTimer([[maybe_unused]] Poco::Timer & timer) {
 		std::lock_guard G(Mutex_);
-		Utils::SetThreadName("cmd-janitor");
+		Utils::SetThreadName("cmd:janitor");
 		Poco::Logger	& MyLogger = Poco::Logger::get("CMD-MGR-JANITOR");
-		MyLogger.information(
-			fmt::format("Removing expired commands: start. {} outstanding-requests {} outstanding-uuids commands.",
-						OutStandingRequests_.size(), OutstandingUUIDs_.size() ));
 		auto now = std::chrono::high_resolution_clock::now();
 		for(auto i=OutStandingRequests_.begin();i!=OutStandingRequests_.end();) {
 			std::chrono::duration<double, std::milli> delta = now - i->second->submitted;
@@ -115,11 +112,13 @@ namespace OpenWifi {
 				++i;
 			}
 		}
-		MyLogger.information("Removing expired commands: done.");
+		MyLogger.information(
+			fmt::format("Removing expired commands: start. {} outstanding-requests {} outstanding-uuids commands.",
+						OutStandingRequests_.size(), OutstandingUUIDs_.size() ));
 	}
 
 	void CommandManager::onCommandRunnerTimer([[maybe_unused]] Poco::Timer &timer) {
-		Utils::SetThreadName("cmd-schdlr");
+		Utils::SetThreadName("cmd:schdlr");
 		Poco::Logger	& MyLogger = Poco::Logger::get("CMD-MGR-SCHEDULER");
 
 		std::vector<GWObjects::CommandDetails> Commands;
