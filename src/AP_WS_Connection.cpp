@@ -79,7 +79,7 @@ namespace OpenWifi {
 			}
 
 			if (AP_WS_Server::IsSim(CN_) && !AP_WS_Server()->IsSimEnabled()) {
-				Logger().debug(fmt::format(
+				poco_warning(Logger(),fmt::format(
 					"CONNECTION({}): Sim Device {} is not allowed. Disconnecting.", CId_, CN_));
 				delete this;
 				return;
@@ -89,8 +89,8 @@ namespace OpenWifi {
 			SerialNumberInt_ = Utils::SerialNumberToInt(SerialNumber_);
 
 			if (!CN_.empty() && StorageService()->IsBlackListed(SerialNumber_)) {
-				Logger().debug(fmt::format("CONNECTION({}): Device {} is black listed. Disconnecting.",
-											CId_, CN_));
+				poco_warning(Logger(),fmt::format("CONNECTION({}): Device {} is black listed. Disconnecting.",
+												   CId_, CN_));
 				return delete this;
 			}
 			WS_->setMaxPayloadSize(BufSize);
@@ -108,7 +108,7 @@ namespace OpenWifi {
 			Reactor_.addEventHandler(*WS_, Poco::NObserver<AP_WS_Connection, Poco::Net::ErrorNotification>(
 											   *this, &AP_WS_Connection::OnSocketError));
 			Registered_ = true;
-			poco_debug(Logger(),fmt::format("CONNECTION({}): completed.", CId_));
+			poco_trace(Logger(),fmt::format("CONNECTION({}): completed.", CId_));
 			return;
 		} catch (const Poco::Net::CertificateValidationException &E) {
 			Logger().error(fmt::format("CONNECTION({}): Poco::Exception Certificate Validation failed during connection. Device will have to retry.",
