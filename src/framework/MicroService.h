@@ -3045,7 +3045,7 @@ namespace OpenWifi {
 	    RESTAPI_GenericServer   Server_;
 
         RESTAPI_ExtServer() noexcept:
-	    SubSystemServer("RESTAPI_ExtServer", "RESTAPIServer", "openwifi.restapi")
+	    SubSystemServer("RESTAPI_ExtServer", "REST-XSRV", "openwifi.restapi")
             {
             }
 	};
