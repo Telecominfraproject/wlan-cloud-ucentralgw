@@ -23,7 +23,7 @@ namespace OpenWifi {
 
     void DeviceRegistry::Stop() {
 		std::lock_guard		Guard(Mutex_);
-        Logger().notice("Stopping ");
+        Logger().notice("Stopping...");
     }
 
     bool DeviceRegistry::GetStatistics(uint64_t SerialNumber, std::string & Statistics) {

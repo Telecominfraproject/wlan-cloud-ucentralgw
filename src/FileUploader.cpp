@@ -289,7 +289,7 @@ namespace OpenWifi {
     }
 
     void FileUploader::Stop() {
-        Logger().notice("Stopping ");
+        Logger().notice("Stopping...");
         for( const auto & svr : Servers_ )
             svr->stop();
 		Servers_.clear();
