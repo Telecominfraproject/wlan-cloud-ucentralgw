@@ -31,9 +31,9 @@ namespace OpenWifi {
 				Poco::Net::ServerSocket DeviceSocket(DSport, 64);
 				DeviceAcceptor_ = std::make_unique<Poco::Net::SocketAcceptor<RTTYS_Device_ConnectionHandler>>(DeviceSocket,DeviceReactor_);
 			} else {
-				auto DeviceSecureContext = new Poco::Net::Context(Poco::Net::Context::SERVER_USE,
+				auto DeviceSecureContext = Poco::AutoPtr<Poco::Net::Context>( new Poco::Net::Context(Poco::Net::Context::SERVER_USE,
 																  KeyFileName, CertFileName, "",
-																  Poco::Net::Context::VERIFY_RELAXED);
+																  Poco::Net::Context::VERIFY_RELAXED));
 				Poco::Crypto::X509Certificate DeviceRoot(RootCa);
 				DeviceSecureContext->addCertificateAuthority(DeviceRoot);
 				DeviceSecureContext->disableStatelessSessionResumption();
@@ -93,16 +93,22 @@ namespace OpenWifi {
 
 	void RTTYS_server::Stop() {
 		if(Internal_) {
+
 			NotificationManagerRunning_=false;
 			ResponseQueue_.wakeUpAll();
 			NotificationManager_.wakeUp();
 			NotificationManager_.join();
+
 			Timer_.stop();
+
 			WebServer_->stopAll();
 			WebServer_->stop();
+
 			DeviceAcceptor_->unregisterAcceptor();
+
 			DeviceReactor_.stop();
 			DeviceReactorThread_.join();
+
 			ClientReactor_.stop();
 			ClientReactorThread_.join();
 		}
