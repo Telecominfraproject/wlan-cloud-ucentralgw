@@ -11,11 +11,9 @@
 #include "Poco/Net/SocketNotification.h"
 #include "Poco/FIFOBuffer.h"
 
-namespace OpenWifi {
+#include <shared_mutex>
 
-	enum class connection_state {
-		initialized, waiting_for_login, connected, aborting, shutting_down, done
-	};
+namespace OpenWifi {
 
 	class RTTYS_ClientConnection {
 	  public:
@@ -32,8 +30,6 @@ namespace OpenWifi {
 
 		[[nodiscard]] inline std::string ID() { return Id_; }
 		[[nodiscard]] inline bool Valid()  { return Valid_; }
-		using MyMutexType = std::recursive_mutex;
-		using MyGuard = std::lock_guard<MyMutexType>;
 
 	  private:
 		Poco::Net::SocketReactor 				&Reactor_;
@@ -42,9 +38,7 @@ namespace OpenWifi {
 		Poco::Logger 							&Logger_;
 		std::string 							Sid_;
 		std::atomic_bool						Valid_=false;
-		u_char 									Buffer_[64000]{0};
-		MyMutexType								Mutex_;
-		// volatile  connection_state	state_ = connection_state::initialized;
+		std::shared_mutex						Mutex_;
 
 		void EndConnection(bool SendNotification=true);
 

@@ -1565,6 +1565,7 @@ namespace OpenWifi {
 				ie["TLV Block"] = BufferToHex(&b[offset],l-offset);
 			} break;
 			default:
+				ie["Data"] = BufferToHex(&b[1],l-1);
 				break;
 			}
 		}
@@ -1612,7 +1613,7 @@ namespace OpenWifi {
 	inline nlohmann::json dissect_vendor_ie_wfa(const unsigned char *b, uint l) {
 		nlohmann::json ie;
 		ie["vendor"] = "Wi-Fi Alliance";
-
+		ie["Data"] = BufferToHex(&b[1],l-1);
 		b++;l++;
 		return ie;
 	}
@@ -1620,6 +1621,7 @@ namespace OpenWifi {
 	inline nlohmann::json dissect_vendor_ie_aironet(const unsigned char *b, uint l) {
 		nlohmann::json ie;
 		ie["vendor"] = "Cisco Wireless (Aironet)";
+		ie["Data"] = BufferToHex(&b[1],l-1);
 		b++;l++;
 		return ie;
 	}
@@ -1627,6 +1629,7 @@ namespace OpenWifi {
 	inline nlohmann::json dissect_vendor_ie_marvell(const unsigned char *b, uint l) {
 		nlohmann::json ie;
 		ie["vendor"] = "Marvell Semiconductor";
+		ie["Data"] = BufferToHex(&b[1],l-1);
 		b++;l++;
 		return ie;
 	}
@@ -1634,6 +1637,7 @@ namespace OpenWifi {
 	inline nlohmann::json dissect_vendor_ie_atheros(const unsigned char *b, uint l) {
 		nlohmann::json ie;
 		ie["vendor"] = "Atheros Communications";
+		ie["Data"] = BufferToHex(&b[1],l-1);
 		b++;l++;
 		return ie;
 	}
@@ -1641,6 +1645,7 @@ namespace OpenWifi {
 	inline nlohmann::json dissect_vendor_ie_aruba(const unsigned char *b, uint l) {
 		nlohmann::json ie;
 		ie["vendor"] = "Aruba Networks";
+		ie["Data"] = BufferToHex(&b[1],l-1);
 		b++;l++;
 		return ie;
 	}
@@ -1648,6 +1653,7 @@ namespace OpenWifi {
 	inline nlohmann::json dissect_vendor_ie_nintendo(const unsigned char *b, uint l) {
 		nlohmann::json ie;
 		ie["vendor"] = "Nintendo";
+		ie["Data"] = BufferToHex(&b[1],l-1);
 		b++;l++;
 		return ie;
 	}

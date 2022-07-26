@@ -21,19 +21,13 @@ namespace OpenWifi {
 			const auto & KeyFileName = MicroService::instance().ConfigPath("openwifi.restapi.host.0.key");
 			const auto & RootCa = MicroService::instance().ConfigPath("openwifi.restapi.host.0.rootca");
 
-			auto TcpServerParams = new Poco::Net::TCPServerParams();
-			TcpServerParams->setMaxThreads(50);
-			TcpServerParams->setMaxQueued(100);
-			TcpServerParams->setThreadIdleTime(Poco::Timespan(10,0));
-			TcpServerParams->setName("rt:listener");
-
 			if(MicroService::instance().NoAPISecurity()) {
 				Poco::Net::ServerSocket DeviceSocket(DSport, 64);
 				DeviceAcceptor_ = std::make_unique<Poco::Net::SocketAcceptor<RTTYS_Device_ConnectionHandler>>(DeviceSocket,DeviceReactor_);
 			} else {
-				auto DeviceSecureContext = new Poco::Net::Context(Poco::Net::Context::SERVER_USE,
+				auto DeviceSecureContext = Poco::AutoPtr<Poco::Net::Context>( new Poco::Net::Context(Poco::Net::Context::SERVER_USE,
 																  KeyFileName, CertFileName, "",
-																  Poco::Net::Context::VERIFY_RELAXED);
+																  Poco::Net::Context::VERIFY_RELAXED));
 				Poco::Crypto::X509Certificate DeviceRoot(RootCa);
 				DeviceSecureContext->addCertificateAuthority(DeviceRoot);
 				DeviceSecureContext->disableStatelessSessionResumption();
@@ -93,16 +87,22 @@ namespace OpenWifi {
 
 	void RTTYS_server::Stop() {
 		if(Internal_) {
+
 			NotificationManagerRunning_=false;
 			ResponseQueue_.wakeUpAll();
 			NotificationManager_.wakeUp();
 			NotificationManager_.join();
+
 			Timer_.stop();
+
 			WebServer_->stopAll();
 			WebServer_->stop();
+
 			DeviceAcceptor_->unregisterAcceptor();
+
 			DeviceReactor_.stop();
 			DeviceReactorThread_.join();
+
 			ClientReactor_.stop();
 			ClientReactorThread_.join();
 		}
@@ -135,7 +135,7 @@ namespace OpenWifi {
 		count++;
 		if(count==10) {
 			count=0;
-			Logger().information(fmt::format("Total connections:{}  Total Device Connection Time: {}s  Total Client Connection Time: {}s Device failures: {} Client failures: {}",
+			Logger().information(fmt::format("Statistics: Total connections:{} Total Device Connection Time: {}s  Total Client Connection Time: {}s Device failures: {} Client failures: {}",
 				TotalEndPoints_,
 				TotalConnectedDeviceTime_,
 				TotalConnectedClientTime_,

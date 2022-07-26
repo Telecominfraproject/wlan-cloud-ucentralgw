@@ -868,7 +868,7 @@ namespace OpenWifi {
 				Params.stringify(ParamStream);
 				Cmd.Details = ParamStream.str();
 
-				Logger_.information(fmt::format("RTTY: user={} serial={} id={}.", UserInfo_.userinfo.email,SerialNumber_,Rtty.ConnectionId));
+				Logger_.information(fmt::format("RTTY: user={} serial={} rttyid={} cmd={}.", UserInfo_.userinfo.email, SerialNumber_, Rtty.ConnectionId, Cmd.UUID));
 				return RESTAPI_RPC::WaitForCommand(Cmd, Params, *Request, *Response, 60000ms, &ReturnedObject, this, Logger_);
 			}
 			return NotFound();
