@@ -196,7 +196,6 @@ namespace OpenWifi {
 			std::thread t([s]() { NotifyKafkaDisconnect(s); });
 			t.detach();
 		}
-
 		WebSocketClientNotificationDeviceDisconnected(SerialNumber_);
 	}
 
