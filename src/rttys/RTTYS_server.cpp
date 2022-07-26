@@ -21,12 +21,6 @@ namespace OpenWifi {
 			const auto & KeyFileName = MicroService::instance().ConfigPath("openwifi.restapi.host.0.key");
 			const auto & RootCa = MicroService::instance().ConfigPath("openwifi.restapi.host.0.rootca");
 
-/*			auto TcpServerParams = new Poco::Net::TCPServerParams();
-			TcpServerParams->setMaxThreads(50);
-			TcpServerParams->setMaxQueued(100);
-			TcpServerParams->setThreadIdleTime(Poco::Timespan(10,0));
-			TcpServerParams->setName("rt:listener");
-*/
 			if(MicroService::instance().NoAPISecurity()) {
 				Poco::Net::ServerSocket DeviceSocket(DSport, 64);
 				DeviceAcceptor_ = std::make_unique<Poco::Net::SocketAcceptor<RTTYS_Device_ConnectionHandler>>(DeviceSocket,DeviceReactor_);

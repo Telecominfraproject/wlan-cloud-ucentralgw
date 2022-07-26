@@ -30,6 +30,13 @@ else()
     file(WRITE ${CMAKE_CURRENT_SOURCE_DIR}/build ${BUILD_NUM})
 endif()
 
+if(ASAN)
+    add_compile_options(-fsanitize=address)
+    add_link_options(-fsanitize=address)
+    add_compile_options(-fsanitize=undefined)
+    add_link_options(-fsanitize=undefined)
+endif()
+
 find_package(Git QUIET)
 if(GIT_FOUND AND EXISTS "${PROJECT_SOURCE_DIR}/.git")
     execute_process(COMMAND ${GIT_EXECUTABLE} describe --always --tags
@@ -64,12 +71,6 @@ include_directories(/usr/local/include  /usr/local/opt/openssl/include src inclu
 configure_file(src/ow_version.h.in ${PROJECT_SOURCE_DIR}/src/ow_version.h @ONLY)
 
 add_compile_options(-Wall -Wextra)
-if(ASAN)
-    add_compile_options(-fsanitize=address)
-    add_link_options(-fsanitize=address)
-    add_compile_options(-fsanitize=undefined)
-    add_link_options(-fsanitize=undefined)
-endif()
 
 add_executable( owgw
         build
