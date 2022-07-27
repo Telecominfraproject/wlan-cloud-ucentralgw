@@ -3,12 +3,8 @@
 //
 
 #include "AP_WS_Connection.h"
-#include "AP_WS_Server.h"
 #include "StorageService.h"
-#include "FindCountry.h"
 #include "CommandManager.h"
-#include "framework/WebSocketClientNotifications.h"
-#include "Daemon.h"
 
 namespace OpenWifi {
 	void AP_WS_Connection::Process_recovery(Poco::JSON::Object::Ptr ParamsObj) {
