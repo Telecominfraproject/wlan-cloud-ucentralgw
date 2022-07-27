@@ -5,15 +5,12 @@
 #include "AP_WS_Connection.h"
 
 #include "Poco/Net/SecureStreamSocketImpl.h"
-#include "Poco/Net/SecureServerSocketImpl.h"
 #include "Poco/Net/HTTPServerResponseImpl.h"
-#include "Poco/Net/HTTPServerSession.h"
 #include "Poco/Net/HTTPServerRequestImpl.h"
 #include "Poco/Net/NetException.h"
 #include "Poco/Net/SSLException.h"
 #include "Poco/Net/Context.h"
 #include "Poco/Base64Decoder.h"
-#include "Poco/Base64Encoder.h"
 
 #include "Poco/zlib.h"
 
@@ -21,12 +18,8 @@
 #include "CentralConfig.h"
 #include "CommandManager.h"
 #include "ConfigurationCache.h"
-#include "Daemon.h"
-#include "FindCountry.h"
-#include "StateUtils.h"
 #include "StorageService.h"
 #include "TelemetryStream.h"
-#include "VenueBroadcaster.h"
 #include "framework/WebSocketClientNotifications.h"
 #include "Poco/Net/WebSocketImpl.h"
 

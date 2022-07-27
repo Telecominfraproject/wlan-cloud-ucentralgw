@@ -3,13 +3,12 @@
 //
 
 #include "framework/MicroService.h"
-
-#include "Poco/Net/SSLException.h"
-
 #include "AP_WS_Connection.h"
 #include "DeviceRegistry.h"
 #include "TelemetryClient.h"
 #include "TelemetryStream.h"
+
+#include "Poco/Net/SSLException.h"
 
 namespace OpenWifi {
 

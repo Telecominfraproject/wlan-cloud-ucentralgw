@@ -9,11 +9,8 @@
 #pragma once
 
 #include "Poco/JSON/Object.h"
-
 #include "RESTObjects//RESTAPI_GWobjects.h"
 #include "framework/MicroService.h"
-
-// class uCentral::WebSocket::WSConnection;
 
 namespace OpenWifi {
 

@@ -7,8 +7,6 @@
 //
 
 #include <iostream>
-#include <fstream>
-#include <cstdio>
 
 #include "Poco/Net/HTTPServerParams.h"
 #include "Poco/Net/HTTPServerResponse.h"

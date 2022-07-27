@@ -5,9 +5,10 @@
 #pragma once
 
 #include "framework/MicroService.h"
+#include "RESTObjects/RESTAPI_GWobjects.h"
+
 #include "Poco/Net/DatagramSocket.h"
 #include "Poco/Net/SocketReactor.h"
-#include "RESTObjects/RESTAPI_GWobjects.h"
 
 namespace OpenWifi {
 

@@ -5,13 +5,10 @@
 #include <fstream>
 #include <vector>
 
-#include "OUIServer.h"
-
 #include "Poco/String.h"
 #include "Poco/StringTokenizer.h"
 #include "Poco/URIStreamOpener.h"
 #include "Poco/StreamCopier.h"
-#include "Poco/URI.h"
 #include "Poco/File.h"
 
 #include "OUIServer.h"
