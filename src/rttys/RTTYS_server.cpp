@@ -111,7 +111,7 @@ namespace OpenWifi {
 	void RTTYS_server::onTimer([[maybe_unused]] Poco::Timer & timer) {
 		poco_debug(Logger(),"Removing stale connections.");
 		Utils::SetThreadName("rt:janitor");
-		static uint64_t count = 0;
+		static auto LastStats = OpenWifi::Now();
 
 		std::unique_lock G(M_);
  		for(auto element=EndPoints_.begin();element!=EndPoints_.end();) {
@@ -131,9 +131,9 @@ namespace OpenWifi {
 		}
 		FailedDevices.clear();
 		FailedClients.clear();
-		count++;
-		if(count==10) {
-			count=0;
+
+		if(Now()-LastStats>(60*5)) {
+			LastStats = Now();
 			Logger().information(fmt::format("Statistics: Total connections:{} Total Device Connection Time: {}s  Total Client Connection Time: {}s Device failures: {} Client failures: {}",
 				TotalEndPoints_,
 				TotalConnectedDeviceTime_,
