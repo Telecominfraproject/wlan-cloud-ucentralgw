@@ -9,6 +9,7 @@
 #include "Poco/Util/Application.h"
 #include "Poco/Util/Option.h"
 #include "Poco/Environment.h"
+#include "Poco/Net/SSLManager.h"
 
 #include "AP_WS_Server.h"
 #include "CommandManager.h"
@@ -106,11 +107,10 @@ namespace OpenWifi {
 
 int main(int argc, char **argv) {
 	try {
-
 		auto App = OpenWifi::Daemon::instance();
 		auto ExitCode =  App->run(argc, argv);
+		Poco::Net::SSLManager::instance().shutdown();
 		return ExitCode;
-
 	} catch (Poco::Exception &exc) {
 		std::cerr << exc.displayText() << std::endl;
 		return Poco::Util::Application::EXIT_SOFTWARE;

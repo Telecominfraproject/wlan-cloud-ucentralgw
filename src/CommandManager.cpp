@@ -22,6 +22,7 @@ namespace OpenWifi {
 		Utils::SetThreadName("cmd:mgr");
 		Running_ = true;
 		Poco::AutoPtr<Poco::Notification>	NextMsg(ResponseQueue_.waitDequeueNotification());
+
 		while(NextMsg && Running_) {
 			auto Resp = dynamic_cast<RPCResponseNotification*>(NextMsg.get());
 
@@ -68,7 +69,9 @@ namespace OpenWifi {
 
     int CommandManager::Start() {
         Logger().notice("Starting...");
-        ManagerThread.start(*this);
+
+		ManagerThread.start(*this);
+
 		JanitorCallback_ = std::make_unique<Poco::TimerCallback<CommandManager>>(*this,&CommandManager::onJanitorTimer);
 		JanitorTimer_.setStartInterval( 10000 );
 		JanitorTimer_.setPeriodicInterval(10 * 60 * 1000); // 1 hours

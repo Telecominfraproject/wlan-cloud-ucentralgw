@@ -119,7 +119,20 @@ add_executable( owgw
         src/TelemetryStream.cpp src/TelemetryStream.h
         src/framework/ConfigurationValidator.cpp src/framework/ConfigurationValidator.h
         src/ConfigurationCache.h
-        src/CapabilitiesCache.h src/FindCountry.h src/rttys/RTTYS_server.cpp src/rttys/RTTYS_server.h src/rttys/RTTYS_device.cpp src/rttys/RTTYS_device.h src/rttys/RTTYS_ClientConnection.cpp src/rttys/RTTYS_ClientConnection.h src/rttys/RTTYS_WebServer.cpp src/rttys/RTTYS_WebServer.h src/RESTAPI/RESTAPI_device_helper.h src/SDKcalls.cpp src/SDKcalls.h src/StateUtils.cpp src/StateUtils.h src/AP_WS_ReactorPool.h src/AP_WS_Connection.h src/AP_WS_Connection.cpp src/TelemetryClient.h src/TelemetryClient.cpp src/RESTAPI/RESTAPI_iptocountry_handler.cpp src/RESTAPI/RESTAPI_iptocountry_handler.h src/framework/ow_constants.h src/GwWebSocketClient.cpp src/GwWebSocketClient.h src/framework/WebSocketClientNotifications.h src/RADIUS_proxy_server.cpp src/RADIUS_proxy_server.h src/RESTAPI/RESTAPI_radiusProxyConfig_handler.cpp src/RESTAPI/RESTAPI_radiusProxyConfig_handler.h src/ParseWifiScan.h src/RADIUS_helpers.h src/VenueBroadcaster.h src/sdks/sdk_prov.h)
+        src/CapabilitiesCache.h src/FindCountry.h
+        src/rttys/RTTYS_server.cpp
+        src/rttys/RTTYS_server.h
+        src/rttys/RTTYS_device.cpp
+        src/rttys/RTTYS_device.h
+        src/rttys/RTTYS_ClientConnection.cpp
+        src/rttys/RTTYS_ClientConnection.h
+        src/rttys/RTTYS_WebServer.cpp
+        src/rttys/RTTYS_WebServer.h src/RESTAPI/RESTAPI_device_helper.h src/SDKcalls.cpp src/SDKcalls.h src/StateUtils.cpp src/StateUtils.h src/AP_WS_ReactorPool.h src/AP_WS_Connection.h src/AP_WS_Connection.cpp src/TelemetryClient.h src/TelemetryClient.cpp src/RESTAPI/RESTAPI_iptocountry_handler.cpp src/RESTAPI/RESTAPI_iptocountry_handler.h src/framework/ow_constants.h src/GwWebSocketClient.cpp src/GwWebSocketClient.h src/framework/WebSocketClientNotifications.h src/RADIUS_proxy_server.cpp src/RADIUS_proxy_server.h src/RESTAPI/RESTAPI_radiusProxyConfig_handler.cpp src/RESTAPI/RESTAPI_radiusProxyConfig_handler.h src/ParseWifiScan.h src/RADIUS_helpers.h src/VenueBroadcaster.h src/sdks/sdk_prov.h
+        src/AP_WS_Process_connect.cpp
+        src/AP_WS_Process_state.cpp
+        src/AP_WS_Process_healthcheck.cpp
+        src/AP_WS_Process_log.cpp
+        src/AP_WS_Process_crashlog.cpp src/AP_WS_Process_ping.cpp src/AP_WS_Process_cfgpending.cpp src/AP_WS_Process_recovery.cpp src/AP_WS_Process_deviceupdate.cpp src/AP_WS_Process_telemetry.cpp src/AP_WS_Process_venuebroadcast.cpp)
 
 if(NOT SMALL_BUILD)
 

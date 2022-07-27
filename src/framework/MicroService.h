@@ -2736,12 +2736,12 @@ namespace OpenWifi {
 		}
 
 	  private:
-		std::recursive_mutex  	Mutex_;
-		Types::NotifyTable      Notifiers_;
-		Poco::Thread        	Worker_;
-		mutable std::atomic_bool    	Running_=false;
-		uint64_t          		FunctionId_=1;
-		Poco::NotificationQueue	Queue_;
+		std::recursive_mutex  		Mutex_;
+		Types::NotifyTable      	Notifiers_;
+		Poco::Thread        		Worker_;
+		mutable std::atomic_bool    Running_=false;
+		uint64_t          			FunctionId_=1;
+		Poco::NotificationQueue		Queue_;
 	};
 
 	class KafkaManager : public SubSystemServer {
@@ -3023,7 +3023,7 @@ namespace OpenWifi {
 	    }
 	    int Start() override;
 	    inline void Stop() override {
-	        Logger().information("Stopping ");
+	        Logger().information("Stopping...");
 	        for( const auto & svr : RESTServers_ )
 	            svr->stop();
 			Pool_.stopAll();
@@ -3156,7 +3156,7 @@ namespace OpenWifi {
 
 	    inline int Start() override;
 	    inline void Stop() override {
-	        Logger().information("Stopping ");
+	        Logger().information("Stopping...");
 	        for( const auto & svr : RESTServers_ )
 	            svr->stop();
 			Pool_.stopAll();
