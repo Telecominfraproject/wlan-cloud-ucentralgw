@@ -7,11 +7,8 @@
 //
 
 #include "Poco/JSON/Object.h"
-#include "Poco/JSON/Parser.h"
-
 #include "AP_WS_Server.h"
 #include "DeviceRegistry.h"
-#include "OUIServer.h"
 
 namespace OpenWifi {
 

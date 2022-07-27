@@ -13,7 +13,6 @@
 #include "AP_WS_Server.h"
 #include "ConfigurationCache.h"
 #include "TelemetryStream.h"
-#include <openssl/ssl.h>
 
 namespace OpenWifi {
 
