@@ -5,6 +5,7 @@
 #pragma once
 
 #include <array>
+#include <shared_mutex>
 #include "framework/MicroService.h"
 #include "Poco/FIFOBuffer.h"
 #include "Poco/Net/TCPServerConnectionFactory.h"
@@ -44,9 +45,6 @@ namespace OpenWifi {
 		void onSocketReadable(const Poco::AutoPtr<Poco::Net::ReadableNotification>& pNf);
 		void onSocketShutdown(const Poco::AutoPtr<Poco::Net::ShutdownNotification>& pNf);
 
-		using My_mutex_type = std::recursive_mutex;
-		using Guard = std::lock_guard<My_mutex_type>;
-
 		inline Poco::Logger	&Logger() { return Logger_; }
 		inline bool Valid() { return valid_; }
 
@@ -58,7 +56,7 @@ namespace OpenWifi {
 
 		std::atomic_bool				valid_=false;
 		Poco::Net::SocketAddress		device_address_;
-		My_mutex_type 		  			M_;
+		std::shared_mutex 		  		M_;
 		std::string                   	Id_;
 		std::string                   	token_;
 		std::string                   	desc_;

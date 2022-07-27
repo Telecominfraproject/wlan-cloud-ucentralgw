@@ -45,14 +45,14 @@ namespace OpenWifi {
 					*this, &RTTYS_Device_ConnectionHandler::onSocketShutdown));
 		} catch (...) {
 			poco_warning(Logger(), "Device caused exception while completing connection.");
-			Guard G(M_);
+			std::unique_lock G(M_);
 			EndConnection();
 		}
 	}
 
 	RTTYS_Device_ConnectionHandler::~RTTYS_Device_ConnectionHandler() {
 		if(valid_) {
-			Guard G(M_);
+			std::unique_lock G(M_);
 			poco_warning(Logger(), "Device connection being deleted.");
 			EndConnection(false);
 		}
@@ -92,8 +92,7 @@ namespace OpenWifi {
 	void RTTYS_Device_ConnectionHandler::onSocketReadable([[maybe_unused]] const Poco::AutoPtr<Poco::Net::ReadableNotification> &pNf) {
 		bool good = true;
 
-		Guard G(M_);
-
+		std::unique_lock G(M_);
 		try {
 			auto received_bytes = socket_.receiveBytes(inBuf_);
 			if (received_bytes == 0) {
@@ -176,7 +175,7 @@ namespace OpenWifi {
 	}
 
 	void RTTYS_Device_ConnectionHandler::onSocketShutdown([[maybe_unused]] const Poco::AutoPtr<Poco::Net::ShutdownNotification>& pNf) {
-		Guard G(M_);
+		std::unique_lock G(M_);
 		poco_information(Logger(),fmt::format("{}: Connection being closed - socket shutdown.",Id_));
 		EndConnection();
 	}
@@ -217,29 +216,11 @@ namespace OpenWifi {
 				return false;
 			}
 		}
-/*
-		unsigned char Msg[64];
-		Msg[0] = msgTypeTermData;
-		Msg[1] = (len & 0xff00) >> 8;
-		Msg[2] =  (len & 0x00ff);
-
-		Poco::Net::SocketBufVec MsgParts{ 	Poco::Net::SocketBuf{ .iov_base=Msg, .iov_len=3},
-											Poco::Net::SocketBuf{ .iov_base=(unsigned char *)buf, .iov_len=len}};
-		try {
-			socket_.sendBytes(MsgParts);
-			return true;
-		} catch (...) {
-
-		}
-		return false;
-*/
 	}
 
 	bool RTTYS_Device_ConnectionHandler::WindowSize(int cols, int rows) {
 		if(!valid_)
 			return false;
-
-		// Guard G(M_);
 
 		u_char	outBuf[8]{0};
 		outBuf[0] = msgTypeWinsize;
@@ -263,7 +244,6 @@ namespace OpenWifi {
 		if(!valid_)
 			return false;
 
-		// Guard G(M_);
 		u_char outBuf[3]{0};
 		outBuf[0] = msgTypeLogin;
 		outBuf[1] = 0;
@@ -282,8 +262,6 @@ namespace OpenWifi {
 	bool RTTYS_Device_ConnectionHandler::Logout() {
 		if(!valid_)
 			return false;
-
-		Guard G(M_);
 
 		u_char outBuf[4]{0};
 		outBuf[0] = msgTypeLogout;
@@ -403,8 +381,6 @@ namespace OpenWifi {
 	}
 
 	bool RTTYS_Device_ConnectionHandler::do_msgTypeHeartbeat([[maybe_unused]] std::size_t msg_len) {
-		// if(!RTTYS_server()->ValidClient(Id_))
-		// 	return false;
 		u_char MsgBuf[3]{0};
 		MsgBuf[0] = msgTypeHeartbeat;
 		return socket_.sendBytes(MsgBuf, 3)==3;
