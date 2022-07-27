@@ -111,8 +111,7 @@ namespace OpenWifi {
 	void RTTYS_server::onTimer([[maybe_unused]] Poco::Timer & timer) {
 		poco_debug(Logger(),"Removing stale connections.");
 		Utils::SetThreadName("rt:janitor");
-		static int count = 0;
-//		MutexLockerDbg	L(__func__ ,M_);
+		static uint64_t count = 0;
 
 		std::unique_lock G(M_);
  		for(auto element=EndPoints_.begin();element!=EndPoints_.end();) {
@@ -144,8 +143,9 @@ namespace OpenWifi {
 		}
 	}
 
-	void RTTYS_server::CreateNewClient(Poco::Net::HTTPServerRequest &request,
-								Poco::Net::HTTPServerResponse &response, const std::string &id) {
+	void RTTYS_server::CreateNewClient(	Poco::Net::HTTPServerRequest &request,
+										Poco::Net::HTTPServerResponse &response,
+									   	const std::string &id) {
 
 		auto NewClient = new RTTYS_ClientConnection(request, response, ClientReactor_, id);
 		NotifyClientRegistration(id,NewClient);
@@ -205,6 +205,7 @@ namespace OpenWifi {
 
 	bool RTTYS_server::SendToClient(const std::string &Id, const u_char *Buf, std::size_t Len) {
 		std::shared_lock 	Guard(M_);
+
 		try {
 			auto It = EndPoints_.find(Id);
 			if (It != EndPoints_.end()) {
@@ -220,6 +221,7 @@ namespace OpenWifi {
 
 	bool RTTYS_server::SendToClient(const std::string &Id, const std::string &s) {
 		std::shared_lock 	Guard(M_);
+
 		try {
 			auto It = EndPoints_.find(Id);
 			if (It != EndPoints_.end()) {
@@ -231,12 +233,6 @@ namespace OpenWifi {
 			std::cout << "Exception in SendToClient 2" << std::endl;
 		}
 		return false;
-	}
-
-	bool RTTYS_server::ValidClient(const std::string &Id) {
-		std::shared_lock 	Guard(M_);
-		auto It = EndPoints_.find(Id);
-		return It!=EndPoints_.end() && It->second->ValidClient();
 	}
 
 	bool RTTYS_server::SendKeyStrokes(const std::string &Id, const u_char *buffer, std::size_t len) {
@@ -258,6 +254,7 @@ namespace OpenWifi {
 
 	bool RTTYS_server::WindowSize(const std::string &Id, int cols, int rows) {
 		std::shared_lock 	Guard(M_);
+
 		auto It=EndPoints_.find(Id);
 		if(It==EndPoints_.end()) {
 			return false;
@@ -270,7 +267,6 @@ namespace OpenWifi {
 		}
 		return false;
 	}
-
 
 	bool RTTYS_server::CreateEndPoint(const std::string &Id, const std::string & Token, const std::string & UserName, const std::string & SerialNumber ) {
 		std::unique_lock 	Guard(M_);
@@ -286,20 +282,4 @@ namespace OpenWifi {
 		return EndPoints_.find(Token) != EndPoints_.end();
 	}
 
-	bool RTTYS_server::Login(const std::string & Id) {
-		std::shared_lock 	Guard(M_);
-
-		auto ep = EndPoints_.find(Id);
-		if(ep == EndPoints_.end()) {
-			return false;
-		}
-
-		try {
-			return ep->second->Login();
-		} catch(const Poco::Exception &E) {
-			Logger().log(E);
-		} catch (...) {
-		}
-		return false;
-	}
 }
