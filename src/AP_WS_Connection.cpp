@@ -530,23 +530,12 @@ namespace OpenWifi {
 		}
 	}
 
-	std::string asString(Poco::Buffer<char> &buf) {
-		if (buf.sizeBytes() > 0) {
-			buf.append(0);
-			return buf.begin();
-		}
-		return "";
-	}
-
 	void AP_WS_Connection::ProcessIncomingFrame() {
-
-		// bool MustDisconnect=false;
 		Poco::Buffer<char> IncomingFrame(0);
-
 		try {
 			int Op, flags;
-			int IncomingSize;
-			IncomingSize = WS_->receiveFrame(IncomingFrame, flags);
+			auto IncomingSize = WS_->receiveFrame(IncomingFrame, flags);
+			IncomingFrame.append(0);
 
 			Op = flags & Poco::Net::WebSocket::FRAME_OP_BITMASK;
 
@@ -597,7 +586,6 @@ namespace OpenWifi {
 									 IncomingSize, flags, IncomingFrame.begin()));
 
 					Poco::JSON::Parser parser;
-					IncomingFrame.append(0);
 					auto ParsedMessage = parser.parse(IncomingFrame.begin());
 					auto IncomingJSON = ParsedMessage.extract<Poco::JSON::Object::Ptr>();
 
@@ -640,40 +628,40 @@ namespace OpenWifi {
 				}
 			}
 		} catch (const Poco::Net::ConnectionResetException &E) {
-			poco_warning(Logger(), fmt::format("ConnectionResetException({}): Text:{} Message:{}",
+			poco_warning(Logger(), fmt::format("ConnectionResetException({}): Text:{} Payload:{}",
 				CId_,
 				E.displayText(),
 				IncomingFrame.begin()));
 			return delete this;
 		} catch (const Poco::JSON::JSONException &E) {
-			poco_warning(Logger(), fmt::format("JSONException({}): Text:{} Message:{}",
+			poco_warning(Logger(), fmt::format("JSONException({}): Text:{} Payload:{}",
 												CId_, E.displayText(), IncomingFrame.begin()));
 		} catch (const Poco::Net::WebSocketException &E) {
-			poco_warning(Logger(), fmt::format("WebSocketException({}): Text:{} Message:{}",
+			poco_warning(Logger(), fmt::format("WebSocketException({}): Text:{} Payload:{}",
 											   CId_, E.displayText(), IncomingFrame.begin()));
 			return delete this;
 		} catch (const Poco::Net::SSLConnectionUnexpectedlyClosedException &E) {
-			poco_warning(Logger(), fmt::format("SSLConnectionUnexpectedlyClosedException({}): Text:{} Message:{}",
+			poco_warning(Logger(), fmt::format("SSLConnectionUnexpectedlyClosedException({}): Text:{} Payload:{}",
 											   CId_, E.displayText(), IncomingFrame.begin()));
 			return delete this;
 		} catch (const Poco::Net::SSLException &E) {
-			poco_warning(Logger(), fmt::format("SSLException({}):  Text:{} Message:{}",
+			poco_warning(Logger(), fmt::format("SSLException({}): Text:{} Payload:{}",
 											   CId_, E.displayText(), IncomingFrame.begin()));
 			return delete this;
 		} catch (const Poco::Net::NetException &E) {
-			poco_warning(Logger(), fmt::format("NetException({}): Text:{} Message:{}",
+			poco_warning(Logger(), fmt::format("NetException({}): Text:{} Payload:{}",
 											   CId_, E.displayText(), IncomingFrame.begin()));
 			return delete this;
 		} catch (const Poco::IOException &E) {
-			poco_warning(Logger(), fmt::format("IOException({}): Text:{} Message:{}",
+			poco_warning(Logger(), fmt::format("IOException({}): Text:{} Payload:{}",
 											   CId_, E.displayText(), IncomingFrame.begin()));
 			return delete this;
 		} catch (const Poco::Exception &E) {
-			poco_warning(Logger(), fmt::format("Exception({}): Caught a Exception: {}, Message: {}",
+			poco_warning(Logger(), fmt::format("Exception({}): Text:{} Payload:{}",
 												CId_, E.displayText(), IncomingFrame.begin()));
 			return delete this;
 		} catch (const std::exception &E) {
-			poco_warning(Logger(), fmt::format("std::exception({}): Text:{} Message:{}",
+			poco_warning(Logger(), fmt::format("std::exception({}): Text:{} Payload:{}",
 											   CId_, E.what(), IncomingFrame.begin()));
 			return delete this;
 		} catch (...) {
