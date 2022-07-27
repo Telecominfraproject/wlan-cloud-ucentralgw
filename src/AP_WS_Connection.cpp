@@ -554,14 +554,6 @@ namespace OpenWifi {
 				poco_information(Logger(), fmt::format("DISCONNECT({}): device has disconnected.", CId_));
 				return delete this;
 			} else {
-
-				std::string IncomingMessageStr = asString(IncomingFrame);
-
-				// auto flag_fin = (flags & Poco::Net::WebSocket::FRAME_FLAG_FIN) == Poco::Net::WebSocket::FRAME_FLAG_FIN;
-				// auto flag_cont = (Op == Poco::Net::WebSocket::FRAME_OP_CONT) ;
-				//std::cout << "SerialNumber: " << SerialNumber_ << "  Size: " << std::dec
-				//		  << IncomingMessageStr.size() << "  fin=" << flag_fin << "  cont=" << flag_cont << std::endl;
-
 				if (Conn_ != nullptr) {
 					Conn_->Conn_.RX += IncomingSize;
 					Conn_->Conn_.MessageCount++;
@@ -602,10 +594,11 @@ namespace OpenWifi {
 
 				case Poco::Net::WebSocket::FRAME_OP_TEXT: {
 					poco_trace(Logger(), fmt::format("FRAME({}): Frame received (length={}, flags={}). Msg={}", CId_,
-									 IncomingSize, flags, IncomingMessageStr));
+									 IncomingSize, flags, IncomingFrame.begin()));
 
 					Poco::JSON::Parser parser;
-					auto ParsedMessage = parser.parse(IncomingMessageStr);
+					IncomingFrame.append(0);
+					auto ParsedMessage = parser.parse(IncomingFrame.begin());
 					auto IncomingJSON = ParsedMessage.extract<Poco::JSON::Object::Ptr>();
 
 					if (IncomingJSON->has(uCentralProtocol::JSONRPC)) {
@@ -614,12 +607,12 @@ namespace OpenWifi {
 							ProcessJSONRPCEvent(IncomingJSON);
 						} else if (IncomingJSON->has(uCentralProtocol::RESULT) &&
 								   IncomingJSON->has(uCentralProtocol::ID)) {
-							poco_trace(Logger(), fmt::format("RPC-RESULT({}): payload: {}", CId_, IncomingMessageStr));
+							poco_trace(Logger(), fmt::format("RPC-RESULT({}): payload: {}", CId_, IncomingFrame.begin()));
 							ProcessJSONRPCResult(IncomingJSON);
 						} else {
 							poco_warning(Logger(),
 								fmt::format("INVALID-PAYLOAD({}): Payload is not JSON-RPC 2.0: {}",
-											 CId_, IncomingMessageStr));
+											 CId_, IncomingFrame.begin()));
 						}
 					} else if (IncomingJSON->has(uCentralProtocol::RADIUS)) {
 						ProcessIncomingRadiusData(IncomingJSON);
@@ -641,61 +634,50 @@ namespace OpenWifi {
 				} break;
 
 				default: {
-					poco_warning(Logger(), fmt::format("UNKNOWN({}): unknownWS Frame operation: {}", CId_,
+					poco_warning(Logger(), fmt::format("UNKNOWN({}): unknown WS Frame operation: {}", CId_,
 												  std::to_string(Op)));
 				} break;
 				}
 			}
 		} catch (const Poco::Net::ConnectionResetException &E) {
-			std::string IncomingMessageStr = asString(IncomingFrame);
-			poco_warning(Logger(), fmt::format("EXCEPTION({}): Caught a ConnectionResetException: {}, Message: {}",
-										  CId_, E.displayText(), IncomingMessageStr));
+			poco_warning(Logger(), fmt::format("ConnectionResetException({}): Text:{} Message:{}",
+				CId_,
+				E.displayText(),
+				IncomingFrame.begin()));
 			return delete this;
 		} catch (const Poco::JSON::JSONException &E) {
-			std::string IncomingMessageStr = asString(IncomingFrame);
-			poco_warning(Logger(), fmt::format("EXCEPTION({}): Caught a JSONException: {}, Message: {}",
-												CId_, E.displayText(), IncomingMessageStr));
+			poco_warning(Logger(), fmt::format("JSONException({}): Text:{} Message:{}",
+												CId_, E.displayText(), IncomingFrame.begin()));
 		} catch (const Poco::Net::WebSocketException &E) {
-			std::string IncomingMessageStr = asString(IncomingFrame);
-			poco_warning(Logger(), fmt::format("EXCEPTION({}): Caught a JSONException: {}, Message: {}",
-												CId_, E.displayText(), IncomingMessageStr));
-			Logger().warning( fmt::format("{}({}): Caught a websocket exception: {}. Message: {}",
-										  std::string(__func__), CId_, E.displayText(),
-										  IncomingMessageStr));
+			poco_warning(Logger(), fmt::format("WebSocketException({}): Text:{} Message:{}",
+											   CId_, E.displayText(), IncomingFrame.begin()));
 			return delete this;
 		} catch (const Poco::Net::SSLConnectionUnexpectedlyClosedException &E) {
-			std::string IncomingMessageStr = asString(IncomingFrame);
-			poco_warning(Logger(), fmt::format("EXCEPTION({}): Caught a SSLConnectionUnexpectedlyClosedException: {}, Message: {}",
-												CId_, E.displayText(), IncomingMessageStr));
+			poco_warning(Logger(), fmt::format("SSLConnectionUnexpectedlyClosedException({}): Text:{} Message:{}",
+											   CId_, E.displayText(), IncomingFrame.begin()));
 			return delete this;
 		} catch (const Poco::Net::SSLException &E) {
-			std::string IncomingMessageStr = asString(IncomingFrame);
-			poco_warning(Logger(), fmt::format("EXCEPTION({}): Caught a SSLException: {}, Message: {}",
-												CId_, E.displayText(), IncomingMessageStr));
+			poco_warning(Logger(), fmt::format("SSLException({}):  Text:{} Message:{}",
+											   CId_, E.displayText(), IncomingFrame.begin()));
 			return delete this;
 		} catch (const Poco::Net::NetException &E) {
-			std::string IncomingMessageStr = asString(IncomingFrame);
-			poco_warning(Logger(), fmt::format("EXCEPTION({}): Caught a NetException: {}, Message: {}",
-												CId_, E.displayText(), IncomingMessageStr));
+			poco_warning(Logger(), fmt::format("NetException({}): Text:{} Message:{}",
+											   CId_, E.displayText(), IncomingFrame.begin()));
 			return delete this;
 		} catch (const Poco::IOException &E) {
-			std::string IncomingMessageStr = asString(IncomingFrame);
-			poco_warning(Logger(), fmt::format("EXCEPTION({}): Caught a IOException: {}, Message: {}",
-												CId_, E.displayText(), IncomingMessageStr));
+			poco_warning(Logger(), fmt::format("IOException({}): Text:{} Message:{}",
+											   CId_, E.displayText(), IncomingFrame.begin()));
 			return delete this;
 		} catch (const Poco::Exception &E) {
-			std::string IncomingMessageStr = asString(IncomingFrame);
-			poco_warning(Logger(), fmt::format("EXCEPTION({}): Caught a Exception: {}, Message: {}",
-												CId_, E.displayText(), IncomingMessageStr));
+			poco_warning(Logger(), fmt::format("Exception({}): Caught a Exception: {}, Message: {}",
+												CId_, E.displayText(), IncomingFrame.begin()));
 			return delete this;
 		} catch (const std::exception &E) {
-			std::string IncomingMessageStr = asString(IncomingFrame);
-			poco_warning(Logger(), fmt::format("EXCEPTION({}): Caught a std::exception: {}, Message: {}",
-												CId_, std::string{E.what()}, IncomingMessageStr));
+			poco_warning(Logger(), fmt::format("std::exception({}): Text:{} Message:{}",
+											   CId_, E.what(), IncomingFrame.begin()));
 			return delete this;
 		} catch (...) {
-			poco_error(Logger(),fmt::format("Device {} must be disconnected. Unknown exception.", CId_));
-			std::cout << "Device " << CId_ << " must be disconnected due to exception..." << std::endl;
+			poco_error(Logger(),fmt::format("UnknownException({}): Device must be disconnected. Unknown exception.", CId_));
 			return delete this;
 		}
 
