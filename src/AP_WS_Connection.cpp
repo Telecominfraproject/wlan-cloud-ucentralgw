@@ -53,13 +53,13 @@ namespace OpenWifi {
 			PeerAddress_ = SS->peerAddress().host();
 			CId_ = Utils::FormatIPv6(SS->peerAddress().toString());
 			if (!SS->secure()) {
-				poco_error(Logger(),fmt::format("{}: Connection is NOT secure.", CId_));
+				poco_error(Logger(),fmt::format("CONNECTION({}): Connection is NOT secure. Device is not allowed.", CId_));
+				return delete this;
 			} else {
-				poco_trace(Logger(),fmt::format("{}: Connection is secure.", CId_));
+				poco_trace(Logger(),fmt::format("CONNECTION({}): Connection is secure.", CId_));
 			}
 
 			if (SS->havePeerCertificate()) {
-				// Get the cert info...
 				CertValidation_ = GWObjects::VALID_CERTIFICATE;
 				try {
 					Poco::Crypto::X509Certificate PeerCert(SS->peerCertificate());
@@ -67,22 +67,25 @@ namespace OpenWifi {
 					if (AP_WS_Server()->ValidateCertificate(CId_, PeerCert)) {
 						CN_ = Poco::trim(Poco::toLower(PeerCert.commonName()));
 						CertValidation_ = GWObjects::MISMATCH_SERIAL;
-						poco_trace(Logger(),fmt::format("{}: Valid certificate: CN={}", CId_, CN_));
+						poco_trace(Logger(),fmt::format("CONNECTION({}): Valid certificate: CN={}", CId_, CN_));
 					} else {
-						poco_error(Logger(),fmt::format("{}: Certificate is not valid", CId_));
+						poco_error(Logger(),fmt::format("CONNECTION({}): Device certificate is not valid. Device is not allowed.", CId_));
+						return delete this;
 					}
 				} catch (const Poco::Exception &E) {
 					LogException(E);
+					poco_error(Logger(),fmt::format("CONNECTION({}): Device certificate is not valid. Device is not allowed.", CId_));
+					return delete this;
 				}
 			} else {
-				poco_error(Logger(),fmt::format("{}: No certificates available..", CId_));
+				poco_error(Logger(),fmt::format("CONNECTION({}): No certificates available..", CId_));
+				return delete this;
 			}
 
 			if (AP_WS_Server::IsSim(CN_) && !AP_WS_Server()->IsSimEnabled()) {
 				poco_warning(Logger(),fmt::format(
 					"CONNECTION({}): Sim Device {} is not allowed. Disconnecting.", CId_, CN_));
-				delete this;
-				return;
+				return delete this;
 			}
 
 			SerialNumber_ = CN_;
@@ -111,28 +114,28 @@ namespace OpenWifi {
 			poco_trace(Logger(),fmt::format("CONNECTION({}): completed.", CId_));
 			return;
 		} catch (const Poco::Net::CertificateValidationException &E) {
-			Logger().error(fmt::format("CONNECTION({}): Poco::Exception Certificate Validation failed during connection. Device will have to retry.",
+			Logger().error(fmt::format("CONNECTION({}): Poco::CertificateValidationException Certificate Validation failed during connection. Device will have to retry.",
 										CId_));
 			Logger().log(E);
 		} catch (const Poco::Net::WebSocketException &E) {
-			Logger().error(fmt::format("CONNECTION({}): Poco::Exception WebSocket error during connection. Device will have to retry.",
+			Logger().error(fmt::format("CONNECTION({}): Poco::WebSocketException WebSocket error during connection. Device will have to retry.",
 										CId_));
 			Logger().log(E);
 		} catch (const Poco::Net::ConnectionAbortedException &E) {
-			Logger().error(fmt::format("CONNECTION({}): Poco::Exception Connection was aborted during connection. Device will have to retry.",
+			Logger().error(fmt::format("CONNECTION({}): Poco::ConnectionAbortedException Connection was aborted during connection. Device will have to retry.",
 										CId_));
 			Logger().log(E);
 		} catch (const Poco::Net::ConnectionResetException &E) {
-			Logger().error(fmt::format("CONNECTION({}): Poco::Exception Connection was reset during connection. Device will have to retry.",
+			Logger().error(fmt::format("CONNECTION({}): Poco::ConnectionResetException Connection was reset during connection. Device will have to retry.",
 										CId_));
 			Logger().log(E);
 		} catch (const Poco::Net::InvalidCertificateException &E) {
 			Logger().error(fmt::format(
-				"CONNECTION({}): Poco::Exception Invalid certificate. Device will have to retry.",
+				"CONNECTION({}): Poco::InvalidCertificateException Invalid certificate. Device will have to retry.",
 				CId_));
 			Logger().log(E);
 		} catch (const Poco::Net::SSLException &E) {
-			Logger().error(fmt::format("CONNECTION({}): Poco::Exception SSL Exception during connection. Device will have to retry.",
+			Logger().error(fmt::format("CONNECTION({}): Poco::SSLException SSL Exception during connection. Device will have to retry.",
 										CId_));
 			Logger().log(E);
 		} catch (const Poco::Exception &E) {
@@ -172,7 +175,7 @@ namespace OpenWifi {
 
 	AP_WS_Connection::~AP_WS_Connection() {
 
-		poco_debug(Logger(),fmt::format("{}: Removing connection for {}.", CId_, SerialNumber_));
+		poco_debug(Logger(),fmt::format("CONNECTION({}): Removing connection for {}.", CId_, SerialNumber_));
 		if (ConnectionId_)
 			DeviceRegistry()->UnRegister(SerialNumberInt_, ConnectionId_);
 
@@ -342,424 +345,56 @@ namespace OpenWifi {
 			Conn_->Conn_.LastContact = OpenWifi::Now();
 
 		switch (EventType) {
-		case uCentralProtocol::Events::ET_CONNECT: {
-			if (ParamsObj->has(uCentralProtocol::UUID) &&
-				ParamsObj->has(uCentralProtocol::FIRMWARE) &&
-				ParamsObj->has(uCentralProtocol::CAPABILITIES)) {
-				uint64_t UUID = ParamsObj->get(uCentralProtocol::UUID);
-				auto Firmware = ParamsObj->get(uCentralProtocol::FIRMWARE).toString();
-				auto Capabilities = ParamsObj->get(uCentralProtocol::CAPABILITIES).toString();
+			case uCentralProtocol::Events::ET_CONNECT: {
+				Process_connect(ParamsObj, Serial);
+			} break;
 
-				//// change this
-				CN_ = SerialNumber_ = Serial;
-				SerialNumberInt_ = Utils::SerialNumberToInt(SerialNumber_);
-				Conn_ = DeviceRegistry()->Register(SerialNumberInt_, this, ConnectionId_);
-				Conn_->Conn_.UUID = UUID;
-				Conn_->Conn_.Firmware = Firmware;
-				Conn_->Conn_.PendingUUID = 0;
-				Conn_->Conn_.LastContact = OpenWifi::Now();
-				Conn_->Conn_.Address = Utils::FormatIPv6(WS_->peerAddress().toString());
-				CId_ = SerialNumber_ + "@" + CId_;
-				//	We need to verify the certificate if we have one
-				if ((!CN_.empty() && Utils::SerialNumberMatch(CN_, SerialNumber_)) ||
-					AP_WS_Server()->IsSimSerialNumber(CN_)) {
-					CertValidation_ = GWObjects::VERIFIED;
-					poco_information(Logger(), fmt::format("CONNECT({}): Fully validated and authenticated device.", CId_));
-				} else {
-					if (CN_.empty())
-						poco_information(Logger(), fmt::format("CONNECT({}): Not authenticated or validated.", CId_));
-					else
-						poco_information(Logger(), fmt::format(
-													   "CONNECT({}): Authenticated but not validated. Serial='{}' CN='{}'", CId_,
-													   Serial, CN_));
-				}
-				Conn_->Conn_.VerifiedCertificate = CertValidation_;
-				auto IP = PeerAddress_.toString();
-				if(IP.substr(0,7)=="::ffff:") {
-					IP = IP.substr(7);
-				}
-				Conn_->Conn_.locale = FindCountryFromIP()->Get(IP);
-				GWObjects::Device	DeviceInfo;
-				auto DeviceExists = StorageService()->GetDevice(SerialNumber_,DeviceInfo);
-				// std::cout << "Connecting: " << SerialNumber_ << std::endl;
-				if (Daemon()->AutoProvisioning() && !DeviceExists) {
-					StorageService()->CreateDefaultDevice(SerialNumber_, Capabilities, Firmware,
-														  Compatible_, PeerAddress_);
-				} else if (DeviceExists) {
-					StorageService()->UpdateDeviceCapabilities(SerialNumber_, Capabilities,
-															   Compatible_);
-					bool Updated = false;
-					if(!Firmware.empty() && Firmware!=DeviceInfo.Firmware) {
-						DeviceInfo.Firmware = Firmware;
-						Updated = true;
-						WebSocketClientNotificationDeviceFirmwareUpdated(SerialNumber_, Firmware);
-					}
+			case uCentralProtocol::Events::ET_STATE: {
+				Process_state(ParamsObj);
+			} break;
 
-					if(DeviceInfo.locale != Conn_->Conn_.locale) {
-						DeviceInfo.locale = Conn_->Conn_.locale;
-						Updated = true;
-					}
+			case uCentralProtocol::Events::ET_HEALTHCHECK: {
+				Process_healthcheck(ParamsObj, Serial);
+			} break;
 
-					if(Compatible_ != DeviceInfo.DeviceType) {
-						DeviceInfo.DeviceType = Compatible_;
-						Updated = true;
-					}
+			case uCentralProtocol::Events::ET_LOG: {
+				Process_log(ParamsObj);
+			} break;
 
-					if(Updated) {
-						StorageService()->UpdateDevice(DeviceInfo);
-					}
-					uint64_t UpgradedUUID=0;
-					LookForUpgrade(UUID,UpgradedUUID);
-					Conn_->Conn_.UUID = UpgradedUUID;
-				}
-				Conn_->Conn_.Compatible = Compatible_;
+			case uCentralProtocol::Events::ET_CRASHLOG: {
+				Process_crashlog(ParamsObj);
+			} break;
 
-				WebSocketClientNotificationDeviceConnected(SerialNumber_);
+			case uCentralProtocol::Events::ET_PING: {
+				Process_ping(ParamsObj);
+			} break;
 
-				if (KafkaManager()->Enabled()) {
-					Poco::JSON::Stringifier Stringify;
-					ParamsObj->set(uCentralProtocol::CONNECTIONIP, CId_);
-					ParamsObj->set("locale", Conn_->Conn_.locale );
-					ParamsObj->set(uCentralProtocol::TIMESTAMP, OpenWifi::Now());
-					std::ostringstream OS;
-					Stringify.condense(ParamsObj, OS);
-					KafkaManager()->PostMessage(KafkaTopics::CONNECTION, SerialNumber_, OS.str());
-				}
-				Connected_ = true;
-			} else {
-				poco_warning(Logger(),fmt::format("INVALID-PROTOCOL({}): Missing one of uuid, firmware, or capabilities", CId_));
+			case uCentralProtocol::Events::ET_CFGPENDING: {
+				Process_cfgpending(ParamsObj);
+			} break;
+
+			case uCentralProtocol::Events::ET_RECOVERY: {
+				Process_recovery(ParamsObj);
+			} break;
+
+			case uCentralProtocol::Events::ET_DEVICEUPDATE: {
+				Process_deviceupdate(ParamsObj, Serial);
+			} break;
+
+			case uCentralProtocol::Events::ET_TELEMETRY: {
+				Process_telemetry(ParamsObj);
+			} break;
+
+			case uCentralProtocol::Events::ET_VENUEBROADCAST: {
+				Process_venuebroadcast(ParamsObj);
+			} break;
+
+			// 	this will never be called but some compilers will complain if we do not have a case for
+			//	every single values of an enum
+			case uCentralProtocol::Events::ET_UNKNOWN: {
+				poco_warning(Logger(), fmt::format("ILLEGAL-EVENT({}): Event '{}' unknown. CN={}", CId_, Method, CN_));
 				Errors_++;
-				return;
 			}
-		} break;
-
-		case uCentralProtocol::Events::ET_STATE: {
-			if (!Connected_) {
-				poco_warning(Logger(), fmt::format(
-										   "INVALID-PROTOCOL({}): Device '{}' is not following protocol", CId_, CN_));
-				Errors_++;
-				return;
-			}
-			if (ParamsObj->has(uCentralProtocol::UUID) && ParamsObj->has(uCentralProtocol::STATE)) {
-				uint64_t UUID = ParamsObj->get(uCentralProtocol::UUID);
-				auto StateStr = ParamsObj->get(uCentralProtocol::STATE).toString();
-				auto StateObj = ParamsObj->getObject(uCentralProtocol::STATE);
-
-				std::string request_uuid;
-				if (ParamsObj->has(uCentralProtocol::REQUEST_UUID))
-					request_uuid = ParamsObj->get(uCentralProtocol::REQUEST_UUID).toString();
-
-				if (request_uuid.empty()) {
-					poco_trace(Logger(), fmt::format("STATE({}): UUID={} Updating.", CId_, UUID));
-				} else {
-					poco_trace(Logger(), fmt::format("STATE({}): UUID={} Updating for CMD={}.",
-													 CId_, UUID, request_uuid));
-				}
-
-				uint64_t UpgradedUUID;
-				LookForUpgrade(UUID,UpgradedUUID);
-				Conn_->Conn_.UUID = UpgradedUUID;
-				Conn_->LastStats = StateStr;
-
-				GWObjects::Statistics Stats{
-					.SerialNumber = SerialNumber_, .UUID = UUID, .Data = StateStr};
-				Stats.Recorded = OpenWifi::Now();
-				StorageService()->AddStatisticsData(Stats);
-				if (!request_uuid.empty()) {
-					StorageService()->SetCommandResult(request_uuid, StateStr);
-				}
-
-				StateUtils::ComputeAssociations(StateObj, Conn_->Conn_.Associations_2G,
-												Conn_->Conn_.Associations_5G);
-
-				if (KafkaManager()->Enabled()) {
-					Poco::JSON::Stringifier Stringify;
-					std::ostringstream OS;
-					Stringify.condense(ParamsObj, OS);
-					KafkaManager()->PostMessage(KafkaTopics::STATE, SerialNumber_, OS.str());
-				}
-
-				WebSocketNotification<WebNotificationSingleDevice>	N;
-				N.content.serialNumber = SerialNumber_;
-				N.type = "device_statistics";
-				WebSocketClientServer()->SendNotification(N);
-
-			} else {
-				poco_warning(Logger(), fmt::format("STATE({}): Invalid request. Missing serial, uuid, or state", CId_));
-			}
-		} break;
-
-		case uCentralProtocol::Events::ET_HEALTHCHECK: {
-			if (!Connected_) {
-				poco_warning(Logger(), fmt::format(
-										   "INVALID-PROTOCOL({}): Device '{}' is not following protocol", CId_, CN_));
-				Errors_++;
-				return;
-			}
-			if (ParamsObj->has(uCentralProtocol::UUID) && ParamsObj->has(uCentralProtocol::SANITY) &&
-				ParamsObj->has(uCentralProtocol::DATA)) {
-				uint64_t UUID = ParamsObj->get(uCentralProtocol::UUID);
-				auto Sanity = ParamsObj->get(uCentralProtocol::SANITY);
-				auto CheckData = ParamsObj->get(uCentralProtocol::DATA).toString();
-				if (CheckData.empty())
-					CheckData = uCentralProtocol::EMPTY_JSON_DOC;
-
-				std::string request_uuid;
-				if (ParamsObj->has(uCentralProtocol::REQUEST_UUID))
-					request_uuid = ParamsObj->get(uCentralProtocol::REQUEST_UUID).toString();
-
-				if (request_uuid.empty()) {
-					poco_trace(Logger(),
-							   fmt::format("HEALTHCHECK({}): UUID={} Updating.", CId_, UUID));
-				} else {
-					poco_trace(Logger(),
-							   fmt::format("HEALTHCHECK({}): UUID={} Updating for CMD={}.", CId_,
-										   UUID, request_uuid));
-				}
-
-				uint64_t UpgradedUUID;
-				LookForUpgrade(UUID,UpgradedUUID);
-				Conn_->Conn_.UUID = UpgradedUUID;
-
-				GWObjects::HealthCheck Check;
-
-				Check.SerialNumber = SerialNumber_;
-				Check.Recorded = OpenWifi::Now();
-				Check.UUID = UUID;
-				Check.Data = CheckData;
-				Check.Sanity = Sanity;
-
-				StorageService()->AddHealthCheckData(Check);
-
-				if (!request_uuid.empty()) {
-					StorageService()->SetCommandResult(request_uuid, CheckData);
-				}
-
-				DeviceRegistry()->SetHealthcheck(Serial, Check);
-				if (KafkaManager()->Enabled()) {
-					Poco::JSON::Stringifier Stringify;
-					std::ostringstream OS;
-					ParamsObj->set("timestamp", OpenWifi::Now());
-					Stringify.condense(ParamsObj, OS);
-					KafkaManager()->PostMessage(KafkaTopics::HEALTHCHECK, SerialNumber_, OS.str());
-				}
-			} else {
-				poco_warning(Logger(), fmt::format("HEALTHCHECK({}): Missing parameter", CId_));
-				return;
-			}
-		} break;
-
-		case uCentralProtocol::Events::ET_LOG: {
-			if (!Connected_) {
-				poco_warning(Logger(), fmt::format(
-										   "INVALID-PROTOCOL({}): Device '{}' is not following protocol", CId_, CN_));
-				Errors_++;
-				return;
-			}
-			if (ParamsObj->has(uCentralProtocol::LOG) && ParamsObj->has(uCentralProtocol::SEVERITY)) {
-				poco_trace(Logger(), fmt::format("LOG({}): new entry.", CId_));
-				auto Log = ParamsObj->get(uCentralProtocol::LOG).toString();
-				auto Severity = ParamsObj->get(uCentralProtocol::SEVERITY);
-				std::string DataStr = uCentralProtocol::EMPTY_JSON_DOC;
-				if (ParamsObj->has(uCentralProtocol::DATA)) {
-					auto DataObj = ParamsObj->get(uCentralProtocol::DATA);
-					if (DataObj.isStruct())
-						DataStr = DataObj.toString();
-				}
-
-				GWObjects::DeviceLog DeviceLog{.SerialNumber = SerialNumber_,
-											   .Log = Log,
-											   .Data = DataStr,
-											   .Severity = Severity,
-											   .Recorded = (uint64_t)time(nullptr),
-											   .LogType = 0,
-											   .UUID = Conn_->Conn_.UUID};
-				StorageService()->AddLog(DeviceLog);
-			} else {
-				poco_warning(Logger(), fmt::format("LOG({}): Missing parameters.", CId_));
-				return;
-			}
-		} break;
-
-		case uCentralProtocol::Events::ET_CRASHLOG: {
-			if (ParamsObj->has(uCentralProtocol::UUID) && ParamsObj->has(uCentralProtocol::LOGLINES)) {
-				poco_trace(Logger(), fmt::format("CRASH-LOG({}): new entry.", CId_));
-				auto LogLines = ParamsObj->get(uCentralProtocol::LOGLINES);
-				std::string LogText;
-				if (LogLines.isArray()) {
-					auto LogLinesArray = LogLines.extract<Poco::JSON::Array::Ptr>();
-					for (const auto &i : *LogLinesArray)
-						LogText += i.toString() + "\r\n";
-				}
-
-				GWObjects::DeviceLog DeviceLog{.SerialNumber = SerialNumber_,
-											   .Log = LogText,
-											   .Data = "",
-											   .Severity = GWObjects::DeviceLog::LOG_EMERG,
-											   .Recorded = (uint64_t)time(nullptr),
-											   .LogType = 1,
-											   .UUID = 0};
-				StorageService()->AddLog(DeviceLog);
-
-			} else {
-				poco_warning(Logger(), fmt::format("LOG({}): Missing parameters.", CId_));
-				return;
-			}
-		} break;
-
-		case uCentralProtocol::Events::ET_PING: {
-			if (ParamsObj->has(uCentralProtocol::UUID)) {
-				[[maybe_unused]] uint64_t UUID = ParamsObj->get(uCentralProtocol::UUID);
-				poco_trace(Logger(), fmt::format("PING({}): Current config is {}", CId_, UUID));
-			} else {
-				poco_warning(Logger(), fmt::format("PING({}): Missing parameter.", CId_));
-			}
-		} break;
-
-		case uCentralProtocol::Events::ET_CFGPENDING: {
-			if (!Connected_) {
-				poco_warning(Logger(), fmt::format(
-										   "INVALID-PROTOCOL({}): Device '{}' is not following protocol", CId_, CN_));
-				Errors_++;
-				return;
-			}
-			if (ParamsObj->has(uCentralProtocol::UUID) && ParamsObj->has(uCentralProtocol::ACTIVE)) {
-
-				[[maybe_unused]] uint64_t UUID = ParamsObj->get(uCentralProtocol::UUID);
-				[[maybe_unused]] uint64_t Active = ParamsObj->get(uCentralProtocol::ACTIVE);
-				poco_trace(Logger(), fmt::format("CFG-PENDING({}): Active: {} Target: {}", CId_, Active, UUID));
-			} else {
-				poco_warning(Logger(), fmt::format("CFG-PENDING({}): Missing some parameters", CId_));
-			}
-		} break;
-
-		case uCentralProtocol::Events::ET_RECOVERY: {
-			if (ParamsObj->has(uCentralProtocol::SERIAL) &&
-				ParamsObj->has(uCentralProtocol::FIRMWARE) && ParamsObj->has(uCentralProtocol::UUID) &&
-				ParamsObj->has(uCentralProtocol::REBOOT) &&
-				ParamsObj->has(uCentralProtocol::LOGLINES)) {
-
-				auto LogLines = ParamsObj->get(uCentralProtocol::LOGLINES);
-				std::string LogText;
-
-				LogText = "Firmware: " + ParamsObj->get(uCentralProtocol::FIRMWARE).toString() + "\r\n";
-				if (LogLines.isArray()) {
-					auto LogLinesArray = LogLines.extract<Poco::JSON::Array::Ptr>();
-					for (const auto &i : *LogLinesArray)
-						LogText += i.toString() + "\r\n";
-				}
-
-				GWObjects::DeviceLog DeviceLog{.SerialNumber = SerialNumber_,
-											   .Log = LogText,
-											   .Data = "",
-											   .Severity = GWObjects::DeviceLog::LOG_EMERG,
-											   .Recorded = (uint64_t)time(nullptr),
-											   .LogType = 1,
-											   .UUID = 0};
-
-				StorageService()->AddLog(DeviceLog);
-
-				if (ParamsObj->get(uCentralProtocol::REBOOT).toString() == "true") {
-					GWObjects::CommandDetails Cmd;
-					Cmd.SerialNumber = SerialNumber_;
-					Cmd.UUID = MicroService::CreateUUID();
-					Cmd.SubmittedBy = uCentralProtocol::SUBMITTED_BY_SYSTEM;
-					Cmd.Status = uCentralProtocol::PENDING;
-					Cmd.Command = uCentralProtocol::REBOOT;
-					Poco::JSON::Object Params;
-					Params.set(uCentralProtocol::SERIAL, SerialNumber_);
-					Params.set(uCentralProtocol::WHEN, 0);
-					std::ostringstream O;
-					Poco::JSON::Stringifier::stringify(Params, O);
-					Cmd.Details = O.str();
-					bool Sent;
-					CommandManager()->PostCommand(SerialNumber_, Cmd.Command, Params, Cmd.UUID, Sent);
-					StorageService()->AddCommand(SerialNumber_, Cmd, Storage::COMMAND_EXECUTED);
-					poco_information(Logger(), fmt::format("RECOVERY({}): Recovery mode received, need for a reboot.", CId_));
-				} else {
-					poco_information(Logger(), fmt::format(
-												   "RECOVERY({}): Recovery mode received, no need for a reboot.", CId_));
-				}
-			} else {
-				poco_warning(Logger(), fmt::format("RECOVERY({}): Recovery missing one of serialnumber, firmware, uuid, loglines, reboot",
-													CId_));
-			}
-		} break;
-
-		case uCentralProtocol::Events::ET_DEVICEUPDATE: {
-			if (!Connected_) {
-				poco_warning(Logger(), fmt::format(
-										   "INVALID-PROTOCOL({}): Device '{}' is not following protocol", CId_, CN_));
-				Errors_++;
-				return;
-			}
-			if (ParamsObj->has("currentPassword")) {
-				auto Password = ParamsObj->get("currentPassword").toString();
-
-				StorageService()->SetDevicePassword(Serial, Password);
-				poco_trace(Logger(), fmt::format("DEVICEUPDATE({}): Device is updating its login password.", Serial));
-			}
-		} break;
-
-		case uCentralProtocol::Events::ET_TELEMETRY: {
-			if (!Connected_) {
-				poco_warning(Logger(), fmt::format(
-										   "INVALID-PROTOCOL({}): Device '{}' is not following protocol", CId_, CN_));
-				Errors_++;
-				return;
-			}
-			if (TelemetryReporting_) {
-				if (ParamsObj->has("data")) {
-					auto Payload = ParamsObj->get("data").extract<Poco::JSON::Object::Ptr>();
-					Payload->set("timestamp", OpenWifi::Now());
-					std::ostringstream SS;
-					Payload->stringify(SS);
-					auto now=OpenWifi::Now();
-					if (TelemetryWebSocketRefCount_) {
-						if(now<TelemetryWebSocketTimer_) {
-							// std::cout << SerialNumber_ << ": Updating WebSocket telemetry" << std::endl;
-							TelemetryWebSocketPackets_++;
-							Conn_->Conn_.websocketPackets = TelemetryWebSocketPackets_;
-							TelemetryStream()->UpdateEndPoint(SerialNumberInt_, SS.str());
-						} else {
-							StopWebSocketTelemetry();
-						}
-					}
-					if (TelemetryKafkaRefCount_) {
-						if(KafkaManager()->Enabled() && now<TelemetryKafkaTimer_) {
-							// std::cout << SerialNumber_ << ": Updating Kafka telemetry" << std::endl;
-							TelemetryKafkaPackets_++;
-							Conn_->Conn_.kafkaPackets = TelemetryKafkaPackets_;
-							KafkaManager()->PostMessage(KafkaTopics::DEVICE_TELEMETRY, SerialNumber_,
-														SS.str());
-						} else {
-							StopKafkaTelemetry();
-						}
-					}
-				} else {
-					poco_debug(Logger(),fmt::format("TELEMETRY({}): Invalid telemetry packet.",SerialNumber_));
-				}
-			} else {
-				// if we are ignoring telemetry, then close it down on the device.
-				poco_debug(Logger(),fmt::format("TELEMETRY({}): Stopping runaway telemetry.",SerialNumber_));
-				StopTelemetry();
-			}
-		} break;
-
-		case uCentralProtocol::Events::ET_VENUEBROADCAST: {
-			if(ParamsObj->has("data") && ParamsObj->has("serial") && ParamsObj->has("timestamp")) {
-				VenueBroadcaster()->Broadcast(
-					ParamsObj->get("serial").toString(),
-					ParamsObj->get("data").toString(),
-					ParamsObj->get("timestamp"));
-			}
-		} break;
-		// 	this will never be called but some compilers will complain if we do not have a case for
-		//	every single values of an enum
-		case uCentralProtocol::Events::ET_UNKNOWN: {
-			poco_warning(Logger(), fmt::format("ILLEGAL-EVENT({}): Event '{}' unknown. CN={}", CId_, Method, CN_));
-			Errors_++;
-		}
 		}
 	}
 

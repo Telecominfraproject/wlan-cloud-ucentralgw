@@ -46,6 +46,19 @@ namespace OpenWifi {
 		bool SetKafkaTelemetryReporting(uint64_t interval, uint64_t TelemetryKafkaTimer);
 		bool StopWebSocketTelemetry();
 		bool StopKafkaTelemetry();
+
+		void Process_connect(Poco::JSON::Object::Ptr ParamsObj, const std::string &Serial);
+		void Process_state(Poco::JSON::Object::Ptr ParamsObj);
+		void Process_healthcheck(Poco::JSON::Object::Ptr ParamsObj, const std::string &Serial);
+		void Process_log(Poco::JSON::Object::Ptr ParamsObj);
+		void Process_crashlog(Poco::JSON::Object::Ptr ParamsObj);
+		void Process_ping(Poco::JSON::Object::Ptr ParamsObj);
+		void Process_cfgpending(Poco::JSON::Object::Ptr ParamsObj);
+		void Process_recovery(Poco::JSON::Object::Ptr ParamsObj);
+		void Process_deviceupdate(Poco::JSON::Object::Ptr ParamsObj, std::string &Serial);
+		void Process_telemetry(Poco::JSON::Object::Ptr ParamsObj);
+		void Process_venuebroadcast(Poco::JSON::Object::Ptr ParamsObj);
+
 		inline bool GetTelemetryParameters(bool & Reporting, uint64_t & Interval,
 										   uint64_t & WebSocketTimer, uint64_t & KafkaTimer,
 										   uint64_t &WebSocketCount, uint64_t & KafkaCount,
@@ -65,28 +78,28 @@ namespace OpenWifi {
 	  private:
 		std::recursive_mutex                Mutex_;
 		Poco::Logger                    	&Logger_;
-		Poco::Net::SocketReactor			& Reactor_;
+		Poco::Net::SocketReactor			&Reactor_;
 		std::unique_ptr<Poco::Net::WebSocket> WS_;
 		std::string                         SerialNumber_;
 		uint64_t 							SerialNumberInt_=0;
 		std::string 						Compatible_;
 		std::shared_ptr<DeviceRegistry::ConnectionEntry> 	Conn_;
-		volatile bool                        Registered_ = false ;
+		std::atomic_bool                    Registered_ = false ;
 		std::string 						CId_;
 		std::string							CN_;
 		GWObjects::CertificateValidation	CertValidation_ = GWObjects::CertificateValidation::NO_CERTIFICATE;
 		uint64_t 							Errors_=0;
-		volatile bool 						Connected_=false;
+		std::atomic_bool					Connected_=false;
 		uint64_t 							ConnectionId_=0;
 		Poco::Net::IPAddress				PeerAddress_;
-		volatile std::atomic_bool 			TelemetryReporting_ = false;
-		volatile uint64_t 					TelemetryWebSocketRefCount_ = 0;
-		volatile uint64_t 					TelemetryKafkaRefCount_ = 0;
+		std::atomic_bool 					TelemetryReporting_ = false;
+		std::atomic_uint64_t				TelemetryWebSocketRefCount_ = 0;
+		std::atomic_uint64_t				TelemetryKafkaRefCount_ = 0;
 		uint64_t 							TelemetryWebSocketTimer_ = 0;
 		uint64_t 							TelemetryKafkaTimer_ = 0 ;
 		uint64_t 							TelemetryInterval_ = 0;
-		volatile uint64_t 					TelemetryWebSocketPackets_=0;
-		volatile uint64_t 					TelemetryKafkaPackets_=0;
+		std::atomic_uint64_t				TelemetryWebSocketPackets_=0;
+		std::atomic_uint64_t				TelemetryKafkaPackets_=0;
 
 		void CompleteStartup();
 		bool StartTelemetry();
