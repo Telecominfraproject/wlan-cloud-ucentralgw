@@ -561,6 +561,31 @@ Toe read more about Kafka, follow the [document](https://github.com/Telecominfra
 #### Securing `kafka`
 This is beyond the scope of this document. As it stands today, the communication between the gateway and `kafka` is expected to be behind a firewall.
 
+#### `iptocountry` feature
+In the UI, you will notice the presence of small flags showing where the device connections are from. This feature is 
+available through the `iptocountry` settings in the configuration. This feature is then also available through the `OpenAPI` for the CLI 
+and other applications.
+
+##### Config file entries
+In the configuration file, you must include the following lines:
+
+```asm
+iptocountry.default = US
+iptocountry.provider = ipinfo
+#iptocountry.provider = ipdata
+#iptocountry.provider = ipdata
+iptocountry.ipinfo.token = 
+#ip2location.ipinfo.token =
+#iptocountry.ipdata.apikey =
+#iptocountry.ip2location.apikey =
+```
+So you select your provider with the `iptocountry.provider` be specifying ipinfo, or ipdata, or ip2location. 
+And then you provide the corresponding api key or token.
+Only select one. If you select 2, undefined behaviour. All the line you do not need, just put a `#` before to comment it 
+out.
+You will find the supported providers at: `ip2location.com`, `ipinfo.io`, or `ipdata.co`. You MUST supply a valid default 
+country code in `iptocountry.default`.
+
 ## Contributors
 We love ya! We need more of ya! If you want to contribute, make sure you review 
 the [coding style](https://github.com/Telecominfraproject/wlan-cloud-ucentralgw/blob/master/CODING_STYLE.md) document. 
