@@ -830,7 +830,7 @@ namespace OpenWifi {
 					.Port = MicroService::instance().ConfigGetInt("rtty.port", 5912),
 					.Token = MicroService::instance().ConfigGetString("rtty.token", "nothing"),
 					.TimeOut = MicroService::instance().ConfigGetInt("rtty.timeout", 60),
-					.ConnectionId =  MicroService::instance().CreateHash(std::to_string(OpenWifi::Now())+SerialNumber_).substr(0,32),
+					.ConnectionId =  Utils::ComputeHash(SerialNumber_,OpenWifi::Now()).substr(0,32),
 					.Started = OpenWifi::Now(),
 					.CommandUUID = CommandUUID,
 					.ViewPort = MicroService::instance().ConfigGetInt("rtty.viewport", 5913),
@@ -838,7 +838,8 @@ namespace OpenWifi {
 				};
 
 				if(RTTYS_server()->UseInternal()) {
-					Rtty.Token = MicroService::instance().CreateHash(UserInfo_.webtoken.refresh_token_ + std::to_string(OpenWifi::Now())).substr(0,32);
+					// Rtty.Token = MicroService::instance().CreateHash(UserInfo_.webtoken.refresh_token_ + std::to_string(OpenWifi::Now())).substr(0,32);
+					Rtty.Token = Utils::ComputeHash(UserInfo_.webtoken.refresh_token_,OpenWifi::Now()).substr(0,32);
 					RTTYS_server()->CreateEndPoint(Rtty.ConnectionId, Rtty.Token, UserInfo_.userinfo.email, SerialNumber_);
 				}
 

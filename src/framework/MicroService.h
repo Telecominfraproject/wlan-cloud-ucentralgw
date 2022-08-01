@@ -703,6 +703,19 @@ namespace OpenWifi::Utils {
         return (std::all_of(UUID.begin(),UUID.end(),[&](auto i){ if(i=='-') dashes++; return i=='-' || std::isxdigit(i);})) && (dashes>0);
     }
 
+	template <typename ...Args> std::string ComputeHash(Args&&... args) {
+		Poco::SHA2Engine    E;
+		auto as_string = [](auto p) {
+			if constexpr(std::is_arithmetic_v<decltype(p)>) {
+				return std::to_string(p);
+			} else {
+				return p;
+			}
+		};
+		(E.update(as_string(args)),...);
+		return Poco::SHA2Engine::digestToHex(E.digest());
+	}
+
     [[nodiscard]] inline std::vector<std::string> Split(const std::string &List, char Delimiter=',' ) {
         std::vector<std::string> ReturnList;
 
@@ -3304,7 +3317,6 @@ namespace OpenWifi {
 		inline std::string ConfigPath(const std::string &Key);
 		inline std::string Encrypt(const std::string &S);
 		inline std::string Decrypt(const std::string &S);
-		inline std::string CreateHash(const std::string &S);
 		inline std::string MakeSystemEventMessage( const std::string & Type ) const;
 		[[nodiscard]] inline bool IsValidAPIKEY(const Poco::Net::HTTPServerRequest &Request);
 		inline static void SavePID();
@@ -3350,7 +3362,6 @@ namespace OpenWifi {
 		std::string                 WWWAssetsDir_;
 		Poco::Crypto::CipherFactory & CipherFactory_ = Poco::Crypto::CipherFactory::defaultFactory();
 		Poco::Crypto::Cipher        * Cipher_ = nullptr;
-		Poco::SHA2Engine			SHA2_;
 		MicroServiceMetaMap			Services_;
 		std::string 				MyHash_;
 		std::string 				MyPrivateEndPoint_;
@@ -3521,7 +3532,7 @@ namespace OpenWifi {
 	    MyPrivateEndPoint_ = ConfigGetString("openwifi.system.uri.private");
 	    MyPublicEndPoint_ = ConfigGetString("openwifi.system.uri.public");
 	    UIURI_ = ConfigGetString("openwifi.system.uri.ui");
-	    MyHash_ = CreateHash(MyPublicEndPoint_);
+	    MyHash_ = Utils::ComputeHash(MyPublicEndPoint_);
 	}
 
 	void MicroServicePostInitialization();
@@ -3856,11 +3867,6 @@ namespace OpenWifi {
             return S;
         }
 	    return Cipher_->decryptString(S, Poco::Crypto::Cipher::Cipher::ENC_BASE64);;
-	}
-
-	inline std::string MicroService::CreateHash(const std::string &S) {
-	    SHA2_.update(S);
-	    return Utils::ToHex(SHA2_.digest());
 	}
 
 	inline std::string MicroService::MakeSystemEventMessage( const std::string & Type ) const {
