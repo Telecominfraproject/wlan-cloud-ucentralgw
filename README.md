@@ -29,9 +29,10 @@ These instructions have proven to work on Ubuntu 20.4.
 sudo apt install git cmake g++ libssl-dev libmariadb-dev 
 sudo apt install libpq-dev libaprutil1-dev apache2-dev libboost-all-dev
 sudo apt install librdkafka-dev // default-libmysqlclient-dev
+sudo apt install nlohmann-json-dev
 
 cd ~
-git clone https://github.com/stephb9959/poco
+git clone https://github.com/AriliaWireless/poco --branch poco-tip-v1
 cd poco
 mkdir cmake-build
 cd cmake-build
@@ -40,7 +41,7 @@ cmake --build . --config Release
 sudo cmake --build . --target install
 
 cd ~
-git clone https://github.com/stephb9959/cppkafka
+git clone https://github.com/AriliaWireless/cppkafka --branch tip-v1
 cd cppkafka
 mkdir cmake-build
 cd cmake-build
@@ -49,17 +50,7 @@ cmake --build . --config Release
 sudo cmake --build . --target install
 
 cd ~
-git clone https://github.com/nlohmann/json.git
-cd json
-git checkout tags/v3.10.2
-mkdir cmake-build
-cd cmake-build
-cmake ..
-make -j
-sudo make install
-
-cd ~
-git clone https://github.com/pboettch/json-schema-validator.git
+git clone https://github.com/pboettch/json-schema-validator.git --branch 2.1.0
 cd json-schema-validator
 mkdir cmake-build
 cd cmake-build
@@ -81,12 +72,12 @@ make -j 8
 ### Fedora
 The following instructions have proven to work on Fedora 33
 ```
-sudo yum install cmake g++ openssl-devel unixODBC-devel mysql-devel mysql apr-util-devel boost boost-devel
+sudo yum install cmake g++ openssl-devel mysql-devel mysql apr-util-devel boost boost-devel
 sudo yum install yaml-cpp-devel lua-devel 
 sudo dnf install postgresql.x86_64 librdkafka-devel
-sudo dnf install postgresql-devel
+sudo dnf install postgresql-devel json-devel
 
-git clone https://github.com/stephb9959/poco
+git clone https://github.com/AriliaWireless/poco --branch poco-tip-v1
 cd poco
 mkdir cmake-build
 cd cmake-build
@@ -94,13 +85,22 @@ cmake ..
 cmake --build . --config Release
 sudo cmake --build . --target install
 
-git clone https://github.com/stephb9959/cppkafka
+git clone https://github.com/AriliaWireless/cppkafka --branch tip-v1
 cd cppkafka
 mkdir cmake-build
 cd cmake-build
 cmake ..
 cmake --build . --config Release
 sudo cmake --build . --target install
+
+cd ~
+git clone https://github.com/pboettch/json-schema-validator.git --branch 2.1.0
+cd json-schema-validator
+mkdir cmake-build
+cd cmake-build
+cmake ..
+make -j
+sudo make install
 
 cd ~
 git clone https://github.com/Telecominfraproject/wlan-cloud-ucentralgw
@@ -124,24 +124,33 @@ brew install apr-util
 brew install boost
 brew install yaml-cpp
 brew install postgresql
-brew install unixodbc
 brew install librdkafka
+brew install nlohmann-json
 
-git clone https://github.com/stephb9959/poco
+git clone https://github.com/AriliaWireless/poco --branch poco-tip-v1
 cd poco
-mkdir cmake-build 
+mkdir cmake-build
 cd cmake-build
 cmake ..
-cmake --build . --config Release -j
+cmake --build . --config Release
 sudo cmake --build . --target install
 
-git clone https://github.com/stephb9959/cppkafka
+git clone https://github.com/AriliaWireless/cppkafka --branch tip-v1
 cd cppkafka
 mkdir cmake-build
 cd cmake-build
 cmake ..
 cmake --build . --config Release
 sudo cmake --build . --target install
+
+cd ~
+git clone https://github.com/pboettch/json-schema-validator.git --branch 2.1.0
+cd json-schema-validator
+mkdir cmake-build
+cd cmake-build
+cmake ..
+make -j
+sudo make install
 
 cd ~
 git clone https://github.com/Telecominfraproject/wlan-cloud-ucentralgw
@@ -249,7 +258,7 @@ little changes if you keep the suggested directory structure. For the sample con
 environment variables. 
 ```
 export OWGW_ROOT=`pwd`
-export UCENTRALGW_CONFIG=`pwd`
+export OWGW_CONFIG=`pwd`
 ```
 If you current working directory is the root of the project, this will set the variables properly. Otherwise, you can set the variables 
 to point to wherever is necessary.
