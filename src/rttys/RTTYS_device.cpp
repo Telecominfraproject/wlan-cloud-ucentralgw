@@ -216,15 +216,15 @@ namespace OpenWifi {
 
 		std::cout << "[0]=" << (int) buf[0] << " [1]=" << (int) buf[1] << std::endl;
 
-		uint session_length = short_session_id_ ? 0 : SESSION_ID_LENGTH ;
+		uint session_length = (short_session_id_ ? 0 : SESSION_ID_LENGTH) ;
 
-		std::cout << "Sending: " << len << " keys." << std::endl;
+		std::cout << "Sending: " << len << " keys. SL=" << session_length << std::endl;
 
 		if(len<=(sizeof(small_buf_)-3-session_length)) {
 			small_buf_[0] = msgTypeTermData;
 			small_buf_[1] = ((len+session_length) & 0xff00) >> 8;
 			small_buf_[2] = ((len+session_length) & 0x00ff);
-std::cout << __LINE__ << std::endl;
+			std::cout << __LINE__ << std::endl;
 			if(short_session_id_) {
 				std::cout << __LINE__ << std::endl;
 				memcpy(&small_buf_[3], buf, len);
