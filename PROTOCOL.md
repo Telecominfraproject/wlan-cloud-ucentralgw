@@ -749,7 +749,10 @@ Should other messages get larger, the client may decide to compress the. Only me
 
 #### Identifying a compressed message
 A compressed message has a single member to the `params` field. It's only parameter must be called `compress_64`. Any other elements under
-params will be dropped. Additional compression schemes may be developed later.
+params will be dropped. Additional compression schemes may be developed later. The device should also include 
+a hint to the actual size of the uncompressed data. This would allow listeners to create sufficiently sized 
+buffers right away instead of guessing. If the device includes `compressed_sz` as the second field in the 
+params objects. This should be an unsigned int representing the total size of the uncompressed data. 
 
 #### How to compress
 The original `params` element should be run through `zlib:compress` and then encoded using base64, and passed as a string. Here is an example
@@ -759,7 +762,8 @@ of the completed message. The following should how the `state` event could be co
 {   "jsonrpc" : "2.0" , 
     "method" : "state" , 
     "params" : {
-	    "compress_64" : "kqlwhfoihffhwleihfi3uhfkjehfqlkwhfqkhfiu3hffhkjwehfqkwjehfqwiefkjehq.....qwjqkfhqjwk"
+	    "compress_64" : "kqlwhfoihffhwleihfi3uhfkjehfqlkwhfqkhfiu3hffhkjwehfqkwjehfqwiefkjehq.....qwjqkfhqjwk",
+        "compress_sz" : 212322
   }
 }
 ```
