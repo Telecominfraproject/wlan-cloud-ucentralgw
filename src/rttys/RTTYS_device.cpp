@@ -425,12 +425,14 @@ std::cout << __LINE__ << std::endl;
 			}
 			 */
 			if(inBuf_.used()<msg_len) {
+				std::cout << "Sending (0)" << msg_len << " to client" << std::endl;
 				good = SendToClient((unsigned char *)inBuf_.begin(), inBuf_.used());
 				if(!good) std::cout << "do_msgTypeTermData:3" << std::endl;
 				waiting_for_bytes_ = msg_len - inBuf_.used();
 				inBuf_.drain();
 			} else {
 				waiting_for_bytes_ = 0 ;
+				std::cout << "Sending (1)" << msg_len << " to client" << std::endl;
 				good = SendToClient((unsigned char *)inBuf_.begin(), msg_len);
 				if(!good) std::cout << "do_msgTypeTermData:4" << std::endl;
 				inBuf_.drain(msg_len);
