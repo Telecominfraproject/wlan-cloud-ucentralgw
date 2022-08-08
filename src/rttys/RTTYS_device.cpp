@@ -95,22 +95,29 @@ namespace OpenWifi {
 		std::unique_lock G(M_);
 		try {
 			auto received_bytes = socket_.receiveBytes(inBuf_);
+			std::cout << __LINE__ << std::endl;
 			if (received_bytes == 0) {
 				poco_information(Logger(), fmt::format("{}: Device Closing connection - 0 bytes received.",Id_));
 				return EndConnection();
 			}
 
+			std::cout << __LINE__ << std::endl;
 			while (inBuf_.isReadable() && good) {
+				std::cout << __LINE__ << std::endl;
 				uint32_t msg_len = 0;
 				if (waiting_for_bytes_ != 0) {
+					std::cout << __LINE__ << std::endl;
 
 				} else {
+					std::cout << __LINE__ << std::endl;
 					if (inBuf_.used() >= 3) {
 						auto *head = (unsigned char *)inBuf_.begin();
 						last_command_ = head[0];
 						msg_len = head[1] * 256 + head[2];
 						inBuf_.drain(3);
+						std::cout << __LINE__ << std::endl;
 					} else {
+						std::cout << __LINE__ << std::endl;
 						good = false;
 						if (!good)
 							std::cout << "do_msgTypeTermData:5     " << inBuf_.used() << std::endl;
@@ -118,41 +125,54 @@ namespace OpenWifi {
 					}
 				}
 
+				std::cout << __LINE__ << std::endl;
 				switch (last_command_) {
 					case msgTypeRegister: {
+						std::cout << __LINE__ << std::endl;
 						good = do_msgTypeRegister(msg_len);
 					} break;
 					case msgTypeLogin: {
+						std::cout << __LINE__ << std::endl;
 						good = do_msgTypeLogin(msg_len);
 					} break;
 					case msgTypeLogout: {
+						std::cout << __LINE__ << std::endl;
 						good = do_msgTypeLogout(msg_len);
 					} break;
 					case msgTypeTermData: {
+						std::cout << __LINE__ << std::endl;
 						good = do_msgTypeTermData(msg_len);
 					} break;
 					case msgTypeWinsize: {
+						std::cout << __LINE__ << std::endl;
 						good = do_msgTypeWinsize(msg_len);
 					} break;
 					case msgTypeCmd: {
+						std::cout << __LINE__ << std::endl;
 						good = do_msgTypeCmd(msg_len);
 					} break;
 					case msgTypeHeartbeat: {
+						std::cout << __LINE__ << std::endl;
 						good = do_msgTypeHeartbeat(msg_len);
 					} break;
 					case msgTypeFile: {
+						std::cout << __LINE__ << std::endl;
 						good = do_msgTypeFile(msg_len);
 					} break;
 					case msgTypeHttp: {
+						std::cout << __LINE__ << std::endl;
 						good = do_msgTypeHttp(msg_len);
 					} break;
 					case msgTypeAck: {
+						std::cout << __LINE__ << std::endl;
 						good = do_msgTypeAck(msg_len);
 					} break;
 					case msgTypeMax: {
+						std::cout << __LINE__ << std::endl;
 						good = do_msgTypeMax(msg_len);
 					} break;
 					default: {
+						std::cout << __LINE__ << std::endl;
 						poco_warning(Logger(),
 									 fmt::format("{}: Unknown command {} from device. GW closing connection.", Id_,
 												 (int)last_command_));
@@ -169,7 +189,9 @@ namespace OpenWifi {
 			good = false;
 		}
 
+		std::cout << __LINE__ << std::endl;
 		if(!good) {
+			std::cout << __LINE__ << std::endl;
 			return EndConnection();
 		}
 	}
