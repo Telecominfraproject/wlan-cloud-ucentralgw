@@ -465,10 +465,10 @@ namespace OpenWifi {
 		MsgBuf[1] = 0;
 		MsgBuf[2] = 16;
 		unsigned long t = htonl(RTTYS_server()->Uptime());
-		MsgBuf[3] = ((char *)&t)[0];
-		MsgBuf[4] = ((char *)&t)[1];
-		MsgBuf[5] = ((char *)&t)[2];
-		MsgBuf[6] = ((char *)&t)[3];
+		MsgBuf[3] = (t & 0xff000000) >> 24;
+		MsgBuf[4] = (t & 0x00ff0000) >> 16;
+		MsgBuf[5] = (t & 0x0000ff00) >> 8;
+		MsgBuf[6] = (t & 0x000000ff);
 		auto Sent = socket_.sendBytes(MsgBuf, 16+3 );
 		std::cout << "Sent:" << Sent << " l:" << std::endl;
 		return  Sent == 19;
