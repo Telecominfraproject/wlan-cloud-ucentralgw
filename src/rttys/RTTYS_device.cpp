@@ -478,7 +478,7 @@ namespace OpenWifi {
 			MsgBuf[5] = (t & 0x0000ff00) >> 8;
 			MsgBuf[6] = (t & 0x000000ff);
 			auto Sent = socket_.sendBytes(MsgBuf, 16 + 3);
-			std::cout << "Sent:" << Sent << " l:" << std::endl;
+			std::cout << "Sent:" << Sent << " l:" << 19 << std::endl;
 			return Sent == 19;
 		}
 	}
