@@ -192,6 +192,8 @@ namespace OpenWifi {
 		if(!valid_)
 			return false;
 
+		std::cout << "[0]=" << (int) buf[0] << " [1]=" << (int) buf[1] << std::endl;
+
 		uint session_length = short_session_id_ ? 0 : SESSION_ID_LENGTH ;
 
 		std::cout << "Sending: " << len << " keys." << std::endl;
@@ -383,6 +385,7 @@ std::cout << __LINE__ << std::endl;
 			inBuf_.read(&session[0], SESSION_ID_LENGTH);
 			inBuf_.read(&Error, 1);
 		}
+		std::cout << "Session: " << (int) session_id_[0] << std::endl;
 		doc["type"] = "login";
 		doc["err"] = Error;
 		const auto login_msg = to_string(doc);
