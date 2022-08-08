@@ -460,18 +460,27 @@ namespace OpenWifi {
 	}
 
 	bool RTTYS_Device_ConnectionHandler::do_msgTypeHeartbeat([[maybe_unused]] std::size_t msg_len) {
-		u_char MsgBuf[3+SESSION_ID_LENGTH]{0};
-		MsgBuf[0] = msgTypeHeartbeat;
-		MsgBuf[1] = 0;
-		MsgBuf[2] = 16;
-		unsigned long t = htonl(RTTYS_server()->Uptime());
-		MsgBuf[3] = (t & 0xff000000) >> 24;
-		MsgBuf[4] = (t & 0x00ff0000) >> 16;
-		MsgBuf[5] = (t & 0x0000ff00) >> 8;
-		MsgBuf[6] = (t & 0x000000ff);
-		auto Sent = socket_.sendBytes(MsgBuf, 16+3 );
-		std::cout << "Sent:" << Sent << " l:" << std::endl;
-		return  Sent == 19;
+		u_char MsgBuf[19]{0};
+		if(short_session_id_) {
+			MsgBuf[0] = msgTypeHeartbeat;
+			MsgBuf[1] = 0;
+			MsgBuf[2] = 3;
+			auto Sent = socket_.sendBytes(MsgBuf, 3);
+			std::cout << "Sent:" << Sent << " l:" << std::endl;
+			return Sent == 3;
+		} else {
+			MsgBuf[0] = msgTypeHeartbeat;
+			MsgBuf[1] = 0;
+			MsgBuf[2] = 16;
+			unsigned long t = htonl(RTTYS_server()->Uptime());
+			MsgBuf[3] = (t & 0xff000000) >> 24;
+			MsgBuf[4] = (t & 0x00ff0000) >> 16;
+			MsgBuf[5] = (t & 0x0000ff00) >> 8;
+			MsgBuf[6] = (t & 0x000000ff);
+			auto Sent = socket_.sendBytes(MsgBuf, 16 + 3);
+			std::cout << "Sent:" << Sent << " l:" << std::endl;
+			return Sent == 19;
+		}
 	}
 
 	bool RTTYS_Device_ConnectionHandler::do_msgTypeFile([[maybe_unused]] std::size_t msg_len) {
