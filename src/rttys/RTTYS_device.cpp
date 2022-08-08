@@ -287,7 +287,7 @@ namespace OpenWifi {
 		outBuf[5+session_length] = rows >> 8;
 		outBuf[6+session_length] = rows & 0x00ff;
 		try {
-			socket_.sendBytes(outBuf, 6 + session_length );
+			socket_.sendBytes(outBuf, 7 + session_length );
 			return true;
 		} catch (...) {
 
