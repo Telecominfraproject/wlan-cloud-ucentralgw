@@ -261,6 +261,7 @@ namespace OpenWifi {
 		}
 
 		inline Poco::Net::SocketReactor & ClientReactor() { return ClientReactor_; }
+		inline auto Uptime() const { return OpenWifi::Now() - Started_; }
 
 	  private:
 		Poco::Net::SocketReactor					ClientReactor_;
@@ -288,6 +289,8 @@ namespace OpenWifi {
 		uint64_t 									FailedNumClients_=0;
 		double 										TotalConnectedDeviceTime_=0.0;
 		double 										TotalConnectedClientTime_=0.0;
+
+		uint64_t 									Started_=OpenWifi::Now();
 
 
 		explicit RTTYS_server() noexcept:
