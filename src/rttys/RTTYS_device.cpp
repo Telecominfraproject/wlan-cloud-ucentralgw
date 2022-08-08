@@ -405,6 +405,7 @@ namespace OpenWifi {
 				waiting_for_bytes_ = 0 ;
 			}
 		} else {
+			/*
 			if(short_session_id_) {
 				inBuf_.drain(1);
 				msg_len -= 1;
@@ -412,6 +413,7 @@ namespace OpenWifi {
 				inBuf_.drain(SESSION_ID_LENGTH);
 				msg_len -= SESSION_ID_LENGTH;
 			}
+			 */
 			if(inBuf_.used()<msg_len) {
 				good = SendToClient((unsigned char *)inBuf_.begin(), inBuf_.used());
 				if(!good) std::cout << "do_msgTypeTermData:3" << std::endl;
