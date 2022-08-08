@@ -192,25 +192,39 @@ namespace OpenWifi {
 		if(!valid_)
 			return false;
 
-		if(len<=(sizeof(small_buf_)-3)) {
+		if(len<=(sizeof(small_buf_)-3-(short_session_id_ ? 0 : SESSION_ID_LENGTH ))) {
 			small_buf_[0] = msgTypeTermData;
 			small_buf_[1] = (len & 0xff00) >> 8;
 			small_buf_[2] =  (len & 0x00ff);
-			memcpy(&small_buf_[3],buf,len);
+			uint session_length = 0 ;
+			if(short_session_id_) {
+				memcpy(&small_buf_[3], buf, len);
+			} else {
+				session_length = SESSION_ID_LENGTH;
+				std::strncpy((char*)&small_buf_[3],session_id_,SESSION_ID_LENGTH);
+				memcpy(&small_buf_[3+SESSION_ID_LENGTH], buf, len);
+			}
 			try {
-				socket_.sendBytes(small_buf_,len+3);
+				socket_.sendBytes(small_buf_,len+3+session_length);
 				return true;
 			} catch (...) {
 				return false;
 			}
 		} else {
-			auto Msg = std::make_unique<unsigned char []>(len + 3);
+			auto Msg = std::make_unique<unsigned char []>(len + 3 + SESSION_ID_LENGTH);
 			Msg.get()[0] = msgTypeTermData;
 			Msg.get()[1] = (len & 0xff00) >> 8;
 			Msg.get()[2] = (len & 0x00ff);
-			memcpy((void *)(Msg.get() + 3), buf, len);
+			uint session_length = 0 ;
+			if(short_session_id_) {
+				memcpy((void *)(Msg.get() + 3), buf, len);
+			} else {
+				session_length = SESSION_ID_LENGTH;
+				std::strncpy((char*)(Msg.get()+3),session_id_,SESSION_ID_LENGTH);
+				memcpy((Msg.get()+3+session_length), buf, len);
+			}
 			try {
-				socket_.sendBytes(Msg.get(), len + 3);
+				socket_.sendBytes(Msg.get(), len + 3 + session_length);
 				return true;
 			} catch (...) {
 				return false;
@@ -222,17 +236,25 @@ namespace OpenWifi {
 		if(!valid_)
 			return false;
 
-		u_char	outBuf[8]{0};
+		u_char	outBuf[8+SESSION_ID_LENGTH]{0};
 		outBuf[0] = msgTypeWinsize;
 		outBuf[1] = 0 ;
-		outBuf[2] = 4 + 1 ;
-		outBuf[3] = sid_;
-		outBuf[4] = cols >> 8 ;
-		outBuf[5] = cols & 0x00ff;
-		outBuf[6] = rows >> 8;
-		outBuf[7] = rows & 0x00ff;
+		uint 	session_length;
+		if(short_session_id_) {
+			session_length = 1;
+			outBuf[3] = session_id_[0];
+		}
+		else {
+			session_length = SESSION_ID_LENGTH;
+			std::strncpy((char*)&outBuf[3],session_id_,SESSION_ID_LENGTH);
+		}
+		outBuf[2] = 4 + session_length ;
+		outBuf[3+session_length] = cols >> 8 ;
+		outBuf[4+session_length] = cols & 0x00ff;
+		outBuf[5+session_length] = rows >> 8;
+		outBuf[6+session_length] = rows & 0x00ff;
 		try {
-			socket_.sendBytes(outBuf, 8);
+			socket_.sendBytes(outBuf, 6 + session_length );
 			return true;
 		} catch (...) {
 
@@ -244,12 +266,18 @@ namespace OpenWifi {
 		if(!valid_)
 			return false;
 
-		u_char outBuf[3]{0};
-		outBuf[0] = msgTypeLogin;
-		outBuf[1] = 0;
-		outBuf[2] = 0;
+		u_char outBuf[3+SESSION_ID_LENGTH]{0};
+		if(short_session_id_) {
+			outBuf[0] = msgTypeLogin;
+			outBuf[1] = 0;
+			outBuf[2] = 0;
+		} else {
+			//	create the session ID
+			std::strncpy(session_id_,MicroService::instance().Hash().substr(0,SESSION_ID_LENGTH).c_str(),SESSION_ID_LENGTH);
+			std::strncpy((char*)&outBuf[3],(char*)&session_id_[0],SESSION_ID_LENGTH);
+		}
 		try {
-			socket_.sendBytes(outBuf, 3);
+			socket_.sendBytes( outBuf, short_session_id_ ? 3 : (3 + SESSION_ID_LENGTH) );
 		} catch (const Poco::IOException &E) {
 			return false;
 		} catch (const Poco::Exception &E) {
@@ -263,14 +291,19 @@ namespace OpenWifi {
 		if(!valid_)
 			return false;
 
-		u_char outBuf[4]{0};
+		u_char outBuf[4+SESSION_ID_LENGTH]{0};
+		int session_length = short_session_id_ ? 1 : SESSION_ID_LENGTH;
 		outBuf[0] = msgTypeLogout;
 		outBuf[1] = 0;
-		outBuf[2] = 1;
-		outBuf[3] = sid_;
+		outBuf[2] = session_length;
+		if(short_session_id_) {
+			outBuf[3] = session_id_[0];
+		} else {
+			std::strncpy((char *)&outBuf[3],session_id_,SESSION_ID_LENGTH);
+		}
 		poco_information(Logger(),fmt::format("{}: Logout", Id_));
 		try {
-			socket_.sendBytes(outBuf, 4);
+			socket_.sendBytes(outBuf, 3 + session_length);
 			return true;
 		} catch (...) {
 
@@ -296,6 +329,11 @@ namespace OpenWifi {
 	bool RTTYS_Device_ConnectionHandler::do_msgTypeRegister([[maybe_unused]] std::size_t msg_len) {
 		bool good = true;
 		try {
+			//	establish if this is an old rtty or a new one.
+			short_session_id_ = (inBuf_[0] == 0x03);		//	rtty_proto_ver for full session ID inclusion
+			if(!short_session_id_)
+				inBuf_.drain(1);			//	remove protocol if used.
+
 			Id_ = ReadString();
 			desc_ = ReadString();
 			token_ = ReadString();
@@ -305,9 +343,9 @@ namespace OpenWifi {
 			RTTYS_server()->NotifyDeviceRegistration(Id_,token_,this);
 			u_char OutBuf[8];
 			OutBuf[0] = msgTypeRegister;
-			OutBuf[1] = 0;
-			OutBuf[2] = 4;
-			OutBuf[3] = 0;
+			OutBuf[1] = 0;		//	Data length
+			OutBuf[2] = 4;		//
+			OutBuf[3] = 0;		//	Error
 			OutBuf[4] = 'O';
 			OutBuf[5] = 'K';
 			OutBuf[6] = 0;
@@ -327,8 +365,14 @@ namespace OpenWifi {
 		poco_information(Logger(),fmt::format("{}: Asking for login", Id_));
 		nlohmann::json doc;
 		char Error;
-		inBuf_.read(&Error, 1);
-		inBuf_.read(&sid_, 1);
+		if(short_session_id_) {
+			inBuf_.read(&Error, 1);
+			inBuf_.read(&session_id_[0], 1);
+		} else {
+			char session[SESSION_ID_LENGTH];
+			inBuf_.read(&session[0], SESSION_ID_LENGTH);
+			inBuf_.read(&Error, 1);
+		}
 		doc["type"] = "login";
 		doc["err"] = Error;
 		const auto login_msg = to_string(doc);
@@ -336,8 +380,14 @@ namespace OpenWifi {
 	}
 
 	bool RTTYS_Device_ConnectionHandler::do_msgTypeLogout([[maybe_unused]] std::size_t msg_len) {
-		poco_information(Logger(),fmt::format("{}: Asking for logout", Id_));
-		return true;
+		char session[SESSION_ID_LENGTH];
+		if(short_session_id_) {
+			inBuf_.read(&session[0],1);
+		} else {
+			inBuf_.read(&session[0],SESSION_ID_LENGTH);
+		}
+		poco_information(Logger(),fmt::format("{}: Logout", Id_));
+		return false;
 	}
 
 	bool RTTYS_Device_ConnectionHandler::do_msgTypeTermData(std::size_t msg_len) {
@@ -355,6 +405,13 @@ namespace OpenWifi {
 				waiting_for_bytes_ = 0 ;
 			}
 		} else {
+			if(short_session_id_) {
+				inBuf_.drain(1);
+				msg_len -= 1;
+			} else {
+				inBuf_.drain(SESSION_ID_LENGTH);
+				msg_len -= SESSION_ID_LENGTH;
+			}
 			if(inBuf_.used()<msg_len) {
 				good = SendToClient((unsigned char *)inBuf_.begin(), inBuf_.used());
 				if(!good) std::cout << "do_msgTypeTermData:3" << std::endl;
@@ -381,9 +438,15 @@ namespace OpenWifi {
 	}
 
 	bool RTTYS_Device_ConnectionHandler::do_msgTypeHeartbeat([[maybe_unused]] std::size_t msg_len) {
-		u_char MsgBuf[3]{0};
+		u_char MsgBuf[3+SESSION_ID_LENGTH]{0};
 		MsgBuf[0] = msgTypeHeartbeat;
-		return socket_.sendBytes(MsgBuf, 3)==3;
+		if(!short_session_id_) {
+			MsgBuf[1] = 0 ;
+			MsgBuf[2] = SESSION_ID_LENGTH;
+			std::strncpy((char*)&MsgBuf[3],session_id_,SESSION_ID_LENGTH);
+		}
+		int MsgLength = 3 + (short_session_id_ ? 0 : SESSION_ID_LENGTH);
+		return socket_.sendBytes(MsgBuf, MsgLength ) == MsgLength;
 	}
 
 	bool RTTYS_Device_ConnectionHandler::do_msgTypeFile([[maybe_unused]] std::size_t msg_len) {

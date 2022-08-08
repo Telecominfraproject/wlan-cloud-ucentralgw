@@ -13,6 +13,7 @@
 namespace OpenWifi {
 
 	constexpr std::size_t RTTY_DEVICE_BUFSIZE=64000;
+	constexpr std::size_t SESSION_ID_LENGTH=32;
 
 	class RTTYS_Device_ConnectionHandler{
 	  public:
@@ -55,15 +56,16 @@ namespace OpenWifi {
 		Poco::Logger					&Logger_;
 
 		std::atomic_bool				valid_=false;
+		bool 							short_session_id_=true;
 		Poco::Net::SocketAddress		device_address_;
 		std::shared_mutex 		  		M_;
 		std::string                   	Id_;
 		std::string                   	token_;
 		std::string                   	desc_;
-		char 				          	sid_=0;
+		char 				          	session_id_[SESSION_ID_LENGTH+1]{0};
 		std::size_t      			  	waiting_for_bytes_{0};
 		u_char 						  	last_command_=0;
-		unsigned char 					small_buf_[64];
+		unsigned char 					small_buf_[64+SESSION_ID_LENGTH];
 
 		void EndConnection(bool SendNotification=true) ;
 		void CompleteConnection();
