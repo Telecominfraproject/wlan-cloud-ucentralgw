@@ -331,6 +331,7 @@ namespace OpenWifi {
 		try {
 			//	establish if this is an old rtty or a new one.
 			short_session_id_ = (inBuf_[0] == 0x03);		//	rtty_proto_ver for full session ID inclusion
+			std::cout << "Version: " << (int) (inBuf_[0]) << std::endl;
 			if(!short_session_id_)
 				inBuf_.drain(1);			//	remove protocol if used.
 
