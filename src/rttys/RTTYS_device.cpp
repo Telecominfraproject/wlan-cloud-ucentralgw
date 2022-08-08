@@ -388,7 +388,11 @@ namespace OpenWifi {
 			inBuf_.read(&session[0], SESSION_ID_LENGTH);
 			inBuf_.read(&Error, 1);
 		}
-		std::cout << "Session: " << (int) session_id_[0] << std::endl;
+		if(short_session_id_)
+			std::cout << "Session: " << (int) session_id_[0] << std::endl;
+		else
+			std::cout << "Session: " << session_id_ << std::endl;
+
 		doc["type"] = "login";
 		doc["err"] = Error;
 		const auto login_msg = to_string(doc);
