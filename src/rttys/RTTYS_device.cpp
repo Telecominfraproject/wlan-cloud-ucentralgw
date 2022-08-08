@@ -192,15 +192,17 @@ namespace OpenWifi {
 		if(!valid_)
 			return false;
 
-		if(len<=(sizeof(small_buf_)-3-(short_session_id_ ? 0 : SESSION_ID_LENGTH ))) {
+		uint session_length = short_session_id_ ? 0 : SESSION_ID_LENGTH ;
+
+		std::cout << "Sending: " << len << " keys." << std::endl;
+
+		if(len<=(sizeof(small_buf_)-3-session_length)) {
 			small_buf_[0] = msgTypeTermData;
 			small_buf_[1] = (len & 0xff00) >> 8;
 			small_buf_[2] =  (len & 0x00ff);
-			uint session_length = 0 ;
 			if(short_session_id_) {
 				memcpy(&small_buf_[3], buf, len);
 			} else {
-				session_length = SESSION_ID_LENGTH;
 				std::strncpy((char*)&small_buf_[3],session_id_,SESSION_ID_LENGTH);
 				memcpy(&small_buf_[3+SESSION_ID_LENGTH], buf, len);
 			}
@@ -215,7 +217,6 @@ namespace OpenWifi {
 			Msg.get()[0] = msgTypeTermData;
 			Msg.get()[1] = (len & 0xff00) >> 8;
 			Msg.get()[2] = (len & 0x00ff);
-			uint session_length = 0 ;
 			if(short_session_id_) {
 				memcpy((void *)(Msg.get() + 3), buf, len);
 			} else {
