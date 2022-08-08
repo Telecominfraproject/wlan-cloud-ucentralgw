@@ -448,7 +448,9 @@ namespace OpenWifi {
 			std::strncpy((char*)&MsgBuf[3],session_id_,SESSION_ID_LENGTH);
 		}
 		int MsgLength = 3 + (short_session_id_ ? 0 : SESSION_ID_LENGTH);
-		return socket_.sendBytes(MsgBuf, MsgLength ) == MsgLength;
+		auto Sent = socket_.sendBytes(MsgBuf, MsgLength );
+		std::cout << "Sent:" << Sent << " l:" << MsgLength << std::endl;
+		return  Sent == MsgLength;
 	}
 
 	bool RTTYS_Device_ConnectionHandler::do_msgTypeFile([[maybe_unused]] std::size_t msg_len) {
