@@ -238,7 +238,7 @@ namespace OpenWifi {
 	bool RTTYS_server::SendKeyStrokes(const std::string &Id, const u_char *buffer, std::size_t len) {
 		std::shared_lock 	Guard(M_);
 
-		std::cout << __LINE__ << std::endl;
+		std::cout << __func__ << ":" << __LINE__ << std::endl;
 		auto It=EndPoints_.find(Id);
 		if(It==EndPoints_.end()) {
 			std::cout << "1-RTTYS_server::SendKeyStrokes Could not find session ID: " << Id << std::endl;
@@ -247,12 +247,12 @@ namespace OpenWifi {
 
 		try {
 			std::cout << __LINE__ << std::endl;
-			if(It->second!= nullptr) {
-				std::cout << __LINE__ << std::endl;
+			if(It->second.get() != nullptr) {
+				std::cout << __func__ << ":" << __LINE__ << std::endl;
 				return It->second->KeyStrokes(buffer, len);
 			}
 			else {
-				std::cout << __LINE__ << std::endl;
+				std::cout << __func__ << ":" << __LINE__ << std::endl;
 				return true;
 			}
 		} catch(const Poco::Exception &E) {
@@ -261,7 +261,7 @@ namespace OpenWifi {
 		} catch (...) {
 			std::cout << "3-RTTYS_server::SendKeyStrokes Could not find session ID: " << Id << std::endl;
 		}
-		std::cout << __LINE__ << std::endl;
+		std::cout << __func__ << ":" << __LINE__ << std::endl;
 		return false;
 	}
 
