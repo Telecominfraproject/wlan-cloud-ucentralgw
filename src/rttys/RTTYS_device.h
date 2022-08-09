@@ -57,7 +57,7 @@ namespace OpenWifi {
 		Poco::Logger					&Logger_;
 
 		std::atomic_bool				valid_=false;
-		bool 							short_session_id_=true;
+		bool 							old_rtty_=true;
 		Poco::Net::SocketAddress		device_address_;
 		std::shared_mutex 		  		M_;
 		std::string                   	id_;

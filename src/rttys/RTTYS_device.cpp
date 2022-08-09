@@ -192,7 +192,7 @@ namespace OpenWifi {
 
 	bool RTTYS_Device_ConnectionHandler::SendToClient(const u_char *Buf, int Len) {
 		u_char bb[64000]{0};
-		if(short_session_id_) {
+		if(old_rtty_) {
 			bb[0] = session_id_[0];
 			memcpy(&bb[1],Buf,Len);
 		} else {
@@ -219,6 +219,8 @@ namespace OpenWifi {
 			small_buf_[2] = ((len-1+session_length_) & 0x00ff);
 			memcpy(&small_buf_[RTTY_HDR_SIZE],session_id_,session_length_);
 			memcpy(&small_buf_[RTTY_HDR_SIZE+session_length_], &buf[1], len-1);
+			if(!old_rtty_)
+				small_buf_[RTTY_HDR_SIZE+5] = '_';
 			try {
 				auto Sent = socket_.sendBytes(small_buf_, RTTY_HDR_SIZE + session_length_ + len - 1);
 				std::cout << "KeyStrokes: Sent (smallbuf): " << Sent << std::endl;
@@ -229,8 +231,8 @@ namespace OpenWifi {
 		} else {
 			auto Msg = std::make_unique<unsigned char []>(len + RTTY_HDR_SIZE + session_length_);
 			Msg.get()[0] = msgTypeTermData;
-			Msg.get()[1] = ((len+session_length_) & 0xff00) >> 8;
-			Msg.get()[2] = ((len+session_length_) & 0x00ff);
+			Msg.get()[1] = ((len-1+session_length_) & 0xff00) >> 8;
+			Msg.get()[2] = ((len-1+session_length_) & 0x00ff);
 			memcpy((Msg.get()+RTTY_HDR_SIZE),session_id_,session_length_);
 			memcpy((Msg.get()+RTTY_HDR_SIZE+session_length_), &buf[1], len-1);
 			try {
@@ -273,7 +275,7 @@ namespace OpenWifi {
 		u_char outBuf[RTTY_HDR_SIZE+RTTY_SESSION_ID_LENGTH]{0};
 		outBuf[0] = msgTypeLogin;
 		outBuf[1] = 0;
-		if(short_session_id_) {
+		if(old_rtty_) {
 			outBuf[2] = 0;
 		} else {
 			outBuf[2] = RTTY_SESSION_ID_LENGTH;
@@ -282,7 +284,7 @@ namespace OpenWifi {
 			memcpy(&outBuf[RTTY_HDR_SIZE],session_id_,RTTY_SESSION_ID_LENGTH);
 		}
 		try {
-			auto Sent = socket_.sendBytes( outBuf, RTTY_HDR_SIZE + (short_session_id_ ? 0 : RTTY_SESSION_ID_LENGTH));
+			auto Sent = socket_.sendBytes( outBuf, RTTY_HDR_SIZE + (old_rtty_ ? 0 : RTTY_SESSION_ID_LENGTH));
 			std::cout << "Send Login: " << Sent << std::endl;
 		} catch (const Poco::IOException &E) {
 			return false;
@@ -331,9 +333,8 @@ namespace OpenWifi {
 		bool good = true;
 		try {
 			//	establish if this is an old rtty or a new one.
-			short_session_id_ = (inBuf_[0] != 0x03);		//	rtty_proto_ver for full session ID inclusion
-			std::cout << "Version: " << (int) (inBuf_[0]) << std::endl;
-			if(short_session_id_) {
+			old_rtty_ = (inBuf_[0] != 0x03);		//	rtty_proto_ver for full session ID inclusion
+			if(old_rtty_) {
 				session_length_ = 1;
 			} else {
 				inBuf_.drain(1); //	remove protocol if used.
@@ -345,7 +346,7 @@ namespace OpenWifi {
 			token_ = ReadString();
 
 			std::cout << "do_msgTypeRegister - token: " << token_ << std::endl;
-			std::cout << "do_msgTypeRegister - id: " << id_ << std::endl;
+			std::cout << "do_msgTypeRegister -    id: " << id_ << std::endl;
 
 			poco_information(Logger(),
 							 fmt::format("{}: Description:{} Device registration", id_, desc_));
@@ -375,7 +376,7 @@ namespace OpenWifi {
 		nlohmann::json doc;
 		char Error;
 		std::cout << "do_msgTypeLogin: " << msg_len << std::endl;
-		if(short_session_id_) {
+		if(old_rtty_) {
 			inBuf_.read(&Error, 1);
 			inBuf_.read(&session_id_[0], session_length_);
 		} else {
@@ -384,7 +385,7 @@ namespace OpenWifi {
 			inBuf_.read(&Error, 1);
 			std::cout << "Received session: " << session << "  error:" << (int) Error << std::endl;
 		}
-		if(short_session_id_)
+		if(old_rtty_)
 			std::cout << "Session: " << (int) session_id_[0] << std::endl;
 		else
 			std::cout << "Session: " << session_id_ << std::endl;
@@ -397,7 +398,7 @@ namespace OpenWifi {
 
 	bool RTTYS_Device_ConnectionHandler::do_msgTypeLogout([[maybe_unused]] std::size_t msg_len) {
 		char session[RTTY_SESSION_ID_LENGTH];
-		if(short_session_id_) {
+		if(old_rtty_) {
 			inBuf_.read(&session[0],1);
 		} else {
 			inBuf_.read(&session[0],RTTY_SESSION_ID_LENGTH);
@@ -423,7 +424,7 @@ namespace OpenWifi {
 			}
 		} else {
 			std::cout << "MSGLEN-1: " << msg_len << std::endl;
-			if(short_session_id_) {
+			if(old_rtty_) {
 				inBuf_.drain(1);
 				msg_len -= 1;
 			} else {
@@ -461,7 +462,7 @@ namespace OpenWifi {
 	bool RTTYS_Device_ConnectionHandler::do_msgTypeHeartbeat([[maybe_unused]] std::size_t msg_len) {
 		u_char MsgBuf[19]{0};
 		std::cout << "do_msgTypeHeartbeat: " << msg_len << std::endl;
-		if(short_session_id_) {
+		if(old_rtty_) {
 			MsgBuf[0] = msgTypeHeartbeat;
 			MsgBuf[1] = 0;
 			MsgBuf[2] = 3;
