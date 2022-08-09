@@ -194,7 +194,7 @@ namespace OpenWifi {
 	}
 
 	bool RTTYS_Device_ConnectionHandler::SendToClient(const std::string &S) {
-		return SendToClient((const u_char *)S.c_str(),S.length());
+		return RTTYS_server()->SendToClient(Id_,S);
 	}
 
 	bool RTTYS_Device_ConnectionHandler::KeyStrokes(const u_char *buf, size_t len) {
