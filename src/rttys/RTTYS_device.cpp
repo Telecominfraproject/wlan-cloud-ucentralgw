@@ -189,7 +189,7 @@ namespace OpenWifi {
 			bb[0] = 0;
 			memcpy(&bb[1],Buf,Len);
 		}
-		return RTTYS_server()->SendToClient(Id_, bb, Len + 1 );
+		return RTTYS_server()->SendToClient(Id_, Buf, Len );
 	}
 
 	bool RTTYS_Device_ConnectionHandler::SendToClient(const std::string &S) {
