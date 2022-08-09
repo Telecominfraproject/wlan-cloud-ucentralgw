@@ -201,7 +201,6 @@ namespace OpenWifi {
 		if(!valid_)
 			return false;
 
-		std::cout << "[0]=" << (int) buf[0] << " [1]=" << (int) buf[1] << std::endl;
 		uint session_length = (short_session_id_ ? 1 : SESSION_ID_LENGTH) ;
 		std::cout << "Sending: " << len << " keys. SL=" << session_length << std::endl;
 
@@ -209,19 +208,16 @@ namespace OpenWifi {
 			small_buf_[0] = msgTypeTermData;
 			small_buf_[1] = ((len-1+session_length) & 0xff00) >> 8;
 			small_buf_[2] = ((len-1+session_length) & 0x00ff);
-			std::cout << __LINE__ << std::endl;
 			if(short_session_id_) {
-				std::cout << __LINE__ << std::endl;
 				small_buf_[3] = session_id_[0];
 				memcpy(&small_buf_[3+session_length], &buf[1], len-1);
 			} else {
-				std::cout << __LINE__ << std::endl;
 				memcpy(&small_buf_[3],session_id_,SESSION_ID_LENGTH);
 				memcpy(&small_buf_[3+SESSION_ID_LENGTH], &buf[1], len-1);
 			}
 			try {
 				auto Sent = socket_.sendBytes(small_buf_, 3 + session_length + len - 1);
-				std::cout << "Sent: " << Sent << std::endl;
+				std::cout << "KeyStrokes: Sent (smallbuf): " << Sent << std::endl;
 				return true;
 			} catch (...) {
 				return false;
@@ -232,19 +228,16 @@ namespace OpenWifi {
 			Msg.get()[1] = ((len+session_length) & 0xff00) >> 8;
 			Msg.get()[2] = ((len+session_length) & 0x00ff);
 			if(short_session_id_) {
-				std::cout << __LINE__ << std::endl;
 				Msg.get()[3] = session_id_[0];
 				memcpy((void *)(Msg.get() + 3 + session_length), buf, len-1);
 			} else {
-				std::cout << __LINE__ << std::endl;
 				session_length = SESSION_ID_LENGTH;
 				std::strncpy((char*)(Msg.get()+3),session_id_,SESSION_ID_LENGTH);
 				memcpy((Msg.get()+3+session_length), buf, len-1);
 			}
 			try {
-				std::cout << __LINE__ << std::endl;
 				auto Sent = socket_.sendBytes(Msg.get(), 3 + session_length + len - 1);
-				std::cout << "Sent: " << Sent << std::endl;
+				std::cout << "KeyStrokes: Sent (big buf): " << Sent << std::endl;
 				return true;
 			} catch (...) {
 				return false;
@@ -296,7 +289,7 @@ namespace OpenWifi {
 			outBuf[2] = SESSION_ID_LENGTH;
 			//	create the session ID
 			std::strncpy(session_id_,MicroService::instance().Hash().substr(0,SESSION_ID_LENGTH).c_str(),SESSION_ID_LENGTH);
-			memcpy(&outBuf[3],&session_id_[0],SESSION_ID_LENGTH);
+			memcpy(&outBuf[3],session_id_,SESSION_ID_LENGTH);
 		}
 		try {
 			auto Sent = socket_.sendBytes( outBuf, 3 + (short_session_id_ ? 0 : SESSION_ID_LENGTH));
