@@ -120,33 +120,43 @@ namespace OpenWifi {
 
 				switch (last_command_) {
 					case msgTypeRegister: {
+						std::cout << __func__ << ":" << __LINE__ << std::endl;
 						good = do_msgTypeRegister(msg_len);
 					} break;
 					case msgTypeLogin: {
+						std::cout << __func__ << ":" << __LINE__ << std::endl;
 						good = do_msgTypeLogin(msg_len);
 					} break;
 					case msgTypeLogout: {
+						std::cout << __func__ << ":" << __LINE__ << std::endl;
 						good = do_msgTypeLogout(msg_len);
 					} break;
 					case msgTypeTermData: {
+						std::cout << __func__ << ":" << __LINE__ << std::endl;
 						good = do_msgTypeTermData(msg_len);
 					} break;
 					case msgTypeWinsize: {
+						std::cout << __func__ << ":" << __LINE__ << std::endl;
 						good = do_msgTypeWinsize(msg_len);
 					} break;
 					case msgTypeCmd: {
+						std::cout << __func__ << ":" << __LINE__ << std::endl;
 						good = do_msgTypeCmd(msg_len);
 					} break;
 					case msgTypeHeartbeat: {
+						std::cout << __func__ << ":" << __LINE__ << std::endl;
 						good = do_msgTypeHeartbeat(msg_len);
 					} break;
 					case msgTypeFile: {
+						std::cout << __func__ << ":" << __LINE__ << std::endl;
 						good = do_msgTypeFile(msg_len);
 					} break;
 					case msgTypeHttp: {
+						std::cout << __func__ << ":" << __LINE__ << std::endl;
 						good = do_msgTypeHttp(msg_len);
 					} break;
 					case msgTypeAck: {
+						std::cout << __func__ << ":" << __LINE__ << std::endl;
 						good = do_msgTypeAck(msg_len);
 					} break;
 					case msgTypeMax: {
@@ -268,6 +278,7 @@ namespace OpenWifi {
 		} else {
 			outBuf[2] = RTTY_SESSION_ID_LENGTH;
 			std::strncpy(session_id_,Utils::ComputeHash(id_,token_).substr(0,RTTY_SESSION_ID_LENGTH).c_str(),RTTY_SESSION_ID_LENGTH);
+			std::cout << "Created session: " << session_id_ << std::endl;
 			memcpy(&outBuf[RTTY_HDR_SIZE],session_id_,RTTY_SESSION_ID_LENGTH);
 		}
 		try {
