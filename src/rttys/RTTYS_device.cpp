@@ -259,7 +259,7 @@ namespace OpenWifi {
 		outBuf[RTTY_HDR_SIZE+2+session_length_] = rows >> 8;
 		outBuf[RTTY_HDR_SIZE+3+session_length_] = rows & 0x00ff;
 		try {
-			auto Sent = socket_.sendBytes(outBuf, 7 + session_length_ );
+			auto Sent = socket_.sendBytes(outBuf, RTTY_HDR_SIZE + 4 + session_length_ );
 			std::cout << "Send WindowSize: " << Sent << std::endl;
 			return true;
 		} catch (...) {
@@ -460,15 +460,15 @@ namespace OpenWifi {
 	}
 
 	bool RTTYS_Device_ConnectionHandler::do_msgTypeHeartbeat([[maybe_unused]] std::size_t msg_len) {
-		u_char MsgBuf[19]{0};
+		u_char MsgBuf[RTTY_HDR_SIZE + 16]{0};
 		std::cout << "do_msgTypeHeartbeat: " << msg_len << std::endl;
 		if(old_rtty_) {
 			MsgBuf[0] = msgTypeHeartbeat;
 			MsgBuf[1] = 0;
-			MsgBuf[2] = 3;
-			auto Sent = socket_.sendBytes(MsgBuf, 3);
+			MsgBuf[2] = 0;
+			auto Sent = socket_.sendBytes(MsgBuf, RTTY_HDR_SIZE);
 			std::cout << "Sent:" << Sent << " l:" << std::endl;
-			return Sent == 3;
+			return Sent == RTTY_HDR_SIZE;
 		} else {
 			inBuf_.drain(msg_len);
 			MsgBuf[0] = msgTypeHeartbeat;
@@ -479,9 +479,9 @@ namespace OpenWifi {
 			MsgBuf[4] = (t & 0x00ff0000) >> 16;
 			MsgBuf[5] = (t & 0x0000ff00) >> 8;
 			MsgBuf[6] = (t & 0x000000ff);
-			auto Sent = socket_.sendBytes(MsgBuf, 16 + 3);
-			std::cout << "Sent:" << Sent << " l:" << 19 << std::endl;
-			return Sent == 19;
+			auto Sent = socket_.sendBytes(MsgBuf, RTTY_HDR_SIZE + 16 );
+			std::cout << "Sent:" << Sent << std::endl;
+			return Sent == (RTTY_HDR_SIZE + 16);
 		}
 	}
 
