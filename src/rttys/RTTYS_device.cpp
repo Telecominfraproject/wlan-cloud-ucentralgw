@@ -193,9 +193,7 @@ namespace OpenWifi {
 			return false;
 
 		std::cout << "[0]=" << (int) buf[0] << " [1]=" << (int) buf[1] << std::endl;
-
-		uint session_length = (short_session_id_ ? 0 : SESSION_ID_LENGTH) ;
-
+		uint session_length = (short_session_id_ ? 1 : SESSION_ID_LENGTH) ;
 		std::cout << "Sending: " << len << " keys. SL=" << session_length << std::endl;
 
 		if(len<=(sizeof(small_buf_)-3-session_length)) {
@@ -205,14 +203,15 @@ namespace OpenWifi {
 			std::cout << __LINE__ << std::endl;
 			if(short_session_id_) {
 				std::cout << __LINE__ << std::endl;
-				memcpy(&small_buf_[3], buf, len);
+				small_buf_[3] = session_id_[0];
+				memcpy(&small_buf_[3+session_length], &buf[1], len-1);
 			} else {
 				std::cout << __LINE__ << std::endl;
-				std::strncpy((char*)&small_buf_[3],session_id_,SESSION_ID_LENGTH);
-				memcpy(&small_buf_[3+SESSION_ID_LENGTH], buf, len);
+				memcpy(&small_buf_[3],session_id_,SESSION_ID_LENGTH);
+				memcpy(&small_buf_[3+SESSION_ID_LENGTH], &buf[1], len-1);
 			}
 			try {
-				auto Sent = socket_.sendBytes(small_buf_,len+3+session_length);
+				auto Sent = socket_.sendBytes(small_buf_,len-1+3+session_length);
 				std::cout << "Sent: " << Sent << std::endl;
 				return true;
 			} catch (...) {
