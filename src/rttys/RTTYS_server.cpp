@@ -247,7 +247,14 @@ namespace OpenWifi {
 
 		try {
 			std::cout << __LINE__ << std::endl;
-			return It->second->KeyStrokes(buffer, len);
+			if(It->second!= nullptr) {
+				std::cout << __LINE__ << std::endl;
+				return It->second->KeyStrokes(buffer, len);
+			}
+			else {
+				std::cout << __LINE__ << std::endl;
+				return true;
+			}
 		} catch(const Poco::Exception &E) {
 			std::cout << "2-RTTYS_server::SendKeyStrokes Could not find session ID: " << Id << std::endl;
 			Logger().log(E);
