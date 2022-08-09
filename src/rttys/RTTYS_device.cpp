@@ -298,7 +298,7 @@ namespace OpenWifi {
 			memcpy(&outBuf[3],&session_id_[0],SESSION_ID_LENGTH);
 		}
 		try {
-			auto Sent = socket_.sendBytes( outBuf, 3 + (short_session_id_ ? 0 : SESSION_ID_LENGTH)) );
+			auto Sent = socket_.sendBytes( outBuf, 3 + (short_session_id_ ? 0 : SESSION_ID_LENGTH));
 			std::cout << "Send Login: " << Sent << std::endl;
 		} catch (const Poco::IOException &E) {
 			return false;
