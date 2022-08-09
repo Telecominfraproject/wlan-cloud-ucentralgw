@@ -181,16 +181,15 @@ namespace OpenWifi {
 	}
 
 	bool RTTYS_Device_ConnectionHandler::SendToClient(const u_char *Buf, int Len) {
-		char bb[64000];
+		u_char bb[64000];
 		if(short_session_id_) {
 			bb[0] = session_id_[0];
 			memcpy(&bb[1],Buf,Len);
 		} else {
-			bb[0] = session_id_[0];
-			memcpy(bb,session_id_,SESSION_ID_LENGTH);
-			memcpy(&bb[SESSION_ID_LENGTH],Buf,Len);
+			bb[0] = 0;
+			memcpy(&bb[1],Buf,Len);
 		}
-		return RTTYS_server()->SendToClient(Id_, (const u_char *) &bb[0], Len + (short_session_id_ ? 1 : SESSION_ID_LENGTH));
+		return RTTYS_server()->SendToClient(Id_, bb, Len + 1 );
 	}
 
 	bool RTTYS_Device_ConnectionHandler::SendToClient(const std::string &S) {
@@ -296,10 +295,10 @@ namespace OpenWifi {
 			outBuf[2] = SESSION_ID_LENGTH;
 			//	create the session ID
 			std::strncpy(session_id_,MicroService::instance().Hash().substr(0,SESSION_ID_LENGTH).c_str(),SESSION_ID_LENGTH);
-			std::strncpy((char*)&outBuf[3],(char*)&session_id_[0],SESSION_ID_LENGTH);
+			memcpy(&outBuf[3],&session_id_[0],SESSION_ID_LENGTH);
 		}
 		try {
-			auto Sent = socket_.sendBytes( outBuf, short_session_id_ ? 3 : (3 + SESSION_ID_LENGTH) );
+			auto Sent = socket_.sendBytes( outBuf, 3 + (short_session_id_ ? 0 : SESSION_ID_LENGTH)) );
 			std::cout << "Send Login: " << Sent << std::endl;
 		} catch (const Poco::IOException &E) {
 			return false;
