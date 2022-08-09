@@ -387,9 +387,10 @@ namespace OpenWifi {
 			inBuf_.read(&Error, 1);
 			inBuf_.read(&session_id_[0], 1);
 		} else {
-			char session[SESSION_ID_LENGTH];
+			char session[SESSION_ID_LENGTH+1]{0};
 			inBuf_.read(&session[0], SESSION_ID_LENGTH);
 			inBuf_.read(&Error, 1);
+			std::cout << "Received session: " << session << "  error:" << (int) Error << std::endl;
 		}
 		if(short_session_id_)
 			std::cout << "Session: " << (int) session_id_[0] << std::endl;
