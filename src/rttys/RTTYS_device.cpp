@@ -356,7 +356,8 @@ namespace OpenWifi {
 			desc_ = ReadString();
 			token_ = ReadString();
 
-			std::cout << "do_msgTypeRegister: " << token_ << std::endl;
+			std::cout << "do_msgTypeRegister - token: " << token_ << std::endl;
+			std::cout << "do_msgTypeRegister - id: " << Id_ << std::endl;
 
 			poco_information(Logger(),
 							 fmt::format("{}: Description:{} Device registration", Id_, desc_));
