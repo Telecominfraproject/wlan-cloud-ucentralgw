@@ -240,14 +240,17 @@ namespace OpenWifi {
 
 		auto It=EndPoints_.find(Id);
 		if(It==EndPoints_.end()) {
+			std::cout << "1-RTTYS_server::SendKeyStrokes Could not find session ID: " << Id << std::endl;
 			return false;
 		}
 
 		try {
 			return It->second->KeyStrokes(buffer, len);
 		} catch(const Poco::Exception &E) {
+			std::cout << "2-RTTYS_server::SendKeyStrokes Could not find session ID: " << Id << std::endl;
 			Logger().log(E);
 		} catch (...) {
+			std::cout << "3-RTTYS_server::SendKeyStrokes Could not find session ID: " << Id << std::endl;
 		}
 		return false;
 	}

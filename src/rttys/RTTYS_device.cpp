@@ -260,7 +260,7 @@ namespace OpenWifi {
 		if(!valid_)
 			return false;
 
-		u_char outBuf[3+RTTY_SESSION_ID_LENGTH]{0};
+		u_char outBuf[RTTY_HDR_SIZE+RTTY_SESSION_ID_LENGTH]{0};
 		outBuf[0] = msgTypeLogin;
 		outBuf[1] = 0;
 		if(short_session_id_) {
