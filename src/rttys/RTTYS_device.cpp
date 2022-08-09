@@ -181,7 +181,7 @@ namespace OpenWifi {
 	}
 
 	bool RTTYS_Device_ConnectionHandler::SendToClient(const u_char *Buf, int Len) {
-		u_char bb[64000];
+		u_char bb[64000]{0};
 		if(short_session_id_) {
 			bb[0] = session_id_[0];
 			memcpy(&bb[1],Buf,Len);
@@ -189,6 +189,7 @@ namespace OpenWifi {
 			bb[0] = 0;
 			memcpy(&bb[1],Buf,Len);
 		}
+		std::cout << ">>>" << bb << std::endl;
 		return RTTYS_server()->SendToClient(Id_, Buf, Len );
 	}
 
@@ -388,6 +389,7 @@ namespace OpenWifi {
 		poco_information(Logger(),fmt::format("{}: Asking for login", Id_));
 		nlohmann::json doc;
 		char Error;
+		std::cout << "do_msgTypeLogin: " << msg_len << std::endl;
 		if(short_session_id_) {
 			inBuf_.read(&Error, 1);
 			inBuf_.read(&session_id_[0], 1);
@@ -420,6 +422,7 @@ namespace OpenWifi {
 
 	bool RTTYS_Device_ConnectionHandler::do_msgTypeTermData(std::size_t msg_len) {
 		bool good;
+		std::cout << "do_msgTypeTermData: " << msg_len << std::endl;
 		if(waiting_for_bytes_>0) {
 			if(inBuf_.used()<waiting_for_bytes_) {
 				waiting_for_bytes_ = waiting_for_bytes_ - inBuf_.used();
@@ -471,6 +474,7 @@ namespace OpenWifi {
 
 	bool RTTYS_Device_ConnectionHandler::do_msgTypeHeartbeat([[maybe_unused]] std::size_t msg_len) {
 		u_char MsgBuf[19]{0};
+		std::cout << "do_msgTypeHeartbeat: " << msg_len << std::endl;
 		if(short_session_id_) {
 			MsgBuf[0] = msgTypeHeartbeat;
 			MsgBuf[1] = 0;
