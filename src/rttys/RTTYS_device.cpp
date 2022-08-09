@@ -198,6 +198,7 @@ namespace OpenWifi {
 	}
 
 	bool RTTYS_Device_ConnectionHandler::KeyStrokes(const u_char *buf, size_t len) {
+		std::cout << "Trying to send keystrokes." << std::endl;
 		if(!valid_)
 			return false;
 
@@ -354,6 +355,8 @@ namespace OpenWifi {
 			Id_ = ReadString();
 			desc_ = ReadString();
 			token_ = ReadString();
+
+			std::cout << "do_msgTypeRegister: " << token_ << std::endl;
 
 			poco_information(Logger(),
 							 fmt::format("{}: Description:{} Device registration", Id_, desc_));
