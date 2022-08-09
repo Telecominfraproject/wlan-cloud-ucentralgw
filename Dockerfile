@@ -1,3 +1,8 @@
+ARG POCO_VERSION=poco-tip-v1
+ARG FMTLIB_VERSION=9.0.0
+ARG CPPKAFKA_VERSION=tip-v1
+ARG JSON_VALIDATOR_VERSION=2.1.0
+
 FROM alpine:3.15 AS build-base
 
 RUN apk add --update --no-cache \
@@ -8,8 +13,10 @@ RUN apk add --update --no-cache \
 
 FROM build-base AS poco-build
 
-ADD https://api.github.com/repos/AriliaWireless/poco/git/refs/tags/poco-tip-v1 version.json
-RUN git clone https://github.com/AriliaWireless/poco --branch poco-tip-v1 /poco
+ARG POCO_VERSION
+
+ADD https://api.github.com/repos/AriliaWireless/poco/git/refs/tags/${POCO_VERSION} version.json
+RUN git clone https://github.com/AriliaWireless/poco --branch ${POCO_VERSION} /poco
 
 WORKDIR /poco
 RUN mkdir cmake-build
@@ -20,8 +27,10 @@ RUN cmake --build . --target install
 
 FROM build-base AS fmtlib-build
 
-ADD https://api.github.com/repos/fmtlib/fmt/git/refs/tags/9.0.0 version.json
-RUN git clone https://github.com/fmtlib/fmt --branch 9.0.0 /fmtlib
+ARG FMTLIB_VERSION
+
+ADD https://api.github.com/repos/fmtlib/fmt/git/refs/tags/${FMTLIB_VERSION} version.json
+RUN git clone https://github.com/fmtlib/fmt --branch ${FMTLIB_VERSION} /fmtlib
 
 WORKDIR /fmtlib
 RUN mkdir cmake-build
@@ -32,8 +41,10 @@ RUN make install
 
 FROM build-base AS cppkafka-build
 
-ADD https://api.github.com/repos/AriliaWireless/cppkafka/git/refs/tags/tip-v1 version.json
-RUN git clone https://github.com/AriliaWireless/cppkafka --branch tip-v1 /cppkafka
+ARG CPPKAFKA_VERSION
+
+ADD https://api.github.com/repos/AriliaWireless/cppkafka/git/refs/tags/${CPPKAFKA_VERSION} version.json
+RUN git clone https://github.com/AriliaWireless/cppkafka --branch ${CPPKAFKA_VERSION} /cppkafka
 
 WORKDIR /cppkafka
 RUN mkdir cmake-build
@@ -44,8 +55,10 @@ RUN cmake --build . --target install
 
 FROM build-base AS json-schema-validator-build
 
-ADD https://api.github.com/repos/pboettch/json-schema-validator/git/refs/tags/2.1.0 version.json
-RUN git clone https://github.com/pboettch/json-schema-validator --branch 2.1.0 /json-schema-validator
+ARG JSON_VALIDATOR_VERSION
+
+ADD https://api.github.com/repos/pboettch/json-schema-validator/git/refs/tags/${JSON_VALIDATOR_VERSION} version.json
+RUN git clone https://github.com/pboettch/json-schema-validator --branch ${JSON_VALIDATOR_VERSION} /json-schema-validator
 
 WORKDIR /json-schema-validator
 RUN mkdir cmake-build
