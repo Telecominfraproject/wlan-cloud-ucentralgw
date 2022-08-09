@@ -249,7 +249,9 @@ namespace OpenWifi {
 			std::cout << __LINE__ << std::endl;
 			if(It->second.get() != nullptr) {
 				std::cout << __func__ << ":" << __LINE__ << std::endl;
-				return It->second->KeyStrokes(buffer, len);
+				auto res = It->second->KeyStrokes(buffer, len);
+				std::cout << __func__ << ":" << __LINE__ << "   R:"  << res << std::endl;
+				return res;
 			}
 			else {
 				std::cout << __func__ << ":" << __LINE__ << std::endl;
