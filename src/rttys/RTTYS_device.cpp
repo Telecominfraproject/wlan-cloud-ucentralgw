@@ -469,6 +469,7 @@ namespace OpenWifi {
 			std::cout << "Sent:" << Sent << " l:" << std::endl;
 			return Sent == 3;
 		} else {
+			inBuf_.drain(msg_len);
 			MsgBuf[0] = msgTypeHeartbeat;
 			MsgBuf[1] = 0;
 			MsgBuf[2] = 16;
