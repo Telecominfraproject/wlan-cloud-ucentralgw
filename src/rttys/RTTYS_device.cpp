@@ -277,7 +277,7 @@ namespace OpenWifi {
 			outBuf[2] = 0;
 		} else {
 			outBuf[2] = RTTY_SESSION_ID_LENGTH;
-			std::strncpy(session_id_,Utils::ComputeHash(id_,token_).substr(0,RTTY_SESSION_ID_LENGTH).c_str(),RTTY_SESSION_ID_LENGTH);
+			std::strncpy(session_id_,Utils::ComputeHash(id_,token_).substr(0,RTTY_SESSION_ID_LENGTH/2).c_str(),RTTY_SESSION_ID_LENGTH);
 			std::cout << "Created session: " << session_id_ << std::endl;
 			memcpy(&outBuf[RTTY_HDR_SIZE],session_id_,RTTY_SESSION_ID_LENGTH);
 		}
