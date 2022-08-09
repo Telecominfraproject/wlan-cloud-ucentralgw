@@ -181,11 +181,20 @@ namespace OpenWifi {
 	}
 
 	bool RTTYS_Device_ConnectionHandler::SendToClient(const u_char *Buf, int Len) {
-		return RTTYS_server()->SendToClient(Id_, Buf, Len);
+		char bb[64000];
+		if(short_session_id_) {
+			bb[0] = session_id_[0];
+			memcpy(&bb[1],Buf,Len);
+		} else {
+			bb[0] = session_id_[0];
+			memcpy(bb,session_id_,SESSION_ID_LENGTH);
+			memcpy(&bb[SESSION_ID_LENGTH],Buf,Len);
+		}
+		return RTTYS_server()->SendToClient(Id_, (const u_char *) &bb[0], Len + (short_session_id_ ? 1 : SESSION_ID_LENGTH));
 	}
 
 	bool RTTYS_Device_ConnectionHandler::SendToClient(const std::string &S) {
-		return RTTYS_server()->SendToClient(Id_, S);
+		return SendToClient((const u_char *)S.c_str(),S.length());
 	}
 
 	bool RTTYS_Device_ConnectionHandler::KeyStrokes(const u_char *buf, size_t len) {
@@ -198,8 +207,8 @@ namespace OpenWifi {
 
 		if(len<=(sizeof(small_buf_)-3-session_length)) {
 			small_buf_[0] = msgTypeTermData;
-			small_buf_[1] = ((len+session_length) & 0xff00) >> 8;
-			small_buf_[2] = ((len+session_length) & 0x00ff);
+			small_buf_[1] = ((len-1+session_length) & 0xff00) >> 8;
+			small_buf_[2] = ((len-1+session_length) & 0x00ff);
 			std::cout << __LINE__ << std::endl;
 			if(short_session_id_) {
 				std::cout << __LINE__ << std::endl;
@@ -211,7 +220,7 @@ namespace OpenWifi {
 				memcpy(&small_buf_[3+SESSION_ID_LENGTH], &buf[1], len-1);
 			}
 			try {
-				auto Sent = socket_.sendBytes(small_buf_,len-1+3+session_length);
+				auto Sent = socket_.sendBytes(small_buf_, 3 + session_length + len - 1);
 				std::cout << "Sent: " << Sent << std::endl;
 				return true;
 			} catch (...) {
@@ -224,16 +233,17 @@ namespace OpenWifi {
 			Msg.get()[2] = ((len+session_length) & 0x00ff);
 			if(short_session_id_) {
 				std::cout << __LINE__ << std::endl;
-				memcpy((void *)(Msg.get() + 3), buf, len);
+				Msg.get()[3] = session_id_[0];
+				memcpy((void *)(Msg.get() + 3 + session_length), buf, len-1);
 			} else {
 				std::cout << __LINE__ << std::endl;
 				session_length = SESSION_ID_LENGTH;
 				std::strncpy((char*)(Msg.get()+3),session_id_,SESSION_ID_LENGTH);
-				memcpy((Msg.get()+3+session_length), buf, len);
+				memcpy((Msg.get()+3+session_length), buf, len-1);
 			}
 			try {
 				std::cout << __LINE__ << std::endl;
-				auto Sent = socket_.sendBytes(Msg.get(), len + 3 + session_length);
+				auto Sent = socket_.sendBytes(Msg.get(), 3 + session_length + len - 1);
 				std::cout << "Sent: " << Sent << std::endl;
 				return true;
 			} catch (...) {
