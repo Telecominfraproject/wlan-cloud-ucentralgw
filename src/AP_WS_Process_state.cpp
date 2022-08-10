@@ -33,8 +33,8 @@ namespace OpenWifi {
 
 			uint64_t UpgradedUUID;
 			LookForUpgrade(UUID,UpgradedUUID);
-			Conn_->Conn_.UUID = UpgradedUUID;
-			Conn_->LastStats = StateStr;
+			Session_->State_.UUID = UpgradedUUID;
+			Session_->LastStats = StateStr;
 
 			GWObjects::Statistics Stats{
 				.SerialNumber = SerialNumber_, .UUID = UUID, .Data = StateStr};
@@ -44,8 +44,8 @@ namespace OpenWifi {
 				StorageService()->SetCommandResult(request_uuid, StateStr);
 			}
 
-			StateUtils::ComputeAssociations(StateObj, Conn_->Conn_.Associations_2G,
-											Conn_->Conn_.Associations_5G);
+			StateUtils::ComputeAssociations(StateObj, Session_->State_.Associations_2G,
+											Session_->State_.Associations_5G);
 
 			if (KafkaManager()->Enabled()) {
 				Poco::JSON::Stringifier Stringify;

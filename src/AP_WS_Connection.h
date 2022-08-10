@@ -83,7 +83,7 @@ namespace OpenWifi {
 		std::string                         SerialNumber_;
 		uint64_t 							SerialNumberInt_=0;
 		std::string 						Compatible_;
-		std::shared_ptr<DeviceRegistry::ConnectionEntry> 	Conn_;
+		std::shared_ptr<DeviceRegistry::RegistryConnectionEntry> 	Session_;
 		std::atomic_bool                    Registered_ = false ;
 		std::string 						CId_;
 		std::string							CN_;

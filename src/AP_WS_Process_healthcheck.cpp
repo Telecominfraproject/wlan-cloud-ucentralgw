@@ -37,7 +37,7 @@ void AP_WS_Connection::Process_healthcheck(Poco::JSON::Object::Ptr ParamsObj, co
 
 		uint64_t UpgradedUUID;
 		LookForUpgrade(UUID,UpgradedUUID);
-		Conn_->Conn_.UUID = UpgradedUUID;
+		Session_->State_.UUID = UpgradedUUID;
 
 		GWObjects::HealthCheck Check;
 
