@@ -135,8 +135,6 @@ namespace OpenWifi {
 						inBuf_.drain(RTTY_HDR_SIZE);
 					} else {
 						good = false;
-						if (!good)
-							std::cout << "do_msgTypeTermData:5     " << inBuf_.used() << std::endl;
 						continue;
 					}
 				}
@@ -347,9 +345,6 @@ namespace OpenWifi {
 			id_ = ReadString();
 			desc_ = ReadString();
 			token_ = ReadString();
-
-			std::cout << "do_msgTypeRegister - token: " << token_ << std::endl;
-			std::cout << "do_msgTypeRegister -    id: " << id_ << std::endl;
 
 			poco_information(Logger(),
 							 fmt::format("{}: Description:{} Device registration", id_, desc_));
