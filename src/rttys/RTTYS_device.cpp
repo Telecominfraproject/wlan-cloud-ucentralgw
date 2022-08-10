@@ -14,9 +14,10 @@ void dump(const u_char *b, uint s) {
 	int l=0;
 	std::cout << std::endl;
 	while(s) {
-		std::cout << (hex[(*b & 0xf0) >> 4]);
-		std::cout << (hex[(*b & 0x0f)]);
-		std::cout << " ";
+		std::string SS;
+		SS += (hex[(*b & 0xf0) >> 4]);
+		SS += (hex[(*b & 0x0f)]);
+		std::cout << SS << " ";
 		l++;
 		if((l & 16) == 0)
 			std::cout << std::endl;
@@ -27,7 +28,7 @@ void dump(const u_char *b, uint s) {
 }
 
 
-#define SOCKET_DEBUG(X,Y,Z)	{ std::cout << __func__ << ":" << __LINE__ << std::endl; Z=socket_.sendBytes(X,Y); dump(X,Y); }
+#define SOCKET_DEBUG(X,Y,Z)	{ std::cout << __func__ << ":" << __LINE__ << std::endl; (Z)=socket_.sendBytes(X,Y); dump(X,Y); }
 
 namespace OpenWifi {
 
