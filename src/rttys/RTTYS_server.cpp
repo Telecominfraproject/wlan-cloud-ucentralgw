@@ -88,6 +88,13 @@ namespace OpenWifi {
 	void RTTYS_server::Stop() {
 		if(Internal_) {
 
+			ClientReactor_.stop();
+			ClientReactorThread_.join();
+
+			DeviceReactor_.stop();
+			DeviceAcceptor_->unregisterAcceptor();
+			DeviceReactorThread_.join();
+
 			NotificationManagerRunning_=false;
 			ResponseQueue_.wakeUpAll();
 			NotificationManager_.wakeUp();
@@ -98,13 +105,6 @@ namespace OpenWifi {
 			WebServer_->stopAll();
 			WebServer_->stop();
 
-			DeviceAcceptor_->unregisterAcceptor();
-
-			DeviceReactor_.stop();
-			DeviceReactorThread_.join();
-
-			ClientReactor_.stop();
-			ClientReactorThread_.join();
 		}
 	}
 
@@ -244,7 +244,13 @@ namespace OpenWifi {
 		}
 
 		try {
-			return It->second->KeyStrokes(buffer, len);
+			if(It->second.get() != nullptr) {
+				auto res = It->second->KeyStrokes(buffer, len);
+				return res;
+			}
+			else {
+				return true;
+			}
 		} catch(const Poco::Exception &E) {
 			Logger().log(E);
 		} catch (...) {
