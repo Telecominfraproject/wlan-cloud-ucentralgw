@@ -101,20 +101,15 @@ namespace OpenWifi {
 					}
 				} break;
 				case Poco::Net::WebSocket::FRAME_OP_BINARY: {
-					std::cout << __LINE__ << std::endl;
 					if (n == 0) {
-						std::cout << __LINE__ << std::endl;
 						Logger_.information("Frame binary size shutdown.");
 						MustDisconnect = true;
 					} else {
-						std::cout << __LINE__ << std::endl;
 						poco_trace(Logger_, fmt::format("Sending {} key strokes to device.", n));
 						if (!RTTYS_server()->SendKeyStrokes(
 								Id_, (const unsigned char *)IncomingFrame.begin(),
 								IncomingFrame.size())) {
-							std::cout << __LINE__ << std::endl;
 							Logger_.information("Sendkeystrokes shutdown.");
-							std::cout << __LINE__ << std::endl;
 							MustDisconnect = true;
 						}
 					}
