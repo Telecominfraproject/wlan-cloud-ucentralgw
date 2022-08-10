@@ -92,11 +92,7 @@ namespace OpenWifi {
 
 	void TelemetryClient::SendTelemetryShutdown() {
 		Logger().information(fmt::format("TELEMETRY-SHUTDOWN({}): Closing.",CId_));
-		auto Device = DeviceRegistry()->GetDeviceConnection(SerialNumber_);
-		if(Device) {
-			if(Device->WSConn_)
-				Device->WSConn_->StopWebSocketTelemetry();
-		}
+		DeviceRegistry()->StopWebSocketTelemetry(SerialNumber_);
 		TelemetryStream()->DeRegisterClient(UUID_);
 		delete this;
 	}

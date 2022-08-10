@@ -914,7 +914,7 @@ namespace OpenWifi {
 			// std::cout << "I:" << Interval << "  L:" << Lifetime << std::endl;
 
 			auto DeviceConnection = DeviceRegistry()->GetDeviceConnection(SerialNumber_);
-			if(DeviceConnection->WSConn_== nullptr) {
+			if(!DeviceRegistry()->Connected(SerialNumber_)) {
 				return BadRequest(RESTAPI::Errors::DeviceNotConnected);
 			}
 
@@ -922,19 +922,21 @@ namespace OpenWifi {
 
 			Poco::JSON::Object Answer;
 
+			auto IntSerialNumber = Utils::SerialNumberToInt(SerialNumber_);
+
 			if(!StatusOnly) {
 				if (KafkaOnly) {
 					if (Interval) {
-						DeviceConnection->WSConn_->SetKafkaTelemetryReporting(Interval, Lifetime);
+						DeviceRegistry()->SetKafkaTelemetryReporting(IntSerialNumber, Interval, Lifetime);
 						Answer.set("action", "Kafka telemetry started.");
 						Answer.set("uuid", NewUUID);
 					} else {
-						DeviceConnection->WSConn_->StopKafkaTelemetry();
+						DeviceRegistry()->StopKafkaTelemetry(IntSerialNumber);
 						Answer.set("action", "Kafka telemetry stopped.");
 					}
 				} else {
 					if (Interval) {
-						DeviceConnection->WSConn_->SetWebSocketTelemetryReporting(Interval,
+						DeviceRegistry()->SetWebSocketTelemetryReporting(IntSerialNumber, Interval,
 																				  Lifetime);
 						std::string EndPoint;
 						if (TelemetryStream()->CreateEndpoint(Utils::SerialNumberToInt(SerialNumber_), EndPoint, NewUUID)) {
@@ -947,7 +949,7 @@ namespace OpenWifi {
 						}
 					} else {
 						Answer.set("action", "WebSocket telemetry stopped.");
-						DeviceConnection->WSConn_->StopWebSocketTelemetry();
+						DeviceRegistry()->StopWebSocketTelemetry(IntSerialNumber);
 					}
 				}
 			} else {
@@ -958,7 +960,7 @@ namespace OpenWifi {
 			uint64_t TelemetryWebSocketCount, TelemetryKafkaCount, TelemetryInterval,
 				TelemetryWebSocketTimer, TelemetryKafkaTimer, TelemetryWebSocketPackets,
 				TelemetryKafkaPackets;
-			DeviceConnection->WSConn_->GetTelemetryParameters(TelemetryRunning,
+			DeviceRegistry()->GetTelemetryParameters(IntSerialNumber,TelemetryRunning,
 															  TelemetryInterval,
 															  TelemetryWebSocketTimer,
 															  TelemetryKafkaTimer,
@@ -976,10 +978,6 @@ namespace OpenWifi {
 			TelemetryStatus.set("kafkaPackets", TelemetryKafkaPackets);
 			TelemetryStatus.set("websocketPackets", TelemetryWebSocketPackets);
 			Answer.set("status", TelemetryStatus);
-
-//			std::ostringstream ooss;
-//			Answer.stringify(ooss);
-//			std::cout << "Telemetry status: " << ooss.str() << std::endl;
 
 			return ReturnObject(Answer);
 		}

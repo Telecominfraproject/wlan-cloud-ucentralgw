@@ -8,6 +8,8 @@
 
 #pragma once
 
+#include <shared_mutex>
+
 #include "Poco/JSON/Object.h"
 #include "RESTObjects//RESTAPI_GWobjects.h"
 #include "framework/MicroService.h"
@@ -17,12 +19,12 @@ namespace OpenWifi {
 	class AP_WS_Connection;
     class DeviceRegistry : public SubSystemServer {
     public:
-		struct ConnectionEntry {
-			AP_WS_Connection 				* WSConn_ = nullptr;
-			GWObjects::ConnectionState 	Conn_;
+		struct RegistryConnectionEntry {
+			GWObjects::ConnectionState 	State_;
 			std::string        			LastStats;
 			GWObjects::HealthCheck		LastHealthcheck;
 			uint64_t 					ConnectionId=0;
+			uint64_t 					SerialNumber_=0;
 		};
 
         static auto instance() {
@@ -63,13 +65,6 @@ namespace OpenWifi {
 		}
 		void SetHealthcheck(uint64_t SerialNumber, const GWObjects::HealthCheck &H);
 
-		std::shared_ptr<ConnectionEntry> Register(uint64_t SerialNumber, AP_WS_Connection *Conn, uint64_t & ConnectionId);
-
-		inline void UnRegister(const std::string & SerialNumber, uint64_t ConnectionId) {
-			return UnRegister(Utils::SerialNumberToInt(SerialNumber),ConnectionId);
-		}
-		void UnRegister(uint64_t SerialNumber, uint64_t ConnectionId);
-
 		inline bool Connected(const std::string & SerialNumber) {
 			return Connected(Utils::SerialNumberToInt(SerialNumber));
 		}
@@ -87,15 +82,15 @@ namespace OpenWifi {
 		}
 		void SetPendingUUID(uint64_t SerialNumber, uint64_t PendingUUID);
 
-		[[nodiscard]] inline std::shared_ptr<ConnectionEntry> GetDeviceConnection(const std::string & SerialNumber) {
+		[[nodiscard]] inline std::shared_ptr<RegistryConnectionEntry> GetDeviceConnection(const std::string & SerialNumber) {
 			return GetDeviceConnection(Utils::SerialNumberToInt(SerialNumber));
 		}
 
-		[[nodiscard]] inline std::shared_ptr<ConnectionEntry> GetDeviceConnection(uint64_t SerialNumber) {
+		[[nodiscard]] inline std::shared_ptr<RegistryConnectionEntry> GetDeviceConnection(uint64_t SerialNumber) {
 			std::lock_guard		Guard(Mutex_);
-			auto Device = Devices_.find(SerialNumber);
-			if(Device!=Devices_.end() && Device->second->WSConn_!= nullptr) {
-				return Device->second;
+			auto Device = SerialNumbers_.find(SerialNumber);
+			if(Device!=SerialNumbers_.end()) {
+				return Device->second.first;
 			}
 			return nullptr;
 		}
@@ -104,9 +99,58 @@ namespace OpenWifi {
 		bool SendRadiusAccountingData(const std::string & SerialNumber, const unsigned char * buffer, std::size_t size);
 		bool SendRadiusCoAData(const std::string & SerialNumber, const unsigned char * buffer, std::size_t size);
 
+		[[nodiscard]] inline std::shared_ptr<RegistryConnectionEntry> StartSession( AP_WS_Connection * connection ) {
+			std::unique_lock	G(M_);
+			auto NewSession = std::make_shared<RegistryConnectionEntry>();
+			Sessions_[connection] = NewSession;
+			return NewSession;
+		}
+
+		inline void SetSessionDetails(AP_WS_Connection * connection, uint64_t SerialNumber, uint64_t & ConnectionId ) {
+			std::unique_lock	G(M_);
+			auto Hint = Sessions_.find(connection);
+			if(Hint!=Sessions_.end()) {
+				Hint->second->SerialNumber_ = SerialNumber;
+				ConnectionId = Hint->second->ConnectionId = Id_++;
+				Hint->second->State_.Connected = true;
+				Hint->second->State_.LastContact = OpenWifi::Now();
+				Hint->second->State_.VerifiedCertificate = GWObjects::CertificateValidation::NO_CERTIFICATE;
+				SerialNumbers_[SerialNumber]= std::make_pair(Hint->second,connection);
+			}
+		}
+
+		inline void EndSession(AP_WS_Connection * connection) {
+			std::unique_lock	G(M_);
+
+			auto Session = Sessions_.find(connection);
+			if(Session==Sessions_.end()) {
+				return;
+			}
+
+			if(Session->second->SerialNumber_) {
+				SerialNumbers_.erase(Session->second->SerialNumber_);
+			}
+			Sessions_.erase(Session);
+		}
+
+		void SetWebSocketTelemetryReporting(uint64_t SerialNumber, uint64_t Interval, uint64_t Lifetime);
+		void StopWebSocketTelemetry(uint64_t SerialNumber);
+		void SetKafkaTelemetryReporting(uint64_t SerialNumber, uint64_t Interval, uint64_t Lifetime);
+		void StopKafkaTelemetry(uint64_t SerialNumber);
+		void GetTelemetryParameters(uint64_t SerialNumber , bool & TelemetryRunning,
+									uint64_t & TelemetryInterval,
+									uint64_t & TelemetryWebSocketTimer,
+									uint64_t & TelemetryKafkaTimer,
+									uint64_t & TelemetryWebSocketCount,
+									uint64_t & TelemetryKafkaCount,
+									uint64_t & TelemetryWebSocketPackets,
+									uint64_t & TelemetryKafkaPackets);
+
 	  private:
-		inline static std::atomic_uint64_t 						Id_=1;
-		std::map<uint64_t ,std::shared_ptr<ConnectionEntry>>  	Devices_;
+		std::shared_mutex														M_;
+		inline static std::atomic_uint64_t 										Id_=1;
+		std::map<AP_WS_Connection * ,std::shared_ptr<RegistryConnectionEntry>>  Sessions_;
+		std::map<uint64_t, std::pair<std::shared_ptr<RegistryConnectionEntry>,AP_WS_Connection *>>			SerialNumbers_;
 
 		DeviceRegistry() noexcept:
     		SubSystemServer("DeviceRegistry", "DevStatus", "devicestatus") {

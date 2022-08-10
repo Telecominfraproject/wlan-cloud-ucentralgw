@@ -31,7 +31,7 @@ namespace OpenWifi {
 										   .Severity = Severity,
 										   .Recorded = (uint64_t)time(nullptr),
 										   .LogType = 0,
-										   .UUID = Conn_->Conn_.UUID};
+										   .UUID = Session_->State_.UUID};
 			StorageService()->AddLog(DeviceLog);
 		} else {
 			poco_warning(Logger(), fmt::format("LOG({}): Missing parameters.", CId_));

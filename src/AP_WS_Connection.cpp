@@ -148,6 +148,7 @@ namespace OpenWifi {
 		  Reactor_(AP_WS_Server()->NextReactor())
   	{
 		WS_ = std::make_unique<Poco::Net::WebSocket>(request,response);
+		Session_ = DeviceRegistry()->StartSession(this);
 		CompleteStartup();
 	}
 
@@ -169,8 +170,7 @@ namespace OpenWifi {
 	AP_WS_Connection::~AP_WS_Connection() {
 
 		poco_debug(Logger(),fmt::format("CONNECTION({}): Removing connection for {}.", CId_, SerialNumber_));
-		if (ConnectionId_)
-			DeviceRegistry()->UnRegister(SerialNumberInt_, ConnectionId_);
+		DeviceRegistry()->EndSession(this);
 
 		if (Registered_ && WS_) {
 			Reactor_.removeEventHandler(*WS_,
@@ -202,7 +202,7 @@ namespace OpenWifi {
 			return false;
 
 		uint64_t GoodConfig = ConfigurationCache().CurrentConfig(SerialNumberInt_);
-		if (GoodConfig && (GoodConfig == UUID || GoodConfig == Conn_->Conn_.PendingUUID)) {
+		if (GoodConfig && (GoodConfig == UUID || GoodConfig == Session_->State_.PendingUUID)) {
 			UpgradedUUID = UUID;
 			return false;
 		}
@@ -229,7 +229,7 @@ namespace OpenWifi {
 			}
 
 			UpgradedUUID = D.UUID;
-			Conn_->Conn_.PendingUUID = D.UUID;
+			Session_->State_.PendingUUID = D.UUID;
 			GWObjects::CommandDetails Cmd;
 			Cmd.SerialNumber = SerialNumber_;
 			Cmd.UUID = MicroService::CreateUUID();
@@ -334,8 +334,7 @@ namespace OpenWifi {
 			E.rethrow();
 		}
 
-		if (Conn_ != nullptr)
-			Conn_->Conn_.LastContact = OpenWifi::Now();
+		Session_->State_.LastContact = OpenWifi::Now();
 
 		switch (EventType) {
 			case uCentralProtocol::Events::ET_CONNECT: {
@@ -435,10 +434,8 @@ namespace OpenWifi {
 	}
 
 	void AP_WS_Connection::UpdateCounts() {
-		if (Conn_) {
-			Conn_->Conn_.kafkaClients = TelemetryKafkaRefCount_;
-			Conn_->Conn_.webSocketClients = TelemetryWebSocketRefCount_;
-		}
+		Session_->State_.kafkaClients = TelemetryKafkaRefCount_;
+		Session_->State_.webSocketClients = TelemetryWebSocketRefCount_;
 	}
 
 	bool AP_WS_Connection::SetWebSocketTelemetryReporting(uint64_t Interval,
@@ -536,10 +533,8 @@ namespace OpenWifi {
 				poco_information(Logger(), fmt::format("DISCONNECT({}): device has disconnected.", CId_));
 				return delete this;
 			} else {
-				if (Conn_ != nullptr) {
-					Conn_->Conn_.RX += IncomingSize;
-					Conn_->Conn_.MessageCount++;
-				}
+				Session_->State_.RX += IncomingSize;
+				Session_->State_.MessageCount++;
 
 				switch (Op) {
 				case Poco::Net::WebSocket::FRAME_OP_PING: {
@@ -547,19 +542,17 @@ namespace OpenWifi {
 					WS_->sendFrame("", 0,
 								   (int)Poco::Net::WebSocket::FRAME_OP_PONG |
 									   (int)Poco::Net::WebSocket::FRAME_FLAG_FIN);
-					if (Conn_ != nullptr) {
-						Conn_->Conn_.MessageCount++;
-					}
+					Session_->State_.MessageCount++;
 
-					if (KafkaManager()->Enabled() && Conn_) {
+					if (KafkaManager()->Enabled()) {
 						Poco::JSON::Object PingObject;
 						Poco::JSON::Object PingDetails;
-						PingDetails.set(uCentralProtocol::FIRMWARE, Conn_->Conn_.Firmware);
+						PingDetails.set(uCentralProtocol::FIRMWARE, Session_->State_.Firmware);
 						PingDetails.set(uCentralProtocol::SERIALNUMBER, SerialNumber_);
 						PingDetails.set(uCentralProtocol::COMPATIBLE, Compatible_);
 						PingDetails.set(uCentralProtocol::CONNECTIONIP, CId_);
 						PingDetails.set(uCentralProtocol::TIMESTAMP, OpenWifi::Now());
-						PingDetails.set("locale", Conn_->Conn_.locale );
+						PingDetails.set("locale", Session_->State_.locale );
 						PingObject.set(uCentralProtocol::PING, PingDetails);
 						Poco::JSON::Stringifier Stringify;
 						std::ostringstream OS;
@@ -673,8 +666,7 @@ namespace OpenWifi {
 		std::lock_guard Guard(Mutex_);
 
 		size_t BytesSent = WS_->sendFrame(Payload.c_str(), (int)Payload.size());
-		if (Conn_)
-			Conn_->Conn_.TX += BytesSent;
+		Session_->State_.TX += BytesSent;
 		return BytesSent == Payload.size();
 	}
 
