@@ -242,8 +242,6 @@ namespace OpenWifi {
 			small_buf_[2] = ((len-1+session_length_) & 0x00ff);
 			memcpy(&small_buf_[RTTY_HDR_SIZE],session_id_,session_length_);
 			memcpy(&small_buf_[RTTY_HDR_SIZE+session_length_], &buf[1], len-1);
-			if(!old_rtty_)
-				small_buf_[RTTY_HDR_SIZE+5] = '_';
 			try {
 				// auto Sent = SOCKET_DEBUG(small_buf_, RTTY_HDR_SIZE + session_length_ + len - 1);
 				int Sent;
