@@ -7,6 +7,28 @@
 #include "Poco/Net/SecureStreamSocketImpl.h"
 #include "Poco/Net/StreamSocket.h"
 
+
+void dump(const u_char *b, uint s) {
+	static const char hex[] = "0123456789abcdef";
+
+	int l=0;
+	std::cout << std::endl;
+	while(s) {
+		std::cout << (hex[(*b & 0xf0) >> 4]);
+		std::cout << (hex[(*b & 0x0f)]);
+		std::cout << " ";
+		l++;
+		if((l & 16) == 0)
+			std::cout << std::endl;
+		b++;
+		--s;
+	}
+	std::cout << std::endl;
+}
+
+
+#define SOCKET_DEBUG(X,Y,Z)	{ std::cout << __func__ << ":" << __LINE__ << std::endl; Z=socket_.sendBytes(X,Y); dump(X,Y); }
+
 namespace OpenWifi {
 
 	RTTYS_Device_ConnectionHandler::RTTYS_Device_ConnectionHandler(Poco::Net::StreamSocket& socket, Poco::Net::SocketReactor & reactor):
@@ -222,7 +244,9 @@ namespace OpenWifi {
 			if(!old_rtty_)
 				small_buf_[RTTY_HDR_SIZE+5] = '_';
 			try {
-				auto Sent = socket_.sendBytes(small_buf_, RTTY_HDR_SIZE + session_length_ + len - 1);
+				// auto Sent = SOCKET_DEBUG(small_buf_, RTTY_HDR_SIZE + session_length_ + len - 1);
+				int Sent;
+				SOCKET_DEBUG(small_buf_, RTTY_HDR_SIZE + session_length_ + len - 1,Sent)
 				std::cout << "KeyStrokes: Sent (smallbuf): " << Sent << std::endl;
 				return true;
 			} catch (...) {
@@ -236,7 +260,9 @@ namespace OpenWifi {
 			memcpy((Msg.get()+RTTY_HDR_SIZE),session_id_,session_length_);
 			memcpy((Msg.get()+RTTY_HDR_SIZE+session_length_), &buf[1], len-1);
 			try {
-				auto Sent = socket_.sendBytes(Msg.get(), RTTY_HDR_SIZE + session_length_ + len - 1);
+				// auto Sent = socket_.sendBytes(Msg.get(), RTTY_HDR_SIZE + session_length_ + len - 1);
+				int Sent;
+				SOCKET_DEBUG(Msg.get(),RTTY_HDR_SIZE + session_length_ + len - 1,Sent)
 				std::cout << "KeyStrokes: Sent (big buf): " << Sent << std::endl;
 				return true;
 			} catch (...) {
@@ -259,7 +285,9 @@ namespace OpenWifi {
 		outBuf[RTTY_HDR_SIZE+2+session_length_] = rows >> 8;
 		outBuf[RTTY_HDR_SIZE+3+session_length_] = rows & 0x00ff;
 		try {
-			auto Sent = socket_.sendBytes(outBuf, RTTY_HDR_SIZE + 4 + session_length_ );
+			// auto Sent = socket_.sendBytes(outBuf, RTTY_HDR_SIZE + 4 + session_length_ );
+			int Sent;
+			SOCKET_DEBUG(outBuf,RTTY_HDR_SIZE + 4 + session_length_ , Sent)
 			std::cout << "Send WindowSize: " << Sent << std::endl;
 			return true;
 		} catch (...) {
@@ -284,7 +312,9 @@ namespace OpenWifi {
 			memcpy(&outBuf[RTTY_HDR_SIZE],session_id_,RTTY_SESSION_ID_LENGTH);
 		}
 		try {
-			auto Sent = socket_.sendBytes( outBuf, RTTY_HDR_SIZE + (old_rtty_ ? 0 : RTTY_SESSION_ID_LENGTH));
+			// auto Sent = socket_.sendBytes( outBuf, RTTY_HDR_SIZE + (old_rtty_ ? 0 : RTTY_SESSION_ID_LENGTH));
+			int Sent;
+			SOCKET_DEBUG(outBuf,RTTY_HDR_SIZE + (old_rtty_ ? 0 : RTTY_SESSION_ID_LENGTH),Sent)
 			std::cout << "Send Login: " << Sent << std::endl;
 		} catch (const Poco::IOException &E) {
 			return false;
@@ -306,8 +336,10 @@ namespace OpenWifi {
 		memcpy(&outBuf[3],session_id_,session_length_);
 		poco_information(Logger(),fmt::format("{}: Logout", id_));
 		try {
-			socket_.sendBytes(outBuf, RTTY_HDR_SIZE + session_length_);
-			return true;
+			int Sent;
+			// socket_.sendBytes(outBuf, RTTY_HDR_SIZE + session_length_);
+			SOCKET_DEBUG(outBuf,RTTY_HDR_SIZE + session_length_,Sent)
+			return Sent==(int)(RTTY_HDR_SIZE+session_length_);
 		} catch (...) {
 
 		}
@@ -479,7 +511,9 @@ namespace OpenWifi {
 			MsgBuf[4] = (t & 0x00ff0000) >> 16;
 			MsgBuf[5] = (t & 0x0000ff00) >> 8;
 			MsgBuf[6] = (t & 0x000000ff);
-			auto Sent = socket_.sendBytes(MsgBuf, RTTY_HDR_SIZE + 16 );
+			//auto Sent = socket_.sendBytes(MsgBuf, RTTY_HDR_SIZE + 16 );
+			int Sent;
+			SOCKET_DEBUG(MsgBuf,RTTY_HDR_SIZE + 16,Sent);
 			std::cout << "Sent:" << Sent << std::endl;
 			return Sent == (RTTY_HDR_SIZE + 16);
 		}
