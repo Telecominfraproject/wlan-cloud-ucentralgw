@@ -4745,6 +4745,7 @@ namespace OpenWifi {
     inline bool RESTAPIHandler::IsAuthorized( bool & Expired , [[maybe_unused]] bool & Contacted , bool Sub ) {
         if(Internal_ && Request->has("X-INTERNAL-NAME")) {
             auto Allowed = MicroService::instance().IsValidAPIKEY(*Request);
+			Contacted = true;
             if(!Allowed) {
                 if(Server_.LogBadTokens(false)) {
                     Logger_.debug(fmt::format("I-REQ-DENIED({}): Method={} Path={}",
