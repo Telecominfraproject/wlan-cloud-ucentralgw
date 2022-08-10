@@ -19,7 +19,7 @@ void dump(const u_char *b, uint s) {
 		SS += (hex[(*b & 0x0f)]);
 		std::cout << SS << " ";
 		l++;
-		if((l & 16) == 0)
+		if((l % 16) == 0)
 			std::cout << std::endl;
 		b++;
 		--s;
