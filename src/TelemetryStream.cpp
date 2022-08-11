@@ -47,12 +47,11 @@ namespace OpenWifi {
 		return (N->second.find(UUID) != N->second.end());
 	}
 
-	bool TelemetryStream::CreateEndpoint(uint64_t SerialNumber, std::string &EndPoint, std::string &UUID) {
+	bool TelemetryStream::CreateEndpoint(uint64_t SerialNumber, std::string &EndPoint, const std::string &UUID) {
 		std::lock_guard	G(Mutex_);
 
 		Poco::URI	Public(MicroService::instance().ConfigGetString("openwifi.system.uri.public"));
 		Poco::URI	U;
-		UUID = MicroService::CreateUUID();
 		U.setScheme("wss");
 		U.setHost(Public.getHost());
 		U.setPort(Public.getPort());

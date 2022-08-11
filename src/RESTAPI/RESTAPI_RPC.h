@@ -20,14 +20,16 @@
 
 namespace OpenWifi::RESTAPI_RPC {
 
-	void WaitForCommand( 	GWObjects::CommandDetails &Cmd,
-		Poco::JSON::Object  & Params,
-		Poco::Net::HTTPServerRequest &Request,
-		Poco::Net::HTTPServerResponse &Response,
-		std::chrono::milliseconds WaitTimeInMs,
-		Poco::JSON::Object * ObjectToReturn,
-		RESTAPIHandler * Handler,
-		Poco::Logger &Logger);
+	void WaitForCommand(
+					uint64_t RPCID,
+					GWObjects::CommandDetails &Cmd,
+					Poco::JSON::Object  & Params,
+					Poco::Net::HTTPServerRequest &Request,
+					Poco::Net::HTTPServerResponse &Response,
+					std::chrono::milliseconds WaitTimeInMs,
+					Poco::JSON::Object * ObjectToReturn,
+					RESTAPIHandler * Handler,
+					Poco::Logger &Logger);
 
 	void SetCommandStatus(	GWObjects::CommandDetails &Cmd,
 		Poco::Net::HTTPServerRequest &Request,

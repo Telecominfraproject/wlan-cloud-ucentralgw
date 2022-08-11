@@ -125,7 +125,7 @@ namespace OpenWifi {
 		bool DeleteCommands(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate);
 		bool GetNonExecutedCommands( uint64_t Offset, uint64_t HowMany, std::vector<GWObjects::CommandDetails> & Commands );
 		bool UpdateCommand( std::string &UUID, GWObjects::CommandDetails & Command );
-		bool GetCommand( std::string &UUID, GWObjects::CommandDetails & Command );
+		bool GetCommand( const std::string &UUID, GWObjects::CommandDetails & Command );
 		bool DeleteCommand( std::string &UUID );
 		bool GetReadyToExecuteCommands( uint64_t Offset, uint64_t HowMany, std::vector<GWObjects::CommandDetails> & Commands );
 		bool CommandExecuted(std::string & UUID);

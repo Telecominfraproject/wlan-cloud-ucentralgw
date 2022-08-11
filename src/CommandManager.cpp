@@ -142,11 +142,12 @@ namespace OpenWifi {
 					bool Sent;
 					MyLogger.information(fmt::format("{}: Preparing execution of {} for {}.", Cmd.UUID, Cmd.Command, Cmd.SerialNumber));
 					auto Params = P.parse(Cmd.Details).extract<Poco::JSON::Object::Ptr>();
-					auto Result = PostCommandDisk(	Cmd.SerialNumber,
-												  Cmd.Command,
-												  *Params,
-												  Cmd.UUID,
-												  Sent);
+					auto Result = PostCommandDisk(	NextRPCId(),
+													Cmd.SerialNumber,
+												  	Cmd.Command,
+												  	*Params,
+												  	Cmd.UUID,
+												  	Sent);
 					if(Sent) {
 						StorageService()->SetCommandExecuted(Cmd.UUID);
 						std::lock_guard M(Mutex_);
@@ -167,13 +168,15 @@ namespace OpenWifi {
 		}
 	}
 
-	std::shared_ptr<CommandManager::promise_type_t> CommandManager::PostCommand(const std::string &SerialNumber,
-							  			const std::string &Method,
-										const Poco::JSON::Object &Params,
-							  			const std::string &UUID,
-									 	bool oneway_rpc,
-									 	bool disk_only,
-										bool & Sent) {
+	std::shared_ptr<CommandManager::promise_type_t> CommandManager::PostCommand(
+		uint64_t RPCID,
+		const std::string &SerialNumber,
+		const std::string &Method,
+		const Poco::JSON::Object &Params,
+		const std::string &UUID,
+		bool oneway_rpc,
+		bool disk_only,
+		bool & Sent) {
 
 		Sent=false;
 		if(!DeviceRegistry()->Connected(SerialNumber)) {
@@ -189,12 +192,12 @@ namespace OpenWifi {
 			if (oneway_rpc)
 				Idx.Id = 1;
 			else
-				Idx.Id = ++Id_;
+				Idx.Id = RPCID;
 			Idx.SerialNumber = SerialNumber;
 
 			Poco::JSON::Object CompleteRPC;
 			CompleteRPC.set(uCentralProtocol::JSONRPC, uCentralProtocol::JSONRPC_VERSION);
-			CompleteRPC.set(uCentralProtocol::ID, Idx.Id);
+			CompleteRPC.set(uCentralProtocol::ID, RPCID);
 			CompleteRPC.set(uCentralProtocol::METHOD, Method);
 			CompleteRPC.set(uCentralProtocol::PARAMS, Params);
 			Poco::JSON::Stringifier::stringify(CompleteRPC, ToSend);
@@ -211,13 +214,13 @@ namespace OpenWifi {
 			}
 		}
 
-		Logger().information(fmt::format("{}: Sending command. ID: {}", UUID, Idx.Id));
+		Logger().information(fmt::format("{}: Sending command. ID: {}", UUID, RPCID));
 		if(DeviceRegistry()->SendFrame(SerialNumber, ToSend.str())) {
-			Logger().information(fmt::format("{}: Sent command. ID: {}", UUID, Idx.Id));
+			Logger().information(fmt::format("{}: Sent command. ID: {}", UUID, RPCID));
 			Sent=true;
 			return Object->rpc_entry;
 		}
-		Logger().information(fmt::format("{}: Failed to send command. ID: {}", UUID, Idx.Id));
+		Logger().information(fmt::format("{}: Failed to send command. ID: {}", UUID, RPCID));
 		return nullptr;
 	}
 }  // namespace
