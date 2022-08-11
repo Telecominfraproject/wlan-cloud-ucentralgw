@@ -87,13 +87,13 @@ namespace OpenWifi {
 				ResponseQueue_.enqueueNotification(new RPCResponseNotification(SerialNumber,Obj));
 			}
 
-			std::shared_ptr<promise_type_t> PostCommandOneWayDisk(
+			std::shared_ptr<promise_type_t> PostCommandOneWayDisk(uint64_t RPCID,
 				const std::string &SerialNumber,
 				const std::string &Method,
 				const Poco::JSON::Object &Params,
 				const std::string &UUID,
 				bool & Sent) {
-					return 	PostCommand(SerialNumber,
+					return 	PostCommand(RPCID, SerialNumber,
 									Method,
 									Params,
 									UUID,
@@ -101,12 +101,14 @@ namespace OpenWifi {
 			}
 
 			std::shared_ptr<promise_type_t> PostCommandDisk(
+				uint64_t RPCID,
 				const std::string &SerialNumber,
 				const std::string &Method,
 				const Poco::JSON::Object &Params,
 				const std::string &UUID,
 				bool & Sent) {
-					return 	PostCommand(SerialNumber,
+					return 	PostCommand(RPCID,
+								   SerialNumber,
 								   Method,
 								   Params,
 								   UUID,
@@ -114,12 +116,13 @@ namespace OpenWifi {
 			}
 
 			std::shared_ptr<promise_type_t> PostCommand(
+				uint64_t RPCID,
 				const std::string &SerialNumber,
 				const std::string &Method,
 				const Poco::JSON::Object &Params,
 				const std::string &UUID,
 				bool & Sent) {
-					return 	PostCommand(SerialNumber,
+					return 	PostCommand(RPCID, SerialNumber,
 								   Method,
 								   Params,
 								   UUID,
@@ -128,12 +131,14 @@ namespace OpenWifi {
 			}
 
 			std::shared_ptr<promise_type_t> PostCommandOneWay(
+				uint64_t RPCID,
 				const std::string &SerialNumber,
 				const std::string &Method,
 				const Poco::JSON::Object &Params,
 				const std::string &UUID,
 				bool & Sent) {
-					return 	PostCommand(SerialNumber,
+					return 	PostCommand(RPCID,
+								   SerialNumber,
 								   Method,
 								   Params,
 								   UUID,
@@ -152,6 +157,7 @@ namespace OpenWifi {
 			void onJanitorTimer(Poco::Timer & timer);
 			void onCommandRunnerTimer(Poco::Timer & timer);
 			void onRPCAnswer(bool& b);
+			inline uint64_t NextRPCId() { return ++Id_; }
 
 	    private:
 			std::atomic_bool 						Running_ = false;
@@ -166,6 +172,7 @@ namespace OpenWifi {
 			Poco::NotificationQueue					ResponseQueue_;
 
 			std::shared_ptr<promise_type_t> PostCommand(
+				uint64_t RPCID,
 				const std::string &SerialNumber,
 				const std::string &Method,
 				const Poco::JSON::Object &Params,

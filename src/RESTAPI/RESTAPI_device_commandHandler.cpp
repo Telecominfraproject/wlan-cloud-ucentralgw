@@ -20,6 +20,7 @@
 #include "RESTObjects/RESTAPI_GWobjects.h"
 #include "StorageService.h"
 #include "TelemetryStream.h"
+#include "CommandManager.h"
 #include "framework/ConfigurationValidator.h"
 #include "framework/KafkaTopics.h"
 #include "framework/ow_constants.h"
@@ -49,7 +50,9 @@ namespace OpenWifi {
 		} else if (Command_ == RESTAPI::Protocol::STATUS) {
 			return GetStatus();
 		} else if (Command_ == RESTAPI::Protocol::RTTY) {
-			return Rtty();
+			auto UUID = MicroService::CreateUUID();
+			auto RPC = CommandManager()->NextRPCId();
+			return Rtty(UUID,RPC);
 		} else {
 			return BadRequest(RESTAPI::Errors::InvalidCommand);
 		}
@@ -93,32 +96,35 @@ namespace OpenWifi {
 			return NotFound();
 		}
 
+		auto UUID = MicroService::CreateUUID();
+		auto RPC = CommandManager()->NextRPCId();
+
 		if (Command_ == RESTAPI::Protocol::PERFORM) {
-			return ExecuteCommand();
+			return ExecuteCommand(UUID,RPC);
 		} else if (Command_ == RESTAPI::Protocol::CONFIGURE) {
-			return Configure();
+			return Configure(UUID,RPC);
 		} else if (Command_ == RESTAPI::Protocol::UPGRADE) {
-			return Upgrade();
+			return Upgrade(UUID,RPC);
 		} else if (Command_ == RESTAPI::Protocol::REBOOT) {
-			return Reboot();
+			return Reboot(UUID,RPC);
 		} else if (Command_ == RESTAPI::Protocol::FACTORY) {
-			return Factory();
+			return Factory(UUID,RPC);
 		} else if (Command_ == RESTAPI::Protocol::LEDS) {
-			return LEDs();
+			return LEDs(UUID,RPC);
 		} else if (Command_ == RESTAPI::Protocol::TRACE) {
-			return Trace();
+			return Trace(UUID,RPC);
 		} else if (Command_ == RESTAPI::Protocol::REQUEST) {
-			return MakeRequest();
+			return MakeRequest(UUID,RPC);
 		} else if (Command_ == RESTAPI::Protocol::WIFISCAN) {
-			return WifiScan();
+			return WifiScan(UUID,RPC);
 		} else if (Command_ == RESTAPI::Protocol::EVENTQUEUE) {
-			return EventQueue();
+			return EventQueue(UUID,RPC);
 		} else if (Command_ == RESTAPI::Protocol::TELEMETRY) {
-			return Telemetry();
+			return Telemetry(UUID,RPC);
 		} else if (Command_ == RESTAPI::Protocol::PING) {
-			return Ping();
+			return Ping(UUID,RPC);
 		} else if (Command_ == RESTAPI::Protocol::SCRIPT) {
-			return Script();
+			return Script(UUID,RPC);
 		} else {
 			return BadRequest(RESTAPI::Errors::InvalidCommand);
 		}
@@ -136,7 +142,7 @@ namespace OpenWifi {
 	}
 
 	void RESTAPI_device_commandHandler::DeleteCapabilities() {
-		Logger_.information(fmt::format("DELETE-CAPABILITIES: user={} serial={}", UserInfo_.userinfo.email,SerialNumber_));
+		Logger_.information(fmt::format("DELETE-CAPABILITIES: user={} serial={}", Requester(), SerialNumber_));
 		if (StorageService()->DeleteDeviceCapabilities(SerialNumber_)) {
 			return OK();
 		}
@@ -177,15 +183,15 @@ namespace OpenWifi {
 	}
 
 	void RESTAPI_device_commandHandler::DeleteStatistics() {
-		Logger_.information(fmt::format("DELETE-STATISTICS: user={} serial={}", UserInfo_.userinfo.email,SerialNumber_));
+		Logger_.information(fmt::format("DELETE-STATISTICS: user={} serial={}", Requester(), SerialNumber_));
 		if (StorageService()->DeleteStatisticsData(SerialNumber_, QB_.StartDate, QB_.EndDate)) {
 			return OK();
 		}
 		NotFound();
 	}
 
-	void RESTAPI_device_commandHandler::Ping() {
-		Logger_.information(fmt::format("PING: user={} serial={}", UserInfo_.userinfo.email,SerialNumber_));
+	void RESTAPI_device_commandHandler::Ping(const std::string &CMD_UUID, uint64_t CMD_RPC) {
+		Logger_.information(fmt::format("PING({},{}): user={} serial={}", CMD_UUID, CMD_RPC, Requester(), SerialNumber_));
 		const auto &Obj = ParsedBody_;
 		if (Obj->has(RESTAPI::Protocol::SERIALNUMBER)) {
 			auto SNum = Obj->get(RESTAPI::Protocol::SERIALNUMBER).toString();
@@ -195,7 +201,7 @@ namespace OpenWifi {
 
 			GWObjects::CommandDetails Cmd;
 			Cmd.SerialNumber = SerialNumber_;
-			Cmd.UUID = MicroService::CreateUUID();
+			Cmd.UUID = CMD_UUID;
 			Cmd.SubmittedBy = UserInfo_.webtoken.username_;
 			Cmd.Command = uCentralProtocol::PING;
 			Cmd.RunAt = 0;
@@ -207,10 +213,10 @@ namespace OpenWifi {
 			Params.stringify(ParamStream);
 			Cmd.Details = ParamStream.str();
 
-			RESTAPI_RPC::WaitForCommand(Cmd, Params, *Request, *Response, 60000ms, nullptr, nullptr, Logger_);
+			RESTAPI_RPC::WaitForCommand(CMD_RPC,Cmd, Params, *Request, *Response, 60000ms, nullptr, nullptr, Logger_);
 
 			GWObjects::CommandDetails Cmd2;
-			if(StorageService()->GetCommand(Cmd.UUID,Cmd2)) {
+			if(StorageService()->GetCommand(CMD_UUID,Cmd2)) {
 				Poco::JSON::Object	Answer;
 				// Answer.set("latency", Cmd2.executionTime);
 				Answer.set("latency", fmt::format("{:.3f}ms.",Cmd.executionTime));
@@ -235,9 +241,8 @@ namespace OpenWifi {
 		return BadRequest(RESTAPI::Errors::MissingSerialNumber);
 	}
 
-	void RESTAPI_device_commandHandler::Script() {
-		Logger_.information(fmt::format("SCRIPT: user={} serial={}", UserInfo_.userinfo.email,SerialNumber_));
-
+	void RESTAPI_device_commandHandler::Script(const std::string &CMD_UUID, uint64_t CMD_RPC) {
+		Logger_.information(fmt::format("SCRIPT({},{}): user={} serial={}", CMD_UUID, CMD_RPC, Requester(), SerialNumber_));
 		if(!Internal_ && UserInfo_.userinfo.userRole!=SecurityObjects::ROOT) {
 			return UnAuthorized(RESTAPI::Errors::ACCESS_DENIED);
 		}
@@ -264,7 +269,7 @@ namespace OpenWifi {
 
 		GWObjects::CommandDetails Cmd;
 		Cmd.SerialNumber = SerialNumber_;
-		Cmd.UUID = MicroService::CreateUUID();
+		Cmd.UUID = CMD_UUID;
 		Cmd.SubmittedBy = UserInfo_.webtoken.username_;
 		Cmd.Command = uCentralProtocol::SCRIPT;
 		Cmd.RunAt = 0;
@@ -280,7 +285,7 @@ namespace OpenWifi {
 		Params.stringify(ParamStream);
 		Cmd.Details = ParamStream.str();
 
-		return RESTAPI_RPC::WaitForCommand(Cmd, Params, *Request, *Response, 120000ms, nullptr, this, Logger_);
+		return RESTAPI_RPC::WaitForCommand(CMD_RPC,Cmd, Params, *Request, *Response, 120000ms, nullptr, this, Logger_);
 	}
 
 	void RESTAPI_device_commandHandler::GetStatus() {
@@ -298,9 +303,9 @@ namespace OpenWifi {
 		}
 	}
 
-	void RESTAPI_device_commandHandler::Configure() {
-		//  get the configuration from the body of the message
-		Logger_.information(fmt::format("CONFIGURE: user={} serial={}", UserInfo_.userinfo.email,SerialNumber_));
+	void RESTAPI_device_commandHandler::Configure(const std::string &CMD_UUID, uint64_t CMD_RPC) {
+		Logger_.information(fmt::format("CONFIGURE({},{}): user={} serial={}", CMD_UUID, CMD_RPC, Requester(), SerialNumber_));
+
 		const auto &Obj = ParsedBody_;
 		if (Obj->has(RESTAPI::Protocol::SERIALNUMBER) &&
 			Obj->has(RESTAPI::Protocol::UUID) &&
@@ -324,7 +329,7 @@ namespace OpenWifi {
 				GWObjects::CommandDetails Cmd;
 
 				Cmd.SerialNumber = SerialNumber_;
-				Cmd.UUID = MicroService::CreateUUID();
+				Cmd.UUID = CMD_UUID;
 				Cmd.SubmittedBy = UserInfo_.webtoken.username_;
 				Cmd.Command = uCentralProtocol::CONFIGURE;
 				Cmd.RunAt = When;
@@ -341,15 +346,16 @@ namespace OpenWifi {
 				Cmd.Details = ParamStream.str();
 
 				DeviceRegistry()->SetPendingUUID(SerialNumber_, NewUUID);
-				return RESTAPI_RPC::WaitForCommand(Cmd, Params, *Request, *Response, 60000ms, nullptr, this, Logger_);
+				return RESTAPI_RPC::WaitForCommand(CMD_RPC,Cmd, Params, *Request, *Response, 60000ms, nullptr, this, Logger_);
 			}
 			return BadRequest(RESTAPI::Errors::RecordNotUpdated);
 		}
 		BadRequest(RESTAPI::Errors::MissingOrInvalidParameters);
 	}
 
-	void RESTAPI_device_commandHandler::Upgrade() {
-		Logger_.information(fmt::format("UPGRADE: user={} serial={}", UserInfo_.userinfo.email,SerialNumber_));
+	void RESTAPI_device_commandHandler::Upgrade(const std::string &CMD_UUID, uint64_t CMD_RPC) {
+		Logger_.information(fmt::format("UPGRADE({},{}): user={} serial={}", CMD_UUID, CMD_RPC, Requester(), SerialNumber_));
+
 		const auto &Obj = ParsedBody_;
 
 		if (Obj->has(RESTAPI::Protocol::URI) &&
@@ -368,7 +374,7 @@ namespace OpenWifi {
 			GWObjects::CommandDetails Cmd;
 
 			Cmd.SerialNumber = SerialNumber_;
-			Cmd.UUID = MicroService::CreateUUID();
+			Cmd.UUID = CMD_UUID;
 			Cmd.SubmittedBy = UserInfo_.webtoken.username_;
 			Cmd.Command = uCentralProtocol::UPGRADE;
 			Cmd.RunAt = When;
@@ -384,7 +390,7 @@ namespace OpenWifi {
 			Params.stringify(ParamStream);
 			Cmd.Details = ParamStream.str();
 
-			return RESTAPI_RPC::WaitForCommand(Cmd, Params, *Request, *Response, 60000ms, nullptr, this, Logger_);
+			return RESTAPI_RPC::WaitForCommand(CMD_RPC,Cmd, Params, *Request, *Response, 60000ms, nullptr, this, Logger_);
 		}
 		BadRequest(RESTAPI::Errors::MissingOrInvalidParameters);
 	}
@@ -411,7 +417,7 @@ namespace OpenWifi {
 	}
 
 	void RESTAPI_device_commandHandler::DeleteLogs() {
-		Logger_.information(fmt::format("DELETE-LOGS: user={} serial={}", UserInfo_.userinfo.email,SerialNumber_));
+		Logger_.information(fmt::format("DELETE-LOGS: user={} serial={}", Requester(), SerialNumber_));
 		if (StorageService()->DeleteLogData(SerialNumber_, QB_.StartDate, QB_.EndDate,
 											 QB_.LogType)) {
 			return OK();
@@ -454,15 +460,16 @@ namespace OpenWifi {
 	}
 
 	void RESTAPI_device_commandHandler::DeleteChecks() {
-		Logger_.information(fmt::format("DELETE-HEALTHCHECKS: user={} serial={}", UserInfo_.userinfo.email,SerialNumber_));
+		Logger_.information(fmt::format("DELETE-HEALTHCHECKS: user={} serial={}", Requester(), SerialNumber_));
 		if (StorageService()->DeleteHealthCheckData(SerialNumber_, QB_.StartDate, QB_.EndDate)) {
 			return OK();
 		}
 		BadRequest(RESTAPI::Errors::NoRecordsDeleted);
 	}
 
-	void RESTAPI_device_commandHandler::ExecuteCommand() {
-		Logger_.information(fmt::format("EXECUTE: user={} serial={}", UserInfo_.userinfo.email,SerialNumber_));
+	void RESTAPI_device_commandHandler::ExecuteCommand(const std::string &CMD_UUID, uint64_t CMD_RPC) {
+		Logger_.information(fmt::format("EXECUTE({},{}): user={} serial={}", CMD_UUID, CMD_RPC, Requester(), SerialNumber_));
+
 		const auto &Obj = ParsedBody_;
 		if (Obj->has(RESTAPI::Protocol::COMMAND) &&
 			Obj->has(RESTAPI::Protocol::SERIALNUMBER) &&
@@ -480,7 +487,7 @@ namespace OpenWifi {
 			GWObjects::CommandDetails Cmd;
 
 			Cmd.SerialNumber = SerialNumber_;
-			Cmd.UUID = MicroService::CreateUUID();
+			Cmd.UUID = CMD_UUID;
 			Cmd.SubmittedBy = UserInfo_.webtoken.username_;
 			Cmd.Command = Command;
 			Cmd.Custom = 1;
@@ -502,13 +509,14 @@ namespace OpenWifi {
 			Params.stringify(ParamStream);
 			Cmd.Details = ParamStream.str();
 
-			return RESTAPI_RPC::WaitForCommand(Cmd, Params, *Request, *Response, 60000ms, nullptr, this, Logger_);
+			return RESTAPI_RPC::WaitForCommand(CMD_RPC,Cmd, Params, *Request, *Response, 60000ms, nullptr, this, Logger_);
 		}
 		BadRequest(RESTAPI::Errors::MissingOrInvalidParameters);
 	}
 
-	void RESTAPI_device_commandHandler::Reboot() {
-		Logger_.information(fmt::format("REBOOT: user={} serial={}", UserInfo_.userinfo.email,SerialNumber_));
+	void RESTAPI_device_commandHandler::Reboot(const std::string &CMD_UUID, uint64_t CMD_RPC) {
+		Logger_.information(fmt::format("REBOOT({},{}): user={} serial={}", CMD_UUID, CMD_RPC, Requester(), SerialNumber_));
+
 		const auto &Obj = ParsedBody_;
 
 		if (Obj->has(RESTAPI::Protocol::SERIALNUMBER)) {
@@ -524,7 +532,7 @@ namespace OpenWifi {
 			uint64_t When = GetWhen(Obj);
 			GWObjects::CommandDetails Cmd;
 			Cmd.SerialNumber = SerialNumber_;
-			Cmd.UUID = MicroService::CreateUUID();
+			Cmd.UUID = CMD_UUID;
 			Cmd.SubmittedBy = UserInfo_.webtoken.username_;
 			Cmd.Command = uCentralProtocol::REBOOT;
 			Cmd.RunAt = When;
@@ -538,13 +546,14 @@ namespace OpenWifi {
 			Params.stringify(ParamStream);
 			Cmd.Details = ParamStream.str();
 
-			return RESTAPI_RPC::WaitForCommand(Cmd, Params, *Request, *Response, 60000ms, nullptr, this, Logger_);
+			return RESTAPI_RPC::WaitForCommand(CMD_RPC,Cmd, Params, *Request, *Response, 60000ms, nullptr, this, Logger_);
 		}
 		BadRequest(RESTAPI::Errors::MissingSerialNumber);
 	}
 
-	void RESTAPI_device_commandHandler::Factory() {
-		Logger_.information(fmt::format("FACTORY-RESET: user={} serial={}", UserInfo_.userinfo.email,SerialNumber_));
+	void RESTAPI_device_commandHandler::Factory(const std::string &CMD_UUID, uint64_t CMD_RPC) {
+		Logger_.information(fmt::format("FACTORY-RESET({},{}): user={} serial={}", CMD_UUID, CMD_RPC, Requester(), SerialNumber_));
+
 		const auto &Obj = ParsedBody_;
 		if (Obj->has(RESTAPI::Protocol::KEEPREDIRECTOR) &&
 			Obj->has(RESTAPI::Protocol::SERIALNUMBER)) {
@@ -561,7 +570,7 @@ namespace OpenWifi {
 			GWObjects::CommandDetails Cmd;
 
 			Cmd.SerialNumber = SerialNumber_;
-			Cmd.UUID = MicroService::CreateUUID();
+			Cmd.UUID = CMD_UUID;
 			Cmd.SubmittedBy = UserInfo_.webtoken.username_;
 			Cmd.Command = uCentralProtocol::FACTORY;
 			Cmd.RunAt = When;
@@ -576,13 +585,14 @@ namespace OpenWifi {
 			Params.stringify(ParamStream);
 			Cmd.Details = ParamStream.str();
 
-			return RESTAPI_RPC::WaitForCommand(Cmd, Params, *Request, *Response, 60000ms, nullptr, this, Logger_);
+			return RESTAPI_RPC::WaitForCommand(CMD_RPC,Cmd, Params, *Request, *Response, 60000ms, nullptr, this, Logger_);
 		}
 		BadRequest(RESTAPI::Errors::MissingOrInvalidParameters);
 	}
 
-	void RESTAPI_device_commandHandler::LEDs() {
-		Logger_.information(fmt::format("LEDS: user={} serial={}", UserInfo_.userinfo.email,SerialNumber_));
+	void RESTAPI_device_commandHandler::LEDs(const std::string &CMD_UUID, uint64_t CMD_RPC) {
+		Logger_.information(fmt::format("LEDS({},{}): user={} serial={}", CMD_UUID, CMD_RPC, Requester(), SerialNumber_));
+
 		const auto &Obj = ParsedBody_;
 
 		if (Obj->has(uCentralProtocol::PATTERN) &&
@@ -607,7 +617,7 @@ namespace OpenWifi {
 			GWObjects::CommandDetails Cmd;
 
 			Cmd.SerialNumber = SerialNumber_;
-			Cmd.UUID = MicroService::CreateUUID();
+			Cmd.UUID = CMD_UUID;
 			Cmd.SubmittedBy = UserInfo_.webtoken.username_;
 			Cmd.Command = uCentralProtocol::LEDS;
 			Cmd.RunAt = When;
@@ -622,13 +632,14 @@ namespace OpenWifi {
 			Params.stringify(ParamStream);
 			Cmd.Details = ParamStream.str();
 
-			return RESTAPI_RPC::WaitForCommand(Cmd, Params, *Request, *Response, 60000ms, nullptr, this, Logger_);
+			return RESTAPI_RPC::WaitForCommand(CMD_RPC,Cmd, Params, *Request, *Response, 60000ms, nullptr, this, Logger_);
 		}
 		BadRequest(RESTAPI::Errors::MissingOrInvalidParameters);
 	}
 
-	void RESTAPI_device_commandHandler::Trace() {
-		Logger_.information(fmt::format("TRACE: user={} serial={}", UserInfo_.userinfo.email,SerialNumber_));
+	void RESTAPI_device_commandHandler::Trace(const std::string &CMD_UUID, uint64_t CMD_RPC) {
+		Logger_.information(fmt::format("TRACE({},{}): user={} serial={}", CMD_UUID, CMD_RPC, Requester(), SerialNumber_));
+
 		const auto &Obj = ParsedBody_;
 
 		if 	(Obj->has(RESTAPI::Protocol::SERIALNUMBER) &&
@@ -646,12 +657,11 @@ namespace OpenWifi {
 
 			auto Network = GetS(RESTAPI::Protocol::NETWORK, Obj);
 			auto Interface = GetS(RESTAPI::Protocol::INTERFACE, Obj);
-			auto UUID = MicroService::CreateUUID();
-			auto URI = FileUploader()->FullName() + UUID;
+			auto URI = FileUploader()->FullName() + CMD_UUID;
 
 			GWObjects::CommandDetails Cmd;
 			Cmd.SerialNumber = SerialNumber_;
-			Cmd.UUID = UUID;
+			Cmd.UUID = CMD_UUID;
 			Cmd.SubmittedBy = UserInfo_.webtoken.username_;
 			Cmd.Command = uCentralProtocol::TRACE;
 			Cmd.RunAt = 0;
@@ -677,14 +687,15 @@ namespace OpenWifi {
 			Params.stringify(ParamStream);
 			Cmd.Details = ParamStream.str();
 
-			FileUploader()->AddUUID(UUID);
-			return RESTAPI_RPC::WaitForCommand(Cmd, Params, *Request, *Response, 160000ms, nullptr, this, Logger_);
+			FileUploader()->AddUUID(CMD_UUID);
+			return RESTAPI_RPC::WaitForCommand(CMD_RPC,Cmd, Params, *Request, *Response, 160000ms, nullptr, this, Logger_);
 		}
 		BadRequest(RESTAPI::Errors::MissingOrInvalidParameters);
 	}
 
-	void RESTAPI_device_commandHandler::WifiScan() {
-		Logger_.information(fmt::format("WIFISCAN: user={} serial={}", UserInfo_.userinfo.email,SerialNumber_));
+	void RESTAPI_device_commandHandler::WifiScan(const std::string &CMD_UUID, uint64_t CMD_RPC) {
+		Logger_.information(fmt::format("WIFISCAN({},{}): user={} serial={}", CMD_UUID, CMD_RPC, Requester(), SerialNumber_));
+
 		const auto &Obj = ParsedBody_;
 
 		auto SNum = Obj->get(RESTAPI::Protocol::SERIALNUMBER).toString();
@@ -705,11 +716,10 @@ namespace OpenWifi {
 			ies = Obj->getArray("ies");
 		}
 
-		auto UUID = MicroService::CreateUUID();
 		GWObjects::CommandDetails Cmd;
 
 		Cmd.SerialNumber = SerialNumber_;
-		Cmd.UUID = UUID;
+		Cmd.UUID = CMD_UUID;
 		Cmd.SubmittedBy = UserInfo_.webtoken.username_;
 		Cmd.Command = uCentralProtocol::WIFISCAN;
 
@@ -726,14 +736,15 @@ namespace OpenWifi {
 		std::stringstream ParamStream;
 		Params.stringify(ParamStream);
 		Cmd.Details = ParamStream.str();
-		RESTAPI_RPC::WaitForCommand(Cmd, Params, *Request, *Response, 120000ms, nullptr, this, Logger_);
+		RESTAPI_RPC::WaitForCommand(CMD_RPC,Cmd, Params, *Request, *Response, 120000ms, nullptr, this, Logger_);
 		if (Cmd.ErrorCode == 0) {
 			KafkaManager()->PostMessage(KafkaTopics::WIFISCAN, SerialNumber_, Cmd.Results);
 		}
 	}
 
-	void RESTAPI_device_commandHandler::EventQueue() {
-		Logger_.information(fmt::format("EVENT-QUEUE: user={} serial={}", UserInfo_.userinfo.email,SerialNumber_));
+	void RESTAPI_device_commandHandler::EventQueue(const std::string &CMD_UUID, uint64_t CMD_RPC) {
+		Logger_.information(fmt::format("EVENT-QUEUE({},{}): user={} serial={}", CMD_UUID, CMD_RPC, Requester(), SerialNumber_));
+
 		const auto &Obj = ParsedBody_;
 		if (Obj->has(RESTAPI::Protocol::SERIALNUMBER) &&
 			Obj->isArray(RESTAPI::Protocol::TYPES)) {
@@ -744,12 +755,10 @@ namespace OpenWifi {
 			}
 
 			auto Types = Obj->getArray(RESTAPI::Protocol::TYPES);
-
-			auto UUID = MicroService::CreateUUID();
 			GWObjects::CommandDetails Cmd;
 
 			Cmd.SerialNumber = SerialNumber_;
-			Cmd.UUID = UUID;
+			Cmd.UUID = CMD_UUID;
 			Cmd.SubmittedBy = UserInfo_.webtoken.username_;
 			Cmd.Command = uCentralProtocol::EVENT;
 
@@ -761,7 +770,7 @@ namespace OpenWifi {
 			Params.stringify(ParamStream);
 			Cmd.Details = ParamStream.str();
 
-			RESTAPI_RPC::WaitForCommand(Cmd, Params, *Request, *Response, 60000ms, nullptr, this, Logger_);
+			RESTAPI_RPC::WaitForCommand(CMD_RPC,Cmd, Params, *Request, *Response, 60000ms, nullptr, this, Logger_);
 			if(Cmd.ErrorCode==0) {
 				KafkaManager()->PostMessage(KafkaTopics::DEVICE_EVENT_QUEUE, SerialNumber_,
 											Cmd.Results);
@@ -771,8 +780,9 @@ namespace OpenWifi {
 		BadRequest(RESTAPI::Errors::MissingOrInvalidParameters);
 	}
 
-	void RESTAPI_device_commandHandler::MakeRequest() {
-		Logger_.information(fmt::format("FORCE-REQUEST: user={} serial={}", UserInfo_.userinfo.email,SerialNumber_));
+	void RESTAPI_device_commandHandler::MakeRequest(const std::string &CMD_UUID, uint64_t CMD_RPC) {
+		Logger_.information(fmt::format("FORCE-REQUEST({},{}): user={} serial={}", CMD_UUID, CMD_RPC, Requester(), SerialNumber_));
+
 		const auto &Obj = ParsedBody_;
 		if (Obj->has(RESTAPI::Protocol::SERIALNUMBER) &&
 			Obj->has(uCentralProtocol::MESSAGE)) {
@@ -791,7 +801,7 @@ namespace OpenWifi {
 
 			Cmd.SerialNumber = SerialNumber_;
 			Cmd.SubmittedBy = UserInfo_.webtoken.username_;
-			Cmd.UUID = MicroService::CreateUUID();
+			Cmd.UUID = CMD_UUID;
 			Cmd.Command = uCentralProtocol::REQUEST;
 			Cmd.RunAt = When;
 
@@ -800,19 +810,19 @@ namespace OpenWifi {
 			Params.set(uCentralProtocol::SERIAL, SerialNumber_);
 			Params.set(uCentralProtocol::WHEN, When);
 			Params.set(uCentralProtocol::MESSAGE, MessageType);
-			Params.set(uCentralProtocol::REQUEST_UUID, Cmd.UUID);
+			Params.set(uCentralProtocol::REQUEST_UUID, CMD_UUID);
 
 			std::stringstream ParamStream;
 			Params.stringify(ParamStream);
 			Cmd.Details = ParamStream.str();
 
-			return RESTAPI_RPC::WaitForCommand(Cmd, Params, *Request, *Response, 60000ms, nullptr, this, Logger_ );
+			return RESTAPI_RPC::WaitForCommand(CMD_RPC,Cmd, Params, *Request, *Response, 60000ms, nullptr, this, Logger_ );
 		}
 		BadRequest(RESTAPI::Errors::MissingOrInvalidParameters);
 	}
 
-	void RESTAPI_device_commandHandler::Rtty() {
-		Logger_.information(fmt::format("RTTY: user={} serial={}", UserInfo_.userinfo.email,SerialNumber_));
+	void RESTAPI_device_commandHandler::Rtty(const std::string &CMD_UUID, uint64_t CMD_RPC) {
+		Logger_.information(fmt::format("RTTY({},{}): user={} serial={}", CMD_UUID, CMD_RPC, Requester(), SerialNumber_));
 
 		if(!DeviceRegistry()->Connected(SerialNumber_)) {
 			return BadRequest(RESTAPI::Errors::DeviceNotConnected);
@@ -822,7 +832,6 @@ namespace OpenWifi {
 			GWObjects::Device	Device;
 
 			if (StorageService()->GetDevice(SerialNumber_, Device)) {
-				auto CommandUUID = MicroService::CreateUUID();
 
 				GWObjects::RttySessionDetails Rtty{
 					.SerialNumber = SerialNumber_,
@@ -832,7 +841,7 @@ namespace OpenWifi {
 					.TimeOut = MicroService::instance().ConfigGetInt("rtty.timeout", 60),
 					.ConnectionId =  Utils::ComputeHash(SerialNumber_,OpenWifi::Now()).substr(0,32),
 					.Started = OpenWifi::Now(),
-					.CommandUUID = CommandUUID,
+					.CommandUUID = CMD_UUID,
 					.ViewPort = MicroService::instance().ConfigGetInt("rtty.viewport", 5913),
 					.DevicePassword = ""
 				};
@@ -850,7 +859,7 @@ namespace OpenWifi {
 				GWObjects::CommandDetails Cmd;
 				Cmd.SerialNumber = SerialNumber_;
 				Cmd.SubmittedBy = UserInfo_.webtoken.username_;
-				Cmd.UUID = CommandUUID;
+				Cmd.UUID = CMD_UUID;
 				Cmd.Command = uCentralProtocol::RTTY;
 
 				Poco::JSON::Object Params;
@@ -868,8 +877,8 @@ namespace OpenWifi {
 				std::stringstream ParamStream;
 				Params.stringify(ParamStream);
 				Cmd.Details = ParamStream.str();
-				Logger_.information(fmt::format("RTTY: user={} serial={} rttyid={} token={} cmd={}.", UserInfo_.userinfo.email, SerialNumber_, Rtty.ConnectionId, Rtty.Token, Cmd.UUID));
-				return RESTAPI_RPC::WaitForCommand(Cmd, Params, *Request, *Response, 60000ms, &ReturnedObject, this, Logger_);
+				Logger_.information(fmt::format("RTTY: user={} serial={} rttyid={} token={} cmd={}.", UserInfo_.userinfo.email, SerialNumber_, Rtty.ConnectionId, Rtty.Token, CMD_UUID));
+				return RESTAPI_RPC::WaitForCommand(CMD_RPC,Cmd, Params, *Request, *Response, 60000ms, &ReturnedObject, this, Logger_);
 			}
 			return NotFound();
 		}
@@ -877,8 +886,8 @@ namespace OpenWifi {
 		return ReturnStatus(Poco::Net::HTTPResponse::HTTP_SERVICE_UNAVAILABLE);
 	}
 
-	void RESTAPI_device_commandHandler::Telemetry(){
-		Logger_.information(fmt::format("TELEMETRY: user={} serial={}", UserInfo_.userinfo.email,SerialNumber_));
+	void RESTAPI_device_commandHandler::Telemetry(const std::string &CMD_UUID, uint64_t CMD_RPC){
+		Logger_.information(fmt::format("TELEMETRY({},{}): user={} serial={}", CMD_UUID, CMD_RPC, Requester(), SerialNumber_));
 
 		const auto &Obj = ParsedBody_;
 		if (Obj->has(RESTAPI::Protocol::SERIALNUMBER) &&
@@ -918,8 +927,6 @@ namespace OpenWifi {
 				return BadRequest(RESTAPI::Errors::DeviceNotConnected);
 			}
 
-			auto NewUUID = MicroService::instance().CreateUUID();
-
 			Poco::JSON::Object Answer;
 
 			auto IntSerialNumber = Utils::SerialNumberToInt(SerialNumber_);
@@ -929,7 +936,7 @@ namespace OpenWifi {
 					if (Interval) {
 						DeviceRegistry()->SetKafkaTelemetryReporting(IntSerialNumber, Interval, Lifetime);
 						Answer.set("action", "Kafka telemetry started.");
-						Answer.set("uuid", NewUUID);
+						Answer.set("uuid", CMD_UUID);
 					} else {
 						DeviceRegistry()->StopKafkaTelemetry(IntSerialNumber);
 						Answer.set("action", "Kafka telemetry stopped.");
@@ -939,10 +946,10 @@ namespace OpenWifi {
 						DeviceRegistry()->SetWebSocketTelemetryReporting(IntSerialNumber, Interval,
 																				  Lifetime);
 						std::string EndPoint;
-						if (TelemetryStream()->CreateEndpoint(Utils::SerialNumberToInt(SerialNumber_), EndPoint, NewUUID)) {
+						if (TelemetryStream()->CreateEndpoint(Utils::SerialNumberToInt(SerialNumber_), EndPoint, CMD_UUID)) {
 							Answer.set("action", "WebSocket telemetry started.");
 							Answer.set("serialNumber", SerialNumber_);
-							Answer.set("uuid", NewUUID);
+							Answer.set("uuid", CMD_UUID);
 							Answer.set("uri", EndPoint);
 						} else {
 							return BadRequest(RESTAPI::Errors::InternalError);

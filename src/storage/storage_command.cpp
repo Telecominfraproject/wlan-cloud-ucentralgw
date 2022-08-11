@@ -331,7 +331,7 @@ typedef Poco::Tuple<
 		return false;
 	}
 
-	bool Storage::GetCommand(std::string &UUID, GWObjects::CommandDetails &Command) {
+	bool Storage::GetCommand(const std::string &UUID, GWObjects::CommandDetails &Command) {
 
 		try {
 			Poco::Data::Session Sess = Pool_->get();
@@ -341,11 +341,11 @@ typedef Poco::Tuple<
 				"SELECT " +
 				DB_Command_SelectFields +
 				" FROM CommandList WHERE UUID=?"};
-
+			auto tmp_uuid = UUID;
 			CommandDetailsRecordTuple R;
 			Select << ConvertParams(St),
 				Poco::Data::Keywords::into(R),
-				Poco::Data::Keywords::use(UUID);
+				Poco::Data::Keywords::use(tmp_uuid);
 			ConvertCommandRecord(R,Command);
 			Select.execute();
 			return true;

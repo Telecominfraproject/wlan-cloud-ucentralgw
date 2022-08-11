@@ -31,7 +31,8 @@ namespace OpenWifi::RESTAPI_RPC {
 			return Handler->ReturnStatus(Poco::Net::HTTPResponse::HTTP_INTERNAL_SERVER_ERROR);
 	}
 
-	void WaitForCommand(GWObjects::CommandDetails &Cmd,
+	void WaitForCommand(uint64_t RPCID,
+						GWObjects::CommandDetails &Cmd,
 						Poco::JSON::Object  & Params,
 						Poco::Net::HTTPServerRequest &Request,
 						Poco::Net::HTTPServerResponse &Response,
@@ -56,7 +57,7 @@ namespace OpenWifi::RESTAPI_RPC {
 		bool Sent;
 		std::chrono::time_point<std::chrono::high_resolution_clock> rpc_submitted = std::chrono::high_resolution_clock::now();
 		std::shared_ptr<CommandManager::promise_type_t> rpc_endpoint =
-			CommandManager()->PostCommand(Cmd.SerialNumber, Cmd.Command, Params, Cmd.UUID, Sent);
+			CommandManager()->PostCommand(RPCID, Cmd.SerialNumber, Cmd.Command, Params, Cmd.UUID, Sent);
 
 		if(!Sent || rpc_endpoint== nullptr) {
 			Logger.information(fmt::format("{}: Pending completion. Device is not connected.", Cmd.UUID));

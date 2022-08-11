@@ -2446,6 +2446,7 @@ namespace OpenWifi {
             Poco::Net::HTTPServerResponse       *Response= nullptr;
             SecurityObjects::UserInfoAndPolicy 	UserInfo_;
             QueryBlock					QB_;
+			const std::string & Requester() const { return REST_Requester_; }
 	    protected:
 	        BindingMap 					Bindings_;
 	        Poco::URI::QueryParameters 	Parameters_;
@@ -2462,6 +2463,7 @@ namespace OpenWifi {
 	        RateLimit                   MyRates_;
             uint64_t                    TransactionId_;
             Poco::JSON::Object::Ptr     ParsedBody_;
+			std::string					REST_Requester_;
 	    };
 
 	    class RESTAPI_UnknownRequestHandler : public RESTAPIHandler {
@@ -4754,6 +4756,7 @@ namespace OpenWifi {
                 }
             } else {
                 auto Id = Request->get("X-INTERNAL-NAME", "unknown");
+				REST_Requester_ = Id;
                 if(Server_.LogIt(Request->getMethod(),true)) {
                     Logger_.debug(fmt::format("I-REQ-ALLOWED({}): User='{}' Method={} Path={}",
                                                Utils::FormatIPv6(Request->clientAddress().toString()), Id,
@@ -4777,6 +4780,7 @@ namespace OpenWifi {
 #else
             if (AuthClient()->IsAuthorized( SessionToken_, UserInfo_, Expired, Contacted, Sub)) {
 #endif
+				REST_Requester_ = UserInfo_.userinfo.email;
                 if(Server_.LogIt(Request->getMethod(),true)) {
                     Logger_.debug(fmt::format("X-REQ-ALLOWED({}): User='{}@{}' Method={} Path={}",
                                                UserInfo_.userinfo.email,

@@ -43,7 +43,7 @@ namespace OpenWifi {
 		void Stop() override;
 
 		bool IsValidEndPoint(uint64_t SerialNumber, const std::string & UUID);
-		bool CreateEndpoint(uint64_t SerialNumber, std::string &EndPoint, std::string &UUID);
+		bool CreateEndpoint(uint64_t SerialNumber, std::string &EndPoint, const std::string &UUID);
 		void UpdateEndPoint(uint64_t SerialNumber, const std::string &PayLoad);
 		bool RegisterClient(const std::string &UUID, TelemetryClient *Client);
 		void DeRegisterClient(const std::string &UUID);
