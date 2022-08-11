@@ -849,7 +849,7 @@ namespace OpenWifi {
 				if(RTTYS_server()->UseInternal()) {
 					// Rtty.Token = MicroService::instance().CreateHash(UserInfo_.webtoken.refresh_token_ + std::to_string(OpenWifi::Now())).substr(0,32);
 					Rtty.Token = Utils::ComputeHash(UserInfo_.webtoken.refresh_token_,OpenWifi::Now()).substr(0,32);
-					RTTYS_server()->CreateEndPoint(Rtty.ConnectionId, Rtty.Token, UserInfo_.userinfo.email, SerialNumber_);
+					RTTYS_server()->CreateEndPoint(Rtty.ConnectionId, Rtty.Token, Requester(), SerialNumber_);
 				}
 
 				Poco::JSON::Object ReturnedObject;
@@ -877,12 +877,12 @@ namespace OpenWifi {
 				std::stringstream ParamStream;
 				Params.stringify(ParamStream);
 				Cmd.Details = ParamStream.str();
-				Logger_.information(fmt::format("RTTY: user={} serial={} rttyid={} token={} cmd={}.", UserInfo_.userinfo.email, SerialNumber_, Rtty.ConnectionId, Rtty.Token, CMD_UUID));
+				Logger_.information(fmt::format("RTTY: user={} serial={} rttyid={} token={} cmd={}.", Requester(), SerialNumber_, Rtty.ConnectionId, Rtty.Token, CMD_UUID));
 				return RESTAPI_RPC::WaitForCommand(CMD_RPC,Cmd, Params, *Request, *Response, 60000ms, &ReturnedObject, this, Logger_);
 			}
 			return NotFound();
 		}
-		Logger_.information(fmt::format("RTTY: user={} serial={}. Internal error.", UserInfo_.userinfo.email,SerialNumber_));
+		Logger_.information(fmt::format("RTTY: user={} serial={}. Internal error.", Requester(), SerialNumber_));
 		return ReturnStatus(Poco::Net::HTTPResponse::HTTP_SERVICE_UNAVAILABLE);
 	}
 
