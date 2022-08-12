@@ -9,6 +9,7 @@
 #pragma once
 
 #include "framework/MicroService.h"
+#include "framework/ow_constants.h"
 
 namespace OpenWifi {
 	class RESTAPI_device_commandHandler : public RESTAPIHandler {
@@ -52,6 +53,8 @@ namespace OpenWifi {
 		void DoDelete() final;
 		void DoPost() final;
 		void DoPut() final {};
+
+		void CallCanceled(const char * Cmd,const std::string &UUID, uint64_t RPC, const OpenWifi::RESTAPI::Errors::msg & Err);
 
 		inline bool ValidateParameters() {
 			Command_ =  GetBinding(RESTAPI::Protocol::COMMAND, "");

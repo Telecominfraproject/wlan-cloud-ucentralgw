@@ -196,6 +196,7 @@ namespace OpenWifi {
 		if (Obj->has(RESTAPI::Protocol::SERIALNUMBER)) {
 			auto SNum = Obj->get(RESTAPI::Protocol::SERIALNUMBER).toString();
 			if (SerialNumber_ != SNum) {
+				CallCanceled("PING", CMD_UUID, CMD_RPC,RESTAPI::Errors::SerialNumberMismatch);
 				return BadRequest(RESTAPI::Errors::SerialNumberMismatch);
 			}
 
@@ -241,15 +242,21 @@ namespace OpenWifi {
 		return BadRequest(RESTAPI::Errors::MissingSerialNumber);
 	}
 
+	void RESTAPI_device_commandHandler::CallCanceled(const char * Cmd, const std::string &UUID, uint64_t RPC, const OpenWifi::RESTAPI::Errors::msg &Err) {
+		Logger_.warning(fmt::format("{}({},{}): Canceled. Error:{} Reason:{}", Cmd, UUID, RPC, Err.err_num, Err.err_txt));
+	}
+
 	void RESTAPI_device_commandHandler::Script(const std::string &CMD_UUID, uint64_t CMD_RPC) {
 		Logger_.information(fmt::format("SCRIPT({},{}): user={} serial={}", CMD_UUID, CMD_RPC, Requester(), SerialNumber_));
 		if(!Internal_ && UserInfo_.userinfo.userRole!=SecurityObjects::ROOT) {
+			CallCanceled("SCRIPT", CMD_UUID, CMD_RPC,RESTAPI::Errors::ACCESS_DENIED);
 			return UnAuthorized(RESTAPI::Errors::ACCESS_DENIED);
 		}
 
 		const auto &Obj = ParsedBody_;
 		GWObjects::ScriptRequest	SCR;
 		if(!SCR.from_json(Obj)) {
+			CallCanceled("SCRIPT", CMD_UUID, CMD_RPC,RESTAPI::Errors::InvalidJSONDocument);
 			return BadRequest(RESTAPI::Errors::InvalidJSONDocument);
 		}
 
@@ -258,10 +265,12 @@ namespace OpenWifi {
 			SCR.type.empty() ||
 			SCR.scriptId.empty() ||
 			(SCR.type!="shell" && SCR.type!="ucode")) {
+			CallCanceled("SCRIPT", CMD_UUID, CMD_RPC,RESTAPI::Errors::MissingOrInvalidParameters);
 			return BadRequest(RESTAPI::Errors::MissingOrInvalidParameters);
 		}
 
 		if (SerialNumber_ != SCR.serialNumber) {
+			CallCanceled("SCRIPT", CMD_UUID, CMD_RPC,RESTAPI::Errors::SerialNumberMismatch);
 			return BadRequest(RESTAPI::Errors::SerialNumberMismatch);
 		}
 
@@ -313,12 +322,14 @@ namespace OpenWifi {
 
 			auto SNum = Obj->get(RESTAPI::Protocol::SERIALNUMBER).toString();
 			if (SerialNumber_ != SNum) {
+				CallCanceled("CONFIGURE", CMD_UUID, CMD_RPC,RESTAPI::Errors::SerialNumberMismatch);
 				return BadRequest(RESTAPI::Errors::SerialNumberMismatch);
 			}
 
 			auto Configuration = GetS(RESTAPI::Protocol::CONFIGURATION, Obj,uCentralProtocol::EMPTY_JSON_DOC);
 			std::string Error;
 			if (!ValidateUCentralConfiguration(Configuration, Error)) {
+				CallCanceled("CONFIGURE", CMD_UUID, CMD_RPC,RESTAPI::Errors::ConfigBlockInvalid);
 				return BadRequest(RESTAPI::Errors::ConfigBlockInvalid);
 			}
 
@@ -363,6 +374,7 @@ namespace OpenWifi {
 
 			auto SNum = Obj->get(RESTAPI::Protocol::SERIALNUMBER).toString();
 			if (SerialNumber_ != SNum) {
+				CallCanceled("UPGRADE", CMD_UUID, CMD_RPC,RESTAPI::Errors::SerialNumberMismatch);
 				return BadRequest(RESTAPI::Errors::SerialNumberMismatch);
 			}
 
@@ -477,6 +489,7 @@ namespace OpenWifi {
 
 			auto SNum = Obj->get(RESTAPI::Protocol::SERIALNUMBER).toString();
 			if (SerialNumber_ != SNum) {
+				CallCanceled("EXECUTE", CMD_UUID, CMD_RPC,RESTAPI::Errors::SerialNumberMismatch);
 				return BadRequest(RESTAPI::Errors::SerialNumberMismatch);
 			}
 
@@ -522,10 +535,12 @@ namespace OpenWifi {
 		if (Obj->has(RESTAPI::Protocol::SERIALNUMBER)) {
 			auto SNum = Obj->get(RESTAPI::Protocol::SERIALNUMBER).toString();
 			if (SerialNumber_ != SNum) {
+				CallCanceled("REBOOT", CMD_UUID, CMD_RPC,RESTAPI::Errors::SerialNumberMismatch);
 				return BadRequest(RESTAPI::Errors::SerialNumberMismatch);
 			}
 
 			if(!DeviceRegistry()->Connected(SerialNumber_)) {
+				CallCanceled("REBOOT", CMD_UUID, CMD_RPC,RESTAPI::Errors::DeviceNotConnected);
 				return BadRequest(RESTAPI::Errors::DeviceNotConnected);
 			}
 
@@ -561,6 +576,7 @@ namespace OpenWifi {
 			auto SNum = Obj->get(RESTAPI::Protocol::SERIALNUMBER).toString();
 
 			if (SerialNumber_ != SNum) {
+				CallCanceled("FACTORY-RESET", CMD_UUID, CMD_RPC,RESTAPI::Errors::SerialNumberMismatch);
 				return BadRequest(RESTAPI::Errors::SerialNumberMismatch);
 			}
 
@@ -600,7 +616,13 @@ namespace OpenWifi {
 
 			auto SNum = Obj->get(RESTAPI::Protocol::SERIALNUMBER).toString();
 			if (SerialNumber_ != SNum) {
+				CallCanceled("LEDS", CMD_UUID, CMD_RPC,RESTAPI::Errors::SerialNumberMismatch);
 				return BadRequest(RESTAPI::Errors::SerialNumberMismatch);
+			}
+
+			if(!DeviceRegistry()->Connected(SerialNumber_)) {
+				CallCanceled("LEDS", CMD_UUID, CMD_RPC,RESTAPI::Errors::DeviceNotConnected);
+				return BadRequest(RESTAPI::Errors::DeviceNotConnected);
 			}
 
 			auto Pattern =
@@ -648,10 +670,12 @@ namespace OpenWifi {
 
 			auto SNum = Obj->get(RESTAPI::Protocol::SERIALNUMBER).toString();
 			if (SerialNumber_ != SNum) {
+				CallCanceled("TRACE", CMD_UUID, CMD_RPC,RESTAPI::Errors::SerialNumberMismatch);
 				return BadRequest(RESTAPI::Errors::SerialNumberMismatch);
 			}
 
 			if(!DeviceRegistry()->Connected(SerialNumber_)) {
+				CallCanceled("TRACE", CMD_UUID, CMD_RPC,RESTAPI::Errors::DeviceNotConnected);
 				return BadRequest(RESTAPI::Errors::DeviceNotConnected);
 			}
 
@@ -695,15 +719,16 @@ namespace OpenWifi {
 
 	void RESTAPI_device_commandHandler::WifiScan(const std::string &CMD_UUID, uint64_t CMD_RPC) {
 		Logger_.information(fmt::format("WIFISCAN({},{}): user={} serial={}", CMD_UUID, CMD_RPC, Requester(), SerialNumber_));
-
 		const auto &Obj = ParsedBody_;
 
 		auto SNum = Obj->get(RESTAPI::Protocol::SERIALNUMBER).toString();
 		if (SerialNumber_ != SNum) {
+			CallCanceled("WIFISCAN", CMD_UUID, CMD_RPC,RESTAPI::Errors::SerialNumberMismatch);
 			return BadRequest(RESTAPI::Errors::SerialNumberMismatch);
 		}
 
 		if(!DeviceRegistry()->Connected(SerialNumber_)) {
+			CallCanceled("WIFISCAN", CMD_UUID, CMD_RPC,RESTAPI::Errors::DeviceNotConnected);
 			return BadRequest(RESTAPI::Errors::DeviceNotConnected);
 		}
 
@@ -751,7 +776,13 @@ namespace OpenWifi {
 
 			auto SNum = Obj->get(RESTAPI::Protocol::SERIALNUMBER).toString();
 			if (SerialNumber_ != SNum) {
+				CallCanceled("EVENT-QUEUE", CMD_UUID, CMD_RPC,RESTAPI::Errors::SerialNumberMismatch);
 				return BadRequest(RESTAPI::Errors::SerialNumberMismatch);
+			}
+
+			if(!DeviceRegistry()->Connected(SerialNumber_)) {
+				CallCanceled("EVENT-QUEUE", CMD_UUID, CMD_RPC,RESTAPI::Errors::DeviceNotConnected);
+				return BadRequest(RESTAPI::Errors::DeviceNotConnected);
 			}
 
 			auto Types = Obj->getArray(RESTAPI::Protocol::TYPES);
@@ -793,7 +824,13 @@ namespace OpenWifi {
 			if ((SerialNumber_ != SNum) ||
 				(MessageType != uCentralProtocol::STATE &&
 				 MessageType != uCentralProtocol::HEALTHCHECK)) {
+				CallCanceled("FORCE-REQUEST", CMD_UUID, CMD_RPC,RESTAPI::Errors::MissingOrInvalidParameters);
 				return BadRequest(RESTAPI::Errors::MissingOrInvalidParameters);
+			}
+
+			if(!DeviceRegistry()->Connected(SerialNumber_)) {
+				CallCanceled("FORCE-REQUEST", CMD_UUID, CMD_RPC,RESTAPI::Errors::DeviceNotConnected);
+				return BadRequest(RESTAPI::Errors::DeviceNotConnected);
 			}
 
 			auto When = GetWhen(Obj);
@@ -825,6 +862,7 @@ namespace OpenWifi {
 		Logger_.information(fmt::format("RTTY({},{}): user={} serial={}", CMD_UUID, CMD_RPC, Requester(), SerialNumber_));
 
 		if(!DeviceRegistry()->Connected(SerialNumber_)) {
+			CallCanceled("RTTY", CMD_UUID, CMD_RPC,RESTAPI::Errors::DeviceNotConnected);
 			return BadRequest(RESTAPI::Errors::DeviceNotConnected);
 		}
 
@@ -896,10 +934,12 @@ namespace OpenWifi {
 
 			auto SNum = Obj->get(RESTAPI::Protocol::SERIALNUMBER).toString();
 			if (SerialNumber_ != SNum) {
+				CallCanceled("TELEMETRY", CMD_UUID, CMD_RPC,RESTAPI::Errors::SerialNumberMismatch);
 				return BadRequest(RESTAPI::Errors::SerialNumberMismatch);
 			}
 
 			if (!DeviceRegistry()->Connected(SerialNumber_)) {
+				CallCanceled("TELEMETRY", CMD_UUID, CMD_RPC,RESTAPI::Errors::DeviceNotConnected);
 				return BadRequest(RESTAPI::Errors::DeviceNotConnected);
 			}
 
@@ -919,13 +959,6 @@ namespace OpenWifi {
 
 			AssignIfPresent(Obj, RESTAPI::Protocol::INTERVAL, Interval);
 			AssignIfPresent(Obj, RESTAPI::Protocol::LIFETIME, Lifetime);
-
-			// std::cout << "I:" << Interval << "  L:" << Lifetime << std::endl;
-
-			auto DeviceConnection = DeviceRegistry()->GetDeviceConnection(SerialNumber_);
-			if(!DeviceRegistry()->Connected(SerialNumber_)) {
-				return BadRequest(RESTAPI::Errors::DeviceNotConnected);
-			}
 
 			Poco::JSON::Object Answer;
 
