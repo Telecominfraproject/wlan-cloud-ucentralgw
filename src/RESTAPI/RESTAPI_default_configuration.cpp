@@ -14,10 +14,11 @@
 #include "StorageService.h"
 #include "framework/ow_constants.h"
 #include "framework/ConfigurationValidator.h"
+#include "framework/orm.h"
 
 namespace OpenWifi {
 	void RESTAPI_default_configuration::DoGet() {
-		std::string Name = GetBinding(RESTAPI::Protocol::NAME, "");
+		std::string Name = ORM::Escape(GetBinding(RESTAPI::Protocol::NAME, ""));
 		GWObjects::DefaultConfiguration DefConfig;
 		if (StorageService()->GetDefaultConfiguration(Name, DefConfig)) {
 			Poco::JSON::Object Obj;
@@ -28,7 +29,7 @@ namespace OpenWifi {
 	}
 
 	void RESTAPI_default_configuration::DoDelete() {
-		std::string Name = GetBinding(RESTAPI::Protocol::NAME, "");
+		std::string Name = ORM::Escape(GetBinding(RESTAPI::Protocol::NAME, ""));
 		if(Name.empty()) {
 			return BadRequest(RESTAPI::Errors::MissingOrInvalidParameters);
 		}

@@ -13,6 +13,10 @@
 namespace OpenWifi {
 	void RESTAPI_commands::DoGet() {
 		auto SerialNumber = GetParameter(RESTAPI::Protocol::SERIALNUMBER, "");
+		if(!Utils::ValidSerialNumber(SerialNumber)) {
+			return BadRequest(RESTAPI::Errors::MissingSerialNumber);
+		}
+
 		std::vector<GWObjects::CommandDetails> Commands;
 		if (QB_.Newest) {
 			StorageService()->GetNewestCommands(SerialNumber, QB_.Limit, Commands);
@@ -33,10 +37,10 @@ namespace OpenWifi {
 
 	void RESTAPI_commands::DoDelete() {
 		auto SerialNumber = GetParameter(RESTAPI::Protocol::SERIALNUMBER, "");
-
-		if(SerialNumber.empty()) {
+		if(!Utils::ValidSerialNumber(SerialNumber)) {
 			return BadRequest(RESTAPI::Errors::MissingSerialNumber);
 		}
+
 		if (StorageService()->DeleteCommands(SerialNumber, QB_.StartDate, QB_.EndDate)) {
 			return OK();
 		}

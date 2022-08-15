@@ -15,11 +15,13 @@
 #include "framework/MicroService.h"
 #include "RESTAPI/RESTAPI_device_helper.h"
 #include "Poco/StringTokenizer.h"
+#include "framework/orm.h"
 
 namespace OpenWifi {
 
 
-	bool PrepareOrderBy(const std::string &OrderByList, std::string &OrderByString) {
+	bool PrepareOrderBy(const std::string &OrderByListRaw, std::string &OrderByString) {
+		auto OrderByList = ORM::Escape(OrderByListRaw);
 		auto items = Poco::StringTokenizer(OrderByList,",");
 		std::string ItemList;
 
@@ -80,6 +82,8 @@ namespace OpenWifi {
 			Poco::JSON::Array Objects;
 			for (auto &i : SelectedRecords()) {
 				auto SerialNumber = i;
+				if(!Utils::ValidSerialNumber(i))
+					continue;
 				GWObjects::Device D;
 				if (StorageService()->GetDevice(SerialNumber, D)) {
 					if(completeInfo) {
