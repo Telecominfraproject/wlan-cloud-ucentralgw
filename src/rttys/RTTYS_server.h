@@ -292,6 +292,7 @@ namespace OpenWifi {
 
 		uint64_t 									Started_=OpenWifi::Now();
 
+		uint64_t 									MaxConcurrentSessions_=0;
 
 		explicit RTTYS_server() noexcept:
 		SubSystemServer("RTTY_Server", "RTTY-SVR", "rtty.server")

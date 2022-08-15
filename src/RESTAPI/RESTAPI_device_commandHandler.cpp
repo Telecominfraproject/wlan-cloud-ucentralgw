@@ -887,7 +887,9 @@ namespace OpenWifi {
 				if(RTTYS_server()->UseInternal()) {
 					// Rtty.Token = MicroService::instance().CreateHash(UserInfo_.webtoken.refresh_token_ + std::to_string(OpenWifi::Now())).substr(0,32);
 					Rtty.Token = Utils::ComputeHash(UserInfo_.webtoken.refresh_token_,OpenWifi::Now()).substr(0,32);
-					RTTYS_server()->CreateEndPoint(Rtty.ConnectionId, Rtty.Token, Requester(), SerialNumber_);
+					if(!RTTYS_server()->CreateEndPoint(Rtty.ConnectionId, Rtty.Token, Requester(), SerialNumber_)) {
+						return BadRequest(RESTAPI::Errors::MaximumRTTYSessionsReached);
+					}
 				}
 
 				Poco::JSON::Object ReturnedObject;
