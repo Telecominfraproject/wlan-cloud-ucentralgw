@@ -214,7 +214,7 @@ namespace OpenWifi {
 			Params.stringify(ParamStream);
 			Cmd.Details = ParamStream.str();
 
-			RESTAPI_RPC::WaitForCommand(CMD_RPC,Cmd, Params, *Request, *Response, 60000ms, nullptr, nullptr, Logger_);
+			RESTAPI_RPC::WaitForCommand(CMD_RPC,false,Cmd, Params, *Request, *Response, 60000ms, nullptr, nullptr, Logger_);
 
 			GWObjects::CommandDetails Cmd2;
 			if(StorageService()->GetCommand(CMD_UUID,Cmd2)) {
@@ -294,7 +294,7 @@ namespace OpenWifi {
 		Params.stringify(ParamStream);
 		Cmd.Details = ParamStream.str();
 
-		return RESTAPI_RPC::WaitForCommand(CMD_RPC,Cmd, Params, *Request, *Response, 120000ms, nullptr, this, Logger_);
+		return RESTAPI_RPC::WaitForCommand(CMD_RPC,false,Cmd, Params, *Request, *Response, 120000ms, nullptr, this, Logger_);
 	}
 
 	void RESTAPI_device_commandHandler::GetStatus() {
@@ -357,7 +357,7 @@ namespace OpenWifi {
 				Cmd.Details = ParamStream.str();
 
 				DeviceRegistry()->SetPendingUUID(SerialNumber_, NewUUID);
-				return RESTAPI_RPC::WaitForCommand(CMD_RPC,Cmd, Params, *Request, *Response, 60000ms, nullptr, this, Logger_);
+				return RESTAPI_RPC::WaitForCommand(CMD_RPC,true,Cmd, Params, *Request, *Response, 60000ms, nullptr, this, Logger_);
 			}
 			return BadRequest(RESTAPI::Errors::RecordNotUpdated);
 		}
@@ -402,7 +402,7 @@ namespace OpenWifi {
 			Params.stringify(ParamStream);
 			Cmd.Details = ParamStream.str();
 
-			return RESTAPI_RPC::WaitForCommand(CMD_RPC,Cmd, Params, *Request, *Response, 60000ms, nullptr, this, Logger_);
+			return RESTAPI_RPC::WaitForCommand(CMD_RPC,true,Cmd,Params, *Request, *Response, 60000ms, nullptr, this, Logger_);
 		}
 		BadRequest(RESTAPI::Errors::MissingOrInvalidParameters);
 	}
@@ -522,7 +522,7 @@ namespace OpenWifi {
 			Params.stringify(ParamStream);
 			Cmd.Details = ParamStream.str();
 
-			return RESTAPI_RPC::WaitForCommand(CMD_RPC,Cmd, Params, *Request, *Response, 60000ms, nullptr, this, Logger_);
+			return RESTAPI_RPC::WaitForCommand(CMD_RPC,false,Cmd, Params, *Request, *Response, 60000ms, nullptr, this, Logger_);
 		}
 		BadRequest(RESTAPI::Errors::MissingOrInvalidParameters);
 	}
@@ -561,7 +561,7 @@ namespace OpenWifi {
 			Params.stringify(ParamStream);
 			Cmd.Details = ParamStream.str();
 
-			return RESTAPI_RPC::WaitForCommand(CMD_RPC,Cmd, Params, *Request, *Response, 60000ms, nullptr, this, Logger_);
+			return RESTAPI_RPC::WaitForCommand(CMD_RPC,false,Cmd, Params, *Request, *Response, 60000ms, nullptr, this, Logger_);
 		}
 		BadRequest(RESTAPI::Errors::MissingSerialNumber);
 	}
@@ -601,7 +601,7 @@ namespace OpenWifi {
 			Params.stringify(ParamStream);
 			Cmd.Details = ParamStream.str();
 
-			return RESTAPI_RPC::WaitForCommand(CMD_RPC,Cmd, Params, *Request, *Response, 60000ms, nullptr, this, Logger_);
+			return RESTAPI_RPC::WaitForCommand(CMD_RPC,true,Cmd, Params, *Request, *Response, 60000ms, nullptr, this, Logger_);
 		}
 		BadRequest(RESTAPI::Errors::MissingOrInvalidParameters);
 	}
@@ -654,7 +654,7 @@ namespace OpenWifi {
 			Params.stringify(ParamStream);
 			Cmd.Details = ParamStream.str();
 
-			return RESTAPI_RPC::WaitForCommand(CMD_RPC,Cmd, Params, *Request, *Response, 60000ms, nullptr, this, Logger_);
+			return RESTAPI_RPC::WaitForCommand(CMD_RPC,false,Cmd, Params, *Request, *Response, 60000ms, nullptr, this, Logger_);
 		}
 		BadRequest(RESTAPI::Errors::MissingOrInvalidParameters);
 	}
@@ -712,7 +712,7 @@ namespace OpenWifi {
 			Cmd.Details = ParamStream.str();
 
 			FileUploader()->AddUUID(CMD_UUID);
-			return RESTAPI_RPC::WaitForCommand(CMD_RPC,Cmd, Params, *Request, *Response, 160000ms, nullptr, this, Logger_);
+			return RESTAPI_RPC::WaitForCommand(CMD_RPC,false,Cmd, Params, *Request, *Response, 160000ms, nullptr, this, Logger_);
 		}
 		BadRequest(RESTAPI::Errors::MissingOrInvalidParameters);
 	}
@@ -761,7 +761,7 @@ namespace OpenWifi {
 		std::stringstream ParamStream;
 		Params.stringify(ParamStream);
 		Cmd.Details = ParamStream.str();
-		RESTAPI_RPC::WaitForCommand(CMD_RPC,Cmd, Params, *Request, *Response, 120000ms, nullptr, this, Logger_);
+		RESTAPI_RPC::WaitForCommand(CMD_RPC,false,Cmd, Params, *Request, *Response, 120000ms, nullptr, this, Logger_);
 		if (Cmd.ErrorCode == 0) {
 			KafkaManager()->PostMessage(KafkaTopics::WIFISCAN, SerialNumber_, Cmd.Results);
 		}
@@ -801,7 +801,7 @@ namespace OpenWifi {
 			Params.stringify(ParamStream);
 			Cmd.Details = ParamStream.str();
 
-			RESTAPI_RPC::WaitForCommand(CMD_RPC,Cmd, Params, *Request, *Response, 60000ms, nullptr, this, Logger_);
+			RESTAPI_RPC::WaitForCommand(CMD_RPC,false,Cmd, Params, *Request, *Response, 60000ms, nullptr, this, Logger_);
 			if(Cmd.ErrorCode==0) {
 				KafkaManager()->PostMessage(KafkaTopics::DEVICE_EVENT_QUEUE, SerialNumber_,
 											Cmd.Results);
@@ -853,7 +853,7 @@ namespace OpenWifi {
 			Params.stringify(ParamStream);
 			Cmd.Details = ParamStream.str();
 
-			return RESTAPI_RPC::WaitForCommand(CMD_RPC,Cmd, Params, *Request, *Response, 60000ms, nullptr, this, Logger_ );
+			return RESTAPI_RPC::WaitForCommand(CMD_RPC,false,Cmd, Params, *Request, *Response, 60000ms, nullptr, this, Logger_ );
 		}
 		BadRequest(RESTAPI::Errors::MissingOrInvalidParameters);
 	}
@@ -916,7 +916,7 @@ namespace OpenWifi {
 				Params.stringify(ParamStream);
 				Cmd.Details = ParamStream.str();
 				Logger_.information(fmt::format("RTTY: user={} serial={} rttyid={} token={} cmd={}.", Requester(), SerialNumber_, Rtty.ConnectionId, Rtty.Token, CMD_UUID));
-				return RESTAPI_RPC::WaitForCommand(CMD_RPC,Cmd, Params, *Request, *Response, 60000ms, &ReturnedObject, this, Logger_);
+				return RESTAPI_RPC::WaitForCommand(CMD_RPC,false,Cmd, Params, *Request, *Response, 60000ms, &ReturnedObject, this, Logger_);
 			}
 			return NotFound();
 		}
