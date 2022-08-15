@@ -22,6 +22,7 @@ namespace OpenWifi::RESTAPI_RPC {
 
 	void WaitForCommand(
 					uint64_t RPCID,
+					bool RetryLater,
 					GWObjects::CommandDetails &Cmd,
 					Poco::JSON::Object  & Params,
 					Poco::Net::HTTPServerRequest &Request,

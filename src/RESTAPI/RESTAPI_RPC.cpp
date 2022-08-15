@@ -32,6 +32,7 @@ namespace OpenWifi::RESTAPI_RPC {
 	}
 
 	void WaitForCommand(uint64_t RPCID,
+						bool RetryLater,
 						GWObjects::CommandDetails &Cmd,
 						Poco::JSON::Object  & Params,
 						Poco::Net::HTTPServerRequest &Request,
@@ -59,14 +60,17 @@ namespace OpenWifi::RESTAPI_RPC {
 		std::shared_ptr<CommandManager::promise_type_t> rpc_endpoint =
 			CommandManager()->PostCommand(RPCID, Cmd.SerialNumber, Cmd.Command, Params, Cmd.UUID, Sent);
 
-		if(!Sent || rpc_endpoint== nullptr) {
+		if(RetryLater && (!Sent || rpc_endpoint== nullptr)) {
 			Logger.information(fmt::format("{}: Pending completion. Device is not connected.", Cmd.UUID));
 			return SetCommandStatus(Cmd, Request, Response, Handler, Storage::COMMAND_PENDING, Logger);
 		}
 
-		Logger.information(fmt::format("{}: Command sent.", Cmd.UUID));
+		if(!RetryLater && !Sent) {
+			Logger.information(fmt::format("{}: Command canceled. Device is not connected. Command will not be retried.", Cmd.UUID));
+			return SetCommandStatus(Cmd, Request, Response, Handler, Storage::COMMAND_FAILED, Logger);
+		}
 
-		Poco::JSON::Object	L;
+		Logger.information(fmt::format("{}: Command sent.", Cmd.UUID));
 
 		std::future<CommandManager::objtype_t> rpc_future(rpc_endpoint->get_future());
 		auto rpc_result = rpc_future.wait_for(WaitTimeInMs);

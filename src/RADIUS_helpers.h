@@ -49,7 +49,7 @@ namespace OpenWifi::RADIUS {
 		uint16_t pos=0;
 		auto x=25;
 		while(pos<Size && x) {
-			RadiusAttribute Attr{ .type=Buffer[pos], .pos=(uint16_t )(pos+2+offset), .len=Buffer[pos+1]};
+			RadiusAttribute Attr{ .type=Buffer[pos], .pos=(uint16_t)(pos+2+offset), .len=Buffer[pos+1]};
 			// std::cout << "POS: " << pos << "  P:" << (uint32_t) Attr.pos << "  T:" << (uint32_t) Attr.type << "  L:" << (uint32_t) Attr.len << "  S:" << (uint32_t) Size << std::endl;
 			if(pos+Attr.len<=Size) {
 				Attrs.emplace_back(Attr);
@@ -121,7 +121,7 @@ namespace OpenWifi::RADIUS {
 					AttributeList   VendorAttributes;
 					uint32_t VendorId = htonl( *(const uint32_t *)&(P_.attributes[attribute.pos]));
 					// std::cout << VendorId << std::endl;
-					if(VendorId==TIP_vendor_id) {
+					if(VendorId==TIP_vendor_id && attribute.len>(4+2)) {
 						if (ParseRadius(attribute.pos + 4, &P_.attributes[attribute.pos + 4], attribute.len - 4 - 2,
 										VendorAttributes)) {
 							// std::cout << VendorAttributes << std::endl;

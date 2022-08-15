@@ -128,7 +128,7 @@ typedef Poco::Tuple<
 
 	bool Storage::AddCommand(std::string &SerialNumber, GWObjects::CommandDetails &Command, CommandExecutionType Type) {
 		try {
-			uint64_t Now = time(nullptr);
+			auto Now = OpenWifi::Now();
 
 			if(Type == COMMAND_PENDING) {
 				Command.Status = "pending";
@@ -317,7 +317,7 @@ typedef Poco::Tuple<
 			Poco::Data::Session Sess = Pool_->get();
 			Poco::Data::Statement Update(Sess);
 
-			uint64_t Now = time(nullptr);
+			auto Now = OpenWifi::Now();
 			std::string St{"UPDATE CommandList SET Executed=? WHERE UUID=?"};
 
 			Update << ConvertParams(St),
@@ -406,7 +406,7 @@ typedef Poco::Tuple<
 			Poco::Data::Session Sess = Pool_->get();
 			Poco::Data::Statement Select(Sess);
 
-			uint64_t Now = time(nullptr);
+			auto Now = OpenWifi::Now();
 			std::string St{
 				"SELECT " +
 				DB_Command_SelectFields
@@ -435,7 +435,7 @@ typedef Poco::Tuple<
 
 	bool Storage::CommandExecuted(std::string &UUID) {
 		try {
-			uint64_t Now = time(nullptr);
+			auto Now = OpenWifi::Now();
 
 			Poco::Data::Session Sess = Pool_->get();
 			Poco::Data::Statement Update(Sess);
@@ -451,7 +451,6 @@ typedef Poco::Tuple<
 		} catch (const Poco::Exception &E) {
 			Logger().log(E);
 		}
-
 		return false;
 	}
 
@@ -460,7 +459,7 @@ typedef Poco::Tuple<
 								   bool FullCommand) {
 		try {
 
-			uint64_t Now = FullCommand ? time(nullptr) : 0;
+			auto Now = FullCommand ? OpenWifi::Now() : 0;
 
 			// Parse the result to get the ErrorText and make sure that this is a JSON document
 			uint64_t ErrorCode = 0;
@@ -498,19 +497,17 @@ typedef Poco::Tuple<
 				Poco::Data::Keywords::use(tET),
 				Poco::Data::Keywords::use(UUID);
 			Update.execute();
-
 			return true;
 		} catch (const Poco::Exception &E) {
 			Logger().log(E);
 		}
-
 		return false;
 	}
 
 	bool Storage::CancelWaitFile( std::string & UUID, std::string & ErrorText ) {
 		try {
 			Poco::Data::Session Sess = Pool_->get();
-			uint64_t Now = time(nullptr);
+			auto Now = OpenWifi::Now();
 			uint64_t Size = 0, WaitForFile = 0;
 
 			Poco::Data::Statement Update(Sess);
@@ -531,79 +528,12 @@ typedef Poco::Tuple<
 			Logger().log(E);
 		}
 		return false;
-
 	}
 
-/*	bool Storage::AttachFileToCommand(std::string &UUID) {
-		try {
-			Poco::Data::Session Sess = Pool_->get();
-			uint64_t Now = OpenWifi::Now();
-			uint64_t WaitForFile = 0;
-
-			Poco::Data::Statement Update(Sess);
-			std::cout << __LINE__ << std::endl;
-
-			Poco::File FileName = FileUploader()->Path() + "/" + UUID;
-			std::cout << __LINE__ << std::endl;
-			uint64_t Size = FileName.getSize();
-			std::cout << __LINE__ << std::endl;
-
-			std::string St{
-				"UPDATE CommandList SET WaitingForFile=?, AttachDate=?, AttachSize=? WHERE UUID=?"};
-			std::cout << __LINE__ << std::endl;
-
-			Update << ConvertParams(St),
-				Poco::Data::Keywords::use(WaitForFile),
-				Poco::Data::Keywords::use(Now),
-				Poco::Data::Keywords::use(Size),
-				Poco::Data::Keywords::use(UUID);
-			Update.execute();
-			std::cout << __LINE__ << std::endl;
-
-			if (FileName.getSize() < FileUploader()->MaxSize()) {
-
-				Poco::Data::BLOB 		TheBlob;
-
-				std::cout << __LINE__ << std::endl;
-
-				std::ifstream f(FileName.path(), std::ios::binary);
-				std::ostringstream SS;
-				Poco::StreamCopier::copyStream(f, SS);
-				TheBlob.appendRaw((const unsigned char *)SS.str().c_str(),SS.str().size());
-
-				std::cout << "Attach file size: " <<  SS.str().size() << std::endl;
-
-				std::cout << __LINE__ << std::endl;
-				Poco::Data::Statement Insert(Sess);
-				std::string FileType{"trace"};
-				std::cout << __LINE__ << std::endl;
-
-				std::string St2{
-					"INSERT INTO FileUploads (UUID,Type,Created,FileContent) VALUES(?,?,?,?)"};
-
-				std::cout << __LINE__ << std::endl;
-				Insert << ConvertParams(St2), Poco::Data::Keywords::use(UUID),
-					Poco::Data::Keywords::use(FileType),
-					Poco::Data::Keywords::use(Now),
-					Poco::Data::Keywords::use(TheBlob);
-				Insert.execute();
-				std::cout << __LINE__ << std::endl;
-
-				FileName.remove();
-				return true;
-			} else {
-				Logger().warning(fmt::format("File {} is too large.", FileName.path()));
-			}
-		} catch (const Poco::Exception &E) {
-			Logger().log(E);
-		}
-		return false;
-	}
-*/
 	bool Storage::AttachFileDataToCommand(std::string & UUID, const std::stringstream & FileContent) {
 		try {
 			Poco::Data::Session Sess = Pool_->get();
-			uint64_t Now = OpenWifi::Now();
+			auto Now = OpenWifi::Now();
 			uint64_t WaitForFile = 0;
 
 			Poco::Data::Statement Update(Sess);
@@ -646,48 +576,6 @@ typedef Poco::Tuple<
 		}
 		return false;
 	}
-
-/*	bool Storage::GetAttachedFile(std::string &UUID, const std::string & SerialNumber, const std::string &FileName, std::string &Type) {
-		try {
-			Poco::Data::BLOB L;
-			Poco::Data::Session Sess = Pool_->get();
-			Poco::Data::Statement Select1(Sess);
-
-			std::string TmpSerialNumber;
-			std::string st1{"SELECT SerialNumber FROM CommandList WHERE UUID=?"};
-			Select1	<< 	ConvertParams(st1),
-						Poco::Data::Keywords::into(TmpSerialNumber),
-						Poco::Data::Keywords::use(UUID);
-			Select1.execute();
-
-			if(TmpSerialNumber!=SerialNumber) {
-				return false;
-			}
-
-			std::string St2{"SELECT FileContent, Type FROM FileUploads WHERE UUID=?"};
-
-			Poco::Data::Statement Select2(Sess);
-			Select2 << ConvertParams(St2),
-				Poco::Data::Keywords::into(L),
-				Poco::Data::Keywords::into(Type),
-				Poco::Data::Keywords::use(UUID);
-			Select2.execute();
-
-			// Poco::Data::BLOBInputStream IL(L);
-			std::ofstream f(FileName, std::ios::binary | std::ios::trunc );
-			auto Content = L.content();
-			std::string SS(L.content().begin(),L.content().end());
-			f << SS;
-
-			std::cout << "Get Attach Size: " << L.content().size() << std::endl;
-
-			return true;
-		} catch (const Poco::Exception &E) {
-			Logger().log(E);
-		}
-		return false;
-	}
-*/
 
 	bool Storage::GetAttachedFileContent(std::string &UUID, const std::string & SerialNumber, std::string &FileContent, std::string &Type) {
 		try {
@@ -734,7 +622,7 @@ typedef Poco::Tuple<
 			Poco::Data::Session Sess = Pool_->get();
 			Poco::Data::Statement Update(Sess);
 
-			uint64_t Now = time(nullptr);
+			auto Now = OpenWifi::Now();
 			std::string St{"UPDATE CommandList SET Completed=?, Results=? WHERE UUID=?"};
 
 			Update << ConvertParams(St), Poco::Data::Keywords::use(Now),
@@ -763,7 +651,6 @@ typedef Poco::Tuple<
 		} catch (const Poco::Exception &E) {
 			Logger().log(E);
 		}
-
 		return false;
 	}
 
