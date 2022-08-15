@@ -196,6 +196,7 @@ namespace OpenWifi::RESTAPI::Errors {
 	static const struct msg InvalidRadiusServerEntry{1142,"RADIUS Server IP address invalid or port missing."};
 	static const struct msg InvalidRadiusServerWeigth{1143,"RADIUS Server IP weight cannot be 0."};
 
+	static const struct msg MaximumRTTYSessionsReached{1144,"Too many RTTY sessions currently active"};
 }
 
 

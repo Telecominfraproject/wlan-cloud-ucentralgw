@@ -16,6 +16,7 @@ namespace OpenWifi {
 			int DSport = (int) MicroService::instance().ConfigGetInt("rtty.port", 5912);
 			int CSport = (int) MicroService::instance().ConfigGetInt("rtty.viewport", 5913);
 			RTTY_UIAssets_ = MicroService::instance().ConfigPath("rtty.assets", "$OWGW_ROOT/rtty_ui");
+			MaxConcurrentSessions_ = MicroService::instance().ConfigGetInt("rtty.maxsessions",0);
 
 			const auto & CertFileName = MicroService::instance().ConfigPath("openwifi.restapi.host.0.cert");
 			const auto & KeyFileName = MicroService::instance().ConfigPath("openwifi.restapi.host.0.key");
@@ -276,6 +277,10 @@ namespace OpenWifi {
 
 	bool RTTYS_server::CreateEndPoint(const std::string &Id, const std::string & Token, const std::string & UserName, const std::string & SerialNumber ) {
 		std::unique_lock 	Guard(M_);
+
+		if(MaxConcurrentSessions_!=0 && EndPoints_.size()==MaxConcurrentSessions_) {
+			return false;
+		}
 
 		auto NewEP = std::make_unique<RTTYS_EndPoint>(Token, SerialNumber, UserName );
 		EndPoints_[Id] = std::move(NewEP);
