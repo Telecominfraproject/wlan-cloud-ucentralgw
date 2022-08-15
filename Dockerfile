@@ -1,9 +1,10 @@
+ARG ALPINE_VERSION=3.16.2
 ARG POCO_VERSION=poco-tip-v1
 ARG FMTLIB_VERSION=9.0.0
 ARG CPPKAFKA_VERSION=tip-v1
 ARG JSON_VALIDATOR_VERSION=2.1.0
 
-FROM alpine:3.15 AS build-base
+FROM alpine:$ALPINE_VERSION AS build-base
 
 RUN apk add --update --no-cache \
     make cmake g++ git \
@@ -89,7 +90,7 @@ WORKDIR /owgw/cmake-build
 RUN cmake ..
 RUN cmake --build . --config Release -j8
 
-FROM alpine:3.15
+FROM alpine:$ALPINE_VERSION
 
 ENV OWGW_USER=owgw \
     OWGW_ROOT=/owgw-data \
