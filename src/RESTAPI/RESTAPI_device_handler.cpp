@@ -20,7 +20,7 @@ namespace OpenWifi {
 	void RESTAPI_device_handler::DoGet() {
 		std::string SerialNumber = GetBinding(RESTAPI::Protocol::SERIALNUMBER, "");
 
-		if(SerialNumber.empty()) {
+		if(!Utils::ValidSerialNumber(SerialNumber)) {
 			return BadRequest(RESTAPI::Errors::MissingSerialNumber);
 		}
 
@@ -42,7 +42,7 @@ namespace OpenWifi {
 	void RESTAPI_device_handler::DoDelete() {
 		std::string SerialNumber = GetBinding(RESTAPI::Protocol::SERIALNUMBER, "");
 
-		if(SerialNumber.empty()) {
+		if(!Utils::ValidSerialNumber(SerialNumber)) {
 			return BadRequest(RESTAPI::Errors::MissingSerialNumber);
 		}
 
@@ -86,7 +86,7 @@ namespace OpenWifi {
 	void RESTAPI_device_handler::DoPost() {
 
 		std::string SerialNumber = GetBinding(RESTAPI::Protocol::SERIALNUMBER, "");
-		if(SerialNumber.empty()) {
+		if(!Utils::ValidSerialNumber(SerialNumber)) {
 			return BadRequest(RESTAPI::Errors::MissingSerialNumber);
 		}
 
@@ -149,7 +149,7 @@ namespace OpenWifi {
 	void RESTAPI_device_handler::DoPut() {
 		std::string SerialNumber = GetBinding(RESTAPI::Protocol::SERIALNUMBER, "");
 
-		if(SerialNumber.empty()) {
+		if(!Utils::ValidSerialNumber(SerialNumber)) {
 			return BadRequest(RESTAPI::Errors::MissingSerialNumber);
 		}
 

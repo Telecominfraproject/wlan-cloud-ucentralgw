@@ -33,6 +33,10 @@ namespace OpenWifi {
 			return BadRequest(RESTAPI::Errors::MissingOrInvalidParameters);
 		}
 
+		if(!Utils::ValidSerialNumber(SerialNumber_)) {
+			return BadRequest(RESTAPI::Errors::MissingSerialNumber);
+		}
+
 		GWObjects::Device	TheDevice;
 		if(!StorageService()->GetDevice(SerialNumber_,TheDevice)) {
 			return NotFound();
@@ -64,6 +68,10 @@ namespace OpenWifi {
 			return BadRequest(RESTAPI::Errors::MissingOrInvalidParameters);
 		}
 
+		if(!Utils::ValidSerialNumber(SerialNumber_)) {
+			return BadRequest(RESTAPI::Errors::MissingSerialNumber);
+		}
+
 		Poco::Thread::current()->setName(fmt::format("{}: {}",SerialNumber_,Command_));
 
 		GWObjects::Device	TheDevice;
@@ -87,6 +95,10 @@ namespace OpenWifi {
 	void RESTAPI_device_commandHandler::DoPost() {
 		if(!ValidateParameters()) {
 			return BadRequest(RESTAPI::Errors::MissingOrInvalidParameters);
+		}
+
+		if(!Utils::ValidSerialNumber(SerialNumber_)) {
+			return BadRequest(RESTAPI::Errors::MissingSerialNumber);
 		}
 
 		Poco::Thread::current()->setName(fmt::format("{}: {}",SerialNumber_,Command_));

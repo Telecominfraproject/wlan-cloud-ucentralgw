@@ -18,7 +18,7 @@ namespace OpenWifi {
 	void RESTAPI_blacklist::DoDelete() {
 		auto SerialNumber = GetBinding(RESTAPI::Protocol::SERIALNUMBER, "");
 
-		if(SerialNumber.empty()) {
+		if(!Utils::ValidSerialNumber(SerialNumber)) {
 			return BadRequest(RESTAPI::Errors::MissingSerialNumber);
 		}
 
@@ -36,7 +36,7 @@ namespace OpenWifi {
 	void RESTAPI_blacklist::DoGet() {
 		auto SerialNumber = GetBinding(RESTAPI::Protocol::SERIALNUMBER, "");
 
-		if(SerialNumber.empty()) {
+		if(!Utils::ValidSerialNumber(SerialNumber)) {
 			return BadRequest(RESTAPI::Errors::MissingSerialNumber);
 		}
 
@@ -83,7 +83,7 @@ namespace OpenWifi {
 
 	void RESTAPI_blacklist::DoPut() {
 		auto SerialNumber = Poco::toLower(GetBinding(RESTAPI::Protocol::SERIALNUMBER, ""));
-		if(SerialNumber.empty()) {
+		if(!Utils::ValidSerialNumber(SerialNumber)) {
 			return BadRequest(RESTAPI::Errors::MissingSerialNumber);
 		}
 
