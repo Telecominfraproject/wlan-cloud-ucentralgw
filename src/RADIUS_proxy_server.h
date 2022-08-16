@@ -10,11 +10,14 @@
 #include "Poco/Net/DatagramSocket.h"
 #include "Poco/Net/SocketReactor.h"
 
+#include "RADSECserver.h"
+
 namespace OpenWifi {
 
 	enum class radius_type {
 		auth, acct, coa
 	};
+
 
 	class RADIUS_proxy_server : public SubSystemServer {
 	  public:
@@ -39,6 +42,9 @@ namespace OpenWifi {
 		void DeleteConfig();
 		void GetConfig(GWObjects::RadiusProxyPoolList &C);
 
+		void StartRADSECServers();
+		void StartRADSECServer(const GWObjects::RadiusProxyServerEntry &E);
+
 		struct Destination {
 			Poco::Net::SocketAddress 	Addr;
 			uint64_t 					state = 0;
@@ -50,6 +56,7 @@ namespace OpenWifi {
 			std::string 				monitorMethod;
 			std::vector<std::string>	methodParameters;
 			bool 						useAsDefault=false;
+			bool 						useRADSEC=false;
 		};
 
 	  private:
@@ -68,6 +75,10 @@ namespace OpenWifi {
 
 		GWObjects::RadiusProxyPoolList	PoolList_;
 		std::string 					ConfigFilename_;
+
+		std::map<Poco::Net::SocketAddress, std::unique_ptr<RADSECserver>> RADSECservers_;
+		Poco::Net::SocketReactor		RADSECreactor_;
+		Poco::Thread					RADSECreactorThread_;
 
 		struct RadiusPool {
 			std::vector<Destination>	AuthV4;
@@ -91,10 +102,10 @@ namespace OpenWifi {
 
 		void ParseConfig();
 		void ResetConfig();
-		Poco::Net::SocketAddress Route(radius_type rtype, const Poco::Net::SocketAddress &A);
+		Poco::Net::SocketAddress Route(radius_type rtype, const Poco::Net::SocketAddress &A, bool &UseRADSEC);
 		void ParseServerList(const GWObjects::RadiusProxyServerConfig & Config, std::vector<Destination> &V4, std::vector<Destination> &V6, bool setAsDefault);
 		static Poco::Net::SocketAddress ChooseAddress(std::vector<Destination> &Pool, const Poco::Net::SocketAddress & OriginalAddress);
-		Poco::Net::SocketAddress DefaultRoute([[maybe_unused]] radius_type rtype, const Poco::Net::SocketAddress &RequestedAddress);
+		Poco::Net::SocketAddress DefaultRoute([[maybe_unused]] radius_type rtype, const Poco::Net::SocketAddress &RequestedAddress, bool &UseRADSEC);
 	};
 
 	inline auto RADIUS_proxy_server() { return RADIUS_proxy_server::instance(); }

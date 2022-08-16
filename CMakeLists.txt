@@ -132,7 +132,7 @@ add_executable( owgw
         src/AP_WS_Process_state.cpp
         src/AP_WS_Process_healthcheck.cpp
         src/AP_WS_Process_log.cpp
-        src/AP_WS_Process_crashlog.cpp src/AP_WS_Process_ping.cpp src/AP_WS_Process_cfgpending.cpp src/AP_WS_Process_recovery.cpp src/AP_WS_Process_deviceupdate.cpp src/AP_WS_Process_telemetry.cpp src/AP_WS_Process_venuebroadcast.cpp)
+        src/AP_WS_Process_crashlog.cpp src/AP_WS_Process_ping.cpp src/AP_WS_Process_cfgpending.cpp src/AP_WS_Process_recovery.cpp src/AP_WS_Process_deviceupdate.cpp src/AP_WS_Process_telemetry.cpp src/AP_WS_Process_venuebroadcast.cpp src/RADSECserver.h)
 
 if(NOT SMALL_BUILD)
 
