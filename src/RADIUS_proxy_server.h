@@ -92,6 +92,7 @@ namespace OpenWifi {
 		std::vector<RadiusPool>			Pools_;
 		uint 							defaultPoolIndex_=0;
 		bool 							enabled_=false;
+		bool 							defaultIsRADSEC_=false;
 
 		RADIUS_proxy_server() noexcept:
 		   SubSystemServer("RADIUS-PROXY", "RADIUS-PROXY", "radius.proxy")

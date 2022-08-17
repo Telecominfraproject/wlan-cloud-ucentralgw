@@ -44,7 +44,7 @@ static json DefaultUCentralSchema = R"(
 		"switch": {
 			"$ref": "#/$defs/switch"
 		},
-		"radios": {
+		"radiosgrep": {
 			"type": "array",
 			"items": {
 				"$ref": "#/$defs/radio"

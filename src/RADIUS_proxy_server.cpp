@@ -214,7 +214,7 @@ namespace OpenWifi {
 
 		std::lock_guard	G(Mutex_);
 		bool UseRADSEC = false;
-		auto FinalDestination = Route(radius_type::auth, Dst, UseRADSEC);
+		auto FinalDestination = Route(radius_type::acct, Dst, UseRADSEC);
 		if(UseRADSEC) {
 			Poco::Net::SocketAddress	RSP(FinalDestination.host(),0);
 			auto DestinationServer = RADSECservers_.find(RSP);
@@ -274,8 +274,6 @@ namespace OpenWifi {
 	void RADIUS_proxy_server::SendCoAData(const std::string &serialNumber, const char *buffer, std::size_t size) {
 		RADIUS::RadiusPacket	P((unsigned char *)buffer,size);
 		auto Destination = P.ExtractProxyStateDestination();
-//		auto CallingStationID = P.ExtractCallingStationID();
-//		auto CalledStationID = P.ExtractCalledStationID();
 
 		if(Destination.empty()) {
 			Destination = "0.0.0.0:0";
@@ -284,7 +282,7 @@ namespace OpenWifi {
 		Poco::Net::SocketAddress	Dst(Destination);
 		std::lock_guard	G(Mutex_);
 		bool UseRADSEC = false;
-		auto FinalDestination = Route(radius_type::auth, Dst, UseRADSEC);
+		auto FinalDestination = Route(radius_type::coa, Dst, UseRADSEC);
 		if(UseRADSEC) {
 			Poco::Net::SocketAddress	RSP(FinalDestination.host(),0);
 			auto DestinationServer = RADSECservers_.find(RSP);
@@ -327,6 +325,9 @@ namespace OpenWifi {
 				.useAsDefault = setAsDefault,
 				.useRADSEC = server.radsec
 			};
+
+			if(setAsDefault && D.useRADSEC)
+				defaultIsRADSEC_ = true;
 
 			if(S.family()==Poco::Net::IPAddress::IPv4) {
 				TotalV4 += server.weight;
@@ -389,26 +390,32 @@ namespace OpenWifi {
 		}
 	}
 
-	Poco::Net::SocketAddress RADIUS_proxy_server::DefaultRoute([[maybe_unused]] radius_type rtype, const Poco::Net::SocketAddress &RequestedAddress, [[maybe_unused]] bool &UseRADSEC) {
+	Poco::Net::SocketAddress RADIUS_proxy_server::DefaultRoute(radius_type rtype, const Poco::Net::SocketAddress &RequestedAddress, bool &UseRADSEC) {
 		bool IsV4 = RequestedAddress.family()==Poco::Net::SocketAddress::IPv4;
+
+		if(defaultIsRADSEC_) {
+			UseRADSEC = true;
+			return (IsV4 ? Pools_[defaultPoolIndex_].AuthV4[0].Addr : Pools_[defaultPoolIndex_].AuthV6[0].Addr );
+		}
+
 		switch(rtype) {
-		case radius_type::coa: {
-			return ChooseAddress(IsV4 ? Pools_[defaultPoolIndex_].CoaV4
-									  : Pools_[defaultPoolIndex_].CoaV6,
-								 RequestedAddress);
-		}
-		case radius_type::auth: {
-			return ChooseAddress(IsV4 ? Pools_[defaultPoolIndex_].AuthV4
-									  : Pools_[defaultPoolIndex_].AuthV6,
-								 RequestedAddress);
-		}
-		case radius_type::acct:
-		default: {
-			return ChooseAddress(IsV4 ? Pools_[defaultPoolIndex_].AcctV4
-									  : Pools_[defaultPoolIndex_].AcctV6,
-								 RequestedAddress);
-		}
-		}
+			case radius_type::auth: {
+				return ChooseAddress(IsV4 ? Pools_[defaultPoolIndex_].AuthV4
+										  : Pools_[defaultPoolIndex_].AuthV6,
+									 RequestedAddress);
+				}
+			case radius_type::acct:
+			default: {
+				return ChooseAddress(IsV4 ? Pools_[defaultPoolIndex_].AcctV4
+										  : Pools_[defaultPoolIndex_].AcctV6,
+									 RequestedAddress);
+				}
+			case radius_type::coa: {
+				return ChooseAddress(IsV4 ? Pools_[defaultPoolIndex_].CoaV4
+										  : Pools_[defaultPoolIndex_].CoaV6,
+									 RequestedAddress);
+				}
+			}
 	}
 
 	Poco::Net::SocketAddress RADIUS_proxy_server::Route([[maybe_unused]] radius_type rtype, const Poco::Net::SocketAddress &RequestedAddress, bool &UseRADSEC) {
@@ -420,7 +427,7 @@ namespace OpenWifi {
 		}
 
 		bool IsV4 = RequestedAddress.family()==Poco::Net::SocketAddress::IPv4;
-		bool useDefault = false;
+		bool useDefault;
 		useDefault = IsV4 ? RequestedAddress.host() == Poco::Net::IPAddress::wildcard(Poco::Net::IPAddress::IPv4) : RequestedAddress.host() == Poco::Net::IPAddress::wildcard(Poco::Net::IPAddress::IPv6) ;
 
 		if(useDefault) {

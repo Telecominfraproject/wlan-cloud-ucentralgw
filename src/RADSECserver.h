@@ -34,9 +34,10 @@ namespace OpenWifi {
 			ReconnectorThr_.start(*this);
 		}
 
-		inline void run() {
+		inline void run() final {
 			while(TryAgain_) {
 				if(!Connected_) {
+					std::cout << "Trying to connect" << std::endl;
 					Connect();
 				}
 				Poco::Thread::trySleep(1000);
@@ -45,6 +46,7 @@ namespace OpenWifi {
 
 		inline bool SendData(const unsigned char *buffer, int length) {
 			if(Connected_) {
+				std::cout << "Sending data" << std::endl;
 				return (Socket_->sendBytes(buffer,length) == length);
 			}
 			return false;
@@ -56,6 +58,7 @@ namespace OpenWifi {
 				auto NumberOfReceivedBytes = Socket_->receiveBytes(IncomingRadiusPacket);
 				auto *RP = (const OpenWifi::RADIUS::RawRadiusPacket *)(IncomingRadiusPacket.begin());
 				Logger_.information(fmt::format("RADSEC: received {} bytes.", NumberOfReceivedBytes));
+				std::cout << "Received " << NumberOfReceivedBytes << " bytes" << std::endl;
 				RADIUS::RadiusPacket	P(IncomingRadiusPacket);
 				if(RADIUS::IsAuthentication(RP->code) ) {
 					auto SerialNumber = P.ExtractSerialNumberFromProxyState();
@@ -73,10 +76,12 @@ namespace OpenWifi {
 		}
 
 		inline void onError([[maybe_unused]] const Poco::AutoPtr<Poco::Net::ErrorNotification>& pNf) {
+			std::cout << "onError" << std::endl;
 			Disconnect();
 		}
 
 		inline void onShutdown([[maybe_unused]] const Poco::AutoPtr<Poco::Net::ShutdownNotification>& pNf) {
+			std::cout << "onShutdown" << std::endl;
 			Disconnect();
 		}
 
@@ -86,8 +91,13 @@ namespace OpenWifi {
 				Poco::Net::Context::Ptr SecureContext = Poco::AutoPtr<Poco::Net::Context>(
 					new Poco::Net::Context(Poco::Net::Context::CLIENT_USE,
 										   KeyFile_.path(),
-										   CertFile_.path(),
-										   CacertFile_.path()));
+										   CertFile_.path(),""));
+
+				for(const auto &ca:CacertFiles_) {
+					Poco::Crypto::X509Certificate	cert(ca.path());
+					SecureContext->addCertificateAuthority(cert);
+				}
+
 				auto tmp_Socket_ = std::make_unique<Poco::Net::SecureStreamSocket>(SecureContext);
 
 				Poco::Net::SocketAddress Destination(Server_.ip, Server_.port);
@@ -110,8 +120,10 @@ namespace OpenWifi {
 					Connected_ = true;
 					return true;
 				} catch (const Poco::Net::NetException &E) {
+					std::cout << "NetException: " << E.name() << " " << E.what() << std::endl;
 					Logger_.log(E);
 				} catch (const Poco::Exception &E) {
+					std::cout << "Exception: " << E.name() << " " << E.what() << std::endl;
 					Logger_.log(E);
 				}
 			}
@@ -135,43 +147,23 @@ namespace OpenWifi {
 			ReconnectorThr_.join();
 		}
 
-		static void Output_Crypto_Content(std::ofstream &of, const std::string &d) {
-			constexpr std::size_t line_length = 64;
-			std::size_t pos=0;
-
-			while(pos<d.length()) {
-				of << d.substr(pos,line_length) << std::endl;
-				pos += line_length;
-			}
+		static void DecodeFile(const std::string &filename, const std::string &s) {
+			std::ofstream cert_file(filename,std::ios_base::out|std::ios_base::trunc|std::ios_base::binary);
+			std::stringstream is(s);
+			Poco::Base64Decoder	ds(is);
+			Poco::StreamCopier::copyStream(ds,cert_file);
+			cert_file.close();
 		}
 
 		inline void MakeSecurityFiles() {
-			static const char * cert_header = "-----BEGIN CERTIFICATE-----";
-			static const char * cert_footer = "-----END CERTIFICATE-----";
-			static const char * key_header = "-----BEGIN PRIVATE KEY-----";
-			static const char * key_footer = "-----END PRIVATE KEY-----";
+			DecodeFile(CertFile_.path(), Server_.radsec_cert);
+			DecodeFile(KeyFile_.path(), Server_.radsec_key);
 
-			//	make the key file
-			std::ofstream cert_file(CertFile_.path(),std::ios_base::out|std::ios_base::trunc|std::ios_base::binary);
-			cert_file << cert_header << std::endl;
-			Output_Crypto_Content(cert_file,Server_.radsec_cert);
-			cert_file << cert_footer << std::endl;
-			cert_file.close();
-
-			std::ofstream key_file(KeyFile_.path(),std::ios_base::out|std::ios_base::trunc|std::ios_base::binary);
-			key_file << key_header << std::endl;
-			Output_Crypto_Content(cert_file,Server_.radsec_key);
-			key_file << key_footer << std::endl;
-			key_file.close();
-
-			std::ofstream cacert_file(CacertFile_.path(),std::ios_base::out|std::ios_base::trunc|std::ios_base::binary);
-			auto cert_list = Poco::StringTokenizer(Server_.radsec_cacerts,",");
-			for(auto &cert:cert_list) {
-				cert_file << cert_header << std::endl;
-				Output_Crypto_Content(cert_file,cert);
-				cert_file << cert_footer << std::endl;
+			for(auto &cert:Server_.radsec_cacerts) {
+				Poco::TemporaryFile		NewFile(MicroService::instance().DataDir());
+				DecodeFile(NewFile.path(), cert);
+				CacertFiles_.push_back(std::move(NewFile));
 			}
-			cacert_file.close();
 		}
 
 	  private:
@@ -182,8 +174,8 @@ namespace OpenWifi {
 		std::atomic_bool 									TryAgain_=true;
 		std::unique_ptr<Poco::Net::SecureStreamSocket>		Socket_;
 		Poco::TemporaryFile									CertFile_{MicroService::instance().DataDir()} ,
-															KeyFile_{MicroService::instance().DataDir()},
-															CacertFile_{MicroService::instance().DataDir()};
+															KeyFile_{MicroService::instance().DataDir()};
+		std::vector<Poco::TemporaryFile>					CacertFiles_;
 		Poco::Thread										ReconnectorThr_;
 	};
 }
