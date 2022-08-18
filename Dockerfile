@@ -10,7 +10,7 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
     make cmake g++ git \
     unixodbc-dev libpq-dev libmariadb-dev libmariadbclient-dev-compat \
     librdkafka-dev libboost-all-dev libssl-dev \
-    zlib1g-dev nlohmann-json3-dev
+    zlib1g-dev nlohmann-json3-dev ca-certificates
 
 FROM build-base AS poco-build
 
