@@ -44,7 +44,7 @@ namespace OpenWifi {
     }
 
     bool DeviceRegistry::GetState(uint64_t SerialNumber, GWObjects::ConnectionState & State) {
-		std::unique_lock	Guard(M_);
+		std::shared_lock	Guard(M_);
         auto Device = SerialNumbers_.find(SerialNumber);
         if(Device == SerialNumbers_.end())
 			return false;
@@ -164,21 +164,6 @@ namespace OpenWifi {
 													  TelemetryWebSocketPackets,
 													  TelemetryKafkaPackets);
 	}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 	bool DeviceRegistry::SendRadiusAccountingData(const std::string & SerialNumber, const unsigned char * buffer, std::size_t size) {
 		std::shared_lock	Guard(M_);

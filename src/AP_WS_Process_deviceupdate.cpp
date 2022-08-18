@@ -8,7 +8,7 @@
 namespace OpenWifi {
 
 	void AP_WS_Connection::Process_deviceupdate(Poco::JSON::Object::Ptr ParamsObj, std::string &Serial) {
-		if (!Connected_) {
+		if (!Session_->State_.Connected) {
 			poco_warning(Logger(), fmt::format(
 									   "INVALID-PROTOCOL({}): Device '{}' is not following protocol", CId_, CN_));
 			Errors_++;

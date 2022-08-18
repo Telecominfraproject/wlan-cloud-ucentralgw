@@ -94,7 +94,6 @@ void AP_WS_Connection::Process_connect(Poco::JSON::Object::Ptr ParamsObj, const 
 			Stringify.condense(ParamsObj, OS);
 			KafkaManager()->PostMessage(KafkaTopics::CONNECTION, SerialNumber_, OS.str());
 		}
-		Connected_ = true;
 	} else {
 		poco_warning(Logger(),fmt::format("INVALID-PROTOCOL({}): Missing one of uuid, firmware, or capabilities", CId_));
 		Errors_++;
