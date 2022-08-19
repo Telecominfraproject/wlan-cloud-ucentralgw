@@ -96,7 +96,7 @@ namespace OpenWifi {
 			return false;
 
 		try {
-			std::cout << "Device connection pointer: " << (std::uint64_t) Device->second.second << std::endl;
+			// std::cout << "Device connection pointer: " << (std::uint64_t) Device->second.second << std::endl;
 			return Device->second.second->Send(Payload);
 		} catch (...) {
 			Logger().debug(fmt::format(": SendFrame: Could not send data to device '{}'", Utils::IntToSerialNumber(SerialNumber)));
