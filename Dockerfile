@@ -120,6 +120,8 @@ COPY --from=owgw-build /owgw/cmake-build/owgw /openwifi/owgw
 COPY --from=cppkafka-build /cppkafka/cmake-build/src/lib /usr/local/lib/
 COPY --from=poco-build /poco/cmake-build/lib /usr/local/lib
 
+RUN ldconfig
+
 EXPOSE 15002 16002 16003 17002 16102
 
 ENTRYPOINT ["/docker-entrypoint.sh"]
