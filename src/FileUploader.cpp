@@ -49,6 +49,7 @@ namespace OpenWifi {
 				auto Params = new Poco::Net::HTTPServerParams;
 				Params->setMaxThreads(16);
 				Params->setMaxQueued(100);
+				Params->setName("ws:upldr");
 
 				if (FullName_.empty()) {
 					std::string TmpName =
@@ -265,6 +266,12 @@ namespace OpenWifi {
     Poco::Net::HTTPRequestHandler *FileUpLoaderRequestHandlerFactory::createRequestHandler(const Poco::Net::HTTPServerRequest & Request) {
 
 		Logger().debug(fmt::format("REQUEST({}): {} {}", Utils::FormatIPv6(Request.clientAddress().toString()), Request.getMethod(), Request.getURI()));
+
+		if(Request.getMethod()!=Poco::Net::HTTPRequest::HTTP_POST ||
+			Request.getURI().size()<(URI_BASE.size()+36)) {
+			Logger().warning(fmt::format("ILLEGAL-REQUEST({}): {} {}. Dropped.", Utils::FormatIPv6(Request.clientAddress().toString()), Request.getMethod(), Request.getURI()));
+			return nullptr;
+		}
 
         //  The UUID should be after the /v1/upload/ part...
         auto UUIDLocation = Request.getURI().find_first_of(URI_BASE);

@@ -20,7 +20,7 @@ void AP_WS_Connection::Process_connect(Poco::JSON::Object::Ptr ParamsObj, const 
 		auto Capabilities = ParamsObj->get(uCentralProtocol::CAPABILITIES).toString();
 
 		//// change this
-		CN_ = SerialNumber_ = Serial;
+		SerialNumber_ = Serial;
 		SerialNumberInt_ = Utils::SerialNumberToInt(SerialNumber_);
 		DeviceRegistry()->SetSessionDetails(this,SerialNumberInt_, ConnectionId_);
 		Session_->State_.UUID = UUID;

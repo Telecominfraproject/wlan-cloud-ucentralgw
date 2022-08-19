@@ -98,10 +98,7 @@ namespace OpenWifi {
 		try {
 			return Device->second.second->Send(Payload);
 		} catch (...) {
-			Logger().debug(fmt::format("Could not send data to device '{}'", SerialNumber));
-			Device->second.first->State_.Address = "";
-			Device->second.first->State_.Connected = false;
-			Device->second.first->State_.VerifiedCertificate = GWObjects::NO_CERTIFICATE;
+			Logger().debug(fmt::format(": SendFrame: Could not send data to device '{}'", Utils::IntToSerialNumber(SerialNumber)));
 		}
 		return false;
 	}
@@ -174,10 +171,7 @@ namespace OpenWifi {
 		try {
 			return Device->second.second->SendRadiusAccountingData(buffer,size);
 		} catch (...) {
-			Logger().debug(fmt::format("Could not send data to device '{}'", SerialNumber));
-			Device->second.first->State_.Address = "";
-			Device->second.first->State_.Connected = false;
-			Device->second.first->State_.VerifiedCertificate = GWObjects::NO_CERTIFICATE;
+			Logger().debug(fmt::format(": SendRadiusAuthenticationData: Could not send data to device '{}'", SerialNumber));
 		}
 		return false;
 	}
@@ -191,10 +185,7 @@ namespace OpenWifi {
 		try {
 			return Device->second.second->SendRadiusAuthenticationData(buffer,size);
 		} catch (...) {
-			Logger().debug(fmt::format("Could not send data to device '{}'", SerialNumber));
-			Device->second.first->State_.Address = "";
-			Device->second.first->State_.Connected = false;
-			Device->second.first->State_.VerifiedCertificate = GWObjects::NO_CERTIFICATE;
+			Logger().debug(fmt::format(": SendRadiusAuthenticationData: Could not send data to device '{}'", SerialNumber));
 		}
 		return false;
 	}
@@ -208,10 +199,7 @@ namespace OpenWifi {
 		try {
 			return Device->second.second->SendRadiusCoAData(buffer,size);
 		} catch (...) {
-			Logger().debug(fmt::format("Could not send data to device '{}'", SerialNumber));
-			Device->second.first->State_.Address = "";
-			Device->second.first->State_.Connected = false;
-			Device->second.first->State_.VerifiedCertificate = GWObjects::NO_CERTIFICATE;
+			Logger().debug(fmt::format(": SendRadiusCoAData: Could not send data to device '{}'", SerialNumber));
 		}
 		return false;
 	}
