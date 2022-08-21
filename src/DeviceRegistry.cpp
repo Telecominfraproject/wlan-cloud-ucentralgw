@@ -44,7 +44,7 @@ namespace OpenWifi {
     }
 
     bool DeviceRegistry::GetState(uint64_t SerialNumber, GWObjects::ConnectionState & State) {
-		std::unique_lock	Guard(M_);
+		std::shared_lock	Guard(M_);
         auto Device = SerialNumbers_.find(SerialNumber);
         if(Device == SerialNumbers_.end())
 			return false;
@@ -96,12 +96,10 @@ namespace OpenWifi {
 			return false;
 
 		try {
+			// std::cout << "Device connection pointer: " << (std::uint64_t) Device->second.second << std::endl;
 			return Device->second.second->Send(Payload);
 		} catch (...) {
-			Logger().debug(fmt::format("Could not send data to device '{}'", SerialNumber));
-			Device->second.first->State_.Address = "";
-			Device->second.first->State_.Connected = false;
-			Device->second.first->State_.VerifiedCertificate = GWObjects::NO_CERTIFICATE;
+			Logger().debug(fmt::format(": SendFrame: Could not send data to device '{}'", Utils::IntToSerialNumber(SerialNumber)));
 		}
 		return false;
 	}
@@ -165,21 +163,6 @@ namespace OpenWifi {
 													  TelemetryKafkaPackets);
 	}
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 	bool DeviceRegistry::SendRadiusAccountingData(const std::string & SerialNumber, const unsigned char * buffer, std::size_t size) {
 		std::shared_lock	Guard(M_);
 		auto Device = 		SerialNumbers_.find(Utils::SerialNumberToInt(SerialNumber));
@@ -189,10 +172,7 @@ namespace OpenWifi {
 		try {
 			return Device->second.second->SendRadiusAccountingData(buffer,size);
 		} catch (...) {
-			Logger().debug(fmt::format("Could not send data to device '{}'", SerialNumber));
-			Device->second.first->State_.Address = "";
-			Device->second.first->State_.Connected = false;
-			Device->second.first->State_.VerifiedCertificate = GWObjects::NO_CERTIFICATE;
+			Logger().debug(fmt::format(": SendRadiusAuthenticationData: Could not send data to device '{}'", SerialNumber));
 		}
 		return false;
 	}
@@ -206,10 +186,7 @@ namespace OpenWifi {
 		try {
 			return Device->second.second->SendRadiusAuthenticationData(buffer,size);
 		} catch (...) {
-			Logger().debug(fmt::format("Could not send data to device '{}'", SerialNumber));
-			Device->second.first->State_.Address = "";
-			Device->second.first->State_.Connected = false;
-			Device->second.first->State_.VerifiedCertificate = GWObjects::NO_CERTIFICATE;
+			Logger().debug(fmt::format(": SendRadiusAuthenticationData: Could not send data to device '{}'", SerialNumber));
 		}
 		return false;
 	}
@@ -223,10 +200,7 @@ namespace OpenWifi {
 		try {
 			return Device->second.second->SendRadiusCoAData(buffer,size);
 		} catch (...) {
-			Logger().debug(fmt::format("Could not send data to device '{}'", SerialNumber));
-			Device->second.first->State_.Address = "";
-			Device->second.first->State_.Connected = false;
-			Device->second.first->State_.VerifiedCertificate = GWObjects::NO_CERTIFICATE;
+			Logger().debug(fmt::format(": SendRadiusCoAData: Could not send data to device '{}'", SerialNumber));
 		}
 		return false;
 	}

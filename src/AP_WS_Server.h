@@ -71,7 +71,7 @@ namespace OpenWifi {
 		// Poco::Net::SocketReactor & GetNextReactor() { return ReactorPool_.NextReactor(); }
 
 		inline bool IsSimSerialNumber(const std::string & SerialNumber) const {
-			return IsSim(SerialNumber) && SerialNumber == SimulatorId_;
+			return IsSim(Poco::toLower(SerialNumber)) && Poco::toLower(SerialNumber) == Poco::toLower(SimulatorId_);
 		}
 
 		inline static bool IsSim(const std::string & SerialNumber) {

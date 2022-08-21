@@ -26,6 +26,46 @@ namespace OpenWifi::RADIUS {
 	};
 #pragma pack(pop)
 
+	constexpr unsigned char Access_Request = 1;
+	constexpr unsigned char Access_Accept = 2;
+	constexpr unsigned char Access_Reject = 3;
+	constexpr unsigned char Access_Challenge = 11;
+
+	constexpr unsigned char Accounting_Request = 4;
+	constexpr unsigned char Accounting_Response = 5;
+	constexpr unsigned char Accounting_Status = 6;
+	constexpr unsigned char Accounting_Message = 10;
+
+	constexpr unsigned char Disconnect_Request = 40;
+	constexpr unsigned char Disconnect_ACK	 = 41;
+	constexpr unsigned char Disconnect_NAK = 42;
+	constexpr unsigned char CoA_Request = 43;
+	constexpr unsigned char CoA_ACK = 44;
+	constexpr unsigned char CoA_NAK = 45;
+
+	inline bool IsAuthentication(unsigned char t) {
+		return (t == RADIUS::Access_Request ||
+				t == RADIUS::Access_Accept ||
+				t == RADIUS::Access_Challenge ||
+				t == RADIUS::Access_Reject);
+	}
+
+	inline bool IsAccounting(unsigned char t) {
+		return (t == RADIUS::Accounting_Request ||
+				t == RADIUS::Accounting_Response ||
+				t == RADIUS::Accounting_Status ||
+				t == RADIUS::Accounting_Message);
+	}
+
+	inline bool IsAuthority(unsigned char t) {
+		return (t == RADIUS::Disconnect_Request ||
+				t == RADIUS::Disconnect_ACK ||
+				t == RADIUS::Disconnect_NAK ||
+				t == RADIUS::CoA_Request ||
+				t == RADIUS::CoA_ACK ||
+				t == RADIUS::CoA_NAK);
+	}
+
 	//
 	// From: https://github.com/Telecominfraproject/wlan-dictionary/blob/main/dictionary.tip
 	//
@@ -35,16 +75,17 @@ namespace OpenWifi::RADIUS {
 	static const unsigned char TIP_AAAipv6addr = 3;
 
 
+
 	using AttributeList = std::list<RadiusAttribute>;
 
-	std::ostream &operator<<(std::ostream &os, AttributeList const &P) {
+	inline std::ostream &operator<<(std::ostream &os, AttributeList const &P) {
 		for(const auto &attr:P) {
 			os << "\tAttr: " << (uint16_t) attr.type << "  Size: " << (uint16_t) attr.len << std::endl;
 		}
 		return os;
 	}
 
-	bool ParseRadius(uint32_t offset, const unsigned char *Buffer, uint16_t Size, AttributeList &Attrs) {
+	inline bool ParseRadius(uint32_t offset, const unsigned char *Buffer, uint16_t Size, AttributeList &Attrs) {
 		Attrs.clear();
 		uint16_t pos=0;
 		auto x=25;
@@ -70,6 +111,12 @@ namespace OpenWifi::RADIUS {
 
 	class RadiusPacket {
 	  public:
+		explicit RadiusPacket(const Poco::Buffer<char> & Buf) {
+			memcpy((void *)&P_,Buf.begin(), Buf.size());
+			Size_=Buf.size();
+			Valid_ = ParseRadius(0,(unsigned char *)&P_.attributes[0],Size_-20,Attrs_);
+		}
+
 		explicit RadiusPacket(const unsigned char *buffer, uint16_t size) {
 			memcpy((void *)&P_,buffer, size);
 			Size_=size;
@@ -204,7 +251,7 @@ namespace OpenWifi::RADIUS {
 		bool                Valid_=false;
 	};
 
-	std::ostream &operator<<(std::ostream &os, RadiusPacket const &P) {
+	inline std::ostream &operator<<(std::ostream &os, RadiusPacket const &P) {
 		os << P.Attrs_ ;
 		return os;
 	}

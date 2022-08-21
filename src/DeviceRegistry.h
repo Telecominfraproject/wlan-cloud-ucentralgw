@@ -115,7 +115,7 @@ namespace OpenWifi {
 				Hint->second->State_.Connected = true;
 				Hint->second->State_.LastContact = OpenWifi::Now();
 				Hint->second->State_.VerifiedCertificate = GWObjects::CertificateValidation::NO_CERTIFICATE;
-				SerialNumbers_[SerialNumber]= std::make_pair(Hint->second,connection);
+				SerialNumbers_[SerialNumber] = std::make_pair(Hint->second,connection);
 			}
 		}
 

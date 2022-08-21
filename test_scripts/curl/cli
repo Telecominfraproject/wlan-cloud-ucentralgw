@@ -180,6 +180,14 @@ listdevices() {
 	jq < ${result_file}
 }
 
+listdevices() {
+	curl  ${FLAGS} -X GET "https://${OWGW}/api/v1/devices" \
+			-H "Content-Type: application/json" \
+			-H "Accept: application/json" \
+			-H "Authorization: Bearer ${token}" > ${result_file}
+		jq < ${result_file}
+}
+
 ldevs() {
 	curl  ${FLAGS} -X GET "https://${OWGW}/api/v1/devices?offset=$1&limit=$2" \
 		-H "Content-Type: application/json" \
@@ -507,7 +515,7 @@ deviceserialnumbers() {
 }
 
 deviceswithstatus() {
-	curl  ${FLAGS} -X GET "https://${OWGW}/api/v1/devices?deviceWithStatus=true" \
+	curl  ${FLAGS} -X GET "https://${OWGW}/api/v1/devices?deviceWithStatus=true&limit=500" \
 		-H "Content-Type: application/json" \
 		-H "Accept: application/json" \
 		-H "Authorization: Bearer ${token}" > ${result_file}

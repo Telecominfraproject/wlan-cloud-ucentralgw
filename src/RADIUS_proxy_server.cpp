@@ -62,6 +62,9 @@ namespace OpenWifi {
 
 		ParseConfig();
 
+		//	start RADSEC servers...
+		StartRADSECServers();
+
 		AuthenticationReactorThread_.start(AuthenticationReactor_);
 		AccountingReactorThread_.start(AccountingReactor_);
 		CoAReactorThread_.start(CoAReactor_);
@@ -69,6 +72,7 @@ namespace OpenWifi {
 		Utils::SetThreadName(AuthenticationReactorThread_,"radproxy:auth");
 		Utils::SetThreadName(AccountingReactorThread_,"radproxy:acct");
 		Utils::SetThreadName(CoAReactorThread_,"radproxy:coa");
+		RADSECreactorThread_.start(RADSECreactor_);
 
 		return 0;
 	}
@@ -111,7 +115,28 @@ namespace OpenWifi {
 			CoAReactor_.stop();
 			CoAReactorThread_.join();
 			enabled_=false;
+
+			for(auto &[_,radsec_server]:RADSECservers_)
+				radsec_server->Stop();
+
+			RADSECreactor_.stop();
+			RADSECreactorThread_.join();
 		}
+	}
+
+	void RADIUS_proxy_server::StartRADSECServers() {
+
+		for(const auto &pool:PoolList_.pools) {
+			for(const auto &entry:pool.acctConfig.servers) {
+				if(entry.radsec) {
+					StartRADSECServer(entry);
+				}
+			}
+		}
+	}
+
+	void RADIUS_proxy_server::StartRADSECServer(const GWObjects::RadiusProxyServerEntry &E) {
+		RADSECservers_[ Poco::Net::SocketAddress(E.ip,0) ] = std::make_unique<RADSECserver>(RADSECreactor_,E,Logger());
 	}
 
 	void RADIUS_proxy_server::OnAccountingSocketReadable(const Poco::AutoPtr<Poco::Net::ReadableNotification>& pNf) {
@@ -188,12 +213,27 @@ namespace OpenWifi {
 		Poco::Net::SocketAddress	Dst(Destination);
 
 		std::lock_guard	G(Mutex_);
-		auto FinalDestination = Route(radius_type::auth, Dst);
-		auto AllSent = SendData(Dst.family()==Poco::Net::SocketAddress::IPv4 ? *AccountingSocketV4_ : *AccountingSocketV6_, (const unsigned char *)buffer, size, FinalDestination);
-		if(!AllSent)
-			Logger().error(fmt::format("{}: Could not send Accounting packet packet to {}.", serialNumber, Destination));
-		else
-			Logger().information(fmt::format("{}: Sending Accounting Packet to {}, CalledStationID: {}, CallingStationID:{}", serialNumber, FinalDestination.toString(), CalledStationID, CallingStationID));
+		bool UseRADSEC = false;
+		auto FinalDestination = Route(radius_type::acct, Dst, UseRADSEC);
+		if(UseRADSEC) {
+			Poco::Net::SocketAddress	RSP(FinalDestination.host(),0);
+			auto DestinationServer = RADSECservers_.find(RSP);
+			if(DestinationServer!=end(RADSECservers_)) {
+				DestinationServer->second->SendData((const unsigned char *)buffer, size);
+			}
+		} else {
+			auto AllSent =
+				SendData(Dst.family() == Poco::Net::SocketAddress::IPv4 ? *AccountingSocketV4_
+																		: *AccountingSocketV6_,
+						 (const unsigned char *)buffer, size, FinalDestination);
+			if (!AllSent)
+				Logger().error(fmt::format("{}: Could not send Accounting packet packet to {}.",
+										   serialNumber, Destination));
+			else
+				Logger().information(fmt::format(
+					"{}: Sending Accounting Packet to {}, CalledStationID: {}, CallingStationID:{}",
+					serialNumber, FinalDestination.toString(), CalledStationID, CallingStationID));
+		}
 	}
 
 	bool RADIUS_proxy_server::SendData( Poco::Net::DatagramSocket & Sock, const unsigned char *buf , std::size_t size, const Poco::Net::SocketAddress &S) {
@@ -208,19 +248,32 @@ namespace OpenWifi {
 		Poco::Net::SocketAddress	Dst(Destination);
 
 		std::lock_guard	G(Mutex_);
-		auto FinalDestination = Route(radius_type::auth, Dst);
-		auto AllSent = SendData(Dst.family()==Poco::Net::SocketAddress::IPv4 ? *AuthenticationSocketV4_ : *AuthenticationSocketV6_, (const unsigned char *)buffer, size, FinalDestination);
-		if(!AllSent)
-			Logger().error(fmt::format("{}: Could not send Authentication packet packet to {}.", serialNumber, Destination));
-		else
-			Logger().information(fmt::format("{}: Sending Authentication Packet to {}, CalledStationID: {}, CallingStationID:{}", serialNumber, FinalDestination.toString(), CalledStationID, CallingStationID));
+		bool UseRADSEC = false;
+		auto FinalDestination = Route(radius_type::auth, Dst, UseRADSEC);
+		if(UseRADSEC) {
+			Poco::Net::SocketAddress	RSP(FinalDestination.host(),0);
+			auto DestinationServer = RADSECservers_.find(RSP);
+			if(DestinationServer!=end(RADSECservers_)) {
+				DestinationServer->second->SendData((const unsigned char *)buffer, size);
+			}
+		} else {
+			auto AllSent =
+				SendData(Dst.family() == Poco::Net::SocketAddress::IPv4 ? *AuthenticationSocketV4_
+																		: *AuthenticationSocketV6_,
+						 (const unsigned char *)buffer, size, FinalDestination);
+			if (!AllSent)
+				Logger().error(fmt::format("{}: Could not send Authentication packet packet to {}.",
+										   serialNumber, Destination));
+			else
+				Logger().information(fmt::format("{}: Sending Authentication Packet to {}, CalledStationID: {}, CallingStationID:{}",
+												 serialNumber, FinalDestination.toString(),
+												 CalledStationID, CallingStationID));
+		}
 	}
 
 	void RADIUS_proxy_server::SendCoAData(const std::string &serialNumber, const char *buffer, std::size_t size) {
 		RADIUS::RadiusPacket	P((unsigned char *)buffer,size);
 		auto Destination = P.ExtractProxyStateDestination();
-//		auto CallingStationID = P.ExtractCallingStationID();
-//		auto CalledStationID = P.ExtractCalledStationID();
 
 		if(Destination.empty()) {
 			Destination = "0.0.0.0:0";
@@ -228,12 +281,25 @@ namespace OpenWifi {
 
 		Poco::Net::SocketAddress	Dst(Destination);
 		std::lock_guard	G(Mutex_);
-		auto FinalDestination = Route(radius_type::auth, Dst);
-		auto AllSent = SendData(Dst.family()==Poco::Net::SocketAddress::IPv4 ? *CoASocketV4_ : *CoASocketV6_, (const unsigned char *)buffer, size, FinalDestination);
-		if(!AllSent)
-			Logger().error(fmt::format("{}: Could not send CoA packet packet to {}.", serialNumber, Destination));
-		else
-			Logger().information(fmt::format("{}: Sending CoA Packet to {}", serialNumber, FinalDestination.toString()));
+		bool UseRADSEC = false;
+		auto FinalDestination = Route(radius_type::coa, Dst, UseRADSEC);
+		if(UseRADSEC) {
+			Poco::Net::SocketAddress	RSP(FinalDestination.host(),0);
+			auto DestinationServer = RADSECservers_.find(RSP);
+			if(DestinationServer!=end(RADSECservers_)) {
+				DestinationServer->second->SendData((const unsigned char *)buffer, size);
+			}
+		} else {
+			auto AllSent = SendData(Dst.family() == Poco::Net::SocketAddress::IPv4 ? *CoASocketV4_
+																				   : *CoASocketV6_,
+									(const unsigned char *)buffer, size, FinalDestination);
+			if (!AllSent)
+				Logger().error(fmt::format("{}: Could not send CoA packet packet to {}.",
+										   serialNumber, Destination));
+			else
+				Logger().information(fmt::format("{}: Sending CoA Packet to {}", serialNumber,
+												 FinalDestination.toString()));
+		}
 	}
 
 	void RADIUS_proxy_server::ParseServerList(const GWObjects::RadiusProxyServerConfig & Config, std::vector<Destination> &V4, std::vector<Destination> &V6, bool setAsDefault) {
@@ -256,8 +322,12 @@ namespace OpenWifi {
 				.monitor = Config. monitor,
 				.monitorMethod = Config.monitorMethod,
 				.methodParameters = Config.methodParameters,
-				.useAsDefault = setAsDefault
+				.useAsDefault = setAsDefault,
+				.useRADSEC = server.radsec
 			};
+
+			if(setAsDefault && D.useRADSEC)
+				defaultIsRADSEC_ = true;
 
 			if(S.family()==Poco::Net::IPAddress::IPv4) {
 				TotalV4 += server.weight;
@@ -320,70 +390,79 @@ namespace OpenWifi {
 		}
 	}
 
-	Poco::Net::SocketAddress RADIUS_proxy_server::DefaultRoute([[maybe_unused]] radius_type rtype, const Poco::Net::SocketAddress &RequestedAddress) {
+	Poco::Net::SocketAddress RADIUS_proxy_server::DefaultRoute(radius_type rtype, const Poco::Net::SocketAddress &RequestedAddress, bool &UseRADSEC) {
 		bool IsV4 = RequestedAddress.family()==Poco::Net::SocketAddress::IPv4;
+
+		if(defaultIsRADSEC_) {
+			UseRADSEC = true;
+			return (IsV4 ? Pools_[defaultPoolIndex_].AuthV4[0].Addr : Pools_[defaultPoolIndex_].AuthV6[0].Addr );
+		}
+
 		switch(rtype) {
-		case radius_type::coa: {
-			return ChooseAddress(IsV4 ? Pools_[defaultPoolIndex_].CoaV4
-									  : Pools_[defaultPoolIndex_].CoaV6,
-								 RequestedAddress);
-		}
-		case radius_type::auth: {
-			return ChooseAddress(IsV4 ? Pools_[defaultPoolIndex_].AuthV4
-									  : Pools_[defaultPoolIndex_].AuthV6,
-								 RequestedAddress);
-		}
-		case radius_type::acct:
-		default: {
-			return ChooseAddress(IsV4 ? Pools_[defaultPoolIndex_].AcctV4
-									  : Pools_[defaultPoolIndex_].AcctV6,
-								 RequestedAddress);
-		}
-		}
+			case radius_type::auth: {
+				return ChooseAddress(IsV4 ? Pools_[defaultPoolIndex_].AuthV4
+										  : Pools_[defaultPoolIndex_].AuthV6,
+									 RequestedAddress);
+				}
+			case radius_type::acct:
+			default: {
+				return ChooseAddress(IsV4 ? Pools_[defaultPoolIndex_].AcctV4
+										  : Pools_[defaultPoolIndex_].AcctV6,
+									 RequestedAddress);
+				}
+			case radius_type::coa: {
+				return ChooseAddress(IsV4 ? Pools_[defaultPoolIndex_].CoaV4
+										  : Pools_[defaultPoolIndex_].CoaV6,
+									 RequestedAddress);
+				}
+			}
 	}
 
-	Poco::Net::SocketAddress RADIUS_proxy_server::Route([[maybe_unused]] radius_type rtype, const Poco::Net::SocketAddress &RequestedAddress) {
+	Poco::Net::SocketAddress RADIUS_proxy_server::Route([[maybe_unused]] radius_type rtype, const Poco::Net::SocketAddress &RequestedAddress, bool &UseRADSEC) {
 		std::lock_guard	G(Mutex_);
 
 		if(Pools_.empty()) {
+			UseRADSEC = false;
 			return RequestedAddress;
 		}
 
 		bool IsV4 = RequestedAddress.family()==Poco::Net::SocketAddress::IPv4;
-		bool useDefault = false;
+		bool useDefault;
 		useDefault = IsV4 ? RequestedAddress.host() == Poco::Net::IPAddress::wildcard(Poco::Net::IPAddress::IPv4) : RequestedAddress.host() == Poco::Net::IPAddress::wildcard(Poco::Net::IPAddress::IPv6) ;
 
 		if(useDefault) {
-			return DefaultRoute(rtype, RequestedAddress);
+			return DefaultRoute(rtype, RequestedAddress, UseRADSEC);
 		}
 
-		auto isAddressInPool = [&](const std::vector<Destination> & D) -> bool {
+		auto isAddressInPool = [&](const std::vector<Destination> & D, bool &UseRADSEC) -> bool {
 			for(const auto &entry:D)
-				if(entry.Addr.host()==RequestedAddress.host())
+				if(entry.Addr.host()==RequestedAddress.host()) {
+					UseRADSEC = entry.useRADSEC;
 					return true;
+				}
 			return false;
 		};
 
 		for(auto &i:Pools_) {
 			switch(rtype) {
 			case radius_type::coa: {
-				if (isAddressInPool((IsV4 ? i.CoaV4 : i.CoaV6))) {
+				if (isAddressInPool((IsV4 ? i.CoaV4 : i.CoaV6), UseRADSEC)) {
 					return ChooseAddress(IsV4 ? i.CoaV4 : i.CoaV6, RequestedAddress);
 				}
 			} break;
 			case radius_type::auth: {
-				if (isAddressInPool((IsV4 ? i.AuthV4 : i.AuthV6))) {
+				if (isAddressInPool((IsV4 ? i.AuthV4 : i.AuthV6), UseRADSEC)) {
 					return ChooseAddress(IsV4 ? i.AuthV4 : i.AuthV6, RequestedAddress);
 				}
 			} break;
 			case radius_type::acct: {
-				if (isAddressInPool((IsV4 ? i.AcctV4 : i.AcctV6))) {
+				if (isAddressInPool((IsV4 ? i.AcctV4 : i.AcctV6), UseRADSEC)) {
 					return ChooseAddress(IsV4 ? i.AcctV4 : i.AcctV6, RequestedAddress);
 				}
 			} break;
 			}
 		}
-		return DefaultRoute(rtype, RequestedAddress);
+		return DefaultRoute(rtype, RequestedAddress, UseRADSEC);
 	}
 
 	Poco::Net::SocketAddress RADIUS_proxy_server::ChooseAddress(std::vector<Destination> &Pool, const Poco::Net::SocketAddress & OriginalAddress) {

@@ -20,7 +20,7 @@ void AP_WS_Connection::Process_connect(Poco::JSON::Object::Ptr ParamsObj, const 
 		auto Capabilities = ParamsObj->get(uCentralProtocol::CAPABILITIES).toString();
 
 		//// change this
-		CN_ = SerialNumber_ = Serial;
+		SerialNumber_ = Serial;
 		SerialNumberInt_ = Utils::SerialNumberToInt(SerialNumber_);
 		DeviceRegistry()->SetSessionDetails(this,SerialNumberInt_, ConnectionId_);
 		Session_->State_.UUID = UUID;
@@ -94,7 +94,6 @@ void AP_WS_Connection::Process_connect(Poco::JSON::Object::Ptr ParamsObj, const 
 			Stringify.condense(ParamsObj, OS);
 			KafkaManager()->PostMessage(KafkaTopics::CONNECTION, SerialNumber_, OS.str());
 		}
-		Connected_ = true;
 	} else {
 		poco_warning(Logger(),fmt::format("INVALID-PROTOCOL({}): Missing one of uuid, firmware, or capabilities", CId_));
 		Errors_++;
