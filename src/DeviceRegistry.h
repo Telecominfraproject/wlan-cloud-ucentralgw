@@ -82,6 +82,7 @@ namespace OpenWifi {
 		}
 		void SetPendingUUID(uint64_t SerialNumber, uint64_t PendingUUID);
 
+/*
 		[[nodiscard]] inline std::shared_ptr<RegistryConnectionEntry> GetDeviceConnection(const std::string & SerialNumber) {
 			return GetDeviceConnection(Utils::SerialNumberToInt(SerialNumber));
 		}
@@ -94,6 +95,7 @@ namespace OpenWifi {
 			}
 			return nullptr;
 		}
+*/
 
 		bool SendRadiusAuthenticationData(const std::string & SerialNumber, const unsigned char * buffer, std::size_t size);
 		bool SendRadiusAccountingData(const std::string & SerialNumber, const unsigned char * buffer, std::size_t size);
@@ -127,8 +129,14 @@ namespace OpenWifi {
 				return;
 			}
 
+			//	if there was a serial number
 			if(Session->second->SerialNumber_) {
-				SerialNumbers_.erase(Session->second->SerialNumber_);
+				// if we know the serial number && this is for teh same connection: in the case a device disconnected and reconnected before we detect the
+				// disconnection
+				auto hint = SerialNumbers_.find(Session->second->SerialNumber_);
+				if((hint != end(SerialNumbers_)) && (hint->second.second == connection)) {
+					SerialNumbers_.erase(Session->second->SerialNumber_);
+				}
 			}
 			Sessions_.erase(Session);
 		}

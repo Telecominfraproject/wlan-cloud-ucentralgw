@@ -39,7 +39,7 @@ namespace OpenWifi {
         if(Device == SerialNumbers_.end())
 			return;
 
-		Device->second.first->State_.LastContact = time(nullptr);
+		Device->second.first->State_.LastContact = OpenWifi::Now();
 		Device->second.first->LastStats = Statistics;
     }
 
@@ -58,7 +58,7 @@ namespace OpenWifi {
         auto Device = SerialNumbers_.find(SerialNumber);
         if(Device == SerialNumbers_.end())
 			return;
-		Device->second.first->State_.LastContact = time(nullptr);
+		Device->second.first->State_.LastContact = OpenWifi::Now();
 		Device->second.first->State_ = State;
     }
 

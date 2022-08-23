@@ -3046,6 +3046,7 @@ namespace OpenWifi {
 	        RESTServers_.clear();
 	    }
 
+
 	    inline void reinitialize(Poco::Util::Application &self) override;
 
 	    inline Poco::Net::HTTPRequestHandler *CallServer(const std::string &Path, uint64_t Id) {
@@ -3053,6 +3054,7 @@ namespace OpenWifi {
 			Utils::SetThreadName(fmt::format("x-rest:{}",Id).c_str());
 	        return RESTAPI_ExtRouter(Path, Bindings, Logger(), Server_, Id);
 	    }
+        const Poco::ThreadPool & Pool() { return Pool_; }
 
 	private:
 	    std::vector<std::unique_ptr<Poco::Net::HTTPServer>>   RESTServers_;
@@ -3185,6 +3187,8 @@ namespace OpenWifi {
 			Utils::SetThreadName(fmt::format("i-rest:{}",Id).c_str());
 	        return RESTAPI_IntRouter(Path, Bindings, Logger(), Server_, Id);
 	    }
+
+        const Poco::ThreadPool & Pool() { return Pool_; }
 	private:
 	    std::vector<std::unique_ptr<Poco::Net::HTTPServer>>   RESTServers_;
 	    Poco::ThreadPool	    Pool_{"i-rest",2,16};
