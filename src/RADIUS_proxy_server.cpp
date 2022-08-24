@@ -128,7 +128,7 @@ namespace OpenWifi {
 		std::cout << "Starting RADSEC1 servers" << std::endl;
 		for(const auto &pool:PoolList_.pools) {
 			std::cout << "Starting RADSEC2 servers" << std::endl;
-			for(const auto &entry:pool.acctConfig.servers) {
+			for(const auto &entry:pool.authConfig.servers) {
 				std::cout << "Starting RADSEC3 servers" << std::endl;
 				if(entry.radsec) {
 					std::cout << "Starting RADSEC4 servers" << std::endl;
