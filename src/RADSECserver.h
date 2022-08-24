@@ -35,12 +35,14 @@ namespace OpenWifi {
 		}
 
 		inline void run() final {
+			std::cout << "About to start RADSEC connection..." << std::endl;
 			while(TryAgain_) {
 				if(!Connected_) {
 					std::cout << "Trying to connect" << std::endl;
 					Connect();
 				}
 				Poco::Thread::trySleep(1000);
+
 			}
 		}
 
