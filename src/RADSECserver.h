@@ -38,7 +38,7 @@ namespace OpenWifi {
 			std::cout << "About to start RADSEC connection..." << std::endl;
 			while(TryAgain_) {
 				if(!Connected_) {
-					std::cout << "Trying to connect" << std::endl;
+					std::cout << "RADSEC: Trying to connect" << std::endl;
 					Connect();
 				}
 				Poco::Thread::trySleep(1000);
@@ -48,7 +48,7 @@ namespace OpenWifi {
 
 		inline bool SendData(const unsigned char *buffer, int length) {
 			if(Connected_) {
-				std::cout << "Sending data" << std::endl;
+				std::cout << "RADSEC: Sending " << length << " bytes" << std::endl;
 				return (Socket_->sendBytes(buffer,length) == length);
 			}
 			return false;
@@ -60,7 +60,7 @@ namespace OpenWifi {
 				auto NumberOfReceivedBytes = Socket_->receiveBytes(IncomingRadiusPacket);
 				auto *RP = (const OpenWifi::RADIUS::RawRadiusPacket *)(IncomingRadiusPacket.begin());
 				Logger_.information(fmt::format("RADSEC: received {} bytes.", NumberOfReceivedBytes));
-				std::cout << "Received " << NumberOfReceivedBytes << " bytes" << std::endl;
+				std::cout << "RADSEC: Received " << NumberOfReceivedBytes << " bytes" << std::endl;
 				RADIUS::RadiusPacket	P(IncomingRadiusPacket);
 				if(RADIUS::IsAuthentication(RP->code) ) {
 					auto SerialNumber = P.ExtractSerialNumberFromProxyState();
@@ -120,6 +120,7 @@ namespace OpenWifi {
 							*this, &RADSECserver::onShutdown));
 					Socket_ = std::move(tmp_Socket_);
 					Connected_ = true;
+					std::cout << "Connected to RADSEC" << std::endl;
 					return true;
 				} catch (const Poco::Net::NetException &E) {
 					std::cout << "NetException: " << E.name() << " " << E.what() << std::endl;
