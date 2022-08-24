@@ -173,8 +173,8 @@ namespace OpenWifi {
 			DecodeFile(KeyFile_.path(), Server_.radsec_key);
 
 			for(auto &cert:Server_.radsec_cacerts) {
-				Poco::TemporaryFile		NewFile(MicroService::instance().DataDir());
-				DecodeFile(NewFile.path(), cert);
+				auto NewFile = std::make_unique<Poco::TemporaryFile>(MicroService::instance().DataDir());
+				DecodeFile(NewFile->path(), cert);
 				CacertFiles_.push_back(std::move(NewFile));
 			}
 		}
@@ -188,7 +188,7 @@ namespace OpenWifi {
 		std::unique_ptr<Poco::Net::SecureStreamSocket>		Socket_;
 		Poco::TemporaryFile									CertFile_{MicroService::instance().DataDir()} ,
 															KeyFile_{MicroService::instance().DataDir()};
-		std::vector<Poco::TemporaryFile>					CacertFiles_;
+		std::vector<std::unique_ptr<Poco::TemporaryFile>>	CacertFiles_;
 		Poco::Thread										ReconnectorThr_;
 	};
 }
