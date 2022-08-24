@@ -42,13 +42,16 @@ namespace OpenWifi {
 					Connect();
 				}
 				Poco::Thread::trySleep(1000);
-
 			}
 		}
 
 		inline bool SendData(const unsigned char *buffer, int length) {
 			if(Connected_) {
 				std::cout << "RADSEC: Sending " << length << " bytes" << std::endl;
+
+				RADIUS::RadiusPacket	P(buffer,length);
+				P.Log(std::cout);
+
 				return (Socket_->sendBytes(buffer,length) == length);
 			}
 			return false;
@@ -96,27 +99,18 @@ namespace OpenWifi {
 		inline bool Connect() {
 			if(TryAgain_) {
 
-				std::cout << __LINE__ << std::endl;
 				Poco::Net::Context::Ptr SecureContext = Poco::AutoPtr<Poco::Net::Context>(
 					new Poco::Net::Context(Poco::Net::Context::CLIENT_USE,
 										   KeyFile_.path(),
 										   CertFile_.path(),""));
 
-				std::cout << __LINE__ << std::endl;
 				for(const auto &ca:CacertFiles_) {
-					std::cout << __LINE__ << ": " << ca->path() << std::endl;
 					Poco::Crypto::X509Certificate	cert(ca->path());
-					std::cout << __LINE__ << std::endl;
 					SecureContext->addCertificateAuthority(cert);
-					std::cout << __LINE__ << std::endl;
 				}
 
-				std::cout << __LINE__ << std::endl;
 				auto tmp_Socket_ = std::make_unique<Poco::Net::SecureStreamSocket>(SecureContext);
-				std::cout << __LINE__ << std::endl;
-
 				Poco::Net::SocketAddress Destination(Server_.ip, Server_.port);
-				std::cout << __LINE__ << std::endl;
 
 				try {
 					std::cout << "RADSEC: trying to connect to " << Server_.ip << ":" << Server_.port << std::endl;
