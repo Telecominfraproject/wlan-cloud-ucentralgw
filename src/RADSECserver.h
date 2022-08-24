@@ -105,7 +105,9 @@ namespace OpenWifi {
 				Poco::Net::SocketAddress Destination(Server_.ip, Server_.port);
 
 				try {
+					std::cout << "RADSEC: trying to connect to " << Server_.ip << ":" << Server_.port << std::endl;
 					tmp_Socket_->connect(Destination, Poco::Timespan(10, 0));
+					std::cout << "RADSEC: Connected" << std::endl;
 
 					Reactor_.addEventHandler(
 						*tmp_Socket_,
