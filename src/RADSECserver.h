@@ -75,6 +75,8 @@ namespace OpenWifi {
 							IncomingRadiusPacket.size());
 					} else if (RADIUS::IsAuthority(RP->code)) {
 					}
+				} else {
+					Disconnect();
 				}
 			} catch (const Poco::Exception &E) {
 				Logger_.log(E);
@@ -155,6 +157,7 @@ namespace OpenWifi {
 			Reactor_.removeEventHandler(*Socket_,Poco::NObserver<RADSECserver, Poco::Net::ShutdownNotification>(
 												   *this, &RADSECserver::onShutdown));
 			Socket_->shutdown();
+			Connected_ = false;
 		}
 
 		inline void Stop() {
