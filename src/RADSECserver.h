@@ -61,10 +61,10 @@ namespace OpenWifi {
 			Poco::Buffer<char> IncomingRadiusPacket(0);
 			try {
 				auto NumberOfReceivedBytes = Socket_->receiveBytes(IncomingRadiusPacket);
-				auto *RP = (const OpenWifi::RADIUS::RawRadiusPacket *)(IncomingRadiusPacket.begin());
 				Logger_.information(fmt::format("RADSEC: received {} bytes.", NumberOfReceivedBytes));
 				std::cout << "RADSEC: Received " << NumberOfReceivedBytes << " bytes" << std::endl;
 				if(NumberOfReceivedBytes>40) {
+					auto *RP = (const OpenWifi::RADIUS::RawRadiusPacket *)(IncomingRadiusPacket.begin());
 					RADIUS::RadiusPacket P(IncomingRadiusPacket);
 					if (RADIUS::IsAuthentication(RP->code)) {
 						auto SerialNumber = P.ExtractSerialNumberFromProxyState();
@@ -115,7 +115,7 @@ namespace OpenWifi {
 				try {
 					std::cout << "RADSEC: trying to connect to " << Server_.ip << ":" << Server_.port << std::endl;
 					tmp_Socket_->connect(Destination, Poco::Timespan(10, 0));
-					std::cout << "RADSEC: Connected" << std::endl;
+					std::cout << "RADSEC: Connected to " << tmp_Socket_->getPeerHostName() << ":" << tmp_Socket_->havePeerCertificate() << std::endl;
 
 					Reactor_.addEventHandler(
 						*tmp_Socket_,
