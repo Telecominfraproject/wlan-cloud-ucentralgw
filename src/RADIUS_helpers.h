@@ -150,7 +150,7 @@ static const struct tok radius_attribute_names[] = {
 	struct RawRadiusPacket {
 		unsigned char   code{1};
 		unsigned char   identifier{0};
-		uint16_t        len{0};
+		uint16_t        rawlen{0};
 		unsigned char   authenticator[16]{0};
 		unsigned char   attributes[4096]{0};
 	};
@@ -261,9 +261,8 @@ static const struct tok radius_attribute_names[] = {
 				return;
 			}
 			memcpy((void *)&P_,Buf.begin(), Buf.size());
-			P_.len = htons(P_.len);
 			Size_=Buf.size();
-			Valid_ = (Size_==P_.len);
+			Valid_ = (Size_== htons(P_.rawlen));
 			if(Valid_)
 				Valid_ = ParseRadius(0,(unsigned char *)&P_.attributes[0],Size_-20,Attrs_);
 		}
@@ -274,9 +273,8 @@ static const struct tok radius_attribute_names[] = {
 				return;
 			}
 			memcpy((void *)&P_,buffer, size);
-			P_.len = htons(P_.len);
 			Size_=size;
-			Valid_ = (Size_==P_.len);
+			Valid_ = (Size_== htons(P_.rawlen));
 			if(Valid_)
 				Valid_ = ParseRadius(0,(unsigned char *)&P_.attributes[0],Size_-20,Attrs_);
 		}
@@ -287,9 +285,8 @@ static const struct tok radius_attribute_names[] = {
 				return;
 			}
 			memcpy((void *)&P_,(const unsigned char*) p.c_str(), p.size());
-			P_.len = htons(P_.len);
 			Size_=p.size();
-			Valid_ = (Size_==P_.len);
+			Valid_ = (Size_== htons(P_.rawlen));
 			if(Valid_)
 				Valid_ = ParseRadius(0,(unsigned char *)&P_.attributes[0],Size_-20,Attrs_);
 		}
@@ -311,7 +308,7 @@ static const struct tok radius_attribute_names[] = {
 			Valid_ = ParseRadius(0,(unsigned char *)&P_.attributes[0],Size_-20,Attrs_);
 		}
 
-		[[nodiscard]]  uint16_t Len() const { return htons(P_.len); }
+		[[nodiscard]]  uint16_t Len() const { return htons(P_.rawlen); }
 		[[nodiscard]]  uint16_t Size() const { return Size_; }
 
 		friend std::ostream &operator<<(std::ostream &os, RadiusPacket const &P);
@@ -345,8 +342,8 @@ static const struct tok radius_attribute_names[] = {
 			}
 
 			unsigned char NewAuthenticator[16]{0};
-			Poco::HMACEngine<Poco::MD5Engine>	H(secret+ "111");
-			H.update((const unsigned char *)&P,P.len);
+			Poco::HMACEngine<Poco::MD5Engine>	H(secret);
+			H.update((const unsigned char *)&P,Size_);
 			auto digest = H.digest();
 			int p =0;
 			for(const auto &i:digest)
@@ -375,7 +372,7 @@ static const struct tok radius_attribute_names[] = {
 			}
 			unsigned char NewAuthenticator[16]{0};
 			Poco::HMACEngine<Poco::MD5Engine>	H(secret);
-			H.update((const unsigned char *)&P,P.len);
+			H.update((const unsigned char *)&P,Size_);
 			auto digest = H.digest();
 			int p =0;
 			for(const auto &i:digest)
@@ -401,7 +398,7 @@ static const struct tok radius_attribute_names[] = {
 		inline void Print(std::ostream &os) {
 			os << "Packet type: (" << (uint) P_.code << ") " << CommandName(P_.code) << std::endl;
 			os << "  Identifier: " << (uint) P_.identifier << std::endl;
-			os << "  Length: " << P_.len << std::endl;
+			os << "  Length: " << Size_ << std::endl;
 			os << "  Authenticator: " ;
 			BufLog(os, "", P_.authenticator, sizeof(P_.authenticator));
 			os << "  Attributes: " << std::endl;
