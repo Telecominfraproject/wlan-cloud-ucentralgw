@@ -38,7 +38,7 @@ namespace OpenWifi {
 			std::cout << "About to start RADSEC connection..." << std::endl;
 			while(TryAgain_) {
 				if(!Connected_) {
-					std::cout << "RADSEC: Trying to connect" << std::endl;
+					std::cout << "Trying to connect" << std::endl;
 					Connect();
 				}
 				Poco::Thread::trySleep(1000);
@@ -48,7 +48,7 @@ namespace OpenWifi {
 		inline bool SendData(const unsigned char *buffer, int length) {
 			if(Connected_) {
 				RADIUS::RadiusPacket	P(buffer,length);
-				P.Log(std::cout);
+				// P.Log(std::cout);
 
 				int sent_bytes;
 				if(P.VerifyMessageAuthenticator(Server_.radsec_secret)) {
@@ -59,8 +59,6 @@ namespace OpenWifi {
 					P.ComputeMessageAuthenticator(Server_.radsec_secret);
 					sent_bytes = Socket_->sendBytes(P.Buffer(),length);
 				}
-
-				std::cout << "RADSEC: Sent " << sent_bytes << " bytes" << std::endl;
 				return (sent_bytes == length);
 			}
 			return false;
@@ -70,7 +68,7 @@ namespace OpenWifi {
 			Poco::Buffer<char> IncomingRadiusPacket(0);
 			try {
 				auto NumberOfReceivedBytes = Socket_->receiveBytes(IncomingRadiusPacket);
-				Logger_.information(fmt::format("RADSEC: received {} bytes.", NumberOfReceivedBytes));
+				Logger_.information(fmt::format("Received {} bytes.", NumberOfReceivedBytes));
 				std::cout << "RADSEC: Received " << NumberOfReceivedBytes << " bytes" << std::endl;
 				if(NumberOfReceivedBytes>40) {
 					auto *RP = (const OpenWifi::RADIUS::RawRadiusPacket *)(IncomingRadiusPacket.begin());
@@ -122,12 +120,10 @@ namespace OpenWifi {
 				Poco::Net::SocketAddress Destination(Server_.ip, Server_.port);
 
 				try {
-					std::cout << "RADSEC: trying to connect to " << Server_.ip << ":" << Server_.port << std::endl;
+					Logger_.information(fmt::format("Connecting to {}:{}", Server_.ip , Server_.port));
 					tmp_Socket_->connect(Destination, Poco::Timespan(10, 0));
-					std::cout << "RADSEC: Connected to " << tmp_Socket_->getPeerHostName() << ":" << tmp_Socket_->havePeerCertificate() << std::endl;
 					if(tmp_Socket_->havePeerCertificate()) {
-						auto peer_cert = tmp_Socket_->peerCertificate();
-						std::cout << "Peer cert: " << peer_cert.commonName() << "  " << peer_cert.issuerName() << "  " << peer_cert.subjectName() << std::endl;
+						Peer_Cert_ = std::make_unique<Poco::Crypto::X509Certificate>(tmp_Socket_->peerCertificate());
 					}
 
 					Reactor_.addEventHandler(
@@ -143,7 +139,7 @@ namespace OpenWifi {
 							*this, &RADSECserver::onShutdown));
 					Socket_ = std::move(tmp_Socket_);
 					Connected_ = true;
-					std::cout << "Connected to RADSEC" << std::endl;
+					Logger_.information(fmt::format("Connected to {}:{}", Server_.ip , Server_.port));
 					return true;
 				} catch (const Poco::Net::NetException &E) {
 					std::cout << "NetException: " << E.name() << " " << E.what() << std::endl;
@@ -193,6 +189,24 @@ namespace OpenWifi {
 			}
 		}
 
+		[[nodiscard]] inline std::string CommonName() {
+			if(Peer_Cert_)
+				return Peer_Cert_->commonName();
+			return "";
+		}
+
+		[[nodiscard]] inline std::string IssuerName() {
+			if(Peer_Cert_)
+				return Peer_Cert_->issuerName();
+			return "";
+		}
+
+		[[nodiscard]] inline std::string SubjectName() {
+			if(Peer_Cert_)
+				return Peer_Cert_->subjectName();
+			return "";
+		}
+
 	  private:
 		Poco::Net::SocketReactor							&Reactor_;
 		GWObjects::RadiusProxyServerEntry					Server_;
@@ -204,5 +218,6 @@ namespace OpenWifi {
 															KeyFile_{MicroService::instance().DataDir()};
 		std::vector<std::unique_ptr<Poco::TemporaryFile>>	CacertFiles_;
 		Poco::Thread										ReconnectorThr_;
+		std::unique_ptr<Poco::Crypto::X509Certificate>		Peer_Cert_;
 	};
 }
