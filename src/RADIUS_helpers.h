@@ -331,29 +331,31 @@ static const struct tok radius_attribute_names[] = {
 		void ComputeMessageAuthenticator(const std::string &secret) {
 			RawRadiusPacket		P = P_;
 
-			unsigned char OldAuthenticator[16]{0};
-			for(const auto &attr:Attrs_) {
-				if(attr.type==80) {
-					memcpy(OldAuthenticator,&P_.attributes[attr.pos],16);
-					memset(&P.attributes[attr.pos],0,16);
+			if(P_.code==1) {
+				unsigned char OldAuthenticator[16]{0};
+				for (const auto &attr : Attrs_) {
+					if (attr.type == 80) {
+						memcpy(OldAuthenticator, &P_.attributes[attr.pos], 16);
+						memset(&P.attributes[attr.pos], 0, 16);
+					}
 				}
-			}
 
-			unsigned char NewAuthenticator[16]{0};
-			Poco::HMACEngine<Poco::MD5Engine>	H(secret);
-			H.update((const unsigned char *)&P,Size_);
-			auto digest = H.digest();
-			int p =0;
-			for(const auto &i:digest)
-				NewAuthenticator[p++]=i;
+				unsigned char NewAuthenticator[16]{0};
+				Poco::HMACEngine<Poco::MD5Engine> H(secret);
+				H.update((const unsigned char *)&P, Size_);
+				auto digest = H.digest();
+				int p = 0;
+				for (const auto &i : digest)
+					NewAuthenticator[p++] = i;
 
-			if(memcmp(OldAuthenticator,NewAuthenticator,16)==0) {
-				std::cout << "Authenticator match..." << std::endl;
-			} else {
-				std::cout << "Authenticator MIS-match..." << std::endl;
-				for(const auto &attr:Attrs_) {
-					if(attr.type==80) {
-						memcpy(&P_.attributes[attr.pos],NewAuthenticator,16);
+				if (memcmp(OldAuthenticator, NewAuthenticator, 16) == 0) {
+					std::cout << "Authenticator match..." << std::endl;
+				} else {
+					std::cout << "Authenticator MIS-match..." << std::endl;
+					for (const auto &attr : Attrs_) {
+						if (attr.type == 80) {
+							memcpy(&P_.attributes[attr.pos], NewAuthenticator, 16);
+						}
 					}
 				}
 			}
@@ -361,21 +363,24 @@ static const struct tok radius_attribute_names[] = {
 
 		bool VerifyMessageAuthenticator(const std::string &secret) {
 			RawRadiusPacket		P = P_;
-			unsigned char OldAuthenticator[16]{0};
-			for(const auto &attr:Attrs_) {
-				if(attr.type==80) {
-					memcpy(OldAuthenticator,&P_.attributes[attr.pos],16);
-					memset(&P.attributes[attr.pos],0,16);
+			if(P_.code==1) {
+				unsigned char OldAuthenticator[16]{0};
+				for (const auto &attr : Attrs_) {
+					if (attr.type == 80) {
+						memcpy(OldAuthenticator, &P_.attributes[attr.pos], 16);
+						memset(&P.attributes[attr.pos], 0, 16);
+					}
 				}
+				unsigned char NewAuthenticator[16]{0};
+				Poco::HMACEngine<Poco::MD5Engine> H(secret);
+				H.update((const unsigned char *)&P, Size_);
+				auto digest = H.digest();
+				int p = 0;
+				for (const auto &i : digest)
+					NewAuthenticator[p++] = i;
+				return memcmp(OldAuthenticator, NewAuthenticator, 16) == 0;
 			}
-			unsigned char NewAuthenticator[16]{0};
-			Poco::HMACEngine<Poco::MD5Engine>	H(secret);
-			H.update((const unsigned char *)&P,Size_);
-			auto digest = H.digest();
-			int p =0;
-			for(const auto &i:digest)
-				NewAuthenticator[p++]=i;
-			return memcmp(OldAuthenticator,NewAuthenticator,16)==0;
+			return true;
 		}
 
 		static void BufLog(std::ostream & os, const char * pre, const unsigned char *b, uint s) {
