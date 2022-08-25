@@ -9,6 +9,9 @@
 #include <iostream>
 #include <iomanip>
 
+#include "Poco/HMACEngine.h"
+#include "Poco/MD5Engine.h"
+
 namespace OpenWifi::RADIUS {
 
 #define RADCMD_ACCESS_REQ   1 /* Access-Request      */
@@ -291,7 +294,14 @@ static const struct tok radius_attribute_names[] = {
 				Valid_ = ParseRadius(0,(unsigned char *)&P_.attributes[0],Size_-20,Attrs_);
 		}
 
-		RadiusPacket() = default;
+		explicit RadiusPacket(const RadiusPacket &P) {
+			Valid_ = P.Valid_;
+			Size_ = P.Size_;
+			P_ = P.P_;
+			Attrs_ = P.Attrs_;
+		}
+
+		explicit RadiusPacket() = default;
 
 		unsigned char * Buffer() { return (unsigned char *)&P_; }
 		[[nodiscard]] uint16_t BufferLen() const { return sizeof(P_);}
@@ -321,6 +331,58 @@ static const struct tok radius_attribute_names[] = {
 			}
 			os << std::dec << std::endl << std::endl;
 			Print(os);
+		}
+
+
+
+		void ComputeMessageAuthenticator(const std::string &secret) {
+			RawRadiusPacket		P = P_;
+
+			unsigned char OldAuthenticator[16]{0};
+			for(const auto &attr:Attrs_) {
+				if(attr.type==80) {
+					memcpy(OldAuthenticator,&P_.attributes[attr.pos],16);
+					memset(&P.attributes[attr.pos],0,16);
+				}
+			}
+
+			unsigned char NewAuthenticator[16]{0};
+			Poco::HMACEngine<Poco::MD5Engine>	H(secret);
+			H.update((const unsigned char *)&P,P.len);
+			auto digest = H.digest();
+			int p =0;
+			for(const auto &i:digest)
+				NewAuthenticator[p++]=i;
+
+			if(memcmp(OldAuthenticator,NewAuthenticator,16)==0) {
+				std::cout << "Authenticator match..." << std::endl;
+			} else {
+				std::cout << "Authenticator MIS-match..." << std::endl;
+				for(const auto &attr:Attrs_) {
+					if(attr.type==80) {
+						memcpy(&P_.attributes[attr.pos],NewAuthenticator,16);
+					}
+				}
+			}
+		}
+
+		bool VerifyMessageAuthenticator(const std::string &secret) {
+			RawRadiusPacket		P = P_;
+			unsigned char OldAuthenticator[16]{0};
+			for(const auto &attr:Attrs_) {
+				if(attr.type==80) {
+					memcpy(OldAuthenticator,&P_.attributes[attr.pos],16);
+					memset(&P.attributes[attr.pos],0,16);
+				}
+			}
+			unsigned char NewAuthenticator[16]{0};
+			Poco::HMACEngine<Poco::MD5Engine>	H(secret);
+			H.update((const unsigned char *)&P,P.len);
+			auto digest = H.digest();
+			int p =0;
+			for(const auto &i:digest)
+				NewAuthenticator[p++]=i;
+			return memcmp(OldAuthenticator,NewAuthenticator,16)==0;
 		}
 
 		static void BufLog(std::ostream & os, const char * pre, const unsigned char *b, uint s) {
@@ -378,7 +440,6 @@ static const struct tok radius_attribute_names[] = {
 					}
 				}
 			}
-
 			return R;
 		}
 
