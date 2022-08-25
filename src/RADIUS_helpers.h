@@ -252,7 +252,7 @@ static const struct tok radius_command_values[] = {
 			BufLog(os, "", P_.authenticator, sizeof(P_.authenticator));
 			os << "  Attributes: " << std::endl;
 			for(const auto &attr:Attrs_) {
-				os << "    " << (uint) attr.type << "   Len:" << attr.len << "   " ;
+				os << "    " << (uint) attr.type << "   Len:" << attr.len << std::endl;
 				BufLog(os, "        " , &P_.attributes[attr.pos], attr.len);
 			}
 			os << std::dec << std::endl << std::endl;
