@@ -231,7 +231,7 @@ static const struct tok radius_attribute_names[] = {
 		uint16_t pos=0;
 		auto x=25;
 		while(pos<Size && x) {
-			RadiusAttribute Attr{ .type=Buffer[pos], .pos=(uint16_t)(pos+2+offset), .len=Buffer[pos+1]};
+			RadiusAttribute Attr{ .type=Buffer[pos], .pos=(uint16_t)(pos+2+offset), .len=(unsigned int)(Buffer[pos+1]-2)};
 			// std::cout << "POS: " << pos << "  P:" << (uint32_t) Attr.pos << "  T:" << (uint32_t) Attr.type << "  L:" << (uint32_t) Attr.len << "  S:" << (uint32_t) Size << std::endl;
 			if(pos+Attr.len<=Size) {
 				Attrs.emplace_back(Attr);
