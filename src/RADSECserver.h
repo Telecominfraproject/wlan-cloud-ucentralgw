@@ -51,6 +51,8 @@ namespace OpenWifi {
 				P.Log(std::cout);
 
 				auto sent_bytes = Socket_->sendBytes(buffer,length);
+
+
 				std::cout << "RADSEC: Sent " << sent_bytes << " bytes" << std::endl;
 				return (sent_bytes == length);
 			}

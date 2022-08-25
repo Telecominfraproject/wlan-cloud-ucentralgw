@@ -113,18 +113,22 @@ namespace OpenWifi::RADIUS {
 	  public:
 		explicit RadiusPacket(const Poco::Buffer<char> & Buf) {
 			memcpy((void *)&P_,Buf.begin(), Buf.size());
+			P_.len = htons(P_.len);
 			Size_=Buf.size();
 			Valid_ = ParseRadius(0,(unsigned char *)&P_.attributes[0],Size_-20,Attrs_);
 		}
 
 		explicit RadiusPacket(const unsigned char *buffer, uint16_t size) {
 			memcpy((void *)&P_,buffer, size);
+			P_.len = htons(P_.len);
 			Size_=size;
+			std::cout << (size==P_.len) << std::endl;
 			Valid_ = ParseRadius(0,(unsigned char *)&P_.attributes[0],Size_-20,Attrs_);
 		}
 
 		explicit RadiusPacket(const std::string &p) {
 			memcpy((void *)&P_,(const unsigned char*) p.c_str(), p.size());
+			P_.len = htons(P_.len);
 			Size_=p.size();
 			Valid_ = ParseRadius(0,(unsigned char *)&P_.attributes[0],Size_-20,Attrs_);
 		}
@@ -158,6 +162,10 @@ namespace OpenWifi::RADIUS {
 				p+=16;
 			}
 			os << std::dec << std::endl;
+		}
+
+		void Print(std::ostream &os) {
+
 		}
 
 		std::string ExtractSerialNumberTIP() {
