@@ -116,6 +116,10 @@ namespace OpenWifi {
 					std::cout << "RADSEC: trying to connect to " << Server_.ip << ":" << Server_.port << std::endl;
 					tmp_Socket_->connect(Destination, Poco::Timespan(10, 0));
 					std::cout << "RADSEC: Connected to " << tmp_Socket_->getPeerHostName() << ":" << tmp_Socket_->havePeerCertificate() << std::endl;
+					if(tmp_Socket_->havePeerCertificate()) {
+						auto peer_cert = tmp_Socket_->peerCertificate();
+						std::cout << "Peer cert: " << peer_cert.commonName() << "  " << peer_cert.issuerName() << "  " << peer_cert.subjectName() << std::endl;
+					}
 
 					Reactor_.addEventHandler(
 						*tmp_Socket_,
