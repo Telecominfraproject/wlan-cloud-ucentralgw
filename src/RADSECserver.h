@@ -47,12 +47,12 @@ namespace OpenWifi {
 
 		inline bool SendData(const unsigned char *buffer, int length) {
 			if(Connected_) {
-				std::cout << "RADSEC: Sending " << length << " bytes" << std::endl;
-
 				RADIUS::RadiusPacket	P(buffer,length);
 				P.Log(std::cout);
 
-				return (Socket_->sendBytes(buffer,length) == length);
+				auto sent_bytes = Socket_->sendBytes(buffer,length);
+				std::cout << "RADSEC: Sending " << sent_bytes << " bytes" << std::endl;
+				return (sent_bytes == length);
 			}
 			return false;
 		}
