@@ -229,10 +229,10 @@ static const struct tok radius_command_values[] = {
 			Print(os);
 		}
 
-		static void BufLog(std::ostream & os, const unsigned char *b, uint s) {
+		static void BufLog(std::ostream & os, const char * pre, const unsigned char *b, uint s) {
 			uint16_t p = 0;
 			while(p<s) {
-				os << std::setfill('0') << std::setw(4) << p << ":  ";
+				os << pre << std::setfill('0') << std::setw(4) << p << ":  ";
 				uint16_t v=0;
 				while(v<16 && p+v<s) {
 					os << std::setfill('0') << std::setw(2) << std::right << std::hex << (uint16_t )b[p+v] << " ";
@@ -241,7 +241,7 @@ static const struct tok radius_command_values[] = {
 				os << std::endl;
 				p+=16;
 			}
-			os << std::dec << std::endl;
+			os << std::dec ;
 		}
 
 		inline void Print(std::ostream &os) {
@@ -249,11 +249,11 @@ static const struct tok radius_command_values[] = {
 			os << "  Identifier: " << (uint) P_.identifier << std::endl;
 			os << "  Length: " << P_.len << std::endl;
 			os << "  Authenticator: " ;
-			BufLog(os, P_.authenticator, sizeof(P_.authenticator));
-			os << "  Attributes: " ;
+			BufLog(os, "", P_.authenticator, sizeof(P_.authenticator));
+			os << "  Attributes: " << std::endl;
 			for(const auto &attr:Attrs_) {
 				os << "    " << (uint) attr.type << "   Len:" << attr.len << "   " ;
-				BufLog(os, &P_.attributes[attr.pos], attr.len);
+				BufLog(os, "        " , &P_.attributes[attr.pos], attr.len);
 			}
 			os << std::dec << std::endl << std::endl;
  		}
