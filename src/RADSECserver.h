@@ -51,12 +51,12 @@ namespace OpenWifi {
 				// P.Log(std::cout);
 
 				int sent_bytes;
-				if(P.VerifyMessageAuthenticator(Server_.radsec_secret)) {
+				if(P.VerifyMessageAuthenticator(Server_.radsec_secret+"111")) {
 					std::cout << "Good authenticator" << std::endl;
 					sent_bytes = Socket_->sendBytes(buffer,length);
 				} else {
 					std::cout << "Bad authenticator" << std::endl;
-					P.ComputeMessageAuthenticator(Server_.radsec_secret);
+					P.ComputeMessageAuthenticator(Server_.radsec_secret+"111");
 					sent_bytes = Socket_->sendBytes(P.Buffer(),length);
 				}
 				return (sent_bytes == length);
