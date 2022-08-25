@@ -11,6 +11,47 @@
 
 namespace OpenWifi::RADIUS {
 
+#define RADCMD_ACCESS_REQ   1 /* Access-Request      */
+#define RADCMD_ACCESS_ACC   2 /* Access-Accept       */
+#define RADCMD_ACCESS_REJ   3 /* Access-Reject       */
+#define RADCMD_ACCOUN_REQ   4 /* Accounting-Request  */
+#define RADCMD_ACCOUN_RES   5 /* Accounting-Response */
+#define RADCMD_ACCESS_CHA  11 /* Access-Challenge    */
+#define RADCMD_STATUS_SER  12 /* Status-Server       */
+#define RADCMD_STATUS_CLI  13 /* Status-Client       */
+#define RADCMD_DISCON_REQ  40 /* Disconnect-Request  */
+#define RADCMD_DISCON_ACK  41 /* Disconnect-ACK      */
+#define RADCMD_DISCON_NAK  42 /* Disconnect-NAK      */
+#define RADCMD_COA_REQ     43 /* CoA-Request         */
+#define RADCMD_COA_ACK     44 /* CoA-ACK             */
+#define RADCMD_COA_NAK     45 /* CoA-NAK             */
+#define RADCMD_RESERVED   255 /* Reserved            */
+
+struct tok {
+	uint 	cmd;
+	const char * name;
+};
+
+static const struct tok radius_command_values[] = {
+	{ RADCMD_ACCESS_REQ, "Access-Request" },
+	{ RADCMD_ACCESS_ACC, "Access-Accept" },
+	{ RADCMD_ACCESS_REJ, "Access-Reject" },
+	{ RADCMD_ACCOUN_REQ, "Accounting-Request" },
+	{ RADCMD_ACCOUN_RES, "Accounting-Response" },
+	{ RADCMD_ACCESS_CHA, "Access-Challenge" },
+	{ RADCMD_STATUS_SER, "Status-Server" },
+	{ RADCMD_STATUS_CLI, "Status-Client" },
+	{ RADCMD_DISCON_REQ, "Disconnect-Request" },
+	{ RADCMD_DISCON_ACK, "Disconnect-ACK" },
+	{ RADCMD_DISCON_NAK, "Disconnect-NAK" },
+	{ RADCMD_COA_REQ,    "CoA-Request" },
+	{ RADCMD_COA_ACK,    "CoA-ACK" },
+	{ RADCMD_COA_NAK,    "CoA-NAK" },
+	{ RADCMD_RESERVED,   "Reserved" },
+	{ 0, NULL}
+};
+
+
 #pragma pack(push,1)
 	struct RadiusAttribute {
 		unsigned char   type{0};
@@ -66,6 +107,14 @@ namespace OpenWifi::RADIUS {
 				t == RADIUS::CoA_NAK);
 	}
 
+	inline const char * CommandName(uint cmd) {
+		auto cmds = radius_command_values;
+		while(cmds->cmd && (cmds->cmd!=cmd))
+			cmds++;
+		if(cmds->cmd==cmd) return cmds->name;
+		return "Unknown";
+	}
+
 	//
 	// From: https://github.com/Telecominfraproject/wlan-dictionary/blob/main/dictionary.tip
 	//
@@ -73,8 +122,6 @@ namespace OpenWifi::RADIUS {
 	static const unsigned char TIP_serial = 1;
 	static const unsigned char TIP_AAAipaddr = 2;
 	static const unsigned char TIP_AAAipv6addr = 3;
-
-
 
 	using AttributeList = std::list<RadiusAttribute>;
 
@@ -112,25 +159,42 @@ namespace OpenWifi::RADIUS {
 	class RadiusPacket {
 	  public:
 		explicit RadiusPacket(const Poco::Buffer<char> & Buf) {
+			if(Buf.size() >= sizeof(RawRadiusPacket)) {
+				Valid_ = false;
+				return;
+			}
 			memcpy((void *)&P_,Buf.begin(), Buf.size());
 			P_.len = htons(P_.len);
 			Size_=Buf.size();
-			Valid_ = ParseRadius(0,(unsigned char *)&P_.attributes[0],Size_-20,Attrs_);
+			Valid_ = (Size_==P_.len);
+			if(Valid_)
+				Valid_ = ParseRadius(0,(unsigned char *)&P_.attributes[0],Size_-20,Attrs_);
 		}
 
 		explicit RadiusPacket(const unsigned char *buffer, uint16_t size) {
+			if(size >= sizeof(RawRadiusPacket)) {
+				Valid_ = false;
+				return;
+			}
 			memcpy((void *)&P_,buffer, size);
 			P_.len = htons(P_.len);
 			Size_=size;
-			std::cout << (size==P_.len) << std::endl;
-			Valid_ = ParseRadius(0,(unsigned char *)&P_.attributes[0],Size_-20,Attrs_);
+			Valid_ = (Size_==P_.len);
+			if(Valid_)
+				Valid_ = ParseRadius(0,(unsigned char *)&P_.attributes[0],Size_-20,Attrs_);
 		}
 
 		explicit RadiusPacket(const std::string &p) {
+			if(p.size() >= sizeof(RawRadiusPacket)) {
+				Valid_ = false;
+				return;
+			}
 			memcpy((void *)&P_,(const unsigned char*) p.c_str(), p.size());
 			P_.len = htons(P_.len);
 			Size_=p.size();
-			Valid_ = ParseRadius(0,(unsigned char *)&P_.attributes[0],Size_-20,Attrs_);
+			Valid_ = (Size_==P_.len);
+			if(Valid_)
+				Valid_ = ParseRadius(0,(unsigned char *)&P_.attributes[0],Size_-20,Attrs_);
 		}
 
 		RadiusPacket() = default;
@@ -161,12 +225,33 @@ namespace OpenWifi::RADIUS {
 				os << std::endl;
 				p+=16;
 			}
+			os << std::dec << std::endl << std::endl;
+			Print(os);
+		}
+
+		void BufLog(std::ostream & os, const unsigned char *b, uint s) {
+			uint16_t p = 0;
+			while(p<s) {
+				os << std::setfill('0') << std::setw(4) << p << ":  ";
+				uint16_t v=0;
+				while(v<16 && p+v<s) {
+					os << std::setfill('0') << std::setw(2) << std::right << std::hex << (uint16_t )b[p] << " ";
+					v++;
+				}
+				os << std::endl;
+				p+=16;
+			}
 			os << std::dec << std::endl;
 		}
 
-		void Print(std::ostream &os) {
-
-		}
+		inline void Print(std::ostream &os) {
+			os << "Packet type: (" << P_.code << ") " << CommandName(P_.code) << std::endl;
+			os << "  Identifier: " << P_.identifier << std::endl;
+			os << "  Length: " << P_.len << std::endl;
+			os << "  Authenticator: " ;
+			BufLog(os, P_.authenticator, sizeof(P_.authenticator));
+			os << std::dec << std::endl << std::endl;
+ 		}
 
 		std::string ExtractSerialNumberTIP() {
 			std::string     R;
