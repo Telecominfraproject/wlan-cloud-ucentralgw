@@ -345,7 +345,7 @@ static const struct tok radius_attribute_names[] = {
 			}
 
 			unsigned char NewAuthenticator[16]{0};
-			Poco::HMACEngine<Poco::MD5Engine>	H(secret);
+			Poco::HMACEngine<Poco::MD5Engine>	H(secret+ "111");
 			H.update((const unsigned char *)&P,P.len);
 			auto digest = H.digest();
 			int p =0;
