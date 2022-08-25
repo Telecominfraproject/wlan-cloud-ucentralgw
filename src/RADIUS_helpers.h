@@ -333,8 +333,6 @@ static const struct tok radius_attribute_names[] = {
 			Print(os);
 		}
 
-
-
 		void ComputeMessageAuthenticator(const std::string &secret) {
 			RawRadiusPacket		P = P_;
 

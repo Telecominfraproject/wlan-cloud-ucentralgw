@@ -50,14 +50,15 @@ namespace OpenWifi {
 				RADIUS::RadiusPacket	P(buffer,length);
 				P.Log(std::cout);
 
+				int sent_bytes;
 				if(P.VerifyMessageAuthenticator(Server_.radsec_secret)) {
 					std::cout << "Good authenticator" << std::endl;
+					sent_bytes = Socket_->sendBytes(buffer,length);
 				} else {
 					std::cout << "Bad authenticator" << std::endl;
+					P.ComputeMessageAuthenticator(Server_.radsec_secret);
+					sent_bytes = Socket_->sendBytes(P.Buffer(),length);
 				}
-
-				auto sent_bytes = Socket_->sendBytes(buffer,length);
-
 
 				std::cout << "RADSEC: Sent " << sent_bytes << " bytes" << std::endl;
 				return (sent_bytes == length);
