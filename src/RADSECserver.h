@@ -118,29 +118,28 @@ namespace OpenWifi {
 					SecureContext->addCertificateAuthority(cert);
 				}
 
-				auto tmp_Socket_ = std::make_unique<Poco::Net::SecureStreamSocket>(SecureContext);
+				Socket_ = std::make_unique<Poco::Net::SecureStreamSocket>(SecureContext);
 				Poco::Net::SocketAddress Destination(Server_.ip, Server_.port);
 
 				try {
 					Logger_.information(fmt::format("Connecting to {}:{}", Server_.ip , Server_.port));
-					tmp_Socket_->connect(Destination, Poco::Timespan(10, 0));
-					tmp_Socket_->completeHandshake();
-					if(tmp_Socket_->havePeerCertificate()) {
-						Peer_Cert_ = std::make_unique<Poco::Crypto::X509Certificate>(tmp_Socket_->peerCertificate());
+					Socket_->connect(Destination, Poco::Timespan(10, 0));
+					Socket_->completeHandshake();
+					if(Socket_->havePeerCertificate()) {
+						Peer_Cert_ = std::make_unique<Poco::Crypto::X509Certificate>(Socket_->peerCertificate());
 					}
 
 					Reactor_.addEventHandler(
-						*tmp_Socket_,
+						*Socket_,
 						Poco::NObserver<RADSECserver, Poco::Net::ReadableNotification>(
 							*this, &RADSECserver::onData));
 					Reactor_.addEventHandler(
-						*tmp_Socket_, Poco::NObserver<RADSECserver, Poco::Net::ErrorNotification>(
+						*Socket_, Poco::NObserver<RADSECserver, Poco::Net::ErrorNotification>(
 										  *this, &RADSECserver::onError));
 					Reactor_.addEventHandler(
-						*tmp_Socket_,
+						*Socket_,
 						Poco::NObserver<RADSECserver, Poco::Net::ShutdownNotification>(
 							*this, &RADSECserver::onShutdown));
-					Socket_ = std::move(tmp_Socket_);
 					Connected_ = true;
 					Logger_.information(fmt::format("Connected to {}:{}", Server_.ip , Server_.port));
 					return true;
