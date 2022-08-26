@@ -69,7 +69,7 @@ namespace OpenWifi {
 		inline void onData([[maybe_unused]] const Poco::AutoPtr<Poco::Net::ReadableNotification>& pNf) {
 			Poco::Buffer<char> IncomingRadiusPacket(0);
 			try {
-				auto NumberOfReceivedBytes = Socket_->receiveBytes(IncomingRadiusPacket);
+				auto NumberOfReceivedBytes = pNf->socket().impl()->receiveBytes(IncomingRadiusPacket);
 				Logger_.information(fmt::format("Received {} bytes.", NumberOfReceivedBytes));
 				std::cout << "RADSEC: Received " << NumberOfReceivedBytes << " bytes" << std::endl;
 				if(NumberOfReceivedBytes>40) {
