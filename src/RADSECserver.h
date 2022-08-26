@@ -124,6 +124,7 @@ namespace OpenWifi {
 				try {
 					Logger_.information(fmt::format("Connecting to {}:{}", Server_.ip , Server_.port));
 					tmp_Socket_->connect(Destination, Poco::Timespan(10, 0));
+					tmp_Socket_->completeHandshake();
 					if(tmp_Socket_->havePeerCertificate()) {
 						Peer_Cert_ = std::make_unique<Poco::Crypto::X509Certificate>(tmp_Socket_->peerCertificate());
 					}

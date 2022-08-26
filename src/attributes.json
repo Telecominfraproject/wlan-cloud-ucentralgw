@@ -1,83 +1,206 @@
-{{1,"User-Name"},
-{2,"User-Password"},
-{3,"CHAP-Password"},
-{4,"NAS-IP Address"},
-{5,"NAS-Port"},
-{6,"Service-Type"},
-{7,"Framed-Protocol"},
-{8,"Framed-IP-Address"},
-{9,"Framed-IP-Netmask"},
-{10,"Framed-Routing"},
-{11,"Filter-Id"},
-{12,"Framed-MTU"},
-{13,"Framed-Compression"},
-{14,"Login-IP-Host"},
-{15,"Login-Service"},
-{16,"Login-TCP-Port"},
-{18,"Reply-Message"},
-{19,"Callback-Number"},
-{20,"Callback-ID"},
-{22,"Framed-Route"},
-{23,"Framed-IPX-Network"},
-{24,"State"},
-{25,"Class"},
-{26,"Vendor-Specific"},
-{27,"Session-Timeout"},
-{28,"Idle-Timeout"},
-{29,"Termination-Action"},
-{30,"Called-Station-Id"},
-{31,"Calling-Station-Id"},
-{32,"NAS-Identifier"},
-{33,"Proxy-State"},
-{34,"Login-LAT-Service"},
-{35,"Login-LAT-Node"},
-{36,"Login-LAT-Group"},
-{37,"Framed-AppleTalk-Link"},
-{38,"Framed-AppleTalk-Network"},
-{39,"Framed-AppleTalk-Zone"},
-{40,"Acct-Status-Type"},
-{41,"Acct-Delay-Time"},
-{42,"Acct-Input-Octets"},
-{43,"Acct-Output-Octets"},
-{44,"Acct-Session-Id"},
-{45,"Acct-Authentic"},
-{46,"Acct-Session-Time"},
-{47,"Acct-Input-Packets"},
-{48,"Acct-Output-Packets"},
-{49,"Acct-Terminate-Cause"},
-{50,"Acct-Multi-Session-Id"},
-{51,"Acct-Link-Count"},
-{52,"Acct-Input-Gigawords"},
-{53,"Acct-Output-Gigawords"},
-{55,"Event-Timestamp"},
-{60,"CHAP-Challenge"},
-{61,"NAS-Port-Type"},
-{62,"Port-Limit"},
-{63,"Login-LAT-Port"},
-{64,"Tunnel-Type3"},
-{65,"Tunnel-Medium-Type1"},
-{66,"Tunnel-Client-Endpoint"},
-{67,"Tunnel-Server-Endpoint1"},
-{68,"Acct-Tunnel-Connection-ID"},
-{69,"Tunnel-Password1"},
-{70,"ARAP-Password"},
-{71,"ARAP-Features"},
-{72,"ARAP-Zone-Access"},
-{73,"ARAP-Security"},
-{74,"ARAP-Security-Data"},
-{75,"Password-Retry"},
-{76,"Prompt"},
-{77,"Connect-Info"},
-{78,"Configuration-Token"},
-{79,"EAP-Message"},
-{80,"Message-Authenticator"},
-{81,"Tunnel-Private-Group-ID"},
-{82,"Tunnel-Assignment-ID1"},
-{83,"Tunnel-Preference"},
-{84,"ARAP-Challenge-Response"},
-{85,"Acct-Interim-Interval"},
-{86,"Acct-Tunnel-Packets-Lost"},
-{87,"NAS-Port-ID"},
-{88,"Framed-Pool"},
-{90,"Tunnel-Client-Auth-ID"},
-{91,"Tunnel-Server-Auth-ID"}}
+{
+    "interfaces": [
+        {
+            "ethernet": [
+                {
+                    "select-ports": [
+                        "WAN*"
+                    ]
+                }
+            ],
+            "ipv4": {
+                "addressing": "dynamic"
+            },
+            "ipv6": {
+                "addressing": "dynamic"
+            },
+            "name": "wan",
+            "role": "upstream",
+            "services": [
+                "ssh"
+            ],
+            "ssids": []
+        },
+        {
+            "ethernet": [
+                {
+                    "select-ports": [
+                        "LAN*"
+                    ]
+                }
+            ],
+            "ipv4": {
+                "addressing": "static",
+                "dhcp": {
+                    "lease-count": 100,
+                    "lease-first": 10,
+                    "lease-time": "6h"
+                },
+                "gateway": "192.168.1.1",
+                "send-hostname": true,
+                "subnet": "192.168.1.1/24",
+                "use-dns": []
+            },
+            "ipv6": {
+                "addressing": "dynamic"
+            },
+            "name": "lan",
+            "role": "downstream",
+            "services": [
+                "wifi-steering",
+                "ssh"
+            ],
+            "ssids": [
+                {
+                    "bss-mode": "ap",
+                    "encryption": {
+                        "ieee80211w": "optional",
+                        "proto": "wpa-mixed"
+                    },
+                    "hidden-ssid": false,
+                    "isolate-clients": false,
+                    "maximum-clients": 64,
+                    "name": "arilia-rad",
+                    "pass-point": {
+                        "access-network-type": 0,
+                        "anqp-3gpp-cell-net": [],
+                        "anqp-domain": 8888,
+                        "asra": false,
+                        "auth-type": {
+                            "type": "terms-and-conditions"
+                        },
+                        "connection-capability": [
+                            "1:0:2",
+                            "6:22:1",
+                            "17:5060:0"
+                        ],
+                        "disable-dgaf": true,
+                        "domain-name": [
+                            "main.arilia.com"
+                        ],
+                        "esr": false,
+                        "friendly-name": [
+                            "eng:AriliaWifi",
+                            "fra:AriliaWifi"
+                        ],
+                        "hessid": "11:22:33:44:55:66",
+                        "internet": true,
+                        "ipaddr-type-available": 14,
+                        "nai-realm": [],
+                        "osen": false,
+                        "roaming-consortium": [
+                            "F4F5E8F5F4"
+                        ],
+                        "uesa": false,
+                        "venue-group": 2,
+                        "venue-name": [
+                            "eng:Bowen Development 1",
+                            "fra:Bowen Development 1"
+                        ],
+                        "venue-type": 8,
+                        "venue-url": [
+                            "http://www.example.com/info-fra",
+                            "http://www.example.com/info-eng"
+                        ]
+                    },
+                    "radius": {
+                        "accounting": {
+						  	"interval" : 600,
+                            "host": "0.0.0.0",
+                            "port": 1813,
+                            "secret": "radsec"
+                        },
+                        "authentication": {
+                            "host": "0.0.0.0",
+                            "port": 1812,
+                            "secret": "radsec",
+                        },
+                         "chargeable-user-id" : true,
+                         "nas-identifier": "AriliaWifi",
+                         "realm" : [
+                                "c2k2q8e2pcs2udar1pa0.orion.area120.com"
+                            ]
+                    },
+                    "services": [
+                        "radius-gw-proxy"
+                    ],
+                    "wifi-bands": [
+                        "2G",
+                        "5G"
+                    ]
+                }
+            ]
+        }
+    ],
+    "metrics": {
+        "dhcp-snooping": {
+            "filters": [
+                "ack",
+                "discover",
+                "offer",
+                "request",
+                "solicit",
+                "reply",
+                "renew"
+            ]
+        },
+        "health": {
+            "interval": 60
+        },
+        "statistics": {
+            "interval": 60,
+            "types": [
+                "ssids",
+                "lldp",
+                "clients"
+            ]
+        },
+        "wifi-frames": {
+            "filters": [
+                "probe",
+                "auth",
+                "assoc",
+                "disassoc",
+                "deauth",
+                "local-deauth",
+                "inactive-deauth",
+                "key-mismatch",
+                "beacon-report",
+                "radar-detected"
+            ]
+        }
+    },
+    "radios": [
+        {
+            "band": "2G",
+            "bandwidth": 10,
+            "beacon-interval": 100,
+            "channel": "auto",
+            "channel-mode": "HT",
+            "channel-width": 20,
+            "country": "CA",
+            "dtim-period": 2,
+            "maximum-clients": 64,
+            "tx-power": 23
+        },
+        {
+            "band": "5G",
+            "bandwidth": 20,
+            "beacon-interval": 100,
+            "channel": "auto",
+            "channel-mode": "VHT",
+            "channel-width": 80,
+            "country": "CA",
+            "dtim-period": 2,
+            "maximum-clients": 64,
+            "tx-power": 23
+        }
+    ],
+    "services": {
+        "ssh": {
+            "password-authentication": true,
+            "port": 22
+        }
+    },
+    "uuid": 1661409802
+}
