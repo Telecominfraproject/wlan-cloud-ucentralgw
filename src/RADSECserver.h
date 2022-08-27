@@ -109,7 +109,7 @@ namespace OpenWifi {
 			if(TryAgain_) {
 
 				Poco::Net::Context::Ptr SecureContext = Poco::AutoPtr<Poco::Net::Context>(
-					new Poco::Net::Context(Poco::Net::Context::CLIENT_USE,
+					new Poco::Net::Context(Poco::Net::Context::TLS_CLIENT_USE,
 										   KeyFile_.path(),
 										   CertFile_.path(),""));
 
