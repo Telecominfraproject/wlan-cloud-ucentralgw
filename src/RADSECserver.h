@@ -119,6 +119,11 @@ namespace OpenWifi {
 				}
 
 				Socket_ = std::make_unique<Poco::Net::SecureStreamSocket>(SecureContext);
+				Socket_->setBlocking(false);
+				Socket_->setNoDelay(true);
+				Socket_->setLinger(false,2);
+				Socket_->setKeepAlive(true);
+
 				Poco::Net::SocketAddress Destination(Server_.ip, Server_.port);
 
 				try {
