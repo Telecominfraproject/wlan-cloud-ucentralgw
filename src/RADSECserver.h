@@ -68,10 +68,10 @@ namespace OpenWifi {
 			Poco::Buffer<char> IncomingRadiusPacket(4096);
 
 			try {
-				auto NumberOfReceivedBytes = pNf->socket().impl()->receiveBytes(IncomingRadiusPacket);
+				auto NumberOfReceivedBytes = Socket_->receiveBytes(IncomingRadiusPacket);
 				if(NumberOfReceivedBytes>40) {
 					RADIUS::RadiusPacket P(IncomingRadiusPacket);
-					std::cout << "RADSEC: " << P.PacketType() << "   Received " << NumberOfReceivedBytes << " bytes" << std::endl;
+					std::cout << "RADSEC: " << P.PacketType() << "  "  << (int) P.PacketTypeInt() << "   Received " << NumberOfReceivedBytes << " bytes" << std::endl;
 					if (P.IsAuthentication()) {
 						auto SerialNumber = P.ExtractSerialNumberFromProxyState();
 						Logger_.information(fmt::format("{}: {} Received {} bytes.", SerialNumber, P.PacketType(), NumberOfReceivedBytes));
