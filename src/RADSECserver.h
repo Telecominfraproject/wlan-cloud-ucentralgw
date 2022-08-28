@@ -28,7 +28,7 @@ namespace OpenWifi {
 		RADSECserver(Poco::Net::SocketReactor & R, GWObjects::RadiusProxyServerEntry E) :
  			Reactor_(R),
 			Server_(std::move(E)),
-			Logger_(Poco::Logger::get(fmt::format("{}@{}:{}",
+			Logger_(Poco::Logger::get(fmt::format("RADSEC: {}@{}:{}",
 								Server_.name ,
 								Server_.ip,
 								Server_.port)))
@@ -69,7 +69,7 @@ namespace OpenWifi {
 
 			try {
 				auto NumberOfReceivedBytes = pNf->socket().impl()->receiveBytes(IncomingRadiusPacket);
-				// std::cout << "RADSEC: Received " << NumberOfReceivedBytes << " bytes" << std::endl;
+				std::cout << "RADSEC: Received " << NumberOfReceivedBytes << " bytes" << std::endl;
 				if(NumberOfReceivedBytes>40) {
 					auto *RP = (const OpenWifi::RADIUS::RawRadiusPacket *)(IncomingRadiusPacket.begin());
 					RADIUS::RadiusPacket P(IncomingRadiusPacket);
