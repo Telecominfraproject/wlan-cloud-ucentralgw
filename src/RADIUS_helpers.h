@@ -325,7 +325,7 @@ static const struct tok radius_attribute_names[] = {
 					P_.code == RADIUS::Accounting_Message);
 		}
 
-		inline bool IsAuthority(unsigned char t) {
+		inline bool IsAuthority() {
 			return (P_.code == RADIUS::Disconnect_Request ||
 					P_.code == RADIUS::Disconnect_ACK ||
 					P_.code == RADIUS::Disconnect_NAK ||
