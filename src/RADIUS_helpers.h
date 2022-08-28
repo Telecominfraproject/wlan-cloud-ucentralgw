@@ -19,16 +19,61 @@ namespace OpenWifi::RADIUS {
 #define RADCMD_ACCESS_REJ   3 /* Access-Reject       */
 #define RADCMD_ACCOUN_REQ   4 /* Accounting-Request  */
 #define RADCMD_ACCOUN_RES   5 /* Accounting-Response */
-#define RADCMD_ACCESS_CHA  11 /* Access-Challenge    */
-#define RADCMD_STATUS_SER  12 /* Status-Server       */
-#define RADCMD_STATUS_CLI  13 /* Status-Client       */
-#define RADCMD_DISCON_REQ  40 /* Disconnect-Request  */
-#define RADCMD_DISCON_ACK  41 /* Disconnect-ACK      */
-#define RADCMD_DISCON_NAK  42 /* Disconnect-NAK      */
-#define RADCMD_COA_REQ     43 /* CoA-Request         */
-#define RADCMD_COA_ACK     44 /* CoA-ACK             */
-#define RADCMD_COA_NAK     45 /* CoA-NAK             */
-#define RADCMD_RESERVED   255 /* Reserved            */
+#define RADCMD_ACCOUN_STATUS   	6 /* Accounting-Status */
+#define RADCMD_PASSWORD_REQUEST	7	/* Password-Request	[RFC3575] */
+#define RADCMD_PASSWORD_ACK		8	/* Password-Ack	[RFC3575] */
+#define RADCMD_PASSWORD_REJECT	9	/* Password-Reject	[RFC3575] */
+#define RADCMD_ACCOUN_MESSAGE	10	/* Accounting-Message	[RFC3575] */
+
+#define RADCMD_RES_FREE_REQ			21	/* Resource-Free-Request	[RFC3575] */
+#define RADCMD_RES_FREE_RES			22	/* Resource-Free-Response	[RFC3575] */
+#define RADCMD_RES_QUERY_REQ		23	/* Resource-Query-Request	[RFC3575] */
+#define RADCMD_RES_QUERY_RES		24	/* Resource-Query-Response	[RFC3575] */
+#define RADCMD_RES_ALT_RECLAIM_REQ	25	/* Alternate-Resource-Reclaim-Request	[RFC3575] */
+
+#define RADCMD_ACCESS_CHA  11 		/* Access-Challenge    */
+#define RADCMD_STATUS_SER  12 		/* Status-Server       */
+#define RADCMD_STATUS_CLI  13 		/* Status-Client       */
+#define RADCMD_DISCON_REQ  40 		/* Disconnect-Request  */
+#define RADCMD_DISCON_ACK  41 		/* Disconnect-ACK      */
+#define RADCMD_DISCON_NAK  42 		/* Disconnect-NAK      */
+#define RADCMD_COA_REQ     43 		/* CoA-Request         */
+#define RADCMD_COA_ACK     44 		/* CoA-ACK             */
+#define RADCMD_COA_NAK     45 		/* CoA-NAK             */
+#define RADCMD_RESERVED   255 		/* Reserved            */
+
+/*
+	21	Resource-Free-Request	[RFC3575]
+	22	Resource-Free-Response	[RFC3575]
+	23	Resource-Query-Request	[RFC3575]
+	24	Resource-Query-Response	[RFC3575]
+	25	Alternate-Resource-Reclaim-Request	[RFC3575]
+
+	26	NAS-Reboot-Request	[RFC3575]
+	27	NAS-Reboot-Response	[RFC3575]
+	28	Reserved
+	29	Next-Passcode	[RFC3575]
+	30	New-Pin	[RFC3575]
+	31	Terminate-Session	[RFC3575]
+	32	Password-Expired	[RFC3575]
+	33	Event-Request	[RFC3575]
+	34	Event-Response	[RFC3575]
+	35-39	Unassigned
+	40	Disconnect-Request	[RFC3575][RFC5176]
+	41	Disconnect-ACK	[RFC3575][RFC5176]
+	42	Disconnect-NAK	[RFC3575][RFC5176]
+	43	CoA-Request	[RFC3575][RFC5176]
+	44	CoA-ACK	[RFC3575][RFC5176]
+	45	CoA-NAK	[RFC3575][RFC5176]
+	46-49	Unassigned
+	50	IP-Address-Allocate	[RFC3575]
+	51	IP-Address-Release	[RFC3575]
+	52	Protocol-Error	[RFC7930]
+	53-249	Unassigned
+	250-253	Experimental Use	[RFC3575]
+	254	Reserved	[RFC3575]
+	255	Reserved	[RFC3575]
+*/
 
 struct tok {
 	uint 	cmd;
@@ -51,6 +96,16 @@ static const struct tok radius_command_values[] = {
 	{ RADCMD_COA_ACK,    "CoA-ACK" },
 	{ RADCMD_COA_NAK,    "CoA-NAK" },
 	{ RADCMD_RESERVED,   "Reserved" },
+	{ RADCMD_ACCOUN_STATUS, "Accounting-Status"},
+	{ RADCMD_PASSWORD_REQUEST, "Password-Request"},
+  	{ RADCMD_PASSWORD_ACK, "Password-Ack"},
+   	{ RADCMD_PASSWORD_REJECT, "Password-Reject"},
+	{ RADCMD_ACCOUN_MESSAGE, "Accounting-Message"},
+	{ RADCMD_RES_FREE_REQ,	"Resource-Free-Request"},
+	{ RADCMD_RES_FREE_RES,	"Resource-Free-Response"},
+	{ RADCMD_RES_QUERY_REQ, "Resource-Query-Request"},
+	{ RADCMD_RES_QUERY_RES, "Resource-Query-Response"},
+	{ RADCMD_RES_ALT_RECLAIM_REQ, "Alternate-Resource-Reclaim-Request"},
 	{ 0, nullptr}
 };
 
@@ -315,7 +370,12 @@ static const struct tok radius_attribute_names[] = {
 			return (P_.code == RADIUS::Access_Request ||
 					P_.code == RADIUS::Access_Accept ||
 					P_.code == RADIUS::Access_Challenge ||
-					P_.code == RADIUS::Access_Reject);
+					P_.code == RADIUS::Access_Reject ||
+					P_.code == RADCMD_RES_FREE_REQ ||
+					P_.code == RADCMD_RES_FREE_RES ||
+					P_.code == RADCMD_RES_QUERY_REQ ||
+					P_.code == RADCMD_RES_QUERY_RES ||
+					P_.code == RADCMD_RES_ALT_RECLAIM_REQ);
 		}
 
 		inline bool IsAccounting() {
