@@ -67,25 +67,24 @@ namespace OpenWifi {
 		}
 
 		inline void onData([[maybe_unused]] const Poco::AutoPtr<Poco::Net::ReadableNotification>& pNf) {
-			// Poco::Buffer<char> IncomingRadiusPacket(0);
-			unsigned char buffer[4096];
+			Poco::Buffer<char> IncomingRadiusPacket(4096);
 
 			try {
-				auto NumberOfReceivedBytes = pNf->socket().impl()->receiveBytes(buffer,sizeof(buffer));
+				auto NumberOfReceivedBytes = pNf->socket().impl()->receiveBytes(IncomingRadiusPacket);
 				Logger_.information(fmt::format("Received {} bytes.", NumberOfReceivedBytes));
 				std::cout << "RADSEC: Received " << NumberOfReceivedBytes << " bytes" << std::endl;
 				if(NumberOfReceivedBytes>40) {
-					auto *RP = (const OpenWifi::RADIUS::RawRadiusPacket *)(&buffer[0]);
-					RADIUS::RadiusPacket P(buffer,NumberOfReceivedBytes);
+					auto *RP = (const OpenWifi::RADIUS::RawRadiusPacket *)(IncomingRadiusPacket.begin());
+					RADIUS::RadiusPacket P(IncomingRadiusPacket);
 					if (RADIUS::IsAuthentication(RP->code)) {
 						auto SerialNumber = P.ExtractSerialNumberFromProxyState();
 						DeviceRegistry()->SendRadiusAuthenticationData(
-							SerialNumber, buffer,
+							SerialNumber, (const unsigned char *)IncomingRadiusPacket.begin(),
 							NumberOfReceivedBytes);
 					} else if (RADIUS::IsAccounting(RP->code)) {
 						auto SerialNumber = P.ExtractSerialNumberFromProxyState();
 						DeviceRegistry()->SendRadiusAccountingData(
-							SerialNumber, buffer,
+							SerialNumber, (const unsigned char *)IncomingRadiusPacket.begin(),
 							NumberOfReceivedBytes);
 					} else if (RADIUS::IsAuthority(RP->code)) {
 					}
