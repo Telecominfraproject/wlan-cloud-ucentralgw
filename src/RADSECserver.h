@@ -49,7 +49,7 @@ namespace OpenWifi {
 		inline bool SendData(const std::string &serial_number, const unsigned char *buffer, int length) {
 			if(Connected_) {
 				RADIUS::RadiusPacket	P(buffer,length);
-				std::cout << serial_number << "    Sending " << length << " bytes" << std::endl;
+				std::cout << serial_number << "    Sending " << P.PacketType() << "  "  << length << " bytes" << std::endl;
 				int sent_bytes;
 				if(P.VerifyMessageAuthenticator(Server_.radsec_secret)) {
 					Logger_.debug(fmt::format("{}: {} Sending {} bytes", serial_number, P.PacketType(), length));
@@ -65,25 +65,25 @@ namespace OpenWifi {
 		}
 
 		inline void onData([[maybe_unused]] const Poco::AutoPtr<Poco::Net::ReadableNotification>& pNf) {
-			Poco::Buffer<char> IncomingRadiusPacket(4096);
+			unsigned char Buffer[4096];
 
 			try {
-				auto NumberOfReceivedBytes = Socket_->receiveBytes(IncomingRadiusPacket);
+				auto NumberOfReceivedBytes = Socket_->receiveBytes(Buffer,sizeof(Buffer));
 				if(NumberOfReceivedBytes>40) {
-					RADIUS::RadiusPacket P(IncomingRadiusPacket);
+					RADIUS::RadiusPacket P(Buffer,NumberOfReceivedBytes);
 					P.Log(std::cout);
 					std::cout << "RADSEC: " << P.PacketType() << "  "  << (int) P.PacketTypeInt() << "   Received " << NumberOfReceivedBytes << " bytes" << std::endl;
 					if (P.IsAuthentication()) {
 						auto SerialNumber = P.ExtractSerialNumberFromProxyState();
 						Logger_.information(fmt::format("{}: {} Received {} bytes.", SerialNumber, P.PacketType(), NumberOfReceivedBytes));
 						DeviceRegistry()->SendRadiusAuthenticationData(
-							SerialNumber, (const unsigned char *)IncomingRadiusPacket.begin(),
+							SerialNumber, Buffer,
 							NumberOfReceivedBytes);
 					} else if (P.IsAccounting()) {
 						auto SerialNumber = P.ExtractSerialNumberFromProxyState();
 						Logger_.information(fmt::format("{}: {} Received {} bytes.", SerialNumber, P.PacketType(), NumberOfReceivedBytes));
 						DeviceRegistry()->SendRadiusAccountingData(
-							SerialNumber, (const unsigned char *)IncomingRadiusPacket.begin(),
+							SerialNumber, Buffer,
 							NumberOfReceivedBytes);
 					} else if (P.IsAuthority()) {
 					}
