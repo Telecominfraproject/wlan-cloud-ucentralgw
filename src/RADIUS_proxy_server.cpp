@@ -121,7 +121,7 @@ namespace OpenWifi {
 	}
 
 	void RADIUS_proxy_server::StartRADSECServer(const GWObjects::RadiusProxyServerEntry &E) {
-		RADSECservers_[ Poco::Net::SocketAddress(E.ip,0) ] = std::make_unique<RADSECserver>(RadiusReactor_,E,Logger());
+		RADSECservers_[ Poco::Net::SocketAddress(E.ip,0) ] = std::make_unique<RADSECserver>(RadiusReactor_,E);
 	}
 
 	void RADIUS_proxy_server::OnAccountingSocketReadable(const Poco::AutoPtr<Poco::Net::ReadableNotification>& pNf) {
@@ -204,7 +204,7 @@ namespace OpenWifi {
 			Poco::Net::SocketAddress	RSP(FinalDestination.host(),0);
 			auto DestinationServer = RADSECservers_.find(RSP);
 			if(DestinationServer!=end(RADSECservers_)) {
-				DestinationServer->second->SendData((const unsigned char *)buffer, size);
+				DestinationServer->second->SendData(serialNumber, (const unsigned char *)buffer, size);
 			}
 		} else {
 			auto AllSent =
@@ -239,7 +239,7 @@ namespace OpenWifi {
 			Poco::Net::SocketAddress	RSP(FinalDestination.host(),0);
 			auto DestinationServer = RADSECservers_.find(RSP);
 			if(DestinationServer!=end(RADSECservers_)) {
-				DestinationServer->second->SendData((const unsigned char *)buffer, size);
+				DestinationServer->second->SendData(serialNumber, (const unsigned char *)buffer, size);
 			}
 		} else {
 			auto AllSent =
@@ -272,7 +272,7 @@ namespace OpenWifi {
 			Poco::Net::SocketAddress	RSP(FinalDestination.host(),0);
 			auto DestinationServer = RADSECservers_.find(RSP);
 			if(DestinationServer!=end(RADSECservers_)) {
-				DestinationServer->second->SendData((const unsigned char *)buffer, size);
+				DestinationServer->second->SendData(serialNumber, (const unsigned char *)buffer, size);
 			}
 		} else {
 			auto AllSent = SendData(Dst.family() == Poco::Net::SocketAddress::IPv4 ? *CoASocketV4_

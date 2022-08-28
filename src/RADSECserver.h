@@ -25,39 +25,37 @@ namespace OpenWifi {
 
 	class RADSECserver : public Poco::Runnable {
 	  public:
-		RADSECserver(Poco::Net::SocketReactor & R, GWObjects::RadiusProxyServerEntry E, Poco::Logger &L) :
+		RADSECserver(Poco::Net::SocketReactor & R, GWObjects::RadiusProxyServerEntry E) :
  			Reactor_(R),
 			Server_(std::move(E)),
-	  		Logger_(L) {
-
+			Logger_(Poco::Logger::get(fmt::format("{}@{}:{}",
+								Server_.name ,
+								Server_.ip,
+								Server_.port)))
+		{
 			MakeSecurityFiles();
 			ReconnectorThr_.start(*this);
 		}
 
 		inline void run() final {
-			std::cout << "About to start RADSEC connection..." << std::endl;
 			while(TryAgain_) {
 				if(!Connected_) {
-					std::cout << "Trying to connect" << std::endl;
 					Connect();
 				}
 				Poco::Thread::trySleep(1000);
 			}
 		}
 
-		inline bool SendData(const unsigned char *buffer, int length) {
+		inline bool SendData(const std::string &serial_number, const unsigned char *buffer, int length) {
 			if(Connected_) {
 				RADIUS::RadiusPacket	P(buffer,length);
-				// P.Log(std::cout);
-
-				P.Log(std::cout);
 
 				int sent_bytes;
 				if(P.VerifyMessageAuthenticator(Server_.radsec_secret)) {
-					std::cout << "Good authenticator" << std::endl;
+					Logger_.debug(fmt::format("{}: {} Sending {} bytes", serial_number, P.PacketType(), length));
 					sent_bytes = Socket_->sendBytes(buffer,length);
 				} else {
-					std::cout << "Bad authenticator" << std::endl;
+					Logger_.debug(fmt::format("{}: {} Sending {} bytes", serial_number, P.PacketType(), length));
 					P.ComputeMessageAuthenticator(Server_.radsec_secret);
 					sent_bytes = Socket_->sendBytes(P.Buffer(),length);
 				}
@@ -71,18 +69,19 @@ namespace OpenWifi {
 
 			try {
 				auto NumberOfReceivedBytes = pNf->socket().impl()->receiveBytes(IncomingRadiusPacket);
-				Logger_.information(fmt::format("Received {} bytes.", NumberOfReceivedBytes));
-				std::cout << "RADSEC: Received " << NumberOfReceivedBytes << " bytes" << std::endl;
+				// std::cout << "RADSEC: Received " << NumberOfReceivedBytes << " bytes" << std::endl;
 				if(NumberOfReceivedBytes>40) {
 					auto *RP = (const OpenWifi::RADIUS::RawRadiusPacket *)(IncomingRadiusPacket.begin());
 					RADIUS::RadiusPacket P(IncomingRadiusPacket);
 					if (RADIUS::IsAuthentication(RP->code)) {
 						auto SerialNumber = P.ExtractSerialNumberFromProxyState();
+						Logger_.information(fmt::format("{}: {} Received {} bytes.", SerialNumber, P.PacketType(), NumberOfReceivedBytes));
 						DeviceRegistry()->SendRadiusAuthenticationData(
 							SerialNumber, (const unsigned char *)IncomingRadiusPacket.begin(),
 							NumberOfReceivedBytes);
 					} else if (RADIUS::IsAccounting(RP->code)) {
 						auto SerialNumber = P.ExtractSerialNumberFromProxyState();
+						Logger_.information(fmt::format("{}: {} Received {} bytes.", SerialNumber, P.PacketType(), NumberOfReceivedBytes));
 						DeviceRegistry()->SendRadiusAccountingData(
 							SerialNumber, (const unsigned char *)IncomingRadiusPacket.begin(),
 							NumberOfReceivedBytes);
@@ -124,7 +123,7 @@ namespace OpenWifi {
 				Poco::Net::SocketAddress Destination(Server_.ip, Server_.port);
 
 				try {
-					Logger_.information(fmt::format("Connecting to {}:{}", Server_.ip , Server_.port));
+					Logger_.information("Attempting to connect");
 					Socket_->connect(Destination, Poco::Timespan(100, 0));
 					Socket_->completeHandshake();
 					Socket_->verifyPeerCertificate();
@@ -149,14 +148,16 @@ namespace OpenWifi {
 						Poco::NObserver<RADSECserver, Poco::Net::ShutdownNotification>(
 							*this, &RADSECserver::onShutdown));
 					Connected_ = true;
-					Logger_.information(fmt::format("Connected to {}:{}", Server_.ip , Server_.port));
+					Logger_.information("Connected.");
 					return true;
 				} catch (const Poco::Net::NetException &E) {
-					std::cout << "NetException: " << E.name() << " " << E.what() << std::endl;
+					Logger_.information("Could not connect.");
 					Logger_.log(E);
 				} catch (const Poco::Exception &E) {
-					std::cout << "Exception: " << E.name() << " " << E.what() << std::endl;
+					Logger_.information("Could not connect.");
 					Logger_.log(E);
+				} catch (...) {
+					Logger_.information("Could not connect.");
 				}
 			}
 			return false;

@@ -328,6 +328,10 @@ static const struct tok radius_attribute_names[] = {
 			Print(os);
 		}
 
+		inline const char * PacketType() {
+			return CommandName(P_.code);
+		}
+
 		void ComputeMessageAuthenticator(const std::string &secret) {
 			RawRadiusPacket		P = P_;
 
