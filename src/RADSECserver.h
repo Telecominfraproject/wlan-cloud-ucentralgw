@@ -185,11 +185,11 @@ namespace OpenWifi {
 		}
 
 		static void DecodeFile(const std::string &filename, const std::string &s) {
-			std::ofstream cert_file(filename,std::ios_base::out|std::ios_base::trunc|std::ios_base::binary);
+			std::ofstream sec_file(filename,std::ios_base::out|std::ios_base::trunc|std::ios_base::binary);
 			std::stringstream is(s);
 			Poco::Base64Decoder	ds(is);
-			Poco::StreamCopier::copyStream(ds,cert_file);
-			cert_file.close();
+			Poco::StreamCopier::copyStream(ds,sec_file);
+			sec_file.close();
 		}
 
 		inline void MakeSecurityFiles() {
@@ -206,12 +206,9 @@ namespace OpenWifi {
 		}
 
 		inline void CleanSecurityFiles() {
-			CertFile_->remove();
 			CertFile_.reset();
-			KeyFile_->remove();
 			KeyFile_.reset();
 			for(auto &file:CaCertFiles_) {
-				file->remove();
 				file.reset();
 			}
 		}
