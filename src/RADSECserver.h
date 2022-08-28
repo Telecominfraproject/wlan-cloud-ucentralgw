@@ -202,23 +202,23 @@ namespace OpenWifi {
 		}
 
 		inline void MakeSecurityFiles() {
-			CertFile_ = std::make_unique<Poco::TemporaryFile>(MicroService::instance().DataDir());
-			KeyFile_ = std::make_unique<Poco::TemporaryFile>(MicroService::instance().DataDir());
+			CertFile_ = new Poco::TemporaryFile(MicroService::instance().DataDir());
+			KeyFile_ = new Poco::TemporaryFile(MicroService::instance().DataDir());
 			DecodeFile(CertFile_->path(), Server_.radsec_cert);
 			DecodeFile(KeyFile_->path(), Server_.radsec_key);
 
 			for(auto &cert:Server_.radsec_cacerts) {
-				auto NewFile = std::make_unique<Poco::TemporaryFile>(MicroService::instance().DataDir());
+				auto NewFile = new Poco::TemporaryFile(MicroService::instance().DataDir());
 				DecodeFile(NewFile->path(), cert);
 				CaCertFiles_.push_back(std::move(NewFile));
 			}
 		}
 
 		inline void CleanSecurityFiles() {
-			CertFile_.reset();
-			KeyFile_.reset();
+			delete CertFile_;
+			delete KeyFile_;
 			for(auto &file:CaCertFiles_) {
-				file.reset();
+				delete file;
 			}
 		}
 
@@ -248,9 +248,9 @@ namespace OpenWifi {
 		std::atomic_bool 									Connected_=false;
 		std::atomic_bool 									TryAgain_=true;
 		std::unique_ptr<Poco::Net::SecureStreamSocket>		Socket_;
-		std::unique_ptr<Poco::TemporaryFile>				CertFile_,
-															KeyFile_;
-		std::vector<std::unique_ptr<Poco::TemporaryFile>>	CaCertFiles_;
+		Poco::TemporaryFile									*CertFile_= nullptr,
+															*KeyFile_= nullptr;
+		std::vector<Poco::TemporaryFile*>					CaCertFiles_;
 		Poco::Thread										ReconnectorThr_;
 		std::unique_ptr<Poco::Crypto::X509Certificate>		Peer_Cert_;
 	};
