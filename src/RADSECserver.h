@@ -39,6 +39,7 @@ namespace OpenWifi {
 		inline void run() final {
 			while(TryAgain_) {
 				if(!Connected_) {
+					std::unique_lock	G(Mutex_);
 					MakeSecurityFiles();
 					Connect();
 					CleanSecurityFiles();
@@ -48,19 +49,25 @@ namespace OpenWifi {
 		}
 
 		inline bool SendData(const std::string &serial_number, const unsigned char *buffer, int length) {
-			if(Connected_) {
-				RADIUS::RadiusPacket	P(buffer,length);
-				// std::cout << serial_number << "    Sending " << P.PacketType() << "  "  << length << " bytes" << std::endl;
-				int sent_bytes;
-				if(P.VerifyMessageAuthenticator(Server_.radsec_secret)) {
-					Logger_.debug(fmt::format("{}: {} Sending {} bytes", serial_number, P.PacketType(), length));
-					sent_bytes = Socket_->sendBytes(buffer,length);
-				} else {
-					Logger_.debug(fmt::format("{}: {} Sending {} bytes", serial_number, P.PacketType(), length));
-					P.ComputeMessageAuthenticator(Server_.radsec_secret);
-					sent_bytes = Socket_->sendBytes(P.Buffer(),length);
+			try {
+				if (Connected_) {
+					RADIUS::RadiusPacket P(buffer, length);
+					// std::cout << serial_number << "    Sending " << P.PacketType() << "  "  << length << " bytes" << std::endl;
+					int sent_bytes;
+					if (P.VerifyMessageAuthenticator(Server_.radsec_secret)) {
+						Logger_.debug(fmt::format("{}: {} Sending {} bytes", serial_number,
+												  P.PacketType(), length));
+						sent_bytes = Socket_->sendBytes(buffer, length);
+					} else {
+						Logger_.debug(fmt::format("{}: {} Sending {} bytes", serial_number,
+												  P.PacketType(), length));
+						P.ComputeMessageAuthenticator(Server_.radsec_secret);
+						sent_bytes = Socket_->sendBytes(P.Buffer(), length);
+					}
+					return (sent_bytes == length);
 				}
-				return (sent_bytes == length);
+			} catch (...) {
+
 			}
 			return false;
 		}
@@ -166,18 +173,20 @@ namespace OpenWifi {
 		}
 
 		inline void Disconnect() {
+			std::unique_lock	G(Mutex_);
+
 			Reactor_.removeEventHandler(*Socket_,Poco::NObserver<RADSECserver, Poco::Net::ReadableNotification>(
 												   *this, &RADSECserver::onData));
 			Reactor_.removeEventHandler(*Socket_,Poco::NObserver<RADSECserver, Poco::Net::ErrorNotification>(
 												   *this, &RADSECserver::onError));
 			Reactor_.removeEventHandler(*Socket_,Poco::NObserver<RADSECserver, Poco::Net::ShutdownNotification>(
 												   *this, &RADSECserver::onShutdown));
-			Socket_->shutdown();
 			Connected_ = false;
 			Logger_.information("Disconnected.");
 		}
 
 		inline void Stop() {
+			std::unique_lock	G(Mutex_);
 			TryAgain_ = false;
 			Disconnect();
 			ReconnectorThr_.wakeUp();
@@ -232,6 +241,7 @@ namespace OpenWifi {
 		}
 
 	  private:
+		std::shared_mutex									Mutex_;
 		Poco::Net::SocketReactor							&Reactor_;
 		GWObjects::RadiusProxyServerEntry					Server_;
 		Poco::Logger										&Logger_;
