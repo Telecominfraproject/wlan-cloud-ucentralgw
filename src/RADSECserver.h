@@ -71,8 +71,8 @@ namespace OpenWifi {
 				auto NumberOfReceivedBytes = Socket_->receiveBytes(Buffer,sizeof(Buffer));
 				if(NumberOfReceivedBytes>40) {
 					RADIUS::RadiusPacket P(Buffer,NumberOfReceivedBytes);
-					P.Log(std::cout);
-					std::cout << "RADSEC: " << P.PacketType() << "  "  << (int) P.PacketTypeInt() << "   Received " << NumberOfReceivedBytes << " bytes" << std::endl;
+					// P.Log(std::cout);
+					// std::cout << "RADSEC: " << P.PacketType() << "  "  << (int) P.PacketTypeInt() << "   Received " << NumberOfReceivedBytes << " bytes" << std::endl;
 					if (P.IsAuthentication()) {
 						auto SerialNumber = P.ExtractSerialNumberFromProxyState();
 						Logger_.information(fmt::format("{}: {} Received {} bytes.", SerialNumber, P.PacketType(), NumberOfReceivedBytes));
