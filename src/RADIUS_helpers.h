@@ -311,6 +311,29 @@ static const struct tok radius_attribute_names[] = {
 
 		friend std::ostream &operator<<(std::ostream &os, RadiusPacket const &P);
 
+		inline bool IsAuthentication() {
+			return (P_.code == RADIUS::Access_Request ||
+					P_.code == RADIUS::Access_Accept ||
+					P_.code == RADIUS::Access_Challenge ||
+					P_.code == RADIUS::Access_Reject);
+		}
+
+		inline bool IsAccounting() {
+			return (P_.code == RADIUS::Accounting_Request ||
+					P_.code == RADIUS::Accounting_Response ||
+					P_.code == RADIUS::Accounting_Status ||
+					P_.code == RADIUS::Accounting_Message);
+		}
+
+		inline bool IsAuthority(unsigned char t) {
+			return (P_.code == RADIUS::Disconnect_Request ||
+					P_.code == RADIUS::Disconnect_ACK ||
+					P_.code == RADIUS::Disconnect_NAK ||
+					P_.code == RADIUS::CoA_Request ||
+					P_.code == RADIUS::CoA_ACK ||
+					P_.code == RADIUS::CoA_NAK);
+		}
+
 		void Log(std::ostream &os) {
 			uint16_t p = 0;
 

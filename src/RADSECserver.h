@@ -69,23 +69,22 @@ namespace OpenWifi {
 
 			try {
 				auto NumberOfReceivedBytes = pNf->socket().impl()->receiveBytes(IncomingRadiusPacket);
-				std::cout << "RADSEC: Received " << NumberOfReceivedBytes << " bytes" << std::endl;
 				if(NumberOfReceivedBytes>40) {
-					auto *RP = (const OpenWifi::RADIUS::RawRadiusPacket *)(IncomingRadiusPacket.begin());
 					RADIUS::RadiusPacket P(IncomingRadiusPacket);
-					if (RADIUS::IsAuthentication(RP->code)) {
+					std::cout << "RADSEC: " << P.PacketType() << "   Received " << NumberOfReceivedBytes << " bytes" << std::endl;
+					if (P.IsAuthentication()) {
 						auto SerialNumber = P.ExtractSerialNumberFromProxyState();
 						Logger_.information(fmt::format("{}: {} Received {} bytes.", SerialNumber, P.PacketType(), NumberOfReceivedBytes));
 						DeviceRegistry()->SendRadiusAuthenticationData(
 							SerialNumber, (const unsigned char *)IncomingRadiusPacket.begin(),
 							NumberOfReceivedBytes);
-					} else if (RADIUS::IsAccounting(RP->code)) {
+					} else if (P.IsAccounting()) {
 						auto SerialNumber = P.ExtractSerialNumberFromProxyState();
 						Logger_.information(fmt::format("{}: {} Received {} bytes.", SerialNumber, P.PacketType(), NumberOfReceivedBytes));
 						DeviceRegistry()->SendRadiusAccountingData(
 							SerialNumber, (const unsigned char *)IncomingRadiusPacket.begin(),
 							NumberOfReceivedBytes);
-					} else if (RADIUS::IsAuthority(RP->code)) {
+					} else if (P.IsAuthority()) {
 					}
 				} else {
 					Disconnect();
