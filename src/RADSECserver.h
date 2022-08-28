@@ -125,11 +125,9 @@ namespace OpenWifi {
 				DecodeFile(KeyFile_.path(), Server_.radsec_key);
 
 				for(auto &cert:Server_.radsec_cacerts) {
-					auto NewFile = Poco::TemporaryFile(MicroService::instance().DataDir());
-					DecodeFile(NewFile.path(), cert);
-					CaCertFiles_.push_back(std::move(NewFile));
+					CaCertFiles_.emplace_back(Poco::TemporaryFile(MicroService::instance().DataDir()));
+					DecodeFile(CaCertFiles_[CaCertFiles_.size()-1].path(), cert);
 				}
-
 
 				Poco::Net::Context::Ptr SecureContext = Poco::AutoPtr<Poco::Net::Context>(
 					new Poco::Net::Context(Poco::Net::Context::TLS_CLIENT_USE,
