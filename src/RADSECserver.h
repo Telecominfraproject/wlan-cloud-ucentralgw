@@ -112,10 +112,10 @@ namespace OpenWifi {
 
 				Poco::Net::Context::Ptr SecureContext = Poco::AutoPtr<Poco::Net::Context>(
 					new Poco::Net::Context(Poco::Net::Context::TLS_CLIENT_USE,
-										   KeyFile_.path(),
-										   CertFile_.path(),""));
+										   KeyFile_->path(),
+										   CertFile_->path(),""));
 
-				for(const auto &ca:CacertFiles_) {
+				for(const auto &ca:CaCertFiles_) {
 					Poco::Crypto::X509Certificate	cert(ca->path());
 					SecureContext->addCertificateAuthority(cert);
 				}
@@ -174,6 +174,7 @@ namespace OpenWifi {
 												   *this, &RADSECserver::onShutdown));
 			Socket_->shutdown();
 			Connected_ = false;
+			Logger_.information("Disconnected.");
 		}
 
 		inline void Stop() {
@@ -192,21 +193,27 @@ namespace OpenWifi {
 		}
 
 		inline void MakeSecurityFiles() {
-			DecodeFile(CertFile_.path(), Server_.radsec_cert);
-			DecodeFile(KeyFile_.path(), Server_.radsec_key);
+			CertFile_ = std::make_unique<Poco::TemporaryFile>(MicroService::instance().DataDir());
+			KeyFile_ = std::make_unique<Poco::TemporaryFile>(MicroService::instance().DataDir());
+			DecodeFile(CertFile_->path(), Server_.radsec_cert);
+			DecodeFile(KeyFile_->path(), Server_.radsec_key);
 
 			for(auto &cert:Server_.radsec_cacerts) {
 				auto NewFile = std::make_unique<Poco::TemporaryFile>(MicroService::instance().DataDir());
 				DecodeFile(NewFile->path(), cert);
-				CacertFiles_.push_back(std::move(NewFile));
+				CaCertFiles_.push_back(std::move(NewFile));
 			}
 		}
 
 		inline void CleanSecurityFiles() {
-			CertFile_.remove();
-			KeyFile_.remove();
-			for(auto &file:CacertFiles_)
+			CertFile_->remove();
+			CertFile_.reset();
+			KeyFile_->remove();
+			KeyFile_.reset();
+			for(auto &file:CaCertFiles_) {
 				file->remove();
+				file.reset();
+			}
 		}
 
 		[[nodiscard]] inline std::string CommonName() {
@@ -234,9 +241,9 @@ namespace OpenWifi {
 		std::atomic_bool 									Connected_=false;
 		std::atomic_bool 									TryAgain_=true;
 		std::unique_ptr<Poco::Net::SecureStreamSocket>		Socket_;
-		Poco::TemporaryFile									CertFile_{MicroService::instance().DataDir()} ,
-															KeyFile_{MicroService::instance().DataDir()};
-		std::vector<std::unique_ptr<Poco::TemporaryFile>>	CacertFiles_;
+		std::unique_ptr<Poco::TemporaryFile>				CertFile_,
+															KeyFile_;
+		std::vector<std::unique_ptr<Poco::TemporaryFile>>	CaCertFiles_;
 		Poco::Thread										ReconnectorThr_;
 		std::unique_ptr<Poco::Crypto::X509Certificate>		Peer_Cert_;
 	};
