@@ -76,13 +76,13 @@ namespace OpenWifi {
 					// std::cout << "RADSEC: " << P.PacketType() << "  "  << (int) P.PacketTypeInt() << "   Received " << NumberOfReceivedBytes << " bytes" << std::endl;
 					if (P.IsAuthentication()) {
 						auto SerialNumber = P.ExtractSerialNumberFromProxyState();
-						Logger_.information(fmt::format("{}: {} Received {} bytes.", SerialNumber, P.PacketType(), NumberOfReceivedBytes));
+						Logger_.debug(fmt::format("{}: {} Received {} bytes.", SerialNumber, P.PacketType(), NumberOfReceivedBytes));
 						DeviceRegistry()->SendRadiusAuthenticationData(
 							SerialNumber, Buffer,
 							NumberOfReceivedBytes);
 					} else if (P.IsAccounting()) {
 						auto SerialNumber = P.ExtractSerialNumberFromProxyState();
-						Logger_.information(fmt::format("{}: {} Received {} bytes.", SerialNumber, P.PacketType(), NumberOfReceivedBytes));
+						Logger_.debug(fmt::format("{}: {} Received {} bytes.", SerialNumber, P.PacketType(), NumberOfReceivedBytes));
 						DeviceRegistry()->SendRadiusAccountingData(
 							SerialNumber, Buffer,
 							NumberOfReceivedBytes);
@@ -93,6 +93,7 @@ namespace OpenWifi {
 				}
 			} catch (const Poco::Exception &E) {
 				Logger_.log(E);
+				Disconnect();
 			}
 		}
 
