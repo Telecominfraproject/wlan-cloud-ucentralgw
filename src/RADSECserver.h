@@ -33,14 +33,15 @@ namespace OpenWifi {
 								Server_.ip,
 								Server_.port)))
 		{
-			MakeSecurityFiles();
 			ReconnectorThr_.start(*this);
 		}
 
 		inline void run() final {
 			while(TryAgain_) {
 				if(!Connected_) {
+					MakeSecurityFiles();
 					Connect();
+					CleanSecurityFiles();
 				}
 				Poco::Thread::trySleep(1000);
 			}
@@ -49,7 +50,7 @@ namespace OpenWifi {
 		inline bool SendData(const std::string &serial_number, const unsigned char *buffer, int length) {
 			if(Connected_) {
 				RADIUS::RadiusPacket	P(buffer,length);
-				std::cout << serial_number << "    Sending " << P.PacketType() << "  "  << length << " bytes" << std::endl;
+				// std::cout << serial_number << "    Sending " << P.PacketType() << "  "  << length << " bytes" << std::endl;
 				int sent_bytes;
 				if(P.VerifyMessageAuthenticator(Server_.radsec_secret)) {
 					Logger_.debug(fmt::format("{}: {} Sending {} bytes", serial_number, P.PacketType(), length));
@@ -198,6 +199,13 @@ namespace OpenWifi {
 				DecodeFile(NewFile->path(), cert);
 				CacertFiles_.push_back(std::move(NewFile));
 			}
+		}
+
+		inline void CleanSecurityFiles() {
+			CertFile_.remove();
+			KeyFile_.remove();
+			for(auto &file:CacertFiles_)
+				file->remove();
 		}
 
 		[[nodiscard]] inline std::string CommonName() {
