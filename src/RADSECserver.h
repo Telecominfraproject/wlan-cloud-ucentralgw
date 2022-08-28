@@ -49,7 +49,7 @@ namespace OpenWifi {
 		inline bool SendData(const std::string &serial_number, const unsigned char *buffer, int length) {
 			if(Connected_) {
 				RADIUS::RadiusPacket	P(buffer,length);
-
+				std::cout << serial_number << "    Sending " << length << " bytes" << std::endl;
 				int sent_bytes;
 				if(P.VerifyMessageAuthenticator(Server_.radsec_secret)) {
 					Logger_.debug(fmt::format("{}: {} Sending {} bytes", serial_number, P.PacketType(), length));
