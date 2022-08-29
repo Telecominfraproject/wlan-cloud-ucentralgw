@@ -96,7 +96,7 @@ namespace OpenWifi {
 			DeviceAcceptor_->unregisterAcceptor();
 			DeviceReactorThread_.join();
 
-			NotificationManagerRunning_=false;
+			NotificationManagerRunning_ = false;
 			ResponseQueue_.wakeUpAll();
 			NotificationManager_.wakeUp();
 			NotificationManager_.join();
@@ -139,7 +139,7 @@ namespace OpenWifi {
 				TotalEndPoints_,
 				TotalConnectedDeviceTime_,
 				TotalConnectedClientTime_,
-				FaildedNumDevices_,
+				FailedNumDevices_,
 				FailedNumClients_));
 		}
 	}
@@ -190,7 +190,7 @@ namespace OpenWifi {
 					};
 				} else {
 					if(Notification->type_==RTTYS_Notification_type::device_registration) {
-						FaildedNumDevices_++;
+						FailedNumDevices_++;
 						auto ptr = std::unique_ptr<RTTYS_Device_ConnectionHandler>{Notification->device_};
 						FailedDevices.push_back(std::move(ptr));
 					} else if(Notification->type_==RTTYS_Notification_type::client_registration) {
