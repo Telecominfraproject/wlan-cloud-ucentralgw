@@ -40,9 +40,7 @@ namespace OpenWifi {
 			while(TryAgain_) {
 				if(!Connected_) {
 					std::unique_lock	G(Mutex_);
-//					MakeSecurityFiles();
 					Connect();
-//					CleanSecurityFiles();
 				}
 				Poco::Thread::trySleep(1000);
 			}
@@ -169,7 +167,7 @@ namespace OpenWifi {
 						Poco::NObserver<RADSECserver, Poco::Net::ShutdownNotification>(
 							*this, &RADSECserver::onShutdown));
 					Connected_ = true;
-					Logger_.information("Connected.");
+					Logger_.information(fmt::format("Connected. CN={}",CommonName()));
 					return true;
 				} catch (const Poco::Net::NetException &E) {
 					Logger_.information("Could not connect.");
@@ -217,29 +215,6 @@ namespace OpenWifi {
 			Poco::StreamCopier::copyStream(ds,sec_file);
 			sec_file.close();
 		}
-
-/*
-  		inline void MakeSecurityFiles() {
-			CertFile_ = new Poco::TemporaryFile(MicroService::instance().DataDir());
-			KeyFile_ = new Poco::TemporaryFile(MicroService::instance().DataDir());
-			DecodeFile(CertFile_->path(), Server_.radsec_cert);
-			DecodeFile(KeyFile_->path(), Server_.radsec_key);
-
-			for(auto &cert:Server_.radsec_cacerts) {
-				auto NewFile = new Poco::TemporaryFile(MicroService::instance().DataDir());
-				DecodeFile(NewFile->path(), cert);
-				CaCertFiles_.push_back(std::move(NewFile));
-			}
-		}
-
-		inline void CleanSecurityFiles() {
-			delete CertFile_;
-			delete KeyFile_;
-			for(auto &file:CaCertFiles_) {
-				delete file;
-			}
-		}
-*/
 
 		[[nodiscard]] inline std::string CommonName() {
 			if(Peer_Cert_)
