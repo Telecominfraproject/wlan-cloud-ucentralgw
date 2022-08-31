@@ -1049,6 +1049,33 @@ components:
           type: string
         certificate:
           type: string
+        radsec:
+          type: boolean
+          default: false
+        radsecPort:
+          type: integer
+          min: 1
+          max: 65536
+        radsecSecret:
+          type: string
+        radsecCacerts:
+          type: array
+          items:
+            type: string
+        radsecCert:
+          type: string
+          description: this must be the base64 encoded of the entire content of the certificate file, including the -----BEGIN lines
+        radsecKey:
+          type: string
+          description: this must be the base64 encoded of the entire content of the key file, including the -----BEGIN lines
+        radsecRealms:
+          description: each entry must be the base64 encoded of the entire content of the ca files, including the -----BEGIN lines
+          type: array
+          items:
+            type: string
+        ignore:
+          type: boolean
+          default: false
 
     RadiusProxyServerConfig:
       type: object
