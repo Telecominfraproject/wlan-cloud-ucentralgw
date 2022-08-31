@@ -361,11 +361,13 @@ namespace OpenWifi::GWObjects {
 		field_to_json(Obj,"secret",secret);
 		field_to_json(Obj,"certificate",certificate);
 		field_to_json(Obj,"radsec",radsec);
-		field_to_json(Obj,"radsec_secret",radsec_secret);
-		field_to_json(Obj,"radsec_port",radsec_port);
-		field_to_json(Obj,"radsec_cacerts",radsec_cacerts);
-		field_to_json(Obj,"radsec_cert",radsec_cert);
-		field_to_json(Obj,"radsec_key",radsec_key);
+		field_to_json(Obj,"radsecPort",radsecPort);
+		field_to_json(Obj,"radsecSecret",radsecSecret);
+		field_to_json(Obj,"radsecCacerts",radsecCacerts);
+		field_to_json(Obj,"radsecCert",radsecCert);
+		field_to_json(Obj,"radsecKey",radsecKey);
+		field_to_json(Obj,"radsecRealms",radsecRealms);
+		field_to_json(Obj,"ignore",ignore);
 	}
 
 	bool RadiusProxyServerEntry::from_json(const Poco::JSON::Object::Ptr &Obj) {
@@ -377,11 +379,13 @@ namespace OpenWifi::GWObjects {
 			field_from_json(Obj,"secret",secret);
 			field_from_json(Obj,"certificate",certificate);
 			field_from_json(Obj,"radsec",radsec);
-			field_from_json(Obj,"radsec_port",radsec_port);
-			field_from_json(Obj,"radsec_secret",radsec_secret);
-			field_from_json(Obj,"radsec_cacerts",radsec_cacerts);
-			field_from_json(Obj,"radsec_cert",radsec_cert);
-			field_from_json(Obj,"radsec_key",radsec_key);
+			field_from_json(Obj,"radsecSecret",radsecSecret);
+			field_from_json(Obj,"radsecPort",radsecPort);
+			field_from_json(Obj,"radsecCacerts",radsecCacerts);
+			field_from_json(Obj,"radsecCert",radsecCert);
+			field_from_json(Obj,"radsecKey",radsecKey);
+			field_from_json(Obj,"radsecRealms",radsecRealms);
+			field_from_json(Obj,"ignore",ignore);
 			return true;
 		} catch (const Poco::Exception &E) {
 		}

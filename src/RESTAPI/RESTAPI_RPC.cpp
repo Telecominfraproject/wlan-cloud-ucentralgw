@@ -144,7 +144,12 @@ namespace OpenWifi::RESTAPI_RPC {
 			Logger.information( fmt::format("{}: Completed in {:.3f}ms.", Cmd.UUID, Cmd.executionTime));
 			return;
 		}
-		Logger.information(fmt::format( "{}: Pending completion.", Cmd.UUID));
-		SetCommandStatus(Cmd, Request, Response, Handler, Storage::COMMAND_PENDING, Logger);
+		if(RetryLater) {
+			Logger.information(fmt::format("{}: Pending completion.", Cmd.UUID));
+			SetCommandStatus(Cmd, Request, Response, Handler, Storage::COMMAND_PENDING, Logger);
+		} else {
+			Logger.information(fmt::format("{}: Command canceled. Device is not connected. Command will not be retried.", Cmd.UUID));
+			return SetCommandStatus(Cmd, Request, Response, Handler, Storage::COMMAND_FAILED, Logger);
+		}
 	}
 }

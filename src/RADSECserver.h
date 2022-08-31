@@ -52,14 +52,14 @@ namespace OpenWifi {
 					RADIUS::RadiusPacket P(buffer, length);
 					// std::cout << serial_number << "    Sending " << P.PacketType() << "  "  << length << " bytes" << std::endl;
 					int sent_bytes;
-					if (P.VerifyMessageAuthenticator(Server_.radsec_secret)) {
+					if (P.VerifyMessageAuthenticator(Server_.radsecSecret)) {
 						Logger_.debug(fmt::format("{}: {} Sending {} bytes", serial_number,
 												  P.PacketType(), length));
 						sent_bytes = Socket_->sendBytes(buffer, length);
 					} else {
 						Logger_.debug(fmt::format("{}: {} Sending {} bytes", serial_number,
 												  P.PacketType(), length));
-						P.ComputeMessageAuthenticator(Server_.radsec_secret);
+						P.ComputeMessageAuthenticator(Server_.radsecSecret);
 						sent_bytes = Socket_->sendBytes(P.Buffer(), length);
 					}
 					return (sent_bytes == length);
@@ -119,10 +119,10 @@ namespace OpenWifi {
 				Poco::TemporaryFile	KeyFile_(MicroService::instance().DataDir());
 				std::vector<Poco::TemporaryFile> CaCertFiles_;
 
-				DecodeFile(CertFile_.path(), Server_.radsec_cert);
-				DecodeFile(KeyFile_.path(), Server_.radsec_key);
+				DecodeFile(CertFile_.path(), Server_.radsecCert);
+				DecodeFile(KeyFile_.path(), Server_.radsecKey);
 
-				for(auto &cert:Server_.radsec_cacerts) {
+				for(auto &cert:Server_.radsecCacerts) {
 					CaCertFiles_.emplace_back(Poco::TemporaryFile(MicroService::instance().DataDir()));
 					DecodeFile(CaCertFiles_[CaCertFiles_.size()-1].path(), cert);
 				}
