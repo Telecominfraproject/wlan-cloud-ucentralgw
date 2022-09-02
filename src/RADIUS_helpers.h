@@ -80,6 +80,68 @@ struct tok {
 	const char * name;
 };
 
+/*
+
+Radius commands
+
+ char const *fr_packet_codes[FR_MAX_PACKET_CODE] = {
+ "",					//!< 0
+ "Access-Request",
+ "Access-Accept",
+ "Access-Reject",
+ "Accounting-Request",
+ "Accounting-Response",
+ "Accounting-Status",
+ "Password-Request",
+ "Password-Accept",
+ "Password-Reject",
+ "Accounting-Message",			//!< 10
+ "Access-Challenge",
+ "Status-Server",
+ "Status-Client",
+ "14",
+ "15",
+ "16",
+ "17",
+ "18",
+ "19",
+ "20",					//!< 20
+ "Resource-Free-Request",
+ "Resource-Free-Response",
+ "Resource-Query-Request",
+ "Resource-Query-Response",
+ "Alternate-Resource-Reclaim-Request",
+ "NAS-Reboot-Request",
+ "NAS-Reboot-Response",
+ "28",
+ "Next-Passcode",
+ "New-Pin",				//!< 30
+ "Terminate-Session",
+ "Password-Expired",
+ "Event-Request",
+ "Event-Response",
+ "35",
+ "36",
+ "37",
+ "38",
+ "39",
+ "Disconnect-Request",			//!< 40
+ "Disconnect-ACK",
+ "Disconnect-NAK",
+ "CoA-Request",
+ "CoA-ACK",
+ "CoA-NAK",
+ "46",
+ "47",
+ "48",
+ "49",
+ "IP-Address-Allocate",
+ "IP-Address-Release",			//!< 50
+};
+
+
+ */
+
 static const struct tok radius_command_values[] = {
 	{ RADCMD_ACCESS_REQ, "Access-Request" },
 	{ RADCMD_ACCESS_ACC, "Access-Accept" },
@@ -584,6 +646,16 @@ static const struct tok radius_attribute_names[] = {
 				}
 			}
 			return Result;
+		}
+
+		[[nodiscard]] std::string UserName() const {
+			for(const auto &attr:Attrs_) {
+				if(attr.type==1) {
+					std::string 	user_name{(const char *)&P_.attributes[attr.pos],attr.len};
+					return user_name;
+				}
+			}
+			return "";
 		}
 
 	  private:
