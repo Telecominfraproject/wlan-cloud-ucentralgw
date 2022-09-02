@@ -1,4 +1,5 @@
 {{- $root := . -}}
+{{- $storageType := index .Values.configProperties "storage.type" -}}
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -48,6 +49,38 @@ spec:
             - tcp://{{ index .Values.configProperties "openwifi.kafka.brokerlist" }}
             - -timeout
             - 600s
+{{- if eq $storageType "postgresql" }}
+        - name: wait-postgres
+          image: "{{ .Values.images.owgw.repository }}:{{ .Values.images.owgw.tag }}"
+          imagePullPolicy: {{ .Values.images.owgw.pullPolicy }}
+          command:
+            - /wait-for-postgres.sh
+            - {{ index .Values.configProperties "storage.type.postgresql.host" }}
+            - echo
+            - "PostgreSQL is ready"
+          env:
+            - name: KUBERNETES_DEPLOYED
+              value: "{{ now }}"
+          {{- range $key, $value := .Values.public_env_variables }}
+            - name: {{ $key }}
+              value: {{ $value | quote }}
+          {{- end }}
+          {{- range $key, $value := .Values.secret_env_variables }}
+            - name: {{ $key }}
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "owgw.fullname" $root }}-env
+                  key: {{ $key }}
+          {{- end }}
+          volumeMounts:
+          {{- range .Values.volumes.owgw }}
+          - name: {{ .name }}
+            mountPath: {{ .mountPath }}
+            {{- if .subPath }}
+            subPath: {{ .subPath }}
+            {{- end }}
+          {{- end }}
+{{- end }}
 
       containers:
 
