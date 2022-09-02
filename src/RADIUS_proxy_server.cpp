@@ -199,7 +199,7 @@ namespace OpenWifi {
 
 		std::lock_guard	G(Mutex_);
 		bool UseRADSEC = false;
-		auto FinalDestination = Route(radius_type::acct, Dst, UseRADSEC);
+		auto FinalDestination = Route(radius_type::acct, Dst, P, UseRADSEC);
 		if(UseRADSEC) {
 			Poco::Net::SocketAddress	RSP(FinalDestination.host(),0);
 			auto DestinationServer = RADSECservers_.find(RSP);
@@ -234,7 +234,7 @@ namespace OpenWifi {
 
 		std::lock_guard	G(Mutex_);
 		bool UseRADSEC = false;
-		auto FinalDestination = Route(radius_type::auth, Dst, UseRADSEC);
+		auto FinalDestination = Route(radius_type::auth, Dst, P, UseRADSEC);
 		if(UseRADSEC) {
 			Poco::Net::SocketAddress	RSP(FinalDestination.host(),0);
 			auto DestinationServer = RADSECservers_.find(RSP);
@@ -267,7 +267,7 @@ namespace OpenWifi {
 		Poco::Net::SocketAddress	Dst(Destination);
 		std::lock_guard	G(Mutex_);
 		bool UseRADSEC = false;
-		auto FinalDestination = Route(radius_type::coa, Dst, UseRADSEC);
+		auto FinalDestination = Route(radius_type::coa, Dst, P, UseRADSEC);
 		if(UseRADSEC) {
 			Poco::Net::SocketAddress	RSP(FinalDestination.host(),0);
 			auto DestinationServer = RADSECservers_.find(RSP);
@@ -308,7 +308,8 @@ namespace OpenWifi {
 				.monitorMethod = Config.monitorMethod,
 				.methodParameters = Config.methodParameters,
 				.useAsDefault = setAsDefault,
-				.useRADSEC = server.radsec
+				.useRADSEC = server.radsec,
+				.realms = server.radsecRealms
 			};
 
 			if(setAsDefault && D.useRADSEC)
@@ -375,8 +376,34 @@ namespace OpenWifi {
 		}
 	}
 
-	Poco::Net::SocketAddress RADIUS_proxy_server::DefaultRoute(radius_type rtype, const Poco::Net::SocketAddress &RequestedAddress, bool &UseRADSEC) {
+	static bool RealmMatch(const std::string &user_realm, const std::string & realm) {
+		return user_realm == realm;
+	}
+
+	Poco::Net::SocketAddress RADIUS_proxy_server::DefaultRoute(radius_type rtype, const Poco::Net::SocketAddress &RequestedAddress, const RADIUS::RadiusPacket &P,  bool &UseRADSEC) {
 		bool IsV4 = RequestedAddress.family()==Poco::Net::SocketAddress::IPv4;
+
+		// find the realm...
+		auto UserName = P.UserName();
+		if(!UserName.empty()) {
+			auto UserTokens = Poco::StringTokenizer(UserName, "@");
+			auto UserRealm = ((UserTokens.count() > 1) ? UserTokens[1] : UserName);
+			Poco::toLowerInPlace(UserRealm);
+
+			for(const auto &pool:Pools_) {
+				for(const auto &server:pool.AuthV4) {
+					if(!server.realms.empty()) {
+						for(const auto &realm:server.realms) {
+							if (RealmMatch(UserRealm,realm)) {
+								std::cout << "Realm match..." << std::endl;
+								UseRADSEC = true;
+								return server.Addr;
+							}
+						}
+					}
+				}
+			}
+		}
 
 		if(defaultIsRADSEC_) {
 			UseRADSEC = true;
@@ -403,7 +430,7 @@ namespace OpenWifi {
 			}
 	}
 
-	Poco::Net::SocketAddress RADIUS_proxy_server::Route([[maybe_unused]] radius_type rtype, const Poco::Net::SocketAddress &RequestedAddress, bool &UseRADSEC) {
+	Poco::Net::SocketAddress RADIUS_proxy_server::Route([[maybe_unused]] radius_type rtype, const Poco::Net::SocketAddress &RequestedAddress, const RADIUS::RadiusPacket &P, bool &UseRADSEC) {
 		std::lock_guard	G(Mutex_);
 
 		if(Pools_.empty()) {
@@ -416,7 +443,7 @@ namespace OpenWifi {
 		useDefault = IsV4 ? RequestedAddress.host() == Poco::Net::IPAddress::wildcard(Poco::Net::IPAddress::IPv4) : RequestedAddress.host() == Poco::Net::IPAddress::wildcard(Poco::Net::IPAddress::IPv6) ;
 
 		if(useDefault) {
-			return DefaultRoute(rtype, RequestedAddress, UseRADSEC);
+			return DefaultRoute(rtype, RequestedAddress, P, UseRADSEC);
 		}
 
 		auto isAddressInPool = [&](const std::vector<Destination> & D, bool &UseRADSEC) -> bool {
@@ -447,7 +474,7 @@ namespace OpenWifi {
 			} break;
 			}
 		}
-		return DefaultRoute(rtype, RequestedAddress, UseRADSEC);
+		return DefaultRoute(rtype, RequestedAddress, P, UseRADSEC);
 	}
 
 	Poco::Net::SocketAddress RADIUS_proxy_server::ChooseAddress(std::vector<Destination> &Pool, const Poco::Net::SocketAddress & OriginalAddress) {

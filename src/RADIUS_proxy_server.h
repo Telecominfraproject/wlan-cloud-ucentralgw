@@ -57,6 +57,7 @@ namespace OpenWifi {
 			std::vector<std::string>	methodParameters;
 			bool 						useAsDefault=false;
 			bool 						useRADSEC=false;
+			std::vector<std::string>	realms;
 		};
 
 	  private:
@@ -97,10 +98,10 @@ namespace OpenWifi {
 
 		void ParseConfig();
 		void ResetConfig();
-		Poco::Net::SocketAddress Route(radius_type rtype, const Poco::Net::SocketAddress &A, bool &UseRADSEC);
+		Poco::Net::SocketAddress Route(radius_type rtype, const Poco::Net::SocketAddress &A, const RADIUS::RadiusPacket &P, bool &UseRADSEC);
 		void ParseServerList(const GWObjects::RadiusProxyServerConfig & Config, std::vector<Destination> &V4, std::vector<Destination> &V6, bool setAsDefault);
 		static Poco::Net::SocketAddress ChooseAddress(std::vector<Destination> &Pool, const Poco::Net::SocketAddress & OriginalAddress);
-		Poco::Net::SocketAddress DefaultRoute([[maybe_unused]] radius_type rtype, const Poco::Net::SocketAddress &RequestedAddress, bool &UseRADSEC);
+		Poco::Net::SocketAddress DefaultRoute([[maybe_unused]] radius_type rtype, const Poco::Net::SocketAddress &RequestedAddress, const RADIUS::RadiusPacket &P, bool &UseRADSEC);
 	};
 
 	inline auto RADIUS_proxy_server() { return RADIUS_proxy_server::instance(); }
