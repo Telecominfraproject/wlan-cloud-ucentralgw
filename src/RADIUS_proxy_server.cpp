@@ -377,7 +377,9 @@ namespace OpenWifi {
 	}
 
 	static bool RealmMatch(const std::string &user_realm, const std::string & realm) {
-		return user_realm == realm;
+		if(realm.find_first_of('*') == std::string::npos)
+			return user_realm == realm;
+		return realm.find(user_realm) != std::string::npos;
 	}
 
 	Poco::Net::SocketAddress RADIUS_proxy_server::DefaultRoute(radius_type rtype, const Poco::Net::SocketAddress &RequestedAddress, const RADIUS::RadiusPacket &P,  bool &UseRADSEC) {
