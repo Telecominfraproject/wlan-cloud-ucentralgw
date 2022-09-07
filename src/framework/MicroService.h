@@ -5214,7 +5214,6 @@ namespace OpenWifi {
                 try
                 {
                     Poco::Net::WebSocket WS(*Request, *Response);
-                    Logger().information("UI-WebSocket connection established.");
                     auto Id = MicroService::CreateUUID();
                     WebSocketClientServer()->NewClient(WS,Id,UserInfo_.userinfo.email);
                 }
