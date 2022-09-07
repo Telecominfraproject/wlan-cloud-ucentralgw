@@ -5060,6 +5060,7 @@ namespace OpenWifi {
 			auto Op = flags & Poco::Net::WebSocket::FRAME_OP_BITMASK;
 
 			if (n == 0) {
+				Logger().warning(Poco::format("CLOSE(%s): %s UI Client is closing WS connection.", Id_, UserName_));
 				return delete this;
 			}
 
