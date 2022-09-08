@@ -158,6 +158,16 @@ namespace OpenWifi {
 			void onCommandRunnerTimer(Poco::Timer & timer);
 			void onRPCAnswer(bool& b);
 			inline uint64_t NextRPCId() { return ++Id_; }
+			void RemovePendingCommand(std::uint64_t Id) {
+				std::lock_guard	G(Mutex_);
+
+				for(auto hint=OutStandingRequests_.begin();hint!=OutStandingRequests_.end();++hint) {
+					if(hint->first.Id==Id) {
+						OutStandingRequests_.erase(hint);
+						return;
+					}
+				}
+			}
 
 	    private:
 			std::atomic_bool 						Running_ = false;

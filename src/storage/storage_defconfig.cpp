@@ -69,7 +69,7 @@ namespace OpenWifi {
 			std::string St{"SELECT name FROM DefaultConfigs WHERE Name=?"};
 			Select <<   ConvertParams(St) ,
 						Poco::Data::Keywords::into(TmpName) ,
-						Name;
+						Poco::Data::Keywords::use(Name);
 			Select.execute();
 
 			if (!TmpName.empty())

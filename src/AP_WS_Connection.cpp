@@ -169,8 +169,8 @@ namespace OpenWifi {
 
 	AP_WS_Connection::~AP_WS_Connection() {
 
-		poco_debug(Logger(),fmt::format("CONNECTION({}): Removing connection for {}.", CId_, SerialNumber_));
-		DeviceRegistry()->EndSession(this);
+		poco_information(Logger(),fmt::format("CONNECTION-CLOSING({}): {}.", CId_, SerialNumber_));
+		DeviceRegistry()->EndSession(this, SerialNumberInt_);
 
 		if (Registered_ && WS_) {
 			Reactor_.removeEventHandler(*WS_,

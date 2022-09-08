@@ -33,7 +33,6 @@ namespace OpenWifi {
 				std::ostringstream SS;
 				Payload.stringify(SS);
 
-				Logger().debug(fmt::format("({}): RPC Response received.", SerialNumber));
 				if(!Payload.has(uCentralProtocol::ID)){
 					Logger().error(fmt::format("({}): Invalid RPC response.", SerialNumber));
 				} else {
@@ -187,39 +186,31 @@ namespace OpenWifi {
 		auto Object = std::make_shared<RpcObject>();
 
 		CommandTagIndex 	Idx;
-		{
-			std::lock_guard M(Mutex_);
-			if (oneway_rpc)
-				Idx.Id = 1;
-			else
-				Idx.Id = RPCID;
-			Idx.SerialNumber = SerialNumber;
+		Idx.Id = oneway_rpc ? 1 : RPCID;
+		Idx.SerialNumber = SerialNumber;
 
-			Poco::JSON::Object CompleteRPC;
-			CompleteRPC.set(uCentralProtocol::JSONRPC, uCentralProtocol::JSONRPC_VERSION);
-			CompleteRPC.set(uCentralProtocol::ID, RPCID);
-			CompleteRPC.set(uCentralProtocol::METHOD, Method);
-			CompleteRPC.set(uCentralProtocol::PARAMS, Params);
-			Poco::JSON::Stringifier::stringify(CompleteRPC, ToSend);
-			Object->submitted = std::chrono::high_resolution_clock::now();
-			Object->uuid = UUID;
-			if(disk_only) {
-				Object->rpc_entry = nullptr;
-			} else {
-				Object->rpc_entry = std::make_shared<CommandManager::promise_type_t>();
-			}
-			if(!oneway_rpc) {
-				OutStandingRequests_[Idx] = Object;
-				OutstandingUUIDs_.insert(UUID);
-			}
-		}
+		Poco::JSON::Object CompleteRPC;
+		CompleteRPC.set(uCentralProtocol::JSONRPC, uCentralProtocol::JSONRPC_VERSION);
+		CompleteRPC.set(uCentralProtocol::ID, RPCID);
+		CompleteRPC.set(uCentralProtocol::METHOD, Method);
+		CompleteRPC.set(uCentralProtocol::PARAMS, Params);
+		Poco::JSON::Stringifier::stringify(CompleteRPC, ToSend);
+		Object->submitted = std::chrono::high_resolution_clock::now();
+		Object->uuid = UUID;
+		Object->rpc_entry = disk_only ? nullptr : std::make_shared<CommandManager::promise_type_t>();
 
 		Logger().information(fmt::format("{}: Sending command. ID: {}", UUID, RPCID));
 		if(DeviceRegistry()->SendFrame(SerialNumber, ToSend.str())) {
+			if(!oneway_rpc) {
+				std::lock_guard M(Mutex_);
+				OutStandingRequests_[Idx] = Object;
+				OutstandingUUIDs_.insert(UUID);
+			}
 			Logger().information(fmt::format("{}: Sent command. ID: {}", UUID, RPCID));
 			Sent=true;
 			return Object->rpc_entry;
 		}
+
 		Logger().information(fmt::format("{}: Failed to send command. ID: {}", UUID, RPCID));
 		return nullptr;
 	}

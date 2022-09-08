@@ -37,7 +37,6 @@ namespace OpenWifi {
 															  bool &Done, std::string &Answer) {
 		Done = false;
 		auto Prefix = O->get("serial_prefix").toString();
-		Logger().information(Poco::format("serial_number_search: %s", Prefix));
 		if (!Prefix.empty() && Prefix.length() < 13) {
 			std::vector<uint64_t> Numbers;
 			SerialNumberCache()->FindNumbers(Prefix, 50, Numbers);

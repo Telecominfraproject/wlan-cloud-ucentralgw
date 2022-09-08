@@ -121,7 +121,7 @@ namespace OpenWifi {
 			}
 		}
 
-		inline void EndSession(AP_WS_Connection * connection) {
+		inline void EndSession(AP_WS_Connection * connection, std::uint64_t serial_number ) {
 			std::unique_lock	G(M_);
 
 			auto Session = Sessions_.find(connection);
@@ -130,9 +130,9 @@ namespace OpenWifi {
 			}
 
 			//	if there was a serial number
-			if(Session->second->SerialNumber_) {
-				// if we know the serial number && this is for teh same connection: in the case a device disconnected and reconnected before we detect the
-				// disconnection
+			// 	if we know the serial number && this is for teh same connection: in the case a device disconnected and reconnected before we detect the
+			// 	disconnection
+			if(Session->second->SerialNumber_ && Session->second->SerialNumber_==serial_number) {
 				auto hint = SerialNumbers_.find(Session->second->SerialNumber_);
 				if((hint != end(SerialNumbers_)) && (hint->second.second == connection)) {
 					SerialNumbers_.erase(Session->second->SerialNumber_);
