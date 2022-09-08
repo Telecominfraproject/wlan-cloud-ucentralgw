@@ -148,7 +148,7 @@ namespace OpenWifi {
 		  Reactor_(AP_WS_Server()->NextReactor())
   	{
 		WS_ = std::make_unique<Poco::Net::WebSocket>(request,response);
-		Session_ = DeviceRegistry()->StartSession(this);
+		Session_ = DeviceRegistry()->StartSession(this, ConnectionId_);
 		CompleteStartup();
 	}
 

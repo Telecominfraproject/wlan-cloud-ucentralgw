@@ -75,6 +75,8 @@ namespace OpenWifi {
 			return true;
 		}
 
+		inline std::uint64_t Id() const { return ConnectionId_; }
+
 	  private:
 		std::recursive_mutex                Mutex_;
 		Poco::Logger                    	&Logger_;
