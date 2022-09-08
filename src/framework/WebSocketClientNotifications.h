@@ -146,6 +146,10 @@ namespace OpenWifi {
         WebSocketClientServer()->SendUserNotification(User,N);
     }
 
+    /////
+    /////
+    /////
+
     struct WebSocketNotificationRebootList {
         std::string                 title,
                 details,
@@ -186,6 +190,59 @@ namespace OpenWifi {
 
     inline void WebSocketClientNotificationVenueRebootCompletionToUser( const std::string & User, WebSocketClientNotificationVenueRebootList_t &N) {
         N.type = "venue_rebooter";
+        WebSocketClientServer()->SendUserNotification(User,N);
+    }
+
+    /////
+    /////
+    /////
+
+    struct WebSocketNotificationUpgradeList {
+        std::string                 title,
+                details,
+                jobId;
+        std::vector<std::string>    success,
+                                    skipped,
+                                    no_firmware,
+                                    not_connected;
+        uint64_t                    timeStamp=OpenWifi::Now();
+
+        void to_json(Poco::JSON::Object &Obj) const;
+        bool from_json(const Poco::JSON::Object::Ptr &Obj);
+    };
+
+    typedef WebSocketNotification<WebSocketNotificationUpgradeList> WebSocketClientNotificationVenueUpgradeList_t;
+
+    inline void WebSocketNotificationUpgradeList::to_json(Poco::JSON::Object &Obj) const {
+        RESTAPI_utils::field_to_json(Obj,"title",title);
+        RESTAPI_utils::field_to_json(Obj,"jobId",jobId);
+        RESTAPI_utils::field_to_json(Obj,"success",success);
+        RESTAPI_utils::field_to_json(Obj,"notConnected",not_connected);
+        RESTAPI_utils::field_to_json(Obj,"noFirmware",no_firmware);
+        RESTAPI_utils::field_to_json(Obj,"skipped",skipped);
+        RESTAPI_utils::field_to_json(Obj,"timeStamp",timeStamp);
+        RESTAPI_utils::field_to_json(Obj,"details",details);
+    }
+
+    inline bool WebSocketNotificationUpgradeList::from_json(const Poco::JSON::Object::Ptr &Obj) {
+        try {
+            RESTAPI_utils::field_from_json(Obj,"title",title);
+            RESTAPI_utils::field_from_json(Obj,"jobId",jobId);
+            RESTAPI_utils::field_from_json(Obj,"success",success);
+            RESTAPI_utils::field_from_json(Obj,"notConnected",not_connected);
+            RESTAPI_utils::field_from_json(Obj,"noFirmware",no_firmware);
+            RESTAPI_utils::field_from_json(Obj,"skipped",skipped);
+            RESTAPI_utils::field_from_json(Obj,"timeStamp",timeStamp);
+            RESTAPI_utils::field_from_json(Obj,"details",details);
+            return true;
+        } catch(...) {
+
+        }
+        return false;
+    }
+
+    inline void WebSocketClientNotificationVenueUpgradeCompletionToUser( const std::string & User, WebSocketClientNotificationVenueUpgradeList_t &N) {
+        N.type = "venue_upgrader";
         WebSocketClientServer()->SendUserNotification(User,N);
     }
 
