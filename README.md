@@ -11,16 +11,16 @@ In order to build the uCentralGW, you will need to install its dependencies, whi
 - boost
 - POCO 1.10.1 or later
 - a C++17 compiler
-- libyaml
 - openssl
 - libpq-dev (PortgreSQL development libraries)
 - mysql-client (MySQL client)
 - librdkafka
 - cppkafka
+- 
 
 The build is done in 2 parts. The first part is to build a local copy of the framework tailored to your environment. This 
 framework is called [Poco](https://github.com/pocoproject/poco). The version used in this project has a couple of fixes
-from the master copy needed for cmake. Please use the version of this [Poco fix](https://github.com/stephb9959/poco). Building 
+from the master copy needed for cmake. Please use the version of this [Poco fix](https://github.com/AriliaWireless/poco). Building 
 Poco may take several minutes depending on the platform you are building on.
 
 ### Ubuntu
@@ -57,6 +57,14 @@ cd cmake-build
 cmake ..
 make -j
 sudo make install
+
+git clone https://github.com/fmtlib/fmt --branch 9.0.0 /fmtlib
+cd fmtlib
+mkdir cmake-build
+cd cmake-build
+cmake ..
+make
+make install
 
 cd ~
 git clone https://github.com/Telecominfraproject/wlan-cloud-ucentralgw
