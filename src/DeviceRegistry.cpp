@@ -53,26 +53,21 @@ namespace OpenWifi {
 		return true;
     }
 
-	void DeviceRegistry::EndSession(AP_WS_Connection * connection, std::uint64_t serial_number ) {
+	void DeviceRegistry::EndSession(std::uint64_t connection_id, AP_WS_Connection * connection, std::uint64_t serial_number) {
 		std::unique_lock	G(M_);
 
-		auto Session = Sessions_.find(connection);
-		if(Session==Sessions_.end()) {
+		auto Session = Sessions_.find(connection_id);
+		if(Session==end(Sessions_)) {
 			return;
 		}
 
-		//	if there was a serial number
-		// 	if we know the serial number && this is for teh same connection: in the case a device
-		// 	disconnected and reconnected before we detect the
-		// 	disconnection
-		if(Session->second->SerialNumber_ && Session->second->SerialNumber_==serial_number) {
-			auto hint = SerialNumbers_.find(Session->second->SerialNumber_);
-			if((hint != end(SerialNumbers_)) && (hint->second.second == connection) &&
-				(connection->Id()== hint->second.second->Id())) {
-				SerialNumbers_.erase(Session->second->SerialNumber_);
-			}
+		auto hint = SerialNumbers_.find(serial_number);
+		if(	(hint != end(SerialNumbers_)) &&
+			(hint->second.second == connection) &&
+			(connection_id == hint->second.first->ConnectionId)) {
+			SerialNumbers_.erase(serial_number);
 		}
-		Sessions_.erase(Session);
+		Sessions_.erase(connection_id);
 	}
 
     void DeviceRegistry::SetState(uint64_t SerialNumber, const GWObjects::ConnectionState & State) {

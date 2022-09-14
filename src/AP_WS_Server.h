@@ -27,14 +27,16 @@ namespace OpenWifi {
 
 	class AP_WS_RequestHandler : public Poco::Net::HTTPRequestHandler {
 	  public:
-		explicit AP_WS_RequestHandler(Poco::Logger &L)
-			: Logger_(L) {
+		explicit AP_WS_RequestHandler(Poco::Logger &L, std::uint64_t id)
+			: Logger_(L),
+			  id_(id){
 		};
 
 		void handleRequest(Poco::Net::HTTPServerRequest &request,
 						   Poco::Net::HTTPServerResponse &response) override;
 	  private:
 		Poco::Logger 				&Logger_;
+		std::uint64_t 				id_=0;
 	};
 
 	class AP_WS_RequestHandlerFactory : public Poco::Net::HTTPRequestHandlerFactory {
@@ -48,13 +50,14 @@ namespace OpenWifi {
 			if (request.find("Upgrade") != request.end() &&
 				Poco::icompare(request["Upgrade"], "websocket") == 0) {
 				Utils::SetThreadName("ws:conn-init");
-				return new AP_WS_RequestHandler(Logger_);
+				return new AP_WS_RequestHandler(Logger_,id_++);
 			} else {
 				return nullptr;
 			}
 		}
 	  private:
 		Poco::Logger 				&Logger_;
+		inline static std::uint64_t 		id_=1;
 	};
 
 	class AP_WS_Server : public SubSystemServer {

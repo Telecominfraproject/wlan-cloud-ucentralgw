@@ -86,27 +86,28 @@ namespace OpenWifi {
 		bool SendRadiusAccountingData(const std::string & SerialNumber, const unsigned char * buffer, std::size_t size);
 		bool SendRadiusCoAData(const std::string & SerialNumber, const unsigned char * buffer, std::size_t size);
 
-		[[nodiscard]] inline std::shared_ptr<RegistryConnectionEntry> StartSession( AP_WS_Connection * connection, uint64_t & ConnectionId ) {
+		[[nodiscard]] inline std::shared_ptr<RegistryConnectionEntry> StartSession(uint64_t ConnectionId) {
 			std::unique_lock	G(M_);
 			auto NewSession = std::make_shared<RegistryConnectionEntry>();
-			Sessions_[connection] = NewSession;
-			ConnectionId = NewSession->ConnectionId = Id_++;
+			Sessions_[ConnectionId] = NewSession;
+			NewSession->ConnectionId = ConnectionId;
 			return NewSession;
 		}
 
-		inline void SetSessionDetails(AP_WS_Connection * connection, uint64_t SerialNumber) {
+		inline void SetSessionDetails(std::uint64_t connection_id, AP_WS_Connection * connection, uint64_t SerialNumber) {
 			std::unique_lock	G(M_);
-			auto Hint = Sessions_.find(connection);
+			auto Hint = Sessions_.find(connection_id);
 			if(Hint!=Sessions_.end()) {
-				Hint->second->SerialNumber_ = SerialNumber;
-				Hint->second->State_.Connected = true;
-				Hint->second->State_.LastContact = OpenWifi::Now();
-				Hint->second->State_.VerifiedCertificate = GWObjects::CertificateValidation::NO_CERTIFICATE;
-				SerialNumbers_[SerialNumber] = std::make_pair(Hint->second,connection);
+				auto Ptr = Hint->second;
+				Ptr->SerialNumber_ = SerialNumber;
+				Ptr->State_.Connected = true;
+				Ptr->State_.LastContact = OpenWifi::Now();
+				Ptr->State_.VerifiedCertificate = GWObjects::CertificateValidation::NO_CERTIFICATE;
+				SerialNumbers_[SerialNumber] = std::make_pair(Ptr,connection);
 			}
 		}
 
-		void EndSession(AP_WS_Connection * connection, std::uint64_t serial_number );
+		void EndSession(std::uint64_t connection_id, AP_WS_Connection * connection, std::uint64_t serial_number);
 
 		void SetWebSocketTelemetryReporting(uint64_t SerialNumber, uint64_t Interval, uint64_t Lifetime);
 		void StopWebSocketTelemetry(uint64_t SerialNumber);
@@ -123,8 +124,7 @@ namespace OpenWifi {
 
 	  private:
 		std::shared_mutex														M_;
-		inline static std::atomic_uint64_t 										Id_=1;
-		std::map<AP_WS_Connection * ,std::shared_ptr<RegistryConnectionEntry>>  Sessions_;
+		std::map<std::uint64_t ,std::shared_ptr<RegistryConnectionEntry>>  		Sessions_;
 		std::map<uint64_t, std::pair<std::shared_ptr<RegistryConnectionEntry>,AP_WS_Connection *>>			SerialNumbers_;
 
 		DeviceRegistry() noexcept:
