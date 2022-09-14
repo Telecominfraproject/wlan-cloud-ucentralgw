@@ -65,7 +65,10 @@ namespace OpenWifi {
 		if(	(hint != end(SerialNumbers_)) &&
 			(hint->second.second == connection) &&
 			(connection_id == hint->second.first->ConnectionId)) {
+			std::cout << "Session deleted" << std::endl;
 			SerialNumbers_.erase(serial_number);
+		} else {
+			std::cout << "Session NOT deleted" << std::endl;
 		}
 		Sessions_.erase(connection_id);
 	}
