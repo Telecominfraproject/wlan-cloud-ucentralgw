@@ -21,7 +21,7 @@ namespace OpenWifi {
 		static constexpr int BufSize = 128000;
 	  public:
 		explicit AP_WS_Connection(Poco::Net::HTTPServerRequest &request,
-			Poco::Net::HTTPServerResponse &response);
+			Poco::Net::HTTPServerResponse &response, std::uint64_t connection_id);
 		~AP_WS_Connection();
 
 		void ProcessJSONRPCEvent(Poco::JSON::Object::Ptr & Doc);

@@ -31,6 +31,18 @@ namespace OpenWifi {
 		Logger().information(fmt::format("EXCEPTION({}): {}", CId_, E.displayText()));
 	}
 
+	AP_WS_Connection::AP_WS_Connection(Poco::Net::HTTPServerRequest &request,
+									   Poco::Net::HTTPServerResponse &response,
+									   std::uint64_t connection_id)
+		: Logger_(AP_WS_Server()->Logger()) ,
+		  Reactor_(AP_WS_Server()->NextReactor()),
+		  ConnectionId_(connection_id)
+	{
+		Session_ = DeviceRegistry()->StartSession(ConnectionId_);
+		WS_ = std::make_unique<Poco::Net::WebSocket>(request,response);
+		CompleteStartup();
+	}
+
 	void AP_WS_Connection::CompleteStartup() {
 
 		std::lock_guard Guard(Mutex_);
@@ -142,16 +154,6 @@ namespace OpenWifi {
 		return delete this;
 	}
 
-	AP_WS_Connection::AP_WS_Connection(Poco::Net::HTTPServerRequest &request,
-									   Poco::Net::HTTPServerResponse &response)
-		: Logger_(AP_WS_Server()->Logger()) ,
-		  Reactor_(AP_WS_Server()->NextReactor())
-  	{
-		WS_ = std::make_unique<Poco::Net::WebSocket>(request,response);
-		Session_ = DeviceRegistry()->StartSession(this, ConnectionId_);
-		CompleteStartup();
-	}
-
 	static void NotifyKafkaDisconnect(const std::string & SerialNumber) {
 		try {
 			Poco::JSON::Object Disconnect;
@@ -170,7 +172,7 @@ namespace OpenWifi {
 	AP_WS_Connection::~AP_WS_Connection() {
 
 		poco_information(Logger(),fmt::format("CONNECTION-CLOSING({}): {}.", CId_, SerialNumber_));
-		DeviceRegistry()->EndSession(this, SerialNumberInt_);
+		DeviceRegistry()->EndSession(ConnectionId_, this, SerialNumberInt_);
 
 		if (Registered_ && WS_) {
 			Reactor_.removeEventHandler(*WS_,

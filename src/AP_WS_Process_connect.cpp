@@ -22,7 +22,7 @@ void AP_WS_Connection::Process_connect(Poco::JSON::Object::Ptr ParamsObj, const 
 		//// change this
 		SerialNumber_ = Serial;
 		SerialNumberInt_ = Utils::SerialNumberToInt(SerialNumber_);
-		DeviceRegistry()->SetSessionDetails(this,SerialNumberInt_);
+		DeviceRegistry()->SetSessionDetails(ConnectionId_,this,SerialNumberInt_);
 		Session_->State_.UUID = UUID;
 		Session_->State_.Firmware = Firmware;
 		Session_->State_.PendingUUID = 0;
