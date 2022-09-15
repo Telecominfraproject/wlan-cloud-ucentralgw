@@ -169,6 +169,16 @@ namespace OpenWifi {
 				}
 			}
 
+			inline bool CommandRunningForDevice(const std::string &SerialNumber) {
+				std::lock_guard	G(Mutex_);
+
+				for(const auto &[Tag,_]:OutStandingRequests_) {
+					if(Tag.SerialNumber==SerialNumber)
+						return true;
+				}
+				return false;
+			}
+
 	    private:
 			std::atomic_bool 						Running_ = false;
 			Poco::Thread    						ManagerThread;

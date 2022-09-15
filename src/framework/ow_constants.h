@@ -197,6 +197,7 @@ namespace OpenWifi::RESTAPI::Errors {
 	static const struct msg InvalidRadiusServerWeigth{1143,"RADIUS Server IP weight cannot be 0."};
 
 	static const struct msg MaximumRTTYSessionsReached{1144,"Too many RTTY sessions currently active"};
+	static const struct msg DeviceIsAlreadyBusy{1145,"Device is already executing a command. Please try later."};
 }
 
 

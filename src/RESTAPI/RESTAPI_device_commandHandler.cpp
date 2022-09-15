@@ -92,6 +92,29 @@ namespace OpenWifi {
 		}
 	}
 
+	struct PostDeviceCommand {
+		const char *		Command;
+		bool 				AllowParallel=false;
+		void (RESTAPI_device_commandHandler::*funPtr)(const std::string &, std::uint64_t);
+	};
+
+	static std::vector<PostDeviceCommand>	PostCommands
+		{
+			{ RESTAPI::Protocol::PERFORM, false, &RESTAPI_device_commandHandler::ExecuteCommand },
+			{ RESTAPI::Protocol::CONFIGURE, false, &RESTAPI_device_commandHandler::Configure },
+			{ RESTAPI::Protocol::UPGRADE, false, &RESTAPI_device_commandHandler::Upgrade },
+			{ RESTAPI::Protocol::REBOOT, false, &RESTAPI_device_commandHandler::Reboot },
+			{ RESTAPI::Protocol::FACTORY, false, &RESTAPI_device_commandHandler::Factory },
+			{ RESTAPI::Protocol::LEDS, false, &RESTAPI_device_commandHandler::LEDs },
+			{ RESTAPI::Protocol::TRACE, false, &RESTAPI_device_commandHandler::Trace },
+			{ RESTAPI::Protocol::REQUEST, false, &RESTAPI_device_commandHandler::MakeRequest },
+			{ RESTAPI::Protocol::WIFISCAN, false, &RESTAPI_device_commandHandler::WifiScan },
+			{ RESTAPI::Protocol::EVENTQUEUE, false, &RESTAPI_device_commandHandler::EventQueue },
+			{ RESTAPI::Protocol::TELEMETRY, false, &RESTAPI_device_commandHandler::Telemetry },
+			{ RESTAPI::Protocol::PING, false, &RESTAPI_device_commandHandler::Ping },
+			{ RESTAPI::Protocol::SCRIPT, false, &RESTAPI_device_commandHandler::Script }
+		};
+
 	void RESTAPI_device_commandHandler::DoPost() {
 		if(!ValidateParameters()) {
 			return BadRequest(RESTAPI::Errors::MissingOrInvalidParameters);
@@ -111,7 +134,15 @@ namespace OpenWifi {
 		auto UUID = MicroService::CreateUUID();
 		auto RPC = CommandManager()->NextRPCId();
 
-		if (Command_ == RESTAPI::Protocol::PERFORM) {
+		for(const auto &Command:PostCommands) {
+			if(Command_==Command.Command) {
+				if(!Command.AllowParallel && CommandManager()->CommandRunningForDevice(SerialNumber_))
+					return BadRequest(RESTAPI::Errors::DeviceIsAlreadyBusy);
+				return (*this.*Command.funPtr)(UUID,RPC);
+			}
+		}
+
+/*		if (Command_ == RESTAPI::Protocol::PERFORM) {
 			return ExecuteCommand(UUID,RPC);
 		} else if (Command_ == RESTAPI::Protocol::CONFIGURE) {
 			return Configure(UUID,RPC);
@@ -137,9 +168,9 @@ namespace OpenWifi {
 			return Ping(UUID,RPC);
 		} else if (Command_ == RESTAPI::Protocol::SCRIPT) {
 			return Script(UUID,RPC);
-		} else {
-			return BadRequest(RESTAPI::Errors::InvalidCommand);
 		}
+*/
+		return BadRequest(RESTAPI::Errors::InvalidCommand);
 	}
 
 	void RESTAPI_device_commandHandler::GetCapabilities() {
