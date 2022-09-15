@@ -11,6 +11,7 @@
 #include <shared_mutex>
 
 #include "Poco/JSON/Object.h"
+#include "Poco/Timer.h"
 #include "RESTObjects//RESTAPI_GWobjects.h"
 #include "framework/MicroService.h"
 
@@ -26,6 +27,10 @@ namespace OpenWifi {
 			uint64_t 					ConnectionId=0;
 			uint64_t 					SerialNumber_=0;
 		};
+
+		DeviceRegistry() noexcept:
+			SubSystemServer("DeviceRegistry", "DevStatus", "devicestatus") {
+		}
 
         static auto instance() {
             static auto instance_ = new DeviceRegistry;
@@ -122,14 +127,17 @@ namespace OpenWifi {
 									uint64_t & TelemetryWebSocketPackets,
 									uint64_t & TelemetryKafkaPackets);
 
+		void onConnectionJanitor(Poco::Timer & timer);
+
 	  private:
 		std::shared_mutex														M_;
 		std::map<std::uint64_t ,std::shared_ptr<RegistryConnectionEntry>>  		Sessions_;
 		std::map<uint64_t, std::pair<std::shared_ptr<RegistryConnectionEntry>,AP_WS_Connection *>>			SerialNumbers_;
 
-		DeviceRegistry() noexcept:
-    		SubSystemServer("DeviceRegistry", "DevStatus", "devicestatus") {
-		}
+		std::unique_ptr<Poco::TimerCallback<DeviceRegistry>>   ArchiverCallback_;
+		Poco::Timer                     		Timer_;
+		Poco::Thread							ConnectionJanitor_;
+
 	};
 
 	inline auto DeviceRegistry() { return DeviceRegistry::instance(); }

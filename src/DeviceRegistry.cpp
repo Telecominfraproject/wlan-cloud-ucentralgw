@@ -15,13 +15,24 @@ namespace OpenWifi {
 	int DeviceRegistry::Start() {
 		std::lock_guard		Guard(Mutex_);
         Logger().notice("Starting ");
-        return 0;
+
+		ArchiverCallback_ = std::make_unique<Poco::TimerCallback<DeviceRegistry>>(*this,&DeviceRegistry::onConnectionJanitor);
+		Timer_.setStartInterval( 300 );
+		Timer_.setPeriodicInterval(60 * 1000); // every minute
+		Timer_.start(*ArchiverCallback_, MicroService::instance().TimerPool());
+
+		return 0;
     }
 
     void DeviceRegistry::Stop() {
 		std::lock_guard		Guard(Mutex_);
+		Timer_.stop();
         Logger().notice("Stopping...");
     }
+
+	void DeviceRegistry::onConnectionJanitor([[maybe_unused]] Poco::Timer &timer) {
+		std::cout << "Firing registry timer..." << std::endl;
+	}
 
     bool DeviceRegistry::GetStatistics(uint64_t SerialNumber, std::string & Statistics) {
 		std::shared_lock	Guard(M_);

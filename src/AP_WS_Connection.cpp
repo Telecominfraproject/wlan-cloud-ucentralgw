@@ -336,8 +336,6 @@ namespace OpenWifi {
 			E.rethrow();
 		}
 
-		Session_->State_.LastContact = OpenWifi::Now();
-
 		switch (EventType) {
 			case uCentralProtocol::Events::ET_CONNECT: {
 				Process_connect(ParamsObj, Serial);
@@ -537,6 +535,7 @@ namespace OpenWifi {
 			} else {
 				Session_->State_.RX += IncomingSize;
 				Session_->State_.MessageCount++;
+				Session_->State_.LastContact = OpenWifi::Now();
 
 				switch (Op) {
 				case Poco::Net::WebSocket::FRAME_OP_PING: {
