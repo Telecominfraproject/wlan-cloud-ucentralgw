@@ -52,8 +52,8 @@ openwifi.fileuploader.host.0.cert = ${FILEUPLOADER_HOST_CERT}
 openwifi.fileuploader.host.0.key = ${FILEUPLOADER_HOST_KEY}
 openwifi.fileuploader.host.0.key.password = ${FILEUPLOADER_HOST_KEY_PASSWORD}
 openwifi.fileuploader.path = ${FILEUPLOADER_PATH}
-openwifi.fileuploader.uri = ${FILEUPLOADER_URI}
 openwifi.fileuploader.maxsize = 10000
+openwifi.fileuploader.uri = ${FILEUPLOADER_URI}
 
 #
 # Generic section that all microservices must have
@@ -75,8 +75,13 @@ openwifi.devicetypes.0 = AP:linksys_ea8300,edgecore_eap101,linksys_e8450-ubi
 openwifi.devicetypes.1 = SWITCH:edgecore_ecs4100-12ph
 openwifi.devicetypes.2 = IOT:esp32
 oui.download.uri = https://standards-oui.ieee.org/oui/oui.txt
-firmware.autoupdate.policy.default = auto
 simulatorid = ${SIMULATORID}
+iptocountry.default = US
+iptocountry.provider = ${IPTOCOUNTRY_PROVIDER}
+iptocountry.ipinfo.token = ${IPTOCOUNTRY_IPINFO_TOKEN}
+iptocountry.ipdata.apikey = ${IPTOCOUNTRY_IPDATA_APIKEY}
+
+autoprovisioning.process = ${AUTOPROVISIONING_PROCESS}
 
 #
 # rtty
@@ -108,6 +113,7 @@ openwifi.kafka.enable = ${KAFKA_ENABLE}
 openwifi.kafka.brokerlist = ${KAFKA_BROKERLIST}
 openwifi.kafka.auto.commit = false
 openwifi.kafka.queue.buffering.max.ms = 50
+
 openwifi.kafka.ssl.ca.location = ${KAFKA_SSL_CA_LOCATION}
 openwifi.kafka.ssl.certificate.location = ${KAFKA_SSL_CERTIFICATE_LOCATION}
 openwifi.kafka.ssl.key.location = ${KAFKA_SSL_KEY_LOCATION}
