@@ -69,6 +69,8 @@ namespace OpenWifi {
 		}
 
 	  private:
-		std::string SerialNumber_, Command_;
+		std::string 	SerialNumber_,
+						Command_;
+		std::uint64_t 	SerialNumberInt_=0;
 	};
 }

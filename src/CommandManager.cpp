@@ -40,7 +40,7 @@ namespace OpenWifi {
 					if (ID < 2) {
 						Logger().debug(fmt::format("({}): Ignoring RPC response.", SerialNumber));
 					} else {
-						auto Idx = CommandTagIndex{.Id = ID, .SerialNumber = SerialNumber};
+						auto Idx = CommandTagIndex{.Id = ID, .SerialNumber = Utils::SerialNumberToInt(SerialNumber)};
 						std::lock_guard G(Mutex_);
 						auto RPC = OutStandingRequests_.find(Idx);
 						if (RPC == OutStandingRequests_.end()) {
@@ -177,8 +177,9 @@ namespace OpenWifi {
 		bool disk_only,
 		bool & Sent) {
 
+		auto SerialNumberInt = Utils::SerialNumberToInt(SerialNumber);
 		Sent=false;
-		if(!DeviceRegistry()->Connected(SerialNumber)) {
+		if(!DeviceRegistry()->Connected(SerialNumberInt)) {
 			return nullptr;
 		}
 
@@ -187,7 +188,7 @@ namespace OpenWifi {
 
 		CommandTagIndex 	Idx;
 		Idx.Id = oneway_rpc ? 1 : RPCID;
-		Idx.SerialNumber = SerialNumber;
+		Idx.SerialNumber = SerialNumberInt;
 
 		Poco::JSON::Object CompleteRPC;
 		CompleteRPC.set(uCentralProtocol::JSONRPC, uCentralProtocol::JSONRPC_VERSION);

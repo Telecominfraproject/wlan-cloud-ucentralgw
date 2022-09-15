@@ -271,7 +271,7 @@ typedef Poco::Tuple<
 					Offset++;
 					GWObjects::CommandDetails R;
 					ConvertCommandRecord(i,R);
-					if (DeviceRegistry()->Connected(R.SerialNumber))
+					if (DeviceRegistry()->Connected(Utils::SerialNumberToInt(R.SerialNumber)))
 						Commands.push_back(R);
 				}
 
@@ -423,7 +423,7 @@ typedef Poco::Tuple<
 			for(const auto &i : Records) {
 				GWObjects::CommandDetails R;
 				ConvertCommandRecord(i,R);
-				if (DeviceRegistry()->Connected(R.SerialNumber))
+				if (DeviceRegistry()->Connected(Utils::SerialNumberToInt(R.SerialNumber)))
 					Commands.push_back(R);
 			}
 			return true;

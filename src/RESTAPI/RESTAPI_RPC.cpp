@@ -47,11 +47,12 @@ namespace OpenWifi::RESTAPI_RPC {
 		// 	if the command should be executed in the future, or if the device is not connected,
 		// 	then we should just add the command to
 		//	the DB and let it figure out when to deliver the command.
-		if (Cmd.RunAt || (!DeviceRegistry()->Connected(Cmd.SerialNumber) && RetryLater)) {
+		auto SerialNumberInt = Utils::SerialNumberToInt(Cmd.SerialNumber);
+		if (Cmd.RunAt || (!DeviceRegistry()->Connected(SerialNumberInt) && RetryLater)) {
 			Logger.information(fmt::format("{},{}: Command will be run in the future or when device is connected again.", Cmd.UUID, RPCID));
 			SetCommandStatus(Cmd, Request, Response, Handler, Storage::COMMAND_PENDING, Logger);
 			return;
-		} else if ((!DeviceRegistry()->Connected(Cmd.SerialNumber) && !RetryLater)){
+		} else if ((!DeviceRegistry()->Connected(SerialNumberInt) && !RetryLater)){
 			Logger.information(fmt::format("{},{}: Command canceled. Device is not connected. Command will not be retried.", Cmd.UUID, RPCID));
 			return SetCommandStatus(Cmd, Request, Response, Handler, Storage::COMMAND_FAILED, Logger);
 		}
