@@ -38,17 +38,17 @@ namespace OpenWifi {
 		inline bool GetStatistics(const std::string &SerialNumber, std::string & Statistics) {
 			return GetStatistics(Utils::SerialNumberToInt(SerialNumber),Statistics);
 		}
-		bool GetStatistics(uint64_t SerialNumber, std::string & Statistics);
+		bool GetStatistics(std::uint64_t SerialNumber, std::string & Statistics);
 
 		inline void SetStatistics(const std::string &SerialNumber, const std::string &Statistics) {
 			return SetStatistics(Utils::SerialNumberToInt(SerialNumber),Statistics);
 		}
-		void SetStatistics(uint64_t SerialNumber, const std::string &stats);
+		void SetStatistics(std::uint64_t SerialNumber, const std::string &stats);
 
 		inline bool GetState(const std::string & SerialNumber, GWObjects::ConnectionState & State) {
 			return GetState(Utils::SerialNumberToInt(SerialNumber), State);
 		}
-		bool GetState(uint64_t SerialNumber, GWObjects::ConnectionState & State);
+		bool GetState(std::uint64_t SerialNumber, GWObjects::ConnectionState & State);
 
 		inline void SetState(const std::string & SerialNumber, const GWObjects::ConnectionState & State) {
 			return SetState(Utils::SerialNumberToInt(SerialNumber), State);
@@ -58,30 +58,30 @@ namespace OpenWifi {
 		inline bool GetHealthcheck(const std::string &SerialNumber, GWObjects::HealthCheck & CheckData) {
 			return GetHealthcheck(Utils::SerialNumberToInt(SerialNumber), CheckData);
 		}
-		bool GetHealthcheck(uint64_t SerialNumber, GWObjects::HealthCheck & CheckData);
+		bool GetHealthcheck(std::uint64_t SerialNumber, GWObjects::HealthCheck & CheckData);
 
 		inline void SetHealthcheck(const std::string &SerialNumber, const GWObjects::HealthCheck &H) {
 			return SetHealthcheck(Utils::SerialNumberToInt(SerialNumber),H);
 		}
-		void SetHealthcheck(uint64_t SerialNumber, const GWObjects::HealthCheck &H);
+		void SetHealthcheck(std::uint64_t SerialNumber, const GWObjects::HealthCheck &H);
 
-		inline bool Connected(const std::string & SerialNumber) {
+/*		inline bool Connected(const std::string & SerialNumber) {
 			return Connected(Utils::SerialNumberToInt(SerialNumber));
 		}
-
+*/
 		bool Connected(uint64_t SerialNumber);
 
 		inline bool SendFrame(const std::string & SerialNumber, const std::string & Payload) {
 			return SendFrame(Utils::SerialNumberToInt(SerialNumber), Payload);
 		}
 
-		bool SendFrame(uint64_t SerialNumber, const std::string & Payload);
+		bool SendFrame(std::uint64_t SerialNumber, const std::string & Payload);
 
 		inline void SetPendingUUID(const std::string & SerialNumber, uint64_t PendingUUID) {
 			return SetPendingUUID(Utils::SerialNumberToInt(SerialNumber), PendingUUID);
 		}
 
-		void SetPendingUUID(uint64_t SerialNumber, uint64_t PendingUUID);
+		void SetPendingUUID(std::uint64_t SerialNumber, std::uint64_t PendingUUID);
 		bool SendRadiusAuthenticationData(const std::string & SerialNumber, const unsigned char * buffer, std::size_t size);
 		bool SendRadiusAccountingData(const std::string & SerialNumber, const unsigned char * buffer, std::size_t size);
 		bool SendRadiusCoAData(const std::string & SerialNumber, const unsigned char * buffer, std::size_t size);

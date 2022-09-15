@@ -15,13 +15,14 @@ namespace OpenWifi {
 
 	int RADIUS_proxy_server::Start() {
 
+		ConfigFilename_ = MicroService::instance().DataDir()+"/radius_pool_config.json";
+		Poco::File	Config(ConfigFilename_);
+
 		enabled_ = MicroService::instance().ConfigGetBool("radius.proxy.enable",false);
-		if(!enabled_)
+		if(!enabled_ && !Config.exists())
 			return 0;
 
-		ConfigFilename_ = MicroService::instance().DataDir()+"/radius_pool_config.json";
-
-
+		enabled_ = true;
 
 		Poco::Net::SocketAddress	AuthSockAddrV4(Poco::Net::AddressFamily::IPv4,
 									   MicroService::instance().ConfigGetInt("radius.proxy.authentication.port",DEFAULT_RADIUS_AUTHENTICATION_PORT));
@@ -68,11 +69,13 @@ namespace OpenWifi {
 
 		Utils::SetThreadName(RadiusReactorThread_,"rad:reactor");
 
+		running_ = true;
+
 		return 0;
 	}
 
 	void RADIUS_proxy_server::Stop() {
-		if(enabled_) {
+		if(enabled_ && running_) {
 			RadiusReactor_.removeEventHandler(
 				*AuthenticationSocketV4_,
 				Poco::NObserver<RADIUS_proxy_server, Poco::Net::ReadableNotification>(
@@ -106,7 +109,7 @@ namespace OpenWifi {
 			RadiusReactor_.stop();
 			RadiusReactorThread_.join();
 			enabled_=false;
-
+			running_=false;
 		}
 	}
 
@@ -552,6 +555,10 @@ namespace OpenWifi {
 		Disk.stringify(ofs);
 		ofs.close();
 
+		if(!running_) {
+			Start();
+		}
+
 		ParseConfig();
 	}
 
@@ -572,6 +579,7 @@ namespace OpenWifi {
 
 		}
 		ResetConfig();
+		Stop();
 	}
 
 	void RADIUS_proxy_server::GetConfig(GWObjects::RadiusProxyPoolList &C) {

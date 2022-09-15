@@ -31,7 +31,7 @@ namespace OpenWifi {
 		}
 
 		GWObjects::RadiusProxyPoolList	C;
-		if(!C.from_json(ParsedBody_)) {
+		if(!C.from_json(ParsedBody_) || C.pools.empty()) {
 			return BadRequest(RESTAPI::Errors::InvalidJSONDocument);
 		}
 

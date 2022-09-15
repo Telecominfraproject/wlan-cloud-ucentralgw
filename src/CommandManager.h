@@ -25,8 +25,8 @@
 namespace OpenWifi {
 
 	struct CommandTagIndex {
-		uint64_t 	Id=0;
-		std::string SerialNumber;
+		std::uint64_t 	Id=0;
+		std::uint64_t 	SerialNumber=0;
 	};
 
 	inline bool operator <(const CommandTagIndex& lhs, const CommandTagIndex& rhs) {
@@ -167,6 +167,16 @@ namespace OpenWifi {
 						return;
 					}
 				}
+			}
+
+			inline bool CommandRunningForDevice(std::uint64_t SerialNumber) {
+				std::lock_guard	G(Mutex_);
+
+				for(const auto &[Tag,_]:OutStandingRequests_) {
+					if(Tag.SerialNumber==SerialNumber)
+						return true;
+				}
+				return false;
 			}
 
 	    private:
