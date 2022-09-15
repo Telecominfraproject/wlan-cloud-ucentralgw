@@ -73,6 +73,7 @@ namespace OpenWifi {
 		if(!Utils::ValidSerialNumber(SerialNumber_)) {
 			return BadRequest(RESTAPI::Errors::MissingSerialNumber);
 		}
+		SerialNumberInt_ = Utils::SerialNumberToInt(SerialNumber_);
 
 		Poco::Thread::current()->setName(fmt::format("{}: {}",SerialNumber_,Command_));
 
@@ -130,6 +131,7 @@ namespace OpenWifi {
 		if(!Utils::ValidSerialNumber(SerialNumber_)) {
 			return BadRequest(RESTAPI::Errors::MissingSerialNumber);
 		}
+		SerialNumberInt_ = Utils::SerialNumberToInt(SerialNumber_);
 
 		Poco::Thread::current()->setName(fmt::format("{}: {}",SerialNumber_,Command_));
 
