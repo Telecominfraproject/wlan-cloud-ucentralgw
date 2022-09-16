@@ -509,9 +509,7 @@ namespace OpenWifi {
 	void AP_WS_Connection::OnSocketReadable([[maybe_unused]] const Poco::AutoPtr<Poco::Net::ReadableNotification> &pNf) {
 		std::lock_guard Guard(Mutex_);
 		try {
-			DBL;
-			ProcessIncomingFrame();
-			DBL;
+			return ProcessIncomingFrame();
 		} catch (const Poco::Exception &E) {
 			Logger().log(E);
 			return delete this;
