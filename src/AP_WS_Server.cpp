@@ -87,7 +87,7 @@ namespace OpenWifi {
 			Context->enableSessionCache(false);
 			Context->enableExtendedCertificateVerification(false);
 			Context->disableStatelessSessionResumption();
-			Context->disableProtocols(Poco::Net::Context::PROTO_TLSV1_2);
+			Context->disableProtocols(Poco::Net::Context::PROTO_TLSV1 | Poco::Net::Context::PROTO_TLSV1_1);
 
 			auto WebServerHttpParams = new Poco::Net::HTTPServerParams;
 			WebServerHttpParams->setMaxThreads(50);
