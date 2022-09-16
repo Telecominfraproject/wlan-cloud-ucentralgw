@@ -62,7 +62,6 @@ namespace OpenWifi {
 			P.caLocation = Svr.Cas();
 
 			auto Context = Poco::AutoPtr<Poco::Net::Context>(new Poco::Net::Context(Poco::Net::Context::TLS_SERVER_USE, P));
-			Context->enableExtendedCertificateVerification(false);
 
 			if(!Svr.KeyFilePassword().empty()) {
 				auto PassphraseHandler = Poco::SharedPtr<MyPrivateKeyPassphraseHandler>( new MyPrivateKeyPassphraseHandler(Svr.KeyFilePassword(),Logger()));
@@ -83,11 +82,12 @@ namespace OpenWifi {
 			Poco::Crypto::RSAKey Key("", Svr.KeyFile(), Svr.KeyFilePassword());
 			Context->usePrivateKey(Key);
 
-			Context->enableSessionCache();
 			Context->setSessionCacheSize(0);
 			Context->setSessionTimeout(60);
+			Context->enableSessionCache(false);
 			Context->enableExtendedCertificateVerification(false);
 			Context->disableStatelessSessionResumption();
+			Context->disableProtocols(Poco::Net::Context::PROTO_TLSV1_2);
 
 			auto WebServerHttpParams = new Poco::Net::HTTPServerParams;
 			WebServerHttpParams->setMaxThreads(50);
