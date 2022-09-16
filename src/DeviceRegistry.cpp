@@ -84,12 +84,10 @@ namespace OpenWifi {
 		if(	(hint != end(SerialNumbers_)) &&
 			(connection_id == hint->second.second->ConnectionId_)) {
 			Logger().information(fmt::format("Ending session {}, serial {}.", connection_id, Utils::IntToSerialNumber(serial_number)));
-			std::cout << "Session deleted" << std::endl;
 			SerialNumbers_.erase(serial_number);
 			SessionDeleted = true;
 		} else {
-			Logger().information(fmt::format("Not Ending session {}, serial {}.", connection_id, Utils::IntToSerialNumber(serial_number)));
-			std::cout << "Session NOT deleted" << std::endl;
+			Logger().information(fmt::format("Not Ending session {}, serial {}. This is an old session.", connection_id, Utils::IntToSerialNumber(serial_number)));
 		}
 		Sessions_.erase(connection_id);
 		return SessionDeleted;
