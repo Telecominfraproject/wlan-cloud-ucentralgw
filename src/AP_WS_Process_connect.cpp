@@ -94,9 +94,13 @@ void AP_WS_Connection::Process_connect(Poco::JSON::Object::Ptr ParamsObj, const 
 			Stringify.condense(ParamsObj, OS);
 			KafkaManager()->PostMessage(KafkaTopics::CONNECTION, SerialNumber_, OS.str());
 		}
+
+		std::cout << "Finished process connect" << std::endl;
+
 	} else {
 		poco_warning(Logger(),fmt::format("INVALID-PROTOCOL({}): Missing one of uuid, firmware, or capabilities", CId_));
 		Errors_++;
+		std::cout << "Error Finished process connect" << std::endl;
 	}
 }
 
