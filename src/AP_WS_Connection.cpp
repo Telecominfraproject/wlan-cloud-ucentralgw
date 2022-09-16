@@ -27,6 +27,8 @@
 
 namespace OpenWifi {
 
+#define DBL					{ std::cout << __LINE__ << "  ID: " << ConnectionId_ << "  Ser: " << SerialNumber_ << std::endl; }
+
 	void AP_WS_Connection::LogException(const Poco::Exception &E) {
 		Logger().information(fmt::format("EXCEPTION({}): {}", CId_, E.displayText()));
 	}
@@ -38,7 +40,7 @@ namespace OpenWifi {
 		  Reactor_(AP_WS_Server()->NextReactor()),
 		  ConnectionId_(connection_id)
 	{
-		Session_ = DeviceRegistry()->StartSession(ConnectionId_);
+		DeviceRegistry()->StartSession(ConnectionId_, this);
 		WS_ = std::make_unique<Poco::Net::WebSocket>(request,response);
 		CompleteStartup();
 	}
@@ -65,15 +67,14 @@ namespace OpenWifi {
 			}
 
 			if (SS->havePeerCertificate()) {
-				CertValidation_ = GWObjects::VALID_CERTIFICATE;
 				try {
 					Poco::Crypto::X509Certificate PeerCert(SS->peerCertificate());
-
 					if (AP_WS_Server()->ValidateCertificate(CId_, PeerCert)) {
 						CN_ = Poco::trim(Poco::toLower(PeerCert.commonName()));
-						CertValidation_ = GWObjects::MISMATCH_SERIAL;
+						State_.VerifiedCertificate = GWObjects::VALID_CERTIFICATE;
 						poco_trace(Logger(),fmt::format("CONNECTION({}): Valid certificate: CN={}", CId_, CN_));
 					} else {
+						State_.VerifiedCertificate = GWObjects::NO_CERTIFICATE;
 						poco_error(Logger(),fmt::format("CONNECTION({}): Device certificate is not valid. Device is not allowed.", CId_));
 						return delete this;
 					}
@@ -83,6 +84,7 @@ namespace OpenWifi {
 					return delete this;
 				}
 			} else {
+				State_.VerifiedCertificate = GWObjects::NO_CERTIFICATE;
 				poco_error(Logger(),fmt::format("CONNECTION({}): No certificates available..", CId_));
 				return delete this;
 			}
@@ -172,7 +174,7 @@ namespace OpenWifi {
 	AP_WS_Connection::~AP_WS_Connection() {
 
 		poco_information(Logger(),fmt::format("CONNECTION-CLOSING({}): {}.", CId_, SerialNumber_));
-		DeviceRegistry()->EndSession(ConnectionId_, this, SerialNumberInt_);
+		auto SessionDeleted = DeviceRegistry()->EndSession(ConnectionId_, this, SerialNumberInt_);
 
 		if (Registered_ && WS_) {
 			Reactor_.removeEventHandler(*WS_,
@@ -194,7 +196,8 @@ namespace OpenWifi {
 			std::thread t([s]() { NotifyKafkaDisconnect(s); });
 			t.detach();
 		}
-		WebSocketClientNotificationDeviceDisconnected(SerialNumber_);
+		if(SessionDeleted)
+			WebSocketClientNotificationDeviceDisconnected(SerialNumber_);
 	}
 
 	bool AP_WS_Connection::LookForUpgrade(const uint64_t UUID, uint64_t & UpgradedUUID) {
@@ -204,7 +207,7 @@ namespace OpenWifi {
 			return false;
 
 		uint64_t GoodConfig = ConfigurationCache().CurrentConfig(SerialNumberInt_);
-		if (GoodConfig && (GoodConfig == UUID || GoodConfig == Session_->State_.PendingUUID)) {
+		if (GoodConfig && (GoodConfig == UUID || GoodConfig == State_.PendingUUID)) {
 			UpgradedUUID = UUID;
 			return false;
 		}
@@ -231,7 +234,7 @@ namespace OpenWifi {
 			}
 
 			UpgradedUUID = D.UUID;
-			Session_->State_.PendingUUID = D.UUID;
+			State_.PendingUUID = D.UUID;
 			GWObjects::CommandDetails Cmd;
 			Cmd.SerialNumber = SerialNumber_;
 			Cmd.UUID = MicroService::CreateUUID();
@@ -336,8 +339,6 @@ namespace OpenWifi {
 			E.rethrow();
 		}
 
-		Session_->State_.LastContact = OpenWifi::Now();
-
 		switch (EventType) {
 			case uCentralProtocol::Events::ET_CONNECT: {
 				Process_connect(ParamsObj, Serial);
@@ -348,7 +349,7 @@ namespace OpenWifi {
 			} break;
 
 			case uCentralProtocol::Events::ET_HEALTHCHECK: {
-				Process_healthcheck(ParamsObj, Serial);
+				Process_healthcheck(ParamsObj);
 			} break;
 
 			case uCentralProtocol::Events::ET_LOG: {
@@ -436,8 +437,8 @@ namespace OpenWifi {
 	}
 
 	void AP_WS_Connection::UpdateCounts() {
-		Session_->State_.kafkaClients = TelemetryKafkaRefCount_;
-		Session_->State_.webSocketClients = TelemetryWebSocketRefCount_;
+		State_.kafkaClients = TelemetryKafkaRefCount_;
+		State_.webSocketClients = TelemetryWebSocketRefCount_;
 	}
 
 	bool AP_WS_Connection::SetWebSocketTelemetryReporting(uint64_t Interval,
@@ -508,17 +509,17 @@ namespace OpenWifi {
 	void AP_WS_Connection::OnSocketReadable([[maybe_unused]] const Poco::AutoPtr<Poco::Net::ReadableNotification> &pNf) {
 		std::lock_guard Guard(Mutex_);
 		try {
-			ProcessIncomingFrame();
+			return ProcessIncomingFrame();
 		} catch (const Poco::Exception &E) {
 			Logger().log(E);
-			delete this;
+			return delete this;
 		} catch (const std::exception &E) {
 			std::string W = E.what();
 			poco_information(Logger(), fmt::format("std::exception caught: {}. Connection terminated with {}", W, CId_));
-			delete this;
+			return delete this;
 		} catch (...) {
 			poco_information(Logger(), fmt::format("Unknown exception for {}. Connection terminated.", CId_));
-			delete this;
+			return delete this;
 		}
 	}
 
@@ -527,34 +528,37 @@ namespace OpenWifi {
 		try {
 			int Op, flags;
 			auto IncomingSize = WS_->receiveFrame(IncomingFrame, flags);
-			IncomingFrame.append(0);
 
 			Op = flags & Poco::Net::WebSocket::FRAME_OP_BITMASK;
 
 			if (IncomingSize == 0 && flags == 0 && Op == 0) {
 				poco_information(Logger(), fmt::format("DISCONNECT({}): device has disconnected.", CId_));
 				return delete this;
-			} else {
-				Session_->State_.RX += IncomingSize;
-				Session_->State_.MessageCount++;
+			}
 
-				switch (Op) {
+			IncomingFrame.append(0);
+
+			State_.RX += IncomingSize;
+			State_.MessageCount++;
+			State_.LastContact = OpenWifi::Now();
+
+			switch (Op) {
 				case Poco::Net::WebSocket::FRAME_OP_PING: {
 					poco_trace(Logger(), fmt::format("WS-PING({}): received. PONG sent back.", CId_));
 					WS_->sendFrame("", 0,
 								   (int)Poco::Net::WebSocket::FRAME_OP_PONG |
 									   (int)Poco::Net::WebSocket::FRAME_FLAG_FIN);
-					Session_->State_.MessageCount++;
+					State_.MessageCount++;
 
 					if (KafkaManager()->Enabled()) {
 						Poco::JSON::Object PingObject;
 						Poco::JSON::Object PingDetails;
-						PingDetails.set(uCentralProtocol::FIRMWARE, Session_->State_.Firmware);
+						PingDetails.set(uCentralProtocol::FIRMWARE, State_.Firmware);
 						PingDetails.set(uCentralProtocol::SERIALNUMBER, SerialNumber_);
 						PingDetails.set(uCentralProtocol::COMPATIBLE, Compatible_);
 						PingDetails.set(uCentralProtocol::CONNECTIONIP, CId_);
 						PingDetails.set(uCentralProtocol::TIMESTAMP, OpenWifi::Now());
-						PingDetails.set("locale", Session_->State_.locale );
+						PingDetails.set("locale", State_.locale );
 						PingObject.set(uCentralProtocol::PING, PingDetails);
 						Poco::JSON::Stringifier Stringify;
 						std::ostringstream OS;
@@ -593,12 +597,12 @@ namespace OpenWifi {
 					} else if (IncomingJSON->has(uCentralProtocol::RADIUS)) {
 						ProcessIncomingRadiusData(IncomingJSON);
 					} else {
-							std::ostringstream iS;
-							IncomingJSON->stringify(iS);
-							std::cout << iS.str() << std::endl;
-							poco_warning(Logger(), fmt::format(
-													   "FRAME({}): illegal transaction header, missing 'jsonrpc'", CId_));
-							Errors_++;
+						std::ostringstream iS;
+						IncomingJSON->stringify(iS);
+						std::cout << iS.str() << std::endl;
+						poco_warning(Logger(), fmt::format(
+												   "FRAME({}): illegal transaction header, missing 'jsonrpc'", CId_));
+						Errors_++;
 					}
 					return;
 				} break;
@@ -613,13 +617,11 @@ namespace OpenWifi {
 					poco_warning(Logger(), fmt::format("UNKNOWN({}): unknown WS Frame operation: {}", CId_,
 												  std::to_string(Op)));
 				} break;
-				}
 			}
 		} catch (const Poco::Net::ConnectionResetException &E) {
-			poco_warning(Logger(), fmt::format("ConnectionResetException({}): Text:{} Payload:{}",
+			poco_warning(Logger(), fmt::format("ConnectionResetException({}): Text:{}",
 				CId_,
-				E.displayText(),
-				IncomingFrame.begin()));
+				E.displayText()));
 			return delete this;
 		} catch (const Poco::JSON::JSONException &E) {
 			poco_warning(Logger(), fmt::format("JSONException({}): Text:{} Payload:{}",
@@ -668,7 +670,7 @@ namespace OpenWifi {
 		std::lock_guard Guard(Mutex_);
 
 		size_t BytesSent = WS_->sendFrame(Payload.c_str(), (int)Payload.size());
-		Session_->State_.TX += BytesSent;
+		State_.TX += BytesSent;
 		return BytesSent == Payload.size();
 	}
 

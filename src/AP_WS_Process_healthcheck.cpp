@@ -7,8 +7,8 @@
 
 namespace OpenWifi {
 
-void AP_WS_Connection::Process_healthcheck(Poco::JSON::Object::Ptr ParamsObj, const std::string &Serial) {
-	if (!Session_->State_.Connected) {
+void AP_WS_Connection::Process_healthcheck(Poco::JSON::Object::Ptr ParamsObj) {
+	if (!State_.Connected) {
 		poco_warning(Logger(), fmt::format(
 								   "INVALID-PROTOCOL({}): Device '{}' is not following protocol", CId_, CN_));
 		Errors_++;
@@ -37,7 +37,7 @@ void AP_WS_Connection::Process_healthcheck(Poco::JSON::Object::Ptr ParamsObj, co
 
 		uint64_t UpgradedUUID;
 		LookForUpgrade(UUID,UpgradedUUID);
-		Session_->State_.UUID = UpgradedUUID;
+		State_.UUID = UpgradedUUID;
 
 		GWObjects::HealthCheck Check;
 
@@ -53,7 +53,7 @@ void AP_WS_Connection::Process_healthcheck(Poco::JSON::Object::Ptr ParamsObj, co
 			StorageService()->SetCommandResult(request_uuid, CheckData);
 		}
 
-		DeviceRegistry()->SetHealthcheck(Serial, Check);
+		LastHealthcheck_ = Check;
 		if (KafkaManager()->Enabled()) {
 			Poco::JSON::Stringifier Stringify;
 			std::ostringstream OS;

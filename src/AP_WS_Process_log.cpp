@@ -7,7 +7,7 @@
 
 namespace OpenWifi {
 	void AP_WS_Connection::Process_log(Poco::JSON::Object::Ptr ParamsObj) {
-		if (!Session_->State_.Connected) {
+		if (!State_.Connected) {
 			poco_warning(
 				Logger(),
 				fmt::format("INVALID-PROTOCOL({}): Device '{}' is not following protocol", CId_, CN_));
@@ -31,7 +31,7 @@ namespace OpenWifi {
 										   .Severity = Severity,
 										   .Recorded = (uint64_t)time(nullptr),
 										   .LogType = 0,
-										   .UUID = Session_->State_.UUID};
+										   .UUID = State_.UUID};
 			StorageService()->AddLog(DeviceLog);
 		} else {
 			poco_warning(Logger(), fmt::format("LOG({}): Missing parameters.", CId_));

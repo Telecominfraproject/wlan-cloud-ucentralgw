@@ -7,7 +7,7 @@
 
 namespace OpenWifi {
 	void AP_WS_Connection::Process_telemetry(Poco::JSON::Object::Ptr ParamsObj) {
-		if (!Session_->State_.Connected) {
+		if (!State_.Connected) {
 			poco_warning(Logger(), fmt::format(
 									   "INVALID-PROTOCOL({}): Device '{}' is not following protocol", CId_, CN_));
 			Errors_++;
@@ -24,7 +24,7 @@ namespace OpenWifi {
 					if(now<TelemetryWebSocketTimer_) {
 						// std::cout << SerialNumber_ << ": Updating WebSocket telemetry" << std::endl;
 						TelemetryWebSocketPackets_++;
-						Session_->State_.websocketPackets = TelemetryWebSocketPackets_;
+						State_.websocketPackets = TelemetryWebSocketPackets_;
 						TelemetryStream()->UpdateEndPoint(SerialNumberInt_, SS.str());
 					} else {
 						StopWebSocketTelemetry();
@@ -34,7 +34,7 @@ namespace OpenWifi {
 					if(KafkaManager()->Enabled() && now<TelemetryKafkaTimer_) {
 						// std::cout << SerialNumber_ << ": Updating Kafka telemetry" << std::endl;
 						TelemetryKafkaPackets_++;
-						Session_->State_.kafkaPackets = TelemetryKafkaPackets_;
+						State_.kafkaPackets = TelemetryKafkaPackets_;
 						KafkaManager()->PostMessage(KafkaTopics::DEVICE_TELEMETRY, SerialNumber_,
 													SS.str());
 					} else {

@@ -36,7 +36,6 @@ namespace OpenWifi {
 	}
 
 	bool Storage::AddStatisticsData(const GWObjects::Statistics & Stats) {
-		DeviceRegistry()->SetStatistics(Stats.SerialNumber, Stats.Data);
 		try {
 			Poco::Data::Session Sess = Pool_->get();
 			Poco::Data::Statement   Insert(Sess);

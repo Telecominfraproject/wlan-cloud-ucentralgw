@@ -49,7 +49,7 @@ namespace OpenWifi {
 
 		void Process_connect(Poco::JSON::Object::Ptr ParamsObj, const std::string &Serial);
 		void Process_state(Poco::JSON::Object::Ptr ParamsObj);
-		void Process_healthcheck(Poco::JSON::Object::Ptr ParamsObj, const std::string &Serial);
+		void Process_healthcheck(Poco::JSON::Object::Ptr ParamsObj);
 		void Process_log(Poco::JSON::Object::Ptr ParamsObj);
 		void Process_crashlog(Poco::JSON::Object::Ptr ParamsObj);
 		void Process_ping(Poco::JSON::Object::Ptr ParamsObj);
@@ -76,7 +76,7 @@ namespace OpenWifi {
 		}
 
 		inline std::uint64_t Id() const { return ConnectionId_; }
-
+		friend class DeviceRegistry;
 	  private:
 		std::recursive_mutex                Mutex_;
 		Poco::Logger                    	&Logger_;
@@ -85,11 +85,9 @@ namespace OpenWifi {
 		std::string                         SerialNumber_;
 		uint64_t 							SerialNumberInt_=0;
 		std::string 						Compatible_;
-		std::shared_ptr<DeviceRegistry::RegistryConnectionEntry> 	Session_;
 		std::atomic_bool                    Registered_ = false ;
 		std::string 						CId_;
 		std::string							CN_;
-		GWObjects::CertificateValidation	CertValidation_ = GWObjects::CertificateValidation::NO_CERTIFICATE;
 		uint64_t 							Errors_=0;
 		uint64_t 							ConnectionId_=0;
 		Poco::Net::IPAddress				PeerAddress_;
@@ -101,6 +99,9 @@ namespace OpenWifi {
 		uint64_t 							TelemetryInterval_ = 0;
 		std::atomic_uint64_t				TelemetryWebSocketPackets_=0;
 		std::atomic_uint64_t				TelemetryKafkaPackets_=0;
+		GWObjects::ConnectionState			State_;
+		std::string        					LastStats_;
+		GWObjects::HealthCheck				LastHealthcheck_;
 
 		void CompleteStartup();
 		bool StartTelemetry();
