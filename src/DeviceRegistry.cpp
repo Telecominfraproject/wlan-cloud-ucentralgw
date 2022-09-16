@@ -32,22 +32,24 @@ namespace OpenWifi {
 
 	void DeviceRegistry::onConnectionJanitor([[maybe_unused]] Poco::Timer &timer) {
 		std::cout << "Firing registry timer..." << std::endl;
-		/*
-		std::vector<std::pair<std::uint64_t,AP_WS_Connection *>> connections;
+
+		using session_tuple=std::tuple<std::uint64_t,AP_WS_Connection *,std::uint64_t>;
+		std::vector<session_tuple> connections;
 		{
 			std::shared_lock Guard(M_);
 			auto now = OpenWifi::Now();
 			for (const auto &[serial_number, connection_info] : SerialNumbers_) {
 				if ((now - connection_info.second->State_.LastContact) > 500) {
-					connections.emplace_back(std::make_pair(serial_number,connection_info.second));
+					session_tuple S{serial_number,connection_info.second,connection_info.second->ConnectionId_};
+					connections.emplace_back(S);
 				}
 			}
 		}
 
-		for(auto [serial_number,ws_connection]:connections) {
-			delete ws_connection;
+		for(auto [serial_number,ws_connection,id]:connections) {
+			Logger().information(fmt::format("Removing orphaned AP Session {} for {}", id, Utils::IntToSerialNumber(serial_number)));
+			// delete ws_connection;
 		}
-		 */
 	}
 
     bool DeviceRegistry::GetStatistics(uint64_t SerialNumber, std::string & Statistics) {
