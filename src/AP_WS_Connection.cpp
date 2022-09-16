@@ -27,6 +27,8 @@
 
 namespace OpenWifi {
 
+#define DBL					{ std::cout << __LINE__ << "  ID: " << ConnectionId_ << "  Ser: " << SerialNumber_ << std::endl; }
+
 	void AP_WS_Connection::LogException(const Poco::Exception &E) {
 		Logger().information(fmt::format("EXCEPTION({}): {}", CId_, E.displayText()));
 	}
@@ -270,6 +272,7 @@ namespace OpenWifi {
 
 	void AP_WS_Connection::ProcessJSONRPCEvent(Poco::JSON::Object::Ptr &Doc) {
 
+		DBL;
 		auto Method = Doc->get(uCentralProtocol::METHOD).toString();
 		auto EventType = uCentralProtocol::Events::EventFromString(Method);
 		if (EventType == uCentralProtocol::Events::ET_UNKNOWN) {
@@ -278,12 +281,14 @@ namespace OpenWifi {
 			return;
 		}
 
+		DBL;
 		if (!Doc->isObject(uCentralProtocol::PARAMS)) {
 			poco_warning(Logger(),fmt::format("MISSING-PARAMS({}): params must be an object.", CId_));
 			Errors_++;
 			return;
 		}
 
+		DBL;
 		//  expand params if necessary
 		auto ParamsObj = Doc->get(uCentralProtocol::PARAMS).extract<Poco::JSON::Object::Ptr>();
 		if (ParamsObj->has(uCentralProtocol::COMPRESS_64)) {
@@ -314,11 +319,13 @@ namespace OpenWifi {
 			}
 		}
 
+		DBL;
 		if (!ParamsObj->has(uCentralProtocol::SERIAL)) {
 			poco_warning(Logger(),fmt::format("MISSING-PARAMS({}): Serial number is missing in message.", CId_));
 			return;
 		}
 
+		DBL;
 		auto Serial = Poco::trim(Poco::toLower(ParamsObj->get(uCentralProtocol::SERIAL).toString()));
 		if (!Utils::ValidSerialNumber(Serial)) {
 			Poco::Exception E(
@@ -329,6 +336,7 @@ namespace OpenWifi {
 			E.rethrow();
 		}
 
+		DBL;
 		if (StorageService()->IsBlackListed(Serial)) {
 			Poco::Exception E(
 				fmt::format("BLACKLIST({}): device is blacklisted and not allowed to connect.",
@@ -337,6 +345,7 @@ namespace OpenWifi {
 			E.rethrow();
 		}
 
+		DBL;
 		switch (EventType) {
 			case uCentralProtocol::Events::ET_CONNECT: {
 				Process_connect(ParamsObj, Serial);
@@ -389,6 +398,7 @@ namespace OpenWifi {
 				Errors_++;
 			}
 		}
+		DBL;
 	}
 
 	bool AP_WS_Connection::StartTelemetry() {
@@ -507,7 +517,9 @@ namespace OpenWifi {
 	void AP_WS_Connection::OnSocketReadable([[maybe_unused]] const Poco::AutoPtr<Poco::Net::ReadableNotification> &pNf) {
 		std::lock_guard Guard(Mutex_);
 		try {
+			DBL;
 			ProcessIncomingFrame();
+			DBL;
 		} catch (const Poco::Exception &E) {
 			Logger().log(E);
 			return delete this;
