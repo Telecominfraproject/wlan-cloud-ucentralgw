@@ -339,47 +339,69 @@ namespace OpenWifi {
 
 		switch (EventType) {
 			case uCentralProtocol::Events::ET_CONNECT: {
+				std::cout << __LINE__ << std::endl;
 				Process_connect(ParamsObj, Serial);
+				std::cout << __LINE__ << std::endl;
 			} break;
 
 			case uCentralProtocol::Events::ET_STATE: {
+				std::cout << __LINE__ << std::endl;
 				Process_state(ParamsObj);
+				std::cout << __LINE__ << std::endl;
 			} break;
 
 			case uCentralProtocol::Events::ET_HEALTHCHECK: {
+				std::cout << __LINE__ << std::endl;
 				Process_healthcheck(ParamsObj);
+				std::cout << __LINE__ << std::endl;
 			} break;
 
 			case uCentralProtocol::Events::ET_LOG: {
+				std::cout << __LINE__ << std::endl;
 				Process_log(ParamsObj);
+				std::cout << __LINE__ << std::endl;
 			} break;
 
 			case uCentralProtocol::Events::ET_CRASHLOG: {
+				std::cout << __LINE__ << std::endl;
 				Process_crashlog(ParamsObj);
+				std::cout << __LINE__ << std::endl;
 			} break;
 
 			case uCentralProtocol::Events::ET_PING: {
+				std::cout << __LINE__ << std::endl;
 				Process_ping(ParamsObj);
+				std::cout << __LINE__ << std::endl;
 			} break;
 
 			case uCentralProtocol::Events::ET_CFGPENDING: {
+				std::cout << __LINE__ << std::endl;
 				Process_cfgpending(ParamsObj);
+				std::cout << __LINE__ << std::endl;
 			} break;
 
 			case uCentralProtocol::Events::ET_RECOVERY: {
+				std::cout << __LINE__ << std::endl;
 				Process_recovery(ParamsObj);
+				std::cout << __LINE__ << std::endl;
 			} break;
 
 			case uCentralProtocol::Events::ET_DEVICEUPDATE: {
+				std::cout << __LINE__ << std::endl;
 				Process_deviceupdate(ParamsObj, Serial);
+				std::cout << __LINE__ << std::endl;
 			} break;
 
 			case uCentralProtocol::Events::ET_TELEMETRY: {
+				std::cout << __LINE__ << std::endl;
 				Process_telemetry(ParamsObj);
+				std::cout << __LINE__ << std::endl;
 			} break;
 
 			case uCentralProtocol::Events::ET_VENUEBROADCAST: {
+				std::cout << __LINE__ << std::endl;
 				Process_venuebroadcast(ParamsObj);
+				std::cout << __LINE__ << std::endl;
 			} break;
 
 			// 	this will never be called but some compilers will complain if we do not have a case for
@@ -389,6 +411,7 @@ namespace OpenWifi {
 				Errors_++;
 			}
 		}
+		std::cout << __LINE__ << std::endl;
 	}
 
 	bool AP_WS_Connection::StartTelemetry() {
