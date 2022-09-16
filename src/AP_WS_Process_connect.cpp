@@ -81,6 +81,7 @@ void AP_WS_Connection::Process_connect(Poco::JSON::Object::Ptr ParamsObj, const 
 			State_.UUID = UpgradedUUID;
 		}
 		State_.Compatible = Compatible_;
+		State_.Connected = true;
 
 		WebSocketClientNotificationDeviceConnected(SerialNumber_);
 

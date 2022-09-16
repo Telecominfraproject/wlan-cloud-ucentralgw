@@ -88,7 +88,6 @@ namespace OpenWifi {
 		std::atomic_bool                    Registered_ = false ;
 		std::string 						CId_;
 		std::string							CN_;
-		// GWObjects::CertificateValidation	CertValidation_ = GWObjects::CertificateValidation::NO_CERTIFICATE;
 		uint64_t 							Errors_=0;
 		uint64_t 							ConnectionId_=0;
 		Poco::Net::IPAddress				PeerAddress_;
