@@ -79,7 +79,7 @@ namespace OpenWifi {
 			}
 		}
 
-		void EndSession(std::uint64_t connection_id, AP_WS_Connection * connection, std::uint64_t serial_number);
+		bool EndSession(std::uint64_t connection_id, AP_WS_Connection * connection, std::uint64_t serial_number);
 
 		void SetWebSocketTelemetryReporting(uint64_t SerialNumber, uint64_t Interval, uint64_t Lifetime);
 		void StopWebSocketTelemetry(uint64_t SerialNumber);

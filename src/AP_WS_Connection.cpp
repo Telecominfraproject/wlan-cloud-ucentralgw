@@ -172,7 +172,7 @@ namespace OpenWifi {
 	AP_WS_Connection::~AP_WS_Connection() {
 
 		poco_information(Logger(),fmt::format("CONNECTION-CLOSING({}): {}.", CId_, SerialNumber_));
-		DeviceRegistry()->EndSession(ConnectionId_, this, SerialNumberInt_);
+		auto SessionDeleted = DeviceRegistry()->EndSession(ConnectionId_, this, SerialNumberInt_);
 
 		if (Registered_ && WS_) {
 			Reactor_.removeEventHandler(*WS_,
@@ -194,7 +194,8 @@ namespace OpenWifi {
 			std::thread t([s]() { NotifyKafkaDisconnect(s); });
 			t.detach();
 		}
-		WebSocketClientNotificationDeviceDisconnected(SerialNumber_);
+		if(SessionDeleted)
+			WebSocketClientNotificationDeviceDisconnected(SerialNumber_);
 	}
 
 	bool AP_WS_Connection::LookForUpgrade(const uint64_t UUID, uint64_t & UpgradedUUID) {
@@ -509,14 +510,14 @@ namespace OpenWifi {
 			ProcessIncomingFrame();
 		} catch (const Poco::Exception &E) {
 			Logger().log(E);
-			delete this;
+			return delete this;
 		} catch (const std::exception &E) {
 			std::string W = E.what();
 			poco_information(Logger(), fmt::format("std::exception caught: {}. Connection terminated with {}", W, CId_));
-			delete this;
+			return delete this;
 		} catch (...) {
 			poco_information(Logger(), fmt::format("Unknown exception for {}. Connection terminated.", CId_));
-			delete this;
+			return delete this;
 		}
 	}
 
@@ -525,19 +526,21 @@ namespace OpenWifi {
 		try {
 			int Op, flags;
 			auto IncomingSize = WS_->receiveFrame(IncomingFrame, flags);
-			IncomingFrame.append(0);
 
 			Op = flags & Poco::Net::WebSocket::FRAME_OP_BITMASK;
 
 			if (IncomingSize == 0 && flags == 0 && Op == 0) {
 				poco_information(Logger(), fmt::format("DISCONNECT({}): device has disconnected.", CId_));
 				return delete this;
-			} else {
-				State_.RX += IncomingSize;
-				State_.MessageCount++;
-				State_.LastContact = OpenWifi::Now();
+			}
 
-				switch (Op) {
+			IncomingFrame.append(0);
+
+			State_.RX += IncomingSize;
+			State_.MessageCount++;
+			State_.LastContact = OpenWifi::Now();
+
+			switch (Op) {
 				case Poco::Net::WebSocket::FRAME_OP_PING: {
 					poco_trace(Logger(), fmt::format("WS-PING({}): received. PONG sent back.", CId_));
 					WS_->sendFrame("", 0,
@@ -612,7 +615,6 @@ namespace OpenWifi {
 					poco_warning(Logger(), fmt::format("UNKNOWN({}): unknown WS Frame operation: {}", CId_,
 												  std::to_string(Op)));
 				} break;
-				}
 			}
 		} catch (const Poco::Net::ConnectionResetException &E) {
 			poco_warning(Logger(), fmt::format("ConnectionResetException({}): Text:{} Payload:{}",

@@ -69,26 +69,30 @@ namespace OpenWifi {
 		return true;
     }
 
-	void DeviceRegistry::EndSession(std::uint64_t connection_id, [[maybe_unused]] AP_WS_Connection * connection, std::uint64_t serial_number) {
+	bool DeviceRegistry::EndSession(std::uint64_t connection_id, [[maybe_unused]] AP_WS_Connection * connection, std::uint64_t serial_number) {
 		std::unique_lock	G(M_);
 
 		auto Session = Sessions_.find(connection_id);
 		if(Session==end(Sessions_)) {
-			return;
+			return false;
 		}
 
 		auto hint = SerialNumbers_.find(serial_number);
+
+		bool SessionDeleted = false;
 
 		if(	(hint != end(SerialNumbers_)) &&
 			(connection_id == hint->second.second->ConnectionId_)) {
 			Logger().information(fmt::format("Ending session {}, serial {}.", connection_id, Utils::IntToSerialNumber(serial_number)));
 			std::cout << "Session deleted" << std::endl;
 			SerialNumbers_.erase(serial_number);
+			SessionDeleted = true;
 		} else {
 			Logger().information(fmt::format("Not Ending session {}, serial {}.", connection_id, Utils::IntToSerialNumber(serial_number)));
 			std::cout << "Session NOT deleted" << std::endl;
 		}
 		Sessions_.erase(connection_id);
+		return SessionDeleted;
 	}
 
 	bool DeviceRegistry::GetHealthcheck(uint64_t SerialNumber, GWObjects::HealthCheck & CheckData) {
