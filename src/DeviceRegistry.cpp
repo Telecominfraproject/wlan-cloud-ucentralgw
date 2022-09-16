@@ -17,8 +17,8 @@ namespace OpenWifi {
         Logger().notice("Starting ");
 
 		ArchiverCallback_ = std::make_unique<Poco::TimerCallback<DeviceRegistry>>(*this,&DeviceRegistry::onConnectionJanitor);
-		Timer_.setStartInterval( 60 * 1000 );
-		Timer_.setPeriodicInterval(60 * 1000); // every minute
+		Timer_.setStartInterval(60 * 1000);
+		Timer_.setPeriodicInterval(20 * 1000); // every minute
 		Timer_.start(*ArchiverCallback_, MicroService::instance().TimerPool());
 
 		return 0;
@@ -31,23 +31,41 @@ namespace OpenWifi {
     }
 
 	void DeviceRegistry::onConnectionJanitor([[maybe_unused]] Poco::Timer &timer) {
-		std::cout << "Firing registry timer..." << std::endl;
-		/*
-		std::vector<std::pair<std::uint64_t,AP_WS_Connection *>> connections;
+
+		static std::uint64_t last_log = OpenWifi::Now();
+
+		using session_tuple=std::tuple<std::uint64_t,AP_WS_Connection *,std::uint64_t>;
+		std::vector<session_tuple> connections;
 		{
 			std::shared_lock Guard(M_);
+
+			NumberOfConnectedDevices_ = 0;
+			AverageDeviceConnectionTime_ = 0;
+			std::uint64_t	total_connected_time=0;
+
 			auto now = OpenWifi::Now();
 			for (const auto &[serial_number, connection_info] : SerialNumbers_) {
 				if ((now - connection_info.second->State_.LastContact) > 500) {
-					connections.emplace_back(std::make_pair(serial_number,connection_info.second));
+					session_tuple S{serial_number,connection_info.second,connection_info.second->ConnectionId_};
+					connections.emplace_back(S);
+				} else {
+					NumberOfConnectedDevices_++;
+					total_connected_time += (now - connection_info.second->Started_);
 				}
+			}
+			AverageDeviceConnectionTime_ = (NumberOfConnectedDevices_!=0) ? total_connected_time/NumberOfConnectedDevices_ : 0;
+			if((now-last_log)>120) {
+				last_log = now;
+				Logger().information(
+					fmt::format("Active AP connections: {} Average connection time: {} seconds",
+								NumberOfConnectedDevices_, AverageDeviceConnectionTime_));
 			}
 		}
 
-		for(auto [serial_number,ws_connection]:connections) {
-			delete ws_connection;
+		for(auto [serial_number,ws_connection,id]:connections) {
+			Logger().information(fmt::format("Removing orphaned AP Session {} for {}", id, Utils::IntToSerialNumber(serial_number)));
+			// delete ws_connection;
 		}
-		 */
 	}
 
     bool DeviceRegistry::GetStatistics(uint64_t SerialNumber, std::string & Statistics) {

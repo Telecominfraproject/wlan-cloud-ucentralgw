@@ -218,6 +218,21 @@ namespace OpenWifi::GWObjects {
 		}
 	}
 
+	void DeviceConnectionStatistics::to_json(Poco::JSON::Object &Obj) const {
+		field_to_json(Obj,"averageConnectionTime", averageConnectionTime);
+		field_to_json(Obj,"connectedDevices", connectedDevices );
+	}
+
+	bool DeviceConnectionStatistics::from_json(const Poco::JSON::Object::Ptr &Obj) {
+		try {
+			field_from_json(Obj,"averageConnectionTime", averageConnectionTime);
+			field_from_json(Obj,"connectedDevices", connectedDevices );
+			return true;
+		} catch (const Poco::Exception &E) {
+		}
+		return false;
+	}
+
 	void RttySessionDetails::to_json(Poco::JSON::Object &Obj) const {
 		field_to_json(Obj,"serialNumber", SerialNumber);
 		field_to_json(Obj,"server", Server);
@@ -293,7 +308,6 @@ namespace OpenWifi::GWObjects {
 		} catch (const Poco::Exception &E) {
 		}
 		return false;
-
 	}
 
 	void RadiusProxyPoolList::to_json(Poco::JSON::Object &Obj) const {

@@ -282,6 +282,17 @@ components:
           type: integer
           format: int64
 
+    DeviceConnectionStatistics:
+      type: object
+      description: Return some basic device statistics.
+      properties:
+        connectedDevices:
+          type: integer
+          format: int64
+        averageConnectionTime:
+          type: integer
+          format: int64
+
     StatisticsDetails:
       type: object
       properties:
@@ -1189,6 +1200,13 @@ paths:
             type: boolean
             default: false
           required: false
+        - in: query
+          description: return extended information
+          name: connectionStatistics
+          schema:
+            type: boolean
+            default: false
+          required: false
       responses:
         200:
           description: List devices
@@ -1200,6 +1218,7 @@ paths:
                   - $ref: '#/components/schemas/DeviceListWithStatus'
                   - $ref: '#/components/schemas/SerialNumberList'
                   - $ref: '#/components/schemas/DeviceCount'
+                  - $ref: '#/components/schemas/DeviceConnectionStatistics'
         403:
           $ref: '#/components/responses/Unauthorized'
         404:

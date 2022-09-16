@@ -90,6 +90,7 @@ namespace OpenWifi {
 		std::string							CN_;
 		uint64_t 							Errors_=0;
 		uint64_t 							ConnectionId_=0;
+		uint64_t 							Started_=OpenWifi::Now();
 		Poco::Net::IPAddress				PeerAddress_;
 		std::atomic_bool 					TelemetryReporting_ = false;
 		std::atomic_uint64_t				TelemetryWebSocketRefCount_ = 0;
