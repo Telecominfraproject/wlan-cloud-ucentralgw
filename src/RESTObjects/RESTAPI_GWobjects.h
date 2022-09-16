@@ -71,6 +71,13 @@ namespace OpenWifi::GWObjects {
 		void Print() const;
 	};
 
+	struct DeviceConnectionStatistics {
+		std::uint64_t connectedDevices = 0;
+		std::uint64_t averageConnectionTime = 0;
+		void to_json(Poco::JSON::Object &Obj) const;
+		bool from_json(const Poco::JSON::Object::Ptr &Obj);
+	};
+
 	struct Statistics {
 		std::string SerialNumber;
 		uint64_t 	UUID = 0 ;

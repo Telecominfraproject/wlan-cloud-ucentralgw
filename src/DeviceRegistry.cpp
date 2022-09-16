@@ -35,23 +35,26 @@ namespace OpenWifi {
 		using session_tuple=std::tuple<std::uint64_t,AP_WS_Connection *,std::uint64_t>;
 		std::vector<session_tuple> connections;
 		{
-			std::uint64_t 	number_of_sessions = 0,
-						  	total_connected_time = 0;
 			std::shared_lock Guard(M_);
+
+			NumberOfConnectedDevices_ = 0;
+			AverageDeviceConnectionTime_ = 0;
+			std::uint64_t	total_connected_time=0;
+
 			auto now = OpenWifi::Now();
 			for (const auto &[serial_number, connection_info] : SerialNumbers_) {
 				if ((now - connection_info.second->State_.LastContact) > 500) {
 					session_tuple S{serial_number,connection_info.second,connection_info.second->ConnectionId_};
 					connections.emplace_back(S);
 				} else {
-					number_of_sessions++;
+					NumberOfConnectedDevices_++;
 					total_connected_time += (now - connection_info.second->Started_);
 				}
 			}
-
-			Logger().information(fmt::format("Active sessions: {} Average connection time: {}",
-											 number_of_sessions,
-											 number_of_sessions>0 ? total_connected_time/number_of_sessions : 0));
+			AverageDeviceConnectionTime_ = (NumberOfConnectedDevices_!=0) ? total_connected_time/NumberOfConnectedDevices_ : 0;
+			Logger().information(fmt::format("Active AP connections: {} Average connection time: {} seconds",
+											 NumberOfConnectedDevices_,
+											 AverageDeviceConnectionTime_));
 
 		}
 
