@@ -9,12 +9,13 @@
 
 namespace OpenWifi {
 	void AP_WS_Connection::Process_state(Poco::JSON::Object::Ptr ParamsObj) {
-		if (!Session_->State_.Connected) {
+		if (!State_.Connected) {
 			poco_warning(Logger(), fmt::format(
 									   "INVALID-PROTOCOL({}): Device '{}' is not following protocol", CId_, CN_));
 			Errors_++;
 			return;
 		}
+
 		if (ParamsObj->has(uCentralProtocol::UUID) && ParamsObj->has(uCentralProtocol::STATE)) {
 			uint64_t UUID = ParamsObj->get(uCentralProtocol::UUID);
 			auto StateStr = ParamsObj->get(uCentralProtocol::STATE).toString();
@@ -33,8 +34,8 @@ namespace OpenWifi {
 
 			uint64_t UpgradedUUID;
 			LookForUpgrade(UUID,UpgradedUUID);
-			Session_->State_.UUID = UpgradedUUID;
-			Session_->LastStats = StateStr;
+			State_.UUID = UpgradedUUID;
+			LastStats_ = StateStr;
 
 			GWObjects::Statistics Stats{
 				.SerialNumber = SerialNumber_, .UUID = UUID, .Data = StateStr};
@@ -44,8 +45,8 @@ namespace OpenWifi {
 				StorageService()->SetCommandResult(request_uuid, StateStr);
 			}
 
-			StateUtils::ComputeAssociations(StateObj, Session_->State_.Associations_2G,
-											Session_->State_.Associations_5G);
+			StateUtils::ComputeAssociations(StateObj, 	State_.Associations_2G,
+														State_.Associations_5G);
 
 			if (KafkaManager()->Enabled()) {
 				Poco::JSON::Stringifier Stringify;

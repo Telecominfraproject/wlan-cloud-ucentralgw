@@ -23,31 +23,30 @@ void AP_WS_Connection::Process_connect(Poco::JSON::Object::Ptr ParamsObj, const 
 		SerialNumber_ = Serial;
 		SerialNumberInt_ = Utils::SerialNumberToInt(SerialNumber_);
 		DeviceRegistry()->SetSessionDetails(ConnectionId_,this,SerialNumberInt_);
-		Session_->State_.UUID = UUID;
-		Session_->State_.Firmware = Firmware;
-		Session_->State_.PendingUUID = 0;
-		Session_->State_.LastContact = OpenWifi::Now();
-		Session_->State_.Address = Utils::FormatIPv6(WS_->peerAddress().toString());
+		State_.UUID = UUID;
+		State_.Firmware = Firmware;
+		State_.PendingUUID = 0;
+		State_.LastContact = OpenWifi::Now();
+		State_.Address = Utils::FormatIPv6(WS_->peerAddress().toString());
 		CId_ = SerialNumber_ + "@" + CId_;
 		//	We need to verify the certificate if we have one
-		if ((!CN_.empty() && Utils::SerialNumberMatch(CN_, SerialNumber_)) ||
-			AP_WS_Server()->IsSimSerialNumber(CN_)) {
-			CertValidation_ = GWObjects::VERIFIED;
-			poco_information(Logger(), fmt::format("CONNECT({}): Fully validated and authenticated device.", CId_));
-		} else {
-			if (CN_.empty())
-				poco_information(Logger(), fmt::format("CONNECT({}): Not authenticated or validated.", CId_));
-			else
-				poco_information(Logger(), fmt::format(
-											   "CONNECT({}): Authenticated but not validated. Serial='{}' CN='{}'", CId_,
-											   Serial, CN_));
+		if(State_.VerifiedCertificate == GWObjects::VALID_CERTIFICATE) {
+			if ((	Utils::SerialNumberMatch(CN_, SerialNumber_)) ||
+					AP_WS_Server()->IsSimSerialNumber(CN_)) {
+				State_.VerifiedCertificate = GWObjects::VERIFIED;
+				poco_information(Logger(), fmt::format("CONNECT({}): Fully validated and authenticated device.", CId_));
+			} else {
+				State_.VerifiedCertificate = GWObjects::MISMATCH_SERIAL;
+				poco_information(Logger(),
+								 fmt::format("CONNECT({}): Serial number mismatch. CN={} Serial={}", CId_, CN_, SerialNumber_));
+			}
 		}
-		Session_->State_.VerifiedCertificate = CertValidation_;
+
 		auto IP = PeerAddress_.toString();
 		if(IP.substr(0,7)=="::ffff:") {
 			IP = IP.substr(7);
 		}
-		Session_->State_.locale = FindCountryFromIP()->Get(IP);
+		State_.locale = FindCountryFromIP()->Get(IP);
 		GWObjects::Device	DeviceInfo;
 		auto DeviceExists = StorageService()->GetDevice(SerialNumber_,DeviceInfo);
 		// std::cout << "Connecting: " << SerialNumber_ << std::endl;
@@ -64,8 +63,8 @@ void AP_WS_Connection::Process_connect(Poco::JSON::Object::Ptr ParamsObj, const 
 				WebSocketClientNotificationDeviceFirmwareUpdated(SerialNumber_, Firmware);
 			}
 
-			if(DeviceInfo.locale != Session_->State_.locale) {
-				DeviceInfo.locale = Session_->State_.locale;
+			if(DeviceInfo.locale != State_.locale) {
+				DeviceInfo.locale = State_.locale;
 				Updated = true;
 			}
 
@@ -79,16 +78,16 @@ void AP_WS_Connection::Process_connect(Poco::JSON::Object::Ptr ParamsObj, const 
 			}
 			uint64_t UpgradedUUID=0;
 			LookForUpgrade(UUID,UpgradedUUID);
-			Session_->State_.UUID = UpgradedUUID;
+			State_.UUID = UpgradedUUID;
 		}
-		Session_->State_.Compatible = Compatible_;
+		State_.Compatible = Compatible_;
 
 		WebSocketClientNotificationDeviceConnected(SerialNumber_);
 
 		if (KafkaManager()->Enabled()) {
 			Poco::JSON::Stringifier Stringify;
 			ParamsObj->set(uCentralProtocol::CONNECTIONIP, CId_);
-			ParamsObj->set("locale", Session_->State_.locale );
+			ParamsObj->set("locale", State_.locale );
 			ParamsObj->set(uCentralProtocol::TIMESTAMP, OpenWifi::Now());
 			std::ostringstream OS;
 			Stringify.condense(ParamsObj, OS);

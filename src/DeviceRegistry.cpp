@@ -17,7 +17,7 @@ namespace OpenWifi {
         Logger().notice("Starting ");
 
 		ArchiverCallback_ = std::make_unique<Poco::TimerCallback<DeviceRegistry>>(*this,&DeviceRegistry::onConnectionJanitor);
-		Timer_.setStartInterval( 300 );
+		Timer_.setStartInterval( 60 * 1000 );
 		Timer_.setPeriodicInterval(60 * 1000); // every minute
 		Timer_.start(*ArchiverCallback_, MicroService::instance().TimerPool());
 
@@ -32,6 +32,22 @@ namespace OpenWifi {
 
 	void DeviceRegistry::onConnectionJanitor([[maybe_unused]] Poco::Timer &timer) {
 		std::cout << "Firing registry timer..." << std::endl;
+		/*
+		std::vector<std::pair<std::uint64_t,AP_WS_Connection *>> connections;
+		{
+			std::shared_lock Guard(M_);
+			auto now = OpenWifi::Now();
+			for (const auto &[serial_number, connection_info] : SerialNumbers_) {
+				if ((now - connection_info.second->State_.LastContact) > 500) {
+					connections.emplace_back(std::make_pair(serial_number,connection_info.second));
+				}
+			}
+		}
+
+		for(auto [serial_number,ws_connection]:connections) {
+			delete ws_connection;
+		}
+		 */
 	}
 
     bool DeviceRegistry::GetStatistics(uint64_t SerialNumber, std::string & Statistics) {
@@ -39,19 +55,8 @@ namespace OpenWifi {
         auto Device = SerialNumbers_.find(SerialNumber);
         if(Device == SerialNumbers_.end())
 			return false;
-		Statistics = Device->second.first->LastStats;
+		Statistics = Device->second.second->LastStats_;
 		return true;
-    }
-
-    void DeviceRegistry::SetStatistics(uint64_t SerialNumber, const std::string &Statistics) {
-		std::unique_lock	Guard(M_);
-
-        auto Device = SerialNumbers_.find(SerialNumber);
-        if(Device == SerialNumbers_.end())
-			return;
-
-		Device->second.first->State_.LastContact = OpenWifi::Now();
-		Device->second.first->LastStats = Statistics;
     }
 
     bool DeviceRegistry::GetState(uint64_t SerialNumber, GWObjects::ConnectionState & State) {
@@ -60,7 +65,7 @@ namespace OpenWifi {
         if(Device == SerialNumbers_.end())
 			return false;
 
-		State = Device->second.first->State_;
+		State = Device->second.second->State_;
 		return true;
     }
 
@@ -73,9 +78,10 @@ namespace OpenWifi {
 		}
 
 		auto hint = SerialNumbers_.find(serial_number);
+
 		if(	(hint != end(SerialNumbers_)) &&
 			(hint->second.second == connection) &&
-			(connection_id == hint->second.first->ConnectionId)) {
+			(connection_id == hint->second.second->ConnectionId_)) {
 			std::cout << "Session deleted" << std::endl;
 			SerialNumbers_.erase(serial_number);
 		} else {
@@ -84,15 +90,6 @@ namespace OpenWifi {
 		Sessions_.erase(connection_id);
 	}
 
-    void DeviceRegistry::SetState(uint64_t SerialNumber, const GWObjects::ConnectionState & State) {
-		std::unique_lock	Guard(M_);
-        auto Device = SerialNumbers_.find(SerialNumber);
-        if(Device == SerialNumbers_.end())
-			return;
-		Device->second.first->State_.LastContact = OpenWifi::Now();
-		Device->second.first->State_ = State;
-    }
-
 	bool DeviceRegistry::GetHealthcheck(uint64_t SerialNumber, GWObjects::HealthCheck & CheckData) {
 		std::shared_lock	Guard(M_);
 
@@ -100,19 +97,8 @@ namespace OpenWifi {
 		if(Device == SerialNumbers_.end())
 			return false;
 
-		CheckData = Device->second.first->LastHealthcheck;
-
+		CheckData = Device->second.second->LastHealthcheck_;
 		return true;
-	}
-
-	void DeviceRegistry::SetHealthcheck(uint64_t SerialNumber, const GWObjects::HealthCheck & CheckData) {
-		std::unique_lock	Guard(M_);
-
-		auto Device = SerialNumbers_.find(SerialNumber);
-		if(Device == SerialNumbers_.end())
-			return;
-
-		Device->second.first->LastHealthcheck = CheckData;
 	}
 
     bool DeviceRegistry::Connected(uint64_t SerialNumber) {
@@ -242,7 +228,7 @@ namespace OpenWifi {
 		if(Device==SerialNumbers_.end())
 			return;
 
-		Device->second.first->State_.PendingUUID = PendingUUID;
+		Device->second.second->State_.PendingUUID = PendingUUID;
 	}
 
 }  // namespace

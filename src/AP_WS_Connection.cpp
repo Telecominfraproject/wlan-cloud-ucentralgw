@@ -38,7 +38,7 @@ namespace OpenWifi {
 		  Reactor_(AP_WS_Server()->NextReactor()),
 		  ConnectionId_(connection_id)
 	{
-		Session_ = DeviceRegistry()->StartSession(ConnectionId_);
+		DeviceRegistry()->StartSession(ConnectionId_, this);
 		WS_ = std::make_unique<Poco::Net::WebSocket>(request,response);
 		CompleteStartup();
 	}
@@ -65,15 +65,14 @@ namespace OpenWifi {
 			}
 
 			if (SS->havePeerCertificate()) {
-				CertValidation_ = GWObjects::VALID_CERTIFICATE;
 				try {
 					Poco::Crypto::X509Certificate PeerCert(SS->peerCertificate());
-
 					if (AP_WS_Server()->ValidateCertificate(CId_, PeerCert)) {
 						CN_ = Poco::trim(Poco::toLower(PeerCert.commonName()));
-						CertValidation_ = GWObjects::MISMATCH_SERIAL;
+						State_.VerifiedCertificate = GWObjects::VALID_CERTIFICATE;
 						poco_trace(Logger(),fmt::format("CONNECTION({}): Valid certificate: CN={}", CId_, CN_));
 					} else {
+						State_.VerifiedCertificate = GWObjects::NO_CERTIFICATE;
 						poco_error(Logger(),fmt::format("CONNECTION({}): Device certificate is not valid. Device is not allowed.", CId_));
 						return delete this;
 					}
@@ -83,6 +82,7 @@ namespace OpenWifi {
 					return delete this;
 				}
 			} else {
+				State_.VerifiedCertificate = GWObjects::NO_CERTIFICATE;
 				poco_error(Logger(),fmt::format("CONNECTION({}): No certificates available..", CId_));
 				return delete this;
 			}
@@ -204,7 +204,7 @@ namespace OpenWifi {
 			return false;
 
 		uint64_t GoodConfig = ConfigurationCache().CurrentConfig(SerialNumberInt_);
-		if (GoodConfig && (GoodConfig == UUID || GoodConfig == Session_->State_.PendingUUID)) {
+		if (GoodConfig && (GoodConfig == UUID || GoodConfig == State_.PendingUUID)) {
 			UpgradedUUID = UUID;
 			return false;
 		}
@@ -231,7 +231,7 @@ namespace OpenWifi {
 			}
 
 			UpgradedUUID = D.UUID;
-			Session_->State_.PendingUUID = D.UUID;
+			State_.PendingUUID = D.UUID;
 			GWObjects::CommandDetails Cmd;
 			Cmd.SerialNumber = SerialNumber_;
 			Cmd.UUID = MicroService::CreateUUID();
@@ -346,7 +346,7 @@ namespace OpenWifi {
 			} break;
 
 			case uCentralProtocol::Events::ET_HEALTHCHECK: {
-				Process_healthcheck(ParamsObj, Serial);
+				Process_healthcheck(ParamsObj);
 			} break;
 
 			case uCentralProtocol::Events::ET_LOG: {
@@ -434,8 +434,8 @@ namespace OpenWifi {
 	}
 
 	void AP_WS_Connection::UpdateCounts() {
-		Session_->State_.kafkaClients = TelemetryKafkaRefCount_;
-		Session_->State_.webSocketClients = TelemetryWebSocketRefCount_;
+		State_.kafkaClients = TelemetryKafkaRefCount_;
+		State_.webSocketClients = TelemetryWebSocketRefCount_;
 	}
 
 	bool AP_WS_Connection::SetWebSocketTelemetryReporting(uint64_t Interval,
@@ -533,9 +533,9 @@ namespace OpenWifi {
 				poco_information(Logger(), fmt::format("DISCONNECT({}): device has disconnected.", CId_));
 				return delete this;
 			} else {
-				Session_->State_.RX += IncomingSize;
-				Session_->State_.MessageCount++;
-				Session_->State_.LastContact = OpenWifi::Now();
+				State_.RX += IncomingSize;
+				State_.MessageCount++;
+				State_.LastContact = OpenWifi::Now();
 
 				switch (Op) {
 				case Poco::Net::WebSocket::FRAME_OP_PING: {
@@ -543,17 +543,17 @@ namespace OpenWifi {
 					WS_->sendFrame("", 0,
 								   (int)Poco::Net::WebSocket::FRAME_OP_PONG |
 									   (int)Poco::Net::WebSocket::FRAME_FLAG_FIN);
-					Session_->State_.MessageCount++;
+					State_.MessageCount++;
 
 					if (KafkaManager()->Enabled()) {
 						Poco::JSON::Object PingObject;
 						Poco::JSON::Object PingDetails;
-						PingDetails.set(uCentralProtocol::FIRMWARE, Session_->State_.Firmware);
+						PingDetails.set(uCentralProtocol::FIRMWARE, State_.Firmware);
 						PingDetails.set(uCentralProtocol::SERIALNUMBER, SerialNumber_);
 						PingDetails.set(uCentralProtocol::COMPATIBLE, Compatible_);
 						PingDetails.set(uCentralProtocol::CONNECTIONIP, CId_);
 						PingDetails.set(uCentralProtocol::TIMESTAMP, OpenWifi::Now());
-						PingDetails.set("locale", Session_->State_.locale );
+						PingDetails.set("locale", State_.locale );
 						PingObject.set(uCentralProtocol::PING, PingDetails);
 						Poco::JSON::Stringifier Stringify;
 						std::ostringstream OS;
@@ -667,7 +667,7 @@ namespace OpenWifi {
 		std::lock_guard Guard(Mutex_);
 
 		size_t BytesSent = WS_->sendFrame(Payload.c_str(), (int)Payload.size());
-		Session_->State_.TX += BytesSent;
+		State_.TX += BytesSent;
 		return BytesSent == Payload.size();
 	}
 
