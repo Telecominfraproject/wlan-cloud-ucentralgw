@@ -31,19 +31,28 @@ namespace OpenWifi {
     }
 
 	void DeviceRegistry::onConnectionJanitor([[maybe_unused]] Poco::Timer &timer) {
-		std::cout << "Firing registry timer..." << std::endl;
 
 		using session_tuple=std::tuple<std::uint64_t,AP_WS_Connection *,std::uint64_t>;
 		std::vector<session_tuple> connections;
 		{
+			std::uint64_t 	number_of_sessions = 0,
+						  	total_connected_time = 0;
 			std::shared_lock Guard(M_);
 			auto now = OpenWifi::Now();
 			for (const auto &[serial_number, connection_info] : SerialNumbers_) {
 				if ((now - connection_info.second->State_.LastContact) > 500) {
 					session_tuple S{serial_number,connection_info.second,connection_info.second->ConnectionId_};
 					connections.emplace_back(S);
+				} else {
+					number_of_sessions++;
+					total_connected_time += (now - connection_info.second->Started_);
 				}
 			}
+
+			Logger().information(fmt::format("Active sessions: {} Average connection time: {}",
+											 number_of_sessions,
+											 number_of_sessions>0 ? total_connected_time/number_of_sessions : 0));
+
 		}
 
 		for(auto [serial_number,ws_connection,id]:connections) {
