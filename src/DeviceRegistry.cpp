@@ -32,6 +32,8 @@ namespace OpenWifi {
 
 	void DeviceRegistry::onConnectionJanitor([[maybe_unused]] Poco::Timer &timer) {
 
+		static std::uint64_t last_log = OpenWifi::Now();
+
 		using session_tuple=std::tuple<std::uint64_t,AP_WS_Connection *,std::uint64_t>;
 		std::vector<session_tuple> connections;
 		{
@@ -52,10 +54,12 @@ namespace OpenWifi {
 				}
 			}
 			AverageDeviceConnectionTime_ = (NumberOfConnectedDevices_!=0) ? total_connected_time/NumberOfConnectedDevices_ : 0;
-			Logger().information(fmt::format("Active AP connections: {} Average connection time: {} seconds",
-											 NumberOfConnectedDevices_,
-											 AverageDeviceConnectionTime_));
-
+			if((now-last_log)>120) {
+				last_log = now;
+				Logger().information(
+					fmt::format("Active AP connections: {} Average connection time: {} seconds",
+								NumberOfConnectedDevices_, AverageDeviceConnectionTime_));
+			}
 		}
 
 		for(auto [serial_number,ws_connection,id]:connections) {
