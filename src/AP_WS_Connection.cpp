@@ -630,10 +630,9 @@ namespace OpenWifi {
 			}
 		} catch (const Poco::Net::ConnectionResetException &E) {
 			DBL;
-			poco_warning(Logger(), fmt::format("ConnectionResetException({}): Text:{} Payload:{}",
+			poco_warning(Logger(), fmt::format("ConnectionResetException({}): Text:{}",
 				CId_,
-				E.displayText(),
-				IncomingFrame.begin()));
+				E.displayText()));
 			return delete this;
 		} catch (const Poco::JSON::JSONException &E) {
 			DBL;
