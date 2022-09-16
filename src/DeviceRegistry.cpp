@@ -17,8 +17,8 @@ namespace OpenWifi {
         Logger().notice("Starting ");
 
 		ArchiverCallback_ = std::make_unique<Poco::TimerCallback<DeviceRegistry>>(*this,&DeviceRegistry::onConnectionJanitor);
-		Timer_.setStartInterval( 60 * 1000 );
-		Timer_.setPeriodicInterval(60 * 1000); // every minute
+		Timer_.setStartInterval(60 * 1000);
+		Timer_.setPeriodicInterval(20 * 1000); // every minute
 		Timer_.start(*ArchiverCallback_, MicroService::instance().TimerPool());
 
 		return 0;
