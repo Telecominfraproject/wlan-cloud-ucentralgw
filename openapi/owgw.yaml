@@ -190,6 +190,13 @@ components:
           type: string
           minLength: 2
           maxLength: 2
+        started:
+          type: integer
+          format: int64
+        sessionId:
+          type: integer
+          format: int64
+
 
     DeviceList:
       type: object

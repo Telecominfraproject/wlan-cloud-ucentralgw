@@ -28,6 +28,10 @@
 
 namespace OpenWifi {
 
+	void RESTAPI_device_commandHandler::CallCanceled(const char * Cmd, const OpenWifi::RESTAPI::Errors::msg &Err) {
+		Logger_.warning(fmt::format("{},{}: Canceled. Error:{} Reason:{}", Cmd, SerialNumber_, Err.err_num, Err.err_txt));
+	}
+
 	void RESTAPI_device_commandHandler::DoGet() {
 		if(!ValidateParameters()) {
 			return BadRequest(RESTAPI::Errors::MissingOrInvalidParameters);
@@ -56,7 +60,10 @@ namespace OpenWifi {
 		} else if (Command_ == RESTAPI::Protocol::STATUS) {
 			return GetStatus();
 		} else if (Command_ == RESTAPI::Protocol::RTTY) {
-			auto UUID = MicroService::CreateUUID();
+			if(!DeviceRegistry()->Connected(SerialNumberInt_)) {
+				CallCanceled(Command_.c_str(), RESTAPI::Errors::DeviceNotConnected);
+				return BadRequest(RESTAPI::Errors::DeviceNotConnected);
+			}			auto UUID = MicroService::CreateUUID();
 			auto RPC = CommandManager()->NextRPCId();
 			return Rtty(UUID,RPC);
 		} else {
@@ -118,10 +125,6 @@ namespace OpenWifi {
 			{ RESTAPI::Protocol::PING, false, true, &RESTAPI_device_commandHandler::Ping },
 			{ RESTAPI::Protocol::SCRIPT, false, true, &RESTAPI_device_commandHandler::Script }
 		};
-
-	void RESTAPI_device_commandHandler::CallCanceled(const char * Cmd, const OpenWifi::RESTAPI::Errors::msg &Err) {
-		Logger_.warning(fmt::format("{},{}: Canceled. Error:{} Reason:{}", Cmd, SerialNumber_, Err.err_num, Err.err_txt));
-	}
 
 	void RESTAPI_device_commandHandler::DoPost() {
 		if(!ValidateParameters()) {
@@ -858,11 +861,6 @@ namespace OpenWifi {
 
 	void RESTAPI_device_commandHandler::Rtty(const std::string &CMD_UUID, uint64_t CMD_RPC) {
 		Logger_.information(fmt::format("RTTY({},{}): user={} serial={}", CMD_UUID, CMD_RPC, Requester(), SerialNumber_));
-
-		if(!DeviceRegistry()->Connected(SerialNumberInt_)) {
-			CallCanceled("RTTY", CMD_UUID, CMD_RPC,RESTAPI::Errors::DeviceNotConnected);
-			return BadRequest(RESTAPI::Errors::DeviceNotConnected);
-		}
 
 		if (MicroService::instance().ConfigGetBool("rtty.enabled", false)) {
 			GWObjects::Device	Device;

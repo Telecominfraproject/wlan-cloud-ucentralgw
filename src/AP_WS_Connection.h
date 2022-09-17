@@ -75,8 +75,8 @@ namespace OpenWifi {
 			return true;
 		}
 
-		inline std::uint64_t Id() const { return ConnectionId_; }
 		friend class DeviceRegistry;
+
 	  private:
 		std::recursive_mutex                Mutex_;
 		Poco::Logger                    	&Logger_;
@@ -89,8 +89,6 @@ namespace OpenWifi {
 		std::string 						CId_;
 		std::string							CN_;
 		uint64_t 							Errors_=0;
-		uint64_t 							ConnectionId_=0;
-		uint64_t 							Started_=OpenWifi::Now();
 		Poco::Net::IPAddress				PeerAddress_;
 		std::atomic_bool 					TelemetryReporting_ = false;
 		std::atomic_uint64_t				TelemetryWebSocketRefCount_ = 0;

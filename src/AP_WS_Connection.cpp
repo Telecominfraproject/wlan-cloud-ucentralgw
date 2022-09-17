@@ -37,10 +37,10 @@ namespace OpenWifi {
 									   Poco::Net::HTTPServerResponse &response,
 									   std::uint64_t connection_id)
 		: Logger_(AP_WS_Server()->Logger()) ,
-		  Reactor_(AP_WS_Server()->NextReactor()),
-		  ConnectionId_(connection_id)
+		  Reactor_(AP_WS_Server()->NextReactor())
 	{
-		DeviceRegistry()->StartSession(ConnectionId_, this);
+		State_.sessionId = connection_id;
+		DeviceRegistry()->StartSession(connection_id, this);
 		WS_ = std::make_unique<Poco::Net::WebSocket>(request,response);
 		CompleteStartup();
 	}
@@ -59,6 +59,9 @@ namespace OpenWifi {
 			}
 			PeerAddress_ = SS->peerAddress().host();
 			CId_ = Utils::FormatIPv6(SS->peerAddress().toString());
+
+			State_.started = OpenWifi::Now();
+
 			if (!SS->secure()) {
 				poco_error(Logger(),fmt::format("CONNECTION({}): Connection is NOT secure. Device is not allowed.", CId_));
 				return delete this;
@@ -174,7 +177,7 @@ namespace OpenWifi {
 	AP_WS_Connection::~AP_WS_Connection() {
 
 		poco_information(Logger(),fmt::format("CONNECTION-CLOSING({}): {}.", CId_, SerialNumber_));
-		auto SessionDeleted = DeviceRegistry()->EndSession(ConnectionId_, this, SerialNumberInt_);
+		auto SessionDeleted = DeviceRegistry()->EndSession(State_.sessionId, this, SerialNumberInt_);
 
 		if (Registered_ && WS_) {
 			Reactor_.removeEventHandler(*WS_,
@@ -532,7 +535,7 @@ namespace OpenWifi {
 			Op = flags & Poco::Net::WebSocket::FRAME_OP_BITMASK;
 
 			if (IncomingSize == 0 && flags == 0 && Op == 0) {
-				poco_information(Logger(), fmt::format("DISCONNECT({}): device has disconnected.", CId_));
+				poco_information(Logger(), fmt::format("DISCONNECT({}): device has disconnected. Session={}", CId_, State_.sessionId));
 				return delete this;
 			}
 
@@ -619,60 +622,69 @@ namespace OpenWifi {
 				} break;
 			}
 		} catch (const Poco::Net::ConnectionResetException &E) {
-			poco_warning(Logger(), fmt::format("ConnectionResetException({}): Text:{} Payload:{}",
+			poco_warning(Logger(), fmt::format("ConnectionResetException({}): Text:{} Payload:{} Session:{}",
 				CId_,
 				E.displayText(),
-			   	IncomingFrame.begin()==nullptr ? "" : IncomingFrame.begin() ));
+			   	IncomingFrame.begin()==nullptr ? "" : IncomingFrame.begin(),
+			    State_.sessionId));
 			return delete this;
 		} catch (const Poco::JSON::JSONException &E) {
-			poco_warning(Logger(), fmt::format("JSONException({}): Text:{} Payload:{}",
+			poco_warning(Logger(), fmt::format("JSONException({}): Text:{} Payload:{} Session:{}",
 		   		CId_,
 			   	E.displayText(),
-			   	IncomingFrame.begin()==nullptr ? "" : IncomingFrame.begin()));
+			   	IncomingFrame.begin()==nullptr ? "" : IncomingFrame.begin(),
+											   State_.sessionId));
 		} catch (const Poco::Net::WebSocketException &E) {
-			poco_warning(Logger(), fmt::format("WebSocketException({}): Text:{} Payload:{}",
+			poco_warning(Logger(), fmt::format("WebSocketException({}): Text:{} Payload:{} Session:{}",
 				CId_,
 				E.displayText(),
-				IncomingFrame.begin()==nullptr ? "" : IncomingFrame.begin()));
+				IncomingFrame.begin()==nullptr ? "" : IncomingFrame.begin(),
+											   State_.sessionId));
 			return delete this;
 		} catch (const Poco::Net::SSLConnectionUnexpectedlyClosedException &E) {
-			poco_warning(Logger(), fmt::format("SSLConnectionUnexpectedlyClosedException({}): Text:{} Payload:{}",
+			poco_warning(Logger(), fmt::format("SSLConnectionUnexpectedlyClosedException({}): Text:{} Payload:{} Session:{}",
 				CId_,
 				E.displayText(),
-				IncomingFrame.begin()==nullptr ? "" : IncomingFrame.begin()));
+				IncomingFrame.begin()==nullptr ? "" : IncomingFrame.begin(),
+											   State_.sessionId));
 			return delete this;
 		} catch (const Poco::Net::SSLException &E) {
-			poco_warning(Logger(), fmt::format("SSLException({}): Text:{} Payload:{}",
+			poco_warning(Logger(), fmt::format("SSLException({}): Text:{} Payload:{} Session:{}",
 				CId_,
 				E.displayText(),
-				IncomingFrame.begin()==nullptr ? "" : IncomingFrame.begin()));
+				IncomingFrame.begin()==nullptr ? "" : IncomingFrame.begin(),
+											   State_.sessionId));
 			return delete this;
 		} catch (const Poco::Net::NetException &E) {
-			poco_warning(Logger(), fmt::format("NetException({}): Text:{} Payload:{}",
+			poco_warning(Logger(), fmt::format("NetException({}): Text:{} Payload:{} Session:{}",
 				CId_,
 				E.displayText(),
-				IncomingFrame.begin()==nullptr ? "" : IncomingFrame.begin()));
+				IncomingFrame.begin()==nullptr ? "" : IncomingFrame.begin(),
+											   State_.sessionId));
 			return delete this;
 		} catch (const Poco::IOException &E) {
-			poco_warning(Logger(), fmt::format("IOException({}): Text:{} Payload:{}",
+			poco_warning(Logger(), fmt::format("IOException({}): Text:{} Payload:{} Session:{}",
 				CId_,
 				E.displayText(),
-				IncomingFrame.begin()==nullptr ? "" : IncomingFrame.begin()));
+				IncomingFrame.begin()==nullptr ? "" : IncomingFrame.begin(),
+											   State_.sessionId));
 			return delete this;
 		} catch (const Poco::Exception &E) {
-			poco_warning(Logger(), fmt::format("Exception({}): Text:{} Payload:{}",
+			poco_warning(Logger(), fmt::format("Exception({}): Text:{} Payload:{} Session:{}",
 				CId_,
 				E.displayText(),
-				IncomingFrame.begin()==nullptr ? "" : IncomingFrame.begin()));
+				IncomingFrame.begin()==nullptr ? "" : IncomingFrame.begin(),
+											   State_.sessionId));
 			return delete this;
 		} catch (const std::exception &E) {
-			poco_warning(Logger(), fmt::format("std::exception({}): Text:{} Payload:{}",
+			poco_warning(Logger(), fmt::format("std::exception({}): Text:{} Payload:{} Session:{}",
 				CId_,
 				E.what(),
-				IncomingFrame.begin()==nullptr ? "" : IncomingFrame.begin()));
+				IncomingFrame.begin()==nullptr ? "" : IncomingFrame.begin(),
+											   State_.sessionId));
 			return delete this;
 		} catch (...) {
-			poco_error(Logger(),fmt::format("UnknownException({}): Device must be disconnected. Unknown exception.", CId_));
+			poco_error(Logger(),fmt::format("UnknownException({}): Device must be disconnected. Unknown exception.  Session:{}", CId_, State_.sessionId));
 			return delete this;
 		}
 

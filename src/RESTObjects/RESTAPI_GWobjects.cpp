@@ -203,6 +203,8 @@ namespace OpenWifi::GWObjects {
 		field_to_json(Obj,"kafkaClients", kafkaClients);
 		field_to_json(Obj,"kafkaPackets", kafkaPackets);
 		field_to_json(Obj,"locale", locale);
+		field_to_json(Obj,"started", started);
+		field_to_json(Obj,"sessionId", sessionId);
 
 		switch(VerifiedCertificate) {
 			case NO_CERTIFICATE:

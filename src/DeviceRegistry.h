@@ -102,8 +102,8 @@ namespace OpenWifi {
 		}
 
 	  private:
-		std::shared_mutex									M_;
-		std::map<std::uint64_t, AP_WS_Connection *>  		Sessions_;
+		std::shared_mutex																M_;
+		std::map<std::uint64_t, AP_WS_Connection *>  									Sessions_;
 		std::map<std::uint64_t, std::pair<std::uint64_t, AP_WS_Connection *>>			SerialNumbers_;
 
 		std::unique_ptr<Poco::TimerCallback<DeviceRegistry>>   ArchiverCallback_;

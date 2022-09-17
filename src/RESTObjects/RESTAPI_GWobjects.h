@@ -38,6 +38,8 @@ namespace OpenWifi::GWObjects {
 		uint64_t 	kafkaPackets=0;
 		uint64_t 	websocketPackets=0;
 		std::string locale;
+		uint64_t 	started=0;
+		uint64_t 	sessionId=0;
 		void to_json(Poco::JSON::Object &Obj) const;
 	};
 
