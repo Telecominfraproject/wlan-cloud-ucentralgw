@@ -196,7 +196,12 @@ components:
         sessionId:
           type: integer
           format: int64
-
+        connectionCompletionTime:
+          type: number
+          format: double
+        totalConnectionTime:
+          type: integer
+          format: int64
 
     DeviceList:
       type: object

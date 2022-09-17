@@ -18,7 +18,7 @@
 namespace OpenWifi {
 
 	class AP_WS_Connection {
-		static constexpr int BufSize = 128000;
+		static constexpr int BufSize = 256000;
 	  public:
 		explicit AP_WS_Connection(Poco::Net::HTTPServerRequest &request,
 			Poco::Net::HTTPServerResponse &response, std::uint64_t connection_id);
@@ -101,6 +101,8 @@ namespace OpenWifi {
 		GWObjects::ConnectionState			State_;
 		std::string        					LastStats_;
 		GWObjects::HealthCheck				LastHealthcheck_;
+		std::chrono::time_point<std::chrono::high_resolution_clock> ConnectionStart_ = std::chrono::high_resolution_clock::now();
+		std::chrono::duration<double, std::milli> ConnectionCompletionTime_;
 
 		void CompleteStartup();
 		bool StartTelemetry();

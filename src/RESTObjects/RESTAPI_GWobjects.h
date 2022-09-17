@@ -40,6 +40,8 @@ namespace OpenWifi::GWObjects {
 		std::string locale;
 		uint64_t 	started=0;
 		uint64_t 	sessionId=0;
+		double      connectionCompletionTime=0.0;
+
 		void to_json(Poco::JSON::Object &Obj) const;
 	};
 

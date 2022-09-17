@@ -33,45 +33,46 @@ namespace OpenWifi {
 		int Start() override;
 		void Stop() override;
 
-		inline bool GetStatistics(const std::string &SerialNumber, std::string & Statistics) {
+		inline bool GetStatistics(const std::string &SerialNumber, std::string & Statistics) const {
 			return GetStatistics(Utils::SerialNumberToInt(SerialNumber),Statistics);
 		}
-		bool GetStatistics(std::uint64_t SerialNumber, std::string & Statistics);
+		bool GetStatistics(std::uint64_t SerialNumber, std::string & Statistics) const;
 
-		inline bool GetState(const std::string & SerialNumber, GWObjects::ConnectionState & State) {
+		inline bool GetState(const std::string & SerialNumber, GWObjects::ConnectionState & State) const {
 			return GetState(Utils::SerialNumberToInt(SerialNumber), State);
 		}
-		bool GetState(std::uint64_t SerialNumber, GWObjects::ConnectionState & State);
+		bool GetState(std::uint64_t SerialNumber, GWObjects::ConnectionState & State) const;
 
-		inline bool GetHealthcheck(const std::string &SerialNumber, GWObjects::HealthCheck & CheckData) {
+		inline bool GetHealthcheck(const std::string &SerialNumber, GWObjects::HealthCheck & CheckData) const {
 			return GetHealthcheck(Utils::SerialNumberToInt(SerialNumber), CheckData);
 		}
-		bool GetHealthcheck(std::uint64_t SerialNumber, GWObjects::HealthCheck & CheckData);
+		bool GetHealthcheck(std::uint64_t SerialNumber, GWObjects::HealthCheck & CheckData) const ;
 
-		bool Connected(uint64_t SerialNumber);
+		bool Connected(uint64_t SerialNumber) const ;
 
-		inline bool SendFrame(const std::string & SerialNumber, const std::string & Payload) {
+		inline bool SendFrame(const std::string & SerialNumber, const std::string & Payload) const {
 			return SendFrame(Utils::SerialNumberToInt(SerialNumber), Payload);
 		}
 
-		bool SendFrame(std::uint64_t SerialNumber, const std::string & Payload);
+		bool SendFrame(std::uint64_t SerialNumber, const std::string & Payload) const ;
 
-		inline void SetPendingUUID(const std::string & SerialNumber, uint64_t PendingUUID) {
+/*		inline void SetPendingUUID(const std::string & SerialNumber, uint64_t PendingUUID) {
 			return SetPendingUUID(Utils::SerialNumberToInt(SerialNumber), PendingUUID);
 		}
 
 		void SetPendingUUID(std::uint64_t SerialNumber, std::uint64_t PendingUUID);
+*/
 		bool SendRadiusAuthenticationData(const std::string & SerialNumber, const unsigned char * buffer, std::size_t size);
 		bool SendRadiusAccountingData(const std::string & SerialNumber, const unsigned char * buffer, std::size_t size);
 		bool SendRadiusCoAData(const std::string & SerialNumber, const unsigned char * buffer, std::size_t size);
 
 		inline void StartSession(uint64_t ConnectionId, AP_WS_Connection * connection) {
-			std::unique_lock	G(M_);
+			std::unique_lock	G(LocalMutex_);
 			Sessions_[ConnectionId] = connection;
 		}
 
 		inline void SetSessionDetails(std::uint64_t connection_id, AP_WS_Connection * connection, uint64_t SerialNumber) {
-			std::unique_lock	G(M_);
+			std::unique_lock	G(LocalMutex_);
 			auto Hint = Sessions_.find(connection_id);
 			if(Hint!=Sessions_.end() && Hint->second==connection) {
 				Logger().information(fmt::format("Starting session {}, serial {}.", connection_id, Utils::IntToSerialNumber(SerialNumber)));
@@ -102,7 +103,7 @@ namespace OpenWifi {
 		}
 
 	  private:
-		std::shared_mutex																M_;
+		mutable std::shared_mutex														LocalMutex_;
 		std::map<std::uint64_t, AP_WS_Connection *>  									Sessions_;
 		std::map<std::uint64_t, std::pair<std::uint64_t, AP_WS_Connection *>>			SerialNumbers_;
 

@@ -205,6 +205,8 @@ namespace OpenWifi::GWObjects {
 		field_to_json(Obj,"locale", locale);
 		field_to_json(Obj,"started", started);
 		field_to_json(Obj,"sessionId", sessionId);
+		field_to_json(Obj,"connectionCompletionTime", connectionCompletionTime);
+		field_to_json(Obj,"totalConnectionTime", OpenWifi::Now() - started);
 
 		switch(VerifiedCertificate) {
 			case NO_CERTIFICATE:

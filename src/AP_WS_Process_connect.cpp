@@ -28,18 +28,6 @@ void AP_WS_Connection::Process_connect(Poco::JSON::Object::Ptr ParamsObj, const 
 		State_.PendingUUID = 0;
 		State_.Address = Utils::FormatIPv6(WS_->peerAddress().toString());
 		CId_ = SerialNumber_ + "@" + CId_;
-		//	We need to verify the certificate if we have one
-		if(State_.VerifiedCertificate == GWObjects::VALID_CERTIFICATE) {
-			if ((	Utils::SerialNumberMatch(CN_, SerialNumber_)) ||
-					AP_WS_Server()->IsSimSerialNumber(CN_)) {
-				State_.VerifiedCertificate = GWObjects::VERIFIED;
-				poco_information(Logger(), fmt::format("CONNECT({}): Fully validated and authenticated device.", CId_));
-			} else {
-				State_.VerifiedCertificate = GWObjects::MISMATCH_SERIAL;
-				poco_information(Logger(),
-								 fmt::format("CONNECT({}): Serial number mismatch. CN={} Serial={}", CId_, CN_, SerialNumber_));
-			}
-		}
 
 		auto IP = PeerAddress_.toString();
 		if(IP.substr(0,7)=="::ffff:") {
@@ -79,8 +67,31 @@ void AP_WS_Connection::Process_connect(Poco::JSON::Object::Ptr ParamsObj, const 
 			LookForUpgrade(UUID,UpgradedUUID);
 			State_.UUID = UpgradedUUID;
 		}
+
 		State_.Compatible = Compatible_;
 		State_.Connected = true;
+		ConnectionCompletionTime_ = std::chrono::high_resolution_clock::now() - ConnectionStart_;
+		State_.connectionCompletionTime = ConnectionCompletionTime_.count();
+
+		if(State_.VerifiedCertificate == GWObjects::VALID_CERTIFICATE) {
+			if ((	Utils::SerialNumberMatch(CN_, SerialNumber_)) ||
+				AP_WS_Server()->IsSimSerialNumber(CN_)) {
+				State_.VerifiedCertificate = GWObjects::VERIFIED;
+				poco_information(Logger(), fmt::format("CONNECT({}): Fully validated and authenticated device. Session={} ConnectionCompletion Time={}",
+													   CId_,
+													   State_.sessionId,
+													   State_.connectionCompletionTime ));
+			} else {
+				State_.VerifiedCertificate = GWObjects::MISMATCH_SERIAL;
+				poco_information(Logger(),
+								 fmt::format("CONNECT({}): Serial number mismatch. CN={} Serial={} Session={} ConnectionCompletion Time={}",
+									CId_,
+									CN_,
+									SerialNumber_,
+									State_.sessionId,
+									State_.connectionCompletionTime ));
+			}
+		}
 
 		WebSocketClientNotificationDeviceConnected(SerialNumber_);
 

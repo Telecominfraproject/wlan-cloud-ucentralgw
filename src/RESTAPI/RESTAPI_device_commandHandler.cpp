@@ -387,7 +387,7 @@ namespace OpenWifi {
 				Params.stringify(ParamStream);
 				Cmd.Details = ParamStream.str();
 
-				DeviceRegistry()->SetPendingUUID(SerialNumber_, NewUUID);
+				// DeviceRegistry()->SetPendingUUID(SerialNumber_, NewUUID);
 				return RESTAPI_RPC::WaitForCommand(CMD_RPC,true,Cmd, Params, *Request, *Response, 60000ms, nullptr, this, Logger_);
 			}
 			return BadRequest(RESTAPI::Errors::RecordNotUpdated);
