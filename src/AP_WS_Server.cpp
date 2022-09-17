@@ -137,6 +137,10 @@ namespace OpenWifi {
 		SimulatorEnabled_ = !SimulatorId_.empty();
 		Utils::SetThreadName(ReactorThread_,"dev:react:head");
 
+		auto L = MicroService::instance().ConfigGetString("logging.level.ws_server","");
+		if(!L.empty()) {
+			Logger().setLevel(Poco::Logger::parseLevel(L));
+		}
 		return 0;
 	}
 
