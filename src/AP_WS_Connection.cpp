@@ -42,7 +42,8 @@ namespace OpenWifi {
 		State_.sessionId = connection_id;
 		DeviceRegistry()->StartSession(connection_id, this);
 		WS_ = std::make_unique<Poco::Net::WebSocket>(request,response);
-		CompleteStartup();
+		std::thread		Finish{ [this](){ this->CompleteStartup(); }};
+		Finish.detach();
 	}
 
 	void AP_WS_Connection::CompleteStartup() {
