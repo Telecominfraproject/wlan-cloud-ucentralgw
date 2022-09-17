@@ -30,7 +30,7 @@ namespace OpenWifi {
 #define DBL					{ std::cout << __LINE__ << "  ID: " << ConnectionId_ << "  Ser: " << SerialNumber_ << std::endl; }
 
 	void AP_WS_Connection::LogException(const Poco::Exception &E) {
-		Logger().information(fmt::format("EXCEPTION({}): {}", CId_, E.displayText()));
+		Logger_.information(fmt::format("EXCEPTION({}): {}", CId_, E.displayText()));
 	}
 
 	AP_WS_Connection::AP_WS_Connection(Poco::Net::HTTPServerRequest &request,
@@ -93,10 +93,10 @@ namespace OpenWifi {
 			State_.started = OpenWifi::Now();
 
 			if (!SS->secure()) {
-				poco_error(Logger(),fmt::format("CONNECTION({}): Connection is NOT secure. Device is not allowed.", CId_));
+				poco_error(Logger_,fmt::format("CONNECTION({}): Connection is NOT secure. Device is not allowed.", CId_));
 				return delete this;
 			} else {
-				poco_debug(Logger(),fmt::format("CONNECTION({}): Connection is secure.", CId_));
+				poco_debug(Logger_,fmt::format("CONNECTION({}): Connection is secure.", CId_));
 			}
 
 			if (SS->havePeerCertificate()) {
@@ -105,25 +105,25 @@ namespace OpenWifi {
 					if (AP_WS_Server()->ValidateCertificate(CId_, PeerCert)) {
 						CN_ = Poco::trim(Poco::toLower(PeerCert.commonName()));
 						State_.VerifiedCertificate = GWObjects::VALID_CERTIFICATE;
-						poco_debug(Logger(),fmt::format("CONNECTION({}): Valid certificate: CN={}", CId_, CN_));
+						poco_debug(Logger_,fmt::format("CONNECTION({}): Valid certificate: CN={}", CId_, CN_));
 					} else {
 						State_.VerifiedCertificate = GWObjects::NO_CERTIFICATE;
-						poco_error(Logger(),fmt::format("CONNECTION({}): Device certificate is not valid. Device is not allowed.", CId_));
+						poco_error(Logger_,fmt::format("CONNECTION({}): Device certificate is not valid. Device is not allowed.", CId_));
 						return delete this;
 					}
 				} catch (const Poco::Exception &E) {
 					LogException(E);
-					poco_error(Logger(),fmt::format("CONNECTION({}): Device certificate is not valid. Device is not allowed.", CId_));
+					poco_error(Logger_,fmt::format("CONNECTION({}): Device certificate is not valid. Device is not allowed.", CId_));
 					return delete this;
 				}
 			} else {
 				State_.VerifiedCertificate = GWObjects::NO_CERTIFICATE;
-				poco_error(Logger(),fmt::format("CONNECTION({}): No certificates available..", CId_));
+				poco_error(Logger_,fmt::format("CONNECTION({}): No certificates available..", CId_));
 				return delete this;
 			}
 
 			if (AP_WS_Server::IsSim(CN_) && !AP_WS_Server()->IsSimEnabled()) {
-				poco_warning(Logger(),fmt::format(
+				poco_warning(Logger_,fmt::format(
 					"CONNECTION({}): Sim Device {} is not allowed. Disconnecting.", CId_, CN_));
 				return delete this;
 			}
@@ -132,7 +132,7 @@ namespace OpenWifi {
 			SerialNumberInt_ = Utils::SerialNumberToInt(SerialNumber_);
 
 			if (!CN_.empty() && StorageService()->IsBlackListed(SerialNumber_)) {
-				poco_warning(Logger(),fmt::format("CONNECTION({}): Device {} is black listed. Disconnecting.",
+				poco_warning(Logger_,fmt::format("CONNECTION({}): Device {} is black listed. Disconnecting.",
 												   CId_, CN_));
 				return delete this;
 			}
@@ -152,39 +152,39 @@ namespace OpenWifi {
 			Reactor_.addEventHandler(*WS_, Poco::NObserver<AP_WS_Connection, Poco::Net::ErrorNotification>(
 											   *this, &AP_WS_Connection::OnSocketError));
 			Registered_ = true;
-			poco_debug(Logger(),fmt::format("CONNECTION({}): completed. (t={})", CId_, ConcurrentStartingDevices_));
+			poco_debug(Logger_,fmt::format("CONNECTION({}): completed. (t={})", CId_, ConcurrentStartingDevices_));
 			return;
 		} catch (const Poco::Net::CertificateValidationException &E) {
-			Logger().error(fmt::format("CONNECTION({}): Poco::CertificateValidationException Certificate Validation failed during connection. Device will have to retry.",
+			Logger_.error(fmt::format("CONNECTION({}): Poco::CertificateValidationException Certificate Validation failed during connection. Device will have to retry.",
 										CId_));
-			Logger().log(E);
+			Logger_.log(E);
 		} catch (const Poco::Net::WebSocketException &E) {
-			Logger().error(fmt::format("CONNECTION({}): Poco::WebSocketException WebSocket error during connection. Device will have to retry.",
+			Logger_.error(fmt::format("CONNECTION({}): Poco::WebSocketException WebSocket error during connection. Device will have to retry.",
 										CId_));
-			Logger().log(E);
+			Logger_.log(E);
 		} catch (const Poco::Net::ConnectionAbortedException &E) {
-			Logger().error(fmt::format("CONNECTION({}): Poco::ConnectionAbortedException Connection was aborted during connection. Device will have to retry.",
+			Logger_.error(fmt::format("CONNECTION({}): Poco::ConnectionAbortedException Connection was aborted during connection. Device will have to retry.",
 										CId_));
-			Logger().log(E);
+			Logger_.log(E);
 		} catch (const Poco::Net::ConnectionResetException &E) {
-			Logger().error(fmt::format("CONNECTION({}): Poco::ConnectionResetException Connection was reset during connection. Device will have to retry.",
+			Logger_.error(fmt::format("CONNECTION({}): Poco::ConnectionResetException Connection was reset during connection. Device will have to retry.",
 										CId_));
-			Logger().log(E);
+			Logger_.log(E);
 		} catch (const Poco::Net::InvalidCertificateException &E) {
-			Logger().error(fmt::format(
+			Logger_.error(fmt::format(
 				"CONNECTION({}): Poco::InvalidCertificateException Invalid certificate. Device will have to retry.",
 				CId_));
-			Logger().log(E);
+			Logger_.log(E);
 		} catch (const Poco::Net::SSLException &E) {
-			Logger().error(fmt::format("CONNECTION({}): Poco::SSLException SSL Exception during connection. Device will have to retry.",
+			Logger_.error(fmt::format("CONNECTION({}): Poco::SSLException SSL Exception during connection. Device will have to retry.",
 										CId_));
-			Logger().log(E);
+			Logger_.log(E);
 		} catch (const Poco::Exception &E) {
-			Logger().error(fmt::format("CONNECTION({}): Poco::Exception caught during device connection. Device will have to retry.",
+			Logger_.error(fmt::format("CONNECTION({}): Poco::Exception caught during device connection. Device will have to retry.",
 										CId_));
-			Logger().log(E);
+			Logger_.log(E);
 		} catch (...) {
-			Logger().error(fmt::format("CONNECTION({}): Exception caught during device connection. Device will have to retry. Unsecure connect denied.",
+			Logger_.error(fmt::format("CONNECTION({}): Exception caught during device connection. Device will have to retry. Unsecure connect denied.",
 										CId_));
 		}
 		return delete this;
@@ -207,7 +207,7 @@ namespace OpenWifi {
 
 	AP_WS_Connection::~AP_WS_Connection() {
 
-		poco_information(Logger(),fmt::format("CONNECTION-CLOSING({}): {}.", CId_, SerialNumber_));
+		poco_information(Logger_,fmt::format("CONNECTION-CLOSING({}): {}.", CId_, SerialNumber_));
 		auto SessionDeleted = DeviceRegistry()->EndSession(State_.sessionId, this, SerialNumberInt_);
 
 		if (Registered_ && WS_) {
@@ -286,7 +286,7 @@ namespace OpenWifi {
 			std::ostringstream O;
 			Poco::JSON::Stringifier::stringify(Params, O);
 			Cmd.Details = O.str();
-			poco_information(Logger(),fmt::format("CFG-UPGRADE({}): Current ID: {}, newer configuration {}.",
+			poco_information(Logger_,fmt::format("CFG-UPGRADE({}): Current ID: {}, newer configuration {}.",
 										   CId_, UUID, D.UUID));
 			bool Sent;
 
@@ -309,13 +309,13 @@ namespace OpenWifi {
 		auto Method = Doc->get(uCentralProtocol::METHOD).toString();
 		auto EventType = uCentralProtocol::Events::EventFromString(Method);
 		if (EventType == uCentralProtocol::Events::ET_UNKNOWN) {
-			poco_warning(Logger(),fmt::format("ILLEGAL-PROTOCOL({}): Unknown message type '{}'", CId_, Method));
+			poco_warning(Logger_,fmt::format("ILLEGAL-PROTOCOL({}): Unknown message type '{}'", CId_, Method));
 			Errors_++;
 			return;
 		}
 
 		if (!Doc->isObject(uCentralProtocol::PARAMS)) {
-			poco_warning(Logger(),fmt::format("MISSING-PARAMS({}): params must be an object.", CId_));
+			poco_warning(Logger_,fmt::format("MISSING-PARAMS({}): params must be an object.", CId_));
 			Errors_++;
 			return;
 		}
@@ -332,26 +332,26 @@ namespace OpenWifi {
 				}
 
 				if (Utils::ExtractBase64CompressedData(CompressedData, UncompressedData, compress_sz)) {
-					poco_trace(Logger(),fmt::format("EVENT({}): Found compressed payload expanded to '{}'.",
+					poco_trace(Logger_,fmt::format("EVENT({}): Found compressed payload expanded to '{}'.",
 													  CId_, UncompressedData));
 					Poco::JSON::Parser Parser;
 					ParamsObj = Parser.parse(UncompressedData).extract<Poco::JSON::Object::Ptr>();
 				} else {
-					poco_warning(Logger(),fmt::format("INVALID-COMPRESSED-DATA({}): Compressed cannot be uncompressed - content must be corrupt..: size={}",
+					poco_warning(Logger_,fmt::format("INVALID-COMPRESSED-DATA({}): Compressed cannot be uncompressed - content must be corrupt..: size={}",
 														CId_, CompressedData.size()));
 					Errors_++;
 					return;
 				}
 			} catch (const Poco::Exception &E) {
-				poco_warning(Logger(),fmt::format("INVALID-COMPRESSED-JSON-DATA({}): Compressed cannot be parsed - JSON must be corrupt..",
+				poco_warning(Logger_,fmt::format("INVALID-COMPRESSED-JSON-DATA({}): Compressed cannot be parsed - JSON must be corrupt..",
 													CId_));
-				Logger().log(E);
+				Logger_.log(E);
 				return;
 			}
 		}
 
 		if (!ParamsObj->has(uCentralProtocol::SERIAL)) {
-			poco_warning(Logger(),fmt::format("MISSING-PARAMS({}): Serial number is missing in message.", CId_));
+			poco_warning(Logger_,fmt::format("MISSING-PARAMS({}): Serial number is missing in message.", CId_));
 			return;
 		}
 
@@ -421,7 +421,7 @@ namespace OpenWifi {
 			// 	this will never be called but some compilers will complain if we do not have a case for
 			//	every single values of an enum
 			case uCentralProtocol::Events::ET_UNKNOWN: {
-				poco_warning(Logger(), fmt::format("ILLEGAL-EVENT({}): Event '{}' unknown. CN={}", CId_, Method, CN_));
+				poco_warning(Logger_, fmt::format("ILLEGAL-EVENT({}): Event '{}' unknown. CN={}", CId_, Method, CN_));
 				Errors_++;
 			}
 		}
@@ -429,7 +429,7 @@ namespace OpenWifi {
 
 	bool AP_WS_Connection::StartTelemetry() {
 		// std::cout << "Start telemetry for " << SerialNumber_ << std::endl;
-		poco_information(Logger(), fmt::format("TELEMETRY({}): Starting.", CId_));
+		poco_information(Logger_, fmt::format("TELEMETRY({}): Starting.", CId_));
 		Poco::JSON::Object StartMessage;
 		StartMessage.set("jsonrpc", "2.0");
 		StartMessage.set("method", "telemetry");
@@ -452,7 +452,7 @@ namespace OpenWifi {
 
 	bool AP_WS_Connection::StopTelemetry() {
 		// std::cout << "Stop telemetry for " << SerialNumber_ << std::endl;
-		poco_information(Logger(), fmt::format("TELEMETRY({}): Stopping.", CId_));
+		poco_information(Logger_, fmt::format("TELEMETRY({}): Stopping.", CId_));
 		Poco::JSON::Object StopMessage;
 		StopMessage.set("jsonrpc", "2.0");
 		StopMessage.set("method", "telemetry");
@@ -530,13 +530,13 @@ namespace OpenWifi {
 
 	void AP_WS_Connection::OnSocketShutdown([[maybe_unused]] const Poco::AutoPtr<Poco::Net::ShutdownNotification> &pNf) {
 		std::lock_guard Guard(Mutex_);
-		poco_trace(Logger(), fmt::format("SOCKET-SHUTDOWN({}): Closing.", CId_));
+		poco_trace(Logger_, fmt::format("SOCKET-SHUTDOWN({}): Closing.", CId_));
 		delete this;
 	}
 
 	void AP_WS_Connection::OnSocketError([[maybe_unused]] const Poco::AutoPtr<Poco::Net::ErrorNotification> &pNf) {
 		std::lock_guard Guard(Mutex_);
-		poco_trace(Logger(), fmt::format("SOCKET-ERROR({}): Closing.", CId_));
+		poco_trace(Logger_, fmt::format("SOCKET-ERROR({}): Closing.", CId_));
 		delete this;
 	}
 
@@ -545,14 +545,14 @@ namespace OpenWifi {
 		try {
 			return ProcessIncomingFrame();
 		} catch (const Poco::Exception &E) {
-			Logger().log(E);
+			Logger_.log(E);
 			return delete this;
 		} catch (const std::exception &E) {
 			std::string W = E.what();
-			poco_information(Logger(), fmt::format("std::exception caught: {}. Connection terminated with {}", W, CId_));
+			poco_information(Logger_, fmt::format("std::exception caught: {}. Connection terminated with {}", W, CId_));
 			return delete this;
 		} catch (...) {
-			poco_information(Logger(), fmt::format("Unknown exception for {}. Connection terminated.", CId_));
+			poco_information(Logger_, fmt::format("Unknown exception for {}. Connection terminated.", CId_));
 			return delete this;
 		}
 	}
@@ -566,7 +566,7 @@ namespace OpenWifi {
 			Op = flags & Poco::Net::WebSocket::FRAME_OP_BITMASK;
 
 			if (IncomingSize == 0 && flags == 0 && Op == 0) {
-				poco_information(Logger(), fmt::format("DISCONNECT({}): device has disconnected. Session={}", CId_, State_.sessionId));
+				poco_information(Logger_, fmt::format("DISCONNECT({}): device has disconnected. Session={}", CId_, State_.sessionId));
 				return delete this;
 			}
 
@@ -578,7 +578,7 @@ namespace OpenWifi {
 
 			switch (Op) {
 				case Poco::Net::WebSocket::FRAME_OP_PING: {
-					poco_trace(Logger(), fmt::format("WS-PING({}): received. PONG sent back.", CId_));
+					poco_trace(Logger_, fmt::format("WS-PING({}): received. PONG sent back.", CId_));
 					WS_->sendFrame("", 0,
 								   (int)Poco::Net::WebSocket::FRAME_OP_PONG |
 									   (int)Poco::Net::WebSocket::FRAME_FLAG_FIN);
@@ -603,12 +603,12 @@ namespace OpenWifi {
 				} break;
 
 				case Poco::Net::WebSocket::FRAME_OP_PONG: {
-					poco_trace(Logger(), fmt::format("PONG({}): received and ignored.", CId_));
+					poco_trace(Logger_, fmt::format("PONG({}): received and ignored.", CId_));
 					return;
 				} break;
 
 				case Poco::Net::WebSocket::FRAME_OP_TEXT: {
-					poco_trace(Logger(), fmt::format("FRAME({}): Frame received (length={}, flags={}). Msg={}", CId_,
+					poco_trace(Logger_, fmt::format("FRAME({}): Frame received (length={}, flags={}). Msg={}", CId_,
 									 IncomingSize, flags, IncomingFrame.begin()));
 
 					Poco::JSON::Parser parser;
@@ -621,10 +621,10 @@ namespace OpenWifi {
 							ProcessJSONRPCEvent(IncomingJSON);
 						} else if (IncomingJSON->has(uCentralProtocol::RESULT) &&
 								   IncomingJSON->has(uCentralProtocol::ID)) {
-							poco_trace(Logger(), fmt::format("RPC-RESULT({}): payload: {}", CId_, IncomingFrame.begin()));
+							poco_trace(Logger_, fmt::format("RPC-RESULT({}): payload: {}", CId_, IncomingFrame.begin()));
 							ProcessJSONRPCResult(IncomingJSON);
 						} else {
-							poco_warning(Logger(),
+							poco_warning(Logger_,
 								fmt::format("INVALID-PAYLOAD({}): Payload is not JSON-RPC 2.0: {}",
 											 CId_, IncomingFrame.begin()));
 						}
@@ -634,7 +634,7 @@ namespace OpenWifi {
 						std::ostringstream iS;
 						IncomingJSON->stringify(iS);
 						std::cout << iS.str() << std::endl;
-						poco_warning(Logger(), fmt::format(
+						poco_warning(Logger_, fmt::format(
 												   "FRAME({}): illegal transaction header, missing 'jsonrpc'", CId_));
 						Errors_++;
 					}
@@ -642,87 +642,87 @@ namespace OpenWifi {
 				} break;
 
 				case Poco::Net::WebSocket::FRAME_OP_CLOSE: {
-					poco_information(Logger(),
+					poco_information(Logger_,
 						fmt::format("CLOSE({}): Device is closing its connection.", CId_));
 					return delete this;
 				} break;
 
 				default: {
-					poco_warning(Logger(), fmt::format("UNKNOWN({}): unknown WS Frame operation: {}", CId_,
+					poco_warning(Logger_, fmt::format("UNKNOWN({}): unknown WS Frame operation: {}", CId_,
 												  std::to_string(Op)));
 				} break;
 			}
 		} catch (const Poco::Net::ConnectionResetException &E) {
-			poco_warning(Logger(), fmt::format("ConnectionResetException({}): Text:{} Payload:{} Session:{}",
+			poco_warning(Logger_, fmt::format("ConnectionResetException({}): Text:{} Payload:{} Session:{}",
 				CId_,
 				E.displayText(),
 			   	IncomingFrame.begin()==nullptr ? "" : IncomingFrame.begin(),
 			    State_.sessionId));
 			return delete this;
 		} catch (const Poco::JSON::JSONException &E) {
-			poco_warning(Logger(), fmt::format("JSONException({}): Text:{} Payload:{} Session:{}",
+			poco_warning(Logger_, fmt::format("JSONException({}): Text:{} Payload:{} Session:{}",
 		   		CId_,
 			   	E.displayText(),
 			   	IncomingFrame.begin()==nullptr ? "" : IncomingFrame.begin(),
 											   State_.sessionId));
 		} catch (const Poco::Net::WebSocketException &E) {
-			poco_warning(Logger(), fmt::format("WebSocketException({}): Text:{} Payload:{} Session:{}",
+			poco_warning(Logger_, fmt::format("WebSocketException({}): Text:{} Payload:{} Session:{}",
 				CId_,
 				E.displayText(),
 				IncomingFrame.begin()==nullptr ? "" : IncomingFrame.begin(),
 											   State_.sessionId));
 			return delete this;
 		} catch (const Poco::Net::SSLConnectionUnexpectedlyClosedException &E) {
-			poco_warning(Logger(), fmt::format("SSLConnectionUnexpectedlyClosedException({}): Text:{} Payload:{} Session:{}",
+			poco_warning(Logger_, fmt::format("SSLConnectionUnexpectedlyClosedException({}): Text:{} Payload:{} Session:{}",
 				CId_,
 				E.displayText(),
 				IncomingFrame.begin()==nullptr ? "" : IncomingFrame.begin(),
 											   State_.sessionId));
 			return delete this;
 		} catch (const Poco::Net::SSLException &E) {
-			poco_warning(Logger(), fmt::format("SSLException({}): Text:{} Payload:{} Session:{}",
+			poco_warning(Logger_, fmt::format("SSLException({}): Text:{} Payload:{} Session:{}",
 				CId_,
 				E.displayText(),
 				IncomingFrame.begin()==nullptr ? "" : IncomingFrame.begin(),
 											   State_.sessionId));
 			return delete this;
 		} catch (const Poco::Net::NetException &E) {
-			poco_warning(Logger(), fmt::format("NetException({}): Text:{} Payload:{} Session:{}",
+			poco_warning(Logger_, fmt::format("NetException({}): Text:{} Payload:{} Session:{}",
 				CId_,
 				E.displayText(),
 				IncomingFrame.begin()==nullptr ? "" : IncomingFrame.begin(),
 											   State_.sessionId));
 			return delete this;
 		} catch (const Poco::IOException &E) {
-			poco_warning(Logger(), fmt::format("IOException({}): Text:{} Payload:{} Session:{}",
+			poco_warning(Logger_, fmt::format("IOException({}): Text:{} Payload:{} Session:{}",
 				CId_,
 				E.displayText(),
 				IncomingFrame.begin()==nullptr ? "" : IncomingFrame.begin(),
 											   State_.sessionId));
 			return delete this;
 		} catch (const Poco::Exception &E) {
-			poco_warning(Logger(), fmt::format("Exception({}): Text:{} Payload:{} Session:{}",
+			poco_warning(Logger_, fmt::format("Exception({}): Text:{} Payload:{} Session:{}",
 				CId_,
 				E.displayText(),
 				IncomingFrame.begin()==nullptr ? "" : IncomingFrame.begin(),
 											   State_.sessionId));
 			return delete this;
 		} catch (const std::exception &E) {
-			poco_warning(Logger(), fmt::format("std::exception({}): Text:{} Payload:{} Session:{}",
+			poco_warning(Logger_, fmt::format("std::exception({}): Text:{} Payload:{} Session:{}",
 				CId_,
 				E.what(),
 				IncomingFrame.begin()==nullptr ? "" : IncomingFrame.begin(),
 											   State_.sessionId));
 			return delete this;
 		} catch (...) {
-			poco_error(Logger(),fmt::format("UnknownException({}): Device must be disconnected. Unknown exception.  Session:{}", CId_, State_.sessionId));
+			poco_error(Logger_,fmt::format("UnknownException({}): Device must be disconnected. Unknown exception.  Session:{}", CId_, State_.sessionId));
 			return delete this;
 		}
 
 		if (Errors_ < 10)
 			return;
 
-		poco_warning(Logger(), fmt::format("DISCONNECTING({}): Too many errors", CId_));
+		poco_warning(Logger_, fmt::format("DISCONNECTING({}): Too many errors", CId_));
 		delete this;
 	}
 

@@ -28,7 +28,7 @@ namespace OpenWifi {
 	bool AP_WS_Server::ValidateCertificate(const std::string & ConnectionId, const Poco::Crypto::X509Certificate & Certificate) {
 		if(IsCertOk()) {
 			if(!Certificate.issuedBy(*IssuerCert_)) {
-				poco_warning(Logger_,fmt::format("CERTIFICATE({}): issuer mismatch. Local='{}' Incoming='{}'", ConnectionId, IssuerCert_->issuerName(), Certificate.issuerName()));
+				poco_warning(Logger(),fmt::format("CERTIFICATE({}): issuer mismatch. Local='{}' Incoming='{}'", ConnectionId, IssuerCert_->issuerName(), Certificate.issuerName()));
 				return false;
 			}
 			return true;
@@ -42,19 +42,19 @@ namespace OpenWifi {
 
 			auto L = MicroService::instance().ConfigGetString("logging.level.ws_server","");
 			if(!L.empty()) {
-				Logger_.setLevel(Poco::Logger::parseLevel(L));
+				Logger().setLevel(Poco::Logger::parseLevel(L));
 			}
 
-			Logger_.notice(fmt::format("Starting: {}:{} Keyfile:{} CertFile: {}", Svr.Address(),
+			Logger().notice(fmt::format("Starting: {}:{} Keyfile:{} CertFile: {}", Svr.Address(),
 										Svr.Port(), Svr.KeyFile(), Svr.CertFile()));
 
-			Svr.LogCert(Logger_);
+			Svr.LogCert(Logger());
 			if (!Svr.RootCA().empty())
-				Svr.LogCas(Logger_);
+				Svr.LogCas(Logger());
 
 			if (!IsCertOk()) {
 				IssuerCert_ = std::make_unique<Poco::Crypto::X509Certificate>(Svr.IssuerCertFile());
-				Logger_.information(
+				Logger().information(
 					fmt::format("Certificate Issuer Name:{}", IssuerCert_->issuerName()));
 			}
 
@@ -70,7 +70,7 @@ namespace OpenWifi {
 			auto Context = Poco::AutoPtr<Poco::Net::Context>(new Poco::Net::Context(Poco::Net::Context::TLS_SERVER_USE, P));
 
 			if(!Svr.KeyFilePassword().empty()) {
-				auto PassphraseHandler = Poco::SharedPtr<MyPrivateKeyPassphraseHandler>( new MyPrivateKeyPassphraseHandler(Svr.KeyFilePassword(),Logger_));
+				auto PassphraseHandler = Poco::SharedPtr<MyPrivateKeyPassphraseHandler>( new MyPrivateKeyPassphraseHandler(Svr.KeyFilePassword(),Logger()));
 				Poco::Net::SSLManager::instance().initializeServer(PassphraseHandler, nullptr,Context);
 			}
 
@@ -107,13 +107,13 @@ namespace OpenWifi {
 													  : Poco::Net::AddressFamily::IPv4));
 				Poco::Net::SocketAddress SockAddr(Addr, Svr.Port());
 				auto NewWebServer = std::make_unique<Poco::Net::HTTPServer>(
-					new AP_WS_RequestHandlerFactory(Logger_), DeviceConnectionPool_, Poco::Net::SecureServerSocket(SockAddr, Svr.Backlog(), Context), WebServerHttpParams);
+					new AP_WS_RequestHandlerFactory(Logger()), DeviceConnectionPool_, Poco::Net::SecureServerSocket(SockAddr, Svr.Backlog(), Context), WebServerHttpParams);
 				WebServers_.push_back(std::move(NewWebServer));
 			} else {
 				Poco::Net::IPAddress Addr(Svr.Address());
 				Poco::Net::SocketAddress SockAddr(Addr, Svr.Port());
 				auto NewWebServer = std::make_unique<Poco::Net::HTTPServer>(
-					new AP_WS_RequestHandlerFactory(Logger_), DeviceConnectionPool_, Poco::Net::SecureServerSocket(SockAddr, Svr.Backlog(), Context), WebServerHttpParams);
+					new AP_WS_RequestHandlerFactory(Logger()), DeviceConnectionPool_, Poco::Net::SecureServerSocket(SockAddr, Svr.Backlog(), Context), WebServerHttpParams);
 				WebServers_.push_back(std::move(NewWebServer));
 			}
 		}
@@ -147,7 +147,7 @@ namespace OpenWifi {
 	}
 
 	void AP_WS_Server::Stop() {
-		Logger_.notice("Stopping reactors...");
+		Logger().notice("Stopping reactors...");
 
 		for(auto &server:WebServers_) {
 			server->stopAll();

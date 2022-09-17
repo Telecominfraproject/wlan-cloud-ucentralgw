@@ -101,7 +101,6 @@ namespace OpenWifi {
 		bool 												UseDefaultConfig_ = true;
 		bool 												SimulatorEnabled_=false;
 		std::unique_ptr<AP_WS_ReactorThreadPool>			Reactor_pool_;
-		Poco::Logger										&Logger_=Logger();
 
 		AP_WS_Server() noexcept:
 			SubSystemServer("WebSocketServer", "WS-SVR", "ucentral.websocket") {
