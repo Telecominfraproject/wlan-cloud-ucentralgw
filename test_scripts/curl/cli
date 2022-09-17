@@ -245,7 +245,8 @@ setloglevel() {
 		-H "Content-Type: application/json" \
 		-H "Accept: application/json" \
 		-H "Authorization: Bearer ${token}" \
-		-d "$payload"
+		-d "$payload" > ${result_file}
+	jq < ${result_file}
 }
 
 getloglevels() {
@@ -254,7 +255,8 @@ getloglevels() {
 		-H "Content-Type: application/json" \
 		-H "Accept: application/json" \
 		-H "Authorization: Bearer ${token}" \
-		-d "$payload"
+		-d "$payload" > ${result_file}
+	jq < ${result_file}
 }
 
 getloglevelnames() {
@@ -263,7 +265,8 @@ getloglevelnames() {
 		-H "Content-Type: application/json" \
 		-H "Accept: application/json" \
 		-H "Authorization: Bearer ${token}" \
-		-d "$payload"
+		-d "$payload" > ${result_file}
+	jq < ${result_file}
 }
 
 getsubsystemnames() {
@@ -272,7 +275,8 @@ getsubsystemnames() {
 		-H "Content-Type: application/json" \
 		-H "Accept: application/json" \
 		-H "Authorization: Bearer ${token}" \
-		-d "$payload"
+		-d "$payload" > ${result_file}
+	jq < ${result_file}
 }
 
 systeminfo() {

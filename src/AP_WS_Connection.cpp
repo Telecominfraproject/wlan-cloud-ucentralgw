@@ -39,6 +39,7 @@ namespace OpenWifi {
 		: Logger_(AP_WS_Server()->Logger()) ,
 		  Reactor_(AP_WS_Server()->NextReactor())
 	{
+		std::cout << "LOGGER: " << Logger_.name() << " " << Logger_.getLevel() << std::endl;
 		State_.sessionId = connection_id;
 		DeviceRegistry()->StartSession(connection_id, this);
 		WS_ = std::make_unique<Poco::Net::WebSocket>(request,response);
