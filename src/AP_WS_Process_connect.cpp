@@ -22,11 +22,10 @@ void AP_WS_Connection::Process_connect(Poco::JSON::Object::Ptr ParamsObj, const 
 		//// change this
 		SerialNumber_ = Serial;
 		SerialNumberInt_ = Utils::SerialNumberToInt(SerialNumber_);
-		DeviceRegistry()->SetSessionDetails(ConnectionId_,this,SerialNumberInt_);
+		DeviceRegistry()->SetSessionDetails(State_.sessionId,this,SerialNumberInt_);
 		State_.UUID = UUID;
 		State_.Firmware = Firmware;
 		State_.PendingUUID = 0;
-		State_.LastContact = OpenWifi::Now();
 		State_.Address = Utils::FormatIPv6(WS_->peerAddress().toString());
 		CId_ = SerialNumber_ + "@" + CId_;
 		//	We need to verify the certificate if we have one
@@ -46,10 +45,10 @@ void AP_WS_Connection::Process_connect(Poco::JSON::Object::Ptr ParamsObj, const 
 		if(IP.substr(0,7)=="::ffff:") {
 			IP = IP.substr(7);
 		}
+
 		State_.locale = FindCountryFromIP()->Get(IP);
 		GWObjects::Device	DeviceInfo;
 		auto DeviceExists = StorageService()->GetDevice(SerialNumber_,DeviceInfo);
-		// std::cout << "Connecting: " << SerialNumber_ << std::endl;
 		if (Daemon()->AutoProvisioning() && !DeviceExists) {
 			StorageService()->CreateDefaultDevice(SerialNumber_, Capabilities, Firmware,
 												  Compatible_, PeerAddress_);

@@ -46,11 +46,11 @@ namespace OpenWifi {
 			auto now = OpenWifi::Now();
 			for (const auto &[serial_number, connection_info] : SerialNumbers_) {
 				if ((now - connection_info.second->State_.LastContact) > 500) {
-					session_tuple S{serial_number,connection_info.second,connection_info.second->ConnectionId_};
+					session_tuple S{serial_number,connection_info.second,connection_info.second->State_.sessionId};
 					connections.emplace_back(S);
 				} else {
 					NumberOfConnectedDevices_++;
-					total_connected_time += (now - connection_info.second->Started_);
+					total_connected_time += (now - connection_info.second->State_.started);
 				}
 			}
 			AverageDeviceConnectionTime_ = (NumberOfConnectedDevices_!=0) ? total_connected_time/NumberOfConnectedDevices_ : 0;
@@ -100,7 +100,7 @@ namespace OpenWifi {
 		bool SessionDeleted = false;
 
 		if(	(hint != end(SerialNumbers_)) &&
-			(connection_id == hint->second.second->ConnectionId_)) {
+			(connection_id == hint->second.second->State_.sessionId)) {
 			Logger().information(fmt::format("Ending session {}, serial {}.", connection_id, Utils::IntToSerialNumber(serial_number)));
 			SerialNumbers_.erase(serial_number);
 			SessionDeleted = true;

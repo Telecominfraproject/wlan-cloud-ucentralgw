@@ -37,10 +37,10 @@ namespace OpenWifi {
 									   Poco::Net::HTTPServerResponse &response,
 									   std::uint64_t connection_id)
 		: Logger_(AP_WS_Server()->Logger()) ,
-		  Reactor_(AP_WS_Server()->NextReactor()),
-		  ConnectionId_(connection_id)
+		  Reactor_(AP_WS_Server()->NextReactor())
 	{
-		DeviceRegistry()->StartSession(ConnectionId_, this);
+		State_.sessionId = connection_id;
+		DeviceRegistry()->StartSession(connection_id, this);
 		WS_ = std::make_unique<Poco::Net::WebSocket>(request,response);
 		CompleteStartup();
 	}
@@ -59,6 +59,9 @@ namespace OpenWifi {
 			}
 			PeerAddress_ = SS->peerAddress().host();
 			CId_ = Utils::FormatIPv6(SS->peerAddress().toString());
+
+			State_.started = OpenWifi::Now();
+
 			if (!SS->secure()) {
 				poco_error(Logger(),fmt::format("CONNECTION({}): Connection is NOT secure. Device is not allowed.", CId_));
 				return delete this;
@@ -174,7 +177,7 @@ namespace OpenWifi {
 	AP_WS_Connection::~AP_WS_Connection() {
 
 		poco_information(Logger(),fmt::format("CONNECTION-CLOSING({}): {}.", CId_, SerialNumber_));
-		auto SessionDeleted = DeviceRegistry()->EndSession(ConnectionId_, this, SerialNumberInt_);
+		auto SessionDeleted = DeviceRegistry()->EndSession(State_.sessionId, this, SerialNumberInt_);
 
 		if (Registered_ && WS_) {
 			Reactor_.removeEventHandler(*WS_,
