@@ -42,13 +42,42 @@ namespace OpenWifi {
 		State_.sessionId = connection_id;
 		DeviceRegistry()->StartSession(connection_id, this);
 		WS_ = std::make_unique<Poco::Net::WebSocket>(request,response);
-		std::thread		Finish{ [this](){ this->CompleteStartup(); }};
-		Finish.detach();
+		if(ConcurrentStartingDevices_<64) {
+			Threaded_=true;
+			std::thread Finish{[this]() { this->CompleteStartup(); }};
+			Finish.detach();
+		} else {
+			Threaded_=false;
+			CompleteStartup();
+		}
 	}
+
+	class ThreadedCounter {
+	  public:
+		ThreadedCounter(bool T, std::atomic_uint64_t &C) :
+			C_(C),
+			Threaded_(T) {
+			if(Threaded_) {
+				C_++;
+			}
+		}
+
+		~ThreadedCounter() {
+			if(Threaded_) {
+				C_--;
+			}
+		}
+
+	  private:
+		std::atomic_uint64_t 	&C_;
+		bool 					Threaded_;
+	};
 
 	void AP_WS_Connection::CompleteStartup() {
 
 		std::lock_guard Guard(Mutex_);
+		auto TC = ThreadedCounter(Threaded_,ConcurrentStartingDevices_);
+
 		try {
 			auto SockImpl = dynamic_cast<Poco::Net::WebSocketImpl *>(WS_->impl());
 			auto SS = dynamic_cast<Poco::Net::SecureStreamSocketImpl*>(SockImpl->streamSocketImpl());
@@ -67,7 +96,7 @@ namespace OpenWifi {
 				poco_error(Logger(),fmt::format("CONNECTION({}): Connection is NOT secure. Device is not allowed.", CId_));
 				return delete this;
 			} else {
-				poco_trace(Logger(),fmt::format("CONNECTION({}): Connection is secure.", CId_));
+				poco_debug(Logger(),fmt::format("CONNECTION({}): Connection is secure.", CId_));
 			}
 
 			if (SS->havePeerCertificate()) {
@@ -76,7 +105,7 @@ namespace OpenWifi {
 					if (AP_WS_Server()->ValidateCertificate(CId_, PeerCert)) {
 						CN_ = Poco::trim(Poco::toLower(PeerCert.commonName()));
 						State_.VerifiedCertificate = GWObjects::VALID_CERTIFICATE;
-						poco_trace(Logger(),fmt::format("CONNECTION({}): Valid certificate: CN={}", CId_, CN_));
+						poco_debug(Logger(),fmt::format("CONNECTION({}): Valid certificate: CN={}", CId_, CN_));
 					} else {
 						State_.VerifiedCertificate = GWObjects::NO_CERTIFICATE;
 						poco_error(Logger(),fmt::format("CONNECTION({}): Device certificate is not valid. Device is not allowed.", CId_));
@@ -107,6 +136,7 @@ namespace OpenWifi {
 												   CId_, CN_));
 				return delete this;
 			}
+
 			WS_->setMaxPayloadSize(BufSize);
 			auto TS = Poco::Timespan(360, 0);
 			WS_->setReceiveTimeout(TS);
@@ -122,7 +152,7 @@ namespace OpenWifi {
 			Reactor_.addEventHandler(*WS_, Poco::NObserver<AP_WS_Connection, Poco::Net::ErrorNotification>(
 											   *this, &AP_WS_Connection::OnSocketError));
 			Registered_ = true;
-			poco_trace(Logger(),fmt::format("CONNECTION({}): completed.", CId_));
+			poco_debug(Logger(),fmt::format("CONNECTION({}): completed. (t={})", CId_, ConcurrentStartingDevices_));
 			return;
 		} catch (const Poco::Net::CertificateValidationException &E) {
 			Logger().error(fmt::format("CONNECTION({}): Poco::CertificateValidationException Certificate Validation failed during connection. Device will have to retry.",
