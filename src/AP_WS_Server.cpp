@@ -39,6 +39,12 @@ namespace OpenWifi {
 	int AP_WS_Server::Start() {
 
 		for(const auto & Svr : ConfigServersList_ ) {
+
+			auto L = MicroService::instance().ConfigGetString("logging.level.ws_server","");
+			if(!L.empty()) {
+				Logger().setLevel(Poco::Logger::parseLevel(L));
+			}
+
 			Logger().notice(fmt::format("Starting: {}:{} Keyfile:{} CertFile: {}", Svr.Address(),
 										Svr.Port(), Svr.KeyFile(), Svr.CertFile()));
 
@@ -137,10 +143,6 @@ namespace OpenWifi {
 		SimulatorEnabled_ = !SimulatorId_.empty();
 		Utils::SetThreadName(ReactorThread_,"dev:react:head");
 
-		auto L = MicroService::instance().ConfigGetString("logging.level.ws_server","");
-		if(!L.empty()) {
-			Logger().setLevel(Poco::Logger::parseLevel(L));
-		}
 		return 0;
 	}
 
