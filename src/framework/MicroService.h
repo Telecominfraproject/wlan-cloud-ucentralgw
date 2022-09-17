@@ -1666,7 +1666,7 @@ namespace OpenWifi {
 
 	    inline const PropertiesFileServerEntry & Host(uint64_t index) { return ConfigServersList_[index]; };
 	    inline uint64_t HostSize() const { return ConfigServersList_.size(); }
-	    inline Poco::Logger &Logger() { if(Log_)
+	    inline Poco::Logger &Logger() const { if(Log_)
                                             return Log_->L;
                                         return Poco::Logger::get("tmp");
                                         };
@@ -1685,7 +1685,7 @@ namespace OpenWifi {
 	    std::recursive_mutex Mutex_;
         std::vector<PropertiesFileServerEntry> ConfigServersList_;
     private:
-        std::unique_ptr<LoggerWrapper>  Log_;
+        mutable std::unique_ptr<LoggerWrapper>  Log_;
 	    // Poco::Logger 		&Logger_;
 	    std::string 		Name_;
         std::string         LoggerPrefix_;
