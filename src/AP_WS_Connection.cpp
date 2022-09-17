@@ -535,7 +535,7 @@ namespace OpenWifi {
 			Op = flags & Poco::Net::WebSocket::FRAME_OP_BITMASK;
 
 			if (IncomingSize == 0 && flags == 0 && Op == 0) {
-				poco_information(Logger(), fmt::format("DISCONNECT({}): device has disconnected.", CId_));
+				poco_information(Logger(), fmt::format("DISCONNECT({}): device has disconnected. Session={}", CId_, State_.sessionId));
 				return delete this;
 			}
 
@@ -622,60 +622,69 @@ namespace OpenWifi {
 				} break;
 			}
 		} catch (const Poco::Net::ConnectionResetException &E) {
-			poco_warning(Logger(), fmt::format("ConnectionResetException({}): Text:{} Payload:{}",
+			poco_warning(Logger(), fmt::format("ConnectionResetException({}): Text:{} Payload:{} Session:{}",
 				CId_,
 				E.displayText(),
-			   	IncomingFrame.begin()==nullptr ? "" : IncomingFrame.begin() ));
+			   	IncomingFrame.begin()==nullptr ? "" : IncomingFrame.begin(),
+			    State_.sessionId));
 			return delete this;
 		} catch (const Poco::JSON::JSONException &E) {
-			poco_warning(Logger(), fmt::format("JSONException({}): Text:{} Payload:{}",
+			poco_warning(Logger(), fmt::format("JSONException({}): Text:{} Payload:{} Session:{}",
 		   		CId_,
 			   	E.displayText(),
-			   	IncomingFrame.begin()==nullptr ? "" : IncomingFrame.begin()));
+			   	IncomingFrame.begin()==nullptr ? "" : IncomingFrame.begin(),
+											   State_.sessionId));
 		} catch (const Poco::Net::WebSocketException &E) {
-			poco_warning(Logger(), fmt::format("WebSocketException({}): Text:{} Payload:{}",
+			poco_warning(Logger(), fmt::format("WebSocketException({}): Text:{} Payload:{} Session:{}",
 				CId_,
 				E.displayText(),
-				IncomingFrame.begin()==nullptr ? "" : IncomingFrame.begin()));
+				IncomingFrame.begin()==nullptr ? "" : IncomingFrame.begin(),
+											   State_.sessionId));
 			return delete this;
 		} catch (const Poco::Net::SSLConnectionUnexpectedlyClosedException &E) {
-			poco_warning(Logger(), fmt::format("SSLConnectionUnexpectedlyClosedException({}): Text:{} Payload:{}",
+			poco_warning(Logger(), fmt::format("SSLConnectionUnexpectedlyClosedException({}): Text:{} Payload:{} Session:{}",
 				CId_,
 				E.displayText(),
-				IncomingFrame.begin()==nullptr ? "" : IncomingFrame.begin()));
+				IncomingFrame.begin()==nullptr ? "" : IncomingFrame.begin(),
+											   State_.sessionId));
 			return delete this;
 		} catch (const Poco::Net::SSLException &E) {
-			poco_warning(Logger(), fmt::format("SSLException({}): Text:{} Payload:{}",
+			poco_warning(Logger(), fmt::format("SSLException({}): Text:{} Payload:{} Session:{}",
 				CId_,
 				E.displayText(),
-				IncomingFrame.begin()==nullptr ? "" : IncomingFrame.begin()));
+				IncomingFrame.begin()==nullptr ? "" : IncomingFrame.begin(),
+											   State_.sessionId));
 			return delete this;
 		} catch (const Poco::Net::NetException &E) {
-			poco_warning(Logger(), fmt::format("NetException({}): Text:{} Payload:{}",
+			poco_warning(Logger(), fmt::format("NetException({}): Text:{} Payload:{} Session:{}",
 				CId_,
 				E.displayText(),
-				IncomingFrame.begin()==nullptr ? "" : IncomingFrame.begin()));
+				IncomingFrame.begin()==nullptr ? "" : IncomingFrame.begin(),
+											   State_.sessionId));
 			return delete this;
 		} catch (const Poco::IOException &E) {
-			poco_warning(Logger(), fmt::format("IOException({}): Text:{} Payload:{}",
+			poco_warning(Logger(), fmt::format("IOException({}): Text:{} Payload:{} Session:{}",
 				CId_,
 				E.displayText(),
-				IncomingFrame.begin()==nullptr ? "" : IncomingFrame.begin()));
+				IncomingFrame.begin()==nullptr ? "" : IncomingFrame.begin(),
+											   State_.sessionId));
 			return delete this;
 		} catch (const Poco::Exception &E) {
-			poco_warning(Logger(), fmt::format("Exception({}): Text:{} Payload:{}",
+			poco_warning(Logger(), fmt::format("Exception({}): Text:{} Payload:{} Session:{}",
 				CId_,
 				E.displayText(),
-				IncomingFrame.begin()==nullptr ? "" : IncomingFrame.begin()));
+				IncomingFrame.begin()==nullptr ? "" : IncomingFrame.begin(),
+											   State_.sessionId));
 			return delete this;
 		} catch (const std::exception &E) {
-			poco_warning(Logger(), fmt::format("std::exception({}): Text:{} Payload:{}",
+			poco_warning(Logger(), fmt::format("std::exception({}): Text:{} Payload:{} Session:{}",
 				CId_,
 				E.what(),
-				IncomingFrame.begin()==nullptr ? "" : IncomingFrame.begin()));
+				IncomingFrame.begin()==nullptr ? "" : IncomingFrame.begin(),
+											   State_.sessionId));
 			return delete this;
 		} catch (...) {
-			poco_error(Logger(),fmt::format("UnknownException({}): Device must be disconnected. Unknown exception.", CId_));
+			poco_error(Logger(),fmt::format("UnknownException({}): Device must be disconnected. Unknown exception.  Session:{}", CId_, State_.sessionId));
 			return delete this;
 		}
 
