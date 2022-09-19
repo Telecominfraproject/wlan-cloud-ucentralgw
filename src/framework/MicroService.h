@@ -3051,6 +3051,7 @@ namespace OpenWifi {
 			Pool_.stopAll();
 	        Pool_.joinAll();
 	        RESTServers_.clear();
+			Logger().information("Stopped...");
 	    }
 
 
@@ -3185,6 +3186,7 @@ namespace OpenWifi {
 	            svr->stop();
 			Pool_.stopAll();
 			Pool_.joinAll();
+			Logger().information("Stopped...");
 	    }
 
 	    inline void reinitialize(Poco::Util::Application &self) override;
