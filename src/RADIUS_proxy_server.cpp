@@ -76,6 +76,7 @@ namespace OpenWifi {
 
 	void RADIUS_proxy_server::Stop() {
 		if(enabled_ && running_) {
+			poco_information(Logger(),"Stopping...");
 			RadiusReactor_.removeEventHandler(
 				*AuthenticationSocketV4_,
 				Poco::NObserver<RADIUS_proxy_server, Poco::Net::ReadableNotification>(
@@ -110,6 +111,7 @@ namespace OpenWifi {
 			RadiusReactorThread_.join();
 			enabled_=false;
 			running_=false;
+			poco_information(Logger(),"Stopped...");
 		}
 	}
 
