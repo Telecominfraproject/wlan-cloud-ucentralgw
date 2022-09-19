@@ -23,6 +23,11 @@
 #include <queue>
 #include <variant>
 
+
+// This must be defined for poco_debug and poco_trace macros to function.
+
+#define POCO_LOG_DEBUG true
+
 namespace OpenWifi {
     inline uint64_t Now() { return std::time(nullptr); };
 }

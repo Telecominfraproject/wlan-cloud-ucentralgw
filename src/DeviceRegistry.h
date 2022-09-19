@@ -56,12 +56,6 @@ namespace OpenWifi {
 
 		bool SendFrame(std::uint64_t SerialNumber, const std::string & Payload) const ;
 
-/*		inline void SetPendingUUID(const std::string & SerialNumber, uint64_t PendingUUID) {
-			return SetPendingUUID(Utils::SerialNumberToInt(SerialNumber), PendingUUID);
-		}
-
-		void SetPendingUUID(std::uint64_t SerialNumber, std::uint64_t PendingUUID);
-*/
 		bool SendRadiusAuthenticationData(const std::string & SerialNumber, const unsigned char * buffer, std::size_t size);
 		bool SendRadiusAccountingData(const std::string & SerialNumber, const unsigned char * buffer, std::size_t size);
 		bool SendRadiusCoAData(const std::string & SerialNumber, const unsigned char * buffer, std::size_t size);

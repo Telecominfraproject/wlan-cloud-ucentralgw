@@ -95,10 +95,10 @@ namespace OpenWifi {
 			State_.started = OpenWifi::Now();
 
 			if (!SS->secure()) {
-				Logger_.error(fmt::format("CONNECTION({}): Connection is NOT secure. Device is not allowed.", CId_));
+				poco_error(Logger_,fmt::format("CONNECTION({}): Connection is NOT secure. Device is not allowed.", CId_));
 				return delete this;
 			} else {
-				Logger_.debug(fmt::format("CONNECTION({}): Connection is secure.", CId_));
+				poco_debug(Logger_,fmt::format("CONNECTION({}): Connection is secure.", CId_));
 			}
 
 			if (SS->havePeerCertificate()) {
@@ -107,25 +107,25 @@ namespace OpenWifi {
 					if (AP_WS_Server()->ValidateCertificate(CId_, PeerCert)) {
 						CN_ = Poco::trim(Poco::toLower(PeerCert.commonName()));
 						State_.VerifiedCertificate = GWObjects::VALID_CERTIFICATE;
-						Logger_.debug(fmt::format("CONNECTION({}): Valid certificate: CN={}", CId_, CN_));
+						poco_debug(Logger_,fmt::format("CONNECTION({}): Valid certificate: CN={}", CId_, CN_));
 					} else {
 						State_.VerifiedCertificate = GWObjects::NO_CERTIFICATE;
-						Logger_.error(fmt::format("CONNECTION({}): Device certificate is not valid. Device is not allowed.", CId_));
+						poco_error(Logger_,fmt::format("CONNECTION({}): Device certificate is not valid. Device is not allowed.", CId_));
 						return delete this;
 					}
 				} catch (const Poco::Exception &E) {
 					LogException(E);
-					Logger_.error(fmt::format("CONNECTION({}): Device certificate is not valid. Device is not allowed.", CId_));
+					poco_error(Logger_,fmt::format("CONNECTION({}): Device certificate is not valid. Device is not allowed.", CId_));
 					return delete this;
 				}
 			} else {
 				State_.VerifiedCertificate = GWObjects::NO_CERTIFICATE;
-				Logger_.error(fmt::format("CONNECTION({}): No certificates available..", CId_));
+				poco_error(Logger_,fmt::format("CONNECTION({}): No certificates available..", CId_));
 				return delete this;
 			}
 
 			if (AP_WS_Server::IsSim(CN_) && !AP_WS_Server()->IsSimEnabled()) {
-				Logger_.warning(fmt::format(
+				poco_warning(Logger_,fmt::format(
 					"CONNECTION({}): Sim Device {} is not allowed. Disconnecting.", CId_, CN_));
 				return delete this;
 			}
@@ -134,7 +134,7 @@ namespace OpenWifi {
 			SerialNumberInt_ = Utils::SerialNumberToInt(SerialNumber_);
 
 			if (!CN_.empty() && StorageService()->IsBlackListed(SerialNumber_)) {
-				Logger_.warning(fmt::format("CONNECTION({}): Device {} is black listed. Disconnecting.",
+				poco_warning(Logger_,fmt::format("CONNECTION({}): Device {} is black listed. Disconnecting.",
 												   CId_, CN_));
 				return delete this;
 			}
@@ -154,39 +154,39 @@ namespace OpenWifi {
 			Reactor_.addEventHandler(*WS_, Poco::NObserver<AP_WS_Connection, Poco::Net::ErrorNotification>(
 											   *this, &AP_WS_Connection::OnSocketError));
 			Registered_ = true;
-			Logger_.debug(fmt::format("CONNECTION({}): completed. (t={})", CId_, ConcurrentStartingDevices_));
+			poco_debug(Logger_,fmt::format("CONNECTION({}): completed. (t={})", CId_, ConcurrentStartingDevices_));
 			return;
 		} catch (const Poco::Net::CertificateValidationException &E) {
-			Logger_.error(fmt::format("CONNECTION({}): Poco::CertificateValidationException Certificate Validation failed during connection. Device will have to retry.",
+			poco_error(Logger_,fmt::format("CONNECTION({}): Poco::CertificateValidationException Certificate Validation failed during connection. Device will have to retry.",
 										CId_));
 			Logger_.log(E);
 		} catch (const Poco::Net::WebSocketException &E) {
-			Logger_.error(fmt::format("CONNECTION({}): Poco::WebSocketException WebSocket error during connection. Device will have to retry.",
+			poco_error(Logger_,fmt::format("CONNECTION({}): Poco::WebSocketException WebSocket error during connection. Device will have to retry.",
 										CId_));
 			Logger_.log(E);
 		} catch (const Poco::Net::ConnectionAbortedException &E) {
-			Logger_.error(fmt::format("CONNECTION({}): Poco::ConnectionAbortedException Connection was aborted during connection. Device will have to retry.",
+			poco_error(Logger_,fmt::format("CONNECTION({}): Poco::ConnectionAbortedException Connection was aborted during connection. Device will have to retry.",
 										CId_));
 			Logger_.log(E);
 		} catch (const Poco::Net::ConnectionResetException &E) {
-			Logger_.error(fmt::format("CONNECTION({}): Poco::ConnectionResetException Connection was reset during connection. Device will have to retry.",
+			poco_error(Logger_,fmt::format("CONNECTION({}): Poco::ConnectionResetException Connection was reset during connection. Device will have to retry.",
 										CId_));
 			Logger_.log(E);
 		} catch (const Poco::Net::InvalidCertificateException &E) {
-			Logger_.error(fmt::format(
+			poco_error(Logger_,fmt::format(
 				"CONNECTION({}): Poco::InvalidCertificateException Invalid certificate. Device will have to retry.",
 				CId_));
 			Logger_.log(E);
 		} catch (const Poco::Net::SSLException &E) {
-			Logger_.error(fmt::format("CONNECTION({}): Poco::SSLException SSL Exception during connection. Device will have to retry.",
+			poco_error(Logger_,fmt::format("CONNECTION({}): Poco::SSLException SSL Exception during connection. Device will have to retry.",
 										CId_));
 			Logger_.log(E);
 		} catch (const Poco::Exception &E) {
-			Logger_.error(fmt::format("CONNECTION({}): Poco::Exception caught during device connection. Device will have to retry.",
+			poco_error(Logger_,fmt::format("CONNECTION({}): Poco::Exception caught during device connection. Device will have to retry.",
 										CId_));
 			Logger_.log(E);
 		} catch (...) {
-			Logger_.error(fmt::format("CONNECTION({}): Exception caught during device connection. Device will have to retry. Unsecure connect denied.",
+			poco_error(Logger_,fmt::format("CONNECTION({}): Exception caught during device connection. Device will have to retry. Unsecure connect denied.",
 										CId_));
 		}
 		return delete this;

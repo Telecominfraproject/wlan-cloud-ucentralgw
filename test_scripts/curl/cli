@@ -306,7 +306,8 @@ getdevicestatus() {
 
 getdevicecomplete() {
 	curl  ${FLAGS} -X GET "https://${OWGW}/api/v1/device/$1?completeInfo=true" \
-		-H  "accept: application/json" \
+		-H "Content-Type: application/json" \
+		-H "Accept: application/json" \
 		-H "Authorization: Bearer ${token}"  > ${result_file}
 	jq < ${result_file}
 }
