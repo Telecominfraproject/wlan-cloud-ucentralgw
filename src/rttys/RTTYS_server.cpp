@@ -104,7 +104,7 @@ namespace OpenWifi {
 	}
 
 	void RTTYS_server::onTimer([[maybe_unused]] Poco::Timer & timer) {
-		poco_debug(Logger(),"Removing stale connections.");
+		poco_trace(Logger(),"Removing stale connections.");
 		Utils::SetThreadName("rt:janitor");
 		static auto LastStats = OpenWifi::Now();
 

@@ -89,6 +89,7 @@ namespace OpenWifi {
 		inline bool UseDefaults() const { return UseDefaultConfig_; }
 
 		[[nodiscard]] inline Poco::Net::SocketReactor & NextReactor() { return Reactor_pool_->NextReactor(); }
+		[[nodiscard]] inline bool Running() const { return Running_; }
 
 	  private:
 		std::unique_ptr<Poco::Crypto::X509Certificate>		IssuerCert_;
@@ -101,6 +102,7 @@ namespace OpenWifi {
 		bool 												UseDefaultConfig_ = true;
 		bool 												SimulatorEnabled_=false;
 		std::unique_ptr<AP_WS_ReactorThreadPool>			Reactor_pool_;
+		std::atomic_bool 									Running_=false;
 
 		AP_WS_Server() noexcept:
 			SubSystemServer("WebSocketServer", "WS-SVR", "ucentral.websocket") {

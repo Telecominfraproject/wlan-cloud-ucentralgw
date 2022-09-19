@@ -201,7 +201,6 @@ namespace OpenWifi {
 		}
 
 		inline void Stop() {
-			std::unique_lock	G(Mutex_);
 			TryAgain_ = false;
 			Disconnect();
 			ReconnectorThr_.wakeUp();

@@ -8,7 +8,7 @@
 namespace OpenWifi {
 	void AP_WS_Connection::Process_telemetry(Poco::JSON::Object::Ptr ParamsObj) {
 		if (!State_.Connected) {
-			poco_warning(Logger(), fmt::format(
+			poco_warning(Logger_, fmt::format(
 									   "INVALID-PROTOCOL({}): Device '{}' is not following protocol", CId_, CN_));
 			Errors_++;
 			return;
@@ -42,11 +42,11 @@ namespace OpenWifi {
 					}
 				}
 			} else {
-				poco_debug(Logger(),fmt::format("TELEMETRY({}): Invalid telemetry packet.",SerialNumber_));
+				poco_debug(Logger_,fmt::format("TELEMETRY({}): Invalid telemetry packet.",SerialNumber_));
 			}
 		} else {
 			// if we are ignoring telemetry, then close it down on the device.
-			poco_debug(Logger(),fmt::format("TELEMETRY({}): Stopping runaway telemetry.",SerialNumber_));
+			poco_debug(Logger_,fmt::format("TELEMETRY({}): Stopping runaway telemetry.",SerialNumber_));
 			StopTelemetry();
 		}
 	}

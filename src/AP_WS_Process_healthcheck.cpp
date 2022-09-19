@@ -9,7 +9,7 @@ namespace OpenWifi {
 
 void AP_WS_Connection::Process_healthcheck(Poco::JSON::Object::Ptr ParamsObj) {
 	if (!State_.Connected) {
-		poco_warning(Logger(), fmt::format(
+		poco_warning(Logger_, fmt::format(
 								   "INVALID-PROTOCOL({}): Device '{}' is not following protocol", CId_, CN_));
 		Errors_++;
 		return;
@@ -27,10 +27,10 @@ void AP_WS_Connection::Process_healthcheck(Poco::JSON::Object::Ptr ParamsObj) {
 			request_uuid = ParamsObj->get(uCentralProtocol::REQUEST_UUID).toString();
 
 		if (request_uuid.empty()) {
-			poco_trace(Logger(),
+			poco_trace(Logger_,
 					   fmt::format("HEALTHCHECK({}): UUID={} Updating.", CId_, UUID));
 		} else {
-			poco_trace(Logger(),
+			poco_trace(Logger_,
 					   fmt::format("HEALTHCHECK({}): UUID={} Updating for CMD={}.", CId_,
 								   UUID, request_uuid));
 		}
@@ -62,7 +62,7 @@ void AP_WS_Connection::Process_healthcheck(Poco::JSON::Object::Ptr ParamsObj) {
 			KafkaManager()->PostMessage(KafkaTopics::HEALTHCHECK, SerialNumber_, OS.str());
 		}
 	} else {
-		poco_warning(Logger(), fmt::format("HEALTHCHECK({}): Missing parameter", CId_));
+		poco_warning(Logger_, fmt::format("HEALTHCHECK({}): Missing parameter", CId_));
 		return;
 	}
 }

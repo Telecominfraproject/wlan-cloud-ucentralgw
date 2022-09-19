@@ -77,13 +77,13 @@ void AP_WS_Connection::Process_connect(Poco::JSON::Object::Ptr ParamsObj, const 
 			if ((	Utils::SerialNumberMatch(CN_, SerialNumber_)) ||
 				AP_WS_Server()->IsSimSerialNumber(CN_)) {
 				State_.VerifiedCertificate = GWObjects::VERIFIED;
-				poco_information(Logger(), fmt::format("CONNECT({}): Fully validated and authenticated device. Session={} ConnectionCompletion Time={}",
+				poco_information(Logger_, fmt::format("CONNECT({}): Fully validated and authenticated device. Session={} ConnectionCompletion Time={}",
 													   CId_,
 													   State_.sessionId,
 													   State_.connectionCompletionTime ));
 			} else {
 				State_.VerifiedCertificate = GWObjects::MISMATCH_SERIAL;
-				poco_information(Logger(),
+				poco_information(Logger_,
 								 fmt::format("CONNECT({}): Serial number mismatch. CN={} Serial={} Session={} ConnectionCompletion Time={}",
 									CId_,
 									CN_,
@@ -105,7 +105,7 @@ void AP_WS_Connection::Process_connect(Poco::JSON::Object::Ptr ParamsObj, const 
 			KafkaManager()->PostMessage(KafkaTopics::CONNECTION, SerialNumber_, OS.str());
 		}
 	} else {
-		poco_warning(Logger(),fmt::format("INVALID-PROTOCOL({}): Missing one of uuid, firmware, or capabilities", CId_));
+		poco_warning(Logger_,fmt::format("INVALID-PROTOCOL({}): Missing one of uuid, firmware, or capabilities", CId_));
 		Errors_++;
 	}
 }

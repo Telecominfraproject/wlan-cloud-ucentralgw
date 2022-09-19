@@ -58,7 +58,8 @@ namespace OpenWifi {
 			return 0;
 		}
 
-		ArchiverCallback_ = std::make_unique<Poco::TimerCallback<Archiver>>(Archiver_,&Archiver::onTimer);
+		Archiver_ = std::make_unique<Archiver>(Logger());
+		ArchiverCallback_ = std::make_unique<Poco::TimerCallback<Archiver>>(*Archiver_,&Archiver::onTimer);
 
 		auto Schedule = MicroService::instance().ConfigGetString("archiver.schedule","03:00");
 		auto S = Poco::StringTokenizer(Schedule,":");
@@ -80,7 +81,7 @@ namespace OpenWifi {
 					if(Poco::icompare(DBName,DB)==0) {
 						std::string Key = "archiver.db." + std::to_string(i) + ".keep";
 						auto Keep = MicroService::instance().ConfigGetInt(Key,7);
-						Archiver_.AddDb(Archiver::ArchiverDBEntry{
+						Archiver_->AddDb(Archiver::ArchiverDBEntry{
 							.DBName = DB,
 							.HowManyDays = Keep
 						});

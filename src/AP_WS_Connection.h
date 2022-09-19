@@ -4,6 +4,10 @@
 
 #pragma once
 
+#ifndef POCO_LOG_DEBUG
+#define POCO_LOG_DEBUG true
+#endif
+
 #include <string>
 #include "Poco/Net/SocketReactor.h"
 #include "Poco/Net/StreamSocket.h"
@@ -14,6 +18,7 @@
 
 #include "DeviceRegistry.h"
 #include "RESTObjects/RESTAPI_GWobjects.h"
+
 
 namespace OpenWifi {
 
@@ -102,7 +107,10 @@ namespace OpenWifi {
 		std::string        					LastStats_;
 		GWObjects::HealthCheck				LastHealthcheck_;
 		std::chrono::time_point<std::chrono::high_resolution_clock> ConnectionStart_ = std::chrono::high_resolution_clock::now();
-		std::chrono::duration<double, std::milli> ConnectionCompletionTime_;
+		std::chrono::duration<double, std::milli> ConnectionCompletionTime_{0.0};
+		bool 								Threaded_=false;
+
+		static inline std::atomic_uint64_t 	ConcurrentStartingDevices_=0;
 
 		void CompleteStartup();
 		bool StartTelemetry();

@@ -39,6 +39,7 @@ namespace OpenWifi {
 	int AP_WS_Server::Start() {
 
 		for(const auto & Svr : ConfigServersList_ ) {
+
 			Logger().notice(fmt::format("Starting: {}:{} Keyfile:{} CertFile: {}", Svr.Address(),
 										Svr.Port(), Svr.KeyFile(), Svr.CertFile()));
 
@@ -137,11 +138,13 @@ namespace OpenWifi {
 		SimulatorEnabled_ = !SimulatorId_.empty();
 		Utils::SetThreadName(ReactorThread_,"dev:react:head");
 
+		Running_ = true;
 		return 0;
 	}
 
 	void AP_WS_Server::Stop() {
-		Logger().notice("Stopping reactors...");
+		poco_information(Logger(),"Stopping...");
+		Running_ = false;
 
 		for(auto &server:WebServers_) {
 			server->stopAll();
@@ -149,6 +152,7 @@ namespace OpenWifi {
 		Reactor_pool_->Stop();
 		Reactor_.stop();
 		ReactorThread_.join();
+		poco_information(Logger(),"Stopped...");
 	}
 
 }      //namespace
