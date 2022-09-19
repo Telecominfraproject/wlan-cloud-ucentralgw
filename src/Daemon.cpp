@@ -48,9 +48,9 @@ namespace OpenWifi {
 										StorageArchiver(),
 										TelemetryStream(),
 										RTTYS_server(),
-								   		AP_WS_Server(),
 								   		RADIUS_proxy_server(),
-								   		VenueBroadcaster()
+								   		VenueBroadcaster(),
+									   	AP_WS_Server()
 							   });
         return &instance;
 	}
