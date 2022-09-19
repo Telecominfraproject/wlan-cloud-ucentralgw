@@ -3920,7 +3920,6 @@ namespace OpenWifi {
 		Name_(Name),
 		LoggerPrefix_(LoggingPrefix),
 		SubSystemConfigPrefix_(SubSystemConfigPrefix) {
-		std::cout << "Initializzing logging for " << LoggingPrefix << std::endl;
     }
 
     inline int RESTAPI_ExtServer::Start() {
@@ -4044,6 +4043,7 @@ namespace OpenWifi {
 	    auto i = 0;
 	    bool good = true;
 
+		std::cout << "Initialize logging: " << SubSystemConfigPrefix_ << std::endl;
         Logger_ = std::make_unique<LoggerWrapper>(Poco::Logger::create(LoggerPrefix_, Poco::Logger::root().getChannel(), Poco::Logger::root().getLevel()));
 
 	    ConfigServersList_.clear();
