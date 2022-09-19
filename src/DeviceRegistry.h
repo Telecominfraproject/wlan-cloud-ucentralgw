@@ -69,7 +69,7 @@ namespace OpenWifi {
 			std::unique_lock	G(LocalMutex_);
 			auto Hint = Sessions_.find(connection_id);
 			if(Hint!=Sessions_.end() && Hint->second==connection) {
-				Logger().information(fmt::format("Starting session {}, serial {}.", connection_id, Utils::IntToSerialNumber(SerialNumber)));
+				poco_debug(Logger(),fmt::format("Starting session {}, serial {}.", connection_id, Utils::IntToSerialNumber(SerialNumber)));
 				SerialNumbers_[SerialNumber] = std::make_pair(connection_id,connection);
 			}
 		}

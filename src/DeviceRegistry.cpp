@@ -14,7 +14,7 @@ namespace OpenWifi {
 
 	int DeviceRegistry::Start() {
 		std::lock_guard		Guard(Mutex_);
-        Logger().notice("Starting ");
+		poco_notice(Logger(),"Starting");
 
 		ArchiverCallback_ = std::make_unique<Poco::TimerCallback<DeviceRegistry>>(*this,&DeviceRegistry::onConnectionJanitor);
 		Timer_.setStartInterval(60 * 1000);
@@ -27,7 +27,7 @@ namespace OpenWifi {
     void DeviceRegistry::Stop() {
 		std::lock_guard		Guard(Mutex_);
 		Timer_.stop();
-        Logger().notice("Stopping...");
+		poco_notice(Logger(),"Stopping...");
     }
 
 	void DeviceRegistry::onConnectionJanitor([[maybe_unused]] Poco::Timer &timer) {
@@ -56,14 +56,14 @@ namespace OpenWifi {
 			AverageDeviceConnectionTime_ = (NumberOfConnectedDevices_!=0) ? total_connected_time/NumberOfConnectedDevices_ : 0;
 			if((now-last_log)>120) {
 				last_log = now;
-				Logger().information(
+				poco_information(Logger(),
 					fmt::format("Active AP connections: {} Average connection time: {} seconds",
 								NumberOfConnectedDevices_, AverageDeviceConnectionTime_));
 			}
 		}
 
 		for(auto [serial_number,ws_connection,id]:connections) {
-			Logger().information(fmt::format("Removing orphaned AP Session {} for {}", id, Utils::IntToSerialNumber(serial_number)));
+			poco_information(Logger(),fmt::format("Removing orphaned AP Session {} for {}", id, Utils::IntToSerialNumber(serial_number)));
 			// delete ws_connection;
 		}
 	}
@@ -100,11 +100,11 @@ namespace OpenWifi {
 
 		if(	(hint != end(SerialNumbers_)) &&
 			(connection_id == hint->second.second->State_.sessionId)) {
-			Logger().information(fmt::format("Ending session {}, serial {}.", connection_id, Utils::IntToSerialNumber(serial_number)));
+			poco_debug(Logger(),fmt::format("Ending session {}, serial {}.", connection_id, Utils::IntToSerialNumber(serial_number)));
 			SerialNumbers_.erase(serial_number);
 			SessionDeleted = true;
 		} else {
-			Logger().information(fmt::format("Not Ending session {}, serial {}. This is an old session.", connection_id, Utils::IntToSerialNumber(serial_number)));
+			poco_debug(Logger(),fmt::format("Not Ending session {}, serial {}. This is an old session.", connection_id, Utils::IntToSerialNumber(serial_number)));
 		}
 		Sessions_.erase(connection_id);
 		return SessionDeleted;
@@ -136,7 +136,7 @@ namespace OpenWifi {
 			// std::cout << "Device connection pointer: " << (std::uint64_t) Device->second.second << std::endl;
 			return Device->second.second->Send(Payload);
 		} catch (...) {
-			Logger().debug(fmt::format(": SendFrame: Could not send data to device '{}'", Utils::IntToSerialNumber(SerialNumber)));
+			poco_debug(Logger(),fmt::format(": SendFrame: Could not send data to device '{}'", Utils::IntToSerialNumber(SerialNumber)));
 		}
 		return false;
 	}
@@ -209,7 +209,7 @@ namespace OpenWifi {
 		try {
 			return Device->second.second->SendRadiusAccountingData(buffer,size);
 		} catch (...) {
-			Logger().debug(fmt::format(": SendRadiusAuthenticationData: Could not send data to device '{}'", SerialNumber));
+			poco_debug(Logger(),fmt::format(": SendRadiusAuthenticationData: Could not send data to device '{}'", SerialNumber));
 		}
 		return false;
 	}
@@ -223,7 +223,7 @@ namespace OpenWifi {
 		try {
 			return Device->second.second->SendRadiusAuthenticationData(buffer,size);
 		} catch (...) {
-			Logger().debug(fmt::format(": SendRadiusAuthenticationData: Could not send data to device '{}'", SerialNumber));
+			poco_debug(Logger(),fmt::format(": SendRadiusAuthenticationData: Could not send data to device '{}'", SerialNumber));
 		}
 		return false;
 	}
@@ -237,19 +237,9 @@ namespace OpenWifi {
 		try {
 			return Device->second.second->SendRadiusCoAData(buffer,size);
 		} catch (...) {
-			Logger().debug(fmt::format(": SendRadiusCoAData: Could not send data to device '{}'", SerialNumber));
+			poco_debug(Logger(),fmt::format(": SendRadiusCoAData: Could not send data to device '{}'", SerialNumber));
 		}
 		return false;
 	}
-
-/*	void DeviceRegistry::SetPendingUUID(uint64_t SerialNumber, uint64_t PendingUUID) {
-		std::unique_lock		Guard(LocalMutex_);
-		auto Device = SerialNumbers_.find(SerialNumber);
-		if(Device==SerialNumbers_.end())
-			return;
-
-		Device->second.second->State_.PendingUUID = PendingUUID;
-	}
-*/
 
 }  // namespace

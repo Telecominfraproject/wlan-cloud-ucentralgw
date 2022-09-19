@@ -93,7 +93,7 @@ namespace OpenWifi {
 			State_.started = OpenWifi::Now();
 
 			if (!SS->secure()) {
-				poco_error(Logger_,fmt::format("CONNECTION({}): Connection is NOT secure. Device is not allowed.", CId_));
+				poco_trace(Logger_,fmt::format("CONNECTION({}): Connection is NOT secure. Device is not allowed.", CId_));
 				return delete this;
 			} else {
 				poco_debug(Logger_,fmt::format("CONNECTION({}): Connection is secure.", CId_));
@@ -105,10 +105,10 @@ namespace OpenWifi {
 					if (AP_WS_Server()->ValidateCertificate(CId_, PeerCert)) {
 						CN_ = Poco::trim(Poco::toLower(PeerCert.commonName()));
 						State_.VerifiedCertificate = GWObjects::VALID_CERTIFICATE;
-						poco_debug(Logger_,fmt::format("CONNECTION({}): Valid certificate: CN={}", CId_, CN_));
+						poco_trace(Logger_,fmt::format("CONNECTION({}): Valid certificate: CN={}", CId_, CN_));
 					} else {
 						State_.VerifiedCertificate = GWObjects::NO_CERTIFICATE;
-						poco_error(Logger_,fmt::format("CONNECTION({}): Device certificate is not valid. Device is not allowed.", CId_));
+						poco_trace(Logger_,fmt::format("CONNECTION({}): Device certificate is not valid. Device is not allowed.", CId_));
 						return delete this;
 					}
 				} catch (const Poco::Exception &E) {
@@ -541,6 +541,10 @@ namespace OpenWifi {
 
 	void AP_WS_Connection::OnSocketReadable([[maybe_unused]] const Poco::AutoPtr<Poco::Net::ReadableNotification> &pNf) {
 		std::lock_guard Guard(Mutex_);
+
+		if(!AP_WS_Server()->Running())
+			return delete this;
+
 		try {
 			return ProcessIncomingFrame();
 		} catch (const Poco::Exception &E) {

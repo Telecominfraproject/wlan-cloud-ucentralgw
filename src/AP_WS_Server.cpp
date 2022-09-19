@@ -138,11 +138,13 @@ namespace OpenWifi {
 		SimulatorEnabled_ = !SimulatorId_.empty();
 		Utils::SetThreadName(ReactorThread_,"dev:react:head");
 
+		Running_ = true;
 		return 0;
 	}
 
 	void AP_WS_Server::Stop() {
 		Logger().notice("Stopping reactors...");
+		Running_ = false;
 
 		for(auto &server:WebServers_) {
 			server->stopAll();
