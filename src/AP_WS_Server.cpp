@@ -42,7 +42,7 @@ namespace OpenWifi {
 
 			auto L = MicroService::instance().ConfigGetString("logging.level.ws_server","");
 			if(!L.empty()) {
-				Logger().setLevel(Poco::Logger::parseLevel(L));
+				SetLoggingLevel(L);
 			}
 
 			Logger().notice(fmt::format("Starting: {}:{} Keyfile:{} CertFile: {}", Svr.Address(),

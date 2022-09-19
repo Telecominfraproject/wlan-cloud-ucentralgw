@@ -1657,7 +1657,7 @@ namespace OpenWifi {
 	    inline void uninitialize() override {
 	    }
 	    inline void reinitialize([[maybe_unused]] Poco::Util::Application &self) override {
-	        Logger().information("Reloading of this subsystem is not supported.");
+	        Logger_.information("Reloading of this subsystem is not supported.");
 	    }
 	    inline void defineOptions([[maybe_unused]] Poco::Util::OptionSet &options) override {
 	    }
@@ -1672,8 +1672,10 @@ namespace OpenWifi {
                                         return Poco::Logger::get("tmp");
                                         };
                                         */
-	    inline void SetLoggingLevel(Poco::Message::Priority NewPriority) { Logger().setLevel(NewPriority); }
-	    inline int GetLoggingLevel() { return Logger().getLevel(); }
+	    inline void SetLoggingLevel(const std::string & levelName) {
+			Logger_.setLevel(Poco::Logger::parseLevel(levelName));
+		}
+	    inline int GetLoggingLevel() { return Logger_.getLevel(); }
 
 	    virtual int Start() = 0;
 	    virtual void Stop() = 0;
@@ -3915,7 +3917,7 @@ namespace OpenWifi {
 
     inline SubSystemServer::SubSystemServer(const std::string &Name, const std::string &LoggingPrefix,
             const std::string &SubSystemConfigPrefix):
-		Logger_(Poco::Logger::get(LoggingPrefix)),
+		Logger_(MicroService::instance().GetLogger(LoggingPrefix)), // Poco::Logger::get(LoggingPrefix)),
 		Name_(Name),
 		LoggerPrefix_(LoggingPrefix),
 		SubSystemConfigPrefix_(SubSystemConfigPrefix) {
