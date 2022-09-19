@@ -2962,7 +2962,7 @@ namespace OpenWifi {
 	            {
 	            }
 
-	            void handleRequest(Poco::Net::HTTPServerRequest& Request, Poco::Net::HTTPServerResponse& Response) override
+	            void handleRequest([[maybe_unused]] Poco::Net::HTTPServerRequest& Request, Poco::Net::HTTPServerResponse& Response) override
 	            {
 					Utils::SetThreadName("alb-request");
 					try {
