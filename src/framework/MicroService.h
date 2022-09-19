@@ -3058,7 +3058,7 @@ namespace OpenWifi {
 	        Logger().information("Stopping...");
 	        for( const auto & svr : RESTServers_ )
 	            svr->stop();
-			Pool_.stopAll();
+			Pool_.stopAll(true);
 	        Pool_.joinAll();
 	        RESTServers_.clear();
 			Logger().information("Stopped...");
@@ -3194,7 +3194,7 @@ namespace OpenWifi {
 	        Logger().information("Stopping...");
 	        for( const auto & svr : RESTServers_ )
 	            svr->stop();
-			Pool_.stopAll();
+			Pool_.stopAll(true);
 			Pool_.joinAll();
 			Logger().information("Stopped...");
 	    }
