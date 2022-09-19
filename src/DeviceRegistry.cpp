@@ -38,8 +38,10 @@ namespace OpenWifi {
 				connections.emplace_back(Session);
 		}
 
-		for(auto &c:connections)
+		for(auto &c:connections) {
+			std::cout << "Deleting connection..." << std::endl;
 			delete c;
+		}
     }
 
 	void DeviceRegistry::onConnectionJanitor([[maybe_unused]] Poco::Timer &timer) {
