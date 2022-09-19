@@ -3276,7 +3276,7 @@ namespace OpenWifi {
 		    return ((RandomEngine_() % (max-min)) + min);
 		}
 
-        inline Poco::Logger & GetLogger(const std::string &Name) {
+/*        inline Poco::Logger & GetLogger(const std::string &Name) {
             static auto initialized = false;
 
             if(!initialized) {
@@ -3285,7 +3285,7 @@ namespace OpenWifi {
             }
             return Poco::Logger::get(Name);
         }
-
+*/
         virtual void GetExtraConfiguration(Poco::JSON::Object & Cfg) {
             Cfg.set("additionalConfiguration",false);
         }
@@ -3553,6 +3553,8 @@ namespace OpenWifi {
         if(!initialized) {
             initialized = true;
             LoadConfigurationFile();
+
+			std::cout << "Initializing logging systems" << std::endl;
 
             auto LoggingDestination = MicroService::instance().ConfigGetString("logging.type", "file");
             auto LoggingFormat = MicroService::instance().ConfigGetString("logging.format",
@@ -3917,10 +3919,11 @@ namespace OpenWifi {
 
     inline SubSystemServer::SubSystemServer(const std::string &Name, const std::string &LoggingPrefix,
             const std::string &SubSystemConfigPrefix):
-		Logger_(MicroService::instance().GetLogger(LoggingPrefix)), // Poco::Logger::get(LoggingPrefix)),
+		Logger_(Poco::Logger::get(LoggingPrefix)),
 		Name_(Name),
 		LoggerPrefix_(LoggingPrefix),
 		SubSystemConfigPrefix_(SubSystemConfigPrefix) {
+		std::cout << "Initializzing logging for " << LoggingPrefix << std::endl;
     }
 
     inline int RESTAPI_ExtServer::Start() {
