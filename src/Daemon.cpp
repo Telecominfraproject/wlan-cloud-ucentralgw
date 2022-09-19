@@ -117,7 +117,11 @@ int main(int argc, char **argv) {
 	} catch (std::exception &exc) {
 		ExitCode = Poco::Util::Application::EXIT_TEMPFAIL;
 		std::cout << exc.what() << std::endl;
+	} catch (...) {
+		ExitCode = Poco::Util::Application::EXIT_TEMPFAIL;
+		std::cout << "Exception on closure" << std::endl;
 	}
+
 	std::cout << "Exitcode: " << ExitCode << std::endl;
 	return ExitCode;
 }
