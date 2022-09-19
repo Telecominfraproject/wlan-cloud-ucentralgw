@@ -1352,17 +1352,17 @@ namespace OpenWifi {
 		inline void exception(const Poco::Exception & E) {
 		    Poco::Thread * CurrentThread = Poco::Thread::current();
 		    App_.logger().log(E);
-		    App_.logger().error(fmt::format("Exception occurred in {}",CurrentThread->getName()));
+		    poco_error(App_.logger(), fmt::format("Exception occurred in {}",CurrentThread->getName()));
 		}
 
 		inline void exception(const std::exception & E) {
 		    Poco::Thread * CurrentThread = Poco::Thread::current();
-		    App_.logger().warning(fmt::format("std::exception in {}: {}",CurrentThread->getName(),E.what()));
+			poco_warning(App_.logger(), fmt::format("std::exception in {}: {}",CurrentThread->getName(),E.what()));
 		}
 
 		inline void exception() {
 		    Poco::Thread * CurrentThread = Poco::Thread::current();
-		    App_.logger().warning(fmt::format("exception in {}",CurrentThread->getName()));
+			poco_warning(App_.logger(), fmt::format("exception in {}",CurrentThread->getName()));
 		}
 	  private:
 		Poco::Util::Application	&App_;
@@ -1836,7 +1836,7 @@ namespace OpenWifi {
 	            E->Count++;
 	            Cache_.update(H,E);
 	            if(E->Count > MaxCalls) {
-	                Logger().warning(fmt::format("RATE-LIMIT-EXCEEDED: from '{}'", R.clientAddress().toString()));
+	                poco_warning(Logger(),fmt::format("RATE-LIMIT-EXCEEDED: from '{}'", R.clientAddress().toString()));
 	                return true;
 	            }
 	            return false;
@@ -2227,7 +2227,7 @@ namespace OpenWifi {
             ErrorObject.set("ErrorDescription",fmt::format("{}: {}",E.err_num,E.err_txt)) ;
 	        std::ostream &Answer = Response->send();
 	        Poco::JSON::Stringifier::stringify(ErrorObject, Answer);
-	        Logger_.debug(fmt::format("RES-NOTFOUND: User='{}@{}' Method='{}' Path='{}",
+			poco_debug(Logger_,fmt::format("RES-NOTFOUND: User='{}@{}' Method='{}' Path='{}",
                                        UserInfo_.userinfo.email,
                                        Utils::FormatIPv6(Request->clientAddress().toString()),
                                        Request->getMethod(),
@@ -2967,7 +2967,7 @@ namespace OpenWifi {
 					Utils::SetThreadName("alb-request");
 					try {
 						if((id_ % 100) == 0) {
-							Logger_.debug(fmt::format("ALB-REQUEST({}): ALB Request {}.",
+							poco_debug(Logger_,fmt::format("ALB-REQUEST({}): ALB Request {}.",
 															Request.clientAddress().toString(), id_));
 						}
 						Response.setChunkedTransferEncoding(true);
@@ -4173,37 +4173,37 @@ namespace OpenWifi {
 	inline void KafkaLoggerFun([[maybe_unused]] cppkafka::KafkaHandleBase & handle, int level, const std::string & facility, const std::string &message) {
 		switch ((cppkafka::LogLevel) level) {
 			case cppkafka::LogLevel::LogNotice: {
-					KafkaManager()->Logger().notice(fmt::format("kafka-log: facility: {} message: {}",facility, message));
+					poco_notice(KafkaManager()->Logger(),fmt::format("kafka-log: facility: {} message: {}",facility, message));
 				}
 				break;
 			case cppkafka::LogLevel::LogDebug: {
-					KafkaManager()->Logger().debug(fmt::format("kafka-log: facility: {} message: {}",facility, message));
+					poco_debug(KafkaManager()->Logger(),fmt::format("kafka-log: facility: {} message: {}",facility, message));
 				}
 				break;
 			case cppkafka::LogLevel::LogInfo: {
-					KafkaManager()->Logger().information(fmt::format("kafka-log: facility: {} message: {}",facility, message));
+					poco_information(KafkaManager()->Logger(),fmt::format("kafka-log: facility: {} message: {}",facility, message));
 				}
 				break;
-				case cppkafka::LogLevel::LogWarning: {
-					KafkaManager()->Logger().warning(fmt::format("kafka-log: facility: {} message: {}",facility, message));
+			case cppkafka::LogLevel::LogWarning: {
+					poco_warning(KafkaManager()->Logger(), fmt::format("kafka-log: facility: {} message: {}",facility, message));
 				}
 				break;
 			case cppkafka::LogLevel::LogAlert:
 			case cppkafka::LogLevel::LogCrit: {
-					KafkaManager()->Logger().critical(fmt::format("kafka-log: facility: {} message: {}",facility, message));
+					poco_critical(KafkaManager()->Logger(),fmt::format("kafka-log: facility: {} message: {}",facility, message));
 				}
 				break;
 			case cppkafka::LogLevel::LogErr:
 			case cppkafka::LogLevel::LogEmerg:
 			default: {
-				KafkaManager()->Logger().error(fmt::format("kafka-log: facility: {} message: {}",facility, message));
+					poco_error(KafkaManager()->Logger(),fmt::format("kafka-log: facility: {} message: {}",facility, message));
 				}
 				break;
 		}
 	}
 
 	inline void KafkaErrorFun([[maybe_unused]] cppkafka::KafkaHandleBase & handle, int error, const std::string &reason) {
-		KafkaManager()->Logger().error(fmt::format("kafka-error: {}, reason: {}", error, reason));
+		poco_error(KafkaManager()->Logger(),fmt::format("kafka-error: {}, reason: {}", error, reason));
 	}
 
 	inline void AddKafkaSecurity(cppkafka::Configuration & Config) {
@@ -4252,11 +4252,11 @@ namespace OpenWifi {
                             cppkafka::MessageBuilder(Msg->Topic()).key(Msg->Key()).payload(Msg->Payload()));
                 }
             } catch (const cppkafka::HandleException &E) {
-                KafkaManager()->Logger().warning(fmt::format("Caught a Kafka exception (producer): {}", E.what()));
+				poco_warning(KafkaManager()->Logger(),fmt::format("Caught a Kafka exception (producer): {}", E.what()));
             } catch( const Poco::Exception &E) {
                 KafkaManager()->Logger().log(E);
             } catch (...) {
-                KafkaManager()->Logger().error("std::exception");
+				poco_error(KafkaManager()->Logger(),"std::exception");
             }
 			Note = Queue_.waitDequeueNotification();
 		}
@@ -4316,7 +4316,7 @@ namespace OpenWifi {
 	                    continue;
 	                if (Msg.get_error()) {
 	                    if (!Msg.is_eof()) {
-	                        KafkaManager()->Logger().error(fmt::format("Error: {}", Msg.get_error().to_string()));
+							poco_error(KafkaManager()->Logger(),fmt::format("Error: {}", Msg.get_error().to_string()));
 	                    }
                         if(!AutoCommit)
 	                        Consumer.async_commit(Msg);
@@ -4327,11 +4327,11 @@ namespace OpenWifi {
 	                    Consumer.async_commit(Msg);
 	            }
 	        } catch (const cppkafka::HandleException &E) {
-	            KafkaManager()->Logger().warning(fmt::format("Caught a Kafka exception (consumer): {}", E.what()));
+				poco_warning(KafkaManager()->Logger(),fmt::format("Caught a Kafka exception (consumer): {}", E.what()));
 	        } catch (const Poco::Exception &E) {
 	            KafkaManager()->Logger().log(E);
             } catch (...) {
-                KafkaManager()->Logger().error("std::exception");
+				poco_error(KafkaManager()->Logger(),"std::exception");
             }
 	    }
 	    Consumer.unsubscribe();
@@ -4783,7 +4783,7 @@ namespace OpenWifi {
 			Contacted = true;
             if(!Allowed) {
                 if(Server_.LogBadTokens(false)) {
-                    Logger_.debug(fmt::format("I-REQ-DENIED({}): Method={} Path={}",
+                    poco_debug(Logger_,fmt::format("I-REQ-DENIED({}): Method={} Path={}",
                                                Utils::FormatIPv6(Request->clientAddress().toString()),
                                                Request->getMethod(), Request->getURI()));
                 }
@@ -4791,7 +4791,7 @@ namespace OpenWifi {
                 auto Id = Request->get("X-INTERNAL-NAME", "unknown");
 				REST_Requester_ = Id;
                 if(Server_.LogIt(Request->getMethod(),true)) {
-                    Logger_.debug(fmt::format("I-REQ-ALLOWED({}): User='{}' Method={} Path={}",
+					poco_debug(Logger_,fmt::format("I-REQ-ALLOWED({}): User='{}' Method={} Path={}",
                                                Utils::FormatIPv6(Request->clientAddress().toString()), Id,
                                                Request->getMethod(), Request->getURI()));
                 }
@@ -4815,7 +4815,7 @@ namespace OpenWifi {
 #endif
 				REST_Requester_ = UserInfo_.userinfo.email;
                 if(Server_.LogIt(Request->getMethod(),true)) {
-                    Logger_.debug(fmt::format("X-REQ-ALLOWED({}): User='{}@{}' Method={} Path={}",
+					poco_debug(Logger_,fmt::format("X-REQ-ALLOWED({}): User='{}@{}' Method={} Path={}",
                                                UserInfo_.userinfo.email,
                                                Utils::FormatIPv6(Request->clientAddress().toString()),
                                                Request->clientAddress().toString(),
@@ -4825,7 +4825,7 @@ namespace OpenWifi {
                 return true;
             } else {
                 if(Server_.LogBadTokens(true)) {
-                    Logger_.debug(fmt::format("X-REQ-DENIED({}): Method={} Path={}",
+					poco_debug(Logger_,fmt::format("X-REQ-DENIED({}): Method={} Path={}",
                                                Utils::FormatIPv6(Request->clientAddress().toString()),
                                                Request->getMethod(), Request->getURI()));
                 }
@@ -5089,7 +5089,7 @@ namespace OpenWifi {
 			auto Op = flags & Poco::Net::WebSocket::FRAME_OP_BITMASK;
 
 			if (n == 0) {
-				Logger().warning(Poco::format("CLOSE(%s): %s UI Client is closing WS connection.", Id_, UserName_));
+				poco_warning(Logger(),Poco::format("CLOSE(%s): %s UI Client is closing WS connection.", Id_, UserName_));
 				return delete this;
 			}
 
@@ -5102,7 +5102,7 @@ namespace OpenWifi {
 			case Poco::Net::WebSocket::FRAME_OP_PONG: {
 			} break;
 			case Poco::Net::WebSocket::FRAME_OP_CLOSE: {
-				Logger().warning(Poco::format("CLOSE(%s): %s UI Client is closing WS connection.", Id_, UserName_));
+				poco_warning(Logger(),Poco::format("CLOSE(%s): %s UI Client is closing WS connection.", Id_, UserName_));
 				Done = true;
 			} break;
 			case Poco::Net::WebSocket::FRAME_OP_TEXT: {
@@ -5115,7 +5115,7 @@ namespace OpenWifi {
 						AuthClient()->IsAuthorized(Tokens[1], UserInfo_, Expired, Contacted)) {
 						Authenticated_ = true;
 						UserName_ = UserInfo_.userinfo.email;
-						Logger().warning(Poco::format("START(%s): %s UI Client is starting WS connection.", Id_, UserName_));
+						poco_warning(Logger(),Poco::format("START(%s): %s UI Client is starting WS connection.", Id_, UserName_));
 						std::string S{"Welcome! Bienvenue! Bienvenidos!"};
 						WS_->sendFrame(S.c_str(), S.size());
 						WebSocketClientServer()->SetUser(Id_, UserInfo_.userinfo.email);
