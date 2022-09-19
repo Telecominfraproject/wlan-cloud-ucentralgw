@@ -2796,9 +2796,11 @@ namespace OpenWifi {
 
 	    inline void Stop() override {
 	        if(KafkaEnabled_) {
+				poco_information(Logger(),"Stopping...");
 				Dispatcher_.Stop();
 	            ProducerThr_.Stop();
 	            ConsumerThr_.Stop();
+				poco_information(Logger(),"Stopped...");
 	            return;
 	        }
 	    }
@@ -3749,7 +3751,7 @@ namespace OpenWifi {
 	    for(auto i:SubSystems_) {
 	        i->Start();
 	    }
-		BusEventManager_ = std::make_unique<BusEventManager>(logger());
+		BusEventManager_ = std::make_unique<BusEventManager>(Poco::Logger::create("BusEventManager",Poco::Logger::root().getChannel(),Poco::Logger::root().getLevel()));
 	    BusEventManager_->Start();
 	}
 
