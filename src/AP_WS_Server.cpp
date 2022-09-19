@@ -40,11 +40,6 @@ namespace OpenWifi {
 
 		for(const auto & Svr : ConfigServersList_ ) {
 
-			auto L = MicroService::instance().ConfigGetString("logging.level.ws_server","information");
-			if(!L.empty()) {
-				SetLoggingLevel(L);
-			}
-
 			Logger().notice(fmt::format("Starting: {}:{} Keyfile:{} CertFile: {}", Svr.Address(),
 										Svr.Port(), Svr.KeyFile(), Svr.CertFile()));
 

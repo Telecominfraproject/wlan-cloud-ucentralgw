@@ -4043,8 +4043,12 @@ namespace OpenWifi {
 	    auto i = 0;
 	    bool good = true;
 
-		std::cout << "Initialize logging: " << LoggerPrefix_ << std::endl;
-        Logger_ = std::make_unique<LoggerWrapper>(Poco::Logger::create(LoggerPrefix_, Poco::Logger::root().getChannel(), Poco::Logger::root().getLevel()));
+		auto NewLevel = MicroService::instance().ConfigGetString("logging.level." + Name_, "");
+		std::cout << "Initialize logging: " << Name_ << ":" << LoggerPrefix_ << ":" << NewLevel << std::endl;
+		if(NewLevel.empty())
+        	Logger_ = std::make_unique<LoggerWrapper>(Poco::Logger::create(LoggerPrefix_, Poco::Logger::root().getChannel(), Poco::Logger::root().getLevel()));
+		else
+			Logger_ = std::make_unique<LoggerWrapper>(Poco::Logger::create(LoggerPrefix_, Poco::Logger::root().getChannel(), Poco::Logger::parseLevel(NewLevel)));
 
 	    ConfigServersList_.clear();
 	    while (good) {
