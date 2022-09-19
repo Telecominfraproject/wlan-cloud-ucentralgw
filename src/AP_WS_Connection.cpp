@@ -306,6 +306,8 @@ namespace OpenWifi {
 
 	void AP_WS_Connection::ProcessJSONRPCEvent(Poco::JSON::Object::Ptr &Doc) {
 
+		std::cout << "Logger:" << Logger_.name() << ":" << Utils::LogLevelToString(Logger_.getLevel()) << std::endl;
+
 		auto Method = Doc->get(uCentralProtocol::METHOD).toString();
 		auto EventType = uCentralProtocol::Events::EventFromString(Method);
 		if (EventType == uCentralProtocol::Events::ET_UNKNOWN) {

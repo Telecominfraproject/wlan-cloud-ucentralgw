@@ -49,13 +49,13 @@ namespace OpenWifi {
 				bool Sent;
 				CommandManager()->PostCommand(CommandManager()->NextRPCId(),SerialNumber_, Cmd.Command, Params, Cmd.UUID, Sent);
 				StorageService()->AddCommand(SerialNumber_, Cmd, Storage::COMMAND_EXECUTED);
-				poco_information(Logger(), fmt::format("RECOVERY({}): Recovery mode received, need for a reboot.", CId_));
+				poco_information(Logger_, fmt::format("RECOVERY({}): Recovery mode received, need for a reboot.", CId_));
 			} else {
-				poco_information(Logger(), fmt::format(
+				poco_information(Logger_, fmt::format(
 											   "RECOVERY({}): Recovery mode received, no need for a reboot.", CId_));
 			}
 		} else {
-			poco_warning(Logger(), fmt::format("RECOVERY({}): Recovery missing one of serialnumber, firmware, uuid, loglines, reboot",
+			poco_warning(Logger_, fmt::format("RECOVERY({}): Recovery missing one of serialnumber, firmware, uuid, loglines, reboot",
 											   CId_));
 		}
 	}
