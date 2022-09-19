@@ -4,6 +4,10 @@
 
 #pragma once
 
+#ifndef POCO_LOG_DEBUG
+#define POCO_LOG_DEBUG true
+#endif
+
 #include <string>
 #include "Poco/Net/SocketReactor.h"
 #include "Poco/Net/StreamSocket.h"
@@ -15,9 +19,6 @@
 #include "DeviceRegistry.h"
 #include "RESTObjects/RESTAPI_GWobjects.h"
 
-#ifndef POCO_LOG_DEBUG
-#define POCO_LOG_DEBUG true
-#endif
 
 namespace OpenWifi {
 
