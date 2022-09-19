@@ -95,10 +95,10 @@ namespace OpenWifi {
 			State_.started = OpenWifi::Now();
 
 			if (!SS->secure()) {
-				Logger_.error(fmt::format("CONNECTION({}): Connection is NOT secure. Device is not allowed.", CId_)));
+				Logger_.error(fmt::format("CONNECTION({}): Connection is NOT secure. Device is not allowed.", CId_));
 				return delete this;
 			} else {
-				Logger_.debug(fmt::format("CONNECTION({}): Connection is secure.", CId_)));
+				Logger_.debug(fmt::format("CONNECTION({}): Connection is secure.", CId_));
 			}
 
 			if (SS->havePeerCertificate()) {
