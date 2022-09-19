@@ -98,11 +98,11 @@ namespace OpenWifi {
 			RadiusReactor_.removeEventHandler(
 				*CoASocketV4_,
 				Poco::NObserver<RADIUS_proxy_server, Poco::Net::ReadableNotification>(
-					*this, &RADIUS_proxy_server::OnAccountingSocketReadable));
+					*this, &RADIUS_proxy_server::OnCoASocketReadable));
 			RadiusReactor_.removeEventHandler(
 				*CoASocketV6_,
 				Poco::NObserver<RADIUS_proxy_server, Poco::Net::ReadableNotification>(
-					*this, &RADIUS_proxy_server::OnAccountingSocketReadable));
+					*this, &RADIUS_proxy_server::OnCoASocketReadable));
 
 			for(auto &[_,radsec_server]:RADSECservers_)
 				radsec_server->Stop();
