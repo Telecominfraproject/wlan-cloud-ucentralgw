@@ -3027,7 +3027,7 @@ namespace OpenWifi {
 	    inline void Stop() override {
 			poco_information(Logger(),"Stopping...");
 	        if(Running_)
-	            Server_->stop();
+	            Server_->stopA(true);
 			poco_information(Logger(),"Stopped...");
 	    }
 
@@ -3057,8 +3057,8 @@ namespace OpenWifi {
 	    inline void Stop() override {
 	        Logger().information("Stopping...");
 	        for( const auto & svr : RESTServers_ )
-	            svr->stop();
-			Pool_.stopAll(true);
+	            svr->stopAll(true);
+			Pool_.stopAll();
 	        Pool_.joinAll();
 	        RESTServers_.clear();
 			Logger().information("Stopped...");
@@ -3193,8 +3193,8 @@ namespace OpenWifi {
 	    inline void Stop() override {
 	        Logger().information("Stopping...");
 	        for( const auto & svr : RESTServers_ )
-	            svr->stop();
-			Pool_.stopAll(true);
+	            svr->stopAll(true);
+			Pool_.stopAll();
 			Pool_.joinAll();
 			Logger().information("Stopped...");
 	    }
