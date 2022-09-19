@@ -1657,7 +1657,7 @@ namespace OpenWifi {
 	    inline void uninitialize() override {
 	    }
 	    inline void reinitialize([[maybe_unused]] Poco::Util::Application &self) override {
-	        Logger_.information("Reloading of this subsystem is not supported.");
+	        Logger_->L_.information("Reloading of this subsystem is not supported.");
 	    }
 	    inline void defineOptions([[maybe_unused]] Poco::Util::OptionSet &options) override {
 	    }
@@ -1666,34 +1666,30 @@ namespace OpenWifi {
 
 	    inline const PropertiesFileServerEntry & Host(uint64_t index) { return ConfigServersList_[index]; };
 	    inline uint64_t HostSize() const { return ConfigServersList_.size(); }
-		inline Poco::Logger & Logger() const { return Logger_; }
-/*	    inline Poco::Logger &Logger() const { if(Log_)
-                                            return Log_->L;
-                                        return Poco::Logger::get("tmp");
-                                        };
-                                        */
+		inline Poco::Logger & Logger() const { return Logger_->L_; }
 	    inline void SetLoggingLevel(const std::string & levelName) {
-			Logger_.setLevel(Poco::Logger::parseLevel(levelName));
+			Logger_->L_.setLevel(Poco::Logger::parseLevel(levelName));
 		}
-	    inline int GetLoggingLevel() { return Logger_.getLevel(); }
+	    inline int GetLoggingLevel() { return Logger_->L_.getLevel(); }
 
 	    virtual int Start() = 0;
 	    virtual void Stop() = 0;
 
-        struct LoggerWrapper {
-            Poco::Logger &L;
-            explicit inline LoggerWrapper(Poco::Logger &Logger) : L(Logger) {}
-        };
+		struct LoggerWrapper {
+			Poco::Logger & L_;
+			LoggerWrapper(Poco::Logger &L) :
+				L_(L) {}
+		};
 
 	protected:
 	    std::recursive_mutex Mutex_;
         std::vector<PropertiesFileServerEntry> ConfigServersList_;
+
     private:
-        // mutable std::unique_ptr<LoggerWrapper>  Log_;
-	    Poco::Logger 		&Logger_;
-	    std::string 		Name_;
-        std::string         LoggerPrefix_;
-	    std::string 		SubSystemConfigPrefix_;
+        std::unique_ptr<LoggerWrapper>  Logger_;
+	    std::string 					Name_;
+        std::string         			LoggerPrefix_;
+	    std::string 					SubSystemConfigPrefix_;
 	};
 
 	class RESTAPI_GenericServer {
@@ -3726,8 +3722,10 @@ namespace OpenWifi {
 	}
 
 	inline void MicroService::InitializeSubSystemServers() {
-	    for(auto i:SubSystems_)
-	        addSubsystem(i);
+	    for(auto i:SubSystems_) {
+			addSubsystem(i);
+
+		}
 	}
 
 	inline void MicroService::StartSubSystemServers() {
@@ -3919,7 +3917,6 @@ namespace OpenWifi {
 
     inline SubSystemServer::SubSystemServer(const std::string &Name, const std::string &LoggingPrefix,
             const std::string &SubSystemConfigPrefix):
-		Logger_(Poco::Logger::get(LoggingPrefix)),
 		Name_(Name),
 		LoggerPrefix_(LoggingPrefix),
 		SubSystemConfigPrefix_(SubSystemConfigPrefix) {
@@ -3958,7 +3955,6 @@ namespace OpenWifi {
             NewServer->start();
             RESTServers_.push_back(std::move(NewServer));
         }
-
         return 0;
     }
 
@@ -4048,7 +4044,7 @@ namespace OpenWifi {
 	    auto i = 0;
 	    bool good = true;
 
-//        Log_ = std::make_unique<LoggerWrapper>(Poco::Logger::get(LoggerPrefix_));
+        Logger_ = std::make_unique<LoggerWrapper>(Poco::Logger::create(LoggerPrefix_, Poco::Logger::root().getChannel(), Poco::Logger::root().getLevel()));
 
 	    ConfigServersList_.clear();
 	    while (good) {
