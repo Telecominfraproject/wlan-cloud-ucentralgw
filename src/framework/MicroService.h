@@ -1370,12 +1370,17 @@ namespace OpenWifi {
 
 	class BusEventManager : public Poco::Runnable {
 	  public:
+		explicit BusEventManager(Poco::Logger &L) : Logger_(L) {
+
+		}
 		inline void run() final;
 		inline void Start();
 		inline void Stop();
+		inline Poco::Logger & Logger() { return Logger_; }
 	  private:
 		mutable std::atomic_bool 	Running_ = false;
 		Poco::Thread		Thread_;
+		Poco::Logger		&Logger_;
 	};
 
 	class MyPrivateKeyPassphraseHandler : public Poco::Net::PrivateKeyPassphraseHandler {
@@ -1389,6 +1394,7 @@ namespace OpenWifi {
 	        Logger_.information("Returning key passphrase.");
 	        privateKey = Password_;
 	    };
+		inline Poco::Logger & Logger() { return Logger_; }
 	private:
 	    std::string Password_;
 	    Poco::Logger & Logger_;
@@ -3017,8 +3023,10 @@ namespace OpenWifi {
 	    inline int Start() override;
 
 	    inline void Stop() override {
+			poco_information(Logger(),"Stopping...");
 	        if(Running_)
 	            Server_->stop();
+			poco_information(Logger(),"Stopped...");
 	    }
 
 	private:
@@ -3383,7 +3391,6 @@ namespace OpenWifi {
 		std::string 				MyPublicEndPoint_;
 		std::string                 UIURI_;
 		std::string 				Version_{ OW_VERSION::VERSION + "("+ OW_VERSION::BUILD + ")" + " - " + OW_VERSION::HASH };
-		BusEventManager				BusEventManager_;
 		std::recursive_mutex		InfraMutex_;
 		std::default_random_engine  RandomEngine_;
         Poco::Util::PropertyFileConfiguration   * PropConfigurationFile_ = nullptr;
@@ -3397,7 +3404,8 @@ namespace OpenWifi {
         bool                        NoBuiltInCrypto_=false;
         Poco::JWT::Signer	        Signer_;
 		Poco::Logger				&Logger_;
-		Poco::ThreadPool			TimerPool_{"timer:pool",2,16};
+		Poco::ThreadPool				TimerPool_{"timer:pool",2,16};
+		std::unique_ptr<BusEventManager>	BusEventManager_;
     };
 
 	inline void MicroService::Exit(int Reason) {
@@ -3478,7 +3486,7 @@ namespace OpenWifi {
 	        }
 
 	    } catch (const Poco::Exception &E) {
-	        Logger_.log(E);
+	        logger().log(E);
 	    }
 	}
 
@@ -3733,7 +3741,6 @@ namespace OpenWifi {
 	inline void MicroService::InitializeSubSystemServers() {
 	    for(auto i:SubSystems_) {
 			addSubsystem(i);
-
 		}
 	}
 
@@ -3742,12 +3749,13 @@ namespace OpenWifi {
 	    for(auto i:SubSystems_) {
 	        i->Start();
 	    }
-	    BusEventManager_.Start();
+		BusEventManager_ = std::make_unique<BusEventManager>(logger());
+	    BusEventManager_->Start();
 	}
 
 	inline void MicroService::StopSubSystemServers() {
         AddActivity("Stopping");
-	    BusEventManager_.Stop();
+	    BusEventManager_->Stop();
 	    for(auto i=SubSystems_.rbegin(); i!=SubSystems_.rend(); ++i) {
 			(*i)->Stop();
 		}
@@ -4147,9 +4155,11 @@ namespace OpenWifi {
 
     inline void BusEventManager::Stop() {
         if(KafkaManager()->Enabled()) {
+			poco_information(Logger(),"Stopping...");
             Running_ = false;
             Thread_.wakeUp();
             Thread_.join();
+			poco_information(Logger(),"Stopped...");
         }
     }
 
