@@ -46,6 +46,21 @@ services:
       rttys-view:
         servicePort: 5913
         targetPort: 5913
+  radius:
+    type: ClusterIP
+    ports:
+      acc:
+        servicePort: 1813
+        targetPort: 1813
+        protocol: UDP
+      auth:
+        servicePort: 1812
+        targetPort: 1812
+        protocol: UDP
+      coa:
+        servicePort: 3799
+        targetPort: 3799
+        protocol: UDP
 
 checks:
   owgw:
@@ -231,6 +246,11 @@ configProperties:
   rtty.timeout: 60
   rtty.viewport: 5913
   rtty.assets: $OWGW_ROOT/rtty_ui
+  # RADIUS proxy
+  radius.proxy.enable: "true"
+  radius.proxy.accounting.port: 1813
+  radius.proxy.authentication.port: 1812
+  radius.proxy.coa.port: 3799
   # ALB
   alb.enable: "true"
   alb.port: 16102
