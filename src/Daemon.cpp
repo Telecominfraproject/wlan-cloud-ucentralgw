@@ -106,15 +106,17 @@ namespace OpenWifi {
 }
 
 int main(int argc, char **argv) {
+	int ExitCode;
 	try {
 		auto App = OpenWifi::Daemon::instance();
-		auto ExitCode =  App->run(argc, argv);
+		ExitCode =  App->run(argc, argv);
 		Poco::Net::SSLManager::instance().shutdown();
-		return ExitCode;
 	} catch (Poco::Exception &exc) {
+		ExitCode = Poco::Util::Application::EXIT_SOFTWARE;
 		std::cout << exc.displayText() << std::endl;
-		return Poco::Util::Application::EXIT_SOFTWARE;
 	}
+	std::cout << "Exitcode: " << ExitCode << std::endl;
+	return ExitCode;
 }
 
 // end of namespace
