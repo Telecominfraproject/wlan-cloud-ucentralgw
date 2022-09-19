@@ -3027,7 +3027,7 @@ namespace OpenWifi {
 	    inline void Stop() override {
 			poco_information(Logger(),"Stopping...");
 	        if(Running_)
-	            Server_->stopA(true);
+	            Server_->stopAll(true);
 			poco_information(Logger(),"Stopped...");
 	    }
 
