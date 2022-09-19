@@ -15,6 +15,10 @@
 #include "DeviceRegistry.h"
 #include "RESTObjects/RESTAPI_GWobjects.h"
 
+#ifndef POCO_LOG_DEBUG
+#define POCO_LOG_DEBUG true
+#endif
+
 namespace OpenWifi {
 
 	class AP_WS_Connection {

@@ -26,7 +26,9 @@
 
 // This must be defined for poco_debug and poco_trace macros to function.
 
+#ifndef POCO_LOG_DEBUG
 #define POCO_LOG_DEBUG true
+#endif
 
 namespace OpenWifi {
     inline uint64_t Now() { return std::time(nullptr); };
