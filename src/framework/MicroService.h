@@ -3206,7 +3206,6 @@ namespace OpenWifi {
 			Utils::SetThreadName(fmt::format("i-rest:{}",Id).c_str());
 	        return RESTAPI_IntRouter(Path, Bindings, Logger(), Server_, Id);
 	    }
-
         const Poco::ThreadPool & Pool() { return Pool_; }
 	private:
 	    std::vector<std::unique_ptr<Poco::Net::HTTPServer>>   RESTServers_;
@@ -3942,6 +3941,7 @@ namespace OpenWifi {
     }
 
     inline int RESTAPI_ExtServer::Start() {
+		Logger().information("Starting.");
         Server_.InitLogging();
 
         for(const auto & Svr: ConfigServersList_) {
