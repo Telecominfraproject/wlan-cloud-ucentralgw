@@ -112,7 +112,7 @@ int main(int argc, char **argv) {
 		Poco::Net::SSLManager::instance().shutdown();
 		return ExitCode;
 	} catch (Poco::Exception &exc) {
-		std::cerr << exc.displayText() << std::endl;
+		std::cout << exc.displayText() << std::endl;
 		return Poco::Util::Application::EXIT_SOFTWARE;
 	}
 }
