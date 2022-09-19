@@ -95,10 +95,10 @@ namespace OpenWifi {
 			State_.started = OpenWifi::Now();
 
 			if (!SS->secure()) {
-				poco_error(Logger_,fmt::format("CONNECTION({}): Connection is NOT secure. Device is not allowed.", CId_));
+				Logger_.error(fmt::format("CONNECTION({}): Connection is NOT secure. Device is not allowed.", CId_)));
 				return delete this;
 			} else {
-				poco_debug(Logger_,fmt::format("CONNECTION({}): Connection is secure.", CId_));
+				Logger_.debug(fmt::format("CONNECTION({}): Connection is secure.", CId_)));
 			}
 
 			if (SS->havePeerCertificate()) {
@@ -107,25 +107,25 @@ namespace OpenWifi {
 					if (AP_WS_Server()->ValidateCertificate(CId_, PeerCert)) {
 						CN_ = Poco::trim(Poco::toLower(PeerCert.commonName()));
 						State_.VerifiedCertificate = GWObjects::VALID_CERTIFICATE;
-						poco_debug(Logger_,fmt::format("CONNECTION({}): Valid certificate: CN={}", CId_, CN_));
+						Logger_.debug(fmt::format("CONNECTION({}): Valid certificate: CN={}", CId_, CN_));
 					} else {
 						State_.VerifiedCertificate = GWObjects::NO_CERTIFICATE;
-						poco_error(Logger_,fmt::format("CONNECTION({}): Device certificate is not valid. Device is not allowed.", CId_));
+						Logger_.error(fmt::format("CONNECTION({}): Device certificate is not valid. Device is not allowed.", CId_));
 						return delete this;
 					}
 				} catch (const Poco::Exception &E) {
 					LogException(E);
-					poco_error(Logger_,fmt::format("CONNECTION({}): Device certificate is not valid. Device is not allowed.", CId_));
+					Logger_.error(fmt::format("CONNECTION({}): Device certificate is not valid. Device is not allowed.", CId_));
 					return delete this;
 				}
 			} else {
 				State_.VerifiedCertificate = GWObjects::NO_CERTIFICATE;
-				poco_error(Logger_,fmt::format("CONNECTION({}): No certificates available..", CId_));
+				Logger_.error(fmt::format("CONNECTION({}): No certificates available..", CId_));
 				return delete this;
 			}
 
 			if (AP_WS_Server::IsSim(CN_) && !AP_WS_Server()->IsSimEnabled()) {
-				poco_warning(Logger_,fmt::format(
+				Logger_.warning(fmt::format(
 					"CONNECTION({}): Sim Device {} is not allowed. Disconnecting.", CId_, CN_));
 				return delete this;
 			}
@@ -134,7 +134,7 @@ namespace OpenWifi {
 			SerialNumberInt_ = Utils::SerialNumberToInt(SerialNumber_);
 
 			if (!CN_.empty() && StorageService()->IsBlackListed(SerialNumber_)) {
-				poco_warning(Logger_,fmt::format("CONNECTION({}): Device {} is black listed. Disconnecting.",
+				Logger_.warning(fmt::format("CONNECTION({}): Device {} is black listed. Disconnecting.",
 												   CId_, CN_));
 				return delete this;
 			}
@@ -154,7 +154,7 @@ namespace OpenWifi {
 			Reactor_.addEventHandler(*WS_, Poco::NObserver<AP_WS_Connection, Poco::Net::ErrorNotification>(
 											   *this, &AP_WS_Connection::OnSocketError));
 			Registered_ = true;
-			poco_debug(Logger_,fmt::format("CONNECTION({}): completed. (t={})", CId_, ConcurrentStartingDevices_));
+			Logger_.debug(fmt::format("CONNECTION({}): completed. (t={})", CId_, ConcurrentStartingDevices_));
 			return;
 		} catch (const Poco::Net::CertificateValidationException &E) {
 			Logger_.error(fmt::format("CONNECTION({}): Poco::CertificateValidationException Certificate Validation failed during connection. Device will have to retry.",
