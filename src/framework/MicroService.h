@@ -3568,8 +3568,6 @@ namespace OpenWifi {
             initialized = true;
             LoadConfigurationFile();
 
-			std::cout << "Initializing logging systems" << std::endl;
-
             auto LoggingDestination = MicroService::instance().ConfigGetString("logging.type", "file");
             auto LoggingFormat = MicroService::instance().ConfigGetString("logging.format",
                                                                           "%Y-%m-%d %H:%M:%S %s: [%p] %t");
@@ -4063,7 +4061,6 @@ namespace OpenWifi {
 	    bool good = true;
 
 		auto NewLevel = MicroService::instance().ConfigGetString("logging.level." + Name_, "");
-		std::cout << "Initialize logging: " << Name_ << ":" << LoggerPrefix_ << ":" << NewLevel << std::endl;
 		if(NewLevel.empty())
         	Logger_ = std::make_unique<LoggerWrapper>(Poco::Logger::create(LoggerPrefix_, Poco::Logger::root().getChannel(), Poco::Logger::root().getLevel()));
 		else
