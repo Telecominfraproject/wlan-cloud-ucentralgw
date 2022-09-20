@@ -331,6 +331,38 @@ typedef Poco::Tuple<
 		return false;
 	}
 
+	void Storage::RemovedExpiredCommands() {
+		try {
+			Poco::Data::Session Sess = Pool_->get();
+			Poco::Data::Statement Update(Sess);
+
+			auto Now = OpenWifi::Now(), Window = Now-(4*60*60);
+			std::string St{"UPDATE CommandList SET Executed=?, Status='expired' WHERE submitted<? and executed=0"};
+			Update << ConvertParams(St),
+				Poco::Data::Keywords::use(Now),
+				Poco::Data::Keywords::use(Window);
+			Update.execute();
+		} catch (const Poco::Exception &E) {
+			Logger().log(E);
+		}
+	}
+
+	void Storage::RemoveTimedOutCommands() {
+		try {
+			Poco::Data::Session Sess = Pool_->get();
+			Poco::Data::Statement Update(Sess);
+
+			auto Now = OpenWifi::Now(), Window = Now-(1*60*60);
+			std::string St{"UPDATE CommandList SET Executed=?, Status='timedout' WHERE Executed<? and completed=0"};
+			Update << ConvertParams(St),
+				Poco::Data::Keywords::use(Now),
+				Poco::Data::Keywords::use(Window);
+			Update.execute();
+		} catch (const Poco::Exception &E) {
+			Logger().log(E);
+		}
+	}
+
 	bool Storage::SetCommandTimedOut(std::string &CommandUUID) {
 		try {
 			Poco::Data::Session Sess = Pool_->get();

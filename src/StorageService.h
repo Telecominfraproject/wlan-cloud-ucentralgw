@@ -141,6 +141,9 @@ namespace OpenWifi {
 		bool SetCommandExecuted(std::string & CommandUUID);
 		bool SetCommandTimedOut(std::string &CommandUUID);
 
+		void RemovedExpiredCommands();
+		void RemoveTimedOutCommands();
+
 		bool RemoveOldCommands(std::string & SerilNumber, std::string & Command);
 
 		bool AddBlackListDevices(std::vector<GWObjects::BlackListedDevice> &  Devices);

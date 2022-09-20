@@ -122,6 +122,9 @@ namespace OpenWifi {
 		Utils::SetThreadName("cmd:schdlr");
 		Poco::Logger	& MyLogger = Poco::Logger::get("CMD-MGR-SCHEDULER");
 
+		StorageService()->RemovedExpiredCommands();
+		StorageService()->RemoveTimedOutCommands();
+
 		std::vector<GWObjects::CommandDetails> Commands;
 		if(StorageService()->GetReadyToExecuteCommands(0,200,Commands))
 		{
@@ -142,11 +145,19 @@ namespace OpenWifi {
 					auto now = OpenWifi::Now();
 					// 2 hour timeout for commands
 					if((now-Cmd.Submitted) > (1 * 60 * 60) ) {
+						poco_information(MyLogger,fmt::format("Command {} for {} (Command={}) has expired.", Cmd.UUID, Cmd.SerialNumber, Cmd.Command));
 						StorageService()->SetCommandTimedOut(Cmd.UUID);
 						continue;
 					}
 
 					if(!DeviceRegistry()->Connected(Utils::SerialNumberToInt(Cmd.SerialNumber))) {
+						poco_trace(MyLogger,fmt::format("Command {} for {} (Command={}) Device is not connected.", Cmd.UUID, Cmd.SerialNumber, Cmd.Command));
+						continue;
+					}
+
+					std::string ExecutingCommand, ExecutingUUID;
+					if(CommandRunningForDevice(Utils::SerialNumberToInt(Cmd.SerialNumber),ExecutingUUID,ExecutingCommand)) {
+						poco_trace(MyLogger,fmt::format("Device {} is already busy with command {} (Command={}).", Cmd.SerialNumber, Cmd.UUID, Cmd.Command));
 						continue;
 					}
 
