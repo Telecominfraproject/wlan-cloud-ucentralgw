@@ -29,6 +29,7 @@ namespace OpenWifi {
 			Poco::Net::HTTPServerResponse &response, std::uint64_t connection_id);
 		~AP_WS_Connection();
 
+		void EndConnection();
 		void ProcessJSONRPCEvent(Poco::JSON::Object::Ptr & Doc);
 		void ProcessJSONRPCResult(Poco::JSON::Object::Ptr Doc);
 		void ProcessIncomingFrame();
