@@ -55,7 +55,7 @@ namespace OpenWifi {
 		void DoPut() final {};
 
 		void CallCanceled(const char * Cmd,const std::string &UUID, uint64_t RPC, const OpenWifi::RESTAPI::Errors::msg & Err);
-		void CallCanceled(const char * Cmd, const OpenWifi::RESTAPI::Errors::msg &Err);
+		void CallCanceled(const char * Cmd, const OpenWifi::RESTAPI::Errors::msg &Err, const std::string & Details="");
 
 		inline bool ValidateParameters() {
 			Command_ =  GetBinding(RESTAPI::Protocol::COMMAND, "");
