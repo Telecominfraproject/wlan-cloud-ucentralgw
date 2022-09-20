@@ -28,8 +28,8 @@
 
 namespace OpenWifi {
 
-	void RESTAPI_device_commandHandler::CallCanceled(const char * Cmd, const OpenWifi::RESTAPI::Errors::msg &Err) {
-		Logger_.warning(fmt::format("{},{}: Canceled. Error:{} Reason:{}", Cmd, SerialNumber_, Err.err_num, Err.err_txt));
+	void RESTAPI_device_commandHandler::CallCanceled(const char * Cmd, const OpenWifi::RESTAPI::Errors::msg &Err, const std::string & Details) {
+		Logger_.warning(fmt::format("{},{}: Canceled. Error:{} Reason:{} Details={}", Cmd, SerialNumber_, Err.err_num, Err.err_txt, Details));
 	}
 
 	void RESTAPI_device_commandHandler::DoGet() {
@@ -63,7 +63,8 @@ namespace OpenWifi {
 			if(!DeviceRegistry()->Connected(SerialNumberInt_)) {
 				CallCanceled(Command_.c_str(), RESTAPI::Errors::DeviceNotConnected);
 				return BadRequest(RESTAPI::Errors::DeviceNotConnected);
-			}			auto UUID = MicroService::CreateUUID();
+			}
+			auto UUID = MicroService::CreateUUID();
 			auto RPC = CommandManager()->NextRPCId();
 			return Rtty(UUID,RPC);
 		} else {
@@ -149,9 +150,11 @@ namespace OpenWifi {
 					CallCanceled(Command.Command, RESTAPI::Errors::DeviceNotConnected);
 					return BadRequest(RESTAPI::Errors::DeviceNotConnected);
 				}
-				if(!Command.AllowParallel && CommandManager()->CommandRunningForDevice(SerialNumberInt_)) {
-					CallCanceled(Command.Command, RESTAPI::Errors::DeviceIsAlreadyBusy);
-					return BadRequest(RESTAPI::Errors::DeviceIsAlreadyBusy);
+				std::string Command_UUID, CommandName;
+				if(!Command.AllowParallel && CommandManager()->CommandRunningForDevice(SerialNumberInt_,Command_UUID,CommandName)) {
+					auto Extra = fmt::format("UUID={} Command={}", Command_UUID, CommandName);
+					CallCanceled(Command.Command, RESTAPI::Errors::DeviceIsAlreadyBusy, Extra);
+					return BadRequest(RESTAPI::Errors::DeviceIsAlreadyBusy, Extra);
 				}
 				auto UUID = MicroService::CreateUUID();
 				auto RPC = CommandManager()->NextRPCId();

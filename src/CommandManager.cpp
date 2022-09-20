@@ -40,24 +40,21 @@ namespace OpenWifi {
 					if (ID < 2) {
 						Logger().debug(fmt::format("({}): Ignoring RPC response.", SerialNumber));
 					} else {
-						auto Idx = CommandTagIndex{.Id = ID, .SerialNumber = Utils::SerialNumberToInt(SerialNumber)};
 						std::lock_guard G(Mutex_);
-						auto RPC = OutStandingRequests_.find(Idx);
-						if (RPC == OutStandingRequests_.end()) {
-							Logger().warning(
-								fmt::format("({}): Outdated RPC {}", SerialNumber, ID));
+						auto RPC = OutStandingRequests_.find(ID);
+						if (RPC == OutStandingRequests_.end()	||
+							RPC->second.SerialNumber!=Utils::SerialNumberToInt(Resp->SerialNumber_)) {
+							Logger().warning(fmt::format("({}): Outdated RPC {}", SerialNumber, ID));
 						} else {
-							std::chrono::duration<double, std::milli> rpc_execution_time =
-								std::chrono::high_resolution_clock::now() - RPC->second->submitted;
-							StorageService()->CommandCompleted(RPC->second->uuid, Payload,
+							std::chrono::duration<double, std::milli> rpc_execution_time = std::chrono::high_resolution_clock::now() - RPC->second.submitted;
+							StorageService()->CommandCompleted(RPC->second.UUID, Payload,
 															   rpc_execution_time, true);
-							if (RPC->second->rpc_entry) {
-								RPC->second->rpc_entry->set_value(Payload);
+							if (RPC->second.rpc_entry) {
+								RPC->second.rpc_entry->set_value(Payload);
 							}
-							OutstandingUUIDs_.erase(RPC->second->uuid);
-							OutStandingRequests_.erase(Idx);
 							Logger().information(
-								fmt::format("({}): Received RPC answer {}", SerialNumber, ID));
+								fmt::format("({}): Received RPC answer {}. Command={}", SerialNumber, ID, RPC->second.Command));
+							OutStandingRequests_.erase(ID);
 						}
 					}
 				}
@@ -92,6 +89,7 @@ namespace OpenWifi {
 		ResponseQueue_.wakeUpAll();
 		ManagerThread.wakeUp();
         ManagerThread.join();
+		Logger().notice("Stopped...");
     }
 
     void CommandManager::WakeUp() {
@@ -104,19 +102,20 @@ namespace OpenWifi {
 		Utils::SetThreadName("cmd:janitor");
 		Poco::Logger	& MyLogger = Poco::Logger::get("CMD-MGR-JANITOR");
 		auto now = std::chrono::high_resolution_clock::now();
-		for(auto i=OutStandingRequests_.begin();i!=OutStandingRequests_.end();) {
-			std::chrono::duration<double, std::milli> delta = now - i->second->submitted;
-			if(delta > 6000000ms) {
-				MyLogger.debug(fmt::format("{}: Timed out.", i->second->uuid));
-				OutstandingUUIDs_.erase(i->second->uuid);
-				i = OutStandingRequests_.erase(i);
+		for(auto request=OutStandingRequests_.begin();request!=OutStandingRequests_.end();) {
+			std::chrono::duration<double, std::milli> delta = now - request->second.submitted;
+			if(delta > 10min) {
+				MyLogger.debug(fmt::format("{}: Command={} for {} Timed out.",
+										   request->second.UUID,
+										   request->second.Command,
+										   Utils::IntToSerialNumber(request->second.SerialNumber)));
+				request = OutStandingRequests_.erase(request);
 			} else {
-				++i;
+				++request;
 			}
 		}
 		MyLogger.information(
-			fmt::format("Removing expired commands: start. {} outstanding-requests {} outstanding-uuids commands.",
-						OutStandingRequests_.size(), OutstandingUUIDs_.size() ));
+			fmt::format("Outstanding-requests {}", OutStandingRequests_.size()));
 	}
 
 	void CommandManager::onCommandRunnerTimer([[maybe_unused]] Poco::Timer &timer) {
@@ -133,8 +132,11 @@ namespace OpenWifi {
 				try {
 					{
 						std::lock_guard M(Mutex_);
-						if(OutstandingUUIDs_.find(Cmd.UUID)!=OutstandingUUIDs_.end())
-							continue;
+						for(const auto &request:OutStandingRequests_) {
+							if (request.second.UUID == Cmd.UUID) {
+								continue;
+							}
+						}
 					}
 
 					Poco::JSON::Parser	P;
@@ -149,11 +151,9 @@ namespace OpenWifi {
 												  	Sent);
 					if(Sent) {
 						StorageService()->SetCommandExecuted(Cmd.UUID);
-						std::lock_guard M(Mutex_);
-						OutstandingUUIDs_.insert(Cmd.UUID);
-						MyLogger.information(fmt::format("{}: Queued command.", Cmd.UUID));
+						MyLogger.information(fmt::format("{}: Queued command. Serial={} Command={}", Cmd.UUID, Cmd.SerialNumber, Cmd.Command));
 					} else {
-						MyLogger.information(fmt::format("{}: Could queue command.", Cmd.UUID));
+						MyLogger.information(fmt::format("{}: Queued command. Serial={} Command={}", Cmd.UUID, Cmd.SerialNumber, Cmd.Command));
 					}
 				} catch (const Poco::Exception &E) {
 					MyLogger.information(fmt::format("{}: Failed. Command marked as completed.", Cmd.UUID));
@@ -170,7 +170,7 @@ namespace OpenWifi {
 	std::shared_ptr<CommandManager::promise_type_t> CommandManager::PostCommand(
 		uint64_t RPCID,
 		const std::string &SerialNumber,
-		const std::string &Method,
+		const std::string &Command,
 		const Poco::JSON::Object &Params,
 		const std::string &UUID,
 		bool oneway_rpc,
@@ -184,32 +184,30 @@ namespace OpenWifi {
 		}
 
 		std::stringstream 	ToSend;
-		auto Object = std::make_shared<RpcObject>();
 
-		CommandTagIndex 	Idx;
+		CommandInfo		Idx;
 		Idx.Id = oneway_rpc ? 1 : RPCID;
 		Idx.SerialNumber = SerialNumberInt;
+		Idx.Command = Command;
+		Idx.UUID = UUID;
 
 		Poco::JSON::Object CompleteRPC;
 		CompleteRPC.set(uCentralProtocol::JSONRPC, uCentralProtocol::JSONRPC_VERSION);
 		CompleteRPC.set(uCentralProtocol::ID, RPCID);
-		CompleteRPC.set(uCentralProtocol::METHOD, Method);
+		CompleteRPC.set(uCentralProtocol::METHOD, Command);
 		CompleteRPC.set(uCentralProtocol::PARAMS, Params);
 		Poco::JSON::Stringifier::stringify(CompleteRPC, ToSend);
-		Object->submitted = std::chrono::high_resolution_clock::now();
-		Object->uuid = UUID;
-		Object->rpc_entry = disk_only ? nullptr : std::make_shared<CommandManager::promise_type_t>();
+		Idx.rpc_entry = disk_only ? nullptr : std::make_shared<CommandManager::promise_type_t>();
 
 		Logger().information(fmt::format("{}: Sending command. ID: {}", UUID, RPCID));
 		if(DeviceRegistry()->SendFrame(SerialNumber, ToSend.str())) {
 			if(!oneway_rpc) {
 				std::lock_guard M(Mutex_);
-				OutStandingRequests_[Idx] = Object;
-				OutstandingUUIDs_.insert(UUID);
+				OutStandingRequests_[RPCID] = Idx;
 			}
 			Logger().information(fmt::format("{}: Sent command. ID: {}", UUID, RPCID));
 			Sent=true;
-			return Object->rpc_entry;
+			return Idx.rpc_entry;
 		}
 
 		Logger().information(fmt::format("{}: Failed to send command. ID: {}", UUID, RPCID));

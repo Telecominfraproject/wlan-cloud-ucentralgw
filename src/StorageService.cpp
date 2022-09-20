@@ -24,6 +24,7 @@ namespace OpenWifi {
     	std::lock_guard		Guard(Mutex_);
         Logger().notice("Stopping...");
 		StorageClass::Stop();
+		Logger().notice("Stopped...");
     }
 }
 // namespace
