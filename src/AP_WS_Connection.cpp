@@ -207,6 +207,8 @@ namespace OpenWifi {
 
 	AP_WS_Connection::~AP_WS_Connection() {
 		std::cout << "Garbage collection Session: " << State_.sessionId << std::endl;
+		if(!Dead_)
+			EndConnection();
 /*
 		poco_information(Logger_,fmt::format("CONNECTION-CLOSING({}): {}.", CId_, SerialNumber_));
 		auto SessionDeleted = DeviceRegistry()->EndSession(State_.sessionId, this, SerialNumberInt_);
@@ -239,6 +241,7 @@ namespace OpenWifi {
 	void AP_WS_Connection::EndConnection() {
 		poco_information(Logger_,fmt::format("CONNECTION-CLOSING({}): {}.", CId_, SerialNumber_));
 		auto SessionDeleted = DeviceRegistry()->EndSession(State_.sessionId, this, SerialNumberInt_);
+		Dead_=true;
 
 		if (Registered_ && WS_) {
 			Reactor_.removeEventHandler(*WS_,
