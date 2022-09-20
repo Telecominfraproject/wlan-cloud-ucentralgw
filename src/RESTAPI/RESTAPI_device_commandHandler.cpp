@@ -63,7 +63,8 @@ namespace OpenWifi {
 			if(!DeviceRegistry()->Connected(SerialNumberInt_)) {
 				CallCanceled(Command_.c_str(), RESTAPI::Errors::DeviceNotConnected);
 				return BadRequest(RESTAPI::Errors::DeviceNotConnected);
-			}			auto UUID = MicroService::CreateUUID();
+			}
+			auto UUID = MicroService::CreateUUID();
 			auto RPC = CommandManager()->NextRPCId();
 			return Rtty(UUID,RPC);
 		} else {
