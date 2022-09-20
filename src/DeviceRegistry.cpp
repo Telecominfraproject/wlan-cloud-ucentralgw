@@ -37,7 +37,7 @@ namespace OpenWifi {
 		}
 		for(auto &c:connections) {
 			std::cout << "Deleting connection..." << std::endl;
-			delete c;
+			c->EndConnection();
 		}
 		poco_notice(Logger(),"Stopped...");
     }
