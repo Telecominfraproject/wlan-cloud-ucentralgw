@@ -139,6 +139,13 @@ namespace OpenWifi {
 						}
 					}
 
+					auto now = OpenWifi::Now();
+					// 2 hour timeout for commands
+					if((now-Cmd.Submitted) > (2 * 60 * 60) ) {
+						StorageService()->SetCommandTimedOut(Cmd.UUID);
+						continue;
+					}
+
 					Poco::JSON::Parser	P;
 					bool Sent;
 					MyLogger.information(fmt::format("{}: Preparing execution of {} for {}.", Cmd.UUID, Cmd.Command, Cmd.SerialNumber));

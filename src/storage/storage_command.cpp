@@ -331,6 +331,27 @@ typedef Poco::Tuple<
 		return false;
 	}
 
+	bool Storage::SetCommandTimedOut(std::string &CommandUUID) {
+		try {
+			Poco::Data::Session Sess = Pool_->get();
+			Poco::Data::Statement Update(Sess);
+
+			auto Now = OpenWifi::Now();
+			std::string Status = "timedout";
+			std::string St{"UPDATE CommandList SET Executed=?, Status=? WHERE UUID=?"};
+
+			Update << ConvertParams(St),
+				Poco::Data::Keywords::use(Now),
+				Poco::Data::Keywords::use(Status),
+				Poco::Data::Keywords::use(CommandUUID);
+			Update.execute();
+			return true;
+		} catch (const Poco::Exception &E) {
+			Logger().log(E);
+		}
+		return false;
+	}
+
 	bool Storage::GetCommand(const std::string &UUID, GWObjects::CommandDetails &Command) {
 
 		try {
