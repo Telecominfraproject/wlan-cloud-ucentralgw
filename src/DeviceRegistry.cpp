@@ -120,7 +120,7 @@ namespace OpenWifi {
 		} else {
 			poco_debug(Logger(),fmt::format("Not Ending session {}, serial {}. This is an old session.", connection_id, Utils::IntToSerialNumber(serial_number)));
 		}
-		Sessions_.erase(connection_id);
+		Sessions_.erase(Session);
 		return SessionDeleted;
 	}
 

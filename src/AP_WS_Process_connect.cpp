@@ -9,6 +9,8 @@
 #include "framework/WebSocketClientNotifications.h"
 #include "Daemon.h"
 
+#include "CommandManager.h"
+
 namespace OpenWifi {
 
 void AP_WS_Connection::Process_connect(Poco::JSON::Object::Ptr ParamsObj, const std::string &Serial) {
@@ -22,6 +24,9 @@ void AP_WS_Connection::Process_connect(Poco::JSON::Object::Ptr ParamsObj, const 
 		//// change this
 		SerialNumber_ = Serial;
 		SerialNumberInt_ = Utils::SerialNumberToInt(SerialNumber_);
+
+		CommandManager()->ClearQueue(SerialNumberInt_);
+
 		DeviceRegistry()->SetSessionDetails(State_.sessionId,this,SerialNumberInt_);
 		State_.UUID = UUID;
 		State_.Firmware = Firmware;
