@@ -65,15 +65,7 @@ namespace OpenWifi {
 			Sessions_[ConnectionId] = connection;
 		}
 
-		inline void SetSessionDetails(std::uint64_t connection_id, AP_WS_Connection * connection, uint64_t SerialNumber) {
-			std::unique_lock	G(LocalMutex_);
-			auto Hint = Sessions_.find(connection_id);
-			if(Hint!=Sessions_.end() && Hint->second==connection) {
-				poco_debug(Logger(),fmt::format("Starting session {}, serial {}.", connection_id, Utils::IntToSerialNumber(SerialNumber)));
-				SerialNumbers_[SerialNumber] = std::make_pair(connection_id,connection);
-			}
-		}
-
+		void SetSessionDetails(std::uint64_t connection_id, AP_WS_Connection * connection, uint64_t SerialNumber);
 		bool EndSession(std::uint64_t connection_id, AP_WS_Connection * connection, std::uint64_t serial_number);
 
 		void SetWebSocketTelemetryReporting(uint64_t SerialNumber, uint64_t Interval, uint64_t Lifetime);

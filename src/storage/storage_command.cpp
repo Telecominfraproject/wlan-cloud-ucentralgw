@@ -130,20 +130,14 @@ typedef Poco::Tuple<
 		try {
 			auto Now = OpenWifi::Now();
 
-			if(Type == COMMAND_PENDING) {
-				Command.Status = "pending";
-			} else if(Type == COMMAND_COMPLETED) {
-				Command.Status = "completed";
+			Command.Status = to_string(Type);
+			if(	Type==CommandExecutionType::COMMAND_COMPLETED	||
+				Type==CommandExecutionType::COMMAND_TIMEDOUT	||
+				Type==CommandExecutionType::COMMAND_FAILED		||
+				Type==CommandExecutionType::COMMAND_EXPIRED		||
+				Type==CommandExecutionType::COMMAND_EXECUTED
+				) {
 				Command.Executed = Now;
-			} else if (Type == COMMAND_TIMEDOUT) {
-				Command.Executed = Now;
-				Command.Status = "timedout";
-			} else if (Type == COMMAND_FAILED) {
-				Command.Executed = Now;
-				Command.Status = "failed";
-			} else {
-				Command.Executed = Now;
-				Command.Status = "executing";
 			}
 
 			RemoveOldCommands(SerialNumber, Command.Command);
@@ -318,11 +312,70 @@ typedef Poco::Tuple<
 			Poco::Data::Statement Update(Sess);
 
 			auto Now = OpenWifi::Now();
-			std::string St{"UPDATE CommandList SET Executed=? WHERE UUID=?"};
+			auto Status = to_string(Storage::CommandExecutionType::COMMAND_EXECUTED);
+
+			std::string St{"UPDATE CommandList SET Executed=?, Status=? WHERE UUID=?"};
 
 			Update << ConvertParams(St),
 				Poco::Data::Keywords::use(Now),
+				Poco::Data::Keywords::use(Status),
 				Poco::Data::Keywords::use( CommandUUID);
+			Update.execute();
+			return true;
+		} catch (const Poco::Exception &E) {
+			Logger().log(E);
+		}
+		return false;
+	}
+
+	void Storage::RemovedExpiredCommands() {
+		try {
+			Poco::Data::Session Sess = Pool_->get();
+			Poco::Data::Statement Update(Sess);
+
+			auto Now = OpenWifi::Now(), Window = Now-(4*60*60);
+			auto Status = to_string(Storage::CommandExecutionType::COMMAND_EXPIRED);
+
+			std::string St{"UPDATE CommandList SET Executed=?, Status=? WHERE submitted<? and executed=0"};
+			Update << ConvertParams(St),
+				Poco::Data::Keywords::use(Now),
+				Poco::Data::Keywords::use(Status),
+				Poco::Data::Keywords::use(Window);
+			Update.execute();
+		} catch (const Poco::Exception &E) {
+			Logger().log(E);
+		}
+	}
+
+	void Storage::RemoveTimedOutCommands() {
+		try {
+			Poco::Data::Session Sess = Pool_->get();
+			Poco::Data::Statement Update(Sess);
+
+			auto Now = OpenWifi::Now(), Window = Now-(1*60*60);
+			std::string St{"UPDATE CommandList SET Executed=?, Status='timedout' WHERE Executed<? and completed=0"};
+			Update << ConvertParams(St),
+				Poco::Data::Keywords::use(Now),
+				Poco::Data::Keywords::use(Window);
+			Update.execute();
+		} catch (const Poco::Exception &E) {
+			Logger().log(E);
+		}
+	}
+
+	bool Storage::SetCommandTimedOut(std::string &CommandUUID) {
+		try {
+			Poco::Data::Session Sess = Pool_->get();
+			Poco::Data::Statement Update(Sess);
+
+			auto Now = OpenWifi::Now();
+			auto Status = to_string(Storage::CommandExecutionType::COMMAND_TIMEDOUT);
+			std::string St{"UPDATE CommandList SET Executed=?, Status=? WHERE UUID=?"};
+
+			Update << ConvertParams(St),
+				Poco::Data::Keywords::use(Now),
+				Poco::Data::Keywords::use(Status),
+				Poco::Data::Keywords::use(CommandUUID);
 			Update.execute();
 			return true;
 		} catch (const Poco::Exception &E) {
@@ -411,7 +464,7 @@ typedef Poco::Tuple<
 				"SELECT " +
 				DB_Command_SelectFields
 				+ " FROM CommandList "
-				" WHERE ((RunAt<=?) And (Executed=0)) ORDER BY UUID ASC "};
+				" WHERE ((RunAt<=?) And (Executed=0)) ORDER BY Submitted ASC "};
 			CommandDetailsRecordList Records;
 
 			std::string SS = ConvertParams(St) + ComputeRange(Offset, HowMany);
@@ -485,7 +538,7 @@ typedef Poco::Tuple<
 			Poco::Data::Session Sess = Pool_->get();
 			Poco::Data::Statement Update(Sess);
 
-			std::string StatusText{"completed"};
+			auto Status = to_string(Storage::CommandExecutionType::COMMAND_COMPLETED);
 			std::string St{"UPDATE CommandList SET Completed=?, ErrorCode=?, ErrorText=?, Results=?, Status=?, executionTime=? WHERE UUID=?"};
 			double tET{execution_time.count()};
 			Update << ConvertParams(St),
@@ -493,7 +546,7 @@ typedef Poco::Tuple<
 				Poco::Data::Keywords::use(ErrorCode),
 				Poco::Data::Keywords::use(ErrorText),
 				Poco::Data::Keywords::use(ResultStr),
-				Poco::Data::Keywords::use(StatusText),
+				Poco::Data::Keywords::use(Status),
 				Poco::Data::Keywords::use(tET),
 				Poco::Data::Keywords::use(UUID);
 			Update.execute();
@@ -623,10 +676,14 @@ typedef Poco::Tuple<
 			Poco::Data::Statement Update(Sess);
 
 			auto Now = OpenWifi::Now();
-			std::string St{"UPDATE CommandList SET Completed=?, Results=? WHERE UUID=?"};
+			auto Status = to_string(Storage::CommandExecutionType::COMMAND_COMPLETED);
+			std::string St{"UPDATE CommandList SET Completed=?, Results=?, Status=? WHERE UUID=?"};
 
-			Update << ConvertParams(St), Poco::Data::Keywords::use(Now),
-				Poco::Data::Keywords::use(Result), Poco::Data::Keywords::use(UUID);
+			Update << ConvertParams(St),
+				Poco::Data::Keywords::use(Now),
+				Poco::Data::Keywords::use(Result),
+				Poco::Data::Keywords::use(Status),
+				Poco::Data::Keywords::use(UUID);
 			Update.execute();
 			return true;
 

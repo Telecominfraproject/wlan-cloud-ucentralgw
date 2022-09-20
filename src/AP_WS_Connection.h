@@ -29,6 +29,7 @@ namespace OpenWifi {
 			Poco::Net::HTTPServerResponse &response, std::uint64_t connection_id);
 		~AP_WS_Connection();
 
+		void EndConnection();
 		void ProcessJSONRPCEvent(Poco::JSON::Object::Ptr & Doc);
 		void ProcessJSONRPCResult(Poco::JSON::Object::Ptr Doc);
 		void ProcessIncomingFrame();
@@ -109,6 +110,7 @@ namespace OpenWifi {
 		std::chrono::time_point<std::chrono::high_resolution_clock> ConnectionStart_ = std::chrono::high_resolution_clock::now();
 		std::chrono::duration<double, std::milli> ConnectionCompletionTime_{0.0};
 		bool 								Threaded_=false;
+		std::atomic_bool 					Dead_=false;
 
 		static inline std::atomic_uint64_t 	ConcurrentStartingDevices_=0;
 

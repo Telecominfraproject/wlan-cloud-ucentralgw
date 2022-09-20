@@ -48,7 +48,7 @@ namespace OpenWifi {
 				Cmd.Details = O.str();
 				bool Sent;
 				CommandManager()->PostCommand(CommandManager()->NextRPCId(),SerialNumber_, Cmd.Command, Params, Cmd.UUID, Sent);
-				StorageService()->AddCommand(SerialNumber_, Cmd, Storage::COMMAND_EXECUTED);
+				StorageService()->AddCommand(SerialNumber_, Cmd, Storage::CommandExecutionType::COMMAND_EXECUTED);
 				poco_information(Logger_, fmt::format("RECOVERY({}): Recovery mode received, need for a reboot.", CId_));
 			} else {
 				poco_information(Logger_, fmt::format(

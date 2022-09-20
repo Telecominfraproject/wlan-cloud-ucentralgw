@@ -25,20 +25,9 @@ namespace OpenWifi {
     }
 
     void DeviceRegistry::Stop() {
-		std::vector<AP_WS_Connection *>	connections;
-
 		poco_notice(Logger(),"Stopping...");
 		std::lock_guard		Guard(Mutex_);
 		Timer_.stop();
-		{
-			std::unique_lock	G(LocalMutex_);
-			for(const auto &[_,Session]:Sessions_)
-				connections.emplace_back(Session);
-		}
-		for(auto &c:connections) {
-			std::cout << "Deleting connection..." << std::endl;
-			delete c;
-		}
 		poco_notice(Logger(),"Stopped...");
     }
 
@@ -120,6 +109,24 @@ namespace OpenWifi {
 		}
 		Sessions_.erase(Session);
 		return SessionDeleted;
+	}
+
+	void DeviceRegistry::SetSessionDetails(std::uint64_t connection_id, AP_WS_Connection * connection, uint64_t SerialNumber) {
+		std::unique_lock	G(LocalMutex_);
+		auto Hint = Sessions_.find(connection_id);
+		if(Hint!=Sessions_.end() && Hint->second==connection) {
+			poco_debug(Logger(),fmt::format("Starting session {}, serial {}.", connection_id, Utils::IntToSerialNumber(SerialNumber)));
+			// if there is a connection registered for this device already, end it.
+			auto CurrentSession = SerialNumbers_.find(SerialNumber);
+			if(CurrentSession==SerialNumbers_.end()) {
+				SerialNumbers_[SerialNumber] = std::make_pair(connection_id, connection);
+				return;
+			}
+
+			if(connection_id>CurrentSession->second.second->State_.sessionId) {
+				SerialNumbers_[SerialNumber] = std::make_pair(connection_id, connection);
+			}
+		}
 	}
 
 	bool DeviceRegistry::GetHealthcheck(uint64_t SerialNumber, GWObjects::HealthCheck & CheckData) const {
