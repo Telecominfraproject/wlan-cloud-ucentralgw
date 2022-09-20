@@ -115,8 +115,7 @@ namespace OpenWifi {
 			}
 		}
 		MyLogger.information(
-			fmt::format("Removing expired commands: start. {} outstanding-requests {}",
-						OutStandingRequests_.size()));
+			fmt::format("Outstanding-requests {}", OutStandingRequests_.size()));
 	}
 
 	void CommandManager::onCommandRunnerTimer([[maybe_unused]] Poco::Timer &timer) {
