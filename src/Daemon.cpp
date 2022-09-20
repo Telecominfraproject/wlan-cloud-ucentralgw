@@ -48,9 +48,9 @@ namespace OpenWifi {
 										StorageArchiver(),
 										TelemetryStream(),
 										RTTYS_server(),
-								   		AP_WS_Server(),
 								   		RADIUS_proxy_server(),
-								   		VenueBroadcaster()
+								   		VenueBroadcaster(),
+									   	AP_WS_Server()
 							   });
         return &instance;
 	}
@@ -114,7 +114,14 @@ int main(int argc, char **argv) {
 	} catch (Poco::Exception &exc) {
 		ExitCode = Poco::Util::Application::EXIT_SOFTWARE;
 		std::cout << exc.displayText() << std::endl;
+	} catch (std::exception &exc) {
+		ExitCode = Poco::Util::Application::EXIT_TEMPFAIL;
+		std::cout << exc.what() << std::endl;
+	} catch (...) {
+		ExitCode = Poco::Util::Application::EXIT_TEMPFAIL;
+		std::cout << "Exception on closure" << std::endl;
 	}
+
 	std::cout << "Exitcode: " << ExitCode << std::endl;
 	return ExitCode;
 }
