@@ -141,8 +141,12 @@ namespace OpenWifi {
 
 					auto now = OpenWifi::Now();
 					// 2 hour timeout for commands
-					if((now-Cmd.Submitted) > (2 * 60 * 60) ) {
+					if((now-Cmd.Submitted) > (1 * 60 * 60) ) {
 						StorageService()->SetCommandTimedOut(Cmd.UUID);
+						continue;
+					}
+
+					if(!DeviceRegistry()->Connected(Utils::SerialNumberToInt(Cmd.SerialNumber))) {
 						continue;
 					}
 
