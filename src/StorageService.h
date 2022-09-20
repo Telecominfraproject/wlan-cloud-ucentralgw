@@ -37,7 +37,9 @@ namespace OpenWifi {
 				case CommandExecutionType::COMMAND_TIMEDOUT: return "timedout";
 				case CommandExecutionType::COMMAND_FAILED: return "failed";
 				case CommandExecutionType::COMMAND_EXPIRED: return "expired";
-				case CommandExecutionType::COMMAND_EXECUTING: return "executing";
+				case CommandExecutionType::COMMAND_EXECUTING:
+				default:
+					return "executing";
 			}
 		}
 
