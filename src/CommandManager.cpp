@@ -201,9 +201,6 @@ namespace OpenWifi {
 
 		auto SerialNumberInt = Utils::SerialNumberToInt(SerialNumber);
 		Sent=false;
-		if(!DeviceRegistry()->Connected(SerialNumberInt)) {
-			return nullptr;
-		}
 
 		std::stringstream 	ToSend;
 

@@ -290,7 +290,7 @@ namespace OpenWifi {
 										   CId_, UUID, D.UUID));
 			bool Sent;
 
-			StorageService()->AddCommand(SerialNumber_, Cmd, Storage::COMMAND_EXECUTED);
+			StorageService()->AddCommand(SerialNumber_, Cmd, Storage::CommandExecutionType::COMMAND_EXECUTED);
 			CommandManager()->PostCommand(CommandManager()->NextRPCId(),SerialNumber_, Cmd.Command, Params, Cmd.UUID, Sent);
 
 			WebSocketClientNotificationDeviceConfigurationChange(D.SerialNumber, UUID, UpgradedUUID);
