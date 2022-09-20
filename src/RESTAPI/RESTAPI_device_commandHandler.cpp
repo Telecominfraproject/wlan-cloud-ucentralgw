@@ -149,9 +149,10 @@ namespace OpenWifi {
 					CallCanceled(Command.Command, RESTAPI::Errors::DeviceNotConnected);
 					return BadRequest(RESTAPI::Errors::DeviceNotConnected);
 				}
-				if(!Command.AllowParallel && CommandManager()->CommandRunningForDevice(SerialNumberInt_)) {
+				std::string Command_UUID, CommandName;
+				if(!Command.AllowParallel && CommandManager()->CommandRunningForDevice(SerialNumberInt_,Command_UUID,CommandName)) {
 					CallCanceled(Command.Command, RESTAPI::Errors::DeviceIsAlreadyBusy);
-					return BadRequest(RESTAPI::Errors::DeviceIsAlreadyBusy);
+					return BadRequest(RESTAPI::Errors::DeviceIsAlreadyBusy, fmt::format("UUID={} Command={}", Command_UUID, CommandName));
 				}
 				auto UUID = MicroService::CreateUUID();
 				auto RPC = CommandManager()->NextRPCId();

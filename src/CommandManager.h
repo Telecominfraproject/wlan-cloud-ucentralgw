@@ -149,12 +149,15 @@ namespace OpenWifi {
 				OutStandingRequests_.erase(Id);
 			}
 
-			inline bool CommandRunningForDevice(std::uint64_t SerialNumber) {
+			inline bool CommandRunningForDevice(std::uint64_t SerialNumber, std::string & uuid, std::string &command) {
 				std::lock_guard	G(Mutex_);
 
 				for(auto Request = OutStandingRequests_.begin(); Request != OutStandingRequests_.end() ; ) {
-					if(Request->second.SerialNumber==SerialNumber)
+					if(Request->second.SerialNumber==SerialNumber) {
+						uuid = Request->second.UUID;
+						command = Request->second.Command;
 						return true;
+					}
 				}
 				return false;
 			}

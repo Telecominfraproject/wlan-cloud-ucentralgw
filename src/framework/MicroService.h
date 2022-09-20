@@ -2178,12 +2178,16 @@ namespace OpenWifi {
 	        SetCommonHeaders(CloseConnection);
 	    }
 
-	    inline void BadRequest(const OpenWifi::RESTAPI::Errors::msg &E) {
+	    inline void BadRequest(const OpenWifi::RESTAPI::Errors::msg &E, const std::string & Extra="") {
 	        PrepareResponse(Poco::Net::HTTPResponse::HTTP_BAD_REQUEST);
 	        Poco::JSON::Object	ErrorObject;
 	        ErrorObject.set("ErrorCode",400);
 	        ErrorObject.set("ErrorDetails",Request->getMethod());
-	        ErrorObject.set("ErrorDescription",fmt::format("{}: {}",E.err_num,E.err_txt)) ;
+			if(Extra.empty())
+	        	ErrorObject.set("ErrorDescription",fmt::format("{}: {}",E.err_num,E.err_txt)) ;
+			else
+				ErrorObject.set("ErrorDescription",fmt::format("{}: {} ({})",E.err_num,E.err_txt, Extra)) ;
+
 	        std::ostream &Answer = Response->send();
 	        Poco::JSON::Stringifier::stringify(ErrorObject, Answer);
 	    }
