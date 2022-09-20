@@ -676,10 +676,14 @@ typedef Poco::Tuple<
 			Poco::Data::Statement Update(Sess);
 
 			auto Now = OpenWifi::Now();
-			std::string St{"UPDATE CommandList SET Completed=?, Results=? WHERE UUID=?"};
+			auto Status = to_string(Storage::CommandExecutionType::COMMAND_COMPLETED);
+			std::string St{"UPDATE CommandList SET Completed=?, Results=?, Status=? WHERE UUID=?"};
 
-			Update << ConvertParams(St), Poco::Data::Keywords::use(Now),
-				Poco::Data::Keywords::use(Result), Poco::Data::Keywords::use(UUID);
+			Update << ConvertParams(St),
+				Poco::Data::Keywords::use(Now),
+				Poco::Data::Keywords::use(Result),
+				Poco::Data::Keywords::use(Status),
+				Poco::Data::Keywords::use(UUID);
 			Update.execute();
 			return true;
 
