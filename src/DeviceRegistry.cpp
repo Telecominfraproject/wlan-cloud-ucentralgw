@@ -111,6 +111,24 @@ namespace OpenWifi {
 		return SessionDeleted;
 	}
 
+	void DeviceRegistry::SetSessionDetails(std::uint64_t connection_id, AP_WS_Connection * connection, uint64_t SerialNumber) {
+		std::unique_lock	G(LocalMutex_);
+		auto Hint = Sessions_.find(connection_id);
+		if(Hint!=Sessions_.end() && Hint->second==connection) {
+			poco_debug(Logger(),fmt::format("Starting session {}, serial {}.", connection_id, Utils::IntToSerialNumber(SerialNumber)));
+			// if there is a connection registered for this device already, end it.
+			auto CurrentSession = SerialNumbers_.find(SerialNumber);
+			if(CurrentSession==SerialNumbers_.end()) {
+				SerialNumbers_[SerialNumber] = std::make_pair(connection_id, connection);
+				return;
+			}
+
+			if(connection_id>CurrentSession->second.second->State_.sessionId) {
+				SerialNumbers_[SerialNumber] = std::make_pair(connection_id, connection);
+			}
+		}
+	}
+
 	bool DeviceRegistry::GetHealthcheck(uint64_t SerialNumber, GWObjects::HealthCheck & CheckData) const {
 		std::shared_lock	Guard(LocalMutex_);
 
