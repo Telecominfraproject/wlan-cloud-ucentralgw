@@ -28,20 +28,18 @@ namespace OpenWifi {
 		std::vector<AP_WS_Connection *>	connections;
 
 		poco_notice(Logger(),"Stopping...");
-
 		std::lock_guard		Guard(Mutex_);
 		Timer_.stop();
-
 		{
 			std::unique_lock	G(LocalMutex_);
 			for(const auto &[_,Session]:Sessions_)
 				connections.emplace_back(Session);
 		}
-
 		for(auto &c:connections) {
 			std::cout << "Deleting connection..." << std::endl;
 			delete c;
 		}
+		poco_notice(Logger(),"Stopped...");
     }
 
 	void DeviceRegistry::onConnectionJanitor([[maybe_unused]] Poco::Timer &timer) {
