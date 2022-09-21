@@ -153,6 +153,9 @@ namespace OpenWifi {
 						poco_information(MyLogger,"Scheduler quitting because service is stopping.");
 						break;
 					}
+					poco_trace(
+						MyLogger, fmt::format("{}: Serial={} Command={} Starting processing.",
+											  Cmd.UUID, Cmd.SerialNumber, Cmd.Command));
 					try {
 						{
 							std::lock_guard M(Mutex_);
