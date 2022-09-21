@@ -43,6 +43,12 @@ namespace OpenWifi {
 
 		auto now = OpenWifi::Now();
 		for (auto connection=SerialNumbers_.begin(); connection!=SerialNumbers_.end();) {
+
+			if(connection->second.second== nullptr) {
+				connection++;
+				continue;
+			}
+
 			if ((now - connection->second.second->State_.LastContact) > 500) {
 				connection++;
 			} else {
@@ -64,7 +70,7 @@ namespace OpenWifi {
     bool DeviceRegistry::GetStatistics(uint64_t SerialNumber, std::string & Statistics) const {
 		std::shared_lock	Guard(LocalMutex_);
         auto Device = SerialNumbers_.find(SerialNumber);
-        if(Device == SerialNumbers_.end())
+        if(Device == SerialNumbers_.end() || Device->second.second==nullptr)
 			return false;
 		Statistics = Device->second.second->LastStats_;
 		return true;
@@ -73,7 +79,7 @@ namespace OpenWifi {
     bool DeviceRegistry::GetState(uint64_t SerialNumber, GWObjects::ConnectionState & State) const {
 		std::shared_lock	Guard(LocalMutex_);
         auto Device = SerialNumbers_.find(SerialNumber);
-        if(Device == SerialNumbers_.end())
+        if(Device == SerialNumbers_.end() || Device->second.second==nullptr)
 			return false;
 		State = Device->second.second->State_;
 		return true;
@@ -83,7 +89,7 @@ namespace OpenWifi {
 		std::shared_lock	Guard(LocalMutex_);
 
 		auto Device = SerialNumbers_.find(SerialNumber);
-		if(Device == SerialNumbers_.end())
+		if(Device == SerialNumbers_.end() || Device->second.second==nullptr)
 			return false;
 
 		CheckData = Device->second.second->LastHealthcheck_;
@@ -120,7 +126,6 @@ namespace OpenWifi {
 			return;
 		}
 	}
-
 
     bool DeviceRegistry::Connected(uint64_t SerialNumber) const {
 		std::shared_lock Guard(LocalMutex_);
