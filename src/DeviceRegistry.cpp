@@ -98,7 +98,6 @@ namespace OpenWifi {
 		auto hint = SerialNumbers_.find(serial_number);
 
 		bool SessionDeleted = false;
-
 		if(	(hint != end(SerialNumbers_)) &&
 			(connection_id == hint->second.second->State_.sessionId)) {
 			poco_debug(Logger(),fmt::format("Ending session {}, serial {}.", connection_id, Utils::IntToSerialNumber(serial_number)));

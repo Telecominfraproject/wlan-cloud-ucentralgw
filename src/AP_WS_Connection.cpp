@@ -42,14 +42,14 @@ namespace OpenWifi {
 		State_.sessionId = connection_id;
 		DeviceRegistry()->StartSession(connection_id, this);
 		WS_ = std::make_unique<Poco::Net::WebSocket>(request,response);
-		if(ConcurrentStartingDevices_<64) {
+/*		if(ConcurrentStartingDevices_<64) {
 			Threaded_=true;
 			std::thread Finish{[this]() { this->CompleteStartup(); }};
 			Finish.detach();
 		} else {
-			Threaded_=false;
+*/			Threaded_=false;
 			CompleteStartup();
-		}
+//		}
 	}
 
 	class ThreadedCounter {
@@ -239,24 +239,22 @@ namespace OpenWifi {
 	}
 
 	void AP_WS_Connection::EndConnection() {
+		Dead_=true;
 		poco_information(Logger_,fmt::format("CONNECTION-CLOSING({}): {}.", CId_, SerialNumber_));
 		auto SessionDeleted = DeviceRegistry()->EndSession(State_.sessionId, this, SerialNumberInt_);
-		Dead_=true;
 
-		if (Registered_ && WS_) {
-			Reactor_.removeEventHandler(*WS_,
-										Poco::NObserver<AP_WS_Connection, Poco::Net::ReadableNotification>(
-											*this, &AP_WS_Connection::OnSocketReadable));
-			Reactor_.removeEventHandler(*WS_,
-										Poco::NObserver<AP_WS_Connection, Poco::Net::ShutdownNotification>(
-											*this, &AP_WS_Connection::OnSocketShutdown));
-			Reactor_.removeEventHandler(*WS_,
-										Poco::NObserver<AP_WS_Connection, Poco::Net::ErrorNotification>(
-											*this, &AP_WS_Connection::OnSocketError));
-			(*WS_).close();
-		} else if (WS_) {
-			(*WS_).close();
+		if (Registered_) {
+			Reactor_.removeEventHandler(
+				*WS_, Poco::NObserver<AP_WS_Connection, Poco::Net::ReadableNotification>(
+						  *this, &AP_WS_Connection::OnSocketReadable));
+			Reactor_.removeEventHandler(
+				*WS_, Poco::NObserver<AP_WS_Connection, Poco::Net::ShutdownNotification>(
+						  *this, &AP_WS_Connection::OnSocketShutdown));
+			Reactor_.removeEventHandler(
+				*WS_, Poco::NObserver<AP_WS_Connection, Poco::Net::ErrorNotification>(
+						  *this, &AP_WS_Connection::OnSocketError));
 		}
+		WS_->close();
 
 		if (KafkaManager()->Enabled() && !SerialNumber_.empty()) {
 			std::string s(SerialNumber_);
