@@ -40,7 +40,7 @@ namespace OpenWifi {
 		  Reactor_(AP_WS_Server()->NextReactor())
 	{
 		State_.sessionId = connection_id;
-		DeviceRegistry()->StartSession(connection_id, this);
+		// DeviceRegistry()->StartSession(connection_id, this);
 		WS_ = std::make_unique<Poco::Net::WebSocket>(request,response);
 /*		if(ConcurrentStartingDevices_<64) {
 			Threaded_=true;
@@ -241,7 +241,7 @@ namespace OpenWifi {
 	void AP_WS_Connection::EndConnection() {
 		Dead_=true;
 		poco_information(Logger_,fmt::format("CONNECTION-CLOSING({}): {}.", CId_, SerialNumber_));
-		auto SessionDeleted = DeviceRegistry()->EndSession(State_.sessionId, this, SerialNumberInt_);
+		auto SessionDeleted = DeviceRegistry()->EndSession(State_.sessionId, SerialNumberInt_);
 
 		if (Registered_) {
 			Reactor_.removeEventHandler(

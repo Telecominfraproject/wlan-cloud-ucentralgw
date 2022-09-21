@@ -27,7 +27,7 @@ void AP_WS_Connection::Process_connect(Poco::JSON::Object::Ptr ParamsObj, const 
 
 		CommandManager()->ClearQueue(SerialNumberInt_);
 
-		DeviceRegistry()->SetSessionDetails(State_.sessionId,this,SerialNumberInt_);
+		DeviceRegistry()->SetSessionDetails(State_.sessionId,SerialNumberInt_);
 		State_.UUID = UUID;
 		State_.Firmware = Firmware;
 		State_.PendingUUID = 0;

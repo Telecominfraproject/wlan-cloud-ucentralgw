@@ -101,8 +101,17 @@ namespace OpenWifi {
 			Connections_.erase(session_id);
 		}
 
+		inline std::shared_ptr<AP_WS_Connection> FindConnection(std::uint64_t session_id) const {
+			std::shared_lock	Lock(LocalMutex_);
+
+			auto Connection = Connections_.find(session_id);
+			if(Connection!=end(Connections_))
+				return Connection->second;
+			return nullptr;
+		}
+
 	private:
-		std::shared_mutex											LocalMutex_;
+		mutable std::shared_mutex									LocalMutex_;
 		std::unique_ptr<Poco::Crypto::X509Certificate>				IssuerCert_;
 		std::list<std::unique_ptr<Poco::Net::HTTPServer>>			WebServers_;
 		Poco::Net::SocketReactor									Reactor_;
