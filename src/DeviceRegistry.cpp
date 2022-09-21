@@ -35,37 +35,29 @@ namespace OpenWifi {
 
 		static std::uint64_t last_log = OpenWifi::Now();
 
-		using session_tuple=std::tuple<std::uint64_t,AP_WS_Connection *,std::uint64_t>;
-		std::vector<session_tuple> connections;
-		{
-			std::shared_lock Guard(LocalMutex_);
+		std::shared_lock Guard(LocalMutex_);
 
-			NumberOfConnectedDevices_ = 0;
-			AverageDeviceConnectionTime_ = 0;
-			std::uint64_t	total_connected_time=0;
+		NumberOfConnectedDevices_ = 0;
+		AverageDeviceConnectionTime_ = 0;
+		std::uint64_t	total_connected_time=0;
 
-			auto now = OpenWifi::Now();
-			for (const auto &[serial_number, connection_info] : SerialNumbers_) {
-				if ((now - connection_info.second->State_.LastContact) > 500) {
-					session_tuple S{serial_number,connection_info.second,connection_info.second->State_.sessionId};
-					connections.emplace_back(S);
-				} else {
-					NumberOfConnectedDevices_++;
-					total_connected_time += (now - connection_info.second->State_.started);
-				}
-			}
-			AverageDeviceConnectionTime_ = (NumberOfConnectedDevices_!=0) ? total_connected_time/NumberOfConnectedDevices_ : 0;
-			if((now-last_log)>120) {
-				last_log = now;
-				poco_information(Logger(),
-					fmt::format("Active AP connections: {} Average connection time: {} seconds",
-								NumberOfConnectedDevices_, AverageDeviceConnectionTime_));
+		auto now = OpenWifi::Now();
+		for (auto connection=SerialNumbers_.begin(); connection!=SerialNumbers_.end();) {
+			if ((now - connection->second.second->State_.LastContact) > 500) {
+				connection++;
+			} else {
+				NumberOfConnectedDevices_++;
+				total_connected_time += (now - connection->second.second->State_.started);
+				connection++;
 			}
 		}
 
-		for(auto [serial_number,ws_connection,id]:connections) {
-			poco_information(Logger(),fmt::format("Removing orphaned AP Session {} for {}", id, Utils::IntToSerialNumber(serial_number)));
-			// delete ws_connection;
+		AverageDeviceConnectionTime_ = (NumberOfConnectedDevices_!=0) ? total_connected_time/NumberOfConnectedDevices_ : 0;
+		if((now-last_log)>120) {
+			last_log = now;
+			poco_information(Logger(),
+				fmt::format("Active AP connections: {} Average connection time: {} seconds",
+							NumberOfConnectedDevices_, AverageDeviceConnectionTime_));
 		}
 	}
 
@@ -87,47 +79,6 @@ namespace OpenWifi {
 		return true;
     }
 
-	bool DeviceRegistry::EndSession(std::uint64_t connection_id, [[maybe_unused]] AP_WS_Connection * connection, std::uint64_t serial_number) {
-		std::unique_lock	G(LocalMutex_);
-
-		auto Session = Sessions_.find(connection_id);
-		if(Session==end(Sessions_)) {
-			return false;
-		}
-
-		auto hint = SerialNumbers_.find(serial_number);
-
-		bool SessionDeleted = false;
-		if(	(hint != end(SerialNumbers_)) &&
-			(connection_id == hint->second.second->State_.sessionId)) {
-			poco_debug(Logger(),fmt::format("Ending session {}, serial {}.", connection_id, Utils::IntToSerialNumber(serial_number)));
-			SerialNumbers_.erase(serial_number);
-			SessionDeleted = true;
-		} else {
-			poco_debug(Logger(),fmt::format("Not Ending session {}, serial {}. This is an old session.", connection_id, Utils::IntToSerialNumber(serial_number)));
-		}
-		Sessions_.erase(Session);
-		return SessionDeleted;
-	}
-
-	void DeviceRegistry::SetSessionDetails(std::uint64_t connection_id, AP_WS_Connection * connection, uint64_t SerialNumber) {
-		std::unique_lock	G(LocalMutex_);
-		auto Hint = Sessions_.find(connection_id);
-		if(Hint!=Sessions_.end() && Hint->second==connection) {
-			poco_debug(Logger(),fmt::format("Starting session {}, serial {}.", connection_id, Utils::IntToSerialNumber(SerialNumber)));
-			// if there is a connection registered for this device already, end it.
-			auto CurrentSession = SerialNumbers_.find(SerialNumber);
-			if(CurrentSession==SerialNumbers_.end()) {
-				SerialNumbers_[SerialNumber] = std::make_pair(connection_id, connection);
-				return;
-			}
-
-			if(connection_id>CurrentSession->second.second->State_.sessionId) {
-				SerialNumbers_[SerialNumber] = std::make_pair(connection_id, connection);
-			}
-		}
-	}
-
 	bool DeviceRegistry::GetHealthcheck(uint64_t SerialNumber, GWObjects::HealthCheck & CheckData) const {
 		std::shared_lock	Guard(LocalMutex_);
 
@@ -138,6 +89,38 @@ namespace OpenWifi {
 		CheckData = Device->second.second->LastHealthcheck_;
 		return true;
 	}
+
+	bool DeviceRegistry::EndSession(std::uint64_t connection_id, std::uint64_t serial_number) {
+		std::unique_lock	G(LocalMutex_);
+
+		auto Connection = SerialNumbers_.find(serial_number);
+		if(Connection==end(SerialNumbers_)) {
+			return false;
+		}
+
+		if(Connection->second.first!=connection_id) {
+			return false;
+		}
+
+		SerialNumbers_.erase(Connection);
+		return true;
+	}
+
+	void DeviceRegistry::SetSessionDetails(std::uint64_t connection_id, uint64_t SerialNumber) {
+		auto Connection = AP_WS_Server()->FindConnection(connection_id);
+
+		if(Connection== nullptr)
+			return;
+
+		std::unique_lock	G(LocalMutex_);
+		auto CurrentSerialNumber = SerialNumbers_.find(SerialNumber);
+		if(	(CurrentSerialNumber==SerialNumbers_.end())	||
+			(CurrentSerialNumber->second.first<connection_id)) {
+			SerialNumbers_[SerialNumber] = std::make_pair(connection_id, Connection);
+			return;
+		}
+	}
+
 
     bool DeviceRegistry::Connected(uint64_t SerialNumber) const {
 		std::shared_lock Guard(LocalMutex_);

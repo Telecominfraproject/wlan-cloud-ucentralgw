@@ -60,13 +60,8 @@ namespace OpenWifi {
 		bool SendRadiusAccountingData(const std::string & SerialNumber, const unsigned char * buffer, std::size_t size);
 		bool SendRadiusCoAData(const std::string & SerialNumber, const unsigned char * buffer, std::size_t size);
 
-		inline void StartSession(uint64_t ConnectionId, AP_WS_Connection * connection) {
-			std::unique_lock	G(LocalMutex_);
-			Sessions_[ConnectionId] = connection;
-		}
-
-		void SetSessionDetails(std::uint64_t connection_id, AP_WS_Connection * connection, uint64_t SerialNumber);
-		bool EndSession(std::uint64_t connection_id, AP_WS_Connection * connection, std::uint64_t serial_number);
+		void SetSessionDetails(std::uint64_t connection_id, uint64_t SerialNumber);
+		bool EndSession(std::uint64_t connection_id, std::uint64_t serial_number);
 
 		void SetWebSocketTelemetryReporting(uint64_t SerialNumber, uint64_t Interval, uint64_t Lifetime);
 		void StopWebSocketTelemetry(uint64_t SerialNumber);
@@ -89,9 +84,8 @@ namespace OpenWifi {
 		}
 
 	  private:
-		mutable std::shared_mutex														LocalMutex_;
-		std::map<std::uint64_t, AP_WS_Connection *>  									Sessions_;
-		std::map<std::uint64_t, std::pair<std::uint64_t, AP_WS_Connection *>>			SerialNumbers_;
+		mutable std::shared_mutex									LocalMutex_;
+		std::map<std::uint64_t, std::pair<std::uint64_t,std::shared_ptr<AP_WS_Connection>>>	SerialNumbers_;
 
 		std::unique_ptr<Poco::TimerCallback<DeviceRegistry>>   ArchiverCallback_;
 		Poco::Timer                     		Timer_;
