@@ -32,7 +32,7 @@ namespace OpenWifi {
 		inline std::string to_string(const CommandExecutionType &C) {
 			switch(C) {
 				case CommandExecutionType::COMMAND_PENDING: return "pending";
-				case CommandExecutionType::COMMAND_EXECUTED: return "executied";
+				case CommandExecutionType::COMMAND_EXECUTED: return "executed";
 				case CommandExecutionType::COMMAND_COMPLETED: return "completed";
 				case CommandExecutionType::COMMAND_TIMEDOUT: return "timedout";
 				case CommandExecutionType::COMMAND_FAILED: return "failed";
