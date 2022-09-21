@@ -433,7 +433,7 @@ namespace OpenWifi {
 
 	bool Storage::DeleteDevice(std::string &SerialNumber) {
 		try {
-			std::vector<std::string>	DBList{"Devices", "Statistics", "CommandList", "HealthChecks", "LifetimeStats", "Capabilities", "DeviceLogs"};
+			std::vector<std::string>	DBList{"Devices", "Statistics", "CommandList", "HealthChecks", "Capabilities", "DeviceLogs"};
 
 			for(const auto &i:DBList) {
 

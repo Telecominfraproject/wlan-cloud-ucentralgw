@@ -8,6 +8,10 @@
 
 #include <algorithm>
 
+#ifndef POCO_LOG_DEBUG
+#define POCO_LOG_DEBUG true
+#endif
+
 #include "Poco/JSON/Parser.h"
 
 #include "CommandManager.h"
@@ -21,45 +25,59 @@ namespace OpenWifi {
 	void CommandManager::run() {
 		Utils::SetThreadName("cmd:mgr");
 		Running_ = true;
-		Poco::AutoPtr<Poco::Notification>	NextMsg(ResponseQueue_.waitDequeueNotification());
 
-		while(NextMsg && Running_) {
-			auto Resp = dynamic_cast<RPCResponseNotification*>(NextMsg.get());
+		try {
 
-			if(Resp!= nullptr) {
-				const Poco::JSON::Object & Payload = Resp->Payload_;
-				const std::string & SerialNumber = Resp->SerialNumber_;
+			Poco::AutoPtr<Poco::Notification> NextMsg(ResponseQueue_.waitDequeueNotification());
 
-				std::ostringstream SS;
-				Payload.stringify(SS);
+			while (NextMsg && Running_) {
+				auto Resp = dynamic_cast<RPCResponseNotification *>(NextMsg.get());
 
-				if(!Payload.has(uCentralProtocol::ID)){
-					Logger().error(fmt::format("({}): Invalid RPC response.", SerialNumber));
-				} else {
-					uint64_t ID = Payload.get(uCentralProtocol::ID);
-					if (ID < 2) {
-						Logger().debug(fmt::format("({}): Ignoring RPC response.", SerialNumber));
+				if (Resp != nullptr) {
+					const Poco::JSON::Object &Payload = Resp->Payload_;
+					const std::string &SerialNumber = Resp->SerialNumber_;
+
+					std::ostringstream SS;
+					Payload.stringify(SS);
+
+					if (!Payload.has(uCentralProtocol::ID)) {
+						Logger().error(fmt::format("({}): Invalid RPC response.", SerialNumber));
 					} else {
-						std::lock_guard G(Mutex_);
-						auto RPC = OutStandingRequests_.find(ID);
-						if (RPC == OutStandingRequests_.end()	||
-							RPC->second.SerialNumber!=Utils::SerialNumberToInt(Resp->SerialNumber_)) {
-							Logger().warning(fmt::format("({}): Outdated RPC {}", SerialNumber, ID));
+						uint64_t ID = Payload.get(uCentralProtocol::ID);
+						if (ID < 2) {
+							Logger().debug(
+								fmt::format("({}): Ignoring RPC response.", SerialNumber));
 						} else {
-							std::chrono::duration<double, std::milli> rpc_execution_time = std::chrono::high_resolution_clock::now() - RPC->second.submitted;
-							StorageService()->CommandCompleted(RPC->second.UUID, Payload,
-															   rpc_execution_time, true);
-							if (RPC->second.rpc_entry) {
-								RPC->second.rpc_entry->set_value(Payload);
+							std::lock_guard G(Mutex_);
+							auto RPC = OutStandingRequests_.find(ID);
+							if (RPC == OutStandingRequests_.end() ||
+								RPC->second.SerialNumber !=
+									Utils::SerialNumberToInt(Resp->SerialNumber_)) {
+								Logger().warning(
+									fmt::format("({}): Outdated RPC {}", SerialNumber, ID));
+							} else {
+								std::chrono::duration<double, std::milli> rpc_execution_time =
+									std::chrono::high_resolution_clock::now() -
+									RPC->second.submitted;
+								StorageService()->CommandCompleted(RPC->second.UUID, Payload,
+																   rpc_execution_time, true);
+								if (RPC->second.rpc_entry) {
+									RPC->second.rpc_entry->set_value(Payload);
+								}
+								Logger().information(
+									fmt::format("({}): Received RPC answer {}. Command={}",
+												SerialNumber, ID, RPC->second.Command));
+								OutStandingRequests_.erase(ID);
 							}
-							Logger().information(
-								fmt::format("({}): Received RPC answer {}. Command={}", SerialNumber, ID, RPC->second.Command));
-							OutStandingRequests_.erase(ID);
 						}
 					}
 				}
+				NextMsg = ResponseQueue_.waitDequeueNotification();
 			}
-			NextMsg = ResponseQueue_.waitDequeueNotification();
+		} catch (const Poco::Exception &E) {
+			Logger().log(E);
+		} catch (...) {
+			Logger().warning("Exception occurred during run.");
 		}
    	}
 
@@ -120,72 +138,97 @@ namespace OpenWifi {
 
 	void CommandManager::onCommandRunnerTimer([[maybe_unused]] Poco::Timer &timer) {
 		Utils::SetThreadName("cmd:schdlr");
-		Poco::Logger	& MyLogger = Poco::Logger::get("CMD-MGR-SCHEDULER");
+		Poco::Logger &MyLogger = Poco::Logger::get("CMD-MGR-SCHEDULER");
 
-		StorageService()->RemovedExpiredCommands();
-		StorageService()->RemoveTimedOutCommands();
+		try {
 
-		std::vector<GWObjects::CommandDetails> Commands;
-		if(StorageService()->GetReadyToExecuteCommands(0,200,Commands))
-		{
-			for(auto & Cmd: Commands)
-			{
-				if(!Running_)
-					break;
-				try {
-					{
-						std::lock_guard M(Mutex_);
-						for(const auto &request:OutStandingRequests_) {
-							if (request.second.UUID == Cmd.UUID) {
-								continue;
+			StorageService()->RemovedExpiredCommands();
+			StorageService()->RemoveTimedOutCommands();
+
+			std::vector<GWObjects::CommandDetails> Commands;
+			if (StorageService()->GetReadyToExecuteCommands(0, 200, Commands)) {
+				poco_trace(MyLogger,fmt::format("Scheduler about to process {} commands.", Commands.size()));
+				for (auto &Cmd : Commands) {
+					if (!Running_) {
+						poco_information(MyLogger,"Scheduler quitting because service is stopping.");
+						break;
+					}
+					try {
+						{
+							std::lock_guard M(Mutex_);
+							for (const auto &request : OutStandingRequests_) {
+								if (request.second.UUID == Cmd.UUID) {
+									continue;
+								}
 							}
 						}
-					}
 
-					auto now = OpenWifi::Now();
-					// 2 hour timeout for commands
-					if((now-Cmd.Submitted) > (1 * 60 * 60) ) {
-						poco_information(MyLogger,fmt::format("Command {} for {} (Command={}) has expired.", Cmd.UUID, Cmd.SerialNumber, Cmd.Command));
-						StorageService()->SetCommandTimedOut(Cmd.UUID);
-						continue;
-					}
+						auto now = OpenWifi::Now();
+						// 2 hour timeout for commands
+						if ((now - Cmd.Submitted) > (1 * 60 * 60)) {
+							poco_information(
+								MyLogger, fmt::format("{}: Serial={} Command={} has expired.",
+													  Cmd.UUID, Cmd.SerialNumber, Cmd.Command));
+							StorageService()->SetCommandTimedOut(Cmd.UUID);
+							continue;
+						}
 
-					if(!DeviceRegistry()->Connected(Utils::SerialNumberToInt(Cmd.SerialNumber))) {
-						poco_trace(MyLogger,fmt::format("Command {} for {} (Command={}) Device is not connected.", Cmd.UUID, Cmd.SerialNumber, Cmd.Command));
-						continue;
-					}
+						if (!DeviceRegistry()->Connected(
+								Utils::SerialNumberToInt(Cmd.SerialNumber))) {
+							poco_trace(
+								MyLogger,
+								fmt::format(
+									"{}: Serial={} Command={} Device is not connected.",
+									Cmd.UUID, Cmd.SerialNumber, Cmd.Command));
+							continue;
+						}
 
-					std::string ExecutingCommand, ExecutingUUID;
-					if(CommandRunningForDevice(Utils::SerialNumberToInt(Cmd.SerialNumber),ExecutingUUID,ExecutingCommand)) {
-						poco_trace(MyLogger,fmt::format("Device {} is already busy with command {} (Command={}).", Cmd.SerialNumber, Cmd.UUID, Cmd.Command));
-						continue;
-					}
+						std::string ExecutingCommand, ExecutingUUID;
+						if (CommandRunningForDevice(Utils::SerialNumberToInt(Cmd.SerialNumber),
+													ExecutingUUID, ExecutingCommand)) {
+							poco_trace(
+								MyLogger,
+								fmt::format(
+									"{}: Serial={} Command={} Device is already busy with command {} (Command={})."
+									, Cmd.UUID, Cmd.SerialNumber, Cmd.Command,ExecutingUUID, ExecutingCommand));
+							continue;
+						}
 
-					Poco::JSON::Parser	P;
-					bool Sent;
-					MyLogger.information(fmt::format("{}: Preparing execution of {} for {}.", Cmd.UUID, Cmd.Command, Cmd.SerialNumber));
-					auto Params = P.parse(Cmd.Details).extract<Poco::JSON::Object::Ptr>();
-					auto Result = PostCommandDisk(	NextRPCId(),
-													Cmd.SerialNumber,
-												  	Cmd.Command,
-												  	*Params,
-												  	Cmd.UUID,
-												  	Sent);
-					if(Sent) {
+						Poco::JSON::Parser P;
+						bool Sent;
+						MyLogger.information(fmt::format("{}: Serial={} Command={} Preparing execution.",
+														 Cmd.UUID, Cmd.SerialNumber, Cmd.Command));
+						auto Params = P.parse(Cmd.Details).extract<Poco::JSON::Object::Ptr>();
+						auto Result = PostCommandDisk(NextRPCId(), Cmd.SerialNumber, Cmd.Command,
+													  *Params, Cmd.UUID, Sent);
+						if (Sent) {
+							StorageService()->SetCommandExecuted(Cmd.UUID);
+							poco_information(MyLogger,
+								fmt::format("{}: Serial={} Command={} Sent.",
+									 Cmd.UUID, Cmd.SerialNumber, Cmd.Command));
+						} else {
+							poco_information(MyLogger,
+								fmt::format("{}: Serial={} Command={} Re-queued command.",
+									 Cmd.UUID, Cmd.SerialNumber, Cmd.Command));
+						}
+					} catch (const Poco::Exception &E) {
+						poco_information(MyLogger,
+							fmt::format("{}: Serial={} Command={} Failed. Command marked as completed.",
+									 Cmd.UUID, Cmd.SerialNumber, Cmd.Command));
+						MyLogger.log(E);
 						StorageService()->SetCommandExecuted(Cmd.UUID);
-						MyLogger.information(fmt::format("{}: Queued command. Serial={} Command={}", Cmd.UUID, Cmd.SerialNumber, Cmd.Command));
-					} else {
-						MyLogger.information(fmt::format("{}: Queued command. Serial={} Command={}", Cmd.UUID, Cmd.SerialNumber, Cmd.Command));
+					} catch (...) {
+						poco_information(MyLogger,
+							 fmt::format("{}: Serial={} Command={} Hard failure. Command marked as completed.",
+										 Cmd.UUID, Cmd.SerialNumber, Cmd.Command));
+						StorageService()->SetCommandExecuted(Cmd.UUID);
 					}
-				} catch (const Poco::Exception &E) {
-					MyLogger.information(fmt::format("{}: Failed. Command marked as completed.", Cmd.UUID));
-					MyLogger.log(E);
-					StorageService()->SetCommandExecuted(Cmd.UUID);
-				} catch (...) {
-					MyLogger.information(fmt::format("{}: Hard failure.", Cmd.UUID));
-					StorageService()->SetCommandExecuted(Cmd.UUID);
 				}
 			}
+		} catch (Poco::Exception &E) {
+			MyLogger.log(E);
+		} catch (...) {
+			MyLogger.warning("Exception during command processing.");
 		}
 	}
 
