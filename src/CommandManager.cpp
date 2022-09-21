@@ -140,6 +140,8 @@ namespace OpenWifi {
 		Utils::SetThreadName("cmd:schdlr");
 		Poco::Logger &MyLogger = Poco::Logger::get("CMD-MGR-SCHEDULER");
 
+		poco_trace(MyLogger,"Scheduler starting.");
+
 		try {
 
 			StorageService()->RemovedExpiredCommands();
@@ -233,6 +235,7 @@ namespace OpenWifi {
 		} catch (...) {
 			MyLogger.warning("Exception during command processing.");
 		}
+		poco_trace(MyLogger,"Scheduler done.");
 	}
 
 	std::shared_ptr<CommandManager::promise_type_t> CommandManager::PostCommand(
