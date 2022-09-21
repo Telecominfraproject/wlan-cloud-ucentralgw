@@ -93,7 +93,7 @@ namespace OpenWifi {
 			State_.started = OpenWifi::Now();
 
 			if (!SS->secure()) {
-				poco_trace(Logger_,fmt::format("CONNECTION({}): Connection is NOT secure. Device is not allowed.", CId_));
+				poco_warning(Logger_,fmt::format("CONNECTION({}): Connection is NOT secure. Device is not allowed.", CId_));
 				return EndConnection();
 			}
 
@@ -101,14 +101,14 @@ namespace OpenWifi {
 
 			if (!SS->havePeerCertificate()) {
 				State_.VerifiedCertificate = GWObjects::NO_CERTIFICATE;
-				poco_error(Logger_,fmt::format("CONNECTION({}): No certificates available..", CId_));
+				poco_warning(Logger_,fmt::format("CONNECTION({}): No certificates available..", CId_));
 				return EndConnection();
 			}
 
 			Poco::Crypto::X509Certificate PeerCert(SS->peerCertificate());
 			if (!AP_WS_Server()->ValidateCertificate(CId_, PeerCert)) {
 				State_.VerifiedCertificate = GWObjects::NO_CERTIFICATE;
-				poco_trace(Logger_, fmt::format("CONNECTION({}): Device certificate is not valid. Device is not allowed.",
+				poco_warning(Logger_, fmt::format("CONNECTION({}): Device certificate is not valid. Device is not allowed.",
 												CId_));
 				return EndConnection();
 			}
