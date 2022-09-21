@@ -140,7 +140,7 @@ namespace OpenWifi {
 		Utils::SetThreadName("cmd:schdlr");
 		Poco::Logger &MyLogger = Poco::Logger::get("CMD-MGR-SCHEDULER");
 
-		poco_trace(MyLogger,"Scheduler starting.");
+		poco_debug(MyLogger,"Scheduler starting.");
 
 		try {
 
@@ -149,7 +149,7 @@ namespace OpenWifi {
 
 			std::vector<GWObjects::CommandDetails> Commands;
 			if (StorageService()->GetReadyToExecuteCommands(0, 200, Commands)) {
-				poco_trace(MyLogger,fmt::format("Scheduler about to process {} commands.", Commands.size()));
+				poco_debug(MyLogger,fmt::format("Scheduler about to process {} commands.", Commands.size()));
 				for (auto &Cmd : Commands) {
 					if (!Running_) {
 						poco_information(MyLogger,"Scheduler quitting because service is stopping.");
@@ -235,7 +235,7 @@ namespace OpenWifi {
 		} catch (...) {
 			MyLogger.warning("Exception during command processing.");
 		}
-		poco_trace(MyLogger,"Scheduler done.");
+		poco_debug(MyLogger,"Scheduler done.");
 	}
 
 	std::shared_ptr<CommandManager::promise_type_t> CommandManager::PostCommand(
