@@ -10,6 +10,8 @@
 #include "AP_WS_Server.h"
 #include "DeviceRegistry.h"
 
+#include "framework/WebSocketClientNotifications.h"
+
 namespace OpenWifi {
 
 	int DeviceRegistry::Start() {
@@ -65,6 +67,7 @@ namespace OpenWifi {
 				fmt::format("Active AP connections: {} Average connection time: {} seconds",
 							NumberOfConnectedDevices_, AverageDeviceConnectionTime_));
 		}
+		WebSocketClientNotificationNumberOfConnections(NumberOfConnectedDevices_,AverageDeviceConnectionTime_);
 	}
 
     bool DeviceRegistry::GetStatistics(uint64_t SerialNumber, std::string & Statistics) const {

@@ -69,6 +69,35 @@ namespace OpenWifi {
 		}
 	};
 
+	struct WebSocketClientNotificationNumberOfConnection {
+		std::uint64_t 	numberOfDevices=0;
+		std::uint64_t 	averageConnectedTime=0;
+
+		inline void to_json(Poco::JSON::Object &Obj) const {
+			RESTAPI_utils::field_to_json(Obj,"numberOfDevices", numberOfDevices);
+			RESTAPI_utils::field_to_json(Obj,"averageConnectedTime", averageConnectedTime);
+		}
+
+		inline bool from_json(const Poco::JSON::Object::Ptr &Obj) {
+			try {
+				RESTAPI_utils::field_from_json(Obj,"numberOfDevices", numberOfDevices);
+				RESTAPI_utils::field_from_json(Obj,"averageConnectedTime", averageConnectedTime);
+				return true;
+			} catch (...) {
+
+			}
+			return false;
+		}
+	};
+
+	inline void  WebSocketClientNotificationNumberOfConnections(std::uint64_t numberOfDevices, std::uint64_t averageConnectedTime) {
+		WebSocketNotification<WebSocketClientNotificationNumberOfConnection>	N;
+		N.content.numberOfDevices = numberOfDevices;
+		N.content.averageConnectedTime = averageConnectedTime;
+		N.type = "device_connections_statistics";
+		WebSocketClientServer()->SendNotification(N);
+	}
+
 	inline void WebSocketClientNotificationDeviceConfigurationChange(const std::string &SerialNumber, uint64_t oldUUID, uint64_t newUUID) {
 		WebSocketNotification<WebNotificationSingleDeviceConfigurationChange>	N;
 		N.content.serialNumber = SerialNumber;
