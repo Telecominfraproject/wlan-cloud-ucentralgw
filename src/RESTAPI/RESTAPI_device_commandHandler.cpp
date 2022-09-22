@@ -29,7 +29,7 @@
 namespace OpenWifi {
 
 	void RESTAPI_device_commandHandler::CallCanceled(const char * Cmd, const OpenWifi::RESTAPI::Errors::msg &Err, const std::string & Details) {
-		Logger_.warning(fmt::format("{},{}: Canceled. Error:{} Reason:{} Details={}", Cmd, SerialNumber_, Err.err_num, Err.err_txt, Details));
+		Logger_.warning(fmt::format("{},{}: TID={} Canceled. Error:{} Reason:{} Details={}", Cmd, SerialNumber_, TransactionId_, Err.err_num, Err.err_txt, Details));
 	}
 
 	void RESTAPI_device_commandHandler::DoGet() {
@@ -158,7 +158,7 @@ namespace OpenWifi {
 				}
 				auto UUID = MicroService::CreateUUID();
 				auto RPC = CommandManager()->NextRPCId();
-				poco_debug(Logger_,fmt::format("Command {} can proceed. Identified as {} and RPCID as {}", Command.Command, UUID, RPC ));
+				poco_debug(Logger_,fmt::format("Command {} TID={} can proceed. Identified as {} and RPCID as {}", Command.Command, TransactionId_, UUID, RPC ));
 				return (*this.*Command.funPtr)(UUID,RPC);
 			}
 		}
