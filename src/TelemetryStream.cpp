@@ -17,21 +17,20 @@ namespace OpenWifi {
 	int TelemetryStream::Start() {
 		Running_ = true;
 		Messages_->Readable_ += Poco::delegate(this,&TelemetryStream::onMessage);
-		// ReactorPool_.Start("TelemetryWebSocketPool_");
 		Thr_.start(Reactor_);
 		Utils::SetThreadName(Thr_,"telemetry-svr");
 		return 0;
 	}
 
 	void TelemetryStream::Stop() {
-	    Logger().notice("Stopping reactors...");
-	    // ReactorPool_.Stop();
+		poco_information(Logger(),"Stopping...");
 		Reactor_.stop();
 		Thr_.join();
 		if(Running_) {
 			Running_ = false;
 			Messages_->Readable_ -= Poco::delegate( this, &TelemetryStream::onMessage);
 		}
+		poco_information(Logger(),"Stopped...");
 	}
 
 	bool TelemetryStream::IsValidEndPoint(uint64_t SerialNumber, const std::string & UUID) {

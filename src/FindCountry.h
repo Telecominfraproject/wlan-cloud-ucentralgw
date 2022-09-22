@@ -134,6 +134,7 @@ namespace OpenWifi {
 		}
 
 		inline int Start() final {
+			Logger().notice("Starting...");
 			ProviderName_ = MicroService::instance().ConfigGetString("iptocountry.provider","");
 			if(!ProviderName_.empty()) {
 				Provider_ = IPLocationProvider<IPToCountryProvider, IPInfo, IPData, IP2Location>(ProviderName_);
@@ -146,6 +147,9 @@ namespace OpenWifi {
 		}
 
 		inline void Stop() final {
+			Logger().notice("Stopping...");
+			//	Nothing to do - just to provide the same look at the others.
+			Logger().notice("Stopped...");
 		}
 
 		[[nodiscard]] static inline std::string ReformatAddress(const std::string & I )

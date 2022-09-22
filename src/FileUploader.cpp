@@ -297,8 +297,9 @@ namespace OpenWifi {
     void FileUploader::Stop() {
         Logger().notice("Stopping...");
         for( const auto & svr : Servers_ )
-            svr->stop();
+            svr->stopAll(true);
 		Servers_.clear();
+		Logger().notice("Stopped...");
     }
 
 }  //  Namespace
