@@ -29,8 +29,10 @@ namespace OpenWifi {
 	}
 
 	void OUIServer::Stop() {
+		Logger().notice("Stopping...");
 		Running_=false;
 		Timer_.stop();
+		Logger().notice("Stopped...");
 	}
 
 	void OUIServer::reinitialize([[maybe_unused]] Poco::Util::Application &self) {

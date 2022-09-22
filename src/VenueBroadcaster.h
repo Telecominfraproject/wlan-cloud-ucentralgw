@@ -39,13 +39,13 @@ namespace OpenWifi {
 		}
 
 		inline void Stop() override {
+			poco_information(Logger(),"Stopping...");
 			if(Enabled_ && Running_) {
-				poco_information(Logger(),"Stopping...");
 				BroadcastQueue_.wakeUpAll();
 				BroadcastManager_.wakeUp();
 				BroadcastManager_.join();
-				poco_information(Logger(),"Stopped...");
 			}
+			poco_information(Logger(),"Stopped...");
 		}
 
 		inline void reinitialize([[maybe_unused]] Poco::Util::Application &self) override {

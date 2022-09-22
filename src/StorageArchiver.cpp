@@ -103,9 +103,11 @@ namespace OpenWifi {
 	}
 
 	void StorageArchiver::Stop() {
+		poco_information(Logger(),"Stopping...");
 		if(Enabled_) {
 			Timer_.stop();
 		}
+		poco_information(Logger(),"Stopped...");
 	}
 
 };
