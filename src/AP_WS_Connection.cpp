@@ -39,10 +39,15 @@ namespace OpenWifi {
 		: Logger_(AP_WS_Server()->Logger()) ,
 		  Reactor_(AP_WS_Server()->NextReactor())
 	{
-		static auto MaxThreads = (Poco::Environment::processorCount() >= 2) ? Poco::Environment::processorCount() * 4 : 8  ;
 		State_.sessionId = connection_id;
 		WS_ = std::make_unique<Poco::Net::WebSocket>(request,response);
-		if(ConcurrentStartingDevices_<MaxThreads) {
+		Threaded_=false;
+		CompleteStartup();
+
+/*
+		static auto MaxThreads = (Poco::Environment::processorCount() >= 2) ? Poco::Environment::processorCount() * 4 : 8  ;
+
+	 	if(ConcurrentStartingDevices_<MaxThreads) {
 			Threaded_=true;
 			std::thread Finish{[this]() { this->CompleteStartup(); }};
 			Finish.detach();
@@ -50,6 +55,7 @@ namespace OpenWifi {
 			Threaded_=false;
 			CompleteStartup();
 		}
+*/
 	}
 
 	class ThreadedCounter {
@@ -136,13 +142,6 @@ namespace OpenWifi {
 			SerialNumber_ = CN_;
 			SerialNumberInt_ = Utils::SerialNumberToInt(SerialNumber_);
 
-			WS_->setMaxPayloadSize(BufSize);
-			auto TS = Poco::Timespan(360, 0);
-			WS_->setReceiveTimeout(TS);
-			WS_->setNoDelay(true);
-			WS_->setKeepAlive(true);
-			WS_->setBlocking(false);
-
 			Reactor_.addEventHandler(
 				*WS_, Poco::NObserver<AP_WS_Connection, Poco::Net::ReadableNotification>(
 						  *this, &AP_WS_Connection::OnSocketReadable));
@@ -152,6 +151,14 @@ namespace OpenWifi {
 			Reactor_.addEventHandler(
 				*WS_, Poco::NObserver<AP_WS_Connection, Poco::Net::ErrorNotification>(
 						  *this, &AP_WS_Connection::OnSocketError));
+
+			WS_->setMaxPayloadSize(BufSize);
+			auto TS = Poco::Timespan(360, 0);
+			WS_->setReceiveTimeout(TS);
+			WS_->setNoDelay(true);
+			WS_->setKeepAlive(true);
+			WS_->setBlocking(false);
+
 			Registered_ = true;
 			poco_debug(Logger_, fmt::format("CONNECTION({}): Session={} Completed. (t={})", CId_, State_.sessionId , ConcurrentStartingDevices_));
 			return;

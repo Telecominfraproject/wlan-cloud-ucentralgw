@@ -110,7 +110,7 @@ namespace OpenWifi {
 		void (RESTAPI_device_commandHandler::*funPtr)(const std::string &, std::uint64_t);
 	};
 
-	static std::vector<PostDeviceCommand>	PostCommands
+	const static std::vector<PostDeviceCommand>	PostCommands
 		{
 			{ RESTAPI::Protocol::PERFORM, false, true, &RESTAPI_device_commandHandler::ExecuteCommand },
 			{ RESTAPI::Protocol::CONFIGURE, false, false, &RESTAPI_device_commandHandler::Configure },
@@ -135,9 +135,8 @@ namespace OpenWifi {
 		if(!Utils::ValidSerialNumber(SerialNumber_)) {
 			return BadRequest(RESTAPI::Errors::MissingSerialNumber);
 		}
-		SerialNumberInt_ = Utils::SerialNumberToInt(SerialNumber_);
 
-		Poco::Thread::current()->setName(fmt::format("{}: {}",SerialNumber_,Command_));
+		SerialNumberInt_ = Utils::SerialNumberToInt(SerialNumber_);
 
 		GWObjects::Device	TheDevice;
 		if(!StorageService()->GetDevice(SerialNumber_,TheDevice)) {
@@ -146,6 +145,7 @@ namespace OpenWifi {
 
 		for(const auto &Command:PostCommands) {
 			if(Command_==Command.Command) {
+				Poco::Thread::current()->setName(Command.Command);
 				if(Command.RequireConnection && !DeviceRegistry()->Connected(SerialNumberInt_)) {
 					CallCanceled(Command.Command, RESTAPI::Errors::DeviceNotConnected);
 					return BadRequest(RESTAPI::Errors::DeviceNotConnected);
@@ -158,6 +158,7 @@ namespace OpenWifi {
 				}
 				auto UUID = MicroService::CreateUUID();
 				auto RPC = CommandManager()->NextRPCId();
+				poco_debug(Logger_,fmt::format("Command {} can proceed. Identified as {} and RPCID as {}", Command.Command, UUID, RPC ));
 				return (*this.*Command.funPtr)(UUID,RPC);
 			}
 		}
