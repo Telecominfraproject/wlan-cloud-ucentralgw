@@ -5179,7 +5179,10 @@ namespace OpenWifi {
             Reactor_.addEventHandler(*WS_,
                                      Poco::NObserver<WebSocketClient, Poco::Net::ErrorNotification>(
                                              *this, &WebSocketClient::OnSocketError));
-            // WebSocketClientServer()->Register(this, Id_);
+			WS_->setNoDelay(true);
+			WS_->setKeepAlive(true);
+			WS_->setBlocking(false);
+
         } catch (...) {
             delete this;
         }

@@ -166,6 +166,10 @@ namespace OpenWifi {
 						*Socket_,
 						Poco::NObserver<RADSECserver, Poco::Net::ShutdownNotification>(
 							*this, &RADSECserver::onShutdown));
+					Socket_->setBlocking(false);
+					Socket_->setNoDelay(true);
+					Socket_->setKeepAlive(true);
+
 					Connected_ = true;
 					Logger_.information(fmt::format("Connected. CN={}",CommonName()));
 					return true;

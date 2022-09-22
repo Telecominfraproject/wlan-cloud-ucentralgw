@@ -141,6 +141,7 @@ namespace OpenWifi {
 			WS_->setReceiveTimeout(TS);
 			WS_->setNoDelay(true);
 			WS_->setKeepAlive(true);
+			WS_->setBlocking(false);
 
 			Reactor_.addEventHandler(
 				*WS_, Poco::NObserver<AP_WS_Connection, Poco::Net::ReadableNotification>(

@@ -27,6 +27,9 @@ namespace OpenWifi {
 			Reactor_.addEventHandler(
 				*WS_, Poco::NObserver<RTTYS_ClientConnection, Poco::Net::ShutdownNotification>(
 						  *this, &RTTYS_ClientConnection::onSocketShutdown));
+			WS_->setBlocking(false);
+			WS_->setNoDelay(true);
+			WS_->setKeepAlive(true);
 		}
 
 	RTTYS_ClientConnection::~RTTYS_ClientConnection() {
