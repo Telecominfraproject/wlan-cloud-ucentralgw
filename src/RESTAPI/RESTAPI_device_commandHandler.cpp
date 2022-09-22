@@ -1014,7 +1014,6 @@ namespace OpenWifi {
 			TelemetryStatus.set("kafkaPackets", TelemetryKafkaPackets);
 			TelemetryStatus.set("websocketPackets", TelemetryWebSocketPackets);
 			Answer.set("status", TelemetryStatus);
-
 			return ReturnObject(Answer);
 		}
 		return BadRequest(RESTAPI::Errors::MissingOrInvalidParameters);

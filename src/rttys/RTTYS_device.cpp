@@ -58,6 +58,10 @@ namespace OpenWifi {
 				poco_information(Logger(), "Secure connection.");
 			}
 
+			socket_.setBlocking(false);
+			socket_.setKeepAlive(true);
+			socket_.setNoDelay(true);
+
 			reactor_.addEventHandler(
 				socket_,
 				Poco::NObserver<RTTYS_Device_ConnectionHandler, Poco::Net::ReadableNotification>(
