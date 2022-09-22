@@ -39,17 +39,17 @@ namespace OpenWifi {
 		: Logger_(AP_WS_Server()->Logger()) ,
 		  Reactor_(AP_WS_Server()->NextReactor())
 	{
+		static auto MaxThreads = (Poco::Environment::processorCount() >= 2) ? Poco::Environment::processorCount() * 4 : 8  ;
 		State_.sessionId = connection_id;
-		// DeviceRegistry()->StartSession(connection_id, this);
 		WS_ = std::make_unique<Poco::Net::WebSocket>(request,response);
-/*		if(ConcurrentStartingDevices_<64) {
+		if(ConcurrentStartingDevices_<MaxThreads) {
 			Threaded_=true;
 			std::thread Finish{[this]() { this->CompleteStartup(); }};
 			Finish.detach();
 		} else {
-*/			Threaded_=false;
+			Threaded_=false;
 			CompleteStartup();
-//		}
+		}
 	}
 
 	class ThreadedCounter {
@@ -63,7 +63,7 @@ namespace OpenWifi {
 		}
 
 		~ThreadedCounter() {
-			if(Threaded_) {
+			if(Threaded_ && C_>0) {
 				C_--;
 			}
 		}
