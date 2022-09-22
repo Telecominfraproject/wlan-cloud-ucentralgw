@@ -6,10 +6,13 @@
 //	Arilia Wireless Inc.
 //
 
+#include "framework/MicroService.h"
+
 #include "Poco/Util/Application.h"
 #include "Poco/Util/Option.h"
 #include "Poco/Environment.h"
 #include "Poco/Net/SSLManager.h"
+
 
 #include "AP_WS_Server.h"
 #include "CommandManager.h"
@@ -25,7 +28,6 @@
 #include "TelemetryStream.h"
 #include "VenueBroadcaster.h"
 #include "framework/ConfigurationValidator.h"
-#include "framework/MicroService.h"
 #include "rttys/RTTYS_server.h"
 
 namespace OpenWifi {

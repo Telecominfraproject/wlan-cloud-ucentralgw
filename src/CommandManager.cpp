@@ -12,12 +12,13 @@
 #define POCO_LOG_DEBUG true
 #endif
 
+#include "framework/MicroService.h"
+
 #include "Poco/JSON/Parser.h"
 
 #include "CommandManager.h"
 #include "DeviceRegistry.h"
 #include "StorageService.h"
-#include "framework/MicroService.h"
 #include "framework/ow_constants.h"
 
 namespace OpenWifi {

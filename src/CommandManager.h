@@ -14,13 +14,14 @@
 #include <utility>
 #include <functional>
 
+#include "framework/MicroService.h"
+
 #include "Poco/JSON/Object.h"
 #include "Poco/Net/HTTPServerRequest.h"
 #include "Poco/Net/HTTPServerResponse.h"
 #include "Poco/Timer.h"
 
 #include "RESTObjects/RESTAPI_GWobjects.h"
-#include "framework/MicroService.h"
 
 namespace OpenWifi {
 
