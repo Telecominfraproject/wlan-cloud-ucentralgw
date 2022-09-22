@@ -29,7 +29,7 @@
 namespace OpenWifi {
 
 	void RESTAPI_device_commandHandler::CallCanceled(const char * Cmd, const OpenWifi::RESTAPI::Errors::msg &Err, const std::string & Details) {
-		Logger_.warning(fmt::format("{},{}: Canceled. Error:{} Reason:{} Details={}", Cmd, SerialNumber_, Err.err_num, Err.err_txt, Details));
+		Logger_.warning(fmt::format("{},{}: TID={} Canceled. Error:{} Reason:{} Details={}", Cmd, SerialNumber_, TransactionId_, Err.err_num, Err.err_txt, Details));
 	}
 
 	void RESTAPI_device_commandHandler::DoGet() {
@@ -158,7 +158,7 @@ namespace OpenWifi {
 				}
 				auto UUID = MicroService::CreateUUID();
 				auto RPC = CommandManager()->NextRPCId();
-				poco_debug(Logger_,fmt::format("Command {} can proceed. Identified as {} and RPCID as {}", Command.Command, UUID, RPC ));
+				poco_debug(Logger_,fmt::format("Command {} TID={} can proceed. Identified as {} and RPCID as {}", Command.Command, TransactionId_, UUID, RPC ));
 				return (*this.*Command.funPtr)(UUID,RPC);
 			}
 		}
@@ -177,7 +177,7 @@ namespace OpenWifi {
 	}
 
 	void RESTAPI_device_commandHandler::DeleteCapabilities() {
-		Logger_.information(fmt::format("DELETE-CAPABILITIES: user={} serial={}", Requester(), SerialNumber_));
+		Logger_.information(fmt::format("DELETE-CAPABILITIES: TID={} user={} serial={}", TransactionId_, Requester(), SerialNumber_));
 		if (StorageService()->DeleteDeviceCapabilities(SerialNumber_)) {
 			return OK();
 		}
@@ -185,6 +185,7 @@ namespace OpenWifi {
 	}
 
 	void RESTAPI_device_commandHandler::GetStatistics() {
+		Logger_.information(fmt::format("GET-STATISTICS: TID={} user={} serial={}", TransactionId_, Requester(), SerialNumber_));
 		if (QB_.LastOnly) {
 			std::string Stats;
 			if (DeviceRegistry()->GetStatistics(SerialNumber_, Stats)) {
@@ -218,7 +219,7 @@ namespace OpenWifi {
 	}
 
 	void RESTAPI_device_commandHandler::DeleteStatistics() {
-		Logger_.information(fmt::format("DELETE-STATISTICS: user={} serial={}", Requester(), SerialNumber_));
+		Logger_.information(fmt::format("DELETE-STATISTICS: TID={} user={} serial={}", TransactionId_, Requester(), SerialNumber_));
 		if (StorageService()->DeleteStatisticsData(SerialNumber_, QB_.StartDate, QB_.EndDate)) {
 			return OK();
 		}
@@ -226,7 +227,7 @@ namespace OpenWifi {
 	}
 
 	void RESTAPI_device_commandHandler::Ping(const std::string &CMD_UUID, uint64_t CMD_RPC) {
-		Logger_.information(fmt::format("PING({},{}): user={} serial={}", CMD_UUID, CMD_RPC, Requester(), SerialNumber_));
+		Logger_.information(fmt::format("PING({},{}): TID={} user={} serial={}", CMD_UUID, CMD_RPC, TransactionId_, Requester(), SerialNumber_));
 		const auto &Obj = ParsedBody_;
 		if (Obj->has(RESTAPI::Protocol::SERIALNUMBER)) {
 			auto SNum = Obj->get(RESTAPI::Protocol::SERIALNUMBER).toString();
@@ -282,7 +283,7 @@ namespace OpenWifi {
 	}
 
 	void RESTAPI_device_commandHandler::Script(const std::string &CMD_UUID, uint64_t CMD_RPC) {
-		Logger_.information(fmt::format("SCRIPT({},{}): user={} serial={}", CMD_UUID, CMD_RPC, Requester(), SerialNumber_));
+		Logger_.information(fmt::format("SCRIPT({},{}): TID={} user={} serial={}", CMD_UUID, CMD_RPC, TransactionId_, Requester(), SerialNumber_));
 		if(!Internal_ && UserInfo_.userinfo.userRole!=SecurityObjects::ROOT) {
 			CallCanceled("SCRIPT", CMD_UUID, CMD_RPC,RESTAPI::Errors::ACCESS_DENIED);
 			return UnAuthorized(RESTAPI::Errors::ACCESS_DENIED);
@@ -333,6 +334,7 @@ namespace OpenWifi {
 	}
 
 	void RESTAPI_device_commandHandler::GetStatus() {
+		Logger_.information(fmt::format("GET-STATUS: TID={} user={} serial={}", TransactionId_, Requester(), SerialNumber_));
 		GWObjects::ConnectionState State;
 
 		if (DeviceRegistry()->GetState(SerialNumber_, State)) {
@@ -348,7 +350,7 @@ namespace OpenWifi {
 	}
 
 	void RESTAPI_device_commandHandler::Configure(const std::string &CMD_UUID, uint64_t CMD_RPC) {
-		Logger_.information(fmt::format("CONFIGURE({},{}): user={} serial={}", CMD_UUID, CMD_RPC, Requester(), SerialNumber_));
+		Logger_.information(fmt::format("CONFIGURE({},{}): TID={} user={} serial={}", CMD_UUID, CMD_RPC, TransactionId_, Requester(), SerialNumber_));
 
 		const auto &Obj = ParsedBody_;
 		if (Obj->has(RESTAPI::Protocol::SERIALNUMBER) &&
@@ -400,7 +402,7 @@ namespace OpenWifi {
 	}
 
 	void RESTAPI_device_commandHandler::Upgrade(const std::string &CMD_UUID, uint64_t CMD_RPC) {
-		Logger_.information(fmt::format("UPGRADE({},{}): user={} serial={}", CMD_UUID, CMD_RPC, Requester(), SerialNumber_));
+		Logger_.information(fmt::format("UPGRADE({},{}): TID={} user={} serial={}", CMD_UUID, CMD_RPC, TransactionId_, Requester(), SerialNumber_));
 
 		const auto &Obj = ParsedBody_;
 
@@ -443,6 +445,7 @@ namespace OpenWifi {
 	}
 
 	void RESTAPI_device_commandHandler::GetLogs() {
+		Logger_.information(fmt::format("GET-LOGS: TID={} user={} serial={}", TransactionId_, Requester(), SerialNumber_));
 		std::vector<GWObjects::DeviceLog> Logs;
 		if (QB_.Newest) {
 			StorageService()->GetNewestLogData(SerialNumber_, QB_.Limit, Logs, QB_.LogType);
@@ -464,7 +467,7 @@ namespace OpenWifi {
 	}
 
 	void RESTAPI_device_commandHandler::DeleteLogs() {
-		Logger_.information(fmt::format("DELETE-LOGS: user={} serial={}", Requester(), SerialNumber_));
+		Logger_.information(fmt::format("DELETE-LOGS: TID={} user={} serial={}", TransactionId_, Requester(), SerialNumber_));
 		if (StorageService()->DeleteLogData(SerialNumber_, QB_.StartDate, QB_.EndDate,
 											 QB_.LogType)) {
 			return OK();
@@ -473,6 +476,8 @@ namespace OpenWifi {
 	}
 
 	void RESTAPI_device_commandHandler::GetChecks() {
+		Logger_.information(fmt::format("GET-HEALTHCHECKS: TID={} user={} serial={}", TransactionId_, Requester(), SerialNumber_));
+
 		std::vector<GWObjects::HealthCheck> Checks;
 
 		if (QB_.LastOnly) {
@@ -507,7 +512,7 @@ namespace OpenWifi {
 	}
 
 	void RESTAPI_device_commandHandler::DeleteChecks() {
-		Logger_.information(fmt::format("DELETE-HEALTHCHECKS: user={} serial={}", Requester(), SerialNumber_));
+		Logger_.information(fmt::format("DELETE-HEALTHCHECKS: TID={} user={} serial={}", TransactionId_, Requester(), SerialNumber_));
 		if (StorageService()->DeleteHealthCheckData(SerialNumber_, QB_.StartDate, QB_.EndDate)) {
 			return OK();
 		}
@@ -515,7 +520,7 @@ namespace OpenWifi {
 	}
 
 	void RESTAPI_device_commandHandler::ExecuteCommand(const std::string &CMD_UUID, uint64_t CMD_RPC) {
-		Logger_.information(fmt::format("EXECUTE({},{}): user={} serial={}", CMD_UUID, CMD_RPC, Requester(), SerialNumber_));
+		Logger_.information(fmt::format("EXECUTE({},{}): TID={} user={} serial={}", CMD_UUID, CMD_RPC, TransactionId_, Requester(), SerialNumber_));
 
 		const auto &Obj = ParsedBody_;
 		if (Obj->has(RESTAPI::Protocol::COMMAND) &&
@@ -563,7 +568,7 @@ namespace OpenWifi {
 	}
 
 	void RESTAPI_device_commandHandler::Reboot(const std::string &CMD_UUID, uint64_t CMD_RPC) {
-		Logger_.information(fmt::format("REBOOT({},{}): user={} serial={}", CMD_UUID, CMD_RPC, Requester(), SerialNumber_));
+		Logger_.information(fmt::format("REBOOT({},{}): TID={} user={} serial={}", CMD_UUID, CMD_RPC, TransactionId_, Requester(), SerialNumber_));
 
 		const auto &Obj = ParsedBody_;
 
@@ -597,7 +602,7 @@ namespace OpenWifi {
 	}
 
 	void RESTAPI_device_commandHandler::Factory(const std::string &CMD_UUID, uint64_t CMD_RPC) {
-		Logger_.information(fmt::format("FACTORY-RESET({},{}): user={} serial={}", CMD_UUID, CMD_RPC, Requester(), SerialNumber_));
+		Logger_.information(fmt::format("FACTORY-RESET({},{}): TID={} user={} serial={}", CMD_UUID, CMD_RPC, TransactionId_, Requester(), SerialNumber_));
 
 		const auto &Obj = ParsedBody_;
 		if (Obj->has(RESTAPI::Protocol::KEEPREDIRECTOR) &&
@@ -637,7 +642,7 @@ namespace OpenWifi {
 	}
 
 	void RESTAPI_device_commandHandler::LEDs(const std::string &CMD_UUID, uint64_t CMD_RPC) {
-		Logger_.information(fmt::format("LEDS({},{}): user={} serial={}", CMD_UUID, CMD_RPC, Requester(), SerialNumber_));
+		Logger_.information(fmt::format("LEDS({},{}): TID={} user={} serial={}", CMD_UUID, CMD_RPC, TransactionId_, Requester(), SerialNumber_));
 
 		const auto &Obj = ParsedBody_;
 
@@ -685,7 +690,7 @@ namespace OpenWifi {
 	}
 
 	void RESTAPI_device_commandHandler::Trace(const std::string &CMD_UUID, uint64_t CMD_RPC) {
-		Logger_.information(fmt::format("TRACE({},{}): user={} serial={}", CMD_UUID, CMD_RPC, Requester(), SerialNumber_));
+		Logger_.information(fmt::format("TRACE({},{}): TID={} user={} serial={}", CMD_UUID, CMD_RPC, TransactionId_, Requester(), SerialNumber_));
 
 		const auto &Obj = ParsedBody_;
 
@@ -738,7 +743,7 @@ namespace OpenWifi {
 	}
 
 	void RESTAPI_device_commandHandler::WifiScan(const std::string &CMD_UUID, uint64_t CMD_RPC) {
-		Logger_.information(fmt::format("WIFISCAN({},{}): user={} serial={}", CMD_UUID, CMD_RPC, Requester(), SerialNumber_));
+		Logger_.information(fmt::format("WIFISCAN({},{}): TID={} user={} serial={}", CMD_UUID, CMD_RPC, TransactionId_, Requester(), SerialNumber_));
 		const auto &Obj = ParsedBody_;
 
 		auto SNum = Obj->get(RESTAPI::Protocol::SERIALNUMBER).toString();
@@ -783,7 +788,7 @@ namespace OpenWifi {
 	}
 
 	void RESTAPI_device_commandHandler::EventQueue(const std::string &CMD_UUID, uint64_t CMD_RPC) {
-		Logger_.information(fmt::format("EVENT-QUEUE({},{}): user={} serial={}", CMD_UUID, CMD_RPC, Requester(), SerialNumber_));
+		Logger_.information(fmt::format("EVENT-QUEUE({},{}): TID={} user={} serial={}", CMD_UUID, CMD_RPC, TransactionId_, Requester(), SerialNumber_));
 
 		const auto &Obj = ParsedBody_;
 		if (Obj->has(RESTAPI::Protocol::SERIALNUMBER) &&
@@ -822,7 +827,7 @@ namespace OpenWifi {
 	}
 
 	void RESTAPI_device_commandHandler::MakeRequest(const std::string &CMD_UUID, uint64_t CMD_RPC) {
-		Logger_.information(fmt::format("FORCE-REQUEST({},{}): user={} serial={}", CMD_UUID, CMD_RPC, Requester(), SerialNumber_));
+		Logger_.information(fmt::format("FORCE-REQUEST({},{}): TID={} user={} serial={}", CMD_UUID, CMD_RPC, TransactionId_, Requester(), SerialNumber_));
 
 		const auto &Obj = ParsedBody_;
 		if (Obj->has(RESTAPI::Protocol::SERIALNUMBER) &&
@@ -864,7 +869,7 @@ namespace OpenWifi {
 	}
 
 	void RESTAPI_device_commandHandler::Rtty(const std::string &CMD_UUID, uint64_t CMD_RPC) {
-		Logger_.information(fmt::format("RTTY({},{}): user={} serial={}", CMD_UUID, CMD_RPC, Requester(), SerialNumber_));
+		Logger_.information(fmt::format("RTTY({},{}): TID={} user={} serial={}", CMD_UUID, CMD_RPC, TransactionId_, Requester(), SerialNumber_));
 
 		if (MicroService::instance().ConfigGetBool("rtty.enabled", false)) {
 			GWObjects::Device	Device;
@@ -927,7 +932,7 @@ namespace OpenWifi {
 	}
 
 	void RESTAPI_device_commandHandler::Telemetry(const std::string &CMD_UUID, uint64_t CMD_RPC){
-		Logger_.information(fmt::format("TELEMETRY({},{}): user={} serial={}", CMD_UUID, CMD_RPC, Requester(), SerialNumber_));
+		Logger_.information(fmt::format("TELEMETRY({},{}): TID={} user={} serial={}", CMD_UUID, CMD_RPC, TransactionId_, Requester(), SerialNumber_));
 
 		const auto &Obj = ParsedBody_;
 		if (Obj->has(RESTAPI::Protocol::SERIALNUMBER) &&
