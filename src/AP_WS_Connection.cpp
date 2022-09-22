@@ -120,7 +120,7 @@ namespace OpenWifi {
 			}
 			CN_ = Poco::trim(Poco::toLower(PeerCert.commonName()));
 			State_.VerifiedCertificate = GWObjects::VALID_CERTIFICATE;
-			poco_trace(Logger_,
+			poco_debug(Logger_,
 					   fmt::format("CONNECTION({}): Session={} Valid certificate: CN={}", CId_, State_.sessionId , CN_));
 
 			if (AP_WS_Server::IsSim(CN_) && !AP_WS_Server()->IsSimEnabled()) {
@@ -160,7 +160,7 @@ namespace OpenWifi {
 			WS_->setBlocking(false);
 
 			Registered_ = true;
-			poco_debug(Logger_, fmt::format("CONNECTION({}): Session={} Completed. (t={})", CId_, State_.sessionId , ConcurrentStartingDevices_));
+			poco_debug(Logger_, fmt::format("CONNECTION({}): Session={} CN={} Completed. (t={})", CId_, State_.sessionId , CN_, ConcurrentStartingDevices_));
 			return;
 		} catch (const Poco::Net::CertificateValidationException &E) {
 			poco_error(Logger_,fmt::format("CONNECTION({}): Session:{} Poco::CertificateValidationException Certificate Validation failed during connection. Device will have to retry.",
