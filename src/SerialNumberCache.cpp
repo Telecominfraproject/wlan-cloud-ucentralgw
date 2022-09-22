@@ -15,7 +15,10 @@ namespace OpenWifi {
 	}
 
 	void SerialNumberCache::Stop() {
-
+		poco_notice(Logger(),"Stopping...");
+		SNs_.clear();
+		Reverse_SNs_.clear();
+		poco_notice(Logger(),"Stopped...");
 	}
 
 	void SerialNumberCache::AddSerialNumber(const std::string &S) {

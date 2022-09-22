@@ -8,6 +8,8 @@
 
 #include <iostream>
 
+#include "framework/MicroService.h"
+
 #include "Poco/Net/HTTPServerParams.h"
 #include "Poco/Net/HTTPServerResponse.h"
 #include "Poco/DynamicAny.h"
@@ -20,7 +22,6 @@
 
 #include "FileUploader.h"
 #include "StorageService.h"
-#include "framework/MicroService.h"
 
 namespace OpenWifi {
 

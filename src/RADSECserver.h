@@ -7,9 +7,9 @@
 #include <iostream>
 #include <fstream>
 
-#include "RESTObjects/RESTAPI_GWobjects.h"
-
 #include "framework/MicroService.h"
+
+#include "RESTObjects/RESTAPI_GWobjects.h"
 
 #include "Poco/Net/SocketReactor.h"
 #include "Poco/Net/SecureStreamSocket.h"

@@ -2882,12 +2882,13 @@ namespace OpenWifi {
 	    }
 
 	    inline void Stop() override {
+			poco_information(Logger(),"Stopping...");
             std::lock_guard	G(Mutex_);
 	        Cache_.clear();
+			poco_information(Logger(),"Stopped...");
 	    }
 
 	    inline void RemovedCachedToken(const std::string &Token) {
-	        std::lock_guard	G(Mutex_);
 	        Cache_.remove(Token);
 	    }
 
@@ -2897,6 +2898,7 @@ namespace OpenWifi {
 
 	    inline bool RetrieveTokenInformation(const std::string & SessionToken,
 											 SecurityObjects::UserInfoAndPolicy & UInfo,
+											 std::uint64_t TID,
 											 bool & Expired, bool & Contacted, bool Sub=false) {
 	        try {
 	            Types::StringPairVec QueryData;
@@ -2922,7 +2924,6 @@ namespace OpenWifi {
 	                        return false;
 	                    }
 	                    Expired = false;
-                        std::lock_guard	G(Mutex_);
 	                    Cache_.update(SessionToken, UInfo);
 	                    return true;
 	                } else {
@@ -2930,14 +2931,15 @@ namespace OpenWifi {
                     }
 	            }
 	        } catch (...) {
+				poco_error(Logger(),fmt::format("Failed to retrieve token={} for TID={}", SessionToken, TID));
 	        }
 	        Expired = false;
 	        return false;
 	    }
 
         inline bool IsAuthorized(const std::string &SessionToken, SecurityObjects::UserInfoAndPolicy & UInfo,
+								 std::uint64_t TID,
 								 bool & Expired, bool & Contacted, bool Sub = false) {
-            std::lock_guard	G(Mutex_);
 	        auto User = Cache_.get(SessionToken);
 	        if(!User.isNull()) {
 	            if(IsTokenExpired(User->webtoken)) {
@@ -2948,7 +2950,7 @@ namespace OpenWifi {
                 UInfo = *User;
                 return true;
 	        }
-	        return RetrieveTokenInformation(SessionToken, UInfo, Expired, Contacted, Sub);
+	        return RetrieveTokenInformation(SessionToken, UInfo, TID, Expired, Contacted, Sub);
 	    }
 
 	private:
@@ -4776,7 +4778,7 @@ namespace OpenWifi {
     }
 
 #ifdef    TIP_SECURITY_SERVICE
-    [[nodiscard]] bool AuthServiceIsAuthorized(Poco::Net::HTTPServerRequest & Request,std::string &SessionToken, SecurityObjects::UserInfoAndPolicy & UInfo, bool & Expired , bool Sub );
+    [[nodiscard]] bool AuthServiceIsAuthorized(Poco::Net::HTTPServerRequest & Request,std::string &SessionToken, SecurityObjects::UserInfoAndPolicy & UInfo, std::uint64_t TID, bool & Expired , bool Sub );
 #endif
     inline bool RESTAPIHandler::IsAuthorized( bool & Expired , [[maybe_unused]] bool & Contacted , bool Sub ) {
         if(Internal_ && Request->has("X-INTERNAL-NAME")) {
@@ -4784,17 +4786,20 @@ namespace OpenWifi {
 			Contacted = true;
             if(!Allowed) {
                 if(Server_.LogBadTokens(false)) {
-                    poco_debug(Logger_,fmt::format("I-REQ-DENIED({}): Method={} Path={}",
-                                               Utils::FormatIPv6(Request->clientAddress().toString()),
-                                               Request->getMethod(), Request->getURI()));
+                    poco_debug(Logger_,fmt::format("I-REQ-DENIED({}): TID={} Method={} Path={}",
+						Utils::FormatIPv6(Request->clientAddress().toString()),
+						TransactionId_,
+						Request->getMethod(), Request->getURI()));
                 }
             } else {
                 auto Id = Request->get("X-INTERNAL-NAME", "unknown");
 				REST_Requester_ = Id;
                 if(Server_.LogIt(Request->getMethod(),true)) {
-					poco_debug(Logger_,fmt::format("I-REQ-ALLOWED({}): User='{}' Method={} Path={}",
-                                               Utils::FormatIPv6(Request->clientAddress().toString()), Id,
-                                               Request->getMethod(), Request->getURI()));
+					poco_debug(Logger_,fmt::format("I-REQ-ALLOWED({}): TID={} User='{}' Method={} Path={}",
+						Utils::FormatIPv6(Request->clientAddress().toString()),
+						TransactionId_,
+						Id,
+						Request->getMethod(), Request->getURI()));
                 }
             }
             return Allowed;
@@ -4810,25 +4815,28 @@ namespace OpenWifi {
                 }
             }
 #ifdef    TIP_SECURITY_SERVICE
-            if (AuthServiceIsAuthorized(*Request, SessionToken_, UserInfo_, Expired, Sub)) {
+            if (AuthServiceIsAuthorized(*Request, SessionToken_, UserInfo_, TransactionId_, Expired, Sub)) {
 #else
-            if (AuthClient()->IsAuthorized( SessionToken_, UserInfo_, Expired, Contacted, Sub)) {
+            if (AuthClient()->IsAuthorized( SessionToken_, UserInfo_, TransactionId_, Expired, Contacted, Sub)) {
 #endif
 				REST_Requester_ = UserInfo_.userinfo.email;
                 if(Server_.LogIt(Request->getMethod(),true)) {
-					poco_debug(Logger_,fmt::format("X-REQ-ALLOWED({}): User='{}@{}' Method={} Path={}",
-                                               UserInfo_.userinfo.email,
-                                               Utils::FormatIPv6(Request->clientAddress().toString()),
-                                               Request->clientAddress().toString(),
-                                               Request->getMethod(),
-                                               Request->getURI()));
+					poco_debug(Logger_,fmt::format("X-REQ-ALLOWED({}): TID={} User='{}@{}' Method={} Path={}",
+						UserInfo_.userinfo.email,
+						TransactionId_,
+						Utils::FormatIPv6(Request->clientAddress().toString()),
+						Request->clientAddress().toString(),
+						Request->getMethod(),
+						Request->getURI()));
                 }
                 return true;
             } else {
                 if(Server_.LogBadTokens(true)) {
-					poco_debug(Logger_,fmt::format("X-REQ-DENIED({}): Method={} Path={}",
-                                               Utils::FormatIPv6(Request->clientAddress().toString()),
-                                               Request->getMethod(), Request->getURI()));
+					poco_debug(Logger_,fmt::format("X-REQ-DENIED({}): TID={} Method={} Path={}",
+						Utils::FormatIPv6(Request->clientAddress().toString()),
+						TransactionId_,
+						Request->getMethod(),
+						Request->getURI()));
                 }
             }
             return false;
@@ -5113,7 +5121,7 @@ namespace OpenWifi {
 					auto Tokens = Utils::Split(Frame, ':');
 					bool Expired = false, Contacted = false;
 					if (Tokens.size() == 2 &&
-						AuthClient()->IsAuthorized(Tokens[1], UserInfo_, Expired, Contacted)) {
+						AuthClient()->IsAuthorized(Tokens[1], UserInfo_, 0, Expired, Contacted)) {
 						Authenticated_ = true;
 						UserName_ = UserInfo_.userinfo.email;
 						poco_warning(Logger(),Poco::format("START(%s): %s UI Client is starting WS connection.", Id_, UserName_));

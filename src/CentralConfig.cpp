@@ -7,12 +7,13 @@
 //
 #include <fstream>
 
+#include "framework/MicroService.h"
+
 #include "Poco/JSON/Object.h"
 #include "Poco/JSON/Parser.h"
 #include "Poco/File.h"
 
 #include "CentralConfig.h"
-#include "framework/MicroService.h"
 #include "Daemon.h"
 
 namespace OpenWifi::Config {

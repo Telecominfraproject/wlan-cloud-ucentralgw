@@ -14,6 +14,8 @@
 #include <vector>
 #include <set>
 
+#include "framework/MicroService.h"
+
 #include "Poco/Util/Application.h"
 #include "Poco/Util/ServerApplication.h"
 #include "Poco/Util/Option.h"
@@ -25,7 +27,6 @@
 #include "Poco/Crypto/Cipher.h"
 
 #include "Dashboard.h"
-#include "framework/MicroService.h"
 #include "framework/OpenWifiTypes.h"
 #include "GwWebSocketClient.h"
 
