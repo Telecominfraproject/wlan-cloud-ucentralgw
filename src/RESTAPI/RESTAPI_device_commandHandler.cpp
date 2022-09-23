@@ -110,6 +110,7 @@ namespace OpenWifi {
 		void (RESTAPI_device_commandHandler::*funPtr)(const std::string &, std::uint64_t);
 	};
 
+	/*
 	const static std::vector<PostDeviceCommand>	PostCommands
 		{
 			{ RESTAPI::Protocol::PERFORM, false, true, &RESTAPI_device_commandHandler::ExecuteCommand },
@@ -126,6 +127,7 @@ namespace OpenWifi {
 			{ RESTAPI::Protocol::PING, false, true, &RESTAPI_device_commandHandler::Ping },
 			{ RESTAPI::Protocol::SCRIPT, false, true, &RESTAPI_device_commandHandler::Script }
 		};
+	*/
 
 	void RESTAPI_device_commandHandler::DoPost() {
 		if(!ValidateParameters()) {
@@ -142,6 +144,23 @@ namespace OpenWifi {
 		if(!StorageService()->GetDevice(SerialNumber_,TheDevice)) {
 			return NotFound();
 		}
+
+		const std::vector<PostDeviceCommand>	PostCommands
+			{
+				{ RESTAPI::Protocol::PERFORM, false, true, &RESTAPI_device_commandHandler::ExecuteCommand },
+				{ RESTAPI::Protocol::CONFIGURE, false, false, &RESTAPI_device_commandHandler::Configure },
+				{ RESTAPI::Protocol::UPGRADE, false, false, &RESTAPI_device_commandHandler::Upgrade },
+				{ RESTAPI::Protocol::REBOOT, false, true, &RESTAPI_device_commandHandler::Reboot },
+				{ RESTAPI::Protocol::FACTORY, false, false, &RESTAPI_device_commandHandler::Factory },
+				{ RESTAPI::Protocol::LEDS, false, true, &RESTAPI_device_commandHandler::LEDs },
+				{ RESTAPI::Protocol::TRACE, false, true, &RESTAPI_device_commandHandler::Trace },
+				{ RESTAPI::Protocol::REQUEST, false, true, &RESTAPI_device_commandHandler::MakeRequest },
+				{ RESTAPI::Protocol::WIFISCAN, false, true, &RESTAPI_device_commandHandler::WifiScan },
+				{ RESTAPI::Protocol::EVENTQUEUE, false, true, &RESTAPI_device_commandHandler::EventQueue },
+				{ RESTAPI::Protocol::TELEMETRY, false, true, &RESTAPI_device_commandHandler::Telemetry },
+				{ RESTAPI::Protocol::PING, false, true, &RESTAPI_device_commandHandler::Ping },
+				{ RESTAPI::Protocol::SCRIPT, false, true, &RESTAPI_device_commandHandler::Script }
+			};
 
 		for(const auto &Command:PostCommands) {
 			if(Command_==Command.Command) {
