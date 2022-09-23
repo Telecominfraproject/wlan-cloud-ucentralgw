@@ -79,9 +79,10 @@ namespace OpenWifi {
 
 		void onConnectionJanitor(Poco::Timer & timer);
 
-		inline void AverageDeviceStatistics( std::uint64_t & Connections, std::uint64_t & AverageConnectionTime ) const {
+		inline void AverageDeviceStatistics( std::uint64_t & Connections, std::uint64_t & AverageConnectionTime, std::uint64_t & NumberOfConnectingDevices) const {
 			Connections = NumberOfConnectedDevices_;
 			AverageConnectionTime = AverageDeviceConnectionTime_;
+			NumberOfConnectingDevices = NumberOfConnectingDevices_;
 		}
 
 	  private:
@@ -93,6 +94,7 @@ namespace OpenWifi {
 		Poco::Thread							ConnectionJanitor_;
 		std::atomic_uint64_t 					NumberOfConnectedDevices_=0;
 		std::atomic_uint64_t 					AverageDeviceConnectionTime_=0;
+		std::atomic_uint64_t 					NumberOfConnectingDevices_=0;
 
 	};
 

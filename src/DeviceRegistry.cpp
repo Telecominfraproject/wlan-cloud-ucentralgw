@@ -40,6 +40,7 @@ namespace OpenWifi {
 		std::shared_lock Guard(LocalMutex_);
 
 		NumberOfConnectedDevices_ = 0;
+		NumberOfConnectingDevices_ = 0;
 		AverageDeviceConnectionTime_ = 0;
 		std::uint64_t	total_connected_time=0;
 
@@ -51,11 +52,12 @@ namespace OpenWifi {
 				continue;
 			}
 
-			if ((now - connection->second.second->State_.LastContact) > 500) {
-				connection++;
-			} else {
+			if (connection->second.second->State_.Connected) {
 				NumberOfConnectedDevices_++;
 				total_connected_time += (now - connection->second.second->State_.started);
+				connection++;
+			} else {
+				NumberOfConnectingDevices_++;
 				connection++;
 			}
 		}
@@ -64,10 +66,12 @@ namespace OpenWifi {
 		if((now-last_log)>120) {
 			last_log = now;
 			poco_information(Logger(),
-				fmt::format("Active AP connections: {} Average connection time: {} seconds",
-							NumberOfConnectedDevices_, AverageDeviceConnectionTime_));
+				fmt::format("Active AP connections: {} Connecting: {} Average connection time: {} seconds",
+							NumberOfConnectedDevices_, NumberOfConnectingDevices_, AverageDeviceConnectionTime_));
 		}
-		WebSocketClientNotificationNumberOfConnections(NumberOfConnectedDevices_,AverageDeviceConnectionTime_);
+		WebSocketClientNotificationNumberOfConnections(NumberOfConnectedDevices_,
+													   AverageDeviceConnectionTime_,
+													   NumberOfConnectingDevices_);
 	}
 
     bool DeviceRegistry::GetStatistics(uint64_t SerialNumber, std::string & Statistics) const {

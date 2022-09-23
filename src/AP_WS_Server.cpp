@@ -38,6 +38,9 @@ namespace OpenWifi {
 
 	int AP_WS_Server::Start() {
 
+		AllowSerialNumberMismatch_ = MicroService::instance().ConfigGetBool("openwifi.certificates.allowmismatch",true);
+		MismatchDepth_ = MicroService::instance().ConfigGetInt("openwifi.certificates.allowmismatch",2);
+
 		for(const auto & Svr : ConfigServersList_ ) {
 
 			poco_notice(Logger(),fmt::format("Starting: {}:{} Keyfile:{} CertFile: {}", Svr.Address(),

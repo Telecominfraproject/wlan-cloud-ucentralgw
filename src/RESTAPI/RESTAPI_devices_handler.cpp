@@ -61,7 +61,7 @@ namespace OpenWifi {
 			GWObjects::DeviceConnectionStatistics	DCS;
 			Poco::JSON::Object	Answer;
 
-			DeviceRegistry()->AverageDeviceStatistics(DCS.connectedDevices,DCS.averageConnectionTime);
+			DeviceRegistry()->AverageDeviceStatistics(DCS.connectedDevices,DCS.averageConnectionTime, DCS.connectingDevices);
 			DCS.to_json(Answer);
 			return ReturnObject(Answer);
 		}
