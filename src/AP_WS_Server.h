@@ -89,7 +89,7 @@ namespace OpenWifi {
 			return AllowSerialNumberMismatch_;
 		}
 
-		inline bool MismatchDepth() const {
+		inline std::uint64_t MismatchDepth() const {
 			return MismatchDepth_;
 		}
 
