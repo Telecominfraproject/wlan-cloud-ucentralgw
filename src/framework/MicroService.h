@@ -3082,7 +3082,7 @@ namespace OpenWifi {
 
 	private:
 	    std::vector<std::unique_ptr<Poco::Net::HTTPServer>>   RESTServers_;
-	    Poco::ThreadPool	    Pool_{"x-rest",4,128};
+	    Poco::ThreadPool	    Pool_{"x-rest",32,128};
 	    RESTAPI_GenericServer   Server_;
 
         RESTAPI_ExtServer() noexcept:
@@ -3215,7 +3215,7 @@ namespace OpenWifi {
         const Poco::ThreadPool & Pool() { return Pool_; }
 	private:
 	    std::vector<std::unique_ptr<Poco::Net::HTTPServer>>   RESTServers_;
-	    Poco::ThreadPool	    Pool_{"i-rest",4,96};
+	    Poco::ThreadPool	    Pool_{"i-rest",32,96};
 	    RESTAPI_GenericServer   Server_;
 
         RESTAPI_IntServer() noexcept:
@@ -3963,8 +3963,6 @@ namespace OpenWifi {
             }
 
             Poco::Net::HTTPServerParams::Ptr Params = new Poco::Net::HTTPServerParams;
-            Params->setMaxThreads(50);
-            Params->setMaxQueued(200);
             Params->setKeepAlive(true);
 			Params->setName("ws:xrest");
 
@@ -3999,8 +3997,6 @@ namespace OpenWifi {
             }
 
             auto Params = new Poco::Net::HTTPServerParams;
-            Params->setMaxThreads(50);
-            Params->setMaxQueued(200);
             Params->setKeepAlive(true);
 			Params->setName("ws:irest");
 
