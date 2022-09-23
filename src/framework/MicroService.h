@@ -3969,7 +3969,6 @@ namespace OpenWifi {
             std::unique_ptr<Poco::Net::HTTPServer>  NewServer;
             if(MicroService::instance().NoAPISecurity()) {
                 auto Sock{Svr.CreateSocket(Logger())};
-				Sock.
                 NewServer = std::make_unique<Poco::Net::HTTPServer>(new ExtRequestHandlerFactory, Pool_, Sock, Params);
             } else {
                 auto Sock{Svr.CreateSecureSocket(Logger())};
