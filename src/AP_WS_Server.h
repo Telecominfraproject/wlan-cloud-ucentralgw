@@ -85,6 +85,14 @@ namespace OpenWifi {
 			return SimulatorEnabled_;
 		}
 
+		inline bool AllowSerialNumberMismatch() const {
+			return AllowSerialNumberMismatch_;
+		}
+
+		inline bool MismatchDepth() const {
+			return MismatchDepth_;
+		}
+
 		inline bool UseProvisioning() const { return LookAtProvisioning_; }
 		inline bool UseDefaults() const { return UseDefaultConfig_; }
 
@@ -124,6 +132,8 @@ namespace OpenWifi {
 		std::unique_ptr<AP_WS_ReactorThreadPool>					Reactor_pool_;
 		std::atomic_bool 											Running_=false;
 		std::map<std::uint64_t, std::shared_ptr<AP_WS_Connection>>	Connections_;
+		std::atomic_bool 											AllowSerialNumberMismatch_=true;
+		std::atomic_uint64_t 										MismatchDepth_=2;
 
 		AP_WS_Server() noexcept:
 			SubSystemServer("WebSocketServer", "WS-SVR", "ucentral.websocket") {

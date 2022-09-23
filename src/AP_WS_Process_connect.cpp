@@ -79,8 +79,8 @@ void AP_WS_Connection::Process_connect(Poco::JSON::Object::Ptr ParamsObj, const 
 		State_.connectionCompletionTime = ConnectionCompletionTime_.count();
 
 		if(State_.VerifiedCertificate == GWObjects::VALID_CERTIFICATE) {
-			if ((	Utils::SerialNumberMatch(CN_, SerialNumber_)) ||
-				AP_WS_Server()->IsSimSerialNumber(CN_)) {
+			if ((	Utils::SerialNumberMatch(CN_, SerialNumber_, AP_WS_Server()->MismatchDepth())) ||
+					AP_WS_Server()->IsSimSerialNumber(CN_)) {
 				State_.VerifiedCertificate = GWObjects::VERIFIED;
 				poco_information(Logger_, fmt::format("CONNECT({}): Fully validated and authenticated device. Session={} ConnectionCompletion Time={}",
 													   CId_,
@@ -88,13 +88,18 @@ void AP_WS_Connection::Process_connect(Poco::JSON::Object::Ptr ParamsObj, const 
 													   State_.connectionCompletionTime ));
 			} else {
 				State_.VerifiedCertificate = GWObjects::MISMATCH_SERIAL;
-				poco_information(Logger_,
-								 fmt::format("CONNECT({}): Serial number mismatch. CN={} Serial={} Session={} ConnectionCompletion Time={}",
-									CId_,
-									CN_,
-									SerialNumber_,
-									State_.sessionId,
-									State_.connectionCompletionTime ));
+				if(AP_WS_Server()->AllowSerialNumberMismatch()) {
+					poco_information(
+						Logger_, fmt::format("CONNECT({}): Serial number mismatch allowed. CN={} Serial={} Session={} ConnectionCompletion Time={}",
+											 CId_, CN_, SerialNumber_, State_.sessionId,
+											 State_.connectionCompletionTime));
+				} else {
+					poco_information(
+						Logger_, fmt::format("CONNECT({}): Serial number mismatch disallowed. Device rejected. CN={} Serial={} Session={} ConnectionCompletion Time={}",
+											 CId_, CN_, SerialNumber_, State_.sessionId,
+											 State_.connectionCompletionTime));
+					return EndConnection();
+				}
 			}
 		}
 
