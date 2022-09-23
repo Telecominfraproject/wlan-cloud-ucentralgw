@@ -1501,12 +1501,12 @@ namespace OpenWifi {
 	                    : Poco::Net::AddressFamily::IPv4));
 	            Poco::Net::SocketAddress SockAddr(Addr, port_);
 
-	            return Poco::Net::SecureServerSocket(SockAddr, backlog_, Context);
+	            return Poco::Net::SecureServerSocket(SockAddr, 64, Context);
 	        } else {
 	            Poco::Net::IPAddress Addr(address_);
 	            Poco::Net::SocketAddress SockAddr(Addr, port_);
 
-	            return Poco::Net::SecureServerSocket(SockAddr, backlog_, Context);
+	            return Poco::Net::SecureServerSocket(SockAddr, 64, Context);
 	        }
 	    }
 
@@ -1518,11 +1518,11 @@ namespace OpenWifi {
                         Poco::Net::Socket::supportsIPv6() ? Poco::Net::AddressFamily::IPv6
                                                           : Poco::Net::AddressFamily::IPv4));
                 Poco::Net::SocketAddress SockAddr(Addr, port_);
-                return Poco::Net::ServerSocket(SockAddr, backlog_);
+                return Poco::Net::ServerSocket(SockAddr, 64);
             } else {
                 Poco::Net::IPAddress Addr(address_);
                 Poco::Net::SocketAddress SockAddr(Addr, port_);
-                return Poco::Net::ServerSocket(SockAddr, backlog_);
+                return Poco::Net::ServerSocket(SockAddr, 64);
             }
         }
 
@@ -3963,14 +3963,13 @@ namespace OpenWifi {
             }
 
             Poco::Net::HTTPServerParams::Ptr Params = new Poco::Net::HTTPServerParams;
-            Params->setMaxThreads(50);
-            Params->setMaxQueued(200);
             Params->setKeepAlive(true);
 			Params->setName("ws:xrest");
 
             std::unique_ptr<Poco::Net::HTTPServer>  NewServer;
             if(MicroService::instance().NoAPISecurity()) {
                 auto Sock{Svr.CreateSocket(Logger())};
+				Sock.
                 NewServer = std::make_unique<Poco::Net::HTTPServer>(new ExtRequestHandlerFactory, Pool_, Sock, Params);
             } else {
                 auto Sock{Svr.CreateSecureSocket(Logger())};
@@ -3999,8 +3998,6 @@ namespace OpenWifi {
             }
 
             auto Params = new Poco::Net::HTTPServerParams;
-            Params->setMaxThreads(50);
-            Params->setMaxQueued(200);
             Params->setKeepAlive(true);
 			Params->setName("ws:irest");
 
