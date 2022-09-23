@@ -3633,7 +3633,9 @@ namespace OpenWifi {
 	    SubSystems_.push_back(ALBHealthCheckServer());
 	    SubSystems_.push_back(RESTAPI_ExtServer());
 	    SubSystems_.push_back(RESTAPI_IntServer());
-
+#ifndef TIP_SECURITY_SERVICE
+		SubSystems_.push_back(AuthClient());
+#endif
 	    Poco::Net::initializeSSL();
 	    Poco::Net::HTTPStreamFactory::registerFactory();
 	    Poco::Net::HTTPSStreamFactory::registerFactory();

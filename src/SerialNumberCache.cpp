@@ -10,6 +10,7 @@
 namespace OpenWifi {
 
 	int SerialNumberCache::Start() {
+		poco_notice(Logger(),"Starting...");
 		StorageService()->UpdateSerialNumberCache();
 		return 0;
 	}

@@ -40,7 +40,7 @@ namespace OpenWifi {
 
 		for(const auto & Svr : ConfigServersList_ ) {
 
-			Logger().notice(fmt::format("Starting: {}:{} Keyfile:{} CertFile: {}", Svr.Address(),
+			poco_notice(Logger(),fmt::format("Starting: {}:{} Keyfile:{} CertFile: {}", Svr.Address(),
 										Svr.Port(), Svr.KeyFile(), Svr.CertFile()));
 
 			Svr.LogCert(Logger());
@@ -49,7 +49,7 @@ namespace OpenWifi {
 
 			if (!IsCertOk()) {
 				IssuerCert_ = std::make_unique<Poco::Crypto::X509Certificate>(Svr.IssuerCertFile());
-				Logger().information(
+				poco_information(Logger(),
 					fmt::format("Certificate Issuer Name:{}", IssuerCert_->issuerName()));
 			}
 

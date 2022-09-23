@@ -30,7 +30,7 @@ namespace OpenWifi {
 #define DBL					{ std::cout << __LINE__ << "  ID: " << ConnectionId_ << "  Ser: " << SerialNumber_ << std::endl; }
 
 	void AP_WS_Connection::LogException(const Poco::Exception &E) {
-		Logger_.information(fmt::format("EXCEPTION({}): {}", CId_, E.displayText()));
+		poco_information(Logger_,fmt::format("EXCEPTION({}): {}", CId_, E.displayText()));
 	}
 
 	AP_WS_Connection::AP_WS_Connection(Poco::Net::HTTPServerRequest &request,

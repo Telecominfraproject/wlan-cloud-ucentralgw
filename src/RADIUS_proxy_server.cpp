@@ -147,7 +147,7 @@ namespace OpenWifi {
 		auto CallingStationID = P.ExtractCallingStationID();
 		auto CalledStationID = P.ExtractCalledStationID();
 
-		Logger().information(fmt::format("Accounting Packet received for {}, CalledStationID: {}, CallingStationID:{}",SerialNumber, CalledStationID, CallingStationID));
+		poco_information(Logger(), fmt::format("Accounting Packet received for {}, CalledStationID: {}, CallingStationID:{}",SerialNumber, CalledStationID, CallingStationID));
 		DeviceRegistry()->SendRadiusAccountingData(SerialNumber,P.Buffer(),P.Size());
 	}
 
@@ -169,7 +169,7 @@ namespace OpenWifi {
 		auto CallingStationID = P.ExtractCallingStationID();
 		auto CalledStationID = P.ExtractCalledStationID();
 
-		Logger().information(fmt::format("Authentication Packet received for {}, CalledStationID: {}, CallingStationID:{}",SerialNumber, CalledStationID, CallingStationID));
+		poco_information(Logger(), fmt::format("Authentication Packet received for {}, CalledStationID: {}, CallingStationID:{}",SerialNumber, CalledStationID, CallingStationID));
 		DeviceRegistry()->SendRadiusAuthenticationData(SerialNumber,P.Buffer(),P.Size());
 	}
 
@@ -191,7 +191,7 @@ namespace OpenWifi {
 		auto CallingStationID = P.ExtractCallingStationID();
 		auto CalledStationID = P.ExtractCalledStationID();
 
-		Logger().information(fmt::format("CoA Packet received for {}, CalledStationID: {}, CallingStationID:{}",SerialNumber, CalledStationID, CallingStationID));
+		poco_information(Logger(), fmt::format("CoA Packet received for {}, CalledStationID: {}, CallingStationID:{}",SerialNumber, CalledStationID, CallingStationID));
 		DeviceRegistry()->SendRadiusCoAData(SerialNumber,P.Buffer(),P.Size());
 	}
 
@@ -220,7 +220,7 @@ namespace OpenWifi {
 				Logger().error(fmt::format("{}: Could not send Accounting packet packet to {}.",
 										   serialNumber, Destination));
 			else
-				Logger().information(fmt::format(
+				poco_information(Logger(), fmt::format(
 					"{}: Sending Accounting Packet to {}, CalledStationID: {}, CallingStationID:{}",
 					serialNumber, FinalDestination.toString(), CalledStationID, CallingStationID));
 		}
@@ -255,7 +255,7 @@ namespace OpenWifi {
 				Logger().error(fmt::format("{}: Could not send Authentication packet packet to {}.",
 										   serialNumber, Destination));
 			else
-				Logger().information(fmt::format("{}: Sending Authentication Packet to {}, CalledStationID: {}, CallingStationID:{}",
+				poco_information(Logger(), fmt::format("{}: Sending Authentication Packet to {}, CalledStationID: {}, CallingStationID:{}",
 												 serialNumber, FinalDestination.toString(),
 												 CalledStationID, CallingStationID));
 		}
@@ -287,7 +287,7 @@ namespace OpenWifi {
 				Logger().error(fmt::format("{}: Could not send CoA packet packet to {}.",
 										   serialNumber, Destination));
 			else
-				Logger().information(fmt::format("{}: Sending CoA Packet to {}", serialNumber,
+				poco_information(Logger(), fmt::format("{}: Sending CoA Packet to {}", serialNumber,
 												 FinalDestination.toString()));
 		}
 	}

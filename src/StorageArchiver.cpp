@@ -16,23 +16,23 @@ namespace OpenWifi {
 		auto now = OpenWifi::Now();
 		for(const auto &i:DBs_) {
 			if (!Poco::icompare(i.DBName, "healthchecks")) {
-				Logger().information("Archiving HealthChecks...");
+				poco_information(Logger(),"Archiving HealthChecks...");
 				StorageService()->RemoveHealthChecksRecordsOlderThan(
 					now - (i.HowManyDays * 24 * 60 * 60));
 			} else if (!Poco::icompare(i.DBName, "statistics")) {
-				Logger().information("Archiving Statistics...");
+				poco_information(Logger(),"Archiving Statistics...");
 				StorageService()->RemoveStatisticsRecordsOlderThan(
 					now - (i.HowManyDays * 24 * 60 * 60));
 			} else if (!Poco::icompare(i.DBName, "devicelogs")) {
-				Logger().information("Archiving Device Logs...");
+				poco_information(Logger(),"Archiving Device Logs...");
 				StorageService()->RemoveDeviceLogsRecordsOlderThan(
 					now - (i.HowManyDays * 24 * 60 * 60));
 			} else if (!Poco::icompare(i.DBName, "commandlist")) {
-				Logger().information("Archiving Command History...");
+				poco_information(Logger(),"Archiving Command History...");
 				StorageService()->RemoveCommandListRecordsOlderThan(
 					now - (i.HowManyDays * 24 * 60 * 60));
 			} else {
-				Logger().information(fmt::format("Cannot archive DB '{}'", i.DBName));
+				poco_information(Logger(),fmt::format("Cannot archive DB '{}'", i.DBName));
 			}
 		}
 		AppServiceRegistry().Set("lastStorageArchiverRun", (uint64_t) Now);
@@ -55,7 +55,7 @@ namespace OpenWifi {
 
 		Enabled_ = MicroService::instance().ConfigGetBool("archiver.enabled",false);
 		if(!Enabled_) {
-			Logger().information("Archiver is disabled.");
+			poco_information(Logger(),"Archiver is disabled.");
 			return 0;
 		}
 
@@ -93,7 +93,7 @@ namespace OpenWifi {
 
 		int NextRun = CalculateDelta(RunAtHour_,RunAtMin_);
 
-		Logger().information(fmt::format("Next run in {} seconds.",NextRun));
+		poco_information(Logger(),fmt::format("Next run in {} seconds.",NextRun));
 
 		Timer_.setStartInterval( NextRun * 1000);
 		Timer_.setPeriodicInterval(24 * 60 * 60 * 1000); // 1 hours
