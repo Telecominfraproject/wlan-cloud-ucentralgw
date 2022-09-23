@@ -32,7 +32,7 @@ namespace OpenWifi {
 		try {
 			RTTYS_server()->CreateNewClient(request,response,T[2]);
 		} catch (...) {
-			Logger_.warning("Exception during WS creation");
+			poco_warning(Logger_,"Exception during WS creation");
 		}
 	};
 
