@@ -21,7 +21,7 @@ namespace OpenWifi {
 		try {
 			AP_WS_Server()->AddConnection(id_,std::make_shared<AP_WS_Connection>(request,response,id_));
 		} catch (...) {
-			Logger_.warning("Exception during WS creation");
+			poco_warning(Logger_,"Exception during WS creation");
 		}
 	};
 

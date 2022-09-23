@@ -622,7 +622,7 @@ typedef Poco::Tuple<
 				Insert.execute();
 				return true;
 			} else {
-				Logger().warning(fmt::format("File {} is too large.", UUID));
+				poco_warning(Logger(),fmt::format("File {} is too large.", UUID));
 			}
 		} catch (const Poco::Exception &E) {
 			Logger().log(E);

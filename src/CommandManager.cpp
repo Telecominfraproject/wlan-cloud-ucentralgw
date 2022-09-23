@@ -230,7 +230,7 @@ namespace OpenWifi {
 		} catch (Poco::Exception &E) {
 			MyLogger.log(E);
 		} catch (...) {
-			MyLogger.warning("Exception during command processing.");
+			poco_warning(MyLogger,"Exception during command processing.");
 		}
 		poco_debug(MyLogger,"Scheduler done.");
 	}
