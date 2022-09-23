@@ -133,18 +133,18 @@ namespace OpenWifi {
 		if(!ValidateParameters()) {
 			return BadRequest(RESTAPI::Errors::MissingOrInvalidParameters);
 		}
-
+		poco_debug(Logger_,fmt::format("Command {} TID={} {}", Command_, TransactionId_, __LINE__ ));
 		if(!Utils::ValidSerialNumber(SerialNumber_)) {
 			return BadRequest(RESTAPI::Errors::MissingSerialNumber);
 		}
-
+		poco_debug(Logger_,fmt::format("Command {} TID={} {}", Command_, TransactionId_, __LINE__ ));
 		SerialNumberInt_ = Utils::SerialNumberToInt(SerialNumber_);
-
+		poco_debug(Logger_,fmt::format("Command {} TID={} {}", Command_, TransactionId_, __LINE__ ));
 		GWObjects::Device	TheDevice;
 		if(!StorageService()->GetDevice(SerialNumber_,TheDevice)) {
 			return NotFound();
 		}
-
+		poco_debug(Logger_,fmt::format("Command {} TID={} {}", Command_, TransactionId_, __LINE__ ));
 		const std::vector<PostDeviceCommand>	PostCommands
 			{
 				{ RESTAPI::Protocol::PERFORM, false, true, &RESTAPI_device_commandHandler::ExecuteCommand },
@@ -161,16 +161,18 @@ namespace OpenWifi {
 				{ RESTAPI::Protocol::PING, false, true, &RESTAPI_device_commandHandler::Ping },
 				{ RESTAPI::Protocol::SCRIPT, false, true, &RESTAPI_device_commandHandler::Script }
 			};
-
+		poco_debug(Logger_,fmt::format("Command {} TID={} {}", Command_, TransactionId_, __LINE__ ));
 		for(const auto &Command:PostCommands) {
 			if(Command_==Command.Command) {
 				Poco::Thread::current()->setName(Command.Command);
 				if(Command.RequireConnection && !DeviceRegistry()->Connected(SerialNumberInt_)) {
+					poco_debug(Logger_,fmt::format("Command {} TID={} {}", Command_, TransactionId_, __LINE__ ));
 					CallCanceled(Command.Command, RESTAPI::Errors::DeviceNotConnected);
 					return BadRequest(RESTAPI::Errors::DeviceNotConnected);
 				}
 				std::string Command_UUID, CommandName;
 				if(!Command.AllowParallel && CommandManager()->CommandRunningForDevice(SerialNumberInt_,Command_UUID,CommandName)) {
+					poco_debug(Logger_,fmt::format("Command {} TID={} {}", Command_, TransactionId_, __LINE__ ));
 					auto Extra = fmt::format("UUID={} Command={}", Command_UUID, CommandName);
 					CallCanceled(Command.Command, RESTAPI::Errors::DeviceIsAlreadyBusy, Extra);
 					return BadRequest(RESTAPI::Errors::DeviceIsAlreadyBusy, Extra);
@@ -181,6 +183,7 @@ namespace OpenWifi {
 				return (*this.*Command.funPtr)(UUID,RPC);
 			}
 		}
+		poco_debug(Logger_,fmt::format("Command {} TID={} {}", Command_, TransactionId_, __LINE__ ));
 		return BadRequest(RESTAPI::Errors::InvalidCommand);
 	}
 
