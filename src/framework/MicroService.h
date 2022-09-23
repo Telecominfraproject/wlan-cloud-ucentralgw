@@ -1501,12 +1501,12 @@ namespace OpenWifi {
 	                    : Poco::Net::AddressFamily::IPv4));
 	            Poco::Net::SocketAddress SockAddr(Addr, port_);
 
-	            return Poco::Net::SecureServerSocket(SockAddr, 64, Context);
+	            return Poco::Net::SecureServerSocket(SockAddr, backlog_, Context);
 	        } else {
 	            Poco::Net::IPAddress Addr(address_);
 	            Poco::Net::SocketAddress SockAddr(Addr, port_);
 
-	            return Poco::Net::SecureServerSocket(SockAddr, 64, Context);
+	            return Poco::Net::SecureServerSocket(SockAddr, backlog_, Context);
 	        }
 	    }
 
@@ -1518,11 +1518,11 @@ namespace OpenWifi {
                         Poco::Net::Socket::supportsIPv6() ? Poco::Net::AddressFamily::IPv6
                                                           : Poco::Net::AddressFamily::IPv4));
                 Poco::Net::SocketAddress SockAddr(Addr, port_);
-                return Poco::Net::ServerSocket(SockAddr, 64);
+                return Poco::Net::ServerSocket(SockAddr, backlog_);
             } else {
                 Poco::Net::IPAddress Addr(address_);
                 Poco::Net::SocketAddress SockAddr(Addr, port_);
-                return Poco::Net::ServerSocket(SockAddr, 64);
+                return Poco::Net::ServerSocket(SockAddr, backlog_);
             }
         }
 
