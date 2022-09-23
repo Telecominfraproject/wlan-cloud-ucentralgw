@@ -50,7 +50,7 @@ namespace OpenWifi {
 							if (RPC == OutStandingRequests_.end() ||
 								RPC->second.SerialNumber !=
 									Utils::SerialNumberToInt(Resp->SerialNumber_)) {
-								poco_warning(Logger(),
+								poco_debug(Logger(),
 									fmt::format("({}): Outdated RPC {}", SerialNumber, ID));
 							} else {
 								std::chrono::duration<double, std::milli> rpc_execution_time =
@@ -61,7 +61,7 @@ namespace OpenWifi {
 								if (RPC->second.rpc_entry) {
 									RPC->second.rpc_entry->set_value(Payload);
 								}
-								poco_information(Logger(),
+								poco_debug(Logger(),
 									fmt::format("({}): Received RPC answer {}. Command={}",
 												SerialNumber, ID, RPC->second.Command));
 								OutStandingRequests_.erase(ID);
@@ -137,7 +137,7 @@ namespace OpenWifi {
 		Utils::SetThreadName("cmd:schdlr");
 		Poco::Logger &MyLogger = Poco::Logger::get("CMD-MGR-SCHEDULER");
 
-		poco_debug(MyLogger,"Scheduler starting.");
+		poco_trace(MyLogger,"Scheduler starting.");
 
 		try {
 
@@ -146,10 +146,10 @@ namespace OpenWifi {
 
 			std::vector<GWObjects::CommandDetails> Commands;
 			if (StorageService()->GetReadyToExecuteCommands(0, 200, Commands)) {
-				poco_debug(MyLogger,fmt::format("Scheduler about to process {} commands.", Commands.size()));
+				poco_trace(MyLogger,fmt::format("Scheduler about to process {} commands.", Commands.size()));
 				for (auto &Cmd : Commands) {
 					if (!Running_) {
-						poco_information(MyLogger,"Scheduler quitting because service is stopping.");
+						poco_warning(MyLogger,"Scheduler quitting because service is stopping.");
 						break;
 					}
 					poco_trace(
@@ -205,22 +205,22 @@ namespace OpenWifi {
 													  *Params, Cmd.UUID, Sent);
 						if (Sent) {
 							StorageService()->SetCommandExecuted(Cmd.UUID);
-							poco_information(MyLogger,
+							poco_debug(MyLogger,
 								fmt::format("{}: Serial={} Command={} Sent.",
 									 Cmd.UUID, Cmd.SerialNumber, Cmd.Command));
 						} else {
-							poco_information(MyLogger,
+							poco_debug(MyLogger,
 								fmt::format("{}: Serial={} Command={} Re-queued command.",
 									 Cmd.UUID, Cmd.SerialNumber, Cmd.Command));
 						}
 					} catch (const Poco::Exception &E) {
-						poco_information(MyLogger,
+						poco_debug(MyLogger,
 							fmt::format("{}: Serial={} Command={} Failed. Command marked as completed.",
 									 Cmd.UUID, Cmd.SerialNumber, Cmd.Command));
 						MyLogger.log(E);
 						StorageService()->SetCommandExecuted(Cmd.UUID);
 					} catch (...) {
-						poco_information(MyLogger,
+						poco_debug(MyLogger,
 							 fmt::format("{}: Serial={} Command={} Hard failure. Command marked as completed.",
 										 Cmd.UUID, Cmd.SerialNumber, Cmd.Command));
 						StorageService()->SetCommandExecuted(Cmd.UUID);
@@ -232,7 +232,7 @@ namespace OpenWifi {
 		} catch (...) {
 			poco_warning(MyLogger,"Exception during command processing.");
 		}
-		poco_debug(MyLogger,"Scheduler done.");
+		poco_trace(MyLogger,"Scheduler done.");
 	}
 
 	std::shared_ptr<CommandManager::promise_type_t> CommandManager::PostCommand(
@@ -264,18 +264,18 @@ namespace OpenWifi {
 		Poco::JSON::Stringifier::stringify(CompleteRPC, ToSend);
 		Idx.rpc_entry = disk_only ? nullptr : std::make_shared<CommandManager::promise_type_t>();
 
-		poco_information(Logger(), fmt::format("{}: Sending command. ID: {}", UUID, RPCID));
+		poco_debug(Logger(), fmt::format("{}: Sending command. ID: {}", UUID, RPCID));
 		if(DeviceRegistry()->SendFrame(SerialNumber, ToSend.str())) {
 			if(!oneway_rpc) {
 				std::lock_guard M(Mutex_);
 				OutStandingRequests_[RPCID] = Idx;
 			}
-			poco_information(Logger(), fmt::format("{}: Sent command. ID: {}", UUID, RPCID));
+			poco_debug(Logger(), fmt::format("{}: Sent command. ID: {}", UUID, RPCID));
 			Sent=true;
 			return Idx.rpc_entry;
 		}
 
-		poco_information(Logger(), fmt::format("{}: Failed to send command. ID: {}", UUID, RPCID));
+		poco_warning(Logger(), fmt::format("{}: Failed to send command. ID: {}", UUID, RPCID));
 		return nullptr;
 	}
 }  // namespace
