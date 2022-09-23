@@ -8,10 +8,6 @@
 
 #include <algorithm>
 
-#ifndef POCO_LOG_DEBUG
-#define POCO_LOG_DEBUG true
-#endif
-
 #include "framework/MicroService.h"
 
 #include "Poco/JSON/Parser.h"
@@ -42,11 +38,11 @@ namespace OpenWifi {
 					Payload.stringify(SS);
 
 					if (!Payload.has(uCentralProtocol::ID)) {
-						Logger().error(fmt::format("({}): Invalid RPC response.", SerialNumber));
+						poco_error(Logger(), fmt::format("({}): Invalid RPC response.", SerialNumber));
 					} else {
 						uint64_t ID = Payload.get(uCentralProtocol::ID);
 						if (ID < 2) {
-							Logger().debug(
+							poco_debug(Logger(),
 								fmt::format("({}): Ignoring RPC response.", SerialNumber));
 						} else {
 							std::lock_guard G(Mutex_);
@@ -54,7 +50,7 @@ namespace OpenWifi {
 							if (RPC == OutStandingRequests_.end() ||
 								RPC->second.SerialNumber !=
 									Utils::SerialNumberToInt(Resp->SerialNumber_)) {
-								Logger().warning(
+								poco_warning(Logger(),
 									fmt::format("({}): Outdated RPC {}", SerialNumber, ID));
 							} else {
 								std::chrono::duration<double, std::milli> rpc_execution_time =
@@ -65,7 +61,7 @@ namespace OpenWifi {
 								if (RPC->second.rpc_entry) {
 									RPC->second.rpc_entry->set_value(Payload);
 								}
-								Logger().information(
+								poco_information(Logger(),
 									fmt::format("({}): Received RPC answer {}. Command={}",
 												SerialNumber, ID, RPC->second.Command));
 								OutStandingRequests_.erase(ID);
@@ -78,12 +74,12 @@ namespace OpenWifi {
 		} catch (const Poco::Exception &E) {
 			Logger().log(E);
 		} catch (...) {
-			Logger().warning("Exception occurred during run.");
+			poco_warning(Logger(),"Exception occurred during run.");
 		}
    	}
 
     int CommandManager::Start() {
-        Logger().notice("Starting...");
+        poco_notice(Logger(),"Starting...");
 
 		ManagerThread.start(*this);
 
@@ -101,18 +97,18 @@ namespace OpenWifi {
     }
 
     void CommandManager::Stop() {
-        Logger().notice("Stopping...");
+        poco_notice(Logger(),"Stopping...");
 		Running_ = false;
 		JanitorTimer_.stop();
 		CommandRunnerTimer_.stop();
 		ResponseQueue_.wakeUpAll();
 		ManagerThread.wakeUp();
         ManagerThread.join();
-		Logger().notice("Stopped...");
+		poco_notice(Logger(),"Stopped...");
     }
 
     void CommandManager::WakeUp() {
-        Logger().notice("Waking up...");
+		poco_notice(Logger(),"Waking up...");
         ManagerThread.wakeUp();
     }
 
@@ -133,7 +129,7 @@ namespace OpenWifi {
 				++request;
 			}
 		}
-		MyLogger.information(
+		poco_information(MyLogger,
 			fmt::format("Outstanding-requests {}", OutStandingRequests_.size()));
 	}
 
@@ -202,7 +198,7 @@ namespace OpenWifi {
 
 						Poco::JSON::Parser P;
 						bool Sent;
-						MyLogger.information(fmt::format("{}: Serial={} Command={} Preparing execution.",
+						poco_information(MyLogger, fmt::format("{}: Serial={} Command={} Preparing execution.",
 														 Cmd.UUID, Cmd.SerialNumber, Cmd.Command));
 						auto Params = P.parse(Cmd.Details).extract<Poco::JSON::Object::Ptr>();
 						auto Result = PostCommandDisk(NextRPCId(), Cmd.SerialNumber, Cmd.Command,
@@ -268,18 +264,18 @@ namespace OpenWifi {
 		Poco::JSON::Stringifier::stringify(CompleteRPC, ToSend);
 		Idx.rpc_entry = disk_only ? nullptr : std::make_shared<CommandManager::promise_type_t>();
 
-		Logger().information(fmt::format("{}: Sending command. ID: {}", UUID, RPCID));
+		poco_information(Logger(), fmt::format("{}: Sending command. ID: {}", UUID, RPCID));
 		if(DeviceRegistry()->SendFrame(SerialNumber, ToSend.str())) {
 			if(!oneway_rpc) {
 				std::lock_guard M(Mutex_);
 				OutStandingRequests_[RPCID] = Idx;
 			}
-			Logger().information(fmt::format("{}: Sent command. ID: {}", UUID, RPCID));
+			poco_information(Logger(), fmt::format("{}: Sent command. ID: {}", UUID, RPCID));
 			Sent=true;
 			return Idx.rpc_entry;
 		}
 
-		Logger().information(fmt::format("{}: Failed to send command. ID: {}", UUID, RPCID));
+		poco_information(Logger(), fmt::format("{}: Failed to send command. ID: {}", UUID, RPCID));
 		return nullptr;
 	}
 }  // namespace

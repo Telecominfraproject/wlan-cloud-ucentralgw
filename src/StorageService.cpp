@@ -22,9 +22,9 @@ namespace OpenWifi {
 
     void Storage::Stop() {
     	std::lock_guard		Guard(Mutex_);
-        Logger().notice("Stopping...");
+        poco_notice(Logger(),"Stopping...");
 		StorageClass::Stop();
-		Logger().notice("Stopped...");
+		poco_notice(Logger(),"Stopped...");
     }
 }
 // namespace

@@ -49,7 +49,7 @@ namespace OpenWifi {
 		}
 
 		inline void reinitialize([[maybe_unused]] Poco::Util::Application &self) override {
-			Logger().information("Reinitializing.");
+			poco_information(Logger(),"Reinitializing.");
 		}
 
 

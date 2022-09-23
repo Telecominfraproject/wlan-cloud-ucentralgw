@@ -142,7 +142,7 @@ namespace OpenWifi {
 				Poco::Net::SocketAddress Destination(Server_.ip, Server_.port);
 
 				try {
-					Logger_.information("Attempting to connect");
+					poco_information(Logger_, "Attempting to connect");
 					Socket_->connect(Destination, Poco::Timespan(100, 0));
 					Socket_->completeHandshake();
 					Socket_->verifyPeerCertificate();
@@ -171,16 +171,16 @@ namespace OpenWifi {
 					Socket_->setKeepAlive(true);
 
 					Connected_ = true;
-					Logger_.information(fmt::format("Connected. CN={}",CommonName()));
+					poco_information(Logger_,fmt::format("Connected. CN={}",CommonName()));
 					return true;
 				} catch (const Poco::Net::NetException &E) {
-					Logger_.information("Could not connect.");
+					poco_information(Logger_,"Could not connect.");
 					Logger_.log(E);
 				} catch (const Poco::Exception &E) {
-					Logger_.information("Could not connect.");
+					poco_information(Logger_,"Could not connect.");
 					Logger_.log(E);
 				} catch (...) {
-					Logger_.information("Could not connect.");
+					poco_information(Logger_,"Could not connect.");
 				}
 			}
 			return false;
@@ -201,7 +201,7 @@ namespace OpenWifi {
 								  *this, &RADSECserver::onShutdown));
 				Connected_ = false;
 			}
-			Logger_.information("Disconnecting.");
+			poco_information(Logger_,"Disconnecting.");
 		}
 
 		inline void Stop() {

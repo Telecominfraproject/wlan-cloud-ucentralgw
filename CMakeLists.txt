@@ -49,7 +49,7 @@ if(GIT_FOUND AND EXISTS "${PROJECT_SOURCE_DIR}/.git")
     string(REGEX REPLACE "\n$" "" GIT_HASH "${GIT_HASH}")
 endif()
 
-add_definitions(-DTIP_GATEWAY_SERVICE="1")
+add_definitions(-DTIP_GATEWAY_SERVICE="1" -DPOCO_LOG_DEBUG="1")
 
 find_package(OpenSSL REQUIRED)
 find_package(ZLIB REQUIRED)
