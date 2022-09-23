@@ -39,7 +39,7 @@ namespace OpenWifi {
 	int AP_WS_Server::Start() {
 
 		AllowSerialNumberMismatch_ = MicroService::instance().ConfigGetBool("openwifi.certificates.allowmismatch",true);
-		MismatchDepth_ = MicroService::instance().ConfigGetInt("openwifi.certificates.allowmismatch",2);
+		MismatchDepth_ = MicroService::instance().ConfigGetInt("openwifi.certificates.mismatchdepth",2);
 
 		for(const auto & Svr : ConfigServersList_ ) {
 
