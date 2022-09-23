@@ -45,7 +45,7 @@ namespace OpenWifi {
 							poco_debug(Logger(),
 								fmt::format("({}): Ignoring RPC response.", SerialNumber));
 						} else {
-							std::lock_guard G(Mutex_);
+							std::unique_lock Lock(LocalMutex_);
 							auto RPC = OutStandingRequests_.find(ID);
 							if (RPC == OutStandingRequests_.end() ||
 								RPC->second.SerialNumber !=
@@ -113,7 +113,7 @@ namespace OpenWifi {
     }
 
 	void CommandManager::onJanitorTimer([[maybe_unused]] Poco::Timer & timer) {
-		std::lock_guard G(Mutex_);
+		std::unique_lock Lock(LocalMutex_);
 		Utils::SetThreadName("cmd:janitor");
 		Poco::Logger	& MyLogger = Poco::Logger::get("CMD-MGR-JANITOR");
 		auto now = std::chrono::high_resolution_clock::now();
@@ -157,7 +157,7 @@ namespace OpenWifi {
 											  Cmd.UUID, Cmd.SerialNumber, Cmd.Command));
 					try {
 						{
-							std::lock_guard M(Mutex_);
+							std::shared_lock Lock(LocalMutex_);
 							for (const auto &request : OutStandingRequests_) {
 								if (request.second.UUID == Cmd.UUID) {
 									continue;
