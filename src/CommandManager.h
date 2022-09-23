@@ -13,6 +13,7 @@
 #include <map>
 #include <utility>
 #include <functional>
+#include <shared_mutex>
 
 #include "framework/MicroService.h"
 
@@ -68,7 +69,6 @@ namespace OpenWifi {
 			void Stop() override;
 			void WakeUp();
 			inline void PostCommandResult(const std::string &SerialNumber, const Poco::JSON::Object &Obj) {
-				std::lock_guard		G(Mutex_);
 				// RPCResponseQueue_->Write(RPCResponse{.serialNumber=SerialNumber, .payload = Obj});
 				ResponseQueue_.enqueueNotification(new RPCResponseNotification(SerialNumber,Obj));
 			}
@@ -146,12 +146,12 @@ namespace OpenWifi {
 			inline uint64_t NextRPCId() { return ++Id_; }
 
 			void RemovePendingCommand(std::uint64_t Id) {
-				std::lock_guard	G(Mutex_);
+				std::unique_lock	Lock(LocalMutex_);
 				OutStandingRequests_.erase(Id);
 			}
 
 			inline bool CommandRunningForDevice(std::uint64_t SerialNumber, std::string & uuid, std::string &command) {
-				std::lock_guard	G(Mutex_);
+				std::shared_lock	Lock(LocalMutex_);
 
 				for(auto Request = OutStandingRequests_.begin(); Request != OutStandingRequests_.end() ; ) {
 					if(Request->second.SerialNumber==SerialNumber) {
@@ -164,8 +164,7 @@ namespace OpenWifi {
 			}
 
 			inline void ClearQueue(std::uint64_t SerialNumber) {
-				std::lock_guard	G(Mutex_);
-
+				std::unique_lock	Lock(LocalMutex_);
 				for(auto Request = OutStandingRequests_.begin(); Request != OutStandingRequests_.end() ; ) {
 					if(Request->second.SerialNumber==SerialNumber)
 						Request = OutStandingRequests_.erase(Request);
@@ -175,6 +174,7 @@ namespace OpenWifi {
 			}
 
 	    private:
+		  	mutable std::shared_mutex				LocalMutex_;
 			std::atomic_bool 						Running_ = false;
 			Poco::Thread    						ManagerThread;
 			std::atomic_uint64_t 					Id_=3;	//	do not start @1. We ignore ID=1 & 0 is illegal..
