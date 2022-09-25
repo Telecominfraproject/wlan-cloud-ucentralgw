@@ -136,7 +136,11 @@ namespace OpenWifi {
 
     bool DeviceRegistry::Connected(uint64_t SerialNumber) const {
 		std::shared_lock Guard(LocalMutex_);
-		return SerialNumbers_.find(SerialNumber) != SerialNumbers_.end();
+		auto Device = SerialNumbers_.find(SerialNumber);
+		if(Device==end(SerialNumbers_) || Device->second.second== nullptr)
+			return false;
+
+		return  Device->second.second->State_.Connected;
 	}
 
 	bool DeviceRegistry::SendFrame(uint64_t SerialNumber, const std::string & Payload) const {

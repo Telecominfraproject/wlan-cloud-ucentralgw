@@ -41,10 +41,10 @@ namespace OpenWifi {
 	{
 		State_.sessionId = connection_id;
 		WS_ = std::make_unique<Poco::Net::WebSocket>(request,response);
-		Threaded_=false;
-		CompleteStartup();
-
 /*
+ * 		Threaded_=false;
+		CompleteStartup();
+*/
 		static auto MaxThreads = (Poco::Environment::processorCount() >= 2) ? Poco::Environment::processorCount() * 4 : 8  ;
 
 	 	if(ConcurrentStartingDevices_<MaxThreads) {
@@ -55,7 +55,6 @@ namespace OpenWifi {
 			Threaded_=false;
 			CompleteStartup();
 		}
-*/
 	}
 
 	class ThreadedCounter {
@@ -88,11 +87,12 @@ namespace OpenWifi {
 			auto SockImpl = dynamic_cast<Poco::Net::WebSocketImpl *>(WS_->impl());
 			auto SS = dynamic_cast<Poco::Net::SecureStreamSocketImpl*>(SockImpl->streamSocketImpl());
 
-			while (true) {
+/*			while (true) {
 				auto V = SS->completeHandshake();
 				if (V == 1)
 					break;
 			}
+*/
 			PeerAddress_ = SS->peerAddress().host();
 			CId_ = Utils::FormatIPv6(SS->peerAddress().toString());
 
