@@ -35,9 +35,11 @@ namespace OpenWifi {
 
 	AP_WS_Connection::AP_WS_Connection(Poco::Net::HTTPServerRequest &request,
 									   Poco::Net::HTTPServerResponse &response,
-									   std::uint64_t connection_id)
-		: Logger_(AP_WS_Server()->Logger()) ,
-		  Reactor_(AP_WS_Server()->NextReactor())
+									   std::uint64_t connection_id,
+									   Poco::Logger &L,
+									   Poco::Net::SocketReactor &R)
+		: Logger_(L) ,
+		  Reactor_(R)
 	{
 		State_.sessionId = connection_id;
 		WS_ = std::make_unique<Poco::Net::WebSocket>(request,response);

@@ -19,7 +19,7 @@ namespace OpenWifi {
 	void AP_WS_RequestHandler::handleRequest(Poco::Net::HTTPServerRequest &request,
 											 Poco::Net::HTTPServerResponse &response)  {
 		try {
-			AP_WS_Server()->AddConnection(id_,std::make_shared<AP_WS_Connection>(request,response,id_));
+			AP_WS_Server()->AddConnection(id_,std::make_shared<AP_WS_Connection>(request,response,id_, Logger_, AP_WS_Server()->NextReactor()));
 		} catch (...) {
 			poco_warning(Logger_,"Exception during WS creation");
 		}

@@ -211,28 +211,29 @@ namespace OpenWifi {
 					Stats = uCentralProtocol::EMPTY_JSON_DOC;
 				auto Obj = P.parse(Stats).extract<Poco::JSON::Object::Ptr>();
 				return ReturnObject(*Obj);
-			} else {
-				return NotFound();
 			}
-		} else {
-			std::vector<GWObjects::Statistics> Stats;
-			if (QB_.Newest) {
-				StorageService()->GetNewestStatisticsData(SerialNumber_, QB_.Limit, Stats);
-			} else {
-				StorageService()->GetStatisticsData(SerialNumber_, QB_.StartDate, QB_.EndDate,
-													 QB_.Offset, QB_.Limit, Stats);
-			}
-			Poco::JSON::Array ArrayObj;
-			for (const auto &i : Stats) {
-				Poco::JSON::Object Obj;
-				i.to_json(Obj);
-				ArrayObj.add(Obj);
-			}
-			Poco::JSON::Object RetObj;
-			RetObj.set(RESTAPI::Protocol::DATA, ArrayObj);
-			RetObj.set(RESTAPI::Protocol::SERIALNUMBER, SerialNumber_);
-			return ReturnObject(RetObj);
+			return NotFound();
 		}
+
+		std::vector<GWObjects::Statistics> Stats;
+		if (QB_.Newest) {
+			StorageService()->GetNewestStatisticsData(SerialNumber_, QB_.Limit, Stats);
+		} else {
+			StorageService()->GetStatisticsData(SerialNumber_, QB_.StartDate, QB_.EndDate,
+												 QB_.Offset, QB_.Limit, Stats);
+		}
+
+		Poco::JSON::Array ArrayObj;
+		for (const auto &i : Stats) {
+			Poco::JSON::Object Obj;
+			i.to_json(Obj);
+			ArrayObj.add(Obj);
+		}
+		Poco::JSON::Object RetObj;
+		RetObj.set(RESTAPI::Protocol::DATA, ArrayObj);
+		RetObj.set(RESTAPI::Protocol::SERIALNUMBER, SerialNumber_);
+		return ReturnObject(RetObj);
+
 	}
 
 	void RESTAPI_device_commandHandler::DeleteStatistics() {
