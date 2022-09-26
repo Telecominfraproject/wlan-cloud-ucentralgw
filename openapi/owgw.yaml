@@ -1077,8 +1077,8 @@ components:
           default: false
         radsecPort:
           type: integer
-          min: 1
-          max: 65536
+          minimum: 1
+          maximum: 65535
         radsecSecret:
           type: string
         radsecCacerts:
