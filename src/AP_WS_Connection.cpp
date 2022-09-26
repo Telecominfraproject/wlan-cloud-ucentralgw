@@ -142,6 +142,13 @@ namespace OpenWifi {
 			SerialNumber_ = CN_;
 			SerialNumberInt_ = Utils::SerialNumberToInt(SerialNumber_);
 
+			WS_->setMaxPayloadSize(BufSize);
+			auto TS = Poco::Timespan(360, 0);
+			WS_->setReceiveTimeout(TS);
+			WS_->setNoDelay(true);
+			WS_->setKeepAlive(true);
+			WS_->setBlocking(false);
+
 			Reactor_.addEventHandler(
 				*WS_, Poco::NObserver<AP_WS_Connection, Poco::Net::ReadableNotification>(
 						  *this, &AP_WS_Connection::OnSocketReadable));
@@ -151,14 +158,6 @@ namespace OpenWifi {
 			Reactor_.addEventHandler(
 				*WS_, Poco::NObserver<AP_WS_Connection, Poco::Net::ErrorNotification>(
 						  *this, &AP_WS_Connection::OnSocketError));
-
-			WS_->setMaxPayloadSize(BufSize);
-			auto TS = Poco::Timespan(360, 0);
-			WS_->setReceiveTimeout(TS);
-			WS_->setNoDelay(true);
-			WS_->setKeepAlive(true);
-			WS_->setBlocking(false);
-
 			Registered_ = true;
 			poco_debug(Logger_, fmt::format("CONNECTION({}): Session={} CN={} Completed. (t={})", CId_, State_.sessionId , CN_, ConcurrentStartingDevices_));
 			return;
