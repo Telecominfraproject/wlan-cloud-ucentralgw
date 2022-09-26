@@ -41,6 +41,9 @@ namespace OpenWifi {
 		AllowSerialNumberMismatch_ = MicroService::instance().ConfigGetBool("openwifi.certificates.allowmismatch",true);
 		MismatchDepth_ = MicroService::instance().ConfigGetInt("openwifi.certificates.mismatchdepth",2);
 
+		Reactor_pool_ = std::make_unique<AP_WS_ReactorThreadPool>();
+		Reactor_pool_->Start();
+
 		for(const auto & Svr : ConfigServersList_ ) {
 
 			poco_notice(Logger(),fmt::format("Starting: {}:{} Keyfile:{} CertFile: {}", Svr.Address(),
@@ -121,8 +124,6 @@ namespace OpenWifi {
 		}
 
 		ReactorThread_.start(Reactor_);
-		Reactor_pool_ = std::make_unique<AP_WS_ReactorThreadPool>();
-		Reactor_pool_->Start();
 
 		auto ProvString = MicroService::instance().ConfigGetString("autoprovisioning.process","default");
 		if(ProvString!="default") {
