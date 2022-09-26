@@ -889,11 +889,14 @@ namespace OpenWifi {
 	void RESTAPI_device_commandHandler::Rtty(const std::string &CMD_UUID, uint64_t CMD_RPC, std::chrono::milliseconds timeout) {
 		Logger_.information(fmt::format("RTTY({},{}): TID={} user={} serial={}", CMD_UUID, CMD_RPC, TransactionId_, Requester(), SerialNumber_));
 
+		poco_debug(Logger_,fmt::format("RTTY_DEBUG {} ", __LINE__ ));
 		if (MicroService::instance().ConfigGetBool("rtty.enabled", false)) {
 			GWObjects::Device	Device;
 
+			poco_debug(Logger_,fmt::format("RTTY_DEBUG {} ", __LINE__ ));
 			if (StorageService()->GetDevice(SerialNumber_, Device)) {
 
+				poco_debug(Logger_,fmt::format("RTTY_DEBUG {} ", __LINE__ ));
 				GWObjects::RttySessionDetails Rtty{
 					.SerialNumber = SerialNumber_,
 					.Server = MicroService::instance().ConfigGetString("rtty.server", "localhost"),
@@ -906,14 +909,19 @@ namespace OpenWifi {
 					.ViewPort = MicroService::instance().ConfigGetInt("rtty.viewport", 5913),
 					.DevicePassword = ""
 				};
+				poco_debug(Logger_,fmt::format("RTTY_DEBUG {} ", __LINE__ ));
 
 				if(RTTYS_server()->UseInternal()) {
-					// Rtty.Token = MicroService::instance().CreateHash(UserInfo_.webtoken.refresh_token_ + std::to_string(OpenWifi::Now())).substr(0,32);
+					poco_debug(Logger_,fmt::format("RTTY_DEBUG {} ", __LINE__ ));
 					Rtty.Token = Utils::ComputeHash(UserInfo_.webtoken.refresh_token_,OpenWifi::Now()).substr(0,32);
+					poco_debug(Logger_,fmt::format("RTTY_DEBUG {} ", __LINE__ ));
 					if(!RTTYS_server()->CreateEndPoint(Rtty.ConnectionId, Rtty.Token, Requester(), SerialNumber_)) {
+						poco_debug(Logger_,fmt::format("RTTY_DEBUG {} ", __LINE__ ));
 						return BadRequest(RESTAPI::Errors::MaximumRTTYSessionsReached);
 					}
+					poco_debug(Logger_,fmt::format("RTTY_DEBUG {} ", __LINE__ ));
 				}
+				poco_debug(Logger_,fmt::format("RTTY_DEBUG {} ", __LINE__ ));
 
 				Poco::JSON::Object ReturnedObject;
 				Rtty.to_json(ReturnedObject);
@@ -925,6 +933,7 @@ namespace OpenWifi {
 				Cmd.UUID = CMD_UUID;
 				Cmd.Command = uCentralProtocol::RTTY;
 
+				poco_debug(Logger_,fmt::format("RTTY_DEBUG {} ", __LINE__ ));
 				Poco::JSON::Object Params;
 
 				Params.set(uCentralProtocol::METHOD, uCentralProtocol::RTTY);
@@ -937,10 +946,15 @@ namespace OpenWifi {
 				Params.set(uCentralProtocol::TIMEOUT, Rtty.TimeOut);
 				Params.set(uCentralProtocol::PASSWORD, Device.DevicePassword);
 
+				poco_debug(Logger_,fmt::format("RTTY_DEBUG {} ", __LINE__ ));
 				std::stringstream ParamStream;
+				poco_debug(Logger_,fmt::format("RTTY_DEBUG {} ", __LINE__ ));
 				Params.stringify(ParamStream);
+				poco_debug(Logger_,fmt::format("RTTY_DEBUG {} ", __LINE__ ));
 				Cmd.Details = ParamStream.str();
+				poco_debug(Logger_,fmt::format("RTTY_DEBUG {} ", __LINE__ ));
 				Logger_.information(fmt::format("RTTY: user={} serial={} rttyid={} token={} cmd={}.", Requester(), SerialNumber_, Rtty.ConnectionId, Rtty.Token, CMD_UUID));
+				poco_debug(Logger_,fmt::format("RTTY_DEBUG {} ", __LINE__ ));
 				return RESTAPI_RPC::WaitForCommand(CMD_RPC,false,Cmd, Params, *Request, *Response, timeout, &ReturnedObject, this, Logger_);
 			}
 			return NotFound();
