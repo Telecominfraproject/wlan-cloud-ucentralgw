@@ -61,6 +61,8 @@ namespace OpenWifi {
 		void Process_telemetry(Poco::JSON::Object::Ptr ParamsObj);
 		void Process_venuebroadcast(Poco::JSON::Object::Ptr ParamsObj);
 
+		bool ValidatedDevice();
+
 		inline bool GetTelemetryParameters(bool & Reporting, uint64_t & Interval,
 										   uint64_t & WebSocketTimer, uint64_t & KafkaTimer,
 										   uint64_t &WebSocketCount, uint64_t & KafkaCount,
@@ -107,6 +109,7 @@ namespace OpenWifi {
 		std::chrono::duration<double, std::milli> ConnectionCompletionTime_{0.0};
 		bool 								Threaded_=false;
 		std::atomic_bool 					Dead_=false;
+		std::atomic_bool 					DeviceValidated_=false;
 
 		static inline std::atomic_uint64_t 	ConcurrentStartingDevices_=0;
 

@@ -41,20 +41,25 @@ namespace OpenWifi {
 	{
 		State_.sessionId = connection_id;
 		WS_ = std::make_unique<Poco::Net::WebSocket>(request,response);
-/*
- * 		Threaded_=false;
-		CompleteStartup();
-*/
-		static auto MaxThreads = (Poco::Environment::processorCount() >= 2) ? Poco::Environment::processorCount() * 4 : 8  ;
 
-	 	if(ConcurrentStartingDevices_<MaxThreads) {
-			Threaded_=true;
-			std::thread Finish{[this]() { this->CompleteStartup(); }};
-			Finish.detach();
-		} else {
-			Threaded_=false;
-			CompleteStartup();
-		}
+		auto TS = Poco::Timespan(360, 0);
+
+		WS_->setMaxPayloadSize(BufSize);
+		WS_->setReceiveTimeout(TS);
+		WS_->setNoDelay(true);
+		WS_->setKeepAlive(true);
+		WS_->setBlocking(false);
+
+		Reactor_.addEventHandler(
+			*WS_, Poco::NObserver<AP_WS_Connection, Poco::Net::ReadableNotification>(
+					  *this, &AP_WS_Connection::OnSocketReadable));
+		Reactor_.addEventHandler(
+			*WS_, Poco::NObserver<AP_WS_Connection, Poco::Net::ShutdownNotification>(
+					  *this, &AP_WS_Connection::OnSocketShutdown));
+		Reactor_.addEventHandler(
+			*WS_, Poco::NObserver<AP_WS_Connection, Poco::Net::ErrorNotification>(
+					  *this, &AP_WS_Connection::OnSocketError));
+		Registered_ = true;
 	}
 
 	class ThreadedCounter {
@@ -77,6 +82,110 @@ namespace OpenWifi {
 		std::atomic_uint64_t 	&C_;
 		bool 					Threaded_;
 	};
+
+	bool AP_WS_Connection::ValidatedDevice() {
+		if(DeviceValidated_)
+			return true;
+
+		try {
+			auto SockImpl = dynamic_cast<Poco::Net::WebSocketImpl *>(WS_->impl());
+			auto SS = dynamic_cast<Poco::Net::SecureStreamSocketImpl*>(SockImpl->streamSocketImpl());
+
+			PeerAddress_ = SS->peerAddress().host();
+			CId_ = Utils::FormatIPv6(SS->peerAddress().toString());
+
+			State_.started = OpenWifi::Now();
+
+			if (!SS->secure()) {
+				poco_warning(Logger_,fmt::format("TLS-CONNECTION({}): Session={} Connection is NOT secure. Device is not allowed.", CId_, State_.sessionId ));
+				EndConnection();
+				return false;
+			}
+
+			poco_debug(Logger_,fmt::format("TLS-CONNECTION({}): Session={} Connection is secure.", CId_, State_.sessionId ));
+
+			if (!SS->havePeerCertificate()) {
+				State_.VerifiedCertificate = GWObjects::NO_CERTIFICATE;
+				poco_warning(Logger_,fmt::format("TLS-CONNECTION({}): Session={} No certificates available..", CId_, State_.sessionId ));
+				EndConnection();
+				return false;
+			}
+
+			Poco::Crypto::X509Certificate PeerCert(SS->peerCertificate());
+			if (!AP_WS_Server()->ValidateCertificate(CId_, PeerCert)) {
+				State_.VerifiedCertificate = GWObjects::NO_CERTIFICATE;
+				poco_warning(Logger_, fmt::format("TLS-CONNECTION({}): Session={} Device certificate is not valid. Device is not allowed.",
+												  CId_, State_.sessionId ));
+				EndConnection();
+				return false;
+			}
+
+			CN_ = Poco::trim(Poco::toLower(PeerCert.commonName()));
+			State_.VerifiedCertificate = GWObjects::VALID_CERTIFICATE;
+			poco_debug(Logger_,
+					   fmt::format("TLS-CONNECTION({}): Session={} Valid certificate: CN={}", CId_, State_.sessionId , CN_));
+
+			if (AP_WS_Server::IsSim(CN_) && !AP_WS_Server()->IsSimEnabled()) {
+				poco_warning(
+					Logger_,
+					fmt::format("TLS-CONNECTION({}): Session={} Sim Device {} is not allowed. Disconnecting.",
+								CId_, State_.sessionId , CN_));
+				EndConnection();
+				return false;
+			}
+
+			if (!CN_.empty() && StorageService()->IsBlackListed(SerialNumber_)) {
+				poco_warning(
+					Logger_,
+					fmt::format("TLS-CONNECTION({}): Session={} Device {} is black listed. Disconnecting.",
+								CId_, State_.sessionId , CN_));
+				EndConnection();
+				return false;
+			}
+
+			SerialNumber_ = CN_;
+			SerialNumberInt_ = Utils::SerialNumberToInt(SerialNumber_);
+
+			poco_debug(Logger_, fmt::format("TLS-CONNECTION({}): Session={} CN={} Completed. (t={})", CId_, State_.sessionId , CN_, ConcurrentStartingDevices_));
+			DeviceValidated_ = true;
+			return true;
+
+		} catch (const Poco::Net::CertificateValidationException &E) {
+			poco_error(Logger_,fmt::format("CONNECTION({}): Session:{} Poco::CertificateValidationException Certificate Validation failed during connection. Device will have to retry.",
+											CId_, State_.sessionId ));
+			Logger_.log(E);
+		} catch (const Poco::Net::WebSocketException &E) {
+			poco_error(Logger_,fmt::format("CONNECTION({}): Session:{} Poco::WebSocketException WebSocket error during connection. Device will have to retry.",
+											CId_, State_.sessionId ));
+			Logger_.log(E);
+		} catch (const Poco::Net::ConnectionAbortedException &E) {
+			poco_error(Logger_,fmt::format("CONNECTION({}):Session:{}  Poco::ConnectionAbortedException Connection was aborted during connection. Device will have to retry.",
+											CId_, State_.sessionId ));
+			Logger_.log(E);
+		} catch (const Poco::Net::ConnectionResetException &E) {
+			poco_error(Logger_,fmt::format("CONNECTION({}): Session:{} Poco::ConnectionResetException Connection was reset during connection. Device will have to retry.",
+											CId_, State_.sessionId ));
+			Logger_.log(E);
+		} catch (const Poco::Net::InvalidCertificateException &E) {
+			poco_error(Logger_,fmt::format(
+									"CONNECTION({}): Session:{} Poco::InvalidCertificateException Invalid certificate. Device will have to retry.",
+									CId_, State_.sessionId ));
+			Logger_.log(E);
+		} catch (const Poco::Net::SSLException &E) {
+			poco_error(Logger_,fmt::format("CONNECTION({}): Session:{} Poco::SSLException SSL Exception during connection. Device will have to retry.",
+											CId_, State_.sessionId ));
+			Logger_.log(E);
+		} catch (const Poco::Exception &E) {
+			poco_error(Logger_,fmt::format("CONNECTION({}): Session:{} Poco::Exception caught during device connection. Device will have to retry.",
+											CId_, State_.sessionId ));
+			Logger_.log(E);
+		} catch (...) {
+			poco_error(Logger_,fmt::format("CONNECTION({}): Session:{} Exception caught during device connection. Device will have to retry. Unsecure connect denied.",
+											CId_, State_.sessionId ));
+		}
+		EndConnection();
+		return false;
+	}
 
 	void AP_WS_Connection::CompleteStartup() {
 
@@ -584,6 +693,9 @@ namespace OpenWifi {
 
 		if(!AP_WS_Server()->Running())
 			return EndConnection();
+
+		if(!ValidatedDevice())
+			return;
 
 		try {
 			return ProcessIncomingFrame();
