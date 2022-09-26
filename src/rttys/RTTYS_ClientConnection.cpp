@@ -21,15 +21,15 @@ namespace OpenWifi {
 			Logger_.information("Starting connection");
 			Valid_ = true;
 			WS_ = std::make_unique<Poco::Net::WebSocket>(request,response);
+			WS_->setBlocking(false);
+			WS_->setNoDelay(true);
+			WS_->setKeepAlive(true);
 			Reactor_.addEventHandler(
 				*WS_, Poco::NObserver<RTTYS_ClientConnection, Poco::Net::ReadableNotification>(
 						  *this, &RTTYS_ClientConnection::onSocketReadable));
 			Reactor_.addEventHandler(
 				*WS_, Poco::NObserver<RTTYS_ClientConnection, Poco::Net::ShutdownNotification>(
 						  *this, &RTTYS_ClientConnection::onSocketShutdown));
-			WS_->setBlocking(false);
-			WS_->setNoDelay(true);
-			WS_->setKeepAlive(true);
 		}
 
 	RTTYS_ClientConnection::~RTTYS_ClientConnection() {
