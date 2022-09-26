@@ -5,6 +5,8 @@
 #pragma once
 
 #include <string>
+#include <shared_mutex>
+
 #include "Poco/Net/SocketAcceptor.h"
 #include "Poco/Environment.h"
 
@@ -44,14 +46,14 @@ namespace OpenWifi {
 		}
 
 		Poco::Net::SocketReactor &NextReactor() {
-			std::lock_guard		G(Mutex_);
+			std::shared_lock		Lock(Mutex_);
 			NextReactor_++;
 			NextReactor_ %= NumberOfThreads_;
 			return *Reactors_[NextReactor_];
 		}
 
 	  private:
-		std::mutex			Mutex_;
+		std::shared_mutex	Mutex_;
 		uint64_t 			NumberOfThreads_;
 		uint64_t 			NextReactor_ = 0;
 		std::vector<std::unique_ptr<Poco::Net::SocketReactor>> Reactors_;
