@@ -110,6 +110,7 @@ namespace OpenWifi {
 int main(int argc, char **argv) {
 	int ExitCode;
 	try {
+		Poco::Net::SSLManager::instance().initializeServer(nullptr, nullptr, nullptr);
 		auto App = OpenWifi::Daemon::instance();
 		ExitCode =  App->run(argc, argv);
 		Poco::Net::SSLManager::instance().shutdown();
