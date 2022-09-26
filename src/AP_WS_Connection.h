@@ -21,8 +21,11 @@ namespace OpenWifi {
 	class AP_WS_Connection {
 		static constexpr int BufSize = 256000;
 	  public:
-		explicit AP_WS_Connection(Poco::Net::HTTPServerRequest &request,
-			Poco::Net::HTTPServerResponse &response, std::uint64_t connection_id);
+		explicit AP_WS_Connection(	Poco::Net::HTTPServerRequest &request,
+									Poco::Net::HTTPServerResponse &response,
+									std::uint64_t connection_id,
+									Poco::Logger &L,
+									Poco::Net::SocketReactor &R);
 		~AP_WS_Connection();
 
 		void EndConnection();
@@ -60,6 +63,8 @@ namespace OpenWifi {
 		void Process_deviceupdate(Poco::JSON::Object::Ptr ParamsObj, std::string &Serial);
 		void Process_telemetry(Poco::JSON::Object::Ptr ParamsObj);
 		void Process_venuebroadcast(Poco::JSON::Object::Ptr ParamsObj);
+
+		bool ValidatedDevice();
 
 		inline bool GetTelemetryParameters(bool & Reporting, uint64_t & Interval,
 										   uint64_t & WebSocketTimer, uint64_t & KafkaTimer,
@@ -107,6 +112,7 @@ namespace OpenWifi {
 		std::chrono::duration<double, std::milli> ConnectionCompletionTime_{0.0};
 		bool 								Threaded_=false;
 		std::atomic_bool 					Dead_=false;
+		std::atomic_bool 					DeviceValidated_=false;
 
 		static inline std::atomic_uint64_t 	ConcurrentStartingDevices_=0;
 
