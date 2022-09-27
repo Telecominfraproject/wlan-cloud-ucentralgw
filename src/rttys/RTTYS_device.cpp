@@ -78,7 +78,9 @@ namespace OpenWifi {
 	}
 
 	RTTYS_Device_ConnectionHandler::~RTTYS_Device_ConnectionHandler() {
-		std::cout << "Deleting Device RTTY entry..." << std::endl;
+		poco_information(Logger_,
+			fmt::format("Device {} session ending", id_)
+		);
 		reactor_.removeEventHandler(
 			socket_,
 			Poco::NObserver<RTTYS_Device_ConnectionHandler, Poco::Net::ReadableNotification>(

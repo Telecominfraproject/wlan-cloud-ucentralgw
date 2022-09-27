@@ -33,7 +33,9 @@ namespace OpenWifi {
 		}
 
 	RTTYS_ClientConnection::~RTTYS_ClientConnection() {
-		std::cout << "Deleting Client RTTY entry..." << std::endl;
+		poco_information(Logger_,
+				   fmt::format("Client {} session ending", Id_)
+				   );
 		Reactor_.removeEventHandler(
 			*WS_, Poco::NObserver<RTTYS_ClientConnection, Poco::Net::ReadableNotification>(
 					  *this, &RTTYS_ClientConnection::onSocketReadable));
