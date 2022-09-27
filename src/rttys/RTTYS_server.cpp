@@ -89,7 +89,10 @@ namespace OpenWifi {
 	void RTTYS_server::Stop() {
 		Timer_.stop();
 		if(Internal_) {
-			WebServer_->stopAll();
+			ResponseQueue_.wakeUpAll();
+			NotificationManager_.wakeUp();
+			NotificationManager_.join();
+			WebServer_->stopAll(true);
 			WebServer_->stop();
 			ClientReactor_.stop();
 			ClientReactorThread_.join();
@@ -97,9 +100,6 @@ namespace OpenWifi {
 			DeviceAcceptor_->unregisterAcceptor();
 			DeviceReactorThread_.join();
 			NotificationManagerRunning_ = false;
-			ResponseQueue_.wakeUpAll();
-			NotificationManager_.wakeUp();
-			NotificationManager_.join();
 		}
 	}
 
@@ -108,7 +108,7 @@ namespace OpenWifi {
 		Utils::SetThreadName("rt:janitor");
 		static auto LastStats = OpenWifi::Now();
 
-		std::unique_lock G(M_);
+		std::unique_lock Lock(LocalMutex_);
  		for(auto element=EndPoints_.begin();element!=EndPoints_.end();) {
 			if(element->second->TooOld()) {
 				auto c = fmt::format("Removing {}. Serial: {} Device connection time: {}s. Client connection time: {}s",
@@ -153,7 +153,7 @@ namespace OpenWifi {
 		while (NextNotification && NotificationManagerRunning_) {
 			auto Notification = dynamic_cast<RTTYS_Notification *>(NextNotification.get());
 			if (Notification != nullptr) {
-				std::unique_lock G(M_);
+				std::unique_lock Lock(LocalMutex_);
 				auto It = EndPoints_.find(Notification->id_);
 				if (It != EndPoints_.end()) {
 					switch (Notification->type_) {
@@ -164,16 +164,14 @@ namespace OpenWifi {
 						It->second->DisconnectClient();
 					} break;
 					case RTTYS_Notification_type::device_registration: {
-						auto ptr = std::unique_ptr<RTTYS_Device_ConnectionHandler>{Notification->device_};
-						It->second->SetDevice(std::move(ptr));
+						It->second->SetDevice(Notification->device_);
 						if(!It->second->Joined() && It->second->ValidClient()) {
 							It->second->Join();
 							It->second->Login();
 						}
 					} break;
 					case RTTYS_Notification_type::client_registration: {
-						auto ptr = std::unique_ptr<RTTYS_ClientConnection>{Notification->client_};
-						It->second->SetClient(std::move(ptr));
+						It->second->SetClient(Notification->client_);
 						if(!It->second->Joined() && It->second->ValidDevice()) {
 							It->second->Join();
 							It->second->Login();
@@ -199,11 +197,11 @@ namespace OpenWifi {
 	}
 
 	bool RTTYS_server::SendToClient(const std::string &Id, const u_char *Buf, std::size_t Len) {
-		std::shared_lock 	Guard(M_);
+		std::shared_lock 	Lock(LocalMutex_);
 
 		try {
 			auto It = EndPoints_.find(Id);
-			if (It != EndPoints_.end()) {
+			if (It != EndPoints_.end() && It->second!=nullptr) {
 				return It->second->SendToClient(Buf,Len);
 			}
 		} catch(const Poco::Exception &E) {
@@ -215,11 +213,11 @@ namespace OpenWifi {
 	}
 
 	bool RTTYS_server::SendToClient(const std::string &Id, const std::string &s) {
-		std::shared_lock 	Guard(M_);
+		std::shared_lock 	Lock(LocalMutex_);
 
 		try {
 			auto It = EndPoints_.find(Id);
-			if (It != EndPoints_.end()) {
+			if (It != EndPoints_.end() && It->second!=nullptr) {
 				return It->second->SendToClient(s);
 			}
 		} catch(const Poco::Exception &E) {
@@ -231,21 +229,16 @@ namespace OpenWifi {
 	}
 
 	bool RTTYS_server::SendKeyStrokes(const std::string &Id, const u_char *buffer, std::size_t len) {
-		std::shared_lock 	Guard(M_);
+		std::shared_lock 	Lock(LocalMutex_);
 
 		auto It=EndPoints_.find(Id);
-		if(It==EndPoints_.end()) {
+		if(It==EndPoints_.end() || It->second==nullptr) {
 			return false;
 		}
 
 		try {
-			if(It->second.get() != nullptr) {
-				auto res = It->second->KeyStrokes(buffer, len);
-				return res;
-			}
-			else {
-				return true;
-			}
+			auto res = It->second->KeyStrokes(buffer, len);
+			return res;
 		} catch(const Poco::Exception &E) {
 			Logger().log(E);
 		} catch (...) {
@@ -254,10 +247,10 @@ namespace OpenWifi {
 	}
 
 	bool RTTYS_server::WindowSize(const std::string &Id, int cols, int rows) {
-		std::shared_lock 	Guard(M_);
+		std::shared_lock 	Lock(LocalMutex_);
 
 		auto It=EndPoints_.find(Id);
-		if(It==EndPoints_.end()) {
+		if(It==EndPoints_.end() || It->second==nullptr) {
 			return false;
 		}
 		try {
@@ -270,20 +263,19 @@ namespace OpenWifi {
 	}
 
 	bool RTTYS_server::CreateEndPoint(const std::string &Id, const std::string & Token, const std::string & UserName, const std::string & SerialNumber ) {
-		std::unique_lock 	Guard(M_);
+		std::unique_lock 	Lock(LocalMutex_);
 
 		if(MaxConcurrentSessions_!=0 && EndPoints_.size()==MaxConcurrentSessions_) {
 			return false;
 		}
 
-		auto NewEP = std::make_unique<RTTYS_EndPoint>(Token, SerialNumber, UserName );
-		EndPoints_[Id] = std::move(NewEP);
+		EndPoints_[Id] = std::make_unique<RTTYS_EndPoint>(Token, SerialNumber, UserName );
 		++TotalEndPoints_;
 		return true;
 	}
 
 	bool RTTYS_server::ValidId(const std::string &Token) {
-		std::shared_lock 	Guard(M_);
+		std::shared_lock 	Lock(LocalMutex_);
 		return EndPoints_.find(Token) != EndPoints_.end();
 	}
 

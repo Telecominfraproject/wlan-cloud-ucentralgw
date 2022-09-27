@@ -90,14 +90,14 @@ namespace OpenWifi {
 			Created_ = std::chrono::high_resolution_clock::now();
 		}
 
-		inline void SetClient(std::unique_ptr<RTTYS_ClientConnection> Client) {
+		inline void SetClient(RTTYS_ClientConnection *Client) {
 			ClientConnected_ = std::chrono::high_resolution_clock::now();
-			Client_ = std::move(Client);
+			Client_ = std::unique_ptr<RTTYS_ClientConnection>(Client);
 		}
 
-		inline void SetDevice(std::unique_ptr<RTTYS_Device_ConnectionHandler> Device) {
+		inline void SetDevice(RTTYS_Device_ConnectionHandler* Device) {
 			DeviceConnected_ = std::chrono::high_resolution_clock::now();
-			Device_ = std::move(Device);
+			Device_ = std::unique_ptr<RTTYS_Device_ConnectionHandler>(Device);
 		}
 
 		inline bool Login() {
@@ -105,12 +105,6 @@ namespace OpenWifi {
 				return Device_->Login();
 			}
 			return false;
-		}
-
-		RTTYS_EndPoint & operator=(RTTYS_EndPoint Other) {
-			Other.Client_ = std::move(Client_);
-			Other.Device_ = std::move(Device_);
-			return *this;
 		}
 
 		inline void DisconnectClient() {
@@ -282,7 +276,7 @@ namespace OpenWifi {
 		std::unique_ptr<Poco::TimerCallback<RTTYS_server>>  GCCallBack_;
 		std::list<std::unique_ptr<RTTYS_Device_ConnectionHandler>>	FailedDevices;
 		std::list<std::unique_ptr<RTTYS_ClientConnection>>			FailedClients;
-		std::shared_mutex 							M_;
+		std::shared_mutex 							LocalMutex_;
 
 		std::atomic_uint64_t 						TotalEndPoints_=0;
 		std::atomic_uint64_t 						FailedNumDevices_=0;

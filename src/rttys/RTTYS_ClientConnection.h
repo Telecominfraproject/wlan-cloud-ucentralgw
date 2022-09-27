@@ -40,7 +40,7 @@ namespace OpenWifi {
 		std::atomic_bool						Valid_=false;
 		std::shared_mutex						Mutex_;
 
-		void EndConnection(bool SendNotification=true);
+		void EndConnection();
 
 	};
 }
