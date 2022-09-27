@@ -69,7 +69,7 @@ namespace OpenWifi {
 		u_char 						  	last_command_=0;
 		unsigned char 					small_buf_[64+RTTY_SESSION_ID_LENGTH];
 
-		void EndConnection(bool SendNotification=true) ;
+		void EndConnection() ;
 		void CompleteConnection();
 
 		[[nodiscard]] bool do_msgTypeRegister(std::size_t msg_len);

@@ -18,7 +18,6 @@ namespace OpenWifi {
 		  	Id_(Id),
 	  		Logger_(Poco::Logger::get(fmt::format("RTTY-client({})",Id_)))
 		{
-			Logger_.information("Starting connection");
 			Valid_ = true;
 			WS_ = std::make_unique<Poco::Net::WebSocket>(request,response);
 			WS_->setBlocking(false);
@@ -30,33 +29,20 @@ namespace OpenWifi {
 			Reactor_.addEventHandler(
 				*WS_, Poco::NObserver<RTTYS_ClientConnection, Poco::Net::ShutdownNotification>(
 						  *this, &RTTYS_ClientConnection::onSocketShutdown));
+			Logger_.information("Starting connection");
 		}
 
 	RTTYS_ClientConnection::~RTTYS_ClientConnection() {
-		if(Valid_) {
-			std::unique_lock G(Mutex_);
-			EndConnection(false);
-		}
+		Reactor_.removeEventHandler(
+			*WS_, Poco::NObserver<RTTYS_ClientConnection, Poco::Net::ReadableNotification>(
+					  *this, &RTTYS_ClientConnection::onSocketReadable));
+		Reactor_.removeEventHandler(
+			*WS_, Poco::NObserver<RTTYS_ClientConnection, Poco::Net::ShutdownNotification>(
+					  *this, &RTTYS_ClientConnection::onSocketShutdown));
 	}
 
-	void RTTYS_ClientConnection::EndConnection(bool SendNotification) {
-		if(Valid_) {
-			Valid_=false;
-			try {
-				Reactor_.removeEventHandler(
-					*WS_, Poco::NObserver<RTTYS_ClientConnection, Poco::Net::ReadableNotification>(
-							  *this, &RTTYS_ClientConnection::onSocketReadable));
-				Reactor_.removeEventHandler(
-					*WS_, Poco::NObserver<RTTYS_ClientConnection, Poco::Net::ShutdownNotification>(
-							  *this, &RTTYS_ClientConnection::onSocketShutdown));
-				if (SendNotification)
-					RTTYS_server()->NotifyClientDisconnect(Id_, this);
-			} catch(...) {
-
-			}
-			Logger_.information("Disconnected.");
-
-		}
+	void RTTYS_ClientConnection::EndConnection() {
+		RTTYS_server()->NotifyClientDisconnect(Id_, this);
 	}
 
 	void RTTYS_ClientConnection::onSocketReadable([[maybe_unused]] const Poco::AutoPtr<Poco::Net::ReadableNotification> &pNf) {
@@ -132,7 +118,6 @@ namespace OpenWifi {
 		}
 
 		if(MustDisconnect) {
-			std::unique_lock	G(Mutex_);
 			EndConnection();
 		}
 	}
@@ -148,7 +133,6 @@ namespace OpenWifi {
 		} catch (...) {
 			Logger_.information("SendData shutdown.");
 		}
-		std::unique_lock G(Mutex_);
 		EndConnection();
 	}
 
@@ -161,13 +145,11 @@ namespace OpenWifi {
 		} catch (...) {
 			Logger_.information("SendData shutdown.");
 		}
-		std::unique_lock G(Mutex_);
 		EndConnection();
 	}
 
 	void RTTYS_ClientConnection::onSocketShutdown([[maybe_unused]] const Poco::AutoPtr<Poco::Net::ShutdownNotification> &pNf) {
 		Logger_.information("Socket shutdown.");
-		std::unique_lock G(Mutex_);
 		EndConnection();
 	}
 
