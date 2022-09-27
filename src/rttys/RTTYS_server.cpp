@@ -89,7 +89,10 @@ namespace OpenWifi {
 	void RTTYS_server::Stop() {
 		Timer_.stop();
 		if(Internal_) {
-			WebServer_->stopAll();
+			ResponseQueue_.wakeUpAll();
+			NotificationManager_.wakeUp();
+			NotificationManager_.join();
+			WebServer_->stopAll(true);
 			WebServer_->stop();
 			ClientReactor_.stop();
 			ClientReactorThread_.join();
@@ -97,9 +100,6 @@ namespace OpenWifi {
 			DeviceAcceptor_->unregisterAcceptor();
 			DeviceReactorThread_.join();
 			NotificationManagerRunning_ = false;
-			ResponseQueue_.wakeUpAll();
-			NotificationManager_.wakeUp();
-			NotificationManager_.join();
 		}
 	}
 
