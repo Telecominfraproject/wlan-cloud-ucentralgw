@@ -19,104 +19,136 @@
 namespace OpenWifi::Config {
 
 	const static std::string BasicConfig {
-			R"lit({
-			"uuid": 1,
-			"radios": [
-				{
-					"band": "5G",
-					"country": "CA",
-					"channel-mode": "HE",
-					"channel-width": 80,
-					"channel": 32
-				}
-			],
-
-			"interfaces": [
-				{
-					"name": "WAN",
-					"role": "upstream",
-					"services": [ "lldp" ],
-					"ethernet": [
-						{
-							"select-ports": [
-								"WAN*"
-							]
-						}
-					],
-					"ipv4": {
-						"addressing": "dynamic"
-					},
-					"ssids": [
-						{
-							"name": "OpenWifi",
-							"wifi-bands": [
-								"5G"
-							],
-							"bss-mode": "ap",
-							"encryption": {
-								"proto": "psk2",
-								"key": "OpenWifi",
-								"ieee80211w": "optional"
-							}
-						}
-					]
-				},
-				{
-					"name": "LAN",
-					"role": "downstream",
-					"services": [ "ssh", "lldp" ],
-					"ethernet": [
-						{
-							"select-ports": [
-								"LAN*"
-							]
-						}
-					],
-					"ipv4": {
-						"addressing": "static",
-						"subnet": "192.168.1.1/24",
-						"dhcp": {
-							"lease-first": 10,
-							"lease-count": 100,
-							"lease-time": "6h"
-						}
-					},
-					"ssids": [
-						{
-							"name": "OpenWifi",
-							"wifi-bands": [
-								"5G"
-							],
-							"bss-mode": "ap",
-							"encryption": {
-								"proto": "psk2",
-								"key": "OpenWifi",
-								"ieee80211w": "optional"
-							}
-						}
-					]
-
-				}
-			],
-			"metrics": {
-				"statistics": {
-					"interval": 120,
-					"types": [ "ssids", "lldp", "clients" ]
-				},
-				"health": {
-					"interval": 120
-				}
-			},
-			"services": {
-				"lldp": {
-					"describe": "uCentral",
-					"location": "universe"
-				},
-				"ssh": {
-					"port": 22
-				}
-			}
-		})lit"};
+R"lit(
+{
+  "interfaces": [
+    {
+      "ethernet": [
+        {
+          "select-ports": [
+            "WAN*"
+          ]
+        }
+      ],
+      "ipv4": {
+        "addressing": "dynamic"
+      },
+      "name": "WAN",
+      "role": "upstream",
+      "services": [
+        "ssh",
+        "lldp",
+        "dhcp-snooping"
+      ],
+      "ssids": [
+        {
+          "bss-mode": "ap",
+          "encryption": {
+            "ieee80211w": "optional",
+            "key": "OpenWifi1",
+            "proto": "psk2"
+          },
+          "name": "OpenWifi",
+          "services": [
+            "wifi-frames"
+          ],
+          "wifi-bands": [
+           "2G","5G"
+          ]
+        }
+      ]
+    },
+    {
+      "ethernet": [
+        {
+          "select-ports": [
+            "LAN*"
+          ]
+        }
+      ],
+      "ipv4": {
+        "addressing": "static",
+        "dhcp": {
+          "lease-count": 10000,
+          "lease-first": 10,
+          "lease-time": "6h"
+        },
+        "subnet": "192.168.1.1/16"
+      },
+      "name": "LAN",
+      "role": "downstream",
+      "services": [
+        "ssh",
+        "lldp",
+        "dhcp-snooping"
+      ]
+    }
+  ],
+  "metrics": {
+    "dhcp-snooping": {
+      "filters": [
+        "ack",
+        "discover",
+        "offer",
+        "request",
+        "solicit",
+        "reply",
+        "renew"
+      ]
+    },
+    "health": {
+      "interval": 120
+    },
+    "statistics": {
+      "interval": 60,
+      "types": [
+        "ssids",
+        "lldp",
+        "clients"
+      ]
+    },
+    "wifi-frames": {
+      "filters": [
+        "probe",
+        "auth",
+        "assoc",
+        "disassoc",
+        "deauth",
+        "local-deauth",
+        "inactive-deauth",
+        "key-mismatch",
+        "beacon-report",
+        "radar-detected"
+      ]
+    }
+  },
+  "radios": [
+    {
+      "band": "2G",
+      "channel": "auto",
+      "channel-mode": "HE",
+      "country": "CA"
+    },
+    {
+      "allow-dfs": true,
+      "band": "5G",
+      "channel": "auto",
+      "channel-mode": "HE",
+      "country": "CA"
+    }
+  ],
+  "services": {
+    "lldp": {
+      "describe": "TIP OpenWiFi",
+      "location": "QA"
+    },
+    "ssh": {
+      "port": 22
+    }
+  },
+  "uuid": 2
+}
+)lit"};
 
 	void Config::SetBasicConfigFile() {
 		try {
