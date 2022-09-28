@@ -327,33 +327,6 @@ namespace OpenWifi {
 		std::cout << "Garbage collection Session: " << State_.sessionId << std::endl;
 		if(!Dead_)
 			EndConnection();
-/*
-		poco_information(Logger_,fmt::format("CONNECTION-CLOSING({}): {}.", CId_, SerialNumber_));
-		auto SessionDeleted = DeviceRegistry()->EndSession(State_.sessionId, this, SerialNumberInt_);
-
-		if (Registered_ && WS_) {
-			Reactor_.removeEventHandler(*WS_,
-										Poco::NObserver<AP_WS_Connection, Poco::Net::ReadableNotification>(
-											*this, &AP_WS_Connection::OnSocketReadable));
-			Reactor_.removeEventHandler(*WS_,
-										Poco::NObserver<AP_WS_Connection, Poco::Net::ShutdownNotification>(
-											*this, &AP_WS_Connection::OnSocketShutdown));
-			Reactor_.removeEventHandler(*WS_,
-										Poco::NObserver<AP_WS_Connection, Poco::Net::ErrorNotification>(
-											*this, &AP_WS_Connection::OnSocketError));
-			(*WS_).close();
-		} else if (WS_) {
-			(*WS_).close();
-		}
-
-		if (KafkaManager()->Enabled() && !SerialNumber_.empty()) {
-			std::string s(SerialNumber_);
-			std::thread t([s]() { NotifyKafkaDisconnect(s); });
-			t.detach();
-		}
-		if(SessionDeleted)
-			WebSocketClientNotificationDeviceDisconnected(SerialNumber_);
-*/
 	}
 
 	void AP_WS_Connection::EndConnection() {
@@ -381,7 +354,6 @@ namespace OpenWifi {
 		}
 		if(SessionDeleted)
 			WebSocketClientNotificationDeviceDisconnected(SerialNumber_);
-
 		AP_WS_Server()->DeleteConnection(State_.sessionId);
 	}
 
@@ -452,6 +424,7 @@ namespace OpenWifi {
 	}
 
 	void AP_WS_Connection::ProcessJSONRPCResult(Poco::JSON::Object::Ptr Doc) {
+		poco_debug(Logger_,fmt::format("RECEIVED-RPC({}): {}.", CId_, Doc->get(uCentralProtocol::ID).toString()));
 		CommandManager()->PostCommandResult(SerialNumber_, *Doc);
 	}
 
@@ -578,7 +551,6 @@ namespace OpenWifi {
 	}
 
 	bool AP_WS_Connection::StartTelemetry() {
-		// std::cout << "Start telemetry for " << SerialNumber_ << std::endl;
 		poco_information(Logger_, fmt::format("TELEMETRY({}): Starting.", CId_));
 		Poco::JSON::Object StartMessage;
 		StartMessage.set("jsonrpc", "2.0");
@@ -601,7 +573,6 @@ namespace OpenWifi {
 	}
 
 	bool AP_WS_Connection::StopTelemetry() {
-		// std::cout << "Stop telemetry for " << SerialNumber_ << std::endl;
 		poco_information(Logger_, fmt::format("TELEMETRY({}): Stopping.", CId_));
 		Poco::JSON::Object StopMessage;
 		StopMessage.set("jsonrpc", "2.0");
@@ -627,7 +598,7 @@ namespace OpenWifi {
 
 	bool AP_WS_Connection::SetWebSocketTelemetryReporting(uint64_t Interval,
 													  uint64_t LifeTime) {
-		std::lock_guard G(Mutex_);
+		std::unique_lock Lock(TelemetryMutex_);
 		TelemetryWebSocketRefCount_++;
 		TelemetryInterval_ = TelemetryInterval_ ? std::min(Interval, TelemetryInterval_) : Interval;
 		auto TelemetryWebSocketTimer = LifeTime + OpenWifi::Now();
@@ -641,7 +612,7 @@ namespace OpenWifi {
 	}
 
 	bool AP_WS_Connection::SetKafkaTelemetryReporting(uint64_t Interval, uint64_t LifeTime) {
-		std::lock_guard G(Mutex_);
+		std::unique_lock Lock(TelemetryMutex_);
 		TelemetryKafkaRefCount_++;
 		TelemetryInterval_ = TelemetryInterval_ ? std::min(Interval, TelemetryInterval_) : Interval;
 		auto TelemetryKafkaTimer = LifeTime + OpenWifi::Now();
@@ -655,7 +626,7 @@ namespace OpenWifi {
 	}
 
 	bool AP_WS_Connection::StopWebSocketTelemetry() {
-		std::lock_guard G(Mutex_);
+		std::unique_lock Lock(TelemetryMutex_);
 		if (TelemetryWebSocketRefCount_)
 			TelemetryWebSocketRefCount_--;
 		UpdateCounts();
@@ -667,7 +638,7 @@ namespace OpenWifi {
 	}
 
 	bool AP_WS_Connection::StopKafkaTelemetry() {
-		std::lock_guard G(Mutex_);
+		std::unique_lock Lock(TelemetryMutex_);
 		if (TelemetryKafkaRefCount_)
 			TelemetryKafkaRefCount_--;
 		UpdateCounts();
@@ -822,6 +793,7 @@ namespace OpenWifi {
 			   	E.displayText(),
 			   	IncomingFrame.begin()==nullptr ? "" : IncomingFrame.begin(),
 											   State_.sessionId));
+			return EndConnection();
 		} catch (const Poco::Net::WebSocketException &E) {
 			poco_warning(Logger_, fmt::format("WebSocketException({}): Text:{} Payload:{} Session:{}",
 				CId_,
@@ -884,11 +856,14 @@ namespace OpenWifi {
 	}
 
 	bool AP_WS_Connection::Send(const std::string &Payload) {
-		std::lock_guard Guard(Mutex_);
-
-		size_t BytesSent = WS_->sendFrame(Payload.c_str(), (int)Payload.size());
-		State_.TX += BytesSent;
-		return BytesSent == Payload.size();
+		try {
+			size_t BytesSent = WS_->sendFrame(Payload.c_str(), (int)Payload.size());
+			State_.TX += BytesSent;
+			return BytesSent == Payload.size();
+		} catch(const Poco::Exception &E) {
+			Logger_.log(E);
+		}
+		return false;
 	}
 
 	std::string Base64Encode(const unsigned char *buffer, std::size_t size) {

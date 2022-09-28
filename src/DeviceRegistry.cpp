@@ -146,7 +146,7 @@ namespace OpenWifi {
 	bool DeviceRegistry::SendFrame(uint64_t SerialNumber, const std::string & Payload) const {
 		std::shared_lock	Guard(LocalMutex_);
 		auto Device = SerialNumbers_.find(SerialNumber);
-		if(Device==SerialNumbers_.end())
+		if(Device==SerialNumbers_.end() || Device->second.second== nullptr)
 			return false;
 
 		try {
@@ -162,7 +162,7 @@ namespace OpenWifi {
 		std::shared_lock	Guard(LocalMutex_);
 
 		auto Device = SerialNumbers_.find(SerialNumber);
-		if(Device==end(SerialNumbers_))
+		if(Device==end(SerialNumbers_) || Device->second.second==nullptr)
 			return;
 		Device->second.second->StopWebSocketTelemetry();
 	}
@@ -171,7 +171,7 @@ namespace OpenWifi {
 		std::shared_lock	Guard(LocalMutex_);
 
 		auto Device = SerialNumbers_.find(SerialNumber);
-		if(Device==end(SerialNumbers_))
+		if(Device==end(SerialNumbers_) || Device->second.second==nullptr)
 			return;
 		Device->second.second->SetWebSocketTelemetryReporting(Interval, Lifetime);
 	}
@@ -180,7 +180,7 @@ namespace OpenWifi {
 		std::shared_lock	Guard(LocalMutex_);
 
 		auto Device = SerialNumbers_.find(SerialNumber);
-		if(Device==end(SerialNumbers_))
+		if(Device==end(SerialNumbers_) || Device->second.second== nullptr)
 			return;
 		Device->second.second->SetKafkaTelemetryReporting(Interval, Lifetime);
 	}
@@ -189,7 +189,7 @@ namespace OpenWifi {
 		std::shared_lock	Guard(LocalMutex_);
 
 		auto Device = SerialNumbers_.find(SerialNumber);
-		if(Device==end(SerialNumbers_))
+		if(Device==end(SerialNumbers_) || Device->second.second== nullptr)
 			return;
 		Device->second.second->StopKafkaTelemetry();
 	}
@@ -205,7 +205,7 @@ namespace OpenWifi {
 		std::shared_lock	Guard(LocalMutex_);
 
 		auto Device = SerialNumbers_.find(SerialNumber);
-		if(Device==end(SerialNumbers_))
+		if(Device==end(SerialNumbers_)|| Device->second.second== nullptr)
 			return;
 		Device->second.second->GetTelemetryParameters(TelemetryRunning,
 													  TelemetryInterval,
@@ -220,7 +220,7 @@ namespace OpenWifi {
 	bool DeviceRegistry::SendRadiusAccountingData(const std::string & SerialNumber, const unsigned char * buffer, std::size_t size) {
 		std::shared_lock	Guard(LocalMutex_);
 		auto Device = 		SerialNumbers_.find(Utils::SerialNumberToInt(SerialNumber));
-		if(Device==SerialNumbers_.end())
+		if(Device==SerialNumbers_.end() || Device->second.second== nullptr)
 			return false;
 
 		try {
@@ -234,7 +234,7 @@ namespace OpenWifi {
 	bool DeviceRegistry::SendRadiusAuthenticationData(const std::string & SerialNumber, const unsigned char * buffer, std::size_t size) {
 		std::shared_lock	Guard(LocalMutex_);
 		auto Device = 		SerialNumbers_.find(Utils::SerialNumberToInt(SerialNumber));
-		if(Device==SerialNumbers_.end())
+		if(Device==SerialNumbers_.end() || Device->second.second== nullptr)
 			return false;
 
 		try {
@@ -248,7 +248,7 @@ namespace OpenWifi {
 	bool DeviceRegistry::SendRadiusCoAData(const std::string & SerialNumber, const unsigned char * buffer, std::size_t size) {
 		std::shared_lock	Guard(LocalMutex_);
 		auto Device = 		SerialNumbers_.find(Utils::SerialNumberToInt(SerialNumber));
-		if(Device==SerialNumbers_.end())
+		if(Device==SerialNumbers_.end() || Device->second.second== nullptr)
 			return false;
 
 		try {

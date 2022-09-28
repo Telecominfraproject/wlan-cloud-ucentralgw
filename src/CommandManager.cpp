@@ -23,13 +23,11 @@ namespace OpenWifi {
 		Utils::SetThreadName("cmd:mgr");
 		Running_ = true;
 
-		try {
+		Poco::AutoPtr<Poco::Notification> NextMsg(ResponseQueue_.waitDequeueNotification());
+		while (NextMsg && Running_) {
+			auto Resp = dynamic_cast<RPCResponseNotification *>(NextMsg.get());
 
-			Poco::AutoPtr<Poco::Notification> NextMsg(ResponseQueue_.waitDequeueNotification());
-
-			while (NextMsg && Running_) {
-				auto Resp = dynamic_cast<RPCResponseNotification *>(NextMsg.get());
-
+			try {
 				if (Resp != nullptr) {
 					const Poco::JSON::Object &Payload = Resp->Payload_;
 					const std::string &SerialNumber = Resp->SerialNumber_;
@@ -41,6 +39,7 @@ namespace OpenWifi {
 						poco_error(Logger(), fmt::format("({}): Invalid RPC response.", SerialNumber));
 					} else {
 						uint64_t ID = Payload.get(uCentralProtocol::ID);
+						poco_debug(Logger(),fmt::format("({}): Processing {} response.", SerialNumber, ID));
 						if (ID < 2) {
 							poco_debug(Logger(),
 								fmt::format("({}): Ignoring RPC response.", SerialNumber));
@@ -69,13 +68,14 @@ namespace OpenWifi {
 						}
 					}
 				}
-				NextMsg = ResponseQueue_.waitDequeueNotification();
+			} catch (const Poco::Exception &E) {
+				Logger().log(E);
+			} catch (...) {
+				poco_warning(Logger(),"Exception occurred during run.");
 			}
-		} catch (const Poco::Exception &E) {
-			Logger().log(E);
-		} catch (...) {
-			poco_warning(Logger(),"Exception occurred during run.");
+			NextMsg = ResponseQueue_.waitDequeueNotification();
 		}
+		poco_information(Logger(),"RPC Command processor stopping.");
    	}
 
     int CommandManager::Start() {

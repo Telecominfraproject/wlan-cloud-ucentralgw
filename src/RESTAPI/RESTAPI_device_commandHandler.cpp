@@ -41,14 +41,14 @@ namespace OpenWifi {
 			return BadRequest(RESTAPI::Errors::MissingSerialNumber);
 		}
 
-		SerialNumberInt_ = Utils::SerialNumberToInt(SerialNumber_);
-
 		GWObjects::Device	TheDevice;
 		if(!StorageService()->GetDevice(SerialNumber_,TheDevice)) {
 			return NotFound();
 		}
 
-		Poco::Thread::current()->setName(fmt::format("{}: {}",SerialNumber_,Command_));
+		SerialNumberInt_ = Utils::SerialNumberToInt(SerialNumber_);
+		Poco::Thread::current()->setName(fmt::format("{}:{}:{}", Command_, TransactionId_, SerialNumber_));
+
 		if (Command_ == RESTAPI::Protocol::CAPABILITIES){
 			return GetCapabilities();
 		} else if (Command_ == RESTAPI::Protocol::LOGS) {
@@ -72,7 +72,6 @@ namespace OpenWifi {
 		}
 	}
 
-
 	void RESTAPI_device_commandHandler::DoDelete() {
 		if(!ValidateParameters()) {
 			return BadRequest(RESTAPI::Errors::MissingOrInvalidParameters);
@@ -81,14 +80,14 @@ namespace OpenWifi {
 		if(!Utils::NormalizeMac(SerialNumber_)) {
 			return BadRequest(RESTAPI::Errors::MissingSerialNumber);
 		}
-		SerialNumberInt_ = Utils::SerialNumberToInt(SerialNumber_);
-
-		Poco::Thread::current()->setName(fmt::format("{}: {}",SerialNumber_,Command_));
 
 		GWObjects::Device	TheDevice;
 		if(!StorageService()->GetDevice(SerialNumber_,TheDevice)) {
 			return NotFound();
 		}
+
+		SerialNumberInt_ = Utils::SerialNumberToInt(SerialNumber_);
+		Poco::Thread::current()->setName(fmt::format("{}:{}:{}",Command_, TransactionId_,SerialNumber_));
 
 		if (Command_ == RESTAPI::Protocol::CAPABILITIES) {
 			return DeleteCapabilities();
@@ -162,7 +161,7 @@ namespace OpenWifi {
 
 		for(const auto &Command:PostCommands) {
 			if(Command_==Command.Command) {
-				Poco::Thread::current()->setName(Command.Command);
+				Poco::Thread::current()->setName(fmt::format("{}:{}:{}",Command.Command, TransactionId_,SerialNumber_));
 				if(Command.RequireConnection && !DeviceRegistry()->Connected(SerialNumberInt_)) {
 					CallCanceled(Command.Command, RESTAPI::Errors::DeviceNotConnected);
 					return BadRequest(RESTAPI::Errors::DeviceNotConnected);
@@ -175,7 +174,9 @@ namespace OpenWifi {
 				}
 				auto UUID = MicroService::CreateUUID();
 				auto RPC = CommandManager()->NextRPCId();
-				poco_debug(Logger_,fmt::format("Command {} TID={} can proceed. Identified as {} and RPCID as {}", Command.Command, TransactionId_, UUID, RPC ));
+				poco_debug(Logger_,fmt::format("Command {} TID={} can proceed. Identified as {} and RPCID as {}. thr_id={}",
+												Command.Command, TransactionId_, UUID, RPC,
+												Poco::Thread::current()->id()));
 				return (*this.*Command.funPtr)(UUID,RPC,Command.Timeout);
 			}
 		}
@@ -183,6 +184,9 @@ namespace OpenWifi {
 	}
 
 	void RESTAPI_device_commandHandler::GetCapabilities() {
+		Logger_.information(fmt::format("GET-CAPABILITIES: TID={} user={} serial={}. thr_id={}",
+										TransactionId_, Requester(), SerialNumber_,
+										Poco::Thread::current()->id()));
 		GWObjects::Capabilities Caps;
 		if (StorageService()->GetDeviceCapabilities(SerialNumber_, Caps)) {
 			Poco::JSON::Object RetObj;
@@ -194,7 +198,9 @@ namespace OpenWifi {
 	}
 
 	void RESTAPI_device_commandHandler::DeleteCapabilities() {
-		Logger_.information(fmt::format("DELETE-CAPABILITIES: TID={} user={} serial={}", TransactionId_, Requester(), SerialNumber_));
+		Logger_.information(fmt::format("DELETE-CAPABILITIES: TID={} user={} serial={}. thr_id={}",
+										TransactionId_, Requester(), SerialNumber_,
+										Poco::Thread::current()->id()));
 		if (StorageService()->DeleteDeviceCapabilities(SerialNumber_)) {
 			return OK();
 		}
@@ -202,7 +208,9 @@ namespace OpenWifi {
 	}
 
 	void RESTAPI_device_commandHandler::GetStatistics() {
-		Logger_.information(fmt::format("GET-STATISTICS: TID={} user={} serial={}", TransactionId_, Requester(), SerialNumber_));
+		Logger_.information(fmt::format("GET-STATISTICS: TID={} user={} serial={}. thr_id={}",
+										TransactionId_, Requester(), SerialNumber_,
+										Poco::Thread::current()->id()));
 		if (QB_.LastOnly) {
 			std::string Stats;
 			if (DeviceRegistry()->GetStatistics(SerialNumber_, Stats)) {
@@ -237,11 +245,114 @@ namespace OpenWifi {
 	}
 
 	void RESTAPI_device_commandHandler::DeleteStatistics() {
-		Logger_.information(fmt::format("DELETE-STATISTICS: TID={} user={} serial={}", TransactionId_, Requester(), SerialNumber_));
+		Logger_.information(fmt::format("DELETE-STATISTICS: TID={} user={} serial={}. thr_id={}",
+										TransactionId_, Requester(), SerialNumber_,
+										Poco::Thread::current()->id()));
 		if (StorageService()->DeleteStatisticsData(SerialNumber_, QB_.StartDate, QB_.EndDate)) {
 			return OK();
 		}
 		NotFound();
+	}
+
+	void RESTAPI_device_commandHandler::GetStatus() {
+		Logger_.information(fmt::format("GET-STATUS: TID={} user={} serial={}. thr_id={}",
+										TransactionId_, Requester(), SerialNumber_,
+										Poco::Thread::current()->id()));
+		GWObjects::ConnectionState State;
+
+		if (DeviceRegistry()->GetState(SerialNumber_, State)) {
+			Poco::JSON::Object RetObject;
+			State.to_json(RetObject);
+			return ReturnObject(RetObject);
+		} else {
+			Poco::JSON::Object RetObject;
+			RetObject.set("serialNumber", SerialNumber_);
+			RetObject.set("connected", false);
+			return ReturnObject(RetObject);
+		}
+	}
+
+	void RESTAPI_device_commandHandler::GetLogs() {
+		Logger_.information(fmt::format("GET-LOGS: TID={} user={} serial={}. thr_id={}",
+										TransactionId_, Requester(), SerialNumber_,
+										Poco::Thread::current()->id()));
+		std::vector<GWObjects::DeviceLog> Logs;
+		if (QB_.Newest) {
+			StorageService()->GetNewestLogData(SerialNumber_, QB_.Limit, Logs, QB_.LogType);
+		} else {
+			StorageService()->GetLogData(SerialNumber_, QB_.StartDate, QB_.EndDate, QB_.Offset,
+										 QB_.Limit, Logs, QB_.LogType);
+		}
+
+		Poco::JSON::Array ArrayObj;
+		for (const auto &i : Logs) {
+			Poco::JSON::Object Obj;
+			i.to_json(Obj);
+			ArrayObj.add(Obj);
+		}
+		Poco::JSON::Object RetObj;
+		RetObj.set(RESTAPI::Protocol::VALUES, ArrayObj);
+		RetObj.set(RESTAPI::Protocol::SERIALNUMBER, SerialNumber_);
+		ReturnObject(RetObj);
+	}
+
+	void RESTAPI_device_commandHandler::DeleteLogs() {
+		Logger_.information(fmt::format("DELETE-LOGS: TID={} user={} serial={}. thr_id={}",
+										TransactionId_, Requester(), SerialNumber_,
+										Poco::Thread::current()->id()));
+		if (StorageService()->DeleteLogData(SerialNumber_, QB_.StartDate, QB_.EndDate,
+											QB_.LogType)) {
+			return OK();
+		}
+		BadRequest(RESTAPI::Errors::NoRecordsDeleted);
+	}
+
+	void RESTAPI_device_commandHandler::GetChecks() {
+		Logger_.information(fmt::format("GET-HEALTHCHECKS: TID={} user={} serial={}. thr_id={}",
+										TransactionId_, Requester(), SerialNumber_,
+										Poco::Thread::current()->id()));
+
+		std::vector<GWObjects::HealthCheck> Checks;
+
+		if (QB_.LastOnly) {
+			GWObjects::HealthCheck	HC;
+			if (DeviceRegistry()->GetHealthcheck(SerialNumber_, HC)) {
+				Poco::JSON::Object	Answer;
+				HC.to_json(Answer);
+				return ReturnObject(Answer);
+			} else {
+				return NotFound();
+			}
+		} else {
+			if (QB_.Newest) {
+				StorageService()->GetNewestHealthCheckData(SerialNumber_, QB_.Limit, Checks);
+			} else {
+				StorageService()->GetHealthCheckData(SerialNumber_, QB_.StartDate, QB_.EndDate,
+													 QB_.Offset, QB_.Limit, Checks);
+			}
+
+			Poco::JSON::Array ArrayObj;
+			for (auto i : Checks) {
+				Poco::JSON::Object Obj;
+				i.to_json(Obj);
+				ArrayObj.add(Obj);
+			}
+
+			Poco::JSON::Object RetObj;
+			RetObj.set(RESTAPI::Protocol::VALUES, ArrayObj);
+			RetObj.set(RESTAPI::Protocol::SERIALNUMBER, SerialNumber_);
+			ReturnObject(RetObj);
+		}
+	}
+
+	void RESTAPI_device_commandHandler::DeleteChecks() {
+		Logger_.information(fmt::format("DELETE-HEALTHCHECKS: TID={} user={} serial={}. thr_id={}",
+										TransactionId_, Requester(), SerialNumber_,
+										Poco::Thread::current()->id()));
+		if (StorageService()->DeleteHealthCheckData(SerialNumber_, QB_.StartDate, QB_.EndDate)) {
+			return OK();
+		}
+		BadRequest(RESTAPI::Errors::NoRecordsDeleted);
 	}
 
 	void RESTAPI_device_commandHandler::Ping(const std::string &CMD_UUID, uint64_t CMD_RPC, std::chrono::milliseconds timeout) {
@@ -257,7 +368,7 @@ namespace OpenWifi {
 			GWObjects::CommandDetails Cmd;
 			Cmd.SerialNumber = SerialNumber_;
 			Cmd.UUID = CMD_UUID;
-			Cmd.SubmittedBy = UserInfo_.webtoken.username_;
+			Cmd.SubmittedBy = Requester();
 			Cmd.Command = uCentralProtocol::PING;
 			Cmd.RunAt = 0;
 
@@ -333,7 +444,7 @@ namespace OpenWifi {
 		GWObjects::CommandDetails Cmd;
 		Cmd.SerialNumber = SerialNumber_;
 		Cmd.UUID = CMD_UUID;
-		Cmd.SubmittedBy = UserInfo_.webtoken.username_;
+		Cmd.SubmittedBy = Requester();
 		Cmd.Command = uCentralProtocol::SCRIPT;
 		Cmd.RunAt = 0;
 
@@ -349,22 +460,6 @@ namespace OpenWifi {
 		Cmd.Details = ParamStream.str();
 
 		return RESTAPI_RPC::WaitForCommand(CMD_RPC,false,Cmd, Params, *Request, *Response, timeout, nullptr, this, Logger_);
-	}
-
-	void RESTAPI_device_commandHandler::GetStatus() {
-		Logger_.information(fmt::format("GET-STATUS: TID={} user={} serial={}", TransactionId_, Requester(), SerialNumber_));
-		GWObjects::ConnectionState State;
-
-		if (DeviceRegistry()->GetState(SerialNumber_, State)) {
-			Poco::JSON::Object RetObject;
-			State.to_json(RetObject);
-			return ReturnObject(RetObject);
-		} else {
-			Poco::JSON::Object RetObject;
-			RetObject.set("serialNumber", SerialNumber_);
-			RetObject.set("connected", false);
-			return ReturnObject(RetObject);
-		}
 	}
 
 	void RESTAPI_device_commandHandler::Configure(const std::string &CMD_UUID, uint64_t CMD_RPC, std::chrono::milliseconds timeout) {
@@ -396,7 +491,7 @@ namespace OpenWifi {
 
 				Cmd.SerialNumber = SerialNumber_;
 				Cmd.UUID = CMD_UUID;
-				Cmd.SubmittedBy = UserInfo_.webtoken.username_;
+				Cmd.SubmittedBy = Requester();
 				Cmd.Command = uCentralProtocol::CONFIGURE;
 				Cmd.RunAt = When;
 
@@ -442,7 +537,7 @@ namespace OpenWifi {
 
 			Cmd.SerialNumber = SerialNumber_;
 			Cmd.UUID = CMD_UUID;
-			Cmd.SubmittedBy = UserInfo_.webtoken.username_;
+			Cmd.SubmittedBy = Requester();
 			Cmd.Command = uCentralProtocol::UPGRADE;
 			Cmd.RunAt = When;
 
@@ -462,80 +557,6 @@ namespace OpenWifi {
 		BadRequest(RESTAPI::Errors::MissingOrInvalidParameters);
 	}
 
-	void RESTAPI_device_commandHandler::GetLogs() {
-		Logger_.information(fmt::format("GET-LOGS: TID={} user={} serial={}", TransactionId_, Requester(), SerialNumber_));
-		std::vector<GWObjects::DeviceLog> Logs;
-		if (QB_.Newest) {
-			StorageService()->GetNewestLogData(SerialNumber_, QB_.Limit, Logs, QB_.LogType);
-		} else {
-			StorageService()->GetLogData(SerialNumber_, QB_.StartDate, QB_.EndDate, QB_.Offset,
-										  QB_.Limit, Logs, QB_.LogType);
-		}
-
-		Poco::JSON::Array ArrayObj;
-		for (const auto &i : Logs) {
-			Poco::JSON::Object Obj;
-			i.to_json(Obj);
-			ArrayObj.add(Obj);
-		}
-		Poco::JSON::Object RetObj;
-		RetObj.set(RESTAPI::Protocol::VALUES, ArrayObj);
-		RetObj.set(RESTAPI::Protocol::SERIALNUMBER, SerialNumber_);
-		ReturnObject(RetObj);
-	}
-
-	void RESTAPI_device_commandHandler::DeleteLogs() {
-		Logger_.information(fmt::format("DELETE-LOGS: TID={} user={} serial={}", TransactionId_, Requester(), SerialNumber_));
-		if (StorageService()->DeleteLogData(SerialNumber_, QB_.StartDate, QB_.EndDate,
-											 QB_.LogType)) {
-			return OK();
-		}
-		BadRequest(RESTAPI::Errors::NoRecordsDeleted);
-	}
-
-	void RESTAPI_device_commandHandler::GetChecks() {
-		Logger_.information(fmt::format("GET-HEALTHCHECKS: TID={} user={} serial={}", TransactionId_, Requester(), SerialNumber_));
-
-		std::vector<GWObjects::HealthCheck> Checks;
-
-		if (QB_.LastOnly) {
-			GWObjects::HealthCheck	HC;
-			if (DeviceRegistry()->GetHealthcheck(SerialNumber_, HC)) {
-				Poco::JSON::Object	Answer;
-				HC.to_json(Answer);
-				return ReturnObject(Answer);
-			} else {
-				return NotFound();
-			}
-		} else {
-			if (QB_.Newest) {
-				StorageService()->GetNewestHealthCheckData(SerialNumber_, QB_.Limit, Checks);
-			} else {
-				StorageService()->GetHealthCheckData(SerialNumber_, QB_.StartDate, QB_.EndDate,
-													  QB_.Offset, QB_.Limit, Checks);
-			}
-
-			Poco::JSON::Array ArrayObj;
-			for (auto i : Checks) {
-				Poco::JSON::Object Obj;
-				i.to_json(Obj);
-				ArrayObj.add(Obj);
-			}
-
-			Poco::JSON::Object RetObj;
-			RetObj.set(RESTAPI::Protocol::VALUES, ArrayObj);
-			RetObj.set(RESTAPI::Protocol::SERIALNUMBER, SerialNumber_);
-			ReturnObject(RetObj);
-		}
-	}
-
-	void RESTAPI_device_commandHandler::DeleteChecks() {
-		Logger_.information(fmt::format("DELETE-HEALTHCHECKS: TID={} user={} serial={}", TransactionId_, Requester(), SerialNumber_));
-		if (StorageService()->DeleteHealthCheckData(SerialNumber_, QB_.StartDate, QB_.EndDate)) {
-			return OK();
-		}
-		BadRequest(RESTAPI::Errors::NoRecordsDeleted);
-	}
 
 	void RESTAPI_device_commandHandler::ExecuteCommand(const std::string &CMD_UUID, uint64_t CMD_RPC, std::chrono::milliseconds timeout) {
 		Logger_.information(fmt::format("EXECUTE({},{}): TID={} user={} serial={}", CMD_UUID, CMD_RPC, TransactionId_, Requester(), SerialNumber_));
@@ -559,7 +580,7 @@ namespace OpenWifi {
 
 			Cmd.SerialNumber = SerialNumber_;
 			Cmd.UUID = CMD_UUID;
-			Cmd.SubmittedBy = UserInfo_.webtoken.username_;
+			Cmd.SubmittedBy = Requester();
 			Cmd.Command = Command;
 			Cmd.Custom = 1;
 			Cmd.RunAt = When;
@@ -601,7 +622,7 @@ namespace OpenWifi {
 			GWObjects::CommandDetails Cmd;
 			Cmd.SerialNumber = SerialNumber_;
 			Cmd.UUID = CMD_UUID;
-			Cmd.SubmittedBy = UserInfo_.webtoken.username_;
+			Cmd.SubmittedBy = Requester();
 			Cmd.Command = uCentralProtocol::REBOOT;
 			Cmd.RunAt = When;
 
@@ -640,7 +661,7 @@ namespace OpenWifi {
 
 			Cmd.SerialNumber = SerialNumber_;
 			Cmd.UUID = CMD_UUID;
-			Cmd.SubmittedBy = UserInfo_.webtoken.username_;
+			Cmd.SubmittedBy = Requester();
 			Cmd.Command = uCentralProtocol::FACTORY;
 			Cmd.RunAt = When;
 
@@ -688,7 +709,7 @@ namespace OpenWifi {
 
 			Cmd.SerialNumber = SerialNumber_;
 			Cmd.UUID = CMD_UUID;
-			Cmd.SubmittedBy = UserInfo_.webtoken.username_;
+			Cmd.SubmittedBy = Requester();
 			Cmd.Command = uCentralProtocol::LEDS;
 			Cmd.RunAt = When;
 			Poco::JSON::Object Params;
@@ -729,7 +750,7 @@ namespace OpenWifi {
 			GWObjects::CommandDetails Cmd;
 			Cmd.SerialNumber = SerialNumber_;
 			Cmd.UUID = CMD_UUID;
-			Cmd.SubmittedBy = UserInfo_.webtoken.username_;
+			Cmd.SubmittedBy = Requester();
 			Cmd.Command = uCentralProtocol::TRACE;
 			Cmd.RunAt = 0;
 			Cmd.WaitingForFile = 1;
@@ -783,7 +804,7 @@ namespace OpenWifi {
 
 		Cmd.SerialNumber = SerialNumber_;
 		Cmd.UUID = CMD_UUID;
-		Cmd.SubmittedBy = UserInfo_.webtoken.username_;
+		Cmd.SubmittedBy = Requester();
 		Cmd.Command = uCentralProtocol::WIFISCAN;
 
 		Poco::JSON::Object Params;
@@ -823,7 +844,7 @@ namespace OpenWifi {
 
 			Cmd.SerialNumber = SerialNumber_;
 			Cmd.UUID = CMD_UUID;
-			Cmd.SubmittedBy = UserInfo_.webtoken.username_;
+			Cmd.SubmittedBy = Requester();
 			Cmd.Command = uCentralProtocol::EVENT;
 
 			Poco::JSON::Object Params;
@@ -865,7 +886,7 @@ namespace OpenWifi {
 			GWObjects::CommandDetails Cmd;
 
 			Cmd.SerialNumber = SerialNumber_;
-			Cmd.SubmittedBy = UserInfo_.webtoken.username_;
+			Cmd.SubmittedBy = Requester();
 			Cmd.UUID = CMD_UUID;
 			Cmd.Command = uCentralProtocol::REQUEST;
 			Cmd.RunAt = When;
@@ -929,7 +950,7 @@ namespace OpenWifi {
 				//	let's create the command for this request
 				GWObjects::CommandDetails Cmd;
 				Cmd.SerialNumber = SerialNumber_;
-				Cmd.SubmittedBy = UserInfo_.webtoken.username_;
+				Cmd.SubmittedBy = Requester();
 				Cmd.UUID = CMD_UUID;
 				Cmd.Command = uCentralProtocol::RTTY;
 

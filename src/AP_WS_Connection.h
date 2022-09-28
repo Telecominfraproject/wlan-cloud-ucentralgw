@@ -86,6 +86,7 @@ namespace OpenWifi {
 
 	  private:
 		std::recursive_mutex                Mutex_;
+		std::shared_mutex					TelemetryMutex_;
 		Poco::Logger                    	&Logger_;
 		Poco::Net::SocketReactor			&Reactor_;
 		std::unique_ptr<Poco::Net::WebSocket> WS_;
