@@ -66,6 +66,9 @@ namespace OpenWifi {
 			}
 			auto UUID = MicroService::CreateUUID();
 			auto RPC = CommandManager()->NextRPCId();
+			poco_debug(Logger_,fmt::format("Command rtty TID={} can proceed. Identified as {} and RPCID as {}. thr_id={}",
+											TransactionId_, UUID, RPC,
+											Poco::Thread::current()->id()));
 			return Rtty(UUID,RPC,60000ms);
 		} else {
 			return BadRequest(RESTAPI::Errors::InvalidCommand);
