@@ -45,7 +45,7 @@ R"lit(
           "bss-mode": "ap",
           "encryption": {
             "ieee80211w": "optional",
-            "key": "OpenWifi1",
+            "key": "OpenWifi",
             "proto": "psk2"
           },
           "name": "OpenWifi",
