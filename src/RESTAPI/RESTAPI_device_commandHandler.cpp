@@ -1025,16 +1025,16 @@ namespace OpenWifi {
 			if(!StatusOnly) {
 				if (KafkaOnly) {
 					if (Interval) {
-						DeviceRegistry()->SetKafkaTelemetryReporting(IntSerialNumber, Interval, Lifetime);
+						DeviceRegistry()->SetKafkaTelemetryReporting(CMD_RPC,IntSerialNumber, Interval, Lifetime);
 						Answer.set("action", "Kafka telemetry started.");
 						Answer.set("uuid", CMD_UUID);
 					} else {
-						DeviceRegistry()->StopKafkaTelemetry(IntSerialNumber);
+						DeviceRegistry()->StopKafkaTelemetry(CMD_RPC,IntSerialNumber);
 						Answer.set("action", "Kafka telemetry stopped.");
 					}
 				} else {
 					if (Interval) {
-						DeviceRegistry()->SetWebSocketTelemetryReporting(IntSerialNumber, Interval,
+						DeviceRegistry()->SetWebSocketTelemetryReporting(CMD_RPC,IntSerialNumber, Interval,
 																				  Lifetime);
 						std::string EndPoint;
 						if (TelemetryStream()->CreateEndpoint(Utils::SerialNumberToInt(SerialNumber_), EndPoint, CMD_UUID)) {
@@ -1047,7 +1047,7 @@ namespace OpenWifi {
 						}
 					} else {
 						Answer.set("action", "WebSocket telemetry stopped.");
-						DeviceRegistry()->StopWebSocketTelemetry(IntSerialNumber);
+						DeviceRegistry()->StopWebSocketTelemetry(CMD_RPC,IntSerialNumber);
 					}
 				}
 			} else {

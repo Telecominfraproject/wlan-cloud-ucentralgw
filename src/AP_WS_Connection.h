@@ -47,10 +47,10 @@ namespace OpenWifi {
 		static bool ExtractBase64CompressedData(const std::string & CompressedData, std::string & UnCompressedData, uint64_t compress_sz);
 		void LogException(const Poco::Exception &E);
 		inline Poco::Logger & Logger() { return Logger_; }
-		bool SetWebSocketTelemetryReporting(uint64_t interval, uint64_t TelemetryWebSocketTimer);
-		bool SetKafkaTelemetryReporting(uint64_t interval, uint64_t TelemetryKafkaTimer);
-		bool StopWebSocketTelemetry();
-		bool StopKafkaTelemetry();
+		bool SetWebSocketTelemetryReporting(std::uint64_t RPCID, uint64_t interval, uint64_t TelemetryWebSocketTimer);
+		bool SetKafkaTelemetryReporting(std::uint64_t RPCID, uint64_t interval, uint64_t TelemetryKafkaTimer);
+		bool StopWebSocketTelemetry(std::uint64_t RPCID);
+		bool StopKafkaTelemetry(std::uint64_t RPCID);
 
 		void Process_connect(Poco::JSON::Object::Ptr ParamsObj, const std::string &Serial);
 		void Process_state(Poco::JSON::Object::Ptr ParamsObj);
@@ -118,8 +118,8 @@ namespace OpenWifi {
 		static inline std::atomic_uint64_t 	ConcurrentStartingDevices_=0;
 
 		void CompleteStartup();
-		bool StartTelemetry();
-		bool StopTelemetry();
+		bool StartTelemetry(std::uint64_t RPCID);
+		bool StopTelemetry(std::uint64_t RPCID);
 		void UpdateCounts();
 	};
 

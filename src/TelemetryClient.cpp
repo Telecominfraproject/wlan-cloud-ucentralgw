@@ -7,6 +7,7 @@
 #include "DeviceRegistry.h"
 #include "TelemetryClient.h"
 #include "TelemetryStream.h"
+#include "CommandManager.h"
 
 #include "Poco/Net/SSLException.h"
 
@@ -93,7 +94,7 @@ namespace OpenWifi {
 
 	void TelemetryClient::SendTelemetryShutdown() {
 		poco_information(Logger(),fmt::format("TELEMETRY-SHUTDOWN({}): Closing.",CId_));
-		DeviceRegistry()->StopWebSocketTelemetry(SerialNumber_);
+		DeviceRegistry()->StopWebSocketTelemetry(CommandManager()->NextRPCId(), SerialNumber_);
 		TelemetryStream()->DeRegisterClient(UUID_);
 		delete this;
 	}

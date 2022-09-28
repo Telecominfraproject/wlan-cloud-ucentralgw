@@ -40,17 +40,14 @@ namespace OpenWifi {
 					} else {
 						uint64_t ID = Payload.get(uCentralProtocol::ID);
 						poco_debug(Logger(),fmt::format("({}): Processing {} response.", SerialNumber, ID));
-						if (ID < 2) {
-							poco_debug(Logger(),
-								fmt::format("({}): Ignoring RPC response.", SerialNumber));
-						} else {
+						if (ID > 1) {
 							std::unique_lock Lock(LocalMutex_);
 							auto RPC = OutStandingRequests_.find(ID);
 							if (RPC == OutStandingRequests_.end() ||
 								RPC->second.SerialNumber !=
 									Utils::SerialNumberToInt(Resp->SerialNumber_)) {
 								poco_debug(Logger(),
-									fmt::format("({}): Outdated RPC {}", SerialNumber, ID));
+									fmt::format("({}): RPC {} completed.", SerialNumber, ID));
 							} else {
 								std::chrono::duration<double, std::milli> rpc_execution_time =
 									std::chrono::high_resolution_clock::now() -

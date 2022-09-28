@@ -4,6 +4,7 @@
 
 #include "AP_WS_Connection.h"
 #include "TelemetryStream.h"
+#include "CommandManager.h"
 
 namespace OpenWifi {
 	void AP_WS_Connection::Process_telemetry(Poco::JSON::Object::Ptr ParamsObj) {
@@ -27,7 +28,7 @@ namespace OpenWifi {
 						State_.websocketPackets = TelemetryWebSocketPackets_;
 						TelemetryStream()->UpdateEndPoint(SerialNumberInt_, SS.str());
 					} else {
-						StopWebSocketTelemetry();
+						StopWebSocketTelemetry(CommandManager()->NextRPCId());
 					}
 				}
 				if (TelemetryKafkaRefCount_) {
@@ -38,7 +39,7 @@ namespace OpenWifi {
 						KafkaManager()->PostMessage(KafkaTopics::DEVICE_TELEMETRY, SerialNumber_,
 													SS.str());
 					} else {
-						StopKafkaTelemetry();
+						StopKafkaTelemetry(CommandManager()->NextRPCId());
 					}
 				}
 			} else {
@@ -47,7 +48,7 @@ namespace OpenWifi {
 		} else {
 			// if we are ignoring telemetry, then close it down on the device.
 			poco_debug(Logger_,fmt::format("TELEMETRY({}): Stopping runaway telemetry.",SerialNumber_));
-			StopTelemetry();
+			StopTelemetry(CommandManager()->NextRPCId());
 		}
 	}
 }

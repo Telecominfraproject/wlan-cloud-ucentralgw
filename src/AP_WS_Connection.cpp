@@ -549,7 +549,7 @@ namespace OpenWifi {
 		}
 	}
 
-	bool AP_WS_Connection::StartTelemetry() {
+	bool AP_WS_Connection::StartTelemetry(std::uint64_t RPCID) {
 		poco_information(Logger_, fmt::format("TELEMETRY({}): Starting.", CId_));
 		Poco::JSON::Object StartMessage;
 		StartMessage.set("jsonrpc", "2.0");
@@ -562,16 +562,15 @@ namespace OpenWifi {
 		Types.add("dhcp-snooping");
 		Types.add("state");
 		Params.set(RESTAPI::Protocol::TYPES, Types);
-		StartMessage.set("id", 1);
+		StartMessage.set("id", RPCID);
 		StartMessage.set("params", Params);
 		Poco::JSON::Stringifier Stringify;
 		std::ostringstream OS;
 		Stringify.condense(StartMessage, OS);
-		Send(OS.str());
-		return true;
+		return Send(OS.str());
 	}
 
-	bool AP_WS_Connection::StopTelemetry() {
+	bool AP_WS_Connection::StopTelemetry(std::uint64_t RPCID) {
 		poco_information(Logger_, fmt::format("TELEMETRY({}): Stopping.", CId_));
 		Poco::JSON::Object StopMessage;
 		StopMessage.set("jsonrpc", "2.0");
@@ -579,15 +578,14 @@ namespace OpenWifi {
 		Poco::JSON::Object Params;
 		Params.set("serial", SerialNumber_);
 		Params.set("interval", 0);
-		StopMessage.set("id", 1);
+		StopMessage.set("id", RPCID);
 		StopMessage.set("params", Params);
 		Poco::JSON::Stringifier Stringify;
 		std::ostringstream OS;
 		Stringify.condense(StopMessage, OS);
-		Send(OS.str());
 		TelemetryKafkaPackets_ = TelemetryWebSocketPackets_ = TelemetryInterval_ =
 			TelemetryKafkaTimer_ = TelemetryWebSocketTimer_ = 0;
-		return true;
+		return Send(OS.str());
 	}
 
 	void AP_WS_Connection::UpdateCounts() {
@@ -595,7 +593,7 @@ namespace OpenWifi {
 		State_.webSocketClients = TelemetryWebSocketRefCount_;
 	}
 
-	bool AP_WS_Connection::SetWebSocketTelemetryReporting(uint64_t Interval,
+	bool AP_WS_Connection::SetWebSocketTelemetryReporting(std::uint64_t RPCID, uint64_t Interval,
 													  uint64_t LifeTime) {
 		std::unique_lock Lock(TelemetryMutex_);
 		TelemetryWebSocketRefCount_++;
@@ -605,12 +603,12 @@ namespace OpenWifi {
 		UpdateCounts();
 		if (!TelemetryReporting_) {
 			TelemetryReporting_ = true;
-			return StartTelemetry();
+			return StartTelemetry(RPCID);
 		}
 		return true;
 	}
 
-	bool AP_WS_Connection::SetKafkaTelemetryReporting(uint64_t Interval, uint64_t LifeTime) {
+	bool AP_WS_Connection::SetKafkaTelemetryReporting(std::uint64_t RPCID, uint64_t Interval, uint64_t LifeTime) {
 		std::unique_lock Lock(TelemetryMutex_);
 		TelemetryKafkaRefCount_++;
 		TelemetryInterval_ = TelemetryInterval_ ? std::min(Interval, TelemetryInterval_) : Interval;
@@ -619,31 +617,31 @@ namespace OpenWifi {
 		UpdateCounts();
 		if (!TelemetryReporting_) {
 			TelemetryReporting_ = true;
-			return StartTelemetry();
+			return StartTelemetry(RPCID);
 		}
 		return true;
 	}
 
-	bool AP_WS_Connection::StopWebSocketTelemetry() {
+	bool AP_WS_Connection::StopWebSocketTelemetry(std::uint64_t RPCID) {
 		std::unique_lock Lock(TelemetryMutex_);
 		if (TelemetryWebSocketRefCount_)
 			TelemetryWebSocketRefCount_--;
 		UpdateCounts();
 		if (TelemetryWebSocketRefCount_ == 0 && TelemetryKafkaRefCount_ == 0) {
 			TelemetryReporting_ = false;
-			StopTelemetry();
+			StopTelemetry(RPCID);
 		}
 		return true;
 	}
 
-	bool AP_WS_Connection::StopKafkaTelemetry() {
+	bool AP_WS_Connection::StopKafkaTelemetry(std::uint64_t RPCID) {
 		std::unique_lock Lock(TelemetryMutex_);
 		if (TelemetryKafkaRefCount_)
 			TelemetryKafkaRefCount_--;
 		UpdateCounts();
 		if (TelemetryWebSocketRefCount_ == 0 && TelemetryKafkaRefCount_ == 0) {
 			TelemetryReporting_ = false;
-			StopTelemetry();
+			StopTelemetry(RPCID);
 		}
 		return true;
 	}
