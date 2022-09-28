@@ -13,7 +13,7 @@
 namespace OpenWifi {
 	void RESTAPI_commands::DoGet() {
 		auto SerialNumber = GetParameter(RESTAPI::Protocol::SERIALNUMBER, "");
-		if(!Utils::ValidSerialNumber(SerialNumber)) {
+		if(!Utils::NormalizeMac(SerialNumber)) {
 			return BadRequest(RESTAPI::Errors::MissingSerialNumber);
 		}
 
@@ -37,7 +37,7 @@ namespace OpenWifi {
 
 	void RESTAPI_commands::DoDelete() {
 		auto SerialNumber = GetParameter(RESTAPI::Protocol::SERIALNUMBER, "");
-		if(!Utils::ValidSerialNumber(SerialNumber)) {
+		if(!Utils::NormalizeMac(SerialNumber)) {
 			return BadRequest(RESTAPI::Errors::MissingSerialNumber);
 		}
 

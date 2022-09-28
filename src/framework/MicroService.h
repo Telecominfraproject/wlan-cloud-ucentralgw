@@ -667,6 +667,19 @@ namespace OpenWifi::RESTAPI_utils {
 
 namespace OpenWifi::Utils {
 
+	inline bool NormalizeMac(std::string & Mac) {
+		Poco::replaceInPlace(Mac,":","");
+		Poco::replaceInPlace(Mac,"-","");
+		if(Mac.size()!=12)
+			return false;
+		for(const auto &i:Mac) {
+			if(!std::isxdigit(i))
+				return false;
+		}
+		Poco::toLowerInPlace(Mac);
+		return true;
+	}
+
 	inline void SetThreadName(const char *name) {
 #ifdef __linux__
 		Poco::Thread::current()->setName(name);
