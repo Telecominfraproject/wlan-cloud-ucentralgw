@@ -37,7 +37,7 @@ namespace OpenWifi {
 			return BadRequest(RESTAPI::Errors::MissingOrInvalidParameters);
 		}
 
-		if(!Utils::ValidSerialNumber(SerialNumber_)) {
+		if(!Utils::NormalizeMac(SerialNumber_)) {
 			return BadRequest(RESTAPI::Errors::MissingSerialNumber);
 		}
 
@@ -78,7 +78,7 @@ namespace OpenWifi {
 			return BadRequest(RESTAPI::Errors::MissingOrInvalidParameters);
 		}
 
-		if(!Utils::ValidSerialNumber(SerialNumber_)) {
+		if(!Utils::NormalizeMac(SerialNumber_)) {
 			return BadRequest(RESTAPI::Errors::MissingSerialNumber);
 		}
 		SerialNumberInt_ = Utils::SerialNumberToInt(SerialNumber_);
@@ -134,7 +134,7 @@ namespace OpenWifi {
 		if(!ValidateParameters()) {
 			return BadRequest(RESTAPI::Errors::MissingOrInvalidParameters);
 		}
-		if(!Utils::ValidSerialNumber(SerialNumber_)) {
+		if(!Utils::NormalizeMac(SerialNumber_)) {
 			return BadRequest(RESTAPI::Errors::MissingSerialNumber);
 		}
 		SerialNumberInt_ = Utils::SerialNumberToInt(SerialNumber_);

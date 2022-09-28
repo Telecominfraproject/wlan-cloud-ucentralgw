@@ -199,7 +199,8 @@ ldevs() {
 deletedevice() {
 	curl  ${FLAGS} -X DELETE "https://${OWGW}/api/v1/device/$1" \
         -H "Accept: application/json" \
-        -H "Authorization: Bearer ${token}"
+        -H "Authorization: Bearer ${token}" > ${result_file}
+	jq < ${result_file}
 }
 
 deleteoui() {
@@ -667,7 +668,7 @@ telemetry_to_kafka() {
 
 runscript() {
 	payload="$(printf '{ "serialNumber": "%s", "type": "%s" , "kafka": true, "timeout": 30, "scriptId": "cli-manual", "script" : "%s" }' "$1" "$2" "$3" )"
-				  curl  ${FLAGS} -X POST "https://${OWGW}/api/v1/device/$1/telemetry" \
+				  curl  ${FLAGS} -X POST "https://${OWGW}/api/v1/device/$1/script" \
 				  -H "Content-Type: application/json" \
 				  -H "Accept: application/json" \
 				  -H "Authorization: Bearer ${token}" \

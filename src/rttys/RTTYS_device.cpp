@@ -70,6 +70,7 @@ namespace OpenWifi {
 				socket_,
 				Poco::NObserver<RTTYS_Device_ConnectionHandler, Poco::Net::ShutdownNotification>(
 					*this, &RTTYS_Device_ConnectionHandler::onSocketShutdown));
+			registered_=true;
 		} catch (...) {
 			poco_warning(Logger(), "Device caused exception while completing connection.");
 			std::unique_lock G(M_);
@@ -81,19 +82,29 @@ namespace OpenWifi {
 		poco_information(Logger_,
 			fmt::format("Device {} session ending", id_)
 		);
-		reactor_.removeEventHandler(
-			socket_,
-			Poco::NObserver<RTTYS_Device_ConnectionHandler, Poco::Net::ReadableNotification>(
-				*this, &RTTYS_Device_ConnectionHandler::onSocketReadable));
-		reactor_.removeEventHandler(
-			socket_,
-			Poco::NObserver<RTTYS_Device_ConnectionHandler, Poco::Net::ShutdownNotification>(
-				*this, &RTTYS_Device_ConnectionHandler::onSocketShutdown));
+		DeRegister();
+	}
+
+	void RTTYS_Device_ConnectionHandler::DeRegister() {
+		if(registered_) {
+			registered_ = false;
+			reactor_.removeEventHandler(
+				socket_,
+				Poco::NObserver<RTTYS_Device_ConnectionHandler, Poco::Net::ReadableNotification>(
+					*this, &RTTYS_Device_ConnectionHandler::onSocketReadable));
+			reactor_.removeEventHandler(
+				socket_,
+				Poco::NObserver<RTTYS_Device_ConnectionHandler, Poco::Net::ShutdownNotification>(
+					*this, &RTTYS_Device_ConnectionHandler::onSocketShutdown));
+		}
 	}
 
 	void RTTYS_Device_ConnectionHandler::EndConnection() {
-		valid_ = false;
-		RTTYS_server()->NotifyDeviceDisconnect(id_, this);
+		if(valid_) {
+			valid_ = false;
+			DeRegister();
+			RTTYS_server()->NotifyDeviceDisconnect(id_, this);
+		}
 	}
 
 	[[maybe_unused]] static void dump(unsigned char *p,uint l) {
