@@ -324,7 +324,6 @@ namespace OpenWifi {
 	}
 
 	AP_WS_Connection::~AP_WS_Connection() {
-		std::cout << "Garbage collection Session: " << State_.sessionId << std::endl;
 		if(!Dead_)
 			EndConnection();
 	}
