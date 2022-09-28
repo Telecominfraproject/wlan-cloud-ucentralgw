@@ -23,13 +23,11 @@ namespace OpenWifi {
 		Utils::SetThreadName("cmd:mgr");
 		Running_ = true;
 
-		try {
+		Poco::AutoPtr<Poco::Notification> NextMsg(ResponseQueue_.waitDequeueNotification());
+		while (NextMsg && Running_) {
+			auto Resp = dynamic_cast<RPCResponseNotification *>(NextMsg.get());
 
-			Poco::AutoPtr<Poco::Notification> NextMsg(ResponseQueue_.waitDequeueNotification());
-
-			while (NextMsg && Running_) {
-				auto Resp = dynamic_cast<RPCResponseNotification *>(NextMsg.get());
-
+			try {
 				if (Resp != nullptr) {
 					const Poco::JSON::Object &Payload = Resp->Payload_;
 					const std::string &SerialNumber = Resp->SerialNumber_;
@@ -41,17 +39,15 @@ namespace OpenWifi {
 						poco_error(Logger(), fmt::format("({}): Invalid RPC response.", SerialNumber));
 					} else {
 						uint64_t ID = Payload.get(uCentralProtocol::ID);
-						if (ID < 2) {
-							poco_debug(Logger(),
-								fmt::format("({}): Ignoring RPC response.", SerialNumber));
-						} else {
+						poco_debug(Logger(),fmt::format("({}): Processing {} response.", SerialNumber, ID));
+						if (ID > 1) {
 							std::unique_lock Lock(LocalMutex_);
 							auto RPC = OutStandingRequests_.find(ID);
 							if (RPC == OutStandingRequests_.end() ||
 								RPC->second.SerialNumber !=
 									Utils::SerialNumberToInt(Resp->SerialNumber_)) {
 								poco_debug(Logger(),
-									fmt::format("({}): Outdated RPC {}", SerialNumber, ID));
+									fmt::format("({}): RPC {} completed.", SerialNumber, ID));
 							} else {
 								std::chrono::duration<double, std::milli> rpc_execution_time =
 									std::chrono::high_resolution_clock::now() -
@@ -69,13 +65,14 @@ namespace OpenWifi {
 						}
 					}
 				}
-				NextMsg = ResponseQueue_.waitDequeueNotification();
+			} catch (const Poco::Exception &E) {
+				Logger().log(E);
+			} catch (...) {
+				poco_warning(Logger(),"Exception occurred during run.");
 			}
-		} catch (const Poco::Exception &E) {
-			Logger().log(E);
-		} catch (...) {
-			poco_warning(Logger(),"Exception occurred during run.");
+			NextMsg = ResponseQueue_.waitDequeueNotification();
 		}
+		poco_information(Logger(),"RPC Command processor stopping.");
    	}
 
     int CommandManager::Start() {
