@@ -10,7 +10,7 @@ RUN apk add --update --no-cache \
     make cmake g++ git \
     unixodbc-dev postgresql-dev mariadb-dev \
     librdkafka-dev boost-dev openssl-dev \
-    zlib-dev nlohmann-json
+    zlib-dev nlohmann-json ca-certificates
 
 FROM build-base AS poco-build
 

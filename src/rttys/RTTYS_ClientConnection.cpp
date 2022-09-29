@@ -23,13 +23,13 @@ namespace OpenWifi {
 			WS_->setBlocking(false);
 			WS_->setNoDelay(true);
 			WS_->setKeepAlive(true);
+			Registered_ = true;
 			Reactor_.addEventHandler(
 				*WS_, Poco::NObserver<RTTYS_ClientConnection, Poco::Net::ReadableNotification>(
 						  *this, &RTTYS_ClientConnection::onSocketReadable));
 			Reactor_.addEventHandler(
 				*WS_, Poco::NObserver<RTTYS_ClientConnection, Poco::Net::ShutdownNotification>(
 						  *this, &RTTYS_ClientConnection::onSocketShutdown));
-			Registered_ = true;
 			Logger_.information("Starting connection");
 		}
 
@@ -41,6 +41,7 @@ namespace OpenWifi {
 	}
 
 	void RTTYS_ClientConnection::DeRegister() {
+		Valid_ = false;
 		if(Registered_) {
 			Registered_ = false;
 			Reactor_.removeEventHandler(
@@ -61,6 +62,8 @@ namespace OpenWifi {
 		bool MustDisconnect = false;
 
 		{
+			if(!Valid_ || !Registered_)
+				return;
 			std::shared_lock G(Mutex_);
 			try {
 				int flags;
@@ -135,7 +138,7 @@ namespace OpenWifi {
 	}
 
 	void RTTYS_ClientConnection::SendData( const u_char *Buf, size_t len ) {
-		if(!Valid_)
+		if(!Valid_ || !Registered_)
 			return;
 		try {
 			WS_->sendFrame(Buf, len,
@@ -149,7 +152,7 @@ namespace OpenWifi {
 	}
 
 	void RTTYS_ClientConnection::SendData( const std::string &s) {
-		if(!Valid_)
+		if(!Valid_ || !Registered_)
 			return;
 		try {
 			WS_->sendFrame(s.c_str(), s.length());

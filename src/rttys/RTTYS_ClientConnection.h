@@ -38,9 +38,9 @@ namespace OpenWifi {
 		std::unique_ptr<Poco::Net::WebSocket>	WS_;
 		Poco::Logger 							&Logger_;
 		std::string 							Sid_;
-		std::atomic_bool						Valid_=false;
 		std::shared_mutex						Mutex_;
-		std::atomic_bool 						Registered_=false;
+		volatile bool							Valid_=false;
+		volatile bool 							Registered_=false;
 
 		void EndConnection();
 

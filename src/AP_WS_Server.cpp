@@ -90,10 +90,11 @@ namespace OpenWifi {
 			Context->usePrivateKey(Key);
 
 			Context->setSessionCacheSize(0);
-			Context->setSessionTimeout(60);
-			Context->enableSessionCache(false);
+			Context->setSessionTimeout(120);
+			Context->flushSessionCache();
+			Context->enableSessionCache(true);
 			Context->enableExtendedCertificateVerification(false);
-			Context->disableStatelessSessionResumption();
+			// Context->disableStatelessSessionResumption();
 			Context->disableProtocols(Poco::Net::Context::PROTO_TLSV1 | Poco::Net::Context::PROTO_TLSV1_1);
 
 			auto WebServerHttpParams = new Poco::Net::HTTPServerParams;

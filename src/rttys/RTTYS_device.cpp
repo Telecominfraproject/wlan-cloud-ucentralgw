@@ -62,6 +62,7 @@ namespace OpenWifi {
 			socket_.setKeepAlive(true);
 			socket_.setNoDelay(true);
 
+			registered_=true;
 			reactor_.addEventHandler(
 				socket_,
 				Poco::NObserver<RTTYS_Device_ConnectionHandler, Poco::Net::ReadableNotification>(
@@ -70,7 +71,6 @@ namespace OpenWifi {
 				socket_,
 				Poco::NObserver<RTTYS_Device_ConnectionHandler, Poco::Net::ShutdownNotification>(
 					*this, &RTTYS_Device_ConnectionHandler::onSocketShutdown));
-			registered_=true;
 		} catch (...) {
 			poco_warning(Logger(), "Device caused exception while completing connection.");
 			std::unique_lock G(M_);
@@ -118,6 +118,9 @@ namespace OpenWifi {
 
 	void RTTYS_Device_ConnectionHandler::onSocketReadable([[maybe_unused]] const Poco::AutoPtr<Poco::Net::ReadableNotification> &pNf) {
 		bool good = true;
+
+		if(!valid_ || !registered_)
+			return;
 
 		std::unique_lock G(M_);
 		try {
@@ -217,11 +220,13 @@ namespace OpenWifi {
 	}
 
 	bool RTTYS_Device_ConnectionHandler::SendToClient(const std::string &S) {
+		if(!valid_ || !registered_)
+			return false;
 		return RTTYS_server()->SendToClient(id_,S);
 	}
 
 	bool RTTYS_Device_ConnectionHandler::KeyStrokes(const u_char *buf, size_t len) {
-		if(!valid_)
+		if(!valid_ || !registered_)
 			return false;
 
 		if(len<=(sizeof(small_buf_)-RTTY_HDR_SIZE-session_length_)) {
@@ -253,7 +258,7 @@ namespace OpenWifi {
 	}
 
 	bool RTTYS_Device_ConnectionHandler::WindowSize(int cols, int rows) {
-		if(!valid_)
+		if(!valid_ || !registered_)
 			return false;
 
 		u_char	outBuf[8+RTTY_SESSION_ID_LENGTH]{0};
@@ -275,7 +280,7 @@ namespace OpenWifi {
 	}
 
 	bool RTTYS_Device_ConnectionHandler::Login() {
-		if(!valid_)
+		if(!valid_ || !registered_)
 			return false;
 
 		u_char outBuf[RTTY_HDR_SIZE+RTTY_SESSION_ID_LENGTH]{0};
@@ -300,7 +305,7 @@ namespace OpenWifi {
 	}
 
 	bool RTTYS_Device_ConnectionHandler::Logout() {
-		if(!valid_)
+		if(!valid_ || !registered_)
 			return false;
 
 		u_char outBuf[4+RTTY_SESSION_ID_LENGTH]{0};
