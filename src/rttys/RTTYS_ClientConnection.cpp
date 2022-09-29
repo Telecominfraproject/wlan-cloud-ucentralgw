@@ -29,6 +29,7 @@ namespace OpenWifi {
 			Reactor_.addEventHandler(
 				*WS_, Poco::NObserver<RTTYS_ClientConnection, Poco::Net::ShutdownNotification>(
 						  *this, &RTTYS_ClientConnection::onSocketShutdown));
+			Registered_ = true;
 			Logger_.information("Starting connection");
 		}
 
@@ -36,15 +37,23 @@ namespace OpenWifi {
 		poco_information(Logger_,
 				   fmt::format("Client {} session ending", Id_)
 				   );
-		Reactor_.removeEventHandler(
-			*WS_, Poco::NObserver<RTTYS_ClientConnection, Poco::Net::ReadableNotification>(
-					  *this, &RTTYS_ClientConnection::onSocketReadable));
-		Reactor_.removeEventHandler(
-			*WS_, Poco::NObserver<RTTYS_ClientConnection, Poco::Net::ShutdownNotification>(
-					  *this, &RTTYS_ClientConnection::onSocketShutdown));
+		DeRegister();
+	}
+
+	void RTTYS_ClientConnection::DeRegister() {
+		if(Registered_) {
+			Registered_ = false;
+			Reactor_.removeEventHandler(
+				*WS_, Poco::NObserver<RTTYS_ClientConnection, Poco::Net::ReadableNotification>(
+						  *this, &RTTYS_ClientConnection::onSocketReadable));
+			Reactor_.removeEventHandler(
+				*WS_, Poco::NObserver<RTTYS_ClientConnection, Poco::Net::ShutdownNotification>(
+						  *this, &RTTYS_ClientConnection::onSocketShutdown));
+		}
 	}
 
 	void RTTYS_ClientConnection::EndConnection() {
+		DeRegister();
 		RTTYS_server()->NotifyClientDisconnect(Id_, this);
 	}
 

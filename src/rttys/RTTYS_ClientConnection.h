@@ -27,6 +27,7 @@ namespace OpenWifi {
 
 		void SendData( const u_char *Buf, size_t len );
 		void SendData( const std::string & S );
+		void DeRegister();
 
 		[[nodiscard]] inline std::string ID() { return Id_; }
 		[[nodiscard]] inline bool Valid()  { return Valid_; }
@@ -39,6 +40,7 @@ namespace OpenWifi {
 		std::string 							Sid_;
 		std::atomic_bool						Valid_=false;
 		std::shared_mutex						Mutex_;
+		std::atomic_bool 						Registered_=false;
 
 		void EndConnection();
 
