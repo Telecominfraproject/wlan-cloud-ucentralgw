@@ -132,6 +132,8 @@ namespace OpenWifi {
 								   false, Sent  );
 			}
 
+			bool IsCommandRunning(const std::string &C);
+
 			void run() override;
 
 			static auto instance() {

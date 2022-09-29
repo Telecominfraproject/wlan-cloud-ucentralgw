@@ -130,6 +130,16 @@ namespace OpenWifi {
 			fmt::format("Outstanding-requests {}", OutStandingRequests_.size()));
 	}
 
+	bool CommandManager::IsCommandRunning(const std::string &C) {
+		std::shared_lock Lock(LocalMutex_);
+		for (const auto &request : OutStandingRequests_) {
+			if (request.second.UUID == C) {
+				return true;
+			}
+		}
+		return false;
+	}
+
 	void CommandManager::onCommandRunnerTimer([[maybe_unused]] Poco::Timer &timer) {
 		Utils::SetThreadName("cmd:schdlr");
 		Poco::Logger &MyLogger = Poco::Logger::get("CMD-MGR-SCHEDULER");
@@ -153,14 +163,10 @@ namespace OpenWifi {
 						MyLogger, fmt::format("{}: Serial={} Command={} Starting processing.",
 											  Cmd.UUID, Cmd.SerialNumber, Cmd.Command));
 					try {
-						{
-							std::shared_lock Lock(LocalMutex_);
-							for (const auto &request : OutStandingRequests_) {
-								if (request.second.UUID == Cmd.UUID) {
-									continue;
-								}
-							}
-						}
+
+						//	Skip an already running command
+						if(IsCommandRunning(Cmd.UUID))
+							continue;
 
 						auto now = OpenWifi::Now();
 						// 2 hour timeout for commands
