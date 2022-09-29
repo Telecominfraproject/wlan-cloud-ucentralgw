@@ -109,6 +109,11 @@ spec:
               containerPort: {{ $portValue.targetPort }}
               protocol: {{ $portValue.protocol }}
           {{- end }}
+          {{- range $port, $portValue := .Values.services.radius.ports }}
+            - name: {{ $port }}
+              containerPort: {{ $portValue.targetPort }}
+              protocol: {{ $portValue.protocol }}
+          {{- end }}
 
           volumeMounts:
           {{- range .Values.volumes.owgw }}

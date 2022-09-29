@@ -190,6 +190,18 @@ components:
           type: string
           minLength: 2
           maxLength: 2
+        started:
+          type: integer
+          format: int64
+        sessionId:
+          type: integer
+          format: int64
+        connectionCompletionTime:
+          type: number
+          format: double
+        totalConnectionTime:
+          type: integer
+          format: int64
 
     DeviceList:
       type: object
@@ -1065,8 +1077,8 @@ components:
           default: false
         radsecPort:
           type: integer
-          min: 1
-          max: 65536
+          minimum: 1
+          maximum: 65535
         radsecSecret:
           type: string
         radsecCacerts:

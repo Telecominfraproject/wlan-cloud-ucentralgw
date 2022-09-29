@@ -7,6 +7,7 @@
 #include "DeviceRegistry.h"
 #include "TelemetryClient.h"
 #include "TelemetryStream.h"
+#include "CommandManager.h"
 
 #include "Poco/Net/SSLException.h"
 
@@ -45,6 +46,7 @@ namespace OpenWifi {
 				WS_->setNoDelay(true);
 				WS_->setKeepAlive(true);
 				WS_->setMaxPayloadSize(2048);
+				WS_->setBlocking(false);
 				Reactor_.addEventHandler(
 					*WS_, Poco::NObserver<TelemetryClient, Poco::Net::ReadableNotification>(
 							  *this, &TelemetryClient::OnSocketReadable));
@@ -55,7 +57,7 @@ namespace OpenWifi {
 					*WS_, Poco::NObserver<TelemetryClient, Poco::Net::ErrorNotification>(
 							  *this, &TelemetryClient::OnSocketError));
 				Registered_ = true;
-				Logger().information(fmt::format("CONNECTION({}): Connection completed.", CId_));
+				poco_information(Logger(),fmt::format("TELEMETRY-CONNECTION({}): Connection completed.", CId_));
 				return;
 			}
 		} catch (const Poco::Net::SSLException &E) {
@@ -68,7 +70,7 @@ namespace OpenWifi {
 	}
 
 	TelemetryClient::~TelemetryClient() {
-		Logger().information(fmt::format("CONNECTION({}): Closing connection.", CId_));
+		poco_information(Logger(),fmt::format("TELEMETRY-CONNECTION({}): Closing connection.", CId_));
 		if(Registered_ && WS_)
 		{
 			Reactor_.removeEventHandler(*WS_,
@@ -91,19 +93,19 @@ namespace OpenWifi {
 	}
 
 	void TelemetryClient::SendTelemetryShutdown() {
-		Logger().information(fmt::format("TELEMETRY-SHUTDOWN({}): Closing.",CId_));
-		DeviceRegistry()->StopWebSocketTelemetry(SerialNumber_);
+		poco_information(Logger(),fmt::format("TELEMETRY-SHUTDOWN({}): Closing.",CId_));
+		DeviceRegistry()->StopWebSocketTelemetry(CommandManager()->NextRPCId(), SerialNumber_);
 		TelemetryStream()->DeRegisterClient(UUID_);
 		delete this;
 	}
 
 	void TelemetryClient::OnSocketShutdown([[maybe_unused]] const Poco::AutoPtr<Poco::Net::ShutdownNotification>& pNf) {
-		Logger().information(fmt::format("SOCKET-SHUTDOWN({}): Orderly shutdown.", CId_));
+		poco_information(Logger(),fmt::format("TELEMETRY-SOCKET-SHUTDOWN({}): Orderly shutdown.", CId_));
 		SendTelemetryShutdown();
 	}
 
 	void TelemetryClient::OnSocketError([[maybe_unused]] const Poco::AutoPtr<Poco::Net::ErrorNotification>& pNf) {
-		Logger().information(fmt::format("SOCKET-ERROR({}): Closing.",CId_));
+		poco_information(Logger(),fmt::format("TELEMETRY-SOCKET-ERROR({}): Closing.",CId_));
 		SendTelemetryShutdown();
 	}
 
@@ -120,11 +122,11 @@ namespace OpenWifi {
 		}
 		catch (const std::exception & E) {
 			std::string W = E.what();
-			Logger().information(fmt::format("std::exception caught: {}. Connection terminated with {}",W,CId_));
+			poco_information(Logger(),fmt::format("TELEMETRY-std::exception caught: {}. Connection terminated with {}",W,CId_));
 			SendTelemetryShutdown();
 		}
 		catch ( ... ) {
-			Logger().information(fmt::format("Unknown exception for {}. Connection terminated.",CId_));
+			poco_information(Logger(),fmt::format("TELEMETRY-Unknown exception for {}. Connection terminated.",CId_));
 			SendTelemetryShutdown();
 		}
 	}
@@ -141,16 +143,16 @@ namespace OpenWifi {
 			Op = flags & Poco::Net::WebSocket::FRAME_OP_BITMASK;
 
 			if (IncomingSize == 0 && flags == 0 && Op == 0) {
-				Logger().information(fmt::format("DISCONNECT({}): device has disconnected.", CId_));
+				poco_information(Logger(),fmt::format("TELEMETRY-DISCONNECT({}): device has disconnected.", CId_));
 				MustDisconnect = true;
 			} else {
 				if (Op == Poco::Net::WebSocket::FRAME_OP_PING) {
-					Logger().debug(fmt::format("WS-PING({}): received. PONG sent back.", CId_));
+					Logger().debug(fmt::format("TELEMETRY-WS-PING({}): received. PONG sent back.", CId_));
 					WS_->sendFrame("", 0,
 								   (int)Poco::Net::WebSocket::FRAME_OP_PONG |
 									   (int)Poco::Net::WebSocket::FRAME_FLAG_FIN);
 				} else if (Op == Poco::Net::WebSocket::FRAME_OP_CLOSE) {
-					Logger().information(fmt::format("DISCONNECT({}): device wants to disconnect.", CId_));
+					poco_information(Logger(),fmt::format("TELEMETRY-DISCONNECT({}): device wants to disconnect.", CId_));
 					MustDisconnect = true ;
 				}
 			}

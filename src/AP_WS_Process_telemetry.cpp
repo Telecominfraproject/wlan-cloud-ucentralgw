@@ -4,11 +4,12 @@
 
 #include "AP_WS_Connection.h"
 #include "TelemetryStream.h"
+#include "CommandManager.h"
 
 namespace OpenWifi {
 	void AP_WS_Connection::Process_telemetry(Poco::JSON::Object::Ptr ParamsObj) {
 		if (!State_.Connected) {
-			poco_warning(Logger(), fmt::format(
+			poco_warning(Logger_, fmt::format(
 									   "INVALID-PROTOCOL({}): Device '{}' is not following protocol", CId_, CN_));
 			Errors_++;
 			return;
@@ -27,7 +28,7 @@ namespace OpenWifi {
 						State_.websocketPackets = TelemetryWebSocketPackets_;
 						TelemetryStream()->UpdateEndPoint(SerialNumberInt_, SS.str());
 					} else {
-						StopWebSocketTelemetry();
+						StopWebSocketTelemetry(CommandManager()->NextRPCId());
 					}
 				}
 				if (TelemetryKafkaRefCount_) {
@@ -38,16 +39,16 @@ namespace OpenWifi {
 						KafkaManager()->PostMessage(KafkaTopics::DEVICE_TELEMETRY, SerialNumber_,
 													SS.str());
 					} else {
-						StopKafkaTelemetry();
+						StopKafkaTelemetry(CommandManager()->NextRPCId());
 					}
 				}
 			} else {
-				poco_debug(Logger(),fmt::format("TELEMETRY({}): Invalid telemetry packet.",SerialNumber_));
+				poco_debug(Logger_,fmt::format("TELEMETRY({}): Invalid telemetry packet.",SerialNumber_));
 			}
 		} else {
 			// if we are ignoring telemetry, then close it down on the device.
-			poco_debug(Logger(),fmt::format("TELEMETRY({}): Stopping runaway telemetry.",SerialNumber_));
-			StopTelemetry();
+			poco_debug(Logger_,fmt::format("TELEMETRY({}): Stopping runaway telemetry.",SerialNumber_));
+			StopTelemetry(CommandManager()->NextRPCId());
 		}
 	}
 }

@@ -33,20 +33,20 @@ namespace OpenWifi {
 		void GetStatus();
 		void GetChecks();
 		void DeleteChecks();
-		void ExecuteCommand(const std::string &UUID, uint64_t RPC);
-		void Configure(const std::string &UUID, uint64_t RPC);
-		void Upgrade(const std::string &UUID, uint64_t RPC);
-		void Reboot(const std::string &UUID, uint64_t RPC);
-		void Factory(const std::string &UUID, uint64_t RPC);
-		void LEDs(const std::string &UUID, uint64_t RPC);
-		void Trace(const std::string &UUID, uint64_t RPC);
-		void MakeRequest(const std::string &UUID, uint64_t RPC);
-		void WifiScan(const std::string &UUID, uint64_t RPC);
-		void EventQueue(const std::string &UUID, uint64_t RPC);
-		void Rtty(const std::string &UUID, uint64_t RPC);
-		void Telemetry(const std::string &UUID, uint64_t RPC);
-		void Ping(const std::string &UUID, uint64_t RPC);
-		void Script(const std::string &UUID, uint64_t RPC);
+		void ExecuteCommand(const std::string &UUID, uint64_t RPC, std::chrono::milliseconds timeout);
+		void Configure(const std::string &UUID, uint64_t RPC, std::chrono::milliseconds timeout);
+		void Upgrade(const std::string &UUID, uint64_t RPC, std::chrono::milliseconds timeout);
+		void Reboot(const std::string &UUID, uint64_t RPC, std::chrono::milliseconds timeout);
+		void Factory(const std::string &UUID, uint64_t RPC, std::chrono::milliseconds timeout);
+		void LEDs(const std::string &UUID, uint64_t RPC, std::chrono::milliseconds timeout);
+		void Trace(const std::string &UUID, uint64_t RPC, std::chrono::milliseconds timeout);
+		void MakeRequest(const std::string &UUID, uint64_t RPC, std::chrono::milliseconds timeout);
+		void WifiScan(const std::string &UUID, uint64_t RPC, std::chrono::milliseconds timeout);
+		void EventQueue(const std::string &UUID, uint64_t RPC, std::chrono::milliseconds timeout);
+		void Rtty(const std::string &UUID, uint64_t RPC, std::chrono::milliseconds timeout);
+		void Telemetry(const std::string &UUID, uint64_t RPC, std::chrono::milliseconds timeout);
+		void Ping(const std::string &UUID, uint64_t RPC, std::chrono::milliseconds timeout);
+		void Script(const std::string &UUID, uint64_t RPC, std::chrono::milliseconds timeout);
 
 		static auto PathName() { return std::list<std::string>{"/api/v1/device/{serialNumber}/{command}"}; };
 		void DoGet() final;
@@ -55,7 +55,7 @@ namespace OpenWifi {
 		void DoPut() final {};
 
 		void CallCanceled(const char * Cmd,const std::string &UUID, uint64_t RPC, const OpenWifi::RESTAPI::Errors::msg & Err);
-		void CallCanceled(const char * Cmd, const OpenWifi::RESTAPI::Errors::msg &Err);
+		void CallCanceled(const char * Cmd, const OpenWifi::RESTAPI::Errors::msg &Err, const std::string & Details="");
 
 		inline bool ValidateParameters() {
 			Command_ =  GetBinding(RESTAPI::Protocol::COMMAND, "");

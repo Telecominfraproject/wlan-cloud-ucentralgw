@@ -25,6 +25,10 @@ void RESTAPI_telemetryWebSocket::DoGet() {
 					}
 				}
 
+				if(!Utils::NormalizeMac(SNum)) {
+					return BadRequest(RESTAPI::Errors::InvalidSerialNumber);
+				}
+
 				auto SerialNumber = Utils::SerialNumberToInt(SNum);
 
 				if(!TelemetryStream()->IsValidEndPoint(SerialNumber,UUID)) {

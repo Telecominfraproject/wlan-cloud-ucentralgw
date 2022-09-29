@@ -13,6 +13,9 @@
 #include <map>
 #include <utility>
 #include <functional>
+#include <shared_mutex>
+
+#include "framework/MicroService.h"
 
 #include "Poco/JSON/Object.h"
 #include "Poco/Net/HTTPServerRequest.h"
@@ -20,28 +23,8 @@
 #include "Poco/Timer.h"
 
 #include "RESTObjects/RESTAPI_GWobjects.h"
-#include "framework/MicroService.h"
 
 namespace OpenWifi {
-
-	struct CommandTagIndex {
-		std::uint64_t 	Id=0;
-		std::uint64_t 	SerialNumber=0;
-	};
-
-	inline bool operator <(const CommandTagIndex& lhs, const CommandTagIndex& rhs) {
-		if(lhs.Id<rhs.Id)
-			return true;
-		if(lhs.Id>rhs.Id)
-			return false;
-		return lhs.SerialNumber<rhs.SerialNumber;
-	}
-
-	inline bool operator ==(const CommandTagIndex& lhs, const CommandTagIndex& rhs) {
-		if(lhs.Id == rhs.Id && lhs.SerialNumber == rhs.SerialNumber)
-			return true;
-		return false;
-	}
 
 	class RPCResponseNotification: public Poco::Notification {
 	  public:
@@ -61,8 +44,12 @@ namespace OpenWifi {
 	    public:
 		  	typedef Poco::JSON::Object 		objtype_t;
 		  	typedef std::promise<objtype_t> promise_type_t;
-			struct RpcObject {
-				std::string uuid;
+
+			struct CommandInfo {
+				std::uint64_t 	Id=0;
+				std::uint64_t 	SerialNumber=0;
+				std::string 	Command;
+				std::string 	UUID;
 				std::chrono::time_point<std::chrono::high_resolution_clock> submitted = std::chrono::high_resolution_clock::now();
 				std::shared_ptr<promise_type_t> rpc_entry;
 			};
@@ -82,7 +69,6 @@ namespace OpenWifi {
 			void Stop() override;
 			void WakeUp();
 			inline void PostCommandResult(const std::string &SerialNumber, const Poco::JSON::Object &Obj) {
-				std::lock_guard		G(Mutex_);
 				// RPCResponseQueue_->Write(RPCResponse{.serialNumber=SerialNumber, .payload = Obj});
 				ResponseQueue_.enqueueNotification(new RPCResponseNotification(SerialNumber,Obj));
 			}
@@ -146,6 +132,8 @@ namespace OpenWifi {
 								   false, Sent  );
 			}
 
+			bool IsCommandRunning(const std::string &C);
+
 			void run() override;
 
 			static auto instance() {
@@ -158,33 +146,41 @@ namespace OpenWifi {
 			void onCommandRunnerTimer(Poco::Timer & timer);
 			void onRPCAnswer(bool& b);
 			inline uint64_t NextRPCId() { return ++Id_; }
-			void RemovePendingCommand(std::uint64_t Id) {
-				std::lock_guard	G(Mutex_);
 
-				for(auto hint=OutStandingRequests_.begin();hint!=OutStandingRequests_.end();++hint) {
-					if(hint->first.Id==Id) {
-						OutStandingRequests_.erase(hint);
-						return;
-					}
-				}
+			void RemovePendingCommand(std::uint64_t Id) {
+				std::unique_lock	Lock(LocalMutex_);
+				OutStandingRequests_.erase(Id);
 			}
 
-			inline bool CommandRunningForDevice(std::uint64_t SerialNumber) {
-				std::lock_guard	G(Mutex_);
+			inline bool CommandRunningForDevice(std::uint64_t SerialNumber, std::string & uuid, std::string &command) {
+				std::shared_lock	Lock(LocalMutex_);
 
-				for(const auto &[Tag,_]:OutStandingRequests_) {
-					if(Tag.SerialNumber==SerialNumber)
+				for(const auto &[Request,Command]:OutStandingRequests_) {
+					if(Command.SerialNumber==SerialNumber) {
+						uuid = Command.UUID;
+						command = Command.Command;
 						return true;
+					}
 				}
 				return false;
 			}
 
+			inline void ClearQueue(std::uint64_t SerialNumber) {
+				std::unique_lock	Lock(LocalMutex_);
+				for(auto Request = OutStandingRequests_.begin(); Request != OutStandingRequests_.end() ; ) {
+					if(Request->second.SerialNumber==SerialNumber)
+						Request = OutStandingRequests_.erase(Request);
+					else
+						++Request;
+				}
+			}
+
 	    private:
+		  	mutable std::shared_mutex				LocalMutex_;
 			std::atomic_bool 						Running_ = false;
 			Poco::Thread    						ManagerThread;
 			std::atomic_uint64_t 					Id_=3;	//	do not start @1. We ignore ID=1 & 0 is illegal..
-			std::map<CommandTagIndex,std::shared_ptr<RpcObject>>		OutStandingRequests_;
-			std::set<std::string>					OutstandingUUIDs_;
+			std::map<std::uint64_t , CommandInfo>	OutStandingRequests_;
 			Poco::Timer                     		JanitorTimer_;
 			std::unique_ptr<Poco::TimerCallback<CommandManager>>   JanitorCallback_;
 			Poco::Timer                     		CommandRunnerTimer_;

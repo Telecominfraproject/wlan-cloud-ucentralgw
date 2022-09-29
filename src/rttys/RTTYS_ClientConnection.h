@@ -27,6 +27,7 @@ namespace OpenWifi {
 
 		void SendData( const u_char *Buf, size_t len );
 		void SendData( const std::string & S );
+		void DeRegister();
 
 		[[nodiscard]] inline std::string ID() { return Id_; }
 		[[nodiscard]] inline bool Valid()  { return Valid_; }
@@ -37,10 +38,11 @@ namespace OpenWifi {
 		std::unique_ptr<Poco::Net::WebSocket>	WS_;
 		Poco::Logger 							&Logger_;
 		std::string 							Sid_;
-		std::atomic_bool						Valid_=false;
 		std::shared_mutex						Mutex_;
+		volatile bool							Valid_=false;
+		volatile bool 							Registered_=false;
 
-		void EndConnection(bool SendNotification=true);
+		void EndConnection();
 
 	};
 }

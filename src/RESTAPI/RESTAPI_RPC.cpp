@@ -50,11 +50,11 @@ namespace OpenWifi::RESTAPI_RPC {
 		auto SerialNumberInt = Utils::SerialNumberToInt(Cmd.SerialNumber);
 		if (Cmd.RunAt || (!DeviceRegistry()->Connected(SerialNumberInt) && RetryLater)) {
 			Logger.information(fmt::format("{},{}: Command will be run in the future or when device is connected again.", Cmd.UUID, RPCID));
-			SetCommandStatus(Cmd, Request, Response, Handler, Storage::COMMAND_PENDING, Logger);
+			SetCommandStatus(Cmd, Request, Response, Handler, Storage::CommandExecutionType::COMMAND_PENDING, Logger);
 			return;
 		} else if ((!DeviceRegistry()->Connected(SerialNumberInt) && !RetryLater)){
 			Logger.information(fmt::format("{},{}: Command canceled. Device is not connected. Command will not be retried.", Cmd.UUID, RPCID));
-			return SetCommandStatus(Cmd, Request, Response, Handler, Storage::COMMAND_FAILED, Logger);
+			return SetCommandStatus(Cmd, Request, Response, Handler, Storage::CommandExecutionType::COMMAND_FAILED, Logger);
 		}
 
 		Cmd.Executed = OpenWifi::Now();
@@ -66,12 +66,12 @@ namespace OpenWifi::RESTAPI_RPC {
 
 		if(RetryLater && (!Sent || rpc_endpoint== nullptr)) {
 			Logger.information(fmt::format("{},{}: Pending completion. Device is not connected.", Cmd.UUID, RPCID));
-			return SetCommandStatus(Cmd, Request, Response, Handler, Storage::COMMAND_PENDING, Logger);
+			return SetCommandStatus(Cmd, Request, Response, Handler, Storage::CommandExecutionType::COMMAND_PENDING, Logger);
 		}
 
 		if(!RetryLater && !Sent) {
 			Logger.information(fmt::format("{},{}: Command canceled. Device is not connected. Command will not be retried.", Cmd.UUID, RPCID));
-			return SetCommandStatus(Cmd, Request, Response, Handler, Storage::COMMAND_FAILED, Logger);
+			return SetCommandStatus(Cmd, Request, Response, Handler, Storage::CommandExecutionType::COMMAND_FAILED, Logger);
 		}
 
 		Logger.information(fmt::format("{},{}: Command sent.", Cmd.UUID, RPCID));
@@ -81,7 +81,7 @@ namespace OpenWifi::RESTAPI_RPC {
 			std::chrono::duration<double, std::milli> rpc_execution_time = std::chrono::high_resolution_clock::now() - rpc_submitted;
 			auto rpc_answer = rpc_future.get();
 			if (!rpc_answer.has(uCentralProtocol::RESULT) || !rpc_answer.isObject(uCentralProtocol::RESULT)) {
-				SetCommandStatus(Cmd, Request, Response, Handler, Storage::COMMAND_FAILED, Logger);
+				SetCommandStatus(Cmd, Request, Response, Handler, Storage::CommandExecutionType::COMMAND_FAILED, Logger);
 				Logger.information(fmt::format("{},{}: Invalid response. Missing result.", Cmd.UUID, RPCID));
 				return;
 			}
@@ -90,10 +90,10 @@ namespace OpenWifi::RESTAPI_RPC {
 			if (!ResultFields->has(uCentralProtocol::STATUS) || !ResultFields->isObject(uCentralProtocol::STATUS)) {
 				Cmd.executionTime = rpc_execution_time.count();
 				if(Cmd.Command=="ping") {
-					SetCommandStatus(Cmd, Request, Response, Handler, Storage::COMMAND_COMPLETED, Logger);
+					SetCommandStatus(Cmd, Request, Response, Handler, Storage::CommandExecutionType::COMMAND_COMPLETED, Logger);
 					Logger.information(fmt::format("{},{}: Invalid response from device (ping: fix override). Missing status.", Cmd.UUID, RPCID));
 				} else {
-					SetCommandStatus(Cmd, Request, Response, Handler, Storage::COMMAND_FAILED, Logger);
+					SetCommandStatus(Cmd, Request, Response, Handler, Storage::CommandExecutionType::COMMAND_FAILED, Logger);
 					Logger.information(fmt::format("{},{}: Invalid response from device. Missing status.", Cmd.UUID,RPCID));
 				}
 				return;
@@ -134,7 +134,7 @@ namespace OpenWifi::RESTAPI_RPC {
 			}
 
 			//	Add the completed command to the database...
-			StorageService()->AddCommand(Cmd.SerialNumber, Cmd, Storage::COMMAND_COMPLETED);
+			StorageService()->AddCommand(Cmd.SerialNumber, Cmd, Storage::CommandExecutionType::COMMAND_COMPLETED);
 
 			if (ObjectToReturn && Handler) {
 				Handler->ReturnObject(*ObjectToReturn);
@@ -150,10 +150,10 @@ namespace OpenWifi::RESTAPI_RPC {
 		CommandManager()->RemovePendingCommand(RPCID);
 		if(RetryLater) {
 			Logger.information(fmt::format("{},{}: Pending completion.", Cmd.UUID, RPCID));
-			SetCommandStatus(Cmd, Request, Response, Handler, Storage::COMMAND_PENDING, Logger);
+			SetCommandStatus(Cmd, Request, Response, Handler, Storage::CommandExecutionType::COMMAND_PENDING, Logger);
 		} else {
 			Logger.information(fmt::format("{},{}: Command canceled. Device is not connected. Command will not be retried.", Cmd.UUID, RPCID));
-			return SetCommandStatus(Cmd, Request, Response, Handler, Storage::COMMAND_FAILED, Logger);
+			return SetCommandStatus(Cmd, Request, Response, Handler, Storage::CommandExecutionType::COMMAND_FAILED, Logger);
 		}
 	}
 }

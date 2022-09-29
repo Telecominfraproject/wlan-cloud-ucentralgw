@@ -7,9 +7,9 @@
 #include <iostream>
 #include <fstream>
 
-#include "RESTObjects/RESTAPI_GWobjects.h"
-
 #include "framework/MicroService.h"
+
+#include "RESTObjects/RESTAPI_GWobjects.h"
 
 #include "Poco/Net/SocketReactor.h"
 #include "Poco/Net/SecureStreamSocket.h"
@@ -142,7 +142,7 @@ namespace OpenWifi {
 				Poco::Net::SocketAddress Destination(Server_.ip, Server_.port);
 
 				try {
-					Logger_.information("Attempting to connect");
+					poco_information(Logger_, "Attempting to connect");
 					Socket_->connect(Destination, Poco::Timespan(100, 0));
 					Socket_->completeHandshake();
 					Socket_->verifyPeerCertificate();
@@ -166,17 +166,21 @@ namespace OpenWifi {
 						*Socket_,
 						Poco::NObserver<RADSECserver, Poco::Net::ShutdownNotification>(
 							*this, &RADSECserver::onShutdown));
+					Socket_->setBlocking(false);
+					Socket_->setNoDelay(true);
+					Socket_->setKeepAlive(true);
+
 					Connected_ = true;
-					Logger_.information(fmt::format("Connected. CN={}",CommonName()));
+					poco_information(Logger_,fmt::format("Connected. CN={}",CommonName()));
 					return true;
 				} catch (const Poco::Net::NetException &E) {
-					Logger_.information("Could not connect.");
+					poco_information(Logger_,"Could not connect.");
 					Logger_.log(E);
 				} catch (const Poco::Exception &E) {
-					Logger_.information("Could not connect.");
+					poco_information(Logger_,"Could not connect.");
 					Logger_.log(E);
 				} catch (...) {
-					Logger_.information("Could not connect.");
+					poco_information(Logger_,"Could not connect.");
 				}
 			}
 			return false;
@@ -197,11 +201,10 @@ namespace OpenWifi {
 								  *this, &RADSECserver::onShutdown));
 				Connected_ = false;
 			}
-			Logger_.information("Disconnecting.");
+			poco_information(Logger_,"Disconnecting.");
 		}
 
 		inline void Stop() {
-			std::unique_lock	G(Mutex_);
 			TryAgain_ = false;
 			Disconnect();
 			ReconnectorThr_.wakeUp();

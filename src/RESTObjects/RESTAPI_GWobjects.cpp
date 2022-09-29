@@ -203,6 +203,10 @@ namespace OpenWifi::GWObjects {
 		field_to_json(Obj,"kafkaClients", kafkaClients);
 		field_to_json(Obj,"kafkaPackets", kafkaPackets);
 		field_to_json(Obj,"locale", locale);
+		field_to_json(Obj,"started", started);
+		field_to_json(Obj,"sessionId", sessionId);
+		field_to_json(Obj,"connectionCompletionTime", connectionCompletionTime);
+		field_to_json(Obj,"totalConnectionTime", OpenWifi::Now() - started);
 
 		switch(VerifiedCertificate) {
 			case NO_CERTIFICATE:
@@ -221,12 +225,14 @@ namespace OpenWifi::GWObjects {
 	void DeviceConnectionStatistics::to_json(Poco::JSON::Object &Obj) const {
 		field_to_json(Obj,"averageConnectionTime", averageConnectionTime);
 		field_to_json(Obj,"connectedDevices", connectedDevices );
+		field_to_json(Obj,"connectingDevices", connectingDevices );
 	}
 
 	bool DeviceConnectionStatistics::from_json(const Poco::JSON::Object::Ptr &Obj) {
 		try {
 			field_from_json(Obj,"averageConnectionTime", averageConnectionTime);
 			field_from_json(Obj,"connectedDevices", connectedDevices );
+			field_from_json(Obj,"connectingDevices", connectingDevices );
 			return true;
 		} catch (const Poco::Exception &E) {
 		}

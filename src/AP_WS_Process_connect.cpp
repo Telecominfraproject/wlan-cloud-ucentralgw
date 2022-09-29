@@ -9,6 +9,8 @@
 #include "framework/WebSocketClientNotifications.h"
 #include "Daemon.h"
 
+#include "CommandManager.h"
+
 namespace OpenWifi {
 
 void AP_WS_Connection::Process_connect(Poco::JSON::Object::Ptr ParamsObj, const std::string &Serial) {
@@ -22,34 +24,24 @@ void AP_WS_Connection::Process_connect(Poco::JSON::Object::Ptr ParamsObj, const 
 		//// change this
 		SerialNumber_ = Serial;
 		SerialNumberInt_ = Utils::SerialNumberToInt(SerialNumber_);
-		DeviceRegistry()->SetSessionDetails(ConnectionId_,this,SerialNumberInt_);
+
+		CommandManager()->ClearQueue(SerialNumberInt_);
+
+		DeviceRegistry()->SetSessionDetails(State_.sessionId,SerialNumberInt_);
 		State_.UUID = UUID;
 		State_.Firmware = Firmware;
 		State_.PendingUUID = 0;
-		State_.LastContact = OpenWifi::Now();
 		State_.Address = Utils::FormatIPv6(WS_->peerAddress().toString());
 		CId_ = SerialNumber_ + "@" + CId_;
-		//	We need to verify the certificate if we have one
-		if(State_.VerifiedCertificate == GWObjects::VALID_CERTIFICATE) {
-			if ((	Utils::SerialNumberMatch(CN_, SerialNumber_)) ||
-					AP_WS_Server()->IsSimSerialNumber(CN_)) {
-				State_.VerifiedCertificate = GWObjects::VERIFIED;
-				poco_information(Logger(), fmt::format("CONNECT({}): Fully validated and authenticated device.", CId_));
-			} else {
-				State_.VerifiedCertificate = GWObjects::MISMATCH_SERIAL;
-				poco_information(Logger(),
-								 fmt::format("CONNECT({}): Serial number mismatch. CN={} Serial={}", CId_, CN_, SerialNumber_));
-			}
-		}
 
 		auto IP = PeerAddress_.toString();
 		if(IP.substr(0,7)=="::ffff:") {
 			IP = IP.substr(7);
 		}
+
 		State_.locale = FindCountryFromIP()->Get(IP);
 		GWObjects::Device	DeviceInfo;
 		auto DeviceExists = StorageService()->GetDevice(SerialNumber_,DeviceInfo);
-		// std::cout << "Connecting: " << SerialNumber_ << std::endl;
 		if (Daemon()->AutoProvisioning() && !DeviceExists) {
 			StorageService()->CreateDefaultDevice(SerialNumber_, Capabilities, Firmware,
 												  Compatible_, PeerAddress_);
@@ -80,8 +72,36 @@ void AP_WS_Connection::Process_connect(Poco::JSON::Object::Ptr ParamsObj, const 
 			LookForUpgrade(UUID,UpgradedUUID);
 			State_.UUID = UpgradedUUID;
 		}
+
 		State_.Compatible = Compatible_;
 		State_.Connected = true;
+		ConnectionCompletionTime_ = std::chrono::high_resolution_clock::now() - ConnectionStart_;
+		State_.connectionCompletionTime = ConnectionCompletionTime_.count();
+
+		if(State_.VerifiedCertificate == GWObjects::VALID_CERTIFICATE) {
+			if ((	Utils::SerialNumberMatch(CN_, SerialNumber_, AP_WS_Server()->MismatchDepth())) ||
+					AP_WS_Server()->IsSimSerialNumber(CN_)) {
+				State_.VerifiedCertificate = GWObjects::VERIFIED;
+				poco_information(Logger_, fmt::format("CONNECT({}): Fully validated and authenticated device. Session={} ConnectionCompletion Time={}",
+													   CId_,
+													   State_.sessionId,
+													   State_.connectionCompletionTime ));
+			} else {
+				State_.VerifiedCertificate = GWObjects::MISMATCH_SERIAL;
+				if(AP_WS_Server()->AllowSerialNumberMismatch()) {
+					poco_information(
+						Logger_, fmt::format("CONNECT({}): Serial number mismatch allowed. CN={} Serial={} Session={} ConnectionCompletion Time={}",
+											 CId_, CN_, SerialNumber_, State_.sessionId,
+											 State_.connectionCompletionTime));
+				} else {
+					poco_information(
+						Logger_, fmt::format("CONNECT({}): Serial number mismatch disallowed. Device rejected. CN={} Serial={} Session={} ConnectionCompletion Time={}",
+											 CId_, CN_, SerialNumber_, State_.sessionId,
+											 State_.connectionCompletionTime));
+					return EndConnection();
+				}
+			}
+		}
 
 		WebSocketClientNotificationDeviceConnected(SerialNumber_);
 
@@ -95,7 +115,7 @@ void AP_WS_Connection::Process_connect(Poco::JSON::Object::Ptr ParamsObj, const 
 			KafkaManager()->PostMessage(KafkaTopics::CONNECTION, SerialNumber_, OS.str());
 		}
 	} else {
-		poco_warning(Logger(),fmt::format("INVALID-PROTOCOL({}): Missing one of uuid, firmware, or capabilities", CId_));
+		poco_warning(Logger_,fmt::format("INVALID-PROTOCOL({}): Missing one of uuid, firmware, or capabilities", CId_));
 		Errors_++;
 	}
 }

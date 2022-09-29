@@ -8,6 +8,8 @@
 
 #include <iostream>
 
+#include "framework/MicroService.h"
+
 #include "Poco/Net/HTTPServerParams.h"
 #include "Poco/Net/HTTPServerResponse.h"
 #include "Poco/DynamicAny.h"
@@ -20,14 +22,13 @@
 
 #include "FileUploader.h"
 #include "StorageService.h"
-#include "framework/MicroService.h"
 
 namespace OpenWifi {
 
     static const std::string URI_BASE{"/v1/upload/"};
 
     int FileUploader::Start() {
-        Logger().notice("Starting.");
+		poco_notice(Logger(),"Starting.");
 
         Poco::File UploadsDir(MicroService::instance().ConfigPath("openwifi.fileuploader.path","/tmp"));
         Path_ = UploadsDir.path();
@@ -42,7 +43,7 @@ namespace OpenWifi {
 
         for(const auto & Svr: ConfigServersList_) {
 			if(MicroService::instance().NoAPISecurity()) {
-				Logger().information(fmt::format("Starting: {}:{}",Svr.Address(),Svr.Port()));
+				poco_notice(Logger(), fmt::format("Starting: {}:{}",Svr.Address(),Svr.Port()));
 
 				auto Sock{Svr.CreateSocket(Logger())};
 
@@ -60,7 +61,7 @@ namespace OpenWifi {
 					} else {
 						FullName_ = TmpName + URI_BASE;
 					}
-					Logger().information(fmt::format("Uploader URI base is '{}'", FullName_));
+					poco_information(Logger(),fmt::format("Uploader URI base is '{}'", FullName_));
 				}
 
 				auto NewServer = std::make_unique<Poco::Net::HTTPServer>(
@@ -71,7 +72,7 @@ namespace OpenWifi {
 			} else {
 				std::string l{"Starting: " + Svr.Address() + ":" + std::to_string(Svr.Port()) +
 							  " key:" + Svr.KeyFile() + " cert:" + Svr.CertFile()};
-				Logger().information(l);
+				poco_information(Logger(),l);
 
 				auto Sock{Svr.CreateSecureSocket(Logger())};
 
@@ -93,7 +94,7 @@ namespace OpenWifi {
 					} else {
 						FullName_ = TmpName + URI_BASE;
 					}
-					Logger().information(fmt::format("Uploader URI base is '{}'", FullName_));
+					poco_information(Logger(), fmt::format("Uploader URI base is '{}'", FullName_));
 				}
 
 				auto NewServer = std::make_unique<Poco::Net::HTTPServer>(
@@ -110,7 +111,7 @@ namespace OpenWifi {
 
 	void FileUploader::reinitialize([[maybe_unused]] Poco::Util::Application &self) {
 		MicroService::instance().LoadConfigurationFile();
-    	Logger().information("Reinitializing.");
+		poco_information(Logger(),"Reinitializing.");
 		Stop();
 		Start();
 	}
@@ -199,7 +200,7 @@ namespace OpenWifi {
 			const auto ContentType = Request.getContentType();
 			const auto Tokens = Poco::StringTokenizer(ContentType,";",Poco::StringTokenizer::TOK_TRIM);
 
-			Logger().debug(fmt::format("{}: Preparing to upload trace file.",UUID_));
+			poco_debug(Logger(),fmt::format("{}: Preparing to upload trace file.",UUID_));
 			Poco::JSON::Object Answer;
 
 			try {
@@ -224,7 +225,7 @@ namespace OpenWifi {
 								Poco::StreamCopier::copyStream(Reader.stream(), FileContent);
 								Answer.set("filename", UUID_);
 								Answer.set("error", 0);
-								Logger().debug(fmt::format("{}: Trace file uploaded.", UUID_));
+								poco_debug(Logger(),fmt::format("{}: Trace file uploaded.", UUID_));
 								StorageService()->AttachFileDataToCommand(UUID_, FileContent);
 								std::ostream &ResponseStream = Response.send();
 								Poco::JSON::Stringifier::stringify(Answer, ResponseStream);
@@ -242,10 +243,10 @@ namespace OpenWifi {
 			} catch (const Poco::Exception &E) {
 				Logger().log(E);
 			} catch (...) {
-				Logger().debug("Exception while receiving trace file.");
+				poco_debug(Logger(),"Exception while receiving trace file.");
 			}
 
-			Logger().debug(fmt::format("{}: Failed to upload trace file.",UUID_));
+			poco_debug(Logger(),fmt::format("{}: Failed to upload trace file.",UUID_));
 			std::string Error{"Trace file rejected"};
 			StorageService()->CancelWaitFile(UUID_, Error);
 			Answer.set("filename", UUID_);
@@ -265,11 +266,11 @@ namespace OpenWifi {
 
     Poco::Net::HTTPRequestHandler *FileUpLoaderRequestHandlerFactory::createRequestHandler(const Poco::Net::HTTPServerRequest & Request) {
 
-		Logger().debug(fmt::format("REQUEST({}): {} {}", Utils::FormatIPv6(Request.clientAddress().toString()), Request.getMethod(), Request.getURI()));
+		poco_debug(Logger(),fmt::format("REQUEST({}): {} {}", Utils::FormatIPv6(Request.clientAddress().toString()), Request.getMethod(), Request.getURI()));
 
 		if(Request.getMethod()!=Poco::Net::HTTPRequest::HTTP_POST ||
 			Request.getURI().size()<(URI_BASE.size()+36)) {
-			Logger().warning(fmt::format("ILLEGAL-REQUEST({}): {} {}. Dropped.", Utils::FormatIPv6(Request.clientAddress().toString()), Request.getMethod(), Request.getURI()));
+			poco_warning(Logger(),fmt::format("ILLEGAL-REQUEST({}): {} {}. Dropped.", Utils::FormatIPv6(Request.clientAddress().toString()), Request.getMethod(), Request.getURI()));
 			return nullptr;
 		}
 
@@ -287,17 +288,18 @@ namespace OpenWifi {
             }
             else
             {
-                Logger().warning(fmt::format("Unknown UUID={}",UUID));
+				poco_warning(Logger(),fmt::format("Unknown UUID={}",UUID));
             }
         }
         return nullptr;
     }
 
     void FileUploader::Stop() {
-        Logger().notice("Stopping...");
+		poco_notice(Logger(),"Stopping...");
         for( const auto & svr : Servers_ )
-            svr->stop();
+            svr->stopAll(true);
 		Servers_.clear();
+		poco_notice(Logger(),"Stopped...");
     }
 
 }  //  Namespace

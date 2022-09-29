@@ -38,6 +38,10 @@ namespace OpenWifi::GWObjects {
 		uint64_t 	kafkaPackets=0;
 		uint64_t 	websocketPackets=0;
 		std::string locale;
+		uint64_t 	started=0;
+		uint64_t 	sessionId=0;
+		double      connectionCompletionTime=0.0;
+
 		void to_json(Poco::JSON::Object &Obj) const;
 	};
 
@@ -74,6 +78,8 @@ namespace OpenWifi::GWObjects {
 	struct DeviceConnectionStatistics {
 		std::uint64_t connectedDevices = 0;
 		std::uint64_t averageConnectionTime = 0;
+		std::uint64_t connectingDevices = 0;
+
 		void to_json(Poco::JSON::Object &Obj) const;
 		bool from_json(const Poco::JSON::Object::Ptr &Obj);
 	};

@@ -6,10 +6,13 @@
 //	Arilia Wireless Inc.
 //
 
+#include "framework/MicroService.h"
+
 #include "Poco/Util/Application.h"
 #include "Poco/Util/Option.h"
 #include "Poco/Environment.h"
 #include "Poco/Net/SSLManager.h"
+
 
 #include "AP_WS_Server.h"
 #include "CommandManager.h"
@@ -25,7 +28,6 @@
 #include "TelemetryStream.h"
 #include "VenueBroadcaster.h"
 #include "framework/ConfigurationValidator.h"
-#include "framework/MicroService.h"
 #include "rttys/RTTYS_server.h"
 
 namespace OpenWifi {
@@ -48,9 +50,9 @@ namespace OpenWifi {
 										StorageArchiver(),
 										TelemetryStream(),
 										RTTYS_server(),
-								   		AP_WS_Server(),
 								   		RADIUS_proxy_server(),
-								   		VenueBroadcaster()
+								   		VenueBroadcaster(),
+									   	AP_WS_Server()
 							   });
         return &instance;
 	}
@@ -106,15 +108,25 @@ namespace OpenWifi {
 }
 
 int main(int argc, char **argv) {
+	int ExitCode;
 	try {
+		Poco::Net::SSLManager::instance().initializeServer(nullptr, nullptr, nullptr);
 		auto App = OpenWifi::Daemon::instance();
-		auto ExitCode =  App->run(argc, argv);
+		ExitCode =  App->run(argc, argv);
 		Poco::Net::SSLManager::instance().shutdown();
-		return ExitCode;
 	} catch (Poco::Exception &exc) {
-		std::cerr << exc.displayText() << std::endl;
-		return Poco::Util::Application::EXIT_SOFTWARE;
+		ExitCode = Poco::Util::Application::EXIT_SOFTWARE;
+		std::cout << exc.displayText() << std::endl;
+	} catch (std::exception &exc) {
+		ExitCode = Poco::Util::Application::EXIT_TEMPFAIL;
+		std::cout << exc.what() << std::endl;
+	} catch (...) {
+		ExitCode = Poco::Util::Application::EXIT_TEMPFAIL;
+		std::cout << "Exception on closure" << std::endl;
 	}
+
+	std::cout << "Exitcode: " << ExitCode << std::endl;
+	return ExitCode;
 }
 
 // end of namespace

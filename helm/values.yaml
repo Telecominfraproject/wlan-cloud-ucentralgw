@@ -46,6 +46,21 @@ services:
       rttys-view:
         servicePort: 5913
         targetPort: 5913
+  radius:
+    type: ClusterIP
+    ports:
+      acc:
+        servicePort: 1813
+        targetPort: 1813
+        protocol: UDP
+      auth:
+        servicePort: 1812
+        targetPort: 1812
+        protocol: UDP
+      coa:
+        servicePort: 3799
+        targetPort: 3799
+        protocol: UDP
 
 checks:
   owgw:
@@ -97,7 +112,7 @@ volumes:
       mountPath: /owgw-data/certs
       volumeDefinition: |
         secret:
-          secretName: {{ include "owgw.fullname" . }}-certs
+          secretName: {{ if .Values.existingCertsSecret }}{{ .Values.existingCertsSecret }}{{ else }}{{ include "owgw.fullname" . }}-certs{{ end }}
     - name: certs-cas
       mountPath: /owgw-data/certs/cas
       volumeDefinition: |
@@ -231,6 +246,11 @@ configProperties:
   rtty.timeout: 60
   rtty.viewport: 5913
   rtty.assets: $OWGW_ROOT/rtty_ui
+  # RADIUS proxy
+  radius.proxy.enable: "true"
+  radius.proxy.accounting.port: 1813
+  radius.proxy.authentication.port: 1812
+  radius.proxy.coa.port: 3799
   # ALB
   alb.enable: "true"
   alb.port: 16102
@@ -271,6 +291,7 @@ configProperties:
   openwifi.system.debug: "true"
   openwifi.system.uri.private: https://localhost:17002
   openwifi.system.uri.public: https://localhost:16002
+  openwifi.system.uri.ui: https://localhost
   openwifi.system.commandchannel: /tmp/app_owgw
   # Logging
   logging.type: console
@@ -310,166 +331,22 @@ configProperties:
   storage.type.mysql.username: stephb
   storage.type.mysql.password: snoopy99
 
+# NOTE: List of required certificates may be found in "certs" key. Alternative way to pass required certificates is to create external secret with all required certificates and set secret name in "existingCertsSecret" key. Details may be found in https://github.com/Telecominfraproject/wlan-cloud-ucentral-deploy/tree/main/chart#tldr
+existingCertsSecret: ""
+
 certs:
-  clientcas.pem: |
-    -----BEGIN CERTIFICATE-----
-    MIIEnDCCA4SgAwIBAgIUVpyCUx1MUeUwxg+7I1BvGFTz7HkwDQYJKoZIhvcNAQEL
-    BQAwaTELMAkGA1UEBhMCVVMxJDAiBgNVBAoTG1RlbGVjb20gSW5mcmEgUHJvamVj
-    dCwgSW5jLjEMMAoGA1UECxMDVElQMSYwJAYDVQQDEx1UZWxlY29tIEluZnJhIFBy
-    b2plY3QgUm9vdCBDQTAeFw0yMTA0MTMyMjUxMjZaFw0yNjA0MTMyMjM4NDZaMGwx
-    CzAJBgNVBAYTAlVTMSQwIgYDVQQKExtUZWxlY29tIEluZnJhIFByb2plY3QsIElu
-    Yy4xDDAKBgNVBAsTA1RJUDEpMCcGA1UEAxMgVGVsZWNvbSBJbmZyYSBQcm9qZWN0
-    IElzc3VpbmcgQ0EwggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQDtKBrq
-    qd2aKVSk25KfL5xHu8X7/8rJrz3IvyPuVKWhk/N1zabot3suBcGaYNKjnRHxg78R
-    yKwKzajKYWtiQFqztu24g16LQeAnoUxZnF6a0z3JkkRPsz14A2y8TUhdEe1tx+UU
-    4VGsk3n+FMmOQHL+79FO57zQC1LwylgfLSltrI6mF3jowVUQvnwzKhUzT87AJ6EO
-    ndK/q0T/Bgi+aI39zfVOjJjsTJwghvrmYW3iarP1THSKxeib2s02bZKrvvHa5HL4
-    UI8+LvREpVZl4mzt1z6Nl344Y6f+UeJlYa/Ci0jJqaXJmyVnUbAz+c0i5JfwAVn3
-    YQzfC4eLnZCmdF8zAgMBAAGjggE3MIIBMzAPBgNVHRMBAf8EBTADAQH/MB0GA1Ud
-    DgQWBBSzG1S44EerPfM4gOQ85f0AYW3R6DAfBgNVHSMEGDAWgBQCRpZgebFT9qny
-    98WfIUDk6ZEB+jAOBgNVHQ8BAf8EBAMCAYYwgYMGCCsGAQUFBwEBBHcwdTAoBggr
-    BgEFBQcwAYYcaHR0cDovL29jc3Aub25lLmRpZ2ljZXJ0LmNvbTBJBggrBgEFBQcw
-    AoY9aHR0cDovL2NhY2VydHMub25lLmRpZ2ljZXJ0LmNvbS9UZWxlY29tSW5mcmFQ
-    cm9qZWN0Um9vdENBLmNydDBKBgNVHR8EQzBBMD+gPaA7hjlodHRwOi8vY3JsLm9u
-    ZS5kaWdpY2VydC5jb20vVGVsZWNvbUluZnJhUHJvamVjdFJvb3RDQS5jcmwwDQYJ
-    KoZIhvcNAQELBQADggEBAFbz+K94bHIkBMJqps0dApniUmOn0pO6Q6cGh47UP/kX
-    IiPIsnYgG+hqYD/qtsiqJhaWi0hixRWn38UmvZxMRk27aSTGE/TWx0JTC3qDGsSe
-    XkUagumbSfmS0ZyiTwMPeGAjXwyzGorqZWeA95eKfImntMiOf3E7//GK0K7HpCx8
-    IPCnLZsZD2q/mLyBsduImFIRQJbLAhwIxpcd1qYJk+BlGFL+HtBpEbq6JxW2Xy+v
-    DpNWc2WIsUTle0rTc9JNJrLX4ChUJmKqf8obKHap3Xh3//qw/jDB9pOAinA33FLJ
-    EmCnwBvQr9mfNmPBGMYZVU8cPruDQJ57GjmmvdisbJY=
-    -----END CERTIFICATE-----
-    -----BEGIN CERTIFICATE-----
-    MIIDojCCAoqgAwIBAgIUPVYBpqNbcLYygF6Mx+qxSWwQyFowDQYJKoZIhvcNAQEL
-    BQAwaTELMAkGA1UEBhMCVVMxJDAiBgNVBAoTG1RlbGVjb20gSW5mcmEgUHJvamVj
-    dCwgSW5jLjEMMAoGA1UECxMDVElQMSYwJAYDVQQDEx1UZWxlY29tIEluZnJhIFBy
-    b2plY3QgUm9vdCBDQTAeFw0yMTA0MTMyMjQyNDRaFw0zMTA0MTMyMjM4NDZaMGkx
-    CzAJBgNVBAYTAlVTMSQwIgYDVQQKExtUZWxlY29tIEluZnJhIFByb2plY3QsIElu
-    Yy4xDDAKBgNVBAsTA1RJUDEmMCQGA1UEAxMdVGVsZWNvbSBJbmZyYSBQcm9qZWN0
-    IFJvb3QgQ0EwggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQDIGCibwf5u
-    AAwZ+1H8U0e3u2V+0d2gSctucoK86XwUmfe1V2a/qlCYZd29r80IuN1IIeB0naIm
-    KnK/MzXW87clF6tFd1+HzEvmlY/W4KyIXalVCTEzirFSvBEG2oZpM0yC3AefytAO
-    aOpA00LaM3xTfTqMKIRhJBuLy0I4ANUVG6ixVebbGuc78IodleqiLoWy2Q9QHyEO
-    t/7hZndJhiVogh0PveRhho45EbsACu7ymDY+JhlIleevqwlE3iQoq0YcmYADHno6
-    Eq8vcwLpZFxihupUafkd1T3WJYQAJf9coCjBu2qIhNgrcrGD8R9fGswwNRzMRMpX
-    720+GjcDW3bJAgMBAAGjQjBAMA8GA1UdEwEB/wQFMAMBAf8wHQYDVR0OBBYEFAJG
-    lmB5sVP2qfL3xZ8hQOTpkQH6MA4GA1UdDwEB/wQEAwIBhjANBgkqhkiG9w0BAQsF
-    AAOCAQEAVjl9dm4epG9NUYnagT9sg7scVQEPfz3Lt6w1NXJXgD8mAUlK0jXmEyvM
-    dCPD4514n+8+lM7US8fh+nxc7jO//LwK17Wm9FblgjNFR7+anv0Q99T9fP19DLlF
-    PSNHL2emogy1bl1lLTAoj8nxg2wVKPDSHBGviQ5LR9fsWUIJDv9Bs5k0qWugWYSj
-    19S6qnHeskRDB8MqRLhKMG82oDVLerSnhD0P6HjySBHgTTU7/tYS/OZr1jI6MPbG
-    L+/DtiR5fDVMNdBSGU89UNTi0wHY9+RFuNlIuvZC+x/swF0V9R5mN+ywquTPtDLA
-    5IOM7ItsRmen6u3qu+JXros54e4juQ==
-    -----END CERTIFICATE-----
-  issuer.pem: |
-    -----BEGIN CERTIFICATE-----
-    MIIEnDCCA4SgAwIBAgIUVpyCUx1MUeUwxg+7I1BvGFTz7HkwDQYJKoZIhvcNAQEL
-    BQAwaTELMAkGA1UEBhMCVVMxJDAiBgNVBAoTG1RlbGVjb20gSW5mcmEgUHJvamVj
-    dCwgSW5jLjEMMAoGA1UECxMDVElQMSYwJAYDVQQDEx1UZWxlY29tIEluZnJhIFBy
-    b2plY3QgUm9vdCBDQTAeFw0yMTA0MTMyMjUxMjZaFw0yNjA0MTMyMjM4NDZaMGwx
-    CzAJBgNVBAYTAlVTMSQwIgYDVQQKExtUZWxlY29tIEluZnJhIFByb2plY3QsIElu
-    Yy4xDDAKBgNVBAsTA1RJUDEpMCcGA1UEAxMgVGVsZWNvbSBJbmZyYSBQcm9qZWN0
-    IElzc3VpbmcgQ0EwggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQDtKBrq
-    qd2aKVSk25KfL5xHu8X7/8rJrz3IvyPuVKWhk/N1zabot3suBcGaYNKjnRHxg78R
-    yKwKzajKYWtiQFqztu24g16LQeAnoUxZnF6a0z3JkkRPsz14A2y8TUhdEe1tx+UU
-    4VGsk3n+FMmOQHL+79FO57zQC1LwylgfLSltrI6mF3jowVUQvnwzKhUzT87AJ6EO
-    ndK/q0T/Bgi+aI39zfVOjJjsTJwghvrmYW3iarP1THSKxeib2s02bZKrvvHa5HL4
-    UI8+LvREpVZl4mzt1z6Nl344Y6f+UeJlYa/Ci0jJqaXJmyVnUbAz+c0i5JfwAVn3
-    YQzfC4eLnZCmdF8zAgMBAAGjggE3MIIBMzAPBgNVHRMBAf8EBTADAQH/MB0GA1Ud
-    DgQWBBSzG1S44EerPfM4gOQ85f0AYW3R6DAfBgNVHSMEGDAWgBQCRpZgebFT9qny
-    98WfIUDk6ZEB+jAOBgNVHQ8BAf8EBAMCAYYwgYMGCCsGAQUFBwEBBHcwdTAoBggr
-    BgEFBQcwAYYcaHR0cDovL29jc3Aub25lLmRpZ2ljZXJ0LmNvbTBJBggrBgEFBQcw
-    AoY9aHR0cDovL2NhY2VydHMub25lLmRpZ2ljZXJ0LmNvbS9UZWxlY29tSW5mcmFQ
-    cm9qZWN0Um9vdENBLmNydDBKBgNVHR8EQzBBMD+gPaA7hjlodHRwOi8vY3JsLm9u
-    ZS5kaWdpY2VydC5jb20vVGVsZWNvbUluZnJhUHJvamVjdFJvb3RDQS5jcmwwDQYJ
-    KoZIhvcNAQELBQADggEBAFbz+K94bHIkBMJqps0dApniUmOn0pO6Q6cGh47UP/kX
-    IiPIsnYgG+hqYD/qtsiqJhaWi0hixRWn38UmvZxMRk27aSTGE/TWx0JTC3qDGsSe
-    XkUagumbSfmS0ZyiTwMPeGAjXwyzGorqZWeA95eKfImntMiOf3E7//GK0K7HpCx8
-    IPCnLZsZD2q/mLyBsduImFIRQJbLAhwIxpcd1qYJk+BlGFL+HtBpEbq6JxW2Xy+v
-    DpNWc2WIsUTle0rTc9JNJrLX4ChUJmKqf8obKHap3Xh3//qw/jDB9pOAinA33FLJ
-    EmCnwBvQr9mfNmPBGMYZVU8cPruDQJ57GjmmvdisbJY=
-    -----END CERTIFICATE-----
-  # restapi-ca.pem: ""
-  # restapi-cert.pem: ""
-  # restapi-key.pem: ""
-  root.pem: |
-    -----BEGIN CERTIFICATE-----
-    MIIDojCCAoqgAwIBAgIUPVYBpqNbcLYygF6Mx+qxSWwQyFowDQYJKoZIhvcNAQEL
-    BQAwaTELMAkGA1UEBhMCVVMxJDAiBgNVBAoTG1RlbGVjb20gSW5mcmEgUHJvamVj
-    dCwgSW5jLjEMMAoGA1UECxMDVElQMSYwJAYDVQQDEx1UZWxlY29tIEluZnJhIFBy
-    b2plY3QgUm9vdCBDQTAeFw0yMTA0MTMyMjQyNDRaFw0zMTA0MTMyMjM4NDZaMGkx
-    CzAJBgNVBAYTAlVTMSQwIgYDVQQKExtUZWxlY29tIEluZnJhIFByb2plY3QsIElu
-    Yy4xDDAKBgNVBAsTA1RJUDEmMCQGA1UEAxMdVGVsZWNvbSBJbmZyYSBQcm9qZWN0
-    IFJvb3QgQ0EwggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQDIGCibwf5u
-    AAwZ+1H8U0e3u2V+0d2gSctucoK86XwUmfe1V2a/qlCYZd29r80IuN1IIeB0naIm
-    KnK/MzXW87clF6tFd1+HzEvmlY/W4KyIXalVCTEzirFSvBEG2oZpM0yC3AefytAO
-    aOpA00LaM3xTfTqMKIRhJBuLy0I4ANUVG6ixVebbGuc78IodleqiLoWy2Q9QHyEO
-    t/7hZndJhiVogh0PveRhho45EbsACu7ymDY+JhlIleevqwlE3iQoq0YcmYADHno6
-    Eq8vcwLpZFxihupUafkd1T3WJYQAJf9coCjBu2qIhNgrcrGD8R9fGswwNRzMRMpX
-    720+GjcDW3bJAgMBAAGjQjBAMA8GA1UdEwEB/wQFMAMBAf8wHQYDVR0OBBYEFAJG
-    lmB5sVP2qfL3xZ8hQOTpkQH6MA4GA1UdDwEB/wQEAwIBhjANBgkqhkiG9w0BAQsF
-    AAOCAQEAVjl9dm4epG9NUYnagT9sg7scVQEPfz3Lt6w1NXJXgD8mAUlK0jXmEyvM
-    dCPD4514n+8+lM7US8fh+nxc7jO//LwK17Wm9FblgjNFR7+anv0Q99T9fP19DLlF
-    PSNHL2emogy1bl1lLTAoj8nxg2wVKPDSHBGviQ5LR9fsWUIJDv9Bs5k0qWugWYSj
-    19S6qnHeskRDB8MqRLhKMG82oDVLerSnhD0P6HjySBHgTTU7/tYS/OZr1jI6MPbG
-    L+/DtiR5fDVMNdBSGU89UNTi0wHY9+RFuNlIuvZC+x/swF0V9R5mN+ywquTPtDLA
-    5IOM7ItsRmen6u3qu+JXros54e4juQ==
-    -----END CERTIFICATE-----
-  # websocket-cert.pem: ""
-  # websocket-key.pem: ""
+  clientcas.pem: ""
+  issuer.pem: ""
+  restapi-ca.pem: ""
+  restapi-cert.pem: ""
+  restapi-key.pem: ""
+  root.pem: ""
+  websocket-cert.pem: ""
+  websocket-key.pem: ""
 
 certsCAs:
-  issuer.pem: |
-    -----BEGIN CERTIFICATE-----
-    MIIEnDCCA4SgAwIBAgIUVpyCUx1MUeUwxg+7I1BvGFTz7HkwDQYJKoZIhvcNAQEL
-    BQAwaTELMAkGA1UEBhMCVVMxJDAiBgNVBAoTG1RlbGVjb20gSW5mcmEgUHJvamVj
-    dCwgSW5jLjEMMAoGA1UECxMDVElQMSYwJAYDVQQDEx1UZWxlY29tIEluZnJhIFBy
-    b2plY3QgUm9vdCBDQTAeFw0yMTA0MTMyMjUxMjZaFw0yNjA0MTMyMjM4NDZaMGwx
-    CzAJBgNVBAYTAlVTMSQwIgYDVQQKExtUZWxlY29tIEluZnJhIFByb2plY3QsIElu
-    Yy4xDDAKBgNVBAsTA1RJUDEpMCcGA1UEAxMgVGVsZWNvbSBJbmZyYSBQcm9qZWN0
-    IElzc3VpbmcgQ0EwggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQDtKBrq
-    qd2aKVSk25KfL5xHu8X7/8rJrz3IvyPuVKWhk/N1zabot3suBcGaYNKjnRHxg78R
-    yKwKzajKYWtiQFqztu24g16LQeAnoUxZnF6a0z3JkkRPsz14A2y8TUhdEe1tx+UU
-    4VGsk3n+FMmOQHL+79FO57zQC1LwylgfLSltrI6mF3jowVUQvnwzKhUzT87AJ6EO
-    ndK/q0T/Bgi+aI39zfVOjJjsTJwghvrmYW3iarP1THSKxeib2s02bZKrvvHa5HL4
-    UI8+LvREpVZl4mzt1z6Nl344Y6f+UeJlYa/Ci0jJqaXJmyVnUbAz+c0i5JfwAVn3
-    YQzfC4eLnZCmdF8zAgMBAAGjggE3MIIBMzAPBgNVHRMBAf8EBTADAQH/MB0GA1Ud
-    DgQWBBSzG1S44EerPfM4gOQ85f0AYW3R6DAfBgNVHSMEGDAWgBQCRpZgebFT9qny
-    98WfIUDk6ZEB+jAOBgNVHQ8BAf8EBAMCAYYwgYMGCCsGAQUFBwEBBHcwdTAoBggr
-    BgEFBQcwAYYcaHR0cDovL29jc3Aub25lLmRpZ2ljZXJ0LmNvbTBJBggrBgEFBQcw
-    AoY9aHR0cDovL2NhY2VydHMub25lLmRpZ2ljZXJ0LmNvbS9UZWxlY29tSW5mcmFQ
-    cm9qZWN0Um9vdENBLmNydDBKBgNVHR8EQzBBMD+gPaA7hjlodHRwOi8vY3JsLm9u
-    ZS5kaWdpY2VydC5jb20vVGVsZWNvbUluZnJhUHJvamVjdFJvb3RDQS5jcmwwDQYJ
-    KoZIhvcNAQELBQADggEBAFbz+K94bHIkBMJqps0dApniUmOn0pO6Q6cGh47UP/kX
-    IiPIsnYgG+hqYD/qtsiqJhaWi0hixRWn38UmvZxMRk27aSTGE/TWx0JTC3qDGsSe
-    XkUagumbSfmS0ZyiTwMPeGAjXwyzGorqZWeA95eKfImntMiOf3E7//GK0K7HpCx8
-    IPCnLZsZD2q/mLyBsduImFIRQJbLAhwIxpcd1qYJk+BlGFL+HtBpEbq6JxW2Xy+v
-    DpNWc2WIsUTle0rTc9JNJrLX4ChUJmKqf8obKHap3Xh3//qw/jDB9pOAinA33FLJ
-    EmCnwBvQr9mfNmPBGMYZVU8cPruDQJ57GjmmvdisbJY=
-    -----END CERTIFICATE-----
-  root.pem: |
-    -----BEGIN CERTIFICATE-----
-    MIIDojCCAoqgAwIBAgIUPVYBpqNbcLYygF6Mx+qxSWwQyFowDQYJKoZIhvcNAQEL
-    BQAwaTELMAkGA1UEBhMCVVMxJDAiBgNVBAoTG1RlbGVjb20gSW5mcmEgUHJvamVj
-    dCwgSW5jLjEMMAoGA1UECxMDVElQMSYwJAYDVQQDEx1UZWxlY29tIEluZnJhIFBy
-    b2plY3QgUm9vdCBDQTAeFw0yMTA0MTMyMjQyNDRaFw0zMTA0MTMyMjM4NDZaMGkx
-    CzAJBgNVBAYTAlVTMSQwIgYDVQQKExtUZWxlY29tIEluZnJhIFByb2plY3QsIElu
-    Yy4xDDAKBgNVBAsTA1RJUDEmMCQGA1UEAxMdVGVsZWNvbSBJbmZyYSBQcm9qZWN0
-    IFJvb3QgQ0EwggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQDIGCibwf5u
-    AAwZ+1H8U0e3u2V+0d2gSctucoK86XwUmfe1V2a/qlCYZd29r80IuN1IIeB0naIm
-    KnK/MzXW87clF6tFd1+HzEvmlY/W4KyIXalVCTEzirFSvBEG2oZpM0yC3AefytAO
-    aOpA00LaM3xTfTqMKIRhJBuLy0I4ANUVG6ixVebbGuc78IodleqiLoWy2Q9QHyEO
-    t/7hZndJhiVogh0PveRhho45EbsACu7ymDY+JhlIleevqwlE3iQoq0YcmYADHno6
-    Eq8vcwLpZFxihupUafkd1T3WJYQAJf9coCjBu2qIhNgrcrGD8R9fGswwNRzMRMpX
-    720+GjcDW3bJAgMBAAGjQjBAMA8GA1UdEwEB/wQFMAMBAf8wHQYDVR0OBBYEFAJG
-    lmB5sVP2qfL3xZ8hQOTpkQH6MA4GA1UdDwEB/wQEAwIBhjANBgkqhkiG9w0BAQsF
-    AAOCAQEAVjl9dm4epG9NUYnagT9sg7scVQEPfz3Lt6w1NXJXgD8mAUlK0jXmEyvM
-    dCPD4514n+8+lM7US8fh+nxc7jO//LwK17Wm9FblgjNFR7+anv0Q99T9fP19DLlF
-    PSNHL2emogy1bl1lLTAoj8nxg2wVKPDSHBGviQ5LR9fsWUIJDv9Bs5k0qWugWYSj
-    19S6qnHeskRDB8MqRLhKMG82oDVLerSnhD0P6HjySBHgTTU7/tYS/OZr1jI6MPbG
-    L+/DtiR5fDVMNdBSGU89UNTi0wHY9+RFuNlIuvZC+x/swF0V9R5mN+ywquTPtDLA
-    5IOM7ItsRmen6u3qu+JXros54e4juQ==
-    -----END CERTIFICATE-----
+  issuer.pem: ""
+  root.pem: ""
 
 # PostgreSQL (https://github.com/bitnami/charts/tree/master/bitnami/postgresql)
 postgresql:

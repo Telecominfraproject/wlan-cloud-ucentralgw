@@ -1711,7 +1711,7 @@ namespace OpenWifi {
 		nlohmann::json 	new_ie;
 		nlohmann::json 	content;
 
-		std::cout << BufferToHex(&data[0],data.size()) << std::endl;
+		// std::cout << BufferToHex(&data[0],data.size()) << std::endl;
 		uint offset=0;
 		auto sub_ie = data[offset++];
 		switch (sub_ie) {
@@ -1745,7 +1745,7 @@ namespace OpenWifi {
 
 		try {
 			nlohmann::json D = nlohmann::json::parse(ofs.str());
-			std::cout << "Start of parsing wifi" << std::endl;
+			// std::cout << "Start of parsing wifi" << std::endl;
 			if (D.contains("status")) {
 				auto Status = D["status"];
 				if (Status.contains("scan") && Status["scan"].is_array()) {
@@ -1814,17 +1814,17 @@ namespace OpenWifi {
 										} else if (ie_type == ieee80211_eid::WLAN_EID_EXTENSION) {
 											new_ies.push_back(WFS_WLAN_EID_EXTENSION(data));
 										} else {
-											std::cout
-												<< "Skipping IE: no parsing available: " << ie_type
-												<< std::endl;
+											// std::cout
+											//	<< "Skipping IE: no parsing available: " << ie_type
+											//	<< std::endl;
 											new_ies.push_back(ie);
 										}
 									} else {
-										std::cout << "Skipping IE: no data and type" << std::endl;
+										// std::cout << "Skipping IE: no data and type" << std::endl;
 										new_ies.push_back(ie);
 									}
 								} catch (...) {
-									std::cout << "Skipping IE: exception" << std::endl;
+									// std::cout << "Skipping IE: exception" << std::endl;
 									Logger.information(fmt::format("Error parsing IEs"));
 									new_ies.push_back(ie);
 								}
@@ -1832,7 +1832,7 @@ namespace OpenWifi {
 							scan_entry["ies"] = new_ies;
 							ParsedScan.push_back(scan_entry);
 						} else {
-							std::cout << "Skipping scan" << std::endl;
+							// std::cout << "Skipping scan" << std::endl;
 							ParsedScan.push_back(scan_entry);
 						}
 					}
@@ -1841,7 +1841,7 @@ namespace OpenWifi {
 				}
 			}
 			Result << to_string(D);
-			std::cout << "End of parsing wifi" << std::endl;
+			// std::cout << "End of parsing wifi" << std::endl;
 			return true;
 		} catch (const Poco::Exception &E) {
 			Logger.log(E);

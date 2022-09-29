@@ -9,12 +9,15 @@
 #include "Poco/JSON/Object.h"
 #include "AP_WS_Server.h"
 #include "DeviceRegistry.h"
+#include "CommandManager.h"
+
+#include "framework/WebSocketClientNotifications.h"
 
 namespace OpenWifi {
 
 	int DeviceRegistry::Start() {
 		std::lock_guard		Guard(Mutex_);
-        Logger().notice("Starting ");
+		poco_notice(Logger(),"Starting");
 
 		ArchiverCallback_ = std::make_unique<Poco::TimerCallback<DeviceRegistry>>(*this,&DeviceRegistry::onConnectionJanitor);
 		Timer_.setStartInterval(60 * 1000);
@@ -25,157 +28,171 @@ namespace OpenWifi {
     }
 
     void DeviceRegistry::Stop() {
+		poco_notice(Logger(),"Stopping...");
 		std::lock_guard		Guard(Mutex_);
 		Timer_.stop();
-        Logger().notice("Stopping...");
+		poco_notice(Logger(),"Stopped...");
     }
 
 	void DeviceRegistry::onConnectionJanitor([[maybe_unused]] Poco::Timer &timer) {
 
 		static std::uint64_t last_log = OpenWifi::Now();
 
-		using session_tuple=std::tuple<std::uint64_t,AP_WS_Connection *,std::uint64_t>;
-		std::vector<session_tuple> connections;
-		{
-			std::shared_lock Guard(M_);
+		std::shared_lock Guard(LocalMutex_);
 
-			NumberOfConnectedDevices_ = 0;
-			AverageDeviceConnectionTime_ = 0;
-			std::uint64_t	total_connected_time=0;
+		NumberOfConnectedDevices_ = 0;
+		NumberOfConnectingDevices_ = 0;
+		AverageDeviceConnectionTime_ = 0;
+		std::uint64_t	total_connected_time=0;
 
-			auto now = OpenWifi::Now();
-			for (const auto &[serial_number, connection_info] : SerialNumbers_) {
-				if ((now - connection_info.second->State_.LastContact) > 500) {
-					session_tuple S{serial_number,connection_info.second,connection_info.second->ConnectionId_};
-					connections.emplace_back(S);
-				} else {
-					NumberOfConnectedDevices_++;
-					total_connected_time += (now - connection_info.second->Started_);
-				}
+		auto now = OpenWifi::Now();
+		for (auto connection=SerialNumbers_.begin(); connection!=SerialNumbers_.end();) {
+
+			if(connection->second.second== nullptr) {
+				connection++;
+				continue;
 			}
-			AverageDeviceConnectionTime_ = (NumberOfConnectedDevices_!=0) ? total_connected_time/NumberOfConnectedDevices_ : 0;
-			if((now-last_log)>120) {
-				last_log = now;
-				Logger().information(
-					fmt::format("Active AP connections: {} Average connection time: {} seconds",
-								NumberOfConnectedDevices_, AverageDeviceConnectionTime_));
+
+			if (connection->second.second->State_.Connected) {
+				NumberOfConnectedDevices_++;
+				total_connected_time += (now - connection->second.second->State_.started);
+				connection++;
+			} else {
+				NumberOfConnectingDevices_++;
+				connection++;
 			}
 		}
 
-		for(auto [serial_number,ws_connection,id]:connections) {
-			Logger().information(fmt::format("Removing orphaned AP Session {} for {}", id, Utils::IntToSerialNumber(serial_number)));
-			// delete ws_connection;
+		AverageDeviceConnectionTime_ = (NumberOfConnectedDevices_!=0) ? total_connected_time/NumberOfConnectedDevices_ : 0;
+		if((now-last_log)>120) {
+			last_log = now;
+			poco_information(Logger(),
+				fmt::format("Active AP connections: {} Connecting: {} Average connection time: {} seconds",
+							NumberOfConnectedDevices_, NumberOfConnectingDevices_, AverageDeviceConnectionTime_));
 		}
+		WebSocketClientNotificationNumberOfConnections(NumberOfConnectedDevices_,
+													   AverageDeviceConnectionTime_,
+													   NumberOfConnectingDevices_);
 	}
 
-    bool DeviceRegistry::GetStatistics(uint64_t SerialNumber, std::string & Statistics) {
-		std::shared_lock	Guard(M_);
+    bool DeviceRegistry::GetStatistics(uint64_t SerialNumber, std::string & Statistics) const {
+		std::shared_lock	Guard(LocalMutex_);
         auto Device = SerialNumbers_.find(SerialNumber);
-        if(Device == SerialNumbers_.end())
+        if(Device == SerialNumbers_.end() || Device->second.second==nullptr)
 			return false;
 		Statistics = Device->second.second->LastStats_;
 		return true;
     }
 
-    bool DeviceRegistry::GetState(uint64_t SerialNumber, GWObjects::ConnectionState & State) {
-		std::shared_lock	Guard(M_);
+    bool DeviceRegistry::GetState(uint64_t SerialNumber, GWObjects::ConnectionState & State) const {
+		std::shared_lock	Guard(LocalMutex_);
         auto Device = SerialNumbers_.find(SerialNumber);
-        if(Device == SerialNumbers_.end())
+        if(Device == SerialNumbers_.end() || Device->second.second==nullptr)
 			return false;
-
 		State = Device->second.second->State_;
 		return true;
     }
 
-	bool DeviceRegistry::EndSession(std::uint64_t connection_id, [[maybe_unused]] AP_WS_Connection * connection, std::uint64_t serial_number) {
-		std::unique_lock	G(M_);
-
-		auto Session = Sessions_.find(connection_id);
-		if(Session==end(Sessions_)) {
-			return false;
-		}
-
-		auto hint = SerialNumbers_.find(serial_number);
-
-		bool SessionDeleted = false;
-
-		if(	(hint != end(SerialNumbers_)) &&
-			(connection_id == hint->second.second->ConnectionId_)) {
-			Logger().information(fmt::format("Ending session {}, serial {}.", connection_id, Utils::IntToSerialNumber(serial_number)));
-			SerialNumbers_.erase(serial_number);
-			SessionDeleted = true;
-		} else {
-			Logger().information(fmt::format("Not Ending session {}, serial {}. This is an old session.", connection_id, Utils::IntToSerialNumber(serial_number)));
-		}
-		Sessions_.erase(connection_id);
-		return SessionDeleted;
-	}
-
-	bool DeviceRegistry::GetHealthcheck(uint64_t SerialNumber, GWObjects::HealthCheck & CheckData) {
-		std::shared_lock	Guard(M_);
+	bool DeviceRegistry::GetHealthcheck(uint64_t SerialNumber, GWObjects::HealthCheck & CheckData) const {
+		std::shared_lock	Guard(LocalMutex_);
 
 		auto Device = SerialNumbers_.find(SerialNumber);
-		if(Device == SerialNumbers_.end())
+		if(Device == SerialNumbers_.end() || Device->second.second==nullptr)
 			return false;
 
 		CheckData = Device->second.second->LastHealthcheck_;
 		return true;
 	}
 
-    bool DeviceRegistry::Connected(uint64_t SerialNumber) {
-		std::shared_lock Guard(M_);
-		return SerialNumbers_.find(SerialNumber) != SerialNumbers_.end();
+	bool DeviceRegistry::EndSession(std::uint64_t connection_id, std::uint64_t serial_number) {
+		std::unique_lock	G(LocalMutex_);
+
+		auto Connection = SerialNumbers_.find(serial_number);
+		if(Connection==end(SerialNumbers_)) {
+			return false;
+		}
+
+		if(Connection->second.first!=connection_id) {
+			return false;
+		}
+
+		SerialNumbers_.erase(Connection);
+		return true;
 	}
 
-	bool DeviceRegistry::SendFrame(uint64_t SerialNumber, const std::string & Payload) {
-		std::shared_lock	Guard(M_);
+	void DeviceRegistry::SetSessionDetails(std::uint64_t connection_id, uint64_t SerialNumber) {
+		auto Connection = AP_WS_Server()->FindConnection(connection_id);
+
+		if(Connection== nullptr)
+			return;
+
+		std::unique_lock	G(LocalMutex_);
+		auto CurrentSerialNumber = SerialNumbers_.find(SerialNumber);
+		if(	(CurrentSerialNumber==SerialNumbers_.end())	||
+			(CurrentSerialNumber->second.first<connection_id)) {
+			SerialNumbers_[SerialNumber] = std::make_pair(connection_id, Connection);
+			return;
+		}
+	}
+
+    bool DeviceRegistry::Connected(uint64_t SerialNumber) const {
+		std::shared_lock Guard(LocalMutex_);
 		auto Device = SerialNumbers_.find(SerialNumber);
-		if(Device==SerialNumbers_.end())
+		if(Device==end(SerialNumbers_) || Device->second.second== nullptr)
+			return false;
+
+		return  Device->second.second->State_.Connected;
+	}
+
+	bool DeviceRegistry::SendFrame(uint64_t SerialNumber, const std::string & Payload) const {
+		std::shared_lock	Guard(LocalMutex_);
+		auto Device = SerialNumbers_.find(SerialNumber);
+		if(Device==SerialNumbers_.end() || Device->second.second== nullptr)
 			return false;
 
 		try {
 			// std::cout << "Device connection pointer: " << (std::uint64_t) Device->second.second << std::endl;
 			return Device->second.second->Send(Payload);
 		} catch (...) {
-			Logger().debug(fmt::format(": SendFrame: Could not send data to device '{}'", Utils::IntToSerialNumber(SerialNumber)));
+			poco_debug(Logger(),fmt::format(": SendFrame: Could not send data to device '{}'", Utils::IntToSerialNumber(SerialNumber)));
 		}
 		return false;
 	}
 
-	void DeviceRegistry::StopWebSocketTelemetry(uint64_t SerialNumber) {
-		std::shared_lock	Guard(M_);
+	void DeviceRegistry::StopWebSocketTelemetry(std::uint64_t RPCID, uint64_t SerialNumber) {
+		std::shared_lock	Guard(LocalMutex_);
 
 		auto Device = SerialNumbers_.find(SerialNumber);
-		if(Device==end(SerialNumbers_))
+		if(Device==end(SerialNumbers_) || Device->second.second==nullptr)
 			return;
-		Device->second.second->StopWebSocketTelemetry();
+		Device->second.second->StopWebSocketTelemetry(RPCID);
 	}
 
-	void DeviceRegistry::SetWebSocketTelemetryReporting(uint64_t SerialNumber, uint64_t Interval, uint64_t Lifetime) {
-		std::shared_lock	Guard(M_);
+	void DeviceRegistry::SetWebSocketTelemetryReporting(std::uint64_t RPCID, uint64_t SerialNumber, uint64_t Interval, uint64_t Lifetime) {
+		std::shared_lock	Guard(LocalMutex_);
 
 		auto Device = SerialNumbers_.find(SerialNumber);
-		if(Device==end(SerialNumbers_))
+		if(Device==end(SerialNumbers_) || Device->second.second==nullptr)
 			return;
-		Device->second.second->SetWebSocketTelemetryReporting(Interval, Lifetime);
+		Device->second.second->SetWebSocketTelemetryReporting(RPCID, Interval, Lifetime);
 	}
 
-	void DeviceRegistry::SetKafkaTelemetryReporting(uint64_t SerialNumber, uint64_t Interval, uint64_t Lifetime) {
-		std::shared_lock	Guard(M_);
+	void DeviceRegistry::SetKafkaTelemetryReporting(std::uint64_t RPCID, uint64_t SerialNumber, uint64_t Interval, uint64_t Lifetime) {
+		std::shared_lock	Guard(LocalMutex_);
 
 		auto Device = SerialNumbers_.find(SerialNumber);
-		if(Device==end(SerialNumbers_))
+		if(Device==end(SerialNumbers_) || Device->second.second== nullptr)
 			return;
-		Device->second.second->SetKafkaTelemetryReporting(Interval, Lifetime);
+		Device->second.second->SetKafkaTelemetryReporting(RPCID, Interval, Lifetime);
 	}
 
-	void DeviceRegistry::StopKafkaTelemetry(uint64_t SerialNumber) {
-		std::shared_lock	Guard(M_);
+	void DeviceRegistry::StopKafkaTelemetry(std::uint64_t RPCID, uint64_t SerialNumber) {
+		std::shared_lock	Guard(LocalMutex_);
 
 		auto Device = SerialNumbers_.find(SerialNumber);
-		if(Device==end(SerialNumbers_))
+		if(Device==end(SerialNumbers_) || Device->second.second== nullptr)
 			return;
-		Device->second.second->StopKafkaTelemetry();
+		Device->second.second->StopKafkaTelemetry(RPCID);
 	}
 
 	void DeviceRegistry::GetTelemetryParameters(uint64_t SerialNumber , bool & TelemetryRunning,
@@ -186,10 +203,10 @@ namespace OpenWifi {
 								uint64_t & TelemetryKafkaCount,
 								uint64_t & TelemetryWebSocketPackets,
 								uint64_t & TelemetryKafkaPackets) {
-		std::shared_lock	Guard(M_);
+		std::shared_lock	Guard(LocalMutex_);
 
 		auto Device = SerialNumbers_.find(SerialNumber);
-		if(Device==end(SerialNumbers_))
+		if(Device==end(SerialNumbers_)|| Device->second.second== nullptr)
 			return;
 		Device->second.second->GetTelemetryParameters(TelemetryRunning,
 													  TelemetryInterval,
@@ -202,54 +219,45 @@ namespace OpenWifi {
 	}
 
 	bool DeviceRegistry::SendRadiusAccountingData(const std::string & SerialNumber, const unsigned char * buffer, std::size_t size) {
-		std::shared_lock	Guard(M_);
+		std::shared_lock	Guard(LocalMutex_);
 		auto Device = 		SerialNumbers_.find(Utils::SerialNumberToInt(SerialNumber));
-		if(Device==SerialNumbers_.end())
+		if(Device==SerialNumbers_.end() || Device->second.second== nullptr)
 			return false;
 
 		try {
 			return Device->second.second->SendRadiusAccountingData(buffer,size);
 		} catch (...) {
-			Logger().debug(fmt::format(": SendRadiusAuthenticationData: Could not send data to device '{}'", SerialNumber));
+			poco_debug(Logger(),fmt::format(": SendRadiusAuthenticationData: Could not send data to device '{}'", SerialNumber));
 		}
 		return false;
 	}
 
 	bool DeviceRegistry::SendRadiusAuthenticationData(const std::string & SerialNumber, const unsigned char * buffer, std::size_t size) {
-		std::shared_lock	Guard(M_);
+		std::shared_lock	Guard(LocalMutex_);
 		auto Device = 		SerialNumbers_.find(Utils::SerialNumberToInt(SerialNumber));
-		if(Device==SerialNumbers_.end())
+		if(Device==SerialNumbers_.end() || Device->second.second== nullptr)
 			return false;
 
 		try {
 			return Device->second.second->SendRadiusAuthenticationData(buffer,size);
 		} catch (...) {
-			Logger().debug(fmt::format(": SendRadiusAuthenticationData: Could not send data to device '{}'", SerialNumber));
+			poco_debug(Logger(),fmt::format(": SendRadiusAuthenticationData: Could not send data to device '{}'", SerialNumber));
 		}
 		return false;
 	}
 
 	bool DeviceRegistry::SendRadiusCoAData(const std::string & SerialNumber, const unsigned char * buffer, std::size_t size) {
-		std::shared_lock	Guard(M_);
+		std::shared_lock	Guard(LocalMutex_);
 		auto Device = 		SerialNumbers_.find(Utils::SerialNumberToInt(SerialNumber));
-		if(Device==SerialNumbers_.end())
+		if(Device==SerialNumbers_.end() || Device->second.second== nullptr)
 			return false;
 
 		try {
 			return Device->second.second->SendRadiusCoAData(buffer,size);
 		} catch (...) {
-			Logger().debug(fmt::format(": SendRadiusCoAData: Could not send data to device '{}'", SerialNumber));
+			poco_debug(Logger(),fmt::format(": SendRadiusCoAData: Could not send data to device '{}'", SerialNumber));
 		}
 		return false;
-	}
-
-	void DeviceRegistry::SetPendingUUID(uint64_t SerialNumber, uint64_t PendingUUID) {
-		std::unique_lock		Guard(M_);
-		auto Device = SerialNumbers_.find(SerialNumber);
-		if(Device==SerialNumbers_.end())
-			return;
-
-		Device->second.second->State_.PendingUUID = PendingUUID;
 	}
 
 }  // namespace

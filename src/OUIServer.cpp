@@ -29,13 +29,15 @@ namespace OpenWifi {
 	}
 
 	void OUIServer::Stop() {
+		poco_notice(Logger(),"Stopping...");
 		Running_=false;
 		Timer_.stop();
+		poco_notice(Logger(),"Stopped...");
 	}
 
 	void OUIServer::reinitialize([[maybe_unused]] Poco::Util::Application &self) {
 		MicroService::instance().LoadConfigurationFile();
-		Logger().information("Reinitializing.");
+		poco_information(Logger(),"Reinitializing.");
 		Stop();
 		Start();
 	}
@@ -43,14 +45,14 @@ namespace OpenWifi {
 	bool OUIServer::GetFile(const std::string &FileName) {
 		try {
 			LastUpdate_ = OpenWifi::Now();
-			Logger().information(fmt::format("Start: Retrieving OUI file: {}",MicroService::instance().ConfigGetString("oui.download.uri")));
+			poco_information(Logger(), fmt::format("Start: Retrieving OUI file: {}",MicroService::instance().ConfigGetString("oui.download.uri")));
 			std::unique_ptr<std::istream> pStr(
 				Poco::URIStreamOpener::defaultOpener().open(MicroService::instance().ConfigGetString("oui.download.uri")));
 			std::ofstream OS;
 			OS.open(FileName);
 			Poco::StreamCopier::copyStream(*pStr, OS);
 			OS.close();
-			Logger().information(fmt::format("Done: Retrieving OUI file: {}",MicroService::instance().ConfigGetString("oui.download.uri")));
+			poco_information(Logger(), fmt::format("Done: Retrieving OUI file: {}",MicroService::instance().ConfigGetString("oui.download.uri")));
 			return true;
 		} catch (const Poco::Exception &E) {
 			Logger().log(E);
@@ -108,7 +110,7 @@ namespace OpenWifi {
 					if(ProcessFile(CurrentOUIFileName_, OUIs_)) {
 						Initialized_ = true;
 						Updating_=false;
-						Logger().information("Using cached file.");
+						poco_information(Logger(), "Using cached file.");
 						return;
 					}
 				} else {
@@ -128,7 +130,7 @@ namespace OpenWifi {
 				F1.remove();
 			Poco::File F2(LatestOUIFileName_);
 			F2.renameTo(CurrentOUIFileName_);
-			Logger().information(fmt::format("New OUI file {} downloaded.",LatestOUIFileName_));
+			poco_information(Logger(), fmt::format("New OUI file {} downloaded.",LatestOUIFileName_));
 		} else if(OUIs_.empty()) {
 			if(ProcessFile(CurrentOUIFileName_, TmpOUIs)) {
 				LastUpdate_ = OpenWifi::Now();

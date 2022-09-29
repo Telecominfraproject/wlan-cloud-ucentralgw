@@ -19,9 +19,9 @@ namespace OpenWifi {
 	void AP_WS_RequestHandler::handleRequest(Poco::Net::HTTPServerRequest &request,
 											 Poco::Net::HTTPServerResponse &response)  {
 		try {
-			new AP_WS_Connection(request,response,id_);
+			AP_WS_Server()->AddConnection(id_,std::make_shared<AP_WS_Connection>(request,response,id_, Logger_, AP_WS_Server()->NextReactor()));
 		} catch (...) {
-			Logger_.warning("Exception during WS creation");
+			poco_warning(Logger_,"Exception during WS creation");
 		}
 	};
 
@@ -38,8 +38,15 @@ namespace OpenWifi {
 
 	int AP_WS_Server::Start() {
 
+		AllowSerialNumberMismatch_ = MicroService::instance().ConfigGetBool("openwifi.certificates.allowmismatch",true);
+		MismatchDepth_ = MicroService::instance().ConfigGetInt("openwifi.certificates.mismatchdepth",2);
+
+		Reactor_pool_ = std::make_unique<AP_WS_ReactorThreadPool>();
+		Reactor_pool_->Start();
+
 		for(const auto & Svr : ConfigServersList_ ) {
-			Logger().notice(fmt::format("Starting: {}:{} Keyfile:{} CertFile: {}", Svr.Address(),
+
+			poco_notice(Logger(),fmt::format("Starting: {}:{} Keyfile:{} CertFile: {}", Svr.Address(),
 										Svr.Port(), Svr.KeyFile(), Svr.CertFile()));
 
 			Svr.LogCert(Logger());
@@ -48,7 +55,7 @@ namespace OpenWifi {
 
 			if (!IsCertOk()) {
 				IssuerCert_ = std::make_unique<Poco::Crypto::X509Certificate>(Svr.IssuerCertFile());
-				Logger().information(
+				poco_information(Logger(),
 					fmt::format("Certificate Issuer Name:{}", IssuerCert_->issuerName()));
 			}
 
@@ -83,10 +90,11 @@ namespace OpenWifi {
 			Context->usePrivateKey(Key);
 
 			Context->setSessionCacheSize(0);
-			Context->setSessionTimeout(60);
-			Context->enableSessionCache(false);
+			Context->setSessionTimeout(120);
+			Context->flushSessionCache();
+			Context->enableSessionCache(true);
 			Context->enableExtendedCertificateVerification(false);
-			Context->disableStatelessSessionResumption();
+			// Context->disableStatelessSessionResumption();
 			Context->disableProtocols(Poco::Net::Context::PROTO_TLSV1 | Poco::Net::Context::PROTO_TLSV1_1);
 
 			auto WebServerHttpParams = new Poco::Net::HTTPServerParams;
@@ -117,8 +125,6 @@ namespace OpenWifi {
 		}
 
 		ReactorThread_.start(Reactor_);
-		Reactor_pool_ = std::make_unique<AP_WS_ReactorThreadPool>();
-		Reactor_pool_->Start();
 
 		auto ProvString = MicroService::instance().ConfigGetString("autoprovisioning.process","default");
 		if(ProvString!="default") {
@@ -137,11 +143,13 @@ namespace OpenWifi {
 		SimulatorEnabled_ = !SimulatorId_.empty();
 		Utils::SetThreadName(ReactorThread_,"dev:react:head");
 
+		Running_ = true;
 		return 0;
 	}
 
 	void AP_WS_Server::Stop() {
-		Logger().notice("Stopping reactors...");
+		poco_information(Logger(),"Stopping...");
+		Running_ = false;
 
 		for(auto &server:WebServers_) {
 			server->stopAll();
@@ -149,6 +157,7 @@ namespace OpenWifi {
 		Reactor_pool_->Stop();
 		Reactor_.stop();
 		ReactorThread_.join();
+		poco_information(Logger(),"Stopped...");
 	}
 
 }      //namespace

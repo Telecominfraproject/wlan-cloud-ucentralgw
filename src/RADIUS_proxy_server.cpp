@@ -75,6 +75,7 @@ namespace OpenWifi {
 	}
 
 	void RADIUS_proxy_server::Stop() {
+		poco_information(Logger(),"Stopping...");
 		if(enabled_ && running_) {
 			RadiusReactor_.removeEventHandler(
 				*AuthenticationSocketV4_,
@@ -97,11 +98,11 @@ namespace OpenWifi {
 			RadiusReactor_.removeEventHandler(
 				*CoASocketV4_,
 				Poco::NObserver<RADIUS_proxy_server, Poco::Net::ReadableNotification>(
-					*this, &RADIUS_proxy_server::OnAccountingSocketReadable));
+					*this, &RADIUS_proxy_server::OnCoASocketReadable));
 			RadiusReactor_.removeEventHandler(
 				*CoASocketV6_,
 				Poco::NObserver<RADIUS_proxy_server, Poco::Net::ReadableNotification>(
-					*this, &RADIUS_proxy_server::OnAccountingSocketReadable));
+					*this, &RADIUS_proxy_server::OnCoASocketReadable));
 
 			for(auto &[_,radsec_server]:RADSECservers_)
 				radsec_server->Stop();
@@ -111,6 +112,7 @@ namespace OpenWifi {
 			enabled_=false;
 			running_=false;
 		}
+		poco_information(Logger(),"Stopped...");
 	}
 
 	void RADIUS_proxy_server::StartRADSECServers() {
@@ -133,19 +135,19 @@ namespace OpenWifi {
 
 		auto ReceiveSize = pNf->socket().impl()->receiveBytes(P.Buffer(),P.BufferLen());
 		if(ReceiveSize<SMALLEST_RADIUS_PACKET) {
-			Logger().warning("Accounting: bad packet received.");
+			poco_warning(Logger(),"Accounting: bad packet received.");
 			return;
 		}
 		P.Evaluate(ReceiveSize);
 		auto SerialNumber = P.ExtractSerialNumberFromProxyState();
 		if(SerialNumber.empty()) {
-			Logger().warning("Accounting: missing serial number.");
+			poco_warning(Logger(),"Accounting: missing serial number.");
 			return;
 		}
 		auto CallingStationID = P.ExtractCallingStationID();
 		auto CalledStationID = P.ExtractCalledStationID();
 
-		Logger().information(fmt::format("Accounting Packet received for {}, CalledStationID: {}, CallingStationID:{}",SerialNumber, CalledStationID, CallingStationID));
+		poco_information(Logger(), fmt::format("Accounting Packet received for {}, CalledStationID: {}, CallingStationID:{}",SerialNumber, CalledStationID, CallingStationID));
 		DeviceRegistry()->SendRadiusAccountingData(SerialNumber,P.Buffer(),P.Size());
 	}
 
@@ -155,19 +157,19 @@ namespace OpenWifi {
 
 		auto ReceiveSize = pNf->socket().impl()->receiveBytes(P.Buffer(),P.BufferLen());
 		if(ReceiveSize<SMALLEST_RADIUS_PACKET) {
-			Logger().warning("Authentication: bad packet received.");
+			poco_warning(Logger(),"Authentication: bad packet received.");
 			return;
 		}
 		P.Evaluate(ReceiveSize);
 		auto SerialNumber = P.ExtractSerialNumberFromProxyState();
 		if(SerialNumber.empty()) {
-			Logger().warning("Authentication: missing serial number.");
+			poco_warning(Logger(),"Authentication: missing serial number.");
 			return;
 		}
 		auto CallingStationID = P.ExtractCallingStationID();
 		auto CalledStationID = P.ExtractCalledStationID();
 
-		Logger().information(fmt::format("Authentication Packet received for {}, CalledStationID: {}, CallingStationID:{}",SerialNumber, CalledStationID, CallingStationID));
+		poco_information(Logger(), fmt::format("Authentication Packet received for {}, CalledStationID: {}, CallingStationID:{}",SerialNumber, CalledStationID, CallingStationID));
 		DeviceRegistry()->SendRadiusAuthenticationData(SerialNumber,P.Buffer(),P.Size());
 	}
 
@@ -177,19 +179,19 @@ namespace OpenWifi {
 
 		auto ReceiveSize = pNf.get()->socket().impl()->receiveBytes(P.Buffer(),P.BufferLen());
 		if(ReceiveSize<SMALLEST_RADIUS_PACKET) {
-			Logger().warning("CoA/DM: bad packet received.");
+			poco_warning(Logger(),"CoA/DM: bad packet received.");
 			return;
 		}
 		P.Evaluate(ReceiveSize);
 		auto SerialNumber = P.ExtractSerialNumberTIP();
 		if(SerialNumber.empty()) {
-			Logger().warning("CoA/DM: missing serial number.");
+			poco_warning(Logger(),"CoA/DM: missing serial number.");
 			return;
 		}
 		auto CallingStationID = P.ExtractCallingStationID();
 		auto CalledStationID = P.ExtractCalledStationID();
 
-		Logger().information(fmt::format("CoA Packet received for {}, CalledStationID: {}, CallingStationID:{}",SerialNumber, CalledStationID, CallingStationID));
+		poco_information(Logger(), fmt::format("CoA Packet received for {}, CalledStationID: {}, CallingStationID:{}",SerialNumber, CalledStationID, CallingStationID));
 		DeviceRegistry()->SendRadiusCoAData(SerialNumber,P.Buffer(),P.Size());
 	}
 
@@ -215,10 +217,10 @@ namespace OpenWifi {
 																		: *AccountingSocketV6_,
 						 (const unsigned char *)buffer, size, FinalDestination);
 			if (!AllSent)
-				Logger().error(fmt::format("{}: Could not send Accounting packet packet to {}.",
+				poco_error(Logger(),fmt::format("{}: Could not send Accounting packet packet to {}.",
 										   serialNumber, Destination));
 			else
-				Logger().information(fmt::format(
+				poco_information(Logger(), fmt::format(
 					"{}: Sending Accounting Packet to {}, CalledStationID: {}, CallingStationID:{}",
 					serialNumber, FinalDestination.toString(), CalledStationID, CallingStationID));
 		}
@@ -250,10 +252,10 @@ namespace OpenWifi {
 																		: *AuthenticationSocketV6_,
 						 (const unsigned char *)buffer, size, FinalDestination);
 			if (!AllSent)
-				Logger().error(fmt::format("{}: Could not send Authentication packet packet to {}.",
+				poco_error(Logger(),fmt::format("{}: Could not send Authentication packet packet to {}.",
 										   serialNumber, Destination));
 			else
-				Logger().information(fmt::format("{}: Sending Authentication Packet to {}, CalledStationID: {}, CallingStationID:{}",
+				poco_information(Logger(), fmt::format("{}: Sending Authentication Packet to {}, CalledStationID: {}, CallingStationID:{}",
 												 serialNumber, FinalDestination.toString(),
 												 CalledStationID, CallingStationID));
 		}
@@ -282,10 +284,10 @@ namespace OpenWifi {
 																				   : *CoASocketV6_,
 									(const unsigned char *)buffer, size, FinalDestination);
 			if (!AllSent)
-				Logger().error(fmt::format("{}: Could not send CoA packet packet to {}.",
+				poco_error(Logger(),fmt::format("{}: Could not send CoA packet packet to {}.",
 										   serialNumber, Destination));
 			else
-				Logger().information(fmt::format("{}: Sending CoA Packet to {}", serialNumber,
+				poco_information(Logger(), fmt::format("{}: Sending CoA Packet to {}", serialNumber,
 												 FinalDestination.toString()));
 		}
 	}
@@ -296,7 +298,7 @@ namespace OpenWifi {
 		for(const auto &server:Config.servers) {
 			Poco::Net::IPAddress a;
 			if(!Poco::Net::IPAddress::tryParse(server.ip,a)) {
-				Logger().error(fmt::format("RADIUS-PARSE Config: server address {} is nto a valid address in v4 or v6. Entry skipped.",server.ip));
+				poco_error(Logger(),fmt::format("RADIUS-PARSE Config: server address {} is nto a valid address in v4 or v6. Entry skipped.",server.ip));
 				continue;
 			}
 			auto S = Poco::Net::SocketAddress(fmt::format("{}:{}",server.ip,server.port));
@@ -367,15 +369,15 @@ namespace OpenWifi {
 						Pools_.push_back(NewPool);
 					}
 				} else {
-					Logger().warning(fmt::format("Configuration file '{}' is bad.",ConfigFilename_));
+					poco_warning(Logger(),fmt::format("Configuration file '{}' is bad.",ConfigFilename_));
 				}
 			} else {
-				Logger().warning(fmt::format("No configuration file '{}' exists.",ConfigFilename_));
+				poco_warning(Logger(),fmt::format("No configuration file '{}' exists.",ConfigFilename_));
 			}
 		} catch (const Poco::Exception &E) {
 			Logger().log(E);
 		} catch (...) {
-			Logger().error(fmt::format("Error while parsing configuration file '{}'",ConfigFilename_));
+			poco_error(Logger(),fmt::format("Error while parsing configuration file '{}'",ConfigFilename_));
 		}
 	}
 
