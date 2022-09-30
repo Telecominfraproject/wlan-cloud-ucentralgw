@@ -79,6 +79,7 @@ add_executable( owgw
         src/framework/KafkaTopics.h
         src/framework/MicroService.h
         src/framework/OpenWifiTypes.h
+        src/framework/MicroServiceErrorHandler.h
         src/framework/orm.h
         src/framework/StorageClass.h
         src/RESTObjects/RESTAPI_SecurityObjects.h src/RESTObjects/RESTAPI_SecurityObjects.cpp

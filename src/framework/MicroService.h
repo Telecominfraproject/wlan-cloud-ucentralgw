@@ -106,6 +106,7 @@ using namespace std::chrono_literals;
 #include "nlohmann/json.hpp"
 #include "ow_version.h"
 #include "fmt/core.h"
+#include "framework/MicroServiceErrorHandler.h"
 
 #define _OWDEBUG_ std::cout<< __FILE__ <<":" << __LINE__ << std::endl;
 // #define _OWDEBUG_ Logger().debug(Poco::format("%s: %lu",__FILE__,__LINE__));
@@ -1359,32 +1360,6 @@ namespace OpenWifi {
         KeyType Record::* MemberOffset;
         Poco::ExpireLRUCache<KeyType,Record>  Cache_{Size,Expiry};
     };
-
-    class MicroServiceErrorHandler : public Poco::ErrorHandler {
-	  public:
-		explicit MicroServiceErrorHandler(Poco::Util::Application &App) : App_(App) {}
-		inline void exception(const Poco::Exception & E) {
-		    Poco::Thread * CurrentThread = Poco::Thread::current();
-		    App_.logger().log(E);
-		    poco_error(App_.logger(), fmt::format("Poco::Exception occurred in name={} thr_id={}",
-												  CurrentThread->getName(), CurrentThread->id()));
-		}
-
-		inline void exception(const std::exception & E) {
-		    Poco::Thread * CurrentThread = Poco::Thread::current();
-			poco_warning(App_.logger(), fmt::format("std::exception in {}: {} thr_id={}",
-													CurrentThread->getName(),E.what(),
-													CurrentThread->id()));
-		}
-
-		inline void exception() {
-		    Poco::Thread * CurrentThread = Poco::Thread::current();
-			poco_warning(App_.logger(), fmt::format("generic exception in {} thr_id={}",
-													CurrentThread->getName(), CurrentThread->id()));
-		}
-	  private:
-		Poco::Util::Application	&App_;
-	};
 
 	class BusEventManager : public Poco::Runnable {
 	  public:
