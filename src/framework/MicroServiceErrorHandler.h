@@ -15,12 +15,19 @@ namespace OpenWifi {
 
 	class MicroServiceErrorHandler : public Poco::ErrorHandler {
 	  public:
-		explicit MicroServiceErrorHandler(Poco::Util::Application &App) : App_(App) {}
+		explicit MicroServiceErrorHandler(Poco::Util::Application &App) : App_(App) {
+		}
 
 		inline void exception(const Poco::Exception & Base) override {
 			try {
+				if(Poco::Thread::current()!= nullptr) {
+					t_name = Poco::Thread::current()->getName();
+					t_id = Poco::Thread::current()->id();
+				}
+
 				App_.logger().log(Base);
 				Base.rethrow();
+
 			} catch (const Poco::Net::InvalidCertificateException &E) {
 				poco_error(App_.logger(), fmt::format("Poco::Net::InvalidCertificateException thr_name={} thr_id={} code={} text={} msg={} what={}",
 													  t_name, t_id, E.code(),
@@ -101,8 +108,8 @@ namespace OpenWifi {
 		}
 	  private:
 		Poco::Util::Application	&App_;
-		std::string		t_name{Poco::Thread::current()->getName()};
-		int 			t_id{Poco::Thread::current()->id()};
+		std::string		t_name;
+		int 			t_id=0;
 	};
 
 }
