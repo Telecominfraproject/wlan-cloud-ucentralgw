@@ -9,6 +9,7 @@
 #include "Poco/ErrorHandler.h"
 #include "Poco/Net/NetException.h"
 #include "Poco/Net/SSLException.h"
+#include "Poco/JSON/Template.h"
 #include "Poco/Thread.h"
 
 namespace OpenWifi {
@@ -23,6 +24,9 @@ namespace OpenWifi {
 				if(Poco::Thread::current()!= nullptr) {
 					t_name = Poco::Thread::current()->getName();
 					t_id = Poco::Thread::current()->id();
+				} else {
+					t_name = "startup_code";
+					t_id = 0;
 				}
 
 				App_.logger().log(Base);
@@ -30,6 +34,24 @@ namespace OpenWifi {
 
 			} catch (const Poco::Net::InvalidCertificateException &E) {
 				poco_error(App_.logger(), fmt::format("Poco::Net::InvalidCertificateException thr_name={} thr_id={} code={} text={} msg={} what={}",
+													  t_name, t_id, E.code(),
+													  E.displayText(),
+													  E.message(),
+													  E.what()));
+			} catch (const Poco::Net::InvalidSocketException &E) {
+				poco_error(App_.logger(), fmt::format("Poco::Net::InvalidSocketException thr_name={} thr_id={} code={} text={} msg={} what={}",
+													  t_name, t_id, E.code(),
+													  E.displayText(),
+													  E.message(),
+													  E.what()));
+			} catch (const Poco::Net::WebSocketException &E) {
+				poco_error(App_.logger(), fmt::format("Poco::Net::WebSocketException thr_name={} thr_id={} code={} text={} msg={} what={}",
+													  t_name, t_id, E.code(),
+													  E.displayText(),
+													  E.message(),
+													  E.what()));
+			} catch (const Poco::Net::ConnectionResetException &E) {
+				poco_error(App_.logger(), fmt::format("Poco::Net::ConnectionResetException thr_name={} thr_id={} code={} text={} msg={} what={}",
 													  t_name, t_id, E.code(),
 													  E.displayText(),
 													  E.message(),
@@ -85,26 +107,58 @@ namespace OpenWifi {
 													  E.displayText(),
 													  E.message(),
 													  E.what()));
+			} catch (const Poco::JSON::JSONTemplateException &E) {
+				poco_error(App_.logger(), fmt::format("Poco::JSON::JSONTemplateException thr_name={} thr_id={} code={} text={} msg={} what={}",
+													  t_name, t_id, E.code(),
+													  E.displayText(),
+													  E.message(),
+													  E.what()));
+			} catch (const Poco::JSON::JSONException &E) {
+				poco_error(App_.logger(), fmt::format("Poco::JSON::JSONException thr_name={} thr_id={} code={} text={} msg={} what={}",
+													  t_name, t_id, E.code(),
+													  E.displayText(),
+													  E.message(),
+													  E.what()));
+			} catch (const Poco::ApplicationException &E) {
+				poco_error(App_.logger(), fmt::format("Poco::ApplicationException thr_name={} thr_id={} code={} text={} msg={} what={}",
+													  t_name, t_id, E.code(),
+													  E.displayText(),
+													  E.message(),
+													  E.what()));
 			} catch (const Poco::Exception &E) {
 				poco_error(App_.logger(), fmt::format("Poco::Exception thr_name={} thr_id={} code={} text={} msg={} what={}",
 													  t_name, t_id, E.code(),
 													  E.displayText(),
 													  E.message(),
 													  E.what()));
+			} catch (...) {
+				poco_error(App_.logger(), fmt::format("Poco:Generic thr_name={}",t_name, t_id));
 			}
 		}
 
 		inline void exception(const std::exception & E) override {
-			Poco::Thread * CurrentThread = Poco::Thread::current();
+			if(Poco::Thread::current()!= nullptr) {
+				t_name = Poco::Thread::current()->getName();
+				t_id = Poco::Thread::current()->id();
+			} else {
+				t_name = "startup_code";
+				t_id = 0;
+			}
 			poco_warning(App_.logger(), fmt::format("std::exception in {}: {} thr_id={}",
-													CurrentThread->getName(),E.what(),
-													CurrentThread->id()));
+													t_name,E.what(),
+													t_id));
 		}
 
 		inline void exception() override {
-			Poco::Thread * CurrentThread = Poco::Thread::current();
+			if(Poco::Thread::current()!= nullptr) {
+				t_name = Poco::Thread::current()->getName();
+				t_id = Poco::Thread::current()->id();
+			} else {
+				t_name = "startup_code";
+				t_id = 0;
+			}
 			poco_warning(App_.logger(), fmt::format("generic exception in {} thr_id={}",
-													CurrentThread->getName(), CurrentThread->id()));
+													t_name, t_id));
 		}
 	  private:
 		Poco::Util::Application	&App_;
