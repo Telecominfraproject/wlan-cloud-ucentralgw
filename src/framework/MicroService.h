@@ -99,6 +99,7 @@ using namespace std::chrono_literals;
 #include "Poco/ThreadLocal.h"
 #include "cppkafka/cppkafka.h"
 
+#include "framework/MicroServiceErrorHandler.h"
 #include "framework/OpenWifiTypes.h"
 #include "framework/KafkaTopics.h"
 #include "framework/ow_constants.h"
@@ -3571,7 +3572,7 @@ namespace OpenWifi {
 
             auto LoggingDestination = MicroService::instance().ConfigGetString("logging.type", "file");
             auto LoggingFormat = MicroService::instance().ConfigGetString("logging.format",
-                                                                          "%Y-%m-%d %H:%M:%S %s: [%p] %t");
+                                                                          "%Y-%m-%d %H:%M:%S.%i %s: [%p][thr:%I] %t");
             if (LoggingDestination == "console") {
                 Poco::AutoPtr<Poco::ConsoleChannel> Console(new Poco::ConsoleChannel);
                 Poco::AutoPtr<Poco::AsyncChannel> Async(new Poco::AsyncChannel(Console));

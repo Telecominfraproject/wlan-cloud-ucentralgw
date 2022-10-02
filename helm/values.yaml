@@ -138,7 +138,7 @@ resources: {}
   #  memory: 128Mi
 
 securityContext:
-  fsGroup: 101
+  fsGroup: 1000
   # Usage of unsafe sysctls requires multiple things:
   # - allow these unsafe sysctls on kubelet level (by adding --allowed-unsafe-sysctls flag)
   # - enabling addition of PodSecurityContext setting podSecurityPolicy.enabled to "true" below
