@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 set -e
 
 if [ "$SELFSIGNED_CERTS" = 'true' ]; then
@@ -95,7 +95,7 @@ if [ "$1" = '/openwifi/owgw' -a "$(id -u)" = '0' ]; then
     if [ "$RUN_CHOWN" = 'true' ]; then
         chown -R "$OWGW_USER": "$OWGW_ROOT" "$OWGW_CONFIG"
     fi
-    exec su-exec "$OWGW_USER" "$@"
+    exec gosu "$OWGW_USER" "$@"
 fi
 
 exec "$@"

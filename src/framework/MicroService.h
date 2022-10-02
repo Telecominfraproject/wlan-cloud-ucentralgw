@@ -99,6 +99,7 @@ using namespace std::chrono_literals;
 #include "Poco/ThreadLocal.h"
 #include "cppkafka/cppkafka.h"
 
+#include "framework/MicroServiceErrorHandler.h"
 #include "framework/OpenWifiTypes.h"
 #include "framework/KafkaTopics.h"
 #include "framework/ow_constants.h"
@@ -1359,32 +1360,6 @@ namespace OpenWifi {
         KeyType Record::* MemberOffset;
         Poco::ExpireLRUCache<KeyType,Record>  Cache_{Size,Expiry};
     };
-
-    class MicroServiceErrorHandler : public Poco::ErrorHandler {
-	  public:
-		explicit MicroServiceErrorHandler(Poco::Util::Application &App) : App_(App) {}
-		inline void exception(const Poco::Exception & E) {
-		    Poco::Thread * CurrentThread = Poco::Thread::current();
-		    App_.logger().log(E);
-		    poco_error(App_.logger(), fmt::format("Poco::Exception occurred in name={} thr_id={}",
-												  CurrentThread->getName(), CurrentThread->id()));
-		}
-
-		inline void exception(const std::exception & E) {
-		    Poco::Thread * CurrentThread = Poco::Thread::current();
-			poco_warning(App_.logger(), fmt::format("std::exception in {}: {} thr_id={}",
-													CurrentThread->getName(),E.what(),
-													CurrentThread->id()));
-		}
-
-		inline void exception() {
-		    Poco::Thread * CurrentThread = Poco::Thread::current();
-			poco_warning(App_.logger(), fmt::format("generic exception in {} thr_id={}",
-													CurrentThread->getName(), CurrentThread->id()));
-		}
-	  private:
-		Poco::Util::Application	&App_;
-	};
 
 	class BusEventManager : public Poco::Runnable {
 	  public:
@@ -3596,7 +3571,7 @@ namespace OpenWifi {
 
             auto LoggingDestination = MicroService::instance().ConfigGetString("logging.type", "file");
             auto LoggingFormat = MicroService::instance().ConfigGetString("logging.format",
-                                                                          "%Y-%m-%d %H:%M:%S %s: [%p] %t");
+                                                                          "%Y-%m-%d %H:%M:%S.%i %s: [%p][thr:%I] %t");
             if (LoggingDestination == "console") {
                 Poco::AutoPtr<Poco::ConsoleChannel> Console(new Poco::ConsoleChannel);
                 Poco::AutoPtr<Poco::AsyncChannel> Async(new Poco::AsyncChannel(Console));
