@@ -189,125 +189,6 @@ namespace OpenWifi {
 		return false;
 	}
 
-	void AP_WS_Connection::CompleteStartup() {
-
-		std::lock_guard Guard(Mutex_);
-		auto TC = ThreadedCounter(Threaded_,ConcurrentStartingDevices_);
-
-		try {
-			auto SockImpl = dynamic_cast<Poco::Net::WebSocketImpl *>(WS_->impl());
-			auto SS = dynamic_cast<Poco::Net::SecureStreamSocketImpl*>(SockImpl->streamSocketImpl());
-
-/*			while (true) {
-				auto V = SS->completeHandshake();
-				if (V == 1)
-					break;
-			}
-*/
-			PeerAddress_ = SS->peerAddress().host();
-			CId_ = Utils::FormatIPv6(SS->peerAddress().toString());
-
-			State_.started = OpenWifi::Now();
-
-			if (!SS->secure()) {
-				poco_warning(Logger_,fmt::format("CONNECTION({}): Session={} Connection is NOT secure. Device is not allowed.", CId_, State_.sessionId ));
-				return EndConnection();
-			}
-
-			poco_debug(Logger_,fmt::format("CONNECTION({}): Session={} Connection is secure.", CId_, State_.sessionId ));
-
-			if (!SS->havePeerCertificate()) {
-				State_.VerifiedCertificate = GWObjects::NO_CERTIFICATE;
-				poco_warning(Logger_,fmt::format("CONNECTION({}): Session={} No certificates available..", CId_, State_.sessionId ));
-				return EndConnection();
-			}
-
-			Poco::Crypto::X509Certificate PeerCert(SS->peerCertificate());
-			if (!AP_WS_Server()->ValidateCertificate(CId_, PeerCert)) {
-				State_.VerifiedCertificate = GWObjects::NO_CERTIFICATE;
-				poco_warning(Logger_, fmt::format("CONNECTION({}): Session={} Device certificate is not valid. Device is not allowed.",
-												CId_, State_.sessionId ));
-				return EndConnection();
-			}
-			CN_ = Poco::trim(Poco::toLower(PeerCert.commonName()));
-			State_.VerifiedCertificate = GWObjects::VALID_CERTIFICATE;
-			poco_debug(Logger_,
-					   fmt::format("CONNECTION({}): Session={} Valid certificate: CN={}", CId_, State_.sessionId , CN_));
-
-			if (AP_WS_Server::IsSim(CN_) && !AP_WS_Server()->IsSimEnabled()) {
-				poco_warning(
-					Logger_,
-					fmt::format("CONNECTION({}): Session={} Sim Device {} is not allowed. Disconnecting.",
-								CId_, State_.sessionId , CN_));
-				return EndConnection();
-			}
-
-			if (!CN_.empty() && StorageService()->IsBlackListed(SerialNumber_)) {
-				poco_warning(
-					Logger_,
-					fmt::format("CONNECTION({}): Session={} Device {} is black listed. Disconnecting.",
-								CId_, State_.sessionId , CN_));
-				return EndConnection();
-			}
-
-			SerialNumber_ = CN_;
-			SerialNumberInt_ = Utils::SerialNumberToInt(SerialNumber_);
-
-			WS_->setMaxPayloadSize(BufSize);
-			auto TS = Poco::Timespan(360, 0);
-			WS_->setReceiveTimeout(TS);
-			WS_->setNoDelay(true);
-			WS_->setKeepAlive(true);
-			WS_->setBlocking(false);
-
-			Reactor_.addEventHandler(
-				*WS_, Poco::NObserver<AP_WS_Connection, Poco::Net::ReadableNotification>(
-						  *this, &AP_WS_Connection::OnSocketReadable));
-			Reactor_.addEventHandler(
-				*WS_, Poco::NObserver<AP_WS_Connection, Poco::Net::ShutdownNotification>(
-						  *this, &AP_WS_Connection::OnSocketShutdown));
-			Reactor_.addEventHandler(
-				*WS_, Poco::NObserver<AP_WS_Connection, Poco::Net::ErrorNotification>(
-						  *this, &AP_WS_Connection::OnSocketError));
-			Registered_ = true;
-			poco_debug(Logger_, fmt::format("CONNECTION({}): Session={} CN={} Completed. (t={})", CId_, State_.sessionId , CN_, ConcurrentStartingDevices_));
-			return;
-		} catch (const Poco::Net::CertificateValidationException &E) {
-			poco_error(Logger_,fmt::format("CONNECTION({}): Session:{} Poco::CertificateValidationException Certificate Validation failed during connection. Device will have to retry.",
-										CId_, State_.sessionId ));
-			Logger_.log(E);
-		} catch (const Poco::Net::WebSocketException &E) {
-			poco_error(Logger_,fmt::format("CONNECTION({}): Session:{} Poco::WebSocketException WebSocket error during connection. Device will have to retry.",
-										CId_, State_.sessionId ));
-			Logger_.log(E);
-		} catch (const Poco::Net::ConnectionAbortedException &E) {
-			poco_error(Logger_,fmt::format("CONNECTION({}):Session:{}  Poco::ConnectionAbortedException Connection was aborted during connection. Device will have to retry.",
-										CId_, State_.sessionId ));
-			Logger_.log(E);
-		} catch (const Poco::Net::ConnectionResetException &E) {
-			poco_error(Logger_,fmt::format("CONNECTION({}): Session:{} Poco::ConnectionResetException Connection was reset during connection. Device will have to retry.",
-										CId_, State_.sessionId ));
-			Logger_.log(E);
-		} catch (const Poco::Net::InvalidCertificateException &E) {
-			poco_error(Logger_,fmt::format(
-				"CONNECTION({}): Session:{} Poco::InvalidCertificateException Invalid certificate. Device will have to retry.",
-				CId_, State_.sessionId ));
-			Logger_.log(E);
-		} catch (const Poco::Net::SSLException &E) {
-			poco_error(Logger_,fmt::format("CONNECTION({}): Session:{} Poco::SSLException SSL Exception during connection. Device will have to retry.",
-										CId_, State_.sessionId ));
-			Logger_.log(E);
-		} catch (const Poco::Exception &E) {
-			poco_error(Logger_,fmt::format("CONNECTION({}): Session:{} Poco::Exception caught during device connection. Device will have to retry.",
-										CId_, State_.sessionId ));
-			Logger_.log(E);
-		} catch (...) {
-			poco_error(Logger_,fmt::format("CONNECTION({}): Session:{} Exception caught during device connection. Device will have to retry. Unsecure connect denied.",
-										CId_, State_.sessionId ));
-		}
-		return EndConnection();
-	}
-
 	static void NotifyKafkaDisconnect(const std::string & SerialNumber) {
 		try {
 			Poco::JSON::Object Disconnect;
@@ -329,31 +210,36 @@ namespace OpenWifi {
 	}
 
 	void AP_WS_Connection::EndConnection() {
-		Dead_=true;
-		poco_information(Logger_,fmt::format("CONNECTION-CLOSING({}): Session={} Serial={}.", CId_, State_.sessionId, SerialNumber_));
-		auto SessionDeleted = DeviceRegistry()->EndSession(State_.sessionId, SerialNumberInt_);
+		if(!Dead_) {
+			Dead_ = true;
+			poco_information(Logger_, fmt::format("CONNECTION-CLOSING({}): Session={} Serial={}. Removing from registry.",
+												  CId_, State_.sessionId, SerialNumber_));
+			auto SessionDeleted = DeviceRegistry()->EndSession(State_.sessionId, SerialNumberInt_);
 
-		if (Registered_) {
-			Reactor_.removeEventHandler(
-				*WS_, Poco::NObserver<AP_WS_Connection, Poco::Net::ReadableNotification>(
-						  *this, &AP_WS_Connection::OnSocketReadable));
-			Reactor_.removeEventHandler(
-				*WS_, Poco::NObserver<AP_WS_Connection, Poco::Net::ShutdownNotification>(
-						  *this, &AP_WS_Connection::OnSocketShutdown));
-			Reactor_.removeEventHandler(
-				*WS_, Poco::NObserver<AP_WS_Connection, Poco::Net::ErrorNotification>(
-						  *this, &AP_WS_Connection::OnSocketError));
-		}
-		WS_->close();
+			if (Registered_) {
+				Reactor_.removeEventHandler(
+					*WS_, Poco::NObserver<AP_WS_Connection, Poco::Net::ReadableNotification>(
+							  *this, &AP_WS_Connection::OnSocketReadable));
+				Reactor_.removeEventHandler(
+					*WS_, Poco::NObserver<AP_WS_Connection, Poco::Net::ShutdownNotification>(
+							  *this, &AP_WS_Connection::OnSocketShutdown));
+				Reactor_.removeEventHandler(
+					*WS_, Poco::NObserver<AP_WS_Connection, Poco::Net::ErrorNotification>(
+							  *this, &AP_WS_Connection::OnSocketError));
+			}
+			WS_->close();
 
-		if (KafkaManager()->Enabled() && !SerialNumber_.empty()) {
-			std::string s(SerialNumber_);
-			std::thread t([s]() { NotifyKafkaDisconnect(s); });
-			t.detach();
+			if (KafkaManager()->Enabled() && !SerialNumber_.empty()) {
+				std::string s(SerialNumber_);
+				std::thread t([s]() { NotifyKafkaDisconnect(s); });
+				t.detach();
+			}
+			if (SessionDeleted)
+				WebSocketClientNotificationDeviceDisconnected(SerialNumber_);
+			AP_WS_Server()->DeleteConnection(State_.sessionId);
+			poco_information(Logger_, fmt::format("CONNECTION-CLOSING({}): Session={} Serial={}. Removing from WS Server.",
+												  CId_, State_.sessionId, SerialNumber_));
 		}
-		if(SessionDeleted)
-			WebSocketClientNotificationDeviceDisconnected(SerialNumber_);
-		AP_WS_Server()->DeleteConnection(State_.sessionId);
 	}
 
 	bool AP_WS_Connection::LookForUpgrade(const uint64_t UUID, uint64_t & UpgradedUUID) {
@@ -647,19 +533,19 @@ namespace OpenWifi {
 	}
 
 	void AP_WS_Connection::OnSocketShutdown([[maybe_unused]] const Poco::AutoPtr<Poco::Net::ShutdownNotification> &pNf) {
-		std::lock_guard Guard(Mutex_);
 		poco_trace(Logger_, fmt::format("SOCKET-SHUTDOWN({}): Closing.", CId_));
 		return EndConnection();
 	}
 
 	void AP_WS_Connection::OnSocketError([[maybe_unused]] const Poco::AutoPtr<Poco::Net::ErrorNotification> &pNf) {
-		std::lock_guard Guard(Mutex_);
 		poco_trace(Logger_, fmt::format("SOCKET-ERROR({}): Closing.", CId_));
 		return EndConnection();
 	}
 
 	void AP_WS_Connection::OnSocketReadable([[maybe_unused]] const Poco::AutoPtr<Poco::Net::ReadableNotification> &pNf) {
-		std::lock_guard Guard(Mutex_);
+
+		if(Dead_)
+			return;
 
 		if(!AP_WS_Server()->Running())
 			return EndConnection();
