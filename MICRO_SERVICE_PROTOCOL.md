@@ -18,16 +18,28 @@ System messages are what maintains the collection of micro-services working on t
 }
 ```
 
+### Responsibilities
+Each micro service is responsible to generate its own messages and keep track of messages coming from other 
+micro services. This is necessary so that any micro service may reach our any other micro service. This provides 
+discovery for any micro service. All current micro services provided in OpenWiFi perform these functions. If you leverage 
+the C++ framework, this functionality if performed automatically.
+
 ### `event-type`
-When a service joins the bus, it should generate an event-type of `join`. When a service shutdown, it should generate a `leave` event-type. Every 30 seconds, a service 
-should generate a `keep-alive` message.
+Each micro service is responsible to generate and consume these events
+
+#### `join` event
+When a service start and joins the bus, it should generate an event-type of `join`. 
+
+### `leave` event
+When a service shuts down, it should generate a `leave` event-type. 
+
+### `keep-alive` event
+Every 30 seconds, a service should generate a `keep-alive` message.
+
 
 ### `id`
 You should generate a random number from some unique factor for the system. This ID is used to identify different services. You should reuse that ID 
 when you restart.
-
-## Micro-service maintaining bus state
-A micro-service should maintain its own lists of available micro-services by looking at the messages it receives and keep a list.
 
 ## The `type`
 The `type` in the system message is oen of the following:
@@ -47,11 +59,11 @@ The `type` in the system message is oen of the following:
 The `type` is what you should use to find the `privateEndPoint` you are looking to communicate with.
 
 ### Example
-Assume you want to communicate with the gateway t pconfigure a device. 
+Assume you want to communicate with the gateway to configure a device. 
 
 ```text
 1. Look into my list of current Micro-services for the type=owgw.
-2. Use the priovateEndPoint associated with that entry
+2. Use the privateEndPoint associated with that entry
 ```
 
 ## REST API calls on the private interface
@@ -72,9 +84,9 @@ This is the `publicEndPoint` you included in your `system-messages`.
 This method can _only_ be used to any another `privateEndPoint` in the system. You can use the exact same EndPoints provided in the OpenAPI files for any of the services.
 
 ## OpenAPI Integration
-To appear in the UI consoles, a micro-service should ne able to handle a get to the `/api/v1/system` endpoint on its `publicEndPoint` interface.
+To appear in the UI consoles, a microservice should be able to handle a get to the `/api/v1/system` endpoint on its `publicEndPoint` interface.
 
-Here is a brief description of what the micro-service should answer:
+Here is a brief description of what the microservice should answer:
 ```yaml
   /system:
     get:

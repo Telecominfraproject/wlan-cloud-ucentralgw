@@ -8,7 +8,7 @@
 namespace OpenWifi {
 	void AP_WS_Connection::Process_crashlog(Poco::JSON::Object::Ptr ParamsObj) {
 		if (ParamsObj->has(uCentralProtocol::UUID) && ParamsObj->has(uCentralProtocol::LOGLINES)) {
-			poco_trace(Logger(), fmt::format("CRASH-LOG({}): new entry.", CId_));
+			poco_trace(Logger_, fmt::format("CRASH-LOG({}): new entry.", CId_));
 			auto LogLines = ParamsObj->get(uCentralProtocol::LOGLINES);
 			std::string LogText;
 			if (LogLines.isArray()) {
@@ -27,7 +27,7 @@ namespace OpenWifi {
 			StorageService()->AddLog(DeviceLog);
 
 		} else {
-			poco_warning(Logger(), fmt::format("LOG({}): Missing parameters.", CId_));
+			poco_warning(Logger_, fmt::format("LOG({}): Missing parameters.", CId_));
 			return;
 		}
 	}

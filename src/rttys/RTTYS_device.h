@@ -67,10 +67,12 @@ namespace OpenWifi {
 		std::uint64_t 					session_length_=1;
 		std::size_t      			  	waiting_for_bytes_{0};
 		u_char 						  	last_command_=0;
+		std::atomic_bool 				registered_=false;
 		unsigned char 					small_buf_[64+RTTY_SESSION_ID_LENGTH];
 
-		void EndConnection(bool SendNotification=true) ;
+		void EndConnection() ;
 		void CompleteConnection();
+		void DeRegister();
 
 		[[nodiscard]] bool do_msgTypeRegister(std::size_t msg_len);
 		[[nodiscard]] bool do_msgTypeLogin(std::size_t msg_len);

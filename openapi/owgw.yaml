@@ -190,6 +190,18 @@ components:
           type: string
           minLength: 2
           maxLength: 2
+        started:
+          type: integer
+          format: int64
+        sessionId:
+          type: integer
+          format: int64
+        connectionCompletionTime:
+          type: number
+          format: double
+        totalConnectionTime:
+          type: integer
+          format: int64
 
     DeviceList:
       type: object
@@ -279,6 +291,17 @@ components:
           type: integer
           format: int64
         firstUpdate:
+          type: integer
+          format: int64
+
+    DeviceConnectionStatistics:
+      type: object
+      description: Return some basic device statistics.
+      properties:
+        connectedDevices:
+          type: integer
+          format: int64
+        averageConnectionTime:
           type: integer
           format: int64
 
@@ -1049,6 +1072,33 @@ components:
           type: string
         certificate:
           type: string
+        radsec:
+          type: boolean
+          default: false
+        radsecPort:
+          type: integer
+          minimum: 1
+          maximum: 65535
+        radsecSecret:
+          type: string
+        radsecCacerts:
+          type: array
+          items:
+            type: string
+        radsecCert:
+          type: string
+          description: this must be the base64 encoded of the entire content of the certificate file, including the -----BEGIN lines
+        radsecKey:
+          type: string
+          description: this must be the base64 encoded of the entire content of the key file, including the -----BEGIN lines
+        radsecRealms:
+          description: each entry must be the base64 encoded of the entire content of the ca files, including the -----BEGIN lines
+          type: array
+          items:
+            type: string
+        ignore:
+          type: boolean
+          default: false
 
     RadiusProxyServerConfig:
       type: object
@@ -1162,6 +1212,13 @@ paths:
             type: boolean
             default: false
           required: false
+        - in: query
+          description: return extended information
+          name: connectionStatistics
+          schema:
+            type: boolean
+            default: false
+          required: false
       responses:
         200:
           description: List devices
@@ -1173,6 +1230,7 @@ paths:
                   - $ref: '#/components/schemas/DeviceListWithStatus'
                   - $ref: '#/components/schemas/SerialNumberList'
                   - $ref: '#/components/schemas/DeviceCount'
+                  - $ref: '#/components/schemas/DeviceConnectionStatistics'
         403:
           $ref: '#/components/responses/Unauthorized'
         404:

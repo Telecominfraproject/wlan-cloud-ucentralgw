@@ -49,7 +49,7 @@ if(GIT_FOUND AND EXISTS "${PROJECT_SOURCE_DIR}/.git")
     string(REGEX REPLACE "\n$" "" GIT_HASH "${GIT_HASH}")
 endif()
 
-add_definitions(-DTIP_GATEWAY_SERVICE="1")
+add_definitions(-DTIP_GATEWAY_SERVICE="1" -DPOCO_LOG_DEBUG="1")
 
 find_package(OpenSSL REQUIRED)
 find_package(ZLIB REQUIRED)
@@ -132,7 +132,7 @@ add_executable( owgw
         src/AP_WS_Process_state.cpp
         src/AP_WS_Process_healthcheck.cpp
         src/AP_WS_Process_log.cpp
-        src/AP_WS_Process_crashlog.cpp src/AP_WS_Process_ping.cpp src/AP_WS_Process_cfgpending.cpp src/AP_WS_Process_recovery.cpp src/AP_WS_Process_deviceupdate.cpp src/AP_WS_Process_telemetry.cpp src/AP_WS_Process_venuebroadcast.cpp)
+        src/AP_WS_Process_crashlog.cpp src/AP_WS_Process_ping.cpp src/AP_WS_Process_cfgpending.cpp src/AP_WS_Process_recovery.cpp src/AP_WS_Process_deviceupdate.cpp src/AP_WS_Process_telemetry.cpp src/AP_WS_Process_venuebroadcast.cpp src/RADSECserver.h)
 
 if(NOT SMALL_BUILD)
 

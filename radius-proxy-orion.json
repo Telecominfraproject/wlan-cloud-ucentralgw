@@ -1,0 +1,205 @@
+{
+    "interfaces": [
+        {
+            "ethernet": [
+                {
+                    "select-ports": [
+                        "WAN*"
+                    ]
+                }
+            ],
+            "ipv4": {
+                "addressing": "dynamic"
+            },
+            "ipv6": {
+                "addressing": "dynamic"
+            },
+            "name": "wan",
+            "role": "upstream",
+            "services": [
+                "ssh"
+            ],
+            "ssids": []
+        },
+        {
+            "ethernet": [
+                {
+                    "select-ports": [
+                        "LAN*"
+                    ]
+                }
+            ],
+            "ipv4": {
+                "addressing": "static",
+                "dhcp": {
+                    "lease-count": 100,
+                    "lease-first": 10,
+                    "lease-time": "6h"
+                },
+                "gateway": "192.168.1.1",
+                "send-hostname": true,
+                "subnet": "192.168.1.1/24",
+                "use-dns": []
+            },
+            "ipv6": {
+                "addressing": "dynamic"
+            },
+            "name": "lan",
+            "role": "downstream",
+            "services": [
+                "wifi-steering",
+                "ssh"
+            ],
+            "ssids": [
+                {
+                    "bss-mode": "ap",
+                    "encryption": {
+                        "ieee80211w": "required",
+                        "proto": "wpa"
+                    },
+                    "hidden-ssid": false,
+                    "isolate-clients": false,
+                    "maximum-clients": 64,
+                    "name": "arilia-rad",
+                    "radius": {
+                        "authentication": {
+                            "host": "0.0.0.0",
+                            "port": 1812,
+                            "secret": "radsec"
+                        },
+                        "accounting": {
+                            "host": "0.0.0.0",
+                            "port": 1813,
+                            "secret": "radsec"
+                        }
+                    },
+                    "services": [
+                        "radius-gw-proxy"
+                    ],
+                    "wifi-bands": [
+                        "2G",
+                        "5G"
+                    ],
+                     "pass-point": {
+                         "venue-name": [
+                             "eng:Example passpoint_venue",
+                             "fra:Exemple de lieu"
+                         ],
+                         "domain-name": [
+                             "onboard.almondlabs.net",
+                             "test.com"
+                         ],
+                         "asra": false,
+                         "internet": true,
+                         "esr": false,
+                         "uesa": false,
+                         "access-network-type": 0,
+                         "hessid":"11:22:33:44:55:66",
+                         "venue-group": 2,
+                         "venue-type": 8,
+                         "connection-capability":[
+                             "1:0:2",
+                             "6:22:1",
+                             "17:5060:0"
+                         ],
+                         "roaming-consortium": [
+                             "F4F5E8F5F4",
+                             "BAA2D00100",
+                             "BAA2D00000"
+                         ],
+                         "disable-dgaf": true,
+                         "anqp-domain": 8888,
+                         "ipaddr-type-available": 14,
+                         "nai-realm": [
+                         ],
+                         "osen": false,
+                         "anqp-3gpp-cell-net": [
+                         ],
+                         "friendly-name": [
+                             "eng:AlmondLabs",
+                             "fra:AlmondLabs"
+                         ],
+                         "venue-url": [
+                             "http://www.example.com/info-fra",
+                             "http://www.example.com/info-eng"
+                         ],
+                         "auth-type": {
+                             "type": "terms-and-conditions"
+                         }
+                     }
+                 }
+            ]
+        }
+    ],
+    "metrics": {
+        "dhcp-snooping": {
+            "filters": [
+                "ack",
+                "discover",
+                "offer",
+                "request",
+                "solicit",
+                "reply",
+                "renew"
+            ]
+        },
+        "health": {
+            "interval": 60
+        },
+        "statistics": {
+            "interval": 60,
+            "types": [
+                "ssids",
+                "lldp",
+                "clients"
+            ]
+        },
+        "wifi-frames": {
+            "filters": [
+                "probe",
+                "auth",
+                "assoc",
+                "disassoc",
+                "deauth",
+                "local-deauth",
+                "inactive-deauth",
+                "key-mismatch",
+                "beacon-report",
+                "radar-detected"
+            ]
+        }
+    },
+    "radios": [
+        {
+            "band": "2G",
+            "bandwidth": 10,
+            "beacon-interval": 100,
+            "channel": "auto",
+            "channel-mode": "HT",
+            "channel-width": 20,
+            "country": "CA",
+            "dtim-period": 2,
+            "maximum-clients": 64,
+            "tx-power": 0
+        },
+        {
+            "band": "5G",
+            "bandwidth": 20,
+            "beacon-interval": 100,
+            "channel": "auto",
+            "channel-mode": "HE",
+            "channel-width": 40,
+            "country": "CA",
+            "dtim-period": 2,
+            "maximum-clients": 64,
+            "tx-power": 0
+        }
+    ],
+    "services": {
+        "ssh": {
+            "password-authentication": true,
+            "port": 22
+        }
+    },
+    "uuid": 1661312631
+}

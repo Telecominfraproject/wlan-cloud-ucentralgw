@@ -6,8 +6,8 @@
 
 namespace OpenWifi {
 	void AP_WS_Connection::Process_cfgpending(Poco::JSON::Object::Ptr ParamsObj) {
-		if (!Connected_) {
-			poco_warning(Logger(), fmt::format(
+		if (!State_.Connected) {
+			poco_warning(Logger_, fmt::format(
 									   "INVALID-PROTOCOL({}): Device '{}' is not following protocol", CId_, CN_));
 			Errors_++;
 			return;
@@ -16,9 +16,9 @@ namespace OpenWifi {
 
 			[[maybe_unused]] uint64_t UUID = ParamsObj->get(uCentralProtocol::UUID);
 			[[maybe_unused]] uint64_t Active = ParamsObj->get(uCentralProtocol::ACTIVE);
-			poco_trace(Logger(), fmt::format("CFG-PENDING({}): Active: {} Target: {}", CId_, Active, UUID));
+			poco_trace(Logger_, fmt::format("CFG-PENDING({}): Active: {} Target: {}", CId_, Active, UUID));
 		} else {
-			poco_warning(Logger(), fmt::format("CFG-PENDING({}): Missing some parameters", CId_));
+			poco_warning(Logger_, fmt::format("CFG-PENDING({}): Missing some parameters", CId_));
 		}
 	}
 }

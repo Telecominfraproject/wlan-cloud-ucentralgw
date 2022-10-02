@@ -10,11 +10,14 @@
 #include "Poco/Net/DatagramSocket.h"
 #include "Poco/Net/SocketReactor.h"
 
+#include "RADSECserver.h"
+
 namespace OpenWifi {
 
 	enum class radius_type {
 		auth, acct, coa
 	};
+
 
 	class RADIUS_proxy_server : public SubSystemServer {
 	  public:
@@ -39,6 +42,9 @@ namespace OpenWifi {
 		void DeleteConfig();
 		void GetConfig(GWObjects::RadiusProxyPoolList &C);
 
+		void StartRADSECServers();
+		void StartRADSECServer(const GWObjects::RadiusProxyServerEntry &E);
+
 		struct Destination {
 			Poco::Net::SocketAddress 	Addr;
 			uint64_t 					state = 0;
@@ -50,6 +56,8 @@ namespace OpenWifi {
 			std::string 				monitorMethod;
 			std::vector<std::string>	methodParameters;
 			bool 						useAsDefault=false;
+			bool 						useRADSEC=false;
+			std::vector<std::string>	realms;
 		};
 
 	  private:
@@ -59,15 +67,13 @@ namespace OpenWifi {
 		std::unique_ptr<Poco::Net::DatagramSocket>	AuthenticationSocketV6_;
 		std::unique_ptr<Poco::Net::DatagramSocket>	CoASocketV4_;
 		std::unique_ptr<Poco::Net::DatagramSocket>	CoASocketV6_;
-		Poco::Net::SocketReactor		AccountingReactor_;
-		Poco::Net::SocketReactor		AuthenticationReactor_;
-		Poco::Net::SocketReactor		CoAReactor_;
-		Poco::Thread					AuthenticationReactorThread_;
-		Poco::Thread					AccountingReactorThread_;
-		Poco::Thread					CoAReactorThread_;
+		Poco::Net::SocketReactor		RadiusReactor_;
+		Poco::Thread					RadiusReactorThread_;
 
 		GWObjects::RadiusProxyPoolList	PoolList_;
 		std::string 					ConfigFilename_;
+
+		std::map<Poco::Net::SocketAddress, std::unique_ptr<RADSECserver>> RADSECservers_;
 
 		struct RadiusPool {
 			std::vector<Destination>	AuthV4;
@@ -81,6 +87,8 @@ namespace OpenWifi {
 		std::vector<RadiusPool>			Pools_;
 		uint 							defaultPoolIndex_=0;
 		bool 							enabled_=false;
+		bool 							defaultIsRADSEC_=false;
+		std::atomic_bool 				running_=false;
 
 		RADIUS_proxy_server() noexcept:
 		   SubSystemServer("RADIUS-PROXY", "RADIUS-PROXY", "radius.proxy")
@@ -91,10 +99,10 @@ namespace OpenWifi {
 
 		void ParseConfig();
 		void ResetConfig();
-		Poco::Net::SocketAddress Route(radius_type rtype, const Poco::Net::SocketAddress &A);
+		Poco::Net::SocketAddress Route(radius_type rtype, const Poco::Net::SocketAddress &A, const RADIUS::RadiusPacket &P, bool &UseRADSEC);
 		void ParseServerList(const GWObjects::RadiusProxyServerConfig & Config, std::vector<Destination> &V4, std::vector<Destination> &V6, bool setAsDefault);
 		static Poco::Net::SocketAddress ChooseAddress(std::vector<Destination> &Pool, const Poco::Net::SocketAddress & OriginalAddress);
-		Poco::Net::SocketAddress DefaultRoute([[maybe_unused]] radius_type rtype, const Poco::Net::SocketAddress &RequestedAddress);
+		Poco::Net::SocketAddress DefaultRoute([[maybe_unused]] radius_type rtype, const Poco::Net::SocketAddress &RequestedAddress, const RADIUS::RadiusPacket &P, bool &UseRADSEC);
 	};
 
 	inline auto RADIUS_proxy_server() { return RADIUS_proxy_server::instance(); }

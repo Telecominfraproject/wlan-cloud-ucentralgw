@@ -1,0 +1,32 @@
+{
+    "pools" : [
+        {
+            "name" : "master" ,
+            "description" : "master pool",
+            "useByDefault" : true,
+            "authConfig" : {
+                "strategy" : "weighted",
+                "monitor" : false,
+                "monitorMethod" : "none",
+                "methodParameters" : [],
+                "servers" : [ {
+                        "name" : "orion",
+                        "ip" : "216.239.32.91",
+                        "port" : 2083,
+                        "weight" : 10,
+                        "radsec" : true,
+                        "radsecPort" : 2083,
+                        "radsecSecret" : "radsec",
+                        "radsecKey" : "LS0tLS1CRUdJTiBFQyBQUklWQVRFIEtFWS0tLS0tCk1IY0NBUUVFSUR6RnpXeTZlYXg0QVoxTySG9VUURRZ0FFS3BnWVBHMktPTVd2S0w1Z3NMRXpUc09rREg1M3NHaEQyS3RsRXBDTXVnNDNIZlFnTFVpUgpTR1R2S1l0bDFmbmJaU1lnY0RJdncxdjNYRy9hVDhOY2JBPT0KLS0tLS1FTkQgRUMgUFJJVkFURSBLRVktLS0tLQo=",
+                        "radsecCert" : "LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUNRVENDQWVpZ0F3SUJBZ0lVY3BKS3pVM0Ba0dBMVVFQmhNQ1ZWTXhFekFSQmdOVkJBb1RDa0oxZEhSdmJuZHZiMlF4SFRBYkJnTlZCQU1URkVKMQpkSFJ2Ym5kdmIyUWdVbUZrYzJWaklFTkJNQjRYRFRJeU1EY3dNekExTWpVeE5Gb1hEVEkzTURVeE9UQTFNalV4Ck5Gb3dkVEVMTUFrR0ExVUVCaE1DVlZNeEV6QVJCZ05WQkFvVENrSjFkSFJ2Ym5kdmIyUXhOakEwQmdOVkJBTVQKTFdGeWFXeHBZUzVqWWpFd2FtTnVjemgxYlhCbk9HWnBjRFowTUM1dmNtbHZiaTVoY21WaE1USXdMbU52YlRFWgpNQmNHQ2dtU0pvbVQ4aXhrQVFFVENVZHZiMmRzWlRwVlV6QlpNQk1HQnlxR1NNNDlBZ0VHQ0NxR1NNNDlBd0VICkEwSUFCQ3FZR0R4dGlqakZyeWkrWUxDeE0wN0RwQXgrZDdCb1E5aXJaUktRakxvT054MzBJQzFJa1Voazd5bUwKWmRYNTIyVW1JSEF5TDhOYjkxeHYyay9EWEd5amdZa3dnWVl3RGdZRFZSMFBBUUgvQkFRREFnZUFNQk1HQTFVZApKUVFNTUFvR0NDc0dBUVVGQndNQ01Bd0dBMVVkRXdFQi93UUNNQUF3T0FZRFZSMFJCREV3TDRJdFlYSnBiR2xoCkxtTmlNVEJxWTI1ek9IVnRjR2M0Wm1sd05uUXdMbTl5YVc5dUxtRnlaV0V4TWpBdVkyOXRNQmNHQTFVZElBUVEKTUE0d0RBWUtLd1lCQkFIdUtnRUJCVEFLQmdncWhrak9QUVFEQWdOSEFEQkVBaUFwTmM1dUNBSkp6KzVyakdqdwpCWGtOdHE3UU83bWU5dUg5bkNsTDZnSVE5Z0lnUHM2VkVKVW5CcEZ0RktXbFF4eWJ1YlBxYnpJNjBPSERHQ0ExCmhXUk1PS1U9Ci0tLS0tRU5EIENFUlRJRklDQVRFLS0tLS0K",
+                        "radsecCacerts" : [
+				                    "LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUJ0akNDQVZ1Z0F3SUJBZ0lCQyOXZaREVkTUJzR0ExVUVBeE1VUW5WMGRHOXVkMjl2WkNCU1lXUnpaV01nUTBFdwpJQmNOTVRrd05qQTJNVFV4TlRNeVdoZ1BNalV4T1RBMk1EY3hOVEUxTXpKYU1FRXhDekFKQmdOVkJBWVRBbFZUCk1STXdFUVlEVlFRS0V3cENkWFIwYjI1M2IyOWtNUjB3R3dZRFZRUURFeFJDZFhSMGIyNTNiMjlrSUZKaFpITmwKWXlCRFFUQlpNQk1HQnlxR1NNNDlBZ0VHQ0NxR1NNNDlBd0VIQTBJQUJJUW40QVBKaXdvUVFQblR1cFgrZTk1Ugp0ZzVoQVFVbUhCN1E0UkpwSG4welF6TUJpMDdSejkxV05RamFHeERydktLVlQ1OThIM2dxYkI4TTViOHN3aytqClFqQkFNQTRHQTFVZER3RUIvd1FFQXdJQ2hEQWRCZ05WSFNVRUZqQVVCZ2dyQmdFRkJRY0RBZ1lJS3dZQkJRVUgKQXdFd0R3WURWUjBUQVFIL0JBVXdBd0VCL3pBS0JnZ3Foa2pPUFFRREFnTkpBREJHQWlFQTkrbHUwN2NlaGc1OQpxSi81dWtzN05oL3F2aXFHWCs1WDFwSVVxdENGVlJjQ0lRREZmUGhwZzZJOFE0SUdBbzNuamlHRTdDWC9nMm56CkRzSW5FcG9vRlkxV0xRPT0KLS0tLS1FTkQgQ0VSVElGSUNBVEUtLS0tLQo="
+                         ],
+                         "radsecRealms" : [],
+                         "ignore" : false
+                    }
+                ]
+            }
+        }
+    ]
+}

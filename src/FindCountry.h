@@ -5,6 +5,7 @@
 #pragma once
 
 #include "framework/MicroService.h"
+
 #include "Poco/Net/IPAddress.h"
 #include "nlohmann/json.hpp"
 
@@ -133,6 +134,7 @@ namespace OpenWifi {
 		}
 
 		inline int Start() final {
+			poco_notice(Logger(),"Starting...");
 			ProviderName_ = MicroService::instance().ConfigGetString("iptocountry.provider","");
 			if(!ProviderName_.empty()) {
 				Provider_ = IPLocationProvider<IPToCountryProvider, IPInfo, IPData, IP2Location>(ProviderName_);
@@ -145,6 +147,9 @@ namespace OpenWifi {
 		}
 
 		inline void Stop() final {
+			poco_notice(Logger(),"Stopping...");
+			//	Nothing to do - just to provide the same look at the others.
+			poco_notice(Logger(),"Stopped...");
 		}
 
 		[[nodiscard]] static inline std::string ReformatAddress(const std::string & I )

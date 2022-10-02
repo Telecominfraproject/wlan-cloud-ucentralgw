@@ -19,13 +19,29 @@ namespace OpenWifi {
 
     public:
 
-		enum CommandExecutionType {
+		enum class CommandExecutionType {
 			COMMAND_PENDING,
 			COMMAND_EXECUTED,
 			COMMAND_COMPLETED,
 			COMMAND_TIMEDOUT,
-			COMMAND_FAILED
+			COMMAND_FAILED,
+		  	COMMAND_EXPIRED,
+			COMMAND_EXECUTING
 		};
+
+		inline std::string to_string(const CommandExecutionType &C) {
+			switch(C) {
+				case CommandExecutionType::COMMAND_PENDING: return "pending";
+				case CommandExecutionType::COMMAND_EXECUTED: return "executed";
+				case CommandExecutionType::COMMAND_COMPLETED: return "completed";
+				case CommandExecutionType::COMMAND_TIMEDOUT: return "timedout";
+				case CommandExecutionType::COMMAND_FAILED: return "failed";
+				case CommandExecutionType::COMMAND_EXPIRED: return "expired";
+				case CommandExecutionType::COMMAND_EXECUTING:
+				default:
+					return "executing";
+			}
+		}
 
 		[[nodiscard]] inline std::string ComputeRange(uint64_t From, uint64_t HowMany) {
 			if(dbType_==sqlite) {
@@ -139,6 +155,10 @@ namespace OpenWifi {
 		bool SetCommandResult(std::string & UUID, std::string & Result);
 		bool GetNewestCommands(std::string &SerialNumber, uint64_t HowMany, std::vector<GWObjects::CommandDetails> & Commands);
 		bool SetCommandExecuted(std::string & CommandUUID);
+		bool SetCommandTimedOut(std::string &CommandUUID);
+
+		void RemovedExpiredCommands();
+		void RemoveTimedOutCommands();
 
 		bool RemoveOldCommands(std::string & SerilNumber, std::string & Command);
 

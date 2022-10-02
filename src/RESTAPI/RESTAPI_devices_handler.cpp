@@ -57,6 +57,15 @@ namespace OpenWifi {
 
 	void RESTAPI_devices_handler::DoGet() {
 
+		if(GetBoolParameter("connectionStatistics")) {
+			GWObjects::DeviceConnectionStatistics	DCS;
+			Poco::JSON::Object	Answer;
+
+			DeviceRegistry()->AverageDeviceStatistics(DCS.connectedDevices,DCS.averageConnectionTime, DCS.connectingDevices);
+			DCS.to_json(Answer);
+			return ReturnObject(Answer);
+		}
+
 		if(GetBoolParameter("orderSpec")) {
 			Types::StringVec Fields;
 			StorageService()->GetDeviceDbFieldList(Fields);

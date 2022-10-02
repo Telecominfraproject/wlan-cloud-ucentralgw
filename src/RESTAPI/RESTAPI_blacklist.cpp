@@ -18,7 +18,7 @@ namespace OpenWifi {
 	void RESTAPI_blacklist::DoDelete() {
 		auto SerialNumber = GetBinding(RESTAPI::Protocol::SERIALNUMBER, "");
 
-		if(!Utils::ValidSerialNumber(SerialNumber)) {
+		if(!Utils::NormalizeMac(SerialNumber)) {
 			return BadRequest(RESTAPI::Errors::MissingSerialNumber);
 		}
 
@@ -36,7 +36,7 @@ namespace OpenWifi {
 	void RESTAPI_blacklist::DoGet() {
 		auto SerialNumber = GetBinding(RESTAPI::Protocol::SERIALNUMBER, "");
 
-		if(!Utils::ValidSerialNumber(SerialNumber)) {
+		if(!Utils::NormalizeMac(SerialNumber)) {
 			return BadRequest(RESTAPI::Errors::MissingSerialNumber);
 		}
 
@@ -51,13 +51,14 @@ namespace OpenWifi {
 	}
 
 	void RESTAPI_blacklist::DoPost() {
+
 		const auto &Obj = ParsedBody_;
 		GWObjects::BlackListedDevice	D;
 		if(!D.from_json(Obj)) {
 			return BadRequest(RESTAPI::Errors::InvalidJSONDocument);
 		}
 
-		if(D.serialNumber.empty()) {
+		if(D.serialNumber.empty() || !Utils::NormalizeMac(D.serialNumber)) {
 			return BadRequest(RESTAPI::Errors::MissingSerialNumber);
 		}
 
@@ -83,7 +84,7 @@ namespace OpenWifi {
 
 	void RESTAPI_blacklist::DoPut() {
 		auto SerialNumber = Poco::toLower(GetBinding(RESTAPI::Protocol::SERIALNUMBER, ""));
-		if(!Utils::ValidSerialNumber(SerialNumber)) {
+		if(!Utils::NormalizeMac(SerialNumber)) {
 			return BadRequest(RESTAPI::Errors::MissingSerialNumber);
 		}
 

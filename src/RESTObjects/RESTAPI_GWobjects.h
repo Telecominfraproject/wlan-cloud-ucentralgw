@@ -38,6 +38,10 @@ namespace OpenWifi::GWObjects {
 		uint64_t 	kafkaPackets=0;
 		uint64_t 	websocketPackets=0;
 		std::string locale;
+		uint64_t 	started=0;
+		uint64_t 	sessionId=0;
+		double      connectionCompletionTime=0.0;
+
 		void to_json(Poco::JSON::Object &Obj) const;
 	};
 
@@ -69,6 +73,15 @@ namespace OpenWifi::GWObjects {
 		void to_json_with_status(Poco::JSON::Object &Obj) const;
 		bool from_json(const Poco::JSON::Object::Ptr &Obj);
 		void Print() const;
+	};
+
+	struct DeviceConnectionStatistics {
+		std::uint64_t connectedDevices = 0;
+		std::uint64_t averageConnectionTime = 0;
+		std::uint64_t connectingDevices = 0;
+
+		void to_json(Poco::JSON::Object &Obj) const;
+		bool from_json(const Poco::JSON::Object::Ptr &Obj);
 	};
 
 	struct Statistics {
@@ -219,11 +232,13 @@ namespace OpenWifi::GWObjects {
 		std::string secret;
 		std::string certificate;
 		bool 		radsec=false;
-		uint16_t 	radsec_port=2084;
-		std::string radsec_secret;
-		std::string radsec_key;
-		std::string radsec_cert;
-		std::string radsec_cacerts;
+		uint16_t 	radsecPort=2083;
+		std::string radsecSecret;
+		std::string radsecKey;
+		std::string radsecCert;
+		std::vector<std::string> 	radsecCacerts;
+		std::vector<std::string>	radsecRealms;
+		bool 		ignore=false;
 
 		void to_json(Poco::JSON::Object &Obj) const;
 		bool from_json(const Poco::JSON::Object::Ptr &Obj);

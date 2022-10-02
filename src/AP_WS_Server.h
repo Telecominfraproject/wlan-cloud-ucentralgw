@@ -27,14 +27,16 @@ namespace OpenWifi {
 
 	class AP_WS_RequestHandler : public Poco::Net::HTTPRequestHandler {
 	  public:
-		explicit AP_WS_RequestHandler(Poco::Logger &L)
-			: Logger_(L) {
+		explicit AP_WS_RequestHandler(Poco::Logger &L, std::uint64_t id)
+			: Logger_(L),
+			  id_(id){
 		};
 
 		void handleRequest(Poco::Net::HTTPServerRequest &request,
 						   Poco::Net::HTTPServerResponse &response) override;
 	  private:
 		Poco::Logger 				&Logger_;
+		std::uint64_t 				id_=0;
 	};
 
 	class AP_WS_RequestHandlerFactory : public Poco::Net::HTTPRequestHandlerFactory {
@@ -48,13 +50,14 @@ namespace OpenWifi {
 			if (request.find("Upgrade") != request.end() &&
 				Poco::icompare(request["Upgrade"], "websocket") == 0) {
 				Utils::SetThreadName("ws:conn-init");
-				return new AP_WS_RequestHandler(Logger_);
+				return new AP_WS_RequestHandler(Logger_,id_++);
 			} else {
 				return nullptr;
 			}
 		}
 	  private:
 		Poco::Logger 				&Logger_;
+		inline static std::uint64_t 		id_=1;
 	};
 
 	class AP_WS_Server : public SubSystemServer {
@@ -71,7 +74,7 @@ namespace OpenWifi {
 		// Poco::Net::SocketReactor & GetNextReactor() { return ReactorPool_.NextReactor(); }
 
 		inline bool IsSimSerialNumber(const std::string & SerialNumber) const {
-			return IsSim(SerialNumber) && SerialNumber == SimulatorId_;
+			return IsSim(Poco::toLower(SerialNumber)) && Poco::toLower(SerialNumber) == Poco::toLower(SimulatorId_);
 		}
 
 		inline static bool IsSim(const std::string & SerialNumber) {
@@ -82,22 +85,55 @@ namespace OpenWifi {
 			return SimulatorEnabled_;
 		}
 
+		inline bool AllowSerialNumberMismatch() const {
+			return AllowSerialNumberMismatch_;
+		}
+
+		inline std::uint64_t MismatchDepth() const {
+			return MismatchDepth_;
+		}
+
 		inline bool UseProvisioning() const { return LookAtProvisioning_; }
 		inline bool UseDefaults() const { return UseDefaultConfig_; }
 
 		[[nodiscard]] inline Poco::Net::SocketReactor & NextReactor() { return Reactor_pool_->NextReactor(); }
+		[[nodiscard]] inline bool Running() const { return Running_; }
 
-	  private:
-		std::unique_ptr<Poco::Crypto::X509Certificate>		IssuerCert_;
-		std::list<std::unique_ptr<Poco::Net::HTTPServer>>	WebServers_;
-		Poco::Net::SocketReactor							Reactor_;
-		Poco::Thread										ReactorThread_;
-		std::string 										SimulatorId_;
-		Poco::ThreadPool									DeviceConnectionPool_{"ws:dev-pool", 2, 32};
-		bool 												LookAtProvisioning_ = false;
-		bool 												UseDefaultConfig_ = true;
-		bool 												SimulatorEnabled_=false;
-		std::unique_ptr<AP_WS_ReactorThreadPool>			Reactor_pool_;
+		inline void AddConnection(std::uint64_t session_id, std::shared_ptr<AP_WS_Connection> Connection ) {
+			std::unique_lock			Lock(LocalMutex_);
+			Connections_[session_id] = Connection;
+		}
+
+		inline void DeleteConnection(std::uint64_t session_id) {
+			std::unique_lock			Lock(LocalMutex_);
+			Connections_.erase(session_id);
+		}
+
+		inline std::shared_ptr<AP_WS_Connection> FindConnection(std::uint64_t session_id) const {
+			std::shared_lock	Lock(LocalMutex_);
+
+			auto Connection = Connections_.find(session_id);
+			if(Connection!=end(Connections_))
+				return Connection->second;
+			return nullptr;
+		}
+
+	private:
+		mutable std::shared_mutex									LocalMutex_;
+		std::unique_ptr<Poco::Crypto::X509Certificate>				IssuerCert_;
+		std::list<std::unique_ptr<Poco::Net::HTTPServer>>			WebServers_;
+		Poco::Net::SocketReactor									Reactor_;
+		Poco::Thread												ReactorThread_;
+		std::string 												SimulatorId_;
+		Poco::ThreadPool											DeviceConnectionPool_{"ws:dev-pool", 2, 32};
+		bool 														LookAtProvisioning_ = false;
+		bool 														UseDefaultConfig_ = true;
+		bool 														SimulatorEnabled_=false;
+		std::unique_ptr<AP_WS_ReactorThreadPool>					Reactor_pool_;
+		std::atomic_bool 											Running_=false;
+		std::map<std::uint64_t, std::shared_ptr<AP_WS_Connection>>	Connections_;
+		std::atomic_bool 											AllowSerialNumberMismatch_=true;
+		std::atomic_uint64_t 										MismatchDepth_=2;
 
 		AP_WS_Server() noexcept:
 			SubSystemServer("WebSocketServer", "WS-SVR", "ucentral.websocket") {

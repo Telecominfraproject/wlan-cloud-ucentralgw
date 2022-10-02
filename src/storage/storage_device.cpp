@@ -433,7 +433,7 @@ namespace OpenWifi {
 
 	bool Storage::DeleteDevice(std::string &SerialNumber) {
 		try {
-			std::vector<std::string>	DBList{"Devices", "Statistics", "CommandList", "HealthChecks", "LifetimeStats", "Capabilities", "DeviceLogs"};
+			std::vector<std::string>	DBList{"Devices", "Statistics", "CommandList", "HealthChecks", "Capabilities", "DeviceLogs"};
 
 			for(const auto &i:DBList) {
 
@@ -453,10 +453,14 @@ namespace OpenWifi {
 			SerialNumberCache()->DeleteSerialNumber(SerialNumber);
 
 			if(KafkaManager()->Enabled()) {
-				nlohmann::json 	Message;
-				Message["command"] = "delete_device";
-				Message["payload"]["serialNumber"] = SerialNumber;
-				KafkaManager()->PostMessage(KafkaTopics::COMMAND, SerialNumber, to_string(Message));
+				Poco::JSON::Object	Message;
+				Message.set("command","command");
+				Poco::JSON::Object	Payload;
+				Payload.set("serialNumber", SerialNumber);
+				Message.set("payload",Payload);
+				std::ostringstream StrPayload;
+				Message.stringify(StrPayload);
+				KafkaManager()->PostMessage(KafkaTopics::COMMAND, SerialNumber, StrPayload.str());
 			}
 
 			return true;

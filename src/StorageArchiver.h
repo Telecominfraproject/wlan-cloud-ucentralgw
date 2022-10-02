@@ -50,7 +50,7 @@ namespace OpenWifi {
         private:
             std::atomic_bool 				Enabled_ = false;
             Poco::Timer                     Timer_;
-            Archiver                        Archiver_{Logger()};
+            std::unique_ptr<Archiver>       Archiver_;
             std::unique_ptr<Poco::TimerCallback<Archiver>>   ArchiverCallback_;
 
             StorageArchiver() noexcept:

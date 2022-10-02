@@ -90,14 +90,14 @@ namespace OpenWifi {
 			Created_ = std::chrono::high_resolution_clock::now();
 		}
 
-		inline void SetClient(std::unique_ptr<RTTYS_ClientConnection> Client) {
+		inline void SetClient(RTTYS_ClientConnection *Client) {
 			ClientConnected_ = std::chrono::high_resolution_clock::now();
-			Client_ = std::move(Client);
+			Client_ = std::unique_ptr<RTTYS_ClientConnection>(Client);
 		}
 
-		inline void SetDevice(std::unique_ptr<RTTYS_Device_ConnectionHandler> Device) {
+		inline void SetDevice(RTTYS_Device_ConnectionHandler* Device) {
 			DeviceConnected_ = std::chrono::high_resolution_clock::now();
-			Device_ = std::move(Device);
+			Device_ = std::unique_ptr<RTTYS_Device_ConnectionHandler>(Device);
 		}
 
 		inline bool Login() {
@@ -105,12 +105,6 @@ namespace OpenWifi {
 				return Device_->Login();
 			}
 			return false;
-		}
-
-		RTTYS_EndPoint & operator=(RTTYS_EndPoint Other) {
-			Other.Client_ = std::move(Client_);
-			Other.Device_ = std::move(Device_);
-			return *this;
 		}
 
 		inline void DisconnectClient() {
@@ -275,24 +269,23 @@ namespace OpenWifi {
 		std::unique_ptr<Poco::Net::SocketAcceptor<RTTYS_Device_ConnectionHandler>>	DeviceAcceptor_;
 		Poco::Thread								DeviceReactorThread_;
 		Poco::NotificationQueue						ResponseQueue_;
-		mutable bool 								NotificationManagerRunning_=false;
+		std::atomic_bool 							NotificationManagerRunning_=false;
 		Poco::Thread								NotificationManager_;
 
 		Poco::Timer                     					Timer_;
 		std::unique_ptr<Poco::TimerCallback<RTTYS_server>>  GCCallBack_;
 		std::list<std::unique_ptr<RTTYS_Device_ConnectionHandler>>	FailedDevices;
 		std::list<std::unique_ptr<RTTYS_ClientConnection>>			FailedClients;
-		mutable std::shared_mutex 					M_;
+		std::shared_mutex 							LocalMutex_;
 
-		uint64_t 									TotalEndPoints_=0;
-		uint64_t 									FaildedNumDevices_=0;
-		uint64_t 									FailedNumClients_=0;
+		std::atomic_uint64_t 						TotalEndPoints_=0;
+		std::atomic_uint64_t 						FailedNumDevices_=0;
+		std::atomic_uint64_t 						FailedNumClients_=0;
 		double 										TotalConnectedDeviceTime_=0.0;
 		double 										TotalConnectedClientTime_=0.0;
 
-		uint64_t 									Started_=OpenWifi::Now();
-
-		uint64_t 									MaxConcurrentSessions_=0;
+		std::atomic_uint64_t						Started_=OpenWifi::Now();
+		std::atomic_uint64_t						MaxConcurrentSessions_=0;
 
 		explicit RTTYS_server() noexcept:
 		SubSystemServer("RTTY_Server", "RTTY-SVR", "rtty.server")

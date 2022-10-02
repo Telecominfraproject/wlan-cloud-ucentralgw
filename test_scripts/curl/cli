@@ -180,6 +180,14 @@ listdevices() {
 	jq < ${result_file}
 }
 
+listdevices() {
+	curl  ${FLAGS} -X GET "https://${OWGW}/api/v1/devices" \
+			-H "Content-Type: application/json" \
+			-H "Accept: application/json" \
+			-H "Authorization: Bearer ${token}" > ${result_file}
+		jq < ${result_file}
+}
+
 ldevs() {
 	curl  ${FLAGS} -X GET "https://${OWGW}/api/v1/devices?offset=$1&limit=$2" \
 		-H "Content-Type: application/json" \
@@ -191,7 +199,8 @@ ldevs() {
 deletedevice() {
 	curl  ${FLAGS} -X DELETE "https://${OWGW}/api/v1/device/$1" \
         -H "Accept: application/json" \
-        -H "Authorization: Bearer ${token}"
+        -H "Authorization: Bearer ${token}" > ${result_file}
+	jq < ${result_file}
 }
 
 deleteoui() {
@@ -237,7 +246,8 @@ setloglevel() {
 		-H "Content-Type: application/json" \
 		-H "Accept: application/json" \
 		-H "Authorization: Bearer ${token}" \
-		-d "$payload"
+		-d "$payload" > ${result_file}
+	jq < ${result_file}
 }
 
 getloglevels() {
@@ -246,7 +256,8 @@ getloglevels() {
 		-H "Content-Type: application/json" \
 		-H "Accept: application/json" \
 		-H "Authorization: Bearer ${token}" \
-		-d "$payload"
+		-d "$payload" > ${result_file}
+	jq < ${result_file}
 }
 
 getloglevelnames() {
@@ -255,7 +266,8 @@ getloglevelnames() {
 		-H "Content-Type: application/json" \
 		-H "Accept: application/json" \
 		-H "Authorization: Bearer ${token}" \
-		-d "$payload"
+		-d "$payload" > ${result_file}
+	jq < ${result_file}
 }
 
 getsubsystemnames() {
@@ -264,7 +276,8 @@ getsubsystemnames() {
 		-H "Content-Type: application/json" \
 		-H "Accept: application/json" \
 		-H "Authorization: Bearer ${token}" \
-		-d "$payload"
+		-d "$payload" > ${result_file}
+	jq < ${result_file}
 }
 
 systeminfo() {
@@ -294,7 +307,8 @@ getdevicestatus() {
 
 getdevicecomplete() {
 	curl  ${FLAGS} -X GET "https://${OWGW}/api/v1/device/$1?completeInfo=true" \
-		-H  "accept: application/json" \
+		-H "Content-Type: application/json" \
+		-H "Accept: application/json" \
 		-H "Authorization: Bearer ${token}"  > ${result_file}
 	jq < ${result_file}
 }
@@ -507,7 +521,7 @@ deviceserialnumbers() {
 }
 
 deviceswithstatus() {
-	curl  ${FLAGS} -X GET "https://${OWGW}/api/v1/devices?deviceWithStatus=true" \
+	curl  ${FLAGS} -X GET "https://${OWGW}/api/v1/devices?deviceWithStatus=true&limit=500" \
 		-H "Content-Type: application/json" \
 		-H "Accept: application/json" \
 		-H "Authorization: Bearer ${token}" > ${result_file}
@@ -654,7 +668,7 @@ telemetry_to_kafka() {
 
 runscript() {
 	payload="$(printf '{ "serialNumber": "%s", "type": "%s" , "kafka": true, "timeout": 30, "scriptId": "cli-manual", "script" : "%s" }' "$1" "$2" "$3" )"
-				  curl  ${FLAGS} -X POST "https://${OWGW}/api/v1/device/$1/telemetry" \
+				  curl  ${FLAGS} -X POST "https://${OWGW}/api/v1/device/$1/script" \
 				  -H "Content-Type: application/json" \
 				  -H "Accept: application/json" \
 				  -H "Authorization: Bearer ${token}" \
@@ -699,6 +713,14 @@ setradiusconfig() {
 
 getradiusconfig() {
 	curl    ${FLAGS} -X GET "https://${OWGW}/api/v1/radiusProxyConfig" \
+			-H "Content-Type: application/json" \
+			-H "Accept: application/json" \
+			-H "Authorization: Bearer ${token}" > ${result_file}
+	jq < ${result_file}
+}
+
+connectionstatistics() {
+	curl    ${FLAGS} -X GET "https://${OWGW}/api/v1/devices?connectionStatistics=true" \
 			-H "Content-Type: application/json" \
 			-H "Accept: application/json" \
 			-H "Authorization: Bearer ${token}" > ${result_file}
@@ -970,5 +992,6 @@ case "$1" in
 	"getradiusconfig") login; getradiusconfig ; logout;;
 	"setradiusconfig") login; setradiusconfig $2; logout;;
 	"deviceping") login; deviceping $2; logout;;
+	"connectionstatistics") login; connectionstatistics $2; logout;;
   *) help ;;
 esac
