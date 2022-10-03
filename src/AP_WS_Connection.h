@@ -112,7 +112,7 @@ namespace OpenWifi {
 		std::chrono::time_point<std::chrono::high_resolution_clock> ConnectionStart_ = std::chrono::high_resolution_clock::now();
 		std::chrono::duration<double, std::milli> ConnectionCompletionTime_{0.0};
 		bool 								Threaded_=false;
-		std::atomic_bool 					Dead_=false;
+		std::atomic_flag 					Dead_=false;
 		std::atomic_bool 					DeviceValidated_=false;
 
 		static inline std::atomic_uint64_t 	ConcurrentStartingDevices_=0;

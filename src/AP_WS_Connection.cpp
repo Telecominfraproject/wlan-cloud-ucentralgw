@@ -205,16 +205,17 @@ namespace OpenWifi {
 	}
 
 	AP_WS_Connection::~AP_WS_Connection() {
-		if(!Dead_)
+		if(!Dead_.test_and_set())
 			EndConnection();
 	}
 
 	void AP_WS_Connection::EndConnection() {
-		if(!Dead_) {
-			Dead_ = true;
+		if(!Dead_.test_and_set()) {
 			poco_information(Logger_, fmt::format("CONNECTION-CLOSING({}): Session={} Serial={}. Removing from registry.",
 												  CId_, State_.sessionId, SerialNumber_));
 			auto SessionDeleted = DeviceRegistry()->EndSession(State_.sessionId, SerialNumberInt_);
+			poco_information(Logger_, fmt::format("CONNECTION-CLOSING({}): Session={} Serial={}. Removed from registry.",
+												  CId_, State_.sessionId, SerialNumber_));
 
 			if (Registered_) {
 				Reactor_.removeEventHandler(
@@ -236,8 +237,10 @@ namespace OpenWifi {
 			}
 			if (SessionDeleted)
 				WebSocketClientNotificationDeviceDisconnected(SerialNumber_);
-			AP_WS_Server()->DeleteConnection(State_.sessionId);
 			poco_information(Logger_, fmt::format("CONNECTION-CLOSING({}): Session={} Serial={}. Removing from WS Server.",
+												  CId_, State_.sessionId, SerialNumber_));
+			AP_WS_Server()->DeleteConnection(State_.sessionId);
+			poco_information(Logger_, fmt::format("CONNECTION-CLOSING({}): Session={} Serial={}. Removed from WS Server.",
 												  CId_, State_.sessionId, SerialNumber_));
 		}
 	}
@@ -544,7 +547,7 @@ namespace OpenWifi {
 
 	void AP_WS_Connection::OnSocketReadable([[maybe_unused]] const Poco::AutoPtr<Poco::Net::ReadableNotification> &pNf) {
 
-		if(Dead_)
+		if(Dead_.test())
 			return;
 
 		if(!AP_WS_Server()->Running())
