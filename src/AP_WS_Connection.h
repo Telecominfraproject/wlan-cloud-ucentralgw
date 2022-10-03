@@ -114,6 +114,7 @@ namespace OpenWifi {
 		bool 								Threaded_=false;
 		std::atomic_flag 					Dead_=false;
 		std::atomic_bool 					DeviceValidated_=false;
+		std::atomic_bool 					Valid_=false;
 
 		static inline std::atomic_uint64_t 	ConcurrentStartingDevices_=0;
 
