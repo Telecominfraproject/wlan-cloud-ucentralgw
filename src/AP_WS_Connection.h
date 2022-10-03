@@ -5,6 +5,8 @@
 #pragma once
 
 #include <string>
+#include <shared_mutex>
+
 #include "Poco/Net/SocketReactor.h"
 #include "Poco/Net/StreamSocket.h"
 #include "Poco/JSON/Object.h"
@@ -12,7 +14,6 @@
 #include "Poco/Logger.h"
 #include "Poco/Net/WebSocket.h"
 
-#include "DeviceRegistry.h"
 #include "RESTObjects/RESTAPI_GWobjects.h"
 
 
@@ -83,6 +84,7 @@ namespace OpenWifi {
 		}
 
 		friend class DeviceRegistry;
+		friend class AP_WS_Server;
 
 	  private:
 		std::shared_mutex 					Mutex_;

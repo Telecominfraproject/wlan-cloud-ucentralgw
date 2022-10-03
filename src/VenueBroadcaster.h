@@ -6,7 +6,7 @@
 
 #include "framework/MicroService.h"
 #include "sdks/sdk_prov.h"
-#include "DeviceRegistry.h"
+#include "AP_WS_Server.h"
 
 namespace OpenWifi {
 
@@ -89,7 +89,7 @@ namespace OpenWifi {
 		}
 
 		inline void SendToDevice(const std::string &SerialNumber,const std::string &Payload) {
-			DeviceRegistry()->SendFrame(SerialNumber,Payload);
+			AP_WS_Server()->SendFrame(SerialNumber,Payload);
 		}
 
 		inline void run() final {
