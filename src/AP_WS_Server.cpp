@@ -158,7 +158,6 @@ namespace OpenWifi {
 		std::unique_lock	Lock(LocalMutex_);
 		std::cout << "Removing " << Garbage_.size() << " old connections." << std::endl;
 		Garbage_.clear();
-
 		static std::uint64_t last_log = OpenWifi::Now();
 
 		NumberOfConnectedDevices_ = 0;
