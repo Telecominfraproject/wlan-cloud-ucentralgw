@@ -85,7 +85,7 @@ namespace OpenWifi {
 		friend class DeviceRegistry;
 
 	  private:
-		std::recursive_mutex                Mutex_;
+		std::shared_mutex 					Mutex_;
 		std::shared_mutex					TelemetryMutex_;
 		Poco::Logger                    	&Logger_;
 		Poco::Net::SocketReactor			&Reactor_;
@@ -117,7 +117,6 @@ namespace OpenWifi {
 
 		static inline std::atomic_uint64_t 	ConcurrentStartingDevices_=0;
 
-		void CompleteStartup();
 		bool StartTelemetry(std::uint64_t RPCID);
 		bool StopTelemetry(std::uint64_t RPCID);
 		void UpdateCounts();
