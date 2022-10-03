@@ -14,6 +14,7 @@
 #include "AP_WS_Connection.h"
 #include "ConfigurationCache.h"
 #include "TelemetryStream.h"
+#include "framework/WebSocketClientNotifications.h"
 
 namespace OpenWifi {
 
@@ -157,11 +158,48 @@ namespace OpenWifi {
 		std::unique_lock	Lock(LocalMutex_);
 		std::cout << "Removing " << Garbage_.size() << " old connections." << std::endl;
 		Garbage_.clear();
+		static std::uint64_t last_log = OpenWifi::Now();
+
+		NumberOfConnectedDevices_ = 0;
+		NumberOfConnectingDevices_ = 0;
+		AverageDeviceConnectionTime_ = 0;
+		std::uint64_t	total_connected_time=0;
+
+		auto now = OpenWifi::Now();
+		for (auto connection=SerialNumbers_.begin(); connection!=SerialNumbers_.end();) {
+
+			if(connection->second.second== nullptr) {
+				connection++;
+				continue;
+			}
+
+			if (connection->second.second->State_.Connected) {
+				NumberOfConnectedDevices_++;
+				total_connected_time += (now - connection->second.second->State_.started);
+				connection++;
+			} else {
+				NumberOfConnectingDevices_++;
+				connection++;
+			}
+		}
+
+		AverageDeviceConnectionTime_ = (NumberOfConnectedDevices_!=0) ? total_connected_time/NumberOfConnectedDevices_ : 0;
+		if((now-last_log)>120) {
+			last_log = now;
+			poco_information(Logger(),
+							 fmt::format("Active AP connections: {} Connecting: {} Average connection time: {} seconds",
+										 NumberOfConnectedDevices_, NumberOfConnectingDevices_, AverageDeviceConnectionTime_));
+		}
+		WebSocketClientNotificationNumberOfConnections(NumberOfConnectedDevices_,
+													   AverageDeviceConnectionTime_,
+													   NumberOfConnectingDevices_);
 	}
 
 	void AP_WS_Server::Stop() {
 		poco_information(Logger(),"Stopping...");
 		Running_ = false;
+
+		Timer_.stop();
 
 		for(auto &server:WebServers_) {
 			server->stopAll();
