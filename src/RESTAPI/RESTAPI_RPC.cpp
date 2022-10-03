@@ -8,7 +8,7 @@
 #include "RESTAPI_RPC.h"
 
 #include "CommandManager.h"
-#include "DeviceRegistry.h"
+#include "AP_WS_Server.h"
 #include "StorageService.h"
 #include "framework/ow_constants.h"
 #include "ParseWifiScan.h"
@@ -48,11 +48,11 @@ namespace OpenWifi::RESTAPI_RPC {
 		// 	then we should just add the command to
 		//	the DB and let it figure out when to deliver the command.
 		auto SerialNumberInt = Utils::SerialNumberToInt(Cmd.SerialNumber);
-		if (Cmd.RunAt || (!DeviceRegistry()->Connected(SerialNumberInt) && RetryLater)) {
+		if (Cmd.RunAt || (!AP_WS_Server()->Connected(SerialNumberInt) && RetryLater)) {
 			Logger.information(fmt::format("{},{}: Command will be run in the future or when device is connected again.", Cmd.UUID, RPCID));
 			SetCommandStatus(Cmd, Request, Response, Handler, Storage::CommandExecutionType::COMMAND_PENDING, Logger);
 			return;
-		} else if ((!DeviceRegistry()->Connected(SerialNumberInt) && !RetryLater)){
+		} else if ((!AP_WS_Server()->Connected(SerialNumberInt) && !RetryLater)){
 			Logger.information(fmt::format("{},{}: Command canceled. Device is not connected. Command will not be retried.", Cmd.UUID, RPCID));
 			return SetCommandStatus(Cmd, Request, Response, Handler, Storage::CommandExecutionType::COMMAND_FAILED, Logger);
 		}

@@ -13,7 +13,7 @@
 #include "Poco/JSON/Parser.h"
 
 #include "CommandManager.h"
-#include "DeviceRegistry.h"
+#include "AP_WS_Server.h"
 #include "StorageService.h"
 #include "framework/ow_constants.h"
 
@@ -178,7 +178,7 @@ namespace OpenWifi {
 							continue;
 						}
 
-						if (!DeviceRegistry()->Connected(
+						if (!AP_WS_Server()->Connected(
 								Utils::SerialNumberToInt(Cmd.SerialNumber))) {
 							poco_trace(
 								MyLogger,
@@ -268,7 +268,7 @@ namespace OpenWifi {
 		Idx.rpc_entry = disk_only ? nullptr : std::make_shared<CommandManager::promise_type_t>();
 
 		poco_debug(Logger(), fmt::format("{}: Sending command. ID: {}", UUID, RPCID));
-		if(DeviceRegistry()->SendFrame(SerialNumber, ToSend.str())) {
+		if(AP_WS_Server()->SendFrame(SerialNumber, ToSend.str())) {
 			if(!oneway_rpc) {
 				std::lock_guard M(Mutex_);
 				OutStandingRequests_[RPCID] = Idx;

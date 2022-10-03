@@ -11,7 +11,7 @@
 
 #include "Daemon.h"
 #ifdef	TIP_GATEWAY_SERVICE
-#include "DeviceRegistry.h"
+#include "AP_WS_Server.h"
 #include "CapabilitiesCache.h"
 #endif
 
@@ -57,7 +57,7 @@ namespace OpenWifi::GWObjects {
 #ifdef TIP_GATEWAY_SERVICE
 		ConnectionState ConState;
 
-		if (DeviceRegistry()->GetState(SerialNumber, ConState)) {
+		if (AP_WS_Server()->GetState(SerialNumber, ConState)) {
 			ConState.to_json(Obj);
 		} else {
 			field_to_json(Obj,"ipAddress", "");

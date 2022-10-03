@@ -210,20 +210,15 @@ namespace OpenWifi {
 
 	AP_WS_Connection::~AP_WS_Connection() {
 		Valid_=false;
-		if(!Dead_.test_and_set())
-			EndConnection();
+		EndConnection();
 	}
 
 	void AP_WS_Connection::EndConnection() {
 		Valid_=false;
 		if(!Dead_.test_and_set()) {
-			poco_information(Logger_, fmt::format("CONNECTION-CLOSING({}): Session={} Serial={}. Removing from registry.",
-												  CId_, State_.sessionId, SerialNumber_));
-			auto SessionDeleted = DeviceRegistry()->EndSession(State_.sessionId, SerialNumberInt_);
-			poco_information(Logger_, fmt::format("CONNECTION-CLOSING({}): Session={} Serial={}. Removed from registry.",
-												  CId_, State_.sessionId, SerialNumber_));
 
 			if (Registered_) {
+				Registered_ = false;
 				Reactor_.removeEventHandler(
 					*WS_, Poco::NObserver<AP_WS_Connection, Poco::Net::ReadableNotification>(
 							  *this, &AP_WS_Connection::OnSocketReadable));
@@ -241,13 +236,10 @@ namespace OpenWifi {
 				std::thread t([s]() { NotifyKafkaDisconnect(s); });
 				t.detach();
 			}
+
+			auto SessionDeleted = AP_WS_Server()->EndSession(State_.sessionId, SerialNumberInt_);
 			if (SessionDeleted)
 				WebSocketClientNotificationDeviceDisconnected(SerialNumber_);
-			poco_information(Logger_, fmt::format("CONNECTION-CLOSING({}): Session={} Serial={}. Removing from WS Server.",
-												  CId_, State_.sessionId, SerialNumber_));
-			AP_WS_Server()->DeleteConnection(State_.sessionId);
-			poco_information(Logger_, fmt::format("CONNECTION-CLOSING({}): Session={} Serial={}. Removed from WS Server.",
-												  CId_, State_.sessionId, SerialNumber_));
 		}
 	}
 
