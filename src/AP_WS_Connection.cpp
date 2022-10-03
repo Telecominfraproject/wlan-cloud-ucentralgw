@@ -62,6 +62,7 @@ namespace OpenWifi {
 			*WS_, Poco::NObserver<AP_WS_Connection, Poco::Net::ErrorNotification>(
 					  *this, &AP_WS_Connection::OnSocketError));
 		Registered_ = true;
+		Valid_ = true;
 	}
 
 	class ThreadedCounter {
@@ -88,6 +89,9 @@ namespace OpenWifi {
 	bool AP_WS_Connection::ValidatedDevice() {
 		if(DeviceValidated_)
 			return true;
+
+		if(!Valid_)
+			return false;
 
 		try {
 			auto SockImpl = dynamic_cast<Poco::Net::WebSocketImpl *>(WS_->impl());
@@ -205,16 +209,19 @@ namespace OpenWifi {
 	}
 
 	AP_WS_Connection::~AP_WS_Connection() {
-		if(!Dead_)
+		Valid_=false;
+		if(!Dead_.test_and_set())
 			EndConnection();
 	}
 
 	void AP_WS_Connection::EndConnection() {
-		if(!Dead_) {
-			Dead_ = true;
+		Valid_=false;
+		if(!Dead_.test_and_set()) {
 			poco_information(Logger_, fmt::format("CONNECTION-CLOSING({}): Session={} Serial={}. Removing from registry.",
 												  CId_, State_.sessionId, SerialNumber_));
 			auto SessionDeleted = DeviceRegistry()->EndSession(State_.sessionId, SerialNumberInt_);
+			poco_information(Logger_, fmt::format("CONNECTION-CLOSING({}): Session={} Serial={}. Removed from registry.",
+												  CId_, State_.sessionId, SerialNumber_));
 
 			if (Registered_) {
 				Reactor_.removeEventHandler(
@@ -236,8 +243,10 @@ namespace OpenWifi {
 			}
 			if (SessionDeleted)
 				WebSocketClientNotificationDeviceDisconnected(SerialNumber_);
-			AP_WS_Server()->DeleteConnection(State_.sessionId);
 			poco_information(Logger_, fmt::format("CONNECTION-CLOSING({}): Session={} Serial={}. Removing from WS Server.",
+												  CId_, State_.sessionId, SerialNumber_));
+			AP_WS_Server()->DeleteConnection(State_.sessionId);
+			poco_information(Logger_, fmt::format("CONNECTION-CLOSING({}): Session={} Serial={}. Removed from WS Server.",
 												  CId_, State_.sessionId, SerialNumber_));
 		}
 	}
@@ -544,7 +553,7 @@ namespace OpenWifi {
 
 	void AP_WS_Connection::OnSocketReadable([[maybe_unused]] const Poco::AutoPtr<Poco::Net::ReadableNotification> &pNf) {
 
-		if(Dead_)
+		if(!Valid_)
 			return;
 
 		if(!AP_WS_Server()->Running())
