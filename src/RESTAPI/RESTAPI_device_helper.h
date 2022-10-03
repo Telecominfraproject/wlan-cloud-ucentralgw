@@ -6,17 +6,17 @@
 
 #include "RESTObjects/RESTAPI_GWobjects.h"
 #include "StorageService.h"
-#include "DeviceRegistry.h"
+#include "AP_WS_Server.h"
 
 namespace OpenWifi {
 
 	inline void CompleteDeviceInfo(const GWObjects::Device & Device, Poco::JSON::Object & Answer) {
 		GWObjects::ConnectionState	CS;
-		DeviceRegistry()->GetState(Device.SerialNumber,CS);
+		AP_WS_Server()->GetState(Device.SerialNumber,CS);
 		GWObjects::HealthCheck		HC;
-		DeviceRegistry()->GetHealthcheck(Device.SerialNumber, HC);
+		AP_WS_Server()->GetHealthcheck(Device.SerialNumber, HC);
 		std::string 	Stats;
-		DeviceRegistry()->GetStatistics(Device.SerialNumber, Stats);
+		AP_WS_Server()->GetStatistics(Device.SerialNumber, Stats);
 
 		Poco::JSON::Object	DeviceInfo;
 		Device.to_json(DeviceInfo);

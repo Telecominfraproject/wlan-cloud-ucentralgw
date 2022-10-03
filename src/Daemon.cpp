@@ -17,7 +17,6 @@
 #include "AP_WS_Server.h"
 #include "CommandManager.h"
 #include "Daemon.h"
-#include "DeviceRegistry.h"
 #include "FileUploader.h"
 #include "FindCountry.h"
 #include "OUIServer.h"
@@ -44,7 +43,7 @@ namespace OpenWifi {
 								   		WebSocketClientServer(),
 										OUIServer(),
 										FindCountryFromIP(),
-										DeviceRegistry(),
+//										DeviceRegistry(),
 										CommandManager(),
 										FileUploader(),
 										StorageArchiver(),

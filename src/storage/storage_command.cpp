@@ -13,7 +13,7 @@
 #include "Poco/Data/RecordSet.h"
 
 #include "Daemon.h"
-#include "DeviceRegistry.h"
+#include "AP_WS_Server.h"
 #include "StorageService.h"
 #include "FileUploader.h"
 
@@ -265,7 +265,7 @@ typedef Poco::Tuple<
 					Offset++;
 					GWObjects::CommandDetails R;
 					ConvertCommandRecord(i,R);
-					if (DeviceRegistry()->Connected(Utils::SerialNumberToInt(R.SerialNumber)))
+					if (AP_WS_Server()->Connected(Utils::SerialNumberToInt(R.SerialNumber)))
 						Commands.push_back(R);
 				}
 
@@ -476,7 +476,7 @@ typedef Poco::Tuple<
 			for(const auto &i : Records) {
 				GWObjects::CommandDetails R;
 				ConvertCommandRecord(i,R);
-				if (DeviceRegistry()->Connected(Utils::SerialNumberToInt(R.SerialNumber)))
+				if (AP_WS_Server()->Connected(Utils::SerialNumberToInt(R.SerialNumber)))
 					Commands.push_back(R);
 			}
 			return true;

@@ -16,6 +16,7 @@
 #include "RESTAPI/RESTAPI_device_helper.h"
 #include "Poco/StringTokenizer.h"
 #include "framework/orm.h"
+#include "AP_WS_Server.h"
 
 namespace OpenWifi {
 
@@ -61,7 +62,7 @@ namespace OpenWifi {
 			GWObjects::DeviceConnectionStatistics	DCS;
 			Poco::JSON::Object	Answer;
 
-			DeviceRegistry()->AverageDeviceStatistics(DCS.connectedDevices,DCS.averageConnectionTime, DCS.connectingDevices);
+			AP_WS_Server()->AverageDeviceStatistics(DCS.connectedDevices,DCS.averageConnectionTime, DCS.connectingDevices);
 			DCS.to_json(Answer);
 			return ReturnObject(Answer);
 		}

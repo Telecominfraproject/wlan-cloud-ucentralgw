@@ -19,7 +19,7 @@
 #include "Poco/TemporaryFile.h"
 
 #include "RADIUS_helpers.h"
-#include "DeviceRegistry.h"
+#include "AP_WS_Server.h"
 
 namespace OpenWifi {
 
@@ -82,13 +82,13 @@ namespace OpenWifi {
 					if (P.IsAuthentication()) {
 						auto SerialNumber = P.ExtractSerialNumberFromProxyState();
 						Logger_.debug(fmt::format("{}: {} Received {} bytes.", SerialNumber, P.PacketType(), NumberOfReceivedBytes));
-						DeviceRegistry()->SendRadiusAuthenticationData(
+						AP_WS_Server()->SendRadiusAuthenticationData(
 							SerialNumber, Buffer,
 							NumberOfReceivedBytes);
 					} else if (P.IsAccounting()) {
 						auto SerialNumber = P.ExtractSerialNumberFromProxyState();
 						Logger_.debug(fmt::format("{}: {} Received {} bytes.", SerialNumber, P.PacketType(), NumberOfReceivedBytes));
-						DeviceRegistry()->SendRadiusAccountingData(
+						AP_WS_Server()->SendRadiusAccountingData(
 							SerialNumber, Buffer,
 							NumberOfReceivedBytes);
 					} else if (P.IsAuthority()) {
