@@ -38,7 +38,7 @@ namespace OpenWifi {
 		std::unique_ptr<Poco::Net::WebSocket>	WS_;
 		Poco::Logger 							&Logger_;
 		std::string 							Sid_;
-		std::shared_mutex						Mutex_;
+		std::recursive_mutex					Mutex_;
 		volatile bool							Valid_=false;
 		volatile bool 							Registered_=false;
 

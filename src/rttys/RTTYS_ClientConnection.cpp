@@ -64,7 +64,7 @@ namespace OpenWifi {
 		{
 			if(!Valid_ || !Registered_)
 				return;
-			std::shared_lock G(Mutex_);
+			std::lock_guard G(Mutex_);
 			try {
 				int flags;
 				Poco::Buffer<char> IncomingFrame(0);

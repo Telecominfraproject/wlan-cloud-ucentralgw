@@ -153,7 +153,7 @@ namespace OpenWifi {
 			}
 
 			inline bool CommandRunningForDevice(std::uint64_t SerialNumber, std::string & uuid, std::string &command) {
-				std::shared_lock	Lock(LocalMutex_);
+				std::lock_guard	Lock(LocalMutex_);
 
 				for(const auto &[Request,Command]:OutStandingRequests_) {
 					if(Command.SerialNumber==SerialNumber) {
@@ -166,7 +166,7 @@ namespace OpenWifi {
 			}
 
 			inline void ClearQueue(std::uint64_t SerialNumber) {
-				std::unique_lock	Lock(LocalMutex_);
+				std::lock_guard	Lock(LocalMutex_);
 				for(auto Request = OutStandingRequests_.begin(); Request != OutStandingRequests_.end() ; ) {
 					if(Request->second.SerialNumber==SerialNumber)
 						Request = OutStandingRequests_.erase(Request);
@@ -176,7 +176,7 @@ namespace OpenWifi {
 			}
 
 	    private:
-		  	mutable std::shared_mutex				LocalMutex_;
+		  	mutable std::recursive_mutex			LocalMutex_;
 			std::atomic_bool 						Running_ = false;
 			Poco::Thread    						ManagerThread;
 			std::atomic_uint64_t 					Id_=3;	//	do not start @1. We ignore ID=1 & 0 is illegal..
