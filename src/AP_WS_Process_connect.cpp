@@ -8,6 +8,7 @@
 #include "FindCountry.h"
 #include "framework/WebSocketClientNotifications.h"
 #include "Daemon.h"
+#include "CentralConfig.h"
 
 #include "CommandManager.h"
 
@@ -19,8 +20,12 @@ void AP_WS_Connection::Process_connect(Poco::JSON::Object::Ptr ParamsObj, const 
 		ParamsObj->has(uCentralProtocol::CAPABILITIES)) {
 		uint64_t UUID = ParamsObj->get(uCentralProtocol::UUID);
 		auto Firmware = ParamsObj->get(uCentralProtocol::FIRMWARE).toString();
-		auto Capabilities = ParamsObj->get(uCentralProtocol::CAPABILITIES).toString();
+		auto CapabilitiesString = ParamsObj->get(uCentralProtocol::CAPABILITIES).toString();
 
+		Config::Capabilities Caps(CapabilitiesString);
+		Compatible_ = Caps.Compatible();
+
+		std::cout << "Compatible:" << Compatible_ << std::endl;
 		//// change this
 		SerialNumber_ = Serial;
 		SerialNumberInt_ = Utils::SerialNumberToInt(SerialNumber_);
@@ -43,10 +48,10 @@ void AP_WS_Connection::Process_connect(Poco::JSON::Object::Ptr ParamsObj, const 
 		GWObjects::Device	DeviceInfo;
 		auto DeviceExists = StorageService()->GetDevice(SerialNumber_,DeviceInfo);
 		if (Daemon()->AutoProvisioning() && !DeviceExists) {
-			StorageService()->CreateDefaultDevice(SerialNumber_, Capabilities, Firmware,
+			StorageService()->CreateDefaultDevice(SerialNumber_, CapabilitiesString, Firmware,
 												  Compatible_, PeerAddress_);
 		} else if (DeviceExists) {
-			StorageService()->UpdateDeviceCapabilities(SerialNumber_, Capabilities,
+			StorageService()->UpdateDeviceCapabilities(SerialNumber_, CapabilitiesString,
 													   Compatible_);
 			bool Updated = false;
 			if(!Firmware.empty() && Firmware!=DeviceInfo.Firmware) {
