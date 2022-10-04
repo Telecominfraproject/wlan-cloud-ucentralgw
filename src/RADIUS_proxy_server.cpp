@@ -146,7 +146,7 @@ namespace OpenWifi {
 		auto CallingStationID = P.ExtractCallingStationID();
 		auto CalledStationID = P.ExtractCalledStationID();
 
-		poco_information(Logger(), fmt::format("Accounting Packet received for {}, CalledStationID: {}, CallingStationID:{}",SerialNumber, CalledStationID, CallingStationID));
+		poco_debug(Logger(), fmt::format("Accounting Packet received for {}, CalledStationID: {}, CallingStationID:{}",SerialNumber, CalledStationID, CallingStationID));
 		AP_WS_Server()->SendRadiusAccountingData(SerialNumber,P.Buffer(),P.Size());
 	}
 
@@ -168,7 +168,7 @@ namespace OpenWifi {
 		auto CallingStationID = P.ExtractCallingStationID();
 		auto CalledStationID = P.ExtractCalledStationID();
 
-		poco_information(Logger(), fmt::format("Authentication Packet received for {}, CalledStationID: {}, CallingStationID:{}",SerialNumber, CalledStationID, CallingStationID));
+		poco_debug(Logger(), fmt::format("Authentication Packet received for {}, CalledStationID: {}, CallingStationID:{}",SerialNumber, CalledStationID, CallingStationID));
 		AP_WS_Server()->SendRadiusAuthenticationData(SerialNumber,P.Buffer(),P.Size());
 	}
 
@@ -190,42 +190,61 @@ namespace OpenWifi {
 		auto CallingStationID = P.ExtractCallingStationID();
 		auto CalledStationID = P.ExtractCalledStationID();
 
-		poco_information(Logger(), fmt::format("CoA Packet received for {}, CalledStationID: {}, CallingStationID:{}",SerialNumber, CalledStationID, CallingStationID));
+		poco_debug(Logger(), fmt::format("CoA Packet received for {}, CalledStationID: {}, CallingStationID:{}",SerialNumber, CalledStationID, CallingStationID));
 		AP_WS_Server()->SendRadiusCoAData(SerialNumber,P.Buffer(),P.Size());
 	}
 
 	void RADIUS_proxy_server::SendAccountingData(const std::string &serialNumber, const char *buffer, std::size_t size) {
 
-		if(Pools_.empty())
+		if(Pools_.empty() || !enabled_)
 			return;
 
-		RADIUS::RadiusPacket	P((unsigned char *)buffer,size);
-		auto Destination = P.ExtractProxyStateDestination();
-		auto CallingStationID = P.ExtractCallingStationID();
-		auto CalledStationID = P.ExtractCalledStationID();
-		Poco::Net::SocketAddress	Dst(Destination);
+		try {
+			RADIUS::RadiusPacket P((unsigned char *)buffer, size);
+			auto Destination = P.ExtractProxyStateDestination();
+			auto CallingStationID = P.ExtractCallingStationID();
+			auto CalledStationID = P.ExtractCalledStationID();
+			Poco::Net::SocketAddress Dst(Destination);
 
-		std::lock_guard	G(Mutex_);
-		bool UseRADSEC = false;
-		auto FinalDestination = Route(radius_type::acct, Dst, P, UseRADSEC);
-		if(UseRADSEC) {
-			Poco::Net::SocketAddress	RSP(FinalDestination.host(),0);
-			auto DestinationServer = RADSECservers_.find(RSP);
-			if(DestinationServer!=end(RADSECservers_)) {
-				DestinationServer->second->SendData(serialNumber, (const unsigned char *)buffer, size);
-			}
-		} else {
-			auto AllSent =
-				SendData(Dst.family() == Poco::Net::SocketAddress::IPv4 ? *AccountingSocketV4_
-																		: *AccountingSocketV6_,
-						 (const unsigned char *)buffer, size, FinalDestination);
-			if (!AllSent)
-				poco_error(Logger(),fmt::format("{}: Could not send Accounting packet packet to {}.",
+			std::lock_guard G(Mutex_);
+			bool UseRADSEC = false;
+			auto FinalDestination = Route(radius_type::acct, Dst, P, UseRADSEC);
+			if (UseRADSEC) {
+				Poco::Net::SocketAddress RSP(FinalDestination.host(), 0);
+				auto DestinationServer = RADSECservers_.find(RSP);
+				if (DestinationServer != end(RADSECservers_)) {
+					DestinationServer->second->SendData(serialNumber, (const unsigned char *)buffer,
+														size);
+				}
+			} else {
+				if ((Dst.family() == Poco::Net::SocketAddress::IPv4 &&
+					 AccountingSocketV4_ == nullptr) ||
+					(Dst.family() == Poco::Net::SocketAddress::IPv6 &&
+					 AccountingSocketV6_ == nullptr)) {
+					poco_debug(
+						Logger(),
+						fmt::format(
+							"ACCT: Trying to use RADIUS GW PROXY but not configured. Device={}",
+							serialNumber));
+					return;
+				}
+				auto AllSent =
+					SendData(Dst.family() == Poco::Net::SocketAddress::IPv4 ? *AccountingSocketV4_
+																			: *AccountingSocketV6_,
+							 (const unsigned char *)buffer, size, FinalDestination);
+				if (!AllSent)
+					poco_error(Logger(),
+							   fmt::format("{}: Could not send Accounting packet packet to {}.",
 										   serialNumber, Destination));
-			else
-				poco_information(Logger(), fmt::format(
-					"{}: Sending Accounting Packet to {}, CalledStationID: {}, CallingStationID:{}",
-					serialNumber, FinalDestination.toString(), CalledStationID, CallingStationID));
+				else
+					poco_debug(Logger(), fmt::format("{}: Sending Accounting Packet to {}, CalledStationID: {}, CallingStationID:{}",
+													 serialNumber, FinalDestination.toString(),
+													 CalledStationID, CallingStationID));
+			}
+		} catch (const Poco::Exception &E) {
+			Logger().log(E);
+		} catch (...) {
+			poco_warning(Logger(),fmt::format("Bad RADIUS ACCT Packet from {}. Dropped.",serialNumber));
 		}
 	}
 
@@ -235,71 +254,100 @@ namespace OpenWifi {
 
 	void RADIUS_proxy_server::SendAuthenticationData(const std::string &serialNumber, const char *buffer, std::size_t size) {
 
-		if(Pools_.empty())
+		if(Pools_.empty() || !enabled_)
 			return;
 
-		RADIUS::RadiusPacket	P((unsigned char *)buffer,size);
-		auto Destination = P.ExtractProxyStateDestination();
-		auto CallingStationID = P.ExtractCallingStationID();
-		auto CalledStationID = P.ExtractCalledStationID();
-		Poco::Net::SocketAddress	Dst(Destination);
+		try {
+			RADIUS::RadiusPacket	P((unsigned char *)buffer,size);
+			auto Destination = P.ExtractProxyStateDestination();
+			auto CallingStationID = P.ExtractCallingStationID();
+			auto CalledStationID = P.ExtractCalledStationID();
+			Poco::Net::SocketAddress	Dst(Destination);
 
-		std::lock_guard	G(Mutex_);
-		bool UseRADSEC = false;
-		auto FinalDestination = Route(radius_type::auth, Dst, P, UseRADSEC);
-		if(UseRADSEC) {
-			Poco::Net::SocketAddress	RSP(FinalDestination.host(),0);
-			auto DestinationServer = RADSECservers_.find(RSP);
-			if(DestinationServer!=end(RADSECservers_)) {
-				DestinationServer->second->SendData(serialNumber, (const unsigned char *)buffer, size);
-			}
-		} else {
-			auto AllSent =
-				SendData(Dst.family() == Poco::Net::SocketAddress::IPv4 ? *AuthenticationSocketV4_
-																		: *AuthenticationSocketV6_,
-						 (const unsigned char *)buffer, size, FinalDestination);
-			if (!AllSent)
-				poco_error(Logger(),fmt::format("{}: Could not send Authentication packet packet to {}.",
+			std::lock_guard	G(Mutex_);
+			bool UseRADSEC = false;
+			auto FinalDestination = Route(radius_type::auth, Dst, P, UseRADSEC);
+			if(UseRADSEC) {
+				Poco::Net::SocketAddress	RSP(FinalDestination.host(),0);
+				auto DestinationServer = RADSECservers_.find(RSP);
+				if(DestinationServer!=end(RADSECservers_)) {
+					DestinationServer->second->SendData(serialNumber, (const unsigned char *)buffer, size);
+				}
+			} else {
+				if ((Dst.family() == Poco::Net::SocketAddress::IPv4 &&
+					 AuthenticationSocketV4_ == nullptr) ||
+					(Dst.family() == Poco::Net::SocketAddress::IPv6 &&
+					 AuthenticationSocketV6_ == nullptr)) {
+					poco_debug(
+						Logger(),
+						fmt::format("AUTH: Trying to use RADIUS GW PROXY but not configured. Device={}",
+									serialNumber));
+					return;
+				}
+				auto AllSent =
+					SendData(Dst.family() == Poco::Net::SocketAddress::IPv4 ? *AuthenticationSocketV4_
+																			: *AuthenticationSocketV6_,
+							 (const unsigned char *)buffer, size, FinalDestination);
+				if (!AllSent)
+					poco_error(Logger(),
+							   fmt::format("{}: Could not send Authentication packet packet to {}.",
 										   serialNumber, Destination));
-			else
-				poco_information(Logger(), fmt::format("{}: Sending Authentication Packet to {}, CalledStationID: {}, CallingStationID:{}",
-												 serialNumber, FinalDestination.toString(),
-												 CalledStationID, CallingStationID));
+				else
+					poco_debug(Logger(), fmt::format("{}: Sending Authentication Packet to {}, CalledStationID: {}, CallingStationID:{}",
+													 serialNumber, FinalDestination.toString(),
+													 CalledStationID, CallingStationID));
+			}
+		} catch (const Poco::Exception &E) {
+			Logger().log(E);
+		} catch (...) {
+			poco_warning(Logger(),fmt::format("Bad RADIUS AUTH Packet from {}. Dropped.",serialNumber));
 		}
+
 	}
 
 	void RADIUS_proxy_server::SendCoAData(const std::string &serialNumber, const char *buffer, std::size_t size) {
 
-		if(Pools_.empty())
+		if(Pools_.empty() || !enabled_)
 			return;
 
-		RADIUS::RadiusPacket	P((unsigned char *)buffer,size);
-		auto Destination = P.ExtractProxyStateDestination();
+		try {
+			RADIUS::RadiusPacket	P((unsigned char *)buffer,size);
+			auto Destination = P.ExtractProxyStateDestination();
 
-		if(Destination.empty()) {
-			Destination = "0.0.0.0:0";
-		}
-
-		Poco::Net::SocketAddress	Dst(Destination);
-		std::lock_guard	G(Mutex_);
-		bool UseRADSEC = false;
-		auto FinalDestination = Route(radius_type::coa, Dst, P, UseRADSEC);
-		if(UseRADSEC) {
-			Poco::Net::SocketAddress	RSP(FinalDestination.host(),0);
-			auto DestinationServer = RADSECservers_.find(RSP);
-			if(DestinationServer!=end(RADSECservers_)) {
-				DestinationServer->second->SendData(serialNumber, (const unsigned char *)buffer, size);
+			if(Destination.empty()) {
+				Destination = "0.0.0.0:0";
 			}
-		} else {
-			auto AllSent = SendData(Dst.family() == Poco::Net::SocketAddress::IPv4 ? *CoASocketV4_
-																				   : *CoASocketV6_,
-									(const unsigned char *)buffer, size, FinalDestination);
-			if (!AllSent)
-				poco_error(Logger(),fmt::format("{}: Could not send CoA packet packet to {}.",
-										   serialNumber, Destination));
-			else
-				poco_information(Logger(), fmt::format("{}: Sending CoA Packet to {}", serialNumber,
-												 FinalDestination.toString()));
+
+			Poco::Net::SocketAddress	Dst(Destination);
+			std::lock_guard	G(Mutex_);
+			bool UseRADSEC = false;
+			auto FinalDestination = Route(radius_type::coa, Dst, P, UseRADSEC);
+			if(UseRADSEC) {
+				Poco::Net::SocketAddress	RSP(FinalDestination.host(),0);
+				auto DestinationServer = RADSECservers_.find(RSP);
+				if(DestinationServer!=end(RADSECservers_)) {
+					DestinationServer->second->SendData(serialNumber, (const unsigned char *)buffer, size);
+				}
+			} else {
+				if( (Dst.family() == Poco::Net::SocketAddress::IPv4 && CoASocketV4_== nullptr) ||
+					(Dst.family() == Poco::Net::SocketAddress::IPv6 && CoASocketV6_== nullptr)) {
+					poco_debug(Logger(),fmt::format("CoA: Trying to use RADIUS GW PROXY but not configured. Device={}",serialNumber));
+					return;
+				}
+				auto AllSent = SendData(Dst.family() == Poco::Net::SocketAddress::IPv4 ? *CoASocketV4_
+																					   : *CoASocketV6_,
+										(const unsigned char *)buffer, size, FinalDestination);
+				if (!AllSent)
+					poco_error(Logger(),fmt::format("{}: Could not send CoA packet packet to {}.",
+											   serialNumber, Destination));
+				else
+					poco_debug(Logger(), fmt::format("{}: Sending CoA Packet to {}", serialNumber,
+													 FinalDestination.toString()));
+			}
+		} catch (const Poco::Exception &E) {
+			Logger().log(E);
+		} catch (...) {
+			poco_warning(Logger(),fmt::format("Bad RADIUS CoA/DM Packet from {}. Dropped.",serialNumber));
 		}
 	}
 
@@ -492,7 +540,9 @@ namespace OpenWifi {
 			} break;
 			}
 		}
-		return DefaultRoute(rtype, RequestedAddress, P, UseRADSEC);
+
+		UseRADSEC = false;
+		return RequestedAddress;
 	}
 
 	Poco::Net::SocketAddress RADIUS_proxy_server::ChooseAddress(std::vector<Destination> &Pool, const Poco::Net::SocketAddress & OriginalAddress) {

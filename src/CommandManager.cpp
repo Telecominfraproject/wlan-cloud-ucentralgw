@@ -41,7 +41,7 @@ namespace OpenWifi {
 						uint64_t ID = Payload.get(uCentralProtocol::ID);
 						poco_debug(Logger(),fmt::format("({}): Processing {} response.", SerialNumber, ID));
 						if (ID > 1) {
-							std::unique_lock Lock(LocalMutex_);
+							std::lock_guard	Lock(LocalMutex_);
 							auto RPC = OutStandingRequests_.find(ID);
 							if (RPC == OutStandingRequests_.end() ||
 								RPC->second.SerialNumber !=
@@ -110,7 +110,7 @@ namespace OpenWifi {
     }
 
 	void CommandManager::onJanitorTimer([[maybe_unused]] Poco::Timer & timer) {
-		std::unique_lock Lock(LocalMutex_);
+		std::lock_guard	Lock(LocalMutex_);
 		Utils::SetThreadName("cmd:janitor");
 		Poco::Logger	& MyLogger = Poco::Logger::get("CMD-MGR-JANITOR");
 		auto now = std::chrono::high_resolution_clock::now();
@@ -131,7 +131,7 @@ namespace OpenWifi {
 	}
 
 	bool CommandManager::IsCommandRunning(const std::string &C) {
-		std::shared_lock Lock(LocalMutex_);
+		std::lock_guard	Lock(LocalMutex_);
 		for (const auto &request : OutStandingRequests_) {
 			if (request.second.UUID == C) {
 				return true;

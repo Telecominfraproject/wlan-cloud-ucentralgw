@@ -53,11 +53,11 @@ namespace OpenWifi {
 					// std::cout << serial_number << "    Sending " << P.PacketType() << "  "  << length << " bytes" << std::endl;
 					int sent_bytes;
 					if (P.VerifyMessageAuthenticator(Server_.radsecSecret)) {
-						Logger_.debug(fmt::format("{}: {} Sending {} bytes", serial_number,
+						poco_debug(Logger_,fmt::format("{}: {} Sending {} bytes", serial_number,
 												  P.PacketType(), length));
 						sent_bytes = Socket_->sendBytes(buffer, length);
 					} else {
-						Logger_.debug(fmt::format("{}: {} Sending {} bytes", serial_number,
+						poco_debug(Logger_,fmt::format("{}: {} Sending {} bytes", serial_number,
 												  P.PacketType(), length));
 						P.ComputeMessageAuthenticator(Server_.radsecSecret);
 						sent_bytes = Socket_->sendBytes(P.Buffer(), length);
@@ -77,20 +77,32 @@ namespace OpenWifi {
 				auto NumberOfReceivedBytes = Socket_->receiveBytes(Buffer,sizeof(Buffer));
 				if(NumberOfReceivedBytes>40) {
 					RADIUS::RadiusPacket P(Buffer,NumberOfReceivedBytes);
-					// P.Log(std::cout);
-					// std::cout << "RADSEC: " << P.PacketType() << "  "  << (int) P.PacketTypeInt() << "   Received " << NumberOfReceivedBytes << " bytes" << std::endl;
 					if (P.IsAuthentication()) {
 						auto SerialNumber = P.ExtractSerialNumberFromProxyState();
-						Logger_.debug(fmt::format("{}: {} Received {} bytes.", SerialNumber, P.PacketType(), NumberOfReceivedBytes));
-						AP_WS_Server()->SendRadiusAuthenticationData(
-							SerialNumber, Buffer,
-							NumberOfReceivedBytes);
+						if(!SerialNumber.empty()) {
+							poco_debug(Logger_,
+									   fmt::format("{}: {} Received {} bytes.", SerialNumber,
+												   P.PacketType(), NumberOfReceivedBytes));
+							AP_WS_Server()->SendRadiusAuthenticationData(SerialNumber, Buffer,
+																		 NumberOfReceivedBytes);
+						} else {
+							poco_debug(Logger_,
+									   fmt::format("Invalid AUTH packet received in proxy dropped. No serial number Source={}",
+									Socket_->address().toString()));
+						}
 					} else if (P.IsAccounting()) {
 						auto SerialNumber = P.ExtractSerialNumberFromProxyState();
-						Logger_.debug(fmt::format("{}: {} Received {} bytes.", SerialNumber, P.PacketType(), NumberOfReceivedBytes));
-						AP_WS_Server()->SendRadiusAccountingData(
-							SerialNumber, Buffer,
-							NumberOfReceivedBytes);
+						if(!SerialNumber.empty()) {
+							poco_debug(Logger_,
+									   fmt::format("{}: {} Received {} bytes.", SerialNumber,
+												   P.PacketType(), NumberOfReceivedBytes));
+							AP_WS_Server()->SendRadiusAccountingData(SerialNumber, Buffer,
+																	 NumberOfReceivedBytes);
+						} else {
+							poco_debug(Logger_,
+									   fmt::format("Invalid ACCT packet received in proxy dropped. No serial number Source={}",
+												   Socket_->address().toString()));
+						}
 					} else if (P.IsAuthority()) {
 					}
 				} else {

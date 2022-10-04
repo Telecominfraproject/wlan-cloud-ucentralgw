@@ -276,7 +276,7 @@ namespace OpenWifi {
 		std::unique_ptr<Poco::TimerCallback<RTTYS_server>>  GCCallBack_;
 		std::list<std::unique_ptr<RTTYS_Device_ConnectionHandler>>	FailedDevices;
 		std::list<std::unique_ptr<RTTYS_ClientConnection>>			FailedClients;
-		std::shared_mutex 							LocalMutex_;
+		std::recursive_mutex 						LocalMutex_;
 
 		std::atomic_uint64_t 						TotalEndPoints_=0;
 		std::atomic_uint64_t 						FailedNumDevices_=0;
