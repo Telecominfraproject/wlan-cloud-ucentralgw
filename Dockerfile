@@ -1,6 +1,5 @@
 ARG DEBIAN_VERSION=11.4-slim
 ARG POCO_VERSION=poco-tip-v1
-ARG FMTLIB_VERSION=9.0.0
 ARG CPPKAFKA_VERSION=tip-v1
 ARG JSON_VALIDATOR_VERSION=2.1.0
 
@@ -10,7 +9,7 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
     make cmake g++ git \
     libpq-dev libmariadb-dev libmariadbclient-dev-compat \
     librdkafka-dev libboost-all-dev libssl-dev \
-    zlib1g-dev nlohmann-json3-dev ca-certificates
+    zlib1g-dev nlohmann-json3-dev ca-certificates libfmt-dev
 
 FROM build-base AS poco-build
 
@@ -25,20 +24,6 @@ WORKDIR cmake-build
 RUN cmake ..
 RUN cmake --build . --config Release -j8
 RUN cmake --build . --target install
-
-FROM build-base AS fmtlib-build
-
-ARG FMTLIB_VERSION
-
-ADD https://api.github.com/repos/fmtlib/fmt/git/refs/tags/${FMTLIB_VERSION} version.json
-RUN git clone https://github.com/fmtlib/fmt --branch ${FMTLIB_VERSION} /fmtlib
-
-WORKDIR /fmtlib
-RUN mkdir cmake-build
-WORKDIR cmake-build
-RUN cmake ..
-RUN make
-RUN make install
 
 FROM build-base AS cppkafka-build
 
@@ -81,8 +66,6 @@ COPY --from=cppkafka-build /usr/local/include /usr/local/include
 COPY --from=cppkafka-build /usr/local/lib /usr/local/lib
 COPY --from=json-schema-validator-build /usr/local/include /usr/local/include
 COPY --from=json-schema-validator-build /usr/local/lib /usr/local/lib
-COPY --from=fmtlib-build /usr/local/include /usr/local/include
-COPY --from=fmtlib-build /usr/local/lib /usr/local/lib
 
 WORKDIR /owgw
 RUN mkdir cmake-build
@@ -104,7 +87,7 @@ RUN mkdir -p "$OWGW_ROOT" "$OWGW_CONFIG" && \
 
 RUN apt-get update && apt-get install --no-install-recommends -y \
     librdkafka++1 gosu gettext ca-certificates bash jq curl wget \
-    libmariadb-dev-compat libpq5 unixodbc postgresql-client
+    libmariadb-dev-compat libpq5 unixodbc postgresql-client libfmt7
 
 COPY readiness_check /readiness_check
 COPY test_scripts/curl/cli /cli
