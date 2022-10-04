@@ -195,6 +195,10 @@ namespace OpenWifi {
 	}
 
 	void RADIUS_proxy_server::SendAccountingData(const std::string &serialNumber, const char *buffer, std::size_t size) {
+
+		if(Pools_.empty())
+			return;
+
 		RADIUS::RadiusPacket	P((unsigned char *)buffer,size);
 		auto Destination = P.ExtractProxyStateDestination();
 		auto CallingStationID = P.ExtractCallingStationID();
@@ -230,6 +234,10 @@ namespace OpenWifi {
 	}
 
 	void RADIUS_proxy_server::SendAuthenticationData(const std::string &serialNumber, const char *buffer, std::size_t size) {
+
+		if(Pools_.empty())
+			return;
+
 		RADIUS::RadiusPacket	P((unsigned char *)buffer,size);
 		auto Destination = P.ExtractProxyStateDestination();
 		auto CallingStationID = P.ExtractCallingStationID();
@@ -261,6 +269,10 @@ namespace OpenWifi {
 	}
 
 	void RADIUS_proxy_server::SendCoAData(const std::string &serialNumber, const char *buffer, std::size_t size) {
+
+		if(Pools_.empty())
+			return;
+
 		RADIUS::RadiusPacket	P((unsigned char *)buffer,size);
 		auto Destination = P.ExtractProxyStateDestination();
 
