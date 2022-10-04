@@ -3602,14 +3602,14 @@ namespace OpenWifi {
                 FileChannel->setProperty("archive", "timestamp");
                 FileChannel->setProperty("path", LoggingLocation);
                 Poco::AutoPtr<Poco::AsyncChannel> Async_File(new Poco::AsyncChannel(FileChannel));
-				Poco::AutoPtr<Poco::AsyncChannel> Async_Muxer(new Poco::AsyncChannel(LogMuxer()));
-                Poco::AutoPtr<Poco::SplitterChannel> Splitter(new Poco::SplitterChannel);
-				Splitter->addChannel(Async_File);
-				Splitter->addChannel(Async_Muxer);
+				// Poco::AutoPtr<Poco::AsyncChannel> Async_Muxer(new Poco::AsyncChannel(LogMuxer()));
+                // Poco::AutoPtr<Poco::SplitterChannel> Splitter(new Poco::SplitterChannel);
+				// Splitter->addChannel(Async_File);
+				// Splitter->addChannel(Async_Muxer);
 				Poco::AutoPtr<Poco::PatternFormatter> Formatter(new Poco::PatternFormatter);
                 Formatter->setProperty("pattern", LoggingFormat);
                 Poco::AutoPtr<Poco::FormattingChannel> FormattingChannel(
-                        new Poco::FormattingChannel(Formatter, Splitter));
+                        new Poco::FormattingChannel(Formatter, Async_File));
                 Poco::Logger::root().setChannel(FormattingChannel);
             }
             auto Level = Poco::Logger::parseLevel(MicroService::instance().ConfigGetString("logging.level", "debug"));
