@@ -97,6 +97,8 @@ using namespace std::chrono_literals;
 #include "Poco/Net/SocketNotification.h"
 #include "Poco/Base64Decoder.h"
 #include "Poco/ThreadLocal.h"
+#include "Poco/NullChannel.h"
+
 #include "cppkafka/cppkafka.h"
 
 #include "framework/MicroServiceErrorHandler.h"
@@ -3573,7 +3575,10 @@ namespace OpenWifi {
             auto LoggingFormat = MicroService::instance().ConfigGetString("logging.format",
                                                                           "%Y-%m-%d %H:%M:%S.%i %s: [%p][thr:%I] %t");
 			auto UseAsyncLogs_ = MicroService::instance().ConfigGetBool("logging.asynch",false);
-            if (LoggingDestination == "console") {
+			if (LoggingDestination == "null") {
+				Poco::AutoPtr<Poco::NullChannel> DevNull(new Poco::NullChannel);
+				Poco::Logger::root().setChannel(DevNull);
+			} else if (LoggingDestination == "console") {
                 Poco::AutoPtr<Poco::ConsoleChannel> Console(new Poco::ConsoleChannel);
 				if(UseAsyncLogs_) {
 					Poco::AutoPtr<Poco::AsyncChannel> Async(new Poco::AsyncChannel(Console));
