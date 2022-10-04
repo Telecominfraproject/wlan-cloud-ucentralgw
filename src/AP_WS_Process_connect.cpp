@@ -105,7 +105,7 @@ void AP_WS_Connection::Process_connect(Poco::JSON::Object::Ptr ParamsObj, const 
 				}
 			}
 		}
-
+/*
 		WebSocketClientNotificationDeviceConnected(SerialNumber_);
 
 		if (KafkaManager()->Enabled()) {
@@ -117,7 +117,7 @@ void AP_WS_Connection::Process_connect(Poco::JSON::Object::Ptr ParamsObj, const 
 			Stringify.condense(ParamsObj, OS);
 			KafkaManager()->PostMessage(KafkaTopics::CONNECTION, SerialNumber_, OS.str());
 		}
-	} else {
+*/	} else {
 		poco_warning(Logger_,fmt::format("INVALID-PROTOCOL({}): Missing one of uuid, firmware, or capabilities", CId_));
 		Errors_++;
 	}
