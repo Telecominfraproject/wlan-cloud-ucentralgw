@@ -27,9 +27,12 @@ namespace OpenWifi {
 			std::unique_lock	Lock(LocalMutex_);
 			Recovered = ProcessFile(CurrentOUIFileName_,OUIs_);
 			if(Recovered) {
-				poco_information(Logger(),
+				poco_notice(Logger(),
 								 fmt::format("Recovered last OUI file - {}", CurrentOUIFileName_));
 			}
+		} else {
+			poco_notice(Logger(),
+							 fmt::format("No existing OUIFile.", CurrentOUIFileName_));
 		}
 
 		UpdaterCallBack_ = std::make_unique<Poco::TimerCallback<OUIServer>>(*this, &OUIServer::onTimer);
@@ -117,6 +120,8 @@ namespace OpenWifi {
 			return;
 		Updating_ = true;
 
+		poco_information(Logger(),"Starting to process OUI file...");
+
 		//	fetch data from server, if not available, just use the file we already have.
 		Poco::File	Current(CurrentOUIFileName_);
 		if(Current.exists()) {
@@ -155,6 +160,7 @@ namespace OpenWifi {
 		}
 		Initialized_=true;
 		Updating_ = false;
+		poco_information(Logger(),"Done processing OUI file...");
 	}
 
 	std::string OUIServer::GetManufacturer(const std::string &MAC) {
