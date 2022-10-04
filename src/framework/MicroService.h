@@ -3209,7 +3209,7 @@ namespace OpenWifi {
         const Poco::ThreadPool & Pool() { return Pool_; }
 	private:
 	    std::vector<std::unique_ptr<Poco::Net::HTTPServer>>   RESTServers_;
-	    Poco::ThreadPool	    Pool_{"i-rest",4,96};
+	    Poco::ThreadPool	    Pool_{"i-rest",4,64};
 	    RESTAPI_GenericServer   Server_;
 
         RESTAPI_IntServer() noexcept:
@@ -3406,7 +3406,7 @@ namespace OpenWifi {
         bool                        NoBuiltInCrypto_=false;
         Poco::JWT::Signer	        Signer_;
 		Poco::Logger				&Logger_;
-		Poco::ThreadPool				TimerPool_{"timer:pool",2,16};
+		Poco::ThreadPool				TimerPool_{"timer:pool",2,32};
 		std::unique_ptr<BusEventManager>	BusEventManager_;
     };
 
@@ -3572,22 +3572,39 @@ namespace OpenWifi {
             auto LoggingDestination = MicroService::instance().ConfigGetString("logging.type", "file");
             auto LoggingFormat = MicroService::instance().ConfigGetString("logging.format",
                                                                           "%Y-%m-%d %H:%M:%S.%i %s: [%p][thr:%I] %t");
+			auto UseAsyncLogs_ = MicroService::instance().ConfigGetBool("logging.asynch",false);
             if (LoggingDestination == "console") {
                 Poco::AutoPtr<Poco::ConsoleChannel> Console(new Poco::ConsoleChannel);
-                Poco::AutoPtr<Poco::AsyncChannel> Async(new Poco::AsyncChannel(Console));
-                Poco::AutoPtr<Poco::PatternFormatter> Formatter(new Poco::PatternFormatter);
-                Formatter->setProperty("pattern", LoggingFormat);
-                Poco::AutoPtr<Poco::FormattingChannel> FormattingChannel(
-                        new Poco::FormattingChannel(Formatter, Async));
-                Poco::Logger::root().setChannel(FormattingChannel);
+				if(UseAsyncLogs_) {
+					Poco::AutoPtr<Poco::AsyncChannel> Async(new Poco::AsyncChannel(Console));
+					Poco::AutoPtr<Poco::PatternFormatter> Formatter(new Poco::PatternFormatter);
+					Formatter->setProperty("pattern", LoggingFormat);
+					Poco::AutoPtr<Poco::FormattingChannel> FormattingChannel(
+						new Poco::FormattingChannel(Formatter, Async));
+					Poco::Logger::root().setChannel(FormattingChannel);
+				} else {
+					Poco::AutoPtr<Poco::PatternFormatter> Formatter(new Poco::PatternFormatter);
+					Formatter->setProperty("pattern", LoggingFormat);
+					Poco::AutoPtr<Poco::FormattingChannel> FormattingChannel(
+						new Poco::FormattingChannel(Formatter, Console));
+					Poco::Logger::root().setChannel(FormattingChannel);
+				}
             } else if (LoggingDestination == "colorconsole") {
-                Poco::AutoPtr<Poco::ColorConsoleChannel> Console(new Poco::ColorConsoleChannel);
-                Poco::AutoPtr<Poco::AsyncChannel> Async(new Poco::AsyncChannel(Console));
-                Poco::AutoPtr<Poco::PatternFormatter> Formatter(new Poco::PatternFormatter);
-                Formatter->setProperty("pattern", LoggingFormat);
-                Poco::AutoPtr<Poco::FormattingChannel> FormattingChannel(
-                        new Poco::FormattingChannel(Formatter, Async));
-                Poco::Logger::root().setChannel(FormattingChannel);
+				Poco::AutoPtr<Poco::ColorConsoleChannel> ColorConsole(new Poco::ColorConsoleChannel);
+				if(UseAsyncLogs_) {
+					Poco::AutoPtr<Poco::AsyncChannel> Async(new Poco::AsyncChannel(ColorConsole));
+					Poco::AutoPtr<Poco::PatternFormatter> Formatter(new Poco::PatternFormatter);
+					Formatter->setProperty("pattern", LoggingFormat);
+					Poco::AutoPtr<Poco::FormattingChannel> FormattingChannel(
+						new Poco::FormattingChannel(Formatter, Async));
+					Poco::Logger::root().setChannel(FormattingChannel);
+				} else {
+					Poco::AutoPtr<Poco::PatternFormatter> Formatter(new Poco::PatternFormatter);
+					Formatter->setProperty("pattern", LoggingFormat);
+					Poco::AutoPtr<Poco::FormattingChannel> FormattingChannel(
+						new Poco::FormattingChannel(Formatter, ColorConsole));
+					Poco::Logger::root().setChannel(FormattingChannel);
+				}
             } else if (LoggingDestination == "sql") {
                 //"CREATE TABLE T_POCO_LOG (Source VARCHAR, Name VARCHAR, ProcessId INTEGER, Thread VARCHAR, ThreadId INTEGER, Priority INTEGER, Text VARCHAR, DateTime DATE)"
 
@@ -3601,16 +3618,21 @@ namespace OpenWifi {
                 FileChannel->setProperty("rotation", "10 M");
                 FileChannel->setProperty("archive", "timestamp");
                 FileChannel->setProperty("path", LoggingLocation);
-                Poco::AutoPtr<Poco::AsyncChannel> Async_File(new Poco::AsyncChannel(FileChannel));
-				// Poco::AutoPtr<Poco::AsyncChannel> Async_Muxer(new Poco::AsyncChannel(LogMuxer()));
-                // Poco::AutoPtr<Poco::SplitterChannel> Splitter(new Poco::SplitterChannel);
-				// Splitter->addChannel(Async_File);
-				// Splitter->addChannel(Async_Muxer);
-				Poco::AutoPtr<Poco::PatternFormatter> Formatter(new Poco::PatternFormatter);
-                Formatter->setProperty("pattern", LoggingFormat);
-                Poco::AutoPtr<Poco::FormattingChannel> FormattingChannel(
-                        new Poco::FormattingChannel(Formatter, Async_File));
-                Poco::Logger::root().setChannel(FormattingChannel);
+				if(UseAsyncLogs_) {
+					Poco::AutoPtr<Poco::AsyncChannel> Async_File(
+						new Poco::AsyncChannel(FileChannel));
+					Poco::AutoPtr<Poco::PatternFormatter> Formatter(new Poco::PatternFormatter);
+					Formatter->setProperty("pattern", LoggingFormat);
+					Poco::AutoPtr<Poco::FormattingChannel> FormattingChannel(
+						new Poco::FormattingChannel(Formatter, Async_File));
+					Poco::Logger::root().setChannel(FormattingChannel);
+				} else {
+					Poco::AutoPtr<Poco::PatternFormatter> Formatter(new Poco::PatternFormatter);
+					Formatter->setProperty("pattern", LoggingFormat);
+					Poco::AutoPtr<Poco::FormattingChannel> FormattingChannel(
+						new Poco::FormattingChannel(Formatter, FileChannel));
+					Poco::Logger::root().setChannel(FormattingChannel);
+				}
             }
             auto Level = Poco::Logger::parseLevel(MicroService::instance().ConfigGetString("logging.level", "debug"));
             Poco::Logger::root().setLevel(Level);
