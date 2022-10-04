@@ -155,7 +155,7 @@ namespace OpenWifi {
 	}
 
 	void AP_WS_Server::onGarbageCollecting([[maybe_unused]] Poco::Timer &timer) {
-		std::unique_lock	Lock(LocalMutex_);
+		std::lock_guard			Lock(LocalMutex_);
 		if(Garbage_.size()>0) {
 			std::cout << "Removing " << Garbage_.size() << " old connections." << std::endl;
 			Garbage_.clear();
@@ -214,7 +214,7 @@ namespace OpenWifi {
 	}
 
 	bool AP_WS_Server::GetStatistics(std::uint64_t SerialNumber, std::string &Statistics) const {
-		std::shared_lock	Guard(LocalMutex_);
+		std::lock_guard			Lock(LocalMutex_);
 		auto Device = SerialNumbers_.find(SerialNumber);
 		if(Device == SerialNumbers_.end() || Device->second.second==nullptr)
 			return false;
@@ -223,7 +223,7 @@ namespace OpenWifi {
 	}
 
 	bool AP_WS_Server::GetState(uint64_t SerialNumber, GWObjects::ConnectionState & State) const {
-		std::shared_lock	Guard(LocalMutex_);
+		std::lock_guard			Lock(LocalMutex_);
 		auto Device = SerialNumbers_.find(SerialNumber);
 		if(Device == SerialNumbers_.end() || Device->second.second==nullptr)
 			return false;
@@ -232,7 +232,7 @@ namespace OpenWifi {
 	}
 
 	bool AP_WS_Server::GetHealthcheck(uint64_t SerialNumber, GWObjects::HealthCheck & CheckData) const {
-		std::shared_lock	Guard(LocalMutex_);
+		std::lock_guard			Lock(LocalMutex_);
 
 		auto Device = SerialNumbers_.find(SerialNumber);
 		if(Device == SerialNumbers_.end() || Device->second.second==nullptr)
@@ -243,7 +243,7 @@ namespace OpenWifi {
 	}
 
 	void AP_WS_Server::SetSessionDetails(std::uint64_t connection_id, uint64_t SerialNumber) {
-		std::shared_lock	Guard(LocalMutex_);
+		std::lock_guard			Lock(LocalMutex_);
 
 		auto Conn = Sessions_.find(connection_id);
 		if(Conn == end(Sessions_))
@@ -283,7 +283,7 @@ namespace OpenWifi {
 	}
 
 	bool AP_WS_Server::Connected(uint64_t SerialNumber) const {
-		std::shared_lock Guard(LocalMutex_);
+		std::lock_guard			Lock(LocalMutex_);
 		auto Device = SerialNumbers_.find(SerialNumber);
 		if(Device==end(SerialNumbers_) || Device->second.second== nullptr)
 			return false;
@@ -292,7 +292,7 @@ namespace OpenWifi {
 	}
 
 	bool AP_WS_Server::SendFrame(uint64_t SerialNumber, const std::string & Payload) const {
-		std::shared_lock	Guard(LocalMutex_);
+		std::lock_guard			Lock(LocalMutex_);
 		auto Device = SerialNumbers_.find(SerialNumber);
 		if(Device==SerialNumbers_.end() || Device->second.second== nullptr)
 			return false;
@@ -307,7 +307,7 @@ namespace OpenWifi {
 	}
 
 	void AP_WS_Server::StopWebSocketTelemetry(std::uint64_t RPCID, uint64_t SerialNumber) {
-		std::shared_lock	Guard(LocalMutex_);
+		std::lock_guard			Lock(LocalMutex_);
 
 		auto Device = SerialNumbers_.find(SerialNumber);
 		if(Device==end(SerialNumbers_) || Device->second.second==nullptr)
@@ -316,7 +316,7 @@ namespace OpenWifi {
 	}
 
 	void AP_WS_Server::SetWebSocketTelemetryReporting(std::uint64_t RPCID, uint64_t SerialNumber, uint64_t Interval, uint64_t Lifetime) {
-		std::shared_lock	Guard(LocalMutex_);
+		std::lock_guard			Lock(LocalMutex_);
 
 		auto Device = SerialNumbers_.find(SerialNumber);
 		if(Device==end(SerialNumbers_) || Device->second.second==nullptr)
@@ -325,7 +325,7 @@ namespace OpenWifi {
 	}
 
 	void AP_WS_Server::SetKafkaTelemetryReporting(std::uint64_t RPCID, uint64_t SerialNumber, uint64_t Interval, uint64_t Lifetime) {
-		std::shared_lock	Guard(LocalMutex_);
+		std::lock_guard			Lock(LocalMutex_);
 
 		auto Device = SerialNumbers_.find(SerialNumber);
 		if(Device==end(SerialNumbers_) || Device->second.second== nullptr)
@@ -334,7 +334,7 @@ namespace OpenWifi {
 	}
 
 	void AP_WS_Server::StopKafkaTelemetry(std::uint64_t RPCID, uint64_t SerialNumber) {
-		std::shared_lock	Guard(LocalMutex_);
+		std::lock_guard			Lock(LocalMutex_);
 
 		auto Device = SerialNumbers_.find(SerialNumber);
 		if(Device==end(SerialNumbers_) || Device->second.second== nullptr)
@@ -350,7 +350,7 @@ namespace OpenWifi {
 												uint64_t & TelemetryKafkaCount,
 												uint64_t & TelemetryWebSocketPackets,
 												uint64_t & TelemetryKafkaPackets) {
-		std::shared_lock	Guard(LocalMutex_);
+		std::lock_guard			Lock(LocalMutex_);
 
 		auto Device = SerialNumbers_.find(SerialNumber);
 		if(Device==end(SerialNumbers_)|| Device->second.second== nullptr)
@@ -366,7 +366,7 @@ namespace OpenWifi {
 	}
 
 	bool AP_WS_Server::SendRadiusAccountingData(const std::string & SerialNumber, const unsigned char * buffer, std::size_t size) {
-		std::shared_lock	Guard(LocalMutex_);
+		std::lock_guard			Lock(LocalMutex_);
 		auto Device = 		SerialNumbers_.find(Utils::SerialNumberToInt(SerialNumber));
 		if(Device==SerialNumbers_.end() || Device->second.second== nullptr)
 			return false;
@@ -380,7 +380,7 @@ namespace OpenWifi {
 	}
 
 	bool AP_WS_Server::SendRadiusAuthenticationData(const std::string & SerialNumber, const unsigned char * buffer, std::size_t size) {
-		std::shared_lock	Guard(LocalMutex_);
+		std::lock_guard			Lock(LocalMutex_);
 		auto Device = 		SerialNumbers_.find(Utils::SerialNumberToInt(SerialNumber));
 		if(Device==SerialNumbers_.end() || Device->second.second== nullptr)
 			return false;
@@ -394,7 +394,7 @@ namespace OpenWifi {
 	}
 
 	bool AP_WS_Server::SendRadiusCoAData(const std::string & SerialNumber, const unsigned char * buffer, std::size_t size) {
-		std::shared_lock	Guard(LocalMutex_);
+		std::lock_guard			Lock(LocalMutex_);
 		auto Device = 		SerialNumbers_.find(Utils::SerialNumberToInt(SerialNumber));
 		if(Device==SerialNumbers_.end() || Device->second.second== nullptr)
 			return false;

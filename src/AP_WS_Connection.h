@@ -87,7 +87,7 @@ namespace OpenWifi {
 		friend class AP_WS_Server;
 
 	  private:
-		std::shared_mutex 					Mutex_;
+		// std::recursive_mutex 				LocalMutex_;
 		std::shared_mutex					TelemetryMutex_;
 		Poco::Logger                    	&Logger_;
 		Poco::Net::SocketReactor			&Reactor_;

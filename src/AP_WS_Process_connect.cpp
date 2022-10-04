@@ -108,7 +108,7 @@ void AP_WS_Connection::Process_connect(Poco::JSON::Object::Ptr ParamsObj, const 
 
 		WebSocketClientNotificationDeviceConnected(SerialNumber_);
 
-		std::cout << "Serial: " << SerialNumber_ << "Session: " << State_.sessionId << std::endl;
+		// std::cout << "Serial: " << SerialNumber_ << "Session: " << State_.sessionId << std::endl;
 
 		if (KafkaManager()->Enabled()) {
 			Poco::JSON::Stringifier Stringify;

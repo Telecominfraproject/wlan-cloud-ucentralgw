@@ -101,12 +101,12 @@ namespace OpenWifi {
 		[[nodiscard]] inline bool Running() const { return Running_; }
 
 		inline void AddConnection(std::uint64_t session_id, std::shared_ptr<AP_WS_Connection> Connection ) {
-			std::unique_lock			Lock(LocalMutex_);
+			std::lock_guard			Lock(LocalMutex_);
 			Sessions_[session_id] = std::make_pair(std::move(Connection),false);
 		}
 
 		inline std::shared_ptr<AP_WS_Connection> FindConnection(std::uint64_t session_id) const {
-			std::shared_lock	Lock(LocalMutex_);
+			std::lock_guard			Lock(LocalMutex_);
 
 			auto Connection = Sessions_.find(session_id);
 			if(Connection!=end(Sessions_))
@@ -166,7 +166,7 @@ namespace OpenWifi {
 		}
 
 	private:
-		mutable std::shared_mutex									LocalMutex_;
+		mutable std::recursive_mutex								LocalMutex_;
 		std::unique_ptr<Poco::Crypto::X509Certificate>				IssuerCert_;
 		std::list<std::unique_ptr<Poco::Net::HTTPServer>>			WebServers_;
 		Poco::Net::SocketReactor									Reactor_;
