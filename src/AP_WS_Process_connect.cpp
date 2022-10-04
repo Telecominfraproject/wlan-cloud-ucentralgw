@@ -25,8 +25,6 @@ void AP_WS_Connection::Process_connect(Poco::JSON::Object::Ptr ParamsObj, const 
 		Config::Capabilities Caps(CapabilitiesString);
 		Compatible_ = Caps.Compatible();
 
-		std::cout << "Compatible:" << Compatible_ << std::endl;
-		//// change this
 		SerialNumber_ = Serial;
 		SerialNumberInt_ = Utils::SerialNumberToInt(SerialNumber_);
 
