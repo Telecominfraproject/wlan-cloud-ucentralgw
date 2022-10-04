@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include <shared_mutex>
+
 #include "framework/MicroService.h"
 #include "Poco/Timer.h"
 
@@ -30,6 +32,7 @@ namespace OpenWifi {
 		[[nodiscard]] bool ProcessFile(const std::string &FileName, OUIMap &Map);
 
 	  private:
+		std::shared_mutex	LocalMutex_;
 		uint64_t 			LastUpdate_ = 0 ;
 		bool 				Initialized_ = false;
 		OUIMap 				OUIs_;
