@@ -3209,7 +3209,7 @@ namespace OpenWifi {
         const Poco::ThreadPool & Pool() { return Pool_; }
 	private:
 	    std::vector<std::unique_ptr<Poco::Net::HTTPServer>>   RESTServers_;
-	    Poco::ThreadPool	    Pool_{"i-rest",4,96};
+	    Poco::ThreadPool	    Pool_{"i-rest",4,64};
 	    RESTAPI_GenericServer   Server_;
 
         RESTAPI_IntServer() noexcept:
@@ -3406,7 +3406,7 @@ namespace OpenWifi {
         bool                        NoBuiltInCrypto_=false;
         Poco::JWT::Signer	        Signer_;
 		Poco::Logger				&Logger_;
-		Poco::ThreadPool				TimerPool_{"timer:pool",2,16};
+		Poco::ThreadPool				TimerPool_{"timer:pool",2,32};
 		std::unique_ptr<BusEventManager>	BusEventManager_;
     };
 
