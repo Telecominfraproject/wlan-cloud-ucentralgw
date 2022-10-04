@@ -172,7 +172,7 @@ namespace OpenWifi {
 		Poco::Net::SocketReactor									Reactor_;
 		Poco::Thread												ReactorThread_;
 		std::string 												SimulatorId_;
-		Poco::ThreadPool											DeviceConnectionPool_{"ws:dev-pool", 2, 32};
+		Poco::ThreadPool											DeviceConnectionPool_{"ws:dev-pool", 2, 64};
 		bool 														LookAtProvisioning_ = false;
 		bool 														UseDefaultConfig_ = true;
 		bool 														SimulatorEnabled_=false;
