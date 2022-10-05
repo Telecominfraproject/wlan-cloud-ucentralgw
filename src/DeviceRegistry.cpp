@@ -105,18 +105,19 @@ namespace OpenWifi {
 	}
 
 	bool DeviceRegistry::EndSession(std::uint64_t connection_id, std::uint64_t serial_number) {
-		std::unique_lock	G(LocalMutex_);
 
+		std::unique_lock G(LocalMutex_);
 		auto Connection = SerialNumbers_.find(serial_number);
-		if(Connection==end(SerialNumbers_)) {
+		if (Connection == end(SerialNumbers_)) {
 			return false;
 		}
 
-		if(Connection->second.first!=connection_id) {
+		if (Connection->second.first != connection_id) {
 			return false;
 		}
 
 		SerialNumbers_.erase(Connection);
+
 		return true;
 	}
 

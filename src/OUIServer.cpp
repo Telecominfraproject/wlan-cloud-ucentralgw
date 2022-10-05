@@ -21,8 +21,26 @@ namespace OpenWifi {
 		LatestOUIFileName_ =  MicroService::instance().DataDir() + "/newOUIFile.txt";
 		CurrentOUIFileName_ = MicroService::instance().DataDir() + "/current_oui.txt";
 
+		bool Recovered = false;
+		Poco::File	OuiFile(CurrentOUIFileName_);
+		if(OuiFile.exists()) {
+			std::unique_lock	Lock(LocalMutex_);
+			Recovered = ProcessFile(CurrentOUIFileName_,OUIs_);
+			if(Recovered) {
+				poco_notice(Logger(),
+								 fmt::format("Recovered last OUI file - {}", CurrentOUIFileName_));
+			}
+		} else {
+			poco_notice(Logger(),
+							 fmt::format("No existing OUIFile.", CurrentOUIFileName_));
+		}
+
 		UpdaterCallBack_ = std::make_unique<Poco::TimerCallback<OUIServer>>(*this, &OUIServer::onTimer);
-		Timer_.setStartInterval(30 * 1000);  // first run in 5 minutes
+		if(Recovered) {
+			Timer_.setStartInterval(60 * 60 * 1000); // first run in 1 hour
+		} else {
+			Timer_.setStartInterval(30 * 1000); // first run in 5 minutes
+		}
 		Timer_.setPeriodicInterval(7 * 24 * 60 * 60 * 1000);
 		Timer_.start(*UpdaterCallBack_, MicroService::instance().TimerPool());
 		return 0;
@@ -102,6 +120,8 @@ namespace OpenWifi {
 			return;
 		Updating_ = true;
 
+		poco_information(Logger(),"Starting to process OUI file...");
+
 		//	fetch data from server, if not available, just use the file we already have.
 		Poco::File	Current(CurrentOUIFileName_);
 		if(Current.exists()) {
@@ -122,7 +142,7 @@ namespace OpenWifi {
 
 		OUIMap TmpOUIs;
 		if(GetFile(LatestOUIFileName_) && ProcessFile(LatestOUIFileName_, TmpOUIs)) {
-			std::lock_guard G(Mutex_);
+			std::unique_lock G(LocalMutex_);
 			OUIs_ = std::move(TmpOUIs);
 			LastUpdate_ = OpenWifi::Now();
 			Poco::File F1(CurrentOUIFileName_);
@@ -134,16 +154,18 @@ namespace OpenWifi {
 		} else if(OUIs_.empty()) {
 			if(ProcessFile(CurrentOUIFileName_, TmpOUIs)) {
 				LastUpdate_ = OpenWifi::Now();
-				std::lock_guard G(Mutex_);
+				std::unique_lock G(LocalMutex_);
 				OUIs_ = std::move(TmpOUIs);
 			}
 		}
 		Initialized_=true;
 		Updating_ = false;
+		poco_information(Logger(),"Done processing OUI file...");
 	}
 
 	std::string OUIServer::GetManufacturer(const std::string &MAC) {
-		std::lock_guard Guard(Mutex_);
+		std::shared_lock 	Lock(LocalMutex_);
+
 		auto Manufacturer = OUIs_.find(Utils::SerialNumberToOUI(MAC));
 		if(Manufacturer != OUIs_.end())
 			return Manufacturer->second;

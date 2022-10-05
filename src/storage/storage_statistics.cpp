@@ -6,7 +6,7 @@
 //	Arilia Wireless Inc.
 //
 
-#include "DeviceRegistry.h"
+#include "AP_WS_Server.h"
 #include "StorageService.h"
 
 namespace OpenWifi {

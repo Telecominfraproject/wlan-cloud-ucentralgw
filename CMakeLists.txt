@@ -110,7 +110,7 @@ add_executable( owgw
         src/Daemon.cpp src/Daemon.h
         src/AP_WS_Server.cpp src/AP_WS_Server.h
         src/StorageService.cpp src/StorageService.h
-        src/DeviceRegistry.cpp src/DeviceRegistry.h
+#        src/DeviceRegistry.cpp src/DeviceRegistry.h
         src/CommandManager.cpp src/CommandManager.h
         src/CentralConfig.cpp src/CentralConfig.h
         src/FileUploader.cpp src/FileUploader.h

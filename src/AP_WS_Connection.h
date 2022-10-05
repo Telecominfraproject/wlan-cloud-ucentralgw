@@ -5,6 +5,8 @@
 #pragma once
 
 #include <string>
+#include <shared_mutex>
+
 #include "Poco/Net/SocketReactor.h"
 #include "Poco/Net/StreamSocket.h"
 #include "Poco/JSON/Object.h"
@@ -12,7 +14,6 @@
 #include "Poco/Logger.h"
 #include "Poco/Net/WebSocket.h"
 
-#include "DeviceRegistry.h"
 #include "RESTObjects/RESTAPI_GWobjects.h"
 
 
@@ -83,9 +84,10 @@ namespace OpenWifi {
 		}
 
 		friend class DeviceRegistry;
+		friend class AP_WS_Server;
 
 	  private:
-		std::recursive_mutex                Mutex_;
+		// std::recursive_mutex 				LocalMutex_;
 		std::shared_mutex					TelemetryMutex_;
 		Poco::Logger                    	&Logger_;
 		Poco::Net::SocketReactor			&Reactor_;
@@ -112,12 +114,12 @@ namespace OpenWifi {
 		std::chrono::time_point<std::chrono::high_resolution_clock> ConnectionStart_ = std::chrono::high_resolution_clock::now();
 		std::chrono::duration<double, std::milli> ConnectionCompletionTime_{0.0};
 		bool 								Threaded_=false;
-		std::atomic_bool 					Dead_=false;
+		std::atomic_flag 					Dead_=false;
 		std::atomic_bool 					DeviceValidated_=false;
+		std::atomic_bool 					Valid_=false;
 
 		static inline std::atomic_uint64_t 	ConcurrentStartingDevices_=0;
 
-		void CompleteStartup();
 		bool StartTelemetry(std::uint64_t RPCID);
 		bool StopTelemetry(std::uint64_t RPCID);
 		void UpdateCounts();

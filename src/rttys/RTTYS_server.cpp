@@ -108,7 +108,7 @@ namespace OpenWifi {
 		Utils::SetThreadName("rt:janitor");
 		static auto LastStats = OpenWifi::Now();
 
-		std::unique_lock Lock(LocalMutex_);
+		std::lock_guard 	Lock(LocalMutex_);
  		for(auto element=EndPoints_.begin();element!=EndPoints_.end();) {
 			if(element->second->TooOld()) {
 				auto c = fmt::format("Removing {}. Serial: {} Device connection time: {}s. Client connection time: {}s",
@@ -153,7 +153,7 @@ namespace OpenWifi {
 		while (NextNotification && NotificationManagerRunning_) {
 			auto Notification = dynamic_cast<RTTYS_Notification *>(NextNotification.get());
 			if (Notification != nullptr) {
-				std::unique_lock Lock(LocalMutex_);
+				std::lock_guard 	Lock(LocalMutex_);
 				auto It = EndPoints_.find(Notification->id_);
 				if (It != EndPoints_.end()) {
 					switch (Notification->type_) {
@@ -197,7 +197,7 @@ namespace OpenWifi {
 	}
 
 	bool RTTYS_server::SendToClient(const std::string &Id, const u_char *Buf, std::size_t Len) {
-		std::shared_lock 	Lock(LocalMutex_);
+		std::lock_guard 	Lock(LocalMutex_);
 
 		try {
 			auto It = EndPoints_.find(Id);
@@ -213,7 +213,7 @@ namespace OpenWifi {
 	}
 
 	bool RTTYS_server::SendToClient(const std::string &Id, const std::string &s) {
-		std::shared_lock 	Lock(LocalMutex_);
+		std::lock_guard 	Lock(LocalMutex_);
 
 		try {
 			auto It = EndPoints_.find(Id);
@@ -229,7 +229,7 @@ namespace OpenWifi {
 	}
 
 	bool RTTYS_server::SendKeyStrokes(const std::string &Id, const u_char *buffer, std::size_t len) {
-		std::shared_lock 	Lock(LocalMutex_);
+		std::lock_guard 	Lock(LocalMutex_);
 
 		auto It=EndPoints_.find(Id);
 		if(It==EndPoints_.end() || It->second==nullptr) {
@@ -247,7 +247,7 @@ namespace OpenWifi {
 	}
 
 	bool RTTYS_server::WindowSize(const std::string &Id, int cols, int rows) {
-		std::shared_lock 	Lock(LocalMutex_);
+		std::lock_guard 	Lock(LocalMutex_);
 
 		auto It=EndPoints_.find(Id);
 		if(It==EndPoints_.end() || It->second==nullptr) {
@@ -275,7 +275,7 @@ namespace OpenWifi {
 	}
 
 	bool RTTYS_server::ValidId(const std::string &Token) {
-		std::shared_lock 	Lock(LocalMutex_);
+		std::lock_guard 	Lock(LocalMutex_);
 		return EndPoints_.find(Token) != EndPoints_.end();
 	}
 

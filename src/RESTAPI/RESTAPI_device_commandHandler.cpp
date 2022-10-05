@@ -13,7 +13,6 @@
 
 #include "AP_WS_Server.h"
 #include "CentralConfig.h"
-#include "DeviceRegistry.h"
 #include "FileUploader.h"
 #include "RESTAPI_RPC.h"
 #include "RESTAPI_device_commandHandler.h"
@@ -60,7 +59,7 @@ namespace OpenWifi {
 		} else if (Command_ == RESTAPI::Protocol::STATUS) {
 			return GetStatus();
 		} else if (Command_ == RESTAPI::Protocol::RTTY) {
-			if(!DeviceRegistry()->Connected(SerialNumberInt_)) {
+			if(!AP_WS_Server()->Connected(SerialNumberInt_)) {
 				CallCanceled(Command_.c_str(), RESTAPI::Errors::DeviceNotConnected);
 				return BadRequest(RESTAPI::Errors::DeviceNotConnected);
 			}
@@ -165,7 +164,7 @@ namespace OpenWifi {
 		for(const auto &Command:PostCommands) {
 			if(Command_==Command.Command) {
 				Poco::Thread::current()->setName(fmt::format("{}:{}:{}",Command.Command, TransactionId_,SerialNumber_));
-				if(Command.RequireConnection && !DeviceRegistry()->Connected(SerialNumberInt_)) {
+				if(Command.RequireConnection && !AP_WS_Server()->Connected(SerialNumberInt_)) {
 					CallCanceled(Command.Command, RESTAPI::Errors::DeviceNotConnected);
 					return BadRequest(RESTAPI::Errors::DeviceNotConnected);
 				}
@@ -216,7 +215,7 @@ namespace OpenWifi {
 										Poco::Thread::current()->id()));
 		if (QB_.LastOnly) {
 			std::string Stats;
-			if (DeviceRegistry()->GetStatistics(SerialNumber_, Stats)) {
+			if (AP_WS_Server()->GetStatistics(SerialNumber_, Stats)) {
 				Poco::JSON::Parser P;
 				if (Stats.empty())
 					Stats = uCentralProtocol::EMPTY_JSON_DOC;
@@ -263,7 +262,7 @@ namespace OpenWifi {
 										Poco::Thread::current()->id()));
 		GWObjects::ConnectionState State;
 
-		if (DeviceRegistry()->GetState(SerialNumber_, State)) {
+		if (AP_WS_Server()->GetState(SerialNumber_, State)) {
 			Poco::JSON::Object RetObject;
 			State.to_json(RetObject);
 			return ReturnObject(RetObject);
@@ -319,7 +318,7 @@ namespace OpenWifi {
 
 		if (QB_.LastOnly) {
 			GWObjects::HealthCheck	HC;
-			if (DeviceRegistry()->GetHealthcheck(SerialNumber_, HC)) {
+			if (AP_WS_Server()->GetHealthcheck(SerialNumber_, HC)) {
 				Poco::JSON::Object	Answer;
 				HC.to_json(Answer);
 				return ReturnObject(Answer);
@@ -509,7 +508,7 @@ namespace OpenWifi {
 				Params.stringify(ParamStream);
 				Cmd.Details = ParamStream.str();
 
-				// DeviceRegistry()->SetPendingUUID(SerialNumber_, NewUUID);
+				// AP_WS_Server()->SetPendingUUID(SerialNumber_, NewUUID);
 				return RESTAPI_RPC::WaitForCommand(CMD_RPC,true,Cmd, Params, *Request, *Response, timeout, nullptr, this, Logger_);
 			}
 			return BadRequest(RESTAPI::Errors::RecordNotUpdated);
@@ -1025,16 +1024,16 @@ namespace OpenWifi {
 			if(!StatusOnly) {
 				if (KafkaOnly) {
 					if (Interval) {
-						DeviceRegistry()->SetKafkaTelemetryReporting(CMD_RPC,IntSerialNumber, Interval, Lifetime);
+						AP_WS_Server()->SetKafkaTelemetryReporting(CMD_RPC,IntSerialNumber, Interval, Lifetime);
 						Answer.set("action", "Kafka telemetry started.");
 						Answer.set("uuid", CMD_UUID);
 					} else {
-						DeviceRegistry()->StopKafkaTelemetry(CMD_RPC,IntSerialNumber);
+						AP_WS_Server()->StopKafkaTelemetry(CMD_RPC,IntSerialNumber);
 						Answer.set("action", "Kafka telemetry stopped.");
 					}
 				} else {
 					if (Interval) {
-						DeviceRegistry()->SetWebSocketTelemetryReporting(CMD_RPC,IntSerialNumber, Interval,
+						AP_WS_Server()->SetWebSocketTelemetryReporting(CMD_RPC,IntSerialNumber, Interval,
 																				  Lifetime);
 						std::string EndPoint;
 						if (TelemetryStream()->CreateEndpoint(Utils::SerialNumberToInt(SerialNumber_), EndPoint, CMD_UUID)) {
@@ -1047,7 +1046,7 @@ namespace OpenWifi {
 						}
 					} else {
 						Answer.set("action", "WebSocket telemetry stopped.");
-						DeviceRegistry()->StopWebSocketTelemetry(CMD_RPC,IntSerialNumber);
+						AP_WS_Server()->StopWebSocketTelemetry(CMD_RPC,IntSerialNumber);
 					}
 				}
 			} else {
@@ -1058,7 +1057,7 @@ namespace OpenWifi {
 			uint64_t TelemetryWebSocketCount, TelemetryKafkaCount, TelemetryInterval,
 				TelemetryWebSocketTimer, TelemetryKafkaTimer, TelemetryWebSocketPackets,
 				TelemetryKafkaPackets;
-			DeviceRegistry()->GetTelemetryParameters(IntSerialNumber,TelemetryRunning,
+			AP_WS_Server()->GetTelemetryParameters(IntSerialNumber,TelemetryRunning,
 															  TelemetryInterval,
 															  TelemetryWebSocketTimer,
 															  TelemetryKafkaTimer,

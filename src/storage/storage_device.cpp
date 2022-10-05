@@ -11,7 +11,7 @@
 #include "CentralConfig.h"
 #include "ConfigurationCache.h"
 #include "Daemon.h"
-#include "DeviceRegistry.h"
+#include "AP_WS_Server.h"
 #include "FindCountry.h"
 #include "OUIServer.h"
 #include "Poco/Data/RecordSet.h"
@@ -727,17 +727,17 @@ namespace OpenWifi {
 				UpdateCountedMap(Dashboard.deviceType, DeviceType);
 
 				GWObjects::ConnectionState	ConnState;
-				if(DeviceRegistry()->GetState(SerialNumber, ConnState)) {
+				if(AP_WS_Server()->GetState(SerialNumber, ConnState)) {
 					UpdateCountedMap(Dashboard.status, ConnState.Connected ? "connected" : "not connected");
 					UpdateCountedMap(Dashboard.certificates, ComputeCertificateTag(ConnState.VerifiedCertificate));
 					UpdateCountedMap(Dashboard.lastContact, ComputeUpLastContactTag(ConnState.LastContact));
 					GWObjects::HealthCheck	HC;
-					if(DeviceRegistry()->GetHealthcheck(SerialNumber,HC))
+					if(AP_WS_Server()->GetHealthcheck(SerialNumber,HC))
 						UpdateCountedMap(Dashboard.healths, ComputeSanityTag(HC.Sanity));
 					else
 						UpdateCountedMap(Dashboard.healths, ComputeSanityTag(100));
 					std::string LastStats;
-					if(DeviceRegistry()->GetStatistics(SerialNumber, LastStats) && !LastStats.empty()) {
+					if(AP_WS_Server()->GetStatistics(SerialNumber, LastStats) && !LastStats.empty()) {
 						Poco::JSON::Parser	P;
 
 						auto RawObject = P.parse(LastStats).extract<Poco::JSON::Object::Ptr>();

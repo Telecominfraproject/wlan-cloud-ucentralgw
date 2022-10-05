@@ -3,7 +3,6 @@
 //
 
 #include "Dashboard.h"
-#include "DeviceRegistry.h"
 #include "StorageService.h"
 
 namespace OpenWifi {

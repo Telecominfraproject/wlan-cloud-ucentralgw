@@ -296,7 +296,7 @@ configProperties:
   # Logging
   logging.type: console
   logging.path: $OWGW_ROOT/logs
-  logging.level: debug
+  logging.level: information
   # Archiving
   archiver.enabled: "true"
   archiver.schedule: 03:00

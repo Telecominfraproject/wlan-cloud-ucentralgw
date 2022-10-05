@@ -8,6 +8,7 @@
 #include "FindCountry.h"
 #include "framework/WebSocketClientNotifications.h"
 #include "Daemon.h"
+#include "CentralConfig.h"
 
 #include "CommandManager.h"
 
@@ -19,15 +20,17 @@ void AP_WS_Connection::Process_connect(Poco::JSON::Object::Ptr ParamsObj, const 
 		ParamsObj->has(uCentralProtocol::CAPABILITIES)) {
 		uint64_t UUID = ParamsObj->get(uCentralProtocol::UUID);
 		auto Firmware = ParamsObj->get(uCentralProtocol::FIRMWARE).toString();
-		auto Capabilities = ParamsObj->get(uCentralProtocol::CAPABILITIES).toString();
+		auto CapabilitiesString = ParamsObj->get(uCentralProtocol::CAPABILITIES).toString();
 
-		//// change this
+		Config::Capabilities Caps(CapabilitiesString);
+		Compatible_ = Caps.Compatible();
+
 		SerialNumber_ = Serial;
 		SerialNumberInt_ = Utils::SerialNumberToInt(SerialNumber_);
 
 		CommandManager()->ClearQueue(SerialNumberInt_);
 
-		DeviceRegistry()->SetSessionDetails(State_.sessionId,SerialNumberInt_);
+		AP_WS_Server()->SetSessionDetails(State_.sessionId,SerialNumberInt_);
 		State_.UUID = UUID;
 		State_.Firmware = Firmware;
 		State_.PendingUUID = 0;
@@ -43,10 +46,10 @@ void AP_WS_Connection::Process_connect(Poco::JSON::Object::Ptr ParamsObj, const 
 		GWObjects::Device	DeviceInfo;
 		auto DeviceExists = StorageService()->GetDevice(SerialNumber_,DeviceInfo);
 		if (Daemon()->AutoProvisioning() && !DeviceExists) {
-			StorageService()->CreateDefaultDevice(SerialNumber_, Capabilities, Firmware,
+			StorageService()->CreateDefaultDevice(SerialNumber_, CapabilitiesString, Firmware,
 												  Compatible_, PeerAddress_);
 		} else if (DeviceExists) {
-			StorageService()->UpdateDeviceCapabilities(SerialNumber_, Capabilities,
+			StorageService()->UpdateDeviceCapabilities(SerialNumber_, CapabilitiesString,
 													   Compatible_);
 			bool Updated = false;
 			if(!Firmware.empty() && Firmware!=DeviceInfo.Firmware) {
@@ -104,6 +107,8 @@ void AP_WS_Connection::Process_connect(Poco::JSON::Object::Ptr ParamsObj, const 
 		}
 
 		WebSocketClientNotificationDeviceConnected(SerialNumber_);
+
+		// std::cout << "Serial: " << SerialNumber_ << "Session: " << State_.sessionId << std::endl;
 
 		if (KafkaManager()->Enabled()) {
 			Poco::JSON::Stringifier Stringify;

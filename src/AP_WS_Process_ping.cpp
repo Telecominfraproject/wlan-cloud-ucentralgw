@@ -3,6 +3,8 @@
 //
 
 #include "AP_WS_Connection.h"
+#include "fmt/format.h"
+#include "framework/ow_constants.h"
 
 namespace OpenWifi {
 	void AP_WS_Connection::Process_ping(Poco::JSON::Object::Ptr ParamsObj) {
