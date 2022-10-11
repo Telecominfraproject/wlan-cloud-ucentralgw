@@ -193,7 +193,8 @@ namespace OpenWifi {
 			Logger().log(E,__FILE__,__LINE__);
 			poco_warning(Logger(),fmt::format("{}: Exception. GW closing connection.", id_));
 		} catch (const std::exception &E) {
-			poco_warning(Logger(),fmt::format("{}: Exception. GW closing connection.", id_));
+			poco_warning(Logger(),fmt::format("{}: std::exception: {}. GW closing connection.", id_, E.what()));
+			std::cout << E.what() << std::endl;
 			good = false;
 		}
 
@@ -344,8 +345,10 @@ namespace OpenWifi {
 			//	establish if this is an old rtty or a new one.
 			old_rtty_ = (inBuf_[0] != 0x03);		//	rtty_proto_ver for full session ID inclusion
 			if(old_rtty_) {
+				std::cout << "old rtty" << std::endl;
 				session_length_ = 1;
 			} else {
+				std::cout << "new rtty" << std::endl;
 				inBuf_.drain(1); //	remove protocol if used.
 				session_length_ = RTTY_SESSION_ID_LENGTH;
 			}
@@ -408,34 +411,50 @@ namespace OpenWifi {
 
 	bool RTTYS_Device_ConnectionHandler::do_msgTypeTermData(std::size_t msg_len) {
 		bool good;
+		std::cout << __LINE__ << std::endl;
 		if(waiting_for_bytes_>0) {
+			std::cout << __LINE__ << std::endl;
 			if(inBuf_.used()<waiting_for_bytes_) {
+				std::cout << __LINE__ << std::endl;
 				waiting_for_bytes_ = waiting_for_bytes_ - inBuf_.used();
 				good = SendToClient((unsigned char *)inBuf_.begin(), (int) inBuf_.used());
 				inBuf_.drain();
+				std::cout << __LINE__ << std::endl;
 			} else {
+				std::cout << __LINE__ << std::endl;
 				good = SendToClient((unsigned char *)inBuf_.begin(), waiting_for_bytes_);
 				inBuf_.drain(waiting_for_bytes_);
 				waiting_for_bytes_ = 0 ;
+				std::cout << __LINE__ << std::endl;
 			}
 		} else {
+			std::cout << __LINE__ << std::endl;
 			if(old_rtty_) {
+				std::cout << __LINE__ << std::endl;
 				inBuf_.drain(1);
 				msg_len -= 1;
+				std::cout << __LINE__ << std::endl;
 			} else {
+				std::cout << __LINE__ << std::endl;
 				inBuf_.drain(RTTY_SESSION_ID_LENGTH);
 				msg_len -= RTTY_SESSION_ID_LENGTH;
+				std::cout << __LINE__ << std::endl;
 			}
 			if(inBuf_.used()<msg_len) {
+				std::cout << __LINE__ << std::endl;
 				good = SendToClient((unsigned char *)inBuf_.begin(), inBuf_.used());
 				waiting_for_bytes_ = msg_len - inBuf_.used();
 				inBuf_.drain();
+				std::cout << __LINE__ << std::endl;
 			} else {
+				std::cout << __LINE__ << std::endl;
 				waiting_for_bytes_ = 0 ;
 				good = SendToClient((unsigned char *)inBuf_.begin(), msg_len);
 				inBuf_.drain(msg_len);
+				std::cout << __LINE__ << std::endl;
 			}
 		}
+		std::cout << __LINE__ << std::endl;
 		return good;
 	}
 
