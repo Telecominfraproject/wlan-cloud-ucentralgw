@@ -769,7 +769,6 @@ namespace OpenWifi {
 						UpdateCountedMap(Dashboard.associations, "2G", Associations_2G);
 						UpdateCountedMap(Dashboard.associations, "5G", Associations_5G);
 					}
-					UpdateCountedMap(Dashboard.status, ConnState.Connected ? "connected" : "not connected");
 				} else {
 					UpdateCountedMap(Dashboard.status, "not connected");
 				}
