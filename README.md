@@ -119,54 +119,61 @@ cmake ..
 make
 
 ```
- 
-### OSX Build
-The following instructions have proven to work on OSX Big Sur. You need to install [Homebrew](https://brew.sh/). You must also have installed [XCode for OS X](https://www.freecodecamp.org/news/how-to-download-and-install-xcode/).
+
+### macOS Build
+The following instructions have proven to work on macOS Big Sur. You need to install [Homebrew](https://brew.sh/). You must also have installed [XCode for OS X](https://www.freecodecamp.org/news/how-to-download-and-install-xcode/).
 ```
-brew install openssl
-brew install cmake
-brew install libpq
-brew install mysql-client
-brew install apr
-brew install apr-util
-brew install boost
-brew install yaml-cpp
-brew install postgresql
-brew install librdkafka
-brew install nlohmann-json
+brew install openssl \
+	cmake \
+	libpq \
+	mysql-client \
+	apr \
+	apr-util \
+	boost \
+	yaml-cpp \
+	postgresql \
+	librdkafka \
+	nlohmann-json \
+	fmt
 
 git clone https://github.com/AriliaWireless/poco --branch poco-tip-v1
-cd poco
+pushd poco
 mkdir cmake-build
-cd cmake-build
-cmake ..
+push cmake-build
+cmake -DOPENSSL_ROOT_DIR=</path/to/openssl> -DENABLE_NETSSL=1 -DENABLE_JWT=1 -DENABLE_CRYPTO=1 ..
 cmake --build . --config Release
 sudo cmake --build . --target install
+popd
+popd
 
 git clone https://github.com/AriliaWireless/cppkafka --branch tip-v1
-cd cppkafka
+pushd cppkafka
 mkdir cmake-build
-cd cmake-build
+pushd cmake-build
 cmake ..
 cmake --build . --config Release
 sudo cmake --build . --target install
+popd
+popd
 
-cd ~
 git clone https://github.com/pboettch/json-schema-validator.git --branch 2.1.0
-cd json-schema-validator
+pushd json-schema-validator
 mkdir cmake-build
-cd cmake-build
+pushd cmake-build
 cmake ..
 make -j
 sudo make install
+popd
+popd
 
-cd ~
 git clone https://github.com/Telecominfraproject/wlan-cloud-ucentralgw
-cd wlan-cloud-ucentralgw
+pushd wlan-cloud-ucentralgw
 mkdir cmake-build
-cd cmake-build
+pushd cmake-build
 cmake ..
 make -j
+popd
+popd
 ```
 
 ### Raspberry
