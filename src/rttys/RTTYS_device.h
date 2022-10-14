@@ -51,9 +51,9 @@ namespace OpenWifi {
 		inline bool Valid() { return valid_; }
 
 	  private:
-		Poco::Net::StreamSocket   		socket_;
-		Poco::Net::SocketReactor		&reactor_;
-		Poco::FIFOBuffer 				inBuf_{RTTY_DEVICE_BUFSIZE};
+		Poco::Net::StreamSocket   			socket_;
+		Poco::Net::SocketReactor			&reactor_;
+		std::unique_ptr<Poco::FIFOBuffer> 	inBuf_;
 		Poco::Logger					&Logger_;
 
 		std::atomic_bool				valid_=false;
