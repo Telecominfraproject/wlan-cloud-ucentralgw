@@ -62,6 +62,7 @@ namespace OpenWifi {
 			socket_.setBlocking(false);
 			socket_.setKeepAlive(true);
 			socket_.setNoDelay(true);
+			socket_.setReceiveTimeout(Poco::Timespan(60*60,0));
 
 			registered_=true;
 			reactor_.addEventHandler(
