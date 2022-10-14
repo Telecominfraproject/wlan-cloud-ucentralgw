@@ -132,6 +132,7 @@ namespace OpenWifi {
 				poco_information(Logger(), fmt::format("{}: Device Closing connection - 0 bytes received.",id_));
 				return EndConnection();
 			}
+			std::cout << "Received: " << received_bytes << std::endl;
 
 			while (inBuf_->isReadable() && good) {
 				uint32_t msg_len = 0;
