@@ -192,6 +192,7 @@ namespace OpenWifi {
 			good = false;
 			Logger().log(E,__FILE__,__LINE__);
 			poco_warning(Logger(),fmt::format("{}: Exception. GW closing connection.", id_));
+			std::cout << E.what() << std::endl;
 		} catch (const std::exception &E) {
 			poco_warning(Logger(),fmt::format("{}: std::exception: {}. GW closing connection.", id_, E.what()));
 			std::cout << E.what() << std::endl;
