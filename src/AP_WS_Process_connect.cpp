@@ -52,10 +52,16 @@ void AP_WS_Connection::Process_connect(Poco::JSON::Object::Ptr ParamsObj, const 
 			StorageService()->UpdateDeviceCapabilities(SerialNumber_, CapabilitiesString,
 													   Compatible_);
 			bool Updated = false;
-			if(!Firmware.empty() && Firmware!=DeviceInfo.Firmware) {
-				DeviceInfo.Firmware = Firmware;
-				Updated = true;
-				WebSocketClientNotificationDeviceFirmwareUpdated(SerialNumber_, Firmware);
+			if(!Firmware.empty()) {
+				if(Firmware!=DeviceInfo.Firmware) {
+					DeviceInfo.Firmware = Firmware;
+					DeviceInfo.LastFWUpdate = OpenWifi::Now();
+					Updated = true;
+					WebSocketClientNotificationDeviceFirmwareUpdated(SerialNumber_, Firmware);
+				} else if(DeviceInfo.LastFWUpdate==0) {
+					DeviceInfo.LastFWUpdate = OpenWifi::Now();
+					Updated = true;
+				}
 			}
 
 			if(DeviceInfo.locale != State_.locale) {
