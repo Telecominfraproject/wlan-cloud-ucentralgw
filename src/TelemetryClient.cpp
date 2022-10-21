@@ -24,55 +24,41 @@ namespace OpenWifi {
 				Reactor_(Reactor),
 				Logger_(Logger),
 				WS_(std::move(WSock)) {
-		try {
-			std::thread T([this]() { this->CompleteStartup(); });
-			T.detach();
-			return;
-		} catch (...) {
-			delete this;
-		}
+		CompleteStartup();
 	}
 
 	void TelemetryClient::CompleteStartup() {
-		try {
-			std::lock_guard Guard(Mutex_);
-			Socket_ = *WS_;
-			CId_ = Utils::FormatIPv6(Socket_.peerAddress().toString());
+		Socket_ = *WS_;
+		CId_ = Utils::FormatIPv6(Socket_.peerAddress().toString());
 
-			if (TelemetryStream()->RegisterClient(UUID_, this)) {
-				auto TS = Poco::Timespan(240, 0);
+		auto TS = Poco::Timespan(240, 0);
 
-				WS_->setReceiveTimeout(TS);
-				WS_->setNoDelay(true);
-				WS_->setKeepAlive(true);
-				WS_->setMaxPayloadSize(2048);
-				WS_->setBlocking(false);
-				Reactor_.addEventHandler(
-					*WS_, Poco::NObserver<TelemetryClient, Poco::Net::ReadableNotification>(
-							  *this, &TelemetryClient::OnSocketReadable));
-				Reactor_.addEventHandler(
-					*WS_, Poco::NObserver<TelemetryClient, Poco::Net::ShutdownNotification>(
-							  *this, &TelemetryClient::OnSocketShutdown));
-				Reactor_.addEventHandler(
-					*WS_, Poco::NObserver<TelemetryClient, Poco::Net::ErrorNotification>(
-							  *this, &TelemetryClient::OnSocketError));
-				Registered_ = true;
-				poco_information(Logger(),fmt::format("TELEMETRY-CONNECTION({}): Connection completed.", CId_));
-				return;
-			}
-		} catch (const Poco::Net::SSLException &E) {
-			Logger().log(E);
-		}
-		catch (const Poco::Exception &E) {
-			Logger().log(E);
-		}
-		delete this;
+		WS_->setReceiveTimeout(TS);
+		WS_->setNoDelay(true);
+		WS_->setKeepAlive(true);
+		WS_->setMaxPayloadSize(2048);
+		WS_->setBlocking(false);
+		Reactor_.addEventHandler(
+			*WS_, Poco::NObserver<TelemetryClient, Poco::Net::ReadableNotification>(
+					  *this, &TelemetryClient::OnSocketReadable));
+		Reactor_.addEventHandler(
+			*WS_, Poco::NObserver<TelemetryClient, Poco::Net::ShutdownNotification>(
+					  *this, &TelemetryClient::OnSocketShutdown));
+		Reactor_.addEventHandler(
+			*WS_, Poco::NObserver<TelemetryClient, Poco::Net::ErrorNotification>(
+					  *this, &TelemetryClient::OnSocketError));
+		Registered_ = true;
+		poco_information(Logger(),fmt::format("TELEMETRY-CONNECTION({}): Connection completed.", CId_));
 	}
 
 	TelemetryClient::~TelemetryClient() {
 		poco_information(Logger(),fmt::format("TELEMETRY-CONNECTION({}): Closing connection.", CId_));
-		if(Registered_ && WS_)
-		{
+		DeRegister();
+	}
+
+	void TelemetryClient::DeRegister() {
+		if(Registered_) {
+			Registered_ = false;
 			Reactor_.removeEventHandler(*WS_,
 										Poco::NObserver<TelemetryClient,
 														Poco::Net::ReadableNotification>(*this,&TelemetryClient::OnSocketReadable));
@@ -83,7 +69,6 @@ namespace OpenWifi {
 										Poco::NObserver<TelemetryClient,
 														Poco::Net::ErrorNotification>(*this,&TelemetryClient::OnSocketError));
 		}
-		WS_->close();
 	}
 
 	bool TelemetryClient::Send(const std::string &Payload) {
@@ -94,9 +79,9 @@ namespace OpenWifi {
 
 	void TelemetryClient::SendTelemetryShutdown() {
 		poco_information(Logger(),fmt::format("TELEMETRY-SHUTDOWN({}): Closing.",CId_));
+		DeRegister();
 		AP_WS_Server()->StopWebSocketTelemetry(CommandManager()->NextRPCId(), SerialNumber_);
 		TelemetryStream()->DeRegisterClient(UUID_);
-		delete this;
 	}
 
 	void TelemetryClient::OnSocketShutdown([[maybe_unused]] const Poco::AutoPtr<Poco::Net::ShutdownNotification>& pNf) {
@@ -113,22 +98,20 @@ namespace OpenWifi {
 		try
 		{
 			std::lock_guard Guard(Mutex_);
-			ProcessIncomingFrame();
+			return ProcessIncomingFrame();
 		}
 		catch (const Poco::Exception & E)
 		{
 			Logger().log(E);
-			SendTelemetryShutdown();
 		}
 		catch (const std::exception & E) {
 			std::string W = E.what();
 			poco_information(Logger(),fmt::format("TELEMETRY-std::exception caught: {}. Connection terminated with {}",W,CId_));
-			SendTelemetryShutdown();
 		}
 		catch ( ... ) {
 			poco_information(Logger(),fmt::format("TELEMETRY-Unknown exception for {}. Connection terminated.",CId_));
-			SendTelemetryShutdown();
 		}
+		SendTelemetryShutdown();
 	}
 
 	void TelemetryClient::ProcessIncomingFrame() {

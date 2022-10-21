@@ -105,10 +105,21 @@ namespace OpenWifi {
 		}
 	}
 
-	bool TelemetryStream::RegisterClient(const std::string &UUID, TelemetryClient *Client) {
+	bool TelemetryStream::NewClient(const std::string &UUID, std::uint64_t SerialNumber, std::unique_ptr<Poco::Net::WebSocket> Client) {
 		std::lock_guard	G(Mutex_);
-		Clients_[UUID] = Client;
-		return true;
+		try {
+			Clients_[UUID] = std::make_unique<TelemetryClient>(
+				UUID, SerialNumber, std::move(Client), NextReactor(), Logger());
+			auto set = SerialNumbers_[SerialNumber];
+			set.insert(UUID);
+			SerialNumbers_[SerialNumber] = set;
+			return true;
+		} catch (const Poco::Exception &E) {
+			Logger().log(E);
+		} catch (...) {
+			poco_warning(Logger(),fmt::format("Could not create a telemetry client for session {} and serial number {}", UUID, SerialNumber));
+		}
+		return false;
 	}
 
 	void TelemetryStream::DeRegisterClient(const std::string &UUID) {

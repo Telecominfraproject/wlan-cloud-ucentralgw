@@ -38,9 +38,8 @@ void RESTAPI_telemetryWebSocket::DoGet() {
 					Response->send();
 					return;
 				}
-
 				auto WS = std::make_unique<Poco::Net::WebSocket>(*Request, *Response);
-				new TelemetryClient(UUID, SerialNumber, std::move(WS), TelemetryStream()->NextReactor(), Logger_);
+				TelemetryStream()->NewClient(UUID, SerialNumber, std::move(WS) );
 
 			} catch (const Poco::Net::WebSocketException &E) {
 				Logger_.log(E);
