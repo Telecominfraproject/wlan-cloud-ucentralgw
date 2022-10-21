@@ -215,14 +215,14 @@ namespace OpenWifi {
 										Poco::Thread::current()->id()));
 		if (QB_.LastOnly) {
 			std::string Stats;
-			if (AP_WS_Server()->GetStatistics(SerialNumber_, Stats)) {
+			if (AP_WS_Server()->GetStatistics(SerialNumber_, Stats) && !Stats.empty()) {
 				Poco::JSON::Parser P;
 				if (Stats.empty())
 					Stats = uCentralProtocol::EMPTY_JSON_DOC;
 				auto Obj = P.parse(Stats).extract<Poco::JSON::Object::Ptr>();
 				return ReturnObject(*Obj);
 			}
-			return NotFound();
+			return BadRequest(RESTAPI::Errors::DeviceNotConnected);
 		}
 
 		std::vector<GWObjects::Statistics> Stats;
