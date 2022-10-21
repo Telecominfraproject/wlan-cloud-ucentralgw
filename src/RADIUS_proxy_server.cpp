@@ -106,9 +106,7 @@ namespace OpenWifi {
 				Poco::NObserver<RADIUS_proxy_server, Poco::Net::ReadableNotification>(
 					*this, &RADIUS_proxy_server::OnCoASocketReadable));
 
-			for(auto &[_,radsec_server]:RADSECservers_)
-				radsec_server->Stop();
-
+			StopRADSECServers();
 			RadiusReactor_.stop();
 			RadiusReactorThread_.join();
 			enabled_=false;
