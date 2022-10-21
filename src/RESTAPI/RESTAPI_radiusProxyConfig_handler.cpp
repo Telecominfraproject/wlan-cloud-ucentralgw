@@ -9,6 +9,9 @@
 namespace OpenWifi {
 
 	void RESTAPI_radiusProxyConfig_handler::DoGet() {
+		Logger_.information(fmt::format("GETRADIUS-PROXY-CONFIG: TID={} user={} thr_id={}",
+										TransactionId_, Requester(),
+										Poco::Thread::current()->id()));
 		GWObjects::RadiusProxyPoolList	C;
 		RADIUS_proxy_server()->GetConfig(C);
 		Poco::JSON::Object	Answer;
@@ -17,6 +20,9 @@ namespace OpenWifi {
 	}
 
 	void RESTAPI_radiusProxyConfig_handler::DoDelete() {
+		Logger_.information(fmt::format("DELETE-RADIUS-PROXY-CONFIG: TID={} user={} thr_id={}",
+										TransactionId_, Requester(),
+										Poco::Thread::current()->id()));
 		if(!Internal_ && (UserInfo_.userinfo.userRole!=SecurityObjects::ROOT && UserInfo_.userinfo.userRole!=SecurityObjects::ADMIN)) {
 			return UnAuthorized(RESTAPI::Errors::ACCESS_DENIED);
 		}
@@ -25,7 +31,9 @@ namespace OpenWifi {
 	}
 
 	void RESTAPI_radiusProxyConfig_handler::DoPut() {
-
+		Logger_.information(fmt::format("MODIFY-RADIUS-PROXY-CONFIG: TID={} user={} thr_id={}",
+										TransactionId_, Requester(),
+										Poco::Thread::current()->id()));
 		if(!Internal_ && (UserInfo_.userinfo.userRole!=SecurityObjects::ROOT && UserInfo_.userinfo.userRole!=SecurityObjects::ADMIN)) {
 			return UnAuthorized(RESTAPI::Errors::ACCESS_DENIED);
 		}
@@ -65,6 +73,9 @@ namespace OpenWifi {
 			}
 		}
 
+		Logger_.information(fmt::format("MODIFY-RADIUS-PROXY-CONFIG: TID={} user={} thr_id={}. Applying new RADIUS Proxy config.",
+										TransactionId_, Requester(),
+										Poco::Thread::current()->id()));
 		RADIUS_proxy_server()->SetConfig(C);
 		return ReturnObject(*ParsedBody_);
 	}
