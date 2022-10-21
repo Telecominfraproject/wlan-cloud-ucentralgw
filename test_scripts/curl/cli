@@ -20,12 +20,17 @@ then
   exit 1
 fi
 
-if [[ "${OWSEC}" == "" ]]
+if [[ -z "${OWSEC}" || -z "${OWSEC_USERNAME}" || -z "${OWSEC_PASSWORD}" ]]
 then
-	echo "You must set the variable OWSEC in order to use this script. Something like"
-	echo "OWSEC=security.isp.com:16001"
+	echo "You must set the variables OWSEC, OWSEC_USERNAME, and OWSEC_PASSWORD in order to use this script. Something like"
+	echo "export OWSEC=security.isp.com:16001"
+	echo "export OWSEC_USERNAME=theusername@domain.com"
+	echo "export OWSEC_PASSWORD=mytoughpassword"
 	exit 1
 fi
+
+username=${OWSEC_USERNAME}
+password=${OWSEC_PASSWORD}
 
 if [[ "${FLAGS}" == "" ]]
 then
@@ -37,16 +42,6 @@ result_file=result.json
 browser_list=(firefox sensible-browser xdg-open w3m links links2 lynx youtube-dl)
 browser=""
 
-if [ -z ${OWSEC_USERNAME+x} ]; then
- 	username="script.runner@arilia.com"
-else
-  	username=${OWSEC_USERNAME}
-fi
-if [ -z ${OWSEC_PASSWORD+x} ]; then
-  password="Snoopy99!!!"
-else
-  password=${OWSEC_PASSWORD}
-fi
 
 login() {
 	payload="{ \"userId\" : \"$username\" , \"password\" : \"$password\" }"
