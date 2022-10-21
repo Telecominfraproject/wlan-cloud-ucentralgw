@@ -18,8 +18,10 @@ namespace OpenWifi {
 		Poco::File	Config(ConfigFilename_);
 
 		enabled_ = MicroService::instance().ConfigGetBool("radius.proxy.enable",false);
-		if(!enabled_ && !Config.exists())
+		if(!enabled_ && !Config.exists()) {
+			StopRADSECServers();
 			return 0;
+		}
 
 		enabled_ = true;
 
@@ -63,6 +65,7 @@ namespace OpenWifi {
 		ParseConfig();
 
 		//	start RADSEC servers...
+		StopRADSECServers();
 		StartRADSECServers();
 		RadiusReactorThread_.start(RadiusReactor_);
 
@@ -124,8 +127,12 @@ namespace OpenWifi {
 		}
 	}
 
+	void RADIUS_proxy_server::StopRADSECServers() {
+		RADSECservers_.clear();
+	}
+
 	void RADIUS_proxy_server::StartRADSECServer(const GWObjects::RadiusProxyServerEntry &E) {
-		RADSECservers_[ Poco::Net::SocketAddress(E.ip,0) ] = std::make_unique<RADSECserver>(RadiusReactor_,E);
+		RADSECservers_[ Poco::Net::SocketAddress(E.ip,0) ] = std::make_unique<RADSEC_server>(RadiusReactor_,E);
 	}
 
 	void RADIUS_proxy_server::OnAccountingSocketReadable(const Poco::AutoPtr<Poco::Net::ReadableNotification>& pNf) {
