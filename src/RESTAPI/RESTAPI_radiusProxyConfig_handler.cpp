@@ -9,7 +9,7 @@
 namespace OpenWifi {
 
 	void RESTAPI_radiusProxyConfig_handler::DoGet() {
-		Logger_.information(fmt::format("GETRADIUS-PROXY-CONFIG: TID={} user={} thr_id={}",
+		Logger_.information(fmt::format("GET-RADIUS-PROXY-CONFIG: TID={} user={} thr_id={}",
 										TransactionId_, Requester(),
 										Poco::Thread::current()->id()));
 		GWObjects::RadiusProxyPoolList	C;
