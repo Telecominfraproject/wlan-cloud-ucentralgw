@@ -9,15 +9,22 @@
 
 namespace OpenWifi {
 
+#define DBG		{ std::cout << __LINE__ << std::endl; }
+
 void RESTAPI_telemetryWebSocket::DoGet() {
 		//	try and upgrade this session to websocket...
 		if (Request->find("Upgrade") != Request->end() &&
 			Poco::icompare((*Request)["Upgrade"], "websocket") == 0) {
 			try {
+				DBG
 				Poco::URI U(Request->getURI());
+				DBG
 				std::string UUID, SNum;
+				DBG
 				auto Parameters = U.getQueryParameters();
+				DBG
 				for (const auto &i : Parameters) {
+					DBG
 					if (i.first == "serialNumber") {
 						SNum = i.second;
 					} else if(i.first=="uuid") {
@@ -25,22 +32,30 @@ void RESTAPI_telemetryWebSocket::DoGet() {
 					}
 				}
 
+				DBG
 				if(!Utils::NormalizeMac(SNum)) {
+					DBG
 					return BadRequest(RESTAPI::Errors::InvalidSerialNumber);
 				}
 
 				auto SerialNumber = Utils::SerialNumberToInt(SNum);
+				DBG
 
 				if(!TelemetryStream()->IsValidEndPoint(SerialNumber,UUID)) {
-					Logger_.warning(fmt::format("Illegal telemetry request for S: {}, UUID: {}", SerialNumber, UUID));
+					DBG
+					Logger_.warning(fmt::format("Illegal telemetry request for Serial: {}, UUID: {}", SNum, UUID));
 					Response->setStatusAndReason(Poco::Net::HTTPResponse::HTTP_BAD_REQUEST);
 					Response->setContentLength(0);
 					Response->send();
+					DBG
 					return;
 				}
+				DBG
 				auto WS = std::make_unique<Poco::Net::WebSocket>(*Request, *Response);
+				DBG
 				TelemetryStream()->NewClient(UUID, SerialNumber, std::move(WS) );
-
+				DBG
+				return;
 			} catch (const Poco::Net::WebSocketException &E) {
 				Logger_.log(E);
 				switch (E.code()) {
@@ -67,11 +82,14 @@ void RESTAPI_telemetryWebSocket::DoGet() {
 				Response->send();
 				return;
 			}
+			DBG
 		} else {
+			DBG
 			SetCommonHeaders(true);
 			Response->setStatus(Poco::Net::HTTPResponse::HTTP_METHOD_NOT_ALLOWED);
 			Response->send();
 			return;
 		}
+		DBG
 	}
 }
