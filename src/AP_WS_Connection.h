@@ -24,7 +24,7 @@ namespace OpenWifi {
 	  public:
 		explicit AP_WS_Connection(	Poco::Net::HTTPServerRequest &request,
 									Poco::Net::HTTPServerResponse &response,
-									std::uint64_t connection_id,
+									uint64_t connection_id,
 									Poco::Logger &L,
 									Poco::Net::SocketReactor &R);
 		~AP_WS_Connection();
@@ -48,10 +48,10 @@ namespace OpenWifi {
 		static bool ExtractBase64CompressedData(const std::string & CompressedData, std::string & UnCompressedData, uint64_t compress_sz);
 		void LogException(const Poco::Exception &E);
 		inline Poco::Logger & Logger() { return Logger_; }
-		bool SetWebSocketTelemetryReporting(std::uint64_t RPCID, uint64_t interval, uint64_t TelemetryWebSocketTimer);
-		bool SetKafkaTelemetryReporting(std::uint64_t RPCID, uint64_t interval, uint64_t TelemetryKafkaTimer);
-		bool StopWebSocketTelemetry(std::uint64_t RPCID);
-		bool StopKafkaTelemetry(std::uint64_t RPCID);
+		bool SetWebSocketTelemetryReporting(uint64_t RPCID, uint64_t interval, uint64_t TelemetryWebSocketTimer);
+		bool SetKafkaTelemetryReporting(uint64_t RPCID, uint64_t interval, uint64_t TelemetryKafkaTimer);
+		bool StopWebSocketTelemetry(uint64_t RPCID);
+		bool StopKafkaTelemetry(uint64_t RPCID);
 
 		void Process_connect(Poco::JSON::Object::Ptr ParamsObj, const std::string &Serial);
 		void Process_state(Poco::JSON::Object::Ptr ParamsObj);
@@ -67,11 +67,11 @@ namespace OpenWifi {
 
 		bool ValidatedDevice();
 
-		inline bool GetTelemetryParameters(bool & Reporting, std::uint64_t & Interval,
-										   std::uint64_t & WebSocketTimer, std::uint64_t & KafkaTimer,
-										   std::uint64_t &WebSocketCount, std::uint64_t & KafkaCount,
-										   std::uint64_t &WebSocketPackets,
-										   std::uint64_t &KafkaPackets ) const {
+		inline bool GetTelemetryParameters(bool & Reporting, uint64_t & Interval,
+										   uint64_t & WebSocketTimer, uint64_t & KafkaTimer,
+										   uint64_t &WebSocketCount, uint64_t & KafkaCount,
+										   uint64_t &WebSocketPackets,
+										   uint64_t &KafkaPackets ) const {
 			Reporting = TelemetryReporting_;
 			WebSocketTimer = TelemetryWebSocketTimer_;
 			KafkaTimer = TelemetryKafkaTimer_;
@@ -101,13 +101,13 @@ namespace OpenWifi {
 		uint64_t 							Errors_=0;
 		Poco::Net::IPAddress				PeerAddress_;
 		volatile bool 						TelemetryReporting_ = false;
-		volatile std::uint64_t				TelemetryWebSocketRefCount_ = 0;
-		volatile std::uint64_t				TelemetryKafkaRefCount_ = 0;
-		volatile std::uint64_t 				TelemetryWebSocketTimer_ = 0;
-		volatile std::uint64_t 				TelemetryKafkaTimer_ = 0 ;
-		volatile std::uint64_t 				TelemetryInterval_ = 0;
-		volatile std::uint64_t				TelemetryWebSocketPackets_=0;
-		volatile std::uint64_t				TelemetryKafkaPackets_=0;
+		volatile uint64_t				TelemetryWebSocketRefCount_ = 0;
+		volatile uint64_t				TelemetryKafkaRefCount_ = 0;
+		volatile uint64_t 				TelemetryWebSocketTimer_ = 0;
+		volatile uint64_t 				TelemetryKafkaTimer_ = 0 ;
+		volatile uint64_t 				TelemetryInterval_ = 0;
+		volatile uint64_t				TelemetryWebSocketPackets_=0;
+		volatile uint64_t				TelemetryKafkaPackets_=0;
 		GWObjects::ConnectionState			State_;
 		std::string        					LastStats_;
 		GWObjects::HealthCheck				LastHealthcheck_;
@@ -120,8 +120,8 @@ namespace OpenWifi {
 
 		static inline std::atomic_uint64_t 	ConcurrentStartingDevices_=0;
 
-		bool StartTelemetry(std::uint64_t RPCID);
-		bool StopTelemetry(std::uint64_t RPCID);
+		bool StartTelemetry(uint64_t RPCID);
+		bool StopTelemetry(uint64_t RPCID);
 		void UpdateCounts();
 	};
 

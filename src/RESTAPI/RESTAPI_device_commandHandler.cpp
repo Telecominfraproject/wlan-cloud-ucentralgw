@@ -1010,8 +1010,8 @@ namespace OpenWifi {
 			// std::cout << "Payload:" << oooss.str() << std::endl;
 
 			DBG
-			uint64_t Lifetime = 60 * 60 ; // 1 hour
-			uint64_t Interval = 5;
+			std::uint64_t Lifetime = 60 * 60 ; // 1 hour
+			std::uint64_t Interval = 5;
 			bool KafkaOnly = false;
 
 			DBG
@@ -1046,7 +1046,7 @@ namespace OpenWifi {
 					DBG
 					if (Interval) {
 						DBG
-						AP_WS_Server()->SetWebSocketTelemetryReporting(CMD_RPC,IntSerialNumber, Interval,
+						AP_WS_Server()->SetWebSocketTelemetryReporting(CMD_RPC, IntSerialNumber, Interval,
 																				  Lifetime);
 						DBG
 						std::string EndPoint;

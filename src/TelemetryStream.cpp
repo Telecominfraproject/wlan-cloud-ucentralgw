@@ -105,7 +105,7 @@ namespace OpenWifi {
 		}
 	}
 
-	bool TelemetryStream::NewClient(const std::string &UUID, std::uint64_t SerialNumber, std::unique_ptr<Poco::Net::WebSocket> Client) {
+	bool TelemetryStream::NewClient(const std::string &UUID, uint64_t SerialNumber, std::unique_ptr<Poco::Net::WebSocket> Client) {
 		std::lock_guard	G(Mutex_);
 		try {
 			Clients_[UUID] = std::make_unique<TelemetryClient>(
