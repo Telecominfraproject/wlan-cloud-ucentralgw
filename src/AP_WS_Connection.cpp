@@ -480,13 +480,13 @@ namespace OpenWifi {
 		State_.webSocketClients = TelemetryWebSocketRefCount_;
 	}
 
-	bool AP_WS_Connection::SetWebSocketTelemetryReporting(std::uint64_t RPCID, uint64_t Interval,
-													  uint64_t LifeTime) {
+	bool AP_WS_Connection::SetWebSocketTelemetryReporting(std::uint64_t RPCID, std::uint64_t Interval,
+														  std::uint64_t LifeTime) {
 		std::unique_lock Lock(TelemetryMutex_);
 		TelemetryWebSocketRefCount_++;
-		TelemetryInterval_ = TelemetryInterval_ ? std::min(Interval, TelemetryInterval_) : Interval;
+		TelemetryInterval_ = TelemetryInterval_ ? ( Interval< TelemetryInterval_ ? Interval : TelemetryInterval_) : Interval;
 		auto TelemetryWebSocketTimer = LifeTime + OpenWifi::Now();
-		TelemetryWebSocketTimer_ = std::max(TelemetryWebSocketTimer, TelemetryWebSocketTimer_);
+		TelemetryWebSocketTimer_ = TelemetryWebSocketTimer > TelemetryWebSocketTimer_ ? TelemetryWebSocketTimer : TelemetryWebSocketTimer_;
 		UpdateCounts();
 		if (!TelemetryReporting_) {
 			TelemetryReporting_ = true;
@@ -495,12 +495,12 @@ namespace OpenWifi {
 		return true;
 	}
 
-	bool AP_WS_Connection::SetKafkaTelemetryReporting(std::uint64_t RPCID, uint64_t Interval, uint64_t LifeTime) {
+	bool AP_WS_Connection::SetKafkaTelemetryReporting(std::uint64_t RPCID, std::uint64_t Interval, std::uint64_t LifeTime) {
 		std::unique_lock Lock(TelemetryMutex_);
 		TelemetryKafkaRefCount_++;
-		TelemetryInterval_ = TelemetryInterval_ ? std::min(Interval, TelemetryInterval_) : Interval;
+		TelemetryInterval_ = TelemetryInterval_ ? ( Interval<TelemetryInterval_ ? Interval : TelemetryInterval_) : Interval;
 		auto TelemetryKafkaTimer = LifeTime + OpenWifi::Now();
-		TelemetryKafkaTimer_ = std::max(TelemetryKafkaTimer, TelemetryKafkaTimer_);
+		TelemetryKafkaTimer_ = TelemetryKafkaTimer > TelemetryKafkaTimer_ ? TelemetryKafkaTimer : TelemetryKafkaTimer_;
 		UpdateCounts();
 		if (!TelemetryReporting_) {
 			TelemetryReporting_ = true;

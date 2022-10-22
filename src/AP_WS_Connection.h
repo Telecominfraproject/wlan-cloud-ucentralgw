@@ -67,11 +67,11 @@ namespace OpenWifi {
 
 		bool ValidatedDevice();
 
-		inline bool GetTelemetryParameters(bool & Reporting, uint64_t & Interval,
-										   uint64_t & WebSocketTimer, uint64_t & KafkaTimer,
-										   uint64_t &WebSocketCount, uint64_t & KafkaCount,
-										   uint64_t &WebSocketPackets,
-										   uint64_t &KafkaPackets ) const {
+		inline bool GetTelemetryParameters(bool & Reporting, std::uint64_t & Interval,
+										   std::uint64_t & WebSocketTimer, std::uint64_t & KafkaTimer,
+										   std::uint64_t &WebSocketCount, std::uint64_t & KafkaCount,
+										   std::uint64_t &WebSocketPackets,
+										   std::uint64_t &KafkaPackets ) const {
 			Reporting = TelemetryReporting_;
 			WebSocketTimer = TelemetryWebSocketTimer_;
 			KafkaTimer = TelemetryKafkaTimer_;
