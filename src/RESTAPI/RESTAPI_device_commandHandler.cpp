@@ -986,10 +986,14 @@ namespace OpenWifi {
 		return ReturnStatus(Poco::Net::HTTPResponse::HTTP_SERVICE_UNAVAILABLE);
 	}
 
+#define DBG		{ std::cout << __LINE__ << std::endl; }
+
 	void RESTAPI_device_commandHandler::Telemetry(const std::string &CMD_UUID, uint64_t CMD_RPC, [[maybe_unused]] std::chrono::milliseconds timeout){
 		Logger_.information(fmt::format("TELEMETRY({},{}): TID={} user={} serial={}", CMD_UUID, CMD_RPC, TransactionId_, Requester(), SerialNumber_));
 
 		const auto &Obj = ParsedBody_;
+		DBG
+
 		if (Obj->has(RESTAPI::Protocol::SERIALNUMBER) &&
 			Obj->has(RESTAPI::Protocol::INTERVAL) &&
 			Obj->has(RESTAPI::Protocol::TYPES)) {
@@ -1000,27 +1004,34 @@ namespace OpenWifi {
 				return BadRequest(RESTAPI::Errors::SerialNumberMismatch);
 			}
 
+			DBG
 			std::stringstream 	oooss;
 			Obj->stringify(oooss);
 			// std::cout << "Payload:" << oooss.str() << std::endl;
 
+			DBG
 			uint64_t Lifetime = 60 * 60 ; // 1 hour
 			uint64_t Interval = 5;
 			bool KafkaOnly = false;
 
+			DBG
 			if(Obj->has("kafka")) {
 				KafkaOnly = Obj->get("kafka").toString()=="true";
 			}
 
+			DBG
 			auto StatusOnly = GetBoolParameter("statusOnly",false);
 
+			DBG
 			AssignIfPresent(Obj, RESTAPI::Protocol::INTERVAL, Interval);
 			AssignIfPresent(Obj, RESTAPI::Protocol::LIFETIME, Lifetime);
 
+			DBG
 			Poco::JSON::Object Answer;
 
 			auto IntSerialNumber = Utils::SerialNumberToInt(SerialNumber_);
 
+			DBG
 			if(!StatusOnly) {
 				if (KafkaOnly) {
 					if (Interval) {
@@ -1032,31 +1043,42 @@ namespace OpenWifi {
 						Answer.set("action", "Kafka telemetry stopped.");
 					}
 				} else {
+					DBG
 					if (Interval) {
+						DBG
 						AP_WS_Server()->SetWebSocketTelemetryReporting(CMD_RPC,IntSerialNumber, Interval,
 																				  Lifetime);
+						DBG
 						std::string EndPoint;
+						DBG
 						if (TelemetryStream()->CreateEndpoint(Utils::SerialNumberToInt(SerialNumber_), EndPoint, CMD_UUID)) {
 							Answer.set("action", "WebSocket telemetry started.");
 							Answer.set("serialNumber", SerialNumber_);
 							Answer.set("uuid", CMD_UUID);
 							Answer.set("uri", EndPoint);
+							DBG
 						} else {
+							DBG
 							return BadRequest(RESTAPI::Errors::InternalError);
 						}
+						DBG
 					} else {
 						Answer.set("action", "WebSocket telemetry stopped.");
 						AP_WS_Server()->StopWebSocketTelemetry(CMD_RPC,IntSerialNumber);
 					}
+					DBG
 				}
 			} else {
+				DBG
 				Answer.set("action", "Telemetry status only.");
 			}
 
 			bool TelemetryRunning;
-			uint64_t TelemetryWebSocketCount, TelemetryKafkaCount, TelemetryInterval,
+			DBG
+			std::uint64_t TelemetryWebSocketCount, TelemetryKafkaCount, TelemetryInterval,
 				TelemetryWebSocketTimer, TelemetryKafkaTimer, TelemetryWebSocketPackets,
 				TelemetryKafkaPackets;
+			DBG
 			AP_WS_Server()->GetTelemetryParameters(IntSerialNumber,TelemetryRunning,
 															  TelemetryInterval,
 															  TelemetryWebSocketTimer,
@@ -1065,7 +1087,9 @@ namespace OpenWifi {
 															  TelemetryKafkaCount,
 															  TelemetryWebSocketPackets,
 															  TelemetryKafkaPackets);
+			DBG
 			Poco::JSON::Object	TelemetryStatus;
+			DBG
 			TelemetryStatus.set("running", TelemetryRunning);
 			TelemetryStatus.set("interval", TelemetryInterval);
 			TelemetryStatus.set("websocketTimer", TelemetryWebSocketTimer);
@@ -1074,7 +1098,9 @@ namespace OpenWifi {
 			TelemetryStatus.set("kafkaClients", TelemetryKafkaCount);
 			TelemetryStatus.set("kafkaPackets", TelemetryKafkaPackets);
 			TelemetryStatus.set("websocketPackets", TelemetryWebSocketPackets);
+			DBG
 			Answer.set("status", TelemetryStatus);
+			DBG
 			return ReturnObject(Answer);
 		}
 		return BadRequest(RESTAPI::Errors::MissingOrInvalidParameters);

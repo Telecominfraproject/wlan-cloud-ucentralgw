@@ -36,7 +36,7 @@ namespace OpenWifi {
 		WS_->setReceiveTimeout(TS);
 		WS_->setNoDelay(true);
 		WS_->setKeepAlive(true);
-		WS_->setMaxPayloadSize(32000);
+		WS_->setMaxPayloadSize(2048);
 		WS_->setBlocking(false);
 		Reactor_.addEventHandler(
 			*WS_, Poco::NObserver<TelemetryClient, Poco::Net::ReadableNotification>(
