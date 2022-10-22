@@ -714,6 +714,14 @@ getradiusconfig() {
 	jq < ${result_file}
 }
 
+deleteradiusconfig() {
+	curl    ${FLAGS} -X DELETE "https://${OWGW}/api/v1/radiusProxyConfig" \
+			-H "Content-Type: application/json" \
+			-H "Accept: application/json" \
+			-H "Authorization: Bearer ${token}" > ${result_file}
+		jq < ${result_file}
+}
+
 connectionstatistics() {
 	curl    ${FLAGS} -X GET "https://${OWGW}/api/v1/devices?connectionStatistics=true" \
 			-H "Content-Type: application/json" \
@@ -986,7 +994,9 @@ case "$1" in
 	"runscript") login; runscript $2 $3 $4; logout;;
 	"getradiusconfig") login; getradiusconfig ; logout;;
 	"setradiusconfig") login; setradiusconfig $2; logout;;
+	"deleteradiusconfig") login; deleteradiusconfig ; logout;;
 	"deviceping") login; deviceping $2; logout;;
 	"connectionstatistics") login; connectionstatistics $2; logout;;
   *) help ;;
 esac
+

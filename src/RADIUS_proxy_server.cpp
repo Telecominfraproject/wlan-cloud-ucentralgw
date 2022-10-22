@@ -23,6 +23,8 @@ namespace OpenWifi {
 			return 0;
 		}
 
+		poco_notice(Logger(),"Starting...");
+
 		enabled_ = true;
 
 		Poco::Net::SocketAddress	AuthSockAddrV4(Poco::Net::AddressFamily::IPv4,
