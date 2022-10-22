@@ -443,7 +443,7 @@ namespace OpenWifi {
 		StartMessage.set("method", "telemetry");
 		Poco::JSON::Object Params;
 		Params.set("serial", SerialNumber_);
-		Params.set("interval", TelemetryInterval_);
+		Params.set("interval", (uint64_t)TelemetryInterval_);
 		Poco::JSON::Array Types;
 		Types.add("wifi-frames");
 		Types.add("dhcp-snooping");
