@@ -128,13 +128,16 @@ namespace OpenWifi {
 		std::lock_guard		G(Mutex_);
 
 		std::cout << "Removing client WS " << UUID << std::endl;
-		auto Hint = Clients_.find(UUID);
-		if(Hint!=Clients_.end()) {
-			Clients_.erase(Hint);
-			for(const auto &i:SerialNumbers_) {
-				std::cout << "Removing client WS serial" << std::endl;
-				auto S = i.second;
-				S.erase(UUID);
+		auto client = Clients_.find(UUID);
+		if(client!=Clients_.end()) {
+			Clients_.erase(client);
+
+			for(auto &[SerialNumber,SetOfUUIDs]:SerialNumbers_) {
+				auto uuid = SetOfUUIDs.find(UUID);
+				if(uuid!=SetOfUUIDs.end()) {
+					SetOfUUIDs.erase(uuid);
+					break;
+				}
 			}
 
 			//	remove empty slots
