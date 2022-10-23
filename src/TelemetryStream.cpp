@@ -131,11 +131,14 @@ namespace OpenWifi {
 		auto client = Clients_.find(UUID);
 		if(client!=Clients_.end()) {
 			Clients_.erase(client);
+			std::cout << "Client erased..." << std::endl;
 			for(auto i = SerialNumbers_.begin(); i!= SerialNumbers_.end();) {
 				i->second.erase(UUID);
 				if(i->second.empty()) {
+					std::cout << "Serial number empty set..." << std::endl;
 					i = SerialNumbers_.erase(i);
 				} else {
+					std::cout << "Serial number not empty set..." << std::endl;
 					++i;
 				}
 			}
