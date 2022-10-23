@@ -67,6 +67,7 @@ namespace OpenWifi {
 		} else {
 			H->second.insert(UUID);
 		}
+		Clients_[UUID] = nullptr;
 		return true;
 	}
 
@@ -121,10 +122,13 @@ namespace OpenWifi {
 	void TelemetryStream::DeRegisterClient(const std::string &UUID) {
 		std::lock_guard		G(Mutex_);
 
+		std::cout << "Removing client WS" << std::endl;
 		auto Hint = Clients_.find(UUID);
 		if(Hint!=Clients_.end()) {
+			std::cout << "Removing client WS " << UUID << std::endl;
 			Clients_.erase(Hint);
 			for(const auto &i:SerialNumbers_) {
+				std::cout << "Removing client WS serial" << std::endl;
 				auto S = i.second;
 				S.erase(UUID);
 			}
@@ -137,6 +141,8 @@ namespace OpenWifi {
 					++i;
 				}
 			}
+		} else {
+			std::cout << "Cannot derigister UUID " << UUID << std::endl;
 		}
 	}
 }
