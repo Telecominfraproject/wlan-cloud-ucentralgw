@@ -34,6 +34,7 @@ namespace OpenWifi {
 		Poco::Timespan TS(1 * 60 * 60, 0);
 
 		WS_->setReceiveTimeout(TS);
+		WS_->setSendTimeout(TS);
 		WS_->setNoDelay(true);
 		WS_->setKeepAlive(true);
 		WS_->setMaxPayloadSize(2048);
