@@ -131,17 +131,8 @@ namespace OpenWifi {
 		auto client = Clients_.find(UUID);
 		if(client!=Clients_.end()) {
 			Clients_.erase(client);
-
-			for(auto &[SerialNumber,SetOfUUIDs]:SerialNumbers_) {
-				auto uuid = SetOfUUIDs.find(UUID);
-				if(uuid!=SetOfUUIDs.end()) {
-					SetOfUUIDs.erase(uuid);
-					break;
-				}
-			}
-
-			//	remove empty slots
-			for( auto i = SerialNumbers_.begin(); i!= SerialNumbers_.end();) {
+			for(auto i = SerialNumbers_.begin(); i!= SerialNumbers_.end();) {
+				i->second.erase(UUID);
 				if(i->second.empty()) {
 					i = SerialNumbers_.erase(i);
 				} else {
