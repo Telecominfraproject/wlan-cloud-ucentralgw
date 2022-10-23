@@ -17,7 +17,7 @@ namespace OpenWifi {
 	int TelemetryStream::Start() {
 		Running_ = true;
 		ReactorThr_.start(Reactor_);
-		Utils::SetThreadName(ReactorThr_,"telemetry-svr");
+		Utils::SetThreadName(ReactorThr_,"tel:reactor");
 		NotificationMgr_.start(*this);
 		return 0;
 	}
@@ -71,7 +71,7 @@ namespace OpenWifi {
 	}
 
 	void TelemetryStream::run() {
-		Utils::SetThreadName("tel:mgr");
+		Utils::SetThreadName("tel:notifier");
 		Poco::AutoPtr<Poco::Notification> NextNotification(MsgQueue_.waitDequeueNotification());
 		while (NextNotification && Running_) {
 			auto Notification = dynamic_cast<TelemetryNotification *>(NextNotification.get());
@@ -79,7 +79,9 @@ namespace OpenWifi {
 				std::lock_guard 	Lock(Mutex_);
 				auto SerialNumberSetOfUUIDs = SerialNumbers_.find(Notification->SerialNumber_);
 				if (SerialNumberSetOfUUIDs != SerialNumbers_.end()) {
+					std::cout << "Found serial" << std::endl;
 					for (auto &uuid : SerialNumberSetOfUUIDs->second) {
+						std::cout << "Sending WS telemetry notification" << std::endl;
 						auto Client = Clients_.find(uuid);
 						if (Client != Clients_.end() && Client->second != nullptr) {
 							try {
@@ -90,6 +92,8 @@ namespace OpenWifi {
 							}
 						}
 					}
+				} else {
+					std::cout << "Cannot find serial: " << Utils::IntToSerialNumber(Notification->SerialNumber_) << std::endl;
 				}
 			}
 			NextNotification = MsgQueue_.waitDequeueNotification();
