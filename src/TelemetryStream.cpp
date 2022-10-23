@@ -88,9 +88,13 @@ namespace OpenWifi {
 							try {
 								std::cout << "Sent WS telemetry notification" << std::endl;
 								Client->second->Send(Notification->Payload_);
-							} catch (...) {
-								std::cout << "Cannot send WS telemetry notification" << std::endl;
+							} catch (const Poco::Exception &E) {
+								std::cout << "Poco:Ex Cannot send WS telemetry notification:" << E.what() << "    " << uuid << " " << Utils::IntToSerialNumber(Notification->SerialNumber_) << std::endl;
+							} catch (std::exception &E) {
+								std::cout << "Std:Ex Cannot send WS telemetry notification:" << E.what() << "    " << uuid << " " << Utils::IntToSerialNumber(Notification->SerialNumber_) << std::endl;
 							}
+						} else {
+							std::cout << "Cannot send WS telemetry notification to " << uuid << " " << Utils::IntToSerialNumber(Notification->SerialNumber_) << std::endl;
 						}
 					}
 				} else {
@@ -105,6 +109,7 @@ namespace OpenWifi {
 	bool TelemetryStream::NewClient(const std::string &UUID, uint64_t SerialNumber, std::unique_ptr<Poco::Net::WebSocket> Client) {
 		std::lock_guard	G(Mutex_);
 		try {
+			std::cout << "Registering " << UUID << " " << Utils::IntToSerialNumber(SerialNumber) << std::endl;
 			Clients_[UUID] = std::make_unique<TelemetryClient>(
 				UUID, SerialNumber, std::move(Client), NextReactor(), Logger());
 			auto set = SerialNumbers_[SerialNumber];
@@ -142,7 +147,7 @@ namespace OpenWifi {
 				}
 			}
 		} else {
-			std::cout << "Cannot derigister UUID " << UUID << std::endl;
+			std::cout << "Cannot deregister UUID " << UUID << std::endl;
 		}
 	}
 }
