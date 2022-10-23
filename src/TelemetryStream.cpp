@@ -127,10 +127,9 @@ namespace OpenWifi {
 	void TelemetryStream::DeRegisterClient(const std::string &UUID) {
 		std::lock_guard		G(Mutex_);
 
-		std::cout << "Removing client WS" << std::endl;
+		std::cout << "Removing client WS " << UUID << std::endl;
 		auto Hint = Clients_.find(UUID);
 		if(Hint!=Clients_.end()) {
-			std::cout << "Removing client WS " << UUID << std::endl;
 			Clients_.erase(Hint);
 			for(const auto &i:SerialNumbers_) {
 				std::cout << "Removing client WS serial" << std::endl;

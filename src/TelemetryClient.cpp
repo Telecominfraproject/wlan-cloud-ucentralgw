@@ -31,7 +31,7 @@ namespace OpenWifi {
 		Socket_ = *WS_;
 		CId_ = Utils::FormatIPv6(Socket_.peerAddress().toString());
 
-		auto TS = Poco::Timespan(240, 0);
+		Poco::Timespan TS(1 * 60 * 60, 0);
 
 		WS_->setReceiveTimeout(TS);
 		WS_->setNoDelay(true);
