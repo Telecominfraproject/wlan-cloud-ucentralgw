@@ -27,7 +27,7 @@ namespace OpenWifi {
 						// std::cout << SerialNumber_ << ": Updating WebSocket telemetry" << std::endl;
 						TelemetryWebSocketPackets_++;
 						State_.websocketPackets = TelemetryWebSocketPackets_;
-						TelemetryStream()->UpdateEndPoint(SerialNumberInt_, SS.str());
+						TelemetryStream()->NotifyEndPoint(SerialNumberInt_, SS.str());
 					} else {
 						StopWebSocketTelemetry(CommandManager()->NextRPCId());
 					}

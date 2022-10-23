@@ -16,20 +16,20 @@ namespace OpenWifi {
 
 	int TelemetryStream::Start() {
 		Running_ = true;
-		Messages_->Readable_ += Poco::delegate(this,&TelemetryStream::onMessage);
-		Thr_.start(Reactor_);
-		Utils::SetThreadName(Thr_,"telemetry-svr");
+		ReactorThr_.start(Reactor_);
+		Utils::SetThreadName(ReactorThr_,"telemetry-svr");
+		NotificationMgr_.start(*this);
 		return 0;
 	}
 
 	void TelemetryStream::Stop() {
 		poco_information(Logger(),"Stopping...");
+		Running_ = false;
 		Reactor_.stop();
-		Thr_.join();
-		if(Running_) {
-			Running_ = false;
-			Messages_->Readable_ -= Poco::delegate( this, &TelemetryStream::onMessage);
-		}
+		ReactorThr_.join();
+		MsgQueue_.wakeUpAll();
+		NotificationMgr_.wakeUp();
+		NotificationMgr_.join();
 		poco_information(Logger(),"Stopped...");
 	}
 
@@ -67,43 +67,33 @@ namespace OpenWifi {
 		} else {
 			H->second.insert(UUID);
 		}
-		Clients_[UUID] = nullptr;
 		return true;
 	}
 
-	void TelemetryStream::UpdateEndPoint(uint64_t SerialNumber, const std::string &PayLoad) {
-		{
-			std::lock_guard M(Mutex_);
-			if (SerialNumbers_.find(SerialNumber) == SerialNumbers_.end()) {
-				return;
-			}
-		}
-		Messages_->Write(QueueUpdate{.SerialNumber=SerialNumber, .Payload = PayLoad});
-	}
-
-	void TelemetryStream::onMessage(bool &b){
-		if(b) {
-			QueueUpdate Msg;
-
-			auto S = Messages_->Read(Msg);
-
-			if(S) {
-				std::lock_guard	M(Mutex_);
-				auto H1 = SerialNumbers_.find(Msg.SerialNumber);
+	void TelemetryStream::run() {
+		Utils::SetThreadName("tel:mgr");
+		Poco::AutoPtr<Poco::Notification> NextNotification(MsgQueue_.waitDequeueNotification());
+		while (NextNotification && Running_) {
+			auto Notification = dynamic_cast<TelemetryNotification *>(NextNotification.get());
+			if (Notification != nullptr) {
+				std::lock_guard 	Lock(Mutex_);
+				auto H1 = SerialNumbers_.find(Notification->SerialNumber_);
 				if (H1 != SerialNumbers_.end()) {
 					for (auto &i : H1->second) {
 						auto H2 = Clients_.find(i);
 						if (H2 != Clients_.end() && H2->second != nullptr) {
 							try {
-								H2->second->Send(Msg.Payload);
+								H2->second->Send(Notification->Payload_);
 							} catch (...) {
 							}
 						}
 					}
 				}
 			}
+			NextNotification = MsgQueue_.waitDequeueNotification();
 		}
 	}
+
 
 	bool TelemetryStream::NewClient(const std::string &UUID, uint64_t SerialNumber, std::unique_ptr<Poco::Net::WebSocket> Client) {
 		std::lock_guard	G(Mutex_);

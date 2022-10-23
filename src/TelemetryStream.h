@@ -26,7 +26,18 @@
 
 namespace OpenWifi {
 
-	class TelemetryStream : public SubSystemServer {
+	class TelemetryNotification : public Poco::Notification {
+	  public:
+		explicit TelemetryNotification(std::uint64_t SerialNUmber, const std::string &Payload) :
+		 	SerialNumber_(SerialNUmber),
+			Payload_(Payload) {
+		}
+
+		std::uint64_t 	SerialNumber_=0;
+		std::string 	Payload_;
+	};
+
+	class TelemetryStream : public SubSystemServer, Poco::Runnable {
 	  public:
 
 		struct QueueUpdate {
@@ -41,24 +52,27 @@ namespace OpenWifi {
 
 		int Start() override;
 		void Stop() override;
+		void run() final;
 
 		bool IsValidEndPoint(uint64_t SerialNumber, const std::string & UUID);
 		bool CreateEndpoint(uint64_t SerialNumber, std::string &EndPoint, const std::string &UUID);
-		void UpdateEndPoint(uint64_t SerialNumber, const std::string &PayLoad);
+
+		inline void NotifyEndPoint(uint64_t SerialNumber, const std::string &PayLoad) {
+			MsgQueue_.enqueueNotification(new TelemetryNotification(SerialNumber,PayLoad));
+		}
 
 		bool NewClient(const std::string &UUID, uint64_t SerialNumber,  std::unique_ptr<Poco::Net::WebSocket> Client);
 		void DeRegisterClient(const std::string &UUID);
 
 		Poco::Net::SocketReactor & NextReactor() { return Reactor_; }
 
-		void onMessage(bool& b);
-
 	  private:
 		volatile std::atomic_bool 						Running_=false;
 		std::map<uint64_t, std::set<std::string>>		SerialNumbers_;		//	serialNumber -> uuid
 		Poco::Net::SocketReactor						Reactor_;
-		std::unique_ptr<FIFO<QueueUpdate>>				Messages_=std::make_unique<FIFO<QueueUpdate>>(100);
-		Poco::Thread									Thr_;
+		Poco::Thread									ReactorThr_;
+		Poco::Thread									NotificationMgr_;
+		Poco::NotificationQueue							MsgQueue_;
 
 		std::map<std::string, std::unique_ptr<TelemetryClient> >		Clients_;			// 	uuid -> client
 
