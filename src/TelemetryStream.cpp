@@ -77,14 +77,16 @@ namespace OpenWifi {
 			auto Notification = dynamic_cast<TelemetryNotification *>(NextNotification.get());
 			if (Notification != nullptr) {
 				std::lock_guard 	Lock(Mutex_);
-				auto H1 = SerialNumbers_.find(Notification->SerialNumber_);
-				if (H1 != SerialNumbers_.end()) {
-					for (auto &i : H1->second) {
-						auto H2 = Clients_.find(i);
-						if (H2 != Clients_.end() && H2->second != nullptr) {
+				auto SerialNumberSetOfUUIDs = SerialNumbers_.find(Notification->SerialNumber_);
+				if (SerialNumberSetOfUUIDs != SerialNumbers_.end()) {
+					for (auto &uuid : SerialNumberSetOfUUIDs->second) {
+						auto Client = Clients_.find(uuid);
+						if (Client != Clients_.end() && Client->second != nullptr) {
 							try {
-								H2->second->Send(Notification->Payload_);
+								std::cout << "Sent WS telemetry notification" << std::endl;
+								Client->second->Send(Notification->Payload_);
 							} catch (...) {
+								std::cout << "Cannot send WS telemetry notification" << std::endl;
 							}
 						}
 					}
