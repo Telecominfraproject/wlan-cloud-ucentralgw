@@ -14,6 +14,8 @@
 
 namespace OpenWifi {
 
+	constexpr uint RTTY_DEVICE_TOKEN_LENGTH=32;
+
 	class RTTYS_Device_ConnectionHandler;
 	class RTTYS_ClientConnection;
 
@@ -64,13 +66,13 @@ namespace OpenWifi {
 		}
 
 		RTTYS_Notification(const RTTYS_Notification_type &type,
-						   const std::string &id,
-						   const std::string &token,
-						   RTTYS_Device_ConnectionHandler * device) :
-															 type_(type),
-															 id_(id),
-															 token_(token),
-															 device_(device) {
+			const std::string &id,
+			const std::string &token,
+			RTTYS_Device_ConnectionHandler * device) :
+				type_(type),
+				id_(id),
+				token_(token),
+				device_(device) {
 		}
 
 		RTTYS_Notification_type			type_=RTTYS_Notification_type::unknown;
@@ -237,8 +239,14 @@ namespace OpenWifi {
 			ResponseQueue_.enqueueNotification(new RTTYS_Notification(RTTYS_Notification_type::client_disconnection,id,client));
 		}
 
-		inline void NotifyDeviceRegistration(const std::string &id, const std::string &token, RTTYS_Device_ConnectionHandler *device) {
+		inline bool NotifyDeviceRegistration(const std::string &id, const std::string &token, RTTYS_Device_ConnectionHandler *device) {
+			{
+				std::lock_guard G(LocalMutex_);
+				if (EndPoints_.find(id) == end(EndPoints_))
+					return false;
+			}
 			ResponseQueue_.enqueueNotification(new RTTYS_Notification(RTTYS_Notification_type::device_registration,id,token,device));
+			return true;
 		}
 
 		inline void NotifyClientRegistration(const std::string &id, RTTYS_ClientConnection *client) {

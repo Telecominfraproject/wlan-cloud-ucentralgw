@@ -926,7 +926,7 @@ namespace OpenWifi {
 					.Port = MicroService::instance().ConfigGetInt("rtty.port", 5912),
 					.Token = MicroService::instance().ConfigGetString("rtty.token", "nothing"),
 					.TimeOut = MicroService::instance().ConfigGetInt("rtty.timeout", 60),
-					.ConnectionId =  Utils::ComputeHash(SerialNumber_,OpenWifi::Now()).substr(0,32),
+					.ConnectionId =  Utils::ComputeHash(SerialNumber_,OpenWifi::Now()).substr(0,RTTY_DEVICE_TOKEN_LENGTH),
 					.Started = OpenWifi::Now(),
 					.CommandUUID = CMD_UUID,
 					.ViewPort = MicroService::instance().ConfigGetInt("rtty.viewport", 5913),
@@ -936,7 +936,7 @@ namespace OpenWifi {
 
 				if(RTTYS_server()->UseInternal()) {
 					poco_debug(Logger_,fmt::format("RTTY_DEBUG {} ", __LINE__ ));
-					Rtty.Token = Utils::ComputeHash(UserInfo_.webtoken.refresh_token_,OpenWifi::Now()).substr(0,32);
+					Rtty.Token = Utils::ComputeHash(UserInfo_.webtoken.refresh_token_,OpenWifi::Now()).substr(0,RTTY_DEVICE_TOKEN_LENGTH);
 					poco_debug(Logger_,fmt::format("RTTY_DEBUG {} ", __LINE__ ));
 					if(!RTTYS_server()->CreateEndPoint(Rtty.ConnectionId, Rtty.Token, Requester(), SerialNumber_)) {
 						poco_debug(Logger_,fmt::format("RTTY_DEBUG {} ", __LINE__ ));

@@ -341,6 +341,10 @@ namespace OpenWifi {
 
 	bool RTTYS_Device_ConnectionHandler::do_msgTypeRegister([[maybe_unused]] std::size_t msg_len) {
 		bool good = true;
+
+		if(deviceIsRegistered_)
+			return false;
+
 		try {
 			//	establish if this is an old rtty or a new one.
 			old_rtty_ = ((*inBuf_)[0] != 0x03);		//	rtty_proto_ver for full session ID inclusion
@@ -355,9 +359,15 @@ namespace OpenWifi {
 			desc_ = ReadString();
 			token_ = ReadString();
 
+			if(id_.size()!=RTTY_DEVICE_TOKEN_LENGTH || token_.size()!=RTTY_DEVICE_TOKEN_LENGTH || desc_.empty()) {
+				return false;
+			}
+
 			poco_information(Logger(),
 							 fmt::format("{}: Description:{} Device registration", id_, desc_));
-			RTTYS_server()->NotifyDeviceRegistration(id_,token_,this);
+			if(!RTTYS_server()->NotifyDeviceRegistration(id_,token_,this)) {
+				return false;
+			}
 			u_char OutBuf[8];
 			OutBuf[0] = msgTypeRegister;
 			OutBuf[1] = 0;		//	Data length
@@ -372,6 +382,7 @@ namespace OpenWifi {
 												 id_, desc_));
 					good = false;
 			}
+			deviceIsRegistered_ = true;
 		} catch (...) {
 			good = false;
 		}
@@ -380,6 +391,10 @@ namespace OpenWifi {
 
 	bool RTTYS_Device_ConnectionHandler::do_msgTypeLogin([[maybe_unused]] std::size_t msg_len) {
 		poco_information(Logger(),fmt::format("{}: Asking for login", id_));
+
+		if(!deviceIsRegistered_)
+			return false;
+
 		nlohmann::json doc;
 		char Error;
 		if(old_rtty_) {
@@ -397,6 +412,9 @@ namespace OpenWifi {
 	}
 
 	bool RTTYS_Device_ConnectionHandler::do_msgTypeLogout([[maybe_unused]] std::size_t msg_len) {
+		if(!deviceIsRegistered_)
+			return false;
+
 		char session[RTTY_SESSION_ID_LENGTH];
 		if(old_rtty_) {
 			inBuf_->read(&session[0],1);
@@ -408,6 +426,10 @@ namespace OpenWifi {
 	}
 
 	bool RTTYS_Device_ConnectionHandler::do_msgTypeTermData(std::size_t msg_len) {
+
+		if(!deviceIsRegistered_)
+			return false;
+
 		bool good;
 		if(waiting_for_bytes_>0) {
 			if(inBuf_->used()<waiting_for_bytes_) {
@@ -441,16 +463,22 @@ namespace OpenWifi {
 	}
 
 	bool RTTYS_Device_ConnectionHandler::do_msgTypeWinsize([[maybe_unused]] std::size_t msg_len) {
+		if(!deviceIsRegistered_)
+			return false;
 		poco_information(Logger(),fmt::format("{}: Asking for msgTypeWinsize", id_));
 		return true;
 	}
 
 	bool RTTYS_Device_ConnectionHandler::do_msgTypeCmd([[maybe_unused]] std::size_t msg_len) {
+		if(!deviceIsRegistered_)
+			return false;
 		poco_information(Logger(),fmt::format("{}: Asking for msgTypeCmd", id_));
 		return true;
 	}
 
 	bool RTTYS_Device_ConnectionHandler::do_msgTypeHeartbeat([[maybe_unused]] std::size_t msg_len) {
+		if(!deviceIsRegistered_)
+			return false;
 		u_char MsgBuf[RTTY_HDR_SIZE + 16]{0};
 		if(msg_len)
 			inBuf_->drain(msg_len);
@@ -462,16 +490,22 @@ namespace OpenWifi {
 	}
 
 	bool RTTYS_Device_ConnectionHandler::do_msgTypeFile([[maybe_unused]] std::size_t msg_len) {
+		if(!deviceIsRegistered_)
+			return false;
 		poco_information(Logger(),fmt::format("{}: Asking for msgTypeFile", id_));
 		return true;
 	}
 
 	bool RTTYS_Device_ConnectionHandler::do_msgTypeHttp([[maybe_unused]] std::size_t msg_len) {
+		if(!deviceIsRegistered_)
+			return false;
 		poco_information(Logger(),fmt::format("{}: Asking for msgTypeHttp", id_));
 		return true;
 	}
 
 	bool RTTYS_Device_ConnectionHandler::do_msgTypeAck([[maybe_unused]] std::size_t msg_len) {
+		if(!deviceIsRegistered_)
+			return false;
 		poco_information(Logger(),fmt::format("{}: Asking for msgTypeAck", id_));
 		return true;
 	}
