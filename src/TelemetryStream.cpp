@@ -128,7 +128,6 @@ namespace OpenWifi {
 		std::cout << "Removing client WS " << UUID << std::endl;
 		if(client!=Clients_.end()) {
 			std::cout << "Removing client WS " << UUID << std::endl;
-			Clients_.erase(client);
 			std::cout << "Removing client WS " << UUID << std::endl;
 			std::cout << "Client erased..." << std::endl;
 			for(auto i = SerialNumbers_.begin(); i!= SerialNumbers_.end();) {
@@ -143,6 +142,7 @@ namespace OpenWifi {
 					++i;
 				}
 			}
+			Clients_.erase(client);
 		} else {
 			std::cout << "Cannot deregister UUID " << UUID << std::endl;
 		}
