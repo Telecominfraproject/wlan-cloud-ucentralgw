@@ -105,7 +105,12 @@ namespace OpenWifi {
 		if(valid_) {
 			valid_ = false;
 			DeRegister();
-			RTTYS_server()->NotifyDeviceDisconnect(id_, this);
+			if(deviceIsRegistered_) {
+				deviceIsRegistered_ = false;
+				RTTYS_server()->NotifyDeviceDisconnect(id_, this);
+			} else {
+				delete this;
+			}
 		}
 	}
 
