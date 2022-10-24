@@ -78,9 +78,7 @@ namespace OpenWifi {
 					case TelemetryNotification::NotificationType::data : {
 						auto SerialNumberSetOfUUIDs = SerialNumbers_.find(Notification->SerialNumber_);
 						if (SerialNumberSetOfUUIDs != SerialNumbers_.end()) {
-							std::cout << "Found serial" << std::endl;
 							for (auto &uuid : SerialNumberSetOfUUIDs->second) {
-								std::cout << "Sending WS telemetry notification" << std::endl;
 								auto Client = Clients_.find(uuid);
 								if (Client != Clients_.end() && Client->second != nullptr) {
 									try {
@@ -104,18 +102,11 @@ namespace OpenWifi {
 
 						auto client = Clients_.find(Notification->Data_);
 						if(client!=Clients_.end()) {
-							std::cout << "Removing client WS " << Notification->Data_ << std::endl;
-							std::cout << "Removing client WS " << Notification->Data_ << std::endl;
-							std::cout << "Client erased..." << std::endl;
 							for(auto i = SerialNumbers_.begin(); i!= SerialNumbers_.end();) {
-								std::cout << "UUID: " << Notification->Data_ << "  " << i->second.size() << std::endl;
 								i->second.erase(Notification->Data_);
-								std::cout << "UUID: " << Notification->Data_ << "  " << i->second.size() << std::endl;
 								if(i->second.empty()) {
-									std::cout << "Serial number empty set..." << std::endl;
 									i = SerialNumbers_.erase(i);
 								} else {
-									std::cout << "Serial number not empty set..." << std::endl;
 									++i;
 								}
 							}
@@ -134,11 +125,9 @@ namespace OpenWifi {
 		}
 	}
 
-
 	bool TelemetryStream::NewClient(const std::string &UUID, uint64_t SerialNumber, std::unique_ptr<Poco::Net::WebSocket> Client) {
 		std::lock_guard	G(Mutex_);
 		try {
-			std::cout << "Registering " << UUID << " " << Utils::IntToSerialNumber(SerialNumber) << std::endl;
 			Clients_[UUID] = std::make_unique<TelemetryClient>(
 				UUID, SerialNumber, std::move(Client), NextReactor(), Logger());
 			auto set = SerialNumbers_[SerialNumber];
@@ -152,31 +141,4 @@ namespace OpenWifi {
 		}
 		return false;
 	}
-
-/*	void TelemetryStream::DeRegisterClient(const std::string &UUID) {
-		std::lock_guard		G(Mutex_);
-
-		auto client = Clients_.find(UUID);
-		if(client!=Clients_.end()) {
-			std::cout << "Removing client WS " << UUID << std::endl;
-			std::cout << "Removing client WS " << UUID << std::endl;
-			std::cout << "Client erased..." << std::endl;
-			for(auto i = SerialNumbers_.begin(); i!= SerialNumbers_.end();) {
-				std::cout << "UUID: " << UUID << "  " << i->second.size() << std::endl;
-				i->second.erase(UUID);
-				std::cout << "UUID: " << UUID << "  " << i->second.size() << std::endl;
-				if(i->second.empty()) {
-					std::cout << "Serial number empty set..." << std::endl;
-					i = SerialNumbers_.erase(i);
-				} else {
-					std::cout << "Serial number not empty set..." << std::endl;
-					++i;
-				}
-			}
-			Clients_.erase(client);
-		} else {
-			std::cout << "Cannot deregister UUID " << UUID << std::endl;
-		}
-	}
- */
 }

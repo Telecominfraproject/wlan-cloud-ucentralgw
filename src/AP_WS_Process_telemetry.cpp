@@ -14,7 +14,7 @@ namespace OpenWifi {
 			Errors_++;
 			return;
 		}
-		std::cout << "Telemetry: " << SerialNumber_ << " reporting: " << TelemetryReporting_ << std::endl;
+		poco_trace(Logger_,fmt::format("Telemetry data received for {}", SerialNumber_));
 		if (TelemetryReporting_) {
 			if (ParamsObj->has("data")) {
 				auto Payload = ParamsObj->get("data").extract<Poco::JSON::Object::Ptr>();
