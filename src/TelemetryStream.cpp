@@ -82,19 +82,19 @@ namespace OpenWifi {
 								auto Client = Clients_.find(uuid);
 								if (Client != Clients_.end() && Client->second != nullptr) {
 									try {
-										std::cout << "Sent WS telemetry notification" << std::endl;
+										// std::cout << "Sent WS telemetry notification" << std::endl;
 										Client->second->Send(Notification->Data_);
 									} catch (const Poco::Exception &E) {
-										std::cout << "Poco:Ex Cannot send WS telemetry notification:" << E.what() << "    " << uuid << " " << Utils::IntToSerialNumber(Notification->SerialNumber_) << std::endl;
+										Logger().log(E);
 									} catch (std::exception &E) {
-										std::cout << "Std:Ex Cannot send WS telemetry notification:" << E.what() << "    " << uuid << " " << Utils::IntToSerialNumber(Notification->SerialNumber_) << std::endl;
+										poco_warning(Logger(),fmt::format("Std:Ex Cannot send WS telemetry notification: {} for SerialNumber: {}", E.what(), Utils::IntToSerialNumber(Notification->SerialNumber_)));
 									}
 								} else {
-									std::cout << "Cannot send WS telemetry notification to " << uuid << " " << Utils::IntToSerialNumber(Notification->SerialNumber_) << std::endl;
+									poco_warning(Logger(),fmt::format("Cannot send WS telemetry notification for SerialNumber: {}", Utils::IntToSerialNumber(Notification->SerialNumber_)));
 								}
 							}
 						} else {
-							std::cout << "Cannot find serial: " << Utils::IntToSerialNumber(Notification->SerialNumber_) << std::endl;
+							poco_warning(Logger(),fmt::format("Cannot find serial: {}", Utils::IntToSerialNumber(Notification->SerialNumber_)));
 						}
 					} break;
 					case TelemetryNotification::NotificationType::unregister : {
@@ -112,7 +112,7 @@ namespace OpenWifi {
 							}
 							Clients_.erase(client);
 						} else {
-							std::cout << "Cannot deregister UUID " << Notification->Data_ << std::endl;
+							poco_warning(Logger(),fmt::format("Unknown connection: {}", Notification->Data_));
 						}
 					} break;
 
