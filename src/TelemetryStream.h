@@ -28,13 +28,25 @@ namespace OpenWifi {
 
 	class TelemetryNotification : public Poco::Notification {
 	  public:
-		explicit TelemetryNotification(std::uint64_t SerialNUmber, const std::string &Payload) :
-		 	SerialNumber_(SerialNUmber),
-			Payload_(Payload) {
+		enum class NotificationType {
+			data,
+			unregister
+		};
+
+		explicit TelemetryNotification(std::uint64_t SerialNumber, const std::string &Payload) :
+			Type_(NotificationType::data),
+			SerialNumber_(SerialNumber),
+			Data_(Payload) {
 		}
 
-		std::uint64_t 	SerialNumber_=0;
-		std::string 	Payload_;
+		explicit TelemetryNotification(const std::string &UUID) :
+			 Type_(NotificationType::unregister),
+			 Data_(UUID) {
+		}
+
+		NotificationType	Type_;
+		std::uint64_t 		SerialNumber_=0;
+		std::string 		Data_;
 	};
 
 	class TelemetryStream : public SubSystemServer, Poco::Runnable {
@@ -61,8 +73,12 @@ namespace OpenWifi {
 			MsgQueue_.enqueueNotification(new TelemetryNotification(SerialNumber,PayLoad));
 		}
 
+		inline void DeRegisterClient(const std::string &UUID) {
+			MsgQueue_.enqueueNotification(new TelemetryNotification(UUID));
+		}
+
 		bool NewClient(const std::string &UUID, uint64_t SerialNumber,  std::unique_ptr<Poco::Net::WebSocket> Client);
-		void DeRegisterClient(const std::string &UUID);
+
 
 		Poco::Net::SocketReactor & NextReactor() { return Reactor_; }
 

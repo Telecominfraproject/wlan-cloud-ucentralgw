@@ -74,27 +74,60 @@ namespace OpenWifi {
 			auto Notification = dynamic_cast<TelemetryNotification *>(NextNotification.get());
 			if (Notification != nullptr) {
 				std::lock_guard 	Lock(Mutex_);
-				auto SerialNumberSetOfUUIDs = SerialNumbers_.find(Notification->SerialNumber_);
-				if (SerialNumberSetOfUUIDs != SerialNumbers_.end()) {
-					std::cout << "Found serial" << std::endl;
-					for (auto &uuid : SerialNumberSetOfUUIDs->second) {
-						std::cout << "Sending WS telemetry notification" << std::endl;
-						auto Client = Clients_.find(uuid);
-						if (Client != Clients_.end() && Client->second != nullptr) {
-							try {
-								std::cout << "Sent WS telemetry notification" << std::endl;
-								Client->second->Send(Notification->Payload_);
-							} catch (const Poco::Exception &E) {
-								std::cout << "Poco:Ex Cannot send WS telemetry notification:" << E.what() << "    " << uuid << " " << Utils::IntToSerialNumber(Notification->SerialNumber_) << std::endl;
-							} catch (std::exception &E) {
-								std::cout << "Std:Ex Cannot send WS telemetry notification:" << E.what() << "    " << uuid << " " << Utils::IntToSerialNumber(Notification->SerialNumber_) << std::endl;
+				switch( Notification->Type_ ) {
+					case TelemetryNotification::NotificationType::data : {
+						auto SerialNumberSetOfUUIDs = SerialNumbers_.find(Notification->SerialNumber_);
+						if (SerialNumberSetOfUUIDs != SerialNumbers_.end()) {
+							std::cout << "Found serial" << std::endl;
+							for (auto &uuid : SerialNumberSetOfUUIDs->second) {
+								std::cout << "Sending WS telemetry notification" << std::endl;
+								auto Client = Clients_.find(uuid);
+								if (Client != Clients_.end() && Client->second != nullptr) {
+									try {
+										std::cout << "Sent WS telemetry notification" << std::endl;
+										Client->second->Send(Notification->Data_);
+									} catch (const Poco::Exception &E) {
+										std::cout << "Poco:Ex Cannot send WS telemetry notification:" << E.what() << "    " << uuid << " " << Utils::IntToSerialNumber(Notification->SerialNumber_) << std::endl;
+									} catch (std::exception &E) {
+										std::cout << "Std:Ex Cannot send WS telemetry notification:" << E.what() << "    " << uuid << " " << Utils::IntToSerialNumber(Notification->SerialNumber_) << std::endl;
+									}
+								} else {
+									std::cout << "Cannot send WS telemetry notification to " << uuid << " " << Utils::IntToSerialNumber(Notification->SerialNumber_) << std::endl;
+								}
 							}
 						} else {
-							std::cout << "Cannot send WS telemetry notification to " << uuid << " " << Utils::IntToSerialNumber(Notification->SerialNumber_) << std::endl;
+							std::cout << "Cannot find serial: " << Utils::IntToSerialNumber(Notification->SerialNumber_) << std::endl;
 						}
-					}
-				} else {
-					std::cout << "Cannot find serial: " << Utils::IntToSerialNumber(Notification->SerialNumber_) << std::endl;
+					} break;
+					case TelemetryNotification::NotificationType::unregister : {
+						std::lock_guard		G(Mutex_);
+
+						auto client = Clients_.find(Notification->Data_);
+						if(client!=Clients_.end()) {
+							std::cout << "Removing client WS " << Notification->Data_ << std::endl;
+							std::cout << "Removing client WS " << Notification->Data_ << std::endl;
+							std::cout << "Client erased..." << std::endl;
+							for(auto i = SerialNumbers_.begin(); i!= SerialNumbers_.end();) {
+								std::cout << "UUID: " << Notification->Data_ << "  " << i->second.size() << std::endl;
+								i->second.erase(Notification->Data_);
+								std::cout << "UUID: " << Notification->Data_ << "  " << i->second.size() << std::endl;
+								if(i->second.empty()) {
+									std::cout << "Serial number empty set..." << std::endl;
+									i = SerialNumbers_.erase(i);
+								} else {
+									std::cout << "Serial number not empty set..." << std::endl;
+									++i;
+								}
+							}
+							Clients_.erase(client);
+						} else {
+							std::cout << "Cannot deregister UUID " << Notification->Data_ << std::endl;
+						}
+					} break;
+
+					default: {
+
+					} break;
 				}
 			}
 			NextNotification = MsgQueue_.waitDequeueNotification();
@@ -120,12 +153,10 @@ namespace OpenWifi {
 		return false;
 	}
 
-	void TelemetryStream::DeRegisterClient(const std::string &UUID) {
+/*	void TelemetryStream::DeRegisterClient(const std::string &UUID) {
 		std::lock_guard		G(Mutex_);
 
-		std::cout << "Removing client WS " << UUID << std::endl;
 		auto client = Clients_.find(UUID);
-		std::cout << "Removing client WS " << UUID << std::endl;
 		if(client!=Clients_.end()) {
 			std::cout << "Removing client WS " << UUID << std::endl;
 			std::cout << "Removing client WS " << UUID << std::endl;
@@ -147,4 +178,5 @@ namespace OpenWifi {
 			std::cout << "Cannot deregister UUID " << UUID << std::endl;
 		}
 	}
+ */
 }
