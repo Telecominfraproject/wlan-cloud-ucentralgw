@@ -60,13 +60,9 @@ namespace OpenWifi {
 		U.addQueryParameter("uuid", UUID);
 		U.addQueryParameter("serialNumber", Utils::IntToSerialNumber(SerialNumber));
 		EndPoint = U.toString();
-		auto H = SerialNumbers_.find(SerialNumber);
-		if(H == SerialNumbers_.end()) {
-			std::set<std::string>	UUIDs{UUID};
-			SerialNumbers_[SerialNumber] = UUIDs;
-		} else {
-			H->second.insert(UUID);
-		}
+		auto S = SerialNumbers_[SerialNumber];
+		S.insert(UUID);
+		SerialNumbers_[SerialNumber] = S;
 		Clients_[UUID] = nullptr;
 		return true;
 	}
