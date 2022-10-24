@@ -125,8 +125,11 @@ namespace OpenWifi {
 
 		std::cout << "Removing client WS " << UUID << std::endl;
 		auto client = Clients_.find(UUID);
+		std::cout << "Removing client WS " << UUID << std::endl;
 		if(client!=Clients_.end()) {
+			std::cout << "Removing client WS " << UUID << std::endl;
 			Clients_.erase(client);
+			std::cout << "Removing client WS " << UUID << std::endl;
 			std::cout << "Client erased..." << std::endl;
 			for(auto i = SerialNumbers_.begin(); i!= SerialNumbers_.end();) {
 				std::cout << "UUID: " << UUID << "  " << i->second.size() << std::endl;
