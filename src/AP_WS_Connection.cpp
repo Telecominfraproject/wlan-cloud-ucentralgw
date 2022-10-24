@@ -140,7 +140,7 @@ namespace OpenWifi {
 				return false;
 			}
 
-			if (!CN_.empty() && StorageService()->IsBlackListed(SerialNumber_)) {
+			if (!CN_.empty() && StorageService()->IsBlackListed(CN_)) {
 				poco_warning(
 					Logger_,
 					fmt::format("TLS-CONNECTION({}): Session={} Device {} is black listed. Disconnecting.",
