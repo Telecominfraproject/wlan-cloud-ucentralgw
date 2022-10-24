@@ -129,7 +129,9 @@ namespace OpenWifi {
 			Clients_.erase(client);
 			std::cout << "Client erased..." << std::endl;
 			for(auto i = SerialNumbers_.begin(); i!= SerialNumbers_.end();) {
+				std::cout << "UUID: " << UUID << "  " << i->second.size() << std::endl;
 				i->second.erase(UUID);
+				std::cout << "UUID: " << UUID << "  " << i->second.size() << std::endl;
 				if(i->second.empty()) {
 					std::cout << "Serial number empty set..." << std::endl;
 					i = SerialNumbers_.erase(i);
