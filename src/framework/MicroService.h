@@ -3106,7 +3106,7 @@ namespace OpenWifi {
         static inline std::atomic_uint64_t  NextTransactionId_ = 1;
 	};
 
-	class LogMuxer : public Poco::Channel {
+	class WebSocketLogger : public Poco::Channel {
 	  public:
 
 		inline std::string getProperty( [[maybe_unused]] const std::string &p ) const final {
@@ -3165,7 +3165,7 @@ namespace OpenWifi {
 		}
 
 		inline static auto instance() {
-			static auto instance_ = new LogMuxer;
+			static auto instance_ = new WebSocketLogger;
 			return instance_;
 		}
 		inline void Enable(bool enable) { Enabled_ = enable; }
@@ -3181,7 +3181,7 @@ namespace OpenWifi {
 		inline static uint64_t CallBackId_=1;
 		bool Enabled_ = false;
 	};
-	inline auto LogMuxer() { return LogMuxer::instance(); }
+	inline auto WebSocketLogger() { return WebSocketLogger::instance(); }
 
 
 	class RESTAPI_IntServer : public SubSystemServer {
@@ -4967,7 +4967,7 @@ namespace OpenWifi {
 		Poco::Thread								ReactorThread_;
         bool GeoCodeEnabled_ = false;
         std::string GoogleApiKey_;
-        std::map<std::string, std::pair<WebSocketClient *, std::string>> Clients_;
+        std::map<std::string, std::pair<std::unique_ptr<WebSocketClient>, std::string>> Clients_;
         WebSocketClientProcessor *Processor_ = nullptr;
         WebSocketClientServer() noexcept;
     };
@@ -5001,15 +5001,16 @@ namespace OpenWifi {
 
     inline void WebSocketClientServer::NewClient(Poco::Net::WebSocket & WS, const std::string &Id, const std::string &UserName ) {
         std::lock_guard G(Mutex_);
-        auto Client = new WebSocketClient(WS,Id,UserName,Logger(), Processor_);
-        Clients_[Id] = std::make_pair(Client,"");
+        auto Client = std::make_unique<WebSocketClient>(WS,Id,UserName,Logger(), Processor_);
+        Clients_[Id] = std::make_pair(std::move(Client),"");
     }
 
-    inline bool WebSocketClientServer::Register( WebSocketClient * Client, const std::string &Id) {
+/*    inline bool WebSocketClientServer::Register( WebSocketClient * Client, const std::string &Id) {
         std::lock_guard G(Mutex_);
         Clients_[Id] = std::make_pair(Client,"");
         return true;
     }
+*/
 
     inline void WebSocketClientServer::SetProcessor( WebSocketClientProcessor * F) {
         Processor_ = F;
@@ -5025,7 +5026,7 @@ namespace OpenWifi {
 
         auto it=Clients_.find(Id);
         if(it!=Clients_.end()) {
-            Clients_[Id] = std::make_pair(it->second.first,UserId);
+            Clients_[Id] = std::make_pair(std::move(it->second.first),UserId);
         }
     }
 
