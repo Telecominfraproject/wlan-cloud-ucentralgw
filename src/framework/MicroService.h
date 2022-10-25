@@ -4923,10 +4923,8 @@ namespace OpenWifi {
         int Start() override;
         void Stop() override;
         void run() override;
-        // MyParallelSocketReactor &ReactorPool();
 		Poco::Net::SocketReactor & Reactor() { return Reactor_; }
         void NewClient(Poco::Net::WebSocket &WS, const std::string &Id, const std::string &UserName);
-        bool Register(WebSocketClient *Client, const std::string &Id);
         void SetProcessor(WebSocketClientProcessor *F);
         void UnRegister(const std::string &Id);
         void SetUser(const std::string &Id, const std::string &UserId);
@@ -4959,10 +4957,10 @@ namespace OpenWifi {
 
 		[[nodiscard]] bool SendToUser(const std::string &userName, const std::string &Payload);
 		void SendToAll(const std::string &Payload);
+
     private:
         mutable std::atomic_bool Running_ = false;
         Poco::Thread 								Thr_;
-        // std::unique_ptr<MyParallelSocketReactor> ReactorPool_;
 		Poco::Net::SocketReactor					Reactor_;
 		Poco::Thread								ReactorThread_;
         bool GeoCodeEnabled_ = false;
@@ -4985,6 +4983,7 @@ namespace OpenWifi {
         [[nodiscard]] inline const std::string &Id();
         [[nodiscard]] Poco::Logger &Logger();
         inline bool Send(const std::string &Payload);
+		inline void EndConnection();
     private:
         std::unique_ptr<Poco::Net::WebSocket> WS_;
         Poco::Net::SocketReactor 	&Reactor_;
@@ -4992,6 +4991,7 @@ namespace OpenWifi {
 		std::string					UserName_;
         Poco::Logger 				&Logger_;
         std::atomic_bool 			Authenticated_ = false;
+		volatile bool				SocketRegistered_=false;
         SecurityObjects::UserInfoAndPolicy UserInfo_;
         WebSocketClientProcessor *Processor_ = nullptr;
         void OnSocketReadable(const Poco::AutoPtr<Poco::Net::ReadableNotification> &pNf);
@@ -5004,13 +5004,6 @@ namespace OpenWifi {
         auto Client = std::make_unique<WebSocketClient>(WS,Id,UserName,Logger(), Processor_);
         Clients_[Id] = std::make_pair(std::move(Client),"");
     }
-
-/*    inline bool WebSocketClientServer::Register( WebSocketClient * Client, const std::string &Id) {
-        std::lock_guard G(Mutex_);
-        Clients_[Id] = std::make_pair(Client,"");
-        return true;
-    }
-*/
 
     inline void WebSocketClientServer::SetProcessor( WebSocketClientProcessor * F) {
         Processor_ = F;
@@ -5199,6 +5192,9 @@ namespace OpenWifi {
             Processor_(Processor) {
         try {
             WS_ = std::make_unique<Poco::Net::WebSocket>(WS);
+			WS_->setNoDelay(true);
+			WS_->setKeepAlive(true);
+			WS_->setBlocking(false);
             Reactor_.addEventHandler(*WS_,
                                      Poco::NObserver<WebSocketClient, Poco::Net::ReadableNotification>(
                                              *this, &WebSocketClient::OnSocketReadable));
@@ -5208,32 +5204,31 @@ namespace OpenWifi {
             Reactor_.addEventHandler(*WS_,
                                      Poco::NObserver<WebSocketClient, Poco::Net::ErrorNotification>(
                                              *this, &WebSocketClient::OnSocketError));
-			WS_->setNoDelay(true);
-			WS_->setKeepAlive(true);
-			WS_->setBlocking(false);
-
+			SocketRegistered_ = true;
         } catch (...) {
             delete this;
         }
     }
 
-    inline WebSocketClient::~WebSocketClient() {
-        try {
-            WebSocketClientServer()->UnRegister(Id_);
-            Reactor_.removeEventHandler(*WS_,
-                                        Poco::NObserver<WebSocketClient,
-                                                Poco::Net::ReadableNotification>(*this,&WebSocketClient::OnSocketReadable));
-            Reactor_.removeEventHandler(*WS_,
-                                        Poco::NObserver<WebSocketClient,
-                                                Poco::Net::ShutdownNotification>(*this,&WebSocketClient::OnSocketShutdown));
-            Reactor_.removeEventHandler(*WS_,
-                                        Poco::NObserver<WebSocketClient,
-                                                Poco::Net::ErrorNotification>(*this,&WebSocketClient::OnSocketError));
-            (*WS_).shutdown();
-            (*WS_).close();
-        } catch(...) {
+	inline void WebSocketClient::EndConnection() {
+		if(SocketRegistered_) {
+			SocketRegistered_ = false;
+			(*WS_).shutdown();
+			Reactor_.removeEventHandler(*WS_,
+										Poco::NObserver<WebSocketClient,
+														Poco::Net::ReadableNotification>(*this,&WebSocketClient::OnSocketReadable));
+			Reactor_.removeEventHandler(*WS_,
+										Poco::NObserver<WebSocketClient,
+														Poco::Net::ShutdownNotification>(*this,&WebSocketClient::OnSocketShutdown));
+			Reactor_.removeEventHandler(*WS_,
+										Poco::NObserver<WebSocketClient,
+														Poco::Net::ErrorNotification>(*this,&WebSocketClient::OnSocketError));
+			WebSocketClientServer()->UnRegister(Id_);
+		}
+	}
 
-        }
+    inline WebSocketClient::~WebSocketClient() {
+		EndConnection();
     }
 
     [[nodiscard]] inline const std::string & WebSocketClient::Id() {
