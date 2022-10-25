@@ -5204,6 +5204,7 @@ namespace OpenWifi {
 								 Poco::NObserver<WebSocketClient, Poco::Net::ErrorNotification>(
 										 *this, &WebSocketClient::OnSocketError));
 		SocketRegistered_ = true;
+		std::cout << "Starting client WS connection " << Id_ << std::endl;
     }
 
 	inline void WebSocketClient::EndConnection() {
@@ -5225,6 +5226,7 @@ namespace OpenWifi {
 
     inline WebSocketClient::~WebSocketClient() {
 		EndConnection();
+		std::cout << "Deleting client WS connection " << Id_ << std::endl;
     }
 
     [[nodiscard]] inline const std::string & WebSocketClient::Id() {
