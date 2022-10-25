@@ -5061,7 +5061,7 @@ namespace OpenWifi {
 
 
     inline void WebSocketClient::OnSocketError([[maybe_unused]] const Poco::AutoPtr<Poco::Net::ErrorNotification> &pNf) {
-        delete this;
+        EndConnection();
     }
 
     inline bool WebSocketClientServer::Send(const std::string &Id, const std::string &Payload) {
@@ -5113,7 +5113,7 @@ namespace OpenWifi {
 
 			if (n == 0) {
 				poco_debug(Logger(),fmt::format("CLOSE({}): {} UI Client is closing WS connection.", Id_, UserName_));
-				return delete this;
+				return EndConnection();
 			}
 
 			switch (Op) {
@@ -5175,12 +5175,12 @@ namespace OpenWifi {
 		}
 
         if(Done) {
-            delete this;
+            return EndConnection();
         }
     }
 
     inline void WebSocketClient::OnSocketShutdown([[maybe_unused]] const Poco::AutoPtr<Poco::Net::ShutdownNotification> &pNf) {
-        delete this;
+        EndConnection();
     }
 
 
@@ -5190,24 +5190,20 @@ namespace OpenWifi {
 			UserName_(UserName),
             Logger_(L),
             Processor_(Processor) {
-        try {
-            WS_ = std::make_unique<Poco::Net::WebSocket>(WS);
-			WS_->setNoDelay(true);
-			WS_->setKeepAlive(true);
-			WS_->setBlocking(false);
-            Reactor_.addEventHandler(*WS_,
-                                     Poco::NObserver<WebSocketClient, Poco::Net::ReadableNotification>(
-                                             *this, &WebSocketClient::OnSocketReadable));
-            Reactor_.addEventHandler(*WS_,
-                                     Poco::NObserver<WebSocketClient, Poco::Net::ShutdownNotification>(
-                                             *this, &WebSocketClient::OnSocketShutdown));
-            Reactor_.addEventHandler(*WS_,
-                                     Poco::NObserver<WebSocketClient, Poco::Net::ErrorNotification>(
-                                             *this, &WebSocketClient::OnSocketError));
-			SocketRegistered_ = true;
-        } catch (...) {
-            delete this;
-        }
+		WS_ = std::make_unique<Poco::Net::WebSocket>(WS);
+		WS_->setNoDelay(true);
+		WS_->setKeepAlive(true);
+		WS_->setBlocking(false);
+		Reactor_.addEventHandler(*WS_,
+								 Poco::NObserver<WebSocketClient, Poco::Net::ReadableNotification>(
+										 *this, &WebSocketClient::OnSocketReadable));
+		Reactor_.addEventHandler(*WS_,
+								 Poco::NObserver<WebSocketClient, Poco::Net::ShutdownNotification>(
+										 *this, &WebSocketClient::OnSocketShutdown));
+		Reactor_.addEventHandler(*WS_,
+								 Poco::NObserver<WebSocketClient, Poco::Net::ErrorNotification>(
+										 *this, &WebSocketClient::OnSocketError));
+		SocketRegistered_ = true;
     }
 
 	inline void WebSocketClient::EndConnection() {
