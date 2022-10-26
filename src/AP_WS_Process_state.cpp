@@ -58,7 +58,7 @@ namespace OpenWifi {
 			WebSocketNotification<WebNotificationSingleDevice>	N;
 			N.content.serialNumber = SerialNumber_;
 			N.type = "device_statistics";
-			WebSocketClientServer()->SendNotification(N);
+			UI_WebSocketClientServer()->SendNotification(N);
 
 		} else {
 			poco_warning(Logger_, fmt::format("STATE({}): Invalid request. Missing serial, uuid, or state", CId_));

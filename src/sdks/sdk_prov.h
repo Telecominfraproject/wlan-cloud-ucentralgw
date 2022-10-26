@@ -4,8 +4,9 @@
 
 #pragma once
 
-#include "framework/MicroService.h"
 #include "RESTObjects/RESTAPI_ProvObjects.h"
+
+#include "framework/OpenAPIRequests.h"
 
 namespace OpenWifi::SDK::Prov {
 
