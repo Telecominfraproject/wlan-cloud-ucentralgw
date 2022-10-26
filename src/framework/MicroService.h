@@ -13,6 +13,7 @@
 #include <vector>
 #include <fstream>
 #include <random>
+#include <ctime>
 
 
 // This must be defined for poco_debug and poco_trace macros to function.
