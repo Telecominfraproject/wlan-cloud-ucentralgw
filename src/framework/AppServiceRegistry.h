@@ -5,7 +5,6 @@
 #pragma once
 
 #include <string>
-#include <strstream>
 #include <fstream>
 #include <iomanip>
 #include <iostream>
