@@ -11,6 +11,7 @@
 #include "Poco/FIFOBuffer.h"
 #include "Poco/Logger.h"
 
+#include <mutex>
 #include <shared_mutex>
 
 namespace OpenWifi {
