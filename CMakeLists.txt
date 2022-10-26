@@ -82,6 +82,43 @@ add_executable( owgw
         src/framework/orm.h
         src/framework/StorageClass.h
         src/framework/MicroServiceErrorHandler.h
+        src/framework/UI_WebSocketClientServer.cpp
+        src/framework/UI_WebSocketClientServer.h
+        src/framework/utils.h
+        src/framework/utils.cpp
+        src/framework/AppServiceRegistry.h
+        src/framework/SubSystemServer.cpp
+        src/framework/SubSystemServer.h
+        src/framework/RESTAPI_utils.h
+        src/framework/WebSocketClientNotification.cpp
+        src/framework/AuthClient.cpp
+        src/framework/AuthClient.h
+        src/framework/MicroServiceNames.h
+        src/framework/MicroServiceFuncs.h
+        src/framework/OpenAPIRequests.cpp
+        src/framework/OpenAPIRequests.h
+        src/framework/MicroServiceFuncs.cpp
+        src/framework/ALBserver.cpp
+        src/framework/ALBserver.h
+        src/framework/KafkaManager.cpp
+        src/framework/KafkaManager.h
+        src/framework/RESTAPI_RateLimiter.h
+        src/framework/WebSocketLogger.h
+        src/framework/RESTAPI_GenericServerAccounting.h
+        src/framework/CIDR.h
+        src/framework/RESTAPI_Handler.cpp
+        src/framework/RESTAPI_Handler.h
+        src/framework/RESTAPI_ExtServer.h
+        src/framework/RESTAPI_ExtServer.cpp
+        src/framework/RESTAPI_IntServer.cpp
+        src/framework/RESTAPI_IntServer.h
+        src/framework/RESTAPI_SystemCommand.h
+        src/framework/RESTAPI_WebSocketServer.h
+        src/framework/EventBusManager.cpp
+        src/framework/EventBusManager.h
+        src/framework/RESTAPI_PartHandler.h
+        src/framework/MicroService.cpp
+        src/framework/MicroServiceExtra.h
         src/RESTObjects/RESTAPI_SecurityObjects.h src/RESTObjects/RESTAPI_SecurityObjects.cpp
         src/RESTObjects/RESTAPI_ProvObjects.cpp src/RESTObjects/RESTAPI_ProvObjects.h
         src/RESTObjects/RESTAPI_GWobjects.h src/RESTObjects/RESTAPI_GWobjects.cpp
@@ -109,7 +146,6 @@ add_executable( owgw
         src/Daemon.cpp src/Daemon.h
         src/AP_WS_Server.cpp src/AP_WS_Server.h
         src/StorageService.cpp src/StorageService.h
-#        src/DeviceRegistry.cpp src/DeviceRegistry.h
         src/CommandManager.cpp src/CommandManager.h
         src/CentralConfig.cpp src/CentralConfig.h
         src/FileUploader.cpp src/FileUploader.h
@@ -158,22 +194,7 @@ add_executable( owgw
         src/AP_WS_Process_telemetry.cpp
         src/AP_WS_Process_venuebroadcast.cpp
         src/RADSEC_server.h
-        src/framework/UI_WebSocketClientServer.cpp
-        src/framework/UI_WebSocketClientServer.h
-        src/framework/utils.h
-        src/framework/utils.cpp
-        src/framework/AppServiceRegistry.h
-        src/framework/SubSystemServer.cpp
-        src/framework/SubSystemServer.h
-        src/framework/RESTAPI_utils.h
-        src/framework/WebSocketClientNotification.cpp
-        src/framework/AuthClient.cpp
-        src/framework/AuthClient.h
-        src/framework/MicroServiceNames.h
-        src/framework/MicroServiceFuncs.h
-        src/framework/OpenAPIRequests.cpp
-        src/framework/OpenAPIRequests.h
-        src/framework/MicroServiceFuncs.cpp src/framework/ALBserver.cpp src/framework/ALBserver.h src/framework/KafkaManager.cpp src/framework/KafkaManager.h src/framework/RESTAPI_RateLimiter.h src/framework/WebSocketLogger.h src/framework/RESTAPI_GenericServerAccounting.h src/framework/CIDR.h src/framework/RESTAPI_Handler.cpp src/framework/RESTAPI_Handler.h src/framework/RESTAPI_ExtServer.h src/framework/RESTAPI_ExtServer.cpp src/framework/RESTAPI_IntServer.cpp src/framework/RESTAPI_IntServer.h src/framework/RESTAPI_SystemCommand.h src/framework/RESTAPI_WebSocketServer.h src/framework/EventBusManager.cpp src/framework/EventBusManager.h src/framework/RESTAPI_PartHandler.h src/framework/MicroService.cpp src/framework/MicroServiceExtra.h)
+    )
 
 if(NOT SMALL_BUILD)
 
