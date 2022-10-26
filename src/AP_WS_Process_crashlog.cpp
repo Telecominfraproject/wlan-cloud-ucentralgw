@@ -5,6 +5,10 @@
 #include "AP_WS_Connection.h"
 #include "StorageService.h"
 
+#include "framework/utils.h"
+#include "framework/ow_constants.h"
+#include "fmt/format.h"
+
 namespace OpenWifi {
 	void AP_WS_Connection::Process_crashlog(Poco::JSON::Object::Ptr ParamsObj) {
 		if (ParamsObj->has(uCentralProtocol::UUID) && ParamsObj->has(uCentralProtocol::LOGLINES)) {

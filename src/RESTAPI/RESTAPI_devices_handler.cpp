@@ -12,7 +12,6 @@
 #include "RESTAPI_devices_handler.h"
 #include "StorageService.h"
 #include "framework/ow_constants.h"
-#include "framework/MicroService.h"
 #include "RESTAPI/RESTAPI_device_helper.h"
 #include "Poco/StringTokenizer.h"
 #include "framework/orm.h"

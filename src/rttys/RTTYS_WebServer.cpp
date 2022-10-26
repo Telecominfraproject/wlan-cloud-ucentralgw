@@ -2,10 +2,17 @@
 // Created by stephane bourque on 2021-11-23.
 //
 
-#include "RTTYS_WebServer.h"
+
 #include "Poco/Net/MediaType.h"
+#include "Poco/Net/HTTPServerRequest.h"
+#include "Poco/Net/HTTPServerResponse.h"
+
 #include "RTTYS_ClientConnection.h"
+#include "RTTYS_WebServer.h"
 #include "RTTYS_server.h"
+
+#include "fmt/format.h"
+#include "nlohmann/json.hpp"
 
 namespace OpenWifi {
 

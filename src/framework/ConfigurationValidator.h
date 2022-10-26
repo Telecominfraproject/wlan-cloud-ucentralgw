@@ -5,7 +5,7 @@
 #pragma once
 
 #include <nlohmann/json-schema.hpp>
-#include "framework/MicroService.h"
+#include "framework/SubSystemServer.h"
 
 using nlohmann::json;
 using nlohmann::json_schema::json_validator;

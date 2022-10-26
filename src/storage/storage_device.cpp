@@ -20,7 +20,8 @@
 #include "SerialNumberCache.h"
 #include "StateUtils.h"
 #include "StorageService.h"
-#include "framework/MicroService.h"
+
+#include "framework/KafkaManager.h"
 
 namespace OpenWifi {
 

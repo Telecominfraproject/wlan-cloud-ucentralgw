@@ -11,6 +11,7 @@
 #include "AP_WS_Server.h"
 #include "StorageService.h"
 #include "framework/ow_constants.h"
+#include "framework/RESTAPI_Handler.h"
 #include "ParseWifiScan.h"
 
 namespace OpenWifi::RESTAPI_RPC {

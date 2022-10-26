@@ -6,6 +6,7 @@
 
 #include <string>
 #include <cstring>
+
 #include "Poco/String.h"
 
 #if defined(__GNUC__)
@@ -17,6 +18,26 @@
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wunused-variable"
 #endif
+
+namespace OpenWifi {
+	enum UNAUTHORIZED_REASON {
+		SUCCESS=0,
+		PASSWORD_CHANGE_REQUIRED,
+		INVALID_CREDENTIALS,
+		PASSWORD_ALREADY_USED,
+		USERNAME_PENDING_VERIFICATION,
+		PASSWORD_INVALID,
+		INTERNAL_ERROR,
+		ACCESS_DENIED,
+		INVALID_TOKEN,
+		EXPIRED_TOKEN,
+		RATE_LIMIT_EXCEEDED,
+		BAD_MFA_TRANSACTION,
+		MFA_FAILURE,
+		SECURITY_SERVICE_UNREACHABLE,
+		CANNOT_REFRESH_TOKEN
+	};
+}
 
 namespace OpenWifi::RESTAPI::Errors {
     struct msg { uint64_t err_num; std::string err_txt; };

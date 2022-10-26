@@ -9,12 +9,17 @@
 #include "Poco/Net/HTTPHeaderStream.h"
 #include "Poco/JSON/Array.h"
 #include "Poco/Net/Context.h"
+#include "Poco/Net/HTTPServerRequest.h"
 
 #include "AP_WS_Server.h"
 #include "AP_WS_Connection.h"
 #include "ConfigurationCache.h"
 #include "TelemetryStream.h"
+
 #include "framework/WebSocketClientNotifications.h"
+#include "framework/MicroServiceFuncs.h"
+
+#include "fmt/format.h"
 
 namespace OpenWifi {
 
@@ -40,8 +45,8 @@ namespace OpenWifi {
 
 	int AP_WS_Server::Start() {
 
-		AllowSerialNumberMismatch_ = MicroService::instance().ConfigGetBool("openwifi.certificates.allowmismatch",true);
-		MismatchDepth_ = MicroService::instance().ConfigGetInt("openwifi.certificates.mismatchdepth",2);
+		AllowSerialNumberMismatch_ = MicroServiceConfigGetBool("openwifi.certificates.allowmismatch",true);
+		MismatchDepth_ = MicroServiceConfigGetInt("openwifi.certificates.mismatchdepth",2);
 
 		Reactor_pool_ = std::make_unique<AP_WS_ReactorThreadPool>();
 		Reactor_pool_->Start();
@@ -72,11 +77,11 @@ namespace OpenWifi {
 
 			auto Context = Poco::AutoPtr<Poco::Net::Context>(new Poco::Net::Context(Poco::Net::Context::TLS_SERVER_USE, P));
 
-			if(!Svr.KeyFilePassword().empty()) {
+/*			if(!Svr.KeyFilePassword().empty()) {
 				auto PassphraseHandler = Poco::SharedPtr<MyPrivateKeyPassphraseHandler>( new MyPrivateKeyPassphraseHandler(Svr.KeyFilePassword(),Logger()));
 				Poco::Net::SSLManager::instance().initializeServer(PassphraseHandler, nullptr,Context);
 			}
-
+*/
 			Poco::Crypto::X509Certificate Cert(Svr.CertFile());
 			Poco::Crypto::X509Certificate Root(Svr.RootCA());
 
@@ -128,7 +133,7 @@ namespace OpenWifi {
 
 		ReactorThread_.start(Reactor_);
 
-		auto ProvString = MicroService::instance().ConfigGetString("autoprovisioning.process","default");
+		auto ProvString = MicroServiceConfigGetString("autoprovisioning.process","default");
 		if(ProvString!="default") {
 			auto Tokens = Poco::StringTokenizer(ProvString, ",");
 			for (const auto &i : Tokens) {
@@ -141,14 +146,14 @@ namespace OpenWifi {
 			UseDefaultConfig_ = true;
 		}
 
-		SimulatorId_ = MicroService::instance().ConfigGetString("simulatorid","");
+		SimulatorId_ = MicroServiceConfigGetString("simulatorid","");
 		SimulatorEnabled_ = !SimulatorId_.empty();
 		Utils::SetThreadName(ReactorThread_,"dev:react:head");
 
 		GarbageCollectorCallback_ = std::make_unique<Poco::TimerCallback<AP_WS_Server>>(*this,&AP_WS_Server::onGarbageCollecting);
 		Timer_.setStartInterval(10 * 1000);
 		Timer_.setPeriodicInterval(5 * 1000); // every minute
-		Timer_.start(*GarbageCollectorCallback_, MicroService::instance().TimerPool());
+		Timer_.start(*GarbageCollectorCallback_, MicroServiceTimerPool());
 
 		Running_ = true;
 		return 0;

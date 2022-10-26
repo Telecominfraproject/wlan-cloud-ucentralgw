@@ -4,13 +4,22 @@
 
 #pragma once
 
-#include "framework/MicroService.h"
+#include <shared_mutex>
+#include <string>
+
 #include "Poco/Net/SocketReactor.h"
 #include "Poco/Net/SocketAcceptor.h"
+#include "Poco/NotificationQueue.h"
 #include "Poco/Timer.h"
+#include "Poco/Net/HTTPServer.h"
+
+#include "framework/SubSystemServer.h"
+#include "framework/utils.h"
+
 #include "rttys/RTTYS_device.h"
 #include "rttys/RTTYS_ClientConnection.h"
-#include <shared_mutex>
+
+using namespace std::chrono_literals;
 
 namespace OpenWifi {
 
@@ -263,7 +272,7 @@ namespace OpenWifi {
 		}
 
 		inline Poco::Net::SocketReactor & ClientReactor() { return ClientReactor_; }
-		inline auto Uptime() const { return OpenWifi::Now() - Started_; }
+		inline auto Uptime() const { return Utils::Now() - Started_; }
 
 	  private:
 		Poco::Net::SocketReactor					ClientReactor_;
@@ -292,7 +301,7 @@ namespace OpenWifi {
 		double 										TotalConnectedDeviceTime_=0.0;
 		double 										TotalConnectedClientTime_=0.0;
 
-		std::atomic_uint64_t						Started_=OpenWifi::Now();
+		std::atomic_uint64_t						Started_=Utils::Now();
 		std::atomic_uint64_t						MaxConcurrentSessions_=0;
 
 		explicit RTTYS_server() noexcept:

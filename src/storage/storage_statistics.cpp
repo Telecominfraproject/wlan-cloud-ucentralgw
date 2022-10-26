@@ -9,6 +9,8 @@
 #include "AP_WS_Server.h"
 #include "StorageService.h"
 
+#include "fmt/format.h"
+
 namespace OpenWifi {
 
 	const static std::string DB_StatsSelectFields{" SerialNumber, UUID, Data, Recorded "};

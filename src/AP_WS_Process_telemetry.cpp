@@ -6,6 +6,9 @@
 #include "TelemetryStream.h"
 #include "CommandManager.h"
 
+#include "framework/KafkaManager.h"
+#include "fmt/format.h"
+
 namespace OpenWifi {
 	void AP_WS_Connection::Process_telemetry(Poco::JSON::Object::Ptr ParamsObj) {
 		if (!State_.Connected) {

@@ -10,7 +10,7 @@
 #include "Poco/DateTimeFormatter.h"
 #include "Poco/DateTimeFormat.h"
 
-#include "framework/MicroService.h"
+#include "framework/MicroServiceFuncs.h"
 
 namespace OpenWifi {
 
@@ -258,7 +258,7 @@ namespace OpenWifi {
 		auto i = 0;
 		bool good = true;
 
-		auto NewLevel = MicroService::instance().ConfigGetString("logging.level." + Name_, "");
+		auto NewLevel = MicroServiceConfigGetString("logging.level." + Name_, "");
 		if(NewLevel.empty())
 			Logger_ = std::make_unique<LoggerWrapper>(Poco::Logger::create(LoggerPrefix_, Poco::Logger::root().getChannel(), Poco::Logger::root().getLevel()));
 		else
@@ -269,7 +269,7 @@ namespace OpenWifi {
 			std::string root{SubSystemConfigPrefix_ + ".host." + std::to_string(i) + "."};
 
 			std::string address{root + "address"};
-			if (MicroService::instance().ConfigGetString(address, "").empty()) {
+			if (MicroServiceConfigGetString(address, "").empty()) {
 				good = false;
 			} else {
 				std::string port{root + "port"};
@@ -286,7 +286,7 @@ namespace OpenWifi {
 				std::string level{root + "security"};
 				Poco::Net::Context::VerificationMode M = Poco::Net::Context::VERIFY_RELAXED;
 
-				auto L = MicroService::instance().ConfigGetString(level, "");
+				auto L = MicroServiceConfigGetString(level, "");
 
 				if (L == "strict") {
 					M = Poco::Net::Context::VERIFY_STRICT;
@@ -297,17 +297,17 @@ namespace OpenWifi {
 				} else if (L == "once")
 					M = Poco::Net::Context::VERIFY_ONCE;
 
-				PropertiesFileServerEntry entry(MicroService::instance().ConfigGetString(address, ""),
-												MicroService::instance().ConfigGetInt(port, 0),
-												MicroService::instance().ConfigPath(key, ""),
-												MicroService::instance().ConfigPath(cert, ""),
-												MicroService::instance().ConfigPath(rootca, ""),
-												MicroService::instance().ConfigPath(issuer, ""),
-												MicroService::instance().ConfigPath(clientcas, ""),
-												MicroService::instance().ConfigPath(cas, ""),
-												MicroService::instance().ConfigGetString(key_password, ""),
-												MicroService::instance().ConfigGetString(name, ""), M,
-												(int)MicroService::instance().ConfigGetInt(backlog, 64));
+				PropertiesFileServerEntry entry(MicroServiceConfigGetString(address, ""),
+												MicroServiceConfigGetInt(port, 0),
+												MicroServiceConfigPath(key, ""),
+												MicroServiceConfigPath(cert, ""),
+												MicroServiceConfigPath(rootca, ""),
+												MicroServiceConfigPath(issuer, ""),
+												MicroServiceConfigPath(clientcas, ""),
+												MicroServiceConfigPath(cas, ""),
+												MicroServiceConfigGetString(key_password, ""),
+												MicroServiceConfigGetString(name, ""), M,
+												(int)MicroServiceConfigGetInt(backlog, 64));
 				ConfigServersList_.push_back(entry);
 				i++;
 			}

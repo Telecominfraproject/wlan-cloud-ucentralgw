@@ -11,6 +11,7 @@
 
 #include "Poco/HMACEngine.h"
 #include "Poco/MD5Engine.h"
+#include "Poco/StringTokenizer.h"
 
 namespace OpenWifi::RADIUS {
 

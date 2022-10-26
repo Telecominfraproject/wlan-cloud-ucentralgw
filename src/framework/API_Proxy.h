@@ -4,8 +4,14 @@
 
 #pragma once
 
-#include "framework/MicroService.h"
+#include "Poco/Logger.h"
 #include "Poco/JSON/Parser.h"
+#include "Poco/Net/HTTPServerRequest.h"
+#include "Poco/Net/HTTPServerResponse.h"
+#include "Poco/Net/HTTPSClientSession.h"
+#include "Poco/URI.h"
+
+#include "framework/MicroServiceFuncs.h"
 
 namespace OpenWifi {
     inline void API_Proxy( Poco::Logger &Logger,
@@ -15,7 +21,7 @@ namespace OpenWifi {
                     const char * PathRewrite,
                     uint64_t msTimeout_ = 10000 ) {
         try {
-            auto Services = MicroService::instance().GetServices(ServiceType);
+            auto Services = MicroServiceGetServices(ServiceType);
             for(auto const &Svc:Services) {
                 Poco::URI   SourceURI(Request->getURI());
                 Poco::URI	DestinationURI(Svc.PrivateEndPoint);
@@ -35,7 +41,7 @@ namespace OpenWifi {
                     ProxyRequest.add("Authorization", Request->get("Authorization"));
                 } else {
                     ProxyRequest.add("X-API-KEY", Svc.AccessKey);
-                    ProxyRequest.add("X-INTERNAL-NAME", MicroService::instance().PublicEndPoint());
+                    ProxyRequest.add("X-INTERNAL-NAME", MicroServicePublicEndPoint());
                 }
 
                 if(Request->getMethod() == Poco::Net::HTTPRequest::HTTP_DELETE) {

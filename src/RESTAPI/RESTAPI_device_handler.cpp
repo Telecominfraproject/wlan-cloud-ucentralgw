@@ -9,10 +9,9 @@
 #include "RESTAPI_device_handler.h"
 #include "CentralConfig.h"
 #include "ConfigurationCache.h"
-#include "Poco/JSON/Parser.h"
 #include "StorageService.h"
+
 #include "framework/ConfigurationValidator.h"
-#include "framework/MicroService.h"
 #include "framework/ow_constants.h"
 #include "RESTAPI_device_helper.h"
 

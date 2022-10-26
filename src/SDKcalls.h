@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "framework/MicroService.h"
+#include <string>
 
 namespace OpenWifi {
 	class SDKCalls {

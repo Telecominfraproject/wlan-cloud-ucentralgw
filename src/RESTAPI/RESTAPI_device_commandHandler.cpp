@@ -10,6 +10,7 @@
 #include <algorithm>
 
 #include "Poco/JSON/Parser.h"
+#include "Poco/Net/HTTPServerRequest.h"
 
 #include "AP_WS_Server.h"
 #include "CentralConfig.h"
@@ -20,9 +21,13 @@
 #include "StorageService.h"
 #include "TelemetryStream.h"
 #include "CommandManager.h"
+
 #include "framework/ConfigurationValidator.h"
 #include "framework/KafkaTopics.h"
 #include "framework/ow_constants.h"
+#include "framework/KafkaManager.h"
+#include "framework/MicroServiceFuncs.h"
+
 #include "rttys/RTTYS_server.h"
 
 namespace OpenWifi {
@@ -63,7 +68,7 @@ namespace OpenWifi {
 				CallCanceled(Command_.c_str(), RESTAPI::Errors::DeviceNotConnected);
 				return BadRequest(RESTAPI::Errors::DeviceNotConnected);
 			}
-			auto UUID = MicroService::CreateUUID();
+			auto UUID = MicroServiceCreateUUID();
 			auto RPC = CommandManager()->NextRPCId();
 			poco_debug(Logger_,fmt::format("Command rtty TID={} can proceed. Identified as {} and RPCID as {}. thr_id={}",
 											TransactionId_, UUID, RPC,
@@ -174,7 +179,7 @@ namespace OpenWifi {
 					CallCanceled(Command.Command, RESTAPI::Errors::DeviceIsAlreadyBusy, Extra);
 					return BadRequest(RESTAPI::Errors::DeviceIsAlreadyBusy, Extra);
 				}
-				auto UUID = MicroService::CreateUUID();
+				auto UUID = MicroServiceCreateUUID();
 				auto RPC = CommandManager()->NextRPCId();
 				poco_debug(Logger_,fmt::format("Command {} TID={} can proceed. Identified as {} and RPCID as {}. thr_id={}",
 												Command.Command, TransactionId_, UUID, RPC,
@@ -913,7 +918,7 @@ namespace OpenWifi {
 		Logger_.information(fmt::format("RTTY({},{}): TID={} user={} serial={}", CMD_UUID, CMD_RPC, TransactionId_, Requester(), SerialNumber_));
 
 //		poco_debug(Logger_,fmt::format("RTTY_DEBUG {} ", __LINE__ ));
-		if (MicroService::instance().ConfigGetBool("rtty.enabled", false)) {
+		if (MicroServiceConfigGetBool("rtty.enabled", false)) {
 			GWObjects::Device	Device;
 
 //			poco_debug(Logger_,fmt::format("RTTY_DEBUG {} ", __LINE__ ));
@@ -922,14 +927,14 @@ namespace OpenWifi {
 //				poco_debug(Logger_,fmt::format("RTTY_DEBUG {} ", __LINE__ ));
 				GWObjects::RttySessionDetails Rtty{
 					.SerialNumber = SerialNumber_,
-					.Server = MicroService::instance().ConfigGetString("rtty.server", "localhost"),
-					.Port = MicroService::instance().ConfigGetInt("rtty.port", 5912),
-					.Token = MicroService::instance().ConfigGetString("rtty.token", "nothing"),
-					.TimeOut = MicroService::instance().ConfigGetInt("rtty.timeout", 60),
+					.Server = MicroServiceConfigGetString("rtty.server", "localhost"),
+					.Port = MicroServiceConfigGetInt("rtty.port", 5912),
+					.Token = MicroServiceConfigGetString("rtty.token", "nothing"),
+					.TimeOut = MicroServiceConfigGetInt("rtty.timeout", 60),
 					.ConnectionId =  Utils::ComputeHash(SerialNumber_,OpenWifi::Now()).substr(0,RTTY_DEVICE_TOKEN_LENGTH),
 					.Started = OpenWifi::Now(),
 					.CommandUUID = CMD_UUID,
-					.ViewPort = MicroService::instance().ConfigGetInt("rtty.viewport", 5913),
+					.ViewPort = MicroServiceConfigGetInt("rtty.viewport", 5913),
 					.DevicePassword = ""
 				};
 //				poco_debug(Logger_,fmt::format("RTTY_DEBUG {} ", __LINE__ ));

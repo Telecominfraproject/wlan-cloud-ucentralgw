@@ -7,6 +7,7 @@
 //
 
 #include "StorageService.h"
+#include "fmt/format.h"
 
 namespace OpenWifi {
 

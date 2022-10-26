@@ -119,4 +119,6 @@ namespace OpenWifi {
 		std::string 					SubSystemConfigPrefix_;
 	};
 
+	typedef std::vector<SubSystemServer *>          SubSystemVec;
+
 } // namespace OpenWifi

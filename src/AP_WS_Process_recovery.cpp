@@ -6,6 +6,10 @@
 #include "StorageService.h"
 #include "CommandManager.h"
 
+#include "framework/ow_constants.h"
+#include "framework/MicroServiceFuncs.h"
+#include "fmt/format.h"
+
 namespace OpenWifi {
 	void AP_WS_Connection::Process_recovery(Poco::JSON::Object::Ptr ParamsObj) {
 		if (ParamsObj->has(uCentralProtocol::SERIAL) &&
@@ -36,7 +40,7 @@ namespace OpenWifi {
 			if (ParamsObj->get(uCentralProtocol::REBOOT).toString() == "true") {
 				GWObjects::CommandDetails Cmd;
 				Cmd.SerialNumber = SerialNumber_;
-				Cmd.UUID = MicroService::CreateUUID();
+				Cmd.UUID = MicroServiceCreateUUID();
 				Cmd.SubmittedBy = uCentralProtocol::SUBMITTED_BY_SYSTEM;
 				Cmd.Status = uCentralProtocol::PENDING;
 				Cmd.Command = uCentralProtocol::REBOOT;

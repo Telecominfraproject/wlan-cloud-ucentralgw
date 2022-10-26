@@ -7,8 +7,6 @@
 #include <iostream>
 #include <fstream>
 
-#include "framework/MicroService.h"
-
 #include "RESTObjects/RESTAPI_GWobjects.h"
 
 #include "Poco/Net/SocketReactor.h"
@@ -17,6 +15,10 @@
 #include "Poco/Crypto/X509Certificate.h"
 #include "Poco/Net/NetException.h"
 #include "Poco/TemporaryFile.h"
+
+#include "framework/MicroServiceFuncs.h"
+
+#include "fmt/format.h"
 
 #include "RADIUS_helpers.h"
 #include "AP_WS_Server.h"
@@ -140,15 +142,15 @@ namespace OpenWifi {
 		inline bool Connect() {
 			if(TryAgain_) {
 
-				Poco::TemporaryFile	CertFile_(MicroService::instance().DataDir());
-				Poco::TemporaryFile	KeyFile_(MicroService::instance().DataDir());
+				Poco::TemporaryFile	CertFile_(MicroServiceDataDirectory());
+				Poco::TemporaryFile	KeyFile_(MicroServiceDataDirectory());
 				std::vector<Poco::TemporaryFile> CaCertFiles_;
 
 				DecodeFile(CertFile_.path(), Server_.radsecCert);
 				DecodeFile(KeyFile_.path(), Server_.radsecKey);
 
 				for(auto &cert:Server_.radsecCacerts) {
-					CaCertFiles_.emplace_back(Poco::TemporaryFile(MicroService::instance().DataDir()));
+					CaCertFiles_.emplace_back(Poco::TemporaryFile(MicroServiceDataDirectory()));
 					DecodeFile(CaCertFiles_[CaCertFiles_.size()-1].path(), cert);
 				}
 

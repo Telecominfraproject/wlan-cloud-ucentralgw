@@ -16,7 +16,7 @@
 
 #include "RESTObjects/RESTAPI_GWobjects.h"
 #include "StorageService.h"
-#include "framework/MicroService.h"
+#include "framework/RESTAPI_Handler.h"
 
 namespace OpenWifi::RESTAPI_RPC {
 

@@ -4,13 +4,13 @@
 
 #pragma once
 
-#include "framework/MicroService.h"
+#include "framework/RESTAPI_Handler.h"
 
 namespace OpenWifi {
 	class RESTAPI_radiusProxyConfig_handler : public RESTAPIHandler {
 	  public:
 		RESTAPI_radiusProxyConfig_handler(const RESTAPIHandler::BindingMap &bindings, Poco::Logger &L,
-										  RESTAPI_GenericServer &Server, uint64_t TransactionId,
+										  RESTAPI_GenericServerAccounting &Server, uint64_t TransactionId,
 										  bool Internal)
 			: RESTAPIHandler(bindings, L,
 							 std::vector<std::string>{Poco::Net::HTTPRequest::HTTP_GET,

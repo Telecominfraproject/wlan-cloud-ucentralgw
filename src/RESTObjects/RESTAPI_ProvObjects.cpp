@@ -8,7 +8,8 @@
 
 
 #include "RESTAPI_ProvObjects.h"
-#include "framework/MicroService.h"
+#include "framework/RESTAPI_utils.h"
+#include "framework/MicroServiceFuncs.h"
 
 using OpenWifi::RESTAPI_utils::field_to_json;
 using OpenWifi::RESTAPI_utils::field_from_json;
@@ -1130,14 +1131,14 @@ namespace OpenWifi::ProvObjects {
         }
         I.notes = N;
         I.modified = I.created = Now;
-        I.id = MicroService::CreateUUID();
+        I.id = MicroServiceCreateUUID();
 
         return true;
     }
 
     bool CreateObjectInfo([[maybe_unused]] const SecurityObjects::UserInfo &U, ObjectInfo &I) {
         I.modified = I.created = OpenWifi::Now();
-        I.id = MicroService::CreateUUID();
+        I.id = MicroServiceCreateUUID();
         return true;
     }
 

@@ -4,11 +4,12 @@
 
 #pragma once
 
-#include "framework/MicroService.h"
 #include "RESTObjects/RESTAPI_GWobjects.h"
 
 #include "Poco/Net/DatagramSocket.h"
 #include "Poco/Net/SocketReactor.h"
+
+#include "framework/SubSystemServer.h"
 
 #include "RADSEC_server.h"
 

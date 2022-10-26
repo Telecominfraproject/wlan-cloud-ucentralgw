@@ -7,6 +7,8 @@
 #include "Poco/Net/SecureStreamSocketImpl.h"
 #include "Poco/Net/StreamSocket.h"
 
+#include "nlohmann/json.hpp"
+#include "fmt/format.h"
 
 void dump(const u_char *b, uint s) {
 	static const char hex[] = "0123456789abcdef";

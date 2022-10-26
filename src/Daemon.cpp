@@ -6,8 +6,6 @@
 //	Arilia Wireless Inc.
 //
 
-#include "framework/MicroService.h"
-
 #include "Poco/Util/Application.h"
 #include "Poco/Util/Option.h"
 #include "Poco/Environment.h"
@@ -104,6 +102,10 @@ namespace OpenWifi {
         }
         return "AP";
     }
+
+	void DaemonPostInitialization(Poco::Util::Application &self) {
+		Daemon()->PostInitialization(self);
+	}
 }
 
 int main(int argc, char **argv) {

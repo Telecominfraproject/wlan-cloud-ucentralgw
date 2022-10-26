@@ -173,7 +173,7 @@ add_executable( owgw
         src/framework/MicroServiceFuncs.h
         src/framework/OpenAPIRequests.cpp
         src/framework/OpenAPIRequests.h
-        src/framework/MicroServiceFuncs.cpp)
+        src/framework/MicroServiceFuncs.cpp src/framework/ALBserver.cpp src/framework/ALBserver.h src/framework/KafkaManager.cpp src/framework/KafkaManager.h src/framework/RESTAPI_RateLimiter.h src/framework/WebSocketLogger.h src/framework/RESTAPI_GenericServerAccounting.h src/framework/CIDR.h src/framework/RESTAPI_Handler.cpp src/framework/RESTAPI_Handler.h src/framework/RESTAPI_ExtServer.h src/framework/RESTAPI_ExtServer.cpp src/framework/RESTAPI_IntServer.cpp src/framework/RESTAPI_IntServer.h src/framework/RESTAPI_SystemCommand.h src/framework/RESTAPI_WebSocketServer.h src/framework/EventBusManager.cpp src/framework/EventBusManager.h src/framework/RESTAPI_PartHandler.h src/framework/MicroService.cpp src/framework/MicroServiceExtra.h)
 
 if(NOT SMALL_BUILD)
 

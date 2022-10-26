@@ -8,8 +8,6 @@
 
 #include <iostream>
 
-#include "framework/MicroService.h"
-
 #include "Poco/Net/HTTPServerParams.h"
 #include "Poco/Net/HTTPServerResponse.h"
 #include "Poco/DynamicAny.h"
@@ -19,9 +17,16 @@
 #include "Poco/CountingStream.h"
 #include "Poco/StreamCopier.h"
 #include "Poco/Exception.h"
+#include "Poco/File.h"
+#include "Poco/StringTokenizer.h"
+
+#include "framework/MicroServiceFuncs.h"
+#include "framework/ow_constants.h"
+#include "framework/utils.h"
 
 #include "FileUploader.h"
 #include "StorageService.h"
+#include "fmt/format.h"
 
 namespace OpenWifi {
 
@@ -30,7 +35,7 @@ namespace OpenWifi {
     int FileUploader::Start() {
 		poco_notice(Logger(),"Starting.");
 
-        Poco::File UploadsDir(MicroService::instance().ConfigPath("openwifi.fileuploader.path","/tmp"));
+        Poco::File UploadsDir(MicroServiceConfigPath("openwifi.fileuploader.path","/tmp"));
         Path_ = UploadsDir.path();
         if(!UploadsDir.exists()) {
         	try {
@@ -42,7 +47,7 @@ namespace OpenWifi {
         }
 
         for(const auto & Svr: ConfigServersList_) {
-			if(MicroService::instance().NoAPISecurity()) {
+			if(MicroServiceNoAPISecurity()) {
 				poco_notice(Logger(), fmt::format("Starting: {}:{}",Svr.Address(),Svr.Port()));
 
 				auto Sock{Svr.CreateSocket(Logger())};
@@ -54,7 +59,7 @@ namespace OpenWifi {
 
 				if (FullName_.empty()) {
 					std::string TmpName =
-						MicroService::instance().ConfigGetString("openwifi.fileuploader.uri", "");
+						MicroServiceConfigGetString("openwifi.fileuploader.uri", "");
 					if (TmpName.empty()) {
 						FullName_ =
 							"https://" + Svr.Name() + ":" + std::to_string(Svr.Port()) + URI_BASE;
@@ -87,7 +92,7 @@ namespace OpenWifi {
 
 				if (FullName_.empty()) {
 					std::string TmpName =
-						MicroService::instance().ConfigGetString("openwifi.fileuploader.uri", "");
+						MicroServiceConfigGetString("openwifi.fileuploader.uri", "");
 					if (TmpName.empty()) {
 						FullName_ =
 							"https://" + Svr.Name() + ":" + std::to_string(Svr.Port()) + URI_BASE;
@@ -104,13 +109,13 @@ namespace OpenWifi {
 			}
         }
 
-        MaxSize_ = 1000 * MicroService::instance().ConfigGetInt("openwifi.fileuploader.maxsize", 10000);
+        MaxSize_ = 1000 * MicroServiceConfigGetInt("openwifi.fileuploader.maxsize", 10000);
 
         return 0;
     }
 
 	void FileUploader::reinitialize([[maybe_unused]] Poco::Util::Application &self) {
-		MicroService::instance().LoadConfigurationFile();
+		MicroServiceLoadConfigurationFile();
 		poco_information(Logger(),"Reinitializing.");
 		Stop();
 		Start();

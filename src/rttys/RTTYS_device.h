@@ -6,9 +6,12 @@
 
 #include <array>
 #include <shared_mutex>
-#include "framework/MicroService.h"
+
+#include "Poco/Net/SocketReactor.h"
+#include "Poco/Net/SocketNotification.h"
 #include "Poco/FIFOBuffer.h"
 #include "Poco/Net/TCPServerConnectionFactory.h"
+#include "Poco/Logger.h"
 
 namespace OpenWifi {
 

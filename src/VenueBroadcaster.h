@@ -4,9 +4,14 @@
 
 #pragma once
 
-#include "framework/MicroService.h"
+#include "Poco/Notification.h"
+#include "Poco/NotificationQueue.h"
+
 #include "sdks/sdk_prov.h"
 #include "AP_WS_Server.h"
+
+#include "framework/MicroServiceFuncs.h"
+#include "framework/SubSystemServer.h"
 
 namespace OpenWifi {
 
@@ -31,7 +36,7 @@ namespace OpenWifi {
 		}
 
 		inline int Start() override {
-			Enabled_ = MicroService::instance().ConfigGetBool("venue_broadcast.enabled",true);
+			Enabled_ = MicroServiceConfigGetBool("venue_broadcast.enabled",true);
 			if(Enabled_) {
 				BroadcastManager_.start(*this);
 			}

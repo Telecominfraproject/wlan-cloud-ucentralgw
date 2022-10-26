@@ -2,14 +2,13 @@
 // Created by stephane bourque on 2022-02-03.
 //
 
-#include "framework/MicroService.h"
-#include "AP_WS_Connection.h"
 #include "AP_WS_Server.h"
 #include "TelemetryClient.h"
 #include "TelemetryStream.h"
 #include "CommandManager.h"
 
 #include "Poco/Net/SSLException.h"
+#include "fmt/format.h"
 
 namespace OpenWifi {
 

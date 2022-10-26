@@ -10,6 +10,7 @@
 #include <iostream>
 
 #include "Poco/StreamCopier.h"
+#include "Poco/File.h"
 
 #include "framework/MicroServiceFuncs.h"
 

@@ -7,6 +7,7 @@
 //
 
 #include "StorageService.h"
+#include "fmt/format.h"
 
 namespace OpenWifi {
 	const static std::string DB_LogsSelectFields{"SerialNumber, Log, Data, Severity, Recorded, LogType, UUID"};

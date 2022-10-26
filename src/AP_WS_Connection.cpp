@@ -11,7 +11,7 @@
 #include "Poco/Net/SSLException.h"
 #include "Poco/Net/Context.h"
 #include "Poco/Base64Decoder.h"
-
+#include "Poco/Net/WebSocketImpl.h"
 #include "Poco/zlib.h"
 
 #include "AP_WS_Server.h"
@@ -20,8 +20,13 @@
 #include "ConfigurationCache.h"
 #include "StorageService.h"
 #include "TelemetryStream.h"
+
 #include "framework/WebSocketClientNotifications.h"
-#include "Poco/Net/WebSocketImpl.h"
+#include "framework/KafkaManager.h"
+#include "framework/MicroServiceFuncs.h"
+
+#include "fmt/format.h"
+
 
 #include "RADIUS_proxy_server.h"
 
@@ -280,7 +285,7 @@ namespace OpenWifi {
 			State_.PendingUUID = D.UUID;
 			GWObjects::CommandDetails Cmd;
 			Cmd.SerialNumber = SerialNumber_;
-			Cmd.UUID = MicroService::CreateUUID();
+			Cmd.UUID = MicroServiceCreateUUID();
 			Cmd.SubmittedBy = uCentralProtocol::SUBMITTED_BY_SYSTEM;
 			Cmd.Status = uCentralProtocol::PENDING;
 			Cmd.Command = uCentralProtocol::CONFIGURE;

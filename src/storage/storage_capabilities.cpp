@@ -13,6 +13,8 @@
 #include "Poco/Data/RecordSet.h"
 #include "CapabilitiesCache.h"
 
+#include "fmt/format.h"
+
 namespace OpenWifi {
 
 bool Storage::CreateDeviceCapabilities(std::string &SerialNumber, std::string &Capabilities) {

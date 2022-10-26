@@ -2,9 +2,14 @@
 // Created by stephane bourque on 2022-05-18.
 //
 
+#include "Poco/JSON/Parser.h"
+
 #include "RADIUS_proxy_server.h"
 #include "RADIUS_helpers.h"
 #include "AP_WS_Server.h"
+
+#include "framework/MicroServiceFuncs.h"
+
 namespace OpenWifi {
 
 	const int SMALLEST_RADIUS_PACKET = 20+19+4;
@@ -14,10 +19,10 @@ namespace OpenWifi {
 
 	int RADIUS_proxy_server::Start() {
 
-		ConfigFilename_ = MicroService::instance().DataDir()+"/radius_pool_config.json";
+		ConfigFilename_ = MicroServiceDataDirectory()+"/radius_pool_config.json";
 		Poco::File	Config(ConfigFilename_);
 
-		enabled_ = MicroService::instance().ConfigGetBool("radius.proxy.enable",false);
+		enabled_ = MicroServiceConfigGetBool("radius.proxy.enable",false);
 		if(!enabled_ && !Config.exists()) {
 			StopRADSECServers();
 			return 0;
@@ -28,24 +33,24 @@ namespace OpenWifi {
 		enabled_ = true;
 
 		Poco::Net::SocketAddress	AuthSockAddrV4(Poco::Net::AddressFamily::IPv4,
-									   MicroService::instance().ConfigGetInt("radius.proxy.authentication.port",DEFAULT_RADIUS_AUTHENTICATION_PORT));
+									   MicroServiceConfigGetInt("radius.proxy.authentication.port",DEFAULT_RADIUS_AUTHENTICATION_PORT));
 		AuthenticationSocketV4_ = std::make_unique<Poco::Net::DatagramSocket>(AuthSockAddrV4,true);
 		Poco::Net::SocketAddress	AuthSockAddrV6(Poco::Net::AddressFamily::IPv6,
-											  MicroService::instance().ConfigGetInt("radius.proxy.authentication.port",DEFAULT_RADIUS_AUTHENTICATION_PORT));
+											  MicroServiceConfigGetInt("radius.proxy.authentication.port",DEFAULT_RADIUS_AUTHENTICATION_PORT));
 		AuthenticationSocketV6_ = std::make_unique<Poco::Net::DatagramSocket>(AuthSockAddrV6,true);
 
 		Poco::Net::SocketAddress	AcctSockAddrV4(Poco::Net::AddressFamily::IPv4,
-									   MicroService::instance().ConfigGetInt("radius.proxy.accounting.port",DEFAULT_RADIUS_ACCOUNTING_PORT));
+									   MicroServiceConfigGetInt("radius.proxy.accounting.port",DEFAULT_RADIUS_ACCOUNTING_PORT));
 		AccountingSocketV4_ = std::make_unique<Poco::Net::DatagramSocket>(AcctSockAddrV4,true);
 		Poco::Net::SocketAddress	AcctSockAddrV6(Poco::Net::AddressFamily::IPv6,
-											  MicroService::instance().ConfigGetInt("radius.proxy.accounting.port",DEFAULT_RADIUS_ACCOUNTING_PORT));
+											  MicroServiceConfigGetInt("radius.proxy.accounting.port",DEFAULT_RADIUS_ACCOUNTING_PORT));
 		AccountingSocketV6_ = std::make_unique<Poco::Net::DatagramSocket>(AcctSockAddrV6,true);
 
 		Poco::Net::SocketAddress	CoASockAddrV4(Poco::Net::AddressFamily::IPv4,
-												MicroService::instance().ConfigGetInt("radius.proxy.coa.port",DEFAULT_RADIUS_CoA_PORT));
+												MicroServiceConfigGetInt("radius.proxy.coa.port",DEFAULT_RADIUS_CoA_PORT));
 		CoASocketV4_ = std::make_unique<Poco::Net::DatagramSocket>(CoASockAddrV4,true);
 		Poco::Net::SocketAddress	CoASockAddrV6(Poco::Net::AddressFamily::IPv6,
-												MicroService::instance().ConfigGetInt("radius.proxy.coa.port",DEFAULT_RADIUS_CoA_PORT));
+												MicroServiceConfigGetInt("radius.proxy.coa.port",DEFAULT_RADIUS_CoA_PORT));
 		CoASocketV6_ = std::make_unique<Poco::Net::DatagramSocket>(CoASockAddrV6,true);
 
 		RadiusReactor_.addEventHandler(*AuthenticationSocketV4_,Poco::NObserver<RADIUS_proxy_server, Poco::Net::ReadableNotification>(

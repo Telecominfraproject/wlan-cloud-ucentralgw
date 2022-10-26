@@ -8,14 +8,15 @@
 
 #include <algorithm>
 
-#include "framework/MicroService.h"
-
 #include "Poco/JSON/Parser.h"
 
 #include "CommandManager.h"
 #include "AP_WS_Server.h"
 #include "StorageService.h"
 #include "framework/ow_constants.h"
+#include "framework/MicroServiceFuncs.h"
+
+using namespace std::chrono_literals;
 
 namespace OpenWifi {
 
@@ -83,12 +84,12 @@ namespace OpenWifi {
 		JanitorCallback_ = std::make_unique<Poco::TimerCallback<CommandManager>>(*this,&CommandManager::onJanitorTimer);
 		JanitorTimer_.setStartInterval( 10000 );
 		JanitorTimer_.setPeriodicInterval(10 * 60 * 1000); // 1 hours
-		JanitorTimer_.start(*JanitorCallback_, MicroService::instance().TimerPool());
+		JanitorTimer_.start(*JanitorCallback_, MicroServiceTimerPool());
 
 		CommandRunnerCallback_ = std::make_unique<Poco::TimerCallback<CommandManager>>(*this,&CommandManager::onCommandRunnerTimer);
 		CommandRunnerTimer_.setStartInterval( 10000 );
 		CommandRunnerTimer_.setPeriodicInterval(30 * 1000); // 1 hours
-		CommandRunnerTimer_.start(*CommandRunnerCallback_, MicroService::instance().TimerPool());
+		CommandRunnerTimer_.start(*CommandRunnerCallback_, MicroServiceTimerPool());
 
         return 0;
     }

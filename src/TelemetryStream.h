@@ -6,8 +6,6 @@
 
 #include <iostream>
 
-#include "framework/MicroService.h"
-
 #include "Poco/Net/SocketReactor.h"
 #include "Poco/Net/ParallelSocketAcceptor.h"
 #include "Poco/Net/WebSocket.h"
@@ -20,6 +18,10 @@
 #include "Poco/Timespan.h"
 #include "Poco/URI.h"
 #include "Poco/Net/HTTPServer.h"
+#include "Poco/NotificationQueue.h"
+#include "Poco/Notification.h"
+
+#include "framework/SubSystemServer.h"
 
 #include "AP_WS_ReactorPool.h"
 #include "TelemetryClient.h"

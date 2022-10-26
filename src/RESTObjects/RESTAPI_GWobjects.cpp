@@ -16,7 +16,6 @@
 #endif
 
 #include "RESTAPI_GWobjects.h"
-#include "framework/MicroService.h"
 
 using OpenWifi::RESTAPI_utils::field_to_json;
 using OpenWifi::RESTAPI_utils::field_from_json;

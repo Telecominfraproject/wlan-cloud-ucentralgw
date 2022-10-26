@@ -7,6 +7,11 @@
 #include "framework/WebSocketClientNotifications.h"
 #include "StateUtils.h"
 
+#include "framework/KafkaManager.h"
+#include "framework/UI_WebSocketClientServer.h"
+
+#include "fmt/format.h"
+
 namespace OpenWifi {
 	void AP_WS_Connection::Process_state(Poco::JSON::Object::Ptr ParamsObj) {
 		if (!State_.Connected) {

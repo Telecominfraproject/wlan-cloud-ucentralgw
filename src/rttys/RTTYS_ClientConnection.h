@@ -4,12 +4,12 @@
 
 #pragma once
 
-#include "framework/MicroService.h"
 #include "Poco/Net/WebSocket.h"
 #include "Poco/Net/SocketReactor.h"
 #include "Poco/NObserver.h"
 #include "Poco/Net/SocketNotification.h"
 #include "Poco/FIFOBuffer.h"
+#include "Poco/Logger.h"
 
 #include <shared_mutex>
 
