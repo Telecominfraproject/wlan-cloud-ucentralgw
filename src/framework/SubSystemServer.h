@@ -5,6 +5,7 @@
 #pragma once
 
 #include <string>
+#include <mutex>
 
 #include "Poco/Util/Application.h"
 #include "Poco/Net/Context.h"
