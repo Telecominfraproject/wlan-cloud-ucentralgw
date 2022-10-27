@@ -14,11 +14,12 @@
 
 namespace OpenWifi {
 
-	class ALBRequestHandler: public Poco::Net::HTTPRequestHandler
-	/// Return a HTML document with the current date and time.
-	{
+	class ALBRequestHandler: public Poco::Net::HTTPRequestHandler {
 	  public:
-		explicit ALBRequestHandler(Poco::Logger & L, uint64_t id);
+		explicit ALBRequestHandler(Poco::Logger & L, uint64_t id)
+                : Logger_(L), id_(id) {
+        }
+
 		void handleRequest([[maybe_unused]] Poco::Net::HTTPServerRequest& Request, Poco::Net::HTTPServerResponse& Response) override;
 
 	  private:
@@ -47,7 +48,6 @@ namespace OpenWifi {
 		}
 
 		int Start() override;
-
 		void Stop() override;
 
 	  private:

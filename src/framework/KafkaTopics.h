@@ -8,6 +8,7 @@
 
 #pragma once
 
+#include <string>
 namespace OpenWifi::KafkaTopics {
 	static const std::string HEALTHCHECK{"healthcheck"};
 	static const std::string STATE{"state"};

@@ -49,6 +49,7 @@ namespace OpenWifi {
 									   const std::string &DefaultValue);
     std::string MicroServiceWWWAssetsDir();
     std::uint64_t MicroServiceRandom(std::uint64_t Start,std::uint64_t End);
+    std::uint64_t MicroServiceRandom(std::uint64_t Range);
     std::string MicroServiceSign(Poco::JWT::Token &T, const std::string &Algo);
     std::string MicroServiceGetPublicAPIEndPoint();
 }

@@ -10,17 +10,11 @@
 
 namespace OpenWifi {
 
-	ALBRequestHandler::ALBRequestHandler(Poco::Logger & L, uint64_t id)
-		: Logger_(L), id_(id)
-	{
-	}
-
 	void ALBRequestHandler::handleRequest([[maybe_unused]] Poco::Net::HTTPServerRequest& Request, Poco::Net::HTTPServerResponse& Response) {
 		Utils::SetThreadName("alb-request");
 		try {
 			if((id_ % 100) == 0) {
-				poco_debug(Logger_,fmt::format("ALB-REQUEST({}): ALB Request {}.",
-												Request.clientAddress().toString(), id_));
+				Logger_.debug(fmt::format("ALB-REQUEST({}): ALB Request {}.", Request.clientAddress().toString(), id_));
 			}
 			Response.setChunkedTransferEncoding(true);
 			Response.setContentType("text/html");

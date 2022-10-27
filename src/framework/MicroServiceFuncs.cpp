@@ -103,6 +103,10 @@ namespace OpenWifi {
         return MicroService::instance().Random(Start, End);
     }
 
+    std::uint64_t MicroServiceRandom(std::uint64_t Range) {
+        return MicroService::instance().Random(Range);
+    }
+
     std::string MicroServiceSign(Poco::JWT::Token &T, const std::string &Algo) {
         return MicroService::instance().Sign(T, Algo);
     }

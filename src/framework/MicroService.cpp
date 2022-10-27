@@ -22,10 +22,7 @@
 #include "framework/AuthClient.h"
 #include "framework/ALBserver.h"
 #include "framework/KafkaManager.h"
-#include "framework/RESTAPI_RateLimiter.h"
-#include "framework/WebSocketLogger.h"
 #include "framework/RESTAPI_GenericServerAccounting.h"
-#include "framework/RESTAPI_Handler.h"
 #include "framework/RESTAPI_ExtServer.h"
 #include "framework/RESTAPI_IntServer.h"
 
