@@ -8,8 +8,7 @@
 
 #pragma once
 
-#include <string>
-#include "RESTAPI_SecurityObjects.h"
+#include "RESTObjects/RESTAPI_SecurityObjects.h"
 
 namespace OpenWifi::ProvObjects {
 
@@ -61,6 +60,21 @@ namespace OpenWifi::ProvObjects {
         bool from_json(const Poco::JSON::Object::Ptr &Obj);
     };
     typedef std::vector<ManagementPolicy>      ManagementPolicyVec;
+
+    struct RRMAlgorithmDetails {
+        std::string     name;
+        std::string     parameters;
+        void to_json(Poco::JSON::Object &Obj) const;
+        bool from_json(const Poco::JSON::Object::Ptr &Obj);
+    };
+
+    struct RRMDetails {
+        std::string     vendor;
+        std::string     schedule;
+        std::vector<RRMAlgorithmDetails>    algorithms;
+        void to_json(Poco::JSON::Object &Obj) const;
+        bool from_json(const Poco::JSON::Object::Ptr &Obj);
+    };
 
     struct DeviceRules {
         std::string     rcOnly{"inherit"};

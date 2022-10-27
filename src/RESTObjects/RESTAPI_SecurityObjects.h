@@ -251,7 +251,8 @@ namespace OpenWifi {
             VERIFY_EMAIL,
             SUB_FORGOT_PASSWORD,
             SUB_VERIFY_EMAIL,
-            SUB_SIGNUP
+            SUB_SIGNUP,
+            EMAIL_INVITATION
         };
 
         struct ActionLink {

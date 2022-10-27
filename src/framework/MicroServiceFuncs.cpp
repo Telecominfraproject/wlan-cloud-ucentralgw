@@ -6,88 +6,108 @@
 #include "framework/MicroServiceFuncs.h"
 
 namespace OpenWifi {
-	const std::string &MicroServiceDataDirectory() { return MicroService::instance().DataDir(); }
+    const std::string &MicroServiceDataDirectory() { return MicroService::instance().DataDir(); }
 
-	Types::MicroServiceMetaVec MicroServiceGetServices(const std::string &Type) {
-		return MicroService::instance().GetServices(Type);
-	}
+    Types::MicroServiceMetaVec MicroServiceGetServices(const std::string &Type) {
+        return MicroService::instance().GetServices(Type);
+    }
 
-	std::string MicroServicePublicEndPoint() { return MicroService::instance().PublicEndPoint(); }
+    Types::MicroServiceMetaVec MicroServiceGetServices() {
+        return MicroService::instance().GetServices();
+    }
 
-	std::string MicroServiceConfigGetString(const std::string &Key, const std::string &DefaultValue) {
-		return MicroService::instance().ConfigGetString(Key, DefaultValue);
-	}
+    std::string MicroServicePublicEndPoint() { return MicroService::instance().PublicEndPoint(); }
 
-	bool MicroServiceConfigGetBool(const std::string &Key, bool DefaultValue) {
-		return MicroService::instance().ConfigGetBool(Key, DefaultValue);
-	}
+    std::string MicroServiceConfigGetString(const std::string &Key, const std::string &DefaultValue) {
+        return MicroService::instance().ConfigGetString(Key, DefaultValue);
+    }
 
-	std::uint64_t MicroServiceConfigGetInt(const std::string &Key, std::uint64_t DefaultValue) {
-		return MicroService::instance().ConfigGetInt(Key, DefaultValue);
-	}
+    bool MicroServiceConfigGetBool(const std::string &Key, bool DefaultValue) {
+        return MicroService::instance().ConfigGetBool(Key, DefaultValue);
+    }
 
-	std::string MicroServicePrivateEndPoint() { return MicroService::instance().PrivateEndPoint(); }
+    std::uint64_t MicroServiceConfigGetInt(const std::string &Key, std::uint64_t DefaultValue) {
+        return MicroService::instance().ConfigGetInt(Key, DefaultValue);
+    }
 
-	std::uint64_t MicroServiceID() { return MicroService::instance().ID(); }
+    std::string MicroServicePrivateEndPoint() { return MicroService::instance().PrivateEndPoint(); }
 
-	bool MicroServiceIsValidAPIKEY(const Poco::Net::HTTPServerRequest &Request) {
-		return MicroService::instance().IsValidAPIKEY(Request);
-	}
+    std::uint64_t MicroServiceID() { return MicroService::instance().ID(); }
 
-	bool MicroServiceNoAPISecurity() { return MicroService::instance().NoAPISecurity(); }
+    bool MicroServiceIsValidAPIKEY(const Poco::Net::HTTPServerRequest &Request) {
+        return MicroService::instance().IsValidAPIKEY(Request);
+    }
 
-	void MicroServiceLoadConfigurationFile() { MicroService::instance().LoadConfigurationFile(); }
+    bool MicroServiceNoAPISecurity() { return MicroService::instance().NoAPISecurity(); }
 
-	void MicroServiceReload() { MicroService::instance().Reload(); }
+    void MicroServiceLoadConfigurationFile() { MicroService::instance().LoadConfigurationFile(); }
 
-	void MicroServiceReload(const std::string &Type) { MicroService::instance().Reload(Type); }
+    void MicroServiceReload() { MicroService::instance().Reload(); }
 
-	const Types::StringVec MicroServiceGetLogLevelNames() {
-		return MicroService::instance().GetLogLevelNames();
-	}
+    void MicroServiceReload(const std::string &Type) { MicroService::instance().Reload(Type); }
 
-	const Types::StringVec MicroServiceGetSubSystems() {
-		return MicroService::instance().GetSubSystems();
-	}
+    const Types::StringVec MicroServiceGetLogLevelNames() {
+        return MicroService::instance().GetLogLevelNames();
+    }
 
-	Types::StringPairVec MicroServiceGetLogLevels() { return MicroService::instance().GetLogLevels(); }
+    const Types::StringVec MicroServiceGetSubSystems() {
+        return MicroService::instance().GetSubSystems();
+    }
 
-	bool MicroServiceSetSubsystemLogLevel(const std::string &SubSystem, const std::string &Level) {
-		return MicroService::instance().SetSubsystemLogLevel(SubSystem, Level);
-	}
+    Types::StringPairVec MicroServiceGetLogLevels() { return MicroService::instance().GetLogLevels(); }
 
-	void MicroServiceGetExtraConfiguration(Poco::JSON::Object &Answer) {
-		MicroService::instance().GetExtraConfiguration(Answer);
-	}
+    bool MicroServiceSetSubsystemLogLevel(const std::string &SubSystem, const std::string &Level) {
+        return MicroService::instance().SetSubsystemLogLevel(SubSystem, Level);
+    }
 
-	std::string MicroServiceVersion() { return MicroService::instance().Version(); }
+    void MicroServiceGetExtraConfiguration(Poco::JSON::Object &Answer) {
+        MicroService::instance().GetExtraConfiguration(Answer);
+    }
 
-	std::uint64_t MicroServiceUptimeTotalSeconds() {
-		return MicroService::instance().uptime().totalSeconds();
-	}
+    std::string MicroServiceVersion() { return MicroService::instance().Version(); }
 
-	std::uint64_t MicroServiceStartTimeEpochTime() {
-		return MicroService::instance().startTime().epochTime();
-	}
+    std::uint64_t MicroServiceUptimeTotalSeconds() {
+        return MicroService::instance().uptime().totalSeconds();
+    }
 
-	std::string MicroServiceGetUIURI() { return MicroService::instance().GetUIURI(); }
+    std::uint64_t MicroServiceStartTimeEpochTime() {
+        return MicroService::instance().startTime().epochTime();
+    }
 
-	const SubSystemVec MicroServiceGetFullSubSystems() {
-		return MicroService::instance().GetFullSubSystems();
-	}
+    std::string MicroServiceGetUIURI() { return MicroService::instance().GetUIURI(); }
 
-	std::string MicroServiceCreateUUID() { return MicroService::CreateUUID(); }
+    const SubSystemVec MicroServiceGetFullSubSystems() {
+        return MicroService::instance().GetFullSubSystems();
+    }
 
-	std::uint64_t MicroServiceDaemonBusTimer() { return MicroService::instance().DaemonBusTimer(); }
+    std::string MicroServiceCreateUUID() { return MicroService::CreateUUID(); }
 
-	std::string MicroServiceMakeSystemEventMessage(const std::string &Type) {
-		return MicroService::instance().MakeSystemEventMessage(Type);
-	}
+    std::uint64_t MicroServiceDaemonBusTimer() { return MicroService::instance().DaemonBusTimer(); }
 
-	Poco::ThreadPool &MicroServiceTimerPool() { return MicroService::instance().TimerPool(); }
+    std::string MicroServiceMakeSystemEventMessage(const std::string &Type) {
+        return MicroService::instance().MakeSystemEventMessage(Type);
+    }
 
-	std::string MicroServiceConfigPath(const std::string &Key,
-													const std::string &DefaultValue) {
-		return MicroService::instance().ConfigPath(Key, DefaultValue);
-	}
+    Poco::ThreadPool &MicroServiceTimerPool() { return MicroService::instance().TimerPool(); }
+
+    std::string MicroServiceConfigPath(const std::string &Key,
+                                       const std::string &DefaultValue) {
+        return MicroService::instance().ConfigPath(Key, DefaultValue);
+    }
+
+    std::string MicroServiceWWWAssetsDir() {
+        return MicroService::instance().WWWAssetsDir();
+    }
+
+    std::uint64_t MicroServiceRandom(std::uint64_t Start,std::uint64_t End) {
+        return MicroService::instance().Random(Start, End);
+    }
+
+    std::string MicroServiceSign(Poco::JWT::Token &T, const std::string &Algo) {
+        return MicroService::instance().Sign(T, Algo);
+    }
+
+    std::string MicroServiceGetPublicAPIEndPoint() {
+        return MicroService::instance().GetPublicAPIEndPoint();
+    }
 }

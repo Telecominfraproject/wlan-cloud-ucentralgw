@@ -11,6 +11,7 @@
 #include "Poco/Net/HTTPServerRequest.h"
 #include "Poco/JSON/Object.h"
 #include "Poco/ThreadPool.h"
+#include "Poco/JWT/Token.h"
 
 
 namespace OpenWifi {
@@ -18,6 +19,7 @@ namespace OpenWifi {
 	using SubSystemVec=std::vector<SubSystemServer *>;
 	const std::string & MicroServiceDataDirectory();
 	Types::MicroServiceMetaVec MicroServiceGetServices(const std::string & Type);
+    Types::MicroServiceMetaVec MicroServiceGetServices();
 	std::string MicroServicePublicEndPoint();
 	std::string MicroServiceConfigGetString(const std::string &Key, const std::string &DefaultValue);
 	bool MicroServiceConfigGetBool(const std::string &Key, bool DefaultValue);
@@ -45,4 +47,8 @@ namespace OpenWifi {
 	Poco::ThreadPool & MicroServiceTimerPool();
 	std::string MicroServiceConfigPath(const std::string &Key,
 									   const std::string &DefaultValue);
+    std::string MicroServiceWWWAssetsDir();
+    std::uint64_t MicroServiceRandom(std::uint64_t Start,std::uint64_t End);
+    std::string MicroServiceSign(Poco::JWT::Token &T, const std::string &Algo);
+    std::string MicroServiceGetPublicAPIEndPoint();
 }

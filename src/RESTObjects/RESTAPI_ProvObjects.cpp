@@ -1160,5 +1160,40 @@ namespace OpenWifi::ProvObjects {
         return false;
     }
 
+    void RRMAlgorithmDetails::to_json(Poco::JSON::Object &Obj) const {
+        field_to_json(Obj,"name",name);
+        field_to_json(Obj,"parameters",parameters);
+    }
+
+    bool RRMAlgorithmDetails::from_json(const Poco::JSON::Object::Ptr &Obj) {
+        try {
+            field_from_json(Obj,"name",name);
+            field_from_json(Obj,"parameters",parameters);
+            return true;
+        } catch(...) {
+
+        }
+        return false;
+    }
+
+    void RRMDetails::to_json(Poco::JSON::Object &Obj) const {
+        field_to_json(Obj,"vendor",vendor);
+        field_to_json(Obj,"schedule",schedule);
+        field_to_json(Obj,"algorithms",algorithms);
+    }
+
+    bool RRMDetails::from_json(const Poco::JSON::Object::Ptr &Obj) {
+        try {
+            field_from_json(Obj,"vendor",vendor);
+            field_from_json(Obj,"schedule",schedule);
+            field_from_json(Obj,"algorithms",algorithms);
+            return true;
+        } catch(...) {
+
+        }
+        return false;
+    }
+
 }
+
 
