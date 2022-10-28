@@ -7,6 +7,7 @@
 #include "framework/SubSystemServer.h"
 #include "RESTObjects/RESTAPI_SecurityObjects.h"
 #include "Poco/ExpireLRUCache.h"
+#include "framework/utils.h"
 
 namespace OpenWifi {
 
@@ -38,7 +39,7 @@ namespace OpenWifi {
 		}
 
 		inline static bool IsTokenExpired(const SecurityObjects::WebToken &T) {
-			return ((T.expires_in_+T.created_) < OpenWifi::Now());
+			return ((T.expires_in_+T.created_) < Utils::Now());
 		}
 
 		bool RetrieveTokenInformation(const std::string & SessionToken,

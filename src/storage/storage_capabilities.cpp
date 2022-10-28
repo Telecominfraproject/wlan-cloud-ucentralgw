@@ -8,10 +8,10 @@
 
 #include "StorageService.h"
 #include "CentralConfig.h"
-#include "Poco/JSON/Parser.h"
 #include "Poco/JSON/Object.h"
 #include "Poco/Data/RecordSet.h"
 #include "CapabilitiesCache.h"
+#include "framework/utils.h"
 
 #include "fmt/format.h"
 
@@ -22,7 +22,7 @@ bool Storage::CreateDeviceCapabilities(std::string &SerialNumber, std::string &C
 		Poco::Data::Session     Sess = Pool_->get();
 		Poco::Data::Statement   UpSert(Sess);
 
-		uint64_t Now = OpenWifi::Now();
+		uint64_t Now = Utils::Now();
 		std::string St{	"insert into Capabilities (SerialNumber, Capabilities, FirstUpdate, LastUpdate) values(?,?,?,?) on conflict (SerialNumber) do "
 						   	" update set Capabilities=?, LastUpdate=?"};
 		UpSert << ConvertParams(St),
@@ -46,7 +46,7 @@ bool Storage::CreateDeviceCapabilities(std::string &SerialNumber, std::string &C
 			Poco::Data::Session     Sess = Pool_->get();
 			Poco::Data::Statement   UpSert(Sess);
 
-			uint64_t Now = OpenWifi::Now();
+			uint64_t Now = Utils::Now();
 			OpenWifi::Config::Capabilities	Caps(Capabilities);
 			Compat = Caps.Compatible();
 			if(!Caps.Compatible().empty() && !Caps.Platform().empty())

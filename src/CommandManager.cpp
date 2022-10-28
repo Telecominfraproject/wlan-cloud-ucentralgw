@@ -15,6 +15,7 @@
 #include "StorageService.h"
 #include "framework/ow_constants.h"
 #include "framework/MicroServiceFuncs.h"
+#include "framework/utils.h"
 
 using namespace std::chrono_literals;
 
@@ -169,7 +170,7 @@ namespace OpenWifi {
 						if(IsCommandRunning(Cmd.UUID))
 							continue;
 
-						auto now = OpenWifi::Now();
+						auto now = Utils::Now();
 						// 2 hour timeout for commands
 						if ((now - Cmd.Submitted) > (1 * 60 * 60)) {
 							poco_information(

@@ -17,7 +17,7 @@ namespace OpenWifi {
 
 	void Archiver::onTimer([[maybe_unused]] Poco::Timer &timer){
 		Utils::SetThreadName("strg-archiver");
-		auto now = OpenWifi::Now();
+		auto now = Utils::Now();
 		for(const auto &i:DBs_) {
 			if (!Poco::icompare(i.DBName, "healthchecks")) {
 				poco_information(Logger(),"Archiving HealthChecks...");
@@ -39,7 +39,7 @@ namespace OpenWifi {
 				poco_information(Logger(),fmt::format("Cannot archive DB '{}'", i.DBName));
 			}
 		}
-		AppServiceRegistry().Set("lastStorageArchiverRun", (uint64_t) Now);
+		AppServiceRegistry().Set("lastStorageArchiverRun", (uint64_t) now);
 	}
 
 	static auto CalculateDelta(int H, int M) {

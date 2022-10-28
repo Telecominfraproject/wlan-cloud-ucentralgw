@@ -10,7 +10,6 @@
 #include <algorithm>
 
 #include "Poco/JSON/Parser.h"
-#include "Poco/Net/HTTPServerRequest.h"
 
 #include "AP_WS_Server.h"
 #include "CentralConfig.h"
@@ -27,6 +26,7 @@
 #include "framework/ow_constants.h"
 #include "framework/KafkaManager.h"
 #include "framework/MicroServiceFuncs.h"
+#include "framework/utils.h"
 
 #include "rttys/RTTYS_server.h"
 
@@ -931,8 +931,8 @@ namespace OpenWifi {
 					.Port = MicroServiceConfigGetInt("rtty.port", 5912),
 					.Token = MicroServiceConfigGetString("rtty.token", "nothing"),
 					.TimeOut = MicroServiceConfigGetInt("rtty.timeout", 60),
-					.ConnectionId =  Utils::ComputeHash(SerialNumber_,OpenWifi::Now()).substr(0,RTTY_DEVICE_TOKEN_LENGTH),
-					.Started = OpenWifi::Now(),
+					.ConnectionId =  Utils::ComputeHash(SerialNumber_,Utils::Now()).substr(0,RTTY_DEVICE_TOKEN_LENGTH),
+					.Started = Utils::Now(),
 					.CommandUUID = CMD_UUID,
 					.ViewPort = MicroServiceConfigGetInt("rtty.viewport", 5913),
 					.DevicePassword = ""
@@ -941,7 +941,7 @@ namespace OpenWifi {
 
 				if(RTTYS_server()->UseInternal()) {
 //					poco_debug(Logger_,fmt::format("RTTY_DEBUG {} ", __LINE__ ));
-					Rtty.Token = Utils::ComputeHash(UserInfo_.webtoken.refresh_token_,OpenWifi::Now()).substr(0,RTTY_DEVICE_TOKEN_LENGTH);
+					Rtty.Token = Utils::ComputeHash(UserInfo_.webtoken.refresh_token_,Utils::Now()).substr(0,RTTY_DEVICE_TOKEN_LENGTH);
 //					poco_debug(Logger_,fmt::format("RTTY_DEBUG {} ", __LINE__ ));
 					if(!RTTYS_server()->CreateEndPoint(Rtty.ConnectionId, Rtty.Token, Requester(), SerialNumber_)) {
 //						poco_debug(Logger_,fmt::format("RTTY_DEBUG {} ", __LINE__ ));

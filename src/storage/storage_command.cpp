@@ -16,6 +16,7 @@
 #include "AP_WS_Server.h"
 #include "StorageService.h"
 #include "FileUploader.h"
+#include "framework/utils.h"
 
 namespace OpenWifi {
 
@@ -128,7 +129,7 @@ typedef Poco::Tuple<
 
 	bool Storage::AddCommand(std::string &SerialNumber, GWObjects::CommandDetails &Command, CommandExecutionType Type) {
 		try {
-			auto Now = OpenWifi::Now();
+			auto Now = Utils::Now();
 
 			Command.Status = to_string(Type);
 			if(	Type==CommandExecutionType::COMMAND_COMPLETED	||
@@ -311,7 +312,7 @@ typedef Poco::Tuple<
 			Poco::Data::Session Sess = Pool_->get();
 			Poco::Data::Statement Update(Sess);
 
-			auto Now = OpenWifi::Now();
+			auto Now = Utils::Now();
 			auto Status = to_string(Storage::CommandExecutionType::COMMAND_EXECUTED);
 
 			std::string St{"UPDATE CommandList SET Executed=?, Status=? WHERE UUID=?"};
@@ -333,7 +334,7 @@ typedef Poco::Tuple<
 			Poco::Data::Session Sess = Pool_->get();
 			Poco::Data::Statement Update(Sess);
 
-			auto Now = OpenWifi::Now(), Window = Now-(4*60*60);
+			auto Now = Utils::Now(), Window = Now-(4*60*60);
 			auto Status = to_string(Storage::CommandExecutionType::COMMAND_EXPIRED);
 
 			std::string St{"UPDATE CommandList SET Executed=?, Status=? WHERE submitted<? and executed=0"};
@@ -352,7 +353,7 @@ typedef Poco::Tuple<
 			Poco::Data::Session Sess = Pool_->get();
 			Poco::Data::Statement Update(Sess);
 
-			auto Now = OpenWifi::Now(), Window = Now-(1*60*60);
+			auto Now = Utils::Now(), Window = Now-(1*60*60);
 			std::string St{"UPDATE CommandList SET Executed=?, Status='timedout' WHERE Executed<? and completed=0"};
 			Update << ConvertParams(St),
 				Poco::Data::Keywords::use(Now),
@@ -368,7 +369,7 @@ typedef Poco::Tuple<
 			Poco::Data::Session Sess = Pool_->get();
 			Poco::Data::Statement Update(Sess);
 
-			auto Now = OpenWifi::Now();
+			auto Now = Utils::Now();
 			auto Status = to_string(Storage::CommandExecutionType::COMMAND_TIMEDOUT);
 			std::string St{"UPDATE CommandList SET Executed=?, Status=? WHERE UUID=?"};
 
@@ -459,7 +460,7 @@ typedef Poco::Tuple<
 			Poco::Data::Session Sess = Pool_->get();
 			Poco::Data::Statement Select(Sess);
 
-			auto Now = OpenWifi::Now();
+			auto Now = Utils::Now();
 			std::string St{
 				"SELECT " +
 				DB_Command_SelectFields
@@ -488,7 +489,7 @@ typedef Poco::Tuple<
 
 	bool Storage::CommandExecuted(std::string &UUID) {
 		try {
-			auto Now = OpenWifi::Now();
+			auto Now = Utils::Now();
 
 			Poco::Data::Session Sess = Pool_->get();
 			Poco::Data::Statement Update(Sess);
@@ -512,7 +513,7 @@ typedef Poco::Tuple<
 								   bool FullCommand) {
 		try {
 
-			auto Now = FullCommand ? OpenWifi::Now() : 0;
+			auto Now = FullCommand ? Utils::Now() : 0;
 
 			// Parse the result to get the ErrorText and make sure that this is a JSON document
 			uint64_t ErrorCode = 0;
@@ -560,7 +561,7 @@ typedef Poco::Tuple<
 	bool Storage::CancelWaitFile( std::string & UUID, std::string & ErrorText ) {
 		try {
 			Poco::Data::Session Sess = Pool_->get();
-			auto Now = OpenWifi::Now();
+			auto Now = Utils::Now();
 			uint64_t Size = 0, WaitForFile = 0;
 
 			Poco::Data::Statement Update(Sess);
@@ -586,7 +587,7 @@ typedef Poco::Tuple<
 	bool Storage::AttachFileDataToCommand(std::string & UUID, const std::stringstream & FileContent) {
 		try {
 			Poco::Data::Session Sess = Pool_->get();
-			auto Now = OpenWifi::Now();
+			auto Now = Utils::Now();
 			uint64_t WaitForFile = 0;
 
 			Poco::Data::Statement Update(Sess);
@@ -675,7 +676,7 @@ typedef Poco::Tuple<
 			Poco::Data::Session Sess = Pool_->get();
 			Poco::Data::Statement Update(Sess);
 
-			auto Now = OpenWifi::Now();
+			auto Now = Utils::Now();
 			auto Status = to_string(Storage::CommandExecutionType::COMMAND_COMPLETED);
 			std::string St{"UPDATE CommandList SET Completed=?, Results=?, Status=? WHERE UUID=?"};
 

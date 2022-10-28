@@ -8,7 +8,6 @@
 using OpenWifi::RESTAPI_utils::field_to_json;
 using OpenWifi::RESTAPI_utils::field_from_json;
 
-
 namespace OpenWifi::SubObjects {
 
     void HomeDeviceMode::to_json(Poco::JSON::Object &Obj) const {

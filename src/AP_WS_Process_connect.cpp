@@ -13,6 +13,7 @@
 #include "CommandManager.h"
 
 #include "framework/KafkaManager.h"
+#include "framework/utils.h"
 
 namespace OpenWifi {
 
@@ -57,11 +58,11 @@ namespace OpenWifi {
 				if(!Firmware.empty()) {
 					if(Firmware!=DeviceInfo.Firmware) {
 						DeviceInfo.Firmware = Firmware;
-						DeviceInfo.LastFWUpdate = OpenWifi::Now();
+						DeviceInfo.LastFWUpdate = Utils::Now();
 						Updated = true;
 						WebSocketClientNotificationDeviceFirmwareUpdated(SerialNumber_, Firmware);
 					} else if(DeviceInfo.LastFWUpdate==0) {
-						DeviceInfo.LastFWUpdate = OpenWifi::Now();
+						DeviceInfo.LastFWUpdate = Utils::Now();
 						Updated = true;
 					}
 				}
@@ -122,7 +123,7 @@ namespace OpenWifi {
 				Poco::JSON::Stringifier Stringify;
 				ParamsObj->set(uCentralProtocol::CONNECTIONIP, CId_);
 				ParamsObj->set("locale", State_.locale );
-				ParamsObj->set(uCentralProtocol::TIMESTAMP, OpenWifi::Now());
+				ParamsObj->set(uCentralProtocol::TIMESTAMP, Utils::Now());
 				std::ostringstream OS;
 				Stringify.condense(ParamsObj, OS);
 				KafkaManager()->PostMessage(KafkaTopics::CONNECTION, SerialNumber_, OS.str());

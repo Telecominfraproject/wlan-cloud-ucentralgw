@@ -7,6 +7,7 @@
 #include "CommandManager.h"
 
 #include "framework/KafkaManager.h"
+#include "framework/utils.h"
 #include "fmt/format.h"
 
 namespace OpenWifi {
@@ -21,10 +22,10 @@ namespace OpenWifi {
 		if (TelemetryReporting_) {
 			if (ParamsObj->has("data")) {
 				auto Payload = ParamsObj->get("data").extract<Poco::JSON::Object::Ptr>();
-				Payload->set("timestamp", OpenWifi::Now());
+				Payload->set("timestamp", Utils::Now());
 				std::ostringstream SS;
 				Payload->stringify(SS);
-				auto now=OpenWifi::Now();
+				auto now=Utils::Now();
 				if (TelemetryWebSocketRefCount_) {
 					if(now<TelemetryWebSocketTimer_) {
 						// std::cout << SerialNumber_ << ": Updating WebSocket telemetry" << std::endl;

@@ -25,6 +25,7 @@
 #include "framework/RESTAPI_GenericServerAccounting.h"
 #include "framework/RESTAPI_ExtServer.h"
 #include "framework/RESTAPI_IntServer.h"
+#include "framework/utils.h"
 
 
 namespace OpenWifi {
@@ -54,7 +55,7 @@ namespace OpenWifi {
 							Object->has(KafkaTopics::ServiceEvents::Fields::KEY)) {
 							auto PrivateEndPoint = Object->get(KafkaTopics::ServiceEvents::Fields::PRIVATE).toString();
 							if (Event == KafkaTopics::ServiceEvents::EVENT_KEEP_ALIVE && Services_.find(PrivateEndPoint) != Services_.end()) {
-								Services_[PrivateEndPoint].LastUpdate = OpenWifi::Now();
+								Services_[PrivateEndPoint].LastUpdate = Utils::Now();
 							} else if (Event == KafkaTopics::ServiceEvents::EVENT_LEAVE) {
 								Services_.erase(PrivateEndPoint);
 								poco_debug(logger(),fmt::format("Service {} ID={} leaving system.",Object->get(KafkaTopics::ServiceEvents::Fields::PRIVATE).toString(),ID));
@@ -67,7 +68,7 @@ namespace OpenWifi {
 									.PublicEndPoint = Object->get(KafkaTopics::ServiceEvents::Fields::PUBLIC).toString(),
 									.AccessKey = Object->get(KafkaTopics::ServiceEvents::Fields::KEY).toString(),
 									.Version = Object->get(KafkaTopics::ServiceEvents::Fields::VRSN).toString(),
-									.LastUpdate = OpenWifi::Now() };
+									.LastUpdate = Utils::Now() };
 
 								std::string SvcList;
 								for (const auto &Svc: Services_) {
@@ -98,7 +99,7 @@ namespace OpenWifi {
 			}
 
 			auto i=Services_.begin();
-			auto now = OpenWifi::Now();
+			auto now = Utils::Now();
 			for(;i!=Services_.end();) {
 				if((now - i->second.LastUpdate)>60) {
 					i = Services_.erase(i);

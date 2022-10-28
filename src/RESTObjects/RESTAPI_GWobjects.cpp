@@ -17,6 +17,7 @@
 
 #include "RESTAPI_GWobjects.h"
 #include "framework/RESTAPI_utils.h"
+#include "framework/utils.h"
 
 using OpenWifi::RESTAPI_utils::field_to_json;
 using OpenWifi::RESTAPI_utils::field_from_json;
@@ -206,7 +207,7 @@ namespace OpenWifi::GWObjects {
 		field_to_json(Obj,"started", started);
 		field_to_json(Obj,"sessionId", sessionId);
 		field_to_json(Obj,"connectionCompletionTime", connectionCompletionTime);
-		field_to_json(Obj,"totalConnectionTime", OpenWifi::Now() - started);
+		field_to_json(Obj,"totalConnectionTime", Utils::Now() - started);
 
 		switch(VerifiedCertificate) {
 			case NO_CERTIFICATE:
@@ -285,7 +286,7 @@ namespace OpenWifi::GWObjects {
 		lastContact.clear();
 		associations.clear();
 		numberOfDevices = 0 ;
-		snapshot = OpenWifi::Now();
+		snapshot = Utils::Now();
 	}
 
 	void CapabilitiesModel::to_json(Poco::JSON::Object &Obj) const{

@@ -23,7 +23,7 @@ namespace OpenWifi {
 		void handleRequest([[maybe_unused]] Poco::Net::HTTPServerRequest& Request, Poco::Net::HTTPServerResponse& Response) override;
 
 	  private:
-		Poco::Logger 	& Logger_;
+		[[maybe_unused]] Poco::Logger 	& Logger_;
 		uint64_t 		id_;
 	};
 

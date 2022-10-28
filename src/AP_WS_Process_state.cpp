@@ -9,6 +9,7 @@
 
 #include "framework/KafkaManager.h"
 #include "framework/UI_WebSocketClientServer.h"
+#include "framework/utils.h"
 
 #include "fmt/format.h"
 
@@ -44,7 +45,7 @@ namespace OpenWifi {
 
 			GWObjects::Statistics Stats{
 				.SerialNumber = SerialNumber_, .UUID = UUID, .Data = StateStr};
-			Stats.Recorded = OpenWifi::Now();
+			Stats.Recorded = Utils::Now();
 			StorageService()->AddStatisticsData(Stats);
 			if (!request_uuid.empty()) {
 				StorageService()->SetCommandResult(request_uuid, StateStr);

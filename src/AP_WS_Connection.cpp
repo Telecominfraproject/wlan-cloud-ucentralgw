@@ -24,6 +24,7 @@
 #include "framework/WebSocketClientNotifications.h"
 #include "framework/KafkaManager.h"
 #include "framework/MicroServiceFuncs.h"
+#include "framework/utils.h"
 
 #include "fmt/format.h"
 
@@ -105,7 +106,7 @@ namespace OpenWifi {
 			PeerAddress_ = SS->peerAddress().host();
 			CId_ = Utils::FormatIPv6(SS->peerAddress().toString());
 
-			State_.started = OpenWifi::Now();
+			State_.started = Utils::Now();
 
 			if (!SS->secure()) {
 				poco_warning(Logger_,fmt::format("TLS-CONNECTION({}): Session={} Connection is NOT secure. Device is not allowed.", CId_, State_.sessionId ));
@@ -203,7 +204,7 @@ namespace OpenWifi {
 			Poco::JSON::Object Disconnect;
 			Poco::JSON::Object Details;
 			Details.set(uCentralProtocol::SERIALNUMBER, SerialNumber);
-			Details.set(uCentralProtocol::TIMESTAMP, OpenWifi::Now());
+			Details.set(uCentralProtocol::TIMESTAMP, Utils::Now());
 			Disconnect.set(uCentralProtocol::DISCONNECTION, Details);
 			Poco::JSON::Stringifier Stringify;
 			std::ostringstream OS;
@@ -490,7 +491,7 @@ namespace OpenWifi {
 		std::unique_lock Lock(TelemetryMutex_);
 		TelemetryWebSocketRefCount_++;
 		TelemetryInterval_ = TelemetryInterval_ ? ( Interval< TelemetryInterval_ ? Interval : TelemetryInterval_) : Interval;
-		auto TelemetryWebSocketTimer = LifeTime + OpenWifi::Now();
+		auto TelemetryWebSocketTimer = LifeTime + Utils::Now();
 		TelemetryWebSocketTimer_ = TelemetryWebSocketTimer > TelemetryWebSocketTimer_ ? TelemetryWebSocketTimer : TelemetryWebSocketTimer_;
 		UpdateCounts();
 		if (!TelemetryReporting_) {
@@ -504,7 +505,7 @@ namespace OpenWifi {
 		std::unique_lock Lock(TelemetryMutex_);
 		TelemetryKafkaRefCount_++;
 		TelemetryInterval_ = TelemetryInterval_ ? ( Interval<TelemetryInterval_ ? Interval : TelemetryInterval_) : Interval;
-		auto TelemetryKafkaTimer = LifeTime + OpenWifi::Now();
+		auto TelemetryKafkaTimer = LifeTime + Utils::Now();
 		TelemetryKafkaTimer_ = TelemetryKafkaTimer > TelemetryKafkaTimer_ ? TelemetryKafkaTimer : TelemetryKafkaTimer_;
 		UpdateCounts();
 		if (!TelemetryReporting_) {
@@ -591,7 +592,7 @@ namespace OpenWifi {
 
 			State_.RX += IncomingSize;
 			State_.MessageCount++;
-			State_.LastContact = OpenWifi::Now();
+			State_.LastContact = Utils::Now();
 
 			switch (Op) {
 				case Poco::Net::WebSocket::FRAME_OP_PING: {
@@ -608,7 +609,7 @@ namespace OpenWifi {
 						PingDetails.set(uCentralProtocol::SERIALNUMBER, SerialNumber_);
 						PingDetails.set(uCentralProtocol::COMPATIBLE, Compatible_);
 						PingDetails.set(uCentralProtocol::CONNECTIONIP, CId_);
-						PingDetails.set(uCentralProtocol::TIMESTAMP, OpenWifi::Now());
+						PingDetails.set(uCentralProtocol::TIMESTAMP, Utils::Now());
 						PingDetails.set("locale", State_.locale );
 						PingObject.set(uCentralProtocol::PING, PingDetails);
 						Poco::JSON::Stringifier Stringify;

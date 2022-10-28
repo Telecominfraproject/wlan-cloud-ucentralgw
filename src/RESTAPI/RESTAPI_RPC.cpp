@@ -13,6 +13,7 @@
 #include "framework/ow_constants.h"
 #include "framework/RESTAPI_Handler.h"
 #include "ParseWifiScan.h"
+#include "framework/utils.h"
 
 namespace OpenWifi::RESTAPI_RPC {
 	void SetCommandStatus(GWObjects::CommandDetails &Cmd,
@@ -58,7 +59,7 @@ namespace OpenWifi::RESTAPI_RPC {
 			return SetCommandStatus(Cmd, Request, Response, Handler, Storage::CommandExecutionType::COMMAND_FAILED, Logger);
 		}
 
-		Cmd.Executed = OpenWifi::Now();
+		Cmd.Executed = Utils::Now();
 
 		bool Sent;
 		std::chrono::time_point<std::chrono::high_resolution_clock> rpc_submitted = std::chrono::high_resolution_clock::now();
@@ -125,7 +126,7 @@ namespace OpenWifi::RESTAPI_RPC {
 			}
 			Cmd.Results = ResultText.str();
 			Cmd.Status = "completed";
-			Cmd.Completed = OpenWifi::Now();
+			Cmd.Completed = Utils::Now();
 			Cmd.executionTime = rpc_execution_time.count();
 
 			if (Cmd.ErrorCode && Cmd.Command == uCentralProtocol::TRACE) {

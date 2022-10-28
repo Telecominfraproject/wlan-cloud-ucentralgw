@@ -7,7 +7,6 @@
 //
 
 #include "Poco/Net/HTTPHeaderStream.h"
-#include "Poco/JSON/Array.h"
 #include "Poco/Net/Context.h"
 #include "Poco/Net/HTTPServerRequest.h"
 
@@ -18,6 +17,7 @@
 
 #include "framework/WebSocketClientNotifications.h"
 #include "framework/MicroServiceFuncs.h"
+#include "framework/utils.h"
 
 #include "fmt/format.h"
 
@@ -166,14 +166,14 @@ namespace OpenWifi {
 			Garbage_.clear();
 		}
 
-		static uint64_t last_log = OpenWifi::Now();
+		static uint64_t last_log = Utils::Now();
 
 		NumberOfConnectedDevices_ = 0;
 		NumberOfConnectingDevices_ = 0;
 		AverageDeviceConnectionTime_ = 0;
 		uint64_t	total_connected_time=0;
 
-		auto now = OpenWifi::Now();
+		auto now = Utils::Now();
 		for (auto connection=SerialNumbers_.begin(); connection!=SerialNumbers_.end();) {
 
 			if(connection->second.second== nullptr) {

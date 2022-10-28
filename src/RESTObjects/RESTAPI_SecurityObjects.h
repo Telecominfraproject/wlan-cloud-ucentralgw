@@ -14,6 +14,7 @@
 #include "Poco/JSON/Object.h"
 #include "Poco/Data/LOB.h"
 #include "Poco/Data/LOBStream.h"
+#include "framework/utils.h"
 
 namespace OpenWifi {
     uint64_t Now();
@@ -62,7 +63,7 @@ namespace OpenWifi {
         std::string UserTypeToString(USER_ROLE U);
 
         struct NoteInfo {
-            uint64_t    created=0; // = OpenWifi::Now();
+            uint64_t    created=0; // = Utils::Now();
             std::string createdBy;
             std::string note;
 
@@ -101,7 +102,7 @@ namespace OpenWifi {
             std::string uuid;
             std::string question;
             std::string method;
-            uint64_t    created = OpenWifi::Now();
+            uint64_t    created = Utils::Now();
 
             void to_json(Poco::JSON::Object &Obj) const;
             bool from_json(const Poco::JSON::Object::Ptr &Obj);
@@ -264,7 +265,7 @@ namespace OpenWifi {
             std::string         locale;
             std::string         message;
             uint64_t            sent=0;
-            uint64_t            created=OpenWifi::Now();
+            uint64_t            created=Utils::Now();
             uint64_t            expires=0;
             uint64_t            completed=0;
             uint64_t            canceled=0;
