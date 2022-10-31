@@ -107,7 +107,8 @@ namespace OpenWifi {
 						"subscriber 	VARCHAR(64) , "
 						"entity     	VARCHAR(64) , "
 						"modified		BIGINT,"
-						"locale 		varchar(32) "
+						"locale 		varchar(32), "
+						"restrictedDevice BOOLEAN "
 						")", Poco::Data::Keywords::now;
 				Sess << "CREATE INDEX IF NOT EXISTS DeviceOwner ON Devices (Owner ASC)", Poco::Data::Keywords::now;
 				Sess << "CREATE INDEX IF NOT EXISTS DeviceLocation ON Devices (Location ASC)", Poco::Data::Keywords::now;
@@ -118,7 +119,8 @@ namespace OpenWifi {
 				"alter table devices add column subscriber varchar(64)",
 				"alter table devices add column entity varchar(64)",
 				"alter table devices add column modified bigint",
-				"alter table devices add column locale varchar(32)"
+				"alter table devices add column locale varchar(32)",
+				"alter table devices add column restrictedDevice boolean",
 			};
 
 			for(const auto &i:Script) {

@@ -11,7 +11,6 @@
 #include "CentralConfig.h"
 #include "ConfigurationCache.h"
 #include "Daemon.h"
-#include "AP_WS_Server.h"
 #include "FindCountry.h"
 #include "OUIServer.h"
 #include "Poco/Data/RecordSet.h"
