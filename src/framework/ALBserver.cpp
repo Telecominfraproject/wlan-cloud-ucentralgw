@@ -48,6 +48,7 @@ namespace OpenWifi {
 
 	int ALBHealthCheckServer::Start() {
 		if(MicroServiceConfigGetBool("alb.enable",false)) {
+            poco_information(Logger(),"Starting...");
 			Running_=true;
 			Port_ = (int)MicroServiceConfigGetInt("alb.port",15015);
 			Socket_ = std::make_unique<Poco::Net::ServerSocket>(Port_);

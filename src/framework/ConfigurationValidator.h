@@ -32,7 +32,7 @@ namespace OpenWifi {
         nlohmann::json  RootSchema_;
 
         ConfigurationValidator():
-            SubSystemServer("configvalidator", "CFG-VALIDATOR", "config.validator") {
+            SubSystemServer("ConfigValidator", "CFG-VALIDATOR", "config.validator") {
         }
     };
 

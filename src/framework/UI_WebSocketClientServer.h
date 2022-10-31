@@ -27,6 +27,21 @@ namespace OpenWifi {
 	  private:
 	};
 
+    struct UI_WebSocketClientInfo {
+        std::unique_ptr<Poco::Net::WebSocket>   WS_ = nullptr;
+        std::string 				            Id_;
+        std::string					            UserName_;
+        bool 			                        Authenticated_ = false;
+        bool				                    SocketRegistered_=false;
+        SecurityObjects::UserInfoAndPolicy      UserInfo_;
+
+        UI_WebSocketClientInfo(Poco::Net::WebSocket &WS, const std::string &Id, const std::string &username) {
+            WS_ =  std::make_unique<Poco::Net::WebSocket>(WS);
+            Id_ = Id;
+            UserName_ = username;
+        }
+    };
+
 	class UI_WebSocketClientServer : public SubSystemServer, Poco::Runnable {
 
 	  public:
@@ -41,11 +56,8 @@ namespace OpenWifi {
 		Poco::Net::SocketReactor & Reactor() { return Reactor_; }
 		void NewClient(Poco::Net::WebSocket &WS, const std::string &Id, const std::string &UserName);
 		void SetProcessor(UI_WebSocketClientProcessor *F);
-		void UnRegister(const std::string &Id);
-		void SetUser(const std::string &Id, const std::string &UserId);
 		[[nodiscard]] inline bool GeoCodeEnabled() const { return GeoCodeEnabled_; }
 		[[nodiscard]] inline std::string GoogleApiKey() const { return GoogleApiKey_; }
-		[[nodiscard]] bool Send(const std::string &Id, const std::string &Payload);
 
 		template <typename T> bool
 		SendUserNotification(const std::string &userName, const WebSocketNotification<T> &Notification) {
@@ -70,49 +82,34 @@ namespace OpenWifi {
 			SendToAll(OO.str());
 		}
 
+        [[nodiscard]] bool SendToId(const std::string &Id, const std::string &Payload);
 		[[nodiscard]] bool SendToUser(const std::string &userName, const std::string &Payload);
 		void SendToAll(const std::string &Payload);
 
-	  private:
+        using ClientList = std::map<int,std::unique_ptr<UI_WebSocketClientInfo>>;
+    private:
 		mutable std::atomic_bool Running_ = false;
 		Poco::Thread 								Thr_;
 		Poco::Net::SocketReactor					Reactor_;
 		Poco::Thread								ReactorThread_;
+        std::recursive_mutex                        LocalMutex_;
 		bool GeoCodeEnabled_ = false;
 		std::string GoogleApiKey_;
-		std::map<std::string, std::pair<std::unique_ptr<UI_WebSocketClient>, std::string>> Clients_;
-		UI_WebSocketClientProcessor *Processor_ = nullptr;
+        ClientList    Clients_;
+		UI_WebSocketClientProcessor                 *Processor_ = nullptr;
 		UI_WebSocketClientServer() noexcept;
+        void EndConnection(std::lock_guard<std::recursive_mutex> &G, ClientList::iterator & Client);
+
+        void OnSocketReadable(const Poco::AutoPtr<Poco::Net::ReadableNotification> &pNf);
+        void OnSocketShutdown(const Poco::AutoPtr<Poco::Net::ShutdownNotification> &pNf);
+        void OnSocketError(const Poco::AutoPtr<Poco::Net::ErrorNotification> &pNf);
+
+        ClientList::iterator FindWSClient( std::lock_guard<std::recursive_mutex> &G, int ClientSocket);
+
+
 	};
 
 	inline auto UI_WebSocketClientServer() { return UI_WebSocketClientServer::instance(); }
-
-	class UI_WebSocketClient {
-	  public:
-		explicit UI_WebSocketClient(Poco::Net::WebSocket &WS,
-								 const std::string &Id,
-								 const std::string &UserName,
-								 Poco::Logger &L,
-								 UI_WebSocketClientProcessor *Processor);
-		virtual ~UI_WebSocketClient();
-		[[nodiscard]] inline const std::string &Id();
-		[[nodiscard]] Poco::Logger &Logger();
-		bool Send(const std::string &Payload);
-		void EndConnection();
-	  private:
-		std::unique_ptr<Poco::Net::WebSocket> WS_;
-		Poco::Net::SocketReactor 	&Reactor_;
-		std::string 				Id_;
-		std::string					UserName_;
-		Poco::Logger 				&Logger_;
-		std::atomic_bool 			Authenticated_ = false;
-		volatile bool				SocketRegistered_=false;
-		SecurityObjects::UserInfoAndPolicy UserInfo_;
-		UI_WebSocketClientProcessor *Processor_ = nullptr;
-		void OnSocketReadable(const Poco::AutoPtr<Poco::Net::ReadableNotification> &pNf);
-		void OnSocketShutdown(const Poco::AutoPtr<Poco::Net::ShutdownNotification> &pNf);
-		void OnSocketError(const Poco::AutoPtr<Poco::Net::ErrorNotification> &pNf);
-	};
 
 };
 

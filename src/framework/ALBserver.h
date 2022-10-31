@@ -23,7 +23,7 @@ namespace OpenWifi {
 		void handleRequest([[maybe_unused]] Poco::Net::HTTPServerRequest& Request, Poco::Net::HTTPServerResponse& Response) override;
 
 	  private:
-		[[maybe_unused]] Poco::Logger 	& Logger_;
+		Poco::Logger 	& Logger_;
 		uint64_t 		id_;
 	};
 
@@ -34,7 +34,7 @@ namespace OpenWifi {
 		ALBRequestHandler* createRequestHandler(const Poco::Net::HTTPServerRequest& request) override;
 
 	  private:
-		Poco::Logger	&Logger_;
+		Poco::Logger	                            &Logger_;
 		inline static std::atomic_uint64_t 			req_id_=1;
 	};
 

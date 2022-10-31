@@ -30,6 +30,7 @@ namespace OpenWifi {
 	};
 
 	void EventBusManager::Start() {
+        poco_information(Logger(),"Starting...");
 		if(KafkaManager()->Enabled()) {
 			Thread_.start(*this);
 		}

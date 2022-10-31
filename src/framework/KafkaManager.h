@@ -33,19 +33,18 @@ namespace OpenWifi {
 	};
 
 	class KafkaProducer : public Poco::Runnable {
-	  public:
-
-		void run () override;
-		void Start();
-		void Stop();
-		void Produce(const std::string &Topic, const std::string &Key, const std::string &Payload);
+        public:
+            void run () override;
+            void Start();
+            void Stop();
+            void Produce(const std::string &Topic, const std::string &Key, const std::string &Payload);
 
 	  private:
-		std::recursive_mutex  		Mutex_;
-		Poco::Thread        		Worker_;
-		mutable std::atomic_bool    Running_=false;
-		Poco::NotificationQueue		Queue_;
-	};
+            std::recursive_mutex  		Mutex_;
+            Poco::Thread        		Worker_;
+            mutable std::atomic_bool    Running_=false;
+            Poco::NotificationQueue		Queue_;
+    };
 
 	class KafkaConsumer : public Poco::Runnable {
 	  public:
@@ -54,14 +53,13 @@ namespace OpenWifi {
 		void Stop();
 
 	  private:
-		std::recursive_mutex  	Mutex_;
-		Poco::Thread        	Worker_;
-		mutable std::atomic_bool    	Running_=false;
+		std::recursive_mutex  	    Mutex_;
+		Poco::Thread        	    Worker_;
+		mutable std::atomic_bool    Running_=false;
 	};
 
 	class KafkaDispatcher : public Poco::Runnable {
 	  public:
-
 		void Start();
 		void Stop();
 		auto RegisterTopicWatcher(const std::string &Topic, Types::TopicNotifyFunction &F);
@@ -104,11 +102,11 @@ namespace OpenWifi {
 		void Topics(std::vector<std::string> &T);
 
 	  private:
-		bool 							KafkaEnabled_ = false;
-		std::string 					SystemInfoWrapper_;
-		KafkaProducer                   ProducerThr_;
-		KafkaConsumer                   ConsumerThr_;
-		KafkaDispatcher					Dispatcher_;
+		bool 				KafkaEnabled_ = false;
+		std::string 		SystemInfoWrapper_;
+		KafkaProducer       ProducerThr_;
+        KafkaConsumer       ConsumerThr_;
+		KafkaDispatcher     Dispatcher_;
 
 		void PartitionAssignment(const cppkafka::TopicPartitionList& partitions);
 		void PartitionRevocation(const cppkafka::TopicPartitionList& partitions);
