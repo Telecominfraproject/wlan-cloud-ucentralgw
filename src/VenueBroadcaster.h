@@ -4,9 +4,15 @@
 
 #pragma once
 
-#include "framework/MicroService.h"
+#include "Poco/Notification.h"
+#include "Poco/NotificationQueue.h"
+
 #include "sdks/sdk_prov.h"
 #include "AP_WS_Server.h"
+
+#include "framework/MicroServiceFuncs.h"
+#include "framework/SubSystemServer.h"
+#include "framework/utils.h"
 
 namespace OpenWifi {
 
@@ -20,7 +26,7 @@ namespace OpenWifi {
 		}
 		std::string 	SourceSerialNumber_;
 		std::string 	Data_;
-		uint64_t 		TimeStamp_=OpenWifi::Now();
+		uint64_t 		TimeStamp_=Utils::Now();
 	};
 
 	class VenueBroadcaster : public SubSystemServer, Poco::Runnable {
@@ -31,7 +37,7 @@ namespace OpenWifi {
 		}
 
 		inline int Start() override {
-			Enabled_ = MicroService::instance().ConfigGetBool("venue_broadcast.enabled",true);
+			Enabled_ = MicroServiceConfigGetBool("venue_broadcast.enabled",true);
 			if(Enabled_) {
 				BroadcastManager_.start(*this);
 			}
@@ -54,7 +60,7 @@ namespace OpenWifi {
 
 
 		struct VenueInfo {
-			uint64_t 			timestamp=OpenWifi::Now();
+			uint64_t 			timestamp=Utils::Now();
 			Types::StringVec 	serialNumbers;
 		};
 
@@ -62,7 +68,7 @@ namespace OpenWifi {
 			//	Can we find our serial number in any of the lists so far...
 			for(const auto &venue:Venues_) {
 				auto entry = std::find(venue.second.serialNumbers.begin(),venue.second.serialNumbers.end(),Source);
-				if(entry!=venue.second.serialNumbers.end() && (OpenWifi::Now()-venue.second.timestamp)<600) {
+				if(entry!=venue.second.serialNumbers.end() && (Utils::Now()-venue.second.timestamp)<600) {
 					SerialNumbers = venue.second.serialNumbers;
 					auto entry2 = std::find(SerialNumbers.begin(),SerialNumbers.end(),Source);
 					SerialNumbers.erase(entry2);
@@ -75,7 +81,7 @@ namespace OpenWifi {
 			Types::StringVec 	TmpSerialNumbers;
 			if(OpenWifi::SDK::Prov::GetSerialNumbersForVenueOfSerialNumber(Source,Venue,TmpSerialNumbers,Logger())) {
 				std::sort(TmpSerialNumbers.begin(),TmpSerialNumbers.end());
-				VenueInfo	V{.timestamp=OpenWifi::Now(), .serialNumbers=TmpSerialNumbers};
+				VenueInfo	V{.timestamp=Utils::Now(), .serialNumbers=TmpSerialNumbers};
 				Venues_[Venue] = V;
 				auto p = std::find(TmpSerialNumbers.begin(),TmpSerialNumbers.end(),Source);
 				if(p!=TmpSerialNumbers.end()) {

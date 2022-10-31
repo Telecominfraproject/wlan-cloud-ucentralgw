@@ -83,10 +83,52 @@ add_executable( owgw
         src/framework/orm.h
         src/framework/StorageClass.h
         src/framework/MicroServiceErrorHandler.h
+        src/framework/UI_WebSocketClientServer.cpp
+        src/framework/UI_WebSocketClientServer.h
+        src/framework/UI_WebSocketClientNotifications.cpp
+        src/framework/UI_WebSocketClientNotifications.h
+        src/framework/utils.h
+        src/framework/utils.cpp
+        src/framework/AppServiceRegistry.h
+        src/framework/SubSystemServer.cpp
+        src/framework/SubSystemServer.h
+        src/framework/RESTAPI_utils.h
+        src/framework/AuthClient.cpp
+        src/framework/AuthClient.h
+        src/framework/MicroServiceNames.h
+        src/framework/MicroServiceFuncs.h
+        src/framework/OpenAPIRequests.cpp
+        src/framework/OpenAPIRequests.h
+        src/framework/MicroServiceFuncs.cpp
+        src/framework/ALBserver.cpp
+        src/framework/ALBserver.h
+        src/framework/KafkaManager.cpp
+        src/framework/KafkaManager.h
+        src/framework/RESTAPI_RateLimiter.h
+        src/framework/WebSocketLogger.h
+        src/framework/RESTAPI_GenericServerAccounting.h
+        src/framework/CIDR.h
+        src/framework/RESTAPI_Handler.cpp
+        src/framework/RESTAPI_Handler.h
+        src/framework/RESTAPI_ExtServer.h
+        src/framework/RESTAPI_ExtServer.cpp
+        src/framework/RESTAPI_IntServer.cpp
+        src/framework/RESTAPI_IntServer.h
+        src/framework/RESTAPI_SystemCommand.h
+        src/framework/RESTAPI_WebSocketServer.h
+        src/framework/EventBusManager.cpp
+        src/framework/EventBusManager.h
+        src/framework/RESTAPI_PartHandler.h
+        src/framework/MicroService.cpp
+        src/framework/MicroServiceExtra.h
         src/RESTObjects/RESTAPI_SecurityObjects.h src/RESTObjects/RESTAPI_SecurityObjects.cpp
-        src/RESTObjects/RESTAPI_ProvObjects.cpp src/RESTObjects/RESTAPI_ProvObjects.h
         src/RESTObjects/RESTAPI_GWobjects.h src/RESTObjects/RESTAPI_GWobjects.cpp
         src/RESTObjects/RESTAPI_FMSObjects.h src/RESTObjects/RESTAPI_FMSObjects.cpp
+        src/RESTObjects/RESTAPI_CertObjects.cpp src/RESTObjects/RESTAPI_CertObjects.h
+        src/RESTObjects/RESTAPI_OWLSobjects.cpp src/RESTObjects/RESTAPI_OWLSobjects.h
+        src/RESTObjects/RESTAPI_ProvObjects.cpp src/RESTObjects/RESTAPI_ProvObjects.h
+        src/RESTObjects/RESTAPI_AnalyticsObjects.cpp src/RESTObjects/RESTAPI_AnalyticsObjects.h
+        src/RESTObjects/RESTAPI_SubObjects.cpp src/RESTObjects/RESTAPI_SubObjects.h
         src/RESTAPI/RESTAPI_devices_handler.cpp src/RESTAPI/RESTAPI_devices_handler.h
         src/RESTAPI/RESTAPI_device_handler.cpp src/RESTAPI/RESTAPI_device_handler.h
         src/RESTAPI/RESTAPI_device_commandHandler.cpp src/RESTAPI/RESTAPI_device_commandHandler.h
@@ -110,7 +152,6 @@ add_executable( owgw
         src/Daemon.cpp src/Daemon.h
         src/AP_WS_Server.cpp src/AP_WS_Server.h
         src/StorageService.cpp src/StorageService.h
-#        src/DeviceRegistry.cpp src/DeviceRegistry.h
         src/CommandManager.cpp src/CommandManager.h
         src/CentralConfig.cpp src/CentralConfig.h
         src/FileUploader.cpp src/FileUploader.h
@@ -129,12 +170,36 @@ add_executable( owgw
         src/rttys/RTTYS_ClientConnection.cpp
         src/rttys/RTTYS_ClientConnection.h
         src/rttys/RTTYS_WebServer.cpp
-        src/rttys/RTTYS_WebServer.h src/RESTAPI/RESTAPI_device_helper.h src/SDKcalls.cpp src/SDKcalls.h src/StateUtils.cpp src/StateUtils.h src/AP_WS_ReactorPool.h src/AP_WS_Connection.h src/AP_WS_Connection.cpp src/TelemetryClient.h src/TelemetryClient.cpp src/RESTAPI/RESTAPI_iptocountry_handler.cpp src/RESTAPI/RESTAPI_iptocountry_handler.h src/framework/ow_constants.h src/GwWebSocketClient.cpp src/GwWebSocketClient.h src/framework/WebSocketClientNotifications.h src/RADIUS_proxy_server.cpp src/RADIUS_proxy_server.h src/RESTAPI/RESTAPI_radiusProxyConfig_handler.cpp src/RESTAPI/RESTAPI_radiusProxyConfig_handler.h src/ParseWifiScan.h src/RADIUS_helpers.h src/VenueBroadcaster.h src/sdks/sdk_prov.h
+        src/rttys/RTTYS_WebServer.h src/RESTAPI/RESTAPI_device_helper.h
+        src/SDKcalls.cpp
+        src/SDKcalls.h
+        src/StateUtils.cpp src/StateUtils.h
+        src/AP_WS_ReactorPool.h
+        src/AP_WS_Connection.h
+        src/AP_WS_Connection.cpp
+        src/TelemetryClient.h src/TelemetryClient.cpp
+        src/RESTAPI/RESTAPI_iptocountry_handler.cpp src/RESTAPI/RESTAPI_iptocountry_handler.h
+        src/framework/ow_constants.h
+        src/GwWebSocketClient.cpp src/GwWebSocketClient.h
+        src/RADIUS_proxy_server.cpp src/RADIUS_proxy_server.h
+        src/RESTAPI/RESTAPI_radiusProxyConfig_handler.cpp src/RESTAPI/RESTAPI_radiusProxyConfig_handler.h
+        src/ParseWifiScan.h
+        src/RADIUS_helpers.h
+        src/VenueBroadcaster.h
+        src/sdks/sdk_prov.h
         src/AP_WS_Process_connect.cpp
         src/AP_WS_Process_state.cpp
         src/AP_WS_Process_healthcheck.cpp
         src/AP_WS_Process_log.cpp
-        src/AP_WS_Process_crashlog.cpp src/AP_WS_Process_ping.cpp src/AP_WS_Process_cfgpending.cpp src/AP_WS_Process_recovery.cpp src/AP_WS_Process_deviceupdate.cpp src/AP_WS_Process_telemetry.cpp src/AP_WS_Process_venuebroadcast.cpp src/RADSECserver.h)
+        src/AP_WS_Process_crashlog.cpp
+        src/AP_WS_Process_ping.cpp
+        src/AP_WS_Process_cfgpending.cpp
+        src/AP_WS_Process_recovery.cpp
+        src/AP_WS_Process_deviceupdate.cpp
+        src/AP_WS_Process_telemetry.cpp
+        src/AP_WS_Process_venuebroadcast.cpp
+        src/RADSEC_server.h
+        src/UI_GW_WebSocketNotifications.cpp src/UI_GW_WebSocketNotifications.h)
 
 if(NOT SMALL_BUILD)
 

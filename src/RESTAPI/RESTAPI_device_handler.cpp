@@ -9,11 +9,12 @@
 #include "RESTAPI_device_handler.h"
 #include "CentralConfig.h"
 #include "ConfigurationCache.h"
-#include "Poco/JSON/Parser.h"
 #include "StorageService.h"
+
 #include "framework/ConfigurationValidator.h"
-#include "framework/MicroService.h"
 #include "framework/ow_constants.h"
+#include "framework/utils.h"
+
 #include "RESTAPI_device_helper.h"
 
 namespace OpenWifi {
@@ -131,11 +132,11 @@ namespace OpenWifi {
 
 		for(auto &i:Device.Notes) {
 			i.createdBy = UserInfo_.userinfo.email;
-			i.created = OpenWifi::Now();
+			i.created = Utils::Now();
 		}
 
 		Config::Config NewConfig(Device.Configuration);
-		Device.UUID = OpenWifi::Now();
+		Device.UUID = Utils::Now();
 		NewConfig.SetUUID(Device.UUID);
 		Device.Configuration = NewConfig.get();
 
@@ -174,7 +175,7 @@ namespace OpenWifi {
 				return BadRequest(RESTAPI::Errors::ConfigBlockInvalid);
 			}
 			Config::Config NewConfig(NewDevice.Configuration);
-			uint64_t NewConfigUUID = OpenWifi::Now();
+			uint64_t NewConfigUUID = Utils::Now();
 			NewConfig.SetUUID(NewConfigUUID);
 			Existing.Configuration = NewConfig.get();
 			Existing.UUID = NewConfigUUID;
@@ -188,11 +189,11 @@ namespace OpenWifi {
 
 		for(auto &i:NewDevice.Notes) {
 			i.createdBy = UserInfo_.userinfo.email;
-			i.created = OpenWifi::Now();
+			i.created = Utils::Now();
 			Existing.Notes.push_back(i);
 		}
 
-		Existing.LastConfigurationChange = OpenWifi::Now();
+		Existing.LastConfigurationChange = Utils::Now();
 		if (StorageService()->UpdateDevice(Existing)) {
 			SetCurrentConfigurationID(SerialNumber, Existing.UUID);
 			Poco::JSON::Object DevObj;

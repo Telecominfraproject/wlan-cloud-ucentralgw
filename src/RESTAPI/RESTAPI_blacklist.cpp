@@ -6,13 +6,11 @@
 //	Arilia Wireless Inc.
 //
 
-#include <ctime>
-
 #include "Poco/JSON/Parser.h"
-#include "Poco/JSON/Stringifier.h"
 #include "RESTAPI_blacklist.h"
 #include "StorageService.h"
 #include "framework/ow_constants.h"
+#include "framework/utils.h"
 
 namespace OpenWifi {
 	void RESTAPI_blacklist::DoDelete() {
@@ -68,7 +66,7 @@ namespace OpenWifi {
 		}
 
 		D.author = UserInfo_.userinfo.email;
-		D.created = OpenWifi::Now();
+		D.created = Utils::Now();
 
 		if(StorageService()->AddBlackListDevice(D)) {
 			GWObjects::BlackListedDevice	CreatedDevice;

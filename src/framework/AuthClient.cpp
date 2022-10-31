@@ -1,0 +1,71 @@
+//
+// Created by stephane bourque on 2022-10-25.
+//
+
+#include "Poco/Net/HTTPServerResponse.h"
+
+#include "framework/AuthClient.h"
+#include "framework/MicroServiceNames.h"
+#include "framework/OpenAPIRequests.h"
+#include "fmt/format.h"
+
+namespace OpenWifi {
+
+	bool AuthClient::RetrieveTokenInformation(const std::string & SessionToken,
+										 SecurityObjects::UserInfoAndPolicy & UInfo,
+										 std::uint64_t TID,
+										 bool & Expired, bool & Contacted, bool Sub) {
+		try {
+			Types::StringPairVec QueryData;
+			QueryData.push_back(std::make_pair("token",SessionToken));
+			OpenAPIRequestGet	Req(    uSERVICE_SECURITY,
+								  Sub ? "/api/v1/validateSubToken" : "/api/v1/validateToken",
+								  QueryData,
+								  10000);
+			Poco::JSON::Object::Ptr Response;
+
+			auto StatusCode = Req.Do(Response);
+			if(StatusCode==Poco::Net::HTTPServerResponse::HTTP_GATEWAY_TIMEOUT) {
+				Contacted = false;
+				return false;
+			}
+
+			Contacted = true;
+			if(StatusCode==Poco::Net::HTTPServerResponse::HTTP_OK) {
+				if(Response->has("tokenInfo") && Response->has("userInfo")) {
+					UInfo.from_json(Response);
+					if(IsTokenExpired(UInfo.webtoken)) {
+						Expired = true;
+						return false;
+					}
+					Expired = false;
+					Cache_.update(SessionToken, UInfo);
+					return true;
+				} else {
+					return false;
+				}
+			}
+		} catch (...) {
+			poco_error(Logger(),fmt::format("Failed to retrieve token={} for TID={}", SessionToken, TID));
+		}
+		Expired = false;
+		return false;
+	}
+
+	bool AuthClient::IsAuthorized(const std::string &SessionToken, SecurityObjects::UserInfoAndPolicy & UInfo,
+							 std::uint64_t TID,
+							 bool & Expired, bool & Contacted, bool Sub) {
+		auto User = Cache_.get(SessionToken);
+		if(!User.isNull()) {
+			if(IsTokenExpired(User->webtoken)) {
+				Expired = true;
+				return false;
+			}
+			Expired = false;
+			UInfo = *User;
+			return true;
+		}
+		return RetrieveTokenInformation(SessionToken, UInfo, TID, Expired, Contacted, Sub);
+	}
+
+} // namespace OpenWifi

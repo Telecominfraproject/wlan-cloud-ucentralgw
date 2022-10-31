@@ -4,7 +4,12 @@
 
 #pragma once
 
-#include "framework/MicroService.h"
+#include <string>
+#include <map>
+#include <mutex>
+#include <fstream>
+
+#include "framework/MicroServiceFuncs.h"
 
 #include "nlohmann/json.hpp"
 
@@ -92,8 +97,8 @@ namespace OpenWifi {
 		std::atomic_bool 						CapabilitiesLoaded_=false;
 		std::map<std::string,std::string>		Platforms_;
 		CapabilitiesCache_t						Capabilities_;
-		std::string 							PlatformCacheFileName_{ MicroService::instance().DataDir()+PlatformCacheFileName };
-		std::string 							CapabilitiesCacheFileName_{ MicroService::instance().DataDir()+CapabilitiesCacheFileName };
+		std::string 							PlatformCacheFileName_{ MicroServiceDataDirectory()+PlatformCacheFileName };
+		std::string 							CapabilitiesCacheFileName_{ MicroServiceDataDirectory()+CapabilitiesCacheFileName };
 
 		inline void LoadPlatforms() {
 			try {

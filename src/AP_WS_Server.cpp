@@ -7,14 +7,18 @@
 //
 
 #include "Poco/Net/HTTPHeaderStream.h"
-#include "Poco/JSON/Array.h"
 #include "Poco/Net/Context.h"
+#include "Poco/Net/HTTPServerRequest.h"
 
 #include "AP_WS_Server.h"
 #include "AP_WS_Connection.h"
 #include "ConfigurationCache.h"
 #include "TelemetryStream.h"
-#include "framework/WebSocketClientNotifications.h"
+
+#include "framework/MicroServiceFuncs.h"
+#include "framework/utils.h"
+#include "UI_GW_WebSocketNotifications.h"
+#include "fmt/format.h"
 
 namespace OpenWifi {
 
@@ -40,8 +44,8 @@ namespace OpenWifi {
 
 	int AP_WS_Server::Start() {
 
-		AllowSerialNumberMismatch_ = MicroService::instance().ConfigGetBool("openwifi.certificates.allowmismatch",true);
-		MismatchDepth_ = MicroService::instance().ConfigGetInt("openwifi.certificates.mismatchdepth",2);
+		AllowSerialNumberMismatch_ = MicroServiceConfigGetBool("openwifi.certificates.allowmismatch",true);
+		MismatchDepth_ = MicroServiceConfigGetInt("openwifi.certificates.mismatchdepth",2);
 
 		Reactor_pool_ = std::make_unique<AP_WS_ReactorThreadPool>();
 		Reactor_pool_->Start();
@@ -72,11 +76,11 @@ namespace OpenWifi {
 
 			auto Context = Poco::AutoPtr<Poco::Net::Context>(new Poco::Net::Context(Poco::Net::Context::TLS_SERVER_USE, P));
 
-			if(!Svr.KeyFilePassword().empty()) {
+/*			if(!Svr.KeyFilePassword().empty()) {
 				auto PassphraseHandler = Poco::SharedPtr<MyPrivateKeyPassphraseHandler>( new MyPrivateKeyPassphraseHandler(Svr.KeyFilePassword(),Logger()));
 				Poco::Net::SSLManager::instance().initializeServer(PassphraseHandler, nullptr,Context);
 			}
-
+*/
 			Poco::Crypto::X509Certificate Cert(Svr.CertFile());
 			Poco::Crypto::X509Certificate Root(Svr.RootCA());
 
@@ -128,7 +132,7 @@ namespace OpenWifi {
 
 		ReactorThread_.start(Reactor_);
 
-		auto ProvString = MicroService::instance().ConfigGetString("autoprovisioning.process","default");
+		auto ProvString = MicroServiceConfigGetString("autoprovisioning.process","default");
 		if(ProvString!="default") {
 			auto Tokens = Poco::StringTokenizer(ProvString, ",");
 			for (const auto &i : Tokens) {
@@ -141,14 +145,14 @@ namespace OpenWifi {
 			UseDefaultConfig_ = true;
 		}
 
-		SimulatorId_ = MicroService::instance().ConfigGetString("simulatorid","");
+		SimulatorId_ = MicroServiceConfigGetString("simulatorid","");
 		SimulatorEnabled_ = !SimulatorId_.empty();
 		Utils::SetThreadName(ReactorThread_,"dev:react:head");
 
 		GarbageCollectorCallback_ = std::make_unique<Poco::TimerCallback<AP_WS_Server>>(*this,&AP_WS_Server::onGarbageCollecting);
 		Timer_.setStartInterval(10 * 1000);
 		Timer_.setPeriodicInterval(5 * 1000); // every minute
-		Timer_.start(*GarbageCollectorCallback_, MicroService::instance().TimerPool());
+		Timer_.start(*GarbageCollectorCallback_, MicroServiceTimerPool());
 
 		Running_ = true;
 		return 0;
@@ -161,14 +165,14 @@ namespace OpenWifi {
 			Garbage_.clear();
 		}
 
-		static std::uint64_t last_log = OpenWifi::Now();
+		static uint64_t last_log = Utils::Now();
 
 		NumberOfConnectedDevices_ = 0;
 		NumberOfConnectingDevices_ = 0;
 		AverageDeviceConnectionTime_ = 0;
-		std::uint64_t	total_connected_time=0;
+		uint64_t	total_connected_time=0;
 
-		auto now = OpenWifi::Now();
+		auto now = Utils::Now();
 		for (auto connection=SerialNumbers_.begin(); connection!=SerialNumbers_.end();) {
 
 			if(connection->second.second== nullptr) {
@@ -193,9 +197,12 @@ namespace OpenWifi {
 							 fmt::format("Active AP connections: {} Connecting: {} Average connection time: {} seconds",
 										 NumberOfConnectedDevices_, NumberOfConnectingDevices_, AverageDeviceConnectionTime_));
 		}
-		WebSocketClientNotificationNumberOfConnections(NumberOfConnectedDevices_,
-													   AverageDeviceConnectionTime_,
-													   NumberOfConnectingDevices_);
+
+		WebSocketClientNotificationNumberOfConnection_t	Notification;
+		Notification.content.numberOfConnectingDevices = NumberOfConnectingDevices_;
+		Notification.content.numberOfDevices = NumberOfConnectedDevices_;
+		Notification.content.averageConnectedTime = AverageDeviceConnectionTime_;
+		WebSocketClientNotificationNumberOfConnections(Notification);
 	}
 
 	void AP_WS_Server::Stop() {
@@ -213,7 +220,7 @@ namespace OpenWifi {
 		poco_information(Logger(),"Stopped...");
 	}
 
-	bool AP_WS_Server::GetStatistics(std::uint64_t SerialNumber, std::string &Statistics) const {
+	bool AP_WS_Server::GetStatistics(uint64_t SerialNumber, std::string &Statistics) const {
 		std::lock_guard			Lock(LocalMutex_);
 		auto Device = SerialNumbers_.find(SerialNumber);
 		if(Device == SerialNumbers_.end() || Device->second.second==nullptr)
@@ -242,7 +249,7 @@ namespace OpenWifi {
 		return true;
 	}
 
-	void AP_WS_Server::SetSessionDetails(std::uint64_t connection_id, uint64_t SerialNumber) {
+	void AP_WS_Server::SetSessionDetails(uint64_t connection_id, uint64_t SerialNumber) {
 		std::lock_guard			Lock(LocalMutex_);
 
 		auto Conn = Sessions_.find(connection_id);
@@ -257,7 +264,7 @@ namespace OpenWifi {
 		}
 	}
 
-	bool AP_WS_Server::EndSession(std::uint64_t session_id, std::uint64_t serial_number) {
+	bool AP_WS_Server::EndSession(uint64_t session_id, uint64_t serial_number) {
 		std::unique_lock G(LocalMutex_);
 
 		auto Session = Sessions_.find(session_id);
@@ -298,7 +305,7 @@ namespace OpenWifi {
 			return false;
 
 		try {
-			// std::cout << "Device connection pointer: " << (std::uint64_t) Device->second.second << std::endl;
+			// std::cout << "Device connection pointer: " << (uint64_t) Device->second.second << std::endl;
 			return Device->second.second->Send(Payload);
 		} catch (...) {
 			poco_debug(Logger(),fmt::format(": SendFrame: Could not send data to device '{}'", Utils::IntToSerialNumber(SerialNumber)));
@@ -306,7 +313,7 @@ namespace OpenWifi {
 		return false;
 	}
 
-	void AP_WS_Server::StopWebSocketTelemetry(std::uint64_t RPCID, uint64_t SerialNumber) {
+	void AP_WS_Server::StopWebSocketTelemetry(uint64_t RPCID, uint64_t SerialNumber) {
 		std::lock_guard			Lock(LocalMutex_);
 
 		auto Device = SerialNumbers_.find(SerialNumber);
@@ -315,7 +322,7 @@ namespace OpenWifi {
 		Device->second.second->StopWebSocketTelemetry(RPCID);
 	}
 
-	void AP_WS_Server::SetWebSocketTelemetryReporting(std::uint64_t RPCID, uint64_t SerialNumber, uint64_t Interval, uint64_t Lifetime) {
+	void AP_WS_Server::SetWebSocketTelemetryReporting(uint64_t RPCID, uint64_t SerialNumber, uint64_t Interval, uint64_t Lifetime) {
 		std::lock_guard			Lock(LocalMutex_);
 
 		auto Device = SerialNumbers_.find(SerialNumber);
@@ -324,7 +331,7 @@ namespace OpenWifi {
 		Device->second.second->SetWebSocketTelemetryReporting(RPCID, Interval, Lifetime);
 	}
 
-	void AP_WS_Server::SetKafkaTelemetryReporting(std::uint64_t RPCID, uint64_t SerialNumber, uint64_t Interval, uint64_t Lifetime) {
+	void AP_WS_Server::SetKafkaTelemetryReporting(uint64_t RPCID, uint64_t SerialNumber, uint64_t Interval, uint64_t Lifetime) {
 		std::lock_guard			Lock(LocalMutex_);
 
 		auto Device = SerialNumbers_.find(SerialNumber);
@@ -333,7 +340,7 @@ namespace OpenWifi {
 		Device->second.second->SetKafkaTelemetryReporting(RPCID, Interval, Lifetime);
 	}
 
-	void AP_WS_Server::StopKafkaTelemetry(std::uint64_t RPCID, uint64_t SerialNumber) {
+	void AP_WS_Server::StopKafkaTelemetry(uint64_t RPCID, uint64_t SerialNumber) {
 		std::lock_guard			Lock(LocalMutex_);
 
 		auto Device = SerialNumbers_.find(SerialNumber);

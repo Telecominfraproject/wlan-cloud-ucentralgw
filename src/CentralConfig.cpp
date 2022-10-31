@@ -7,8 +7,6 @@
 //
 #include <fstream>
 
-#include "framework/MicroService.h"
-
 #include "Poco/JSON/Object.h"
 #include "Poco/JSON/Parser.h"
 #include "Poco/File.h"

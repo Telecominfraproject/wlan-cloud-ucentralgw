@@ -5,6 +5,10 @@
 #include "AP_WS_Connection.h"
 #include "StorageService.h"
 
+#include "framework/KafkaManager.h"
+#include "framework/utils.h"
+#include "fmt/format.h"
+
 namespace OpenWifi {
 
 void AP_WS_Connection::Process_healthcheck(Poco::JSON::Object::Ptr ParamsObj) {
@@ -42,7 +46,7 @@ void AP_WS_Connection::Process_healthcheck(Poco::JSON::Object::Ptr ParamsObj) {
 		GWObjects::HealthCheck Check;
 
 		Check.SerialNumber = SerialNumber_;
-		Check.Recorded = OpenWifi::Now();
+		Check.Recorded = Utils::Now();
 		Check.UUID = UUID;
 		Check.Data = CheckData;
 		Check.Sanity = Sanity;
@@ -57,7 +61,7 @@ void AP_WS_Connection::Process_healthcheck(Poco::JSON::Object::Ptr ParamsObj) {
 		if (KafkaManager()->Enabled()) {
 			Poco::JSON::Stringifier Stringify;
 			std::ostringstream OS;
-			ParamsObj->set("timestamp", OpenWifi::Now());
+			ParamsObj->set("timestamp", Utils::Now());
 			Stringify.condense(ParamsObj, OS);
 			KafkaManager()->PostMessage(KafkaTopics::HEALTHCHECK, SerialNumber_, OS.str());
 		}

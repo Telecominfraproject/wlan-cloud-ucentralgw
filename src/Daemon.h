@@ -14,17 +14,8 @@
 #include <vector>
 #include <set>
 
+#include "framework/MicroServiceNames.h"
 #include "framework/MicroService.h"
-
-#include "Poco/Util/Application.h"
-#include "Poco/Util/ServerApplication.h"
-#include "Poco/Util/Option.h"
-#include "Poco/Util/OptionSet.h"
-#include "Poco/UUIDGenerator.h"
-#include "Poco/ErrorHandler.h"
-#include "Poco/Crypto/RSAKey.h"
-#include "Poco/Crypto/CipherFactory.h"
-#include "Poco/Crypto/Cipher.h"
 
 #include "Dashboard.h"
 #include "framework/OpenWifiTypes.h"
@@ -62,8 +53,6 @@ namespace OpenWifi {
     };
 
 	inline Daemon * Daemon() { return Daemon::instance(); }
-	inline void DaemonPostInitialization(Poco::Util::Application &self) {
-		Daemon()->PostInitialization(self);
-	}
+	void DaemonPostInitialization(Poco::Util::Application &self);
 }
 

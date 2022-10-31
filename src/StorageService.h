@@ -8,7 +8,6 @@
 
 #pragma once
 
-#include "framework/MicroService.h"
 #include "framework/StorageClass.h"
 #include "RESTObjects//RESTAPI_GWobjects.h"
 #include "Poco/Net/IPAddress.h"

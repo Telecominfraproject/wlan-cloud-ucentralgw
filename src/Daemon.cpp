@@ -6,8 +6,6 @@
 //	Arilia Wireless Inc.
 //
 
-#include "framework/MicroService.h"
-
 #include "Poco/Util/Application.h"
 #include "Poco/Util/Option.h"
 #include "Poco/Environment.h"
@@ -28,6 +26,7 @@
 #include "VenueBroadcaster.h"
 #include "framework/ConfigurationValidator.h"
 #include "rttys/RTTYS_server.h"
+#include "framework/UI_WebSocketClientServer.h"
 
 namespace OpenWifi {
 	class Daemon *Daemon::instance() {
@@ -40,10 +39,9 @@ namespace OpenWifi {
 										StorageService(),
 										SerialNumberCache(),
 										ConfigurationValidator(),
-								   		WebSocketClientServer(),
+								   		UI_WebSocketClientServer(),
 										OUIServer(),
 										FindCountryFromIP(),
-//										DeviceRegistry(),
 										CommandManager(),
 										FileUploader(),
 										StorageArchiver(),
@@ -104,6 +102,10 @@ namespace OpenWifi {
         }
         return "AP";
     }
+
+	void DaemonPostInitialization(Poco::Util::Application &self) {
+		Daemon()->PostInitialization(self);
+	}
 }
 
 int main(int argc, char **argv) {

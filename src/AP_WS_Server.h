@@ -13,22 +13,27 @@
 #include <array>
 #include <ctime>
 
-#include "framework/MicroService.h"
-
 #include "Poco/AutoPtr.h"
 #include "Poco/Net/SocketReactor.h"
 #include "Poco/Net/ParallelSocketAcceptor.h"
 #include "Poco/Net/SocketAcceptor.h"
 #include "Poco/Timer.h"
+#include "Poco/Net/HTTPRequestHandler.h"
+#include "Poco/Net/HTTPRequestHandlerFactory.h"
+#include "Poco/Net/HTTPServer.h"
+#include "Poco/Net/HTTPServerRequest.h"
 
 #include "AP_WS_Connection.h"
 #include "AP_WS_ReactorPool.h"
+
+#include "framework/utils.h"
+#include "framework/SubSystemServer.h"
 
 namespace OpenWifi {
 
 	class AP_WS_RequestHandler : public Poco::Net::HTTPRequestHandler {
 	  public:
-		explicit AP_WS_RequestHandler(Poco::Logger &L, std::uint64_t id)
+		explicit AP_WS_RequestHandler(Poco::Logger &L, uint64_t id)
 			: Logger_(L),
 			  id_(id){
 		};
@@ -37,7 +42,7 @@ namespace OpenWifi {
 						   Poco::Net::HTTPServerResponse &response) override;
 	  private:
 		Poco::Logger 				&Logger_;
-		std::uint64_t 				id_=0;
+		uint64_t 				id_=0;
 	};
 
 	class AP_WS_RequestHandlerFactory : public Poco::Net::HTTPRequestHandlerFactory {
@@ -58,7 +63,7 @@ namespace OpenWifi {
 		}
 	  private:
 		Poco::Logger 				&Logger_;
-		inline static std::uint64_t 		id_=1;
+		inline static uint64_t 		id_=1;
 	};
 
 	class AP_WS_Server : public SubSystemServer {
@@ -90,7 +95,7 @@ namespace OpenWifi {
 			return AllowSerialNumberMismatch_;
 		}
 
-		inline std::uint64_t MismatchDepth() const {
+		inline uint64_t MismatchDepth() const {
 			return MismatchDepth_;
 		}
 
@@ -100,12 +105,12 @@ namespace OpenWifi {
 		[[nodiscard]] inline Poco::Net::SocketReactor & NextReactor() { return Reactor_pool_->NextReactor(); }
 		[[nodiscard]] inline bool Running() const { return Running_; }
 
-		inline void AddConnection(std::uint64_t session_id, std::shared_ptr<AP_WS_Connection> Connection ) {
+		inline void AddConnection(uint64_t session_id, std::shared_ptr<AP_WS_Connection> Connection ) {
 			std::lock_guard			Lock(LocalMutex_);
 			Sessions_[session_id] = std::make_pair(std::move(Connection),false);
 		}
 
-		inline std::shared_ptr<AP_WS_Connection> FindConnection(std::uint64_t session_id) const {
+		inline std::shared_ptr<AP_WS_Connection> FindConnection(uint64_t session_id) const {
 			std::lock_guard			Lock(LocalMutex_);
 
 			auto Connection = Sessions_.find(session_id);
@@ -117,17 +122,17 @@ namespace OpenWifi {
 		inline bool GetStatistics(const std::string &SerialNumber, std::string & Statistics) const {
 			return GetStatistics(Utils::SerialNumberToInt(SerialNumber),Statistics);
 		}
-		bool GetStatistics(std::uint64_t SerialNumber, std::string & Statistics) const ;
+		bool GetStatistics(uint64_t SerialNumber, std::string & Statistics) const ;
 
 		inline bool GetState(const std::string & SerialNumber, GWObjects::ConnectionState & State) const {
 			return GetState(Utils::SerialNumberToInt(SerialNumber), State);
 		}
-		bool GetState(std::uint64_t SerialNumber, GWObjects::ConnectionState & State) const;
+		bool GetState(uint64_t SerialNumber, GWObjects::ConnectionState & State) const;
 
 		inline bool GetHealthcheck(const std::string &SerialNumber, GWObjects::HealthCheck & CheckData) const {
 			return GetHealthcheck(Utils::SerialNumberToInt(SerialNumber), CheckData);
 		}
-		bool GetHealthcheck(std::uint64_t SerialNumber, GWObjects::HealthCheck & CheckData) const ;
+		bool GetHealthcheck(uint64_t SerialNumber, GWObjects::HealthCheck & CheckData) const ;
 
 		bool Connected(uint64_t SerialNumber) const ;
 
@@ -135,19 +140,19 @@ namespace OpenWifi {
 			return SendFrame(Utils::SerialNumberToInt(SerialNumber), Payload);
 		}
 
-		bool SendFrame(std::uint64_t SerialNumber, const std::string & Payload) const ;
+		bool SendFrame(uint64_t SerialNumber, const std::string & Payload) const ;
 
 		bool SendRadiusAuthenticationData(const std::string & SerialNumber, const unsigned char * buffer, std::size_t size);
 		bool SendRadiusAccountingData(const std::string & SerialNumber, const unsigned char * buffer, std::size_t size);
 		bool SendRadiusCoAData(const std::string & SerialNumber, const unsigned char * buffer, std::size_t size);
 
-		void SetSessionDetails(std::uint64_t connection_id, uint64_t SerialNumber);
-		bool EndSession(std::uint64_t connection_id, std::uint64_t serial_number);
+		void SetSessionDetails(uint64_t connection_id, uint64_t SerialNumber);
+		bool EndSession(uint64_t connection_id, uint64_t serial_number);
 
-		void SetWebSocketTelemetryReporting(std::uint64_t RPCID, uint64_t SerialNumber, uint64_t Interval, uint64_t Lifetime);
-		void StopWebSocketTelemetry(std::uint64_t RPCID, uint64_t SerialNumber);
-		void SetKafkaTelemetryReporting(std::uint64_t RPCID, uint64_t SerialNumber, uint64_t Interval, uint64_t Lifetime);
-		void StopKafkaTelemetry(std::uint64_t RPCID, uint64_t SerialNumber);
+		void SetWebSocketTelemetryReporting(uint64_t RPCID, uint64_t SerialNumber, uint64_t Interval, uint64_t Lifetime);
+		void StopWebSocketTelemetry(uint64_t RPCID, uint64_t SerialNumber);
+		void SetKafkaTelemetryReporting(uint64_t RPCID, uint64_t SerialNumber, uint64_t Interval, uint64_t Lifetime);
+		void StopKafkaTelemetry(uint64_t RPCID, uint64_t SerialNumber);
 		void GetTelemetryParameters(uint64_t SerialNumber , bool & TelemetryRunning,
 									uint64_t & TelemetryInterval,
 									uint64_t & TelemetryWebSocketTimer,
@@ -159,7 +164,7 @@ namespace OpenWifi {
 
 		void onGarbageCollecting(Poco::Timer & timer);
 
-		inline void AverageDeviceStatistics( std::uint64_t & Connections, std::uint64_t & AverageConnectionTime, std::uint64_t & NumberOfConnectingDevices) const {
+		inline void AverageDeviceStatistics( uint64_t & Connections, uint64_t & AverageConnectionTime, uint64_t & NumberOfConnectingDevices) const {
 			Connections = NumberOfConnectedDevices_;
 			AverageConnectionTime = AverageDeviceConnectionTime_;
 			NumberOfConnectingDevices = NumberOfConnectingDevices_;
@@ -178,8 +183,8 @@ namespace OpenWifi {
 		bool 														SimulatorEnabled_=false;
 		std::unique_ptr<AP_WS_ReactorThreadPool>					Reactor_pool_;
 		std::atomic_bool 											Running_=false;
-		std::map<std::uint64_t,	std::pair<std::shared_ptr<AP_WS_Connection>,bool>>	Sessions_;
-		std::map<std::uint64_t, std::pair<std::uint64_t,std::shared_ptr<AP_WS_Connection>>>	SerialNumbers_;
+		std::map<uint64_t,	std::pair<std::shared_ptr<AP_WS_Connection>,bool>>	Sessions_;
+		std::map<uint64_t, std::pair<uint64_t,std::shared_ptr<AP_WS_Connection>>>	SerialNumbers_;
 		std::atomic_bool 											AllowSerialNumberMismatch_=true;
 		std::atomic_uint64_t 										MismatchDepth_=2;
 

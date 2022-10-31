@@ -6,6 +6,10 @@
 #include "TelemetryStream.h"
 #include "CommandManager.h"
 
+#include "framework/KafkaManager.h"
+#include "framework/utils.h"
+#include "fmt/format.h"
+
 namespace OpenWifi {
 	void AP_WS_Connection::Process_telemetry(Poco::JSON::Object::Ptr ParamsObj) {
 		if (!State_.Connected) {
@@ -14,19 +18,20 @@ namespace OpenWifi {
 			Errors_++;
 			return;
 		}
+		poco_trace(Logger_,fmt::format("Telemetry data received for {}", SerialNumber_));
 		if (TelemetryReporting_) {
 			if (ParamsObj->has("data")) {
 				auto Payload = ParamsObj->get("data").extract<Poco::JSON::Object::Ptr>();
-				Payload->set("timestamp", OpenWifi::Now());
+				Payload->set("timestamp", Utils::Now());
 				std::ostringstream SS;
 				Payload->stringify(SS);
-				auto now=OpenWifi::Now();
+				auto now=Utils::Now();
 				if (TelemetryWebSocketRefCount_) {
 					if(now<TelemetryWebSocketTimer_) {
 						// std::cout << SerialNumber_ << ": Updating WebSocket telemetry" << std::endl;
 						TelemetryWebSocketPackets_++;
 						State_.websocketPackets = TelemetryWebSocketPackets_;
-						TelemetryStream()->UpdateEndPoint(SerialNumberInt_, SS.str());
+						TelemetryStream()->NotifyEndPoint(SerialNumberInt_, SS.str());
 					} else {
 						StopWebSocketTelemetry(CommandManager()->NextRPCId());
 					}

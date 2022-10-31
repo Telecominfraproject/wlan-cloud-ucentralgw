@@ -5,7 +5,7 @@
 #pragma once
 
 #include <nlohmann/json-schema.hpp>
-#include "framework/MicroService.h"
+#include "framework/SubSystemServer.h"
 
 using nlohmann::json;
 using nlohmann::json_schema::json_validator;
@@ -32,7 +32,7 @@ namespace OpenWifi {
         nlohmann::json  RootSchema_;
 
         ConfigurationValidator():
-            SubSystemServer("configvalidator", "CFG-VALIDATOR", "config.validator") {
+            SubSystemServer("ConfigValidator", "CFG-VALIDATOR", "config.validator") {
         }
     };
 

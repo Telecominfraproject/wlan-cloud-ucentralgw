@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "framework/MicroService.h"
+#include "framework/SubSystemServer.h"
 
 namespace OpenWifi {
 	class SerialNumberCache : public SubSystemServer {

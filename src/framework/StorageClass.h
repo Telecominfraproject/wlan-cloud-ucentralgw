@@ -14,7 +14,8 @@
 #include "Poco/Data/MySQL/Connector.h"
 #endif
 
-#include "framework/MicroService.h"
+#include "framework/SubSystemServer.h"
+#include "framework/MicroServiceFuncs.h"
 
 namespace OpenWifi {
     enum DBType {
@@ -34,7 +35,7 @@ namespace OpenWifi {
             std::lock_guard		Guard(Mutex_);
 
             Logger().notice("Starting.");
-            std::string DBType = MicroService::instance().ConfigGetString("storage.type");
+            std::string DBType = MicroServiceConfigGetString("storage.type","");
 
             if (DBType == "sqlite") {
                 Setup_SQLite();
@@ -72,9 +73,9 @@ namespace OpenWifi {
     inline int StorageClass::Setup_SQLite() {
         Logger().notice("SQLite StorageClass enabled.");
         dbType_ = sqlite;
-        auto DBName = MicroService::instance().DataDir() + "/" + MicroService::instance().ConfigGetString("storage.type.sqlite.db");
-        int NumSessions = (int) MicroService::instance().ConfigGetInt("storage.type.sqlite.maxsessions", 64);
-        int IdleTime = (int) MicroService::instance().ConfigGetInt("storage.type.sqlite.idletime", 60);
+        auto DBName = MicroServiceDataDirectory() + "/" + MicroServiceConfigGetString("storage.type.sqlite.db","");
+        int NumSessions = (int) MicroServiceConfigGetInt("storage.type.sqlite.maxsessions", 64);
+        int IdleTime = (int) MicroServiceConfigGetInt("storage.type.sqlite.idletime", 60);
 
         Poco::Data::SQLite::Connector::registerConnector();
 //        Pool_ = std::make_unique<Poco::Data::SessionPool>(new Poco::Data::SessionPool(SQLiteConn_.name(), DBName, 8,
@@ -87,13 +88,13 @@ namespace OpenWifi {
     inline int StorageClass::Setup_MySQL() {
         Logger().notice("MySQL StorageClass enabled.");
         dbType_ = mysql;
-        int NumSessions = (int) MicroService::instance().ConfigGetInt("storage.type.mysql.maxsessions", 64);
-        int IdleTime = (int) MicroService::instance().ConfigGetInt("storage.type.mysql.idletime", 60);
-        auto Host = MicroService::instance().ConfigGetString("storage.type.mysql.host");
-        auto Username = MicroService::instance().ConfigGetString("storage.type.mysql.username");
-        auto Password = MicroService::instance().ConfigGetString("storage.type.mysql.password");
-        auto Database = MicroService::instance().ConfigGetString("storage.type.mysql.database");
-        auto Port = MicroService::instance().ConfigGetString("storage.type.mysql.port");
+        int NumSessions = (int) MicroServiceConfigGetInt("storage.type.mysql.maxsessions", 64);
+        int IdleTime = (int) MicroServiceConfigGetInt("storage.type.mysql.idletime", 60);
+        auto Host = MicroServiceConfigGetString("storage.type.mysql.host","");
+        auto Username = MicroServiceConfigGetString("storage.type.mysql.username","");
+        auto Password = MicroServiceConfigGetString("storage.type.mysql.password","");
+        auto Database = MicroServiceConfigGetString("storage.type.mysql.database","");
+        auto Port = MicroServiceConfigGetString("storage.type.mysql.port","");
 
         std::string ConnectionStr =
                 "host=" + Host +
@@ -112,14 +113,14 @@ namespace OpenWifi {
     inline int StorageClass::Setup_PostgreSQL() {
         Logger().notice("PostgreSQL StorageClass enabled.");
         dbType_ = pgsql;
-        int NumSessions = (int) MicroService::instance().ConfigGetInt("storage.type.postgresql.maxsessions", 64);
-        int IdleTime = (int) MicroService::instance().ConfigGetInt("storage.type.postgresql.idletime", 60);
-        auto Host = MicroService::instance().ConfigGetString("storage.type.postgresql.host");
-        auto Username = MicroService::instance().ConfigGetString("storage.type.postgresql.username");
-        auto Password = MicroService::instance().ConfigGetString("storage.type.postgresql.password");
-        auto Database = MicroService::instance().ConfigGetString("storage.type.postgresql.database");
-        auto Port = MicroService::instance().ConfigGetString("storage.type.postgresql.port");
-        auto ConnectionTimeout = MicroService::instance().ConfigGetString("storage.type.postgresql.connectiontimeout");
+        int NumSessions = (int) MicroServiceConfigGetInt("storage.type.postgresql.maxsessions", 64);
+        int IdleTime = (int) MicroServiceConfigGetInt("storage.type.postgresql.idletime", 60);
+        auto Host = MicroServiceConfigGetString("storage.type.postgresql.host", "");
+        auto Username = MicroServiceConfigGetString("storage.type.postgresql.username", "");
+        auto Password = MicroServiceConfigGetString("storage.type.postgresql.password", "");
+        auto Database = MicroServiceConfigGetString("storage.type.postgresql.database", "");
+        auto Port = MicroServiceConfigGetString("storage.type.postgresql.port", "");
+        auto ConnectionTimeout = MicroServiceConfigGetString("storage.type.postgresql.connectiontimeout", "");
 
         std::string ConnectionStr =
                 "host=" + Host +

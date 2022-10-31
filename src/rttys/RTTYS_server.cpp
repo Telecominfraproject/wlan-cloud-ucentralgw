@@ -7,22 +7,25 @@
 #include "rttys/RTTYS_device.h"
 #include "rttys/RTTYS_ClientConnection.h"
 
+#include "framework/MicroServiceFuncs.h"
+#include "fmt/format.h"
+
 namespace OpenWifi {
 
 	int RTTYS_server::Start() {
 
-		Internal_ = MicroService::instance().ConfigGetBool("rtty.internal",false);
+		Internal_ = MicroServiceConfigGetBool("rtty.internal",false);
 		if(Internal_) {
-			int DSport = (int) MicroService::instance().ConfigGetInt("rtty.port", 5912);
-			int CSport = (int) MicroService::instance().ConfigGetInt("rtty.viewport", 5913);
-			RTTY_UIAssets_ = MicroService::instance().ConfigPath("rtty.assets", "$OWGW_ROOT/rtty_ui");
-			MaxConcurrentSessions_ = MicroService::instance().ConfigGetInt("rtty.maxsessions",0);
+			int DSport = (int) MicroServiceConfigGetInt("rtty.port", 5912);
+			int CSport = (int) MicroServiceConfigGetInt("rtty.viewport", 5913);
+			RTTY_UIAssets_ = MicroServiceConfigPath("rtty.assets", "$OWGW_ROOT/rtty_ui");
+			MaxConcurrentSessions_ = MicroServiceConfigGetInt("rtty.maxsessions",0);
 
-			const auto & CertFileName = MicroService::instance().ConfigPath("openwifi.restapi.host.0.cert");
-			const auto & KeyFileName = MicroService::instance().ConfigPath("openwifi.restapi.host.0.key");
-			const auto & RootCa = MicroService::instance().ConfigPath("openwifi.restapi.host.0.rootca");
+			const auto & CertFileName = MicroServiceConfigPath("openwifi.restapi.host.0.cert","");
+			const auto & KeyFileName = MicroServiceConfigPath("openwifi.restapi.host.0.key","");
+			const auto & RootCa = MicroServiceConfigPath("openwifi.restapi.host.0.rootca","");
 
-			if(MicroService::instance().NoAPISecurity()) {
+			if(MicroServiceNoAPISecurity()) {
 				Poco::Net::ServerSocket DeviceSocket(DSport, 64);
 				DeviceAcceptor_ = std::make_unique<Poco::Net::SocketAcceptor<RTTYS_Device_ConnectionHandler>>(DeviceSocket,DeviceReactor_);
 			} else {
@@ -51,7 +54,7 @@ namespace OpenWifi {
 			WebServerHttpParams->setKeepAlive(true);
 			WebServerHttpParams->setName("rt:dispatch");
 
-			if(MicroService::instance().NoAPISecurity()) {
+			if(MicroServiceNoAPISecurity()) {
 				Poco::Net::ServerSocket ClientSocket(CSport, 64);
 				ClientSocket.setNoDelay(true);
 				WebServer_ = std::make_unique<Poco::Net::HTTPServer>(new RTTYS_Client_RequestHandlerFactory(Logger()), ClientSocket, WebServerHttpParams);
@@ -80,7 +83,7 @@ namespace OpenWifi {
 		GCCallBack_ = std::make_unique<Poco::TimerCallback<RTTYS_server>>(*this, &RTTYS_server::onTimer);
 		Timer_.setStartInterval(30 * 1000);  // first run in 30 seconds
 		Timer_.setPeriodicInterval(5 * 1000);
-		Timer_.start(*GCCallBack_, MicroService::instance().TimerPool() );
+		Timer_.start(*GCCallBack_, MicroServiceTimerPool() );
 		NotificationManager_.start(*this);
 
 		return 0;
@@ -106,7 +109,7 @@ namespace OpenWifi {
 	void RTTYS_server::onTimer([[maybe_unused]] Poco::Timer & timer) {
 		poco_trace(Logger(),"Removing stale connections.");
 		Utils::SetThreadName("rt:janitor");
-		static auto LastStats = OpenWifi::Now();
+		static auto LastStats = Utils::Now();
 
 		std::lock_guard 	Lock(LocalMutex_);
  		for(auto element=EndPoints_.begin();element!=EndPoints_.end();) {
@@ -127,8 +130,8 @@ namespace OpenWifi {
 		FailedDevices.clear();
 		FailedClients.clear();
 
-		if(Now()-LastStats>(60*5)) {
-			LastStats = Now();
+		if(Utils::Now()-LastStats>(60*5)) {
+			LastStats = Utils::Now();
 			Logger().information(fmt::format("Statistics: Total connections:{} Total Device Connection Time: {}s  Total Client Connection Time: {}s Device failures: {} Client failures: {}",
 				TotalEndPoints_,
 				TotalConnectedDeviceTime_,

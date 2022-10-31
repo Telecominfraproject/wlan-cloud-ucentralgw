@@ -423,44 +423,6 @@ The device should answer:
 - 1 : device cannot flash LEDs because it does not have any.
 - 2 : device rejects the request. `text` should include information as to why.
 
-#### Controller sends a device specific command
-Controller sends this command specific to this device. The command is proprietary and must be agreed upon by the device 
-and the controller.
-```json
-{     "jsonrpc" : "2.0" , 
-      "method" : "perform" , 
-      "params" : {
-          "serial" : <serial number> ,
-          "when" : Optional - <UTC time when to perform this command, 0 mean immediate, this is a suggestion>,
-          "command" : <this is device specific and is TEXT only>,
-          "payload" : <JSON Document: containing additional information about the command>
-      },
-      "id" : <some number>
-}
-```
-
-The device should answer:
-```json
-{     "jsonrpc" : "2.0" , 
-      "result" : {
-          "serial" : <serial number> ,
-          "status" : {
-            "error" : 0 or an error number,
-            "text" : <description of the error or success>,
-            "when" : <in UTC time in seconds>,
-            "resultCode" : <0 or an appropriate error code>,
-            "resultText" : <any text resulting from the command. This is propietary to each command>
-          }
-      },
-      "id" : <same number>
-}
-```
-##### The device answer
-The device should answer with teh above message. The `error` value should be interpreted the following way:
-- 0 : the command was performed as requested and the reults of the command is available in the `resultCode` and `resultText` parameters.
-- 1 : the command will be performed in the future and `when` shows that time. The `resultCode` and `resultText` dod not contain anything relevant.
-- 2 : the command cannot be performed as indicated. `resultCode` and `resultText` may contain some indication as to why.
-
 #### Controller wants the device to perform a trace
 Controller sends this command when it needs the device to perform a trace (i.e. tcpdump).
 ```json

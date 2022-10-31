@@ -6,6 +6,7 @@
 
 #include "SerialNumberCache.h"
 #include "StorageService.h"
+#include "framework/utils.h"
 
 namespace OpenWifi {
 

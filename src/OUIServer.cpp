@@ -11,15 +11,19 @@
 #include "Poco/StreamCopier.h"
 #include "Poco/File.h"
 
+#include "framework/MicroServiceFuncs.h"
+#include "framework/utils.h"
+
+#include "fmt/format.h"
+
 #include "OUIServer.h"
-#include "framework/MicroService.h"
 
 namespace OpenWifi {
 
 	int OUIServer::Start() {
 		Running_ = true;
-		LatestOUIFileName_ =  MicroService::instance().DataDir() + "/newOUIFile.txt";
-		CurrentOUIFileName_ = MicroService::instance().DataDir() + "/current_oui.txt";
+		LatestOUIFileName_ =  MicroServiceDataDirectory() + "/newOUIFile.txt";
+		CurrentOUIFileName_ = MicroServiceDataDirectory() + "/current_oui.txt";
 
 		bool Recovered = false;
 		Poco::File	OuiFile(CurrentOUIFileName_);
@@ -42,7 +46,7 @@ namespace OpenWifi {
 			Timer_.setStartInterval(30 * 1000); // first run in 5 minutes
 		}
 		Timer_.setPeriodicInterval(7 * 24 * 60 * 60 * 1000);
-		Timer_.start(*UpdaterCallBack_, MicroService::instance().TimerPool());
+		Timer_.start(*UpdaterCallBack_, MicroServiceTimerPool());
 		return 0;
 	}
 
@@ -54,7 +58,7 @@ namespace OpenWifi {
 	}
 
 	void OUIServer::reinitialize([[maybe_unused]] Poco::Util::Application &self) {
-		MicroService::instance().LoadConfigurationFile();
+		MicroServiceLoadConfigurationFile();
 		poco_information(Logger(),"Reinitializing.");
 		Stop();
 		Start();
@@ -62,15 +66,15 @@ namespace OpenWifi {
 
 	bool OUIServer::GetFile(const std::string &FileName) {
 		try {
-			LastUpdate_ = OpenWifi::Now();
-			poco_information(Logger(), fmt::format("Start: Retrieving OUI file: {}",MicroService::instance().ConfigGetString("oui.download.uri")));
+			LastUpdate_ = Utils::Now();
+			poco_information(Logger(), fmt::format("Start: Retrieving OUI file: {}",MicroServiceConfigGetString("oui.download.uri","")));
 			std::unique_ptr<std::istream> pStr(
-				Poco::URIStreamOpener::defaultOpener().open(MicroService::instance().ConfigGetString("oui.download.uri")));
+				Poco::URIStreamOpener::defaultOpener().open(MicroServiceConfigGetString("oui.download.uri","")));
 			std::ofstream OS;
 			OS.open(FileName);
 			Poco::StreamCopier::copyStream(*pStr, OS);
 			OS.close();
-			poco_information(Logger(), fmt::format("Done: Retrieving OUI file: {}",MicroService::instance().ConfigGetString("oui.download.uri")));
+			poco_information(Logger(), fmt::format("Done: Retrieving OUI file: {}",MicroServiceConfigGetString("oui.download.uri","")));
 			return true;
 		} catch (const Poco::Exception &E) {
 			Logger().log(E);
@@ -125,7 +129,7 @@ namespace OpenWifi {
 		//	fetch data from server, if not available, just use the file we already have.
 		Poco::File	Current(CurrentOUIFileName_);
 		if(Current.exists()) {
-			if((OpenWifi::Now()-Current.getLastModified().epochTime()) < (7*24*60*60)) {
+			if((Utils::Now()-Current.getLastModified().epochTime()) < (7*24*60*60)) {
 				if(!Initialized_) {
 					if(ProcessFile(CurrentOUIFileName_, OUIs_)) {
 						Initialized_ = true;
@@ -144,7 +148,7 @@ namespace OpenWifi {
 		if(GetFile(LatestOUIFileName_) && ProcessFile(LatestOUIFileName_, TmpOUIs)) {
 			std::unique_lock G(LocalMutex_);
 			OUIs_ = std::move(TmpOUIs);
-			LastUpdate_ = OpenWifi::Now();
+			LastUpdate_ = Utils::Now();
 			Poco::File F1(CurrentOUIFileName_);
 			if(F1.exists())
 				F1.remove();
@@ -153,7 +157,7 @@ namespace OpenWifi {
 			poco_information(Logger(), fmt::format("New OUI file {} downloaded.",LatestOUIFileName_));
 		} else if(OUIs_.empty()) {
 			if(ProcessFile(CurrentOUIFileName_, TmpOUIs)) {
-				LastUpdate_ = OpenWifi::Now();
+				LastUpdate_ = Utils::Now();
 				std::unique_lock G(LocalMutex_);
 				OUIs_ = std::move(TmpOUIs);
 			}

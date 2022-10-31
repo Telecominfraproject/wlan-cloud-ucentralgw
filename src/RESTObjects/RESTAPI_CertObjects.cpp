@@ -3,7 +3,7 @@
 //
 
 #include "RESTAPI_CertObjects.h"
-#include "framework/MicroService.h"
+#include "framework/RESTAPI_utils.h"
 
 using OpenWifi::RESTAPI_utils::field_to_json;
 using OpenWifi::RESTAPI_utils::field_from_json;
@@ -154,6 +154,7 @@ namespace OpenWifi::CertObjects {
         field_to_json(Obj,"submitted", submitted);
         field_to_json(Obj,"started", started);
         field_to_json(Obj,"completed", completed);
+        field_to_json(Obj,"requesterUsername", requesterUsername);
     }
 
     bool JobEntry::from_json(const Poco::JSON::Object::Ptr &Obj) {
@@ -171,6 +172,7 @@ namespace OpenWifi::CertObjects {
             field_from_json(Obj,"submitted", submitted);
             field_from_json(Obj,"started", started);
             field_from_json(Obj,"completed", completed);
+            field_from_json(Obj,"requesterUsername", requesterUsername);
             return true;
         } catch (...) {
         }

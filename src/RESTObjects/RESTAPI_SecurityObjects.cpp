@@ -9,7 +9,7 @@
 #include "Poco/JSON/Parser.h"
 #include "Poco/JSON/Stringifier.h"
 
-#include "framework/MicroService.h"
+#include "framework/RESTAPI_utils.h"
 #include "RESTAPI_SecurityObjects.h"
 
 using OpenWifi::RESTAPI_utils::field_to_json;
@@ -433,7 +433,7 @@ namespace OpenWifi::SecurityObjects {
 	            SecurityObjects::NoteInfoVec NIV;
 	            NIV = RESTAPI_utils::to_object_array<SecurityObjects::NoteInfo>(Obj->get("notes").toString());
 	            for(auto const &i:NIV) {
-	                SecurityObjects::NoteInfo   ii{.created=(uint64_t)OpenWifi::Now(), .createdBy=UInfo.email, .note=i.note};
+	                SecurityObjects::NoteInfo   ii{.created=(uint64_t)Utils::Now(), .createdBy=UInfo.email, .note=i.note};
 	                Notes.push_back(ii);
 	            }
 	        }
@@ -446,7 +446,7 @@ namespace OpenWifi::SecurityObjects {
 
 	bool MergeNotes(const NoteInfoVec & NewNotes, const UserInfo &UInfo, NoteInfoVec & ExistingNotes) {
 	    for(auto const &i:NewNotes) {
-	        SecurityObjects::NoteInfo   ii{.created=(uint64_t)OpenWifi::Now(), .createdBy=UInfo.email, .note=i.note};
+	        SecurityObjects::NoteInfo   ii{.created=(uint64_t)Utils::Now(), .createdBy=UInfo.email, .note=i.note};
 	        ExistingNotes.push_back(ii);
 	    }
         return true;

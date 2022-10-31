@@ -3,7 +3,8 @@
 //
 
 #include "RESTAPI_FMSObjects.h"
-#include "framework/MicroService.h"
+#include "framework/RESTAPI_utils.h"
+#include "framework/utils.h"
 
 using OpenWifi::RESTAPI_utils::field_to_json;
 using OpenWifi::RESTAPI_utils::field_from_json;
@@ -233,7 +234,7 @@ namespace OpenWifi::FMSObjects {
         UnknownFirmwares_.clear();
         totalSecondsOld_.clear();
         numberOfDevices = 0 ;
-        snapshot = OpenWifi::Now();
+        snapshot = Utils::Now();
     }
 
     bool DeviceReport::from_json([[maybe_unused]] const Poco::JSON::Object::Ptr &Obj) {

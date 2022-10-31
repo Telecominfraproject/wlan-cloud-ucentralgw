@@ -11,7 +11,7 @@
 #include "Poco/Net/SSLException.h"
 #include "Poco/Net/Context.h"
 #include "Poco/Base64Decoder.h"
-
+#include "Poco/Net/WebSocketImpl.h"
 #include "Poco/zlib.h"
 
 #include "AP_WS_Server.h"
@@ -20,8 +20,14 @@
 #include "ConfigurationCache.h"
 #include "StorageService.h"
 #include "TelemetryStream.h"
-#include "framework/WebSocketClientNotifications.h"
-#include "Poco/Net/WebSocketImpl.h"
+
+#include "framework/KafkaManager.h"
+#include "framework/MicroServiceFuncs.h"
+#include "framework/utils.h"
+#include "UI_GW_WebSocketNotifications.h"
+
+#include "fmt/format.h"
+
 
 #include "RADIUS_proxy_server.h"
 
@@ -35,7 +41,7 @@ namespace OpenWifi {
 
 	AP_WS_Connection::AP_WS_Connection(Poco::Net::HTTPServerRequest &request,
 									   Poco::Net::HTTPServerResponse &response,
-									   std::uint64_t connection_id,
+									   uint64_t connection_id,
 									   Poco::Logger &L,
 									   Poco::Net::SocketReactor &R)
 		: Logger_(L) ,
@@ -100,7 +106,7 @@ namespace OpenWifi {
 			PeerAddress_ = SS->peerAddress().host();
 			CId_ = Utils::FormatIPv6(SS->peerAddress().toString());
 
-			State_.started = OpenWifi::Now();
+			State_.started = Utils::Now();
 
 			if (!SS->secure()) {
 				poco_warning(Logger_,fmt::format("TLS-CONNECTION({}): Session={} Connection is NOT secure. Device is not allowed.", CId_, State_.sessionId ));
@@ -140,7 +146,7 @@ namespace OpenWifi {
 				return false;
 			}
 
-			if (!CN_.empty() && StorageService()->IsBlackListed(SerialNumber_)) {
+			if (!CN_.empty() && StorageService()->IsBlackListed(CN_)) {
 				poco_warning(
 					Logger_,
 					fmt::format("TLS-CONNECTION({}): Session={} Device {} is black listed. Disconnecting.",
@@ -198,7 +204,7 @@ namespace OpenWifi {
 			Poco::JSON::Object Disconnect;
 			Poco::JSON::Object Details;
 			Details.set(uCentralProtocol::SERIALNUMBER, SerialNumber);
-			Details.set(uCentralProtocol::TIMESTAMP, OpenWifi::Now());
+			Details.set(uCentralProtocol::TIMESTAMP, Utils::Now());
 			Disconnect.set(uCentralProtocol::DISCONNECTION, Details);
 			Poco::JSON::Stringifier Stringify;
 			std::ostringstream OS;
@@ -238,8 +244,11 @@ namespace OpenWifi {
 			}
 
 			auto SessionDeleted = AP_WS_Server()->EndSession(State_.sessionId, SerialNumberInt_);
-			if (SessionDeleted)
-				WebSocketClientNotificationDeviceDisconnected(SerialNumber_);
+			if (SessionDeleted) {
+				WebNotificationSingleDevice_t	N;
+				N.content.serialNumber = SerialNumber_;
+				WebSocketClientNotificationDeviceDisconnected(N);
+			}
 		}
 	}
 
@@ -280,7 +289,7 @@ namespace OpenWifi {
 			State_.PendingUUID = D.UUID;
 			GWObjects::CommandDetails Cmd;
 			Cmd.SerialNumber = SerialNumber_;
-			Cmd.UUID = MicroService::CreateUUID();
+			Cmd.UUID = MicroServiceCreateUUID();
 			Cmd.SubmittedBy = uCentralProtocol::SUBMITTED_BY_SYSTEM;
 			Cmd.Status = uCentralProtocol::PENDING;
 			Cmd.Command = uCentralProtocol::CONFIGURE;
@@ -302,7 +311,11 @@ namespace OpenWifi {
 			StorageService()->AddCommand(SerialNumber_, Cmd, Storage::CommandExecutionType::COMMAND_EXECUTED);
 			CommandManager()->PostCommand(CommandManager()->NextRPCId(),SerialNumber_, Cmd.Command, Params, Cmd.UUID, Sent);
 
-			WebSocketClientNotificationDeviceConfigurationChange(D.SerialNumber, UUID, UpgradedUUID);
+			WebNotificationSingleDeviceConfigurationChange_t	Notification;
+			Notification.content.serialNumber = D.SerialNumber;
+			Notification.content.oldUUID = UUID;
+			Notification.content.newUUID = UpgradedUUID;
+			WebSocketClientNotificationDeviceConfigurationChange(Notification);
 
 			return true;
 		}
@@ -436,14 +449,14 @@ namespace OpenWifi {
 		}
 	}
 
-	bool AP_WS_Connection::StartTelemetry(std::uint64_t RPCID) {
+	bool AP_WS_Connection::StartTelemetry(uint64_t RPCID) {
 		poco_information(Logger_, fmt::format("TELEMETRY({}): Starting.", CId_));
 		Poco::JSON::Object StartMessage;
 		StartMessage.set("jsonrpc", "2.0");
 		StartMessage.set("method", "telemetry");
 		Poco::JSON::Object Params;
 		Params.set("serial", SerialNumber_);
-		Params.set("interval", TelemetryInterval_);
+		Params.set("interval", (uint64_t)TelemetryInterval_);
 		Poco::JSON::Array Types;
 		Types.add("wifi-frames");
 		Types.add("dhcp-snooping");
@@ -457,7 +470,7 @@ namespace OpenWifi {
 		return Send(OS.str());
 	}
 
-	bool AP_WS_Connection::StopTelemetry(std::uint64_t RPCID) {
+	bool AP_WS_Connection::StopTelemetry(uint64_t RPCID) {
 		poco_information(Logger_, fmt::format("TELEMETRY({}): Stopping.", CId_));
 		Poco::JSON::Object StopMessage;
 		StopMessage.set("jsonrpc", "2.0");
@@ -480,13 +493,13 @@ namespace OpenWifi {
 		State_.webSocketClients = TelemetryWebSocketRefCount_;
 	}
 
-	bool AP_WS_Connection::SetWebSocketTelemetryReporting(std::uint64_t RPCID, uint64_t Interval,
-													  uint64_t LifeTime) {
+	bool AP_WS_Connection::SetWebSocketTelemetryReporting(uint64_t RPCID, uint64_t Interval,
+														  uint64_t LifeTime) {
 		std::unique_lock Lock(TelemetryMutex_);
 		TelemetryWebSocketRefCount_++;
-		TelemetryInterval_ = TelemetryInterval_ ? std::min(Interval, TelemetryInterval_) : Interval;
-		auto TelemetryWebSocketTimer = LifeTime + OpenWifi::Now();
-		TelemetryWebSocketTimer_ = std::max(TelemetryWebSocketTimer, TelemetryWebSocketTimer_);
+		TelemetryInterval_ = TelemetryInterval_ ? ( Interval< TelemetryInterval_ ? Interval : TelemetryInterval_) : Interval;
+		auto TelemetryWebSocketTimer = LifeTime + Utils::Now();
+		TelemetryWebSocketTimer_ = TelemetryWebSocketTimer > TelemetryWebSocketTimer_ ? TelemetryWebSocketTimer : TelemetryWebSocketTimer_;
 		UpdateCounts();
 		if (!TelemetryReporting_) {
 			TelemetryReporting_ = true;
@@ -495,12 +508,12 @@ namespace OpenWifi {
 		return true;
 	}
 
-	bool AP_WS_Connection::SetKafkaTelemetryReporting(std::uint64_t RPCID, uint64_t Interval, uint64_t LifeTime) {
+	bool AP_WS_Connection::SetKafkaTelemetryReporting(uint64_t RPCID, uint64_t Interval, uint64_t LifeTime) {
 		std::unique_lock Lock(TelemetryMutex_);
 		TelemetryKafkaRefCount_++;
-		TelemetryInterval_ = TelemetryInterval_ ? std::min(Interval, TelemetryInterval_) : Interval;
-		auto TelemetryKafkaTimer = LifeTime + OpenWifi::Now();
-		TelemetryKafkaTimer_ = std::max(TelemetryKafkaTimer, TelemetryKafkaTimer_);
+		TelemetryInterval_ = TelemetryInterval_ ? ( Interval<TelemetryInterval_ ? Interval : TelemetryInterval_) : Interval;
+		auto TelemetryKafkaTimer = LifeTime + Utils::Now();
+		TelemetryKafkaTimer_ = TelemetryKafkaTimer > TelemetryKafkaTimer_ ? TelemetryKafkaTimer : TelemetryKafkaTimer_;
 		UpdateCounts();
 		if (!TelemetryReporting_) {
 			TelemetryReporting_ = true;
@@ -509,7 +522,7 @@ namespace OpenWifi {
 		return true;
 	}
 
-	bool AP_WS_Connection::StopWebSocketTelemetry(std::uint64_t RPCID) {
+	bool AP_WS_Connection::StopWebSocketTelemetry(uint64_t RPCID) {
 		std::unique_lock Lock(TelemetryMutex_);
 		if (TelemetryWebSocketRefCount_)
 			TelemetryWebSocketRefCount_--;
@@ -521,7 +534,7 @@ namespace OpenWifi {
 		return true;
 	}
 
-	bool AP_WS_Connection::StopKafkaTelemetry(std::uint64_t RPCID) {
+	bool AP_WS_Connection::StopKafkaTelemetry(uint64_t RPCID) {
 		std::unique_lock Lock(TelemetryMutex_);
 		if (TelemetryKafkaRefCount_)
 			TelemetryKafkaRefCount_--;
@@ -586,7 +599,7 @@ namespace OpenWifi {
 
 			State_.RX += IncomingSize;
 			State_.MessageCount++;
-			State_.LastContact = OpenWifi::Now();
+			State_.LastContact = Utils::Now();
 
 			switch (Op) {
 				case Poco::Net::WebSocket::FRAME_OP_PING: {
@@ -603,7 +616,7 @@ namespace OpenWifi {
 						PingDetails.set(uCentralProtocol::SERIALNUMBER, SerialNumber_);
 						PingDetails.set(uCentralProtocol::COMPATIBLE, Compatible_);
 						PingDetails.set(uCentralProtocol::CONNECTIONIP, CId_);
-						PingDetails.set(uCentralProtocol::TIMESTAMP, OpenWifi::Now());
+						PingDetails.set(uCentralProtocol::TIMESTAMP, Utils::Now());
 						PingDetails.set("locale", State_.locale );
 						PingObject.set(uCentralProtocol::PING, PingDetails);
 						Poco::JSON::Stringifier Stringify;

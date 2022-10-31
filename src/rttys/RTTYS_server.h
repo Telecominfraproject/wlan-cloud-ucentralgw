@@ -4,15 +4,26 @@
 
 #pragma once
 
-#include "framework/MicroService.h"
+#include <shared_mutex>
+#include <string>
+
 #include "Poco/Net/SocketReactor.h"
 #include "Poco/Net/SocketAcceptor.h"
+#include "Poco/NotificationQueue.h"
 #include "Poco/Timer.h"
+#include "Poco/Net/HTTPServer.h"
+
+#include "framework/SubSystemServer.h"
+#include "framework/utils.h"
+
 #include "rttys/RTTYS_device.h"
 #include "rttys/RTTYS_ClientConnection.h"
-#include <shared_mutex>
+
+using namespace std::chrono_literals;
 
 namespace OpenWifi {
+
+	constexpr uint RTTY_DEVICE_TOKEN_LENGTH=32;
 
 	class RTTYS_Device_ConnectionHandler;
 	class RTTYS_ClientConnection;
@@ -64,13 +75,13 @@ namespace OpenWifi {
 		}
 
 		RTTYS_Notification(const RTTYS_Notification_type &type,
-						   const std::string &id,
-						   const std::string &token,
-						   RTTYS_Device_ConnectionHandler * device) :
-															 type_(type),
-															 id_(id),
-															 token_(token),
-															 device_(device) {
+			const std::string &id,
+			const std::string &token,
+			RTTYS_Device_ConnectionHandler * device) :
+				type_(type),
+				id_(id),
+				token_(token),
+				device_(device) {
 		}
 
 		RTTYS_Notification_type			type_=RTTYS_Notification_type::unknown;
@@ -237,8 +248,14 @@ namespace OpenWifi {
 			ResponseQueue_.enqueueNotification(new RTTYS_Notification(RTTYS_Notification_type::client_disconnection,id,client));
 		}
 
-		inline void NotifyDeviceRegistration(const std::string &id, const std::string &token, RTTYS_Device_ConnectionHandler *device) {
+		inline bool NotifyDeviceRegistration(const std::string &id, const std::string &token, RTTYS_Device_ConnectionHandler *device) {
+			{
+				std::lock_guard G(LocalMutex_);
+				if (EndPoints_.find(id) == end(EndPoints_))
+					return false;
+			}
 			ResponseQueue_.enqueueNotification(new RTTYS_Notification(RTTYS_Notification_type::device_registration,id,token,device));
+			return true;
 		}
 
 		inline void NotifyClientRegistration(const std::string &id, RTTYS_ClientConnection *client) {
@@ -255,7 +272,7 @@ namespace OpenWifi {
 		}
 
 		inline Poco::Net::SocketReactor & ClientReactor() { return ClientReactor_; }
-		inline auto Uptime() const { return OpenWifi::Now() - Started_; }
+		inline auto Uptime() const { return Utils::Now() - Started_; }
 
 	  private:
 		Poco::Net::SocketReactor					ClientReactor_;
@@ -284,7 +301,7 @@ namespace OpenWifi {
 		double 										TotalConnectedDeviceTime_=0.0;
 		double 										TotalConnectedClientTime_=0.0;
 
-		std::atomic_uint64_t						Started_=OpenWifi::Now();
+		std::atomic_uint64_t						Started_=Utils::Now();
 		std::atomic_uint64_t						MaxConcurrentSessions_=0;
 
 		explicit RTTYS_server() noexcept:

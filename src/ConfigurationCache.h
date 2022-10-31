@@ -7,7 +7,6 @@
 #include <map>
 #include <string>
 #include <mutex>
-#include "framework/MicroService.h"
 
 namespace OpenWifi {
 	class ConfigurationCache {

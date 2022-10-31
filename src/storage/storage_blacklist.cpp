@@ -9,6 +9,7 @@
 #include "RESTObjects/RESTAPI_GWobjects.h"
 #include "StorageService.h"
 #include "Poco/Data/RecordSet.h"
+#include "fmt/format.h"
 
 namespace OpenWifi {
 

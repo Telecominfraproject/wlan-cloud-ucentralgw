@@ -6,8 +6,6 @@
 
 #include <iostream>
 
-#include "framework/MicroService.h"
-
 #include "Poco/Net/SocketReactor.h"
 #include "Poco/Net/ParallelSocketAcceptor.h"
 #include "Poco/Net/WebSocket.h"
@@ -20,13 +18,40 @@
 #include "Poco/Timespan.h"
 #include "Poco/URI.h"
 #include "Poco/Net/HTTPServer.h"
+#include "Poco/NotificationQueue.h"
+#include "Poco/Notification.h"
+
+#include "framework/SubSystemServer.h"
 
 #include "AP_WS_ReactorPool.h"
 #include "TelemetryClient.h"
 
 namespace OpenWifi {
 
-	class TelemetryStream : public SubSystemServer {
+	class TelemetryNotification : public Poco::Notification {
+	  public:
+		enum class NotificationType {
+			data,
+			unregister
+		};
+
+		explicit TelemetryNotification(std::uint64_t SerialNumber, const std::string &Payload) :
+			Type_(NotificationType::data),
+			SerialNumber_(SerialNumber),
+			Data_(Payload) {
+		}
+
+		explicit TelemetryNotification(const std::string &UUID) :
+			 Type_(NotificationType::unregister),
+			 Data_(UUID) {
+		}
+
+		NotificationType	Type_;
+		std::uint64_t 		SerialNumber_=0;
+		std::string 		Data_;
+	};
+
+	class TelemetryStream : public SubSystemServer, Poco::Runnable {
 	  public:
 
 		struct QueueUpdate {
@@ -41,23 +66,33 @@ namespace OpenWifi {
 
 		int Start() override;
 		void Stop() override;
+		void run() final;
 
 		bool IsValidEndPoint(uint64_t SerialNumber, const std::string & UUID);
 		bool CreateEndpoint(uint64_t SerialNumber, std::string &EndPoint, const std::string &UUID);
-		void UpdateEndPoint(uint64_t SerialNumber, const std::string &PayLoad);
-		bool RegisterClient(const std::string &UUID, TelemetryClient *Client);
-		void DeRegisterClient(const std::string &UUID);
-		Poco::Net::SocketReactor & NextReactor() { return Reactor_; }
 
-		void onMessage(bool& b);
+		inline void NotifyEndPoint(uint64_t SerialNumber, const std::string &PayLoad) {
+			MsgQueue_.enqueueNotification(new TelemetryNotification(SerialNumber,PayLoad));
+		}
+
+		inline void DeRegisterClient(const std::string &UUID) {
+			MsgQueue_.enqueueNotification(new TelemetryNotification(UUID));
+		}
+
+		bool NewClient(const std::string &UUID, uint64_t SerialNumber,  std::unique_ptr<Poco::Net::WebSocket> Client);
+
+
+		Poco::Net::SocketReactor & NextReactor() { return Reactor_; }
 
 	  private:
 		volatile std::atomic_bool 						Running_=false;
-		std::map<std::string, TelemetryClient *>		Clients_;			// 	uuid -> client
 		std::map<uint64_t, std::set<std::string>>		SerialNumbers_;		//	serialNumber -> uuid
 		Poco::Net::SocketReactor						Reactor_;
-		std::unique_ptr<FIFO<QueueUpdate>>				Messages_=std::make_unique<FIFO<QueueUpdate>>(100);
-		Poco::Thread									Thr_;
+		Poco::Thread									ReactorThr_;
+		Poco::Thread									NotificationMgr_;
+		Poco::NotificationQueue							MsgQueue_;
+
+		std::map<std::string, std::unique_ptr<TelemetryClient> >		Clients_;			// 	uuid -> client
 
 		TelemetryStream() noexcept:
 			SubSystemServer("TelemetryServer", "TELEMETRY-SVR", "openwifi.telemetry") {

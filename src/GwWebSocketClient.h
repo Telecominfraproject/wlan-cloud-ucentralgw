@@ -4,10 +4,10 @@
 
 #pragma once
 
-#include "framework/MicroService.h"
+#include "framework/UI_WebSocketClientServer.h"
 
 namespace OpenWifi {
-	class GwWebSocketClient : public WebSocketClientProcessor {
+	class GwWebSocketClient : public UI_WebSocketClientProcessor {
 	  public:
 		explicit GwWebSocketClient(Poco::Logger &Logger);
 		virtual ~GwWebSocketClient();

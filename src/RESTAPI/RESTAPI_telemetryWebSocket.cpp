@@ -9,6 +9,8 @@
 
 namespace OpenWifi {
 
+// #define DBG		{ std::cout << __LINE__ << std::endl; }
+
 void RESTAPI_telemetryWebSocket::DoGet() {
 		//	try and upgrade this session to websocket...
 		if (Request->find("Upgrade") != Request->end() &&
@@ -32,16 +34,15 @@ void RESTAPI_telemetryWebSocket::DoGet() {
 				auto SerialNumber = Utils::SerialNumberToInt(SNum);
 
 				if(!TelemetryStream()->IsValidEndPoint(SerialNumber,UUID)) {
-					Logger_.warning(fmt::format("Illegal telemetry request for S: {}, UUID: {}", SerialNumber, UUID));
+					Logger_.warning(fmt::format("Illegal telemetry request for Serial: {}, UUID: {}", SNum, UUID));
 					Response->setStatusAndReason(Poco::Net::HTTPResponse::HTTP_BAD_REQUEST);
 					Response->setContentLength(0);
 					Response->send();
 					return;
 				}
-
 				auto WS = std::make_unique<Poco::Net::WebSocket>(*Request, *Response);
-				new TelemetryClient(UUID, SerialNumber, std::move(WS), TelemetryStream()->NextReactor(), Logger_);
-
+				TelemetryStream()->NewClient(UUID, SerialNumber, std::move(WS) );
+				return;
 			} catch (const Poco::Net::WebSocketException &E) {
 				Logger_.log(E);
 				switch (E.code()) {

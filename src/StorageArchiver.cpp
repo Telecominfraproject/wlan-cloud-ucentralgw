@@ -4,16 +4,20 @@
 
 #include <fstream>
 
-#include "framework/MicroService.h"
-
 #include "StorageArchiver.h"
 #include "StorageService.h"
+
+#include "framework/AppServiceRegistry.h"
+#include "framework/utils.h"
+#include "framework/MicroServiceFuncs.h"
+
+#include "fmt/format.h"
 
 namespace OpenWifi {
 
 	void Archiver::onTimer([[maybe_unused]] Poco::Timer &timer){
 		Utils::SetThreadName("strg-archiver");
-		auto now = OpenWifi::Now();
+		auto now = Utils::Now();
 		for(const auto &i:DBs_) {
 			if (!Poco::icompare(i.DBName, "healthchecks")) {
 				poco_information(Logger(),"Archiving HealthChecks...");
@@ -35,7 +39,7 @@ namespace OpenWifi {
 				poco_information(Logger(),fmt::format("Cannot archive DB '{}'", i.DBName));
 			}
 		}
-		AppServiceRegistry().Set("lastStorageArchiverRun", (uint64_t) Now);
+		AppServiceRegistry().Set("lastStorageArchiverRun", (uint64_t) now);
 	}
 
 	static auto CalculateDelta(int H, int M) {
@@ -53,7 +57,7 @@ namespace OpenWifi {
 
 	int StorageArchiver::Start() {
 
-		Enabled_ = MicroService::instance().ConfigGetBool("archiver.enabled",false);
+		Enabled_ = MicroServiceConfigGetBool("archiver.enabled",false);
 		if(!Enabled_) {
 			poco_information(Logger(),"Archiver is disabled.");
 			return 0;
@@ -62,7 +66,7 @@ namespace OpenWifi {
 		Archiver_ = std::make_unique<Archiver>(Logger());
 		ArchiverCallback_ = std::make_unique<Poco::TimerCallback<Archiver>>(*Archiver_,&Archiver::onTimer);
 
-		auto Schedule = MicroService::instance().ConfigGetString("archiver.schedule","03:00");
+		auto Schedule = MicroServiceConfigGetString("archiver.schedule","03:00");
 		auto S = Poco::StringTokenizer(Schedule,":");
 
 		int RunAtHour_, RunAtMin_;
@@ -76,12 +80,12 @@ namespace OpenWifi {
 
 		for(int i=0;i<20;i++) {
 			std::string key = "archiver.db." + std::to_string(i) + ".name";
-			auto DBName = MicroService::instance().ConfigGetString(key,"");
+			auto DBName = MicroServiceConfigGetString(key,"");
 			if(!DBName.empty()) {
 				for(auto const &DB:AllInternalDBNames) {
 					if(Poco::icompare(DBName,DB)==0) {
 						std::string Key = "archiver.db." + std::to_string(i) + ".keep";
-						auto Keep = MicroService::instance().ConfigGetInt(Key,7);
+						auto Keep = MicroServiceConfigGetInt(Key,7);
 						Archiver_->AddDb(Archiver::ArchiverDBEntry{
 							.DBName = DB,
 							.HowManyDays = Keep
@@ -97,7 +101,7 @@ namespace OpenWifi {
 
 		Timer_.setStartInterval( NextRun * 1000);
 		Timer_.setPeriodicInterval(24 * 60 * 60 * 1000); // 1 hours
-		Timer_.start(*ArchiverCallback_, MicroService::instance().TimerPool());
+		Timer_.start(*ArchiverCallback_, MicroServiceTimerPool());
 
 		return 0;
 	}

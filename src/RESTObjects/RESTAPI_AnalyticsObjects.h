@@ -5,6 +5,7 @@
 #pragma once
 
 #include "RESTAPI_ProvObjects.h"
+#include "framework/utils.h"
 #include <vector>
 
 namespace OpenWifi {
@@ -375,7 +376,7 @@ namespace OpenWifi {
         };
 
         struct WifiClientHistory {
-            uint64_t        timestamp=OpenWifi::Now();
+            uint64_t        timestamp=Utils::Now();
             std::string     station_id;
             std::string     bssid;
             std::string     ssid;

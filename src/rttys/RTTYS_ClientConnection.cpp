@@ -6,6 +6,10 @@
 #include "rttys/RTTYS_device.h"
 #include "rttys/RTTYS_server.h"
 
+#include "fmt/format.h"
+
+#include "nlohmann/json.hpp"
+
 namespace OpenWifi {
 
 	RTTYS_ClientConnection::RTTYS_ClientConnection(

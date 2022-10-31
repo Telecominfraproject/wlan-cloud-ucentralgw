@@ -4,10 +4,11 @@
 
 #pragma once
 
-#include "framework/MicroService.h"
-
 #include "Poco/Net/SocketReactor.h"
 #include "Poco/Net/WebSocket.h"
+#include "Poco/Net/HTTPRequestHandler.h"
+#include "Poco/Net/HTTPRequestHandlerFactory.h"
+#include "Poco/Logger.h"
 
 namespace OpenWifi {
 	class RTTYS_Client_WebSocketRequestHandler : public Poco::Net::HTTPRequestHandler {

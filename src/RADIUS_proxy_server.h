@@ -4,13 +4,14 @@
 
 #pragma once
 
-#include "framework/MicroService.h"
 #include "RESTObjects/RESTAPI_GWobjects.h"
 
 #include "Poco/Net/DatagramSocket.h"
 #include "Poco/Net/SocketReactor.h"
 
-#include "RADSECserver.h"
+#include "framework/SubSystemServer.h"
+
+#include "RADSEC_server.h"
 
 namespace OpenWifi {
 
@@ -44,6 +45,7 @@ namespace OpenWifi {
 
 		void StartRADSECServers();
 		void StartRADSECServer(const GWObjects::RadiusProxyServerEntry &E);
+		void StopRADSECServers();
 
 		struct Destination {
 			Poco::Net::SocketAddress 	Addr;
@@ -73,7 +75,7 @@ namespace OpenWifi {
 		GWObjects::RadiusProxyPoolList	PoolList_;
 		std::string 					ConfigFilename_;
 
-		std::map<Poco::Net::SocketAddress, std::unique_ptr<RADSECserver>> RADSECservers_;
+		std::map<Poco::Net::SocketAddress, std::unique_ptr<RADSEC_server>> RADSECservers_;
 
 		struct RadiusPool {
 			std::vector<Destination>	AuthV4;

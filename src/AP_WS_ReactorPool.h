@@ -10,6 +10,8 @@
 #include "Poco/Net/SocketAcceptor.h"
 #include "Poco/Environment.h"
 
+#include "framework/utils.h"
+
 namespace OpenWifi {
 	class AP_WS_ReactorThreadPool {
 	  public:

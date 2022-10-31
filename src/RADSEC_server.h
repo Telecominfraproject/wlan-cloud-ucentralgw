@@ -7,8 +7,6 @@
 #include <iostream>
 #include <fstream>
 
-#include "framework/MicroService.h"
-
 #include "RESTObjects/RESTAPI_GWobjects.h"
 
 #include "Poco/Net/SocketReactor.h"
@@ -18,14 +16,18 @@
 #include "Poco/Net/NetException.h"
 #include "Poco/TemporaryFile.h"
 
+#include "framework/MicroServiceFuncs.h"
+
+#include "fmt/format.h"
+
 #include "RADIUS_helpers.h"
 #include "AP_WS_Server.h"
 
 namespace OpenWifi {
 
-	class RADSECserver : public Poco::Runnable {
+	class RADSEC_server : public Poco::Runnable {
 	  public:
-		RADSECserver(Poco::Net::SocketReactor & R, GWObjects::RadiusProxyServerEntry E) :
+		RADSEC_server(Poco::Net::SocketReactor & R, GWObjects::RadiusProxyServerEntry E) :
  			Reactor_(R),
 			Server_(std::move(E)),
 			Logger_(Poco::Logger::get(fmt::format("RADSEC: {}@{}:{}",
@@ -33,7 +35,20 @@ namespace OpenWifi {
 								Server_.ip,
 								Server_.port)))
 		{
-			ReconnectorThr_.start(*this);
+			ReconnectThread_.start(*this);
+		}
+
+		~RADSEC_server() {
+			if(ReconnectThread_.isRunning()) {
+				Stop();
+			}
+		}
+
+		inline void Stop() {
+			TryAgain_ = false;
+			Disconnect();
+			ReconnectThread_.wakeUp();
+			ReconnectThread_.join();
 		}
 
 		inline void run() final {
@@ -42,7 +57,7 @@ namespace OpenWifi {
 					std::unique_lock	G(Mutex_);
 					Connect();
 				}
-				Poco::Thread::trySleep(1000);
+				Poco::Thread::trySleep(3000);
 			}
 		}
 
@@ -127,15 +142,15 @@ namespace OpenWifi {
 		inline bool Connect() {
 			if(TryAgain_) {
 
-				Poco::TemporaryFile	CertFile_(MicroService::instance().DataDir());
-				Poco::TemporaryFile	KeyFile_(MicroService::instance().DataDir());
+				Poco::TemporaryFile	CertFile_(MicroServiceDataDirectory());
+				Poco::TemporaryFile	KeyFile_(MicroServiceDataDirectory());
 				std::vector<Poco::TemporaryFile> CaCertFiles_;
 
 				DecodeFile(CertFile_.path(), Server_.radsecCert);
 				DecodeFile(KeyFile_.path(), Server_.radsecKey);
 
 				for(auto &cert:Server_.radsecCacerts) {
-					CaCertFiles_.emplace_back(Poco::TemporaryFile(MicroService::instance().DataDir()));
+					CaCertFiles_.emplace_back(Poco::TemporaryFile(MicroServiceDataDirectory()));
 					DecodeFile(CaCertFiles_[CaCertFiles_.size()-1].path(), cert);
 				}
 
@@ -166,18 +181,19 @@ namespace OpenWifi {
 					Socket_->setBlocking(false);
 					Socket_->setNoDelay(true);
 					Socket_->setKeepAlive(true);
+					Socket_->setReceiveTimeout(Poco::Timespan(1 * 60 * 60,0));
 
 					Reactor_.addEventHandler(
 						*Socket_,
-						Poco::NObserver<RADSECserver, Poco::Net::ReadableNotification>(
-							*this, &RADSECserver::onData));
+						Poco::NObserver<RADSEC_server, Poco::Net::ReadableNotification>(
+							*this, &RADSEC_server::onData));
 					Reactor_.addEventHandler(
-						*Socket_, Poco::NObserver<RADSECserver, Poco::Net::ErrorNotification>(
-										  *this, &RADSECserver::onError));
+						*Socket_, Poco::NObserver<RADSEC_server, Poco::Net::ErrorNotification>(
+										  *this, &RADSEC_server::onError));
 					Reactor_.addEventHandler(
 						*Socket_,
-						Poco::NObserver<RADSECserver, Poco::Net::ShutdownNotification>(
-							*this, &RADSECserver::onShutdown));
+						Poco::NObserver<RADSEC_server, Poco::Net::ShutdownNotification>(
+							*this, &RADSEC_server::onShutdown));
 					Socket_->setBlocking(false);
 					Socket_->setNoDelay(true);
 					Socket_->setKeepAlive(true);
@@ -203,24 +219,17 @@ namespace OpenWifi {
 				std::unique_lock G(Mutex_);
 
 				Reactor_.removeEventHandler(
-					*Socket_, Poco::NObserver<RADSECserver, Poco::Net::ReadableNotification>(
-								  *this, &RADSECserver::onData));
+					*Socket_, Poco::NObserver<RADSEC_server, Poco::Net::ReadableNotification>(
+								  *this, &RADSEC_server::onData));
 				Reactor_.removeEventHandler(
-					*Socket_, Poco::NObserver<RADSECserver, Poco::Net::ErrorNotification>(
-								  *this, &RADSECserver::onError));
+					*Socket_, Poco::NObserver<RADSEC_server, Poco::Net::ErrorNotification>(
+								  *this, &RADSEC_server::onError));
 				Reactor_.removeEventHandler(
-					*Socket_, Poco::NObserver<RADSECserver, Poco::Net::ShutdownNotification>(
-								  *this, &RADSECserver::onShutdown));
+					*Socket_, Poco::NObserver<RADSEC_server, Poco::Net::ShutdownNotification>(
+								  *this, &RADSEC_server::onShutdown));
 				Connected_ = false;
 			}
 			poco_information(Logger_,"Disconnecting.");
-		}
-
-		inline void Stop() {
-			TryAgain_ = false;
-			Disconnect();
-			ReconnectorThr_.wakeUp();
-			ReconnectorThr_.join();
 		}
 
 		static void DecodeFile(const std::string &filename, const std::string &s) {
@@ -250,14 +259,14 @@ namespace OpenWifi {
 		}
 
 	  private:
-		std::shared_mutex									Mutex_;
+		std::recursive_mutex								Mutex_;
 		Poco::Net::SocketReactor							&Reactor_;
 		GWObjects::RadiusProxyServerEntry					Server_;
 		Poco::Logger										&Logger_;
-		std::atomic_bool 									Connected_=false;
-		std::atomic_bool 									TryAgain_=true;
 		std::unique_ptr<Poco::Net::SecureStreamSocket>		Socket_;
-		Poco::Thread										ReconnectorThr_;
+		Poco::Thread										ReconnectThread_;
 		std::unique_ptr<Poco::Crypto::X509Certificate>		Peer_Cert_;
+		volatile bool 										Connected_=false;
+		volatile bool 	 									TryAgain_=true;
 	};
 }

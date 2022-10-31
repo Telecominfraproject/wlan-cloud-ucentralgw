@@ -6,10 +6,15 @@
 #include <fstream>
 #include <regex>
 
-#include "framework/MicroService.h"
 #include "ConfigurationValidator.h"
 #include "framework/CountryCodes.h"
+#include "framework/MicroServiceFuncs.h"
+#include "framework/utils.h"
+
 #include "Poco/StringTokenizer.h"
+#include "Poco/URI.h"
+
+#include "fmt/format.h"
 
 namespace OpenWifi {
 
@@ -2625,7 +2630,7 @@ static json DefaultUCentralSchema = R"(
             return;
 
         std::string GitSchema;
-		if(MicroService::instance().ConfigGetBool("ucentral.datamodel.internal",true)) {
+		if(MicroServiceConfigGetBool("ucentral.datamodel.internal",true)) {
 			RootSchema_ = DefaultUCentralSchema;
 			Logger().information("Using uCentral validation from built-in default.");
 			Initialized_ = Working_ = true;
@@ -2633,12 +2638,12 @@ static json DefaultUCentralSchema = R"(
 		}
 
         try {
-			auto GitURI = MicroService::instance().ConfigGetString("ucentral.datamodel.uri",GitUCentralJSONSchemaFile);
+			auto GitURI = MicroServiceConfigGetString("ucentral.datamodel.uri",GitUCentralJSONSchemaFile);
             if(Utils::wgets(GitURI, GitSchema)) {
                 RootSchema_ = json::parse(GitSchema);
                 Logger().information("Using uCentral validation schema from GIT.");
             } else {
-                std::string FileName{ MicroService::instance().DataDir() + "/ucentral.schema.json" };
+                std::string FileName{ MicroServiceDataDirectory() + "/ucentral.schema.json" };
                 std::ifstream       input(FileName);
                 std::stringstream   schema_file;
                 schema_file << input.rdbuf();

@@ -44,5 +44,6 @@ namespace OpenWifi {
 		bool 									Registered_=false;
 		void SendTelemetryShutdown();
 		void CompleteStartup();
+		void DeRegister();
 	};
 }

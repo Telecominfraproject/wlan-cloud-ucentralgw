@@ -28,6 +28,19 @@ namespace OpenWifi::Types {
     typedef std::string                                         UUID_t;
     typedef std::vector<UUID_t>                                 UUIDvec_t;
     typedef std::map<std::string,std::map<uint32_t,uint64_t>>   Counted3DMapSII;
+
+	struct MicroServiceMeta {
+		uint64_t 		Id=0;
+		std::string 	Type;
+		std::string 	PrivateEndPoint;
+		std::string 	PublicEndPoint;
+		std::string 	AccessKey;
+		std::string		Version;
+		uint64_t 		LastUpdate=0;
+	};
+
+	typedef std::map<std::string, MicroServiceMeta>				MicroServiceMetaMap;
+	typedef std::vector<MicroServiceMeta>						MicroServiceMetaVec;
 }
 
 namespace OpenWifi {

@@ -3,8 +3,6 @@
 //
 #include <thread>
 
-#include "framework/MicroService.h"
-
 #include "Poco/JSON/Array.h"
 #include "Poco/Net/HTTPHeaderStream.h"
 #include "Poco/URI.h"
@@ -12,24 +10,26 @@
 #include "RESTAPI/RESTAPI_telemetryWebSocket.h"
 #include "TelemetryStream.h"
 
+#include "framework/MicroServiceFuncs.h"
+
 namespace OpenWifi {
 
 	int TelemetryStream::Start() {
 		Running_ = true;
-		Messages_->Readable_ += Poco::delegate(this,&TelemetryStream::onMessage);
-		Thr_.start(Reactor_);
-		Utils::SetThreadName(Thr_,"telemetry-svr");
+		ReactorThr_.start(Reactor_);
+		Utils::SetThreadName(ReactorThr_,"tel:reactor");
+		NotificationMgr_.start(*this);
 		return 0;
 	}
 
 	void TelemetryStream::Stop() {
 		poco_information(Logger(),"Stopping...");
+		Running_ = false;
 		Reactor_.stop();
-		Thr_.join();
-		if(Running_) {
-			Running_ = false;
-			Messages_->Readable_ -= Poco::delegate( this, &TelemetryStream::onMessage);
-		}
+		ReactorThr_.join();
+		MsgQueue_.wakeUpAll();
+		NotificationMgr_.wakeUp();
+		NotificationMgr_.join();
 		poco_information(Logger(),"Stopped...");
 	}
 
@@ -50,7 +50,7 @@ namespace OpenWifi {
 	bool TelemetryStream::CreateEndpoint(uint64_t SerialNumber, std::string &EndPoint, const std::string &UUID) {
 		std::lock_guard	G(Mutex_);
 
-		Poco::URI	Public(MicroService::instance().ConfigGetString("openwifi.system.uri.public"));
+		Poco::URI	Public(MicroServiceConfigGetString("openwifi.system.uri.public",""));
 		Poco::URI	U;
 		U.setScheme("wss");
 		U.setHost(Public.getHost());
@@ -60,76 +60,85 @@ namespace OpenWifi {
 		U.addQueryParameter("uuid", UUID);
 		U.addQueryParameter("serialNumber", Utils::IntToSerialNumber(SerialNumber));
 		EndPoint = U.toString();
-		auto H = SerialNumbers_.find(SerialNumber);
-		if(H == SerialNumbers_.end()) {
-			std::set<std::string>	UUIDs{UUID};
-			SerialNumbers_[SerialNumber] = UUIDs;
-		} else {
-			H->second.insert(UUID);
-		}
+		auto S = SerialNumbers_[SerialNumber];
+		S.insert(UUID);
+		SerialNumbers_[SerialNumber] = S;
 		Clients_[UUID] = nullptr;
 		return true;
 	}
 
-	void TelemetryStream::UpdateEndPoint(uint64_t SerialNumber, const std::string &PayLoad) {
-		{
-			std::lock_guard M(Mutex_);
-			if (SerialNumbers_.find(SerialNumber) == SerialNumbers_.end()) {
-				return;
-			}
-		}
-		Messages_->Write(QueueUpdate{.SerialNumber=SerialNumber, .Payload = PayLoad});
-	}
-
-	void TelemetryStream::onMessage(bool &b){
-		if(b) {
-			QueueUpdate Msg;
-
-			auto S = Messages_->Read(Msg);
-
-			if(S) {
-				std::lock_guard	M(Mutex_);
-				auto H1 = SerialNumbers_.find(Msg.SerialNumber);
-				if (H1 != SerialNumbers_.end()) {
-					for (auto &i : H1->second) {
-						auto H2 = Clients_.find(i);
-						if (H2 != Clients_.end() && H2->second != nullptr) {
-							try {
-								H2->second->Send(Msg.Payload);
-							} catch (...) {
+	void TelemetryStream::run() {
+		Utils::SetThreadName("tel:notifier");
+		Poco::AutoPtr<Poco::Notification> NextNotification(MsgQueue_.waitDequeueNotification());
+		while (NextNotification && Running_) {
+			auto Notification = dynamic_cast<TelemetryNotification *>(NextNotification.get());
+			if (Notification != nullptr) {
+				std::lock_guard 	Lock(Mutex_);
+				switch( Notification->Type_ ) {
+					case TelemetryNotification::NotificationType::data : {
+						auto SerialNumberSetOfUUIDs = SerialNumbers_.find(Notification->SerialNumber_);
+						if (SerialNumberSetOfUUIDs != SerialNumbers_.end()) {
+							for (auto &uuid : SerialNumberSetOfUUIDs->second) {
+								auto Client = Clients_.find(uuid);
+								if (Client != Clients_.end() && Client->second != nullptr) {
+									try {
+										// std::cout << "Sent WS telemetry notification" << std::endl;
+										Client->second->Send(Notification->Data_);
+									} catch (const Poco::Exception &E) {
+										Logger().log(E);
+									} catch (std::exception &E) {
+										poco_warning(Logger(),fmt::format("Std:Ex Cannot send WS telemetry notification: {} for SerialNumber: {}", E.what(), Utils::IntToSerialNumber(Notification->SerialNumber_)));
+									}
+								} else {
+									poco_warning(Logger(),fmt::format("Cannot send WS telemetry notification for SerialNumber: {}", Utils::IntToSerialNumber(Notification->SerialNumber_)));
+								}
 							}
+						} else {
+							poco_warning(Logger(),fmt::format("Cannot find serial: {}", Utils::IntToSerialNumber(Notification->SerialNumber_)));
 						}
-					}
+					} break;
+					case TelemetryNotification::NotificationType::unregister : {
+						std::lock_guard		G(Mutex_);
+
+						auto client = Clients_.find(Notification->Data_);
+						if(client!=Clients_.end()) {
+							for(auto i = SerialNumbers_.begin(); i!= SerialNumbers_.end();) {
+								i->second.erase(Notification->Data_);
+								if(i->second.empty()) {
+									i = SerialNumbers_.erase(i);
+								} else {
+									++i;
+								}
+							}
+							Clients_.erase(client);
+						} else {
+							poco_warning(Logger(),fmt::format("Unknown connection: {}", Notification->Data_));
+						}
+					} break;
+
+					default: {
+
+					} break;
 				}
 			}
+			NextNotification = MsgQueue_.waitDequeueNotification();
 		}
 	}
 
-	bool TelemetryStream::RegisterClient(const std::string &UUID, TelemetryClient *Client) {
+	bool TelemetryStream::NewClient(const std::string &UUID, uint64_t SerialNumber, std::unique_ptr<Poco::Net::WebSocket> Client) {
 		std::lock_guard	G(Mutex_);
-		Clients_[UUID] = Client;
-		return true;
-	}
-
-	void TelemetryStream::DeRegisterClient(const std::string &UUID) {
-		std::lock_guard		G(Mutex_);
-
-		auto Hint = Clients_.find(UUID);
-		if(Hint!=Clients_.end()) {
-			Clients_.erase(Hint);
-			for(const auto &i:SerialNumbers_) {
-				auto S = i.second;
-				S.erase(UUID);
-			}
-
-			//	remove empty slots
-			for( auto i = SerialNumbers_.begin(); i!= SerialNumbers_.end();) {
-				if(i->second.empty()) {
-					i = SerialNumbers_.erase(i);
-				} else {
-					++i;
-				}
-			}
+		try {
+			Clients_[UUID] = std::make_unique<TelemetryClient>(
+				UUID, SerialNumber, std::move(Client), NextReactor(), Logger());
+			auto set = SerialNumbers_[SerialNumber];
+			set.insert(UUID);
+			SerialNumbers_[SerialNumber] = set;
+			return true;
+		} catch (const Poco::Exception &E) {
+			Logger().log(E);
+		} catch (...) {
+			poco_warning(Logger(),fmt::format("Could not create a telemetry client for session {} and serial number {}", UUID, SerialNumber));
 		}
+		return false;
 	}
 }

@@ -15,6 +15,7 @@
 #include "framework/ow_constants.h"
 #include "framework/ConfigurationValidator.h"
 #include "framework/orm.h"
+#include "framework/utils.h"
 
 namespace OpenWifi {
 	void RESTAPI_default_configuration::DoGet() {
@@ -66,7 +67,7 @@ namespace OpenWifi {
 			return BadRequest(RESTAPI::Errors::ConfigBlockInvalid);
 		}
 
-		DefConfig.Created = DefConfig.LastModified = OpenWifi::Now();
+		DefConfig.Created = DefConfig.LastModified = Utils::Now();
 		if (StorageService()->CreateDefaultConfiguration(Name, DefConfig)) {
 			return OK();
 		}
@@ -96,7 +97,7 @@ namespace OpenWifi {
 			Existing.Configuration = NewConfig.Configuration;
 		}
 
-		Existing.LastModified = OpenWifi::Now();
+		Existing.LastModified = Utils::Now();
 		AssignIfPresent(Obj,"description",Existing.Description);
 		if(Obj->has("modelIds"))
 			Existing.Models = NewConfig.Models;

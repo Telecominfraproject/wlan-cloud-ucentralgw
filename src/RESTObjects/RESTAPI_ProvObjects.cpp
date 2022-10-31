@@ -8,7 +8,9 @@
 
 
 #include "RESTAPI_ProvObjects.h"
-#include "framework/MicroService.h"
+#include "framework/RESTAPI_utils.h"
+#include "framework/MicroServiceFuncs.h"
+#include "framework/utils.h"
 
 using OpenWifi::RESTAPI_utils::field_to_json;
 using OpenWifi::RESTAPI_utils::field_from_json;
@@ -1091,7 +1093,7 @@ namespace OpenWifi::ProvObjects {
     }
 
     bool UpdateObjectInfo(const Poco::JSON::Object::Ptr &O, const SecurityObjects::UserInfo &U, ObjectInfo &I) {
-        uint64_t Now = OpenWifi::Now();
+        uint64_t Now = Utils::Now();
         if(O->has("name"))
             I.name = O->get("name").toString();
 
@@ -1112,7 +1114,7 @@ namespace OpenWifi::ProvObjects {
     }
 
     bool CreateObjectInfo(const Poco::JSON::Object::Ptr &O, const SecurityObjects::UserInfo &U, ObjectInfo &I) {
-        uint64_t Now = OpenWifi::Now();
+        uint64_t Now = Utils::Now();
         if(O->has("name"))
             I.name = O->get("name").toString();
 
@@ -1130,14 +1132,14 @@ namespace OpenWifi::ProvObjects {
         }
         I.notes = N;
         I.modified = I.created = Now;
-        I.id = MicroService::CreateUUID();
+        I.id = MicroServiceCreateUUID();
 
         return true;
     }
 
     bool CreateObjectInfo([[maybe_unused]] const SecurityObjects::UserInfo &U, ObjectInfo &I) {
-        I.modified = I.created = OpenWifi::Now();
-        I.id = MicroService::CreateUUID();
+        I.modified = I.created = Utils::Now();
+        I.id = MicroServiceCreateUUID();
         return true;
     }
 
@@ -1159,5 +1161,40 @@ namespace OpenWifi::ProvObjects {
         return false;
     }
 
+    void RRMAlgorithmDetails::to_json(Poco::JSON::Object &Obj) const {
+        field_to_json(Obj,"name",name);
+        field_to_json(Obj,"parameters",parameters);
+    }
+
+    bool RRMAlgorithmDetails::from_json(const Poco::JSON::Object::Ptr &Obj) {
+        try {
+            field_from_json(Obj,"name",name);
+            field_from_json(Obj,"parameters",parameters);
+            return true;
+        } catch(...) {
+
+        }
+        return false;
+    }
+
+    void RRMDetails::to_json(Poco::JSON::Object &Obj) const {
+        field_to_json(Obj,"vendor",vendor);
+        field_to_json(Obj,"schedule",schedule);
+        field_to_json(Obj,"algorithms",algorithms);
+    }
+
+    bool RRMDetails::from_json(const Poco::JSON::Object::Ptr &Obj) {
+        try {
+            field_from_json(Obj,"vendor",vendor);
+            field_from_json(Obj,"schedule",schedule);
+            field_from_json(Obj,"algorithms",algorithms);
+            return true;
+        } catch(...) {
+
+        }
+        return false;
+    }
+
 }
+
 

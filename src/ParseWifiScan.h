@@ -4,7 +4,12 @@
 
 #pragma once
 
-#include "framework/MicroService.h"
+#include <string>
+#include <vector>
+#include <map>
+#include <utility>
+
+#include "nlohmann/json.hpp"
 
 namespace OpenWifi {
 

@@ -4,10 +4,11 @@
 
 #include "Dashboard.h"
 #include "StorageService.h"
+#include "framework/utils.h"
 
 namespace OpenWifi {
 	void DeviceDashboard::Create() {
-		uint64_t Now = OpenWifi::Now();
+		uint64_t Now = Utils::Now();
 
 		if(LastRun_==0 || (Now-LastRun_)>120) {
 			DB_.reset();

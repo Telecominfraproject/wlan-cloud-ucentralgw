@@ -4,6 +4,9 @@
 
 #include "SDKcalls.h"
 
+#include "framework/OpenAPIRequests.h"
+#include "framework/MicroServiceNames.h"
+
 namespace OpenWifi {
 
 	bool SDKCalls::GetProvisioningConfiguration(const std::string &SerialNumber, std::string & Config) {

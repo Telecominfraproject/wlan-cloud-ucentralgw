@@ -5,9 +5,11 @@
 #pragma once
 
 #include <functional>
+#include <list>
 
-#include "framework/MicroService.h"
 #include "Poco/Timer.h"
+
+#include "framework/SubSystemServer.h"
 
 namespace OpenWifi {
 

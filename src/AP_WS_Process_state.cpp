@@ -4,8 +4,14 @@
 
 #include "AP_WS_Connection.h"
 #include "StorageService.h"
-#include "framework/WebSocketClientNotifications.h"
 #include "StateUtils.h"
+
+#include "UI_GW_WebSocketNotifications.h"
+
+#include "framework/KafkaManager.h"
+#include "framework/utils.h"
+
+#include "fmt/format.h"
 
 namespace OpenWifi {
 	void AP_WS_Connection::Process_state(Poco::JSON::Object::Ptr ParamsObj) {
@@ -39,7 +45,7 @@ namespace OpenWifi {
 
 			GWObjects::Statistics Stats{
 				.SerialNumber = SerialNumber_, .UUID = UUID, .Data = StateStr};
-			Stats.Recorded = OpenWifi::Now();
+			Stats.Recorded = Utils::Now();
 			StorageService()->AddStatisticsData(Stats);
 			if (!request_uuid.empty()) {
 				StorageService()->SetCommandResult(request_uuid, StateStr);
@@ -55,10 +61,9 @@ namespace OpenWifi {
 				KafkaManager()->PostMessage(KafkaTopics::STATE, SerialNumber_, OS.str());
 			}
 
-			WebSocketNotification<WebNotificationSingleDevice>	N;
+			WebNotificationSingleDevice_t	N;
 			N.content.serialNumber = SerialNumber_;
-			N.type = "device_statistics";
-			WebSocketClientServer()->SendNotification(N);
+			WebSocketClientNotificationDeviceStatistics(N);
 
 		} else {
 			poco_warning(Logger_, fmt::format("STATE({}): Invalid request. Missing serial, uuid, or state", CId_));

@@ -15,12 +15,15 @@
 #include <functional>
 #include <shared_mutex>
 
-#include "framework/MicroService.h"
-
 #include "Poco/JSON/Object.h"
 #include "Poco/Net/HTTPServerRequest.h"
 #include "Poco/Net/HTTPServerResponse.h"
 #include "Poco/Timer.h"
+#include "Poco/Notification.h"
+#include "Poco/NotificationQueue.h"
+
+#include "framework/SubSystemServer.h"
+#include "fmt/format.h"
 
 #include "RESTObjects/RESTAPI_GWobjects.h"
 

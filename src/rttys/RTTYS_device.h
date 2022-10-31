@@ -6,9 +6,12 @@
 
 #include <array>
 #include <shared_mutex>
-#include "framework/MicroService.h"
+
+#include "Poco/Net/SocketReactor.h"
+#include "Poco/Net/SocketNotification.h"
 #include "Poco/FIFOBuffer.h"
 #include "Poco/Net/TCPServerConnectionFactory.h"
+#include "Poco/Logger.h"
 
 namespace OpenWifi {
 
@@ -48,16 +51,16 @@ namespace OpenWifi {
 		void onSocketShutdown(const Poco::AutoPtr<Poco::Net::ShutdownNotification>& pNf);
 
 		inline Poco::Logger	&Logger() { return Logger_; }
-		inline bool Valid() { return valid_; }
+		inline bool Valid() const { return valid_; }
 
 	  private:
 		Poco::Net::StreamSocket   			socket_;
 		Poco::Net::SocketReactor			&reactor_;
 		std::unique_ptr<Poco::FIFOBuffer> 	inBuf_;
-		Poco::Logger					&Logger_;
+		Poco::Logger						&Logger_;
 
-		std::atomic_bool				valid_=false;
-		bool 							old_rtty_=true;
+		volatile bool					valid_=false;
+		volatile bool					old_rtty_=true;
 		Poco::Net::SocketAddress		device_address_;
 		std::shared_mutex 		  		M_;
 		std::string                   	id_;
@@ -67,8 +70,9 @@ namespace OpenWifi {
 		std::uint64_t 					session_length_=1;
 		std::size_t      			  	waiting_for_bytes_{0};
 		u_char 						  	last_command_=0;
-		std::atomic_bool 				registered_=false;
+		volatile bool	 				registered_=false;
 		unsigned char 					small_buf_[64+RTTY_SESSION_ID_LENGTH];
+		volatile bool					deviceIsRegistered_=false;
 
 		void EndConnection() ;
 		void CompleteConnection();

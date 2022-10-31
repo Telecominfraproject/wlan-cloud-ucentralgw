@@ -9,11 +9,11 @@ namespace OpenWifi {
 
 	GwWebSocketClient::GwWebSocketClient(Poco::Logger &Logger):
 		 Logger_(Logger){
-		WebSocketClientServer()->SetProcessor(this);
+		UI_WebSocketClientServer()->SetProcessor(this);
 	}
 
 	GwWebSocketClient::~GwWebSocketClient() {
-		WebSocketClientServer()->SetProcessor(nullptr);
+		UI_WebSocketClientServer()->SetProcessor(nullptr);
 	}
 
 	void GwWebSocketClient::Processor(const Poco::JSON::Object::Ptr &O, std::string &Answer, bool &Done ) {
@@ -60,7 +60,4 @@ namespace OpenWifi {
 		Done = false;
 		Answer = std::string{R"lit({ "error" : "invalid command" })lit"};
 	}
-
-
-
 }

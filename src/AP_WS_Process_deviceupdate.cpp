@@ -5,6 +5,8 @@
 #include "AP_WS_Connection.h"
 #include "StorageService.h"
 
+#include "fmt/format.h"
+
 namespace OpenWifi {
 
 	void AP_WS_Connection::Process_deviceupdate(Poco::JSON::Object::Ptr ParamsObj, std::string &Serial) {
