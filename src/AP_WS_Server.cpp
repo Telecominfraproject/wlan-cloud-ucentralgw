@@ -15,10 +15,9 @@
 #include "ConfigurationCache.h"
 #include "TelemetryStream.h"
 
-#include "framework/WebSocketClientNotifications.h"
 #include "framework/MicroServiceFuncs.h"
 #include "framework/utils.h"
-
+#include "UI_GW_WebSocketNotifications.h"
 #include "fmt/format.h"
 
 namespace OpenWifi {
@@ -198,9 +197,12 @@ namespace OpenWifi {
 							 fmt::format("Active AP connections: {} Connecting: {} Average connection time: {} seconds",
 										 NumberOfConnectedDevices_, NumberOfConnectingDevices_, AverageDeviceConnectionTime_));
 		}
-		WebSocketClientNotificationNumberOfConnections(NumberOfConnectedDevices_,
-													   AverageDeviceConnectionTime_,
-													   NumberOfConnectingDevices_);
+
+		WebSocketClientNotificationNumberOfConnection_t	Notification;
+		Notification.content.numberOfConnectingDevices = NumberOfConnectingDevices_;
+		Notification.content.numberOfDevices = NumberOfConnectedDevices_;
+		Notification.content.averageConnectedTime = AverageDeviceConnectionTime_;
+		WebSocketClientNotificationNumberOfConnections(Notification);
 	}
 
 	void AP_WS_Server::Stop() {

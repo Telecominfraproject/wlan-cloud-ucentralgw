@@ -6,7 +6,6 @@
 #include "AP_WS_Server.h"
 #include "StorageService.h"
 #include "FindCountry.h"
-#include "framework/WebSocketClientNotifications.h"
 #include "Daemon.h"
 #include "CentralConfig.h"
 
@@ -14,6 +13,8 @@
 
 #include "framework/KafkaManager.h"
 #include "framework/utils.h"
+
+#include "UI_GW_WebSocketNotifications.h"
 
 namespace OpenWifi {
 
@@ -60,7 +61,11 @@ namespace OpenWifi {
 						DeviceInfo.Firmware = Firmware;
 						DeviceInfo.LastFWUpdate = Utils::Now();
 						Updated = true;
-						WebSocketClientNotificationDeviceFirmwareUpdated(SerialNumber_, Firmware);
+
+						WebNotificationSingleDeviceFirmwareChange_t	Notification;
+						Notification.content.serialNumber = SerialNumber_;
+						Notification.content.newFirmware = Firmware;
+						WebSocketClientNotificationDeviceFirmwareUpdated(Notification);
 					} else if(DeviceInfo.LastFWUpdate==0) {
 						DeviceInfo.LastFWUpdate = Utils::Now();
 						Updated = true;
@@ -115,7 +120,9 @@ namespace OpenWifi {
 				}
 			}
 
-			WebSocketClientNotificationDeviceConnected(SerialNumber_);
+			WebNotificationSingleDevice_t	Notification;
+			Notification.content.serialNumber = SerialNumber_;
+			WebSocketClientNotificationDeviceConnected(Notification);
 
 			// std::cout << "Serial: " << SerialNumber_ << "Session: " << State_.sessionId << std::endl;
 

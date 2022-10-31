@@ -21,10 +21,10 @@
 #include "StorageService.h"
 #include "TelemetryStream.h"
 
-#include "framework/WebSocketClientNotifications.h"
 #include "framework/KafkaManager.h"
 #include "framework/MicroServiceFuncs.h"
 #include "framework/utils.h"
+#include "UI_GW_WebSocketNotifications.h"
 
 #include "fmt/format.h"
 
@@ -244,8 +244,11 @@ namespace OpenWifi {
 			}
 
 			auto SessionDeleted = AP_WS_Server()->EndSession(State_.sessionId, SerialNumberInt_);
-			if (SessionDeleted)
-				WebSocketClientNotificationDeviceDisconnected(SerialNumber_);
+			if (SessionDeleted) {
+				WebNotificationSingleDevice_t	N;
+				N.content.serialNumber = SerialNumber_;
+				WebSocketClientNotificationDeviceDisconnected(N);
+			}
 		}
 	}
 
@@ -308,7 +311,11 @@ namespace OpenWifi {
 			StorageService()->AddCommand(SerialNumber_, Cmd, Storage::CommandExecutionType::COMMAND_EXECUTED);
 			CommandManager()->PostCommand(CommandManager()->NextRPCId(),SerialNumber_, Cmd.Command, Params, Cmd.UUID, Sent);
 
-			WebSocketClientNotificationDeviceConfigurationChange(D.SerialNumber, UUID, UpgradedUUID);
+			WebNotificationSingleDeviceConfigurationChange_t	Notification;
+			Notification.content.serialNumber = D.SerialNumber;
+			Notification.content.oldUUID = UUID;
+			Notification.content.newUUID = UpgradedUUID;
+			WebSocketClientNotificationDeviceConfigurationChange(Notification);
 
 			return true;
 		}

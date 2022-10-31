@@ -15,7 +15,7 @@
 
 #include "RESTObjects/RESTAPI_SecurityObjects.h"
 #include "framework/SubSystemServer.h"
-#include "framework/WebSocketClientNotifications.h"
+#include "framework/UI_WebSocketClientNotifications.h"
 
 namespace OpenWifi {
 
