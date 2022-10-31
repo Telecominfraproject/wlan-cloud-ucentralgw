@@ -107,6 +107,12 @@ components:
           type: string
           minLength: 2
           maxLength: 2
+        FCC:
+          type: boolean
+          default: false
+        certificateDate:
+          type: integer
+          format: int64
 
     DeviceWithStatus:
       type: object
@@ -200,6 +206,12 @@ components:
           type: number
           format: double
         totalConnectionTime:
+          type: integer
+          format: int64
+        restrictedDevice:
+          type: boolean
+          default: false
+        certificateDate:
           type: integer
           format: int64
 
@@ -921,9 +933,26 @@ components:
           items:
             $ref: '#/components/schemas/TagValuePair'
 
+    ExtraSystemConfiguration:
+      type: array
+      items:
+        type: object
+        properties:
+          parameterName:
+            type: string
+          parameterType:
+            type: string
+            enum:
+              - string
+              - integer
+              - boolean
+              - path
+          parameterValue:
+            {}
+
     #########################################################################################
     ##
-    ## End of uCentral system wide values
+    ## End of uCentral system-wide values
     ##
     #########################################################################################
     BlackDeviceInfo:
@@ -2076,6 +2105,11 @@ paths:
           schema:
             type: string
           required: true
+        - in: query
+          name: FWsignature
+          schema:
+            type: string
+          required: false
       requestBody:
         description: Command details
         content:
@@ -2728,6 +2762,53 @@ paths:
               schema:
                 oneOf:
                   - $ref: '#/components/schemas/SystemInfoResults'
+        403:
+          $ref: '#/components/responses/Unauthorized'
+        404:
+          $ref: '#/components/responses/NotFound'
+
+  /systemConfiguration:
+    get:
+      tags:
+        - SystemConfiguration
+      summary: Retrieve system configuration items
+      operationId: getSystemConfiguration
+      responses:
+        200:
+          $ref: '#/components/schemas/ExtraSystemConfiguration'
+        403:
+          $ref: '#/components/responses/Unauthorized'
+        404:
+          $ref: '#/components/responses/NotFound'
+
+    put:
+      tags:
+        - SystemConfiguration
+      summary: Set some or all system configuration
+      operationId: setSystemConfiguration
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ExtraSystemConfiguration'
+
+      responses:
+        200:
+          $ref: '#/components/schemas/ExtraSystemConfiguration'
+        403:
+          $ref: '#/components/responses/Unauthorized'
+        404:
+          $ref: '#/components/responses/NotFound'
+
+    delete:
+      tags:
+        - SystemConfiguration
+      summary: Delete all additional system configuration
+      operationId: deleteSystemConfiguration
+
+      responses:
+        200:
+          $ref: '#/components/responses/Success'
         403:
           $ref: '#/components/responses/Unauthorized'
         404:

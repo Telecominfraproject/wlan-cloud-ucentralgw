@@ -46,6 +46,14 @@ namespace OpenWifi {
 				IP = IP.substr(7);
 			}
 
+			bool RestrictedDevice = false;
+			if(ParamsObj->has("restricted")) {
+				auto FCCValue = ParamsObj->get("restricted");
+				if(FCCValue.isBoolean()) {
+					RestrictedDevice = FCCValue;
+				}
+			}
+
 			State_.locale = FindCountryFromIP()->Get(IP);
 			GWObjects::Device	DeviceInfo;
 			auto DeviceExists = StorageService()->GetDevice(SerialNumber_,DeviceInfo);
@@ -79,6 +87,11 @@ namespace OpenWifi {
 
 				if(Compatible_ != DeviceInfo.DeviceType) {
 					DeviceInfo.DeviceType = Compatible_;
+					Updated = true;
+				}
+
+				if(RestrictedDevice != DeviceInfo.restrictedDevice) {
+					DeviceInfo.restrictedDevice = RestrictedDevice;
 					Updated = true;
 				}
 

@@ -52,7 +52,9 @@ namespace OpenWifi {
 			}
 
 			StateUtils::ComputeAssociations(StateObj, 	State_.Associations_2G,
-														State_.Associations_5G);
+														State_.Associations_5G,
+														State_.Associations_6G
+											);
 
 			if (KafkaManager()->Enabled()) {
 				Poco::JSON::Stringifier Stringify;

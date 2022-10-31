@@ -48,7 +48,8 @@ namespace OpenWifi {
 		"subscriber, "
 		"entity, "
 		"modified, "
-		"locale"
+		"locale,"
+		"restrictedDevice"
 	};
 
 	const static std::string DB_DeviceUpdateFields{
@@ -73,10 +74,11 @@ namespace OpenWifi {
 		"subscriber=?, "
 		"entity=?, "
 		"modified=?, "
-		"locale=? "
+		"locale=?, "
+		"restrictedDevice=?"
 	};
 
-	const static std::string DB_DeviceInsertValues{" VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?) "};
+	const static std::string DB_DeviceInsertValues{" VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?) "};
 
 	typedef Poco::Tuple<
 		std::string,
@@ -100,7 +102,8 @@ namespace OpenWifi {
 		std::string,
 		std::string,
 		uint64_t,
-		std::string
+		std::string,
+		bool
 	> DeviceRecordTuple;
 	typedef std::vector<DeviceRecordTuple> DeviceRecordList;
 
@@ -127,6 +130,7 @@ namespace OpenWifi {
 		D.entity = R.get<19>();
 		D.modified = R.get<20>();
 		D.locale = R.get<21>();
+		D.restrictedDevice = R.get<22>();
 	}
 
 	void ConvertDeviceRecord(const GWObjects::Device &D, DeviceRecordTuple & R) {
@@ -152,6 +156,7 @@ namespace OpenWifi {
 		R.set<19>(D.entity);
 		R.set<20>(D.modified);
 		R.set<21>(D.locale);
+		R.set<22>(D.restrictedDevice);
 	}
 
 	bool Storage::GetDeviceCount(uint64_t &Count) {
@@ -555,7 +560,6 @@ namespace OpenWifi {
 			Poco::Data::Session     Sess = Pool_->get();
 			Poco::Data::Statement   Select(Sess);
 
-
 			// std::string st{"SELECT " + DB_DeviceSelectFields + " FROM Devices " + orderBy.empty() ? " ORDER BY SerialNumber ASC " + ComputeRange(From, HowMany)};
 			std::string st = fmt::format("SELECT {} FROM Devices {} {}",
 				DB_DeviceSelectFields,
@@ -766,10 +770,11 @@ namespace OpenWifi {
 							}
 						}
 
-						uint64_t 	Associations_2G, Associations_5G;
-						StateUtils::ComputeAssociations(RawObject, Associations_2G, Associations_5G);
+						uint64_t 	Associations_2G, Associations_5G, Associations_6G;
+						StateUtils::ComputeAssociations(RawObject, Associations_2G, Associations_5G, Associations_6G);
 						UpdateCountedMap(Dashboard.associations, "2G", Associations_2G);
 						UpdateCountedMap(Dashboard.associations, "5G", Associations_5G);
+						UpdateCountedMap(Dashboard.associations, "6G", Associations_6G);
 					}
 				} else {
 					UpdateCountedMap(Dashboard.status, "not connected");

@@ -535,6 +535,17 @@ namespace OpenWifi {
 				return BadRequest(RESTAPI::Errors::SerialNumberMismatch);
 			}
 
+			GWObjects::Device	DeviceInfo;
+
+			if(!StorageService()->GetDevice(SerialNumber_,DeviceInfo)) {
+				return NotFound();
+			}
+
+			std::string FWSignature = GetParameter("FWsignature","");
+			if(DeviceInfo.restrictedDevice && FWSignature.empty()) {
+				return BadRequest(RESTAPI::Errors::DeviceRequiresSignature);
+			}
+
 			auto URI = GetS(RESTAPI::Protocol::URI, Obj);
 			auto When = GetWhen(Obj);
 
@@ -553,6 +564,9 @@ namespace OpenWifi {
 			Params.set(uCentralProtocol::SERIAL, SerialNumber_);
 			Params.set(uCentralProtocol::URI, URI);
 			Params.set(uCentralProtocol::KEEP_REDIRECTOR, KeepRedirector ? 1 : 0);
+			if(!FWSignature.empty()) {
+				Params.set(uCentralProtocol::FWSIGNATURE, FWSignature);
+			}
 			Params.set(uCentralProtocol::WHEN, When);
 
 			std::stringstream ParamStream;

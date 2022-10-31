@@ -298,7 +298,8 @@ Controller sends this command when it believes the device should upgrade its fir
      "params" : {
 	        "serial" : <serial number> ,
 	        "when"  : Optional - <UTC time when to upgrade the firmware, 0 mean immediate, this is a suggestion>,
-		    "uri"   : <URI to download the firmware>
+		    "uri"   : <URI to download the firmware>,
+            "FWsignature" : <string representation of the signature for the FW> (optional)
      },
      "id" : <some number>
 }
@@ -318,6 +319,13 @@ The device should answer:
       "id" : <same number>
 }
 ```
+Here are the error values
+```text
+0:  No error
+1:  Bad firmware
+2:  Missing signature
+```
+
 
 #### Controller wants the device to perform a factory reset
 Controller sends this command when it believes the device should upgrade its firmware.

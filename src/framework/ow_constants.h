@@ -219,6 +219,9 @@ namespace OpenWifi::RESTAPI::Errors {
 
 	static const struct msg MaximumRTTYSessionsReached{1144,"Too many RTTY sessions currently active"};
 	static const struct msg DeviceIsAlreadyBusy{1145,"Device is already executing a command. Please try later."};
+
+	static const struct msg DeviceRequiresSignature{1146,"Device requires device signature to be provided."};
+
 }
 
 
@@ -433,6 +436,7 @@ namespace OpenWifi::uCentralProtocol {
     static const char *CHANNELS = "channels";
     static const char *PASSWORD = "password";
     static const char *DEVICEUPDATE = "deviceupdate";
+	static const char *FWSIGNATURE = "FWsignature";
 
     static const char *SERIALNUMBER = "serialNumber";
     static const char *COMPATIBLE = "compatible";

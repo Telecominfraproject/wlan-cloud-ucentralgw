@@ -18,8 +18,10 @@
 #include "RESTAPI/RESTAPI_telemetryWebSocket.h"
 #include "RESTAPI/RESTAPI_iptocountry_handler.h"
 #include "RESTAPI/RESTAPI_radiusProxyConfig_handler.h"
+
 #include "framework/RESTAPI_SystemCommand.h"
 #include "framework/RESTAPI_WebSocketServer.h"
+#include "framework/RESTAPI_SystemConfiguration.h"
 
 namespace OpenWifi {
 
@@ -37,6 +39,7 @@ namespace OpenWifi {
 				RESTAPI_ouis,
 				RESTAPI_file,
 				RESTAPI_system_command,
+				RESTAPI_system_configuration,
 				RESTAPI_deviceDashboardHandler,
 				RESTAPI_webSocketServer,
 				RESTAPI_blacklist,

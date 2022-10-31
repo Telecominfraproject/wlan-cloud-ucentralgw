@@ -28,19 +28,21 @@ namespace OpenWifi::GWObjects {
 		uint64_t TX = 0, RX = 0;
 		uint64_t Associations_2G=0;
 		uint64_t Associations_5G=0;
+		uint64_t Associations_6G=0;
 		bool Connected = false;
 		uint64_t LastContact=0;
 		std::string Firmware;
 		CertificateValidation VerifiedCertificate = NO_CERTIFICATE;
-		std::string Compatible;
-		uint64_t 	kafkaClients=0;
-		uint64_t 	webSocketClients=0;
-		uint64_t 	kafkaPackets=0;
-		uint64_t 	websocketPackets=0;
-		std::string locale;
-		uint64_t 	started=0;
-		uint64_t 	sessionId=0;
-		double      connectionCompletionTime=0.0;
+		std::string 	Compatible;
+		uint64_t 		kafkaClients=0;
+		uint64_t 		webSocketClients=0;
+		uint64_t 		kafkaPackets=0;
+		uint64_t 		websocketPackets=0;
+		std::string 	locale;
+		uint64_t 		started=0;
+		uint64_t 		sessionId=0;
+		double      	connectionCompletionTime=0.0;
+		std::uint64_t	certificateDate=0;
 
 		void to_json(Poco::JSON::Object &Obj) const;
 	};
@@ -68,6 +70,7 @@ namespace OpenWifi::GWObjects {
 		std::string entity;
 		uint64_t 	modified=0;
 		std::string locale;
+		bool 		restrictedDevice=false;
 
 		void to_json(Poco::JSON::Object &Obj) const;
 		void to_json_with_status(Poco::JSON::Object &Obj) const;
