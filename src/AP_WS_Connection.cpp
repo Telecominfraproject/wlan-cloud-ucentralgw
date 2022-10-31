@@ -155,7 +155,7 @@ namespace OpenWifi {
 				return false;
 			}
 
-			State_.certificateDate = PeerCert.expiresOn().timestamp().epochTime();
+			State_.certificateExpiryDate = PeerCert.expiresOn().timestamp().epochTime();
 			SerialNumber_ = CN_;
 			SerialNumberInt_ = Utils::SerialNumberToInt(SerialNumber_);
 

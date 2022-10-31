@@ -42,7 +42,7 @@ namespace OpenWifi::GWObjects {
 		uint64_t 		started=0;
 		uint64_t 		sessionId=0;
 		double      	connectionCompletionTime=0.0;
-		std::uint64_t	certificateDate=0;
+		std::uint64_t	certificateExpiryDate=0;
 
 		void to_json(Poco::JSON::Object &Obj) const;
 	};

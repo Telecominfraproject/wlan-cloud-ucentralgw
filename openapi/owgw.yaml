@@ -110,7 +110,7 @@ components:
         FCC:
           type: boolean
           default: false
-        certificateDate:
+        certificateExpiryDate:
           type: integer
           format: int64
 

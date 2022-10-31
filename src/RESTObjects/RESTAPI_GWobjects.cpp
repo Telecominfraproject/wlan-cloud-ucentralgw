@@ -213,7 +213,7 @@ namespace OpenWifi::GWObjects {
 		field_to_json(Obj,"sessionId", sessionId);
 		field_to_json(Obj,"connectionCompletionTime", connectionCompletionTime);
 		field_to_json(Obj,"totalConnectionTime", Utils::Now() - started);
-		field_to_json(Obj,"certificateDate", certificateDate);
+		field_to_json(Obj,"certificateExpiryDate", certificateExpiryDate);
 
 
 		switch(VerifiedCertificate) {
