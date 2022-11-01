@@ -217,12 +217,15 @@ namespace OpenWifi::GWObjects {
 	};
 
 	struct ScriptRequest {
-		uint64_t 	timeout=30;
 		std::string serialNumber;
+		uint64_t 	timeout=30;
 		std::string type;
 		std::string script;
-		std::string scriptId;
-		uint64_t 	when=0;
+		std::uint64_t when;
+		std::string signature;
+		bool deferred;
+		std::string uri;
+
 		void to_json(Poco::JSON::Object &Obj) const;
 		bool from_json(const Poco::JSON::Object::Ptr &Obj);
 	};

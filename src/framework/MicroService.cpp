@@ -240,6 +240,7 @@ namespace OpenWifi {
 				Poco::AutoPtr<Poco::FileChannel> FileChannel(new Poco::FileChannel);
 				FileChannel->setProperty("rotation", "10 M");
 				FileChannel->setProperty("archive", "timestamp");
+				FileChannel->setProperty("purgeCount", "10");
 				FileChannel->setProperty("path", LoggingLocation);
 				if(UseAsyncLogs_) {
 					Poco::AutoPtr<Poco::AsyncChannel> Async_File(
@@ -627,6 +628,17 @@ namespace OpenWifi {
 			return T.toString();
 		} else {
 			return Signer_.sign(T,Algo);
+		}
+	}
+
+	void MicroService::DeleteOverrideConfiguration() {
+		Poco::File	F(DataDir_ + ExtraConfigurationFilename);
+
+		try {
+			if(F.exists())
+				F.remove();
+		} catch (...) {
+
 		}
 	}
 

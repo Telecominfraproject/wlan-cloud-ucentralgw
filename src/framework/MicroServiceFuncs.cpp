@@ -114,4 +114,8 @@ namespace OpenWifi {
     std::string MicroServiceGetPublicAPIEndPoint() {
         return MicroService::instance().GetPublicAPIEndPoint();
     }
+
+	void MicroServiceDeleteOverrideConfiguration() {
+		return MicroService::instance().DeleteOverrideConfiguration();
+	}
 }

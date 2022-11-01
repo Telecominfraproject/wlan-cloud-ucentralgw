@@ -81,6 +81,8 @@ namespace OpenWifi {
 			// Logger_ = Poco::Logger::root().get("BASE-SVC");
 		}
 
+		inline static const char * ExtraConfigurationFilename = "/configuration_override.json";
+
 		inline void SaveConfig() { PropConfigurationFile_->save(ConfigFileName_); }
 		inline auto UpdateConfig() { return PropConfigurationFile_; }
 		inline bool NoAPISecurity() const { return NoAPISecurity_; }
@@ -150,6 +152,8 @@ namespace OpenWifi {
 		static void SavePID();
 		int main(const ArgVec &args) override;
         void InitializeLoggingSystem();
+
+		void DeleteOverrideConfiguration();
 
 		[[nodiscard]] std::string Sign(Poco::JWT::Token &T, const std::string &Algo);
 		void AddActivity(const std::string &Activity);

@@ -126,34 +126,32 @@ namespace OpenWifi {
     }
 
     //  if you pass in an empty UUID, it will just clean the list and not add it.
-    bool FileUploader::AddUUID( const std::string & UUID) {
+    bool FileUploader::AddUUID( const std::string & UUID, std::chrono::seconds WaitTimeInSeconds, const std::string &Type) {
 		std::lock_guard		Guard(Mutex_);
 
         uint64_t now = Utils::Now();
-
-        // remove old stuff...
-        for(auto i=OutStandingUploads_.begin();i!=OutStandingUploads_.end();) {
-            if ((now-i->second) > (60 * 30))
-                i = OutStandingUploads_.erase(i);
-            else
-                ++i;
-        }
-
-        if(!UUID.empty())
-            OutStandingUploads_[UUID] = now;
-
+		auto Func=[now](const UploadId &I) -> bool {
+			return (now > I.Expires);
+		};
+		OutStandingUploads_.erase(std::remove_if(OutStandingUploads_.begin(),OutStandingUploads_.end(),Func),OutStandingUploads_.end());
+		OutStandingUploads_.emplace_back(UploadId{UUID, now + WaitTimeInSeconds.count(), Type});
         return true;
     }
 
     bool FileUploader::ValidRequest(const std::string &UUID) {
 		std::lock_guard		Guard(Mutex_);
-
-        return OutStandingUploads_.find(UUID)!=OutStandingUploads_.end();
+		auto Func = [UUID](const UploadId &P) -> bool {
+			return (P.UUID==UUID);
+		};
+        return std::find_if(OutStandingUploads_.begin(), OutStandingUploads_.end(), Func) != end(OutStandingUploads_);
     }
 
     void FileUploader::RemoveRequest(const std::string &UUID) {
 		std::lock_guard		Guard(Mutex_);
-        OutStandingUploads_.erase(UUID);
+		auto Func = [UUID](const UploadId &P) -> bool {
+			return (P.UUID==UUID);
+		};
+		OutStandingUploads_.erase(std::remove_if(OutStandingUploads_.begin(),OutStandingUploads_.end(),Func),OutStandingUploads_.end());
     }
 
 	class FileUploaderPartHandler2 : public Poco::Net::PartHandler {
@@ -193,9 +191,10 @@ namespace OpenWifi {
     class FormRequestHandler: public Poco::Net::HTTPRequestHandler
     {
     public:
-        explicit FormRequestHandler(std::string UUID, Poco::Logger & L):
+        explicit FormRequestHandler(std::string UUID, Poco::Logger & L, const std::string &Type):
             UUID_(std::move(UUID)),
-            Logger_(L)
+            Logger_(L),
+			Type_(Type)
         {
         }
 
@@ -230,8 +229,8 @@ namespace OpenWifi {
 								Poco::StreamCopier::copyStream(Reader.stream(), FileContent);
 								Answer.set("filename", UUID_);
 								Answer.set("error", 0);
-								poco_debug(Logger(),fmt::format("{}: Trace file uploaded.", UUID_));
-								StorageService()->AttachFileDataToCommand(UUID_, FileContent);
+								poco_debug(Logger(),fmt::format("{}: File uploaded.", UUID_));
+								StorageService()->AttachFileDataToCommand(UUID_, FileContent, Type_);
 								std::ostream &ResponseStream = Response.send();
 								Poco::JSON::Stringifier::stringify(Answer, ResponseStream);
 								return;
@@ -267,6 +266,7 @@ namespace OpenWifi {
     private:
         std::string     UUID_;
         Poco::Logger    & Logger_;
+		std::string 	Type_;
     };
 
     Poco::Net::HTTPRequestHandler *FileUpLoaderRequestHandlerFactory::createRequestHandler(const Poco::Net::HTTPServerRequest & Request) {
@@ -285,11 +285,12 @@ namespace OpenWifi {
         if( UUIDLocation != std::string::npos )
         {
             auto UUID = Request.getURI().substr(UUIDLocation+URI_BASE.size());
-            if(FileUploader()->ValidRequest(UUID))
+
+			FileUploader::UploadId		E;
+            if(FileUploader()->Find(UUID,E))
             {
-                //  make sure we do not allow anyone else to overwrite our file
 				FileUploader()->RemoveRequest(UUID);
-                return new FormRequestHandler(UUID,Logger());
+                return new FormRequestHandler(UUID,Logger(),E.Type);
             }
             else
             {
@@ -298,6 +299,17 @@ namespace OpenWifi {
         }
         return nullptr;
     }
+
+	 bool FileUploader::Find(const std::string &UUID, UploadId &V) {
+		std::lock_guard		G(Mutex_);
+		for(const auto &E:OutStandingUploads_) {
+			if (E.UUID == UUID) {
+				V = E;
+				return true;
+			}
+		}
+		return false;
+	}
 
     void FileUploader::Stop() {
 		poco_notice(Logger(),"Stopping...");
