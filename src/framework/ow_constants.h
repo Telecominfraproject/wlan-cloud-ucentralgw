@@ -437,6 +437,7 @@ namespace OpenWifi::uCentralProtocol {
     static const char *PASSWORD = "password";
     static const char *DEVICEUPDATE = "deviceupdate";
 	static const char *FWSIGNATURE = "FWsignature";
+	static const char *SIGNATURE = "signature";
 
     static const char *SERIALNUMBER = "serialNumber";
     static const char *COMPATIBLE = "compatible";

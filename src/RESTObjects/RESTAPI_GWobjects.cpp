@@ -306,8 +306,10 @@ namespace OpenWifi::GWObjects {
 		field_to_json(Obj,"timeout",timeout);
 		field_to_json(Obj,"type",type);
 		field_to_json(Obj,"script",script);
-		field_to_json(Obj,"scriptId",scriptId);
 		field_to_json(Obj,"when",when);
+		field_to_json(Obj,"signature", signature);
+		field_to_json(Obj,"deferred", deferred);
+		field_to_json(Obj,"uri", uri);
 	}
 
 	bool ScriptRequest::from_json(const Poco::JSON::Object::Ptr &Obj) {
@@ -316,8 +318,10 @@ namespace OpenWifi::GWObjects {
 			field_from_json(Obj,"timeout",timeout);
 			field_from_json(Obj,"type",type);
 			field_from_json(Obj,"script",script);
-			field_from_json(Obj,"scriptId",scriptId);
 			field_from_json(Obj,"when",when);
+			field_from_json(Obj,"signature", signature);
+			field_from_json(Obj,"deferred", deferred);
+			field_from_json(Obj,"uri", uri);
 			return true;
 		} catch (const Poco::Exception &E) {
 		}

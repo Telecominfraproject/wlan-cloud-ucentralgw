@@ -515,15 +515,19 @@ components:
             - uci
             - ucode
             - shell
+            - bundle
         script:
           type: string
-        scriptId:
-          type: string
-          format: uuid
         when:
           type: integer
           format: int64
           default: 0
+        signature:
+          type: string
+        deferred:
+          type: boolean
+        uri:
+          type: string
 
     FactoryRequest:
       type: object

@@ -418,6 +418,10 @@ namespace OpenWifi {
 		Logger_.warning(fmt::format("{}({},{}): Canceled. Error:{} Reason:{}", Cmd, UUID, RPC, Err.err_num, Err.err_txt));
 	}
 
+	static bool ValidateScriptType(const std::string &t) {
+		return t=="uci" || t=="ucode" || t=="shell" || t=="bundle";
+	}
+
 	void RESTAPI_device_commandHandler::Script(const std::string &CMD_UUID, uint64_t CMD_RPC, std::chrono::milliseconds timeout) {
 		Logger_.information(fmt::format("SCRIPT({},{}): TID={} user={} serial={}", CMD_UUID, CMD_RPC, TransactionId_, Requester(), SerialNumber_));
 		if(!Internal_ && UserInfo_.userinfo.userRole!=SecurityObjects::ROOT) {
@@ -434,9 +438,7 @@ namespace OpenWifi {
 
 		if (SCR.serialNumber.empty() ||
 			SCR.script.empty() ||
-			SCR.type.empty() ||
-			SCR.scriptId.empty() ||
-			(SCR.type!="shell" && SCR.type!="ucode")) {
+			!ValidateScriptType(SCR.type)) {
 			CallCanceled("SCRIPT", CMD_UUID, CMD_RPC,RESTAPI::Errors::MissingOrInvalidParameters);
 			return BadRequest(RESTAPI::Errors::MissingOrInvalidParameters);
 		}
@@ -444,6 +446,15 @@ namespace OpenWifi {
 		if (SerialNumber_ != SCR.serialNumber) {
 			CallCanceled("SCRIPT", CMD_UUID, CMD_RPC,RESTAPI::Errors::SerialNumberMismatch);
 			return BadRequest(RESTAPI::Errors::SerialNumberMismatch);
+		}
+
+		GWObjects::Device	D;
+		if(!StorageService()->GetDevice(SerialNumber_,D)) {
+			return NotFound();
+		}
+
+		if(D.restrictedDevice && SCR.signature.empty()) {
+			return BadRequest(RESTAPI::Errors::DeviceRequiresSignature);
 		}
 
 		uint64_t ap_timeout = SCR.timeout==0 ? 30 : SCR.timeout;
@@ -454,10 +465,23 @@ namespace OpenWifi {
 		Cmd.SubmittedBy = Requester();
 		Cmd.Command = uCentralProtocol::SCRIPT;
 		Cmd.RunAt = 0;
+		Cmd.WaitingForFile = SCR.deferred ? 1 : 0;
 
 		Poco::JSON::Object Params;
 		Params.set(uCentralProtocol::SERIAL, SerialNumber_);
-		Params.set(uCentralProtocol::TIMEOUT, ap_timeout);
+		if(SCR.deferred && SCR.uri.empty()) {
+			SCR.uri = FileUploader()->FullName() + CMD_UUID ;
+		}
+
+		if(SCR.deferred) {
+			Params.set(uCentralProtocol::URI, SCR.uri);
+		} else {
+			Params.set(uCentralProtocol::TIMEOUT, ap_timeout);
+		}
+
+		if(!SCR.signature.empty()) {
+			Params.set(uCentralProtocol::SIGNATURE, SCR.signature);
+		}
 		Params.set(uCentralProtocol::TYPE, SCR.type);
 		Params.set(uCentralProtocol::SCRIPT, SCR.script);
 		Params.set(uCentralProtocol::WHEN, SCR.when);
@@ -465,6 +489,7 @@ namespace OpenWifi {
 		std::stringstream ParamStream;
 		Params.stringify(ParamStream);
 		Cmd.Details = ParamStream.str();
+		FileUploader()->AddUUID(CMD_UUID, 15min, "script_result");
 
 		return RESTAPI_RPC::WaitForCommand(CMD_RPC,false,Cmd, Params, *Request, *Response, timeout, nullptr, this, Logger_);
 	}
@@ -796,7 +821,7 @@ namespace OpenWifi {
 			Params.stringify(ParamStream);
 			Cmd.Details = ParamStream.str();
 
-			FileUploader()->AddUUID(CMD_UUID);
+			FileUploader()->AddUUID(CMD_UUID, 10min, "trace");
 			return RESTAPI_RPC::WaitForCommand(CMD_RPC,false,Cmd, Params, *Request, *Response, timeout, nullptr, this, Logger_);
 		}
 		BadRequest(RESTAPI::Errors::MissingOrInvalidParameters);

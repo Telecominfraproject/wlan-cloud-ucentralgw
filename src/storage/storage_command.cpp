@@ -584,7 +584,7 @@ typedef Poco::Tuple<
 		return false;
 	}
 
-	bool Storage::AttachFileDataToCommand(std::string & UUID, const std::stringstream & FileContent) {
+	bool Storage::AttachFileDataToCommand(std::string & UUID, const std::stringstream & FileContent, const std::string &Type) {
 		try {
 			Poco::Data::Session Sess = Pool_->get();
 			auto Now = Utils::Now();
@@ -611,7 +611,7 @@ typedef Poco::Tuple<
 				TheBlob.appendRaw((const unsigned char *)FileContent.str().c_str(),FileContent.str().size());
 
 				Poco::Data::Statement Insert(Sess);
-				std::string FileType{"trace"};
+				std::string FileType{Type};
 
 				std::string St2{
 					"INSERT INTO FileUploads (UUID,Type,Created,FileContent) VALUES(?,?,?,?)"};

@@ -681,9 +681,11 @@ Controller sends this command to run a predefined script. Extreme care must be t
      "method" : "script" , 
      "params" : {
         "serial" : <serial number>,
-        "type" : <one of "shell", "ucode">,
-        "script" : <text blob containing the script>,
-        "timeout" : <max timeout in seconds, default is 30>,
+        "type" : <one of "shell", "ucode", "bundle">,
+        "script" : <text blob containing the script, This must be vase64 encoded>,
+        "timeout" : <max timeout in seconds, default is 30, unused if URI is supplied>,
+        "uri":  "<upload script results using this URI>",
+        "signature" : "<signature for script>: must be supplied to restricted devices",
         "when" : <time when this will be performed as UTC seconds>
      },
      "id" : <some number>
