@@ -22,20 +22,20 @@ namespace OpenWifi {
 			std::cout << "WS Destroy" << std::endl;
 		}
 
-		inline std::string getProperty( [[maybe_unused]] const std::string &p ) const final {
+		std::string getProperty( [[maybe_unused]] const std::string &p ) const final {
 			std::cout << "WS getProperty" << std::endl;
 			return "";
 		}
 
-		inline void close() final {
+		void close() final {
 			std::cout << "WS close" << std::endl;
 		}
 
-		inline void open() final {
+		void open() final {
 			std::cout << "WS open" << std::endl;
 		}
 
-		inline static std::string to_string(Poco::Message::Priority p) {
+		static std::string to_string(Poco::Message::Priority p) {
 			switch(p) {
 			case Poco::Message::PRIO_INFORMATION: return "information";
 			case Poco::Message::PRIO_CRITICAL: return "critical";
@@ -84,7 +84,7 @@ namespace OpenWifi {
 
 		typedef WebSocketNotification<NotificationLogMessage> WebSocketClientNotificationLogMessage_t;
 
-		inline void log(const Poco::Message &m) final {
+		void log(const Poco::Message &m) final {
 			std::cout << "WS Logger" << std::endl;
 			if(Enabled_ && UI_WebSocketClientServer()->IsAnyoneConnected()) {
 				WebSocketClientNotificationLogMessage_t		Msg;
@@ -99,11 +99,11 @@ namespace OpenWifi {
 			}
 		}
 
-		inline void setProperty([[maybe_unused]] const std::string &name, [[maybe_unused]] const std::string &value) final {
+		void setProperty([[maybe_unused]] const std::string &name, [[maybe_unused]] const std::string &value) final {
 			std::cout << "WS setProperty" << std::endl;
 		}
 
-		inline void Enable(bool enable) { Enabled_ = enable; }
+		void Enable(bool enable) { Enabled_ = enable; }
 
 	  private:
 		std::recursive_mutex	Mutex_;
