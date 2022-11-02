@@ -293,11 +293,12 @@ namespace OpenWifi {
 			auto Level = Poco::Logger::parseLevel(MicroService::instance().ConfigGetString("logging.level", "debug"));
 			Poco::Logger::root().setLevel(Level);
 
-			static const UI_WebSocketClientServer::NotificationTypeIdVec Notifications = {
-				{ 1, "log" }
-			};
+			if(!DisableWebSocketLogging) {
+				static const UI_WebSocketClientServer::NotificationTypeIdVec Notifications = {
+					{1, "log"}};
 
-			UI_WebSocketClientServer()->RegisterNotifications(Notifications);
+				UI_WebSocketClientServer()->RegisterNotifications(Notifications);
+			}
 		}
 	}
 
