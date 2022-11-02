@@ -512,8 +512,6 @@ components:
         type:
           type: string
           enum:
-            - uci
-            - ucode
             - shell
             - bundle
         script:
