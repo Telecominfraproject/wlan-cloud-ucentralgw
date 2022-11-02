@@ -60,6 +60,7 @@ namespace OpenWifi {
 		typedef WebSocketNotification<WebSocketClientNotificationLogMessage> WebSocketClientNotificationLogMessage_t;
 
 		inline void log(const Poco::Message &m) final {
+			std::cout << "WS Logger" << std::endl;
 			if(Enabled_ && UI_WebSocketClientServer()->IsAnyoneConnected()) {
 				/*
 				nlohmann::json log_msg;
@@ -90,10 +91,11 @@ namespace OpenWifi {
 
 		}
 
-		inline static auto instance() {
+/*		inline static auto instance() {
 			static auto instance_ = new WebSocketLogger;
 			return instance_;
 		}
+*/
 		inline void Enable(bool enable) { Enabled_ = enable; }
 		typedef std::function<void(const Poco::Message &M)> logmuxer_callback_func_t;
 		inline void RegisterCallback(const logmuxer_callback_func_t & R, uint64_t &Id) {
@@ -108,6 +110,6 @@ namespace OpenWifi {
 		bool Enabled_ = false;
 	};
 
-	inline auto WebSocketLogger() { return WebSocketLogger::instance(); }
+//	inline auto WebSocketLogger() { return WebSocketLogger::instance(); }
 
 }
