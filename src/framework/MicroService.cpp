@@ -258,7 +258,7 @@ namespace OpenWifi {
 						Poco::AutoPtr<WebSocketLogger>			WSLogger(new WebSocketLogger);
 						Poco::AutoPtr<Poco::SplitterChannel>	Splitter(new Poco::SplitterChannel);
 						Splitter->addChannel(WSLogger);
-						Splitter->addChannel(WSLogger);
+						Splitter->addChannel(FormattingChannel);
 						Poco::Logger::root().setChannel(Splitter);
 					}
 
