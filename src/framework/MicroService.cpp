@@ -275,6 +275,18 @@ namespace OpenWifi {
 					Formatter->setProperty("pattern", LoggingFormat);
 					Poco::AutoPtr<Poco::FormattingChannel> FormattingChannel(
 						new Poco::FormattingChannel(Formatter, FileChannel));
+					if(DisableWebSocketLogging) {
+						std::cout << __LINE__ << std::endl;
+						Poco::Logger::root().setChannel(FormattingChannel);
+					} else {
+						std::cout << __LINE__ << std::endl;
+						Poco::AutoPtr<WebSocketLogger>			WSLogger(new WebSocketLogger);
+						Poco::AutoPtr<Poco::SplitterChannel>	Splitter(new Poco::SplitterChannel);
+						Splitter->addChannel(WSLogger);
+						Splitter->addChannel(FormattingChannel);
+						std::cout << __LINE__ << std::endl;
+						Poco::Logger::root().setChannel(Splitter);
+					}
 					Poco::Logger::root().setChannel(FormattingChannel);
 				}
 			}
