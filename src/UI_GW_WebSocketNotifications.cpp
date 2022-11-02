@@ -153,6 +153,7 @@ namespace OpenWifi::GWWebSocketNotifications {
 			{ 5000, "device_disconnection" },
 			{ 6000, "device_statistics" }
 		};
+
 		UI_WebSocketClientServer()->RegisterNotifications(Notifications);
 	}
 

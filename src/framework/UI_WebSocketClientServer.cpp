@@ -163,7 +163,7 @@ namespace OpenWifi {
 	}
 
 	void UI_WebSocketClientServer::RegisterNotifications(const OpenWifi::UI_WebSocketClientServer::NotificationTypeIdVec &Notifications) {
-		std::copy(Notifications.begin(), Notifications.end(), NotificationTypes_.end());
+		std::copy(Notifications.begin(), Notifications.end(), std::back_inserter(NotificationTypes_));
 		SortNotifications();
 	}
 
