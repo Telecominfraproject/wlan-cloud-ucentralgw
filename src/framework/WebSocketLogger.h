@@ -22,7 +22,7 @@ namespace OpenWifi {
 			std::cout << "WS Destroy" << std::endl;
 		}
 
-		std::string getProperty( [[maybe_unused]] const std::string &p ) const final {
+		std::string getProperty( [[maybe_unused]] const std::string &p ) const {
 			std::cout << "WS getProperty" << std::endl;
 			return "";
 		}
@@ -99,7 +99,7 @@ namespace OpenWifi {
 			}
 		}
 
-		void setProperty([[maybe_unused]] const std::string &name, [[maybe_unused]] const std::string &value) final {
+		void setProperty([[maybe_unused]] const std::string &name, [[maybe_unused]] const std::string &value) {
 			std::cout << "WS setProperty" << std::endl;
 		}
 
