@@ -280,8 +280,8 @@ namespace OpenWifi {
 						Poco::Logger::root().setChannel(FormattingChannel);
 					} else {
 						std::cout << __LINE__ << std::endl;
-						Poco::AutoPtr<WebSocketLogger>			WSLogger(new WebSocketLogger);
 						Poco::AutoPtr<Poco::SplitterChannel>	Splitter(new Poco::SplitterChannel);
+						Poco::AutoPtr<WebSocketLogger>			WSLogger(new WebSocketLogger);
 						Splitter->addChannel(WSLogger);
 						Splitter->addChannel(FormattingChannel);
 						std::cout << __LINE__ << std::endl;
