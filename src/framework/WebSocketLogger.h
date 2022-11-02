@@ -8,6 +8,7 @@
 #include "framework/UI_WebSocketClientServer.h"
 #include "framework/UI_WebSocketClientNotifications.h"
 
+
 namespace OpenWifi {
 
 	class WebSocketLogger : public Poco::Channel {
