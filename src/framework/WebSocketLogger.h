@@ -36,7 +36,6 @@ namespace OpenWifi {
 		}
 
 		static std::string to_string(Poco::Message::Priority p) {
-			std::cout << "WS to_string" << std::endl;
 			switch(p) {
 			case Poco::Message::PRIO_INFORMATION: return "information";
 			case Poco::Message::PRIO_CRITICAL: return "critical";
@@ -86,7 +85,6 @@ namespace OpenWifi {
 		typedef WebSocketNotification<NotificationLogMessage> WebSocketClientNotificationLogMessage_t;
 
 		void log(const Poco::Message &m) final {
-			std::cout << "WS Logger" << std::endl;
 			if(UI_WebSocketClientServer()->IsAnyoneConnected()) {
 				WebSocketClientNotificationLogMessage_t		Msg;
 				Msg.content.msg = m.getText();
