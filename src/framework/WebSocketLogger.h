@@ -15,11 +15,9 @@ namespace OpenWifi {
 	  public:
 
 		WebSocketLogger() {
-			std::cout << "WS Create" << std::endl;
 		}
 
 		~WebSocketLogger() {
-			std::cout << "WS Destroy" << std::endl;
 		}
 
 		std::string getProperty( [[maybe_unused]] const std::string &p ) const {
@@ -28,11 +26,9 @@ namespace OpenWifi {
 		}
 
 		void close() final {
-			std::cout << "WS close" << std::endl;
 		}
 
 		void open() final {
-			std::cout << "WS open" << std::endl;
 		}
 
 		static std::string to_string(Poco::Message::Priority p) {
