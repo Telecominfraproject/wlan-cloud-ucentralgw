@@ -215,7 +215,6 @@ namespace OpenWifi::GWObjects {
 		field_to_json(Obj,"totalConnectionTime", Utils::Now() - started);
 		field_to_json(Obj,"certificateExpiryDate", certificateExpiryDate);
 
-
 		switch(VerifiedCertificate) {
 			case NO_CERTIFICATE:
 				field_to_json(Obj,"verifiedCertificate", "NO_CERTIFICATE"); break;

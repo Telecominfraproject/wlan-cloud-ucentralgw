@@ -63,9 +63,9 @@ namespace OpenWifi {
 				KafkaManager()->PostMessage(KafkaTopics::STATE, SerialNumber_, OS.str());
 			}
 
-			WebNotificationSingleDevice_t	N;
+			GWWebSocketNotifications::SingleDevice_t	N;
 			N.content.serialNumber = SerialNumber_;
-			WebSocketClientNotificationDeviceStatistics(N);
+			GWWebSocketNotifications::DeviceStatistics(N);
 
 		} else {
 			poco_warning(Logger_, fmt::format("STATE({}): Invalid request. Missing serial, uuid, or state", CId_));

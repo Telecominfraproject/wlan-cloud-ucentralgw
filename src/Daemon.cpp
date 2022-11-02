@@ -27,6 +27,7 @@
 #include "framework/ConfigurationValidator.h"
 #include "rttys/RTTYS_server.h"
 #include "framework/UI_WebSocketClientServer.h"
+#include "UI_GW_WebSocketNotifications.h"
 
 namespace OpenWifi {
 	class Daemon *Daemon::instance() {
@@ -105,6 +106,7 @@ namespace OpenWifi {
 
 	void DaemonPostInitialization(Poco::Util::Application &self) {
 		Daemon()->PostInitialization(self);
+		GWWebSocketNotifications::RegisterGWNotifications();
 	}
 }
 

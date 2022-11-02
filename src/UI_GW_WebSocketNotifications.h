@@ -7,14 +7,15 @@
 #include "framework/UI_WebSocketClientNotifications.h"
 #include "framework/UI_WebSocketClientServer.h"
 
-namespace OpenWifi {
-	struct WebNotificationSingleDevice {
+namespace OpenWifi::GWWebSocketNotifications {
+
+	struct SingleDevice {
 		std::string		serialNumber;
 		inline void to_json(Poco::JSON::Object &Obj) const ;
 		inline bool from_json(const Poco::JSON::Object::Ptr &Obj);
 	};
 
-	struct WebNotificationSingleDeviceConfigurationChange {
+	struct SingleDeviceConfigurationChange {
 		std::string		serialNumber;
 		uint64_t 		oldUUID;
 		uint64_t 		newUUID;
@@ -23,14 +24,14 @@ namespace OpenWifi {
 		inline bool from_json(const Poco::JSON::Object::Ptr &Obj);
 	};
 
-	struct WebNotificationSingleDeviceFirmwareChange {
+	struct SingleDeviceFirmwareChange {
 		std::string		serialNumber;
 		std::string		newFirmware;
 		inline void to_json(Poco::JSON::Object &Obj) const ;
 		inline bool from_json(const Poco::JSON::Object::Ptr &Obj);
 	};
 
-	struct WebSocketClientNotificationNumberOfConnection {
+	struct NumberOfConnection {
 		std::uint64_t 	numberOfDevices=0;
 		std::uint64_t 	averageConnectedTime=0;
 		std::uint64_t 	numberOfConnectingDevices=0;
@@ -39,23 +40,25 @@ namespace OpenWifi {
 		inline bool from_json(const Poco::JSON::Object::Ptr &Obj);
 	};
 
-	typedef WebSocketNotification<WebNotificationSingleDevice> WebNotificationSingleDevice_t;
-	typedef WebSocketNotification<WebNotificationSingleDeviceConfigurationChange> WebNotificationSingleDeviceConfigurationChange_t;
-	typedef WebSocketNotification<WebNotificationSingleDeviceFirmwareChange> WebNotificationSingleDeviceFirmwareChange_t;
-	typedef WebSocketNotification<WebSocketClientNotificationNumberOfConnection> WebSocketClientNotificationNumberOfConnection_t;
+	void RegisterGWNotifications();
 
-	void WebSocketClientNotificationNumberOfConnections(WebSocketClientNotificationNumberOfConnection_t &N);
-	void WebSocketClientNotificationDeviceConfigurationChange(WebNotificationSingleDeviceConfigurationChange_t &N);
-	void WebSocketClientNotificationDeviceFirmwareUpdated(WebNotificationSingleDeviceFirmwareChange_t &);
-	void WebSocketClientNotificationDeviceConnected(WebNotificationSingleDevice_t &N);
-	void WebSocketClientNotificationDeviceDisconnected(WebNotificationSingleDevice_t &N);
-	void WebSocketClientNotificationDeviceStatistics(WebNotificationSingleDevice_t &N);
+	typedef WebSocketNotification<SingleDevice> SingleDevice_t;
+	typedef WebSocketNotification<SingleDeviceConfigurationChange> SingleDeviceConfigurationChange_t;
+	typedef WebSocketNotification<SingleDeviceFirmwareChange> SingleDeviceFirmwareChange_t;
+	typedef WebSocketNotification<NumberOfConnection> NumberOfConnection_t;
 
-	void WebSocketClientNotificationNumberOfConnections(const std::string & User, WebSocketClientNotificationNumberOfConnection_t &N);
-	void WebSocketClientNotificationDeviceConfigurationChange(const std::string & User, WebNotificationSingleDeviceConfigurationChange_t &N);
-	void WebSocketClientNotificationDeviceFirmwareUpdated(const std::string & User, WebNotificationSingleDeviceFirmwareChange_t &);
-	void WebSocketClientNotificationDeviceConnected(const std::string & User, WebNotificationSingleDevice_t &N);
-	void WebSocketClientNotificationDeviceDisconnected(const std::string & User, WebNotificationSingleDevice_t &N);
-	void WebSocketClientNotificationDeviceStatistics(const std::string & User, WebNotificationSingleDevice_t &N);
+	void NumberOfConnections(NumberOfConnection_t &N);
+	void DeviceConfigurationChange(SingleDeviceConfigurationChange_t &N);
+	void DeviceFirmwareUpdated(SingleDeviceFirmwareChange_t &);
+	void DeviceConnected(SingleDevice_t &N);
+	void DeviceDisconnected(SingleDevice_t &N);
+	void DeviceStatistics(SingleDevice_t &N);
+
+	void NumberOfConnections(const std::string & User, NumberOfConnection_t &N);
+	void DeviceConfigurationChange(const std::string & User, SingleDeviceConfigurationChange_t &N);
+	void DeviceFirmwareUpdated(const std::string & User, SingleDeviceFirmwareChange_t &);
+	void DeviceConnected(const std::string & User, SingleDevice_t &N);
+	void DeviceDisconnected(const std::string & User, SingleDevice_t &N);
+	void DeviceStatistics(const std::string & User, SingleDevice_t &N);
 
 };

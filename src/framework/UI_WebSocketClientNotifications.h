@@ -10,11 +10,13 @@
 namespace OpenWifi {
 
     template<typename ContentStruct>
+
     struct WebSocketNotification {
         inline static uint64_t xid = 1;
-        uint64_t notification_id = ++xid;
-        std::string type;
-        ContentStruct content;
+        uint64_t 		notification_id = ++xid;
+//        std::string 	type;
+		std::uint64_t 	type_id=0;
+        ContentStruct 	content;
 
         void to_json(Poco::JSON::Object &Obj) const;
 
@@ -24,7 +26,8 @@ namespace OpenWifi {
     template<typename ContentStruct>
     void WebSocketNotification<ContentStruct>::to_json(Poco::JSON::Object &Obj) const {
         RESTAPI_utils::field_to_json(Obj, "notification_id", notification_id);
-        RESTAPI_utils::field_to_json(Obj, "type", type);
+//        RESTAPI_utils::field_to_json(Obj, "type", type);
+		RESTAPI_utils::field_to_json(Obj, "type_id", type_id);
         RESTAPI_utils::field_to_json(Obj, "content", content);
     }
 
@@ -32,8 +35,9 @@ namespace OpenWifi {
     bool WebSocketNotification<ContentStruct>::from_json(const Poco::JSON::Object::Ptr &Obj) {
         try {
             RESTAPI_utils::field_from_json(Obj, "notification_id", notification_id);
-            RESTAPI_utils::field_from_json(Obj, "content", content);
-            RESTAPI_utils::field_from_json(Obj, "type", type);
+  //          RESTAPI_utils::field_from_json(Obj, "type", type);
+			RESTAPI_utils::field_from_json(Obj, "type_id", type_id);
+			RESTAPI_utils::field_from_json(Obj, "content", content);
             return true;
         } catch (...) {
 

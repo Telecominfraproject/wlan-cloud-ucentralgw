@@ -419,7 +419,7 @@ namespace OpenWifi {
 	}
 
 	static bool ValidateScriptType(const std::string &t) {
-		return t=="uci" || t=="ucode" || t=="shell" || t=="bundle";
+		return t=="shell" || t=="bundle";
 	}
 
 	void RESTAPI_device_commandHandler::Script(const std::string &CMD_UUID, uint64_t CMD_RPC, std::chrono::milliseconds timeout) {

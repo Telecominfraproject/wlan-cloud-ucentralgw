@@ -198,11 +198,11 @@ namespace OpenWifi {
 										 NumberOfConnectedDevices_, NumberOfConnectingDevices_, AverageDeviceConnectionTime_));
 		}
 
-		WebSocketClientNotificationNumberOfConnection_t	Notification;
+		GWWebSocketNotifications::NumberOfConnection_t	Notification;
 		Notification.content.numberOfConnectingDevices = NumberOfConnectingDevices_;
 		Notification.content.numberOfDevices = NumberOfConnectedDevices_;
 		Notification.content.averageConnectedTime = AverageDeviceConnectionTime_;
-		WebSocketClientNotificationNumberOfConnections(Notification);
+		GWWebSocketNotifications::NumberOfConnections(Notification);
 	}
 
 	void AP_WS_Server::Stop() {

@@ -5,6 +5,8 @@
 #pragma once
 
 #include "framework/SubSystemServer.h"
+#include "framework/UI_WebSocketClientServer.h"
+#include "framework/UI_WebSocketClientNotifications.h"
 
 namespace OpenWifi {
 
@@ -27,7 +29,7 @@ namespace OpenWifi {
 			case Poco::Message::PRIO_CRITICAL: return "critical";
 			case Poco::Message::PRIO_DEBUG: return "debug";
 			case Poco::Message::PRIO_ERROR: return "error";
-			case Poco::Message::PRIO_FATAL: return "level";
+			case Poco::Message::PRIO_FATAL: return "fatal";
 			case Poco::Message::PRIO_NOTICE: return "notice";
 			case Poco::Message::PRIO_TRACE: return "trace";
 			case Poco::Message::PRIO_WARNING: return "warning";
@@ -35,8 +37,30 @@ namespace OpenWifi {
 			}
 		}
 
+		struct WebSocketClientNotificationLogMessage {
+			std::string 		msg;
+			std::string 		level;
+			std::string 		timestamp;
+			std::string 		source;
+			std::string 		thread_name;
+			std::uint64_t 		thread_id=0;
+
+			explicit WebSocketClientNotificationLogMessage(const Poco::Message &m) {
+				msg = m.getText();
+				level = WebSocketLogger::to_string(m.getPriority());
+				timestamp = Poco::DateTimeFormatter::format(m.getTime(), Poco::DateTimeFormat::ISO8601_FORMAT);
+				source = m.getSource();
+				thread_name = m.getThread();
+				thread_id = m.getTid();
+			}
+
+			inline void to_json(Poco::JSON::Object &Obj) const ;
+			inline bool from_json(const Poco::JSON::Object::Ptr &Obj);
+		};
+		typedef WebSocketNotification<WebSocketClientNotificationLogMessage> WebSocketClientNotificationLogMessage_t;
+
 		inline void log(const Poco::Message &m) final {
-			if(Enabled_) {
+			if(Enabled_ && UI_WebSocketClientServer()->IsAnyoneConnected()) {
 				/*
 				nlohmann::json log_msg;
 				log_msg["msg"] = m.getText();

@@ -70,10 +70,10 @@ namespace OpenWifi {
 						DeviceInfo.LastFWUpdate = Utils::Now();
 						Updated = true;
 
-						WebNotificationSingleDeviceFirmwareChange_t	Notification;
+						GWWebSocketNotifications::SingleDeviceFirmwareChange_t	Notification;
 						Notification.content.serialNumber = SerialNumber_;
 						Notification.content.newFirmware = Firmware;
-						WebSocketClientNotificationDeviceFirmwareUpdated(Notification);
+						GWWebSocketNotifications::DeviceFirmwareUpdated(Notification);
 					} else if(DeviceInfo.LastFWUpdate==0) {
 						DeviceInfo.LastFWUpdate = Utils::Now();
 						Updated = true;
@@ -133,9 +133,9 @@ namespace OpenWifi {
 				}
 			}
 
-			WebNotificationSingleDevice_t	Notification;
+			GWWebSocketNotifications::SingleDevice_t	Notification;
 			Notification.content.serialNumber = SerialNumber_;
-			WebSocketClientNotificationDeviceConnected(Notification);
+			GWWebSocketNotifications::DeviceConnected(Notification);
 
 			// std::cout << "Serial: " << SerialNumber_ << "Session: " << State_.sessionId << std::endl;
 

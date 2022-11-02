@@ -39,6 +39,7 @@ namespace OpenWifi {
                                          *this, &UI_WebSocketClientServer::OnSocketError));
         Client->SocketRegistered_ = true;
         Clients_[ClientSocket] = std::move(Client);
+		UsersConnected_ = Clients_.size();
     }
 
 	void UI_WebSocketClientServer::SetProcessor( UI_WebSocketClientProcessor * F) {
@@ -65,6 +66,7 @@ namespace OpenWifi {
                                                 Poco::Net::ErrorNotification>(*this,&UI_WebSocketClientServer::OnSocketError));
         }
         Clients_.erase(Client);
+		UsersConnected_ = Clients_.size();
         std::cout << "How many clients: " << Clients_.size() << std::endl;
     }
 
@@ -101,39 +103,37 @@ namespace OpenWifi {
 		}
 	};
 
-	bool UI_WebSocketClientServer::SendToId(const std::string &Id, const std::string &Payload) {
-		std::lock_guard G(Mutex_);
-
-        for(const auto &Client:Clients_) {
-            if(Client.second->Id_==Id)
-                return Client.second->WS_->sendFrame(Payload.c_str(),(int)Payload.size());
-        }
-		return false;
+	bool UI_WebSocketClientServer::IsFiltered(std::uint64_t id, const OpenWifi::UI_WebSocketClientInfo &Client) {
+		return std::find(Client.Filter_.begin(), Client.Filter_.end(),id)!=end(Client.Filter_);
 	}
 
-	bool UI_WebSocketClientServer::SendToUser(const std::string &UserName, const std::string &Payload) {
+	bool UI_WebSocketClientServer::SendToUser(const std::string &UserName, std::uint64_t id, const std::string &Payload) {
 		std::lock_guard G(Mutex_);
-		uint64_t Sent=0;
 
-		for(const auto &client:Clients_) {
-			if(client.second->UserName_ == UserName) {
+		for(const auto &Client:Clients_) {
+			if(Client.second->UserName_ == UserName) {
 				try {
-					if (client.second->WS_->sendFrame(Payload.c_str(),(int)Payload.size()))
-						Sent++;
+					if(!IsFiltered(id,*Client.second)) {
+						return Client.second->WS_->sendFrame(
+								   Payload.c_str(), (int)Payload.size()) == (int)Payload.size();
+					} else {
+						return false;
+					}
 				} catch (...) {
 					return false;
 				}
 			}
 		}
-		return Sent>0;
+		return false;
 	}
 
-	void UI_WebSocketClientServer::SendToAll(const std::string &Payload) {
+	void UI_WebSocketClientServer::SendToAll(std::uint64_t id, const std::string &Payload) {
 		std::lock_guard G(Mutex_);
 
-		for(const auto &client:Clients_) {
+		for(const auto &Client:Clients_) {
 			try {
-				client.second->WS_->sendFrame(Payload.c_str(),(int)Payload.size());
+				if(!IsFiltered(id,*Client.second))
+					Client.second->WS_->sendFrame(Payload.c_str(),(int)Payload.size());
 			} catch (...) {
 
 			}
@@ -143,6 +143,29 @@ namespace OpenWifi {
     UI_WebSocketClientServer::ClientList::iterator UI_WebSocketClientServer::FindWSClient( [[maybe_unused]]  std::lock_guard<std::recursive_mutex> &G, int ClientSocket) {
         return Clients_.find(ClientSocket);
     }
+
+	void UI_WebSocketClientServer::SortNotifications() {
+		struct {
+			bool operator()(const NotificationEntry &A, const NotificationEntry & B) const {
+				return A.id < B.id; };
+		} CompareNotifications;
+		std::sort(NotificationTypes_.begin(), NotificationTypes_.end(), CompareNotifications);
+
+		NotificationTypesJSON_.clear();
+		Poco::JSON::Array		AllNotifications;
+		for(const auto &notification:NotificationTypes_) {
+			Poco::JSON::Object	Notification;
+			Notification.set("id", notification.id);
+			Notification.set("helper", notification.helper);
+			AllNotifications.add(Notification);
+		}
+		NotificationTypesJSON_.set("notificationTypes", AllNotifications);
+	}
+
+	void UI_WebSocketClientServer::RegisterNotifications(const OpenWifi::UI_WebSocketClientServer::NotificationTypeIdVec &Notifications) {
+		std::copy(Notifications.begin(), Notifications.end(), NotificationTypes_.end());
+		SortNotifications();
+	}
 
     void UI_WebSocketClientServer::OnSocketError([[maybe_unused]] const Poco::AutoPtr<Poco::Net::ErrorNotification> &pNf) {
         std::lock_guard     G(LocalMutex_);
@@ -188,6 +211,7 @@ namespace OpenWifi {
                 return EndConnection(G, Client);
 			} break;
 			case Poco::Net::WebSocket::FRAME_OP_TEXT: {
+				constexpr const char *DropMessagesCommand = "drop-notifications";
 				IncomingFrame.append(0);
 				if (!Client->second->Authenticated_) {
 					std::string Frame{IncomingFrame.begin()};
@@ -198,19 +222,36 @@ namespace OpenWifi {
                         Client->second->Authenticated_ = true;
                         Client->second->UserName_ = Client->second->UserInfo_.userinfo.email;
 						poco_debug(Logger(),fmt::format("START({}): {} UI Client is starting WS connection.", Client->second->Id_, Client->second->UserName_));
-						std::string S{"Welcome! Bienvenue! Bienvenidos!"};
-						Client->second->WS_->sendFrame(S.c_str(), S.size());
+						auto WelcomeMessage = NotificationTypesJSON_;
+						WelcomeMessage.set("success", "Welcome! Bienvenue! Bienvenidos!");
+						std::ostringstream OS;
+						WelcomeMessage.stringify(OS);
+						Client->second->WS_->sendFrame(OS.str().c_str(), (int) OS.str().size());
                         Client->second->UserName_ = Client->second->UserInfo_.userinfo.email;
 					} else {
-						std::string S{"Invalid token. Closing connection."};
-                        Client->second->WS_->sendFrame(S.c_str(), S.size());
+						Poco::JSON::Object	WelcomeMessage;
+						WelcomeMessage.set("error", "Invalid token. Closing connection.");
+						std::ostringstream OS;
+						WelcomeMessage.stringify(OS);
+						Client->second->WS_->sendFrame(OS.str().c_str(), (int) OS.str().size());
+                        Client->second->WS_->sendFrame(OS.str().c_str(), (int) OS.str().size());
                         return EndConnection(G, Client);
 					}
-
 				} else {
                     Poco::JSON::Parser P;
                     auto Obj =
                         P.parse(IncomingFrame.begin()).extract<Poco::JSON::Object::Ptr>();
+
+					if(Obj->has(DropMessagesCommand) && Obj->isArray(DropMessagesCommand)) {
+						auto Filters = Obj->getArray(DropMessagesCommand);
+						Client->second->Filter_.clear();
+						for(const auto &Filter:*Filters) {
+							Client->second->Filter_.emplace_back( (std::uint64_t) Filter);
+						}
+						std::sort(begin(Client->second->Filter_),end(Client->second->Filter_));
+						return;
+					}
+
                     std::string Answer;
                     bool CloseConnection=false;
                     if (Processor_ != nullptr) {

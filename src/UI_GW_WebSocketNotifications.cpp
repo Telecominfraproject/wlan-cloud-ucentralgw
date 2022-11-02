@@ -4,12 +4,13 @@
 
 #include "UI_GW_WebSocketNotifications.h"
 
-namespace OpenWifi {
-	inline void WebNotificationSingleDevice::to_json(Poco::JSON::Object &Obj) const {
+namespace OpenWifi::GWWebSocketNotifications {
+
+	inline void SingleDevice::to_json(Poco::JSON::Object &Obj) const {
 		RESTAPI_utils::field_to_json(Obj,"serialNumber", serialNumber);
 	}
 
-	inline bool WebNotificationSingleDevice::from_json(const Poco::JSON::Object::Ptr &Obj) {
+	inline bool SingleDevice::from_json(const Poco::JSON::Object::Ptr &Obj) {
 		try {
 			RESTAPI_utils::field_from_json(Obj,"serialNumber", serialNumber);
 			return true;
@@ -19,13 +20,13 @@ namespace OpenWifi {
 		return false;
 	}
 
-	inline void WebNotificationSingleDeviceConfigurationChange::to_json(Poco::JSON::Object &Obj) const {
+	inline void SingleDeviceConfigurationChange::to_json(Poco::JSON::Object &Obj) const {
 		RESTAPI_utils::field_to_json(Obj,"serialNumber", serialNumber);
 		RESTAPI_utils::field_to_json(Obj,"oldUUID", oldUUID);
 		RESTAPI_utils::field_to_json(Obj,"newUUID", newUUID);
 	}
 
-	inline bool WebNotificationSingleDeviceConfigurationChange::from_json(const Poco::JSON::Object::Ptr &Obj) {
+	inline bool SingleDeviceConfigurationChange::from_json(const Poco::JSON::Object::Ptr &Obj) {
 		try {
 			RESTAPI_utils::field_from_json(Obj,"serialNumber", serialNumber);
 			RESTAPI_utils::field_from_json(Obj,"oldUUID", oldUUID);
@@ -37,12 +38,12 @@ namespace OpenWifi {
 		return false;
 	}
 
-	inline void WebNotificationSingleDeviceFirmwareChange::to_json(Poco::JSON::Object &Obj) const {
+	inline void SingleDeviceFirmwareChange::to_json(Poco::JSON::Object &Obj) const {
 		RESTAPI_utils::field_to_json(Obj,"serialNumber", serialNumber);
 		RESTAPI_utils::field_to_json(Obj,"newFirmware", newFirmware);
 	}
 
-	inline bool WebNotificationSingleDeviceFirmwareChange::from_json(const Poco::JSON::Object::Ptr &Obj) {
+	inline bool SingleDeviceFirmwareChange::from_json(const Poco::JSON::Object::Ptr &Obj) {
 		try {
 			RESTAPI_utils::field_from_json(Obj,"serialNumber", serialNumber);
 			RESTAPI_utils::field_from_json(Obj,"newFirmware", newFirmware);
@@ -53,13 +54,13 @@ namespace OpenWifi {
 		return false;
 	}
 
-	inline void WebSocketClientNotificationNumberOfConnection::to_json(Poco::JSON::Object &Obj) const {
+	inline void NumberOfConnection::to_json(Poco::JSON::Object &Obj) const {
 		RESTAPI_utils::field_to_json(Obj,"numberOfDevices", numberOfDevices);
 		RESTAPI_utils::field_to_json(Obj,"averageConnectedTime", averageConnectedTime);
 		RESTAPI_utils::field_to_json(Obj,"numberOfConnectingDevices", numberOfConnectingDevices);
 	}
 
-	inline bool WebSocketClientNotificationNumberOfConnection::from_json(const Poco::JSON::Object::Ptr &Obj) {
+	inline bool NumberOfConnection::from_json(const Poco::JSON::Object::Ptr &Obj) {
 		try {
 			RESTAPI_utils::field_from_json(Obj,"numberOfDevices", numberOfDevices);
 			RESTAPI_utils::field_from_json(Obj,"averageConnectedTime", averageConnectedTime);
@@ -71,64 +72,88 @@ namespace OpenWifi {
 		return false;
 	}
 
-	void WebSocketClientNotificationNumberOfConnections(WebSocketClientNotificationNumberOfConnection_t &N) {
-		N.type = "device_connections_statistics";
-		UI_WebSocketClientServer()->SendNotification(N);
-	}
-	void WebSocketClientNotificationNumberOfConnections(const std::string & User, WebSocketClientNotificationNumberOfConnection_t &N) {
-		N.type = "device_connections_statistics";
-		UI_WebSocketClientServer()->SendUserNotification(User,N);
-	}
-
-	void WebSocketClientNotificationDeviceConfigurationChange(WebNotificationSingleDeviceConfigurationChange_t &N) {
-		N.type = "device_configuration_upgrade";
+	void NumberOfConnections(NumberOfConnection_t &N) {
+		// N.type = "device_connections_statistics";
+		N.type_id = 1000 ;
 		UI_WebSocketClientServer()->SendNotification(N);
 	}
 
-	void WebSocketClientNotificationDeviceConfigurationChange(const std::string & User, WebNotificationSingleDeviceConfigurationChange_t &N) {
-		N.type = "device_configuration_upgrade";
+	void NumberOfConnections(const std::string & User, NumberOfConnection_t &N) {
+		// N.type = "device_connections_statistics";
+		N.type_id = 1000 ;
 		UI_WebSocketClientServer()->SendUserNotification(User,N);
 	}
 
-	void WebSocketClientNotificationDeviceFirmwareUpdated(WebNotificationSingleDeviceFirmwareChange_t &N) {
-		N.type = "device_firmware_upgrade";
+	void DeviceConfigurationChange(SingleDeviceConfigurationChange_t &N) {
+		// N.type = "device_configuration_upgrade";
+		N.type_id = 2000 ;
 		UI_WebSocketClientServer()->SendNotification(N);
 	}
 
-	void WebSocketClientNotificationDeviceFirmwareUpdated(const std::string & User, WebNotificationSingleDeviceFirmwareChange_t &N){
-		N.type = "device_firmware_upgrade";
+	void DeviceConfigurationChange(const std::string & User, SingleDeviceConfigurationChange_t &N) {
+		// N.type = "device_configuration_upgrade";
+		N.type_id = 2000 ;
 		UI_WebSocketClientServer()->SendUserNotification(User,N);
 	}
 
-	void WebSocketClientNotificationDeviceConnected(WebNotificationSingleDevice_t &N){
-		N.type = "device_connection";
+	void DeviceFirmwareUpdated(SingleDeviceFirmwareChange_t &N) {
+		// N.type = "device_firmware_upgrade";
+		N.type_id = 3000 ;
 		UI_WebSocketClientServer()->SendNotification(N);
 	}
 
-	void WebSocketClientNotificationDeviceConnected(const std::string & User, WebNotificationSingleDevice_t &N){
-		N.type = "device_connection";
+	void DeviceFirmwareUpdated(const std::string & User, SingleDeviceFirmwareChange_t &N){
+		// N.type = "device_firmware_upgrade";
+		N.type_id = 3000 ;
 		UI_WebSocketClientServer()->SendUserNotification(User,N);
 	}
 
-	void WebSocketClientNotificationDeviceDisconnected(const std::string & User, WebNotificationSingleDevice_t &N){
-		N.type = "device_disconnection";
-		UI_WebSocketClientServer()->SendUserNotification(User,N);
-	}
-
-	void WebSocketClientNotificationDeviceDisconnected(WebNotificationSingleDevice_t &N){
-		N.type = "device_disconnection";
+	void DeviceConnected(SingleDevice_t &N){
+		// N.type = "device_connection";
+		N.type_id = 4000 ;
 		UI_WebSocketClientServer()->SendNotification(N);
 	}
 
-	void WebSocketClientNotificationDeviceStatistics(const std::string & User, WebNotificationSingleDevice_t &N){
-		N.type = "device_statistics";
+	void DeviceConnected(const std::string & User, SingleDevice_t &N){
+		// N.type = "device_connection";
+		N.type_id = 4000 ;
 		UI_WebSocketClientServer()->SendUserNotification(User,N);
 	}
 
-	void WebSocketClientNotificationDeviceStatistics(WebNotificationSingleDevice_t &N){
-		N.type = "device_statistics";
+	void DeviceDisconnected(const std::string & User, SingleDevice_t &N){
+		// N.type = "device_disconnection";
+		N.type_id = 5000 ;
+		UI_WebSocketClientServer()->SendUserNotification(User,N);
+	}
+
+	void DeviceDisconnected(SingleDevice_t &N){
+		// N.type = "device_disconnection";
+		N.type_id = 5000 ;
 		UI_WebSocketClientServer()->SendNotification(N);
 	}
 
+	void DeviceStatistics(const std::string & User, SingleDevice_t &N){
+		// N.type = "device_statistics";
+		N.type_id = 6000 ;
+		UI_WebSocketClientServer()->SendUserNotification(User,N);
+	}
+
+	void DeviceStatistics(SingleDevice_t &N){
+		// N.type = "device_statistics";
+		N.type_id = 6000 ;
+		UI_WebSocketClientServer()->SendNotification(N);
+	}
+
+	void RegisterGWNotifications() {
+		static const UI_WebSocketClientServer::NotificationTypeIdVec Notifications = {
+			{ 1000, "device_connections_statistics" },
+			{ 2000, "device_configuration_upgrade" },
+			{ 3000, "device_firmware_upgrade" },
+			{ 4000, "device_connection" },
+			{ 5000, "device_disconnection" },
+			{ 6000, "device_statistics" }
+		};
+		UI_WebSocketClientServer()->RegisterNotifications(Notifications);
+	}
 
 }

@@ -246,9 +246,9 @@ namespace OpenWifi {
 
 			auto SessionDeleted = AP_WS_Server()->EndSession(State_.sessionId, SerialNumberInt_);
 			if (SessionDeleted) {
-				WebNotificationSingleDevice_t	N;
+				GWWebSocketNotifications::SingleDevice_t	N;
 				N.content.serialNumber = SerialNumber_;
-				WebSocketClientNotificationDeviceDisconnected(N);
+				GWWebSocketNotifications::DeviceDisconnected(N);
 			}
 		}
 	}
@@ -312,11 +312,11 @@ namespace OpenWifi {
 			StorageService()->AddCommand(SerialNumber_, Cmd, Storage::CommandExecutionType::COMMAND_EXECUTED);
 			CommandManager()->PostCommand(CommandManager()->NextRPCId(),SerialNumber_, Cmd.Command, Params, Cmd.UUID, Sent);
 
-			WebNotificationSingleDeviceConfigurationChange_t	Notification;
+			GWWebSocketNotifications::SingleDeviceConfigurationChange_t	Notification;
 			Notification.content.serialNumber = D.SerialNumber;
 			Notification.content.oldUUID = UUID;
 			Notification.content.newUUID = UpgradedUUID;
-			WebSocketClientNotificationDeviceConfigurationChange(Notification);
+			GWWebSocketNotifications::DeviceConfigurationChange(Notification);
 
 			return true;
 		}
