@@ -14,6 +14,14 @@ namespace OpenWifi {
 	class WebSocketLogger : public Poco::Channel {
 	  public:
 
+		WebSocketLogger() {
+			std::cout << "WS Create" << std::endl;
+		}
+
+		~WebSocketLogger() {
+			std::cout << "WS Destroy" << std::endl;
+		}
+
 		inline std::string getProperty( [[maybe_unused]] const std::string &p ) const final {
 			std::cout << "WS getProperty" << std::endl;
 			return "";
