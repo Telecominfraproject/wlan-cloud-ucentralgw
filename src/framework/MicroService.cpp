@@ -286,10 +286,8 @@ namespace OpenWifi {
 						Splitter->addChannel(FormattingChannel);
 						std::cout << __LINE__ << std::endl;
 						Poco::Logger::root().setChannel(Splitter);
-						std::cout << __LINE__ << std::endl;
 					}
 					std::cout << __LINE__ << std::endl;
-					Poco::Logger::root().setChannel(FormattingChannel);
 				}
 			}
 			auto Level = Poco::Logger::parseLevel(MicroService::instance().ConfigGetString("logging.level", "debug"));
