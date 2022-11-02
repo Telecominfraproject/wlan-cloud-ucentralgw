@@ -37,7 +37,7 @@ namespace OpenWifi {
 			}
 		}
 
-		struct WebSocketClientNotificationLogMessage {
+		struct NotificationLogMessage {
 			std::string 		msg;
 			std::string 		level;
 			std::string 		timestamp;
@@ -45,45 +45,45 @@ namespace OpenWifi {
 			std::string 		thread_name;
 			std::uint64_t 		thread_id=0;
 
-			explicit WebSocketClientNotificationLogMessage(const Poco::Message &m) {
-				msg = m.getText();
-				level = WebSocketLogger::to_string(m.getPriority());
-				timestamp = Poco::DateTimeFormatter::format(m.getTime(), Poco::DateTimeFormat::ISO8601_FORMAT);
-				source = m.getSource();
-				thread_name = m.getThread();
-				thread_id = m.getTid();
+			inline void to_json(Poco::JSON::Object &Obj) const {
+				RESTAPI_utils::field_to_json(Obj,"msg", msg);
+				RESTAPI_utils::field_to_json(Obj,"level", level);
+				RESTAPI_utils::field_to_json(Obj,"timestamp", timestamp);
+				RESTAPI_utils::field_to_json(Obj,"source", source);
+				RESTAPI_utils::field_to_json(Obj,"thread_name", thread_name);
+				RESTAPI_utils::field_to_json(Obj,"thread_id", thread_id);
 			}
 
-			inline void to_json(Poco::JSON::Object &Obj) const ;
-			inline bool from_json(const Poco::JSON::Object::Ptr &Obj);
+			inline bool from_json(const Poco::JSON::Object::Ptr &Obj) {
+				try {
+					RESTAPI_utils::field_from_json(Obj, "msg", msg);
+					RESTAPI_utils::field_from_json(Obj, "level", level);
+					RESTAPI_utils::field_from_json(Obj, "timestamp", timestamp);
+					RESTAPI_utils::field_from_json(Obj, "source", source);
+					RESTAPI_utils::field_from_json(Obj, "thread_name", thread_name);
+					RESTAPI_utils::field_from_json(Obj, "thread_id", thread_id);
+					return true;
+				} catch(...) {
+
+				}
+				return false;
+			}
 		};
-		typedef WebSocketNotification<WebSocketClientNotificationLogMessage> WebSocketClientNotificationLogMessage_t;
+
+		typedef WebSocketNotification<NotificationLogMessage> WebSocketClientNotificationLogMessage_t;
 
 		inline void log(const Poco::Message &m) final {
 			std::cout << "WS Logger" << std::endl;
 			if(Enabled_ && UI_WebSocketClientServer()->IsAnyoneConnected()) {
-				/*
-				nlohmann::json log_msg;
-				log_msg["msg"] = m.getText();
-				log_msg["level"] = to_string(m.getPriority());
-				log_msg["timestamp"] = Poco::DateTimeFormatter::format(m.getTime(), Poco::DateTimeFormat::ISO8601_FORMAT);
-				log_msg["source"] = m.getSource();
-				log_msg["thread_name"] = m.getThread();
-				log_msg["thread_id"] = m.getTid();
-
-				std::cout << log_msg << std::endl;
-				 */
-				std::lock_guard	G(Mutex_);
-				std::vector<uint64_t>	Remove;
-				for(const auto &[Id,CallBack]:CallBacks_) {
-					try {
-						CallBack(m);
-					} catch (...) {
-						Remove.push_back(Id);
-					}
-				}
-				for(const auto &i:Remove)
-					CallBacks_.erase(i);
+				WebSocketClientNotificationLogMessage_t		Msg;
+				Msg.content.msg = m.getText();
+				Msg.content.level = WebSocketLogger::to_string(m.getPriority());
+				Msg.content.timestamp = Poco::DateTimeFormatter::format(m.getTime(), Poco::DateTimeFormat::ISO8601_FORMAT);
+				Msg.content.source = m.getSource();
+				Msg.content.thread_name = m.getThread();
+				Msg.content.thread_id = m.getTid();
+				Msg.type_id = 1;
+				UI_WebSocketClientServer()->SendNotification(Msg);
 			}
 		}
 
@@ -91,22 +91,10 @@ namespace OpenWifi {
 
 		}
 
-/*		inline static auto instance() {
-			static auto instance_ = new WebSocketLogger;
-			return instance_;
-		}
-*/
 		inline void Enable(bool enable) { Enabled_ = enable; }
-		typedef std::function<void(const Poco::Message &M)> logmuxer_callback_func_t;
-		inline void RegisterCallback(const logmuxer_callback_func_t & R, uint64_t &Id) {
-			std::lock_guard	G(Mutex_);
-			Id = CallBackId_++;
-			CallBacks_[Id] = R;
-		}
+
 	  private:
 		std::recursive_mutex	Mutex_;
-		std::map<uint64_t,logmuxer_callback_func_t>  CallBacks_;
-		inline static uint64_t CallBackId_=1;
 		bool Enabled_ = false;
 	};
 
