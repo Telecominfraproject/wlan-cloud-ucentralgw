@@ -14,13 +14,16 @@ namespace OpenWifi {
 	  public:
 
 		inline std::string getProperty( [[maybe_unused]] const std::string &p ) const final {
+			std::cout << "WS getProperty" << std::endl;
 			return "";
 		}
 
 		inline void close() final {
+			std::cout << "WS close" << std::endl;
 		}
 
 		inline void open() final {
+			std::cout << "WS open" << std::endl;
 		}
 
 		inline static std::string to_string(Poco::Message::Priority p) {
@@ -88,7 +91,7 @@ namespace OpenWifi {
 		}
 
 		inline void setProperty([[maybe_unused]] const std::string &name, [[maybe_unused]] const std::string &value) final {
-
+			std::cout << "WS setProperty" << std::endl;
 		}
 
 		inline void Enable(bool enable) { Enabled_ = enable; }
