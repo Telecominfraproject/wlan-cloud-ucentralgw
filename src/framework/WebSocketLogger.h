@@ -36,6 +36,7 @@ namespace OpenWifi {
 		}
 
 		static std::string to_string(Poco::Message::Priority p) {
+			std::cout << "WS to_string" << std::endl;
 			switch(p) {
 			case Poco::Message::PRIO_INFORMATION: return "information";
 			case Poco::Message::PRIO_CRITICAL: return "critical";
@@ -86,7 +87,7 @@ namespace OpenWifi {
 
 		void log(const Poco::Message &m) final {
 			std::cout << "WS Logger" << std::endl;
-			if(Enabled_ && UI_WebSocketClientServer()->IsAnyoneConnected()) {
+			if(UI_WebSocketClientServer()->IsAnyoneConnected()) {
 				WebSocketClientNotificationLogMessage_t		Msg;
 				Msg.content.msg = m.getText();
 				Msg.content.level = WebSocketLogger::to_string(m.getPriority());
@@ -103,11 +104,8 @@ namespace OpenWifi {
 			std::cout << "WS setProperty" << std::endl;
 		}
 
-		void Enable(bool enable) { Enabled_ = enable; }
-
 	  private:
 		std::recursive_mutex	Mutex_;
-		bool Enabled_ = false;
 	};
 
 //	inline auto WebSocketLogger() { return WebSocketLogger::instance(); }
