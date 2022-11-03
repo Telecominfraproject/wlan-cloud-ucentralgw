@@ -651,6 +651,26 @@ telemetry() {
 	fi
 }
 
+notifications() {
+	if [[ -z "$1" ]]
+	then
+			timeout=30
+	else
+			timeout=$1
+	fi
+	socket="wss://${OWGW}/api/v1/ws"
+	echo ${socket}
+	if [[ "$(which wscat)" == "" ]]
+	then
+		echo "wscat command not found. Cannot start a websocket session."
+	else
+		wscat \
+		--connect "${socket}" "token:${token}" \
+ 		--wait $timeout \
+ 		--execute "token:${token}"
+	fi
+}
+
 telemetry_to_kafka() {
 	payload="$(printf '{ "serialNumber": "%s", "interval": 2, "kafka": true, "lifetime": %d, "types": [ "dhcp-snooping", "state", "wifi-frames" ] }' "$1" "$2")"
 	curl  ${FLAGS} -X POST "https://${OWGW}/api/v1/device/$1/telemetry" \
@@ -997,6 +1017,7 @@ case "$1" in
 	"deleteradiusconfig") login; deleteradiusconfig ; logout;;
 	"deviceping") login; deviceping $2; logout;;
 	"connectionstatistics") login; connectionstatistics $2; logout;;
+	"notifications") login; notifications "$2"; logout;;
   *) help ;;
 esac
 

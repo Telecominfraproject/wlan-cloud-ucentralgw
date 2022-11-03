@@ -113,7 +113,7 @@ namespace OpenWifi {
 		for(const auto &Client:Clients_) {
 			if(Client.second->UserName_ == UserName) {
 				try {
-					if(!IsFiltered(id,*Client.second)) {
+					if(!IsFiltered(id,*Client.second) && Client.second->Authenticated_) {
 						return Client.second->WS_->sendFrame(
 								   Payload.c_str(), (int)Payload.size()) == (int)Payload.size();
 					} else {
@@ -132,7 +132,7 @@ namespace OpenWifi {
 
 		for(const auto &Client:Clients_) {
 			try {
-				if(!IsFiltered(id,*Client.second))
+				if(!IsFiltered(id,*Client.second) && Client.second->Authenticated_)
 					Client.second->WS_->sendFrame(Payload.c_str(),(int)Payload.size());
 			} catch (...) {
 
