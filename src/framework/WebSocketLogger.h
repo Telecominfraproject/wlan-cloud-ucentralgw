@@ -48,7 +48,7 @@ namespace OpenWifi {
 		struct NotificationLogMessage {
 			std::string 		msg;
 			std::string 		level;
-			std::string 		timestamp;
+			std::uint64_t 		timestamp;
 			std::string 		source;
 			std::string 		thread_name;
 			std::uint64_t 		thread_id=0;
@@ -85,7 +85,7 @@ namespace OpenWifi {
 				WebSocketClientNotificationLogMessage_t		Msg;
 				Msg.content.msg = m.getText();
 				Msg.content.level = WebSocketLogger::to_string(m.getPriority());
-				Msg.content.timestamp = Poco::DateTimeFormatter::format(m.getTime(), Poco::DateTimeFormat::ISO8601_FORMAT);
+				Msg.content.timestamp = m.getTime().epochTime();
 				Msg.content.source = m.getSource();
 				Msg.content.thread_name = m.getThread();
 				Msg.content.thread_id = m.getTid();
