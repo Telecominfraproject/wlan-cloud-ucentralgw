@@ -225,7 +225,7 @@ namespace OpenWifi {
 		auto Device = SerialNumbers_.find(SerialNumber);
 		if(Device == SerialNumbers_.end() || Device->second.second==nullptr)
 			return false;
-		Statistics = Device->second.second->LastStats_;
+		Device->second.second->GetLastStats(Statistics);
 		return true;
 	}
 

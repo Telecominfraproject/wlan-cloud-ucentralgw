@@ -41,7 +41,7 @@ namespace OpenWifi {
 			uint64_t UpgradedUUID;
 			LookForUpgrade(UUID,UpgradedUUID);
 			State_.UUID = UpgradedUUID;
-			LastStats_ = StateStr;
+			SetLastStats(StateStr);
 
 			GWObjects::Statistics Stats{
 				.SerialNumber = SerialNumber_, .UUID = UUID, .Data = StateStr};

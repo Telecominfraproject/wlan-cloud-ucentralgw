@@ -53,6 +53,16 @@ namespace OpenWifi {
 		bool StopWebSocketTelemetry(uint64_t RPCID);
 		bool StopKafkaTelemetry(uint64_t RPCID);
 
+		inline void GetLastStats(std::string &LastStats) {
+			std::shared_lock	G(LocalMutex_);
+			LastStats = RawLastStats_;
+		}
+
+		inline void SetLastStats(const std::string &LastStats) {
+			std::unique_lock	G(LocalMutex_);
+			RawLastStats_ = LastStats;
+		}
+
 		void Process_connect(Poco::JSON::Object::Ptr ParamsObj, const std::string &Serial);
 		void Process_state(Poco::JSON::Object::Ptr ParamsObj);
 		void Process_healthcheck(Poco::JSON::Object::Ptr ParamsObj);
@@ -87,7 +97,7 @@ namespace OpenWifi {
 		friend class AP_WS_Server;
 
 	  private:
-		// std::recursive_mutex 				LocalMutex_;
+		std::shared_mutex	 				LocalMutex_;
 		std::shared_mutex					TelemetryMutex_;
 		Poco::Logger                    	&Logger_;
 		Poco::Net::SocketReactor			&Reactor_;
@@ -109,7 +119,7 @@ namespace OpenWifi {
 		volatile uint64_t				TelemetryWebSocketPackets_=0;
 		volatile uint64_t				TelemetryKafkaPackets_=0;
 		GWObjects::ConnectionState			State_;
-		std::string        					LastStats_;
+		std::string        					RawLastStats_;
 		GWObjects::HealthCheck				LastHealthcheck_;
 		std::chrono::time_point<std::chrono::high_resolution_clock> ConnectionStart_ = std::chrono::high_resolution_clock::now();
 		std::chrono::duration<double, std::milli> ConnectionCompletionTime_{0.0};
