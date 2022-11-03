@@ -10,6 +10,7 @@
 #include "Poco/Net/NetException.h"
 #include "Poco/Net/SSLException.h"
 #include "Poco/JSON/Template.h"
+#include "Poco/JSON/JSONException.h"
 #include "Poco/Thread.h"
 
 namespace OpenWifi {
