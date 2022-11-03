@@ -40,7 +40,7 @@ namespace OpenWifi::GWWebSocketNotifications {
 		inline bool from_json(const Poco::JSON::Object::Ptr &Obj);
 	};
 
-	void RegisterGWNotifications();
+	void Register();
 
 	typedef WebSocketNotification<SingleDevice> SingleDevice_t;
 	typedef WebSocketNotification<SingleDeviceConfigurationChange> SingleDeviceConfigurationChange_t;

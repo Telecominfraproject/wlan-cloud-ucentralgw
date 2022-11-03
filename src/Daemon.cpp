@@ -106,7 +106,7 @@ namespace OpenWifi {
 
 	void DaemonPostInitialization(Poco::Util::Application &self) {
 		Daemon()->PostInitialization(self);
-		GWWebSocketNotifications::RegisterGWNotifications();
+		GWWebSocketNotifications::Register();
 	}
 }
 

@@ -144,7 +144,7 @@ namespace OpenWifi::GWWebSocketNotifications {
 		UI_WebSocketClientServer()->SendNotification(N);
 	}
 
-	void RegisterGWNotifications() {
+	void Register() {
 		static const UI_WebSocketClientServer::NotificationTypeIdVec Notifications = {
 			{ 1000, "device_connections_statistics" },
 			{ 2000, "device_configuration_upgrade" },
