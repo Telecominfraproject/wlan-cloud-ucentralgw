@@ -63,6 +63,21 @@ namespace OpenWifi {
 			RawLastStats_ = LastStats;
 		}
 
+		inline void SetLastHealthCheck(const GWObjects::HealthCheck &H) {
+			std::unique_lock	G(LocalMutex_);
+			RawLastHealthcheck_ = H;
+		}
+
+		inline void GetLastHealthCheck(GWObjects::HealthCheck &H) {
+			std::shared_lock	G(LocalMutex_);
+			H = RawLastHealthcheck_;
+		}
+
+		inline void GetState(GWObjects::ConnectionState &State) {
+			std::shared_lock	G(LocalMutex_);
+			State = State_;
+		}
+
 		void Process_connect(Poco::JSON::Object::Ptr ParamsObj, const std::string &Serial);
 		void Process_state(Poco::JSON::Object::Ptr ParamsObj);
 		void Process_healthcheck(Poco::JSON::Object::Ptr ParamsObj);
@@ -120,7 +135,7 @@ namespace OpenWifi {
 		volatile uint64_t				TelemetryKafkaPackets_=0;
 		GWObjects::ConnectionState			State_;
 		std::string        					RawLastStats_;
-		GWObjects::HealthCheck				LastHealthcheck_;
+		GWObjects::HealthCheck				RawLastHealthcheck_;
 		std::chrono::time_point<std::chrono::high_resolution_clock> ConnectionStart_ = std::chrono::high_resolution_clock::now();
 		std::chrono::duration<double, std::milli> ConnectionCompletionTime_{0.0};
 		bool 								Threaded_=false;

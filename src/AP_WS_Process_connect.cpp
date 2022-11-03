@@ -26,13 +26,15 @@ namespace OpenWifi {
 			auto Firmware = ParamsObj->get(uCentralProtocol::FIRMWARE).toString();
 			auto CapabilitiesString = ParamsObj->get(uCentralProtocol::CAPABILITIES).toString();
 
-			Config::Capabilities Caps(CapabilitiesString);
-			Compatible_ = Caps.Compatible();
-
 			SerialNumber_ = Serial;
 			SerialNumberInt_ = Utils::SerialNumberToInt(SerialNumber_);
 
 			CommandManager()->ClearQueue(SerialNumberInt_);
+
+			std::unique_lock	Lock(LocalMutex_);
+			Config::Capabilities Caps(CapabilitiesString);
+			Compatible_ = Caps.Compatible();
+
 
 			AP_WS_Server()->SetSessionDetails(State_.sessionId,SerialNumberInt_);
 			State_.UUID = UUID;

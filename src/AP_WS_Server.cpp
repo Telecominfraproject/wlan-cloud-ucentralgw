@@ -234,7 +234,7 @@ namespace OpenWifi {
 		auto Device = SerialNumbers_.find(SerialNumber);
 		if(Device == SerialNumbers_.end() || Device->second.second==nullptr)
 			return false;
-		State = Device->second.second->State_;
+		Device->second.second->GetState(State);
 		return true;
 	}
 
@@ -245,7 +245,7 @@ namespace OpenWifi {
 		if(Device == SerialNumbers_.end() || Device->second.second==nullptr)
 			return false;
 
-		CheckData = Device->second.second->LastHealthcheck_;
+		Device->second.second->GetLastHealthCheck(CheckData);
 		return true;
 	}
 

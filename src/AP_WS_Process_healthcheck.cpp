@@ -57,7 +57,7 @@ void AP_WS_Connection::Process_healthcheck(Poco::JSON::Object::Ptr ParamsObj) {
 			StorageService()->SetCommandResult(request_uuid, CheckData);
 		}
 
-		LastHealthcheck_ = Check;
+		SetLastHealthCheck(Check);
 		if (KafkaManager()->Enabled()) {
 			Poco::JSON::Stringifier Stringify;
 			std::ostringstream OS;

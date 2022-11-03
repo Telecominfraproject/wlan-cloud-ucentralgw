@@ -99,6 +99,7 @@ namespace OpenWifi {
 		if(!Valid_)
 			return false;
 
+		std::unique_lock	Lock(LocalMutex_);
 		try {
 			auto SockImpl = dynamic_cast<Poco::Net::WebSocketImpl *>(WS_->impl());
 			auto SS = dynamic_cast<Poco::Net::SecureStreamSocketImpl*>(SockImpl->streamSocketImpl());
@@ -608,7 +609,6 @@ namespace OpenWifi {
 					WS_->sendFrame("", 0,
 								   (int)Poco::Net::WebSocket::FRAME_OP_PONG |
 									   (int)Poco::Net::WebSocket::FRAME_FLAG_FIN);
-					State_.MessageCount++;
 
 					if (KafkaManager()->Enabled()) {
 						Poco::JSON::Object PingObject;
