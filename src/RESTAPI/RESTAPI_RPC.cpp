@@ -129,7 +129,7 @@ namespace OpenWifi::RESTAPI_RPC {
 			Cmd.Completed = Utils::Now();
 			Cmd.executionTime = rpc_execution_time.count();
 
-			if (Cmd.ErrorCode && Cmd.Command == uCentralProtocol::TRACE) {
+			if (Cmd.ErrorCode && (Cmd.Command == uCentralProtocol::TRACE || Cmd.Command == uCentralProtocol::SCRIPT)) {
 				Cmd.WaitingForFile = 0;
 				Cmd.AttachDate = Cmd.AttachSize = 0;
 				Cmd.AttachType = "";

@@ -246,27 +246,19 @@ namespace OpenWifi {
 				FileChannel->setProperty("purgeCount", "10");
 				FileChannel->setProperty("path", LoggingLocation);
 				if(UseAsyncLogs_) {
-					std::cout << __LINE__ << std::endl;
 					Poco::AutoPtr<Poco::AsyncChannel> Async_File(
 						new Poco::AsyncChannel(FileChannel));
-					std::cout << __LINE__ << std::endl;
 					Poco::AutoPtr<Poco::PatternFormatter> Formatter(new Poco::PatternFormatter);
-					std::cout << __LINE__ << std::endl;
 					Formatter->setProperty("pattern", LoggingFormat);
-					std::cout << __LINE__ << std::endl;
 					Poco::AutoPtr<Poco::FormattingChannel> FormattingChannel(
 						new Poco::FormattingChannel(Formatter, Async_File));
-					std::cout << __LINE__ << std::endl;
 					if(DisableWebSocketLogging) {
-						std::cout << __LINE__ << std::endl;
 						Poco::Logger::root().setChannel(FormattingChannel);
 					} else {
-						std::cout << __LINE__ << std::endl;
 						Poco::AutoPtr<WebSocketLogger>			WSLogger(new WebSocketLogger);
 						Poco::AutoPtr<Poco::SplitterChannel>	Splitter(new Poco::SplitterChannel);
 						Splitter->addChannel(WSLogger);
 						Splitter->addChannel(FormattingChannel);
-						std::cout << __LINE__ << std::endl;
 						Poco::Logger::root().setChannel(Splitter);
 					}
 
@@ -276,18 +268,14 @@ namespace OpenWifi {
 					Poco::AutoPtr<Poco::FormattingChannel> FormattingChannel(
 						new Poco::FormattingChannel(Formatter, FileChannel));
 					if(DisableWebSocketLogging) {
-						std::cout << __LINE__ << std::endl;
 						Poco::Logger::root().setChannel(FormattingChannel);
 					} else {
-						std::cout << __LINE__ << std::endl;
 						Poco::AutoPtr<Poco::SplitterChannel>	Splitter(new Poco::SplitterChannel);
 						Poco::AutoPtr<WebSocketLogger>			WSLogger(new WebSocketLogger);
 						Splitter->addChannel(WSLogger);
 						Splitter->addChannel(FormattingChannel);
-						std::cout << __LINE__ << std::endl;
 						Poco::Logger::root().setChannel(Splitter);
 					}
-					std::cout << __LINE__ << std::endl;
 				}
 			}
 			auto Level = Poco::Logger::parseLevel(MicroService::instance().ConfigGetString("logging.level", "debug"));

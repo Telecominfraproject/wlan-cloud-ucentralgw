@@ -120,7 +120,6 @@ namespace OpenWifi {
 	/*
 	const static std::vector<PostDeviceCommand>	PostCommands
 		{
-			{ RESTAPI::Protocol::PERFORM, false, true, &RESTAPI_device_commandHandler::ExecuteCommand },
 			{ RESTAPI::Protocol::CONFIGURE, false, false, &RESTAPI_device_commandHandler::Configure },
 			{ RESTAPI::Protocol::UPGRADE, false, false, &RESTAPI_device_commandHandler::Upgrade },
 			{ RESTAPI::Protocol::REBOOT, false, true, &RESTAPI_device_commandHandler::Reboot },
@@ -151,7 +150,6 @@ namespace OpenWifi {
 
 		const std::vector<PostDeviceCommand>	PostCommands =
 			{
-				{ RESTAPI::Protocol::PERFORM, false, true, &RESTAPI_device_commandHandler::ExecuteCommand, 120000ms },
 				{ RESTAPI::Protocol::CONFIGURE, false, false, &RESTAPI_device_commandHandler::Configure, 120000ms },
 				{ RESTAPI::Protocol::UPGRADE, false, false, &RESTAPI_device_commandHandler::Upgrade, 30000ms },
 				{ RESTAPI::Protocol::REBOOT, false, true, &RESTAPI_device_commandHandler::Reboot, 30000ms },

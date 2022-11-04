@@ -602,6 +602,7 @@ namespace OpenWifi::ProvObjects {
         field_to_json( Obj, "devClass",devClass);
         field_to_json( Obj, "locale",locale);
         field_to_json( Obj, "realMacAddress",realMacAddress);
+        field_to_json( Obj, "doNotAllowOverrides",doNotAllowOverrides);
     }
 
     bool InventoryTag::from_json(const Poco::JSON::Object::Ptr &Obj) {
@@ -623,6 +624,7 @@ namespace OpenWifi::ProvObjects {
             field_from_json( Obj,"devClass",devClass);
             field_from_json( Obj,"locale",locale);
             field_from_json( Obj,"realMacAddress",realMacAddress);
+            field_from_json( Obj, "doNotAllowOverrides",doNotAllowOverrides);
             return true;
         } catch(...) {
 
@@ -1188,6 +1190,48 @@ namespace OpenWifi::ProvObjects {
             field_from_json(Obj,"vendor",vendor);
             field_from_json(Obj,"schedule",schedule);
             field_from_json(Obj,"algorithms",algorithms);
+            return true;
+        } catch(...) {
+
+        }
+        return false;
+    }
+
+    void ConfigurationOverride::to_json(Poco::JSON::Object &Obj) const {
+        field_to_json(Obj,"source",source);
+        field_to_json(Obj,"reason",reason);
+        field_to_json(Obj,"parameterName",parameterName);
+        field_to_json(Obj,"parameterType",parameterType);
+        field_to_json(Obj,"parameterValue",parameterValue);
+        field_to_json(Obj,"modified",modified);
+    }
+
+    bool ConfigurationOverride::from_json(const Poco::JSON::Object::Ptr &Obj) {
+        try {
+            field_from_json(Obj,"source",source);
+            field_from_json(Obj,"reason",reason);
+            field_from_json(Obj,"parameterName",parameterName);
+            field_from_json(Obj,"parameterType",parameterType);
+            field_from_json(Obj,"parameterValue",parameterValue);
+            field_from_json(Obj,"modified",modified);
+            return true;
+        } catch(...) {
+
+        }
+        return false;
+    }
+
+    void ConfigurationOverrideList::to_json(Poco::JSON::Object &Obj) const {
+        field_to_json(Obj,"serialNumber",serialNumber);
+        field_to_json(Obj,"managementPolicy",managementPolicy);
+        field_to_json(Obj,"overrides",overrides);
+    }
+
+    bool ConfigurationOverrideList::from_json(const Poco::JSON::Object::Ptr &Obj) {
+        try {
+            field_from_json(Obj,"serialNumber",serialNumber);
+            field_from_json(Obj,"managementPolicy",managementPolicy);
+            field_from_json(Obj,"overrides",overrides);
             return true;
         } catch(...) {
 

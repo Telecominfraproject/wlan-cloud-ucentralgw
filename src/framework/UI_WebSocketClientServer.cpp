@@ -15,6 +15,10 @@
 
 #include "fmt/format.h"
 
+#if defined(TIP_SECURITY_SERVICE)
+#include "AuthService.h"
+#endif
+
 #define DBG { std::cout << __LINE__ << std::endl; }
 
 namespace OpenWifi {
@@ -216,9 +220,16 @@ namespace OpenWifi {
 				if (!Client->second->Authenticated_) {
 					std::string Frame{IncomingFrame.begin()};
 					auto Tokens = Utils::Split(Frame, ':');
-					bool Expired = false, Contacted = false;
+					bool Expired = false;
+#if not defined(TIP_SECURITY_SERVICE)
+                    bool    Contacted = false;
+#endif
 					if (Tokens.size() == 2 &&
-						AuthClient()->IsAuthorized(Tokens[1], Client->second->UserInfo_, 0, Expired, Contacted)) {
+#if defined(TIP_SECURITY_SERVICE)
+        			    AuthService()->IsAuthorized(Tokens[1], Client->second->UserInfo_, 0, Expired)) {
+#else
+                        AuthClient()->IsAuthorized(Tokens[1], Client->second->UserInfo_, 0, Expired, Contacted)) {
+#endif
                         Client->second->Authenticated_ = true;
                         Client->second->UserName_ = Client->second->UserInfo_.userinfo.email;
 						poco_debug(Logger(),fmt::format("START({}): {} UI Client is starting WS connection.", Client->second->Id_, Client->second->UserName_));
@@ -234,7 +245,6 @@ namespace OpenWifi {
 						std::ostringstream OS;
 						WelcomeMessage.stringify(OS);
 						Client->second->WS_->sendFrame(OS.str().c_str(), (int) OS.str().size());
-                        Client->second->WS_->sendFrame(OS.str().c_str(), (int) OS.str().size());
                         return EndConnection(G, Client);
 					}
 				} else {

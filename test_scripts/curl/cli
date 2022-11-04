@@ -682,7 +682,8 @@ telemetry_to_kafka() {
 }
 
 runscript() {
-	payload="$(printf '{ "serialNumber": "%s", "type": "%s" , "kafka": true, "timeout": 30, "scriptId": "cli-manual", "script" : "%s" }' "$1" "$2" "$3" )"
+	scriptcontent=$(base64 -i $3)
+	payload="$(printf '{ "serialNumber": "%s", "type": "%s" , "timeout": 30, "script" : "%s" , "when" : 0 }' "$1" "$2" "$scriptcontent" )"
 				  curl  ${FLAGS} -X POST "https://${OWGW}/api/v1/device/$1/script" \
 				  -H "Content-Type: application/json" \
 				  -H "Accept: application/json" \
