@@ -175,11 +175,11 @@ listdevices() {
 	jq < ${result_file}
 }
 
-listdevices() {
+listdevicesk() {
 	curl  ${FLAGS} -X GET "https://${OWGW}/api/v1/devices" \
 			-H "Content-Type: application/json" \
 			-H "Accept: application/json" \
-			-H "Authorization: Bearer ${token}" > ${result_file}
+			-H "X-API-KEY: \"$1\"" > ${result_file}
 		jq < ${result_file}
 }
 
@@ -952,7 +952,8 @@ case "$1" in
 	"getcapabilities") login; getcapabilities "$2"  ; logout ;;
 	"deletecapabilities") login; deletecapabilities "$2"  ; logout ;;
 	"listdevices") login; listdevices  ; logout ;;
-	"deletedevice") login; deletedevice "$2"  ; logout ;;
+	"listdevicesk") login; listdevicesk "$2" ; logout ;;
+	"deletedevice") login; deletedevice "$2" ; logout ;;
 	"deleteoui") login; deleteoui "$2"  ; logout ;;
 	"createdevice") login; createdevice "$2" "$3" "$4" ; logout ;;
 	"reboot") login; reboot "$2"  ; logout ;;

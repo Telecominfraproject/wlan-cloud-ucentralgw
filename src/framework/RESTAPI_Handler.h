@@ -672,6 +672,7 @@ namespace OpenWifi {
 			return Allowed;
 		} else if(!Internal_ && Request->has("X-API-KEY")) {
             SessionToken_ = Request->get("X-API-KEY", "");
+            std::cout << "SessionToken: " << SessionToken_ << std::endl;
 #ifdef    TIP_SECURITY_SERVICE
             std::uint64_t expiresOn;
             if (AuthService()->IsValidApiKey(SessionToken_, UserInfo_.webtoken, UserInfo_.userinfo, Expired, expiresOn)) {

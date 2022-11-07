@@ -92,7 +92,6 @@ namespace OpenWifi {
                 if(Response->has("tokenInfo") && Response->has("userInfo") && Response->has("expiresOn")) {
                     UInfo.from_json(Response);
                     Expired = false;
-
                     ApiKeyCache_.update(SessionToken, ApiKeyCacheEntry{ .UserInfo = UInfo, .ExpiresOn = Response->get("expiresOn")});
                     return true;
                 } else {
