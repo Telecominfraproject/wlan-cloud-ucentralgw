@@ -325,5 +325,44 @@ namespace OpenWifi {
 
             void to_json(Poco::JSON::Object &Obj) const;
         };
+
+        struct ApiKeyAccessRight {
+            std::string     service;
+            std::string     access;
+
+            void to_json(Poco::JSON::Object &Obj) const;
+            bool from_json(const Poco::JSON::Object::Ptr &Obj);
+        };
+
+        struct ApiKeyAccessRightList {
+            std::vector<ApiKeyAccessRight>      acls;
+
+            void to_json(Poco::JSON::Object &Obj) const;
+            bool from_json(const Poco::JSON::Object::Ptr &Obj);
+        };
+
+        struct ApiKeyEntry {
+            Types::UUID_t           id;
+            Types::UUID_t           userUuid;
+            std::string             name;
+            std::string             description;
+            std::string             apiKey;
+            std::string             salt;
+            std::uint64_t           created;
+            std::uint64_t           expiresOn=0;
+            ApiKeyAccessRightList   rights;
+            std::uint64_t           lastUse=0;
+
+            void to_json(Poco::JSON::Object &Obj) const;
+            bool from_json(const Poco::JSON::Object::Ptr &Obj);
+        };
+
+        struct ApiKeyEntryList {
+            std::vector<ApiKeyEntry>    apiKeys;
+
+            void to_json(Poco::JSON::Object &Obj) const;
+            bool from_json(const Poco::JSON::Object::Ptr &Obj);
+        };
+
     }
 }

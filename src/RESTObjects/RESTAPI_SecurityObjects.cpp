@@ -619,5 +619,80 @@ namespace OpenWifi::SecurityObjects {
         field_to_json(Obj,"login",login);
         field_to_json(Obj,"logout",logout);
     }
+
+    void ApiKeyAccessRight::to_json(Poco::JSON::Object &Obj) const {
+        field_to_json(Obj, "service", service);
+        field_to_json(Obj, "access", access);
+    }
+
+    bool ApiKeyAccessRight::from_json(const Poco::JSON::Object::Ptr &Obj) {
+        try {
+            field_from_json(Obj, "service", service);
+            field_from_json(Obj, "access", access);
+            return true;
+        } catch(...) {
+            std::cout << "Cannot parse: Token" << std::endl;
+        }
+        return false;
+    }
+
+    void ApiKeyAccessRightList::to_json(Poco::JSON::Object &Obj) const {
+        field_to_json(Obj, "acls", acls);
+    }
+
+    bool ApiKeyAccessRightList::from_json(const Poco::JSON::Object::Ptr &Obj) {
+        try {
+            field_from_json(Obj, "acls", acls);
+            return true;
+        } catch(...) {
+            std::cout << "Cannot parse: Token" << std::endl;
+        }
+        return false;
+    }
+
+    void ApiKeyEntry::to_json(Poco::JSON::Object &Obj) const {
+        field_to_json(Obj, "id", id);
+        field_to_json(Obj, "userUuid", userUuid);
+        field_to_json(Obj, "name", name);
+        field_to_json(Obj, "apiKey", apiKey);
+        field_to_json(Obj, "salt", salt);
+        field_to_json(Obj, "description", description);
+        field_to_json(Obj, "expiresOn", expiresOn);
+        field_to_json(Obj, "rights", rights);
+        field_to_json(Obj, "lastUse", lastUse);
+    }
+
+    bool ApiKeyEntry::from_json(const Poco::JSON::Object::Ptr &Obj) {
+        try {
+            field_from_json(Obj, "id", id);
+            field_from_json(Obj, "userUuid", userUuid);
+            field_from_json(Obj, "name", name);
+            field_from_json(Obj, "apiKey", apiKey);
+            field_from_json(Obj, "salt", salt);
+            field_from_json(Obj, "description", description);
+            field_from_json(Obj, "expiresOn", expiresOn);
+            field_from_json(Obj, "rights", rights);
+            field_from_json(Obj, "lastUse", lastUse);
+            return true;
+        } catch(...) {
+            std::cout << "Cannot parse: Token" << std::endl;
+        }
+        return false;
+    }
+
+    void ApiKeyEntryList::to_json(Poco::JSON::Object &Obj) const {
+        field_to_json(Obj, "apiKeys", apiKeys);
+    }
+
+    bool ApiKeyEntryList::from_json(const Poco::JSON::Object::Ptr &Obj) {
+        try {
+            field_from_json(Obj, "apiKeys", apiKeys);
+            return true;
+        } catch(...) {
+            std::cout << "Cannot parse: Token" << std::endl;
+        }
+        return false;
+    }
+
 }
 
