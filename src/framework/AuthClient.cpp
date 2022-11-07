@@ -81,9 +81,7 @@ namespace OpenWifi {
                                          10000);
             Poco::JSON::Object::Ptr Response;
 
-            std::cout << __LINE__ << std::endl;
             auto StatusCode = Req.Do(Response);
-            std::cout << __LINE__ << std::endl;
             if(StatusCode==Poco::Net::HTTPServerResponse::HTTP_GATEWAY_TIMEOUT) {
                 Contacted = false;
                 return false;
@@ -91,25 +89,18 @@ namespace OpenWifi {
 
             Contacted = true;
             if(StatusCode==Poco::Net::HTTPServerResponse::HTTP_OK) {
-                std::cout << __LINE__ << std::endl;
                 if(Response->has("tokenInfo") && Response->has("userInfo") && Response->has("expiresOn")) {
-                    std::cout << __LINE__ << std::endl;
                     UInfo.from_json(Response);
                     Expired = false;
-                    std::cout << __LINE__ << std::endl;
                     ApiKeyCache_.update(SessionToken, ApiKeyCacheEntry{ .UserInfo = UInfo, .ExpiresOn = Response->get("expiresOn")});
-                    std::cout << __LINE__ << std::endl;
                     return true;
                 } else {
-                    std::cout << __LINE__ << std::endl;
                     return false;
                 }
-                std::cout << __LINE__ << std::endl;
             }
         } catch (...) {
             poco_error(Logger(),fmt::format("Failed to retrieve api key={} for TID={}", SessionToken, TID));
         }
-        std::cout << __LINE__ << std::endl;
         Expired = false;
         return false;
     }

@@ -179,7 +179,7 @@ listdevicesk() {
 	curl  ${FLAGS} -X GET "https://${OWGW}/api/v1/devices" \
 			-H "Content-Type: application/json" \
 			-H "Accept: application/json" \
-			-H "X-API-KEY: \"$1\"" > ${result_file}
+			-H "X-API-KEY: $1" > ${result_file}
 		jq < ${result_file}
 }
 
