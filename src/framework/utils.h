@@ -115,7 +115,7 @@ namespace OpenWifi::Utils {
 	[[nodiscard]] std::string BinaryFileToHexString(const Poco::File &F);
 	[[nodiscard]] std::string SecondsToNiceText(uint64_t Seconds);
 	[[nodiscard]] bool wgets(const std::string &URL, std::string &Response);
-
+    [[nodiscard]] bool IsAlphaNumeric(const std::string &s);
 	template< typename T >
 	std::string int_to_hex( T i )
 	{

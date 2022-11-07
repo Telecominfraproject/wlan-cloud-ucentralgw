@@ -68,4 +68,54 @@ namespace OpenWifi {
 		return RetrieveTokenInformation(SessionToken, UInfo, TID, Expired, Contacted, Sub);
 	}
 
+    bool AuthClient::RetrieveApiKeyInformation(const std::string & SessionToken,
+                                              SecurityObjects::UserInfoAndPolicy & UInfo,
+                                              std::uint64_t TID,
+                                              bool & Expired, bool & Contacted) {
+        try {
+            Types::StringPairVec QueryData;
+            QueryData.push_back(std::make_pair("apikey",SessionToken));
+            OpenAPIRequestGet	Req(    uSERVICE_SECURITY,
+                                         "/api/v1/validateApiKey" ,
+                                         QueryData,
+                                         10000);
+            Poco::JSON::Object::Ptr Response;
+
+            auto StatusCode = Req.Do(Response);
+            if(StatusCode==Poco::Net::HTTPServerResponse::HTTP_GATEWAY_TIMEOUT) {
+                Contacted = false;
+                return false;
+            }
+
+            Contacted = true;
+            if(StatusCode==Poco::Net::HTTPServerResponse::HTTP_OK) {
+                if(Response->has("tokenInfo") && Response->has("userInfo") && Response->has("expiresOn")) {
+                    UInfo.from_json(Response);
+                    Expired = false;
+
+                    ApiKeyCache_.update(SessionToken, ApiKeyCacheEntry{ .UserInfo = UInfo, .ExpiresOn = Response->get("expiresOn")});
+                    return true;
+                } else {
+                    return false;
+                }
+            }
+        } catch (...) {
+            poco_error(Logger(),fmt::format("Failed to retrieve api key={} for TID={}", SessionToken, TID));
+        }
+        Expired = false;
+        return false;
+    }
+
+    bool AuthClient::IsValidApiKey(const std::string &SessionToken, SecurityObjects::UserInfoAndPolicy &UInfo,
+                                   std::uint64_t TID, bool &Expired, bool &Contacted) {
+        auto User = ApiKeyCache_.get(SessionToken);
+        if (!User.isNull()) {
+            if(User->ExpiresOn < Utils::Now())
+            Expired = false;
+            UInfo = User->UserInfo;
+            return true;
+        }
+        return RetrieveApiKeyInformation(SessionToken, UInfo, TID, Expired, Contacted);
+    }
+
 } // namespace OpenWifi

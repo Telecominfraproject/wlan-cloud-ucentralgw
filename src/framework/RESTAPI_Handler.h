@@ -26,6 +26,10 @@
 #include "framework/AuthClient.h"
 #include "RESTObjects/RESTAPI_SecurityObjects.h"
 
+#if defined(TIP_SECURITY_SERVICE)
+#include "AuthService.h"
+#endif
+
 using namespace std::chrono_literals;
 
 namespace OpenWifi {
@@ -640,7 +644,8 @@ namespace OpenWifi {
 	};
 
 #ifdef    TIP_SECURITY_SERVICE
-	[[nodiscard]] bool AuthServiceIsAuthorized(Poco::Net::HTTPServerRequest & Request,std::string &SessionToken, SecurityObjects::UserInfoAndPolicy & UInfo, std::uint64_t TID, bool & Expired , bool Sub );
+	[[nodiscard]] bool AuthServiceIsAuthorized(Poco::Net::HTTPServerRequest & Request,std::string &SessionToken,
+                                               SecurityObjects::UserInfoAndPolicy & UInfo, std::uint64_t TID, bool & Expired , bool Sub );
 #endif
 	inline bool RESTAPIHandler::IsAuthorized( bool & Expired , [[maybe_unused]] bool & Contacted , bool Sub ) {
 		if(Internal_ && Request->has("X-INTERNAL-NAME")) {
@@ -665,7 +670,36 @@ namespace OpenWifi {
 				}
 			}
 			return Allowed;
-		} else {
+		} else if(!Internal_ && Request->has("X-API-KEY")) {
+            SessionToken_ = Request->get("X-API-KEY", "");
+            std::uint64_t expiresOn;
+#ifdef    TIP_SECURITY_SERVICE
+            if (AuthService()->IsValidApiKey(SessionToken_, UserInfo_.webtoken, UserInfo_.userinfo, Expired, expiresOn)) {
+#else
+            if (AuthClient()->IsValidApiKey( SessionToken_, UserInfo_, TransactionId_, Expired, Contacted, Sub)) {
+#endif
+                REST_Requester_ = UserInfo_.userinfo.email;
+                if(Server_.LogIt(Request->getMethod(),true)) {
+                    poco_debug(Logger_,fmt::format("X-REQ-ALLOWED({}): APIKEY-ACCESS TID={} User='{}@{}' Method={} Path={}",
+                                                   UserInfo_.userinfo.email,
+                                                   TransactionId_,
+                                                   Utils::FormatIPv6(Request->clientAddress().toString()),
+                                                   Request->clientAddress().toString(),
+                                                   Request->getMethod(),
+                                                   Request->getURI()));
+                }
+                return true;
+            } else {
+                if(Server_.LogBadTokens(true)) {
+                    poco_debug(Logger_,fmt::format("X-REQ-DENIED({}): TID={} Method={} Path={}",
+                                                   Utils::FormatIPv6(Request->clientAddress().toString()),
+                                                   TransactionId_,
+                                                   Request->getMethod(),
+                                                   Request->getURI()));
+                }
+            }
+            return false;
+        } else {
 			if (SessionToken_.empty()) {
 				try {
 					Poco::Net::OAuth20Credentials Auth(*Request);

@@ -520,4 +520,8 @@ bool ExtractBase64CompressedData(const std::string &CompressedData,
 	return false;
 }
 
+    bool IsAlphaNumeric(const std::string &s) {
+        return std::all_of(s.begin(),s.end(),[](char c) -> bool { return isalnum(c); });
+    }
+
 }

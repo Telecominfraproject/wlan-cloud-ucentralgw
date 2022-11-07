@@ -222,6 +222,12 @@ namespace OpenWifi::RESTAPI::Errors {
 
 	static const struct msg DeviceRequiresSignature{1146,"Device requires device signature to be provided."};
 
+    static const struct msg ApiKeyNameAlreadyExists{1147,"API Key name must be unique."};
+    static const struct msg TooManyApiKeys{1148,"Too many API Keys have already been created."};
+    static const struct msg UserMustExist{1149,"User must exist."};
+    static const struct msg ApiKeyNameDoesNotExist{1150,"API Key name does not exist."};
+    static const struct msg ApiKeyDoesNotExist{1150,"API Key does not exist."};
+
 }
 
 

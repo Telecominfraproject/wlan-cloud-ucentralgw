@@ -12,6 +12,7 @@
 namespace OpenWifi {
 
 	class AuthClient : public SubSystemServer {
+
 	  public:
 		explicit AuthClient() noexcept:
 			 SubSystemServer("Authentication", "AUTH-CLNT", "authentication")
@@ -23,7 +24,12 @@ namespace OpenWifi {
 			return instance_;
 		}
 
-		inline int Start() override {
+        struct ApiKeyCacheEntry {
+            OpenWifi::SecurityObjects::UserInfoAndPolicy    UserInfo;
+            std::uint64_t                                   ExpiresOn;
+        };
+
+        inline int Start() override {
 			return 0;
 		}
 
@@ -36,6 +42,7 @@ namespace OpenWifi {
 
 		inline void RemovedCachedToken(const std::string &Token) {
 			Cache_.remove(Token);
+            ApiKeyCache_.remove(Token);
 		}
 
 		inline static bool IsTokenExpired(const SecurityObjects::WebToken &T) {
@@ -46,12 +53,24 @@ namespace OpenWifi {
 			SecurityObjects::UserInfoAndPolicy & UInfo,
 			std::uint64_t TID,
 		bool & Expired, bool & Contacted, bool Sub=false);
+
+        bool RetrieveApiKeyInformation(const std::string & SessionToken,
+                                      SecurityObjects::UserInfoAndPolicy & UInfo,
+                                      std::uint64_t TID,
+                                      bool & Expired, bool & Contacted);
+
 		bool IsAuthorized(const std::string &SessionToken, SecurityObjects::UserInfoAndPolicy & UInfo,
 								 std::uint64_t TID,
 								 bool & Expired, bool & Contacted, bool Sub = false);
 
+        bool IsValidApiKey(const std::string &SessionToken, SecurityObjects::UserInfoAndPolicy & UInfo,
+                          std::uint64_t TID,
+                          bool & Expired, bool & Contacted);
+
 	  private:
+
 		Poco::ExpireLRUCache<std::string,OpenWifi::SecurityObjects::UserInfoAndPolicy>      Cache_{512,1200000 };
+        Poco::ExpireLRUCache<std::string,ApiKeyCacheEntry>                                  ApiKeyCache_{512,1200000 };
 	};
 
 	inline auto AuthClient() { return AuthClient::instance(); }
