@@ -39,12 +39,12 @@ endif()
 
 find_package(Git QUIET)
 if(GIT_FOUND AND EXISTS "${PROJECT_SOURCE_DIR}/.git")
-    execute_process(COMMAND ${GIT_EXECUTABLE} describe --always --tags
+    execute_process(COMMAND ${GIT_EXECUTABLE} rev-parse --short HEAD
             WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
             RESULT_VARIABLE GIT_RESULT
             OUTPUT_VARIABLE GIT_HASH)
     if(NOT GIT_RESULT EQUAL "0")
-        message(FATAL_ERROR "git describe --always --tags failed with ${GIT_RESULT}")
+        message(FATAL_ERROR "git rev-parse --short HEAD failed with ${GIT_RESULT}")
     endif()
     string(REGEX REPLACE "\n$" "" GIT_HASH "${GIT_HASH}")
 endif()
