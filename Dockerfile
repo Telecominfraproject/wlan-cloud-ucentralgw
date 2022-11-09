@@ -101,7 +101,7 @@ RUN wget https://raw.githubusercontent.com/Telecominfraproject/wlan-cloud-ucentr
 
 COPY --from=owgw-build /owgw/cmake-build/owgw /openwifi/owgw
 COPY --from=cppkafka-build /cppkafka/cmake-build/src/lib /usr/local/lib/
-COPY --from=poco-build /poco/cmake-build/lib /usr/local/lib
+COPY --from=poco-build /poco/cmake-build/lib /usr/local/lib/
 
 RUN ldconfig
 
