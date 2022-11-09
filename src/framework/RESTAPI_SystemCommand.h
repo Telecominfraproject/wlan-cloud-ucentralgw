@@ -88,7 +88,7 @@ namespace OpenWifi {
 								auto Name = GetS(RESTAPI::Protocol::TAG, InnerObj);
 								auto Value = GetS(RESTAPI::Protocol::VALUE, InnerObj);
 								MicroServiceSetSubsystemLogLevel(Name, Value);
-								Logger_.information(
+								poco_information(Logger_,
 									fmt::format("Setting log level for {} at {}", Name, Value));
 							}
 						}

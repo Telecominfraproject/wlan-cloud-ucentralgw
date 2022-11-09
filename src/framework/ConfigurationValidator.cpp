@@ -2632,7 +2632,7 @@ static json DefaultUCentralSchema = R"(
         std::string GitSchema;
 		if(MicroServiceConfigGetBool("ucentral.datamodel.internal",true)) {
 			RootSchema_ = DefaultUCentralSchema;
-			Logger().information("Using uCentral validation from built-in default.");
+			poco_information(Logger(),"Using uCentral validation from built-in default.");
 			Initialized_ = Working_ = true;
 			return;
 		}
@@ -2641,7 +2641,7 @@ static json DefaultUCentralSchema = R"(
 			auto GitURI = MicroServiceConfigGetString("ucentral.datamodel.uri",GitUCentralJSONSchemaFile);
             if(Utils::wgets(GitURI, GitSchema)) {
                 RootSchema_ = json::parse(GitSchema);
-                Logger().information("Using uCentral validation schema from GIT.");
+				poco_information(Logger(),"Using uCentral validation schema from GIT.");
             } else {
                 std::string FileName{ MicroServiceDataDirectory() + "/ucentral.schema.json" };
                 std::ifstream       input(FileName);
@@ -2649,11 +2649,11 @@ static json DefaultUCentralSchema = R"(
                 schema_file << input.rdbuf();
                 input.close();
                 RootSchema_ = json::parse(schema_file.str());
-                Logger().information("Using uCentral validation schema from local file.");
+				poco_information(Logger(),"Using uCentral validation schema from local file.");
             }
         } catch (const Poco::Exception &E) {
             RootSchema_ = DefaultUCentralSchema;
-            Logger().information("Using uCentral validation from built-in default.");
+			poco_information(Logger(),"Using uCentral validation from built-in default.");
         }
         Initialized_ = Working_ = true;
     }
@@ -2812,7 +2812,7 @@ static json DefaultUCentralSchema = R"(
     }
 
     void ConfigurationValidator::reinitialize([[maybe_unused]] Poco::Util::Application &self) {
-        Logger().information("Reinitializing.");
+		poco_information(Logger(),"Reinitializing.");
         Working_ = Initialized_ = false;
         Init();
     }

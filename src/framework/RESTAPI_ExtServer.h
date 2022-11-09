@@ -30,15 +30,15 @@ namespace OpenWifi {
 		}
 
 		inline int Start() override {
-			Logger().information("Starting.");
+			poco_information(Logger(),"Starting.");
 			Server_.InitLogging();
 
 			for(const auto & Svr: ConfigServersList_) {
 
 				if(MicroServiceNoAPISecurity()) {
-					Logger().information(fmt::format("Starting: {}:{}. Security has been disabled for APIs.", Svr.Address(), Svr.Port()));
+					poco_information(Logger(),fmt::format("Starting: {}:{}. Security has been disabled for APIs.", Svr.Address(), Svr.Port()));
 				} else {
-					Logger().information(fmt::format("Starting: {}:{} Keyfile:{} CertFile: {}", Svr.Address(), Svr.Port(),
+					poco_information(Logger(),fmt::format("Starting: {}:{} Keyfile:{} CertFile: {}", Svr.Address(), Svr.Port(),
 													 Svr.KeyFile(),Svr.CertFile()));
 					Svr.LogCert(Logger());
 					if (!Svr.RootCA().empty())
@@ -64,18 +64,18 @@ namespace OpenWifi {
 		}
 
 		inline void Stop() override {
-			Logger().information("Stopping...");
+			poco_information(Logger(),"Stopping...");
 			for( const auto & svr : RESTServers_ )
 				svr->stopAll(true);
 			Pool_.stopAll();
 			Pool_.joinAll();
 			RESTServers_.clear();
-			Logger().information("Stopped...");
+			poco_information(Logger(),"Stopped...");
 		}
 
 		inline void reinitialize([[maybe_unused]] Poco::Util::Application &self) override {
 			MicroServiceLoadConfigurationFile();
-			Logger().information("Reinitializing.");
+			poco_information(Logger(),"Reinitializing.");
 			Stop();
 			Start();
 		}

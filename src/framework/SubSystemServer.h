@@ -23,7 +23,7 @@ namespace OpenWifi {
 		}
 
 		void onPrivateKeyRequested([[maybe_unused]] const void * pSender,std::string & privateKey) {
-			Logger_.information("Returning key passphrase.");
+			poco_information(Logger_,"Returning key passphrase.");
 			privateKey = Password_;
 		};
 		inline Poco::Logger & Logger() { return Logger_; }
@@ -83,7 +83,7 @@ namespace OpenWifi {
 		inline void uninitialize() override {
 		}
 		inline void reinitialize([[maybe_unused]] Poco::Util::Application &self) override {
-			Logger_->L_.information("Reloading of this subsystem is not supported.");
+			poco_information(Logger_->L_,"Reloading of this subsystem is not supported.");
 		}
 		inline void defineOptions([[maybe_unused]] Poco::Util::OptionSet &options) override {
 		}

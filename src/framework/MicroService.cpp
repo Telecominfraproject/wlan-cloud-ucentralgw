@@ -78,7 +78,7 @@ namespace OpenWifi {
 									else
 										SvcList += ", " + Svc.second.Type;
 								}
-								logger().information(fmt::format("Current list of microservices: {}", SvcList));
+								poco_information(logger(),fmt::format("Current list of microservices: {}", SvcList));
 							}
 						} else {
 							poco_error(logger(),fmt::format("KAFKA-MSG: invalid event '{}', missing a field.",Event));
@@ -618,15 +618,15 @@ namespace OpenWifi {
 			logger.notice(fmt::format("Starting {} version {}.",DAEMON_APP_NAME, Version()));
 
 			if(Poco::Net::Socket::supportsIPv6())
-				logger.information("System supports IPv6.");
+				poco_information(logger,"System supports IPv6.");
 			else
-				logger.information("System does NOT support IPv6.");
+				poco_information(logger,"System does NOT support IPv6.");
 
 			if (config().getBool("application.runAsDaemon", false)) {
-				logger.information("Starting as a daemon.");
+				poco_information(logger,"Starting as a daemon.");
 			}
 
-			logger.information(fmt::format("System ID set to {}",ID_));
+			poco_information(logger,fmt::format("System ID set to {}",ID_));
 			StartSubSystemServers();
 			waitForTerminationRequest();
 			StopSubSystemServers();
