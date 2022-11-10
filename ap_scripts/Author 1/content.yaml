@@ -1,0 +1,36 @@
+
+scripts:
+  - name: List Antennas
+    description: A script to list all antennas on a device
+    type: shell
+    runtype:
+      timeout: 30
+    filename: listantennas.sh
+    readme: listantennas.md
+    help: https://authors.com/scripts/index.html
+  - name: List AP Noise
+    description: A script to list all noise values on all APs
+    type: shell
+    runtype:
+      deferred: true
+    filename: listnoise.sh
+    readme: listnoise.md
+    help: https://authors.com/scripts/index.html
+  - name: Reset AP Statistics
+    description: A script to reset the statistics on a given AP
+    type: shell
+    runtype:
+      timeout: 30
+    filename: resetstats.sh
+    readme: resetstats.md
+    help: https://authors.com/scripts/index.html
+  - name: Gather kernel stats
+    description: A script to all the kernel stats for an AP
+    type: bundle
+    runtype:
+      deferred: true
+    filename: kstats.uci
+    readme: kstats.md
+    help: https://authors.com/scripts/index.html
+
+
