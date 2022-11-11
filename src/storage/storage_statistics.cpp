@@ -39,7 +39,7 @@ namespace OpenWifi {
 
 	bool Storage::AddStatisticsData(const GWObjects::Statistics & Stats) {
 		try {
-			Poco::Data::Session Sess = Pool_->get();
+			Poco::Data::Session     Sess(Pool_->get());
 			Poco::Data::Statement   Insert(Sess);
 
 			poco_trace(Logger(),fmt::format("{}: Adding stats. Size={}",Stats.SerialNumber,std::to_string(Stats.Data.size())));
@@ -64,7 +64,7 @@ namespace OpenWifi {
 									uint64_t HowMany,
 									std::vector<GWObjects::Statistics> &Stats) {
 		try {
-			Poco::Data::Session     Sess = Pool_->get();
+			Poco::Data::Session     Sess(Pool_->get());
 			Poco::Data::Statement   Select(Sess);
 
 			StatsRecordList         Records;
@@ -165,7 +165,7 @@ bool Storage::DeleteStatisticsData(std::string &SerialNumber, uint64_t FromDate,
 
 	bool Storage::RemoveStatisticsRecordsOlderThan(uint64_t Date) {
 		try {
-			Poco::Data::Session Sess = Pool_->get();
+			Poco::Data::Session     Sess(Pool_->get());
 			Poco::Data::Statement Delete(Sess);
 
 			std::string St1{"delete from Statistics where recorded<?"};
