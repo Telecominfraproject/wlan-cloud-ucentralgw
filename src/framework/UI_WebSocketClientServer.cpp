@@ -71,7 +71,6 @@ namespace OpenWifi {
         }
         Clients_.erase(Client);
 		UsersConnected_ = Clients_.size();
-        std::cout << "How many clients: " << Clients_.size() << std::endl;
     }
 
 	void UI_WebSocketClientServer::run() {
