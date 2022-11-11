@@ -106,7 +106,7 @@ namespace OpenWifi {
 	bool Storage::GetNewestStatisticsData(std::string &SerialNumber, uint64_t HowMany, std::vector<GWObjects::Statistics> &Stats) {
 		try {
 			StatsRecordList         Records;
-			Poco::Data::Session     Sess = Pool_->get();
+			Poco::Data::Session     Sess(Pool_->get());
 			Poco::Data::Statement   Select(Sess);
 
 			std::string St{"SELECT " +
