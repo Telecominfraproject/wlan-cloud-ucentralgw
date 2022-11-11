@@ -93,7 +93,7 @@ namespace OpenWifi {
 			for (const auto &i: Records) {
 				GWObjects::Statistics R;
 				ConvertStatsRecord(i,R);
-				Stats.push_back(R);
+				Stats.emplace_back(R);
 			}
 			return true;
 		}
@@ -120,7 +120,7 @@ namespace OpenWifi {
 			for (const auto &i: Records) {
 				GWObjects::Statistics R;
 				ConvertStatsRecord(i,R);
-				Stats.push_back(R);
+				Stats.emplace_back(R);
 			}
 			return true;
 		}
