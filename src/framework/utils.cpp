@@ -524,4 +524,11 @@ bool ExtractBase64CompressedData(const std::string &CompressedData,
         return std::all_of(s.begin(),s.end(),[](char c) -> bool { return isalnum(c); });
     }
 
+    std::string SanitizeToken(const std::string &Token) {
+        if(Token.size()>8) {
+            return Token.substr(0,4) + "****" + Token.substr(Token.size()-4,4);
+        }
+        return "*******";
+    }
+
 }

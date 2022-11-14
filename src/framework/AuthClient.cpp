@@ -7,6 +7,7 @@
 #include "framework/AuthClient.h"
 #include "framework/MicroServiceNames.h"
 #include "framework/OpenAPIRequests.h"
+#include "framework/utils.h"
 #include "fmt/format.h"
 
 namespace OpenWifi {
@@ -46,7 +47,7 @@ namespace OpenWifi {
 				}
 			}
 		} catch (...) {
-			poco_error(Logger(),fmt::format("Failed to retrieve token={} for TID={}", SessionToken, TID));
+			poco_error(Logger(),fmt::format("Failed to retrieve token={} for TID={}", Utils::SanitizeToken(SessionToken), TID));
 		}
 		Expired = false;
 		return false;
@@ -99,7 +100,7 @@ namespace OpenWifi {
                 }
             }
         } catch (...) {
-            poco_error(Logger(),fmt::format("Failed to retrieve api key={} for TID={}", SessionToken, TID));
+            poco_error(Logger(),fmt::format("Failed to retrieve api key={} for TID={}", Utils::SanitizeToken(SessionToken), TID));
         }
         Expired = false;
         return false;

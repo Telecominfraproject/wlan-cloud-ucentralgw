@@ -116,6 +116,8 @@ namespace OpenWifi::Utils {
 	[[nodiscard]] std::string SecondsToNiceText(uint64_t Seconds);
 	[[nodiscard]] bool wgets(const std::string &URL, std::string &Response);
     [[nodiscard]] bool IsAlphaNumeric(const std::string &s);
+    [[nodiscard]] std::string SanitizeToken(const std::string &Token);
+
 	template< typename T >
 	std::string int_to_hex( T i )
 	{
