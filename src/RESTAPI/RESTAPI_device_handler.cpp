@@ -107,11 +107,6 @@ namespace OpenWifi {
 			return ReturnObject(Answer);
 		}
 
-		if (!Utils::ValidSerialNumber(SerialNumber)) {
-			Logger_.warning(fmt::format("CREATE-DEVICE({}): Illegal serial number.", SerialNumber));
-			return BadRequest( RESTAPI::Errors::InvalidSerialNumber);
-		}
-
 		GWObjects::Device Device;
 		if (!Device.from_json(Obj)) {
 			return BadRequest(RESTAPI::Errors::InvalidJSONDocument);

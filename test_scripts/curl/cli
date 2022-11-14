@@ -46,7 +46,7 @@ browser=""
 login() {
 	payload="{ \"userId\" : \"$username\" , \"password\" : \"$password\" }"
 	token=$(curl ${FLAGS} -X POST -H "Content-Type: application/json" -d "$payload" "https://${OWSEC}/api/v1/oauth2" | jq -r '.access_token')
-
+#	curl -v -X POST -H "Content-Type: application/json" -d "$payload" "https://${OWSEC}/api/v1/oauth2" | jq -r '.access_token'
 	if [[ "${token}" == "" ]]
 	then
 		echo "Could not login. Please verify the host and username/password."
