@@ -12,7 +12,7 @@ namespace OpenWifi::StateUtils {
 		return 5;
 	}
 
-	bool ComputeAssociations(const Poco::JSON::Object::Ptr RawObject,
+	bool ComputeAssociations(const Poco::JSON::Object::Ptr & RawObject,
 							 uint64_t &Radios_2G,
 							 uint64_t &Radios_5G, uint64_t &Radios_6G) {
 		Radios_2G = 0 ;

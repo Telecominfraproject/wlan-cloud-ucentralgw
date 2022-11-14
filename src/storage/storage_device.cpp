@@ -707,11 +707,6 @@ namespace OpenWifi {
 		return ">75%";
 	}
 
-	int ChannelToBand(uint64_t C) {
-		if(C>=1 && C<=16) return 2;
-		return 5;
-	}
-
 	bool Storage::AnalyzeDevices(GWObjects::Dashboard &Dashboard) {
 		try {
 			Poco::Data::Session     Sess = Pool_->get();
