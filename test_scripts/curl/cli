@@ -776,6 +776,17 @@ stats7() {
 
 }
 
+stats7count() {
+    now=$(date +%s)
+    len=$((7 * 24 * 60 * 60))
+    start=$((now - len))
+    curl  ${FLAGS} -X GET "https://${OWGW}/api/v1/device/$1/statistics?startDate=${start}&endDate=${now}&countOnly=true" \
+        -H "Content-Type: application/json" \
+        -H "Accept: application/json" \
+        -H "Authorization: Bearer ${token}"   > ${result_file}
+    jq < ${result_file}
+}
+
 check_response() {
 
     if [ -s "$1" ]; then
@@ -1046,6 +1057,7 @@ case "$1" in
 	"connectionstatistics") login; connectionstatistics $2; logout;;
 	"notifications") login; notifications "$2"; logout;;
 	"stats7") login; stats7 "$2"; logout;;
+	"stats7count") login; stats7count "$2"; logout;;
   *) help ;;
 esac
 
