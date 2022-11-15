@@ -84,6 +84,7 @@ namespace OpenWifi {
 		bool AddStatisticsData(const GWObjects::Statistics & Stats);
 		bool GetStatisticsData(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate, uint64_t Offset, uint64_t HowMany,
 							   std::vector<GWObjects::Statistics> &Stats);
+        bool GetNumberOfStatisticsDataRecords(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate, std::uint64_t  &Count);
 		bool DeleteStatisticsData(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate );
 		bool GetNewestStatisticsData(std::string &SerialNumber, uint64_t HowMany, std::vector<GWObjects::Statistics> &Stats);
 

@@ -60,6 +60,41 @@ namespace OpenWifi {
 		return false;
 	}
 
+    bool Storage::GetNumberOfStatisticsDataRecords(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate, std::uint64_t  &Count) {
+		try {
+			Poco::Data::Session     Sess(Pool_->get());
+			Poco::Data::Statement   Select(Sess);
+
+			StatsRecordList         Records;
+
+			bool DatesIncluded = (FromDate != 0 || ToDate != 0);
+
+			std::string Prefix{"SELECT count(*) FROM Statistics "};
+			std::string StatementStr = SerialNumber.empty()
+									   ? Prefix + std::string(DatesIncluded ? "WHERE " : "")
+									   : Prefix + "WHERE SerialNumber='" + SerialNumber + "'" +
+										 std::string(DatesIncluded ? " AND " : "");
+
+			std::string DateSelector;
+			if (FromDate && ToDate) {
+				DateSelector = " Recorded>=" + std::to_string(FromDate) + " AND Recorded<=" + std::to_string(ToDate);
+			} else if (FromDate) {
+				DateSelector = " Recorded>=" + std::to_string(FromDate);
+			} else if (ToDate) {
+				DateSelector = " Recorded<=" + std::to_string(ToDate);
+			}
+
+			Select << StatementStr + DateSelector ,
+				Poco::Data::Keywords::into(Count);
+			Select.execute();
+			return true;
+		}
+		catch (const Poco::Exception &E) {
+			poco_warning(Logger(),fmt::format("{}: Failed with: {}", std::string(__func__), E.displayText()));
+		}
+		return false;
+    }
+
 	bool Storage::GetStatisticsData(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate, uint64_t Offset,
 									uint64_t HowMany,
 									std::vector<GWObjects::Statistics> &Stats) {

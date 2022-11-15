@@ -232,8 +232,14 @@ namespace OpenWifi {
 		if (QB_.Newest) {
 			StorageService()->GetNewestStatisticsData(SerialNumber_, QB_.Limit, Stats);
 		} else {
+            if(QB_.CountOnly) {
+                std::uint64_t Count = 0 ;
+			    StorageService()->GetNumberOfStatisticsDataRecords(SerialNumber_, QB_.StartDate, QB_.EndDate,Count);
+                return ReturnCountOnly(Count);
+            }
             if(QB_.Limit>100)
                 QB_.Limit=100;
+
 			StorageService()->GetStatisticsData(SerialNumber_, QB_.StartDate, QB_.EndDate,
 												 QB_.Offset, QB_.Limit, Stats);
 		}

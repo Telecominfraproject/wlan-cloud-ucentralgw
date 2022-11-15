@@ -1921,6 +1921,12 @@ paths:
           schema:
             type: boolean
           required: false
+        - in: query
+          description: Return the number of matching records.
+          name: countOnly
+          schema:
+            type: boolean
+          required: false
 
       responses:
         200:
@@ -1930,6 +1936,8 @@ paths:
               schema:
                 oneOf:
                   - $ref: '#/components/schemas/StatisticsRecords'
+                  - $ref: '#/components/schemas/DeviceCount'
+
         403:
           $ref: '#/components/responses/Unauthorized'
         404:
