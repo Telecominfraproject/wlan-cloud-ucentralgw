@@ -11,6 +11,7 @@
 #include "framework/StorageClass.h"
 #include "RESTObjects//RESTAPI_GWobjects.h"
 #include "Poco/Net/IPAddress.h"
+#include "CentralConfig.h"
 
 namespace OpenWifi {
 
@@ -98,7 +99,7 @@ namespace OpenWifi {
 		bool UpdateDeviceConfiguration(std::string &SerialNumber, std::string &Configuration, uint64_t & NewUUID );
 
 		bool CreateDevice(GWObjects::Device &);
-		bool CreateDefaultDevice(std::string & SerialNumber, std::string & Capabilities, std::string & Firmware, std::string &Compatible,const Poco::Net::IPAddress & IPAddress);
+		bool CreateDefaultDevice(std::string &SerialNumber, const Config::Capabilities &Caps, std::string & Firmware, const Poco::Net::IPAddress & IPAddress);
 
 		bool GetDevice(std::string &SerialNumber, GWObjects::Device &);
 		bool GetDevices(uint64_t From, uint64_t HowMany, std::vector<GWObjects::Device> &Devices, const std::string & orderBy="");
@@ -116,10 +117,10 @@ namespace OpenWifi {
 
 		bool ExistingConfiguration(std::string &SerialNumber, uint64_t CurrentConfig, std::string &NewConfig, uint64_t &);
 
-		bool UpdateDeviceCapabilities(std::string &SerialNumber, std::string &State, std::string & Compatible);
+		bool UpdateDeviceCapabilities(std::string &SerialNumber, const Config::Capabilities & Capabilities);
 		bool GetDeviceCapabilities(std::string &SerialNumber, GWObjects::Capabilities &);
 		bool DeleteDeviceCapabilities(std::string & SerialNumber);
-		bool CreateDeviceCapabilities(std::string & SerialNumber, std::string & Capabilities);
+		bool CreateDeviceCapabilities(std::string & SerialNumber, const Config::Capabilities & Capabilities);
 		bool InitCapabilitiesCache();
 
 		bool GetLogData(std::string &SerialNumber, uint64_t FromDate, uint64_t ToDate, uint64_t Offset, uint64_t HowMany,

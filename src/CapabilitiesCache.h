@@ -12,6 +12,7 @@
 #include "framework/MicroServiceFuncs.h"
 
 #include "nlohmann/json.hpp"
+#include "CentralConfig.h"
 
 namespace OpenWifi {
 	const std::string PlatformCacheFileName{"/plat_cache.json"};
@@ -27,17 +28,17 @@ namespace OpenWifi {
 			return instance;
 		}
 
-		inline void Add(const std::string & DeviceType, const std::string & Platform, const std::string & FullCapabilities) {
-			if(DeviceType.empty() || Platform.empty())
+		inline void Add(const Config::Capabilities &Caps) {
+			if(Caps.Compatible().empty() || Caps.Platform().empty())
 				return;
 
 			std::lock_guard	G(Mutex_);
 			if(!PlatformsLoaded_)
 				LoadPlatforms();
-			auto P = Poco::toUpper(Platform);
-			auto Hint = Platforms_.find(DeviceType);
+			auto P = Poco::toUpper(Caps.Platform());
+			auto Hint = Platforms_.find(Caps.Compatible());
 			if(Hint==Platforms_.end()) {
-				Platforms_.insert(std::make_pair(DeviceType,P));
+				Platforms_.insert(std::make_pair(Caps.Compatible(),P));
 				SavePlatforms();
 			} else if(Hint->second != P) {
 				Hint->second = P;
@@ -47,12 +48,14 @@ namespace OpenWifi {
 			if(!CapabilitiesLoaded_)
 				LoadCapabilities();
 
-			auto CapHint = Capabilities_.find(DeviceType);
+			auto CapHint = Capabilities_.find(Caps.Compatible());
 			if(CapHint==Capabilities_.end()) {
-				Capabilities_[DeviceType] = nlohmann::json::parse(FullCapabilities);
+                auto C = nlohmann::json::parse(Caps.AsString());
+                C.erase("restrictions");
+				Capabilities_[Caps.Compatible()] = nlohmann::json::parse(Caps.AsString());
 				SaveCapabilities();
 			} else {
-				CapHint->second = nlohmann::json::parse(FullCapabilities);
+				CapHint->second = nlohmann::json::parse(Caps.AsString());
 				SaveCapabilities();
 			}
 		}
@@ -150,4 +153,7 @@ namespace OpenWifi {
 			}
 		}
 	};
+
+    inline auto CapabilitiesCache() { return CapabilitiesCache::instance(); };
+
 }

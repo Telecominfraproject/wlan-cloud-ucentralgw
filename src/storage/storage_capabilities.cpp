@@ -17,20 +17,21 @@
 
 namespace OpenWifi {
 
-bool Storage::CreateDeviceCapabilities(std::string &SerialNumber, std::string &Capabilities) {
+bool Storage::CreateDeviceCapabilities(std::string & SerialNumber, const Config::Capabilities & Capabilities) {
 	try {
 		Poco::Data::Session     Sess = Pool_->get();
 		Poco::Data::Statement   UpSert(Sess);
 
+        std::string     TCaps{Capabilities.AsString()};
 		uint64_t Now = Utils::Now();
 		std::string St{	"insert into Capabilities (SerialNumber, Capabilities, FirstUpdate, LastUpdate) values(?,?,?,?) on conflict (SerialNumber) do "
 						   	" update set Capabilities=?, LastUpdate=?"};
 		UpSert << ConvertParams(St),
 			Poco::Data::Keywords::use(SerialNumber),
-			Poco::Data::Keywords::use(Capabilities),
+			Poco::Data::Keywords::use(TCaps),
 			Poco::Data::Keywords::use(Now),
 			Poco::Data::Keywords::use(Now),
-			Poco::Data::Keywords::use(Capabilities),
+			Poco::Data::Keywords::use(TCaps),
 			Poco::Data::Keywords::use(Now);
 		UpSert.execute();
 		return true;
@@ -41,25 +42,25 @@ bool Storage::CreateDeviceCapabilities(std::string &SerialNumber, std::string &C
 	return false;
 }
 
-	bool Storage::UpdateDeviceCapabilities(std::string &SerialNumber, std::string & Capabilities, std::string & Compat) {
+	bool Storage::UpdateDeviceCapabilities(std::string &SerialNumber, const Config::Capabilities & Caps) {
 		try {
 			Poco::Data::Session     Sess = Pool_->get();
 			Poco::Data::Statement   UpSert(Sess);
 
 			uint64_t Now = Utils::Now();
-			OpenWifi::Config::Capabilities	Caps(Capabilities);
-			Compat = Caps.Compatible();
 			if(!Caps.Compatible().empty() && !Caps.Platform().empty())
-				CapabilitiesCache::instance()->Add(Caps.Compatible(), Caps.Platform(), Capabilities);
+				CapabilitiesCache()->Add(Caps);
+
+            std::string TCaps{Caps.AsString()};
 
 			std::string St{"insert into Capabilities (SerialNumber, Capabilities, FirstUpdate, LastUpdate) values(?,?,?,?) on conflict (SerialNumber) do "
 						   " update set Capabilities=?, LastUpdate=?"};
 			UpSert << ConvertParams(St),
 				Poco::Data::Keywords::use(SerialNumber),
-				Poco::Data::Keywords::use(Capabilities),
+				Poco::Data::Keywords::use(TCaps),
 				Poco::Data::Keywords::use(Now),
 				Poco::Data::Keywords::use(Now),
-				Poco::Data::Keywords::use(Capabilities),
+				Poco::Data::Keywords::use(TCaps),
 				Poco::Data::Keywords::use(Now);
 			UpSert.execute();
 			return true;

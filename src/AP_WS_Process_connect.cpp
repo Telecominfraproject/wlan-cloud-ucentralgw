@@ -24,17 +24,17 @@ namespace OpenWifi {
 			ParamsObj->has(uCentralProtocol::CAPABILITIES)) {
 			uint64_t UUID = ParamsObj->get(uCentralProtocol::UUID);
 			auto Firmware = ParamsObj->get(uCentralProtocol::FIRMWARE).toString();
-			auto CapabilitiesString = ParamsObj->get(uCentralProtocol::CAPABILITIES).toString();
+			auto Capabilities = ParamsObj->getObject(uCentralProtocol::CAPABILITIES);
 
 			SerialNumber_ = Serial;
 			SerialNumberInt_ = Utils::SerialNumberToInt(SerialNumber_);
 
 			CommandManager()->ClearQueue(SerialNumberInt_);
 
-			std::unique_lock	Lock(LocalMutex_);
-			Config::Capabilities Caps(CapabilitiesString);
-			Compatible_ = Caps.Compatible();
+			std::unique_lock	    Lock(LocalMutex_);
+			Config::Capabilities    Caps(Capabilities);
 
+			Compatible_ = Caps.Compatible();
 
 			AP_WS_Server()->SetSessionDetails(State_.sessionId,SerialNumberInt_);
 			State_.UUID = UUID;
@@ -49,20 +49,21 @@ namespace OpenWifi {
 			}
 
 			bool RestrictedDevice = false;
-			if(ParamsObj->has("restricted")) {
-                auto RestrictionObject = ParamsObj->getObject("restricted");
-                RestrictedDevice = Restrictions_.initialize(Logger_, SerialNumber_, RestrictionObject);
+			if(ParamsObj->has("restricted") && ParamsObj->get("restricted").isBoolean()) {
+                RestrictedDevice = true;
+                if(Capabilities->has("restrictions")) {
+                    auto RestrictionObject = Capabilities->getObject("restrictions");
+                    Restrictions_.initialize(Logger_, SerialNumber_, RestrictionObject);
+                }
 			}
 
 			State_.locale = FindCountryFromIP()->Get(IP);
 			GWObjects::Device	DeviceInfo;
 			auto DeviceExists = StorageService()->GetDevice(SerialNumber_,DeviceInfo);
 			if (Daemon()->AutoProvisioning() && !DeviceExists) {
-				StorageService()->CreateDefaultDevice(SerialNumber_, CapabilitiesString, Firmware,
-													  Compatible_, PeerAddress_);
+				StorageService()->CreateDefaultDevice(SerialNumber_, Caps, Firmware, PeerAddress_);
 			} else if (DeviceExists) {
-				StorageService()->UpdateDeviceCapabilities(SerialNumber_, CapabilitiesString,
-														   Compatible_);
+				StorageService()->UpdateDeviceCapabilities(SerialNumber_, Caps );
 				int Updated{0};
 				if(!Firmware.empty()) {
 					if(Firmware!=DeviceInfo.Firmware) {

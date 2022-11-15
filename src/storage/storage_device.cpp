@@ -318,16 +318,15 @@ namespace OpenWifi {
 
 #define 	__DBGLOG__ std::cout << __LINE__ << std::endl;
 
-	bool Storage::CreateDefaultDevice(std::string &SerialNumber, std::string &Capabilities, std::string & Firmware, std::string &Compat, const Poco::Net::IPAddress & IPAddress) {
+	bool Storage::CreateDefaultDevice(std::string &SerialNumber, const Config::Capabilities &Caps, std::string & Firmware, const Poco::Net::IPAddress & IPAddress) {
 
 		GWObjects::Device D;
 		poco_information(Logger(),fmt::format("AUTO-CREATION({})", SerialNumber));
 		uint64_t Now = time(nullptr);
-		Config::Capabilities 			Caps(Capabilities);
 		GWObjects::DefaultConfiguration DefConfig;
 
 		if(!Caps.Platform().empty() && !Caps.Compatible().empty()) {
-			CapabilitiesCache::instance()->Add(Caps.Compatible(), Caps.Platform(), Capabilities);
+			CapabilitiesCache()->Add(Caps);
 		}
 
 		bool 			Found = false;
@@ -343,7 +342,7 @@ namespace OpenWifi {
 			}
 		}
 
-		if (!Found && AP_WS_Server()->UseDefaults() && FindDefaultConfigurationForModel(Compat, DefConfig)) {
+		if (!Found && AP_WS_Server()->UseDefaults() && FindDefaultConfigurationForModel(Caps.Compatible(), DefConfig)) {
 			Config::Config NewConfig(DefConfig.Configuration);
 			NewConfig.SetUUID(Now);
 			D.Configuration = NewConfig.get();
@@ -356,14 +355,14 @@ namespace OpenWifi {
 		//	We need to insert the country code according to the IP in the radios section...
 		D.locale = InsertRadiosCountyRegulation(D.Configuration, IPAddress);
 		D.SerialNumber = Poco::toLower(SerialNumber);
-		Compat = D.Compatible = Caps.Compatible();
+		D.Compatible = Caps.Compatible();
 		D.DeviceType = Daemon()->IdentifyDevice(D.Compatible);
 		D.MACAddress = Utils::SerialToMAC(SerialNumber);
 		D.Manufacturer = Caps.Model();
 		D.Firmware = Firmware;
 		D.Notes = SecurityObjects::NoteInfoVec { SecurityObjects::NoteInfo{ (uint64_t)Utils::Now(), "", "Auto-provisioned."}};
 
-		CreateDeviceCapabilities(SerialNumber, Capabilities);
+		CreateDeviceCapabilities(SerialNumber, Caps);
 
 		return CreateDevice(D);
 	}

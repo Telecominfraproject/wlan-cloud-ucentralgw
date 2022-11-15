@@ -228,7 +228,7 @@ R"lit(
 		return DefaultConfiguration_;
 	}
 
-    std::string Capabilities::Default() {
+/*    std::string Capabilities::Default() {
         return std::string(R"lit({"model":{"id":"linksys,ea8300","name":"Linksys EA8300 (Dallas)"},
                         "network":{"lan":{"ifname":"eth0","protocol":"static"},"wan":{"ifname":"eth1","protocol":"dhcp"}},
                         "switch":{"switch0":{"enable":true,"reset":true,"ports":[{"num":0,"device":"eth0","need_tag":false,
@@ -242,27 +242,23 @@ R"lit(
                         "platform/soc/a800000.wifi":{"band":["5l"],"ht_capa":6639,"vht_capa":865687986,"htmode":["HT20","HT40","VHT20","VHT40","VHT80"],
                         "tx_ant":3,"rx_ant":3,"channels":[36,40,44,48,52,56,60,64]}}})lit");
     }
+*/
 
-    void Capabilities::Parse() {
-        if(Capabilities_.empty())
-            Capabilities_=Default();
-
+    Capabilities::Capabilities(const Poco::JSON::Object::Ptr &Caps) {
         try {
-            Poco::JSON::Parser parser;
 
-            auto Result = parser.parse(Capabilities_);
-            auto Objects = Result.extract<Poco::JSON::Object::Ptr>();
+            if(Caps->has("compatible"))
+				Compatible_ = Caps->get("compatible").toString();
 
-			if(Objects->has("compatible"))
-				Compatible_ = Objects->get("compatible").toString();
+			if(Caps->has("model"))
+				Model_ = Caps->get("model").toString();
 
-			if(Objects->has("model"))
-				Model_ = Objects->get("model").toString();
+			if(Caps->has("platform"))
+				Platform_ = Caps->get("platform").toString();
 
-			if(Objects->has("platform"))
-				Platform_ = Objects->get("platform").toString();
-
-            Parsed_ = true ;
+            std::ostringstream OS;
+            Caps->stringify(OS);
+            AsString_ = OS.str();
         }
         catch ( const Poco::Exception & E )
         {
@@ -270,22 +266,20 @@ R"lit(
         }
     }
 
-	const std::string & Capabilities::Compatible() {
-		if(!Parsed_)
-			Parse();
+	const std::string & Capabilities::Compatible() const {
 		return Compatible_;
 	}
 
-	const std::string & Capabilities::Model() {
-		if(!Parsed_)
-			Parse();
+	const std::string & Capabilities::Model() const {
 		return Model_;
 	}
 
-	const std::string & Capabilities::Platform() {
-		if(!Parsed_)
-			Parse();
+	const std::string & Capabilities::Platform() const {
 		return Platform_;
 	}
+
+	const std::string & Capabilities::AsString() const {
+        return AsString_;
+    }
 
 } // namespace

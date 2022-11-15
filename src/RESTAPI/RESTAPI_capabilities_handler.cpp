@@ -8,7 +8,7 @@
 namespace OpenWifi {
 
 	void RESTAPI_capabilities_handler::DoGet() {
-		CapabilitiesCache_t Caps = CapabilitiesCache().AllCapabilities();
+		CapabilitiesCache_t Caps = CapabilitiesCache()->AllCapabilities();
 
 		Poco::JSON::Array	ObjArr;
 		for(const auto &[deviceType,capabilities]:Caps) {

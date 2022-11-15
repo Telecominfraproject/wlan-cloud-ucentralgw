@@ -9,6 +9,7 @@
 #pragma once
 
 #include "framework/RESTAPI_Handler.h"
+#include "AP_restrictions.h"
 
 namespace OpenWifi {
 	class RESTAPI_device_commandHandler : public RESTAPIHandler {
@@ -32,20 +33,20 @@ namespace OpenWifi {
 		void GetStatus();
 		void GetChecks();
 		void DeleteChecks();
-		void ExecuteCommand(const std::string &UUID, uint64_t RPC, std::chrono::milliseconds timeout);
-		void Configure(const std::string &UUID, uint64_t RPC, std::chrono::milliseconds timeout);
-		void Upgrade(const std::string &UUID, uint64_t RPC, std::chrono::milliseconds timeout);
-		void Reboot(const std::string &UUID, uint64_t RPC, std::chrono::milliseconds timeout);
-		void Factory(const std::string &UUID, uint64_t RPC, std::chrono::milliseconds timeout);
-		void LEDs(const std::string &UUID, uint64_t RPC, std::chrono::milliseconds timeout);
-		void Trace(const std::string &UUID, uint64_t RPC, std::chrono::milliseconds timeout);
-		void MakeRequest(const std::string &UUID, uint64_t RPC, std::chrono::milliseconds timeout);
-		void WifiScan(const std::string &UUID, uint64_t RPC, std::chrono::milliseconds timeout);
-		void EventQueue(const std::string &UUID, uint64_t RPC, std::chrono::milliseconds timeout);
-		void Rtty(const std::string &UUID, uint64_t RPC, std::chrono::milliseconds timeout);
-		void Telemetry(const std::string &UUID, uint64_t RPC, std::chrono::milliseconds timeout);
-		void Ping(const std::string &UUID, uint64_t RPC, std::chrono::milliseconds timeout);
-		void Script(const std::string &UUID, uint64_t RPC, std::chrono::milliseconds timeout);
+
+		void Configure(const std::string &UUID, uint64_t RPC, std::chrono::milliseconds timeout, const AP_Restrictions &R);
+		void Upgrade(const std::string &UUID, uint64_t RPC, std::chrono::milliseconds timeout, const AP_Restrictions &R);
+		void Reboot(const std::string &UUID, uint64_t RPC, std::chrono::milliseconds timeout, const AP_Restrictions &R);
+		void Factory(const std::string &UUID, uint64_t RPC, std::chrono::milliseconds timeout, const AP_Restrictions &R);
+		void LEDs(const std::string &UUID, uint64_t RPC, std::chrono::milliseconds timeout, const AP_Restrictions &R);
+		void Trace(const std::string &UUID, uint64_t RPC, std::chrono::milliseconds timeout, const AP_Restrictions &R);
+		void MakeRequest(const std::string &UUID, uint64_t RPC, std::chrono::milliseconds timeout, const AP_Restrictions &R);
+		void WifiScan(const std::string &UUID, uint64_t RPC, std::chrono::milliseconds timeout, const AP_Restrictions &R);
+		void EventQueue(const std::string &UUID, uint64_t RPC, std::chrono::milliseconds timeout, const AP_Restrictions &R);
+		void Rtty(const std::string &UUID, uint64_t RPC, std::chrono::milliseconds timeout, const AP_Restrictions &R);
+		void Telemetry(const std::string &UUID, uint64_t RPC, std::chrono::milliseconds timeout, const AP_Restrictions &R);
+		void Ping(const std::string &UUID, uint64_t RPC, std::chrono::milliseconds timeout, const AP_Restrictions &R);
+		void Script(const std::string &UUID, uint64_t RPC, std::chrono::milliseconds timeout, const AP_Restrictions &R);
 
 		static auto PathName() { return std::list<std::string>{"/api/v1/device/{serialNumber}/{command}"}; };
 		void DoGet() final;

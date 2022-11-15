@@ -35,29 +35,28 @@ namespace OpenWifi::Config {
 
     class Capabilities {
     public:
-        explicit Capabilities(std::string Caps)
-        :   Capabilities_(std::move(Caps))
-        {
+        explicit Capabilities(const Poco::JSON::Object::Ptr &Caps);
 
-        }
-
-        Capabilities()
+/*        Capabilities()
         {
             Capabilities_ = Default();
         }
 
         static std::string Default();
+
         [[nodiscard]] const std::string & Get() const { return Capabilities_; };
-        [[nodiscard]] const std::string & Compatible();
-        [[nodiscard]] const std::string & Model();
-		[[nodiscard]] const std::string & Platform();
+*/
+
+        [[nodiscard]] const std::string & Compatible() const;
+        [[nodiscard]] const std::string & Model() const;
+		[[nodiscard]] const std::string & Platform() const;
+		[[nodiscard]] const std::string & AsString() const;
 
     private:
-        std::string Capabilities_;
-        bool        Parsed_=false;
         std::string Compatible_;
         std::string Model_;
 		std::string Platform_;
+        std::string AsString_;
 
 		void Parse();
     };

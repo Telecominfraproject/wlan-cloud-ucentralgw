@@ -289,12 +289,21 @@ namespace OpenWifi {
 		return false;
 	}
 
-	bool AP_WS_Server::Connected(uint64_t SerialNumber) const {
+	bool AP_WS_Server::Connected(uint64_t SerialNumber, AP_Restrictions & Restrictions) const {
 		std::lock_guard			Lock(LocalMutex_);
 		auto Device = SerialNumbers_.find(SerialNumber);
 		if(Device==end(SerialNumbers_) || Device->second.second== nullptr)
 			return false;
 
+        Restrictions = Device->second.second->Restrictions_;
+		return  Device->second.second->State_.Connected;
+	}
+
+	bool AP_WS_Server::Connected(uint64_t SerialNumber) const {
+		std::lock_guard			Lock(LocalMutex_);
+		auto Device = SerialNumbers_.find(SerialNumber);
+		if(Device==end(SerialNumbers_) || Device->second.second== nullptr)
+			return false;
 		return  Device->second.second->State_.Connected;
 	}
 

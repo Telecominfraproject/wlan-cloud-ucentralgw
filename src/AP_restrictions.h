@@ -51,14 +51,14 @@ namespace OpenWifi {
             return false;
         }
 
-        [[nodiscard]] inline auto dfs() { return dfs_; }
-        [[nodiscard]] inline auto ssh() { return ssh_; }
-        [[nodiscard]] inline auto rtty() { return rtty_; }
-        [[nodiscard]] inline auto tty() { return tty_; }
-        [[nodiscard]] inline auto developer() { return developer_; }
-        [[nodiscard]] inline auto sysupgrade() { return sysupgrade_; }
-        [[nodiscard]] inline auto commands() { return commands_; }
-        [[nodiscard]] inline bool country(const std::string &c) {
+        [[nodiscard]] inline auto dfs_not_allowed() const { return dfs_; }
+        [[nodiscard]] inline auto ssh_not_allowed() const { return ssh_; }
+        [[nodiscard]] inline auto rtty_not_allowed() const { return rtty_; }
+        [[nodiscard]] inline auto tty_not_allowed() const { return tty_; }
+        [[nodiscard]] inline auto developer_not_allowed() const { return developer_; }
+        [[nodiscard]] inline auto sysupgrade_not_allowed() const { return sysupgrade_; }
+        [[nodiscard]] inline auto commands_not_allowed() const { return commands_; }
+        [[nodiscard]] inline bool valid_country(const std::string &c) const {
             if(countries_.empty())
                 return true;
             return countries_.find(Poco::toLower(c))!=countries_.end();
