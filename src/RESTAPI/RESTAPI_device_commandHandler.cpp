@@ -232,6 +232,8 @@ namespace OpenWifi {
 		if (QB_.Newest) {
 			StorageService()->GetNewestStatisticsData(SerialNumber_, QB_.Limit, Stats);
 		} else {
+            if(QB_.Limit>100)
+                QB_.Limit=100;
 			StorageService()->GetStatisticsData(SerialNumber_, QB_.StartDate, QB_.EndDate,
 												 QB_.Offset, QB_.Limit, Stats);
 		}

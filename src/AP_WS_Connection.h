@@ -15,7 +15,7 @@
 #include "Poco/Net/WebSocket.h"
 
 #include "RESTObjects/RESTAPI_GWobjects.h"
-
+#include "AP_restrictions.h"
 
 namespace OpenWifi {
 
@@ -111,6 +111,8 @@ namespace OpenWifi {
 		friend class DeviceRegistry;
 		friend class AP_WS_Server;
 
+        const AP_Restrictions & Restrictions() { return Restrictions_; }
+
 	  private:
 		std::shared_mutex	 				LocalMutex_;
 		std::shared_mutex					TelemetryMutex_;
@@ -126,13 +128,13 @@ namespace OpenWifi {
 		uint64_t 							Errors_=0;
 		Poco::Net::IPAddress				PeerAddress_;
 		volatile bool 						TelemetryReporting_ = false;
-		volatile uint64_t				TelemetryWebSocketRefCount_ = 0;
-		volatile uint64_t				TelemetryKafkaRefCount_ = 0;
-		volatile uint64_t 				TelemetryWebSocketTimer_ = 0;
-		volatile uint64_t 				TelemetryKafkaTimer_ = 0 ;
-		volatile uint64_t 				TelemetryInterval_ = 0;
-		volatile uint64_t				TelemetryWebSocketPackets_=0;
-		volatile uint64_t				TelemetryKafkaPackets_=0;
+		volatile uint64_t				    TelemetryWebSocketRefCount_ = 0;
+		volatile uint64_t				    TelemetryKafkaRefCount_ = 0;
+		volatile uint64_t 				    TelemetryWebSocketTimer_ = 0;
+		volatile uint64_t 				    TelemetryKafkaTimer_ = 0 ;
+		volatile uint64_t 				    TelemetryInterval_ = 0;
+		volatile uint64_t				    TelemetryWebSocketPackets_=0;
+		volatile uint64_t				    TelemetryKafkaPackets_=0;
 		GWObjects::ConnectionState			State_;
 		std::string        					RawLastStats_;
 		GWObjects::HealthCheck				RawLastHealthcheck_;
@@ -142,7 +144,7 @@ namespace OpenWifi {
 		std::atomic_flag 					Dead_=false;
 		std::atomic_bool 					DeviceValidated_=false;
 		std::atomic_bool 					Valid_=false;
-		bool 								FCC=false;
+        AP_Restrictions                     Restrictions_;
 
 		static inline std::atomic_uint64_t 	ConcurrentStartingDevices_=0;
 

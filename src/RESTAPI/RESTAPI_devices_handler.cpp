@@ -26,7 +26,7 @@ namespace OpenWifi {
 		std::string ItemList;
 
 		Types::StringVec Fields;
-		StorageService()->GetDeviceDbFieldList(Fields);
+		Storage::GetDeviceDbFieldList(Fields);
 
 		std::set<std::string> FieldNames;
 		for(const auto &field:Fields)
@@ -68,7 +68,7 @@ namespace OpenWifi {
 
 		if(GetBoolParameter("orderSpec")) {
 			Types::StringVec Fields;
-			StorageService()->GetDeviceDbFieldList(Fields);
+			Storage::GetDeviceDbFieldList(Fields);
 			std::sort(Fields.begin(),Fields.end());
 			Poco::JSON::Object	Answer;
 			RESTAPI_utils::field_to_json(Answer,"list",Fields);

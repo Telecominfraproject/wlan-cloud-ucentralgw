@@ -111,7 +111,7 @@ namespace OpenWifi {
 		bool GetDeviceFWUpdatePolicy(std::string & SerialNumber, std::string & Policy);
 		bool SetDevicePassword(std::string & SerialNumber, std::string & Password);
 		bool UpdateSerialNumberCache();
-		void GetDeviceDbFieldList( Types::StringVec & Fields);
+		static void GetDeviceDbFieldList( Types::StringVec & Fields);
 
 		bool ExistingConfiguration(std::string &SerialNumber, uint64_t CurrentConfig, std::string &NewConfig, uint64_t &);
 

@@ -199,7 +199,7 @@ add_executable( owgw
         src/AP_WS_Process_telemetry.cpp
         src/AP_WS_Process_venuebroadcast.cpp
         src/RADSEC_server.h
-        src/UI_GW_WebSocketNotifications.cpp src/UI_GW_WebSocketNotifications.h src/framework/RESTAPI_SystemConfiguration.h)
+        src/UI_GW_WebSocketNotifications.cpp src/UI_GW_WebSocketNotifications.h src/framework/RESTAPI_SystemConfiguration.h src/AP_restrictions.h)
 
 if(NOT SMALL_BUILD)
 

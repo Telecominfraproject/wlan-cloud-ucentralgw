@@ -50,10 +50,8 @@ namespace OpenWifi {
 
 			bool RestrictedDevice = false;
 			if(ParamsObj->has("restricted")) {
-				auto FCCValue = ParamsObj->get("restricted");
-				if(FCCValue.isBoolean()) {
-					RestrictedDevice = FCCValue;
-				}
+                auto RestrictionObject = ParamsObj->getObject("restricted");
+                RestrictedDevice = Restrictions_.initialize(Logger_, SerialNumber_, RestrictionObject);
 			}
 
 			State_.locale = FindCountryFromIP()->Get(IP);
@@ -65,12 +63,12 @@ namespace OpenWifi {
 			} else if (DeviceExists) {
 				StorageService()->UpdateDeviceCapabilities(SerialNumber_, CapabilitiesString,
 														   Compatible_);
-				bool Updated = false;
+				int Updated{0};
 				if(!Firmware.empty()) {
 					if(Firmware!=DeviceInfo.Firmware) {
 						DeviceInfo.Firmware = Firmware;
 						DeviceInfo.LastFWUpdate = Utils::Now();
-						Updated = true;
+						++Updated;
 
 						GWWebSocketNotifications::SingleDeviceFirmwareChange_t	Notification;
 						Notification.content.serialNumber = SerialNumber_;
@@ -78,23 +76,23 @@ namespace OpenWifi {
 						GWWebSocketNotifications::DeviceFirmwareUpdated(Notification);
 					} else if(DeviceInfo.LastFWUpdate==0) {
 						DeviceInfo.LastFWUpdate = Utils::Now();
-						Updated = true;
+						++Updated;
 					}
 				}
 
 				if(DeviceInfo.locale != State_.locale) {
 					DeviceInfo.locale = State_.locale;
-					Updated = true;
+                    ++Updated;
 				}
 
 				if(Compatible_ != DeviceInfo.DeviceType) {
 					DeviceInfo.DeviceType = Compatible_;
-					Updated = true;
+                    ++Updated;
 				}
 
 				if(RestrictedDevice != DeviceInfo.restrictedDevice) {
 					DeviceInfo.restrictedDevice = RestrictedDevice;
-					Updated = true;
+                    ++Updated;
 				}
 
 				if(Updated) {

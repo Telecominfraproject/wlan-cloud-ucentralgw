@@ -751,6 +751,31 @@ connectionstatistics() {
 	jq < ${result_file}
 }
 
+# retreive the stats for a snigle device for the last 7 days
+stats7() {
+    now=$(date +%s)
+    len=$((7 * 24 * 60 * 60))
+    start=$((now - len))
+    offset=0
+    records=100
+    while [ ${records} == 100 ]
+    do
+        curl  ${FLAGS} -X GET "https://${OWGW}/api/v1/device/$1/statistics?startDate=${start}&endDate=${now}&offset=${offset}&limit=100" \
+            -H "Content-Type: application/json" \
+            -H "Accept: application/json" \
+            -H "Authorization: Bearer ${token}"   > ${result_file}
+#        jq < ${result_file}
+        records=$(jq '.data | length' ${result_file})
+        offset=$((offset + ${records}))
+        echo "Downloaded ${records} records. New offset is ${offset}"
+        if [[ ${records} != 100 ]]
+        then
+            break
+        fi
+    done
+
+}
+
 check_response() {
 
     if [ -s "$1" ]; then
@@ -1020,6 +1045,7 @@ case "$1" in
 	"deviceping") login; deviceping $2; logout;;
 	"connectionstatistics") login; connectionstatistics $2; logout;;
 	"notifications") login; notifications "$2"; logout;;
+	"stats7") login; stats7 "$2"; logout;;
   *) help ;;
 esac
 
