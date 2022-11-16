@@ -158,6 +158,12 @@ namespace OpenWifi {
 		[[nodiscard]] std::string Sign(Poco::JWT::Token &T, const std::string &Algo);
 		void AddActivity(const std::string &Activity);
 
+        void SetConsoleLogs(bool UseAsync, bool AllowWebSocket, const std::string & FormatterPattern);
+        void SetColorConsoleLogs(bool UseAsync, bool AllowWebSocket, const std::string & FormatterPattern);
+        void SetSQLLogs(bool UseAsync, bool AllowWebSocket, const std::string & FormatterPattern);
+        void SetSyslogLogs(bool UseAsync, bool AllowWebSocket, const std::string & FormatterPattern);
+        void SetFileLogs(bool UseAsync, bool AllowWebSocket, const std::string & FormatterPattern);
+
 	  private:
 	    static MicroService         * instance_;
 		bool                        HelpRequested_ = false;

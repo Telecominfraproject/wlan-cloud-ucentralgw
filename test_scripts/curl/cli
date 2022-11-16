@@ -751,6 +751,13 @@ connectionstatistics() {
 	jq < ${result_file}
 }
 
+testtoken() {
+    login
+    systeminfo
+    logout
+    systeminfo
+}
+
 # retreive the stats for a snigle device for the last 7 days
 stats7() {
     now=$(date +%s)
@@ -1058,6 +1065,7 @@ case "$1" in
 	"notifications") login; notifications "$2"; logout;;
 	"stats7") login; stats7 "$2"; logout;;
 	"stats7count") login; stats7count "$2"; logout;;
+	"testtoken") testtoken;;
   *) help ;;
 esac
 

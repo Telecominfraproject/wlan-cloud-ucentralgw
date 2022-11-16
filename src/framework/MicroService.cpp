@@ -181,8 +181,6 @@ namespace OpenWifi {
 		MyHash_ = Utils::ComputeHash(MyPublicEndPoint_);
 	}
 
-	void MicroServicePostInitialization();
-
 	void MicroService::InitializeLoggingSystem() {
 		static auto initialized = false;
 
@@ -200,95 +198,133 @@ namespace OpenWifi {
 				Poco::AutoPtr<Poco::NullChannel> DevNull(new Poco::NullChannel);
 				Poco::Logger::root().setChannel(DevNull);
 			} else if (LoggingDestination == "console") {
-				Poco::AutoPtr<Poco::ConsoleChannel> Console(new Poco::ConsoleChannel);
-				if(UseAsyncLogs_) {
-					Poco::AutoPtr<Poco::AsyncChannel> Async(new Poco::AsyncChannel(Console));
-					Poco::AutoPtr<Poco::PatternFormatter> Formatter(new Poco::PatternFormatter);
-					Formatter->setProperty("pattern", LoggingFormat);
-					Poco::AutoPtr<Poco::FormattingChannel> FormattingChannel(
-						new Poco::FormattingChannel(Formatter, Async));
-					Poco::Logger::root().setChannel(FormattingChannel);
-				} else {
-					Poco::AutoPtr<Poco::PatternFormatter> Formatter(new Poco::PatternFormatter);
-					Formatter->setProperty("pattern", LoggingFormat);
-					Poco::AutoPtr<Poco::FormattingChannel> FormattingChannel(
-						new Poco::FormattingChannel(Formatter, Console));
-					Poco::Logger::root().setChannel(FormattingChannel);
-				}
+                SetConsoleLogs(UseAsyncLogs_, DisableWebSocketLogging, LoggingFormat);
 			} else if (LoggingDestination == "colorconsole") {
-				Poco::AutoPtr<Poco::ColorConsoleChannel> ColorConsole(new Poco::ColorConsoleChannel);
-				if(UseAsyncLogs_) {
-					Poco::AutoPtr<Poco::AsyncChannel> Async(new Poco::AsyncChannel(ColorConsole));
-					Poco::AutoPtr<Poco::PatternFormatter> Formatter(new Poco::PatternFormatter);
-					Formatter->setProperty("pattern", LoggingFormat);
-					Poco::AutoPtr<Poco::FormattingChannel> FormattingChannel(
-						new Poco::FormattingChannel(Formatter, Async));
-					Poco::Logger::root().setChannel(FormattingChannel);
-				} else {
-					Poco::AutoPtr<Poco::PatternFormatter> Formatter(new Poco::PatternFormatter);
-					Formatter->setProperty("pattern", LoggingFormat);
-					Poco::AutoPtr<Poco::FormattingChannel> FormattingChannel(
-						new Poco::FormattingChannel(Formatter, ColorConsole));
-					Poco::Logger::root().setChannel(FormattingChannel);
-				}
+                SetColorConsoleLogs(UseAsyncLogs_, DisableWebSocketLogging, LoggingFormat);
 			} else if (LoggingDestination == "sql") {
-				//"CREATE TABLE T_POCO_LOG (Source VARCHAR, Name VARCHAR, ProcessId INTEGER, Thread VARCHAR, ThreadId INTEGER, Priority INTEGER, Text VARCHAR, DateTime DATE)"
-
+                SetSQLLogs(UseAsyncLogs_, DisableWebSocketLogging, LoggingFormat);
 			} else if (LoggingDestination == "syslog") {
-
+                SetSyslogLogs(UseAsyncLogs_, DisableWebSocketLogging, LoggingFormat);
 			} else {
-				auto LoggingLocation =
-					MicroService::instance().ConfigPath("logging.path", "$OWCERT_ROOT/logs") + "/log";
+                SetFileLogs(UseAsyncLogs_, DisableWebSocketLogging, LoggingFormat);
+            }
 
-				Poco::AutoPtr<Poco::FileChannel> FileChannel(new Poco::FileChannel);
-				FileChannel->setProperty("rotation", "10 M");
-				FileChannel->setProperty("archive", "timestamp");
-				FileChannel->setProperty("purgeCount", "10");
-				FileChannel->setProperty("path", LoggingLocation);
-				if(UseAsyncLogs_) {
-					Poco::AutoPtr<Poco::AsyncChannel> Async_File(
-						new Poco::AsyncChannel(FileChannel));
-					Poco::AutoPtr<Poco::PatternFormatter> Formatter(new Poco::PatternFormatter);
-					Formatter->setProperty("pattern", LoggingFormat);
-					Poco::AutoPtr<Poco::FormattingChannel> FormattingChannel(
-						new Poco::FormattingChannel(Formatter, Async_File));
-					if(DisableWebSocketLogging) {
-						Poco::Logger::root().setChannel(FormattingChannel);
-					} else {
-						Poco::AutoPtr<WebSocketLogger>			WSLogger(new WebSocketLogger);
-						Poco::AutoPtr<Poco::SplitterChannel>	Splitter(new Poco::SplitterChannel);
-						Splitter->addChannel(WSLogger);
-						Splitter->addChannel(FormattingChannel);
-						Poco::Logger::root().setChannel(Splitter);
-					}
-
-				} else {
-					Poco::AutoPtr<Poco::PatternFormatter> Formatter(new Poco::PatternFormatter);
-					Formatter->setProperty("pattern", LoggingFormat);
-					Poco::AutoPtr<Poco::FormattingChannel> FormattingChannel(
-						new Poco::FormattingChannel(Formatter, FileChannel));
-					if(DisableWebSocketLogging) {
-						Poco::Logger::root().setChannel(FormattingChannel);
-					} else {
-						Poco::AutoPtr<Poco::SplitterChannel>	Splitter(new Poco::SplitterChannel);
-						Poco::AutoPtr<WebSocketLogger>			WSLogger(new WebSocketLogger);
-						Splitter->addChannel(WSLogger);
-						Splitter->addChannel(FormattingChannel);
-						Poco::Logger::root().setChannel(Splitter);
-					}
-				}
-			}
 			auto Level = Poco::Logger::parseLevel(MicroService::instance().ConfigGetString("logging.level", "debug"));
 			Poco::Logger::root().setLevel(Level);
-
 			if(!DisableWebSocketLogging) {
 				static const UI_WebSocketClientServer::NotificationTypeIdVec Notifications = {
 					{1, "log"}};
-
 				UI_WebSocketClientServer()->RegisterNotifications(Notifications);
 			}
 		}
-	}
+    }
+
+
+    void MicroService::SetConsoleLogs(bool UseAsync, bool DisableWebSocketLogging, const std::string & FormatterPattern) {
+
+        Poco::AutoPtr<Poco::ConsoleChannel> Console(new Poco::ConsoleChannel);
+        Poco::AutoPtr<Poco::PatternFormatter> Formatter(new Poco::PatternFormatter);
+        Formatter->setProperty("pattern", FormatterPattern);
+        Poco::AutoPtr<Poco::FormattingChannel> FormattingChannel(new Poco::FormattingChannel(Formatter, Console));
+
+        if(DisableWebSocketLogging) {
+            if(UseAsync) {
+                Poco::AutoPtr<Poco::AsyncChannel> Async(new Poco::AsyncChannel(FormattingChannel));
+                Poco::Logger::root().setChannel(Async);
+            } else {
+                Poco::Logger::root().setChannel(FormattingChannel);
+            }
+        } else {
+            Poco::AutoPtr<WebSocketLogger>			WSLogger(new WebSocketLogger);
+            Poco::AutoPtr<Poco::SplitterChannel>	Splitter(new Poco::SplitterChannel);
+            Splitter->addChannel(WSLogger);
+            Splitter->addChannel(FormattingChannel);
+            if(UseAsync) {
+                Poco::AutoPtr<Poco::AsyncChannel> Async(new Poco::AsyncChannel(Splitter));
+                Poco::Logger::root().setChannel(Async);
+            } else {
+                Poco::Logger::root().setChannel(Splitter);
+            }
+        }
+
+    }
+
+    void MicroService::SetColorConsoleLogs(bool UseAsync, bool DisableWebSocketLogging, const std::string & FormatterPattern) {
+
+        Poco::AutoPtr<Poco::ColorConsoleChannel> Console(new Poco::ColorConsoleChannel);
+        Poco::AutoPtr<Poco::PatternFormatter> Formatter(new Poco::PatternFormatter);
+        Formatter->setProperty("pattern", FormatterPattern);
+        Poco::AutoPtr<Poco::FormattingChannel> FormattingChannel(new Poco::FormattingChannel(Formatter, Console));
+
+        if(DisableWebSocketLogging) {
+            if(UseAsync) {
+                Poco::AutoPtr<Poco::AsyncChannel> Async(new Poco::AsyncChannel(FormattingChannel));
+                Poco::Logger::root().setChannel(Async);
+            } else {
+                Poco::Logger::root().setChannel(FormattingChannel);
+            }
+        } else {
+            Poco::AutoPtr<WebSocketLogger>			WSLogger(new WebSocketLogger);
+            Poco::AutoPtr<Poco::SplitterChannel>	Splitter(new Poco::SplitterChannel);
+            Splitter->addChannel(WSLogger);
+            Splitter->addChannel(FormattingChannel);
+            if(UseAsync) {
+                Poco::AutoPtr<Poco::AsyncChannel> Async(new Poco::AsyncChannel(Splitter));
+                Poco::Logger::root().setChannel(Async);
+            } else {
+                Poco::Logger::root().setChannel(Splitter);
+            }
+        }
+
+    }
+
+    void MicroService::SetSQLLogs([[maybe_unused]] bool UseAsync,[[maybe_unused]]  bool DisableWebSocketLogging,[[maybe_unused]]  const std::string & FormatterPattern) {
+        //"CREATE TABLE T_POCO_LOG (Source VARCHAR, Name VARCHAR, ProcessId INTEGER, Thread VARCHAR, ThreadId INTEGER, Priority INTEGER, Text VARCHAR, DateTime DATE)"
+    }
+
+    void MicroService::SetSyslogLogs([[maybe_unused]] bool UseAsync,[[maybe_unused]]  bool DisableWebSocketLogging,[[maybe_unused]]  const std::string & FormatterPattern) {
+
+    }
+
+    void MicroService::SetFileLogs(bool UseAsync, bool DisableWebSocketLogging, const std::string & FormatterPattern) {
+        std::string DefaultLogPath = fmt::format("${}/logs",DAEMON_ROOT_ENV_VAR);
+        auto LoggingLocationDir = MicroService::instance().ConfigPath("logging.path", DefaultLogPath);
+        Poco::File      LD(LoggingLocationDir);
+        if(!LD.exists()) {
+            LD.createDirectory();
+        }
+        auto LoggingLocationDirFilePattern = LoggingLocationDir + "/logs";
+
+        Poco::AutoPtr<Poco::FileChannel> FileChannel(new Poco::FileChannel);
+        FileChannel->setProperty("rotation", "10 M");
+        FileChannel->setProperty("archive", "timestamp");
+        FileChannel->setProperty("purgeCount", "10");
+        FileChannel->setProperty("path", LoggingLocationDirFilePattern);
+
+        Poco::AutoPtr<Poco::PatternFormatter> Formatter(new Poco::PatternFormatter);
+        Formatter->setProperty("pattern", FormatterPattern);
+        Poco::AutoPtr<Poco::FormattingChannel> FormattingChannel(new Poco::FormattingChannel(Formatter, FileChannel));
+
+        if(DisableWebSocketLogging) {
+            if(UseAsync) {
+                Poco::AutoPtr<Poco::AsyncChannel> Async(new Poco::AsyncChannel(FormattingChannel));
+                Poco::Logger::root().setChannel(Async);
+            } else {
+                Poco::Logger::root().setChannel(FormattingChannel);
+            }
+        } else {
+            Poco::AutoPtr<WebSocketLogger>			WSLogger(new WebSocketLogger);
+            Poco::AutoPtr<Poco::SplitterChannel>	Splitter(new Poco::SplitterChannel);
+            Splitter->addChannel(WSLogger);
+            Splitter->addChannel(FormattingChannel);
+            if(UseAsync) {
+                Poco::AutoPtr<Poco::AsyncChannel> Async(new Poco::AsyncChannel(Splitter));
+                Poco::Logger::root().setChannel(Async);
+            } else {
+                Poco::Logger::root().setChannel(Splitter);
+            }
+        }
+    }
 
 	void DaemonPostInitialization(Poco::Util::Application &self);
 

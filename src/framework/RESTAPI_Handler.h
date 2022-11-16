@@ -550,6 +550,27 @@ namespace OpenWifi {
 			Poco::JSON::Stringifier::stringify(Object, Answer);
 		}
 
+		inline void ReturnRawJSON(const std::string &json_doc) {
+			PrepareResponse();
+			if(Request!= nullptr) {
+				//   can we compress ???
+				auto AcceptedEncoding = Request->find("Accept-Encoding");
+				if(AcceptedEncoding!=Request->end()) {
+					if( AcceptedEncoding->second.find("gzip")!=std::string::npos ||
+						AcceptedEncoding->second.find("compress")!=std::string::npos) {
+						Response->set("Content-Encoding", "gzip");
+						std::ostream &Answer = Response->send();
+						Poco::DeflatingOutputStream deflater(Answer, Poco::DeflatingStreamBuf::STREAM_GZIP);
+                        deflater << json_doc;
+						deflater.close();
+						return;
+					}
+				}
+			}
+			std::ostream &Answer = Response->send();
+            Answer << json_doc;
+		}
+
 		inline void ReturnCountOnly(uint64_t Count) {
 			Poco::JSON::Object  Answer;
 			Answer.set("count", Count);
