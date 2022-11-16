@@ -206,7 +206,7 @@ namespace OpenWifi {
 			} else if (LoggingDestination == "syslog") {
                 SetSyslogLogs(UseAsyncLogs_, DisableWebSocketLogging, LoggingFormat);
 			} else {
-                SetFileLogs(UseAsyncLogs_, DisableWebSocketLogging, LoggingFormat);
+                SetFileLogs(UseAsyncLogs_, DisableWebSocketLogging, LoggingFormat, DAEMON_ROOT_ENV_VAR);
             }
 
 			auto Level = Poco::Logger::parseLevel(MicroService::instance().ConfigGetString("logging.level", "debug"));
@@ -285,8 +285,8 @@ namespace OpenWifi {
 
     }
 
-    void MicroService::SetFileLogs(bool UseAsync, bool DisableWebSocketLogging, const std::string & FormatterPattern) {
-        std::string DefaultLogPath = fmt::format("${}/logs",DAEMON_ROOT_ENV_VAR);
+    void MicroService::SetFileLogs(bool UseAsync, bool DisableWebSocketLogging, const std::string & FormatterPattern, const std::string & root_env_var) {
+        std::string DefaultLogPath = fmt::format("${}/logs",root_env_var);
         auto LoggingLocationDir = MicroService::instance().ConfigPath("logging.path", DefaultLogPath);
         Poco::File      LD(LoggingLocationDir);
         try {
