@@ -219,7 +219,6 @@ namespace OpenWifi {
 		}
     }
 
-
     void MicroService::SetConsoleLogs(bool UseAsync, bool DisableWebSocketLogging, const std::string & FormatterPattern) {
 
         Poco::AutoPtr<Poco::ConsoleChannel> Console(new Poco::ConsoleChannel);
@@ -290,8 +289,12 @@ namespace OpenWifi {
         std::string DefaultLogPath = fmt::format("${}/logs",DAEMON_ROOT_ENV_VAR);
         auto LoggingLocationDir = MicroService::instance().ConfigPath("logging.path", DefaultLogPath);
         Poco::File      LD(LoggingLocationDir);
-        if(!LD.exists()) {
-            LD.createDirectory();
+        try {
+            if(!LD.exists()) {
+                LD.createDirectory();
+            }
+        } catch(const Poco::Exception &E) {
+            std::cout << "Cannot create " << LD.path() << "  Error: " << E.message() << std::endl;
         }
         auto LoggingLocationDirFilePattern = LoggingLocationDir + "/logs";
 
