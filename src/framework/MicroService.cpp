@@ -191,7 +191,7 @@ namespace OpenWifi {
 			auto LoggingDestination = MicroService::instance().ConfigGetString("logging.type", "file");
 			auto LoggingFormat = MicroService::instance().ConfigGetString("logging.format",
 																		  "%Y-%m-%d %H:%M:%S.%i %s: [%p][thr:%I] %t");
-			auto UseAsyncLogs_ = MicroService::instance().ConfigGetBool("logging.asynch",false);
+			auto UseAsyncLogs_ = MicroService::instance().ConfigGetBool("logging.asynch", true);
 			auto DisableWebSocketLogging = MicroService::instance().ConfigGetBool("logging.websocket",false);
 
 			if (LoggingDestination == "null") {
