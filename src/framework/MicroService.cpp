@@ -296,7 +296,7 @@ namespace OpenWifi {
         } catch(const Poco::Exception &E) {
             std::cout << "Cannot create " << LD.path() << "  Error: " << E.message() << std::endl;
         }
-        auto LoggingLocationDirFilePattern = LoggingLocationDir + "/logs";
+        auto LoggingLocationDirFilePattern = LoggingLocationDir + "/log";
 
         Poco::AutoPtr<Poco::FileChannel> FileChannel(new Poco::FileChannel);
         FileChannel->setProperty("rotation", "10 M");
