@@ -18,17 +18,20 @@ namespace OpenWifi {
 		explicit OpenAPIRequestGet( const std::string & Type,
 								   const std::string & EndPoint,
 								   const Types::StringPairVec & QueryData,
-								   uint64_t msTimeout):
+								   uint64_t msTimeout,
+                                   const std::string &LoggingStr=""):
 														 Type_(Type),
 														 EndPoint_(EndPoint),
 														 QueryData_(QueryData),
-														 msTimeout_(msTimeout) {};
+														 msTimeout_(msTimeout),
+                                                         LoggingStr_(LoggingStr){};
 		Poco::Net::HTTPServerResponse::HTTPStatus Do(Poco::JSON::Object::Ptr &ResponseObject, const std::string & BearerToken = "");
 	  private:
 		std::string 			Type_;
 		std::string 			EndPoint_;
 		Types::StringPairVec 	QueryData_;
 		uint64_t 				msTimeout_;
+        std::string             LoggingStr_;
 	};
 
 	class OpenAPIRequestPut {
@@ -37,12 +40,14 @@ namespace OpenWifi {
 								   const std::string & EndPoint,
 								   const Types::StringPairVec & QueryData,
 								   const Poco::JSON::Object & Body,
-								   uint64_t msTimeout):
+								   uint64_t msTimeout,
+                                   const std::string &LoggingStr=""):
 														 Type_(Type),
 														 EndPoint_(EndPoint),
 														 QueryData_(QueryData),
 														 msTimeout_(msTimeout),
-														 Body_(Body){};
+														 Body_(Body),
+                                                         LoggingStr_(LoggingStr){};
 
 		Poco::Net::HTTPServerResponse::HTTPStatus Do(Poco::JSON::Object::Ptr &ResponseObject, const std::string & BearerToken = "");
 
@@ -52,6 +57,7 @@ namespace OpenWifi {
 		Types::StringPairVec 	QueryData_;
 		uint64_t 				msTimeout_;
 		Poco::JSON::Object      Body_;
+        std::string             LoggingStr_;
 	};
 
 	class OpenAPIRequestPost {
@@ -60,12 +66,14 @@ namespace OpenWifi {
 									const std::string & EndPoint,
 									const Types::StringPairVec & QueryData,
 									const Poco::JSON::Object & Body,
-									uint64_t msTimeout):
+									uint64_t msTimeout,
+                                   const std::string &LoggingStr=""):
 														  Type_(Type),
 														  EndPoint_(EndPoint),
 														  QueryData_(QueryData),
 														  msTimeout_(msTimeout),
-														  Body_(Body){};
+														  Body_(Body),
+                                                         LoggingStr_(LoggingStr){};
 		Poco::Net::HTTPServerResponse::HTTPStatus Do(Poco::JSON::Object::Ptr &ResponseObject, const std::string & BearerToken = "");
 	  private:
 		std::string 			Type_;
@@ -73,18 +81,21 @@ namespace OpenWifi {
 		Types::StringPairVec 	QueryData_;
 		uint64_t 				msTimeout_;
 		Poco::JSON::Object      Body_;
+        std::string             LoggingStr_;
 	};
 
 	class OpenAPIRequestDelete {
 	  public:
-		explicit OpenAPIRequestDelete( const std::string & Type,
-									  const std::string & EndPoint,
-									  const Types::StringPairVec & QueryData,
-									  uint64_t msTimeout):
-															Type_(Type),
-															EndPoint_(EndPoint),
-															QueryData_(QueryData),
-															msTimeout_(msTimeout){};
+		explicit OpenAPIRequestDelete(  const std::string & Type,
+									    const std::string & EndPoint,
+									    const Types::StringPairVec & QueryData,
+									    uint64_t msTimeout,
+                                        const std::string &LoggingStr=""):
+                                            Type_(Type),
+                                            EndPoint_(EndPoint),
+                                            QueryData_(QueryData),
+                                            msTimeout_(msTimeout),
+                                            LoggingStr_(LoggingStr){};
 		Poco::Net::HTTPServerResponse::HTTPStatus Do(const std::string & BearerToken = "");
 
 	  private:
@@ -93,6 +104,7 @@ namespace OpenWifi {
 		Types::StringPairVec 	QueryData_;
 		uint64_t 				msTimeout_;
 		Poco::JSON::Object      Body_;
+        std::string             LoggingStr_;
 	};
 
 } // namespace OpenWifi
