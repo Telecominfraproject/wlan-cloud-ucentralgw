@@ -323,8 +323,6 @@ namespace OpenWifi {
 										TransactionId_, Requester(), SerialNumber_,
 										Poco::Thread::current()->id()));
 
-		std::vector<GWObjects::HealthCheck> Checks;
-
 		if (QB_.LastOnly) {
 			GWObjects::HealthCheck	HC;
 			if (AP_WS_Server()->GetHealthcheck(SerialNumber_, HC)) {
@@ -335,6 +333,7 @@ namespace OpenWifi {
 				return NotFound();
 			}
 		} else {
+			std::vector<GWObjects::HealthCheck> Checks;
 			if (QB_.Newest) {
 				StorageService()->GetNewestHealthCheckData(SerialNumber_, QB_.Limit, Checks);
 			} else {

@@ -25,7 +25,7 @@ namespace OpenWifi {
 
 	void UI_WebSocketClientServer::NewClient(Poco::Net::WebSocket & WS, const std::string &Id, const std::string &UserName ) {
 
-        std::lock_guard G(Mutex_);
+        std::lock_guard G(LocalMutex_);
         auto Client = std::make_unique<UI_WebSocketClientInfo>(WS,Id, UserName);
         auto ClientSocket = Client->WS_->impl()->sockfd();
 

@@ -11,65 +11,64 @@
 
 namespace OpenWifi {
 
-void AP_WS_Connection::Process_healthcheck(Poco::JSON::Object::Ptr ParamsObj) {
-	if (!State_.Connected) {
-		poco_warning(Logger_, fmt::format(
-								   "INVALID-PROTOCOL({}): Device '{}' is not following protocol", CId_, CN_));
-		Errors_++;
-		return;
-	}
-	if (ParamsObj->has(uCentralProtocol::UUID) && ParamsObj->has(uCentralProtocol::SANITY) &&
-		ParamsObj->has(uCentralProtocol::DATA)) {
-		uint64_t UUID = ParamsObj->get(uCentralProtocol::UUID);
-		auto Sanity = ParamsObj->get(uCentralProtocol::SANITY);
-		auto CheckData = ParamsObj->get(uCentralProtocol::DATA).toString();
-		if (CheckData.empty())
-			CheckData = uCentralProtocol::EMPTY_JSON_DOC;
+	void AP_WS_Connection::Process_healthcheck(Poco::JSON::Object::Ptr ParamsObj) {
+		if (!State_.Connected) {
+			poco_warning(Logger_, fmt::format(
+									   "INVALID-PROTOCOL({}): Device '{}' is not following protocol", CId_, CN_));
+			Errors_++;
+			return;
+		}
+		if (ParamsObj->has(uCentralProtocol::UUID) && ParamsObj->has(uCentralProtocol::SANITY) &&
+			ParamsObj->has(uCentralProtocol::DATA)) {
+			uint64_t UUID = ParamsObj->get(uCentralProtocol::UUID);
+			auto Sanity = ParamsObj->get(uCentralProtocol::SANITY);
+			auto CheckData = ParamsObj->get(uCentralProtocol::DATA).toString();
+			if (CheckData.empty())
+				CheckData = uCentralProtocol::EMPTY_JSON_DOC;
 
-		std::string request_uuid;
-		if (ParamsObj->has(uCentralProtocol::REQUEST_UUID))
-			request_uuid = ParamsObj->get(uCentralProtocol::REQUEST_UUID).toString();
+			std::string request_uuid;
+			if (ParamsObj->has(uCentralProtocol::REQUEST_UUID))
+				request_uuid = ParamsObj->get(uCentralProtocol::REQUEST_UUID).toString();
 
-		if (request_uuid.empty()) {
-			poco_trace(Logger_,
-					   fmt::format("HEALTHCHECK({}): UUID={} Updating.", CId_, UUID));
+			if (request_uuid.empty()) {
+				poco_trace(Logger_,
+						   fmt::format("HEALTHCHECK({}): UUID={} Updating.", CId_, UUID));
+			} else {
+				poco_trace(Logger_,
+						   fmt::format("HEALTHCHECK({}): UUID={} Updating for CMD={}.", CId_,
+									   UUID, request_uuid));
+			}
+
+			uint64_t UpgradedUUID;
+			LookForUpgrade(UUID,UpgradedUUID);
+			State_.UUID = UpgradedUUID;
+
+			GWObjects::HealthCheck Check;
+
+			Check.SerialNumber = SerialNumber_;
+			Check.Recorded = Utils::Now();
+			Check.UUID = UUID;
+			Check.Data = CheckData;
+			Check.Sanity = Sanity;
+
+			StorageService()->AddHealthCheckData(Check);
+
+			if (!request_uuid.empty()) {
+				StorageService()->SetCommandResult(request_uuid, CheckData);
+			}
+
+			SetLastHealthCheck(Check);
+			if (KafkaManager()->Enabled()) {
+				Poco::JSON::Stringifier Stringify;
+				std::ostringstream OS;
+				ParamsObj->set("timestamp", Utils::Now());
+				Stringify.condense(ParamsObj, OS);
+				KafkaManager()->PostMessage(KafkaTopics::HEALTHCHECK, SerialNumber_, OS.str());
+			}
 		} else {
-			poco_trace(Logger_,
-					   fmt::format("HEALTHCHECK({}): UUID={} Updating for CMD={}.", CId_,
-								   UUID, request_uuid));
+			poco_warning(Logger_, fmt::format("HEALTHCHECK({}): Missing parameter", CId_));
+			return;
 		}
-
-		uint64_t UpgradedUUID;
-		LookForUpgrade(UUID,UpgradedUUID);
-		State_.UUID = UpgradedUUID;
-
-		GWObjects::HealthCheck Check;
-
-		Check.SerialNumber = SerialNumber_;
-		Check.Recorded = Utils::Now();
-		Check.UUID = UUID;
-		Check.Data = CheckData;
-		Check.Sanity = Sanity;
-
-		StorageService()->AddHealthCheckData(Check);
-
-		if (!request_uuid.empty()) {
-			StorageService()->SetCommandResult(request_uuid, CheckData);
-		}
-
-		SetLastHealthCheck(Check);
-		if (KafkaManager()->Enabled()) {
-			Poco::JSON::Stringifier Stringify;
-			std::ostringstream OS;
-			ParamsObj->set("timestamp", Utils::Now());
-			Stringify.condense(ParamsObj, OS);
-			KafkaManager()->PostMessage(KafkaTopics::HEALTHCHECK, SerialNumber_, OS.str());
-		}
-	} else {
-		poco_warning(Logger_, fmt::format("HEALTHCHECK({}): Missing parameter", CId_));
-		return;
 	}
-}
-
 
 }
