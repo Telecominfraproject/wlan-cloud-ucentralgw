@@ -82,13 +82,13 @@ namespace OpenWifi::RESTAPI_RPC {
 		if (rpc_result == std::future_status::ready) {
 			std::chrono::duration<double, std::milli> rpc_execution_time = std::chrono::high_resolution_clock::now() - rpc_submitted;
 			auto rpc_answer = rpc_future.get();
-			if (!rpc_answer.has(uCentralProtocol::RESULT) || !rpc_answer.isObject(uCentralProtocol::RESULT)) {
+			if (!rpc_answer->has(uCentralProtocol::RESULT) || !rpc_answer->isObject(uCentralProtocol::RESULT)) {
 				SetCommandStatus(Cmd, Request, Response, Handler, Storage::CommandExecutionType::COMMAND_FAILED, Logger);
 				Logger.information(fmt::format("{},{}: Invalid response. Missing result.", Cmd.UUID, RPCID));
 				return;
 			}
 
-			auto ResultFields = rpc_answer.get(uCentralProtocol::RESULT).extract<Poco::JSON::Object::Ptr>();
+			auto ResultFields = rpc_answer->get(uCentralProtocol::RESULT).extract<Poco::JSON::Object::Ptr>();
 			if (!ResultFields->has(uCentralProtocol::STATUS) || !ResultFields->isObject(uCentralProtocol::STATUS)) {
 				Cmd.executionTime = rpc_execution_time.count();
 				if(Cmd.Command=="ping") {
@@ -107,20 +107,20 @@ namespace OpenWifi::RESTAPI_RPC {
 			if (StatusInnerObj->has(uCentralProtocol::TEXT))
 				Cmd.ErrorText = StatusInnerObj->get(uCentralProtocol::TEXT).toString();
 			std::stringstream ResultText;
-			if(rpc_answer.has(uCentralProtocol::RESULT)) {
+			if(rpc_answer->has(uCentralProtocol::RESULT)) {
 				if(Cmd.Command==uCentralProtocol::WIFISCAN) {
-					auto ScanObj = rpc_answer.get(uCentralProtocol::RESULT).extract<Poco::JSON::Object::Ptr>();
+					auto ScanObj = rpc_answer->get(uCentralProtocol::RESULT).extract<Poco::JSON::Object::Ptr>();
 					ParseWifiScan(ScanObj, ResultText, Logger);
 				} else {
 					Poco::JSON::Stringifier::stringify(
-						rpc_answer.get(uCentralProtocol::RESULT), ResultText);
+						rpc_answer->get(uCentralProtocol::RESULT), ResultText);
 				}
-			} if (rpc_answer.has(uCentralProtocol::RESULT_64)) {
+			} if (rpc_answer->has(uCentralProtocol::RESULT_64)) {
 				uint64_t sz=0;
-				if(rpc_answer.has(uCentralProtocol::RESULT_SZ))
-					sz=rpc_answer.get(uCentralProtocol::RESULT_SZ);
+				if(rpc_answer->has(uCentralProtocol::RESULT_SZ))
+					sz=rpc_answer->get(uCentralProtocol::RESULT_SZ);
 				std::string UnCompressedData;
-				Utils::ExtractBase64CompressedData(rpc_answer.get(uCentralProtocol::RESULT_64).toString(),
+				Utils::ExtractBase64CompressedData(rpc_answer->get(uCentralProtocol::RESULT_64).toString(),
 												   UnCompressedData,sz);
 				Poco::JSON::Stringifier::stringify(UnCompressedData, ResultText);
 			}

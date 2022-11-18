@@ -32,21 +32,21 @@ namespace OpenWifi {
 	class RPCResponseNotification: public Poco::Notification {
 	  public:
 		RPCResponseNotification(const std::string &ser,
-								const Poco::JSON::Object &pl) :
+								Poco::JSON::Object::Ptr pl) :
  			SerialNumber_(ser),
 			Payload_(pl)
 		{
 
 		}
-		std::string			SerialNumber_;
-		Poco::JSON::Object	Payload_;
+		std::string					SerialNumber_;
+		Poco::JSON::Object::Ptr		Payload_;
 	};
 
 
 	class CommandManager : public SubSystemServer, Poco::Runnable {
 	    public:
-		  	typedef Poco::JSON::Object 		objtype_t;
-		  	typedef std::promise<objtype_t> promise_type_t;
+		  	using objtype_t = Poco::JSON::Object::Ptr;
+		  	using promise_type_t = std::promise<objtype_t>;
 
 			struct CommandInfo {
 				std::uint64_t 	Id=0;
@@ -58,10 +58,10 @@ namespace OpenWifi {
 			};
 
 			struct RPCResponse {
-				std::string 			serialNumber;
-				Poco::JSON::Object		payload;
+				std::string 				serialNumber;
+				Poco::JSON::Object::Ptr		payload;
 
-				explicit RPCResponse(const std::string &ser, const Poco::JSON::Object &pl)
+				explicit RPCResponse(const std::string &ser, const Poco::JSON::Object::Ptr pl)
 					:
 						serialNumber(ser),
 						payload(pl) {
@@ -71,7 +71,7 @@ namespace OpenWifi {
 			int Start() override;
 			void Stop() override;
 			void WakeUp();
-			inline void PostCommandResult(const std::string &SerialNumber, const Poco::JSON::Object &Obj) {
+			inline void PostCommandResult(const std::string &SerialNumber, Poco::JSON::Object::Ptr Obj) {
 				// RPCResponseQueue_->Write(RPCResponse{.serialNumber=SerialNumber, .payload = Obj});
 				ResponseQueue_.enqueueNotification(new RPCResponseNotification(SerialNumber,Obj));
 			}

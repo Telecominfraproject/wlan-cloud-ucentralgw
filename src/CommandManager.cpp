@@ -31,16 +31,16 @@ namespace OpenWifi {
 
 			try {
 				if (Resp != nullptr) {
-					const Poco::JSON::Object &Payload = Resp->Payload_;
-					const std::string &SerialNumber = Resp->SerialNumber_;
+					Poco::JSON::Object::Ptr Payload = Resp->Payload_;
+					std::string SerialNumber = Resp->SerialNumber_;
 
 					std::ostringstream SS;
-					Payload.stringify(SS);
+					Payload->stringify(SS);
 
-					if (!Payload.has(uCentralProtocol::ID)) {
+					if (!Payload->has(uCentralProtocol::ID)) {
 						poco_error(Logger(), fmt::format("({}): Invalid RPC response.", SerialNumber));
 					} else {
-						uint64_t ID = Payload.get(uCentralProtocol::ID);
+						uint64_t ID = Payload->get(uCentralProtocol::ID);
 						poco_debug(Logger(),fmt::format("({}): Processing {} response.", SerialNumber, ID));
 						if (ID > 1) {
 							std::lock_guard	Lock(LocalMutex_);

@@ -570,7 +570,7 @@ namespace OpenWifi {
 			}
 
 			std::string FWSignature = GetParameter("FWsignature","");
-			if(DeviceInfo.restrictedDevice && FWSignature.empty() && R.sysupgrade_not_allowed()) {
+			if(FWSignature.empty() && R.sysupgrade_not_allowed()) {
 				return BadRequest(RESTAPI::Errors::DeviceRequiresSignature);
 			}
 

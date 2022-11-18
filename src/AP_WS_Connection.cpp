@@ -326,7 +326,7 @@ namespace OpenWifi {
 
 	void AP_WS_Connection::ProcessJSONRPCResult(Poco::JSON::Object::Ptr Doc) {
 		poco_debug(Logger_,fmt::format("RECEIVED-RPC({}): {}.", CId_, Doc->get(uCentralProtocol::ID).toString()));
-		CommandManager()->PostCommandResult(SerialNumber_, *Doc);
+		CommandManager()->PostCommandResult(SerialNumber_, Doc);
 	}
 
 	void AP_WS_Connection::ProcessJSONRPCEvent(Poco::JSON::Object::Ptr &Doc) {

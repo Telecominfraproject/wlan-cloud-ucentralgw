@@ -508,7 +508,7 @@ typedef Poco::Tuple<
 		return false;
 	}
 
-	bool Storage::CommandCompleted(std::string &UUID, const Poco::JSON::Object & ReturnVars,
+	bool Storage::CommandCompleted(std::string &UUID, Poco::JSON::Object::Ptr ReturnVars,
 								   const std::chrono::duration<double, std::milli> & execution_time,
 								   bool FullCommand) {
 		try {
@@ -519,8 +519,8 @@ typedef Poco::Tuple<
 			uint64_t ErrorCode = 0;
 			std::string ErrorText, ResultStr;
 
-			if (ReturnVars.has("result")) {
-				auto ResultObj = ReturnVars.get("result");
+			if (ReturnVars->has("result")) {
+				auto ResultObj = ReturnVars->get("result");
 				auto ResultFields = ResultObj.extract<Poco::JSON::Object::Ptr>();
 				if (ResultFields->has("status")) {
 					auto StatusObj = ResultFields->get("status");
