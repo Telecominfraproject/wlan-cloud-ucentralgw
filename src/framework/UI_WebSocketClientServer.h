@@ -100,21 +100,22 @@ namespace OpenWifi {
 		bool IsFiltered(std::uint64_t id, const UI_WebSocketClientInfo &Client);
 
     private:
-		mutable std::atomic_bool Running_ = false;
+		volatile bool 								Running_ = false;
 		std::atomic_uint64_t 						UsersConnected_=0;
-		Poco::Thread 								Thr_;
 		Poco::Net::SocketReactor					Reactor_;
 		Poco::Thread								ReactorThread_;
+		Poco::Thread								CleanerThread_;
         std::recursive_mutex                        LocalMutex_;
-		bool GeoCodeEnabled_ = false;
-		std::string GoogleApiKey_;
-        ClientList    Clients_;
+		bool 										GeoCodeEnabled_ = false;
+		std::string 								GoogleApiKey_;
+        ClientList    								Clients_;
 		UI_WebSocketClientProcessor                 *Processor_ = nullptr;
 		NotificationTypeIdVec						NotificationTypes_;
 		Poco::JSON::Object							NotificationTypesJSON_;
+		std::vector<ClientList::iterator>			ToBeRemoved_;
 
 		UI_WebSocketClientServer() noexcept;
-        void EndConnection(std::lock_guard<std::recursive_mutex> &G, ClientList::iterator & Client);
+        void EndConnection(ClientList::iterator Client);
 
         void OnSocketReadable(const Poco::AutoPtr<Poco::Net::ReadableNotification> &pNf);
         void OnSocketShutdown(const Poco::AutoPtr<Poco::Net::ShutdownNotification> &pNf);

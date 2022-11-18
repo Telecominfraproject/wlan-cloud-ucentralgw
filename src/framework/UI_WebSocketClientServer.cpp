@@ -55,10 +55,28 @@ namespace OpenWifi {
 	{
 	}
 
-    void UI_WebSocketClientServer::EndConnection([[maybe_unused]]  std::lock_guard<std::recursive_mutex> &G, ClientList::iterator &Client) {
+	void UI_WebSocketClientServer::run() {
+		Running_ = true;
+		while(Running_) {
+			Poco::Thread::trySleep(2000);
+
+			if(!Running_)
+				break;
+
+			std::lock_guard		G(LocalMutex_);
+			for(const auto i:ToBeRemoved_) {
+				std::cout << "Erasing old WS UI connection..." << std::endl;
+				Clients_.erase(i);
+			}
+            ToBeRemoved_.clear();
+			UsersConnected_ = Clients_.size();
+		}
+
+	}
+
+    void UI_WebSocketClientServer::EndConnection(ClientList::iterator Client) {
         if(Client->second->SocketRegistered_) {
             Client->second->SocketRegistered_ = false;
-            (*Client->second->WS_).shutdown();
             Reactor_.removeEventHandler(*Client->second->WS_,
                                         Poco::NObserver<UI_WebSocketClientServer,
                                                 Poco::Net::ReadableNotification>(*this,&UI_WebSocketClientServer::OnSocketReadable));
@@ -69,20 +87,8 @@ namespace OpenWifi {
                                         Poco::NObserver<UI_WebSocketClientServer,
                                                 Poco::Net::ErrorNotification>(*this,&UI_WebSocketClientServer::OnSocketError));
         }
-        Clients_.erase(Client);
-		UsersConnected_ = Clients_.size();
+		ToBeRemoved_.push_back(Client);
     }
-
-	void UI_WebSocketClientServer::run() {
-		Running_ = true ;
-		Utils::SetThreadName("ws:uiclnt-svr");
-		while(Running_) {
-			Poco::Thread::trySleep(2000);
-
-			if(!Running_)
-				break;
-		}
-	};
 
 	int UI_WebSocketClientServer::Start() {
         poco_information(Logger(),"Starting...");
@@ -90,7 +96,8 @@ namespace OpenWifi {
 		GeoCodeEnabled_ = !GoogleApiKey_.empty();
 		ReactorThread_.start(Reactor_);
 		ReactorThread_.setName("ws:ui-reactor");
-		// Thr_.start(*this);
+		CleanerThread_.start(*this);
+		CleanerThread_.setName("ws:ui-cleaner");
 		return 0;
 	};
 
@@ -101,8 +108,8 @@ namespace OpenWifi {
 			Reactor_.stop();
 			ReactorThread_.join();
 			Running_ = false;
-			// Thr_.wakeUp();
-			// Thr_.join();
+			CleanerThread_.wakeUp();
+			CleanerThread_.join();
             poco_information(Logger(),"Stopped...");
 		}
 	};
@@ -173,10 +180,10 @@ namespace OpenWifi {
 
     void UI_WebSocketClientServer::OnSocketError([[maybe_unused]] const Poco::AutoPtr<Poco::Net::ErrorNotification> &pNf) {
         std::lock_guard     G(LocalMutex_);
-        auto Client = FindWSClient(G,pNf->socket().impl()->sockfd());
+        auto Client = Clients_.find(pNf->socket().impl()->sockfd());
         if(Client==end(Clients_))
             return;
-        EndConnection(G,Client);
+        EndConnection(Client);
 	}
 
 	void UI_WebSocketClientServer::OnSocketReadable([[maybe_unused]] const Poco::AutoPtr<Poco::Net::ReadableNotification> &pNf) {
@@ -187,7 +194,7 @@ namespace OpenWifi {
 
 		try {
 
-            Client = FindWSClient(G,pNf->socket().impl()->sockfd());
+            Client = Clients_.find(pNf->socket().impl()->sockfd());
             if( Client == end(Clients_))
                 return;
 
@@ -199,7 +206,7 @@ namespace OpenWifi {
 
 			if (n == 0) {
 				poco_debug(Logger(),fmt::format("CLOSE({}): {} UI Client is closing WS connection.", Client->second->Id_, Client->second->UserName_));
-				return EndConnection(G, Client);
+				return EndConnection(Client);
 			}
 
 			switch (Op) {
@@ -212,7 +219,7 @@ namespace OpenWifi {
 			} break;
 			case Poco::Net::WebSocket::FRAME_OP_CLOSE: {
 				poco_debug(Logger(),fmt::format("CLOSE({}): {} UI Client is closing WS connection.", Client->second->Id_, Client->second->UserName_));
-                return EndConnection(G, Client);
+                return EndConnection(Client);
 			} break;
 			case Poco::Net::WebSocket::FRAME_OP_TEXT: {
 				constexpr const char *DropMessagesCommand = "drop-notifications";
@@ -245,7 +252,7 @@ namespace OpenWifi {
 						std::ostringstream OS;
 						WelcomeMessage.stringify(OS);
 						Client->second->WS_->sendFrame(OS.str().c_str(), (int) OS.str().size());
-                        return EndConnection(G, Client);
+                        return EndConnection(Client);
 					}
 				} else {
                     Poco::JSON::Parser P;
@@ -274,7 +281,7 @@ namespace OpenWifi {
                     }
 
                     if(CloseConnection) {
-                        return EndConnection(G, Client);
+                        return EndConnection(Client);
                     }
 				}
 			} break;
@@ -282,18 +289,16 @@ namespace OpenWifi {
 			}
 			}
 		} catch (...) {
-            return EndConnection(G, Client);
+            return EndConnection(Client);
 		}
 	}
 
 	void UI_WebSocketClientServer::OnSocketShutdown([[maybe_unused]] const Poco::AutoPtr<Poco::Net::ShutdownNotification> &pNf) {
-        ClientList::iterator Client;
-        std::lock_guard     G(LocalMutex_);
         try {
-            Client = FindWSClient(G, pNf->socket().impl()->sockfd());
+			auto Client = Clients_.find(pNf->socket().impl()->sockfd());
             if (Client == end(Clients_))
                 return;
-            EndConnection(G, Client);
+            EndConnection(Client);
         } catch (...) {
 
         }
