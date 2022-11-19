@@ -161,7 +161,7 @@ namespace OpenWifi {
 	void AP_WS_Server::onGarbageCollecting([[maybe_unused]] Poco::Timer &timer) {
 		std::lock_guard			Lock(LocalMutex_);
 		if(Garbage_.size()>0) {
-			std::cout << "Removing " << Garbage_.size() << " old connections." << std::endl;
+//			std::cout << "Removing " << Garbage_.size() << " old connections." << std::endl;
 			Garbage_.clear();
 		}
 

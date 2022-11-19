@@ -65,7 +65,7 @@ namespace OpenWifi {
 
 			std::lock_guard		G(LocalMutex_);
 			for(const auto i:ToBeRemoved_) {
-				std::cout << "Erasing old WS UI connection..." << std::endl;
+				// std::cout << "Erasing old WS UI connection..." << std::endl;
 				Clients_.erase(i);
 			}
             ToBeRemoved_.clear();
