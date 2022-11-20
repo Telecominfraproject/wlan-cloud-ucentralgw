@@ -33,7 +33,7 @@ namespace OpenWifi {
 						State_.websocketPackets = TelemetryWebSocketPackets_;
 						TelemetryStream()->NotifyEndPoint(SerialNumberInt_, SS.str());
 					} else {
-						StopWebSocketTelemetry(CommandManager()->NextRPCId());
+						StopWebSocketTelemetry(CommandManager()->Next_RPC_ID());
 					}
 				}
 				if (TelemetryKafkaRefCount_) {
@@ -44,7 +44,7 @@ namespace OpenWifi {
 						KafkaManager()->PostMessage(KafkaTopics::DEVICE_TELEMETRY, SerialNumber_,
 													SS.str());
 					} else {
-						StopKafkaTelemetry(CommandManager()->NextRPCId());
+						StopKafkaTelemetry(CommandManager()->Next_RPC_ID());
 					}
 				}
 			} else {
@@ -53,7 +53,7 @@ namespace OpenWifi {
 		} else {
 			// if we are ignoring telemetry, then close it down on the device.
 			poco_debug(Logger_,fmt::format("TELEMETRY({}): Stopping runaway telemetry.",SerialNumber_));
-			StopTelemetry(CommandManager()->NextRPCId());
+			StopTelemetry(CommandManager()->Next_RPC_ID());
 		}
 	}
 }

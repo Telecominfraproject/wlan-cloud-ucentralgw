@@ -32,24 +32,23 @@ namespace OpenWifi {
 			try {
 				if (Resp != nullptr) {
 					Poco::JSON::Object::Ptr Payload = Resp->Payload_;
-					std::string SerialNumber = Resp->SerialNumber_;
+					std::string SerialNumberStr = Utils::IntToSerialNumber(Resp->SerialNumber_);
 
 					std::ostringstream SS;
 					Payload->stringify(SS);
 
 					if (!Payload->has(uCentralProtocol::ID)) {
-						poco_error(Logger(), fmt::format("({}): Invalid RPC response.", SerialNumber));
+						poco_error(Logger(), fmt::format("({}): Invalid RPC response.", SerialNumberStr));
 					} else {
 						uint64_t ID = Payload->get(uCentralProtocol::ID);
-						poco_debug(Logger(),fmt::format("({}): Processing {} response.", SerialNumber, ID));
+						poco_debug(Logger(),fmt::format("({}): Processing {} response.", SerialNumberStr, ID));
 						if (ID > 1) {
 							std::lock_guard	Lock(LocalMutex_);
 							auto RPC = OutStandingRequests_.find(ID);
 							if (RPC == OutStandingRequests_.end() ||
-								RPC->second.SerialNumber !=
-									Utils::SerialNumberToInt(Resp->SerialNumber_)) {
+								RPC->second.SerialNumber != Resp->SerialNumber_) {
 								poco_debug(Logger(),
-									fmt::format("({}): RPC {} completed.", SerialNumber, ID));
+									fmt::format("({}): RPC {} completed.", SerialNumberStr, ID));
 							} else {
 								std::chrono::duration<double, std::milli> rpc_execution_time =
 									std::chrono::high_resolution_clock::now() -
@@ -61,7 +60,7 @@ namespace OpenWifi {
 								}
 								poco_debug(Logger(),
 									fmt::format("({}): Received RPC answer {}. Command={}",
-												SerialNumber, ID, RPC->second.Command));
+													   SerialNumberStr, ID, RPC->second.Command));
 								OutStandingRequests_.erase(ID);
 							}
 						}
@@ -206,7 +205,7 @@ namespace OpenWifi {
 						poco_information(MyLogger, fmt::format("{}: Serial={} Command={} Preparing execution.",
 														 Cmd.UUID, Cmd.SerialNumber, Cmd.Command));
 						auto Params = P.parse(Cmd.Details).extract<Poco::JSON::Object::Ptr>();
-						auto Result = PostCommandDisk(NextRPCId(), Cmd.SerialNumber, Cmd.Command,
+						auto Result = PostCommandDisk(Next_RPC_ID(), Cmd.SerialNumber, Cmd.Command,
 													  *Params, Cmd.UUID, Sent);
 						if (Sent) {
 							StorageService()->SetCommandExecuted(Cmd.UUID);

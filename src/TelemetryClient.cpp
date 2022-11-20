@@ -80,7 +80,7 @@ namespace OpenWifi {
 	void TelemetryClient::SendTelemetryShutdown() {
 		poco_information(Logger(),fmt::format("TELEMETRY-SHUTDOWN({}): Closing.",CId_));
 		DeRegister();
-		AP_WS_Server()->StopWebSocketTelemetry(CommandManager()->NextRPCId(), SerialNumber_);
+		AP_WS_Server()->StopWebSocketTelemetry(CommandManager()->Next_RPC_ID(), SerialNumber_);
 		TelemetryStream()->DeRegisterClient(UUID_);
 	}
 

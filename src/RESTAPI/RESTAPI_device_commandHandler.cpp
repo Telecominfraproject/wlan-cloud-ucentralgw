@@ -70,7 +70,7 @@ namespace OpenWifi {
 				return BadRequest(RESTAPI::Errors::DeviceNotConnected);
 			}
 			auto UUID = MicroServiceCreateUUID();
-			auto RPC = CommandManager()->NextRPCId();
+			auto RPC = CommandManager()->Next_RPC_ID();
 			poco_debug(Logger_,fmt::format("Command rtty TID={} can proceed. Identified as {} and RPCID as {}. thr_id={}",
 											TransactionId_, UUID, RPC,
 											Poco::Thread::current()->id()));
@@ -162,7 +162,7 @@ namespace OpenWifi {
 					return BadRequest(RESTAPI::Errors::DeviceIsAlreadyBusy, Extra);
 				}
 				auto UUID = MicroServiceCreateUUID();
-				auto RPC = CommandManager()->NextRPCId();
+				auto RPC = CommandManager()->Next_RPC_ID();
 				poco_debug(Logger_,fmt::format("Command {} TID={} can proceed. Identified as {} and RPCID as {}. thr_id={}",
 												Command.Command, TransactionId_, UUID, RPC,
 												Poco::Thread::current()->id()));

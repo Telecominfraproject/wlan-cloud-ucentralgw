@@ -31,14 +31,14 @@ namespace OpenWifi {
 
 	class RPCResponseNotification: public Poco::Notification {
 	  public:
-		RPCResponseNotification(const std::string &ser,
+		RPCResponseNotification(std::uint64_t ser,
 								Poco::JSON::Object::Ptr pl) :
  			SerialNumber_(ser),
-			Payload_(pl)
+			Payload_(std::move(pl))
 		{
 
 		}
-		std::string					SerialNumber_;
+		std::uint64_t 				SerialNumber_;
 		Poco::JSON::Object::Ptr		Payload_;
 	};
 
@@ -58,13 +58,13 @@ namespace OpenWifi {
 			};
 
 			struct RPCResponse {
-				std::string 				serialNumber;
+				std::uint64_t 				serialNumber;
 				Poco::JSON::Object::Ptr		payload;
 
-				explicit RPCResponse(const std::string &ser, const Poco::JSON::Object::Ptr pl)
+				explicit RPCResponse(std::uint64_t ser, Poco::JSON::Object::Ptr pl)
 					:
 						serialNumber(ser),
-						payload(pl) {
+						payload(std::move(pl)) {
 				}
 			};
 
@@ -72,17 +72,16 @@ namespace OpenWifi {
 			void Stop() override;
 			void WakeUp();
 			inline void PostCommandResult(const std::string &SerialNumber, Poco::JSON::Object::Ptr Obj) {
-				// RPCResponseQueue_->Write(RPCResponse{.serialNumber=SerialNumber, .payload = Obj});
-				ResponseQueue_.enqueueNotification(new RPCResponseNotification(SerialNumber,Obj));
+				ResponseQueue_.enqueueNotification(new RPCResponseNotification(Utils::SerialNumberToInt(SerialNumber),std::move(Obj)));
 			}
 
-			std::shared_ptr<promise_type_t> PostCommandOneWayDisk(uint64_t RPCID,
+			std::shared_ptr<promise_type_t> PostCommandOneWayDisk(uint64_t RPC_ID,
 				const std::string &SerialNumber,
 				const std::string &Method,
 				const Poco::JSON::Object &Params,
 				const std::string &UUID,
 				bool & Sent) {
-					return 	PostCommand(RPCID, SerialNumber,
+					return 	PostCommand(RPC_ID, SerialNumber,
 									Method,
 									Params,
 									UUID,
@@ -90,13 +89,13 @@ namespace OpenWifi {
 			}
 
 			std::shared_ptr<promise_type_t> PostCommandDisk(
-				uint64_t RPCID,
+				uint64_t RPC_ID,
 				const std::string &SerialNumber,
 				const std::string &Method,
 				const Poco::JSON::Object &Params,
 				const std::string &UUID,
 				bool & Sent) {
-					return 	PostCommand(RPCID,
+					return 	PostCommand(RPC_ID,
 								   SerialNumber,
 								   Method,
 								   Params,
@@ -105,13 +104,13 @@ namespace OpenWifi {
 			}
 
 			std::shared_ptr<promise_type_t> PostCommand(
-				uint64_t RPCID,
+				uint64_t RPC_ID,
 				const std::string &SerialNumber,
 				const std::string &Method,
 				const Poco::JSON::Object &Params,
 				const std::string &UUID,
 				bool & Sent) {
-					return 	PostCommand(RPCID, SerialNumber,
+					return 	PostCommand(RPC_ID, SerialNumber,
 								   Method,
 								   Params,
 								   UUID,
@@ -120,13 +119,13 @@ namespace OpenWifi {
 			}
 
 			std::shared_ptr<promise_type_t> PostCommandOneWay(
-				uint64_t RPCID,
+				uint64_t RPC_ID,
 				const std::string &SerialNumber,
 				const std::string &Method,
 				const Poco::JSON::Object &Params,
 				const std::string &UUID,
 				bool & Sent) {
-					return 	PostCommand(RPCID,
+					return 	PostCommand(RPC_ID,
 								   SerialNumber,
 								   Method,
 								   Params,
@@ -147,8 +146,7 @@ namespace OpenWifi {
 			inline bool Running() const { return Running_; }
 			void onJanitorTimer(Poco::Timer & timer);
 			void onCommandRunnerTimer(Poco::Timer & timer);
-			void onRPCAnswer(bool& b);
-			inline uint64_t NextRPCId() { return ++Id_; }
+			inline uint64_t Next_RPC_ID() { return ++Id_; }
 
 			void RemovePendingCommand(std::uint64_t Id) {
 				std::unique_lock	Lock(LocalMutex_);
