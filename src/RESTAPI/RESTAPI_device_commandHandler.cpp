@@ -118,23 +118,21 @@ namespace OpenWifi {
 		std::chrono::milliseconds 		Timeout=120ms;
 	};
 
-	/*
-	const static std::vector<PostDeviceCommand>	PostCommands
+	const std::vector<PostDeviceCommand>	PostCommands =
 		{
-			{ RESTAPI::Protocol::CONFIGURE, false, false, &RESTAPI_device_commandHandler::Configure },
-			{ RESTAPI::Protocol::UPGRADE, false, false, &RESTAPI_device_commandHandler::Upgrade },
-			{ RESTAPI::Protocol::REBOOT, false, true, &RESTAPI_device_commandHandler::Reboot },
-			{ RESTAPI::Protocol::FACTORY, false, false, &RESTAPI_device_commandHandler::Factory },
-			{ RESTAPI::Protocol::LEDS, false, true, &RESTAPI_device_commandHandler::LEDs },
-			{ RESTAPI::Protocol::TRACE, false, true, &RESTAPI_device_commandHandler::Trace },
-			{ RESTAPI::Protocol::REQUEST, false, true, &RESTAPI_device_commandHandler::MakeRequest },
-			{ RESTAPI::Protocol::WIFISCAN, false, true, &RESTAPI_device_commandHandler::WifiScan },
-			{ RESTAPI::Protocol::EVENTQUEUE, false, true, &RESTAPI_device_commandHandler::EventQueue },
-			{ RESTAPI::Protocol::TELEMETRY, false, true, &RESTAPI_device_commandHandler::Telemetry },
-			{ RESTAPI::Protocol::PING, false, true, &RESTAPI_device_commandHandler::Ping },
-			{ RESTAPI::Protocol::SCRIPT, false, true, &RESTAPI_device_commandHandler::Script }
-		};
-	*/
+			{ RESTAPI::Protocol::CONFIGURE, false, false, &RESTAPI_device_commandHandler::Configure, 120000ms },
+			{ RESTAPI::Protocol::UPGRADE, false, false, &RESTAPI_device_commandHandler::Upgrade, 30000ms },
+			{ RESTAPI::Protocol::REBOOT, false, true, &RESTAPI_device_commandHandler::Reboot, 30000ms },
+			{ RESTAPI::Protocol::FACTORY, false, false, &RESTAPI_device_commandHandler::Factory, 30000ms },
+			{ RESTAPI::Protocol::LEDS, false, true, &RESTAPI_device_commandHandler::LEDs, 120000ms },
+			{ RESTAPI::Protocol::TRACE, false, true, &RESTAPI_device_commandHandler::Trace, 300000ms },
+			{ RESTAPI::Protocol::REQUEST, false, true, &RESTAPI_device_commandHandler::MakeRequest, 120000ms },
+			{ RESTAPI::Protocol::WIFISCAN, false, true, &RESTAPI_device_commandHandler::WifiScan, 120000ms },
+			{ RESTAPI::Protocol::EVENTQUEUE, false, true, &RESTAPI_device_commandHandler::EventQueue, 30000ms },
+			{ RESTAPI::Protocol::TELEMETRY, false, true, &RESTAPI_device_commandHandler::Telemetry, 30000ms },
+			{ RESTAPI::Protocol::PING, false, true, &RESTAPI_device_commandHandler::Ping, 60000ms },
+			{ RESTAPI::Protocol::SCRIPT, false, true, &RESTAPI_device_commandHandler::Script, 300000ms }
+	};
 
 	void RESTAPI_device_commandHandler::DoPost() {
 		if(!ValidateParameters()) {
@@ -148,22 +146,6 @@ namespace OpenWifi {
 		if(!StorageService()->GetDevice(SerialNumber_,TheDevice)) {
 			return NotFound();
 		}
-
-		const std::vector<PostDeviceCommand>	PostCommands =
-			{
-				{ RESTAPI::Protocol::CONFIGURE, false, false, &RESTAPI_device_commandHandler::Configure, 120000ms },
-				{ RESTAPI::Protocol::UPGRADE, false, false, &RESTAPI_device_commandHandler::Upgrade, 30000ms },
-				{ RESTAPI::Protocol::REBOOT, false, true, &RESTAPI_device_commandHandler::Reboot, 30000ms },
-				{ RESTAPI::Protocol::FACTORY, false, false, &RESTAPI_device_commandHandler::Factory, 30000ms },
-				{ RESTAPI::Protocol::LEDS, false, true, &RESTAPI_device_commandHandler::LEDs, 120000ms },
-				{ RESTAPI::Protocol::TRACE, false, true, &RESTAPI_device_commandHandler::Trace, 300000ms },
-				{ RESTAPI::Protocol::REQUEST, false, true, &RESTAPI_device_commandHandler::MakeRequest, 120000ms },
-				{ RESTAPI::Protocol::WIFISCAN, false, true, &RESTAPI_device_commandHandler::WifiScan, 120000ms },
-				{ RESTAPI::Protocol::EVENTQUEUE, false, true, &RESTAPI_device_commandHandler::EventQueue, 30000ms },
-				{ RESTAPI::Protocol::TELEMETRY, false, true, &RESTAPI_device_commandHandler::Telemetry, 30000ms },
-				{ RESTAPI::Protocol::PING, false, true, &RESTAPI_device_commandHandler::Ping, 60000ms },
-				{ RESTAPI::Protocol::SCRIPT, false, true, &RESTAPI_device_commandHandler::Script, 300000ms }
-			};
 
 		for(const auto &Command:PostCommands) {
 			if(Command_==Command.Command) {
