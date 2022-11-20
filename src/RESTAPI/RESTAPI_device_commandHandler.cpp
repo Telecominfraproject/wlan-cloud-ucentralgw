@@ -215,9 +215,11 @@ namespace OpenWifi {
 	}
 
 	void RESTAPI_device_commandHandler::GetStatistics() {
-		poco_information(Logger_,fmt::format("GET-STATISTICS: TID={} user={} serial={}. thr_id={}",
+		std::string StatsType = QB_.LastOnly ? "LastOnly" : ( QB_.Newest ? "Newest" :
+								( QB_.CountOnly ? "CountOnly" : "Timed"));
+		poco_information(Logger_,fmt::format("GET-STATISTICS: TID={} user={} serial={}. thr_id={}, TYPE={}",
 										TransactionId_, Requester(), SerialNumber_,
-										Poco::Thread::current()->id()));
+										Poco::Thread::current()->id(),StatsType));
 		if (QB_.LastOnly) {
 			std::string Stats;
 			if (AP_WS_Server()->GetStatistics(SerialNumber_, Stats) && !Stats.empty()) {
