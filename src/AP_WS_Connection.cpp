@@ -99,7 +99,7 @@ namespace OpenWifi {
 		if(!Valid_)
 			return false;
 
-		std::unique_lock	Lock(LocalMutex_);
+		std::lock_guard	Lock(ConnectionMutex_);
 		try {
 			auto SockImpl = dynamic_cast<Poco::Net::WebSocketImpl *>(WS_->impl());
 			auto SS = dynamic_cast<Poco::Net::SecureStreamSocketImpl*>(SockImpl->streamSocketImpl());

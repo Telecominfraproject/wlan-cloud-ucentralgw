@@ -31,12 +31,13 @@ namespace OpenWifi {
 
 			CommandManager()->ClearQueue(SerialNumberInt_);
 
-			std::unique_lock	    Lock(LocalMutex_);
+			AP_WS_Server()->SetSessionDetails(State_.sessionId,SerialNumberInt_);
+
+			std::lock_guard	    	Lock(ConnectionMutex_);
 			Config::Capabilities    Caps(Capabilities);
 
 			Compatible_ = Caps.Compatible();
 
-			AP_WS_Server()->SetSessionDetails(State_.sessionId,SerialNumberInt_);
 			State_.UUID = UUID;
 			State_.Firmware = Firmware;
 			State_.PendingUUID = 0;

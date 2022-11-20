@@ -106,16 +106,16 @@ namespace OpenWifi {
 		[[nodiscard]] inline bool Running() const { return Running_; }
 
 		inline void AddConnection(uint64_t session_id, std::shared_ptr<AP_WS_Connection> Connection ) {
-			std::lock_guard			Lock(LocalMutex_);
-			Sessions_[session_id] = std::make_pair(std::move(Connection),false);
+			std::lock_guard			Lock(WSServerMutex_);
+			Sessions_[session_id] = std::move(Connection);
 		}
 
 		inline std::shared_ptr<AP_WS_Connection> FindConnection(uint64_t session_id) const {
-			std::lock_guard			Lock(LocalMutex_);
+			std::lock_guard			Lock(WSServerMutex_);
 
 			auto Connection = Sessions_.find(session_id);
 			if(Connection!=end(Sessions_))
-				return Connection->second.first;
+				return Connection->second;
 			return nullptr;
 		}
 
@@ -172,7 +172,7 @@ namespace OpenWifi {
 		}
 
 	private:
-		mutable std::recursive_mutex								LocalMutex_;
+		mutable std::recursive_mutex								WSServerMutex_;
 		std::unique_ptr<Poco::Crypto::X509Certificate>				IssuerCert_;
 		std::list<std::unique_ptr<Poco::Net::HTTPServer>>			WebServers_;
 		Poco::Net::SocketReactor									Reactor_;
@@ -184,7 +184,8 @@ namespace OpenWifi {
 		bool 														SimulatorEnabled_=false;
 		std::unique_ptr<AP_WS_ReactorThreadPool>					Reactor_pool_;
 		std::atomic_bool 											Running_=false;
-		std::map<uint64_t,	std::pair<std::shared_ptr<AP_WS_Connection>,bool>>	Sessions_;
+		// std::map<uint64_t,	std::pair<std::shared_ptr<AP_WS_Connection>,bool>>	Sessions_;
+		std::map<std::uint64_t, std::shared_ptr<AP_WS_Connection>>	Sessions_;
 		std::map<uint64_t, std::pair<uint64_t,std::shared_ptr<AP_WS_Connection>>>	SerialNumbers_;
 		std::atomic_bool 											AllowSerialNumberMismatch_=true;
 		std::atomic_uint64_t 										MismatchDepth_=2;

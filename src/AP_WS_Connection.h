@@ -53,29 +53,34 @@ namespace OpenWifi {
 		bool StopWebSocketTelemetry(uint64_t RPCID);
 		bool StopKafkaTelemetry(uint64_t RPCID);
 
-		inline void GetLastStats(std::string &LastStats) {
-			std::shared_lock	G(LocalMutex_);
+		inline void GetLastStats(std::string &LastStats) const {
+			std::shared_lock	G(ConnectionMutex_);
 			LastStats = RawLastStats_;
 		}
 
 		inline void SetLastStats(const std::string &LastStats) {
-			std::unique_lock	G(LocalMutex_);
+			std::unique_lock	G(ConnectionMutex_);
 			RawLastStats_ = LastStats;
 		}
 
 		inline void SetLastHealthCheck(const GWObjects::HealthCheck &H) {
-			std::unique_lock	G(LocalMutex_);
+			std::unique_lock	G(ConnectionMutex_);
 			RawLastHealthcheck_ = H;
 		}
 
 		inline void GetLastHealthCheck(GWObjects::HealthCheck &H) {
-			std::shared_lock	G(LocalMutex_);
+			std::shared_lock	G(ConnectionMutex_);
 			H = RawLastHealthcheck_;
 		}
 
-		inline void GetState(GWObjects::ConnectionState &State) {
-			std::shared_lock	G(LocalMutex_);
+		inline void GetState(GWObjects::ConnectionState &State) const {
+			std::shared_lock	G(ConnectionMutex_);
 			State = State_;
+		}
+
+		inline void GetRestrictions(AP_Restrictions & R) const {
+			std::shared_lock	G(ConnectionMutex_);
+			R = Restrictions_;
 		}
 
 		void Process_connect(Poco::JSON::Object::Ptr ParamsObj, const std::string &Serial);
@@ -108,13 +113,15 @@ namespace OpenWifi {
 			return true;
 		}
 
-		friend class DeviceRegistry;
 		friend class AP_WS_Server;
 
-        const AP_Restrictions & Restrictions() { return Restrictions_; }
+        inline AP_Restrictions Restrictions() const {
+			std::shared_lock	G(ConnectionMutex_);
+			return Restrictions_;
+		}
 
 	  private:
-		std::shared_mutex	 				LocalMutex_;
+		mutable std::shared_mutex	 		ConnectionMutex_;
 		std::shared_mutex					TelemetryMutex_;
 		Poco::Logger                    	&Logger_;
 		Poco::Net::SocketReactor			&Reactor_;
