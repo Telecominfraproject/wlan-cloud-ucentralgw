@@ -57,7 +57,7 @@ namespace OpenWifi {
 		void Stop() override;
 		void run() override;
 		Poco::Net::SocketReactor & Reactor() { return Reactor_; }
-		void NewClient(Poco::Net::WebSocket &WS, const std::string &Id, const std::string &UserName);
+		void NewClient(Poco::Net::WebSocket &WS, const std::string &Id, const std::string &UserName, std::uint64_t TID);
 		void SetProcessor(UI_WebSocketClientProcessor *F);
 		[[nodiscard]] inline bool GeoCodeEnabled() const { return GeoCodeEnabled_; }
 		[[nodiscard]] inline std::string GoogleApiKey() const { return GoogleApiKey_; }
@@ -113,6 +113,7 @@ namespace OpenWifi {
 		NotificationTypeIdVec						NotificationTypes_;
 		Poco::JSON::Object							NotificationTypesJSON_;
 		std::vector<ClientList::iterator>			ToBeRemoved_;
+        std::uint64_t                               TID_=0;
 
 		UI_WebSocketClientServer() noexcept;
         void EndConnection(ClientList::iterator Client);

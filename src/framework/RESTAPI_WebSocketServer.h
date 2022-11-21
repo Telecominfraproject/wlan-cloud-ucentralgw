@@ -27,7 +27,7 @@ namespace OpenWifi {
 						{
 							Poco::Net::WebSocket WS(*Request, *Response);
 							auto Id = MicroServiceCreateUUID();
-							UI_WebSocketClientServer()->NewClient(WS,Id,UserInfo_.userinfo.email);
+							UI_WebSocketClientServer()->NewClient(WS,Id,UserInfo_.userinfo.email, TransactionId_);
 						}
 						catch (...) {
 							std::cout << "Cannot create websocket client..." << std::endl;

@@ -23,12 +23,12 @@
 
 namespace OpenWifi {
 
-	void UI_WebSocketClientServer::NewClient(Poco::Net::WebSocket & WS, const std::string &Id, const std::string &UserName ) {
+	void UI_WebSocketClientServer::NewClient(Poco::Net::WebSocket & WS, const std::string &Id, const std::string &UserName, std::uint64_t TID ) {
 
         std::lock_guard G(LocalMutex_);
         auto Client = std::make_unique<UI_WebSocketClientInfo>(WS,Id, UserName);
         auto ClientSocket = Client->WS_->impl()->sockfd();
-
+        TID_ = TID;
         Client->WS_->setNoDelay(true);
         Client->WS_->setKeepAlive(true);
         Client->WS_->setBlocking(false);
@@ -233,9 +233,9 @@ namespace OpenWifi {
 #endif
 					if (Tokens.size() == 2 &&
 #if defined(TIP_SECURITY_SERVICE)
-        			    AuthService()->IsAuthorized(Tokens[1], Client->second->UserInfo_, 0, Expired)) {
+        			    AuthService()->IsAuthorized(Tokens[1], Client->second->UserInfo_, TID_, Expired)) {
 #else
-                        AuthClient()->IsAuthorized(Tokens[1], Client->second->UserInfo_, 0, Expired, Contacted)) {
+                        AuthClient()->IsAuthorized(Tokens[1], Client->second->UserInfo_, TID_, Expired, Contacted)) {
 #endif
                         Client->second->Authenticated_ = true;
                         Client->second->UserName_ = Client->second->UserInfo_.userinfo.email;
