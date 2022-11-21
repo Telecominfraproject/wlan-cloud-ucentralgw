@@ -804,10 +804,10 @@ listscripts() {
 
 getscript() {
 	curl  ${FLAGS} -X GET "https://${OWGW}/api/v1/script/$1" \
-			-H "Content-Type: application/json" \
-			-H "Accept: application/json" \
-			-H "Authorization: Bearer ${token}" > ${result_file}
-		jq < ${result_file}
+		-H "Content-Type: application/json" \
+		-H "Accept: application/json" \
+		-H "Authorization: Bearer ${token}" > ${result_file}
+	jq < ${result_file}
 }
 
 check_response() {
