@@ -28,6 +28,7 @@
 #include "rttys/RTTYS_server.h"
 #include "framework/UI_WebSocketClientServer.h"
 #include "UI_GW_WebSocketNotifications.h"
+#include "ScriptManager.h"
 
 namespace OpenWifi {
 	class Daemon *Daemon::instance() {
@@ -50,6 +51,7 @@ namespace OpenWifi {
 										RTTYS_server(),
 								   		RADIUS_proxy_server(),
 								   		VenueBroadcaster(),
+								   		ScriptManager(),
 									   	AP_WS_Server()
 							   });
         return &instance;

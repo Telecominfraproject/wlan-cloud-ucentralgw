@@ -12,6 +12,7 @@
 #include "RESTObjects//RESTAPI_GWobjects.h"
 #include "Poco/Net/IPAddress.h"
 #include "CentralConfig.h"
+#include "storage/storage_scripts.h"
 
 namespace OpenWifi {
 
@@ -28,6 +29,8 @@ namespace OpenWifi {
 		  	COMMAND_EXPIRED,
 			COMMAND_EXECUTING
 		};
+
+		inline OpenWifi::ScriptDB & ScriptDB() { return *ScriptDB_; }
 
 		inline std::string to_string(const CommandExecutionType &C) {
 			switch(C) {
@@ -196,6 +199,8 @@ namespace OpenWifi {
 		void 	Stop() override;
 
 	  private:
+
+		std::unique_ptr<OpenWifi::ScriptDB>		ScriptDB_;
 
    };
 

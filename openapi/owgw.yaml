@@ -516,6 +516,8 @@ components:
             - bundle
         script:
           type: string
+        scriptId:
+          type: string
         when:
           type: integer
           format: int64
@@ -526,6 +528,44 @@ components:
           type: boolean
         uri:
           type: string
+
+    ScriptEntry:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+        uri:
+          type: string
+        content:
+          type: string
+        version:
+          type: string
+        type:
+          enum:
+            - shell
+            - bundle
+        created:
+          type: integer
+        modified:
+          type: integer
+        author:
+          type: string
+        restricted:
+          type: array
+          items:
+            type: string
+
+    ScriptEntryList:
+      type: object
+      properties:
+        scripts:
+          type: array
+          items:
+            $ref: '#/components/schemas/ScriptEntry'
 
     FactoryRequest:
       type: object
@@ -2473,6 +2513,148 @@ paths:
           $ref: '#/components/responses/Unauthorized'
         404:
           $ref: '#/components/responses/NotFound'
+
+  /scripts:
+    get:
+      tags:
+        - Scripting
+      summary: Returns a list scripts.
+      description: Get a list of scripts.
+      operationId: getScripts
+      parameters:
+        - in: query
+          description: Pagination start (starts at 0. If not specified, 0 is assumed)
+          name: offset
+          schema:
+            type: integer
+          required: false
+        - in: query
+          description: Maximum number of entries to return (if absent, no limit is assumed)
+          name: limit
+          schema:
+            type: integer
+          required: false
+        - in: query
+          description: Filter the results
+          name: filter
+          schema:
+            type: string
+          required: false
+      responses:
+        200:
+          description: List all scripts
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ScriptEntryList'
+        403:
+          $ref: '#/components/responses/Unauthorized'
+        404:
+          $ref: '#/components/responses/NotFound'
+
+  /script/{uuid}:
+    get:
+      tags:
+        - Scripting
+      summary: Returns a script entry.
+      description: Get a specific script entry.
+      operationId: getScript
+      parameters:
+        - in: path
+          description: The UUID of the script
+          name: uuid
+          schema:
+            type: string
+            format: uuid
+          required: true
+      responses:
+        200:
+          description: A script entry
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ScriptEntry'
+        403:
+          $ref: '#/components/responses/Unauthorized'
+        404:
+          $ref: '#/components/responses/NotFound'
+
+    post:
+      tags:
+        - Scripting
+      summary: Create a new script.
+      operationId: createScript
+      parameters:
+        - in: path
+          description: The UUID of the script. Must be set to 0 for creation
+          name: uuid
+          schema:
+            type: string
+            format: uuid
+          required: true
+      requestBody:
+        description: Complet script entry
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ScriptEntry'
+      responses:
+        200:
+          $ref: '#/components/schemas/ScriptEntry'
+        403:
+          $ref: '#/components/responses/Unauthorized'
+        404:
+          $ref: '#/components/responses/NotFound'
+
+    put:
+      tags:
+        - Scripting
+      summary: Modify a script.
+      operationId: modifyScript
+      parameters:
+        - in: path
+          description: The UUID of the script.
+          name: uuid
+          schema:
+            type: string
+            format: uuid
+          required: true
+      requestBody:
+        description: Complete script entry. You may only modify the name, description, version, uri, and content
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ScriptEntry'
+      responses:
+        200:
+          $ref: '#/components/schemas/ScriptEntry'
+        403:
+          $ref: '#/components/responses/Unauthorized'
+        404:
+          $ref: '#/components/responses/NotFound'
+
+    delete:
+      tags:
+        - Scripting
+      summary: Delete a script.
+      operationId: deleteScript
+      parameters:
+        - in: path
+          name: uuid
+          schema:
+            type: string
+            format: uuid
+          required: true
+      responses:
+        204:
+          $ref: '#/components/responses/Success'
+        403:
+          $ref: '#/components/responses/Unauthorized'
+        404:
+          $ref: '#/components/responses/NotFound'
+
+
+
 
   /blacklist:
     get:
