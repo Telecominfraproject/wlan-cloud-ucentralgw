@@ -20,7 +20,7 @@ namespace OpenWifi {
 													  Poco::Net::HTTPRequest::HTTP_DELETE,
 													  Poco::Net::HTTPRequest::HTTP_OPTIONS},
 							 Server, TransactionId, Internal){};
-		static auto PathName() { return std::list<std::string>{"/api/v1/scripts"}; };
+		static auto PathName() { return std::list<std::string>{"/api/v1/script/uuid"}; };
 	  private:
 		ScriptDB	& DB_{ StorageService()->ScriptDB() };
 		void DoGet() final;

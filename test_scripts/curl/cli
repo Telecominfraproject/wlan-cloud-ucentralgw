@@ -794,6 +794,22 @@ stats7count() {
     jq < ${result_file}
 }
 
+listscripts() {
+	curl  ${FLAGS} -X GET "https://${OWGW}/api/v1/scripts" \
+	  -H "Content-Type: application/json" \
+	  -H "Accept: application/json" \
+	  -H "Authorization: Bearer ${token}" > ${result_file}
+	jq < ${result_file}
+}
+
+getscript() {
+	curl  ${FLAGS} -X GET "https://${OWGW}/api/v1/script/$1" \
+			-H "Content-Type: application/json" \
+			-H "Accept: application/json" \
+			-H "Authorization: Bearer ${token}" > ${result_file}
+		jq < ${result_file}
+}
+
 check_response() {
 
     if [ -s "$1" ]; then
@@ -1065,6 +1081,8 @@ case "$1" in
 	"notifications") login; notifications "$2"; logout;;
 	"stats7") login; stats7 "$2"; logout;;
 	"stats7count") login; stats7count "$2"; logout;;
+	"listscripts") login; listscripts; logout;;
+	"getscript") login; getscript "$2"; logout;;
 	"testtoken") testtoken;;
   *) help ;;
 esac
