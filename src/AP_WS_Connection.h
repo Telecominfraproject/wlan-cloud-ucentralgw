@@ -44,7 +44,7 @@ namespace OpenWifi {
 		void OnSocketReadable(const Poco::AutoPtr<Poco::Net::ReadableNotification>& pNf);
 		void OnSocketShutdown(const Poco::AutoPtr<Poco::Net::ShutdownNotification>& pNf);
 		void OnSocketError(const Poco::AutoPtr<Poco::Net::ErrorNotification>& pNf);
-		bool LookForUpgrade(const uint64_t UUID, uint64_t & UpgradedUUID);
+		bool LookForUpgrade(uint64_t UUID, uint64_t & UpgradedUUID);
 		static bool ExtractBase64CompressedData(const std::string & CompressedData, std::string & UnCompressedData, uint64_t compress_sz);
 		void LogException(const Poco::Exception &E);
 		inline Poco::Logger & Logger() { return Logger_; }
@@ -147,7 +147,6 @@ namespace OpenWifi {
 		GWObjects::HealthCheck				RawLastHealthcheck_;
 		std::chrono::time_point<std::chrono::high_resolution_clock> ConnectionStart_ = std::chrono::high_resolution_clock::now();
 		std::chrono::duration<double, std::milli> ConnectionCompletionTime_{0.0};
-		bool 								Threaded_=false;
 		std::atomic_flag 					Dead_=false;
 		std::atomic_bool 					DeviceValidated_=false;
 		std::atomic_bool 					Valid_=false;

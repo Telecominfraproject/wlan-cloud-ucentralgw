@@ -71,27 +71,6 @@ namespace OpenWifi {
 		Valid_ = true;
 	}
 
-	class ThreadedCounter {
-	  public:
-		ThreadedCounter(bool T, std::atomic_uint64_t &C) :
-			C_(C),
-			Threaded_(T) {
-			if(Threaded_) {
-				C_++;
-			}
-		}
-
-		~ThreadedCounter() {
-			if(Threaded_ && C_>0) {
-				C_--;
-			}
-		}
-
-	  private:
-		std::atomic_uint64_t 	&C_;
-		bool 					Threaded_;
-	};
-
 	bool AP_WS_Connection::ValidatedDevice() {
 		if(DeviceValidated_)
 			return true;

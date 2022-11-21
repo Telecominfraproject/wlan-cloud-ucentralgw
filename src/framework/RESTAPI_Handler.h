@@ -392,7 +392,7 @@ namespace OpenWifi {
 			std::ostream &Answer = Response->send();
 			Poco::JSON::Stringifier::stringify(ErrorObject, Answer);
 			poco_debug(Logger_,fmt::format("RES-NOTFOUND: User='{}@{}' Method='{}' Path='{}",
-											UserInfo_.userinfo.email,
+                                            Requester(),
 											Utils::FormatIPv6(Request->clientAddress().toString()),
 											Request->getMethod(),
 											Request->getURI()));
