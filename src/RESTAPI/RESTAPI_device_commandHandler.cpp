@@ -485,8 +485,11 @@ namespace OpenWifi {
 		if(!SCR.signature.empty()) {
 			Params.set(uCentralProtocol::SIGNATURE, SCR.signature);
 		}
+
+		// convert script to base64 ...
+		auto EncodedScript = Utils::base64encode((const unsigned char *)SCR.script.c_str(),SCR.script.size());
 		Params.set(uCentralProtocol::TYPE, SCR.type);
-		Params.set(uCentralProtocol::SCRIPT, SCR.script);
+		Params.set(uCentralProtocol::SCRIPT, EncodedScript);
 		Params.set(uCentralProtocol::WHEN, SCR.when);
 
 		std::stringstream ParamStream;
