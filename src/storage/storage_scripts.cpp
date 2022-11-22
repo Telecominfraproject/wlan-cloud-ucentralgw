@@ -20,7 +20,9 @@ namespace OpenWifi {
 		ORM::Field{"created", ORM::FieldType::FT_BIGINT},
 		ORM::Field{"modified", ORM::FieldType::FT_BIGINT},
 		ORM::Field{"author", ORM::FieldType::FT_TEXT},
-		ORM::Field{"restricted", ORM::FieldType::FT_TEXT}
+		ORM::Field{"restricted", ORM::FieldType::FT_TEXT},
+		ORM::Field{"deferred", ORM::FieldType::FT_BOOLEAN},
+		ORM::Field{"timeout", ORM::FieldType::FT_BIGINT}
 	};
 
 	static ORM::IndexVec MakeIndices(const std::string & shortname) {
@@ -69,6 +71,8 @@ namespace OpenWifi {
 		SE.author = "blogic";
 		SE.modified = SE.created = Utils::Now();
 		SE.type = "bundle";
+		SE.deferred = true;
+		SE.timeout = 30;
 		SE.content = std::string{
 R"lit(
 bundle.wifi();
@@ -108,6 +112,8 @@ template<> void ORM::DB<OpenWifi::ScriptRecordTuple, OpenWifi::GWObjects::Script
 	Out.modified = In.get<8>();
 	Out.author = In.get<9>();
 	Out.restricted = OpenWifi::RESTAPI_utils::to_object_array(In.get<10>());
+	Out.deferred = In.get<11>();
+	Out.timeout = In.get<12>();
 }
 
 template<> void ORM::DB<OpenWifi::ScriptRecordTuple, OpenWifi::GWObjects::ScriptEntry>::Convert(const OpenWifi::GWObjects::ScriptEntry &In, OpenWifi::ScriptRecordTuple &Out) {
@@ -122,4 +128,6 @@ template<> void ORM::DB<OpenWifi::ScriptRecordTuple, OpenWifi::GWObjects::Script
 	Out.set<8>(In.modified);
 	Out.set<9>(In.author);
 	Out.set<10>(OpenWifi::RESTAPI_utils::to_string(In.restricted));
+	Out.set<11>(In.deferred);
+	Out.set<12>(In.timeout);
 }

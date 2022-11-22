@@ -558,6 +558,12 @@ components:
           type: array
           items:
             type: string
+        deferred:
+          type: boolean
+          default: false
+        timeout:
+          type: integer
+          default: 30
 
     ScriptEntryList:
       type: object

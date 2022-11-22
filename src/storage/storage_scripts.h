@@ -20,7 +20,9 @@ typedef Poco::Tuple<
 	uint64_t,       //  created = 0;
 	uint64_t,       //  modified = 0;
 	std::string,    //  author
-	std::string     //  restricted
+	std::string,     //  restricted
+	bool,			//	deferred
+	uint64_t		//	timeout
 	> ScriptRecordTuple;
 	typedef std::vector <ScriptRecordTuple> ScriptRecordTupleList;
 

@@ -437,6 +437,8 @@ namespace OpenWifi::GWObjects {
 		field_to_json(Obj,"modified", modified);
 		field_to_json(Obj,"author", author);
 		field_to_json(Obj,"restricted", restricted);
+		field_to_json(Obj,"deferred", deferred);
+		field_to_json(Obj,"timeout", timeout);
 	}
 
 	bool ScriptEntry::from_json(const Poco::JSON::Object::Ptr &Obj) {
@@ -452,6 +454,8 @@ namespace OpenWifi::GWObjects {
 			field_from_json(Obj,"modified", modified);
 			field_from_json(Obj,"author", author);
 			field_from_json(Obj,"restricted", restricted);
+			field_from_json(Obj,"deferred", deferred);
+			field_from_json(Obj,"timeout", timeout);
 			return true;
 		} catch (const Poco::Exception &E) {
 		}
