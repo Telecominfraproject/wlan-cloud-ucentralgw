@@ -99,6 +99,8 @@ namespace OpenWifi {
 		AssignIfPresent(ParsedBody_, "uri", Existing.uri);
 		AssignIfPresent(ParsedBody_, "content", Existing.content);
 		AssignIfPresent(ParsedBody_, "version", Existing.version);
+		AssignIfPresent(ParsedBody_,"deferred", Existing.deferred);
+		AssignIfPresent(ParsedBody_,"timeout", Existing.timeout);
 
 		Existing.modified = Utils::Now();
 
