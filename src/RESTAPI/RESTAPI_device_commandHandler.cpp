@@ -424,7 +424,7 @@ namespace OpenWifi {
 		}
 
 		if (SCR.serialNumber.empty() ||
-			SCR.script.empty() ||
+			( SCR.script.empty() && SCR.scriptId.empty() ) ||
 			!ValidateScriptType(SCR.type)) {
 			CallCanceled("SCRIPT", CMD_UUID, CMD_RPC,RESTAPI::Errors::MissingOrInvalidParameters);
 			return BadRequest(RESTAPI::Errors::MissingOrInvalidParameters);
@@ -442,6 +442,22 @@ namespace OpenWifi {
 
 		if(D.restrictedDevice && SCR.signature.empty()) {
 			return BadRequest(RESTAPI::Errors::DeviceRequiresSignature);
+		}
+
+		if(!SCR.scriptId.empty()) {
+			GWObjects::ScriptEntry	Existing;
+			if(!StorageService()->ScriptDB().GetRecord("id",SCR.scriptId,Existing)) {
+				CallCanceled("SCRIPT", CMD_UUID, CMD_RPC,RESTAPI::Errors::MissingOrInvalidParameters);
+				return BadRequest(RESTAPI::Errors::MissingOrInvalidParameters);
+			}
+			poco_information(Logger_,fmt::format("SCRIPT({},{}): TID={} Name={}", CMD_UUID, CMD_RPC, TransactionId_, Existing.name));
+			SCR.script = Existing.content;
+			SCR.type = Existing.type;
+		} else {
+			if(!ValidateScriptType(SCR.type)) {
+				CallCanceled("SCRIPT", CMD_UUID, CMD_RPC,RESTAPI::Errors::MissingOrInvalidParameters);
+				return BadRequest(RESTAPI::Errors::MissingOrInvalidParameters);
+			}
 		}
 
 		uint64_t ap_timeout = SCR.timeout==0 ? 30 : SCR.timeout;

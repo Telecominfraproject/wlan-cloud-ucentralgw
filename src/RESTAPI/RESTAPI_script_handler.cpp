@@ -62,7 +62,6 @@ namespace OpenWifi {
 			SE.to_json(Answer);
 			return ReturnObject(Answer);
 		}
-
 		return BadRequest(RESTAPI::Errors::RecordNotCreated);
 	}
 
