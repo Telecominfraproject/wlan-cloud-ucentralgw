@@ -36,7 +36,7 @@ namespace OpenWifi::StateUtils {
 				Poco::JSON::Parser p2;
 				auto RadioObj = i.extract<Poco::JSON::Object::Ptr>();
 				if(RadioObj->has("band")) {
-					RadioPHYs[RadioObj->get("phy").toString()] = BandToInt(RadioObj->get("band").toString());
+					RadioPHYs[RadioObj->get("phy").toString()] = BandToInt(RadioObj->get("band"));
 				} else if(RadioObj->has("phy") && RadioObj->has("channel")) {
 					if(RadioObj->isArray("channel")) {
 						auto ChannelArray = RadioObj->getArray("channel");
