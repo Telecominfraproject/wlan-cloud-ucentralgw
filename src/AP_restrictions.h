@@ -6,28 +6,41 @@
 
 #include <string>
 #include <set>
+#include <map>
+#include <shared_mutex>
 
 #include "Poco/JSON/Object.h"
 #include "Poco/Logger.h"
+#include "Poco/Crypto/DigestEngine.h"
+#include "Poco/Crypto/RSADigestEngine.h"
+#include "Poco/SHA2Engine.h"
+#include "Poco/DigestStream.h"
+#include "Poco/DigestEngine.h"
 #include "fmt/format.h"
+
+#include "framework/SubSystemServer.h"
 
 /*
 {
-	“country”: [
-		“US”, “CA”
-	],
-	“dfs”: true,
-	“ssh”: true,
-	“rtty”: true,
-	“tty”: true,
-	“developer”: true,
-	“sysupgrade”: true,
-	“commands”: true
+		“country”: [
+				“US”, “CA”
+		],
+		“dfs”: true,
+		“rtty”: true,
+		“tty”: true,
+		“developer”: true,
+		“sysupgrade”: true,
+		“commands”: true,
+		“key_info”: {
+				“vendor”: “dummy”,
+				“algo”: “static”
+		}
 }
  */
 
 namespace OpenWifi {
-    class AP_Restrictions {
+
+	class AP_Restrictions {
     public:
         inline bool initialize(Poco::Logger & Logger, const std::string & serialNumber, const Poco::JSON::Object::Ptr &O) {
             try {
@@ -44,6 +57,10 @@ namespace OpenWifi {
                         countries_.insert(Poco::toLower(country.toString()));
                     }
                 }
+				const auto & key_info = O->getObject("key_info");
+				KeyAlgo_ = key_info->get("algo").extract<std::string>();
+				KeyVendor_ = key_info->get("vendor").extract<std::string>();
+
                 return true;
             } catch (...) {
                 poco_error(Logger,fmt::format("Cannot parse restrictions for device {}", serialNumber));
@@ -63,15 +80,20 @@ namespace OpenWifi {
                 return true;
             return countries_.find(Poco::toLower(c))!=countries_.end();
         }
+		[[nodiscard]] inline const auto & vendor() const { return KeyVendor_; }
+		[[nodiscard]] inline const auto & algo() const { return KeyAlgo_; }
 
     private:
         std::set<std::string>   countries_;
-        bool    dfs_ = false;
-        bool    ssh_ = false;
-        bool    rtty_ = false;
-        bool    tty_ = false;
-        bool    developer_ = false;
-        bool    sysupgrade_ = false;
-        bool    commands_ = false;
+        bool    		dfs_ = false;
+        bool    		ssh_ = false;
+        bool    		rtty_ = false;
+        bool    		tty_ = false;
+        bool    		developer_ = false;
+        bool    		sysupgrade_ = false;
+        bool    		commands_ = false;
+		std::string 	KeyVendor_;
+		std::string 	KeyAlgo_;
     };
+
 }

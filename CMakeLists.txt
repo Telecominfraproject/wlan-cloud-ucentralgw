@@ -199,7 +199,7 @@ add_executable( owgw
         src/AP_WS_Process_telemetry.cpp
         src/AP_WS_Process_venuebroadcast.cpp
         src/RADSEC_server.h
-        src/UI_GW_WebSocketNotifications.cpp src/UI_GW_WebSocketNotifications.h src/framework/RESTAPI_SystemConfiguration.h src/AP_restrictions.h src/ScriptManager.cpp src/ScriptManager.h src/RESTAPI/RESTAPI_scripts_handler.cpp src/RESTAPI/RESTAPI_scripts_handler.h src/RESTAPI/RESTAPI_script_handler.cpp src/RESTAPI/RESTAPI_script_handler.h src/storage/storage_scripts.cpp src/storage/storage_scripts.h)
+        src/UI_GW_WebSocketNotifications.cpp src/UI_GW_WebSocketNotifications.h src/framework/RESTAPI_SystemConfiguration.h src/AP_restrictions.h src/ScriptManager.cpp src/ScriptManager.h src/RESTAPI/RESTAPI_scripts_handler.cpp src/RESTAPI/RESTAPI_scripts_handler.h src/RESTAPI/RESTAPI_script_handler.cpp src/RESTAPI/RESTAPI_script_handler.h src/storage/storage_scripts.cpp src/storage/storage_scripts.h src/SignatureMgr.cpp src/SignatureMgr.h)
 
 if(NOT SMALL_BUILD)
 

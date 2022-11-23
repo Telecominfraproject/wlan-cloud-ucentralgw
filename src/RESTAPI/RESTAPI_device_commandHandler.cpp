@@ -21,6 +21,8 @@
 #include "TelemetryStream.h"
 #include "CommandManager.h"
 
+#include "SignatureMgr.h"
+
 #include "framework/ConfigurationValidator.h"
 #include "framework/KafkaTopics.h"
 #include "framework/ow_constants.h"
@@ -440,10 +442,6 @@ namespace OpenWifi {
 			return NotFound();
 		}
 
-		if(D.restrictedDevice && SCR.signature.empty()) {
-			return BadRequest(RESTAPI::Errors::DeviceRequiresSignature);
-		}
-
 		if(!SCR.scriptId.empty()) {
 			GWObjects::ScriptEntry	Existing;
 			if(!StorageService()->ScriptDB().GetRecord("id",SCR.scriptId,Existing)) {
@@ -484,6 +482,14 @@ namespace OpenWifi {
 
 		if(!SCR.signature.empty()) {
 			Params.set(uCentralProtocol::SIGNATURE, SCR.signature);
+		}
+
+		if(D.restrictedDevice && SCR.signature.empty()) {
+			SCR.signature = SignatureManager()->Sign(R, SCR.script);
+		}
+
+		if(D.restrictedDevice && SCR.signature.empty()) {
+			return BadRequest(RESTAPI::Errors::DeviceRequiresSignature);
 		}
 
 		// convert script to base64 ...
@@ -573,9 +579,6 @@ namespace OpenWifi {
 			}
 
 			std::string FWSignature = GetParameter("FWsignature","");
-			if(FWSignature.empty() && R.sysupgrade_not_allowed()) {
-				return BadRequest(RESTAPI::Errors::DeviceRequiresSignature);
-			}
 
 			auto URI = GetS(RESTAPI::Protocol::URI, Obj);
 			auto When = GetWhen(Obj);
@@ -595,6 +598,17 @@ namespace OpenWifi {
 			Params.set(uCentralProtocol::SERIAL, SerialNumber_);
 			Params.set(uCentralProtocol::URI, URI);
 			Params.set(uCentralProtocol::KEEP_REDIRECTOR, KeepRedirector ? 1 : 0);
+
+			if(!R.sysupgrade_not_allowed() && FWSignature.empty()) {
+				Poco::URI	uri(URI);
+				FWSignature = SignatureManager()->Sign(R,uri);
+			}
+
+			if(FWSignature.empty() && R.sysupgrade_not_allowed()) {
+				return BadRequest(RESTAPI::Errors::DeviceRequiresSignature);
+			}
+
+
 			if(!FWSignature.empty()) {
 				Params.set(uCentralProtocol::FWSIGNATURE, FWSignature);
 			}
