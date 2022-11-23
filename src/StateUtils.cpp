@@ -13,7 +13,6 @@ namespace OpenWifi::StateUtils {
 	}
 
 	static int BandToInt(const std::string &band) {
-		std::cout << "BAND: <" << band << ">" << std::endl;
 		if(band=="2G") return 2;
 		if(band=="5G") return 5;
 		if(band=="6G") return 6;
@@ -64,7 +63,6 @@ namespace OpenWifi::StateUtils {
 							int Radio = 2;
 							if(UseBandInfo) {
 								Radio = BandToInt(SSID_info->get("band"));
-								// std::cout << "Radio: " << Radio << std::endl;
 							} else {
 								auto PHY = SSID_info->get("phy");
 								auto Rit = RadioPHYs.find(PHY);
@@ -82,7 +80,7 @@ namespace OpenWifi::StateUtils {
 					}
 				}
 			}
-			std::cout << Radios_2G << " " << Radios_5G << " " << Radios_6G << std::endl;
+//			std::cout << Radios_2G << " " << Radios_5G << " " << Radios_6G << std::endl;
 			return true;
 		}
 		return false;
