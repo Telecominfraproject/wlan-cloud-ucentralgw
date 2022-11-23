@@ -13,6 +13,7 @@ namespace OpenWifi::StateUtils {
 	}
 
 	static int BandToInt(const std::string &band) {
+		std::cout << "BAND: <" << band << ">" << std::endl;
 		if(band=="2G") return 2;
 		if(band=="5G") return 5;
 		if(band=="6G") return 6;
