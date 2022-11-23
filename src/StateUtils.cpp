@@ -37,6 +37,7 @@ namespace OpenWifi::StateUtils {
 				Poco::JSON::Parser p2;
 				auto RadioObj = i.extract<Poco::JSON::Object::Ptr>();
 				if(RadioObj->has("band")) {
+					std::cout << "Use band info" << std::endl;
 					UseBandInfo = true ;
 				} else if(RadioObj->has("phy") && RadioObj->has("channel")) {
 					if(RadioObj->isArray("channel")) {
@@ -52,24 +53,25 @@ namespace OpenWifi::StateUtils {
 				}
 			}
 
-			auto IA = RawObject->getArray("interfaces");
-			for(auto const &i:*IA) {
-				auto InterfaceObj = i.extract<Poco::JSON::Object::Ptr>();
+			auto InterfaceArray = RawObject->getArray("interfaces");
+			for(auto const &interface:*InterfaceArray) {
+				auto InterfaceObj = interface.extract<Poco::JSON::Object::Ptr>();
 				if(InterfaceObj->isArray("ssids")) {
-					auto SSIDA = InterfaceObj->getArray("ssids");
-					for(const auto &s:*SSIDA) {
-						auto SSIDinfo = s.extract<Poco::JSON::Object::Ptr>();
-						if(SSIDinfo->isArray("associations") && SSIDinfo->has("phy")) {
+					auto SSIDArray = InterfaceObj->getArray("ssids");
+					for(const auto &ssid:*SSIDArray) {
+						auto SSID_info = ssid.extract<Poco::JSON::Object::Ptr>();
+						if(SSID_info->isArray("associations") && SSID_info->has("phy")) {
 							int Radio = 2;
 							if(UseBandInfo) {
-								Radio = BandToInt(SSIDinfo->get("band"));
+								Radio = BandToInt(SSID_info->get("band"));
+								std::cout << "Radio: " << Radio << std::endl;
 							} else {
-								auto PHY = SSIDinfo->get("phy");
+								auto PHY = SSID_info->get("phy");
 								auto Rit = RadioPHYs.find(PHY);
 								if (Rit != RadioPHYs.end())
 									Radio = Rit->second;
 							}
-							auto AssocA = SSIDinfo->getArray("associations");
+							auto AssocA = SSID_info->getArray("associations");
 							switch(Radio) {
 								case 2: Radios_2G += AssocA->size(); break;
 								case 5: Radios_5G += AssocA->size(); break;
