@@ -36,16 +36,16 @@ namespace OpenWifi::StateUtils {
 				Poco::JSON::Parser p2;
 				auto RadioObj = i.extract<Poco::JSON::Object::Ptr>();
 				if(RadioObj->has("band")) {
-					RadioPHYs[RadioObj->get("phy").toString()] = BandToInt(RadioObj->get("band"));
+					RadioPHYs[RadioObj->get("phy")] = BandToInt(RadioObj->get("band"));
 				} else if(RadioObj->has("phy") && RadioObj->has("channel")) {
 					if(RadioObj->isArray("channel")) {
 						auto ChannelArray = RadioObj->getArray("channel");
 						if(ChannelArray->size()) {
-							RadioPHYs[RadioObj->get("phy").toString()] =
+							RadioPHYs[RadioObj->get("phy")] =
 								ChannelToBand( ChannelArray->getElement<uint64_t>(0) );
 						}
 					} else {
-						RadioPHYs[RadioObj->get("phy").toString()] =
+						RadioPHYs[RadioObj->get("phy")] =
 							ChannelToBand(RadioObj->get("channel"));
 					}
 				}
@@ -59,7 +59,7 @@ namespace OpenWifi::StateUtils {
 					for(const auto &s:*SSIDA) {
 						auto SSIDinfo = s.extract<Poco::JSON::Object::Ptr>();
 						if(SSIDinfo->isArray("associations") && SSIDinfo->has("phy")) {
-							auto PHY = SSIDinfo->get("phy").toString();
+							auto PHY = SSIDinfo->get("phy");
 							int Radio = 2;
 							auto Rit = RadioPHYs.find(PHY);
 							if(Rit!=RadioPHYs.end())
