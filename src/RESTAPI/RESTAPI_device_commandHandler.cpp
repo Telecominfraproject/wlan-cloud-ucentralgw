@@ -426,8 +426,7 @@ namespace OpenWifi {
 		}
 
 		if (SCR.serialNumber.empty() ||
-			( SCR.script.empty() && SCR.scriptId.empty() ) ||
-			!ValidateScriptType(SCR.type)) {
+			( SCR.script.empty() && SCR.scriptId.empty() )) {
 			CallCanceled("SCRIPT", CMD_UUID, CMD_RPC,RESTAPI::Errors::MissingOrInvalidParameters);
 			return BadRequest(RESTAPI::Errors::MissingOrInvalidParameters);
 		}
@@ -451,6 +450,10 @@ namespace OpenWifi {
 			poco_information(Logger_,fmt::format("SCRIPT({},{}): TID={} Name={}", CMD_UUID, CMD_RPC, TransactionId_, Existing.name));
 			SCR.script = Existing.content;
 			SCR.type = Existing.type;
+			if(!ParsedBody_->has("deferred"))
+				SCR.deferred = Existing.deferred;
+			if(!ParsedBody_->has("timeout"))
+				SCR.timeout = Existing.timeout;
 		} else {
 			if(!ValidateScriptType(SCR.type)) {
 				CallCanceled("SCRIPT", CMD_UUID, CMD_RPC,RESTAPI::Errors::MissingOrInvalidParameters);

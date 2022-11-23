@@ -12,6 +12,13 @@ namespace OpenWifi::StateUtils {
 		return 5;
 	}
 
+	static int BandToInt(const std::string &band) {
+		if(band=="2G") return 2;
+		if(band=="5G") return 5;
+		if(band=="6G") return 6;
+		return 2;
+	}
+
 	bool ComputeAssociations(const Poco::JSON::Object::Ptr & RawObject,
 							 uint64_t &Radios_2G,
 							 uint64_t &Radios_5G, uint64_t &Radios_6G) {
@@ -27,7 +34,9 @@ namespace OpenWifi::StateUtils {
 			for(auto const &i:*RA) {
 				Poco::JSON::Parser p2;
 				auto RadioObj = i.extract<Poco::JSON::Object::Ptr>();
-				if(RadioObj->has("phy") && RadioObj->has("channel")) {
+				if(RadioObj->has("band")) {
+					RadioPHYs[RadioObj->get("phy").toString()] = BandToInt(RadioObj->get("band").toString());
+				} else if(RadioObj->has("phy") && RadioObj->has("channel")) {
 					if(RadioObj->isArray("channel")) {
 						auto ChannelArray = RadioObj->getArray("channel");
 						if(ChannelArray->size()) {
@@ -55,11 +64,11 @@ namespace OpenWifi::StateUtils {
 							if(Rit!=RadioPHYs.end())
 								Radio = Rit->second;
 							auto AssocA = SSIDinfo->getArray("associations");
-							if(Radio==2) {
-								Radios_2G += AssocA->size();
-							}
-							else {
-								Radios_5G += AssocA->size();
+							switch(Radio) {
+								case 2: Radios_2G += AssocA->size(); break;
+								case 5: Radios_5G += AssocA->size(); break;
+								case 6: Radios_6G += AssocA->size(); break;
+								default: Radios_2G += AssocA->size(); break;
 							}
 						}
 					}
