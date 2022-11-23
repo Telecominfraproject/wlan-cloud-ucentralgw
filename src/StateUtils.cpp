@@ -37,7 +37,7 @@ namespace OpenWifi::StateUtils {
 				Poco::JSON::Parser p2;
 				auto RadioObj = i.extract<Poco::JSON::Object::Ptr>();
 				if(RadioObj->has("band")) {
-					std::cout << "Use band info" << std::endl;
+					// std::cout << "Use band info" << std::endl;
 					UseBandInfo = true ;
 				} else if(RadioObj->has("phy") && RadioObj->has("channel")) {
 					if(RadioObj->isArray("channel")) {
@@ -64,7 +64,7 @@ namespace OpenWifi::StateUtils {
 							int Radio = 2;
 							if(UseBandInfo) {
 								Radio = BandToInt(SSID_info->get("band"));
-								std::cout << "Radio: " << Radio << std::endl;
+								// std::cout << "Radio: " << Radio << std::endl;
 							} else {
 								auto PHY = SSID_info->get("phy");
 								auto Rit = RadioPHYs.find(PHY);
@@ -82,6 +82,7 @@ namespace OpenWifi::StateUtils {
 					}
 				}
 			}
+			std::cout << Radios_2G << " " << Radios_5G << " " << Radios_6G << std::endl;
 			return true;
 		}
 		return false;
