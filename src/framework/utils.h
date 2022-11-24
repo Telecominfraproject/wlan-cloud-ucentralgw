@@ -118,6 +118,7 @@ namespace OpenWifi::Utils {
 	[[nodiscard]] bool wgetfile(const Poco::URI &uri, const std::string &FileName);
 	[[nodiscard]] bool IsAlphaNumeric(const std::string &s);
     [[nodiscard]] std::string SanitizeToken(const std::string &Token);
+	[[nodiscard]] bool ValidateURI(const std::string &uri);
 
 	template< typename T >
 	std::string int_to_hex( T i )

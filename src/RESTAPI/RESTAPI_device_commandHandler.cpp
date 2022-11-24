@@ -436,6 +436,10 @@ namespace OpenWifi {
 			return BadRequest(RESTAPI::Errors::SerialNumberMismatch);
 		}
 
+		if(!SCR.uri.empty() && !Utils::ValidateURI(SCR.uri)) {
+			return BadRequest(RESTAPI::Errors::InvalidURI);
+		}
+
 		GWObjects::Device	D;
 		if(!StorageService()->GetDevice(SerialNumber_,D)) {
 			return NotFound();

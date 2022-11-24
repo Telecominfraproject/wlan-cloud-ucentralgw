@@ -55,6 +55,14 @@ namespace OpenWifi {
 			return BadRequest(RESTAPI::Errors::MissingOrInvalidParameters);
 		}
 
+		if(!SE.uri.empty() && !Utils::ValidateURI(SE.uri)) {
+			return BadRequest(RESTAPI::Errors::InvalidURI);
+		}
+
+		if(!SE.defaultUploadURI.empty() && !Utils::ValidateURI(SE.defaultUploadURI)) {
+			return BadRequest(RESTAPI::Errors::InvalidURI);
+		}
+
 		SE.id = MicroServiceCreateUUID();
 		SE.created = SE.modified = Utils::Now();
 		if(DB_.CreateRecord(SE)) {
@@ -92,6 +100,14 @@ namespace OpenWifi {
 
 		if(ParsedBody_->has("version") && SE.version.empty()) {
 			return BadRequest(RESTAPI::Errors::MissingOrInvalidParameters);
+		}
+
+		if(!SE.uri.empty() && !Utils::ValidateURI(SE.uri)) {
+			return BadRequest(RESTAPI::Errors::InvalidURI);
+		}
+
+		if(!SE.defaultUploadURI.empty() && !Utils::ValidateURI(SE.defaultUploadURI)) {
+			return BadRequest(RESTAPI::Errors::InvalidURI);
 		}
 
 		AssignIfPresent(ParsedBody_, "name", Existing.name);

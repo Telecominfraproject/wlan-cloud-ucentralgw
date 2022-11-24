@@ -229,6 +229,7 @@ namespace OpenWifi::RESTAPI::Errors {
     static const struct msg ApiKeyDoesNotExist{1150,"API Key does not exist."};
 
 	static const struct msg DeviceIsRestricted{1151,"Device is protected by regulation. This function is not allowed."};
+	static const struct msg InvalidURI{1152,"Invalid URI."};
 }
 
 

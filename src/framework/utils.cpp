@@ -550,4 +550,14 @@ bool ExtractBase64CompressedData(const std::string &CompressedData,
         return "*******";
     }
 
+	[[nodiscard]] bool ValidateURI(const std::string &uri) {
+		try {
+			Poco::URI	u(uri);
+			return true;
+		} catch (...) {
+
+		}
+		return false;
+	}
+
 }
