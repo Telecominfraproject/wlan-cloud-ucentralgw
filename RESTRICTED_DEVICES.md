@@ -62,8 +62,8 @@ for the specified `vendor`. However, on the controlelr side, you must configure 
 order to do so we suggest the following.
 - Create a directory called `signatures` under your `certs` directory
 - Copy the public and private keys for each `vendor` name. We suggest naming them accordingly
-  - <vendor>-private-key.pem
-  - <vendor>-public-key.pem
+  - `vendor`-private-key.pem
+  - `vendor`-public-key.pem
 - In the `owgw.properties` file, you need to declare these signatures the following way
 ```properties
     signature.manager.0.key.public = $OWGW_ROOT/certs/signatures/test1-public-key.pem
