@@ -33,7 +33,7 @@ Restrictions are stored on the AP in a protected partition. They are contained i
 - tty
   - Do not allow the AP to accept `tty` connection
 - developer
-  - When set to true, the device is wide open while in test mode. Before going in the field, this should be reset to false. When set to false, all restrictions will be respected
+  - Internal use only.
 - sysupgrade
   - If set to `true`, only signed firmware upgrade command will be allowed.
 - commands
@@ -44,9 +44,9 @@ Restrictions are stored on the AP in a protected partition. They are contained i
       - An identified that must match the vendor name provided in the controller
     - algo
       - The signature algorithm. Here are the supported algorithms
-        - static
+        - `static`
           - A test algorithm that always returns and uses a value of `aaaaaaaaaa`. This should never be used in the field.
-        - dgst-sha256
+        - `dgst-sha256`
           - The default OpenSSL RSA signature generation and verification. The controller will use the following command to generate the signature
           ```sh
           openssl dgst -sha256 -sign private-key.pem -out signature.txt myfile
