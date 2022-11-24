@@ -55,6 +55,15 @@ namespace OpenWifi {
 			return BadRequest(RESTAPI::Errors::MissingOrInvalidParameters);
 		}
 
+		if(!SE.restricted.empty()) {
+			for(const auto &role:SE.restricted) {
+				if(SecurityObjects::UserTypeFromString(role)==SecurityObjects::UNKNOWN) {
+					return BadRequest(RESTAPI::Errors::InvalidUserRole);
+				}
+			}
+			std::sort(SE.restricted.begin(),SE.restricted.end());
+		}
+
 		if(!SE.uri.empty() && !Utils::ValidateURI(SE.uri)) {
 			return BadRequest(RESTAPI::Errors::InvalidURI);
 		}
@@ -85,6 +94,15 @@ namespace OpenWifi {
 			return BadRequest(RESTAPI::Errors::InvalidJSONDocument);
 		}
 
+		if(!SE.restricted.empty()) {
+			for(const auto &role:SE.restricted) {
+				if(SecurityObjects::UserTypeFromString(role)==SecurityObjects::UNKNOWN) {
+					return BadRequest(RESTAPI::Errors::InvalidUserRole);
+				}
+			}
+			std::sort(SE.restricted.begin(),SE.restricted.end());
+		}
+
 		GWObjects::ScriptEntry	Existing;
 		if(!DB_.GetRecord("id", UUID, Existing)) {
 			return NotFound();
@@ -108,6 +126,10 @@ namespace OpenWifi {
 
 		if(!SE.defaultUploadURI.empty() && !Utils::ValidateURI(SE.defaultUploadURI)) {
 			return BadRequest(RESTAPI::Errors::InvalidURI);
+		}
+
+		if(ParsedBody_->has("restricted")) {
+			Existing.restricted = SE.restricted;
 		}
 
 		AssignIfPresent(ParsedBody_, "name", Existing.name);

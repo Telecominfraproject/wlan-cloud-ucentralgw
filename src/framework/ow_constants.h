@@ -230,6 +230,7 @@ namespace OpenWifi::RESTAPI::Errors {
 
 	static const struct msg DeviceIsRestricted{1151,"Device is protected by regulation. This function is not allowed."};
 	static const struct msg InvalidURI{1152,"Invalid URI."};
+	static const struct msg InvalidScriptSelection{1153,"Only script or scriptId must be specified. Not both."};
 }
 
 

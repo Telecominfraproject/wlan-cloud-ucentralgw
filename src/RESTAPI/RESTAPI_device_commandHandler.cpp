@@ -413,10 +413,6 @@ namespace OpenWifi {
 
 	void RESTAPI_device_commandHandler::Script(const std::string &CMD_UUID, uint64_t CMD_RPC, std::chrono::milliseconds timeout, [[maybe_unused]] const AP_Restrictions &R) {
 		poco_information(Logger_,fmt::format("SCRIPT({},{}): TID={} user={} serial={}", CMD_UUID, CMD_RPC, TransactionId_, Requester(), SerialNumber_));
-		if(!Internal_ && UserInfo_.userinfo.userRole!=SecurityObjects::ROOT) {
-			CallCanceled("SCRIPT", CMD_UUID, CMD_RPC,RESTAPI::Errors::ACCESS_DENIED);
-			return UnAuthorized(RESTAPI::Errors::ACCESS_DENIED);
-		}
 
 		const auto &Obj = ParsedBody_;
 		GWObjects::ScriptRequest	SCR;
@@ -425,10 +421,19 @@ namespace OpenWifi {
 			return BadRequest(RESTAPI::Errors::InvalidJSONDocument);
 		}
 
-		if (SCR.serialNumber.empty() ||
-			( SCR.script.empty() && SCR.scriptId.empty() )) {
-			CallCanceled("SCRIPT", CMD_UUID, CMD_RPC,RESTAPI::Errors::MissingOrInvalidParameters);
-			return BadRequest(RESTAPI::Errors::MissingOrInvalidParameters);
+		if(!SCR.script.empty() && !SCR.scriptId.empty()) {
+			CallCanceled("SCRIPT", CMD_UUID, CMD_RPC,RESTAPI::Errors::InvalidScriptSelection);
+			return UnAuthorized(RESTAPI::Errors::InvalidScriptSelection);
+		}
+
+		if(!Internal_ && UserInfo_.userinfo.userRole!=SecurityObjects::ROOT && SCR.scriptId.empty()) {
+			CallCanceled("SCRIPT", CMD_UUID, CMD_RPC,RESTAPI::Errors::ACCESS_DENIED);
+			return UnAuthorized(RESTAPI::Errors::ACCESS_DENIED);
+		}
+
+		if (SCR.script.empty() && SCR.scriptId.empty() ) {
+			CallCanceled("SCRIPT", CMD_UUID, CMD_RPC,RESTAPI::Errors::InvalidScriptSelection);
+			return BadRequest(RESTAPI::Errors::InvalidScriptSelection);
 		}
 
 		if (SerialNumber_ != SCR.serialNumber) {
@@ -450,6 +455,21 @@ namespace OpenWifi {
 			if(!StorageService()->ScriptDB().GetRecord("id",SCR.scriptId,Existing)) {
 				CallCanceled("SCRIPT", CMD_UUID, CMD_RPC,RESTAPI::Errors::MissingOrInvalidParameters);
 				return BadRequest(RESTAPI::Errors::MissingOrInvalidParameters);
+			}
+
+			//	verify the role...
+			if(Existing.restricted.empty() && UserInfo_.userinfo.userRole!=SecurityObjects::ROOT) {
+				CallCanceled("SCRIPT", CMD_UUID, CMD_RPC,RESTAPI::Errors::ACCESS_DENIED);
+				return UnAuthorized(RESTAPI::Errors::ACCESS_DENIED);
+			}
+
+			if(UserInfo_.userinfo.userRole!=SecurityObjects::ROOT) {
+				if (std::find(Existing.restricted.begin(), Existing.restricted.end(),
+							  SecurityObjects::UserTypeToString(UserInfo_.userinfo.userRole)) ==
+					end(Existing.restricted)) {
+					CallCanceled("SCRIPT", CMD_UUID, CMD_RPC, RESTAPI::Errors::ACCESS_DENIED);
+					return UnAuthorized(RESTAPI::Errors::ACCESS_DENIED);
+				}
 			}
 			poco_information(Logger_,fmt::format("SCRIPT({},{}): TID={} Name={}", CMD_UUID, CMD_RPC, TransactionId_, Existing.name));
 			SCR.script = Existing.content;
