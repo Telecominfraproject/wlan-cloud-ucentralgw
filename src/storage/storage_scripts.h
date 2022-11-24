@@ -22,7 +22,8 @@ typedef Poco::Tuple<
 	std::string,    //  author
 	std::string,     //  restricted
 	bool,			//	deferred
-	uint64_t		//	timeout
+	uint64_t,		//	timeout
+	std::string
 	> ScriptRecordTuple;
 	typedef std::vector <ScriptRecordTuple> ScriptRecordTupleList;
 

@@ -22,7 +22,8 @@ namespace OpenWifi {
 		ORM::Field{"author", ORM::FieldType::FT_TEXT},
 		ORM::Field{"restricted", ORM::FieldType::FT_TEXT},
 		ORM::Field{"deferred", ORM::FieldType::FT_BOOLEAN},
-		ORM::Field{"timeout", ORM::FieldType::FT_BIGINT}
+		ORM::Field{"timeout", ORM::FieldType::FT_BIGINT},
+		ORM::Field{"defaultUploadURI", ORM::FieldType::FT_TEXT}
 	};
 
 	static ORM::IndexVec MakeIndices(const std::string & shortname) {
@@ -114,6 +115,7 @@ template<> void ORM::DB<OpenWifi::ScriptRecordTuple, OpenWifi::GWObjects::Script
 	Out.restricted = OpenWifi::RESTAPI_utils::to_object_array(In.get<10>());
 	Out.deferred = In.get<11>();
 	Out.timeout = In.get<12>();
+	Out.defaultUploadURI = In.get<13>();
 }
 
 template<> void ORM::DB<OpenWifi::ScriptRecordTuple, OpenWifi::GWObjects::ScriptEntry>::Convert(const OpenWifi::GWObjects::ScriptEntry &In, OpenWifi::ScriptRecordTuple &Out) {
@@ -130,4 +132,5 @@ template<> void ORM::DB<OpenWifi::ScriptRecordTuple, OpenWifi::GWObjects::Script
 	Out.set<10>(OpenWifi::RESTAPI_utils::to_string(In.restricted));
 	Out.set<11>(In.deferred);
 	Out.set<12>(In.timeout);
+	Out.set<13>(In.defaultUploadURI);
 }

@@ -564,6 +564,8 @@ components:
         timeout:
           type: integer
           default: 30
+        defaultUploadURI:
+          type: string
 
     ScriptEntryList:
       type: object

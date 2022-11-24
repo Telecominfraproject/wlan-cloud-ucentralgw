@@ -230,6 +230,7 @@ namespace OpenWifi::GWObjects {
 		Types::StringVec 	restricted;
 		bool				deferred=false;
 		std::uint64_t 		timeout=30;
+		std::string 		defaultUploadURI;
 
 		void to_json(Poco::JSON::Object &Obj) const;
 		bool from_json(const Poco::JSON::Object::Ptr &Obj);

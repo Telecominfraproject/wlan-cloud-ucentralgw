@@ -101,6 +101,7 @@ namespace OpenWifi {
 		AssignIfPresent(ParsedBody_, "version", Existing.version);
 		AssignIfPresent(ParsedBody_,"deferred", Existing.deferred);
 		AssignIfPresent(ParsedBody_,"timeout", Existing.timeout);
+		AssignIfPresent(ParsedBody_,"defaultUploadURI", Existing.defaultUploadURI);
 
 		Existing.modified = Utils::Now();
 
