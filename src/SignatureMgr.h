@@ -67,7 +67,11 @@ namespace OpenWifi {
 				if(Vendor.empty() || PrivateKey.empty() || PublicKey.empty()) {
 					break;
 				}
-				Keys_[ Vendor ] = Poco::SharedPtr<Poco::Crypto::RSAKey>( new Poco::Crypto::RSAKey(PublicKey, PrivateKey, ""));
+				Poco::File	PubKey(PublicKey), PrivKey(PrivateKey);
+				if(PubKey.exists() && PrivKey.exists()) {
+					Keys_[Vendor] = Poco::SharedPtr<Poco::Crypto::RSAKey>(
+						new Poco::Crypto::RSAKey(PublicKey, PrivateKey, ""));
+				}
 				++i;
 			}
 
