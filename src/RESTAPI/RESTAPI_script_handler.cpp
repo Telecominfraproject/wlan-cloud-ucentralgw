@@ -25,6 +25,10 @@ namespace OpenWifi {
 	void RESTAPI_script_handler::DoDelete() {
 		std::string 	UUID = GetBinding("uuid","");
 
+		if(UserInfo_.userinfo.userRole!=SecurityObjects::ROOT) {
+			return BadRequest(RESTAPI::Errors::ACCESS_DENIED);
+		}
+
 		if(UUID.empty()) {
 			return BadRequest(RESTAPI::Errors::MissingOrInvalidParameters);
 		}
@@ -37,6 +41,10 @@ namespace OpenWifi {
 
 	void RESTAPI_script_handler::DoPost() {
 		std::string 	UUID = GetBinding("uuid","");
+
+		if(UserInfo_.userinfo.userRole!=SecurityObjects::ROOT) {
+			return BadRequest(RESTAPI::Errors::ACCESS_DENIED);
+		}
 
 		if(UUID.empty()) {
 			return BadRequest(RESTAPI::Errors::MissingOrInvalidParameters);
@@ -141,9 +149,9 @@ namespace OpenWifi {
 		AssignIfPresent(ParsedBody_, "uri", Existing.uri);
 		AssignIfPresent(ParsedBody_, "content", Existing.content);
 		AssignIfPresent(ParsedBody_, "version", Existing.version);
-		AssignIfPresent(ParsedBody_,"deferred", Existing.deferred);
-		AssignIfPresent(ParsedBody_,"timeout", Existing.timeout);
-		AssignIfPresent(ParsedBody_,"defaultUploadURI", Existing.defaultUploadURI);
+		AssignIfPresent(ParsedBody_, "deferred", Existing.deferred);
+		AssignIfPresent(ParsedBody_, "timeout", Existing.timeout);
+		AssignIfPresent(ParsedBody_, "defaultUploadURI", Existing.defaultUploadURI);
 
 		Existing.modified = Utils::Now();
 
