@@ -5,6 +5,11 @@ This document will describe how the API is built and how to use it.
 This uses OpenAPI definition 3.0 and can be found [here](https://github.com/Telecominfraproject/wlan-cloud-ucentralgw/blob/main/openapi/ucentral/owgw.yaml).
 All endpoints begin with `/api/v1`.
 
+## OpenAPI docs
+You may get static page with OpenAPI docs generated from the definition on [GitHub Page](https://telecominfraproject.github.io/wlan-cloud-ucentralgw).
+
+Also you may use [Swagger UI](https://petstore.swagger.io/#/) with OpenAPI definition file raw link (i.e. [latest version file](https://raw.githubusercontent.com/Telecominfraproject/wlan-cloud-ucentralgw/master/openapi/owgw.yaml)) to get interactive docs page.
+
 ## The flow
 In order to use any of the API calls, you must obtain a token (I know - shocking). You do so by calling the end-point
 `/oauth2`. Once you obtain that `access-token`, you will need to pass it in the headers under `Authorization: Bearer <place your token here>`.
