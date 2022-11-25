@@ -17,7 +17,7 @@ jobs:
       HELM_REPO_USERNAME: ucentral
     steps:
       - name: Checkout uCentral assembly chart repo
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           path: wlan-cloud-ucentralgw
 
