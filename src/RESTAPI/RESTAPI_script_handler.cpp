@@ -85,6 +85,10 @@ namespace OpenWifi {
 	void RESTAPI_script_handler::DoPut() {
 		std::string 	UUID = GetBinding("uuid","");
 
+		if(UserInfo_.userinfo.userRole!=SecurityObjects::ROOT) {
+			return BadRequest(RESTAPI::Errors::ACCESS_DENIED);
+		}
+
 		if(UUID.empty()) {
 			return BadRequest(RESTAPI::Errors::MissingOrInvalidParameters);
 		}
