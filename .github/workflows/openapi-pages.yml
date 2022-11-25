@@ -1,0 +1,40 @@
+name: Update OpenAPI docs on GitHub Pages
+
+on:
+  push:
+    paths:
+      - 'openapi/**'
+    branches:
+      - master
+  workflow_dispatch:
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  docsgen:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Generate static HTML page with docs from OpenAPI definition
+        run: |
+          docker run --rm -v "${PWD}:/local" openapitools/openapi-generator-cli generate -i https://raw.githubusercontent.com/Telecominfraproject/wlan-cloud-ucentralgw/master/openapi/owgw.yaml -l html2 --skip-validate-spec -o /local/
+
+      - name: Update OpenAPI docs
+        run: |
+          mkdir tmp-docs
+          mv index.html tmp-docs/index.html
+          mkdir -p ~/.ssh
+          ssh-keyscan -H github.com >> ~/.ssh/known_hosts
+          echo https://tip-automation:${{ secrets.GIT_PUSH_PAT }}@github.com > ~/.git-credentials
+          git config --global credential.helper store
+          git config --global user.email "tip-automation@telecominfraproject.com"
+          git config --global user.name "TIP Automation User"
+          git pull
+          git checkout gh-pages || git checkout -b gh-pages
+          mv tmp-docs docs
+          git add docs
+          git commit -m'Update OpenAPI docs for GitHub pages'
+          git push
