@@ -20,7 +20,7 @@ jobs:
 
       - name: Generate static HTML page with docs from OpenAPI definition
         run: |
-          docker run --rm -v "${PWD}:/local" openapitools/openapi-generator-cli generate -i https://raw.githubusercontent.com/Telecominfraproject/wlan-cloud-ucentralgw/master/openapi/owgw.yaml -l html2 --skip-validate-spec -o /local/
+          docker run --rm -v "${PWD}:/local" openapitools/openapi-generator-cli:v6.2.1 generate -i https://raw.githubusercontent.com/Telecominfraproject/wlan-cloud-ucentralgw/master/openapi/owgw.yaml -g html2 --skip-validate-spec -o /local/
 
       - name: Update OpenAPI docs
         run: |
