@@ -245,7 +245,7 @@ namespace OpenWifi {
                 Poco::Logger::root().setChannel(Splitter);
             }
         }
-
+		Poco::Logger::root().information(fmt::format("Enabled console logs: asynch={} websocket={}",UseAsync,DisableWebSocketLogging));
     }
 
     void MicroService::SetColorConsoleLogs(bool UseAsync, bool DisableWebSocketLogging, const std::string & FormatterPattern) {
@@ -274,7 +274,7 @@ namespace OpenWifi {
                 Poco::Logger::root().setChannel(Splitter);
             }
         }
-
+		Poco::Logger::root().information(fmt::format("Enabled color console logs: asynch={} websocket={}",UseAsync,DisableWebSocketLogging));
     }
 
     void MicroService::SetSQLLogs([[maybe_unused]] bool UseAsync,[[maybe_unused]]  bool DisableWebSocketLogging,[[maybe_unused]]  const std::string & FormatterPattern) {
@@ -327,6 +327,7 @@ namespace OpenWifi {
                 Poco::Logger::root().setChannel(Splitter);
             }
         }
+		Poco::Logger::root().information(fmt::format("Enabled file logs: asynch={} websocket={}",UseAsync,DisableWebSocketLogging));
     }
 
 	void DaemonPostInitialization(Poco::Util::Application &self);

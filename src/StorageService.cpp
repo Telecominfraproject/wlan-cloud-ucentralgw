@@ -17,6 +17,10 @@ namespace OpenWifi {
 		Create_Tables();
         InitializeBlackListCache();
 
+		ScriptDB_ = std::make_unique<OpenWifi::ScriptDB>("Scripts", "scr", dbType_,*Pool_, Logger());
+		ScriptDB_->Create();
+		ScriptDB_->Initialize();
+
 		return 0;
     }
 

@@ -487,6 +487,25 @@ void ReplaceVariables( std::string & Content , const Types::StringPairVec & P) {
 	return false;
 }
 
+[[nodiscard]] bool wgetfile(const Poco::URI &uri, const std::string &FileName) {
+	try {
+		Poco::Net::HTTPSClientSession session(uri.getHost(), uri.getPort());
+
+		// send request
+		Poco::Net::HTTPRequest req(Poco::Net::HTTPRequest::HTTP_GET, uri.getPath(), Poco::Net::HTTPMessage::HTTP_1_1);
+		session.sendRequest(req);
+
+		Poco::Net::HTTPResponse res;
+		std::istream &is = session.receiveResponse(res);
+		std::fstream os(FileName,std::ios_base::trunc | std::ios_base::binary | std::ios_base::out);
+		Poco::StreamCopier::copyStream(is,os);
+		return true;
+	} catch (...) {
+
+	}
+	return false;
+}
+
 bool ExtractBase64CompressedData(const std::string &CompressedData,
 										std::string &UnCompressedData, uint64_t compress_sz ) {
 	std::istringstream ifs(CompressedData);
@@ -530,5 +549,15 @@ bool ExtractBase64CompressedData(const std::string &CompressedData,
         }
         return "*******";
     }
+
+	[[nodiscard]] bool ValidateURI(const std::string &uri) {
+		try {
+			Poco::URI	u(uri);
+			return true;
+		} catch (...) {
+
+		}
+		return false;
+	}
 
 }

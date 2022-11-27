@@ -216,11 +216,39 @@ namespace OpenWifi::GWObjects {
 		void to_json(Poco::JSON::Object &Obj) const;
 	};
 
+	struct ScriptEntry {
+		std::string 		id;
+		std::string 		name;
+		std::string 		description;
+		std::string 		uri;
+		std::string 		content;
+		std::string 		version;
+		std::string 		type;
+		std::uint64_t 		created;
+		std::uint64_t 		modified;
+		std::string 		author;
+		Types::StringVec 	restricted;
+		bool				deferred=false;
+		std::uint64_t 		timeout=30;
+		std::string 		defaultUploadURI;
+
+		void to_json(Poco::JSON::Object &Obj) const;
+		bool from_json(const Poco::JSON::Object::Ptr &Obj);
+	};
+
+	struct ScriptEntryList {
+		std::vector<ScriptEntry>	scripts;
+
+		void to_json(Poco::JSON::Object &Obj) const;
+		bool from_json(const Poco::JSON::Object::Ptr &Obj);
+	};
+
 	struct ScriptRequest {
 		std::string serialNumber;
 		uint64_t 	timeout=30;
 		std::string type;
 		std::string script;
+		std::string scriptId;
 		std::uint64_t when;
 		std::string signature;
 		bool deferred;

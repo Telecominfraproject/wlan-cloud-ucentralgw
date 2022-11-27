@@ -21,6 +21,8 @@
 #include "TelemetryStream.h"
 #include "CommandManager.h"
 
+#include "SignatureMgr.h"
+
 #include "framework/ConfigurationValidator.h"
 #include "framework/KafkaTopics.h"
 #include "framework/ow_constants.h"
@@ -411,10 +413,6 @@ namespace OpenWifi {
 
 	void RESTAPI_device_commandHandler::Script(const std::string &CMD_UUID, uint64_t CMD_RPC, std::chrono::milliseconds timeout, [[maybe_unused]] const AP_Restrictions &R) {
 		poco_information(Logger_,fmt::format("SCRIPT({},{}): TID={} user={} serial={}", CMD_UUID, CMD_RPC, TransactionId_, Requester(), SerialNumber_));
-		if(!Internal_ && UserInfo_.userinfo.userRole!=SecurityObjects::ROOT) {
-			CallCanceled("SCRIPT", CMD_UUID, CMD_RPC,RESTAPI::Errors::ACCESS_DENIED);
-			return UnAuthorized(RESTAPI::Errors::ACCESS_DENIED);
-		}
 
 		const auto &Obj = ParsedBody_;
 		GWObjects::ScriptRequest	SCR;
@@ -423,11 +421,19 @@ namespace OpenWifi {
 			return BadRequest(RESTAPI::Errors::InvalidJSONDocument);
 		}
 
-		if (SCR.serialNumber.empty() ||
-			SCR.script.empty() ||
-			!ValidateScriptType(SCR.type)) {
-			CallCanceled("SCRIPT", CMD_UUID, CMD_RPC,RESTAPI::Errors::MissingOrInvalidParameters);
-			return BadRequest(RESTAPI::Errors::MissingOrInvalidParameters);
+		if(!SCR.script.empty() && !SCR.scriptId.empty()) {
+			CallCanceled("SCRIPT", CMD_UUID, CMD_RPC,RESTAPI::Errors::InvalidScriptSelection);
+			return UnAuthorized(RESTAPI::Errors::InvalidScriptSelection);
+		}
+
+		if(!Internal_ && UserInfo_.userinfo.userRole!=SecurityObjects::ROOT && SCR.scriptId.empty()) {
+			CallCanceled("SCRIPT", CMD_UUID, CMD_RPC,RESTAPI::Errors::ACCESS_DENIED);
+			return UnAuthorized(RESTAPI::Errors::ACCESS_DENIED);
+		}
+
+		if (SCR.script.empty() && SCR.scriptId.empty() ) {
+			CallCanceled("SCRIPT", CMD_UUID, CMD_RPC,RESTAPI::Errors::InvalidScriptSelection);
+			return BadRequest(RESTAPI::Errors::InvalidScriptSelection);
 		}
 
 		if (SerialNumber_ != SCR.serialNumber) {
@@ -435,13 +441,48 @@ namespace OpenWifi {
 			return BadRequest(RESTAPI::Errors::SerialNumberMismatch);
 		}
 
+		if(!SCR.uri.empty() && !Utils::ValidateURI(SCR.uri)) {
+			return BadRequest(RESTAPI::Errors::InvalidURI);
+		}
+
 		GWObjects::Device	D;
 		if(!StorageService()->GetDevice(SerialNumber_,D)) {
 			return NotFound();
 		}
 
-		if(D.restrictedDevice && SCR.signature.empty()) {
-			return BadRequest(RESTAPI::Errors::DeviceRequiresSignature);
+		if(!SCR.scriptId.empty()) {
+			GWObjects::ScriptEntry	Existing;
+			if(!StorageService()->ScriptDB().GetRecord("id",SCR.scriptId,Existing)) {
+				CallCanceled("SCRIPT", CMD_UUID, CMD_RPC,RESTAPI::Errors::MissingOrInvalidParameters);
+				return BadRequest(RESTAPI::Errors::MissingOrInvalidParameters);
+			}
+
+			//	verify the role...
+			if(Existing.restricted.empty() && UserInfo_.userinfo.userRole!=SecurityObjects::ROOT) {
+				CallCanceled("SCRIPT", CMD_UUID, CMD_RPC,RESTAPI::Errors::ACCESS_DENIED);
+				return UnAuthorized(RESTAPI::Errors::ACCESS_DENIED);
+			}
+
+			if(UserInfo_.userinfo.userRole!=SecurityObjects::ROOT) {
+				if (std::find(Existing.restricted.begin(), Existing.restricted.end(),
+							  SecurityObjects::UserTypeToString(UserInfo_.userinfo.userRole)) ==
+					end(Existing.restricted)) {
+					CallCanceled("SCRIPT", CMD_UUID, CMD_RPC, RESTAPI::Errors::ACCESS_DENIED);
+					return UnAuthorized(RESTAPI::Errors::ACCESS_DENIED);
+				}
+			}
+			poco_information(Logger_,fmt::format("SCRIPT({},{}): TID={} Name={}", CMD_UUID, CMD_RPC, TransactionId_, Existing.name));
+			SCR.script = Existing.content;
+			SCR.type = Existing.type;
+			if(!ParsedBody_->has("deferred"))
+				SCR.deferred = Existing.deferred;
+			if(!ParsedBody_->has("timeout"))
+				SCR.timeout = Existing.timeout;
+		} else {
+			if(!ValidateScriptType(SCR.type)) {
+				CallCanceled("SCRIPT", CMD_UUID, CMD_RPC,RESTAPI::Errors::MissingOrInvalidParameters);
+				return BadRequest(RESTAPI::Errors::MissingOrInvalidParameters);
+			}
 		}
 
 		uint64_t ap_timeout = SCR.timeout==0 ? 30 : SCR.timeout;
@@ -469,8 +510,19 @@ namespace OpenWifi {
 		if(!SCR.signature.empty()) {
 			Params.set(uCentralProtocol::SIGNATURE, SCR.signature);
 		}
+
+		if(D.restrictedDevice && SCR.signature.empty()) {
+			SCR.signature = SignatureManager()->Sign(R, SCR.script);
+		}
+
+		if(D.restrictedDevice && SCR.signature.empty()) {
+			return BadRequest(RESTAPI::Errors::DeviceRequiresSignature);
+		}
+
+		// convert script to base64 ...
+		auto EncodedScript = Utils::base64encode((const unsigned char *)SCR.script.c_str(),SCR.script.size());
 		Params.set(uCentralProtocol::TYPE, SCR.type);
-		Params.set(uCentralProtocol::SCRIPT, SCR.script);
+		Params.set(uCentralProtocol::SCRIPT, EncodedScript);
 		Params.set(uCentralProtocol::WHEN, SCR.when);
 
 		std::stringstream ParamStream;
@@ -554,9 +606,6 @@ namespace OpenWifi {
 			}
 
 			std::string FWSignature = GetParameter("FWsignature","");
-			if(FWSignature.empty() && R.sysupgrade_not_allowed()) {
-				return BadRequest(RESTAPI::Errors::DeviceRequiresSignature);
-			}
 
 			auto URI = GetS(RESTAPI::Protocol::URI, Obj);
 			auto When = GetWhen(Obj);
@@ -576,6 +625,17 @@ namespace OpenWifi {
 			Params.set(uCentralProtocol::SERIAL, SerialNumber_);
 			Params.set(uCentralProtocol::URI, URI);
 			Params.set(uCentralProtocol::KEEP_REDIRECTOR, KeepRedirector ? 1 : 0);
+
+			if(!R.sysupgrade_not_allowed() && FWSignature.empty()) {
+				Poco::URI	uri(URI);
+				FWSignature = SignatureManager()->Sign(R,uri);
+			}
+
+			if(FWSignature.empty() && R.sysupgrade_not_allowed()) {
+				return BadRequest(RESTAPI::Errors::DeviceRequiresSignature);
+			}
+
+
 			if(!FWSignature.empty()) {
 				Params.set(uCentralProtocol::FWSIGNATURE, FWSignature);
 			}
