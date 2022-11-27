@@ -13,28 +13,26 @@
 
 namespace OpenWifi {
 
-    static const std::list<std::string>		AllInternalDBNames{"healthchecks", "statistics", "devicelogs" , "commandlist" };
+    static const std::list<std::string>		AllInternalDBNames{"healthchecks", "statistics", "devicelogs" , "commandlist", "fileuploads"};
 
     class Archiver {
       public:
-    	struct ArchiverDBEntry {
-    		std::string 					DBName;
-    		uint64_t 						HowManyDays=7;
-    	};
-    	typedef std::vector<ArchiverDBEntry>	ArchiverDBEntryVec;
 
 		explicit Archiver(Poco::Logger &Logger):
 			Logger_(Logger) {
+			for(const auto &db:AllInternalDBNames) {
+				DBs_[db] = 7 ;
+			}
 		}
 
     	void onTimer(Poco::Timer & timer);
-    	inline void AddDb(const ArchiverDBEntry &E ) {
-			DBs_.push_back(E);
+    	inline void AddDb(const std::string &dbname, std::uint64_t retain) {
+			DBs_[dbname] = retain;
 		}
 		inline Poco::Logger & Logger() { return Logger_; }
       private:
-		Poco::Logger		&Logger_;
-    	ArchiverDBEntryVec	DBs_;
+		Poco::Logger							&Logger_;
+    	std::map<std::string,std::uint64_t>		DBs_;
     };
 
     class StorageArchiver : public SubSystemServer {

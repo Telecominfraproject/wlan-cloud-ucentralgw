@@ -18,36 +18,40 @@ namespace OpenWifi {
 	void Archiver::onTimer([[maybe_unused]] Poco::Timer &timer){
 		Utils::SetThreadName("strg-archiver");
 		auto now = Utils::Now();
-		for(const auto &i:DBs_) {
-			if (!Poco::icompare(i.DBName, "healthchecks")) {
+		for(const auto &[DBName, Keep]:DBs_) {
+			if (!Poco::icompare(DBName, "healthchecks")) {
 				poco_information(Logger(),"Archiving HealthChecks...");
 				StorageService()->RemoveHealthChecksRecordsOlderThan(
-					now - (i.HowManyDays * 24 * 60 * 60));
-			} else if (!Poco::icompare(i.DBName, "statistics")) {
+					now - (Keep * 24 * 60 * 60));
+			} else if (!Poco::icompare(DBName, "statistics")) {
 				poco_information(Logger(),"Archiving Statistics...");
 				StorageService()->RemoveStatisticsRecordsOlderThan(
-					now - (i.HowManyDays * 24 * 60 * 60));
-			} else if (!Poco::icompare(i.DBName, "devicelogs")) {
+					now - (Keep * 24 * 60 * 60));
+			} else if (!Poco::icompare(DBName, "devicelogs")) {
 				poco_information(Logger(),"Archiving Device Logs...");
 				StorageService()->RemoveDeviceLogsRecordsOlderThan(
-					now - (i.HowManyDays * 24 * 60 * 60));
-			} else if (!Poco::icompare(i.DBName, "commandlist")) {
+					now - (Keep * 24 * 60 * 60));
+			} else if (!Poco::icompare(DBName, "commandlist")) {
 				poco_information(Logger(),"Archiving Command History...");
 				StorageService()->RemoveCommandListRecordsOlderThan(
-					now - (i.HowManyDays * 24 * 60 * 60));
+					now - (Keep * 24 * 60 * 60));
+			} else if (!Poco::icompare(DBName, "fileuploads")) {
+				poco_information(Logger(),"Archiving Upload files...");
+				StorageService()->RemoveUploadedFilesRecordsOlderThan(
+					now - (Keep * 24 * 60 * 60));
 			} else {
-				poco_information(Logger(),fmt::format("Cannot archive DB '{}'", i.DBName));
+				poco_information(Logger(),fmt::format("Cannot archive DB '{}'", DBName));
 			}
 		}
 		AppServiceRegistry().Set("lastStorageArchiverRun", (uint64_t) now);
 	}
 
-	static auto CalculateDelta(int H, int M) {
+	static auto CalculateDelta(std::uint64_t H, std::uint64_t M) {
 		Poco::LocalDateTime dt;
-		Poco::LocalDateTime scheduled(dt.year(), dt.month(), dt.day(), H, M, 0);
+		Poco::LocalDateTime scheduled(dt.year(), dt.month(), dt.day(), (int)H, (int)M, 0);
 
-		size_t delta = 0;
-		if ((dt.hour() < H) || (dt.hour()==H && dt.minute()<M)) {
+		std::uint64_t delta = 0;
+		if ((dt.hour() < (int)H) || (dt.hour()==(int)H && dt.minute()<(int)M)) {
 			delta = scheduled.timestamp().epochTime() - dt.timestamp().epochTime();
 		} else {
 			delta = (24*60*60) - (dt.timestamp().epochTime() - scheduled.timestamp().epochTime());
@@ -69,13 +73,13 @@ namespace OpenWifi {
 		auto Schedule = MicroServiceConfigGetString("archiver.schedule","03:00");
 		auto S = Poco::StringTokenizer(Schedule,":");
 
-		int RunAtHour_, RunAtMin_;
+		std::uint64_t RunAtHour_, RunAtMin_;
 		if(S.count()!=2) {
 			RunAtHour_ = 3 ;
 			RunAtMin_ = 0;
 		} else {
-			RunAtHour_ = std::atoi(S[0].c_str());
-			RunAtMin_ = std::atoi(S[1].c_str());
+			RunAtHour_ = std::strtoull(S[0].c_str(), nullptr, 10);
+			RunAtMin_ = std::strtoull(S[1].c_str(), nullptr, 10);
 		}
 
 		for(int i=0;i<20;i++) {
@@ -86,10 +90,7 @@ namespace OpenWifi {
 					if(Poco::icompare(DBName,DB)==0) {
 						std::string Key = "archiver.db." + std::to_string(i) + ".keep";
 						auto Keep = MicroServiceConfigGetInt(Key,7);
-						Archiver_->AddDb(Archiver::ArchiverDBEntry{
-							.DBName = DB,
-							.HowManyDays = Keep
-						});
+						Archiver_->AddDb(DB, Keep);
 					}
 				}
 			}

@@ -180,6 +180,7 @@ namespace OpenWifi {
 		bool RemoveDeviceLogsRecordsOlderThan(uint64_t Date);
 		bool RemoveStatisticsRecordsOlderThan(uint64_t Date);
 		bool RemoveCommandListRecordsOlderThan(uint64_t Date);
+		bool RemoveUploadedFilesRecordsOlderThan(uint64_t Date);
 
 		int Create_Tables();
 		int Create_Statistics();
