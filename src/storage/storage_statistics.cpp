@@ -130,11 +130,13 @@ namespace OpenWifi {
 				ConvertStatsRecord(i,R);
 				Stats.emplace_back(R);
 			}
+			Select.reset(Sess);
 			return true;
 		}
 		catch (const Poco::Exception &E) {
 			poco_warning(Logger(),fmt::format("{}: Failed with: {}", std::string(__func__), E.displayText()));
 		}
+
 		return false;
 	}
 

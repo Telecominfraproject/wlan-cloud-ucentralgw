@@ -102,6 +102,48 @@ namespace OpenWifi {
 													  E.displayText(),
 													  E.message(),
 													  E.what()));
+			} catch (const Poco::TimeoutException &E) {
+				poco_error(App_.logger(), fmt::format("Poco::TimeoutException thr_name={} thr_id={} code={} text={} msg={} what={}",
+													  t_name, t_id, E.code(),
+													  E.displayText(),
+													  E.message(),
+													  E.what()));
+			} catch (const Poco::NoThreadAvailableException &E) {
+				poco_error(App_.logger(), fmt::format("Poco::NoThreadAvailableException thr_name={} thr_id={} code={} text={} msg={} what={}",
+													  t_name, t_id, E.code(),
+													  E.displayText(),
+													  E.message(),
+													  E.what()));
+			} catch (const Poco::OutOfMemoryException &E) {
+				poco_error(App_.logger(), fmt::format("Poco::OutOfMemoryException thr_name={} thr_id={} code={} text={} msg={} what={}",
+													  t_name, t_id, E.code(),
+													  E.displayText(),
+													  E.message(),
+													  E.what()));
+			} catch (const Poco::BadCastException &E) {
+				poco_error(App_.logger(), fmt::format("Poco::BadCastException thr_name={} thr_id={} code={} text={} msg={} what={}",
+													  t_name, t_id, E.code(),
+													  E.displayText(),
+													  E.message(),
+													  E.what()));
+			} catch (const Poco::DataException &E) {
+				poco_error(App_.logger(), fmt::format("Poco::DataException thr_name={} thr_id={} code={} text={} msg={} what={}",
+													  t_name, t_id, E.code(),
+													  E.displayText(),
+													  E.message(),
+													  E.what()));
+			} catch (const Poco::PoolOverflowException &E) {
+				poco_error(App_.logger(), fmt::format("Poco::PoolOverflowException thr_name={} thr_id={} code={} text={} msg={} what={}",
+													  t_name, t_id, E.code(),
+													  E.displayText(),
+													  E.message(),
+													  E.what()));
+			} catch (const Poco::SystemException &E) {
+				poco_error(App_.logger(), fmt::format("Poco::SystemException thr_name={} thr_id={} code={} text={} msg={} what={}",
+													  t_name, t_id, E.code(),
+													  E.displayText(),
+													  E.message(),
+													  E.what()));
 			} catch (const Poco::RuntimeException &E) {
 				poco_error(App_.logger(), fmt::format("Poco::RuntimeException thr_name={} thr_id={} code={} text={} msg={} what={}",
 													  t_name, t_id, E.code(),
