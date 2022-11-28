@@ -209,6 +209,9 @@ namespace OpenWifi {
 			if (AP_WS_Server()->GetStatistics(SerialNumber_, Stats) && !Stats.empty()) {
                 return ReturnRawJSON(Stats);
 			}
+			if(AP_WS_Server()->Connected(SerialNumberInt_)) {
+				return BadRequest(RESTAPI::Errors::NoDeviceStatisticsYet);
+			}
 			return BadRequest(RESTAPI::Errors::DeviceNotConnected);
 		}
 
