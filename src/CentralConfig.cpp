@@ -67,11 +67,11 @@ R"lit(
       "ipv4": {
         "addressing": "static",
         "dhcp": {
-          "lease-count": 10000,
+          "lease-count": 100,
           "lease-first": 10,
           "lease-time": "6h"
         },
-        "subnet": "192.168.1.1/16"
+        "subnet": "192.168.1.1/24"
       },
       "name": "LAN",
       "role": "downstream",
