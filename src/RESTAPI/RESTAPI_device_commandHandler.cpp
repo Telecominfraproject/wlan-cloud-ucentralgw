@@ -231,12 +231,13 @@ namespace OpenWifi {
 												 QB_.Offset, QB_.Limit, Stats);
 		}
 
-		Poco::JSON::Array ArrayObj;
+		Poco::JSON::Array::Ptr ArrayObj = Poco::SharedPtr<Poco::JSON::Array>(new Poco::JSON::Array);
 		for (const auto &i : Stats) {
-			Poco::JSON::Object Obj;
-			i.to_json(Obj);
-			ArrayObj.add(Obj);
+			Poco::JSON::Object::Ptr Obj = Poco::SharedPtr<Poco::JSON::Object>(new Poco::JSON::Object);
+			i.to_json(*Obj);
+			ArrayObj->add(Obj);
 		}
+
 		Poco::JSON::Object RetObj;
 		RetObj.set(RESTAPI::Protocol::DATA, ArrayObj);
 		RetObj.set(RESTAPI::Protocol::SERIALNUMBER, SerialNumber_);
