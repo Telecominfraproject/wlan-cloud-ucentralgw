@@ -74,22 +74,30 @@ namespace OpenWifi {
 												auto Status = Result->get("status");
 												std::uint64_t Error = Result->get("error");
 												if(Error==0) {
+													std::cout << __LINE__ << std::endl;
 													StorageService()->CommandCompleted(RPC->second.UUID, Payload,
 																					   rpc_execution_time, true);
 													RPC->second.State = 1 ;
 												} else {
+													std::cout << __LINE__ << std::endl;
 													std::string ErrorTxt = Result->get("result");
 													StorageService()->CancelWaitFile(RPC->second.UUID, ErrorTxt);
 													RPC->second.State = 0 ;
 												}
 											}
+										} else {
+											std::cout << "Bad payload on command result" << std::endl;
+											RPC->second.State=0;
 										}
 									} else {
+										std::cout << "Bad file uploaded commit" << std::endl;
 										StorageService()->CommandCompleted(RPC->second.UUID, Payload,
 																		   rpc_execution_time, true);
 										RPC->second.State=0;
 									}
 								} else {
+
+									std::cout << __LINE__ << std::endl;
 									StorageService()->CommandCompleted(RPC->second.UUID, Payload,
 																	   rpc_execution_time, true);
 									if (RPC->second.rpc_entry) {
