@@ -49,10 +49,11 @@ namespace OpenWifi {
 		  	using promise_type_t = std::promise<objtype_t>;
 
 			struct CommandInfo {
-				std::uint64_t 	Id=0;
-				std::uint64_t 	SerialNumber=0;
-				std::string 	Command;
-				std::string 	UUID;
+				std::uint64_t 			Id=0;
+				std::uint64_t 			SerialNumber=0;
+				APCommands::Commands 	Command;
+				std::string 			UUID;
+				std::uint64_t 			State=1;
 				std::chrono::time_point<std::chrono::high_resolution_clock> submitted = std::chrono::high_resolution_clock::now();
 				std::shared_ptr<promise_type_t> rpc_entry;
 			};
@@ -76,12 +77,15 @@ namespace OpenWifi {
 			}
 
 			std::shared_ptr<promise_type_t> PostCommandOneWayDisk(uint64_t RPC_ID,
+				APCommands::Commands Command,
 				const std::string &SerialNumber,
 				const std::string &Method,
 				const Poco::JSON::Object &Params,
 				const std::string &UUID,
 				bool & Sent) {
-					return 	PostCommand(RPC_ID, SerialNumber,
+					return 	PostCommand(RPC_ID,
+								   Command,
+								   SerialNumber,
 									Method,
 									Params,
 									UUID,
@@ -90,12 +94,14 @@ namespace OpenWifi {
 
 			std::shared_ptr<promise_type_t> PostCommandDisk(
 				uint64_t RPC_ID,
+				APCommands::Commands Command,
 				const std::string &SerialNumber,
 				const std::string &Method,
 				const Poco::JSON::Object &Params,
 				const std::string &UUID,
 				bool & Sent) {
 					return 	PostCommand(RPC_ID,
+								   Command,
 								   SerialNumber,
 								   Method,
 								   Params,
@@ -105,12 +111,15 @@ namespace OpenWifi {
 
 			std::shared_ptr<promise_type_t> PostCommand(
 				uint64_t RPC_ID,
+				APCommands::Commands Command,
 				const std::string &SerialNumber,
 				const std::string &Method,
 				const Poco::JSON::Object &Params,
 				const std::string &UUID,
 				bool & Sent) {
-					return 	PostCommand(RPC_ID, SerialNumber,
+					return 	PostCommand(RPC_ID,
+								   Command,
+								   SerialNumber,
 								   Method,
 								   Params,
 								   UUID,
@@ -120,12 +129,14 @@ namespace OpenWifi {
 
 			std::shared_ptr<promise_type_t> PostCommandOneWay(
 				uint64_t RPC_ID,
+				APCommands::Commands Command,
 				const std::string &SerialNumber,
 				const std::string &Method,
 				const Poco::JSON::Object &Params,
 				const std::string &UUID,
 				bool & Sent) {
 					return 	PostCommand(RPC_ID,
+								   Command,
 								   SerialNumber,
 								   Method,
 								   Params,
@@ -153,7 +164,7 @@ namespace OpenWifi {
 				OutStandingRequests_.erase(Id);
 			}
 
-			inline bool CommandRunningForDevice(std::uint64_t SerialNumber, std::string & uuid, std::string &command) {
+			inline bool CommandRunningForDevice(std::uint64_t SerialNumber, std::string & uuid, APCommands::Commands &command) {
 				std::lock_guard	Lock(LocalMutex_);
 
 				for(const auto &[Request,Command]:OutStandingRequests_) {
@@ -190,6 +201,7 @@ namespace OpenWifi {
 
 			std::shared_ptr<promise_type_t> PostCommand(
 				uint64_t RPCID,
+				APCommands::Commands Command,
 				const std::string &SerialNumber,
 				const std::string &Method,
 				const Poco::JSON::Object &Params,

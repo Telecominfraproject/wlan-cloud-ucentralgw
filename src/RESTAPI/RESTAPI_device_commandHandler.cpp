@@ -52,33 +52,40 @@ namespace OpenWifi {
 			return NotFound();
 		}
 
+		auto Command = APCommands::to_apcommand(Command_.c_str());
+		if(Command==APCommands::Commands::unknown) {
+			return BadRequest(RESTAPI::Errors::InvalidCommand);
+		}
+
 		SerialNumberInt_ = Utils::SerialNumberToInt(SerialNumber_);
 		Poco::Thread::current()->setName(fmt::format("{}:{}:{}", Command_, TransactionId_, SerialNumber_));
 
-		if (Command_ == RESTAPI::Protocol::CAPABILITIES){
-			return GetCapabilities();
-		} else if (Command_ == RESTAPI::Protocol::LOGS) {
-			return GetLogs();
-		} else if (Command_ == RESTAPI::Protocol::HEALTHCHECKS) {
-			return GetChecks();
-		} else if (Command_ == RESTAPI::Protocol::STATISTICS) {
-			return GetStatistics();
-		} else if (Command_ == RESTAPI::Protocol::STATUS) {
-			return GetStatus();
-		} else if (Command_ == RESTAPI::Protocol::RTTY) {
-            AP_Restrictions     Restrictions;
-			if(!AP_WS_Server()->Connected(SerialNumberInt_, Restrictions)) {
-				CallCanceled(Command_.c_str(), RESTAPI::Errors::DeviceNotConnected);
-				return BadRequest(RESTAPI::Errors::DeviceNotConnected);
-			}
-			auto UUID = MicroServiceCreateUUID();
-			auto RPC = CommandManager()->Next_RPC_ID();
-			poco_debug(Logger_,fmt::format("Command rtty TID={} can proceed. Identified as {} and RPCID as {}. thr_id={}",
-											TransactionId_, UUID, RPC,
-											Poco::Thread::current()->id()));
-			return Rtty(UUID,RPC,60000ms, Restrictions);
-		} else {
-			return BadRequest(RESTAPI::Errors::InvalidCommand);
+		switch(Command) {
+			case APCommands::Commands::capabilities:
+				return GetCapabilities();
+			case APCommands::Commands::logs:
+				return GetLogs();
+			case APCommands::Commands::healthchecks:
+				return GetChecks();
+			case APCommands::Commands::statistics:
+				return GetStatistics();
+			case APCommands::Commands::status:
+				return GetStatus();
+			case APCommands::Commands::rtty: {
+				AP_Restrictions     Restrictions;
+				if(!AP_WS_Server()->Connected(SerialNumberInt_, Restrictions)) {
+					CallCanceled(Command_.c_str(), RESTAPI::Errors::DeviceNotConnected);
+					return BadRequest(RESTAPI::Errors::DeviceNotConnected);
+				}
+				auto UUID = MicroServiceCreateUUID();
+				auto RPC = CommandManager()->Next_RPC_ID();
+				poco_debug(Logger_,fmt::format("Command rtty TID={} can proceed. Identified as {} and RPCID as {}. thr_id={}",
+												TransactionId_, UUID, RPC,
+												Poco::Thread::current()->id()));
+				return Rtty(UUID,RPC,60000ms, Restrictions);
+				};
+			default:
+				return BadRequest(RESTAPI::Errors::InvalidCommand);
 		}
 	}
 
@@ -96,44 +103,50 @@ namespace OpenWifi {
 			return NotFound();
 		}
 
+		auto Command = APCommands::to_apcommand(Command_.c_str());
+		if(Command==APCommands::Commands::unknown) {
+			return BadRequest(RESTAPI::Errors::InvalidCommand);
+		}
+
 		SerialNumberInt_ = Utils::SerialNumberToInt(SerialNumber_);
 		Poco::Thread::current()->setName(fmt::format("{}:{}:{}",Command_, TransactionId_,SerialNumber_));
 
-		if (Command_ == RESTAPI::Protocol::CAPABILITIES) {
+		switch(Command) {
+		case APCommands::Commands::capabilities:
 			return DeleteCapabilities();
-		} else if (Command_ == RESTAPI::Protocol::LOGS){
+		case APCommands::Commands::logs:
 			return DeleteLogs();
-		} else if (Command_ == RESTAPI::Protocol::HEALTHCHECKS){
+		case APCommands::Commands::healthchecks:
 			return DeleteChecks();
-		} else if (Command_ == RESTAPI::Protocol::STATISTICS) {
+		case APCommands::Commands::statistics:
 			return DeleteStatistics();
-		} else {
+		default:
 			return BadRequest(RESTAPI::Errors::InvalidCommand);
 		}
 	}
 
 	struct PostDeviceCommand {
-		const char *		Command;
-		bool 				AllowParallel=false;
-		bool 				RequireConnection = true;
+		APCommands::Commands			Command=APCommands::Commands::unknown;
+		bool 							AllowParallel=false;
+		bool 							RequireConnection = true;
 		void (RESTAPI_device_commandHandler::*funPtr)(const std::string &, std::uint64_t, std::chrono::milliseconds, const AP_Restrictions &R );
 		std::chrono::milliseconds 		Timeout=120ms;
 	};
 
 	const std::vector<PostDeviceCommand>	PostCommands =
 		{
-			{ RESTAPI::Protocol::CONFIGURE, false, false, &RESTAPI_device_commandHandler::Configure, 120000ms },
-			{ RESTAPI::Protocol::UPGRADE, false, false, &RESTAPI_device_commandHandler::Upgrade, 30000ms },
-			{ RESTAPI::Protocol::REBOOT, false, true, &RESTAPI_device_commandHandler::Reboot, 30000ms },
-			{ RESTAPI::Protocol::FACTORY, false, false, &RESTAPI_device_commandHandler::Factory, 30000ms },
-			{ RESTAPI::Protocol::LEDS, false, true, &RESTAPI_device_commandHandler::LEDs, 120000ms },
-			{ RESTAPI::Protocol::TRACE, false, true, &RESTAPI_device_commandHandler::Trace, 300000ms },
-			{ RESTAPI::Protocol::REQUEST, false, true, &RESTAPI_device_commandHandler::MakeRequest, 120000ms },
-			{ RESTAPI::Protocol::WIFISCAN, false, true, &RESTAPI_device_commandHandler::WifiScan, 120000ms },
-			{ RESTAPI::Protocol::EVENTQUEUE, false, true, &RESTAPI_device_commandHandler::EventQueue, 30000ms },
-			{ RESTAPI::Protocol::TELEMETRY, false, true, &RESTAPI_device_commandHandler::Telemetry, 30000ms },
-			{ RESTAPI::Protocol::PING, false, true, &RESTAPI_device_commandHandler::Ping, 60000ms },
-			{ RESTAPI::Protocol::SCRIPT, false, true, &RESTAPI_device_commandHandler::Script, 300000ms }
+			{ APCommands::Commands::configure, false, false, &RESTAPI_device_commandHandler::Configure, 120000ms },
+			{ APCommands::Commands::upgrade, false, false, &RESTAPI_device_commandHandler::Upgrade, 30000ms },
+			{ APCommands::Commands::reboot, false, true, &RESTAPI_device_commandHandler::Reboot, 30000ms },
+			{ APCommands::Commands::factory, false, false, &RESTAPI_device_commandHandler::Factory, 30000ms },
+			{ APCommands::Commands::leds, false, true, &RESTAPI_device_commandHandler::LEDs, 120000ms },
+			{ APCommands::Commands::trace, false, true, &RESTAPI_device_commandHandler::Trace, 300000ms },
+			{ APCommands::Commands::request, false, true, &RESTAPI_device_commandHandler::MakeRequest, 120000ms },
+			{ APCommands::Commands::wifiscan, false, true, &RESTAPI_device_commandHandler::WifiScan, 120000ms },
+			{ APCommands::Commands::eventqueue, false, true, &RESTAPI_device_commandHandler::EventQueue, 30000ms },
+			{ APCommands::Commands::telemetry, false, true, &RESTAPI_device_commandHandler::Telemetry, 30000ms },
+			{ APCommands::Commands::ping, false, true, &RESTAPI_device_commandHandler::Ping, 60000ms },
+			{ APCommands::Commands::script, false, true, &RESTAPI_device_commandHandler::Script, 300000ms }
 	};
 
 	void RESTAPI_device_commandHandler::DoPost() {
@@ -143,32 +156,39 @@ namespace OpenWifi {
 		if(!Utils::NormalizeMac(SerialNumber_)) {
 			return BadRequest(RESTAPI::Errors::MissingSerialNumber);
 		}
+
+		auto Command = APCommands::to_apcommand(Command_.c_str());
+		if(Command==APCommands::Commands::unknown) {
+			return BadRequest(RESTAPI::Errors::InvalidCommand);
+		}
+
 		SerialNumberInt_ = Utils::SerialNumberToInt(SerialNumber_);
 		GWObjects::Device	TheDevice;
 		if(!StorageService()->GetDevice(SerialNumber_,TheDevice)) {
 			return NotFound();
 		}
 
-		for(const auto &Command:PostCommands) {
-			if(Command_==Command.Command) {
-				Poco::Thread::current()->setName(fmt::format("{}:{}:{}",Command.Command, TransactionId_,SerialNumber_));
+		for(const auto &PostCommand:PostCommands) {
+			if(Command==PostCommand.Command) {
+				Poco::Thread::current()->setName(fmt::format("{}:{}:{}",Command_, TransactionId_,SerialNumber_));
                 AP_Restrictions Restrictions;
-				if(Command.RequireConnection && !AP_WS_Server()->Connected(SerialNumberInt_, Restrictions)) {
-					CallCanceled(Command.Command, RESTAPI::Errors::DeviceNotConnected);
+				if(PostCommand.RequireConnection && !AP_WS_Server()->Connected(SerialNumberInt_, Restrictions)) {
+					CallCanceled(Command_.c_str(), RESTAPI::Errors::DeviceNotConnected);
 					return BadRequest(RESTAPI::Errors::DeviceNotConnected);
 				}
-				std::string Command_UUID, CommandName;
-				if(!Command.AllowParallel && CommandManager()->CommandRunningForDevice(SerialNumberInt_,Command_UUID,CommandName)) {
-					auto Extra = fmt::format("UUID={} Command={}", Command_UUID, CommandName);
-					CallCanceled(Command.Command, RESTAPI::Errors::DeviceIsAlreadyBusy, Extra);
+				std::string 			Command_UUID;
+				APCommands::Commands	CommandName;
+				if(!PostCommand.AllowParallel && CommandManager()->CommandRunningForDevice(SerialNumberInt_,Command_UUID,CommandName)) {
+					auto Extra = fmt::format("UUID={} Command={}", Command_UUID, APCommands::to_string(CommandName));
+					CallCanceled(Command_.c_str(), RESTAPI::Errors::DeviceIsAlreadyBusy, Extra);
 					return BadRequest(RESTAPI::Errors::DeviceIsAlreadyBusy, Extra);
 				}
 				auto UUID = MicroServiceCreateUUID();
 				auto RPC = CommandManager()->Next_RPC_ID();
 				poco_debug(Logger_,fmt::format("Command {} TID={} can proceed. Identified as {} and RPCID as {}. thr_id={}",
-												Command.Command, TransactionId_, UUID, RPC,
+												Command_, TransactionId_, UUID, RPC,
 												Poco::Thread::current()->id()));
-				return (*this.*Command.funPtr)(UUID,RPC,Command.Timeout, Restrictions);
+				return (*this.*PostCommand.funPtr)(UUID,RPC,PostCommand.Timeout, Restrictions);
 			}
 		}
 		return BadRequest(RESTAPI::Errors::InvalidCommand);
@@ -379,7 +399,7 @@ namespace OpenWifi {
 			Params.stringify(ParamStream);
 			Cmd.Details = ParamStream.str();
 
-			RESTAPI_RPC::WaitForCommand(CMD_RPC,false,Cmd, Params, *Request, *Response, timeout, nullptr, nullptr, Logger_);
+			RESTAPI_RPC::WaitForCommand(CMD_RPC, APCommands::Commands::ping,false,Cmd, Params, *Request, *Response, timeout, nullptr, nullptr, Logger_);
 
 			GWObjects::CommandDetails Cmd2;
 			if(StorageService()->GetCommand(CMD_UUID,Cmd2)) {
@@ -425,6 +445,7 @@ namespace OpenWifi {
 			return BadRequest(RESTAPI::Errors::InvalidJSONDocument);
 		}
 
+		bool DiagnosticScript = (SCR.type=="diagnostic");
 		if(!SCR.script.empty() && !SCR.scriptId.empty()) {
 			CallCanceled("SCRIPT", CMD_UUID, CMD_RPC,RESTAPI::Errors::InvalidScriptSelection);
 			return UnAuthorized(RESTAPI::Errors::InvalidScriptSelection);
@@ -435,7 +456,12 @@ namespace OpenWifi {
 			return UnAuthorized(RESTAPI::Errors::ACCESS_DENIED);
 		}
 
-		if (SCR.script.empty() && SCR.scriptId.empty() ) {
+		if (SCR.script.empty() && SCR.scriptId.empty() && !DiagnosticScript) {
+			CallCanceled("SCRIPT", CMD_UUID, CMD_RPC,RESTAPI::Errors::InvalidScriptSelection);
+			return BadRequest(RESTAPI::Errors::InvalidScriptSelection);
+		}
+
+		if(DiagnosticScript && (!SCR.scriptId.empty() || !SCR.script.empty())){
 			CallCanceled("SCRIPT", CMD_UUID, CMD_RPC,RESTAPI::Errors::InvalidScriptSelection);
 			return BadRequest(RESTAPI::Errors::InvalidScriptSelection);
 		}
@@ -483,7 +509,7 @@ namespace OpenWifi {
 			if(!ParsedBody_->has("timeout"))
 				SCR.timeout = Existing.timeout;
 		} else {
-			if(!ValidateScriptType(SCR.type)) {
+			if(!DiagnosticScript && !ValidateScriptType(SCR.type)) {
 				CallCanceled("SCRIPT", CMD_UUID, CMD_RPC,RESTAPI::Errors::MissingOrInvalidParameters);
 				return BadRequest(RESTAPI::Errors::MissingOrInvalidParameters);
 			}
@@ -526,7 +552,9 @@ namespace OpenWifi {
 		// convert script to base64 ...
 		auto EncodedScript = Utils::base64encode((const unsigned char *)SCR.script.c_str(),SCR.script.size());
 		Params.set(uCentralProtocol::TYPE, SCR.type);
-		Params.set(uCentralProtocol::SCRIPT, EncodedScript);
+		if(!DiagnosticScript) {
+			Params.set(uCentralProtocol::SCRIPT, EncodedScript);
+		}
 		Params.set(uCentralProtocol::WHEN, SCR.when);
 
 		std::stringstream ParamStream;
@@ -534,7 +562,7 @@ namespace OpenWifi {
 		Cmd.Details = ParamStream.str();
 		FileUploader()->AddUUID(CMD_UUID, 15min, "script_result");
 
-		return RESTAPI_RPC::WaitForCommand(CMD_RPC,false,Cmd, Params, *Request, *Response, timeout, nullptr, this, Logger_);
+		return RESTAPI_RPC::WaitForCommand(CMD_RPC, APCommands::Commands::script,false,Cmd, Params, *Request, *Response, timeout, nullptr, this, Logger_);
 	}
 
 	void RESTAPI_device_commandHandler::Configure(const std::string &CMD_UUID, uint64_t CMD_RPC, std::chrono::milliseconds timeout, [[maybe_unused]] const AP_Restrictions &R) {
@@ -582,7 +610,7 @@ namespace OpenWifi {
 				Cmd.Details = ParamStream.str();
 
 				// AP_WS_Server()->SetPendingUUID(SerialNumber_, NewUUID);
-				return RESTAPI_RPC::WaitForCommand(CMD_RPC,true,Cmd, Params, *Request, *Response, timeout, nullptr, this, Logger_);
+				return RESTAPI_RPC::WaitForCommand(CMD_RPC, APCommands::Commands::configure,true,Cmd, Params, *Request, *Response, timeout, nullptr, this, Logger_);
 			}
 			return BadRequest(RESTAPI::Errors::RecordNotUpdated);
 		}
@@ -649,7 +677,7 @@ namespace OpenWifi {
 			Params.stringify(ParamStream);
 			Cmd.Details = ParamStream.str();
 
-			return RESTAPI_RPC::WaitForCommand(CMD_RPC,true,Cmd,Params, *Request, *Response, timeout, nullptr, this, Logger_);
+			return RESTAPI_RPC::WaitForCommand(CMD_RPC, APCommands::Commands::upgrade,true,Cmd,Params, *Request, *Response, timeout, nullptr, this, Logger_);
 		}
 		BadRequest(RESTAPI::Errors::MissingOrInvalidParameters);
 	}
@@ -683,7 +711,7 @@ namespace OpenWifi {
 			Params.stringify(ParamStream);
 			Cmd.Details = ParamStream.str();
 
-			return RESTAPI_RPC::WaitForCommand(CMD_RPC,false,Cmd, Params, *Request, *Response, timeout, nullptr, this, Logger_);
+			return RESTAPI_RPC::WaitForCommand(CMD_RPC, APCommands::Commands::reboot, false,Cmd, Params, *Request, *Response, timeout, nullptr, this, Logger_);
 		}
 		BadRequest(RESTAPI::Errors::MissingSerialNumber);
 	}
@@ -723,7 +751,7 @@ namespace OpenWifi {
 			Params.stringify(ParamStream);
 			Cmd.Details = ParamStream.str();
 
-			return RESTAPI_RPC::WaitForCommand(CMD_RPC,true,Cmd, Params, *Request, *Response, timeout, nullptr, this, Logger_);
+			return RESTAPI_RPC::WaitForCommand(CMD_RPC, APCommands::Commands::factory,true,Cmd, Params, *Request, *Response, timeout, nullptr, this, Logger_);
 		}
 		BadRequest(RESTAPI::Errors::MissingOrInvalidParameters);
 	}
@@ -771,7 +799,7 @@ namespace OpenWifi {
 			Params.stringify(ParamStream);
 			Cmd.Details = ParamStream.str();
 
-			return RESTAPI_RPC::WaitForCommand(CMD_RPC,false,Cmd, Params, *Request, *Response, timeout, nullptr, this, Logger_);
+			return RESTAPI_RPC::WaitForCommand(CMD_RPC, APCommands::Commands::leds,false,Cmd, Params, *Request, *Response, timeout, nullptr, this, Logger_);
 		}
 		BadRequest(RESTAPI::Errors::MissingOrInvalidParameters);
 	}
@@ -824,7 +852,7 @@ namespace OpenWifi {
 			Cmd.Details = ParamStream.str();
 
 			FileUploader()->AddUUID(CMD_UUID, 10min, "trace");
-			return RESTAPI_RPC::WaitForCommand(CMD_RPC,false,Cmd, Params, *Request, *Response, timeout, nullptr, this, Logger_);
+			return RESTAPI_RPC::WaitForCommand(CMD_RPC, APCommands::Commands::trace,false,Cmd, Params, *Request, *Response, timeout, nullptr, this, Logger_);
 		}
 		BadRequest(RESTAPI::Errors::MissingOrInvalidParameters);
 	}
@@ -873,7 +901,7 @@ namespace OpenWifi {
 		std::stringstream ParamStream;
 		Params.stringify(ParamStream);
 		Cmd.Details = ParamStream.str();
-		RESTAPI_RPC::WaitForCommand(CMD_RPC,false,Cmd, Params, *Request, *Response, timeout, nullptr, this, Logger_);
+		RESTAPI_RPC::WaitForCommand(CMD_RPC, APCommands::Commands::wifiscan,false,Cmd, Params, *Request, *Response, timeout, nullptr, this, Logger_);
 		if (Cmd.ErrorCode == 0) {
 			KafkaManager()->PostMessage(KafkaTopics::WIFISCAN, SerialNumber_, Cmd.Results);
 		}
@@ -908,7 +936,7 @@ namespace OpenWifi {
 			Params.stringify(ParamStream);
 			Cmd.Details = ParamStream.str();
 
-			RESTAPI_RPC::WaitForCommand(CMD_RPC,false,Cmd, Params, *Request, *Response, timeout, nullptr, this, Logger_);
+			RESTAPI_RPC::WaitForCommand(CMD_RPC, APCommands::Commands::eventqueue,false,Cmd, Params, *Request, *Response, timeout, nullptr, this, Logger_);
 			if(Cmd.ErrorCode==0) {
 				KafkaManager()->PostMessage(KafkaTopics::DEVICE_EVENT_QUEUE, SerialNumber_,
 											Cmd.Results);
@@ -955,7 +983,7 @@ namespace OpenWifi {
 			Params.stringify(ParamStream);
 			Cmd.Details = ParamStream.str();
 
-			return RESTAPI_RPC::WaitForCommand(CMD_RPC,false,Cmd, Params, *Request, *Response, timeout, nullptr, this, Logger_ );
+			return RESTAPI_RPC::WaitForCommand(CMD_RPC, APCommands::Commands::request,false,Cmd, Params, *Request, *Response, timeout, nullptr, this, Logger_ );
 		}
 		BadRequest(RESTAPI::Errors::MissingOrInvalidParameters);
 	}
@@ -1018,7 +1046,7 @@ namespace OpenWifi {
 				Params.stringify(ParamStream);
 				Cmd.Details = ParamStream.str();
 				poco_information(Logger_,fmt::format("RTTY: user={} serial={} rttyid={} token={} cmd={}.", Requester(), SerialNumber_, Rtty.ConnectionId, Rtty.Token, CMD_UUID));
-				return RESTAPI_RPC::WaitForCommand(CMD_RPC,false,Cmd, Params, *Request, *Response, timeout, &ReturnedObject, this, Logger_);
+				return RESTAPI_RPC::WaitForCommand(CMD_RPC, APCommands::Commands::rtty,false,Cmd, Params, *Request, *Response, timeout, &ReturnedObject, this, Logger_);
 			}
 			return NotFound();
 		}

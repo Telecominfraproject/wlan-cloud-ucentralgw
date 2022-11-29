@@ -9,6 +9,7 @@
 #include "framework/ow_constants.h"
 #include "framework/MicroServiceFuncs.h"
 #include "fmt/format.h"
+#include "framework/ow_constants.h"
 
 namespace OpenWifi {
 	void AP_WS_Connection::Process_recovery(Poco::JSON::Object::Ptr ParamsObj) {
@@ -51,7 +52,7 @@ namespace OpenWifi {
 				Poco::JSON::Stringifier::stringify(Params, O);
 				Cmd.Details = O.str();
 				bool Sent;
-				CommandManager()->PostCommand(CommandManager()->Next_RPC_ID(),SerialNumber_, Cmd.Command, Params, Cmd.UUID, Sent);
+				CommandManager()->PostCommand(CommandManager()->Next_RPC_ID(), APCommands::Commands::reboot, SerialNumber_, Cmd.Command, Params, Cmd.UUID, Sent);
 				StorageService()->AddCommand(SerialNumber_, Cmd, Storage::CommandExecutionType::COMMAND_EXECUTED);
 				poco_information(Logger_, fmt::format("RECOVERY({}): Recovery mode received, need for a reboot.", CId_));
 			} else {

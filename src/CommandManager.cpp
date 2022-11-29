@@ -60,8 +60,13 @@ namespace OpenWifi {
 								}
 								poco_debug(Logger(),
 									fmt::format("({}): Received RPC answer {}. Command={}",
-													   SerialNumberStr, ID, RPC->second.Command));
-								OutStandingRequests_.erase(ID);
+													   SerialNumberStr, ID, APCommands::to_string(RPC->second.Command)));
+								if(RPC->second.Command==APCommands::Commands::script) {
+
+								}
+								RPC->second.State--;
+								if(RPC->second.State==0)
+									OutStandingRequests_.erase(ID);
 							}
 						}
 					}
@@ -120,7 +125,7 @@ namespace OpenWifi {
 			if(delta > 10min) {
 				MyLogger.debug(fmt::format("{}: Command={} for {} Timed out.",
 										   request->second.UUID,
-										   request->second.Command,
+										   APCommands::to_string(request->second.Command),
 										   Utils::IntToSerialNumber(request->second.SerialNumber)));
 				request = OutStandingRequests_.erase(request);
 			} else {
@@ -189,14 +194,15 @@ namespace OpenWifi {
 							continue;
 						}
 
-						std::string ExecutingCommand, ExecutingUUID;
+						std::string 			ExecutingUUID;
+						APCommands::Commands	ExecutingCommand=APCommands::Commands::unknown;
 						if (CommandRunningForDevice(Utils::SerialNumberToInt(Cmd.SerialNumber),
 													ExecutingUUID, ExecutingCommand)) {
 							poco_trace(
 								MyLogger,
 								fmt::format(
 									"{}: Serial={} Command={} Device is already busy with command {} (Command={})."
-									, Cmd.UUID, Cmd.SerialNumber, Cmd.Command,ExecutingUUID, ExecutingCommand));
+									, Cmd.UUID, Cmd.SerialNumber, Cmd.Command, ExecutingUUID, APCommands::to_string(ExecutingCommand)));
 							continue;
 						}
 
@@ -205,7 +211,7 @@ namespace OpenWifi {
 						poco_information(MyLogger, fmt::format("{}: Serial={} Command={} Preparing execution.",
 														 Cmd.UUID, Cmd.SerialNumber, Cmd.Command));
 						auto Params = P.parse(Cmd.Details).extract<Poco::JSON::Object::Ptr>();
-						auto Result = PostCommandDisk(Next_RPC_ID(), Cmd.SerialNumber, Cmd.Command,
+						auto Result = PostCommandDisk(Next_RPC_ID(), APCommands::to_apcommand(Cmd.Command.c_str()), Cmd.SerialNumber, Cmd.Command,
 													  *Params, Cmd.UUID, Sent);
 						if (Sent) {
 							StorageService()->SetCommandExecuted(Cmd.UUID);
@@ -240,9 +246,10 @@ namespace OpenWifi {
 	}
 
 	std::shared_ptr<CommandManager::promise_type_t> CommandManager::PostCommand(
-		uint64_t RPCID,
+		uint64_t RPC_ID,
+		APCommands::Commands Command,
 		const std::string &SerialNumber,
-		const std::string &Command,
+		const std::string &CommandStr,
 		const Poco::JSON::Object &Params,
 		const std::string &UUID,
 		bool oneway_rpc,
@@ -255,31 +262,33 @@ namespace OpenWifi {
 		std::stringstream 	ToSend;
 
 		CommandInfo		Idx;
-		Idx.Id = oneway_rpc ? 1 : RPCID;
+		Idx.Id = oneway_rpc ? 1 : RPC_ID;
 		Idx.SerialNumber = SerialNumberInt;
 		Idx.Command = Command;
+		if(Command == APCommands::Commands::script)
+			Idx.State=2;
 		Idx.UUID = UUID;
 
 		Poco::JSON::Object CompleteRPC;
 		CompleteRPC.set(uCentralProtocol::JSONRPC, uCentralProtocol::JSONRPC_VERSION);
-		CompleteRPC.set(uCentralProtocol::ID, RPCID);
+		CompleteRPC.set(uCentralProtocol::ID, RPC_ID);
 		CompleteRPC.set(uCentralProtocol::METHOD, Command);
 		CompleteRPC.set(uCentralProtocol::PARAMS, Params);
 		Poco::JSON::Stringifier::stringify(CompleteRPC, ToSend);
 		Idx.rpc_entry = disk_only ? nullptr : std::make_shared<CommandManager::promise_type_t>();
 
-		poco_debug(Logger(), fmt::format("{}: Sending command. ID: {}", UUID, RPCID));
+		poco_debug(Logger(), fmt::format("{}: Sending command {} to {}. ID: {}", UUID, CommandStr, SerialNumber, RPC_ID));
 		if(AP_WS_Server()->SendFrame(SerialNumber, ToSend.str())) {
 			if(!oneway_rpc) {
 				std::lock_guard M(Mutex_);
-				OutStandingRequests_[RPCID] = Idx;
+				OutStandingRequests_[RPC_ID] = Idx;
 			}
-			poco_debug(Logger(), fmt::format("{}: Sent command. ID: {}", UUID, RPCID));
+			poco_debug(Logger(), fmt::format("{}: Sent command. ID: {}", UUID, RPC_ID));
 			Sent=true;
 			return Idx.rpc_entry;
 		}
 
-		poco_warning(Logger(), fmt::format("{}: Failed to send command. ID: {}", UUID, RPCID));
+		poco_warning(Logger(), fmt::format("{}: Failed to send command. ID: {}", UUID, RPC_ID));
 		return nullptr;
 	}
 }  // namespace

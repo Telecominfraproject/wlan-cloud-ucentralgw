@@ -18,10 +18,13 @@
 #include "StorageService.h"
 #include "framework/RESTAPI_Handler.h"
 
+#include "framework/ow_constants.h"
+
 namespace OpenWifi::RESTAPI_RPC {
 
 	void WaitForCommand(
 					uint64_t RPCID,
+					APCommands::Commands Command,
 					bool RetryLater,
 					GWObjects::CommandDetails &Cmd,
 					Poco::JSON::Object  & Params,

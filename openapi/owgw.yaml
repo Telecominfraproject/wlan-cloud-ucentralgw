@@ -514,6 +514,7 @@ components:
           enum:
             - shell
             - bundle
+            - diagnostic
         script:
           type: string
         scriptId:
