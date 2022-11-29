@@ -69,8 +69,10 @@ namespace OpenWifi {
 										}
 
 										if (Payload->has("result")) {
+											std::cout << __LINE__ << std::endl;
 											auto Result = Payload->getObject("result");
 											if (Result->has("status")) {
+												std::cout << __LINE__ << std::endl;
 												auto Status = Result->get("status");
 												std::uint64_t Error = Result->get("error");
 												if(Error==0) {
@@ -85,6 +87,7 @@ namespace OpenWifi {
 													RPC->second.State = 0 ;
 												}
 											}
+											std::cout << __LINE__ << std::endl;
 										} else {
 											std::cout << "Bad payload on command result" << std::endl;
 											RPC->second.State=0;
