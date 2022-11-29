@@ -76,8 +76,8 @@ namespace OpenWifi {
 											auto Result = Payload->getObject("result");
 											if (Result->has("status")) {
 												std::cout << __LINE__ << std::endl;
-												auto Status = Result->get("status");
-												std::uint64_t Error = Result->get("error");
+												auto Status = Result->getObject("status");
+												std::uint64_t Error = Status->get("error");
 												if(Error==0) {
 													std::cout << __LINE__ << std::endl;
 													StorageService()->CommandCompleted(RPC->second.UUID, Payload,
