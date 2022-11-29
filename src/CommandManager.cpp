@@ -37,6 +37,8 @@ namespace OpenWifi {
 					std::ostringstream SS;
 					Payload->stringify(SS);
 
+					std::cout << SS.str() << std::endl;
+
 					if (!Payload->has(uCentralProtocol::ID)) {
 						poco_error(Logger(), fmt::format("({}): Invalid RPC response.", SerialNumberStr));
 					} else {
