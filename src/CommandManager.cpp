@@ -53,6 +53,7 @@ namespace OpenWifi {
 								std::chrono::duration<double, std::milli> rpc_execution_time =
 									std::chrono::high_resolution_clock::now() -
 									RPC->second.submitted;
+
 								StorageService()->CommandCompleted(RPC->second.UUID, Payload,
 																   rpc_execution_time, true);
 								if (RPC->second.rpc_entry) {
@@ -62,9 +63,13 @@ namespace OpenWifi {
 									fmt::format("({}): Received RPC answer {}. Command={}",
 													   SerialNumberStr, ID, APCommands::to_string(RPC->second.Command)));
 								if(RPC->second.Command==APCommands::Commands::script) {
-
+									//	 look at the payload to see if we should continue or not...
+									std::ostringstream os;
+									Payload->stringify(os);
+									std::cout << os.str() << std::endl;
+								} else {
+									RPC->second.State--;
 								}
-								RPC->second.State--;
 								if(RPC->second.State==0)
 									OutStandingRequests_.erase(ID);
 							}
