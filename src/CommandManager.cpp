@@ -54,24 +54,53 @@ namespace OpenWifi {
 									std::chrono::high_resolution_clock::now() -
 									RPC->second.submitted;
 
-								StorageService()->CommandCompleted(RPC->second.UUID, Payload,
-																   rpc_execution_time, true);
-								if (RPC->second.rpc_entry) {
-									RPC->second.rpc_entry->set_value(Payload);
-								}
 								poco_debug(Logger(),
 									fmt::format("({}): Received RPC answer {}. Command={}",
 													   SerialNumberStr, ID, APCommands::to_string(RPC->second.Command)));
 								if(RPC->second.Command==APCommands::Commands::script) {
-									//	 look at the payload to see if we should continue or not...
-									std::ostringstream os;
-									Payload->stringify(os);
-									std::cout << os.str() << std::endl;
+									if(RPC->second.State==2) {
+										//	 look at the payload to see if we should continue or not...
+										std::ostringstream os;
+										Payload->stringify(os);
+										std::cout << os.str() << std::endl;
+
+										if (RPC->second.rpc_entry) {
+											RPC->second.rpc_entry->set_value(Payload);
+										}
+
+										if (Payload->has("result")) {
+											auto Result = Payload->getObject("result");
+											if (Result->has("status")) {
+												auto Status = Result->get("status");
+												std::uint64_t Error = Result->get("error");
+												if(Error==0) {
+													StorageService()->CommandCompleted(RPC->second.UUID, Payload,
+																					   rpc_execution_time, true);
+													RPC->second.State = 1 ;
+												} else {
+													std::string ErrorTxt = Result->get("result");
+													StorageService()->CancelWaitFile(RPC->second.UUID, ErrorTxt);
+													RPC->second.State = 0 ;
+												}
+											}
+										}
+									} else {
+										StorageService()->CommandCompleted(RPC->second.UUID, Payload,
+																		   rpc_execution_time, true);
+										RPC->second.State=0;
+									}
 								} else {
-									RPC->second.State--;
+									StorageService()->CommandCompleted(RPC->second.UUID, Payload,
+																	   rpc_execution_time, true);
+									if (RPC->second.rpc_entry) {
+										RPC->second.rpc_entry->set_value(Payload);
+									}
+									RPC->second.State = 1 ;
 								}
+
 								if(RPC->second.State==0)
 									OutStandingRequests_.erase(ID);
+
 							}
 						}
 					}

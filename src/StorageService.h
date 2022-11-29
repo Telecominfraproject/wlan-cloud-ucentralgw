@@ -150,10 +150,8 @@ namespace OpenWifi {
 		bool GetReadyToExecuteCommands( uint64_t Offset, uint64_t HowMany, std::vector<GWObjects::CommandDetails> & Commands );
 		bool CommandExecuted(std::string & UUID);
 		bool CommandCompleted(std::string & UUID, Poco::JSON::Object::Ptr ReturnVars, const std::chrono::duration<double, std::milli> & execution_time, bool FullCommand);
-//		bool AttachFileToCommand(std::string & UUID);
 		bool AttachFileDataToCommand(std::string & UUID, const std::stringstream &s, const std::string &Type);
 		bool CancelWaitFile( std::string & UUID, std::string & ErrorText );
-//		bool GetAttachedFile(std::string & UUID, const std::string & SerialNumber, const std::string & FileName, std::string &Type);
 		bool GetAttachedFileContent(std::string & UUID, const std::string & SerialNumber, std::string & FileContent, std::string &Type);
 		bool RemoveAttachedFile(std::string & UUID);
 		bool SetCommandResult(std::string & UUID, std::string & Result);
