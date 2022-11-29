@@ -272,7 +272,7 @@ namespace OpenWifi {
 		Poco::JSON::Object CompleteRPC;
 		CompleteRPC.set(uCentralProtocol::JSONRPC, uCentralProtocol::JSONRPC_VERSION);
 		CompleteRPC.set(uCentralProtocol::ID, RPC_ID);
-		CompleteRPC.set(uCentralProtocol::METHOD, Command);
+		CompleteRPC.set(uCentralProtocol::METHOD, CommandStr);
 		CompleteRPC.set(uCentralProtocol::PARAMS, Params);
 		Poco::JSON::Stringifier::stringify(CompleteRPC, ToSend);
 		Idx.rpc_entry = disk_only ? nullptr : std::make_shared<CommandManager::promise_type_t>();
