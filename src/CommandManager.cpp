@@ -109,11 +109,13 @@ namespace OpenWifi {
 									if (RPC->second.rpc_entry) {
 										RPC->second.rpc_entry->set_value(Payload);
 									}
-									RPC->second.State = 1 ;
+									RPC->second.State = 0 ;
 								}
 
-								if(RPC->second.State==0)
+								if(RPC->second.State==0) {
+									std::cout << __LINE__ << std::endl;
 									OutStandingRequests_.erase(ID);
+								}
 
 							}
 						}
