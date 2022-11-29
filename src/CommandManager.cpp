@@ -63,10 +63,13 @@ namespace OpenWifi {
 										std::ostringstream os;
 										Payload->stringify(os);
 										std::cout << os.str() << std::endl;
+										std::cout << __LINE__ << std::endl;
 
 										if (RPC->second.rpc_entry) {
+											std::cout << __LINE__ << std::endl;
 											RPC->second.rpc_entry->set_value(Payload);
 										}
+										std::cout << __LINE__ << std::endl;
 
 										if (Payload->has("result")) {
 											std::cout << __LINE__ << std::endl;
