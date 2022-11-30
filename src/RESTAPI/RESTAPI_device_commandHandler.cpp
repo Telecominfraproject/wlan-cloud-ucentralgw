@@ -658,7 +658,7 @@ namespace OpenWifi {
 			Params.set(uCentralProtocol::URI, URI);
 			Params.set(uCentralProtocol::KEEP_REDIRECTOR, KeepRedirector ? 1 : 0);
 
-			if(!R.sysupgrade_not_allowed() && FWSignature.empty()) {
+			if(R.sysupgrade_not_allowed() && FWSignature.empty()) {
 				Poco::URI	uri(URI);
 				FWSignature = SignatureManager()->Sign(R,uri);
 			}

@@ -114,67 +114,42 @@ namespace OpenWifi {
 
 		inline std::string Sign(const AP_Restrictions &Restrictions, const Poco::URI &uri)  {
 			std::shared_lock L(KeyMutex_);
-			std::cout << __LINE__ << std::endl;
 			try {
-				std::cout << __LINE__ << std::endl;
 				if (Restrictions.algo() == "static") {
-					std::cout << __LINE__ << std::endl;
 					return "aaaaaaaaaa";
 				}
 
-				std::cout << __LINE__ << std::endl;
 				auto Vendor = Keys_.find(Restrictions.vendor());
-				std::cout << __LINE__ << std::endl;
 				if (Vendor == Keys_.end()) {
-					std::cout << __LINE__ << std::endl;
 					poco_error( Logger(), fmt::format("{}: vendor unknown.", Restrictions.vendor()));
-					std::cout << __LINE__ << std::endl;
 					return "";
 				}
 
-				std::cout << __LINE__ << std::endl;
 				if (Restrictions.algo() == "dgst-sha256") {
-					std::cout << __LINE__ << std::endl;
 					auto FileHash =
 						Utils::ComputeHash(Restrictions.vendor(), Restrictions.algo(), uri.getPathAndQuery());
-					std::cout << __LINE__ << std::endl;
 					auto CacheEntry = SignatureCache_.find(FileHash);
-					std::cout << __LINE__ << std::endl;
 					if (CacheEntry != end(SignatureCache_)) {
-						std::cout << __LINE__ << std::endl;
 						return CacheEntry->second;
 					}
 
-					std::cout << __LINE__ << std::endl;
 					Poco::TemporaryFile TempDownloadedFile;
-					std::cout << __LINE__ << std::endl;
 					if (Utils::wgetfile(uri, TempDownloadedFile.path())) {
-						std::cout << __LINE__ << std::endl;
 						Poco::Crypto::RSADigestEngine R(*Vendor->second, "SHA256");
-						std::cout << __LINE__ << std::endl;
 						Poco::DigestOutputStream ofs(R);
-						std::cout << __LINE__ << std::endl;
 						std::fstream ifs(TempDownloadedFile.path(),
 										 std::ios_base::in | std::ios_base::binary);
-						std::cout << __LINE__ << std::endl;
 						Poco::StreamCopier::copyStream(ifs, ofs);
-						std::cout << __LINE__ << std::endl;
 						ofs.flush();
-						std::cout << __LINE__ << std::endl;
 						auto Signature = Utils::base64encode((const unsigned char *)R.signature().data(),R.signature().size());
-						std::cout << __LINE__ << std::endl;
 						SignatureCache_[FileHash] = Signature;
-						std::cout << __LINE__ << std::endl;
 						SaveCache();
-						std::cout << __LINE__ << std::endl;
 						return Signature;
 					}
 				}
 			} catch (const Poco::Exception &E) {
-				std::cout << __LINE__ << std::endl;
 				Logger().log(E);
 			}
-			std::cout << __LINE__ << std::endl;
 			return "";
 		}
 
