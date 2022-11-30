@@ -133,7 +133,7 @@ namespace OpenWifi {
 		std::chrono::milliseconds 		Timeout=120ms;
 	};
 
-	const std::vector<PostDeviceCommand>	PostCommands =
+	static const std::vector<PostDeviceCommand>	PostCommands =
 		{
 			{ APCommands::Commands::configure, false, false, &RESTAPI_device_commandHandler::Configure, 120000ms },
 			{ APCommands::Commands::upgrade, false, false, &RESTAPI_device_commandHandler::Upgrade, 30000ms },
