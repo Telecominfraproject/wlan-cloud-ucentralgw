@@ -127,7 +127,7 @@ namespace OpenWifi {
 				std::cout << __LINE__ << std::endl;
 				if (Vendor == Keys_.end()) {
 					std::cout << __LINE__ << std::endl;
-					poco_error( Logger(), fmt::format("{}: vendor unknown.", Vendor->first));
+					poco_error( Logger(), fmt::format("{}: vendor unknown.", Restrictions.vendor()));
 					std::cout << __LINE__ << std::endl;
 					return "";
 				}
