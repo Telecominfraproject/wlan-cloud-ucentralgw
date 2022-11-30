@@ -43,6 +43,7 @@ namespace OpenWifi {
 						poco_error(Logger(), fmt::format("({}): Invalid RPC response.", SerialNumberStr));
 					} else {
 						uint64_t ID = Payload->get(uCentralProtocol::ID);
+						std::shared_ptr<promise_type_t> TmpRpcEntry;
 						poco_debug(Logger(),fmt::format("({}): Processing {} response.", SerialNumberStr, ID));
 						if (ID > 1) {
 							std::lock_guard	Lock(LocalMutex_);
@@ -62,14 +63,10 @@ namespace OpenWifi {
 								if(RPC->second.Command==APCommands::Commands::script) {
 									if(RPC->second.State==2) {
 										//	 look at the payload to see if we should continue or not...
-										std::ostringstream os;
-										Payload->stringify(os);
-										std::cout << os.str() << std::endl;
-										std::cout << __LINE__ << std::endl;
-
 										if (RPC->second.rpc_entry) {
 											std::cout << __LINE__ << std::endl;
-											RPC->second.rpc_entry->set_value(Payload);
+											TmpRpcEntry = RPC->second.rpc_entry;
+//											RPC->second.rpc_entry->set_value(Payload);
 										}
 										std::cout << __LINE__ << std::endl;
 
@@ -109,7 +106,8 @@ namespace OpenWifi {
 									StorageService()->CommandCompleted(RPC->second.UUID, Payload,
 																	   rpc_execution_time, true);
 									if (RPC->second.rpc_entry) {
-										RPC->second.rpc_entry->set_value(Payload);
+										TmpRpcEntry = RPC->second.rpc_entry;
+//										RPC->second.rpc_entry->set_value(Payload);
 									}
 									RPC->second.State = 0 ;
 								}
@@ -120,6 +118,7 @@ namespace OpenWifi {
 								}
 
 							}
+							TmpRpcEntry->set_value(Payload);
 						}
 					}
 				}
