@@ -418,6 +418,10 @@ typedef Poco::Tuple<
 
 			Delete << ConvertParams(St), Poco::Data::Keywords::use(UUID);
 			Delete.execute();
+			Delete.reset(Sess);
+			St = "DELETE FROM FileUploads WHERE UUID=?";
+			Delete << ConvertParams(St), Poco::Data::Keywords::use(UUID);
+			Delete.execute();
 
 			return true;
 		} catch (const Poco::Exception &E) {
