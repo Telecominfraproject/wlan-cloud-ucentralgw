@@ -1928,6 +1928,70 @@ ul.nav-tabs {
     }
   }
 };
+    defs["ScriptEntry"] = {
+  "type" : "object",
+  "properties" : {
+    "id" : {
+      "type" : "string"
+    },
+    "name" : {
+      "type" : "string"
+    },
+    "description" : {
+      "type" : "string"
+    },
+    "uri" : {
+      "type" : "string"
+    },
+    "content" : {
+      "type" : "string"
+    },
+    "version" : {
+      "type" : "string"
+    },
+    "type" : {
+      "type" : "string",
+      "enum" : [ "shell", "bundle" ]
+    },
+    "created" : {
+      "type" : "integer"
+    },
+    "modified" : {
+      "type" : "integer"
+    },
+    "author" : {
+      "type" : "string"
+    },
+    "restricted" : {
+      "type" : "array",
+      "items" : {
+        "type" : "string"
+      }
+    },
+    "deferred" : {
+      "type" : "boolean",
+      "default" : false
+    },
+    "timeout" : {
+      "type" : "integer",
+      "default" : 30
+    },
+    "defaultUploadURI" : {
+      "type" : "string"
+    }
+  }
+};
+    defs["ScriptEntryList"] = {
+  "type" : "object",
+  "properties" : {
+    "scripts" : {
+      "type" : "array",
+      "items" : {
+        "$ref" : "#/components/schemas/ScriptEntry"
+      }
+    }
+  }
+};
     defs["ScriptRequest"] = {
   "type" : "object",
   "properties" : {
@@ -1941,9 +2005,12 @@ ul.nav-tabs {
     },
     "type" : {
       "type" : "string",
-      "enum" : [ "shell", "bundle" ]
+      "enum" : [ "shell", "bundle", "diagnostic" ]
     },
     "script" : {
+      "type" : "string"
+    },
+    "scriptId" : {
       "type" : "string"
     },
     "when" : {
@@ -2602,6 +2669,22 @@ ul.nav-tabs {
                     </li>
                     <li data-group="RADIUSProxy" data-name="modifyRadiusProxyConfig" class="">
                       <a href="#api-RADIUSProxy-modifyRadiusProxyConfig">modifyRadiusProxyConfig</a>
+                    </li>
+                  <li class="nav-header" data-group="Scripting"><a href="#api-Scripting">API Methods - Scripting</a></li>
+                    <li data-group="Scripting" data-name="createScript" class="">
+                      <a href="#api-Scripting-createScript">createScript</a>
+                    </li>
+                    <li data-group="Scripting" data-name="deleteScript" class="">
+                      <a href="#api-Scripting-deleteScript">deleteScript</a>
+                    </li>
+                    <li data-group="Scripting" data-name="getScript" class="">
+                      <a href="#api-Scripting-getScript">getScript</a>
+                    </li>
+                    <li data-group="Scripting" data-name="getScripts" class="">
+                      <a href="#api-Scripting-getScripts">getScripts</a>
+                    </li>
+                    <li data-group="Scripting" data-name="modifyScript" class="">
+                      <a href="#api-Scripting-modifyScript">modifyScript</a>
                     </li>
                   <li class="nav-header" data-group="SystemCommands"><a href="#api-SystemCommands">API Methods - SystemCommands</a></li>
                     <li data-group="SystemCommands" data-name="getSystemCommand" class="">
@@ -5441,6 +5524,7 @@ $(document).ready(function() {
  "https://localhost:16001/api/v1/device/{serialNumber}/script" \
  -d '{
   &quot;deferred&quot; : true,
+  &quot;scriptId&quot; : &quot;scriptId&quot;,
   &quot;serialNumber&quot; : &quot;serialNumber&quot;,
   &quot;signature&quot; : &quot;signature&quot;,
   &quot;type&quot; : &quot;shell&quot;,
@@ -26282,6 +26366,2292 @@ $(document).ready(function() {
 
 
                             <div class="tab-content" id="responses-RADIUSProxy-modifyRadiusProxyConfig-403-wrapper" style='margin-bottom: 10px;'>
+                            </div>
+                        </article>
+                      </div>
+                      <hr>
+                  </section>
+                <section id="api-Scripting">
+                  <h1>Scripting</h1>
+                    <div id="api-Scripting-createScript">
+                      <article id="api-Scripting-createScript-0" data-group="User" data-name="createScript" data-version="0">
+                        <div class="pull-left">
+                          <h1>createScript</h1>
+                          <p>Create a new script.</p>
+                        </div>
+                        <div class="pull-right"></div>
+                        <div class="clearfix"></div>
+                        <p></p>
+                        <p class="marked"></p>
+                        <p></p>
+                        <br />
+                        <pre class="prettyprint language-html prettyprinted" data-type="post"><code><span class="pln">/script/{uuid}</span></code></pre>
+                        <p>
+                          <h3>Usage and SDK Samples</h3>
+                        </p>
+                        <ul class="nav nav-tabs nav-tabs-examples">
+                          <li class="active"><a href="#examples-Scripting-createScript-0-curl">Curl</a></li>
+                          <li class=""><a href="#examples-Scripting-createScript-0-java">Java</a></li>
+                          <li class=""><a href="#examples-Scripting-createScript-0-android">Android</a></li>
+                          <!--<li class=""><a href="#examples-Scripting-createScript-0-groovy">Groovy</a></li>-->
+                          <li class=""><a href="#examples-Scripting-createScript-0-objc">Obj-C</a></li>
+                          <li class=""><a href="#examples-Scripting-createScript-0-javascript">JavaScript</a></li>
+                          <!--<li class=""><a href="#examples-Scripting-createScript-0-angular">Angular</a></li>-->
+                          <li class=""><a href="#examples-Scripting-createScript-0-csharp">C#</a></li>
+                          <li class=""><a href="#examples-Scripting-createScript-0-php">PHP</a></li>
+                          <li class=""><a href="#examples-Scripting-createScript-0-perl">Perl</a></li>
+                          <li class=""><a href="#examples-Scripting-createScript-0-python">Python</a></li>
+                          <li class=""><a href="#examples-Scripting-createScript-0-rust">Rust</a></li>
+                        </ul>
+
+                        <div class="tab-content">
+                          <div class="tab-pane active" id="examples-Scripting-createScript-0-curl">
+                            <pre class="prettyprint"><code class="language-bsh">curl -X POST \
+-H "X-API-KEY: [[apiKey]]" \
+ -H "Authorization: Bearer [[accessToken]]" \
+ -H "Content-Type: application/json" \
+ "https://localhost:16001/api/v1/script/{uuid}" \
+ -d '{
+  &quot;deferred&quot; : false,
+  &quot;defaultUploadURI&quot; : &quot;defaultUploadURI&quot;,
+  &quot;created&quot; : 0,
+  &quot;author&quot; : &quot;author&quot;,
+  &quot;description&quot; : &quot;description&quot;,
+  &quot;type&quot; : &quot;shell&quot;,
+  &quot;uri&quot; : &quot;uri&quot;,
+  &quot;version&quot; : &quot;version&quot;,
+  &quot;content&quot; : &quot;content&quot;,
+  &quot;timeout&quot; : 1,
+  &quot;restricted&quot; : [ &quot;restricted&quot;, &quot;restricted&quot; ],
+  &quot;name&quot; : &quot;name&quot;,
+  &quot;modified&quot; : 6,
+  &quot;id&quot; : &quot;id&quot;
+}'
+</code></pre>
+                          </div>
+                          <div class="tab-pane" id="examples-Scripting-createScript-0-java">
+                            <pre class="prettyprint"><code class="language-java">import org.openapitools.client.*;
+import org.openapitools.client.auth.*;
+import org.openapitools.client.model.*;
+import org.openapitools.client.api.ScriptingApi;
+
+import java.io.File;
+import java.util.*;
+
+public class ScriptingApiExample {
+    public static void main(String[] args) {
+        ApiClient defaultClient = Configuration.getDefaultApiClient();
+        
+        // Configure API key authorization: ApiKeyAuth
+        ApiKeyAuth ApiKeyAuth = (ApiKeyAuth) defaultClient.getAuthentication("ApiKeyAuth");
+        ApiKeyAuth.setApiKey("YOUR API KEY");
+        // Uncomment the following line to set a prefix for the API key, e.g. "Token" (defaults to null)
+        //ApiKeyAuth.setApiKeyPrefix("Token");
+        
+        // Configure Bearer (JWT) access token for authorization: bearerAuth
+        HttpBearerAuth bearerAuth = (HttpBearerAuth) defaultClient.getAuthentication("bearerAuth");
+        bearerAuth.setBearerToken("BEARER TOKEN");
+
+        // Create an instance of the API class
+        ScriptingApi apiInstance = new ScriptingApi();
+        UUID uuid = 38400000-8cf0-11bd-b23e-10b96e4ef00d; // UUID | The UUID of the script. Must be set to 0 for creation
+        ScriptEntry scriptEntry = ; // ScriptEntry | 
+
+        try {
+            apiInstance.createScript(uuid, scriptEntry);
+        } catch (ApiException e) {
+            System.err.println("Exception when calling ScriptingApi#createScript");
+            e.printStackTrace();
+        }
+    }
+}
+</code></pre>
+                          </div>
+
+                          <div class="tab-pane" id="examples-Scripting-createScript-0-android">
+                            <pre class="prettyprint"><code class="language-java">import org.openapitools.client.api.ScriptingApi;
+
+public class ScriptingApiExample {
+    public static void main(String[] args) {
+        ScriptingApi apiInstance = new ScriptingApi();
+        UUID uuid = 38400000-8cf0-11bd-b23e-10b96e4ef00d; // UUID | The UUID of the script. Must be set to 0 for creation
+        ScriptEntry scriptEntry = ; // ScriptEntry | 
+
+        try {
+            apiInstance.createScript(uuid, scriptEntry);
+        } catch (ApiException e) {
+            System.err.println("Exception when calling ScriptingApi#createScript");
+            e.printStackTrace();
+        }
+    }
+}</code></pre>
+                          </div>
+  <!--
+  <div class="tab-pane" id="examples-Scripting-createScript-0-groovy">
+  <pre class="prettyprint language-json prettyprinted" data-type="json"><code>Coming Soon!</code></pre>
+  </div> -->
+                            <div class="tab-pane" id="examples-Scripting-createScript-0-objc">
+                              <pre class="prettyprint"><code class="language-cpp">Configuration *apiConfig = [Configuration sharedConfig];
+
+// Configure API key authorization: (authentication scheme: ApiKeyAuth)
+[apiConfig setApiKey:@"YOUR_API_KEY" forApiKeyIdentifier:@"X-API-KEY"];
+// Uncomment below to setup prefix (e.g. Bearer) for API key, if needed
+//[apiConfig setApiKeyPrefix:@"Bearer" forApiKeyIdentifier:@"X-API-KEY"];
+
+// Configure Bearer (JWT) access token for authorization: bearerAuth
+[apiConfig setAccessToken:@"YOUR_ACCESS_TOKEN"];
+
+// Create an instance of the API class
+ScriptingApi *apiInstance = [[ScriptingApi alloc] init];
+UUID *uuid = 38400000-8cf0-11bd-b23e-10b96e4ef00d; // The UUID of the script. Must be set to 0 for creation (default to null)
+ScriptEntry *scriptEntry = ; //  (optional)
+
+// Create a new script.
+[apiInstance createScriptWith:uuid
+    scriptEntry:scriptEntry
+              completionHandler: ^(NSError* error) {
+    if (error) {
+        NSLog(@"Error: %@", error);
+    }
+}];
+</code></pre>
+                            </div>
+
+                            <div class="tab-pane" id="examples-Scripting-createScript-0-javascript">
+                              <pre class="prettyprint"><code class="language-js">var UCentralGatewayApi = require('u_central_gateway_api');
+var defaultClient = UCentralGatewayApi.ApiClient.instance;
+
+// Configure API key authorization: ApiKeyAuth
+var ApiKeyAuth = defaultClient.authentications['ApiKeyAuth'];
+ApiKeyAuth.apiKey = "YOUR API KEY";
+// Uncomment the following line to set a prefix for the API key, e.g. "Token" (defaults to null)
+//ApiKeyAuth.apiKeyPrefix['X-API-KEY'] = "Token";
+
+// Configure Bearer (JWT) access token for authorization: bearerAuth
+var bearerAuth = defaultClient.authentications['bearerAuth'];
+bearerAuth.accessToken = "YOUR ACCESS TOKEN";
+
+// Create an instance of the API class
+var api = new UCentralGatewayApi.ScriptingApi()
+var uuid = 38400000-8cf0-11bd-b23e-10b96e4ef00d; // {UUID} The UUID of the script. Must be set to 0 for creation
+var opts = {
+  'scriptEntry':  // {ScriptEntry} 
+};
+
+var callback = function(error, data, response) {
+  if (error) {
+    console.error(error);
+  } else {
+    console.log('API called successfully.');
+  }
+};
+api.createScript(uuid, opts, callback);
+</code></pre>
+                            </div>
+
+                            <!--<div class="tab-pane" id="examples-Scripting-createScript-0-angular">
+              <pre class="prettyprint language-json prettyprinted" data-type="json"><code>Coming Soon!</code></pre>
+            </div>-->
+                            <div class="tab-pane" id="examples-Scripting-createScript-0-csharp">
+                              <pre class="prettyprint"><code class="language-cs">using System;
+using System.Diagnostics;
+using Org.OpenAPITools.Api;
+using Org.OpenAPITools.Client;
+using Org.OpenAPITools.Model;
+
+namespace Example
+{
+    public class createScriptExample
+    {
+        public void main()
+        {
+            // Configure API key authorization: ApiKeyAuth
+            Configuration.Default.ApiKey.Add("X-API-KEY", "YOUR_API_KEY");
+            // Uncomment below to setup prefix (e.g. Bearer) for API key, if needed
+            // Configuration.Default.ApiKeyPrefix.Add("X-API-KEY", "Bearer");
+            // Configure Bearer (JWT) access token for authorization: bearerAuth
+            Configuration.Default.AccessToken = "YOUR_ACCESS_TOKEN";
+
+            // Create an instance of the API class
+            var apiInstance = new ScriptingApi();
+            var uuid = 38400000-8cf0-11bd-b23e-10b96e4ef00d;  // UUID | The UUID of the script. Must be set to 0 for creation (default to null)
+            var scriptEntry = new ScriptEntry(); // ScriptEntry |  (optional) 
+
+            try {
+                // Create a new script.
+                apiInstance.createScript(uuid, scriptEntry);
+            } catch (Exception e) {
+                Debug.Print("Exception when calling ScriptingApi.createScript: " + e.Message );
+            }
+        }
+    }
+}
+</code></pre>
+                            </div>
+
+                            <div class="tab-pane" id="examples-Scripting-createScript-0-php">
+                              <pre class="prettyprint"><code class="language-php"><&#63;php
+require_once(__DIR__ . '/vendor/autoload.php');
+
+// Configure API key authorization: ApiKeyAuth
+OpenAPITools\Client\Configuration::getDefaultConfiguration()->setApiKey('X-API-KEY', 'YOUR_API_KEY');
+// Uncomment below to setup prefix (e.g. Bearer) for API key, if needed
+// OpenAPITools\Client\Configuration::getDefaultConfiguration()->setApiKeyPrefix('X-API-KEY', 'Bearer');
+
+// Configure Bearer (JWT) access token for authorization: bearerAuth
+OpenAPITools\Client\Configuration::getDefaultConfiguration()->setAccessToken('', 'YOUR_ACCESS_TOKEN');
+
+// Create an instance of the API class
+$api_instance = new OpenAPITools\Client\Api\ScriptingApi();
+$uuid = 38400000-8cf0-11bd-b23e-10b96e4ef00d; // UUID | The UUID of the script. Must be set to 0 for creation
+$scriptEntry = ; // ScriptEntry | 
+
+try {
+    $api_instance->createScript($uuid, $scriptEntry);
+} catch (Exception $e) {
+    echo 'Exception when calling ScriptingApi->createScript: ', $e->getMessage(), PHP_EOL;
+}
+?></code></pre>
+                            </div>
+
+                            <div class="tab-pane" id="examples-Scripting-createScript-0-perl">
+                              <pre class="prettyprint"><code class="language-perl">use Data::Dumper;
+use WWW::OPenAPIClient::Configuration;
+use WWW::OPenAPIClient::ScriptingApi;
+
+# Configure API key authorization: ApiKeyAuth
+$WWW::OPenAPIClient::Configuration::api_key->{'X-API-KEY'} = 'YOUR_API_KEY';
+# uncomment below to setup prefix (e.g. Bearer) for API key, if needed
+#$WWW::OPenAPIClient::Configuration::api_key_prefix->{'X-API-KEY'} = "Bearer";
+
+# Configure Bearer (JWT) access token for authorization: bearerAuth
+$WWW::OPenAPIClient::Configuration::access_token = 'YOUR_ACCESS_TOKEN';
+
+# Create an instance of the API class
+my $api_instance = WWW::OPenAPIClient::ScriptingApi->new();
+my $uuid = 38400000-8cf0-11bd-b23e-10b96e4ef00d; # UUID | The UUID of the script. Must be set to 0 for creation
+my $scriptEntry = WWW::OPenAPIClient::Object::ScriptEntry->new(); # ScriptEntry | 
+
+eval {
+    $api_instance->createScript(uuid => $uuid, scriptEntry => $scriptEntry);
+};
+if ($@) {
+    warn "Exception when calling ScriptingApi->createScript: $@\n";
+}</code></pre>
+                            </div>
+
+                            <div class="tab-pane" id="examples-Scripting-createScript-0-python">
+                              <pre class="prettyprint"><code class="language-python">from __future__ import print_statement
+import time
+import openapi_client
+from openapi_client.rest import ApiException
+from pprint import pprint
+
+# Configure API key authorization: ApiKeyAuth
+openapi_client.configuration.api_key['X-API-KEY'] = 'YOUR_API_KEY'
+# Uncomment below to setup prefix (e.g. Bearer) for API key, if needed
+# openapi_client.configuration.api_key_prefix['X-API-KEY'] = 'Bearer'
+
+# Configure Bearer (JWT) access token for authorization: bearerAuth
+openapi_client.configuration.access_token = 'YOUR_ACCESS_TOKEN'
+
+# Create an instance of the API class
+api_instance = openapi_client.ScriptingApi()
+uuid = 38400000-8cf0-11bd-b23e-10b96e4ef00d # UUID | The UUID of the script. Must be set to 0 for creation (default to null)
+scriptEntry =  # ScriptEntry |  (optional)
+
+try:
+    # Create a new script.
+    api_instance.create_script(uuid, scriptEntry=scriptEntry)
+except ApiException as e:
+    print("Exception when calling ScriptingApi->createScript: %s\n" % e)</code></pre>
+                            </div>
+
+                            <div class="tab-pane" id="examples-Scripting-createScript-0-rust">
+                              <pre class="prettyprint"><code class="language-rust">extern crate ScriptingApi;
+
+pub fn main() {
+    let uuid = 38400000-8cf0-11bd-b23e-10b96e4ef00d; // UUID
+    let scriptEntry = ; // ScriptEntry
+
+    let mut context = ScriptingApi::Context::default();
+    let result = client.createScript(uuid, scriptEntry, &context).wait();
+
+    println!("{:?}", result);
+}
+</code></pre>
+                            </div>
+                          </div>
+
+                          <h2>Scopes</h2>
+                          <table>
+                            
+                          </table>
+
+                          <h2>Parameters</h2>
+
+                            <div class="methodsubtabletitle">Path parameters</div>
+                            <table id="methodsubtable">
+                                <tr>
+                                  <th width="150px">Name</th>
+                                  <th>Description</th>
+                                </tr>
+                                  <tr><td style="width:150px;">uuid*</td>
+<td>
+
+
+    <div id="d2e199_createScript_uuid">
+        <div class="json-schema-view">
+            <div class="primitive">
+                <span class="type">
+                    UUID
+                </span>
+                    <span class="format">
+                        (uuid)
+                    </span>
+
+                    <div class="inner description marked">
+The UUID of the script. Must be set to 0 for creation
+                    </div>
+            </div>
+                <div class="inner required">
+                    Required
+                </div>
+        </div>
+    </div>
+</td>
+</tr>
+
+                            </table>
+
+
+                            <div class="methodsubtabletitle">Body parameters</div>
+                            <table id="methodsubtable">
+                              <tr>
+                                <th width="150px">Name</th>
+                                <th>Description</th>
+                              </tr>
+                                <tr><td style="width:150px;">scriptEntry </td>
+<td>
+<p class="marked">Complet script entry</p>
+<script>
+$(document).ready(function() {
+  var schemaWrapper = {
+  "description" : "Complet script entry",
+  "content" : {
+    "application/json" : {
+      "schema" : {
+        "$ref" : "#/components/schemas/ScriptEntry"
+      }
+    }
+  }
+};
+
+  var schema = findNode('schema',schemaWrapper).schema;
+  if (!schema) {
+    schema = schemaWrapper.schema;
+  }
+  if (schema.$ref != null) {
+    schema = defsParser.$refs.get(schema.$ref);
+  } else {
+    schemaWrapper.definitions = Object.assign({}, defs);
+    $RefParser.dereference(schemaWrapper).catch(function(err) {
+      console.log(err);
+    });
+  }
+
+  var view = new JSONSchemaView(schema,2,{isBodyParam: true});
+  var result = $('#d2e199_createScript_scriptEntry');
+  result.empty();
+  result.append(view.render());
+});
+</script>
+<div id="d2e199_createScript_scriptEntry"></div>
+</td>
+</tr>
+
+                            </table>
+
+
+
+                          <h2>Responses</h2>
+                            <h3 id="examples-Scripting-createScript-title-200"></h3>
+                            <p id="examples-Scripting-createScript-description-200" class="marked"></p>
+                            <script>
+                              var responseScripting200_description = ``;
+                              var responseScripting200_description_break = responseScripting200_description.indexOf('\n');
+                              if (responseScripting200_description_break == -1) {
+                                $("#examples-Scripting-createScript-title-200").text("Status: 200 - " + responseScripting200_description);
+                              } else {
+                                $("#examples-Scripting-createScript-title-200").text("Status: 200 - " + responseScripting200_description.substring(0, responseScripting200_description_break));
+                                $("#examples-Scripting-createScript-description-200").html(responseScripting200_description.substring(responseScripting200_description_break));
+                              }
+                            </script>
+
+
+                            <ul id="responses-detail-Scripting-createScript-200" class="nav nav-tabs nav-tabs-examples" >
+
+
+                            </ul>
+
+
+                            <div class="tab-content" id="responses-Scripting-createScript-200-wrapper" style='margin-bottom: 10px;'>
+                            </div>
+                            <h3 id="examples-Scripting-createScript-title-403"></h3>
+                            <p id="examples-Scripting-createScript-description-403" class="marked"></p>
+                            <script>
+                              var responseScripting403_description = ``;
+                              var responseScripting403_description_break = responseScripting403_description.indexOf('\n');
+                              if (responseScripting403_description_break == -1) {
+                                $("#examples-Scripting-createScript-title-403").text("Status: 403 - " + responseScripting403_description);
+                              } else {
+                                $("#examples-Scripting-createScript-title-403").text("Status: 403 - " + responseScripting403_description.substring(0, responseScripting403_description_break));
+                                $("#examples-Scripting-createScript-description-403").html(responseScripting403_description.substring(responseScripting403_description_break));
+                              }
+                            </script>
+
+
+                            <ul id="responses-detail-Scripting-createScript-403" class="nav nav-tabs nav-tabs-examples" >
+
+
+                            </ul>
+
+
+                            <div class="tab-content" id="responses-Scripting-createScript-403-wrapper" style='margin-bottom: 10px;'>
+                            </div>
+                            <h3 id="examples-Scripting-createScript-title-404"></h3>
+                            <p id="examples-Scripting-createScript-description-404" class="marked"></p>
+                            <script>
+                              var responseScripting404_description = ``;
+                              var responseScripting404_description_break = responseScripting404_description.indexOf('\n');
+                              if (responseScripting404_description_break == -1) {
+                                $("#examples-Scripting-createScript-title-404").text("Status: 404 - " + responseScripting404_description);
+                              } else {
+                                $("#examples-Scripting-createScript-title-404").text("Status: 404 - " + responseScripting404_description.substring(0, responseScripting404_description_break));
+                                $("#examples-Scripting-createScript-description-404").html(responseScripting404_description.substring(responseScripting404_description_break));
+                              }
+                            </script>
+
+
+                            <ul id="responses-detail-Scripting-createScript-404" class="nav nav-tabs nav-tabs-examples" >
+
+
+                            </ul>
+
+
+                            <div class="tab-content" id="responses-Scripting-createScript-404-wrapper" style='margin-bottom: 10px;'>
+                            </div>
+                        </article>
+                      </div>
+                      <hr>
+                    <div id="api-Scripting-deleteScript">
+                      <article id="api-Scripting-deleteScript-0" data-group="User" data-name="deleteScript" data-version="0">
+                        <div class="pull-left">
+                          <h1>deleteScript</h1>
+                          <p>Delete a script.</p>
+                        </div>
+                        <div class="pull-right"></div>
+                        <div class="clearfix"></div>
+                        <p></p>
+                        <p class="marked"></p>
+                        <p></p>
+                        <br />
+                        <pre class="prettyprint language-html prettyprinted" data-type="delete"><code><span class="pln">/script/{uuid}</span></code></pre>
+                        <p>
+                          <h3>Usage and SDK Samples</h3>
+                        </p>
+                        <ul class="nav nav-tabs nav-tabs-examples">
+                          <li class="active"><a href="#examples-Scripting-deleteScript-0-curl">Curl</a></li>
+                          <li class=""><a href="#examples-Scripting-deleteScript-0-java">Java</a></li>
+                          <li class=""><a href="#examples-Scripting-deleteScript-0-android">Android</a></li>
+                          <!--<li class=""><a href="#examples-Scripting-deleteScript-0-groovy">Groovy</a></li>-->
+                          <li class=""><a href="#examples-Scripting-deleteScript-0-objc">Obj-C</a></li>
+                          <li class=""><a href="#examples-Scripting-deleteScript-0-javascript">JavaScript</a></li>
+                          <!--<li class=""><a href="#examples-Scripting-deleteScript-0-angular">Angular</a></li>-->
+                          <li class=""><a href="#examples-Scripting-deleteScript-0-csharp">C#</a></li>
+                          <li class=""><a href="#examples-Scripting-deleteScript-0-php">PHP</a></li>
+                          <li class=""><a href="#examples-Scripting-deleteScript-0-perl">Perl</a></li>
+                          <li class=""><a href="#examples-Scripting-deleteScript-0-python">Python</a></li>
+                          <li class=""><a href="#examples-Scripting-deleteScript-0-rust">Rust</a></li>
+                        </ul>
+
+                        <div class="tab-content">
+                          <div class="tab-pane active" id="examples-Scripting-deleteScript-0-curl">
+                            <pre class="prettyprint"><code class="language-bsh">curl -X DELETE \
+-H "X-API-KEY: [[apiKey]]" \
+ -H "Authorization: Bearer [[accessToken]]" \
+ "https://localhost:16001/api/v1/script/{uuid}"
+</code></pre>
+                          </div>
+                          <div class="tab-pane" id="examples-Scripting-deleteScript-0-java">
+                            <pre class="prettyprint"><code class="language-java">import org.openapitools.client.*;
+import org.openapitools.client.auth.*;
+import org.openapitools.client.model.*;
+import org.openapitools.client.api.ScriptingApi;
+
+import java.io.File;
+import java.util.*;
+
+public class ScriptingApiExample {
+    public static void main(String[] args) {
+        ApiClient defaultClient = Configuration.getDefaultApiClient();
+        
+        // Configure API key authorization: ApiKeyAuth
+        ApiKeyAuth ApiKeyAuth = (ApiKeyAuth) defaultClient.getAuthentication("ApiKeyAuth");
+        ApiKeyAuth.setApiKey("YOUR API KEY");
+        // Uncomment the following line to set a prefix for the API key, e.g. "Token" (defaults to null)
+        //ApiKeyAuth.setApiKeyPrefix("Token");
+        
+        // Configure Bearer (JWT) access token for authorization: bearerAuth
+        HttpBearerAuth bearerAuth = (HttpBearerAuth) defaultClient.getAuthentication("bearerAuth");
+        bearerAuth.setBearerToken("BEARER TOKEN");
+
+        // Create an instance of the API class
+        ScriptingApi apiInstance = new ScriptingApi();
+        UUID uuid = 38400000-8cf0-11bd-b23e-10b96e4ef00d; // UUID | 
+
+        try {
+            apiInstance.deleteScript(uuid);
+        } catch (ApiException e) {
+            System.err.println("Exception when calling ScriptingApi#deleteScript");
+            e.printStackTrace();
+        }
+    }
+}
+</code></pre>
+                          </div>
+
+                          <div class="tab-pane" id="examples-Scripting-deleteScript-0-android">
+                            <pre class="prettyprint"><code class="language-java">import org.openapitools.client.api.ScriptingApi;
+
+public class ScriptingApiExample {
+    public static void main(String[] args) {
+        ScriptingApi apiInstance = new ScriptingApi();
+        UUID uuid = 38400000-8cf0-11bd-b23e-10b96e4ef00d; // UUID | 
+
+        try {
+            apiInstance.deleteScript(uuid);
+        } catch (ApiException e) {
+            System.err.println("Exception when calling ScriptingApi#deleteScript");
+            e.printStackTrace();
+        }
+    }
+}</code></pre>
+                          </div>
+  <!--
+  <div class="tab-pane" id="examples-Scripting-deleteScript-0-groovy">
+  <pre class="prettyprint language-json prettyprinted" data-type="json"><code>Coming Soon!</code></pre>
+  </div> -->
+                            <div class="tab-pane" id="examples-Scripting-deleteScript-0-objc">
+                              <pre class="prettyprint"><code class="language-cpp">Configuration *apiConfig = [Configuration sharedConfig];
+
+// Configure API key authorization: (authentication scheme: ApiKeyAuth)
+[apiConfig setApiKey:@"YOUR_API_KEY" forApiKeyIdentifier:@"X-API-KEY"];
+// Uncomment below to setup prefix (e.g. Bearer) for API key, if needed
+//[apiConfig setApiKeyPrefix:@"Bearer" forApiKeyIdentifier:@"X-API-KEY"];
+
+// Configure Bearer (JWT) access token for authorization: bearerAuth
+[apiConfig setAccessToken:@"YOUR_ACCESS_TOKEN"];
+
+// Create an instance of the API class
+ScriptingApi *apiInstance = [[ScriptingApi alloc] init];
+UUID *uuid = 38400000-8cf0-11bd-b23e-10b96e4ef00d; //  (default to null)
+
+// Delete a script.
+[apiInstance deleteScriptWith:uuid
+              completionHandler: ^(NSError* error) {
+    if (error) {
+        NSLog(@"Error: %@", error);
+    }
+}];
+</code></pre>
+                            </div>
+
+                            <div class="tab-pane" id="examples-Scripting-deleteScript-0-javascript">
+                              <pre class="prettyprint"><code class="language-js">var UCentralGatewayApi = require('u_central_gateway_api');
+var defaultClient = UCentralGatewayApi.ApiClient.instance;
+
+// Configure API key authorization: ApiKeyAuth
+var ApiKeyAuth = defaultClient.authentications['ApiKeyAuth'];
+ApiKeyAuth.apiKey = "YOUR API KEY";
+// Uncomment the following line to set a prefix for the API key, e.g. "Token" (defaults to null)
+//ApiKeyAuth.apiKeyPrefix['X-API-KEY'] = "Token";
+
+// Configure Bearer (JWT) access token for authorization: bearerAuth
+var bearerAuth = defaultClient.authentications['bearerAuth'];
+bearerAuth.accessToken = "YOUR ACCESS TOKEN";
+
+// Create an instance of the API class
+var api = new UCentralGatewayApi.ScriptingApi()
+var uuid = 38400000-8cf0-11bd-b23e-10b96e4ef00d; // {UUID} 
+
+var callback = function(error, data, response) {
+  if (error) {
+    console.error(error);
+  } else {
+    console.log('API called successfully.');
+  }
+};
+api.deleteScript(uuid, callback);
+</code></pre>
+                            </div>
+
+                            <!--<div class="tab-pane" id="examples-Scripting-deleteScript-0-angular">
+              <pre class="prettyprint language-json prettyprinted" data-type="json"><code>Coming Soon!</code></pre>
+            </div>-->
+                            <div class="tab-pane" id="examples-Scripting-deleteScript-0-csharp">
+                              <pre class="prettyprint"><code class="language-cs">using System;
+using System.Diagnostics;
+using Org.OpenAPITools.Api;
+using Org.OpenAPITools.Client;
+using Org.OpenAPITools.Model;
+
+namespace Example
+{
+    public class deleteScriptExample
+    {
+        public void main()
+        {
+            // Configure API key authorization: ApiKeyAuth
+            Configuration.Default.ApiKey.Add("X-API-KEY", "YOUR_API_KEY");
+            // Uncomment below to setup prefix (e.g. Bearer) for API key, if needed
+            // Configuration.Default.ApiKeyPrefix.Add("X-API-KEY", "Bearer");
+            // Configure Bearer (JWT) access token for authorization: bearerAuth
+            Configuration.Default.AccessToken = "YOUR_ACCESS_TOKEN";
+
+            // Create an instance of the API class
+            var apiInstance = new ScriptingApi();
+            var uuid = 38400000-8cf0-11bd-b23e-10b96e4ef00d;  // UUID |  (default to null)
+
+            try {
+                // Delete a script.
+                apiInstance.deleteScript(uuid);
+            } catch (Exception e) {
+                Debug.Print("Exception when calling ScriptingApi.deleteScript: " + e.Message );
+            }
+        }
+    }
+}
+</code></pre>
+                            </div>
+
+                            <div class="tab-pane" id="examples-Scripting-deleteScript-0-php">
+                              <pre class="prettyprint"><code class="language-php"><&#63;php
+require_once(__DIR__ . '/vendor/autoload.php');
+
+// Configure API key authorization: ApiKeyAuth
+OpenAPITools\Client\Configuration::getDefaultConfiguration()->setApiKey('X-API-KEY', 'YOUR_API_KEY');
+// Uncomment below to setup prefix (e.g. Bearer) for API key, if needed
+// OpenAPITools\Client\Configuration::getDefaultConfiguration()->setApiKeyPrefix('X-API-KEY', 'Bearer');
+
+// Configure Bearer (JWT) access token for authorization: bearerAuth
+OpenAPITools\Client\Configuration::getDefaultConfiguration()->setAccessToken('', 'YOUR_ACCESS_TOKEN');
+
+// Create an instance of the API class
+$api_instance = new OpenAPITools\Client\Api\ScriptingApi();
+$uuid = 38400000-8cf0-11bd-b23e-10b96e4ef00d; // UUID | 
+
+try {
+    $api_instance->deleteScript($uuid);
+} catch (Exception $e) {
+    echo 'Exception when calling ScriptingApi->deleteScript: ', $e->getMessage(), PHP_EOL;
+}
+?></code></pre>
+                            </div>
+
+                            <div class="tab-pane" id="examples-Scripting-deleteScript-0-perl">
+                              <pre class="prettyprint"><code class="language-perl">use Data::Dumper;
+use WWW::OPenAPIClient::Configuration;
+use WWW::OPenAPIClient::ScriptingApi;
+
+# Configure API key authorization: ApiKeyAuth
+$WWW::OPenAPIClient::Configuration::api_key->{'X-API-KEY'} = 'YOUR_API_KEY';
+# uncomment below to setup prefix (e.g. Bearer) for API key, if needed
+#$WWW::OPenAPIClient::Configuration::api_key_prefix->{'X-API-KEY'} = "Bearer";
+
+# Configure Bearer (JWT) access token for authorization: bearerAuth
+$WWW::OPenAPIClient::Configuration::access_token = 'YOUR_ACCESS_TOKEN';
+
+# Create an instance of the API class
+my $api_instance = WWW::OPenAPIClient::ScriptingApi->new();
+my $uuid = 38400000-8cf0-11bd-b23e-10b96e4ef00d; # UUID | 
+
+eval {
+    $api_instance->deleteScript(uuid => $uuid);
+};
+if ($@) {
+    warn "Exception when calling ScriptingApi->deleteScript: $@\n";
+}</code></pre>
+                            </div>
+
+                            <div class="tab-pane" id="examples-Scripting-deleteScript-0-python">
+                              <pre class="prettyprint"><code class="language-python">from __future__ import print_statement
+import time
+import openapi_client
+from openapi_client.rest import ApiException
+from pprint import pprint
+
+# Configure API key authorization: ApiKeyAuth
+openapi_client.configuration.api_key['X-API-KEY'] = 'YOUR_API_KEY'
+# Uncomment below to setup prefix (e.g. Bearer) for API key, if needed
+# openapi_client.configuration.api_key_prefix['X-API-KEY'] = 'Bearer'
+
+# Configure Bearer (JWT) access token for authorization: bearerAuth
+openapi_client.configuration.access_token = 'YOUR_ACCESS_TOKEN'
+
+# Create an instance of the API class
+api_instance = openapi_client.ScriptingApi()
+uuid = 38400000-8cf0-11bd-b23e-10b96e4ef00d # UUID |  (default to null)
+
+try:
+    # Delete a script.
+    api_instance.delete_script(uuid)
+except ApiException as e:
+    print("Exception when calling ScriptingApi->deleteScript: %s\n" % e)</code></pre>
+                            </div>
+
+                            <div class="tab-pane" id="examples-Scripting-deleteScript-0-rust">
+                              <pre class="prettyprint"><code class="language-rust">extern crate ScriptingApi;
+
+pub fn main() {
+    let uuid = 38400000-8cf0-11bd-b23e-10b96e4ef00d; // UUID
+
+    let mut context = ScriptingApi::Context::default();
+    let result = client.deleteScript(uuid, &context).wait();
+
+    println!("{:?}", result);
+}
+</code></pre>
+                            </div>
+                          </div>
+
+                          <h2>Scopes</h2>
+                          <table>
+                            
+                          </table>
+
+                          <h2>Parameters</h2>
+
+                            <div class="methodsubtabletitle">Path parameters</div>
+                            <table id="methodsubtable">
+                                <tr>
+                                  <th width="150px">Name</th>
+                                  <th>Description</th>
+                                </tr>
+                                  <tr><td style="width:150px;">uuid*</td>
+<td>
+
+
+    <div id="d2e199_deleteScript_uuid">
+        <div class="json-schema-view">
+            <div class="primitive">
+                <span class="type">
+                    UUID
+                </span>
+                    <span class="format">
+                        (uuid)
+                    </span>
+
+            </div>
+                <div class="inner required">
+                    Required
+                </div>
+        </div>
+    </div>
+</td>
+</tr>
+
+                            </table>
+
+
+
+
+
+                          <h2>Responses</h2>
+                            <h3 id="examples-Scripting-deleteScript-title-204"></h3>
+                            <p id="examples-Scripting-deleteScript-description-204" class="marked"></p>
+                            <script>
+                              var responseScripting204_description = ``;
+                              var responseScripting204_description_break = responseScripting204_description.indexOf('\n');
+                              if (responseScripting204_description_break == -1) {
+                                $("#examples-Scripting-deleteScript-title-204").text("Status: 204 - " + responseScripting204_description);
+                              } else {
+                                $("#examples-Scripting-deleteScript-title-204").text("Status: 204 - " + responseScripting204_description.substring(0, responseScripting204_description_break));
+                                $("#examples-Scripting-deleteScript-description-204").html(responseScripting204_description.substring(responseScripting204_description_break));
+                              }
+                            </script>
+
+
+                            <ul id="responses-detail-Scripting-deleteScript-204" class="nav nav-tabs nav-tabs-examples" >
+
+
+                            </ul>
+
+
+                            <div class="tab-content" id="responses-Scripting-deleteScript-204-wrapper" style='margin-bottom: 10px;'>
+                            </div>
+                            <h3 id="examples-Scripting-deleteScript-title-403"></h3>
+                            <p id="examples-Scripting-deleteScript-description-403" class="marked"></p>
+                            <script>
+                              var responseScripting403_description = ``;
+                              var responseScripting403_description_break = responseScripting403_description.indexOf('\n');
+                              if (responseScripting403_description_break == -1) {
+                                $("#examples-Scripting-deleteScript-title-403").text("Status: 403 - " + responseScripting403_description);
+                              } else {
+                                $("#examples-Scripting-deleteScript-title-403").text("Status: 403 - " + responseScripting403_description.substring(0, responseScripting403_description_break));
+                                $("#examples-Scripting-deleteScript-description-403").html(responseScripting403_description.substring(responseScripting403_description_break));
+                              }
+                            </script>
+
+
+                            <ul id="responses-detail-Scripting-deleteScript-403" class="nav nav-tabs nav-tabs-examples" >
+
+
+                            </ul>
+
+
+                            <div class="tab-content" id="responses-Scripting-deleteScript-403-wrapper" style='margin-bottom: 10px;'>
+                            </div>
+                            <h3 id="examples-Scripting-deleteScript-title-404"></h3>
+                            <p id="examples-Scripting-deleteScript-description-404" class="marked"></p>
+                            <script>
+                              var responseScripting404_description = ``;
+                              var responseScripting404_description_break = responseScripting404_description.indexOf('\n');
+                              if (responseScripting404_description_break == -1) {
+                                $("#examples-Scripting-deleteScript-title-404").text("Status: 404 - " + responseScripting404_description);
+                              } else {
+                                $("#examples-Scripting-deleteScript-title-404").text("Status: 404 - " + responseScripting404_description.substring(0, responseScripting404_description_break));
+                                $("#examples-Scripting-deleteScript-description-404").html(responseScripting404_description.substring(responseScripting404_description_break));
+                              }
+                            </script>
+
+
+                            <ul id="responses-detail-Scripting-deleteScript-404" class="nav nav-tabs nav-tabs-examples" >
+
+
+                            </ul>
+
+
+                            <div class="tab-content" id="responses-Scripting-deleteScript-404-wrapper" style='margin-bottom: 10px;'>
+                            </div>
+                        </article>
+                      </div>
+                      <hr>
+                    <div id="api-Scripting-getScript">
+                      <article id="api-Scripting-getScript-0" data-group="User" data-name="getScript" data-version="0">
+                        <div class="pull-left">
+                          <h1>getScript</h1>
+                          <p>Returns a script entry.</p>
+                        </div>
+                        <div class="pull-right"></div>
+                        <div class="clearfix"></div>
+                        <p></p>
+                        <p class="marked">Get a specific script entry.</p>
+                        <p></p>
+                        <br />
+                        <pre class="prettyprint language-html prettyprinted" data-type="get"><code><span class="pln">/script/{uuid}</span></code></pre>
+                        <p>
+                          <h3>Usage and SDK Samples</h3>
+                        </p>
+                        <ul class="nav nav-tabs nav-tabs-examples">
+                          <li class="active"><a href="#examples-Scripting-getScript-0-curl">Curl</a></li>
+                          <li class=""><a href="#examples-Scripting-getScript-0-java">Java</a></li>
+                          <li class=""><a href="#examples-Scripting-getScript-0-android">Android</a></li>
+                          <!--<li class=""><a href="#examples-Scripting-getScript-0-groovy">Groovy</a></li>-->
+                          <li class=""><a href="#examples-Scripting-getScript-0-objc">Obj-C</a></li>
+                          <li class=""><a href="#examples-Scripting-getScript-0-javascript">JavaScript</a></li>
+                          <!--<li class=""><a href="#examples-Scripting-getScript-0-angular">Angular</a></li>-->
+                          <li class=""><a href="#examples-Scripting-getScript-0-csharp">C#</a></li>
+                          <li class=""><a href="#examples-Scripting-getScript-0-php">PHP</a></li>
+                          <li class=""><a href="#examples-Scripting-getScript-0-perl">Perl</a></li>
+                          <li class=""><a href="#examples-Scripting-getScript-0-python">Python</a></li>
+                          <li class=""><a href="#examples-Scripting-getScript-0-rust">Rust</a></li>
+                        </ul>
+
+                        <div class="tab-content">
+                          <div class="tab-pane active" id="examples-Scripting-getScript-0-curl">
+                            <pre class="prettyprint"><code class="language-bsh">curl -X GET \
+-H "X-API-KEY: [[apiKey]]" \
+ -H "Authorization: Bearer [[accessToken]]" \
+ -H "Accept: application/json" \
+ "https://localhost:16001/api/v1/script/{uuid}"
+</code></pre>
+                          </div>
+                          <div class="tab-pane" id="examples-Scripting-getScript-0-java">
+                            <pre class="prettyprint"><code class="language-java">import org.openapitools.client.*;
+import org.openapitools.client.auth.*;
+import org.openapitools.client.model.*;
+import org.openapitools.client.api.ScriptingApi;
+
+import java.io.File;
+import java.util.*;
+
+public class ScriptingApiExample {
+    public static void main(String[] args) {
+        ApiClient defaultClient = Configuration.getDefaultApiClient();
+        
+        // Configure API key authorization: ApiKeyAuth
+        ApiKeyAuth ApiKeyAuth = (ApiKeyAuth) defaultClient.getAuthentication("ApiKeyAuth");
+        ApiKeyAuth.setApiKey("YOUR API KEY");
+        // Uncomment the following line to set a prefix for the API key, e.g. "Token" (defaults to null)
+        //ApiKeyAuth.setApiKeyPrefix("Token");
+        
+        // Configure Bearer (JWT) access token for authorization: bearerAuth
+        HttpBearerAuth bearerAuth = (HttpBearerAuth) defaultClient.getAuthentication("bearerAuth");
+        bearerAuth.setBearerToken("BEARER TOKEN");
+
+        // Create an instance of the API class
+        ScriptingApi apiInstance = new ScriptingApi();
+        UUID uuid = 38400000-8cf0-11bd-b23e-10b96e4ef00d; // UUID | The UUID of the script
+
+        try {
+            ScriptEntry result = apiInstance.getScript(uuid);
+            System.out.println(result);
+        } catch (ApiException e) {
+            System.err.println("Exception when calling ScriptingApi#getScript");
+            e.printStackTrace();
+        }
+    }
+}
+</code></pre>
+                          </div>
+
+                          <div class="tab-pane" id="examples-Scripting-getScript-0-android">
+                            <pre class="prettyprint"><code class="language-java">import org.openapitools.client.api.ScriptingApi;
+
+public class ScriptingApiExample {
+    public static void main(String[] args) {
+        ScriptingApi apiInstance = new ScriptingApi();
+        UUID uuid = 38400000-8cf0-11bd-b23e-10b96e4ef00d; // UUID | The UUID of the script
+
+        try {
+            ScriptEntry result = apiInstance.getScript(uuid);
+            System.out.println(result);
+        } catch (ApiException e) {
+            System.err.println("Exception when calling ScriptingApi#getScript");
+            e.printStackTrace();
+        }
+    }
+}</code></pre>
+                          </div>
+  <!--
+  <div class="tab-pane" id="examples-Scripting-getScript-0-groovy">
+  <pre class="prettyprint language-json prettyprinted" data-type="json"><code>Coming Soon!</code></pre>
+  </div> -->
+                            <div class="tab-pane" id="examples-Scripting-getScript-0-objc">
+                              <pre class="prettyprint"><code class="language-cpp">Configuration *apiConfig = [Configuration sharedConfig];
+
+// Configure API key authorization: (authentication scheme: ApiKeyAuth)
+[apiConfig setApiKey:@"YOUR_API_KEY" forApiKeyIdentifier:@"X-API-KEY"];
+// Uncomment below to setup prefix (e.g. Bearer) for API key, if needed
+//[apiConfig setApiKeyPrefix:@"Bearer" forApiKeyIdentifier:@"X-API-KEY"];
+
+// Configure Bearer (JWT) access token for authorization: bearerAuth
+[apiConfig setAccessToken:@"YOUR_ACCESS_TOKEN"];
+
+// Create an instance of the API class
+ScriptingApi *apiInstance = [[ScriptingApi alloc] init];
+UUID *uuid = 38400000-8cf0-11bd-b23e-10b96e4ef00d; // The UUID of the script (default to null)
+
+// Returns a script entry.
+[apiInstance getScriptWith:uuid
+              completionHandler: ^(ScriptEntry output, NSError* error) {
+    if (output) {
+        NSLog(@"%@", output);
+    }
+    if (error) {
+        NSLog(@"Error: %@", error);
+    }
+}];
+</code></pre>
+                            </div>
+
+                            <div class="tab-pane" id="examples-Scripting-getScript-0-javascript">
+                              <pre class="prettyprint"><code class="language-js">var UCentralGatewayApi = require('u_central_gateway_api');
+var defaultClient = UCentralGatewayApi.ApiClient.instance;
+
+// Configure API key authorization: ApiKeyAuth
+var ApiKeyAuth = defaultClient.authentications['ApiKeyAuth'];
+ApiKeyAuth.apiKey = "YOUR API KEY";
+// Uncomment the following line to set a prefix for the API key, e.g. "Token" (defaults to null)
+//ApiKeyAuth.apiKeyPrefix['X-API-KEY'] = "Token";
+
+// Configure Bearer (JWT) access token for authorization: bearerAuth
+var bearerAuth = defaultClient.authentications['bearerAuth'];
+bearerAuth.accessToken = "YOUR ACCESS TOKEN";
+
+// Create an instance of the API class
+var api = new UCentralGatewayApi.ScriptingApi()
+var uuid = 38400000-8cf0-11bd-b23e-10b96e4ef00d; // {UUID} The UUID of the script
+
+var callback = function(error, data, response) {
+  if (error) {
+    console.error(error);
+  } else {
+    console.log('API called successfully. Returned data: ' + data);
+  }
+};
+api.getScript(uuid, callback);
+</code></pre>
+                            </div>
+
+                            <!--<div class="tab-pane" id="examples-Scripting-getScript-0-angular">
+              <pre class="prettyprint language-json prettyprinted" data-type="json"><code>Coming Soon!</code></pre>
+            </div>-->
+                            <div class="tab-pane" id="examples-Scripting-getScript-0-csharp">
+                              <pre class="prettyprint"><code class="language-cs">using System;
+using System.Diagnostics;
+using Org.OpenAPITools.Api;
+using Org.OpenAPITools.Client;
+using Org.OpenAPITools.Model;
+
+namespace Example
+{
+    public class getScriptExample
+    {
+        public void main()
+        {
+            // Configure API key authorization: ApiKeyAuth
+            Configuration.Default.ApiKey.Add("X-API-KEY", "YOUR_API_KEY");
+            // Uncomment below to setup prefix (e.g. Bearer) for API key, if needed
+            // Configuration.Default.ApiKeyPrefix.Add("X-API-KEY", "Bearer");
+            // Configure Bearer (JWT) access token for authorization: bearerAuth
+            Configuration.Default.AccessToken = "YOUR_ACCESS_TOKEN";
+
+            // Create an instance of the API class
+            var apiInstance = new ScriptingApi();
+            var uuid = 38400000-8cf0-11bd-b23e-10b96e4ef00d;  // UUID | The UUID of the script (default to null)
+
+            try {
+                // Returns a script entry.
+                ScriptEntry result = apiInstance.getScript(uuid);
+                Debug.WriteLine(result);
+            } catch (Exception e) {
+                Debug.Print("Exception when calling ScriptingApi.getScript: " + e.Message );
+            }
+        }
+    }
+}
+</code></pre>
+                            </div>
+
+                            <div class="tab-pane" id="examples-Scripting-getScript-0-php">
+                              <pre class="prettyprint"><code class="language-php"><&#63;php
+require_once(__DIR__ . '/vendor/autoload.php');
+
+// Configure API key authorization: ApiKeyAuth
+OpenAPITools\Client\Configuration::getDefaultConfiguration()->setApiKey('X-API-KEY', 'YOUR_API_KEY');
+// Uncomment below to setup prefix (e.g. Bearer) for API key, if needed
+// OpenAPITools\Client\Configuration::getDefaultConfiguration()->setApiKeyPrefix('X-API-KEY', 'Bearer');
+
+// Configure Bearer (JWT) access token for authorization: bearerAuth
+OpenAPITools\Client\Configuration::getDefaultConfiguration()->setAccessToken('', 'YOUR_ACCESS_TOKEN');
+
+// Create an instance of the API class
+$api_instance = new OpenAPITools\Client\Api\ScriptingApi();
+$uuid = 38400000-8cf0-11bd-b23e-10b96e4ef00d; // UUID | The UUID of the script
+
+try {
+    $result = $api_instance->getScript($uuid);
+    print_r($result);
+} catch (Exception $e) {
+    echo 'Exception when calling ScriptingApi->getScript: ', $e->getMessage(), PHP_EOL;
+}
+?></code></pre>
+                            </div>
+
+                            <div class="tab-pane" id="examples-Scripting-getScript-0-perl">
+                              <pre class="prettyprint"><code class="language-perl">use Data::Dumper;
+use WWW::OPenAPIClient::Configuration;
+use WWW::OPenAPIClient::ScriptingApi;
+
+# Configure API key authorization: ApiKeyAuth
+$WWW::OPenAPIClient::Configuration::api_key->{'X-API-KEY'} = 'YOUR_API_KEY';
+# uncomment below to setup prefix (e.g. Bearer) for API key, if needed
+#$WWW::OPenAPIClient::Configuration::api_key_prefix->{'X-API-KEY'} = "Bearer";
+
+# Configure Bearer (JWT) access token for authorization: bearerAuth
+$WWW::OPenAPIClient::Configuration::access_token = 'YOUR_ACCESS_TOKEN';
+
+# Create an instance of the API class
+my $api_instance = WWW::OPenAPIClient::ScriptingApi->new();
+my $uuid = 38400000-8cf0-11bd-b23e-10b96e4ef00d; # UUID | The UUID of the script
+
+eval {
+    my $result = $api_instance->getScript(uuid => $uuid);
+    print Dumper($result);
+};
+if ($@) {
+    warn "Exception when calling ScriptingApi->getScript: $@\n";
+}</code></pre>
+                            </div>
+
+                            <div class="tab-pane" id="examples-Scripting-getScript-0-python">
+                              <pre class="prettyprint"><code class="language-python">from __future__ import print_statement
+import time
+import openapi_client
+from openapi_client.rest import ApiException
+from pprint import pprint
+
+# Configure API key authorization: ApiKeyAuth
+openapi_client.configuration.api_key['X-API-KEY'] = 'YOUR_API_KEY'
+# Uncomment below to setup prefix (e.g. Bearer) for API key, if needed
+# openapi_client.configuration.api_key_prefix['X-API-KEY'] = 'Bearer'
+
+# Configure Bearer (JWT) access token for authorization: bearerAuth
+openapi_client.configuration.access_token = 'YOUR_ACCESS_TOKEN'
+
+# Create an instance of the API class
+api_instance = openapi_client.ScriptingApi()
+uuid = 38400000-8cf0-11bd-b23e-10b96e4ef00d # UUID | The UUID of the script (default to null)
+
+try:
+    # Returns a script entry.
+    api_response = api_instance.get_script(uuid)
+    pprint(api_response)
+except ApiException as e:
+    print("Exception when calling ScriptingApi->getScript: %s\n" % e)</code></pre>
+                            </div>
+
+                            <div class="tab-pane" id="examples-Scripting-getScript-0-rust">
+                              <pre class="prettyprint"><code class="language-rust">extern crate ScriptingApi;
+
+pub fn main() {
+    let uuid = 38400000-8cf0-11bd-b23e-10b96e4ef00d; // UUID
+
+    let mut context = ScriptingApi::Context::default();
+    let result = client.getScript(uuid, &context).wait();
+
+    println!("{:?}", result);
+}
+</code></pre>
+                            </div>
+                          </div>
+
+                          <h2>Scopes</h2>
+                          <table>
+                            
+                          </table>
+
+                          <h2>Parameters</h2>
+
+                            <div class="methodsubtabletitle">Path parameters</div>
+                            <table id="methodsubtable">
+                                <tr>
+                                  <th width="150px">Name</th>
+                                  <th>Description</th>
+                                </tr>
+                                  <tr><td style="width:150px;">uuid*</td>
+<td>
+
+
+    <div id="d2e199_getScript_uuid">
+        <div class="json-schema-view">
+            <div class="primitive">
+                <span class="type">
+                    UUID
+                </span>
+                    <span class="format">
+                        (uuid)
+                    </span>
+
+                    <div class="inner description marked">
+The UUID of the script
+                    </div>
+            </div>
+                <div class="inner required">
+                    Required
+                </div>
+        </div>
+    </div>
+</td>
+</tr>
+
+                            </table>
+
+
+
+
+
+                          <h2>Responses</h2>
+                            <h3 id="examples-Scripting-getScript-title-200"></h3>
+                            <p id="examples-Scripting-getScript-description-200" class="marked"></p>
+                            <script>
+                              var responseScripting200_description = `A script entry`;
+                              var responseScripting200_description_break = responseScripting200_description.indexOf('\n');
+                              if (responseScripting200_description_break == -1) {
+                                $("#examples-Scripting-getScript-title-200").text("Status: 200 - " + responseScripting200_description);
+                              } else {
+                                $("#examples-Scripting-getScript-title-200").text("Status: 200 - " + responseScripting200_description.substring(0, responseScripting200_description_break));
+                                $("#examples-Scripting-getScript-description-200").html(responseScripting200_description.substring(responseScripting200_description_break));
+                              }
+                            </script>
+
+
+                            <ul id="responses-detail-Scripting-getScript-200" class="nav nav-tabs nav-tabs-examples" >
+                                <li class="active">
+                                  <a data-toggle="tab" href="#responses-Scripting-getScript-200-schema">Schema</a>
+                                </li>
+
+
+
+
+                            </ul>
+
+
+                            <div class="tab-content" id="responses-Scripting-getScript-200-wrapper" style='margin-bottom: 10px;'>
+                                <div class="tab-pane active" id="responses-Scripting-getScript-200-schema">
+                                  <div id="responses-Scripting-getScript-schema-200" class="exampleStyle">
+                                    <script>
+                                      $(document).ready(function() {
+                                        var schemaWrapper = ;
+                                        var schema = findNode('schema',schemaWrapper).schema;
+                                        if (!schema) {
+                                          schema = schemaWrapper.schema;
+                                        }
+                                        if (schema.$ref != null) {
+                                          schema = defsParser.$refs.get(schema.$ref);
+                                          Object.keys(schema.properties).forEach( (item) => {
+                                            if (schema.properties[item].$ref != null) {
+                                              schema.properties[item] = defsParser.$refs.get(schema.properties[item].$ref);
+                                            }
+                                          });
+                                        } else if (schema.items != null && schema.items.$ref != null) {
+                                            schema.items = defsParser.$refs.get(schema.items.$ref);
+                                        } else {
+                                          schemaWrapper.definitions = Object.assign({}, defs);
+                                          $RefParser.dereference(schemaWrapper).catch(function(err) {
+                                            console.log(err);
+                                          });
+                                        }
+
+                                        var view = new JSONSchemaView(schema, 3);
+                                        $('#responses-Scripting-getScript-200-schema-data').val(JSON.stringify(schema));
+                                        var result = $('#responses-Scripting-getScript-schema-200');
+                                        result.empty();
+                                        result.append(view.render());
+                                      });
+                                    </script>
+                                  </div>
+                                  <input id='responses-Scripting-getScript-200-schema-data' type='hidden' value=''></input>
+                                </div>
+                            </div>
+                            <h3 id="examples-Scripting-getScript-title-403"></h3>
+                            <p id="examples-Scripting-getScript-description-403" class="marked"></p>
+                            <script>
+                              var responseScripting403_description = ``;
+                              var responseScripting403_description_break = responseScripting403_description.indexOf('\n');
+                              if (responseScripting403_description_break == -1) {
+                                $("#examples-Scripting-getScript-title-403").text("Status: 403 - " + responseScripting403_description);
+                              } else {
+                                $("#examples-Scripting-getScript-title-403").text("Status: 403 - " + responseScripting403_description.substring(0, responseScripting403_description_break));
+                                $("#examples-Scripting-getScript-description-403").html(responseScripting403_description.substring(responseScripting403_description_break));
+                              }
+                            </script>
+
+
+                            <ul id="responses-detail-Scripting-getScript-403" class="nav nav-tabs nav-tabs-examples" >
+
+
+                            </ul>
+
+
+                            <div class="tab-content" id="responses-Scripting-getScript-403-wrapper" style='margin-bottom: 10px;'>
+                            </div>
+                            <h3 id="examples-Scripting-getScript-title-404"></h3>
+                            <p id="examples-Scripting-getScript-description-404" class="marked"></p>
+                            <script>
+                              var responseScripting404_description = ``;
+                              var responseScripting404_description_break = responseScripting404_description.indexOf('\n');
+                              if (responseScripting404_description_break == -1) {
+                                $("#examples-Scripting-getScript-title-404").text("Status: 404 - " + responseScripting404_description);
+                              } else {
+                                $("#examples-Scripting-getScript-title-404").text("Status: 404 - " + responseScripting404_description.substring(0, responseScripting404_description_break));
+                                $("#examples-Scripting-getScript-description-404").html(responseScripting404_description.substring(responseScripting404_description_break));
+                              }
+                            </script>
+
+
+                            <ul id="responses-detail-Scripting-getScript-404" class="nav nav-tabs nav-tabs-examples" >
+
+
+                            </ul>
+
+
+                            <div class="tab-content" id="responses-Scripting-getScript-404-wrapper" style='margin-bottom: 10px;'>
+                            </div>
+                        </article>
+                      </div>
+                      <hr>
+                    <div id="api-Scripting-getScripts">
+                      <article id="api-Scripting-getScripts-0" data-group="User" data-name="getScripts" data-version="0">
+                        <div class="pull-left">
+                          <h1>getScripts</h1>
+                          <p>Returns a list scripts.</p>
+                        </div>
+                        <div class="pull-right"></div>
+                        <div class="clearfix"></div>
+                        <p></p>
+                        <p class="marked">Get a list of scripts.</p>
+                        <p></p>
+                        <br />
+                        <pre class="prettyprint language-html prettyprinted" data-type="get"><code><span class="pln">/scripts</span></code></pre>
+                        <p>
+                          <h3>Usage and SDK Samples</h3>
+                        </p>
+                        <ul class="nav nav-tabs nav-tabs-examples">
+                          <li class="active"><a href="#examples-Scripting-getScripts-0-curl">Curl</a></li>
+                          <li class=""><a href="#examples-Scripting-getScripts-0-java">Java</a></li>
+                          <li class=""><a href="#examples-Scripting-getScripts-0-android">Android</a></li>
+                          <!--<li class=""><a href="#examples-Scripting-getScripts-0-groovy">Groovy</a></li>-->
+                          <li class=""><a href="#examples-Scripting-getScripts-0-objc">Obj-C</a></li>
+                          <li class=""><a href="#examples-Scripting-getScripts-0-javascript">JavaScript</a></li>
+                          <!--<li class=""><a href="#examples-Scripting-getScripts-0-angular">Angular</a></li>-->
+                          <li class=""><a href="#examples-Scripting-getScripts-0-csharp">C#</a></li>
+                          <li class=""><a href="#examples-Scripting-getScripts-0-php">PHP</a></li>
+                          <li class=""><a href="#examples-Scripting-getScripts-0-perl">Perl</a></li>
+                          <li class=""><a href="#examples-Scripting-getScripts-0-python">Python</a></li>
+                          <li class=""><a href="#examples-Scripting-getScripts-0-rust">Rust</a></li>
+                        </ul>
+
+                        <div class="tab-content">
+                          <div class="tab-pane active" id="examples-Scripting-getScripts-0-curl">
+                            <pre class="prettyprint"><code class="language-bsh">curl -X GET \
+-H "X-API-KEY: [[apiKey]]" \
+ -H "Authorization: Bearer [[accessToken]]" \
+ -H "Accept: application/json" \
+ "https://localhost:16001/api/v1/scripts?offset=56&limit=56&filter=filter_example"
+</code></pre>
+                          </div>
+                          <div class="tab-pane" id="examples-Scripting-getScripts-0-java">
+                            <pre class="prettyprint"><code class="language-java">import org.openapitools.client.*;
+import org.openapitools.client.auth.*;
+import org.openapitools.client.model.*;
+import org.openapitools.client.api.ScriptingApi;
+
+import java.io.File;
+import java.util.*;
+
+public class ScriptingApiExample {
+    public static void main(String[] args) {
+        ApiClient defaultClient = Configuration.getDefaultApiClient();
+        
+        // Configure API key authorization: ApiKeyAuth
+        ApiKeyAuth ApiKeyAuth = (ApiKeyAuth) defaultClient.getAuthentication("ApiKeyAuth");
+        ApiKeyAuth.setApiKey("YOUR API KEY");
+        // Uncomment the following line to set a prefix for the API key, e.g. "Token" (defaults to null)
+        //ApiKeyAuth.setApiKeyPrefix("Token");
+        
+        // Configure Bearer (JWT) access token for authorization: bearerAuth
+        HttpBearerAuth bearerAuth = (HttpBearerAuth) defaultClient.getAuthentication("bearerAuth");
+        bearerAuth.setBearerToken("BEARER TOKEN");
+
+        // Create an instance of the API class
+        ScriptingApi apiInstance = new ScriptingApi();
+        Integer offset = 56; // Integer | Pagination start (starts at 0. If not specified, 0 is assumed)
+        Integer limit = 56; // Integer | Maximum number of entries to return (if absent, no limit is assumed)
+        String filter = filter_example; // String | Filter the results
+
+        try {
+            ScriptEntryList result = apiInstance.getScripts(offset, limit, filter);
+            System.out.println(result);
+        } catch (ApiException e) {
+            System.err.println("Exception when calling ScriptingApi#getScripts");
+            e.printStackTrace();
+        }
+    }
+}
+</code></pre>
+                          </div>
+
+                          <div class="tab-pane" id="examples-Scripting-getScripts-0-android">
+                            <pre class="prettyprint"><code class="language-java">import org.openapitools.client.api.ScriptingApi;
+
+public class ScriptingApiExample {
+    public static void main(String[] args) {
+        ScriptingApi apiInstance = new ScriptingApi();
+        Integer offset = 56; // Integer | Pagination start (starts at 0. If not specified, 0 is assumed)
+        Integer limit = 56; // Integer | Maximum number of entries to return (if absent, no limit is assumed)
+        String filter = filter_example; // String | Filter the results
+
+        try {
+            ScriptEntryList result = apiInstance.getScripts(offset, limit, filter);
+            System.out.println(result);
+        } catch (ApiException e) {
+            System.err.println("Exception when calling ScriptingApi#getScripts");
+            e.printStackTrace();
+        }
+    }
+}</code></pre>
+                          </div>
+  <!--
+  <div class="tab-pane" id="examples-Scripting-getScripts-0-groovy">
+  <pre class="prettyprint language-json prettyprinted" data-type="json"><code>Coming Soon!</code></pre>
+  </div> -->
+                            <div class="tab-pane" id="examples-Scripting-getScripts-0-objc">
+                              <pre class="prettyprint"><code class="language-cpp">Configuration *apiConfig = [Configuration sharedConfig];
+
+// Configure API key authorization: (authentication scheme: ApiKeyAuth)
+[apiConfig setApiKey:@"YOUR_API_KEY" forApiKeyIdentifier:@"X-API-KEY"];
+// Uncomment below to setup prefix (e.g. Bearer) for API key, if needed
+//[apiConfig setApiKeyPrefix:@"Bearer" forApiKeyIdentifier:@"X-API-KEY"];
+
+// Configure Bearer (JWT) access token for authorization: bearerAuth
+[apiConfig setAccessToken:@"YOUR_ACCESS_TOKEN"];
+
+// Create an instance of the API class
+ScriptingApi *apiInstance = [[ScriptingApi alloc] init];
+Integer *offset = 56; // Pagination start (starts at 0. If not specified, 0 is assumed) (optional) (default to null)
+Integer *limit = 56; // Maximum number of entries to return (if absent, no limit is assumed) (optional) (default to null)
+String *filter = filter_example; // Filter the results (optional) (default to null)
+
+// Returns a list scripts.
+[apiInstance getScriptsWith:offset
+    limit:limit
+    filter:filter
+              completionHandler: ^(ScriptEntryList output, NSError* error) {
+    if (output) {
+        NSLog(@"%@", output);
+    }
+    if (error) {
+        NSLog(@"Error: %@", error);
+    }
+}];
+</code></pre>
+                            </div>
+
+                            <div class="tab-pane" id="examples-Scripting-getScripts-0-javascript">
+                              <pre class="prettyprint"><code class="language-js">var UCentralGatewayApi = require('u_central_gateway_api');
+var defaultClient = UCentralGatewayApi.ApiClient.instance;
+
+// Configure API key authorization: ApiKeyAuth
+var ApiKeyAuth = defaultClient.authentications['ApiKeyAuth'];
+ApiKeyAuth.apiKey = "YOUR API KEY";
+// Uncomment the following line to set a prefix for the API key, e.g. "Token" (defaults to null)
+//ApiKeyAuth.apiKeyPrefix['X-API-KEY'] = "Token";
+
+// Configure Bearer (JWT) access token for authorization: bearerAuth
+var bearerAuth = defaultClient.authentications['bearerAuth'];
+bearerAuth.accessToken = "YOUR ACCESS TOKEN";
+
+// Create an instance of the API class
+var api = new UCentralGatewayApi.ScriptingApi()
+var opts = {
+  'offset': 56, // {Integer} Pagination start (starts at 0. If not specified, 0 is assumed)
+  'limit': 56, // {Integer} Maximum number of entries to return (if absent, no limit is assumed)
+  'filter': filter_example // {String} Filter the results
+};
+
+var callback = function(error, data, response) {
+  if (error) {
+    console.error(error);
+  } else {
+    console.log('API called successfully. Returned data: ' + data);
+  }
+};
+api.getScripts(opts, callback);
+</code></pre>
+                            </div>
+
+                            <!--<div class="tab-pane" id="examples-Scripting-getScripts-0-angular">
+              <pre class="prettyprint language-json prettyprinted" data-type="json"><code>Coming Soon!</code></pre>
+            </div>-->
+                            <div class="tab-pane" id="examples-Scripting-getScripts-0-csharp">
+                              <pre class="prettyprint"><code class="language-cs">using System;
+using System.Diagnostics;
+using Org.OpenAPITools.Api;
+using Org.OpenAPITools.Client;
+using Org.OpenAPITools.Model;
+
+namespace Example
+{
+    public class getScriptsExample
+    {
+        public void main()
+        {
+            // Configure API key authorization: ApiKeyAuth
+            Configuration.Default.ApiKey.Add("X-API-KEY", "YOUR_API_KEY");
+            // Uncomment below to setup prefix (e.g. Bearer) for API key, if needed
+            // Configuration.Default.ApiKeyPrefix.Add("X-API-KEY", "Bearer");
+            // Configure Bearer (JWT) access token for authorization: bearerAuth
+            Configuration.Default.AccessToken = "YOUR_ACCESS_TOKEN";
+
+            // Create an instance of the API class
+            var apiInstance = new ScriptingApi();
+            var offset = 56;  // Integer | Pagination start (starts at 0. If not specified, 0 is assumed) (optional)  (default to null)
+            var limit = 56;  // Integer | Maximum number of entries to return (if absent, no limit is assumed) (optional)  (default to null)
+            var filter = filter_example;  // String | Filter the results (optional)  (default to null)
+
+            try {
+                // Returns a list scripts.
+                ScriptEntryList result = apiInstance.getScripts(offset, limit, filter);
+                Debug.WriteLine(result);
+            } catch (Exception e) {
+                Debug.Print("Exception when calling ScriptingApi.getScripts: " + e.Message );
+            }
+        }
+    }
+}
+</code></pre>
+                            </div>
+
+                            <div class="tab-pane" id="examples-Scripting-getScripts-0-php">
+                              <pre class="prettyprint"><code class="language-php"><&#63;php
+require_once(__DIR__ . '/vendor/autoload.php');
+
+// Configure API key authorization: ApiKeyAuth
+OpenAPITools\Client\Configuration::getDefaultConfiguration()->setApiKey('X-API-KEY', 'YOUR_API_KEY');
+// Uncomment below to setup prefix (e.g. Bearer) for API key, if needed
+// OpenAPITools\Client\Configuration::getDefaultConfiguration()->setApiKeyPrefix('X-API-KEY', 'Bearer');
+
+// Configure Bearer (JWT) access token for authorization: bearerAuth
+OpenAPITools\Client\Configuration::getDefaultConfiguration()->setAccessToken('', 'YOUR_ACCESS_TOKEN');
+
+// Create an instance of the API class
+$api_instance = new OpenAPITools\Client\Api\ScriptingApi();
+$offset = 56; // Integer | Pagination start (starts at 0. If not specified, 0 is assumed)
+$limit = 56; // Integer | Maximum number of entries to return (if absent, no limit is assumed)
+$filter = filter_example; // String | Filter the results
+
+try {
+    $result = $api_instance->getScripts($offset, $limit, $filter);
+    print_r($result);
+} catch (Exception $e) {
+    echo 'Exception when calling ScriptingApi->getScripts: ', $e->getMessage(), PHP_EOL;
+}
+?></code></pre>
+                            </div>
+
+                            <div class="tab-pane" id="examples-Scripting-getScripts-0-perl">
+                              <pre class="prettyprint"><code class="language-perl">use Data::Dumper;
+use WWW::OPenAPIClient::Configuration;
+use WWW::OPenAPIClient::ScriptingApi;
+
+# Configure API key authorization: ApiKeyAuth
+$WWW::OPenAPIClient::Configuration::api_key->{'X-API-KEY'} = 'YOUR_API_KEY';
+# uncomment below to setup prefix (e.g. Bearer) for API key, if needed
+#$WWW::OPenAPIClient::Configuration::api_key_prefix->{'X-API-KEY'} = "Bearer";
+
+# Configure Bearer (JWT) access token for authorization: bearerAuth
+$WWW::OPenAPIClient::Configuration::access_token = 'YOUR_ACCESS_TOKEN';
+
+# Create an instance of the API class
+my $api_instance = WWW::OPenAPIClient::ScriptingApi->new();
+my $offset = 56; # Integer | Pagination start (starts at 0. If not specified, 0 is assumed)
+my $limit = 56; # Integer | Maximum number of entries to return (if absent, no limit is assumed)
+my $filter = filter_example; # String | Filter the results
+
+eval {
+    my $result = $api_instance->getScripts(offset => $offset, limit => $limit, filter => $filter);
+    print Dumper($result);
+};
+if ($@) {
+    warn "Exception when calling ScriptingApi->getScripts: $@\n";
+}</code></pre>
+                            </div>
+
+                            <div class="tab-pane" id="examples-Scripting-getScripts-0-python">
+                              <pre class="prettyprint"><code class="language-python">from __future__ import print_statement
+import time
+import openapi_client
+from openapi_client.rest import ApiException
+from pprint import pprint
+
+# Configure API key authorization: ApiKeyAuth
+openapi_client.configuration.api_key['X-API-KEY'] = 'YOUR_API_KEY'
+# Uncomment below to setup prefix (e.g. Bearer) for API key, if needed
+# openapi_client.configuration.api_key_prefix['X-API-KEY'] = 'Bearer'
+
+# Configure Bearer (JWT) access token for authorization: bearerAuth
+openapi_client.configuration.access_token = 'YOUR_ACCESS_TOKEN'
+
+# Create an instance of the API class
+api_instance = openapi_client.ScriptingApi()
+offset = 56 # Integer | Pagination start (starts at 0. If not specified, 0 is assumed) (optional) (default to null)
+limit = 56 # Integer | Maximum number of entries to return (if absent, no limit is assumed) (optional) (default to null)
+filter = filter_example # String | Filter the results (optional) (default to null)
+
+try:
+    # Returns a list scripts.
+    api_response = api_instance.get_scripts(offset=offset, limit=limit, filter=filter)
+    pprint(api_response)
+except ApiException as e:
+    print("Exception when calling ScriptingApi->getScripts: %s\n" % e)</code></pre>
+                            </div>
+
+                            <div class="tab-pane" id="examples-Scripting-getScripts-0-rust">
+                              <pre class="prettyprint"><code class="language-rust">extern crate ScriptingApi;
+
+pub fn main() {
+    let offset = 56; // Integer
+    let limit = 56; // Integer
+    let filter = filter_example; // String
+
+    let mut context = ScriptingApi::Context::default();
+    let result = client.getScripts(offset, limit, filter, &context).wait();
+
+    println!("{:?}", result);
+}
+</code></pre>
+                            </div>
+                          </div>
+
+                          <h2>Scopes</h2>
+                          <table>
+                            
+                          </table>
+
+                          <h2>Parameters</h2>
+
+
+
+
+
+                            <div class="methodsubtabletitle">Query parameters</div>
+                            <table id="methodsubtable">
+                              <tr>
+                                <th width="150px">Name</th>
+                                <th>Description</th>
+                              </tr>
+                                <tr><td style="width:150px;">offset</td>
+<td>
+
+
+    <div id="d2e199_getScripts_offset">
+        <div class="json-schema-view">
+            <div class="primitive">
+                <span class="type">
+                    Integer
+                </span>
+
+                    <div class="inner description marked">
+Pagination start (starts at 0. If not specified, 0 is assumed)
+                    </div>
+            </div>
+        </div>
+    </div>
+</td>
+</tr>
+
+                                <tr><td style="width:150px;">limit</td>
+<td>
+
+
+    <div id="d2e199_getScripts_limit">
+        <div class="json-schema-view">
+            <div class="primitive">
+                <span class="type">
+                    Integer
+                </span>
+
+                    <div class="inner description marked">
+Maximum number of entries to return (if absent, no limit is assumed)
+                    </div>
+            </div>
+        </div>
+    </div>
+</td>
+</tr>
+
+                                <tr><td style="width:150px;">filter</td>
+<td>
+
+
+    <div id="d2e199_getScripts_filter">
+        <div class="json-schema-view">
+            <div class="primitive">
+                <span class="type">
+                    String
+                </span>
+
+                    <div class="inner description marked">
+Filter the results
+                    </div>
+            </div>
+        </div>
+    </div>
+</td>
+</tr>
+
+                            </table>
+
+                          <h2>Responses</h2>
+                            <h3 id="examples-Scripting-getScripts-title-200"></h3>
+                            <p id="examples-Scripting-getScripts-description-200" class="marked"></p>
+                            <script>
+                              var responseScripting200_description = `List all scripts`;
+                              var responseScripting200_description_break = responseScripting200_description.indexOf('\n');
+                              if (responseScripting200_description_break == -1) {
+                                $("#examples-Scripting-getScripts-title-200").text("Status: 200 - " + responseScripting200_description);
+                              } else {
+                                $("#examples-Scripting-getScripts-title-200").text("Status: 200 - " + responseScripting200_description.substring(0, responseScripting200_description_break));
+                                $("#examples-Scripting-getScripts-description-200").html(responseScripting200_description.substring(responseScripting200_description_break));
+                              }
+                            </script>
+
+
+                            <ul id="responses-detail-Scripting-getScripts-200" class="nav nav-tabs nav-tabs-examples" >
+                                <li class="active">
+                                  <a data-toggle="tab" href="#responses-Scripting-getScripts-200-schema">Schema</a>
+                                </li>
+
+
+
+
+                            </ul>
+
+
+                            <div class="tab-content" id="responses-Scripting-getScripts-200-wrapper" style='margin-bottom: 10px;'>
+                                <div class="tab-pane active" id="responses-Scripting-getScripts-200-schema">
+                                  <div id="responses-Scripting-getScripts-schema-200" class="exampleStyle">
+                                    <script>
+                                      $(document).ready(function() {
+                                        var schemaWrapper = ;
+                                        var schema = findNode('schema',schemaWrapper).schema;
+                                        if (!schema) {
+                                          schema = schemaWrapper.schema;
+                                        }
+                                        if (schema.$ref != null) {
+                                          schema = defsParser.$refs.get(schema.$ref);
+                                          Object.keys(schema.properties).forEach( (item) => {
+                                            if (schema.properties[item].$ref != null) {
+                                              schema.properties[item] = defsParser.$refs.get(schema.properties[item].$ref);
+                                            }
+                                          });
+                                        } else if (schema.items != null && schema.items.$ref != null) {
+                                            schema.items = defsParser.$refs.get(schema.items.$ref);
+                                        } else {
+                                          schemaWrapper.definitions = Object.assign({}, defs);
+                                          $RefParser.dereference(schemaWrapper).catch(function(err) {
+                                            console.log(err);
+                                          });
+                                        }
+
+                                        var view = new JSONSchemaView(schema, 3);
+                                        $('#responses-Scripting-getScripts-200-schema-data').val(JSON.stringify(schema));
+                                        var result = $('#responses-Scripting-getScripts-schema-200');
+                                        result.empty();
+                                        result.append(view.render());
+                                      });
+                                    </script>
+                                  </div>
+                                  <input id='responses-Scripting-getScripts-200-schema-data' type='hidden' value=''></input>
+                                </div>
+                            </div>
+                            <h3 id="examples-Scripting-getScripts-title-403"></h3>
+                            <p id="examples-Scripting-getScripts-description-403" class="marked"></p>
+                            <script>
+                              var responseScripting403_description = ``;
+                              var responseScripting403_description_break = responseScripting403_description.indexOf('\n');
+                              if (responseScripting403_description_break == -1) {
+                                $("#examples-Scripting-getScripts-title-403").text("Status: 403 - " + responseScripting403_description);
+                              } else {
+                                $("#examples-Scripting-getScripts-title-403").text("Status: 403 - " + responseScripting403_description.substring(0, responseScripting403_description_break));
+                                $("#examples-Scripting-getScripts-description-403").html(responseScripting403_description.substring(responseScripting403_description_break));
+                              }
+                            </script>
+
+
+                            <ul id="responses-detail-Scripting-getScripts-403" class="nav nav-tabs nav-tabs-examples" >
+
+
+                            </ul>
+
+
+                            <div class="tab-content" id="responses-Scripting-getScripts-403-wrapper" style='margin-bottom: 10px;'>
+                            </div>
+                            <h3 id="examples-Scripting-getScripts-title-404"></h3>
+                            <p id="examples-Scripting-getScripts-description-404" class="marked"></p>
+                            <script>
+                              var responseScripting404_description = ``;
+                              var responseScripting404_description_break = responseScripting404_description.indexOf('\n');
+                              if (responseScripting404_description_break == -1) {
+                                $("#examples-Scripting-getScripts-title-404").text("Status: 404 - " + responseScripting404_description);
+                              } else {
+                                $("#examples-Scripting-getScripts-title-404").text("Status: 404 - " + responseScripting404_description.substring(0, responseScripting404_description_break));
+                                $("#examples-Scripting-getScripts-description-404").html(responseScripting404_description.substring(responseScripting404_description_break));
+                              }
+                            </script>
+
+
+                            <ul id="responses-detail-Scripting-getScripts-404" class="nav nav-tabs nav-tabs-examples" >
+
+
+                            </ul>
+
+
+                            <div class="tab-content" id="responses-Scripting-getScripts-404-wrapper" style='margin-bottom: 10px;'>
+                            </div>
+                        </article>
+                      </div>
+                      <hr>
+                    <div id="api-Scripting-modifyScript">
+                      <article id="api-Scripting-modifyScript-0" data-group="User" data-name="modifyScript" data-version="0">
+                        <div class="pull-left">
+                          <h1>modifyScript</h1>
+                          <p>Modify a script.</p>
+                        </div>
+                        <div class="pull-right"></div>
+                        <div class="clearfix"></div>
+                        <p></p>
+                        <p class="marked"></p>
+                        <p></p>
+                        <br />
+                        <pre class="prettyprint language-html prettyprinted" data-type="put"><code><span class="pln">/script/{uuid}</span></code></pre>
+                        <p>
+                          <h3>Usage and SDK Samples</h3>
+                        </p>
+                        <ul class="nav nav-tabs nav-tabs-examples">
+                          <li class="active"><a href="#examples-Scripting-modifyScript-0-curl">Curl</a></li>
+                          <li class=""><a href="#examples-Scripting-modifyScript-0-java">Java</a></li>
+                          <li class=""><a href="#examples-Scripting-modifyScript-0-android">Android</a></li>
+                          <!--<li class=""><a href="#examples-Scripting-modifyScript-0-groovy">Groovy</a></li>-->
+                          <li class=""><a href="#examples-Scripting-modifyScript-0-objc">Obj-C</a></li>
+                          <li class=""><a href="#examples-Scripting-modifyScript-0-javascript">JavaScript</a></li>
+                          <!--<li class=""><a href="#examples-Scripting-modifyScript-0-angular">Angular</a></li>-->
+                          <li class=""><a href="#examples-Scripting-modifyScript-0-csharp">C#</a></li>
+                          <li class=""><a href="#examples-Scripting-modifyScript-0-php">PHP</a></li>
+                          <li class=""><a href="#examples-Scripting-modifyScript-0-perl">Perl</a></li>
+                          <li class=""><a href="#examples-Scripting-modifyScript-0-python">Python</a></li>
+                          <li class=""><a href="#examples-Scripting-modifyScript-0-rust">Rust</a></li>
+                        </ul>
+
+                        <div class="tab-content">
+                          <div class="tab-pane active" id="examples-Scripting-modifyScript-0-curl">
+                            <pre class="prettyprint"><code class="language-bsh">curl -X PUT \
+-H "X-API-KEY: [[apiKey]]" \
+ -H "Authorization: Bearer [[accessToken]]" \
+ -H "Content-Type: application/json" \
+ "https://localhost:16001/api/v1/script/{uuid}" \
+ -d '{
+  &quot;deferred&quot; : false,
+  &quot;defaultUploadURI&quot; : &quot;defaultUploadURI&quot;,
+  &quot;created&quot; : 0,
+  &quot;author&quot; : &quot;author&quot;,
+  &quot;description&quot; : &quot;description&quot;,
+  &quot;type&quot; : &quot;shell&quot;,
+  &quot;uri&quot; : &quot;uri&quot;,
+  &quot;version&quot; : &quot;version&quot;,
+  &quot;content&quot; : &quot;content&quot;,
+  &quot;timeout&quot; : 1,
+  &quot;restricted&quot; : [ &quot;restricted&quot;, &quot;restricted&quot; ],
+  &quot;name&quot; : &quot;name&quot;,
+  &quot;modified&quot; : 6,
+  &quot;id&quot; : &quot;id&quot;
+}'
+</code></pre>
+                          </div>
+                          <div class="tab-pane" id="examples-Scripting-modifyScript-0-java">
+                            <pre class="prettyprint"><code class="language-java">import org.openapitools.client.*;
+import org.openapitools.client.auth.*;
+import org.openapitools.client.model.*;
+import org.openapitools.client.api.ScriptingApi;
+
+import java.io.File;
+import java.util.*;
+
+public class ScriptingApiExample {
+    public static void main(String[] args) {
+        ApiClient defaultClient = Configuration.getDefaultApiClient();
+        
+        // Configure API key authorization: ApiKeyAuth
+        ApiKeyAuth ApiKeyAuth = (ApiKeyAuth) defaultClient.getAuthentication("ApiKeyAuth");
+        ApiKeyAuth.setApiKey("YOUR API KEY");
+        // Uncomment the following line to set a prefix for the API key, e.g. "Token" (defaults to null)
+        //ApiKeyAuth.setApiKeyPrefix("Token");
+        
+        // Configure Bearer (JWT) access token for authorization: bearerAuth
+        HttpBearerAuth bearerAuth = (HttpBearerAuth) defaultClient.getAuthentication("bearerAuth");
+        bearerAuth.setBearerToken("BEARER TOKEN");
+
+        // Create an instance of the API class
+        ScriptingApi apiInstance = new ScriptingApi();
+        UUID uuid = 38400000-8cf0-11bd-b23e-10b96e4ef00d; // UUID | The UUID of the script.
+        ScriptEntry scriptEntry = ; // ScriptEntry | 
+
+        try {
+            apiInstance.modifyScript(uuid, scriptEntry);
+        } catch (ApiException e) {
+            System.err.println("Exception when calling ScriptingApi#modifyScript");
+            e.printStackTrace();
+        }
+    }
+}
+</code></pre>
+                          </div>
+
+                          <div class="tab-pane" id="examples-Scripting-modifyScript-0-android">
+                            <pre class="prettyprint"><code class="language-java">import org.openapitools.client.api.ScriptingApi;
+
+public class ScriptingApiExample {
+    public static void main(String[] args) {
+        ScriptingApi apiInstance = new ScriptingApi();
+        UUID uuid = 38400000-8cf0-11bd-b23e-10b96e4ef00d; // UUID | The UUID of the script.
+        ScriptEntry scriptEntry = ; // ScriptEntry | 
+
+        try {
+            apiInstance.modifyScript(uuid, scriptEntry);
+        } catch (ApiException e) {
+            System.err.println("Exception when calling ScriptingApi#modifyScript");
+            e.printStackTrace();
+        }
+    }
+}</code></pre>
+                          </div>
+  <!--
+  <div class="tab-pane" id="examples-Scripting-modifyScript-0-groovy">
+  <pre class="prettyprint language-json prettyprinted" data-type="json"><code>Coming Soon!</code></pre>
+  </div> -->
+                            <div class="tab-pane" id="examples-Scripting-modifyScript-0-objc">
+                              <pre class="prettyprint"><code class="language-cpp">Configuration *apiConfig = [Configuration sharedConfig];
+
+// Configure API key authorization: (authentication scheme: ApiKeyAuth)
+[apiConfig setApiKey:@"YOUR_API_KEY" forApiKeyIdentifier:@"X-API-KEY"];
+// Uncomment below to setup prefix (e.g. Bearer) for API key, if needed
+//[apiConfig setApiKeyPrefix:@"Bearer" forApiKeyIdentifier:@"X-API-KEY"];
+
+// Configure Bearer (JWT) access token for authorization: bearerAuth
+[apiConfig setAccessToken:@"YOUR_ACCESS_TOKEN"];
+
+// Create an instance of the API class
+ScriptingApi *apiInstance = [[ScriptingApi alloc] init];
+UUID *uuid = 38400000-8cf0-11bd-b23e-10b96e4ef00d; // The UUID of the script. (default to null)
+ScriptEntry *scriptEntry = ; //  (optional)
+
+// Modify a script.
+[apiInstance modifyScriptWith:uuid
+    scriptEntry:scriptEntry
+              completionHandler: ^(NSError* error) {
+    if (error) {
+        NSLog(@"Error: %@", error);
+    }
+}];
+</code></pre>
+                            </div>
+
+                            <div class="tab-pane" id="examples-Scripting-modifyScript-0-javascript">
+                              <pre class="prettyprint"><code class="language-js">var UCentralGatewayApi = require('u_central_gateway_api');
+var defaultClient = UCentralGatewayApi.ApiClient.instance;
+
+// Configure API key authorization: ApiKeyAuth
+var ApiKeyAuth = defaultClient.authentications['ApiKeyAuth'];
+ApiKeyAuth.apiKey = "YOUR API KEY";
+// Uncomment the following line to set a prefix for the API key, e.g. "Token" (defaults to null)
+//ApiKeyAuth.apiKeyPrefix['X-API-KEY'] = "Token";
+
+// Configure Bearer (JWT) access token for authorization: bearerAuth
+var bearerAuth = defaultClient.authentications['bearerAuth'];
+bearerAuth.accessToken = "YOUR ACCESS TOKEN";
+
+// Create an instance of the API class
+var api = new UCentralGatewayApi.ScriptingApi()
+var uuid = 38400000-8cf0-11bd-b23e-10b96e4ef00d; // {UUID} The UUID of the script.
+var opts = {
+  'scriptEntry':  // {ScriptEntry} 
+};
+
+var callback = function(error, data, response) {
+  if (error) {
+    console.error(error);
+  } else {
+    console.log('API called successfully.');
+  }
+};
+api.modifyScript(uuid, opts, callback);
+</code></pre>
+                            </div>
+
+                            <!--<div class="tab-pane" id="examples-Scripting-modifyScript-0-angular">
+              <pre class="prettyprint language-json prettyprinted" data-type="json"><code>Coming Soon!</code></pre>
+            </div>-->
+                            <div class="tab-pane" id="examples-Scripting-modifyScript-0-csharp">
+                              <pre class="prettyprint"><code class="language-cs">using System;
+using System.Diagnostics;
+using Org.OpenAPITools.Api;
+using Org.OpenAPITools.Client;
+using Org.OpenAPITools.Model;
+
+namespace Example
+{
+    public class modifyScriptExample
+    {
+        public void main()
+        {
+            // Configure API key authorization: ApiKeyAuth
+            Configuration.Default.ApiKey.Add("X-API-KEY", "YOUR_API_KEY");
+            // Uncomment below to setup prefix (e.g. Bearer) for API key, if needed
+            // Configuration.Default.ApiKeyPrefix.Add("X-API-KEY", "Bearer");
+            // Configure Bearer (JWT) access token for authorization: bearerAuth
+            Configuration.Default.AccessToken = "YOUR_ACCESS_TOKEN";
+
+            // Create an instance of the API class
+            var apiInstance = new ScriptingApi();
+            var uuid = 38400000-8cf0-11bd-b23e-10b96e4ef00d;  // UUID | The UUID of the script. (default to null)
+            var scriptEntry = new ScriptEntry(); // ScriptEntry |  (optional) 
+
+            try {
+                // Modify a script.
+                apiInstance.modifyScript(uuid, scriptEntry);
+            } catch (Exception e) {
+                Debug.Print("Exception when calling ScriptingApi.modifyScript: " + e.Message );
+            }
+        }
+    }
+}
+</code></pre>
+                            </div>
+
+                            <div class="tab-pane" id="examples-Scripting-modifyScript-0-php">
+                              <pre class="prettyprint"><code class="language-php"><&#63;php
+require_once(__DIR__ . '/vendor/autoload.php');
+
+// Configure API key authorization: ApiKeyAuth
+OpenAPITools\Client\Configuration::getDefaultConfiguration()->setApiKey('X-API-KEY', 'YOUR_API_KEY');
+// Uncomment below to setup prefix (e.g. Bearer) for API key, if needed
+// OpenAPITools\Client\Configuration::getDefaultConfiguration()->setApiKeyPrefix('X-API-KEY', 'Bearer');
+
+// Configure Bearer (JWT) access token for authorization: bearerAuth
+OpenAPITools\Client\Configuration::getDefaultConfiguration()->setAccessToken('', 'YOUR_ACCESS_TOKEN');
+
+// Create an instance of the API class
+$api_instance = new OpenAPITools\Client\Api\ScriptingApi();
+$uuid = 38400000-8cf0-11bd-b23e-10b96e4ef00d; // UUID | The UUID of the script.
+$scriptEntry = ; // ScriptEntry | 
+
+try {
+    $api_instance->modifyScript($uuid, $scriptEntry);
+} catch (Exception $e) {
+    echo 'Exception when calling ScriptingApi->modifyScript: ', $e->getMessage(), PHP_EOL;
+}
+?></code></pre>
+                            </div>
+
+                            <div class="tab-pane" id="examples-Scripting-modifyScript-0-perl">
+                              <pre class="prettyprint"><code class="language-perl">use Data::Dumper;
+use WWW::OPenAPIClient::Configuration;
+use WWW::OPenAPIClient::ScriptingApi;
+
+# Configure API key authorization: ApiKeyAuth
+$WWW::OPenAPIClient::Configuration::api_key->{'X-API-KEY'} = 'YOUR_API_KEY';
+# uncomment below to setup prefix (e.g. Bearer) for API key, if needed
+#$WWW::OPenAPIClient::Configuration::api_key_prefix->{'X-API-KEY'} = "Bearer";
+
+# Configure Bearer (JWT) access token for authorization: bearerAuth
+$WWW::OPenAPIClient::Configuration::access_token = 'YOUR_ACCESS_TOKEN';
+
+# Create an instance of the API class
+my $api_instance = WWW::OPenAPIClient::ScriptingApi->new();
+my $uuid = 38400000-8cf0-11bd-b23e-10b96e4ef00d; # UUID | The UUID of the script.
+my $scriptEntry = WWW::OPenAPIClient::Object::ScriptEntry->new(); # ScriptEntry | 
+
+eval {
+    $api_instance->modifyScript(uuid => $uuid, scriptEntry => $scriptEntry);
+};
+if ($@) {
+    warn "Exception when calling ScriptingApi->modifyScript: $@\n";
+}</code></pre>
+                            </div>
+
+                            <div class="tab-pane" id="examples-Scripting-modifyScript-0-python">
+                              <pre class="prettyprint"><code class="language-python">from __future__ import print_statement
+import time
+import openapi_client
+from openapi_client.rest import ApiException
+from pprint import pprint
+
+# Configure API key authorization: ApiKeyAuth
+openapi_client.configuration.api_key['X-API-KEY'] = 'YOUR_API_KEY'
+# Uncomment below to setup prefix (e.g. Bearer) for API key, if needed
+# openapi_client.configuration.api_key_prefix['X-API-KEY'] = 'Bearer'
+
+# Configure Bearer (JWT) access token for authorization: bearerAuth
+openapi_client.configuration.access_token = 'YOUR_ACCESS_TOKEN'
+
+# Create an instance of the API class
+api_instance = openapi_client.ScriptingApi()
+uuid = 38400000-8cf0-11bd-b23e-10b96e4ef00d # UUID | The UUID of the script. (default to null)
+scriptEntry =  # ScriptEntry |  (optional)
+
+try:
+    # Modify a script.
+    api_instance.modify_script(uuid, scriptEntry=scriptEntry)
+except ApiException as e:
+    print("Exception when calling ScriptingApi->modifyScript: %s\n" % e)</code></pre>
+                            </div>
+
+                            <div class="tab-pane" id="examples-Scripting-modifyScript-0-rust">
+                              <pre class="prettyprint"><code class="language-rust">extern crate ScriptingApi;
+
+pub fn main() {
+    let uuid = 38400000-8cf0-11bd-b23e-10b96e4ef00d; // UUID
+    let scriptEntry = ; // ScriptEntry
+
+    let mut context = ScriptingApi::Context::default();
+    let result = client.modifyScript(uuid, scriptEntry, &context).wait();
+
+    println!("{:?}", result);
+}
+</code></pre>
+                            </div>
+                          </div>
+
+                          <h2>Scopes</h2>
+                          <table>
+                            
+                          </table>
+
+                          <h2>Parameters</h2>
+
+                            <div class="methodsubtabletitle">Path parameters</div>
+                            <table id="methodsubtable">
+                                <tr>
+                                  <th width="150px">Name</th>
+                                  <th>Description</th>
+                                </tr>
+                                  <tr><td style="width:150px;">uuid*</td>
+<td>
+
+
+    <div id="d2e199_modifyScript_uuid">
+        <div class="json-schema-view">
+            <div class="primitive">
+                <span class="type">
+                    UUID
+                </span>
+                    <span class="format">
+                        (uuid)
+                    </span>
+
+                    <div class="inner description marked">
+The UUID of the script.
+                    </div>
+            </div>
+                <div class="inner required">
+                    Required
+                </div>
+        </div>
+    </div>
+</td>
+</tr>
+
+                            </table>
+
+
+                            <div class="methodsubtabletitle">Body parameters</div>
+                            <table id="methodsubtable">
+                              <tr>
+                                <th width="150px">Name</th>
+                                <th>Description</th>
+                              </tr>
+                                <tr><td style="width:150px;">scriptEntry </td>
+<td>
+<p class="marked">Complete script entry. You may only modify the name, description, version, uri, and content</p>
+<script>
+$(document).ready(function() {
+  var schemaWrapper = {
+  "description" : "Complete script entry. You may only modify the name, description, version, uri, and content",
+  "content" : {
+    "application/json" : {
+      "schema" : {
+        "$ref" : "#/components/schemas/ScriptEntry"
+      }
+    }
+  }
+};
+
+  var schema = findNode('schema',schemaWrapper).schema;
+  if (!schema) {
+    schema = schemaWrapper.schema;
+  }
+  if (schema.$ref != null) {
+    schema = defsParser.$refs.get(schema.$ref);
+  } else {
+    schemaWrapper.definitions = Object.assign({}, defs);
+    $RefParser.dereference(schemaWrapper).catch(function(err) {
+      console.log(err);
+    });
+  }
+
+  var view = new JSONSchemaView(schema,2,{isBodyParam: true});
+  var result = $('#d2e199_modifyScript_scriptEntry');
+  result.empty();
+  result.append(view.render());
+});
+</script>
+<div id="d2e199_modifyScript_scriptEntry"></div>
+</td>
+</tr>
+
+                            </table>
+
+
+
+                          <h2>Responses</h2>
+                            <h3 id="examples-Scripting-modifyScript-title-200"></h3>
+                            <p id="examples-Scripting-modifyScript-description-200" class="marked"></p>
+                            <script>
+                              var responseScripting200_description = ``;
+                              var responseScripting200_description_break = responseScripting200_description.indexOf('\n');
+                              if (responseScripting200_description_break == -1) {
+                                $("#examples-Scripting-modifyScript-title-200").text("Status: 200 - " + responseScripting200_description);
+                              } else {
+                                $("#examples-Scripting-modifyScript-title-200").text("Status: 200 - " + responseScripting200_description.substring(0, responseScripting200_description_break));
+                                $("#examples-Scripting-modifyScript-description-200").html(responseScripting200_description.substring(responseScripting200_description_break));
+                              }
+                            </script>
+
+
+                            <ul id="responses-detail-Scripting-modifyScript-200" class="nav nav-tabs nav-tabs-examples" >
+
+
+                            </ul>
+
+
+                            <div class="tab-content" id="responses-Scripting-modifyScript-200-wrapper" style='margin-bottom: 10px;'>
+                            </div>
+                            <h3 id="examples-Scripting-modifyScript-title-403"></h3>
+                            <p id="examples-Scripting-modifyScript-description-403" class="marked"></p>
+                            <script>
+                              var responseScripting403_description = ``;
+                              var responseScripting403_description_break = responseScripting403_description.indexOf('\n');
+                              if (responseScripting403_description_break == -1) {
+                                $("#examples-Scripting-modifyScript-title-403").text("Status: 403 - " + responseScripting403_description);
+                              } else {
+                                $("#examples-Scripting-modifyScript-title-403").text("Status: 403 - " + responseScripting403_description.substring(0, responseScripting403_description_break));
+                                $("#examples-Scripting-modifyScript-description-403").html(responseScripting403_description.substring(responseScripting403_description_break));
+                              }
+                            </script>
+
+
+                            <ul id="responses-detail-Scripting-modifyScript-403" class="nav nav-tabs nav-tabs-examples" >
+
+
+                            </ul>
+
+
+                            <div class="tab-content" id="responses-Scripting-modifyScript-403-wrapper" style='margin-bottom: 10px;'>
+                            </div>
+                            <h3 id="examples-Scripting-modifyScript-title-404"></h3>
+                            <p id="examples-Scripting-modifyScript-description-404" class="marked"></p>
+                            <script>
+                              var responseScripting404_description = ``;
+                              var responseScripting404_description_break = responseScripting404_description.indexOf('\n');
+                              if (responseScripting404_description_break == -1) {
+                                $("#examples-Scripting-modifyScript-title-404").text("Status: 404 - " + responseScripting404_description);
+                              } else {
+                                $("#examples-Scripting-modifyScript-title-404").text("Status: 404 - " + responseScripting404_description.substring(0, responseScripting404_description_break));
+                                $("#examples-Scripting-modifyScript-description-404").html(responseScripting404_description.substring(responseScripting404_description_break));
+                              }
+                            </script>
+
+
+                            <ul id="responses-detail-Scripting-modifyScript-404" class="nav nav-tabs nav-tabs-examples" >
+
+
+                            </ul>
+
+
+                            <div class="tab-content" id="responses-Scripting-modifyScript-404-wrapper" style='margin-bottom: 10px;'>
                             </div>
                         </article>
                       </div>
