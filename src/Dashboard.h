@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include <mutex>
+
 #include "RESTObjects//RESTAPI_GWobjects.h"
 #include "framework/OpenWifiTypes.h"
 
