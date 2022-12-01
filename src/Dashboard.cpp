@@ -13,7 +13,6 @@ namespace OpenWifi {
 		if(!ValidDashboard_ || LastRun_==0 || (Now-LastRun_)>120) {
 			Generate(D, Logger);
 		} else {
-			std::cout << "Getting dashboard cached" << std::endl;
 			std::lock_guard	G(DataMutex_);
 			D = DB_;
 		}
@@ -22,7 +21,7 @@ namespace OpenWifi {
 
 	void DeviceDashboard::Generate(GWObjects::Dashboard &D, Poco::Logger & Logger ) {
 		if (GeneratingDashboard_.load()) {
-			std::cout << "Trying to generate dashboard but already being generated" << std::endl;
+			// std::cout << "Trying to generate dashboard but already being generated" << std::endl;
 			while(GeneratingDashboard_.load()) {
 				Poco::Thread::trySleep(100);
 			}
@@ -32,7 +31,7 @@ namespace OpenWifi {
 			GeneratingDashboard_ = true;
 			ValidDashboard_ = false;
 			try {
-				std::cout << "Generating dashboard." << std::endl;
+				// std::cout << "Generating dashboard." << std::endl;
 				poco_information(Logger, "DASHBOARD: Generating a new dashboard.");
 				GWObjects::Dashboard	NewData;
 				StorageService()->AnalyzeCommands(NewData.commands);

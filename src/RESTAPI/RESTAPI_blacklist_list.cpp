@@ -12,6 +12,8 @@ namespace OpenWifi {
 
 		std::vector<GWObjects::BlackListedDevice>	Devices;
 
+		poco_debug(Logger(),fmt::format("BLACKLIST-GET: Device serial number list"));
+
 		Poco::JSON::Array	Arr;
 		Poco::JSON::Object	Answer;
 
