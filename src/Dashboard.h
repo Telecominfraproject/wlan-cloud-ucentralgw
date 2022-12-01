@@ -8,16 +8,19 @@
 
 #include "RESTObjects//RESTAPI_GWobjects.h"
 #include "framework/OpenWifiTypes.h"
+#include "Poco/Logger.h"
 
 namespace OpenWifi {
 	class DeviceDashboard {
 	  public:
 			DeviceDashboard() { DB_.reset(); }
-			bool Get(GWObjects::Dashboard &D) {
+			bool Get(GWObjects::Dashboard &D, Poco::Logger & Logger) {
 				uint64_t Now = Utils::Now();
 				if(!ValidDashboard_ || LastRun_==0 || (Now-LastRun_)>120) {
-					Generate(D);
+					Generate(D, Logger);
 				} else {
+					std::cout << "Getting dashboard cached" << std::endl;
+					std::lock_guard	G(DataMutex_);
 					D = DB_;
 				}
 				return ValidDashboard_;
@@ -30,7 +33,7 @@ namespace OpenWifi {
 			GWObjects::Dashboard 		DB_;
 			uint64_t 					LastRun_=0;
 			inline void Reset() { DB_.reset(); }
-			void Generate(GWObjects::Dashboard &D);
+			void Generate(GWObjects::Dashboard &D, Poco::Logger & Logger);
 	};
 }
 
