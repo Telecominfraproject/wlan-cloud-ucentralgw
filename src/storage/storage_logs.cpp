@@ -107,6 +107,7 @@ namespace OpenWifi {
 				ConvertLogsRecord(i,R);
 				Stats.push_back(R);
 			}
+			Select.reset(Sess);
 			return true;
 		}
 		catch (const Poco::Exception &E) {
@@ -144,6 +145,7 @@ namespace OpenWifi {
 			Delete << StatementStr + DateSelector + TypeSelector;
 
 			Delete.execute();
+			Delete.reset(Sess);
 
 			return true;
 		}
@@ -172,6 +174,7 @@ namespace OpenWifi {
 				ConvertLogsRecord(i,R);
 				Stats.push_back(R);
 			}
+			Select.reset(Sess);
 			return true;
 		}
 		catch (const Poco::Exception &E) {

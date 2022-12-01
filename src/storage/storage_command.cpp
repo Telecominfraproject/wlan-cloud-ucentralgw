@@ -120,6 +120,8 @@ typedef Poco::Tuple<
 				Poco::Data::Keywords::use(SerialNumber),
 				Poco::Data::Keywords::use(Command);
 			Delete.execute();
+			Delete.reset(Sess);
+
 			return true;
 		} catch(const Poco::Exception &E) {
 			Logger().log(E);
@@ -205,6 +207,8 @@ typedef Poco::Tuple<
 				ConvertCommandRecord(i, R);
 				Commands.push_back(R);
 			}
+			Select.reset(Sess);
+
 			return true;
 		} catch (const Poco::Exception &E) {
 			Logger().log(E);
@@ -237,6 +241,7 @@ typedef Poco::Tuple<
 
 			Delete << IntroStatement + DateSelector;
 			Delete.execute();
+			Delete.reset(Sess);
 
 			return true;
 		} catch (const Poco::Exception &E) {
@@ -274,7 +279,7 @@ typedef Poco::Tuple<
 				if (Records.size() < HowMany)
 					Done = true;
 			}
-
+			Select.reset(Sess);
 			return true;
 		} catch (const Poco::Exception &E) {
 			Logger().log(E);
@@ -343,6 +348,8 @@ typedef Poco::Tuple<
 				Poco::Data::Keywords::use(Status),
 				Poco::Data::Keywords::use(Window);
 			Update.execute();
+			Update.reset(Sess);
+
 		} catch (const Poco::Exception &E) {
 			Logger().log(E);
 		}
@@ -359,6 +366,7 @@ typedef Poco::Tuple<
 				Poco::Data::Keywords::use(Now),
 				Poco::Data::Keywords::use(Window);
 			Update.execute();
+			Update.reset(Sess);
 		} catch (const Poco::Exception &E) {
 			Logger().log(E);
 		}
@@ -418,6 +426,11 @@ typedef Poco::Tuple<
 
 			Delete << ConvertParams(St), Poco::Data::Keywords::use(UUID);
 			Delete.execute();
+			Delete.reset(Sess);
+			St = "DELETE FROM FileUploads WHERE UUID=?";
+			Delete << ConvertParams(St), Poco::Data::Keywords::use(UUID);
+			Delete.execute();
+			Delete.reset(Sess);
 
 			return true;
 		} catch (const Poco::Exception &E) {
@@ -446,6 +459,7 @@ typedef Poco::Tuple<
 				ConvertCommandRecord(i,R);
 				Commands.push_back(R);
 			}
+			Select.reset(Sess);
 			return true;
 		} catch (const Poco::Exception &E) {
 			Logger().log(E);
@@ -586,23 +600,26 @@ typedef Poco::Tuple<
 
 	bool Storage::AttachFileDataToCommand(std::string & UUID, const std::stringstream & FileContent, const std::string &Type) {
 		try {
-			Poco::Data::Session Sess = Pool_->get();
 			auto Now = Utils::Now();
 			uint64_t WaitForFile = 0;
-
-			Poco::Data::Statement Update(Sess);
-
 			uint64_t Size = FileContent.str().size();
 
-			std::string St{
-				"UPDATE CommandList SET WaitingForFile=?, AttachDate=?, AttachSize=? WHERE UUID=?"};
+			Poco::Data::Session Sess = Pool_->get();
+			Poco::Data::Statement Statement(Sess);
 
-			Update << ConvertParams(St),
+			std::string StatementStr;
+
+			//	Get the existing command
+
+
+			StatementStr = "UPDATE CommandList SET WaitingForFile=?, AttachDate=?, AttachSize=? WHERE UUID=?";
+
+			Statement << ConvertParams(StatementStr),
 				Poco::Data::Keywords::use(WaitForFile),
 				Poco::Data::Keywords::use(Now),
 				Poco::Data::Keywords::use(Size),
 				Poco::Data::Keywords::use(UUID);
-			Update.execute();
+			Statement.execute();
 
 			if (Size < FileUploader()->MaxSize()) {
 
@@ -654,16 +671,21 @@ typedef Poco::Tuple<
 				return false;
 			}
 
-			std::string St2{"SELECT FileContent, Type FROM FileUploads WHERE UUID=?"};
-
+			std::string St2{"SELECT FileContent, Type, Command FROM FileUploads WHERE UUID=?"};
+			std::string Command;
 			Poco::Data::Statement Select2(Sess);
 			Select2 << ConvertParams(St2),
 				Poco::Data::Keywords::into(L),
 				Poco::Data::Keywords::into(Type),
+				Poco::Data::Keywords::into(Command),
 				Poco::Data::Keywords::use(UUID);
 			Select2.execute();
-
 			FileContent.assign(L.content().begin(),L.content().end());
+
+			if(Command=="script")
+				Type = "gzip";
+			else if(Command=="trace")
+				Type = "pcap";
 			return true;
 		} catch (const Poco::Exception &E) {
 			Logger().log(E);

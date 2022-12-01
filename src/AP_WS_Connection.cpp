@@ -28,6 +28,8 @@
 
 #include "fmt/format.h"
 
+#include "framework/ow_constants.h"
+
 
 #include "RADIUS_proxy_server.h"
 
@@ -290,7 +292,7 @@ namespace OpenWifi {
 			bool Sent;
 
 			StorageService()->AddCommand(SerialNumber_, Cmd, Storage::CommandExecutionType::COMMAND_EXECUTED);
-			CommandManager()->PostCommand(CommandManager()->Next_RPC_ID(),SerialNumber_, Cmd.Command, Params, Cmd.UUID, Sent);
+			CommandManager()->PostCommand(CommandManager()->Next_RPC_ID(), APCommands::to_apcommand(Cmd.Command.c_str()),SerialNumber_, Cmd.Command, Params, Cmd.UUID, Sent);
 
 			GWWebSocketNotifications::SingleDeviceConfigurationChange_t	Notification;
 			Notification.content.serialNumber = D.SerialNumber;

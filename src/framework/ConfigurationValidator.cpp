@@ -2749,7 +2749,7 @@ static json DefaultUCentralSchema = R"(
             if(std::regex_match(value,host_regex))
                 return;
             throw std::invalid_argument(value + " is not a proper FQDN.");
-        } else if(format == "fqdn") {
+        } else if(format == "fqdn" || format=="uc-fqdn") {
             if(std::regex_match(value,host_regex))
                 return;
             throw std::invalid_argument(value + " is not a proper FQDN.");

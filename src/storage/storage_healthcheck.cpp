@@ -98,6 +98,7 @@ namespace OpenWifi {
 				ConvertHealthCheckRecord(i,R);
 				Checks.push_back(R);
 			}
+			Select.reset(Sess);
 			return true;
 		}
 		catch (const Poco::Exception &E) {
@@ -125,6 +126,7 @@ namespace OpenWifi {
 				ConvertHealthCheckRecord(i,R);
 				Checks.push_back(R);
 			}
+			Select.reset(Sess);
 			return true;
 		}
 		catch (const Poco::Exception &E) {
