@@ -661,9 +661,11 @@ typedef Poco::Tuple<
 			Poco::Data::Statement Select1(Sess);
 
 			std::string TmpSerialNumber;
-			std::string st1{"SELECT SerialNumber FROM CommandList WHERE UUID=?"};
+			std::string st1{"SELECT SerialNumber, Command FROM CommandList WHERE UUID=?"};
+			std::string Command;
 			Select1	<< 	ConvertParams(st1),
 				Poco::Data::Keywords::into(TmpSerialNumber),
+				Poco::Data::Keywords::into(Command),
 				Poco::Data::Keywords::use(UUID);
 			Select1.execute();
 
@@ -671,13 +673,11 @@ typedef Poco::Tuple<
 				return false;
 			}
 
-			std::string St2{"SELECT FileContent, Type, Command FROM FileUploads WHERE UUID=?"};
-			std::string Command;
+			std::string St2{"SELECT FileContent, Type FROM FileUploads WHERE UUID=?"};
 			Poco::Data::Statement Select2(Sess);
 			Select2 << ConvertParams(St2),
 				Poco::Data::Keywords::into(L),
 				Poco::Data::Keywords::into(Type),
-				Poco::Data::Keywords::into(Command),
 				Poco::Data::Keywords::use(UUID);
 			Select2.execute();
 			FileContent.assign(L.content().begin(),L.content().end());
