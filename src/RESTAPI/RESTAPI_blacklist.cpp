@@ -20,6 +20,8 @@ namespace OpenWifi {
 			return BadRequest(RESTAPI::Errors::MissingSerialNumber);
 		}
 
+		poco_debug(Logger(),fmt::format("BLACKLIST-DELETE: {}", SerialNumber));
+
 		GWObjects::BlackListedDevice	D;
 		if(!StorageService()->GetBlackListDevice(SerialNumber, D)) {
 			return NotFound();
@@ -38,6 +40,7 @@ namespace OpenWifi {
 			return BadRequest(RESTAPI::Errors::MissingSerialNumber);
 		}
 
+		poco_debug(Logger(),fmt::format("BLACKLIST-GET: {}", SerialNumber));
 		GWObjects::BlackListedDevice	D;
 		if(!StorageService()->GetBlackListDevice(SerialNumber, D)) {
 			return NotFound();
@@ -59,6 +62,8 @@ namespace OpenWifi {
 		if(D.serialNumber.empty() || !Utils::NormalizeMac(D.serialNumber)) {
 			return BadRequest(RESTAPI::Errors::MissingSerialNumber);
 		}
+
+		poco_debug(Logger(),fmt::format("BLACKLIST-POST: {}", D.serialNumber));
 
 		Poco::toLowerInPlace(D.serialNumber);
 		if(StorageService()->IsBlackListed(D.serialNumber)) {
@@ -91,6 +96,8 @@ namespace OpenWifi {
 		if(!StorageService()->GetBlackListDevice(SerialNumber, Existing)) {
 			return BadRequest(RESTAPI::Errors::InvalidJSONDocument);
 		}
+
+		poco_debug(Logger(),fmt::format("BLACKLIST-PUT: {}", SerialNumber));
 
 		GWObjects::BlackListedDevice	NewDevice;
 		if(!NewDevice.from_json(Obj)) {

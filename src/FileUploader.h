@@ -22,7 +22,7 @@ namespace OpenWifi {
 
 		struct UploadId {
 		  std::string 		UUID;
-		  std::uint64_t 		Expires;
+		  std::uint64_t 	Expires;
 		  std::string 		Type;
 		};
 

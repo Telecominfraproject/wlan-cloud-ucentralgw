@@ -34,11 +34,8 @@ namespace OpenWifi {
 					Poco::JSON::Object::Ptr Payload = Resp->Payload_;
 					std::string SerialNumberStr = Utils::IntToSerialNumber(Resp->SerialNumber_);
 
-/*					std::ostringstream SS;
-					Payload->stringify(SS);
+					bool NoReply = false;
 
-					std::cout << SS.str() << std::endl;
-*/
 					if (!Payload->has(uCentralProtocol::ID)) {
 						poco_error(Logger(), fmt::format("({}): Invalid RPC response.", SerialNumberStr));
 					} else {
@@ -64,61 +61,54 @@ namespace OpenWifi {
 									if(RPC->second.State==2) {
 										//	 look at the payload to see if we should continue or not...
 										if (RPC->second.rpc_entry) {
-											std::cout << __LINE__ << std::endl;
 											TmpRpcEntry = RPC->second.rpc_entry;
-//											RPC->second.rpc_entry->set_value(Payload);
 										}
-										std::cout << __LINE__ << std::endl;
+
+										// Payload->stringify(std::cout);
 
 										if (Payload->has("result")) {
-											std::cout << __LINE__ << std::endl;
 											auto Result = Payload->getObject("result");
 											if (Result->has("status")) {
-												std::cout << __LINE__ << std::endl;
 												auto Status = Result->getObject("status");
+												// Status->stringify(std::cout);
 												std::uint64_t Error = Status->get("error");
 												if(Error==0) {
-													std::cout << __LINE__ << std::endl;
 													StorageService()->CommandCompleted(RPC->second.UUID, Payload,
 																					   rpc_execution_time, true);
 													RPC->second.State = 1 ;
 												} else {
-													std::cout << __LINE__ << std::endl;
-													std::string ErrorTxt = Result->get("result");
+													StorageService()->CommandCompleted(RPC->second.UUID, Payload,
+																					   rpc_execution_time, true);
+													std::string ErrorTxt = Status->get("result");
 													StorageService()->CancelWaitFile(RPC->second.UUID, ErrorTxt);
 													RPC->second.State = 0 ;
 												}
 											}
-											std::cout << __LINE__ << std::endl;
 										} else {
-											std::cout << "Bad payload on command result" << std::endl;
+//											std::cout << "Bad payload on command result" << std::endl;
 											RPC->second.State=0;
 										}
 									} else {
-										std::cout << "Bad file uploaded commit" << std::endl;
+//										std::cout << "Completing script 2 phase commit." << std::endl;
 										StorageService()->CommandCompleted(RPC->second.UUID, Payload,
 																		   rpc_execution_time, true);
+										NoReply = true;
 										RPC->second.State=0;
 									}
 								} else {
-
-									std::cout << __LINE__ << std::endl;
 									StorageService()->CommandCompleted(RPC->second.UUID, Payload,
 																	   rpc_execution_time, true);
 									if (RPC->second.rpc_entry) {
 										TmpRpcEntry = RPC->second.rpc_entry;
-//										RPC->second.rpc_entry->set_value(Payload);
 									}
 									RPC->second.State = 0 ;
 								}
 
 								if(RPC->second.State==0) {
-									std::cout << __LINE__ << std::endl;
 									OutStandingRequests_.erase(ID);
 								}
-
 							}
-							if(TmpRpcEntry != nullptr)
+							if(!NoReply && TmpRpcEntry != nullptr)
 								TmpRpcEntry->set_value(Payload);
 						}
 					}
