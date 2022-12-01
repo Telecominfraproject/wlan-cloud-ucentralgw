@@ -119,7 +119,7 @@ namespace OpenWifi {
 	}
 
 	bool UI_WebSocketClientServer::SendToUser(const std::string &UserName, std::uint64_t id, const std::string &Payload) {
-		std::lock_guard G(Mutex_);
+		std::lock_guard G(LocalMutex_);
 
 		for(const auto &Client:Clients_) {
 			if(Client.second->UserName_ == UserName) {
@@ -139,7 +139,7 @@ namespace OpenWifi {
 	}
 
 	void UI_WebSocketClientServer::SendToAll(std::uint64_t id, const std::string &Payload) {
-		std::lock_guard G(Mutex_);
+		std::lock_guard G(LocalMutex_);
 
 		for(const auto &Client:Clients_) {
 			try {
@@ -189,7 +189,6 @@ namespace OpenWifi {
 	void UI_WebSocketClientServer::OnSocketReadable([[maybe_unused]] const Poco::AutoPtr<Poco::Net::ReadableNotification> &pNf) {
 
         UI_WebSocketClientServer::ClientList::iterator Client;
-
         std::lock_guard     G(LocalMutex_);
 
 		try {
@@ -295,6 +294,7 @@ namespace OpenWifi {
 
 	void UI_WebSocketClientServer::OnSocketShutdown([[maybe_unused]] const Poco::AutoPtr<Poco::Net::ShutdownNotification> &pNf) {
         try {
+			std::lock_guard     G(LocalMutex_);
 			auto Client = Clients_.find(pNf->socket().impl()->sockfd());
             if (Client == end(Clients_))
                 return;
