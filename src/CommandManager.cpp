@@ -89,8 +89,10 @@ namespace OpenWifi {
 																					   rpc_execution_time, true);
 													RPC->second.State = 1 ;
 												} else {
+													StorageService()->CommandCompleted(RPC->second.UUID, Payload,
+																					   rpc_execution_time, true);
 													std::cout << __LINE__ << std::endl;
-													std::string ErrorTxt = Result->get("result");
+													std::string ErrorTxt = Status->get("result");
 													std::cout << __LINE__ << std::endl;
 													StorageService()->CancelWaitFile(RPC->second.UUID, ErrorTxt);
 													std::cout << __LINE__ << std::endl;
