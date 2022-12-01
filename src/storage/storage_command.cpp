@@ -120,6 +120,8 @@ typedef Poco::Tuple<
 				Poco::Data::Keywords::use(SerialNumber),
 				Poco::Data::Keywords::use(Command);
 			Delete.execute();
+			Delete.reset(Sess);
+
 			return true;
 		} catch(const Poco::Exception &E) {
 			Logger().log(E);
@@ -205,6 +207,8 @@ typedef Poco::Tuple<
 				ConvertCommandRecord(i, R);
 				Commands.push_back(R);
 			}
+			Select.reset(Sess);
+
 			return true;
 		} catch (const Poco::Exception &E) {
 			Logger().log(E);
@@ -237,6 +241,7 @@ typedef Poco::Tuple<
 
 			Delete << IntroStatement + DateSelector;
 			Delete.execute();
+			Delete.reset(Sess);
 
 			return true;
 		} catch (const Poco::Exception &E) {
@@ -274,7 +279,7 @@ typedef Poco::Tuple<
 				if (Records.size() < HowMany)
 					Done = true;
 			}
-
+			Select.reset(Sess);
 			return true;
 		} catch (const Poco::Exception &E) {
 			Logger().log(E);
@@ -343,6 +348,8 @@ typedef Poco::Tuple<
 				Poco::Data::Keywords::use(Status),
 				Poco::Data::Keywords::use(Window);
 			Update.execute();
+			Update.reset(Sess);
+
 		} catch (const Poco::Exception &E) {
 			Logger().log(E);
 		}
@@ -359,6 +366,7 @@ typedef Poco::Tuple<
 				Poco::Data::Keywords::use(Now),
 				Poco::Data::Keywords::use(Window);
 			Update.execute();
+			Update.reset(Sess);
 		} catch (const Poco::Exception &E) {
 			Logger().log(E);
 		}
@@ -422,6 +430,7 @@ typedef Poco::Tuple<
 			St = "DELETE FROM FileUploads WHERE UUID=?";
 			Delete << ConvertParams(St), Poco::Data::Keywords::use(UUID);
 			Delete.execute();
+			Delete.reset(Sess);
 
 			return true;
 		} catch (const Poco::Exception &E) {
@@ -450,6 +459,7 @@ typedef Poco::Tuple<
 				ConvertCommandRecord(i,R);
 				Commands.push_back(R);
 			}
+			Select.reset(Sess);
 			return true;
 		} catch (const Poco::Exception &E) {
 			Logger().log(E);
