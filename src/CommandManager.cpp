@@ -34,11 +34,11 @@ namespace OpenWifi {
 					Poco::JSON::Object::Ptr Payload = Resp->Payload_;
 					std::string SerialNumberStr = Utils::IntToSerialNumber(Resp->SerialNumber_);
 
-					std::ostringstream SS;
+/*					std::ostringstream SS;
 					Payload->stringify(SS);
 
 					std::cout << SS.str() << std::endl;
-
+*/
 					if (!Payload->has(uCentralProtocol::ID)) {
 						poco_error(Logger(), fmt::format("({}): Invalid RPC response.", SerialNumberStr));
 					} else {
