@@ -37,6 +37,7 @@ namespace OpenWifi {
 				StorageService()->AnalyzeCommands(NewData.commands);
 				StorageService()->AnalyzeDevices(NewData);
 				LastRun_ = Utils::Now();
+				NewData.snapshot = LastRun_;
 				D = NewData;
 				std::lock_guard	G(DataMutex_);
 				DB_ = NewData;
