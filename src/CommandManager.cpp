@@ -118,7 +118,8 @@ namespace OpenWifi {
 								}
 
 							}
-							TmpRpcEntry->set_value(Payload);
+							if(TmpRpcEntry != nullptr)
+								TmpRpcEntry->set_value(Payload);
 						}
 					}
 				}

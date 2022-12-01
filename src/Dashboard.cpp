@@ -7,14 +7,28 @@
 #include "framework/utils.h"
 
 namespace OpenWifi {
-	void DeviceDashboard::Create() {
-		uint64_t Now = Utils::Now();
+	void DeviceDashboard::Generate(GWObjects::Dashboard &D) {
+		if (std::atomic_flag_test_and_set(&GeneratingDashboard_)) {
+			while(std::atomic_flag_test(&GeneratingDashboard_)) {
+				Poco::Thread::trySleep(100);
+			}
+			std::lock_guard	G(DataMutex_);
+			D = DB_;
+		} else {
+			ValidDashboard_ = false;
+			try {
+				GWObjects::Dashboard	NewData;
+				StorageService()->AnalyzeCommands(NewData.commands);
+				StorageService()->AnalyzeDevices(NewData);
+				LastRun_ = Utils::Now();
+				D = NewData;
+				std::lock_guard	G(DataMutex_);
+				DB_ = NewData;
+				ValidDashboard_=true;
+			} catch(...) {
 
-		if(LastRun_==0 || (Now-LastRun_)>120) {
-			DB_.reset();
-			StorageService()->AnalyzeCommands(DB_.commands);
-			StorageService()->AnalyzeDevices(DB_);
-			LastRun_ = Now;
+			}
+			std::atomic_flag_clear(&GeneratingDashboard_);
 		}
 	}
 }
