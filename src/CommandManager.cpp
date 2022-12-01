@@ -42,40 +42,58 @@ namespace OpenWifi {
 						uint64_t ID = Payload->get(uCentralProtocol::ID);
 						std::shared_ptr<promise_type_t> TmpRpcEntry;
 						poco_debug(Logger(),fmt::format("({}): Processing {} response.", SerialNumberStr, ID));
+						std::cout << __LINE__ << std::endl;
 						if (ID > 1) {
+							std::cout << __LINE__ << std::endl;
 							std::lock_guard	Lock(LocalMutex_);
 							auto RPC = OutStandingRequests_.find(ID);
 							if (RPC == OutStandingRequests_.end() ||
 								RPC->second.SerialNumber != Resp->SerialNumber_) {
+								std::cout << __LINE__ << std::endl;
 								poco_debug(Logger(),
 									fmt::format("({}): RPC {} completed.", SerialNumberStr, ID));
 							} else {
+								std::cout << __LINE__ << std::endl;
 								std::chrono::duration<double, std::milli> rpc_execution_time =
 									std::chrono::high_resolution_clock::now() -
 									RPC->second.submitted;
+								std::cout << __LINE__ << std::endl;
 
 								poco_debug(Logger(),
 									fmt::format("({}): Received RPC answer {}. Command={}",
 													   SerialNumberStr, ID, APCommands::to_string(RPC->second.Command)));
+								std::cout << __LINE__ << std::endl;
 								if(RPC->second.Command==APCommands::Commands::script) {
 									if(RPC->second.State==2) {
 										//	 look at the payload to see if we should continue or not...
 										if (RPC->second.rpc_entry) {
 											TmpRpcEntry = RPC->second.rpc_entry;
 										}
+										std::cout << __LINE__ << std::endl;
+
+										Payload->stringify(std::cout);
 
 										if (Payload->has("result")) {
+											std::cout << __LINE__ << std::endl;
 											auto Result = Payload->getObject("result");
+											std::cout << __LINE__ << std::endl;
 											if (Result->has("status")) {
+												std::cout << __LINE__ << std::endl;
 												auto Status = Result->getObject("status");
+												Status->stringify(std::cout);
 												std::uint64_t Error = Status->get("error");
+												std::cout << __LINE__ << std::endl;
 												if(Error==0) {
+													std::cout << __LINE__ << std::endl;
 													StorageService()->CommandCompleted(RPC->second.UUID, Payload,
 																					   rpc_execution_time, true);
 													RPC->second.State = 1 ;
 												} else {
+													std::cout << __LINE__ << std::endl;
 													std::string ErrorTxt = Result->get("result");
+													std::cout << __LINE__ << std::endl;
 													StorageService()->CancelWaitFile(RPC->second.UUID, ErrorTxt);
+													std::cout << __LINE__ << std::endl;
 													RPC->second.State = 0 ;
 												}
 											}
@@ -94,8 +112,10 @@ namespace OpenWifi {
 									StorageService()->CommandCompleted(RPC->second.UUID, Payload,
 																	   rpc_execution_time, true);
 									if (RPC->second.rpc_entry) {
+										std::cout << __LINE__ << std::endl;
 										TmpRpcEntry = RPC->second.rpc_entry;
 									}
+									std::cout << __LINE__ << std::endl;
 									RPC->second.State = 0 ;
 								}
 
