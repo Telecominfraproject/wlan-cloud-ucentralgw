@@ -24,9 +24,8 @@ namespace OpenWifi {
 			};
 			// [[nodiscard]] const GWObjects::Dashboard & Report() const { return DB_;}
 	  private:
-			std::mutex					GeneratingDashboardMutex_;
 			std::mutex					DataMutex_;
-			volatile std::atomic_flag 	GeneratingDashboard_=ATOMIC_FLAG_INIT;
+			volatile std::atomic_bool 	GeneratingDashboard_=false;
 			volatile bool 				ValidDashboard_=false;
 			GWObjects::Dashboard 		DB_;
 			uint64_t 					LastRun_=0;

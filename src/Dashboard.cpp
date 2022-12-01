@@ -8,13 +8,14 @@
 
 namespace OpenWifi {
 	void DeviceDashboard::Generate(GWObjects::Dashboard &D) {
-		if (std::atomic_flag_test_and_set(&GeneratingDashboard_)) {
-			while(std::atomic_flag_test(&GeneratingDashboard_)) {
+		if (GeneratingDashboard_.load()) {
+			while(GeneratingDashboard_.load()) {
 				Poco::Thread::trySleep(100);
 			}
 			std::lock_guard	G(DataMutex_);
 			D = DB_;
 		} else {
+			GeneratingDashboard_ = true;
 			ValidDashboard_ = false;
 			try {
 				GWObjects::Dashboard	NewData;
@@ -28,7 +29,7 @@ namespace OpenWifi {
 			} catch(...) {
 
 			}
-			std::atomic_flag_clear(&GeneratingDashboard_);
+			GeneratingDashboard_ = false;
 		}
 	}
 }
