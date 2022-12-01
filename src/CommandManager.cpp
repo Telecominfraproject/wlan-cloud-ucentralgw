@@ -95,7 +95,7 @@ namespace OpenWifi {
 											RPC->second.State=0;
 										}
 									} else {
-										std::cout << "Bad file uploaded commit" << std::endl;
+										std::cout << "Completing script 2 phase commit." << std::endl;
 										StorageService()->CommandCompleted(RPC->second.UUID, Payload,
 																		   rpc_execution_time, true);
 										RPC->second.State=0;
