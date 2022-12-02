@@ -394,6 +394,7 @@ namespace OpenWifi::GWObjects {
 		field_to_json(Obj,"secret",secret);
 		field_to_json(Obj,"certificate",certificate);
 		field_to_json(Obj,"radsec",radsec);
+		field_to_json(Obj,"allowSelfSigned",allowSelfSigned);
 		field_to_json(Obj,"radsecPort",radsecPort);
 		field_to_json(Obj,"radsecSecret",radsecSecret);
 		field_to_json(Obj,"radsecCacerts",radsecCacerts);
@@ -412,6 +413,7 @@ namespace OpenWifi::GWObjects {
 			field_from_json(Obj,"secret",secret);
 			field_from_json(Obj,"certificate",certificate);
 			field_from_json(Obj,"radsec",radsec);
+			field_from_json(Obj,"allowSelfSigned",allowSelfSigned);
 			field_from_json(Obj,"radsecSecret",radsecSecret);
 			field_from_json(Obj,"radsecPort",radsecPort);
 			field_from_json(Obj,"radsecCacerts",radsecCacerts);
