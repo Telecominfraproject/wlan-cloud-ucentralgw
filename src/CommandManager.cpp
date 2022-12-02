@@ -96,8 +96,10 @@ namespace OpenWifi {
 										RPC->second.State=0;
 									}
 								} else {
-									StorageService()->CommandCompleted(RPC->second.UUID, Payload,
-																	   rpc_execution_time, true);
+									if(RPC->second.Command!=APCommands::Commands::telemetry) {
+										StorageService()->CommandCompleted(
+											RPC->second.UUID, Payload, rpc_execution_time, true);
+									}
 									if (RPC->second.rpc_entry) {
 										TmpRpcEntry = RPC->second.rpc_entry;
 									}
