@@ -158,6 +158,10 @@ namespace OpenWifi {
 					new Poco::Net::Context(Poco::Net::Context::TLS_CLIENT_USE,
 										   KeyFile_.path(),
 										   CertFile_.path(),""));
+				if(Server_.allowSelfSigned) {
+					SecureContext->setSecurityLevel(Poco::Net::Context::SECURITY_LEVEL_NONE);
+					SecureContext->enableExtendedCertificateVerification(false);
+				}
 
 				for(const auto &ca:CaCertFiles_) {
 					Poco::Crypto::X509Certificate	cert(ca.path());
@@ -172,7 +176,10 @@ namespace OpenWifi {
 					poco_information(Logger_, "Attempting to connect");
 					Socket_->connect(Destination, Poco::Timespan(100, 0));
 					Socket_->completeHandshake();
-					Socket_->verifyPeerCertificate();
+
+					if(!Server_.allowSelfSigned) {
+						Socket_->verifyPeerCertificate();
+					}
 
 					if(Socket_->havePeerCertificate()) {
 						Peer_Cert_ = std::make_unique<Poco::Crypto::X509Certificate>(Socket_->peerCertificate());
@@ -194,9 +201,6 @@ namespace OpenWifi {
 						*Socket_,
 						Poco::NObserver<RADSEC_server, Poco::Net::ShutdownNotification>(
 							*this, &RADSEC_server::onShutdown));
-					Socket_->setBlocking(false);
-					Socket_->setNoDelay(true);
-					Socket_->setKeepAlive(true);
 
 					Connected_ = true;
 					poco_information(Logger_,fmt::format("Connected. CN={}",CommonName()));
