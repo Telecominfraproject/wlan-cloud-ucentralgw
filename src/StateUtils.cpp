@@ -19,7 +19,7 @@ namespace OpenWifi::StateUtils {
 		return 2;
 	}
 
-	bool ComputeAssociations(const Poco::JSON::Object::Ptr & RawObject,
+	bool ComputeAssociations(const Poco::JSON::Object::Ptr RawObject,
 							 uint64_t &Radios_2G,
 							 uint64_t &Radios_5G, uint64_t &Radios_6G) {
 		Radios_2G = 0 ;
@@ -33,7 +33,7 @@ namespace OpenWifi::StateUtils {
 			//  parse radios and get the phy out with the band
 			bool UseBandInfo = false;
 			for(auto const &i:*RA) {
-				Poco::JSON::Parser p2;
+//				Poco::JSON::Parser p2;
 				auto RadioObj = i.extract<Poco::JSON::Object::Ptr>();
 				if(RadioObj->has("band")) {
 					// std::cout << "Use band info" << std::endl;
