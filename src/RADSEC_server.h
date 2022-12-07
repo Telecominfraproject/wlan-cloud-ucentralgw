@@ -33,15 +33,18 @@ namespace OpenWifi {
 			Logger_(Poco::Logger::get(fmt::format("RADSEC: {}@{}:{}",
 								Server_.name ,
 								Server_.ip,
-								Server_.port)))
-		{
-			ReconnectThread_.start(*this);
+								Server_.port))) {
 		}
 
 		~RADSEC_server() {
 			if(ReconnectThread_.isRunning()) {
 				Stop();
 			}
+		}
+
+		inline int Start() {
+			ReconnectThread_.start(*this);
+			return 0;
 		}
 
 		inline void Stop() {
@@ -54,7 +57,7 @@ namespace OpenWifi {
 		inline void run() final {
 			while(TryAgain_) {
 				if(!Connected_) {
-					std::unique_lock	G(Mutex_);
+					std::lock_guard G(LocalMutex_);
 					Connect();
 				}
 				Poco::Thread::trySleep(3000);
@@ -68,17 +71,19 @@ namespace OpenWifi {
 					// std::cout << serial_number << "    Sending " << P.PacketType() << "  "  << length << " bytes" << std::endl;
 					int sent_bytes;
 					if (P.VerifyMessageAuthenticator(Server_.radsecSecret)) {
-						poco_debug(Logger_,fmt::format("{}: {} Sending {} bytes", serial_number,
-												  P.PacketType(), length));
+						poco_debug(Logger_, fmt::format("{}: {} Sending {} bytes", serial_number,
+														P.PacketType(), length));
 						sent_bytes = Socket_->sendBytes(buffer, length);
 					} else {
-						poco_debug(Logger_,fmt::format("{}: {} Sending {} bytes", serial_number,
-												  P.PacketType(), length));
+						poco_debug(Logger_, fmt::format("{}: {} Sending {} bytes", serial_number,
+														P.PacketType(), length));
 						P.ComputeMessageAuthenticator(Server_.radsecSecret);
 						sent_bytes = Socket_->sendBytes(P.Buffer(), length);
 					}
 					return (sent_bytes == length);
 				}
+			} catch (const Poco::Exception &E) {
+				Logger_.log(E);
 			} catch (...) {
 
 			}
@@ -119,28 +124,46 @@ namespace OpenWifi {
 												   Socket_->address().toString()));
 						}
 					} else if (P.IsAuthority()) {
+						auto SerialNumber = P.ExtractSerialNumberTIP();
+						if(!SerialNumber.empty()) {
+							poco_debug(Logger_,
+									   fmt::format("{}: {} Received {} bytes.", SerialNumber,
+												   P.PacketType(), NumberOfReceivedBytes));
+							AP_WS_Server()->SendRadiusCoAData(SerialNumber, Buffer,
+																	 NumberOfReceivedBytes);
+						} else {
+							poco_debug(Logger_,
+									   fmt::format("Invalid CoA/DM packet received in proxy dropped. No serial number Source={}",
+												   Socket_->address().toString()));
+						}
+					} else {
+						poco_warning(Logger_,fmt::format("Type: {} (type={}) Length={}", P.PacketType(), P.PacketTypeInt(), P.BufferLen()));
 					}
 				} else {
+					poco_warning(Logger_,"Invalid RADSEC packet received. Terminating the connection.");
 					Disconnect();
 				}
 			} catch (const Poco::Exception &E) {
 				Logger_.log(E);
 				Disconnect();
+			} catch (...) {
+
 			}
 		}
 
 		inline void onError([[maybe_unused]] const Poco::AutoPtr<Poco::Net::ErrorNotification>& pNf) {
-			std::cout << "onError" << std::endl;
+			poco_warning(Logger_,"Socker error. Terminating connection.");
 			Disconnect();
 		}
 
 		inline void onShutdown([[maybe_unused]] const Poco::AutoPtr<Poco::Net::ShutdownNotification>& pNf) {
-			std::cout << "onShutdown" << std::endl;
+			poco_warning(Logger_,"Socker socket shutdown. Terminating connection.");
 			Disconnect();
 		}
 
 		inline bool Connect() {
 			if(TryAgain_) {
+				std::lock_guard G(LocalMutex_);
 
 				Poco::TemporaryFile	CertFile_(MicroServiceDataDirectory());
 				Poco::TemporaryFile	KeyFile_(MicroServiceDataDirectory());
@@ -220,7 +243,7 @@ namespace OpenWifi {
 
 		inline void Disconnect() {
 			if(Connected_) {
-				std::unique_lock G(Mutex_);
+				std::lock_guard G(LocalMutex_);
 
 				Reactor_.removeEventHandler(
 					*Socket_, Poco::NObserver<RADSEC_server, Poco::Net::ReadableNotification>(
@@ -263,7 +286,7 @@ namespace OpenWifi {
 		}
 
 	  private:
-		std::recursive_mutex								Mutex_;
+		std::recursive_mutex								LocalMutex_;
 		Poco::Net::SocketReactor							&Reactor_;
 		GWObjects::RadiusProxyServerEntry					Server_;
 		Poco::Logger										&Logger_;

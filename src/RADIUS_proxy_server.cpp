@@ -75,7 +75,6 @@ namespace OpenWifi {
 		StopRADSECServers();
 		StartRADSECServers();
 		RadiusReactorThread_.start(RadiusReactor_);
-
 		Utils::SetThreadName(RadiusReactorThread_,"rad:reactor");
 
 		running_ = true;
@@ -123,21 +122,24 @@ namespace OpenWifi {
 	}
 
 	void RADIUS_proxy_server::StartRADSECServers() {
+		std::lock_guard		G(Mutex_);
 		for(const auto &pool:PoolList_.pools) {
 			for(const auto &entry:pool.authConfig.servers) {
 				if(entry.radsec) {
-					StartRADSECServer(entry);
+					auto NewServer = std::make_unique<RADSEC_server>(RadiusReactor_,entry);
+					NewServer->Start();
+					RADSECservers_[ Poco::Net::SocketAddress(entry.ip,0) ] = std::move(NewServer);
 				}
 			}
 		}
 	}
 
 	void RADIUS_proxy_server::StopRADSECServers() {
+		std::lock_guard		G(Mutex_);
+		for(auto &server:RADSECservers_) {
+			server.second->Stop();
+		}
 		RADSECservers_.clear();
-	}
-
-	void RADIUS_proxy_server::StartRADSECServer(const GWObjects::RadiusProxyServerEntry &E) {
-		RADSECservers_[ Poco::Net::SocketAddress(E.ip,0) ] = std::make_unique<RADSEC_server>(RadiusReactor_,E);
 	}
 
 	void RADIUS_proxy_server::OnAccountingSocketReadable(const Poco::AutoPtr<Poco::Net::ReadableNotification>& pNf) {
@@ -630,11 +632,14 @@ namespace OpenWifi {
 		Disk.stringify(ofs);
 		ofs.close();
 
+		if(running_) {
+			Stop();
+		}
+
 		if(!running_) {
 			Start();
 		}
 
-		ParseConfig();
 	}
 
 	void RADIUS_proxy_server::ResetConfig() {
@@ -653,8 +658,8 @@ namespace OpenWifi {
 		} catch (...) {
 
 		}
-		ResetConfig();
 		Stop();
+		ResetConfig();
 	}
 
 	void RADIUS_proxy_server::GetConfig(GWObjects::RadiusProxyPoolList &C) {
