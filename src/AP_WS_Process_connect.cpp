@@ -127,9 +127,8 @@ namespace OpenWifi {
 												 State_.connectionCompletionTime));
 					} else {
 						poco_information(
-							Logger_, fmt::format("CONNECT({}): Serial number mismatch disallowed. Device rejected. CN={} Serial={} Session={} ConnectionCompletion Time={}",
-												 CId_, CN_, SerialNumber_, State_.sessionId,
-												 State_.connectionCompletionTime));
+							Logger_, fmt::format("CONNECT({}): Serial number mismatch disallowed. Device rejected. CN={} Serial={} Session={}",
+												 CId_, CN_, SerialNumber_, State_.sessionId));
 						return EndConnection();
 					}
 				}
