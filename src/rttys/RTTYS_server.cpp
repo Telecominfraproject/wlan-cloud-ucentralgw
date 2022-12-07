@@ -266,7 +266,7 @@ namespace OpenWifi {
 	}
 
 	bool RTTYS_server::CreateEndPoint(const std::string &Id, const std::string & Token, const std::string & UserName, const std::string & SerialNumber ) {
-		std::unique_lock 	Lock(LocalMutex_);
+		std::lock_guard 	Lock(LocalMutex_);
 
 		if(MaxConcurrentSessions_!=0 && EndPoints_.size()==MaxConcurrentSessions_) {
 			return false;
