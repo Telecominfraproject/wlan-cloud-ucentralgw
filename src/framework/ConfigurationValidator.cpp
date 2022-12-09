@@ -2639,12 +2639,12 @@ static json DefaultUCentralSchema = R"(
             return;
 
         std::string GitSchema;
-		if(MicroServiceConfigGetBool("ucentral.datamodel.internal",true)) {
+		// if(MicroServiceConfigGetBool("ucentral.datamodel.internal",true)) {
 			RootSchema_ = DefaultUCentralSchema;
 			poco_information(Logger(),"Using uCentral validation from built-in default.");
 			Initialized_ = Working_ = true;
 			return;
-		}
+		// }
 
         try {
 			auto GitURI = MicroServiceConfigGetString("ucentral.datamodel.uri",GitUCentralJSONSchemaFile);
