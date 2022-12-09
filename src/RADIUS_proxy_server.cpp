@@ -22,15 +22,15 @@ namespace OpenWifi {
 		ConfigFilename_ = MicroServiceDataDirectory()+"/radius_pool_config.json";
 		Poco::File	Config(ConfigFilename_);
 
-		enabled_ = MicroServiceConfigGetBool("radius.proxy.enable",false);
-		if(!enabled_ && !Config.exists()) {
+		Enabled_ = MicroServiceConfigGetBool("radius.proxy.enable",false);
+		if(!Enabled_ && !Config.exists()) {
 			StopRADSECServers();
 			return 0;
 		}
 
 		poco_notice(Logger(),"Starting...");
 
-		enabled_ = true;
+		Enabled_ = true;
 
 		Poco::Net::SocketAddress	AuthSockAddrV4(Poco::Net::AddressFamily::IPv4,
 									   MicroServiceConfigGetInt("radius.proxy.authentication.port",DEFAULT_RADIUS_AUTHENTICATION_PORT));
@@ -70,21 +70,17 @@ namespace OpenWifi {
 																	 *this, &RADIUS_proxy_server::OnCoASocketReadable));
 
 		ParseConfig();
-
-		//	start RADSEC servers...
-		StopRADSECServers();
 		StartRADSECServers();
 		RadiusReactorThread_.start(RadiusReactor_);
 		Utils::SetThreadName(RadiusReactorThread_,"rad:reactor");
-
-		running_ = true;
+		Running_ = true;
 
 		return 0;
 	}
 
 	void RADIUS_proxy_server::Stop() {
 		poco_information(Logger(),"Stopping...");
-		if(enabled_ && running_) {
+		if(Enabled_ && Running_) {
 			RadiusReactor_.removeEventHandler(
 				*AuthenticationSocketV4_,
 				Poco::NObserver<RADIUS_proxy_server, Poco::Net::ReadableNotification>(
@@ -112,11 +108,17 @@ namespace OpenWifi {
 				Poco::NObserver<RADIUS_proxy_server, Poco::Net::ReadableNotification>(
 					*this, &RADIUS_proxy_server::OnCoASocketReadable));
 
+			AuthenticationSocketV4_->close();
+			AuthenticationSocketV6_->close();
+			AccountingSocketV4_->close();
+			AccountingSocketV6_->close();
+			CoASocketV4_->close();
+			CoASocketV6_->close();
+
 			StopRADSECServers();
 			RadiusReactor_.stop();
 			RadiusReactorThread_.join();
-			enabled_=false;
-			running_=false;
+			Running_=false;
 		}
 		poco_information(Logger(),"Stopped...");
 	}
@@ -126,9 +128,7 @@ namespace OpenWifi {
 		for(const auto &pool:PoolList_.pools) {
 			for(const auto &entry:pool.authConfig.servers) {
 				if(entry.radsec) {
-					auto NewServer = std::make_unique<RADSEC_server>(RadiusReactor_,entry);
-					NewServer->Start();
-					RADSECservers_[ Poco::Net::SocketAddress(entry.ip,0) ] = std::move(NewServer);
+					RADSECservers_[ Poco::Net::SocketAddress(entry.ip,0) ] = std::make_unique<RADSEC_server>(RadiusReactor_,entry);
 				}
 			}
 		}
@@ -136,9 +136,6 @@ namespace OpenWifi {
 
 	void RADIUS_proxy_server::StopRADSECServers() {
 		std::lock_guard		G(Mutex_);
-		for(auto &server:RADSECservers_) {
-			server.second->Stop();
-		}
 		RADSECservers_.clear();
 	}
 
@@ -210,7 +207,7 @@ namespace OpenWifi {
 
 	void RADIUS_proxy_server::SendAccountingData(const std::string &serialNumber, const char *buffer, std::size_t size) {
 
-		if(Pools_.empty() || !enabled_)
+		if(!Continue())
 			return;
 
 		try {
@@ -268,7 +265,7 @@ namespace OpenWifi {
 
 	void RADIUS_proxy_server::SendAuthenticationData(const std::string &serialNumber, const char *buffer, std::size_t size) {
 
-		if(Pools_.empty() || !enabled_)
+		if(!Continue())
 			return;
 
 		try {
@@ -321,7 +318,7 @@ namespace OpenWifi {
 
 	void RADIUS_proxy_server::SendCoAData(const std::string &serialNumber, const char *buffer, std::size_t size) {
 
-		if(Pools_.empty() || !enabled_)
+		if(!Continue())
 			return;
 
 		try {
@@ -391,7 +388,7 @@ namespace OpenWifi {
 			};
 
 			if(setAsDefault && D.useRADSEC)
-				defaultIsRADSEC_ = true;
+				DefaultIsRADSEC_ = true;
 
 			if(S.family()==Poco::Net::IPAddress::IPv4) {
 				TotalV4 += server.weight;
@@ -485,26 +482,26 @@ namespace OpenWifi {
 			}
 		}
 
-		if(defaultIsRADSEC_) {
+		if(DefaultIsRADSEC_) {
 			UseRADSEC = true;
-			return (IsV4 ? Pools_[defaultPoolIndex_].AuthV4[0].Addr : Pools_[defaultPoolIndex_].AuthV6[0].Addr );
+			return (IsV4 ? Pools_[DefaultPoolIndex_].AuthV4[0].Addr : Pools_[DefaultPoolIndex_].AuthV6[0].Addr );
 		}
 
 		switch(rtype) {
 			case radius_type::auth: {
-				return ChooseAddress(IsV4 ? Pools_[defaultPoolIndex_].AuthV4
-										  : Pools_[defaultPoolIndex_].AuthV6,
+				return ChooseAddress(IsV4 ? Pools_[DefaultPoolIndex_].AuthV4
+										  : Pools_[DefaultPoolIndex_].AuthV6,
 									 RequestedAddress);
 				}
 			case radius_type::acct:
 			default: {
-				return ChooseAddress(IsV4 ? Pools_[defaultPoolIndex_].AcctV4
-										  : Pools_[defaultPoolIndex_].AcctV6,
+				return ChooseAddress(IsV4 ? Pools_[DefaultPoolIndex_].AcctV4
+										  : Pools_[DefaultPoolIndex_].AcctV6,
 									 RequestedAddress);
 				}
 			case radius_type::coa: {
-				return ChooseAddress(IsV4 ? Pools_[defaultPoolIndex_].CoaV4
-										  : Pools_[defaultPoolIndex_].CoaV6,
+				return ChooseAddress(IsV4 ? Pools_[DefaultPoolIndex_].CoaV4
+										  : Pools_[DefaultPoolIndex_].CoaV6,
 									 RequestedAddress);
 				}
 			}
@@ -632,20 +629,16 @@ namespace OpenWifi {
 		Disk.stringify(ofs);
 		ofs.close();
 
-		if(running_) {
-			Stop();
-		}
-
-		if(!running_) {
-			Start();
-		}
-
+		Stop();
+		ResetConfig();
+		Start();
 	}
 
 	void RADIUS_proxy_server::ResetConfig() {
 		PoolList_.pools.clear();
 		Pools_.clear();
-		defaultPoolIndex_=0;
+		DefaultPoolIndex_=0;
+		DefaultIsRADSEC_=false;
 	}
 
 	void RADIUS_proxy_server::DeleteConfig() {

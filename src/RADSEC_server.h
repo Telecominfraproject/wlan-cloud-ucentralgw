@@ -34,12 +34,11 @@ namespace OpenWifi {
 								Server_.name ,
 								Server_.ip,
 								Server_.port))) {
+			Start();
 		}
 
 		~RADSEC_server() {
-			if(ReconnectThread_.isRunning()) {
-				Stop();
-			}
+			Stop();
 		}
 
 		inline int Start() {
@@ -55,12 +54,13 @@ namespace OpenWifi {
 		}
 
 		inline void run() final {
+			Poco::Thread::trySleep(3000);
 			while(TryAgain_) {
 				if(!Connected_) {
 					std::lock_guard G(LocalMutex_);
 					Connect();
 				}
-				Poco::Thread::trySleep(3000);
+				Poco::Thread::trySleep(!Connected_ ? 3000 : 10000);
 			}
 		}
 
@@ -85,7 +85,7 @@ namespace OpenWifi {
 			} catch (const Poco::Exception &E) {
 				Logger_.log(E);
 			} catch (...) {
-
+				poco_warning(Logger_,"Exception occurred: while sending data.");
 			}
 			return false;
 		}
@@ -147,7 +147,8 @@ namespace OpenWifi {
 				Logger_.log(E);
 				Disconnect();
 			} catch (...) {
-
+				Disconnect();
+				poco_warning(Logger_,"Exception occurred: resetting connection.");
 			}
 		}
 
@@ -254,6 +255,7 @@ namespace OpenWifi {
 				Reactor_.removeEventHandler(
 					*Socket_, Poco::NObserver<RADSEC_server, Poco::Net::ShutdownNotification>(
 								  *this, &RADSEC_server::onShutdown));
+				Socket_->close();
 				Connected_ = false;
 			}
 			poco_information(Logger_,"Disconnecting.");

@@ -29,7 +29,7 @@ namespace OpenWifi {
 
 		int Start() final;
 		void Stop() final;
-		inline bool Enabled() const { return enabled_; }
+		inline bool Enabled() const { return Enabled_; }
 
 		void OnAccountingSocketReadable(const Poco::AutoPtr<Poco::Net::ReadableNotification>& pNf);
 		void OnAuthenticationSocketReadable(const Poco::AutoPtr<Poco::Net::ReadableNotification>& pNf);
@@ -44,7 +44,6 @@ namespace OpenWifi {
 		void GetConfig(GWObjects::RadiusProxyPoolList &C);
 
 		void StartRADSECServers();
-		void StartRADSECServer(const GWObjects::RadiusProxyServerEntry &E);
 		void StopRADSECServers();
 
 		struct Destination {
@@ -61,6 +60,10 @@ namespace OpenWifi {
 			bool 						useRADSEC=false;
 			std::vector<std::string>	realms;
 		};
+
+		inline bool Continue() const {
+			return Running_ && Enabled_ && !Pools_.empty();
+		}
 
 	  private:
 		std::unique_ptr<Poco::Net::DatagramSocket>	AccountingSocketV4_;
@@ -87,10 +90,10 @@ namespace OpenWifi {
 		};
 
 		std::vector<RadiusPool>			Pools_;
-		uint 							defaultPoolIndex_=0;
-		bool 							enabled_=false;
-		bool 							defaultIsRADSEC_=false;
-		std::atomic_bool 				running_=false;
+		uint 							DefaultPoolIndex_=0;
+		bool 							Enabled_=false;
+		bool 							DefaultIsRADSEC_=false;
+		std::atomic_bool 				Running_=false;
 
 		RADIUS_proxy_server() noexcept:
 		   SubSystemServer("RADIUS-PROXY", "RADIUS-PROXY", "radius.proxy")
