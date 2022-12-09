@@ -72,8 +72,8 @@ namespace OpenWifi {
 		std::unique_ptr<Poco::Net::DatagramSocket>	AuthenticationSocketV6_;
 		std::unique_ptr<Poco::Net::DatagramSocket>	CoASocketV4_;
 		std::unique_ptr<Poco::Net::DatagramSocket>	CoASocketV6_;
-		Poco::Net::SocketReactor		RadiusReactor_;
-		Poco::Thread					RadiusReactorThread_;
+		std::unique_ptr<Poco::Net::SocketReactor>	RadiusReactor_;
+		Poco::Thread								RadiusReactorThread_;
 
 		GWObjects::RadiusProxyPoolList	PoolList_;
 		std::string 					ConfigFilename_;

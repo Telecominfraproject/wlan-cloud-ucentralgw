@@ -53,25 +53,27 @@ namespace OpenWifi {
 												MicroServiceConfigGetInt("radius.proxy.coa.port",DEFAULT_RADIUS_CoA_PORT));
 		CoASocketV6_ = std::make_unique<Poco::Net::DatagramSocket>(CoASockAddrV6,true,true);
 
-		RadiusReactor_.addEventHandler(*AuthenticationSocketV4_,Poco::NObserver<RADIUS_proxy_server, Poco::Net::ReadableNotification>(
+		RadiusReactor_.reset();
+		RadiusReactor_ = std::make_unique<Poco::Net::SocketReactor>();
+		RadiusReactor_->addEventHandler(*AuthenticationSocketV4_,Poco::NObserver<RADIUS_proxy_server, Poco::Net::ReadableNotification>(
 														   *this, &RADIUS_proxy_server::OnAuthenticationSocketReadable));
-		RadiusReactor_.addEventHandler(*AuthenticationSocketV6_,Poco::NObserver<RADIUS_proxy_server, Poco::Net::ReadableNotification>(
+		RadiusReactor_->addEventHandler(*AuthenticationSocketV6_,Poco::NObserver<RADIUS_proxy_server, Poco::Net::ReadableNotification>(
 																			 *this, &RADIUS_proxy_server::OnAuthenticationSocketReadable));
 
-		RadiusReactor_.addEventHandler(*AccountingSocketV4_,Poco::NObserver<RADIUS_proxy_server, Poco::Net::ReadableNotification>(
+		RadiusReactor_->addEventHandler(*AccountingSocketV4_,Poco::NObserver<RADIUS_proxy_server, Poco::Net::ReadableNotification>(
 																		  *this, &RADIUS_proxy_server::OnAccountingSocketReadable));
-		RadiusReactor_.addEventHandler(*AccountingSocketV6_,Poco::NObserver<RADIUS_proxy_server, Poco::Net::ReadableNotification>(
+		RadiusReactor_->addEventHandler(*AccountingSocketV6_,Poco::NObserver<RADIUS_proxy_server, Poco::Net::ReadableNotification>(
 																   *this, &RADIUS_proxy_server::OnAccountingSocketReadable));
 
 
-		RadiusReactor_.addEventHandler(*CoASocketV4_,Poco::NObserver<RADIUS_proxy_server, Poco::Net::ReadableNotification>(
+		RadiusReactor_->addEventHandler(*CoASocketV4_,Poco::NObserver<RADIUS_proxy_server, Poco::Net::ReadableNotification>(
 																			 *this, &RADIUS_proxy_server::OnCoASocketReadable));
-		RadiusReactor_.addEventHandler(*CoASocketV6_,Poco::NObserver<RADIUS_proxy_server, Poco::Net::ReadableNotification>(
+		RadiusReactor_->addEventHandler(*CoASocketV6_,Poco::NObserver<RADIUS_proxy_server, Poco::Net::ReadableNotification>(
 																	 *this, &RADIUS_proxy_server::OnCoASocketReadable));
 
 		ParseConfig();
 		StartRADSECServers();
-		RadiusReactorThread_.start(RadiusReactor_);
+		RadiusReactorThread_.start(*RadiusReactor_);
 		Utils::SetThreadName(RadiusReactorThread_,"rad:reactor");
 		Running_ = true;
 
@@ -81,29 +83,29 @@ namespace OpenWifi {
 	void RADIUS_proxy_server::Stop() {
 		if(Enabled_ && Running_) {
 			poco_information(Logger(),"Stopping...");
-			RadiusReactor_.removeEventHandler(
+			RadiusReactor_->removeEventHandler(
 				*AuthenticationSocketV4_,
 				Poco::NObserver<RADIUS_proxy_server, Poco::Net::ReadableNotification>(
 					*this, &RADIUS_proxy_server::OnAuthenticationSocketReadable));
-			RadiusReactor_.removeEventHandler(
+			RadiusReactor_->removeEventHandler(
 				*AuthenticationSocketV6_,
 				Poco::NObserver<RADIUS_proxy_server, Poco::Net::ReadableNotification>(
 					*this, &RADIUS_proxy_server::OnAuthenticationSocketReadable));
 
-			RadiusReactor_.removeEventHandler(
+			RadiusReactor_->removeEventHandler(
 				*AccountingSocketV4_,
 				Poco::NObserver<RADIUS_proxy_server, Poco::Net::ReadableNotification>(
 					*this, &RADIUS_proxy_server::OnAccountingSocketReadable));
-			RadiusReactor_.removeEventHandler(
+			RadiusReactor_->removeEventHandler(
 				*AccountingSocketV6_,
 				Poco::NObserver<RADIUS_proxy_server, Poco::Net::ReadableNotification>(
 					*this, &RADIUS_proxy_server::OnAccountingSocketReadable));
 
-			RadiusReactor_.removeEventHandler(
+			RadiusReactor_->removeEventHandler(
 				*CoASocketV4_,
 				Poco::NObserver<RADIUS_proxy_server, Poco::Net::ReadableNotification>(
 					*this, &RADIUS_proxy_server::OnCoASocketReadable));
-			RadiusReactor_.removeEventHandler(
+			RadiusReactor_->removeEventHandler(
 				*CoASocketV6_,
 				Poco::NObserver<RADIUS_proxy_server, Poco::Net::ReadableNotification>(
 					*this, &RADIUS_proxy_server::OnCoASocketReadable));
@@ -123,12 +125,11 @@ namespace OpenWifi {
 			CoASocketV6_.reset();
 
 			StopRADSECServers();
-			RadiusReactor_.stop();
+			RadiusReactor_->stop();
 			RadiusReactorThread_.join();
 			Running_=false;
 			poco_information(Logger(),"Stopped...");
 		}
-		poco_information(Logger(),"Stopped...");
 	}
 
 	void RADIUS_proxy_server::StartRADSECServers() {
@@ -136,7 +137,7 @@ namespace OpenWifi {
 		for(const auto &pool:PoolList_.pools) {
 			for(const auto &entry:pool.authConfig.servers) {
 				if(entry.radsec) {
-					RADSECservers_[ Poco::Net::SocketAddress(entry.ip,0) ] = std::make_unique<RADSEC_server>(RadiusReactor_,entry);
+					RADSECservers_[ Poco::Net::SocketAddress(entry.ip,0) ] = std::make_unique<RADSEC_server>(*RadiusReactor_,entry);
 				}
 			}
 		}
