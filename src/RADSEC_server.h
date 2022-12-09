@@ -34,12 +34,11 @@ namespace OpenWifi {
 								Server_.name ,
 								Server_.ip,
 								Server_.port))) {
+			Start();
 		}
 
 		~RADSEC_server() {
-			if(ReconnectThread_.isRunning()) {
-				Stop();
-			}
+			Stop();
 		}
 
 		inline int Start() {
@@ -55,12 +54,13 @@ namespace OpenWifi {
 		}
 
 		inline void run() final {
+			Poco::Thread::trySleep(3000);
 			while(TryAgain_) {
 				if(!Connected_) {
 					std::lock_guard G(LocalMutex_);
 					Connect();
 				}
-				Poco::Thread::trySleep(3000);
+				Poco::Thread::trySleep(!Connected_ ? 3000 : 10000);
 			}
 		}
 
@@ -68,7 +68,6 @@ namespace OpenWifi {
 			try {
 				if (Connected_) {
 					RADIUS::RadiusPacket P(buffer, length);
-					// std::cout << serial_number << "    Sending " << P.PacketType() << "  "  << length << " bytes" << std::endl;
 					int sent_bytes;
 					if (P.VerifyMessageAuthenticator(Server_.radsecSecret)) {
 						poco_debug(Logger_, fmt::format("{}: {} Sending {} bytes", serial_number,
@@ -85,7 +84,7 @@ namespace OpenWifi {
 			} catch (const Poco::Exception &E) {
 				Logger_.log(E);
 			} catch (...) {
-
+				poco_warning(Logger_,"Exception occurred: while sending data.");
 			}
 			return false;
 		}
@@ -147,7 +146,8 @@ namespace OpenWifi {
 				Logger_.log(E);
 				Disconnect();
 			} catch (...) {
-
+				Disconnect();
+				poco_warning(Logger_,"Exception occurred: resetting connection.");
 			}
 		}
 
@@ -167,14 +167,14 @@ namespace OpenWifi {
 
 				Poco::TemporaryFile	CertFile_(MicroServiceDataDirectory());
 				Poco::TemporaryFile	KeyFile_(MicroServiceDataDirectory());
-				std::vector<Poco::TemporaryFile> CaCertFiles_;
+				std::vector<std::unique_ptr<Poco::TemporaryFile>> CaCertFiles_;
 
 				DecodeFile(CertFile_.path(), Server_.radsecCert);
 				DecodeFile(KeyFile_.path(), Server_.radsecKey);
 
 				for(auto &cert:Server_.radsecCacerts) {
-					CaCertFiles_.emplace_back(Poco::TemporaryFile(MicroServiceDataDirectory()));
-					DecodeFile(CaCertFiles_[CaCertFiles_.size()-1].path(), cert);
+					CaCertFiles_.emplace_back(std::make_unique<Poco::TemporaryFile>(MicroServiceDataDirectory()));
+					DecodeFile(CaCertFiles_[CaCertFiles_.size()-1]->path(), cert);
 				}
 
 				Poco::Net::Context::Ptr SecureContext = Poco::AutoPtr<Poco::Net::Context>(
@@ -187,7 +187,7 @@ namespace OpenWifi {
 				}
 
 				for(const auto &ca:CaCertFiles_) {
-					Poco::Crypto::X509Certificate	cert(ca.path());
+					Poco::Crypto::X509Certificate	cert(ca->path());
 					SecureContext->addCertificateAuthority(cert);
 				}
 
@@ -254,6 +254,7 @@ namespace OpenWifi {
 				Reactor_.removeEventHandler(
 					*Socket_, Poco::NObserver<RADSEC_server, Poco::Net::ShutdownNotification>(
 								  *this, &RADSEC_server::onShutdown));
+				Socket_->close();
 				Connected_ = false;
 			}
 			poco_information(Logger_,"Disconnecting.");
