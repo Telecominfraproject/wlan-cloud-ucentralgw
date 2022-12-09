@@ -178,24 +178,33 @@ namespace OpenWifi {
 					DecodeFile(CaCertFiles_[CaCertFiles_.size()-1].path(), cert);
 				}
 
+				std::cout << __LINE__ << std::endl;
 				Poco::Net::Context::Ptr SecureContext = Poco::AutoPtr<Poco::Net::Context>(
 					new Poco::Net::Context(Poco::Net::Context::TLS_CLIENT_USE,
 										   KeyFile_.path(),
 										   CertFile_.path(),""));
+				std::cout << __LINE__ << std::endl;
 				if(Server_.allowSelfSigned) {
 					SecureContext->setSecurityLevel(Poco::Net::Context::SECURITY_LEVEL_NONE);
 					SecureContext->enableExtendedCertificateVerification(false);
 				}
 
+				std::cout << __LINE__ << std::endl;
 				for(const auto &ca:CaCertFiles_) {
+					std::cout << __LINE__ << std::endl;
 					Poco::Crypto::X509Certificate	cert(ca.path());
+					std::cout << __LINE__ << std::endl;
 					SecureContext->addCertificateAuthority(cert);
+					std::cout << __LINE__ << std::endl;
 				}
 
+				std::cout << __LINE__ << std::endl;
 				Socket_ = std::make_unique<Poco::Net::SecureStreamSocket>(SecureContext);
 
+				std::cout << __LINE__ << std::endl;
 				Poco::Net::SocketAddress Destination(Server_.ip, Server_.port);
 
+				std::cout << __LINE__ << std::endl;
 				try {
 					poco_information(Logger_, "Attempting to connect");
 					Socket_->connect(Destination, Poco::Timespan(100, 0));
