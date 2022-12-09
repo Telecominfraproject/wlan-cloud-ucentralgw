@@ -168,14 +168,14 @@ namespace OpenWifi {
 
 				Poco::TemporaryFile	CertFile_(MicroServiceDataDirectory());
 				Poco::TemporaryFile	KeyFile_(MicroServiceDataDirectory());
-				std::vector<Poco::TemporaryFile> CaCertFiles_;
+				std::vector<std::unique_ptr<Poco::TemporaryFile>> CaCertFiles_;
 
 				DecodeFile(CertFile_.path(), Server_.radsecCert);
 				DecodeFile(KeyFile_.path(), Server_.radsecKey);
 
 				for(auto &cert:Server_.radsecCacerts) {
-					CaCertFiles_.emplace_back(Poco::TemporaryFile(MicroServiceDataDirectory()));
-					DecodeFile(CaCertFiles_[CaCertFiles_.size()-1].path(), cert);
+					CaCertFiles_.emplace_back(std::make_unique<Poco::TemporaryFile>(MicroServiceDataDirectory()));
+					DecodeFile(CaCertFiles_[CaCertFiles_.size()-1]->path(), cert);
 				}
 
 				std::cout << __LINE__ << std::endl;
@@ -191,11 +191,11 @@ namespace OpenWifi {
 
 				std::cout << __LINE__ << std::endl;
 				for(const auto &ca:CaCertFiles_) {
-					if(!ca.exists()) {
+					if(!ca->exists()) {
 						std::cout << __LINE__ << std::endl;
 					}
 					std::cout << __LINE__ << std::endl;
-					Poco::Crypto::X509Certificate	cert(ca.path());
+					Poco::Crypto::X509Certificate	cert(ca->path());
 					std::cout << __LINE__ << std::endl;
 					SecureContext->addCertificateAuthority(cert);
 					std::cout << __LINE__ << std::endl;
