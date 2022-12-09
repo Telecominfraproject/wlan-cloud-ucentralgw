@@ -191,6 +191,9 @@ namespace OpenWifi {
 
 				std::cout << __LINE__ << std::endl;
 				for(const auto &ca:CaCertFiles_) {
+					if(!ca.exists()) {
+						std::cout << __LINE__ << std::endl;
+					}
 					std::cout << __LINE__ << std::endl;
 					Poco::Crypto::X509Certificate	cert(ca.path());
 					std::cout << __LINE__ << std::endl;
