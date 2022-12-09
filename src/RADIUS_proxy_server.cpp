@@ -115,6 +115,13 @@ namespace OpenWifi {
 			CoASocketV4_->close();
 			CoASocketV6_->close();
 
+			AuthenticationSocketV4_.reset();
+			AuthenticationSocketV6_.reset();
+			AccountingSocketV4_.reset();
+			AccountingSocketV6_.reset();
+			CoASocketV4_.reset();
+			CoASocketV6_.reset();
+
 			StopRADSECServers();
 			RadiusReactor_.stop();
 			RadiusReactorThread_.join();
