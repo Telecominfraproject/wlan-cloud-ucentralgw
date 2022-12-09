@@ -620,7 +620,6 @@ namespace OpenWifi {
 
 	void RADIUS_proxy_server::SetConfig(const GWObjects::RadiusProxyPoolList &C) {
 		std::lock_guard	G(Mutex_);
-		PoolList_ = C;
 
 		Poco::JSON::Object	Disk;
 		C.to_json(Disk);
@@ -631,6 +630,7 @@ namespace OpenWifi {
 
 		Stop();
 		ResetConfig();
+		PoolList_ = C;
 		Start();
 	}
 
