@@ -201,7 +201,8 @@ namespace OpenWifi {
 							It->second->SetDevice(Device->second.first);
 							std::cout << "Setting WS 1" << "   Null: " << (It->second->GetClient()==
 								nullptr) << std::endl;
-							Device->second.first->SetWsClient(It->second->GetClient());
+							if(It->second->GetClient()!= nullptr)
+								Device->second.first->SetWsClient(It->second->GetClient());
 							ConnectingDevices_.erase(Notification->TID_);
 							if (!It->second->Joined() && It->second->ValidClient()) {
 								It->second->Join();
@@ -212,6 +213,7 @@ namespace OpenWifi {
 					case RTTYS_Notification_type::client_registration: {
 						It->second->SetClient(Notification->client_);
 						if(!It->second->Joined() && It->second->ValidDevice()) {
+							It->second->GetDevice()->SetWsClient(Notification->client_);
 							It->second->Join();
 							It->second->Login();
 						}
