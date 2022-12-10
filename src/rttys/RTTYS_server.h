@@ -218,6 +218,7 @@ namespace OpenWifi {
 		}
 
 		inline std::shared_ptr<RTTYS_ClientConnection> GetClient() { return Client_; }
+		inline std::shared_ptr<RTTYS_Device_ConnectionHandler> GetDevice() { return Device_; }
 	private:
 		std::string 									Token_;
 		std::string 									SerialNumber_;
