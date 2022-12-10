@@ -106,13 +106,9 @@ namespace OpenWifi {
 		if(valid_) {
 			valid_ = false;
 			DeRegister();
-			if(deviceIsRegistered_) {
-				deviceIsRegistered_ = false;
-				RTTYS_server()->NotifyDeviceDisconnect(id_);
-			} else {
-				delete this;
-			}
+			deviceIsRegistered_ = false;
 		}
+		RTTYS_server()->NotifyDeviceDisconnect(id_);
 	}
 
 	[[maybe_unused]] static void dump(unsigned char *p,uint l) {
