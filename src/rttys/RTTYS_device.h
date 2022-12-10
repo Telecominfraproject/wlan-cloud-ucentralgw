@@ -34,8 +34,9 @@ namespace OpenWifi {
 			msgTypeAck,
 			msgTypeMax };
 
-		explicit RTTYS_Device_ConnectionHandler(Poco::Net::StreamSocket& socket, Poco::Net::SocketReactor& reactor);
+		explicit RTTYS_Device_ConnectionHandler(Poco::Net::StreamSocket& socket, Poco::Net::SocketReactor& reactor, std::uint64_t TID);
 		~RTTYS_Device_ConnectionHandler();
+		void CompleteConnection();
 
 		bool Login();
 		bool Logout();
@@ -73,9 +74,9 @@ namespace OpenWifi {
 		volatile bool	 				registered_=false;
 		unsigned char 					small_buf_[64+RTTY_SESSION_ID_LENGTH];
 		volatile bool					deviceIsRegistered_=false;
+		std::uint64_t 					TID_=0;
 
 		void EndConnection() ;
-		void CompleteConnection();
 		void DeRegister();
 
 		[[nodiscard]] bool do_msgTypeRegister(std::size_t msg_len);

@@ -59,7 +59,7 @@ namespace OpenWifi {
 
 	void RTTYS_ClientConnection::EndConnection() {
 		DeRegister();
-		RTTYS_server()->NotifyClientDisconnect(Id_, this);
+		RTTYS_server()->NotifyClientDisconnect(Id_);
 	}
 
 	void RTTYS_ClientConnection::onSocketReadable([[maybe_unused]] const Poco::AutoPtr<Poco::Net::ReadableNotification> &pNf) {

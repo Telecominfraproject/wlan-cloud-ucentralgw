@@ -34,15 +34,14 @@ void dump(const u_char *b, uint s) {
 
 namespace OpenWifi {
 
-	RTTYS_Device_ConnectionHandler::RTTYS_Device_ConnectionHandler(Poco::Net::StreamSocket& socket, Poco::Net::SocketReactor & reactor):
+	RTTYS_Device_ConnectionHandler::RTTYS_Device_ConnectionHandler(Poco::Net::StreamSocket& socket, Poco::Net::SocketReactor & reactor, std::uint64_t TID):
 			 	socket_(socket),
 			 	reactor_(reactor),
-				Logger_(Poco::Logger::get(fmt::format("RTTY-device({})",socket_.peerAddress().toString())))
+				Logger_(Poco::Logger::get(fmt::format("RTTY-device({})",socket_.peerAddress().toString()))),
+				TID_(TID)
 	{
-//		std::thread T([=]() { CompleteConnection(); });
-//		T.detach();
 		inBuf_ = std::make_unique<Poco::FIFOBuffer>(RTTY_DEVICE_BUFSIZE);
-		CompleteConnection();
+//		CompleteConnection();
 	}
 
 	void RTTYS_Device_ConnectionHandler::CompleteConnection() {
@@ -109,7 +108,7 @@ namespace OpenWifi {
 			DeRegister();
 			if(deviceIsRegistered_) {
 				deviceIsRegistered_ = false;
-				RTTYS_server()->NotifyDeviceDisconnect(id_, this);
+				RTTYS_server()->NotifyDeviceDisconnect(id_);
 			} else {
 				delete this;
 			}
@@ -372,7 +371,7 @@ namespace OpenWifi {
 
 			poco_information(Logger(),
 							 fmt::format("{}: Description:{} Device registration", id_, desc_));
-			if(!RTTYS_server()->NotifyDeviceRegistration(id_,token_,this)) {
+			if(!RTTYS_server()->NotifyDeviceRegistration(id_,token_,TID_)) {
 				return false;
 			}
 			u_char OutBuf[8];
