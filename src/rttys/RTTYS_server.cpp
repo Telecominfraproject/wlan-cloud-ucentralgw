@@ -199,8 +199,6 @@ namespace OpenWifi {
 						auto Device = ConnectingDevices_.find(Notification->TID_);
 						if(Device!=end(ConnectingDevices_)) {
 							It->second->SetDevice(Device->second.first);
-							std::cout << "Setting WS 1" << "   Null: " << (It->second->GetClient()==
-								nullptr) << std::endl;
 							if(It->second->GetClient()!= nullptr)
 								Device->second.first->SetWsClient(It->second->GetClient());
 							ConnectingDevices_.erase(Notification->TID_);
@@ -240,7 +238,7 @@ namespace OpenWifi {
 			NextNotification = ResponseQueue_.waitDequeueNotification();
 		}
 	}
-
+/*
 	bool RTTYS_server::SendToClient(const std::string &Id, const u_char *Buf, std::size_t Len) {
 		std::lock_guard 	Lock(LocalMutex_);
 
@@ -272,7 +270,7 @@ namespace OpenWifi {
 		}
 		return false;
 	}
-
+*/
 	bool RTTYS_server::SendKeyStrokes(const std::string &Id, const u_char *buffer, std::size_t len) {
 		std::lock_guard 	Lock(LocalMutex_);
 

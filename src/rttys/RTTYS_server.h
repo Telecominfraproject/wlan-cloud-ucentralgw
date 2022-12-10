@@ -160,6 +160,7 @@ namespace OpenWifi {
 			return false;
 		}
 
+/*
 		bool SendToClient(const u_char *Buf, std::size_t Len) {
 			if(Client_!= nullptr && Client_->Valid()) {
 				Client_->SendData(Buf,Len);
@@ -168,6 +169,14 @@ namespace OpenWifi {
 			return false;
 		}
 
+		inline bool SendToClient(const std::string &S) {
+			if(Client_!= nullptr && Client_->Valid()) {
+				Client_->SendData(S);
+				return true;
+			}
+			return false;
+		}
+*/
 		inline bool KeyStrokes(const u_char *buffer, std::size_t len) {
 			if( Device_!= nullptr && Device_->Valid() )
 				return Device_->KeyStrokes(buffer,len);
@@ -191,14 +200,6 @@ namespace OpenWifi {
 		[[nodiscard]] inline bool Joined() volatile const { return Joined_; }
 		void Join() {
 			Joined_=true;
-		}
-
-		inline bool SendToClient(const std::string &S) {
-			if(Client_!= nullptr && Client_->Valid()) {
-				Client_->SendData(S);
-				return true;
-			}
-			return false;
 		}
 
 		[[nodiscard]] inline const std::string & UserName() const { return UserName_; }
@@ -248,8 +249,10 @@ namespace OpenWifi {
 		bool CreateEndPoint(const std::string &Id, const std::string & Token, const std::string & UserName, const std::string & SerialNumber );
 		bool SendKeyStrokes(const std::string &Id, const u_char *buffer, std::size_t s);
 		bool WindowSize(const std::string &Id, int cols, int rows);
-		bool SendToClient(const std::string &id, const u_char *Buf, std::size_t Len);
+/*
+ 		bool SendToClient(const std::string &id, const u_char *Buf, std::size_t Len);
 		bool SendToClient(const std::string &id, const std::string &s);
+*/
 		bool ValidId(const std::string &Id);
 
 		void run() final;

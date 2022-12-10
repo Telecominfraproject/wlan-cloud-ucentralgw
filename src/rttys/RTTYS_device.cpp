@@ -231,7 +231,12 @@ namespace OpenWifi {
 	bool RTTYS_Device_ConnectionHandler::SendToClient(const std::string &S) {
 		if(!valid_ || !registered_)
 			return false;
-		return RTTYS_server()->SendToClient(id_,S);
+		if(WSClient_!= nullptr) {
+			WSClient_->SendData(S);
+			return true;
+		}
+		return false;
+		//return RTTYS_server()->SendToClient(id_,S);
 	}
 
 	bool RTTYS_Device_ConnectionHandler::KeyStrokes(const u_char *buf, size_t len) {
