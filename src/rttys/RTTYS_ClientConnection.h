@@ -16,6 +16,8 @@
 
 namespace OpenWifi {
 
+	class RTTYS_Device_ConnectionHandler;
+
 	class RTTYS_ClientConnection {
 	  public:
 		RTTYS_ClientConnection(Poco::Net::HTTPServerRequest &request,
@@ -32,6 +34,12 @@ namespace OpenWifi {
 
 		[[nodiscard]] inline std::string ID() { return Id_; }
 		[[nodiscard]] inline bool Valid()  { return Valid_; }
+		inline void SetDevice(std::shared_ptr<RTTYS_Device_ConnectionHandler> Device) {
+			std::lock_guard		G(Mutex_);
+			Device_ = std::move(Device);
+		}
+
+		void EndConnection();
 
 	  private:
 		Poco::Net::SocketReactor 				&Reactor_;
@@ -39,11 +47,9 @@ namespace OpenWifi {
 		std::unique_ptr<Poco::Net::WebSocket>	WS_;
 		Poco::Logger 							&Logger_;
 		std::string 							Sid_;
-		std::recursive_mutex					Mutex_;
-		volatile bool							Valid_=false;
-		volatile bool 							Registered_=false;
-
-		void EndConnection();
-
+		std::recursive_mutex								Mutex_;
+		volatile bool										Valid_=false;
+		volatile bool 										Registered_=false;
+		std::shared_ptr<RTTYS_Device_ConnectionHandler>		Device_;
 	};
 }

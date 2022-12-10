@@ -34,15 +34,14 @@ void dump(const u_char *b, uint s) {
 
 namespace OpenWifi {
 
-	RTTYS_Device_ConnectionHandler::RTTYS_Device_ConnectionHandler(Poco::Net::StreamSocket& socket, Poco::Net::SocketReactor & reactor):
+	RTTYS_Device_ConnectionHandler::RTTYS_Device_ConnectionHandler(Poco::Net::StreamSocket& socket, Poco::Net::SocketReactor & reactor, std::uint64_t TID):
 			 	socket_(socket),
 			 	reactor_(reactor),
-				Logger_(Poco::Logger::get(fmt::format("RTTY-device({})",socket_.peerAddress().toString())))
+				Logger_(Poco::Logger::get(fmt::format("RTTY-device({})",socket_.peerAddress().toString()))),
+				TID_(TID)
 	{
-//		std::thread T([=]() { CompleteConnection(); });
-//		T.detach();
 		inBuf_ = std::make_unique<Poco::FIFOBuffer>(RTTY_DEVICE_BUFSIZE);
-		CompleteConnection();
+//		CompleteConnection();
 	}
 
 	void RTTYS_Device_ConnectionHandler::CompleteConnection() {
@@ -104,16 +103,12 @@ namespace OpenWifi {
 	}
 
 	void RTTYS_Device_ConnectionHandler::EndConnection() {
-		if(valid_) {
-			valid_ = false;
-			DeRegister();
-			if(deviceIsRegistered_) {
-				deviceIsRegistered_ = false;
-				RTTYS_server()->NotifyDeviceDisconnect(id_, this);
-			} else {
-				delete this;
-			}
-		}
+		valid_ = false;
+		DeRegister();
+		deviceIsRegistered_ = false;
+		if(WSClient_!=nullptr)
+			WSClient_.reset();
+		RTTYS_server()->NotifyDeviceDisconnect(id_);
 	}
 
 	[[maybe_unused]] static void dump(unsigned char *p,uint l) {
@@ -216,21 +211,33 @@ namespace OpenWifi {
 	}
 
 	bool RTTYS_Device_ConnectionHandler::SendToClient(const u_char *Buf, int Len) {
-		u_char bb[64000]{0};
-		if(old_rtty_) {
-			bb[0] = session_id_[0];
-			memcpy(&bb[1],Buf,Len);
-		} else {
-			bb[0] = 0;
-			memcpy(&bb[1],Buf,Len);
+		if(WSClient_!= nullptr) {
+			u_char bb[64000]{0};
+			if (old_rtty_) {
+				bb[0] = session_id_[0];
+				memcpy(&bb[1], Buf, Len);
+			} else {
+				bb[0] = 0;
+				memcpy(&bb[1], Buf, Len);
+			}
+			WSClient_->SendData(bb, Len + 1);
+			return true;
+//			return RTTYS_server()->SendToClient(id_, bb, Len + 1);
 		}
-		return RTTYS_server()->SendToClient(id_, Buf, Len );
+		std::cout << "No WS Client set" << std::endl;
+		return false;
+		// return RTTYS_server()->SendToClient(id_, Buf, Len );
 	}
 
 	bool RTTYS_Device_ConnectionHandler::SendToClient(const std::string &S) {
 		if(!valid_ || !registered_)
 			return false;
-		return RTTYS_server()->SendToClient(id_,S);
+		if(WSClient_!= nullptr) {
+			WSClient_->SendData(S);
+			return true;
+		}
+		return false;
+		//return RTTYS_server()->SendToClient(id_,S);
 	}
 
 	bool RTTYS_Device_ConnectionHandler::KeyStrokes(const u_char *buf, size_t len) {
@@ -372,7 +379,7 @@ namespace OpenWifi {
 
 			poco_information(Logger(),
 							 fmt::format("{}: Description:{} Device registration", id_, desc_));
-			if(!RTTYS_server()->NotifyDeviceRegistration(id_,token_,this)) {
+			if(!RTTYS_server()->NotifyDeviceRegistration(id_,token_,TID_)) {
 				return false;
 			}
 			u_char OutBuf[8];

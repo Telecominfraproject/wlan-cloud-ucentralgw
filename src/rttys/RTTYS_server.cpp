@@ -25,9 +25,13 @@ namespace OpenWifi {
 			const auto & KeyFileName = MicroServiceConfigPath("openwifi.restapi.host.0.key","");
 			const auto & RootCa = MicroServiceConfigPath("openwifi.restapi.host.0.rootca","");
 
-			if(MicroServiceNoAPISecurity()) {
-				Poco::Net::ServerSocket DeviceSocket(DSport, 64);
-				DeviceAcceptor_ = std::make_unique<Poco::Net::SocketAcceptor<RTTYS_Device_ConnectionHandler>>(DeviceSocket,DeviceReactor_);
+			NoSecurity_ = MicroServiceNoAPISecurity();
+
+			if(NoSecurity_) {
+				DeviceSocket_ = std::make_unique<Poco::Net::ServerSocket>(DSport, 64);
+				DeviceReactor_.addEventHandler(*DeviceSocket_ ,
+											   Poco::NObserver<RTTYS_server, Poco::Net::ReadableNotification>
+											   (*this, &RTTYS_server::onAccept));
 			} else {
 				auto DeviceSecureContext = Poco::AutoPtr<Poco::Net::Context>( new Poco::Net::Context(Poco::Net::Context::SERVER_USE,
 																  KeyFileName, CertFileName, "",
@@ -42,9 +46,12 @@ namespace OpenWifi {
 				SSL_CTX *SSLCtxDevice = DeviceSecureContext->sslContext();
 				SSL_CTX_dane_enable(SSLCtxDevice);
 
-				Poco::Net::SecureServerSocket DeviceSocket(DSport, 64, DeviceSecureContext);
-				DeviceAcceptor_ = std::make_unique<Poco::Net::SocketAcceptor<RTTYS_Device_ConnectionHandler>>(DeviceSocket,DeviceReactor_);
+				SecureDeviceSocket_ = std::make_unique<Poco::Net::SecureServerSocket>(DSport, 64, DeviceSecureContext);
+				DeviceReactor_.addEventHandler(*SecureDeviceSocket_ ,
+					Poco::NObserver<RTTYS_server, Poco::Net::ReadableNotification>
+					(*this, &RTTYS_server::onAccept));
 			}
+
 			DeviceReactorThread_.start(DeviceReactor_);
 			Utils::SetThreadName(DeviceReactorThread_,"rt:devreactor");
 
@@ -54,7 +61,7 @@ namespace OpenWifi {
 			WebServerHttpParams->setKeepAlive(true);
 			WebServerHttpParams->setName("rt:dispatch");
 
-			if(MicroServiceNoAPISecurity()) {
+			if(NoSecurity_) {
 				Poco::Net::ServerSocket ClientSocket(CSport, 64);
 				ClientSocket.setNoDelay(true);
 				WebServer_ = std::make_unique<Poco::Net::HTTPServer>(new RTTYS_Client_RequestHandlerFactory(Logger()), ClientSocket, WebServerHttpParams);
@@ -80,6 +87,7 @@ namespace OpenWifi {
 			Utils::SetThreadName(ClientReactorThread_,"rt:clntreactor");
 		}
 
+
 		GCCallBack_ = std::make_unique<Poco::TimerCallback<RTTYS_server>>(*this, &RTTYS_server::onTimer);
 		Timer_.setStartInterval(30 * 1000);  // first run in 30 seconds
 		Timer_.setPeriodicInterval(5 * 1000);
@@ -99,11 +107,24 @@ namespace OpenWifi {
 			WebServer_->stop();
 			ClientReactor_.stop();
 			ClientReactorThread_.join();
+			DeviceReactor_.removeEventHandler(NoSecurity_ ? *DeviceSocket_ : *SecureDeviceSocket_, Poco::NObserver<RTTYS_server, Poco::Net::ReadableNotification>
+											  (*this, &RTTYS_server::onAccept));
 			DeviceReactor_.stop();
-			DeviceAcceptor_->unregisterAcceptor();
 			DeviceReactorThread_.join();
 			NotificationManagerRunning_ = false;
 		}
+	}
+
+	void RTTYS_server::onAccept(const Poco::AutoPtr<Poco::Net::ReadableNotification> &pNf) {
+		Poco::Net::SocketAddress	Client;
+		Poco::Net::StreamSocket NewSocket = pNf->socket().impl()->acceptConnection(Client);
+		auto TID = ++CurrentTID_;
+		auto NewDevice = std::make_shared<RTTYS_Device_ConnectionHandler>(NewSocket, DeviceReactor_, TID);
+		NotifyDeviceConnection(NewDevice, TID);
+	}
+
+	bool IsTooOld (const std::pair<std::shared_ptr<RTTYS_Device_ConnectionHandler>,std::uint64_t> &p) {
+		return ((p.second-Utils::Now())>(5*60));
 	}
 
 	void RTTYS_server::onTimer([[maybe_unused]] Poco::Timer & timer) {
@@ -127,8 +148,17 @@ namespace OpenWifi {
 				++element;
 			}
 		}
+
 		FailedDevices.clear();
 		FailedClients.clear();
+		for(auto device=ConnectingDevices_.begin();device!=ConnectingDevices_.end();) {
+			if(device->second.second-Utils::Now() > (5*60)) {
+				device->second.first->EndConnection();
+				device = ConnectingDevices_.erase(device);
+			} else {
+				++device;
+			}
+		}
 
 		if(Utils::Now()-LastStats>(60*5)) {
 			LastStats = Utils::Now();
@@ -145,7 +175,7 @@ namespace OpenWifi {
 										Poco::Net::HTTPServerResponse &response,
 									   	const std::string &id) {
 
-		auto NewClient = new RTTYS_ClientConnection(request, response, ClientReactor_, id);
+		auto NewClient = std::make_shared<RTTYS_ClientConnection>(request, response, ClientReactor_, id);
 		NotifyClientRegistration(id,NewClient);
 	}
 
@@ -167,38 +197,55 @@ namespace OpenWifi {
 						It->second->DisconnectClient();
 					} break;
 					case RTTYS_Notification_type::device_registration: {
-						It->second->SetDevice(Notification->device_);
-						if(!It->second->Joined() && It->second->ValidClient()) {
-							It->second->Join();
-							It->second->Login();
+						auto Device = ConnectingDevices_.find(Notification->TID_);
+						if(Device!=end(ConnectingDevices_)) {
+							It->second->SetDevice(Device->second.first);
+							if(It->second->GetClient()!= nullptr)
+								Device->second.first->SetWsClient(It->second->GetClient());
+							if(It->second->GetDevice()!= nullptr) {
+								if(It->second->GetClient()!= nullptr && It->second->GetDevice()) {
+									It->second->GetClient()->SetDevice(It->second->GetDevice());
+								}
+							}
+							ConnectingDevices_.erase(Notification->TID_);
+							if (!It->second->Joined() && It->second->ValidClient()) {
+								It->second->Join();
+								It->second->Login();
+							}
 						}
 					} break;
 					case RTTYS_Notification_type::client_registration: {
 						It->second->SetClient(Notification->client_);
 						if(!It->second->Joined() && It->second->ValidDevice()) {
+							It->second->GetDevice()->SetWsClient(Notification->client_);
+							Notification->client_->SetDevice(It->second->GetDevice());
 							It->second->Join();
 							It->second->Login();
 						}
+					} break;
+					case RTTYS_Notification_type::device_connection: {
+						Notification->device_->CompleteConnection();
 					} break;
 					case RTTYS_Notification_type::unknown: {
 					} break;
 					};
 				} else {
-					if(Notification->type_==RTTYS_Notification_type::device_registration) {
+					if(Notification->type_==RTTYS_Notification_type::device_connection) {
+						ConnectingDevices_[Notification->TID_] = std::make_pair(Notification->device_,Utils::Now());
+						Notification->device_->CompleteConnection();
+					} else if(Notification->type_==RTTYS_Notification_type::device_registration) {
 						FailedNumDevices_++;
-						auto ptr = std::unique_ptr<RTTYS_Device_ConnectionHandler>{Notification->device_};
-						FailedDevices.push_back(std::move(ptr));
+						FailedDevices.push_back(std::move(Notification->device_));
 					} else if(Notification->type_==RTTYS_Notification_type::client_registration) {
 						FailedNumClients_++;
-						auto ptr = std::unique_ptr<RTTYS_ClientConnection>{Notification->client_};
-						FailedClients.push_back(std::move(ptr));
+						FailedClients.push_back(std::move(Notification->client_));
 					}
 				}
 			}
 			NextNotification = ResponseQueue_.waitDequeueNotification();
 		}
 	}
-
+/*
 	bool RTTYS_server::SendToClient(const std::string &Id, const u_char *Buf, std::size_t Len) {
 		std::lock_guard 	Lock(LocalMutex_);
 
@@ -264,7 +311,7 @@ namespace OpenWifi {
 		}
 		return false;
 	}
-
+*/
 	bool RTTYS_server::CreateEndPoint(const std::string &Id, const std::string & Token, const std::string & UserName, const std::string & SerialNumber ) {
 		std::lock_guard 	Lock(LocalMutex_);
 
