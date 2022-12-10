@@ -104,11 +104,9 @@ namespace OpenWifi {
 	}
 
 	void RTTYS_Device_ConnectionHandler::EndConnection() {
-		if(valid_) {
-			valid_ = false;
-			DeRegister();
-			deviceIsRegistered_ = false;
-		}
+		valid_ = false;
+		DeRegister();
+		deviceIsRegistered_ = false;
 		RTTYS_server()->NotifyDeviceDisconnect(id_);
 	}
 
@@ -220,7 +218,8 @@ namespace OpenWifi {
 			bb[0] = 0;
 			memcpy(&bb[1],Buf,Len);
 		}
-		return RTTYS_server()->SendToClient(id_, Buf, Len );
+		return RTTYS_server()->SendToClient(id_, bb, Len+1 );
+		// return RTTYS_server()->SendToClient(id_, Buf, Len );
 	}
 
 	bool RTTYS_Device_ConnectionHandler::SendToClient(const std::string &S) {
