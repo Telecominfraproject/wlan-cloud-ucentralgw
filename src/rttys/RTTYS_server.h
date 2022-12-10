@@ -308,7 +308,7 @@ namespace OpenWifi {
 		std::atomic_bool 							NotificationManagerRunning_=false;
 		Poco::Thread								NotificationManager_;
 
-		std::map<std::uint64_t, std::shared_ptr<RTTYS_Device_ConnectionHandler>>	ConnectingDevices_;
+		std::map<std::uint64_t, std::pair<std::shared_ptr<RTTYS_Device_ConnectionHandler>,std::uint64_t>>	ConnectingDevices_;
 
 		Poco::Timer                     					Timer_;
 		std::unique_ptr<Poco::TimerCallback<RTTYS_server>>  GCCallBack_;

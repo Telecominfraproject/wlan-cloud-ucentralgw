@@ -38,6 +38,7 @@ namespace OpenWifi {
 		}
 
 	RTTYS_ClientConnection::~RTTYS_ClientConnection() {
+		std::cout << "Deleting RTTY CkientConnection" << std::endl;
 		poco_information(Logger_,
 				   fmt::format("Client {} session ending", Id_)
 				   );

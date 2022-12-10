@@ -82,6 +82,7 @@ namespace OpenWifi {
 	}
 
 	RTTYS_Device_ConnectionHandler::~RTTYS_Device_ConnectionHandler() {
+		std::cout << "Deleting RTTY Device" << std::endl;
 		poco_information(Logger_,
 			fmt::format("Device {} session ending", id_)
 		);

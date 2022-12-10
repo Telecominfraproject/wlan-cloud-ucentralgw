@@ -119,6 +119,10 @@ namespace OpenWifi {
 		NotifyDeviceConnection(NewDevice, TID);
 	}
 
+	bool IsTooOld (const std::pair<std::shared_ptr<RTTYS_Device_ConnectionHandler>,std::uint64_t> &p) {
+		return ((p.second-Utils::Now())>(5*60));
+	}
+
 	void RTTYS_server::onTimer([[maybe_unused]] Poco::Timer & timer) {
 		poco_trace(Logger(),"Removing stale connections.");
 		Utils::SetThreadName("rt:janitor");
@@ -140,8 +144,16 @@ namespace OpenWifi {
 				++element;
 			}
 		}
+
 		FailedDevices.clear();
 		FailedClients.clear();
+		for(auto device=ConnectingDevices_.begin();device!=ConnectingDevices_.end();) {
+			if(device->second.second-Utils::Now() > (5*60)) {
+				device = ConnectingDevices_.erase(device);
+			} else {
+				++device;
+			}
+		}
 
 		if(Utils::Now()-LastStats>(60*5)) {
 			LastStats = Utils::Now();
@@ -182,7 +194,7 @@ namespace OpenWifi {
 					case RTTYS_Notification_type::device_registration: {
 						auto Device = ConnectingDevices_.find(Notification->TID_);
 						if(Device!=end(ConnectingDevices_)) {
-							It->second->SetDevice(Device->second);
+							It->second->SetDevice(Device->second.first);
 							ConnectingDevices_.erase(Notification->TID_);
 							if (!It->second->Joined() && It->second->ValidClient()) {
 								It->second->Join();
@@ -205,16 +217,14 @@ namespace OpenWifi {
 					};
 				} else {
 					if(Notification->type_==RTTYS_Notification_type::device_connection) {
-						ConnectingDevices_[Notification->TID_] = Notification->device_;
+						ConnectingDevices_[Notification->TID_] = std::make_pair(Notification->device_,Utils::Now());
 						Notification->device_->CompleteConnection();
 					} else if(Notification->type_==RTTYS_Notification_type::device_registration) {
 						FailedNumDevices_++;
-						auto ptr = Notification->device_;
-						FailedDevices.push_back(std::move(ptr));
+						FailedDevices.push_back(std::move(Notification->device_));
 					} else if(Notification->type_==RTTYS_Notification_type::client_registration) {
 						FailedNumClients_++;
-						auto ptr = Notification->client_;
-						FailedClients.push_back(std::move(ptr));
+						FailedClients.push_back(std::move(Notification->client_));
 					}
 				}
 			}
