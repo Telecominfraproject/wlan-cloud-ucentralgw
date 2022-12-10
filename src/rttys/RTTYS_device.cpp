@@ -107,6 +107,7 @@ namespace OpenWifi {
 		valid_ = false;
 		DeRegister();
 		deviceIsRegistered_ = false;
+		WSClient_.reset();
 		RTTYS_server()->NotifyDeviceDisconnect(id_);
 	}
 

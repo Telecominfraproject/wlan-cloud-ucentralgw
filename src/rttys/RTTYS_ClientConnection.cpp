@@ -42,10 +42,10 @@ namespace OpenWifi {
 		poco_information(Logger_,
 				   fmt::format("Client {} session ending", Id_)
 				   );
-		DeRegister();
+		EndConnection();
 	}
 
-	void RTTYS_ClientConnection::DeRegister() {
+	void RTTYS_ClientConnection::EndConnection() {
 		Valid_ = false;
 		if(Registered_) {
 			Registered_ = false;
@@ -56,91 +56,80 @@ namespace OpenWifi {
 				*WS_, Poco::NObserver<RTTYS_ClientConnection, Poco::Net::ShutdownNotification>(
 						  *this, &RTTYS_ClientConnection::onSocketShutdown));
 		}
-	}
-
-	void RTTYS_ClientConnection::EndConnection() {
-		DeRegister();
+		Device_.reset();
 		RTTYS_server()->NotifyClientDisconnect(Id_);
 	}
 
 	void RTTYS_ClientConnection::onSocketReadable([[maybe_unused]] const Poco::AutoPtr<Poco::Net::ReadableNotification> &pNf) {
-		bool MustDisconnect = false;
-
-		{
-			if(!Valid_ || !Registered_)
-				return;
-			std::lock_guard G(Mutex_);
-			try {
-				int flags;
-				unsigned char FrameBuffer[1024];
-				auto ReceivedBytes = WS_->receiveFrame(FrameBuffer, sizeof(FrameBuffer), flags);
-				auto Op = flags & Poco::Net::WebSocket::FRAME_OP_BITMASK;
-				switch (Op) {
-				case Poco::Net::WebSocket::FRAME_OP_PING: {
-					WS_->sendFrame("", 0,
-								   (int)Poco::Net::WebSocket::FRAME_OP_PONG |
-									   (int)Poco::Net::WebSocket::FRAME_FLAG_FIN);
-				} break;
-				case Poco::Net::WebSocket::FRAME_OP_PONG: {
-				} break;
-				case Poco::Net::WebSocket::FRAME_OP_TEXT: {
-					if (ReceivedBytes == 0) {
-						poco_trace(Logger_,"Client closing connection.");
-						MustDisconnect = true;
-					} else {
-						if(Device_!= nullptr) {
-							std::string Frame((const char *)FrameBuffer, ReceivedBytes);
-							try {
-								auto Doc = nlohmann::json::parse(Frame);
-								if (Doc.contains("type")) {
-									auto Type = Doc["type"];
-									if (Type == "winsize") {
-										auto cols = Doc["cols"];
-										auto rows = Doc["rows"];
-										if (!Device_->WindowSize(cols, rows)) {
-											Logger_.information("Winsize shutdown.");
-											MustDisconnect = true;
-										}
+		if(!Valid_ || !Registered_)
+			return;
+		std::lock_guard G(Mutex_);
+		try {
+			int flags;
+			unsigned char FrameBuffer[1024];
+			auto ReceivedBytes = WS_->receiveFrame(FrameBuffer, sizeof(FrameBuffer), flags);
+			auto Op = flags & Poco::Net::WebSocket::FRAME_OP_BITMASK;
+			switch (Op) {
+			case Poco::Net::WebSocket::FRAME_OP_PING: {
+				WS_->sendFrame("", 0,
+							   (int)Poco::Net::WebSocket::FRAME_OP_PONG |
+								   (int)Poco::Net::WebSocket::FRAME_FLAG_FIN);
+			} break;
+			case Poco::Net::WebSocket::FRAME_OP_PONG: {
+			} break;
+			case Poco::Net::WebSocket::FRAME_OP_TEXT: {
+				if (ReceivedBytes == 0) {
+					poco_trace(Logger_,"Client closing connection.");
+					return EndConnection();
+				} else {
+					if(Device_!= nullptr) {
+						std::string Frame((const char *)FrameBuffer, ReceivedBytes);
+						try {
+							auto Doc = nlohmann::json::parse(Frame);
+							if (Doc.contains("type")) {
+								auto Type = Doc["type"];
+								if (Type == "winsize") {
+									auto cols = Doc["cols"];
+									auto rows = Doc["rows"];
+									if (!Device_->WindowSize(cols, rows)) {
+										Logger_.information("Winsize shutdown.");
+										return EndConnection();
 									}
 								}
-							} catch (...) {
-								// just ignore parse errors
-								Logger_.information("Frame text exception shutdown.");
-								MustDisconnect = true;
 							}
+						} catch (...) {
+							// just ignore parse errors
+							Logger_.information("Frame text exception shutdown.");
+							return EndConnection();
 						}
 					}
-				} break;
-				case Poco::Net::WebSocket::FRAME_OP_BINARY: {
-					if (ReceivedBytes == 0) {
-						poco_trace(Logger_,"Client closing connection.");
-						MustDisconnect = true;
-					} else {
-						poco_trace(Logger_, fmt::format("Sending {} key strokes to device.", ReceivedBytes));
-						if(Device_!= nullptr) {
-							if (!Device_->KeyStrokes(FrameBuffer, ReceivedBytes)) {
-								poco_trace(Logger_,"Cannot send keys to device. Close connection.");
-								MustDisconnect = true;
-							}
+				}
+			} break;
+			case Poco::Net::WebSocket::FRAME_OP_BINARY: {
+				if (ReceivedBytes == 0) {
+					poco_trace(Logger_,"Client closing connection.");
+					return EndConnection();
+				} else {
+					poco_trace(Logger_, fmt::format("Sending {} key strokes to device.", ReceivedBytes));
+					if(Device_!= nullptr) {
+						if (!Device_->KeyStrokes(FrameBuffer, ReceivedBytes)) {
+							poco_trace(Logger_,"Cannot send keys to device. Close connection.");
+							return EndConnection();
 						}
 					}
-				} break;
-				case Poco::Net::WebSocket::FRAME_OP_CLOSE: {
-					poco_trace(Logger_,"Frame close shutdown.");
-					MustDisconnect = true;
-				} break;
+				}
+			} break;
+			case Poco::Net::WebSocket::FRAME_OP_CLOSE: {
+				poco_trace(Logger_,"Frame close shutdown.");
+				return EndConnection();
+			} break;
 
-				default: {
-				}
-				}
-			} catch (...) {
-				poco_error(Logger_,"Frame readable shutdown.");
-				MustDisconnect = true;
+			default: {
 			}
-		}
-
-		if(MustDisconnect) {
-			EndConnection();
+			}
+		} catch (...) {
+			poco_error(Logger_,"Frame readable shutdown.");
+			return EndConnection();
 		}
 	}
 
