@@ -180,11 +180,14 @@ namespace OpenWifi {
 						It->second->DisconnectClient();
 					} break;
 					case RTTYS_Notification_type::device_registration: {
-						It->second->SetDevice(Notification->device_);
-						ConnectingDevices_.erase(Notification->TID_);
-						if(!It->second->Joined() && It->second->ValidClient()) {
-							It->second->Join();
-							It->second->Login();
+						auto Device = ConnectingDevices_.find(Notification->TID_);
+						if(Device!=end(ConnectingDevices_)) {
+							It->second->SetDevice(Device->second);
+							ConnectingDevices_.erase(Notification->TID_);
+							if (!It->second->Joined() && It->second->ValidClient()) {
+								It->second->Join();
+								It->second->Login();
+							}
 						}
 					} break;
 					case RTTYS_Notification_type::client_registration: {
