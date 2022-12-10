@@ -217,7 +217,8 @@ namespace OpenWifi {
 			return std::chrono::duration<double>{ClientDisconnected_ - ClientConnected_}.count();
 		}
 
-	  private:
+		inline std::shared_ptr<RTTYS_ClientConnection> GetClient() { return Client_; }
+	private:
 		std::string 									Token_;
 		std::string 									SerialNumber_;
 		std::string 									UserName_;

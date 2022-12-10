@@ -199,6 +199,7 @@ namespace OpenWifi {
 						auto Device = ConnectingDevices_.find(Notification->TID_);
 						if(Device!=end(ConnectingDevices_)) {
 							It->second->SetDevice(Device->second.first);
+							Device->second.first->SetWsClient(It->second->GetClient());
 							ConnectingDevices_.erase(Notification->TID_);
 							if (!It->second->Joined() && It->second->ValidClient()) {
 								It->second->Join();

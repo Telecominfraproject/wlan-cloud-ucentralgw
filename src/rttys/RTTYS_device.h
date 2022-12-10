@@ -19,6 +19,8 @@ namespace OpenWifi {
 	constexpr std::size_t RTTY_SESSION_ID_LENGTH=32;
 	constexpr std::size_t RTTY_HDR_SIZE=3;
 
+	class RTTYS_ClientConnection;
+
 	class RTTYS_Device_ConnectionHandler{
 	  public:
 		enum RTTY_MSG_TYPE {
@@ -53,6 +55,10 @@ namespace OpenWifi {
 
 		inline Poco::Logger	&Logger() { return Logger_; }
 		inline bool Valid() const { return valid_; }
+		inline void SetWsClient(std::shared_ptr<RTTYS_ClientConnection>	WSClient) {
+			std::unique_lock	L(M_);
+			WSClient_ = std::move(WSClient);
+		}
 
 	  private:
 		Poco::Net::StreamSocket   			socket_;
@@ -63,18 +69,19 @@ namespace OpenWifi {
 		volatile bool					valid_=false;
 		volatile bool					old_rtty_=true;
 		Poco::Net::SocketAddress		device_address_;
-		std::shared_mutex 		  		M_;
-		std::string                   	id_;
-		std::string                   	token_;
-		std::string                   	desc_;
-		char 				          	session_id_[RTTY_SESSION_ID_LENGTH+1]{0};
-		std::uint64_t 					session_length_=1;
-		std::size_t      			  	waiting_for_bytes_{0};
-		u_char 						  	last_command_=0;
-		volatile bool	 				registered_=false;
-		unsigned char 					small_buf_[64+RTTY_SESSION_ID_LENGTH];
-		volatile bool					deviceIsRegistered_=false;
-		std::uint64_t 					TID_=0;
+		std::shared_mutex 		  				M_;
+		std::string                   			id_;
+		std::string                   			token_;
+		std::string                   			desc_;
+		char 				          			session_id_[RTTY_SESSION_ID_LENGTH+1]{0};
+		std::uint64_t 							session_length_=1;
+		std::size_t      			  			waiting_for_bytes_{0};
+		u_char 						  			last_command_=0;
+		volatile bool	 						registered_=false;
+		unsigned char 							small_buf_[64+RTTY_SESSION_ID_LENGTH];
+		volatile bool							deviceIsRegistered_=false;
+		std::uint64_t 							TID_=0;
+		std::shared_ptr<RTTYS_ClientConnection>		WSClient_;
 
 		void EndConnection() ;
 		void DeRegister();

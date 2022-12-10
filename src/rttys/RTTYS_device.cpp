@@ -210,15 +210,20 @@ namespace OpenWifi {
 	}
 
 	bool RTTYS_Device_ConnectionHandler::SendToClient(const u_char *Buf, int Len) {
-		u_char bb[64000]{0};
-		if(old_rtty_) {
-			bb[0] = session_id_[0];
-			memcpy(&bb[1],Buf,Len);
-		} else {
-			bb[0] = 0;
-			memcpy(&bb[1],Buf,Len);
+		if(WSClient_!= nullptr) {
+			u_char bb[64000]{0};
+			if (old_rtty_) {
+				bb[0] = session_id_[0];
+				memcpy(&bb[1], Buf, Len);
+			} else {
+				bb[0] = 0;
+				memcpy(&bb[1], Buf, Len);
+			}
+			WSClient_->SendData(bb, Len + 1);
+			return true;
+//			return RTTYS_server()->SendToClient(id_, bb, Len + 1);
 		}
-		return RTTYS_server()->SendToClient(id_, bb, Len+1 );
+		return false;
 		// return RTTYS_server()->SendToClient(id_, Buf, Len );
 	}
 
