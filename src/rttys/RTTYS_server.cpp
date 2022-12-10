@@ -25,9 +25,13 @@ namespace OpenWifi {
 			const auto & KeyFileName = MicroServiceConfigPath("openwifi.restapi.host.0.key","");
 			const auto & RootCa = MicroServiceConfigPath("openwifi.restapi.host.0.rootca","");
 
-			if(MicroServiceNoAPISecurity()) {
-				Poco::Net::ServerSocket DeviceSocket(DSport, 64);
-				// DeviceAcceptor_ = std::make_unique<Poco::Net::SocketAcceptor<RTTYS_Device_ConnectionHandler>>(DeviceSocket,DeviceReactor_);
+			UseSecureSocket_ = MicroServiceNoAPISecurity();
+
+			if(!UseSecureSocket_) {
+				DeviceSocket_ = std::make_unique<Poco::Net::ServerSocket>(DSport, 64);
+				DeviceReactor_.addEventHandler(*DeviceSocket_ ,
+											   Poco::NObserver<RTTYS_server, Poco::Net::ReadableNotification>
+											   (*this, &RTTYS_server::onAccept));
 			} else {
 				auto DeviceSecureContext = Poco::AutoPtr<Poco::Net::Context>( new Poco::Net::Context(Poco::Net::Context::SERVER_USE,
 																  KeyFileName, CertFileName, "",
@@ -42,13 +46,12 @@ namespace OpenWifi {
 				SSL_CTX *SSLCtxDevice = DeviceSecureContext->sslContext();
 				SSL_CTX_dane_enable(SSLCtxDevice);
 
-				Poco::Net::SecureServerSocket DeviceSocket(DSport, 64, DeviceSecureContext);
-				// DeviceAcceptor_ = std::make_unique<Poco::Net::SocketAcceptor<RTTYS_Device_ConnectionHandler>>(DeviceSocket,DeviceReactor_);
-				DeviceReactor_.addEventHandler(
-					DeviceSocket,
+				SecureDeviceSocket_ = std::make_unique<Poco::Net::SecureServerSocket>(DSport, 64, DeviceSecureContext);
+				DeviceReactor_.addEventHandler(*SecureDeviceSocket_ ,
 					Poco::NObserver<RTTYS_server, Poco::Net::ReadableNotification>
 					(*this, &RTTYS_server::onAccept));
 			}
+
 			DeviceReactorThread_.start(DeviceReactor_);
 			Utils::SetThreadName(DeviceReactorThread_,"rt:devreactor");
 
@@ -58,7 +61,7 @@ namespace OpenWifi {
 			WebServerHttpParams->setKeepAlive(true);
 			WebServerHttpParams->setName("rt:dispatch");
 
-			if(MicroServiceNoAPISecurity()) {
+			if(!UseSecureSocket_) {
 				Poco::Net::ServerSocket ClientSocket(CSport, 64);
 				ClientSocket.setNoDelay(true);
 				WebServer_ = std::make_unique<Poco::Net::HTTPServer>(new RTTYS_Client_RequestHandlerFactory(Logger()), ClientSocket, WebServerHttpParams);
@@ -104,8 +107,9 @@ namespace OpenWifi {
 			WebServer_->stop();
 			ClientReactor_.stop();
 			ClientReactorThread_.join();
+			DeviceReactor_.removeEventHandler(UseSecureSocket_ ? *SecureDeviceSocket_ : *DeviceSocket_, Poco::NObserver<RTTYS_server, Poco::Net::ReadableNotification>
+											  (*this, &RTTYS_server::onAccept));
 			DeviceReactor_.stop();
-			// DeviceAcceptor_->unregisterAcceptor();
 			DeviceReactorThread_.join();
 			NotificationManagerRunning_ = false;
 		}

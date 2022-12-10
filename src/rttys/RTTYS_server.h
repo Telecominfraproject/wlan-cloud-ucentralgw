@@ -299,7 +299,7 @@ namespace OpenWifi {
 		Poco::Thread								ClientReactorThread_;
 		std::string 								RTTY_UIAssets_;
 		bool			 							Internal_ = false;
-
+		bool 										UseSecureSocket_=false;
 		std::map<std::string,std::unique_ptr<RTTYS_EndPoint>> 		EndPoints_;			//	id, endpoint
 		std::unique_ptr<Poco::Net::HTTPServer>		WebServer_;
 		// std::unique_ptr<Poco::Net::SocketAcceptor<RTTYS_Device_ConnectionHandler>>	DeviceAcceptor_;
@@ -319,13 +319,15 @@ namespace OpenWifi {
 		std::atomic_uint64_t 						TotalEndPoints_=0;
 		std::atomic_uint64_t 						FailedNumDevices_=0;
 		std::atomic_uint64_t 						FailedNumClients_=0;
-		double 										TotalConnectedDeviceTime_=0.0;
-		double 										TotalConnectedClientTime_=0.0;
+		double 											TotalConnectedDeviceTime_=0.0;
+		double 											TotalConnectedClientTime_=0.0;
 
-		std::atomic_uint64_t						Started_=Utils::Now();
-		std::atomic_uint64_t						MaxConcurrentSessions_=0;
+		std::atomic_uint64_t							Started_=Utils::Now();
+		std::atomic_uint64_t							MaxConcurrentSessions_=0;
+		std::unique_ptr<Poco::Net::ServerSocket>		DeviceSocket_;
+		std::unique_ptr<Poco::Net::SecureServerSocket>	SecureDeviceSocket_;
 
-		static inline std::uint64_t 				CurrentTID_=0;
+		static inline std::uint64_t 					CurrentTID_=0;
 
 		explicit RTTYS_server() noexcept:
 		SubSystemServer("RTTY_Server", "RTTY-SVR", "rtty.server")
