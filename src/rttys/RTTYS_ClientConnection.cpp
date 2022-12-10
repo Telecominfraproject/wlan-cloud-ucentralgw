@@ -72,8 +72,8 @@ namespace OpenWifi {
 			std::lock_guard G(Mutex_);
 			try {
 				int flags;
-				Poco::Buffer<char> IncomingFrame(0);
-				auto n = WS_->receiveFrame(IncomingFrame, flags);
+				unsigned char FrameBuffer[1024];
+				auto ReceivedBytes = WS_->receiveFrame(FrameBuffer, sizeof(FrameBuffer), flags);
 				auto Op = flags & Poco::Net::WebSocket::FRAME_OP_BITMASK;
 				switch (Op) {
 				case Poco::Net::WebSocket::FRAME_OP_PING: {
@@ -84,47 +84,49 @@ namespace OpenWifi {
 				case Poco::Net::WebSocket::FRAME_OP_PONG: {
 				} break;
 				case Poco::Net::WebSocket::FRAME_OP_TEXT: {
-					if (n == 0) {
-						Logger_.information("Socket readable shutdown.");
+					if (ReceivedBytes == 0) {
+						poco_trace(Logger_,"Client closing connection.");
 						MustDisconnect = true;
 					} else {
-						std::string s((char *)IncomingFrame.begin(), IncomingFrame.size());
-						try {
-							auto Doc = nlohmann::json::parse(s);
-							if (Doc.contains("type")) {
-								auto Type = Doc["type"];
-								if (Type == "winsize") {
-									auto cols = Doc["cols"];
-									auto rows = Doc["rows"];
-									if (!RTTYS_server()->WindowSize(Id_, cols, rows)) {
-										Logger_.information("Winsize shutdown.");
-										MustDisconnect = true;
+						if(Device_!= nullptr) {
+							std::string Frame((const char *)FrameBuffer, ReceivedBytes);
+							try {
+								auto Doc = nlohmann::json::parse(Frame);
+								if (Doc.contains("type")) {
+									auto Type = Doc["type"];
+									if (Type == "winsize") {
+										auto cols = Doc["cols"];
+										auto rows = Doc["rows"];
+										if (!Device_->WindowSize(cols, rows)) {
+											Logger_.information("Winsize shutdown.");
+											MustDisconnect = true;
+										}
 									}
 								}
+							} catch (...) {
+								// just ignore parse errors
+								Logger_.information("Frame text exception shutdown.");
+								MustDisconnect = true;
 							}
-						} catch (...) {
-							// just ignore parse errors
-							Logger_.information("Frame text exception shutdown.");
-							MustDisconnect = true;
 						}
 					}
 				} break;
 				case Poco::Net::WebSocket::FRAME_OP_BINARY: {
-					if (n == 0) {
-						Logger_.information("Frame binary size shutdown.");
+					if (ReceivedBytes == 0) {
+						poco_trace(Logger_,"Client closing connection.");
 						MustDisconnect = true;
 					} else {
-						poco_trace(Logger_, fmt::format("Sending {} key strokes to device.", n));
-						if (!RTTYS_server()->SendKeyStrokes(
-								Id_, (const unsigned char *)IncomingFrame.begin(),
-								IncomingFrame.size())) {
-							Logger_.information("Sendkeystrokes shutdown.");
-							MustDisconnect = true;
+						poco_trace(Logger_, fmt::format("Sending {} key strokes to device.", ReceivedBytes));
+						if(Device_!= nullptr) {
+							if (!Device_->KeyStrokes(FrameBuffer, ReceivedBytes)) {
+								poco_trace(Logger_,"Cannot send keys to device. Close connection.");
+								MustDisconnect = true;
+							}
 						}
 					}
 				} break;
 				case Poco::Net::WebSocket::FRAME_OP_CLOSE: {
-					Logger_.information("Frame frame close shutdown.");
+					poco_trace(Logger_,"Frame close shutdown.");
 					MustDisconnect = true;
 				} break;
 
@@ -132,7 +134,7 @@ namespace OpenWifi {
 				}
 				}
 			} catch (...) {
-				Logger_.information("Frame readable shutdown.");
+				poco_error(Logger_,"Frame readable shutdown.");
 				MustDisconnect = true;
 			}
 		}

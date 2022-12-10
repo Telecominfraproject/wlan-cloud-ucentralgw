@@ -201,6 +201,11 @@ namespace OpenWifi {
 							It->second->SetDevice(Device->second.first);
 							if(It->second->GetClient()!= nullptr)
 								Device->second.first->SetWsClient(It->second->GetClient());
+							if(It->second->GetDevice()!= nullptr) {
+								if(It->second->GetClient()!= nullptr && It->second->GetDevice()) {
+									It->second->GetClient()->SetDevice(It->second->GetDevice());
+								}
+							}
 							ConnectingDevices_.erase(Notification->TID_);
 							if (!It->second->Joined() && It->second->ValidClient()) {
 								It->second->Join();
@@ -212,6 +217,7 @@ namespace OpenWifi {
 						It->second->SetClient(Notification->client_);
 						if(!It->second->Joined() && It->second->ValidDevice()) {
 							It->second->GetDevice()->SetWsClient(Notification->client_);
+							Notification->client_->SetDevice(It->second->GetDevice());
 							It->second->Join();
 							It->second->Login();
 						}
@@ -270,7 +276,7 @@ namespace OpenWifi {
 		}
 		return false;
 	}
-*/
+
 	bool RTTYS_server::SendKeyStrokes(const std::string &Id, const u_char *buffer, std::size_t len) {
 		std::lock_guard 	Lock(LocalMutex_);
 
@@ -304,7 +310,7 @@ namespace OpenWifi {
 		}
 		return false;
 	}
-
+*/
 	bool RTTYS_server::CreateEndPoint(const std::string &Id, const std::string & Token, const std::string & UserName, const std::string & SerialNumber ) {
 		std::lock_guard 	Lock(LocalMutex_);
 

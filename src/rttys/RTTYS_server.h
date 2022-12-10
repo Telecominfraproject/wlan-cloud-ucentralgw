@@ -176,7 +176,7 @@ namespace OpenWifi {
 			}
 			return false;
 		}
-*/
+
 		inline bool KeyStrokes(const u_char *buffer, std::size_t len) {
 			if( Device_!= nullptr && Device_->Valid() )
 				return Device_->KeyStrokes(buffer,len);
@@ -188,7 +188,7 @@ namespace OpenWifi {
 				return Device_->WindowSize(cols,rows);
 			return false;
 		}
-
+*/
 		[[nodiscard]] inline bool ValidClient() const {
 			return Client_!= nullptr && Client_->Valid();
 		}
