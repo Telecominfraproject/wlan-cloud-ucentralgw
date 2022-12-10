@@ -25,9 +25,9 @@ namespace OpenWifi {
 			const auto & KeyFileName = MicroServiceConfigPath("openwifi.restapi.host.0.key","");
 			const auto & RootCa = MicroServiceConfigPath("openwifi.restapi.host.0.rootca","");
 
-			UseSecureSocket_ = MicroServiceNoAPISecurity();
+			NoSecurity_ = MicroServiceNoAPISecurity();
 
-			if(!UseSecureSocket_) {
+			if(NoSecurity_) {
 				DeviceSocket_ = std::make_unique<Poco::Net::ServerSocket>(DSport, 64);
 				DeviceReactor_.addEventHandler(*DeviceSocket_ ,
 											   Poco::NObserver<RTTYS_server, Poco::Net::ReadableNotification>
@@ -61,7 +61,7 @@ namespace OpenWifi {
 			WebServerHttpParams->setKeepAlive(true);
 			WebServerHttpParams->setName("rt:dispatch");
 
-			if(!UseSecureSocket_) {
+			if(NoSecurity_) {
 				Poco::Net::ServerSocket ClientSocket(CSport, 64);
 				ClientSocket.setNoDelay(true);
 				WebServer_ = std::make_unique<Poco::Net::HTTPServer>(new RTTYS_Client_RequestHandlerFactory(Logger()), ClientSocket, WebServerHttpParams);
@@ -107,7 +107,7 @@ namespace OpenWifi {
 			WebServer_->stop();
 			ClientReactor_.stop();
 			ClientReactorThread_.join();
-			DeviceReactor_.removeEventHandler(UseSecureSocket_ ? *SecureDeviceSocket_ : *DeviceSocket_, Poco::NObserver<RTTYS_server, Poco::Net::ReadableNotification>
+			DeviceReactor_.removeEventHandler(NoSecurity_ ? *DeviceSocket_ : *SecureDeviceSocket_, Poco::NObserver<RTTYS_server, Poco::Net::ReadableNotification>
 											  (*this, &RTTYS_server::onAccept));
 			DeviceReactor_.stop();
 			DeviceReactorThread_.join();

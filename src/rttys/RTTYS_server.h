@@ -299,7 +299,7 @@ namespace OpenWifi {
 		Poco::Thread								ClientReactorThread_;
 		std::string 								RTTY_UIAssets_;
 		bool			 							Internal_ = false;
-		bool 										UseSecureSocket_=false;
+		bool 										NoSecurity_=false;
 		std::map<std::string,std::unique_ptr<RTTYS_EndPoint>> 		EndPoints_;			//	id, endpoint
 		std::unique_ptr<Poco::Net::HTTPServer>		WebServer_;
 		// std::unique_ptr<Poco::Net::SocketAcceptor<RTTYS_Device_ConnectionHandler>>	DeviceAcceptor_;
