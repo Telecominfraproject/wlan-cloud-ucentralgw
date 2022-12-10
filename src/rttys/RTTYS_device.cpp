@@ -223,6 +223,7 @@ namespace OpenWifi {
 			return true;
 //			return RTTYS_server()->SendToClient(id_, bb, Len + 1);
 		}
+		std::cout << "No WS Client set" << std::endl;
 		return false;
 		// return RTTYS_server()->SendToClient(id_, Buf, Len );
 	}
