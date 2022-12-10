@@ -153,6 +153,7 @@ namespace OpenWifi {
 		FailedClients.clear();
 		for(auto device=ConnectingDevices_.begin();device!=ConnectingDevices_.end();) {
 			if(device->second.second-Utils::Now() > (5*60)) {
+				device->second.first->EndConnection();
 				device = ConnectingDevices_.erase(device);
 			} else {
 				++device;

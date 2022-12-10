@@ -39,6 +39,8 @@ namespace OpenWifi {
 			Device_ = std::move(Device);
 		}
 
+		void EndConnection();
+
 	  private:
 		Poco::Net::SocketReactor 				&Reactor_;
 		std::string 							Id_;
@@ -49,8 +51,5 @@ namespace OpenWifi {
 		volatile bool										Valid_=false;
 		volatile bool 										Registered_=false;
 		std::shared_ptr<RTTYS_Device_ConnectionHandler>		Device_;
-
-		void EndConnection();
-
 	};
 }

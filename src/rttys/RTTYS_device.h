@@ -60,6 +60,8 @@ namespace OpenWifi {
 			WSClient_ = std::move(WSClient);
 		}
 
+		void EndConnection() ;
+
 	  private:
 		Poco::Net::StreamSocket   			socket_;
 		Poco::Net::SocketReactor			&reactor_;
@@ -83,7 +85,6 @@ namespace OpenWifi {
 		std::uint64_t 							TID_=0;
 		std::shared_ptr<RTTYS_ClientConnection>		WSClient_;
 
-		void EndConnection() ;
 		void DeRegister();
 
 		[[nodiscard]] bool do_msgTypeRegister(std::size_t msg_len);

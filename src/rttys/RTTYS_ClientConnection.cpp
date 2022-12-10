@@ -160,7 +160,7 @@ namespace OpenWifi {
 	}
 
 	void RTTYS_ClientConnection::onSocketShutdown([[maybe_unused]] const Poco::AutoPtr<Poco::Net::ShutdownNotification> &pNf) {
-		Logger_.information("Socket shutdown.");
+		poco_information(Logger_,"Socket shutdown.");
 		EndConnection();
 	}
 
