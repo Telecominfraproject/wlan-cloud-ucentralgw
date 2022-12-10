@@ -38,7 +38,6 @@ namespace OpenWifi {
 		}
 
 	RTTYS_ClientConnection::~RTTYS_ClientConnection() {
-		std::cout << "Deleting RTTY CkientConnection" << std::endl;
 		poco_information(Logger_,
 				   fmt::format("Client {} session ending", Id_)
 				   );
@@ -56,7 +55,8 @@ namespace OpenWifi {
 				*WS_, Poco::NObserver<RTTYS_ClientConnection, Poco::Net::ShutdownNotification>(
 						  *this, &RTTYS_ClientConnection::onSocketShutdown));
 		}
-		Device_.reset();
+		if(Device_!=nullptr)
+			Device_.reset();
 		RTTYS_server()->NotifyClientDisconnect(Id_);
 	}
 
