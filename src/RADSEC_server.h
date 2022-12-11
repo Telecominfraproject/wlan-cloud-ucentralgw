@@ -55,10 +55,16 @@ namespace OpenWifi {
 
 		inline void run() final {
 			Poco::Thread::trySleep(3000);
+			std::uint64_t LastStatus = Utils::Now() ;
 			while(TryAgain_) {
 				if(!Connected_) {
 					std::lock_guard G(LocalMutex_);
 					Connect();
+				} else if( (Utils::Now() - LastStatus) > 120) {
+					RADIUS::RadiusOutputPacket P(Server_.radsecSecret);
+					P.MakeStatusMessage();
+					poco_information(Logger_,"Keep-Alive message.");
+					Socket_->sendBytes(P.Data(), P.Len());
 				}
 				Poco::Thread::trySleep(!Connected_ ? 3000 : 10000);
 			}
