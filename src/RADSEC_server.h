@@ -65,6 +65,7 @@ namespace OpenWifi {
 					P.MakeStatusMessage();
 					poco_information(Logger_,"Keep-Alive message.");
 					Socket_->sendBytes(P.Data(), P.Len());
+					LastStatus = Utils::Now();
 				}
 				Poco::Thread::trySleep(!Connected_ ? 3000 : 10000);
 			}
