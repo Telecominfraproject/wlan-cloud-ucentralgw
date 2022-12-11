@@ -702,8 +702,8 @@ static const struct tok radius_attribute_names[] = {
 			AttributesLen_+=len;
 		}
 
-		inline const unsigned char * Data() const { return (const unsigned char *) &P_;}
-		inline std::uint16_t Len() const { return P_.rawlen; }
+		[[nodiscard]] inline const unsigned char * Data() const { return (const unsigned char *) &P_;}
+		[[nodiscard]] inline std::uint16_t Len() const { return P_.rawlen; }
 
 	  private:
 		RawRadiusPacket		P_;

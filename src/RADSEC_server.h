@@ -55,12 +55,14 @@ namespace OpenWifi {
 
 		inline void run() final {
 			Poco::Thread::trySleep(3000);
-			std::uint64_t LastStatus = Utils::Now() ;
+			std::uint64_t LastStatus=0 ;
+			auto RadSecKeepAlive = MicroServiceConfigGetInt("radsec.keepalive",120);
 			while(TryAgain_) {
 				if(!Connected_) {
 					std::lock_guard G(LocalMutex_);
+					LastStatus = Utils::Now() ;
 					Connect();
-				} else if( (Utils::Now() - LastStatus) > 120) {
+				} else if( (Utils::Now() - LastStatus) > RadSecKeepAlive) {
 					RADIUS::RadiusOutputPacket P(Server_.radsecSecret);
 					P.MakeStatusMessage();
 					poco_information(Logger_,"Keep-Alive message.");
