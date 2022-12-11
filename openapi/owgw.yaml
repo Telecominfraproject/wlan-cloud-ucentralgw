@@ -107,12 +107,17 @@ components:
           type: string
           minLength: 2
           maxLength: 2
-        FCC:
+        restrictedDevice:
           type: boolean
           default: false
         certificateExpiryDate:
           type: integer
           format: int64
+        pendingConfiguration:
+          type: string
+        pendingConfigurationCmd:
+          type: string
+          format: uuid
 
     DeviceWithStatus:
       type: object
@@ -214,6 +219,11 @@ components:
         certificateDate:
           type: integer
           format: int64
+        pendingConfiguration:
+          type: string
+        pendingConfigurationCmd:
+          type: string
+          format: uuid
 
     DeviceList:
       type: object

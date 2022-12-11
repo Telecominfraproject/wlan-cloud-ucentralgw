@@ -71,6 +71,8 @@ namespace OpenWifi::GWObjects {
 		uint64_t 	modified=0;
 		std::string locale;
 		bool 		restrictedDevice=false;
+		std::string pendingConfiguration;
+		std::string pendingConfigurationCmd;
 
 		void to_json(Poco::JSON::Object &Obj) const;
 		void to_json_with_status(Poco::JSON::Object &Obj) const;

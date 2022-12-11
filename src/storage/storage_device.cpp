@@ -48,7 +48,9 @@ namespace OpenWifi {
 		"entity, "
 		"modified, "
 		"locale,"
-		"restrictedDevice"
+		"restrictedDevice,"
+		"pendingConfiguration, "
+		"pendingConfigurationCmd "
 	};
 
 	const static std::string DB_DeviceUpdateFields{
@@ -74,10 +76,12 @@ namespace OpenWifi {
 		"entity=?, "
 		"modified=?, "
 		"locale=?, "
-		"restrictedDevice=?"
+		"restrictedDevice=?, "
+		"pendingConfiguration=?, "
+		"pendingConfigurationCmd=? "
 	};
 
-	const static std::string DB_DeviceInsertValues{" VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?) "};
+	const static std::string DB_DeviceInsertValues{" VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?) "};
 
 	typedef Poco::Tuple<
 		std::string,
@@ -102,7 +106,9 @@ namespace OpenWifi {
 		std::string,
 		uint64_t,
 		std::string,
-		bool
+		bool,
+		std::string,
+		std::string
 	> DeviceRecordTuple;
 	typedef std::vector<DeviceRecordTuple> DeviceRecordList;
 
@@ -130,6 +136,8 @@ namespace OpenWifi {
 		D.modified = R.get<20>();
 		D.locale = R.get<21>();
 		D.restrictedDevice = R.get<22>();
+		D.pendingConfiguration = R.get<23>();
+		D.pendingConfigurationCmd = R.get<24>();
 	}
 
 	void ConvertDeviceRecord(const GWObjects::Device &D, DeviceRecordTuple & R) {
@@ -156,6 +164,8 @@ namespace OpenWifi {
 		R.set<20>(D.modified);
 		R.set<21>(D.locale);
 		R.set<22>(D.restrictedDevice);
+		R.set<23>(D.pendingConfiguration);
+		R.set<24>(D.pendingConfigurationCmd);
 	}
 
 	bool Storage::GetDeviceCount(uint64_t &Count) {
