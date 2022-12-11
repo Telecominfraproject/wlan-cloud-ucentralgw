@@ -103,7 +103,7 @@ namespace OpenWifi {
 
 			try {
 				auto NumberOfReceivedBytes = Socket_->receiveBytes(Buffer,sizeof(Buffer));
-				if(NumberOfReceivedBytes>40) {
+				if(NumberOfReceivedBytes>=20) {
 					RADIUS::RadiusPacket P(Buffer,NumberOfReceivedBytes);
 					if (P.IsAuthentication()) {
 						auto SerialNumber = P.ExtractSerialNumberFromProxyState();
@@ -114,9 +114,7 @@ namespace OpenWifi {
 							AP_WS_Server()->SendRadiusAuthenticationData(SerialNumber, Buffer,
 																		 NumberOfReceivedBytes);
 						} else {
-							poco_debug(Logger_,
-									   fmt::format("Invalid AUTH packet received in proxy dropped. No serial number Source={}",
-									Socket_->address().toString()));
+							poco_debug(Logger_, "AUTH packet dropped.");
 						}
 					} else if (P.IsAccounting()) {
 						auto SerialNumber = P.ExtractSerialNumberFromProxyState();
@@ -127,9 +125,7 @@ namespace OpenWifi {
 							AP_WS_Server()->SendRadiusAccountingData(SerialNumber, Buffer,
 																	 NumberOfReceivedBytes);
 						} else {
-							poco_debug(Logger_,
-									   fmt::format("Invalid ACCT packet received in proxy dropped. No serial number Source={}",
-												   Socket_->address().toString()));
+							poco_debug(Logger_, "ACCT packet dropped.");
 						}
 					} else if (P.IsAuthority()) {
 						auto SerialNumber = P.ExtractSerialNumberTIP();
@@ -140,15 +136,13 @@ namespace OpenWifi {
 							AP_WS_Server()->SendRadiusCoAData(SerialNumber, Buffer,
 																	 NumberOfReceivedBytes);
 						} else {
-							poco_debug(Logger_,
-									   fmt::format("Invalid CoA/DM packet received in proxy dropped. No serial number Source={}",
-												   Socket_->address().toString()));
+							poco_debug(Logger_, "CoA/DM packet dropped.");
 						}
 					} else {
-						poco_warning(Logger_,fmt::format("Type: {} (type={}) Length={}", P.PacketType(), P.PacketTypeInt(), P.BufferLen()));
+						poco_warning(Logger_,fmt::format("Unknown packet: Type: {} (type={}) Length={}", P.PacketType(), P.PacketTypeInt(), P.BufferLen()));
 					}
 				} else {
-					poco_warning(Logger_,"Invalid RADSEC packet received. Terminating the connection.");
+					poco_warning(Logger_,"Invalid packet received. Resetting the connection.");
 					Disconnect();
 				}
 			} catch (const Poco::Exception &E) {
@@ -156,7 +150,7 @@ namespace OpenWifi {
 				Disconnect();
 			} catch (...) {
 				Disconnect();
-				poco_warning(Logger_,"Exception occurred: resetting connection.");
+				poco_warning(Logger_,"Exception occurred. Resetting the connection.");
 			}
 		}
 
