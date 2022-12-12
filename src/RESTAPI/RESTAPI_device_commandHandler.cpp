@@ -666,7 +666,6 @@ namespace OpenWifi {
 			}
 
 			if(!FWSignature.empty()) {
-				std::cout << "Sending signature: " << FWSignature << std::endl;
 				Params.set(uCentralProtocol::FWSIGNATURE, FWSignature);
 			}
 
