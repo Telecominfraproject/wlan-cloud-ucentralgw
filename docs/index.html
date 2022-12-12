@@ -1162,13 +1162,23 @@ ul.nav-tabs {
       "minLength" : 2,
       "type" : "string"
     },
-    "FCC" : {
+    "restrictedDevice" : {
       "type" : "boolean",
       "default" : false
     },
     "certificateExpiryDate" : {
       "type" : "integer",
       "format" : "int64"
+    },
+    "pendingConfiguration" : {
+      "type" : "string"
+    },
+    "pendingConfigurationCmd" : {
+      "type" : "string",
+      "format" : "uuid"
+    },
+    "restrictionDetails" : {
+      "$ref" : "#/components/schemas/DeviceRestrictions"
     }
   },
   "description" : "Definition of uCentral device"
@@ -1353,6 +1363,52 @@ ul.nav-tabs {
       "items" : {
         "$ref" : "#/components/schemas/DeviceLog"
       }
+    }
+  }
+};
+    defs["DeviceRestrictions"] = {
+  "type" : "object",
+  "properties" : {
+    "dfs" : {
+      "type" : "boolean"
+    },
+    "ssh" : {
+      "type" : "boolean"
+    },
+    "rtty" : {
+      "type" : "boolean"
+    },
+    "tty" : {
+      "type" : "boolean"
+    },
+    "developer" : {
+      "type" : "boolean"
+    },
+    "upgrade" : {
+      "type" : "boolean"
+    },
+    "commands" : {
+      "type" : "boolean"
+    },
+    "country" : {
+      "type" : "array",
+      "items" : {
+        "type" : "string"
+      }
+    },
+    "key_info" : {
+      "$ref" : "#/components/schemas/DeviceRestrictionsKeyInfo"
+    }
+  }
+};
+    defs["DeviceRestrictionsKeyInfo"] = {
+  "type" : "object",
+  "properties" : {
+    "vendor" : {
+      "type" : "string"
+    },
+    "algo" : {
+      "type" : "string"
     }
   }
 };
@@ -1543,6 +1599,16 @@ ul.nav-tabs {
     "certificateDate" : {
       "type" : "integer",
       "format" : "int64"
+    },
+    "pendingConfiguration" : {
+      "type" : "string"
+    },
+    "pendingConfigurationCmd" : {
+      "type" : "string",
+      "format" : "uuid"
+    },
+    "restrictionDetails" : {
+      "$ref" : "#/components/schemas/DeviceRestrictions"
     }
   },
   "description" : "Definition of uCentral device"
@@ -20795,20 +20861,36 @@ pub fn main() {
   } ],
   &quot;subscriber&quot; : &quot;046b6c7f-0b8a-43b9-b35d-6489e6daee91&quot;,
   &quot;configuration&quot; : &quot;configuration&quot;,
+  &quot;pendingConfiguration&quot; : &quot;pendingConfiguration&quot;,
   &quot;createdTimestamp&quot; : 1,
-  &quot;FCC&quot; : false,
   &quot;lastConfigurationChange&quot; : 5,
   &quot;locale&quot; : &quot;locale&quot;,
   &quot;manufacturer&quot; : &quot;manufacturer&quot;,
   &quot;macAddress&quot; : &quot;macAddress&quot;,
   &quot;certificateExpiryDate&quot; : 7,
+  &quot;pendingConfigurationCmd&quot; : &quot;046b6c7f-0b8a-43b9-b35d-6489e6daee91&quot;,
+  &quot;restrictionDetails&quot; : {
+    &quot;dfs&quot; : true,
+    &quot;country&quot; : [ &quot;country&quot;, &quot;country&quot; ],
+    &quot;rtty&quot; : true,
+    &quot;upgrade&quot; : true,
+    &quot;key_info&quot; : {
+      &quot;vendor&quot; : &quot;vendor&quot;,
+      &quot;algo&quot; : &quot;algo&quot;
+    },
+    &quot;tty&quot; : true,
+    &quot;ssh&quot; : true,
+    &quot;developer&quot; : true,
+    &quot;commands&quot; : true
+  },
   &quot;lastConfigurationDownload&quot; : 5,
   &quot;modified&quot; : 2,
   &quot;location&quot; : &quot;046b6c7f-0b8a-43b9-b35d-6489e6daee91&quot;,
   &quot;UUID&quot; : 0,
   &quot;firmware&quot; : &quot;firmware&quot;,
   &quot;entity&quot; : &quot;046b6c7f-0b8a-43b9-b35d-6489e6daee91&quot;,
-  &quot;devicePassword&quot; : &quot;devicePassword&quot;
+  &quot;devicePassword&quot; : &quot;devicePassword&quot;,
+  &quot;restrictedDevice&quot; : false
 }'
 </code></pre>
                           </div>
@@ -23303,20 +23385,36 @@ return extended information
   } ],
   &quot;subscriber&quot; : &quot;046b6c7f-0b8a-43b9-b35d-6489e6daee91&quot;,
   &quot;configuration&quot; : &quot;configuration&quot;,
+  &quot;pendingConfiguration&quot; : &quot;pendingConfiguration&quot;,
   &quot;createdTimestamp&quot; : 1,
-  &quot;FCC&quot; : false,
   &quot;lastConfigurationChange&quot; : 5,
   &quot;locale&quot; : &quot;locale&quot;,
   &quot;manufacturer&quot; : &quot;manufacturer&quot;,
   &quot;macAddress&quot; : &quot;macAddress&quot;,
   &quot;certificateExpiryDate&quot; : 7,
+  &quot;pendingConfigurationCmd&quot; : &quot;046b6c7f-0b8a-43b9-b35d-6489e6daee91&quot;,
+  &quot;restrictionDetails&quot; : {
+    &quot;dfs&quot; : true,
+    &quot;country&quot; : [ &quot;country&quot;, &quot;country&quot; ],
+    &quot;rtty&quot; : true,
+    &quot;upgrade&quot; : true,
+    &quot;key_info&quot; : {
+      &quot;vendor&quot; : &quot;vendor&quot;,
+      &quot;algo&quot; : &quot;algo&quot;
+    },
+    &quot;tty&quot; : true,
+    &quot;ssh&quot; : true,
+    &quot;developer&quot; : true,
+    &quot;commands&quot; : true
+  },
   &quot;lastConfigurationDownload&quot; : 5,
   &quot;modified&quot; : 2,
   &quot;location&quot; : &quot;046b6c7f-0b8a-43b9-b35d-6489e6daee91&quot;,
   &quot;UUID&quot; : 0,
   &quot;firmware&quot; : &quot;firmware&quot;,
   &quot;entity&quot; : &quot;046b6c7f-0b8a-43b9-b35d-6489e6daee91&quot;,
-  &quot;devicePassword&quot; : &quot;devicePassword&quot;
+  &quot;devicePassword&quot; : &quot;devicePassword&quot;,
+  &quot;restrictedDevice&quot; : false
 }'
 </code></pre>
                           </div>
