@@ -100,6 +100,7 @@ namespace OpenWifi {
 
 				if(Restrictions_ != DeviceInfo.restrictionDetails) {
 					DeviceInfo.restrictionDetails = Restrictions_;
+					std::cout << __LINE__ << "  " << Restrictions_.key_info.algo << std::endl;
 					std::cout << __LINE__ << "  " << DeviceInfo.restrictionDetails.key_info.algo << std::endl;
 					++Updated;
 				}
@@ -107,6 +108,7 @@ namespace OpenWifi {
 				if(Updated) {
 					StorageService()->UpdateDevice(DeviceInfo);
 				}
+
 				uint64_t UpgradedUUID=0;
 				LookForUpgrade(UUID,UpgradedUUID);
 				State_.UUID = UpgradedUUID;

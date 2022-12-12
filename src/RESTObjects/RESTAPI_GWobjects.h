@@ -50,7 +50,9 @@ namespace OpenWifi::GWObjects {
 	struct DeviceRestrictionsKeyInfo {
 		std::string 	vendor;
 		std::string 	algo;
+
 		bool operator !=(const DeviceRestrictionsKeyInfo &b) const;
+		// DeviceRestrictionsKeyInfo& operator= (const DeviceRestrictionsKeyInfo& D);
 
 		void to_json(Poco::JSON::Object &Obj) const;
 		bool from_json(const Poco::JSON::Object::Ptr &Obj);
@@ -67,7 +69,8 @@ namespace OpenWifi::GWObjects {
 		std::vector<std::string>   	country;
 		DeviceRestrictionsKeyInfo	key_info;
 
-		bool operator !=(const DeviceRestrictions &b) const;
+		bool operator !=(const DeviceRestrictions &D) const;
+//		DeviceRestrictions& operator= (const DeviceRestrictions& D);
 
 		void to_json(Poco::JSON::Object &Obj) const;
 		bool from_json(const Poco::JSON::Object::Ptr &Obj);
