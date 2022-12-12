@@ -50,12 +50,10 @@ namespace OpenWifi {
 			}
 
 			bool RestrictedDevice = false;
-			if(ParamsObj->has("restricted") && ParamsObj->get("restricted").isBoolean()) {
+			if(ParamsObj->has("restrictions")){
                 RestrictedDevice = true;
-                if(Capabilities->has("restrictions")) {
-                    auto RestrictionObject = Capabilities->getObject("restrictions");
-                    Restrictions_.from_json(RestrictionObject);
-                }
+				auto RestrictionObject = Capabilities->getObject("restrictions");
+				Restrictions_.from_json(RestrictionObject);
 			}
 
 			State_.locale = FindCountryFromIP()->Get(IP);
