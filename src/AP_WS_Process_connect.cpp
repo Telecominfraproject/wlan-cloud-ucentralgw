@@ -50,12 +50,10 @@ namespace OpenWifi {
 			}
 
 			bool RestrictedDevice = false;
-			if(ParamsObj->has("restricted") && ParamsObj->get("restricted").isBoolean()) {
+			if(Capabilities->has("restrictions")){
                 RestrictedDevice = true;
-                if(Capabilities->has("restrictions")) {
-                    auto RestrictionObject = Capabilities->getObject("restrictions");
-                    Restrictions_.initialize(Logger_, SerialNumber_, RestrictionObject);
-                }
+				Poco::JSON::Object::Ptr RestrictionObject = Capabilities->getObject("restrictions");
+				Restrictions_.from_json(RestrictionObject);
 			}
 
 			State_.locale = FindCountryFromIP()->Get(IP);
@@ -97,9 +95,15 @@ namespace OpenWifi {
                     ++Updated;
 				}
 
+				if(Restrictions_ != DeviceInfo.restrictionDetails) {
+					DeviceInfo.restrictionDetails = Restrictions_;
+					++Updated;
+				}
+
 				if(Updated) {
 					StorageService()->UpdateDevice(DeviceInfo);
 				}
+
 				uint64_t UpgradedUUID=0;
 				LookForUpgrade(UUID,UpgradedUUID);
 				State_.UUID = UpgradedUUID;
@@ -111,7 +115,7 @@ namespace OpenWifi {
 			State_.connectionCompletionTime = ConnectionCompletionTime_.count();
 
 			if(State_.VerifiedCertificate == GWObjects::VALID_CERTIFICATE) {
-				if ((	Utils::SerialNumberMatch(CN_, SerialNumber_, AP_WS_Server()->MismatchDepth())) ||
+				if ((	Utils::SerialNumberMatch(CN_, SerialNumber_, (int)AP_WS_Server()->MismatchDepth())) ||
 						AP_WS_Server()->IsSimSerialNumber(CN_)) {
 					State_.VerifiedCertificate = GWObjects::VERIFIED;
 					poco_information(Logger_, fmt::format("CONNECT({}): Fully validated and authenticated device. Session={} ConnectionCompletion Time={}",

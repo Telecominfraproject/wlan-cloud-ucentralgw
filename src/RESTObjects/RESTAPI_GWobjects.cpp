@@ -51,7 +51,9 @@ namespace OpenWifi::GWObjects {
 		field_to_json(Obj,"modified", modified);
 		field_to_json(Obj,"locale", locale);
 		field_to_json(Obj,"restrictedDevice", restrictedDevice);
-
+		field_to_json(Obj,"pendingConfiguration", pendingConfiguration);
+		field_to_json(Obj,"pendingConfigurationCmd", pendingConfigurationCmd);
+		field_to_json(Obj,"restrictionDetails", restrictionDetails);
 	}
 
 	void Device::to_json_with_status(Poco::JSON::Object &Obj) const {
@@ -93,6 +95,9 @@ namespace OpenWifi::GWObjects {
 			field_from_json(Obj,"entity", entity);
 			field_from_json(Obj,"locale", locale);
 			field_from_json(Obj,"restrictedDevice", restrictedDevice);
+			field_from_json(Obj,"pendingConfiguration", pendingConfiguration);
+			field_from_json(Obj,"pendingConfigurationCmd", pendingConfigurationCmd);
+			field_from_json(Obj,"restrictionDetails", restrictionDetails);
 			return true;
 		} catch (const Poco::Exception &E) {
 		}
@@ -479,5 +484,64 @@ namespace OpenWifi::GWObjects {
 		return false;
 	}
 
+	void DeviceRestrictionsKeyInfo::to_json(Poco::JSON::Object &Obj) const {
+		field_to_json(Obj,"vendor", vendor);
+		field_to_json(Obj,"algo", algo);
+	}
+
+	bool DeviceRestrictionsKeyInfo::from_json(const Poco::JSON::Object::Ptr &Obj) {
+		try {
+			field_from_json(Obj,"vendor", vendor);
+			field_from_json(Obj,"algo", algo);
+			return true;
+		} catch (const Poco::Exception &E) {
+		}
+		return false;
+
+	}
+
+	void DeviceRestrictions::to_json(Poco::JSON::Object &Obj) const {
+		field_to_json(Obj,"dfs", dfs);
+		field_to_json(Obj,"ssh", ssh);
+		field_to_json(Obj,"rtty", rtty);
+		field_to_json(Obj,"tty", tty);
+		field_to_json(Obj,"developer", developer);
+		field_to_json(Obj,"upgrade", upgrade);
+		field_to_json(Obj,"commands", commands);
+		field_to_json(Obj,"country", country);
+		field_to_json(Obj,"key_info", key_info);
+	}
+
+	bool DeviceRestrictions::from_json(const Poco::JSON::Object::Ptr &Obj) {
+		try {
+			field_from_json(Obj,"dfs", dfs);
+			field_from_json(Obj,"ssh", ssh);
+			field_from_json(Obj,"rtty", rtty);
+			field_from_json(Obj,"tty", tty);
+			field_from_json(Obj,"developer", developer);
+			field_from_json(Obj,"upgrade", upgrade);
+			field_from_json(Obj,"commands", commands);
+			field_from_json(Obj,"country", country);
+			field_from_json(Obj,"key_info", key_info);
+			return true;
+		} catch (const Poco::Exception &E) {
+		}
+		return false;
+	}
+
+	bool DeviceRestrictionsKeyInfo::operator!=(const OpenWifi::GWObjects::DeviceRestrictionsKeyInfo &T) const {
+		return (T.algo!=algo) || (T.vendor!=vendor);
+	}
+
+	bool DeviceRestrictions::operator!=(const OpenWifi::GWObjects::DeviceRestrictions &T) const {
+		return (	(T.dfs!=dfs)					||
+					(T.rtty!=rtty)					||
+					(T.upgrade!=upgrade)		||
+					(T.commands != commands)		||
+					(T.developer != developer)		||
+					(T.ssh !=ssh) 					||
+					(T.key_info != key_info)		||
+					(T.country != country) );
+	}
 }
 

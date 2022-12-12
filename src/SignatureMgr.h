@@ -11,7 +11,7 @@
 #include "framework/MicroServiceFuncs.h"
 #include "framework/utils.h"
 
-#include "AP_restrictions.h"
+#include "RESTObjects/RESTAPI_GWobjects.h"
 #include "Poco/DigestStream.h"
 #include "Poco/DigestEngine.h"
 #include "Poco/Crypto/RSADigestEngine.h"
@@ -85,19 +85,19 @@ namespace OpenWifi {
 			poco_notice(Logger(),"Stopped...");
 		}
 
-		inline std::string Sign(const AP_Restrictions &Restrictions, const std::string &Data) const {
+		inline std::string Sign(const GWObjects::DeviceRestrictions &Restrictions, const std::string &Data) const {
 			std::shared_lock L(KeyMutex_);
 			try {
-				if (Restrictions.algo() == "static") {
+				if (Restrictions.key_info.algo == "static") {
 					return "aaaaaaaaaa";
 				}
-				auto Vendor = Keys_.find(Restrictions.vendor());
+				auto Vendor = Keys_.find(Restrictions.key_info.vendor);
 				if (Vendor == Keys_.end()) {
 					poco_error( Logger(), fmt::format("{}: vendor unknown.", Vendor->first));
 					return "";
 				}
 
-				if (Restrictions.algo() == "dgst-sha256") {
+				if (Restrictions.key_info.algo == "dgst-sha256") {
 					Poco::Crypto::RSADigestEngine R(*Vendor->second, "SHA256");
 					Poco::DigestOutputStream ostr(R);
 					ostr << Data;
@@ -112,22 +112,22 @@ namespace OpenWifi {
 			return "";
 		}
 
-		inline std::string Sign(const AP_Restrictions &Restrictions, const Poco::URI &uri)  {
+		inline std::string Sign(const GWObjects::DeviceRestrictions &Restrictions, const Poco::URI &uri)  {
 			std::shared_lock L(KeyMutex_);
 			try {
-				if (Restrictions.algo() == "static") {
+				if (Restrictions.key_info.algo == "static") {
 					return "aaaaaaaaaa";
 				}
 
-				auto Vendor = Keys_.find(Restrictions.vendor());
+				auto Vendor = Keys_.find(Restrictions.key_info.vendor);
 				if (Vendor == Keys_.end()) {
-					poco_error( Logger(), fmt::format("{}: vendor unknown.", Restrictions.vendor()));
+					poco_error( Logger(), fmt::format("{}: vendor unknown.", Restrictions.key_info.vendor));
 					return "";
 				}
 
-				if (Restrictions.algo() == "dgst-sha256") {
+				if (Restrictions.key_info.algo == "dgst-sha256") {
 					auto FileHash =
-						Utils::ComputeHash(Restrictions.vendor(), Restrictions.algo(), uri.getPathAndQuery());
+						Utils::ComputeHash(Restrictions.key_info.vendor, Restrictions.key_info.algo, uri.getPathAndQuery());
 					auto CacheEntry = SignatureCache_.find(FileHash);
 					if (CacheEntry != end(SignatureCache_)) {
 						return CacheEntry->second;

@@ -9,7 +9,7 @@
 #pragma once
 
 #include "framework/RESTAPI_Handler.h"
-#include "AP_restrictions.h"
+#include "RESTObjects/RESTAPI_GWobjects.h"
 
 namespace OpenWifi {
 	class RESTAPI_device_commandHandler : public RESTAPIHandler {
@@ -34,19 +34,19 @@ namespace OpenWifi {
 		void GetChecks();
 		void DeleteChecks();
 
-		void Configure(const std::string &UUID, uint64_t RPC, std::chrono::milliseconds timeout, const AP_Restrictions &R);
-		void Upgrade(const std::string &UUID, uint64_t RPC, std::chrono::milliseconds timeout, const AP_Restrictions &R);
-		void Reboot(const std::string &UUID, uint64_t RPC, std::chrono::milliseconds timeout, const AP_Restrictions &R);
-		void Factory(const std::string &UUID, uint64_t RPC, std::chrono::milliseconds timeout, const AP_Restrictions &R);
-		void LEDs(const std::string &UUID, uint64_t RPC, std::chrono::milliseconds timeout, const AP_Restrictions &R);
-		void Trace(const std::string &UUID, uint64_t RPC, std::chrono::milliseconds timeout, const AP_Restrictions &R);
-		void MakeRequest(const std::string &UUID, uint64_t RPC, std::chrono::milliseconds timeout, const AP_Restrictions &R);
-		void WifiScan(const std::string &UUID, uint64_t RPC, std::chrono::milliseconds timeout, const AP_Restrictions &R);
-		void EventQueue(const std::string &UUID, uint64_t RPC, std::chrono::milliseconds timeout, const AP_Restrictions &R);
-		void Rtty(const std::string &UUID, uint64_t RPC, std::chrono::milliseconds timeout, const AP_Restrictions &R);
-		void Telemetry(const std::string &UUID, uint64_t RPC, std::chrono::milliseconds timeout, const AP_Restrictions &R);
-		void Ping(const std::string &UUID, uint64_t RPC, std::chrono::milliseconds timeout, const AP_Restrictions &R);
-		void Script(const std::string &UUID, uint64_t RPC, std::chrono::milliseconds timeout, const AP_Restrictions &R);
+		void Configure(const std::string &UUID, uint64_t RPC, std::chrono::milliseconds timeout, const GWObjects::DeviceRestrictions &R);
+		void Upgrade(const std::string &UUID, uint64_t RPC, std::chrono::milliseconds timeout, const GWObjects::DeviceRestrictions &R);
+		void Reboot(const std::string &UUID, uint64_t RPC, std::chrono::milliseconds timeout, const GWObjects::DeviceRestrictions &R);
+		void Factory(const std::string &UUID, uint64_t RPC, std::chrono::milliseconds timeout, const GWObjects::DeviceRestrictions &R);
+		void LEDs(const std::string &UUID, uint64_t RPC, std::chrono::milliseconds timeout, const GWObjects::DeviceRestrictions &R);
+		void Trace(const std::string &UUID, uint64_t RPC, std::chrono::milliseconds timeout, const GWObjects::DeviceRestrictions &R);
+		void MakeRequest(const std::string &UUID, uint64_t RPC, std::chrono::milliseconds timeout, const GWObjects::DeviceRestrictions &R);
+		void WifiScan(const std::string &UUID, uint64_t RPC, std::chrono::milliseconds timeout, const GWObjects::DeviceRestrictions &R);
+		void EventQueue(const std::string &UUID, uint64_t RPC, std::chrono::milliseconds timeout, const GWObjects::DeviceRestrictions &R);
+		void Rtty(const std::string &UUID, uint64_t RPC, std::chrono::milliseconds timeout, const GWObjects::DeviceRestrictions &R);
+		void Telemetry(const std::string &UUID, uint64_t RPC, std::chrono::milliseconds timeout, const GWObjects::DeviceRestrictions &R);
+		void Ping(const std::string &UUID, uint64_t RPC, std::chrono::milliseconds timeout, const GWObjects::DeviceRestrictions &R);
+		void Script(const std::string &UUID, uint64_t RPC, std::chrono::milliseconds timeout, const GWObjects::DeviceRestrictions &R);
 
 		static auto PathName() { return std::list<std::string>{"/api/v1/device/{serialNumber}/{command}"}; };
 		void DoGet() final;

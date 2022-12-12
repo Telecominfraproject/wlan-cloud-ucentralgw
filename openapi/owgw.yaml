@@ -49,6 +49,38 @@ components:
         - IOT
         - MESH
 
+    DeviceRestrictionsKeyInfo:
+      type: object
+      properties:
+        vendor:
+          type: string
+        algo:
+          type: string
+
+    DeviceRestrictions:
+      type: object
+      properties:
+        dfs:
+          type: boolean
+        ssh:
+          type: boolean
+        rtty:
+          type: boolean
+        tty:
+          type: boolean
+        developer:
+          type: boolean
+        upgrade:
+          type: boolean
+        commands:
+          type: boolean
+        country:
+          type: array
+          items:
+            type: string
+        key_info:
+          $ref: '#/components/schemas/DeviceRestrictionsKeyInfo'
+
     Device:
       type: object
       description: Definition of uCentral device
@@ -107,12 +139,19 @@ components:
           type: string
           minLength: 2
           maxLength: 2
-        FCC:
+        restrictedDevice:
           type: boolean
           default: false
         certificateExpiryDate:
           type: integer
           format: int64
+        pendingConfiguration:
+          type: string
+        pendingConfigurationCmd:
+          type: string
+          format: uuid
+        restrictionDetails:
+          $ref: '#/components/schemas/DeviceRestrictions'
 
     DeviceWithStatus:
       type: object
@@ -214,6 +253,13 @@ components:
         certificateDate:
           type: integer
           format: int64
+        pendingConfiguration:
+          type: string
+        pendingConfigurationCmd:
+          type: string
+          format: uuid
+        restrictionDetails:
+          $ref: '#/components/schemas/DeviceRestrictions'
 
     DeviceList:
       type: object
