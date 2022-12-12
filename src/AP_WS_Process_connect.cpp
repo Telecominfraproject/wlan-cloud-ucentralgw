@@ -115,7 +115,7 @@ namespace OpenWifi {
 			State_.connectionCompletionTime = ConnectionCompletionTime_.count();
 
 			if(State_.VerifiedCertificate == GWObjects::VALID_CERTIFICATE) {
-				if ((	Utils::SerialNumberMatch(CN_, SerialNumber_, AP_WS_Server()->MismatchDepth())) ||
+				if ((	Utils::SerialNumberMatch(CN_, SerialNumber_, (int)AP_WS_Server()->MismatchDepth())) ||
 						AP_WS_Server()->IsSimSerialNumber(CN_)) {
 					State_.VerifiedCertificate = GWObjects::VERIFIED;
 					poco_information(Logger_, fmt::format("CONNECT({}): Fully validated and authenticated device. Session={} ConnectionCompletion Time={}",
