@@ -506,7 +506,7 @@ namespace OpenWifi::GWObjects {
 		field_to_json(Obj,"rtty", rtty);
 		field_to_json(Obj,"tty", tty);
 		field_to_json(Obj,"developer", developer);
-		field_to_json(Obj,"sysupgrade", sysupgrade);
+		field_to_json(Obj,"upgrade", upgrade);
 		field_to_json(Obj,"commands", commands);
 		field_to_json(Obj,"country", country);
 		field_to_json(Obj,"key_info", key_info);
@@ -519,7 +519,7 @@ namespace OpenWifi::GWObjects {
 			field_from_json(Obj,"rtty", rtty);
 			field_from_json(Obj,"tty", tty);
 			field_from_json(Obj,"developer", developer);
-			field_from_json(Obj,"sysupgrade", sysupgrade);
+			field_from_json(Obj,"upgrade", upgrade);
 			field_from_json(Obj,"commands", commands);
 			field_from_json(Obj,"country", country);
 			field_from_json(Obj,"key_info", key_info);
@@ -536,7 +536,7 @@ namespace OpenWifi::GWObjects {
 	bool DeviceRestrictions::operator!=(const OpenWifi::GWObjects::DeviceRestrictions &T) const {
 		if(	(T.dfs!=dfs)					||
 			(T.rtty!=rtty)					||
-			(T.sysupgrade!=sysupgrade)		||
+			(T.upgrade!=upgrade)		||
 			(T.commands != commands)		||
 			(T.developer != developer)		||
 			(T.ssh !=ssh) 					||

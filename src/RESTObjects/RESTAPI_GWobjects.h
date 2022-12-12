@@ -62,7 +62,7 @@ namespace OpenWifi::GWObjects {
 		bool    					rtty = false;
 		bool    					tty = false;
 		bool    					developer = false;
-		bool    					sysupgrade = false;
+		bool    					upgrade = false;
 		bool    					commands = false;
 		std::vector<std::string>   	country;
 		DeviceRestrictionsKeyInfo	key_info;

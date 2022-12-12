@@ -656,12 +656,12 @@ namespace OpenWifi {
 			Params.set(uCentralProtocol::URI, URI);
 			Params.set(uCentralProtocol::KEEP_REDIRECTOR, KeepRedirector ? 1 : 0);
 
-			if(DeviceInfo.restrictionDetails.sysupgrade && FWSignature.empty()) {
+			if(DeviceInfo.restrictionDetails.upgrade && FWSignature.empty()) {
 				Poco::URI	uri(URI);
 				FWSignature = SignatureManager()->Sign(DeviceInfo.restrictionDetails,uri);
 			}
 
-			if(FWSignature.empty() && DeviceInfo.restrictionDetails.sysupgrade) {
+			if(FWSignature.empty() && DeviceInfo.restrictionDetails.upgrade) {
 				return BadRequest(RESTAPI::Errors::DeviceRequiresSignature);
 			}
 
