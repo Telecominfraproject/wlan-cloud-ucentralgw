@@ -541,16 +541,14 @@ namespace OpenWifi::GWObjects {
 */
 
 	bool DeviceRestrictions::operator!=(const OpenWifi::GWObjects::DeviceRestrictions &T) const {
-		if(	(T.dfs!=dfs)					||
-			(T.rtty!=rtty)					||
-			(T.upgrade!=upgrade)		||
-			(T.commands != commands)		||
-			(T.developer != developer)		||
-			(T.ssh !=ssh) 					||
-			(T.key_info != key_info)		||
-			(T.country != country) )
-			return false;
-		return true;
+		return (	(T.dfs!=dfs)					||
+					(T.rtty!=rtty)					||
+					(T.upgrade!=upgrade)		||
+					(T.commands != commands)		||
+					(T.developer != developer)		||
+					(T.ssh !=ssh) 					||
+					(T.key_info != key_info)		||
+					(T.country != country) );
 	}
 /*
 	DeviceRestrictions &DeviceRestrictions::operator=(const OpenWifi::GWObjects::DeviceRestrictions &D) {

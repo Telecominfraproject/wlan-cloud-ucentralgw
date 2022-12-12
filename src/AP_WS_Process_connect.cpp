@@ -100,6 +100,7 @@ namespace OpenWifi {
                     ++Updated;
 				}
 
+				std::cout << __LINE__ << "  " << Restrictions_.key_info.algo << std::endl;
 				if(Restrictions_ != DeviceInfo.restrictionDetails) {
 					std::cout << __LINE__ << "  " << Restrictions_.key_info.algo << std::endl;
 					DeviceInfo.restrictionDetails = Restrictions_;
