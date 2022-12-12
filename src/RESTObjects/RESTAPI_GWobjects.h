@@ -47,6 +47,32 @@ namespace OpenWifi::GWObjects {
 		void to_json(Poco::JSON::Object &Obj) const;
 	};
 
+	struct DeviceRestrictionsKeyInfo {
+		std::string 	vendor;
+		std::string 	algo;
+		bool operator !=(const DeviceRestrictionsKeyInfo &b) const;
+
+		void to_json(Poco::JSON::Object &Obj) const;
+		bool from_json(const Poco::JSON::Object::Ptr &Obj);
+	};
+
+	struct DeviceRestrictions {
+		bool    					dfs = false;
+		bool    					ssh = false;
+		bool    					rtty = false;
+		bool    					tty = false;
+		bool    					developer = false;
+		bool    					sysupgrade = false;
+		bool    					commands = false;
+		std::vector<std::string>   	country;
+		DeviceRestrictionsKeyInfo	key_info;
+
+		bool operator !=(const DeviceRestrictions &b) const;
+
+		void to_json(Poco::JSON::Object &Obj) const;
+		bool from_json(const Poco::JSON::Object::Ptr &Obj);
+	};
+
 	struct Device {
 		std::string SerialNumber;
 		std::string DeviceType;
@@ -73,6 +99,7 @@ namespace OpenWifi::GWObjects {
 		bool 		restrictedDevice=false;
 		std::string pendingConfiguration;
 		std::string pendingConfigurationCmd;
+		DeviceRestrictions	restrictionDetails;
 
 		void to_json(Poco::JSON::Object &Obj) const;
 		void to_json_with_status(Poco::JSON::Object &Obj) const;
@@ -310,4 +337,5 @@ namespace OpenWifi::GWObjects {
 		void to_json(Poco::JSON::Object &Obj) const;
 		bool from_json(const Poco::JSON::Object::Ptr &Obj);
 	};
+
 }

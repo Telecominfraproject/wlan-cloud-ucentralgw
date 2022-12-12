@@ -296,7 +296,7 @@ namespace OpenWifi {
 		return false;
 	}
 
-	bool AP_WS_Server::Connected(uint64_t SerialNumber, AP_Restrictions & Restrictions) const {
+	bool AP_WS_Server::Connected(uint64_t SerialNumber, GWObjects::DeviceRestrictions & Restrictions) const {
 		std::shared_ptr<AP_WS_Connection>	DevicePtr;
 		{
 			std::lock_guard Lock(WSServerMutex_);

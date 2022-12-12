@@ -29,7 +29,6 @@
 #include "framework/UI_WebSocketClientServer.h"
 #include "UI_GW_WebSocketNotifications.h"
 #include "ScriptManager.h"
-#include "AP_restrictions.h"
 #include "SignatureMgr.h"
 
 namespace OpenWifi {

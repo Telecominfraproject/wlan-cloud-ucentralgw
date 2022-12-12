@@ -15,7 +15,6 @@
 #include "Poco/Net/WebSocket.h"
 
 #include "RESTObjects/RESTAPI_GWobjects.h"
-#include "AP_restrictions.h"
 
 namespace OpenWifi {
 
@@ -78,7 +77,7 @@ namespace OpenWifi {
 			State = State_;
 		}
 
-		inline void GetRestrictions(AP_Restrictions & R) const {
+		inline void GetRestrictions(GWObjects::DeviceRestrictions & R) const {
 			std::shared_lock	G(ConnectionMutex_);
 			R = Restrictions_;
 		}
@@ -115,7 +114,7 @@ namespace OpenWifi {
 
 		friend class AP_WS_Server;
 
-        inline AP_Restrictions Restrictions() const {
+        inline GWObjects::DeviceRestrictions Restrictions() const {
 			std::shared_lock	G(ConnectionMutex_);
 			return Restrictions_;
 		}
@@ -150,7 +149,7 @@ namespace OpenWifi {
 		std::atomic_flag 					Dead_=false;
 		std::atomic_bool 					DeviceValidated_=false;
 		std::atomic_bool 					Valid_=false;
-        AP_Restrictions                     Restrictions_;
+        OpenWifi::GWObjects::DeviceRestrictions       Restrictions_;
 
 		static inline std::atomic_uint64_t 	ConcurrentStartingDevices_=0;
 

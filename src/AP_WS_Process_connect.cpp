@@ -54,7 +54,7 @@ namespace OpenWifi {
                 RestrictedDevice = true;
                 if(Capabilities->has("restrictions")) {
                     auto RestrictionObject = Capabilities->getObject("restrictions");
-                    Restrictions_.initialize(Logger_, SerialNumber_, RestrictionObject);
+                    Restrictions_.from_json(RestrictionObject);
                 }
 			}
 
@@ -95,6 +95,11 @@ namespace OpenWifi {
 				if(RestrictedDevice != DeviceInfo.restrictedDevice) {
 					DeviceInfo.restrictedDevice = RestrictedDevice;
                     ++Updated;
+				}
+
+				if(Restrictions_ != DeviceInfo.restrictionDetails) {
+					DeviceInfo.restrictionDetails = Restrictions_;
+					++Updated;
 				}
 
 				if(Updated) {
