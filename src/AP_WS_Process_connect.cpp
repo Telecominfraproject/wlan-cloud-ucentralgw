@@ -59,6 +59,8 @@ namespace OpenWifi {
 				}
 			}
 
+			std::cout << __LINE__ << "  " << Restrictions_.key_info.algo << std::endl;
+
 			State_.locale = FindCountryFromIP()->Get(IP);
 			GWObjects::Device	DeviceInfo;
 			auto DeviceExists = StorageService()->GetDevice(SerialNumber_,DeviceInfo);
@@ -99,6 +101,7 @@ namespace OpenWifi {
 				}
 
 				if(Restrictions_ != DeviceInfo.restrictionDetails) {
+					std::cout << __LINE__ << "  " << Restrictions_.key_info.algo << std::endl;
 					DeviceInfo.restrictionDetails = Restrictions_;
 					std::cout << __LINE__ << "  " << Restrictions_.key_info.algo << std::endl;
 					std::cout << __LINE__ << "  " << DeviceInfo.restrictionDetails.key_info.algo << std::endl;
