@@ -533,13 +533,6 @@ namespace OpenWifi::GWObjects {
 		return (T.algo!=algo) || (T.vendor!=vendor);
 	}
 
-/*	DeviceRestrictionsKeyInfo &DeviceRestrictionsKeyInfo::operator=(const OpenWifi::GWObjects::DeviceRestrictionsKeyInfo &D) {
-		vendor = D.vendor;
-		algo = D.algo;
-		return *this;
-	}
-*/
-
 	bool DeviceRestrictions::operator!=(const OpenWifi::GWObjects::DeviceRestrictions &T) const {
 		return (	(T.dfs!=dfs)					||
 					(T.rtty!=rtty)					||
@@ -550,18 +543,5 @@ namespace OpenWifi::GWObjects {
 					(T.key_info != key_info)		||
 					(T.country != country) );
 	}
-/*
-	DeviceRestrictions &DeviceRestrictions::operator=(const OpenWifi::GWObjects::DeviceRestrictions &D) {
-		dfs = D.dfs;
-		rtty = D.rtty;
-		upgrade = D.upgrade;
-		commands = D.commands;
-		developer = D.developer;
-		ssh = D.ssh;
-		key_info = D.key_info;
-		country = D.country;
-		return *this;
-	}
-*/
 }
 

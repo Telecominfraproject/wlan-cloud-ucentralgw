@@ -53,13 +53,8 @@ namespace OpenWifi {
 			if(Capabilities->has("restrictions")){
                 RestrictedDevice = true;
 				Poco::JSON::Object::Ptr RestrictionObject = Capabilities->getObject("restrictions");
-				std::cout << __LINE__ << std::endl;
-				if(Restrictions_.from_json(RestrictionObject)) {
-					std::cout << "Restriction algo: " << Restrictions_.key_info.algo << std::endl;
-				}
+				Restrictions_.from_json(RestrictionObject);
 			}
-
-			std::cout << __LINE__ << "  " << Restrictions_.key_info.algo << std::endl;
 
 			State_.locale = FindCountryFromIP()->Get(IP);
 			GWObjects::Device	DeviceInfo;
@@ -100,12 +95,8 @@ namespace OpenWifi {
                     ++Updated;
 				}
 
-				std::cout << __LINE__ << "  " << Restrictions_.key_info.algo << std::endl;
 				if(Restrictions_ != DeviceInfo.restrictionDetails) {
-					std::cout << __LINE__ << "  " << Restrictions_.key_info.algo << std::endl;
 					DeviceInfo.restrictionDetails = Restrictions_;
-					std::cout << __LINE__ << "  " << Restrictions_.key_info.algo << std::endl;
-					std::cout << __LINE__ << "  " << DeviceInfo.restrictionDetails.key_info.algo << std::endl;
 					++Updated;
 				}
 
