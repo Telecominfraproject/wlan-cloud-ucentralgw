@@ -50,7 +50,7 @@ namespace OpenWifi {
 			}
 
 			bool RestrictedDevice = false;
-			if(ParamsObj->has("restrictions")){
+			if(Capabilities->has("restrictions")){
                 RestrictedDevice = true;
 				auto RestrictionObject = Capabilities->getObject("restrictions");
 				Restrictions_.from_json(RestrictionObject);
