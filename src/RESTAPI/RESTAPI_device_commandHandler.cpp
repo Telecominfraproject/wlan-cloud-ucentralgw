@@ -666,7 +666,7 @@ namespace OpenWifi {
 			}
 
 			if(!FWSignature.empty()) {
-				Params.set(uCentralProtocol::FWSIGNATURE, FWSignature);
+				Params.set(uCentralProtocol::SIGNATURE, FWSignature);
 			}
 
 			Params.set(uCentralProtocol::WHEN, When);
