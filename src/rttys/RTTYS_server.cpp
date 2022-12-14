@@ -28,7 +28,11 @@ namespace OpenWifi {
 			NoSecurity_ = MicroServiceNoAPISecurity();
 
 			if(NoSecurity_) {
-				DeviceSocket_ = std::make_unique<Poco::Net::ServerSocket>(DSport, 64);
+				Poco::Net::IPAddress Addr(Poco::Net::IPAddress::wildcard(
+					Poco::Net::Socket::supportsIPv6() ? Poco::Net::AddressFamily::IPv6
+													  : Poco::Net::AddressFamily::IPv4));
+				Poco::Net::SocketAddress SockAddr(Addr, DSport);
+				DeviceSocket_ = std::make_unique<Poco::Net::ServerSocket>(SockAddr, 64);
 				DeviceReactor_.addEventHandler(*DeviceSocket_ ,
 											   Poco::NObserver<RTTYS_server, Poco::Net::ReadableNotification>
 											   (*this, &RTTYS_server::onAccept));
@@ -46,7 +50,12 @@ namespace OpenWifi {
 				SSL_CTX *SSLCtxDevice = DeviceSecureContext->sslContext();
 				SSL_CTX_dane_enable(SSLCtxDevice);
 
-				SecureDeviceSocket_ = std::make_unique<Poco::Net::SecureServerSocket>(DSport, 64, DeviceSecureContext);
+				Poco::Net::IPAddress Addr(Poco::Net::IPAddress::wildcard(
+					Poco::Net::Socket::supportsIPv6() ? Poco::Net::AddressFamily::IPv6
+													  : Poco::Net::AddressFamily::IPv4));
+				Poco::Net::SocketAddress SockAddr(Addr, DSport);
+
+				SecureDeviceSocket_ = std::make_unique<Poco::Net::SecureServerSocket>(SockAddr, 64, DeviceSecureContext);
 				DeviceReactor_.addEventHandler(*SecureDeviceSocket_ ,
 					Poco::NObserver<RTTYS_server, Poco::Net::ReadableNotification>
 					(*this, &RTTYS_server::onAccept));
@@ -62,7 +71,11 @@ namespace OpenWifi {
 			WebServerHttpParams->setName("rt:dispatch");
 
 			if(NoSecurity_) {
-				Poco::Net::ServerSocket ClientSocket(CSport, 64);
+				Poco::Net::IPAddress Addr(Poco::Net::IPAddress::wildcard(
+					Poco::Net::Socket::supportsIPv6() ? Poco::Net::AddressFamily::IPv6
+													  : Poco::Net::AddressFamily::IPv4));
+				Poco::Net::SocketAddress SockAddr(Addr, CSport);
+				Poco::Net::ServerSocket ClientSocket(SockAddr, 64);
 				ClientSocket.setNoDelay(true);
 				WebServer_ = std::make_unique<Poco::Net::HTTPServer>(new RTTYS_Client_RequestHandlerFactory(Logger()), ClientSocket, WebServerHttpParams);
 			} else {
@@ -78,7 +91,11 @@ namespace OpenWifi {
 				SSL_CTX *SSLCtxClient = WebClientSecureContext->sslContext();
 				SSL_CTX_dane_enable(SSLCtxClient);
 
-				Poco::Net::SecureServerSocket ClientSocket(CSport, 64, WebClientSecureContext);
+				Poco::Net::IPAddress Addr(Poco::Net::IPAddress::wildcard(
+					Poco::Net::Socket::supportsIPv6() ? Poco::Net::AddressFamily::IPv6
+													  : Poco::Net::AddressFamily::IPv4));
+				Poco::Net::SocketAddress SockAddr(Addr, CSport);
+				Poco::Net::SecureServerSocket ClientSocket(SockAddr, 64, WebClientSecureContext);
 				ClientSocket.setNoDelay(true);
 				WebServer_ = std::make_unique<Poco::Net::HTTPServer>(new RTTYS_Client_RequestHandlerFactory(Logger()), ClientSocket, WebServerHttpParams);
 			};
