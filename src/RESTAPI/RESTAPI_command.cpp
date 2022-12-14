@@ -20,9 +20,7 @@ namespace OpenWifi {
 
 		GWObjects::CommandDetails Command;
 		if (StorageService()->GetCommand(CommandUUID, Command)) {
-			Poco::JSON::Object RetObj;
-			Command.to_json(RetObj);
-			return ReturnObject(RetObj);
+			return Object(Command);
 		}
 		return NotFound();
 	}
