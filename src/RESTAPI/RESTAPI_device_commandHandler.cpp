@@ -998,6 +998,7 @@ namespace OpenWifi {
 
 			if (StorageService()->GetDevice(SerialNumber_, Device)) {
 
+				std::cout << __LINE__ << std::endl;
 				GWObjects::RttySessionDetails Rtty{
 					.SerialNumber = SerialNumber_,
 					.Server = MicroServiceConfigGetString("rtty.server", "localhost"),
@@ -1010,12 +1011,16 @@ namespace OpenWifi {
 					.ViewPort = MicroServiceConfigGetInt("rtty.viewport", 5913),
 					.DevicePassword = ""
 				};
+				std::cout << __LINE__ << std::endl;
 
 				if(RTTYS_server()->UseInternal()) {
+					std::cout << __LINE__ << std::endl;
 					Rtty.Token = Utils::ComputeHash(UserInfo_.webtoken.refresh_token_,Utils::Now()).substr(0,RTTY_DEVICE_TOKEN_LENGTH);
+					std::cout << __LINE__ << std::endl;
 					if(!RTTYS_server()->CreateEndPoint(Rtty.ConnectionId, Rtty.Token, Requester(), SerialNumber_)) {
 						return BadRequest(RESTAPI::Errors::MaximumRTTYSessionsReached);
 					}
+					std::cout << __LINE__ << std::endl;
 				}
 
 				Poco::JSON::Object ReturnedObject;
