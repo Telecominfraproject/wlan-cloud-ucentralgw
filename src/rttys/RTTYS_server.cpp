@@ -222,14 +222,11 @@ namespace OpenWifi {
 
 			while(!LocalMutex_.try_lock() && NotificationManagerRunning_) {
 				Poco::Thread::trySleep(100);
-				std::cout << "Spin lock 1" << std::endl;
 			}
-
 			if(!NotificationManagerRunning_) {
 				break;
 			}
 
-//			std::unique_lock	Lock(LocalMutex_);
 			auto It = EndPoints_.find(Notification->id_);
 			if (It != EndPoints_.end()) {
 				switch (Notification->type_) {
@@ -293,7 +290,6 @@ namespace OpenWifi {
 		// std::unique_lock 	Lock(LocalMutex_);
 
 		while(!LocalMutex_.try_lock() && NotificationManagerRunning_) {
-			std::cout << "Spin lock 3" << std::endl;
 			Poco::Thread::trySleep(100);
 		}
 
@@ -312,9 +308,7 @@ namespace OpenWifi {
 	}
 
 	bool RTTYS_server::ValidId(const std::string &Token) {
-		std::cout << "Valid 1" << std::endl;
 		std::shared_lock 	Lock(LocalMutex_);
-		std::cout << "Valid 2" << std::endl;
 		return EndPoints_.find(Token) != EndPoints_.end();
 	}
 

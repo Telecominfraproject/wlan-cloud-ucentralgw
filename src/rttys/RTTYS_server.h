@@ -273,7 +273,6 @@ namespace OpenWifi {
 			{
 				while(!LocalMutex_.try_lock_shared() && NotificationManagerRunning_) {
 					Poco::Thread::trySleep(100);
-					std::cout << "Spin lock 5" << std::endl;
 				}
 
 				if(!NotificationManagerRunning_) {
