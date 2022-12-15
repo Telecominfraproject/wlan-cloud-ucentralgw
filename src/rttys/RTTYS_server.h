@@ -319,11 +319,11 @@ namespace OpenWifi {
 		std::unique_ptr<Poco::TimerCallback<RTTYS_server>>  GCCallBack_;
 		std::list<std::shared_ptr<RTTYS_Device_ConnectionHandler>>	FailedDevices;
 		std::list<std::shared_ptr<RTTYS_ClientConnection>>			FailedClients;
-		std::recursive_mutex 						LocalMutex_;
-
-		std::atomic_uint64_t 						TotalEndPoints_=0;
-		std::atomic_uint64_t 						FailedNumDevices_=0;
-		std::atomic_uint64_t 						FailedNumClients_=0;
+		// std::recursive_mutex 						LocalMutex_;
+		std::mutex 										LocalMutex_;
+		std::atomic_uint64_t 							TotalEndPoints_=0;
+		std::atomic_uint64_t 							FailedNumDevices_=0;
+		std::atomic_uint64_t 							FailedNumClients_=0;
 		double 											TotalConnectedDeviceTime_=0.0;
 		double 											TotalConnectedClientTime_=0.0;
 
