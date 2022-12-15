@@ -271,9 +271,20 @@ namespace OpenWifi {
 
 		inline bool NotifyDeviceRegistration(const std::string &id, const std::string &token, std::uint64_t TID) {
 			{
-				std::shared_lock	Lock(LocalMutex_);
-				if (EndPoints_.find(id) == end(EndPoints_))
+				while(!LocalMutex_.try_lock_shared() && NotificationManagerRunning_) {
+					Poco::Thread::trySleep(100);
+					std::cout << "Spin lock 5" << std::endl;
+				}
+
+				if(!NotificationManagerRunning_) {
 					return false;
+				}
+
+				if (EndPoints_.find(id) == end(EndPoints_)) {
+					LocalMutex_.unlock_shared();
+					return false;
+				}
+				LocalMutex_.unlock_shared();
 			}
 			ResponseQueue_.enqueueNotification(new RTTYS_Notification(RTTYS_Notification_type::device_registration,id,token, TID));
 			return true;
