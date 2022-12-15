@@ -282,7 +282,15 @@ namespace OpenWifi {
 	}
 
 	bool RTTYS_server::CreateEndPoint(const std::string &Id, const std::string & Token, const std::string & UserName, const std::string & SerialNumber ) {
-		std::lock_guard 	Lock(LocalMutex_);
+		// std::lock_guard 	Lock(LocalMutex_);
+
+		while(!LocalMutex_.try_lock() && NotificationManagerRunning_) {
+			std::cout << "Spin lock 3" << std::endl;
+			Poco::Thread::trySleep(100);
+		}
+
+		if(!NotificationManagerRunning_)
+			return false;
 
 		if(MaxConcurrentSessions_!=0 && EndPoints_.size()==MaxConcurrentSessions_) {
 			return false;
