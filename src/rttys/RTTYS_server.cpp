@@ -150,8 +150,14 @@ namespace OpenWifi {
 		Utils::SetThreadName("rt:janitor");
 		static auto LastStats = Utils::Now();
 
-		std::lock_guard 	Lock(LocalMutex_);
- 		for(auto element=EndPoints_.begin();element!=EndPoints_.end();) {
+		while(!LocalMutex_.try_lock() && NotificationManagerRunning_) {
+			Poco::Thread::trySleep(100);
+		}
+
+		if(!NotificationManagerRunning_)
+			return;
+
+		for(auto element=EndPoints_.begin();element!=EndPoints_.end();) {
 			if(element->second->TooOld()) {
 				auto c = fmt::format("Removing {}. Serial: {} Device connection time: {}s. Client connection time: {}s",
 									 element->first,
@@ -207,7 +213,14 @@ namespace OpenWifi {
 				break;
 			}
 
-			std::lock_guard 	Lock(LocalMutex_);
+			while(!LocalMutex_.try_lock() && NotificationManagerRunning_) {
+				Poco::Thread::trySleep(100);
+			}
+
+			if(!NotificationManagerRunning_) {
+				break;
+			}
+
 			auto It = EndPoints_.find(Notification->id_);
 			if (It != EndPoints_.end()) {
 				switch (Notification->type_) {
