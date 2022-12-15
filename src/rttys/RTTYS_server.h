@@ -271,7 +271,7 @@ namespace OpenWifi {
 
 		inline bool NotifyDeviceRegistration(const std::string &id, const std::string &token, std::uint64_t TID) {
 			{
-				std::lock_guard G(LocalMutex_);
+				std::shared_lock	Lock(LocalMutex_);
 				if (EndPoints_.find(id) == end(EndPoints_))
 					return false;
 			}
@@ -319,8 +319,7 @@ namespace OpenWifi {
 		std::unique_ptr<Poco::TimerCallback<RTTYS_server>>  GCCallBack_;
 		std::list<std::shared_ptr<RTTYS_Device_ConnectionHandler>>	FailedDevices;
 		std::list<std::shared_ptr<RTTYS_ClientConnection>>			FailedClients;
-		// std::recursive_mutex 						LocalMutex_;
-		std::mutex 										LocalMutex_;
+		std::shared_mutex								LocalMutex_;
 		std::atomic_uint64_t 							TotalEndPoints_=0;
 		std::atomic_uint64_t 							FailedNumDevices_=0;
 		std::atomic_uint64_t 							FailedNumClients_=0;

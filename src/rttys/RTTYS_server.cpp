@@ -185,6 +185,8 @@ namespace OpenWifi {
 			}
 		}
 
+		LocalMutex_.unlock();
+
 		if(Utils::Now()-LastStats>(60*5)) {
 			LastStats = Utils::Now();
 			Logger().information(fmt::format("Statistics: Total connections:{} Total Device Connection Time: {}s  Total Client Connection Time: {}s Device failures: {} Client failures: {}",
@@ -293,16 +295,19 @@ namespace OpenWifi {
 			return false;
 
 		if(MaxConcurrentSessions_!=0 && EndPoints_.size()==MaxConcurrentSessions_) {
+			LocalMutex_.unlock();
 			return false;
 		}
 
 		EndPoints_[Id] = std::make_unique<RTTYS_EndPoint>(Token, SerialNumber, UserName );
 		++TotalEndPoints_;
+		LocalMutex_.unlock();
 		return true;
 	}
 
 	bool RTTYS_server::ValidId(const std::string &Token) {
-		std::lock_guard 	Lock(LocalMutex_);
+		std::cout << "Valid" << std::endl;
+		std::shared_lock 	Lock(LocalMutex_);
 		return EndPoints_.find(Token) != EndPoints_.end();
 	}
 
