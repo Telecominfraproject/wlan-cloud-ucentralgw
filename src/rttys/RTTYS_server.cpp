@@ -150,8 +150,18 @@ namespace OpenWifi {
 		Utils::SetThreadName("rt:janitor");
 		static auto LastStats = Utils::Now();
 
-		std::lock_guard 	Lock(LocalMutex_);
- 		for(auto element=EndPoints_.begin();element!=EndPoints_.end();) {
+/*		while(!LocalMutex_.try_lock() && NotificationManagerRunning_) {
+			std::cout << "Spin lock 2" << std::endl;
+			Poco::Thread::trySleep(100);
+		}
+
+		if(!NotificationManagerRunning_)
+			return;
+*/
+
+		std::unique_lock	Lock(LocalMutex_);
+
+		for(auto element=EndPoints_.begin();element!=EndPoints_.end();) {
 			if(element->second->TooOld()) {
 				auto c = fmt::format("Removing {}. Serial: {} Device connection time: {}s. Client connection time: {}s",
 									 element->first,
@@ -177,6 +187,8 @@ namespace OpenWifi {
 				++device;
 			}
 		}
+
+		// LocalMutex_.unlock();
 
 		if(Utils::Now()-LastStats>(60*5)) {
 			LastStats = Utils::Now();
@@ -207,7 +219,14 @@ namespace OpenWifi {
 				break;
 			}
 
-			std::lock_guard 	Lock(LocalMutex_);
+
+			while(!LocalMutex_.try_lock() && NotificationManagerRunning_) {
+				Poco::Thread::trySleep(100);
+			}
+			if(!NotificationManagerRunning_) {
+				break;
+			}
+
 			auto It = EndPoints_.find(Notification->id_);
 			if (It != EndPoints_.end()) {
 				switch (Notification->type_) {
@@ -262,24 +281,34 @@ namespace OpenWifi {
 					FailedClients.push_back(std::move(Notification->client_));
 				}
 			}
+			LocalMutex_.unlock();
 		}
 		NotificationManagerRunning_ = false;
 	}
 
 	bool RTTYS_server::CreateEndPoint(const std::string &Id, const std::string & Token, const std::string & UserName, const std::string & SerialNumber ) {
-		std::lock_guard 	Lock(LocalMutex_);
+		// std::unique_lock 	Lock(LocalMutex_);
+
+		while(!LocalMutex_.try_lock() && NotificationManagerRunning_) {
+			Poco::Thread::trySleep(100);
+		}
+
+		if(!NotificationManagerRunning_)
+			return false;
 
 		if(MaxConcurrentSessions_!=0 && EndPoints_.size()==MaxConcurrentSessions_) {
+			LocalMutex_.unlock();
 			return false;
 		}
 
 		EndPoints_[Id] = std::make_unique<RTTYS_EndPoint>(Token, SerialNumber, UserName );
 		++TotalEndPoints_;
+		LocalMutex_.unlock();
 		return true;
 	}
 
 	bool RTTYS_server::ValidId(const std::string &Token) {
-		std::lock_guard 	Lock(LocalMutex_);
+		std::shared_lock 	Lock(LocalMutex_);
 		return EndPoints_.find(Token) != EndPoints_.end();
 	}
 
