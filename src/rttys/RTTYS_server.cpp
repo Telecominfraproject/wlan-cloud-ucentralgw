@@ -150,13 +150,16 @@ namespace OpenWifi {
 		Utils::SetThreadName("rt:janitor");
 		static auto LastStats = Utils::Now();
 
-		while(!LocalMutex_.try_lock() && NotificationManagerRunning_) {
+/*		while(!LocalMutex_.try_lock() && NotificationManagerRunning_) {
 			std::cout << "Spin lock 2" << std::endl;
 			Poco::Thread::trySleep(100);
 		}
 
 		if(!NotificationManagerRunning_)
 			return;
+*/
+
+		std::unique_lock	Lock(LocalMutex_);
 
 		for(auto element=EndPoints_.begin();element!=EndPoints_.end();) {
 			if(element->second->TooOld()) {
@@ -185,7 +188,7 @@ namespace OpenWifi {
 			}
 		}
 
-		LocalMutex_.unlock();
+		// LocalMutex_.unlock();
 
 		if(Utils::Now()-LastStats>(60*5)) {
 			LastStats = Utils::Now();
@@ -216,6 +219,7 @@ namespace OpenWifi {
 				break;
 			}
 
+
 			while(!LocalMutex_.try_lock() && NotificationManagerRunning_) {
 				Poco::Thread::trySleep(100);
 				std::cout << "Spin lock 1" << std::endl;
@@ -225,6 +229,7 @@ namespace OpenWifi {
 				break;
 			}
 
+//			std::unique_lock	Lock(LocalMutex_);
 			auto It = EndPoints_.find(Notification->id_);
 			if (It != EndPoints_.end()) {
 				switch (Notification->type_) {
@@ -279,12 +284,13 @@ namespace OpenWifi {
 					FailedClients.push_back(std::move(Notification->client_));
 				}
 			}
+			LocalMutex_.unlock();
 		}
 		NotificationManagerRunning_ = false;
 	}
 
 	bool RTTYS_server::CreateEndPoint(const std::string &Id, const std::string & Token, const std::string & UserName, const std::string & SerialNumber ) {
-		// std::lock_guard 	Lock(LocalMutex_);
+		std::unique_lock 	Lock(LocalMutex_);
 
 		while(!LocalMutex_.try_lock() && NotificationManagerRunning_) {
 			std::cout << "Spin lock 3" << std::endl;
