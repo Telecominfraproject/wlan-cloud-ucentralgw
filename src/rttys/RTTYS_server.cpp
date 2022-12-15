@@ -306,8 +306,9 @@ namespace OpenWifi {
 	}
 
 	bool RTTYS_server::ValidId(const std::string &Token) {
-		std::cout << "Valid" << std::endl;
+		std::cout << "Valid 1" << std::endl;
 		std::shared_lock 	Lock(LocalMutex_);
+		std::cout << "Valid 2" << std::endl;
 		return EndPoints_.find(Token) != EndPoints_.end();
 	}
 
