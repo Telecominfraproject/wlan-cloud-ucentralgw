@@ -290,7 +290,7 @@ namespace OpenWifi {
 	}
 
 	bool RTTYS_server::CreateEndPoint(const std::string &Id, const std::string & Token, const std::string & UserName, const std::string & SerialNumber ) {
-		std::unique_lock 	Lock(LocalMutex_);
+		// std::unique_lock 	Lock(LocalMutex_);
 
 		while(!LocalMutex_.try_lock() && NotificationManagerRunning_) {
 			std::cout << "Spin lock 3" << std::endl;
