@@ -633,6 +633,18 @@ namespace OpenWifi {
 			ReturnObject(Answer);
 		}
 
+		template<typename T> void Object(const char *Name, const std::vector<T> & Objects) {
+			Poco::JSON::Object  Answer;
+			RESTAPI_utils::field_to_json(Answer,Name,Objects);
+			ReturnObject(Answer);
+		}
+
+		template <typename T> void Object(const T &O) {
+			Poco::JSON::Object  Answer;
+			O.to_json(Answer);
+			ReturnObject(Answer);
+		}
+
 		Poco::Logger & Logger() { return Logger_; }
 
 		virtual void DoGet() = 0 ;

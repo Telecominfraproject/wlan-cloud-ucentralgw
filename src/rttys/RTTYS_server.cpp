@@ -28,7 +28,11 @@ namespace OpenWifi {
 			NoSecurity_ = MicroServiceNoAPISecurity();
 
 			if(NoSecurity_) {
-				DeviceSocket_ = std::make_unique<Poco::Net::ServerSocket>(DSport, 64);
+				Poco::Net::IPAddress Addr(Poco::Net::IPAddress::wildcard(
+					Poco::Net::Socket::supportsIPv6() ? Poco::Net::AddressFamily::IPv6
+													  : Poco::Net::AddressFamily::IPv4));
+				Poco::Net::SocketAddress SockAddr(Addr, DSport);
+				DeviceSocket_ = std::make_unique<Poco::Net::ServerSocket>(SockAddr, 64);
 				DeviceReactor_.addEventHandler(*DeviceSocket_ ,
 											   Poco::NObserver<RTTYS_server, Poco::Net::ReadableNotification>
 											   (*this, &RTTYS_server::onAccept));
@@ -46,7 +50,12 @@ namespace OpenWifi {
 				SSL_CTX *SSLCtxDevice = DeviceSecureContext->sslContext();
 				SSL_CTX_dane_enable(SSLCtxDevice);
 
-				SecureDeviceSocket_ = std::make_unique<Poco::Net::SecureServerSocket>(DSport, 64, DeviceSecureContext);
+				Poco::Net::IPAddress Addr(Poco::Net::IPAddress::wildcard(
+					Poco::Net::Socket::supportsIPv6() ? Poco::Net::AddressFamily::IPv6
+													  : Poco::Net::AddressFamily::IPv4));
+				Poco::Net::SocketAddress SockAddr(Addr, DSport);
+
+				SecureDeviceSocket_ = std::make_unique<Poco::Net::SecureServerSocket>(SockAddr, 64, DeviceSecureContext);
 				DeviceReactor_.addEventHandler(*SecureDeviceSocket_ ,
 					Poco::NObserver<RTTYS_server, Poco::Net::ReadableNotification>
 					(*this, &RTTYS_server::onAccept));
@@ -62,7 +71,11 @@ namespace OpenWifi {
 			WebServerHttpParams->setName("rt:dispatch");
 
 			if(NoSecurity_) {
-				Poco::Net::ServerSocket ClientSocket(CSport, 64);
+				Poco::Net::IPAddress Addr(Poco::Net::IPAddress::wildcard(
+					Poco::Net::Socket::supportsIPv6() ? Poco::Net::AddressFamily::IPv6
+													  : Poco::Net::AddressFamily::IPv4));
+				Poco::Net::SocketAddress SockAddr(Addr, CSport);
+				Poco::Net::ServerSocket ClientSocket(SockAddr, 64);
 				ClientSocket.setNoDelay(true);
 				WebServer_ = std::make_unique<Poco::Net::HTTPServer>(new RTTYS_Client_RequestHandlerFactory(Logger()), ClientSocket, WebServerHttpParams);
 			} else {
@@ -78,7 +91,11 @@ namespace OpenWifi {
 				SSL_CTX *SSLCtxClient = WebClientSecureContext->sslContext();
 				SSL_CTX_dane_enable(SSLCtxClient);
 
-				Poco::Net::SecureServerSocket ClientSocket(CSport, 64, WebClientSecureContext);
+				Poco::Net::IPAddress Addr(Poco::Net::IPAddress::wildcard(
+					Poco::Net::Socket::supportsIPv6() ? Poco::Net::AddressFamily::IPv6
+													  : Poco::Net::AddressFamily::IPv4));
+				Poco::Net::SocketAddress SockAddr(Addr, CSport);
+				Poco::Net::SecureServerSocket ClientSocket(SockAddr, 64, WebClientSecureContext);
 				ClientSocket.setNoDelay(true);
 				WebServer_ = std::make_unique<Poco::Net::HTTPServer>(new RTTYS_Client_RequestHandlerFactory(Logger()), ClientSocket, WebServerHttpParams);
 			};
@@ -100,6 +117,7 @@ namespace OpenWifi {
 	void RTTYS_server::Stop() {
 		Timer_.stop();
 		if(Internal_) {
+			NotificationManagerRunning_ = false;
 			ResponseQueue_.wakeUpAll();
 			NotificationManager_.wakeUp();
 			NotificationManager_.join();
@@ -182,136 +200,72 @@ namespace OpenWifi {
 	void RTTYS_server::run() {
 		Utils::SetThreadName("rt:manager");
 		NotificationManagerRunning_ = true;
-		Poco::AutoPtr<Poco::Notification> NextNotification(ResponseQueue_.waitDequeueNotification());
-		while (NextNotification && NotificationManagerRunning_) {
+		while (NotificationManagerRunning_) {
+			Poco::AutoPtr<Poco::Notification> NextNotification(ResponseQueue_.waitDequeueNotification());
 			auto Notification = dynamic_cast<RTTYS_Notification *>(NextNotification.get());
-			if (Notification != nullptr) {
-				std::lock_guard 	Lock(LocalMutex_);
-				auto It = EndPoints_.find(Notification->id_);
-				if (It != EndPoints_.end()) {
-					switch (Notification->type_) {
-					case RTTYS_Notification_type::device_disconnection: {
-						It->second->DisconnectDevice();
-					} break;
-					case RTTYS_Notification_type::client_disconnection: {
-						It->second->DisconnectClient();
-					} break;
-					case RTTYS_Notification_type::device_registration: {
-						auto Device = ConnectingDevices_.find(Notification->TID_);
-						if(Device!=end(ConnectingDevices_)) {
-							It->second->SetDevice(Device->second.first);
-							if(It->second->GetClient()!= nullptr)
-								Device->second.first->SetWsClient(It->second->GetClient());
-							if(It->second->GetDevice()!= nullptr) {
-								if(It->second->GetClient()!= nullptr && It->second->GetDevice()) {
-									It->second->GetClient()->SetDevice(It->second->GetDevice());
-								}
-							}
-							ConnectingDevices_.erase(Notification->TID_);
-							if (!It->second->Joined() && It->second->ValidClient()) {
-								It->second->Join();
-								It->second->Login();
+			if(!NotificationManagerRunning_ || Notification==nullptr) {
+				break;
+			}
+
+			std::lock_guard 	Lock(LocalMutex_);
+			auto It = EndPoints_.find(Notification->id_);
+			if (It != EndPoints_.end()) {
+				switch (Notification->type_) {
+				case RTTYS_Notification_type::device_disconnection: {
+					It->second->DisconnectDevice();
+				} break;
+				case RTTYS_Notification_type::client_disconnection: {
+					It->second->DisconnectClient();
+				} break;
+				case RTTYS_Notification_type::device_registration: {
+					auto Device = ConnectingDevices_.find(Notification->TID_);
+					if(Device!=end(ConnectingDevices_)) {
+						It->second->SetDevice(Device->second.first);
+						if(It->second->GetClient()!= nullptr)
+							Device->second.first->SetWsClient(It->second->GetClient());
+						if(It->second->GetDevice()!= nullptr) {
+							if(It->second->GetClient()!= nullptr && It->second->GetDevice()) {
+								It->second->GetClient()->SetDevice(It->second->GetDevice());
 							}
 						}
-					} break;
-					case RTTYS_Notification_type::client_registration: {
-						It->second->SetClient(Notification->client_);
-						if(!It->second->Joined() && It->second->ValidDevice()) {
-							It->second->GetDevice()->SetWsClient(Notification->client_);
-							Notification->client_->SetDevice(It->second->GetDevice());
+						ConnectingDevices_.erase(Notification->TID_);
+						if (!It->second->Joined() && It->second->ValidClient()) {
 							It->second->Join();
 							It->second->Login();
 						}
-					} break;
-					case RTTYS_Notification_type::device_connection: {
-						Notification->device_->CompleteConnection();
-					} break;
-					case RTTYS_Notification_type::unknown: {
-					} break;
-					};
-				} else {
-					if(Notification->type_==RTTYS_Notification_type::device_connection) {
-						ConnectingDevices_[Notification->TID_] = std::make_pair(Notification->device_,Utils::Now());
-						Notification->device_->CompleteConnection();
-					} else if(Notification->type_==RTTYS_Notification_type::device_registration) {
-						FailedNumDevices_++;
-						FailedDevices.push_back(std::move(Notification->device_));
-					} else if(Notification->type_==RTTYS_Notification_type::client_registration) {
-						FailedNumClients_++;
-						FailedClients.push_back(std::move(Notification->client_));
 					}
+				} break;
+				case RTTYS_Notification_type::client_registration: {
+					It->second->SetClient(Notification->client_);
+					if(!It->second->Joined() && It->second->ValidDevice()) {
+						It->second->GetDevice()->SetWsClient(Notification->client_);
+						Notification->client_->SetDevice(It->second->GetDevice());
+						It->second->Join();
+						It->second->Login();
+					}
+				} break;
+				case RTTYS_Notification_type::device_connection: {
+					Notification->device_->CompleteConnection();
+				} break;
+				case RTTYS_Notification_type::unknown: {
+				} break;
+				};
+			} else {
+				if(Notification->type_==RTTYS_Notification_type::device_connection) {
+					ConnectingDevices_[Notification->TID_] = std::make_pair(Notification->device_,Utils::Now());
+					Notification->device_->CompleteConnection();
+				} else if(Notification->type_==RTTYS_Notification_type::device_registration) {
+					FailedNumDevices_++;
+					FailedDevices.push_back(std::move(Notification->device_));
+				} else if(Notification->type_==RTTYS_Notification_type::client_registration) {
+					FailedNumClients_++;
+					FailedClients.push_back(std::move(Notification->client_));
 				}
 			}
-			NextNotification = ResponseQueue_.waitDequeueNotification();
 		}
-	}
-/*
-	bool RTTYS_server::SendToClient(const std::string &Id, const u_char *Buf, std::size_t Len) {
-		std::lock_guard 	Lock(LocalMutex_);
-
-		try {
-			auto It = EndPoints_.find(Id);
-			if (It != EndPoints_.end() && It->second!=nullptr) {
-				return It->second->SendToClient(Buf,Len);
-			}
-		} catch(const Poco::Exception &E) {
-			Logger().log(E);
-		} catch (...) {
-			std::cout << "Exception in SendToClient 1" << std::endl;
-		}
-		return false;
+		NotificationManagerRunning_ = false;
 	}
 
-	bool RTTYS_server::SendToClient(const std::string &Id, const std::string &s) {
-		std::lock_guard 	Lock(LocalMutex_);
-
-		try {
-			auto It = EndPoints_.find(Id);
-			if (It != EndPoints_.end() && It->second!=nullptr) {
-				return It->second->SendToClient(s);
-			}
-		} catch(const Poco::Exception &E) {
-			Logger().log(E);
-		} catch (...) {
-			std::cout << "Exception in SendToClient 2" << std::endl;
-		}
-		return false;
-	}
-
-	bool RTTYS_server::SendKeyStrokes(const std::string &Id, const u_char *buffer, std::size_t len) {
-		std::lock_guard 	Lock(LocalMutex_);
-
-		auto It=EndPoints_.find(Id);
-		if(It==EndPoints_.end() || It->second==nullptr) {
-			return false;
-		}
-
-		try {
-			auto res = It->second->KeyStrokes(buffer, len);
-			return res;
-		} catch(const Poco::Exception &E) {
-			Logger().log(E);
-		} catch (...) {
-		}
-		return false;
-	}
-
-	bool RTTYS_server::WindowSize(const std::string &Id, int cols, int rows) {
-		std::lock_guard 	Lock(LocalMutex_);
-
-		auto It=EndPoints_.find(Id);
-		if(It==EndPoints_.end() || It->second==nullptr) {
-			return false;
-		}
-		try {
-			return It->second->WindowSize(cols,rows);
-		} catch(const Poco::Exception &E) {
-			Logger().log(E);
-		} catch (...) {
-		}
-		return false;
-	}
-*/
 	bool RTTYS_server::CreateEndPoint(const std::string &Id, const std::string & Token, const std::string & UserName, const std::string & SerialNumber ) {
 		std::lock_guard 	Lock(LocalMutex_);
 

@@ -14,9 +14,7 @@ namespace OpenWifi {
 										Poco::Thread::current()->id()));
 		GWObjects::RadiusProxyPoolList	C;
 		RADIUS_proxy_server()->GetConfig(C);
-		Poco::JSON::Object	Answer;
-		C.to_json(Answer);
-		return ReturnObject(Answer);
+		return Object(C);
 	}
 
 	void RESTAPI_radiusProxyConfig_handler::DoDelete() {
@@ -77,7 +75,7 @@ namespace OpenWifi {
 										TransactionId_, Requester(),
 										Poco::Thread::current()->id()));
 		RADIUS_proxy_server()->SetConfig(C);
-		return ReturnObject(*ParsedBody_);
+		return Object(C);
 	}
 
 }

@@ -22,9 +22,7 @@ namespace OpenWifi {
 		std::string Name = ORM::Escape(GetBinding(RESTAPI::Protocol::NAME, ""));
 		GWObjects::DefaultConfiguration DefConfig;
 		if (StorageService()->GetDefaultConfiguration(Name, DefConfig)) {
-			Poco::JSON::Object Obj;
-			DefConfig.to_json(Obj);
-			return ReturnObject(Obj);
+			return Object(DefConfig);
 		}
 		NotFound();
 	}
@@ -106,12 +104,9 @@ namespace OpenWifi {
 			GWObjects::DefaultConfiguration	ModifiedConfig;
 
 			StorageService()->GetDefaultConfiguration(Name,ModifiedConfig);
-			Poco::JSON::Object	Answer;
-			ModifiedConfig.to_json(Answer);
-			return ReturnObject(Answer);
+			return Object(ModifiedConfig);
 		}
 
 		BadRequest(RESTAPI::Errors::RecordNotUpdated);
-
 	}
 }

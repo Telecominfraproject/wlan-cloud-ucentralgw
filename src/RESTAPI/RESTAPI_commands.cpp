@@ -24,15 +24,7 @@ namespace OpenWifi {
 			StorageService()->GetCommands(SerialNumber, QB_.StartDate, QB_.EndDate, QB_.Offset, QB_.Limit,
 								   Commands);
 		}
-		Poco::JSON::Array ArrayObj;
-		for (const auto &i : Commands) {
-			Poco::JSON::Object Obj;
-			i.to_json(Obj);
-			ArrayObj.add(Obj);
-		}
-		Poco::JSON::Object RetObj;
-		RetObj.set(RESTAPI::Protocol::COMMANDS, ArrayObj);
-		ReturnObject(RetObj);
+		return Object(RESTAPI::Protocol::COMMANDS, Commands);
 	}
 
 	void RESTAPI_commands::DoDelete() {
