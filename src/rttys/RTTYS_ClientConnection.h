@@ -42,6 +42,8 @@ namespace OpenWifi {
 		void EndConnection();
 
 	  private:
+		inline static std::uint64_t 			tid_=0;
+		std::uint64_t 							cur_tid_=0;
 		Poco::Net::SocketReactor 				&Reactor_;
 		std::string 							Id_;
 		std::unique_ptr<Poco::Net::WebSocket>	WS_;
