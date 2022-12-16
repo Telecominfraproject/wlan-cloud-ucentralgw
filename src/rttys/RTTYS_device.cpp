@@ -88,7 +88,6 @@ namespace OpenWifi {
 	}
 
 	void RTTYS_Device_ConnectionHandler::EndConnection() {
-		std::lock_guard	Guard(M_);
 		valid_ = false;
 		if(registered_) {
 			registered_ = false;
