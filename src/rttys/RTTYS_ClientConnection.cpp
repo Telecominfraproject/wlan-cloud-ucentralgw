@@ -57,7 +57,10 @@ namespace OpenWifi {
 		}
 		if(Device_!=nullptr)
 			Device_.reset();
-		RTTYS_server()->NotifyClientDisconnect(Id_);
+		if(!Disconnected_) {
+			Disconnected_ = true;
+			RTTYS_server()->NotifyClientDisconnect(Id_);
+		}
 	}
 
 	void RTTYS_ClientConnection::onSocketReadable([[maybe_unused]] const Poco::AutoPtr<Poco::Net::ReadableNotification> &pNf) {

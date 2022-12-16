@@ -108,7 +108,10 @@ namespace OpenWifi {
 		deviceIsRegistered_ = false;
 		if(WSClient_!=nullptr)
 			WSClient_.reset();
-		RTTYS_server()->NotifyDeviceDisconnect(id_);
+		if(!disconnected_) {
+			disconnected_ = true;
+			RTTYS_server()->NotifyDeviceDisconnect(id_);
+		}
 	}
 
 	[[maybe_unused]] static void dump(unsigned char *p,uint l) {
@@ -230,14 +233,10 @@ namespace OpenWifi {
 	}
 
 	bool RTTYS_Device_ConnectionHandler::SendToClient(const std::string &S) {
-		if(!valid_ || !registered_)
+		if(!valid_ || !registered_ || WSClient_== nullptr)
 			return false;
-		if(WSClient_!= nullptr) {
-			WSClient_->SendData(S);
-			return true;
-		}
-		return false;
-		//return RTTYS_server()->SendToClient(id_,S);
+		WSClient_->SendData(S);
+		return true;
 	}
 
 	bool RTTYS_Device_ConnectionHandler::KeyStrokes(const u_char *buf, size_t len) {

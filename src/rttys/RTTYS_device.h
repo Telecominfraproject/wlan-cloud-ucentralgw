@@ -70,6 +70,7 @@ namespace OpenWifi {
 
 		volatile bool					valid_=false;
 		volatile bool					old_rtty_=true;
+		volatile bool 						disconnected_=false;
 		Poco::Net::SocketAddress		device_address_;
 		std::shared_mutex 		  				M_;
 		std::string                   			id_;
