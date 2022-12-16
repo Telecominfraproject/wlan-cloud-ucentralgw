@@ -159,6 +159,7 @@ namespace OpenWifi {
 		if(!NotificationManagerRunning_)
 			return;
 
+		std::cout << "In timeout" << std::endl;
 		for(auto element=EndPoints_.begin();element!=EndPoints_.end();) {
 			if(element->second->TooOld()) {
 				auto c = fmt::format("Removing {}. Serial: {} Device connection time: {}s. Client connection time: {}s",
@@ -187,6 +188,7 @@ namespace OpenWifi {
 		}
 
 		LocalMutex_.unlock();
+		std::cout << "Out timeout" << std::endl;
 
 		if(Utils::Now()-LastStats>(60*5)) {
 			LastStats = Utils::Now();
