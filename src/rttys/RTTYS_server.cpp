@@ -231,9 +231,22 @@ namespace OpenWifi {
 				switch (Notification->type_) {
 				case RTTYS_Notification_type::device_disconnection: {
 					It->second->DisconnectDevice();
+					if(It->second->GetClient()!= nullptr) {
+						auto C = It->second->GetClient();
+						LocalMutex_.unlock();
+						C->EndConnection();
+						continue;
+					}
+
 				} break;
 				case RTTYS_Notification_type::client_disconnection: {
 					It->second->DisconnectClient();
+					if(It->second->GetDevice()) {
+						auto D = It->second->GetDevice();
+						LocalMutex_.unlock();
+						D->EndConnection();
+						continue;
+					}
 				} break;
 				case RTTYS_Notification_type::device_registration: {
 					auto Device = ConnectingDevices_.find(Notification->TID_);
