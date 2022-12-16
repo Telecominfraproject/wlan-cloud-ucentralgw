@@ -132,10 +132,12 @@ namespace OpenWifi {
 
 		inline void DisconnectClient() {
 			ClientDisconnected_ = std::chrono::high_resolution_clock::now();
+			Client_.reset();
 		}
 
 		inline void DisconnectDevice() {
 			DeviceDisconnected_ = std::chrono::high_resolution_clock::now();
+			Device_.reset();
 		}
 
 		[[nodiscard]] inline bool TooOld()  {
