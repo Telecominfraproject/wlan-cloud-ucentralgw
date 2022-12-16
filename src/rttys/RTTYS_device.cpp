@@ -77,7 +77,7 @@ namespace OpenWifi {
 					*this, &RTTYS_Device_ConnectionHandler::onSocketShutdown));
 		} catch (...) {
 			poco_warning(Logger(), "Device caused exception while completing connection.");
-			EndConnection();
+			EndConnection(5);
 		}
 	}
 
@@ -86,11 +86,11 @@ namespace OpenWifi {
 			fmt::format("Device {} session ending", id_)
 		);
 		std::cout << "Device destruction: " << dev_id_ << std::endl;
-		EndConnection();
+		EndConnection(0);
 	}
 
-	void RTTYS_Device_ConnectionHandler::EndConnection() {
-		std::cout << "Device EndConnection: " << dev_id_ << std::endl;
+	void RTTYS_Device_ConnectionHandler::EndConnection(int v) {
+		std::cout << "Device EndConnection: " << dev_id_ << "    v:" << v << std::endl;
 		{
 			std::unique_lock Lock(M_);
 			valid_ = false;
@@ -134,7 +134,7 @@ namespace OpenWifi {
 			auto received_bytes = socket_.receiveBytes(*inBuf_);
 			if (received_bytes == 0) {
 				poco_information(Logger(), fmt::format("{}: Device Closing connection - 0 bytes received.",id_));
-				return EndConnection();
+				return EndConnection(1);
 			}
 
 			while (inBuf_->isReadable() && good) {
@@ -204,13 +204,13 @@ namespace OpenWifi {
 		}
 
 		if(!good) {
-			return EndConnection();
+			return EndConnection(2);
 		}
 	}
 
 	void RTTYS_Device_ConnectionHandler::onSocketShutdown([[maybe_unused]] const Poco::AutoPtr<Poco::Net::ShutdownNotification>& pNf) {
 		poco_information(Logger(),fmt::format("{}: Connection being closed - socket shutdown.",id_));
-		EndConnection();
+		EndConnection(3);
 	}
 
 	bool RTTYS_Device_ConnectionHandler::SendToClient(const u_char *Buf, int Len) {

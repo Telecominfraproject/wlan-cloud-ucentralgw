@@ -59,7 +59,7 @@ namespace OpenWifi {
 			WSClient_ = std::move(WSClient);
 		}
 
-		void EndConnection() ;
+		void EndConnection(int v) ;
 
 	  private:
 		inline static std::uint64_t 			dev_=0;

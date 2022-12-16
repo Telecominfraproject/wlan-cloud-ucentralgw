@@ -179,7 +179,7 @@ namespace OpenWifi {
 		FailedClients.clear();
 		for(auto device=ConnectingDevices_.begin();device!=ConnectingDevices_.end();) {
 			if(device->second.second-Utils::Now() > (5*60)) {
-				device->second.first->EndConnection();
+				device->second.first->EndConnection(10);
 				device = ConnectingDevices_.erase(device);
 			} else {
 				++device;
@@ -245,7 +245,7 @@ namespace OpenWifi {
 					if(It->second->GetDevice()) {
 						auto D = It->second->GetDevice();
 						LocalMutex_.unlock();
-						D->EndConnection();
+						D->EndConnection(11);
 						continue;
 					}
 				} break;
