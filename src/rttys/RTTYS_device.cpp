@@ -41,6 +41,7 @@ namespace OpenWifi {
 				TID_(TID)
 	{
 		inBuf_ = std::make_unique<Poco::FIFOBuffer>(RTTY_DEVICE_BUFSIZE);
+		dev_id_ = ++dev_;
 	}
 
 	void RTTYS_Device_ConnectionHandler::CompleteConnection() {
@@ -83,7 +84,7 @@ namespace OpenWifi {
 		poco_information(Logger_,
 			fmt::format("Device {} session ending", id_)
 		);
-		std::cout << "Device destruction..." << std::endl;
+		std::cout << "Device destruction: " << dev_id_ << std::endl;
 		EndConnection();
 	}
 

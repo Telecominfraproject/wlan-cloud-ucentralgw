@@ -48,7 +48,6 @@ namespace OpenWifi {
 		[[nodiscard]] bool WindowSize(int cols, int rows);
 		[[nodiscard]] bool KeyStrokes(const u_char *buf, size_t len);
 		std::string ReadString();
-		// inline auto SessionID() const { return conn_id_; }
 
 		void onSocketReadable(const Poco::AutoPtr<Poco::Net::ReadableNotification>& pNf);
 		void onSocketShutdown(const Poco::AutoPtr<Poco::Net::ShutdownNotification>& pNf);
@@ -63,10 +62,12 @@ namespace OpenWifi {
 		void EndConnection() ;
 
 	  private:
+		inline static std::uint64_t 			dev_=0;
 		Poco::Net::StreamSocket   				socket_;
 		Poco::Net::SocketReactor				&reactor_;
 		std::unique_ptr<Poco::FIFOBuffer> 		inBuf_;
 		Poco::Logger							&Logger_;
+		std::uint64_t 							dev_id_=0;
 
 		volatile bool							valid_=false;
 		volatile bool							old_rtty_=true;
