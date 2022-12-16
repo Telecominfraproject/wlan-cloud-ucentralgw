@@ -151,7 +151,8 @@ namespace OpenWifi {
 		static auto LastStats = Utils::Now();
 
 		while(!LocalMutex_.try_lock() && NotificationManagerRunning_) {
-			std::cout << "Spin lock 2" << std::endl;
+//			std::cout << "Spin lock 2" << std::endl;
+			Poco::Thread::yield();
 			Poco::Thread::trySleep(100);
 		}
 
@@ -218,8 +219,9 @@ namespace OpenWifi {
 
 
 			while(!LocalMutex_.try_lock() && NotificationManagerRunning_) {
+				Poco::Thread::yield();
 				Poco::Thread::trySleep(100);
-				std::cout << "Spin lock 1" << std::endl;
+//				std::cout << "Spin lock 1" << std::endl;
 			}
 			if(!NotificationManagerRunning_) {
 				break;
@@ -288,7 +290,7 @@ namespace OpenWifi {
 		// std::unique_lock 	Lock(LocalMutex_);
 
 		while(!LocalMutex_.try_lock() && NotificationManagerRunning_) {
-			std::cout << "Spin lock 3" << std::endl;
+//			std::cout << "Spin lock 3" << std::endl;
 			Poco::Thread::trySleep(100);
 		}
 
@@ -310,7 +312,7 @@ namespace OpenWifi {
 
 		while(!LocalMutex_.try_lock_shared() && NotificationManagerRunning_) {
 			Poco::Thread::trySleep(100);
-			std::cout << "Spin lock 4" << std::endl;
+//			std::cout << "Spin lock 4" << std::endl;
 		}
 
 		if(!NotificationManagerRunning_)
