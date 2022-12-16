@@ -75,7 +75,6 @@ namespace OpenWifi {
 					*this, &RTTYS_Device_ConnectionHandler::onSocketShutdown));
 		} catch (...) {
 			poco_warning(Logger(), "Device caused exception while completing connection.");
-			std::unique_lock G(M_);
 			EndConnection();
 		}
 	}
@@ -89,6 +88,7 @@ namespace OpenWifi {
 	}
 
 	void RTTYS_Device_ConnectionHandler::EndConnection() {
+		std::lock_guard	Guard(M_);
 		valid_ = false;
 		if(registered_) {
 			registered_ = false;
@@ -125,7 +125,6 @@ namespace OpenWifi {
 		if(!valid_ || !registered_)
 			return;
 
-		std::unique_lock G(M_);
 		try {
 			auto received_bytes = socket_.receiveBytes(*inBuf_);
 			if (received_bytes == 0) {
