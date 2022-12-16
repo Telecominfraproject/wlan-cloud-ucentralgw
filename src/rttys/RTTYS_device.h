@@ -56,7 +56,7 @@ namespace OpenWifi {
 		inline Poco::Logger	&Logger() { return Logger_; }
 		inline bool Valid() const { return valid_; }
 		inline void SetWsClient(std::shared_ptr<RTTYS_ClientConnection>	WSClient) {
-			std::unique_lock	L(M_);
+			std::lock_guard	L(Mutex_);
 			WSClient_ = std::move(WSClient);
 		}
 
@@ -74,7 +74,7 @@ namespace OpenWifi {
 		volatile bool							old_rtty_=true;
 		volatile bool 							disconnected_=false;
 		Poco::Net::SocketAddress				device_address_;
-		std::recursive_mutex	  				M_;
+		std::recursive_mutex	  				Mutex_;
 		std::string                   			id_;
 		std::string                   			token_;
 		std::string                   			desc_;
