@@ -111,6 +111,7 @@ namespace OpenWifi {
 		}
 		if(!disconnected_) {
 			disconnected_ = true;
+			std::cout << "Device EndConnection Disconnect: " << dev_id_ << "    v:" << v << std::endl;
 			RTTYS_server()->NotifyDeviceDisconnect(id_);
 		}
 	}
