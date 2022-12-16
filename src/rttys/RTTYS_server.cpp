@@ -233,6 +233,7 @@ namespace OpenWifi {
 					It->second->DisconnectDevice();
 					if(It->second->GetClient()!= nullptr) {
 						auto C = It->second->GetClient();
+						It->second->GetDevice().reset();
 						LocalMutex_.unlock();
 						C->EndConnection();
 						continue;
