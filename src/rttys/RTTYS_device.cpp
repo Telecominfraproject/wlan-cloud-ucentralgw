@@ -91,21 +91,24 @@ namespace OpenWifi {
 
 	void RTTYS_Device_ConnectionHandler::EndConnection() {
 		std::cout << "Device EndConnection: " << dev_id_ << std::endl;
-		valid_ = false;
-		if(registered_) {
-			registered_ = false;
-			reactor_.removeEventHandler(
-				socket_,
-				Poco::NObserver<RTTYS_Device_ConnectionHandler, Poco::Net::ReadableNotification>(
-					*this, &RTTYS_Device_ConnectionHandler::onSocketReadable));
-			reactor_.removeEventHandler(
-				socket_,
-				Poco::NObserver<RTTYS_Device_ConnectionHandler, Poco::Net::ShutdownNotification>(
-					*this, &RTTYS_Device_ConnectionHandler::onSocketShutdown));
+		{
+			std::unique_lock Lock(M_);
+			valid_ = false;
+			if (registered_) {
+				registered_ = false;
+				reactor_.removeEventHandler(
+					socket_, Poco::NObserver<RTTYS_Device_ConnectionHandler,
+											 Poco::Net::ReadableNotification>(
+								 *this, &RTTYS_Device_ConnectionHandler::onSocketReadable));
+				reactor_.removeEventHandler(
+					socket_, Poco::NObserver<RTTYS_Device_ConnectionHandler,
+											 Poco::Net::ShutdownNotification>(
+								 *this, &RTTYS_Device_ConnectionHandler::onSocketShutdown));
+			}
+			deviceIsRegistered_ = false;
+			if (WSClient_ != nullptr)
+				WSClient_.reset();
 		}
-		deviceIsRegistered_ = false;
-		if(WSClient_!=nullptr)
-			WSClient_.reset();
 		if(!disconnected_) {
 			disconnected_ = true;
 			RTTYS_server()->NotifyDeviceDisconnect(id_);
