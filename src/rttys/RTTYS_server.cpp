@@ -217,7 +217,6 @@ namespace OpenWifi {
 				break;
 			}
 
-
 			while(!LocalMutex_.try_lock() && NotificationManagerRunning_) {
 				Poco::Thread::yield();
 				Poco::Thread::trySleep(100);
@@ -239,18 +238,19 @@ namespace OpenWifi {
 				case RTTYS_Notification_type::device_registration: {
 					auto Device = ConnectingDevices_.find(Notification->TID_);
 					if(Device!=end(ConnectingDevices_)) {
+						//	 set the connection device
 						It->second->SetDevice(Device->second.first);
-						if(It->second->GetClient()!= nullptr)
+						Device->second.first->SetWsClient(It->second->GetClient());
+						if(It->second->GetClient()!= nullptr) {
 							Device->second.first->SetWsClient(It->second->GetClient());
-						if(It->second->GetDevice()!= nullptr) {
-							if(It->second->GetClient()!= nullptr && It->second->GetDevice()) {
-								It->second->GetClient()->SetDevice(It->second->GetDevice());
-							}
+							It->second->GetClient()->SetDevice(Device->second.first);
 						}
 						ConnectingDevices_.erase(Notification->TID_);
 						if (!It->second->Joined() && It->second->ValidClient()) {
 							It->second->Join();
+							LocalMutex_.unlock();
 							It->second->Login();
+							continue;
 						}
 					}
 				} break;
@@ -260,11 +260,15 @@ namespace OpenWifi {
 						It->second->GetDevice()->SetWsClient(Notification->client_);
 						Notification->client_->SetDevice(It->second->GetDevice());
 						It->second->Join();
+						LocalMutex_.unlock();
 						It->second->Login();
+						continue;
 					}
 				} break;
 				case RTTYS_Notification_type::device_connection: {
+					LocalMutex_.unlock();
 					Notification->device_->CompleteConnection();
+					continue;
 				} break;
 				case RTTYS_Notification_type::unknown: {
 				} break;

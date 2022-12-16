@@ -41,7 +41,6 @@ namespace OpenWifi {
 				TID_(TID)
 	{
 		inBuf_ = std::make_unique<Poco::FIFOBuffer>(RTTY_DEVICE_BUFSIZE);
-//		CompleteConnection();
 	}
 
 	void RTTYS_Device_ConnectionHandler::CompleteConnection() {
