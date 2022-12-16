@@ -6,6 +6,7 @@
 
 #include <array>
 #include <shared_mutex>
+#include <mutex>
 
 #include "Poco/Net/SocketReactor.h"
 #include "Poco/Net/SocketNotification.h"
