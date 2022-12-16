@@ -82,12 +82,10 @@ namespace OpenWifi {
 		std::size_t      			  			waiting_for_bytes_{0};
 		u_char 						  			last_command_=0;
 		volatile bool	 						registered_=false;
-		unsigned char 							small_buf_[64+RTTY_SESSION_ID_LENGTH];
+		unsigned char 							small_buf_[64+RTTY_SESSION_ID_LENGTH]{0};
 		volatile bool							deviceIsRegistered_=false;
 		std::uint64_t 							TID_=0;
 		std::shared_ptr<RTTYS_ClientConnection>	WSClient_;
-
-		void DeRegister();
 
 		[[nodiscard]] bool do_msgTypeRegister(std::size_t msg_len);
 		[[nodiscard]] bool do_msgTypeLogin(std::size_t msg_len);

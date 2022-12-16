@@ -90,6 +90,7 @@ namespace OpenWifi {
 	}
 
 	void RTTYS_Device_ConnectionHandler::EndConnection() {
+		std::cout << "Device EndConnection: " << dev_id_ << std::endl;
 		valid_ = false;
 		if(registered_) {
 			registered_ = false;
