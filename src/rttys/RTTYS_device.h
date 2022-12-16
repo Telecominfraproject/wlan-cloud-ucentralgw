@@ -63,15 +63,15 @@ namespace OpenWifi {
 		void EndConnection() ;
 
 	  private:
-		Poco::Net::StreamSocket   			socket_;
-		Poco::Net::SocketReactor			&reactor_;
-		std::unique_ptr<Poco::FIFOBuffer> 	inBuf_;
-		Poco::Logger						&Logger_;
+		Poco::Net::StreamSocket   				socket_;
+		Poco::Net::SocketReactor				&reactor_;
+		std::unique_ptr<Poco::FIFOBuffer> 		inBuf_;
+		Poco::Logger							&Logger_;
 
-		volatile bool					valid_=false;
-		volatile bool					old_rtty_=true;
-		volatile bool 						disconnected_=false;
-		Poco::Net::SocketAddress		device_address_;
+		volatile bool							valid_=false;
+		volatile bool							old_rtty_=true;
+		volatile bool 							disconnected_=false;
+		Poco::Net::SocketAddress				device_address_;
 		std::shared_mutex 		  				M_;
 		std::string                   			id_;
 		std::string                   			token_;
@@ -84,7 +84,7 @@ namespace OpenWifi {
 		unsigned char 							small_buf_[64+RTTY_SESSION_ID_LENGTH];
 		volatile bool							deviceIsRegistered_=false;
 		std::uint64_t 							TID_=0;
-		std::shared_ptr<RTTYS_ClientConnection>		WSClient_;
+		std::shared_ptr<RTTYS_ClientConnection>	WSClient_;
 
 		void DeRegister();
 
