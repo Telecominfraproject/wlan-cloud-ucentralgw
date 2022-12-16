@@ -41,6 +41,7 @@ namespace OpenWifi {
 		poco_information(Logger_,
 				   fmt::format("Client {} session ending", Id_)
 				   );
+		std::cout << "Client destruction..." << std::endl;
 		EndConnection();
 	}
 

@@ -84,6 +84,7 @@ namespace OpenWifi {
 		poco_information(Logger_,
 			fmt::format("Device {} session ending", id_)
 		);
+		std::cout << "Device destruction..." << std::endl;
 		EndConnection();
 	}
 
