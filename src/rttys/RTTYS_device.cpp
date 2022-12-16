@@ -85,8 +85,9 @@ namespace OpenWifi {
 		poco_information(Logger_,
 			fmt::format("Device {} session ending", id_)
 		);
-		std::cout << "Device destruction: " << dev_id_ << std::endl;
+		std::cout << "Device destruction-a: " << dev_id_ << std::endl;
 		EndConnection(0);
+		std::cout << "Device destruction-b: " << dev_id_ << std::endl;
 	}
 
 	void RTTYS_Device_ConnectionHandler::EndConnection(int v) {
@@ -106,8 +107,7 @@ namespace OpenWifi {
 								 *this, &RTTYS_Device_ConnectionHandler::onSocketShutdown));
 			}
 			deviceIsRegistered_ = false;
-			if (WSClient_ != nullptr)
-				WSClient_.reset();
+			WSClient_.reset();
 		}
 		if(!disconnected_) {
 			disconnected_ = true;

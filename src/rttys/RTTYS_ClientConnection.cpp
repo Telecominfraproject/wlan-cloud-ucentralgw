@@ -42,8 +42,9 @@ namespace OpenWifi {
 		poco_information(Logger_,
 				   fmt::format("Client {} session ending", Id_)
 				   );
-		std::cout << "Client destruction :" << cur_tid_ << std::endl;
+		std::cout << "Client destruction-a :" << cur_tid_ << std::endl;
 		EndConnection();
+		std::cout << "Client destruction-b :" << cur_tid_ << std::endl;
 	}
 
 	void RTTYS_ClientConnection::EndConnection() {
