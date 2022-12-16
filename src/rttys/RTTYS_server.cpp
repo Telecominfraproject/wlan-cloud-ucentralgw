@@ -235,6 +235,7 @@ namespace OpenWifi {
 						auto C = It->second->GetClient();
 						It->second->GetDevice().reset();
 						LocalMutex_.unlock();
+						NextNotification->release();
 						C->EndConnection();
 						continue;
 					}
@@ -245,6 +246,7 @@ namespace OpenWifi {
 					if(It->second->GetDevice()) {
 						auto D = It->second->GetDevice();
 						LocalMutex_.unlock();
+						NextNotification->release();
 						D->EndConnection();
 						continue;
 					}
@@ -263,6 +265,7 @@ namespace OpenWifi {
 						if (!It->second->Joined() && It->second->ValidClient()) {
 							It->second->Join();
 							LocalMutex_.unlock();
+							NextNotification->release();
 							It->second->Login();
 							continue;
 						}
@@ -274,6 +277,7 @@ namespace OpenWifi {
 						It->second->GetDevice()->SetWsClient(Notification->client_);
 						Notification->client_->SetDevice(It->second->GetDevice());
 						It->second->Join();
+						NextNotification->release();
 						LocalMutex_.unlock();
 						It->second->Login();
 						continue;
@@ -281,6 +285,7 @@ namespace OpenWifi {
 				} break;
 				case RTTYS_Notification_type::device_connection: {
 					LocalMutex_.unlock();
+					NextNotification->release();
 					Notification->device_->CompleteConnection();
 					continue;
 				} break;
@@ -299,6 +304,7 @@ namespace OpenWifi {
 					FailedClients.push_back(std::move(Notification->client_));
 				}
 			}
+			NextNotification->release();
 			LocalMutex_.unlock();
 		}
 		NotificationManagerRunning_ = false;
