@@ -50,6 +50,7 @@ namespace OpenWifi {
 		std::recursive_mutex								Mutex_;
 		volatile bool										Valid_=false;
 		volatile bool 										Registered_=false;
+		volatile bool 							Disconnected_ = false;
 		std::shared_ptr<RTTYS_Device_ConnectionHandler>		Device_;
 	};
 }
