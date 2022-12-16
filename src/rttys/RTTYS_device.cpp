@@ -84,10 +84,11 @@ namespace OpenWifi {
 		poco_information(Logger_,
 			fmt::format("Device {} session ending", id_)
 		);
-		DeRegister();
+		EndConnection();
 	}
 
-	void RTTYS_Device_ConnectionHandler::DeRegister() {
+	void RTTYS_Device_ConnectionHandler::EndConnection() {
+		valid_ = false;
 		if(registered_) {
 			registered_ = false;
 			reactor_.removeEventHandler(
@@ -99,11 +100,6 @@ namespace OpenWifi {
 				Poco::NObserver<RTTYS_Device_ConnectionHandler, Poco::Net::ShutdownNotification>(
 					*this, &RTTYS_Device_ConnectionHandler::onSocketShutdown));
 		}
-	}
-
-	void RTTYS_Device_ConnectionHandler::EndConnection() {
-		valid_ = false;
-		DeRegister();
 		deviceIsRegistered_ = false;
 		if(WSClient_!=nullptr)
 			WSClient_.reset();
