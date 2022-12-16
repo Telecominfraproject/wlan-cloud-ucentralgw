@@ -42,6 +42,7 @@ namespace OpenWifi {
 	{
 		inBuf_ = std::make_unique<Poco::FIFOBuffer>(RTTY_DEVICE_BUFSIZE);
 		dev_id_ = ++dev_;
+		std::cout << "Device construction: " << dev_id_ << std::endl;
 	}
 
 	void RTTYS_Device_ConnectionHandler::CompleteConnection() {
