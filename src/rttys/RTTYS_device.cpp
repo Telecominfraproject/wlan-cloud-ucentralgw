@@ -95,6 +95,7 @@ namespace OpenWifi {
 		if(valid_) {
 			std::lock_guard Lock(Mutex_);
 			valid_ = false;
+			std::cout << __LINE__ << std::endl;
 			if (RegisteredWithReactor_) {
 				RegisteredWithReactor_ = false;
 				reactor_.removeEventHandler(
@@ -107,7 +108,9 @@ namespace OpenWifi {
 								 *this, &RTTYS_Device_ConnectionHandler::onSocketShutdown));
 			}
 			deviceIsRegistered_ = false;
+			std::cout << __LINE__ << std::endl;
 			WSClient_.reset();
+			std::cout << __LINE__ << std::endl;
 			if (connected_) {
 				connected_ = false;
 				std::cout << "Device EndConnection Disconnect A: " << dev_id_ << "    v:" << v
