@@ -74,6 +74,8 @@ namespace OpenWifi {
 		volatile bool							valid_=false;
 		volatile bool							old_rtty_=true;
 		volatile bool 							connected_=false;
+		volatile bool	 						RegisteredWithReactor_=false;
+
 		Poco::Net::SocketAddress				device_address_;
 		std::recursive_mutex	  				Mutex_;
 		std::string                   			id_;
@@ -83,7 +85,6 @@ namespace OpenWifi {
 		std::uint64_t 							session_length_=1;
 		std::size_t      			  			waiting_for_bytes_{0};
 		u_char 						  			last_command_=0;
-		volatile bool	 						registered_=false;
 		unsigned char 							small_buf_[64+RTTY_SESSION_ID_LENGTH]{0};
 		volatile bool							deviceIsRegistered_=false;
 		std::shared_ptr<RTTYS_ClientConnection>	WSClient_;
