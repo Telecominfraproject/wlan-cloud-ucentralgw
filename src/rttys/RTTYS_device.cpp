@@ -147,26 +147,24 @@ namespace OpenWifi {
 			auto received_bytes = socket_.receiveBytes(inBuf_);
 			if (received_bytes == 0) {
 				poco_information(Logger(), fmt::format("{}: Device Closing connection - 0 bytes received.",id_));
-				return EndConnection(1);
-			}
+			} else {
+				while (inBuf_.isReadable() && good) {
+					uint32_t msg_len = 0;
+					if (waiting_for_bytes_ != 0) {
 
-			while (inBuf_.isReadable() && good) {
-				uint32_t msg_len = 0;
-				if (waiting_for_bytes_ != 0) {
-
-				} else {
-					if (inBuf_.used() >= RTTY_HDR_SIZE) {
-						auto *head = (unsigned char *)inBuf_.begin();
-						last_command_ = head[0];
-						msg_len = head[1] * 256 + head[2];
-						inBuf_.drain(RTTY_HDR_SIZE);
 					} else {
-						good = false;
-						continue;
+						if (inBuf_.used() >= RTTY_HDR_SIZE) {
+							auto *head = (unsigned char *)inBuf_.begin();
+							last_command_ = head[0];
+							msg_len = head[1] * 256 + head[2];
+							inBuf_.drain(RTTY_HDR_SIZE);
+						} else {
+							good = false;
+							continue;
+						}
 					}
-				}
 
-				switch (last_command_) {
+					switch (last_command_) {
 					case msgTypeRegister: {
 						good = do_msgTypeRegister(msg_len);
 					} break;
@@ -201,10 +199,13 @@ namespace OpenWifi {
 						good = do_msgTypeMax(msg_len);
 					} break;
 					default: {
-						poco_warning(Logger(),
-									 fmt::format("{}: Unknown command {} from device. GW closing connection.", id_,
-												 (int)last_command_));
+						poco_warning(
+							Logger(),
+							fmt::format(
+								"{}: Unknown command {} from device. GW closing connection.", id_,
+								(int)last_command_));
 						good = false;
+					}
 					}
 				}
 			}
