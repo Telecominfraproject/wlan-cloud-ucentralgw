@@ -92,7 +92,7 @@ namespace OpenWifi {
 
 	void RTTYS_Device_ConnectionHandler::EndConnection(int v) {
 		std::cout << "Device EndConnection: " << dev_id_ << "    v:" << v << std::endl;
-		{
+		if(valid_) {
 			std::lock_guard Lock(Mutex_);
 			valid_ = false;
 			if (registered_) {
@@ -108,12 +108,14 @@ namespace OpenWifi {
 			}
 			deviceIsRegistered_ = false;
 			WSClient_.reset();
-		}
-		if(!disconnected_) {
-			disconnected_ = true;
-			std::cout << "Device EndConnection Disconnect A: " << dev_id_ << "    v:" << v << std::endl;
-			RTTYS_server()->NotifyDeviceDisconnect(id_);
-			std::cout << "Device EndConnection Disconnect B: " << dev_id_ << "    v:" << v << std::endl;
+			if (!disconnected_) {
+				disconnected_ = true;
+				std::cout << "Device EndConnection Disconnect A: " << dev_id_ << "    v:" << v
+						  << std::endl;
+				RTTYS_server()->NotifyDeviceDisconnect(id_);
+				std::cout << "Device EndConnection Disconnect B: " << dev_id_ << "    v:" << v
+						  << std::endl;
+			}
 		}
 	}
 
