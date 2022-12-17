@@ -243,7 +243,6 @@ namespace OpenWifi {
 			}
 
 			NotificationDetails Notification = NotificationPtr->Data_;
-			//  NextNotification->release();
 
 			auto It = EndPoints_.find(Notification.id_);
 			if (It != EndPoints_.end()) {
@@ -262,9 +261,7 @@ namespace OpenWifi {
 						ConnectingDevices_.erase(Notification.TID_);
 						CrossConnect(It->second);
 						if (It->second->Joined()) {
-							LocalMutex_.unlock();
 							It->second->Login();
-							continue;
 						}
 					}
 				} break;
@@ -272,15 +269,11 @@ namespace OpenWifi {
 					It->second->SetClient(Notification.client_);
 					CrossConnect(It->second);
 					if(It->second->Joined()) {
-						LocalMutex_.unlock();
 						It->second->Login();
-						continue;
 					}
 				} break;
 				case RTTYS_Notification_type::device_connection: {
-					LocalMutex_.unlock();
 					Notification.device_->CompleteConnection();
-					continue;
 				} break;
 				case RTTYS_Notification_type::unknown: {
 				} break;
@@ -288,9 +281,7 @@ namespace OpenWifi {
 			} else {
 				if(Notification.type_==RTTYS_Notification_type::device_connection) {
 					ConnectingDevices_[Notification.TID_] = std::make_pair(Notification.device_,Utils::Now());
-					LocalMutex_.unlock();
 					Notification.device_->CompleteConnection();
-					continue;
 				} else if(Notification.type_==RTTYS_Notification_type::device_registration) {
 					FailedNumDevices_++;
 					FailedDevices.push_back(Notification.device_);
