@@ -53,7 +53,7 @@ namespace OpenWifi {
 						   std::shared_ptr<RTTYS_Device_ConnectionHandler> device) {
 			Data_.type_ = type;
 			Data_.id_ = id;
-			Data_.device_ = std::move(device);
+			Data_.device_ = device;
 		}
 
 		RTTYS_Notification(const RTTYS_Notification_type &type,
@@ -67,20 +67,20 @@ namespace OpenWifi {
 						   std::shared_ptr<RTTYS_ClientConnection> client){
 			Data_.type_ = type;
 			Data_.id_ = id;
-			Data_.client_ = std::move(client);
+			Data_.client_ = client;
 		}
 
 		RTTYS_Notification(const RTTYS_Notification_type &type,
 						   std::shared_ptr<RTTYS_Device_ConnectionHandler> device) {
 			Data_.type_ = type;
-			Data_.device_ = std::move(device);
+			Data_.device_ = device;
 		}
 
 		RTTYS_Notification(const RTTYS_Notification_type &type,
 						   std::shared_ptr<RTTYS_Device_ConnectionHandler> device,
 						   std::uint64_t TID) {
 			Data_.type_ = type;
-			Data_.device_ = std::move(device);
+			Data_.device_ = device;
 			Data_.TID_ = TID;
 		}
 
@@ -91,7 +91,7 @@ namespace OpenWifi {
 			Data_.type_ = type;
 			Data_.id_ = id;
 			Data_.token_ = token;
-			Data_.device_ = std::move(device);
+			Data_.device_ = device;
 		}
 
 		RTTYS_Notification(const RTTYS_Notification_type &type,
@@ -242,7 +242,7 @@ namespace OpenWifi {
 		}
 
 		inline void NotifyDeviceConnection(std::shared_ptr<RTTYS_Device_ConnectionHandler> device, std::uint64_t TID) {
-			ResponseQueue_.enqueueNotification(new RTTYS_Notification(RTTYS_Notification_type::device_connection,std::move(device), TID));
+			ResponseQueue_.enqueueNotification(new RTTYS_Notification(RTTYS_Notification_type::device_connection,device, TID));
 		}
 
 		inline void NotifyClientDisconnect(const std::string &id) {
@@ -270,7 +270,7 @@ namespace OpenWifi {
 		}
 
 		inline void NotifyClientRegistration(const std::string &id, std::shared_ptr<RTTYS_ClientConnection> client) {
-			ResponseQueue_.enqueueNotification(new RTTYS_Notification(RTTYS_Notification_type::client_registration,id,std::move(client)));
+			ResponseQueue_.enqueueNotification(new RTTYS_Notification(RTTYS_Notification_type::client_registration,id,client));
 		}
 
 		void CreateNewClient(Poco::Net::HTTPServerRequest &request,

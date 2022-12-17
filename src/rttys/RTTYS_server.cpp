@@ -293,10 +293,10 @@ namespace OpenWifi {
 					continue;
 				} else if(Notification.type_==RTTYS_Notification_type::device_registration) {
 					FailedNumDevices_++;
-					FailedDevices.push_back(std::move(Notification.device_));
+					FailedDevices.push_back(Notification.device_);
 				} else if(Notification.type_==RTTYS_Notification_type::client_registration) {
 					FailedNumClients_++;
-					FailedClients.push_back(std::move(Notification.client_));
+					FailedClients.push_back(Notification.client_);
 				}
 			}
 			LocalMutex_.unlock();
