@@ -209,6 +209,20 @@ namespace OpenWifi {
 		NotifyClientRegistration(id,NewClient);
 	}
 
+	void RTTYS_server::CrossConnect(std::unique_ptr<RTTYS_EndPoint> &Conn) {
+		if(Conn->GetClient()!=nullptr) {
+			Conn->GetClient()->SetDevice(Conn->GetDevice());
+		}
+
+		if(Conn->GetDevice()!= nullptr) {
+			Conn->GetDevice()->SetWsClient((Conn->GetClient()));
+		}
+
+		if(Conn->GetDevice()!= nullptr && Conn->GetClient()!= nullptr) {
+			Conn->Join();
+		}
+	}
+
 	void RTTYS_server::run() {
 		Utils::SetThreadName("rt:manager");
 		NotificationManagerRunning_ = true;
@@ -242,14 +256,9 @@ namespace OpenWifi {
 					if(Device!=end(ConnectingDevices_)) {
 						//	 set the connection device
 						It->second->SetDevice(Device->second.first);
-						Device->second.first->SetWsClient(It->second->GetClient());
-						if(It->second->GetClient()!= nullptr) {
-							Device->second.first->SetWsClient(It->second->GetClient());
-							It->second->GetClient()->SetDevice(Device->second.first);
-						}
 						ConnectingDevices_.erase(Notification->TID_);
-						if (!It->second->Joined() && It->second->ValidClient()) {
-							It->second->Join();
+						CrossConnect(It->second);
+						if (It->second->Joined()) {
 							LocalMutex_.unlock();
 							It->second->Login();
 							continue;
@@ -258,10 +267,8 @@ namespace OpenWifi {
 				} break;
 				case RTTYS_Notification_type::client_registration: {
 					It->second->SetClient(Notification->client_);
-					if(!It->second->Joined() && It->second->ValidDevice()) {
-						It->second->GetDevice()->SetWsClient(Notification->client_);
-						Notification->client_->SetDevice(It->second->GetDevice());
-						It->second->Join();
+					CrossConnect(It->second);
+					if(!It->second->Joined()) {
 						LocalMutex_.unlock();
 						It->second->Login();
 						continue;
@@ -278,7 +285,9 @@ namespace OpenWifi {
 			} else {
 				if(Notification->type_==RTTYS_Notification_type::device_connection) {
 					ConnectingDevices_[Notification->TID_] = std::make_pair(Notification->device_,Utils::Now());
+					LocalMutex_.unlock();
 					Notification->device_->CompleteConnection();
+					continue;
 				} else if(Notification->type_==RTTYS_Notification_type::device_registration) {
 					FailedNumDevices_++;
 					FailedDevices.push_back(std::move(Notification->device_));

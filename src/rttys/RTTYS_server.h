@@ -224,6 +224,8 @@ namespace OpenWifi {
 
 		void run() final;
 
+		void CrossConnect(std::unique_ptr<RTTYS_EndPoint> & Conn);
+
 		inline void NotifyDeviceDisconnect(const std::string &id) {
 			ResponseQueue_.enqueueNotification(new RTTYS_Notification(RTTYS_Notification_type::device_disconnection,id));
 		}
