@@ -329,7 +329,7 @@ namespace OpenWifi {
 
 	bool RTTYS_server::ValidId(const std::string &Token) {
 
-		while(!LocalMutex_.try_lock_shared() && NotificationManagerRunning_) {
+		while(!LocalMutex_.try_lock() && NotificationManagerRunning_) {
 			Poco::Thread::yield();
 			Poco::Thread::trySleep(100);
 			std::cout << "Spin lock 4" << std::endl;
@@ -339,7 +339,7 @@ namespace OpenWifi {
 			return false;
 
 		auto ret = EndPoints_.find(Token) != EndPoints_.end();
-		LocalMutex_.unlock_shared();
+		LocalMutex_.unlock();
 		return ret;
 	}
 

@@ -251,7 +251,7 @@ namespace OpenWifi {
 
 		inline bool NotifyDeviceRegistration(const std::string &id, const std::string &token, std::uint64_t TID) {
 			{
-				while(!LocalMutex_.try_lock_shared() && NotificationManagerRunning_) {
+				while(!LocalMutex_.try_lock() && NotificationManagerRunning_) {
 					Poco::Thread::trySleep(100);
 				}
 
@@ -260,10 +260,10 @@ namespace OpenWifi {
 				}
 
 				if (EndPoints_.find(id) == end(EndPoints_)) {
-					LocalMutex_.unlock_shared();
+					LocalMutex_.unlock();
 					return false;
 				}
-				LocalMutex_.unlock_shared();
+				LocalMutex_.unlock();
 			}
 			ResponseQueue_.enqueueNotification(new RTTYS_Notification(RTTYS_Notification_type::device_registration,id,token, TID));
 			return true;
@@ -309,19 +309,19 @@ namespace OpenWifi {
 		std::unique_ptr<Poco::TimerCallback<RTTYS_server>>  GCCallBack_;
 		std::list<std::shared_ptr<RTTYS_Device_ConnectionHandler>>	FailedDevices;
 		std::list<std::shared_ptr<RTTYS_ClientConnection>>			FailedClients;
-		std::shared_mutex								LocalMutex_;
-		std::atomic_uint64_t 							TotalEndPoints_=0;
-		std::atomic_uint64_t 							FailedNumDevices_=0;
-		std::atomic_uint64_t 							FailedNumClients_=0;
-		double 											TotalConnectedDeviceTime_=0.0;
-		double 											TotalConnectedClientTime_=0.0;
+		std::mutex									LocalMutex_;
+		std::atomic_uint64_t 						TotalEndPoints_=0;
+		std::atomic_uint64_t 						FailedNumDevices_=0;
+		std::atomic_uint64_t 						FailedNumClients_=0;
+		double 										TotalConnectedDeviceTime_=0.0;
+		double 										TotalConnectedClientTime_=0.0;
 
-		std::atomic_uint64_t							Started_=Utils::Now();
-		std::atomic_uint64_t							MaxConcurrentSessions_=0;
-		std::unique_ptr<Poco::Net::ServerSocket>		DeviceSocket_;
+		std::atomic_uint64_t						Started_=Utils::Now();
+		std::atomic_uint64_t						MaxConcurrentSessions_=0;
+		std::unique_ptr<Poco::Net::ServerSocket>	DeviceSocket_;
 		std::unique_ptr<Poco::Net::SecureServerSocket>	SecureDeviceSocket_;
 
-		static inline std::uint64_t 					CurrentTID_=0;
+		static inline std::uint64_t 				CurrentTID_=0;
 
 		explicit RTTYS_server() noexcept:
 		SubSystemServer("RTTY_Server", "RTTY-SVR", "rtty.server")
