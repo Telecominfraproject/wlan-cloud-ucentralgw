@@ -66,8 +66,9 @@ namespace OpenWifi {
 		inline static std::uint64_t 			dev_=0;
 		Poco::Net::StreamSocket   				socket_;
 		Poco::Net::SocketReactor				&reactor_;
-		std::unique_ptr<Poco::FIFOBuffer> 		inBuf_;
 		Poco::Logger							&Logger_;
+		std::uint64_t 							TID_=0;
+		Poco::FIFOBuffer				 		inBuf_;
 		std::uint64_t 							dev_id_=0;
 
 		volatile bool							valid_=false;
@@ -85,7 +86,6 @@ namespace OpenWifi {
 		volatile bool	 						registered_=false;
 		unsigned char 							small_buf_[64+RTTY_SESSION_ID_LENGTH]{0};
 		volatile bool							deviceIsRegistered_=false;
-		std::uint64_t 							TID_=0;
 		std::shared_ptr<RTTYS_ClientConnection>	WSClient_;
 
 		[[nodiscard]] bool do_msgTypeRegister(std::size_t msg_len);

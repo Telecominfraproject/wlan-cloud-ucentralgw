@@ -38,9 +38,9 @@ namespace OpenWifi {
 			 	socket_(socket),
 			 	reactor_(reactor),
 				Logger_(Poco::Logger::get(fmt::format("RTTY-device({})",socket_.peerAddress().toString()))),
-				TID_(TID)
+				TID_(TID),
+				inBuf_(RTTY_DEVICE_BUFSIZE)
 	{
-		inBuf_ = std::make_unique<Poco::FIFOBuffer>(RTTY_DEVICE_BUFSIZE);
 		dev_id_ = ++dev_;
 		std::cout << "Device construction: " << dev_id_ << std::endl;
 	}
@@ -133,22 +133,22 @@ namespace OpenWifi {
 			return;
 
 		try {
-			auto received_bytes = socket_.receiveBytes(*inBuf_);
+			auto received_bytes = socket_.receiveBytes(inBuf_);
 			if (received_bytes == 0) {
 				poco_information(Logger(), fmt::format("{}: Device Closing connection - 0 bytes received.",id_));
 				return EndConnection(1);
 			}
 
-			while (inBuf_->isReadable() && good) {
+			while (inBuf_.isReadable() && good) {
 				uint32_t msg_len = 0;
 				if (waiting_for_bytes_ != 0) {
 
 				} else {
-					if (inBuf_->used() >= RTTY_HDR_SIZE) {
-						auto *head = (unsigned char *)inBuf_->begin();
+					if (inBuf_.used() >= RTTY_HDR_SIZE) {
+						auto *head = (unsigned char *)inBuf_.begin();
 						last_command_ = head[0];
 						msg_len = head[1] * 256 + head[2];
-						inBuf_->drain(RTTY_HDR_SIZE);
+						inBuf_.drain(RTTY_HDR_SIZE);
 					} else {
 						good = false;
 						continue;
@@ -342,9 +342,9 @@ namespace OpenWifi {
 	std::string RTTYS_Device_ConnectionHandler::ReadString() {
 		std::string Res;
 
-		while(inBuf_->used()) {
+		while(inBuf_.used()) {
 			char C;
-			inBuf_->read(&C,1);
+			inBuf_.read(&C,1);
 			if(C==0) {
 				break;
 			}
@@ -362,11 +362,11 @@ namespace OpenWifi {
 
 		try {
 			//	establish if this is an old rtty or a new one.
-			old_rtty_ = ((*inBuf_)[0] != 0x03);		//	rtty_proto_ver for full session ID inclusion
+			old_rtty_ = (inBuf_[0] != 0x03);		//	rtty_proto_ver for full session ID inclusion
 			if(old_rtty_) {
 				session_length_ = 1;
 			} else {
-				inBuf_->drain(1); //	remove protocol if used.
+				inBuf_.drain(1); //	remove protocol if used.
 				session_length_ = RTTY_SESSION_ID_LENGTH;
 			}
 
@@ -413,12 +413,12 @@ namespace OpenWifi {
 		nlohmann::json doc;
 		char Error;
 		if(old_rtty_) {
-			inBuf_->read(&Error, 1);
-			inBuf_->read(&session_id_[0], session_length_);
+			inBuf_.read(&Error, 1);
+			inBuf_.read(&session_id_[0], session_length_);
 		} else {
 			char session[RTTY_SESSION_ID_LENGTH+1]{0};
-			inBuf_->read(&session[0], session_length_);
-			inBuf_->read(&Error, 1);
+			inBuf_.read(&session[0], session_length_);
+			inBuf_.read(&Error, 1);
 		}
 		doc["type"] = "login";
 		doc["err"] = Error;
@@ -432,9 +432,9 @@ namespace OpenWifi {
 
 		char session[RTTY_SESSION_ID_LENGTH];
 		if(old_rtty_) {
-			inBuf_->read(&session[0],1);
+			inBuf_.read(&session[0],1);
 		} else {
-			inBuf_->read(&session[0],RTTY_SESSION_ID_LENGTH);
+			inBuf_.read(&session[0],RTTY_SESSION_ID_LENGTH);
 		}
 		poco_information(Logger(),fmt::format("{}: Logout", id_));
 		return false;
@@ -447,31 +447,31 @@ namespace OpenWifi {
 
 		bool good;
 		if(waiting_for_bytes_>0) {
-			if(inBuf_->used()<waiting_for_bytes_) {
-				waiting_for_bytes_ = waiting_for_bytes_ - inBuf_->used();
-				good = SendToClient((unsigned char *)inBuf_->begin(), (int) inBuf_->used());
-				inBuf_->drain();
+			if(inBuf_.used()<waiting_for_bytes_) {
+				waiting_for_bytes_ = waiting_for_bytes_ - inBuf_.used();
+				good = SendToClient((unsigned char *)inBuf_.begin(), (int) inBuf_.used());
+				inBuf_.drain();
 			} else {
-				good = SendToClient((unsigned char *)inBuf_->begin(), waiting_for_bytes_);
-				inBuf_->drain(waiting_for_bytes_);
+				good = SendToClient((unsigned char *)inBuf_.begin(), waiting_for_bytes_);
+				inBuf_.drain(waiting_for_bytes_);
 				waiting_for_bytes_ = 0 ;
 			}
 		} else {
 			if(old_rtty_) {
-				inBuf_->drain(1);
+				inBuf_.drain(1);
 				msg_len -= 1;
 			} else {
-				inBuf_->drain(RTTY_SESSION_ID_LENGTH);
+				inBuf_.drain(RTTY_SESSION_ID_LENGTH);
 				msg_len -= RTTY_SESSION_ID_LENGTH;
 			}
-			if(inBuf_->used()<msg_len) {
-				good = SendToClient((unsigned char *)inBuf_->begin(), inBuf_->used());
-				waiting_for_bytes_ = msg_len - inBuf_->used();
-				inBuf_->drain();
+			if(inBuf_.used()<msg_len) {
+				good = SendToClient((unsigned char *)inBuf_.begin(), inBuf_.used());
+				waiting_for_bytes_ = msg_len - inBuf_.used();
+				inBuf_.drain();
 			} else {
 				waiting_for_bytes_ = 0 ;
-				good = SendToClient((unsigned char *)inBuf_->begin(), msg_len);
-				inBuf_->drain(msg_len);
+				good = SendToClient((unsigned char *)inBuf_.begin(), msg_len);
+				inBuf_.drain(msg_len);
 			}
 		}
 		return good;
@@ -496,7 +496,7 @@ namespace OpenWifi {
 			return false;
 		u_char MsgBuf[RTTY_HDR_SIZE + 16]{0};
 		if(msg_len)
-			inBuf_->drain(msg_len);
+			inBuf_.drain(msg_len);
 		MsgBuf[0] = msgTypeHeartbeat;
 		MsgBuf[1] = 0;
 		MsgBuf[2] = 0;
