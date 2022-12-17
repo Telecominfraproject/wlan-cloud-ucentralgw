@@ -268,7 +268,7 @@ namespace OpenWifi {
 				case RTTYS_Notification_type::client_registration: {
 					It->second->SetClient(Notification->client_);
 					CrossConnect(It->second);
-					if(!It->second->Joined()) {
+					if(It->second->Joined()) {
 						LocalMutex_.unlock();
 						It->second->Login();
 						continue;
