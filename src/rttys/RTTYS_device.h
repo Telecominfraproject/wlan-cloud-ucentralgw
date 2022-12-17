@@ -73,7 +73,7 @@ namespace OpenWifi {
 
 		volatile bool							valid_=false;
 		volatile bool							old_rtty_=true;
-		volatile bool 							disconnected_=false;
+		volatile bool 							connected_=false;
 		Poco::Net::SocketAddress				device_address_;
 		std::recursive_mutex	  				Mutex_;
 		std::string                   			id_;

@@ -108,8 +108,8 @@ namespace OpenWifi {
 			}
 			deviceIsRegistered_ = false;
 			WSClient_.reset();
-			if (!disconnected_) {
-				disconnected_ = true;
+			if (connected_) {
+				connected_ = false;
 				std::cout << "Device EndConnection Disconnect A: " << dev_id_ << "    v:" << v
 						  << std::endl;
 				RTTYS_server()->NotifyDeviceDisconnect(id_);
@@ -385,6 +385,7 @@ namespace OpenWifi {
 			if(!RTTYS_server()->NotifyDeviceRegistration(id_,token_,TID_)) {
 				return false;
 			}
+			connected_=true;
 			u_char OutBuf[8];
 			OutBuf[0] = msgTypeRegister;
 			OutBuf[1] = 0;		//	Data length
