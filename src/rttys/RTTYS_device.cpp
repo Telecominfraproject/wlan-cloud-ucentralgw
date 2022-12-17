@@ -138,7 +138,7 @@ namespace OpenWifi {
 
 			std::lock_guard		Guard(Mutex_);
 
-			if(!RegisteredWithReactor_)
+			if(!RegisteredWithReactor_ || !valid_)
 				return;
 
 			auto received_bytes = socket_.receiveBytes(inBuf_);
