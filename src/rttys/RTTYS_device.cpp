@@ -146,6 +146,7 @@ namespace OpenWifi {
 
 			auto received_bytes = socket_.receiveBytes(inBuf_);
 			if (received_bytes == 0) {
+				good = false;
 				poco_information(Logger(), fmt::format("{}: Device Closing connection - 0 bytes received.",id_));
 			} else {
 				while (inBuf_.isReadable() && good) {
