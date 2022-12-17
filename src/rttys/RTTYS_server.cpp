@@ -243,7 +243,7 @@ namespace OpenWifi {
 			}
 
 			NotificationDetails Notification = NotificationPtr->Data_;
-			NextNotification->release();
+			//  NextNotification->release();
 
 			auto It = EndPoints_.find(Notification.id_);
 			if (It != EndPoints_.end()) {
