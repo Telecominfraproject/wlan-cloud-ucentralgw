@@ -186,7 +186,7 @@ namespace OpenWifi {
 		for(auto device=ConnectingDevices_.begin();device!=ConnectingDevices_.end();) {
 			if(device->second.second-Utils::Now() > (5*60)) {
 				std::cout << __LINE__ << std::endl;
-				device->second.first->EndConnection(10);
+				// device->second.first->EndConnection(10);
 				std::cout << __LINE__ << std::endl;
 				device = ConnectingDevices_.erase(device);
 				std::cout << __LINE__ << std::endl;
