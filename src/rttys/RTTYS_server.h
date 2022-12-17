@@ -37,70 +37,81 @@ namespace OpenWifi {
 		device_connection
 	};
 
-	class RTTYS_Notification: public Poco::Notification {
-	  public:
-		RTTYS_Notification(const RTTYS_Notification_type &type,
-						   const std::string &id,
-						   std::shared_ptr<RTTYS_Device_ConnectionHandler> device) :
-		   	type_(type),
-	   		id_(id),
-			device_(std::move(device)) {
-		}
-
-		RTTYS_Notification(const RTTYS_Notification_type &type,
-						   const std::string &id) :
-			 type_(type),
-			 id_(id) {
-		}
-
-		RTTYS_Notification(const RTTYS_Notification_type &type,
-						   const std::string &id,
-						   std::shared_ptr<RTTYS_ClientConnection> client) :
-			type_(type),
-			id_(id),
-		 	client_(std::move(client)) {
-		}
-
-		RTTYS_Notification(const RTTYS_Notification_type &type,
-						   std::shared_ptr<RTTYS_Device_ConnectionHandler> device) :
-						 type_(type),
-						 device_(std::move(device)) {
-		}
-
-		RTTYS_Notification(const RTTYS_Notification_type &type,
-						   std::shared_ptr<RTTYS_Device_ConnectionHandler> device,
-						   std::uint64_t TID) :
-						 type_(type),
-						 device_(std::move(device)),
-						TID_(TID) {
-		}
-
-		RTTYS_Notification(const RTTYS_Notification_type &type,
-							const std::string &id,
-							const std::string &token,
-							std::shared_ptr<RTTYS_Device_ConnectionHandler> device) :
-				type_(type),
-				id_(id),
-				token_(token),
-			 	device_(device) {
-		}
-
-		RTTYS_Notification(const RTTYS_Notification_type &type,
-						   const std::string &id,
-						   const std::string &token,
-						   std::uint64_t TID) :
-			type_(type),
-			id_(id),
-			token_(token),
-			TID_(TID) {
-		}
-
+	struct NotificationDetails {
 		RTTYS_Notification_type			type_=RTTYS_Notification_type::unknown;
 		std::string						id_;
 		std::string 					token_;
 		std::shared_ptr<RTTYS_Device_ConnectionHandler>		device_;
 		std::shared_ptr<RTTYS_ClientConnection> 			client_;
 		std::uint64_t 					TID_=0;
+	};
+
+	class RTTYS_Notification: public Poco::Notification {
+	  public:
+		RTTYS_Notification(const RTTYS_Notification_type &type,
+						   const std::string &id,
+						   std::shared_ptr<RTTYS_Device_ConnectionHandler> device) {
+			Data_.type_ = type;
+			Data_.id_ = id;
+			Data_.device_ = std::move(device);
+		}
+
+		RTTYS_Notification(const RTTYS_Notification_type &type,
+						   const std::string &id) {
+			Data_.type_ = type;
+			Data_.id_ = id;
+		}
+
+		RTTYS_Notification(const RTTYS_Notification_type &type,
+						   const std::string &id,
+						   std::shared_ptr<RTTYS_ClientConnection> client){
+			Data_.type_ = type;
+			Data_.id_ = id;
+			Data_.client_ = std::move(client);
+		}
+
+		RTTYS_Notification(const RTTYS_Notification_type &type,
+						   std::shared_ptr<RTTYS_Device_ConnectionHandler> device) {
+			Data_.type_ = type;
+			Data_.device_ = std::move(device);
+		}
+
+		RTTYS_Notification(const RTTYS_Notification_type &type,
+						   std::shared_ptr<RTTYS_Device_ConnectionHandler> device,
+						   std::uint64_t TID) {
+			Data_.type_ = type;
+			Data_.device_ = std::move(device);
+			Data_.TID_ = TID;
+		}
+
+		RTTYS_Notification(const RTTYS_Notification_type &type,
+							const std::string &id,
+							const std::string &token,
+							std::shared_ptr<RTTYS_Device_ConnectionHandler> device) {
+			Data_.type_ = type;
+			Data_.id_ = id;
+			Data_.token_ = token;
+			Data_.device_ = std::move(device);
+		}
+
+		RTTYS_Notification(const RTTYS_Notification_type &type,
+						   const std::string &id,
+						   const std::string &token,
+						   std::uint64_t TID) {
+			Data_.type_ = type;
+			Data_.id_ = id;
+			Data_.token_ = token;
+			Data_.TID_ = TID;
+		}
+
+		NotificationDetails				Data_;
+/*		RTTYS_Notification_type			type_=RTTYS_Notification_type::unknown;
+		std::string						id_;
+		std::string 					token_;
+		std::shared_ptr<RTTYS_Device_ConnectionHandler>		device_;
+		std::shared_ptr<RTTYS_ClientConnection> 			client_;
+		std::uint64_t 					TID_=0;
+		*/
 	};
 
 	class RTTYS_EndPoint {

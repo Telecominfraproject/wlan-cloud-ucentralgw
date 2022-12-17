@@ -228,8 +228,8 @@ namespace OpenWifi {
 		NotificationManagerRunning_ = true;
 		while (NotificationManagerRunning_) {
 			Poco::AutoPtr<Poco::Notification> NextNotification(ResponseQueue_.waitDequeueNotification());
-			auto Notification = dynamic_cast<RTTYS_Notification *>(NextNotification.get());
-			if(!NotificationManagerRunning_ || Notification==nullptr) {
+			auto NotificationPtr = dynamic_cast<RTTYS_Notification *>(NextNotification.get());
+			if(!NotificationManagerRunning_ || NotificationPtr==nullptr) {
 				break;
 			}
 
@@ -242,9 +242,12 @@ namespace OpenWifi {
 				break;
 			}
 
-			auto It = EndPoints_.find(Notification->id_);
+			NotificationDetails Notification = NotificationPtr->Data_;
+			NotificationPtr->release();
+
+			auto It = EndPoints_.find(Notification.id_);
 			if (It != EndPoints_.end()) {
-				switch (Notification->type_) {
+				switch (Notification.type_) {
 				case RTTYS_Notification_type::device_disconnection: {
 					It->second->DisconnectDevice();
 				} break;
@@ -252,11 +255,11 @@ namespace OpenWifi {
 					It->second->DisconnectClient();
 				} break;
 				case RTTYS_Notification_type::device_registration: {
-					auto Device = ConnectingDevices_.find(Notification->TID_);
+					auto Device = ConnectingDevices_.find(Notification.TID_);
 					if(Device!=end(ConnectingDevices_)) {
 						//	 set the connection device
 						It->second->SetDevice(Device->second.first);
-						ConnectingDevices_.erase(Notification->TID_);
+						ConnectingDevices_.erase(Notification.TID_);
 						CrossConnect(It->second);
 						if (It->second->Joined()) {
 							LocalMutex_.unlock();
@@ -266,7 +269,7 @@ namespace OpenWifi {
 					}
 				} break;
 				case RTTYS_Notification_type::client_registration: {
-					It->second->SetClient(Notification->client_);
+					It->second->SetClient(Notification.client_);
 					CrossConnect(It->second);
 					if(It->second->Joined()) {
 						LocalMutex_.unlock();
@@ -276,24 +279,24 @@ namespace OpenWifi {
 				} break;
 				case RTTYS_Notification_type::device_connection: {
 					LocalMutex_.unlock();
-					Notification->device_->CompleteConnection();
+					Notification.device_->CompleteConnection();
 					continue;
 				} break;
 				case RTTYS_Notification_type::unknown: {
 				} break;
 				};
 			} else {
-				if(Notification->type_==RTTYS_Notification_type::device_connection) {
-					ConnectingDevices_[Notification->TID_] = std::make_pair(Notification->device_,Utils::Now());
+				if(Notification.type_==RTTYS_Notification_type::device_connection) {
+					ConnectingDevices_[Notification.TID_] = std::make_pair(Notification.device_,Utils::Now());
 					LocalMutex_.unlock();
-					Notification->device_->CompleteConnection();
+					Notification.device_->CompleteConnection();
 					continue;
-				} else if(Notification->type_==RTTYS_Notification_type::device_registration) {
+				} else if(Notification.type_==RTTYS_Notification_type::device_registration) {
 					FailedNumDevices_++;
-					FailedDevices.push_back(std::move(Notification->device_));
-				} else if(Notification->type_==RTTYS_Notification_type::client_registration) {
+					FailedDevices.push_back(std::move(Notification.device_));
+				} else if(Notification.type_==RTTYS_Notification_type::client_registration) {
 					FailedNumClients_++;
-					FailedClients.push_back(std::move(Notification->client_));
+					FailedClients.push_back(std::move(Notification.client_));
 				}
 			}
 			LocalMutex_.unlock();
