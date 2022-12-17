@@ -151,7 +151,7 @@ namespace OpenWifi {
 		static auto LastStats = Utils::Now();
 
 		while(!LocalMutex_.try_lock() && NotificationManagerRunning_) {
-//			std::cout << "Spin lock 2" << std::endl;
+			std::cout << "Spin lock 2" << std::endl;
 			Poco::Thread::yield();
 			Poco::Thread::trySleep(100);
 		}
@@ -170,7 +170,9 @@ namespace OpenWifi {
 				Logger().information(c);
 				TotalConnectedClientTime_ += element->second->TimeClientConnected();
 				TotalConnectedDeviceTime_ += element->second->TimeDeviceConnected();
+				std::cout << "Start Erasing connection" << std::endl;
 				element = EndPoints_.erase(element);
+				std::cout << "Done Erasing connection" << std::endl;
 			} else {
 				++element;
 			}
