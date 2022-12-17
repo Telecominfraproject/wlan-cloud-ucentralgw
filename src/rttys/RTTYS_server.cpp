@@ -227,7 +227,7 @@ namespace OpenWifi {
 		Utils::SetThreadName("rt:manager");
 		NotificationManagerRunning_ = true;
 		while (NotificationManagerRunning_) {
-			Poco::AutoPtr<Poco::Notification> NextNotification(ResponseQueue_.waitDequeueNotification());
+			Poco::AutoPtr<Poco::Notification> NextNotification = ResponseQueue_.waitDequeueNotification() ;
 			auto NotificationPtr = dynamic_cast<RTTYS_Notification *>(NextNotification.get());
 			if(!NotificationManagerRunning_ || NotificationPtr==nullptr) {
 				break;
