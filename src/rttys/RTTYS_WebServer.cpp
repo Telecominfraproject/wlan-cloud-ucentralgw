@@ -7,9 +7,8 @@
 #include "Poco/Net/HTTPServerRequest.h"
 #include "Poco/Net/HTTPServerResponse.h"
 
-#include "RTTYS_ClientConnection.h"
-#include "RTTYS_WebServer.h"
 #include "RTTYS_server.h"
+#include "RTTYS_WebServer.h"
 
 #include "fmt/format.h"
 #include "nlohmann/json.hpp"
@@ -37,7 +36,7 @@ namespace OpenWifi {
 		}
 
 		try {
-			RTTYS_server()->CreateNewClient(request,response,T[2]);
+			RTTYS_server()->CreateWSClient(request,response,T[2]);
 		} catch (...) {
 			poco_warning(Logger_,"Exception during WS creation");
 		}
