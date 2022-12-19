@@ -995,14 +995,11 @@ namespace OpenWifi {
             return BadRequest(RESTAPI::Errors::DeviceIsRestricted);
         }
 
-		DBGLINE;
-
 		if (MicroServiceConfigGetBool("rtty.enabled", false)) {
 			GWObjects::Device	Device;
 
 			if (StorageService()->GetDevice(SerialNumber_, Device)) {
 
-				DBGLINE;
 				GWObjects::RttySessionDetails Rtty{
 					.SerialNumber = SerialNumber_,
 					.Server = MicroServiceConfigGetString("rtty.server", "localhost"),
@@ -1016,19 +1013,12 @@ namespace OpenWifi {
 					.DevicePassword = ""
 				};
 
-				DBGLINE;
-
 				if(RTTYS_server()->UseInternal()) {
-					DBGLINE;
 					Rtty.Token = Utils::ComputeHash(UserInfo_.webtoken.refresh_token_,Utils::Now()).substr(0,RTTY_DEVICE_TOKEN_LENGTH);
-					DBGLINE;
 					if(!RTTYS_server()->CreateEndPoint(Rtty.ConnectionId, Rtty.Token, Requester(), SerialNumber_)) {
-						DBGLINE;
 						return BadRequest(RESTAPI::Errors::MaximumRTTYSessionsReached);
 					}
 				}
-
-				DBGLINE;
 
 				Poco::JSON::Object ReturnedObject;
 				Rtty.to_json(ReturnedObject);
@@ -1040,11 +1030,8 @@ namespace OpenWifi {
 				Cmd.UUID = CMD_UUID;
 				Cmd.Command = uCentralProtocol::RTTY;
 
-				DBGLINE;
-
 				Poco::JSON::Object Params;
 
-				DBGLINE;
 				Params.set(uCentralProtocol::METHOD, uCentralProtocol::RTTY);
 				Params.set(uCentralProtocol::SERIAL, SerialNumber_);
 				Params.set(uCentralProtocol::ID, Rtty.ConnectionId);
@@ -1055,11 +1042,9 @@ namespace OpenWifi {
 				Params.set(uCentralProtocol::TIMEOUT, Rtty.TimeOut);
 				Params.set(uCentralProtocol::PASSWORD, Device.DevicePassword);
 
-				DBGLINE;
 				std::stringstream ParamStream;
 				Params.stringify(ParamStream);
 				Cmd.Details = ParamStream.str();
-				DBGLINE;
 				poco_information(Logger_,fmt::format("RTTY: user={} serial={} rttyid={} token={} cmd={}.", Requester(), SerialNumber_, Rtty.ConnectionId, Rtty.Token, CMD_UUID));
 				return RESTAPI_RPC::WaitForCommand(CMD_RPC, APCommands::Commands::rtty,false,Cmd, Params, *Request, *Response, timeout, &ReturnedObject, this, Logger_);
 			}
@@ -1068,8 +1053,6 @@ namespace OpenWifi {
 		poco_information(Logger_,fmt::format("RTTY: user={} serial={}. Internal error.", Requester(), SerialNumber_));
 		return ReturnStatus(Poco::Net::HTTPResponse::HTTP_SERVICE_UNAVAILABLE);
 	}
-
-// #define DBG		{ std::cout << __LINE__ << std::endl; }
 
 	void RESTAPI_device_commandHandler::Telemetry(const std::string &CMD_UUID, uint64_t CMD_RPC, [[maybe_unused]] std::chrono::milliseconds timeout, [[maybe_unused]] const GWObjects::DeviceRestrictions &R){
 		poco_information(Logger_,fmt::format("TELEMETRY({},{}): TID={} user={} serial={}", CMD_UUID, CMD_RPC, TransactionId_, Requester(), SerialNumber_));
@@ -1088,7 +1071,6 @@ namespace OpenWifi {
 
 			std::stringstream 	oooss;
 			Obj->stringify(oooss);
-			// std::cout << "Payload:" << oooss.str() << std::endl;
 
 			std::uint64_t Lifetime = 60 * 60 ; // 1 hour
 			std::uint64_t Interval = 5;

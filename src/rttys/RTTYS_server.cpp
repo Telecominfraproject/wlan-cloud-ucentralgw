@@ -142,13 +142,9 @@ namespace OpenWifi {
 		if(Client->WSSocket_!= nullptr) {
 			Client->ClientDisconnected_ = std::chrono::high_resolution_clock::now();
 			TotalConnectedClientTime_ += Client->ClientDisconnected_ - Client->ClientConnected_;
-			DBGLINE;
 			RemoveClientEventHandlers(*Client->WSSocket_);
-			DBGLINE;
 			Connections_.erase(Client->WSSocket_->impl()->sockfd());
-			DBGLINE;
 			Client->WSSocket_.reset();
-			DBGLINE;
 		}
 	}
 
@@ -486,15 +482,10 @@ namespace OpenWifi {
 	}
 
 	void RTTYS_server::CloseConnection(std::shared_ptr<RTTYS_EndPoint> Connection) {
-		DBGLINE;
 		if(Connection!=nullptr) {
-			DBGLINE;
 			CloseDevice(Connection);
-			DBGLINE;
 			CloseClient(Connection);
-			DBGLINE;
 			EndPoints_.erase(Connection->Id_);
-			std::cout << "Count: " << Connection.use_count() << std::endl;
 		}
 	}
 
@@ -646,19 +637,15 @@ namespace OpenWifi {
 
 		//	OK Create and register this WS client
 		try {
-			DBGLINE;
 			Session->second->WSSocket_ = std::make_unique<Poco::Net::WebSocket>(request,response);
 			Session->second->ClientConnected_ = std::chrono::high_resolution_clock::now();
-			DBGLINE;
 			Session->second->WSSocket_->setBlocking(false);
 			Session->second->WSSocket_->setNoDelay(true);
 			Session->second->WSSocket_->setKeepAlive(true);
 			AddClientEventHandlers(*Session->second->WSSocket_);
 			Connections_[Session->second->WSSocket_->impl()->sockfd()] = Session->second;
 			if(Session->second->DeviceSocket_!= nullptr) {
-				DBGLINE;
 				Session->second->Login();
-				DBGLINE;
 			}
 		} catch (const Poco::Exception &E) {
 
@@ -695,19 +682,12 @@ namespace OpenWifi {
 	}
 
 	bool RTTYS_server::CreateEndPoint(const std::string &Id, const std::string & Token, const std::string & UserName, const std::string & SerialNumber ) {
-		DBGLINE;
 		std::lock_guard		Guard(ServerMutex_);
-		DBGLINE;
 		if(MaxConcurrentSessions_!=0 && EndPoints_.size()==MaxConcurrentSessions_) {
-			DBGLINE;
 			return false;
 		}
-
-		DBGLINE;
-		std::cout << "ID:" << Id << std::endl;
 		EndPoints_[Id] = std::make_unique<RTTYS_EndPoint>(Id,Token, SerialNumber, UserName );
 		++TotalEndPoints_;
-		DBGLINE;
 		return true;
 	}
 
@@ -956,16 +936,14 @@ namespace OpenWifi {
 		Token_(Token),
 		SerialNumber_(SerialNumber),
 		UserName_(UserName),
-		Logger_(Poco::Logger::create(fmt::format("RTTY-CONNECTION({}): ",SerialNumber), RTTYS_server()->Logger().getChannel(), RTTYS_server()->Logger().getLevel()))
+		Logger_(RTTYS_server()->Logger())
 	{
 		DeviceInBuf_ = std::make_unique<Poco::FIFOBuffer>(RTTY_DEVICE_BUFSIZE);
 		Created_ = std::chrono::high_resolution_clock::now();
 	}
 
 	RTTYS_EndPoint::~RTTYS_EndPoint() {
-		poco_information(Logger(),"Connection ending.");
-		std::cout << "Ending connection to " << SerialNumber_ << std::endl;
-		Logger_.release();
+		poco_information(Logger(),fmt::format("{}: Connection ending.", SerialNumber_));
 	}
 
 }
