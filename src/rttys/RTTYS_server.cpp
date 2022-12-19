@@ -686,13 +686,18 @@ namespace OpenWifi {
 	}
 
 	bool RTTYS_server::CreateEndPoint(const std::string &Id, const std::string & Token, const std::string & UserName, const std::string & SerialNumber ) {
+		DBGLINE;
 		std::lock_guard		Guard(ServerMutex_);
+		DBGLINE;
 		if(MaxConcurrentSessions_!=0 && EndPoints_.size()==MaxConcurrentSessions_) {
+			DBGLINE;
 			return false;
 		}
 
+		DBGLINE;
 		EndPoints_[Id] = std::make_unique<RTTYS_EndPoint>(Id,Token, SerialNumber, UserName );
 		++TotalEndPoints_;
+		DBGLINE;
 		return true;
 	}
 
