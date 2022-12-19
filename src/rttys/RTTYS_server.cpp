@@ -495,6 +495,7 @@ namespace OpenWifi {
 			DBGLINE;
 			CloseClient(Connection);
 			DBGLINE;
+			EndPoints_.erase(Connection->Id_);
 			std::cout << "Count: " << Connection.use_count() << std::endl;
 		}
 	}
@@ -543,18 +544,14 @@ namespace OpenWifi {
 									auto rows = Doc["rows"];
 									if (!Connection->WindowSize(cols, rows)) {
 										poco_information(Logger(),"Winsize shutdown.");
-										CloseConnection(Connection);
-										Connections_.erase(Client);
-										return;
+										return CloseConnection(Connection);
 									}
 								}
 							}
 						} catch (...) {
 							// just ignore parse errors
 							poco_information(Logger(),"Frame text exception shutdown.");
-							CloseConnection(Connection);
-							Connections_.erase(Client);
-							return;
+							return CloseConnection(Connection);
 						}
 					}
 				}
@@ -568,18 +565,14 @@ namespace OpenWifi {
 					if(Connection->DeviceSocket_!= nullptr) {
 						if (!Connection->KeyStrokes(FrameBuffer, ReceivedBytes)) {
 							poco_trace(Logger(),"Cannot send keys to device. Close connection.");
-							CloseConnection(Connection);
-							Connections_.erase(Client);
-							return;
+							return CloseConnection(Connection);
 						}
 					}
 				}
 			} break;
 			case Poco::Net::WebSocket::FRAME_OP_CLOSE: {
 				poco_trace(Logger(),"Frame close shutdown.");
-				CloseConnection(Connection);
-				Connections_.erase(Client);
-				return;
+				return CloseConnection(Connection);
 			} break;
 
 			default: {
@@ -589,7 +582,6 @@ namespace OpenWifi {
 			poco_error(Logger(),"Frame readable shutdown.");
 			if(Client!=Connections_.end()) {
 				CloseConnection(Connection);
-				Connections_.erase(Client);
 			}
 			return;
 		}
