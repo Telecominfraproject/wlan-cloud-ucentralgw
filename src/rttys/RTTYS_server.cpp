@@ -695,6 +695,7 @@ namespace OpenWifi {
 		}
 
 		DBGLINE;
+		std::cout << "ID:" << Id << std::endl;
 		EndPoints_[Id] = std::make_unique<RTTYS_EndPoint>(Id,Token, SerialNumber, UserName );
 		++TotalEndPoints_;
 		DBGLINE;
