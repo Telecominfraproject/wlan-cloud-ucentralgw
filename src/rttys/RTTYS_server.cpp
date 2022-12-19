@@ -487,7 +487,7 @@ namespace OpenWifi {
 		CloseConnection(Device->second);
 	}
 
-	void RTTYS_server::CloseConnection(std::shared_ptr<RTTYS_EndPoint> & Connection) {
+	void RTTYS_server::CloseConnection(std::shared_ptr<RTTYS_EndPoint> Connection) {
 		DBGLINE;
 		if(Connection!= nullptr) {
 			DBGLINE;

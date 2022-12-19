@@ -149,7 +149,6 @@ namespace OpenWifi {
 			return Internal_;
 		}
 
-		void CloseConnection(std::shared_ptr<RTTYS_EndPoint> & Connection);
 		std::string ReadString(unsigned char *buf, int len, int &pos);
 		void onDeviceAccept(const Poco::AutoPtr<Poco::Net::ReadableNotification>& pNf);
 
@@ -178,6 +177,7 @@ namespace OpenWifi {
 
 		void CloseDevice(std::shared_ptr<RTTYS_EndPoint> Device);
 		void CloseClient(std::shared_ptr<RTTYS_EndPoint> Client);
+		void CloseConnection(std::shared_ptr<RTTYS_EndPoint> Connection);
 
 
 		inline auto Uptime() const { return Utils::Now() - Started_; }
