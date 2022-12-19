@@ -245,12 +245,12 @@ namespace OpenWifi {
 
 			//	establish if this is an old rtty or a new one.
 			bool old_rtty_ = (Buffer[0] != 0x03);		//	rtty_proto_ver for full session ID inclusion
-			int pos=0;
+			int pos=3;
 			int session_length_=0;
 			if(old_rtty_) {
 				session_length_ = 1;
 			} else {
-				pos=1;
+				pos++;
 				session_length_ = RTTY_SESSION_ID_LENGTH;
 			}
 
