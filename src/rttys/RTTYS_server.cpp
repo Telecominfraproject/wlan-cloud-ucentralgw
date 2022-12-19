@@ -485,6 +485,7 @@ namespace OpenWifi {
 	}
 
 	void RTTYS_server::onClientSocketReadable(const Poco::AutoPtr<Poco::Net::ReadableNotification>& pNf) {
+
 		std::lock_guard	Guard(ServerMutex_);
 
 		auto Client = Connections_.end();
@@ -637,8 +638,8 @@ namespace OpenWifi {
 			Session->second->WSSocket_->setBlocking(false);
 			Session->second->WSSocket_->setNoDelay(true);
 			Session->second->WSSocket_->setKeepAlive(true);
-			AddClientEventHandlers(*Session->second->WSSocket_);
 			Connections_[Session->second->WSSocket_->impl()->sockfd()] = Session->second;
+			AddClientEventHandlers(*Session->second->WSSocket_);
 			if(Session->second->DeviceSocket_!= nullptr) {
 				Session->second->Login();
 			}
