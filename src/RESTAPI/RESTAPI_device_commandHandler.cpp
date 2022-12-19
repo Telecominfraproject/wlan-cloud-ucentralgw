@@ -986,6 +986,8 @@ namespace OpenWifi {
 		BadRequest(RESTAPI::Errors::MissingOrInvalidParameters);
 	}
 
+#define DBGLINE		{	std::cout << __LINE__ << std::endl; }
+
 	void RESTAPI_device_commandHandler::Rtty(const std::string &CMD_UUID, uint64_t CMD_RPC, std::chrono::milliseconds timeout, [[maybe_unused]] const GWObjects::DeviceRestrictions &R) {
 		poco_information(Logger_,fmt::format("RTTY({},{}): TID={} user={} serial={}", CMD_UUID, CMD_RPC, TransactionId_, Requester(), SerialNumber_));
 
@@ -993,11 +995,14 @@ namespace OpenWifi {
             return BadRequest(RESTAPI::Errors::DeviceIsRestricted);
         }
 
+		DBGLINE;
+
 		if (MicroServiceConfigGetBool("rtty.enabled", false)) {
 			GWObjects::Device	Device;
 
 			if (StorageService()->GetDevice(SerialNumber_, Device)) {
 
+				DBGLINE;
 				GWObjects::RttySessionDetails Rtty{
 					.SerialNumber = SerialNumber_,
 					.Server = MicroServiceConfigGetString("rtty.server", "localhost"),
@@ -1011,12 +1016,19 @@ namespace OpenWifi {
 					.DevicePassword = ""
 				};
 
+				DBGLINE;
+
 				if(RTTYS_server()->UseInternal()) {
+					DBGLINE;
 					Rtty.Token = Utils::ComputeHash(UserInfo_.webtoken.refresh_token_,Utils::Now()).substr(0,RTTY_DEVICE_TOKEN_LENGTH);
+					DBGLINE;
 					if(!RTTYS_server()->CreateEndPoint(Rtty.ConnectionId, Rtty.Token, Requester(), SerialNumber_)) {
+						DBGLINE;
 						return BadRequest(RESTAPI::Errors::MaximumRTTYSessionsReached);
 					}
 				}
+
+				DBGLINE;
 
 				Poco::JSON::Object ReturnedObject;
 				Rtty.to_json(ReturnedObject);
@@ -1028,8 +1040,11 @@ namespace OpenWifi {
 				Cmd.UUID = CMD_UUID;
 				Cmd.Command = uCentralProtocol::RTTY;
 
+				DBGLINE;
+
 				Poco::JSON::Object Params;
 
+				DBGLINE;
 				Params.set(uCentralProtocol::METHOD, uCentralProtocol::RTTY);
 				Params.set(uCentralProtocol::SERIAL, SerialNumber_);
 				Params.set(uCentralProtocol::ID, Rtty.ConnectionId);
@@ -1040,9 +1055,11 @@ namespace OpenWifi {
 				Params.set(uCentralProtocol::TIMEOUT, Rtty.TimeOut);
 				Params.set(uCentralProtocol::PASSWORD, Device.DevicePassword);
 
+				DBGLINE;
 				std::stringstream ParamStream;
 				Params.stringify(ParamStream);
 				Cmd.Details = ParamStream.str();
+				DBGLINE;
 				poco_information(Logger_,fmt::format("RTTY: user={} serial={} rttyid={} token={} cmd={}.", Requester(), SerialNumber_, Rtty.ConnectionId, Rtty.Token, CMD_UUID));
 				return RESTAPI_RPC::WaitForCommand(CMD_RPC, APCommands::Commands::rtty,false,Cmd, Params, *Request, *Response, timeout, &ReturnedObject, this, Logger_);
 			}
