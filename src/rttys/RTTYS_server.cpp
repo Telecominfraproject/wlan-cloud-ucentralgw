@@ -130,6 +130,8 @@ namespace OpenWifi {
 
 	void RTTYS_server::CloseDevice(std::shared_ptr<RTTYS_EndPoint> Device) {
 		if(Device->DeviceSocket_!= nullptr) {
+			Device->DeviceDisconnected_ = std::chrono::high_resolution_clock::now();
+			TotalConnectedDeviceTime_ += Device->DeviceDisconnected_ - Device->DeviceConnected_;
 			RemoveDeviceEventHandlers(*Device->DeviceSocket_);
 			Connections_.erase(Device->DeviceSocket_->impl()->sockfd());
 			Device->DeviceSocket_.reset();
@@ -138,6 +140,8 @@ namespace OpenWifi {
 
 	void RTTYS_server::CloseClient(std::shared_ptr<RTTYS_EndPoint> Client) {
 		if(Client->WSSocket_!= nullptr) {
+			Client->ClientDisconnected_ = std::chrono::high_resolution_clock::now();
+			TotalConnectedClientTime_ += Client->ClientDisconnected_ - Client->ClientConnected_;
 			DBGLINE;
 			RemoveClientEventHandlers(*Client->WSSocket_);
 			DBGLINE;
@@ -150,14 +154,11 @@ namespace OpenWifi {
 
 	void RTTYS_server::onDeviceAccept(const Poco::AutoPtr<Poco::Net::ReadableNotification> &pNf) {
 		std::lock_guard	Guard(ServerMutex_);
+
 		Poco::Net::SocketAddress	Client;
 		Poco::Net::StreamSocket NewSocket = pNf->socket().impl()->acceptConnection(Client);
-
 		AddConnectingDeviceEventHandlers(NewSocket);
-
-		DBGLINE;
 		ConnectingDevices_[ NewSocket.impl()->sockfd() ] = std::make_pair(NewSocket,std::chrono::high_resolution_clock::now());
-		DBGLINE;
 	}
 
 	void RTTYS_server::RemoveConnectingDeviceEventHandlers(Poco::Net::StreamSocket &Socket) {
@@ -301,8 +302,6 @@ namespace OpenWifi {
 				return false;
 			}
 
-			std::cout << __LINE__ << std::endl;
-
 			poco_information(Logger(), fmt::format("Description:{} Device registration", desc_));
 			//	find this device in our connectio end points...
 			auto Connection = FindConnection(id_,token_);
@@ -327,15 +326,14 @@ namespace OpenWifi {
 			}
 			RemoveConnectingDeviceEventHandlers(Socket);
 			Connection->DeviceSocket_ = std::make_unique<Poco::Net::StreamSocket>(Socket);
+			Connection->DeviceConnected_ = std::chrono::high_resolution_clock::now();
 			Connection->old_rtty_ = old_rtty_;
 			Connection->session_length_ = session_length_;
 			AddDeviceEventHandlers(*Connection->DeviceSocket_);
 			Connections_[ Connection->DeviceSocket_->impl()->sockfd() ] = Connection;
 			//	If Connection->WS is set, then login.
 			if(Connection->WSSocket_!= nullptr) {
-				DBGLINE;
 				Connection->Login();
-				DBGLINE;
 			}
 
 			return true;
@@ -650,6 +648,7 @@ namespace OpenWifi {
 		try {
 			DBGLINE;
 			Session->second->WSSocket_ = std::make_unique<Poco::Net::WebSocket>(request,response);
+			Session->second->ClientConnected_ = std::chrono::high_resolution_clock::now();
 			DBGLINE;
 			Session->second->WSSocket_->setBlocking(false);
 			Session->second->WSSocket_->setNoDelay(true);
@@ -673,14 +672,25 @@ namespace OpenWifi {
 		Utils::SetThreadName("rt:janitor");
 		static auto LastStats = Utils::Now();
 
-		if(Utils::Now()-LastStats>(60*5)) {
+		std::lock_guard		Guard(ServerMutex_);
+		auto Now = std::chrono::high_resolution_clock::now();
+		for(auto EndPoint=EndPoints_.begin();EndPoint!=EndPoints_.end();) {
+			if((Now - EndPoint->second->Created_)>2min && !EndPoint->second->completed_) {
+				CloseDevice(EndPoint->second);
+				CloseClient(EndPoint->second);
+				EndPoint = EndPoints_.erase(EndPoint);
+			} else {
+				++EndPoint;
+			}
+		}
+
+		if(Utils::Now()-LastStats>(60*1)) {
 			LastStats = Utils::Now();
-			Logger().information(fmt::format("Statistics: Total connections:{} Total Device Connection Time: {}s  Total Client Connection Time: {}s Device failures: {} Client failures: {}",
+			Logger().information(fmt::format("Statistics: Total connections:{} Total Device Connection Time: {}s  Total Client Connection Time: {}s Current number of sockets: {}",
 				TotalEndPoints_,
-				TotalConnectedDeviceTime_,
-				TotalConnectedClientTime_,
-				FailedNumDevices_,
-				FailedNumClients_));
+				TotalEndPoints_ ? TotalConnectedDeviceTime_.count() / (double)TotalEndPoints_ : 0.0,
+				TotalEndPoints_ ? TotalConnectedClientTime_.count() / (double)TotalEndPoints_ : 0.0,
+				Connections_.size() ));
 		}
 	}
 
@@ -780,6 +790,7 @@ namespace OpenWifi {
 				poco_information(Logger(), "Device login");
 				auto Sent = DeviceSocket_->sendBytes(outBuf, RTTY_HDR_SIZE +
 														  (old_rtty_ ? 0 : RTTY_SESSION_ID_LENGTH));
+				completed_ = true ;
 				return Sent == (int)(RTTY_HDR_SIZE + (old_rtty_ ? 0 : RTTY_SESSION_ID_LENGTH));
 			} catch (const Poco::IOException &E) {
 				return false;

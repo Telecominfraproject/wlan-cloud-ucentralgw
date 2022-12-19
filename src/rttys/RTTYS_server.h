@@ -117,9 +117,9 @@ namespace OpenWifi {
 		std::size_t      			  				waiting_for_bytes_{0};
 		u_char 						  				last_command_=0;
 		unsigned char 								small_buf_[64+RTTY_SESSION_ID_LENGTH];
-		volatile bool								deviceIsRegistered_=false;
 		std::uint64_t 								TID_=0;
 		bool										old_rtty_=false;
+		bool 										completed_=false;
 
 		std::chrono::time_point<std::chrono::high_resolution_clock>
 			Created_{0s},DeviceDisconnected_{0s},
@@ -220,10 +220,8 @@ namespace OpenWifi {
 		std::recursive_mutex									ServerMutex_;
 
 		std::atomic_uint64_t 						TotalEndPoints_=0;
-		std::atomic_uint64_t 						FailedNumDevices_=0;
-		std::atomic_uint64_t 						FailedNumClients_=0;
-		double 										TotalConnectedDeviceTime_=0.0;
-		double 										TotalConnectedClientTime_=0.0;
+		std::chrono::duration<double,std::milli>	TotalConnectedDeviceTime_{0ms},
+													TotalConnectedClientTime_{0ms};
 
 		std::atomic_uint64_t						Started_=Utils::Now();
 		std::atomic_uint64_t						MaxConcurrentSessions_=0;
