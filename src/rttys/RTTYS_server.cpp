@@ -138,9 +138,13 @@ namespace OpenWifi {
 
 	void RTTYS_server::CloseClient(std::shared_ptr<RTTYS_EndPoint> Client) {
 		if(Client->WSSocket_!= nullptr) {
+			DBGLINE;
 			RemoveClientEventHandlers(*Client->WSSocket_);
+			DBGLINE;
 			Connections_.erase(Client->WSSocket_->impl()->sockfd());
+			DBGLINE;
 			Client->WSSocket_.reset();
+			DBGLINE;
 		}
 	}
 
