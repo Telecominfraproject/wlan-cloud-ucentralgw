@@ -327,7 +327,9 @@ namespace OpenWifi {
 			Connections_[ Connection->DeviceSocket_->impl()->sockfd() ] = Connection;
 			//	If Connection->WS is set, then login.
 			if(Connection->WSSocket_!= nullptr) {
+				DBGLINE;
 				Connection->Login();
+				DBGLINE;
 			}
 
 			return true;
@@ -653,7 +655,9 @@ namespace OpenWifi {
 			Session->second->WSSocket_->setKeepAlive(true);
 			AddClientEventHandlers(*Session->second->WSSocket_);
 			if(Session->second->DeviceSocket_!= nullptr) {
+				DBGLINE;
 				Session->second->Login();
+				DBGLINE;
 			}
 			Connections_[Session->second->WSSocket_->impl()->sockfd()] = Session->second;
 
