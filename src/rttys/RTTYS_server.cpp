@@ -238,27 +238,33 @@ namespace OpenWifi {
 	void RTTYS_server::onConnectingDeviceData(const Poco::AutoPtr<Poco::Net::ReadableNotification> &pNf) {
 		std::lock_guard	Guard(ServerMutex_);
 
-		auto ConnectingDevice = ConnectingDevices_.find(pNf->socket().impl()->sockfd());
-		if(ConnectingDevice==end(ConnectingDevices_)) {
-			poco_warning(Logger(), "Cannot find connecting socket.");
-			return;
-		}
+		auto ConnectingDevice = ConnectingDevices_.end();
 
-		//	We are waiting for this device to register, so we can only accept regitration and hertbeat
-		unsigned char Buffer[1024];
-		auto ReceivedBytes = ConnectingDevice->second.first.receiveBytes(Buffer, sizeof(Buffer));
-		if(ReceivedBytes==0) {
-			RemoveConnectingDeviceEventHandlers(ConnectingDevice->second.first);
-			ConnectingDevices_.erase(pNf->socket().impl()->sockfd());
-			return;
-		}
+		try {
+			ConnectingDevice = ConnectingDevices_.find(pNf->socket().impl()->sockfd());
+			if (ConnectingDevice == end(ConnectingDevices_)) {
+				std::cout << "Cannot find connecting socket." << std::endl;
+				poco_warning(Logger(), "Cannot find connecting socket.");
+				return;
+			}
 
-		//	Process the command
-		bool good = true;
-		switch(Buffer[0]) {
+			//	We are waiting for this device to register, so we can only accept regitration and hertbeat
+			unsigned char Buffer[1024];
+			auto ReceivedBytes =
+				ConnectingDevice->second.first.receiveBytes(Buffer, sizeof(Buffer));
+			if (ReceivedBytes == 0) {
+				std::cout << "Connecting socket closing." << std::endl;
+				RemoveConnectingDeviceEventHandlers(ConnectingDevice->second.first);
+				ConnectingDevices_.erase(pNf->socket().impl()->sockfd());
+				return;
+			}
+
+			//	Process the command
+			bool good = true;
+			switch (Buffer[0]) {
 			case RTTYS_EndPoint::msgTypeRegister: {
 				good = do_msgTypeRegister(ConnectingDevice->second.first, Buffer, ReceivedBytes);
-				if(good) {
+				if (good) {
 					ConnectingDevices_.erase(pNf->socket().impl()->sockfd());
 				}
 			} break;
@@ -266,14 +272,28 @@ namespace OpenWifi {
 				good = do_msgTypeHeartbeat(ConnectingDevice->second.first);
 			} break;
 			default: {
-				poco_warning(Logger(),"Device violated protocol");
+				poco_warning(Logger(), "Device violated protocol");
 				good = false;
 			}
-		}
+			}
 
-		if(!good) {
-			RemoveConnectingDeviceEventHandlers(ConnectingDevice->second.first);
-			ConnectingDevices_.erase(pNf->socket().impl()->sockfd());
+			if (!good) {
+				RemoveConnectingDeviceEventHandlers(ConnectingDevice->second.first);
+				ConnectingDevices_.erase(pNf->socket().impl()->sockfd());
+			}
+		} catch (const Poco::Exception &E) {
+			std::cout << "Poco::Exception connecting socket." << std::endl;
+			if(ConnectingDevice!=ConnectingDevices_.end()) {
+				RemoveConnectingDeviceEventHandlers(ConnectingDevice->second.first);
+				ConnectingDevices_.erase(pNf->socket().impl()->sockfd());
+			}
+
+		} catch (...) {
+			std::cout << "std::exception connecting socket." << std::endl;
+			if(ConnectingDevice!=ConnectingDevices_.end()) {
+				RemoveConnectingDeviceEventHandlers(ConnectingDevice->second.first);
+				ConnectingDevices_.erase(pNf->socket().impl()->sockfd());
+			}
 		}
 	}
 
