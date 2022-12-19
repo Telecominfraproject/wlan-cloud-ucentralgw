@@ -288,6 +288,7 @@ namespace OpenWifi {
 				*Connection->DeviceSocket_, Poco::NObserver<RTTYS_server, Poco::Net::ErrorNotification>(
 							   *this, &RTTYS_server::onDeviceSocketError));
 
+			Connections_[ Connection->DeviceSocket_->impl()->sockfd() ] = Connection;
 			//	If Connection->WS is set, then login.
 			if(Connection->WSSocket_!= nullptr) {
 				Connection->Login();
@@ -614,9 +615,13 @@ namespace OpenWifi {
 			Reactor_.addEventHandler(
 				*Session->second->WSSocket_, Poco::NObserver<RTTYS_server, Poco::Net::ShutdownNotification>(
 						  *this, &RTTYS_server::onClientSocketShutdown));
+			Reactor_.addEventHandler(
+				*Session->second->WSSocket_, Poco::NObserver<RTTYS_server, Poco::Net::ErrorNotification>(
+												 *this, &RTTYS_server::onClientSocketError));
 			if(Session->second->DeviceSocket_!= nullptr) {
 				Session->second->Login();
 			}
+			Connections_[Session->second->WSSocket_->impl()->sockfd()] = Session->second;
 
 		} catch (const Poco::Exception &E) {
 
