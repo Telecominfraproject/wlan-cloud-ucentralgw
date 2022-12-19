@@ -13,6 +13,8 @@
 #include "Poco/Net/SocketNotification.h"
 #include "Poco/NObserver.h"
 
+#define DBGLINE		{	std::cout << __LINE__ << std::endl; }
+
 namespace OpenWifi {
 
 	int RTTYS_server::Start() {
@@ -147,9 +149,9 @@ namespace OpenWifi {
 
 		AddConnectingDeviceEventHandlers(NewSocket);
 
-		std::cout << __LINE__ << std::endl;
+		DBGLINE;
 		ConnectingDevices_[ NewSocket.impl()->sockfd() ] = std::make_pair(NewSocket,std::chrono::high_resolution_clock::now());
-		std::cout << __LINE__ << std::endl;
+		DBGLINE;
 	}
 
 	void RTTYS_server::RemoveConnectingDeviceEventHandlers(Poco::Net::StreamSocket &Socket) {
@@ -285,15 +287,9 @@ namespace OpenWifi {
 				session_length_ = RTTY_SESSION_ID_LENGTH;
 			}
 
-			std::cout << __LINE__ << std::endl;
 			std::string id_ = ReadString(Buffer,Len,pos);
 			std::string desc_ = ReadString(Buffer,Len,pos);
 			std::string token_ = ReadString(Buffer,Len,pos);
-			std::cout << __LINE__ << std::endl;
-
-			std::cout << id_ << std::endl;
-			std::cout << desc_ << std::endl;
-			std::cout << token_ << std::endl;
 
 			if(id_.size()!=RTTY_DEVICE_TOKEN_LENGTH || token_.size()!=RTTY_DEVICE_TOKEN_LENGTH || desc_.empty()) {
 				return false;
@@ -484,9 +480,13 @@ namespace OpenWifi {
 	}
 
 	void RTTYS_server::CloseConnection(std::shared_ptr<RTTYS_EndPoint> & Connection) {
+		DBGLINE;
 		if(Connection!= nullptr) {
+			DBGLINE;
 			CloseDevice(Connection);
+			DBGLINE;
 			CloseClient(Connection);
+			DBGLINE;
 		}
 	}
 
