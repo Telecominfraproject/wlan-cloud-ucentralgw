@@ -654,13 +654,12 @@ namespace OpenWifi {
 			Session->second->WSSocket_->setNoDelay(true);
 			Session->second->WSSocket_->setKeepAlive(true);
 			AddClientEventHandlers(*Session->second->WSSocket_);
+			Connections_[Session->second->WSSocket_->impl()->sockfd()] = Session->second;
 			if(Session->second->DeviceSocket_!= nullptr) {
 				DBGLINE;
 				Session->second->Login();
 				DBGLINE;
 			}
-			Connections_[Session->second->WSSocket_->impl()->sockfd()] = Session->second;
-
 		} catch (const Poco::Exception &E) {
 
 		} catch (...) {
