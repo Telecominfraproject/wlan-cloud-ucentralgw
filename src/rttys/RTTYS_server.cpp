@@ -669,8 +669,9 @@ namespace OpenWifi {
 
 		if(Utils::Now()-LastStats>(60*1)) {
 			LastStats = Utils::Now();
-			Logger().information(fmt::format("Statistics: Total connections:{} Total Device Connection Time: {}s  Total Client Connection Time: {}s Current number of sockets: {}. Connecting devices: {}",
+			Logger().information(fmt::format("Statistics: Total connections:{} Current-connections:{} Avg-Device-Connection Time: {:.2f}ms Avg-Client-Connection Time: {:.2f}ms #Sockets: {}. Connecting devices: {}",
 				TotalEndPoints_,
+				EndPoints_.size(),
 				TotalEndPoints_ ? TotalConnectedDeviceTime_.count() / (double)TotalEndPoints_ : 0.0,
 				TotalEndPoints_ ? TotalConnectedClientTime_.count() / (double)TotalEndPoints_ : 0.0,
 				Connections_.size(),
