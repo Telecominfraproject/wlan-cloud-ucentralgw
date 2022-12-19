@@ -260,6 +260,10 @@ namespace OpenWifi {
 			std::string token_ = ReadString(Buffer,Len,pos);
 			std::cout << __LINE__ << std::endl;
 
+			std::cout << id_ << std::endl;
+			std::cout << desc_ << std::endl;
+			std::cout << token_ << std::endl;
+
 			if(id_.size()!=RTTY_DEVICE_TOKEN_LENGTH || token_.size()!=RTTY_DEVICE_TOKEN_LENGTH || desc_.empty()) {
 				return false;
 			}
