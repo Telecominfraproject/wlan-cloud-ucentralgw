@@ -956,14 +956,16 @@ namespace OpenWifi {
 		Token_(Token),
 		SerialNumber_(SerialNumber),
 		UserName_(UserName),
-		Logger_(Poco::Logger::create(fmt::format("RTTY-CONNECTION({}: ",SerialNumber), RTTYS_server()->Logger().getChannel(), RTTYS_server()->Logger().getLevel()))
+		Logger_(Poco::Logger::create(fmt::format("RTTY-CONNECTION({}): ",SerialNumber), RTTYS_server()->Logger().getChannel(), RTTYS_server()->Logger().getLevel()))
 	{
 		DeviceInBuf_ = std::make_unique<Poco::FIFOBuffer>(RTTY_DEVICE_BUFSIZE);
 		Created_ = std::chrono::high_resolution_clock::now();
 	}
 
 	RTTYS_EndPoint::~RTTYS_EndPoint() {
+		poco_information(Logger(),"Connection ending.");
 		std::cout << "Ending connection to " << SerialNumber_ << std::endl;
+		Logger_.release();
 	}
 
 }
