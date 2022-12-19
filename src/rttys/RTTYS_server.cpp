@@ -708,6 +708,7 @@ namespace OpenWifi {
 		Utils::SetThreadName("rt:janitor");
 		static auto LastStats = Utils::Now();
 
+		std::cout << "OnTimer: Start" << std::endl;
 		std::lock_guard		Guard(ServerMutex_);
 		auto Now = std::chrono::high_resolution_clock::now();
 		for(auto EndPoint=EndPoints_.begin();EndPoint!=EndPoints_.end();) {
@@ -730,6 +731,8 @@ namespace OpenWifi {
 				Connections_.size(),
 				ConnectingDevices_.size() ));
 		}
+
+		std::cout << "OnTimer: End" << std::endl;
 	}
 
 	bool RTTYS_server::CreateEndPoint(const std::string &Id, const std::string & Token, const std::string & UserName, const std::string & SerialNumber ) {
