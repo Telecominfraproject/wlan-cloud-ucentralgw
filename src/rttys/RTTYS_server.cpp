@@ -151,10 +151,16 @@ namespace OpenWifi {
 	void RTTYS_server::onDeviceAccept(const Poco::AutoPtr<Poco::Net::ReadableNotification> &pNf) {
 		std::lock_guard	Guard(ServerMutex_);
 
-		Poco::Net::SocketAddress	Client;
-		Poco::Net::StreamSocket NewSocket = pNf->socket().impl()->acceptConnection(Client);
-		AddConnectingDeviceEventHandlers(NewSocket);
-		ConnectingDevices_[ NewSocket.impl()->sockfd() ] = std::make_pair(NewSocket,std::chrono::high_resolution_clock::now());
+		try {
+			Poco::Net::SocketAddress Client;
+			Poco::Net::StreamSocket NewSocket = pNf->socket().impl()->acceptConnection(Client);
+			AddConnectingDeviceEventHandlers(NewSocket);
+			ConnectingDevices_[NewSocket.impl()->sockfd()] =
+				std::make_pair(NewSocket, std::chrono::high_resolution_clock::now());
+		} catch (const Poco::Exception &E) {
+			std::cout << "Exception onDeviceAccept" << std::endl;
+			Logger().log(E);
+		}
 	}
 
 	void RTTYS_server::RemoveConnectingDeviceEventHandlers(Poco::Net::StreamSocket &Socket) {
