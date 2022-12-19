@@ -489,12 +489,13 @@ namespace OpenWifi {
 
 	void RTTYS_server::CloseConnection(std::shared_ptr<RTTYS_EndPoint> Connection) {
 		DBGLINE;
-		if(Connection!= nullptr) {
+		if(Connection!=nullptr) {
 			DBGLINE;
 			CloseDevice(Connection);
 			DBGLINE;
 			CloseClient(Connection);
 			DBGLINE;
+			std::cout << "Count: " << Connection.use_count() << std::endl;
 		}
 	}
 
