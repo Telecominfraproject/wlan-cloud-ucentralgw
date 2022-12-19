@@ -176,7 +176,9 @@ namespace OpenWifi {
 			NewSocket, Poco::NObserver<RTTYS_server, Poco::Net::ErrorNotification>(
 						   *this, &RTTYS_server::onConnectingDeviceError));
 
+		std::cout << __LINE__ << std::endl;
 		ConnectingDevices_[ NewSocket.impl()->sockfd() ] = std::make_pair(NewSocket,std::chrono::high_resolution_clock::now());
+		std::cout << __LINE__ << std::endl;
 	}
 
 	void RTTYS_server::RemoveConnectingDeviceEventHandlers(Poco::Net::StreamSocket &Socket) {
@@ -194,11 +196,14 @@ namespace OpenWifi {
 	void RTTYS_server::onConnectingDeviceData(const Poco::AutoPtr<Poco::Net::ReadableNotification> &pNf) {
 		std::lock_guard	Guard(ServerMutex_);
 
+		std::cout << __LINE__ << std::endl;
 		auto ConnectingDevice = ConnectingDevices_.find(pNf->socket().impl()->sockfd());
 		if(ConnectingDevice==end(ConnectingDevices_)) {
 			poco_warning(Logger(), "Cannot find connecting socket.");
 			return;
 		}
+
+		std::cout << __LINE__ << std::endl;
 
 		//	We are waiting for this device to register, so we can only accept regitration and hertbeat
 		unsigned char Buffer[1024];
@@ -208,6 +213,7 @@ namespace OpenWifi {
 			ConnectingDevices_.erase(pNf->socket().impl()->sockfd());
 			return;
 		}
+		std::cout << __LINE__ << std::endl;
 
 		//	Process the command
 		bool good = true;
@@ -224,15 +230,19 @@ namespace OpenWifi {
 			}
 		}
 
+		std::cout << __LINE__ << std::endl;
 		if(!good) {
 			RemoveConnectingDeviceEventHandlers(ConnectingDevice->second.first);
 			ConnectingDevices_.erase(pNf->socket().impl()->sockfd());
 		}
+		std::cout << __LINE__ << std::endl;
 	}
 
 	bool RTTYS_server::do_msgTypeRegister(Poco::Net::StreamSocket &Socket, unsigned char *Buffer, int Len) {
 		bool good = true;
 		try {
+			std::cout << __LINE__ << std::endl;
+
 			//	establish if this is an old rtty or a new one.
 			bool old_rtty_ = (Buffer[0] != 0x03);		//	rtty_proto_ver for full session ID inclusion
 			int pos=0;
@@ -244,13 +254,17 @@ namespace OpenWifi {
 				session_length_ = RTTY_SESSION_ID_LENGTH;
 			}
 
+			std::cout << __LINE__ << std::endl;
 			std::string id_ = ReadString(Buffer,Len,pos);
 			std::string desc_ = ReadString(Buffer,Len,pos);
 			std::string token_ = ReadString(Buffer,Len,pos);
+			std::cout << __LINE__ << std::endl;
 
 			if(id_.size()!=RTTY_DEVICE_TOKEN_LENGTH || token_.size()!=RTTY_DEVICE_TOKEN_LENGTH || desc_.empty()) {
 				return false;
 			}
+
+			std::cout << __LINE__ << std::endl;
 
 			poco_information(Logger(), fmt::format("Description:{} Device registration", desc_));
 			//	find this device in our connectio end points...
