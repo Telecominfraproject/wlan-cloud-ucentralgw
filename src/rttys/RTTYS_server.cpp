@@ -215,13 +215,13 @@ namespace OpenWifi {
 	}
 
 	void RTTYS_server::AddDeviceEventHandlers(Poco::Net::StreamSocket &Socket) {
-		Reactor_.removeEventHandler(Socket,
+		Reactor_.addEventHandler(Socket,
 									Poco::NObserver<RTTYS_server, Poco::Net::ReadableNotification>(
 										*this, &RTTYS_server::onDeviceSocketReadable));
-		Reactor_.removeEventHandler(Socket,
+		Reactor_.addEventHandler(Socket,
 									Poco::NObserver<RTTYS_server, Poco::Net::ShutdownNotification>(
 										*this, &RTTYS_server::onDeviceSocketShutdown));
-		Reactor_.removeEventHandler(Socket,
+		Reactor_.addEventHandler(Socket,
 									Poco::NObserver<RTTYS_server, Poco::Net::ErrorNotification>(
 										*this, &RTTYS_server::onDeviceSocketError));
 	}
