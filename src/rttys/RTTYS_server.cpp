@@ -128,35 +128,14 @@ namespace OpenWifi {
 
 	void RTTYS_server::CloseDevice(std::shared_ptr<RTTYS_EndPoint> Device) {
 		if(Device->DeviceSocket_!= nullptr) {
-			Reactor_.removeEventHandler(
-				*Device->DeviceSocket_,
-				Poco::NObserver<RTTYS_server, Poco::Net::ReadableNotification>(
-					*this, &RTTYS_server::onDeviceSocketReadable));
-			Reactor_.removeEventHandler(
-				*Device->DeviceSocket_,
-				Poco::NObserver<RTTYS_server, Poco::Net::ShutdownNotification>(
-					*this, &RTTYS_server::onDeviceSocketShutdown));
-			Reactor_.removeEventHandler(
-				*Device->DeviceSocket_,
-				Poco::NObserver<RTTYS_server, Poco::Net::ErrorNotification>(
-					*this, &RTTYS_server::onDeviceSocketError));
-			Connections_.erase(Device->DeviceSocket_->impl()->sockfd());
+			RemoveDeviceEventHandlers(*Device->DeviceSocket_);
 			Device->DeviceSocket_.reset();
 		}
 	}
 
 	void RTTYS_server::CloseClient(std::shared_ptr<RTTYS_EndPoint> Client) {
 		if(Client->WSSocket_!= nullptr) {
-			Reactor_.removeEventHandler(*Client->WSSocket_,
-									 Poco::NObserver<RTTYS_server, Poco::Net::ReadableNotification>(
-										 *this, &RTTYS_server::onClientSocketReadable));
-			Reactor_.removeEventHandler(*Client->WSSocket_,
-									 Poco::NObserver<RTTYS_server, Poco::Net::ShutdownNotification>(
-										 *this, &RTTYS_server::onClientSocketShutdown));
-			Reactor_.removeEventHandler(*Client->WSSocket_,
-										Poco::NObserver<RTTYS_server, Poco::Net::ErrorNotification>(
-											*this, &RTTYS_server::onClientSocketError));
-			Connections_.erase(Client->WSSocket_->impl()->sockfd());
+			RemoveClientEventHandlers(*Client->WSSocket_);
 			Client->WSSocket_.reset();
 		}
 	}
@@ -166,15 +145,7 @@ namespace OpenWifi {
 		Poco::Net::SocketAddress	Client;
 		Poco::Net::StreamSocket NewSocket = pNf->socket().impl()->acceptConnection(Client);
 
-		Reactor_.addEventHandler(
-			NewSocket, Poco::NObserver<RTTYS_server, Poco::Net::ReadableNotification>(
-											 *this, &RTTYS_server::onConnectingDeviceData));
-		Reactor_.addEventHandler(
-			NewSocket, Poco::NObserver<RTTYS_server, Poco::Net::ShutdownNotification>(
-											 *this, &RTTYS_server::onConnectingDeviceShutdown));
-		Reactor_.addEventHandler(
-			NewSocket, Poco::NObserver<RTTYS_server, Poco::Net::ErrorNotification>(
-						   *this, &RTTYS_server::onConnectingDeviceError));
+		AddConnectingDeviceEventHandlers(NewSocket);
 
 		std::cout << __LINE__ << std::endl;
 		ConnectingDevices_[ NewSocket.impl()->sockfd() ] = std::make_pair(NewSocket,std::chrono::high_resolution_clock::now());
@@ -193,17 +164,74 @@ namespace OpenWifi {
 										*this, &RTTYS_server::onConnectingDeviceError));
 	}
 
+	void RTTYS_server::RemoveClientEventHandlers(Poco::Net::StreamSocket &Socket) {
+		Reactor_.removeEventHandler(Socket,
+									Poco::NObserver<RTTYS_server, Poco::Net::ReadableNotification>(
+										*this, &RTTYS_server::onClientSocketReadable));
+		Reactor_.removeEventHandler(Socket,
+									Poco::NObserver<RTTYS_server, Poco::Net::ShutdownNotification>(
+										*this, &RTTYS_server::onClientSocketShutdown));
+		Reactor_.removeEventHandler(Socket,
+									Poco::NObserver<RTTYS_server, Poco::Net::ErrorNotification>(
+										*this, &RTTYS_server::onClientSocketError));
+	}
+
+	void RTTYS_server::RemoveDeviceEventHandlers(Poco::Net::StreamSocket &Socket) {
+		Reactor_.removeEventHandler(Socket,
+									Poco::NObserver<RTTYS_server, Poco::Net::ReadableNotification>(
+										*this, &RTTYS_server::onDeviceSocketReadable));
+		Reactor_.removeEventHandler(Socket,
+									Poco::NObserver<RTTYS_server, Poco::Net::ShutdownNotification>(
+										*this, &RTTYS_server::onDeviceSocketShutdown));
+		Reactor_.removeEventHandler(Socket,
+									Poco::NObserver<RTTYS_server, Poco::Net::ErrorNotification>(
+										*this, &RTTYS_server::onDeviceSocketError));
+	}
+
+	void RTTYS_server::AddConnectingDeviceEventHandlers(Poco::Net::StreamSocket &Socket) {
+		Reactor_.addEventHandler(Socket,
+									Poco::NObserver<RTTYS_server, Poco::Net::ReadableNotification>(
+										*this, &RTTYS_server::onConnectingDeviceData));
+		Reactor_.addEventHandler(Socket,
+									Poco::NObserver<RTTYS_server, Poco::Net::ShutdownNotification>(
+										*this, &RTTYS_server::onConnectingDeviceShutdown));
+		Reactor_.addEventHandler(Socket,
+									Poco::NObserver<RTTYS_server, Poco::Net::ErrorNotification>(
+										*this, &RTTYS_server::onConnectingDeviceError));
+	}
+
+	void RTTYS_server::AddClientEventHandlers(Poco::Net::StreamSocket &Socket) {
+		Reactor_.addEventHandler(Socket,
+									Poco::NObserver<RTTYS_server, Poco::Net::ReadableNotification>(
+										*this, &RTTYS_server::onClientSocketReadable));
+		Reactor_.addEventHandler(Socket,
+									Poco::NObserver<RTTYS_server, Poco::Net::ShutdownNotification>(
+										*this, &RTTYS_server::onClientSocketShutdown));
+		Reactor_.addEventHandler(Socket,
+									Poco::NObserver<RTTYS_server, Poco::Net::ErrorNotification>(
+										*this, &RTTYS_server::onClientSocketError));
+	}
+
+	void RTTYS_server::AddDeviceEventHandlers(Poco::Net::StreamSocket &Socket) {
+		Reactor_.removeEventHandler(Socket,
+									Poco::NObserver<RTTYS_server, Poco::Net::ReadableNotification>(
+										*this, &RTTYS_server::onDeviceSocketReadable));
+		Reactor_.removeEventHandler(Socket,
+									Poco::NObserver<RTTYS_server, Poco::Net::ShutdownNotification>(
+										*this, &RTTYS_server::onDeviceSocketShutdown));
+		Reactor_.removeEventHandler(Socket,
+									Poco::NObserver<RTTYS_server, Poco::Net::ErrorNotification>(
+										*this, &RTTYS_server::onDeviceSocketError));
+	}
+
 	void RTTYS_server::onConnectingDeviceData(const Poco::AutoPtr<Poco::Net::ReadableNotification> &pNf) {
 		std::lock_guard	Guard(ServerMutex_);
 
-		std::cout << __LINE__ << std::endl;
 		auto ConnectingDevice = ConnectingDevices_.find(pNf->socket().impl()->sockfd());
 		if(ConnectingDevice==end(ConnectingDevices_)) {
 			poco_warning(Logger(), "Cannot find connecting socket.");
 			return;
 		}
-
-		std::cout << __LINE__ << std::endl;
 
 		//	We are waiting for this device to register, so we can only accept regitration and hertbeat
 		unsigned char Buffer[1024];
@@ -220,6 +248,9 @@ namespace OpenWifi {
 		switch(Buffer[0]) {
 			case RTTYS_EndPoint::msgTypeRegister: {
 				good = do_msgTypeRegister(ConnectingDevice->second.first, Buffer, ReceivedBytes);
+				if(good) {
+					ConnectingDevices_.erase(pNf->socket().impl()->sockfd());
+				}
 			} break;
 			case RTTYS_EndPoint::msgTypeHeartbeat: {
 				good = do_msgTypeHeartbeat(ConnectingDevice->second.first);
@@ -296,16 +327,7 @@ namespace OpenWifi {
 			Connection->DeviceSocket_ = std::make_unique<Poco::Net::StreamSocket>(Socket);
 			Connection->old_rtty_ = old_rtty_;
 			Connection->session_length_ = session_length_;
-			Reactor_.addEventHandler(
-				*Connection->DeviceSocket_, Poco::NObserver<RTTYS_server, Poco::Net::ReadableNotification>(
-							   *this, &RTTYS_server::onDeviceSocketReadable));
-			Reactor_.addEventHandler(
-				*Connection->DeviceSocket_, Poco::NObserver<RTTYS_server, Poco::Net::ShutdownNotification>(
-							   *this, &RTTYS_server::onDeviceSocketShutdown));
-			Reactor_.addEventHandler(
-				*Connection->DeviceSocket_, Poco::NObserver<RTTYS_server, Poco::Net::ErrorNotification>(
-							   *this, &RTTYS_server::onDeviceSocketError));
-
+			AddDeviceEventHandlers(*Connection->DeviceSocket_);
 			Connections_[ Connection->DeviceSocket_->impl()->sockfd() ] = Connection;
 			//	If Connection->WS is set, then login.
 			if(Connection->WSSocket_!= nullptr) {
@@ -462,8 +484,10 @@ namespace OpenWifi {
 	}
 
 	void RTTYS_server::CloseConnection(std::shared_ptr<RTTYS_EndPoint> & Connection) {
-		CloseDevice(Connection);
-		CloseClient(Connection);
+		if(Connection!= nullptr) {
+			CloseDevice(Connection);
+			CloseClient(Connection);
+		}
 	}
 
 	void RTTYS_server::onClientSocketReadable(const Poco::AutoPtr<Poco::Net::ReadableNotification>& pNf) {
@@ -627,15 +651,7 @@ namespace OpenWifi {
 			Session->second->WSSocket_->setBlocking(false);
 			Session->second->WSSocket_->setNoDelay(true);
 			Session->second->WSSocket_->setKeepAlive(true);
-			Reactor_.addEventHandler(
-				*Session->second->WSSocket_, Poco::NObserver<RTTYS_server, Poco::Net::ReadableNotification>(
-						  *this, &RTTYS_server::onClientSocketReadable));
-			Reactor_.addEventHandler(
-				*Session->second->WSSocket_, Poco::NObserver<RTTYS_server, Poco::Net::ShutdownNotification>(
-						  *this, &RTTYS_server::onClientSocketShutdown));
-			Reactor_.addEventHandler(
-				*Session->second->WSSocket_, Poco::NObserver<RTTYS_server, Poco::Net::ErrorNotification>(
-												 *this, &RTTYS_server::onClientSocketError));
+			AddClientEventHandlers(*Session->second->WSSocket_);
 			if(Session->second->DeviceSocket_!= nullptr) {
 				Session->second->Login();
 			}

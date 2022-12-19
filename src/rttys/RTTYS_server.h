@@ -163,6 +163,13 @@ namespace OpenWifi {
 		void onClientSocketError(const Poco::AutoPtr<Poco::Net::ErrorNotification>& pNf);
 
 		void RemoveConnectingDeviceEventHandlers(Poco::Net::StreamSocket &Socket);
+		void RemoveClientEventHandlers(Poco::Net::StreamSocket &Socket);
+		void RemoveDeviceEventHandlers(Poco::Net::StreamSocket &Socket);
+
+		void AddConnectingDeviceEventHandlers(Poco::Net::StreamSocket &Socket);
+		void AddClientEventHandlers(Poco::Net::StreamSocket &Socket);
+		void AddDeviceEventHandlers(Poco::Net::StreamSocket &Socket);
+
 		void onConnectingDeviceData(const Poco::AutoPtr<Poco::Net::ReadableNotification> &pNf);
 		void onConnectingDeviceShutdown(const Poco::AutoPtr<Poco::Net::ShutdownNotification> &pNf);
 		void onConnectingDeviceError(const Poco::AutoPtr<Poco::Net::ErrorNotification> &pNf);
