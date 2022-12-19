@@ -504,6 +504,10 @@ namespace OpenWifi {
 			}
 
 			Connection = Client->second;
+			if(Connection== nullptr || Connection->WSSocket_== nullptr) {
+				std::cout << "NULL WS Client" << std::endl;
+				return;
+			}
 
 			int flags;
 			unsigned char FrameBuffer[1024];
@@ -695,9 +699,9 @@ namespace OpenWifi {
 		return true;
 	}
 
-	bool RTTYS_server::ValidId(const std::string &Token) {
+	bool RTTYS_server::ValidId(const std::string &Id) {
 		std::lock_guard			Guard(ServerMutex_);
-		return EndPoints_.find(Token) != EndPoints_.end();
+		return EndPoints_.find(Id) != EndPoints_.end();
 	}
 
 	bool RTTYS_EndPoint::KeyStrokes(const u_char *buf, size_t len) {
