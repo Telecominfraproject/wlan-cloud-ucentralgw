@@ -489,7 +489,7 @@ namespace OpenWifi {
 		std::lock_guard	Guard(ServerMutex_);
 
 		auto Client = Connections_.end();
-		std::shared_ptr<RTTYS_EndPoint>								Connection;
+		std::shared_ptr<RTTYS_EndPoint>		Connection;
 		try {
 			Client = Connections_.find(pNf->socket().impl()->sockfd());
 			if( Client == end(Connections_)) {
@@ -669,11 +669,12 @@ namespace OpenWifi {
 
 		if(Utils::Now()-LastStats>(60*1)) {
 			LastStats = Utils::Now();
-			Logger().information(fmt::format("Statistics: Total connections:{} Total Device Connection Time: {}s  Total Client Connection Time: {}s Current number of sockets: {}",
+			Logger().information(fmt::format("Statistics: Total connections:{} Total Device Connection Time: {}s  Total Client Connection Time: {}s Current number of sockets: {}. Connecting devices: {}",
 				TotalEndPoints_,
 				TotalEndPoints_ ? TotalConnectedDeviceTime_.count() / (double)TotalEndPoints_ : 0.0,
 				TotalEndPoints_ ? TotalConnectedClientTime_.count() / (double)TotalEndPoints_ : 0.0,
-				Connections_.size() ));
+				Connections_.size(),
+				ConnectingDevices_.size() ));
 		}
 	}
 
