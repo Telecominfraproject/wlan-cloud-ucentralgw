@@ -649,7 +649,9 @@ namespace OpenWifi {
 
 		//	OK Create and register this WS client
 		try {
+			DBGLINE;
 			Session->second->WSSocket_ = std::make_unique<Poco::Net::WebSocket>(request,response);
+			DBGLINE;
 			Session->second->WSSocket_->setBlocking(false);
 			Session->second->WSSocket_->setNoDelay(true);
 			Session->second->WSSocket_->setKeepAlive(true);
