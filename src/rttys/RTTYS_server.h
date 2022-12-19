@@ -110,7 +110,6 @@ namespace OpenWifi {
 		std::string 								UserName_;
 		std::unique_ptr<Poco::Net::StreamSocket>	DeviceSocket_;
 		std::unique_ptr<Poco::Net::WebSocket>		WSSocket_;
-		class RTTYS_server							*Server_;
 		Poco::Logger								&Logger_;
 		std::unique_ptr<Poco::FIFOBuffer> 			DeviceInBuf_;
 		char 				          				session_id_[RTTY_SESSION_ID_LENGTH+1]{0};

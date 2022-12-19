@@ -950,7 +950,6 @@ namespace OpenWifi {
 	{
 		DeviceInBuf_ = std::make_unique<Poco::FIFOBuffer>(RTTY_DEVICE_BUFSIZE);
 		Created_ = std::chrono::high_resolution_clock::now();
-		Server_ = RTTYS_server();
 	}
 
 	RTTYS_EndPoint::~RTTYS_EndPoint() {
