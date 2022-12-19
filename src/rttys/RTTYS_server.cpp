@@ -131,6 +131,7 @@ namespace OpenWifi {
 	void RTTYS_server::CloseDevice(std::shared_ptr<RTTYS_EndPoint> Device) {
 		if(Device->DeviceSocket_!= nullptr) {
 			RemoveDeviceEventHandlers(*Device->DeviceSocket_);
+			Connections_.erase(Device->DeviceSocket_->impl()->sockfd());
 			Device->DeviceSocket_.reset();
 		}
 	}
@@ -138,6 +139,7 @@ namespace OpenWifi {
 	void RTTYS_server::CloseClient(std::shared_ptr<RTTYS_EndPoint> Client) {
 		if(Client->WSSocket_!= nullptr) {
 			RemoveClientEventHandlers(*Client->WSSocket_);
+			Connections_.erase(Client->WSSocket_->impl()->sockfd());
 			Client->WSSocket_.reset();
 		}
 	}
@@ -953,7 +955,7 @@ namespace OpenWifi {
 	}
 
 	RTTYS_EndPoint::~RTTYS_EndPoint() {
-
+		std::cout << "Ending connection to " << SerialNumber_ << std::endl;
 	}
 
 }
