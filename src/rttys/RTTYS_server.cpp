@@ -713,13 +713,19 @@ namespace OpenWifi {
 		auto Now = std::chrono::high_resolution_clock::now();
 		for(auto EndPoint=EndPoints_.begin();EndPoint!=EndPoints_.end();) {
 			if((Now - EndPoint->second->Created_)>2min && !EndPoint->second->completed_) {
+				std::cout << "OnTimer: Start 1" << std::endl;
 				CloseDevice(EndPoint->second);
+				std::cout << "OnTimer: Start 2" << std::endl;
 				CloseClient(EndPoint->second);
+				std::cout << "OnTimer: Start 3" << std::endl;
 				EndPoint = EndPoints_.erase(EndPoint);
+				std::cout << "OnTimer: Start 4" << std::endl;
 			} else {
 				++EndPoint;
 			}
 		}
+
+		std::cout << "OnTimer: Stats" << std::endl;
 
 		if(Utils::Now()-LastStats>(60*1)) {
 			LastStats = Utils::Now();
