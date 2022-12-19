@@ -375,81 +375,98 @@ namespace OpenWifi {
 	void RTTYS_server::onDeviceSocketReadable(const Poco::AutoPtr<Poco::Net::ReadableNotification>& pNf) {
 		std::lock_guard	Guard(ServerMutex_);
 
-		auto Connection = Connections_.find(pNf->socket().impl()->sockfd());
-		if( Connection == end(Connections_)) {
-			poco_warning(Logger(),fmt::format("Cannot find device socket: {}", pNf->socket().impl()->sockfd()));
-			return;
-		}
+		std::map<int,std::shared_ptr<RTTYS_EndPoint>>::iterator Connection = Connections_.end();
 
-		if(Connection->second->DeviceSocket_== nullptr)
-			return;
+		try {
+			Connection = Connections_.find(pNf->socket().impl()->sockfd());
+			if (Connection == end(Connections_)) {
+				poco_warning(Logger(), fmt::format("Cannot find device socket: {}",
+												   pNf->socket().impl()->sockfd()));
+				return;
+			}
 
-		auto Device = Connection->second;
-		bool good = true;
+			if (Connection->second->DeviceSocket_ == nullptr)
+				return;
 
-		auto received_bytes = Device->DeviceSocket_->receiveBytes(*Device->DeviceInBuf_);
-		if (received_bytes == 0) {
-			good = false;
-			poco_information(Logger(), "Device Closing connection - 0 bytes received.");
-		} else {
-			while (Device->DeviceInBuf_->isReadable() && good) {
-				uint32_t msg_len = 0;
-				if (Device->waiting_for_bytes_ != 0) {
+			auto Device = Connection->second;
+			bool good = true;
 
-				} else {
-					if (Device->DeviceInBuf_->used() >= RTTY_HDR_SIZE) {
-						auto *head = (unsigned char *)Device->DeviceInBuf_->begin();
-						Device->last_command_ = head[0];
-						msg_len = head[1] * 256 + head[2];
-						Device->DeviceInBuf_->drain(RTTY_HDR_SIZE);
+			auto received_bytes = Device->DeviceSocket_->receiveBytes(*Device->DeviceInBuf_);
+			if (received_bytes == 0) {
+				good = false;
+				poco_information(Logger(), "Device Closing connection - 0 bytes received.");
+			} else {
+				while (Device->DeviceInBuf_->isReadable() && good) {
+					uint32_t msg_len = 0;
+					if (Device->waiting_for_bytes_ != 0) {
+
 					} else {
+						if (Device->DeviceInBuf_->used() >= RTTY_HDR_SIZE) {
+							auto *head = (unsigned char *)Device->DeviceInBuf_->begin();
+							Device->last_command_ = head[0];
+							msg_len = head[1] * 256 + head[2];
+							Device->DeviceInBuf_->drain(RTTY_HDR_SIZE);
+						} else {
+							good = false;
+							continue;
+						}
+					}
+
+					switch (Device->last_command_) {
+					case RTTYS_EndPoint::msgTypeLogin: {
+						good = Device->do_msgTypeLogin(msg_len);
+					} break;
+					case RTTYS_EndPoint::msgTypeLogout: {
+						good = Device->do_msgTypeLogout(msg_len);
+					} break;
+					case RTTYS_EndPoint::msgTypeTermData: {
+						good = Device->do_msgTypeTermData(msg_len);
+					} break;
+					case RTTYS_EndPoint::msgTypeWinsize: {
+						good = Device->do_msgTypeWinsize(msg_len);
+					} break;
+					case RTTYS_EndPoint::msgTypeCmd: {
+						good = Device->do_msgTypeCmd(msg_len);
+					} break;
+					case RTTYS_EndPoint::msgTypeHeartbeat: {
+						good = Device->do_msgTypeHeartbeat(msg_len);
+					} break;
+					case RTTYS_EndPoint::msgTypeFile: {
+						good = Device->do_msgTypeFile(msg_len);
+					} break;
+					case RTTYS_EndPoint::msgTypeHttp: {
+						good = Device->do_msgTypeHttp(msg_len);
+					} break;
+					case RTTYS_EndPoint::msgTypeAck: {
+						good = Device->do_msgTypeAck(msg_len);
+					} break;
+					case RTTYS_EndPoint::msgTypeMax: {
+						good = Device->do_msgTypeMax(msg_len);
+					} break;
+					default: {
+						poco_warning(Logger(),
+									 fmt::format("Unknown command {}. GW closing connection.",
+												 (int)Device->last_command_));
 						good = false;
-						continue;
+					}
 					}
 				}
+			}
 
-				switch (Device->last_command_) {
-				case RTTYS_EndPoint::msgTypeLogin: {
-					good = Device->do_msgTypeLogin(msg_len);
-				} break;
-				case RTTYS_EndPoint::msgTypeLogout: {
-					good = Device->do_msgTypeLogout(msg_len);
-				} break;
-				case RTTYS_EndPoint::msgTypeTermData: {
-					good = Device->do_msgTypeTermData(msg_len);
-				} break;
-				case RTTYS_EndPoint::msgTypeWinsize: {
-					good = Device->do_msgTypeWinsize(msg_len);
-				} break;
-				case RTTYS_EndPoint::msgTypeCmd: {
-					good = Device->do_msgTypeCmd(msg_len);
-				} break;
-				case RTTYS_EndPoint::msgTypeHeartbeat: {
-					good = Device->do_msgTypeHeartbeat(msg_len);
-				} break;
-				case RTTYS_EndPoint::msgTypeFile: {
-					good = Device->do_msgTypeFile(msg_len);
-				} break;
-				case RTTYS_EndPoint::msgTypeHttp: {
-					good = Device->do_msgTypeHttp(msg_len);
-				} break;
-				case RTTYS_EndPoint::msgTypeAck: {
-					good = Device->do_msgTypeAck(msg_len);
-				} break;
-				case RTTYS_EndPoint::msgTypeMax: {
-					good = Device->do_msgTypeMax(msg_len);
-				} break;
-				default: {
-					poco_warning(Logger(), fmt::format("Unknown command {}. GW closing connection.",
-													   (int)Device->last_command_));
-					good = false;
-				}
-				}
+			if (!good)
+				CloseConnection(Connection->second);
+		} catch (const Poco::Exception &E) {
+			std::cout << "Device Poco E" << std::endl;
+			Logger().log(E);
+			if(Connection!=Connections_.end()) {
+				CloseConnection(Connection->second);
+			}
+		} catch (...) {
+			std::cout << "Device Std::E" << std::endl;
+			if(Connection!=Connections_.end()) {
+				CloseConnection(Connection->second);
 			}
 		}
-
-		if(!good)
-			CloseConnection(Connection->second);
 	}
 
 	void RTTYS_server::onDeviceSocketShutdown(const Poco::AutoPtr<Poco::Net::ShutdownNotification>& pNf) {
@@ -575,6 +592,7 @@ namespace OpenWifi {
 			}
 		} catch (...) {
 			poco_error(Logger(),"Frame readable shutdown.");
+			std::cout << "Exception in WS Client read" << std::endl;
 			if(Client!=Connections_.end()) {
 				CloseConnection(Connection);
 			}
