@@ -217,7 +217,7 @@ namespace OpenWifi {
 
 		Poco::Timer                     					Timer_;
 		std::unique_ptr<Poco::TimerCallback<RTTYS_server>>  GCCallBack_;
-		std::mutex									ServerMutex_;
+		std::recursive_mutex									ServerMutex_;
 
 		std::atomic_uint64_t 						TotalEndPoints_=0;
 		std::atomic_uint64_t 						FailedNumDevices_=0;
