@@ -246,7 +246,6 @@ namespace OpenWifi {
 			ConnectingDevices_.erase(pNf->socket().impl()->sockfd());
 			return;
 		}
-		std::cout << __LINE__ << std::endl;
 
 		//	Process the command
 		bool good = true;
@@ -266,19 +265,15 @@ namespace OpenWifi {
 			}
 		}
 
-		std::cout << __LINE__ << std::endl;
 		if(!good) {
 			RemoveConnectingDeviceEventHandlers(ConnectingDevice->second.first);
 			ConnectingDevices_.erase(pNf->socket().impl()->sockfd());
 		}
-		std::cout << __LINE__ << std::endl;
 	}
 
 	bool RTTYS_server::do_msgTypeRegister(Poco::Net::StreamSocket &Socket, unsigned char *Buffer, int Len) {
 		bool good = true;
 		try {
-			std::cout << __LINE__ << std::endl;
-
 			//	establish if this is an old rtty or a new one.
 			bool old_rtty_ = (Buffer[0] != 0x03);		//	rtty_proto_ver for full session ID inclusion
 			int pos=3;
