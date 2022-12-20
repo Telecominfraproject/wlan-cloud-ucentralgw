@@ -176,7 +176,7 @@ namespace OpenWifi {
 		if(ConnectingDevices_.find(Socket.impl()->sockfd())==ConnectingDevices_.end()) {
 			std::cout << "Could not find connecting device socket" << std::endl;
 		}
-		std::cout << "Connecting Device erase: " << Socket.impl()->sockfd() << std::endl;
+//		std::cout << "Connecting Device erase: " << Socket.impl()->sockfd() << std::endl;
 		ConnectingDevices_.erase(Socket.impl()->sockfd());
 		Reactor_.removeEventHandler(Socket,
 									Poco::NObserver<RTTYS_server, Poco::Net::ReadableNotification>(
@@ -193,7 +193,7 @@ namespace OpenWifi {
 		if(Connections_.find(Socket.impl()->sockfd())==Connections_.end()) {
 			std::cout << "Could not find client socket" << std::endl;
 		}
-		std::cout << "Client erase: " << Socket.impl()->sockfd() << std::endl;
+//		std::cout << "Client erase: " << Socket.impl()->sockfd() << std::endl;
 		Connections_.erase(Socket.impl()->sockfd());
 		Reactor_.removeEventHandler(Socket,
 									Poco::NObserver<RTTYS_server, Poco::Net::ReadableNotification>(
@@ -210,7 +210,7 @@ namespace OpenWifi {
 		if(Connections_.find(Socket.impl()->sockfd())==Connections_.end()) {
 			std::cout << "Could not find device socket" << std::endl;
 		}
-		std::cout << "Device erase: " << Socket.impl()->sockfd() << std::endl;
+//		std::cout << "Device erase: " << Socket.impl()->sockfd() << std::endl;
 		Connections_.erase(Socket.impl()->sockfd());
 		Reactor_.removeEventHandler(Socket,
 									Poco::NObserver<RTTYS_server, Poco::Net::ReadableNotification>(
@@ -227,7 +227,7 @@ namespace OpenWifi {
 		if(ConnectingDevices_.find(Socket.impl()->sockfd())!=ConnectingDevices_.end()) {
 			std::cout << "Connecting socket already exists" << std::endl;
 		}
-		std::cout << "Connecting device add: " << Socket.impl()->sockfd() << std::endl;
+//		std::cout << "Connecting device add: " << Socket.impl()->sockfd() << std::endl;
 		ConnectingDevices_[ Socket.impl()->sockfd() ] = std::make_pair(Socket,std::chrono::high_resolution_clock::now());
 		Reactor_.addEventHandler(Socket,
 									Poco::NObserver<RTTYS_server, Poco::Net::ReadableNotification>(
@@ -244,7 +244,7 @@ namespace OpenWifi {
 		if(Connections_.find(Socket.impl()->sockfd())!=Connections_.end()) {
 			std::cout << "Client socket already exists" << std::endl;
 		}
-		std::cout << "Client socket  add: " << Socket.impl()->sockfd() << std::endl;
+//		std::cout << "Client socket  add: " << Socket.impl()->sockfd() << std::endl;
 		Connections_[ Socket.impl()->sockfd() ] = EndPoint;
 		Reactor_.addEventHandler(Socket,
 									Poco::NObserver<RTTYS_server, Poco::Net::ReadableNotification>(
@@ -261,7 +261,7 @@ namespace OpenWifi {
 		if(Connections_.find(Socket.impl()->sockfd())!=Connections_.end()) {
 			std::cout << "Device socket already exists" << std::endl;
 		}
-		std::cout << "Device socket add: " << Socket.impl()->sockfd() << std::endl;
+//		std::cout << "Device socket add: " << Socket.impl()->sockfd() << std::endl;
 		Connections_[Socket.impl()->sockfd()] = EndPoint;
 		Reactor_.addEventHandler(Socket,
 									Poco::NObserver<RTTYS_server, Poco::Net::ReadableNotification>(
@@ -292,7 +292,7 @@ namespace OpenWifi {
 			auto ReceivedBytes =
 				ConnectingDevice->second.first.receiveBytes(Buffer, sizeof(Buffer));
 			if (ReceivedBytes == 0) {
-				std::cout << "Connecting socket closing." << std::endl;
+//				std::cout << "Connecting socket closing." << std::endl;
 				return RemoveConnectingDeviceEventHandlers(ConnectingDevice->second.first);
 			}
 
@@ -740,7 +740,7 @@ namespace OpenWifi {
 		Utils::SetThreadName("rt:janitor");
 		static auto LastStats = Utils::Now();
 
-		std::cout << "OnTimer: Start" << std::endl;
+//		std::cout << "OnTimer: Start" << std::endl;
 		std::lock_guard		Guard(ServerMutex_);
 		auto Now = std::chrono::high_resolution_clock::now();
 		std::set<int>	DS, CS;
@@ -748,18 +748,14 @@ namespace OpenWifi {
 			if(EndPoint->second->WSSocket_!= nullptr) CS.insert(EndPoint->second->WSSocket_->impl()->sockfd());
 			if(EndPoint->second->DeviceSocket_!= nullptr) DS.insert(EndPoint->second->DeviceSocket_->impl()->sockfd());
 			if((Now - EndPoint->second->Created_)>2min && !EndPoint->second->completed_) {
-				std::cout << "OnTimer: Start 1" << std::endl;
 				CloseDevice(EndPoint->second);
-				std::cout << "OnTimer: Start 2" << std::endl;
 				CloseClient(EndPoint->second);
-				std::cout << "OnTimer: Start 3" << std::endl;
 				EndPoint = EndPoints_.erase(EndPoint);
-				std::cout << "OnTimer: Start 4" << std::endl;
 			} else {
 				++EndPoint;
 			}
 		}
-
+/*
 		std::cout << "OnTimer: Stats   D:" << DS.size() << "   C:" << CS.size() << "   S:" << Connections_.size() << std::endl;
 
 		std::cout << "DS " ;
@@ -779,7 +775,7 @@ namespace OpenWifi {
 			std::cout << sock << " ";
 		}
 		std::cout << std::endl;
-
+*/
 		if(Utils::Now()-LastStats>(60*1)) {
 			LastStats = Utils::Now();
 			Logger().information(fmt::format("Statistics: Total connections:{} Current-connections:{} Avg-Device-Connection Time: {:.2f}ms Avg-Client-Connection Time: {:.2f}ms #Sockets: {}. Connecting devices: {}",
@@ -791,7 +787,7 @@ namespace OpenWifi {
 				ConnectingDevices_.size() ));
 		}
 
-		std::cout << "OnTimer: End" << std::endl;
+//		std::cout << "OnTimer: End" << std::endl;
 	}
 
 	bool RTTYS_server::CreateEndPoint(const std::string &Id, const std::string & Token, const std::string & UserName, const std::string & SerialNumber ) {
