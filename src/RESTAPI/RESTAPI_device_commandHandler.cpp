@@ -999,14 +999,15 @@ namespace OpenWifi {
 			GWObjects::Device	Device;
 
 			if (StorageService()->GetDevice(SerialNumber_, Device)) {
-
+				static std::uint64_t rtty_sid = 0;
+				rtty_sid += std::rand();
 				GWObjects::RttySessionDetails Rtty{
 					.SerialNumber = SerialNumber_,
 					.Server = MicroServiceConfigGetString("rtty.server", "localhost"),
 					.Port = MicroServiceConfigGetInt("rtty.port", 5912),
 					.Token = MicroServiceConfigGetString("rtty.token", "nothing"),
 					.TimeOut = MicroServiceConfigGetInt("rtty.timeout", 60),
-					.ConnectionId =  Utils::ComputeHash(SerialNumber_,Utils::Now()).substr(0,RTTY_DEVICE_TOKEN_LENGTH),
+					.ConnectionId =  Utils::ComputeHash(SerialNumber_,Utils::Now(),rtty_sid).substr(0,RTTY_DEVICE_TOKEN_LENGTH),
 					.Started = Utils::Now(),
 					.CommandUUID = CMD_UUID,
 					.ViewPort = MicroServiceConfigGetInt("rtty.viewport", 5913),
