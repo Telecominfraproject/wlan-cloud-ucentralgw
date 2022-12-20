@@ -706,14 +706,14 @@ namespace OpenWifi {
 
 		auto EndPoint = EndPoints_.find(Id);
 		if(EndPoint==end(EndPoints_)) {
-			std::cout << "Invalid WS session" << std::endl;
-			poco_warning(Logger(),fmt::format("Session {} is invalid."));
+			// std::cout << "Invalid WS session" << std::endl;
+			poco_warning(Logger(),fmt::format("Session {} is invalid.",Id));
 			return;
 		}
 
 		if(EndPoint->second->WSSocket_!=nullptr) {
-			std::cout << "Duplicate WS session" << std::endl;
-			poco_warning(Logger(),fmt::format("Session {} is invalid."));
+			// std::cout << "Duplicate WS session" << std::endl;
+			poco_warning(Logger(),fmt::format("Session {} is a duplicate.", Id));
 			return;
 		}
 
