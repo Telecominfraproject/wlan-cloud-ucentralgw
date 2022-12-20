@@ -499,10 +499,6 @@ namespace OpenWifi {
 		auto Device = Connections_.find(pNf->socket().impl()->sockfd());
 		if( Device == end(Connections_)) {
 			poco_warning(Logger(),fmt::format("Cannot find device socket: {}", pNf->socket().impl()->sockfd()));
-			auto ConnectingDevice = ConnectingDevices_.find(pNf->socket().impl()->sockfd());
-			if(ConnectingDevice==end(ConnectingDevices_)) {
-				poco_warning(Logger(),fmt::format("Cannot find connecting device socket: {}", pNf->socket().impl()->sockfd()));
-			}
 			return;
 		}
 		CloseConnection(Device->second);
@@ -514,10 +510,6 @@ namespace OpenWifi {
 		auto Device = Connections_.find(pNf->socket().impl()->sockfd());
 		if( Device == end(Connections_)) {
 			poco_warning(Logger(),fmt::format("Cannot find device socket: {}", pNf->socket().impl()->sockfd()));
-			auto ConnectingDevice = ConnectingDevices_.find(pNf->socket().impl()->sockfd());
-			if(ConnectingDevice==end(ConnectingDevices_)) {
-				poco_warning(Logger(),fmt::format("Cannot find connecting device socket: {}", pNf->socket().impl()->sockfd()));
-			}
 			return;
 		}
 		CloseConnection(Device->second);
@@ -1004,6 +996,12 @@ namespace OpenWifi {
 
 	RTTYS_EndPoint::~RTTYS_EndPoint() {
 		poco_information(Logger(),fmt::format("{}: Connection ending.", SerialNumber_));
+
+		if(DeviceSocket_!= nullptr)
+			std::cout << "Delete device with valid socket" << std::endl;
+		if(WSSocket_!= nullptr)
+			std::cout << "Client with valid socket" << std::endl
+
 	}
 
 }
