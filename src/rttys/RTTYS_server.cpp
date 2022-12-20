@@ -160,6 +160,9 @@ namespace OpenWifi {
 	}
 
 	void RTTYS_server::RemoveConnectingDeviceEventHandlers(Poco::Net::StreamSocket &Socket) {
+		if(ConnectingDevices_.find(Socket.impl()->sockfd())==ConnectingDevices_.end()) {
+			std::cout << "Could not find connecting device socket" << std::endl;
+		}
 		ConnectingDevices_.erase(Socket.impl()->sockfd());
 		Reactor_.removeEventHandler(Socket,
 									Poco::NObserver<RTTYS_server, Poco::Net::ReadableNotification>(
@@ -173,6 +176,9 @@ namespace OpenWifi {
 	}
 
 	void RTTYS_server::RemoveClientEventHandlers(Poco::Net::StreamSocket &Socket) {
+		if(Connections_.find(Socket.impl()->sockfd())==Connections_.end()) {
+			std::cout << "Could not find client socket" << std::endl;
+		}
 		Connections_.erase(Socket.impl()->sockfd());
 		Reactor_.removeEventHandler(Socket,
 									Poco::NObserver<RTTYS_server, Poco::Net::ReadableNotification>(
@@ -186,6 +192,9 @@ namespace OpenWifi {
 	}
 
 	void RTTYS_server::RemoveDeviceEventHandlers(Poco::Net::StreamSocket &Socket) {
+		if(Connections_.find(Socket.impl()->sockfd())==Connections_.end()) {
+			std::cout << "Could not find device socket" << std::endl;
+		}
 		Connections_.erase(Socket.impl()->sockfd());
 		Reactor_.removeEventHandler(Socket,
 									Poco::NObserver<RTTYS_server, Poco::Net::ReadableNotification>(
@@ -199,6 +208,9 @@ namespace OpenWifi {
 	}
 
 	void RTTYS_server::AddConnectingDeviceEventHandlers(Poco::Net::StreamSocket &Socket) {
+		if(ConnectingDevices_.find(Socket.impl()->sockfd())!=ConnectingDevices_.end()) {
+			std::cout << "Connecting socket already exists" << std::endl;
+		}
 		ConnectingDevices_[ Socket.impl()->sockfd() ] = std::make_pair(Socket,std::chrono::high_resolution_clock::now());
 		Reactor_.addEventHandler(Socket,
 									Poco::NObserver<RTTYS_server, Poco::Net::ReadableNotification>(
@@ -212,6 +224,9 @@ namespace OpenWifi {
 	}
 
 	void RTTYS_server::AddClientEventHandlers(Poco::Net::StreamSocket &Socket, std::shared_ptr<RTTYS_EndPoint> EndPoint) {
+		if(Connections_.find(Socket.impl()->sockfd())!=Connections_.end()) {
+			std::cout << "Client socket already exists" << std::endl;
+		}
 		Connections_[ Socket.impl()->sockfd() ] = EndPoint;
 		Reactor_.addEventHandler(Socket,
 									Poco::NObserver<RTTYS_server, Poco::Net::ReadableNotification>(
@@ -225,6 +240,9 @@ namespace OpenWifi {
 	}
 
 	void RTTYS_server::AddDeviceEventHandlers(Poco::Net::StreamSocket &Socket, std::shared_ptr<RTTYS_EndPoint> EndPoint) {
+		if(Connections_.find(Socket.impl()->sockfd())!=Connections_.end()) {
+			std::cout << "Device socket already exists" << std::endl;
+		}
 		Connections_[Socket.impl()->sockfd()] = EndPoint;
 		Reactor_.addEventHandler(Socket,
 									Poco::NObserver<RTTYS_server, Poco::Net::ReadableNotification>(
@@ -256,8 +274,7 @@ namespace OpenWifi {
 				ConnectingDevice->second.first.receiveBytes(Buffer, sizeof(Buffer));
 			if (ReceivedBytes == 0) {
 				std::cout << "Connecting socket closing." << std::endl;
-				RemoveConnectingDeviceEventHandlers(ConnectingDevice->second.first);
-				return;
+				return RemoveConnectingDeviceEventHandlers(ConnectingDevice->second.first);
 			}
 
 			//	Process the command
@@ -276,10 +293,10 @@ namespace OpenWifi {
 			}
 
 			if (!good) {
-				RemoveConnectingDeviceEventHandlers(ConnectingDevice->second.first);
+				return RemoveConnectingDeviceEventHandlers(ConnectingDevice->second.first);
 			}
 		} catch (const Poco::Exception &E) {
-			std::cout << "Poco::Exception connecting socket." << std::endl;
+			std::cout << "Poco::Exception connecting socket: " << E.what() << std::endl;
 			if(ConnectingDevice!=ConnectingDevices_.end()) {
 				RemoveConnectingDeviceEventHandlers(ConnectingDevice->second.first);
 			}
@@ -362,7 +379,6 @@ namespace OpenWifi {
 		auto Sent = Socket.sendBytes(MsgBuf, RTTY_HDR_SIZE);
 		return Sent == RTTY_HDR_SIZE;
 	}
-
 
 	void RTTYS_server::onConnectingDeviceShutdown(const Poco::AutoPtr<Poco::Net::ShutdownNotification> &pNf) {
 		std::lock_guard	Guard(ServerMutex_);
@@ -472,7 +488,7 @@ namespace OpenWifi {
 			if (!good)
 				CloseConnection(EndPoint);
 		} catch (const Poco::Exception &E) {
-			std::cout << "Device Poco E:" << E.message() << std::endl;
+			std::cout << "Device Poco E:" << E.what() << std::endl;
 			Logger().log(E);
 			if(Connection!=Connections_.end() && EndPoint!= nullptr) {
 				CloseConnection(EndPoint);
@@ -664,6 +680,7 @@ namespace OpenWifi {
 
 		auto EndPoint = EndPoints_.find(Id);
 		if(EndPoint==end(EndPoints_)) {
+			std::cout << "Invalid WS session" << std::endl;
 			poco_warning(Logger(),fmt::format("Session {} is invalid."));
 			return;
 		}
@@ -680,9 +697,9 @@ namespace OpenWifi {
 				EndPoint->second->Login();
 			}
 		} catch (const Poco::Exception &E) {
-
+			std::cout << "Could not create WS session: Poco::Exception: " << E.what() << std::endl;
 		} catch (...) {
-
+			std::cout << "Could not create WS session: std::Exception: " << std::endl;
 		}
 	}
 
