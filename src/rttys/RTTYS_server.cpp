@@ -731,10 +731,10 @@ namespace OpenWifi {
 		std::cout << "OnTimer: Start" << std::endl;
 		std::lock_guard		Guard(ServerMutex_);
 		auto Now = std::chrono::high_resolution_clock::now();
-		int D=0,C=0;
+		std::set<int>	DS, CS;
 		for(auto EndPoint=EndPoints_.begin();EndPoint!=EndPoints_.end();) {
-			if(EndPoint->second->WSSocket_!= nullptr) C++;
-			if(EndPoint->second->DeviceSocket_!= nullptr) D++;
+			if(EndPoint->second->WSSocket_!= nullptr) CS.insert(EndPoint->second->WSSocket_->impl()->sockfd());
+			if(EndPoint->second->DeviceSocket_!= nullptr) DS.insert(EndPoint->second->DeviceSocket_->impl()->sockfd());
 			if((Now - EndPoint->second->Created_)>2min && !EndPoint->second->completed_) {
 				std::cout << "OnTimer: Start 1" << std::endl;
 				CloseDevice(EndPoint->second);
@@ -748,7 +748,25 @@ namespace OpenWifi {
 			}
 		}
 
-		std::cout << "OnTimer: Stats   D:" << D << "   C:" << C << "   S:" << Connections_.size() << std::endl;
+		std::cout << "OnTimer: Stats   D:" << DS.size() << "   C:" << CS.size() << "   S:" << Connections_.size() << std::endl;
+
+		std::cout << "DS" ;
+		for(const auto &i:DS) {
+			std::cout << i;
+		}
+		std::cout << std::endl;
+
+		std::cout << "CS" ;
+		for(const auto &i:CS) {
+			std::cout << i;
+		}
+
+		std::cout << std::endl;
+		std::cout << "S" ;
+		for(const auto &[sock,_]:Connections_) {
+			std::cout << sock ;
+		}
+		std::cout << "S" ;
 
 		if(Utils::Now()-LastStats>(60*1)) {
 			LastStats = Utils::Now();
