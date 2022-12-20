@@ -750,23 +750,23 @@ namespace OpenWifi {
 
 		std::cout << "OnTimer: Stats   D:" << DS.size() << "   C:" << CS.size() << "   S:" << Connections_.size() << std::endl;
 
-		std::cout << "DS" ;
+		std::cout << "DS " ;
 		for(const auto &i:DS) {
-			std::cout << i;
+			std::cout << i << " ";
 		}
 		std::cout << std::endl;
 
-		std::cout << "CS" ;
+		std::cout << "CS " ;
 		for(const auto &i:CS) {
-			std::cout << i;
+			std::cout << i << " ";
 		}
 
 		std::cout << std::endl;
-		std::cout << "S" ;
+		std::cout << "S " ;
 		for(const auto &[sock,_]:Connections_) {
-			std::cout << sock ;
+			std::cout << sock << " ";
 		}
-		std::cout << "S" ;
+		std::cout << std::endl;
 
 		if(Utils::Now()-LastStats>(60*1)) {
 			LastStats = Utils::Now();
