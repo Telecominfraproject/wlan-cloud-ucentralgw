@@ -731,7 +731,10 @@ namespace OpenWifi {
 		std::cout << "OnTimer: Start" << std::endl;
 		std::lock_guard		Guard(ServerMutex_);
 		auto Now = std::chrono::high_resolution_clock::now();
+		int D=0,C=0;
 		for(auto EndPoint=EndPoints_.begin();EndPoint!=EndPoints_.end();) {
+			if(EndPoint->second->WSSocket_!= nullptr) C++;
+			if(EndPoint->second->DeviceSocket_!= nullptr) D++;
 			if((Now - EndPoint->second->Created_)>2min && !EndPoint->second->completed_) {
 				std::cout << "OnTimer: Start 1" << std::endl;
 				CloseDevice(EndPoint->second);
@@ -745,7 +748,7 @@ namespace OpenWifi {
 			}
 		}
 
-		std::cout << "OnTimer: Stats" << std::endl;
+		std::cout << "OnTimer: Stats   D:" << D << "   C:" << C << std::endl;
 
 		if(Utils::Now()-LastStats>(60*1)) {
 			LastStats = Utils::Now();
