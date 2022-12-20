@@ -748,7 +748,7 @@ namespace OpenWifi {
 			}
 		}
 
-		std::cout << "OnTimer: Stats   D:" << D << "   C:" << C << std::endl;
+		std::cout << "OnTimer: Stats   D:" << D << "   C:" << C << "   S:" << Connections_.size() << std::endl;
 
 		if(Utils::Now()-LastStats>(60*1)) {
 			LastStats = Utils::Now();
