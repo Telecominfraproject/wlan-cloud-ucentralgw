@@ -9,6 +9,7 @@
 #include "fmt/format.h"
 
 #include "nlohmann/json.hpp"
+#include "Poco/Net/SecureStreamSocketImpl.h"
 
 #include "Poco/Net/SocketNotification.h"
 #include "Poco/NObserver.h"
@@ -152,6 +153,13 @@ namespace OpenWifi {
 		try {
 			Poco::Net::SocketAddress Client;
 			Poco::Net::StreamSocket NewSocket = pNf->socket().impl()->acceptConnection(Client);
+			if(NewSocket.impl()->secure()) {
+				auto SS = dynamic_cast<Poco::Net::SecureStreamSocketImpl *>(NewSocket.impl());
+				while (true) {
+					auto V = SS->completeHandshake();
+					if (V == 1)
+						break;
+				}			}
 			AddConnectingDeviceEventHandlers(NewSocket);
 		} catch (const Poco::Exception &E) {
 			std::cout << "Exception onDeviceAccept" << std::endl;
