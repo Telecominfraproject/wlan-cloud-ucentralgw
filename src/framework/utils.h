@@ -11,6 +11,7 @@
 #include <random>
 #include <regex>
 #include <thread>
+#include <shared_mutex>
 
 #include "Poco/Thread.h"
 #include "Poco/StringTokenizer.h"
@@ -128,6 +129,23 @@ namespace OpenWifi::Utils {
 			   << std::hex << i;
 		return stream.str();
 	}
+
+	inline bool SpinLock_Read(std::shared_mutex &M, volatile bool &Flag, uint64_t wait_ms=100) {
+		while(!M.try_lock_shared() && Flag) {
+			Poco::Thread::yield();
+			Poco::Thread::trySleep((long)wait_ms);
+		}
+		return Flag;
+	}
+
+	inline bool SpinLock_Write(std::shared_mutex &M, volatile bool &Flag, uint64_t wait_ms=100) {
+		while(!M.try_lock() && Flag) {
+			Poco::Thread::yield();
+			Poco::Thread::trySleep(wait_ms);
+		}
+		return Flag;
+	}
+
 	bool ExtractBase64CompressedData(const std::string &CompressedData,
 											std::string &UnCompressedData, uint64_t compress_sz );
 }
