@@ -986,6 +986,8 @@ namespace OpenWifi {
 		BadRequest(RESTAPI::Errors::MissingOrInvalidParameters);
 	}
 
+#define DBGLINE		{	std::cout << __LINE__ << std::endl; }
+
 	void RESTAPI_device_commandHandler::Rtty(const std::string &CMD_UUID, uint64_t CMD_RPC, std::chrono::milliseconds timeout, [[maybe_unused]] const GWObjects::DeviceRestrictions &R) {
 		poco_information(Logger_,fmt::format("RTTY({},{}): TID={} user={} serial={}", CMD_UUID, CMD_RPC, TransactionId_, Requester(), SerialNumber_));
 
@@ -997,14 +999,15 @@ namespace OpenWifi {
 			GWObjects::Device	Device;
 
 			if (StorageService()->GetDevice(SerialNumber_, Device)) {
-
+				static std::uint64_t rtty_sid = 0;
+				rtty_sid += std::rand();
 				GWObjects::RttySessionDetails Rtty{
 					.SerialNumber = SerialNumber_,
 					.Server = MicroServiceConfigGetString("rtty.server", "localhost"),
 					.Port = MicroServiceConfigGetInt("rtty.port", 5912),
 					.Token = MicroServiceConfigGetString("rtty.token", "nothing"),
 					.TimeOut = MicroServiceConfigGetInt("rtty.timeout", 60),
-					.ConnectionId =  Utils::ComputeHash(SerialNumber_,Utils::Now()).substr(0,RTTY_DEVICE_TOKEN_LENGTH),
+					.ConnectionId =  Utils::ComputeHash(SerialNumber_,Utils::Now(),rtty_sid).substr(0,RTTY_DEVICE_TOKEN_LENGTH),
 					.Started = Utils::Now(),
 					.CommandUUID = CMD_UUID,
 					.ViewPort = MicroServiceConfigGetInt("rtty.viewport", 5913),
@@ -1052,8 +1055,6 @@ namespace OpenWifi {
 		return ReturnStatus(Poco::Net::HTTPResponse::HTTP_SERVICE_UNAVAILABLE);
 	}
 
-// #define DBG		{ std::cout << __LINE__ << std::endl; }
-
 	void RESTAPI_device_commandHandler::Telemetry(const std::string &CMD_UUID, uint64_t CMD_RPC, [[maybe_unused]] std::chrono::milliseconds timeout, [[maybe_unused]] const GWObjects::DeviceRestrictions &R){
 		poco_information(Logger_,fmt::format("TELEMETRY({},{}): TID={} user={} serial={}", CMD_UUID, CMD_RPC, TransactionId_, Requester(), SerialNumber_));
 
@@ -1071,7 +1072,6 @@ namespace OpenWifi {
 
 			std::stringstream 	oooss;
 			Obj->stringify(oooss);
-			// std::cout << "Payload:" << oooss.str() << std::endl;
 
 			std::uint64_t Lifetime = 60 * 60 ; // 1 hour
 			std::uint64_t Interval = 5;
