@@ -711,6 +711,12 @@ namespace OpenWifi {
 			return;
 		}
 
+		if(EndPoint->second->WSSocket_!=nullptr) {
+			std::cout << "Duplicate WS session" << std::endl;
+			poco_warning(Logger(),fmt::format("Session {} is invalid."));
+			return;
+		}
+
 		//	OK Create and register this WS client
 		try {
 			EndPoint->second->WSSocket_ = std::make_unique<Poco::Net::WebSocket>(request,response);
