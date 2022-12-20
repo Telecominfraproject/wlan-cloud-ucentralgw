@@ -133,7 +133,6 @@ namespace OpenWifi {
 			Device->DeviceDisconnected_ = std::chrono::high_resolution_clock::now();
 			TotalConnectedDeviceTime_ += Device->DeviceDisconnected_ - Device->DeviceConnected_;
 			RemoveDeviceEventHandlers(*Device->DeviceSocket_);
-			Connections_.erase(Device->DeviceSocket_->impl()->sockfd());
 			Device->DeviceSocket_.reset();
 		}
 	}
@@ -143,7 +142,6 @@ namespace OpenWifi {
 			Client->ClientDisconnected_ = std::chrono::high_resolution_clock::now();
 			TotalConnectedClientTime_ += Client->ClientDisconnected_ - Client->ClientConnected_;
 			RemoveClientEventHandlers(*Client->WSSocket_);
-			Connections_.erase(Client->WSSocket_->impl()->sockfd());
 			Client->WSSocket_.reset();
 		}
 	}
@@ -173,9 +171,11 @@ namespace OpenWifi {
 		Reactor_.removeEventHandler(Socket,
 									Poco::NObserver<RTTYS_server, Poco::Net::ErrorNotification>(
 										*this, &RTTYS_server::onConnectingDeviceError));
+		ConnectingDevices_.erase(Socket.impl()->sockfd());
 	}
 
 	void RTTYS_server::RemoveClientEventHandlers(Poco::Net::StreamSocket &Socket) {
+		Connections_.erase(Socket.impl()->sockfd());
 		Reactor_.removeEventHandler(Socket,
 									Poco::NObserver<RTTYS_server, Poco::Net::ReadableNotification>(
 										*this, &RTTYS_server::onClientSocketReadable));
@@ -188,6 +188,7 @@ namespace OpenWifi {
 	}
 
 	void RTTYS_server::RemoveDeviceEventHandlers(Poco::Net::StreamSocket &Socket) {
+		Connections_.erase(Socket.impl()->sockfd());
 		Reactor_.removeEventHandler(Socket,
 									Poco::NObserver<RTTYS_server, Poco::Net::ReadableNotification>(
 										*this, &RTTYS_server::onDeviceSocketReadable));
@@ -255,7 +256,6 @@ namespace OpenWifi {
 			if (ReceivedBytes == 0) {
 				std::cout << "Connecting socket closing." << std::endl;
 				RemoveConnectingDeviceEventHandlers(ConnectingDevice->second.first);
-				ConnectingDevices_.erase(pNf->socket().impl()->sockfd());
 				return;
 			}
 
@@ -264,9 +264,6 @@ namespace OpenWifi {
 			switch (Buffer[0]) {
 			case RTTYS_EndPoint::msgTypeRegister: {
 				good = do_msgTypeRegister(ConnectingDevice->second.first, Buffer, ReceivedBytes);
-				if (good) {
-					ConnectingDevices_.erase(pNf->socket().impl()->sockfd());
-				}
 			} break;
 			case RTTYS_EndPoint::msgTypeHeartbeat: {
 				good = do_msgTypeHeartbeat(ConnectingDevice->second.first);
@@ -279,20 +276,17 @@ namespace OpenWifi {
 
 			if (!good) {
 				RemoveConnectingDeviceEventHandlers(ConnectingDevice->second.first);
-				ConnectingDevices_.erase(pNf->socket().impl()->sockfd());
 			}
 		} catch (const Poco::Exception &E) {
 			std::cout << "Poco::Exception connecting socket." << std::endl;
 			if(ConnectingDevice!=ConnectingDevices_.end()) {
 				RemoveConnectingDeviceEventHandlers(ConnectingDevice->second.first);
-				ConnectingDevices_.erase(pNf->socket().impl()->sockfd());
 			}
 
 		} catch (...) {
 			std::cout << "std::exception connecting socket." << std::endl;
 			if(ConnectingDevice!=ConnectingDevices_.end()) {
 				RemoveConnectingDeviceEventHandlers(ConnectingDevice->second.first);
-				ConnectingDevices_.erase(pNf->socket().impl()->sockfd());
 			}
 		}
 	}
@@ -378,7 +372,6 @@ namespace OpenWifi {
 			return;
 		}
 		RemoveConnectingDeviceEventHandlers(ConnectingDevice->second.first);
-		ConnectingDevices_.erase(pNf->socket().impl()->sockfd());
 	}
 
 	void RTTYS_server::onConnectingDeviceError(const Poco::AutoPtr<Poco::Net::ErrorNotification> &pNf) {
@@ -389,7 +382,6 @@ namespace OpenWifi {
 			return;
 		}
 		RemoveConnectingDeviceEventHandlers(ConnectingDevice->second.first);
-		ConnectingDevices_.erase(pNf->socket().impl()->sockfd());
 	}
 
 	void RTTYS_server::onDeviceSocketReadable(const Poco::AutoPtr<Poco::Net::ReadableNotification>& pNf) {
