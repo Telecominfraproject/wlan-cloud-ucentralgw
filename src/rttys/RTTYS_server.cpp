@@ -159,10 +159,11 @@ namespace OpenWifi {
 					auto V = SS->completeHandshake();
 					if (V == 1)
 						break;
-				}			}
+				}
+			}
 			AddConnectingDeviceEventHandlers(NewSocket);
 		} catch (const Poco::Exception &E) {
-			std::cout << "Exception onDeviceAccept" << std::endl;
+			std::cout << "Exception onDeviceAccept: " << E.what() << std::endl;
 			Logger().log(E);
 		}
 	}
