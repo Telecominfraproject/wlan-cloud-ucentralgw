@@ -201,6 +201,8 @@ namespace OpenWifi {
 			return Res;
 		}
 
+		void LogStdException(const std::exception &E, const char *msg);
+
 	  private:
 		Poco::Net::SocketReactor					Reactor_;
 		Poco::Thread								ReactorThread_;
