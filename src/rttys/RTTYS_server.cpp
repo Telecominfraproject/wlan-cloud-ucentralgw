@@ -1000,7 +1000,7 @@ namespace OpenWifi {
 		if(DeviceSocket_!= nullptr)
 			std::cout << "Delete device with valid socket" << std::endl;
 		if(WSSocket_!= nullptr)
-			std::cout << "Client with valid socket" << std::endl
+			std::cout << "Client with valid socket" << std::endl;
 
 	}
 
