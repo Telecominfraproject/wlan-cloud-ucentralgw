@@ -176,6 +176,7 @@ namespace OpenWifi {
 		if(ConnectingDevices_.find(Socket.impl()->sockfd())==ConnectingDevices_.end()) {
 			std::cout << "Could not find connecting device socket" << std::endl;
 		}
+		std::cout << "Connecting Device erase: " << Socket.impl()->sockfd() << std::endl;
 		ConnectingDevices_.erase(Socket.impl()->sockfd());
 		Reactor_.removeEventHandler(Socket,
 									Poco::NObserver<RTTYS_server, Poco::Net::ReadableNotification>(
@@ -192,6 +193,7 @@ namespace OpenWifi {
 		if(Connections_.find(Socket.impl()->sockfd())==Connections_.end()) {
 			std::cout << "Could not find client socket" << std::endl;
 		}
+		std::cout << "Client erase: " << Socket.impl()->sockfd() << std::endl;
 		Connections_.erase(Socket.impl()->sockfd());
 		Reactor_.removeEventHandler(Socket,
 									Poco::NObserver<RTTYS_server, Poco::Net::ReadableNotification>(
@@ -208,6 +210,7 @@ namespace OpenWifi {
 		if(Connections_.find(Socket.impl()->sockfd())==Connections_.end()) {
 			std::cout << "Could not find device socket" << std::endl;
 		}
+		std::cout << "Device erase: " << Socket.impl()->sockfd() << std::endl;
 		Connections_.erase(Socket.impl()->sockfd());
 		Reactor_.removeEventHandler(Socket,
 									Poco::NObserver<RTTYS_server, Poco::Net::ReadableNotification>(
@@ -224,6 +227,7 @@ namespace OpenWifi {
 		if(ConnectingDevices_.find(Socket.impl()->sockfd())!=ConnectingDevices_.end()) {
 			std::cout << "Connecting socket already exists" << std::endl;
 		}
+		std::cout << "Connecting device add: " << Socket.impl()->sockfd() << std::endl;
 		ConnectingDevices_[ Socket.impl()->sockfd() ] = std::make_pair(Socket,std::chrono::high_resolution_clock::now());
 		Reactor_.addEventHandler(Socket,
 									Poco::NObserver<RTTYS_server, Poco::Net::ReadableNotification>(
@@ -240,6 +244,7 @@ namespace OpenWifi {
 		if(Connections_.find(Socket.impl()->sockfd())!=Connections_.end()) {
 			std::cout << "Client socket already exists" << std::endl;
 		}
+		std::cout << "Client socket  add: " << Socket.impl()->sockfd() << std::endl;
 		Connections_[ Socket.impl()->sockfd() ] = EndPoint;
 		Reactor_.addEventHandler(Socket,
 									Poco::NObserver<RTTYS_server, Poco::Net::ReadableNotification>(
@@ -256,6 +261,7 @@ namespace OpenWifi {
 		if(Connections_.find(Socket.impl()->sockfd())!=Connections_.end()) {
 			std::cout << "Device socket already exists" << std::endl;
 		}
+		std::cout << "Device socket add: " << Socket.impl()->sockfd() << std::endl;
 		Connections_[Socket.impl()->sockfd()] = EndPoint;
 		Reactor_.addEventHandler(Socket,
 									Poco::NObserver<RTTYS_server, Poco::Net::ReadableNotification>(
