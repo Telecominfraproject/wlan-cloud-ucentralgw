@@ -153,8 +153,6 @@ namespace OpenWifi {
 			Poco::Net::SocketAddress Client;
 			Poco::Net::StreamSocket NewSocket = pNf->socket().impl()->acceptConnection(Client);
 			AddConnectingDeviceEventHandlers(NewSocket);
-			ConnectingDevices_[NewSocket.impl()->sockfd()] =
-				std::make_pair(NewSocket, std::chrono::high_resolution_clock::now());
 		} catch (const Poco::Exception &E) {
 			std::cout << "Exception onDeviceAccept" << std::endl;
 			Logger().log(E);
@@ -162,6 +160,7 @@ namespace OpenWifi {
 	}
 
 	void RTTYS_server::RemoveConnectingDeviceEventHandlers(Poco::Net::StreamSocket &Socket) {
+		ConnectingDevices_.erase(Socket.impl()->sockfd());
 		Reactor_.removeEventHandler(Socket,
 									Poco::NObserver<RTTYS_server, Poco::Net::ReadableNotification>(
 										*this, &RTTYS_server::onConnectingDeviceData));
@@ -171,7 +170,6 @@ namespace OpenWifi {
 		Reactor_.removeEventHandler(Socket,
 									Poco::NObserver<RTTYS_server, Poco::Net::ErrorNotification>(
 										*this, &RTTYS_server::onConnectingDeviceError));
-		ConnectingDevices_.erase(Socket.impl()->sockfd());
 	}
 
 	void RTTYS_server::RemoveClientEventHandlers(Poco::Net::StreamSocket &Socket) {
@@ -201,6 +199,7 @@ namespace OpenWifi {
 	}
 
 	void RTTYS_server::AddConnectingDeviceEventHandlers(Poco::Net::StreamSocket &Socket) {
+		ConnectingDevices_[ Socket.impl()->sockfd() ] = std::make_pair(Socket,std::chrono::high_resolution_clock::now());
 		Reactor_.addEventHandler(Socket,
 									Poco::NObserver<RTTYS_server, Poco::Net::ReadableNotification>(
 										*this, &RTTYS_server::onConnectingDeviceData));
@@ -212,7 +211,8 @@ namespace OpenWifi {
 										*this, &RTTYS_server::onConnectingDeviceError));
 	}
 
-	void RTTYS_server::AddClientEventHandlers(Poco::Net::StreamSocket &Socket) {
+	void RTTYS_server::AddClientEventHandlers(Poco::Net::StreamSocket &Socket, std::shared_ptr<RTTYS_EndPoint> EndPoint) {
+		Connections_[ Socket.impl()->sockfd() ] = EndPoint;
 		Reactor_.addEventHandler(Socket,
 									Poco::NObserver<RTTYS_server, Poco::Net::ReadableNotification>(
 										*this, &RTTYS_server::onClientSocketReadable));
@@ -224,7 +224,8 @@ namespace OpenWifi {
 										*this, &RTTYS_server::onClientSocketError));
 	}
 
-	void RTTYS_server::AddDeviceEventHandlers(Poco::Net::StreamSocket &Socket) {
+	void RTTYS_server::AddDeviceEventHandlers(Poco::Net::StreamSocket &Socket, std::shared_ptr<RTTYS_EndPoint> EndPoint) {
+		Connections_[Socket.impl()->sockfd()] = EndPoint;
 		Reactor_.addEventHandler(Socket,
 									Poco::NObserver<RTTYS_server, Poco::Net::ReadableNotification>(
 										*this, &RTTYS_server::onDeviceSocketReadable));
@@ -340,9 +341,8 @@ namespace OpenWifi {
 			Connection->DeviceConnected_ = std::chrono::high_resolution_clock::now();
 			Connection->old_rtty_ = old_rtty_;
 			Connection->session_length_ = session_length_;
-			AddDeviceEventHandlers(*Connection->DeviceSocket_);
-			Connections_[ Connection->DeviceSocket_->impl()->sockfd() ] = Connection;
-			//	If Connection->WS is set, then login.
+			AddDeviceEventHandlers(*Connection->DeviceSocket_, Connection);
+
 			if(Connection->WSSocket_!= nullptr) {
 				Connection->Login();
 			}
@@ -472,7 +472,7 @@ namespace OpenWifi {
 			if (!good)
 				CloseConnection(EndPoint);
 		} catch (const Poco::Exception &E) {
-			std::cout << "Device Poco E" << std::endl;
+			std::cout << "Device Poco E:" << E.message() << std::endl;
 			Logger().log(E);
 			if(Connection!=Connections_.end() && EndPoint!= nullptr) {
 				CloseConnection(EndPoint);
@@ -662,23 +662,22 @@ namespace OpenWifi {
 
 		std::lock_guard		Guard(ServerMutex_);
 
-		auto Session = EndPoints_.find(Id);
-		if(Session==end(EndPoints_)) {
+		auto EndPoint = EndPoints_.find(Id);
+		if(EndPoint==end(EndPoints_)) {
 			poco_warning(Logger(),fmt::format("Session {} is invalid."));
 			return;
 		}
 
 		//	OK Create and register this WS client
 		try {
-			Session->second->WSSocket_ = std::make_unique<Poco::Net::WebSocket>(request,response);
-			Session->second->ClientConnected_ = std::chrono::high_resolution_clock::now();
-			Session->second->WSSocket_->setBlocking(false);
-			Session->second->WSSocket_->setNoDelay(true);
-			Session->second->WSSocket_->setKeepAlive(true);
-			Connections_[Session->second->WSSocket_->impl()->sockfd()] = Session->second;
-			AddClientEventHandlers(*Session->second->WSSocket_);
-			if(Session->second->DeviceSocket_!= nullptr) {
-				Session->second->Login();
+			EndPoint->second->WSSocket_ = std::make_unique<Poco::Net::WebSocket>(request,response);
+			EndPoint->second->ClientConnected_ = std::chrono::high_resolution_clock::now();
+			EndPoint->second->WSSocket_->setBlocking(false);
+			EndPoint->second->WSSocket_->setNoDelay(true);
+			EndPoint->second->WSSocket_->setKeepAlive(true);
+			AddClientEventHandlers(*EndPoint->second->WSSocket_, EndPoint->second);
+			if(EndPoint->second->DeviceSocket_!= nullptr && !EndPoint->second->completed_) {
+				EndPoint->second->Login();
 			}
 		} catch (const Poco::Exception &E) {
 
