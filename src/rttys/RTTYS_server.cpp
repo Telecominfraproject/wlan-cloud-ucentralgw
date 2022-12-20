@@ -561,7 +561,12 @@ namespace OpenWifi {
 			}
 
 			EndPoint = Connection->second;
-			if(EndPoint == nullptr || EndPoint->WSSocket_ == nullptr) {
+			if(EndPoint == nullptr ) {
+				std::cout << "NULL EndPoint Client" << std::endl;
+				return;
+			}
+
+			if(EndPoint->WSSocket_ == nullptr) {
 				std::cout << "NULL WS Client" << std::endl;
 				return;
 			}
