@@ -135,6 +135,8 @@ namespace OpenWifi {
 			TotalConnectedDeviceTime_ += Device->DeviceDisconnected_ - Device->DeviceConnected_;
 			RemoveDeviceEventHandlers(*Device->DeviceSocket_);
 			Device->DeviceSocket_.reset();
+		} else {
+			std::cout << "CloseDevice NULL" << std::endl;
 		}
 	}
 
@@ -144,6 +146,8 @@ namespace OpenWifi {
 			TotalConnectedClientTime_ += Client->ClientDisconnected_ - Client->ClientConnected_;
 			RemoveClientEventHandlers(*Client->WSSocket_);
 			Client->WSSocket_.reset();
+		} else {
+			std::cout << "CloseClient NULL" << std::endl;
 		}
 	}
 
@@ -537,6 +541,8 @@ namespace OpenWifi {
 			CloseDevice(Connection);
 			CloseClient(Connection);
 			EndPoints_.erase(Connection->Id_);
+		} else {
+			std::cout << "Close connection error NULL" << std::endl;
 		}
 	}
 
