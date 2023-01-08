@@ -45,10 +45,7 @@ namespace OpenWifi {
 		if(!StorageService()->GetBlackListDevice(SerialNumber, D)) {
 			return NotFound();
 		}
-
-		Poco::JSON::Object	Answer;
-		D.to_json(Answer);
-		return ReturnObject(Answer);
+		return Object(D);
 	}
 
 	void RESTAPI_blacklist::DoPost() {
@@ -75,12 +72,8 @@ namespace OpenWifi {
 
 		if(StorageService()->AddBlackListDevice(D)) {
 			GWObjects::BlackListedDevice	CreatedDevice;
-
 			StorageService()->GetBlackListDevice(D.serialNumber,CreatedDevice);
-			Poco::JSON::Object	Answer;
-
-			CreatedDevice.to_json(Answer);
-			return ReturnObject(Answer);
+			return Object(CreatedDevice);
 		}
 		return BadRequest(RESTAPI::Errors::MissingOrInvalidParameters);
 	}
@@ -111,10 +104,7 @@ namespace OpenWifi {
 			GWObjects::BlackListedDevice	CreatedDevice;
 
 			StorageService()->GetBlackListDevice(SerialNumber,CreatedDevice);
-			Poco::JSON::Object	Answer;
-
-			CreatedDevice.to_json(Answer);
-			return ReturnObject(Answer);
+			return Object(CreatedDevice);
 		}
 		return BadRequest(RESTAPI::Errors::MissingOrInvalidParameters);
 	}

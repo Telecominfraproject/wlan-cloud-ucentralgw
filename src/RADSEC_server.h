@@ -55,10 +55,19 @@ namespace OpenWifi {
 
 		inline void run() final {
 			Poco::Thread::trySleep(3000);
+			std::uint64_t LastStatus=0 ;
+			auto RadSecKeepAlive = MicroServiceConfigGetInt("radsec.keepalive",120);
 			while(TryAgain_) {
 				if(!Connected_) {
 					std::lock_guard G(LocalMutex_);
+					LastStatus = Utils::Now() ;
 					Connect();
+				} else if( (Utils::Now() - LastStatus) > RadSecKeepAlive) {
+					RADIUS::RadiusOutputPacket P(Server_.radsecSecret);
+					P.MakeStatusMessage();
+					poco_information(Logger_,"Keep-Alive message.");
+					Socket_->sendBytes(P.Data(), P.Len());
+					LastStatus = Utils::Now();
 				}
 				Poco::Thread::trySleep(!Connected_ ? 3000 : 10000);
 			}
@@ -94,7 +103,7 @@ namespace OpenWifi {
 
 			try {
 				auto NumberOfReceivedBytes = Socket_->receiveBytes(Buffer,sizeof(Buffer));
-				if(NumberOfReceivedBytes>40) {
+				if(NumberOfReceivedBytes>=20) {
 					RADIUS::RadiusPacket P(Buffer,NumberOfReceivedBytes);
 					if (P.IsAuthentication()) {
 						auto SerialNumber = P.ExtractSerialNumberFromProxyState();
@@ -105,9 +114,7 @@ namespace OpenWifi {
 							AP_WS_Server()->SendRadiusAuthenticationData(SerialNumber, Buffer,
 																		 NumberOfReceivedBytes);
 						} else {
-							poco_debug(Logger_,
-									   fmt::format("Invalid AUTH packet received in proxy dropped. No serial number Source={}",
-									Socket_->address().toString()));
+							poco_debug(Logger_, "AUTH packet dropped.");
 						}
 					} else if (P.IsAccounting()) {
 						auto SerialNumber = P.ExtractSerialNumberFromProxyState();
@@ -118,9 +125,7 @@ namespace OpenWifi {
 							AP_WS_Server()->SendRadiusAccountingData(SerialNumber, Buffer,
 																	 NumberOfReceivedBytes);
 						} else {
-							poco_debug(Logger_,
-									   fmt::format("Invalid ACCT packet received in proxy dropped. No serial number Source={}",
-												   Socket_->address().toString()));
+							poco_debug(Logger_, "ACCT packet dropped.");
 						}
 					} else if (P.IsAuthority()) {
 						auto SerialNumber = P.ExtractSerialNumberTIP();
@@ -131,15 +136,13 @@ namespace OpenWifi {
 							AP_WS_Server()->SendRadiusCoAData(SerialNumber, Buffer,
 																	 NumberOfReceivedBytes);
 						} else {
-							poco_debug(Logger_,
-									   fmt::format("Invalid CoA/DM packet received in proxy dropped. No serial number Source={}",
-												   Socket_->address().toString()));
+							poco_debug(Logger_, "CoA/DM packet dropped.");
 						}
 					} else {
-						poco_warning(Logger_,fmt::format("Type: {} (type={}) Length={}", P.PacketType(), P.PacketTypeInt(), P.BufferLen()));
+						poco_warning(Logger_,fmt::format("Unknown packet: Type: {} (type={}) Length={}", P.PacketType(), P.PacketTypeInt(), P.BufferLen()));
 					}
 				} else {
-					poco_warning(Logger_,"Invalid RADSEC packet received. Terminating the connection.");
+					poco_warning(Logger_,"Invalid packet received. Resetting the connection.");
 					Disconnect();
 				}
 			} catch (const Poco::Exception &E) {
@@ -147,7 +150,7 @@ namespace OpenWifi {
 				Disconnect();
 			} catch (...) {
 				Disconnect();
-				poco_warning(Logger_,"Exception occurred: resetting connection.");
+				poco_warning(Logger_,"Exception occurred. Resetting the connection.");
 			}
 		}
 
