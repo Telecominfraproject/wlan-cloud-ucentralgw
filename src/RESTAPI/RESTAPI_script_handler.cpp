@@ -15,9 +15,7 @@ namespace OpenWifi {
 
 		GWObjects::ScriptEntry	SE;
 		if(DB_.GetRecord("id",UUID, SE)) {
-			Poco::JSON::Object	Answer;
-			SE.to_json(Answer);
-			return ReturnObject(Answer);
+			return Object(SE);
 		}
 		return NotFound();
 	}
@@ -83,9 +81,7 @@ namespace OpenWifi {
 		SE.id = MicroServiceCreateUUID();
 		SE.created = SE.modified = Utils::Now();
 		if(DB_.CreateRecord(SE)) {
-			Poco::JSON::Object	Answer;
-			SE.to_json(Answer);
-			return ReturnObject(Answer);
+			return Object(SE);
 		}
 		return BadRequest(RESTAPI::Errors::RecordNotCreated);
 	}
@@ -156,9 +152,7 @@ namespace OpenWifi {
 		Existing.modified = Utils::Now();
 
 		if(DB_.UpdateRecord("id", UUID, Existing)) {
-			Poco::JSON::Object	Answer;
-			Existing.to_json(Answer);
-			return ReturnObject(Answer);
+			return Object(Existing);
 		}
 		return BadRequest(RESTAPI::Errors::RecordNotUpdated);
 	}

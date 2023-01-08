@@ -23,16 +23,6 @@ namespace OpenWifi {
 
 		std::vector<GWObjects::DefaultConfiguration> DefConfigs;
 		StorageService()->GetDefaultConfigurations(QB_.Offset, QB_.Limit, DefConfigs);
-
-		Poco::JSON::Array Objects;
-		for (const auto &i : DefConfigs) {
-			Poco::JSON::Object Obj;
-			i.to_json(Obj);
-			Objects.add(Obj);
-		}
-
-		Poco::JSON::Object RetObj;
-		RetObj.set(RESTAPI::Protocol::CONFIGURATIONS, Objects);
-		ReturnObject(RetObj);
+		return Object(RESTAPI::Protocol::CONFIGURATIONS, DefConfigs);
 	}
 }

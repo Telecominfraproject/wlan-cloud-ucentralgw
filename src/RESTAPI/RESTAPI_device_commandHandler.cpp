@@ -72,7 +72,7 @@ namespace OpenWifi {
 			case APCommands::Commands::status:
 				return GetStatus();
 			case APCommands::Commands::rtty: {
-				AP_Restrictions     Restrictions;
+				GWObjects::DeviceRestrictions     Restrictions;
 				if(!AP_WS_Server()->Connected(SerialNumberInt_, Restrictions)) {
 					CallCanceled(Command_.c_str(), RESTAPI::Errors::DeviceNotConnected);
 					return BadRequest(RESTAPI::Errors::DeviceNotConnected);
@@ -129,7 +129,7 @@ namespace OpenWifi {
 		APCommands::Commands			Command=APCommands::Commands::unknown;
 		bool 							AllowParallel=false;
 		bool 							RequireConnection = true;
-		void (RESTAPI_device_commandHandler::*funPtr)(const std::string &, std::uint64_t, std::chrono::milliseconds, const AP_Restrictions &R );
+		void (RESTAPI_device_commandHandler::*funPtr)(const std::string &, std::uint64_t, std::chrono::milliseconds, const GWObjects::DeviceRestrictions &R );
 		std::chrono::milliseconds 		Timeout=120ms;
 	};
 
@@ -171,7 +171,7 @@ namespace OpenWifi {
 		for(const auto &PostCommand:PostCommands) {
 			if(Command==PostCommand.Command) {
 				Poco::Thread::current()->setName(fmt::format("{}:{}:{}",Command_, TransactionId_,SerialNumber_));
-                AP_Restrictions Restrictions;
+                GWObjects::DeviceRestrictions Restrictions;
 				if(PostCommand.RequireConnection && !AP_WS_Server()->Connected(SerialNumberInt_, Restrictions)) {
 					CallCanceled(Command_.c_str(), RESTAPI::Errors::DeviceNotConnected);
 					return BadRequest(RESTAPI::Errors::DeviceNotConnected);
@@ -375,7 +375,7 @@ namespace OpenWifi {
 		BadRequest(RESTAPI::Errors::NoRecordsDeleted);
 	}
 
-	void RESTAPI_device_commandHandler::Ping(const std::string &CMD_UUID, uint64_t CMD_RPC, std::chrono::milliseconds timeout, [[maybe_unused]] const AP_Restrictions &R) {
+	void RESTAPI_device_commandHandler::Ping(const std::string &CMD_UUID, uint64_t CMD_RPC, std::chrono::milliseconds timeout, [[maybe_unused]] const GWObjects::DeviceRestrictions &R) {
 		poco_information(Logger_,fmt::format("PING({},{}): TID={} user={} serial={}", CMD_UUID, CMD_RPC, TransactionId_, Requester(), SerialNumber_));
 		const auto &Obj = ParsedBody_;
 		if (Obj->has(RESTAPI::Protocol::SERIALNUMBER)) {
@@ -435,7 +435,7 @@ namespace OpenWifi {
 		return t=="shell" || t=="bundle";
 	}
 
-	void RESTAPI_device_commandHandler::Script(const std::string &CMD_UUID, uint64_t CMD_RPC, std::chrono::milliseconds timeout, [[maybe_unused]] const AP_Restrictions &R) {
+	void RESTAPI_device_commandHandler::Script(const std::string &CMD_UUID, uint64_t CMD_RPC, std::chrono::milliseconds timeout, [[maybe_unused]] const GWObjects::DeviceRestrictions &R) {
 		poco_information(Logger_,fmt::format("SCRIPT({},{}): TID={} user={} serial={}", CMD_UUID, CMD_RPC, TransactionId_, Requester(), SerialNumber_));
 
 		const auto &Obj = ParsedBody_;
@@ -565,7 +565,7 @@ namespace OpenWifi {
 		return RESTAPI_RPC::WaitForCommand(CMD_RPC, APCommands::Commands::script,false,Cmd, Params, *Request, *Response, timeout, nullptr, this, Logger_);
 	}
 
-	void RESTAPI_device_commandHandler::Configure(const std::string &CMD_UUID, uint64_t CMD_RPC, std::chrono::milliseconds timeout, [[maybe_unused]] const AP_Restrictions &R) {
+	void RESTAPI_device_commandHandler::Configure(const std::string &CMD_UUID, uint64_t CMD_RPC, std::chrono::milliseconds timeout, [[maybe_unused]] const GWObjects::DeviceRestrictions &R) {
 		poco_information(Logger_,fmt::format("CONFIGURE({},{}): TID={} user={} serial={}", CMD_UUID, CMD_RPC, TransactionId_, Requester(), SerialNumber_));
 
 		const auto &Obj = ParsedBody_;
@@ -617,7 +617,7 @@ namespace OpenWifi {
 		BadRequest(RESTAPI::Errors::MissingOrInvalidParameters);
 	}
 
-	void RESTAPI_device_commandHandler::Upgrade(const std::string &CMD_UUID, uint64_t CMD_RPC, std::chrono::milliseconds timeout, [[maybe_unused]] const AP_Restrictions &R) {
+	void RESTAPI_device_commandHandler::Upgrade(const std::string &CMD_UUID, uint64_t CMD_RPC, std::chrono::milliseconds timeout, [[maybe_unused]] const GWObjects::DeviceRestrictions &R) {
 		poco_information(Logger_,fmt::format("UPGRADE({},{}): TID={} user={} serial={}", CMD_UUID, CMD_RPC, TransactionId_, Requester(), SerialNumber_));
 
 		const auto &Obj = ParsedBody_;
@@ -632,13 +632,11 @@ namespace OpenWifi {
 			}
 
 			GWObjects::Device	DeviceInfo;
-
 			if(!StorageService()->GetDevice(SerialNumber_,DeviceInfo)) {
 				return NotFound();
 			}
 
 			std::string FWSignature = GetParameter("FWsignature","");
-
 			auto URI = GetS(RESTAPI::Protocol::URI, Obj);
 			auto When = GetWhen(Obj);
 
@@ -658,19 +656,19 @@ namespace OpenWifi {
 			Params.set(uCentralProtocol::URI, URI);
 			Params.set(uCentralProtocol::KEEP_REDIRECTOR, KeepRedirector ? 1 : 0);
 
-			if(R.sysupgrade_not_allowed() && FWSignature.empty()) {
+			if(DeviceInfo.restrictionDetails.upgrade && FWSignature.empty()) {
 				Poco::URI	uri(URI);
-				FWSignature = SignatureManager()->Sign(R,uri);
+				FWSignature = SignatureManager()->Sign(DeviceInfo.restrictionDetails,uri);
 			}
 
-			if(FWSignature.empty() && R.sysupgrade_not_allowed()) {
+			if(FWSignature.empty() && DeviceInfo.restrictionDetails.upgrade) {
 				return BadRequest(RESTAPI::Errors::DeviceRequiresSignature);
 			}
 
-
 			if(!FWSignature.empty()) {
-				Params.set(uCentralProtocol::FWSIGNATURE, FWSignature);
+				Params.set(uCentralProtocol::SIGNATURE, FWSignature);
 			}
+
 			Params.set(uCentralProtocol::WHEN, When);
 
 			std::stringstream ParamStream;
@@ -682,7 +680,7 @@ namespace OpenWifi {
 		BadRequest(RESTAPI::Errors::MissingOrInvalidParameters);
 	}
 
-	void RESTAPI_device_commandHandler::Reboot(const std::string &CMD_UUID, uint64_t CMD_RPC, std::chrono::milliseconds timeout, [[maybe_unused]] const AP_Restrictions &R) {
+	void RESTAPI_device_commandHandler::Reboot(const std::string &CMD_UUID, uint64_t CMD_RPC, std::chrono::milliseconds timeout, [[maybe_unused]] const GWObjects::DeviceRestrictions &R) {
 		poco_information(Logger_,fmt::format("REBOOT({},{}): TID={} user={} serial={}", CMD_UUID, CMD_RPC, TransactionId_, Requester(), SerialNumber_));
 
 		const auto &Obj = ParsedBody_;
@@ -716,7 +714,7 @@ namespace OpenWifi {
 		BadRequest(RESTAPI::Errors::MissingSerialNumber);
 	}
 
-	void RESTAPI_device_commandHandler::Factory(const std::string &CMD_UUID, uint64_t CMD_RPC, std::chrono::milliseconds timeout, [[maybe_unused]] const AP_Restrictions &R) {
+	void RESTAPI_device_commandHandler::Factory(const std::string &CMD_UUID, uint64_t CMD_RPC, std::chrono::milliseconds timeout, [[maybe_unused]] const GWObjects::DeviceRestrictions &R) {
 		poco_information(Logger_,fmt::format("FACTORY-RESET({},{}): TID={} user={} serial={}", CMD_UUID, CMD_RPC, TransactionId_, Requester(), SerialNumber_));
 
 		const auto &Obj = ParsedBody_;
@@ -756,7 +754,7 @@ namespace OpenWifi {
 		BadRequest(RESTAPI::Errors::MissingOrInvalidParameters);
 	}
 
-	void RESTAPI_device_commandHandler::LEDs(const std::string &CMD_UUID, uint64_t CMD_RPC, std::chrono::milliseconds timeout, [[maybe_unused]] const AP_Restrictions &R) {
+	void RESTAPI_device_commandHandler::LEDs(const std::string &CMD_UUID, uint64_t CMD_RPC, std::chrono::milliseconds timeout, [[maybe_unused]] const GWObjects::DeviceRestrictions &R) {
 		poco_information(Logger_,fmt::format("LEDS({},{}): TID={} user={} serial={}", CMD_UUID, CMD_RPC, TransactionId_, Requester(), SerialNumber_));
 
 		const auto &Obj = ParsedBody_;
@@ -804,7 +802,7 @@ namespace OpenWifi {
 		BadRequest(RESTAPI::Errors::MissingOrInvalidParameters);
 	}
 
-	void RESTAPI_device_commandHandler::Trace(const std::string &CMD_UUID, uint64_t CMD_RPC, std::chrono::milliseconds timeout, [[maybe_unused]] const AP_Restrictions &R) {
+	void RESTAPI_device_commandHandler::Trace(const std::string &CMD_UUID, uint64_t CMD_RPC, std::chrono::milliseconds timeout, [[maybe_unused]] const GWObjects::DeviceRestrictions &R) {
 		poco_information(Logger_,fmt::format("TRACE({},{}): TID={} user={} serial={}", CMD_UUID, CMD_RPC, TransactionId_, Requester(), SerialNumber_));
 
 		const auto &Obj = ParsedBody_;
@@ -857,7 +855,7 @@ namespace OpenWifi {
 		BadRequest(RESTAPI::Errors::MissingOrInvalidParameters);
 	}
 
-	void RESTAPI_device_commandHandler::WifiScan(const std::string &CMD_UUID, uint64_t CMD_RPC, std::chrono::milliseconds timeout, [[maybe_unused]] const AP_Restrictions &R) {
+	void RESTAPI_device_commandHandler::WifiScan(const std::string &CMD_UUID, uint64_t CMD_RPC, std::chrono::milliseconds timeout, [[maybe_unused]] const GWObjects::DeviceRestrictions &R) {
 		poco_information(Logger_,fmt::format("WIFISCAN({},{}): TID={} user={} serial={}", CMD_UUID, CMD_RPC, TransactionId_, Requester(), SerialNumber_));
 		const auto &Obj = ParsedBody_;
 
@@ -887,7 +885,7 @@ namespace OpenWifi {
 
 		Params.set(uCentralProtocol::SERIAL, SerialNumber_);
 
-        if(R.dfs_not_allowed() && OverrideDFS) {
+        if(R.dfs && OverrideDFS) {
             return BadRequest(RESTAPI::Errors::DeviceIsRestricted);
         }
 
@@ -907,7 +905,7 @@ namespace OpenWifi {
 		}
 	}
 
-	void RESTAPI_device_commandHandler::EventQueue(const std::string &CMD_UUID, uint64_t CMD_RPC, std::chrono::milliseconds timeout, [[maybe_unused]] const AP_Restrictions &R) {
+	void RESTAPI_device_commandHandler::EventQueue(const std::string &CMD_UUID, uint64_t CMD_RPC, std::chrono::milliseconds timeout, [[maybe_unused]] const GWObjects::DeviceRestrictions &R) {
 		poco_information(Logger_,fmt::format("EVENT-QUEUE({},{}): TID={} user={} serial={}", CMD_UUID, CMD_RPC, TransactionId_, Requester(), SerialNumber_));
 
 		const auto &Obj = ParsedBody_;
@@ -946,7 +944,7 @@ namespace OpenWifi {
 		BadRequest(RESTAPI::Errors::MissingOrInvalidParameters);
 	}
 
-	void RESTAPI_device_commandHandler::MakeRequest(const std::string &CMD_UUID, uint64_t CMD_RPC, std::chrono::milliseconds timeout, [[maybe_unused]] const AP_Restrictions &R) {
+	void RESTAPI_device_commandHandler::MakeRequest(const std::string &CMD_UUID, uint64_t CMD_RPC, std::chrono::milliseconds timeout, [[maybe_unused]] const GWObjects::DeviceRestrictions &R) {
 		poco_information(Logger_,fmt::format("FORCE-REQUEST({},{}): TID={} user={} serial={}", CMD_UUID, CMD_RPC, TransactionId_, Requester(), SerialNumber_));
 
 		const auto &Obj = ParsedBody_;
@@ -988,10 +986,12 @@ namespace OpenWifi {
 		BadRequest(RESTAPI::Errors::MissingOrInvalidParameters);
 	}
 
-	void RESTAPI_device_commandHandler::Rtty(const std::string &CMD_UUID, uint64_t CMD_RPC, std::chrono::milliseconds timeout, [[maybe_unused]] const AP_Restrictions &R) {
+#define DBGLINE		{	std::cout << __LINE__ << std::endl; }
+
+	void RESTAPI_device_commandHandler::Rtty(const std::string &CMD_UUID, uint64_t CMD_RPC, std::chrono::milliseconds timeout, [[maybe_unused]] const GWObjects::DeviceRestrictions &R) {
 		poco_information(Logger_,fmt::format("RTTY({},{}): TID={} user={} serial={}", CMD_UUID, CMD_RPC, TransactionId_, Requester(), SerialNumber_));
 
-        if(R.rtty_not_allowed()) {
+        if(R.rtty) {
             return BadRequest(RESTAPI::Errors::DeviceIsRestricted);
         }
 
@@ -999,14 +999,15 @@ namespace OpenWifi {
 			GWObjects::Device	Device;
 
 			if (StorageService()->GetDevice(SerialNumber_, Device)) {
-
+				static std::uint64_t rtty_sid = 0;
+				rtty_sid += std::rand();
 				GWObjects::RttySessionDetails Rtty{
 					.SerialNumber = SerialNumber_,
 					.Server = MicroServiceConfigGetString("rtty.server", "localhost"),
 					.Port = MicroServiceConfigGetInt("rtty.port", 5912),
 					.Token = MicroServiceConfigGetString("rtty.token", "nothing"),
 					.TimeOut = MicroServiceConfigGetInt("rtty.timeout", 60),
-					.ConnectionId =  Utils::ComputeHash(SerialNumber_,Utils::Now()).substr(0,RTTY_DEVICE_TOKEN_LENGTH),
+					.ConnectionId =  Utils::ComputeHash(SerialNumber_,Utils::Now(),rtty_sid).substr(0,RTTY_DEVICE_TOKEN_LENGTH),
 					.Started = Utils::Now(),
 					.CommandUUID = CMD_UUID,
 					.ViewPort = MicroServiceConfigGetInt("rtty.viewport", 5913),
@@ -1054,9 +1055,7 @@ namespace OpenWifi {
 		return ReturnStatus(Poco::Net::HTTPResponse::HTTP_SERVICE_UNAVAILABLE);
 	}
 
-// #define DBG		{ std::cout << __LINE__ << std::endl; }
-
-	void RESTAPI_device_commandHandler::Telemetry(const std::string &CMD_UUID, uint64_t CMD_RPC, [[maybe_unused]] std::chrono::milliseconds timeout, [[maybe_unused]] const AP_Restrictions &R){
+	void RESTAPI_device_commandHandler::Telemetry(const std::string &CMD_UUID, uint64_t CMD_RPC, [[maybe_unused]] std::chrono::milliseconds timeout, [[maybe_unused]] const GWObjects::DeviceRestrictions &R){
 		poco_information(Logger_,fmt::format("TELEMETRY({},{}): TID={} user={} serial={}", CMD_UUID, CMD_RPC, TransactionId_, Requester(), SerialNumber_));
 
 		const auto &Obj = ParsedBody_;
@@ -1073,7 +1072,6 @@ namespace OpenWifi {
 
 			std::stringstream 	oooss;
 			Obj->stringify(oooss);
-			// std::cout << "Payload:" << oooss.str() << std::endl;
 
 			std::uint64_t Lifetime = 60 * 60 ; // 1 hour
 			std::uint64_t Interval = 5;

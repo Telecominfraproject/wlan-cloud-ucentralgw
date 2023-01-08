@@ -291,6 +291,8 @@ static const struct tok radius_attribute_names[] = {
 	constexpr unsigned char CoA_ACK = 44;
 	constexpr unsigned char CoA_NAK = 45;
 
+	constexpr unsigned char ATTR_MessageAuthenticator = 80;
+
 	inline bool IsAuthentication(unsigned char t) {
 		return (t == RADIUS::Access_Request ||
 				t == RADIUS::Access_Accept ||
@@ -328,6 +330,11 @@ static const struct tok radius_attribute_names[] = {
 			cmds++;
 		if(cmds->cmd==cmd) return cmds->name;
 		return "Unknown";
+	}
+
+	inline void MakeRadiusAuthenticator(unsigned char *authenticator) {
+		for(int i=0;i<16;i++)
+			authenticator[i]=std::rand() & 0xff;
 	}
 
 	//
@@ -664,6 +671,44 @@ static const struct tok radius_attribute_names[] = {
 		uint16_t            Size_{0};
 		AttributeList       Attrs_;
 		bool                Valid_=false;
+	};
+
+	class RadiusOutputPacket {
+	  public:
+		explicit RadiusOutputPacket(const std::string &Secret)
+			: Secret_(Secret) {
+		}
+
+		inline void MakeStatusMessage() {
+			P_.code = RADCMD_STATUS_SER;
+			P_.identifier = std::rand() & 0x00ff;
+			MakeRadiusAuthenticator(P_.authenticator);
+			unsigned char MessageAuthenticator[16]{0};
+			AddAttribute(ATTR_MessageAuthenticator,sizeof(MessageAuthenticator),MessageAuthenticator);
+			P_.rawlen = 1 + 1 + 2 + 16 + 1 + 1 + 16;
+
+			Poco::HMACEngine<Poco::MD5Engine> H(Secret_);
+			H.update((const unsigned char *)&P_, P_.rawlen);
+			auto digest = H.digest();
+			int p = 0;
+			for (const auto &i : digest)
+				P_.attributes[1 + 1 + p++] = i;
+		}
+
+		inline void AddAttribute(unsigned char attr, uint8_t len, const unsigned char * data) {
+			P_.attributes[AttributesLen_++] = attr;
+			P_.attributes[AttributesLen_++] = len;
+			memcpy(&P_.attributes[AttributesLen_],data,len);
+			AttributesLen_+=len;
+		}
+
+		[[nodiscard]] inline const unsigned char * Data() const { return (const unsigned char *) &P_;}
+		[[nodiscard]] inline std::uint16_t Len() const { return P_.rawlen; }
+
+	  private:
+		RawRadiusPacket		P_;
+		uint16_t 			AttributesLen_=0;
+		std::string 		Secret_;
 	};
 
 	inline std::ostream &operator<<(std::ostream &os, RadiusPacket const &P) {

@@ -134,7 +134,7 @@ namespace OpenWifi {
 		}
 		bool GetHealthcheck(uint64_t SerialNumber, GWObjects::HealthCheck & CheckData) const ;
 
-		bool Connected(uint64_t SerialNumber, AP_Restrictions & Restrictions) const ;
+		bool Connected(uint64_t SerialNumber, GWObjects::DeviceRestrictions & Restrictions) const ;
 		bool Connected(uint64_t SerialNumber) const ;
 
 		inline bool SendFrame(const std::string & SerialNumber, const std::string & Payload) const {

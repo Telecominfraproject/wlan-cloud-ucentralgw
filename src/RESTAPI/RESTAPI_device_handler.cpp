@@ -32,9 +32,7 @@ namespace OpenWifi {
 				CompleteDeviceInfo(Device, Answer);
 				return ReturnObject(Answer);
 			} else {
-				Poco::JSON::Object Obj;
-				Device.to_json(Obj);
-				return ReturnObject(Obj);
+				return Object(Device);
 			}
 		}
 		NotFound();
@@ -139,9 +137,7 @@ namespace OpenWifi {
 
 		if (StorageService()->CreateDevice(Device)) {
 			SetCurrentConfigurationID(SerialNumber, Device.UUID);
-			Poco::JSON::Object DevObj;
-			Device.to_json(DevObj);
-			return ReturnObject(DevObj);
+			return Object(Device);
 		}
 		InternalError(RESTAPI::Errors::RecordNotCreated);
 	}
@@ -191,9 +187,9 @@ namespace OpenWifi {
 		Existing.LastConfigurationChange = Utils::Now();
 		if (StorageService()->UpdateDevice(Existing)) {
 			SetCurrentConfigurationID(SerialNumber, Existing.UUID);
-			Poco::JSON::Object DevObj;
-			NewDevice.to_json(DevObj);
-			return ReturnObject(DevObj);
+			GWObjects::Device UpdatedDevice;
+			StorageService()->GetDevice(SerialNumber, UpdatedDevice);
+			return Object(UpdatedDevice);
 		}
 		InternalError(RESTAPI::Errors::RecordNotUpdated);
 	}
