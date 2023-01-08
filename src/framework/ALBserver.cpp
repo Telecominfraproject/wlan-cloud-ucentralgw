@@ -51,7 +51,13 @@ namespace OpenWifi {
             poco_information(Logger(),"Starting...");
 			Running_=true;
 			Port_ = (int)MicroServiceConfigGetInt("alb.port",15015);
-			Socket_ = std::make_unique<Poco::Net::ServerSocket>(Port_);
+			Poco::Net::IPAddress Addr(Poco::Net::IPAddress::wildcard(
+				Poco::Net::Socket::supportsIPv6() ? Poco::Net::AddressFamily::IPv6
+												  : Poco::Net::AddressFamily::IPv4));
+			Poco::Net::SocketAddress SockAddr(Addr, Port_);
+			Poco::Net::ServerSocket ClientSocket(SockAddr, 64);
+
+			Socket_ = std::make_unique<Poco::Net::ServerSocket>(SockAddr, Port_);
 			auto Params = new Poco::Net::HTTPServerParams;
 			Params->setName("ws:alb");
 			Server_ = std::make_unique<Poco::Net::HTTPServer>(new ALBRequestHandlerFactory(Logger()), *Socket_, Params);

@@ -53,4 +53,5 @@ namespace OpenWifi {
     std::string MicroServiceSign(Poco::JWT::Token &T, const std::string &Algo);
     std::string MicroServiceGetPublicAPIEndPoint();
 	void MicroServiceDeleteOverrideConfiguration();
+    bool AllowExternalMicroServices();
 }

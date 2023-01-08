@@ -302,7 +302,7 @@ namespace OpenWifi {
 			Response->setChunkedTransferEncoding(true);
 			Response->setContentType("application/json");
 			auto Origin = Request->find("Origin");
-			if (Origin != Request->end()) {
+			if (Origin != Request->end() && !AllowExternalMicroServices()) {
 				Response->set("Access-Control-Allow-Origin", Origin->second);
 			} else {
 				Response->set("Access-Control-Allow-Origin", "*");
@@ -322,7 +322,7 @@ namespace OpenWifi {
 			Response->setVersion(Poco::Net::HTTPMessage::HTTP_1_1);
 			Response->setChunkedTransferEncoding(true);
 			auto Origin = Request->find("Origin");
-			if (Origin != Request->end()) {
+			if (Origin != Request->end() && !AllowExternalMicroServices()) {
 				Response->set("Access-Control-Allow-Origin", Origin->second);
 			} else {
 				Response->set("Access-Control-Allow-Origin", "*");
@@ -630,6 +630,18 @@ namespace OpenWifi {
 		template<typename T> void ReturnObject(const char *Name, const std::vector<T> & Objects) {
 			Poco::JSON::Object  Answer;
 			RESTAPI_utils::field_to_json(Answer,Name,Objects);
+			ReturnObject(Answer);
+		}
+
+		template<typename T> void Object(const char *Name, const std::vector<T> & Objects) {
+			Poco::JSON::Object  Answer;
+			RESTAPI_utils::field_to_json(Answer,Name,Objects);
+			ReturnObject(Answer);
+		}
+
+		template <typename T> void Object(const T &O) {
+			Poco::JSON::Object  Answer;
+			O.to_json(Answer);
 			ReturnObject(Answer);
 		}
 

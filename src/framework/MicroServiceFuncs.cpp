@@ -118,4 +118,9 @@ namespace OpenWifi {
 	void MicroServiceDeleteOverrideConfiguration() {
 		return MicroService::instance().DeleteOverrideConfiguration();
 	}
+
+    bool AllowExternalMicroServices() {
+        return MicroService::instance().AllowExternalMicroServices();
+    }
+
 }
