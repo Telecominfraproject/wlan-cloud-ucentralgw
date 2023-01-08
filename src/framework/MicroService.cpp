@@ -365,6 +365,8 @@ namespace OpenWifi {
 
 		LoadMyConfig();
 
+        AllowExternalMicroServices_ = ConfigGetBool("allowexternalmicroservices",true);
+
 		InitializeSubSystemServers();
 		ServerApplication::initialize(self);
 		DaemonPostInitialization(self);

@@ -163,6 +163,7 @@ namespace OpenWifi {
         static void SetSQLLogs(bool UseAsync, bool AllowWebSocket, const std::string & FormatterPattern);
         static void SetSyslogLogs(bool UseAsync, bool AllowWebSocket, const std::string & FormatterPattern);
         static void SetFileLogs(bool UseAsync, bool AllowWebSocket, const std::string & FormatterPattern, const std::string & root_env_var);
+        inline bool AllowExternalMicroServices() const { return AllowExternalMicroServices_; }
 
 	  private:
 	    static MicroService         * instance_;
@@ -193,6 +194,7 @@ namespace OpenWifi {
         SubSystemVec			    SubSystems_;
         bool                        NoAPISecurity_=false;
         bool                        NoBuiltInCrypto_=false;
+        bool                        AllowExternalMicroServices_=false;
         Poco::JWT::Signer	        Signer_;
 		Poco::Logger				&Logger_;
 		Poco::ThreadPool				TimerPool_{"timer:pool",2,32};
