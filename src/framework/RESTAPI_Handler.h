@@ -302,7 +302,7 @@ namespace OpenWifi {
 			Response->setChunkedTransferEncoding(true);
 			Response->setContentType("application/json");
 			auto Origin = Request->find("Origin");
-			if (Origin != Request->end()) {
+			if (Origin != Request->end() && !AllowExternalMicroServices()) {
 				Response->set("Access-Control-Allow-Origin", Origin->second);
 			} else {
 				Response->set("Access-Control-Allow-Origin", "*");
@@ -322,7 +322,7 @@ namespace OpenWifi {
 			Response->setVersion(Poco::Net::HTTPMessage::HTTP_1_1);
 			Response->setChunkedTransferEncoding(true);
 			auto Origin = Request->find("Origin");
-			if (Origin != Request->end()) {
+			if (Origin != Request->end() && !AllowExternalMicroServices()) {
 				Response->set("Access-Control-Allow-Origin", Origin->second);
 			} else {
 				Response->set("Access-Control-Allow-Origin", "*");
