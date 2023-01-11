@@ -21,7 +21,7 @@ namespace OpenWifi {
 
 	class UI_WebSocketClientProcessor {
 	  public:
-		virtual void Processor(const Poco::JSON::Object::Ptr &O, std::string &Answer, bool &Done ) = 0;
+		virtual void Processor(const Poco::JSON::Object::Ptr &O, std::string &Answer, bool &Done , const SecurityObjects::UserInfo & UserInfo) = 0;
 	  private:
 	};
 

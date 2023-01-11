@@ -483,6 +483,32 @@ namespace ORM {
             return false;
         }
 
+        template<typename... Args> bool GetRecordExt(RecordType & T , Args... args) {
+            try {
+                Poco::Data::Session     Session = Pool_.get();
+                Poco::Data::Statement   Select(Session);
+                RecordTuple             RT;
+
+                auto WhereClause = WHERE_AND(args...);
+
+                std::string St = "select " + SelectFields_ + " from " + TableName_ + WhereClause + " limit 1";
+
+                Select  << ConvertParams(St) ,
+                        Poco::Data::Keywords::into(RT);
+                Select.execute();
+
+                if(Select.execute()==1) {
+                    Convert(RT,T);
+                    if(Cache_)
+                        Cache_->UpdateCache(T);
+                    return true;
+                }
+            } catch (const Poco::Exception &E) {
+                Logger_.log(E);
+            }
+            return false;
+        }
+
         typedef std::vector<std::string> StringVec;
 
         template <  typename T,

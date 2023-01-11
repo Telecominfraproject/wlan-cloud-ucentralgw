@@ -271,7 +271,7 @@ namespace OpenWifi {
                     std::string Answer;
                     bool CloseConnection=false;
                     if (Processor_ != nullptr) {
-                        Processor_->Processor(Obj, Answer, CloseConnection);
+                        Processor_->Processor(Obj, Answer, CloseConnection,Client->second->UserInfo_.userinfo);
                     }
                     if (!Answer.empty())
                         Client->second->WS_->sendFrame(Answer.c_str(), (int)Answer.size());

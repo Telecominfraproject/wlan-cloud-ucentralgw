@@ -16,7 +16,7 @@ namespace OpenWifi {
 		UI_WebSocketClientServer()->SetProcessor(nullptr);
 	}
 
-	void GwWebSocketClient::Processor(const Poco::JSON::Object::Ptr &O, std::string &Answer, bool &Done ) {
+	void GwWebSocketClient::Processor(const Poco::JSON::Object::Ptr &O, std::string &Answer, bool &Done, [[maybe_unused]] const SecurityObjects::UserInfo &UserInfo) {
 		try {
 			if (O->has("command")) {
 				auto Command = O->get("command").toString();
