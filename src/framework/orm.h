@@ -25,6 +25,8 @@
 #include "Poco/StringTokenizer.h"
 #include "StorageClass.h"
 
+#include "fmt/format.h"
+
 namespace ORM {
 
     enum FieldType {
@@ -149,12 +151,14 @@ namespace ORM {
                 Result += Escape(Value);
                 Result += "'";
             }
-        } else {
+            return WHERE_AND_(Result,args...);
+        } else if constexpr (std::is_arithmetic_v<T>) {
             if(!Result.empty())
                 Result += " and ";
             Result += fieldName ;
             Result += '=';
             Result += std::to_string(Value);
+            return WHERE_AND_(Result,args...);
         }
         return WHERE_AND_(Result,args...);
     }
@@ -483,15 +487,13 @@ namespace ORM {
             return false;
         }
 
-        template<typename... Args> bool GetRecordExt(RecordType & T , Args... args) {
+        bool GetRecord(RecordType & T , const std::string &WhereClause) {
             try {
                 Poco::Data::Session     Session = Pool_.get();
                 Poco::Data::Statement   Select(Session);
                 RecordTuple             RT;
 
-                auto WhereClause = WHERE_AND(args...);
-
-                std::string St = "select " + SelectFields_ + " from " + TableName_ + WhereClause + " limit 1";
+                std::string St = "select " + SelectFields_ + " from " + TableName_ + " where " + WhereClause + " limit 1";
 
                 Select  << ConvertParams(St) ,
                         Poco::Data::Keywords::into(RT);

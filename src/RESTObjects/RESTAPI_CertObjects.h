@@ -31,6 +31,7 @@ namespace OpenWifi::CertObjects {
         uint64_t                        revoked = 0;
         uint64_t                        revokeCount = 0;
         uint64_t                        synched = 0;
+        uint64_t                        expiryDate = 0 ;
 
         void to_json(Poco::JSON::Object &Obj) const;
         bool from_json(const Poco::JSON::Object::Ptr &Obj);

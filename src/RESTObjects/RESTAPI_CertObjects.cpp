@@ -30,6 +30,7 @@ namespace OpenWifi::CertObjects {
         field_to_json(Obj,"revoked", revoked);
         field_to_json(Obj,"revokeCount", revokeCount);
         field_to_json(Obj,"synched", synched);
+        field_to_json(Obj,"expiryDate", expiryDate);
     }
 
     bool CertificateEntry::from_json(const Poco::JSON::Object::Ptr &Obj) {
@@ -54,6 +55,7 @@ namespace OpenWifi::CertObjects {
             field_from_json(Obj,"revoked", revoked);
             field_from_json(Obj,"revokeCount", revokeCount);
             field_from_json(Obj,"synched", synched);
+            field_from_json(Obj,"expiryDate", expiryDate);
             return true;
         } catch (...) {
         }
