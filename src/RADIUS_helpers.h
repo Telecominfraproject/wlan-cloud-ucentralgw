@@ -12,6 +12,7 @@
 #include "Poco/HMACEngine.h"
 #include "Poco/MD5Engine.h"
 #include "Poco/StringTokenizer.h"
+#include "Poco/Net/SocketAddress.h"
 
 namespace OpenWifi::RADIUS {
 
@@ -606,11 +607,16 @@ static const struct tok radius_attribute_names[] = {
 			std::string Result;
 			for(const auto &attribute:Attrs_) {
 				if(attribute.type==33) {
-					const char * SN = (const char *)&P_.attributes[attribute.pos];
-					auto i=0;
-					while(*SN!=':' && i<12) {
-						Result+=*SN++;
-						i++;
+					std::string Attr33;
+					// format is serial:IP:port:interface
+					Attr33.assign((const char *)(const char *)&P_.attributes[attribute.pos],attribute.len-2);
+					auto Parts = Poco::StringTokenizer(Attr33,"|");
+					if(Parts.count()==4) {
+						return Parts[0];
+					}
+					Parts = Poco::StringTokenizer(Attr33,":");
+					if(Parts.count()==4) {
+						return Parts[0];
 					}
 					return Result;
 				}
@@ -625,9 +631,16 @@ static const struct tok radius_attribute_names[] = {
 					std::string Attr33;
 					// format is serial:IP:port:interface
 					Attr33.assign((const char *)(const char *)&P_.attributes[attribute.pos],attribute.len-2);
-					auto Parts = Poco::StringTokenizer(Attr33,":");
-					if(Parts.count()==4)
-						return Parts[1]+":"+Parts[2];
+					auto Parts = Poco::StringTokenizer(Attr33,"|");
+					if(Parts.count()==4) {
+						Poco::Net::SocketAddress	D(Parts[1],Parts[2]);
+						return D.toString();
+					}
+					Parts = Poco::StringTokenizer(Attr33,":");
+					if(Parts.count()==4) {
+						Poco::Net::SocketAddress	D(Parts[1],Parts[2]);
+						return D.toString();
+					}
 					return Result;
 				}
 			}
