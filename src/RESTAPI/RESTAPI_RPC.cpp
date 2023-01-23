@@ -102,6 +102,12 @@ namespace OpenWifi::RESTAPI_RPC {
 				return;
 			}
 
+                        //Issue Id : WIFI-12072 : Added Log to print the error message received from AP.
+                        std::ostringstream      rpcss;
+                        ResultFields->stringify(rpcss);
+                        nlohmann::json D = nlohmann::json::parse(rpcss.str());
+                        Logger.information(fmt::format("Response Received from AP :{} ",rpcss.str() ));
+
 			auto StatusInnerObj = ResultFields->get(uCentralProtocol::STATUS).extract<Poco::JSON::Object::Ptr>();
 			if (StatusInnerObj->has(uCentralProtocol::ERROR))
 				Cmd.ErrorCode = StatusInnerObj->get(uCentralProtocol::ERROR);
