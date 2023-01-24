@@ -57,7 +57,7 @@ namespace OpenWifi {
         bool RetrieveApiKeyInformation(const std::string & SessionToken,
                                       SecurityObjects::UserInfoAndPolicy & UInfo,
                                       std::uint64_t TID,
-                                      bool & Expired, bool & Contacted);
+                                      bool & Expired, bool & Contacted, bool & Suspended);
 
 		bool IsAuthorized(const std::string &SessionToken, SecurityObjects::UserInfoAndPolicy & UInfo,
 								 std::uint64_t TID,
@@ -65,7 +65,7 @@ namespace OpenWifi {
 
         bool IsValidApiKey(const std::string &SessionToken, SecurityObjects::UserInfoAndPolicy & UInfo,
                           std::uint64_t TID,
-                          bool & Expired, bool & Contacted);
+                          bool & Expired, bool & Contacted, bool & Suspended) ;
 
 	  private:
 

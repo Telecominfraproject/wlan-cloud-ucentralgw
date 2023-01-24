@@ -35,7 +35,8 @@ namespace OpenWifi {
 		BAD_MFA_TRANSACTION,
 		MFA_FAILURE,
 		SECURITY_SERVICE_UNREACHABLE,
-		CANNOT_REFRESH_TOKEN
+		CANNOT_REFRESH_TOKEN,
+        ACCOUNT_SUSPENDED
 	};
 }
 
@@ -58,6 +59,7 @@ namespace OpenWifi::RESTAPI::Errors {
     static const struct msg MFA_FAILURE{12,"MFA failure."};
     static const struct msg SECURITY_SERVICE_UNREACHABLE{13,"Security service is unreachable, try again later."};
     static const struct msg CANNOT_REFRESH_TOKEN{14,"Cannot refresh token."};
+    static const struct msg ACCOUNT_SUSPENDED{15,"Account has been suspended."};
 
     static const struct msg MissingUUID{1000,"Missing UUID."};
     static const struct msg MissingSerialNumber{1001,"Missing Serial Number."};
@@ -233,6 +235,22 @@ namespace OpenWifi::RESTAPI::Errors {
 	static const struct msg InvalidScriptSelection{1153,"Only script or scriptId must be specified. Not both."};
 
 	static const struct msg NoDeviceStatisticsYet{1154,"Device statistics not available yet."};
+    static const struct msg AccountSuspended{1155,"You account was suspended. You can only use this site in read-only mode for now."};
+    static const struct msg BatchNameAlreadyExists{1156,"Batch name must be unique."};
+    static const struct msg RedirectorNameIsInvalid{1157,"Redirector name is invalid."};
+    static const struct msg CertificateAlreadyBelongsToYou{1158,"The serial number already belongs to you. Please use the certificate modification API to change the redirector."};
+    static const struct msg RelocationDisabledForThisDevice{1159,"Relocation disabled for this device."};
+    static const struct msg CannotModifyServerCertificates{1160,"Server certificates cannot be modified."};
+
+    static const struct msg TransferNotInDispute{1161,"The specified transfer is not being disputed."};
+    static const struct msg MissingComment{1162,"Missing comment."};
+    static const struct msg EntityNotAllowedToTransfer{1163,"Entity is not allowed to transfer devices."};
+    static const struct msg DailyTransferQuotaExceeded{1164,"Entity has exceeded its daily quota."};
+    static const struct msg CertificateWasNotRevoked{1165,"Certificate was not revoked, so it may not be re-created."};
+    static const struct msg CertificateTransferNoLongerExists{1166,"The device certificate associated with this transfer no longer seem to exist."};
+    static const struct msg CertificateTransferEntityNoLongerExists{1167,"The entity tied to this transfer no longer seems to exist."};
+    static const struct msg CannotRollBackDueToDigiCert{1168,"The change could not be rolled back at this time. Please try later."};
+
 	}
 
 
@@ -498,7 +516,9 @@ namespace OpenWifi::uCentralProtocol::Events {
 		ET_RECOVERY,
 		ET_DEVICEUPDATE,
 		ET_TELEMETRY,
-		ET_VENUEBROADCAST
+		ET_VENUEBROADCAST,
+		ET_EVENT,
+		ET_WIFISCAN
 	};
 
 	inline EVENT_MSG EventFromString(const std::string & Method) {
@@ -524,6 +544,10 @@ namespace OpenWifi::uCentralProtocol::Events {
 			return ET_TELEMETRY;
 		else if(strcmp(VENUE_BROADCAST,Method.c_str())==0)
 			return ET_VENUEBROADCAST;
+		else if(strcmp(EVENT,Method.c_str())==0)
+			return ET_EVENT;
+		else if(strcmp(WIFISCAN,Method.c_str())==0)
+			return ET_WIFISCAN;
 		return ET_UNKNOWN;
 	};
 }

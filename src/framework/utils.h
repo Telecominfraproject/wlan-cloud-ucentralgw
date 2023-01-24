@@ -73,6 +73,7 @@ namespace OpenWifi::Utils {
 
 	[[nodiscard]] bool ValidSerialNumber(const std::string &Serial);
 	[[nodiscard]] bool ValidUUID(const std::string &UUID);
+    [[nodiscard]] bool ValidHostname(const std::string &hostname);
 
 	template <typename ...Args> std::string ComputeHash(Args&&... args) {
 		Poco::SHA2Engine    E;
@@ -120,6 +121,8 @@ namespace OpenWifi::Utils {
 	[[nodiscard]] bool IsAlphaNumeric(const std::string &s);
     [[nodiscard]] std::string SanitizeToken(const std::string &Token);
 	[[nodiscard]] bool ValidateURI(const std::string &uri);
+
+    [[nodiscard]] std::uint64_t ConvertDate(const std::string &d);
 
 	template< typename T >
 	std::string int_to_hex( T i )

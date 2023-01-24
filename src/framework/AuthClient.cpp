@@ -76,7 +76,7 @@ namespace OpenWifi {
     bool AuthClient::RetrieveApiKeyInformation(const std::string & SessionToken,
                                               SecurityObjects::UserInfoAndPolicy & UInfo,
                                               std::uint64_t TID,
-                                              bool & Expired, bool & Contacted) {
+                                              bool & Expired, bool & Contacted, [[maybe_unused]] bool & Suspended) {
         try {
             Types::StringPairVec QueryData;
             QueryData.push_back(std::make_pair("apikey",SessionToken));
@@ -113,7 +113,7 @@ namespace OpenWifi {
     }
 
     bool AuthClient::IsValidApiKey(const std::string &SessionToken, SecurityObjects::UserInfoAndPolicy &UInfo,
-                                   std::uint64_t TID, bool &Expired, bool &Contacted) {
+                                   std::uint64_t TID, bool &Expired, bool &Contacted, bool & Suspended) {
         auto User = ApiKeyCache_.get(SessionToken);
         if (!User.isNull()) {
             if(User->ExpiresOn < Utils::Now()) {
@@ -123,7 +123,7 @@ namespace OpenWifi {
             }
 			ApiKeyCache_.remove(SessionToken);
         }
-        return RetrieveApiKeyInformation(SessionToken, UInfo, TID, Expired, Contacted);
+        return RetrieveApiKeyInformation(SessionToken, UInfo, TID, Expired, Contacted, Suspended);
     }
 
 } // namespace OpenWifi

@@ -109,6 +109,11 @@ uint64_t MACToInt(const std::string &MAC) {
 	return Result;
 }
 
+[[nodiscard]] bool ValidHostname(const std::string &Hostname) {
+    static std::regex HostNameRegex("^(?!-)[A-Za-z0-9-]+([\\-\\.]{1}[a-z0-9]+)*\\.[A-Za-z]{2,6}$");
+    return std::regex_match(Hostname,HostNameRegex);
+}
+
 [[nodiscard]] std::string ToHex(const std::vector<unsigned char> & B) {
 	std::string R;
 	R.reserve(B.size()*2);
@@ -559,5 +564,12 @@ bool ExtractBase64CompressedData(const std::string &CompressedData,
 		}
 		return false;
 	}
+
+    [[nodiscard]] std::uint64_t ConvertDate(const std::string &Date) {
+        Poco::DateTime  DT;
+        int             TZ;
+        Poco::DateTimeParser::parse(Poco::DateTimeFormat::ISO8601_FORMAT,Date,DT,TZ);
+        return DT.timestamp().epochTime();
+    }
 
 }

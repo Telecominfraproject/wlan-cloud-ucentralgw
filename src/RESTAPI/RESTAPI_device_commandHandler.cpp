@@ -1062,7 +1062,8 @@ namespace OpenWifi {
 
 		if (Obj->has(RESTAPI::Protocol::SERIALNUMBER) &&
 			Obj->has(RESTAPI::Protocol::INTERVAL) &&
-			Obj->has(RESTAPI::Protocol::TYPES)) {
+			Obj->has(RESTAPI::Protocol::TYPES) &&
+			Obj->isArray(RESTAPI::Protocol::TYPES)) {
 
 			auto SNum = Obj->get(RESTAPI::Protocol::SERIALNUMBER).toString();
 			if (SerialNumber_ != SNum) {
@@ -1086,14 +1087,19 @@ namespace OpenWifi {
 			AssignIfPresent(Obj, RESTAPI::Protocol::INTERVAL, Interval);
 			AssignIfPresent(Obj, RESTAPI::Protocol::LIFETIME, Lifetime);
 
-			Poco::JSON::Object Answer;
+			std::vector<std::string>	TelemetryTypes;
+			auto Types = Obj->getArray(RESTAPI::Protocol::TYPES);
+			for(const auto &type:*Types) {
+				TelemetryTypes.push_back(type);
+			}
 
+			Poco::JSON::Object Answer;
 			auto IntSerialNumber = Utils::SerialNumberToInt(SerialNumber_);
 
 			if(!StatusOnly) {
 				if (KafkaOnly) {
 					if (Interval) {
-						AP_WS_Server()->SetKafkaTelemetryReporting(CMD_RPC,IntSerialNumber, Interval, Lifetime);
+						AP_WS_Server()->SetKafkaTelemetryReporting(CMD_RPC,IntSerialNumber, Interval, Lifetime,TelemetryTypes);
 						Answer.set("action", "Kafka telemetry started.");
 						Answer.set("uuid", CMD_UUID);
 					} else {
@@ -1103,7 +1109,7 @@ namespace OpenWifi {
 				} else {
 					if (Interval) {
 						AP_WS_Server()->SetWebSocketTelemetryReporting(CMD_RPC, IntSerialNumber, Interval,
-																				  Lifetime);
+																				  Lifetime,TelemetryTypes);
 						std::string EndPoint;
 						if (TelemetryStream()->CreateEndpoint(Utils::SerialNumberToInt(SerialNumber_), EndPoint, CMD_UUID)) {
 							Answer.set("action", "WebSocket telemetry started.");

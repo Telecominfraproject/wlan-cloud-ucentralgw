@@ -19,13 +19,18 @@ namespace OpenWifi {
 			return;
 		}
 		poco_trace(Logger_,fmt::format("Telemetry data received for {}", SerialNumber_));
-		if (TelemetryReporting_) {
+		if (TelemetryReporting_ || ParamsObj->has("adhoc")) {
 			if (ParamsObj->has("data")) {
 				auto Payload = ParamsObj->get("data").extract<Poco::JSON::Object::Ptr>();
 				Payload->set("timestamp", Utils::Now());
 				std::ostringstream SS;
 				Payload->stringify(SS);
 				auto now=Utils::Now();
+				if(ParamsObj->has("adhoc")) {
+					KafkaManager()->PostMessage(KafkaTopics::DEVICE_TELEMETRY, SerialNumber_,
+												SS.str());
+					return;
+				}
 				if (TelemetryWebSocketRefCount_) {
 					if(now<TelemetryWebSocketTimer_) {
 						// std::cout << SerialNumber_ << ": Updating WebSocket telemetry" << std::endl;

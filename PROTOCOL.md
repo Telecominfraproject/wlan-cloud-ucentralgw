@@ -89,6 +89,30 @@ Device sends a log message whenever necessary. The controller will log this mess
 }
 ```
 
+#### Events Channel
+Device sends unsolicited events to the controller.
+```json
+{   "jsonrpc" : "2.0" , 
+    "method" : "event" , 
+    "params" : {
+        "serial" : <serial number> ,
+        "data" : <Optiona/may be empty: JSON Document providing additional information related to this event message>
+    }
+}
+```
+
+#### Wifiscan Channel
+Device sends unsolicited wifiscans to the controller.
+```json
+{   "jsonrpc" : "2.0" , 
+    "method" : "wifiscan" , 
+    "params" : {
+        "serial" : <serial number> ,
+        "data" : <Optiona/may be empty: JSON Document providing additional information related to this wifiscan message>
+    }
+}
+```
+
 ##### `severity`
 The `severity` matches the `syslog` levels. Here are the details:
 - 0 : LOG_EMERG       0       /* system is unusable */

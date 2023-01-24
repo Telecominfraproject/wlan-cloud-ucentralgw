@@ -47,8 +47,8 @@ namespace OpenWifi {
 		static bool ExtractBase64CompressedData(const std::string & CompressedData, std::string & UnCompressedData, uint64_t compress_sz);
 		void LogException(const Poco::Exception &E);
 		inline Poco::Logger & Logger() { return Logger_; }
-		bool SetWebSocketTelemetryReporting(uint64_t RPCID, uint64_t interval, uint64_t TelemetryWebSocketTimer);
-		bool SetKafkaTelemetryReporting(uint64_t RPCID, uint64_t interval, uint64_t TelemetryKafkaTimer);
+		bool SetWebSocketTelemetryReporting(uint64_t RPCID, uint64_t interval, uint64_t TelemetryWebSocketTimer, const std::vector<std::string> & TelemetryTypes);
+		bool SetKafkaTelemetryReporting(uint64_t RPCID, uint64_t interval, uint64_t TelemetryKafkaTimer, const std::vector<std::string> & TelemetryTypes);
 		bool StopWebSocketTelemetry(uint64_t RPCID);
 		bool StopKafkaTelemetry(uint64_t RPCID);
 
@@ -93,6 +93,8 @@ namespace OpenWifi {
 		void Process_deviceupdate(Poco::JSON::Object::Ptr ParamsObj, std::string &Serial);
 		void Process_telemetry(Poco::JSON::Object::Ptr ParamsObj);
 		void Process_venuebroadcast(Poco::JSON::Object::Ptr ParamsObj);
+		void Process_event(Poco::JSON::Object::Ptr ParamsObj);
+		void Process_wifiscan(Poco::JSON::Object::Ptr ParamsObj);
 
 		bool ValidatedDevice();
 
@@ -153,7 +155,7 @@ namespace OpenWifi {
 
 		static inline std::atomic_uint64_t 	ConcurrentStartingDevices_=0;
 
-		bool StartTelemetry(uint64_t RPCID);
+		bool StartTelemetry(uint64_t RPCID, const std::vector<std::string> & TelemetryTypes);
 		bool StopTelemetry(uint64_t RPCID);
 		void UpdateCounts();
 	};

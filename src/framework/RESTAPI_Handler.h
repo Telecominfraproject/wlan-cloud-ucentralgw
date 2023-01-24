@@ -705,11 +705,12 @@ namespace OpenWifi {
 			return Allowed;
 		} else if(!Internal_ && Request->has("X-API-KEY")) {
             SessionToken_ = Request->get("X-API-KEY", "");
+            bool suspended=false;
 #ifdef    TIP_SECURITY_SERVICE
             std::uint64_t expiresOn;
-            if (AuthService()->IsValidApiKey(SessionToken_, UserInfo_.webtoken, UserInfo_.userinfo, Expired, expiresOn)) {
+            if (AuthService()->IsValidApiKey(SessionToken_, UserInfo_.webtoken, UserInfo_.userinfo, Expired, expiresOn, suspended)) {
 #else
-            if (AuthClient()->IsValidApiKey( SessionToken_, UserInfo_, TransactionId_, Expired, Contacted)) {
+            if (AuthClient()->IsValidApiKey( SessionToken_, UserInfo_, TransactionId_, Expired, Contacted, suspended)) {
 #endif
                 REST_Requester_ = UserInfo_.userinfo.email;
                 if(Server_.LogIt(Request->getMethod(),true)) {

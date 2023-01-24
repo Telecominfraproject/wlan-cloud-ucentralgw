@@ -5,7 +5,6 @@
 #include "AP_WS_Connection.h"
 #include "StorageService.h"
 
-#include "framework/utils.h"
 #include "framework/ow_constants.h"
 #include "fmt/format.h"
 

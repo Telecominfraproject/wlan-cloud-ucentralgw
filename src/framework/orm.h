@@ -139,7 +139,7 @@ namespace ORM {
         return Result;
     }
 
-    template <typename T, typename... Args> std::string WHERE_AND_(std::string Result, const char *fieldName, const T &Value, Args... args) {
+    template <typename T, typename... Args> std::string WHERE_AND_(std::string Result, const char *fieldName, const T & Value, Args... args) {
         if constexpr(std::is_same_v<T,std::string>)
         {
             if(!Value.empty()) {
@@ -152,6 +152,24 @@ namespace ORM {
                 Result += "'";
             }
             return WHERE_AND_(Result,args...);
+        } else if constexpr(std::is_same_v<T, const char *>) {
+            if(*Value!=0) {
+                if(!Result.empty())
+                    Result += " and ";
+                Result += fieldName;
+                Result += '=';
+                Result += "'";
+                Result += Escape(Value);
+                Result += "'";
+            }
+            return WHERE_AND_(Result,args...);
+        } else if constexpr (std::is_same_v<T,bool>) {
+            if(!Result.empty())
+                Result += " and ";
+            Result += fieldName;
+            Result += '=';
+            Result += Value ? "true" : "false";
+            return WHERE_AND_(Result,args...);
         } else if constexpr (std::is_arithmetic_v<T>) {
             if(!Result.empty())
                 Result += " and ";
@@ -159,6 +177,8 @@ namespace ORM {
             Result += '=';
             Result += std::to_string(Value);
             return WHERE_AND_(Result,args...);
+        } else {
+            assert(false);
         }
         return WHERE_AND_(Result,args...);
     }
