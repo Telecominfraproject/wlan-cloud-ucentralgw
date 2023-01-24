@@ -101,6 +101,18 @@ Device sends unsolicited events to the controller.
 }
 ```
 
+#### Alarms Channel
+Device sends unsolicited alarms to the controller.
+```json
+{   "jsonrpc" : "2.0" , 
+    "method" : "alarm" , 
+    "params" : {
+        "serial" : <serial number> ,
+        "data" : <Optiona/may be empty: JSON Document providing additional information related to this event message>
+    }
+}
+```
+
 #### Wifiscan Channel
 Device sends unsolicited wifiscans to the controller.
 ```json
