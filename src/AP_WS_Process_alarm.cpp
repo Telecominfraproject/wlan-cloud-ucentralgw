@@ -9,7 +9,7 @@
 #include "framework/KafkaManager.h"
 
 namespace OpenWifi {
-	void AP_WS_Connection::Process_event(Poco::JSON::Object::Ptr ParamsObj) {
+	void AP_WS_Connection::Process_alarm(Poco::JSON::Object::Ptr ParamsObj) {
 		if (!State_.Connected) {
 			poco_warning(
 				Logger_,

@@ -427,6 +427,10 @@ namespace OpenWifi {
 				Process_event(ParamsObj);
 			} break;
 
+			case uCentralProtocol::Events::ET_ALARM: {
+				Process_alarm(ParamsObj);
+			} break;
+
 			case uCentralProtocol::Events::ET_WIFISCAN: {
 				Process_wifiscan(ParamsObj);
 			} break;

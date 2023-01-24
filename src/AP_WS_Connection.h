@@ -95,6 +95,7 @@ namespace OpenWifi {
 		void Process_venuebroadcast(Poco::JSON::Object::Ptr ParamsObj);
 		void Process_event(Poco::JSON::Object::Ptr ParamsObj);
 		void Process_wifiscan(Poco::JSON::Object::Ptr ParamsObj);
+		void Process_alarm(Poco::JSON::Object::Ptr ParamsObj);
 
 		bool ValidatedDevice();
 
