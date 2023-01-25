@@ -20,10 +20,13 @@ namespace OpenWifi {
 
 	static void SendKafkaFirmwareUpdate(const std::string &SerialNumber, const std::string &OldFirmware, const std::string &NewFirmware) {
 		if(KafkaManager()->Enabled()) {
-			Poco::JSON::Object Event;
-			Event.set("timestamp", Utils::Now());
-			Event.set("oldFirmware", OldFirmware);
-			Event.set("newFirmware",NewFirmware);
+			Poco::JSON::Object EventDetails;
+			EventDetails.set("timestamp", Utils::Now());
+			EventDetails.set("oldFirmware", OldFirmware);
+			EventDetails.set("newFirmware",NewFirmware);
+			Poco::JSON::Object	Event;
+			Event.set("type","firmware_change");
+			Event.set("details", EventDetails);
 			std::ostringstream OS;
 			Event.stringify(OS);
 			KafkaManager()->PostMessage(KafkaTopics::CONNECTION, SerialNumber, OS.str());
