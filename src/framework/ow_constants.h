@@ -250,6 +250,7 @@ namespace OpenWifi::RESTAPI::Errors {
     static const struct msg CertificateTransferNoLongerExists{1166,"The device certificate associated with this transfer no longer seem to exist."};
     static const struct msg CertificateTransferEntityNoLongerExists{1167,"The entity tied to this transfer no longer seems to exist."};
     static const struct msg CannotRollBackDueToDigiCert{1168,"The change could not be rolled back at this time. Please try later."};
+    static const struct msg CertificateTransferAlreadyRolledBack{1169,"The certificate has already been rolled back."};
 
 	}
 
