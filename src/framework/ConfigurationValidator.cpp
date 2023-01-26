@@ -16,12 +16,19 @@
 
 #include "fmt/format.h"
 
-namespace OpenWifi {
+#include <valijson/adapters/poco_json_adapter.hpp>
+#include <valijson/utils/poco_json_utils.hpp>
+#include <valijson/schema.hpp>
+#include <valijson/schema_parser.hpp>
+#include <valijson/validator.hpp>
+#include <valijson/constraints/constraint.hpp>
+#include <valijson/constraints/constraint_visitor.hpp>
 
 static const std::string GitUCentralJSONSchemaFile{
 	"https://raw.githubusercontent.com/Telecominfraproject/wlan-ucentral-schema/main/ucentral.schema.json"};
 
-static json DefaultUCentralSchema = R"(
+static std::string DefaultUCentralSchema = R"foo(
+
 {
     "$id": "https://openwrt.org/ucentral.schema.json",
     "$schema": "http://json-schema.org/draft-07/schema#",
@@ -261,6 +268,10 @@ static json DefaultUCentralSchema = R"(
                         "full"
                     ]
                 },
+                "enabled": {
+                    "type": "boolean",
+                    "default": true
+                },
                 "services": {
                     "type": "array",
                     "items": {
@@ -483,15 +494,12 @@ static json DefaultUCentralSchema = R"(
                     "maximum": 65535,
                     "minimum": 15
                 },
-                "dtim-period": {
-                    "type": "integer",
-                    "default": 2,
-                    "maximum": 255,
-                    "minimum": 1
-                },
                 "maximum-clients": {
                     "type": "integer",
                     "example": 64
+                },
+                "maximum-clients-ignore-probe": {
+                    "type": "boolean"
                 },
                 "rates": {
                     "$ref": "#/$defs/radio.rates"
@@ -525,7 +533,7 @@ static json DefaultUCentralSchema = R"(
                     "maximum": 4050
                 },
                 "proto": {
-                    "decription": "The L2 vlan tag that shall be added (1q,1ad ) ",
+                    "decription": "The L2 vlan tag that shall be added (1q,1ad)",
                     "type": "string",
                     "enum": [
                         "802.1ad",
@@ -1014,40 +1022,6 @@ static json DefaultUCentralSchema = R"(
                 }
             ]
         },
-        "interface.captive": {
-            "type": "object",
-            "properties": {
-                "gateway-name": {
-                    "type": "string",
-                    "default": "uCentral - Captive Portal"
-                },
-                "gateway-fqdn": {
-                    "type": "string",
-                    "format": "uc-fqdn",
-                    "default": "ucentral.splash"
-                },
-                "max-clients": {
-                    "type": "integer",
-                    "default": 32
-                },
-                "upload-rate": {
-                    "type": "integer",
-                    "default": 0
-                },
-                "download-rate": {
-                    "type": "integer",
-                    "default": 0
-                },
-                "upload-quota": {
-                    "type": "integer",
-                    "default": 0
-                },
-                "download-quota": {
-                    "type": "integer",
-                    "default": 0
-                }
-            }
-        },
         "interface.ssid.encryption": {
             "type": "object",
             "properties": {
@@ -1055,6 +1029,8 @@ static json DefaultUCentralSchema = R"(
                     "type": "string",
                     "enum": [
                         "none",
+                        "owe",
+                        "owe-transition",
                         "psk",
                         "psk2",
                         "psk-mixed",
@@ -1085,6 +1061,10 @@ static json DefaultUCentralSchema = R"(
                         "required"
                     ],
                     "default": "disabled"
+                },
+                "key-caching": {
+                    "type": "boolean",
+                    "default": true
                 }
             }
         },
@@ -1255,48 +1235,94 @@ static json DefaultUCentralSchema = R"(
                 "request-attribute": {
                     "type": "array",
                     "items": {
-                        "type": "object",
-                        "properties": {
-                            "id": {
-                                "type": "integer",
-                                "maximum": 255,
-                                "minimum": 1
+                        "anyOf": [
+                            {
+                                "type": "object",
+                                "properties": {
+                                    "vendor-id": {
+                                        "type": "integer",
+                                        "maximum": 65535,
+                                        "minimum": 1
+                                    },
+                                    "vendor-attributes": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "object",
+                                            "properties": {
+                                                "id": {
+                                                    "type": "integer",
+                                                    "maximum": 255,
+                                                    "minimum": 1
+                                                },
+                                                "value": {
+                                                    "type": "string"
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
                             },
-                            "value": {
-                                "anyOf": [
-                                    {
+                            {
+                                "type": "object",
+                                "properties": {
+                                    "id": {
+                                        "type": "integer",
+                                        "maximum": 255,
+                                        "minimum": 1
+                                    },
+                                    "value": {
                                         "type": "integer",
                                         "maximum": 4294967295,
                                         "minimum": 0
+                                    }
+                                },
+                                "examples": [
+                                    {
+                                        "id": 27,
+                                        "value": 900
                                     },
                                     {
+                                        "id": 56,
+                                        "value": 1004
+                                    }
+                                ]
+                            },
+                            {
+                                "type": "object",
+                                "properties": {
+                                    "id": {
+                                        "type": "integer",
+                                        "maximum": 255,
+                                        "minimum": 1
+                                    },
+                                    "value": {
                                         "type": "string"
+                                    }
+                                },
+                                "examples": [
+                                    {
+                                        "id": 32,
+                                        "value": "My NAS ID"
+                                    },
+                                    {
+                                        "id": 126,
+                                        "value": "Example Operator"
                                     }
                                 ]
                             }
-                        },
-                        "examples": [
-                            {
-                                "id": 27,
-                                "value": 900
-                            },
-                            {
-                                "id": 32,
-                                "value": "My NAS ID"
-                            },
-                            {
-                                "id": 56,
-                                "value": 1004
-                            },
-                            {
-                                "id": 126,
-                                "value": "Example Operator"
-                            }
                         ]
-                    },
-                    "examples": [
-                        "126:s:Operator"
-                    ]
+                    }
+                }
+            }
+        },
+        "interface.ssid.radius.health": {
+            "type": "object",
+            "properties": {
+                "username": {
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string"
                 }
             }
         },
@@ -1372,6 +1398,9 @@ static json DefaultUCentralSchema = R"(
                             }
                         }
                     ]
+                },
+                "health": {
+                    "$ref": "#/$defs/interface.ssid.radius.health"
                 }
             }
         },
@@ -1600,6 +1629,32 @@ static json DefaultUCentralSchema = R"(
                 },
                 "association-request-rssi": {
                     "type": "integer"
+                },
+                "client-kick-rssi": {
+                    "type": "integer"
+                },
+                "client-kick-ban-time": {
+                    "type": "integer",
+                    "default": 0
+                }
+            }
+        },
+        "interface.ssid.acl": {
+            "type": "object",
+            "properties": {
+                "mode": {
+                    "type": "string",
+                    "enum": [
+                        "allow",
+                        "deny"
+                    ]
+                },
+                "mac-address": {
+                    "type": "array",
+                    "items": {
+                        "type": "string",
+                        "format": "uc-mac"
+                    }
                 }
             }
         },
@@ -1667,7 +1722,8 @@ static json DefaultUCentralSchema = R"(
                     "type": "boolean"
                 },
                 "unicast-conversion": {
-                    "type": "boolean"
+                    "type": "boolean",
+                    "default": true
                 },
                 "services": {
                     "type": "array",
@@ -1677,6 +1733,12 @@ static json DefaultUCentralSchema = R"(
                             "wifi-steering"
                         ]
                     }
+                },
+                "dtim-period": {
+                    "type": "integer",
+                    "default": 2,
+                    "maximum": 255,
+                    "minimum": 1
                 },
                 "maximum-clients": {
                     "type": "integer",
@@ -1698,7 +1760,7 @@ static json DefaultUCentralSchema = R"(
                 "fils-discovery-interval": {
                     "type": "integer",
                     "default": 20,
-                    "maximum": 10000
+                    "maximum": 20
                 },
                 "encryption": {
                     "$ref": "#/$defs/interface.ssid.encryption"
@@ -1729,6 +1791,9 @@ static json DefaultUCentralSchema = R"(
                 },
                 "quality-thresholds": {
                     "$ref": "#/$defs/interface.ssid.quality-thresholds"
+                },
+                "access-control-list": {
+                    "$ref": "#/$defs/interface.ssid.acl"
                 },
                 "hostapd-bss-raw": {
                     "type": "array",
@@ -1810,6 +1875,32 @@ static json DefaultUCentralSchema = R"(
                     "type": "string",
                     "format": "ipv4",
                     "example": "192.168.100.1"
+                },
+                "dhcp-healthcheck": {
+                    "type": "boolean",
+                    "default": false
+                },
+                "dont-fragment": {
+                    "type": "boolean",
+                    "default": false
+                }
+            }
+        },
+        "interface.tunnel.gre6": {
+            "type": "object",
+            "properties": {
+                "proto": {
+                    "type": "string",
+                    "const": "gre6"
+                },
+                "peer-address": {
+                    "type": "string",
+                    "format": "ipv6",
+                    "example": "2405:200:802:600:61::1"
+                },
+                "dhcp-healthcheck": {
+                    "type": "boolean",
+                    "default": false
                 }
             }
         },
@@ -1826,6 +1917,9 @@ static json DefaultUCentralSchema = R"(
                 },
                 {
                     "$ref": "#/$defs/interface.tunnel.gre"
+                },
+                {
+                    "$ref": "#/$defs/interface.tunnel.gre6"
                 }
             ]
         },
@@ -1852,6 +1946,11 @@ static json DefaultUCentralSchema = R"(
                     "type": "integer",
                     "maximum": 4294967295,
                     "minimum": 0
+                },
+                "mtu": {
+                    "type": "integer",
+                    "maximum": 1500,
+                    "minimum": 1280
                 },
                 "services": {
                     "type": "array",
@@ -1883,9 +1982,6 @@ static json DefaultUCentralSchema = R"(
                 },
                 "broad-band": {
                     "$ref": "#/$defs/interface.broad-band"
-                },
-                "captive": {
-                    "$ref": "#/$defs/interface.captive"
                 },
                 "ssids": {
                     "type": "array",
@@ -2076,51 +2172,154 @@ static json DefaultUCentralSchema = R"(
         "service.radius-proxy": {
             "type": "object",
             "properties": {
+                "proxy-secret": {
+                    "type": "string",
+                    "default": "secret"
+                },
                 "realms": {
                     "type": "array",
                     "items": {
-                        "type": "object",
-                        "properties": {
-                            "realm": {
-                                "type": "string",
-                                "default": "*"
+                        "anyOf": [
+                            {
+                                "type": "object",
+                                "properties": {
+                                    "protocol": {
+                                        "type": "string",
+                                        "enum": [
+                                            "radsec"
+                                        ],
+                                        "default": "radsec"
+                                    },
+                                    "realm": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string",
+                                            "default": "*"
+                                        }
+                                    },
+                                    "auto-discover": {
+                                        "type": "boolean",
+                                        "default": false
+                                    },
+                                    "host": {
+                                        "type": "string",
+                                        "format": "uc-host",
+                                        "examples": [
+                                            "192.168.1.10"
+                                        ]
+                                    },
+                                    "port": {
+                                        "type": "integer",
+                                        "maximum": 65535,
+                                        "default": 2083
+                                    },
+                                    "secret": {
+                                        "type": "string"
+                                    },
+                                    "use-local-certificates": {
+                                        "type": "boolean",
+                                        "default": false
+                                    },
+                                    "ca-certificate": {
+                                        "type": "string"
+                                    },
+                                    "certificate": {
+                                        "type": "string"
+                                    },
+                                    "private-key": {
+                                        "type": "string"
+                                    },
+                                    "private-key-password": {
+                                        "type": "string"
+                                    }
+                                }
                             },
-                            "auto-discover": {
-                                "type": "boolean",
-                                "default": false
+                            {
+                                "type": "object",
+                                "properties": {
+                                    "protocol": {
+                                        "type": "string",
+                                        "enum": [
+                                            "radius"
+                                        ]
+                                    },
+                                    "realm": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string",
+                                            "default": "*"
+                                        }
+                                    },
+                                    "auth-server": {
+                                        "type": "string",
+                                        "format": "uc-host",
+                                        "examples": [
+                                            "192.168.1.10"
+                                        ]
+                                    },
+                                    "auth-port": {
+                                        "type": "integer",
+                                        "maximum": 65535,
+                                        "minimum": 1024,
+                                        "examples": [
+                                            1812
+                                        ]
+                                    },
+                                    "auth-secret": {
+                                        "type": "string",
+                                        "examples": [
+                                            "secret"
+                                        ]
+                                    },
+                                    "acct-server": {
+                                        "type": "string",
+                                        "format": "uc-host",
+                                        "examples": [
+                                            "192.168.1.10"
+                                        ]
+                                    },
+                                    "acct-port": {
+                                        "type": "integer",
+                                        "maximum": 65535,
+                                        "minimum": 1024,
+                                        "examples": [
+                                            1812
+                                        ]
+                                    },
+                                    "acct-secret": {
+                                        "type": "string",
+                                        "examples": [
+                                            "secret"
+                                        ]
+                                    }
+                                }
                             },
-                            "host": {
-                                "type": "string",
-                                "format": "uc-host",
-                                "examples": [
-                                    "192.168.1.10"
-                                ]
-                            },
-                            "port": {
-                                "type": "integer",
-                                "maximum": 65535,
-                                "default": 2083
-                            },
-                            "secret": {
-                                "type": "string"
-                            },
-                            "use-local-certificates": {
-                                "type": "boolean",
-                                "default": false
-                            },
-                            "ca-certificate": {
-                                "type": "string"
-                            },
-                            "certificate": {
-                                "type": "string"
-                            },
-                            "private-key": {
-                                "type": "string"
-                            },
-                            "private-key-password": {
-                                "type": "string"
+                            {
+                                "type": "object",
+                                "properties": {
+                                    "protocol": {
+                                        "type": "string",
+                                        "enum": [
+                                            "block"
+                                        ]
+                                    },
+                                    "realm": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string",
+                                            "default": "*"
+                                        }
+                                    },
+                                    "message": {
+                                        "type": "string",
+                                        "items": {
+                                            "type": "string",
+                                            "default": "blocked"
+                                        }
+                                    }
+                                }
                             }
-                        }
+                        ]
                     }
                 }
             }
@@ -2167,44 +2366,6 @@ static json DefaultUCentralSchema = R"(
                 }
             }
         },
-        "service.open-flow": {
-            "type": "object",
-            "properties": {
-                "controller": {
-                    "type": "string",
-                    "format": "uc-ip",
-                    "example": "192.168.10.1"
-                },
-                "datapath-description": {
-                    "type": "string",
-                    "example": "Building 2, Floor 6, AP 2"
-                },
-                "mode": {
-                    "type": "string",
-                    "enum": [
-                        "pssl",
-                        "ptcp",
-                        "ssl",
-                        "tcp"
-                    ],
-                    "default": "ssl"
-                },
-                "port": {
-                    "type": "integer",
-                    "maximum": 65535,
-                    "default": 6653
-                },
-                "ca-certificate": {
-                    "type": "string"
-                },
-                "ssl-certificate": {
-                    "type": "string"
-                },
-                "private-key": {
-                    "type": "string"
-                }
-            }
-        },
         "service.data-plane": {
             "type": "object",
             "properties": {
@@ -2232,7 +2393,7 @@ static json DefaultUCentralSchema = R"(
                     "type": "string",
                     "enum": [
                         "local",
-                        "cloud"
+                        "none"
                     ],
                     "examples": [
                         "local"
@@ -2436,6 +2597,332 @@ static json DefaultUCentralSchema = R"(
                 }
             }
         },
+        "service.wireguard-overlay": {
+            "type": "object",
+            "properties": {
+                "proto": {
+                    "type": "string",
+                    "const": "wireguard-overlay"
+                },
+                "private-key": {
+                    "type": "string"
+                },
+                "peer-port": {
+                    "type": "integer",
+                    "maximum": 65535,
+                    "minimum": 1,
+                    "default": 3456
+                },
+                "peer-exchange-port": {
+                    "type": "integer",
+                    "maximum": 65535,
+                    "minimum": 1,
+                    "default": 3458
+                },
+                "root-node": {
+                    "type": "object",
+                    "properties": {
+                        "key": {
+                            "type": "string"
+                        },
+                        "endpoint": {
+                            "type": "string",
+                            "format": "uc-ip"
+                        },
+                        "ipaddr": {
+                            "type": "array",
+                            "items": {
+                                "type": "string",
+                                "format": "uc-ip"
+                            }
+                        }
+                    }
+                },
+                "hosts": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "name": {
+                                "type": "string"
+                            },
+                            "key": {
+                                "type": "string"
+                            },
+                            "endpoint": {
+                                "type": "string",
+                                "format": "uc-ip"
+                            },
+                            "subnet": {
+                                "type": "array",
+                                "items": {
+                                    "type": "string",
+                                    "format": "uc-cidr"
+                                }
+                            },
+                            "ipaddr": {
+                                "type": "array",
+                                "items": {
+                                    "type": "string",
+                                    "format": "uc-ip"
+                                }
+                            }
+                        }
+                    }
+                },
+                "vxlan": {
+                    "type": "object",
+                    "properties": {
+                        "port": {
+                            "type": "integer",
+                            "maximum": 65535,
+                            "minimum": 1,
+                            "default": 4789
+                        },
+                        "mtu": {
+                            "type": "integer",
+                            "maximum": 65535,
+                            "minimum": 256,
+                            "default": 1420
+                        },
+                        "isolate": {
+                            "type": "boolean",
+                            "default": true
+                        }
+                    }
+                }
+            }
+        },
+        "service.captive.click": {
+            "type": "object",
+            "properties": {
+                "auth-mode": {
+                    "type": "string",
+                    "const": "click-to-continue"
+                }
+            }
+        },
+        "service.captive.radius": {
+            "type": "object",
+            "properties": {
+                "auth-mode": {
+                    "type": "string",
+                    "const": "radius"
+                },
+                "auth-server": {
+                    "type": "string",
+                    "format": "uc-host",
+                    "examples": [
+                        "192.168.1.10"
+                    ]
+                },
+                "auth-port": {
+                    "type": "integer",
+                    "maximum": 65535,
+                    "minimum": 1024,
+                    "default": 1812
+                },
+                "auth-secret": {
+                    "type": "string",
+                    "examples": [
+                        "secret"
+                    ]
+                },
+                "acct-server": {
+                    "type": "string",
+                    "format": "uc-host",
+                    "examples": [
+                        "192.168.1.10"
+                    ]
+                },
+                "acct-port": {
+                    "type": "integer",
+                    "maximum": 65535,
+                    "minimum": 1024,
+                    "default": 1812
+                },
+                "acct-secret": {
+                    "type": "string",
+                    "examples": [
+                        "secret"
+                    ]
+                },
+                "acct-interval": {
+                    "type": "integer",
+                    "default": 600
+                }
+            }
+        },
+        "service.captive.credentials": {
+            "type": "object",
+            "properties": {
+                "auth-mode": {
+                    "type": "string",
+                    "const": "credentials"
+                },
+                "credentials": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "username": {
+                                "type": "string"
+                            },
+                            "password": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "service.captive.uam": {
+            "type": "object",
+            "properties": {
+                "auth-mode": {
+                    "type": "string",
+                    "const": "uam"
+                },
+                "uam-port": {
+                    "type": "integer",
+                    "maximum": 65535,
+                    "minimum": 1024,
+                    "default": 3990
+                },
+                "uam-secret": {
+                    "type": "string"
+                },
+                "uam-server": {
+                    "type": "string"
+                },
+                "nasid": {
+                    "type": "string"
+                },
+                "nasmac": {
+                    "type": "string"
+                },
+                "auth-server": {
+                    "type": "string",
+                    "format": "uc-host",
+                    "examples": [
+                        "192.168.1.10"
+                    ]
+                },
+                "auth-port": {
+                    "type": "integer",
+                    "maximum": 65535,
+                    "minimum": 1024,
+                    "default": 1812
+                },
+                "auth-secret": {
+                    "type": "string",
+                    "examples": [
+                        "secret"
+                    ]
+                },
+                "acct-server": {
+                    "type": "string",
+                    "format": "uc-host",
+                    "examples": [
+                        "192.168.1.10"
+                    ]
+                },
+                "acct-port": {
+                    "type": "integer",
+                    "maximum": 65535,
+                    "minimum": 1024,
+                    "default": 1812
+                },
+                "acct-secret": {
+                    "type": "string",
+                    "examples": [
+                        "secret"
+                    ]
+                },
+                "acct-interval": {
+                    "type": "integer",
+                    "default": 600
+                },
+                "ssid": {
+                    "type": "string"
+                },
+                "mac-format": {
+                    "type": "string",
+                    "enum": [
+                        "aabbccddeeff",
+                        "aa-bb-cc-dd-ee-ff",
+                        "aa:bb:cc:dd:ee:ff",
+                        "AABBCCDDEEFF",
+                        "AA:BB:CC:DD:EE:FF",
+                        "AA-BB-CC-DD-EE-FF"
+                    ]
+                },
+                "final-redirect-url": {
+                    "type": "string",
+                    "enum": [
+                        "default",
+                        "uam"
+                    ]
+                },
+                "mac-auth": {
+                    "type": "boolean",
+                    "default": "default"
+                },
+                "radius-gw-proxy": {
+                    "type": "boolean",
+                    "default": false
+                }
+            }
+        },
+        "service.captive": {
+            "allOf": [
+                {
+                    "oneOf": [
+                        {
+                            "$ref": "#/$defs/service.captive.click"
+                        },
+                        {
+                            "$ref": "#/$defs/service.captive.radius"
+                        },
+                        {
+                            "$ref": "#/$defs/service.captive.credentials"
+                        },
+                        {
+                            "$ref": "#/$defs/service.captive.uam"
+                        }
+                    ]
+                },
+                {
+                    "type": "object",
+                    "properties": {
+                        "walled-garden-fqdn": {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            }
+                        },
+                        "walled-garden-ipaddr": {
+                            "type": "array",
+                            "items": {
+                                "type": "string",
+                                "format": "uc-ip"
+                            }
+                        },
+                        "web-root": {
+                            "type": "string",
+                            "format": "uc-base64"
+                        },
+                        "idle-timeout": {
+                            "type": "integer",
+                            "default": 600
+                        },
+                        "session-timeout": {
+                            "type": "integer"
+                        }
+                    }
+                }
+            ]
+        },
         "service": {
             "type": "object",
             "properties": {
@@ -2472,9 +2959,6 @@ static json DefaultUCentralSchema = R"(
                 "online-check": {
                     "$ref": "#/$defs/service.online-check"
                 },
-                "open-flow": {
-                    "$ref": "#/$defs/service.open-flow"
-                },
                 "data-plane": {
                     "$ref": "#/$defs/service.data-plane"
                 },
@@ -2489,6 +2973,12 @@ static json DefaultUCentralSchema = R"(
                 },
                 "airtime-fairness": {
                     "$ref": "#/$defs/service.airtime-fairness"
+                },
+                "wireguard-overlay": {
+                    "$ref": "#/$defs/service.wireguard-overlay"
+                },
+                "captive": {
+                    "$ref": "#/$defs/service.captive"
                 }
             }
         },
@@ -2496,7 +2986,8 @@ static json DefaultUCentralSchema = R"(
             "type": "object",
             "properties": {
                 "interval": {
-                    "type": "integer"
+                    "type": "integer",
+                    "minimum": 60
                 },
                 "types": {
                     "type": "array",
@@ -2505,7 +2996,8 @@ static json DefaultUCentralSchema = R"(
                         "enum": [
                             "ssids",
                             "lldp",
-                            "clients"
+                            "clients",
+                            "tid-stats"
                         ]
                     }
                 }
@@ -2517,6 +3009,22 @@ static json DefaultUCentralSchema = R"(
                 "interval": {
                     "type": "integer",
                     "minimum": 60
+                },
+                "dhcp-local": {
+                    "type": "boolean",
+                    "default": true
+                },
+                "dhcp-remote": {
+                    "type": "boolean",
+                    "default": false
+                },
+                "dns-local": {
+                    "type": "boolean",
+                    "default": true
+                },
+                "dns-remote": {
+                    "type": "boolean",
+                    "default": true
                 }
             }
         },
@@ -2622,185 +3130,185 @@ static json DefaultUCentralSchema = R"(
         }
     }
 }
-)"_json;
 
-    class custom_error_handler : public nlohmann::json_schema::basic_error_handler
-    {
-        void error(const nlohmann::json_pointer<nlohmann::basic_json<>> &pointer, const json &instance,
-                   const std::string &message) override
-        {
-            nlohmann::json_schema::basic_error_handler::error(pointer, instance, message);
-            std::cout << "ERROR: '" << pointer << "' - '" << instance << "': " << message << "\n";
-        }
-    };
 
-    void ConfigurationValidator::Init() {
-        if(Initialized_)
-            return;
+)foo";
 
-        std::string GitSchema;
-		// if(MicroServiceConfigGetBool("ucentral.datamodel.internal",true)) {
-			RootSchema_ = DefaultUCentralSchema;
-			poco_information(Logger(),"Using uCentral validation from built-in default.");
-			Initialized_ = Working_ = true;
+
+static inline bool IsIPv4(const std::string &value) {
+	Poco::Net::IPAddress A;
+	return ((Poco::Net::IPAddress::tryParse(value, A) && A.family() == Poco::Net::IPAddress::IPv4));
+}
+
+static inline bool IsIPv6(const std::string &value) {
+	Poco::Net::IPAddress A;
+	return ((Poco::Net::IPAddress::tryParse(value, A) && A.family() == Poco::Net::IPAddress::IPv6));
+}
+
+static inline bool IsIP(const std::string &value) { return IsIPv4(value) || IsIPv6(value); }
+
+static inline bool IsCIDRv6(const std::string &value) {
+	auto Tokens = Poco::StringTokenizer(value, "/");
+	if (Tokens.count() == 2 && IsIPv6(Tokens[0])) {
+		auto Mask = std::atoi(Tokens[1].c_str());
+		if (Mask >= 48 && Mask <= 128)
+			return true;
+	}
+	return false;
+}
+
+static inline bool IsCIDRv4(const std::string &value) {
+	auto Tokens = Poco::StringTokenizer(value, "/");
+	if (Tokens.count() == 2 && IsIPv4(Tokens[0])) {
+		auto Mask = std::atoi(Tokens[1].c_str());
+		if (Mask >= 0 && Mask <= 32)
+			return true;
+	}
+	return false;
+}
+
+static inline bool IsCIDR(const std::string &value) { return IsCIDRv4(value) || IsCIDRv6(value); }
+
+static inline bool IsPortRangeIsValid(const std::string &r) {
+	const auto ports = Poco::StringTokenizer("-", r, Poco::StringTokenizer::TOK_TRIM);
+
+	for (const auto &port : ports) {
+		uint32_t port_num = std::stoul(port);
+		if (port_num == 0 || port_num > 65535)
+			return false;
+	}
+	return true;
+}
+
+bool ExternalValijsonFormatChecker(const std::string &format, const std::string &value,
+								   [[maybe_unused]] std::vector<std::string> &context,
+								   [[maybe_unused]] valijson::ValidationResults *const results) {
+	static const std::regex host_regex{
+		"^(?=.{1,254}$)((?=[a-z0-9-]{1,63}\\.)(xn--+)?[a-z0-9]+(-[a-z0-9]+)*\\.)+[a-z]{2,63}$"};
+	static const std::regex mac_regex{"^([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})$"};
+	static const std::regex uc_timeout_regex{"^[0-9]+[dmshw]$"};
+	static const std::regex b64_regex("^[a-zA-Z0-9\\+/]*={0,3}$");
+
+	if (format == "uc-cidr4") {
+		if (IsCIDRv4(value))
+			return true;
+		if(results) results->pushError(context,fmt::format("{} is not a valid CIDR IPv4 block",value));
+	} else if (format == "uc-cidr6") {
+		if (IsCIDRv6(value))
+			return true;
+		if(results) results->pushError(context,fmt::format("{} is not a valid CIDR IPv6 block",value));
+	} else if (format == "uc-cidr") {
+		if (IsCIDR(value))
+			return true;
+		if(results) results->pushError(context,fmt::format("{} is not a valid CIDR block",value));
+	} else if (format == "uc-mac") {
+		if (std::regex_match(value, mac_regex))
+			return true;
+		if(results) results->pushError(context,fmt::format("{} is not a valid MAC address",value));
+	} else if (format == "uc-timeout") {
+		if (std::regex_match(value, uc_timeout_regex))
+			return true;
+		if(results) results->pushError(context,fmt::format("{} is not a valid timeout value",value));
+	} else if (format == "uc-host") {
+		if (IsIP(value))
+			return true;
+		if (std::regex_match(value, host_regex))
+			return true;
+		if(results) results->pushError(context,fmt::format("{} is not a valid hostname",value));
+	} else if (format == "fqdn" || format == "uc-fqdn") {
+		if (std::regex_match(value, host_regex))
+			return true;
+		if(results) results->pushError(context,fmt::format("{} is not a valid FQDN",value));
+	} else if (format == "uc-base64") {
+		std::string s{value};
+		Poco::trimInPlace(s);
+		if ((s.size() % 4 == 0) && std::regex_match(s, b64_regex))
+			return true;
+		if(results) results->pushError(context,fmt::format("{} is not a valid base 64 value",value));
+	} else if (format == "uri") {
+		try {
+			Poco::URI uri(value);
+			return true;
+		} catch (...) {
+		}
+		if(results) results->pushError(context,fmt::format("{} is not a valid URL",value));
+	} else if (format == "uc-portrange") {
+		try {
+			if (IsPortRangeIsValid(value))
+				return true;
+		} catch (...) {
+		}
+		if(results) results->pushError(context,fmt::format("{} is not a valid post range",value));
+	} else if (format == "ip") {
+		if (IsIP(value))
+			return true;
+		if(results) results->pushError(context,fmt::format("{} is not a valid IP address",value));
+	}
+	return true;
+}
+
+namespace OpenWifi {
+
+	int ConfigurationValidator::Start() {
+		Init();
+		return 0;
+	}
+
+	void ConfigurationValidator::Stop() {
+
+	}
+
+	void ConfigurationValidator::Init() {
+		if (Initialized_)
 			return;
+
+		std::string GitSchema;
+		// if(MicroServiceConfigGetBool("ucentral.datamodel.internal",true)) {
+		Poco::JSON::Parser P;
+		SchemaDocPtr_ = P.parse(DefaultUCentralSchema).extract<Poco::JSON::Object::Ptr>();
+		RootSchema_ = std::make_unique<valijson::Schema>();
+		SchemaParser_ = std::make_unique<valijson::SchemaParser>();
+		PocoJsonAdapter_ = std::make_unique<valijson::adapters::PocoJsonAdapter>(SchemaDocPtr_);
+		SchemaParser_->populateSchema(*PocoJsonAdapter_, *RootSchema_);
+		poco_information(Logger(), "Using uCentral validation from built-in default.");
+		Initialized_ = Working_ = true;
+		return;
 		// }
-
-        try {
-			auto GitURI = MicroServiceConfigGetString("ucentral.datamodel.uri",GitUCentralJSONSchemaFile);
-            if(Utils::wgets(GitURI, GitSchema)) {
-                RootSchema_ = json::parse(GitSchema);
-				poco_information(Logger(),"Using uCentral validation schema from GIT.");
-            } else {
-                std::string FileName{ MicroServiceDataDirectory() + "/ucentral.schema.json" };
-                std::ifstream       input(FileName);
-                std::stringstream   schema_file;
-                schema_file << input.rdbuf();
-                input.close();
-                RootSchema_ = json::parse(schema_file.str());
-				poco_information(Logger(),"Using uCentral validation schema from local file.");
-            }
-        } catch (const Poco::Exception &E) {
-            RootSchema_ = DefaultUCentralSchema;
-			poco_information(Logger(),"Using uCentral validation from built-in default.");
-        }
-        Initialized_ = Working_ = true;
-    }
-
-    int ConfigurationValidator::Start() {
-        Init();
-        return 0;
-    }
-
-    void ConfigurationValidator::Stop() {
-
-    }
-
-    static inline bool IsIPv4(const std::string &value) {
-        Poco::Net::IPAddress    A;
-        return ((Poco::Net::IPAddress::tryParse(value,A) && A.family()==Poco::Net::IPAddress::IPv4));
-    }
-
-    static inline bool IsIPv6(const std::string &value) {
-        Poco::Net::IPAddress    A;
-        return ((Poco::Net::IPAddress::tryParse(value,A) && A.family()==Poco::Net::IPAddress::IPv6));
-    }
-
-    static inline bool IsIP(const std::string &value) {
-        return IsIPv4(value) || IsIPv6(value);
-    }
-
-    static inline bool IsCIDRv6(const std::string &value) {
-        auto Tokens = Poco::StringTokenizer(value,"/");
-        if(Tokens.count()==2 && IsIPv6(Tokens[0])) {
-            auto Mask = std::atoi(Tokens[1].c_str());
-            if(Mask>=48 && Mask<=128)
-                return true;
-        }
-        return false;
-    }
-
-    static inline bool IsCIDRv4(const std::string &value) {
-        auto Tokens = Poco::StringTokenizer(value,"/");
-        if(Tokens.count()==2 && IsIPv4(Tokens[0])) {
-            auto Mask = std::atoi(Tokens[1].c_str());
-            if(Mask>=0 && Mask<=32)
-                return true;
-        }
-        return false;
-    }
-
-    static inline bool IsCIDR(const std::string &value) {
-        return IsCIDRv4(value) || IsCIDRv6(value);
-    }
-
-    static inline bool IsPortRangeIsValid(const std::string &r) {
-        const auto ports = Poco::StringTokenizer("-",r,Poco::StringTokenizer::TOK_TRIM);
-
-        for(const auto &port:ports) {
-            uint32_t port_num = std::stoul(port);
-            if(port_num==0 || port_num>65535)
-                return false;
-        }
-        return true;
-    }
-
-    void ConfigurationValidator::my_format_checker(const std::string &format, const std::string &value)
-    {
-        static const std::regex host_regex{"^(?=.{1,254}$)((?=[a-z0-9-]{1,63}\\.)(xn--+)?[a-z0-9]+(-[a-z0-9]+)*\\.)+[a-z]{2,63}$"};
-        static const std::regex mac_regex{"^([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})$"};
-        static const std::regex uc_timeout_regex{"^[0-9]+[dmshw]$"};
-        static const std::regex b64_regex("^[a-zA-Z0-9\\+/]*={0,3}$");
-
-        if(format == "uc-cidr4") {
-            if(IsCIDRv4(value))
-                return;
-            throw std::invalid_argument(value + " is not a valid CIDR IPv4: should be something like 192.168.0.0/16.");
-        } else if(format == "uc-cidr6") {
-            if(IsCIDRv6(value))
-                return;
-            throw std::invalid_argument(value + " is not a valid CIDR IPv6: should be something like 2e60:3500::/64.");
-        } else if(format=="uc-cidr") {
-            if(IsCIDR(value))
-                return;
-            throw std::invalid_argument(value + " is not a valid CIDR IPv6/IPv4: should be something like 2e60:3500::/64.");
-        } else if(format == "uc-mac") {
-            if(std::regex_match(value,mac_regex))
-                return;
-            throw std::invalid_argument(value + " is not a valid MAC: should be something like 11:22:33:44:55:66");
-        } else if(format == "uc-timeout") {
-            if(std::regex_match(value,uc_timeout_regex))
-                return;
-            throw std::invalid_argument(value + " is not a proper timeout value: 6d, 300m, 24h, 84000s, infinite");
-        } else if(format == "uc-host") {
-            if(IsIP(value))
-                return;
-            if(std::regex_match(value,host_regex))
-                return;
-            throw std::invalid_argument(value + " is not a proper FQDN.");
-        } else if(format == "fqdn" || format=="uc-fqdn") {
-            if(std::regex_match(value,host_regex))
-                return;
-            throw std::invalid_argument(value + " is not a proper FQDN.");
-        } else if(format == "uc-base64") {
-            std::string s{value};
-            Poco::trimInPlace(s);
-            if( (s.size() %4 ==0) && std::regex_match(s,b64_regex))
-                return;
-            throw std::invalid_argument(value + " is not a base64 encoded value.");
-        } else if(format == "uri") {
-            try {
-                Poco::URI   uri(value);
-                return;
-            } catch (...) {
-            }
-            throw std::invalid_argument(value + " is not a valid URI: should be something like https://hello.world.com.");
-        } else if(format == "uc-portrange") {
-            try {
-                if(IsPortRangeIsValid(value))
-                    return;
-                throw std::invalid_argument(value + " is not a valid port range: should an integer between 1-65535 or a port range like post-port.");
-            } catch (...) {
-            }
-            throw std::invalid_argument(value + " is not a valid port range: should an integer between 1-65535 or a port range like post-port.");
-        } else if(format == "ip") {
-            if (IsIP(value))
-                return;
-            throw std::invalid_argument(value + " is not a valid IP address.");
-        } else {
-            nlohmann::json_schema::default_string_format_check(format,value);
-        }
-    }
+		/*
+				try {
+					auto GitURI =
+		   MicroServiceConfigGetString("ucentral.datamodel.uri",GitUCentralJSONSchemaFile);
+					if(Utils::wgets(GitURI, GitSchema)) {
+						RootSchema_ = json::parse(GitSchema);
+						poco_information(Logger(),"Using uCentral validation schema from GIT.");
+					} else {
+						std::string FileName{ MicroServiceDataDirectory() + "/ucentral.schema.json" };
+						std::ifstream       input(FileName);
+						std::stringstream   schema_file;
+						schema_file << input.rdbuf();
+						input.close();
+						RootSchema_ = json::parse(schema_file.str());
+						poco_information(Logger(),"Using uCentral validation schema from local file.");
+					}
+				} catch (const Poco::Exception &E) {
+					RootSchema_ = DefaultUCentralSchema;
+					poco_information(Logger(),"Using uCentral validation from built-in default.");
+				}
+				Initialized_ = Working_ = true;
+		*/
+	}
 
     bool ConfigurationValidator::Validate(const std::string &C, std::string &Error) {
         if(Working_) {
             try {
-                auto Doc = json::parse(C);
-                custom_error_handler CE;
-                json_validator  Validator(nullptr, my_format_checker);
-                Validator.set_root_schema(RootSchema_);
-                Validator.validate(Doc,CE);
-                return true;
+				Poco::JSON::Parser	P;
+                auto Doc = P.parse(C).extract<Poco::JSON::Object::Ptr>();
+				valijson::adapters::PocoJsonAdapter Tester(Doc);
+				valijson::Validator Validator;
+				if(Validator.validate(*RootSchema_, Tester, nullptr)) {
+					return true;
+				}
+                return false;
             } catch (const std::invalid_argument &E) {
                 std::cout << "1 Validation failed, here is why: " << E.what() << "\n";
                 Error = E.what();
