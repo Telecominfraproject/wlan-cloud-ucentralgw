@@ -3298,33 +3298,31 @@ namespace OpenWifi {
 		*/
 	}
 
-    bool ConfigurationValidator::Validate(const std::string &C, std::string &Error) {
+    bool ConfigurationValidator::Validate(const std::string &C, std::vector<std::string> &Errors, bool Strict) {
         if(Working_) {
             try {
-				Poco::JSON::Parser	P;
-                auto Doc = P.parse(C).extract<Poco::JSON::Object::Ptr>();
+				Poco::JSON::Parser P;
+				auto Doc = P.parse(C).extract<Poco::JSON::Object::Ptr>();
 				valijson::adapters::PocoJsonAdapter Tester(Doc);
 				valijson::Validator Validator;
-				if(Validator.validate(*RootSchema_, Tester, nullptr)) {
+				valijson::ValidationResults Results;
+				if (Validator.validate(*RootSchema_, Tester, &Results)) {
 					return true;
 				}
-                return false;
-            } catch (const std::invalid_argument &E) {
-                std::cout << "1 Validation failed, here is why: " << E.what() << "\n";
-                Error = E.what();
-                return false;
-            } catch (const std::logic_error &E) {
-                std::cout << "2 Validation failed, here is why: " << E.what() << "\n";
-                Error = E.what();
-                return false;
+				for(const auto &error:Results) {
+					Errors.push_back(error.description);
+				}
+				return false;
+			} catch(const Poco::Exception &E) {
+				Logger().log(E);
             } catch(const std::exception &E) {
-                Error = E.what();
-                std::cout << "3 Validation failed, here is why: " << E.what() << "\n";
-                return false;
+				Logger().warning(fmt::format("Error wile validating a configuration (1): {}", E.what()));
             } catch(...) {
-                std::cout << "4 Some kind of bullshit exception..." << std::endl;
+				Logger().warning("Error wile validating a configuration (2)");
             }
         }
+		if(Strict)
+			return false;
         return true;
     }
 

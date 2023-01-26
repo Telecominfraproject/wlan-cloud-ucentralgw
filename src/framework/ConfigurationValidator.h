@@ -23,8 +23,7 @@ namespace OpenWifi {
             return instance_;
         }
 
-        bool Validate(const std::string &C, std::string &Error);
-        static void my_format_checker(const std::string &format, const std::string &value);
+        bool Validate(const std::string &C, std::vector<std::string> &Errors, bool Strict);
         int Start() override;
         void Stop() override;
         void reinitialize(Poco::Util::Application &self) override;
@@ -44,6 +43,6 @@ namespace OpenWifi {
     };
 
     inline auto ConfigurationValidator() { return ConfigurationValidator::instance(); }
-    inline bool ValidateUCentralConfiguration(const std::string &C, std::string &Error) { return ConfigurationValidator::instance()->Validate(C, Error); }
+    inline bool ValidateUCentralConfiguration(const std::string &C, std::vector<std::string> &Error, bool strict) { return ConfigurationValidator::instance()->Validate(C, Error, strict); }
 }
 

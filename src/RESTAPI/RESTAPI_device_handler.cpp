@@ -97,8 +97,8 @@ namespace OpenWifi {
 			}
 			auto Config=Obj->get("configuration").toString();
 			Poco::JSON::Object  Answer;
-			std::string 		Error;
-			auto Res = ValidateUCentralConfiguration(Config, Error);
+			std::vector<std::string> 		Error;
+			auto Res = ValidateUCentralConfiguration(Config, Error, GetBoolParameter("strict",false));
 			Answer.set("valid",Res);
 			if(!Error.empty())
 				Answer.set("error",Error);
@@ -118,8 +118,8 @@ namespace OpenWifi {
 			return BadRequest(RESTAPI::Errors::SerialNumberMismatch);
 		}
 
-		std::string Error;
-		if(Device.Configuration.empty() || (!Device.Configuration.empty() && !ValidateUCentralConfiguration(Device.Configuration,Error))) {
+		std::vector<std::string> Error;
+		if(Device.Configuration.empty() || (!Device.Configuration.empty() && !ValidateUCentralConfiguration(Device.Configuration,Error, GetBoolParameter("strict",false)))) {
 			return BadRequest(RESTAPI::Errors::ConfigBlockInvalid);
 		}
 
@@ -161,8 +161,8 @@ namespace OpenWifi {
 		}
 
 		if(!NewDevice.Configuration.empty()) {
-			std::string Error;
-			if (!ValidateUCentralConfiguration(NewDevice.Configuration, Error)) {
+			std::vector<std::string> Error;
+			if (!ValidateUCentralConfiguration(NewDevice.Configuration, Error, GetBoolParameter("strict",false))) {
 				return BadRequest(RESTAPI::Errors::ConfigBlockInvalid);
 			}
 			Config::Config NewConfig(NewDevice.Configuration);

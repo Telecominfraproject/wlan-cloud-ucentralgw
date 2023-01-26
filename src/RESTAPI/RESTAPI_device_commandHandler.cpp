@@ -580,8 +580,8 @@ namespace OpenWifi {
 			}
 
 			auto Configuration = GetS(RESTAPI::Protocol::CONFIGURATION, Obj,uCentralProtocol::EMPTY_JSON_DOC);
-			std::string Error;
-			if (!ValidateUCentralConfiguration(Configuration, Error)) {
+			std::vector<std::string> Error;
+			if (!ValidateUCentralConfiguration(Configuration, Error, GetBoolParameter("strict",false))) {
 				CallCanceled("CONFIGURE", CMD_UUID, CMD_RPC,RESTAPI::Errors::ConfigBlockInvalid);
 				return BadRequest(RESTAPI::Errors::ConfigBlockInvalid);
 			}
