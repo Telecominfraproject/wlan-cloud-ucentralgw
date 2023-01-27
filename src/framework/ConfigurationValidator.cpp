@@ -22,7 +22,6 @@
 #include <valijson/schema_parser.hpp>
 #include <valijson/validator.hpp>
 #include <valijson/constraints/constraint.hpp>
-#include <valijson/constraints/constraint_visitor.hpp>
 
 static const std::string GitUCentralJSONSchemaFile{
 	"https://raw.githubusercontent.com/Telecominfraproject/wlan-ucentral-schema/main/ucentral.schema.json"};
