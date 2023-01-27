@@ -55,7 +55,7 @@ find_package(OpenSSL REQUIRED)
 find_package(ZLIB REQUIRED)
 find_package(fmt  REQUIRED)
 find_package(nlohmann_json  REQUIRED)
-find_package(valijson       REQUIRED)
+# find_package(valijson       REQUIRED)
 
 if(SMALL_BUILD)
     find_package(Poco REQUIRED COMPONENTS Crypto JWT Net Util NetSSL Data DataSQLite)
