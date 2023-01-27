@@ -1,7 +1,7 @@
 ARG DEBIAN_VERSION=11.5-slim
 ARG POCO_VERSION=poco-tip-v2
 ARG CPPKAFKA_VERSION=tip-v1
-ARG JSON_VALIDATOR_VERSION=2.1.0
+ARG VALIJASON_VERSION=tip-v1
 
 FROM debian:$DEBIAN_VERSION AS build-base
 
@@ -39,19 +39,19 @@ RUN cmake ..
 RUN cmake --build . --config Release -j8
 RUN cmake --build . --target install
 
-FROM build-base AS json-schema-validator-build
+FROM build-base AS valijson-build
 
-ARG JSON_VALIDATOR_VERSION
+ARG VALIJASON_VERSION
 
-ADD https://api.github.com/repos/pboettch/json-schema-validator/git/refs/tags/${JSON_VALIDATOR_VERSION} version.json
-RUN git clone https://github.com/pboettch/json-schema-validator --branch ${JSON_VALIDATOR_VERSION} /json-schema-validator
+ADD https://api.github.com/repos/AriliaWireless/valijson/git/refs/tags/${VALIJASON_VERSION} version.json
+RUN git clone https://github.com/AriliaWireless/valijson --branch ${VALIJASON_VERSION} /valijson
 
-WORKDIR /json-schema-validator
+WORKDIR /valijson
 RUN mkdir cmake-build
 WORKDIR cmake-build
 RUN cmake ..
-RUN make
-RUN make install
+RUN cmake --build . --config Release -j8
+RUN cmake --build . --target install
 
 FROM build-base AS owgw-build
 
@@ -64,8 +64,7 @@ COPY --from=poco-build /usr/local/include /usr/local/include
 COPY --from=poco-build /usr/local/lib /usr/local/lib
 COPY --from=cppkafka-build /usr/local/include /usr/local/include
 COPY --from=cppkafka-build /usr/local/lib /usr/local/lib
-COPY --from=json-schema-validator-build /usr/local/include /usr/local/include
-COPY --from=json-schema-validator-build /usr/local/lib /usr/local/lib
+COPY --from=valijson-build /usr/local/include /usr/local/include
 
 WORKDIR /owgw
 RUN mkdir cmake-build

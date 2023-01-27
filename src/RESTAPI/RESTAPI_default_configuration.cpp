@@ -60,8 +60,8 @@ namespace OpenWifi {
 			return BadRequest(RESTAPI::Errors::ModelIDListCannotBeEmpty);
 		}
 
-		std::string Error;
-		if (!ValidateUCentralConfiguration(DefConfig.Configuration, Error)) {
+		std::vector<std::string> Error;
+		if (!ValidateUCentralConfiguration(DefConfig.Configuration, Error, GetBoolParameter("strict",false))) {
 			return BadRequest(RESTAPI::Errors::ConfigBlockInvalid);
 		}
 
@@ -88,8 +88,8 @@ namespace OpenWifi {
 		}
 
 		if (!NewConfig.Configuration.empty()) {
-			std::string Error;
-			if(!ValidateUCentralConfiguration(NewConfig.Configuration, Error)) {
+			std::vector<std::string> Error;
+			if(!ValidateUCentralConfiguration(NewConfig.Configuration, Error, GetBoolParameter("strict",false))) {
 				return BadRequest(RESTAPI::Errors::ConfigBlockInvalid);
 			}
 			Existing.Configuration = NewConfig.Configuration;

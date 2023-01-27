@@ -4,11 +4,15 @@
 
 #pragma once
 
-#include <nlohmann/json-schema.hpp>
 #include "framework/SubSystemServer.h"
 
-using nlohmann::json;
-using nlohmann::json_schema::json_validator;
+#include <valijson/adapters/poco_json_adapter.hpp>
+#include <valijson/utils/poco_json_utils.hpp>
+#include <valijson/schema.hpp>
+#include <valijson/schema_parser.hpp>
+#include <valijson/validator.hpp>
+#include <valijson/constraints/constraint.hpp>
+#include <valijson/constraints/constraint_visitor.hpp>
 
 namespace OpenWifi {
     class ConfigurationValidator : public  SubSystemServer {
@@ -19,17 +23,19 @@ namespace OpenWifi {
             return instance_;
         }
 
-        bool Validate(const std::string &C, std::string &Error);
-        static void my_format_checker(const std::string &format, const std::string &value);
+        bool Validate(const std::string &C, std::vector<std::string> &Errors, bool Strict);
         int Start() override;
         void Stop() override;
         void reinitialize(Poco::Util::Application &self) override;
 
     private:
-        bool            Initialized_=false;
-        bool            Working_=false;
-        void            Init();
-        nlohmann::json  RootSchema_;
+        bool            					Initialized_=false;
+        bool            					Working_=false;
+        void            					Init();
+		std::unique_ptr<valijson::Schema>						RootSchema_;
+		std::unique_ptr<valijson::SchemaParser>  				SchemaParser_;
+		std::unique_ptr<valijson::adapters::PocoJsonAdapter> 	PocoJsonAdapter_;
+		Poco::JSON::Object::Ptr 			SchemaDocPtr_;
 
         ConfigurationValidator():
             SubSystemServer("ConfigValidator", "CFG-VALIDATOR", "config.validator") {
@@ -37,6 +43,6 @@ namespace OpenWifi {
     };
 
     inline auto ConfigurationValidator() { return ConfigurationValidator::instance(); }
-    inline bool ValidateUCentralConfiguration(const std::string &C, std::string &Error) { return ConfigurationValidator::instance()->Validate(C, Error); }
+    inline bool ValidateUCentralConfiguration(const std::string &C, std::vector<std::string> &Error, bool strict) { return ConfigurationValidator::instance()->Validate(C, Error, strict); }
 }
 
