@@ -55,7 +55,6 @@ find_package(OpenSSL REQUIRED)
 find_package(ZLIB REQUIRED)
 find_package(fmt  REQUIRED)
 find_package(nlohmann_json  REQUIRED)
-# find_package(nlohmann_json_schema_validator REQUIRED)
 find_package(valijson       REQUIRED)
 
 if(SMALL_BUILD)
@@ -214,7 +213,6 @@ if(NOT SMALL_BUILD)
     target_link_libraries(owgw PUBLIC
             ${MySQL_LIBRARIES} ${ZLIB_LIBRARIES}
                 CppKafka::cppkafka
-#                nlohmann_json_schema_validator
                 fmt::fmt
              )
     if(UNIX AND NOT APPLE)
