@@ -2922,6 +2922,24 @@ static std::string DefaultUCentralSchema = R"foo(
                 }
             ]
         },
+        "service.gps": {
+            "type": "object",
+            "properties": {
+                "adjust-time": {
+                    "type": "boolean",
+                    "default": false
+                },
+                "baud-rate": {
+                    "type": "integer",
+                    "enum": [
+                        2400,
+                        4800,
+                        9600,
+                        19200
+                    ]
+                }
+            }
+        },
         "service": {
             "type": "object",
             "properties": {
@@ -2978,6 +2996,9 @@ static std::string DefaultUCentralSchema = R"foo(
                 },
                 "captive": {
                     "$ref": "#/$defs/service.captive"
+                },
+                "gps": {
+                    "$ref": "#/$defs/service.gps"
                 }
             }
         },
@@ -3070,6 +3091,31 @@ static std::string DefaultUCentralSchema = R"foo(
                 }
             }
         },
+        "metrics.telemetry": {
+            "type": "object",
+            "properties": {
+                "interval": {
+                    "type": "integer"
+                },
+                "types": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "metrics.realtime": {
+            "type": "object",
+            "properties": {
+                "types": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
         "metrics": {
             "type": "object",
             "properties": {
@@ -3084,6 +3130,12 @@ static std::string DefaultUCentralSchema = R"foo(
                 },
                 "dhcp-snooping": {
                     "$ref": "#/$defs/metrics.dhcp-snooping"
+                },
+                "telemetry": {
+                    "$ref": "#/$defs/metrics.telemetry"
+                },
+                "realtime": {
+                    "$ref": "#/$defs/metrics.realtime"
                 }
             }
         },
@@ -3129,7 +3181,6 @@ static std::string DefaultUCentralSchema = R"foo(
         }
     }
 }
-
 
 )foo";
 
