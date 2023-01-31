@@ -50,13 +50,13 @@ cmake --build . --config Release
 sudo cmake --build . --target install
 
 cd ~
-git clone https://github.com/pboettch/json-schema-validator.git --branch 2.1.0
-cd json-schema-validator
+git clone https://github.com/AriliaWireless/valijson --branch tip-v1
+cd valijson
 mkdir cmake-build
 cd cmake-build
 cmake ..
-make -j
-sudo make install
+cmake --build . --config Release
+sudo cmake --build . --target install
 
 git clone https://github.com/fmtlib/fmt --branch 9.0.0 /fmtlib
 cd fmtlib
