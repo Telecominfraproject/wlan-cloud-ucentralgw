@@ -37,23 +37,6 @@ R"lit(
         "ssh",
         "lldp",
         "dhcp-snooping"
-      ],
-      "ssids": [
-        {
-          "bss-mode": "ap",
-          "encryption": {
-            "ieee80211w": "optional",
-            "key": "OpenWifi",
-            "proto": "psk2"
-          },
-          "name": "OpenWifi",
-          "services": [
-            "wifi-frames"
-          ],
-          "wifi-bands": [
-           "2G","5G"
-          ]
-        }
       ]
     },
     {
