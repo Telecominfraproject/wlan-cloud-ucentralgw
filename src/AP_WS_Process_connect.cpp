@@ -26,10 +26,10 @@ namespace OpenWifi {
 			Poco::JSON::Object	Event;
 			Event.set("type","device.firmware_change");
 			Event.set("timestamp", Utils::Now());
-			Event.set("details", EventDetails);
+			Event.set("payload", EventDetails);
 			std::ostringstream OS;
 			Event.stringify(OS);
-			KafkaManager()->PostMessage(KafkaTopics::CONNECTION, SerialNumber, OS.str());
+			KafkaManager()->PostMessage(KafkaTopics::DEVICE_EVENT_QUEUE, SerialNumber, OS.str());
 		}
 	}
 
