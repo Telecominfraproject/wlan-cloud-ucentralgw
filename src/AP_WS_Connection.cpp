@@ -25,6 +25,7 @@
 #include "framework/MicroServiceFuncs.h"
 #include "framework/utils.h"
 #include "UI_GW_WebSocketNotifications.h"
+#include "GWKafkaEvents.h"
 
 #include "fmt/format.h"
 
@@ -128,7 +129,10 @@ namespace OpenWifi {
 				return false;
 			}
 
-			if (!CN_.empty() && StorageService()->IsBlackListed(CN_)) {
+			std::string reason, author;
+			std::uint64_t created;
+			if (!CN_.empty() && StorageService()->IsBlackListed(CN_, reason, author, created)) {
+				DeviceBlacklistedKafkaEvent	KE(CN_,Utils::Now(),reason,author,created,CId_);
 				poco_warning(
 					Logger_,
 					fmt::format("TLS-CONNECTION({}): Session={} Device {} is black listed. Disconnecting.",
@@ -292,7 +296,7 @@ namespace OpenWifi {
 			bool Sent;
 
 			StorageService()->AddCommand(SerialNumber_, Cmd, Storage::CommandExecutionType::COMMAND_EXECUTED);
-			CommandManager()->PostCommand(CommandManager()->Next_RPC_ID(), APCommands::to_apcommand(Cmd.Command.c_str()),SerialNumber_, Cmd.Command, Params, Cmd.UUID, Sent);
+			CommandManager()->PostCommand(CommandManager()->Next_RPC_ID(), APCommands::to_apcommand(Cmd.Command.c_str()),SerialNumber_, Cmd.Command, Params, Cmd.UUID, Sent, false);
 
 			GWWebSocketNotifications::SingleDeviceConfigurationChange_t	Notification;
 			Notification.content.serialNumber = D.SerialNumber;
@@ -370,7 +374,10 @@ namespace OpenWifi {
 			E.rethrow();
 		}
 
-		if (StorageService()->IsBlackListed(Serial)) {
+		std::string reason, author;
+		std::uint64_t created;
+		if (StorageService()->IsBlackListed(Serial, reason, author, created)) {
+			DeviceBlacklistedKafkaEvent	KE(CN_,Utils::Now(),reason,author,created,CId_);
 			Poco::Exception E(
 				fmt::format("BLACKLIST({}): device is blacklisted and not allowed to connect.",
 							 Serial),

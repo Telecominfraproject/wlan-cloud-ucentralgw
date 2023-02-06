@@ -14,6 +14,7 @@
 #include "framework/RESTAPI_Handler.h"
 #include "ParseWifiScan.h"
 #include "framework/utils.h"
+#include <GWKafkaEvents.h>
 
 namespace OpenWifi::RESTAPI_RPC {
 	void SetCommandStatus(GWObjects::CommandDetails &Cmd,
@@ -65,7 +66,7 @@ namespace OpenWifi::RESTAPI_RPC {
 		bool Sent;
 		std::chrono::time_point<std::chrono::high_resolution_clock> rpc_submitted = std::chrono::high_resolution_clock::now();
 		std::shared_ptr<CommandManager::promise_type_t> rpc_endpoint =
-			CommandManager()->PostCommand(RPCID, Command, Cmd.SerialNumber, Cmd.Command, Params, Cmd.UUID, Sent);
+			CommandManager()->PostCommand(RPCID, Command, Cmd.SerialNumber, Cmd.Command, Params, Cmd.UUID, Sent, true);
 
 		if(RetryLater && (!Sent || rpc_endpoint== nullptr)) {
 			Logger.information(fmt::format("{},{}: Pending completion. Device is not connected.", Cmd.UUID, RPCID));
@@ -140,6 +141,13 @@ namespace OpenWifi::RESTAPI_RPC {
 				Cmd.WaitingForFile = 0;
 				Cmd.AttachDate = Cmd.AttachSize = 0;
 				Cmd.AttachType = "";
+			}
+
+			if(Cmd.ErrorCode==0 && Cmd.Command == uCentralProtocol::CONFIGURE) {
+				//	we need to post a kafka event for this.
+				if(Params.has(uCentralProtocol::CONFIG)) {
+					DeviceConfigurationChangeKafkaEvent KEvent(Cmd.SerialNumber,Utils::Now(),Params.get(uCentralProtocol::CONFIG).toString());
+				}
 			}
 
 			//	Add the completed command to the database...

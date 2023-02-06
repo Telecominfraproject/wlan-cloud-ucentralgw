@@ -89,7 +89,7 @@ namespace OpenWifi {
 									Method,
 									Params,
 									UUID,
-								   	true, true, Sent );
+								   	true, true, Sent , false);
 			}
 
 			std::shared_ptr<promise_type_t> PostCommandDisk(
@@ -106,7 +106,8 @@ namespace OpenWifi {
 								   Method,
 								   Params,
 								   UUID,
-								   false, true, Sent  );
+								   false, true, Sent,
+								   false );
 			}
 
 			std::shared_ptr<promise_type_t> PostCommand(
@@ -116,7 +117,8 @@ namespace OpenWifi {
 				const std::string &Method,
 				const Poco::JSON::Object &Params,
 				const std::string &UUID,
-				bool & Sent) {
+				bool & Sent,
+				bool rpc) {
 					return 	PostCommand(RPC_ID,
 								   Command,
 								   SerialNumber,
@@ -124,7 +126,8 @@ namespace OpenWifi {
 								   Params,
 								   UUID,
 								   false,
-								   false, Sent );
+								   false, Sent,
+								   rpc);
 			}
 
 			std::shared_ptr<promise_type_t> PostCommandOneWay(
@@ -142,7 +145,8 @@ namespace OpenWifi {
 								   Params,
 								   UUID,
 								   true,
-								   false, Sent  );
+								   false, Sent,
+								   false);
 			}
 
 			bool IsCommandRunning(const std::string &C);
@@ -208,7 +212,8 @@ namespace OpenWifi {
 				const std::string &UUID,
 				bool oneway_rpc,
 				bool disk_only,
-				bool & Sent);
+				bool & Sent,
+				bool rpc_call);
 
 			CommandManager() noexcept:
 				SubSystemServer("CommandManager", "CMD-MGR", "command.manager") {

@@ -297,8 +297,9 @@ namespace OpenWifi {
 		const Poco::JSON::Object &Params,
 		const std::string &UUID,
 		bool oneway_rpc,
-		bool disk_only,
-		bool & Sent) {
+		[[maybe_unused]] bool disk_only,
+		bool & Sent,
+		bool rpc) {
 
 		auto SerialNumberInt = Utils::SerialNumberToInt(SerialNumber);
 		Sent=false;
@@ -319,7 +320,7 @@ namespace OpenWifi {
 		CompleteRPC.set(uCentralProtocol::METHOD, CommandStr);
 		CompleteRPC.set(uCentralProtocol::PARAMS, Params);
 		Poco::JSON::Stringifier::stringify(CompleteRPC, ToSend);
-		Idx.rpc_entry = disk_only ? nullptr : std::make_shared<CommandManager::promise_type_t>();
+		Idx.rpc_entry = rpc ? std::make_shared<CommandManager::promise_type_t>() : nullptr;
 
 		poco_debug(Logger(), fmt::format("{}: Sending command {} to {}. ID: {}", UUID, CommandStr, SerialNumber, RPC_ID));
 		if(AP_WS_Server()->SendFrame(SerialNumber, ToSend.str())) {

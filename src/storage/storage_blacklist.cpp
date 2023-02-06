@@ -56,15 +56,21 @@ namespace OpenWifi {
 		R.set<3>(D.author);
 	}
 
-	static std::set<std::string>	BlackListDevices;
-	static std::recursive_mutex		BlackListMutex;
+	struct DeviceDetails {
+		std::string 	reason;
+		std::string 	author;
+		std::uint64_t 	created;
+	};
+
+	static std::map<std::string, DeviceDetails>	BlackListDevices;
+	static std::recursive_mutex					BlackListMutex;
 
 	bool Storage::InitializeBlackListCache() {
 		try {
 			Poco::Data::Session Sess = Pool_->get();
 			Poco::Data::Statement Select(Sess);
 
-			Select << "SELECT SerialNumber FROM BlackList";
+			Select << "SELECT SerialNumber, Reason, Author FROM BlackList";
 			Select.execute();
 
 			Poco::Data::RecordSet   RSet(Select);
@@ -72,7 +78,10 @@ namespace OpenWifi {
 			bool More = RSet.moveFirst();
 			while(More) {
 				auto SerialNumber = RSet[0].convert<std::string>();
-				BlackListDevices.insert(SerialNumber);
+				auto Reason  = RSet[1].convert<std::string>();
+				auto Author  = RSet[2].convert<std::string>();
+				auto Created = RSet[3].convert<std::uint64_t>();
+				BlackListDevices[SerialNumber] = DeviceDetails{ .reason = Reason, .author = Author, .created = Created };
 				More = RSet.moveNext();
 			}
 			return true;
@@ -96,8 +105,7 @@ namespace OpenWifi {
 			Insert.execute();
 
 			std::lock_guard	G(BlackListMutex);
-			BlackListDevices.insert(Device.serialNumber);
-
+			BlackListDevices[Device.serialNumber] = DeviceDetails{ .reason = Device.reason, .author = Device.author, .created = Device.created };
 			return true;
 		} catch (const Poco::Exception &E) {
 			poco_warning(Logger(),fmt::format("{}: Failed with: {}", std::string(__func__), E.displayText()));
@@ -175,6 +183,9 @@ namespace OpenWifi {
 				Poco::Data::Keywords::use(SerialNumber);
 			Update.execute();
 
+			std::lock_guard	G(BlackListMutex);
+			BlackListDevices[Device.serialNumber] = DeviceDetails{ .reason = Device.reason, .author = Device.author, .created = Device.created };
+
 			return true;
 
 		} catch (const Poco::Exception &E) {
@@ -213,8 +224,20 @@ namespace OpenWifi {
 		return BlackListDevices.size();
 	}
 
-	bool Storage::IsBlackListed(std::string &SerialNumber) {
+	bool Storage::IsBlackListed(const std::string &SerialNumber, std::string &reason, std::string &author, std::uint64_t &created) {
 		std::lock_guard	G(BlackListMutex);
-		return BlackListDevices.find(SerialNumber) != BlackListDevices.end();
+		auto DeviceHint = BlackListDevices.find(SerialNumber);
+		if(DeviceHint == end(BlackListDevices))
+			return false;
+		reason = DeviceHint->second.reason;
+		author = DeviceHint->second.author;
+		created = DeviceHint->second.created;
+		return true;
+	}
+
+	bool Storage::IsBlackListed(const std::string &SerialNumber) {
+		std::lock_guard G(BlackListMutex);
+		auto DeviceHint = BlackListDevices.find(SerialNumber);
+		return DeviceHint != end(BlackListDevices);
 	}
 }

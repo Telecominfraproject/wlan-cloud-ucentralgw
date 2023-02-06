@@ -15,10 +15,11 @@
 #include "framework/utils.h"
 
 #include "UI_GW_WebSocketNotifications.h"
+#include <GWKafkaEvents.h>
 
 namespace OpenWifi {
 
-	static void SendKafkaFirmwareUpdate(const std::string &SerialNumber, const std::string &OldFirmware, const std::string &NewFirmware) {
+	[[maybe_unused]] static void SendKafkaFirmwareUpdate(const std::string &SerialNumber, const std::string &OldFirmware, const std::string &NewFirmware) {
 		if(KafkaManager()->Enabled()) {
 			Poco::JSON::Object EventDetails;
 			EventDetails.set("oldFirmware", OldFirmware);
@@ -81,7 +82,7 @@ namespace OpenWifi {
 				int Updated{0};
 				if(!Firmware.empty()) {
 					if(Firmware!=DeviceInfo.Firmware) {
-						SendKafkaFirmwareUpdate(SerialNumber_, DeviceInfo.Firmware, Firmware);
+						DeviceFirmwareChangeKafkaEvent KEvent(SerialNumber_, Utils::Now(),DeviceInfo.Firmware, Firmware );
 						DeviceInfo.Firmware = Firmware;
 						DeviceInfo.LastFWUpdate = Utils::Now();
 						++Updated;
@@ -162,6 +163,7 @@ namespace OpenWifi {
 
 			if (KafkaManager()->Enabled()) {
 				Poco::JSON::Stringifier Stringify;
+
 				ParamsObj->set(uCentralProtocol::CONNECTIONIP, CId_);
 				ParamsObj->set("locale", State_.locale );
 				ParamsObj->set(uCentralProtocol::TIMESTAMP, Utils::Now());
