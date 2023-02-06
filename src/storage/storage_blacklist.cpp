@@ -70,7 +70,7 @@ namespace OpenWifi {
 			Poco::Data::Session Sess = Pool_->get();
 			Poco::Data::Statement Select(Sess);
 
-			Select << "SELECT SerialNumber, Reason, Author FROM BlackList";
+			Select << "SELECT SerialNumber, Reason, Author, Created FROM BlackList";
 			Select.execute();
 
 			Poco::Data::RecordSet   RSet(Select);
