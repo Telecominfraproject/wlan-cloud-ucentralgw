@@ -226,7 +226,7 @@ namespace OpenWifi {
 
 	bool Storage::IsBlackListed(const std::string &SerialNumber, std::string &reason, std::string &author, std::uint64_t &created) {
 		std::lock_guard	G(BlackListMutex);
-		auto DeviceHint = BlackListDevices.find(SerialNumber);
+		auto DeviceHint = BlackListDevices.find(Poco::toLower(SerialNumber));
 		if(DeviceHint == end(BlackListDevices))
 			return false;
 		reason = DeviceHint->second.reason;
@@ -237,7 +237,7 @@ namespace OpenWifi {
 
 	bool Storage::IsBlackListed(const std::string &SerialNumber) {
 		std::lock_guard G(BlackListMutex);
-		auto DeviceHint = BlackListDevices.find(SerialNumber);
+		auto DeviceHint = BlackListDevices.find(Poco::toLower(SerialNumber));
 		return DeviceHint != end(BlackListDevices);
 	}
 }
