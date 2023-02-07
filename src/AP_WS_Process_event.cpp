@@ -19,14 +19,32 @@ namespace OpenWifi {
 		}
 		poco_trace(Logger_, fmt::format("Event data received for {}", SerialNumber_));
 
-		if (ParamsObj->has(uCentralProtocol::SERIAL) && ParamsObj->has(uCentralProtocol::DATA)) {
-			if (KafkaManager()->Enabled()) {
-				auto Data = ParamsObj->get(uCentralProtocol::DATA);
-				Poco::JSON::Stringifier Stringify;
-				std::ostringstream OS;
-				Stringify.condense(ParamsObj, OS);
-				KafkaManager()->PostMessage(KafkaTopics::DEVICE_EVENT_QUEUE, SerialNumber_, OS.str());
+		try {
+			if (ParamsObj->has(uCentralProtocol::SERIAL) &&
+				ParamsObj->has(uCentralProtocol::DATA)) {
+				if (KafkaManager()->Enabled()) {
+					auto Data = ParamsObj->getObject(uCentralProtocol::DATA);
+					auto Event = Data->getArray("event");
+					auto EventTimeStamp = Event->getElement<std::uint64_t>(0);
+					auto EventDetails = Event->getObject(1);
+					auto EventType = EventDetails->get("type").extract<std::string>();
+					auto EventPayload = EventDetails->getObject("payload");
+
+					Poco::JSON::Object FullEvent;
+					FullEvent.set("type", EventType);
+					FullEvent.set("timestamp", EventTimeStamp);
+					FullEvent.set("payload", EventPayload);
+
+					std::ostringstream OS;
+					FullEvent.stringify(OS);
+					KafkaManager()->PostMessage(KafkaTopics::DEVICE_EVENT_QUEUE, SerialNumber_,
+												OS.str());
+				}
 			}
+		} catch(const Poco::Exception &E) {
+			Logger_.log(E);
+		} catch(...) {
+
 		}
 	}
 }

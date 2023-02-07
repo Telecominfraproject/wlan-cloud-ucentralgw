@@ -95,11 +95,23 @@ Device sends unsolicited events to the controller.
 {   "jsonrpc" : "2.0" , 
     "method" : "event" , 
     "params" : {
-        "serial" : <serial number> ,
-        "data" : <Optiona/may be empty: JSON Document providing additional information related to this event message>
+        "serial" : "001122334455" ,
+        "data" : { 
+          "event" : [
+            1871263817263,
+            {
+              "type" : "the event type",
+              "payload" : {
+                "field1" : "value1"
+              }
+            }
+          ]
+        }
     }
 }
 ```
+
+The first element of the `event` array is always the `timestamp` of the event. The `payload` is a JSON document contains addition information about the event. This _may not_ be empty.
 
 #### Alarms Channel
 Device sends unsolicited alarms to the controller.

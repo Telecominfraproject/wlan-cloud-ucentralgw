@@ -33,7 +33,7 @@ namespace OpenWifi {
 	class DeviceFirmwareChangeKafkaEvent : public GWKafkaEvents {
 	  public:
 		DeviceFirmwareChangeKafkaEvent( const std::string &serialNumber, std::uint64_t timestamp, const std::string &oldFirmware, const std::string &newFirmware) :
-			GWKafkaEvents(serialNumber,"device.firmware_change", timestamp),
+			GWKafkaEvents(serialNumber,"unit.firmware_change", timestamp),
 			oldFirmware_(oldFirmware),
 			newFirmware_(newFirmware) {
 		}
@@ -53,7 +53,7 @@ namespace OpenWifi {
 	class DeviceConfigurationChangeKafkaEvent : public GWKafkaEvents {
 	  public:
 		DeviceConfigurationChangeKafkaEvent( const std::string &serialNumber, std::uint64_t timestamp, const std::string config) :
-			GWKafkaEvents(serialNumber,"device.configuration_change", timestamp),
+			GWKafkaEvents(serialNumber,"unit.configuration_change", timestamp),
 			config_(config) {
 		}
 

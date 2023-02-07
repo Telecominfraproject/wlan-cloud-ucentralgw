@@ -561,6 +561,21 @@ namespace ORM {
             return false;
         }
 
+        template <typename T> bool Join(const std::string &statement, std::vector<T> &records) {
+            try {
+                Poco::Data::Session     Session = Pool_.get();
+                Poco::Data::Statement   Select(Session);
+
+                Select  << statement ,
+                        Poco::Data::Keywords::into(records);
+                Select.execute();
+                return true;
+            } catch (const Poco::Exception &E) {
+                Logger_.log(E);
+            }
+            return false;
+        }
+
         typedef std::vector<RecordTuple>    RecordList;
         typedef std::vector<RecordType>     RecordVec;
         typedef RecordType                  RecordName;
