@@ -24,7 +24,7 @@
 #include <valijson/constraints/constraint.hpp>
 
 static const std::string GitUCentralJSONSchemaFile{
-	"https://raw.githubusercontent.com/Telecominfraproject/wlan-ucentral-schema/main/ucentral.schema.json"};
+	"https://github.com/Telecominfraproject/wlan-ucentral-schema/blob/main/ucentral.schema.json"};
 
 static std::string DefaultUCentralSchema = R"foo(
 
