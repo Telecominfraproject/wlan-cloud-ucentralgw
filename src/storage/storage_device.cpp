@@ -474,10 +474,8 @@ namespace OpenWifi {
 
 			if(KafkaManager()->Enabled()) {
 				Poco::JSON::Object	Message;
-				Message.set("command","command");
-				Poco::JSON::Object	Payload;
-				Payload.set("serialNumber", SerialNumber);
-				Message.set("payload",Payload);
+				Message.set("command","device_deleted");
+				Message.set("timestamp", Utils::Now());
 				std::ostringstream StrPayload;
 				Message.stringify(StrPayload);
 				KafkaManager()->PostMessage(KafkaTopics::COMMAND, SerialNumber, StrPayload.str());
