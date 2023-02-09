@@ -5,6 +5,8 @@
 #include "rttys/RTTYS_server.h"
 #include "rttys/RTTYS_WebServer.h"
 
+#include "AP_WS_Server.h"
+
 #include "framework/MicroServiceFuncs.h"
 #include "fmt/format.h"
 
@@ -26,11 +28,7 @@ namespace OpenWifi {
 			int CSport = (int) MicroServiceConfigGetInt("rtty.viewport", 5913);
 			RTTY_UIAssets_ = MicroServiceConfigPath("rtty.assets", "$OWGW_ROOT/rtty_ui");
 			MaxConcurrentSessions_ = MicroServiceConfigGetInt("rtty.maxsessions",0);
-
-			const auto & CertFileName = MicroServiceConfigPath("openwifi.restapi.host.0.cert","");
-			const auto & KeyFileName = MicroServiceConfigPath("openwifi.restapi.host.0.key","");
-			const auto & RootCa = MicroServiceConfigPath("openwifi.restapi.host.0.rootca","");
-
+			enforce_mTLS_ = MicroServiceConfigGetBool("rtty.enforcemTLS",false);
 			NoSecurity_ = MicroServiceNoAPISecurity();
 
 			if(NoSecurity_) {
@@ -43,16 +41,42 @@ namespace OpenWifi {
 											   Poco::NObserver<RTTYS_server, Poco::Net::ReadableNotification>
 											   (*this, &RTTYS_server::onDeviceAccept));
 			} else {
-				auto DeviceSecureContext = Poco::AutoPtr<Poco::Net::Context>( new Poco::Net::Context(Poco::Net::Context::SERVER_USE,
-																  KeyFileName, CertFileName, "",
-																  Poco::Net::Context::VERIFY_RELAXED));
-				Poco::Crypto::X509Certificate DeviceRoot(RootCa);
-				DeviceSecureContext->addCertificateAuthority(DeviceRoot);
-				DeviceSecureContext->disableStatelessSessionResumption();
-				DeviceSecureContext->enableSessionCache();
+				const auto & CertFileName = MicroServiceConfigPath("ucentral.websocket.host.0.cert","");
+				const auto & KeyFileName = MicroServiceConfigPath("ucentral.websocket.host.0.key","");
+				const auto & RootCaFileName = MicroServiceConfigPath("ucentral.websocket.host.0.rootca","");
+				const auto & IssuerFileName = MicroServiceConfigPath("ucentral.websocket.host.0.issuer","");
+				const auto & KeyPassword = MicroServiceConfigPath("ucentral.websocket.host.0.key.password","");
+				const auto & RootCas = MicroServiceConfigPath("ucentral.websocket.host.0.rootca","");
+				const auto & Cas = MicroServiceConfigPath("ucentral.websocket.host.0.cas","");
+
+				Poco::Net::Context::Params P;
+
+				P.verificationMode = Poco::Net::Context::VERIFY_ONCE;
+				P.verificationDepth = 9;
+				P.loadDefaultCAs = RootCas.empty();
+				P.cipherList = "ALL:!ADH:!LOW:!EXP:!MD5:@STRENGTH";
+				P.dhUse2048Bits = true;
+				P.caLocation = Cas;
+
+				auto DeviceSecureContext = Poco::AutoPtr<Poco::Net::Context>(new Poco::Net::Context(Poco::Net::Context::TLS_SERVER_USE, P));
+				Poco::Crypto::X509Certificate Cert(CertFileName);
+				Poco::Crypto::X509Certificate Root(RootCaFileName);
+				Poco::Crypto::X509Certificate Issuing(IssuerFileName);
+				Poco::Crypto::RSAKey Key("", KeyFileName, KeyPassword);
+
+				DeviceSecureContext->useCertificate(Cert);
+				DeviceSecureContext->addChainCertificate(Root);
+				DeviceSecureContext->addCertificateAuthority(Root);
+				DeviceSecureContext->addChainCertificate(Issuing);
+				DeviceSecureContext->addCertificateAuthority(Issuing);
+				DeviceSecureContext->addCertificateAuthority(Root);
+				DeviceSecureContext->enableSessionCache(true);
 				DeviceSecureContext->setSessionCacheSize(0);
-				DeviceSecureContext->setSessionTimeout(10);
-				DeviceSecureContext->enableExtendedCertificateVerification(true);
+				DeviceSecureContext->setSessionTimeout(120);
+				DeviceSecureContext->enableExtendedCertificateVerification(false);
+				DeviceSecureContext->usePrivateKey(Key);
+				DeviceSecureContext->disableProtocols(Poco::Net::Context::PROTO_TLSV1 | Poco::Net::Context::PROTO_TLSV1_1);
+
 				SSL_CTX *SSLCtxDevice = DeviceSecureContext->sslContext();
 				SSL_CTX_dane_enable(SSLCtxDevice);
 
@@ -85,9 +109,13 @@ namespace OpenWifi {
 				ClientSocket.setNoDelay(true);
 				WebServer_ = std::make_unique<Poco::Net::HTTPServer>(new RTTYS_Client_RequestHandlerFactory(Logger()), ClientSocket, WebServerHttpParams);
 			} else {
+				const auto & CertFileName = MicroServiceConfigPath("openwifi.restapi.host.0.cert","");
+				const auto & KeyFileName = MicroServiceConfigPath("openwifi.restapi.host.0.key","");
+				const auto & RootCaFileName = MicroServiceConfigPath("openwifi.restapi.host.0.rootca","");
+
 				auto WebClientSecureContext = new Poco::Net::Context(Poco::Net::Context::SERVER_USE, KeyFileName, CertFileName,
 										   "", Poco::Net::Context::VERIFY_RELAXED);
-				Poco::Crypto::X509Certificate WebRoot(RootCa);
+				Poco::Crypto::X509Certificate WebRoot(RootCaFileName);
 				WebClientSecureContext->addCertificateAuthority(WebRoot);
 				WebClientSecureContext->disableStatelessSessionResumption();
 				WebClientSecureContext->enableSessionCache();
@@ -158,14 +186,34 @@ namespace OpenWifi {
 			Poco::Net::SocketAddress Client;
 			Poco::Net::StreamSocket NewSocket = pNf->socket().impl()->acceptConnection(Client);
 			if(NewSocket.impl()->secure()) {
+
 				auto SS = dynamic_cast<Poco::Net::SecureStreamSocketImpl *>(NewSocket.impl());
 				while (true) {
 					auto V = SS->completeHandshake();
 					if (V == 1)
 						break;
 				}
+
+				auto PeerAddress_ = SS->peerAddress().host();
+				auto CId_ = Utils::FormatIPv6(SS->peerAddress().toString());
+
+				if(enforce_mTLS_) {
+					if (SS->havePeerCertificate()) {
+						Poco::Crypto::X509Certificate PeerCert(SS->peerCertificate());
+						auto CN = Poco::trim(Poco::toLower(PeerCert.commonName()));
+						if(AP_WS_Server()->ValidateCertificate(CId_, PeerCert)) {
+							poco_debug(Logger(),fmt::format("Device {} has been validated from {}.", CN, CId_));
+							AddConnectingDeviceEventHandlers(NewSocket);
+							return;
+						}
+					}
+					poco_debug(Logger(),fmt::format("Device cannot be validated from {}.", CId_));
+				} else {
+					AddConnectingDeviceEventHandlers(NewSocket);
+					return;
+				}
 			}
-			AddConnectingDeviceEventHandlers(NewSocket);
+			NewSocket.close();
 		} catch (const Poco::Exception &E) {
 			std::cout << "Exception onDeviceAccept: " << E.what() << std::endl;
 			Logger().log(E);

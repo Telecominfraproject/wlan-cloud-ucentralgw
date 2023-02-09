@@ -120,7 +120,6 @@ namespace OpenWifi {
 		std::uint64_t 								TID_=0;
 		bool										old_rtty_=false;
 		bool 										completed_=false;
-
 		std::chrono::time_point<std::chrono::high_resolution_clock>
 			Created_{0s},DeviceDisconnected_{0s},
 			ClientDisconnected_{0s},DeviceConnected_{0s} ,ClientConnected_{0s};
@@ -229,6 +228,7 @@ namespace OpenWifi {
 		std::atomic_uint64_t						MaxConcurrentSessions_=0;
 		std::unique_ptr<Poco::Net::ServerSocket>	DeviceSocket_;
 		std::unique_ptr<Poco::Net::SecureServerSocket>	SecureDeviceSocket_;
+		bool 										enforce_mTLS_ = false;
 
 		static inline std::uint64_t 				CurrentTID_=0;
 

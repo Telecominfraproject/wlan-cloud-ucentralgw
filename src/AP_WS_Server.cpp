@@ -76,11 +76,6 @@ namespace OpenWifi {
 
 			auto Context = Poco::AutoPtr<Poco::Net::Context>(new Poco::Net::Context(Poco::Net::Context::TLS_SERVER_USE, P));
 
-/*			if(!Svr.KeyFilePassword().empty()) {
-				auto PassphraseHandler = Poco::SharedPtr<MyPrivateKeyPassphraseHandler>( new MyPrivateKeyPassphraseHandler(Svr.KeyFilePassword(),Logger()));
-				Poco::Net::SSLManager::instance().initializeServer(PassphraseHandler, nullptr,Context);
-			}
-*/
 			Poco::Crypto::X509Certificate Cert(Svr.CertFile());
 			Poco::Crypto::X509Certificate Root(Svr.RootCA());
 
