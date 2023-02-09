@@ -1124,6 +1124,26 @@ namespace OpenWifi {
 						AP_WS_Server()->StopWebSocketTelemetry(CMD_RPC,IntSerialNumber);
 					}
 				}
+
+				GWObjects::CommandDetails Cmd;
+				Cmd.SerialNumber = SerialNumber_;
+				Cmd.SubmittedBy = Requester();
+				Cmd.UUID = CMD_UUID;
+				Cmd.Command = uCentralProtocol::TELEMETRY;
+				Poco::JSON::Object Params;
+				Params.set("kafkaOnly", KafkaOnly);
+				Params.set("interval", Interval);
+				std::stringstream ParamStream;
+				Params.stringify(ParamStream);
+				Cmd.Details = ParamStream.str();
+				Cmd.RunAt = 0;
+				Cmd.ErrorCode = 0;
+				Cmd.WaitingForFile = 0 ;
+				Cmd.Status = "completed";
+				Cmd.Submitted = Cmd.Completed = Cmd.Executed = Utils::Now();
+				Cmd.Results = R"foo( { "result" : "success" } )foo";
+				Cmd.executionTime = 0.0;
+				StorageService()->AddCommand(SerialNumber_,Cmd,Storage::CommandExecutionType::COMMAND_COMPLETED);
 			} else {
 				Answer.set("action", "Telemetry status only.");
 			}
