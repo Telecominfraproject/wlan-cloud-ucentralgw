@@ -85,7 +85,8 @@ namespace OpenWifi {
 						"restrictedDevice BOOLEAN, "
 						"pendingConfiguration TEXT, "
 						"pendingConfigurationCmd VARCHAR(64), "
-						"restrictionDetails TEXT "
+						"restrictionDetails TEXT, "
+						"pendingUUID	BIGINT "
 						",INDEX DeviceOwner (Owner ASC),"
 						"INDEX LocationIndex (Location ASC))", Poco::Data::Keywords::now;
 			} else if(dbType_==sqlite || dbType_==pgsql) {
@@ -115,7 +116,8 @@ namespace OpenWifi {
 						"restrictedDevice BOOLEAN, "
 						"pendingConfiguration TEXT,"
 						"pendingConfigurationCmd VARCHAR(64), "
-						"restrictionDetails TEXT "
+						"restrictionDetails TEXT,"
+						"pendingUUID 	BIGINT "
 						")", Poco::Data::Keywords::now;
 				Sess << "CREATE INDEX IF NOT EXISTS DeviceOwner ON Devices (Owner ASC)", Poco::Data::Keywords::now;
 				Sess << "CREATE INDEX IF NOT EXISTS DeviceLocation ON Devices (Location ASC)", Poco::Data::Keywords::now;
@@ -131,6 +133,7 @@ namespace OpenWifi {
 				"alter table devices add column pendingConfiguration TEXT",
 				"alter table devices add column pendingConfigurationCmd VARCHAR(64)",
 				"alter table devices add column restrictionDetails TEXT",
+				"alter table devices add column pendingUUID bigint"
 			};
 
 			for(const auto &i:Script) {
