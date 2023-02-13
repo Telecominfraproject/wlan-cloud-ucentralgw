@@ -193,8 +193,11 @@ namespace OpenWifi::GWObjects {
 		uint64_t AttachDate = 0 ;
 		uint64_t AttachSize = 0 ;
 		std::string AttachType;
-		double 		executionTime = 0.0;
+		double 			executionTime = 0.0;
+		std::uint64_t 	lastTry=0;
+
 		void to_json(Poco::JSON::Object &Obj) const;
+		bool from_json(const Poco::JSON::Object::Ptr &Obj);
 	};
 
 	struct BlackListedDevice {

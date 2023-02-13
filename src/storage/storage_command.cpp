@@ -39,9 +39,10 @@ const static std::string	DB_Command_SelectFields{
 				"AttachDate, "
 				"AttachSize, "
 				"AttachType,"
-				"executionTime " };
+				"executionTime, "
+				"LastTry "};
 
-const static std::string 	DB_Command_InsertValues{"?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?"};
+const static std::string 	DB_Command_InsertValues{"?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?"};
 
 typedef Poco::Tuple<
 			std::string,
@@ -62,7 +63,8 @@ typedef Poco::Tuple<
 			uint64_t,
 			uint64_t,
 			std::string,
-			double
+			double,
+			uint64_t
 		> CommandDetailsRecordTuple;
 	typedef std::vector<CommandDetailsRecordTuple> CommandDetailsRecordList;
 
@@ -86,6 +88,7 @@ typedef Poco::Tuple<
 		Command.AttachSize = R.get<16>();
 		Command.AttachType = R.get<17>();
 		Command.executionTime = R.get<18>();
+		Command.lastTry = R.get<19>();
 	}
 
 	void ConvertCommandRecord(const GWObjects::CommandDetails & Command, CommandDetailsRecordTuple &R) {
@@ -108,6 +111,7 @@ typedef Poco::Tuple<
 		R.set<16>(Command.AttachSize);
 		R.set<17>(Command.AttachType);
 		R.set<18>(Command.executionTime);
+		R.set<19>(Command.lastTry);
 	}
 
 	bool Storage::RemoveOldCommands(std::string & SerialNumber, std::string & Command) {
@@ -355,6 +359,25 @@ typedef Poco::Tuple<
 		}
 	}
 
+	bool Storage::SetCommandLastTry(std::string &CommandUUID) {
+		try {
+			Poco::Data::Session Sess = Pool_->get();
+			Poco::Data::Statement Update(Sess);
+
+			auto Now = Utils::Now();
+			std::string St{"UPDATE CommandList SET LastTry=? WHERE UUID=?"};
+
+			Update << ConvertParams(St),
+				Poco::Data::Keywords::use(Now),
+				Poco::Data::Keywords::use(CommandUUID);
+			Update.execute();
+			return true;
+		} catch (const Poco::Exception &E) {
+			Logger().log(E);
+		}
+		return false;
+	}
+
 	void Storage::RemoveTimedOutCommands() {
 		try {
 			Poco::Data::Session Sess = Pool_->get();
@@ -479,7 +502,7 @@ typedef Poco::Tuple<
 				"SELECT " +
 				DB_Command_SelectFields
 				+ " FROM CommandList "
-				" WHERE ((RunAt<=?) And (Executed=0)) ORDER BY Submitted ASC "};
+				" WHERE ((RunAt<=?) And (Executed=0) And (LastTry=0 || (" + std::to_string(Now) + "-LastTry)>60) ORDER BY Submitted ASC "};
 			CommandDetailsRecordList Records;
 
 			std::string SS = ConvertParams(St) + ComputeRange(Offset, HowMany);

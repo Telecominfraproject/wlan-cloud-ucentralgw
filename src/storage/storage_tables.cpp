@@ -310,20 +310,22 @@ namespace OpenWifi {
 			Logger().log(E);
 		}
 
-		//	do the upgrade
-		try {
-			Poco::Data::Session Sess = Pool_->get();
-			if (dbType_ == mysql) {
-				Sess << "alter table CommandList add column executionTime float default 0.00",
-					Poco::Data::Keywords::now;
-			} else if (dbType_ == pgsql || dbType_ == sqlite) {
-				Sess << "alter table CommandList add column executionTime real default 0.00",
-					Poco::Data::Keywords::now;
+		std::vector<std::string> Script{
+			dbType_ == mysql ? "alter table CommandList add column executionTime float default 0.00" :
+							 "alter table CommandList add column executionTime real default 0.00",
+			"alter table devices add column LastTry bigint default 0"
+		};
+
+		for(const auto &i:Script) {
+			try {
+				Poco::Data::Session Sess = Pool_->get();
+				Sess << i, Poco::Data::Keywords::now;
+			} catch (const Poco::Data::DataException &) {
+			} catch (const Poco::Exception &E) {
+				Logger().log(E);
 			}
-		} catch (const Poco::Data::DataException &) {
-		} catch (const Poco::Exception &E) {
-			Logger().log(E);
 		}
+
 		return 0;
 	}
 

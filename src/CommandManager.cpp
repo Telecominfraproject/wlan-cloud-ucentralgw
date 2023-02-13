@@ -232,19 +232,20 @@ namespace OpenWifi {
 							continue;
 						}
 
-						if (!AP_WS_Server()->Connected(
-								Utils::SerialNumberToInt(Cmd.SerialNumber))) {
+						auto SerialNumberInt = Utils::SerialNumberToInt(Cmd.SerialNumber);
+						if (!AP_WS_Server()->Connected(SerialNumberInt)) {
 							poco_trace(
 								MyLogger,
 								fmt::format(
 									"{}: Serial={} Command={} Device is not connected.",
 									Cmd.UUID, Cmd.SerialNumber, Cmd.Command));
+							StorageService()->SetCommandLastTry(Cmd.UUID);
 							continue;
 						}
 
 						std::string 			ExecutingUUID;
 						APCommands::Commands	ExecutingCommand=APCommands::Commands::unknown;
-						if (CommandRunningForDevice(Utils::SerialNumberToInt(Cmd.SerialNumber),
+						if (CommandRunningForDevice(SerialNumberInt,
 													ExecutingUUID, ExecutingCommand)) {
 							poco_trace(
 								MyLogger,
@@ -270,6 +271,7 @@ namespace OpenWifi {
 							poco_debug(MyLogger,
 								fmt::format("{}: Serial={} Command={} Re-queued command.",
 									 Cmd.UUID, Cmd.SerialNumber, Cmd.Command));
+							StorageService()->SetCommandLastTry(Cmd.UUID);
 						}
 					} catch (const Poco::Exception &E) {
 						poco_debug(MyLogger,
