@@ -361,7 +361,7 @@ typedef Poco::Tuple<
 			Poco::Data::Statement Update(Sess);
 
 			auto Now = Utils::Now(), Window = Now-(1*60*60);
-			std::string St{"UPDATE CommandList SET Executed=?, Status='timedout' WHERE Executed<? and completed=0"};
+			std::string St{"UPDATE CommandList SET Executed=?, Status='timedout' WHERE Submitted<? and completed=0"};
 			Update << ConvertParams(St),
 				Poco::Data::Keywords::use(Now),
 				Poco::Data::Keywords::use(Window);
