@@ -64,13 +64,11 @@ namespace OpenWifi {
 											TmpRpcEntry = RPC->second.rpc_entry;
 										}
 
-										// Payload->stringify(std::cout);
-
 										if (Payload->has("result")) {
 											auto Result = Payload->getObject("result");
 											if (Result->has("status")) {
 												auto Status = Result->getObject("status");
-												// Status->stringify(std::cout);
+
 												std::uint64_t Error = Status->get("error");
 												if(Error==0) {
 													StorageService()->CommandCompleted(RPC->second.UUID, Payload,
@@ -214,17 +212,14 @@ namespace OpenWifi {
 											  Cmd.UUID, Cmd.SerialNumber, Cmd.Command));
 					try {
 
-						std::cout << "Cmd:" << Cmd.Command << "  " << Cmd.SerialNumber << std::endl;
 						//	Skip an already running command
 						if(IsCommandRunning(Cmd.UUID)) {
-							std::cout << "Command already running: " << Cmd.SerialNumber << " " << Cmd.Command << std::endl;
 							continue;
 						}
 
 						auto now = Utils::Now();
 						// 2 hour timeout for commands
 						if ((now - Cmd.Submitted) > (1 * 60 * 60)) {
-							std::cout << "Submitted: "<< Cmd.Submitted << std::endl;
 							poco_information(
 								MyLogger, fmt::format("{}: Serial={} Command={} has expired.",
 													  Cmd.UUID, Cmd.SerialNumber, Cmd.Command));
