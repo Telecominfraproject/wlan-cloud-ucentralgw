@@ -221,6 +221,7 @@ namespace OpenWifi {
 						auto now = Utils::Now();
 						// 2 hour timeout for commands
 						if ((now - Cmd.Submitted) > (1 * 60 * 60)) {
+							std::cout << "Submitted: "<< Cmd.Submitted << std::endl;
 							poco_information(
 								MyLogger, fmt::format("{}: Serial={} Command={} has expired.",
 													  Cmd.UUID, Cmd.SerialNumber, Cmd.Command));
