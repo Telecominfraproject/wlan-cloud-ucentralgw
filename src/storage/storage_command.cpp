@@ -502,7 +502,7 @@ typedef Poco::Tuple<
 				"SELECT " +
 				DB_Command_SelectFields
 				+ " FROM CommandList "
-				" WHERE ((RunAt<=?) And (Executed=0) And (LastTry=0 || (" + std::to_string(Now) + "-LastTry)>60)) ORDER BY Submitted ASC "};
+				" WHERE ((RunAt<=?) And (Executed=0) And (LastTry=0 or (" + std::to_string(Now) + "-LastTry)>60))) ORDER BY Submitted ASC "};
 			CommandDetailsRecordList Records;
 
 			std::string SS = ConvertParams(St) + ComputeRange(Offset, HowMany);
