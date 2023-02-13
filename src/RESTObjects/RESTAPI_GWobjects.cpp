@@ -54,6 +54,7 @@ namespace OpenWifi::GWObjects {
 		field_to_json(Obj,"pendingConfiguration", pendingConfiguration);
 		field_to_json(Obj,"pendingConfigurationCmd", pendingConfigurationCmd);
 		field_to_json(Obj,"restrictionDetails", restrictionDetails);
+		field_to_json(Obj,"pendingUUID", pendingUUID);
 	}
 
 	void Device::to_json_with_status(Poco::JSON::Object &Obj) const {
@@ -84,20 +85,30 @@ namespace OpenWifi::GWObjects {
 			field_from_json(Obj,"serialNumber",SerialNumber);
 			field_from_json(Obj,"deviceType",DeviceType);
 			field_from_json(Obj,"macAddress",MACAddress);
+			field_from_json(Obj,"manufacturer",Manufacturer);
+			field_from_json(Obj,"UUID", UUID);
 			field_from_json(Obj,"configuration",Configuration);
 			field_from_json(Obj,"notes",Notes);
-			field_from_json(Obj,"manufacturer",Manufacturer);
+			field_from_json(Obj,"createdTimestamp", CreationTimestamp);
+			field_from_json(Obj,"lastConfigurationChange", LastConfigurationChange);
+			field_from_json(Obj,"lastConfigurationDownload", LastConfigurationDownload);
+			field_from_json(Obj,"lastFWUpdate", LastFWUpdate);
 			field_from_json(Obj,"owner",Owner);
 			field_from_json(Obj,"location",Location);
 			field_from_json(Obj,"venue",Venue);
+			field_from_json(Obj,"firmware", Firmware);
 			field_from_json(Obj,"compatible",Compatible);
+			field_from_json(Obj,"fwUpdatePolicy", FWUpdatePolicy);
+			field_from_json(Obj,"devicePassword", DevicePassword);
 			field_from_json(Obj,"subscriber", subscriber);
 			field_from_json(Obj,"entity", entity);
+			field_from_json(Obj,"modified", modified);
 			field_from_json(Obj,"locale", locale);
 			field_from_json(Obj,"restrictedDevice", restrictedDevice);
 			field_from_json(Obj,"pendingConfiguration", pendingConfiguration);
 			field_from_json(Obj,"pendingConfigurationCmd", pendingConfigurationCmd);
 			field_from_json(Obj,"restrictionDetails", restrictionDetails);
+			field_from_json(Obj,"pendingUUID", pendingUUID);
 			return true;
 		} catch (const Poco::Exception &E) {
 		}
