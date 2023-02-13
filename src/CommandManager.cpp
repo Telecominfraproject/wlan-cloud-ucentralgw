@@ -215,8 +215,10 @@ namespace OpenWifi {
 					try {
 
 						//	Skip an already running command
-						if(IsCommandRunning(Cmd.UUID))
+						if(IsCommandRunning(Cmd.UUID)) {
+							std::cout << "Command already running: " << Cmd.SerialNumber << " " << Cmd.Command << std::endl;
 							continue;
+						}
 
 						auto now = Utils::Now();
 						// 2 hour timeout for commands
