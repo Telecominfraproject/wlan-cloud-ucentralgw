@@ -47,7 +47,7 @@ namespace OpenWifi::RESTAPI_RPC {
 						Poco::Logger &Logger) {
 
 		Logger.information(fmt::format("{},{}: New {} command. User={} Serial={}. ", Cmd.UUID, RPCID, Cmd.Command, Cmd.SubmittedBy, Cmd.SerialNumber));
-
+		Cmd.Submitted = Utils::Now();
 		// 	if the command should be executed in the future, or if the device is not connected,
 		// 	then we should just add the command to
 		//	the DB and let it figure out when to deliver the command.
