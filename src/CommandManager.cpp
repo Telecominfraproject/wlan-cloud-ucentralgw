@@ -214,6 +214,7 @@ namespace OpenWifi {
 											  Cmd.UUID, Cmd.SerialNumber, Cmd.Command));
 					try {
 
+						std::cout << "Cmd:" << Cmd.Command << "  " << Cmd.SerialNumber << std::endl;
 						//	Skip an already running command
 						if(IsCommandRunning(Cmd.UUID)) {
 							std::cout << "Command already running: " << Cmd.SerialNumber << " " << Cmd.Command << std::endl;
