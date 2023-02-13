@@ -53,10 +53,12 @@ namespace OpenWifi::RESTAPI_RPC {
 		//	the DB and let it figure out when to deliver the command.
 		auto SerialNumberInt = Utils::SerialNumberToInt(Cmd.SerialNumber);
 		if (Cmd.RunAt || (!AP_WS_Server()->Connected(SerialNumberInt) && RetryLater)) {
+			std::cout << "Processing command retry " << Cmd.Command << "  " << Cmd.SerialNumber << std::endl;
 			Logger.information(fmt::format("{},{}: Command will be run in the future or when device is connected again.", Cmd.UUID, RPCID));
 			SetCommandStatus(Cmd, Request, Response, Handler, Storage::CommandExecutionType::COMMAND_PENDING, Logger);
 			return;
 		} else if ((!AP_WS_Server()->Connected(SerialNumberInt) && !RetryLater)){
+			std::cout << "Processing command failed " << Cmd.Command << "  " << Cmd.SerialNumber << std::endl;
 			Logger.information(fmt::format("{},{}: Command canceled. Device is not connected. Command will not be retried.", Cmd.UUID, RPCID));
 			return SetCommandStatus(Cmd, Request, Response, Handler, Storage::CommandExecutionType::COMMAND_FAILED, Logger);
 		}
