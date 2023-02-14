@@ -53,12 +53,10 @@ namespace OpenWifi::RESTAPI_RPC {
 		//	the DB and let it figure out when to deliver the command.
 		auto SerialNumberInt = Utils::SerialNumberToInt(Cmd.SerialNumber);
 		if (Cmd.RunAt || (!AP_WS_Server()->Connected(SerialNumberInt) && RetryLater)) {
-			std::cout << "Processing command retry " << Cmd.Command << "  " << Cmd.SerialNumber << std::endl;
 			Logger.information(fmt::format("{},{}: Command will be run in the future or when device is connected again.", Cmd.UUID, RPCID));
 			SetCommandStatus(Cmd, Request, Response, Handler, Storage::CommandExecutionType::COMMAND_PENDING, Logger);
 			return;
 		} else if ((!AP_WS_Server()->Connected(SerialNumberInt) && !RetryLater)){
-			std::cout << "Processing command failed " << Cmd.Command << "  " << Cmd.SerialNumber << std::endl;
 			Logger.information(fmt::format("{},{}: Command canceled. Device is not connected. Command will not be retried.", Cmd.UUID, RPCID));
 			return SetCommandStatus(Cmd, Request, Response, Handler, Storage::CommandExecutionType::COMMAND_FAILED, Logger);
 		}
@@ -105,11 +103,9 @@ namespace OpenWifi::RESTAPI_RPC {
 				return;
 			}
 
-                        //Issue Id : WIFI-12072 : Added Log to print the error message received from AP.
-                        std::ostringstream      rpcss;
-                        ResultFields->stringify(rpcss);
-                        nlohmann::json D = nlohmann::json::parse(rpcss.str());
-                        Logger.information(fmt::format("Response Received from AP :{} ",rpcss.str() ));
+			std::ostringstream      ResultFieldsLog;
+			ResultFields->stringify(ResultFieldsLog);
+			Logger.debug(fmt::format("{},{}: RPC response: {}.", Cmd.UUID, RPCID, ResultFieldsLog.str()));
 
 			auto StatusInnerObj = ResultFields->get(uCentralProtocol::STATUS).extract<Poco::JSON::Object::Ptr>();
 			if (StatusInnerObj->has(uCentralProtocol::ERROR))

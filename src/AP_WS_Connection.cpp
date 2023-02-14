@@ -780,13 +780,21 @@ namespace OpenWifi {
 				return false;
 #else
 			tcp_info info;
-			int timeout=5000;
+			int timeout=5000,tries=0;
 			auto expireAt = std::chrono::system_clock::now() + std::chrono::milliseconds(timeout);
 			do {
-				std::this_thread::sleep_for(std::chrono::milliseconds(50));
+				std::this_thread::sleep_for(std::chrono::milliseconds(20));
 				socklen_t opt_len = sizeof(info);
-				getsockopt(WS_->impl()->sockfd(),SOL_TCP, TCP_INFO, (void *) &info, &opt_len);
+				auto err = getsockopt(WS_->impl()->sockfd(),SOL_TCP, TCP_INFO, (void *) &info, &opt_len);
+				if(err) {
+					std::cout << "Error: " << errno << std::endl;
+				}
+				++tries;
 			} while (info.tcpi_unacked > 0 && expireAt > std::chrono::system_clock::now());
+
+			if(tries>1) {
+				std::cout << "Tries: " << tries << std::endl;
+			}
 
 			if(info.tcpi_unacked>0) {
 				return false;

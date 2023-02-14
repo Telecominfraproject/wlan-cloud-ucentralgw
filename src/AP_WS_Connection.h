@@ -34,7 +34,7 @@ namespace OpenWifi {
 		void ProcessIncomingFrame();
 		void ProcessIncomingRadiusData(const Poco::JSON::Object::Ptr &Doc);
 
-		bool Send(const std::string &Payload);
+		[[nodiscard]] bool Send(const std::string &Payload);
 
 		bool SendRadiusAuthenticationData(const unsigned char * buffer, std::size_t size);
 		bool SendRadiusAccountingData(const unsigned char * buffer, std::size_t size);
