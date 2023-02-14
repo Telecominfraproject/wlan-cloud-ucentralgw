@@ -191,6 +191,9 @@ namespace OpenWifi {
 				}
 			}
 
+			inline auto CommandTimeout() const { return commandTimeOut_; }
+			inline auto CommandRetry() const { return commandRetry_; }
+
 	    private:
 		  	mutable std::recursive_mutex			LocalMutex_;
 			std::atomic_bool 						Running_ = false;
@@ -202,6 +205,10 @@ namespace OpenWifi {
 			Poco::Timer                     		CommandRunnerTimer_;
 			std::unique_ptr<Poco::TimerCallback<CommandManager>>   CommandRunnerCallback_;
 			Poco::NotificationQueue					ResponseQueue_;
+			std::uint64_t 							commandTimeOut_=0;
+			std::uint64_t 							commandRetry_=0;
+			std::uint64_t 							janitorInterval_=0;
+			std::uint64_t 							queueInterval_=0;
 
 			std::shared_ptr<promise_type_t> PostCommand(
 				uint64_t RPCID,

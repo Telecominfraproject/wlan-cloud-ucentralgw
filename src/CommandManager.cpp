@@ -126,16 +126,21 @@ namespace OpenWifi {
     int CommandManager::Start() {
         poco_notice(Logger(),"Starting...");
 
+		commandTimeOut_ = MicroServiceConfigGetInt("command.timeout", 4 * 60 * 60);
+		commandRetry_ = MicroServiceConfigGetInt("command.retry", 120);
+		janitorInterval_ = MicroServiceConfigGetInt("command.janitor", 1 * 60 * 60); //	1 hour
+		queueInterval_ = MicroServiceConfigGetInt("command.queue", 30);
+
 		ManagerThread.start(*this);
 
 		JanitorCallback_ = std::make_unique<Poco::TimerCallback<CommandManager>>(*this,&CommandManager::onJanitorTimer);
 		JanitorTimer_.setStartInterval( 10000 );
-		JanitorTimer_.setPeriodicInterval(10 * 60 * 1000); // 1 hours
+		JanitorTimer_.setPeriodicInterval(janitorInterval_* 1000); // 1 hours
 		JanitorTimer_.start(*JanitorCallback_, MicroServiceTimerPool());
 
 		CommandRunnerCallback_ = std::make_unique<Poco::TimerCallback<CommandManager>>(*this,&CommandManager::onCommandRunnerTimer);
 		CommandRunnerTimer_.setStartInterval( 10000 );
-		CommandRunnerTimer_.setPeriodicInterval(30 * 1000); // 1 hours
+		CommandRunnerTimer_.setPeriodicInterval(queueInterval_ * 1000); // 1 hours
 		CommandRunnerTimer_.start(*CommandRunnerCallback_, MicroServiceTimerPool());
 
         return 0;
@@ -219,7 +224,7 @@ namespace OpenWifi {
 
 						auto now = Utils::Now();
 						// 2 hour timeout for commands
-						if ((now - Cmd.Submitted) > (1 * 60 * 60)) {
+						if ((now - Cmd.Submitted) > commandTimeOut_) {
 							poco_information(
 								MyLogger, fmt::format("{}: Serial={} Command={} has expired.",
 													  Cmd.UUID, Cmd.SerialNumber, Cmd.Command));

@@ -17,6 +17,7 @@
 #include "StorageService.h"
 #include "FileUploader.h"
 #include "framework/utils.h"
+#include "CommandManager.h"
 
 namespace OpenWifi {
 
@@ -343,7 +344,7 @@ typedef Poco::Tuple<
 			Poco::Data::Session Sess = Pool_->get();
 			Poco::Data::Statement Update(Sess);
 
-			auto Now = Utils::Now(), Window = Now-(4*60*60);
+			auto Now = Utils::Now(), Window = Now-CommandManager()->CommandTimeout();
 			auto Status = to_string(Storage::CommandExecutionType::COMMAND_EXPIRED);
 
 			std::string St{"UPDATE CommandList SET Executed=?, Status=? WHERE submitted<? and executed=0"};
@@ -383,7 +384,7 @@ typedef Poco::Tuple<
 			Poco::Data::Session Sess = Pool_->get();
 			Poco::Data::Statement Update(Sess);
 
-			auto Now = Utils::Now(), Window = Now-(1*60*60);
+			auto Now = Utils::Now(), Window = Now-CommandManager()->CommandTimeout();
 			std::string St{"UPDATE CommandList SET Executed=?, Status='timedout' WHERE Submitted<? and completed=0"};
 			Update << ConvertParams(St),
 				Poco::Data::Keywords::use(Now),
@@ -502,7 +503,7 @@ typedef Poco::Tuple<
 				"SELECT " +
 				DB_Command_SelectFields
 				+ " FROM CommandList "
-				" WHERE ((RunAt<=?) And (Executed=0) And (LastTry=0 or (" + std::to_string(Now) + "-LastTry)>60)) ORDER BY Submitted ASC "};
+				" WHERE ((RunAt<=?) And (Executed=0) And (LastTry=0 or (" + std::to_string(Now) + "-LastTry)>" + std::to_string(CommandManager()->CommandRetry())+ ")) ORDER BY Submitted ASC "};
 			CommandDetailsRecordList Records;
 
 			std::string SS = ConvertParams(St) + ComputeRange(Offset, HowMany);
