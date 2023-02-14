@@ -762,9 +762,14 @@ namespace OpenWifi {
 		try {
 			size_t BytesSent = WS_->sendFrame(Payload.c_str(), (int)Payload.size());
 
+			/*
+			 * 	There is a possibility to actually try and send data but the device is no longer listening.
+			 * 	This code attempts to wait 5 seconds to see if the device is actually still listening.
+			 * 	if the data is not acked under 5 seconds, then we consider that the data never made it or the device is disconnected somehow.
+			 */
 #if defined(__APPLE__)
 			tcp_connection_info info;
-			int timeout=2000;
+			int timeout=5000;
 			auto expireAt = std::chrono::system_clock::now() + std::chrono::milliseconds(timeout);
 			do {
 				std::this_thread::sleep_for(std::chrono::milliseconds(50));
@@ -775,7 +780,7 @@ namespace OpenWifi {
 				return false;
 #else
 			tcp_info info;
-			int timeout=2000;
+			int timeout=5000;
 			auto expireAt = std::chrono::system_clock::now() + std::chrono::milliseconds(timeout);
 			do {
 				std::this_thread::sleep_for(std::chrono::milliseconds(50));
