@@ -785,7 +785,7 @@ namespace OpenWifi {
 			do {
 				std::this_thread::sleep_for(std::chrono::milliseconds(20));
 				socklen_t opt_len = sizeof(info);
-				auto err = getsockopt(WS_->impl()->sockfd(),SOL_TCP, TCP_INFO, (void *) &info, &opt_len);
+				getsockopt(WS_->impl()->sockfd(),SOL_TCP, TCP_INFO, (void *) &info, &opt_len);
 			} while (info.tcpi_unacked > 0 && expireAt > std::chrono::system_clock::now());
 
 			if(info.tcpi_unacked>0) {
