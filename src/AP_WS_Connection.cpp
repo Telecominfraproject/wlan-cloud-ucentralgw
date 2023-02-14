@@ -778,7 +778,7 @@ namespace OpenWifi {
 			int timeout=2000;
 			auto expireAt = std::chrono::system_clock::now() + std::chrono::milliseconds(timeout);
 			do {
-				std::this_thread::sleep_for(std::milliseconds(50));
+				std::this_thread::sleep_for(std::chrono::milliseconds(50));
 				getsockopt(WS_->impl()->sockfd(),SOL_TCP, TCP_INFO, (void *) &info, sizeof(info));
 			} while (info.tcpi_unacked > 0 && expireAt > std::chrono::system_clock::now());
 
