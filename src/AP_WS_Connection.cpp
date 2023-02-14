@@ -57,7 +57,7 @@ namespace OpenWifi {
 
 		WS_->setMaxPayloadSize(BufSize);
 		WS_->setReceiveTimeout(TS);
-		WS_->setNoDelay(true);
+		WS_->setNoDelay(false);
 		WS_->setKeepAlive(true);
 		WS_->setBlocking(false);
 
