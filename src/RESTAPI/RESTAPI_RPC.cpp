@@ -48,6 +48,8 @@ namespace OpenWifi::RESTAPI_RPC {
 
 		Logger.information(fmt::format("{},{}: New {} command. User={} Serial={}. ", Cmd.UUID, RPCID, Cmd.Command, Cmd.SubmittedBy, Cmd.SerialNumber));
 		Cmd.Submitted = Utils::Now();
+		Cmd.Executed = 0;
+
 		// 	if the command should be executed in the future, or if the device is not connected,
 		// 	then we should just add the command to
 		//	the DB and let it figure out when to deliver the command.
@@ -60,8 +62,6 @@ namespace OpenWifi::RESTAPI_RPC {
 			Logger.information(fmt::format("{},{}: Command canceled. Device is not connected. Command will not be retried.", Cmd.UUID, RPCID));
 			return SetCommandStatus(Cmd, Request, Response, Handler, Storage::CommandExecutionType::COMMAND_FAILED, Logger);
 		}
-
-		Cmd.Executed = Utils::Now();
 
 		bool Sent;
 		std::chrono::time_point<std::chrono::high_resolution_clock> rpc_submitted = std::chrono::high_resolution_clock::now();
@@ -77,6 +77,8 @@ namespace OpenWifi::RESTAPI_RPC {
 			Logger.information(fmt::format("{},{}: Command canceled. Device is not connected. Command will not be retried.", Cmd.UUID, RPCID));
 			return SetCommandStatus(Cmd, Request, Response, Handler, Storage::CommandExecutionType::COMMAND_FAILED, Logger);
 		}
+
+		Cmd.Executed = Utils::Now();
 
 		Logger.information(fmt::format("{},{}: Command sent.", Cmd.UUID, RPCID));
 		std::future<CommandManager::objtype_t> rpc_future(rpc_endpoint->get_future());
