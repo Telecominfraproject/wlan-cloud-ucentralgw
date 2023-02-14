@@ -761,6 +761,31 @@ namespace OpenWifi {
 	bool AP_WS_Connection::Send(const std::string &Payload) {
 		try {
 			size_t BytesSent = WS_->sendFrame(Payload.c_str(), (int)Payload.size());
+
+#if defined(__APPLE__)
+			tcp_connection_info info;
+			int timeout=2000;
+			auto expireAt = std::chrono::system_clock::now() + std::chrono::milliseconds(timeout);
+			do {
+				std::this_thread::sleep_for(std::chrono::milliseconds(50));
+				socklen_t opt_len = sizeof(info);
+				getsockopt(WS_->impl()->sockfd(),SOL_SOCKET,TCP_CONNECTION_INFO,(void *)&info,&opt_len);
+			} while (!info.tcpi_tfo_syn_data_acked && expireAt > std::chrono::system_clock::now());
+			if(!info.tcpi_tfo_syn_data_acked)
+				return false;
+#else
+			tcp_info info;
+			int timeout=2000;
+			auto expireAt = std::chrono::system_clock::now() + std::chrono::milliseconds(timeout);
+			do {
+				std::this_thread::sleep_for(std::milliseconds(50));
+				getsockopt(WS_->impl()->sockfd(),SOL_TCP, TCP_INFO, (void *) &info, sizeof(info));
+			} while (info.tcpi_unacked > 0 && expireAt > system_clock::now());
+
+			if(info.tcpi_unacked>0) {
+				return false;
+			}
+#endif
 			State_.TX += BytesSent;
 			return BytesSent == Payload.size();
 		} catch(const Poco::Exception &E) {
