@@ -1,4 +1,4 @@
-# Here the configuration parameters for the Controller
+# Controller Configuration Parameters
 ## Websocket parameters
 ucentral.websocket.host.0.backlog = 500
 ucentral.websocket.host.0.rootca = $OWGW_ROOT/certs/root.pem
