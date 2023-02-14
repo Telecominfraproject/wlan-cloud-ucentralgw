@@ -797,6 +797,7 @@ namespace OpenWifi {
 			}
 
 			if(info.tcpi_unacked>0) {
+				std::cout << "Send failure: " << info.tcpi_unacked << std::endl;
 				return false;
 			}
 #endif
