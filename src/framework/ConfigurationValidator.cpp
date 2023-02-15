@@ -3308,44 +3308,60 @@ namespace OpenWifi {
 
 	}
 
+	bool ConfigurationValidator::SetSchema(const std::string &SchemaStr) {
+		try {
+			Poco::JSON::Parser P;
+			SchemaDocPtr_ = P.parse(SchemaStr).extract<Poco::JSON::Object::Ptr>();
+			RootSchema_ = std::make_unique<valijson::Schema>();
+			SchemaParser_ = std::make_unique<valijson::SchemaParser>();
+			PocoJsonAdapter_ = std::make_unique<valijson::adapters::PocoJsonAdapter>(SchemaDocPtr_);
+			SchemaParser_->populateSchema(*PocoJsonAdapter_, *RootSchema_);
+			Initialized_ = Working_ = true;
+			return true;
+		} catch(const Poco::Exception &E) {
+			Logger().log(E);
+		} catch(...) {
+			Logger().error("Validation schema is invalid, falling back.");
+		}
+		return false;
+	}
+
 	void ConfigurationValidator::Init() {
 		if (Initialized_)
 			return;
 
 		std::string GitSchema;
-		// if(MicroServiceConfigGetBool("ucentral.datamodel.internal",true)) {
-		Poco::JSON::Parser P;
-		SchemaDocPtr_ = P.parse(DefaultUCentralSchema).extract<Poco::JSON::Object::Ptr>();
-		RootSchema_ = std::make_unique<valijson::Schema>();
-		SchemaParser_ = std::make_unique<valijson::SchemaParser>();
-		PocoJsonAdapter_ = std::make_unique<valijson::adapters::PocoJsonAdapter>(SchemaDocPtr_);
-		SchemaParser_->populateSchema(*PocoJsonAdapter_, *RootSchema_);
-		poco_information(Logger(), "Using uCentral validation from built-in default.");
-		Initialized_ = Working_ = true;
-		return;
-		// }
-		/*
-				try {
-					auto GitURI =
-		   MicroServiceConfigGetString("ucentral.datamodel.uri",GitUCentralJSONSchemaFile);
-					if(Utils::wgets(GitURI, GitSchema)) {
-						RootSchema_ = json::parse(GitSchema);
-						poco_information(Logger(),"Using uCentral validation schema from GIT.");
-					} else {
-						std::string FileName{ MicroServiceDataDirectory() + "/ucentral.schema.json" };
-						std::ifstream       input(FileName);
-						std::stringstream   schema_file;
-						schema_file << input.rdbuf();
-						input.close();
-						RootSchema_ = json::parse(schema_file.str());
-						poco_information(Logger(),"Using uCentral validation schema from local file.");
+		if(MicroServiceConfigGetBool("ucentral.datamodel.internal",true)) {
+			SetSchema(DefaultUCentralSchema);
+			poco_information(Logger(), "Using uCentral validation from built-in default.");
+			return;
+		}
+
+		try {
+			auto GitURI =
+			   MicroServiceConfigGetString("ucentral.datamodel.uri",GitUCentralJSONSchemaFile);
+				if(Utils::wgets(GitURI, GitSchema) && SetSchema(GitSchema)) {
+					poco_information(Logger(),"Using uCentral data model validation schema from GIT.");
+					return;
+				} else {
+					std::string FileName{ MicroServiceDataDirectory() + "/ucentral.schema.json" };
+					std::ifstream       input(FileName);
+					std::stringstream   schema_file;
+					schema_file << input.rdbuf();
+					input.close();
+					if(SetSchema(schema_file.str())) {
+						poco_information(Logger(),
+										 "Using uCentral data model validation schema from local file.");
+						return;
 					}
-				} catch (const Poco::Exception &E) {
-					RootSchema_ = DefaultUCentralSchema;
-					poco_information(Logger(),"Using uCentral validation from built-in default.");
 				}
-				Initialized_ = Working_ = true;
-		*/
+		} catch (const Poco::Exception &E) {
+
+		} catch (...) {
+
+		}
+		SetSchema(DefaultUCentralSchema);
+		poco_information(Logger(),"Using uCentral data model validation schema from built-in default.");
 	}
 
     bool ConfigurationValidator::Validate(const std::string &C, std::vector<std::string> &Errors, bool Strict) {

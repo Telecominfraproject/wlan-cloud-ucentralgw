@@ -36,6 +36,7 @@ namespace OpenWifi {
 		std::unique_ptr<valijson::SchemaParser>  				SchemaParser_;
 		std::unique_ptr<valijson::adapters::PocoJsonAdapter> 	PocoJsonAdapter_;
 		Poco::JSON::Object::Ptr 			SchemaDocPtr_;
+		bool 								SetSchema(const std::string &SchemaStr);
 
         ConfigurationValidator():
             SubSystemServer("ConfigValidator", "CFG-VALIDATOR", "config.validator") {
