@@ -331,14 +331,17 @@ namespace OpenWifi {
 		Idx.rpc_entry = rpc ? std::make_shared<CommandManager::promise_type_t>() : nullptr;
 
 		poco_debug(Logger(), fmt::format("{}: Sending command {} to {}. ID: {}", UUID, CommandStr, SerialNumber, RPC_ID));
+		if(!oneway_rpc) {
+			std::lock_guard M(Mutex_);
+			OutStandingRequests_[RPC_ID] = Idx;
+		}
 		if(AP_WS_Server()->SendFrame(SerialNumber, ToSend.str())) {
-			if(!oneway_rpc) {
-				std::lock_guard M(Mutex_);
-				OutStandingRequests_[RPC_ID] = Idx;
-			}
 			poco_debug(Logger(), fmt::format("{}: Sent command. ID: {}", UUID, RPC_ID));
 			Sent=true;
 			return Idx.rpc_entry;
+		} else {
+			std::lock_guard M(Mutex_);
+			OutStandingRequests_.erase(RPC_ID);
 		}
 
 		poco_warning(Logger(), fmt::format("{}: Failed to send command. ID: {}", UUID, RPC_ID));
