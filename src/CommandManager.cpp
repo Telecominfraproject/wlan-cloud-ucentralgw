@@ -339,7 +339,7 @@ namespace OpenWifi {
 			poco_debug(Logger(), fmt::format("{}: Sent command. ID: {}", UUID, RPC_ID));
 			Sent=true;
 			return Idx.rpc_entry;
-		} else {
+		} else if (!oneway_rpc) {
 			std::lock_guard M(Mutex_);
 			OutStandingRequests_.erase(RPC_ID);
 		}
