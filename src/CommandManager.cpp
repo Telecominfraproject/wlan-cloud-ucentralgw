@@ -40,16 +40,18 @@ namespace OpenWifi {
 						poco_error(Logger(), fmt::format("({}): Invalid RPC response.", SerialNumberStr));
 					} else {
 						uint64_t ID = Payload->get(uCentralProtocol::ID);
-						std::shared_ptr<promise_type_t> TmpRpcEntry;
 						poco_debug(Logger(),fmt::format("({}): Processing {} response.", SerialNumberStr, ID));
 						if (ID > 1) {
 							std::lock_guard	Lock(LocalMutex_);
 							auto RPC = OutStandingRequests_.find(ID);
-							if (RPC == OutStandingRequests_.end() ||
-								RPC->second.SerialNumber != Resp->SerialNumber_) {
+							if (RPC == OutStandingRequests_.end()) {
 								poco_debug(Logger(),
-									fmt::format("({}): RPC {} completed.", SerialNumberStr, ID));
+										   fmt::format("({}): RPC {} cannot be found.", SerialNumberStr, ID));
+							} else if(RPC->second.SerialNumber != Resp->SerialNumber_) {
+								poco_debug(Logger(),
+									fmt::format("({}): RPC {} serial number mismatch {}!={}.", SerialNumberStr, ID, RPC->second.SerialNumber, Resp->SerialNumber_));
 							} else {
+								std::shared_ptr<promise_type_t> TmpRpcEntry;
 								std::chrono::duration<double, std::milli> rpc_execution_time =
 									std::chrono::high_resolution_clock::now() -
 									RPC->second.submitted;
@@ -107,9 +109,9 @@ namespace OpenWifi {
 								if(RPC->second.State==0) {
 									OutStandingRequests_.erase(ID);
 								}
+								if(!NoReply && TmpRpcEntry != nullptr)
+									TmpRpcEntry->set_value(Payload);
 							}
-							if(!NoReply && TmpRpcEntry != nullptr)
-								TmpRpcEntry->set_value(Payload);
 						}
 					}
 				}
