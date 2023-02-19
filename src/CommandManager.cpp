@@ -331,6 +331,8 @@ namespace OpenWifi {
 		Idx.rpc_entry = rpc ? std::make_shared<CommandManager::promise_type_t>() : nullptr;
 
 		poco_debug(Logger(), fmt::format("{}: Sending command {} to {}. ID: {}", UUID, CommandStr, SerialNumber, RPC_ID));
+		//	Do not change the order. It is possible that an RPC completes before it is entered in the map. So we insert it
+		//	first, even if we may need to remove it later upon failure.
 		if(!oneway_rpc) {
 			std::lock_guard M(Mutex_);
 			OutStandingRequests_[RPC_ID] = Idx;
