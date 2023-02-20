@@ -162,7 +162,7 @@ namespace OpenWifi {
 
 		commandTimeOut_ = MicroServiceConfigGetInt("command.timeout", 4 * 60 * 60);
 		commandRetry_ = MicroServiceConfigGetInt("command.retry", 120);
-		janitorInterval_ = MicroServiceConfigGetInt("command.janitor", 1 * 60 * 60); //	1 hour
+		janitorInterval_ = MicroServiceConfigGetInt("command.janitor", 2 * 60); //	1 hour
 		queueInterval_ = MicroServiceConfigGetInt("command.queue", 30);
 
 		ManagerThread.start(*this);
