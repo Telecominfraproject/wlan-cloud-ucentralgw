@@ -121,17 +121,21 @@ namespace OpenWifi {
 
 					std::uint64_t Error = Status->get("error");
 					if(Error==0) {
+						std::cout << __LINE__ << std::endl;
 						StorageService()->CommandCompleted(Command.UUID, Payload, rpc_execution_time, true);
 						Command.State = 1 ;
 					} else {
+						std::cout << __LINE__ << std::endl;
 						StorageService()->CommandCompleted(Command.UUID, Payload, rpc_execution_time, true);
 						std::string ErrorTxt = Status->get("result");
 						StorageService()->CancelWaitFile(Command.UUID, ErrorTxt);
 						Command.State = 0 ;
 					}
+				} else {
+					std::cout << __LINE__ << std::endl;
 				}
 			} else {
-				//											std::cout << "Bad payload on command result" << std::endl;
+				std::cout << __LINE__ << std::endl;
 				Command.State=0;
 			}
 		} else if (Command.State==1) {
@@ -199,9 +203,11 @@ namespace OpenWifi {
 		std::string 	TimeOutError("No response.");
 
 		auto now = std::chrono::high_resolution_clock::now();
+		std::cout << __LINE__ << std::endl;
 		for(auto request=OutStandingRequests_.begin();request!=OutStandingRequests_.end();) {
 			std::chrono::duration<double, std::milli> delta = now - request->second.submitted;
 			if(delta > 10min) {
+				std::cout << __LINE__ << "  -->> " << request->second.Id << std::endl;
 				MyLogger.debug(fmt::format("{}: Command={} for {} Timed out.",
 										   request->second.UUID,
 										   APCommands::to_string(request->second.Command),
@@ -213,6 +219,7 @@ namespace OpenWifi {
 				StorageService()->SetCommandTimedOut(request->second.UUID);
 				request = OutStandingRequests_.erase(request);
 			} else {
+				std::cout << __LINE__ << "  -->> " << request->second.Id << std::endl;
 				++request;
 			}
 		}
@@ -222,12 +229,8 @@ namespace OpenWifi {
 
 	bool CommandManager::IsCommandRunning(const std::string &C) {
 		std::lock_guard	Lock(LocalMutex_);
-		for (const auto &request : OutStandingRequests_) {
-			if (request.second.UUID == C) {
-				return true;
-			}
-		}
-		return false;
+		return std::any_of(OutStandingRequests_.begin(),OutStandingRequests_.end(),
+						   [C](const std::pair<std::uint64_t , CommandInfo> &r) { return r.second.UUID==C;});
 	}
 
 	void CommandManager::onCommandRunnerTimer([[maybe_unused]] Poco::Timer &timer) {
