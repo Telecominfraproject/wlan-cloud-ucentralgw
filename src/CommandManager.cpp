@@ -45,9 +45,11 @@ namespace OpenWifi {
 							std::lock_guard	Lock(LocalMutex_);
 							auto RPC = OutStandingRequests_.find(ID);
 							if (RPC == OutStandingRequests_.end()) {
+								std::cout << __LINE__ << std::endl;
 								poco_debug(Logger(),
 										   fmt::format("({}): RPC {} cannot be found.", SerialNumberStr, ID));
 							} else if(RPC->second.SerialNumber != Resp->SerialNumber_) {
+								std::cout << __LINE__ << std::endl;
 								poco_debug(Logger(),
 									fmt::format("({}): RPC {} serial number mismatch {}!={}.", SerialNumberStr, ID, RPC->second.SerialNumber, Resp->SerialNumber_));
 							} else {
@@ -56,10 +58,12 @@ namespace OpenWifi {
 									std::chrono::high_resolution_clock::now() -
 									RPC->second.submitted;
 
+								std::cout << __LINE__ << std::endl;
 								poco_debug(Logger(),
 									fmt::format("({}): Received RPC answer {}. Command={}",
 													   SerialNumberStr, ID, APCommands::to_string(RPC->second.Command)));
 								if(RPC->second.Command==APCommands::Commands::script) {
+									std::cout << __LINE__ << "  State=" << RPC->second.State << std::endl;
 									if(RPC->second.State==2) {
 										std::cout << __LINE__ << "  State=" << RPC->second.State << std::endl;
 										//	 look at the payload to see if we should continue or not...
