@@ -564,7 +564,7 @@ namespace OpenWifi {
 		Cmd.Details = ParamStream.str();
 		FileUploader()->AddUUID(CMD_UUID, 15min, "script_result");
 
-		return RESTAPI_RPC::WaitForCommand(CMD_RPC, APCommands::Commands::script,false,Cmd, Params, *Request, *Response, timeout, nullptr, this, Logger_);
+		return RESTAPI_RPC::WaitForCommand(CMD_RPC, APCommands::Commands::script,false,Cmd, Params, *Request, *Response, timeout, nullptr, this, Logger_, Cmd.deferred);
 	}
 
 	void RESTAPI_device_commandHandler::Configure(const std::string &CMD_UUID, uint64_t CMD_RPC, std::chrono::milliseconds timeout, [[maybe_unused]] const GWObjects::DeviceRestrictions &Restrictions) {
