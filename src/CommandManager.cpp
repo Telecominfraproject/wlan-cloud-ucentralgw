@@ -43,11 +43,11 @@ namespace OpenWifi {
 							std::lock_guard	Lock(LocalMutex_);
 							auto RPC = OutStandingRequests_.find(ID);
 							if (RPC == OutStandingRequests_.end()) {
-								std::cout << __LINE__ << std::endl;
+//								std::cout << __LINE__ << std::endl;
 								poco_debug(Logger(),
 										   fmt::format("({}): RPC {} cannot be found.", SerialNumberStr, ID));
 							} else if(RPC->second.SerialNumber != Resp->SerialNumber_) {
-								std::cout << __LINE__ << std::endl;
+//								std::cout << __LINE__ << std::endl;
 								poco_debug(Logger(),
 									fmt::format("({}): RPC {} serial number mismatch {}!={}.", SerialNumberStr, ID, RPC->second.SerialNumber, Resp->SerialNumber_));
 							} else {
@@ -55,7 +55,7 @@ namespace OpenWifi {
 								std::chrono::duration<double, std::milli> rpc_execution_time =
 									std::chrono::high_resolution_clock::now() -
 									RPC->second.submitted;
-								std::cout << __LINE__ << std::endl;
+//								std::cout << __LINE__ << std::endl;
 								poco_debug(Logger(),
 									fmt::format("({}): Received RPC answer {}. Command={}",
 													   SerialNumberStr, ID, APCommands::to_string(RPC->second.Command)));
@@ -111,7 +111,7 @@ namespace OpenWifi {
 		if (Command.rpc_entry) {
 			TmpRpcEntry = Command.rpc_entry;
 		}
-		std::cout << __LINE__ << "  State=" << Command.State << std::endl;
+//		std::cout << __LINE__ << "  State=" << Command.State << std::endl;
 		if(Command.State==2) {
 			//	 look at the payload to see if we should continue or not...
 			if (Payload->has("result")) {
@@ -121,25 +121,25 @@ namespace OpenWifi {
 
 					std::uint64_t Error = Status->get("error");
 					if(Error==0) {
-						std::cout << __LINE__ << std::endl;
+//						std::cout << __LINE__ << std::endl;
 						StorageService()->CommandCompleted(Command.UUID, Payload, rpc_execution_time, true);
 						Command.State = 1 ;
 					} else {
-						std::cout << __LINE__ << std::endl;
+//						std::cout << __LINE__ << std::endl;
 						StorageService()->CommandCompleted(Command.UUID, Payload, rpc_execution_time, true);
 						std::string ErrorTxt = Status->get("result");
 						StorageService()->CancelWaitFile(Command.UUID, ErrorTxt);
 						Command.State = 0 ;
 					}
 				} else {
-					std::cout << __LINE__ << std::endl;
+//					std::cout << __LINE__ << std::endl;
 				}
 			} else {
-				std::cout << __LINE__ << std::endl;
+//				std::cout << __LINE__ << std::endl;
 				Command.State=0;
 			}
 		} else if (Command.State==1) {
-			std::cout << "Completing script 2 phase commit." << std::endl;
+//			std::cout << "Completing script 2 phase commit." << std::endl;
 			StorageService()->CommandCompleted(Command.UUID, Payload, rpc_execution_time, true);
 			if(Command.Deferred) {
 				Reply = false;
@@ -148,7 +148,7 @@ namespace OpenWifi {
 		}
 
 		if(Command.State==0) {
-			std::cout << __LINE__ << "  State=" << Command.State << std::endl;
+//			std::cout << __LINE__ << "  State=" << Command.State << std::endl;
 			OutStandingRequests_.erase(Command.Id);
 		}
 		if(Reply && TmpRpcEntry != nullptr)
@@ -203,11 +203,10 @@ namespace OpenWifi {
 		std::string 	TimeOutError("No response.");
 
 		auto now = std::chrono::high_resolution_clock::now();
-		std::cout << __LINE__ << std::endl;
 		for(auto request=OutStandingRequests_.begin();request!=OutStandingRequests_.end();) {
 			std::chrono::duration<double, std::milli> delta = now - request->second.submitted;
 			if(delta > 10min) {
-				std::cout << __LINE__ << "  -->> " << request->second.Id << std::endl;
+//				std::cout << __LINE__ << "  -->> " << request->second.Id << std::endl;
 				MyLogger.debug(fmt::format("{}: Command={} for {} Timed out.",
 										   request->second.UUID,
 										   APCommands::to_string(request->second.Command),
@@ -219,7 +218,7 @@ namespace OpenWifi {
 				StorageService()->SetCommandTimedOut(request->second.UUID);
 				request = OutStandingRequests_.erase(request);
 			} else {
-				std::cout << __LINE__ << "  -->> " << request->second.Id << std::endl;
+//				std::cout << __LINE__ << "  -->> " << request->second.Id << std::endl;
 				++request;
 			}
 		}
