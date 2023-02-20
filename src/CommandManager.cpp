@@ -110,19 +110,18 @@ namespace OpenWifi {
 	}
 
 	bool CommandManager::CompleteScriptCommand(CommandInfo &Command, Poco::JSON::Object::Ptr Payload) {
-		bool NoReply = false;
+		bool Reply = true;
 		std::shared_ptr<promise_type_t> TmpRpcEntry;
 		std::chrono::duration<double, std::milli> rpc_execution_time =
 			std::chrono::high_resolution_clock::now() -
 			Command.submitted;
 
+		if (Command.rpc_entry) {
+			TmpRpcEntry = Command.rpc_entry;
+		}
 		std::cout << __LINE__ << "  State=" << Command.State << std::endl;
 		if(Command.State==2) {
 			//	 look at the payload to see if we should continue or not...
-			if (Command.rpc_entry) {
-				TmpRpcEntry = Command.rpc_entry;
-			}
-
 			if (Payload->has("result")) {
 				auto Result = Payload->getObject("result");
 				if (Result->has("status")) {
@@ -147,7 +146,7 @@ namespace OpenWifi {
 			std::cout << "Completing script 2 phase commit." << std::endl;
 			StorageService()->CommandCompleted(Command.UUID, Payload, rpc_execution_time, true);
 			if(Command.Deferred) {
-				NoReply = true;
+				Reply = false;
 			}
 			Command.State=0;
 		}
@@ -156,7 +155,7 @@ namespace OpenWifi {
 			std::cout << __LINE__ << "  State=" << Command.State << std::endl;
 			OutStandingRequests_.erase(Command.Id);
 		}
-		if(!NoReply && TmpRpcEntry != nullptr)
+		if(Reply && TmpRpcEntry != nullptr)
 			TmpRpcEntry->set_value(Payload);
 
 		return true;
