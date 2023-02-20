@@ -196,6 +196,8 @@ namespace OpenWifi {
 		std::lock_guard	Lock(LocalMutex_);
 		Utils::SetThreadName("cmd:janitor");
 		Poco::Logger	& MyLogger = Poco::Logger::get("CMD-MGR-JANITOR");
+		std::string 	TimeOutError("No response.");
+
 		auto now = std::chrono::high_resolution_clock::now();
 		for(auto request=OutStandingRequests_.begin();request!=OutStandingRequests_.end();) {
 			std::chrono::duration<double, std::milli> delta = now - request->second.submitted;
@@ -204,6 +206,8 @@ namespace OpenWifi {
 										   request->second.UUID,
 										   APCommands::to_string(request->second.Command),
 										   Utils::IntToSerialNumber(request->second.SerialNumber)));
+				StorageService()->CancelWaitFile(request->second.UUID, TimeOutError);
+				StorageService()->SetCommandTimedOut(request->second.UUID);
 				request = OutStandingRequests_.erase(request);
 			} else {
 				++request;
