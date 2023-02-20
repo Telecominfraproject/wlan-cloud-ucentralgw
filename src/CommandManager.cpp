@@ -61,6 +61,7 @@ namespace OpenWifi {
 													   SerialNumberStr, ID, APCommands::to_string(RPC->second.Command)));
 								if(RPC->second.Command==APCommands::Commands::script) {
 									if(RPC->second.State==2) {
+										std::cout << __LINE__ << "  State=" << RPC->second.State << std::endl;
 										//	 look at the payload to see if we should continue or not...
 										if (RPC->second.rpc_entry) {
 											TmpRpcEntry = RPC->second.rpc_entry;
@@ -89,6 +90,7 @@ namespace OpenWifi {
 											RPC->second.State=0;
 										}
 									} else {
+										std::cout << __LINE__ << "  State=" << RPC->second.State << std::endl;
 //										std::cout << "Completing script 2 phase commit." << std::endl;
 										StorageService()->CommandCompleted(RPC->second.UUID, Payload,
 																		   rpc_execution_time, true);
@@ -107,6 +109,7 @@ namespace OpenWifi {
 								}
 
 								if(RPC->second.State==0) {
+									std::cout << __LINE__ << "  State=" << RPC->second.State << std::endl;
 									OutStandingRequests_.erase(ID);
 								}
 								if(!NoReply && TmpRpcEntry != nullptr)
