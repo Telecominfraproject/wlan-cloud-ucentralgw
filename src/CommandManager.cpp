@@ -34,8 +34,6 @@ namespace OpenWifi {
 					Poco::JSON::Object::Ptr Payload = Resp->Payload_;
 					std::string SerialNumberStr = Utils::IntToSerialNumber(Resp->SerialNumber_);
 
-					bool NoReply = false;
-
 					if (!Payload->has(uCentralProtocol::ID)) {
 						poco_error(Logger(), fmt::format("({}): Invalid RPC response.", SerialNumberStr));
 					} else {
@@ -62,9 +60,9 @@ namespace OpenWifi {
 									fmt::format("({}): Received RPC answer {}. Command={}",
 													   SerialNumberStr, ID, APCommands::to_string(RPC->second.Command)));
 								if(RPC->second.Command==APCommands::Commands::script) {
-									CompleteScriptCommand(RPC->second, Payload);
+									CompleteScriptCommand(RPC->second, Payload, rpc_execution_time);
 								} else if(RPC->second.Command!=APCommands::Commands::telemetry) {
-									CompleteTelemetryCommand(RPC->second, Payload);
+									CompleteTelemetryCommand(RPC->second, Payload, rpc_execution_time);
 								} else {
 									StorageService()->CommandCompleted(
 											RPC->second.UUID, Payload, rpc_execution_time, true);
@@ -73,7 +71,7 @@ namespace OpenWifi {
 									}
 									RPC->second.State = 0 ;
 									OutStandingRequests_.erase(ID);
-									if(!NoReply && TmpRpcEntry != nullptr)
+									if(TmpRpcEntry != nullptr)
 										TmpRpcEntry->set_value(Payload);
 								}
 							}
@@ -90,10 +88,7 @@ namespace OpenWifi {
 		poco_information(Logger(),"RPC Command processor stopping.");
    	}
 
-	bool CommandManager::CompleteTelemetryCommand(CommandInfo &Command, [[maybe_unused]] Poco::JSON::Object::Ptr Payload) {
-		std::chrono::duration<double, std::milli> rpc_execution_time =
-			std::chrono::high_resolution_clock::now() -
-			Command.submitted;
+	bool CommandManager::CompleteTelemetryCommand(CommandInfo &Command, [[maybe_unused]] const Poco::JSON::Object::Ptr &Payload, std::chrono::duration<double, std::milli> rpc_execution_time ) {
 		std::shared_ptr<promise_type_t> TmpRpcEntry;
 
 		StorageService()->CommandCompleted(Command.UUID, Payload, rpc_execution_time, true);
@@ -109,12 +104,9 @@ namespace OpenWifi {
 		return true;
 	}
 
-	bool CommandManager::CompleteScriptCommand(CommandInfo &Command, Poco::JSON::Object::Ptr Payload) {
+	bool CommandManager::CompleteScriptCommand(CommandInfo &Command, const Poco::JSON::Object::Ptr &Payload, std::chrono::duration<double, std::milli> rpc_execution_time) {
 		bool Reply = true;
 		std::shared_ptr<promise_type_t> TmpRpcEntry;
-		std::chrono::duration<double, std::milli> rpc_execution_time =
-			std::chrono::high_resolution_clock::now() -
-			Command.submitted;
 
 		if (Command.rpc_entry) {
 			TmpRpcEntry = Command.rpc_entry;

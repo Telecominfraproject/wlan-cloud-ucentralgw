@@ -226,8 +226,8 @@ namespace OpenWifi {
 				bool rpc_call,
 				bool Deferred=false);
 
-			bool CompleteScriptCommand(CommandInfo &Command, Poco::JSON::Object::Ptr Payload);
-			bool CompleteTelemetryCommand(CommandInfo &Command, Poco::JSON::Object::Ptr Payload);
+			bool CompleteScriptCommand(CommandInfo &Command, const Poco::JSON::Object::Ptr &Payload, std::chrono::duration<double, std::milli> rpc_execution_time);
+			bool CompleteTelemetryCommand(CommandInfo &Command, const Poco::JSON::Object::Ptr &Payload, std::chrono::duration<double, std::milli> rpc_execution_time);
 
 			CommandManager() noexcept:
 				SubSystemServer("CommandManager", "CMD-MGR", "command.manager") {
