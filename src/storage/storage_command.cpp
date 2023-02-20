@@ -41,9 +41,11 @@ const static std::string	DB_Command_SelectFields{
 				"AttachSize, "
 				"AttachType,"
 				"executionTime, "
-				"LastTry "};
+				"LastTry, "
+				"deferred "
+};
 
-const static std::string 	DB_Command_InsertValues{"?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?"};
+const static std::string 	DB_Command_InsertValues{"?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?"};
 
 typedef Poco::Tuple<
 			std::string,
@@ -65,7 +67,8 @@ typedef Poco::Tuple<
 			uint64_t,
 			std::string,
 			double,
-			uint64_t
+			uint64_t,
+			bool
 		> CommandDetailsRecordTuple;
 	typedef std::vector<CommandDetailsRecordTuple> CommandDetailsRecordList;
 
@@ -90,6 +93,7 @@ typedef Poco::Tuple<
 		Command.AttachType = R.get<17>();
 		Command.executionTime = R.get<18>();
 		Command.lastTry = R.get<19>();
+		Command.deferred = R.get<20>();
 	}
 
 	void ConvertCommandRecord(const GWObjects::CommandDetails & Command, CommandDetailsRecordTuple &R) {
@@ -113,6 +117,7 @@ typedef Poco::Tuple<
 		R.set<17>(Command.AttachType);
 		R.set<18>(Command.executionTime);
 		R.set<19>(Command.lastTry);
+		R.set<20>(Command.deferred);
 	}
 
 	bool Storage::RemoveOldCommands(std::string & SerialNumber, std::string & Command) {

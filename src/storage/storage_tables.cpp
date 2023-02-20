@@ -313,7 +313,8 @@ namespace OpenWifi {
 		std::vector<std::string> Script{
 			dbType_ == mysql ?	"alter table CommandList add column executionTime float default 0.00" :
 							 	"alter table CommandList add column executionTime real default 0.00",
-			"alter table CommandList add column LastTry bigint default 0"
+								"alter table CommandList add column LastTry bigint default 0",
+								"alter table CommandList add column deferred BOOLEAN default false"
 		};
 
 		for(const auto &i:Script) {

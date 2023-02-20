@@ -33,7 +33,8 @@ namespace OpenWifi::RESTAPI_RPC {
 					std::chrono::milliseconds WaitTimeInMs,
 					Poco::JSON::Object * ObjectToReturn,
 					RESTAPIHandler * Handler,
-					Poco::Logger &Logger);
+					Poco::Logger &Logger,
+					bool Deferred=false);
 
 	void SetCommandStatus(	GWObjects::CommandDetails &Cmd,
 		Poco::Net::HTTPServerRequest &Request,

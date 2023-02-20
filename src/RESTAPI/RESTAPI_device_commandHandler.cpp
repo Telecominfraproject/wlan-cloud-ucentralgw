@@ -532,9 +532,11 @@ namespace OpenWifi {
 		}
 
 		if(SCR.deferred) {
+			Cmd.deferred = true;
 			Params.set(uCentralProtocol::URI, SCR.uri);
 		} else {
 			Params.set(uCentralProtocol::TIMEOUT, ap_timeout);
+			Cmd.deferred = false;
 		}
 
 		if(!SCR.signature.empty()) {

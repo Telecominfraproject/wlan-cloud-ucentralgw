@@ -296,7 +296,7 @@ namespace OpenWifi {
 			bool Sent;
 
 			StorageService()->AddCommand(SerialNumber_, Cmd, Storage::CommandExecutionType::COMMAND_EXECUTED);
-			CommandManager()->PostCommand(CommandManager()->Next_RPC_ID(), APCommands::to_apcommand(Cmd.Command.c_str()),SerialNumber_, Cmd.Command, Params, Cmd.UUID, Sent, false);
+			CommandManager()->PostCommand(CommandManager()->Next_RPC_ID(), APCommands::to_apcommand(Cmd.Command.c_str()),SerialNumber_, Cmd.Command, Params, Cmd.UUID, Sent, false, false);
 
 			GWWebSocketNotifications::SingleDeviceConfigurationChange_t	Notification;
 			Notification.content.serialNumber = D.SerialNumber;

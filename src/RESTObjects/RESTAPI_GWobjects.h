@@ -195,6 +195,7 @@ namespace OpenWifi::GWObjects {
 		std::string AttachType;
 		double 			executionTime = 0.0;
 		std::uint64_t 	lastTry=0;
+		bool 			deferred=false;
 
 		void to_json(Poco::JSON::Object &Obj) const;
 		bool from_json(const Poco::JSON::Object::Ptr &Obj);

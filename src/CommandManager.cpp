@@ -57,67 +57,25 @@ namespace OpenWifi {
 								std::chrono::duration<double, std::milli> rpc_execution_time =
 									std::chrono::high_resolution_clock::now() -
 									RPC->second.submitted;
-
 								std::cout << __LINE__ << std::endl;
 								poco_debug(Logger(),
 									fmt::format("({}): Received RPC answer {}. Command={}",
 													   SerialNumberStr, ID, APCommands::to_string(RPC->second.Command)));
 								if(RPC->second.Command==APCommands::Commands::script) {
-									std::cout << __LINE__ << "  State=" << RPC->second.State << std::endl;
-									if(RPC->second.State==2) {
-										std::cout << __LINE__ << "  State=" << RPC->second.State << std::endl;
-										//	 look at the payload to see if we should continue or not...
-										if (RPC->second.rpc_entry) {
-											TmpRpcEntry = RPC->second.rpc_entry;
-										}
-
-										if (Payload->has("result")) {
-											auto Result = Payload->getObject("result");
-											if (Result->has("status")) {
-												auto Status = Result->getObject("status");
-
-												std::uint64_t Error = Status->get("error");
-												if(Error==0) {
-													StorageService()->CommandCompleted(RPC->second.UUID, Payload,
-																					   rpc_execution_time, true);
-													RPC->second.State = 1 ;
-												} else {
-													StorageService()->CommandCompleted(RPC->second.UUID, Payload,
-																					   rpc_execution_time, true);
-													std::string ErrorTxt = Status->get("result");
-													StorageService()->CancelWaitFile(RPC->second.UUID, ErrorTxt);
-													RPC->second.State = 0 ;
-												}
-											}
-										} else {
-//											std::cout << "Bad payload on command result" << std::endl;
-											RPC->second.State=0;
-										}
-									} else {
-										std::cout << __LINE__ << "  State=" << RPC->second.State << std::endl;
-//										std::cout << "Completing script 2 phase commit." << std::endl;
-										StorageService()->CommandCompleted(RPC->second.UUID, Payload,
-																		   rpc_execution_time, true);
-										NoReply = true;
-										RPC->second.State=0;
-									}
+									CompleteScriptCommand(RPC->second, Payload);
+								} else if(RPC->second.Command!=APCommands::Commands::telemetry) {
+									CompleteTelemetryCommand(RPC->second, Payload);
 								} else {
-									if(RPC->second.Command!=APCommands::Commands::telemetry) {
-										StorageService()->CommandCompleted(
+									StorageService()->CommandCompleted(
 											RPC->second.UUID, Payload, rpc_execution_time, true);
-									}
 									if (RPC->second.rpc_entry) {
 										TmpRpcEntry = RPC->second.rpc_entry;
 									}
 									RPC->second.State = 0 ;
-								}
-
-								if(RPC->second.State==0) {
-									std::cout << __LINE__ << "  State=" << RPC->second.State << std::endl;
 									OutStandingRequests_.erase(ID);
+									if(!NoReply && TmpRpcEntry != nullptr)
+										TmpRpcEntry->set_value(Payload);
 								}
-								if(!NoReply && TmpRpcEntry != nullptr)
-									TmpRpcEntry->set_value(Payload);
 							}
 						}
 					}
@@ -131,6 +89,78 @@ namespace OpenWifi {
 		}
 		poco_information(Logger(),"RPC Command processor stopping.");
    	}
+
+	bool CommandManager::CompleteTelemetryCommand(CommandInfo &Command, [[maybe_unused]] Poco::JSON::Object::Ptr Payload) {
+		std::chrono::duration<double, std::milli> rpc_execution_time =
+			std::chrono::high_resolution_clock::now() -
+			Command.submitted;
+		std::shared_ptr<promise_type_t> TmpRpcEntry;
+
+		StorageService()->CommandCompleted(Command.UUID, Payload, rpc_execution_time, true);
+
+		if (Command.rpc_entry) {
+			TmpRpcEntry = Command.rpc_entry;
+		}
+		Command.State = 0 ;
+
+		OutStandingRequests_.erase(Command.Id);
+		if(TmpRpcEntry != nullptr)
+			TmpRpcEntry->set_value(Payload);
+		return true;
+	}
+
+	bool CommandManager::CompleteScriptCommand(CommandInfo &Command, Poco::JSON::Object::Ptr Payload) {
+		bool NoReply = false;
+		std::shared_ptr<promise_type_t> TmpRpcEntry;
+		std::chrono::duration<double, std::milli> rpc_execution_time =
+			std::chrono::high_resolution_clock::now() -
+			Command.submitted;
+
+		std::cout << __LINE__ << "  State=" << Command.State << std::endl;
+		if(Command.State==2) {
+			//	 look at the payload to see if we should continue or not...
+			if (Command.rpc_entry) {
+				TmpRpcEntry = Command.rpc_entry;
+			}
+
+			if (Payload->has("result")) {
+				auto Result = Payload->getObject("result");
+				if (Result->has("status")) {
+					auto Status = Result->getObject("status");
+
+					std::uint64_t Error = Status->get("error");
+					if(Error==0) {
+						StorageService()->CommandCompleted(Command.UUID, Payload, rpc_execution_time, true);
+						Command.State = 1 ;
+					} else {
+						StorageService()->CommandCompleted(Command.UUID, Payload, rpc_execution_time, true);
+						std::string ErrorTxt = Status->get("result");
+						StorageService()->CancelWaitFile(Command.UUID, ErrorTxt);
+						Command.State = 0 ;
+					}
+				}
+			} else {
+				//											std::cout << "Bad payload on command result" << std::endl;
+				Command.State=0;
+			}
+		} else if (Command.State==1) {
+			std::cout << "Completing script 2 phase commit." << std::endl;
+			StorageService()->CommandCompleted(Command.UUID, Payload, rpc_execution_time, true);
+			if(Command.Deferred) {
+				NoReply = true;
+			}
+			Command.State=0;
+		}
+
+		if(Command.State==0) {
+			std::cout << __LINE__ << "  State=" << Command.State << std::endl;
+			OutStandingRequests_.erase(Command.Id);
+		}
+		if(!NoReply && TmpRpcEntry != nullptr)
+			TmpRpcEntry->set_value(Payload);
+
+		return true;
+	}
 
     int CommandManager::Start() {
         poco_notice(Logger(),"Starting...");
@@ -314,20 +344,25 @@ namespace OpenWifi {
 		bool oneway_rpc,
 		[[maybe_unused]] bool disk_only,
 		bool & Sent,
-		bool rpc) {
+		bool rpc,
+		bool Deferred) {
 
 		auto SerialNumberInt = Utils::SerialNumberToInt(SerialNumber);
 		Sent=false;
 
 		std::stringstream 	ToSend;
 
-		CommandInfo		Idx;
-		Idx.Id = oneway_rpc ? 1 : RPC_ID;
-		Idx.SerialNumber = SerialNumberInt;
-		Idx.Command = Command;
-		if(Command == APCommands::Commands::script)
-			Idx.State=2;
-		Idx.UUID = UUID;
+		CommandInfo		CInfo;
+		CInfo.Id = oneway_rpc ? 1 : RPC_ID;
+		CInfo.SerialNumber = SerialNumberInt;
+		CInfo.Command = Command;
+		CInfo.Deferred = Deferred;
+		CInfo.UUID = UUID;
+		if(Command == APCommands::Commands::script && Deferred) {
+			CInfo.State = 2;
+		} else {
+			CInfo.State = 1;
+		}
 
 		Poco::JSON::Object CompleteRPC;
 		CompleteRPC.set(uCentralProtocol::JSONRPC, uCentralProtocol::JSONRPC_VERSION);
@@ -335,19 +370,19 @@ namespace OpenWifi {
 		CompleteRPC.set(uCentralProtocol::METHOD, CommandStr);
 		CompleteRPC.set(uCentralProtocol::PARAMS, Params);
 		Poco::JSON::Stringifier::stringify(CompleteRPC, ToSend);
-		Idx.rpc_entry = rpc ? std::make_shared<CommandManager::promise_type_t>() : nullptr;
+		CInfo.rpc_entry = rpc ? std::make_shared<CommandManager::promise_type_t>() : nullptr;
 
 		poco_debug(Logger(), fmt::format("{}: Sending command {} to {}. ID: {}", UUID, CommandStr, SerialNumber, RPC_ID));
 		//	Do not change the order. It is possible that an RPC completes before it is entered in the map. So we insert it
 		//	first, even if we may need to remove it later upon failure.
 		if(!oneway_rpc) {
 			std::lock_guard M(Mutex_);
-			OutStandingRequests_[RPC_ID] = Idx;
+			OutStandingRequests_[RPC_ID] = CInfo;
 		}
 		if(AP_WS_Server()->SendFrame(SerialNumber, ToSend.str())) {
 			poco_debug(Logger(), fmt::format("{}: Sent command. ID: {}", UUID, RPC_ID));
 			Sent=true;
-			return Idx.rpc_entry;
+			return CInfo.rpc_entry;
 		} else if (!oneway_rpc) {
 			std::lock_guard M(Mutex_);
 			OutStandingRequests_.erase(RPC_ID);

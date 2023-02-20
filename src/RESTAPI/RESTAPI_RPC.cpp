@@ -44,7 +44,8 @@ namespace OpenWifi::RESTAPI_RPC {
 						std::chrono::milliseconds WaitTimeInMs,
 						Poco::JSON::Object * ObjectToReturn,
 						RESTAPIHandler * Handler,
-						Poco::Logger &Logger) {
+						Poco::Logger &Logger,
+						bool Deferred) {
 
 		Logger.information(fmt::format("{},{}: New {} command. User={} Serial={}. ", Cmd.UUID, RPCID, Cmd.Command, Cmd.SubmittedBy, Cmd.SerialNumber));
 		Cmd.Submitted = Utils::Now();
@@ -66,7 +67,7 @@ namespace OpenWifi::RESTAPI_RPC {
 		bool Sent;
 		std::chrono::time_point<std::chrono::high_resolution_clock> rpc_submitted = std::chrono::high_resolution_clock::now();
 		std::shared_ptr<CommandManager::promise_type_t> rpc_endpoint =
-			CommandManager()->PostCommand(RPCID, Command, Cmd.SerialNumber, Cmd.Command, Params, Cmd.UUID, Sent, true);
+			CommandManager()->PostCommand(RPCID, Command, Cmd.SerialNumber, Cmd.Command, Params, Cmd.UUID, Sent, true, Deferred);
 
 		if(RetryLater && (!Sent || rpc_endpoint== nullptr)) {
 			Logger.information(fmt::format("{},{}: Pending completion. Device is not connected.", Cmd.UUID, RPCID));

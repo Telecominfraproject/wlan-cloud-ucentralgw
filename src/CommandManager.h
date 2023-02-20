@@ -56,6 +56,7 @@ namespace OpenWifi {
 				std::uint64_t 			State=1;
 				std::chrono::time_point<std::chrono::high_resolution_clock> submitted = std::chrono::high_resolution_clock::now();
 				std::shared_ptr<promise_type_t> rpc_entry;
+				bool 					Deferred=false;
 			};
 
 			struct RPCResponse {
@@ -118,7 +119,8 @@ namespace OpenWifi {
 				const Poco::JSON::Object &Params,
 				const std::string &UUID,
 				bool & Sent,
-				bool rpc) {
+				bool rpc,
+				bool Deferred) {
 					return 	PostCommand(RPC_ID,
 								   Command,
 								   SerialNumber,
@@ -127,7 +129,8 @@ namespace OpenWifi {
 								   UUID,
 								   false,
 								   false, Sent,
-								   rpc);
+								   rpc,
+								   Deferred);
 			}
 
 			std::shared_ptr<promise_type_t> PostCommandOneWay(
@@ -220,7 +223,11 @@ namespace OpenWifi {
 				bool oneway_rpc,
 				bool disk_only,
 				bool & Sent,
-				bool rpc_call);
+				bool rpc_call,
+				bool Deferred=false);
+
+			bool CompleteScriptCommand(CommandInfo &Command, Poco::JSON::Object::Ptr Payload);
+			bool CompleteTelemetryCommand(CommandInfo &Command, Poco::JSON::Object::Ptr Payload);
 
 			CommandManager() noexcept:
 				SubSystemServer("CommandManager", "CMD-MGR", "command.manager") {

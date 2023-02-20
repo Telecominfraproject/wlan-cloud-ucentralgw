@@ -52,7 +52,7 @@ namespace OpenWifi {
 				Poco::JSON::Stringifier::stringify(Params, O);
 				Cmd.Details = O.str();
 				bool Sent;
-				CommandManager()->PostCommand(CommandManager()->Next_RPC_ID(), APCommands::Commands::reboot, SerialNumber_, Cmd.Command, Params, Cmd.UUID, Sent, false);
+				CommandManager()->PostCommand(CommandManager()->Next_RPC_ID(), APCommands::Commands::reboot, SerialNumber_, Cmd.Command, Params, Cmd.UUID, Sent, false, false);
 				StorageService()->AddCommand(SerialNumber_, Cmd, Storage::CommandExecutionType::COMMAND_EXECUTED);
 				poco_information(Logger_, fmt::format("RECOVERY({}): Recovery mode received, need for a reboot.", CId_));
 			} else {

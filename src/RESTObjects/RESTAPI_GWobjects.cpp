@@ -176,6 +176,7 @@ namespace OpenWifi::GWObjects {
 		field_to_json(Obj,"attachFile", AttachDate);
 		field_to_json(Obj,"executionTime", executionTime);
 		field_to_json(Obj,"lastTry", lastTry);
+		field_to_json(Obj,"deferred", deferred);
 	}
 
 	bool DefaultConfiguration::from_json(const Poco::JSON::Object::Ptr &Obj) {
