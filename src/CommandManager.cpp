@@ -206,7 +206,10 @@ namespace OpenWifi {
 										   request->second.UUID,
 										   APCommands::to_string(request->second.Command),
 										   Utils::IntToSerialNumber(request->second.SerialNumber)));
-				StorageService()->CancelWaitFile(request->second.UUID, TimeOutError);
+				if( (request->second.Command == APCommands::Commands::script && request->second.Deferred) ||
+					(request->second.Command == APCommands::Commands::trace)) {
+						StorageService()->CancelWaitFile(request->second.UUID, TimeOutError);
+				}
 				StorageService()->SetCommandTimedOut(request->second.UUID);
 				request = OutStandingRequests_.erase(request);
 			} else {
