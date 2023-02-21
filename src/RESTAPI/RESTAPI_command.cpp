@@ -10,6 +10,7 @@
 
 #include "StorageService.h"
 #include "framework/ow_constants.h"
+#include "CommandManager.h"
 
 namespace OpenWifi {
 	void RESTAPI_command::DoGet() {
@@ -40,6 +41,7 @@ namespace OpenWifi {
 			return NotFound();
 		}
 
+		CommandManager()->RemoveCommand(CommandUUID);
 		if (StorageService()->DeleteCommand(CommandUUID)) {
 			return OK();
 		}

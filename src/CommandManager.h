@@ -194,6 +194,16 @@ namespace OpenWifi {
 				}
 			}
 
+			inline void RemoveCommand(const std::string &UUID) {
+				std::lock_guard	Lock(LocalMutex_);
+				for(const auto &[Id,Cmd]:OutStandingRequests_) {
+					if(Cmd.UUID==UUID) {
+						OutStandingRequests_.erase(Id);
+						return;
+					}
+				}
+			}
+
 			inline auto CommandTimeout() const { return commandTimeOut_; }
 			inline auto CommandRetry() const { return commandRetry_; }
 
